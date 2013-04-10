@@ -72,11 +72,11 @@ void CaptureControlWidget::UpdateBasedOnState()
   {
     ui.startStopButton->setEnabled(true);
     ui.channelIdentifierLabel->setText(QString(m_Device->GetDeviceId()));
+    ui.numberOfRecordedFramesValueLabel->setText( QString::number(m_Device->GetTotalFramesRecorded(), 10) );
 
     ui.saveAsButton->setEnabled( this->CanSave() );
     ui.saveButton->setEnabled( this->CanSave() );
-    ui.clearRecordedFramesButton->setEnabled( m_Device->HasUnsavedData() );
-    ui.numberOfRecordedFramesValueLabel->setText( QString::number(m_Device->GetTotalFramesRecorded(), 10) );
+    ui.clearRecordedFramesButton->setEnabled( this->CanSave() );
 
     if( m_Device->GetEnableCapturing() )
     {
@@ -85,6 +85,7 @@ void CaptureControlWidget::UpdateBasedOnState()
       ui.startStopButton->setText(QString("Stop"));
       ui.startStopButton->setIcon( QPixmap( ":/icons/Resources/icon_Stop.png" ) );
       ui.startStopButton->setEnabled(true);
+      ui.snapshotButton->setEnabled(false);
     }
     else
     {
@@ -92,6 +93,7 @@ void CaptureControlWidget::UpdateBasedOnState()
       ui.startStopButton->setIcon( QPixmap( ":/icons/Resources/icon_Record.png" ) );
       ui.startStopButton->setFocus();
       ui.startStopButton->setEnabled(true);
+      ui.snapshotButton->setEnabled(true);
 
       ui.actualFrameRateValueLabel->setText( QString::number(0.0, 'f', 2) );
       ui.samplingRateSlider->setEnabled(true);
@@ -105,6 +107,7 @@ void CaptureControlWidget::UpdateBasedOnState()
 
     ui.startStopButton->setEnabled(false);
     ui.saveButton->setEnabled(false);
+    ui.snapshotButton->setEnabled(false);
     ui.clearRecordedFramesButton->setEnabled(false);
     ui.channelIdentifierLabel->setText("");
     ui.samplingRateSlider->setEnabled(false);
@@ -241,74 +244,19 @@ void CaptureControlWidget::TakeSnapshot()
 {
   LOG_TRACE("CaptureControlWidget::TakeSnapshot"); 
 
-  vtkPlusChannel* aChannel = (*m_Device->GetOutputChannelsStart());
-  TrackedFrame frame;
-  if( aChannel->GetTrackedFrame(&frame) != PLUS_SUCCESS )
+  if( this->m_Device->TakeSnapshot() != PLUS_SUCCESS )
   {
-    std::string aMessage("Unable to retrieve tracked frame for device: ");
-    aMessage += this->m_Device->GetDeviceId();
-    this->SendStatusMessage(aMessage);
-    LOG_ERROR(aMessage);
+    std::string message(this->m_Device->GetDeviceId());
+    message += ": Unable to take snapshot.";
+    LOG_ERROR(message);
+    SendStatusMessage(message);
     return;
   }
 
-  // Check if there are any valid transforms
-  std::vector<PlusTransformName> transformNames;
-  frame.GetCustomFrameTransformNameList(transformNames);
-  bool validFrame = false;
-
-  if (transformNames.size() == 0)
-  {
-    validFrame = true;
-  }
-  else
-  {
-    for (std::vector<PlusTransformName>::iterator it = transformNames.begin(); it != transformNames.end(); ++it)
-    {
-      TrackedFrameFieldStatus status = FIELD_INVALID;
-      frame.GetCustomFrameTransformStatus(*it, status);
-
-      if ( status == FIELD_OK )
-      {
-        validFrame = true;
-        break;
-      }
-    }
-  }
-
-  if ( !validFrame )
-  {
-    std::string aMessage("Warning: Snapshot frame for device ");
-    aMessage += this->m_Device->GetDeviceId();
-    aMessage += " has no transforms. Success.";
-    this->SendStatusMessage(aMessage);
-    LOG_WARNING(aMessage); 
-  }
-
-  vtkTrackedFrameList* list = vtkTrackedFrameList::New();
-  list->AddTrackedFrame(&frame);
-
-  vtkMetaImageSequenceIO* writer = vtkMetaImageSequenceIO::New();
-  std::string fileName=vtkPlusConfig::GetInstance()->GetOutputPath( std::string("TrackedImageSequence_Snapshot_")+m_Device->GetDeviceId()+"_"+vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S")+".mha" );
-  writer->SetFileName(fileName.c_str());
-  writer->SetTrackedFrameList(list);
-  if( writer->Write() != PLUS_SUCCESS )
-  {
-    std::string aMessage("Unable to write frame for device ");
-    aMessage += this->m_Device->GetDeviceId();
-    this->SendStatusMessage(aMessage);
-    LOG_ERROR(aMessage); 
-  }
-
-  std::string aMessage("Snapshot taken for device ");
-  aMessage += this->m_Device->GetDeviceId();
-  aMessage += " to file: ";
-  aMessage += fileName;
-  this->SendStatusMessage(aMessage);
-  LOG_INFO(aMessage); 
-
-  list->Delete();
-  writer->Delete();
+  std::string message(this->m_Device->GetDeviceId());
+  message += ": Snapshot taken.";
+  LOG_INFO(message);
+  SendStatusMessage(message);
 }
 
 //-----------------------------------------------------------------------------
@@ -365,7 +313,7 @@ void CaptureControlWidget::Clear()
 //-----------------------------------------------------------------------------
 bool CaptureControlWidget::CanSave() const
 {
-  return m_Device->HasUnsavedData();
+  return !m_Device->GetEnableCapturing() && m_Device->HasUnsavedData();
 }
 
 //-----------------------------------------------------------------------------

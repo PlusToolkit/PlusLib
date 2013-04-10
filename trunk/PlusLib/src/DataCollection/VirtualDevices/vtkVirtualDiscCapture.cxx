@@ -328,74 +328,13 @@ PlusStatus vtkVirtualDiscCapture::InternalUpdate()
   }
   int nbFramesAfter = m_RecordedFrames->GetNumberOfTrackedFrames();
 
-  if( !m_HeaderPrepared && m_RecordedFrames->GetNumberOfTrackedFrames() != 0 )
+  if( this->WriteFrames() != PLUS_SUCCESS )
   {
-    if( m_Writer->PrepareHeader() != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to prepare header.");
-      this->Disconnect();
-      return PLUS_FAIL;
-    }
-    m_HeaderPrepared = true;
+    LOG_ERROR(this->GetDeviceId() << ": Unable to write " << nbFramesAfter - nbFramesBefore << " frames.");
+    return PLUS_FAIL;
   }
 
-  if (!this->EnableCapturing)
-  {
-    // While this thread was working on getting the frames, capturing was disabled, so cancel the update now
-    return PLUS_SUCCESS;
-  }
-
-  // Compute the average frame rate from the ratio of recently acquired frames
-  int frame1Index = m_RecordedFrames->GetNumberOfTrackedFrames() - 1; // index of the latest frame
-  int frame2Index = frame1Index - this->RequestedFrameRate * 5.0 - 1; // index of an earlier acquired frame (go back by approximately 5 seconds + one frame)
-  if (frame2Index < m_FirstFrameIndexInThisSegment)
-  {
-    // make sure we stay in the current recording segment
-    frame2Index = m_FirstFrameIndexInThisSegment;
-  }
-  if (frame1Index > frame2Index)
-  {   
-    TrackedFrame* frame1 = m_RecordedFrames->GetTrackedFrame(frame1Index);
-    TrackedFrame* frame2 = m_RecordedFrames->GetTrackedFrame(frame2Index);
-    if (frame1 != NULL && frame2 != NULL)
-    {
-      double frameTimeDiff = frame1->GetTimestamp() - frame2->GetTimestamp();
-      if (frameTimeDiff > 0)
-      {
-        this->ActualFrameRate = (frame1Index - frame2Index) / frameTimeDiff;
-      }
-      else
-      {
-        this->ActualFrameRate = 0;
-      }
-    }    
-  }
-
-  if( m_RecordedFrames->GetNumberOfTrackedFrames() == 0 )
-  {
-    return PLUS_SUCCESS;
-  }
-
-  if( !this->IsFrameBuffered() || 
-    ( this->IsFrameBuffered() && m_RecordedFrames->GetNumberOfTrackedFrames() > this->GetFrameBufferSize() ) )
-  {
-    if( m_Writer->AppendImagesToHeader() != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to append image data to header.");
-      this->Disconnect();
-      return PLUS_FAIL;
-    }
-    if( m_Writer->AppendImages() != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to append images. Stopping recording at timestamp: " << m_LastAlreadyRecordedFrameTimestamp );
-      this->Disconnect();
-      return PLUS_FAIL;
-    }
-
-    this->ClearRecordedFrames();
-  }
-
-  TotalFramesRecorded += nbFramesAfter - nbFramesBefore;
+  this->TotalFramesRecorded += nbFramesAfter - nbFramesBefore;
 
   // Check whether the recording needed more time than the sampling interval
   double recordingTimeSec = vtkAccurateTimer::GetSystemTime() - startTimeSec;
@@ -612,4 +551,135 @@ PlusStatus vtkVirtualDiscCapture::Reset()
 bool vtkVirtualDiscCapture::IsFrameBuffered() const
 {
   return this->FrameBufferSize != DISABLE_FRAME_BUFFER;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkVirtualDiscCapture::TakeSnapshot()
+{
+  if( this->EnableCapturing )
+  {
+    LOG_ERROR(this->GetDeviceId() << ": Cannot take snapshot while the device is recording.");
+    return PLUS_FAIL;
+  }
+
+  TrackedFrame trackedFrame;
+  if( this->OutputChannels[0]->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
+  {
+    LOG_ERROR(this->GetDeviceId() << ": Failed to get tracked frame for the snapshot!");
+    return PLUS_FAIL;
+  }
+
+  // Check if there are any valid transforms
+  std::vector<PlusTransformName> transformNames;
+  trackedFrame.GetCustomFrameTransformNameList(transformNames);
+  bool validFrame = false;
+
+  if (transformNames.size() == 0)
+  {
+    validFrame = true;
+  }
+  else
+  {
+    for (std::vector<PlusTransformName>::iterator it = transformNames.begin(); it != transformNames.end(); ++it)
+    {
+      TrackedFrameFieldStatus status = FIELD_INVALID;
+      trackedFrame.GetCustomFrameTransformStatus(*it, status);
+
+      if ( status == FIELD_OK )
+      {
+        validFrame = true;
+        break;
+      }
+    }
+  }
+
+  if ( !validFrame )
+  {
+    LOG_WARNING(this->GetDeviceId() << ": Unable to record tracked frame: All the tool transforms are invalid!"); 
+    return PLUS_FAIL;
+  }
+
+  // Add tracked frame to the list
+  if (m_RecordedFrames->AddTrackedFrame(&trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS)
+  {
+    LOG_WARNING(this->GetDeviceId() << ": Frame could not be added because validation failed!");
+    return PLUS_FAIL;
+  }
+  
+  if( this->WriteFrames() != PLUS_SUCCESS )
+  {
+    LOG_ERROR(this->GetDeviceId() << ": Unable to write frames while taking a snapshot.");
+    return PLUS_FAIL;
+  }
+
+  this->TotalFramesRecorded += 1;
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkVirtualDiscCapture::WriteFrames()
+{
+  if( !m_HeaderPrepared && m_RecordedFrames->GetNumberOfTrackedFrames() != 0 )
+  {
+    if( m_Writer->PrepareHeader() != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to prepare header.");
+      this->Disconnect();
+      return PLUS_FAIL;
+    }
+    m_HeaderPrepared = true;
+  }
+
+  // Compute the average frame rate from the ratio of recently acquired frames
+  int frame1Index = m_RecordedFrames->GetNumberOfTrackedFrames() - 1; // index of the latest frame
+  int frame2Index = frame1Index - this->RequestedFrameRate * 5.0 - 1; // index of an earlier acquired frame (go back by approximately 5 seconds + one frame)
+  if (frame2Index < m_FirstFrameIndexInThisSegment)
+  {
+    // make sure we stay in the current recording segment
+    frame2Index = m_FirstFrameIndexInThisSegment;
+  }
+  if (frame1Index > frame2Index)
+  {   
+    TrackedFrame* frame1 = m_RecordedFrames->GetTrackedFrame(frame1Index);
+    TrackedFrame* frame2 = m_RecordedFrames->GetTrackedFrame(frame2Index);
+    if (frame1 != NULL && frame2 != NULL)
+    {
+      double frameTimeDiff = frame1->GetTimestamp() - frame2->GetTimestamp();
+      if (frameTimeDiff > 0)
+      {
+        this->ActualFrameRate = (frame1Index - frame2Index) / frameTimeDiff;
+      }
+      else
+      {
+        this->ActualFrameRate = 0;
+      }
+    }    
+  }
+
+  if( m_RecordedFrames->GetNumberOfTrackedFrames() == 0 )
+  {
+    return PLUS_SUCCESS;
+  }
+
+  if( !this->IsFrameBuffered() || 
+    ( this->IsFrameBuffered() && m_RecordedFrames->GetNumberOfTrackedFrames() > this->GetFrameBufferSize() ) )
+  {
+    if( m_Writer->AppendImagesToHeader() != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to append image data to header.");
+      this->Disconnect();
+      return PLUS_FAIL;
+    }
+    if( m_Writer->AppendImages() != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to append images. Stopping recording at timestamp: " << m_LastAlreadyRecordedFrameTimestamp );
+      this->Disconnect();
+      return PLUS_FAIL;
+    }
+
+    this->ClearRecordedFrames();
+  }
+
+  return PLUS_SUCCESS;
 }
