@@ -27,9 +27,8 @@ int main(int argc, char **argv)
   int numberOfFailures(0); 
   std::string inputConfigFileName;
   double inputAcqTimeLength(20);
-  std::string outputFolder("./"); 
-  std::string outputTrackerBufferSequenceFileName("TrackerBufferMetafile"); 
-  std::string outputVideoBufferSequenceFileName("VideoBufferMetafile"); 
+  std::string outputTrackerBufferSequenceFileName("TrackerBufferMetafile.mha"); 
+  std::string outputVideoBufferSequenceFileName("VideoBufferMetafile.mha"); 
   std::string inputVideoBufferMetafile;
   std::string inputTrackerBufferMetafile;
   bool outputCompressed(true);
@@ -45,7 +44,6 @@ int main(int argc, char **argv)
   args.AddArgument("--tracker-buffer-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTrackerBufferMetafile, "Tracker buffer sequence metafile.");
   args.AddArgument("--output-tracker-buffer-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputTrackerBufferSequenceFileName, "Filename of the output tracker buffer sequence metafile (Default: TrackerBufferMetafile)");
   args.AddArgument("--output-video-buffer-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVideoBufferSequenceFileName, "Filename of the output video buffer sequence metafile (Default: VideoBufferMetafile)");
-  args.AddArgument("--output-folder", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFolder, "Output folder (Default: ./)");
   args.AddArgument("--output-compressed", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputCompressed, "Compressed output (0=non-compressed, 1=compressed, default:compressed)");	
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
@@ -155,55 +153,53 @@ int main(int argc, char **argv)
 
   if ( videoDevice != NULL ) 
   {
-    LOG_INFO("Write video buffer to " << outputVideoBufferSequenceFileName);
-    videobuffer->WriteToMetafile(outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), outputCompressed); 
+    std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(outputVideoBufferSequenceFileName);
+    LOG_INFO("Write video buffer to " << fullPath);
+    videobuffer->WriteToMetafile(fullPath.c_str(), outputCompressed); 
   }
 
   if ( trackerDevice != NULL )
   {
-    LOG_INFO("Write tracker buffer to " << outputTrackerBufferSequenceFileName);
-    tracker->WriteToMetafile(outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), outputCompressed); 
+    std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(outputTrackerBufferSequenceFileName);
+    LOG_INFO("Write tracker buffer to " << fullPath );
+    tracker->WriteToMetafile(fullPath.c_str(), outputCompressed); 
   }
 
 
   if ( videoDevice != NULL )
   {
-    std::ostringstream filepath; 
-    filepath << outputFolder << "/" << outputVideoBufferSequenceFileName << ".mha"; 
-
-    if ( vtksys::SystemTools::FileExists(filepath.str().c_str(), true) )
+    std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(outputVideoBufferSequenceFileName);
+    if ( vtksys::SystemTools::FileExists(fullPath.c_str(), true) )
     {
       LOG_INFO("Remove generated video metafile!"); 
-      if ( !vtksys::SystemTools::RemoveFile(filepath.str().c_str()) )
+      if ( !vtksys::SystemTools::RemoveFile(fullPath.c_str()) )
       {
-        LOG_ERROR("Unable to remove generated video buffer: " << filepath.str() ); 
+        LOG_ERROR("Unable to remove generated video buffer: " << fullPath ); 
         numberOfFailures++; 
       }
     }
     else
     {
-      LOG_ERROR("Unable to find video buffer at: " << filepath.str() ); 
+      LOG_ERROR("Unable to find video buffer at: " << fullPath ); 
       numberOfFailures++; 
     }
   }
 
   if ( trackerDevice != NULL )
   {
-    std::ostringstream filepath; 
-    filepath << outputFolder << "/" << outputTrackerBufferSequenceFileName << ".mha"; 
-
-    if ( vtksys::SystemTools::FileExists(filepath.str().c_str(), true) )
+    std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(outputTrackerBufferSequenceFileName);
+    if ( vtksys::SystemTools::FileExists(fullPath.c_str(), true) )
     {
       LOG_INFO("Remove generated tracker metafile!"); 
-      if ( !vtksys::SystemTools::RemoveFile(filepath.str().c_str()) )
+      if ( !vtksys::SystemTools::RemoveFile(fullPath.c_str()) )
       {
-        LOG_ERROR("Unable to remove generated tracker buffer: " << filepath.str() ); 
+        LOG_ERROR("Unable to remove generated tracker buffer: " << fullPath ); 
         numberOfFailures++; 
       }
     }
     else
     {
-      LOG_ERROR("Unable to find tracker buffer at: " << filepath.str() ); 
+      LOG_ERROR("Unable to find tracker buffer at: " << fullPath ); 
       numberOfFailures++; 
     }
   }

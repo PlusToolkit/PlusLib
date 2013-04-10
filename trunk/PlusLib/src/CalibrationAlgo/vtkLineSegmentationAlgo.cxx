@@ -232,7 +232,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
       // Set the scanline start pixel
       CharImageType::IndexType startPixel;
       int scanlineSpacingPix = static_cast<int>(region.GetSize()[0] / (NUMBER_OF_SCANLINES + 1) );
-      startPixel[0] = region.GetIndex()[0]+scanlineSpacingPix * (currScanlineNum + 1);
+      startPixel[0] = region.GetIndex()[0]+scanlineSpacingPix * (currScanlineNum + 1); // TODO: why the +1?
       startPixel[1] = region.GetIndex()[1];
 
       // Set the scanline end pixel
@@ -330,10 +330,10 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
     if(ComputeLineParameters(intensityPeakPositions, planeParameters) == PLUS_SUCCESS)
     {
 
-      double r_x = - planeParameters.at(1);
-      double r_y = planeParameters.at(0);
-      double x_0 = planeParameters.at(2);
-      double y_0 = planeParameters.at(3);
+      double r_x = - planeParameters.at(1); // line direction vector (x)
+      double r_y = planeParameters.at(0);   // line direction vector (y)
+      double x_0 = planeParameters.at(2);   // line origin position (x)
+      double y_0 = planeParameters.at(3);   // line origin position (y)
 
       if(r_x < MIN_X_SLOPE_COMPONENT_FOR_DETECTED_LINE)
       {

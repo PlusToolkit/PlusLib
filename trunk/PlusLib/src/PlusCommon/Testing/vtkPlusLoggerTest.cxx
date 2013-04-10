@@ -57,9 +57,7 @@ int main(int argc, char **argv)
 	}	
 
   // Change output dir to test log saving to different folder
-  std::ostringstream outputDir; 
-  outputDir << vtkPlusConfig::GetInstance()->GetProgramDirectory() << "/OutputTest"; 
-  vtkPlusConfig::GetInstance()->SetOutputDirectory( outputDir.str().c_str() ); 
+  vtkPlusConfig::GetInstance()->SetOutputDirectory("OutputTest"); 
 
   std::cout << "Verbose level: " << verboseLevel << std::endl;
 
@@ -68,7 +66,7 @@ int main(int argc, char **argv)
   LOG_INFO("This is a test info message");
   
   // Call set output dir with the same dir 
-  vtkPlusConfig::GetInstance()->SetOutputDirectory( outputDir.str().c_str() ); 
+  vtkPlusConfig::GetInstance()->SetOutputDirectory("OutputTest"); 
   
   LOG_DEBUG("This is a test debug message");
   LOG_TRACE("This is a test trace message");

@@ -208,7 +208,6 @@ int main(int argc, char **argv)
   std::string inputToolName; 
   double inputAcqTimeLength(60);
   std::string outputTrackerBufferSequenceFileName; 
-  std::string outputFolder("./");
   bool renderingOff(false);
 
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
@@ -220,7 +219,6 @@ int main(int argc, char **argv)
   args.AddArgument("--tool-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputToolName, "Will print the actual transform of this tool (names were defined in the config file, default is the first active tool)");	
   args.AddArgument("--acq-time-length", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputAcqTimeLength, "Length of acquisition time in seconds (Default: 60s)");	
   args.AddArgument("--output-tracker-buffer-seq-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputTrackerBufferSequenceFileName, "Filename of the output tracker bufffer sequence metafile (Default: TrackerBufferMetafile)");
-  args.AddArgument("--output-folder", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFolder, "Output folder (Default: ./)");
   args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
@@ -404,8 +402,9 @@ int main(int argc, char **argv)
     LOG_INFO("Copy tracker..."); 
     vtkSmartPointer<vtkPlusDevice> tracker = vtkSmartPointer<vtkPlusDevice>::New(); 
     tracker->DeepCopy(aDevice);
-    LOG_INFO("Write tracker to " << outputTrackerBufferSequenceFileName);
-    tracker->WriteToMetafile(outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), true); 
+    std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(outputTrackerBufferSequenceFileName);
+    LOG_INFO("Write tracker to " << fullPath);
+    tracker->WriteToMetafile(fullPath.c_str(), true); 
   }
 
   std::cout << "Test completed successfully!" << std::endl;

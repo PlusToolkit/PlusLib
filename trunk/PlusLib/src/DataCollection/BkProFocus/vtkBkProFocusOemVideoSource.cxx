@@ -408,7 +408,7 @@ PlusStatus vtkBkProFocusOemVideoSource::GetFullIniFilePath(std::string &fullPath
   }
   else
   {
-    fullPath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() + std::string("/") + this->IniFileName;
+    fullPath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->IniFileName);
   }
   return PLUS_SUCCESS;
 }

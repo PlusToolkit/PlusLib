@@ -211,7 +211,7 @@ public:
   PlusStatus CopyImagesFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering, bool copyCustomFrameFields);
 
   /*! Dump the current state of the video buffer to metafile */
-  virtual PlusStatus WriteToMetafile( const char* outputFolder, const char* metaFileName, bool useCompression = false ); 
+  virtual PlusStatus WriteToMetafile( const char* filename, bool useCompression = false ); 
 
 protected:
   vtkPlusBuffer();

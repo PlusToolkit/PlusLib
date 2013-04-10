@@ -352,10 +352,8 @@ PlusStatus vtkSpacingCalibAlgo::GenerateReport( vtkHTMLGenerator* htmlReport, vt
     return PLUS_FAIL; 
   }
 
-  const char* scriptsFolder = vtkPlusConfig::GetInstance()->GetScriptsDirectory();
-
   // Check gnuplot scripts 
-  std::string plotSpacingCalculationErrorScript = scriptsFolder + std::string("/gnuplot/PlotSpacingCalculationErrorHistogram.gnu"); 
+  std::string plotSpacingCalculationErrorScript = vtkPlusConfig::GetInstance()->GetScriptPath("gnuplot/PlotSpacingCalculationErrorHistogram.gnu"); 
   if ( !vtksys::SystemTools::FileExists( plotSpacingCalculationErrorScript.c_str(), true) )
   {
     LOG_ERROR("Unable to find gnuplot script at: " << plotSpacingCalculationErrorScript); 
@@ -363,9 +361,8 @@ PlusStatus vtkSpacingCalibAlgo::GenerateReport( vtkHTMLGenerator* htmlReport, vt
   }
 
   // Generate report files from table 
-  std::string reportFile = std::string(vtkPlusConfig::GetInstance()->GetOutputDirectory()) + std::string("/")
-    + std::string(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()) 
-    + std::string(".SpacingCalibrationReport.txt");
+  std::string reportFile = vtkPlusConfig::GetInstance()->GetOutputPath(
+    vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp() + ".SpacingCalibrationReport.txt" );
   if ( vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat( this->ReportTable, reportFile.c_str()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to dump spacing calibration report table to " << reportFile );

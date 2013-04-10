@@ -136,7 +136,7 @@ int main(int argc, char **argv)
 
   if ( intermediateFileOutputDirectory.empty() )
   {
-    intermediateFileOutputDirectory = std::string(vtkPlusConfig::GetInstance()->GetOutputDirectory());
+    intermediateFileOutputDirectory = vtkPlusConfig::GetInstance()->GetOutputDirectory();
   }
 
   if (probeToReferenceTransformNameStr.empty())

@@ -223,7 +223,7 @@ PlusStatus vtkChRoboticsTracker::InternalUpdate()
 //-------------------------------------------------------------------------
 PlusStatus vtkChRoboticsTracker::FindFirmwareDefinition(const std::string& requestedFirmwareId, vtkXMLDataElement* foundDefinition)
 {
-  std::string firmwareFullPath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() + std::string("/") + this->FirmwareDirectory;
+  std::string firmwareFullPath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->FirmwareDirectory.c_str());
   LOG_DEBUG("Loading the firmware files from "<<firmwareFullPath);
   
   std::vector<std::string> firmwareFileList;

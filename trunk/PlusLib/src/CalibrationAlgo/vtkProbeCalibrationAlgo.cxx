@@ -722,7 +722,7 @@ PlusStatus vtkProbeCalibrationAlgo::SaveCalibrationResultAndErrorReportToXML(vtk
   LOG_TRACE("vtkProbeCalibrationAlgo::SaveCalibrationResultsAndErrorReportsToXML");
 
   std::string calibrationResultFileName = std::string(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()) + ".Calibration.results.xml";
-  std::string calibrationResultFileNameWithPath = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/") + calibrationResultFileName;
+  std::string calibrationResultFileNameWithPath = vtkPlusConfig::GetInstance()->GetOutputPath(calibrationResultFileName);
 
   // ProbeCalibrationResult
   vtkSmartPointer<vtkXMLDataElement> probeCalibrationResult = vtkSmartPointer<vtkXMLDataElement>::New(); 
@@ -733,7 +733,7 @@ PlusStatus vtkProbeCalibrationAlgo::SaveCalibrationResultAndErrorReportToXML(vtk
   // CalibrationFile
   vtkSmartPointer<vtkXMLDataElement> calibrationFile = vtkSmartPointer<vtkXMLDataElement>::New(); 
   calibrationFile->SetName("CalibrationFile"); 
-  calibrationFile->SetAttribute("Timestamp", vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()); 
+  calibrationFile->SetAttribute("Timestamp", vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp().c_str()); 
   calibrationFile->SetAttribute("FileName", calibrationResultFileName.c_str()); 
 
   PlusStatus status = this->GetXMLCalibrationResultAndErrorReport(validationTrackedFrameList, validationStartFrame, validationEndFrame, calibrationTrackedFrameList, calibrationStartFrame, calibrationEndFrame, probeCalibrationResult); 
@@ -753,7 +753,7 @@ PlusStatus vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport(vtkTra
   LOG_TRACE("vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport");
 
   std::string calibrationResultFileName = std::string(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()) + ".Calibration.results.xml";
-  std::string calibrationResultFileNameWithPath = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/") + calibrationResultFileName;
+  std::string calibrationResultFileNameWithPath = vtkPlusConfig::GetInstance()->GetOutputPath(calibrationResultFileName);
 
   if ( probeCalibrationResult == NULL )
   {

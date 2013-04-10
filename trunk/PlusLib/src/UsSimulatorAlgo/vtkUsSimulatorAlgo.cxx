@@ -480,14 +480,13 @@ AttentuationCoefficientNpPerCm */
   if(modelFileName)
   {
     std::string foundAbsoluteImagePath;
-    if (vtkPlusConfig::GetAbsoluteImagePath(modelFileName, foundAbsoluteImagePath) == PLUS_SUCCESS)
+    if (vtkPlusConfig::GetInstance()->FindImagePath(modelFileName, foundAbsoluteImagePath) == PLUS_SUCCESS)
     {
       if (LoadModel(foundAbsoluteImagePath)!=PLUS_SUCCESS)
       {
         return PLUS_FAIL;     
       }
     }
-
     else
     {
       LOG_ERROR("Cannot find input model file!");

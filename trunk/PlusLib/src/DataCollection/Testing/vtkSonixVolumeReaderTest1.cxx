@@ -71,24 +71,11 @@ int main (int argc, char* argv[])
 
   if ( !outputFileName.empty() )
   {
-	  std::string path = vtksys::SystemTools::GetFilenamePath(outputFileName);
-    if ( path.empty() )
+    std::string path = vtkPlusConfig::GetInstance()->GetOutputPath(outputFileName); 
+    LOG_INFO("Save tracked frames to " << path); 
+    if ( sonixVolumeData->SaveToSequenceMetafile(path.c_str(), false /*no compression*/) != PLUS_SUCCESS )
     {
-      path = vtkPlusConfig::GetInstance()->GetOutputDirectory(); 
-    }
-	  std::string filename = vtksys::SystemTools::GetFilenameWithoutExtension(outputFileName); 
-	  std::string extension = vtksys::SystemTools::GetFilenameExtension(outputFileName); 
-
-	  vtkTrackedFrameList::SEQ_METAFILE_EXTENSION ext(vtkTrackedFrameList::SEQ_METAFILE_MHA); 
-	  if ( STRCASECMP(".mhd", extension.c_str() ) == 0 )
-	  {
-		  ext = vtkTrackedFrameList::SEQ_METAFILE_MHD; 
-	  }
-
-    LOG_INFO("Save tracked frames to " << path << filename << extension ); 
-    if ( sonixVolumeData->SaveToSequenceMetafile(path.c_str(), filename.c_str(), ext, false /*no compression*/) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to save sonix volume to " << path << filename << extension ); 
+      LOG_ERROR("Failed to save sonix volume to " << path); 
     }
   }
 	

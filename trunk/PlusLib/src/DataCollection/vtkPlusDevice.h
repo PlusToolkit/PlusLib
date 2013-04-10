@@ -121,7 +121,7 @@ public:
   void ClearAllBuffers();
 
   /*! Dump the current state of the device to metafile (with each tools and buffers) */
-  virtual PlusStatus WriteToMetafile(const char* outputFolder, const char* metaFileName, bool useCompression = false );
+  virtual PlusStatus WriteToMetafile(const char* filename, bool useCompression = false );
 
   /*! Make this device into a copy of another device. */
   void DeepCopy(vtkPlusDevice* device);

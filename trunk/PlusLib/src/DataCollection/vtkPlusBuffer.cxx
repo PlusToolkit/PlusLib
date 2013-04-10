@@ -838,7 +838,7 @@ PlusStatus vtkPlusBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *so
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusBuffer::WriteToMetafile( const char* outputFolder, const char* metaFileName, bool useCompression /*=false*/ )
+PlusStatus vtkPlusBuffer::WriteToMetafile( const char* filename, bool useCompression /*=false*/ )
 {
   LOG_TRACE("vtkPlusBuffer::WriteToMetafile");
 
@@ -883,7 +883,7 @@ PlusStatus vtkPlusBuffer::WriteToMetafile( const char* outputFolder, const char*
   }
 
   // Save tracked frames to metafile
-  if ( trackedFrameList->SaveToSequenceMetafile(outputFolder, metaFileName, vtkTrackedFrameList::SEQ_METAFILE_MHA, useCompression) != PLUS_SUCCESS )
+  if ( trackedFrameList->SaveToSequenceMetafile(filename, useCompression) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to save tracked frames to sequence metafile!");
     return PLUS_FAIL;

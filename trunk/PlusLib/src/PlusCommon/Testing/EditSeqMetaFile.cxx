@@ -549,7 +549,7 @@ int main(int argc, char **argv)
 
   if (writer->Write() != PLUS_SUCCESS)
   {		
-    LOG_ERROR("Couldn't write sequence metafile: " <<  writer->GetFileName() ); 
+    LOG_ERROR("Couldn't write sequence metafile: " <<  outputFileName ); 
     return EXIT_FAILURE;
   }	
 

@@ -188,7 +188,8 @@ int main (int argc, char* argv[])
   {
     LOG_INFO("Compare with baseline: "<<inputBaselineFileName); 
     // Compare results to baseline
-    std::string currentConfigFileName = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/") + std::string(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()) + ".Calibration.results.xml";
+    std::string currentConfigFileName = vtkPlusConfig::GetInstance()->GetOutputPath( 
+      vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp() + ".Calibration.results.xml" );
     if ( CompareCalibrationResultsWithBaseline( inputBaselineFileName.c_str(), currentConfigFileName.c_str(), inputTranslationErrorThreshold, inputRotationErrorThreshold ) !=0 )
     {
       LOG_ERROR("Comparison of calibration data to baseline failed");

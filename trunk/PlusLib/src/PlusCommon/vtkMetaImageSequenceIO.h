@@ -96,8 +96,6 @@ public:
     MHD images and the full image (including pixel data) in case of MHA images.
   */
   virtual PlusStatus SetFileName(const char* aFilename);
-  /*! Get input/output file name. */
-  vtkGetStringMacro(FileName); 
 
   /*! Flag to enable/disable compression of image data */
   vtkGetMacro(UseCompression, bool);
@@ -138,7 +136,7 @@ protected:
   virtual PlusStatus OpenImageHeader();
 
   /*! Write pixel data to the metaimage */
-  virtual PlusStatus WriteImagePixels(char* aFilename, bool forceAppend = false);
+  virtual PlusStatus WriteImagePixels(const std::string& aFilename, bool forceAppend = false);
 
   /*! 
     Convenience function that extends the tracked frame list (if needed) to make sure
@@ -148,17 +146,6 @@ protected:
   
   /*! Get the largest possible image size in the tracked frame list */
   virtual void GetMaximumImageDimensions(int maxFrameSize[2]); 
-
-  /*! Set file name for storing the pixel data */
-  vtkSetStringMacro(PixelDataFileName); 
-  /*! Get file name for storing the pixel data */
-  vtkGetStringMacro(PixelDataFileName); 
-
-  vtkSetStringMacro(TempHeaderFileName); 
-  vtkGetStringMacro(TempHeaderFileName); 
-
-  vtkSetStringMacro(TempImageFileName); 
-  vtkGetStringMacro(TempImageFileName); 
 
   /*! Get full path to the file for storing the pixel data */
   std::string GetPixelDataFilePath();
@@ -176,7 +163,7 @@ protected:
   virtual PlusStatus WriteCompressedImagePixelsToFile(FILE *outputFileStream, int &compressedDataSize);
 
   /*! Copy from file A to B */
-  virtual PlusStatus MoveDataInFiles(const char* sourceFilename, const char* destFilename, bool append);
+  virtual PlusStatus MoveDataInFiles(const std::string& sourceFilename, const std::string& destFilename, bool append);
 private:
 
 #ifdef _WIN32
@@ -191,11 +178,11 @@ private:
   vtkTrackedFrameList* TrackedFrameList;
 
   /*! Name of the file that contains the image header (*.MHA or *.MHD) */
-  char* FileName;
+  std::string FileName;
   /*! Name of the temporary file used to build up the header */
-  char* TempHeaderFileName;
+  std::string TempHeaderFileName;
   /*! Name of the temporary file used to build up the image data */
-  char* TempImageFileName;
+  std::string TempImageFileName;
   /*! Enable/disable zlib compression of pixel data */
   bool UseCompression;
   /*! ASCII or binary */
@@ -232,7 +219,7 @@ private:
   /*! Position of the first pixel of the image data within the pixel data file */
   FilePositionOffsetType PixelDataFileOffset;
   /*! File name where the pixel data is stored */
-  char* PixelDataFileName;
+  std::string PixelDataFileName;
   
   vtkMetaImageSequenceIO(const vtkMetaImageSequenceIO&); //purposely not implemented
   void operator=(const vtkMetaImageSequenceIO&); //purposely not implemented

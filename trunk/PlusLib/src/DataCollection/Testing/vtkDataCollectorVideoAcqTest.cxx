@@ -25,7 +25,6 @@ int main(int argc, char **argv)
 {
 	std::string inputConfigFileName;
 	double inputAcqTimeLength(60);
-	std::string outputFolder("./");
 	std::string outputVideoBufferSequenceFileName("VideoBufferMetafile"); 
 
 	int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
@@ -36,7 +35,6 @@ int main(int argc, char **argv)
 	args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Name of the input configuration file.");
 	args.AddArgument("--acq-time-length", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputAcqTimeLength, "Length of acquisition time in seconds (Default: 60s)");	
 	args.AddArgument("--output-video-buffer-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVideoBufferSequenceFileName, "Filename of the output video bufffer sequence metafile (Default: VideoBufferMetafile)");
-	args.AddArgument("--output-dir", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFolder, "Output folder (Default: ./)");
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");		
 
 	if ( !args.Parse() )
@@ -93,7 +91,7 @@ int main(int argc, char **argv)
     buffer->DeepCopy(aSource->GetBuffer());
 
     LOG_INFO("write video buffer to " << outputVideoBufferSequenceFileName);
-    buffer->WriteToMetafile(outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), true); 
+    buffer->WriteToMetafile(outputVideoBufferSequenceFileName.c_str(), true); 
 
     buffer->Delete(); 
 
