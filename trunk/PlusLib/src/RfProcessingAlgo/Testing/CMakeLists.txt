@@ -16,7 +16,7 @@ SET_TESTS_PROPERTIES( vtkRfToBrightnessConvertRunTest PROPERTIES FAIL_REGULAR_EX
 
 ADD_TEST(vtkRfToBrightnessConvertCompareToBaselineTest
   ${CMAKE_COMMAND} -E compare_files 
-   outputUltrasonixCurvilinearBrightnessData_OutputChannel_ScanConvertOutput.mha
+   ${TEST_OUTPUT_PATH}/outputUltrasonixCurvilinearBrightnessData_OutputChannel_ScanConvertOutput.mha
    ${TestDataDir}/UltrasonixCurvilinearBrightnessData.mha
   )
 SET_TESTS_PROPERTIES(vtkRfToBrightnessConvertCompareToBaselineTest PROPERTIES DEPENDS vtkRfToBrightnessConvertRunTest)
@@ -33,7 +33,7 @@ SET_TESTS_PROPERTIES( vtkUsScanConvertCurvilinearRunTest PROPERTIES FAIL_REGULAR
 
 ADD_TEST(vtkUsScanConvertCurvilinearCompareToBaselineTest
   ${CMAKE_COMMAND} -E compare_files 
-   outputUltrasonixCurvilinearScanConvertedData_OutputChannel_ScanConvertOutput.mha
+   ${TEST_OUTPUT_PATH}/outputUltrasonixCurvilinearScanConvertedData_OutputChannel_ScanConvertOutput.mha
    ${TestDataDir}/UltrasonixCurvilinearScanConvertedData.mha
   )
 SET_TESTS_PROPERTIES(vtkUsScanConvertCurvilinearCompareToBaselineTest PROPERTIES DEPENDS vtkUsScanConvertCurvilinearRunTest)
@@ -50,7 +50,7 @@ SET_TESTS_PROPERTIES( vtkUsScanConvertLinearRunTest PROPERTIES FAIL_REGULAR_EXPR
 
 ADD_TEST(vtkUsScanConvertLinearCompareToBaselineTest
   ${CMAKE_COMMAND} -E compare_files 
-   outputUltrasonixLinearScanConvertedData_OutputChannel_ScanConvertOutput.mha
+   ${TEST_OUTPUT_PATH}/outputUltrasonixLinearScanConvertedData_OutputChannel_ScanConvertOutput.mha
    ${TestDataDir}/UltrasonixLinearScanConvertedData.mha
   )
 SET_TESTS_PROPERTIES(vtkUsScanConvertLinearCompareToBaselineTest PROPERTIES DEPENDS vtkUsScanConvertLinearRunTest)
@@ -67,7 +67,7 @@ SET_TESTS_PROPERTIES( vtkUsScanConvertBkCurvilinearRunTest PROPERTIES FAIL_REGUL
 
 ADD_TEST(vtkUsScanConvertBkCurvilinearCompareToBaselineTest
   ${CMAKE_COMMAND} -E compare_files 
-   outputBkCurvilinearScanConvertedData_OutputChannel_VideoStream.mha
+   ${TEST_OUTPUT_PATH}/outputBkCurvilinearScanConvertedData_OutputChannel_VideoStream.mha
    ${TestDataDir}/BkCurvilinearScanConvertedData.mha
   )
 SET_TESTS_PROPERTIES(vtkUsScanConvertBkCurvilinearCompareToBaselineTest PROPERTIES DEPENDS vtkUsScanConvertBkCurvilinearRunTest)

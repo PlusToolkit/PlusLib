@@ -13,7 +13,7 @@ ADD_TEST(vtkUsSimulatorAlgoRunTest
 
 ADD_TEST(vtkUsSimulatorAlgoCompareToBaselineTest
   ${CMAKE_COMMAND} -E compare_files 
-   simulatorOutput.mha 
+   ${TEST_OUTPUT_PATH}/simulatorOutput.mha 
    ${TestDataDir}/simulatorOutputSpinePhantom2Baseline.mha
   )
 SET_TESTS_PROPERTIES(vtkUsSimulatorAlgoCompareToBaselineTest PROPERTIES DEPENDS vtkUsSimulatorAlgoRunTest)

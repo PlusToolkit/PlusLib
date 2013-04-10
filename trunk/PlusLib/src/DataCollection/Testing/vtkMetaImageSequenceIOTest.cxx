@@ -90,7 +90,10 @@ int main(int argc, char **argv)
 		LOG_ERROR("Unable to get custom transform!"); 
 		numberOfFailures++; 	
 	}
-	
+
+  // Create an absolute path to the output image sequence, in the output directory
+  outputImageSequenceFileName=vtkPlusConfig::GetInstance()->GetOutputPath(outputImageSequenceFileName);
+
 	// ****************************************************************************** 
   // Test writing
 
