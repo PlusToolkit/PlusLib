@@ -938,6 +938,7 @@ PlusStatus CropRectangle(vtkTrackedFrameList* trackedFrameList, const std::vecto
     }
     videoFrame->DeepCopyFrom(croppedImage);
     trackedFrame->SetCustomFrameTransform(imageToCroppedImage, tfmMatrix);
+    trackedFrame->SetCustomFrameTransformStatus(imageToCroppedImage, FIELD_OK);
   }
 
   return PLUS_SUCCESS; 
