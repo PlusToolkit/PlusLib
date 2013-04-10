@@ -121,64 +121,71 @@ double SpatialModel::GetIncomingIntensityWattsPerCm2()
   return this->IncomingIntensityWattsPerCm2;
 }
 
-double SpatialModel::GetAcousticImpedence()
+double SpatialModel::GetAcousticImpedance()
 {
 	return ((this->DensityKgPerM3 * this->SoundVelocityMPerSec)/ CONVERSION_TO_MEGARAYLS);
 }
 
-double SpatialModel::CalculateIntensity(double acousticImpedenceNeighbouringMaterial, double distanceUSWaveTravelledCm)
+void SpatialModel::CalculateIntensity(std::vector<double>& intensities, int numberOfFilledPixels, double distanceBetweenScanlineSamplePointsMm, double previousModelAcousticImpedance, double incomingBeamIntensity, double outgoingBeamIntensity)
 {
-	if (this->IncomingIntensityWattsPerCm2<1)
-	{
-		return this->IncomingIntensityWattsPerCm2 ;
-	}
- 
-
 	
-  double intensityAttenuationCoefficientNpPerCmPerHz = 0;
-  intensityAttenuationCoefficientNpPerCmPerHz= this->AttenuationCoefficientNpPerCm *2;
-  
-  // convert to intensityAttentuationCoefficient.
-  double intensityAttenuationCoefficientdBPerCmPerHz = 0; 
-  intensityAttenuationCoefficientdBPerCmPerHz = intensityAttenuationCoefficientNpPerCmPerHz * DECIBEL_PER_NEPER; 
-  
-  // calculate intensity loss for transmitted wave( mu* frequency*distance traveled), which is equal to the loss caused by the reflected wave
-  double intensityLossDuringWaveTransmissionDecibels = 0; 
-  intensityLossDuringWaveTransmissionDecibels = intensityAttenuationCoefficientdBPerCmPerHz*this->ImagingFrequencyMHz*distanceUSWaveTravelledCm;
-
-  //calcualte acoustic impedence from the denisty and velocity of the material 
-  double acousticImpedenceMegarayles = (this->DensityKgPerM3 / this->SoundVelocityMPerSec); // / CONVERSION_TO_MEGARAYLS; 
+  // if beam intensity is 0 return 0
+ // if (this->IncomingIntensityWattsPerCm2<1)
+	//{
+	//	return this->IncomingIntensityWattsPerCm2 ;
+	//}
  
-  double totalIntensityLoss = 0; 
-
- 
-  // If the material hasn't changed from the previous pixel, do not incorporate reflection ( for now.. TODO: add reflection using phong illumination model)
-  if(acousticImpedenceNeighbouringMaterial = acousticImpedenceMegarayles)
+  for(int currentPixelInFilledPixels = 0; currentPixelInFilledPixels<numberOfFilledPixels; currentPixelInFilledPixels++)
   {
-    totalIntensityLoss = intensityLossDuringWaveTransmissionDecibels * 2; // 2 for reflected wave... still counts as magic number?
-  }
-  else
-  {
-    // calculate reflection   
-    double reflection = pow((acousticImpedenceNeighbouringMaterial - acousticImpedenceMegarayles)/(acousticImpedenceNeighbouringMaterial + acousticImpedenceMegarayles),2)*100; 
-    double intensityLossDueToReflection = 10 * log10(100/reflection); 
-    totalIntensityLoss = (intensityLossDuringWaveTransmissionDecibels * 2) + intensityLossDueToReflection; 
+	
+    double intensityAttenuationCoefficientNpPerCmPerHz = 0;
+    intensityAttenuationCoefficientNpPerCmPerHz= this->AttenuationCoefficientNpPerCm *2;
+    
+    // convert to intensityAttentuationCoefficient.
+    double intensityAttenuationCoefficientdBPerCmPerHz = 0; 
+    intensityAttenuationCoefficientdBPerCmPerHz = intensityAttenuationCoefficientNpPerCmPerHz * DECIBEL_PER_NEPER* this->ImagingFrequencyMHz; 
+    
+    // calculate intensity loss for transmitted wave( mu* frequency*distance traveled), which is equal to the loss caused by the reflected wave
+    double intensityLossDuringWaveTransmissionDecibels = 0; 
+    intensityLossDuringWaveTransmissionDecibels = intensityAttenuationCoefficientdBPerCmPerHz*this->ImagingFrequencyMHz*(distanceBetweenScanlineSamplePointsMm*currentPixelInFilledPixels/10);
 
-  }
-  //convert intensity to watts per cm^2
-  
-  totalIntensityLoss = totalIntensityLoss*-1; 
-  double totalIntensityLossWattsPerCm2 = 0; 
-  totalIntensityLossWattsPerCm2 = pow(10,totalIntensityLoss/10) * this->IncomingIntensityWattsPerCm2;
-  
-  if(totalIntensityLossWattsPerCm2> this->IncomingIntensityWattsPerCm2)
-  {
-	  return this->IncomingIntensityWattsPerCm2;
-  }
+    //calcualte acoustic impedance from the denisty and velocity of the material 
+    double acousticImpedanceMegarayles = (this->DensityKgPerM3 / this->SoundVelocityMPerSec); // / CONVERSION_TO_MEGARAYLS; 
+   
+    double totalIntensityLoss = 0; 
 
-  else
-  {
-	return totalIntensityLossWattsPerCm2; 
-  }
+   
+    // If the material hasn't changed from the previous pixel, do not incorporate reflection ( for now.. TODO: add reflection using phong illumination model)
+    if(previousModelAcousticImpedance = acousticImpedanceMegarayles)
+    {
+      totalIntensityLoss = intensityLossDuringWaveTransmissionDecibels * 2; // 2 for reflected wave... still counts as magic number?
+    }
+    else
+    {
+      // calculate reflection   
+      double reflection = pow((previousModelAcousticImpedance - acousticImpedanceMegarayles)/(previousModelAcousticImpedance + acousticImpedanceMegarayles),2)*100; 
+      double intensityLossDueToReflection = 10 * log10(100/reflection); 
+      totalIntensityLoss = (intensityLossDuringWaveTransmissionDecibels * 2) + intensityLossDueToReflection; 
 
+    }
+    //convert intensity to watts per cm^2
+    
+    totalIntensityLoss = totalIntensityLoss*-1; 
+    double totalIntensityLossWattsPerCm2 = 0; 
+    totalIntensityLossWattsPerCm2 = pow(10,totalIntensityLoss/10) * incomingBeamIntensity;
+    // set outgoingBeamIntensity
+    outgoingBeamIntensity = incomingBeamIntensity-totalIntensityLossWattsPerCm2;
+    
+    
+    // if total intensity more than incoming intensity, return incoming intenstity ( so that when it is subtracted in from the intensity in UsSimulatorAlgo
+    if(totalIntensityLossWattsPerCm2> incomingBeamIntensity)
+    {
+      intensities.push_back(0);// Intensity loss is greater than original intensity
+    }
+
+    else
+    {
+      intensities.push_back(outgoingBeamIntensity); 
+    }
+  }
 }

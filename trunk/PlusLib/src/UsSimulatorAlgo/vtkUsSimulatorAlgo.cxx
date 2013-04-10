@@ -89,6 +89,8 @@ vtkUsSimulatorAlgo::vtkUsSimulatorAlgo()
 
   this->BackgroundSpatialModel = new SpatialModel(); //= vtkSmartPointer<vtkUsSimulatorAlgo>::New(); 
   this->BoneSpatialModel = new SpatialModel();//= vtkSmartPointer<vtkUsSimulatorAlgo>::New(); 
+  this->BoneSpatialModel->SetFrequencyMHz(this->ImagingFrequencyMHz);
+  this->BackgroundSpatialModel->SetFrequencyMHz(this->ImagingFrequencyMHz);
 }
 
 //-----------------------------------------------------------------------------
@@ -247,11 +249,15 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
     bool isInsideObject=false;
     int scanLineExtent[6]={0,this->NumberOfSamplesPerScanline-1,scanLineIndex,scanLineIndex,0,0};
     unsigned char* dstPixelAddress=(unsigned char*)scanLines->GetScalarPointerForExtent(scanLineExtent);
+    double incomingBeamIntensity=50000; // TODO: magic number
+	  double intensityToPixelConversionFactor = incomingBeamIntensity/256; // num pixel values.
+    SpatialModel *currentModel=this->BackgroundSpatialModel;
+    SpatialModel *previousModel=this->BackgroundSpatialModel;
     for(vtkIdType intersectionIndex=0;intersectionIndex<=numIntersectionPoints; intersectionIndex++)
     {      
       // determine end of segment position and pixel color
       int endOfSegmentPixelIndex=currentPixelIndex;
-	   double distanceOfIntersectionPointFromScanLineStartPointMm=0; // defined here to allow for access later on in code
+	    double distanceOfIntersectionPointFromScanLineStartPointMm=0; // defined here to allow for access later on in code
       if(intersectionIndex<numIntersectionPoints)
       {
         double *intersectionPoint=intersectionPoints->GetPoint(intersectionIndex);
@@ -292,34 +298,29 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
 #endif // ADD_NOISE
 
 #elif defined USE_SPATIAL_MODELS
-	  // use attenuation and impedence from config file
+	  // use attenuation and impedance from config file
 
-	  this->BoneSpatialModel->SetIncomingIntensityWattsPerCm2(beamIntensity);
-	  this->BoneSpatialModel->SetFrequencyMHz(this->ImagingFrequencyMHz);
-	  this->BackgroundSpatialModel->SetIncomingIntensityWattsPerCm2(beamIntensity);
-	  this->BackgroundSpatialModel->SetFrequencyMHz(this->ImagingFrequencyMHz);
-for (int pixelIndex=currentPixelIndex; pixelIndex<numberOfFilledPixels;pixelIndex++)
-      {
-		  double intensityLoss = 0;
-		 if ( isInsideObject)
-		 {
-			this->BackgroundSpatialModel->GetAcousticImpedence();
-			intensityLoss = this->BoneSpatialModel->CalculateIntensity(this->BackgroundSpatialModel->GetAcousticImpedence(),(distanceOfIntersectionPointFromScanLineStartPointMm + distanceBetweenScanlineSamplePointsMm)/10);
-		 }
-		 
-		 else
-		 {
-			intensityLoss = this->BackgroundSpatialModel->CalculateIntensity(this->BackgroundSpatialModel->GetAcousticImpedence(),(distanceOfIntersectionPointFromScanLineStartPointMm + distanceBetweenScanlineSamplePointsMm)/10);// div 10 becausefunction expects cm
-		 }
-		 beamIntensity = beamIntensity - intensityLoss;
-		 
-		  double fillColor= std::floor(beamIntensity/intensityToPixelConversionFactor); // 0 - 255,think you have to -1
-        (*dstPixelAddress++)=fillColor;
-		
-		this->BoneSpatialModel->SetIncomingIntensityWattsPerCm2(beamIntensity); 
-		this->BackgroundSpatialModel->SetIncomingIntensityWattsPerCm2(beamIntensity);
-      }
-	//dstPixelAddress+=(numberOfFilledPixels-pixelIndex);
+    previousModel=currentModel;
+    if ( isInsideObject)
+    {
+      currentModel=this->BoneSpatialModel;        
+    }
+    else
+    {
+      currentModel=this->BackgroundSpatialModel;
+    }            
+
+    std::vector<double> intensities;
+    double outgoingBeamIntensity=0;
+    currentModel->CalculateIntensity(intensities, numberOfFilledPixels, distanceBetweenScanlineSamplePointsMm, previousModel->GetAcousticImpedance(), incomingBeamIntensity, outgoingBeamIntensity);
+
+    for (int pixelIndex=0; pixelIndex<numberOfFilledPixels; pixelIndex++)
+    { 
+      //double fillColor= std::floor(beamIntensity/intensityToPixelConversionFactor); // make call to intensity conversion to pixel function. ( window width and ehigh.
+      (*dstPixelAddress++)=GetPixelColorFromBeamIntensity(intensities[pixelIndex]);
+    }
+
+    incomingBeamIntensity=outgoingBeamIntensity;
 
 
 #else // not CONSTANT_INTENSITY
@@ -340,7 +341,7 @@ for (int pixelIndex=currentPixelIndex; pixelIndex<numberOfFilledPixels;pixelInde
         double reflectionFactor=(*reflectionVector)[pixelIndex];
 
 #ifndef ADD_NOISE      
-        unsigned char pixelIntensity=std::min(beamIntensity*reflectionFactor,255.0);
+        unsigned char pixelIntensity=std::min(incomingBeamIntensity*reflectionFactor,255.0);
 #else
         samplePointPositions_Model->GetPoint(currentPixelIndex+pixelIndex, samplePointPosition_Model);
         double noise=noiseFunction->EvaluateFunction(samplePointPosition_Model);        
@@ -420,8 +421,8 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
   if ( usSimulatorAlgoElement->GetScalarAttribute("FrequencyMHz", usFrequencyMHz )) 
   {
     this->SetImagingFrequencyMHz(usFrequencyMHz); 
-	this->BackgroundSpatialModel->SetFrequencyMHz(usFrequencyMHz); 
-	this->BoneSpatialModel->SetFrequencyMHz(usFrequencyMHz); 
+	  this->BackgroundSpatialModel->SetFrequencyMHz(usFrequencyMHz); 
+	  this->BoneSpatialModel->SetFrequencyMHz(usFrequencyMHz); 
   }
 
   double incomingIntensityWpercm2 = -1;
@@ -542,6 +543,13 @@ AttentuationCoefficientNpPerCm */
 }
 
 //-----------------------------------------------------------------------------
+int vtkUsSimulatorAlgo::GetPixelColorFromBeamIntensity(double intensity)
+{ 
+  double pixelValue = 0;
+  pixelValue = pow(intensity,(1.0/3.0)); 
+  return (int)pixelValue; 
+}
+
 PlusStatus vtkUsSimulatorAlgo::LoadModel(std::string absoluteImagePath)
 {
   this->SetModelFileName(absoluteImagePath.c_str());

@@ -33,10 +33,10 @@ public:
 
   double GetIncomingIntensityWattsPerCm2(); 
 
-  double GetAcousticImpedence();
+  double GetAcousticImpedance();
   
-  // acousticImpedenceNeighbouringMaterial-> perform check to see if it is the same
-  double CalculateIntensity(double acousticImpedenceNeighbouringMaterial, double distanceUSWaveTravelledCm);
+  // acousticImpedanceNeighbouringMaterial-> perform check to see if it is the same
+void CalculateIntensity(std::vector<double>& intensities, int numberOfFilledPixels, double distanceBetweenScanlineSamplePointsMm, double previousModeAcousticImpedance, double incomingBeamIntensity, double outgoingBeamIntensity);
 
 private:
 

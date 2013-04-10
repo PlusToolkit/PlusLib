@@ -88,6 +88,7 @@ protected:
   virtual int RequestData(vtkInformation *request,
                         vtkInformationVector** inputVector,
                         vtkInformationVector* outputVector);
+  int GetPixelColorFromBeamIntensity(double intensity); 
 
 protected:
   vtkUsSimulatorAlgo();
