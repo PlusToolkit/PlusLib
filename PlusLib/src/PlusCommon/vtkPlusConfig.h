@@ -196,7 +196,7 @@ public:
   /*! Get device set configuration data */
   vtkGetObjectMacro(DeviceSetConfigurationData, vtkXMLDataElement); 
   /*! Set device set configuration data */
-  vtkSetObjectMacro(DeviceSetConfigurationData, vtkXMLDataElement); 
+  void SetDeviceSetConfigurationData(vtkXMLDataElement* deviceSetConfigurationData); 
 
   /*! Get editor application executable path and file name */
   vtkGetStringMacro(EditorApplicationExecutable);

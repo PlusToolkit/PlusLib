@@ -41,14 +41,6 @@
 
 #endif
 
-#include <strstream>
-#include <iostream>
-#include "vtkSmartPointer.h"
-#include "vtkAccurateTimer.h"
-#include "PlusCommon.h"
-#include "vtkPlusLogger.h"
-#include "vtkPlusConfig.h"
-
 #define PLUSLIB_VERSION "@PLUSLIB_VERSION@"
 #define PLUSLIB_VERSION_MAJOR @PLUSLIB_VERSION_MAJOR@
 #define PLUSLIB_VERSION_MINOR @PLUSLIB_VERSION_MINOR@
@@ -112,5 +104,13 @@
 //#define ERROR_INST_TRACKER
 //#define DEBUG_INST_TRACKER
 //#define TIMING_INST_TRACKER
+ 
+#include <strstream>
+#include <iostream>
+#include "vtkSmartPointer.h"
+#include "vtkAccurateTimer.h"
+#include "PlusCommon.h"
+#include "vtkPlusLogger.h"
+#include "vtkPlusConfig.h"
  
 #endif // __PlusConfigure_h

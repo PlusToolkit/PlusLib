@@ -155,9 +155,9 @@ vtkPlusLogger* vtkPlusLogger::Instance()
 {
   if (m_pInstance==NULL)
   {
-    m_pInstance = new vtkPlusLogger;
+    m_pInstance = new vtkPlusLogger;  
     vtkPlusConfig::GetInstance(); // set the log file name from the XML config
-    std::string strPlusLibVersion = std::string(" PlusLib version: ") + std::string(PLUSLIB_VERSION); 
+    std::string strPlusLibVersion = std::string(" Software version: ")+PlusCommon::GetPlusLibVersionString(); 
 #ifdef _DEBUG
     strPlusLibVersion += " (debug build)";
 #endif    
