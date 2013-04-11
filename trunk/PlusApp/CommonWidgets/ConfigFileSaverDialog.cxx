@@ -12,7 +12,6 @@
 
 #include "vtkXMLUtilities.h"
 #include "vtkXMLDataElement.h"
-#include "PlusRevision.h"
 
 //-----------------------------------------------------------------------------
 
@@ -125,11 +124,6 @@ void ConfigFileSaverDialog::SaveClicked()
 		LOG_ERROR("No configuration XML found!");
 		return;
 	}
-
-  // Save plus version
-  std::string plusVersionString(PLUSLIB_VERSION);
-  plusVersionString = plusVersionString + "." + PLUSLIB_REVISION;
-  configRootElement->SetAttribute("PlusRevision", plusVersionString.c_str());
 
   // Find Device set element
 	vtkXMLDataElement* dataCollection = configRootElement->FindNestedElementWithName("DataCollection");
