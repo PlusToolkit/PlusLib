@@ -50,6 +50,11 @@ vtkVirtualDiscCapture::vtkVirtualDiscCapture()
 //----------------------------------------------------------------------------
 vtkVirtualDiscCapture::~vtkVirtualDiscCapture()
 {
+  if( m_HeaderPrepared )
+  {
+    this->CloseFile();
+  }
+
   if (m_RecordedFrames != NULL) {
     m_RecordedFrames->Delete();
     m_RecordedFrames = NULL;
@@ -248,6 +253,12 @@ PlusStatus vtkVirtualDiscCapture::CloseFile()
   m_Writer->UpdateFieldInImageHeader("DimSize");
 
   m_Writer->FinalizeHeader();
+
+  // Do we have any outstanding unwritten data?
+  if( m_RecordedFrames->GetNumberOfTrackedFrames() != 0 )
+  {
+    this->WriteFrames(true);
+  }
 
   m_Writer->Close();
 
@@ -618,7 +629,7 @@ PlusStatus vtkVirtualDiscCapture::TakeSnapshot()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkVirtualDiscCapture::WriteFrames()
+PlusStatus vtkVirtualDiscCapture::WriteFrames(bool force)
 {
   if( !m_HeaderPrepared && m_RecordedFrames->GetNumberOfTrackedFrames() != 0 )
   {
@@ -662,7 +673,7 @@ PlusStatus vtkVirtualDiscCapture::WriteFrames()
     return PLUS_SUCCESS;
   }
 
-  if( !this->IsFrameBuffered() || 
+  if( force || !this->IsFrameBuffered() || 
     ( this->IsFrameBuffered() && m_RecordedFrames->GetNumberOfTrackedFrames() > this->GetFrameBufferSize() ) )
   {
     if( m_Writer->AppendImagesToHeader() != PLUS_SUCCESS )

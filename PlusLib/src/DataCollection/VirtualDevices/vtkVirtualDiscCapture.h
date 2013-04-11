@@ -79,7 +79,7 @@ protected:
 
   virtual bool IsFrameBuffered() const;
 
-  virtual PlusStatus WriteFrames();
+  virtual PlusStatus WriteFrames(bool force = false);
 
   /*!
   * Get the maximum frame rate from the video source. If there is none then the tracker
