@@ -201,8 +201,6 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
           return;
         }
 
-        m_ParentMainWindow->BuildChannelOwners(aCollection);
-
         // Read configuration
         if (ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
         {
@@ -248,6 +246,7 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
   }
   else // Disconnect
   {
+    m_ParentMainWindow->SetSelectedChannel(NULL);
     m_ParentMainWindow->Set3DManipulationMenuEnabled(false);
     m_ParentMainWindow->SetImageManipulationMenuEnabled(false);
 
@@ -259,9 +258,6 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
     m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
     m_DeviceSetSelectorWidget->ShowResetTrackerButton(false);
     m_ToolStateDisplayWidget->InitializeTools(NULL, false);
-
-    DeviceCollection emptyCollection;
-    this->m_ParentMainWindow->BuildChannelOwners(emptyCollection);
 
     // Rebuild the devices menu to clear out any previous devices
     m_ParentMainWindow->BuildChannelMenu();
@@ -431,7 +427,7 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
     LOG_ERROR("Unable to select a channel.");
     return PLUS_FAIL;
   }
-  this->m_ParentMainWindow->SetSelectedChannel(*aChannel);
+  this->m_ParentMainWindow->SetSelectedChannel(aChannel);
 
   // Image coordinate frame
   const char* imageCoordinateFrame = fCalElement->GetAttribute("ImageCoordinateFrame");
@@ -682,4 +678,10 @@ void ConfigurationToolbox::ChannelChanged( vtkPlusChannel& aChannel )
   }
 
   m_DeviceSetSelectorWidget->ShowResetTrackerButton(aChannel.GetOwnerDevice()->IsResettable());
+}
+
+//-----------------------------------------------------------------------------
+void ConfigurationToolbox::OnDeactivated()
+{
+
 }

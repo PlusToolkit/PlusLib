@@ -45,6 +45,10 @@ public:
   /*! \brief Load session data and update view when the toolbox is activated - pure virtual function */
   virtual void OnActivated() = 0;
 
+  /*! \brief Close session data when the toolbox is deactivated - pure virtual function */
+  virtual void OnDeactivated() = 0;
+  
+
   /*! \brief Reset toolbox to initial state - virtual function */
   virtual void Reset()
   {

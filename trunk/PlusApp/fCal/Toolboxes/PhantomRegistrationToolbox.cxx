@@ -773,3 +773,10 @@ void PhantomRegistrationToolbox::Reset()
 
   LOG_INFO("Reset phantom registration");
 }
+
+//-----------------------------------------------------------------------------
+
+void PhantomRegistrationToolbox::OnDeactivated()
+{
+
+}

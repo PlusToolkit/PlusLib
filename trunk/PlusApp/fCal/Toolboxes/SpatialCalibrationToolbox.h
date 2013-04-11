@@ -42,7 +42,12 @@ public:
   ~SpatialCalibrationToolbox();
 
   /*! \brief Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function */
-  void OnActivated();
+  virtual void OnActivated();
+
+  /*!
+  * Finalize toolbox
+  */
+  virtual void OnDeactivated();
 
   /*! \brief Reset toolbox to initial state - */
   virtual void Reset();
@@ -54,7 +59,7 @@ public:
   PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
   /*! Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function */
-  void RefreshContent();
+  virtual void RefreshContent();
 
   /*! Sets display mode (visibility of actors) according to the current state - implementation of a pure virtual function */
   void SetDisplayAccordingToState();

@@ -545,3 +545,10 @@ void StylusCalibrationToolbox::AddStylusPositionToCalibration()
     }
   }
 }
+
+//-----------------------------------------------------------------------------
+
+void StylusCalibrationToolbox::OnDeactivated()
+{
+
+}

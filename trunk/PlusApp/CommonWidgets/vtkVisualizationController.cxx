@@ -923,12 +923,6 @@ void vtkVisualizationController::SetInput( vtkImageData * input )
 
 void vtkVisualizationController::SetSelectedChannel( vtkPlusChannel* aChannel )
 {
-  if( aChannel == NULL )
-  {
-    LOG_ERROR("Null channel sent to vtkVisualizationController::SetSelectedChannel");
-    return;
-  }
-
   this->SelectedChannel = aChannel;
 
   if( this->ImageVisualizer != NULL )

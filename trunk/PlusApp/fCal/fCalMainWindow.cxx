@@ -310,6 +310,11 @@ void fCalMainWindow::CurrentToolboxChanged(int aToolboxIndex)
 {
   LOG_TRACE("fCalMainWindow::CurrentToolboxChanged(" << aToolboxIndex << ")");
 
+  if( m_ActiveToolbox >= 0 )
+  {
+    m_ToolboxList[m_ActiveToolbox]->OnDeactivated();
+  }
+
   // Initialize new toolbox
   QString currentToolboxText = ui.toolbox->itemText( aToolboxIndex );
   if (currentToolboxText == QString("Configuration"))
@@ -840,7 +845,7 @@ void fCalMainWindow::ChannelSelected( vtkPlusChannel* aChannel )
 
   if( this->GetVisualizationController() != NULL && this->GetVisualizationController()->GetDataCollector() != NULL )
   {
-    this->SetSelectedChannel(*aChannel);
+    this->SetSelectedChannel(aChannel);
   }
   if( aChannel->GetVideoDataAvailable() && aChannel->GetBrightnessOutput() != NULL )
   {
@@ -879,26 +884,11 @@ void fCalMainWindow::ChannelSelected( vtkPlusChannel* aChannel )
 
 //-----------------------------------------------------------------------------
 
-void fCalMainWindow::BuildChannelOwners( DeviceCollection devices )
+void fCalMainWindow::SetSelectedChannel( vtkPlusChannel* aChannel )
 {
-  m_ChannelOwners.clear();
+  m_SelectedChannel = aChannel;
 
-  for( DeviceCollectionIterator it = devices.begin(); it != devices.end(); ++it )
-  {
-    for( ChannelContainerIterator chanIt = (*it)->GetOutputChannelsStart(); chanIt != (*it)->GetOutputChannelsEnd(); ++chanIt )
-    {
-      m_ChannelOwners[*chanIt] = *it;
-    }
-  }
-}
-
-//-----------------------------------------------------------------------------
-
-void fCalMainWindow::SetSelectedChannel( vtkPlusChannel& aChannel )
-{
-  m_SelectedChannel = &aChannel;
-
-  this->GetVisualizationController()->SetSelectedChannel(&aChannel);
+  this->GetVisualizationController()->SetSelectedChannel(aChannel);
 
   this->m_ToolboxList[m_ActiveToolbox]->SetDisplayAccordingToState();
 }

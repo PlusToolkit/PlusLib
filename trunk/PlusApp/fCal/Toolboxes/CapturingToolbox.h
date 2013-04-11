@@ -43,10 +43,13 @@ public:
   ~CapturingToolbox();
 
   /*! \brief Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function */
-  void OnActivated();
+  virtual void OnActivated();
+
+  /*! \brief Clear toolbox contents */
+  virtual void OnDeactivated();
 
   /*! Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function */
-  void RefreshContent();
+  virtual void RefreshContent();
 
   /*! \brief Reset toolbox to initial state - */
   virtual void Reset();

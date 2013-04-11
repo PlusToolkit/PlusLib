@@ -174,10 +174,8 @@ public:
   void BuildChannelMenu();
 
   /*! Accessors for selected channel functionality */
-  void SetSelectedChannel(vtkPlusChannel& aChannel);
+  void SetSelectedChannel(vtkPlusChannel* aChannel);
   vtkPlusChannel* GetSelectedChannel(){ return m_SelectedChannel; }
-
-  void BuildChannelOwners(DeviceCollection devices);
 
 protected:
   /*!
@@ -326,9 +324,6 @@ protected:
 
   /*! Reference to all actions that will show up in ROI list */
   std::vector<QCustomAction*> m_3DActionList;
-
-  /*! Map that contains the channel to device mapping */
-  std::map<vtkPlusChannel*, vtkPlusDevice*> m_ChannelOwners;
 
   /*! Selected channel */
   vtkPlusChannel* m_SelectedChannel;

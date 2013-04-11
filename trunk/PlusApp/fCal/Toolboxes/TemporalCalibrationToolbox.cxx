@@ -741,3 +741,10 @@ bool TemporalCalibrationToolbox::eventFilter(QObject *obj, QEvent *ev)
 
   return true;
 }
+
+//-----------------------------------------------------------------------------
+
+void TemporalCalibrationToolbox::OnDeactivated()
+{
+
+}

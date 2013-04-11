@@ -76,15 +76,6 @@ void CapturingToolbox::OnActivated()
 {
   LOG_TRACE("CapturingToolbox::OnActivated"); 
 
-  for( std::vector<CaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end();  )
-  {
-    disconnect((*it), SIGNAL(EmitStatusMessage(const std::string&)), this, SLOT(HandleStatusMessage(const std::string&)) );
-    ui.captureWidgetLayout->removeWidget(*it);
-    delete *it;
-  }
-
-  this->m_CaptureWidgets.clear();
-
   if ((m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL)
     && (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetConnected()))
   {
@@ -691,4 +682,17 @@ void CapturingToolbox::SaveAll()
     CaptureControlWidget* widget = *it;
     widget->SaveFile();
   }
+}
+
+//-----------------------------------------------------------------------------
+void CapturingToolbox::OnDeactivated()
+{
+  for( std::vector<CaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
+  {
+    disconnect((*it), SIGNAL(EmitStatusMessage(const std::string&)), this, SLOT(HandleStatusMessage(const std::string&)) );
+    ui.captureWidgetLayout->removeWidget(*it);
+    delete *it;
+  }
+
+  this->m_CaptureWidgets.clear();
 }

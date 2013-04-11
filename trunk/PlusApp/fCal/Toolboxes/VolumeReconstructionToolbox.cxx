@@ -614,3 +614,10 @@ void VolumeReconstructionToolbox::Reset()
   m_VolumeReconstructor = vtkVolumeReconstructor::New();
   m_ReconstructedVolume = vtkImageData::New();
 }
+
+//-----------------------------------------------------------------------------
+
+void VolumeReconstructionToolbox::OnDeactivated()
+{
+
+}
