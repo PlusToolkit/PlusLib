@@ -222,6 +222,7 @@ namespace PlusCommon
   */
   VTK_EXPORT PlusStatus PrintXML(ostream& os, vtkIndent indent, vtkXMLDataElement* elem);
 
+  VTK_EXPORT std::string GetPlusLibVersionString();
 };
 
 /*!

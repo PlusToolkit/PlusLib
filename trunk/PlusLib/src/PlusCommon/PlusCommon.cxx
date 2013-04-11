@@ -1,6 +1,8 @@
+#include "PlusConfigure.h"
 #include "PlusCommon.h"
 #include "vtksys/SystemTools.hxx"
 #include "vtkXMLDataElement.h"
+#include "PlusRevision.h"
 
 //-------------------------------------------------------
 PlusTransformName::PlusTransformName()
@@ -367,4 +369,12 @@ PlusStatus PlusCommon::PrintXML(const char* fname, vtkXMLDataElement* elem)
   }
   of.imbue(std::locale::classic());
   return PlusCommon::PrintXML(of, vtkIndent(), elem);
+}
+
+
+//----------------------------------------------------------------------------
+std::string PlusCommon::GetPlusLibVersionString()
+{
+  std::string plusLibVersion = std::string("Plus-") + std::string(PLUSLIB_VERSION) + "." + std::string(PLUSLIB_REVISION); 
+  return plusLibVersion;
 }

@@ -953,3 +953,15 @@ std::string vtkPlusConfig::GetApplicationStartTimestamp()
 {
   return this->ApplicationStartTimestamp;
 }
+
+//-----------------------------------------------------------------------------
+void vtkPlusConfig::SetDeviceSetConfigurationData(vtkXMLDataElement* deviceSetConfigurationData)
+{
+  vtkSetObjectBodyMacro(DeviceSetConfigurationData,vtkXMLDataElement,deviceSetConfigurationData);
+  if (this->DeviceSetConfigurationData!=NULL)
+  {    
+    std::string plusLibVersion=PlusCommon::GetPlusLibVersionString();
+    this->DeviceSetConfigurationData->SetAttribute("PlusRevision", plusLibVersion.c_str());
+  }
+}
+
