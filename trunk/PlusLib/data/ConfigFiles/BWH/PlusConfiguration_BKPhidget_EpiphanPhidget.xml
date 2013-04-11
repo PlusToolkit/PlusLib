@@ -11,7 +11,7 @@
    Type="BkProFocus"
    Id="BKVideoDevice"
    IniFileName="BkSettings/IniFile.ini"
-   AcquisitionRate="30"
+   AcquisitionRate="20"
    LocalTimeOffsetSec="0"
    Selectable="false"
    ImagingMode="RfMode" >
@@ -41,7 +41,7 @@
    <Device
       Type="Epiphan"
       Id="EpiphanVideoDevice" 
-      AcquisitionRate="30" >
+      AcquisitionRate="20" >
     <DataSources>
       <DataSource Type="Video" Id="Video" BufferSize="500" AveragedItemsForFiltering="20" /> 
     </DataSources>
@@ -106,8 +106,8 @@
     <Device
       Id="EpiphanCaptureDevice"
       Type="VirtualDiscCapture"
-      Filename="RecordingTestEpiphan.mha"
-      EnableCapturing="TRUE" >
+      Filename="March15-RecordingTestEpiphan.mha"
+      EnableCapturing="FALSE" >
       <InputChannels>
         <InputChannel Id="EpiphanTrackedVideoStream" />
       </InputChannels>
@@ -125,7 +125,7 @@
  
   </DataCollection>
   
-<xfCal
+<fCal
     PhantomModelId="PhantomModel"
     ReconstructedVolumeId="Volume"
     TransducerModelId="ProbeModel"
