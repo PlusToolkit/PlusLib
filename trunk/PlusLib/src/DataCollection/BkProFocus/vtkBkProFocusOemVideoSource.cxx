@@ -242,9 +242,9 @@ PlusStatus vtkBkProFocusOemVideoSource::InternalUpdate()
     std::string query = "query:capture_image \"PNG\";";
     LOG_TRACE("Query from vtkBkProFocusOemVideoSource: " << query);	
     size_t queryWrittenSize=this->Internal->OemClient->Write(query.c_str(), query.size());	
-    if (queryWrittenSize!=query.size())
+    if (queryWrittenSize!=query.size()+2)
     {
-      LOG_ERROR("Failed to send query through BK OEM interface ("<<query<<")");
+      LOG_ERROR("Failed to send query through BK OEM interface ("<<query<<")"<<queryWrittenSize << " vs " << query.size()<<"+2");
       return PLUS_FAIL;
     }
 
