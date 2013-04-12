@@ -413,13 +413,7 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
     return PLUS_FAIL;
   }
 
-  // Read tracker tool names
   vtkXMLDataElement* fCalElement = aConfig->FindNestedElementWithName("fCal"); 
-  if( fCalElement == NULL)
-  {
-    LOG_ERROR("Failed to find fCal confuguration!");
-    return PLUS_FAIL;
-  }
 
   vtkPlusChannel* aChannel(NULL);
   if( this->SelectChannel(aChannel, fCalElement) != PLUS_SUCCESS )
@@ -428,6 +422,12 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
     return PLUS_FAIL;
   }
   this->m_ParentMainWindow->SetSelectedChannel(aChannel);
+
+  if( fCalElement == NULL)
+  {
+    LOG_ERROR("Failed to find fCal confuguration!");
+    return PLUS_FAIL;
+  }
 
   // Image coordinate frame
   const char* imageCoordinateFrame = fCalElement->GetAttribute("ImageCoordinateFrame");
