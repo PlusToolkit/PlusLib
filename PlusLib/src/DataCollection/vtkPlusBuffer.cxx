@@ -25,6 +25,52 @@ static const double ANGLE_INTERPOLATION_WARNING_THRESHOLD_DEG=10; // if the inte
 vtkCxxRevisionMacro(vtkPlusBuffer, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkPlusBuffer);
 
+#define LOCAL_LOG_ERROR(msg) \
+{ \
+  std::ostrstream msgStream; \
+  if( this->DescriptiveName == NULL ) \
+  { \
+    msgStream << " " << msg << std::ends; \
+  } \
+  else \
+  { \
+    msgStream << this->DescriptiveName << ": " << msg << std::ends; \
+  } \
+  std::string finalStr(msgStream.str()); \
+  LOG_ERROR(finalStr); \
+  msgStream.rdbuf()->freeze(0); \
+}
+#define LOCAL_LOG_WARNING(msg) \
+{ \
+  std::ostrstream msgStream; \
+  if( this->DescriptiveName == NULL ) \
+{ \
+  msgStream << " " << msg << std::ends; \
+} \
+  else \
+{ \
+  msgStream << this->DescriptiveName << ": " << msg << std::ends; \
+} \
+  std::string finalStr(msgStream.str()); \
+  LOG_WARNING(finalStr); \
+  msgStream.rdbuf()->freeze(0); \
+}
+#define LOCAL_LOG_DEBUG(msg) \
+{ \
+  std::ostrstream msgStream; \
+  if( this->DescriptiveName == NULL ) \
+{ \
+  msgStream << " " << msg << std::ends; \
+} \
+  else \
+{ \
+  msgStream << this->DescriptiveName << ": " << msg << std::ends; \
+} \
+  std::string finalStr(msgStream.str()); \
+  LOG_DEBUG(finalStr); \
+  msgStream.rdbuf()->freeze(0); \
+}
+
 //----------------------------------------------------------------------------
 //            DataBufferItem
 //----------------------------------------------------------------------------
@@ -136,6 +182,7 @@ vtkPlusBuffer::vtkPlusBuffer()
 , ImageOrientation(US_IMG_ORIENT_MF)
 , StreamBuffer(vtkTimestampedCircularBuffer<StreamBufferItem>::New())
 , MaxAllowedTimeDifference(0.5)
+, DescriptiveName(NULL)
 {
   this->FrameSize[0] = this->FrameSize[1] = -1;
   this->PixelType=itk::ImageIOBase::UCHAR; 
@@ -183,7 +230,7 @@ PlusStatus vtkPlusBuffer::AllocateMemoryForFrames()
   {
     if (this->StreamBuffer->GetBufferItemFromBufferIndex(i)->GetFrame().AllocateFrame(this->GetFrameSize(), this->GetPixelType())!=PLUS_SUCCESS)
     {
-      LOG_ERROR("Failed to allocate memory for frame "<<i);
+      LOCAL_LOG_ERROR("Failed to allocate memory for frame "<<i);
       result = PLUS_FAIL;
     }
   }
@@ -213,7 +260,7 @@ PlusStatus vtkPlusBuffer::SetBufferSize(int bufsize)
 {
   if (bufsize < 0)
   {
-    LOG_ERROR("Invalid buffer size requested: "<<bufsize);
+    LOCAL_LOG_ERROR("Invalid buffer size requested: "<<bufsize);
     return PLUS_FAIL;
   }
   if (this->StreamBuffer->GetBufferSize() == bufsize)
@@ -242,21 +289,21 @@ bool vtkPlusBuffer::CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::IT
   if (frameSizeInPx[0] != this->GetFrameSize()[0]||
     frameSizeInPx[1] != this->GetFrameSize()[1] )
   {
-    LOG_WARNING("Frame format and buffer frame format does not match (expected frame size: " << this->GetFrameSize()[0] 
+    LOCAL_LOG_WARNING("Frame format and buffer frame format does not match (expected frame size: " << this->GetFrameSize()[0] 
     << "x" << this->GetFrameSize()[1] << "  received: " << frameSizeInPx[0] << "x" << frameSizeInPx[1] << ")!"); 
     return false;
   }
 
   if ( pixelType != this->GetPixelType() )
   {    
-    LOG_WARNING("Frame pixel type ("<<vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(pixelType))
+    LOCAL_LOG_WARNING("Frame pixel type ("<<vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(pixelType))
       <<") and buffer pixel type (" << vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(this->GetPixelType())) <<") mismatch"); 
     return false; 
   }
 
   if ( imgType != this->GetImageType() )
   {
-    LOG_WARNING("Frame image type ("<<PlusVideoFrame::GetStringFromUsImageType(imgType)<<") and buffer image type (" << PlusVideoFrame::GetStringFromUsImageType(this->GetImageType()) <<") mismatch"); 
+    LOCAL_LOG_WARNING("Frame image type ("<<PlusVideoFrame::GetStringFromUsImageType(imgType)<<") and buffer image type (" << PlusVideoFrame::GetStringFromUsImageType(this->GetImageType()) <<") mismatch"); 
     return false; 
   }
 
@@ -279,7 +326,7 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usIm
     bool filteredTimestampProbablyValid=true;
     if ( this->StreamBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp, filteredTimestampProbablyValid) != PLUS_SUCCESS )
     {
-      LOG_WARNING("Failed to create filtered timestamp for video buffer item with item index: " << frameNumber ); 
+      LOCAL_LOG_WARNING("Failed to create filtered timestamp for video buffer item with item index: " << frameNumber ); 
       return PLUS_FAIL; 
     }
     if (!filteredTimestampProbablyValid)
@@ -307,7 +354,7 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usIm
   if ( this->StreamBuffer->PrepareForNewItem(filteredTimestamp, itemUid, bufferIndex) != PLUS_SUCCESS )
   {
     // Just a debug message, because we want to avoid unnecessary warning messages if the timestamp is the same as last one
-    LOG_DEBUG( "vtkPlusBuffer: Failed to prepare for adding new frame to video buffer!"); 
+    LOCAL_LOG_DEBUG( "vtkPlusBuffer: Failed to prepare for adding new frame to video buffer!"); 
     return PLUS_FAIL; 
   }
 
@@ -315,7 +362,7 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usIm
   StreamBufferItem* newObjectInBuffer = this->StreamBuffer->GetBufferItemFromBufferIndex(bufferIndex); 
   if ( newObjectInBuffer == NULL )
   {
-    LOG_ERROR( "vtkPlusBuffer: Failed to get pointer to video buffer object from the video buffer for the new frame!"); 
+    LOCAL_LOG_ERROR( "vtkPlusBuffer: Failed to get pointer to video buffer object from the video buffer for the new frame!"); 
     return PLUS_FAIL; 
   }
 
@@ -325,7 +372,7 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usIm
   if ( frameSizeInPx[0] != receivedFrameSize[0] 
   || frameSizeInPx[1] != receivedFrameSize[1] )
   {
-    LOG_ERROR("Input frame size is different from buffer frame size (input: " << frameSizeInPx[0] << "x" << frameSizeInPx[1]
+    LOCAL_LOG_ERROR("Input frame size is different from buffer frame size (input: " << frameSizeInPx[0] << "x" << frameSizeInPx[1]
     << ",   buffer: " << receivedFrameSize[0] << "x" << receivedFrameSize[1] << ")!"); 
     return PLUS_FAIL; 
   }
@@ -336,7 +383,7 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usIm
 
   if (PlusVideoFrame::GetOrientedImage(byteImageDataPtr, usImageOrientation, imageType, frameSizeInPx, pixelType, this->ImageOrientation, newObjectInBuffer->GetFrame())!=PLUS_SUCCESS)
   {
-    LOG_ERROR("Failed to convert input US image to the requested orientation!"); 
+    LOCAL_LOG_ERROR("Failed to convert input US image to the requested orientation!"); 
     return PLUS_FAIL; 
   }
 
@@ -369,7 +416,7 @@ PlusStatus vtkPlusBuffer::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usIm
 {
   if ( frame == NULL )
   {
-    LOG_ERROR( "vtkPlusBuffer: Unable to add NULL frame to video buffer!"); 
+    LOCAL_LOG_ERROR( "vtkPlusBuffer: Unable to add NULL frame to video buffer!"); 
     return PLUS_FAIL; 
   }
 
@@ -383,7 +430,7 @@ PlusStatus vtkPlusBuffer::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usIm
     bool filteredTimestampProbablyValid=true;
     if ( this->StreamBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp, filteredTimestampProbablyValid) != PLUS_SUCCESS )
     {
-      LOG_WARNING("Failed to create filtered timestamp for video buffer item with item index: " << frameNumber ); 
+      LOCAL_LOG_WARNING("Failed to create filtered timestamp for video buffer item with item index: " << frameNumber ); 
       return PLUS_FAIL; 
     }
     if (!filteredTimestampProbablyValid)
@@ -396,7 +443,7 @@ PlusStatus vtkPlusBuffer::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usIm
   vtkSmartPointer<vtkImageData> mfOrientedImage = vtkSmartPointer<vtkImageData>::New(); 
   if ( PlusVideoFrame::GetOrientedImage(frame, usImageOrientation, imageType, this->ImageOrientation, mfOrientedImage) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to add video item to buffer: couldn't get requested reoriented frame!"); 
+    LOCAL_LOG_ERROR("Failed to add video item to buffer: couldn't get requested reoriented frame!"); 
     return PLUS_FAIL; 
   }
 
@@ -412,7 +459,7 @@ PlusStatus vtkPlusBuffer::AddItem(const PlusVideoFrame* frame, long frameNumber,
 {
   if ( frame == NULL )
   {
-    LOG_ERROR( "vtkPlusBuffer: Unable to add NULL frame to video buffer!"); 
+    LOCAL_LOG_ERROR( "vtkPlusBuffer: Unable to add NULL frame to video buffer!"); 
     return PLUS_FAIL; 
   }
 
@@ -426,7 +473,7 @@ PlusStatus vtkPlusBuffer::AddItem(const PlusVideoFrame* frame, long frameNumber,
     bool filteredTimestampProbablyValid=true;
     if ( this->StreamBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp, filteredTimestampProbablyValid) != PLUS_SUCCESS )
     {
-      LOG_WARNING("Failed to create filtered timestamp for video buffer item with item index: " << frameNumber ); 
+      LOCAL_LOG_WARNING("Failed to create filtered timestamp for video buffer item with item index: " << frameNumber ); 
       return PLUS_FAIL; 
     }
     if (!filteredTimestampProbablyValid)
@@ -448,7 +495,7 @@ PlusStatus vtkPlusBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus st
 {
   if ( matrix  == NULL )
   {
-    LOG_ERROR( "vtkPlusBuffer: Unable to add NULL matrix to tracker buffer!"); 
+    LOCAL_LOG_ERROR( "vtkPlusBuffer: Unable to add NULL matrix to tracker buffer!"); 
     return PLUS_FAIL; 
   }
   if (unfilteredTimestamp==UNDEFINED_TIMESTAMP)
@@ -460,7 +507,7 @@ PlusStatus vtkPlusBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus st
     bool filteredTimestampProbablyValid=true;
     if ( this->StreamBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp, filteredTimestampProbablyValid) != PLUS_SUCCESS )
     {
-      LOG_DEBUG("Failed to create filtered timestamp for tracker buffer item with item index: " << frameNumber); 
+      LOCAL_LOG_DEBUG("Failed to create filtered timestamp for tracker buffer item with item index: " << frameNumber); 
       return PLUS_FAIL; 
     }
     if (!filteredTimestampProbablyValid)
@@ -477,7 +524,7 @@ PlusStatus vtkPlusBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus st
   if ( this->StreamBuffer->PrepareForNewItem(filteredTimestamp, itemUid, bufferIndex) != PLUS_SUCCESS )
   {
     // Just a debug message, because we want to avoid unnecessary warning messages if the timestamp is the same as last one
-    LOG_DEBUG( "vtkPlusBuffer: Failed to prepare for adding new frame to tracker buffer!"); 
+    LOCAL_LOG_DEBUG( "vtkPlusBuffer: Failed to prepare for adding new frame to tracker buffer!"); 
     return PLUS_FAIL; 
   }
 
@@ -485,7 +532,7 @@ PlusStatus vtkPlusBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus st
   StreamBufferItem* newObjectInBuffer = this->StreamBuffer->GetBufferItemFromBufferIndex(bufferIndex); 
   if ( newObjectInBuffer == NULL )
   {
-    LOG_ERROR( "vtkPlusBuffer: Failed to get pointer to data buffer object from the tracker buffer for the new frame!"); 
+    LOCAL_LOG_ERROR( "vtkPlusBuffer: Failed to get pointer to data buffer object from the tracker buffer for the new frame!"); 
     return PLUS_FAIL; 
   }
 
@@ -570,7 +617,7 @@ ItemStatus vtkPlusBuffer::GetStreamBufferItem(BufferItemUidType uid, StreamBuffe
 {
   if ( bufferItem == NULL )
   {
-    LOG_ERROR("Unable to copy data buffer item into a NULL data buffer item!"); 
+    LOCAL_LOG_ERROR("Unable to copy data buffer item into a NULL data buffer item!"); 
     return ITEM_UNKNOWN_ERROR; 
   }
 
@@ -579,15 +626,15 @@ ItemStatus vtkPlusBuffer::GetStreamBufferItem(BufferItemUidType uid, StreamBuffe
   {
     if (  status == ITEM_NOT_AVAILABLE_ANYMORE )
     {
-      LOG_WARNING("Failed to get data buffer item: data item not available anymore"); 
+      LOCAL_LOG_WARNING("Failed to get data buffer item: data item not available anymore"); 
     }
     else if (  status == ITEM_NOT_AVAILABLE_YET )
     {
-      LOG_WARNING("Failed to get data buffer item: data item not available yet"); 
+      LOCAL_LOG_WARNING("Failed to get data buffer item: data item not available yet"); 
     }
     else
     {
-      LOG_WARNING("Failed to get data buffer item!"); 
+      LOCAL_LOG_WARNING("Failed to get data buffer item!"); 
     }
     return status; 
   }
@@ -596,7 +643,7 @@ ItemStatus vtkPlusBuffer::GetStreamBufferItem(BufferItemUidType uid, StreamBuffe
 
   if ( bufferItem->DeepCopy(dataItem) != PLUS_SUCCESS )
   {
-    LOG_WARNING("Failed to copy data item!"); 
+    LOCAL_LOG_WARNING("Failed to copy data item!"); 
     return ITEM_UNKNOWN_ERROR; 
   }
 
@@ -631,7 +678,7 @@ PlusStatus vtkPlusBuffer::SetFrameSize(int x, int y)
 {
   if (x<0 || y<0)
   {
-    LOG_ERROR("Invalid frame size requested: " << x << ", " << y);
+    LOCAL_LOG_ERROR("Invalid frame size requested: " << x << ", " << y);
     return PLUS_FAIL;
   }
   if (this->FrameSize[0]==x && this->FrameSize[1]==y)
@@ -667,7 +714,7 @@ PlusStatus vtkPlusBuffer::SetImageType(US_IMAGE_TYPE imgType)
 {
   if (imgType<US_IMG_TYPE_XX || imgType>=US_IMG_TYPE_LAST)
   {
-    LOG_ERROR("Invalid image type attempted to set in the video buffer: "<<imgType);
+    LOCAL_LOG_ERROR("Invalid image type attempted to set in the video buffer: "<<imgType);
     return PLUS_FAIL;
   }
   this->ImageType=imgType;
@@ -679,7 +726,7 @@ PlusStatus vtkPlusBuffer::SetImageOrientation(US_IMAGE_ORIENTATION imgOrientatio
 {
   if (imgOrientation<US_IMG_ORIENT_XX || imgOrientation>=US_IMG_ORIENT_LAST)
   {
-    LOG_ERROR("Invalid image orientation attempted to set in the video buffer: "<<imgOrientation);
+    LOCAL_LOG_ERROR("Invalid image orientation attempted to set in the video buffer: "<<imgOrientation);
     return PLUS_FAIL;
   }
   this->ImageOrientation=imgOrientation;
@@ -698,7 +745,7 @@ PlusStatus vtkPlusBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *so
   int numberOfErrors=0;
 
   const int numberOfVideoFrames = sourceTrackedFrameList->GetNumberOfTrackedFrames(); 
-  LOG_DEBUG("CopyImagesFromTrackedFrameList will copy "<< numberOfVideoFrames<< " frames"); 
+  LOCAL_LOG_DEBUG("CopyImagesFromTrackedFrameList will copy "<< numberOfVideoFrames<< " frames"); 
 
   int frameSize[2]={0,0};
   sourceTrackedFrameList->GetTrackedFrame(0)->GetImageData()->GetFrameSize(frameSize);
@@ -707,7 +754,7 @@ PlusStatus vtkPlusBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *so
 
   if ( this->SetBufferSize(numberOfVideoFrames) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to set video buffer size!"); 
+    LOCAL_LOG_ERROR("Failed to set video buffer size!"); 
     return PLUS_FAIL;
   }
 
@@ -759,14 +806,14 @@ PlusStatus vtkPlusBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *so
     {
       if ( PlusCommon::StringToDouble(strTimestamp, timestamp) != PLUS_SUCCESS && requireTimestamp )
       {
-        LOG_ERROR("Unable to convert Timestamp '"<< strTimestamp << "' to double for frame #" << frameNumber); 
+        LOCAL_LOG_ERROR("Unable to convert Timestamp '"<< strTimestamp << "' to double for frame #" << frameNumber); 
         numberOfErrors++; 
         continue; 
       }
     }
     else if (requireTimestamp)
     {
-      LOG_ERROR("Unable to read Timestamp field of frame #" << frameNumber); 
+      LOCAL_LOG_ERROR("Unable to read Timestamp field of frame #" << frameNumber); 
       numberOfErrors++; 
       continue; 
     }
@@ -778,14 +825,14 @@ PlusStatus vtkPlusBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *so
     {
       if ( PlusCommon::StringToDouble(strUnfilteredTimestamp, unfilteredtimestamp) != PLUS_SUCCESS && requireUnfilteredTimestamp )
       {
-        LOG_ERROR("Unable to convert UnfilteredTimestamp '"<< strUnfilteredTimestamp << "' to double for frame #" << frameNumber); 
+        LOCAL_LOG_ERROR("Unable to convert UnfilteredTimestamp '"<< strUnfilteredTimestamp << "' to double for frame #" << frameNumber); 
         numberOfErrors++; 
         continue; 
       }
     }
     else if (requireUnfilteredTimestamp)
     {
-      LOG_ERROR("Unable to read UnfilteredTimestamp field of frame #" << frameNumber); 
+      LOCAL_LOG_ERROR("Unable to read UnfilteredTimestamp field of frame #" << frameNumber); 
       numberOfErrors++; 
       continue; 
     }
@@ -797,14 +844,14 @@ PlusStatus vtkPlusBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *so
     {
       if ( PlusCommon::StringToLong(strFrameNumber, frmnum) != PLUS_SUCCESS && requireFrameNumber )
       {
-        LOG_ERROR("Unable to convert FrameNumber '"<< strFrameNumber << "' to integer for frame #" << frameNumber); 
+        LOCAL_LOG_ERROR("Unable to convert FrameNumber '"<< strFrameNumber << "' to integer for frame #" << frameNumber); 
         numberOfErrors++; 
         continue; 
       }
     }
     else if (requireFrameNumber)
     {
-      LOG_ERROR("Unable to read FrameNumber field of frame #" << frameNumber); 
+      LOCAL_LOG_ERROR("Unable to read FrameNumber field of frame #" << frameNumber); 
       numberOfErrors++; 
       continue; 
     }   
@@ -814,19 +861,19 @@ PlusStatus vtkPlusBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *so
     case READ_FILTERED_AND_UNFILTERED_TIMESTAMPS:
       if ( this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), frmnum, unfilteredtimestamp, timestamp, &customFields) != PLUS_SUCCESS )
       {
-        LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber ); 
+        LOCAL_LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber ); 
       }
       break;
     case READ_UNFILTERED_COMPUTE_FILTERED_TIMESTAMPS:
       if ( this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), frmnum, unfilteredtimestamp, UNDEFINED_TIMESTAMP, &customFields) != PLUS_SUCCESS )
       {
-        LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber ); 
+        LOCAL_LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber ); 
       }
       break;
     case READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS:
       if ( this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), frmnum, timestamp, timestamp, &customFields) != PLUS_SUCCESS )
       {
-        LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber ); 
+        LOCAL_LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber ); 
       }
       break;
     default:
@@ -852,7 +899,7 @@ PlusStatus vtkPlusBuffer::WriteToMetafile( const char* filename, bool useCompres
     StreamBufferItem videoItem;
     if ( this->GetStreamBufferItem(frameUid, &videoItem) != ITEM_OK )
     {
-      LOG_ERROR("Unable to get frame from buffer with UID: " << frameUid);
+      LOCAL_LOG_ERROR("Unable to get frame from buffer with UID: " << frameUid);
       status=PLUS_FAIL;
       continue;
     }
@@ -885,7 +932,7 @@ PlusStatus vtkPlusBuffer::WriteToMetafile( const char* filename, bool useCompres
   // Save tracked frames to metafile
   if ( trackedFrameList->SaveToSequenceMetafile(filename, useCompression) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to save tracked frames to sequence metafile!");
+    LOCAL_LOG_ERROR("Failed to save tracked frames to sequence metafile!");
     return PLUS_FAIL;
   }
 
@@ -926,10 +973,10 @@ PlusStatus vtkPlusBuffer::GetPrevNextBufferItemFromTime(double time, StreamBuffe
     switch(status)
     {
     case ITEM_NOT_AVAILABLE_YET:
-      LOG_DEBUG("vtkPlusBuffer: Cannot get any item from the data buffer for time: " << std::fixed << time <<". Item is not available yet.");
+      LOCAL_LOG_DEBUG("vtkPlusBuffer: Cannot get any item from the data buffer for time: " << std::fixed << time <<". Item is not available yet.");
       break;
     case ITEM_NOT_AVAILABLE_ANYMORE:
-      LOG_DEBUG("vtkPlusBuffer: Cannot get any item from the data buffer for time: " << std::fixed << time <<". Item is not available anymore.");
+      LOCAL_LOG_DEBUG("vtkPlusBuffer: Cannot get any item from the data buffer for time: " << std::fixed << time <<". Item is not available anymore.");
       break;
     }
     return PLUS_FAIL;
@@ -937,7 +984,7 @@ PlusStatus vtkPlusBuffer::GetPrevNextBufferItemFromTime(double time, StreamBuffe
   status = this->GetStreamBufferItem(itemAuid, &itemA); 
   if ( status != ITEM_OK )
   {
-    LOG_ERROR("vtkPlusBuffer: Failed to get data buffer item with Uid: " << itemAuid );
+    LOCAL_LOG_ERROR("vtkPlusBuffer: Failed to get data buffer item with Uid: " << itemAuid );
     return PLUS_FAIL;
   }
 
@@ -945,7 +992,7 @@ PlusStatus vtkPlusBuffer::GetPrevNextBufferItemFromTime(double time, StreamBuffe
   if (itemA.GetStatus() != TOOL_OK)
   {
     // tracker is out of view, ...
-    LOG_DEBUG("vtkPlusBuffer: Cannot do data interpolation. The closest item to the requested time (time: " << std::fixed << time << ", uid: " << itemAuid << ") is invalid.");
+    LOCAL_LOG_DEBUG("vtkPlusBuffer: Cannot do data interpolation. The closest item to the requested time (time: " << std::fixed << time << ", uid: " << itemAuid << ") is invalid.");
     return PLUS_FAIL;
   }
 
@@ -953,7 +1000,7 @@ PlusStatus vtkPlusBuffer::GetPrevNextBufferItemFromTime(double time, StreamBuffe
   status = this->StreamBuffer->GetTimeStamp(itemAuid, itemAtime); 
   if ( status != ITEM_OK )
   {
-    LOG_ERROR("vtkPlusBuffer: Failed to get data buffer timestamp (time: " << std::fixed << time << ", uid: " << itemAuid << ")" ); 
+    LOCAL_LOG_ERROR("vtkPlusBuffer: Failed to get data buffer timestamp (time: " << std::fixed << time << ", uid: " << itemAuid << ")" ); 
     return PLUS_FAIL;
   }
 
@@ -968,7 +1015,7 @@ PlusStatus vtkPlusBuffer::GetPrevNextBufferItemFromTime(double time, StreamBuffe
   // If the closest item is too far, then we don't do interpolation 
   if ( fabs(itemAtime - time) > this->GetMaxAllowedTimeDifference() )
   {
-    LOG_ERROR("vtkPlusBuffer: Cannot perform interpolation, time difference compared to itemA is too big " << std::fixed << fabs(itemAtime - time) << " ( closest item time: " << itemAtime << ", requested time: " << time << ")." );
+    LOCAL_LOG_ERROR("vtkPlusBuffer: Cannot perform interpolation, time difference compared to itemA is too big " << std::fixed << fabs(itemAtime - time) << " ( closest item time: " << itemAtime << ", requested time: " << time << ")." );
     return PLUS_FAIL;
   }
 
@@ -987,7 +1034,7 @@ PlusStatus vtkPlusBuffer::GetPrevNextBufferItemFromTime(double time, StreamBuffe
   if (itemBuid < this->GetOldestItemUidInBuffer() || itemBuid > this->GetLatestItemUidInBuffer())
   {
     // itemB is not available
-    LOG_ERROR("vtkPlusBuffer: Cannot perform interpolation, itemB is not available " << std::fixed << " ( itemBuid: " << itemBuid << ", oldest UID: " << this->GetOldestItemUidInBuffer() << ", latest UID: " << this->GetLatestItemUidInBuffer() );
+    LOCAL_LOG_ERROR("vtkPlusBuffer: Cannot perform interpolation, itemB is not available " << std::fixed << " ( itemBuid: " << itemBuid << ", oldest UID: " << this->GetOldestItemUidInBuffer() << ", latest UID: " << this->GetLatestItemUidInBuffer() );
     return PLUS_FAIL;
   }
   // Get item B details
@@ -995,26 +1042,26 @@ PlusStatus vtkPlusBuffer::GetPrevNextBufferItemFromTime(double time, StreamBuffe
   status = this->StreamBuffer->GetTimeStamp(itemBuid, itemBtime); 
   if ( status != ITEM_OK )
   {
-    LOG_ERROR("Cannot do interpolation: Failed to get data buffer timestamp with Uid: " << itemBuid ); 
+    LOCAL_LOG_ERROR("Cannot do interpolation: Failed to get data buffer timestamp with Uid: " << itemBuid ); 
     return PLUS_FAIL;
   }
   // If the next closest item is too far, then we don't do interpolation 
   if ( fabs(itemBtime - time) > this->GetMaxAllowedTimeDifference() )
   {
-    LOG_ERROR("vtkPlusBuffer: Cannot perform interpolation, time difference compared to itemB is too big " << std::fixed << fabs(itemBtime-time) << " ( itemBtime: " << itemBtime << ", requested time: " << time << ")." );
+    LOCAL_LOG_ERROR("vtkPlusBuffer: Cannot perform interpolation, time difference compared to itemB is too big " << std::fixed << fabs(itemBtime-time) << " ( itemBtime: " << itemBtime << ", requested time: " << time << ")." );
     return PLUS_FAIL;
   }
   // Get the item
   status = this->GetStreamBufferItem(itemBuid, &itemB); 
   if ( status != ITEM_OK )
   {
-    LOG_ERROR("vtkPlusBuffer: Failed to get data buffer item with Uid: " << itemBuid ); 
+    LOCAL_LOG_ERROR("vtkPlusBuffer: Failed to get data buffer item with Uid: " << itemBuid ); 
     return PLUS_FAIL;
   }
   // If there is no valid element on the other side of the requested time, then we cannot do an interpolation
   if ( itemB.GetStatus() != TOOL_OK )
   {
-    LOG_DEBUG("vtkPlusBuffer: Cannot get a second element (uid="<<itemBuid<<") on the other side of the requested time ("<< std::fixed << time <<")");
+    LOCAL_LOG_DEBUG("vtkPlusBuffer: Cannot get a second element (uid="<<itemBuid<<") on the other side of the requested time ("<< std::fixed << time <<")");
     return PLUS_FAIL;
   }
 
@@ -1031,7 +1078,7 @@ ItemStatus vtkPlusBuffer::GetStreamBufferItemFromTime( double time, StreamBuffer
   case INTERPOLATED:
     return GetInterpolatedStreamBufferItemFromTime(time, bufferItem); 
   default:
-    LOG_WARNING("Unknown interpolation type: " << interpolation << ". Defaulting to exact time request.");
+    LOCAL_LOG_WARNING("Unknown interpolation type: " << interpolation << ". Defaulting to exact time request.");
     return GetStreamBufferItemFromExactTime(time, bufferItem); 
   }
 }
@@ -1042,7 +1089,7 @@ ItemStatus vtkPlusBuffer::GetStreamBufferItemFromExactTime( double time, StreamB
   ItemStatus status = GetStreamBufferItemFromClosestTime(time, bufferItem);
   if ( status != ITEM_OK )
   {
-    LOG_WARNING("vtkPlusBuffer: Failed to get data buffer timestamp (time: " << std::fixed << time <<")" ); 
+    LOCAL_LOG_WARNING("vtkPlusBuffer: Failed to get data buffer timestamp (time: " << std::fixed << time <<")" ); 
     return status;
   }
 
@@ -1051,14 +1098,14 @@ ItemStatus vtkPlusBuffer::GetStreamBufferItemFromExactTime( double time, StreamB
   status = this->StreamBuffer->GetTimeStamp(uid, itemTime); 
   if ( status != ITEM_OK )
   {
-    LOG_ERROR("vtkPlusBuffer: Failed to get data buffer timestamp (time: " << std::fixed << time <<", UID: "<<uid<<")" ); 
+    LOCAL_LOG_ERROR("vtkPlusBuffer: Failed to get data buffer timestamp (time: " << std::fixed << time <<", UID: "<<uid<<")" ); 
     return status;
   }
 
   // If the time difference is negligible then don't interpolate, just return the closest item
   if (fabs(itemTime-time)>NEGLIGIBLE_TIME_DIFFERENCE)
   {
-    LOG_WARNING("vtkPlusBuffer: Cannot find an item exactly at the requested time (requested time: " << std::fixed << time <<", item time: "<<itemTime<<")" ); 
+    LOCAL_LOG_WARNING("vtkPlusBuffer: Cannot find an item exactly at the requested time (requested time: " << std::fixed << time <<", item time: "<<itemTime<<")" ); 
     return ITEM_UNKNOWN_ERROR;
   }
 
@@ -1077,10 +1124,10 @@ ItemStatus vtkPlusBuffer::GetStreamBufferItemFromClosestTime( double time, Strea
     switch(status)
     {
     case ITEM_NOT_AVAILABLE_YET:
-      LOG_WARNING("vtkPlusBuffer: Cannot get any item from the buffer for time: " << std::fixed << time <<". Item is not available yet.");
+      LOCAL_LOG_WARNING("vtkPlusBuffer: Cannot get any item from the buffer for time: " << std::fixed << time <<". Item is not available yet.");
       break;
     case ITEM_NOT_AVAILABLE_ANYMORE:
-      LOG_WARNING("vtkPlusBuffer: Cannot get any item from the buffer for time: " << std::fixed << time <<". Item is not available anymore.");
+      LOCAL_LOG_WARNING("vtkPlusBuffer: Cannot get any item from the buffer for time: " << std::fixed << time <<". Item is not available anymore.");
       break;
     }
     return status;
@@ -1089,7 +1136,7 @@ ItemStatus vtkPlusBuffer::GetStreamBufferItemFromClosestTime( double time, Strea
   status = this->GetStreamBufferItem(itemUid, bufferItem); 
   if ( status != ITEM_OK )
   {
-    LOG_ERROR("vtkPlusBuffer: Failed to get buffer item with Uid: " << itemUid );
+    LOCAL_LOG_ERROR("vtkPlusBuffer: Failed to get buffer item with Uid: " << itemUid );
     return status;
   }
 
@@ -1117,7 +1164,7 @@ ItemStatus vtkPlusBuffer::GetInterpolatedStreamBufferItemFromTime( double time, 
     bufferItem->SetUnfilteredTimestamp(time);
     if ( status != ITEM_OK )
     {
-      LOG_ERROR("vtkPlusBuffer: Failed to get data buffer timestamp (time: " << std::fixed << time << ")" ); 
+      LOCAL_LOG_ERROR("vtkPlusBuffer: Failed to get data buffer timestamp (time: " << std::fixed << time << ")" ); 
       return status;
     }
     bufferItem->SetStatus(TOOL_MISSING); // if we return at any point due to an error then it means that the interpolation is not successful, so the item is missing
@@ -1136,14 +1183,14 @@ ItemStatus vtkPlusBuffer::GetInterpolatedStreamBufferItemFromTime( double time, 
   double itemAtime(0);
   if ( this->StreamBuffer->GetTimeStamp(itemA.GetUid(), itemAtime) != ITEM_OK )
   {
-    LOG_ERROR("vtkPlusBuffer: Failed to get data buffer timestamp (time: " << std::fixed << time <<", uid: "<<itemA.GetUid()<<")" ); 
+    LOCAL_LOG_ERROR("vtkPlusBuffer: Failed to get data buffer timestamp (time: " << std::fixed << time <<", uid: "<<itemA.GetUid()<<")" ); 
     return ITEM_UNKNOWN_ERROR;
   }
 
   double itemBtime(0);   
   if ( this->StreamBuffer->GetTimeStamp(itemB.GetUid(), itemBtime) != ITEM_OK )
   {
-    LOG_ERROR("vtkPlusBuffer: Failed to get data buffer timestamp (time: " << std::fixed << time <<", uid: "<<itemB.GetUid()<<")" ); 
+    LOCAL_LOG_ERROR("vtkPlusBuffer: Failed to get data buffer timestamp (time: " << std::fixed << time <<", uid: "<<itemB.GetUid()<<")" ); 
     return ITEM_UNKNOWN_ERROR;
   }
 
@@ -1164,7 +1211,7 @@ ItemStatus vtkPlusBuffer::GetInterpolatedStreamBufferItemFromTime( double time, 
   vtkSmartPointer<vtkMatrix4x4> itemAmatrix=vtkSmartPointer<vtkMatrix4x4>::New();
   if (itemA.GetMatrix(itemAmatrix)!=PLUS_SUCCESS)
   {
-    LOG_ERROR("Failed to get item A matrix"); 
+    LOCAL_LOG_ERROR("Failed to get item A matrix"); 
     return ITEM_UNKNOWN_ERROR;
   }
   double matrixA[3][3]={{0,0,0},{0,0,0},{0,0,0}};
@@ -1180,7 +1227,7 @@ ItemStatus vtkPlusBuffer::GetInterpolatedStreamBufferItemFromTime( double time, 
   vtkSmartPointer<vtkMatrix4x4> itemBmatrix=vtkSmartPointer<vtkMatrix4x4>::New();
   if (itemB.GetMatrix(itemBmatrix)!=PLUS_SUCCESS)
   {
-    LOG_ERROR("Failed to get item B matrix"); 
+    LOCAL_LOG_ERROR("Failed to get item B matrix"); 
     return ITEM_UNKNOWN_ERROR;
   }
   double matrixB[3][3] = {{0,0,0}, {0,0,0}, {0,0,0}};
@@ -1231,7 +1278,7 @@ ItemStatus vtkPlusBuffer::GetInterpolatedStreamBufferItemFromTime( double time, 
   double angleDiffB=PlusMath::GetOrientationDifference(interpolatedMatrix, itemBmatrix);
   if (fabs(angleDiffA)>ANGLE_INTERPOLATION_WARNING_THRESHOLD_DEG && fabs(angleDiffB)>ANGLE_INTERPOLATION_WARNING_THRESHOLD_DEG)
   {
-    LOG_WARNING("Angle difference between interpolated orientations is large ("<<fabs(angleDiffA)<<" and "<<fabs(angleDiffB)<<" deg, warning threshold is "<<ANGLE_INTERPOLATION_WARNING_THRESHOLD_DEG<<"), interpolation may be inaccurate. Consider moving the tools slower.");
+    LOCAL_LOG_WARNING("Angle difference between interpolated orientations is large ("<<fabs(angleDiffA)<<" and "<<fabs(angleDiffB)<<" deg, warning threshold is "<<ANGLE_INTERPOLATION_WARNING_THRESHOLD_DEG<<"), interpolation may be inaccurate. Consider moving the tools slower.");
   }
 
   return ITEM_OK; 
@@ -1276,14 +1323,14 @@ PlusStatus vtkPlusBuffer::CopyTransformFromTrackedFrameList(vtkTrackedFrameList 
     {
       if ( PlusCommon::StringToDouble(strTimestamp, timestamp) != PLUS_SUCCESS && requireTimestamp)
       {
-        LOG_ERROR("Unable to convert Timestamp '"<< strTimestamp << "' to double"); 
+        LOCAL_LOG_ERROR("Unable to convert Timestamp '"<< strTimestamp << "' to double"); 
         numberOfErrors++; 
         continue; 
       }
     }
     else if (requireTimestamp)
     {
-      LOG_ERROR("Unable to read Timestamp field of frame #" << frameNumber); 
+      LOCAL_LOG_ERROR("Unable to read Timestamp field of frame #" << frameNumber); 
       numberOfErrors++; 
       continue; 
     }
@@ -1295,14 +1342,14 @@ PlusStatus vtkPlusBuffer::CopyTransformFromTrackedFrameList(vtkTrackedFrameList 
     {
       if ( PlusCommon::StringToDouble(strUnfilteredTimestamp, unfilteredtimestamp) != PLUS_SUCCESS && requireUnfilteredTimestamp)
       {
-        LOG_ERROR("Unable to convert UnfilteredTimestamp '"<< strUnfilteredTimestamp << "' to double"); 
+        LOCAL_LOG_ERROR("Unable to convert UnfilteredTimestamp '"<< strUnfilteredTimestamp << "' to double"); 
         numberOfErrors++; 
         continue; 
       }
     }
     else if (requireUnfilteredTimestamp)
     {
-      LOG_ERROR("Unable to read UnfilteredTimestamp field of frame #" << frameNumber); 
+      LOCAL_LOG_ERROR("Unable to read UnfilteredTimestamp field of frame #" << frameNumber); 
       numberOfErrors++; 
       continue; 
     }
@@ -1312,7 +1359,7 @@ PlusStatus vtkPlusBuffer::CopyTransformFromTrackedFrameList(vtkTrackedFrameList 
     if ( sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameTransformStatus(transformName, transformStatus) != PLUS_SUCCESS
       && requireFrameStatus )
     {
-      LOG_ERROR("Unable to read TransformStatus field of frame #" << frameNumber); 
+      LOCAL_LOG_ERROR("Unable to read TransformStatus field of frame #" << frameNumber); 
       numberOfErrors++; 
       continue; 
     }
@@ -1324,14 +1371,14 @@ PlusStatus vtkPlusBuffer::CopyTransformFromTrackedFrameList(vtkTrackedFrameList 
     {
       if ( PlusCommon::StringToLong(strFrameNumber, frmnum) != PLUS_SUCCESS && requireFrameNumber )
       {
-        LOG_ERROR("Unable to convert FrameNumber '"<< strFrameNumber << "' to integer for frame #" << frameNumber); 
+        LOCAL_LOG_ERROR("Unable to convert FrameNumber '"<< strFrameNumber << "' to integer for frame #" << frameNumber); 
         numberOfErrors++; 
         continue; 
       }
     }
     else if (requireFrameNumber)
     {
-      LOG_ERROR("Unable to read FrameNumber field of frame #" << frameNumber); 
+      LOCAL_LOG_ERROR("Unable to read FrameNumber field of frame #" << frameNumber); 
       numberOfErrors++; 
       continue; 
     }
@@ -1341,7 +1388,7 @@ PlusStatus vtkPlusBuffer::CopyTransformFromTrackedFrameList(vtkTrackedFrameList 
     {
       std::string strTransformName; 
       transformName.GetTransformName(strTransformName); 
-      LOG_ERROR("Unable to get the "<<strTransformName<<" frame transform for frame #" << frameNumber); 
+      LOCAL_LOG_ERROR("Unable to get the "<<strTransformName<<" frame transform for frame #" << frameNumber); 
       numberOfErrors++; 
       continue; 
     }
@@ -1396,3 +1443,7 @@ int* vtkPlusBuffer::GetFrameSize()
 {
   return this->FrameSize;
 }
+
+#undef LOCAL_LOG_ERROR
+#undef LOCAL_LOG_WARNING
+#undef LOCAL_LOG_DEBUG
