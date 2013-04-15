@@ -64,7 +64,6 @@ void vtkEpiphanVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 PlusStatus vtkEpiphanVideoSource::InternalConnect()
 {
-
   LOG_TRACE( "vtkEpiphanVideoSource::InternalConnect" );
 
   // Initialize frmgrab library
@@ -151,31 +150,34 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkEpiphanVideoSource::InternalDisconnect()
 {
+  LOG_DEBUG( "vtkEpiphanVideoSource::InternalDisconnect" );
 
-  LOG_DEBUG("Disconnect from Epiphan ");
+  if( this->Recording )
+  {
+    if( this->StopRecording() != PLUS_SUCCESS )
+    {
+      LOG_WARNING(this->GetDeviceId() << ": Unable to stop recording.");
+    }
+  }
 
-  //this->Initialized = 0;
   if (this->FrameGrabber != NULL) {
     FrmGrab_Close((FrmGrabber*)this->FrameGrabber);
   }
   this->FrameGrabber = NULL;
 
-  return this->StopRecording();
-
   return PLUS_SUCCESS;
-
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkEpiphanVideoSource::InternalStartRecording()
 {
-  if (!this->Recording)
+  if( !FrmGrab_Start((FrmGrabber*)this->FrameGrabber) )
   {
-    return PLUS_SUCCESS;
+    LOG_ERROR(this->GetDeviceId() << ": Unable to frame grabber.");
+    return PLUS_FAIL;
   }
-  FrmGrab_Start((FrmGrabber*)this->FrameGrabber); 
 
-  return this->Connect();
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -188,7 +190,6 @@ PlusStatus vtkEpiphanVideoSource::InternalStopRecording()
 //----------------------------------------------------------------------------
 PlusStatus vtkEpiphanVideoSource::InternalUpdate()
 {
-
   if (!this->Recording)
   {
     // drop the frame, we are not recording data now
