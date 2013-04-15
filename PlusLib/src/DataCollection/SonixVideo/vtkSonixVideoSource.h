@@ -103,6 +103,9 @@ public:
 
   /*! Read main configuration from/to xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+
+  PlusStatus PopulateChannel( vtkPlusChannel*& aChannel, const char* bChannelId );
+
   /*! Write main configuration from/to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
@@ -230,9 +233,6 @@ public:
   /*! Get the displayed frame rate. */
   PlusStatus GetDisplayedFrameRate(int &aFrameRate);
 
-  /*! Get the displayed frame size. */
-  PlusStatus GetDisplayedFrameSize(int &aFrameWidth, int &aFrameHeight);
-
   /*! Set RF decimation. This requires ultrerius be connected. */
   PlusStatus SetRFDecimation(int decimation);
 
@@ -304,8 +304,10 @@ protected:
   /*! For internal use only */
   PlusStatus GetParamValue(char* paramId, int& paramValue, int &validatedParamValue);
 
+  bool HasDataType( uData aValue );
+  PlusStatus ConfigureChannel( vtkPlusChannel* aChannel, uData aValue );
+
   ulterius Ult;
-  uDataDesc DataDescriptor;
 
   int Frequency;
   int Depth;
@@ -332,6 +334,9 @@ protected:
     but the connection initialization (setup of requested imaging parameters, etc.) may fail.
   */
   bool UlteriusConnected;
+
+  vtkPlusChannel* BModeChannel;
+  vtkPlusChannel* RfModeChannel;
     
 private:
  
