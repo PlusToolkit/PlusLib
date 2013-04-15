@@ -213,12 +213,15 @@ public:
   /*! Dump the current state of the video buffer to metafile */
   virtual PlusStatus WriteToMetafile( const char* filename, bool useCompression = false ); 
 
+  vtkGetStringMacro(DescriptiveName);
+  vtkSetStringMacro(DescriptiveName);
+
 protected:
   vtkPlusBuffer();
   ~vtkPlusBuffer();
 
   /*! Update video buffer by setting the frame format for each frame  */
-  virtual PlusStatus AllocateMemoryForFrames(); 
+  virtual PlusStatus AllocateMemoryForFrames();
 
   /*! 
     Compares frame format with new frame imaging parameters.
@@ -260,6 +263,8 @@ protected:
 
   /*! Maximum allowed time difference in seconds between the desired and the closest valid timestamp */
   double MaxAllowedTimeDifference;
+
+  char* DescriptiveName;
 
 private:
   vtkPlusBuffer(const vtkPlusBuffer&);

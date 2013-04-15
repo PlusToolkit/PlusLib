@@ -265,7 +265,7 @@ void vtkPlusDataSource::DeepCopy(vtkPlusDataSource *aSource)
 
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement, bool RequireAveragedItemsForFilteringInDeviceSetConfiguration)
+PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement, bool RequireAveragedItemsForFilteringInDeviceSetConfiguration, const char* aDescriptiveNameForBuffer)
 {
   LOG_TRACE("vtkPlusDataSource::ReadConfiguration"); 
 
@@ -336,6 +336,19 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
   {
     LOG_DEBUG("Unable to find AveragedItemsForFiltering attribute in source element. Using default value.");
   }
+
+  std::string descName;
+  if( aDescriptiveNameForBuffer != NULL )
+  {
+    descName += aDescriptiveNameForBuffer;
+    descName += "-";
+    descName += this->GetSourceId();
+  }
+  else
+  {
+    descName += this->GetSourceId();
+  }
+  this->GetBuffer()->SetDescriptiveName(descName.c_str());
 
   return PLUS_SUCCESS;
 }

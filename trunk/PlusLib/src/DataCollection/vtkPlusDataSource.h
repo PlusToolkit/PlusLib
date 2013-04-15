@@ -41,7 +41,7 @@ public:
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Read main configuration from xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* toolElement, bool RequireAveragedItemsForFilteringInDeviceSetConfiguration = false); 
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* toolElement, bool RequireAveragedItemsForFilteringInDeviceSetConfiguration = false, const char* aDescriptiveNameForBuffer = NULL); 
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* toolElement); 
   virtual PlusStatus WriteCompactConfiguration(vtkXMLDataElement* toolElement); 
 

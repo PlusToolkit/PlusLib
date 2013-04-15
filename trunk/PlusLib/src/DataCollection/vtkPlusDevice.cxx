@@ -692,10 +692,10 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
         continue; 
       }
 
+      vtkSmartPointer<vtkPlusDataSource> aDataSource = vtkSmartPointer<vtkPlusDataSource>::New(); 
       if( dataSourceElement->GetAttribute("Type") != NULL && STRCASECMP(dataSourceElement->GetAttribute("Type"), "Tool") == 0 )
       {
-        vtkSmartPointer<vtkPlusDataSource> aDataSource = vtkSmartPointer<vtkPlusDataSource>::New(); 
-        if ( aDataSource->ReadConfiguration(dataSourceElement, RequireToolAveragedItemsForFilteringInDeviceSetConfiguration) != PLUS_SUCCESS )
+        if ( aDataSource->ReadConfiguration(dataSourceElement, RequireToolAveragedItemsForFilteringInDeviceSetConfiguration, this->GetDeviceId() ) != PLUS_SUCCESS )
         {
           LOG_ERROR("Unable to add tool to tracker - failed to read tool configuration"); 
           continue; 
@@ -710,12 +710,11 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
       }
       else if( dataSourceElement->GetAttribute("Type") != NULL && STRCASECMP(dataSourceElement->GetAttribute("Type"), "Video") == 0 )
       {
-        vtkSmartPointer<vtkPlusDataSource> streamImage = vtkSmartPointer<vtkPlusDataSource>::New();
-        streamImage->ReadConfiguration(dataSourceElement, RequireAveragedItemsForFilteringInDeviceSetConfiguration );
+        aDataSource->ReadConfiguration(dataSourceElement, RequireAveragedItemsForFilteringInDeviceSetConfiguration, this->GetDeviceId() );
 
-        if ( this->AddVideo(streamImage) != PLUS_SUCCESS )
+        if ( this->AddVideo(aDataSource) != PLUS_SUCCESS )
         {
-          LOG_ERROR("Failed to add video source '" << streamImage->GetSourceId() << "' to device.");
+          LOG_ERROR("Failed to add video source '" << aDataSource->GetSourceId() << "' to device.");
         }
       }
     }
