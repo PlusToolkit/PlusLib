@@ -2,7 +2,7 @@
 
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
-      Name="TEST SonixTouch with Fake tracker" 
+      Name="TEST SonixTouch with Fake tracker - experimental" 
       Description="Test mode for vtkDataCollectorTest with SonixTouch and Fake tracker. The SonixTouch US device should be in research mode." 
     />
 
@@ -32,7 +32,9 @@
       Type="SonixVideo" 
       AcquisitionRate="-1" 
       IP="130.15.7.20" 
-      ImagingMode="BMode"
+      ImagingMode="BAndRf"
+      BModeChannelId="BModeVideoStream"
+      RfModeChannelId="RfModeVideoStream"
       Depth="-1" 
       Sector="-1" 
       Gain="-1" 
@@ -42,26 +44,44 @@
       Timeout="-1" 
       CompressionStatus="0" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" BufferSize="500" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="BModeVideo" BufferSize="100" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="RfModeVideo" BufferSize="100" AveragedItemsForFiltering="20" />
       </DataSources>
       
       <OutputChannels>
-        <OutputChannel Id="BModeVideoStream" VideoDataSourceId="Video" UsImageOrientation="MF"/>
+        <OutputChannel Id="BModeVideoStream" VideoDataSourceId="BModeVideo" UsImageOrientation="MF"/>
+        <OutputChannel Id="RfModeVideoStream" VideoDataSourceId="RfModeVideo" UsImageOrientation="FM"/>
       </OutputChannels>
     </Device>
         
     <Device 
-      Id="TrackedVideoDevice" 
+      Id="TrackedBVideoDevice" 
       Type="VirtualMixer" >
       <InputChannels>
         <InputChannel Id="TrackerStream" />
-        <InputChannel Id="VideoStream" />
+        <InputChannel Id="BModeVideoStream" />
       </InputChannels>
       
       <OutputChannels>
-        <OutputChannel Id="TrackedVideoStream" />
+        <OutputChannel Id="TrackedBModeVideoStream" />
+      </OutputChannels>
+    </Device>
+    
+    <Device 
+      Id="TrackedRfVideoDevice" 
+      Type="VirtualMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="RfModeVideoStream" />
+      </InputChannels>
+      
+      <OutputChannels>
+        <OutputChannel Id="TrackedRfModeVideoStream" />
       </OutputChannels>
     </Device>
   </DataCollection>
 
+  <fCal
+    DefaultSelectedChannelId="TrackedBModeVideoStream" 
+    />
 </PlusConfiguration>

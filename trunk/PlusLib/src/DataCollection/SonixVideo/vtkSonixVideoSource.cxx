@@ -169,7 +169,7 @@ void vtkSonixVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 // the callback function used when there is a new frame of data received
 bool vtkSonixVideoSource::vtkSonixVideoSourceNewFrameCallback(void * data, int type, int sz, bool cine, int frmnum)
 {    
-  if(data==NULL || sz==0)
+  if(data == NULL || sz == 0)
   {
     LOG_DEBUG("Error: no actual frame data received"); 
     return false;
@@ -196,10 +196,25 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
     return PLUS_SUCCESS;
   }
 
-  //error check for data type, size
-  if ((uData)type!= (uData)this->AcquisitionDataType)
+  vtkPlusChannel* aChannel;
+  PlusCommon::ITKScalarPixelType pixelType = itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;    
+  US_IMAGE_TYPE imgType = US_IMG_TYPE_XX;    
+
+  if( (uData)type == udtBPost && this->BModeChannel != NULL )
   {
-    LOG_ERROR( "Received data type is different than expected: expected="<<this->AcquisitionDataType<<", actual: "<<type);
+    aChannel = this->BModeChannel;
+    pixelType = itk::ImageIOBase::UCHAR;
+    imgType = US_IMG_BRIGHTNESS;
+  }
+  else if( (uData)type == udtRF && this->RfModeChannel != NULL )
+  {
+    aChannel = this->RfModeChannel;
+    pixelType = itk::ImageIOBase::SHORT;
+    imgType = US_IMG_RF_I_LINE_Q_LINE;
+  }
+  else
+  {
+    LOG_ERROR("Received data type \'" << type << "\' is unsupported. Please report this to the PLUS team.");
     return PLUS_FAIL;
   }
 
@@ -208,9 +223,9 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
   this->FrameNumber = frmnum; 
 
   int frameSize[2] = {0,0};
-  this->GetFrameSize(*(this->OutputChannels[0]), frameSize); 
+  this->GetFrameSize(*aChannel, frameSize); 
   vtkPlusDataSource* aSource(NULL);
-  if( this->OutputChannels[0]->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source in the SonixVideo device.");
     return PLUS_FAIL;
@@ -240,22 +255,6 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
   }
 #endif
 
-  PlusCommon::ITKScalarPixelType pixelType=itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;    
-  US_IMAGE_TYPE imgType=US_IMG_TYPE_XX;    
-  switch (type)
-  {
-  case udtBPost:
-    pixelType=itk::ImageIOBase::UCHAR;
-    imgType=US_IMG_BRIGHTNESS;
-    break;
-  case udtRF:
-    pixelType=itk::ImageIOBase::SHORT;
-    imgType=US_IMG_RF_I_LINE_Q_LINE;
-    break;
-  default:
-    LOG_ERROR("Unknown pixel type");
-  }
-
   if ( sz != frameSizeInBytes + numberOfBytesToSkip )
   {
     LOG_ERROR("Received frame size (" << sz << " bytes) doesn't match the buffer size (" << frameSizeInBytes + numberOfBytesToSkip << " bytes)!"); 
@@ -265,7 +264,7 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
   // get the pointer to actual incoming data on to a local pointer
   unsigned char *deviceDataPtr = static_cast<unsigned char*>(dataPtr);
 
-  PlusStatus status = aSource->GetBuffer()->AddItem(deviceDataPtr, this->OutputChannels[0]->GetImageOrientation(), frameSize, pixelType, imgType, numberOfBytesToSkip, this->FrameNumber); 
+  PlusStatus status = aSource->GetBuffer()->AddItem(deviceDataPtr, aChannel->GetImageOrientation(), frameSize, pixelType, imgType, numberOfBytesToSkip, this->FrameNumber); 
   this->Modified(); 
 
   return status;
@@ -336,15 +335,6 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
       continue;
     }
 
-    // Set the data acquisition type
-    if (SetAcquisitionDataType(this->AcquisitionDataType)!=PLUS_SUCCESS) { continue; }
-
-    // Set frame size and pixel type
-    if (!this->Ult.getDataDescriptor((uData)this->AcquisitionDataType, this->DataDescriptor))
-    {
-      LOG_DEBUG("Initialize: couldn't retrieve data descriptor (" << GetLastUlteriusError() << ")"); // error is reported at higher level, as it often happens that this call fails but after a few attempts it succeeds
-      continue;
-    }
 #if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6) 
     if ( this->ImagingMode == RfMode )
     {
@@ -370,47 +360,40 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
     continue;
 #endif
 
-    vtkPlusDataSource* aSource(NULL);
-    if( this->OutputChannels[0]->GetVideoSource(aSource) != PLUS_SUCCESS )
+    if( this->HasDataType(udtBPost) )
     {
-      LOG_ERROR("Unable to retrieve the video source in the SonixVideo device.");
+      if( this->ConfigureChannel(BModeChannel, udtBPost) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Unable to configure B-mode channel.");
+        continue;
+      }
+    }
+
+    if( this->HasDataType(udtRF) )
+    {
+      if( this->ConfigureChannel(RfModeChannel, udtRF) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Unable to configure Rf-mode channel.");
+        continue;
+      }
+    }
+
+    // Actually request data, now that its available
+    if ( !this->Ult.setDataToAcquire(this->AcquisitionDataType) )
+    {
+      LOG_ERROR("Setting AcquisitionDataType failed: couldn't request the data aquisition type " << this->AcquisitionDataType << ", " << GetLastUlteriusError());
       return PLUS_FAIL;
     }
 
-    switch (this->DataDescriptor.ss)
-    {
-    case 8:
-      this->SetPixelType( *(this->OutputChannels[0]), itk::ImageIOBase::UCHAR );
-      this->SetImageType( *(this->OutputChannels[0]), US_IMG_BRIGHTNESS );
-      aSource->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
-      break;
-    case 16:
-      this->SetPixelType( *(this->OutputChannels[0]), itk::ImageIOBase::SHORT );
-      this->SetImageType( *(this->OutputChannels[0]), US_IMG_RF_I_LINE_Q_LINE );
-      // RF data is stored line-by-line, therefore set the storage buffer to FM orientation
-      aSource->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_FM);
-      // Swap w/h: in case of RF image acquisition the DataDescriptor.h is the width and the DataDescriptor.w is the height
-      {
-        int tmp=this->DataDescriptor.h;
-        this->DataDescriptor.h=this->DataDescriptor.w;
-        this->DataDescriptor.w=tmp;
-      }
-      break;
-    default:
-      LOG_ERROR("Unsupported Ulterius bit depth: "<<this->DataDescriptor.ss);
-      continue;
-    }
-    this->SetFrameSize( *(this->OutputChannels[0]), this->DataDescriptor.w, this->DataDescriptor.h); 
-
     // Set up imaging parameters
     // Parameter value <0 means that the parameter should be kept unchanged
-    if (this->Frequency>=0 && SetFrequency(this->Frequency)!=PLUS_SUCCESS) { continue; }
-    if (this->Depth>=0 && SetDepth(this->Depth)!=PLUS_SUCCESS) { continue; }
-    if (this->Sector>=0 && SetSector(this->Sector)!=PLUS_SUCCESS) { continue; }
-    if (this->Gain>=0 && SetGain(this->Gain)!=PLUS_SUCCESS) { continue; }
-    if (this->DynRange>=0 && SetDynRange(this->DynRange)!=PLUS_SUCCESS) { continue; }
-    if (this->Zoom>=0 && SetZoom(this->Zoom)!=PLUS_SUCCESS) { continue; }
-    if (this->CompressionStatus>=0 && SetCompressionStatus(this->CompressionStatus)!=PLUS_SUCCESS) { continue; }    
+    if (this->Frequency >= 0 && SetFrequency(this->Frequency) != PLUS_SUCCESS) { continue; }
+    if (this->Depth >= 0 && SetDepth(this->Depth) != PLUS_SUCCESS) { continue; }
+    if (this->Sector >= 0 && SetSector(this->Sector) != PLUS_SUCCESS) { continue; }
+    if (this->Gain >= 0 && SetGain(this->Gain) != PLUS_SUCCESS) { continue; }
+    if (this->DynRange >= 0 && SetDynRange(this->DynRange) != PLUS_SUCCESS) { continue; }
+    if (this->Zoom >= 0 && SetZoom(this->Zoom) != PLUS_SUCCESS) { continue; }
+    if (this->CompressionStatus >= 0 && SetCompressionStatus(this->CompressionStatus) != PLUS_SUCCESS) { continue; }    
     if ( this->SoundVelocity > 0 && this->SetParamValue( "soundvelocity", this->SoundVelocity, this->SoundVelocity ) != PLUS_SUCCESS )
     {
       continue;
@@ -430,9 +413,12 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
 
     // Set callback and timeout for receiving new frames
     this->Ult.setCallback(vtkSonixVideoSourceNewFrameCallback);
-    if (this->Timeout>=0 && SetTimeout(this->Timeout)!=PLUS_SUCCESS) { continue; }
+    if (this->Timeout >= 0 && SetTimeout(this->Timeout) != PLUS_SUCCESS)
+    {
+      continue;
+    }
 
-    initializationCompleted=true;
+    initializationCompleted = true;
   } 
 
   LOG_DEBUG("Successfully connected to sonix video device");
@@ -484,14 +470,14 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* config)
 
   Superclass::ReadConfiguration(config); 
 
-  vtkXMLDataElement* imageAcquisitionConfig = this->FindThisDeviceElement(config);
-  if (imageAcquisitionConfig == NULL) 
+  vtkXMLDataElement* deviceConfig = this->FindThisDeviceElement(config);
+  if (deviceConfig == NULL) 
   {
     LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
     return PLUS_FAIL;
   }
 
-  const char* ipAddress = imageAcquisitionConfig->GetAttribute("IP"); 
+  const char* ipAddress = deviceConfig->GetAttribute("IP"); 
   if ( ipAddress != NULL) 
   {
     this->SetSonixIP(ipAddress); 
@@ -502,143 +488,167 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* config)
     LOG_WARNING("Ultrasonix IP address is not defined");
   }  
 
-  const char* imagingMode = imageAcquisitionConfig->GetAttribute("ImagingMode"); 
+  const char* imagingMode = deviceConfig->GetAttribute("ImagingMode"); 
   if ( imagingMode != NULL) 
   {
+// if we wanted to get really faaannnnn   hey wait a minute....
+// if the channels are already configured they should have an orientation set
+// we could use that orientation to see if we have suitable channels
     if (STRCASECMP(imagingMode, "BMode")==0)
     {
       LOG_DEBUG("Imaging mode set: BMode"); 
-      this->ImagingMode=BMode; 
-    }
+      this->ImagingMode = BMode; 
+      this->RfAcquisitionMode = RF_ACQ_B_ONLY; // Not necessary, setting it just in case
+      this->AcquisitionDataType = udtBPost;
+
+      const char* bChannelId = deviceConfig->GetAttribute("BModeChannelId");
+      if( this->PopulateChannel(this->BModeChannel, bChannelId) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Unable to properly configure B-mode channel. Please verify configuration.");
+        return PLUS_FAIL;
+      }
+    } 
     else if (STRCASECMP(imagingMode, "RfMode")==0)
     {
 #if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6)
       LOG_DEBUG("Imaging mode set: RfMode"); 
-      this->ImagingMode=RfMode; 
+      this->ImagingMode = RfMode;
+      this->RfAcquisitionMode = RF_ACQ_RF_ONLY;
+      this->AcquisitionDataType = udtRF;
+
+      const char* rfChannelId = deviceConfig->GetAttribute("RfModeChannelId");
+      if( this->PopulateChannel(this->RfModeChannel, rfChannelId) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Unable to properly configure Rf-mode channel. Please verify configuration.");
+        return PLUS_FAIL;
+      }
 #else
       LOG_ERROR("RF acquisition mode is not supported on Ultrasonix SDK 6.x and above. ImagingMode is set to BMode."); // see https://www.assembla.com/spaces/plus/tickets/489-add-rf-image-acquisition-support-on-ulterius-6-x      
-      this->ImagingMode=BMode; 
-#endif      
+      this->ImagingMode = BMode; 
+      this->AcquisitionDataType = udtBPost;
+#endif
+    }
+    else if (STRCASECMP(imagingMode, "BAndRF")==0)
+    {
+#if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6)
+      this->ImagingMode = RfMode;
+      this->RfAcquisitionMode = RF_ACQ_B_AND_RF;
+      this->AcquisitionDataType = udtBPost | udtRF;
+
+      if( this->OutputChannelCount() < 2 )
+      {
+        LOG_ERROR("Unable to configure dual mode acquisition with insufficient channels. Please check configuration.");
+        return PLUS_FAIL;
+      }
+
+      const char* bChannelId = deviceConfig->GetAttribute("BModeChannelId");
+      if( this->PopulateChannel(this->BModeChannel, bChannelId) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Unable to properly configure B-mode channel. Please verify configuration.");
+        return PLUS_FAIL;
+      }
+      const char* rfChannelId = deviceConfig->GetAttribute("RfModeChannelId");
+      if( this->PopulateChannel(this->RfModeChannel, rfChannelId) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Unable to properly configure Rf-mode channel. Please verify configuration.");
+        return PLUS_FAIL;
+      }
+#else
+      LOG_ERROR("RF acquisition mode is not supported on Ultrasonix SDK 6.x and above. ImagingMode is set to BMode."); // see https://www.assembla.com/spaces/plus/tickets/489-add-rf-image-acquisition-support-on-ulterius-6-x      
+      this->ImagingMode = BMode; 
+      this->AcquisitionDataType = udtBPost;
+#endif
     }
     else
     {
       LOG_ERROR("Unsupported ImagingMode requested: "<<imagingMode);
-    }
-  }
-  const char* rfAcqMode = imageAcquisitionConfig->GetAttribute("RfAcquisitionMode"); 
-  if ( rfAcqMode != NULL) 
-  {
-    if (STRCASECMP(rfAcqMode, "BOnly")==0)
-    {
-      LOG_DEBUG("RF acquisition mode set: B only"); 
-      this->RfAcquisitionMode=RF_ACQ_B_ONLY; 
-    }
-    else if (STRCASECMP(rfAcqMode, "RfOnly")==0)
-    {
-      LOG_DEBUG("RF acquisition mode set: RF only"); 
-      this->RfAcquisitionMode=RF_ACQ_RF_ONLY; 
-    }
-    else if (STRCASECMP(rfAcqMode, "BAndRf")==0)
-    {
-      LOG_DEBUG("RF acquisition mode set: B and RF"); 
-      this->RfAcquisitionMode=RF_ACQ_B_AND_RF; 
-    }
-    else if (STRCASECMP(rfAcqMode, "ChRfOnly")==0)
-    {
-      LOG_DEBUG("RF acquisition mode set: ChRF only"); 
-      this->RfAcquisitionMode=RF_ACQ_CHRF_ONLY; 
-    }
-    else if (STRCASECMP(rfAcqMode, "BAndChRf")==0)
-    {
-      LOG_DEBUG("RF acquisition mode set: B and ChRF"); 
-      this->RfAcquisitionMode=RF_ACQ_B_AND_CHRF; 
-    }
-    else
-    {
-      LOG_ERROR("Unsupported RfAcquisitionMode requested: "<<rfAcqMode);
-    }
-  }
-  const char* acquisitionDataType = imageAcquisitionConfig->GetAttribute("AcquisitionDataType"); 
-  if ( acquisitionDataType != NULL) 
-  {
-    if (STRCASECMP(acquisitionDataType, "BPost")==0)
-    {
-      LOG_DEBUG("AcquisitionDataType set: BPost"); 
-      this->AcquisitionDataType=udtBPost; 
-    }
-    else if (STRCASECMP(acquisitionDataType, "RF")==0)
-    {
-      LOG_DEBUG("AcquisitionDataType set: RF"); 
-      this->AcquisitionDataType=udtRF; 
-    }
-    else
-    {
-      LOG_ERROR("Unsupported AcquisitionDataType requested: "<<acquisitionDataType);
+      return PLUS_FAIL;
     }
   }
 
+  // Now that we know what kind of imaging we want, lets confirm the user has created the appropriate channels
+  // and configured them correctly
+  switch(this->ImagingMode)
+  {
+  case BMode:
+    if( this->OutputChannelCount() != 1 || this->OutputChannels[0]->GetImageOrientation() > US_IMG_ORIENT_MN )
+    {
+      
+    }
+    break;
+  case RfMode:
+    switch(this->RfAcquisitionMode)
+    {
+    case RF_ACQ_RF_ONLY:
+      break;
+    case RF_ACQ_B_AND_RF:
+      break;
+    }
+    break;
+  }
+
   int depth = -1; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("Depth", depth)) 
+  if ( deviceConfig->GetScalarAttribute("Depth", depth)) 
   {
     this->Depth=depth; 
   }
 
   int sector = -1; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("Sector", sector)) 
+  if ( deviceConfig->GetScalarAttribute("Sector", sector)) 
   {
     this->Sector=sector; 
   }
 
   int gain = -1; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("Gain", gain)) 
+  if ( deviceConfig->GetScalarAttribute("Gain", gain)) 
   {
     this->Gain=gain; 
   }
 
   int dynRange = -1; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("DynRange", dynRange)) 
+  if ( deviceConfig->GetScalarAttribute("DynRange", dynRange)) 
   {
     this->DynRange=dynRange; 
   }
 
   int zoom = -1; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("Zoom", zoom)) 
+  if ( deviceConfig->GetScalarAttribute("Zoom", zoom)) 
   {
     this->Zoom=zoom; 
   }
 
   int frequency = -1; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("Frequency", frequency)) 
+  if ( deviceConfig->GetScalarAttribute("Frequency", frequency)) 
   {
     this->Frequency=frequency; 
   }
 
   int compressionStatus = 0; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("CompressionStatus", compressionStatus)) 
+  if ( deviceConfig->GetScalarAttribute("CompressionStatus", compressionStatus)) 
   {
     this->CompressionStatus=compressionStatus; 
   }
 
   int sharedMemoryStatus = 0; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("SharedMemoryStatus", sharedMemoryStatus)) 
+  if ( deviceConfig->GetScalarAttribute("SharedMemoryStatus", sharedMemoryStatus)) 
   {
     this->SharedMemoryStatus=sharedMemoryStatus; 
   }
 
   int timeout = 0; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("Timeout", timeout)) 
+  if ( deviceConfig->GetScalarAttribute("Timeout", timeout)) 
   {
     this->Timeout=timeout; 
   }
 
   int soundVelocity = 1540; // Default value.
-  if ( imageAcquisitionConfig->GetScalarAttribute("SoundVelocity", soundVelocity ) ) 
+  if ( deviceConfig->GetScalarAttribute("SoundVelocity", soundVelocity ) ) 
   {
     this->SoundVelocity = soundVelocity; 
   }
 
   double connectionSetupDelayMs=3.0; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("ConnectionSetupDelayMs", connectionSetupDelayMs)) 
+  if ( deviceConfig->GetScalarAttribute("ConnectionSetupDelayMs", connectionSetupDelayMs)) 
   {
     this->ConnectionSetupDelayMs=connectionSetupDelayMs; 
   }
@@ -1009,26 +1019,6 @@ PlusStatus vtkSonixVideoSource::GetDisplayedFrameRate(int &aFrameRate)
   return PLUS_SUCCESS;
 }
 //----------------------------------------------------------------------------
-PlusStatus vtkSonixVideoSource::GetDisplayedFrameSize(int &aFrameWidth, int &aFrameHeight)
-{
-  if (!this->UlteriusConnected)
-  {
-    LOG_ERROR("vtkSonixVideoSource::GetDisplayedFrameSize failed: not connected");
-  return PLUS_FAIL;
-  }
-
-  if(!this->Ult.getDataDescriptor((uData)this->AcquisitionDataType, this->DataDescriptor))
-  {
-    LOG_ERROR("vtkSonixVideoSource::GetDisplayedFrameSize failed: cannot retrieve displayed frame size.");
-    return PLUS_FAIL;
-  }
-  
-  aFrameWidth =  this->DataDescriptor.w;
-  aFrameHeight = this->DataDescriptor.h;
-
-  return PLUS_SUCCESS;
-}
-//----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::SetRFDecimation(int decimation)
 {
   if (!this->UlteriusConnected)
@@ -1156,10 +1146,9 @@ PlusStatus vtkSonixVideoSource::InternalUpdate()
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::NotifyConfigured()
 {
-  if( this->OutputChannels.size() > 1 )
+  if( this->OutputChannels.size() > 2 )
   {
-    LOG_WARNING("vtkSonixVideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
-    return PLUS_FAIL;
+    LOG_WARNING("vtkSonixVideoSource is expecting at most two output channels and their are " << this->OutputChannels.size() << " channels. First output channel will be used.");
   }
 
   if( this->OutputChannels.size() == 0 )
@@ -1197,6 +1186,8 @@ PlusStatus vtkSonixVideoSource::Reset()
   }
   this->VideoSources.clear();
 
+  this->BModeChannel = NULL;
+  this->RfModeChannel = NULL;
   this->SonixIP = 0;
   this->Frequency = -1; //in Mhz
   this->Depth = -1; //in mm
@@ -1220,6 +1211,101 @@ PlusStatus vtkSonixVideoSource::Reset()
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
   this->RequireUsImageOrientationInDeviceSetConfiguration = true;
   this->RequireRfElementInDeviceSetConfiguration = false;
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+bool vtkSonixVideoSource::HasDataType( uData aValue )
+{
+  uDataDesc someVal;
+  return this->Ult.getDataDescriptor( aValue, someVal ) ? PLUS_SUCCESS : PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixVideoSource::ConfigureChannel( vtkPlusChannel* aChannel, uData aValue )
+{
+  if( aChannel == NULL )
+  {
+    LOG_ERROR("Null channel sent to vtkSonixVideoSource::ConfigureChannel. Unable to configure acquisition.");
+    return PLUS_FAIL;
+  }
+
+  if (!this->Ult.isDataAvailable(aValue))
+  {
+    LOG_ERROR("Data type is not available. " << aValue);
+    return PLUS_FAIL;
+  }
+
+  // Set frame size and pixel type
+  uDataDesc aDataDescriptor;
+  if ( !this->Ult.getDataDescriptor(aValue, aDataDescriptor) )
+  {
+    LOG_WARNING("Initialize: couldn't retrieve data descriptor (" << GetLastUlteriusError() << ")"); // error is reported at higher level, as it often happens that this call fails but after a few attempts it succeeds
+    return PLUS_FAIL;
+  }
+
+  vtkPlusDataSource* aSource(NULL);
+  if( aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to retrieve the video source in the SonixVideo device for channel " << aChannel->GetChannelId() << ".");
+    return PLUS_FAIL;
+  }
+
+  switch (aDataDescriptor.ss)
+  {
+  case 8:
+    this->SetPixelType( *aChannel, itk::ImageIOBase::UCHAR );
+    this->SetImageType( *aChannel, US_IMG_BRIGHTNESS );
+    aSource->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
+    break;
+  case 16:
+    this->SetPixelType( *aChannel, itk::ImageIOBase::SHORT );
+    this->SetImageType( *aChannel, US_IMG_RF_I_LINE_Q_LINE );
+    // RF data is stored line-by-line, therefore set the storage buffer to FM orientation
+    aSource->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_FM);
+    // Swap w/h: in case of RF image acquisition the DataDescriptor.h is the width and the DataDescriptor.w is the height
+    {
+      int tmp = aDataDescriptor.h;
+      aDataDescriptor.h = aDataDescriptor.w;
+      aDataDescriptor.w = tmp;
+    }
+    break;
+  default:
+    LOG_ERROR("Unsupported Ulterius bit depth: " << aDataDescriptor.ss);
+    return PLUS_FAIL;
+  }
+  this->SetFrameSize( *aChannel, aDataDescriptor.w, aDataDescriptor.h);
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixVideoSource::PopulateChannel( vtkPlusChannel*& aChannel, const char* aChannelId )
+{
+  if( aChannel == NULL && aChannelId == NULL && this->OutputChannelCount() == 1 )
+  {
+    aChannel = this->OutputChannels[0];
+  }
+  else if( aChannel == NULL && aChannelId == NULL && this->OutputChannelCount() > 1 )
+  {
+    LOG_ERROR("Multiple output channels defined but BModeChannelId is not set. B-mode requested but B-mode channel is not defined.");
+    return PLUS_FAIL;
+  }
+  else if( aChannel == NULL && aChannelId != NULL && this->GetOutputChannelByName(aChannel, aChannelId) != PLUS_SUCCESS && this->OutputChannelCount() > 1)
+  {
+    LOG_ERROR("Multiple output channels defined but BModeChannelId is not set. B-mode requested but B-mode channel is not defined.");
+    return PLUS_FAIL;
+  }
+  else if( aChannel == NULL && aChannelId != NULL && this->GetOutputChannelByName(aChannel, aChannelId) != PLUS_SUCCESS && this->OutputChannelCount() == 1 )
+  {
+    aChannel = this->OutputChannels[0];
+  }
+  else if( aChannel == NULL && aChannelId != NULL && this->GetOutputChannelByName(aChannel, aChannelId) != PLUS_SUCCESS && this->OutputChannelCount() > 1 )
+  {
+    LOG_ERROR("Multiple output channels defined but BModeChannelId is not set. B-mode requested but B-mode channel is not defined.");
+    return PLUS_FAIL;
+  }
 
   return PLUS_SUCCESS;
 }

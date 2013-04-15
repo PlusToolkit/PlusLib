@@ -65,7 +65,6 @@
       LocalTimeOffsetSec="-0.084"
       IP="130.15.7.20" 
       ImagingMode="BMode"
-      AcquisitionDataType="BPost" 
       Depth="-1" 
       Sector="-1" 
       Gain="-1" 

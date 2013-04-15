@@ -33,7 +33,6 @@
       LocalTimeOffsetSec="0.008"
       IP="127.0.0.1"
       ImagingMode="BMode"
-      AcquisitionDataType="BPost"
       Depth="6"
       Sector="-1"
       Gain="-1"
@@ -42,7 +41,6 @@
       Frequency="-1"
       Timeout="-1"
       CompressionStatus="0"
-      RfAcquisitionMode="RfOnly"
       ConnectionSetupDelayMs="3000" >
       <DataSources>
         <DataSource Type="Video" Id="Video" BufferSize="500" AveragedItemsForFiltering="20" />

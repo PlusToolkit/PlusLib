@@ -40,7 +40,6 @@ Plug in the US Digital ED2 digital display through Serial2USB converter cable in
       LocalTimeOffsetSec="-0.2126"
       IP="130.15.7.20" 
       ImagingMode="BMode"
-      AcquisitionDataType="BPost" 
       Depth="-1" 
       Sector="-1" 
       Gain="-1" 

@@ -36,7 +36,6 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
       LocalTimeOffsetSec="-0.2126"
       IP="130.15.7.20" 
       ImagingMode="RfMode"
-      AcquisitionDataType="RF" 
       Depth="-1" 
       Sector="-1" 
       Gain="-1" 

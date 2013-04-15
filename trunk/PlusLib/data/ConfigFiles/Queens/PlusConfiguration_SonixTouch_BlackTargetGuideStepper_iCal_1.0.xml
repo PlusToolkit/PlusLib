@@ -40,7 +40,6 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       LocalTimeOffsetSec="-0.2126"
       IP="130.15.7.20" 
       ImagingMode="BMode"
-      AcquisitionDataType="BPost" 
       Depth="-1" 
       Sector="-1" 
       Gain="-1" 
