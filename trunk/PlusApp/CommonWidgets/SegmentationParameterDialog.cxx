@@ -1082,7 +1082,8 @@ PlusStatus SegmentationParameterDialog::ReadConfiguration()
     ui.spinBox_XMin->setValue( roi[0] );
     ui.spinBox_YMin->setValue( roi[1] );
     ui.spinBox_XMax->setValue( roi[2] );
-    ui.spinBox_YMax->setValue( roi[3] );  
+    ui.spinBox_YMax->setValue( roi[3] );
+    LOG_WARNING("RegionOfInterest is deprecated. Please convert to ClipRectangleOrigin and ClipRectangleSize.");
   }
   else
   {

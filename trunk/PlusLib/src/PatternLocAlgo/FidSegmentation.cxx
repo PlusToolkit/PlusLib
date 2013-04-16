@@ -212,6 +212,7 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
     m_RegionOfInterest[1] = roi[1];
     m_RegionOfInterest[2] = roi[2];
     m_RegionOfInterest[3] = roi[3];
+    LOG_WARNING("RegionOfInterest is deprecated. Please convert to ClipRectangleOrigin and ClipRectangleSize.");
   }
   else
   {
