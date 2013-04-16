@@ -55,7 +55,6 @@ vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
 , SendValidTransformsOnly(true)
 , IgtlMessageCrcCheckEnabled(0)
 , PlusCommandProcessor(vtkSmartPointer<vtkPlusCommandProcessor>::New())
-, OutputDeviceId(NULL)
 , OutputChannelId(NULL)
 , BroadcastChannel(NULL)
 {
@@ -272,25 +271,42 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
 
   vtkPlusDevice* aDevice(NULL);
   vtkPlusChannel* aChannel(NULL);
-  if( self->GetOutputDeviceId() == NULL || self->DataCollector->GetDevice(aDevice, std::string(self->GetOutputDeviceId())) != PLUS_SUCCESS )
+
+  DeviceCollection aCollection;
+  if( self->DataCollector->GetDevices(aCollection) != PLUS_SUCCESS || aCollection.size() == 0 )
   {
-    DeviceCollection aCollection;
-    if( self->DataCollector->GetDevices(aCollection) != PLUS_SUCCESS || aCollection.size() == 0 )
-    {
-      LOG_ERROR("Unable to retrieve device by ID: " << (self->GetOutputDeviceId() == NULL ? "MISSINGID" : self->GetOutputDeviceId()) << " and no devices to fall back on." );
-      return NULL;
-    }
-    aDevice = aCollection[0];
+    LOG_ERROR("Unable to retrieve devices. Check configuration and connection.");
+    return NULL;
   }
-  if( self->GetOutputChannelId() == NULL || aDevice->GetOutputChannelByName(self->BroadcastChannel, self->GetOutputChannelId()) != PLUS_SUCCESS )
+
+  for( DeviceCollectionIterator it = aCollection.begin(); it != aCollection.end(); ++it )
   {
-    if( aDevice->OutputChannelCount() == 0 )
+    aDevice = *it;
+    if( aDevice->GetOutputChannelByName(aChannel, self->GetOutputChannelId() ) == PLUS_SUCCESS )
     {
-      LOG_ERROR("Unable to retrieve channel by ID: " << (self->GetOutputChannelId() == NULL ? "MISSINGID" : self->GetOutputChannelId()) << " and no channels to fall back on." );
-      return NULL;
+      break;
     }
-    self->BroadcastChannel = *(aDevice->GetOutputChannelsStart());
   }
+    
+  if( aChannel == NULL )
+  {
+    for( DeviceCollectionIterator it = aCollection.begin(); it != aCollection.end(); ++it )
+    {
+      aDevice = *it;
+      if( aDevice->OutputChannelCount() > 0 )
+      {
+        aChannel = *(aDevice->GetOutputChannelsStart());
+      }
+    }
+  }
+
+  if( aChannel == NULL )
+  {
+    LOG_ERROR("There are no channels to broadcast. Check configuration.");
+    return NULL;
+  }
+
+  self->BroadcastChannel = aChannel;
   self->BroadcastChannel->GetMostRecentTimestamp(self->LastSentTrackedFrameTimestamp);
 
   std::list<std::string>::iterator messageTypeIterator; 
@@ -757,9 +773,6 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfi
     LOG_ERROR("Cannot find PlusOpenIGTLinkServer element in XML tree!");
     return PLUS_FAIL;
   }
-
-  const char* outputDeviceId = plusOpenIGTLinkServerConfig->GetAttribute("OutputDeviceId");
-  this->SetOutputDeviceId(outputDeviceId);
 
   const char* outputChannelId = plusOpenIGTLinkServerConfig->GetAttribute("OutputChannelId");
   this->SetOutputChannelId(outputChannelId);
