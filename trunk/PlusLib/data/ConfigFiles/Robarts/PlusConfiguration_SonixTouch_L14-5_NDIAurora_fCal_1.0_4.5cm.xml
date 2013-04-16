@@ -1,4 +1,4 @@
-<PlusConfiguration version="2.1" PlusRevision="1.5.3.1738">
+<PlusConfiguration version="2.3" >
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
       Name="SonixTouch L14-5 + NDI Aurora 4.5cm depth" 

@@ -1,4 +1,4 @@
-<PlusConfiguration version="2.1" PlusRevision="2.0.0.2503">
+<PlusConfiguration version="2.3" >
   <DataCollection StartupDelaySec="1">
     <DeviceSet 
       Name="SonixTouch + PolarisTracker IPEA" 
