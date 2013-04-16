@@ -2,7 +2,7 @@
 
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
-      Name="TEST SonixTouch with Fake tracker - experimental" 
+      Name="TEST SonixTouch with Fake tracker - B and Rf"
       Description="Test mode for vtkDataCollectorTest with SonixTouch and Fake tracker. The SonixTouch US device should be in research mode." 
     />
 
@@ -32,9 +32,6 @@
       Type="SonixVideo" 
       AcquisitionRate="-1" 
       IP="130.15.7.20" 
-      ImagingMode="BAndRf"
-      BModeChannelId="BModeVideoStream"
-      RfModeChannelId="RfModeVideoStream"
       Depth="-1" 
       Sector="-1" 
       Gain="-1" 
@@ -44,8 +41,8 @@
       Timeout="-1" 
       CompressionStatus="0" >
       <DataSources>
-        <DataSource Type="Video" Id="BModeVideo" BufferSize="100" AveragedItemsForFiltering="20" />
-        <DataSource Type="Video" Id="RfModeVideo" BufferSize="100" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="BModeVideo" PortName="B" BufferSize="100" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="RfModeVideo" PortName="Rf" BufferSize="40" AveragedItemsForFiltering="20" />
       </DataSources>
       
       <OutputChannels>

@@ -39,6 +39,8 @@ public:
   vtkTypeRevisionMacro(vtkPlusDevice, vtkImageAlgorithm);
   void PrintSelf(ostream& os, vtkIndent indent);
 
+  static const char* BMODE_PORT_NAME;
+  static const char* RFMODE_PORT_NAME;
   /*! 
     Probe to see to see if the device is connected to the 
     computer.  This method should be overridden in subclasses. 
@@ -140,6 +142,8 @@ public:
 
   /*! Get the tool object for the specified tool port name */
   PlusStatus GetToolByPortName( const char* aPortName, vtkPlusDataSource*& aTool); 
+  /*! Get the tool object for the specified tool port name */
+  PlusStatus GetVideoSourceByPortName( const char* aPortName, vtkPlusDataSource*& aTool); 
 
   /*! Get the beginning of the tool iterator */
   DataSourceContainerConstIterator GetToolIteratorBegin() const; 
@@ -307,14 +311,14 @@ public:
     the device may either refuse a request for an illegal frame size or
     automatically choose a new frame size.
   */
-  virtual PlusStatus SetFrameSize(vtkPlusChannel& aChannel, int x, int y);
+  virtual PlusStatus SetFrameSize(vtkPlusDataSource& aSource, int x, int y);
 
   /*!
     Set the full-frame size.  This must be an allowed size for the device,
     the device may either refuse a request for an illegal frame size or
     automatically choose a new frame size.
   */
-  virtual PlusStatus SetFrameSize(vtkPlusChannel& aChannel, int dim[2]) { return this->SetFrameSize(aChannel, dim[0], dim[1]); };
+  virtual PlusStatus SetFrameSize(vtkPlusDataSource& aSource, int dim[2]) { return this->SetFrameSize(aSource, dim[0], dim[1]); };
 
   /*! Get the full-frame size */
   //virtual int* GetFrameSize();

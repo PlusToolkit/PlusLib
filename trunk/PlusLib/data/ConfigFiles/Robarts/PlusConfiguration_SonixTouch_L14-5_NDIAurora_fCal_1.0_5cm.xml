@@ -32,7 +32,6 @@
       AcquisitionRate="30"
       LocalTimeOffsetSec="0.008"
       IP="127.0.0.1"
-      ImagingMode="BMode"
       Depth="6"
       Sector="-1"
       Gain="-1"
@@ -43,7 +42,7 @@
       CompressionStatus="0"
       ConnectionSetupDelayMs="3000" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" BufferSize="500" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="Video" PortName="B" BufferSize="500" AveragedItemsForFiltering="20" />
       </DataSources>
 
       <OutputChannels>

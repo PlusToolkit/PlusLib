@@ -35,7 +35,6 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
       AcquisitionRate="30" 
       LocalTimeOffsetSec="-0.2126"
       IP="130.15.7.20" 
-      ImagingMode="RfMode"
       Depth="-1" 
       Sector="-1" 
       Gain="-1" 
@@ -46,7 +45,7 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
       CompressionStatus="0" >
 
       <DataSources>
-        <DataSource Type="Video" Id="Video" BufferSize="100" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="Video" PortName="Rf" BufferSize="100" AveragedItemsForFiltering="20" />
       </DataSources>
       
       <OutputChannels>

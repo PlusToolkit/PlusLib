@@ -637,7 +637,13 @@ PlusStatus vtkWin32VideoSource2::VideoSourceDialog()
 //----------------------------------------------------------------------------
 PlusStatus vtkWin32VideoSource2::SetFrameSize(int x, int y)
 {
-  if (this->Superclass::SetFrameSize(*(this->OutputChannels[0]), x, y)!=PLUS_SUCCESS)
+  vtkPlusDataSource* aSource(NULL);
+  if( this->GetFirstActiveVideoSource(aSource) != PLUS_SUCCESS )
+  {
+    LOG_ERROR(this->GetDeviceId() << ": Unable to retrieve video source.");
+    return PLUS_FAIL;
+  }
+  if (this->Superclass::SetFrameSize(*aSource, x, y)!=PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }

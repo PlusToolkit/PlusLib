@@ -35,7 +35,6 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
       AcquisitionRate="30" 
       LocalTimeOffsetSec="-0.2976"
       IP="130.15.7.20" 
-      ImagingMode="BMode"
       Depth="-1" 
       Sector="-1" 
       Gain="-1" 
@@ -45,7 +44,7 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
       Timeout="-1" 
       CompressionStatus="0" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" BufferSize="100" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="Video" PortName="B" BufferSize="100" AveragedItemsForFiltering="20" />
       </DataSources>
       
       <OutputChannels>

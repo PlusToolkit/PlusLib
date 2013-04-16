@@ -30,7 +30,6 @@
       Type="SonixVideo"
       Id="DeviceSonixVideo" 
       IP="130.15.7.20" 
-      ImagingMode="BMode"
       AcquisitionDataType="BPost" 
       Depth="-1" 
       Sector="-1" 
@@ -41,7 +40,7 @@
       Timeout="-1" 
       CompressionStatus="0" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" BufferSize="500" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="Video" PortName="B" BufferSize="500" AveragedItemsForFiltering="20" />
       </DataSources>
       
       <OutputChannels>

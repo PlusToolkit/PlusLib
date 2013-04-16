@@ -111,14 +111,14 @@ void vtkPlusDataSource::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::SetSourceId(const char* toolName)
+PlusStatus vtkPlusDataSource::SetSourceId(const char* aSourceId)
 {
-  if ( this->SourceId == NULL && toolName == NULL) 
+  if ( this->SourceId == NULL && aSourceId == NULL) 
   { 
     return PLUS_SUCCESS;
   } 
 
-  if ( this->SourceId && toolName && ( STRCASECMP(this->SourceId, toolName) == 0 ) ) 
+  if ( this->SourceId && aSourceId && ( STRCASECMP(this->SourceId, aSourceId) == 0 ) ) 
   { 
     return PLUS_SUCCESS;
   } 
@@ -130,9 +130,9 @@ PlusStatus vtkPlusDataSource::SetSourceId(const char* toolName)
   }
 
   // Copy string 
-  size_t n = strlen(toolName) + 1; 
+  size_t n = strlen(aSourceId) + 1; 
   char *cp1 =  new char[n]; 
-  const char *cp2 = (toolName); 
+  const char *cp2 = (aSourceId); 
   this->SourceId = cp1;
   do { *cp1++ = *cp2++; } while ( --n ); 
 
@@ -216,32 +216,6 @@ void vtkPlusDataSource::SetLED3(int state)
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusDataSource::SetDevice(vtkPlusDevice *device)
-{
-  // The Tracker is not reference counted, since that would cause a reference loop
-  if (device == this->Device)
-  {
-    return;
-  }
-
-  if (this->Device)
-  {
-    this->Device = NULL;
-  }
-
-  if (device)
-  {
-    this->Device = device;
-  }
-  else
-  {
-    this->Device = NULL;
-  }
-
-  this->Modified();
-}
-
-//----------------------------------------------------------------------------
 void vtkPlusDataSource::DeepCopy(vtkPlusDataSource *aSource)
 {
   LOG_TRACE("vtkPlusDataSource::DeepCopy"); 
@@ -286,16 +260,18 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
     return PLUS_FAIL; 
   }
 
+  const char* portName = sourceElement->GetAttribute("PortName"); 
+  if ( portName != NULL ) 
+  {
+    this->SetPortName(portName); 
+  }
+
   const char* type = sourceElement->GetAttribute("Type"); 
   if ( type != NULL && STRCASECMP(type, "Tool") == 0 ) 
   {
     this->SetType(DATA_SOURCE_TYPE_TOOL);
-    const char* portName = sourceElement->GetAttribute("PortName"); 
-    if ( portName != NULL ) 
-    {
-      this->SetPortName(portName); 
-    }
-    else
+    
+    if( portName == NULL )
     {
       LOG_ERROR("Unable to find PortName! This attribute is mandatory in tool definition."); 
       return PLUS_FAIL; 

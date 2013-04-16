@@ -39,7 +39,6 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       AcquisitionRate="30" 
       LocalTimeOffsetSec="-0.2126"
       IP="130.15.7.20" 
-      ImagingMode="BMode"
       Depth="-1" 
       Sector="-1" 
       Gain="-1" 
@@ -49,7 +48,7 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       Timeout="-1" 
       CompressionStatus="0" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" BufferSize="500" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="Video" PortName="B" BufferSize="500" AveragedItemsForFiltering="20" />
       </DataSources>
       
       <OutputChannels>

@@ -196,19 +196,17 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
     return PLUS_SUCCESS;
   }
 
-  vtkPlusChannel* aChannel;
+  vtkPlusDataSource* aSource;
   PlusCommon::ITKScalarPixelType pixelType = itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;    
   US_IMAGE_TYPE imgType = US_IMG_TYPE_XX;    
 
-  if( (uData)type == udtBPost && this->BModeChannel != NULL )
+  if( (uData)type == udtBPost && this->GetVideoSourceByPortName(vtkPlusDevice::BMODE_PORT_NAME, aSource) == PLUS_SUCCESS )
   {
-    aChannel = this->BModeChannel;
     pixelType = itk::ImageIOBase::UCHAR;
     imgType = US_IMG_BRIGHTNESS;
   }
-  else if( (uData)type == udtRF && this->RfModeChannel != NULL )
+  else if( (uData)type == udtRF && this->GetVideoSourceByPortName(vtkPlusDevice::RFMODE_PORT_NAME, aSource) == PLUS_SUCCESS )
   {
-    aChannel = this->RfModeChannel;
     pixelType = itk::ImageIOBase::SHORT;
     imgType = US_IMG_RF_I_LINE_Q_LINE;
   }
@@ -223,13 +221,7 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
   this->FrameNumber = frmnum; 
 
   int frameSize[2] = {0,0};
-  this->GetFrameSize(*aChannel, frameSize); 
-  vtkPlusDataSource* aSource(NULL);
-  if( aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Unable to retrieve the video source in the SonixVideo device.");
-    return PLUS_FAIL;
-  }
+  aSource->GetBuffer()->GetFrameSize(frameSize);
   int frameBufferBytesPerPixel = aSource->GetBuffer()->GetNumberOfBytesPerPixel(); 
   const int frameSizeInBytes = frameSize[0] * frameSize[1] * frameBufferBytesPerPixel; 
 
@@ -264,7 +256,7 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
   // get the pointer to actual incoming data on to a local pointer
   unsigned char *deviceDataPtr = static_cast<unsigned char*>(dataPtr);
 
-  PlusStatus status = aSource->GetBuffer()->AddItem(deviceDataPtr, aChannel->GetImageOrientation(), frameSize, pixelType, imgType, numberOfBytesToSkip, this->FrameNumber); 
+  PlusStatus status = aSource->GetBuffer()->AddItem(deviceDataPtr, aSource->GetBuffer()->GetImageOrientation(), frameSize, pixelType, imgType, numberOfBytesToSkip, this->FrameNumber); 
   this->Modified(); 
 
   return status;
@@ -285,14 +277,14 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
     {
       // a previous connection setup attempt failed after connection has been made, so
       // disconnect before trying to connect again
-    this->Ult.setDataToAcquire(0); // without this Ulterius 5.x may crash
+      this->Ult.setDataToAcquire(0); // without this Ulterius 5.x may crash
       this->Ult.disconnect();
       this->UlteriusConnected=false;
     }
-    if (connectionTried>0)
+    if (connectionTried > 0)
     {
       // this is a connection retry attempt
-      if (connectionTried>=CONNECT_RETRY)
+      if (connectionTried >= CONNECT_RETRY)
       {
         LOG_ERROR("Failed to connect to sonix video device");
         return PLUS_FAIL;
@@ -302,7 +294,7 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
     }
     connectionTried++;
 
-    if (this->SonixIP==NULL)
+    if (this->SonixIP == NULL)
     {
       LOG_ERROR("Sonix host IP address is undefined");
       continue;
@@ -315,16 +307,16 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
       continue;
     }
     this->UlteriusConnected=true;
-    
+
     // Set the imaging mode
-    if (SetImagingMode(this->ImagingMode)!=PLUS_SUCCESS) { continue; }
+    if (SetImagingMode(this->ImagingMode) != PLUS_SUCCESS) { continue; }
 
     // We need to wait for a little while before the mode actually gets selected
     vtkAccurateTimer::Delay(0.001*this->ConnectionSetupDelayMs); 
 
     // Double-check to see if the mode has actually been set
     int actualImagingMode=-1;
-    if (GetImagingMode(actualImagingMode)!=PLUS_SUCCESS)
+    if (GetImagingMode(actualImagingMode) != PLUS_SUCCESS)
     { 
       LOG_ERROR("Initialize: Cannot check actual imaging mode");
       continue; 
@@ -362,18 +354,18 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
 
     if( this->HasDataType(udtBPost) )
     {
-      if( this->ConfigureChannel(BModeChannel, udtBPost) != PLUS_SUCCESS )
+      if( this->ConfigureVideoSource(udtBPost) != PLUS_SUCCESS )
       {
-        LOG_ERROR("Unable to configure B-mode channel.");
+        LOG_ERROR("Unable to configure B-mode video source.");
         continue;
       }
     }
 
     if( this->HasDataType(udtRF) )
     {
-      if( this->ConfigureChannel(RfModeChannel, udtRF) != PLUS_SUCCESS )
+      if( this->ConfigureVideoSource(udtRF) != PLUS_SUCCESS )
       {
-        LOG_ERROR("Unable to configure Rf-mode channel.");
+        LOG_ERROR("Unable to configure Rf-mode video source.");
         continue;
       }
     }
@@ -398,7 +390,7 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
     {
       continue;
     }
-    
+
     if (this->AcquisitionRate<=0)
     {
       // AcquisitionRate has not been specified, set it to match the frame rate
@@ -408,7 +400,7 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
         this->AcquisitionRate=aFrameRate;        
       }
     }
-    
+
     Ult.setSharedMemoryStatus( this->SharedMemoryStatus );
 
     // Set callback and timeout for receiving new frames
@@ -488,103 +480,43 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* config)
     LOG_WARNING("Ultrasonix IP address is not defined");
   }  
 
-  const char* imagingMode = deviceConfig->GetAttribute("ImagingMode"); 
-  if ( imagingMode != NULL) 
+  vtkPlusDataSource* bSource(NULL);
+  vtkPlusDataSource* rfSource(NULL);
+  bool bMode = this->GetVideoSourceByPortName(vtkPlusDevice::BMODE_PORT_NAME, bSource) == PLUS_SUCCESS;
+  bool rfMode = this->GetVideoSourceByPortName(vtkPlusDevice::RFMODE_PORT_NAME, bSource) == PLUS_SUCCESS;
+
+  if (bMode && !rfMode)
   {
-// if we wanted to get really faaannnnn   hey wait a minute....
-// if the channels are already configured they should have an orientation set
-// we could use that orientation to see if we have suitable channels
-    if (STRCASECMP(imagingMode, "BMode")==0)
-    {
-      LOG_DEBUG("Imaging mode set: BMode"); 
-      this->ImagingMode = BMode; 
-      this->RfAcquisitionMode = RF_ACQ_B_ONLY; // Not necessary, setting it just in case
-      this->AcquisitionDataType = udtBPost;
-
-      const char* bChannelId = deviceConfig->GetAttribute("BModeChannelId");
-      if( this->PopulateChannel(this->BModeChannel, bChannelId) != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Unable to properly configure B-mode channel. Please verify configuration.");
-        return PLUS_FAIL;
-      }
-    } 
-    else if (STRCASECMP(imagingMode, "RfMode")==0)
-    {
+    LOG_DEBUG("Imaging mode set: BMode"); 
+    this->ImagingMode = BMode; 
+    this->RfAcquisitionMode = RF_ACQ_B_ONLY; // Not necessary, setting it just in case
+    this->AcquisitionDataType = udtBPost;
+  } 
+  else if ( rfMode && !bMode )
+  {
 #if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6)
-      LOG_DEBUG("Imaging mode set: RfMode"); 
-      this->ImagingMode = RfMode;
-      this->RfAcquisitionMode = RF_ACQ_RF_ONLY;
-      this->AcquisitionDataType = udtRF;
-
-      const char* rfChannelId = deviceConfig->GetAttribute("RfModeChannelId");
-      if( this->PopulateChannel(this->RfModeChannel, rfChannelId) != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Unable to properly configure Rf-mode channel. Please verify configuration.");
-        return PLUS_FAIL;
-      }
+    LOG_DEBUG("Imaging mode set: RfMode"); 
+    this->ImagingMode = RfMode;
+    this->RfAcquisitionMode = RF_ACQ_RF_ONLY;
+    this->AcquisitionDataType = udtRF;
 #else
-      LOG_ERROR("RF acquisition mode is not supported on Ultrasonix SDK 6.x and above. ImagingMode is set to BMode."); // see https://www.assembla.com/spaces/plus/tickets/489-add-rf-image-acquisition-support-on-ulterius-6-x      
-      this->ImagingMode = BMode; 
-      this->AcquisitionDataType = udtBPost;
+    LOG_ERROR("RF acquisition mode is not supported on Ultrasonix SDK 6.x and above. ImagingMode is set to BMode."); // see https://www.assembla.com/spaces/plus/tickets/489-add-rf-image-acquisition-support-on-ulterius-6-x      
+    this->ImagingMode = BMode; 
+    this->AcquisitionDataType = udtBPost;
 #endif
-    }
-    else if (STRCASECMP(imagingMode, "BAndRF")==0)
-    {
-#if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6)
-      this->ImagingMode = RfMode;
-      this->RfAcquisitionMode = RF_ACQ_B_AND_RF;
-      this->AcquisitionDataType = udtBPost | udtRF;
-
-      if( this->OutputChannelCount() < 2 )
-      {
-        LOG_ERROR("Unable to configure dual mode acquisition with insufficient channels. Please check configuration.");
-        return PLUS_FAIL;
-      }
-
-      const char* bChannelId = deviceConfig->GetAttribute("BModeChannelId");
-      if( this->PopulateChannel(this->BModeChannel, bChannelId) != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Unable to properly configure B-mode channel. Please verify configuration.");
-        return PLUS_FAIL;
-      }
-      const char* rfChannelId = deviceConfig->GetAttribute("RfModeChannelId");
-      if( this->PopulateChannel(this->RfModeChannel, rfChannelId) != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Unable to properly configure Rf-mode channel. Please verify configuration.");
-        return PLUS_FAIL;
-      }
-#else
-      LOG_ERROR("RF acquisition mode is not supported on Ultrasonix SDK 6.x and above. ImagingMode is set to BMode."); // see https://www.assembla.com/spaces/plus/tickets/489-add-rf-image-acquisition-support-on-ulterius-6-x      
-      this->ImagingMode = BMode; 
-      this->AcquisitionDataType = udtBPost;
-#endif
-    }
-    else
-    {
-      LOG_ERROR("Unsupported ImagingMode requested: "<<imagingMode);
-      return PLUS_FAIL;
-    }
   }
-
-  // Now that we know what kind of imaging we want, lets confirm the user has created the appropriate channels
-  // and configured them correctly
-  switch(this->ImagingMode)
+  else if ( bMode && rfMode )
   {
-  case BMode:
-    if( this->OutputChannelCount() != 1 || this->OutputChannels[0]->GetImageOrientation() > US_IMG_ORIENT_MN )
-    {
-      
-    }
-    break;
-  case RfMode:
-    switch(this->RfAcquisitionMode)
-    {
-    case RF_ACQ_RF_ONLY:
-      break;
-    case RF_ACQ_B_AND_RF:
-      break;
-    }
-    break;
+#if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6)
+    LOG_DEBUG("Imaging mode set: BAndRfMode");
+    this->ImagingMode = RfMode;
+    this->RfAcquisitionMode = RF_ACQ_B_AND_RF;
+    this->AcquisitionDataType = udtBPost | udtRF;
+#else
+    LOG_ERROR("RF acquisition mode is not supported on Ultrasonix SDK 6.x and above. ImagingMode is set to BMode."); // see https://www.assembla.com/spaces/plus/tickets/489-add-rf-image-acquisition-support-on-ulterius-6-x      
+    this->ImagingMode = BMode; 
+    this->AcquisitionDataType = udtBPost;
+#endif
   }
 
   int depth = -1; 
@@ -652,7 +584,7 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* config)
   {
     this->ConnectionSetupDelayMs=connectionSetupDelayMs; 
   }
-  
+
   return PLUS_SUCCESS;
 }
 
@@ -1012,10 +944,10 @@ PlusStatus vtkSonixVideoSource::GetDisplayedFrameRate(int &aFrameRate)
 
   if ( !this->Ult.getParamValue("frame rate", aFrameRate) )
   {
-   LOG_ERROR("vtkSonixVideoSource::GetDisplayedFrameRate failed: cannot retrieve displayed frame rate.");
-   return PLUS_FAIL;
+    LOG_ERROR("vtkSonixVideoSource::GetDisplayedFrameRate failed: cannot retrieve displayed frame rate.");
+    return PLUS_FAIL;
   }
-  
+
   return PLUS_SUCCESS;
 }
 //----------------------------------------------------------------------------
@@ -1028,8 +960,8 @@ PlusStatus vtkSonixVideoSource::SetRFDecimation(int decimation)
   }
   if ( !this->Ult.setParamValue("rf-rf decimation", decimation) )
   {
-   LOG_ERROR("vtkSonixVideoSource::SetRFDecimation failed: cannot set decimation value.");
-   return PLUS_FAIL;
+    LOG_ERROR("vtkSonixVideoSource::SetRFDecimation failed: cannot set decimation value.");
+    return PLUS_FAIL;
   }
 
   return PLUS_SUCCESS;
@@ -1044,8 +976,8 @@ PlusStatus vtkSonixVideoSource::SetPPFilter(int filterIndex)
   }
   if ( !this->Ult.setParamValue("b-filter type", filterIndex) )
   {
-   LOG_ERROR("vtkSonixVideoSource::SetPPFilter failed: cannot set filter value.");
-   return PLUS_FAIL;
+    LOG_ERROR("vtkSonixVideoSource::SetPPFilter failed: cannot set filter value.");
+    return PLUS_FAIL;
   }
 
   return PLUS_SUCCESS;
@@ -1060,8 +992,8 @@ PlusStatus vtkSonixVideoSource::SetFrameRateLimit(int frLimit)
   }
   if ( !this->Ult.setParamValue("max fr", frLimit) )
   {
-   LOG_ERROR("vtkSonixVideoSource::SetFrameRateLimit failed: cannot set maximum frame rate limit value.");
-   return PLUS_FAIL;
+    LOG_ERROR("vtkSonixVideoSource::SetFrameRateLimit failed: cannot set maximum frame rate limit value.");
+    return PLUS_FAIL;
   }
 
   return PLUS_SUCCESS;
@@ -1186,8 +1118,6 @@ PlusStatus vtkSonixVideoSource::Reset()
   }
   this->VideoSources.clear();
 
-  this->BModeChannel = NULL;
-  this->RfModeChannel = NULL;
   this->SonixIP = 0;
   this->Frequency = -1; //in Mhz
   this->Depth = -1; //in mm
@@ -1223,11 +1153,26 @@ bool vtkSonixVideoSource::HasDataType( uData aValue )
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSonixVideoSource::ConfigureChannel( vtkPlusChannel* aChannel, uData aValue )
+PlusStatus vtkSonixVideoSource::ConfigureVideoSource( uData aValue )
 {
-  if( aChannel == NULL )
+  vtkPlusDataSource* aSource(NULL);
+  if( (aValue & udtBPost) > 0)
   {
-    LOG_ERROR("Null channel sent to vtkSonixVideoSource::ConfigureChannel. Unable to configure acquisition.");
+    this->GetVideoSourceByPortName(vtkPlusDevice::BMODE_PORT_NAME, aSource);
+  }
+  else if( (aValue & udtRF) > 0)
+  {
+    this->GetVideoSourceByPortName(vtkPlusDevice::RFMODE_PORT_NAME, aSource);
+  }
+  else
+  {
+    LOG_ERROR("Unsupported uData requested of Sonix video source.");
+    return PLUS_FAIL;
+  }
+
+  if( aSource == NULL )
+  {
+    LOG_ERROR("Unable to locate the video source for uData: " << aValue);
     return PLUS_FAIL;
   }
 
@@ -1245,23 +1190,16 @@ PlusStatus vtkSonixVideoSource::ConfigureChannel( vtkPlusChannel* aChannel, uDat
     return PLUS_FAIL;
   }
 
-  vtkPlusDataSource* aSource(NULL);
-  if( aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Unable to retrieve the video source in the SonixVideo device for channel " << aChannel->GetChannelId() << ".");
-    return PLUS_FAIL;
-  }
-
   switch (aDataDescriptor.ss)
   {
   case 8:
-    this->SetPixelType( *aChannel, itk::ImageIOBase::UCHAR );
-    this->SetImageType( *aChannel, US_IMG_BRIGHTNESS );
+    aSource->GetBuffer()->SetPixelType( itk::ImageIOBase::UCHAR );
+    aSource->GetBuffer()->SetImageType( US_IMG_BRIGHTNESS );
     aSource->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
     break;
   case 16:
-    this->SetPixelType( *aChannel, itk::ImageIOBase::SHORT );
-    this->SetImageType( *aChannel, US_IMG_RF_I_LINE_Q_LINE );
+    aSource->GetBuffer()->SetPixelType( itk::ImageIOBase::SHORT );
+    aSource->GetBuffer()->SetImageType( US_IMG_RF_I_LINE_Q_LINE );
     // RF data is stored line-by-line, therefore set the storage buffer to FM orientation
     aSource->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_FM);
     // Swap w/h: in case of RF image acquisition the DataDescriptor.h is the width and the DataDescriptor.w is the height
@@ -1275,37 +1213,7 @@ PlusStatus vtkSonixVideoSource::ConfigureChannel( vtkPlusChannel* aChannel, uDat
     LOG_ERROR("Unsupported Ulterius bit depth: " << aDataDescriptor.ss);
     return PLUS_FAIL;
   }
-  this->SetFrameSize( *aChannel, aDataDescriptor.w, aDataDescriptor.h);
-
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkSonixVideoSource::PopulateChannel( vtkPlusChannel*& aChannel, const char* aChannelId )
-{
-  if( aChannel == NULL && aChannelId == NULL && this->OutputChannelCount() == 1 )
-  {
-    aChannel = this->OutputChannels[0];
-  }
-  else if( aChannel == NULL && aChannelId == NULL && this->OutputChannelCount() > 1 )
-  {
-    LOG_ERROR("Multiple output channels defined but BModeChannelId is not set. B-mode requested but B-mode channel is not defined.");
-    return PLUS_FAIL;
-  }
-  else if( aChannel == NULL && aChannelId != NULL && this->GetOutputChannelByName(aChannel, aChannelId) != PLUS_SUCCESS && this->OutputChannelCount() > 1)
-  {
-    LOG_ERROR("Multiple output channels defined but BModeChannelId is not set. B-mode requested but B-mode channel is not defined.");
-    return PLUS_FAIL;
-  }
-  else if( aChannel == NULL && aChannelId != NULL && this->GetOutputChannelByName(aChannel, aChannelId) != PLUS_SUCCESS && this->OutputChannelCount() == 1 )
-  {
-    aChannel = this->OutputChannels[0];
-  }
-  else if( aChannel == NULL && aChannelId != NULL && this->GetOutputChannelByName(aChannel, aChannelId) != PLUS_SUCCESS && this->OutputChannelCount() > 1 )
-  {
-    LOG_ERROR("Multiple output channels defined but BModeChannelId is not set. B-mode requested but B-mode channel is not defined.");
-    return PLUS_FAIL;
-  }
+  this->SetFrameSize( *aSource, aDataDescriptor.w, aDataDescriptor.h);
 
   return PLUS_SUCCESS;
 }
