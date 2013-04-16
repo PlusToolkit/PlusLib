@@ -16,6 +16,7 @@ happens between two threads. In real life, it happens between two programs.
 #include "vtkOpenIGTLinkVideoSource.h"
 #include "vtkPlusBuffer.h"
 #include "vtkPlusChannel.h"
+#include "vtkPlusDataSource.h"
 #include "vtkPlusOpenIGTLinkServer.h"
 #include "vtkSmartPointer.h"
 #include "vtkTransformRepository.h"
@@ -258,9 +259,15 @@ PlusStatus ConnectClients( int listeningPort, std::vector< vtkSmartPointer<vtkOp
       continue;
     }
     vtkPlusChannel* aChannel = *(client->GetOutputChannelsStart());
+    vtkPlusDataSource* aSource(NULL);
+    if( aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to retrieve the video source.");
+      continue;
+    }
     client->SetBufferSize( *aChannel, 10 ); 
     client->SetMessageType( "TrackedFrame" ); 
-    aChannel->SetImageOrientation( US_IMG_ORIENT_MF );
+    aSource->SetPortImageOrientation( US_IMG_ORIENT_MF );
 
     if ( client->Connect() != PLUS_SUCCESS )
     {
