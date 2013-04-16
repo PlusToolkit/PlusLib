@@ -325,11 +325,11 @@ PlusStatus vtkBkProFocusOemVideoSource::InternalUpdate()
 
     LOG_INFO("Frame size: " << frameSizeInPix[0] << "x" << frameSizeInPix[1]
       << ", pixel type: " << vtkImageScalarTypeNameMacro(this->Internal->DecodedImageFrame->GetScalarType())
-      << ", device image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(this->OutputChannels[0]->GetImageOrientation())
+      << ", device image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetPortImageOrientation())
       << ", buffer image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetBuffer()->GetImageOrientation()));
 
   } 
-  if( aSource->GetBuffer()->AddItem(this->Internal->DecodedImageFrame, this->Internal->Channel->GetImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber) != PLUS_SUCCESS )
+  if( aSource->GetBuffer()->AddItem(this->Internal->DecodedImageFrame, aSource->GetPortImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber) != PLUS_SUCCESS )
   {
     LOG_ERROR("Error adding item to video source " << aSource->GetSourceId() << " on channel " << this->Internal->Channel->GetChannelId() );
     return PLUS_FAIL;

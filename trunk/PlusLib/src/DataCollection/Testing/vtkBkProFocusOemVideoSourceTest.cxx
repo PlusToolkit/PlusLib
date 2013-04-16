@@ -85,11 +85,11 @@ int main(int argc, char **argv)
 
   vtkSmartPointer<vtkPlusDataSource> videoSource = vtkSmartPointer<vtkPlusDataSource>::New();
   videoSource->SetSourceId("VideoSource");
+  videoSource->SetPortImageOrientation(US_IMG_ORIENT_MN);
   frameGrabber->AddVideo(videoSource);
 
-  vtkSmartPointer<vtkPlusChannel> outputChannel=vtkSmartPointer<vtkPlusChannel>::New();
+  vtkSmartPointer<vtkPlusChannel> outputChannel = vtkSmartPointer<vtkPlusChannel>::New();
   outputChannel->SetChannelId("VideoStream");
-  outputChannel->SetImageOrientation( US_IMG_ORIENT_MN );
   outputChannel->SetVideoSource(videoSource);
   frameGrabber->AddOutputChannel(outputChannel);    
 
