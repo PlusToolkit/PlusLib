@@ -22,10 +22,9 @@
     
     <Device
       Id="CaptureDevice"
-      Type="VirtualBufferedDiscCapture"
+      Type="VirtualDiscCapture"
       BaseFilename="RecordingTest.mha"
-      EnableCapturing="FALSE" 
-      FrameBufferSize="200" >
+      EnableCapturing="FALSE" >
       <InputChannels>
         <InputChannel Id="TrackedVideoStream" />
       </InputChannels>

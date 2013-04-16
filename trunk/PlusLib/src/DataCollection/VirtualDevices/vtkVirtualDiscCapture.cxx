@@ -247,18 +247,22 @@ PlusStatus vtkVirtualDiscCapture::CloseFile(const char* aFilename)
     this->WriteFrames(true);
   }
 
-  if( aFilename == NULL || strlen(aFilename) == 0 )
   {
-    std::string filenameRoot = vtksys::SystemTools::GetFilenameWithoutExtension(m_BaseFilename);
-    std::string ext = vtksys::SystemTools::GetFilenameExtension(m_BaseFilename);
-    if( ext.empty() )
+    std::string finalFilename;
+    if( aFilename == NULL || strlen(aFilename) == 0 )
     {
-      ext = ".mha";
+      std::string filenameRoot = vtksys::SystemTools::GetFilenameWithoutExtension(m_BaseFilename);
+      std::string ext = vtksys::SystemTools::GetFilenameExtension(m_BaseFilename);
+      if( ext.empty() )
+      {
+        ext = ".mha";
+      }
+      finalFilename = filenameRoot + "_" + vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S") + ext;
+      aFilename = finalFilename.c_str();
     }
-    std::string finalFilename = filenameRoot + "_" + vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S") + ext;
-    aFilename = finalFilename.c_str();
+
+    m_Writer->SetFileName(aFilename);
   }
-  m_Writer->SetFileName(aFilename);
   m_Writer->Close();
 
   std::string fullPath = vtkPlusConfig::GetInstance()->GetOutputPath(std::string(aFilename));
