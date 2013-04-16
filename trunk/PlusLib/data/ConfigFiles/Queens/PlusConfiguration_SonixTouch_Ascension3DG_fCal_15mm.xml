@@ -140,7 +140,12 @@
 
   </Rendering>
   <Segmentation
-  ApproximateSpacingMmPerPixel="0.078" MorphologicalOpeningCircleRadiusMm="0.27" MorphologicalOpeningBarSizeMm="1" RegionOfInterest="27 27 793 589" MaxLinePairDistanceErrorPercent="10" AngleToleranceDegrees="10" MaxAngleDifferenceDegrees="10" MinThetaDegrees="-70" MaxThetaDegrees="70" ThresholdImagePercent="10" CollinearPointsMaxDistanceFromLineMm="0.6" UseOriginalImageIntensityForDotIntensityScore="0">
+  ApproximateSpacingMmPerPixel="0.078" 
+  MorphologicalOpeningCircleRadiusMm="0.27" 
+  MorphologicalOpeningBarSizeMm="1" 
+  RegionOfInterest="27 27 793 589" 
+  MaxLinePairDistanceErrorPercent="10" 
+  AngleToleranceDegrees="10" MaxAngleDifferenceDegrees="10" MinThetaDegrees="-70" MaxThetaDegrees="70" ThresholdImagePercent="10" CollinearPointsMaxDistanceFromLineMm="0.6" UseOriginalImageIntensityForDotIntensityScore="0">
 
   </Segmentation>
   <PhantomDefinition>
