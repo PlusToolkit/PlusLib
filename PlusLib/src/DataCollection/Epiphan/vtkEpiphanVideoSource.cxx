@@ -241,7 +241,7 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
     }
     else
     {
-      if( aSource->GetBuffer()->AddItem(frame->pixbuf , (*it)->GetImageOrientation(), FrameSize, itk::ImageIOBase::UCHAR,US_IMG_BRIGHTNESS, 0, this->FrameNumber) != PLUS_SUCCESS )
+      if( aSource->GetBuffer()->AddItem(frame->pixbuf , aSource->GetPortImageOrientation(), FrameSize, itk::ImageIOBase::UCHAR,US_IMG_BRIGHTNESS, 0, this->FrameNumber) != PLUS_SUCCESS )
       {
         LOG_ERROR("Error adding item to video source " << aSource->GetSourceId() << " on channel " << (*it)->GetChannelId() );
         return PLUS_FAIL;

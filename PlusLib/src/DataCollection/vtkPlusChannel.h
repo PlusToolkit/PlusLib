@@ -120,11 +120,6 @@ public:
 
   vtkSetMacro(SaveRfProcessingParameters, bool);
 
-  /*! Set the native ultrasound image orientation that the device acquires */
-  vtkSetMacro(ImageOrientation, US_IMAGE_ORIENTATION); 
-  /*! Get the native ultrasound image orientation that the device acquires */
-  vtkGetMacro(ImageOrientation, US_IMAGE_ORIENTATION);
-
 protected:
   /*! Get number of tracked frames between two given timestamps (inclusive) */
   int GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, double aTimestampTo);
@@ -143,9 +138,6 @@ protected:
 
   /*! If true then RF processing parameters will be saved into the config file */
   bool SaveRfProcessingParameters;
-
-  /*! The orientation of the image in the buffer if there is one */
-  US_IMAGE_ORIENTATION ImageOrientation; 
 
   vtkPlusChannel(void);
   virtual ~vtkPlusChannel(void);

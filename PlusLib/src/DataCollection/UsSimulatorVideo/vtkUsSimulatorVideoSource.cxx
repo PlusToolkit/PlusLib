@@ -133,7 +133,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalUpdate()
   }
 
   PlusStatus status = aSource->GetBuffer()->AddItem(
-    this->UsSimulator->GetOutput(), this->OutputChannels[0]->GetImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber, latestTrackerTimestamp, latestTrackerTimestamp);
+    this->UsSimulator->GetOutput(), aSource->GetPortImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber, latestTrackerTimestamp, latestTrackerTimestamp);
 
   this->Modified();
   return status;
@@ -144,9 +144,6 @@ PlusStatus vtkUsSimulatorVideoSource::InternalConnect()
 {
   LOG_TRACE("vtkUsSimulatorVideoSource::InternalConnect"); 
 
-  // Set to default MF internal image orientation
-  this->OutputChannels[0]->SetImageOrientation(US_IMG_ORIENT_MF); 
-
   vtkPlusDataSource* aSource(NULL);
   if( this->OutputChannels[0]->GetVideoSource(aSource) != PLUS_SUCCESS )
   {
@@ -154,6 +151,8 @@ PlusStatus vtkUsSimulatorVideoSource::InternalConnect()
     return PLUS_FAIL;
   }
 
+  // Set to default MF internal image orientation
+  aSource->SetPortImageOrientation(US_IMG_ORIENT_MF);
   aSource->GetBuffer()->Clear();
   int frameSize[2]={0,0};
   if (this->UsSimulator->GetFrameSize(frameSize)!=PLUS_SUCCESS)

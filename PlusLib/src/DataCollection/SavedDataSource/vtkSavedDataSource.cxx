@@ -469,7 +469,13 @@ PlusStatus vtkSavedDataSource::InternalConnectVideo(vtkTrackedFrameList* savedDa
   {
     // Brightness images will be imported into MF orientation
     this->GetOutputBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
-    this->OutputChannels[0]->SetImageOrientation(US_IMG_ORIENT_MF);
+    vtkPlusDataSource* aSource(NULL);
+    if( this->OutputChannels[0]->GetVideoSource(aSource) != PLUS_SUCCESS )
+    {
+      LOG_ERROR(this->GetDeviceId() << ": Unable to retrieve video source.");
+      return PLUS_FAIL;
+    }
+    aSource->SetPortImageOrientation(US_IMG_ORIENT_MF);
   }
   else
   {
