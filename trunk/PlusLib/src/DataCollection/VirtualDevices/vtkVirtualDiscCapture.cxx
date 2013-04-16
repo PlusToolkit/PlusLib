@@ -31,8 +31,7 @@ vtkVirtualDiscCapture::vtkVirtualDiscCapture()
 , m_FirstFrameIndexInThisSegment(0.0)
 , m_TimeWaited(0.0)
 , m_LastUpdateTime(0.0)
-, m_Filename("")
-, m_OriginalFilename("")
+, m_BaseFilename("TrackedImageSequence.mha")
 , m_Writer(vtkMetaImageSequenceIO::New())
 , m_EnableFileCompression(false)
 , m_HeaderPrepared(false)
@@ -88,11 +87,10 @@ PlusStatus vtkVirtualDiscCapture::ReadConfiguration( vtkXMLDataElement* rootConf
     return PLUS_FAIL;
   }
 
-  const char * filename = deviceElement->GetAttribute("Filename");
-  if( filename != NULL )
+  const char * filename = deviceElement->GetAttribute("BaseFilename");
+  if( filename != NULL && strlen(filename) > 0 )
   {
-    m_Filename = std::string(filename);
-    m_OriginalFilename = std::string(filename);
+    m_BaseFilename = std::string(filename);
   }
 
   const char* comp = deviceElement->GetAttribute("EnableFileCompression");
@@ -172,7 +170,7 @@ PlusStatus vtkVirtualDiscCapture::InternalConnect()
     LOG_WARNING("vtkVirtualDiscCapture acquisition rate is not known");
   }
 
-  if (OpenFile() != PLUS_SUCCESS)
+  if ( OpenFile() != PLUS_SUCCESS )
   {
     return PLUS_FAIL;
   }
@@ -205,34 +203,24 @@ PlusStatus vtkVirtualDiscCapture::InternalDisconnect()
 
     this->ClearRecordedFrames();
   }
-  PlusStatus status = CloseFile();
+  PlusStatus status = this->CloseFile();
   return status;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkVirtualDiscCapture::OpenFile()
 {
-  if ( m_Filename.empty() )
-  {
-    LOG_ERROR("vtkVirtualDiscCapture: Cannot open file, filename is not specified");
-    return PLUS_FAIL;
-  }
-
   PlusLockGuard<vtkRecursiveCriticalSection> writerLock(this->WriterAccessMutex);
 
   // Because this virtual device continually appends data to the file, we cannot do live compression
   m_Writer->SetUseCompression(false);
   m_Writer->SetTrackedFrameList(m_RecordedFrames);
 
-  // Save config file next to the tracked frame list
-  std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(m_Filename);
-  m_Writer->SetFileName(fullPath.c_str());
-
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualDiscCapture::CloseFile()
+PlusStatus vtkVirtualDiscCapture::CloseFile(const char* aFilename)
 {
   // Fix the header to write the correct number of frames
   PlusLockGuard<vtkRecursiveCriticalSection> writerLock(this->WriterAccessMutex);
@@ -251,7 +239,6 @@ PlusStatus vtkVirtualDiscCapture::CloseFile()
   dimSizeStr << dimensions[0] << " " << dimensions[1] << " " << dimensions[2];
   m_Writer->GetTrackedFrameList()->SetCustomString("DimSize", dimSizeStr.str().c_str());
   m_Writer->UpdateFieldInImageHeader("DimSize");
-
   m_Writer->FinalizeHeader();
 
   // Do we have any outstanding unwritten data?
@@ -260,9 +247,21 @@ PlusStatus vtkVirtualDiscCapture::CloseFile()
     this->WriteFrames(true);
   }
 
+  if( aFilename == NULL || strlen(aFilename) == 0 )
+  {
+    std::string filenameRoot = vtksys::SystemTools::GetFilenameWithoutExtension(m_BaseFilename);
+    std::string ext = vtksys::SystemTools::GetFilenameExtension(m_BaseFilename);
+    if( ext.empty() )
+    {
+      ext = ".mha";
+    }
+    std::string finalFilename = filenameRoot + "_" + vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S") + ext;
+    aFilename = finalFilename.c_str();
+  }
+  m_Writer->SetFileName(aFilename);
   m_Writer->Close();
 
-  std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(m_Filename);
+  std::string fullPath = vtkPlusConfig::GetInstance()->GetOutputPath(std::string(aFilename));
   std::string path = vtksys::SystemTools::GetFilenamePath(fullPath); 
   std::string filename = vtksys::SystemTools::GetFilenameWithoutExtension(fullPath); 
   std::string configFileName = path + "/" + filename + "_config.xml";
@@ -280,6 +279,11 @@ PlusStatus vtkVirtualDiscCapture::CloseFile()
   m_HeaderPrepared = false;
   this->TotalFramesRecorded = 0;
   m_RecordedFrames->Clear();
+
+  if ( OpenFile() != PLUS_SUCCESS )
+  {
+    return PLUS_FAIL;
+  }
 
   return PLUS_SUCCESS;
 }
@@ -371,7 +375,7 @@ PlusStatus vtkVirtualDiscCapture::InternalUpdate()
 PlusStatus vtkVirtualDiscCapture::CompressFile()
 {
   vtkSmartPointer<vtkMetaImageSequenceIO> reader = vtkSmartPointer<vtkMetaImageSequenceIO>::New();
-  std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(m_Filename);
+  std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(m_BaseFilename);
   reader->SetFileName(fullPath.c_str());
 
   LOG_DEBUG("Read input sequence metafile: " << fullPath ); 
@@ -415,14 +419,6 @@ PlusStatus vtkVirtualDiscCapture::NotifyConfigured()
   this->OutputChannels.push_back(this->InputChannels[0]);
 
   return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-void vtkVirtualDiscCapture::SetFilename( const char* filename )
-{
-  m_Filename = std::string(filename);
-  std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(m_Filename);
-  this->m_Writer->SetFileName(fullPath.c_str());
 }
 
 //-----------------------------------------------------------------------------
@@ -546,7 +542,6 @@ PlusStatus vtkVirtualDiscCapture::Reset()
     TotalFramesRecorded = 0;
   }
 
-  this->m_Filename = this->m_OriginalFilename;
   if( this->OpenFile() != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to reset device " << this->GetDeviceId() << ".");

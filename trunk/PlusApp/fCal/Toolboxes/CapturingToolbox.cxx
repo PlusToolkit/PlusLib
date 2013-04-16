@@ -479,7 +479,7 @@ void CapturingToolbox::Save()
   LOG_TRACE("CapturingToolbox::Save"); 
 
   // TODO: just for testing
-  std::string defaultFileName = m_LastSaveLocation+"/TrackedImageSequence_"+vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S")+".mha";  
+  std::string defaultFileName = m_LastSaveLocation + "/TrackedImageSequence_" + vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S")+".mha";  
   WriteToFile(QString(defaultFileName.c_str()));
 
   LOG_INFO("Captured tracked frame list saved into '" << defaultFileName << "'");

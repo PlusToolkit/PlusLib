@@ -39,10 +39,8 @@ CaptureControlWidget::~CaptureControlWidget()
 //-----------------------------------------------------------------------------
 PlusStatus CaptureControlWidget::WriteToFile( QString& aFilename )
 {
-  m_Device->SetFilename(aFilename.toLatin1().constData());
-
   // Save
-  if( m_Device->CloseFile() != PLUS_SUCCESS )
+  if( m_Device->CloseFile(aFilename.toLatin1() ) != PLUS_SUCCESS )
   {
     LOG_ERROR("Saving failed. Unable to close device.");
     return PLUS_FAIL;
