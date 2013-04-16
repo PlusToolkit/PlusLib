@@ -11,6 +11,7 @@
 #include "vtkImageData.h"
 #include "vtkImageViewer2.h"
 #include "vtkPlusChannel.h"
+#include "vtkPlusDataSource.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
@@ -105,7 +106,7 @@ int main(int argc, char **argv)
     LOG_ERROR("Unable to retrieve the video source.");
     return NULL;
   }
-  aChannel->SetImageOrientation( US_IMG_ORIENT_MN );
+  aSource->SetPortImageOrientation( US_IMG_ORIENT_MN );
 
 	// Add an observer to warning and error events for redirecting it to the stdout 
 	vtkSmartPointer<vtkCallbackCommand> callbackCommand = vtkSmartPointer<vtkCallbackCommand>::New();

@@ -11,6 +11,7 @@ See License.txt for details.
 #include "vtkImageData.h"
 #include "vtkImageViewer2.h"
 #include "vtkPlusChannel.h"
+#include "vtkPlusDataSource.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
@@ -82,7 +83,7 @@ int main(int argc, char **argv)
     LOG_ERROR("Unable to retrieve the video source.");
     return NULL;
   }
-  aChannel->SetImageOrientation( US_IMG_ORIENT_MF );
+  aSource->SetPortImageOrientation( US_IMG_ORIENT_MF );
 
   LOG_INFO("Initialize..."); 
   frameGrabber->Connect(); 
