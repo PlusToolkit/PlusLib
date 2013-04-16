@@ -718,7 +718,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
       vtkSmartPointer<vtkPlusDataSource> aDataSource = vtkSmartPointer<vtkPlusDataSource>::New(); 
       if( dataSourceElement->GetAttribute("Type") != NULL && STRCASECMP(dataSourceElement->GetAttribute("Type"), "Tool") == 0 )
       {
-        if ( aDataSource->ReadConfiguration(dataSourceElement, RequireToolAveragedItemsForFilteringInDeviceSetConfiguration, this->GetDeviceId() ) != PLUS_SUCCESS )
+        if ( aDataSource->ReadConfiguration(dataSourceElement, this->RequireToolAveragedItemsForFilteringInDeviceSetConfiguration, this->RequireImageOrientationInConfiguration, this->GetDeviceId() ) != PLUS_SUCCESS )
         {
           LOG_ERROR("Unable to add tool to tracker - failed to read tool configuration"); 
           continue; 
@@ -733,7 +733,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
       }
       else if( dataSourceElement->GetAttribute("Type") != NULL && STRCASECMP(dataSourceElement->GetAttribute("Type"), "Video") == 0 )
       {
-        aDataSource->ReadConfiguration(dataSourceElement, RequireAveragedItemsForFilteringInDeviceSetConfiguration, this->GetDeviceId() );
+        aDataSource->ReadConfiguration(dataSourceElement, this->RequireAveragedItemsForFilteringInDeviceSetConfiguration, this->RequireImageOrientationInConfiguration, this->GetDeviceId() );
 
         if ( this->AddVideo(aDataSource) != PLUS_SUCCESS )
         {

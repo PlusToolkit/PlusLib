@@ -114,7 +114,6 @@ PlusStatus vtkVirtualMixer::NotifyConfigured()
 
     if( anInputChannel->HasVideoSource() && anInputChannel->GetVideoSource(aSource) == PLUS_SUCCESS )
     {
-      this->GetOutputChannel()->SetImageOrientation(anInputChannel->GetImageOrientation());
       this->GetOutputChannel()->SetVideoSource(aSource);
       this->AddVideo(aSource);
     }

@@ -41,7 +41,7 @@ public:
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Read main configuration from xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* toolElement, bool RequireAveragedItemsForFilteringInDeviceSetConfiguration = false, const char* aDescriptiveNameForBuffer = NULL); 
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* toolElement, bool RequireAveragedItemsForFilteringInDeviceSetConfiguration = false, bool RequireImageOrientationInChannelConfiguration = false, const char* aDescriptiveNameForBuffer = NULL); 
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* toolElement); 
   virtual PlusStatus WriteCompactConfiguration(vtkXMLDataElement* toolElement); 
 
@@ -65,7 +65,10 @@ public:
   vtkSetObjectMacro(Device, vtkPlusDevice);
 
   /*! Get port name. Port name is used to identify the tool among all the tools provided by the tracker device. */
-  vtkGetStringMacro(PortName); 
+  vtkGetStringMacro(PortName);
+
+  vtkGetMacro(PortImageOrientation, US_IMAGE_ORIENTATION);
+  vtkSetMacro(PortImageOrientation, US_IMAGE_ORIENTATION);
 
   /*! Get type: vidoe or tool. */
   DataSourceType GetType() const;
@@ -127,6 +130,8 @@ protected:
   vtkPlusDevice *Device;
 
   char *PortName;
+  /*! The orientation of the image outputted by the device */
+  US_IMAGE_ORIENTATION PortImageOrientation; 
 
   DataSourceType Type;
 

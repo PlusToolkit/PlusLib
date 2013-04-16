@@ -195,17 +195,27 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
   }
 
   // Segmentation search region Y direction
-  int regionOfInterest[4] = {0}; 
-  if ( segmentationParameters->GetVectorAttribute("RegionOfInterest", 4, regionOfInterest) )
+  int clipOrigin[2] = {0};
+  int clipSize[2] = {0};
+  int roi[4] = {0};
+  if ( segmentationParameters->GetVectorAttribute("ClipRectangleOrigin", 2, clipOrigin) && 
+    segmentationParameters->GetVectorAttribute("ClipRectangleSize", 2, clipSize) )
   {
-    m_RegionOfInterest[0] = regionOfInterest[0];
-    m_RegionOfInterest[1] = regionOfInterest[1];
-    m_RegionOfInterest[2] = regionOfInterest[2];
-    m_RegionOfInterest[3] = regionOfInterest[3];
+    m_RegionOfInterest[0] = clipOrigin[0];
+    m_RegionOfInterest[1] = clipOrigin[1];
+    m_RegionOfInterest[2] = clipOrigin[0] + clipSize[0];
+    m_RegionOfInterest[3] = clipOrigin[1] + clipSize[1];
+  }
+  else if ( segmentationParameters->GetVectorAttribute("RegionOfInterest", 4, roi) )
+  {
+    m_RegionOfInterest[0] = roi[0];
+    m_RegionOfInterest[1] = roi[1];
+    m_RegionOfInterest[2] = roi[2];
+    m_RegionOfInterest[3] = roi[3];
   }
   else
   {
-    LOG_INFO("Cannot find RegionOfInterest attribute in the SegmentationParameters configuration file; Using the largest ROI possible.");
+    LOG_INFO("Cannot find ClipRectangleOrigin or ClipRectangleSize attribute in the SegmentationParameters configuration file; Using the largest ROI possible.");
   }
 
   double thresholdImagePercent(0.0); 

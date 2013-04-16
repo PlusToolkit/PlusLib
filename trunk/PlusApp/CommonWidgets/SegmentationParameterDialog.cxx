@@ -1066,15 +1066,27 @@ PlusStatus SegmentationParameterDialog::ReadConfiguration()
     LOG_WARNING("Could not read MorphologicalOpeningBarSizeMm from configuration");
   }
 
-  int regionOfInterest[4] = {0}; 
-  if ( segmentationParameters->GetVectorAttribute("RegionOfInterest", 4, regionOfInterest) )
+  int clipOrigin[2] = {0};
+  int clipSize[2] = {0};
+  int roi[4] = {0};
+  if ( segmentationParameters->GetVectorAttribute("ClipRectangleOrigin", 2, clipOrigin) && 
+    segmentationParameters->GetVectorAttribute("ClipRectangleSize", 2, clipSize) )
   {
-    ui.spinBox_XMin->setValue(regionOfInterest[0]);
-    ui.spinBox_YMin->setValue(regionOfInterest[1]);
-    ui.spinBox_XMax->setValue(regionOfInterest[2]);
-    ui.spinBox_YMax->setValue(regionOfInterest[3]);
-  } else {
-    LOG_WARNING("Cannot find RegionOfInterest attribute in the configuration");
+    ui.spinBox_XMin->setValue(clipOrigin[0]);
+    ui.spinBox_YMin->setValue(clipOrigin[1]);
+    ui.spinBox_XMax->setValue(clipOrigin[0] + clipSize[0]);
+    ui.spinBox_YMax->setValue(clipOrigin[1] + clipSize[1]);
+  } 
+  else if ( segmentationParameters->GetVectorAttribute("RegionOfInterest", 4, roi) )
+  {
+    ui.spinBox_XMin->setValue( roi[0] );
+    ui.spinBox_YMin->setValue( roi[1] );
+    ui.spinBox_XMax->setValue( roi[2] );
+    ui.spinBox_YMax->setValue( roi[3] );  
+  }
+  else
+  {
+    LOG_WARNING("Cannot find ClipRectangleOrigin or ClipRectangleSize attributes in the configuration");
   }
 
   double maxLinePairDistanceErrorPercent(0.0); 
@@ -1224,9 +1236,15 @@ PlusStatus SegmentationParameterDialog::WriteConfiguration()
 
   segmentationParameters->SetDoubleAttribute("MorphologicalOpeningBarSizeMm", ui.doubleSpinBox_OpeningBarSize->value());
 
-  char ROIChars[64];
-  SNPRINTF(ROIChars, 64, "%d %d %d %d", ui.spinBox_XMin->value(), ui.spinBox_YMin->value(), ui.spinBox_XMax->value(), ui.spinBox_YMax->value());
-  segmentationParameters->SetAttribute("RegionOfInterest", ROIChars);
+  char originChars[64];
+  char sizeChars[64];
+  SNPRINTF(originChars, 64, "%d %d", ui.spinBox_XMin->value(), ui.spinBox_YMin->value() );
+  SNPRINTF(sizeChars, 64, "%d %d", 
+    ui.spinBox_XMax->value() - ui.spinBox_XMin->value(), 
+    ui.spinBox_YMax->value() - ui.spinBox_YMin->value() 
+    );
+  segmentationParameters->SetAttribute("ClipRectangleOrigin", originChars);
+  segmentationParameters->SetAttribute("ClipRectangleSize", sizeChars);
 
   segmentationParameters->SetDoubleAttribute("MaxLinePairDistanceErrorPercent", ui.doubleSpinBox_LinePairDistanceError->value());
 

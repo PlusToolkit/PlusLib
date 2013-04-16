@@ -16,6 +16,7 @@ vtkStandardNewMacro(vtkPlusDataSource);
 vtkPlusDataSource::vtkPlusDataSource()
 : Device(NULL)
 , PortName(NULL)
+, PortImageOrientation(US_IMG_ORIENT_XX)
 , Type(DATA_SOURCE_TYPE_NONE)
 , FrameNumber(0)
 , LED1(0)
@@ -239,7 +240,7 @@ void vtkPlusDataSource::DeepCopy(vtkPlusDataSource *aSource)
 
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement, bool RequireAveragedItemsForFilteringInDeviceSetConfiguration, const char* aDescriptiveNameForBuffer)
+PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement, bool RequireAveragedItemsForFilteringInDeviceSetConfiguration, bool RequireImageOrientationInSourceConfiguration, const char* aDescriptiveNameForBuffer)
 {
   LOG_TRACE("vtkPlusDataSource::ReadConfiguration"); 
 
@@ -280,6 +281,21 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
   else if ( type != NULL && STRCASECMP(type, "Video") == 0 ) 
   {
     this->SetType(DATA_SOURCE_TYPE_VIDEO);
+
+    const char* usImageOrientation = sourceElement->GetAttribute("PortUsImageOrientation");
+    if ( usImageOrientation != NULL )
+    {
+      LOG_INFO("Selected US image orientation: " << usImageOrientation );
+      this->SetPortImageOrientation( PlusVideoFrame::GetUsImageOrientationFromString(usImageOrientation) );
+      if ( this->GetPortImageOrientation() == US_IMG_ORIENT_XX )
+      {
+        LOG_ERROR("Video image orientation is undefined - please set PortUsImageOrientation in the source configuration");
+      }
+    }
+    else if (RequireImageOrientationInSourceConfiguration)
+    {
+      LOG_ERROR("Video image orientation is not defined in the source \'" << this->GetSourceId() << "\' element - please set PortUsImageOrientation in the source configuration");
+    }
   }
   else
   {
