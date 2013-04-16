@@ -725,6 +725,7 @@ PlusStatus vtkMetaImageSequenceIO::AppendImagesToHeader()
   // Write frame fields (Seq_Frame0000_... = ...)
   for (unsigned int frameNumber = m_CurrentFrameOffset; frameNumber < this->TrackedFrameList->GetNumberOfTrackedFrames() + m_CurrentFrameOffset; frameNumber++)
   {
+    LOG_INFO(frameNumber);
     unsigned int adjustedFrameNumber = frameNumber - m_CurrentFrameOffset;
     TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(adjustedFrameNumber);
 
@@ -852,7 +853,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels(const std::string& aFilename
     // not compressed
     for (unsigned int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
     {
-      TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(frameNumber);
+      TrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame(frameNumber);
 
       PlusVideoFrame* videoFrame = &blankFrame; 
       if ( trackedFrame->GetImageData()->IsImageValid() ) 
@@ -1381,6 +1382,9 @@ PlusStatus vtkMetaImageSequenceIO::Close()
 
   this->TempHeaderFileName.clear();
   this->TempImageFileName.clear();
+
+  m_CurrentFrameOffset = 0;
+  m_TotalBytesWritten = 0;
 
   return PLUS_SUCCESS;
 }
