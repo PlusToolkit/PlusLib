@@ -46,7 +46,6 @@ public:
   vtkGetMacro( ListeningPort, int );
   
   vtkGetStringMacro(OutputChannelId);
-  vtkGetStringMacro(OutputDeviceId);
 
   /*! Set data collector instance */
   virtual void SetDataCollector(vtkDataCollector* dataCollector); 
@@ -103,7 +102,6 @@ protected:
   */ 
   int ExecuteCommand(const char* commandString, std::string& resultString); 
 
-  vtkSetStringMacro(OutputDeviceId);
   vtkSetStringMacro(OutputChannelId);
 
 private:
@@ -189,8 +187,6 @@ private:
   /*! Factory to generate commands that are invoked remotely */ 
   vtkSmartPointer<vtkPlusCommandProcessor> PlusCommandProcessor;
 
-  /*! Device ID to request the channel from */
-  char* OutputDeviceId;
   /*! Channel ID to request the data from */
   char* OutputChannelId;
 

@@ -135,7 +135,7 @@ int main( int argc, char** argv )
   {
     // Configuration of test clients are described in the PlusServerTestClientsConfiguration element
     vtkXMLDataElement* testClientsElement = configRootElement->FindNestedElementWithName("PlusServerTestClientsConfiguration");    
-    if (testClientsElement!=NULL)
+    if (testClientsElement != NULL)
     {
       // Connect clients to server 
       if ( ConnectClients( server->GetListeningPort(), testClientList, numOfTestClientsToConnect, testClientsElement ) != PLUS_SUCCESS )
