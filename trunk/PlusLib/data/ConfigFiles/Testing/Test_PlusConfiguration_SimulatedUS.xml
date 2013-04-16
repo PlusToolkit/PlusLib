@@ -120,7 +120,7 @@
     <Device
       Id="CaptureDevice"
       Type="VirtualDiscCapture"
-      Filename="RecordingTest.mha"
+      BaseFilename="SimulatedUSTrackedVideoRecording.mha"
       EnableCapturing="FALSE" >
       <InputChannels>
         <InputChannel Id="TrackedVideoStream" />

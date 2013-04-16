@@ -23,7 +23,7 @@
     <Device
       Id="CaptureDevice"
       Type="VirtualBufferedDiscCapture"
-      Filename="RecordingTest.mha"
+      BaseFilename="RecordingTest.mha"
       EnableCapturing="FALSE" 
       FrameBufferSize="200" >
       <InputChannels>
