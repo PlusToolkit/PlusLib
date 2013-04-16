@@ -209,10 +209,6 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
   LOG_INFO("vtkPlusStartStopRecordingCommand::Execute: "<<this->Name);
   if (STRCASECMP(this->Name, START_CMD)==0)
   {    
-    if (this->OutputFilename!=NULL)
-    {
-      captureDevice->SetFilename(this->OutputFilename);
-    }
     if (captureDevice->OpenFile()!=PLUS_SUCCESS)
     {
       status=PLUS_FAIL;
@@ -230,7 +226,7 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
   else if (STRCASECMP(this->Name, STOP_CMD)==0)
   {    
     captureDevice->SetEnableCapturing(false);
-    if (captureDevice->CloseFile()!=PLUS_SUCCESS)
+    if (captureDevice->CloseFile(this->OutputFilename) != PLUS_SUCCESS)
     {
       status=PLUS_FAIL;
     }   
