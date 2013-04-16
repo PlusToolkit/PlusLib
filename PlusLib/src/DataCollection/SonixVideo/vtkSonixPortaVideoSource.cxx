@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/
 
 /*=========================================================================
@@ -10,8 +10,8 @@ Copyright (c) Siddharth Vikal, Elvis Chen, 2008
 All rights reserved.
 See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
 Authors include: Siddharth Vikal (Queen's University),
- Elvis Chen (Queen's University), Danielle Pace (Robarts Research Institute
- and The University of Western Ontario)
+Elvis Chen (Queen's University), Danielle Pace (Robarts Research Institute
+and The University of Western Ontario)
 =========================================================================*/  
 
 #include "TrackedFrame.h" 
@@ -90,7 +90,7 @@ vtkSonixPortaVideoSourceCleanup vtkSonixPortaVideoSource::Cleanup;
 
 // The porta wrapper implementation does not have the proper #includes, so we have to include the file here
 #if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION >= 6) 
-  #include "porta_wrapper.cpp"
+#include "porta_wrapper.cpp"
 #endif
 
 //----------------------------------------------------------------------------
@@ -240,13 +240,13 @@ void vtkSonixPortaVideoSource::PrintSelf(ostream& os, vtkIndent indent) {
 //----------------------------------------------------------------------------
 // the callback function used when there is a new frame of data received
 #if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 5) || (PLUS_ULTRASONIX_SDK_MAJOR_VERSION == 5 && PLUS_ULTRASONIX_SDK_MINOR_VERSION < 7)
-  //  SDK version < 5.7.x 
-  bool vtkSonixPortaVideoSource::vtkSonixPortaVideoSourceNewFrameCallback( void *param, int id )
+//  SDK version < 5.7.x 
+bool vtkSonixPortaVideoSource::vtkSonixPortaVideoSourceNewFrameCallback( void *param, int id )
 #elif (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6) 
-  //  5.7.x <= SDK version < 6.x
-  bool vtkSonixPortaVideoSource::vtkSonixPortaVideoSourceNewFrameCallback( void *param, int id, int header )
+//  5.7.x <= SDK version < 6.x
+bool vtkSonixPortaVideoSource::vtkSonixPortaVideoSourceNewFrameCallback( void *param, int id, int header )
 #else
-  int vtkSonixPortaVideoSource::vtkSonixPortaVideoSourceNewFrameCallback(void* param, int id, int header)
+int vtkSonixPortaVideoSource::vtkSonixPortaVideoSourceNewFrameCallback(void* param, int id, int header)
 #endif
 {
 
@@ -267,11 +267,11 @@ void vtkSonixPortaVideoSource::PrintSelf(ostream& os, vtkIndent indent) {
 PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id ) 
 {
   if (!this->Recording)
-    {
-      // drop the frame, we are not recording data now
-      return PLUS_SUCCESS;
-    }
- 
+  {
+    // drop the frame, we are not recording data now
+    return PLUS_SUCCESS;
+  }
+
   this->FrameNumber++;
   int frameSize[2] = {0,0};
   this->GetFrameSize(*(this->OutputChannels[0]), frameSize);
@@ -283,15 +283,15 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
   }
   int frameBufferBytesPerPixel = aSource->GetBuffer()->GetNumberOfBytesPerPixel(); 
   const int frameSizeInBytes = frameSize[0] * frameSize[1] * frameBufferBytesPerPixel; 
-  
+
   // for frame containing FC (frame count) in the beginning for data coming from cine, jump 2 bytes
   int numberOfBytesToSkip = 4; 
-  
+
   PlusCommon::ITKScalarPixelType pixelType=itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;    
   pixelType=itk::ImageIOBase::UCHAR;
-  
+
   this->Porta.getBwImage( 0, this->ImageBuffer, false );
-  
+
   // get the pointer to the actual incoming data onto a local pointer
   unsigned char *deviceDataPtr = static_cast<unsigned char*>( this->ImageBuffer );
 
@@ -325,7 +325,7 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
     LOG_ERROR("One of the Porta paths has not been set" );
     return PLUS_FAIL;
   }
-  
+
   LOG_TRACE("Some info on the initializaton" << this->Usm << " " << this->Pci );
   if ( !this->Porta.init( this->PortaCineSize,
     this->PortaFirmwarePath,
@@ -381,10 +381,18 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
       return PLUS_FAIL;
     }
 
-  if( !this->SetFrameSize( *(this->OutputChannels[0]), this->PortaBModeWidth, this->PortaBModeHeight )  )
-  {
-    LOG_ERROR("Initializer: can not set the frame size" );
-  }
+    vtkPlusDataSource* aSource(NULL);
+    if( this->GetFirstActiveVideoSource(aSource) != PLUS_SUCCESS )
+    {
+      LOG_ERROR(this->GetDeviceId() << ": Unable to retrieve video source.");
+      return PLUS_FAIL;
+    }
+
+    if( !this->SetFrameSize( *aSource, this->PortaBModeWidth, this->PortaBModeHeight )  )
+    {
+      LOG_ERROR("Initializer: can not set the frame size" );
+    }
+
     // now we have successfully selected the probe
     this->PortaProbeSelected = 1;
   }
@@ -436,7 +444,7 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixPortaVideoSource::InternalDisconnect()
 {
-    this->Porta.setParam( prmMotorStatus, 0 );
+  this->Porta.setParam( prmMotorStatus, 0 );
   this->Porta.stopImage();
   this->Porta.shutdown();
   return PLUS_SUCCESS;
@@ -480,8 +488,8 @@ PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* config
   LOG_TRACE("vtkSonixPortaVideoSource::ReadConfiguration"); 
   if ( config == NULL )
   {
-      LOG_ERROR("Unable to configure Sonix Porta video source! (XML data element is NULL)"); 
-      return PLUS_FAIL; 
+    LOG_ERROR("Unable to configure Sonix Porta video source! (XML data element is NULL)"); 
+    return PLUS_FAIL; 
   }
 
   Superclass::ReadConfiguration(config); 
@@ -537,7 +545,7 @@ PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* config
   {
     this->Timeout = timeout; 
   }
-  
+
   int framePerVolume = 0; 
   if ( imageAcquisitionConfig->GetScalarAttribute("FramePerVolume", framePerVolume)) 
   {
@@ -603,7 +611,7 @@ PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* config
   {
     LOG_ERROR("Porta License path is not defined: "<<portaLicensePath);
   }
-  
+
   const char* portaFirmwarePath = imageAcquisitionConfig->GetAttribute("PortaFirmwarePath"); 
   if ( portaFirmwarePath != NULL) 
   {

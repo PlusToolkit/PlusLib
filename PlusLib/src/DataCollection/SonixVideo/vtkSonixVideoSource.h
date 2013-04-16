@@ -104,8 +104,6 @@ public:
   /*! Read main configuration from/to xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
 
-  PlusStatus PopulateChannel( vtkPlusChannel*& aChannel, const char* bChannelId );
-
   /*! Write main configuration from/to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
@@ -305,7 +303,7 @@ protected:
   PlusStatus GetParamValue(char* paramId, int& paramValue, int &validatedParamValue);
 
   bool HasDataType( uData aValue );
-  PlusStatus ConfigureChannel( vtkPlusChannel* aChannel, uData aValue );
+  PlusStatus ConfigureVideoSource( uData aValue );
 
   ulterius Ult;
 
@@ -334,9 +332,6 @@ protected:
     but the connection initialization (setup of requested imaging parameters, etc.) may fail.
   */
   bool UlteriusConnected;
-
-  vtkPlusChannel* BModeChannel;
-  vtkPlusChannel* RfModeChannel;
     
 private:
  

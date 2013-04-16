@@ -62,6 +62,7 @@ public:
   /*! Get the tracker which owns this source. */
   // TODO : consider a re-design of this idea
   vtkGetObjectMacro(Device,vtkPlusDevice);
+  vtkSetObjectMacro(Device, vtkPlusDevice);
 
   /*! Get port name. Port name is used to identify the tool among all the tools provided by the tracker device. */
   vtkGetStringMacro(PortName); 
@@ -106,9 +107,6 @@ public:
   vtkGetStringMacro(SourceId); 
   /*! Get the reference coordinate frame name */
   vtkGetStringMacro(ReferenceCoordinateFrameName);
-
-  /*! Set tracker which owns this tool */
-  void SetDevice(vtkPlusDevice *device);
   
   /*! Set tool revision */
   vtkSetStringMacro(ToolRevision);

@@ -39,6 +39,8 @@ vtkStandardNewMacro(vtkPlusDevice);
 
 const int vtkPlusDevice::VIRTUAL_DEVICE_FRAME_RATE = 50;
 static const int FRAME_RATE_AVERAGING = 10;
+const char* vtkPlusDevice::BMODE_PORT_NAME = "B";
+const char* vtkPlusDevice::RFMODE_PORT_NAME = "Rf";
 
 //----------------------------------------------------------------------------
 vtkPlusDevice::vtkPlusDevice()
@@ -270,6 +272,27 @@ PlusStatus vtkPlusDevice::GetToolByPortName( const char* portName, vtkPlusDataSo
     if ( STRCASECMP( portName, it->second->GetPortName() ) == 0 )
     {
       aTool = it->second; 
+      return PLUS_SUCCESS; 
+    }
+  }
+
+  return PLUS_FAIL; 
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::GetVideoSourceByPortName( const char* portName, vtkPlusDataSource*& aVideoSource)
+{
+  if ( portName == NULL )
+  {
+    LOG_ERROR("Failed to get video source - port name is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
+  for ( DataSourceContainerIterator it = this->VideoSources.begin(); it != this->VideoSources.end(); ++it)
+  {
+    if ( STRCASECMP( portName, it->second->GetPortName() ) == 0 )
+    {
+      aVideoSource = it->second; 
       return PLUS_SUCCESS; 
     }
   }
@@ -1437,18 +1460,11 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::SetFrameSize(vtkPlusChannel& aChannel, int x, int y)
+PlusStatus vtkPlusDevice::SetFrameSize(vtkPlusDataSource& aSource, int x, int y)
 {
   LOG_TRACE("vtkPlusDevice::SetFrameSize(" << x << ", " << y << ")");
 
-  vtkPlusDataSource* aSource(NULL);
-  if( aChannel.GetVideoSource(aSource) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Unable to retrieve the video source.");
-    return PLUS_FAIL;
-  }
-
-  int* frameSize = aSource->GetBuffer()->GetFrameSize();
+  int* frameSize = aSource.GetBuffer()->GetFrameSize();
 
   if (x == frameSize[0] &&
     y == frameSize[1] )
@@ -1462,9 +1478,9 @@ PlusStatus vtkPlusDevice::SetFrameSize(vtkPlusChannel& aChannel, int x, int y)
     return PLUS_FAIL;
   }
 
-  aSource->GetBuffer()->SetFrameSize(x,y); 
+  aSource.GetBuffer()->SetFrameSize(x,y); 
 
-  aSource->Modified();
+  aSource.Modified();
   return PLUS_SUCCESS;
 }
 
