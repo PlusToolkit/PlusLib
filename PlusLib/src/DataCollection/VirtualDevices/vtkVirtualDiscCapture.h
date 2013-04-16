@@ -39,14 +39,11 @@ public:
 
   virtual double GetAcquisitionRate() const;
 
-  /*! Output file name */
-  virtual void SetFilename(const char* filename);
-
   /*! Open the output file for writing */
   virtual PlusStatus OpenFile();
 
   /*! Close the output file */
-  virtual PlusStatus CloseFile();
+  virtual PlusStatus CloseFile(const char* aFilename = NULL);
 
   virtual PlusStatus Reset();
 
@@ -127,8 +124,7 @@ protected:
   double m_LastUpdateTime;
 
   /*! File to write */
-  std::string m_Filename;
-  std::string m_OriginalFilename;
+  std::string m_BaseFilename;
 
   /*! Meta sequence to write to */
   vtkMetaImageSequenceIO* m_Writer;
