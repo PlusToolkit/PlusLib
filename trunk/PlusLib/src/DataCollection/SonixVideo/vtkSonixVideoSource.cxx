@@ -86,7 +86,6 @@ vtkSonixVideoSourceCleanup::~vtkSonixVideoSourceCleanup()
 vtkSonixVideoSource::vtkSonixVideoSource()
 {
   // No need for StartThreadForInternalUpdates, as we are notified about each new frame through a callback function
-
   this->Reset();
 }
 
@@ -477,7 +476,7 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* config)
   }
   else
   {
-    LOG_WARNING("Ultrasonix IP address is not defined");
+    LOG_WARNING("Ultrasonix IP address is not defined. Defaulting to 127.0.0.1");
   }  
 
   vtkPlusDataSource* bSource(NULL);
@@ -1118,7 +1117,7 @@ PlusStatus vtkSonixVideoSource::Reset()
   }
   this->VideoSources.clear();
 
-  this->SonixIP = 0;
+  this->SetSonixIP("127.0.0.1");
   this->Frequency = -1; //in Mhz
   this->Depth = -1; //in mm
   this->Sector = -1; //in %
