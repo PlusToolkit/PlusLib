@@ -206,14 +206,6 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
     m_RegionOfInterest[2] = clipOrigin[0] + clipSize[0];
     m_RegionOfInterest[3] = clipOrigin[1] + clipSize[1];
   }
-  else if ( segmentationParameters->GetVectorAttribute("RegionOfInterest", 4, roi) )
-  {
-    m_RegionOfInterest[0] = roi[0];
-    m_RegionOfInterest[1] = roi[1];
-    m_RegionOfInterest[2] = roi[2];
-    m_RegionOfInterest[3] = roi[3];
-    LOG_WARNING("RegionOfInterest is deprecated. Please convert to ClipRectangleOrigin and ClipRectangleSize.");
-  }
   else
   {
     LOG_INFO("Cannot find ClipRectangleOrigin or ClipRectangleSize attribute in the SegmentationParameters configuration file; Using the largest ROI possible.");
