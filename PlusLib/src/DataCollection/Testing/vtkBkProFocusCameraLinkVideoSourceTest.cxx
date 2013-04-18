@@ -11,6 +11,7 @@ See License.txt for details.
 #include "vtkImageData.h"
 #include "vtkImageViewer2.h"
 #include "vtkPlusChannel.h"
+#include "vtkPlusDataSource.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
