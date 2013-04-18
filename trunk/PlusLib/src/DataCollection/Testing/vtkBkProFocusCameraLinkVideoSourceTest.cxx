@@ -91,7 +91,7 @@ int main(int argc, char **argv)
     LOG_ERROR("Unable to retrieve the video source.");
     return NULL;
   }
-  aChannel->SetImageOrientation( US_IMG_ORIENT_FM );
+  aSource->SetPortImageOrientation(US_IMG_ORIENT_FM);
 
   LOG_INFO("Initialize..."); 
   frameGrabber->Connect(); 
