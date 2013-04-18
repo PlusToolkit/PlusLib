@@ -520,12 +520,12 @@ void vtkBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr, co
     LOG_INFO("Frame size: " << frameSizeInPix[0] << "x" << frameSizeInPix[1]
     << ", pixel type: " << vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(pixelType))
       << ", image type: " << PlusVideoFrame::GetStringFromUsImageType(imageType)
-      << ", device image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(this->OutputChannels[0]->GetImageOrientation())
+      << ", device image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetPortImageOrientation())
       << ", buffer image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetBuffer()->GetImageOrientation()));
 
   } 
 
-  aSource->GetBuffer()->AddItem(pixelDataPtr, this->OutputChannels[0]->GetImageOrientation(), frameSizeInPix, pixelType, imageType, 0, this->FrameNumber);
+  aSource->GetBuffer()->AddItem(pixelDataPtr, aSource->GetPortImageOrientation(), frameSizeInPix, pixelType, imageType, 0, this->FrameNumber);
   this->Modified();
   this->FrameNumber++;
 
