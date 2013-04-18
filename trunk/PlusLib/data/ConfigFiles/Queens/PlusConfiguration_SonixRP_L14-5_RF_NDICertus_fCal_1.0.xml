@@ -45,11 +45,11 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
       CompressionStatus="0" >
 
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortName="Rf" BufferSize="100" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="Video" PortName="Rf" PortUsImageOrientation="FM" BufferSize="100" AveragedItemsForFiltering="20" />
       </DataSources>
       
       <OutputChannels>
-        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" UsImageOrientation="FM">
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" >
           <RfProcessing>
             <RfToBrightnessConversion 
               NumberOfHilbertFilterCoeffs="32.0" 

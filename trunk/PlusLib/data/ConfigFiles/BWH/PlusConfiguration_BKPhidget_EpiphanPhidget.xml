@@ -17,11 +17,11 @@
    ImagingMode="RfMode" >
 
    <DataSources>
-     <DataSource Type="Video" Id="Video" BufferSize="100" AveragedItemsForFiltering="20" />
+     <DataSource Type="Video" Id="Video" PortUsImageOrientation="FM" BufferSize="100" AveragedItemsForFiltering="20" />
    </DataSources>
    
    <OutputChannels>
-      <OutputChannel Id="BKVideoStream" VideoDataSourceId="Video" UsImageOrientation="FM">
+      <OutputChannel Id="BKVideoStream" VideoDataSourceId="Video" >
         <RfProcessing>
           <RfToBrightnessConversion NumberOfHilberFilterCoeffs="32.0" BrightnessScale="20.0"/>
           <ScanConversion 
@@ -43,10 +43,10 @@
       Id="EpiphanVideoDevice" 
       AcquisitionRate="20" >
     <DataSources>
-      <DataSource Type="Video" Id="Video" BufferSize="500" AveragedItemsForFiltering="20" /> 
+      <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="500" AveragedItemsForFiltering="20" /> 
     </DataSources>
     <OutputChannels>
-      <OutputChannel Id="EpiphanVideoStream" VideoDataSourceId="Video" UsImageOrientation="MF"/>
+      <OutputChannel Id="EpiphanVideoStream" VideoDataSourceId="Video" />
     </OutputChannels>
     
     </Device>

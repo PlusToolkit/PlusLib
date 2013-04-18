@@ -36,11 +36,10 @@
       Id="VideoDevice" 
       Type="Epiphan"      
       AcquisitionRate="10" 
-      UsImageOrientation="MF"
       xClipRectangleOrigin="253 108" 
       xClipRectangleSize="720 667">
       <DataSources>
-        <DataSource Type="Video" Id="Video" BufferSize="100" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="100" AveragedItemsForFiltering="20" />
       </DataSources>
 
       <OutputChannels>

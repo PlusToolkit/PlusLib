@@ -41,13 +41,13 @@
       Timeout="-1" 
       CompressionStatus="0" >
       <DataSources>
-        <DataSource Type="Video" Id="BModeVideo" PortName="B" BufferSize="100" AveragedItemsForFiltering="20" />
-        <DataSource Type="Video" Id="RfModeVideo" PortName="Rf" BufferSize="40" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="BModeVideo" PortName="B" PortUsImageOrientation="MF" BufferSize="100" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="RfModeVideo" PortName="Rf" PortUsImageOrientation="FM" BufferSize="40" AveragedItemsForFiltering="20" />
       </DataSources>
       
       <OutputChannels>
-        <OutputChannel Id="BModeVideoStream" VideoDataSourceId="BModeVideo" UsImageOrientation="MF"/>
-        <OutputChannel Id="RfModeVideoStream" VideoDataSourceId="RfModeVideo" UsImageOrientation="FM"/>
+        <OutputChannel Id="BModeVideoStream" VideoDataSourceId="BModeVideo" />
+        <OutputChannel Id="RfModeVideoStream" VideoDataSourceId="RfModeVideo" />
       </OutputChannels>
     </Device>
         

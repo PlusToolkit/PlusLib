@@ -32,11 +32,11 @@
       Type="Epiphan"
       AcquisitionRate="30" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" BufferSize="500" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="500" AveragedItemsForFiltering="20" />
       </DataSources>
       
       <OutputChannels>
-        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" UsImageOrientation="MF"/>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
     </Device>
 

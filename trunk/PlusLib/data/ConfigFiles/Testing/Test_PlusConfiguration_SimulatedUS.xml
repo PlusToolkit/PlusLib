@@ -59,7 +59,7 @@
       AveragedItemsForFiltering="20"
       AcquisitionRate="15" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" BufferSize="500" />  
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="500" />  
       </DataSources>
       
       <InputChannels>
@@ -67,7 +67,7 @@
       </InputChannels>
 
       <OutputChannels>
-        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" UsImageOrientation="MF"/>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
 
       <vtkUsSimulatorAlgo

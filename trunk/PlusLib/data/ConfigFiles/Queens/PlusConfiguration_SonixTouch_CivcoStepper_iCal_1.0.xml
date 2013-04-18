@@ -48,11 +48,11 @@ Plug in the US Digital ED2 digital display through Serial2USB converter cable in
       Timeout="-1" 
       CompressionStatus="0" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortName="B" BufferSize="100" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="100" AveragedItemsForFiltering="20" />
       </DataSources>
       
       <OutputChannels>
-        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" UsImageOrientation="UF"/>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
     </Device>
 

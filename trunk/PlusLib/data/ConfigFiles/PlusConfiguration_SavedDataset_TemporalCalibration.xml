@@ -54,11 +54,11 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" BufferSize="200" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="200" AveragedItemsForFiltering="20" />
       </DataSources>
       
       <OutputChannels>
-        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" UsImageOrientation="MF"/>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
     </Device>
     
