@@ -203,14 +203,20 @@ PlusStatus TemporalCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
   vtkXMLDataElement* segmentationParameters = aConfig->FindNestedElementWithName("Segmentation");
   if (segmentationParameters != NULL)
   {
-    int regionOfInterest[4] = {0}; 
-    if ( segmentationParameters->GetVectorAttribute("RegionOfInterest", 4, regionOfInterest) )
+    int clipOrigin[2] = {0};
+    int clipSize[2] = {0};
+    if ( segmentationParameters->GetVectorAttribute("ClipRectangleOrigin", 2, clipOrigin) && 
+      segmentationParameters->GetVectorAttribute("ClipRectangleSize", 2, clipSize) )
     {
-      m_LineSegmentationClipRectangleOrigin[0]=regionOfInterest[0];
-      m_LineSegmentationClipRectangleOrigin[1]=regionOfInterest[2];
-      m_LineSegmentationClipRectangleSize[0]=regionOfInterest[1]-regionOfInterest[0];
-      m_LineSegmentationClipRectangleSize[1]=regionOfInterest[3]-regionOfInterest[2];
-    }    
+      m_LineSegmentationClipRectangleOrigin[0] = clipOrigin[0];
+      m_LineSegmentationClipRectangleOrigin[1] = clipOrigin[2];
+      m_LineSegmentationClipRectangleSize[0] = clipSize[0];
+      m_LineSegmentationClipRectangleSize[1] = clipSize[1];
+    }
+    else
+    {
+      LOG_WARNING("Cannot find ClipRectangleOrigin or ClipRectangleSize attributes in the segmentation configuration.");
+    }
   }
 
   return PLUS_SUCCESS;
