@@ -23,7 +23,13 @@
   </DataCollection>
   
   
-  <PlusOpenIGTLinkServer MaxNumberOfIgtlMessagesToSend="10" MaxTimeSpentWithProcessingMs="50" ListeningPort="18944" SendValidTransformsOnly="true"> 
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="10" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true"
+    OutputChannelId="VideoStream"
+    > 
     <DefaultClientInfo> 
       <MessageTypes> 
         <Message Type="IMAGE" />

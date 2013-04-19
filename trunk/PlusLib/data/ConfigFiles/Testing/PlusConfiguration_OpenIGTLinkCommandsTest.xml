@@ -60,7 +60,9 @@
     MaxNumberOfIgtlMessagesToSend="10"
     MaxTimeSpentWithProcessingMs="50"
     ListeningPort="18944"
-    SendValidTransformsOnly="true" > 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="TrackedVideoStream"
+    > 
     <DefaultClientInfo> 
       <MessageTypes> 
         <Message Type="IMAGE" />

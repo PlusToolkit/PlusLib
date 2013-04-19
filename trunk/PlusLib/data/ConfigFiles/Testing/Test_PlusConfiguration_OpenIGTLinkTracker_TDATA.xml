@@ -67,6 +67,7 @@
     MaxNumberOfIgtlMessagesToSend="1"
     MaxTimeSpentWithProcessingMs="10"
     ListeningPort="18944"
+    OutputChannelId="TrackedVideoStream"
     > 
     <DefaultClientInfo> 
       <MessageTypes> 

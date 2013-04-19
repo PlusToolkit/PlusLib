@@ -77,7 +77,7 @@
   </DataCollection>
   
   
-  <PlusOpenIGTLinkServer ListeningPort="18944" > 
+  <PlusOpenIGTLinkServer ListeningPort="18944" OutputChannelId="TrackedVideoStream"> 
     <DefaultClientInfo> 
     <MessageTypes> 
       <Message Type="IMAGE" />

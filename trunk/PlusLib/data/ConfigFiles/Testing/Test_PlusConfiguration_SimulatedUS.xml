@@ -161,7 +161,12 @@
   </VolumeReconstruction>
 
   
-  <PlusOpenIGTLinkServer ListeningPort="18944" MaxNumberOfIgtlMessagesToSend="1" MaxTimeSpentWithProcessingMs="10"> 
+  <PlusOpenIGTLinkServer 
+    ListeningPort="18944" 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="10"
+    OutputChannelId="TrackedVideoStream"
+    > 
     <DefaultClientInfo> 
       <MessageTypes> 
         <Message Type="IMAGE" />
