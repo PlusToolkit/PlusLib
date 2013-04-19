@@ -545,20 +545,20 @@ PlusStatus vtkBkProFocusCameraLinkVideoSource::ReadConfiguration(vtkXMLDataEleme
 
   Superclass::ReadConfiguration(config); 
 
-  vtkXMLDataElement* imageAcquisitionConfig = this->FindThisDeviceElement(config);
-  if (imageAcquisitionConfig == NULL) 
+  vtkXMLDataElement* deviceElement = this->FindThisDeviceElement(config);
+  if (deviceElement == NULL) 
   {
     LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
     return PLUS_FAIL;
   }
 
-  const char* iniFileName = imageAcquisitionConfig->GetAttribute("IniFileName"); 
+  const char* iniFileName = deviceElement->GetAttribute("IniFileName"); 
   if ( iniFileName != NULL) 
   {
     this->SetIniFileName(iniFileName); 
   }
 
-  const char* imagingMode = imageAcquisitionConfig->GetAttribute("ImagingMode"); 
+  const char* imagingMode = deviceElement->GetAttribute("ImagingMode"); 
   if ( imagingMode != NULL) 
   {
     if (STRCASECMP(imagingMode, "BMode")==0)
@@ -593,21 +593,14 @@ PlusStatus vtkBkProFocusCameraLinkVideoSource::WriteConfiguration(vtkXMLDataElem
     return PLUS_FAIL;
   }
 
-  vtkXMLDataElement* dataCollectionConfig = config->FindNestedElementWithName("DataCollection");
-  if (dataCollectionConfig == NULL)
+  vtkXMLDataElement* deviceElement = this->FindThisDeviceElement(config);
+  if (deviceElement == NULL)
   {
-    LOG_ERROR("Cannot find DataCollection element in XML tree!");
+    LOG_ERROR("Cannot find device element in XML tree for device with ID: " << this->GetDeviceId() );
     return PLUS_FAIL;
   }
 
-  vtkXMLDataElement* imageAcquisitionConfig = dataCollectionConfig->FindNestedElementWithName("ImageAcquisition"); 
-  if (imageAcquisitionConfig == NULL) 
-  {
-    LOG_ERROR("Cannot find ImageAcquisition element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  imageAcquisitionConfig->SetAttribute("IniFileName", this->IniFileName);
+  deviceElement->SetAttribute("IniFileName", this->IniFileName);
 
   return PLUS_SUCCESS;
 }
@@ -620,7 +613,7 @@ PlusStatus vtkBkProFocusCameraLinkVideoSource::GetFullIniFilePath(std::string &f
     LOG_ERROR("Ini file name has not been set");
     return PLUS_FAIL;
   }
-  fullPath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() + std::string("/") + this->IniFileName;
+  fullPath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() + std::string("/") + this->IniFileName;
   return PLUS_SUCCESS;
 }
 
