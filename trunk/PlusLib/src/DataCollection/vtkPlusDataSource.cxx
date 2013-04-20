@@ -47,7 +47,12 @@ vtkPlusDataSource::~vtkPlusDataSource()
     this->ReferenceCoordinateFrameName = NULL; 
   }
 
-  this->SetPortName(NULL); 
+  if ( this->PortName != NULL )
+  {
+    delete [] this->PortName; 
+    this->PortName=NULL; 
+  }
+
   this->SetToolRevision(NULL); 
   this->SetToolSerialNumber(NULL); 
   this->SetToolManufacturer(NULL); 
@@ -126,16 +131,20 @@ PlusStatus vtkPlusDataSource::SetSourceId(const char* aSourceId)
 
   if ( this->SourceId != NULL )
   {
+    // Here we would normally delete SourceId and set it to NULL, but we just return with an error instead because modification of the value is not allowed
     LOG_ERROR("SourceId change is not allowed for source '" << this->SourceId << "'" ); 
     return PLUS_FAIL; 
   }
 
-  // Copy string 
-  size_t n = strlen(aSourceId) + 1; 
-  char *cp1 =  new char[n]; 
-  const char *cp2 = (aSourceId); 
-  this->SourceId = cp1;
-  do { *cp1++ = *cp2++; } while ( --n ); 
+  if (aSourceId!=NULL)
+  {
+    // Copy string  (based on vtkSetStringMacro in vtkSetGet.h)
+    size_t n = strlen(aSourceId) + 1; 
+    char *cp1 =  new char[n]; 
+    const char *cp2 = (aSourceId); 
+    this->SourceId = cp1;
+    do { *cp1++ = *cp2++; } while ( --n ); 
+  }
 
   return PLUS_SUCCESS; 
 }
@@ -155,16 +164,20 @@ PlusStatus vtkPlusDataSource::SetReferenceName(const char* referenceName)
 
   if ( this->ReferenceCoordinateFrameName != NULL )
   {
+    // Here we would normally delete ReferenceCoordinateFrame and set it to NULL, but we just return with an error instead because modification of the value is not allowed
     LOG_ERROR("Reference frame name change is not allowed for tool '" << this->ReferenceCoordinateFrameName << "'" ); 
     return PLUS_FAIL; 
   }
 
-  // Copy string 
-  size_t n = strlen(referenceName) + 1; 
-  char *cp1 =  new char[n]; 
-  const char *cp2 = (referenceName); 
-  this->ReferenceCoordinateFrameName = cp1;
-  do { *cp1++ = *cp2++; } while ( --n ); 
+  if (referenceName!=NULL)
+  {
+    // Copy string  (based on vtkSetStringMacro in vtkSetGet.h)
+    size_t n = strlen(referenceName) + 1; 
+    char *cp1 =  new char[n]; 
+    const char *cp2 = (referenceName); 
+    this->ReferenceCoordinateFrameName = cp1;
+    do { *cp1++ = *cp2++; } while ( --n ); 
+  }
 
   return PLUS_SUCCESS; 
 }
@@ -174,26 +187,32 @@ PlusStatus vtkPlusDataSource::SetPortName(const char* portName)
 {
   if ( this->PortName == NULL && portName == NULL) 
   { 
+    // no change (current and requested name are both empty)
     return PLUS_SUCCESS;
   } 
 
   if ( this->PortName && portName && ( STRCASECMP(this->PortName, portName) == 0 ) ) 
   { 
+    // no change (current and requested names are te same)
     return PLUS_SUCCESS;
   } 
 
   if ( this->PortName != NULL )
   {
+    // Here we would normally delete PortName and set it to NULL, but we just return with an error instead because modification of the value is not allowed
     LOG_ERROR("Port name change is not allowed on source port'" << this->PortName << "'" ); 
     return PLUS_FAIL; 
   }
 
-  // Copy string 
-  size_t n = strlen(portName) + 1; 
-  char *cp1 =  new char[n]; 
-  const char *cp2 = (portName); 
-  this->PortName = cp1;
-  do { *cp1++ = *cp2++; } while ( --n ); 
+  if ( portName != NULL )
+  {
+    // Copy string (based on vtkSetStringMacro in vtkSetGet.h)
+    size_t n = strlen(portName) + 1; 
+    char *cp1 =  new char[n]; 
+    const char *cp2 = (portName); 
+    this->PortName = cp1;
+    do { *cp1++ = *cp2++; } while ( --n ); 
+  }
 
   return PLUS_SUCCESS; 
 }
