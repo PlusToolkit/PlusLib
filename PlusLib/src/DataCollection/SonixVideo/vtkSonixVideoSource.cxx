@@ -85,13 +85,14 @@ vtkSonixVideoSourceCleanup::~vtkSonixVideoSourceCleanup()
 //----------------------------------------------------------------------------
 vtkSonixVideoSource::vtkSonixVideoSource()
 {
-  // No need for StartThreadForInternalUpdates, as we are notified about each new frame through a callback function
+  this->SonixIP=NULL;
   this->Reset();
 }
 
 //----------------------------------------------------------------------------
 vtkSonixVideoSource::~vtkSonixVideoSource()
 { 
+  this->SetSonixIP(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -1140,6 +1141,8 @@ PlusStatus vtkSonixVideoSource::Reset()
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
   this->RequireUsImageOrientationInDeviceSetConfiguration = true;
   this->RequireRfElementInDeviceSetConfiguration = false;
+
+  // No need for StartThreadForInternalUpdates, as we are notified about each new frame through a callback function
 
   return PLUS_SUCCESS;
 }
