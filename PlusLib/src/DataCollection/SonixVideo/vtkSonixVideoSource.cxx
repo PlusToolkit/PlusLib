@@ -518,6 +518,11 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* config)
     this->AcquisitionDataType = udtBPost;
 #endif
   }
+  else
+  {
+    LOG_ERROR("PortName is not defined for the data sources in the SonixVideo device "<<this->GetDeviceId());
+    return PLUS_FAIL;
+  }
 
   int depth = -1; 
   if ( deviceConfig->GetScalarAttribute("Depth", depth)) 

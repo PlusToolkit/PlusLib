@@ -290,7 +290,13 @@ PlusStatus vtkPlusDevice::GetVideoSourceByPortName( const char* portName, vtkPlu
 
   for ( DataSourceContainerIterator it = this->VideoSources.begin(); it != this->VideoSources.end(); ++it)
   {
-    if ( it->second->GetPortName() != NULL && STRCASECMP( portName, it->second->GetPortName() ) == 0 )
+    if (it->second->GetPortName()==NULL)
+    {
+      LOG_DEBUG("Port name is not defined for video source "<<(it->second->GetSourceId()!=NULL?it->second->GetSourceId():"unknown")
+        <<" in device "<<it->second->GetDevice()->GetDeviceId());
+      continue;
+    }
+    if ( STRCASECMP( portName, it->second->GetPortName() ) == 0 )
     {
       aVideoSource = it->second; 
       return PLUS_SUCCESS; 
