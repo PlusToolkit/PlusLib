@@ -84,8 +84,8 @@ vtkSonixVideoSourceCleanup::~vtkSonixVideoSourceCleanup()
 }
 //----------------------------------------------------------------------------
 vtkSonixVideoSource::vtkSonixVideoSource()
+: SonixIP(NULL)
 {
-  this->SonixIP=NULL;
   this->Reset();
 }
 
