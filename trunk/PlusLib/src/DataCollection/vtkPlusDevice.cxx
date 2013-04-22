@@ -290,7 +290,7 @@ PlusStatus vtkPlusDevice::GetVideoSourceByPortName( const char* portName, vtkPlu
 
   for ( DataSourceContainerIterator it = this->VideoSources.begin(); it != this->VideoSources.end(); ++it)
   {
-    if ( STRCASECMP( portName, it->second->GetPortName() ) == 0 )
+    if ( it->second->GetPortName() != NULL && STRCASECMP( portName, it->second->GetPortName() ) == 0 )
     {
       aVideoSource = it->second; 
       return PLUS_SUCCESS; 
