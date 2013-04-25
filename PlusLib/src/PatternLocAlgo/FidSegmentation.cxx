@@ -197,7 +197,6 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
   // Segmentation search region Y direction
   int clipOrigin[2] = {0};
   int clipSize[2] = {0};
-  int roi[4] = {0};
   if ( segmentationParameters->GetVectorAttribute("ClipRectangleOrigin", 2, clipOrigin) && 
     segmentationParameters->GetVectorAttribute("ClipRectangleSize", 2, clipSize) )
   {
