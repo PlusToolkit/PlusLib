@@ -28,13 +28,19 @@ public:
   vtkTypeRevisionMacro(vtkLineSegmentationAlgo, vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent); 
  
+  /*!
+    Read XML based configuration for the segmentation
+    \param aConfig Root element of device set configuration data
+  */
+  PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
+
   /*! Sets the input US video frames */  
   void SetTrackedFrameList(vtkTrackedFrameList* aTrackedFrameList);
 
   /*! Sets the time range where the signal will be extracted from. If rangeMax<rangeMin then all the input frames will be used to genereate the signal. */
   void SetSignalTimeRange(double rangeMin, double rangeMax);
 
-  /*! Sets a rectanguler region of interest. The algorithm will ignore everything outside the specified image region. If the rectangle size is (0,0) then no clipping is performed. */
+  /*! Sets a rectangular region of interest. The algorithm will ignore everything outside the specified image region. If the rectangle size is (0,0) then no clipping is performed. */
   void SetClipRectangle(int clipRectangleOriginPix[2], int clipRectangleSizePix[2]);
 
   /*!
@@ -79,8 +85,7 @@ protected:
   /*! Update passed region to fit within the frame size. */
   void LimitToClipRegion(CharImageType::RegionType& region);
 
-  ///
-
+protected:
   vtkSmartPointer<vtkTrackedFrameList> m_TrackedFrameList; 
 
   std::deque<double> m_SignalValues; 

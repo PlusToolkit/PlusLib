@@ -1,49 +1,44 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/ 
 
+#include "PlaneParametersEstimator.h"
 #include "PlusConfigure.h"
-
-#include "vtkObjectFactory.h"
-#include "vtkTable.h"
-#include "vtkIntArray.h"
-#include "vtkDoubleArray.h"
-#include "vtkContextView.h"
-#include "vtkContextScene.h"
-#include "vtkPen.h"
-#include "vtkRenderer.h"
-#include "vtkRenderWindowInteractor.h"
-#include "vtkRenderWindow.h"
-#include "vtkChartXY.h"
-#include "vtkPlot.h"
-
-#include "itkImageFileWriter.h"
-#include "itkImageDuplicator.h"
-#include "itkOtsuThresholdImageFilter.h"
+#include "RANSAC.h"
+#include "TrackedFrame.h"
 #include "itkBinaryThresholdImageFilter.h"
-#include "itkRescaleIntensityImageFilter.h"
-#include "itkRGBPixel.h"
+#include "itkImageDuplicator.h"
 #include "itkImageFileWriter.h"
 #include "itkImageRegionIterator.h"
 #include "itkLineIterator.h"
+#include "itkOtsuThresholdImageFilter.h"
+#include "itkRGBPixel.h"
 #include "itkResampleImageFilter.h"
-
-#include "RANSAC.h"
-#include "PlaneParametersEstimator.h"
-
+#include "itkRescaleIntensityImageFilter.h"
+#include "vtkChartXY.h"
+#include "vtkContextScene.h"
+#include "vtkContextView.h"
+#include "vtkDoubleArray.h"
+#include "vtkIntArray.h"
 #include "vtkLineSegmentationAlgo.h"
+#include "vtkObjectFactory.h"
+#include "vtkPen.h"
+#include "vtkPlot.h"
+#include "vtkRenderWindow.h"
+#include "vtkRenderWindowInteractor.h"
+#include "vtkRenderer.h"
+#include "vtkTable.h"
 #include "vtkTrackedFrameList.h"
-#include "TrackedFrame.h"
 
+static const double INTESNITY_THRESHOLD_PERCENTAGE_OF_PEAK = 0.5; // threshold (as the percentage of the peak intensity along a scanline) for COG
+static const double MAX_CONSECUTIVE_INVALID_VIDEO_FRAMES = 10; // the maximum number of consecutive invalid frames before warning message issued
+static const double MAX_PERCENTAGE_OF_INVALID_VIDEO_FRAMES = 0.1; // the maximum percentage of the invalid frames before warning message issued
+static const double MIN_X_SLOPE_COMPONENT_FOR_DETECTED_LINE = 0.01; // if the detected line's slope's x-component is less than this (i.e. almost vertical), skip frame
+static const int MINIMUM_NUMBER_OF_VALID_SCANLINES = 5; // minimum number of valid scanlines to compute line position
 static const int NUMBER_OF_SCANLINES = 40; // number of scan-lines for line detection
 static const unsigned int DIMENSION = 2; // dimension of video frames (used for Ransac plane)
-static const int MINIMUM_NUMBER_OF_VALID_SCANLINES = 5; // minimum number of valid scanlines to compute line position
-static const double INTESNITY_THRESHOLD_PERCENTAGE_OF_PEAK = 0.5; // threshold (as the percentage of the peak intensity along a scanline) for COG
-static const double MAX_PERCENTAGE_OF_INVALID_VIDEO_FRAMES = 0.1; // the maximum percentage of the invalid frames before warning message issued
-static const double MAX_CONSECUTIVE_INVALID_VIDEO_FRAMES = 10; // the maximum number of consecutive invalid frames before warning message issued
-static const double MIN_X_SLOPE_COMPONENT_FOR_DETECTED_LINE = 0.01; // if the detected line's slope's x-component is less than this (i.e. almost vertical), skip frame
 
 enum PEAK_POS_METRIC_TYPE
 {
@@ -62,15 +57,17 @@ void vtkLineSegmentationAlgo::PrintSelf(ostream& os, vtkIndent indent)
 } 
 
 //----------------------------------------------------------------------------
-vtkLineSegmentationAlgo::vtkLineSegmentationAlgo() :
-  m_SaveIntermediateImages(false)
+vtkLineSegmentationAlgo::vtkLineSegmentationAlgo() 
+: m_TrackedFrameList(NULL)
+, m_SaveIntermediateImages(false)
+, m_IntermediateFilesOutputDirectory("")
+, m_SignalTimeRangeMin(0.0)
+, m_SignalTimeRangeMax(-1.0)
 {  
-  m_SignalTimeRangeMin=0.0;
-  m_SignalTimeRangeMax=-1.0;
-  m_ClipRectangleOrigin[0]=0;
-  m_ClipRectangleOrigin[1]=0;
-  m_ClipRectangleSize[0]=0;
-  m_ClipRectangleSize[1]=0;
+  m_ClipRectangleOrigin[0] = 0;
+  m_ClipRectangleOrigin[1] = 0;
+  m_ClipRectangleSize[0] = 0;
+  m_ClipRectangleSize[1] = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -87,8 +84,8 @@ void vtkLineSegmentationAlgo::SetTrackedFrameList(vtkTrackedFrameList* aTrackedF
 //-----------------------------------------------------------------------------
 void vtkLineSegmentationAlgo::SetSignalTimeRange(double rangeMin, double rangeMax)
 {
-  m_SignalTimeRangeMin=rangeMin;
-  m_SignalTimeRangeMax=rangeMax;
+  m_SignalTimeRangeMin = rangeMin;
+  m_SignalTimeRangeMax = rangeMax;
 }
 
 //-----------------------------------------------------------------------------
@@ -192,9 +189,9 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
       LOG_TRACE("Skip frame, it is out of the valid signal range");
       continue;
     }
-    
+
     typedef float floatPixelType; //  The type of pixel used for the Hough accumulator
-    
+
     // Get curent image
     CharImageType::Pointer localImage = trackedFrame->GetImageData()->GetImage<CharPixelType>();
 
@@ -224,7 +221,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
     std::vector<itk::Point<double,2> > intensityPeakPositions;
     CharImageType::RegionType region = localImage->GetLargestPossibleRegion();
     LimitToClipRegion(region);
-    
+
     int numOfValidScanlines = 0;
 
     for(int currScanlineNum = 0; currScanlineNum < NUMBER_OF_SCANLINES; ++currScanlineNum)
@@ -380,7 +377,7 @@ PlusStatus vtkLineSegmentationAlgo::FindPeakStart(std::deque<int> &intensityProf
   {
     ++pixelIndex;
   }
-  
+
   startOfPeak = --pixelIndex;
 
   return PLUS_SUCCESS;
@@ -431,7 +428,7 @@ PlusStatus vtkLineSegmentationAlgo::FindLargestPeak(std::deque<int> &intensityPr
     {
       // still under the the peak, cumulate the area
       currentArea += intensityProfile.at(pixelLoc);
-      
+
       if(intensityProfile.at(pixelLoc) > currentMax)
       {
         currentMax = intensityProfile.at(pixelLoc);
@@ -532,7 +529,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point
   //create and initialize the RANSAC algorithm
   double desiredProbabilityForNoOutliers = 0.999;
   RANSACType::Pointer ransacEstimator = RANSACType::New();  
-  
+
   try
   {
     ransacEstimator->SetData( data );
@@ -552,7 +549,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point
     return PLUS_FAIL;
   }
 
-  
+
   try
   {
     ransacEstimator->Compute( planeParameters, desiredProbabilityForNoOutliers );
@@ -561,7 +558,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point
     LOG_ERROR(e.what());
     return PLUS_FAIL;
   }
-  
+
   if( planeParameters.empty() )
   {
     LOG_ERROR("Unable to fit line through points with RANSAC, temporal calibration failed");
@@ -593,7 +590,7 @@ void vtkLineSegmentationAlgo::SaveIntermediateImage(int frameNumber, CharImageTy
   rgbImageType::Pointer rgbImageCopy = rgbImageType::New();
 
   CharImageType::RegionType fullImageRegion = scanlineImage->GetLargestPossibleRegion();
-  
+
   rgbImageType::IndexType start;
   start[0] =   fullImageRegion.GetIndex()[0];  // first index on X
   start[1] =   fullImageRegion.GetIndex()[0];  // first index on Y
@@ -700,12 +697,12 @@ void vtkLineSegmentationAlgo::PlotIntArray(const std::deque<int> &intensityValue
   vtkSmartPointer<vtkIntArray> arrPixelPositions = vtkSmartPointer<vtkIntArray>::New();
   arrPixelPositions->SetName("Pixel Positions"); 
   table->AddColumn(arrPixelPositions);
- 
+
   //  Create array corresponding to the metric values of the tracker plot
   vtkSmartPointer<vtkIntArray> arrIntensityProfile = vtkSmartPointer<vtkIntArray>::New();
   arrIntensityProfile->SetName("Intensity Profile");
   table->AddColumn(arrIntensityProfile);
- 
+
   // Set the tracker data
   table->SetNumberOfRows(intensityValues.size());
   for (int i = 0; i < intensityValues.size(); ++i)
@@ -717,7 +714,7 @@ void vtkLineSegmentationAlgo::PlotIntArray(const std::deque<int> &intensityValue
   // Set up the view
   vtkSmartPointer<vtkContextView> view = vtkSmartPointer<vtkContextView>::New();
   view->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
- 
+
   // Add the two line plots
   vtkSmartPointer<vtkChartXY> chart =  vtkSmartPointer<vtkChartXY>::New();
   view->GetScene()->AddItem(chart);
@@ -748,12 +745,12 @@ void vtkLineSegmentationAlgo::PlotDoubleArray(const std::deque<double> &intensit
   vtkSmartPointer<vtkDoubleArray> arrPixelPositions = vtkSmartPointer<vtkDoubleArray>::New();
   arrPixelPositions->SetName("Pixel Positions"); 
   table->AddColumn(arrPixelPositions);
- 
+
   //  Create array corresponding to the metric values of the tracker plot
   vtkSmartPointer<vtkDoubleArray> arrIntensityProfile = vtkSmartPointer<vtkDoubleArray>::New();
   arrIntensityProfile->SetName("Intensity Profile");
   table->AddColumn(arrIntensityProfile);
- 
+
   // Set the tracker data
   table->SetNumberOfRows(intensityValues.size());
   for (int i = 0; i < intensityValues.size(); ++i)
@@ -765,7 +762,7 @@ void vtkLineSegmentationAlgo::PlotDoubleArray(const std::deque<double> &intensit
   // Set up the view
   vtkSmartPointer<vtkContextView> view = vtkSmartPointer<vtkContextView>::New();
   view->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
- 
+
   // Add the two line plots
   vtkSmartPointer<vtkChartXY> chart =  vtkSmartPointer<vtkChartXY>::New();
   view->GetScene()->AddItem(chart);
@@ -819,12 +816,12 @@ void vtkLineSegmentationAlgo::LimitToClipRegion(CharImageType::RegionType& regio
   // Clipping enabled
   int clipRectangleOrigin[2]={m_ClipRectangleOrigin[0],m_ClipRectangleOrigin[1]};
   int clipRectangleSize[2]={m_ClipRectangleSize[0],m_ClipRectangleSize[1]};
-  
+
   // Adjust clipping region origin and size to fit inside the frame region
   CharImageType::IndexType imageOrigin=region.GetIndex();
   CharImageType::SizeType imageSize=region.GetSize();
   if (clipRectangleOrigin[0]<imageOrigin[0] || clipRectangleOrigin[1]<imageOrigin[1]
-    || clipRectangleOrigin[0]>=imageOrigin[0]+imageSize[0] || clipRectangleOrigin[1]>=imageOrigin[1]+imageSize[1])
+  || clipRectangleOrigin[0]>=imageOrigin[0]+imageSize[0] || clipRectangleOrigin[1]>=imageOrigin[1]+imageSize[1])
   {
     LOG_WARNING("ClipRectangleOrigin is invalid ("<<clipRectangleOrigin[0]<<", "<<clipRectangleOrigin[1]<<"). The frame size is "
       <<imageSize[0]<<"x"<<imageSize[1]<<". Using ("<<imageOrigin[0]<<","<<imageOrigin<<") as ClipRectangleOrigin.");
@@ -857,4 +854,56 @@ void vtkLineSegmentationAlgo::LimitToClipRegion(CharImageType::RegionType& regio
   imageSize[1]=clipRectangleSize[1];    
   region.SetIndex(imageOrigin);
   region.SetSize(imageSize);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkLineSegmentationAlgo::ReadConfiguration( vtkXMLDataElement* aConfig )
+{
+  if( aConfig == NULL )
+  {
+    LOG_ERROR("Null configuration sent to vtkLineSegmentationAlgo::ReadConfiguration.");
+    return PLUS_FAIL;
+  }
+
+  vtkXMLDataElement* lineSegmentationElement = aConfig->FindNestedElementWithName("vtkLineSegmentationAlgo");
+  if( lineSegmentationElement == NULL )
+  {
+    LOG_ERROR("Unable to find \'vtkLineSegmentationAlgo\' element. Cannot proceed with segmentation.");
+    return PLUS_FAIL;
+  }
+
+  if ( !lineSegmentationElement->GetVectorAttribute("ClipRectangleOrigin", 2, m_ClipRectangleOrigin) || 
+    !lineSegmentationElement->GetVectorAttribute("ClipRectangleSize", 2, m_ClipRectangleSize) )
+  {
+    LOG_INFO("Cannot find ClipRectangleOrigin or ClipRectangleSize attribute in the vtkLineSegmentationAlgo configuration file; Using the largest ROI possible.");
+    m_ClipRectangleOrigin[0] = -1;
+    m_ClipRectangleOrigin[1] = -1;
+    m_ClipRectangleSize[0] = -1;
+    m_ClipRectangleSize[1] = -1;
+  }
+
+  const char* saveIntermediateImages = lineSegmentationElement->GetAttribute("SaveIntermediateImages");
+  if( saveIntermediateImages != NULL && STRCASECMP(saveIntermediateImages, "TRUE") == 0 )
+  {
+    m_SaveIntermediateImages = true;
+  }
+
+  double signalTimeRange[2] = {0};
+  if( lineSegmentationElement->GetVectorAttribute("SignalTimeRange", 2, signalTimeRange) )
+  {
+    m_SignalTimeRangeMin = signalTimeRange[0];
+    m_SignalTimeRangeMax = signalTimeRange[1];
+  }
+
+  const char* intermediateOutputDirectory = lineSegmentationElement->GetAttribute("IntermediateFilesOutputDirectory");
+  if( intermediateOutputDirectory != NULL )
+  {
+    m_IntermediateFilesOutputDirectory = std::string(intermediateOutputDirectory);
+  }
+  else
+  {
+    m_IntermediateFilesOutputDirectory = vtkPlusConfig::GetInstance()->GetOutputDirectory();
+  }
+
+  return PLUS_SUCCESS;
 }
