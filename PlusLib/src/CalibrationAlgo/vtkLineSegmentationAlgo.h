@@ -7,6 +7,7 @@
 #ifndef __vtkLineSegmentationAlgo_h
 #define __vtkLineSegmentationAlgo_h
 
+#include "itkImage.h"
 #include "vtkObject.h"
 #include <deque>
 
@@ -17,18 +18,18 @@ class vtkTrackedFrameList;
   \brief Detect the position of a line (image of a plane) in an US image sequence.
   \ingroup PlusLibCalibrationAlgorithm
 */
-class vtkLineSegmentationAlgo: public vtkObject
+class VTK_EXPORT vtkLineSegmentationAlgo : public vtkObject
 {
 public:
-  typedef unsigned char CharPixelType; // The natural type of the input image
-  typedef itk::Image<CharPixelType,2/*image dimension*/> CharImageType;
+  typedef unsigned char CharPixelType;
+  typedef itk::Image<CharPixelType, 2> CharImageType;
 
   static vtkLineSegmentationAlgo* New();
   vtkTypeRevisionMacro(vtkLineSegmentationAlgo, vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent); 
  
   /*! Sets the input US video frames */  
-  void SetVideoFrames(vtkTrackedFrameList* videoFrames);
+  void SetTrackedFrameList(vtkTrackedFrameList* aTrackedFrameList);
 
   /*! Sets the time range where the signal will be extracted from. If rangeMax<rangeMin then all the input frames will be used to genereate the signal. */
   void SetSignalTimeRange(double rangeMin, double rangeMax);
@@ -80,7 +81,7 @@ protected:
 
   ///
 
-  vtkSmartPointer<vtkTrackedFrameList> m_VideoFrames; 
+  vtkSmartPointer<vtkTrackedFrameList> m_TrackedFrameList; 
 
   std::deque<double> m_SignalValues; 
   std::deque<double> m_SignalTimestamps; 

@@ -8,15 +8,12 @@
 #define _TEMPORAL_CALIBRATION_H
 
 #include "PlusConfigure.h"
-
+#include "TrackedFrame.h"
+#include "vtkTrackedFrameList.h"
 #include <iostream>
 #include <time.h>
-
-#include <vtkTable.h>
 #include <vtkPiecewiseFunction.h>
-
-#include "vtkTrackedFrameList.h"
-#include "TrackedFrame.h"
+#include <vtkTable.h>
 
 /*!
   \class TemporalCalibration

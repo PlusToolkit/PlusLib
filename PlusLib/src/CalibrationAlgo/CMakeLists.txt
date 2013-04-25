@@ -45,6 +45,7 @@ SET (CalibrationAlgo_LIBS
   itkvnl 
   itkvnl_algo 
   PatternLocAlgo 
+  vtkCharts 
   vtkPlusCommon
   vtkDataCollection
   )
