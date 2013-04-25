@@ -5,17 +5,14 @@
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-
-#include "vtkMath.h"
-#include "vtkDoubleArray.h"
-
-#include <iostream>
-#include <fstream>
-#include <algorithm>
-
 #include "TemporalCalibrationAlgo.h"
+#include "vtkDoubleArray.h"
 #include "vtkLineSegmentationAlgo.h"
+#include "vtkMath.h"
 #include "vtkPrincipalMotionDetectionAlgo.h"
+#include <algorithm>
+#include <fstream>
+#include <iostream>
 
 // Default algorithm parameters
 static const double MINIMUM_TRACKER_SIGNAL_PEAK_TO_PEAK_MM = 8.0; // If the tracker metric "swings" less than this, abort
@@ -542,7 +539,7 @@ PlusStatus TemporalCalibration::ComputePositionSignalValues(SignalType &signal)
   {
   case TRACKER_FRAME:
     {
-      vtkSmartPointer<vtkPrincipalMotionDetectionAlgo> trackerDataMetricExtractor=vtkSmartPointer<vtkPrincipalMotionDetectionAlgo>::New();
+      vtkSmartPointer<vtkPrincipalMotionDetectionAlgo> trackerDataMetricExtractor = vtkSmartPointer<vtkPrincipalMotionDetectionAlgo>::New();
 
       trackerDataMetricExtractor->SetTrackerFrames(signal.frameList);
       trackerDataMetricExtractor->SetSignalTimeRange(signal.signalTimeRangeMin, signal.signalTimeRangeMax);
@@ -558,10 +555,10 @@ PlusStatus TemporalCalibration::ComputePositionSignalValues(SignalType &signal)
 
       // If the metric values do not "swing" sufficiently, the signal is considered constant--i.e. infinite period--and will
       // not work for our purposes
-      double minValue=0;
-      double maxValue=0;
+      double minValue = 0;
+      double maxValue = 0;
       GetSignalRange(signal.signalValues, 0, signal.signalValues.size() -1, minValue, maxValue);
-      double maxPeakToPeak = std::abs(maxValue-minValue);
+      double maxPeakToPeak = std::abs(maxValue - minValue);
       if(maxPeakToPeak < MINIMUM_TRACKER_SIGNAL_PEAK_TO_PEAK_MM)
       {
         LOG_ERROR("Detected metric values do not vary sufficiently (i.e. tracking signal is constant). Actual peak-to-peak variation: "<<maxPeakToPeak<<", expected minimum: "<<MINIMUM_TRACKER_SIGNAL_PEAK_TO_PEAK_MM);
@@ -571,13 +568,13 @@ PlusStatus TemporalCalibration::ComputePositionSignalValues(SignalType &signal)
     }
   case PLANE_VIDEO_FRAME:
     {
-      vtkSmartPointer<vtkLineSegmentationAlgo> lineSegmenter=vtkSmartPointer<vtkLineSegmentationAlgo>::New();
-      lineSegmenter->SetVideoFrames(signal.frameList);
+      vtkSmartPointer<vtkLineSegmentationAlgo> lineSegmenter = vtkSmartPointer<vtkLineSegmentationAlgo>::New();
+      lineSegmenter->SetTrackedFrameList(signal.frameList);
       lineSegmenter->SetClipRectangle(m_LineSegmentationClipRectangleOrigin, m_LineSegmentationClipRectangleSize);
       lineSegmenter->SetSignalTimeRange(signal.signalTimeRangeMin, signal.signalTimeRangeMax);
       lineSegmenter->SetSaveIntermediateImages(m_SaveIntermediateImages);
       lineSegmenter->SetIntermediateFilesOutputDirectory(m_IntermediateFilesOutputDirectory);
-      if (lineSegmenter->Update()!=PLUS_SUCCESS)
+      if ( lineSegmenter->Update() != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get line positions from video frames");
         return PLUS_FAIL;
@@ -587,10 +584,10 @@ PlusStatus TemporalCalibration::ComputePositionSignalValues(SignalType &signal)
 
       // If the metric values do not "swing" sufficiently, the signal is considered constant--i.e. infinite period--and will
       // not work for our purposes
-      double minValue=0;
-      double maxValue=0;
-      GetSignalRange(signal.signalValues,0, signal.signalValues.size() -1, minValue, maxValue);
-      double maxPeakToPeak = std::abs(maxValue-minValue);
+      double minValue = 0;
+      double maxValue = 0;
+      this->GetSignalRange(signal.signalValues, 0, signal.signalValues.size() - 1, minValue, maxValue);
+      double maxPeakToPeak = std::abs(maxValue - minValue);
       if(maxPeakToPeak < MINIMUM_VIDEO_SIGNAL_PEAK_TO_PEAK_PIXEL)
       {
         LOG_ERROR("Detected metric values do not vary sufficiently (i.e. video signal is constant)");
@@ -599,7 +596,7 @@ PlusStatus TemporalCalibration::ComputePositionSignalValues(SignalType &signal)
       return PLUS_SUCCESS;
     }
   default:
-    LOG_ERROR("Compute position signal value failed. Unknown frame type: "<<signal.frameType);
+    LOG_ERROR("Compute position signal value failed. Unknown frame type: " << signal.frameType);
     return PLUS_FAIL;
   }
 }
@@ -631,10 +628,10 @@ PlusStatus TemporalCalibration::ComputeCommonTimeRange()
     return PLUS_FAIL;
   }
   
-  m_FixedSignal.signalTimeRangeMin=commonRangeMin;
-  m_FixedSignal.signalTimeRangeMax=commonRangeMax;
-  m_MovingSignal.signalTimeRangeMin=commonRangeMin+m_MaxMovingLagSec;
-  m_MovingSignal.signalTimeRangeMax=commonRangeMax-m_MaxMovingLagSec;
+  m_FixedSignal.signalTimeRangeMin = commonRangeMin;
+  m_FixedSignal.signalTimeRangeMax = commonRangeMax;
+  m_MovingSignal.signalTimeRangeMin = commonRangeMin + m_MaxMovingLagSec;
+  m_MovingSignal.signalTimeRangeMax = commonRangeMax - m_MaxMovingLagSec;
   
   return PLUS_SUCCESS;
 }
@@ -642,28 +639,27 @@ PlusStatus TemporalCalibration::ComputeCommonTimeRange()
 //-----------------------------------------------------------------------------
 PlusStatus TemporalCalibration::ComputeMovingSignalLagSec()
 {
-
   // Need to determine the common signal range before extracting signals from the frames,
   // because normalization, PCA, etc. must be performed only by taking into account
   // the frames in the common range.
-  if (ComputeCommonTimeRange()!=PLUS_SUCCESS)
+  if( ComputeCommonTimeRange() != PLUS_SUCCESS )
   {
     return PLUS_FAIL;
   }
 
   // Compute the position signal values from the input frames
-  if (ComputePositionSignalValues(m_FixedSignal)!=PLUS_SUCCESS)
+  if ( ComputePositionSignalValues(m_FixedSignal) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to compute position signal from fixed frames");
     return PLUS_FAIL;
   }
-  if (ComputePositionSignalValues(m_MovingSignal)!=PLUS_SUCCESS)
+  if ( ComputePositionSignalValues(m_MovingSignal) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to compute position signal from moving frames");
     return PLUS_FAIL;
   }
 
-  // Compute approximage image frame period. We will use this frame period as a step size in the coarse optimum search phase.
+  // Compute approx image image frame period. We will use this frame period as a step size in the coarse optimum search phase.
   double fixedTimestampMin = m_FixedSignal.signalTimestamps.at(0);
   double fixedTimestampMax = m_FixedSignal.signalTimestamps.at(m_FixedSignal.signalTimestamps.size() - 1);  
   if (m_FixedSignal.signalTimestamps.size()<2)

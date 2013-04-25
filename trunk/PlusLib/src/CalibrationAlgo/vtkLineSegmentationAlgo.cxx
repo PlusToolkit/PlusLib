@@ -76,12 +76,12 @@ vtkLineSegmentationAlgo::vtkLineSegmentationAlgo() :
 //----------------------------------------------------------------------------
 vtkLineSegmentationAlgo::~vtkLineSegmentationAlgo() 
 {
-} 
+}
 
 //-----------------------------------------------------------------------------
-void vtkLineSegmentationAlgo::SetVideoFrames(vtkTrackedFrameList* videoFrames)
+void vtkLineSegmentationAlgo::SetTrackedFrameList(vtkTrackedFrameList* aTrackedFrameList)
 {
-  m_VideoFrames = videoFrames;
+  m_TrackedFrameList = aTrackedFrameList;
 }
 
 //-----------------------------------------------------------------------------
@@ -107,21 +107,21 @@ void vtkLineSegmentationAlgo::SetIntermediateFilesOutputDirectory(const std::str
 PlusStatus vtkLineSegmentationAlgo::VerifyVideoInput()
 {
   // Check if video frames have been assigned
-  if(m_VideoFrames == NULL)
+  if(m_TrackedFrameList == NULL)
   {
     LOG_ERROR("vtkLineSegmentationAlgo video input data verification failed: no video data is set");
     return PLUS_FAIL;
   }
 
   // Make sure video frame list is not empty
-  if(m_VideoFrames->GetNumberOfTrackedFrames() == 0)
+  if(m_TrackedFrameList->GetNumberOfTrackedFrames() == 0)
   {
     LOG_ERROR("vtkLineSegmentationAlgo video input data verification failed: no frames");
     return PLUS_FAIL;
   }
 
   // Check if TrackedFrameList is MF oriented BRIGHTNESS image
-  if (vtkTrackedFrameList::VerifyProperties(m_VideoFrames, US_IMG_ORIENT_MF, US_IMG_BRIGHTNESS)!=PLUS_SUCCESS)
+  if (vtkTrackedFrameList::VerifyProperties(m_TrackedFrameList, US_IMG_ORIENT_MF, US_IMG_BRIGHTNESS)!=PLUS_SUCCESS)
   {
     LOG_ERROR("vtkLineSegmentationAlgo video input data verification failed: video data orientation or type is not supported (MF orientation, BRIGHTNESS type is expected)");
     return PLUS_FAIL; 
@@ -133,9 +133,9 @@ PlusStatus vtkLineSegmentationAlgo::VerifyVideoInput()
   int greatestNumberOfConsecutiveInvalidVideoFrames = 0;
   int currentNumberOfConsecutiveInvalidVideoFrames = 0;
   bool signalTimeRangeDefined=(m_SignalTimeRangeMin<=m_SignalTimeRangeMax);
-  for(int i = 0 ; i < m_VideoFrames->GetNumberOfTrackedFrames(); ++i)
+  for(int i = 0 ; i < m_TrackedFrameList->GetNumberOfTrackedFrames(); ++i)
   {
-    TrackedFrame* trackedFrame=m_VideoFrames->GetTrackedFrame(i);
+    TrackedFrame* trackedFrame=m_TrackedFrameList->GetTrackedFrame(i);
     if (signalTimeRangeDefined && (trackedFrame->GetTimestamp()<m_SignalTimeRangeMin || trackedFrame->GetTimestamp()>m_SignalTimeRangeMax))
     {
       // frame is out of the specified signal range
@@ -156,7 +156,7 @@ PlusStatus vtkLineSegmentationAlgo::VerifyVideoInput()
     }
   }
 
-  double percentageOfInvalidVideoFrames  = totalNumberOfInvalidVideoFrames / static_cast<double>(m_VideoFrames->GetNumberOfTrackedFrames());
+  double percentageOfInvalidVideoFrames  = totalNumberOfInvalidVideoFrames / static_cast<double>(m_TrackedFrameList->GetNumberOfTrackedFrames());
   if(percentageOfInvalidVideoFrames > MAX_PERCENTAGE_OF_INVALID_VIDEO_FRAMES)
   {
     LOG_WARNING("In vtkLineSegmentationAlgo "<<100*percentageOfInvalidVideoFrames << "% of the video frames were invalid. This warning " <<
@@ -182,10 +182,10 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
 
   //  For each video frame, detect line and extract mindpoint and slope parameters
   bool signalTimeRangeDefined=(m_SignalTimeRangeMin<=m_SignalTimeRangeMax);
-  for(int frameNumber = 0; frameNumber < m_VideoFrames->GetNumberOfTrackedFrames(); ++frameNumber)
+  for(int frameNumber = 0; frameNumber < m_TrackedFrameList->GetNumberOfTrackedFrames(); ++frameNumber)
   {
     LOG_TRACE("Calculating video position metric for frame " << frameNumber);
-    TrackedFrame* trackedFrame=m_VideoFrames->GetTrackedFrame(frameNumber);
+    TrackedFrame* trackedFrame=m_TrackedFrameList->GetTrackedFrame(frameNumber);
     if (signalTimeRangeDefined && (trackedFrame->GetTimestamp()<m_SignalTimeRangeMin || trackedFrame->GetTimestamp()>m_SignalTimeRangeMax))
     {
       // frame is out of the specified signal range
@@ -347,7 +347,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
       m_SignalValues.push_back( std::abs( planeParameters.at(3) + t * r_y ) );
 
       //  Store timestamp for image frame
-      m_SignalTimestamps.push_back(m_VideoFrames->GetTrackedFrame(frameNumber)->GetTimestamp());
+      m_SignalTimestamps.push_back(m_TrackedFrameList->GetTrackedFrame(frameNumber)->GetTimestamp());
 
       if(m_SaveIntermediateImages == true)
       {
@@ -679,11 +679,11 @@ void vtkLineSegmentationAlgo::SaveIntermediateImage(int frameNumber, CharImageTy
 //----------------------------------------------------------------------------
 PlusStatus vtkLineSegmentationAlgo::Update()
 {
-  if (VerifyVideoInput()!=PLUS_SUCCESS)
+  if( VerifyVideoInput() != PLUS_SUCCESS )
   {
     return PLUS_FAIL;
   }
-  if (ComputeVideoPositionMetric()!=PLUS_SUCCESS)
+  if( ComputeVideoPositionMetric() != PLUS_SUCCESS )
   {
     return PLUS_FAIL;
   }
@@ -696,7 +696,7 @@ void vtkLineSegmentationAlgo::PlotIntArray(const std::deque<int> &intensityValue
   //  Create table
   vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
 
-  //  Create array correpsonding to the time values of the tracker plot
+  //  Create array corresponding to the time values of the tracker plot
   vtkSmartPointer<vtkIntArray> arrPixelPositions = vtkSmartPointer<vtkIntArray>::New();
   arrPixelPositions->SetName("Pixel Positions"); 
   table->AddColumn(arrPixelPositions);
@@ -723,11 +723,11 @@ void vtkLineSegmentationAlgo::PlotIntArray(const std::deque<int> &intensityValue
   view->GetScene()->AddItem(chart);
   vtkPlot *line = chart->AddPlot(vtkChart::LINE);
 
-  #if VTK_MAJOR_VERSION <= 5
-    line->SetInput(table, 0, 1);
-  #else
-    line->SetInputData(table, 0, 1);
-  #endif
+#if VTK_MAJOR_VERSION <= 5
+  line->SetInput(table, 0, 1);
+#else
+  line->SetInputData(table, 0, 1);
+#endif
 
   line->SetColor(0, 255, 0, 255);
   line->SetWidth(1.0);
@@ -736,7 +736,6 @@ void vtkLineSegmentationAlgo::PlotIntArray(const std::deque<int> &intensityValue
   // Start interactor
   view->GetInteractor()->Initialize();
   view->GetInteractor()->Start();
-
 }
 
 //-----------------------------------------------------------------------------
@@ -745,7 +744,7 @@ void vtkLineSegmentationAlgo::PlotDoubleArray(const std::deque<double> &intensit
   //  Create table
   vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
 
-  //  Create array correpsonding to the time values of the tracker plot
+  //  Create array corresponding to the time values of the tracker plot
   vtkSmartPointer<vtkDoubleArray> arrPixelPositions = vtkSmartPointer<vtkDoubleArray>::New();
   arrPixelPositions->SetName("Pixel Positions"); 
   table->AddColumn(arrPixelPositions);
@@ -772,11 +771,11 @@ void vtkLineSegmentationAlgo::PlotDoubleArray(const std::deque<double> &intensit
   view->GetScene()->AddItem(chart);
   vtkPlot *line = chart->AddPlot(vtkChart::LINE);
 
-  #if VTK_MAJOR_VERSION <= 5
-    line->SetInput(table, 0, 1);
-  #else
-    line->SetInputData(table, 0, 1);
-  #endif
+#if VTK_MAJOR_VERSION <= 5
+  line->SetInput(table, 0, 1);
+#else
+  line->SetInputData(table, 0, 1);
+#endif
 
   line->SetColor(0, 255, 0, 255);
   line->SetWidth(1.0);
@@ -790,22 +789,22 @@ void vtkLineSegmentationAlgo::PlotDoubleArray(const std::deque<double> &intensit
 //-----------------------------------------------------------------------------
 void vtkLineSegmentationAlgo::GetDetectedTimestamps(std::deque<double> &timestamps)
 {
-  timestamps=m_SignalTimestamps;
+  timestamps = m_SignalTimestamps;
 }
 
 //-----------------------------------------------------------------------------
 void vtkLineSegmentationAlgo::GetDetectedPositions(std::deque<double> &positions)
 {
-  positions=m_SignalValues;
+  positions = m_SignalValues;
 }
 
 //-----------------------------------------------------------------------------
 void vtkLineSegmentationAlgo::SetClipRectangle(int clipRectangleOriginPix[2], int clipRectangleSizePix[2])
 {
-  m_ClipRectangleOrigin[0]=clipRectangleOriginPix[0];
-  m_ClipRectangleOrigin[1]=clipRectangleOriginPix[1];
-  m_ClipRectangleSize[0]=clipRectangleSizePix[0];
-  m_ClipRectangleSize[1]=clipRectangleSizePix[1];
+  m_ClipRectangleOrigin[0] = clipRectangleOriginPix[0];
+  m_ClipRectangleOrigin[1] = clipRectangleOriginPix[1];
+  m_ClipRectangleSize[0] = clipRectangleSizePix[0];
+  m_ClipRectangleSize[1] = clipRectangleSizePix[1];
 }
 
 //----------------------------------------------------------------------------
@@ -832,13 +831,13 @@ void vtkLineSegmentationAlgo::LimitToClipRegion(CharImageType::RegionType& regio
     clipRectangleOrigin[0]=0;
     clipRectangleOrigin[1]=0;
   }
-  if (clipRectangleOrigin[0]+clipRectangleSize[0]>=imageOrigin[0]+imageSize[0])
+  if (clipRectangleOrigin[0]+clipRectangleSize[0] >= imageOrigin[0]+imageSize[0])
   {
     // rectangle size is out of the framSize bounds, clip it to the available size
     clipRectangleSize[0]=imageOrigin[0]+imageSize[0]-clipRectangleOrigin[0];
     LOG_WARNING("Adjusting ClipRectangleSize x to "<<clipRectangleSize[0]);
   }
-  if (clipRectangleOrigin[1]+clipRectangleSize[1]>imageSize[1])
+  if (clipRectangleOrigin[1]+clipRectangleSize[1] > imageSize[1])
   {
     // rectangle size is out of the framSize bounds, clip it to the available size
     clipRectangleSize[1]=imageOrigin[1]+imageSize[1]-clipRectangleOrigin[1];
