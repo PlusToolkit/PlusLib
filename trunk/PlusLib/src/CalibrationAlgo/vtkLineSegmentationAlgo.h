@@ -21,6 +21,14 @@ class vtkTrackedFrameList;
 class VTK_EXPORT vtkLineSegmentationAlgo : public vtkObject
 {
 public:
+  struct LineParameters
+  {
+    double xOrigin;
+    double yOrigin;
+    double xDirectionComponent;
+    double yDirectionComponent;
+  };
+
   typedef unsigned char CharPixelType;
   typedef itk::Image<CharPixelType, 2> CharImageType;
 
@@ -55,6 +63,9 @@ public:
   /*! Get the line positions on the frames where a line was successfully detected */
   void GetDetectedPositions(std::deque<double> &positions); 
 
+  /*! Get the parameters of the plane where a line was successfully detected */
+  void GetDetectedLineParameters(std::vector<LineParameters>& parameters);
+
   /*! Enable/disable saving of intermediate images for debugging */
   void SetSaveIntermediateImages(bool saveIntermediateImages);
   
@@ -74,7 +85,7 @@ protected:
 
   PlusStatus ComputeCenterOfGravity(std::deque<int> &intensityProfile, int startOfMaxArea, double &centerOfGravity);
 
-  PlusStatus ComputeLineParameters(std::vector<itk::Point<double,2> > &data, std::vector<double> &planeParameters);
+  PlusStatus ComputeLineParameters(std::vector<itk::Point<double,2> > &data, LineParameters& OutputParameters );
 
   void PlotIntArray(const std::deque<int> &intensityValues);
 
@@ -89,7 +100,8 @@ protected:
   vtkSmartPointer<vtkTrackedFrameList> m_TrackedFrameList; 
 
   std::deque<double> m_SignalValues; 
-  std::deque<double> m_SignalTimestamps; 
+  std::deque<double> m_SignalTimestamps;
+  std::vector<LineParameters> m_PlaneParameters;
 
   /*! If "true" then images of intermediate steps (i.e. scanlines used, detected lines) are saved in local directory */
   bool m_SaveIntermediateImages;
