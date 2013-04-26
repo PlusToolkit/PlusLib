@@ -176,6 +176,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
 {
   m_SignalValues.clear();
   m_SignalTimestamps.clear();
+  m_PlaneParameters.clear();
 
   //  For each video frame, detect line and extract mindpoint and slope parameters
   bool signalTimeRangeDefined=(m_SignalTimeRangeMin<=m_SignalTimeRangeMax);
@@ -323,35 +324,33 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
       LOG_DEBUG("Only " << numOfValidScanlines << " valid scanlines; this is less than the required " << MINIMUM_NUMBER_OF_VALID_SCANLINES << ". Skipping frame" << frameNumber);
     }
 
-    std::vector<double> planeParameters;
-    if(ComputeLineParameters(intensityPeakPositions, planeParameters) == PLUS_SUCCESS)
+    LineParameters params;
+    if( ComputeLineParameters(intensityPeakPositions, params) == PLUS_SUCCESS )
     {
-
-      double r_x = - planeParameters.at(1); // line direction vector (x)
-      double r_y = planeParameters.at(0);   // line direction vector (y)
-      double x_0 = planeParameters.at(2);   // line origin position (x)
-      double y_0 = planeParameters.at(3);   // line origin position (y)
-
-      if(r_x < MIN_X_SLOPE_COMPONENT_FOR_DETECTED_LINE)
+      if( params.xDirectionComponent < MIN_X_SLOPE_COMPONENT_FOR_DETECTED_LINE)
       {
-        // Line is close to vertical, skip frame because intersection of line with image's horizontal half point
-        // is unstable
+        // Line is close to vertical, skip frame because intersection of 
+        // line with image's horizontal half point is unstable
         continue;
       }
 
+      m_PlaneParameters.push_back(params);
+
       // Store the y-value of the line, when the line's x-value is half of the image's width
-      double t = ( region.GetIndex()[0] + 0.5 * region.GetSize()[0] - planeParameters.at(2) ) / r_x; 
-      m_SignalValues.push_back( std::abs( planeParameters.at(3) + t * r_y ) );
+      double t = ( region.GetIndex()[0] + 0.5 * region.GetSize()[0] - params.xOrigin ) / params.xDirectionComponent; 
+      m_SignalValues.push_back( std::abs( params.yOrigin + t * params.yDirectionComponent ) );
 
       //  Store timestamp for image frame
       m_SignalTimestamps.push_back(m_TrackedFrameList->GetTrackedFrame(frameNumber)->GetTimestamp());
 
       if(m_SaveIntermediateImages == true)
       {
-        SaveIntermediateImage(frameNumber, scanlineImage, x_0, y_0, r_x, r_y, numOfValidScanlines, intensityPeakPositions);
+        SaveIntermediateImage(frameNumber, scanlineImage, 
+          params.xOrigin, params.yOrigin, params.xDirectionComponent, params.yDirectionComponent, 
+          numOfValidScanlines, intensityPeakPositions);
       }
 
-    }// end if compute line parameters is succesful
+    }// end if compute line parameters is successful
 
   }// end frameNum loop
 
@@ -502,9 +501,9 @@ PlusStatus vtkLineSegmentationAlgo::ComputeCenterOfGravity(std::deque<int> &inte
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point<double,2> > &data, std::vector<double> &planeParameters)
+PlusStatus vtkLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point<double,2> >& data, LineParameters& OutputParameters)
 {
-
+  std::vector<double> ransacParameterResult;
   typedef itk::PlaneParametersEstimator<DIMENSION> PlaneEstimatorType;
   typedef itk::RANSAC<itk::Point<double, DIMENSION>, double> RANSACType;
 
@@ -512,8 +511,8 @@ PlusStatus vtkLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point
   double maximalDistanceFromPlane = 0.5;
   PlaneEstimatorType::Pointer planeEstimator = PlaneEstimatorType::New();
   planeEstimator->SetDelta( maximalDistanceFromPlane );
-  planeEstimator->LeastSquaresEstimate( data, planeParameters );
-  if( planeParameters.empty() )
+  planeEstimator->LeastSquaresEstimate( data, ransacParameterResult );
+  if( ransacParameterResult.empty() )
   {
     LOG_ERROR("Unable to fit line through points with least squares estimation");
   }
@@ -522,7 +521,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point
     LOG_TRACE("Least squares line parameters (n, a):");
     for(int i=0; i<(2*DIMENSION-1); i++ )
     {
-      LOG_TRACE(" LS parameter: "<<planeParameters[i]);
+      LOG_TRACE(" LS parameter: " << ransacParameterResult[i]);
     }      
   }
 
@@ -544,7 +543,8 @@ PlusStatus vtkLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point
   {
     ransacEstimator->SetParametersEstimator( planeEstimator.GetPointer() );
   }
-  catch( std::exception& e) {
+  catch( std::exception& e)
+  {
     LOG_ERROR(e.what());
     return PLUS_FAIL;
   }
@@ -552,16 +552,17 @@ PlusStatus vtkLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point
 
   try
   {
-    ransacEstimator->Compute( planeParameters, desiredProbabilityForNoOutliers );
+    ransacEstimator->Compute( ransacParameterResult, desiredProbabilityForNoOutliers );
   }
-  catch( std::exception& e) {
+  catch( std::exception& e)
+  {
     LOG_ERROR(e.what());
     return PLUS_FAIL;
   }
 
-  if( planeParameters.empty() )
+  if( ransacParameterResult.empty() )
   {
-    LOG_ERROR("Unable to fit line through points with RANSAC, temporal calibration failed");
+    LOG_ERROR("Unable to fit line through points with RANSAC, line segmentation failed");
     return PLUS_FAIL;
   }
 
@@ -569,8 +570,13 @@ PlusStatus vtkLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point
 
   for(int i=0; i<(2*DIMENSION-1); i++ )
   {
-    LOG_TRACE(" RANSAC parameter: " << planeParameters[i]);
-  }    
+    LOG_TRACE(" RANSAC parameter: " << ransacParameterResult[i]);
+  }
+
+  OutputParameters.xDirectionComponent = -ransacParameterResult[1];
+  OutputParameters.yDirectionComponent = ransacParameterResult[0];
+  OutputParameters.xOrigin = ransacParameterResult[2];
+  OutputParameters.yOrigin = ransacParameterResult[3];
 
   return PLUS_SUCCESS;
 }
@@ -793,6 +799,12 @@ void vtkLineSegmentationAlgo::GetDetectedTimestamps(std::deque<double> &timestam
 void vtkLineSegmentationAlgo::GetDetectedPositions(std::deque<double> &positions)
 {
   positions = m_SignalValues;
+}
+
+//-----------------------------------------------------------------------------
+void vtkLineSegmentationAlgo::GetDetectedLineParameters(std::vector<LineParameters>& parameters)
+{
+  parameters = m_PlaneParameters;
 }
 
 //-----------------------------------------------------------------------------
