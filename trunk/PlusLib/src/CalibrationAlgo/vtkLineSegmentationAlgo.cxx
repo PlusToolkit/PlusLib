@@ -176,7 +176,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
 {
   m_SignalValues.clear();
   m_SignalTimestamps.clear();
-  m_PlaneParameters.clear();
+  m_LineParameters.clear();
 
   //  For each video frame, detect line and extract mindpoint and slope parameters
   bool signalTimeRangeDefined=(m_SignalTimeRangeMin<=m_SignalTimeRangeMax);
@@ -334,7 +334,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
         continue;
       }
 
-      m_PlaneParameters.push_back(params);
+      m_LineParameters.push_back(params);
 
       // Store the y-value of the line, when the line's x-value is half of the image's width
       double t = ( region.GetIndex()[0] + 0.5 * region.GetSize()[0] - params.xOrigin ) / params.xDirectionComponent; 
@@ -349,10 +349,13 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
           params.xOrigin, params.yOrigin, params.xDirectionComponent, params.yDirectionComponent, 
           numOfValidScanlines, intensityPeakPositions);
       }
+    }
+    else
+    {
+      LOG_WARNING("Unable to compute line parameters for frame " << frameNumber << ".");
+    }
 
-    }// end if compute line parameters is successful
-
-  }// end frameNum loop
+  } // end frameNum loop
 
   bool plotVideoMetric = vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE;
   if (plotVideoMetric)
@@ -804,7 +807,7 @@ void vtkLineSegmentationAlgo::GetDetectedPositions(std::deque<double> &positions
 //-----------------------------------------------------------------------------
 void vtkLineSegmentationAlgo::GetDetectedLineParameters(std::vector<LineParameters>& parameters)
 {
-  parameters = m_PlaneParameters;
+  parameters = m_LineParameters;
 }
 
 //-----------------------------------------------------------------------------
