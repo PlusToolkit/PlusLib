@@ -101,7 +101,7 @@ protected:
 
   std::deque<double> m_SignalValues; 
   std::deque<double> m_SignalTimestamps;
-  std::vector<LineParameters> m_PlaneParameters;
+  std::vector<LineParameters> m_LineParameters;
 
   /*! If "true" then images of intermediate steps (i.e. scanlines used, detected lines) are saved in local directory */
   bool m_SaveIntermediateImages;
