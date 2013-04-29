@@ -1,0 +1,185 @@
+<PlusConfiguration version="2.1">
+
+  <DataCollection StartupDelaySec="1.0" >
+
+    <DeviceSet 
+      Name="Simulated ultrasound image with pre-recorded probe motion"
+      Description="No hardware is needed. Can be used for testing data acquisition and volume reconstruction with remotely controlled PlusServer." 
+    />
+
+    <xDevice
+      Id="TrackerDevice"
+      Type="Ascension3DG"
+      Frequency="15"
+      LocalTimeOffset="0.0"
+      FilterAcWideNotch="1">
+      <DataSources>
+        <DataSource Type="Tool" Id="Probe" BufferSize="2500" AveragedItemsForFiltering="20" PortName="0" />
+        <DataSource Type="Tool" Id="Reference" BufferSize="2500" AveragedItemsForFiltering="20" PortName="1" />
+        <DataSource Type="Tool" Id="Stylus" BufferSize="2500" AveragedItemsForFiltering="20" PortName="2" />
+      </DataSources>
+
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream" >
+          <DataSource Id="Probe"/>
+          <DataSource Id="Reference"/>
+          <DataSource Id="Stylus"/>
+        </OutputChannel>
+      </OutputChannels>
+    </xDevice>
+
+    <Device
+      Id="TrackerDevice"
+      Type="SavedDataSource"
+      UseData="TRANSFORM"
+      AcquisitionRate="10"
+      LocalTimeOffsetSec="0.0"
+      SequenceMetafile="SpinePhantom2Freehand.mha"
+      UseOriginalTimestamps="FALSE"
+      RepeatEnabled="TRUE" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Probe" PortName="0" Model="L14-5_38" BufferSize="2500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Reference" PortName="1" BufferSize="2500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Stylus" PortName="2" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>      
+      </DataSources>
+
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream" >
+          <DataSource Id="Probe"/>
+          <DataSource Id="Reference"/>
+          <DataSource Id="Stylus"/>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="VideoDevice"
+      Type="UsSimulator"
+      LocalTimeOffsetSec="0.0"
+      AveragedItemsForFiltering="20"
+      AcquisitionRate="15" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="500" />  
+      </DataSources>
+      
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+      </InputChannels>
+
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+
+      <vtkUsSimulatorAlgo
+        BackgroundValue="155"
+        ImageCoordinateFrame="Image"
+        ReferenceCoordinateFrame="Phantom"
+        NumberOfScanlines="256"
+        NumberOfSamplesPerScanline="1000"
+        ModelFileName="SpinePhantom2Model.stl"
+        ModelToReferenceTransform="
+          1 0 0 0
+          0 1 0 0
+          0 0 1 0
+          0 0 0 1" >
+        <RfProcessing>
+          <xScanConversion
+            TransducerName="Ultrasonix_L9-4/38"
+            TransducerGeometry="LINEAR"
+            ImagingDepthMm="60.0"
+            TransducerWidthMm="40.0"
+            OutputImageSizePixel="476 689"
+            OutputImageSpacingMmPerPixel="0.084 0.087"/>
+          <ScanConversion
+            TransducerName="BK_8848-axial"
+            TransducerGeometry="CURVILINEAR"
+            RadiusStartMm="5.0"
+            RadiusStopMm="60.0"
+            ThetaStartDeg="-60.0"
+            ThetaStopDeg="60.0"
+            OutputImageStartDepthMm="2.0"
+            OutputImageSizePixel="1200 800"
+            OutputImageSpacingMmPerPixel="0.084 0.087" />       
+        </RfProcessing>  
+      </vtkUsSimulatorAlgo>      
+    </Device>
+
+    <Device 
+      Id="TrackedVideoDevice" 
+      Type="VirtualMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="VideoStream" />
+      </InputChannels>
+      
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream"/>
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="SimulatedUSTrackedVideoRecording.mha"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="TrackedVideoStream" />
+      </InputChannels>
+    </Device>
+    
+  </DataCollection>
+  
+  <CoordinateDefinitions>
+    <Transform
+      From="Image" To="Probe"
+      Matrix="0.0       0.084     0.0        12.5
+              -0.087    0.0       0.0        51.0
+              0.0       0.0       0.087      -4.3    
+              0         0         0          1"
+      Error="1.0" Date="022412_110829" />         
+    <Transform
+      From="Reference" To="Phantom" 
+      Matrix="-0.0217475 0.0054051 0.999749  -35.3258 
+              0.999619 -0.016888  0.021836  -75.1438 
+              0.0170018   0.999843 -0.00503578 -24.2369 
+              0          0         0          1" 
+      Error="0.965947" Date="022412_105333" /> 
+  </CoordinateDefinitions> 
+    
+  <VolumeReconstruction
+    ImageCoordinateFrame="Image" ReferenceCoordinateFrame="Phantom"
+    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off" NumberOfThreads="2"
+    xClipRectangleOrigin="167 62" xClipRectangleSize="495 488" 
+    FanOrigin="357 -20" FanAngles="-60 60" FanDepth="680"
+    OutputOrigin="-90 -115 -30" OutputExtent="0 280 0 200 0 300" OutputSpacing="0.5 0.5 0.5" >
+    <HoleFilling>
+      <HoleFillingElement
+        Type="STICK"     
+        StickLengthLimit="9"
+        NumberOfSticksToUse="1" />
+    </HoleFilling>
+  </VolumeReconstruction>
+
+  
+  <PlusOpenIGTLinkServer 
+    ListeningPort="18944" 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="10"
+    OutputChannelId="TrackedVideoStream"
+    > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="ProbeToPhantom" /> 
+        <Transform Name="StylusToPhantom" /> 
+      </TransformNames>
+      <ImageNames>
+        <Image Name="Image" EmbeddedTransformToFrame="Phantom" />
+      </ImageNames> 
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+</PlusConfiguration>
