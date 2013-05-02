@@ -890,7 +890,7 @@ PlusStatus vtkLineSegmentationAlgo::ReadConfiguration( vtkXMLDataElement* aConfi
   if ( !lineSegmentationElement->GetVectorAttribute("ClipRectangleOrigin", 2, m_ClipRectangleOrigin) || 
     !lineSegmentationElement->GetVectorAttribute("ClipRectangleSize", 2, m_ClipRectangleSize) )
   {
-    LOG_INFO("Cannot find ClipRectangleOrigin or ClipRectangleSize attribute in the vtkLineSegmentationAlgo configuration file; Using the largest ROI possible.");
+    LOG_WARNING("Cannot find ClipRectangleOrigin or ClipRectangleSize attribute in the vtkLineSegmentationAlgo configuration file; Using the largest ROI possible.");
     m_ClipRectangleOrigin[0] = -1;
     m_ClipRectangleOrigin[1] = -1;
     m_ClipRectangleSize[0] = -1;
