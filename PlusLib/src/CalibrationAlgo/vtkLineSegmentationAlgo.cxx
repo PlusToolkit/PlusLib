@@ -130,7 +130,7 @@ PlusStatus vtkLineSegmentationAlgo::VerifyVideoInput()
   int greatestNumberOfConsecutiveInvalidVideoFrames = 0;
   int currentNumberOfConsecutiveInvalidVideoFrames = 0;
   bool signalTimeRangeDefined=(m_SignalTimeRangeMin<=m_SignalTimeRangeMax);
-  for(int i = 0 ; i < m_TrackedFrameList->GetNumberOfTrackedFrames(); ++i)
+  for(unsigned int i = 0 ; i < m_TrackedFrameList->GetNumberOfTrackedFrames(); ++i)
   {
     TrackedFrame* trackedFrame=m_TrackedFrameList->GetTrackedFrame(i);
     if (signalTimeRangeDefined && (trackedFrame->GetTimestamp()<m_SignalTimeRangeMin || trackedFrame->GetTimestamp()>m_SignalTimeRangeMax))
@@ -180,7 +180,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
 
   //  For each video frame, detect line and extract mindpoint and slope parameters
   bool signalTimeRangeDefined=(m_SignalTimeRangeMin<=m_SignalTimeRangeMax);
-  for(int frameNumber = 0; frameNumber < m_TrackedFrameList->GetNumberOfTrackedFrames(); ++frameNumber)
+  for(unsigned int frameNumber = 0; frameNumber < m_TrackedFrameList->GetNumberOfTrackedFrames(); ++frameNumber)
   {
     LOG_TRACE("Calculating video position metric for frame " << frameNumber);
     TrackedFrame* trackedFrame=m_TrackedFrameList->GetTrackedFrame(frameNumber);
@@ -405,7 +405,7 @@ PlusStatus vtkLineSegmentationAlgo::FindLargestPeak(std::deque<int> &intensityPr
   }
 
   double intensityMax = intensityProfile.at(0);
-  for(int pixelLoc = 1; pixelLoc < intensityProfile.size(); ++pixelLoc)
+  for(unsigned int pixelLoc = 1; pixelLoc < intensityProfile.size(); ++pixelLoc)
   {
     if(intensityProfile.at(pixelLoc) > intensityMax)
     {
@@ -473,7 +473,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeCenterOfGravity(std::deque<int> &inte
   }
 
   double intensityMax = intensityProfile.at(0);
-  for(int pixelLoc = 1; pixelLoc < intensityProfile.size(); ++pixelLoc)
+  for(unsigned int pixelLoc = 1; pixelLoc < intensityProfile.size(); ++pixelLoc)
   {
     if(intensityProfile.at(pixelLoc) > intensityMax)
     {
@@ -522,7 +522,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point
   else
   {
     LOG_TRACE("Least squares line parameters (n, a):");
-    for(int i=0; i<(2*DIMENSION-1); i++ )
+    for( unsigned int i=0; i<(2*DIMENSION-1); i++ )
     {
       LOG_TRACE(" LS parameter: " << ransacParameterResult[i]);
     }      
@@ -571,7 +571,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point
 
   LOG_TRACE("RANSAC line fitting parameters (n, a):");
 
-  for(int i=0; i<(2*DIMENSION-1); i++ )
+  for( unsigned int i=0; i<(2*DIMENSION-1); i++ )
   {
     LOG_TRACE(" RANSAC parameter: " << ransacParameterResult[i]);
   }
@@ -655,9 +655,9 @@ void vtkLineSegmentationAlgo::SaveIntermediateImage(int frameNumber, CharImageTy
     unsigned int sqareCenterCoordX = static_cast<unsigned int>(intensityPeakPositions.at(scanLineIndex).GetElement(0));
     unsigned int sqareCenterCoordY = static_cast<unsigned int>(intensityPeakPositions.at(scanLineIndex).GetElement(1));
 
-    for(int x = sqareCenterCoordX - 3; x < sqareCenterCoordX + 3; ++x)
+    for(unsigned int x = sqareCenterCoordX - 3; x < sqareCenterCoordX + 3; ++x)
     {
-      for(int y = sqareCenterCoordY - 3; y < sqareCenterCoordY + 3; ++y)
+      for(unsigned int y = sqareCenterCoordY - 3; y < sqareCenterCoordY + 3; ++y)
       {
         rgbImageType::IndexType currIndex;
         currIndex[0] =  x;  // index on X
@@ -714,7 +714,7 @@ void vtkLineSegmentationAlgo::PlotIntArray(const std::deque<int> &intensityValue
 
   // Set the tracker data
   table->SetNumberOfRows(intensityValues.size());
-  for (int i = 0; i < intensityValues.size(); ++i)
+  for (unsigned int i = 0; i < intensityValues.size(); ++i)
   {
     table->SetValue(i, 0, i);
     table->SetValue(i, 1, (intensityValues.at(i)));
