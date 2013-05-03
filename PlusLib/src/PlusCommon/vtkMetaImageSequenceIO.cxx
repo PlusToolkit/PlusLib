@@ -768,14 +768,17 @@ PlusStatus vtkMetaImageSequenceIO::FinalizeHeader()
     LOG_ERROR("The file " << this->TempHeaderFileName << " could not be opened for writing");
     return PLUS_FAIL;
   }
-  std::string elem = "ElementDataFile = ";
+
+  if (this->PixelDataFileName.empty())
+  {
+    LOG_ERROR("PixelDataFileName is empty. Use LOCAL pixel data storage.");
+    this->PixelDataFileName=SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL;
+  }
+
+  std::string elem = "ElementDataFile = "+this->PixelDataFileName+"\n";
   fputs(elem.c_str(), stream);
   m_TotalBytesWritten += elem.size();
-  fputs(this->PixelDataFileName.c_str(), stream);
-  m_TotalBytesWritten += this->PixelDataFileName.size();
-  fputs("\n", stream);
-  m_TotalBytesWritten += 1;
-
+  
   fclose(stream);
 
   return PLUS_SUCCESS;

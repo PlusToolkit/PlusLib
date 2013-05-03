@@ -55,7 +55,7 @@ std::string vtkPlusStartStopRecordingCommand::GetDescription(const char* command
   if (commandName==NULL || STRCASECMP(commandName, START_CMD))
   {
     desc+=START_CMD;
-    desc+=": Start collecting data into file with a VirtualStreamCapture device. Attributes: OutputFilename: name of the output file (optional); CaptureDeviceId: ID of the capture device, if not specified then the first VirtualStreamCapture device will be started (optional)";
+    desc+=": Start collecting data into file with a VirtualStreamCapture device. CaptureDeviceId: ID of the capture device, if not specified then the first VirtualStreamCapture device will be started (optional)";
   }
   if (commandName==NULL || STRCASECMP(commandName, SUSPEND_CMD))
   {
@@ -70,7 +70,7 @@ std::string vtkPlusStartStopRecordingCommand::GetDescription(const char* command
   if (commandName==NULL || STRCASECMP(commandName, STOP_CMD))
   {
     desc+=STOP_CMD;
-    desc+=": Stop collecting data into file with a VirtualStreamCapture device. Attributes: CaptureDeviceId (optional)";
+    desc+=": Stop collecting data into file with a VirtualStreamCapture device. Attributes: OutputFilename: name of the output file (optional if base file name is specified in config file). CaptureDeviceId (optional)";
   }
   return desc;
 }
@@ -90,8 +90,8 @@ PlusStatus vtkPlusStartStopRecordingCommand::ReadConfiguration(vtkXMLDataElement
   }
   // Common parameters
   SetCaptureDeviceId(aConfig->GetAttribute("CaptureDeviceId"));
-  // Start parameters
-  if (STRCASECMP(this->Name, START_CMD)==0)
+  // Stop parameters
+  if (STRCASECMP(this->Name, STOP_CMD)==0)
   {
     SetOutputFilename(aConfig->GetAttribute("OutputFilename"));
   }
@@ -118,7 +118,7 @@ PlusStatus vtkPlusStartStopRecordingCommand::WriteConfiguration(vtkXMLDataElemen
   }
 
   // Start parameters
-  if (STRCASECMP(this->Name, START_CMD)==0)
+  if (STRCASECMP(this->Name, STOP_CMD)==0)
   {
     if (this->OutputFilename!=NULL)
     {
