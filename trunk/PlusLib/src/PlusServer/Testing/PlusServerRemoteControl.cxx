@@ -30,7 +30,7 @@ int main( int argc, char** argv )
   std::string command;
   std::string deviceId;
   std::string inputFilename="PlusServerRecording.mha";
-  std::string outputFilename="PlusServerRecording.mha";
+  std::string outputFilename;
   std::string outputImageName;
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
@@ -46,7 +46,7 @@ int main( int argc, char** argv )
     RECONSTRUCT, START_RECONSTRUCTION, SUSPEND_RECONSTRUCTION, RESUME_RECONSTRUCTION, STOP_RECONSTRUCTION, GET_RECONSTRUCTION_SNAPSHOT, GET_CHANNEL_IDS)" );
   args.AddArgument( "--device", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceId, "ID of the controlled device (optional, default: first VirtualStreamCapture device)" );
   args.AddArgument( "--input-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFilename, "File name of the input, used for RECONSTRUCT command" );
-  args.AddArgument( "--output-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFilename, "File name of the output, used for START command (optional, default: PlusServerRecording.mha)" );
+  args.AddArgument( "--output-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFilename, "File name of the output, used for START command (optional, default: 'PlusServerRecording.mha' for acquisition, no output for volume reconstruction)" );
   args.AddArgument( "--output-image-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputImageName, "OpenIGTLink device name of the reconstructed file (optional, default: image is not sent)" );
   args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)" );
 
@@ -82,7 +82,6 @@ int main( int argc, char** argv )
   {
     vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd=vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();    
     cmd->SetNameToStart();
-    cmd->SetOutputFilename(outputFilename.c_str());
     if ( !deviceId.empty() )
     {
       cmd->SetCaptureDeviceId(deviceId.c_str());
@@ -93,6 +92,11 @@ int main( int argc, char** argv )
   {
     vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd=vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();
     cmd->SetNameToStop();
+    if (outputFilename.empty())
+    {
+      outputFilename="PlusServerRecording.mha";
+    }
+    cmd->SetOutputFilename(outputFilename.c_str());
     if ( !deviceId.empty() )
     {
       cmd->SetCaptureDeviceId(deviceId.c_str());

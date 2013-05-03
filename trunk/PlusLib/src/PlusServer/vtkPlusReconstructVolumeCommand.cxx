@@ -183,7 +183,13 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
       return PLUS_FAIL;
     }
     vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-    trackedFrameList->ReadFromSequenceMetafile(this->InputSeqFilename); 
+    std::string inputImageSeqFileFullPath=vtkPlusConfig::GetInstance()->GetOutputPath(this->InputSeqFilename);
+    if (trackedFrameList->ReadFromSequenceMetafile(inputImageSeqFileFullPath.c_str())==PLUS_FAIL)
+    {
+      LOG_INFO("vtkPlusReconstructVolumeCommand::Execute: failed, unable to open input file: "<<inputImageSeqFileFullPath);
+      SetCommandCompleted(PLUS_FAIL,"Volume reconstruction failed, unable to open input file specified in InputSeqFilename");
+      return PLUS_FAIL;
+    } 
 
     // Set up volume reconstructor
     if (InitializeReconstruction()!=PLUS_SUCCESS)
@@ -367,8 +373,9 @@ PlusStatus vtkPlusReconstructVolumeCommand::SendReconstructionResults()
 {
   if (this->OutputVolFilename!=NULL)
   {
-    LOG_DEBUG("Saving volume to file: "<<this->OutputVolFilename);
-    this->VolumeReconstructor->SaveReconstructedVolumeToMetafile(this->OutputVolFilename);
+    std::string outputVolFileFullPath=vtkPlusConfig::GetInstance()->GetOutputPath(this->OutputVolFilename);
+    LOG_DEBUG("Saving volume to file: "<<outputVolFileFullPath);
+    this->VolumeReconstructor->SaveReconstructedVolumeToMetafile(outputVolFileFullPath.c_str());
   }    
   if (this->OutputVolDeviceName!=NULL)
   {    

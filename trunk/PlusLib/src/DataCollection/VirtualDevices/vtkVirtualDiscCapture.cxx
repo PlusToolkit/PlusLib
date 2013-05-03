@@ -231,6 +231,21 @@ PlusStatus vtkVirtualDiscCapture::CloseFile(const char* aFilename)
     return PLUS_SUCCESS;
   }
 
+  std::string finalFilename;
+  if( aFilename == NULL || strlen(aFilename) == 0 )
+  {
+    std::string filenameRoot = vtksys::SystemTools::GetFilenameWithoutExtension(m_BaseFilename);
+    std::string ext = vtksys::SystemTools::GetFilenameExtension(m_BaseFilename);
+    if( ext.empty() )
+    {
+      ext = ".mha";
+    }
+    finalFilename = filenameRoot + "_" + vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S") + ext;
+    aFilename = finalFilename.c_str();
+  }
+  // Need to set the filename before finalizing header, because the pixel data file name depends on the file extension
+  m_Writer->SetFileName(aFilename);
+
   std::ostringstream dimSizeStr; 
   int dimensions[3]={0};
   dimensions[0] = m_Writer->GetDimensions()[0];
@@ -247,22 +262,6 @@ PlusStatus vtkVirtualDiscCapture::CloseFile(const char* aFilename)
     this->WriteFrames(true);
   }
 
-  {
-    std::string finalFilename;
-    if( aFilename == NULL || strlen(aFilename) == 0 )
-    {
-      std::string filenameRoot = vtksys::SystemTools::GetFilenameWithoutExtension(m_BaseFilename);
-      std::string ext = vtksys::SystemTools::GetFilenameExtension(m_BaseFilename);
-      if( ext.empty() )
-      {
-        ext = ".mha";
-      }
-      finalFilename = filenameRoot + "_" + vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S") + ext;
-      aFilename = finalFilename.c_str();
-    }
-
-    m_Writer->SetFileName(aFilename);
-  }
   m_Writer->Close();
 
   std::string fullPath = vtkPlusConfig::GetInstance()->GetOutputPath(std::string(aFilename));
