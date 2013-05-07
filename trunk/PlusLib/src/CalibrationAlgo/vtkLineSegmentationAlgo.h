@@ -20,10 +20,9 @@ class vtkTrackedFrameList;
 */
 class VTK_EXPORT vtkLineSegmentationAlgo : public vtkObject
 {
-public:
-  struct LineParameters
-  {
-    // mf, unit is mm
+public:  
+  struct LineParameters /*!< Line parameters is defined in the Image coordinate system (orientation is MF, origin is in the image corner, unit is pixel) */
+  {    
   public:
     double lineOriginPoint_Image[2];
     double lineDirectionVector_Image[2];
