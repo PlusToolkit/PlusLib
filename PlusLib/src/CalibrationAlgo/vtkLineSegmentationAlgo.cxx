@@ -327,7 +327,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
     LineParameters params;
     if( ComputeLineParameters(intensityPeakPositions, params) == PLUS_SUCCESS )
     {
-      if( params.xDirectionComponent < MIN_X_SLOPE_COMPONENT_FOR_DETECTED_LINE)
+      if( params.lineDirectionVector_Image[0] < MIN_X_SLOPE_COMPONENT_FOR_DETECTED_LINE)
       {
         // Line is close to vertical, skip frame because intersection of 
         // line with image's horizontal half point is unstable
@@ -337,8 +337,8 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
       m_LineParameters.push_back(params);
 
       // Store the y-value of the line, when the line's x-value is half of the image's width
-      double t = ( region.GetIndex()[0] + 0.5 * region.GetSize()[0] - params.pointOnLine[0] ) / params.xDirectionComponent; 
-      m_SignalValues.push_back( std::abs( params.pointOnLine[1] + t * params.yDirectionComponent ) );
+      double t = ( region.GetIndex()[0] + 0.5 * region.GetSize()[0] - params.lineOriginPoint_Image[0] ) / params.lineDirectionVector_Image[0]; 
+      m_SignalValues.push_back( std::abs( params.lineOriginPoint_Image[1] + t * params.lineDirectionVector_Image[1] ) );
 
       //  Store timestamp for image frame
       m_SignalTimestamps.push_back(m_TrackedFrameList->GetTrackedFrame(frameNumber)->GetTimestamp());
@@ -346,7 +346,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
       if(m_SaveIntermediateImages == true)
       {
         SaveIntermediateImage(frameNumber, scanlineImage, 
-          params.pointOnLine[0], params.pointOnLine[1], params.xDirectionComponent, params.yDirectionComponent, 
+          params.lineOriginPoint_Image[0], params.lineOriginPoint_Image[1], params.lineDirectionVector_Image[0], params.lineDirectionVector_Image[1], 
           numOfValidScanlines, intensityPeakPositions);
       }
     }
@@ -576,13 +576,10 @@ PlusStatus vtkLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point
     LOG_TRACE(" RANSAC parameter: " << ransacParameterResult[i]);
   }
 
-  OutputParameters.xDirectionComponent = -ransacParameterResult[1];
-  OutputParameters.yDirectionComponent = ransacParameterResult[0];
-  OutputParameters.slope = OutputParameters.yDirectionComponent / OutputParameters.xDirectionComponent;
-  OutputParameters.pointOnLine.clear();
-  OutputParameters.pointOnLine.set_size(2);
-  OutputParameters.pointOnLine[0] = ransacParameterResult[2];
-  OutputParameters.pointOnLine[1] = ransacParameterResult[3];
+  OutputParameters.lineDirectionVector_Image[0] = -ransacParameterResult[1];
+  OutputParameters.lineDirectionVector_Image[1] = ransacParameterResult[0];
+  OutputParameters.lineOriginPoint_Image[0] = ransacParameterResult[2];
+  OutputParameters.lineOriginPoint_Image[1] = ransacParameterResult[3];
 
   return PLUS_SUCCESS;
 }
