@@ -7,11 +7,12 @@
     />
 
     <!-- Bk pro focus must come first for automated tests to pass -->
+    <!-- Setting AcquisitionRate to higher value may decrease the responsiveness of the BK software on the scanner. Thoroughly test the performance of the BK scanner when acquiring images through the OEM interface. -->
     <Device 
       Id="VideoDevice"
       Type="BkProFocusOem"
       IniFileName="BkSettings/IniFile.ini"
-      AcquisitionRate="30"
+      AcquisitionRate="1.5"
       LocalTimeOffsetSec="0"
       >
       <DataSources>
