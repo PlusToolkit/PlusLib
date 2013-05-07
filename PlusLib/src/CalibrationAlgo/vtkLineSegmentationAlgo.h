@@ -23,8 +23,8 @@ class VTK_EXPORT vtkLineSegmentationAlgo : public vtkObject
 public:
   struct LineParameters
   {
-    double xOrigin;
-    double yOrigin;
+    vnl_vector<double> pointOnLine;
+    double slope;
     double xDirectionComponent;
     double yDirectionComponent;
   };
