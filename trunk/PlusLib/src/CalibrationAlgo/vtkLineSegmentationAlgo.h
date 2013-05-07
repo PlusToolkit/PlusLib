@@ -23,10 +23,12 @@ class VTK_EXPORT vtkLineSegmentationAlgo : public vtkObject
 public:
   struct LineParameters
   {
-    vnl_vector<double> pointOnLine;
-    double slope;
-    double xDirectionComponent;
-    double yDirectionComponent;
+    // mf, unit is mm
+  public:
+    double lineOriginPoint_Image[2];
+    double lineDirectionVector_Image[2];
+
+    double Slope() const { return lineDirectionVector_Image[1] / lineDirectionVector_Image[0]; }
   };
 
   typedef unsigned char CharPixelType;
