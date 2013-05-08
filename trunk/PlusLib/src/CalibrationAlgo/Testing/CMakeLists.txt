@@ -204,7 +204,7 @@ SET_TESTS_PROPERTIES( TemporalCalibrationAlgoTest1 PROPERTIES FAIL_REGULAR_EXPRE
 
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(SingleWallCalibrationAlgoTest vtkSingleWallCalibrationAlgoTest.cxx)
-TARGET_LINK_LIBRARIES( SingleWallCalibrationAlgoTest SingleWallCalibrationAlgo vtkPlusCommon vtkCalibrationAlgo vtkCommon vtkDataCollection vtkCharts)
+TARGET_LINK_LIBRARIES( SingleWallCalibrationAlgoTest vtkPlusCommon vtkCalibrationAlgo vtkCommon vtkDataCollection vtkCharts)
 
 ADD_TEST(SingleWallCalibrationAlgoTest1
     ${EXECUTABLE_OUTPUT_PATH}/SingleWallCalibrationAlgoTest
