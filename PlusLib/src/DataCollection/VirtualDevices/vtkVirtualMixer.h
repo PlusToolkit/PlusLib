@@ -48,11 +48,6 @@ protected:
   vtkVirtualMixer();
   virtual ~vtkVirtualMixer();
 
-  vtkGetObjectConstMacro(OutputChannel, vtkPlusChannel);
-  vtkSetObjectMacro(OutputChannel, vtkPlusChannel);
-
-  vtkPlusChannel*  OutputChannel;
-
 private:
   vtkVirtualMixer(const vtkVirtualMixer&);  // Not implemented.
   void operator=(const vtkVirtualMixer&);  // Not implemented. 

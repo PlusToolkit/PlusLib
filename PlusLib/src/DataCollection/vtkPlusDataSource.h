@@ -59,10 +59,10 @@ public:
   /*! Get the buffer */
   virtual vtkPlusBuffer* GetBuffer() const { return this->Buffer; }
 
-  /*! Get the tracker which owns this source. */
+  /*! Get the device which owns this source. */
   // TODO : consider a re-design of this idea
-  vtkGetObjectMacro(Device,vtkPlusDevice);
-  vtkSetObjectMacro(Device, vtkPlusDevice);
+  void SetDevice(vtkPlusDevice* _arg){ this->Device = _arg; }
+  vtkPlusDevice* GetDevice(){ return this->Device; }
 
   /*! Get port name. Port name is used to identify the tool among all the tools provided by the tracker device. */
   vtkGetStringMacro(PortName);

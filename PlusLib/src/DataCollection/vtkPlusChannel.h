@@ -109,8 +109,8 @@ public:
 
   PlusStatus GetLatestTimestamp(double& aTimestamp) const;
 
-  vtkSetObjectMacro(OwnerDevice, vtkPlusDevice);
-  vtkGetObjectMacro(OwnerDevice, vtkPlusDevice);
+  void SetOwnerDevice(vtkPlusDevice* _arg){ this->OwnerDevice = _arg; }
+  vtkPlusDevice* GetOwnerDevice() { return this->OwnerDevice; }
 
   vtkSetStringMacro(ChannelId);
   vtkGetStringMacro(ChannelId);
