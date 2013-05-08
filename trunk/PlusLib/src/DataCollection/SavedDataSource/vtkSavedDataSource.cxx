@@ -50,7 +50,7 @@ vtkSavedDataSource::vtkSavedDataSource()
 //----------------------------------------------------------------------------
 vtkSavedDataSource::~vtkSavedDataSource()
 { 
-  if (!this->Connected)
+  if ( this->Connected )
   {
     this->Disconnect();
   }
@@ -861,7 +861,7 @@ void vtkSavedDataSource::DeleteLocalBuffers()
   {    
     if ( (*it).second != NULL )
     {
-      (*it).second->UnRegister(this); 
+      (*it).second->Delete(); 
       (*it).second = NULL; 
     }
   }

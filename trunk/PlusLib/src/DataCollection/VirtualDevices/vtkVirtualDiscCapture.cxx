@@ -64,6 +64,12 @@ vtkVirtualDiscCapture::~vtkVirtualDiscCapture()
     m_Writer->Delete();
     m_Writer = NULL;
   }
+
+  // To fix: #756
+  // Capture fakes an output channel to enable "GetTrackedFrame" functionality
+  // We don't want the plus device deconstructor destroying something it doesn't own
+  // So clear it before it runs
+  this->OutputChannels.clear();
 }
 
 //----------------------------------------------------------------------------

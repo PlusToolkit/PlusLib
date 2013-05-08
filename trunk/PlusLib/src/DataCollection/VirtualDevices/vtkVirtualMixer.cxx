@@ -17,7 +17,6 @@ vtkStandardNewMacro(vtkVirtualMixer);
 //----------------------------------------------------------------------------
 vtkVirtualMixer::vtkVirtualMixer()
 : vtkPlusDevice()
-, OutputChannel(NULL)
 {
   this->AcquisitionRate = vtkPlusDevice::VIRTUAL_DEVICE_FRAME_RATE;
 
@@ -28,23 +27,22 @@ vtkVirtualMixer::vtkVirtualMixer()
 vtkVirtualMixer::~vtkVirtualMixer()
 {
   // Clear reference to rf processor
-  if( this->OutputChannel != NULL && this->OutputChannel->GetRfProcessor() != NULL )
+  if( this->OutputChannels.size() > 0 && this->OutputChannels[0] != NULL && this->OutputChannels[0]->GetRfProcessor() != NULL )
   {
-    this->OutputChannel->SetRfProcessor(NULL);
+    this->OutputChannels[0]->SetRfProcessor(NULL);
   }
+
+  // To fix: #756
+  // Mixer fakes an output channel to enable "GetTrackedFrame" functionality
+  // We don't want the plus device deconstructor destroying something it doesn't own
+  // So clear it before it runs
+  this->OutputChannels.clear();
 }
 
 //----------------------------------------------------------------------------
 void vtkVirtualMixer::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
-}
-
-//----------------------------------------------------------------------------
-vtkPlusChannel* vtkVirtualMixer::GetChannel() const
-{
-  // Virtual stream mixers always have exactly one output stream
-  return this->GetOutputChannel();
 }
 
 //----------------------------------------------------------------------------
@@ -58,10 +56,11 @@ PlusStatus vtkVirtualMixer::ReadConfiguration( vtkXMLDataElement* element)
   if (this->OutputChannels.empty())
   {
     LOG_WARNING("vtkVirtualMixer device " << this->GetDeviceId() << " does not have any output channels");
-  }
-  else
-  {
-    SetOutputChannel(this->OutputChannels[0]);
+    vtkSmartPointer<vtkPlusChannel> aChannel = vtkSmartPointer<vtkPlusChannel>::New();
+    std::stringstream ss;
+    ss << "aMixerId_" << vtkAccurateTimer::GetSystemTime();
+    aChannel->SetChannelId(ss.str().c_str());
+    this->AddOutputChannel(aChannel);
   }
 
   return PLUS_SUCCESS;
@@ -71,7 +70,7 @@ PlusStatus vtkVirtualMixer::ReadConfiguration( vtkXMLDataElement* element)
 double vtkVirtualMixer::GetAcquisitionRate() const
 {
   // Determine frame rate from the video input device with the lowest frame rate  
-  bool lowestRateKnown=false;
+  bool lowestRateKnown = false;
   double lowestRate=30; // just a usual value (FPS)  
 
   for( ChannelContainerConstIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
@@ -104,8 +103,8 @@ double vtkVirtualMixer::GetAcquisitionRate() const
 PlusStatus vtkVirtualMixer::NotifyConfigured()
 {
   // First, empty whatever is there, because this can be called at any point after a configuration
-  this->GetOutputChannel()->RemoveTools();
-  this->GetOutputChannel()->Clear();
+  this->OutputChannels[0]->RemoveTools();
+  this->OutputChannels[0]->Clear();
 
   for( ChannelContainerIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
   {
@@ -114,7 +113,7 @@ PlusStatus vtkVirtualMixer::NotifyConfigured()
 
     if( anInputChannel->HasVideoSource() && anInputChannel->GetVideoSource(aSource) == PLUS_SUCCESS )
     {
-      this->GetOutputChannel()->SetVideoSource(aSource);
+      this->OutputChannels[0]->SetVideoSource(aSource);
       this->AddVideo(aSource);
     }
 
@@ -123,7 +122,7 @@ PlusStatus vtkVirtualMixer::NotifyConfigured()
       vtkPlusDataSource* anInputTool = inputToolIter->second;
 
       bool found = false;
-      for( DataSourceContainerConstIterator outputToolIt = this->GetOutputChannel()->GetToolsStartConstIterator(); outputToolIt != this->GetOutputChannel()->GetToolsEndConstIterator(); ++outputToolIt )
+      for( DataSourceContainerConstIterator outputToolIt = this->OutputChannels[0]->GetToolsStartConstIterator(); outputToolIt != this->OutputChannels[0]->GetToolsEndConstIterator(); ++outputToolIt )
       {
         vtkPlusDataSource* anOutputTool = outputToolIt->second;
         // Check for double adds or name conflicts
@@ -143,16 +142,16 @@ PlusStatus vtkVirtualMixer::NotifyConfigured()
 
       if( !found )
       {
-        this->GetOutputChannel()->AddTool(anInputTool);
+        this->OutputChannels[0]->AddTool(anInputTool);
         this->AddTool(anInputTool);
       }
     }
 
-    if( anInputChannel->GetRfProcessor() != NULL && this->GetOutputChannel()->GetRfProcessor() == NULL )
+    if( anInputChannel->GetRfProcessor() != NULL && this->OutputChannels[0]->GetRfProcessor() == NULL )
     {
-      this->GetOutputChannel()->SetRfProcessor(anInputChannel->GetRfProcessor());
+      this->OutputChannels[0]->SetRfProcessor(anInputChannel->GetRfProcessor());
     }
-    else if( anInputChannel->GetRfProcessor() != NULL && this->GetOutputChannel()->GetRfProcessor() != NULL )
+    else if( anInputChannel->GetRfProcessor() != NULL && this->OutputChannels[0]->GetRfProcessor() != NULL )
     {
       LOG_WARNING("Multiple RfProcessors defined in InputChannels to mixer: " << this->GetDeviceId() << ". Check input configuration.");
     }
