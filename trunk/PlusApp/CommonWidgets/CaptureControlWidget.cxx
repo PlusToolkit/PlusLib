@@ -5,6 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "CaptureControlWidget.h"
+#include "vtkDataCollector.h"
 #include "vtkPlusChannel.h"
 #include "vtkVirtualDiscCapture.h"
 #include "vtksys/SystemTools.hxx"
@@ -39,6 +40,12 @@ CaptureControlWidget::~CaptureControlWidget()
 //-----------------------------------------------------------------------------
 PlusStatus CaptureControlWidget::WriteToFile( QString& aFilename )
 {
+  // Force an update of the configuration
+  for( DataCollectorCollectionIterator it = vtkDataCollector::GetDataCollectors().begin(); it != vtkDataCollector::GetDataCollectors().end(); ++it)
+  {
+    (*it)->WriteConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() );
+  }
+
   // Save
   if( m_Device->CloseFile(aFilename.toLatin1() ) != PLUS_SUCCESS )
   {

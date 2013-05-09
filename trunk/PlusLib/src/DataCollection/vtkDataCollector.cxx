@@ -24,6 +24,8 @@ See License.txt for details.
 vtkCxxRevisionMacro(vtkDataCollector, "$Revision: 2.0$");
 vtkStandardNewMacro(vtkDataCollector);
 
+DataCollectorCollection vtkDataCollector::DataCollectors;
+
 //----------------------------------------------------------------------------
 
 vtkDataCollector::vtkDataCollector()
@@ -32,7 +34,7 @@ vtkDataCollector::vtkDataCollector()
 , Connected(false)
 , Started(false)
 {
-
+  DataCollectors.push_back(this);
 }
 
 //----------------------------------------------------------------------------
@@ -53,6 +55,16 @@ vtkDataCollector::~vtkDataCollector()
     (*it)->Delete();
   }
   Devices.clear();
+
+  DataCollectorCollectionIterator it = std::find(DataCollectors.begin(), DataCollectors.end(), this);
+  if( it != DataCollectors.end() )
+  {
+    DataCollectors.erase(it);
+  }
+  else
+  {
+    LOG_WARNING("Unable to locate data collector in list. Mismatch between add and remove.");
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -614,4 +626,10 @@ PlusStatus vtkDataCollector::SetLoopTimes()
   }
 
   return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+DataCollectorCollection& vtkDataCollector::GetDataCollectors()
+{
+  return DataCollectors;
 }
