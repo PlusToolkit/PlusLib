@@ -152,6 +152,17 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
                                      vtkPasteSliceIntoVolume::CalculationType calculationMode,
                                      int outExt[6], vtkIdType  outInc[3], unsigned int* accOverflowCount)
 {
+
+  // Determine if the output is a floating point or integer type. If floating point type then we don't round
+  // the interpolated value.
+  bool roundOutput=true; // assume integer output by default
+  T floatValueInOutputType=0.3;
+  if (floatValueInOutputType>0)
+  {
+    // output is a floating point number
+    roundOutput=false;
+  }
+
   F fx, fy, fz;
 
   // convert point[0] into integer component and a fraction
@@ -248,7 +259,14 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
               f = fdx[j];
               r = F((*accPtrTmp)/(double)ACCUMULATION_MULTIPLIER);  // added division by double, since this always returned 0 otherwise
               a = f + r;
-              PlusMath::Round((f*(*inPtrTmp) + r*(*outPtrTmp))/a, *outPtrTmp);
+              if (roundOutput)
+              {
+                PlusMath::Round((f*(*inPtrTmp) + r*(*outPtrTmp))/a, *outPtrTmp);
+              }
+              else
+              {
+                *outPtrTmp = (f*(*inPtrTmp) + r*(*outPtrTmp))/a;
+              }
               break;
             case vtkPasteSliceIntoVolume::MAXIMUM:
               if (*inPtrTmp > *outPtrTmp)
@@ -305,7 +323,14 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
               do
               {
                 i--;
-                PlusMath::Round(f*(*inPtrTmp) + r*(*outPtrTmp), *outPtrTmp);
+                if (roundOutput)
+                {
+                  PlusMath::Round(f*(*inPtrTmp) + r*(*outPtrTmp), *outPtrTmp);
+                }
+                else
+                {
+                  *outPtrTmp = f*(*inPtrTmp) + r*(*outPtrTmp);
+                }
                 inPtrTmp++;
                 outPtrTmp++;
               }
