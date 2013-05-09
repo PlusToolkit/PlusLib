@@ -131,7 +131,11 @@ OPTION (PLUSAPP_TEST_GUI "Enable Sikuli GUI tests" ON)
 # Warnings for work in progress features
 #-----------------------------------------------------------------------------
 IF (PLUS_USE_USBECGBOX)
-  MESSAGE("Provide support for the USB ECG box option was selected. This is a work in progress feature. See more details at https://www.assembla.com/spaces/plus/tickets/396")
+  MESSAGE(WARNING "PLUS_USE_USBECGBOX option is enabled, which may cause build errors if the necessary Universal Library is not installed. This is an experimental feature for supporting ECG signal acquisition through an USB digitizer, see more details at https://www.assembla.com/spaces/plus/tickets/396")
+ENDIF()
+
+IF (PLUS_USE_HEARTSIGNALBOX)
+  MESSAGE(WARNING "PLUS_USE_HEARTSIGNALBOX option is enabled, which may cause build errors if the necessary library from http://www.logix4u.net/ is not installed. This is an experimental feature, see more details at https://www.assembla.com/spaces/plus/tickets/396")
 ENDIF()
 
 #-----------------------------------------------------------------------------
