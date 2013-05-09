@@ -212,4 +212,4 @@ ADD_TEST(SingleWallCalibrationAlgoTest1
     --config-file=${ConfigFilesDir}/Queens/PlusConfiguration_File_SingleWallCalibration.xml
     --verbose=2
     )
-SET_TESTS_PROPERTIES( SingleWallCalibrationAlgoTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES( SingleWallCalibrationAlgoTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR" )
