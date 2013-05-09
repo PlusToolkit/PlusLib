@@ -38,15 +38,30 @@ public:
   */
   PlusStatus ReadConfiguration( vtkXMLDataElement* aConfig ); 
 
-  PlusStatus Update();
+  PlusStatus Calibrate();
+
+  /*!
+    Assembles the result string to display
+    \param precision Number of decimals printed in the string
+    \return String containing results
+  */
+  std::string GetResultString(int precision = 3);
 
   const vtkMatrix4x4& GetImageToProbeTransformation() const;
 
   void SetTrackedFrameList(vtkTrackedFrameList* aTrackedFrameList);
 
+  vtkGetStringMacro(ImageCoordinateFrame);
+  vtkGetStringMacro(ProbeCoordinateFrame);
+  vtkGetStringMacro(ReferenceCoordinateFrame);
+
 protected:
   vtkSingleWallCalibrationAlgo();
   ~vtkSingleWallCalibrationAlgo();
+
+  vtkSetStringMacro(ImageCoordinateFrame);
+  vtkSetStringMacro(ProbeCoordinateFrame);
+  vtkSetStringMacro(ReferenceCoordinateFrame);
 
   vtkGetObjectMacro(TrackedFrameList, vtkTrackedFrameList);
   vtkSetObjectMacro(ImageToProbeTransformation, vtkMatrix4x4);
@@ -61,6 +76,10 @@ protected:
   vtkMatrix4x4*             ImageToProbeTransformation;
   double                    PixelPerMmInX; // image width in mm / image pixel size X
   double                    PixelPerMmInY; // image deoth in mm / image pixel size Y
+
+  char* ImageCoordinateFrame;
+  char* ProbeCoordinateFrame;
+  char* ReferenceCoordinateFrame;
   
   bool                  UpToDate;
 

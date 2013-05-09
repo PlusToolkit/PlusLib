@@ -209,7 +209,7 @@ TARGET_LINK_LIBRARIES( SingleWallCalibrationAlgoTest vtkPlusCommon vtkCalibratio
 ADD_TEST(SingleWallCalibrationAlgoTest1
     ${EXECUTABLE_OUTPUT_PATH}/SingleWallCalibrationAlgoTest
     --input-seq-file=${TestDataDir}/SingleWallCalibrationTest.mhd 
-    --config-file=${ConfigFilesDir}/Queens/PlusConfiguration_File_SingleWallCalibration.xml
+    --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_File_SingleWallCalibrationAlgoTest.xml
     --verbose=2
     )
-SET_TESTS_PROPERTIES( SingleWallCalibrationAlgoTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR" )
+SET_TESTS_PROPERTIES( SingleWallCalibrationAlgoTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )

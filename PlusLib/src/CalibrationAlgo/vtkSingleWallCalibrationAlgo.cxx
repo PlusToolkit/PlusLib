@@ -5,10 +5,12 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
+#include "PlusMath.h"
 #include "TrackedFrame.h"
 #include "vnl/algo/vnl_qr.h"
 #include "vnl/vnl_cross.h"
 #include "vnl/vnl_matrix.h"
+#include "vnl/vnl_matrix_fixed.h"
 #include "vtkLineSegmentationAlgo.h"
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
@@ -30,6 +32,9 @@ vtkSingleWallCalibrationAlgo::vtkSingleWallCalibrationAlgo()
 , LineSegmenter(NULL)
 , ImageToProbeTransformation(NULL)
 , PixelPerMmInX(1.0)
+, ImageCoordinateFrame(NULL)
+, ProbeCoordinateFrame(NULL)
+, ReferenceCoordinateFrame(NULL)
 , UpToDate(false)
 {
   vtkMatrix4x4* aMatrix = vtkMatrix4x4::New();
@@ -160,7 +165,7 @@ PlusStatus vtkSingleWallCalibrationAlgo::ExtractVectorsOfImageAndNormalOfWall(co
 
 //------------------------------------------------------------------------
 
-PlusStatus vtkSingleWallCalibrationAlgo::Update()
+PlusStatus vtkSingleWallCalibrationAlgo::Calibrate()
 {
   if( this->UpToDate )
   {
@@ -510,6 +515,33 @@ PlusStatus vtkSingleWallCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* a
   }
   this->PixelPerMmInY = pixelPerMmInY;
 
+  // Image coordinate frame name
+  const char* imageCoordinateFrame = singleWallElement->GetAttribute("ImageCoordinateFrame");
+  if (imageCoordinateFrame == NULL)
+  {
+    LOG_ERROR("ImageCoordinateFrame is not specified in vtkSingleWallCalibrationAlgo element of the configuration!");
+    return PLUS_FAIL;     
+  }
+  this->SetImageCoordinateFrame(imageCoordinateFrame);
+
+  // Probe coordinate frame name
+  const char* probeCoordinateFrame = singleWallElement->GetAttribute("ProbeCoordinateFrame");
+  if (probeCoordinateFrame == NULL)
+  {
+    LOG_ERROR("ProbeCoordinateFrame is not specified in vtkSingleWallCalibrationAlgo element of the configuration!");
+    return PLUS_FAIL;     
+  }
+  this->SetProbeCoordinateFrame(probeCoordinateFrame);
+
+  // Reference coordinate frame name
+  const char* referenceCoordinateFrame = singleWallElement->GetAttribute("ReferenceCoordinateFrame");
+  if (referenceCoordinateFrame == NULL)
+  {
+    LOG_ERROR("ReferenceCoordinateFrame is not specified in vtkSingleWallCalibrationAlgo element of the configuration!");
+    return PLUS_FAIL;     
+  }
+  this->SetReferenceCoordinateFrame(referenceCoordinateFrame);
+
   return PLUS_SUCCESS;
 }
 
@@ -536,4 +568,34 @@ void vtkSingleWallCalibrationAlgo::CleanMatrix( vtkMatrix4x4* aMatrix )
       }
     }
   }
+}
+
+//-----------------------------------------------------------------------------
+
+std::string vtkSingleWallCalibrationAlgo::GetResultString(int precision/* = 3*/)
+{
+  LOG_TRACE("vtkProbeCalibrationAlgo::GetResultString");
+
+  std::ostringstream matrixStringStream;
+  matrixStringStream << "Image to probe transform:" << std::endl;
+
+  // Print matrix rows
+  vnl_matrix_fixed<double, 4, 4> aMatrix;
+  for( int row = 0; row < 4; ++row)
+  {
+    for( int col = 0; col < 4; ++col)
+    {
+      aMatrix[row][col] = (*this->ImageToProbeTransformation)[row][col];
+    }
+  }
+  
+  PlusMath::PrintMatrix(aMatrix, matrixStringStream, precision+2);
+  matrixStringStream << std::endl;
+
+  double pixelSizeX = aMatrix.get_column(0).magnitude();
+  double pixelSizeY = aMatrix.get_column(1).magnitude();
+  matrixStringStream << "Image pixel size (mm):" << std::endl;
+  matrixStringStream << "  " << std::fixed << std::setprecision(precision+1) << pixelSizeX << " x " << pixelSizeY << std::endl;
+
+  return matrixStringStream.str();
 }

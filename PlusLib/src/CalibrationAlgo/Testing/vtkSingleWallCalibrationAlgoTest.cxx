@@ -71,7 +71,7 @@ int main(int argc, char **argv)
     aCalibration->ReadConfiguration( rootConfig );
   }
   aCalibration->SetTrackedFrameList(reader->GetTrackedFrameList());
-  aCalibration->Update();
+  aCalibration->Calibrate();
 
   return EXIT_SUCCESS; 
 }
