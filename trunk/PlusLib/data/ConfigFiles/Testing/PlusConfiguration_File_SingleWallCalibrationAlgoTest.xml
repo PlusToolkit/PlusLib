@@ -1,0 +1,14 @@
+<PlusConfiguration version="2.3">
+  <vtkLineSegmentationAlgo
+    ClipRectangleOrigin="-1 -1"
+    ClipRectangleSize="-1 -1"
+    />
+
+  <vtkSingleWallCalibrationAlgo
+    PixelPerMmInX="0.1024590163934426"
+    PixelPerMmInY="0.1123595505617978"
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Probe"
+    ReferenceCoordinateFrame="Reference"
+  />
+</PlusConfiguration>

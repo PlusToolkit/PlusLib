@@ -33,7 +33,9 @@ enum ToolboxType
   ToolboxType_TemporalCalibration,
   ToolboxType_SpatialCalibration,
   ToolboxType_Capturing,
-  ToolboxType_VolumeReconstruction
+  ToolboxType_VolumeReconstruction,
+  ToolboxType_SingleWallCalibration,
+  ToolboxType_Count,
 };
 
 //-----------------------------------------------------------------------------
