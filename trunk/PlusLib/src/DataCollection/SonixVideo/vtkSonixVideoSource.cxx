@@ -352,7 +352,7 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
     continue;
 #endif
 
-    if( this->HasDataType(udtBPost) )
+    if( this->WantDataType(udtBPost) && this->HasDataType(udtBPost) )
     {
       if( this->ConfigureVideoSource(udtBPost) != PLUS_SUCCESS )
       {
@@ -361,7 +361,7 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
       }
     }
 
-    if( this->HasDataType(udtRF) )
+    if( this->WantDataType(udtRF) && this->HasDataType(udtRF) )
     {
       if( this->ConfigureVideoSource(udtRF) != PLUS_SUCCESS )
       {
@@ -1157,6 +1157,12 @@ bool vtkSonixVideoSource::HasDataType( uData aValue )
 {
   uDataDesc someVal;
   return this->Ult.getDataDescriptor( aValue, someVal ) ? PLUS_SUCCESS : PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+bool vtkSonixVideoSource::WantDataType( uData aValue )
+{
+  return (AcquisitionDataType & aValue) > 0;
 }
 
 //----------------------------------------------------------------------------
