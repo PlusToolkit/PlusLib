@@ -303,6 +303,7 @@ protected:
   PlusStatus GetParamValue(char* paramId, int& paramValue, int &validatedParamValue);
 
   bool HasDataType( uData aValue );
+  bool WantDataType( uData aValue );
   PlusStatus ConfigureVideoSource( uData aValue );
 
   ulterius Ult;
