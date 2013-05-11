@@ -486,7 +486,9 @@ AttentuationCoefficientNpPerCm */
   if(modelFileName)
   {
     std::string foundAbsoluteImagePath;
-    if (vtkPlusConfig::GetInstance()->FindModelPath(modelFileName, foundAbsoluteImagePath) == PLUS_SUCCESS)
+    // FindImagePath is used instead of FindModelPath, as the model is expected to be in the image directory
+    // it might be more reasonable to move the model to the model directory and change this to FindModelPath
+    if (vtkPlusConfig::GetInstance()->FindImagePath(modelFileName, foundAbsoluteImagePath) == PLUS_SUCCESS)
     {
       if (LoadModel(foundAbsoluteImagePath)!=PLUS_SUCCESS)
       {
