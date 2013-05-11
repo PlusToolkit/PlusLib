@@ -253,7 +253,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
 	  double intensityToPixelConversionFactor = incomingBeamIntensity/256; // num pixel values.
     SpatialModel *currentModel=this->BackgroundSpatialModel;
     SpatialModel *previousModel=this->BackgroundSpatialModel;
-    for(vtkIdType intersectionIndex=0;intersectionIndex<=numIntersectionPoints; intersectionIndex++)
+    for(vtkIdType intersectionIndex=0;(intersectionIndex<=numIntersectionPoints)&&(currentPixelIndex<this->NumberOfSamplesPerScanline); intersectionIndex++)
     {      
       // determine end of segment position and pixel color
       int endOfSegmentPixelIndex=currentPixelIndex;
@@ -270,6 +270,11 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
         double yCoordDiffMm=(scanLineIntersectionPoint_Image[1]-scanLineStartPoint_Image[1])*outputImageSpacingMm[1];
         distanceOfIntersectionPointFromScanLineStartPointMm=sqrt(xCoordDiffMm*xCoordDiffMm+yCoordDiffMm*yCoordDiffMm);
         endOfSegmentPixelIndex=distanceOfIntersectionPointFromScanLineStartPointMm/distanceBetweenScanlineSamplePointsMm;
+        if (endOfSegmentPixelIndex>this->NumberOfSamplesPerScanline-1)
+        {
+          // the next intersection point is out of the image
+          endOfSegmentPixelIndex=this->NumberOfSamplesPerScanline-1;
+        }
       }
       else
       {
@@ -481,7 +486,7 @@ AttentuationCoefficientNpPerCm */
   if(modelFileName)
   {
     std::string foundAbsoluteImagePath;
-    if (vtkPlusConfig::GetInstance()->FindImagePath(modelFileName, foundAbsoluteImagePath) == PLUS_SUCCESS)
+    if (vtkPlusConfig::GetInstance()->FindModelPath(modelFileName, foundAbsoluteImagePath) == PLUS_SUCCESS)
     {
       if (LoadModel(foundAbsoluteImagePath)!=PLUS_SUCCESS)
       {
