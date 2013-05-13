@@ -190,7 +190,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
 
   vtkSmartPointer<vtkPerlinNoise> noiseFunction=vtkSmartPointer<vtkPerlinNoise>::New();
   //noiseFunction->SetFrequency(35,45,22);
-  noiseFunction->SetFrequency(5,7,2);
+  noiseFunction->SetFrequency(2.5,3.5,1);
   noiseFunction->SetPhase(50,20,0);
   noiseFunction->SetAmplitude(0.1);
 
@@ -351,13 +351,13 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
         samplePointPositions_Model->GetPoint(currentPixelIndex+pixelIndex, samplePointPosition_Model);
         double noise=noiseFunction->EvaluateFunction(samplePointPosition_Model);        
         //double noise=noisePointDataArray->GetTuple1(currentPixelIndex+pixelIndex);
-        unsigned char pixelIntensity=std::max(std::min(10+beamIntensity*reflectionFactor*(1+noise)-noise*100,255.0),0.0);
+        unsigned char pixelIntensity=std::max(std::min(10+incomingBeamIntensity*reflectionFactor*(1+noise)-noise*100,255.0),0.0);
 #endif
 
         (*dstPixelAddress++)=pixelIntensity;
         //(*dstPixelAddress++)=190;
         //LOG_INFO("Pixel: "<<pixelIntensity);
-        beamIntensity*=(1.0-reflectionFactor);
+        incomingBeamIntensity*=(1.0-reflectionFactor);
       }
       memset(dstPixelAddress,0,numberOfFilledPixels-pixelIndex);
       dstPixelAddress+=(numberOfFilledPixels-pixelIndex);
