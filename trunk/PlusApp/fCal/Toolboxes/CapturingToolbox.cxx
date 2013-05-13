@@ -502,7 +502,7 @@ void CapturingToolbox::SaveAs()
 }
 
 //-----------------------------------------------------------------------------
-void CapturingToolbox::WriteToFile( QString& aFilename )
+void CapturingToolbox::WriteToFile( const QString& aFilename )
 {
   if (aFilename.isEmpty())
   {

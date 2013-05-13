@@ -38,7 +38,7 @@ CaptureControlWidget::~CaptureControlWidget()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus CaptureControlWidget::WriteToFile( QString& aFilename )
+PlusStatus CaptureControlWidget::WriteToFile( const QString& aFilename )
 {
   // Force an update of the configuration
   for( DataCollectorCollectionIterator it = vtkDataCollector::GetDataCollectors().begin(); it != vtkDataCollector::GetDataCollectors().end(); ++it)

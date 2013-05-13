@@ -81,7 +81,7 @@ protected:
   /*!
   * Save data to file
   */
-  void WriteToFile(QString& aFilename);
+  void WriteToFile(const QString& aFilename);
 
   /*! Get the sampling period length (in seconds). Frames are copied from the devices to the data collection buffer once in every sampling period. */
   double GetSamplingPeriodSec();
