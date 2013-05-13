@@ -25,11 +25,12 @@ public:
   vtkTypeRevisionMacro(vtkSingleWallCalibrationAlgo, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  static struct ExtractResult{
+  struct ExtractResult 
+  {
     vnl_matrix<double> NormalVectorsOfWallPlane;
     vnl_matrix<double> LateralDirectionsOfImagePlane;
     vnl_matrix<double> AxialDirectionsOfWallPlane;
-    double PixelPerMMInYToPixelPerMMInX ;
+    double PixelPerMMInYToPixelPerMMInX;
   };
 
   /*!
