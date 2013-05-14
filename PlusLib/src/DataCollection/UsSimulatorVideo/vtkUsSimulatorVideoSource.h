@@ -41,6 +41,8 @@ public:
   /*! Verify the device is correctly configured */
   virtual PlusStatus NotifyConfigured();
 
+  virtual bool IsTracker() const { return false; }
+
 protected:
   /*! Set ultrasound simulator */
   vtkSetObjectMacro(UsSimulator, vtkUsSimulatorAlgo); 

@@ -779,7 +779,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
   {
     this->SetToolReferenceFrameName(referenceName);
   }
-  else
+  else if( this->IsTracker() )
   {
     LOG_WARNING("ToolReferenceFrame is undefined. Default of \"Tracker\" will be used.");
   }

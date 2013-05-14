@@ -28,7 +28,7 @@ class vtkXMLDataElement;
 \brief Abstract interface for tracker and video devices
 
 vtkPlusDevice is an abstract VTK interface to real-time tracking and imaging
-systems.  Derived classes should override the Connect(), Disconnect(), 
+systems.  Derived classes should override the InternalConnect(), InternalDisconnect(), 
 GetSdkVersion(), ReadConfiguration(), WriteConfiguration() methods.
 
 \ingroup PlusLibDataCollection

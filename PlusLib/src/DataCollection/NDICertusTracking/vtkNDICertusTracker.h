@@ -53,6 +53,8 @@ public:
   /*! Get an update from the tracking system and push the new transforms to the tools. */
   PlusStatus InternalUpdate();
 
+  virtual bool IsTracker() const { return true; }
+
 protected:
   vtkNDICertusTracker();
   ~vtkNDICertusTracker();

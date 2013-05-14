@@ -46,6 +46,8 @@ public:
   /*! Write configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);  
 
+  virtual bool IsTracker() const { return true; }
+
   /*! Set OpenIGTLink message type */ 
   vtkSetStringMacro(MessageType); 
   /*! Get OpenIGTLink message type */ 
