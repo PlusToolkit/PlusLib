@@ -32,7 +32,6 @@ vtkDataCollector::vtkDataCollector()
 , Connected(false)
 , Started(false)
 {
-
 }
 
 //----------------------------------------------------------------------------
@@ -102,6 +101,7 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
         LOG_ERROR("Unable to create device: " << deviceElement->GetAttribute("Type"));
         return PLUS_FAIL;
       }
+      device->SetDataCollector(this);
       device->ReadConfiguration(aConfig);
       Devices.push_back(device);
     }

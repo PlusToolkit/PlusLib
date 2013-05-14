@@ -67,7 +67,7 @@ protected:
   /*!
   * Save data to file
   */
-  PlusStatus WriteToFile(QString& aFilename);
+  PlusStatus WriteToFile(const QString& aFilename);
 
   /*!
   * Display a result icon for a set duration

@@ -81,8 +81,6 @@ SET( INSTALL_DESTINATION_DIR "PlusApp_v${PLUSAPP_VERSION_MAJOR}.${PLUSAPP_VERSIO
 
 OPTION (PLUSAPP_BUILD_DiagnosticTools "Build the DiagnosticTools" ON)
 OPTION (PLUSAPP_BUILD_fCal "Build the fCal application (Qt)" ON)
-OPTION (PLUSAPP_BUILD_CaptureClient "Build the capture application (Qt)" ON)
-
 OPTION (PLUSAPP_TEST_GUI "Enable Sikuli GUI tests" ON)
 
 # --------------------------------------------------------------------------
@@ -111,13 +109,6 @@ IF (PLUSAPP_BUILD_fCal)
 	ADD_SUBDIRECTORY(fCal)
     ADD_DEPENDENCIES( fCal ${PLUSLIB_DEPENDENCIES} )
 ENDIF (PLUSAPP_BUILD_fCal)
-
-# --------------------------------------------------------------------------
-# Build the CaptureClient application (Qt)
-IF (PLUSAPP_BUILD_CaptureClient)
-	ADD_SUBDIRECTORY(CaptureClient)
-    ADD_DEPENDENCIES( CaptureClient ${PLUSLIB_DEPENDENCIES} )
-ENDIF (PLUSAPP_BUILD_CaptureClient)
 
 #-----------------------------------------------------------------------------
 # Include PlusLib MS projects 
