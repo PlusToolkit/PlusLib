@@ -208,7 +208,7 @@ TARGET_LINK_LIBRARIES( SingleWallCalibrationAlgoTest vtkPlusCommon vtkCalibratio
 
 ADD_TEST(SingleWallCalibrationAlgoTest1
     ${EXECUTABLE_OUTPUT_PATH}/SingleWallCalibrationAlgoTest
-    --input-seq-file=${TestDataDir}/SingleWallCalibrationTest.mhd 
+    --input-seq-file=${TestDataDir}/SingleWallCalibrationTest.mha 
     --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_File_SingleWallCalibrationAlgoTest.xml
     --verbose=2
     )

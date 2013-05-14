@@ -497,8 +497,7 @@ PlusStatus vtkSingleWallCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* a
 
   if( LineSegmenter->ReadConfiguration(aConfig) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Unable to perform line segmentation configuration.");
-    return PLUS_FAIL;
+    LOG_WARNING("Unable to perform line segmentation configuration. Defaults will be used.");
   }
 
   double pixelPerMmInX(1.0);

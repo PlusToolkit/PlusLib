@@ -773,6 +773,17 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
     LOG_ERROR("Unable to find acquisition rate in device element when it is required.");
   }
 
+  // Continue with device configuration
+  const char* referenceName = deviceXMLElement->GetAttribute("ToolReferenceFrame");
+  if ( referenceName != NULL )
+  {
+    this->SetToolReferenceFrameName(referenceName);
+  }
+  else
+  {
+    LOG_WARNING("ToolReferenceFrame is undefined. Default of \"Tracker\" will be used.");
+  }
+
   vtkXMLDataElement* outputChannelsElement = deviceXMLElement->FindNestedElementWithName("OutputChannels");
   if( outputChannelsElement != NULL )
   {
