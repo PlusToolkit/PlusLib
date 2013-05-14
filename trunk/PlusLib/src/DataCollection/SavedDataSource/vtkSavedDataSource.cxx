@@ -735,6 +735,7 @@ PlusStatus vtkSavedDataSource::NotifyConfigured()
   if( this->OutputChannels.size() > 1 )
   {
     LOG_WARNING("vtkSavedDataSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
+    this->SetCorrectlyConfigured(false);
     return PLUS_FAIL;
   }
 
@@ -751,6 +752,7 @@ PlusStatus vtkSavedDataSource::NotifyConfigured()
     if( this->GetOutputBuffer() == NULL )
     {
       LOG_ERROR("Buffer not created for vtkSavedDataSource but it is required. Check configuration.");
+      this->SetCorrectlyConfigured(false);
       return PLUS_FAIL;
     }
     break;
@@ -759,6 +761,7 @@ PlusStatus vtkSavedDataSource::NotifyConfigured()
     break;
   default:
     LOG_ERROR("Unknown stream type: " << this->SimulatedStream);
+    this->SetCorrectlyConfigured(false);
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
@@ -930,4 +933,29 @@ vtkPlusBuffer* vtkSavedDataSource::GetOutputBuffer()
     LOG_WARNING("vtkSavedDataSource OutputBuffer is invalid");
   }
   return buff;
+}
+
+//----------------------------------------------------------------------------
+bool vtkSavedDataSource::IsTracker() const
+{
+  if( this->Tools.size() > 0 )
+  {
+    return true;
+  }
+
+  for( DataSourceContainerConstIterator it = this->VideoSources.begin(); it != this->VideoSources.end(); ++it )
+  {
+    vtkPlusDataSource* aSource = it->second;
+    StreamBufferItem item;
+    vtkPlusBuffer* buff = aSource->GetBuffer();
+    if( buff->GetNumberOfItems() > 0 && buff->GetOldestStreamBufferItem(&item) == ITEM_OK )
+    {
+      if( item.HasValidTransformData() )
+      {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }

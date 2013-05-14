@@ -54,6 +54,8 @@ public:
   /*! Write configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);  
 
+  virtual bool IsTracker() const { return true; }
+
 protected:
 
   vtkChRoboticsTracker();

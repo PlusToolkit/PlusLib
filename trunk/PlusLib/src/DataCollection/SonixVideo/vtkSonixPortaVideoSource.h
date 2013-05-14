@@ -239,6 +239,7 @@ protected:
   /*! For internal use only */
   PlusStatus GetParamValue(char* paramId, int& paramValue, int &validatedParamValue);
 
+  virtual bool IsTracker() const { return false; }
         
 private:
  

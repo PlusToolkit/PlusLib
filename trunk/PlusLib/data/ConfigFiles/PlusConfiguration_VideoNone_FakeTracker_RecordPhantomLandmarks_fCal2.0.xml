@@ -11,6 +11,7 @@
       Type="FakeTracker" 
       AcquisitionRate="20"
       LocalTimeOffsetSec="0.0"
+      ToolReferenceFrame="Tracker" 
       Mode="RecordPhantomLandmarks" >
       <DataSources>
         <DataSource Type="Tool" Id="Reference" BufferSize="1000" AveragedItemsForFiltering="20" PortName="0" />

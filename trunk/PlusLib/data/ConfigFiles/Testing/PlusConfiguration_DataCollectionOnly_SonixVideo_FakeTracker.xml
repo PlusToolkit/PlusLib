@@ -13,6 +13,7 @@
       LocalTimeOffsetSec="0.0"
       DefaultToolName="Stylus"
       Mode="PivotCalibration"
+      ToolReferenceFrame="Tracker" 
       ReferenceToolName="Reference" >
       <DataSources>
         <DataSource Type="Tool" Id="Reference" BufferSize="200" AveragedItemsForFiltering="20" PortName="0"/> 
