@@ -65,9 +65,6 @@ protected:
   */
   bool IsReadyToStartSpatialCalibration();
 
-  /*! Prepares and shows the last segmented points from the current acquisition */
-  void DisplaySegmentedPoints();
-
   /*! Set and save calibration results */
   PlusStatus SetAndSaveResults();
 

@@ -85,16 +85,9 @@ void SingleWallCalibrationToolbox::OnActivated()
     return;
   }
 
-  // Clear results polydata
-  if(m_ParentMainWindow->GetVisualizationController()->GetResultPolyData() != NULL)
-  {
-    m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->Initialize();
-  }
-
   if ( (m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL)
     && (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetConnected()))
   {
-    /*
     if (m_Calibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
     {
       LOG_ERROR("Reading single wall calibration configuration failed!");
@@ -117,7 +110,6 @@ void SingleWallCalibrationToolbox::OnActivated()
     {
       SetDisplayAccordingToState();
     }
-    */
   }
   else
   {
@@ -348,23 +340,7 @@ void SingleWallCalibrationToolbox::SetDisplayAccordingToState()
     ui.pushButton_OpenPhantomRegistration->setEnabled(true);
 
     ui.label_InstructionsSpatial->setText(tr("Spatial calibration is ready to save"));
-
-    //if (m_Calibration->GetCalibrationReprojectionError3DMean() >= 2.0)
-    //{
-//      ui.label_Warning->setPaletteForegroundColor(QColor::fromRgb(223, 0, 0));
-      //ui.label_Warning->setVisible(true);
-      //ui.label_Warning->setText(tr("Calibration error is too high!\n  Please re-calibrate"));
-    //}
-    //else if (m_Calibration->GetCalibrationReprojectionError3DMean() >= 1.0)
-    //{
-//      ui.label_Warning->setPaletteForegroundColor(QColor::fromRgb(255, 128, 0));
-      //ui.label_Warning->setVisible(true);
-      //ui.label_Warning->setText(tr("Calibration error is relatively high!\n  Consider re-calibrating"));
-    //}
-    //else
-    //{
-      ui.label_Warning->setVisible(false);
-    //}
+    ui.label_Warning->setVisible(false);
     ui.label_Results->setText(m_Calibration->GetResultString().c_str());
 
     ui.pushButton_StartSpatial->setEnabled(true);
@@ -399,7 +375,6 @@ void SingleWallCalibrationToolbox::StartCalibration()
 {
   LOG_INFO("Spatial calibration started");
 
-  /*
   m_ParentMainWindow->SetToolboxesEnabled(false);
 
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
@@ -412,6 +387,7 @@ void SingleWallCalibrationToolbox::StartCalibration()
     LOG_ERROR("Failed to get tool reference frame name!");
     return;
   }
+
   toolReferenceFrame = m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->GetToolReferenceFrameName();
   PlusTransformName transformNameForValidation(m_ParentMainWindow->GetProbeCoordinateFrame(), toolReferenceFrame.c_str());
   m_SpatialCalibrationData->SetFrameTransformNameForValidation(transformNameForValidation);
@@ -438,7 +414,6 @@ void SingleWallCalibrationToolbox::StartCalibration()
 
   // Start calibration and compute results on success
   DoCalibration();
-  */
 }
 
 //-----------------------------------------------------------------------------
@@ -450,7 +425,133 @@ void SingleWallCalibrationToolbox::DoCalibration()
   // Get current time
   double startTimeSec = vtkAccurateTimer::GetSystemTime();
 
-  double waitTimeMs = 1000.0;
+  // Calibrate if acquisition is ready
+  if ( m_NumberOfSegmentedCalibrationImages >= m_NumberOfCalibrationImagesToAcquire
+    && m_NumberOfSegmentedValidationImages >= m_NumberOfValidationImagesToAcquire)
+  {
+    LOG_INFO("Segmentation success rate: " << m_NumberOfSegmentedCalibrationImages + m_NumberOfSegmentedValidationImages << " out of " << m_SpatialCalibrationData->GetNumberOfTrackedFrames() + m_SpatialValidationData->GetNumberOfTrackedFrames() << " (" << (int)(((double)(m_NumberOfSegmentedCalibrationImages + m_NumberOfSegmentedValidationImages) / (double)(m_SpatialCalibrationData->GetNumberOfTrackedFrames() + m_SpatialValidationData->GetNumberOfTrackedFrames())) * 100.0 + 0.49) << " percent)");
+
+    m_Calibration->SetTrackedFrameList(m_SpatialCalibrationData);
+
+    if (m_Calibration->Calibrate() != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Calibration failed!");
+      CancelCalibration();
+      return;
+    }
+
+    if (SetAndSaveResults() != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Setting and saving results failed!");
+      CancelCalibration();
+      return;
+    }
+
+    m_SpatialCalibrationData->Clear();
+    m_SpatialValidationData->Clear();
+
+    SetState(ToolboxState_Done);
+
+    m_ParentMainWindow->SetToolboxesEnabled(true);
+    m_ParentMainWindow->GetVisualizationController()->EnableWireLabels(false);
+    m_ParentMainWindow->GetVisualizationController()->ShowResult(false);
+
+    return;
+  }
+
+
+  // Cancel if requested
+  if (m_CancelRequest)
+  {
+    LOG_INFO("Calibration process cancelled by the user");
+    CancelCalibration();
+    return;
+  }
+
+  // Determine which data container to use
+  vtkTrackedFrameList* trackedFrameListToUse = NULL;
+  if (m_NumberOfSegmentedValidationImages < m_NumberOfValidationImagesToAcquire)
+  {
+    trackedFrameListToUse = m_SpatialValidationData;
+  }
+  else
+  {
+    trackedFrameListToUse = m_SpatialCalibrationData;
+  }
+
+  int numberOfFramesBeforeRecording = trackedFrameListToUse->GetNumberOfTrackedFrames();
+
+  // Acquire tracked frames since last acquisition (minimum 1 frame)
+  if (m_LastProcessingTimePerFrameMs<1)
+  {
+    // if processing was less than 1ms/frame then assume it was 1ms (1000FPS processing speed) to avoid division by zero
+    m_LastProcessingTimePerFrameMs=1;
+  }
+  int numberOfFramesToGet = std::max(m_MaxTimeSpentWithProcessingMs / m_LastProcessingTimePerFrameMs, 1);
+
+  if ( m_ParentMainWindow->GetSelectedChannel() != NULL && m_ParentMainWindow->GetSelectedChannel()->GetTrackedFrameList(
+    m_LastRecordedFrameTimestamp, trackedFrameListToUse, numberOfFramesToGet) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 
+    CancelCalibration();
+    return; 
+  }
+
+  // Do line segmentation now? If it can keep up with processing, we could do segmentation now and reject frames that don't fit
+  // TODO: yes, do this, in the future
+
+  // Segment last recorded images
+  int numberOfNewlySegmentedImages = trackedFrameListToUse->GetNumberOfTrackedFrames();
+  //PatternRecognitionError error(PATTERN_RECOGNITION_ERROR_NO_ERROR);
+  //if ( m_PatternRecognition->RecognizePattern(trackedFrameListToUse, error, &numberOfNewlySegmentedImages) != PLUS_SUCCESS )
+  //{
+    //LOG_ERROR("Failed to segment tracked frame list!"); 
+    //CancelCalibration();
+    //return; 
+  //}
+  //if( error == PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES )
+  //{
+    //LOG_WARNING("Too many candidates in frame. Some candidates have been truncated to prevent freezing of the application.");
+  //}
+
+  if (m_NumberOfSegmentedValidationImages < m_NumberOfValidationImagesToAcquire)
+  {
+    m_NumberOfSegmentedValidationImages += numberOfNewlySegmentedImages;
+  }
+  else
+  {
+    m_NumberOfSegmentedCalibrationImages += numberOfNewlySegmentedImages;
+  }
+
+  LOG_DEBUG("Number of segmented images in this round: " << numberOfNewlySegmentedImages << " out of " << trackedFrameListToUse->GetNumberOfTrackedFrames() - numberOfFramesBeforeRecording);
+
+  // Update progress if tracked frame has been successfully added
+  int progressPercent = (int)(((m_NumberOfSegmentedCalibrationImages + m_NumberOfSegmentedValidationImages) / (double)(std::max(m_NumberOfValidationImagesToAcquire, m_NumberOfSegmentedValidationImages) + m_NumberOfCalibrationImagesToAcquire)) * 100.0);
+  m_ParentMainWindow->SetStatusBarProgress(progressPercent);
+
+  // Compute time spent with processing one frame in this round
+  double computationTimeMs = (vtkAccurateTimer::GetSystemTime() - startTimeSec) * 1000.0;
+
+  // Update last processing time if new tracked frames have been acquired
+  if (trackedFrameListToUse->GetNumberOfTrackedFrames() > numberOfFramesBeforeRecording)
+  {
+    m_LastProcessingTimePerFrameMs = computationTimeMs / (trackedFrameListToUse->GetNumberOfTrackedFrames() - numberOfFramesBeforeRecording);
+  }
+
+  // Launch timer to run acquisition again
+  int waitTimeMs = std::max((int)(m_RecordingIntervalMs - computationTimeMs), 0);
+
+  if (waitTimeMs == 0)
+  {
+    LOG_WARNING("Processing cannot keep up with aquisition! Try to decrease MaxTimeSpentWithProcessingMs parameter in device set configuration (it should be more than the processing time (the last one was " << m_LastProcessingTimePerFrameMs << "), so if it is already small, try to increase RecordingIntervalMs too)");
+  }
+
+  LOG_DEBUG("Number of requested frames: " << numberOfFramesToGet);
+  LOG_DEBUG("Number of tracked frames in the list: " << std::setw(3) << numberOfFramesBeforeRecording << " => " << trackedFrameListToUse->GetNumberOfTrackedFrames());
+  LOG_DEBUG("Last processing time: " << m_LastProcessingTimePerFrameMs);
+  LOG_DEBUG("Computation time: " << computationTimeMs);
+  LOG_DEBUG("Waiting time: " << waitTimeMs);
+
   QTimer::singleShot(waitTimeMs, this, SLOT(DoCalibration())); 
 }
 
@@ -512,7 +613,6 @@ void SingleWallCalibrationToolbox::CancelCalibration()
 {
   LOG_INFO("Calibration cancelled");
 
-  /*
   m_CancelRequest = true;
 
   m_ParentMainWindow->SetToolboxesEnabled(true);
@@ -520,7 +620,6 @@ void SingleWallCalibrationToolbox::CancelCalibration()
   m_ParentMainWindow->GetVisualizationController()->ShowResult(false);
 
   SetState(ToolboxState_Idle);
-  */
 }
 
 //-----------------------------------------------------------------------------
@@ -533,38 +632,6 @@ bool SingleWallCalibrationToolbox::IsReadyToStartSpatialCalibration()
   ui.label_InstructionsSpatial->setText(tr("Press Start and start scanning the phantom"));
 
   return true;
-}
-
-//-----------------------------------------------------------------------------
-
-void SingleWallCalibrationToolbox::DisplaySegmentedPoints()
-{
-  LOG_TRACE("SpatialCalibrationToolbox::DisplaySegmentedPoints");
-
-  // Determine which data container to use
-  vtkTrackedFrameList* trackedFrameListToUse = NULL;
-  if (m_NumberOfSegmentedValidationImages < m_NumberOfValidationImagesToAcquire)
-  {
-    trackedFrameListToUse = m_SpatialValidationData;
-  }
-  else
-  {
-    trackedFrameListToUse = m_SpatialCalibrationData;
-  }
-
-  // Look for last segmented image and display the points
-  for (int i=trackedFrameListToUse->GetNumberOfTrackedFrames() - 1; i>=0; --i)
-  {
-    TrackedFrame * frame = trackedFrameListToUse->GetTrackedFrame(i);
-    vtkPoints* segmentedPoints = trackedFrameListToUse->GetTrackedFrame(i)->GetFiducialPointsCoordinatePx();
-    if (segmentedPoints)
-    {
-      m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->SetPoints(segmentedPoints);
-      m_ParentMainWindow->GetVisualizationController()->SetWireLabelPositions(segmentedPoints);
-      m_ParentMainWindow->GetVisualizationController()->ShowResult(true);
-      break;
-    }
-  }
 }
 
 //-----------------------------------------------------------------------------
