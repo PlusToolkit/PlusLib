@@ -9,7 +9,7 @@ See License.txt for details.
 
 #include "PlusCommon.h"
 #include "vtkObject.h"
-#include "vtkPlusDevice.h"
+#include "vtkPlusDeviceTypes.h"
 #include <vector>
 
 class TrackedFrame;
@@ -17,9 +17,7 @@ class vtkDataCollector;
 class vtkTrackedFrameList;
 class vtkVirtualMixer;
 class vtkXMLDataElement;
-
-typedef std::vector<vtkDataCollector*> DataCollectorCollection; 
-typedef DataCollectorCollection::iterator DataCollectorCollectionIterator;
+class vtkPlusDevice;
 
 /*!
 \class vtkDataCollector 
@@ -124,8 +122,6 @@ public:
   /*! Get startup delay in sec to give some time to the buffers for proper initialization */
   vtkGetMacro(StartupDelaySec, double);
 
-  static DataCollectorCollection& GetDataCollectors();
-
 protected:
   vtkDataCollector();
   virtual ~vtkDataCollector();
@@ -137,8 +133,6 @@ protected:
 
   bool Connected;
   bool Started;
-
-  static DataCollectorCollection DataCollectors;
 
 private:
   vtkDataCollector(const vtkDataCollector&);

@@ -64,6 +64,8 @@ public:
   vtkGetMacro(ActualFrameRate, double);
   vtkGetMacro(TotalFramesRecorded, long int);
 
+  virtual vtkDataCollector* GetDataCollector() { return this->DataCollector; }
+
 protected:
   virtual PlusStatus ClearRecordedFrames();
 

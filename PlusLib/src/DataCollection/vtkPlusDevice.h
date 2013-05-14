@@ -9,6 +9,7 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "TrackedFrame.h"
+#include "vtkDataCollector.h"
 #include "vtkImageAlgorithm.h"
 #include "vtkMultiThreader.h"
 #include "vtkPlusDeviceTypes.h"
@@ -17,8 +18,8 @@ See License.txt for details.
 
 class vtkGnuplotExecuter;
 class vtkHTMLGenerator;
-class vtkPlusChannel;
 class vtkPlusBuffer;
+class vtkPlusChannel;
 class vtkPlusDataSource;
 class vtkXMLDataElement;
 
@@ -35,7 +36,7 @@ GetSdkVersion(), ReadConfiguration(), WriteConfiguration() methods.
 class VTK_EXPORT vtkPlusDevice : public vtkImageAlgorithm
 {
 public:
-  static vtkPlusDevice *New();
+  static vtkPlusDevice* New();
   vtkTypeRevisionMacro(vtkPlusDevice, vtkImageAlgorithm);
   void PrintSelf(ostream& os, vtkIndent indent);
 
@@ -192,6 +193,9 @@ public:
 
   /*! Is the device correctly configured? */
   vtkGetMacro(CorrectlyConfigured, bool);
+
+  /*! Set the parent data collector */
+  vtkSetObjectMacro(DataCollector, vtkDataCollector);
 
   /*! Set buffer size of all available tools */
   void SetToolsBufferSize( int aBufferSize ); 
@@ -442,6 +446,8 @@ protected:
   vtkSetMacro(StartThreadForInternalUpdates, bool);
   vtkGetMacro(StartThreadForInternalUpdates, bool);
 
+  virtual vtkDataCollector* GetDataCollector() { return this->DataCollector; }
+
   vtkPlusDevice();
   virtual ~vtkPlusDevice();
 
@@ -473,6 +479,8 @@ protected:
 
   /*! Id of the device */
   char* DeviceId;
+
+  vtkDataCollector* DataCollector;
 
   /*! Acquisition rate */
   double AcquisitionRate;
