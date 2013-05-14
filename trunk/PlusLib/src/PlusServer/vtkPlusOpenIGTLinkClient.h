@@ -7,16 +7,14 @@
 #ifndef __VTKPLUSOPENIGTLINKCLIENT_H
 #define __VTKPLUSOPENIGTLINKCLIENT_H
 
+#include "igtlClientSocket.h"
+#include "igtlOSUtil.h"
+#include "vtkDataCollector.h"
+#include "vtkMultiThreader.h"
+#include "vtkObject.h"
+#include "vtkPlusCommand.h"
 #include <string>
 #include <vector>
-
-#include "vtkObject.h"
-
-#include "igtlOSUtil.h"
-#include "igtlClientSocket.h"
-
-#include "vtkDataCollector.h"
-#include "vtkPlusCommand.h"
 
 class vtkMultiThreader; 
 class vtkRecursiveCriticalSection;
@@ -29,10 +27,7 @@ class vtkRecursiveCriticalSection;
   
   \ingroup PlusLibDataCollection
 */
-class
-VTK_EXPORT 
-vtkPlusOpenIGTLinkClient
-: public vtkObject
+class VTK_EXPORT vtkPlusOpenIGTLinkClient : public vtkObject
 {
 public:
   

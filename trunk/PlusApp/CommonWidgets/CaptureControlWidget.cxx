@@ -41,9 +41,13 @@ CaptureControlWidget::~CaptureControlWidget()
 PlusStatus CaptureControlWidget::WriteToFile( const QString& aFilename )
 {
   // Force an update of the configuration
-  for( DataCollectorCollectionIterator it = vtkDataCollector::GetDataCollectors().begin(); it != vtkDataCollector::GetDataCollectors().end(); ++it)
+  if( this->GetCaptureDevice()->GetDataCollector() != NULL )
   {
-    (*it)->WriteConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() );
+    this->GetCaptureDevice()->GetDataCollector()->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+  }
+  else
+  {
+    LOG_WARNING("DataCollector is not accessible from this capture widget. Configuration can't be flushed.");
   }
 
   // Save
