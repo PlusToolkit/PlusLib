@@ -797,6 +797,24 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
         continue; 
       }
 
+      if( channelElement->GetAttribute("Id") == NULL )
+      {
+        LOG_ERROR("No channel Id present. Skipping channel configuration.");
+        continue;
+      }
+
+      bool skip(false);
+      for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it )
+      {
+        if( STRCASECMP((*it)->GetChannelId(), channelElement->GetAttribute("Id")) == 0 )
+        {
+          LOG_ERROR("Channel with duplicate channel Id. Skipping channel configuration.");
+          skip = true;
+          break;
+        }
+      }
+      if(skip) continue;
+
       vtkSmartPointer<vtkPlusChannel> aChannel = vtkSmartPointer<vtkPlusChannel>::New();
       aChannel->SetOwnerDevice(this);
       aChannel->ReadConfiguration(channelElement, this->RequireRfElementInDeviceSetConfiguration, this->RequireImageOrientationInConfiguration);
