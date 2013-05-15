@@ -164,7 +164,7 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
           vtkXMLDataElement* inputChannelElement = inputChannelsElement->GetNestedElement(i); 
           if( STRCASECMP(inputChannelElement->GetName(), "InputChannel") == 0 )
           {
-            // We have an input stream, lets find it
+            // We have an input channel, lets find it
             for( DeviceCollectionIterator it = Devices.begin(); it != Devices.end(); ++it )
             {
               vtkPlusDevice* device = (*it);
