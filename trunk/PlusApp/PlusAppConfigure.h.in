@@ -1,0 +1,18 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
+/* 
+ * Here is where system computed values get stored.
+ * These values should only change when the target compile platform changes.
+ */
+
+
+#ifndef __PlusAppConfigure_h
+#define __PlusAppConfigure_h
+
+#cmakedefine PLUSAPP_ENABLE_EXPERIMENTAL_GUI
+ 
+#endif // __PlusAppConfigure_h

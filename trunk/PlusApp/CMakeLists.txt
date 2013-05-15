@@ -14,7 +14,7 @@ ELSE ()
 ENDIF() 
 
 IF ( PlusLib_FOUND)
-	INCLUDE( ${PlusLib_USE_FILE} )
+  INCLUDE( ${PlusLib_USE_FILE} )
 ELSE( PlusLib_FOUND )
     MESSAGE( FATAL_ERROR "This project requires PlusLib. One of these components is missing. Please verify configuration")
 ENDIF( PlusLib_FOUND )
@@ -59,9 +59,10 @@ SET( PLUSAPP_SVN_EXECUTABLE ${Subversion_SVN_EXECUTABLE} )
 
 # Standard CMake option for building libraries shared or static by default.
 OPTION(BUILD_SHARED_LIBS
-       "Build with shared libraries."
-       ${VTK_BUILD_SHARED_LIBS}
-	   ${ITK_BUILD_SHARED_LIBS})    
+    "Build with shared libraries."
+    ${VTK_BUILD_SHARED_LIBS}
+    ${ITK_BUILD_SHARED_LIBS}
+    )    
 
 # --------------------------------------------------------------------------
 # Configure output paths for libraries and executables.
@@ -82,6 +83,7 @@ SET( INSTALL_DESTINATION_DIR "PlusApp_v${PLUSAPP_VERSION_MAJOR}.${PLUSAPP_VERSIO
 OPTION (PLUSAPP_BUILD_DiagnosticTools "Build the DiagnosticTools" ON)
 OPTION (PLUSAPP_BUILD_fCal "Build the fCal application (Qt)" ON)
 OPTION (PLUSAPP_TEST_GUI "Enable Sikuli GUI tests" ON)
+OPTION (PLUSAPP_ENABLE_EXPERIMENTAL_GUI OFF)
 
 # --------------------------------------------------------------------------
 # Packaging
@@ -106,25 +108,25 @@ ENDIF (PLUSAPP_BUILD_DiagnosticTools)
 # --------------------------------------------------------------------------
 # Build the fCal application (Qt)
 IF (PLUSAPP_BUILD_fCal)
-	ADD_SUBDIRECTORY(fCal)
-    ADD_DEPENDENCIES( fCal ${PLUSLIB_DEPENDENCIES} )
+  ADD_SUBDIRECTORY(fCal)
+  ADD_DEPENDENCIES( fCal ${PLUSLIB_DEPENDENCIES} )
 ENDIF (PLUSAPP_BUILD_fCal)
 
 #-----------------------------------------------------------------------------
 # Include PlusLib MS projects 
 INCLUDE_PLUSLIB_MS_PROJECTS()
 
-SET (PLUSAPP_INCLUDE_DIRS 	
-	${CMAKE_CURRENT_SOURCE_DIR}
-	${CMAKE_CURRENT_BINARY_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/CommonWidgets
-    ${CMAKE_CURRENT_BINARY_DIR}/CommonWidgets
-    )
+SET (PLUSAPP_INCLUDE_DIRS   
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/CommonWidgets
+  ${CMAKE_CURRENT_BINARY_DIR}/CommonWidgets
+  )
 # --------------------------------------------------------------------------
 # Create PlusApp target list 
 SET( PLUSAPP_TARGETS
-    CommonWidgets
-   )
+  CommonWidgets
+  )
 
 # Add all targets to the build-tree export set
 export(TARGETS ${PLUSAPP_TARGETS}
@@ -144,10 +146,10 @@ configure_file(PlusAppConfigVersion.cmake.in
 # Generate include file for projects that use this library 
 # 
 configure_file(
-	${CMAKE_CURRENT_SOURCE_DIR}/UsePlusApp.cmake.in 
-	${CMAKE_CURRENT_BINARY_DIR}/UsePlusApp.cmake
+  ${CMAKE_CURRENT_SOURCE_DIR}/UsePlusApp.cmake.in 
+  ${CMAKE_CURRENT_BINARY_DIR}/UsePlusApp.cmake
     @ONLY
-	)
+  )
 
 #-----------------------------------------------------------------------------
 # Generate default application configuration file for the install
@@ -159,25 +161,29 @@ SET( PLUSCONFIG_GNUPLOT_DIR "../gnuplot" )
 SET( PLUSCONFIG_SCRIPTS_DIR "../scripts" )
 
 configure_file(
-	${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
-	${CMAKE_CURRENT_BINARY_DIR}/PlusConfig.xml
-	)	
+  ${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
+  ${CMAKE_CURRENT_BINARY_DIR}/PlusConfig.xml
+  )  
 
 #-----------------------------------------------------------------------------
 # Generate convenience files for automatic build, test, and packaging
 # 
 configure_file(
-	${CMAKE_CURRENT_SOURCE_DIR}/CreatePackage.bat.in
-	${CMAKE_CURRENT_BINARY_DIR}/CreatePackage.bat
-	)	
+  ${CMAKE_CURRENT_SOURCE_DIR}/CreatePackage.bat.in
+  ${CMAKE_CURRENT_BINARY_DIR}/CreatePackage.bat
+  )  
 configure_file(
-	${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.bat.in 
-	${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.bat
-	)
+  ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.bat.in 
+  ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.bat
+  )
 configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.sh.in 
-        ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.sh
-        )
+  ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.sh.in 
+  ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.sh
+  )
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/PlusAppConfigure.h.in
+  ${CMAKE_CURRENT_BINARY_DIR}/PlusAppConfigure.h
+  )
 #-----------------------------------------------------------------------------
 # Install files 
 INCLUDE(InstallFiles.cmake)    

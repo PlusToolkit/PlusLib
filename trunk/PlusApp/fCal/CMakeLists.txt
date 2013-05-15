@@ -68,6 +68,7 @@ QT4_ADD_RESOURCES( fCal_QT_RCC_Files ${fCal_QT_Resources} )
 SOURCE_GROUP("Generated Files" FILES ${fCal_QT_MOC_Files} ${fCal_QT_UI_Headers} ${fCal_QT_MOC_UI_Files} ${fCal_QT_RCC_Files})
 SOURCE_GROUP("UI Files" FILES ${fCal_UI_SRCS})
 
+include_directories(${PlusApp_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Toolboxes)

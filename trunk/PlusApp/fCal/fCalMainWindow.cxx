@@ -184,7 +184,11 @@ void fCalMainWindow::CreateToolboxes()
   LOG_TRACE("fCalMainWindow::CreateToolboxes");
 
   // Resize toolbox list to the number of toolboxes
+#ifdef PLUSAPP_ENABLE_EXPERIMENTAL_GUI
   m_ToolboxList.resize(ToolboxType_Count);
+#else
+  m_ToolboxList.resize(ToolboxType_Count - 1);
+#endif
 
   // Configuration widget
   ConfigurationToolbox* configurationToolbox = new ConfigurationToolbox(this);
@@ -281,6 +285,7 @@ void fCalMainWindow::CreateToolboxes()
   }
   m_ToolboxList[ToolboxType_VolumeReconstruction] = volumeReconstructionToolbox;
 
+#ifdef PLUSAPP_ENABLE_EXPERIMENTAL_GUI
   // Single wall toolbox
   SingleWallCalibrationToolbox* singleWallToolbox = new SingleWallCalibrationToolbox(this);
   if (singleWallToolbox != NULL)
@@ -294,6 +299,9 @@ void fCalMainWindow::CreateToolboxes()
     ui.toolbox_SingleWallCalibration->setLayout(grid);
   }
   m_ToolboxList[ToolboxType_SingleWallCalibration] = singleWallToolbox;
+#else
+  ui.toolbox->removeItem(ui.toolbox_SingleWallCalibration);
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -360,10 +368,12 @@ void fCalMainWindow::CurrentToolboxChanged(int aToolboxIndex)
   {
     m_ActiveToolbox = ToolboxType_VolumeReconstruction;
   }
+#ifdef PLUSAPP_ENABLE_EXPERIMENTAL_GUI
   else if (currentToolboxText == QString("Single wall calibration"))
   {
     m_ActiveToolbox = ToolboxType_SingleWallCalibration;
   }
+#endif
   else
   {
     LOG_ERROR("No toolbox with this title found!");
