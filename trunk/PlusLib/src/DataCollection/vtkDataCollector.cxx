@@ -93,13 +93,25 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
       vtkPlusDevice* device = NULL;
       if( deviceElement->GetAttribute("Id") == NULL )
       {
-        LOG_ERROR("Device of type " << deviceElement->GetAttribute("Type") << " with no ID. Unable to continue operating with an incomplete device configuration.");
-        return PLUS_FAIL;
+        LOG_ERROR("Device of type " << ( deviceElement->GetAttribute("Type") == NULL ? "UNDEFINED" : deviceElement->GetAttribute("Type")) << " with no ID. Skipping device configuration.");
+        continue;
       }
+      bool skip(false);
+      for( DeviceCollectionIterator it = this->Devices.begin(); it != this->Devices.end(); ++it )
+      {
+        if( STRCASECMP((*it)->GetDeviceId(), deviceElement->GetAttribute("Id")) == 0 )
+        {
+          LOG_ERROR("Device already exists with Id:\'" << (*it)->GetDeviceId() << "\'. Skipping configuration of second device.");
+          skip = true;
+          break;
+        }
+      }
+      if( skip ) continue;
+
       if( factory->CreateInstance(deviceElement->GetAttribute("Type"), device, deviceElement->GetAttribute("Id")) == PLUS_FAIL )
       {    
         LOG_ERROR("Unable to create device: " << deviceElement->GetAttribute("Type"));
-        return PLUS_FAIL;
+        continue;
       }
       device->SetDataCollector(this);
       device->ReadConfiguration(aConfig);
