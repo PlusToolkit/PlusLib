@@ -1,0 +1,36 @@
+<PhantomDefinition>
+  <Description
+    Name="fCAL"
+    Type="Double-N"
+    Version="1.2"
+    WiringVersion="1.1"
+    Institution="Queen's University PerkLab"
+  />   
+  <Geometry>
+    <Pattern Type="NWire">
+      <Wire Name="1:E2_e2" EndPointFront="20.0 0.0 10.0" EndPointBack="20.0 40.0 10.0" />
+      <Wire Name="2:I2_f2" EndPointFront="40.0 0.0 10.0" EndPointBack="25.0 40.0 10.0" />
+      <Wire Name="3:J2_j2" EndPointFront="45.0 0.0 10.0" EndPointBack="45.0 40.0 10.0" />
+    </Pattern>
+    <Pattern Type="NWire">
+      <Wire Name="4:E3_e3" EndPointFront="20.0 0.0 5.0" EndPointBack="20.0 40.0 5.0" />
+      <Wire Name="5:F3_j3" EndPointFront="25.0 0.0 5.0" EndPointBack="45.0 40.0 5.0" />
+      <Wire Name="6:K3_k3" EndPointFront="50.0 0.0 5.0" EndPointBack="50.0 40.0 5.0" />
+    </Pattern>
+    <Pattern Type="NWire">
+      <Wire Name="7:E4_e4" EndPointFront="20.0 0.0 0.0" EndPointBack="20.0 40.0 0.0" />
+      <Wire Name="8:J4_f4" EndPointFront="45.0 0.0 0.0" EndPointBack="25.0 40.0 0.0" />
+      <Wire Name="9:K4_k4" EndPointFront="50.0 0.0 0.0" EndPointBack="50.0 40.0 0.0" />
+    </Pattern>
+    <Landmarks>
+      <Landmark Name="#1" Position="95.0 5.0 15.0" />
+      <Landmark Name="#2" Position="95.0 40.0 15.0" />
+      <Landmark Name="#3" Position="95.0 40.0 0.0" />
+      <Landmark Name="#4" Position="95.0 0.0 0.0" />        
+      <Landmark Name="#5" Position="-25.0 40.0 15.0" />
+      <Landmark Name="#6" Position="-25.0 0.0 10.0" />
+      <Landmark Name="#7" Position="-25.0 0.0 0.0" />
+      <Landmark Name="#8" Position="-25.0 40.0 0.0" />
+    </Landmarks>   
+  </Geometry>
+</PhantomDefinition>
