@@ -922,3 +922,13 @@ PlusStatus vtkLineSegmentationAlgo::ReadConfiguration( vtkXMLDataElement* aConfi
 
   return PLUS_SUCCESS;
 }
+
+//----------------------------------------------------------------------------
+PlusStatus vtkLineSegmentationAlgo::Reset()
+{
+  m_SignalValues.clear();
+  m_SignalTimestamps.clear();
+  m_LineParameters.clear();
+
+  return PLUS_SUCCESS;
+}
