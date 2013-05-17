@@ -72,6 +72,8 @@ public:
   
   void SetIntermediateFilesOutputDirectory(const std::string &outputDirectory);
 
+  PlusStatus Reset();
+
 protected:
   vtkLineSegmentationAlgo();
   virtual ~vtkLineSegmentationAlgo();
