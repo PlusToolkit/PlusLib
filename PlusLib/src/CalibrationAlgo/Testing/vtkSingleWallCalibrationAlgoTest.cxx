@@ -27,12 +27,14 @@ int main(int argc, char **argv)
   args.Initialize(argc, argv);
 
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  bool print(false);
   std::string inputConfigFile;
   std::string trackedFramesFileLocation;
 
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFile, "Config file containing the device configuration.");
   args.AddArgument("--input-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &trackedFramesFileLocation, "The location of the meta file.");
-  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level 1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level 1=error only, 2=warning, 3=info, 4=debug, 5=trace");	
+  args.AddArgument("--print", vtksys::CommandLineArguments::NO_ARGUMENT, &print, "Print resultant matrix");	
  
   if ( !args.Parse() )
   {
@@ -72,6 +74,15 @@ int main(int argc, char **argv)
   }
   aCalibration->SetTrackedFrameList(reader->GetTrackedFrameList());
   aCalibration->Calibrate();
+
+  if( print )
+  {
+    LOG_INFO("ImageToProbeTransformation: ");
+    vtkMatrix4x4* aMatrix = vtkMatrix4x4::New();
+    aMatrix->DeepCopy(&aCalibration->GetImageToProbeTransformation());
+    aMatrix->Print(std::cout);
+    aMatrix->Delete();
+  }
 
   return EXIT_SUCCESS; 
 }
