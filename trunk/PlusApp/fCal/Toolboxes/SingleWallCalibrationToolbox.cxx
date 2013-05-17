@@ -48,7 +48,6 @@ SingleWallCalibrationToolbox::SingleWallCalibrationToolbox(fCalMainWindow* aPare
   ui.label_Results->setFont(QFont("Courier", 8));
 
   // Connect events
-  connect( ui.pushButton_OpenPhantomRegistration, SIGNAL( clicked() ), this, SLOT( OpenPhantomRegistration() ) );
   connect( ui.pushButton_StartSpatial, SIGNAL( clicked() ), this, SLOT( StartCalibration() ) );
   connect( ui.pushButton_CancelSpatial, SIGNAL( clicked() ), this, SLOT( CancelCalibration() ) );
 }
