@@ -80,6 +80,11 @@ int main(int argc, char **argv)
     LOG_INFO("ImageToProbeTransformation: ");
     vtkMatrix4x4* aMatrix = vtkMatrix4x4::New();
     aMatrix->DeepCopy(&aCalibration->GetImageToProbeTransformation());
+    vnl_vector<double> col(3);
+    col[0] = aCalibration->GetImageToProbeTransformation()[0][0];
+    col[1] = aCalibration->GetImageToProbeTransformation()[1][0];
+    col[2] = aCalibration->GetImageToProbeTransformation()[2][0];
+    LOG_INFO("Image spacing: " << col.magnitude());
     aMatrix->Print(std::cout);
     aMatrix->Delete();
   }
