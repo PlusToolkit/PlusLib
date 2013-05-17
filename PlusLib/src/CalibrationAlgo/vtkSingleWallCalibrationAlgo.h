@@ -75,8 +75,8 @@ protected:
   vtkTrackedFrameList*      TrackedFrameList;
   vtkLineSegmentationAlgo*  LineSegmenter;
   vtkMatrix4x4*             ImageToProbeTransformation;
-  double                    PixelPerMmInX; // image width in mm / image pixel size X
-  double                    PixelPerMmInY; // image deoth in mm / image pixel size Y
+  double                    MmPerPixelX; // image width in mm / image pixel size X
+  double                    MmPerPixelY; // image depth in mm / image pixel size Y
 
   char* ImageCoordinateFrame;
   char* ProbeCoordinateFrame;

@@ -31,7 +31,8 @@ vtkSingleWallCalibrationAlgo::vtkSingleWallCalibrationAlgo()
 : TrackedFrameList(NULL)
 , LineSegmenter(NULL)
 , ImageToProbeTransformation(NULL)
-, PixelPerMmInX(1.0)
+, MmPerPixelX(1.0)
+, MmPerPixelY(1.0)
 , ImageCoordinateFrame(NULL)
 , ProbeCoordinateFrame(NULL)
 , ReferenceCoordinateFrame(NULL)
@@ -197,7 +198,7 @@ PlusStatus vtkSingleWallCalibrationAlgo::Calibrate()
 
   {
     TrackedFrame* firstFrame = this->TrackedFrameList->GetTrackedFrame(0);
-    PlusTransformName probeToReferenceName("Probe", "Reference");
+    PlusTransformName probeToReferenceName(this->GetProbeCoordinateFrame(), this->GetReferenceCoordinateFrame());
     if( firstFrame->GetCustomFrameTransform(probeToReferenceName, aProbeToReferenceTransform) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to locate ProbeToReferenceTransform in first frame of tracked frame list.");
@@ -217,7 +218,7 @@ PlusStatus vtkSingleWallCalibrationAlgo::Calibrate()
   for( int imageIndex = 0; imageIndex < this->TrackedFrameList->GetNumberOfTrackedFrames(); ++imageIndex )
   {
     TrackedFrame* aFrame = this->TrackedFrameList->GetTrackedFrame(imageIndex);
-    PlusTransformName probeToReferenceName("Probe", "Reference");
+    PlusTransformName probeToReferenceName(this->GetProbeCoordinateFrame(), this->GetReferenceCoordinateFrame());
     if( aFrame->GetCustomFrameTransform(probeToReferenceName, aProbeToReferenceTransform) != PLUS_SUCCESS )
     {
       LOG_WARNING("Unable to locate ProbeToReferenceTransform in frame " << imageIndex << " of tracked frame list.");
@@ -368,13 +369,13 @@ PlusStatus vtkSingleWallCalibrationAlgo::Calibrate()
   vnl_vector<double> Ui(3);
   vnl_vector<double> Vi(3);
   vnl_matrix<double> ci(this->TrackedFrameList->GetNumberOfTrackedFrames(), 1);
-  double Sx( this->PixelPerMmInX );
-  double Sy( this->PixelPerMmInY );
+  double Sx( this->MmPerPixelX );
+  double Sy( this->MmPerPixelY );
 
   for( int imageIndex = 0; imageIndex < this->TrackedFrameList->GetNumberOfTrackedFrames(); ++imageIndex )
   {
     TrackedFrame* aFrame = this->TrackedFrameList->GetTrackedFrame(imageIndex);
-    PlusTransformName probeToReferenceName("Probe", "Reference");
+    PlusTransformName probeToReferenceName(this->GetProbeCoordinateFrame(), this->GetReferenceCoordinateFrame());
     if( aFrame->GetCustomFrameTransform(probeToReferenceName, aProbeToReferenceTransform) != PLUS_SUCCESS )
     {
       LOG_WARNING("Unable to locate ProbeToReferenceTransform in frame " << imageIndex << " of tracked frame list.");
@@ -500,19 +501,19 @@ PlusStatus vtkSingleWallCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* a
     LOG_WARNING("Unable to perform line segmentation configuration. Defaults will be used.");
   }
 
-  double pixelPerMmInX(1.0);
-  if( !singleWallElement->GetScalarAttribute("PixelPerMmInX", pixelPerMmInX) )
+  double mmPerPixelX(1.0);
+  if( !singleWallElement->GetScalarAttribute("MmPerPixelInX", mmPerPixelX) )
   {
-    LOG_WARNING("No attribute \'PixelToMmInX\' defined in \'vtkSingleWallCalibrationAlgo\' element. Defaulting to " << pixelPerMmInX )
+    LOG_WARNING("No attribute \'MmPerPixelInX\' defined in \'vtkSingleWallCalibrationAlgo\' element. Defaulting to " << mmPerPixelX )
   }
-  this->PixelPerMmInX = pixelPerMmInX;
+  this->MmPerPixelX = mmPerPixelX;
 
-  double pixelPerMmInY(1.0);
-  if( !singleWallElement->GetScalarAttribute("PixelPerMmInY", pixelPerMmInY) )
+  double mmPerPixelY(1.0);
+  if( !singleWallElement->GetScalarAttribute("MmPerPixelInY", mmPerPixelY) )
   {
-    LOG_WARNING("No attribute \'PixelToMmInY\' defined in \'vtkSingleWallCalibrationAlgo\' element. Defaulting to " << pixelPerMmInY )
+    LOG_WARNING("No attribute \'MmPerPixelInY\' defined in \'vtkSingleWallCalibrationAlgo\' element. Defaulting to " << mmPerPixelY )
   }
-  this->PixelPerMmInY = pixelPerMmInY;
+  this->MmPerPixelY = mmPerPixelY;
 
   // Image coordinate frame name
   const char* imageCoordinateFrame = singleWallElement->GetAttribute("ImageCoordinateFrame");
