@@ -78,8 +78,8 @@
   <vtkProbeCalibrationAlgo ImageCoordinateFrame="Image" ProbeCoordinateFrame="Probe" PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference"/>
   <vtkLineSegmentationAlgo ClipRectangleOrigin="-1 -1" ClipRectangleSize="-1 -1"/>
   <vtkSingleWallCalibrationAlgo 
-    PixelPerMmInX="0.06473" 
-    PixelPerMmInY="0.06473" 
+    MmPerPixelInX="0.1" 
+    MmPerPixelInY="0.1" 
     ImageCoordinateFrame="Image" 
     ProbeCoordinateFrame="Probe" 
     ReferenceCoordinateFrame="Tracker"

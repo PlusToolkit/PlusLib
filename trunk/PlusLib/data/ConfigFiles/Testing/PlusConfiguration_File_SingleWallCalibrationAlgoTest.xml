@@ -5,8 +5,8 @@
     />
 
   <vtkSingleWallCalibrationAlgo
-    PixelPerMmInX="0.1024590163934426"
-    PixelPerMmInY="0.1123595505617978"
+    MmPerPixelInX="0.1024590163934426"
+    MmPerPixelInY="0.1123595505617978"
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"
     ReferenceCoordinateFrame="Reference"
