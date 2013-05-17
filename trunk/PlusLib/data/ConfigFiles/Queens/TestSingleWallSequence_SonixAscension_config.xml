@@ -1,0 +1,87 @@
+<PlusConfiguration version="2.3" PlusRevision="Plus-2.0.0.2782">
+  <DataCollection StartupDelaySec="1">
+    <DeviceSet Name="SonixTouch Ascension3DG(GPS) L14-5 + Single wall calibration" Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe. Take images similarly to the temporal calibration algo."/>
+    <Device
+      Id="TrackedVideoDevice"
+      Type="SavedDataSource"      
+      SequenceMetafile="TestSingleWallSequence_SonixAscension.mha"
+      UseData="IMAGE_AND_TRANSFORM"
+      UseOriginalTimestamps="TRUE"
+      RepeatEnabled="TRUE">
+      <DataSources>
+        <DataSource Type="Video" Id="Video" BufferSize="400" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+  </DataCollection>
+  <CoordinateDefinitions>
+    <Transform From="Image" To="TransducerOriginPixel"
+      Matrix="
+        1	0	0	-410
+        0	1	0	5
+        0	0	1	0
+        0	0	0	1"
+       Date="2011.12.06 17:57:00"/>
+  </CoordinateDefinitions>
+  <Rendering WorldCoordinateFrame="Tracker">
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" Id="ProbeModel" File="L14-5_38_ProbeModel.stl"
+      ModelToObjectTransform="
+        -1	0	0	29.7
+        0	-1	0	1.5
+        0	0	1	-14
+        0	0	0	1"
+      />
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="Tracker" Id="Volume"/>
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel" File="Stylus_Example.stl"
+      ModelToObjectTransform="
+        1	0	0	-210
+        0	1	0	0
+        0	0	1	0
+        0	0	0	1"
+      />
+    <DisplayableObject
+      Id="PhantomModel"
+      Type="Model"
+      ObjectCoordinateFrame="Phantom"
+      Opacity="0.6"
+      File="FCal_2.0.stl"
+      ModelToObjectTransform="
+        1	0	0	-35
+        0	1	0	-10
+        0	0	1	-5
+        0	0	0	1"/>
+    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
+  </Rendering>
+
+  <fCal
+    PhantomModelId="PhantomModel"
+    ReconstructedVolumeId="Volume"
+    TransducerModelId="ProbeModel"
+    StylusModelId="StylusModel"
+    ImageDisplayableObjectId="LiveImage"
+    NumberOfCalibrationImagesToAcquire="200"
+    NumberOfValidationImagesToAcquire="100"
+    NumberOfStylusCalibrationPointsToAcquire="200"
+    RecordingIntervalMs="100"
+    MaxTimeSpentWithProcessingMs="70"
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Probe"
+    ReferenceCoordinateFrame="Tracker"
+    TransducerOriginCoordinateFrame="TransducerOrigin"
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+    TemporalCalibrationDurationSec="10"
+    DefaultSelectedChannelId="TrackedVideoStream"/>
+  <vtkPivotCalibrationAlgo ObjectMarkerCoordinateFrame="Stylus" ReferenceCoordinateFrame="Reference" ObjectPivotPointCoordinateFrame="StylusTip"/>
+  <vtkPhantomRegistrationAlgo PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference" StylusTipCoordinateFrame="StylusTip"/>
+  <vtkProbeCalibrationAlgo ImageCoordinateFrame="Image" ProbeCoordinateFrame="Probe" PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference"/>
+  <vtkLineSegmentationAlgo ClipRectangleOrigin="-1 -1" ClipRectangleSize="-1 -1"/>
+  <vtkSingleWallCalibrationAlgo 
+    PixelPerMmInX="0.06473" 
+    PixelPerMmInY="0.06473" 
+    ImageCoordinateFrame="Image" 
+    ProbeCoordinateFrame="Probe" 
+    ReferenceCoordinateFrame="Tracker"
+  />
+</PlusConfiguration>
