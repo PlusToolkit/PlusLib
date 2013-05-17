@@ -332,7 +332,7 @@ void SingleWallCalibrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->SetStatusBarText(QString(" Acquiring and adding images to calibrator"));
     m_ParentMainWindow->SetStatusBarProgress(0);
 
-    ui.label_InstructionsSpatial->setText(tr("Scan the phantom until the progress bar is filled. Keep the image plane approximately orthogonal to the wires and translate in all directions.\nIf the segmentation does not work (green dots on wires do not appear) then cancel and edit segmentation parameters"));
+    ui.label_InstructionsSpatial->setText(tr("Scan the bottom of your tank until the progress bar is filled."));
     ui.pushButton_StartSpatial->setEnabled(false);
     ui.pushButton_CancelSpatial->setEnabled(true);
     ui.pushButton_CancelSpatial->setFocus();

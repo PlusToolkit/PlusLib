@@ -1,6 +1,6 @@
 <PlusConfiguration version="2.3" PlusRevision="Plus-2.0.0.2782">
   <DataCollection StartupDelaySec="1">
-    <DeviceSet Name="SonixTouch Ascension3DG(GPS) L14-5 + Single wall calibration" Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe. Take images similarly to the temporal calibration algo."/>
+    <DeviceSet Name="Saved SonixTouch Ascension3DG(GPS) L14-5 + Single wall calibration" Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe. Take images similarly to the temporal calibration algo."/>
     <Device
       Id="TrackedVideoDevice"
       Type="SavedDataSource"      
