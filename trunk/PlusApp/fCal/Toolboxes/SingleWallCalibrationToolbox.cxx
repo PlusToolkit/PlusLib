@@ -503,7 +503,7 @@ void SingleWallCalibrationToolbox::DoCalibration()
   // TODO: yes, do this, in the future
 
   // Segment last recorded images
-  int numberOfNewlySegmentedImages = trackedFrameListToUse->GetNumberOfTrackedFrames();
+  int numberOfNewlySegmentedImages = trackedFrameListToUse->GetNumberOfTrackedFrames() - numberOfFramesBeforeRecording;
   //PatternRecognitionError error(PATTERN_RECOGNITION_ERROR_NO_ERROR);
   //if ( m_PatternRecognition->RecognizePattern(trackedFrameListToUse, error, &numberOfNewlySegmentedImages) != PLUS_SUCCESS )
   //{
