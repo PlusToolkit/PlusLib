@@ -85,7 +85,7 @@ int main(int argc, char **argv)
   double samplingResolutionSec = 0.001; //  Resolution used for re-sampling [s]
   std::string probeToReferenceTransformNameStr;
   const std::string DEFAULT_PROBE_TO_REFERENCE_TRANSFORM_NAME="ProbeToReference";
-  double maxTimeOffsetSec=2.0;
+  double maxTimeOffsetSec=0.5;
   std::vector<int> clipRectOrigin;
   std::vector<int> clipRectSize;
 

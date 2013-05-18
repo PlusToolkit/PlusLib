@@ -20,14 +20,14 @@ static const double MINIMUM_VIDEO_SIGNAL_PEAK_TO_PEAK_PIXEL = 30.0; // If the vi
 static const double TIMESTAMP_EPSILON_SEC = 0.0001; // Temporal resolution below which two time values are considered identical
 static const double MINIMUM_SAMPLING_RESOLUTION_SEC = 0.00001; // The maximum resolution that the user can request
 static const double DEFAULT_SAMPLING_RESOLUTION_SEC = 0.001; 
-static const double DEFAULT_MAX_TRACKER_LAG_SEC = 2.0;
+static const double DEFAULT_MAX_TRACKER_LAG_SEC = 0.5;
 
 enum SignalAlignmentMetricType                                                    { SSD,    CORRELATION, SAD,  SIGNAL_METRIC_TYPE_COUNT };
 static const double SIGNAL_ALIGNMENT_METRIC_THRESHOLD[SIGNAL_METRIC_TYPE_COUNT] = { -2^500, -2^500,      2^500 };
 const SignalAlignmentMetricType SIGNAL_ALIGNMENT_METRIC = SSD;
 
 enum MetricNormalizationType { STD, AMPLITUDE };
-const MetricNormalizationType METRIC_NORMALIZATION = AMPLITUDE;
+const MetricNormalizationType METRIC_NORMALIZATION = STD;
 
 //-----------------------------------------------------------------------------
 TemporalCalibration::TemporalCalibration() : 
