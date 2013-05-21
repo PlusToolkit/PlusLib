@@ -326,9 +326,9 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
           }
           if (m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->GetTransformError(phantomToReferenceTransformName, error) == PLUS_SUCCESS)
           {
-            char phantomToReferenceTransformErrorChars[32];
-            SNPRINTF(phantomToReferenceTransformErrorChars, 32, "%.3lf", error);
-            errorStr = phantomToReferenceTransformErrorChars;
+            std::stringstream ss;
+            ss << std::fixed << error;
+            errorStr = ss.str();
           }
           else
           {

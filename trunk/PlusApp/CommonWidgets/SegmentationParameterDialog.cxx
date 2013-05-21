@@ -1228,15 +1228,12 @@ PlusStatus SegmentationParameterDialog::WriteConfiguration()
 
   segmentationParameters->SetDoubleAttribute("MorphologicalOpeningBarSizeMm", ui.doubleSpinBox_OpeningBarSize->value());
 
-  char originChars[64];
-  char sizeChars[64];
-  SNPRINTF(originChars, 64, "%d %d", ui.spinBox_XMin->value(), ui.spinBox_YMin->value() );
-  SNPRINTF(sizeChars, 64, "%d %d", 
-    ui.spinBox_XMax->value() - ui.spinBox_XMin->value(), 
-    ui.spinBox_YMax->value() - ui.spinBox_YMin->value() 
-    );
-  segmentationParameters->SetAttribute("ClipRectangleOrigin", originChars);
-  segmentationParameters->SetAttribute("ClipRectangleSize", sizeChars);
+  std::stringstream originSs;
+  std::stringstream sizeSs;
+  originSs << ui.spinBox_XMin->value() << " " << ui.spinBox_YMin->value();
+  sizeSs << ui.spinBox_XMax->value() - ui.spinBox_XMin->value() << " " << ui.spinBox_YMax->value() - ui.spinBox_YMin->value();
+  segmentationParameters->SetAttribute("ClipRectangleOrigin", originSs.str().c_str());
+  segmentationParameters->SetAttribute("ClipRectangleSize", sizeSs.str().c_str());
 
   segmentationParameters->SetDoubleAttribute("MaxLinePairDistanceErrorPercent", ui.doubleSpinBox_LinePairDistanceError->value());
 

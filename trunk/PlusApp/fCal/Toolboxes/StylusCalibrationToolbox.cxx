@@ -237,9 +237,9 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
         }
         if (m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->GetTransformError(stylusTipToStylusTransformName, error) == PLUS_SUCCESS)
         {
-          char stylusTipToStylusTransformErrorChars[32];
-          SNPRINTF(stylusTipToStylusTransformErrorChars, 32, "%.3lf", error);
-          errorStr = stylusTipToStylusTransformErrorChars;
+          std::stringstream ss;
+          ss << std::fixed << error;
+          errorStr = ss.str();
         }
         else
         {
@@ -479,10 +479,9 @@ void StylusCalibrationToolbox::AddStylusPositionToCalibration()
   if (valid)
   {
     // Assemble position string for toolbox
-    char stylusPositionChars[32];
-
-    SNPRINTF(stylusPositionChars, 32, "%.1lf X %.1lf X %.1lf", stylusToReferenceTransformMatrix->GetElement(0,3), stylusToReferenceTransformMatrix->GetElement(1,3), stylusToReferenceTransformMatrix->GetElement(2,3));
-    m_StylusPositionString = QString(stylusPositionChars);
+    std::stringstream ss;
+    ss << stylusToReferenceTransformMatrix->GetElement(0, 3) << " " << stylusToReferenceTransformMatrix->GetElement(1,3) << " " << stylusToReferenceTransformMatrix->GetElement(2,3);
+    m_StylusPositionString = QString(ss.str().c_str());
 
     // Add point to the input if fulfills the criteria
     vtkPoints* points = m_ParentMainWindow->GetVisualizationController()->GetInputPolyData()->GetPoints();

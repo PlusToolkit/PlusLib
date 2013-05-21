@@ -479,10 +479,10 @@ PlusStatus vtkVisualizationController::GetTransformTranslationString(PlusTransfo
     return PLUS_FAIL;
   }
 
-  char positionChars[32];
-  SNPRINTF(positionChars, 32, "%.1lf X %.1lf X %.1lf", transformMatrix->GetElement(0,3), transformMatrix->GetElement(1,3), transformMatrix->GetElement(2,3));
+  std::stringstream ss;
+  ss << std::fixed << transformMatrix->GetElement(0,3) << " " << transformMatrix->GetElement(1,3) << " " << transformMatrix->GetElement(2,3);
 
-  aTransformTranslationString = std::string(positionChars);
+  aTransformTranslationString = ss.str();
 
   return PLUS_SUCCESS;
 }

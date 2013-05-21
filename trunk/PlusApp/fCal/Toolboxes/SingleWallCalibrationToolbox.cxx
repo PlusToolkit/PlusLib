@@ -255,9 +255,9 @@ void SingleWallCalibrationToolbox::SetDisplayAccordingToState()
           }
           if (m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->GetTransformError(imageToProbeTransformName, error) == PLUS_SUCCESS)
           {
-            char imageToProbeTransformErrorChars[32];
-            SNPRINTF(imageToProbeTransformErrorChars, 32, "%.3lf", error);
-            errorStr = imageToProbeTransformErrorChars;
+            std::stringstream ss;
+            ss << std::fixed << error;
+            errorStr = ss.str();
           }
           else
           {
