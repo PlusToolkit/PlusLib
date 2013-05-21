@@ -107,7 +107,7 @@ int main( int argc, unsigned char *argv[] )
 	static Position3d
 		p3dData[NUM_MARKERS];
 
-	fprintf( stdout, "Determining system configuration using system.nif.\n" );
+  std::cout << "Determining system configuration using system.nif." << std::endl;
 
 	/*
 	* Determine the system configuration in the default manner
@@ -118,7 +118,8 @@ int main( int argc, unsigned char *argv[] )
 	/*
 	* Set optional processing flags (this overides the settings in Optotrak.INI).
 	*/
-	fprintf( stdout, "...OptotrakSetProcessingFlags\n" );
+  std::cout << "...OptotrakSetProcessingFlags" << std::endl;
+
 	if( OptotrakSetProcessingFlags( OPTO_LIB_POLL_REAL_DATA |
 		OPTO_CONVERT_ON_HOST |
 		OPTO_RIGID_ON_HOST ) )
@@ -126,10 +127,10 @@ int main( int argc, unsigned char *argv[] )
 		goto ERROR_EXIT;
 	} /* if */
 
-	fprintf( stdout, "...TransputerDetermineSystemCfg\n" );
+  std::cout << "...TransputerDetermineSystemCfg" << std::endl;
 	if( TransputerDetermineSystemCfg( NULL ) )
 	{
-		fprintf( stderr, "Error in determining the system parameters.\n" );
+    std::cerr <<  "Error in determining the system parameters." << std::endl;
 		goto ERROR_EXIT;
 	} /* if */
 
@@ -138,7 +139,7 @@ int main( int argc, unsigned char *argv[] )
 	/*
 	* Load the system of processors.
 	*/
-	fprintf( stdout, "...TransputerLoadSystem\n" );
+  std::cout << "...TransputerLoadSystem" << std::endl;
 	if( TransputerLoadSystem( "system" ) != OPTO_NO_ERROR_CODE )
 	{
 		goto ERROR_EXIT;
@@ -152,7 +153,7 @@ int main( int argc, unsigned char *argv[] )
 	/*
 	* Initialize the processors system.
 	*/
-	fprintf( stdout, "...TransputerInitializeSystem\n" );
+  std::cout << "...TransputerInitializeSystem" << std::endl;
 	if( TransputerInitializeSystem( OPTO_LOG_ERRORS_FLAG | OPTO_LOG_MESSAGES_FLAG ) )
 	{
 		goto ERROR_EXIT;
@@ -161,7 +162,7 @@ int main( int argc, unsigned char *argv[] )
 	/*
 	* Load the standard camera parameters.
 	*/
-	fprintf( stdout, "...OptotrakLoadCameraParameters\n" );
+  std::cout << "...OptotrakLoadCameraParameters" << std::endl;
 	if( OptotrakLoadCameraParameters( "standard" ) )
 	{
 		goto ERROR_EXIT;
@@ -170,7 +171,7 @@ int main( int argc, unsigned char *argv[] )
 	/*
 	* Set up a collection for the Optotrak.
 	*/
-	fprintf( stdout, "...OptotrakSetupCollection\n" );
+  std::cout << "...OptotrakSetupCollection" << std::endl;
 	if( OptotrakSetupCollection(
 		NUM_MARKERS,    /* Number of markers in the collection. */
 		(float)100.0,   /* Frequency to collect data frames at. */
@@ -195,7 +196,7 @@ int main( int argc, unsigned char *argv[] )
 	/*
 	* Activate the markers.
 	*/
-	fprintf( stdout, "...OptotrakActivateMarkers\n" );
+  std::cout << "...OptotrakActivateMarkers" << std::endl;
 	if( OptotrakActivateMarkers() )
 	{
 		goto ERROR_EXIT;
@@ -205,14 +206,14 @@ int main( int argc, unsigned char *argv[] )
 	/*
 	* Get and display ten frames of 3D data.
 	*/
-	fprintf( stdout, "\n\nSample Program Results:\n\n" );
-	fprintf( stdout, "\n\n3D Data Display\n" );
+	std::cout << std::endl << std::endl << "Sample Program Results:" << std::endl << std::endl;
+	std::cout << std::endl << std::endl << "3D Data Display" << std::endl;
 	for( uFrameCnt = 0; uFrameCnt < 10; ++uFrameCnt )
 	{
 		/*
 		* Get a frame of data.
 		*/
-		fprintf( stdout, "\n" );
+    std::cout << std::endl;
 		if( DataGetLatest3D( &uFrameNumber, &uElements, &uFlags, p3dData ) )
 		{
 			goto ERROR_EXIT;
@@ -221,20 +222,20 @@ int main( int argc, unsigned char *argv[] )
 		/*
 		* Print out the data.
 		*/
-		fprintf( stdout, "Frame Number: %8u\n", uFrameNumber );
-		fprintf( stdout, "Elements    : %8u\n", uElements );
-		fprintf( stdout, "Flags       : 0x%04x\n", uFlags );
+		std::cout << "Frame Number: " << uFrameNumber << std::endl;
+		std::cout << "Elements    : " << uElements << std::endl;
+    std::cout << "Flags       : " << std::hex << uFlags << std::endl;
 		//     for( uMarkerCnt = 0; uMarkerCnt < NUM_MARKERS; ++uMarkerCnt )
 		//     {
 		//DisplayMarker( uMarkerCnt + 1, p3dData[ uMarkerCnt] );
 		//     } /* for */
 	} /* for */
-	fprintf( stdout, "\n" );
+	std::cout << std::endl;
 
 	/*
 	* De-activate the markers.
 	*/
-	fprintf( stdout, "...OptotrakDeActivateMarkers\n" );
+	std::cout << "...OptotrakDeActivateMarkers" << std::endl;
 	if( OptotrakDeActivateMarkers() )
 	{
 		goto ERROR_EXIT;
@@ -243,13 +244,13 @@ int main( int argc, unsigned char *argv[] )
 	/*
 	* Stop the collection.
 	*/
-	fprintf( stdout, "...OptotrakStopCollection\n" );
+	std::cout << "...OptotrakStopCollection" << std::endl;
 	OptotrakStopCollection( );
 
 	/*
 	* Shutdown the processors message passing system.
 	*/
-	fprintf( stdout, "...TransputerShutdownSystem\n" );
+	std::cout << "...TransputerShutdownSystem" << std::endl;
 	if( TransputerShutdownSystem() )
 	{
 		goto ERROR_EXIT;
@@ -261,12 +262,12 @@ int main( int argc, unsigned char *argv[] )
 	* Set the API to use internal storage for the system
 	* configuration.
 	*/
-	fprintf( stdout, "\nDetermining system configuration using internal strings.\n" );
+  std::cout << std::endl << "Determining system configuration using internal strings." << std::endl;
 
 	/*
 	* Set optional processing flags (this overides the settings in Optotrak.INI).
 	*/
-	fprintf( stdout, "...OptotrakSetProcessingFlags\n" );
+	std::cout << "...OptotrakSetProcessingFlags" << std::endl;
 	if( OptotrakSetProcessingFlags( OPTO_USE_INTERNAL_NIF |
 		OPTO_LIB_POLL_REAL_DATA |
 		OPTO_CONVERT_ON_HOST |
@@ -280,10 +281,10 @@ int main( int argc, unsigned char *argv[] )
 	* Determine the system configuration again, but this time
 	* with error logging.
 	*/
-	fprintf( stdout, "...TransputerDetermineSystemCfg\n" );
+	std::cout << "...TransputerDetermineSystemCfg" << std::endl;
 	if( TransputerDetermineSystemCfg( pszLogFileName ) )
 	{
-		fprintf( stderr, "Error in determining the system parameters.\n" );
+    std::cerr << "Error in determining the system parameters." << std::endl;
 		goto ERROR_EXIT;
 	}
 
@@ -292,7 +293,7 @@ int main( int argc, unsigned char *argv[] )
 	/*
 	* Load the system of processors.
 	*/
-	fprintf( stdout, "...TransputerLoadSystem\n" );
+	std::cout << "...TransputerLoadSystem" << std::endl;
 	if( TransputerLoadSystem( "system" ) != OPTO_NO_ERROR_CODE )
 	{
 		goto ERROR_EXIT;
@@ -303,7 +304,7 @@ int main( int argc, unsigned char *argv[] )
 	/*
 	* Initialize the processors system again in the usual manner.
 	*/
-	fprintf( stdout, "...TransputerInitializeSystem\n" );
+	std::cout << "...TransputerInitializeSystem" << std::endl;
 	if( TransputerInitializeSystem( OPTO_LOG_ERRORS_FLAG | OPTO_LOG_MESSAGES_FLAG ) )
 	{
 		goto ERROR_EXIT;
@@ -312,7 +313,7 @@ int main( int argc, unsigned char *argv[] )
 	/*
 	* Load the standard camera parameters.
 	*/
-	fprintf( stdout, "...OptotrakLoadCameraParameters\n" );
+	std::cout << "...OptotrakLoadCameraParameters" << std::endl;
 	if( OptotrakLoadCameraParameters( "standard" ) )
 	{
 		goto ERROR_EXIT;
@@ -321,7 +322,7 @@ int main( int argc, unsigned char *argv[] )
 	/*
 	* Set up a collection for the Optotrak.
 	*/
-	fprintf( stdout, "...OptotrakSetupCollection\n" );
+	std::cout << "...OptotrakSetupCollection" << std::endl;
 	if( OptotrakSetupCollection(
 		NUM_MARKERS,    /* Number of markers in the collection. */
 		(float)100.0,   /* Frequency to collect data frames at. */
@@ -346,7 +347,7 @@ int main( int argc, unsigned char *argv[] )
 	/*
 	* Activate the markers.
 	*/
-	fprintf( stdout, "...OptotrakActivateMarkers\n" );
+	std::cout << "...OptotrakActivateMarkers" << std::endl;
 	if( OptotrakActivateMarkers() )
 	{
 		goto ERROR_EXIT;
@@ -357,14 +358,14 @@ int main( int argc, unsigned char *argv[] )
 	/*
 	* Get and display ten frames of 3D data.
 	*/
-	fprintf( stdout, "\n\nSample Program Results:\n\n" );
-	fprintf( stdout, "\n\n3D Data Display\n" );
+	std::cout << std::endl << std::endl << "Sample Program Results:" << std::endl << std::endl;
+	std::cout << std::endl << std::endl << "3D Data Display" << std::endl;
 	for( uFrameCnt = 0; uFrameCnt < 10; ++uFrameCnt )
 	{
 		/*
 		* Get a frame of data.
 		*/
-		fprintf( stdout, "\n" );
+		std::cout << std::endl;
 		if( DataGetLatest3D( &uFrameNumber, &uElements, &uFlags, p3dData ) )
 		{
 			goto ERROR_EXIT;
@@ -373,20 +374,16 @@ int main( int argc, unsigned char *argv[] )
 		/*
 		* Print out the data.
 		*/
-		fprintf( stdout, "Frame Number: %8u\n", uFrameNumber );
-		fprintf( stdout, "Elements    : %8u\n", uElements );
-		fprintf( stdout, "Flags       : 0x%04x\n", uFlags );
-		//     for( uMarkerCnt = 0; uMarkerCnt < NUM_MARKERS; ++uMarkerCnt )
-		//     {
-		//DisplayMarker( uMarkerCnt + 1, p3dData[ uMarkerCnt] );
-		//     } /* for */
-	} /* for */
-	fprintf( stdout, "\n" );
+		std::cout << "Frame Number: " << uFrameNumber << std::endl;
+		std::cout << "Elements    : " << uElements << std::endl;
+    std::cout << "Flags       : " << std::hex << uFlags << std::endl;
+	}
+	std::cout << std::endl;
 
 	/*
 	* De-activate the markers.
 	*/
-	fprintf( stdout, "...OptotrakDeActivateMarkers\n" );
+	std::cout << "...OptotrakDeActivateMarkers" << std::endl;
 	if( OptotrakDeActivateMarkers() )
 	{
 		goto ERROR_EXIT;
@@ -395,13 +392,13 @@ int main( int argc, unsigned char *argv[] )
 	/*
 	* Stop the collection.
 	*/
-	fprintf( stdout, "...OptotrakStopCollection\n" );
+	std::cout << "...OptotrakStopCollection" << std::endl;
 	OptotrakStopCollection( );
 
 	/*
 	* Shutdown the processors message passing system.
 	*/
-	fprintf( stdout, "...TransputerShutdownSystem\n" );
+	std::cout << "...TransputerShutdownSystem" << std::endl;
 	if( TransputerShutdownSystem() )
 	{
 		goto ERROR_EXIT;
@@ -410,21 +407,21 @@ int main( int argc, unsigned char *argv[] )
 	/*
 	* Exit the program.
 	*/
-	fprintf( stdout, "\nProgram execution complete.\n" );
+	std::cout << std::endl << "Program execution complete." << std::endl;
 	exit( 0 );
 
 ERROR_EXIT:
 	/*
 	* Indicate that an error has occurred
 	*/
-	fprintf( stdout, "\nAn error has occurred during execution of the program.\n" );
+	std::cout << std::endl << "An error has occurred during execution of the program." << std::endl;
 	if( OptotrakGetErrorString( szNDErrorString,
 		MAX_ERROR_STRING_LENGTH + 1 ) == 0 )
 	{
-		fprintf( stdout, szNDErrorString );
+		std::cout << szNDErrorString;
 	} /* if */
 
-	fprintf( stdout, "\n\n...TransputerShutdownSystem\n" );
+	std::cout << std::endl << std::endl << "...TransputerShutdownSystem" << std::endl;
 	TransputerShutdownSystem();
 
 	return  1 ;

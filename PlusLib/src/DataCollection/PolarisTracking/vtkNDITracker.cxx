@@ -519,7 +519,6 @@ PlusStatus vtkNDITracker::InternalUpdate()
 
   // get the transforms for all tools from the NDI
   ndiCommand(this->Device,"TX:0801");
-  //fprintf(stderr,"TX:0001 %s\n",ndiCommand(this->Device,"TX:0001"));
   errnum = ndiGetError(this->Device);
 
   if (errnum)
@@ -777,7 +776,6 @@ void vtkNDITracker::EnableToolPorts()
     ph = ndiGetPHSRHandle(this->Device,tool);
     port = this->GetToolFromHandle(ph);
     ndiCommand(this->Device,"PHF:%02X",ph);
-    //fprintf(stderr,"PHF:%02X\n",ph);
     errnum = ndiGetError(this->Device);
     if (errnum)
     { 
@@ -794,7 +792,6 @@ void vtkNDITracker::EnableToolPorts()
     {
       ph = ndiGetPHSRHandle(this->Device,tool);
       ndiCommand(this->Device,"PINIT:%02X",ph);
-      //fprintf(stderr,"PINIT:%02X\n",ph);
       errnum = ndiGetError(this->Device);
       if (errnum)
       { 
@@ -826,7 +823,6 @@ void vtkNDITracker::EnableToolPorts()
 
     // enable the tool
     ndiCommand(this->Device,"PENA:%02X%c",ph,mode);
-    //fprintf(stderr,"PENA:%02X%c\n",ph,mode);
     errnum = ndiGetError(this->Device);
     if (errnum)
     {
@@ -906,11 +902,10 @@ void vtkNDITracker::EnableToolPorts()
     {
       if(this->SocketCommunicator->GetIsConnected()>0)
       {
-        char msg[40];
-        int len = 40;
-        sprintf(msg, "SetToolSerialNumber:%d:%s",
-          port, trackerTool->GetToolSerialNumber());
-        len = strlen(msg) +1;
+        std::stringstream ss;
+        ss << "SetToolSerialNumber:" << port << ":" << trackerTool->GetToolSerialNumber();
+        char* msg = (char*)ss.str().c_str();
+        int len = strlen(msg) + 1;
 
         if( this->SocketCommunicator->Send(&len, 1, 1, 11) )
         {
@@ -921,9 +916,9 @@ void vtkNDITracker::EnableToolPorts()
         }
 
         //  ca->Delete();
-
-        sprintf(msg, "SetToolRevision:%d:%s",
-          port, trackerTool->GetToolRevision());
+        ss.clear();
+        ss << "SetToolRevision:" << port << ":" << trackerTool->GetToolRevision();
+        msg = (char*)ss.str().c_str();
         len = strlen(msg) + 1;
 
         if( this->SocketCommunicator->Send(&len, 1, 1, 11) )
@@ -933,12 +928,15 @@ void vtkNDITracker::EnableToolPorts()
             LOG_ERROR("Could not Send SetToolSerialNumber");
           }
         }
-        sprintf(msg, "SetToolManufacturer:%d:%s",
-          port, trackerTool->GetToolManufacturer());
-        len = strlen(msg) +1;
+
+        ss.clear();
+        ss << "SetToolManufacturer:" << port << ":" << trackerTool->GetToolManufacturer();
+        msg = (char*)ss.str().c_str();
+        len = strlen(msg) + 1;
+
         vtkCharArray *ca2 = vtkCharArray::New();
         ca2->SetNumberOfComponents(len);
-        ca2->SetArray(msg, len, 1);
+        ca2->SetArray((char*)msg, len, 1);
         if( this->SocketCommunicator->Send(&len, 1, 1, 11) )
         {
           if( !this->SocketCommunicator->Send(msg, len, 1, 22) )
@@ -947,9 +945,11 @@ void vtkNDITracker::EnableToolPorts()
           }
         }
 
-        sprintf(msg, "SetToolPartNumber:%d:%s",
-          port, trackerTool->GetToolPartNumber());
+        ss.clear();
+        ss << "SetToolPartNumber:" << port << ":" << trackerTool->GetToolPartNumber();
+        msg = (char*)ss.str().c_str();
         len = strlen(msg) + 1;
+
         vtkCharArray *ca4 = vtkCharArray::New();
         ca4->SetNumberOfComponents(len);
         ca4->SetArray(msg,  len, 1);
@@ -1019,7 +1019,6 @@ void vtkNDITracker::DisableToolPorts()
   {
     ph = ndiGetPHSRHandle(this->Device,tool);
     ndiCommand(this->Device,"PDIS:%02X",ph);
-    //fprintf(stderr,"PDIS:%02X\n",ph);
     errnum = ndiGetError(this->Device);
     if (errnum)
     { 

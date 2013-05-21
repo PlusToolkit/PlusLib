@@ -266,11 +266,6 @@ int MicronTrackerInterface::mtCollectNewSamples(int collectingAdditionalFacet)
       delete identifiedFacetsCol;
       //delete markersCollection;
     }
-
-    //    char buffer[255];
-    //    sprintf(buffer, "% d", this->m_collectedSampleFrames);
-    //    //strcat("Collected: ", buffer);
-    //    this->collectingNum->label(buffer);
   }
   else if(col->count() < 2) 
   {
