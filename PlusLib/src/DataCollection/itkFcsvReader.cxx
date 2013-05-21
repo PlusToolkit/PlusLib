@@ -1,13 +1,13 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include <stdio.h>
-#include <string>
-#include <stdlib.h>
 #include "itkFcsvReader.h"
+#include <sstream>
+#include <string>
+#include <vector>
 
 #define MAXFLDS 30     /* maximum possible number of fields */
 #define MAXFLDSIZE 150   /* longest possible field + 1 = 31 byte field */
@@ -15,162 +15,181 @@
 namespace itk
 {
 
-FcsvReader::FcsvReader()
-{
-}
-
-FcsvReader::~FcsvReader()
-{
-}
-
-
-void FcsvReader::Update()
-{   
-  FILE *in=fopen(m_FileName.c_str(),"r");         //Open file on command line 
-
-  if(in==NULL)
+  //-------------------------------------------------------
+  FcsvReader::FcsvReader()
   {
-    itkExceptionMacro("Failed to open file " << m_FileName );
   }
-  
-  char *delimiter=", =";
-  char line[1024]={0x0};
-  char data[MAXFLDS][MAXFLDSIZE]={0x0};  
-  const unsigned int dim = FcsvNDimensions;      //Dimension of the work space
 
-  m_FcsvDataObject.columns.resize(MAXFLDS);
-
-  int RecordCnt = 0;
-  while(fgets(line,sizeof(line)-1,in)!=0)    //Read a record 
+  //-------------------------------------------------------
+  FcsvReader::~FcsvReader()
   {
-    char *p = strtok(line , delimiter);
-    int fldcnt = 0;
+  }
 
-    while(p)
-    {
-      strncpy( data[fldcnt] , p, MAXFLDSIZE-1);
-      data[fldcnt][MAXFLDSIZE]='\0';
-      fldcnt++;
-      p=strtok('\0',delimiter);
-    }        
+  //-------------------------------------------------------
+  void FcsvReader::Update()
+  {
+    std::ifstream in(m_FileName.c_str());
 
-    //------------------------------------- lines which start with "#" ----------------------------------
-    if( !strcmp(data[0],"#") )  
+    if( !in.is_open() )
     {
-      if( (!strcmp(data[1],"Fiducial")) && (!strcmp(data[2],"List")) && (!strcmp(data[3],"file")) )
-      {
-        m_FcsvDataObject.filePath = data[ 4 ];
-      }
-      else if( !strcmp(data[1],"numPoints") )
-      {
-        m_FcsvDataObject.numPoints = atof(data[ 2 ]);
-      }
-      else if(!strcmp(data[1],"version"))
-      {
-        m_FcsvDataObject.version = atof(data[ 2 ]);
-      }
-      else if(!strcmp(data[1],"name"))
-      {
-        m_FcsvDataObject.name = data[ 2 ];
-      }
-      else if(!strcmp(data[1],"symbolScale"))
-      {
-        m_FcsvDataObject.symbolScale = atof(data[ 2 ]);
-      }
-      else if(!strcmp(data[1],"symbolType"))
-      {
-        m_FcsvDataObject.symbolType = atof(data[ 2 ]);
-      }
-      else if(!strcmp(data[1],"visibility"))
-      {
-        m_FcsvDataObject.visibility = atof(data[ 2 ]);
-      }
-      else if(!strcmp(data[1],"textScale"))
-      {
-        m_FcsvDataObject.textScale = atof(data[ 2 ]);
-      }
-      else if(!strcmp(data[1],"opacity"))
-      {
-        m_FcsvDataObject.opacity = atof(data[ 2 ]);
-      }
-      else if(!strcmp(data[1],"ambient"))
-      {
-        m_FcsvDataObject.ambient = atof(data[ 2 ]);
-      }
-      else if(!strcmp(data[1],"diffuse"))
-      {
-        m_FcsvDataObject.diffuse = atof(data[ 2 ]);
-      }
-      else if(!strcmp(data[1],"specular"))
-      {
-        m_FcsvDataObject.specular = atof(data[ 2 ]);
-      }
-      else if(!strcmp(data[1],"power"))
-      {
-        m_FcsvDataObject.power = atof(data[ 2 ]);
-      }
-      else if(!strcmp(data[1],"locked"))
-      {
-        m_FcsvDataObject.locked = atof(data[ 2 ]);
-      }
-      else if(!strcmp(data[1],"numberingScheme"))
-      {
-        m_FcsvDataObject.numberingScheme = atof(data[ 2 ]);
-      }
-      else if(!strcmp(data[1],"color"))
-      {
-        m_FcsvDataObject.color[0] = atof(data[ 2 ]);
-        m_FcsvDataObject.color[1] = atof(data[ 3 ]);
-        m_FcsvDataObject.color[2] = atof(data[ 4 ]);
-      }
-      else if(!strcmp(data[1],"selectedColor"))
-      {
-        m_FcsvDataObject.selectedColor[0] = atof(data[ 2 ]);
-        m_FcsvDataObject.selectedColor[1] = atof(data[ 3 ]);
-        m_FcsvDataObject.selectedColor[2] = atof(data[ 4 ]);
-      }
-      else if(!strcmp(data[1],"columns"))
-      {        
-        itkDebugMacro("Column header: ");
-        for(int k=2; k<fldcnt ; k++)
-        {
-          m_FcsvDataObject.columns[k] = data[ k ];
-          itkDebugMacro(<<m_FcsvDataObject.columns[k]<<" ");
-        }
-      }
-      else   continue;
+      itkExceptionMacro("Failed to open file " << m_FileName );
     }
 
-    //-------------------------------- lines which do NOT start with "#" --------------------------------
-    else  
-    {
-      itk::FcsvPoint point;
-      m_FcsvDataObject.points.push_back(point);
-      m_FcsvDataObject.points[ RecordCnt ].label    =     data[ 0 ];
-      m_FcsvDataObject.points[ RecordCnt ].position[0] = atof(data[ 1 ]);
-      m_FcsvDataObject.points[ RecordCnt ].position[1] = atof(data[ 2 ]);
-      m_FcsvDataObject.points[ RecordCnt ].position[2] = atof(data[ 3 ]);
-      m_FcsvDataObject.points[ RecordCnt ].selected  = atoi(data[ 4 ]);
-      m_FcsvDataObject.points[ RecordCnt ].visibility  = atoi(data[ 5 ]);
+    m_FcsvDataObject.columns.resize(MAXFLDS);
 
-      RecordCnt++;
+    std::string line;
+    while( std::getline(in,line) )
+    {
+      if( line[0] == '#' && line.find('=') != std::string::npos )
+      {
+        // Header, process it
+        std::vector<std::string> elems;
+        this->SplitStringIntoTokens(line, '=', elems);
+        this->StripCharsFromString(elems[0], " #");
+        elems[1] = PlusCommon::Trim(elems[1].c_str());
+        this->ProcessHeaderEntry(elems[0], elems[1]);
+      }
+      else if( line[0] == '#' )
+      {
+        // Fiducial List file entry
+        std::vector<std::string> elems;
+        this->SplitStringIntoTokens(line, ' ', elems);
+        m_FcsvDataObject.filePath = elems[4];
+      }
+      else
+      {
+        // It's a record, read it as such
+        std::vector<std::string> elems;
+        this->SplitStringIntoTokens(line, ',', elems);
+
+        itk::FcsvPoint point;
+        point.label        = elems[0];
+        point.position[0]  = atof(elems[1].c_str());
+        point.position[1]  = atof(elems[2].c_str());
+        point.position[2]  = atof(elems[3].c_str());
+        point.selected     = atoi(elems[4].c_str());
+        point.visibility   = atoi(elems[5].c_str());
+
+        m_FcsvDataObject.points.push_back(point);
+      }     
+    }
+
+    itkDebugMacro(<<"Fiducial data header: color=  "<<m_FcsvDataObject.color[ 0 ]<<","<<m_FcsvDataObject.color[ 1 ]<<","<<m_FcsvDataObject.color[ 2 ])
+      itkDebugMacro(<<"Fiducial points:");
+    for(std::vector<FcsvPoint>::iterator it = m_FcsvDataObject.points.begin(); it != m_FcsvDataObject.points.end(); ++it)
+    {
+      itkDebugMacro(<< std::endl << it->label
+        << "  " << it->position[0]
+        << "  " << it->position[1]
+        << "  " << it->position[2]
+        << "  " << it->selected
+        << "  " << it->visibility)
+    }
+    in.close();
+  }
+
+  //-------------------------------------------------------
+  std::vector<std::string>& FcsvReader::SplitStringIntoTokens(const std::string &s, char delim, std::vector<std::string> &elems)
+  {
+    std::stringstream ss(s);
+    std::string item;
+    while (std::getline(ss, item, delim)) {
+      elems.push_back(item);
+    }
+    return elems;
+  }
+
+  //-------------------------------------------------------
+  void FcsvReader::ProcessHeaderEntry( const std::string &headerEntry, const std::string& headerEntryValue )
+  {
+    if( headerEntry.compare("numPoints") == 0 )
+    {
+      m_FcsvDataObject.numPoints = atof( headerEntryValue.c_str() );
+    }
+    else if( headerEntry.compare("version") == 0 )
+    {
+      m_FcsvDataObject.version = atof( headerEntryValue.c_str() );
+    }
+    else if( headerEntry.compare("name") == 0 )
+    {
+      m_FcsvDataObject.name = headerEntryValue;
+    }
+    else if( headerEntry.compare("symbolScale") == 0 )
+    {
+      m_FcsvDataObject.symbolScale = atof( headerEntryValue.c_str() );
+    }
+    else if( headerEntry.compare("symbolType") == 0 )
+    {
+      m_FcsvDataObject.symbolType = atof( headerEntryValue.c_str() );
+    }
+    else if( headerEntry.compare("visibility") == 0 )
+    {
+      m_FcsvDataObject.visibility = atof( headerEntryValue.c_str() );
+    }
+    else if( headerEntry.compare("textScale") == 0 )
+    {
+      m_FcsvDataObject.textScale = atof( headerEntryValue.c_str() );
+    }
+    else if( headerEntry.compare("opacity") == 0 )
+    {
+      m_FcsvDataObject.opacity = atof( headerEntryValue.c_str() );
+    }
+    else if( headerEntry.compare("ambient") == 0 )
+    {
+      m_FcsvDataObject.ambient = atof( headerEntryValue.c_str() );
+    }
+    else if( headerEntry.compare("diffuse") == 0 )
+    {
+      m_FcsvDataObject.diffuse = atof( headerEntryValue.c_str() );
+    }
+    else if( headerEntry.compare("specular") == 0 )
+    {
+      m_FcsvDataObject.specular = atof( headerEntryValue.c_str() );
+    }
+    else if( headerEntry.compare("power") == 0 )
+    {
+      m_FcsvDataObject.power = atof( headerEntryValue.c_str() );
+    }
+    else if( headerEntry.compare("locked") == 0 )
+    {
+      m_FcsvDataObject.locked = atof( headerEntryValue.c_str() );
+    }
+    else if( headerEntry.compare("numberingScheme") == 0 )
+    {
+      m_FcsvDataObject.numberingScheme = atof( headerEntryValue.c_str() );
+    }
+    else if( headerEntry.compare("color") == 0 )
+    {
+      std::vector<std::string> elems;
+      this->SplitStringIntoTokens(headerEntryValue, ',', elems);
+
+      m_FcsvDataObject.color[0] = atof( elems[0].c_str() );
+      m_FcsvDataObject.color[1] = atof( elems[1].c_str() );
+      m_FcsvDataObject.color[2] = atof( elems[2].c_str() );
+    }
+    else if( headerEntry.compare("selectedColor") == 0 )
+    {
+      std::vector<std::string> elems;
+      this->SplitStringIntoTokens(headerEntryValue, ',', elems);
+
+      m_FcsvDataObject.selectedColor[0] = atof( elems[0].c_str() );
+      m_FcsvDataObject.selectedColor[1] = atof( elems[1].c_str() );
+      m_FcsvDataObject.selectedColor[2] = atof( elems[2].c_str() );
+    }
+    else if( headerEntry.compare("columns") == 0 )
+    {
+      std::vector<std::string> elems;
+      this->SplitStringIntoTokens(headerEntryValue, ' ', elems);
     }
   }
-  
-  itkDebugMacro(<<"Fiducial data header: color=  "<<m_FcsvDataObject.color[ 0 ]<<","<<m_FcsvDataObject.color[ 1 ]<<","<<m_FcsvDataObject.color[ 2 ])
-  itkDebugMacro(<<"Fiducial points:");
-  for(int i=0; i<RecordCnt; i++)
+
+  //-------------------------------------------------------
+  void FcsvReader::StripCharsFromString(std::string& str, const std::string& chars)
   {
-    itkDebugMacro(<<"\n"<<m_FcsvDataObject.points[ i ].label
-      <<"  "<<m_FcsvDataObject.points[ i ].position[0]
-      <<"  "<<m_FcsvDataObject.points[ i ].position[1]
-      <<"  "<<m_FcsvDataObject.points[ i ].position[2]
-      <<"  "<<m_FcsvDataObject.points[ i ].selected
-      <<"  "<<m_FcsvDataObject.points[ i ].visibility)
+    for (unsigned int i = 0; i < chars.size(); ++i)
+    {
+      // you need include <algorithm> to use general algorithms like std::remove()
+      str.erase (std::remove(str.begin(), str.end(), chars[i]), str.end());
+    }
   }
-
-    fclose(in);
-
 }
-
-} // namespace itk

@@ -24,15 +24,16 @@ namespace itk
   {   
     itkDebugMacro(<<"Fiducial data header: color=  "<<m_FcsvDataObject.color[ 0 ]<<","<<m_FcsvDataObject.color[ 1 ]<<","<<m_FcsvDataObject.color[ 2 ])
       itkDebugMacro(<<"Fiducial points:");
-    int numPoints=m_FcsvDataObject.points.size();
-    for(int i=0; i<numPoints; i++)
+
+    for(std::vector<FcsvPoint>::iterator it = m_FcsvDataObject.points.begin(); it != m_FcsvDataObject.points.end(); ++it)
     {
-      itkDebugMacro(<<"\n"<<m_FcsvDataObject.points[ i ].label
-        <<"  "<<m_FcsvDataObject.points[ i ].position[0]
-      <<"  "<<m_FcsvDataObject.points[ i ].position[1]
-      <<"  "<<m_FcsvDataObject.points[ i ].position[2]
-      <<"  "<<m_FcsvDataObject.points[ i ].selected
-        <<"  "<<m_FcsvDataObject.points[ i ].visibility)
+      itkDebugMacro(
+        << std::endl << it->label
+        << "  " << it->position[0]
+        << "  " << it->position[1]
+        << "  " << it->position[2]
+        << "  " << it->selected
+        << "  " << it->visibility)
     }
 
     std::ofstream out(m_FileName.c_str());
@@ -42,12 +43,10 @@ namespace itk
       itkExceptionMacro("Failed to open file " << m_FileName );
     }
 
-    const unsigned int dim = FcsvNDimensions;      //Dimension of the work space
-
-    out << "# Fiducial List file " << m_FcsvDataObject.filePath;
+    out << "# Fiducial List file " << m_FcsvDataObject.filePath << std::endl;
     out << "# version = " << m_FcsvDataObject.version << std::endl;
     out << "# name = " << m_FcsvDataObject.name << std::endl;
-    out << "# numPoints = " << numPoints << std::endl;   
+    out << "# numPoints = " << m_FcsvDataObject.points.size() << std::endl;   
     out << "# symbolScale = " << m_FcsvDataObject.symbolScale << std::endl;
     out << "# symbolType = " << m_FcsvDataObject.symbolType << std::endl;
     out << "# visibility = " << m_FcsvDataObject.visibility << std::endl;
@@ -63,14 +62,14 @@ namespace itk
     out << "# numberingScheme = " << m_FcsvDataObject.numberingScheme << std::endl;
     out << "# columns = label,x,y,z,sel,vis" << std::endl;          //std::vector<std::string> columns;    //:TODO: use std<std::string,int> instead   
 
-    for( int i=0 ; i<numPoints ; i++ )    //Write a record 
+    for(std::vector<FcsvPoint>::iterator it = m_FcsvDataObject.points.begin(); it != m_FcsvDataObject.points.end(); ++it)
     {
-      out << m_FcsvDataObject.points[ i ].label;
-      out << "," << m_FcsvDataObject.points[ i ].position[0];
-      out << "," << m_FcsvDataObject.points[ i ].position[1];
-      out << "," << m_FcsvDataObject.points[ i ].position[2];
-      out << "," << m_FcsvDataObject.points[ i ].selected;
-      out << "," << m_FcsvDataObject.points[ i ].visibility << std::endl;
+      out << it->label;
+      out << "," << it->position[0];
+      out << "," << it->position[1];
+      out << "," << it->position[2];
+      out << "," << it->selected;
+      out << "," << it->visibility << std::endl;
     }
     out.close();
   }

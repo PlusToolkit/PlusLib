@@ -108,6 +108,10 @@ protected:
   FcsvReader();
   virtual ~FcsvReader();
 
+  std::vector<std::string>& SplitStringIntoTokens(const std::string &s, char delim, std::vector<std::string> &elems);
+  void StripCharsFromString(std::string& str, const std::string& chars);
+  void ProcessHeaderEntry( const std::string &headerEntry, const std::string& headerEntryValue );
+
   std::string m_FileName;
   FcsvData m_FcsvDataObject;
 
