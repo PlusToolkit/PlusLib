@@ -209,7 +209,7 @@ PlusStatus TemporalCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
       segmentationParameters->GetVectorAttribute("ClipRectangleSize", 2, clipSize) )
     {
       m_LineSegmentationClipRectangleOrigin[0] = clipOrigin[0];
-      m_LineSegmentationClipRectangleOrigin[1] = clipOrigin[2];
+      m_LineSegmentationClipRectangleOrigin[1] = clipOrigin[1];
       m_LineSegmentationClipRectangleSize[0] = clipSize[0];
       m_LineSegmentationClipRectangleSize[1] = clipSize[1];
     }
