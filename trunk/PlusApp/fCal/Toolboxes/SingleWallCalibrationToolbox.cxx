@@ -527,7 +527,7 @@ void SingleWallCalibrationToolbox::DoCalibration()
   // TODO: also, show it on the overlay so the user can see if the segmentation is good
 
   int numberOfNewlySegmentedImages = this->m_RecordingBuffer->GetNumberOfTrackedFrames();
-  trackedFrameListToUse->AddTrackedFrameList(m_RecordingBuffer);
+  trackedFrameListToUse->AddTrackedFrameList(m_RecordingBuffer, vtkTrackedFrameList::SKIP_INVALID_FRAME);
 
   if (m_NumberOfSegmentedValidationImages < m_NumberOfValidationImagesToAcquire)
   {
