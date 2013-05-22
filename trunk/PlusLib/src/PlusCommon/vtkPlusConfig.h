@@ -12,6 +12,7 @@
 #include "vtkObject.h"
 #include "vtkXMLDataElement.h"
 class vtkMatrix4x4; 
+class vtkRecursiveCriticalSection;
 //-----------------------------------------------------------------------------
 
 /*!
@@ -283,6 +284,9 @@ protected:
 
   /*! Formatted string timestamp of the application start time - used as a prefix for most outputs */
   std::string ApplicationStartTimestamp;
+
+  /*! Protect the creation of the plus config from multiple parallel creatoin */
+  static vtkRecursiveCriticalSection* CriticalSection;
 
 private:
   /*! Instance of the singleton */

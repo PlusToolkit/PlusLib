@@ -13,7 +13,7 @@
 #include "vtkObjectFactory.h"
 
 #include "vtkPlusConfig.h"
-
+#include "vtkRecursiveCriticalSection.h"
 #include "vtksys/SystemTools.hxx" 
 #include "vtkDirectory.h"
 #include "vtkXMLUtilities.h"
@@ -23,8 +23,8 @@ static const char APPLICATION_CONFIGURATION_FILE_NAME[]="PlusConfig.xml";
 
 vtkCxxRevisionMacro(vtkPlusConfig, "$Revision: 1.0 $");
 
-vtkPlusConfig *vtkPlusConfig::Instance = 0;
-
+vtkPlusConfig *vtkPlusConfig::Instance = NULL;
+vtkRecursiveCriticalSection* vtkPlusConfig::CriticalSection = NULL;
 
 //----------------------------------------------------------------------------
 class vtkPlusConfigCleanup
@@ -53,28 +53,38 @@ vtkPlusConfig* vtkPlusConfig::New()
 //-----------------------------------------------------------------------------
 vtkPlusConfig* vtkPlusConfig::GetInstance()
 {
+  if( vtkPlusConfig::CriticalSection == NULL )
+  {
+    vtkPlusConfig::CriticalSection = vtkRecursiveCriticalSection::New();
+  }
+
   if(!vtkPlusConfig::Instance) 
   {
-    if(!vtkPlusConfig::Instance) 
+    vtkPlusConfig::CriticalSection->Lock();
+
+    if( vtkPlusConfig::Instance != NULL )
     {
-      vtkPlusConfigCleanupGlobal.Use();
-
-      // Need to call vtkObjectFactory::CreateInstance method because this
-      // registers the class in the vtkDebugLeaks::MemoryTable.
-      // Without this we would get a "Deleting unknown object" VTK warning on application exit
-      // (in debug mode, with debug leak checking enabled).
-      vtkObject* ret = vtkObjectFactory::CreateInstance("vtkPlusConfig");
-      if(ret)
-      {
-        vtkPlusConfig::Instance = static_cast<vtkPlusConfig*>(ret);
-      }
-      else
-      {
-        vtkPlusConfig::Instance = new vtkPlusConfig();   
-      }
-
+      return vtkPlusConfig::Instance;
     }
+
+    vtkPlusConfigCleanupGlobal.Use();
+
+    // Need to call vtkObjectFactory::CreateInstance method because this
+    // registers the class in the vtkDebugLeaks::MemoryTable.
+    // Without this we would get a "Deleting unknown object" VTK warning on application exit
+    // (in debug mode, with debug leak checking enabled).
+    vtkObject* ret = vtkObjectFactory::CreateInstance("vtkPlusConfig");
+    if(ret)
+    {
+      vtkPlusConfig::Instance = static_cast<vtkPlusConfig*>(ret);
+    }
+    else
+    {
+      vtkPlusConfig::Instance = new vtkPlusConfig();   
+    }
+    vtkPlusConfig::CriticalSection->Unlock();
   }
+
   // return the instance
   return vtkPlusConfig::Instance;
 }
@@ -94,6 +104,8 @@ void vtkPlusConfig::SetInstance(vtkPlusConfig* instance)
   vtkPlusConfig::Instance = instance;
   if (!instance)
   {
+    vtkPlusConfig::CriticalSection->Delete();
+    vtkPlusConfig::CriticalSection = NULL;
     return;
   }
   // user will call ->Delete() after setting instance
