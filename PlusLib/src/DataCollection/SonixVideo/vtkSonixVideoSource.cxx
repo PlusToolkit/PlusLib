@@ -315,7 +315,7 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
     vtkAccurateTimer::Delay(0.001*this->ConnectionSetupDelayMs); 
 
     // Double-check to see if the mode has actually been set
-    int actualImagingMode=-1;
+    int actualImagingMode = -1;
     if (GetImagingMode(actualImagingMode) != PLUS_SUCCESS)
     { 
       LOG_ERROR("Initialize: Cannot check actual imaging mode");

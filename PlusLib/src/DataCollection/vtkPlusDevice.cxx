@@ -781,7 +781,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
   }
   else if( this->IsTracker() )
   {
-    LOG_WARNING("ToolReferenceFrame is undefined. Default of \"Tracker\" will be used.");
+	LOG_WARNING(this->GetDeviceId() << ": ToolReferenceFrame is undefined. Default of \"Tracker\" will be used.");
   }
 
   vtkXMLDataElement* outputChannelsElement = deviceXMLElement->FindNestedElementWithName("OutputChannels");
