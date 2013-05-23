@@ -5,6 +5,12 @@
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
+#include "vtkDirectory.h"
+#include "vtkMatrix4x4.h"
+#include "vtkPlusConfig.h"
+#include "vtkRecursiveCriticalSection.h"
+#include "vtkXMLUtilities.h"
+#include "vtksys/SystemTools.hxx" 
 
 // Needed for proper singleton initialization 
 // The vtkDebugLeaks singleton must be initialized before and
@@ -12,21 +18,13 @@
 #include "vtkDebugLeaksManager.h"
 #include "vtkObjectFactory.h"
 
-#include "vtkPlusConfig.h"
-#include "vtkRecursiveCriticalSection.h"
-#include "vtksys/SystemTools.hxx" 
-#include "vtkDirectory.h"
-#include "vtkXMLUtilities.h"
-#include "vtkMatrix4x4.h"
+static const char APPLICATION_CONFIGURATION_FILE_NAME[] = "PlusConfig.xml";
 
-static const char APPLICATION_CONFIGURATION_FILE_NAME[]="PlusConfig.xml";
-
-vtkCxxRevisionMacro(vtkPlusConfig, "$Revision: 1.0 $");
+vtkCxxRevisionMacro(vtkPlusConfig, "$Revision: 1.1 $");
 
 vtkPlusConfig *vtkPlusConfig::Instance = NULL;
-vtkRecursiveCriticalSection* vtkPlusConfig::CriticalSection = NULL;
 
-//----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 class vtkPlusConfigCleanup
 {
 public:
@@ -42,7 +40,12 @@ public:
     }
   }
 };
-static vtkPlusConfigCleanup vtkPlusConfigCleanupGlobal;
+//------ File local content ---------------------------------------------------
+namespace
+{
+  vtkPlusConfigCleanup vtkPlusConfigCleanupGlobal;
+  vtkSimpleRecursiveCriticalSection ConfigCreationCriticalSection;
+}
 
 //-----------------------------------------------------------------------------
 vtkPlusConfig* vtkPlusConfig::New()
@@ -53,14 +56,9 @@ vtkPlusConfig* vtkPlusConfig::New()
 //-----------------------------------------------------------------------------
 vtkPlusConfig* vtkPlusConfig::GetInstance()
 {
-  if( vtkPlusConfig::CriticalSection == NULL )
-  {
-    vtkPlusConfig::CriticalSection = vtkRecursiveCriticalSection::New();
-  }
-
   if(!vtkPlusConfig::Instance) 
   {
-    vtkPlusConfig::CriticalSection->Lock();
+    PlusLockGuard<vtkSimpleRecursiveCriticalSection> criticalSectionGuardedLock(&ConfigCreationCriticalSection);
 
     if( vtkPlusConfig::Instance != NULL )
     {
@@ -82,7 +80,6 @@ vtkPlusConfig* vtkPlusConfig::GetInstance()
     {
       vtkPlusConfig::Instance = new vtkPlusConfig();   
     }
-    vtkPlusConfig::CriticalSection->Unlock();
   }
 
   // return the instance
@@ -102,14 +99,12 @@ void vtkPlusConfig::SetInstance(vtkPlusConfig* instance)
     vtkPlusConfig::Instance->Delete();
   }
   vtkPlusConfig::Instance = instance;
-  if (!instance)
-  {
-    vtkPlusConfig::CriticalSection->Delete();
-    vtkPlusConfig::CriticalSection = NULL;
-    return;
-  }
+
   // user will call ->Delete() after setting instance
-  instance->Register(NULL);
+  if( instance != NULL )
+  {
+    instance->Register(NULL);
+  }
 }
 
 //-----------------------------------------------------------------------------

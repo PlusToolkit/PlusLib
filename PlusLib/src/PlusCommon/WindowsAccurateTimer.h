@@ -222,7 +222,6 @@ private:
     m_HalfMsec.QuadPart = m_Freq.QuadPart / 2000;
     m_Freq.QuadPart /= 1000;   // convert to msecs
     InitializeCriticalSection(&m_CriticalSection);
-    vtkPlusLogger::Instance();
     m_Timer = timeSetEvent(1, 0, TimerFunc, (DWORD_PTR)this, TIME_PERIODIC);
     m_Initialized=false;
   }
