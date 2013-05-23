@@ -25,6 +25,7 @@ SingleWallCalibrationToolbox::SingleWallCalibrationToolbox(fCalMainWindow* aPare
   , m_SpatialCalibrationData(NULL)
   , m_SpatialValidationData(NULL)
   , m_RecordingBuffer(NULL)
+  , m_SingleFrameCount(18)
   , m_LastRecordedFrameTimestamp(0.0)
   , m_CancelRequest(false)
   , m_NumberOfCalibrationImagesToAcquire(200)
@@ -58,6 +59,7 @@ SingleWallCalibrationToolbox::SingleWallCalibrationToolbox(fCalMainWindow* aPare
   // Connect events
   connect( ui.pushButton_StartSpatial, SIGNAL( clicked() ), this, SLOT( StartCalibration() ) );
   connect( ui.pushButton_CancelSpatial, SIGNAL( clicked() ), this, SLOT( CancelCalibration() ) );
+  connect( ui.pushButton_SingleFrame, SIGNAL( clicked() ), this, SLOT( SingleFrame() ) );
 }
 
 //-----------------------------------------------------------------------------
@@ -126,6 +128,41 @@ void SingleWallCalibrationToolbox::OnActivated()
     {
       SetDisplayAccordingToState();
     }
+
+    // Set validation transform names for tracked frame lists
+    std::string toolReferenceFrame;
+    if ( (m_ParentMainWindow->GetSelectedChannel() == NULL)
+      || (m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->GetToolReferenceFrameName() == NULL) )
+    {
+      LOG_ERROR("Failed to get tool reference frame name!");
+      return;
+    }
+
+    toolReferenceFrame = m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->GetToolReferenceFrameName();
+    PlusTransformName transformNameForValidation(m_ParentMainWindow->GetProbeCoordinateFrame(), toolReferenceFrame.c_str());
+    m_SpatialCalibrationData->SetFrameTransformNameForValidation(transformNameForValidation);
+    m_SpatialValidationData->SetFrameTransformNameForValidation(transformNameForValidation);
+    m_RecordingBuffer->SetFrameTransformNameForValidation(transformNameForValidation);
+
+    // Initialize algorithms and containers
+    if ( m_Calibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS 
+      || m_Segmentation->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Reading configuration failed!");
+      return;
+    }
+
+    m_SpatialCalibrationData->Clear();
+    m_SpatialValidationData->Clear();
+    m_RecordingBuffer->Clear();
+
+    m_NumberOfSegmentedCalibrationImages = 0;
+    m_NumberOfSegmentedValidationImages = 0;
+    m_LastRecordedFrameTimestamp = 0.0;
+
+    m_Segmentation->SetTrackedFrameList(m_RecordingBuffer);
+
+    m_CancelRequest = false;
   }
   else
   {
@@ -193,6 +230,12 @@ PlusStatus SingleWallCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aC
   else
   {
     LOG_WARNING("Unable to read MaxTimeSpentWithProcessingMs attribute from fCal element of the device set configuration, default value '" << m_MaxTimeSpentWithProcessingMs << "' will be used");
+  }
+
+  int singleFrameCount(18);
+  if( fCalElement->GetScalarAttribute("SingleFrameCount", singleFrameCount) )
+  {
+    m_SingleFrameCount = singleFrameCount;
   }
 
   return PLUS_SUCCESS;
@@ -308,6 +351,7 @@ void SingleWallCalibrationToolbox::SetDisplayAccordingToState()
     ui.label_InstructionsSpatial->setText(QString(""));
     ui.pushButton_StartSpatial->setEnabled(false);
     ui.pushButton_CancelSpatial->setEnabled(false);
+    ui.pushButton_SingleFrame->setEnabled(false);
 
     m_ParentMainWindow->SetStatusBarText(QString(""));
     m_ParentMainWindow->SetStatusBarProgress(-1);
@@ -329,6 +373,7 @@ void SingleWallCalibrationToolbox::SetDisplayAccordingToState()
     ui.label_InstructionsSpatial->setText(QString(""));
     ui.pushButton_CancelSpatial->setEnabled(false);
     ui.pushButton_StartSpatial->setEnabled(isReadyToStartSpatialCalibration);
+    ui.pushButton_SingleFrame->setEnabled(isReadyToStartSpatialCalibration);
     ui.pushButton_StartSpatial->setFocus();
 
     m_ParentMainWindow->SetStatusBarText(QString(""));
@@ -349,6 +394,7 @@ void SingleWallCalibrationToolbox::SetDisplayAccordingToState()
     ui.label_InstructionsSpatial->setText(tr("Scan the bottom of your tank until the progress bar is filled."));
     ui.pushButton_StartSpatial->setEnabled(false);
     ui.pushButton_CancelSpatial->setEnabled(true);
+    ui.pushButton_SingleFrame->setEnabled(true);
     ui.pushButton_CancelSpatial->setFocus();
   }
   else if (m_State == ToolboxState_Done)
@@ -360,6 +406,7 @@ void SingleWallCalibrationToolbox::SetDisplayAccordingToState()
     ui.label_Results->setText(m_Calibration->GetResultString().c_str());
 
     ui.pushButton_StartSpatial->setEnabled(true);
+    ui.pushButton_SingleFrame->setEnabled(true);
     ui.pushButton_CancelSpatial->setEnabled(false);
 
     m_ParentMainWindow->SetStatusBarText(QString(" Calibration done"));
@@ -377,6 +424,7 @@ void SingleWallCalibrationToolbox::SetDisplayAccordingToState()
     ui.label_InstructionsSpatial->setText(QString(""));
     ui.pushButton_StartSpatial->setEnabled(false);
     ui.pushButton_CancelSpatial->setEnabled(false);
+    ui.pushButton_SingleFrame->setEnabled(false);
 
     m_ParentMainWindow->SetStatusBarText(QString(""));
     m_ParentMainWindow->SetStatusBarProgress(-1);
@@ -394,42 +442,6 @@ void SingleWallCalibrationToolbox::StartCalibration()
   m_ParentMainWindow->SetToolboxesEnabled(false);
 
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-
-  // Set validation transform names for tracked frame lists
-  std::string toolReferenceFrame;
-  if ( (m_ParentMainWindow->GetSelectedChannel() == NULL)
-    || (m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->GetToolReferenceFrameName() == NULL) )
-  {
-    LOG_ERROR("Failed to get tool reference frame name!");
-    return;
-  }
-
-  toolReferenceFrame = m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->GetToolReferenceFrameName();
-  PlusTransformName transformNameForValidation(m_ParentMainWindow->GetProbeCoordinateFrame(), toolReferenceFrame.c_str());
-  m_SpatialCalibrationData->SetFrameTransformNameForValidation(transformNameForValidation);
-  m_SpatialValidationData->SetFrameTransformNameForValidation(transformNameForValidation);
-  m_RecordingBuffer->SetFrameTransformNameForValidation(transformNameForValidation);
-
-  // Initialize algorithms and containers
-  if ( (this->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
-    || (m_Calibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS) 
-    || (m_Segmentation->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS) )
-  {
-    LOG_ERROR("Reading configuration failed!");
-    return;
-  }
-
-  m_SpatialCalibrationData->Clear();
-  m_SpatialValidationData->Clear();
-  m_RecordingBuffer->Clear();
-
-  m_NumberOfSegmentedCalibrationImages = 0;
-  m_NumberOfSegmentedValidationImages = 0;
-  m_LastRecordedFrameTimestamp = 0.0;
-
-  m_Segmentation->SetTrackedFrameList(m_RecordingBuffer);
-
-  m_CancelRequest = false;
 
   SetState(ToolboxState_InProgress);
 
@@ -630,11 +642,58 @@ void SingleWallCalibrationToolbox::CancelCalibration()
 
   m_CancelRequest = true;
 
+  m_RecordingBuffer->Clear();
   m_ParentMainWindow->SetToolboxesEnabled(true);
   m_ParentMainWindow->GetVisualizationController()->EnableWireLabels(false);
   m_ParentMainWindow->GetVisualizationController()->ShowResult(false);
 
   SetState(ToolboxState_Idle);
+}
+
+//-----------------------------------------------------------------------------
+
+void SingleWallCalibrationToolbox::SingleFrame()
+{
+  TrackedFrame frame;
+  if( m_ParentMainWindow->GetSelectedChannel()->GetTrackedFrame(&frame) != PLUS_SUCCESS )
+  {
+    LOG_WARNING("Unable to acquire a frame from selected channel. Try again.");
+    return;
+  }
+
+  if( m_RecordingBuffer->AddTrackedFrame(&frame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
+  {
+    LOG_WARNING("Unable to add frame to list. Try again.");
+    return;
+  }
+
+  this->SetState(ToolboxState_InProgress);
+
+  std::stringstream ss;
+  ss << "Frame: " << m_RecordingBuffer->GetNumberOfTrackedFrames()<< " of " << m_SingleFrameCount << " recorded.";
+  ui.label_Results->setText(ss.str().c_str());
+
+  if( m_RecordingBuffer->GetNumberOfTrackedFrames() >= m_SingleFrameCount )
+  {
+    m_Calibration->SetTrackedFrameList(m_RecordingBuffer);
+
+    if (m_Calibration->Calibrate() != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Calibration failed!");
+      return;
+    }
+
+    if (SetAndSaveResults() != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Setting and saving results failed!");
+      return;
+    }
+
+    m_RecordingBuffer->Clear();
+
+    this->SetState(ToolboxState_Done);
+    this->SetDisplayAccordingToState();
+  }
 }
 
 //-----------------------------------------------------------------------------

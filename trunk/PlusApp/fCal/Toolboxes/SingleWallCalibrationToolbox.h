@@ -79,6 +79,8 @@ protected slots:
   /*! Slot handling cancel calibration event (button click or explicit call) */
   void CancelCalibration();
 
+  void SingleFrame();
+
 protected:
   /*! Calibration algorithm */
   vtkSingleWallCalibrationAlgo* m_Calibration;
@@ -92,6 +94,7 @@ protected:
   vtkTrackedFrameList* m_SpatialValidationData;
 
   vtkTrackedFrameList* m_RecordingBuffer;
+  int m_SingleFrameCount;
 
   /*! Timestamp of last recorded frame (the tracked frames acquired since this timestamp will be recorded) */
   double m_LastRecordedFrameTimestamp;

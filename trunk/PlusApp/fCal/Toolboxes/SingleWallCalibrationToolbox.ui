@@ -189,6 +189,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="pushButton_SingleFrame">
+       <property name="text">
+        <string>Single Frame</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="pushButton_CancelSpatial">
        <property name="text">
         <string>Cancel</string>
