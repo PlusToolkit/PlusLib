@@ -250,9 +250,9 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
     m_ParentMainWindow->Set3DManipulationMenuEnabled(false);
     m_ParentMainWindow->SetImageManipulationMenuEnabled(false);
 
+    m_ParentMainWindow->GetVisualizationController()->StopAndDisconnectDataCollector();
     m_ParentMainWindow->ResetShowDevices();
     m_ParentMainWindow->ResetAllToolboxes();
-    m_ParentMainWindow->GetVisualizationController()->StopAndDisconnectDataCollector();
     m_ParentMainWindow->GetVisualizationController()->Reset();
     m_ParentMainWindow->GetVisualizationController()->ClearTransformRepository();
     m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
