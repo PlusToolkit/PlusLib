@@ -661,6 +661,18 @@ void SingleWallCalibrationToolbox::SingleFrame()
     return;
   }
 
+  if( m_Segmentation->Update() != PLUS_SUCCESS )
+  {
+    LOG_WARNING("Unable to segment line. Try again.");
+    return;
+  }
+
+  if( m_ParentMainWindow->GetVisualizationController()->Is2DMode() )
+  {
+    // We're in 2d mode, let's try to visualize the segmentation
+
+  }
+
   if( m_RecordingBuffer->AddTrackedFrame(&frame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
   {
     LOG_WARNING("Unable to add frame to list. Try again.");

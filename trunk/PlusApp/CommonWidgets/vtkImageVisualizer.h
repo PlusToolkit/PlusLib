@@ -282,6 +282,7 @@ protected:
   /*! Array holding the bounds of the ROI */
   double                        RegionOfInterest[4];
 
+  /*! The channel to visualize */
   vtkPlusChannel*               SelectedChannel;
 
   /*! Vector to hold the actors for each wire */
