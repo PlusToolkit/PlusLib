@@ -198,6 +198,17 @@ namespace PlusCommon
     return PLUS_SUCCESS;
   }
 
+  //-------------------------------------------------------
+  static std::vector<std::string>& SplitStringIntoTokens(const std::string &s, char delim, std::vector<std::string> &elems)
+  {
+    std::stringstream ss(s);
+    std::string item;
+    while (std::getline(ss, item, delim)) {
+      elems.push_back(item);
+    }
+    return elems;
+  }
+
   //----------------------------------------------------------------------------
   VTK_EXPORT PlusStatus CreateTemporaryFilename( std::string& aString, const std::string& anOutputDirectory );
 

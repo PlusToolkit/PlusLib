@@ -123,24 +123,51 @@ void vtkPlusCommand::SetClientId(int clientId)
 //----------------------------------------------------------------------------
 vtkDataCollector* vtkPlusCommand::GetDataCollector()
 {  
-  if (this->CommandProcessor==NULL)
+  if (this->CommandProcessor == NULL)
   {
     LOG_ERROR("CommandProcessor is invalid");
     return NULL;
   }
-  vtkPlusOpenIGTLinkServer* server=this->CommandProcessor->GetPlusServer();
-  if (server==NULL)
+
+  vtkPlusOpenIGTLinkServer* server = this->CommandProcessor->GetPlusServer();
+  if (server == NULL)
   {
     LOG_ERROR("CommandProcessor::PlusServer is invalid");
     return NULL;
   }
-  vtkDataCollector* dataCollector=server->GetDataCollector();
-  if (dataCollector==NULL)
+
+  vtkDataCollector* dataCollector = server->GetDataCollector();
+  if (dataCollector == NULL)
   {
     LOG_ERROR("CommandProcessor::PlusServer::DataCollector is invalid");
     return NULL;
   }
   return dataCollector;
+}
+
+//----------------------------------------------------------------------------
+vtkTransformRepository* vtkPlusCommand::GetTransformRepository()
+{
+  if (this->CommandProcessor == NULL)
+  {
+    LOG_ERROR("CommandProcessor is invalid");
+    return NULL;
+  }
+
+  vtkPlusOpenIGTLinkServer* server = this->CommandProcessor->GetPlusServer();
+  if (server == NULL)
+  {
+    LOG_ERROR("CommandProcessor::PlusServer is invalid");
+    return NULL;
+  }
+
+  vtkTransformRepository* aRepository = server->GetTransformRepository();
+  if( aRepository == NULL )
+  {
+    LOG_ERROR("CommandProcessor::PlusServer::TransformRepository is invalid");
+    return NULL;
+  }
+  return aRepository;
 }
 
 //----------------------------------------------------------------------------

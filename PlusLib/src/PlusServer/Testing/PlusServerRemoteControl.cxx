@@ -11,11 +11,11 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "vtkPlusOpenIGTLinkClient.h"
-#include "vtksys/CommandLineArguments.hxx"
-
-#include "vtkPlusStartStopRecordingCommand.h"
 #include "vtkPlusReconstructVolumeCommand.h"
 #include "vtkPlusRequestChannelIDsCommand.h"
+#include "vtkPlusStartStopRecordingCommand.h"
+#include "vtkPlusUpdateTransformCommand.h"
+#include "vtksys/CommandLineArguments.hxx"
 
 // Normally a client should generate unique command IDs for each executed command
 // for sake of simplicity, in this sample app we don't generate new IDs, just use
@@ -32,9 +32,12 @@ int main( int argc, char** argv )
   std::string inputFilename="PlusServerRecording.mha";
   std::string outputFilename;
   std::string outputImageName;
+  std::string transformName;
+  std::string transformError;
+  std::string transformDate;
+  std::string transformPersistent;
+  std::string transformValue;
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
-
-  const int numOfTestClientsToConnect = 5; // only if testing is enabled S
 
   vtksys::CommandLineArguments args;
   args.Initialize( argc, argv );
@@ -48,6 +51,11 @@ int main( int argc, char** argv )
   args.AddArgument( "--input-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFilename, "File name of the input, used for RECONSTRUCT command" );
   args.AddArgument( "--output-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFilename, "File name of the output, used for START command (optional, default: 'PlusServerRecording.mha' for acquisition, no output for volume reconstruction)" );
   args.AddArgument( "--output-image-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputImageName, "OpenIGTLink device name of the reconstructed file (optional, default: image is not sent)" );
+  args.AddArgument( "--transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformName, "The name of the transform to update. Form=[From]To[To]Transform" );
+  args.AddArgument( "--transform-date", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformDate, "The date of the transform to update." );
+  args.AddArgument( "--transform-error", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformError, "The error of the transform to update." );
+  args.AddArgument( "--transform-persistent", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformPersistent, "The persistence of the transform to update." );
+  args.AddArgument( "--transform-value", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformValue, "The actual transformation matrix to update." );
   args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)" );
 
   if ( !args.Parse() )
@@ -188,6 +196,39 @@ int main( int argc, char** argv )
     vtkSmartPointer<vtkPlusRequestChannelIDsCommand> cmd=vtkSmartPointer<vtkPlusRequestChannelIDsCommand>::New();
     cmd->SetNameToRequestChannelIDs();
     cmd->SetId(COMMAND_ID);
+    client->SendCommand(cmd);
+  }
+  else if (STRCASECMP(command.c_str(), "UPDATE_TRANSFORM")==0)
+  {
+    vtkSmartPointer<vtkPlusUpdateTransformCommand> cmd = vtkSmartPointer<vtkPlusUpdateTransformCommand>::New();
+    cmd->SetNameToUpdateTransform();
+    cmd->SetId(COMMAND_ID);
+    cmd->SetTransformName(transformName.c_str());
+    double value;
+    std::stringstream ss(transformError);
+    ss >> value;
+    cmd->SetTransformError(value);
+    cmd->SetTransformDate(transformDate.c_str());
+    cmd->SetTransformPersistent(transformPersistent.compare("TRUE") == 0 );
+    std::vector<std::string> elems;
+    vtkMatrix4x4* transformValueMatrix = vtkMatrix4x4::New();
+    PlusCommon::SplitStringIntoTokens(transformValue, ' ', elems);
+    if( elems.size() != 16 )
+    {
+      LOG_ERROR("Invalid formatting of matrix string.");
+      exit(EXIT_FAILURE);
+    }
+    for (int i = 0; i < 4; i++)
+    {
+      for (int j = 0; j < 4; j++)
+      {
+        std::stringstream stream(elems[i*4 + j]);
+        stream >> value;
+        transformValueMatrix->SetElement(i, j, value);
+      }
+    }
+    cmd->SetTransformValue(transformValueMatrix);
+    transformValueMatrix->Delete();
     client->SendCommand(cmd);
   }
   else
