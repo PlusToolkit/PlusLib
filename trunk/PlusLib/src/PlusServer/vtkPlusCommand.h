@@ -7,8 +7,9 @@
 #ifndef __VTKPLUSCOMMAND_H
 #define __VTKPLUSCOMMAND_H
 
-class vtkPlusCommandProcessor;
 class vtkDataCollector;
+class vtkPlusCommandProcessor;
+class vtkTransformRepository;
 
 /*!
   \class vtkPlusCommand 
@@ -81,6 +82,9 @@ protected:
 
   /*! Convenience function for getting a pointer to the data collector */
   virtual vtkDataCollector* GetDataCollector();
+
+  /*! Convenience function for getting a pointer to the transform repository */
+  virtual vtkTransformRepository* GetTransformRepository();
 
   /*! Check if the command name is in the list of command names */
   PlusStatus ValidateName();

@@ -8,6 +8,7 @@ SET (PlusServer_SRCS
   vtkPlusReconstructVolumeCommand.cxx 
   vtkPlusStartStopRecordingCommand.cxx 
   vtkPlusRequestChannelIDsCommand.cxx 
+  vtkPlusUpdateTransformCommand.cxx 
 	)
 	
 IF (WIN32)	
@@ -19,6 +20,7 @@ IF (WIN32)
     vtkPlusReconstructVolumeCommand.h
     vtkPlusStartStopRecordingCommand.h
     vtkPlusRequestChannelIDsCommand.h 
+    vtkPlusUpdateTransformCommand.h 
 		)
 ENDIF (WIN32)	
 

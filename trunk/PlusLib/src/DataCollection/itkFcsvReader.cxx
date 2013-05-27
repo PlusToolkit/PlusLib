@@ -44,7 +44,7 @@ namespace itk
       {
         // Header, process it
         std::vector<std::string> elems;
-        this->SplitStringIntoTokens(line, '=', elems);
+        PlusCommon::SplitStringIntoTokens(line, '=', elems);
         this->StripCharsFromString(elems[0], " #");
         elems[1] = PlusCommon::Trim(elems[1].c_str());
         this->ProcessHeaderEntry(elems[0], elems[1]);
@@ -53,14 +53,14 @@ namespace itk
       {
         // Fiducial List file entry
         std::vector<std::string> elems;
-        this->SplitStringIntoTokens(line, ' ', elems);
+        PlusCommon::SplitStringIntoTokens(line, ' ', elems);
         m_FcsvDataObject.filePath = elems[4];
       }
       else
       {
         // It's a record, read it as such
         std::vector<std::string> elems;
-        this->SplitStringIntoTokens(line, ',', elems);
+        PlusCommon::SplitStringIntoTokens(line, ',', elems);
 
         itk::FcsvPoint point;
         point.label        = elems[0];
@@ -86,17 +86,6 @@ namespace itk
         << "  " << it->visibility)
     }
     in.close();
-  }
-
-  //-------------------------------------------------------
-  std::vector<std::string>& FcsvReader::SplitStringIntoTokens(const std::string &s, char delim, std::vector<std::string> &elems)
-  {
-    std::stringstream ss(s);
-    std::string item;
-    while (std::getline(ss, item, delim)) {
-      elems.push_back(item);
-    }
-    return elems;
   }
 
   //-------------------------------------------------------
@@ -161,7 +150,7 @@ namespace itk
     else if( headerEntry.compare("color") == 0 )
     {
       std::vector<std::string> elems;
-      this->SplitStringIntoTokens(headerEntryValue, ',', elems);
+      PlusCommon::SplitStringIntoTokens(headerEntryValue, ',', elems);
 
       m_FcsvDataObject.color[0] = atof( elems[0].c_str() );
       m_FcsvDataObject.color[1] = atof( elems[1].c_str() );
@@ -170,7 +159,7 @@ namespace itk
     else if( headerEntry.compare("selectedColor") == 0 )
     {
       std::vector<std::string> elems;
-      this->SplitStringIntoTokens(headerEntryValue, ',', elems);
+      PlusCommon::SplitStringIntoTokens(headerEntryValue, ',', elems);
 
       m_FcsvDataObject.selectedColor[0] = atof( elems[0].c_str() );
       m_FcsvDataObject.selectedColor[1] = atof( elems[1].c_str() );
@@ -179,7 +168,7 @@ namespace itk
     else if( headerEntry.compare("columns") == 0 )
     {
       std::vector<std::string> elems;
-      this->SplitStringIntoTokens(headerEntryValue, ' ', elems);
+      PlusCommon::SplitStringIntoTokens(headerEntryValue, ' ', elems);
     }
   }
 
