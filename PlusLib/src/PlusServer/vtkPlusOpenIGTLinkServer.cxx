@@ -57,6 +57,7 @@ vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
 , PlusCommandProcessor(vtkSmartPointer<vtkPlusCommandProcessor>::New())
 , OutputChannelId(NULL)
 , BroadcastChannel(NULL)
+, ConfigFilename(NULL)
 {
   
 }
@@ -65,8 +66,9 @@ vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
 vtkPlusOpenIGTLinkServer::~vtkPlusOpenIGTLinkServer()
 {
   this->Stop();
-  SetTransformRepository(NULL); // remove reference to prevent memory leaks
-  SetDataCollector(NULL); // remove reference to prevent memory leaks
+  this->SetTransformRepository(NULL);
+  this->SetDataCollector(NULL);
+  this->SetConfigFilename(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -757,7 +759,7 @@ int vtkPlusOpenIGTLinkServer::GetNumberOfConnectedClients()
 }
 
 //------------------------------------------------------------------------------
-PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfigurationData)
+PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfigurationData, const char* aFilename)
 {
   LOG_TRACE("vtkPlusOpenIGTLinkServer::ReadConfiguration");
 
@@ -766,6 +768,14 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfi
     LOG_ERROR("Unable to configure Plus server! (XML data element is NULL)"); 
     return PLUS_FAIL; 
   }
+
+  if( aFilename == NULL )
+  {
+    LOG_ERROR("Unable to configure PlusServer without an acceptable config file submitted.");
+    return PLUS_FAIL;
+  }
+
+  this->SetConfigFilename(aFilename);
 
   vtkXMLDataElement* plusOpenIGTLinkServerConfig = aConfigurationData->FindNestedElementWithName("PlusOpenIGTLinkServer");
   if (plusOpenIGTLinkServerConfig == NULL)

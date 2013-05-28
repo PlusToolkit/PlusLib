@@ -109,12 +109,11 @@ void vtkPlusConfig::SetInstance(vtkPlusConfig* instance)
 
 //-----------------------------------------------------------------------------
 vtkPlusConfig::vtkPlusConfig()
+: DeviceSetConfigurationData(NULL)
+, ApplicationConfigurationData(NULL)
+, EditorApplicationExecutable(NULL)
 {
-  this->DeviceSetConfigurationData = NULL;
-  this->ApplicationConfigurationData = NULL;
-  this->EditorApplicationExecutable = NULL;
-
-  this->ApplicationStartTimestamp=vtkAccurateTimer::GetInstance()->GetDateAndTimeString(); 
+  this->ApplicationStartTimestamp = vtkAccurateTimer::GetInstance()->GetDateAndTimeString(); 
   
   // Retrieve the program directory (where the exe file is located)
   SetProgramDirectory();
@@ -965,7 +964,7 @@ std::string vtkPlusConfig::GetApplicationStartTimestamp()
 void vtkPlusConfig::SetDeviceSetConfigurationData(vtkXMLDataElement* deviceSetConfigurationData)
 {
   vtkSetObjectBodyMacro(DeviceSetConfigurationData,vtkXMLDataElement,deviceSetConfigurationData);
-  if (this->DeviceSetConfigurationData!=NULL)
+  if (this->DeviceSetConfigurationData != NULL)
   {    
     std::string plusLibVersion=PlusCommon::GetPlusLibVersionString();
     this->DeviceSetConfigurationData->SetAttribute("PlusRevision", plusLibVersion.c_str());

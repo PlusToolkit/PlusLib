@@ -221,7 +221,7 @@ protected:
   /*! Get application configuration data */
   vtkGetObjectMacro(ApplicationConfigurationData, vtkXMLDataElement); 
   /*! Set application configuration data */
-  vtkSetObjectMacro(ApplicationConfigurationData, vtkXMLDataElement); 
+  vtkSetObjectMacro(ApplicationConfigurationData, vtkXMLDataElement);
 
 protected:
   /*!

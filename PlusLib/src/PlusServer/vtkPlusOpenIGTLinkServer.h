@@ -38,7 +38,7 @@ public:
   virtual void PrintSelf( ostream& os, vtkIndent indent );
   
   /*! Read the configuration file in XML format and set up the devices */
-  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* aDataCollectionConfig ); 
+  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* aDataCollectionConfig, const char* aFilename ); 
 
   /*! Set server listening port */ 
   vtkSetMacro( ListeningPort, int );
@@ -63,6 +63,8 @@ public:
   
   /*! Stop server */ 
   PlusStatus Stop();
+
+  vtkGetStringMacro(ConfigFilename);
     
   /*! 
     Execute all commands in the queue from the current thread (useful if commands should be executed from the main thread) 
@@ -103,6 +105,8 @@ protected:
   int ExecuteCommand(const char* commandString, std::string& resultString); 
 
   vtkSetStringMacro(OutputChannelId);
+
+  vtkSetStringMacro(ConfigFilename);
 
 private:
 	
@@ -192,6 +196,8 @@ private:
 
   /*! Channel to use for broadcasting */
   vtkPlusChannel* BroadcastChannel;
+
+  char* ConfigFilename;
 };
 
 

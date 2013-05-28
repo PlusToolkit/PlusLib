@@ -201,7 +201,7 @@ PlusStatus vtkSingleWallCalibrationAlgo::Calibrate()
     PlusTransformName probeToReferenceName(this->GetProbeCoordinateFrame(), this->GetReferenceCoordinateFrame());
     if( firstFrame->GetCustomFrameTransform(probeToReferenceName, aProbeToReferenceTransform) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Unable to locate ProbeToReferenceTransform in first frame of tracked frame list.");
+      LOG_WARNING("Unable to locate " << this->GetProbeCoordinateFrame() << "To" << this->GetReferenceCoordinateFrame() << "Transform in frame 0 of tracked frame list.");
       return PLUS_FAIL;
     }
     initialRotationMatrixInverse->DeepCopy(aProbeToReferenceTransform);
@@ -221,7 +221,7 @@ PlusStatus vtkSingleWallCalibrationAlgo::Calibrate()
     PlusTransformName probeToReferenceName(this->GetProbeCoordinateFrame(), this->GetReferenceCoordinateFrame());
     if( aFrame->GetCustomFrameTransform(probeToReferenceName, aProbeToReferenceTransform) != PLUS_SUCCESS )
     {
-      LOG_WARNING("Unable to locate ProbeToReferenceTransform in frame " << imageIndex << " of tracked frame list.");
+      LOG_WARNING("Unable to locate " << this->GetProbeCoordinateFrame() << "To" << this->GetReferenceCoordinateFrame() << "Transform in frame " << imageIndex << " of tracked frame list.");
       return PLUS_FAIL;
     }
     (*aProbeToReferenceTransform)[0][3] = 0.0;
@@ -378,7 +378,7 @@ PlusStatus vtkSingleWallCalibrationAlgo::Calibrate()
     PlusTransformName probeToReferenceName(this->GetProbeCoordinateFrame(), this->GetReferenceCoordinateFrame());
     if( aFrame->GetCustomFrameTransform(probeToReferenceName, aProbeToReferenceTransform) != PLUS_SUCCESS )
     {
-      LOG_WARNING("Unable to locate ProbeToReferenceTransform in frame " << imageIndex << " of tracked frame list.");
+      LOG_WARNING("Unable to locate " << this->GetProbeCoordinateFrame() << "To" << this->GetReferenceCoordinateFrame() << "Transform in frame " << imageIndex << " of tracked frame list.");
       return PLUS_FAIL;
     }
     (*aProbeToReferenceTransform)[3][3] = 1.0;

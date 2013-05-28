@@ -13,6 +13,7 @@ See License.txt for details.
 #include "vtkPlusOpenIGTLinkClient.h"
 #include "vtkPlusReconstructVolumeCommand.h"
 #include "vtkPlusRequestChannelIDsCommand.h"
+#include "vtkPlusSaveConfigCommand.h"
 #include "vtkPlusStartStopRecordingCommand.h"
 #include "vtkPlusUpdateTransformCommand.h"
 #include "vtksys/CommandLineArguments.hxx"
@@ -229,6 +230,14 @@ int main( int argc, char** argv )
     }
     cmd->SetTransformValue(transformValueMatrix);
     transformValueMatrix->Delete();
+    client->SendCommand(cmd);
+  }
+  else if (STRCASECMP(command.c_str(), "SAVE_CONFIG")==0)
+  {
+    vtkSmartPointer<vtkPlusSaveConfigCommand> cmd = vtkSmartPointer<vtkPlusSaveConfigCommand>::New();
+    cmd->SetNameToSaveConfig();
+    cmd->SetId(COMMAND_ID);
+    cmd->SetFilename(outputFilename.c_str());
     client->SendCommand(cmd);
   }
   else
