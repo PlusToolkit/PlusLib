@@ -24,7 +24,9 @@ See License.txt for details.
 #include "vtkRenderer.h"
 #include "vtkRfProcessor.h"
 #include "vtkSavedDataSource.h"
-#include "vtkSonixVideoSource.h"
+#ifdef PLUS_USE_ULTRASONIX_VIDEO
+  #include "vtkSonixVideoSource.h"
+#endif
 #include "vtkSmartPointer.h"
 #include "vtkTextActor.h"
 #include "vtkTextProperty.h"
@@ -123,7 +125,9 @@ int main(int argc, char **argv)
   args.Initialize(argc, argv);
 
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Name of the input configuration file.");
+#ifdef PLUS_USE_ULTRASONIX_VIDEO
   args.AddArgument("--sonix-ip", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSonixIp, "IP address of the Ultrasonix scanner (overrides the IP address parameter defined in the config file; only applicable if VideoDevice is SonixVideo).");
+#endif
   args.AddArgument("--video-buffer-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputVideoBufferMetafile, "Video buffer sequence metafile.");
   args.AddArgument("--tracker-buffer-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTrackerBufferMetafile, "Tracker buffer sequence metafile.");
   args.AddArgument("--transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformName, "Name of the transform displayed.");
@@ -185,7 +189,8 @@ int main(int argc, char **argv)
     videoSource->SetSequenceMetafile(inputVideoBufferMetafile.c_str()); 
     videoSource->SetRepeatEnabled(inputRepeat); 
   }
-  else   if (!inputSonixIp.empty())
+#ifdef PLUS_USE_ULTRASONIX_VIDEO
+  else if (!inputSonixIp.empty())
   {    
     if( dataCollector->GetDevice(videoDevice, "VideoDevice") != PLUS_SUCCESS )
     {
@@ -200,6 +205,7 @@ int main(int argc, char **argv)
     }
     videoSource->SetSonixIP(inputSonixIp.c_str());
   }
+#endif
 
   if ( ! inputTrackerBufferMetafile.empty() )
   {
