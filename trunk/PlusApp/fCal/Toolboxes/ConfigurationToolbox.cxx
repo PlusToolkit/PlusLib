@@ -158,7 +158,7 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
     PlusCommon::PrintXML(xmlFileContents, vtkIndent(1), configRootElement);
     LOG_DEBUG("Device set configuration file contents: " << std::endl << xmlFileContents.str());    
 
-    vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement, aConfigFile.c_str()); 
+    vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement); 
 
     // If connection has been successfully created then start data collection
     if (! m_DeviceSetSelectorWidget->GetConnectionSuccessful())

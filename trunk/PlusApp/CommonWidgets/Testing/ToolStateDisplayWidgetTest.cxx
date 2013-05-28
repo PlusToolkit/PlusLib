@@ -89,7 +89,7 @@ void ToolStateDisplayWidgetTest::ConnectToDevicesByConfigFile(std::string aConfi
       return;
     }
 
-    vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement, aConfigFile.c_str()); 
+    vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement); 
 
     // If connection has been successfully created then this action should disconnect
     if (! m_DeviceSetSelectorWidget->GetConnectionSuccessful()) {
