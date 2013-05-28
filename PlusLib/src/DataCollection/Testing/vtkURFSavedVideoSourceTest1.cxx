@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
   bool printHelp(false); 
   bool renderingOff(false);
   std::string inputConfigFile;
-  std::string inputSonixIP("137.82.56.185");
+  std::string inputSonixIp;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_INFO;
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
-  args.AddArgument("--sonix-ip", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSonixIP, "SonixRP ip address (Default: 137.82.56.185)" );
+  args.AddArgument("--sonix-ip", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSonixIp, "IP address of the Ultrasonix scanner (overrides the IP address parameter defined in the config file).");
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFile, "Config file containing the device configuration.");
   args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (Default: 1; 1=error only, 2=warning, 3=info, 4=debug)");	
@@ -79,10 +79,13 @@ int main(int argc, char* argv[])
 
   //Add the video source here
   sonixGrabber = vtkSmartPointer<vtkSonixVideoSource>::New();
-  sonixGrabber->SetSonixIP(inputSonixIP.c_str());
   sonixGrabber->SetImagingMode(0);
   sonixGrabber->SetAcquisitionDataType(0x00000005);
   sonixGrabber->ReadConfiguration(configRead);
+  if (!inputSonixIp.empty())
+  {
+    sonixGrabber->SetSonixIP(inputSonixIp.c_str());
+  }
 
   vtkPlusChannel* aChannel(NULL);
   vtkPlusDataSource* aSource(NULL);
@@ -121,7 +124,7 @@ int main(int argc, char* argv[])
       iren->Delete();
     }
 
-    LOG_ERROR( "Unable to connect to Sonix RP machine at: " << inputSonixIP ); 
+    LOG_ERROR( "Unable to connect to Sonix RP machine at: " << inputSonixIp ); 
     exit(EXIT_FAILURE); 
   }
 

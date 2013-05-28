@@ -249,6 +249,8 @@ int main(int argc, char* argv[])
   bool renderingOff(false);
   bool printParams(false);
   std::string inputConfigFile;
+  std::string inputSonixIp;
+
   std::string acqMode("B");
 
   vtksys::CommandLineArguments args;
@@ -259,6 +261,7 @@ int main(int argc, char* argv[])
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFile, "Config file containing the device configuration.");
   args.AddArgument("--acq-mode", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &acqMode, "Acquisition mode: B or RF (Default: B).");	
+  args.AddArgument("--sonix-ip", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSonixIp, "IP address of the Ultrasonix scanner (overrides the IP address parameter defined in the config file).");
   args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
   args.AddArgument("--print-params", vtksys::CommandLineArguments::NO_ARGUMENT, &printParams, "Print all the supported imaging parameters (for diagnostic purposes only).");	
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level 1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
@@ -311,6 +314,11 @@ int main(int argc, char* argv[])
   {
     LOG_ERROR("Unsupported AcquisitionDataType requested: "<<acqMode);
     exit(EXIT_FAILURE);
+  }
+
+  if (!inputSonixIp.empty())
+  {
+    sonixGrabber->SetSonixIP(inputSonixIp.c_str());
   }
 
   vtkPlusChannel* aChannel(NULL);
