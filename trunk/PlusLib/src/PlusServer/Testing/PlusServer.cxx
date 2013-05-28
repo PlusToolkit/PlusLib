@@ -113,7 +113,7 @@ int main( int argc, char** argv )
   LOG_DEBUG( "Initializing Plus OpenIGTLink server... " );
   vtkSmartPointer< vtkPlusOpenIGTLinkServer > server = vtkSmartPointer< vtkPlusOpenIGTLinkServer >::New();
   server->SetDataCollector( dataCollector );
-  if ( server->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
+  if ( server->ReadConfiguration(configRootElement, inputConfigFileName.c_str()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read PlusOpenIGTLinkServer configuration!"); 
     exit(EXIT_FAILURE);

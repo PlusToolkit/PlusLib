@@ -80,7 +80,7 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE); 
   }
 
-  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement, inputConfigFileName.c_str());
 
 	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
 

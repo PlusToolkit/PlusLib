@@ -12,6 +12,7 @@ See License.txt for details.
 #include "vtkPlusCommandProcessor.h"
 #include "vtkPlusReconstructVolumeCommand.h"
 #include "vtkPlusRequestChannelIDsCommand.h"
+#include "vtkPlusSaveConfigCommand.h"
 #include "vtkPlusStartStopRecordingCommand.h"
 #include "vtkPlusUpdateTransformCommand.h"
 #include "vtkRecursiveCriticalSection.h"
@@ -45,6 +46,11 @@ vtkPlusCommandProcessor::vtkPlusCommandProcessor()
   }
   {
     vtkPlusCommand* cmd = vtkPlusUpdateTransformCommand::New();
+    RegisterPlusCommand(cmd);
+    cmd->Delete();
+  }
+  {
+    vtkPlusCommand* cmd = vtkPlusSaveConfigCommand::New();
     RegisterPlusCommand(cmd);
     cmd->Delete();
   }
