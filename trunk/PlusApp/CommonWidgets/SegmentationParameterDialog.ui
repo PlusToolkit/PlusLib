@@ -388,21 +388,27 @@
             </widget>
            </item>
            <item>
-            <widget class="QSpinBox" name="spinBox_ReferenceWidth">
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_ReferenceWidth">
              <property name="toolTip">
               <string>Length of the  that is represented by green line</string>
              </property>
-             <property name="minimum">
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+             <property name="decimals">
               <number>1</number>
              </property>
+             <property name="minimum">
+              <double>1.000000000000000</double>
+             </property>
              <property name="maximum">
-              <number>200</number>
+              <double>200.000000000000000</double>
              </property>
              <property name="singleStep">
-              <number>5</number>
+              <double>5.000000000000000</double>
              </property>
              <property name="value">
-              <number>30</number>
+              <double>30.000000000000000</double>
              </property>
             </widget>
            </item>
@@ -417,21 +423,27 @@
             </widget>
            </item>
            <item>
-            <widget class="QSpinBox" name="spinBox_ReferenceHeight">
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_ReferenceHeight">
              <property name="toolTip">
               <string>Length of the  that is represented by blue line</string>
              </property>
-             <property name="minimum">
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+             <property name="decimals">
               <number>1</number>
              </property>
+             <property name="minimum">
+              <double>1.000000000000000</double>
+             </property>
              <property name="maximum">
-              <number>200</number>
+              <double>200.000000000000000</double>
              </property>
              <property name="singleStep">
-              <number>5</number>
+              <double>5.000000000000000</double>
              </property>
              <property name="value">
-              <number>10</number>
+              <double>10.000000000000000</double>
              </property>
             </widget>
            </item>

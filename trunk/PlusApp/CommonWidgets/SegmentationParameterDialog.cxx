@@ -860,8 +860,8 @@ SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkDa
   connect( ui.spinBox_YMin, SIGNAL( valueChanged(int) ), this, SLOT( ROIYMinChanged(int) ) );
   connect( ui.spinBox_XMax, SIGNAL( valueChanged(int) ), this, SLOT( ROIXMaxChanged(int) ) );
   connect( ui.spinBox_YMax, SIGNAL( valueChanged(int) ), this, SLOT( ROIYMaxChanged(int) ) );
-  connect( ui.spinBox_ReferenceWidth, SIGNAL( valueChanged(int) ), this, SLOT( ReferenceWidthChanged(int) ) );
-  connect( ui.spinBox_ReferenceHeight, SIGNAL( valueChanged(int) ), this, SLOT( ReferenceHeightChanged(int) ) );
+  connect( ui.doubleSpinBox_ReferenceWidth, SIGNAL( valueChanged(int) ), this, SLOT( ReferenceWidthChanged(int) ) );
+  connect( ui.doubleSpinBox_ReferenceHeight, SIGNAL( valueChanged(int) ), this, SLOT( ReferenceHeightChanged(int) ) );
   connect( ui.doubleSpinBox_OpeningCircleRadius, SIGNAL( valueChanged(double) ), this, SLOT( OpeningCircleRadiusChanged(double) ) );
   connect( ui.doubleSpinBox_OpeningBarSize, SIGNAL( valueChanged(double) ), this, SLOT( OpeningBarSizeChanged(double) ) );
   connect( ui.doubleSpinBox_LinePairDistanceError, SIGNAL( valueChanged(double) ), this, SLOT( LinePairDistanceErrorChanged(double) ) );
@@ -1521,7 +1521,7 @@ PlusStatus SegmentationParameterDialog::ComputeSpacingFromMeasuredLengthSum()
 {
   LOG_TRACE("SegmentationParameterDialog::ComputeSpacingFromMeasuredLengthSum");
 
-  double spacing = (ui.spinBox_ReferenceWidth->text().toDouble() + ui.spinBox_ReferenceHeight->text().toDouble()) / m_SpacingModeHandler->GetLineLengthSumImagePixel();
+  double spacing = (ui.doubleSpinBox_ReferenceWidth->text().toDouble() + ui.doubleSpinBox_ReferenceHeight->text().toDouble()) / m_SpacingModeHandler->GetLineLengthSumImagePixel();
   ui.label_SpacingResult->setText(QString("%1").arg(spacing));
 
   m_PatternRecognition->GetFidSegmentation()->SetApproximateSpacingMmPerPixel(spacing);
@@ -1537,7 +1537,7 @@ double SegmentationParameterDialog::GetSpacingReferenceWidth()
 {
   LOG_TRACE("SegmentationParameterDialog::GetSpacingReferenceWidth");
 
-  return ui.spinBox_ReferenceWidth->text().toDouble();
+  return ui.doubleSpinBox_ReferenceWidth->text().toDouble();
 }
 
 //-----------------------------------------------------------------------------
@@ -1546,7 +1546,7 @@ double SegmentationParameterDialog::GetSpacingReferenceHeight()
 {
   LOG_TRACE("SegmentationParameterDialog::GetSpacingReferenceHeight");
 
-  return ui.spinBox_ReferenceHeight->text().toDouble();
+  return ui.doubleSpinBox_ReferenceHeight->text().toDouble();
 }
 
 //-----------------------------------------------------------------------------
