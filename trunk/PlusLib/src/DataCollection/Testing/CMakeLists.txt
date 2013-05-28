@@ -36,14 +36,15 @@ ADD_TEST(vtkDataCollectorTest1
   )
 SET_TESTS_PROPERTIES( vtkDataCollectorTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-IF (PLUS_USE_ULTRASONIX_VIDEO)
+IF (PLUS_USE_ULTRASONIX_VIDEO AND PLUS_TEST_ULTRASONIX)
 	ADD_TEST(vtkDataCollectorTest1_SonixVideo
 	  ${EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorTest1
 	  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_DataCollectionOnly_SonixVideo_FakeTracker.xml 
 	  --rendering-off
+    --sonix-ip=${PLUS_TEST_ULTRASONIX_IP_ADDRESS}
 	  )
 	SET_TESTS_PROPERTIES( vtkDataCollectorTest1_SonixVideo PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
+ENDIF (PLUS_USE_ULTRASONIX_VIDEO AND PLUS_TEST_ULTRASONIX)
  
 #***************************  vtkDataCollectorTest2 ***************************
 ADD_EXECUTABLE(vtkDataCollectorTest2 vtkDataCollectorTest2.cxx)
@@ -136,16 +137,17 @@ ADD_TEST(itkFcsvWriterTest1 ${EXECUTABLE_OUTPUT_PATH}/itkFcsvWriterTest1
 SET_TESTS_PROPERTIES( itkFcsvWriterTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #***************************  vtkSonixVideoSourceTest1.cxx ***************************
-IF (PLUS_USE_ULTRASONIX_VIDEO)
+IF (PLUS_USE_ULTRASONIX_VIDEO AND PLUS_TEST_ULTRASONIX)
 	ADD_EXECUTABLE(vtkSonixVideoSourceTest1 vtkSonixVideoSourceTest1.cxx )
 	TARGET_LINK_LIBRARIES(vtkSonixVideoSourceTest1 vtkDataCollection vtkCharts)
 	ADD_TEST(vtkSonixVideoSourceTest1 
 	${EXECUTABLE_OUTPUT_PATH}/vtkSonixVideoSourceTest1
     --rendering-off 
     --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_SonixVideoSourceTest.xml
+    --sonix-ip=${PLUS_TEST_ULTRASONIX_IP_ADDRESS}
 	)
 	SET_TESTS_PROPERTIES( vtkSonixVideoSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
+ENDIF (PLUS_USE_ULTRASONIX_VIDEO AND PLUS_TEST_ULTRASONIX)
 
 
 IF (PLUS_USE_BKPROFOCUS_VIDEO)
