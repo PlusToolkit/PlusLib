@@ -446,12 +446,13 @@ PlusStatus vtkSingleWallCalibrationAlgo::Calibrate()
   LOG_INFO("Ending single wall image to probe calculation with " << this->TrackedFrameList->GetNumberOfTrackedFrames() << " images.");
 
   // Clean up interim matrices
-  initialRotationMatrixInverse->Delete();
   for( int imageIndex = 0; imageIndex < this->TrackedFrameList->GetNumberOfTrackedFrames(); ++imageIndex )
   {
     relativeRotationFromInitialPosition[imageIndex]->Delete();
   }
+  initialRotationMatrixInverse->Delete();
   initialImageToReferenceEstimate->Delete();
+  imageToReferenceMatrix->Delete();
   aProbeToReferenceTransform->Delete();
 
   this->UpToDate = true;
