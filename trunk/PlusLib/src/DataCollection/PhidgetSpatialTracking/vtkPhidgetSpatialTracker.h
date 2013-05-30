@@ -29,6 +29,10 @@ Tools:
     The values are stored in the translation part of the transformation matrix.
     The rotation part is identity.
   TiltSensor: 2-DOF sensor tilt is computed as a rotation matrix. Only the accelerometer is used.
+  FilteredTiltSensor: Modifies OrientationSensor output, with one axis constrained to always point west.  Used to constrain rotational error
+  around the Z axis.
+  RelativeTiltSensor:  Modifies OrientationSensor output by decomposing to SWD coordinates, and setting rotation about down to zero.  Used
+  to constrain rotational error around the Z axis.
   OrientationSensor: 3-DOF sensor orientation is computed using sensor fusion.
     With ...IMU algorithm only the accelerometer and gyroscope data are used.
     With ...AHRS algorithm accelerometer, gyroscope, and magnetometer data are used.
@@ -121,6 +125,7 @@ private:  // Variables.
   CPhidgetSpatialHandle SpatialDeviceHandle;
 
   unsigned int FrameNumber;
+  int FrameNumberForRelativeTiltSensor;
   double TrackerTimeToSystemTimeSec; // time_System = time_Tracker + TrackerTimeToSystemTimeSec
   bool TrackerTimeToSystemTimeComputed; // the time offset is always computed when the first frame is received after start tracking  
 
@@ -128,12 +133,18 @@ private:  // Variables.
   vtkMatrix4x4* LastGyroscopeToTrackerTransform;
   vtkMatrix4x4* LastMagnetometerToTrackerTransform;
   vtkMatrix4x4* LastTiltSensorToTrackerTransform;
+  vtkMatrix4x4* LastFilteredTiltSensorToTrackerTransform;
+  vtkMatrix4x4* LastRelativeTiltSensorToTrackerTransform;
   vtkMatrix4x4* LastOrientationSensorToTrackerTransform;
+  vtkMatrix4x4* ProbeToOrientationSensorTransform;
+  vtkMatrix4x4* LastProbeToTrackerTransform;
 
   vtkPlusDataSource* AccelerometerTool;
   vtkPlusDataSource* GyroscopeTool;
   vtkPlusDataSource* MagnetometerTool;
   vtkPlusDataSource* TiltSensorTool;
+  vtkPlusDataSource* FilteredTiltSensorTool;
+  vtkPlusDataSource* RelativeTiltSensorTool;
   vtkPlusDataSource* OrientationSensorTool;
 
   enum AHRS_METHOD
@@ -142,7 +153,10 @@ private:  // Variables.
     AHRS_MAHONY
   };
 
+  AhrsAlgo* AhrsAlgo_ForRelativeTiltSensor;
+
   AhrsAlgo* AhrsAlgo;
+
 
   /*!
     If AhrsUseMagnetometer enabled (a ..._MARG algorithm is chosen) then heading will be estimated using magnetometer data.
