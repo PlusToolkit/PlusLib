@@ -97,11 +97,11 @@
     />
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
       Opacity="0.6"
-      File="FCal_2.0.stl"
+      File="fCal3.0.stl"
       ModelToObjectTransform="
-        1 0 0 -35.0
+        1 0 0 -13.5
         0 1 0 -10.0
-        0 0 1 -5.0
+        0 0 1 -15.5
         0 0 0 1"
   />
     <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
@@ -153,20 +153,20 @@
       </Pattern>
 
       <Landmarks>
-        <Landmark Name="#1" Position="184.5 -5.0 35.5" />
-        <Landmark Name="#2" Position="184.5 -5.0 20.5" />
-        <Landmark Name="#3" Position="184.0 -5.0 94.5" />
-        <Landmark Name="#4" Position="184.0 45.0 40.5" />
+        <Landmark Name="#1" Position="186 -5.0 35.5" />
+        <Landmark Name="#2" Position="186 -5.0 -19.5" />
+        <Landmark Name="#3" Position="186 -5.0 -94.5" />
+        <Landmark Name="#4" Position="184.0 45.0 35.5" />
         
-        <Landmark Name="#5" Position="184.0 45.0 10.5" />
-        <Landmark Name="#6" Position="184.0 45.0 -94.5" />
-        <Landmark Name="#7" Position="-34.0 45.0 40.5" />
-        <Landmark Name="#8" Position="-34.0 45.0 10.5" />
+        <Landmark Name="#5" Position="186 45.0 10.5" />
+        <Landmark Name="#6" Position="186 45.0 -94.5" />
+        <Landmark Name="#7" Position="-33.0 45.0 35.5" />
+        <Landmark Name="#8" Position="-33.0 45.0 10.5" />
 		
-		<Landmark Name="#9" Position="-34.0 45.0 -94.5" />
-        <Landmark Name="#10" Position="-34.0 -5.0 35.5" />
-        <Landmark Name="#11" Position="-34.0 -5.0 20.5" />
-        <Landmark Name="#12" Position="-34.0 -5.0 94.5" />
+		<Landmark Name="#9" Position="-33.0 45.0 -94.5" />
+        <Landmark Name="#10" Position="-33.0 -5.0 35.5" />
+        <Landmark Name="#11" Position="-33.0 -5.0 -19.5" />
+        <Landmark Name="#12" Position="-33.0 -5.0 -94.5" />
 		
 		
       </Landmarks>
