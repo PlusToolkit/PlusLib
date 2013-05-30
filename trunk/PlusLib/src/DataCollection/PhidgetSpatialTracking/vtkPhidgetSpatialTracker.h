@@ -31,8 +31,6 @@ Tools:
   TiltSensor: 2-DOF sensor tilt is computed as a rotation matrix. Only the accelerometer is used.
   FilteredTiltSensor: Modifies OrientationSensor output, with one axis constrained to always point west.  Used to constrain rotational error
   around the Z axis.
-  RelativeTiltSensor:  Modifies OrientationSensor output by decomposing to SWD coordinates, and setting rotation about down to zero.  Used
-  to constrain rotational error around the Z axis.
   OrientationSensor: 3-DOF sensor orientation is computed using sensor fusion.
     With ...IMU algorithm only the accelerometer and gyroscope data are used.
     With ...AHRS algorithm accelerometer, gyroscope, and magnetometer data are used.
@@ -125,7 +123,6 @@ private:  // Variables.
   CPhidgetSpatialHandle SpatialDeviceHandle;
 
   unsigned int FrameNumber;
-  int FrameNumberForRelativeTiltSensor;
   double TrackerTimeToSystemTimeSec; // time_System = time_Tracker + TrackerTimeToSystemTimeSec
   bool TrackerTimeToSystemTimeComputed; // the time offset is always computed when the first frame is received after start tracking  
 
@@ -134,17 +131,13 @@ private:  // Variables.
   vtkMatrix4x4* LastMagnetometerToTrackerTransform;
   vtkMatrix4x4* LastTiltSensorToTrackerTransform;
   vtkMatrix4x4* LastFilteredTiltSensorToTrackerTransform;
-  vtkMatrix4x4* LastRelativeTiltSensorToTrackerTransform;
   vtkMatrix4x4* LastOrientationSensorToTrackerTransform;
-  vtkMatrix4x4* ProbeToOrientationSensorTransform;
-  vtkMatrix4x4* LastProbeToTrackerTransform;
 
   vtkPlusDataSource* AccelerometerTool;
   vtkPlusDataSource* GyroscopeTool;
   vtkPlusDataSource* MagnetometerTool;
   vtkPlusDataSource* TiltSensorTool;
   vtkPlusDataSource* FilteredTiltSensorTool;
-  vtkPlusDataSource* RelativeTiltSensorTool;
   vtkPlusDataSource* OrientationSensorTool;
 
   enum AHRS_METHOD
@@ -153,7 +146,7 @@ private:  // Variables.
     AHRS_MAHONY
   };
 
-  AhrsAlgo* AhrsAlgo_ForRelativeTiltSensor;
+  AhrsAlgo* FilteredTiltAhrsAlgo;
 
   AhrsAlgo* AhrsAlgo;
 
@@ -164,15 +157,18 @@ private:  // Variables.
     IMU may be more noisy, but not sensitive to magnetic field distortions.
   */
   bool AhrsUseMagnetometer;
+  bool FilteredTiltAhrsUseMagnetometer;
 
   /*!
     Gain values used by the AHRS algorithm (Mahony: first parameter is proportional, second is integral gain; Madgwick: only the first parameter is used)
     Higher gain gives higher reliability to accelerometer&magnetometer data.
   */
   double AhrsAlgorithmGain[2];
+  double FilteredTiltAhrsAlgorithmGain[2];
 
   /*! last AHRS update time (in system time) */
   double AhrsLastUpdateTime;
+  double FilteredTiltAhrsLastUpdateTime;
 
   /*!
     In tilt sensor mode we don't use the magnetometer, so we have to provide a direction reference.
@@ -183,6 +179,7 @@ private:  // Variables.
     If sensor axis 2 points down (the sensor plane is about horizontal) => TiltSensorDownAxisIndex = 1.
   */
   int TiltSensorWestAxisIndex;
+  int FilteredTiltSensorWestAxisIndex;
 
   /*! Zero the gyroscope when connecting to the device */
   bool ZeroGyroscopeOnConnect;
