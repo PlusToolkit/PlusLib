@@ -130,18 +130,15 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
       INCLUDE_EXTERNAL_MSPROJECT(@vcProj_PatternLocAlgo@)
       INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkVolumeReconstruction@)
       INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkxio@)
-      # if PLUS_USE_CERTUS OR PLUS_USE_POLARIS
-      IF (@PLUS_USE_CERTUS@ OR @PLUS_USE_POLARIS@)
+      IF (@PLUS_USE_POLARIS@)
         INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkndicapi@)
       ENDIF()      
-      # if PLUS_USE_MICRONTRACKER
       IF (@PLUS_USE_MICRONTRACKER@)
         INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkMicronTrackerInterface@)
       ENDIF()
-	  # if PLUS_USE_OpenIGTLink
-	  IF (@PLUS_USE_OpenIGTLink@)
-		INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkPlusOpenIGTLink@)
-	  ENDIF()
+	    IF (@PLUS_USE_OpenIGTLink@)
+  		  INCLUDE_EXTERNAL_MSPROJECT(@vcProj_vtkPlusOpenIGTLink@)
+	    ENDIF()
     ENDIF ()
   endmacro()
 
