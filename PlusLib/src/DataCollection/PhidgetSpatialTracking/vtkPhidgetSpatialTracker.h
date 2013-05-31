@@ -117,7 +117,7 @@ private:  // Functions.
 
   vtkPhidgetSpatialTracker( const vtkPhidgetSpatialTracker& );
   void operator=( const vtkPhidgetSpatialTracker& ); 
-	 //void constrainWestAxis(double rotationMatrix[3][3], int WestAxisIndex, vtkMatrix4x4** LastSensorToTrackerTransform);
+	 void constrainWestAxis(double downVector_Sensor[3], int westAxisIndex, vtkMatrix4x4* LastSensorToTrackerTransform);
 
 private:  // Variables.  
 

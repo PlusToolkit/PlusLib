@@ -230,41 +230,18 @@ int CCONV vtkPhidgetSpatialTracker::SpatialDataHandler(CPhidgetSpatialHandle spa
       // Compose matrix that transforms the x axis to the input vector by rotations around two orthogonal axes
       vtkSmartPointer<vtkTransform> transform=vtkSmartPointer<vtkTransform>::New();      
 
-      double downVector_Sensor[4] = {data[i]->acceleration[0],data[i]->acceleration[1],data[i]->acceleration[2],0}; // provided by the sensor
-      vtkMath::Normalize(downVector_Sensor);      
-      // Sensor axis vector that is assumed to always point to West. This is chosen so that cross(westVector_Sensor, downVector_Sensor) = southVector_Sensor.
-      double westVector_Sensor[4]={0,0,0,0};
-      double southVector_Sensor[4] = {0,0,0,0};
+						double downVector_Sensor[4] = {data[i]->acceleration[0],data[i]->acceleration[1],data[i]->acceleration[2],0}; // provided by the sensor
+      vtkMath::Normalize(downVector_Sensor);
 
       if (tracker->TiltSensorWestAxisIndex>=0 && tracker->TiltSensorWestAxisIndex<3)
       {
-        // Align a sensor axis with the West direction.
-        // Now just set the direction, the length will be corrected at the end.
-        westVector_Sensor[tracker->TiltSensorWestAxisIndex]=1; 
+        tracker->constrainWestAxis(downVector_Sensor,tracker->TiltSensorWestAxisIndex, tracker->LastTiltSensorToTrackerTransform);
       }
       else
       {
         LOG_ERROR("Invalid TiltSensorWestAxisIndex is specified (valid values are 0, 1, 2). Use default: 1.");
-        westVector_Sensor[1]=1;
+								tracker->constrainWestAxis(downVector_Sensor, 1, tracker->LastTiltSensorToTrackerTransform);
       }
-
-      vtkMath::Cross(westVector_Sensor, downVector_Sensor, southVector_Sensor); // compute South
-      vtkMath::Normalize(southVector_Sensor);
-      vtkMath::Cross(downVector_Sensor, southVector_Sensor, westVector_Sensor); // compute West
-      vtkMath::Normalize(westVector_Sensor);
-
-      // row 0
-      tracker->LastTiltSensorToTrackerTransform->SetElement(0,0,southVector_Sensor[0]);
-      tracker->LastTiltSensorToTrackerTransform->SetElement(0,1,southVector_Sensor[1]);
-      tracker->LastTiltSensorToTrackerTransform->SetElement(0,2,southVector_Sensor[2]);
-      // row 1
-      tracker->LastTiltSensorToTrackerTransform->SetElement(1,0,westVector_Sensor[0]);
-      tracker->LastTiltSensorToTrackerTransform->SetElement(1,1,westVector_Sensor[1]);
-      tracker->LastTiltSensorToTrackerTransform->SetElement(1,2,westVector_Sensor[2]);
-      // row 2
-      tracker->LastTiltSensorToTrackerTransform->SetElement(2,0,downVector_Sensor[0]);
-      tracker->LastTiltSensorToTrackerTransform->SetElement(2,1,downVector_Sensor[1]);
-      tracker->LastTiltSensorToTrackerTransform->SetElement(2,2,downVector_Sensor[2]);
 
       tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->TiltSensorTool->GetSourceId(), tracker->LastTiltSensorToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
     }  
@@ -330,7 +307,6 @@ int CCONV vtkPhidgetSpatialTracker::SpatialDataHandler(CPhidgetSpatialHandle spa
       }            
 	  if(tracker->FilteredTiltSensorTool!=NULL)
 	  {
-			//FROM HERE:
    // Compute the time that passed since the last FilteredTilt AHRS update
     if (tracker->FilteredTiltAhrsLastUpdateTime<0)
     {
@@ -343,68 +319,30 @@ int CCONV vtkPhidgetSpatialTracker::SpatialDataHandler(CPhidgetSpatialHandle spa
     tracker->FilteredTiltAhrsLastUpdateTime=timeSystemSec;
 
     tracker->FilteredTiltAhrsAlgo->SetSampleFreqHz(1.0/timeSinceLastFilteredTiltAhrsUpdateSec);
-				//TO HERE TO BE MOVED INTO AHRS ALGO
+
 
 				tracker->FilteredTiltAhrsAlgo->UpdateIMU(          
     vtkMath::RadiansFromDegrees(data[i]->angularRate[0]), vtkMath::RadiansFromDegrees(data[i]->angularRate[1]), vtkMath::RadiansFromDegrees(data[i]->angularRate[2]),
     data[i]->acceleration[0], data[i]->acceleration[1], data[i]->acceleration[2]);
 
-				//make a function that does this 
-				//quaternionToRotationMatrix(&FilteredTiltAhrsAlgo,&filteredTiltRotMatrix);
 				double filteredTiltRotQuat[4]={0};
     tracker->FilteredTiltAhrsAlgo->GetOrientation(filteredTiltRotQuat[0],filteredTiltRotQuat[1],filteredTiltRotQuat[2],filteredTiltRotQuat[3]);
 
     double filteredTiltRotMatrix[3][3]={0};
     vtkMath::QuaternionToMatrix3x3(filteredTiltRotQuat, filteredTiltRotMatrix); 
-				
 
-
-				// Compose matrix that transforms the x axis to the input vector by rotations around two orthogonal axes
-				vtkSmartPointer<vtkTransform> transform=vtkSmartPointer<vtkTransform>::New();      
-
-				double filteredDownVector_Sensor[4] = {0,0,0,0};
-				filteredDownVector_Sensor[0] = filteredTiltRotMatrix[2][0];
-				filteredDownVector_Sensor[1] = filteredTiltRotMatrix[2][1];
-				filteredDownVector_Sensor[2] = filteredTiltRotMatrix[2][2];
-				//vtkMath::Normalize(downVector_Sensor);      
-				// Sensor axis vector that is assumed to always point to West. This is chosen so that cross(westVector_Sensor, downVector_Sensor) = southVector_Sensor.
-				double filteredWestVector_Sensor[4]={0,0,0,0};
-				double filteredSouthVector_Sensor[4] = {0,0,0,0};
-
+				double filteredDownVector_Sensor[4] = {filteredTiltRotMatrix[2][0],filteredTiltRotMatrix[2][1],filteredTiltRotMatrix[2][2],0};
+				vtkMath::Normalize(filteredDownVector_Sensor);   
 				if (tracker->FilteredTiltSensorWestAxisIndex>=0 && tracker->FilteredTiltSensorWestAxisIndex<3)
 				{
-						// Align a sensor axis with the West direction.
-						// Now just set the direction, the length will be corrected at the end.
-						filteredWestVector_Sensor[tracker->FilteredTiltSensorWestAxisIndex]=1;
+						tracker->constrainWestAxis(filteredDownVector_Sensor,tracker->FilteredTiltSensorWestAxisIndex, tracker->LastFilteredTiltSensorToTrackerTransform);
 				}
 				else
 				{
 						LOG_ERROR("Invalid FilteredTiltSensorWestAxisIndex is specified (valid values are 0, 1, 2). Use default: 1.");
-						filteredWestVector_Sensor[1]=1;
+						tracker->constrainWestAxis(filteredDownVector_Sensor, 1 , tracker->LastFilteredTiltSensorToTrackerTransform);
 				}
-				//can probably make a function to do all this crossing too
 				
-
-				vtkMath::Cross(filteredWestVector_Sensor, filteredDownVector_Sensor, filteredSouthVector_Sensor); // compute South
-				vtkMath::Normalize(filteredSouthVector_Sensor);
-				vtkMath::Cross(filteredDownVector_Sensor, filteredSouthVector_Sensor, filteredWestVector_Sensor); // compute West
-				vtkMath::Normalize(filteredWestVector_Sensor);
-
-
-				// row 0
-				tracker->LastFilteredTiltSensorToTrackerTransform->SetElement(0,0,filteredSouthVector_Sensor[0]);
-				tracker->LastFilteredTiltSensorToTrackerTransform->SetElement(0,1,filteredSouthVector_Sensor[1]);
-				tracker->LastFilteredTiltSensorToTrackerTransform->SetElement(0,2,filteredSouthVector_Sensor[2]);
-				// row 1
-				tracker->LastFilteredTiltSensorToTrackerTransform->SetElement(1,0,filteredWestVector_Sensor[0]);
-				tracker->LastFilteredTiltSensorToTrackerTransform->SetElement(1,1,filteredWestVector_Sensor[1]);
-				tracker->LastFilteredTiltSensorToTrackerTransform->SetElement(1,2,filteredWestVector_Sensor[2]);
-				// row 2
-				tracker->LastFilteredTiltSensorToTrackerTransform->SetElement(2,0,filteredDownVector_Sensor[0]);
-				tracker->LastFilteredTiltSensorToTrackerTransform->SetElement(2,1,filteredDownVector_Sensor[1]);
-				tracker->LastFilteredTiltSensorToTrackerTransform->SetElement(2,2,filteredDownVector_Sensor[2]);
-
-	
 				tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->FilteredTiltSensorTool->GetSourceId(), tracker->LastFilteredTiltSensorToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
 
 				// write back the results to the filteredTilt_AHRS algorithm
@@ -829,4 +767,36 @@ PlusStatus vtkPhidgetSpatialTracker::Reset()
   }
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+void vtkPhidgetSpatialTracker::constrainWestAxis(double downVector_Sensor[3], int westAxisIndex, vtkMatrix4x4* LastSensorToTrackerTransform)
+{
+
+		// Sensor axis vector that is assumed to always point to West. This is chosen so that cross(westVector_Sensor, downVector_Sensor) = southVector_Sensor.
+		double WestVector_Sensor[4]={0,0,0,0};
+		double SouthVector_Sensor[4] = {0,0,0,0};
+		
+		WestVector_Sensor[westAxisIndex]=1; 
+
+		vtkMath::Cross(WestVector_Sensor, downVector_Sensor, SouthVector_Sensor); // compute South
+		vtkMath::Normalize(SouthVector_Sensor);
+		vtkMath::Cross(downVector_Sensor, SouthVector_Sensor, WestVector_Sensor); // compute West
+		vtkMath::Normalize(WestVector_Sensor);
+
+
+		// row 0
+		LastSensorToTrackerTransform->SetElement(0,0,SouthVector_Sensor[0]);
+		LastSensorToTrackerTransform->SetElement(0,1,SouthVector_Sensor[1]);
+		LastSensorToTrackerTransform->SetElement(0,2,SouthVector_Sensor[2]);
+		// row 1
+		LastSensorToTrackerTransform->SetElement(1,0,WestVector_Sensor[0]);
+		LastSensorToTrackerTransform->SetElement(1,1,WestVector_Sensor[1]);
+		LastSensorToTrackerTransform->SetElement(1,2,WestVector_Sensor[2]);
+		// row 2
+		LastSensorToTrackerTransform->SetElement(2,0,downVector_Sensor[0]);
+		LastSensorToTrackerTransform->SetElement(2,1,downVector_Sensor[1]);
+		LastSensorToTrackerTransform->SetElement(2,2,downVector_Sensor[2]);
+
+		return;
 }
