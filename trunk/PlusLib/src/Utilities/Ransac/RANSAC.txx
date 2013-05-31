@@ -197,12 +197,11 @@ ITK_THREAD_RETURN_TYPE RANSAC<T,S>::RANSACThreadCallback( void *arg )
       }
 
       std::pair< typename std::set<int *, SubSetIndexComparator >::iterator, bool> res;
-      {
-        PlusLockGuard<SimpleFastMutexLock> hypothesisGuard(&caller->hypothesisMutex);
 
-        //check that the sub-set just chosen is unique
-        res = caller->chosenSubSets->insert( curSubSetIndexes );
-      }
+      caller->hypothesisMutex.Lock();
+      //check that the sub-set just chosen is unique
+      res = caller->chosenSubSets->insert( curSubSetIndexes );
+      caller->hypothesisMutex.Unlock();
 
       if(res.second == true)
       {
@@ -233,35 +232,34 @@ ITK_THREAD_RETURN_TYPE RANSAC<T,S>::RANSACThreadCallback( void *arg )
           }
         } //found a larger consensus set?
 
+        caller->resultsMutex.Lock();
+        if( numVotesForCur > caller->numVotesForBest )
         {
-          PlusLockGuard<SimpleFastMutexLock> resultsGuard(&caller->resultsMutex);
-
-          if( numVotesForCur > caller->numVotesForBest )
+          caller->numVotesForBest = numVotesForCur;
+          for( unsigned int objIndex = 0; objIndex < numDataObjects; ++objIndex )
           {
-            caller->numVotesForBest = numVotesForCur;
-            for( int objIndex = 0; objIndex < numDataObjects; ++objIndex )
-            {
-              caller->bestVotes[objIndex] = curVotes[objIndex];
-            }
-            //std::copy( curVotes, curVotes+numDataObjects, caller->bestVotes );
-          
-            //all data objects are inliers, terminate the search
-            if( caller->numVotesForBest == numDataObjects )
-            {
-              i = caller->numTries;
-            }
-            else
-            {
-              //update the estimate of outliers and the number of iterations we need                                 
-              denominator = log( 1.0 - pow((double)numVotesForCur/(double)numDataObjects, 
-                (double)(numForEstimate)) );
-              caller->numTries = (int)( caller->numerator/denominator + 0.5 );
+            caller->bestVotes[objIndex] = curVotes[objIndex];
+          }
+          //std::copy( curVotes, curVotes+numDataObjects, caller->bestVotes );
+        
+          //all data objects are inliers, terminate the search
+          if( caller->numVotesForBest == numDataObjects )
+          {
+            i = caller->numTries;
+          }
+          else
+          {
+            //update the estimate of outliers and the number of iterations we need                                 
+            denominator = log( 1.0 - pow((double)numVotesForCur/(double)numDataObjects, 
+              (double)(numForEstimate)) );
+            caller->numTries = (int)( caller->numerator/denominator + 0.5 );
 
-              //there are cases when the probablistic number of tries is greater than all possible sub-sets
-              caller->numTries = caller->numTries<caller->allTries ? caller->numTries : caller->allTries;
-            }
+            //there are cases when the probablistic number of tries is greater than all possible sub-sets
+            caller->numTries = caller->numTries<caller->allTries ? caller->numTries : caller->allTries;
           }
         }
+        caller->resultsMutex.Unlock();
+
       }
       else
       {

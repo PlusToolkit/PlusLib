@@ -36,7 +36,7 @@ IF (WIN32)
     )
 ENDIF (WIN32)
 
-SET (CalibrationAlgo_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/Ransac CACHE INTERNAL "" FORCE)
+SET (CalibrationAlgo_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Build the library
