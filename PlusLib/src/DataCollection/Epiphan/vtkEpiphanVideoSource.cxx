@@ -5,7 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "epiphan/frmgrab.h"
+#include "frmgrab.h"
 #include "vtkEpiphanVideoSource.h"
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"

@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 2.8)
 
 PROJECT( RANSAC )
 
+SET (Utilities_INCLUDE_DIRS ${Utilities_INCLUDE_DIRS} 
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  CACHE INTERNAL "" FORCE) 
+
 #
 # Find ITK
 #
