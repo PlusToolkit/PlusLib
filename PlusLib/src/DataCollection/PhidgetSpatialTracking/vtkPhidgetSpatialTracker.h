@@ -116,7 +116,8 @@ protected:
 private:  // Functions.
 
   vtkPhidgetSpatialTracker( const vtkPhidgetSpatialTracker& );
-  void operator=( const vtkPhidgetSpatialTracker& );  
+  void operator=( const vtkPhidgetSpatialTracker& ); 
+	 //void constrainWestAxis(double rotationMatrix[3][3], int WestAxisIndex, vtkMatrix4x4** LastSensorToTrackerTransform);
 
 private:  // Variables.  
 
@@ -157,7 +158,6 @@ private:  // Variables.
     IMU may be more noisy, but not sensitive to magnetic field distortions.
   */
   bool AhrsUseMagnetometer;
-  bool FilteredTiltAhrsUseMagnetometer;
 
   /*!
     Gain values used by the AHRS algorithm (Mahony: first parameter is proportional, second is integral gain; Madgwick: only the first parameter is used)
