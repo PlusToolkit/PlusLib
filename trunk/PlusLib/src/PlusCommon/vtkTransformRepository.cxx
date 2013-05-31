@@ -5,22 +5,26 @@
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "vtkTransformRepository.h"
-#include "vtkObjectFactory.h"
-#include "vtkTransform.h"
 #include "TrackedFrame.h"
+#include "vtkObjectFactory.h"
+#include "vtkRecursiveCriticalSection.h"
+#include "vtkTransform.h"
+#include "vtkTransformRepository.h"
 #include "vtksys/SystemTools.hxx" 
+
+//----------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkTransformRepository);
 
 //----------------------------------------------------------------------------
 vtkTransformRepository::TransformInfo::TransformInfo()
+: m_Transform(vtkTransform::New())
+, m_IsValid(true)
+, m_IsComputed(false)
+, m_IsPersistent(false)
+, m_Error(-1.0)
 {
-  m_Transform=vtkTransform::New();
-  m_IsValid=true;
-  m_IsComputed=false;
-  m_IsPersistent=false; 
-  m_Error=-1.0; 
+
 }
 
 //----------------------------------------------------------------------------
@@ -36,47 +40,51 @@ vtkTransformRepository::TransformInfo::~TransformInfo()
 //----------------------------------------------------------------------------
 vtkTransformRepository::TransformInfo::TransformInfo(const TransformInfo& obj)
 {
-  m_Transform=obj.m_Transform;
-  if (m_Transform!=NULL)
+  m_Transform = obj.m_Transform;
+  if (m_Transform != NULL)
   {
     m_Transform->Register(NULL);
   }
-  m_IsComputed=obj.m_IsComputed;
-  m_IsValid=obj.m_IsValid;
-  m_IsPersistent=obj.m_IsPersistent; 
-  m_Date=obj.m_Date; 
-  m_Error=obj.m_Error; 
+  m_IsComputed = obj.m_IsComputed;
+  m_IsValid = obj.m_IsValid;
+  m_IsPersistent = obj.m_IsPersistent; 
+  m_Date = obj.m_Date; 
+  m_Error = obj.m_Error; 
 
 }
 //----------------------------------------------------------------------------
 vtkTransformRepository::TransformInfo& vtkTransformRepository::TransformInfo::operator=(const TransformInfo& obj) 
 {
-  if (m_Transform!=NULL)
+  if (m_Transform != NULL)
   {
     m_Transform->Delete();
-    m_Transform=NULL;
+    m_Transform = NULL;
   }
-  m_Transform=obj.m_Transform;
-  if (m_Transform!=NULL)
+  m_Transform = obj.m_Transform;
+  if (m_Transform != NULL)
   {
     m_Transform->Register(NULL);
   }
-  m_IsComputed=obj.m_IsComputed;
-  m_IsValid=obj.m_IsValid;
-  m_IsPersistent=obj.m_IsPersistent; 
-  m_Date=obj.m_Date; 
-  m_Error=obj.m_Error;
+  m_IsComputed = obj.m_IsComputed;
+  m_IsValid = obj.m_IsValid;
+  m_IsPersistent = obj.m_IsPersistent; 
+  m_Date = obj.m_Date; 
+  m_Error = obj.m_Error;
   return *this;
 }
 
 //----------------------------------------------------------------------------
 vtkTransformRepository::vtkTransformRepository()
+: CriticalSection(vtkRecursiveCriticalSection::New())
 {
+
 }
 
 //----------------------------------------------------------------------------
 vtkTransformRepository::~vtkTransformRepository()
 {
+  this->CriticalSection->Delete();
+  this->CriticalSection = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -168,41 +176,46 @@ PlusStatus vtkTransformRepository::SetTransforms(TrackedFrame& trackedFrame)
 //----------------------------------------------------------------------------
 PlusStatus vtkTransformRepository::SetTransform(const PlusTransformName& aTransformName, vtkMatrix4x4* matrix, bool isValid/*=true*/ )
 {
-  if ( ! aTransformName.IsValid() )
+  if ( !aTransformName.IsValid() )
   {
     LOG_ERROR("Transform name is invalid");
     return PLUS_FAIL;
   }
 
+  PlusLockGuard<vtkRecursiveCriticalSection> accessGuard(this->CriticalSection);
+
   // Check if the transform already exist
-  TransformInfo* fromToTransformInfo=GetOriginalTransform(aTransformName);
-  if (fromToTransformInfo!=NULL)
+  TransformInfo* fromToTransformInfo = GetOriginalTransform(aTransformName);
+  if (fromToTransformInfo != NULL)
   {
     // Transform already exists
-    if (fromToTransformInfo->m_IsComputed)
+    if ( fromToTransformInfo->m_IsComputed )
     {
       // The transform already exists and it is computed (not original), so reject the transformation update
-      LOG_ERROR("The "<<aTransformName.From()<<"To"<<aTransformName.To()<<" transform cannot be set, as the inverse ("
-        <<aTransformName.To()<<"To"<<aTransformName.From()<<") transform already exists");
+      LOG_ERROR("The " << aTransformName.From() << "To" << aTransformName.To() << 
+        " transform cannot be set, as the inverse (" << aTransformName.To() << "To" << 
+        aTransformName.From() << ") transform already exists");
       return PLUS_FAIL;
     }
+
     // This is an original transform that already exists, just update it
     // Update the matrix (the inverse matrix is automatically updated using vtkTransform pipeline)
-    if (matrix!=NULL)
+    if (matrix != NULL)
     {
       fromToTransformInfo->m_Transform->SetMatrix(matrix);
     }
     // Set the status of the original transform
-    fromToTransformInfo->m_IsValid=isValid;
+    fromToTransformInfo->m_IsValid = isValid;
 
     // Set the same status for the computed inverse transform
-    TransformInfo* toFromTransformInfo=GetOriginalTransform(aTransformName);
+    TransformInfo* toFromTransformInfo = GetOriginalTransform(aTransformName);
     if (toFromTransformInfo==NULL)
     {
-      LOG_ERROR("The computed "<<aTransformName.To()<<"To"<<aTransformName.From()<<" transform is missing. Cannot set its status");
+      LOG_ERROR("The computed " << aTransformName.To() <<"To" << aTransformName.From()
+        << " transform is missing. Cannot set its status");
       return PLUS_FAIL;
     }
-    toFromTransformInfo->m_IsValid=isValid;
+    toFromTransformInfo->m_IsValid = isValid;
     return PLUS_SUCCESS;
   }
   // The transform does not exist yet, add it now
@@ -212,26 +225,27 @@ PlusStatus vtkTransformRepository::SetTransform(const PlusTransformName& aTransf
   {
     // a path already exist between the two coordinate frames
     // adding a new transform between these would result in a circle
-    LOG_ERROR("A transform path already exists between "<<aTransformName.From()<<" and "<<aTransformName.To());
+    LOG_ERROR("A transform path already exists between " << aTransformName.From() <<
+      " and " << aTransformName.To());
     return PLUS_FAIL;
   }
 
   // Create the from->to transform
-  CoordFrameToTransformMapType& fromCoordFrame=this->CoordinateFrames[aTransformName.From()];
-  fromCoordFrame[aTransformName.To()].m_IsComputed=false;
-  if (matrix!=NULL)
+  CoordFrameToTransformMapType& fromCoordFrame = this->CoordinateFrames[aTransformName.From()];
+  fromCoordFrame[aTransformName.To()].m_IsComputed = false;
+  if (matrix != NULL)
   {
     fromCoordFrame[aTransformName.To()].m_Transform->SetMatrix(matrix);
   }
 
-  fromCoordFrame[aTransformName.To()].m_IsValid=isValid; 
+  fromCoordFrame[aTransformName.To()].m_IsValid = isValid; 
 
   // Create the to->from inverse transform
-  CoordFrameToTransformMapType& toCoordFrame=this->CoordinateFrames[aTransformName.To()];
-  toCoordFrame[aTransformName.From()].m_IsComputed=true;
+  CoordFrameToTransformMapType& toCoordFrame = this->CoordinateFrames[aTransformName.To()];
+  toCoordFrame[aTransformName.From()].m_IsComputed = true;
   toCoordFrame[aTransformName.From()].m_Transform->SetInput(fromCoordFrame[aTransformName.To()].m_Transform);
   toCoordFrame[aTransformName.From()].m_Transform->Inverse();
-  toCoordFrame[aTransformName.From()].m_IsValid=isValid;
+  toCoordFrame[aTransformName.From()].m_IsValid = isValid;
   return PLUS_SUCCESS;
 }
   
@@ -250,23 +264,26 @@ PlusStatus vtkTransformRepository::GetTransform(const PlusTransformName& aTransf
     return PLUS_FAIL;
   }
 
+  PlusLockGuard<vtkRecursiveCriticalSection> accessGuard(this->CriticalSection);
+
   // Check if we can find the transform by combining the input transforms
   // To improve performance the already found paths could be stored in a map of transform name -> transformInfoList
   TransformInfoListType transformInfoList;
-  if (FindPath(aTransformName, transformInfoList)!=PLUS_SUCCESS)
+  if (FindPath(aTransformName, transformInfoList) != PLUS_SUCCESS)
   {
     // the transform cannot be computed, error has been already logged by FindPath
     return PLUS_FAIL;
   }
+
   // Create transform chain and compute transform status
-  vtkSmartPointer<vtkTransform> combinedTransform=vtkSmartPointer<vtkTransform>::New();
-  bool combinedTransformValid=true;
+  vtkSmartPointer<vtkTransform> combinedTransform = vtkSmartPointer<vtkTransform>::New();
+  bool combinedTransformValid(true);
   for (TransformInfoListType::iterator transformInfo=transformInfoList.begin(); transformInfo!=transformInfoList.end(); ++transformInfo)
   {
     combinedTransform->Concatenate((*transformInfo)->m_Transform);
     if (!(*transformInfo)->m_IsValid)
     {
-      combinedTransformValid=false;
+      combinedTransformValid = false;
     }
   }
   // Save the results
@@ -292,33 +309,41 @@ PlusStatus vtkTransformRepository::GetTransformValid(const PlusTransformName& aT
 //----------------------------------------------------------------------------
 PlusStatus vtkTransformRepository::SetTransformPersistent(const PlusTransformName& aTransformName, bool isPersistent)
 {
-  TransformInfo* fromToTransformInfo=GetOriginalTransform(aTransformName);
-  if (fromToTransformInfo!=NULL)
+  PlusLockGuard<vtkRecursiveCriticalSection> accessGuard(this->CriticalSection);
+
+  TransformInfo* fromToTransformInfo = GetOriginalTransform(aTransformName);
+  if (fromToTransformInfo != NULL)
   {
     fromToTransformInfo->m_IsPersistent = isPersistent; 
     return PLUS_SUCCESS; 
   }
-  LOG_ERROR("The original "<<aTransformName.From()<<"To"<<aTransformName.To()<<" transform is missing. Cannot set its persistent status");
+  LOG_ERROR("The original " << aTransformName.From() << "To" << aTransformName.To() <<
+    " transform is missing. Cannot set its persistent status");
   return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkTransformRepository::GetTransformPersistent(const PlusTransformName& aTransformName, bool &isPersistent)
 {
-  TransformInfo* fromToTransformInfo=GetOriginalTransform(aTransformName);
-  if (fromToTransformInfo!=NULL)
+  PlusLockGuard<vtkRecursiveCriticalSection> accessGuard(this->CriticalSection);
+
+  TransformInfo* fromToTransformInfo = GetOriginalTransform(aTransformName);
+  if (fromToTransformInfo != NULL)
   {
     isPersistent = fromToTransformInfo->m_IsPersistent; 
     return PLUS_SUCCESS; 
   }
-  LOG_ERROR("The original "<<aTransformName.From()<<"To"<<aTransformName.To()<<" transform is missing. Cannot get its persistent status");
+  LOG_ERROR("The original " << aTransformName.From() << "To" << aTransformName.To() << 
+    " transform is missing. Cannot get its persistent status");
   return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkTransformRepository::SetTransformError(const PlusTransformName& aTransformName, double aError)
 {
-  TransformInfo* fromToTransformInfo=GetOriginalTransform(aTransformName);
+  PlusLockGuard<vtkRecursiveCriticalSection> accessGuard(this->CriticalSection);
+
+  TransformInfo* fromToTransformInfo = GetOriginalTransform(aTransformName);
   if (fromToTransformInfo!=NULL)
   {
     fromToTransformInfo->m_Error = aError; 
@@ -331,8 +356,9 @@ PlusStatus vtkTransformRepository::SetTransformError(const PlusTransformName& aT
 //----------------------------------------------------------------------------
 PlusStatus vtkTransformRepository::GetTransformError(const PlusTransformName& aTransformName, double &aError)
 {
-  TransformInfo* fromToTransformInfo=GetOriginalTransform(aTransformName);
-  if (fromToTransformInfo!=NULL)
+  PlusLockGuard<vtkRecursiveCriticalSection> accessGuard(this->CriticalSection);
+  TransformInfo* fromToTransformInfo = GetOriginalTransform(aTransformName);
+  if (fromToTransformInfo != NULL)
   {
     aError = fromToTransformInfo->m_Error; 
     return PLUS_SUCCESS; 
@@ -350,8 +376,10 @@ PlusStatus vtkTransformRepository::SetTransformDate(const PlusTransformName& aTr
     return PLUS_FAIL;
   }
 
-  TransformInfo* fromToTransformInfo=GetOriginalTransform(aTransformName);
-  if (fromToTransformInfo!=NULL)
+  PlusLockGuard<vtkRecursiveCriticalSection> accessGuard(this->CriticalSection);
+
+  TransformInfo* fromToTransformInfo = GetOriginalTransform(aTransformName);
+  if (fromToTransformInfo != NULL)
   {
     fromToTransformInfo->m_Date = aDate; 
     return PLUS_SUCCESS; 
@@ -363,8 +391,10 @@ PlusStatus vtkTransformRepository::SetTransformDate(const PlusTransformName& aTr
 //----------------------------------------------------------------------------
 PlusStatus vtkTransformRepository::GetTransformDate(const PlusTransformName& aTransformName, std::string& aDate)
 {
+  PlusLockGuard<vtkRecursiveCriticalSection> accessGuard(this->CriticalSection);
+
   TransformInfo* fromToTransformInfo=GetOriginalTransform(aTransformName);
-  if (fromToTransformInfo!=NULL)
+  if (fromToTransformInfo != NULL)
   {
     aDate = fromToTransformInfo->m_Date; 
     return PLUS_SUCCESS; 
@@ -437,6 +467,7 @@ PlusStatus vtkTransformRepository::FindPath(const PlusTransformName& aTransformN
 //----------------------------------------------------------------------------
 PlusStatus vtkTransformRepository::IsExistingTransform(PlusTransformName aTransformName, bool aSilent/* = true*/)
 {
+  PlusLockGuard<vtkRecursiveCriticalSection> accessGuard(this->CriticalSection);
   TransformInfoListType transformInfoList;
   return FindPath(aTransformName, transformInfoList, NULL, aSilent);
 }
@@ -444,7 +475,9 @@ PlusStatus vtkTransformRepository::IsExistingTransform(PlusTransformName aTransf
 //----------------------------------------------------------------------------
 PlusStatus vtkTransformRepository::DeleteTransform(const PlusTransformName& aTransformName)
 {
-  CoordFrameToTransformMapType& fromCoordFrame=this->CoordinateFrames[aTransformName.From()];
+  PlusLockGuard<vtkRecursiveCriticalSection> accessGuard(this->CriticalSection);
+
+  CoordFrameToTransformMapType& fromCoordFrame = this->CoordinateFrames[aTransformName.From()];
   CoordFrameToTransformMapType::iterator fromToTransformInfoIt=fromCoordFrame.find(aTransformName.To());
   
   if (fromToTransformInfoIt!=fromCoordFrame.end())
@@ -503,6 +536,8 @@ PlusStatus vtkTransformRepository::ReadConfiguration(vtkXMLDataElement* configRo
     LOG_DEBUG("Couldn't read transform from CoordinateDefinitions - CoordinateDefinitions element not found"); 
     return PLUS_SUCCESS;  
   }
+
+  PlusLockGuard<vtkRecursiveCriticalSection> accessGuard(this->CriticalSection);
 
   // Clear the transforms
   this->Clear(); 
@@ -666,6 +701,7 @@ PlusStatus vtkTransformRepository::WriteConfiguration(vtkXMLDataElement* configR
 //----------------------------------------------------------------------------
 PlusStatus vtkTransformRepository::DeepCopy(vtkTransformRepository* sourceRepositoryName)
 {
+  PlusLockGuard<vtkRecursiveCriticalSection> accessGuard(this->CriticalSection);
   vtkSmartPointer<vtkXMLDataElement> configRootElement=vtkSmartPointer<vtkXMLDataElement>::New();
   sourceRepositoryName->WriteConfiguration(configRootElement);
   return ReadConfiguration(configRootElement);
