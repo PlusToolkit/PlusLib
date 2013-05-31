@@ -105,7 +105,7 @@ PlusStatus vtkPlusUpdateTransformCommand::ReadConfiguration(vtkXMLDataElement* a
     this->hasPersistent = true;
   }
   double error;
-  if( aConfig->GetScalarAttribute("TransformError", error) != NULL )
+  if( aConfig->GetScalarAttribute("TransformError", error) )
   {
     aConfig->GetScalarAttribute("TransformError", error);
     this->SetTransformError(error);
