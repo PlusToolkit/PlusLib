@@ -213,3 +213,15 @@ ADD_TEST(SingleWallCalibrationAlgoTest1
     --verbose=2
     )
 SET_TESTS_PROPERTIES( SingleWallCalibrationAlgoTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+#--------------------------------------------------------------------------------------------
+ADD_EXECUTABLE(vtkLineSegmentationAlgoTest vtkLineSegmentationAlgoTest.cxx)
+TARGET_LINK_LIBRARIES( vtkLineSegmentationAlgoTest vtkPlusCommon vtkCalibrationAlgo vtkCommon)
+
+ADD_TEST(vtkLineSegmentationAlgoTest1
+    ${EXECUTABLE_OUTPUT_PATH}/vtkLineSegmentationAlgoTest
+    --seq-file=${TestDataDir}/WaterTankBottomTranslationVideoBuffer.mha
+    --baseline-file=${TestDataDir}/LineSegmentationResultsBaseline.xml
+    --clip-rect-origin 225 40 --clip-rect-size 350 510
+    )
+SET_TESTS_PROPERTIES( vtkLineSegmentationAlgoTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
