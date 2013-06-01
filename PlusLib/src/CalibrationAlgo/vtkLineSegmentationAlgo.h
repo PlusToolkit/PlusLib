@@ -23,7 +23,7 @@ class VTK_EXPORT vtkLineSegmentationAlgo : public vtkObject
 public:  
   struct LineParameters /*!< Line parameters is defined in the Image coordinate system (orientation is MF, origin is in the image corner, unit is pixel) */
   {
-  public:
+    bool lineDetected;
     double lineOriginPoint_Image[2];
     double lineDirectionVector_Image[2];
 
@@ -58,13 +58,13 @@ public:
   */
   PlusStatus Update(); 
 
-  /*! Get the timestamps of the frames where a line was successfully detected */
+  /*! Get the timestamps of the frames where a line was successfully detected. Frames where the line detection was failed are skipped. */
   void GetDetectedTimestamps(std::deque<double> &timestamps);
 
-  /*! Get the line positions on the frames where a line was successfully detected */
+  /*! Get the line positions on the frames where a line was successfully detected. Frames where the line detection was failed are skipped. */
   void GetDetectedPositions(std::deque<double> &positions); 
 
-  /*! Get the parameters of the plane where a line was successfully detected */
+  /*! Get the parameters of the plane where a line was successfully detected. No frames are skipped, the size of the vector matches the number of input tracked frames. If line detection failed on an image then the lineDetected parameter of the item is set to false. */
   void GetDetectedLineParameters(std::vector<LineParameters>& parameters);
 
   /*! Enable/disable saving of intermediate images for debugging */
@@ -82,13 +82,13 @@ protected:
 
   PlusStatus ComputeVideoPositionMetric();
 
-  PlusStatus FindPeakStart(std::deque<int> &intensityProfile,int MaxFromLargestArea, int startOfMaxArea, double &startOfPeak);
+  PlusStatus FindPeakStart(std::deque<int> &intensityProfile,int maxFromLargestArea, int startOfMaxArea, double &startOfPeak);
 
-  PlusStatus FindLargestPeak(std::deque<int> &intensityProfile,int &MaxFromLargestArea, int &MaxFromLargestAreaIndex, int &startOfMaxArea);
+  PlusStatus FindLargestPeak(std::deque<int> &intensityProfile,int &maxFromLargestArea, int &maxFromLargestAreaIndex, int &startOfMaxArea);
 
   PlusStatus ComputeCenterOfGravity(std::deque<int> &intensityProfile, int startOfMaxArea, double &centerOfGravity);
 
-  PlusStatus ComputeLineParameters(std::vector<itk::Point<double,2> > &data, LineParameters& OutputParameters );
+  PlusStatus ComputeLineParameters(std::vector<itk::Point<double,2> > &data, LineParameters& outputParameters );
 
   void PlotIntArray(const std::deque<int> &intensityValues);
 
