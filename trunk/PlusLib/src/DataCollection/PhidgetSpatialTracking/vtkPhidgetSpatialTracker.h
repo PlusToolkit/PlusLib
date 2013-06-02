@@ -117,7 +117,15 @@ private:  // Functions.
 
   vtkPhidgetSpatialTracker( const vtkPhidgetSpatialTracker& );
   void operator=( const vtkPhidgetSpatialTracker& ); 
-	 void constrainWestAxis(double downVector_Sensor[3], int westAxisIndex, vtkMatrix4x4* LastSensorToTrackerTransform);
+
+  /*
+    This function is given a down Vector, and an axis to be chosen to be constrained to West in  the
+    tracker coordinate system.  A transfrom matrix is computed from those parameters and saved in the
+    4x4 matrix passed as a parameter.
+  */
+  PlusStatus ConstrainWestAxis(double downVector_Sensor[3], int westAxisIndex, vtkMatrix4x4* lastSensorToTrackerTransform);
+
+  //void Get3x3RotMatrixFromIMUQuat(double rotMatrix[3][3], AhrsAlgo* AhrsAlgo);
 
 private:  // Variables.  
 
@@ -147,7 +155,7 @@ private:  // Variables.
     AHRS_MAHONY
   };
 
-  AhrsAlgo* FilteredTiltAhrsAlgo;
+  AhrsAlgo* FilteredTiltSensorAhrsAlgo;
 
   AhrsAlgo* AhrsAlgo;
 
@@ -164,11 +172,11 @@ private:  // Variables.
     Higher gain gives higher reliability to accelerometer&magnetometer data.
   */
   double AhrsAlgorithmGain[2];
-  double FilteredTiltAhrsAlgorithmGain[2];
+  double FilteredTiltSensorAhrsAlgorithmGain[2];
 
   /*! last AHRS update time (in system time) */
   double AhrsLastUpdateTime;
-  double FilteredTiltAhrsLastUpdateTime;
+  double FilteredTiltSensorAhrsLastUpdateTime;
 
   /*!
     In tilt sensor mode we don't use the magnetometer, so we have to provide a direction reference.

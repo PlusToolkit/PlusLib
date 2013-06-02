@@ -52,11 +52,11 @@ vtkPhidgetSpatialTracker::vtkPhidgetSpatialTracker()
   this->AhrsAlgorithmGain[1]=0.0; // integral
   this->AhrsLastUpdateTime=-1;
   
-  // set up the AHRS algorithm used by the filteredTilt sensor tool
-  this->FilteredTiltAhrsAlgo=new MadgwickAhrsAlgo; 
-  this->FilteredTiltAhrsAlgorithmGain[0]=1.5; // proportional
-  this->FilteredTiltAhrsAlgorithmGain[1]=0.0; // integral
-  this->FilteredTiltAhrsLastUpdateTime=-1;	
+  // set up the AHRS algorithm used by the FilteredTiltSensor sensor tool
+  this->FilteredTiltSensorAhrsAlgo=new MadgwickAhrsAlgo; 
+  this->FilteredTiltSensorAhrsAlgorithmGain[0]=1.5; // proportional
+  this->FilteredTiltSensorAhrsAlgorithmGain[1]=0.0; // integral
+  this->FilteredTiltSensorAhrsLastUpdateTime=-1;	
 	
 	
   this->RequireImageOrientationInConfiguration = false;
@@ -232,16 +232,8 @@ int CCONV vtkPhidgetSpatialTracker::SpatialDataHandler(CPhidgetSpatialHandle spa
 
 						double downVector_Sensor[4] = {data[i]->acceleration[0],data[i]->acceleration[1],data[i]->acceleration[2],0}; // provided by the sensor
       vtkMath::Normalize(downVector_Sensor);
-
-      if (tracker->TiltSensorWestAxisIndex>=0 && tracker->TiltSensorWestAxisIndex<3)
-      {
-        tracker->constrainWestAxis(downVector_Sensor,tracker->TiltSensorWestAxisIndex, tracker->LastTiltSensorToTrackerTransform);
-      }
-      else
-      {
-        LOG_ERROR("Invalid TiltSensorWestAxisIndex is specified (valid values are 0, 1, 2). Use default: 1.");
-								tracker->constrainWestAxis(downVector_Sensor, 1, tracker->LastTiltSensorToTrackerTransform);
-      }
+				
+      tracker->ConstrainWestAxis(downVector_Sensor,tracker->TiltSensorWestAxisIndex, tracker->LastTiltSensorToTrackerTransform);
 
       tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->TiltSensorTool->GetSourceId(), tracker->LastTiltSensorToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
     }  
@@ -307,54 +299,47 @@ int CCONV vtkPhidgetSpatialTracker::SpatialDataHandler(CPhidgetSpatialHandle spa
       }            
 	  if(tracker->FilteredTiltSensorTool!=NULL)
 	  {
-   // Compute the time that passed since the last FilteredTilt AHRS update
-    if (tracker->FilteredTiltAhrsLastUpdateTime<0)
+   // Compute the time that passed since the last FilteredTiltSensor AHRS update
+    if (tracker->FilteredTiltSensorAhrsLastUpdateTime<0)
     {
       // this is the first update
       // just use it as a reference
-      tracker->FilteredTiltAhrsLastUpdateTime=timeSystemSec;
+      tracker->FilteredTiltSensorAhrsLastUpdateTime=timeSystemSec;
       continue;
     }       
-    double timeSinceLastFilteredTiltAhrsUpdateSec=timeSystemSec-tracker->FilteredTiltAhrsLastUpdateTime;
-    tracker->FilteredTiltAhrsLastUpdateTime=timeSystemSec;
+    double timeSinceLastFilteredTiltSensorAhrsUpdateSec=timeSystemSec-tracker->FilteredTiltSensorAhrsLastUpdateTime;
+    tracker->FilteredTiltSensorAhrsLastUpdateTime=timeSystemSec;
 
-    tracker->FilteredTiltAhrsAlgo->SetSampleFreqHz(1.0/timeSinceLastFilteredTiltAhrsUpdateSec);
+    tracker->FilteredTiltSensorAhrsAlgo->SetSampleFreqHz(1.0/timeSinceLastFilteredTiltSensorAhrsUpdateSec);
 
-
-				tracker->FilteredTiltAhrsAlgo->UpdateIMU(          
+				tracker->FilteredTiltSensorAhrsAlgo->UpdateIMU(          
     vtkMath::RadiansFromDegrees(data[i]->angularRate[0]), vtkMath::RadiansFromDegrees(data[i]->angularRate[1]), vtkMath::RadiansFromDegrees(data[i]->angularRate[2]),
     data[i]->acceleration[0], data[i]->acceleration[1], data[i]->acceleration[2]);
 
-				double filteredTiltRotQuat[4]={0};
-    tracker->FilteredTiltAhrsAlgo->GetOrientation(filteredTiltRotQuat[0],filteredTiltRotQuat[1],filteredTiltRotQuat[2],filteredTiltRotQuat[3]);
-
-    double filteredTiltRotMatrix[3][3]={0};
-    vtkMath::QuaternionToMatrix3x3(filteredTiltRotQuat, filteredTiltRotMatrix); 
-
-				double filteredDownVector_Sensor[4] = {filteredTiltRotMatrix[2][0],filteredTiltRotMatrix[2][1],filteredTiltRotMatrix[2][2],0};
-				vtkMath::Normalize(filteredDownVector_Sensor);   
-				if (tracker->FilteredTiltSensorWestAxisIndex>=0 && tracker->FilteredTiltSensorWestAxisIndex<3)
-				{
-						tracker->constrainWestAxis(filteredDownVector_Sensor,tracker->FilteredTiltSensorWestAxisIndex, tracker->LastFilteredTiltSensorToTrackerTransform);
-				}
-				else
-				{
-						LOG_ERROR("Invalid FilteredTiltSensorWestAxisIndex is specified (valid values are 0, 1, 2). Use default: 1.");
-						tracker->constrainWestAxis(filteredDownVector_Sensor, 1 , tracker->LastFilteredTiltSensorToTrackerTransform);
-				}
+    double rotQuat[4]={0};
+    tracker->AhrsAlgo->GetOrientation(rotQuat[0],rotQuat[1],rotQuat[2],rotQuat[3]);
 				
-				tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->FilteredTiltSensorTool->GetSourceId(), tracker->LastFilteredTiltSensorToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
+    double rotMatrix[3][3]={0};
+    vtkMath::QuaternionToMatrix3x3(rotQuat, rotMatrix); 
 
-				// write back the results to the filteredTilt_AHRS algorithm
+				double filteredDownVector_Sensor[4] = {rotMatrix[2][0],rotMatrix[2][1],rotMatrix[2][2],0};
+				vtkMath::Normalize(filteredDownVector_Sensor);
+
+				tracker->ConstrainWestAxis(filteredDownVector_Sensor,tracker->FilteredTiltSensorWestAxisIndex, tracker->LastFilteredTiltSensorToTrackerTransform);
+				
+    tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->FilteredTiltSensorTool->GetSourceId(), tracker->LastFilteredTiltSensorToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
+
+				// write back the results to the FilteredTiltSensor_AHRS algorithm
 				for (int c=0;c<3; c++)
 				{
 						for (int r=0;r<3; r++)
 						{
-								filteredTiltRotMatrix[r][c]=tracker->LastFilteredTiltSensorToTrackerTransform->GetElement(r,c);
+								rotMatrix[r][c]=tracker->LastFilteredTiltSensorToTrackerTransform->GetElement(r,c);
 						}
 				}
-				vtkMath::Matrix3x3ToQuaternion(filteredTiltRotMatrix,filteredTiltRotQuat);         
-				tracker->FilteredTiltAhrsAlgo->SetOrientation(filteredTiltRotQuat[0],filteredTiltRotQuat[1],filteredTiltRotQuat[2],filteredTiltRotQuat[3]);
+				double filteredTiltSensorRotQuat[4]={0};
+				vtkMath::Matrix3x3ToQuaternion(rotMatrix,filteredTiltSensorRotQuat);
+    tracker->FilteredTiltSensorAhrsAlgo->SetOrientation(filteredTiltSensorRotQuat[0],filteredTiltSensorRotQuat[1],filteredTiltSensorRotQuat[2],filteredTiltSensorRotQuat[3]);
 
     }  
 	  
@@ -446,8 +431,8 @@ PlusStatus vtkPhidgetSpatialTracker::InternalConnect()
   // Initialize AHRS algorithm
   this->AhrsAlgo->SetSampleFreqHz(1000.0/userDataRateMsec); // more accurate value will be set at each update step anyway
   this->AhrsAlgo->SetGain(this->AhrsAlgorithmGain[0], this->AhrsAlgorithmGain[1]);
-  this->FilteredTiltAhrsAlgo->SetSampleFreqHz(1000.0/userDataRateMsec);
-  this->FilteredTiltAhrsAlgo->SetGain(this->FilteredTiltAhrsAlgorithmGain[0], this->FilteredTiltAhrsAlgorithmGain[1]);
+  this->FilteredTiltSensorAhrsAlgo->SetSampleFreqHz(1000.0/userDataRateMsec);
+  this->FilteredTiltSensorAhrsAlgo->SetGain(this->FilteredTiltSensorAhrsAlgorithmGain[0], this->FilteredTiltSensorAhrsAlgorithmGain[1]);
 
   return PLUS_SUCCESS; 
 }
@@ -537,17 +522,17 @@ PlusStatus vtkPhidgetSpatialTracker::ReadConfiguration(vtkXMLDataElement* config
     }
   }
 
-  int filteredTiltSensorWestAxisIndex=0; 
-  if ( trackerConfig->GetScalarAttribute("FilteredTiltSensorWestAxisIndex", filteredTiltSensorWestAxisIndex ) ) 
+  int FilteredTiltSensorWestAxisIndex=0; 
+  if ( trackerConfig->GetScalarAttribute("FilteredTiltSensorWestAxisIndex", FilteredTiltSensorWestAxisIndex ) ) 
   {
-    if (filteredTiltSensorWestAxisIndex<0 || filteredTiltSensorWestAxisIndex>2)
+    if (FilteredTiltSensorWestAxisIndex<0 || FilteredTiltSensorWestAxisIndex>2)
     {
-      LOG_ERROR("FilteredTiltSensorWestAxisIndex is invalid. Specified value: "<<filteredTiltSensorWestAxisIndex<<". Valid values: 0, 1, 2. Keep using the default value: "
+      LOG_ERROR("FilteredTiltSensorWestAxisIndex is invalid. Specified value: "<<FilteredTiltSensorWestAxisIndex<<". Valid values: 0, 1, 2. Keep using the default value: "
         <<this->FilteredTiltSensorWestAxisIndex);
     }
     else
     {
-      this->FilteredTiltSensorWestAxisIndex=filteredTiltSensorWestAxisIndex;
+      this->FilteredTiltSensorWestAxisIndex=FilteredTiltSensorWestAxisIndex;
     }
   }
 
@@ -558,11 +543,11 @@ PlusStatus vtkPhidgetSpatialTracker::ReadConfiguration(vtkXMLDataElement* config
     this->AhrsAlgorithmGain[1]=ahrsAlgorithmGain[1]; 
   }
 
-  double filteredTiltAhrsAlgorithmGain[2]={0}; 
-  if ( trackerConfig->GetVectorAttribute("FitleredTiltAhrsAlgorithmGain", 2, filteredTiltAhrsAlgorithmGain ) ) 
+  double FilteredTiltSensorAhrsAlgorithmGain[2]={0}; 
+  if ( trackerConfig->GetVectorAttribute("FitleredTiltAhrsAlgorithmGain", 2, FilteredTiltSensorAhrsAlgorithmGain ) ) 
   {
-    this->FilteredTiltAhrsAlgorithmGain[0]=filteredTiltAhrsAlgorithmGain[0]; 
-    this->FilteredTiltAhrsAlgorithmGain[1]=filteredTiltAhrsAlgorithmGain[1]; 
+    this->FilteredTiltSensorAhrsAlgorithmGain[0]=FilteredTiltSensorAhrsAlgorithmGain[0]; 
+    this->FilteredTiltSensorAhrsAlgorithmGain[1]=FilteredTiltSensorAhrsAlgorithmGain[1]; 
   }
 
 
@@ -611,32 +596,32 @@ PlusStatus vtkPhidgetSpatialTracker::ReadConfiguration(vtkXMLDataElement* config
       return PLUS_FAIL; 
     }
   }
-  const char* filteredTiltAhrsAlgoName = trackerConfig->GetAttribute("FilteredTiltAhrsAlgorithm"); 
-  if ( filteredTiltAhrsAlgoName != NULL )
+  const char* FilteredTiltSensorAhrsAlgoName = trackerConfig->GetAttribute("FilteredTiltSensorAhrsAlgorithm"); 
+  if ( FilteredTiltSensorAhrsAlgoName != NULL )
   {
-    if (STRCASECMP("MADGWICK_IMU", filteredTiltAhrsAlgoName)==0)
+    if (STRCASECMP("MADGWICK_IMU", FilteredTiltSensorAhrsAlgoName)==0)
     {
-      if (dynamic_cast<MadgwickAhrsAlgo*>(this->FilteredTiltAhrsAlgo)==0)
+      if (dynamic_cast<MadgwickAhrsAlgo*>(this->FilteredTiltSensorAhrsAlgo)==0)
       {
         // not the requested type
         // delete the old algo and create a new one with the correct type
-        delete this->FilteredTiltAhrsAlgo; 
-        this->FilteredTiltAhrsAlgo=new MadgwickAhrsAlgo;
+        delete this->FilteredTiltSensorAhrsAlgo; 
+        this->FilteredTiltSensorAhrsAlgo=new MadgwickAhrsAlgo;
       }
     }
-    else if (STRCASECMP("MAHONY_IMU", filteredTiltAhrsAlgoName)==0)
+    else if (STRCASECMP("MAHONY_IMU", FilteredTiltSensorAhrsAlgoName)==0)
     {
-      if (dynamic_cast<MahonyAhrsAlgo*>(this->FilteredTiltAhrsAlgo)==0)
+      if (dynamic_cast<MahonyAhrsAlgo*>(this->FilteredTiltSensorAhrsAlgo)==0)
       {
         // not the requested type
         // delete the old algo and create a new one with the correct type
-        delete this->FilteredTiltAhrsAlgo; 
-        this->FilteredTiltAhrsAlgo=new MahonyAhrsAlgo;
+        delete this->FilteredTiltSensorAhrsAlgo; 
+        this->FilteredTiltSensorAhrsAlgo=new MahonyAhrsAlgo;
       }
     }
     else
     {
-      LOG_ERROR("Unable to recognize AHRS algorithm type for Filtered Tilt: " << filteredTiltAhrsAlgoName <<". Supported types: MADGWICK_IMU, MAHONY_IMU");
+      LOG_ERROR("Unable to recognize AHRS algorithm type for Filtered Tilt: " << FilteredTiltSensorAhrsAlgoName <<". Supported types: MADGWICK_IMU, MAHONY_IMU");
       return PLUS_FAIL; 
     }
   }
@@ -678,23 +663,23 @@ PlusStatus vtkPhidgetSpatialTracker::WriteConfiguration(vtkXMLDataElement* rootC
   if (this->FilteredTiltSensorTool)
   {
     trackerConfig->SetIntAttribute("FilteredTiltSensorWestAxisIndex", this->FilteredTiltSensorWestAxisIndex); 
-	if (this->FilteredTiltAhrsAlgorithmGain[1]==0.0)
+	if (this->FilteredTiltSensorAhrsAlgorithmGain[1]==0.0)
     {
       // if the second gain parameter is zero then just write the first value
-      trackerConfig->SetDoubleAttribute( "FilteredTiltAhrsAlgorithmGain", this->FilteredTiltAhrsAlgorithmGain[0] ); 
+      trackerConfig->SetDoubleAttribute( "FilteredTiltSensorAhrsAlgorithmGain", this->FilteredTiltSensorAhrsAlgorithmGain[0] ); 
     }
     else
     {
-      trackerConfig->SetVectorAttribute( "FilteredTiltAhrsAlgorithmGain", 2, this->FilteredTiltAhrsAlgorithmGain );
+      trackerConfig->SetVectorAttribute( "FilteredTiltSensorAhrsAlgorithmGain", 2, this->FilteredTiltSensorAhrsAlgorithmGain );
     }
 
-    if ( dynamic_cast<MadgwickAhrsAlgo*>(this->FilteredTiltAhrsAlgo)!=0)
+    if ( dynamic_cast<MadgwickAhrsAlgo*>(this->FilteredTiltSensorAhrsAlgo)!=0)
     {
-						trackerConfig->SetAttribute( "FilteredTiltAhrsAlgorithm", "MADGWICK_IMU" );
+						trackerConfig->SetAttribute( "FilteredTiltSensorAhrsAlgorithm", "MADGWICK_IMU" );
     }
-    else if (dynamic_cast<MahonyAhrsAlgo*>(this->FilteredTiltAhrsAlgo)!=0)
+    else if (dynamic_cast<MahonyAhrsAlgo*>(this->FilteredTiltSensorAhrsAlgo)!=0)
     {
-      trackerConfig->SetAttribute( "FilteredTiltAhrsAlgorithm", "MAHONY_IMU" );
+      trackerConfig->SetAttribute( "FilteredTiltSensorAhrsAlgorithm", "MAHONY_IMU" );
     }
     else
     {
@@ -770,33 +755,57 @@ PlusStatus vtkPhidgetSpatialTracker::Reset()
 }
 
 //----------------------------------------------------------------------------
-void vtkPhidgetSpatialTracker::constrainWestAxis(double downVector_Sensor[3], int westAxisIndex, vtkMatrix4x4* LastSensorToTrackerTransform)
+PlusStatus vtkPhidgetSpatialTracker::ConstrainWestAxis(double downVector_Sensor[3], int westAxisIndex, vtkMatrix4x4* lastSensorToTrackerTransform)
 {
+  if (westAxisIndex<0 || westAxisIndex>=3)
+  {
+    LOG_ERROR("Invalid WestAxisIndex is specified (valid values are 0, 1, 2). Use default: 1.");
+    westAxisIndex = 1;
+  }
 
-		// Sensor axis vector that is assumed to always point to West. This is chosen so that cross(westVector_Sensor, downVector_Sensor) = southVector_Sensor.
-		double WestVector_Sensor[4]={0,0,0,0};
-		double SouthVector_Sensor[4] = {0,0,0,0};
-		
-		WestVector_Sensor[westAxisIndex]=1; 
+  // Sensor axis vector that is assumed to always point to West. This is chosen so that cross(westVector_Sensor, downVector_Sensor) = southVector_Sensor.
+  double westVector_Sensor[4]={0,0,0,0};
+  double southVector_Sensor[4] = {0,0,0,0};
 
-		vtkMath::Cross(WestVector_Sensor, downVector_Sensor, SouthVector_Sensor); // compute South
-		vtkMath::Normalize(SouthVector_Sensor);
-		vtkMath::Cross(downVector_Sensor, SouthVector_Sensor, WestVector_Sensor); // compute West
-		vtkMath::Normalize(WestVector_Sensor);
+  westVector_Sensor[westAxisIndex]=1; 
 
+  vtkMath::Cross(westVector_Sensor, downVector_Sensor, southVector_Sensor); // compute South
+  vtkMath::Normalize(southVector_Sensor);
+  vtkMath::Cross(downVector_Sensor, southVector_Sensor, westVector_Sensor); // compute West
+  vtkMath::Normalize(westVector_Sensor);
 
-		// row 0
-		LastSensorToTrackerTransform->SetElement(0,0,SouthVector_Sensor[0]);
-		LastSensorToTrackerTransform->SetElement(0,1,SouthVector_Sensor[1]);
-		LastSensorToTrackerTransform->SetElement(0,2,SouthVector_Sensor[2]);
-		// row 1
-		LastSensorToTrackerTransform->SetElement(1,0,WestVector_Sensor[0]);
-		LastSensorToTrackerTransform->SetElement(1,1,WestVector_Sensor[1]);
-		LastSensorToTrackerTransform->SetElement(1,2,WestVector_Sensor[2]);
-		// row 2
-		LastSensorToTrackerTransform->SetElement(2,0,downVector_Sensor[0]);
-		LastSensorToTrackerTransform->SetElement(2,1,downVector_Sensor[1]);
-		LastSensorToTrackerTransform->SetElement(2,2,downVector_Sensor[2]);
+  // row 0
+  lastSensorToTrackerTransform->SetElement(0,0,southVector_Sensor[0]);
+  lastSensorToTrackerTransform->SetElement(0,1,southVector_Sensor[1]);
+  lastSensorToTrackerTransform->SetElement(0,2,southVector_Sensor[2]);
+  // row 1
+  lastSensorToTrackerTransform->SetElement(1,0,westVector_Sensor[0]);
+  lastSensorToTrackerTransform->SetElement(1,1,westVector_Sensor[1]);
+  lastSensorToTrackerTransform->SetElement(1,2,westVector_Sensor[2]);
+  // row 2
+  lastSensorToTrackerTransform->SetElement(2,0,downVector_Sensor[0]);
+  lastSensorToTrackerTransform->SetElement(2,1,downVector_Sensor[1]);
+  lastSensorToTrackerTransform->SetElement(2,2,downVector_Sensor[2]);
 
-		return;
+  if (westAxisIndex<0 || westAxisIndex>=3)
+  {
+    return PLUS_FAIL;
+  }
+  else
+  {
+    return PLUS_SUCCESS;  
+  }
+
 }
+
+//----------------------------------------------------------------------------
+/*
+void vtkPhidgetSpatialTracker::get3x3RotMatrixFromIMUQuat(double rotMatrix[3][3], AhrsAlgo* AhrsAlgo)
+{
+				double rotQuat[4]={0};
+    AhrsAlgo->GetOrientation(rotQuat[0],rotQuat[1],rotQuat[2],rotQuat[3]);
+				vtkMath::QuaternionToMatrix3x3(rotQuat, rotMatrix); 
+
+				return;
+}
+*/
