@@ -88,7 +88,7 @@ protected:
 
   PlusStatus ComputeCenterOfGravity(std::deque<int> &intensityProfile, int startOfMaxArea, double &centerOfGravity);
 
-  PlusStatus ComputeLineParameters(std::vector<itk::Point<double,2> > &data, LineParameters& outputParameters );
+  void ComputeLineParameters(std::vector<itk::Point<double,2> > &data, LineParameters& outputParameters );
 
   void PlotIntArray(const std::deque<int> &intensityValues);
 
