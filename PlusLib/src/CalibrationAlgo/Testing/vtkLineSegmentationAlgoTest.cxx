@@ -209,14 +209,14 @@ int main(int argc, char **argv)
 
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
-  bool printHelp(false);
+  bool printHelp=false;
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
-  std::string inputSequenceMetafile("");   
+  std::string inputSequenceMetafile;
   std::vector<int> clipRectOrigin;
   std::vector<int> clipRectSize;
-  std::string inputBaselineFileName(""); 
-  bool saveImages(false);
+  std::string inputBaselineFileName;
+  bool saveImages=false;
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	

@@ -39,6 +39,7 @@ static const double MIN_X_SLOPE_COMPONENT_FOR_DETECTED_LINE = 0.01; // if the de
 static const int MINIMUM_NUMBER_OF_VALID_SCANLINES = 5; // minimum number of valid scanlines to compute line position
 static const int NUMBER_OF_SCANLINES = 40; // number of scan-lines for line detection
 static const unsigned int DIMENSION = 2; // dimension of video frames (used for Ransac plane)
+static const double EXPECTED_LINE_SEGMENTATION_SUCCESS_RATE=0.5; // log a warning if the actual line segmentation success rate (fraction of frames where the line segmentation was successful) is below this threshold
 
 enum PEAK_POS_METRIC_TYPE
 {
@@ -186,6 +187,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
   m_LineParameters.assign(m_TrackedFrameList->GetNumberOfTrackedFrames(), nonDetectedLineParams);
 
   //  For each video frame, detect line and extract mindpoint and slope parameters
+  int numberOfSuccessfulLineSegmentations=0;
   bool signalTimeRangeDefined=(m_SignalTimeRangeMin<=m_SignalTimeRangeMax);
   for(unsigned int frameNumber = 0; frameNumber < m_TrackedFrameList->GetNumberOfTrackedFrames(); ++frameNumber)
   {
@@ -328,38 +330,44 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
     }
 
     LineParameters params;
-    if( ComputeLineParameters(intensityPeakPositions, params) == PLUS_SUCCESS )
+    ComputeLineParameters(intensityPeakPositions, params);
+    if( !params.lineDetected )
     {
-      if( params.lineDirectionVector_Image[0] < MIN_X_SLOPE_COMPONENT_FOR_DETECTED_LINE)
-      {
-        // Line is close to vertical, skip frame because intersection of 
-        // line with image's horizontal half point is unstable
-        LOG_TRACE("Line on frame "<<frameNumber<<" is too close to vertical, skip the frame");
-        continue;
-      }
-
-      m_LineParameters[frameNumber]=params;
-
-      // Store the y-value of the line, when the line's x-value is half of the image's width
-      double t = ( region.GetIndex()[0] + 0.5 * region.GetSize()[0] - params.lineOriginPoint_Image[0] ) / params.lineDirectionVector_Image[0]; 
-      m_SignalValues.push_back( std::abs( params.lineOriginPoint_Image[1] + t * params.lineDirectionVector_Image[1] ) );
-
-      //  Store timestamp for image frame
-      m_SignalTimestamps.push_back(m_TrackedFrameList->GetTrackedFrame(frameNumber)->GetTimestamp());
-
-      if(m_SaveIntermediateImages == true)
-      {
-        SaveIntermediateImage(frameNumber, scanlineImage, 
-          params.lineOriginPoint_Image[0], params.lineOriginPoint_Image[1], params.lineDirectionVector_Image[0], params.lineDirectionVector_Image[1], 
-          numOfValidScanlines, intensityPeakPositions);
-      }
+      LOG_DEBUG("Unable to compute line parameters for frame " << frameNumber);
+      continue;
     }
-    else
+    if( params.lineDirectionVector_Image[0] < MIN_X_SLOPE_COMPONENT_FOR_DETECTED_LINE)
     {
-      LOG_WARNING("Unable to compute line parameters for frame " << frameNumber);
+      // Line is close to vertical, skip frame because intersection of 
+      // line with image's horizontal half point is unstable
+      LOG_TRACE("Line on frame "<<frameNumber<<" is too close to vertical, skip the frame");
+      continue;
+    }
+
+    ++numberOfSuccessfulLineSegmentations;
+    m_LineParameters[frameNumber]=params;
+
+    // Store the y-value of the line, when the line's x-value is half of the image's width
+    double t = ( region.GetIndex()[0] + 0.5 * region.GetSize()[0] - params.lineOriginPoint_Image[0] ) / params.lineDirectionVector_Image[0]; 
+    m_SignalValues.push_back( std::abs( params.lineOriginPoint_Image[1] + t * params.lineDirectionVector_Image[1] ) );
+
+    //  Store timestamp for image frame
+    m_SignalTimestamps.push_back(m_TrackedFrameList->GetTrackedFrame(frameNumber)->GetTimestamp());
+
+    if(m_SaveIntermediateImages == true)
+    {
+      SaveIntermediateImage(frameNumber, scanlineImage, 
+        params.lineOriginPoint_Image[0], params.lineOriginPoint_Image[1], params.lineDirectionVector_Image[0], params.lineDirectionVector_Image[1], 
+        numOfValidScanlines, intensityPeakPositions);
     }
 
   } // end frameNum loop
+
+  double segmentationSuccessRate=double(numberOfSuccessfulLineSegmentations)/m_TrackedFrameList->GetNumberOfTrackedFrames();
+  if (segmentationSuccessRate<EXPECTED_LINE_SEGMENTATION_SUCCESS_RATE)
+  {
+    LOG_WARNING("Line segmentation success rate is very low ("<<segmentationSuccessRate*100<<"%): a line could only be detected on "<<numberOfSuccessfulLineSegmentations<<" frames out of "<<m_TrackedFrameList->GetNumberOfTrackedFrames());
+  }
 
   bool plotVideoMetric = vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE;
   if (plotVideoMetric)
@@ -508,7 +516,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeCenterOfGravity(std::deque<int> &inte
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point<double,2> >& data, LineParameters& outputParameters)
+void vtkLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point<double,2> >& data, LineParameters& outputParameters)
 {
   outputParameters.lineDetected=false;
 
@@ -523,7 +531,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point
   planeEstimator->LeastSquaresEstimate( data, ransacParameterResult );
   if( ransacParameterResult.empty() )
   {
-    LOG_ERROR("Unable to fit line through points with least squares estimation");
+    LOG_DEBUG("Unable to fit line through points with least squares estimation");
   }
   else
   {
@@ -544,8 +552,8 @@ PlusStatus vtkLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point
   }
   catch( std::exception& e) 
   {
-    LOG_ERROR(e.what());
-    return PLUS_FAIL;
+    LOG_DEBUG(e.what());
+    return;
   }
 
   try
@@ -554,8 +562,8 @@ PlusStatus vtkLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point
   }
   catch( std::exception& e)
   {
-    LOG_ERROR(e.what());
-    return PLUS_FAIL;
+    LOG_DEBUG(e.what());
+    return;
   }
 
 
@@ -565,14 +573,14 @@ PlusStatus vtkLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point
   }
   catch( std::exception& e)
   {
-    LOG_ERROR(e.what());
-    return PLUS_FAIL;
+    LOG_DEBUG(e.what());
+    return;
   }
 
   if( ransacParameterResult.empty() )
   {
-    LOG_ERROR("Unable to fit line through points with RANSAC, line segmentation failed");
-    return PLUS_FAIL;
+    LOG_DEBUG("Unable to fit line through points with RANSAC, line segmentation failed");
+    return;
   }
 
   LOG_TRACE("RANSAC line fitting parameters (n, a):");
@@ -587,8 +595,6 @@ PlusStatus vtkLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point
   outputParameters.lineDirectionVector_Image[1] = ransacParameterResult[0];
   outputParameters.lineOriginPoint_Image[0] = ransacParameterResult[2];
   outputParameters.lineOriginPoint_Image[1] = ransacParameterResult[3];
-
-  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
