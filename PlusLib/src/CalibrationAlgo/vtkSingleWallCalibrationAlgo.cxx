@@ -37,12 +37,15 @@ vtkSingleWallCalibrationAlgo::vtkSingleWallCalibrationAlgo()
 , ProbeCoordinateFrame(NULL)
 , ReferenceCoordinateFrame(NULL)
 , UpToDate(false)
+, Repository(NULL)
 {
   vtkMatrix4x4* aMatrix = vtkMatrix4x4::New();
   aMatrix->Identity();
   this->SetImageToProbeTransformation(aMatrix);
 
   this->SetLineSegmenter(vtkLineSegmentationAlgo::New());
+
+  this->SetRepository(vtkTransformRepository::New());
 }
 
 //------------------------------------------------------------------------
@@ -51,6 +54,7 @@ vtkSingleWallCalibrationAlgo::~vtkSingleWallCalibrationAlgo()
 {
   this->SetImageToProbeTransformation(NULL);
   this->SetLineSegmenter(NULL);
+  this->SetRepository(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -198,10 +202,17 @@ PlusStatus vtkSingleWallCalibrationAlgo::Calibrate()
 
   {
     TrackedFrame* firstFrame = this->TrackedFrameList->GetTrackedFrame(0);
+    this->GetRepository()->SetTransforms(*firstFrame);
     PlusTransformName probeToReferenceName(this->GetProbeCoordinateFrame(), this->GetReferenceCoordinateFrame());
-    if( firstFrame->GetCustomFrameTransform(probeToReferenceName, aProbeToReferenceTransform) != PLUS_SUCCESS )
+    bool isValid;
+    if( this->GetRepository()->GetTransform(probeToReferenceName, aProbeToReferenceTransform, &isValid) != PLUS_SUCCESS )
     {
       LOG_WARNING("Unable to locate " << this->GetProbeCoordinateFrame() << "To" << this->GetReferenceCoordinateFrame() << "Transform in frame 0 of tracked frame list.");
+      return PLUS_FAIL;
+    }
+    if( !isValid )
+    {
+      LOG_ERROR("Frame 0 has invalid " << this->GetProbeCoordinateFrame() << "To" << this->GetReferenceCoordinateFrame() << "Transform.");
       return PLUS_FAIL;
     }
     initialRotationMatrixInverse->DeepCopy(aProbeToReferenceTransform);
@@ -218,11 +229,20 @@ PlusStatus vtkSingleWallCalibrationAlgo::Calibrate()
   for( int imageIndex = 0; imageIndex < this->TrackedFrameList->GetNumberOfTrackedFrames(); ++imageIndex )
   {
     TrackedFrame* aFrame = this->TrackedFrameList->GetTrackedFrame(imageIndex);
+    this->GetRepository()->SetTransforms(*aFrame);
     PlusTransformName probeToReferenceName(this->GetProbeCoordinateFrame(), this->GetReferenceCoordinateFrame());
-    if( aFrame->GetCustomFrameTransform(probeToReferenceName, aProbeToReferenceTransform) != PLUS_SUCCESS )
+    bool isValid;
+    if( this->GetRepository()->GetTransform(probeToReferenceName, aProbeToReferenceTransform, &isValid) != PLUS_SUCCESS )
     {
       LOG_WARNING("Unable to locate " << this->GetProbeCoordinateFrame() << "To" << this->GetReferenceCoordinateFrame() << "Transform in frame " << imageIndex << " of tracked frame list.");
       return PLUS_FAIL;
+    }
+    if( !isValid )
+    {
+      LOG_WARNING("Frame " << imageIndex << " has invalid " << this->GetProbeCoordinateFrame() << "To" << this->GetReferenceCoordinateFrame() << "Transform.");
+      this->TrackedFrameList->RemoveTrackedFrame(imageIndex);
+      imageIndex--;
+      continue;
     }
     (*aProbeToReferenceTransform)[0][3] = 0.0;
     (*aProbeToReferenceTransform)[1][3] = 0.0;
@@ -375,8 +395,10 @@ PlusStatus vtkSingleWallCalibrationAlgo::Calibrate()
   for( int imageIndex = 0; imageIndex < this->TrackedFrameList->GetNumberOfTrackedFrames(); ++imageIndex )
   {
     TrackedFrame* aFrame = this->TrackedFrameList->GetTrackedFrame(imageIndex);
+    this->GetRepository()->SetTransforms(*aFrame);
     PlusTransformName probeToReferenceName(this->GetProbeCoordinateFrame(), this->GetReferenceCoordinateFrame());
-    if( aFrame->GetCustomFrameTransform(probeToReferenceName, aProbeToReferenceTransform) != PLUS_SUCCESS )
+    bool isValid; // All invalid images have already been filtered out of this tracked frame list
+    if( this->GetRepository()->GetTransform(probeToReferenceName, aProbeToReferenceTransform, &isValid) != PLUS_SUCCESS )
     {
       LOG_WARNING("Unable to locate " << this->GetProbeCoordinateFrame() << "To" << this->GetReferenceCoordinateFrame() << "Transform in frame " << imageIndex << " of tracked frame list.");
       return PLUS_FAIL;

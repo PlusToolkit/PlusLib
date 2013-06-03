@@ -8,6 +8,7 @@
 #define __vtkSingleWallCalibrationAlgo_h
 
 #include "vtkLineSegmentationAlgo.h"
+#include "vtkTransformRepository.h"
 
 class vtkTrackedFrameList;
 
@@ -64,6 +65,9 @@ protected:
   vtkSetStringMacro(ProbeCoordinateFrame);
   vtkSetStringMacro(ReferenceCoordinateFrame);
 
+  vtkSetObjectMacro(Repository, vtkTransformRepository);
+  vtkGetObjectMacro(Repository, vtkTransformRepository);
+
   vtkGetObjectMacro(TrackedFrameList, vtkTrackedFrameList);
   vtkSetObjectMacro(ImageToProbeTransformation, vtkMatrix4x4);
   vtkSetObjectMacro(LineSegmenter, vtkLineSegmentationAlgo);
@@ -83,6 +87,8 @@ protected:
   char* ReferenceCoordinateFrame;
   
   bool                  UpToDate;
+
+  vtkTransformRepository*   Repository;
 
 private:
   vtkSingleWallCalibrationAlgo(const vtkSingleWallCalibrationAlgo&);
