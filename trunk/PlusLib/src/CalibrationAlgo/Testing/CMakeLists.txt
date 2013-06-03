@@ -198,7 +198,6 @@ ADD_TEST(TemporalCalibrationAlgoTest1
     --tracker-seq-file=${TestDataDir}/WaterTankBottomTranslationTrackerBuffer.mha
     --video-seq-file=${TestDataDir}/WaterTankBottomTranslationVideoBuffer.mha
     --sampling-resolution-sec=0.001
-    --verbose=2
     --baseline-file=${TestDataDir}/TemporalCalibrationResultsBaseline.xml
     )
 SET_TESTS_PROPERTIES( TemporalCalibrationAlgoTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -211,7 +210,6 @@ ADD_TEST(SingleWallCalibrationAlgoTest1
     ${EXECUTABLE_OUTPUT_PATH}/SingleWallCalibrationAlgoTest
     --input-seq-file=${TestDataDir}/SingleWallCalibrationTest.mha 
     --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_File_SingleWallCalibrationAlgoTest.xml
-    --verbose=2
     )
 SET_TESTS_PROPERTIES( SingleWallCalibrationAlgoTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
