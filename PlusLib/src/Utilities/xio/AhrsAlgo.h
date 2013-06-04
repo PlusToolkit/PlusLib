@@ -31,15 +31,17 @@ public:
   virtual void Update(float gx, float gy, float gz, float ax, float ay, float az, float mx, float my, float mz)=0;
   virtual void UpdateIMU(float gx, float gy, float gz, float ax, float ay, float az)=0;
   
+  //combines updating with timestamping
   void UpdateWithTimestamp(float gx, float gy, float gz, float ax, float ay, float az, float mx, float my, float mz, float timestamp)
   {
-    UpdateSampleFreqHz(timestamp);
+    UpdateSampleFreqFromSystemTimeSec(timestamp);
     Update(gx, gy, gz, ax, ay, az, mx, my, mz);
   }
-
+  
+  //combines updating with timestamping
   void UpdateIMUWithTimestamp(float gx, float gy, float gz, float ax, float ay, float az, float timestamp)
   {
-    UpdateSampleFreqHz(timestamp);
+    UpdateSampleFreqFromSystemTimeSec(timestamp);
     UpdateIMU(gx, gy, gz, ax, ay, az);
   }
   
@@ -52,7 +54,8 @@ public:
   void GetOrientation(double &aq0, double &aq1, double &aq2, double &aq3) { aq0=q0; aq1=q1; aq2=q2; aq3=q3; };
   double GetLastUpdateTime() {return lastUpdateTime; };
   
-  void UpdateSampleFreqHz(double timeSystemSec)
+  //updates the sampling frequency from a given timestamp
+  void UpdateSampleFreqFromSystemTimeSec(double timeSystemSec)
   {
     //if first update, use as reference time and assume last update was long ago
     if (lastUpdateTime<0)
