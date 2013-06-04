@@ -31,6 +31,19 @@ public:
   virtual void Update(float gx, float gy, float gz, float ax, float ay, float az, float mx, float my, float mz)=0;
   virtual void UpdateIMU(float gx, float gy, float gz, float ax, float ay, float az)=0;
   
+  void UpdateWithTimestamp(float gx, float gy, float gz, float ax, float ay, float az, float mx, float my, float mz, float timestamp)
+  {
+    UpdateSampleFreqHz(timestamp);
+    Update(gx, gy, gz, ax, ay, az, mx, my, mz);
+  }
+
+  void UpdateIMUWithTimestamp(float gx, float gy, float gz, float ax, float ay, float az, float timestamp)
+  {
+    UpdateSampleFreqHz(timestamp);
+    UpdateIMU(gx, gy, gz, ax, ay, az);
+  }
+  
+
   virtual void SetGain(float proportional, float integral)=0;
   
   void SetSampleFreqHz(float asampleFreq) { sampleFreq=asampleFreq; };  
@@ -41,15 +54,18 @@ public:
   
   void UpdateSampleFreqHz(double timeSystemSec)
   {
-    //if first update, use as reference time
+    //if first update, use as reference time and assume last update was long ago
     if (lastUpdateTime<0)
     {
       lastUpdateTime=timeSystemSec;
-    }       
-    double timeSinceLastAhrsUpdateSec=timeSystemSec-lastUpdateTime;
-    lastUpdateTime=timeSystemSec;
-
-    sampleFreq = 1.0/timeSinceLastAhrsUpdateSec;
+      sampleFreq=0.00000001;
+    }
+    else
+    {
+      double timeSinceLastAhrsUpdateSec=timeSystemSec-lastUpdateTime;
+      lastUpdateTime=timeSystemSec;
+      sampleFreq = 1.0/timeSinceLastAhrsUpdateSec;
+    }
   }
 
 protected:  

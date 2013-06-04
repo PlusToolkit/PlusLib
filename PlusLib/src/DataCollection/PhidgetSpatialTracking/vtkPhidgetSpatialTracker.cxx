@@ -249,32 +249,22 @@ int CCONV vtkPhidgetSpatialTracker::SpatialDataHandler(CPhidgetSpatialHandle spa
       {
         // magnetometer data is valid
 
-        // Compute the time that passed since the last AHRS update
-        if (tracker->AhrsAlgo->GetLastUpdateTime() < 0.0)
-        {
-          // this is the first update
-          // just use it as a reference
-          tracker->AhrsAlgo->UpdateSampleFreqHz(timeSystemSec);
-          continue;
-        }       
-        tracker->AhrsAlgo->UpdateSampleFreqHz(timeSystemSec);
-
         //LOG_TRACE("samplingTime(msec)="<<1000.0*timeSinceLastAhrsUpdateSec<<", packetCount="<<count);
         //LOG_TRACE("gyroX="<<std::fixed<<std::setprecision(2)<<std::setw(6)<<data[i]->angularRate[0]<<", gyroY="<<data[i]->angularRate[1]<<", gyroZ="<<data[i]->angularRate[2]);               
         //LOG_TRACE("magX="<<std::fixed<<std::setprecision(2)<<std::setw(6)<<data[i]->magneticField[0]<<", magY="<<data[i]->magneticField[1]<<", magZ="<<data[i]->magneticField[2]);               
 
         if (tracker->AhrsUseMagnetometer)
         {
-          tracker->AhrsAlgo->Update(          
+          tracker->AhrsAlgo->UpdateWithTimestamp(          
             vtkMath::RadiansFromDegrees(data[i]->angularRate[0]), vtkMath::RadiansFromDegrees(data[i]->angularRate[1]), vtkMath::RadiansFromDegrees(data[i]->angularRate[2]),
             data[i]->acceleration[0], data[i]->acceleration[1], data[i]->acceleration[2],
-            data[i]->magneticField[0], data[i]->magneticField[1], data[i]->magneticField[2]);
+            data[i]->magneticField[0], data[i]->magneticField[1], data[i]->magneticField[2], timeSystemSec);
         }
         else
         {
-          tracker->AhrsAlgo->UpdateIMU(          
+          tracker->AhrsAlgo->UpdateIMUWithTimestamp(          
             vtkMath::RadiansFromDegrees(data[i]->angularRate[0]), vtkMath::RadiansFromDegrees(data[i]->angularRate[1]), vtkMath::RadiansFromDegrees(data[i]->angularRate[2]),
-            data[i]->acceleration[0], data[i]->acceleration[1], data[i]->acceleration[2]);
+            data[i]->acceleration[0], data[i]->acceleration[1], data[i]->acceleration[2], timeSystemSec);
         }
 								
 								
@@ -296,19 +286,9 @@ int CCONV vtkPhidgetSpatialTracker::SpatialDataHandler(CPhidgetSpatialHandle spa
       }            
 	   if(tracker->FilteredTiltSensorTool!=NULL)
 	   {
-    // Compute the time that passed since the last FilteredTiltSensor AHRS update
-      if (tracker->FilteredTiltSensorAhrsAlgo->GetLastUpdateTime() < 0.0)
-      {
-        // this is the first update
-        // just use it as a reference
-        tracker->FilteredTiltSensorAhrsAlgo->UpdateSampleFreqHz(timeSystemSec);
-        continue;
-      }       
-    tracker->FilteredTiltSensorAhrsAlgo->UpdateSampleFreqHz(timeSystemSec);
-
-				tracker->FilteredTiltSensorAhrsAlgo->UpdateIMU(          
+    tracker->FilteredTiltSensorAhrsAlgo->UpdateIMUWithTimestamp(          
     vtkMath::RadiansFromDegrees(data[i]->angularRate[0]), vtkMath::RadiansFromDegrees(data[i]->angularRate[1]), vtkMath::RadiansFromDegrees(data[i]->angularRate[2]),
-    data[i]->acceleration[0], data[i]->acceleration[1], data[i]->acceleration[2]);
+    data[i]->acceleration[0], data[i]->acceleration[1], data[i]->acceleration[2], timeSystemSec);
 
     double rotQuat[4]={0};
     tracker->AhrsAlgo->GetOrientation(rotQuat[0],rotQuat[1],rotQuat[2],rotQuat[3]);
