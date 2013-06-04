@@ -21,6 +21,7 @@ public:
   AhrsAlgo()
   {
     sampleFreq=512.0; // Hz
+    lastUpdateTime = -1;
     q0=1.0f;
     q1=0.0f;
     q2=0.0f;
@@ -36,6 +37,20 @@ public:
   void SetOrientation(float aq0, float aq1, float aq2, float aq3) { q0=aq0; q1=aq1; q2=aq2; q3=aq3; };
   void GetOrientation(float &aq0, float &aq1, float &aq2, float &aq3) { aq0=q0; aq1=q1; aq2=q2; aq3=q3; };
   void GetOrientation(double &aq0, double &aq1, double &aq2, double &aq3) { aq0=q0; aq1=q1; aq2=q2; aq3=q3; };
+  double GetLastUpdateTime() {return lastUpdateTime; };
+  
+  void UpdateSampleFreqHz(double timeSystemSec)
+  {
+    //if first update, use as reference time
+    if (lastUpdateTime<0)
+    {
+      lastUpdateTime=timeSystemSec;
+    }       
+    double timeSinceLastAhrsUpdateSec=timeSystemSec-lastUpdateTime;
+    lastUpdateTime=timeSystemSec;
+
+    sampleFreq = 1.0/timeSinceLastAhrsUpdateSec;
+  }
 
 protected:  
   
@@ -56,7 +71,8 @@ protected:
   }
 
   float sampleFreq; // sample frequency in Hz
-  
+  double lastUpdateTime; //system time at last update
+
   // quaternion of sensor frame relative to auxiliary frame  
   float q0;
   float q1;

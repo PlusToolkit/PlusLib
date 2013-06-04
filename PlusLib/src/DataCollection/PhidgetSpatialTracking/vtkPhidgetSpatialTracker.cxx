@@ -250,17 +250,14 @@ int CCONV vtkPhidgetSpatialTracker::SpatialDataHandler(CPhidgetSpatialHandle spa
         // magnetometer data is valid
 
         // Compute the time that passed since the last AHRS update
-        if (tracker->AhrsLastUpdateTime<0)
+        if (tracker->AhrsAlgo->GetLastUpdateTime() < 0.0)
         {
           // this is the first update
           // just use it as a reference
-          tracker->AhrsLastUpdateTime=timeSystemSec;
+          tracker->AhrsAlgo->UpdateSampleFreqHz(timeSystemSec);
           continue;
         }       
-        double timeSinceLastAhrsUpdateSec=timeSystemSec-tracker->AhrsLastUpdateTime;
-        tracker->AhrsLastUpdateTime=timeSystemSec;
-
-        tracker->AhrsAlgo->SetSampleFreqHz(1.0/timeSinceLastAhrsUpdateSec);
+        tracker->AhrsAlgo->UpdateSampleFreqHz(timeSystemSec);
 
         //LOG_TRACE("samplingTime(msec)="<<1000.0*timeSinceLastAhrsUpdateSec<<", packetCount="<<count);
         //LOG_TRACE("gyroX="<<std::fixed<<std::setprecision(2)<<std::setw(6)<<data[i]->angularRate[0]<<", gyroY="<<data[i]->angularRate[1]<<", gyroZ="<<data[i]->angularRate[2]);               
@@ -297,20 +294,17 @@ int CCONV vtkPhidgetSpatialTracker::SpatialDataHandler(CPhidgetSpatialHandle spa
 
         tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->OrientationSensorTool->GetSourceId(), tracker->LastOrientationSensorToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);            
       }            
-	  if(tracker->FilteredTiltSensorTool!=NULL)
-	  {
-   // Compute the time that passed since the last FilteredTiltSensor AHRS update
-    if (tracker->FilteredTiltSensorAhrsLastUpdateTime<0)
-    {
-      // this is the first update
-      // just use it as a reference
-      tracker->FilteredTiltSensorAhrsLastUpdateTime=timeSystemSec;
-      continue;
-    }       
-    double timeSinceLastFilteredTiltSensorAhrsUpdateSec=timeSystemSec-tracker->FilteredTiltSensorAhrsLastUpdateTime;
-    tracker->FilteredTiltSensorAhrsLastUpdateTime=timeSystemSec;
-
-    tracker->FilteredTiltSensorAhrsAlgo->SetSampleFreqHz(1.0/timeSinceLastFilteredTiltSensorAhrsUpdateSec);
+	   if(tracker->FilteredTiltSensorTool!=NULL)
+	   {
+    // Compute the time that passed since the last FilteredTiltSensor AHRS update
+      if (tracker->FilteredTiltSensorAhrsAlgo->GetLastUpdateTime() < 0.0)
+      {
+        // this is the first update
+        // just use it as a reference
+        tracker->FilteredTiltSensorAhrsAlgo->UpdateSampleFreqHz(timeSystemSec);
+        continue;
+      }       
+    tracker->FilteredTiltSensorAhrsAlgo->UpdateSampleFreqHz(timeSystemSec);
 
 				tracker->FilteredTiltSensorAhrsAlgo->UpdateIMU(          
     vtkMath::RadiansFromDegrees(data[i]->angularRate[0]), vtkMath::RadiansFromDegrees(data[i]->angularRate[1]), vtkMath::RadiansFromDegrees(data[i]->angularRate[2]),
@@ -800,7 +794,7 @@ PlusStatus vtkPhidgetSpatialTracker::ConstrainWestAxis(double downVector_Sensor[
 
 //----------------------------------------------------------------------------
 /*
-void vtkPhidgetSpatialTracker::get3x3RotMatrixFromIMUQuat(double rotMatrix[3][3], AhrsAlgo* AhrsAlgo)
+void vtkPhidgetSpatialTracker::Get3x3RotMatrixFromIMUQuat(double rotMatrix[3][3], AhrsAlgo* AhrsAlgo)
 {
 				double rotQuat[4]={0};
     AhrsAlgo->GetOrientation(rotQuat[0],rotQuat[1],rotQuat[2],rotQuat[3]);
