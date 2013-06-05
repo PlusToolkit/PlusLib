@@ -29,17 +29,6 @@ class ulterius;
 
 class VTK_EXPORT vtkSonixVideoSource;
 
-/*!
-\class vtkSonixVideoSourceCleanup 
-\brief Class that cleans up (deletes singleton instance of) vtkSonixVideoSource when destroyed
-\ingroup PlusLibImageAcquisition
-*/
-class VTK_EXPORT vtkSonixVideoSourceCleanup
-{
-public:
-  vtkSonixVideoSourceCleanup();
-  ~vtkSonixVideoSourceCleanup();
-};
 //ETX
 
 /*!
@@ -68,38 +57,12 @@ public:
 class VTK_EXPORT vtkSonixVideoSource : public vtkPlusDevice
 {
 public:
+  static vtkSonixVideoSource* New();
   vtkTypeRevisionMacro(vtkSonixVideoSource,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);   
 
   /*! Hardware device SDK version. */
   virtual std::string GetSdkVersion(); 
-
-  /*!
-    This is a singleton pattern New.  There will only be ONE
-    reference to a vtkOutputWindow object per process.  Clients that
-    call this must call Delete on the object so that the reference
-    counting will work.   The single instance will be unreferenced when
-    the program exits.
-  */
-  static vtkSonixVideoSource* New();
-  
-  /*! Return the singleton instance with no reference counting. */
-  static vtkSonixVideoSource* GetInstance();
-
-  /*!
-    Supply a user defined output window. Call ->Delete() on the supplied
-    instance after setting it.
-  */
-  static void SetInstance(vtkSonixVideoSource *instance);
-
-  //BTX
-  /*!
-    Use this as a way of memory management when the
-    program exits the SmartPointer will be deleted which
-    will delete the Instance singleton
-  */
-  static vtkSonixVideoSourceCleanup Cleanup;
-  //ETX
 
   /*! Read main configuration from/to xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
@@ -267,9 +230,7 @@ public:
   virtual bool IsTracker() const { return false; }
 
 protected:
-  /*! Constructor */
   vtkSonixVideoSource();
-  /*! Destructor */
   virtual ~vtkSonixVideoSource();
 
   /*! Connect to device */
@@ -291,8 +252,6 @@ protected:
 
   /*! Get the last error string returned by Ulterius */
   std::string GetLastUlteriusError();
-
-  virtual PlusStatus Reset();
 
   ////////////////////////
 
@@ -325,6 +284,8 @@ protected:
   int SharedMemoryStatus;
   RfAcquisitionModeType RfAcquisitionMode;
   int SoundVelocity;
+  bool DetectDepthSwitching;
+  bool DetectPlaneSwitching;
 
   char *SonixIP;
 
@@ -337,9 +298,9 @@ protected:
   bool UlteriusConnected;
     
 private:
- 
-  static vtkSonixVideoSource* Instance;
   static bool vtkSonixVideoSourceNewFrameCallback(void * data, int type, int sz, bool cine, int frmnum);
+  static bool vtkSonixVideoSourceParamCallback(void * paramId, int ptX, int ptY);
+  static vtkSonixVideoSource* ActiveSonixDevice;
   vtkSonixVideoSource(const vtkSonixVideoSource&);  // Not implemented.
   void operator=(const vtkSonixVideoSource&);  // Not implemented.
 };
