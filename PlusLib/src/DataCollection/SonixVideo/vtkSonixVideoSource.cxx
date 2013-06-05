@@ -43,18 +43,17 @@ Siddharth Vikal (Queen's University, Kingston, Ontario, Canada)
 #pragma warning (pop)
 #endif
 
-
-
-vtkCxxRevisionMacro(vtkSonixVideoSource, "$Revision: 1.0$");
-//vtkStandardNewMacro(vtkWin32VideoSource);
-//----------------------------------------------------------------------------
-// Needed when we don't use the vtkStandardNewMacro.
-vtkInstantiatorNewMacro(vtkSonixVideoSource);
+vtkCxxRevisionMacro(vtkSonixVideoSource, "$Revision: 2.0$");
 
 //----------------------------------------------------------------------------
 
-vtkSonixVideoSource* vtkSonixVideoSource::Instance = 0;
-vtkSonixVideoSourceCleanup vtkSonixVideoSource::Cleanup;
+vtkSonixVideoSource* vtkSonixVideoSource::ActiveSonixDevice = NULL;
+
+//----------------------------------------------------------------------------
+
+vtkStandardNewMacro(vtkSonixVideoSource);
+
+//----------------------------------------------------------------------------
 
 #if ( _MSC_VER >= 1300 ) // Visual studio .NET
 #pragma warning ( disable : 4311 )
@@ -72,79 +71,48 @@ static const int CONNECT_RETRY=5;
 static const int CONNECT_RETRY_DELAY_SEC=1.0;
 
 //----------------------------------------------------------------------------
-vtkSonixVideoSourceCleanup::vtkSonixVideoSourceCleanup()
-{
-}
-
-//----------------------------------------------------------------------------
-vtkSonixVideoSourceCleanup::~vtkSonixVideoSourceCleanup()
-{
-  // Destroy any remaining output window.
-  vtkSonixVideoSource::SetInstance(NULL);
-}
-//----------------------------------------------------------------------------
 vtkSonixVideoSource::vtkSonixVideoSource()
 : SonixIP(NULL)
+, Frequency(-1)
+, Depth(-1)
+, Sector(-1)
+, Gain(-1)
+, DynRange(-1)
+, Zoom(-1)
+, Timeout(-1)
+, ConnectionSetupDelayMs(3000)
+, CompressionStatus(0)
+, AcquisitionDataType(udtBPost)
+, ImagingMode(BMode)
+, RfAcquisitionMode(RF_ACQ_RF_ONLY)
+, UlteriusConnected(false)
+, SharedMemoryStatus(0)
+, DetectDepthSwitching(false)
+, DetectPlaneSwitching(false)
 {
-  this->Reset();
+  this->SetSonixIP("127.0.0.1");
+  this->StartThreadForInternalUpdates = false;
+
+  this->NumberOfOutputFrames = 1;
+  this->RequireImageOrientationInConfiguration = true;
+  this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
+  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
+  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
+  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
+  this->RequireUsImageOrientationInDeviceSetConfiguration = true;
+  this->RequireRfElementInDeviceSetConfiguration = false;
+
+  // This effectively forces only one sonixvideosource at a time, but it paves the way
+  // for a non-singleton architecture when the SDK supports it
+  vtkSonixVideoSource::ActiveSonixDevice = this;
 }
 
 //----------------------------------------------------------------------------
 vtkSonixVideoSource::~vtkSonixVideoSource()
-{ 
+{
+  vtkSonixVideoSource::ActiveSonixDevice = NULL;
+
   this->SetSonixIP(NULL);
-}
-
-//----------------------------------------------------------------------------
-// Up the reference count so it behaves like New
-vtkSonixVideoSource* vtkSonixVideoSource::New()
-{
-  vtkSonixVideoSource* ret = vtkSonixVideoSource::GetInstance();
-  ret->Reset();
-  ret->Register(NULL);
-  return ret;
-}
-
-//----------------------------------------------------------------------------
-// Return the single instance of the vtkOutputWindow
-vtkSonixVideoSource* vtkSonixVideoSource::GetInstance()
-{
-  if(!vtkSonixVideoSource::Instance)
-  {
-    // Try the factory first
-    vtkSonixVideoSource::Instance = (vtkSonixVideoSource*)vtkObjectFactory::CreateInstance("vtkSonixVideoSource");    
-    if(!vtkSonixVideoSource::Instance)
-    {
-      vtkSonixVideoSource::Instance = new vtkSonixVideoSource();     
-    }
-    if(!vtkSonixVideoSource::Instance)
-    {
-      int error = 0;
-    }
-  }
-  // return the instance
-  return vtkSonixVideoSource::Instance;
-}
-
-//----------------------------------------------------------------------------
-void vtkSonixVideoSource::SetInstance(vtkSonixVideoSource* instance)
-{
-  if (vtkSonixVideoSource::Instance==instance)
-  {
-    return;
-  }
-  // preferably this will be NULL
-  if (vtkSonixVideoSource::Instance)
-  {
-    vtkSonixVideoSource::Instance->Delete();;
-  }
-  vtkSonixVideoSource::Instance = instance;
-  if (!instance)
-  {
-    return;
-  }
-  // user will call ->Delete() after setting instance
-  instance->Register(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -175,10 +143,37 @@ bool vtkSonixVideoSource::vtkSonixVideoSourceNewFrameCallback(void * data, int t
     return false;
   }
 
-  vtkSonixVideoSource::GetInstance()->AddFrameToBuffer(data, type, sz, cine, frmnum);    
+  if( vtkSonixVideoSource::ActiveSonixDevice != NULL )
+  {
+    vtkSonixVideoSource::ActiveSonixDevice->AddFrameToBuffer(data, type, sz, cine, frmnum);
+  }
+  else
+  {
+    LOG_ERROR("vtkSonixVideoSource data callback but the ActiveSonixDevice is NULL. Disconnect between device and SDK.");
+    return false;
+  }
 
   return true;;
 }
+
+//----------------------------------------------------------------------------
+// the callback when parameters change on a device
+bool vtkSonixVideoSource::vtkSonixVideoSourceParamCallback( void * paramId, int ptX, int ptY )
+{
+  char* paramName = (char*)paramId;
+
+  if( STRCASECMP(paramName, "depth") == 0 )
+  {
+    return true;
+  }
+  else if( STRCASECMP(paramName, "asdf") == 0 )
+  {
+    return true;
+  }
+
+  return false;
+}
+
 
 //----------------------------------------------------------------------------
 // copy the Device Independent Bitmap from the VFW framebuffer into the
@@ -405,10 +400,13 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
 
     // Set callback and timeout for receiving new frames
     this->Ult.setCallback(vtkSonixVideoSourceNewFrameCallback);
-    if (this->Timeout >= 0 && SetTimeout(this->Timeout) != PLUS_SUCCESS)
+    if (this->Timeout >= 0 && this->SetTimeout(this->Timeout) != PLUS_SUCCESS)
     {
       continue;
     }
+
+    // Set the param callback so we can observe depth and plane changes
+    this->Ult.setParamCallback(vtkSonixVideoSourceParamCallback);
 
     initializationCompleted = true;
   } 
@@ -477,7 +475,7 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* config)
   }
   else
   {
-    LOG_WARNING("Ultrasonix IP address is not defined. Defaulting to 127.0.0.1");
+    LOG_WARNING("Ultrasonix IP address is not defined. Defaulting to " << this->GetSonixIP() );
   }  
 
   vtkPlusDataSource* bSource(NULL);
@@ -524,11 +522,29 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL;
   }
 
-  int depth = -1; 
-  if ( deviceConfig->GetScalarAttribute("Depth", depth)) 
+  if( deviceConfig->GetAttribute("DetectDepthSwitching") != NULL && STRCASECMP(deviceConfig->GetAttribute("DetectDepthSwitching"), "TRUE") == 0 )
   {
-    this->Depth=depth; 
+    this->DetectDepthSwitching = true;
+    // TODO : read the config for each output channel, check for Depth="x" attribute
+    // with that attribute, build a lookup table depth->channel
   }
+  else
+  {
+    int depth = -1; 
+    if ( deviceConfig->GetScalarAttribute("Depth", depth)) 
+    {
+      this->Depth=depth; 
+    }
+  }
+
+  if( deviceConfig->GetAttribute("DetectPlaneSwitching") != NULL && STRCASECMP(deviceConfig->GetAttribute("DetectPlaneSwitching"), "TRUE") == 0 )
+  {
+    this->DetectPlaneSwitching = true;
+  }
+
+  // TODO : if depth or plane switching, build lookup table
+  // if both attributes, build [plane, depth]->channel lookup table
+  // if one, build [attr]->channel lookup table
 
   int sector = -1; 
   if ( deviceConfig->GetScalarAttribute("Sector", sector)) 
@@ -1094,60 +1110,6 @@ PlusStatus vtkSonixVideoSource::NotifyConfigured()
     this->SetCorrectlyConfigured(false);
     return PLUS_FAIL;
   }
-
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-
-PlusStatus vtkSonixVideoSource::Reset()
-{
-  for( ChannelContainerIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
-  {
-    (*it)->Delete();
-  }
-  this->InputChannels.clear();
-  for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it )
-  {
-    (*it)->Delete();
-  }
-  this->OutputChannels.clear();
-  for( DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it )
-  {
-    it->second->Delete();
-  }
-  this->Tools.clear();
-  for( DataSourceContainerIterator it = this->VideoSources.begin(); it != this->VideoSources.end(); ++it )
-  {
-    it->second->Delete();
-  }
-  this->VideoSources.clear();
-
-  this->SetSonixIP("127.0.0.1");
-  this->Frequency = -1; //in Mhz
-  this->Depth = -1; //in mm
-  this->Sector = -1; //in %
-  this->Gain = -1; //in %
-  this->DynRange = -1; //in dB
-  this->Zoom = -1; //in %
-  this->Timeout = -1; // in ms
-  this->ConnectionSetupDelayMs = 3000; // in ms
-  this->CompressionStatus = 0; // no compression by default
-  this->AcquisitionDataType = udtBPost; //corresponds to type: BPost 8-bit  
-  this->ImagingMode = BMode; //corresponds to BMode imaging  
-  this->RfAcquisitionMode=RF_ACQ_RF_ONLY; // get RF data only in RfMode 
-  this->NumberOfOutputFrames = 1;
-  this->UlteriusConnected = false;
-  this->SharedMemoryStatus = 0; //0 corresponds to always use TCP
-  this->RequireImageOrientationInConfiguration = true;
-  this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
-  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
-  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
-  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
-  this->RequireUsImageOrientationInDeviceSetConfiguration = true;
-  this->RequireRfElementInDeviceSetConfiguration = false;
-
-  // No need for StartThreadForInternalUpdates, as we are notified about each new frame through a callback function
 
   return PLUS_SUCCESS;
 }
