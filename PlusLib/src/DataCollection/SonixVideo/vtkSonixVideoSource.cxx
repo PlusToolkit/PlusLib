@@ -162,8 +162,25 @@ bool vtkSonixVideoSource::vtkSonixVideoSourceParamCallback( void * paramId, int 
 {
   char* paramName = (char*)paramId;
 
+  if( vtkSonixVideoSource::ActiveSonixDevice == NULL )
+  {
+    LOG_ERROR("vtkSonixVideoSource data callback but the ActiveSonixDevice is NULL. Disconnect between device and SDK.");
+    return false;
+  }
+
   if( STRCASECMP(paramName, "b-depth") == 0 )
   {
+    return true;
+  }
+  else if ( STRCASECMP(paramName, "probe id") == 0 )
+  {
+    int value;
+    int validatedValue;
+    if( vtkSonixVideoSource::ActiveSonixDevice->GetParamValue(paramName, value, validatedValue) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to retrieve probe id.");
+      return false;
+    }
     return true;
   }
 
