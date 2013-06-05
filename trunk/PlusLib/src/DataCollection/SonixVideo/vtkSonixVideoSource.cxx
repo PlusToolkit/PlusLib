@@ -162,11 +162,7 @@ bool vtkSonixVideoSource::vtkSonixVideoSourceParamCallback( void * paramId, int 
 {
   char* paramName = (char*)paramId;
 
-  if( STRCASECMP(paramName, "depth") == 0 )
-  {
-    return true;
-  }
-  else if( STRCASECMP(paramName, "asdf") == 0 )
+  if( STRCASECMP(paramName, "b-depth") == 0 )
   {
     return true;
   }
