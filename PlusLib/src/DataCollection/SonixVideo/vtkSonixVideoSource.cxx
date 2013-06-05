@@ -174,16 +174,19 @@ bool vtkSonixVideoSource::vtkSonixVideoSourceParamCallback( void * paramId, int 
   }
   else if ( STRCASECMP(paramName, "probe id") == 0 )
   {
-    int value;
-    int validatedValue;
-    if( vtkSonixVideoSource::ActiveSonixDevice->GetParamValue(paramName, value, validatedValue) != PLUS_SUCCESS )
+    char probeName[200];
+    if( !vtkSonixVideoSource::ActiveSonixDevice->Ult.getActiveProbe(probeName, 200) )
     {
-      LOG_ERROR("Unable to retrieve probe id.");
+      LOG_ERROR("Unable to retrieve probe name.");
       return false;
     }
+    std::string probeString(probeName);
     return true;
   }
-
+  else if ( STRCASECMP(paramName, "") == 0 )
+  {
+    return true;
+  }
   return false;
 }
 
