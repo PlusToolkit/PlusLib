@@ -195,7 +195,7 @@ public:
   vtkGetMacro(CorrectlyConfigured, bool);
 
   /*! Set the parent data collector */
-  vtkSetObjectMacro(DataCollector, vtkDataCollector);
+  void SetDataCollector(vtkDataCollector* _arg) { this->DataCollector = _arg; }
 
   /*! Set buffer size of all available tools */
   void SetToolsBufferSize( int aBufferSize ); 
