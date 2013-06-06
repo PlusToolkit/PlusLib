@@ -2,7 +2,7 @@
 
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
-      Name="SonixTouch Ascension3DG(GPS) L14-5 + Reference + Stylus + Phantom 2.0"
+      Name="SonixTouch Ascension3DG(GPS) L14-5 + Reference + Stylus + Phantom 3.0"
       Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." 
     />
 
@@ -31,8 +31,8 @@
       Id="VideoDevice"
       Type="SonixVideo" 
       AcquisitionRate="30" 
-      LocalTimeOffsetSec="-0.2976"
-      IP="130.15.7.20" 
+      LocalTimeOffsetSec="0"
+      IP="127.0.0.1" 
       Depth="-1" 
       Sector="-1" 
       Gain="-1" 
@@ -97,11 +97,11 @@
     />
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
       Opacity="0.6"
-      File="fCal3.0.stl"
+      File="fCal_3.1.stl"
       ModelToObjectTransform="
         1 0 0 -13.5
         0 1 0 -10.0
-        0 0 1 -15.5
+        0 0 1 15.5
         0 0 0 1"
   />
     <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
@@ -153,22 +153,18 @@
       </Pattern>
 
       <Landmarks>
-        <Landmark Name="#1" Position="186 -5.0 35.5" />
-        <Landmark Name="#2" Position="186 -5.0 -19.5" />
-        <Landmark Name="#3" Position="186 -5.0 -94.5" />
-        <Landmark Name="#4" Position="184.0 45.0 35.5" />
-        
-        <Landmark Name="#5" Position="186 45.0 10.5" />
-        <Landmark Name="#6" Position="186 45.0 -94.5" />
-        <Landmark Name="#7" Position="-33.0 45.0 35.5" />
-        <Landmark Name="#8" Position="-33.0 45.0 10.5" />
-		
-		<Landmark Name="#9" Position="-33.0 45.0 -94.5" />
-        <Landmark Name="#10" Position="-33.0 -5.0 35.5" />
-        <Landmark Name="#11" Position="-33.0 -5.0 -19.5" />
-        <Landmark Name="#12" Position="-33.0 -5.0 -94.5" />
-		
-		
+        <Landmark Name="#1" Position="186 -5.0 35.5"/>
+        <Landmark Name="#2" Position="186 -5.0 -19.5"/>
+        <Landmark Name="#3" Position="186 -5.0 -94.5"/>
+        <Landmark Name="#4" Position="186 45.0 40.5"/>
+        <Landmark Name="#5" Position="186 45.0 10.5"/>
+        <Landmark Name="#6" Position="186 45.0 -94.5"/>
+        <Landmark Name="#7" Position="-32.3 45.0 40.5"/>
+        <Landmark Name="#8" Position="-32.3 45.0 10.5"/>
+        <Landmark Name="#9" Position="-32.3 45.0 -94.5"/>
+        <Landmark Name="#10" Position="-32.5 -5.0 40.5"/>
+        <Landmark Name="#11" Position="-32.5 -5.0 -19.5"/>
+        <Landmark Name="#12" Position="-32.9 -5.0 -84.5"/>
       </Landmarks>
       
     </Geometry>
