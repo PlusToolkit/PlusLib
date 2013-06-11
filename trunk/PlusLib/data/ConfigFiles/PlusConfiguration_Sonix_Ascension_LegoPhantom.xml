@@ -1,0 +1,224 @@
+<PlusConfiguration version="2.1">
+
+  <DataCollection StartupDelaySec="1.0">
+    <DeviceSet 
+      Name="SonixTouch and Ascension3DG with Lego Phantom" 
+      Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." 
+    />
+    <Device 
+      Id="TrackerDevice" 
+      Type="Ascension3DG" 
+      AcquisitionRate="50" 
+      LocalTimeOffsetSec="0.0" 
+      FilterAcWideNotch="1" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Probe" BufferSize="500" PortName="0" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" Id="Reference" BufferSize="500" PortName="1" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" Id="Stylus" BufferSize="500" PortName="2" AveragedItemsForFiltering="20" />
+      </DataSources>
+
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream" >
+          <DataSource Id="Probe"/>
+          <DataSource Id="Reference"/>
+          <DataSource Id="Stylus"/>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="VideoDevice"
+      Type="SonixVideo" 
+      AcquisitionRate="30" 
+      LocalTimeOffsetSec="0"
+      IP="127.0.0.1" 
+      Depth="-1" 
+      Sector="-1" 
+      Gain="-1" 
+      DynRange="-1" 
+      Zoom="-1" 
+      Frequency="-1" 
+      Timeout="-1" 
+      CompressionStatus="0" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="100" AveragedItemsForFiltering="20" />
+      </DataSources>
+      
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+
+    <Device 
+      Id="TrackedVideoDevice" 
+      Type="VirtualMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="VideoStream" />
+      </InputChannels>
+      
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream"/>
+      </OutputChannels>
+    </Device>
+  </DataCollection>
+
+  <CoordinateDefinitions>
+    <Transform From="Image" To="TransducerOriginPixel"
+      Matrix="
+        1  0  0  -410
+        0  1  0  5
+        0  0  1  0
+        0  0  0  1"
+       Date="2011.12.06 17:57:00"/>
+    <Transform From="TransducerOriginPixel" To="TransducerOrigin"
+      Matrix="
+        0.0796446  0  0  0
+        0  0.0744856  0  0
+        0  0  0.0770651  0
+        0  0  0  1"
+       Date="091112_160011"/>
+  </CoordinateDefinitions>
+  
+
+  <Rendering WorldCoordinateFrame="Reference" DisplayedImageOrientation="MF">
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" Id="ProbeModel"
+      File="L14-5_38_ProbeModel.stl"
+      ModelToObjectTransform="
+        -1 0 0 29.7
+        0 -1 0 1.5
+        0 0 1 -14
+        0 0 0 1"
+    />
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel"
+      File="Stylus_Example.stl"
+      ModelToObjectTransform="
+        1 0 0 -210.0
+        0 1 0 0
+        0 0 1 0
+        0 0 0 1"
+    />
+	<!-- TODO: make sure the File attribute of the following DisplayableObject has the correct path -->
+    <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
+      Opacity="0.6"
+      File="c:\devel\PlusBuild-bin\PlusLib\data\CADModels\LegoPhantom\LegoPhantom.stl"
+      ModelToObjectTransform="
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        0 0 0 1"
+    />
+    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
+  </Rendering>
+
+
+  <Segmentation
+    ApproximateSpacingMmPerPixel="0.078"
+    MorphologicalOpeningCircleRadiusMm="0.27"
+    MorphologicalOpeningBarSizeMm="1.0"
+    ClipRectangleOrigin="27 27" 
+    ClipRectangleSize="766 562" 
+    MaxLinePairDistanceErrorPercent="10"
+    AngleToleranceDegrees="10"
+    MaxAngleDifferenceDegrees="10"
+    MinThetaDegrees="-70"
+    MaxThetaDegrees="70"
+    MaxLineShiftMm="10.0"
+    ThresholdImagePercent="10"
+    CollinearPointsMaxDistanceFromLineMm="0.6"
+    UseOriginalImageIntensityForDotIntensityScore="0"
+  />
+  
+
+  <PhantomDefinition>
+    <!-- Supported types are: Double-N, U-Shaped-N -->
+    <Description
+      Name="Lego"
+      Type="Triple-N"
+      Version="1.4"
+      WiringVersion="1.0"
+      Institution="Queen's University PerkLab"
+    />
+
+    <Geometry>      
+      <Pattern Type="NWire"> <!-- top row from left to right -->
+        <Wire Name="7:E1_e1" EndPointFront="17.3 0 19.54" EndPointBack="17.30 40.10 19.54" />
+        <Wire Name="8:K1_f1" EndPointFront="39.7 0 19.54" EndPointBack="24.8 40.10 19.54" />
+        <Wire Name="9:L1_l1" EndPointFront="46.54 0 19.54" EndPointBack="46.54 40.10 19.54" />
+      </Pattern>
+      <Pattern Type="NWire"> <!-- middle row from left to right -->
+        <Wire Name="4:E2_e2" EndPointFront="17.3 0 9.81" EndPointBack="17.3 40.10 9.81" />
+        <Wire Name="5:F2_m2" EndPointFront="24.8 0 9.81" EndPointBack="39.9 40.10 9.81" />
+        <Wire Name="6:L2_l2" EndPointFront="46.54 0 9.81" EndPointBack="46.54 40.10 9.81" />
+      </Pattern>
+      <Pattern Type="NWire"> <!-- bottom row from left to right -->
+        <Wire Name="1:G3_g3" EndPointFront="26.0 0 0.08" EndPointBack="26.0 40.10 0.08" />
+        <Wire Name="2:K3_h3" EndPointFront="40.6 0 0.08" EndPointBack="32.0 40.10 0.08" />
+        <Wire Name="3:L3_l3" EndPointFront="46.54 0 0.08" EndPointBack="46.54 40.10 0.08" />
+      </Pattern>
+
+      <Landmarks>
+        <Landmark Name="#1" Position="-14.42 46.34 20.68" />
+        <Landmark Name="#2" Position="-14.42 -6.44 20.68" />
+        <Landmark Name="#3" Position="-14.42 -14.42 1.54" />
+        <Landmark Name="#4" Position="-6.44 54.24 1.54" />
+        
+        <Landmark Name="#5" Position="78.26 -6.44 20.68" />
+        <Landmark Name="#6" Position="78.26 46.34 20.68" />
+        <Landmark Name="#7" Position="102.2 30.27 1.54" />
+        <Landmark Name="#8" Position="102.2 1.54 1.54" />
+      </Landmarks>
+      
+    </Geometry>
+  </PhantomDefinition>
+
+  <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
+    ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
+    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"
+  />
+
+
+  <fCal
+    PhantomModelId="PhantomModel"
+    ReconstructedVolumeId="Volume"
+    TransducerModelId="ProbeModel"
+    StylusModelId="StylusModel"
+    ImageDisplayableObjectId="LiveImage"
+    NumberOfCalibrationImagesToAcquire="140"
+    NumberOfValidationImagesToAcquire="70"
+    NumberOfStylusCalibrationPointsToAcquire="200"
+    RecordingIntervalMs="100"
+    MaxTimeSpentWithProcessingMs="70"
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Probe"
+    ReferenceCoordinateFrame="Reference"
+    TransducerOriginCoordinateFrame="TransducerOrigin"
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+    TemporalCalibrationDurationSec="10"
+	DefaultSelectedChannelId="TrackedVideoStream"
+  />
+
+
+  <vtkPivotCalibrationAlgo
+    ObjectMarkerCoordinateFrame="Stylus"
+    ReferenceCoordinateFrame="Reference"
+    ObjectPivotPointCoordinateFrame="StylusTip"
+  />
+
+
+  <vtkPhantomRegistrationAlgo
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+    StylusTipCoordinateFrame="StylusTip"
+  />
+
+
+  <vtkProbeCalibrationAlgo
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Probe"
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+  />
+
+</PlusConfiguration>
