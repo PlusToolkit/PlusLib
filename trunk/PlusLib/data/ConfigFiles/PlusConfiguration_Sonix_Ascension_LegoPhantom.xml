@@ -159,15 +159,15 @@
       </Pattern>
 
       <Landmarks>
-        <Landmark Name="#1" Position="-14.42 46.34 20.68" />
-        <Landmark Name="#2" Position="-14.42 -6.44 20.68" />
-        <Landmark Name="#3" Position="-14.42 -14.42 1.54" />
-        <Landmark Name="#4" Position="-6.44 54.24 1.54" />
+        <Landmark Name="#1" Position="77.9 -6.0 23.2" />
+        <Landmark Name="#2" Position="77.9 46.2 22.3" />
+        <Landmark Name="#3" Position="78.3 53.6 2.9" />
+        <Landmark Name="#4" Position="69.9 -13.8 3.9" />
         
-        <Landmark Name="#5" Position="78.26 -6.44 20.68" />
-        <Landmark Name="#6" Position="78.26 46.34 20.68" />
-        <Landmark Name="#7" Position="102.2 30.27 1.54" />
-        <Landmark Name="#8" Position="102.2 1.54 1.54" />
+        <Landmark Name="#5" Position="-14.0 45.3 20.6" />
+        <Landmark Name="#6" Position="-13.6 -5.5 21.6" />
+        <Landmark Name="#7" Position="-37.5 10.7 1.6" />
+        <Landmark Name="#8" Position="-38.1 37.2 1.2" />
       </Landmarks>
       
     </Geometry>
