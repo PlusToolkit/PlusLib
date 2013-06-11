@@ -720,6 +720,17 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
     return PLUS_FAIL;
   }
 
+  // Continue with device configuration
+  const char* referenceName = deviceXMLElement->GetAttribute("ToolReferenceFrame");
+  if ( referenceName != NULL )
+  {
+    this->SetToolReferenceFrameName(referenceName);
+  }
+  else if( this->IsTracker() )
+  {
+	  LOG_WARNING(this->GetDeviceId() << ": ToolReferenceFrame is undefined. Default of \"Tracker\" will be used.");
+  }
+
   vtkXMLDataElement* dataSourcesElement = deviceXMLElement->FindNestedElementWithName("DataSources");
   if( dataSourcesElement != NULL )
   {
@@ -771,17 +782,6 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
   else if( RequireAcquisitionRateInDeviceSetConfiguration )
   {
     LOG_ERROR("Unable to find acquisition rate in device element when it is required.");
-  }
-
-  // Continue with device configuration
-  const char* referenceName = deviceXMLElement->GetAttribute("ToolReferenceFrame");
-  if ( referenceName != NULL )
-  {
-    this->SetToolReferenceFrameName(referenceName);
-  }
-  else if( this->IsTracker() )
-  {
-	LOG_WARNING(this->GetDeviceId() << ": ToolReferenceFrame is undefined. Default of \"Tracker\" will be used.");
   }
 
   vtkXMLDataElement* outputChannelsElement = deviceXMLElement->FindNestedElementWithName("OutputChannels");
