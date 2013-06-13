@@ -123,13 +123,32 @@ int main(int argc, char **argv)
 
     vtkSmartPointer<vtkMatrix4x4> accelerometerMat = vtkSmartPointer<vtkMatrix4x4>::New();
     frame->GetCustomFrameTransform(PlusTransformName("Accelerometer","Tracker"), accelerometerMat);
-
+ 
     ahrsAlgo->UpdateIMUWithTimestamp(
       vtkMath::RadiansFromDegrees(gyroscopeMat->GetElement(0,3)), vtkMath::RadiansFromDegrees(gyroscopeMat->GetElement(1,3)), vtkMath::RadiansFromDegrees(gyroscopeMat->GetElement(2,3)), 
       accelerometerMat->GetElement(0,3), accelerometerMat->GetElement(1,3), accelerometerMat->GetElement(2,3), timestamp);
+    
+    //set initial orientation to match precomputed orientation
+    if(frameIndex==0)
+    { 
+      vtkSmartPointer<vtkMatrix4x4> initFilteredTiltSensorToTrackerTransform = vtkSmartPointer<vtkMatrix4x4>::New();
+      frame->GetCustomFrameTransform(PlusTransformName("FilteredTiltSensor","Tracker"),initFilteredTiltSensorToTrackerTransform);
+      double initRotMatrix[3][3]={0};
+      for (int c=0;c<3; c++)
+      {
+        for (int r=0;r<3; r++)
+        {
+          initRotMatrix[r][c]= initFilteredTiltSensorToTrackerTransform->GetElement(r,c);
+        }
+      }
+      double initFilteredTiltSensorRotQuat[4]={0};
+      vtkMath::Matrix3x3ToQuaternion(initRotMatrix,initFilteredTiltSensorRotQuat);
+      ahrsAlgo->SetOrientation(initFilteredTiltSensorRotQuat[0],initFilteredTiltSensorRotQuat[1],initFilteredTiltSensorRotQuat[2],initFilteredTiltSensorRotQuat[3]);
+      frame->SetCustomFrameTransform(PlusTransformName("FilteredTiltSensor","Tracker"),initFilteredTiltSensorToTrackerTransform);
+      frame->SetCustomFrameTransformStatus(PlusTransformName("FilteredTiltSensor","Tracker"),FIELD_OK);
+      continue;
+    }
 
-    //update ahrs Algo same as in phidgetSpatialTracker
-    //Filtered Tilt Sensor
     double rotQuat[4]={0};
     ahrsAlgo->GetOrientation(rotQuat[0],rotQuat[1],rotQuat[2],rotQuat[3]);
 
