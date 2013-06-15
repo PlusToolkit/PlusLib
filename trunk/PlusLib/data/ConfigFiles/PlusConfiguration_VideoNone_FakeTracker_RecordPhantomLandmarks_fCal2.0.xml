@@ -3,9 +3,7 @@
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
       Name="Simulation mode for Phantom registration fCal2.0" 
-      Description="No Video with Fake tracker in Record phantom landmarks mode vtkPhantomRegistrationTest uses this configuration" 
-    />
-
+      Description="No Video with Fake tracker in Record phantom landmarks mode vtkPhantomRegistrationTest uses this configuration" />
     <Device
       Id="TrackerDevice"
       Type="FakeTracker" 
@@ -32,17 +30,14 @@
               1 0 0 400.0
               0 0 1 700.0
               0 0 0 1"
-      Date="2011.12.01 11:57:00"
-    />
+      Date="2011.12.01 11:57:00" />
     <Transform From="StylusTip" To="Stylus"
       Matrix="1 0 0 210.0
               0 1 0 0
               0 0 1 0
               0 0 0 1"
-      Date="2011.12.01 17:22:12"
-    />
+      Date="2011.12.01 17:22:12" />
   </CoordinateDefinitions>
-
 
   <Rendering WorldCoordinateFrame="Reference">
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel"
@@ -51,8 +46,7 @@
         1 0 0 -210.0
         0 1 0 0
         0 0 1 0
-        0 0 0 1"
-    />
+        0 0 0 1" />
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
       Opacity="0.6"
       File="fCal_2.0.stl"
@@ -60,10 +54,8 @@
         1 0 0 -35.0
         0 1 0 -10.0
         0 0 1 -5.0
-        0 0 0 1"
-      />
+        0 0 0 1" />
   </Rendering>
-
 
   <PhantomDefinition>
     <!-- Supported types are: Double-N, U-Shaped-N -->
@@ -72,9 +64,7 @@
       Type="Double-N"
       Version="2.0"
       WiringVersion="2.0"
-      Institution="Queen's University PerkLab"
-    />
-
+      Institution="Queen's University PerkLab" />
     <Geometry>
       <Pattern Type="NWire">
         <Wire Name="7:G1_g1" EndPointFront="30.0 0.0 20.0" EndPointBack="30.0 40.0 20.0" />
@@ -91,19 +81,16 @@
         <Wire Name="2:L5_i5" EndPointFront="55.0 0.0 0.0" EndPointBack="40.0 40.0 0.0" />
         <Wire Name="3:M5_m5" EndPointFront="60.0 0.0 0.0" EndPointBack="60.0 40.0 0.0" />
       </Pattern>
-
       <Landmarks>
         <Landmark Name="#1" Position="104.3 5.0 20.0" />
         <Landmark Name="#2" Position="104.3 45.0 20.0" />
         <Landmark Name="#3" Position="104.3 45.0 0.0" />
-        <Landmark Name="#4" Position="104.3 -5.0 0.0" />
-        
+        <Landmark Name="#4" Position="104.3 -5.0 0.0" />        
         <Landmark Name="#5" Position="-34.3 45.0 15.0" />
         <Landmark Name="#6" Position="-34.3 -5.0 20.0" />
         <Landmark Name="#7" Position="-34.3 -5.0 0.0" />
         <Landmark Name="#8" Position="-34.3 45.0 0.0" />
-      </Landmarks>
-      
+      </Landmarks>      
     </Geometry>
   </PhantomDefinition>
 
@@ -117,14 +104,11 @@
     ProbeCoordinateFrame="Probe"
     ReferenceCoordinateFrame="Reference"
     TransducerOriginCoordinateFrame="TransducerOrigin"
-    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
-  />
-
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel" />
 
   <vtkPhantomRegistrationAlgo
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
-    StylusTipCoordinateFrame="StylusTip"
-  />
+    StylusTipCoordinateFrame="StylusTip" />
 
 </PlusConfiguration>

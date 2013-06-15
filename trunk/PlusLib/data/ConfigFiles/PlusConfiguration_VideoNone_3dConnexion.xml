@@ -3,8 +3,7 @@
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
       Name="3dConnexion SpaceNavigator" 
-      Description="Configuration file for 3dConnexion SpaceMouse" 
-    />
+      Description="Configuration file for 3dConnexion SpaceMouse" />
     <Device
       Id="TrackerDevice"
       Type="3dConnexion"
@@ -12,11 +11,11 @@
       LocalTimeOffsetSec="0.0"
       OperatingMode="JOYSTICK"
       TranslationScales="0.001 -0.001 -0.001"
-      RotationScales="0.001 -0.001 -0.001" >
+      RotationScales="0.001 -0.001 -0.001" 
+      ToolReferenceFrame="Tracker" >
       <DataSources>
         <DataSource Type="Tool" Id="Navigator" PortName="SpaceNavigator" BufferSize="2500" AveragedItemsForFiltering="20"/>    
-      </DataSources>
-      
+      </DataSources>      
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
           <DataSource Id="Navigator" />
@@ -29,8 +28,7 @@
     MaxNumberOfIgtlMessagesToSend="1" 
     MaxTimeSpentWithProcessingMs="50" 
     ListeningPort="18944" 
-    OutputChannelId="TrackerStream"
-    > 
+    OutputChannelId="TrackerStream" > 
     <DefaultClientInfo> 
       <MessageTypes> 
         <Message Type="TRANSFORM" />

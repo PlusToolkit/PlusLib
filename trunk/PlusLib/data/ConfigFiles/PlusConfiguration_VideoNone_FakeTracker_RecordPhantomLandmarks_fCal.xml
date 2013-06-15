@@ -4,14 +4,14 @@
     <DeviceSet 
       Name="Simulation mode for Phantom registration" 
       Description="No Video with Fake tracker in Record phantom landmarks mode
-vtkPhantomRegistrationTest uses this configuration" 
-    />
+vtkPhantomRegistrationTest uses this configuration" />
     <Device
       Id="TrackerDevice"
       Type="FakeTracker"
       AcquisitionRate="20"
       LocalTimeOffsetSec="0.0"
-      Mode="RecordPhantomLandmarks" >
+      Mode="RecordPhantomLandmarks" 
+      ToolReferenceFrame="Tracker" >
       <DataSources>
         <DataSource Type="Tool" Id="Reference" BufferSize="1000" AveragedItemsForFiltering="20" PortName="0" />
         <DataSource Type="Tool" Id="Stylus" BufferSize="1000" AveragedItemsForFiltering="20" PortName="1" Model="Example" />     
@@ -25,24 +25,20 @@ vtkPhantomRegistrationTest uses this configuration"
     </Device>
   </DataCollection> 
 
-
   <CoordinateDefinitions>
     <Transform From="Reference" To="Tracker"
       Matrix="0 -1 0 300.0
               1 0 0 400.0
               0 0 1 700.0
               0 0 0 1"
-      Date="2011.12.01 11:57:00"
-    />
+      Date="2011.12.01 11:57:00" />
     <Transform From="StylusTip" To="Stylus"
       Matrix="1 0 0 210.0
               0 1 0 0
               0 0 1 0
               0 0 0 1"
-      Date="2011.12.01 17:22:12"
-    />
+      Date="2011.12.01 17:22:12" />
   </CoordinateDefinitions>
-
 
   <Rendering WorldCoordinateFrame="Reference">
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel"
@@ -51,8 +47,7 @@ vtkPhantomRegistrationTest uses this configuration"
         1 0 0 -210.0
         0 1 0 0
         0 0 1 0
-        0 0 0 1"
-    />
+        0 0 0 1" />
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
       Opacity="0.6"
       File="FCal_1.2.stl"
@@ -60,10 +55,8 @@ vtkPhantomRegistrationTest uses this configuration"
         1 0 0 -25.0
         0 0 -1 45.0
         0 1 0 -5.0
-        0 0 0 1"
-      />
+        0 0 0 1" />
   </Rendering>
-
 
   <PhantomDefinition>
     <!-- Supported types are: Double-N, U-Shaped-N -->
@@ -72,9 +65,7 @@ vtkPhantomRegistrationTest uses this configuration"
       Type="Double-N"
       Version="1.0"
       WiringVersion="1.0"
-      Institution="Queen's University PerkLab"
-    />
-
+      Institution="Queen's University PerkLab" />
     <Geometry>
       <Pattern Type="NWire">
         <Wire Name="1:E3_e3" EndPointFront="20.0 0.0 5.0" EndPointBack="20.0 40.0 5.0" />
@@ -86,13 +77,11 @@ vtkPhantomRegistrationTest uses this configuration"
         <Wire Name="5:J4_f4" EndPointFront="45.0 0.0 0.0" EndPointBack="25.0 40.0 0.0" />
         <Wire Name="6:K4_k4" EndPointFront="50.0 0.0 0.0" EndPointBack="50.0 40.0 0.0" />
       </Pattern>
-
       <Landmarks>
         <Landmark Name="#1" Position="95.0 5.0 15.0" />
         <Landmark Name="#2" Position="95.0 40.0 15.0" />
         <Landmark Name="#3" Position="95.0 40.0 0.0" />
         <Landmark Name="#4" Position="95.0 0.0 0.0" />
-
         <Landmark Name="#5" Position="-25.0 40.0 15.0" />
         <Landmark Name="#6" Position="-25.0 0.0 10.0" />
         <Landmark Name="#7" Position="-25.0 0.0 0.0" />
@@ -100,7 +89,6 @@ vtkPhantomRegistrationTest uses this configuration"
       </Landmarks>
     </Geometry>
   </PhantomDefinition>
-
 
   <fCal
     PhantomModelId="PhantomModel"
@@ -112,14 +100,11 @@ vtkPhantomRegistrationTest uses this configuration"
     ProbeCoordinateFrame="Probe"
     ReferenceCoordinateFrame="Reference"
     TransducerOriginCoordinateFrame="TransducerOrigin"
-    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
-  />
-
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel" />
 
   <vtkPhantomRegistrationAlgo
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
-    StylusTipCoordinateFrame="StylusTip"
-  />
+    StylusTipCoordinateFrame="StylusTip" />
 
 </PlusConfiguration>

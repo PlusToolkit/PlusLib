@@ -1,23 +1,23 @@
 <PlusConfiguration version="2.0">
 
   <DataCollection StartupDelaySec="1.0" >
+  
     <DeviceSet 
       Name="TEST WebCam with Fake tracker" 
-      Description="Test mode for vtkDataCollectorTest with WebCam and Fake tracker" 
-    />
+      Description="Test mode for vtkDataCollectorTest with WebCam and Fake tracker" />
 
     <Device
       Id="TrackerDevice"
       Type="FakeTracker"
       AcquisitionRate="20"
       LocalTimeOffset="0.0"
-      Mode="SmoothMove" >
+      Mode="SmoothMove" 
+      ToolReferenceFrame="Tracker" >
       <DataSources>
         <DataSource Type="Tool" Id="Probe" PortName="0" BufferSize="1000" AveragedItemsForFiltering="20"/> 
         <DataSource Type="Tool" Id="Reference" PortName="1" BufferSize="1000" AveragedItemsForFiltering="20"/>
         <DataSource Type="Tool" Id="MissingTool" PortName="2" BufferSize="1000" AveragedItemsForFiltering="20"/>       
-      </DataSources>
-      
+      </DataSources>      
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
           <DataSource Type="Tool" Id="Probe"/>
@@ -32,8 +32,7 @@
       Type="VFWVideo" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="100" AveragedItemsForFiltering="20" />     
-      </DataSources>
-      
+      </DataSources>      
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
@@ -46,7 +45,6 @@
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="VideoStream" />
       </InputChannels>
-
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>
@@ -72,22 +70,20 @@
         -1 0 0 29.7
         0 -1 0 1.5
         0 0 1 -14
-        0 0 0 1"
-    />
+        0 0 0 1" />
     <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
   </Rendering>
 
   <fCal
     PhantomModelId="PhantomModel"
-  TransducerModelId="ProbeModel"
-  StylusModelId="StylusModel"
-  ImageDisplayableObjectId="LiveImage"
+    TransducerModelId="ProbeModel"
+    StylusModelId="StylusModel"
+    ImageDisplayableObjectId="LiveImage"
     NumberOfStylusCalibrationPointsToAcquire="200"
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"
     ReferenceCoordinateFrame="Reference"
     TransducerOriginCoordinateFrame="TransducerOrigin"
-    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
-  />
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel" />
 
 </PlusConfiguration>

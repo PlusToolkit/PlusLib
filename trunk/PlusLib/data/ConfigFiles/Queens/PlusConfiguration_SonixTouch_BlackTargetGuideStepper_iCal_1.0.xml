@@ -17,7 +17,8 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       BrachyStepperType="Burdette Medical Systems Digital Stepper"
       ModelNumber="4012A18-a" 
       ModelVersion=""
-      ModelSerialNumber="01-50-149" >
+      ModelSerialNumber="01-50-149" 
+      ToolReferenceFrame="Tracker" >
       <StepperCalibration
         AlgorithmVersion="1.0.0"
         Date="2011.05.02"
@@ -49,8 +50,7 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       CompressionStatus="0" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="500" AveragedItemsForFiltering="20" />
-      </DataSources>
-      
+      </DataSources>      
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
@@ -62,8 +62,7 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       <InputChannels>
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="VideoStream" />
-      </InputChannels>
-      
+      </InputChannels>      
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>
@@ -86,8 +85,7 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
     AngleToleranceDegrees="10"
     ThresholdImagePercent="10.0"
     CollinearPointsMaxDistanceFromLineMm="0.77"
-    UseOriginalImageIntensityForDotIntensityScore="0"
-  />
+    UseOriginalImageIntensityForDotIntensityScore="0" />
 
   <CoordinateDefinitions>
     <Transform From="TemplateHolder" To="TemplateHome" Matrix=" 1 0 0 5    0 1 0 63.5   0 0 1 0   0 0 0 1" Date="2011.12.07 11:39:00" Error="0.0" />
@@ -117,17 +115,14 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
   
   <vtkBrachyStepperPhantomRegistrationAlgo
     PhantomCoordinateFrame="Phantom"
-    ReferenceCoordinateFrame="StepperHome"
-  />
+    ReferenceCoordinateFrame="StepperHome" />
 
 
   <vtkProbeCalibrationAlgo
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"
     PhantomCoordinateFrame="Phantom"
-    ReferenceCoordinateFrame="StepperHome"
-  />
-
+    ReferenceCoordinateFrame="StepperHome" />
 
   <Rendering WorldCoordinateFrame="TemplateHome">
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
@@ -137,13 +132,11 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
         1 0 0  0.7
         0 0 -1 48.6
         0 1 0  51.3
-        0 0 0  1"
-    />
+        0 0 0  1" />
     <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
     <DisplayableObject Type="PolyData" ObjectCoordinateFrame="CenterOfRotation" />
     <DisplayableObject Type="PolyData" ObjectCoordinateFrame="PhantomWires" />
   </Rendering>
-
 
   <PhantomDefinition>
     <!-- Supported types are: Double-N, U-Shaped-N -->
@@ -152,9 +145,7 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       Type="Double-N"
       Version="1.0"
       WiringVersion="1.0"
-      Institution="Queen's University PerkLab"
-    />
-
+      Institution="Queen's University PerkLab" />
     <Geometry>
       <!-- Phantom origin is the inner end of the hole that is on the side of the templete holder, on the side of the triangle shaped hole on the inner part, and closest to the probe -->
       <Pattern Type="NWire">
@@ -167,25 +158,20 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
         <Wire Name="Wire5" EndPointFront="19.86 34.385 62.05" EndPointBack="39.86 34.385 142.05" />
         <Wire Name="Wire6" EndPointFront="9.86 34.385 62.05" EndPointBack="9.86 34.385 142.05" />
       </Pattern>
-
       <Landmarks>
         <Landmark Name="?" Position="0.0 0.0 0.0" />
       </Landmarks>
     </Geometry>
   </PhantomDefinition>
 
-
   <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
     ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
-    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"
-  />
-
+    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off" />
 
   <TemplateModel version="1.0" >
     <TemplateHole Representation="Sphere" Radius="0.2"/>
     <!--TemplateHole Representation="Disk" Radius="0.6"/-->
     <OriginFromTemplateHolder OriginX="5" OriginY="63.5" />
-
     <LetterPositions>
       <Letter ID="A" PositionXYZ="0  -5 0" Type="Char"/>
       <Letter ID="a" PositionXYZ="5  -5 0" Type="Char"/>
@@ -200,7 +186,6 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       <Letter ID="F" PositionXYZ="50 -5 0" Type="Char"/>
       <Letter ID="f" PositionXYZ="55 -5 0" Type="Char"/>
       <Letter ID="G" PositionXYZ="60 -5 0" Type="Char"/>
-
       <Letter ID="7"   PositionXYZ="-7 0  0" Type="Num"/>
       <Letter ID="6.5" PositionXYZ="-7 5  0" Type="Num"/>
       <Letter ID="6"   PositionXYZ="-7 10 0" Type="Num"/>
@@ -215,7 +200,6 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       <Letter ID="1.5" PositionXYZ="-7 55 0" Type="Num"/>
       <Letter ID="1"   PositionXYZ="-7 60 0" Type="Num"/>
     </LetterPositions>                
-
     <HolePositions>
       <Hole ID="A7" PositionXYZ="0  0 0"/>
       <Hole ID="a7" PositionXYZ="5  0 0"/>
@@ -230,7 +214,6 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       <Hole ID="F7" PositionXYZ="50 0 0"/>
       <Hole ID="f7" PositionXYZ="55 0 0"/>
       <Hole ID="G7" PositionXYZ="60 0 0"/>
-
       <Hole ID="A6.5" PositionXYZ="0  5 0"/>
       <Hole ID="a6.5" PositionXYZ="5  5 0"/>
       <Hole ID="B6.5" PositionXYZ="10 5 0"/>
@@ -244,7 +227,6 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       <Hole ID="F6.5" PositionXYZ="50 5 0"/>
       <Hole ID="f6.5" PositionXYZ="55 5 0"/>
       <Hole ID="G6.5" PositionXYZ="60 5 0"/>
-
       <Hole ID="A6" PositionXYZ="0  10 0"/>
       <Hole ID="a6" PositionXYZ="5  10 0"/>
       <Hole ID="B6" PositionXYZ="10 10 0"/>
@@ -258,7 +240,6 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       <Hole ID="F6" PositionXYZ="50 10 0"/>
       <Hole ID="f6" PositionXYZ="55 10 0"/>
       <Hole ID="G6" PositionXYZ="60 10 0"/>
-
       <Hole ID="A5.5" PositionXYZ="0  15 0"/>
       <Hole ID="a5.5" PositionXYZ="5  15 0"/>
       <Hole ID="B5.5" PositionXYZ="10 15 0"/>
@@ -272,7 +253,6 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       <Hole ID="F5.5" PositionXYZ="50 15 0"/>
       <Hole ID="f5.5" PositionXYZ="55 15 0"/>
       <Hole ID="G5.5" PositionXYZ="60 15 0"/>
-
       <Hole ID="A5" PositionXYZ="0  20 0"/>
       <Hole ID="a5" PositionXYZ="5  20 0"/>
       <Hole ID="B5" PositionXYZ="10 20 0"/>
@@ -286,7 +266,6 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       <Hole ID="F5" PositionXYZ="50 20 0"/>
       <Hole ID="f5" PositionXYZ="55 20 0"/>
       <Hole ID="G5" PositionXYZ="60 20 0"/>
-
       <Hole ID="A4.5" PositionXYZ="0  25 0"/>
       <Hole ID="a4.5" PositionXYZ="5  25 0"/>
       <Hole ID="B4.5" PositionXYZ="10 25 0"/>
@@ -300,7 +279,6 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       <Hole ID="F4.5" PositionXYZ="50 25 0"/>
       <Hole ID="f4.5" PositionXYZ="55 25 0"/>
       <Hole ID="G4.5" PositionXYZ="60 25 0"/>
-
       <Hole ID="A4" PositionXYZ="0  30 0"/>
       <Hole ID="a4" PositionXYZ="5  30 0"/>
       <Hole ID="B4" PositionXYZ="10 30 0"/>
@@ -314,7 +292,6 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       <Hole ID="F4" PositionXYZ="50 30 0"/>
       <Hole ID="f4" PositionXYZ="55 30 0"/>
       <Hole ID="G4" PositionXYZ="60 30 0"/>
-
       <Hole ID="A3.5" PositionXYZ="0  35 0"/>
       <Hole ID="a3.5" PositionXYZ="5  35 0"/>
       <Hole ID="B3.5" PositionXYZ="10 35 0"/>
@@ -328,7 +305,6 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       <Hole ID="F3.5" PositionXYZ="50 35 0"/>
       <Hole ID="f3.5" PositionXYZ="55 35 0"/>
       <Hole ID="G3.5" PositionXYZ="60 35 0"/>
-
       <Hole ID="A3" PositionXYZ="0  40 0"/>
       <Hole ID="a3" PositionXYZ="5  40 0"/>
       <Hole ID="B3" PositionXYZ="10 40 0"/>
@@ -342,7 +318,6 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       <Hole ID="F3" PositionXYZ="50 40 0"/>
       <Hole ID="f3" PositionXYZ="55 40 0"/>
       <Hole ID="G3" PositionXYZ="60 40 0"/>
-
       <Hole ID="A2.5" PositionXYZ="0  45 0"/>
       <Hole ID="a2.5" PositionXYZ="5  45 0"/>
       <Hole ID="B2.5" PositionXYZ="10 45 0"/>
@@ -356,7 +331,6 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       <Hole ID="F2.5" PositionXYZ="50 45 0"/>
       <Hole ID="f2.5" PositionXYZ="55 45 0"/>
       <Hole ID="G2.5" PositionXYZ="60 45 0"/>
-
       <Hole ID="A2" PositionXYZ="0  50 0"/>
       <Hole ID="a2" PositionXYZ="5  50 0"/>
       <Hole ID="B2" PositionXYZ="10 50 0"/>
@@ -370,7 +344,6 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       <Hole ID="F2" PositionXYZ="50 50 0"/>
       <Hole ID="f2" PositionXYZ="55 50 0"/>
       <Hole ID="G2" PositionXYZ="60 50 0"/>
-
       <Hole ID="A1.5" PositionXYZ="0  55 0"/>
       <Hole ID="a1.5" PositionXYZ="5  55 0"/>
       <Hole ID="B1.5" PositionXYZ="10 55 0"/>
@@ -384,7 +357,6 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       <Hole ID="F1.5" PositionXYZ="50 55 0"/>
       <Hole ID="f1.5" PositionXYZ="55 55 0"/>
       <Hole ID="G1.5" PositionXYZ="60 55 0"/>
-
       <Hole ID="A1" PositionXYZ="0  60 0"/>
       <Hole ID="a1" PositionXYZ="5  60 0"/>
       <Hole ID="B1" PositionXYZ="10 60 0"/>

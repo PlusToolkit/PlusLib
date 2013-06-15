@@ -22,10 +22,8 @@
     BackgroundValue="155"
     ImageCoordinateFrame="Image"
     ReferenceCoordinateFrame="Phantom"
-
     NumberOfScanlines="256"
     NumberOfSamplesPerScanline="1000"
-
     ModelFileName="SpinePhantom2Model.stl"
     ModelToReferenceTransform="
       1 0 0 0
@@ -33,7 +31,6 @@
       0 0 1 0
       0 0 0 1" >
     <RfProcessing>
-
       <ScanConversion
         TransducerName="Ultrasonix_L9-4/38"
         TransducerGeometry="LINEAR"
@@ -41,7 +38,6 @@
         TransducerWidthMm="40.0"
         OutputImageSizePixel="476 689"
         OutputImageSpacingMmPerPixel="0.084 0.087"/>
-
       <!-- Example for a curvilinear transducer: -->
       <xScanConversion
         TransducerName="BK_8848-axial"
@@ -53,7 +49,6 @@
         OutputImageStartDepthMm="2.0"
         OutputImageSizePixel="1200 800"
         OutputImageSpacingMmPerPixel="0.084 0.087" />       
-
     </RfProcessing>  
   </vtkUsSimulatorAlgo>
   

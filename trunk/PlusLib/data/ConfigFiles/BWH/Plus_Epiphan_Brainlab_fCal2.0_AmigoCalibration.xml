@@ -11,13 +11,13 @@
       IgtlMessageCrcCheckEnabled="true"
       AcquisitionRate="30"
       ReconnectOnReceiveTimeout="false"
-      LocalTimeOffset="0.0" >
+      LocalTimeOffset="0.0" 
+      ToolReferenceFrame="Tracker" >      
       <DataSources>
         <DataSource Type="Tool" Id="ReferenceStar" PortName="0" BufferSize="500" AveragedItemsForFiltering="20"/>
         <DataSource Type="Tool" Id="Pointer" PortName="1" BufferSize="500" AveragedItemsForFiltering="20"/>
         <DataSource Type="Tool" Id="Ultrasound" PortName="2" BufferSize="500" AveragedItemsForFiltering="20"/>
       </DataSources>
-
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
           <DataSource Id="ReferenceStar" />
@@ -35,8 +35,7 @@
       xClipRectangleSize="720 667">
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="100" AveragedItemsForFiltering="20" />
-      </DataSources>
-      
+      </DataSources>      
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
@@ -49,14 +48,14 @@
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="VideoStream" />
       </InputChannels>
-      
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>
     </Device>
 
   </DataCollection>
-  <CoordinateDefinitions>
+  
+  <CoordinateDefinitions>  
     <Transform From="Image" To="TransducerOriginPixel"
       Matrix="
         1	0	0	-410
@@ -93,6 +92,7 @@
         0	0	0	1"
        Date="121012_223645"/>
   </CoordinateDefinitions>
+  
   <Rendering WorldCoordinateFrame="InstrumentM">
     <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" Id="ProbeModel" File="L14-5_38_ProbeModel.stl"
       ModelToObjectTransform="

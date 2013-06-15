@@ -16,7 +16,6 @@
       <DataSources>
         <DataSource Type="Video" Id="Video" BufferSize="100" />
       </DataSources>
-
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
       </OutputChannels>

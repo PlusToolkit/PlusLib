@@ -1,11 +1,11 @@
 <PlusConfiguration version="2.3">
 
   <DataCollection StartupDelaySec="1.0" >
-    <DeviceSet 
+
+  <DeviceSet 
       Name="SonixTouch TRUS probe + Burdette Medical Systems Digital Stepper (01-50-149) + 70mm depth, 3NWires" 
       Description="Configuration file for SonixTouch TRUS + Burdette Medical Systems Digital Stepper + iCal 1.1 + 70mm depth
-Plug in the stepper through Serial2USB converter cable into USB slot. Look for the Serial port number in the control panel. The computer needs to be on the same local network as SonixTOUCH" 
-    />
+Plug in the stepper through Serial2USB converter cable into USB slot. Look for the Serial port number in the control panel. The computer needs to be on the same local network as SonixTOUCH" />
 
     <Device
       Id="TrackerDevice"
@@ -17,7 +17,8 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       BrachyStepperType="Burdette Medical Systems Digital Stepper"
       ModelNumber="4012A18-a" 
       ModelVersion=""
-      ModelSerialNumber="01-50-149" >      
+      ModelSerialNumber="01-50-149" 
+      ToolReferenceFrame="Tracker" >      
       <StepperCalibration
         AlgorithmVersion="1.0.0"
         Date="2011.05.02"
@@ -49,8 +50,7 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       CompressionStatus="0" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="100" AveragedItemsForFiltering="20" />
-      </DataSources>
-      
+      </DataSources>      
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
@@ -62,8 +62,7 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       <InputChannels>
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="VideoStream" />
-      </InputChannels>
-      
+      </InputChannels>      
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>
@@ -86,14 +85,12 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
     AngleToleranceDegrees="10"
     ThresholdImagePercent="10"
     CollinearPointsMaxDistanceFromLineMm="0.8"
-    UseOriginalImageIntensityForDotIntensityScore="0"
-  />
+    UseOriginalImageIntensityForDotIntensityScore="0" />
 
   <CoordinateDefinitions>
     <Transform From="TemplateHolder" To="TemplateHome" Matrix=" 1 0 0 5    0 1 0 63.5   0 0 1 0   0 0 0 1" Date="2011.12.07 11:39:00" Error="0.0" />
     <Transform From="TemplateHolder" To="Phantom" Matrix=" 1 0 0 5    0 1 0 63.5   0 0 1 0   0 0 0 1" Date="2011.12.07 11:39:00" Error="0.0" />
   </CoordinateDefinitions> 
-
 
   <iCal version="1.0" 
     NumberOfImagesForValidation="50" 
@@ -114,20 +111,15 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
     <CalibrationData Type="CALIB_TEMPORAL" DurationSec="10" FrameTransformNameForValidation="ProbeToStepperHome" />
   </iCal>
 
-  
   <vtkBrachyStepperPhantomRegistrationAlgo
     PhantomCoordinateFrame="Phantom"
-    ReferenceCoordinateFrame="StepperHome"
-  />
-
+    ReferenceCoordinateFrame="StepperHome" />
 
   <vtkProbeCalibrationAlgo
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"
     PhantomCoordinateFrame="Phantom"
-    ReferenceCoordinateFrame="StepperHome"
-  />
-
+    ReferenceCoordinateFrame="StepperHome" />
 
   <Rendering WorldCoordinateFrame="TemplateHome">
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
@@ -137,13 +129,11 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
         1 0 0  0.7
         0 0 -1 48.6
         0 1 0  51.3
-        0 0 0  1"
-    />
+        0 0 0  1" />
     <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
     <DisplayableObject Type="PolyData" ObjectCoordinateFrame="CenterOfRotation" />
     <DisplayableObject Type="PolyData" ObjectCoordinateFrame="PhantomWires" />
   </Rendering>
-
 
   <PhantomDefinition>
     <!-- Supported types are: Double-N, U-Shaped-N -->
@@ -152,9 +142,7 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       Type="Double-N"
       Version="1.0"
       WiringVersion="1.1"
-      Institution="Queen's University PerkLab"
-    />
-
+      Institution="Queen's University PerkLab" />
     <Geometry>
       <!-- Phantom origin is the inner end of the hole that is on the side of the templete holder, on the side of the triangle shaped hole on the inner part, and closest to the probe -->
       <Pattern Type="NWire">
@@ -172,7 +160,6 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
         <Wire Name="Wire8" EndPointFront="29.86 14.385 62.05" EndPointBack="19.86 14.385 142.05" />
         <Wire Name="Wire9" EndPointFront="9.86 14.385 62.05" EndPointBack="9.86 14.385 142.05" />
       </Pattern>
-
       <Landmarks>
         <Landmark Name="?" Position="0.0 0.0 0.0" />
       </Landmarks>
@@ -190,7 +177,6 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
     <TemplateHole Representation="Sphere" Radius="0.2"/>
     <!--TemplateHole Representation="Disk" Radius="0.6"/-->
     <OriginFromTemplateHolder OriginX="5" OriginY="63.5" />
-
     <LetterPositions>
       <Letter ID="A" PositionXYZ="0  -5 0" Type="Char"/>
       <Letter ID="a" PositionXYZ="5  -5 0" Type="Char"/>
@@ -205,7 +191,6 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       <Letter ID="F" PositionXYZ="50 -5 0" Type="Char"/>
       <Letter ID="f" PositionXYZ="55 -5 0" Type="Char"/>
       <Letter ID="G" PositionXYZ="60 -5 0" Type="Char"/>
-
       <Letter ID="7"   PositionXYZ="-7 0  0" Type="Num"/>
       <Letter ID="6.5" PositionXYZ="-7 5  0" Type="Num"/>
       <Letter ID="6"   PositionXYZ="-7 10 0" Type="Num"/>
@@ -404,5 +389,6 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
       <Hole ID="f1" PositionXYZ="55 60 0"/>
       <Hole ID="G1" PositionXYZ="60 60 0"/>
     </HolePositions>
-  </TemplateModel>                        
+  </TemplateModel>                
+  
 </PlusConfiguration>

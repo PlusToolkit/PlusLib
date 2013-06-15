@@ -18,7 +18,6 @@
     CollinearPointsMaxDistanceFromLineMm="0.41"
     UseOriginalImageIntensityForDotIntensityScore="0"
   />
-  
 
   <PhantomDefinition>
     <!-- Supported types are: Double-N, U-Shaped-N -->
@@ -27,9 +26,7 @@
       Type="QA"
       Version="1.0"
       WiringVersion="1.0"
-      Institution="CIRS"
-    />
-    
+      Institution="CIRS" /> 
     <Geometry>
       <Pattern Type="CoplanarParallelWires" Id="0">
         <Wire Id="0" Name="F1" EndPointFront="60.65 38.0 3.0" EndPointBack="60.65 38.0 103.0" />
@@ -52,7 +49,6 @@
         <Wire Id="3" Name="B4" EndPointFront="100.65 68.0 3.0" EndPointBack="100.65 68.0 103.0" />
         <Wire Id="4" Name="B5" EndPointFront="100.65 78.0 3.0" EndPointBack="100.65 78.0 103.0" />
       </Pattern>
-
       <Landmarks>
         <Landmark Name="?" Position="0.0 0.0 0.0" />
       </Landmarks>

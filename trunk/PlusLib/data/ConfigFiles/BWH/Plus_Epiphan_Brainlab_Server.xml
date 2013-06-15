@@ -16,13 +16,13 @@
       IgtlMessageCrcCheckEnabled="true"
       AcquisitionRate="20"
       ReconnectOnReceiveTimeout="false"
-      LocalTimeOffset="0.0" >
+      LocalTimeOffset="0.0"
+      ToolReferenceFrame="Tracker" >
       <DataSources>
         <DataSource Type="Tool" Id="ReferenceStar" PortName="0" BufferSize="500" AveragedItemsForFiltering="20"/>
         <DataSource Type="Tool" Id="Pointer" PortName="1" BufferSize="500" AveragedItemsForFiltering="20"/>
         <DataSource Type="Tool" Id="Ultrasound" PortName="2" BufferSize="500" AveragedItemsForFiltering="20"/>
       </DataSources>
-
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
           <DataSource Id="ReferenceStar" />
@@ -41,7 +41,6 @@
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="100" AveragedItemsForFiltering="20" />
       </DataSources>
-
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
@@ -54,19 +53,18 @@
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="VideoStream" />
       </InputChannels>
-      
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>
     </Device> 
+    
   </DataCollection>
   
   <PlusOpenIGTLinkServer  
     MaxNumberOfIgtlMessagesToSend="1"
     MaxTimeSpentWithProcessingMs="10"
     ListeningPort="18944"
-    OutputChannelId="TrackedVideoStream"
-    > 
+    OutputChannelId="TrackedVideoStream" > 
     <DefaultClientInfo> 
       <MessageTypes> 
         <Message Type="TRANSFORM" />

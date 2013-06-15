@@ -13,12 +13,12 @@
       LocalTimeOffsetSec="0.0"
       DefaultToolName="Stylus"
       Mode="PivotCalibration"
-      ReferenceToolName="Reference" >
+      ReferenceToolName="Reference"
+      ToolReferenceFrame="Tracker" >
       <DataSources>
         <DataSource Type="Tool" Id="Reference" BufferSize="200" AveragedItemsForFiltering="20" PortName="0"/> 
         <DataSource Type="Tool" Id="Stylus" BufferSize="200" AveragedItemsForFiltering="20" PortName="1" />
-      </DataSources>
-      
+      </DataSources>      
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
           <DataSource Id="Reference"/>
@@ -43,8 +43,7 @@
       <DataSources>
         <DataSource Type="Video" Id="BModeVideo" PortName="B" PortUsImageOrientation="MF" BufferSize="100" AveragedItemsForFiltering="20" />
         <DataSource Type="Video" Id="RfModeVideo" PortName="Rf" PortUsImageOrientation="FM" BufferSize="40" AveragedItemsForFiltering="20" />
-      </DataSources>
-      
+      </DataSources>      
       <OutputChannels>
         <OutputChannel Id="BModeVideoStream" VideoDataSourceId="BModeVideo" />
         <OutputChannel Id="RfModeVideoStream" VideoDataSourceId="RfModeVideo" />
@@ -57,8 +56,7 @@
       <InputChannels>
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="BModeVideoStream" />
-      </InputChannels>
-      
+      </InputChannels>      
       <OutputChannels>
         <OutputChannel Id="TrackedBModeVideoStream" />
       </OutputChannels>
@@ -70,15 +68,13 @@
       <InputChannels>
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="RfModeVideoStream" />
-      </InputChannels>
-      
+      </InputChannels>      
       <OutputChannels>
         <OutputChannel Id="TrackedRfModeVideoStream" />
       </OutputChannels>
     </Device>
   </DataCollection>
 
-  <fCal
-    DefaultSelectedChannelId="TrackedBModeVideoStream" 
-    />
+  <fCal DefaultSelectedChannelId="TrackedBModeVideoStream" />
+  
 </PlusConfiguration>
