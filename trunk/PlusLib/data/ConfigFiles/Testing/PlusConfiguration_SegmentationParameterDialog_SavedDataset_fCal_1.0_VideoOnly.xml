@@ -35,7 +35,8 @@
     AngleToleranceDegrees="10"
     ThresholdImagePercent="10.0"
     CollinearPointsMaxDistanceFromLineMm="0.41"
-    UseOriginalImageIntensityForDotIntensityScore="0" />
+    UseOriginalImageIntensityForDotIntensityScore="0"
+    NumberOfMaximumFiducialPointCandidates="55" />
   
   <Rendering DisplayedImageOrientation="MF"/>
 
