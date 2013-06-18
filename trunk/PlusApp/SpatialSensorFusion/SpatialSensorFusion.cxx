@@ -117,6 +117,8 @@ int main(int argc, char **argv)
   //manually determine initial orientation and set into AHRS algorithm
   TrackedFrame *frame=frameList->GetTrackedFrame(0);
   float timestamp = frame->GetTimestamp();
+  
+  //ahrsAlgo->SetGain(2.5,integralGain);
 
   vtkSmartPointer<vtkMatrix4x4> gyroscopeMat = vtkSmartPointer<vtkMatrix4x4>::New();
   frame->GetCustomFrameTransform(PlusTransformName("Gyroscope","Tracker"), gyroscopeMat);
@@ -146,13 +148,60 @@ int main(int argc, char **argv)
   double filteredTiltSensorRotQuat[4]={0};
   vtkMath::Matrix3x3ToQuaternion(rotMatrix,filteredTiltSensorRotQuat);
   ahrsAlgo->SetOrientation(filteredTiltSensorRotQuat[0],filteredTiltSensorRotQuat[1],filteredTiltSensorRotQuat[2],filteredTiltSensorRotQuat[3]);
-
+    
   frame->SetCustomFrameTransform(PlusTransformName("FilteredTiltSensor","Tracker"),filteredTiltSensorToTrackerTransform);
   frame->SetCustomFrameTransformStatus(PlusTransformName("FilteredTiltSensor","Tracker"),FIELD_OK);
+  /*
+  //run 1st frame through the algorithm multiple times with gain set to 2.5 for convergence 
+  ahrsAlgo->SetGain(2.5,integralGain);
+  for(int i=0; i<50;i++)
+  {  
+    TrackedFrame *frame=frameList->GetTrackedFrame(0);
+    
+    vtkSmartPointer<vtkMatrix4x4> gyroscopeMat = vtkSmartPointer<vtkMatrix4x4>::New();
+    frame->GetCustomFrameTransform(PlusTransformName("Gyroscope","Tracker"), gyroscopeMat);
 
+    vtkSmartPointer<vtkMatrix4x4> accelerometerMat = vtkSmartPointer<vtkMatrix4x4>::New();
+    frame->GetCustomFrameTransform(PlusTransformName("Accelerometer","Tracker"), accelerometerMat);
+    
+    //manually set sample frequency to standard running frequency 
+    ahrsAlgo->SetSampleFreqHz(125);
+    ahrsAlgo->UpdateIMU(
+      vtkMath::RadiansFromDegrees(gyroscopeMat->GetElement(0,3)), vtkMath::RadiansFromDegrees(gyroscopeMat->GetElement(1,3)), vtkMath::RadiansFromDegrees(gyroscopeMat->GetElement(2,3)), 
+      accelerometerMat->GetElement(0,3), accelerometerMat->GetElement(1,3), accelerometerMat->GetElement(2,3));
+
+    double filteredDownVector_Sensor[4] = {accelerometerMat->GetElement(0,3), accelerometerMat->GetElement(1,3), accelerometerMat->GetElement(2,3),0};
+    vtkMath::Normalize(filteredDownVector_Sensor);
+
+    vtkSmartPointer<vtkMatrix4x4> filteredTiltSensorToTrackerTransform = vtkSmartPointer<vtkMatrix4x4>::New();
+    ConstrainWestAxis(filteredDownVector_Sensor, westAxisIndex, filteredTiltSensorToTrackerTransform);
+
+    // write back the results to the FilteredTiltSensor_AHRS algorithm orientation
+    double rotMatrix[3][3]={0};
+    for (int c=0;c<3; c++)
+    {
+      for (int r=0;r<3; r++)
+      {
+        rotMatrix[r][c]= filteredTiltSensorToTrackerTransform->GetElement(r,c);
+      }
+    }
+    double filteredTiltSensorRotQuat[4]={0};
+    vtkMath::Matrix3x3ToQuaternion(rotMatrix,filteredTiltSensorRotQuat);
+    ahrsAlgo->SetOrientation(filteredTiltSensorRotQuat[0],filteredTiltSensorRotQuat[1],filteredTiltSensorRotQuat[2],filteredTiltSensorRotQuat[3]);
+      
+    frame->SetCustomFrameTransform(PlusTransformName("FilteredTiltSensor","Tracker"),filteredTiltSensorToTrackerTransform);
+    frame->SetCustomFrameTransformStatus(PlusTransformName("FilteredTiltSensor","Tracker"),FIELD_OK);
+  }
+  */
+  ahrsAlgo->SetGain(proportionalGain,integralGain);
   for (int frameIndex = 1; frameIndex<nFrames; frameIndex++)
   { 
-
+    /*
+    if(frameIndex == 600)
+    {
+      ahrsAlgo->SetGain(proportionalGain, integralGain);
+    }
+    */
     TrackedFrame *frame=frameList->GetTrackedFrame(frameIndex);
     float timestamp = frame->GetTimestamp();
 
