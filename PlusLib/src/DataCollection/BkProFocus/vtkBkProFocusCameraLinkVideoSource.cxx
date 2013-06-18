@@ -74,6 +74,9 @@ public:
   vtkBkProFocusCameraLinkVideoSource *External;
   vtkPlusChannel* Channel;
 
+  vtkBkProFocusCameraLinkVideoSource::ScanPlaneType CurrentPlane;
+  bool SubscribeScanPlane;
+
   ParamConnectionSettings BKparamSettings; // parConnectSettings, for read/write settings from ini file
 
   AcquisitionInjector BKAcqInjector; // injector
@@ -90,6 +93,8 @@ public:
     : External(external)
     , pBKSaperaView(NULL)
     , pBKcmdCtrl(NULL)
+    , CurrentPlane(vtkBkProFocusCameraLinkVideoSource::Transverse)
+    , SubscribeScanPlane(false)
   {
     this->PlusReceiver.SetPlusVideoSource(this->External);
   }
@@ -117,19 +122,20 @@ public:
     // the first value is the connector used, the second is the transducer type
     value = QueryParameter(oemClient, "TRANSDUCER");
     std::string transducer = ParseResponseQuoted(value,1);
-    std::cout << "Transducer: " << transducer << std::endl;
+    LOG_INFO("Transducer: " << transducer);
     // DATA:SCAN_PLANE:A "S";
     // reply depends on the transducer type; for 8848, it is either "T" (transverse) or "S"
     // (sagittal). For the abdominal 8820, the response apparently is "" (!)
     value = QueryParameter(oemClient, "SCAN_PLANE");
     std::string scanPlane = ParseResponseQuoted(value, 0);
-    std::cout << "Scan plane: " << scanPlane << std::endl;
+    LOG_INFO("Scan plane: " << scanPlane);
+    this->CurrentPlane = (scanPlane.find("S") == std::string::npos ? vtkBkProFocusCameraLinkVideoSource::Transverse : vtkBkProFocusCameraLinkVideoSource::Sagittal);
 
     value = QueryParameter(oemClient, "B_FRAMERATE");   // DATA:B_FRAMERATE:A 17.8271;
     float frameRate = atof(ParseResponse(value,0).c_str());
-    std::cout << "Frame rate: " << frameRate << std::endl;
+    LOG_INFO("Frame rate: " << frameRate);
 
-    std::cout << "Queried value: " << value << std::endl;
+    LOG_INFO("Queried value: " << value);
     // DATA:B_GEOMETRY_SCANAREA:A 
     //    StartLineX,StartLineY,StartLineAngle,StartDepth,StopLineX,StopLineY,StopLineAngle,StopDepth
     // StartLineX/Y: coordinate of the start line origin in mm
@@ -267,8 +273,6 @@ public:
 
 //----------------------------------------------------------------------------
 vtkBkProFocusCameraLinkVideoSource::vtkBkProFocusCameraLinkVideoSource()
-: SubscribeScanPlane(false)
-, CurrentPlane(Transverse)
 {
   this->Internal = new vtkInternal(this);
 
@@ -317,20 +321,23 @@ void vtkBkProFocusCameraLinkVideoSource::EventCallback(void* owner, char* eventT
 
   LOG_INFO("full event text: " << eventText);
 
-  if (self->SubscribeScanPlane && !_strnicmp("SCAN_PLANE", &eventText[strlen("CONFIG:DATA:")], strlen("SCAN_PLANE")) )
+  if (self->Internal->SubscribeScanPlane && !_strnicmp("SCAN_PLANE", &eventText[strlen("SDATA:")], strlen("SCAN_PLANE")) )
   {
-    char* probeId = &eventText[strlen("CONFIG:DATA:")];
-    std::string eventStr(eventText);
+    char* probeId = &eventText[strlen("SDATA:SCAN_PLANE:")];
+    std::string eventStr(probeId);
     std::string details = eventStr.substr(eventStr.find(' '));
     if( details.find('S') != std::string::npos )
     {
-      self->CurrentPlane = Sagittal;
+      self->Internal->CurrentPlane = Sagittal;
     }
     if( details.find('T') != std::string::npos )
     {
-      self->CurrentPlane = Transverse;
+      self->Internal->CurrentPlane = Transverse;
     }
     self->Internal->Channel = self->FindChannelByPlane();
+    // TODO : only do this if the channel has not been init
+    // keep track with flags?
+    self->Internal->InitializeParametersFromOEM();
   }
 }
 
@@ -357,9 +364,9 @@ PlusStatus vtkBkProFocusCameraLinkVideoSource::InternalConnect()
     return PLUS_FAIL;
   }
 
+  this->Internal->BKcmdCtrlSettings.autoUpdate = true;
   this->Internal->pBKcmdCtrl = new CommandAndControl(&this->Internal->BKparamSettings, &this->Internal->BKcmdCtrlSettings);
   this->Internal->BKcmdCtrlSettings = this->Internal->pBKcmdCtrl->GetCmdCtrlSettings();    // Get what has not failed !!!
-  this->Internal->BKcmdCtrlSettings.autoUpdate = true;
 
   this->Internal->InitializeParametersFromOEM();
 
@@ -379,7 +386,7 @@ PlusStatus vtkBkProFocusCameraLinkVideoSource::InternalConnect()
   this->Internal->BKAcqSettings.SetRFLineLength(numSamples);  
   this->Internal->BKAcqSettings.SetFramesToGrab(0); // continuous
 
-  if( this->SubscribeScanPlane )
+  if( this->Internal->SubscribeScanPlane )
   {
     LOG_INFO("Subscribing to scan plane events.");
     this->Internal->pBKcmdCtrl->SubscribeScanPlaneEvents();
@@ -627,10 +634,10 @@ PlusStatus vtkBkProFocusCameraLinkVideoSource::ReadConfiguration(vtkXMLDataEleme
   const char* subscribe = deviceElement->GetAttribute("SubscribeScanPlane"); 
   if ( subscribe != NULL ) 
   {
-    this->SubscribeScanPlane = (STRCASECMP(subscribe, "true") == 0);
+    this->Internal->SubscribeScanPlane = (STRCASECMP(subscribe, "true") == 0);
   }
 
-  if( this->SubscribeScanPlane && this->OutputChannels.size() != 2 )
+  if( this->Internal->SubscribeScanPlane && this->OutputChannels.size() != 2 )
   {
     LOG_ERROR("Scan plane switching requested but there are not exactly two output channels.");
     return PLUS_FAIL;
@@ -686,7 +693,7 @@ void vtkBkProFocusCameraLinkVideoSource::SetImagingMode(ImagingModeType imagingM
 //----------------------------------------------------------------------------
 PlusStatus vtkBkProFocusCameraLinkVideoSource::NotifyConfigured()
 {
-  if( !this->SubscribeScanPlane && this->OutputChannels.size() > 1 )
+  if( !this->Internal->SubscribeScanPlane && this->OutputChannels.size() > 1 )
   {
     LOG_WARNING("vtkBkProFocusCameraLinkVideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
   }
@@ -698,7 +705,7 @@ PlusStatus vtkBkProFocusCameraLinkVideoSource::NotifyConfigured()
     return PLUS_FAIL;
   }
 
-  if( !this->SubscribeScanPlane )
+  if( !this->Internal->SubscribeScanPlane )
   {
     this->Internal->Channel = this->OutputChannels[0];
   }
@@ -719,7 +726,7 @@ vtkPlusChannel* vtkBkProFocusCameraLinkVideoSource::FindChannelByPlane()
   }
 
   // TODO: post namic, make this more advanced, use in-dev custom channel attributes
-  if( this->CurrentPlane == Transverse )
+  if( this->Internal->CurrentPlane == Transverse )
   {
     return this->OutputChannels[0];
   }

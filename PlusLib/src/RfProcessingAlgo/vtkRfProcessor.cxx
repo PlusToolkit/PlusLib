@@ -136,7 +136,7 @@ PlusStatus vtkRfProcessor::ReadConfiguration(vtkXMLDataElement* rfProcessingElem
           status=PLUS_FAIL;
         }
       }
-      if (this->ScanConverter->ReadConfiguration(scanConversionElement)!=PLUS_SUCCESS)
+      if (this->ScanConverter != NULL && this->ScanConverter->ReadConfiguration(scanConversionElement)!=PLUS_SUCCESS)
       {
         status=PLUS_FAIL;
       }
