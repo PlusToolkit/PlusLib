@@ -102,9 +102,6 @@ protected:
   bool ShowBModeWindow; 
 
   ImagingModeType ImagingMode;
-
-  ScanPlaneType CurrentPlane;
-  bool SubscribeScanPlane;
   
 private:
 
