@@ -86,6 +86,13 @@ public:
   PlusStatus GetDevice(vtkPlusDevice* &aDevice, const std::string &aDeviceId) const;
 
   /*!
+    Return the requested channel
+    \param aChannel the device pointer to fill
+    \param aChannelId the ID of the requested device
+  */
+  PlusStatus GetChannel(vtkPlusChannel* &aChannel, const std::string &aChannelId) const;
+
+  /*!
     Allow iteration over devices
   */
   DeviceCollectionConstIterator GetDeviceConstIteratorBegin() const;

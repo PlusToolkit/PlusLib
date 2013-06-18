@@ -30,6 +30,7 @@ int main( int argc, char** argv )
   int serverPort = 18944;
   std::string command;
   std::string deviceId;
+  std::string channelId;
   std::string inputFilename="PlusServerRecording.mha";
   std::string outputFilename;
   std::string outputImageName;
@@ -49,6 +50,7 @@ int main( int argc, char** argv )
     "Command name to be executed on the server (START_ACQUISITION, STOP_ACQUISITION, SUSPEND_ACQUISITION, RESUME_ACQUISITION, \
     RECONSTRUCT, START_RECONSTRUCTION, SUSPEND_RECONSTRUCTION, RESUME_RECONSTRUCTION, STOP_RECONSTRUCTION, GET_RECONSTRUCTION_SNAPSHOT, GET_CHANNEL_IDS)" );
   args.AddArgument( "--device", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceId, "ID of the controlled device (optional, default: first VirtualStreamCapture device)" );
+  args.AddArgument( "--channel", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &channelId, "ID of the channel to use" );
   args.AddArgument( "--input-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFilename, "File name of the input, used for RECONSTRUCT command" );
   args.AddArgument( "--output-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFilename, "File name of the output, used for START command (optional, default: 'PlusServerRecording.mha' for acquisition, no output for volume reconstruction)" );
   args.AddArgument( "--output-image-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputImageName, "OpenIGTLink device name of the reconstructed file (optional, default: image is not sent)" );
@@ -150,9 +152,9 @@ int main( int argc, char** argv )
     }
     else
     {
-      if (!deviceId.empty())
+      if (!channelId.empty())
       {
-        cmd->SetTrackedVideoDeviceId(deviceId.c_str());
+        cmd->SetChannelId(channelId.c_str());
       }
       else
       {

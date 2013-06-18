@@ -55,8 +55,8 @@ public:
   vtkGetStringMacro(OutputVolDeviceName);
 
   /*! Id of the device that provides the desired channel */
-  vtkSetStringMacro(TrackedVideoDeviceId);
-  vtkGetStringMacro(TrackedVideoDeviceId);
+  vtkSetStringMacro(ChannelId);
+  vtkGetStringMacro(ChannelId);
 
   /*! Enables capturing frames. It can be used for pausing the live reconstruction. */
   vtkGetMacro(EnableAddingFrames, bool);
@@ -95,7 +95,7 @@ private:
   char* InputSeqFilename;
   char* OutputVolFilename;
   char* OutputVolDeviceName;
-  char* TrackedVideoDeviceId;
+  char* ChannelId;
 
   vtkSmartPointer<vtkVolumeReconstructor> VolumeReconstructor;
   vtkSmartPointer<vtkTransformRepository> TransformRepository;
