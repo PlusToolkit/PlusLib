@@ -26,7 +26,7 @@ static const double DELAY_ON_SENDING_ERROR_SEC = 0.02;
 static const double DELAY_ON_NO_NEW_FRAMES_SEC = 0.005; 
 static const int CLIENT_SOCKET_TIMEOUT_MSEC = 500; 
 
-vtkCxxRevisionMacro( vtkPlusOpenIGTLinkServer, "$Revision: 1.0 $" );
+vtkCxxRevisionMacro( vtkPlusOpenIGTLinkServer, "$Revision: 1.1 $" );
 vtkStandardNewMacro( vtkPlusOpenIGTLinkServer ); 
 
 vtkCxxSetObjectMacro(vtkPlusOpenIGTLinkServer, TransformRepository, vtkTransformRepository);
@@ -387,12 +387,11 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
 
         // Send command reply
         igtl::StringMessage::Pointer replyMsg = igtl::StringMessage::New();
-        replyMsg->SetDeviceName(replyIt->DeviceName.c_str()); 
-        // TODO: send the replyIt->Status as well?
+        replyMsg->SetDeviceName(replyIt->DeviceName.c_str());
+        replyIt->ReplyString.insert(0, replyIt->Status == PLUS_SUCCESS ? "SUCCESS::" : "FAIL::");
         replyMsg->SetString(replyIt->ReplyString.c_str());
         replyMsg->Pack(); 
         clientSocket->Send(replyMsg->GetPackPointer(), replyMsg->GetPackSize());
-
       }
     }
 

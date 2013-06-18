@@ -627,3 +627,18 @@ PlusStatus vtkDataCollector::SetLoopTimes()
 
   return PLUS_SUCCESS; 
 }
+
+//----------------------------------------------------------------------------
+PlusStatus vtkDataCollector::GetChannel( vtkPlusChannel* &aChannel, const std::string &aChannelId ) const
+{
+  for( DeviceCollectionConstIterator it = this->Devices.begin(); it != this->Devices.end(); ++it )
+  {
+    if( (*it)->GetOutputChannelByName(aChannel, aChannelId.c_str()) == PLUS_SUCCESS )
+    {
+      return PLUS_SUCCESS;
+    }
+  }
+
+  aChannel = NULL;
+  return PLUS_FAIL;
+}

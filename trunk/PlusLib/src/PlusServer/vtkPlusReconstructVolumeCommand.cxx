@@ -31,13 +31,13 @@ vtkPlusReconstructVolumeCommand::vtkPlusReconstructVolumeCommand()
 : InputSeqFilename(NULL)
 , OutputVolFilename(NULL)
 , OutputVolDeviceName(NULL)
-, TrackedVideoDeviceId(NULL)
+, ChannelId(NULL)
 , VolumeReconstructor(vtkSmartPointer<vtkVolumeReconstructor>::New())
 , TransformRepository(vtkSmartPointer<vtkTransformRepository>::New())
 , LastRecordedFrameTimestamp(0)
 , EnableAddingFrames(false)
 , StopReconstructionRequested(false)
-, ReferencedCommandId(0)
+, ReferencedCommandId(-1)
 , LiveReconstructionInProgress(false)
 , ReconstructionSnapshotRequested(false)
 {
@@ -49,7 +49,7 @@ vtkPlusReconstructVolumeCommand::~vtkPlusReconstructVolumeCommand()
   SetInputSeqFilename(NULL);
   SetOutputVolFilename(NULL);
   SetOutputVolDeviceName(NULL);
-  SetTrackedVideoDeviceId(NULL);
+  SetChannelId(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -126,7 +126,7 @@ PlusStatus vtkPlusReconstructVolumeCommand::ReadConfiguration(vtkXMLDataElement*
   SetInputSeqFilename(aConfig->GetAttribute("InputSeqFilename"));
   SetOutputVolFilename(aConfig->GetAttribute("OutputVolFilename"));
   SetOutputVolDeviceName(aConfig->GetAttribute("OutputVolDeviceName"));
-  SetTrackedVideoDeviceId(aConfig->GetAttribute("TrackedVideoDeviceId"));
+  SetChannelId(aConfig->GetAttribute("ChannelId"));
   aConfig->GetScalarAttribute("ReferencedCommandId",this->ReferencedCommandId);     
   return PLUS_SUCCESS;
 }
@@ -150,9 +150,9 @@ PlusStatus vtkPlusReconstructVolumeCommand::WriteConfiguration(vtkXMLDataElement
   {
     aConfig->SetAttribute("OutputVolDeviceName",this->OutputVolDeviceName);
   }
-  if (this->TrackedVideoDeviceId!=NULL)
+  if (this->ChannelId!=NULL)
   {
-    aConfig->SetAttribute("TrackedVideoDeviceId",this->TrackedVideoDeviceId);
+    aConfig->SetAttribute("ChannelId",this->ChannelId);
   }
   if (this->ReferencedCommandId!=0)
   {
@@ -212,28 +212,26 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
   }
   else if (STRCASECMP(this->Name, START_LIVE_RECONSTRUCTION_CMD)==0)
   {
-    vtkPlusDevice* trackedVideoDevice(NULL);
     vtkPlusChannel* trackedVideoChannel(NULL);
     vtkDataCollector* dataCollector=this->GetDataCollector();
-    if (dataCollector!=NULL)
+    if (dataCollector != NULL && this->ChannelId != NULL)
     {
-      dataCollector->GetDevice(trackedVideoDevice, this->TrackedVideoDeviceId);
+      dataCollector->GetChannel(trackedVideoChannel, this->ChannelId);
     }
-    if( trackedVideoDevice != NULL )
+    else
     {
-      // In the future volume reconstructor will appear in the config file as a separate device, which receive data from a preset output channel (see https://www.assembla.com/spaces/plus/tickets/739-create-volume-reconstructor-device)
-      // So, it is enough to identify it by device name.
-      // Until this is implemented, the user specifies the data producer device ID and the reconstructor algorithm will capture the first channel of this producer device.
-      trackedVideoChannel = *(trackedVideoDevice->GetOutputChannelsStart());
+      LOG_ERROR("Command sent and ChannelId is not set.");
+      SetCommandCompleted(PLUS_FAIL, "Volume reconstruction failed, channel is not set.");
+      return PLUS_FAIL;
     }
 
     if (!this->LiveReconstructionInProgress)
     {
       // This is the first call of Execute (as reconstruction is not yet in progress)
-      if (trackedVideoDevice==NULL)
+      if (trackedVideoChannel==NULL)
       {
-        LOG_ERROR("Cannot start reconstruction, tracked video device with id "<<(this->TrackedVideoDeviceId==NULL?"NULL":this->TrackedVideoDeviceId)<<" is not found");
-        SetCommandCompleted(PLUS_FAIL,"Volume reconstruction failed, TrackedVideoDevice with the specified ID is not found");
+        LOG_ERROR("Cannot start reconstruction, channel with id "<<(this->ChannelId==NULL?"NULL":this->ChannelId)<<" is not found");
+        SetCommandCompleted(PLUS_FAIL,"Volume reconstruction failed, channel with the specified ID is not found");
         return PLUS_FAIL;
       }
       if (InitializeReconstruction()!=PLUS_SUCCESS)
@@ -273,7 +271,7 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
       }
       else
       {
-        LOG_ERROR("Cannot add frames for live volume reconstruction, tracked video device with id "<<(this->TrackedVideoDeviceId==NULL?"NULL":this->TrackedVideoDeviceId)<<" is not found or does not have any output channels");
+        LOG_ERROR("Cannot add frames for live volume reconstruction, tracked video device with id "<<(this->ChannelId==NULL?"NULL":this->ChannelId)<<" is not found or does not have any output channels");
       }
     }
     // the command is not completed yet (this->Active is still true), so Execute will be called again
