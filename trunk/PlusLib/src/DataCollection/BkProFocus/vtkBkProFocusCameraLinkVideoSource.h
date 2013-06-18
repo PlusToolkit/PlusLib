@@ -27,6 +27,12 @@ public:
     RfMode
   };
 
+  enum ScanPlaneType
+  {
+    Transverse,
+    Sagittal
+  };
+
   vtkTypeRevisionMacro(vtkBkProFocusCameraLinkVideoSource,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);   
 
@@ -85,6 +91,10 @@ protected:
   /*! Stop recording or playing */
   virtual PlusStatus InternalStopRecording();
 
+  static void EventCallback(void*, char*, size_t);
+
+  vtkPlusChannel* FindChannelByPlane();
+
   /*! BK ini file storing the connection and acquisition settings */
   char* IniFileName;
 
@@ -92,6 +102,9 @@ protected:
   bool ShowBModeWindow; 
 
   ImagingModeType ImagingMode;
+
+  ScanPlaneType CurrentPlane;
+  bool SubscribeScanPlane;
   
 private:
 

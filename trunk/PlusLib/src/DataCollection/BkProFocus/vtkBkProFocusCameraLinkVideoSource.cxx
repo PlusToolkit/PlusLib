@@ -255,10 +255,20 @@ public:
     std::string prefix = std::string("DATA:")+parameter+":A ";
     return value.substr(prefix.length(),value.length()-prefix.length()-1);
   }
+
+  void vtkBkProFocusCameraLinkVideoSource::vtkInternal::RegisterEventCallback(void* owner, void (*func)(void*, char*, size_t))
+  {
+    if( this->pBKcmdCtrl != NULL )
+    {
+      this->pBKcmdCtrl->RegisterEventCallback(owner, func);
+    }
+  }
 };
 
 //----------------------------------------------------------------------------
 vtkBkProFocusCameraLinkVideoSource::vtkBkProFocusCameraLinkVideoSource()
+: SubscribeScanPlane(false)
+, CurrentPlane(Transverse)
 {
   this->Internal = new vtkInternal(this);
 
@@ -300,6 +310,29 @@ void vtkBkProFocusCameraLinkVideoSource::LogDebugMessageCallback(char *msg)
   LOG_INFO(msg);
 }
 
+//----------------------------------------------------------------------------
+void vtkBkProFocusCameraLinkVideoSource::EventCallback(void* owner, char* eventText, size_t eventTextLength)
+{
+  vtkBkProFocusCameraLinkVideoSource* self = static_cast<vtkBkProFocusCameraLinkVideoSource*>(owner);
+
+  LOG_INFO("full event text: " << eventText);
+
+  if (self->SubscribeScanPlane && !_strnicmp("SCAN_PLANE", &eventText[strlen("CONFIG:DATA:")], strlen("SCAN_PLANE")) )
+  {
+    char* probeId = &eventText[strlen("CONFIG:DATA:")];
+    std::string eventStr(eventText);
+    std::string details = eventStr.substr(eventStr.find(' '));
+    if( details.find('S') != std::string::npos )
+    {
+      self->CurrentPlane = Sagittal;
+    }
+    if( details.find('T') != std::string::npos )
+    {
+      self->CurrentPlane = Transverse;
+    }
+    self->Internal->Channel = self->FindChannelByPlane();
+  }
+}
 
 //----------------------------------------------------------------------------
 PlusStatus vtkBkProFocusCameraLinkVideoSource::InternalConnect()
@@ -346,8 +379,12 @@ PlusStatus vtkBkProFocusCameraLinkVideoSource::InternalConnect()
   this->Internal->BKAcqSettings.SetRFLineLength(numSamples);  
   this->Internal->BKAcqSettings.SetFramesToGrab(0); // continuous
 
-  std::cout << "Before subscribe to scan plane events" << std::endl;
-  this->Internal->pBKcmdCtrl->SubscribeScanPlaneEvents();
+  if( this->SubscribeScanPlane )
+  {
+    LOG_INFO("Subscribing to scan plane events.");
+    this->Internal->pBKcmdCtrl->SubscribeScanPlaneEvents();
+    this->Internal->RegisterEventCallback((void*)this, EventCallback);
+  }
 
   if (!this->Internal->BKAcqSapera.Init(this->Internal->BKAcqSettings))
   {
@@ -373,8 +410,11 @@ PlusStatus vtkBkProFocusCameraLinkVideoSource::InternalConnect()
   // send frames to this video source
   this->Internal->BKAcqInjector.AddDataReceiver(&this->Internal->PlusReceiver);
 
-  // Clear buffer on connect because the new frames that we will acquire might have a different size 
-  this->OutputChannels[0]->Clear();  
+  // Clear buffer on connect because the new frames that we will acquire might have a different size
+  for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it)
+  {
+    (*it)->Clear();
+  }
 
   return PLUS_SUCCESS;
 }
@@ -441,6 +481,14 @@ void vtkBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr, co
     << ", pixel type: " << vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(pixelType))
     << ", image type: " << PlusVideoFrame::GetStringFromUsImageType(imageType));
 
+  vtkPlusChannel* channel = this->FindChannelByPlane();
+
+  if( channel == NULL )
+  {
+    LOG_ERROR("No channel returned. Debug!");
+    return;
+  }
+
   switch (this->ImagingMode)
   {
   case RfMode:
@@ -472,12 +520,11 @@ void vtkBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr, co
         bufferToVtkImage->SetWholeExtent(0, frameSizeInPix[0] - 1, 0, frameSizeInPix[1] - 1, 0,0);
         bufferToVtkImage->Update();
 
-        // Convert
-        this->OutputChannels[0]->GetRfProcessor()->SetRfFrame(bufferToVtkImage->GetOutput(), imageType);        
-        this->OutputChannels[0]->SetSaveRfProcessingParameters(true); // RF processing parameters were used, make sure they will be saved into the config file
+        channel->GetRfProcessor()->SetRfFrame(bufferToVtkImage->GetOutput(), imageType);        
+        channel->SetSaveRfProcessingParameters(true); // RF processing parameters were used, make sure they will be saved into the config file
 
         // Overwrite the input parameters with the converted image; it will look as if we received a B-mode image
-        vtkImageData* convertedBmodeImage = this->OutputChannels[0]->GetRfProcessor()->GetBrightessScanConvertedImage();
+        vtkImageData* convertedBmodeImage = channel->GetRfProcessor()->GetBrightessScanConvertedImage();
         pixelDataPtr = convertedBmodeImage->GetScalarPointer();        
         int *resultExtent = convertedBmodeImage->GetExtent();        
         frameSizeInPix[0] = resultExtent[1] - resultExtent[0] + 1;
@@ -495,7 +542,7 @@ void vtkBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr, co
   }
 
   vtkPlusDataSource* aSource(NULL);
-  if( this->OutputChannels[0]->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( channel->GetVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Output channel does not have video source. Unable to record a new frame.");
     return;
@@ -577,6 +624,17 @@ PlusStatus vtkBkProFocusCameraLinkVideoSource::ReadConfiguration(vtkXMLDataEleme
     }
   }
 
+  const char* subscribe = deviceElement->GetAttribute("SubscribeScanPlane"); 
+  if ( subscribe != NULL ) 
+  {
+    this->SubscribeScanPlane = (STRCASECMP(subscribe, "true") == 0);
+  }
+
+  if( this->SubscribeScanPlane && this->OutputChannels.size() != 2 )
+  {
+    LOG_ERROR("Scan plane switching requested but there are not exactly two output channels.");
+    return PLUS_FAIL;
+  }
 
   return PLUS_SUCCESS;
 }
@@ -628,7 +686,7 @@ void vtkBkProFocusCameraLinkVideoSource::SetImagingMode(ImagingModeType imagingM
 //----------------------------------------------------------------------------
 PlusStatus vtkBkProFocusCameraLinkVideoSource::NotifyConfigured()
 {
-  if( this->OutputChannels.size() > 1 )
+  if( !this->SubscribeScanPlane && this->OutputChannels.size() > 1 )
   {
     LOG_WARNING("vtkBkProFocusCameraLinkVideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
   }
@@ -640,7 +698,33 @@ PlusStatus vtkBkProFocusCameraLinkVideoSource::NotifyConfigured()
     return PLUS_FAIL;
   }
 
-  this->Internal->Channel = this->OutputChannels[0];
+  if( !this->SubscribeScanPlane )
+  {
+    this->Internal->Channel = this->OutputChannels[0];
+  }
+  else
+  {
+    this->Internal->Channel = this->FindChannelByPlane();
+  }
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+vtkPlusChannel* vtkBkProFocusCameraLinkVideoSource::FindChannelByPlane()
+{
+  if (this->OutputChannels.size() != 2 )
+  {
+    return NULL;
+  }
+
+  // TODO: post namic, make this more advanced, use in-dev custom channel attributes
+  if( this->CurrentPlane == Transverse )
+  {
+    return this->OutputChannels[0];
+  }
+  else
+  {
+    return this->OutputChannels[1];
+  }
 }
