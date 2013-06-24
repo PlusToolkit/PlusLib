@@ -349,7 +349,7 @@ public:
   /*! Access the available output channels */
   PlusStatus GetOutputChannelByName(vtkPlusChannel*& aChannel, const char * aChannelId);
 
-  int OutputChannelCount() const { return OutputChannels.size(); }
+  virtual int OutputChannelCount() const { return OutputChannels.size(); }
 
   ChannelContainerConstIterator GetOutputChannelsStart() const;
   ChannelContainerConstIterator GetOutputChannelsEnd() const;

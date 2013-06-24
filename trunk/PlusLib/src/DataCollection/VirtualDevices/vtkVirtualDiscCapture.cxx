@@ -698,3 +698,11 @@ PlusStatus vtkVirtualDiscCapture::WriteFrames(bool force)
 
   return PLUS_SUCCESS;
 }
+
+//-----------------------------------------------------------------------------
+int vtkVirtualDiscCapture::OutputChannelCount() const
+{
+  // Even though we fake one output channel for easy GetTrackedFrame ability, 
+  //  we shouldn't return actual output channel size
+  return 0;
+}
