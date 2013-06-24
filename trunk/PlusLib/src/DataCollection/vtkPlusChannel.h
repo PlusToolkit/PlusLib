@@ -116,7 +116,7 @@ public:
   void SetOwnerDevice(vtkPlusDevice* _arg){ this->OwnerDevice = _arg; }
   vtkPlusDevice* GetOwnerDevice() { return this->OwnerDevice; }
 
-  PlusStatus vtkPlusChannel::GetCustomAttribute( const std::string& attributeId, std::string& output );
+  PlusStatus GetCustomAttribute( const std::string& attributeId, std::string& output );
 
   vtkSetStringMacro(ChannelId);
   vtkGetStringMacro(ChannelId);
