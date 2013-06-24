@@ -49,6 +49,8 @@ public:
 
   virtual PlusStatus TakeSnapshot();
 
+  virtual int OutputChannelCount() const;
+
   /*! Enables capturing frames. It can be used for pausing the recording. */
   vtkGetMacro(EnableCapturing, bool);
   void SetEnableCapturing(bool aValue);

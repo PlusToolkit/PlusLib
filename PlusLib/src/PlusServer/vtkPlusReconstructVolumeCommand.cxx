@@ -243,7 +243,9 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
       SetEnableAddingFrames(true);
       this->LiveReconstructionInProgress=true;
       std::string replyDeviceName=vtkPlusCommand::GetDefaultReplyDeviceName(this->DeviceName);
-      this->CommandProcessor->QueueReply(this->ClientId, PLUS_SUCCESS, "Live volume reconstruction started", replyDeviceName);
+      std::stringstream ss;
+      ss << this->Name << " " << "Live volume reconstruction started||" << this->GetId();
+      this->CommandProcessor->QueueReply(this->ClientId, PLUS_SUCCESS, ss.str(), replyDeviceName);
       // keep the command active until stop requested
     }
     // Live reconstruction is in progress
@@ -308,7 +310,9 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
       SetCommandCompleted(PLUS_FAIL,"Volume reconstruction failed, unknown command name");
       return PLUS_FAIL;
     }
-    SetCommandCompleted(PLUS_SUCCESS,"Live volume reconstruction control command processing completed");
+    std::stringstream reply;
+    reply << this->Name << " " << "Live volume reconstruction control command processing completed";
+    SetCommandCompleted(PLUS_SUCCESS,reply.str());
     return PLUS_SUCCESS;
   }
 } 
