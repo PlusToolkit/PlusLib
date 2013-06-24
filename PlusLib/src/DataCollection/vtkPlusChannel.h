@@ -23,6 +23,10 @@ class vtkPlusDevice;
 */
 class VTK_EXPORT vtkPlusChannel : public vtkDataObject
 {
+  typedef std::map< std::string, std::string > CustomAttributeMap;
+  typedef CustomAttributeMap::iterator CustomAttributeMapIterator;
+  typedef CustomAttributeMap::const_iterator CustomAttributeMapConstIterator;
+
 public:
   static vtkPlusChannel *New();
   vtkTypeRevisionMacro(vtkPlusChannel, vtkObject);
@@ -112,6 +116,8 @@ public:
   void SetOwnerDevice(vtkPlusDevice* _arg){ this->OwnerDevice = _arg; }
   vtkPlusDevice* GetOwnerDevice() { return this->OwnerDevice; }
 
+  PlusStatus vtkPlusChannel::GetCustomAttribute( const std::string& attributeId, std::string& output );
+
   vtkSetStringMacro(ChannelId);
   vtkGetStringMacro(ChannelId);
 
@@ -138,6 +144,8 @@ protected:
 
   /*! If true then RF processing parameters will be saved into the config file */
   bool SaveRfProcessingParameters;
+
+  CustomAttributeMap CustomAttributes;
 
   vtkPlusChannel(void);
   virtual ~vtkPlusChannel(void);

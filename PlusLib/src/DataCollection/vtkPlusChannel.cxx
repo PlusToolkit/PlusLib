@@ -75,7 +75,7 @@ PlusStatus vtkPlusChannel::ReadConfiguration( vtkXMLDataElement* aChannelElement
     vtkXMLDataElement* aSourceElement = aChannelElement->GetNestedElement(i); 
     if ( STRCASECMP(aSourceElement->GetName(), "DataSource") != 0 )
     {
-      // if this is not an image element, skip it
+      // if this is not an data source element, skip it
       continue; 
     }
 
@@ -118,7 +118,7 @@ PlusStatus vtkPlusChannel::ReadConfiguration( vtkXMLDataElement* aChannelElement
     return PLUS_FAIL;
   }
 
-  vtkXMLDataElement* rfElement = aChannelElement->FindNestedElementWithName("RfProcessing");
+  vtkXMLDataElement* rfElement = aChannelElement->FindNestedElementWithName(vtkRfProcessor::GetRfProcessorTagName());
   if (rfElement != NULL)
   {
     this->RfProcessor = vtkRfProcessor::New();
@@ -129,6 +129,30 @@ PlusStatus vtkPlusChannel::ReadConfiguration( vtkXMLDataElement* aChannelElement
   {
     LOG_ERROR("Unable to find RF processing sub-element in channel \'" << this->GetChannelId() << "\' configuration when it is required.");
     return PLUS_FAIL;
+  }
+
+  this->CustomAttributes.clear();
+  for ( int i = 0; i < aChannelElement->GetNumberOfNestedElements(); i++ )
+  {
+    vtkXMLDataElement* attrElement = aChannelElement->GetNestedElement(i); 
+    if ( STRCASECMP(attrElement->GetName(), "Attribute") != 0 )
+    {
+      continue; 
+    }
+    const char* id = attrElement->GetAttribute("Id");
+    if( id == NULL )
+    {
+      LOG_ERROR("No idea in channel attribute for channel " << this->GetChannelId() );
+      continue;
+    }
+    const char* value = attrElement->GetCharacterData();
+    if( value == NULL )
+    {
+      LOG_ERROR("No value set for attribute: " << id);
+      continue;
+    }
+    std::string strId(id);
+    this->CustomAttributes[strId] = std::string(value);
   }
 
   return PLUS_SUCCESS;
@@ -1341,4 +1365,16 @@ vtkImageData* vtkPlusChannel::GetBrightnessOutput()
   this->BrightnessFrameSize[1] = resultExtent[3] - resultExtent[2]+1;
 
   return resultImage;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusChannel::GetCustomAttribute( const std::string& attributeId, std::string& output )
+{
+  if( this->CustomAttributes.find(attributeId) != this->CustomAttributes.end() )
+  {
+    output = this->CustomAttributes[attributeId];
+    return PLUS_SUCCESS;
+  }
+
+  return PLUS_FAIL;
 }
