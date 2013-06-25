@@ -373,13 +373,13 @@ PlusStatus vtkPlusReconstructVolumeCommand::AddFrames(vtkTrackedFrameList* track
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusReconstructVolumeCommand::SendReconstructionResults()
 {
-  if (this->OutputVolFilename!=NULL)
+  if (this->OutputVolFilename != NULL)
   {
-    std::string outputVolFileFullPath=vtkPlusConfig::GetInstance()->GetOutputPath(this->OutputVolFilename);
-    LOG_DEBUG("Saving volume to file: "<<outputVolFileFullPath);
+    std::string outputVolFileFullPath = vtkPlusConfig::GetInstance()->GetOutputPath(this->OutputVolFilename);
+    LOG_DEBUG("Saving volume to file: " << outputVolFileFullPath);
     this->VolumeReconstructor->SaveReconstructedVolumeToMetafile(outputVolFileFullPath.c_str());
   }    
-  if (this->OutputVolDeviceName!=NULL)
+  if (this->OutputVolDeviceName != NULL)
   {    
     // send the reconstructed volume with the reply
     LOG_DEBUG("Send image to client through OpenIGTLink");
@@ -389,7 +389,7 @@ PlusStatus vtkPlusReconstructVolumeCommand::SendReconstructionResults()
       LOG_ERROR("Extracting gray levels failed!");
       return PLUS_FAIL;
     }
-    vtkMatrix4x4* volumeToReferenceTransform=vtkMatrix4x4::New(); // will be deleted by the command processor
+    vtkMatrix4x4* volumeToReferenceTransform = vtkMatrix4x4::New(); // will be deleted by the command processor
     volumeToReferenceTransform->Identity(); // we leave it as identity, as the volume coordinate system is the same as the reference coordinate system (we may extend this later so that the client can request the volume in any coordinate system)
 
     this->CommandProcessor->QueueReply(this->ClientId, PLUS_SUCCESS, "Volume reconstruction completed, image sent to the client", vtkPlusCommand::GetDefaultReplyDeviceName(this->DeviceName), this->OutputVolDeviceName, volumeToSend, volumeToReferenceTransform);
