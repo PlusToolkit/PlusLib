@@ -123,7 +123,7 @@ protected:
   virtual ~vtkVolumeReconstructor();
 
   /*! Helper function for computing the extent of the reconstructed volume that encloses all the frames */
-  static void AddImageToExtent( vtkImageData *image, vtkMatrix4x4* imageToReference, double* extent_Ref);
+  void AddImageToExtent( vtkImageData *image, vtkMatrix4x4* imageToReference, double* extent_Ref);
 
   /*! Construct ImageToReference transform name from the image and reference coordinate frame member variables */
   PlusStatus GetImageToReferenceTransformName(PlusTransformName& imageToReferenceTransformName);
