@@ -476,10 +476,22 @@ void vtkVolumeReconstructor::AddImageToExtent( vtkImageData *image, vtkMatrix4x4
   // Prepare the four corner points of the input US image.
   int* frameExtent=image->GetExtent();
   std::vector< double* > corners_ImagePix;
-  double c0[ 4 ] = { frameExtent[ 0 ], frameExtent[ 2 ], 0,  1 };
-  double c1[ 4 ] = { frameExtent[ 0 ], frameExtent[ 3 ], 0,  1 };
-  double c2[ 4 ] = { frameExtent[ 1 ], frameExtent[ 2 ], 0,  1 };
-  double c3[ 4 ] = { frameExtent[ 1 ], frameExtent[ 3 ], 0,  1 };
+  double minX=frameExtent[0];
+  double maxX=frameExtent[1];
+  double minY=frameExtent[2];
+  double maxY=frameExtent[3];
+  if (this->Reconstructor->GetClipRectangleSize()[0]>0 && this->Reconstructor->GetClipRectangleSize()[1]>0)
+  {
+    // Clipping rectangle is specified
+    minX=std::max<double>(minX, this->Reconstructor->GetClipRectangleOrigin()[0]);
+    maxX=std::min<double>(maxX, this->Reconstructor->GetClipRectangleOrigin()[0]+this->Reconstructor->GetClipRectangleSize()[0]);
+    minY=std::max<double>(minY, this->Reconstructor->GetClipRectangleOrigin()[1]);
+    maxY=std::min<double>(maxY, this->Reconstructor->GetClipRectangleOrigin()[1]+this->Reconstructor->GetClipRectangleSize()[1]);
+  }
+  double c0[ 4 ] = { minX, minY, 0,  1 };
+  double c1[ 4 ] = { minX, maxY, 0,  1 };
+  double c2[ 4 ] = { maxX, minY, 0,  1 };
+  double c3[ 4 ] = { maxX, maxY, 0,  1 };
   corners_ImagePix.push_back( c0 );
   corners_ImagePix.push_back( c1 );
   corners_ImagePix.push_back( c2 );

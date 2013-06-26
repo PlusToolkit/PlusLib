@@ -952,11 +952,11 @@ static void vtkOptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* in
   }
 
   // get the clip rectangle as an extent
-  int clipExt[6];
+  int clipExt[6]={0};
   GetClipExtent(clipExt, inOrigin, inSpacing, inExt, clipRectangleOrigin, clipRectangleSize);
 
   // find maximum output range = output extent
-  int outExt[6];
+  int outExt[6]={0};
   outData->GetExtent(outExt);
 
   // Get increments to march through data - ex move from the end of one x scanline of data to the
@@ -1075,7 +1075,7 @@ static void vtkOptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* in
         xIntersectionPixEnd = clipExt[1];
       }
 
-      if (xIntersectionPixStart > xIntersectionPixEnd) // TODO synchrograb adds || idY < clipExt[2] || idY > clipExt[3])
+      if (xIntersectionPixStart > xIntersectionPixEnd || idY < clipExt[2] || idY > clipExt[3])
       {
         xIntersectionPixStart = inExt[0];
         xIntersectionPixEnd = inExt[0]-1;
