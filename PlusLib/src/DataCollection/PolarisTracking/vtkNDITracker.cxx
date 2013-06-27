@@ -350,8 +350,16 @@ PlusStatus vtkNDITracker::InternalStartRecording()
     return PLUS_FAIL;
   }
   // initialize Device
-  ndiCommand(this->Device,"INIT:");
-  if (ndiGetError(this->Device))
+  bool resetOccurred=false;
+  const char* initCommandReply=ndiCommand(this->Device,"INIT:");
+  if (initCommandReply!=NULL && strncmp(initCommandReply,"RESET",5)==0)
+  {
+    // The tracker device was left in high-speed mode after exiting debugger. When the INIT was sent at 9600 baud,
+    // the device reset back to default 9600 and returned status RESET.
+    // Re-issue the INIT command to avoid 'command not valid in current mode' errors.
+    resetOccurred=true;
+  }
+  if (ndiGetError(this->Device) || resetOccurred)
   {
     ndiRESET(this->Device);
     errnum = ndiGetError(this->Device);
