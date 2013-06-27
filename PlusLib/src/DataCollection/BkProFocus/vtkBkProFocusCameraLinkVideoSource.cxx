@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusBkProFocusCameraLinkReceiver.h"
@@ -168,7 +168,7 @@ public:
     stopAngleDeg = -startAngleDeg;
 
     // Update the RfProcessor with scan conversion parameters
-    
+
     if(transducer == "8848")
     {
       if(scanPlane == "S")
@@ -335,9 +335,12 @@ void vtkBkProFocusCameraLinkVideoSource::EventCallback(void* owner, char* eventT
       self->Internal->CurrentPlane = Transverse;
     }
     self->Internal->Channel = self->FindChannelByPlane();
-    // TODO : only do this if the channel has not been init
-    // keep track with flags?
-    self->Internal->InitializeParametersFromOEM();
+    if( self->ChannelConfiguredMap.find(self->Internal->Channel) == self->ChannelConfiguredMap.end() 
+      || self->ChannelConfiguredMap[self->Internal->Channel] == false )
+    {
+      self->Internal->InitializeParametersFromOEM();
+      self->ChannelConfiguredMap[self->Internal->Channel] = true;
+    }
   }
 }
 
@@ -485,7 +488,7 @@ void vtkBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr, co
   };
 
   LOG_TRACE("New frame received: " << frameSizeInPix[0] << "x" << frameSizeInPix[1]
-    << ", pixel type: " << vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(pixelType))
+  << ", pixel type: " << vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(pixelType))
     << ", image type: " << PlusVideoFrame::GetStringFromUsImageType(imageType));
 
   vtkPlusChannel* channel = this->FindChannelByPlane();
@@ -598,6 +601,8 @@ PlusStatus vtkBkProFocusCameraLinkVideoSource::ReadConfiguration(vtkXMLDataEleme
   }
 
   Superclass::ReadConfiguration(config); 
+
+  this->ChannelConfiguredMap.clear();
 
   vtkXMLDataElement* deviceElement = this->FindThisDeviceElement(config);
   if (deviceElement == NULL) 
@@ -725,13 +730,29 @@ vtkPlusChannel* vtkBkProFocusCameraLinkVideoSource::FindChannelByPlane()
     return NULL;
   }
 
-  // TODO: post namic, make this more advanced, use in-dev custom channel attributes
+  std::string desiredPlane;
   if( this->Internal->CurrentPlane == Transverse )
   {
-    return this->OutputChannels[0];
+    desiredPlane = "Transverse";
   }
   else
   {
-    return this->OutputChannels[1];
+    desiredPlane = "Sagittal";
   }
+
+  for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it )
+  {
+    std::string plane;
+    if( (*it)->GetCustomAttribute("Plane", plane) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Plane switching requested but channel \"" << (*it)->GetChannelId() << "\" doesn't have attribute \"Plane\" defined. Please fix configuration.");
+      continue;
+    }
+    if( plane.compare(desiredPlane) == 0 )
+    {
+      return *it;
+    }
+  }
+  LOG_ERROR(desiredPlane << " requested but no channel with custom attribute Plane::" << desiredPlane << " detected.");
+  return NULL;
 }

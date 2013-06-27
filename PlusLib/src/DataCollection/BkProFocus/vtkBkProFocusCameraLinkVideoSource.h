@@ -102,6 +102,8 @@ protected:
   bool ShowBModeWindow; 
 
   ImagingModeType ImagingMode;
+
+  std::map<vtkPlusChannel*, bool> ChannelConfiguredMap;
   
 private:
 
