@@ -18,7 +18,7 @@ ${EXECUTABLE_OUTPUT_PATH}/SpatialSensorFusion
 --ahrs-algo-gain 1.5 
 --converge-gain=1
 --converge-frames=1000
---input-seq-file=$(TestDataDir}/SpatialSensorFusionTestInput.mha 
+--input-seq-file="$(TestDataDir}/SpatialSensorFusionTestInput.mha"
 --output-seq-file="$(TestDataDir}/SpatialSensorFusionTestOutput.mha" 
 --baseline-seq-file="$(TestDataDir}/SpatialSensorFusionTestBaseline.mha"
 --west-axis-index=1
