@@ -377,9 +377,9 @@ void vtkBkProFocusCameraLinkVideoSource::EventCallback(void* owner, char* eventT
     if( self->ChannelConfiguredMap.find(self->Internal->Channel) == self->ChannelConfiguredMap.end() 
       || self->ChannelConfiguredMap[self->Internal->Channel] == false )
     {
-      self->Internal->BKAcqInjector.StopInjection();
+      self->Internal->BKAcqSapera.StopGrabbing();
       self->Internal->InitializeParametersFromOEM();
-      self->Internal->BKAcqInjector.StartInjection();
+      self->Internal->BKAcqSapera.StartGrabbing(&self->Internal->BKAcqInjector);
       self->ChannelConfiguredMap[self->Internal->Channel] = true;
     }
   }
