@@ -288,7 +288,7 @@ public:
     }
     catch(TcpClientWaitException exc)
     {
-      LOG_ERROR("QueryParameter error::" << exc.Message);
+      LOG_WARNING("QueryParameter::" << exc.Message);
       return "";
     }
     std::string value = std::string(&buffer[0]);
