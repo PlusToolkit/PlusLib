@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 
   std::vector<double> ahrsAlgoGain;
   int westAxisIndex = 0;
-  int convergeFrames = 0; //for testing
+  int convergeFrames = 0; 
   double convergeGain = 0.0;
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
