@@ -354,8 +354,6 @@ void vtkBkProFocusCameraLinkVideoSource::EventCallback(void* owner, char* eventT
   vtkBkProFocusCameraLinkVideoSource* self = static_cast<vtkBkProFocusCameraLinkVideoSource*>(owner);
 
   PlusLockGuard<vtkRecursiveCriticalSection> critSectionGuard(self->UpdateMutex);
-  
-  LOG_INFO("full event text: " << eventText);
 
   if (self->Internal->SubscribeScanPlane && !_strnicmp("SCAN_PLANE", &eventText[strlen("SDATA:")], strlen("SCAN_PLANE")) )
   {
@@ -379,10 +377,8 @@ void vtkBkProFocusCameraLinkVideoSource::EventCallback(void* owner, char* eventT
     if( self->ChannelConfiguredMap.find(self->Internal->Channel) == self->ChannelConfiguredMap.end() 
       || self->ChannelConfiguredMap[self->Internal->Channel] == false )
     {
-      while( self->Internal->InitializeParametersFromOEM() != PLUS_SUCCESS )
-      {
-        Sleep(10);
-      }
+      self->InternalDisconnect();
+      self->InternalConnect();
       self->ChannelConfiguredMap[self->Internal->Channel] = true;
     }
   }
