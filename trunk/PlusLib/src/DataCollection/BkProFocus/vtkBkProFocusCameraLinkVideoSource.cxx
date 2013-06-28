@@ -110,7 +110,7 @@ public:
     this->External = NULL;
   }  
 
-  void vtkBkProFocusCameraLinkVideoSource::vtkInternal::InitializeParametersFromOEM()
+  PlusStatus vtkBkProFocusCameraLinkVideoSource::vtkInternal::InitializeParametersFromOEM()
   {
     //WSAIF wsaif;
     TcpClient *oemClient = (this->pBKcmdCtrl->GetOEMClient());
@@ -121,17 +121,29 @@ public:
     // DATA:TRANSDUCER:A "A","8848"; 
     // the first value is the connector used, the second is the transducer type
     value = QueryParameter(oemClient, "TRANSDUCER");
+    if( value.empty() )
+    {
+      return PLUS_FAIL;
+    }
     std::string transducer = ParseResponseQuoted(value,1);
     LOG_INFO("Transducer: " << transducer);
     // DATA:SCAN_PLANE:A "S";
     // reply depends on the transducer type; for 8848, it is either "T" (transverse) or "S"
     // (sagittal). For the abdominal 8820, the response apparently is "" (!)
     value = QueryParameter(oemClient, "SCAN_PLANE");
+    if( value.empty() )
+    {
+      return PLUS_FAIL;
+    }
     std::string scanPlane = ParseResponseQuoted(value, 0);
     LOG_INFO("Scan plane: " << scanPlane);
     this->CurrentPlane = (scanPlane.find("S") == std::string::npos ? vtkBkProFocusCameraLinkVideoSource::Transverse : vtkBkProFocusCameraLinkVideoSource::Sagittal);
 
     value = QueryParameter(oemClient, "B_FRAMERATE");   // DATA:B_FRAMERATE:A 17.8271;
+    if( value.empty() )
+    {
+      return PLUS_FAIL;
+    }
     float frameRate = atof(ParseResponse(value,0).c_str());
     LOG_INFO("Frame rate: " << frameRate);
 
@@ -144,6 +156,10 @@ public:
     // StopLineX/Y: coordinate of the stop line origin in mm
     // StopDepth: stop depth of the scanning area in mm
     value = QueryParameter(oemClient, "B_GEOMETRY_SCANAREA"); 
+    if( value.empty() )
+    {
+      return PLUS_FAIL;
+    }
     float startLineXMm = fabs(atof(ParseResponse(value,0).c_str()))*1000.;
     float stopLineXMm = fabs(atof(ParseResponse(value,4).c_str()))*1000.;
     float startAngleDeg = 
@@ -159,8 +175,16 @@ public:
     // DATA:B_SCANLINES_COUNT:A 517;
     // Number of scanning lines in specified view
     value = QueryParameter(oemClient, "B_SCANLINES_COUNT");
+    if( value.empty() )
+    {
+      return PLUS_FAIL;
+    }
     float scanlinesCount = atof(ParseResponse(value,0).c_str());
     value = QueryParameter(oemClient, "B_RF_LINE_LENGTH");
+    if( value.empty() )
+    {
+      return PLUS_FAIL;
+    }
     float rfLineLength = atof(ParseResponse(value,0).c_str());
 
     // BK defines angles start at 9:00, not at 12:00
@@ -247,6 +271,8 @@ public:
     value = QueryParameter(oemClient, "3D_CAPTURE_AREA");
     std::cout << "Queried value: " << value << std::endl;
     */
+
+    return PLUS_SUCCESS;
   }
 
   std::string vtkBkProFocusCameraLinkVideoSource::vtkInternal::QueryParameter(TcpClient *oemClient, const char* parameter)
@@ -351,7 +377,10 @@ void vtkBkProFocusCameraLinkVideoSource::EventCallback(void* owner, char* eventT
     if( self->ChannelConfiguredMap.find(self->Internal->Channel) == self->ChannelConfiguredMap.end() 
       || self->ChannelConfiguredMap[self->Internal->Channel] == false )
     {
-      self->Internal->InitializeParametersFromOEM();
+      while( self->Internal->InitializeParametersFromOEM() != PLUS_SUCCESS )
+      {
+        Sleep(10);
+      }
       self->ChannelConfiguredMap[self->Internal->Channel] = true;
     }
   }
@@ -384,7 +413,11 @@ PlusStatus vtkBkProFocusCameraLinkVideoSource::InternalConnect()
   this->Internal->pBKcmdCtrl = new CommandAndControl(&this->Internal->BKparamSettings, &this->Internal->BKcmdCtrlSettings);
   this->Internal->BKcmdCtrlSettings = this->Internal->pBKcmdCtrl->GetCmdCtrlSettings();    // Get what has not failed !!!
 
-  this->Internal->InitializeParametersFromOEM();
+  if( this->Internal->InitializeParametersFromOEM() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to initialize BK parameters.");
+    return PLUS_FAIL;
+  }
 
   int numSamples = 0;
   int numLines = 0;
