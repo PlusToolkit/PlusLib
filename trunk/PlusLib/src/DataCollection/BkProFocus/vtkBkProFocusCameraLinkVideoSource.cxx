@@ -353,7 +353,7 @@ void vtkBkProFocusCameraLinkVideoSource::EventCallback(void* owner, char* eventT
 {
   vtkBkProFocusCameraLinkVideoSource* self = static_cast<vtkBkProFocusCameraLinkVideoSource*>(owner);
 
-  PlusLockGuard<vtkRecursiveCriticalSection> critSectionGuard(this->UpdateMutex);
+  PlusLockGuard<vtkRecursiveCriticalSection> critSectionGuard(self->UpdateMutex);
   
   LOG_INFO("full event text: " << eventText);
 
