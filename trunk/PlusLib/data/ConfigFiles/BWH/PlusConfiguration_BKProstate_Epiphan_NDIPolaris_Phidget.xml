@@ -1,42 +1,39 @@
-<PlusConfiguration version="2.1" PlusRevision="Plus-2.0.0.2728">
-
+<PlusConfiguration version="2.1" PlusRevision="Plus-2.0.0.2864">
   <DataCollection StartupDelaySec="1">
-  
-    <DeviceSet Name="Prostate probe + Epiphan framegrabber + NDI Polaris 3" Description="Probe calibrated"/>
-    
+    <DeviceSet Name="Prostate probe + Epiphan framegrabber + NDI Polaris 3 + Phidget" Description="Probe calibrated"/>
     <Device
-      Id="TrackerDevice"
+      Id="PolarisTrackerDevice"
       Type="PolarisTracker"
       SerialPort="5"
       BaudRate="115200"
       AcquisitionRate="50"
       LocalTimeOffsetSec="0"
-      ToolReferenceFrame="Tracker" >
+      ToolReferenceFrame="PolarisTracker">
       <DataSources>
         <DataSource
           Type="Tool"
           Id="Probe"
           PortName="4"
-          RomFile="C:\isaiah\polaris\bwh_tooldefs\BL-US-blue\BL-us-blue.rom"
+          RomFile="C:\isaiah\polaris\bwh_tooldefs\HologicStar_6balls_B\HologicStar_6balls_B.rom"
           AveragedItemsForFiltering="20"
           BufferSize="2500"/>
         <DataSource
           Type="Tool"
           Id="Stylus"
           PortName="5"
-          RomFile="C:\isaiah\polaris\bwh_tooldefs\HL-Stylus2\HL-Stylus2.rom"
+          RomFile="C:\isaiah\polaris\bwh_tooldefs\HologicStylus\HologicStylus.rom"
           AveragedItemsForFiltering="20"
           BufferSize="2500"/>
         <DataSource
           Type="Tool"
           Id="Reference"
           PortName="6"
-          RomFile="C:\isaiah\polaris\bwh_tooldefs\BL-Demo-Star\BL-demo-star.rom"
+          RomFile="C:\isaiah\polaris\bwh_tooldefs\HologicTStar_3balls_1\HologicTStar_3balls_1.rom"
           AveragedItemsForFiltering="20"
           BufferSize="2500"/>
       </DataSources>
       <OutputChannels>
-        <OutputChannel Id="TrackerStream">
+        <OutputChannel Id="PolarisTrackerStream">
           <DataSource Id="Probe"/>
           <DataSource Id="Stylus"/>
           <DataSource Id="Reference"/>
@@ -44,11 +41,40 @@
       </OutputChannels>
     </Device>
     
+      <!-- PhidgetSpatial tracker -->
+  <Device
+    Type="PhidgetSpatial"
+    Id="PhidgetTrackerDevice"
+    AhrsAlgorithm="MADGWICK_MARG" 
+    AhrsAlgorithmGain="1.5" 
+    TiltSensorWestAxisIndex="1"   
+    AcquisitionRate="125" 
+    LocalTimeOffsetSec="0.0"
+    ToolReferenceFrame="PhidgetTracker" >   
+   <DataSources>
+    <DataSource Type="Tool" Id="Accelerometer" PortName="Accelerometer" BufferSize="2500" AveragedItemsForFiltering="20"/>
+    <DataSource Type="Tool" Id="Gyroscope" PortName="Gyroscope" BufferSize="2500" AveragedItemsForFiltering="20"/>
+    <DataSource Type="Tool" Id="Magnetometer" PortName="Magnetometer" BufferSize="2500" AveragedItemsForFiltering="20"/>
+    <DataSource Type="Tool" Id="TiltSensor" PortName="TiltSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>
+    <DataSource Type="Tool" Id="OrientationSensor" PortName="OrientationSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>                           
+   </DataSources>   
+   <OutputChannels>
+    <OutputChannel Id="PhidgetTrackerStream" >
+     <DataSource Id="Accelerometer"/>
+     <DataSource Id="Gyroscope"/>
+     <DataSource Id="Magnetometer"/>
+     <DataSource Id="TiltSensor"/>
+     <DataSource Id="OrientationSensor"/>                           
+    </OutputChannel>
+   </OutputChannels>
+  </Device>
+    
+    
     <Device
       Id="VideoDevice"
       Type="Epiphan"
       AcquisitionRate="30"
-      LocalTimeOffsetSec="-0.152969"
+      LocalTimeOffsetSec="0"
       VideoFormat="Y8"
       ClipRectangleOrigin="0 0"
       ClipRectangleSize="0 0">
@@ -60,9 +86,10 @@
       </OutputChannels>
     </Device>
     
-    <Device Id="TrackedVideoDevice" Type="VirtualMixer" LocalTimeOffsetSec="-0.152969">
+    <Device Id="TrackedVideoDevice" Type="VirtualMixer" LocalTimeOffsetSec="0">
       <InputChannels>
-        <InputChannel Id="TrackerStream"/>
+        <InputChannel Id="PhidgetTrackerStream"/>
+        <InputChannel Id="PolarisTrackerStream"/>
         <InputChannel Id="VideoStream"/>
       </InputChannels>
       <OutputChannels>
@@ -71,20 +98,39 @@
     </Device>
     
   </DataCollection>
-  
+  <PlusOpenIGTLinkServer MaxNumberOfIgtlMessagesToSend="1" MaxTimeSpentWithProcessingMs="10" ListeningPort="18944" OutputChannelId="TrackedVideoStream">
+    <DefaultClientInfo>
+      <MessageTypes>
+        <Message Type="TRANSFORM"/>
+        <Message Type="IMAGE"/>
+      </MessageTypes>
+      <TransformNames>
+        <Transform Name="StylusTipToTracker"/>
+        <Transform Name="StylusTipToProbe"/>
+        <Transform Name="StylusToTracker"/>
+        <Transform Name="ProbeToTracker"/>
+        <Transform Name="StylusTipToStylus"/>
+      </TransformNames>
+      <ImageNames>
+        <Image Name="Image" EmbeddedTransformToFrame="Tracker"/>
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
   <Rendering WorldCoordinateFrame="Tracker" DisplayedImageOrientation="MF">
     <DisplayableObject Type="Model" ObjectCoordinateFrame="Probe" Id="ProbeModel" File="L14-5_38_ProbeModel.stl"
       ModelToObjectTransform="
         -1	0	0	29.7
         0	-1	0	1.5
         0	0	1	-14
-        0	0	0	1" />
+        0	0	0	1"
+      />
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel" File="Stylus_Example.stl"
       ModelToObjectTransform="
         1	0	0	-210
         0	1	0	0
         0	0	1	0
-        0	0	0	1" />
+        0	0	0	1"
+      />
     <DisplayableObject
       Id="PhantomModel"
       Type="Model"
@@ -98,7 +144,6 @@
         0	0	0	1"/>
     <xDisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
   </Rendering>
-  
   <PhantomDefinition>
     <Description Name="fCAL" Type="Double-N" Version="2.0" WiringVersion="2.0" Institution="Queen&apos;s University PerkLab"/>
     <Geometry>
@@ -129,7 +174,6 @@
       </Landmarks>
     </Geometry>
   </PhantomDefinition>
-  
   <fCal
     PhantomModelId="PhantomModel"
     TransducerModelId="ProbeModel"
@@ -147,19 +191,17 @@
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
     TemporalCalibrationDurationSec="10"
     DefaultSelectedChannelId="TrackedVideoStream"/>
-  
   <vtkPivotCalibrationAlgo ObjectMarkerCoordinateFrame="Stylus" ReferenceCoordinateFrame="Reference" ObjectPivotPointCoordinateFrame="StylusTip"/>
-  
   <vtkPhantomRegistrationAlgo PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference" StylusTipCoordinateFrame="StylusTip"/>
-  
   <vtkProbeCalibrationAlgo ImageCoordinateFrame="Image" ProbeCoordinateFrame="Probe" PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference"/>
-  
   <CoordinateDefinitions>
     <Transform From="Image" To="Probe"
-      Matrix="
--9.99810954142165 0.246555656852577 -4.9008645799976325 -4.806722198073535 1.745839351266449 9.893883180823625 0.9872613807642359 10.996941074376615 -1.4608421196036157 -4023.319915852743 -43.52919877154339 145.95575022381487
-        0	0	0	1"
-       Error="0.419667" Date="051713_101947"/>
+     Matrix="
+      -0.0781505 -0.0352916 -0.0203662 323.96
+      0.00907885 0.027863 -0.0831204 -9.21
+      0.0397222 -0.0758019 -0.0210711 -156.59
+       0 0 0 1"
+       Error="0.44" Date="062113_173000"/>
     <Transform From="Phantom" To="Reference"
       Matrix="
         -0.0790126	-0.650388	0.755482	177.339
@@ -169,11 +211,11 @@
        Error="0.954762" Date="051713_095053"/>
     <Transform From="StylusTip" To="Stylus"
       Matrix="
-        0.482736	-0.102282	-0.869773	75.4717
-        0.207278	0.978282	0	32.4062
-        0.850883	-0.180285	0.493453	133.028
+        -0.101433	-0.0218309	-0.994603	-15.8668
+        -0.972337	-0.209272	0.103755	-152.1
+        -0.210408	0.977614	0	-32.9135
         0	0	0	1"
-       Error="0.65689" Date="051713_094950"/>
+       Error="0.324737" Date="062113_160103"/>
     <Transform From="TransducerOriginPixel" To="TransducerOrigin"
       Matrix="
         0.0749972	0	0	0
@@ -182,7 +224,6 @@
         0	0	0	1"
        Date="051713_101948"/>
   </CoordinateDefinitions>
-  
   <Segmentation
     ApproximateSpacingMmPerPixel="0.078"
     MorphologicalOpeningCircleRadiusMm="0.27"
@@ -198,5 +239,4 @@
     ThresholdImagePercent="10"
     CollinearPointsMaxDistanceFromLineMm="0.6"
     UseOriginalImageIntensityForDotIntensityScore="0"/>
-
 </PlusConfiguration>
