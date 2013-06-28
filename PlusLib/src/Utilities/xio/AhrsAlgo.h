@@ -17,11 +17,13 @@ See License.txt for details.
 class AhrsAlgo
 {
 public:
-
+    
   AhrsAlgo()
   {
+    minTimestampDifferenceSec = 1E-6;
     sampleFreq=512.0; // Hz
     lastUpdateTime = -1;
+    
     q0=1.0f;
     q1=0.0f;
     q2=0.0f;
@@ -57,17 +59,27 @@ public:
   //updates the sampling frequency from a given timestamp
   void UpdateSampleFreqFromSystemTimeSec(double timeSystemSec)
   {
-    //if first update, use as reference time and assume last update was long ago
+    if (timeSystemSec<0.0)
+    { 
+      sampleFreq = 125;
+      return;
+    }
+    //if first update, use as reference time and assume sample frequency is the maximum normal sample freq
     if (lastUpdateTime<0)
     {
       lastUpdateTime=timeSystemSec;
-      sampleFreq=0.00000001;
+      sampleFreq=125;
     }
     else
     {
       double timeSinceLastAhrsUpdateSec=timeSystemSec-lastUpdateTime;
+      if(timeSinceLastAhrsUpdateSec < minTimestampDifferenceSec)
+      {
+        sampleFreq = 125;
+        return;
+      }
       lastUpdateTime=timeSystemSec;
-      sampleFreq = 1.0/timeSinceLastAhrsUpdateSec;
+      sampleFreq = static_cast<float>(1.0/timeSinceLastAhrsUpdateSec);
     }
   }
 
@@ -77,7 +89,7 @@ protected:
     Fast inverse square-root
     See: http://en.wikipedia.org/wiki/Fast_inverse_square_root
     */
-
+  
   float InvSqrt(float x) 
   {
     float halfx = 0.5f * x;
@@ -97,6 +109,8 @@ protected:
   float q1;
   float q2;
   float q3;
+
+  double minTimestampDifferenceSec;
 };
 
 #endif
