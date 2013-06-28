@@ -256,7 +256,15 @@ public:
 
     query = std::string("QUERY:")+parameter+":A;";
     oemClient->Write(query.c_str(), strlen(query.c_str()));
-    oemClient->Read(&buffer[0], 1024);
+    try
+    {
+      oemClient->Read(&buffer[0], 1024);
+    }
+    catch(TcpClientWaitException exc)
+    {
+      LOG_ERROR("QueryParameter error::" << exc.Message);
+      return "";
+    }
     std::string value = std::string(&buffer[0]);
     std::string prefix = std::string("DATA:")+parameter+":A ";
     return value.substr(prefix.length(),value.length()-prefix.length()-1);
@@ -335,6 +343,11 @@ void vtkBkProFocusCameraLinkVideoSource::EventCallback(void* owner, char* eventT
       self->Internal->CurrentPlane = Transverse;
     }
     self->Internal->Channel = self->FindChannelByPlane();
+    if( self->Internal->Channel == NULL )
+    {
+      LOG_ERROR("Unable to find a channel by plane. Check configuration.");
+      return;
+    }
     if( self->ChannelConfiguredMap.find(self->Internal->Channel) == self->ChannelConfiguredMap.end() 
       || self->ChannelConfiguredMap[self->Internal->Channel] == false )
     {
@@ -495,7 +508,16 @@ void vtkBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr, co
 
   if( channel == NULL )
   {
-    LOG_ERROR("No channel returned. Debug!");
+    std::string type("Unknown");
+    if( this->Internal->CurrentPlane == Sagittal )
+    {
+      type = "Sagittal";
+    }
+    if( this->Internal->CurrentPlane == Transverse )
+    {
+      type = "Transverse";
+    }
+    LOG_ERROR("No channel returned. Verify configuration. Requested plane: " << type);
     return;
   }
 
