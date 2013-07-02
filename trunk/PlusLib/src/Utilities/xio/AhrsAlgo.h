@@ -34,14 +34,14 @@ public:
   virtual void UpdateIMU(float gx, float gy, float gz, float ax, float ay, float az)=0;
   
   //combines updating with timestamping
-  void UpdateWithTimestamp(float gx, float gy, float gz, float ax, float ay, float az, float mx, float my, float mz, float timestamp)
+  void UpdateWithTimestamp(float gx, float gy, float gz, float ax, float ay, float az, float mx, float my, float mz, double timestamp)
   {
     UpdateSampleFreqFromSystemTimeSec(timestamp);
     Update(gx, gy, gz, ax, ay, az, mx, my, mz);
   }
   
   //combines updating with timestamping
-  void UpdateIMUWithTimestamp(float gx, float gy, float gz, float ax, float ay, float az, float timestamp)
+  void UpdateIMUWithTimestamp(float gx, float gy, float gz, float ax, float ay, float az, double timestamp)
   {
     UpdateSampleFreqFromSystemTimeSec(timestamp);
     UpdateIMU(gx, gy, gz, ax, ay, az);
