@@ -3,7 +3,9 @@
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
       Name="No video + CHRobotics MARG sensor" 
-      Description="Configuration file for No video + CHRobotics CHR-UM6 MARG sensor" />
+      Description="Configuration file for No video + CHRobotics CHR-UM6 MARG sensor" 
+    />
+
     <Device 
       Id="TrackerDevice"
       Type="ChRobotics"
@@ -11,24 +13,26 @@
       BaudRate="115200"
       FirmwareDirectory="ChRoboticsFirmware"
       AcquisitionRate="20"
-      LocalTimeOffsetSec="0.0" 
-      ToolReferenceFrame="Tracker" >
+      LocalTimeOffsetSec="0.0" >
       <DataSources>
         <DataSource Type="Tool" Id="OrientationSensor" PortName="OrientationSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>
       </DataSources>
+
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
           <DataSource Id="OrientationSensor"/>
         </OutputChannel>
       </OutputChannels>
-    </Device>    
+    </Device>
+    
   </DataCollection>
   
   <PlusOpenIGTLinkServer 
     MaxNumberOfIgtlMessagesToSend="1" 
     MaxTimeSpentWithProcessingMs="50" 
     ListeningPort="18944" 
-    OutputChannelId="TrackerStream" > 
+    OutputChannelId="TrackerStream"
+    > 
     <DefaultClientInfo> 
       <MessageTypes> 
         <Message Type="TRANSFORM" />

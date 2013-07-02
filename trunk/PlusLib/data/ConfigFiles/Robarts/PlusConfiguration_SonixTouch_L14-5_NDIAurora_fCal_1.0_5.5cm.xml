@@ -1,10 +1,9 @@
 <PlusConfiguration version="2.3" >
-
   <DataCollection StartupDelaySec="1.0" >
-
-  <DeviceSet 
+    <DeviceSet 
       Name="SonixTouch L14-5 + NDI Aurora 5.5cm depth" 
-      Description="Configuration file for SonixTouch L14-5 + NDI Aurora + fCal 1.0 The computer needs to be on the same local network as SonixTOUCH. The tools need to be plugged in the slots as following: 1: Probe, 2: Reference, 3: Stylus, 4: Needle (optional)" />
+      Description="Configuration file for SonixTouch L14-5 + NDI Aurora + fCal 1.0 The computer needs to be on the same local network as SonixTOUCH. The tools need to be plugged in the slots as following: 1: Probe, 2: Reference, 3: Stylus, 4: Needle (optional)"
+    />
     
     <Device
       Id="TrackerDevice"
@@ -12,14 +11,14 @@
       SerialPort="7"
       BaudRate="115200"
       AcquisitionRate="50"
-      LocalTimeOffsetSec="0.0"
-      ToolReferenceFrame="Tracker" >
+      LocalTimeOffsetSec="0.0">
       <DataSources>
         <DataSource Type="Tool" Id="Probe" PortName="0" Model="L14-5_38" BufferSize="2500" AveragedItemsForFiltering="20"/>
         <DataSource Type="Tool" Id="Reference" PortName="1" BufferSize="2500" AveragedItemsForFiltering="20"/>
         <DataSource Type="Tool" Id="Stylus" PortName="2" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
         <DataSource Type="Tool" Id="Needle" PortName="3" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
       </DataSources>
+
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
           <DataSource Id="Probe"/>
@@ -48,6 +47,7 @@
       <DataSources>
         <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="500" AveragedItemsForFiltering="20" />
       </DataSources>
+
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
@@ -60,13 +60,13 @@
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="VideoStream" />
       </InputChannels>
+
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>
     </Device>
     
   </DataCollection>
-  
   <CoordinateDefinitions>
     <Transform From="Image" To="Probe"
       Matrix="
@@ -104,29 +104,30 @@
         0  0  0  1"
        Date="060612_162219"/>
   </CoordinateDefinitions>
-  
   <Rendering WorldCoordinateFrame="Reference">
     <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" Id="ProbeModel" File="L14-5_38_ProbeModel.stl"
       ModelToObjectTransform="
         -1 0 0 29.7
         0 -1 0 1.5
         0 0 1 -14
-        0 0 0 1" />
+        0 0 0 1"
+      />
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel" File="Stylus_Example.stl"
       ModelToObjectTransform="
         1  0  0  -210
         0  1  0  0
         0  0  1  0
-        0  0  0  1" />
+        0  0  0  1"
+      />
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom" Opacity="0.6" File="FCal_1.0.stl"
       ModelToObjectTransform="
         1  0  0  -15
         0  1  0  10
         0  0  1  -5
-        0  0  0  1" />
+        0  0  0  1"
+      />
     <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
   </Rendering>
-  
   <Segmentation
     ApproximateSpacingMmPerPixel="0.0964686"
     MorphologicalOpeningCircleRadiusMm="0.37"
@@ -141,7 +142,6 @@
     ThresholdImagePercent="10"
     CollinearPointsMaxDistanceFromLineMm="0.6"
     UseOriginalImageIntensityForDotIntensityScore="0"/>
-    
   <PhantomDefinition>
     <Description Name="fCAL" Type="Double-N" Version="1.0" WiringVersion="1.0" Institution="Queen&apos;s University PerkLab"/>
     <Geometry>
@@ -167,7 +167,6 @@
       </Landmarks>
     </Geometry>
   </PhantomDefinition>
-  
   <VolumeReconstruction
     OutputSpacing="0.5 0.5 0.5"
     ClipRectangleOrigin="0 0"
@@ -176,12 +175,11 @@
     Optimization="FULL"
     Compounding="On"
     FillHoles="Off"/>
-    
   <fCal
     PhantomModelId="PhantomModel"
-    TransducerModelId="ProbeModel"
-    StylusModelId="StylusModel"
-    ImageDisplayableObjectId="LiveImage"
+  TransducerModelId="ProbeModel"
+  StylusModelId="StylusModel"
+  ImageDisplayableObjectId="LiveImage"
     NumberOfCalibrationImagesToAcquire="200"
     NumberOfValidationImagesToAcquire="100"
     NumberOfStylusCalibrationPointsToAcquire="200"
@@ -193,11 +191,8 @@
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
     TemporalCalibrationDurationSec="10"/>
-    
   <vtkPivotCalibrationAlgo ObjectMarkerCoordinateFrame="Stylus" ReferenceCoordinateFrame="Reference" ObjectPivotPointCoordinateFrame="StylusTip"/>
-  
-  <vtkPhantomRegistrationAlgo PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference" StylusTipCoordinateFrame="StylusTip"/>
-  
+  <vtkPhantomLandmarkRegistrationAlgo PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference" StylusTipCoordinateFrame="StylusTip"/>
+  <vtkPhantomLinearObjectRegistrationAlgo PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference" StylusTipCoordinateFrame="StylusTip"/>
   <vtkProbeCalibrationAlgo ImageCoordinateFrame="Image" ProbeCoordinateFrame="Probe" PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference"/>
-
 </PlusConfiguration>

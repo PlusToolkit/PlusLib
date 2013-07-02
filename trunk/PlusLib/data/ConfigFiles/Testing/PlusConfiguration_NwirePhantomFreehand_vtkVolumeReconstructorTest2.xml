@@ -2,6 +2,13 @@
   
   <PhantomDefinition version="1.0">
     <Description Name="fCAL" Type="Double-N" Version="1.0" Institution="Queen's University PerkLab" />
+    <Model File="FCal_1.0.stl"
+      ModelToPhantomTransform="
+        1 0 0 -15.0
+        0 1 0 10.0
+        0 0 1 -5.0
+        0 0 0 1"
+    />
     <Geometry>
       <NWire>
         <Wire Id="1" Name="E3_e3" EndPointFront="20.0 0.0 5.0" EndPointBack="20.0 40.0 5.0" />
@@ -23,6 +30,13 @@
         <Landmark Name="#7" Position="-25.0 0.0 0.0" />
         <Landmark Name="#8" Position="-25.0 40.0 0.0" />
       </Landmarks>
+      <Registration MatrixName="PhantomToPhantomReference"
+        MatrixValue="0.9969 0.0038 -0.0782 -35.8004
+                     0.0781 0.0057 0.9969 -124.7711
+                     0.0042 -1.0000 0.0054 -17.2
+                     0 0 0 1"
+        Error="-1" Date="2011.08.19 14:10:32"
+      />
     </Geometry>
   </PhantomDefinition>
   

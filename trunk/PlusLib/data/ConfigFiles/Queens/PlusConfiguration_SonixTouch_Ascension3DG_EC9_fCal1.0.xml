@@ -1,23 +1,23 @@
 <PlusConfiguration version="2.3">
 
   <DataCollection StartupDelaySec="1.0" >
-  
     <DeviceSet 
       Name="SonixTouch Ascension3DG(GPS) EC9 +Reference +Stylus" 
-      Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." />
+      Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." 
+    />
 
     <Device
       Id="TrackerDevice" 
       Type="Ascension3DG" 
       AcquisitionRate="50" 
       LocalTimeOffsetSec="0.0" 
-      FilterAcWideNotch="1" 
-      ToolReferenceFrame="Tracker" >
+      FilterAcWideNotch="1" >
       <DataSources>
         <DataSource Type="Tool" Id="Probe" BufferSize="500" PortName="0" AveragedItemsForFiltering="20" />
         <DataSource Type="Tool" Id="Reference" BufferSize="500" PortName="1" AveragedItemsForFiltering="20" />
         <DataSource Type="Tool" Id="Stylus" BufferSize="500" PortName="2" AveragedItemsForFiltering="20" />     
       </DataSources> 
+
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
           <DataSource Id="Probe"/>
@@ -43,7 +43,8 @@
       CompressionStatus="0" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="100" AveragedItemsForFiltering="20" />
-      </DataSources>      
+      </DataSources>
+      
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
@@ -55,7 +56,8 @@
       <InputChannels>
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="VideoStream" />
-      </InputChannels>      
+      </InputChannels>
+      
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>
@@ -63,14 +65,17 @@
     
   </DataCollection>
 
+
   <CoordinateDefinitions>
     <Transform From="Image" To="TransducerOriginPixel"
       Matrix="1 0 0 -410
               0 1 0 5
               0 0 1 0
               0 0 0 1"
-      Date="2011.12.06 17:57:00" Error="0.0" />    
+      Date="2011.12.06 17:57:00" Error="0.0"
+    />    
   </CoordinateDefinitions> 
+
 
   <Rendering WorldCoordinateFrame="Reference">
     <!-- TODO EC9 model and proper transform -->
@@ -80,14 +85,16 @@
         -1 0 0 29.7
         0 -1 0 1.5
         0 0 1 -14
-        0 0 0 1" />
+        0 0 0 1"
+    />
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel"
       File="Stylus_Example.stl"
       ModelToObjectTransform="
         1 0 0 -210.0
         0 1 0 0
         0 0 1 0
-        0 0 0 1" />
+        0 0 0 1"
+    />
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
       Opacity="0.6"
       File="FCal_1.0.stl"
@@ -95,9 +102,11 @@
         1 0 0 -15.0
         0 1 0 10.0
         0 0 1 -5.0
-        0 0 0 1" />
+        0 0 0 1"
+      />
     <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
   </Rendering>
+
 
   <Segmentation
     ApproximateSpacingMmPerPixel="0.078"
@@ -113,7 +122,9 @@
     MaxLineShiftMm="10.0"
     ThresholdImagePercent="10"
     CollinearPointsMaxDistanceFromLineMm="0.6"
-    UseOriginalImageIntensityForDotIntensityScore="0" />
+    UseOriginalImageIntensityForDotIntensityScore="0"
+  />
+
 
   <PhantomDefinition>
     <!-- Supported types are: Double-N, U-Shaped-N -->
@@ -122,7 +133,9 @@
       Type="Double-N"
       Version="1.0"
       WiringVersion="1.0"
-      Institution="Queen's University PerkLab" />
+      Institution="Queen's University PerkLab"
+    />
+
     <Geometry>
       <Pattern Type="NWire">
         <Wire Name="1:E3_e3" EndPointFront="20.0 0.0 5.0" EndPointBack="20.0 40.0 5.0" />
@@ -134,11 +147,13 @@
         <Wire Name="5:J4_f4" EndPointFront="45.0 0.0 0.0" EndPointBack="25.0 40.0 0.0" />
         <Wire Name="6:K4_k4" EndPointFront="50.0 0.0 0.0" EndPointBack="50.0 40.0 0.0" />
       </Pattern>
+
       <Landmarks>
         <Landmark Name="#1" Position="95.0 5.0 15.0" />
         <Landmark Name="#2" Position="95.0 40.0 15.0" />
         <Landmark Name="#3" Position="95.0 40.0 0.0" />
         <Landmark Name="#4" Position="95.0 0.0 0.0" />
+
         <Landmark Name="#5" Position="-25.0 40.0 15.0" />
         <Landmark Name="#6" Position="-25.0 0.0 10.0" />
         <Landmark Name="#7" Position="-25.0 0.0 0.0" />
@@ -147,15 +162,18 @@
     </Geometry>
   </PhantomDefinition>
 
+
   <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
     ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
-    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off" />
+    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"
+  />
+
 
   <fCal
     PhantomModelId="PhantomModel"
-    TransducerModelId="ProbeModel"
-    StylusModelId="StylusModel"
-    ImageDisplayableObjectId="LiveImage"
+  TransducerModelId="ProbeModel"
+  StylusModelId="StylusModel"
+  ImageDisplayableObjectId="LiveImage"
     NumberOfCalibrationImagesToAcquire="200"
     NumberOfValidationImagesToAcquire="100"
     NumberOfStylusCalibrationPointsToAcquire="200"
@@ -166,22 +184,35 @@
     ReferenceCoordinateFrame="Reference"
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
-    TemporalCalibrationDurationSec="10" />
+    TemporalCalibrationDurationSec="10"
+  />
+
 
   <vtkPivotCalibrationAlgo
     ObjectMarkerCoordinateFrame="Stylus"
     ReferenceCoordinateFrame="Reference"
-    ObjectPivotPointCoordinateFrame="StylusTip" />
+    ObjectPivotPointCoordinateFrame="StylusTip"
+  />
 
-  <vtkPhantomRegistrationAlgo
+
+  <vtkPhantomLandmarkRegistrationAlgo
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
-    StylusTipCoordinateFrame="StylusTip" />
+    StylusTipCoordinateFrame="StylusTip"
+  />
+  
+  <vtkPhantomLinearObjectRegistrationAlgo
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+    StylusTipCoordinateFrame="StylusTip"
+  />
+
 
   <vtkProbeCalibrationAlgo
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"
     PhantomCoordinateFrame="Phantom"
-    ReferenceCoordinateFrame="Reference" />
+    ReferenceCoordinateFrame="Reference"
+  />
 
 </PlusConfiguration>

@@ -1,18 +1,17 @@
 <PlusConfiguration version="2.3">
 
   <DataCollection StartupDelaySec="1.0" >
-
     <DeviceSet 
       Name="SonixRP L14-5 in RF mode + NDI Certus" 
       Description="Configuration file for SonixRP L14-5 in RF mode + NDI Certus + fCal 1.0
-The computer needs to be on the same local network as SonixRP and the Certus SCU unit. The tools need to be plugged in the slots as following: 1: Probe, 2: Reference, 3: Stylus, 4: Needle (optional)" />
+The computer needs to be on the same local network as SonixRP and the Certus SCU unit. The tools need to be plugged in the slots as following: 1: Probe, 2: Reference, 3: Stylus, 4: Needle (optional)"
+    />
 
     <Device
       Id="TrackerDevice"
       Type="CertusTracker"
       AcquisitionRate="50"
-      LocalTimeOffsetSec="0.0" 
-      ToolReferenceFrame="Tracker" >
+      LocalTimeOffsetSec="0.0" >
       <DataSources>
         <DataSource Type="Tool" Id="Probe" PortName="0" Model="L14-5_38" BufferSize="2500" AveragedItemsForFiltering="20"/>
         <DataSource Type="Tool" Id="Reference" PortName="1" BufferSize="2500" AveragedItemsForFiltering="20"/>
@@ -44,9 +43,11 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
       Frequency="-1" 
       Timeout="-1" 
       CompressionStatus="0" >
+
       <DataSources>
         <DataSource Type="Video" Id="Video" PortName="Rf" PortUsImageOrientation="FM" BufferSize="100" AveragedItemsForFiltering="20" />
-      </DataSources>      
+      </DataSources>
+      
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" >
           <RfProcessing>
@@ -72,11 +73,11 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="VideoStream" />
       </InputChannels>
+      
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>
     </Device>
-    
   </DataCollection>
 
   <CoordinateDefinitions>
@@ -85,8 +86,10 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
               0 1 0 5
               0 0 1 0
               0 0 0 1"
-      Date="2011.12.07 11:39:00" Error="0.0" />    
+      Date="2011.12.07 11:39:00" Error="0.0"
+    />    
   </CoordinateDefinitions> 
+
 
   <Rendering WorldCoordinateFrame="Reference">
     <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" Id="ProbeModel"
@@ -95,14 +98,16 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
         -1 0 0 29.7
         0 -1 0 1.5
         0 0 1 -14
-        0 0 0 1" />
+        0 0 0 1"
+    />
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel"
       File="Stylus_Example.stl"
       ModelToObjectTransform="
         1 0 0 -210.0
         0 1 0 0
         0 0 1 0
-        0 0 0 1" />
+        0 0 0 1"
+    />
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
       Opacity="0.6"
       File="FCal_1.0.stl"
@@ -110,9 +115,11 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
         1 0 0 -15.0
         0 1 0 10.0
         0 0 1 -5.0
-        0 0 0 1" />
+        0 0 0 1"
+      />
     <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
   </Rendering>
+  
 
   <Segmentation
     ApproximateSpacingMmPerPixel="0.098"
@@ -128,7 +135,9 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
     AngleToleranceDegrees="10"
     ThresholdImagePercent="10.0"
     CollinearPointsMaxDistanceFromLineMm="0.52"
-    UseOriginalImageIntensityForDotIntensityScore="0" />
+    UseOriginalImageIntensityForDotIntensityScore="0"
+  />
+
 
   <PhantomDefinition>
     <!-- Supported types are: Double-N, U-Shaped-N -->
@@ -137,7 +146,9 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
       Type="Double-N"
       Version="1.0"
       WiringVersion="1.0"
-      Institution="Queen's University PerkLab" />
+      Institution="Queen's University PerkLab"
+      />
+
     <Geometry>
       <Pattern Type="NWire">
         <Wire Name="1:E3_e3" EndPointFront="20.0 0.0 5.0" EndPointBack="20.0 40.0 5.0" />
@@ -149,11 +160,13 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
         <Wire Name="5:J4_f4" EndPointFront="45.0 0.0 0.0" EndPointBack="25.0 40.0 0.0" />
         <Wire Name="6:K4_k4" EndPointFront="50.0 0.0 0.0" EndPointBack="50.0 40.0 0.0" />
       </Pattern>
+
       <Landmarks>
         <Landmark Name="#1" Position="95.0 5.0 15.0" />
         <Landmark Name="#2" Position="95.0 40.0 15.0" />
         <Landmark Name="#3" Position="95.0 40.0 0.0" />
         <Landmark Name="#4" Position="95.0 0.0 0.0" />
+
         <Landmark Name="#5" Position="-25.0 40.0 15.0" />
         <Landmark Name="#6" Position="-25.0 0.0 10.0" />
         <Landmark Name="#7" Position="-25.0 0.0 0.0" />
@@ -162,15 +175,18 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
     </Geometry>
   </PhantomDefinition>
 
+
   <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
     ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
-    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off" />
+    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"
+  />
+
 
   <fCal
     PhantomModelId="PhantomModel"
-    TransducerModelId="ProbeModel"
-    StylusModelId="StylusModel"
-    ImageDisplayableObjectId="LiveImage"
+  TransducerModelId="ProbeModel"
+  StylusModelId="StylusModel"
+  ImageDisplayableObjectId="LiveImage"
     NumberOfCalibrationImagesToAcquire="200"
     NumberOfValidationImagesToAcquire="100"
     NumberOfStylusCalibrationPointsToAcquire="200"
@@ -181,22 +197,35 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
     ReferenceCoordinateFrame="Reference"
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
-    TemporalCalibrationDurationSec="10" />
+    TemporalCalibrationDurationSec="10"
+  />
+
 
   <vtkPivotCalibrationAlgo
     ObjectMarkerCoordinateFrame="Stylus"
     ReferenceCoordinateFrame="Reference"
-    ObjectPivotPointCoordinateFrame="StylusTip" />
+    ObjectPivotPointCoordinateFrame="StylusTip"
+  />
 
-  <vtkPhantomRegistrationAlgo
+
+  <vtkPhantomLandmarkRegistrationAlgo
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
-    StylusTipCoordinateFrame="StylusTip" />
+    StylusTipCoordinateFrame="StylusTip"
+  />
+  
+  <vtkPhantomLinearObjectRegistrationAlgo
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+    StylusTipCoordinateFrame="StylusTip"
+  />
+
 
   <vtkProbeCalibrationAlgo
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"
     PhantomCoordinateFrame="Phantom"
-    ReferenceCoordinateFrame="Reference" />
+    ReferenceCoordinateFrame="Reference"
+  />
 
 </PlusConfiguration>

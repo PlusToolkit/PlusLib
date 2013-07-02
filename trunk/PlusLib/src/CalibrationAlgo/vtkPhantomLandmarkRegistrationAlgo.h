@@ -4,8 +4,8 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#ifndef __vtkvtkPhantomRegistrationAlgo_h
-#define __vtkvtkPhantomRegistrationAlgo_h
+#ifndef __vtkPhantomLandmarkRegistrationAlgo_h
+#define __vtkPhantomLandmarkRegistrationAlgo_h
 
 #include "PlusConfigure.h"
 
@@ -19,15 +19,15 @@ class vtkXMLDataElement;
 //-----------------------------------------------------------------------------
 
 /*!
-  \class vtkPhantomRegistrationAlgo 
+  \class vtkPhantomLandmarkRegistrationAlgo 
   \brief Landmark registration to determine the Phantom pose relative to the attached marker (PhantomReference).
   \ingroup PlusLibCalibrationAlgorithm
 */
-class vtkPhantomRegistrationAlgo : public vtkObject
+class VTK_EXPORT vtkPhantomLandmarkRegistrationAlgo : public vtkObject
 {
 public:
-  vtkTypeRevisionMacro(vtkPhantomRegistrationAlgo,vtkObject);
-  static vtkPhantomRegistrationAlgo *New();
+  vtkTypeRevisionMacro(vtkPhantomLandmarkRegistrationAlgo,vtkObject);
+  static vtkPhantomLandmarkRegistrationAlgo *New();
 
 public:
   /*!
@@ -50,7 +50,7 @@ public:
   std::string GetDefinedLandmarkName(int aIndex) { return this->DefinedLandmarkNames[aIndex]; };
 
   /*! Get configuration element name */
-  static std::string GetConfigurationElementName() { return vtkPhantomRegistrationAlgo::ConfigurationElementName; };
+  static std::string GetConfigurationElementName() { return vtkPhantomLandmarkRegistrationAlgo::ConfigurationElementName; };
 
 public:
 
@@ -82,8 +82,8 @@ protected:
   vtkSetStringMacro(StylusTipCoordinateFrame);
 
 protected:
-  vtkPhantomRegistrationAlgo();
-  virtual  ~vtkPhantomRegistrationAlgo();
+  vtkPhantomLandmarkRegistrationAlgo();
+  virtual  ~vtkPhantomLandmarkRegistrationAlgo();
 
 protected:
   /*! Point array holding the defined landmarks from the configuration file */

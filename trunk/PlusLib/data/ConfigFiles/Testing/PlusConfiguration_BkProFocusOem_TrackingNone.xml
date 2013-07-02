@@ -3,7 +3,9 @@
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
       Name="BK ProFocus scanner through OEM interface"
-      Description="BK ProFocus ultrasound scanner image acquisition only" />
+      Description="BK ProFocus ultrasound scanner image acquisition only" 
+    />
+
     <!-- Bk pro focus must come first for automated tests to pass -->
     <!-- Setting AcquisitionRate to higher value may decrease the responsiveness of the BK software on the scanner. Thoroughly test the performance of the BK scanner when acquiring images through the OEM interface. -->
     <Device 
@@ -11,7 +13,8 @@
       Type="BkProFocusOem"
       IniFileName="BkSettings/IniFile.ini"
       AcquisitionRate="1.5"
-      LocalTimeOffsetSec="0" >
+      LocalTimeOffsetSec="0"
+      >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="100" AveragedItemsForFiltering="20" />
       </DataSources>
@@ -19,6 +22,7 @@
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video"  />
       </OutputChannels>
     </Device>
+
   </DataCollection>
 
   <fCal
@@ -37,6 +41,7 @@
     ReferenceCoordinateFrame="Reference"
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
-    TemporalCalibrationDurationSec="10" />
+    TemporalCalibrationDurationSec="10"
+  />
 
 </PlusConfiguration>

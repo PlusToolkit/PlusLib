@@ -4,14 +4,15 @@
     <DeviceSet 
       Name="Simulation mode for Stylus calibration"
       Description="No Video with Fake tracker in Pivot calibration mode
-vtkStylusCalibrationTest uses this configuration" />
+vtkStylusCalibrationTest uses this configuration" 
+    />
     <Device
       Id="TrackerDevice"
       Type="FakeTracker"
       AcquisitionRate="50"
       LocalTimeOffsetSec="0.0"
-      Mode="PivotCalibration"  
-      ToolReferenceFrame="Tracker" >
+      ToolReferenceFrame="Tracker"
+      Mode="PivotCalibration"  >
       <DataSources>
         <DataSource Type="Tool" Id="Reference" BufferSize="1000" AveragedItemsForFiltering="20" PortName="0" />
         <DataSource Type="Tool" Id="Stylus" BufferSize="1000" AveragedItemsForFiltering="20" PortName="1" Model="Example" />     
@@ -25,6 +26,7 @@ vtkStylusCalibrationTest uses this configuration" />
     </Device>
   </DataCollection>
 
+
   <Rendering WorldCoordinateFrame="Reference">
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel"
       File="Stylus_Example.stl"
@@ -32,11 +34,14 @@ vtkStylusCalibrationTest uses this configuration" />
         1 0 0 -210.0
         0 1 0 0
         0 0 1 0
-        0 0 0 1" />
+        0 0 0 1"
+    />
   </Rendering>
+
 
   <CoordinateDefinitions>
   </CoordinateDefinitions>
+
 
   <fCal
     PhantomModelId="PhantomModel"
@@ -48,11 +53,14 @@ vtkStylusCalibrationTest uses this configuration" />
     ProbeCoordinateFrame="Probe"
     ReferenceCoordinateFrame="Reference"
     TransducerOriginCoordinateFrame="TransducerOrigin"
-    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel" />
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+  />
+
 
   <vtkPivotCalibrationAlgo
     ObjectMarkerCoordinateFrame="Stylus"
     ReferenceCoordinateFrame="Reference"
-    ObjectPivotPointCoordinateFrame="StylusTip" />
+    ObjectPivotPointCoordinateFrame="StylusTip"
+  />
 
 </PlusConfiguration>

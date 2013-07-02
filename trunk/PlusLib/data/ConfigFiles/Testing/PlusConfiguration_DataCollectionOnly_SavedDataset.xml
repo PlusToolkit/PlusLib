@@ -17,7 +17,8 @@
       SequenceMetafile="NwirePhantomFreehand.mha" >
       <DataSources>
         <DataSource Type="Tool" Id="Tool" BufferSize="200" AveragedItemsForFiltering="20" PortName="0" />
-      </DataSources>      
+      </DataSources>
+      
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
           <DataSource Id="Tool"/>
@@ -34,7 +35,8 @@
       SequenceMetafile="NwirePhantomFreehand.mha" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="200" AveragedItemsForFiltering="20" />
-      </DataSources>      
+      </DataSources>
+      
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
@@ -45,6 +47,7 @@
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="VideoStream" />
       </InputChannels>
+
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>

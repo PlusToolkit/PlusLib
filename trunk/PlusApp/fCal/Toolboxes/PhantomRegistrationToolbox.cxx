@@ -9,11 +9,13 @@ See License.txt for details.
 #include "fCalMainWindow.h"
 #include "vtkVisualizationController.h"
 
-#include "vtkPhantomRegistrationAlgo.h"
+#include "vtkPhantomLandmarkRegistrationAlgo.h"
+#include "vtkPhantomLinearObjectRegistrationAlgo.h"
 #include "vtkPivotCalibrationAlgo.h"
 #include "vtkFakeTracker.h"
 
 #include <QFileDialog>
+#include <QTimer>
 
 #include "vtkXMLUtilities.h"
 #include "vtkRenderWindow.h"
@@ -34,17 +36,28 @@ PhantomRegistrationToolbox::PhantomRegistrationToolbox(fCalMainWindow* aParentMa
 , m_RequestedLandmarkPolyData(NULL)
 , m_PhantomRenderer(NULL)
 , m_CurrentLandmarkIndex(0)
+, m_LinearObjectRegistrationState(LinearObjectRegistrationState_Incomplete)
+, m_PreviousStylusTipToReferenceTransformMatrix(NULL)
 {
   ui.setupUi(this);
 
   // Create algorithm class
-  m_PhantomRegistration = vtkPhantomRegistrationAlgo::New();
-  if (m_PhantomRegistration == NULL)
+  m_PhantomLandmarkRegistration = vtkPhantomLandmarkRegistrationAlgo::New();
+  if (m_PhantomLandmarkRegistration == NULL)
   {
-    LOG_ERROR("Unable to instantiate phantom registration algorithm class!");
+    LOG_ERROR("Unable to instantiate phantom landmark registration algorithm class!");
     return;
   }
 
+  m_PhantomLinearObjectRegistration = vtkPhantomLinearObjectRegistrationAlgo::New();
+  if(m_PhantomLinearObjectRegistration == NULL)
+  {
+    LOG_ERROR("Unable to instantiate phantom linear object registration algorithm class!");
+    return;
+  }
+
+  m_PreviousStylusTipToReferenceTransformMatrix = vtkMatrix4x4::New();
+  
   // Create and add renderer to phantom canvas
   m_PhantomRenderer = vtkRenderer::New();
   m_PhantomRenderer->SetBackground(0.1, 0.1, 0.1);
@@ -77,17 +90,26 @@ PhantomRegistrationToolbox::PhantomRegistrationToolbox(fCalMainWindow* aParentMa
   connect( ui.pushButton_OpenStylusCalibration, SIGNAL( clicked() ), this, SLOT( OpenStylusCalibration() ) );
   connect( ui.pushButton_RecordPoint, SIGNAL( clicked() ), this, SLOT( RecordPoint() ) );
   connect( ui.pushButton_Undo, SIGNAL( clicked() ), this, SLOT( Undo() ) );
-  connect( ui.pushButton_Reset, SIGNAL( clicked() ), this, SLOT( Reset() ) );
+  connect( ui.pushButton_Landmark_Reset, SIGNAL( clicked() ), this, SLOT( Reset() ) );
+
+  connect( ui.pushButton_StartStop, SIGNAL( clicked() ), this, SLOT( StartLinearObjectRegistration() ) );
+  connect( ui.pushButton_LinearObject_Reset, SIGNAL( clicked() ), this, SLOT( ResetLinearObjectRegistration() ));
 }
 
 //-----------------------------------------------------------------------------
 
 PhantomRegistrationToolbox::~PhantomRegistrationToolbox()
 {
-  if (m_PhantomRegistration != NULL)
+  if (m_PhantomLandmarkRegistration != NULL)
   {
-    m_PhantomRegistration->Delete();
-    m_PhantomRegistration = NULL;
+    m_PhantomLandmarkRegistration->Delete();
+    m_PhantomLandmarkRegistration = NULL;
+  } 
+
+  if (m_PhantomLinearObjectRegistration != NULL)
+  {
+    m_PhantomLinearObjectRegistration->Delete();
+    m_PhantomLinearObjectRegistration = NULL;
   } 
 
   if (m_PhantomActor != NULL)
@@ -116,6 +138,12 @@ PhantomRegistrationToolbox::~PhantomRegistrationToolbox()
     m_PhantomRenderer->Delete();
     m_PhantomRenderer = NULL;
   }
+
+  if (m_PreviousStylusTipToReferenceTransformMatrix != NULL)
+  {
+    m_PreviousStylusTipToReferenceTransformMatrix->Delete();
+    m_PreviousStylusTipToReferenceTransformMatrix = NULL;
+  } 
 }
 
 //-----------------------------------------------------------------------------
@@ -133,11 +161,26 @@ void PhantomRegistrationToolbox::OnActivated()
   if ( (m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL)
     && (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetConnected()) )
   {
-    if (m_PhantomRegistration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
+    if (m_PhantomLandmarkRegistration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS && m_PhantomLinearObjectRegistration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Reading phantom registration algorithm configuration failed!");
+      LOG_ERROR("Reading phantom registration algorithms configuration failed!");
       return;
     }
+    else
+    {
+      if(m_PhantomLandmarkRegistration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
+      {
+        ui.tabWidget->setTabEnabled(0, false);
+        LOG_WARNING("Phantom landmark definitions not found in XML tree. Perform Linear Object Registration instead!");
+      }
+      
+      if(m_PhantomLinearObjectRegistration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
+      {
+        ui.tabWidget->setTabEnabled(1, false);
+        LOG_WARNING("Phantom plane definitions not found in XML tree. Perform Landmark Registration instead!");
+      }
+    }
+    
 
     if (ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
     {
@@ -147,7 +190,7 @@ void PhantomRegistrationToolbox::OnActivated()
 
     // Check if stylus tip to reference transform is available
     if (m_ParentMainWindow->GetVisualizationController()->IsExistingTransform(
-      m_PhantomRegistration->GetStylusTipCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame()) == PLUS_SUCCESS)
+      m_PhantomLandmarkRegistration->GetStylusTipCoordinateFrame(), m_PhantomLandmarkRegistration->GetReferenceCoordinateFrame()) == PLUS_SUCCESS)
     {
       // Set to InProgress if both stylus calibration and phantom definition are available
       Start();
@@ -243,21 +286,51 @@ void PhantomRegistrationToolbox::RefreshContent()
   // If in progress
   if (m_State == ToolboxState_InProgress)
   {
-    ui.label_Instructions->setText(QString("Touch landmark named %1 and press Record point button").arg(m_PhantomRegistration->GetDefinedLandmarkName(m_CurrentLandmarkIndex).c_str()));
+    if( ui.tabWidget->currentIndex() == TabIndex_Landmark )
+    {
+      ui.label_Instructions->setText(QString("Touch landmark named %1 and press Record point button\n\n").arg(m_PhantomLandmarkRegistration->GetDefinedLandmarkName(m_CurrentLandmarkIndex).c_str()));
+    }
+    else if( ui.tabWidget->currentIndex() == TabIndex_LinearObject )
+    {
+      if(GetLinearObjectRegistrationState() == LinearObjectRegistrationState_Incomplete)
+      {
+        ui.label_Instructions->setText("Press Start to begin identifying surfaces\n\n\n");
+      }
+      else if(GetLinearObjectRegistrationState() == LinearObjectRegistrationState_InProgress)
+      {
+        ui.label_Instructions->setText("Run the stylus along each linear object\nPress Stop when you have recorded each linear object\n");
+      }
+      else if(GetLinearObjectRegistrationState() == LinearObjectRegistrationState_Complete)
+      {
+        ui.label_Instructions->setText("Linear Object Registration is ready to be saved\nPress Reset to clear your current Linear Object registration");
+      }
+    }
+    else if( ui.tabWidget->currentIndex() == -1 )
+    {
+      LOG_ERROR("No tabs in tab widget, how on earth did this happen!?");
+    }
+
+    if(GetLinearObjectRegistrationState() == LinearObjectRegistrationState_Incomplete)
+    {
+      ui.pushButton_LinearObject_Reset->setEnabled(false);
+    }
+    else if(GetLinearObjectRegistrationState() == LinearObjectRegistrationState_Complete)
+    {
+      ui.pushButton_LinearObject_Reset->setEnabled(true);
+    }
 
     if (m_CurrentLandmarkIndex < 1)
     {
       ui.pushButton_Undo->setEnabled(false);
-      ui.pushButton_Reset->setEnabled(false);
+      ui.pushButton_Landmark_Reset->setEnabled(false);
     }
     else
     {
       ui.pushButton_Undo->setEnabled(true);
-      ui.pushButton_Reset->setEnabled(true);
+      ui.pushButton_Landmark_Reset->setEnabled(true);
     }
 
-    m_ParentMainWindow->SetStatusBarProgress((int)(100.0 * (m_CurrentLandmarkIndex / m_PhantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints()) + 0.5));
-
+    m_ParentMainWindow->SetStatusBarProgress((int)(100.0 * (m_CurrentLandmarkIndex / m_PhantomLandmarkRegistration->GetDefinedLandmarks()->GetNumberOfPoints()) + 0.5));
   }
 
   if (m_State == ToolboxState_Done || m_State == ToolboxState_InProgress)
@@ -265,7 +338,7 @@ void PhantomRegistrationToolbox::RefreshContent()
     // Get stylus tip position and display it
     std::string stylusTipPosition;
     bool valid = false;
-    if (m_ParentMainWindow->GetVisualizationController()->GetTransformTranslationString(m_PhantomRegistration->GetStylusTipCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame(), stylusTipPosition, &valid) != PLUS_SUCCESS)
+    if (m_ParentMainWindow->GetVisualizationController()->GetTransformTranslationString(m_PhantomLandmarkRegistration->GetStylusTipCoordinateFrame(), m_PhantomLandmarkRegistration->GetReferenceCoordinateFrame(), stylusTipPosition, &valid) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to get stylus tip to reference transform!");
       return;
@@ -273,11 +346,11 @@ void PhantomRegistrationToolbox::RefreshContent()
 
     if (valid)
     {
-      ui.label_StylusPosition->setText(QString(stylusTipPosition.c_str()));
+      ui.label_StylusPositionText->setText(QString(stylusTipPosition.c_str()));
     }
     else
     {
-      ui.label_StylusPosition->setText(tr("Stylus is out of view"));
+      ui.label_StylusPositionText->setText(tr("Stylus is out of view"));
     }
   }
 
@@ -306,17 +379,17 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->SetImageManipulationMenuEnabled(m_ParentMainWindow->GetVisualizationController()->Is2DMode());
 
     // Update state message according to available transforms
-    if (m_PhantomRegistration->GetPhantomCoordinateFrame() && m_PhantomRegistration->GetReferenceCoordinateFrame())
+    if (m_PhantomLandmarkRegistration->GetPhantomCoordinateFrame() && m_PhantomLandmarkRegistration->GetReferenceCoordinateFrame())
     {
-      if (m_ParentMainWindow->GetVisualizationController()->IsExistingTransform(m_PhantomRegistration->GetStylusTipCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame()) == PLUS_SUCCESS)
+      if (m_ParentMainWindow->GetVisualizationController()->IsExistingTransform(m_PhantomLandmarkRegistration->GetStylusTipCoordinateFrame(), m_PhantomLandmarkRegistration->GetReferenceCoordinateFrame()) == PLUS_SUCCESS)
       {
         std::string phantomToReferenceTransformNameStr;
         PlusTransformName phantomToReferenceTransformName(
-          m_PhantomRegistration->GetPhantomCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame());
+          m_PhantomLandmarkRegistration->GetPhantomCoordinateFrame(), m_PhantomLandmarkRegistration->GetReferenceCoordinateFrame());
         phantomToReferenceTransformName.GetTransformName(phantomToReferenceTransformNameStr);
 
         if (m_ParentMainWindow->GetVisualizationController()->IsExistingTransform(
-          m_PhantomRegistration->GetPhantomCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame(), false) == PLUS_SUCCESS)
+          m_PhantomLandmarkRegistration->GetPhantomCoordinateFrame(), m_PhantomLandmarkRegistration->GetReferenceCoordinateFrame(), false) == PLUS_SUCCESS)
         {
           std::string date, errorStr;
           double error;
@@ -372,25 +445,35 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
   // Set widget states according to state
   if (m_State == ToolboxState_Uninitialized)
   {
-    ui.label_StylusPosition->setText(tr("N/A"));
+    ui.label_StylusPositionText->setText(tr("Stylus position unavailable"));
     ui.label_Instructions->setText("");
 
     ui.pushButton_OpenStylusCalibration->setEnabled(false);
+
     ui.pushButton_RecordPoint->setEnabled(false);
-    ui.pushButton_Reset->setEnabled(false);
+    ui.pushButton_Landmark_Reset->setEnabled(false);
     ui.pushButton_Undo->setEnabled(false);
+    ui.pushButton_LinearObject_Reset->setEnabled(false);
+
+    ui.pushButton_StartStop->setEnabled(false);
+    ui.pushButton_StartStop->setText("Start");
 
     m_ParentMainWindow->SetStatusBarText(QString(""));
     m_ParentMainWindow->SetStatusBarProgress(-1);
   }
   else if (m_State == ToolboxState_Idle)
   {
-    ui.label_StylusPosition->setText(tr("N/A"));
+    ui.label_StylusPositionText->setText(tr("Stylus position unavailable"));
 
     ui.pushButton_OpenStylusCalibration->setEnabled(true);
+
     ui.pushButton_RecordPoint->setEnabled(false);
-    ui.pushButton_Reset->setEnabled(false);
+    ui.pushButton_Landmark_Reset->setEnabled(false);
     ui.pushButton_Undo->setEnabled(false);
+
+    ui.pushButton_LinearObject_Reset->setEnabled(false);
+    ui.pushButton_StartStop->setEnabled(false);
+    ui.pushButton_StartStop->setText("Start");
 
     m_ParentMainWindow->SetStatusBarText(QString(""));
     m_ParentMainWindow->SetStatusBarProgress(-1);
@@ -400,15 +483,17 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
     ui.pushButton_OpenStylusCalibration->setEnabled(true);
     ui.pushButton_RecordPoint->setEnabled(true);
 
+    ui.pushButton_StartStop->setEnabled(true);
+
     if (m_CurrentLandmarkIndex < 1)
     {
       ui.pushButton_Undo->setEnabled(false);
-      ui.pushButton_Reset->setEnabled(false);
+      ui.pushButton_Landmark_Reset->setEnabled(false);
     }
     else
     {
       ui.pushButton_Undo->setEnabled(true);
-      ui.pushButton_Reset->setEnabled(true);
+      ui.pushButton_Landmark_Reset->setEnabled(true);
     }
 
     m_ParentMainWindow->SetStatusBarText(QString(" Recording phantom landmarks"));
@@ -425,12 +510,15 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
   }
   else if (m_State == ToolboxState_Done)
   {
-    ui.label_Instructions->setText(QString("Registration error is %1 mm\nTransform is ready to save").arg(m_PhantomRegistration->GetRegistrationError(), 0, 'f', 6));
+    ui.label_Instructions->setText(QString("Registration error is %1 mm\nTransform is ready to save\n\n").arg(m_PhantomLandmarkRegistration->GetRegistrationError(), 0, 'f', 6));
 
     ui.pushButton_OpenStylusCalibration->setEnabled(true);
+
     ui.pushButton_RecordPoint->setEnabled(false);
-    ui.pushButton_Reset->setEnabled(true);
+    ui.pushButton_Landmark_Reset->setEnabled(true);
     ui.pushButton_Undo->setEnabled(true);
+
+    ui.pushButton_StartStop->setEnabled(true);
 
     m_ParentMainWindow->SetStatusBarText(QString(" Phantom registration done"));
     m_ParentMainWindow->SetStatusBarProgress(-1);
@@ -441,13 +529,17 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
   }
   else if (m_State == ToolboxState_Error)
   {
-    ui.label_StylusPosition->setText(tr("N/A"));
+    ui.label_StylusPositionText->setText(tr("N/A"));
     ui.label_Instructions->setText("");
 
     ui.pushButton_OpenStylusCalibration->setEnabled(true);
     ui.pushButton_RecordPoint->setEnabled(false);
-    ui.pushButton_Reset->setEnabled(false);
+    ui.pushButton_Landmark_Reset->setEnabled(false);
     ui.pushButton_Undo->setEnabled(false);
+
+    ui.pushButton_LinearObject_Reset->setEnabled(false);
+    ui.pushButton_StartStop->setEnabled(false);
+    ui.pushButton_StartStop->setText("Start");
 
     m_ParentMainWindow->SetStatusBarText(QString(""));
     m_ParentMainWindow->SetStatusBarProgress(-1);
@@ -461,9 +553,9 @@ PlusStatus PhantomRegistrationToolbox::Start()
   LOG_TRACE("PhantomRegistrationToolbox::Start"); 
 
   // Check number of landmarks
-  if (m_PhantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints() < 4)
+  if (m_PhantomLandmarkRegistration->GetDefinedLandmarks()->GetNumberOfPoints() < 4)
   {
-    LOG_ERROR("Not enough (" << m_PhantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints() << ") defined landmarks (should be at least 4)!");
+    LOG_ERROR("Not enough (" << m_PhantomLandmarkRegistration->GetDefinedLandmarks()->GetNumberOfPoints() << ") defined landmarks (should be at least 4)!");
     return PLUS_FAIL;
   }
 
@@ -475,7 +567,7 @@ PlusStatus PhantomRegistrationToolbox::Start()
   }
 
   if (m_ParentMainWindow->GetVisualizationController()->IsExistingTransform(
-    m_PhantomRegistration->GetStylusTipCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame()) == PLUS_SUCCESS)
+    m_PhantomLandmarkRegistration->GetStylusTipCoordinateFrame(), m_PhantomLandmarkRegistration->GetReferenceCoordinateFrame()) == PLUS_SUCCESS)
   {
     m_CurrentLandmarkIndex = 0;
 
@@ -484,7 +576,7 @@ PlusStatus PhantomRegistrationToolbox::Start()
     m_ParentMainWindow->GetVisualizationController()->GetInputPolyData()->Modified();
 
     // Highlight first landmark
-    m_RequestedLandmarkPolyData->GetPoints()->InsertPoint(0, m_PhantomRegistration->GetDefinedLandmarks()->GetPoint(0));
+    m_RequestedLandmarkPolyData->GetPoints()->InsertPoint(0, m_PhantomLandmarkRegistration->GetDefinedLandmarks()->GetPoint(0));
     m_RequestedLandmarkPolyData->GetPoints()->Modified();
 
     SetState(ToolboxState_InProgress);
@@ -532,7 +624,7 @@ void PhantomRegistrationToolbox::OpenStylusCalibration()
   }
 
   // Read stylus calibration transform
-  PlusTransformName stylusTipToStylusTransformName(m_PhantomRegistration->GetStylusTipCoordinateFrame(), pivotCalibrationAlgo->GetObjectMarkerCoordinateFrame());
+  PlusTransformName stylusTipToStylusTransformName(m_PhantomLandmarkRegistration->GetStylusTipCoordinateFrame(), pivotCalibrationAlgo->GetObjectMarkerCoordinateFrame());
   vtkSmartPointer<vtkMatrix4x4> stylusTipToStylusTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   std::string transformDate;
   double transformError = 0.0;
@@ -571,8 +663,6 @@ void PhantomRegistrationToolbox::OpenStylusCalibration()
 
   // Set to InProgress if both stylus calibration and phantom definition are available
   Start();
-
-  LOG_INFO("Stylus calibration imported in phantom registration toolbox from file '" << fileName.toLatin1().constData() << "'");
 }
 
 //-----------------------------------------------------------------------------
@@ -583,7 +673,7 @@ void PhantomRegistrationToolbox::RecordPoint()
 
   // If tracker is FakeTracker then set counter (trigger position change) and wait for it to apply the new position
   vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
-  
+
   if (dataCollector)
   {
     for( DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it )
@@ -602,7 +692,7 @@ void PhantomRegistrationToolbox::RecordPoint()
   // Acquire point
   vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   bool valid = false;
-  if (m_ParentMainWindow->GetVisualizationController()->GetTransformMatrix(m_PhantomRegistration->GetStylusTipCoordinateFrame(), m_PhantomRegistration->GetReferenceCoordinateFrame(), stylusTipToReferenceTransformMatrix, &valid) != PLUS_SUCCESS)
+  if (m_ParentMainWindow->GetVisualizationController()->GetTransformMatrix(m_PhantomLandmarkRegistration->GetStylusTipCoordinateFrame(), m_PhantomLandmarkRegistration->GetReferenceCoordinateFrame(), stylusTipToReferenceTransformMatrix, &valid) != PLUS_SUCCESS)
   {
     LOG_ERROR("No transform found between stylus and reference!");
     return;
@@ -618,8 +708,8 @@ void PhantomRegistrationToolbox::RecordPoint()
   double stylusTipPosition[4] = {stylusTipToReferenceTransformMatrix->GetElement(0,3), stylusTipToReferenceTransformMatrix->GetElement(1,3), stylusTipToReferenceTransformMatrix->GetElement(2,3), 1.0 };
 
   // Add recorded point to algorithm
-  m_PhantomRegistration->GetRecordedLandmarks()->InsertPoint(m_CurrentLandmarkIndex, stylusTipPosition[0], stylusTipPosition[1], stylusTipPosition[2]);
-  m_PhantomRegistration->GetRecordedLandmarks()->Modified();
+  m_PhantomLandmarkRegistration->GetRecordedLandmarks()->InsertPoint(m_CurrentLandmarkIndex, stylusTipPosition[0], stylusTipPosition[1], stylusTipPosition[2]);
+  m_PhantomLandmarkRegistration->GetRecordedLandmarks()->Modified();
 
   // Add recorded point to visualization
   m_ParentMainWindow->GetVisualizationController()->GetInputPolyData()->GetPoints()->InsertPoint(m_CurrentLandmarkIndex, stylusTipPosition[0], stylusTipPosition[1], stylusTipPosition[2]);
@@ -628,24 +718,26 @@ void PhantomRegistrationToolbox::RecordPoint()
   // Set new current landmark number and reset request flag
   ++m_CurrentLandmarkIndex;
 
-  LOG_INFO("Point recorded for phantom registration");
+  ui.tabWidget->setTabEnabled(1, false);
 
   // If there are at least 3 acquired points then register
   if (m_CurrentLandmarkIndex >= 3)
   {
-    if (m_PhantomRegistration->Register( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository() ) == PLUS_SUCCESS)
+    if (m_PhantomLandmarkRegistration->Register( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository() ) == PLUS_SUCCESS)
     {
       m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId(), true);
     }
     else
     {
-      LOG_ERROR("Phantom registration failed!");
+      LOG_ERROR("Phantom landmark registration failed!");
     }
   }
 
   // If it was the last landmark then write configuration, set status to done and reset landmark counter
-  if (m_CurrentLandmarkIndex == m_PhantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints())
+  if (m_CurrentLandmarkIndex == m_PhantomLandmarkRegistration->GetDefinedLandmarks()->GetNumberOfPoints())
   {
+    ui.tabWidget->setTabEnabled(1, false);
+
     if (m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->WriteConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to save phantom registration result in configuration XML tree!");
@@ -658,12 +750,12 @@ void PhantomRegistrationToolbox::RecordPoint()
     m_RequestedLandmarkPolyData->GetPoints()->GetData()->RemoveTuple(0);
     m_RequestedLandmarkPolyData->GetPoints()->Modified();
 
-    LOG_INFO("Phantom registration performed successfully");
+    LOG_INFO("Phantom landmark registration performed successfully");
   }
   else
   {
     // Highlight next landmark
-    m_RequestedLandmarkPolyData->GetPoints()->InsertPoint(0, m_PhantomRegistration->GetDefinedLandmarks()->GetPoint(m_CurrentLandmarkIndex));
+    m_RequestedLandmarkPolyData->GetPoints()->InsertPoint(0, m_PhantomLandmarkRegistration->GetDefinedLandmarks()->GetPoint(m_CurrentLandmarkIndex));
     m_RequestedLandmarkPolyData->GetPoints()->Modified();
   }
 
@@ -677,24 +769,31 @@ void PhantomRegistrationToolbox::Undo()
 {
   LOG_TRACE("PhantomRegistrationToolbox::Undo"); 
 
-  if (m_State == ToolboxState_Done) {
+  if (m_State == ToolboxState_Done)
+  {
     SetState(ToolboxState_InProgress);
+
+    ui.tabWidget->setTabEnabled(1, false);
   }
 
   if (m_CurrentLandmarkIndex > 0)
   {
+    if(m_CurrentLandmarkIndex == 1) {
+      ui.tabWidget->setTabEnabled(1, true);
+    }
+
     // Decrease current landmark index
     --m_CurrentLandmarkIndex;
 
     // Reset result transform (in case Undo was pressed when the registration was ready)
-    m_PhantomRegistration->SetPhantomToReferenceTransformMatrix(NULL);
+    m_PhantomLandmarkRegistration->SetPhantomToReferenceTransformMatrix(NULL);
 
     // Delete previously acquired landmark
     m_ParentMainWindow->GetVisualizationController()->GetInputPolyData()->GetPoints()->GetData()->RemoveTuple(m_CurrentLandmarkIndex);
     m_ParentMainWindow->GetVisualizationController()->GetInputPolyData()->Modified();
 
     // Highlight previous landmark
-    m_RequestedLandmarkPolyData->GetPoints()->InsertPoint(0, m_PhantomRegistration->GetDefinedLandmarks()->GetPoint(m_CurrentLandmarkIndex));
+    m_RequestedLandmarkPolyData->GetPoints()->InsertPoint(0, m_PhantomLandmarkRegistration->GetDefinedLandmarks()->GetPoint(m_CurrentLandmarkIndex));
     m_RequestedLandmarkPolyData->GetPoints()->Modified();
 
     // Hide phantom from main canvas
@@ -716,8 +815,6 @@ void PhantomRegistrationToolbox::Undo()
       }
     }
   }
-
-  LOG_INFO("Undo last step of phantom registration");
 }
 
 //-----------------------------------------------------------------------------
@@ -740,17 +837,17 @@ void PhantomRegistrationToolbox::Reset()
   m_CurrentLandmarkIndex = 0;
 
   // Reset result transform (if Reset was pressed when the registration was ready we have to make it null)
-  m_PhantomRegistration->SetPhantomToReferenceTransformMatrix(NULL);
+  m_PhantomLandmarkRegistration->SetPhantomToReferenceTransformMatrix(NULL);
 
   // Highlight first landmark
-  if ((m_State != ToolboxState_Uninitialized) && (m_PhantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints() > 0))
+  if ((m_State != ToolboxState_Uninitialized) && (m_PhantomLandmarkRegistration->GetDefinedLandmarks()->GetNumberOfPoints() > 0))
   {
-    m_RequestedLandmarkPolyData->GetPoints()->InsertPoint(0, m_PhantomRegistration->GetDefinedLandmarks()->GetPoint(0));
+    m_RequestedLandmarkPolyData->GetPoints()->InsertPoint(0, m_PhantomLandmarkRegistration->GetDefinedLandmarks()->GetPoint(0));
     m_RequestedLandmarkPolyData->GetPoints()->Modified();
   }
 
   // Hide phantom from main canvas
-  if (m_PhantomRegistration->GetReferenceCoordinateFrame())
+  if (m_PhantomLandmarkRegistration->GetReferenceCoordinateFrame())
   {
     m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId(), false);
   }
@@ -771,7 +868,7 @@ void PhantomRegistrationToolbox::Reset()
     }
   }
 
-  LOG_INFO("Reset phantom registration");
+  ui.tabWidget->setTabEnabled(0, true);
 }
 
 //-----------------------------------------------------------------------------
@@ -779,4 +876,195 @@ void PhantomRegistrationToolbox::Reset()
 void PhantomRegistrationToolbox::OnDeactivated()
 {
 
+}
+
+//-----------------------------------------------------------------------------
+
+void PhantomRegistrationToolbox::StartLinearObjectRegistration()
+{
+  LOG_TRACE("PhantomRegistrationToolbox::StartLinearObjectRegistration"); 
+
+  disconnect(ui.pushButton_StartStop, SIGNAL( clicked() ), this, SLOT( StartLinearObjectRegistration() ));
+  connect( ui.pushButton_StartStop, SIGNAL( clicked() ), this, SLOT( StopLinearObjectRegistration() ) );
+
+  ui.tabWidget->setTabEnabled(0, false);
+  ui.pushButton_LinearObject_Reset->setEnabled(false);
+  ui.pushButton_StartStop->setText(tr("Stop"));
+
+  SetLinearObjectRegistrationState(LinearObjectRegistrationState_InProgress);
+
+  m_CurrentPointNumber = 0;
+
+  // Clear input points
+  vtkSmartPointer<vtkPoints> inputPoints = vtkSmartPointer<vtkPoints>::New();
+  m_ParentMainWindow->GetVisualizationController()->GetInputPolyData()->SetPoints(inputPoints);
+
+  // Initialize stylus tool
+  vtkDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetStylusModelId());
+  if (object == NULL)
+  {
+    LOG_ERROR("No stylus tip displayable objects could be found!");
+    return;
+  }
+
+  // Set state to in progress
+  SetLinearObjectRegistrationState(LinearObjectRegistrationState_InProgress);
+
+  // Connect acquisition function to timer
+  connect( m_ParentMainWindow->GetVisualizationController()->GetAcquisitionTimer(), SIGNAL( timeout() ), this, SLOT( AddStylusTipPositionToLinearObjectRegistration() ) );
+}
+
+//-----------------------------------------------------------------------------
+
+void PhantomRegistrationToolbox::StopLinearObjectRegistration()
+{
+  LOG_TRACE("PhantomRegistrationToolbox::StopLinearObjectRegistration"); 
+
+  disconnect(ui.pushButton_StartStop, SIGNAL( clicked() ), this, SLOT( StopLinearObjectRegistration() ));
+  connect( ui.pushButton_StartStop, SIGNAL( clicked() ), this, SLOT( StartLinearObjectRegistration() ) );
+
+  ui.pushButton_LinearObject_Reset->setEnabled(true);
+  ui.pushButton_StartStop->setEnabled(false);
+  ui.pushButton_StartStop->setText(tr("Start"));
+
+  SetLinearObjectRegistrationState(LinearObjectRegistrationState_Complete);
+
+  // Disconnect acquisition function to timer
+  disconnect( m_ParentMainWindow->GetVisualizationController()->GetAcquisitionTimer(), SIGNAL( timeout() ), this, SLOT( AddStylusTipPositionToLinearObjectRegistration() ) );
+
+  //TODO:  send acquired points to algorithm [make sure to catch any errors and to replace any phantom landmark registration done prior] (logic)
+  if(m_PhantomLinearObjectRegistration->Register( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository() ) != PLUS_SUCCESS)
+  {
+    LOG_WARNING("Unable to register phantom! Try again");
+    ResetLinearObjectRegistration();
+  }
+  else
+  {
+    LOG_INFO("Phantom Linear Object Registration successful!");
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void PhantomRegistrationToolbox::ResetLinearObjectRegistration()
+{
+  LOG_TRACE("PhantomRegistrationToolbox::ResetLinearObjectRegistration"); 
+
+  ui.pushButton_StartStop->setEnabled(true);
+  ui.tabWidget->setTabEnabled(0, true);
+  
+  SetLinearObjectRegistrationState(LinearObjectRegistrationState_Incomplete);
+
+  //clear input points
+  vtkSmartPointer<vtkPoints> inputPoints = vtkSmartPointer<vtkPoints>::New();
+  m_ParentMainWindow->GetVisualizationController()->GetInputPolyData()->SetPoints(inputPoints);
+}
+
+//-----------------------------------------------------------------------------
+
+void PhantomRegistrationToolbox::AddStylusTipPositionToLinearObjectRegistration()
+{
+  LOG_TRACE("PhantomRegistrationToolbox::AddStylusTipPositionToLinearObjectRegistration");
+
+  // Get stylus tip position
+  vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  bool valid = false;
+  if (m_ParentMainWindow->GetVisualizationController()->GetTransformMatrix(
+    m_PhantomLinearObjectRegistration->GetStylusTipCoordinateFrame(), m_PhantomLinearObjectRegistration->GetReferenceCoordinateFrame(), stylusTipToReferenceTransformMatrix, &valid) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("No transform found between stylus tip and reference!");
+    return;
+  }
+
+  if (valid)
+  {
+    // Assemble position string for toolbox
+    std::stringstream ss;
+    ss << stylusTipToReferenceTransformMatrix->GetElement(0, 3) << " " << stylusTipToReferenceTransformMatrix->GetElement(1,3) << " " << stylusTipToReferenceTransformMatrix->GetElement(2,3);
+    m_StylusPositionString = QString(ss.str().c_str());
+
+    // Add point to the input if fulfills the criteria
+    vtkPoints* points = m_ParentMainWindow->GetVisualizationController()->GetInputPolyData()->GetPoints();
+
+    double positionDifferenceLowThresholdMm = 2.0;
+    double positionDifferenceHighThresholdMm = 500.0;
+    double positionDifferenceMm = -1.0;
+    double orientationDifferenceLowThresholdDegrees = 2.0;
+    double orientationDifferenceHighThresholdDegrees = 90.0;
+    double orientationDifferenceDegrees = -1.0;
+    
+    //TODO: make sure that when you switch planes you are recording, all the new points are not treated as outliers
+    if (m_CurrentPointNumber < 1)
+    {
+      // Always allow
+      positionDifferenceMm = (positionDifferenceLowThresholdMm + positionDifferenceHighThresholdMm) / 2.0;
+      orientationDifferenceDegrees = (orientationDifferenceLowThresholdDegrees + orientationDifferenceHighThresholdDegrees) / 2.0;
+    }
+    else
+    {
+      // Compute position and orientation difference of current and previous positions
+      positionDifferenceMm = PlusMath::GetPositionDifference(stylusTipToReferenceTransformMatrix, m_PreviousStylusTipToReferenceTransformMatrix);
+      orientationDifferenceDegrees = PlusMath::GetOrientationDifference(stylusTipToReferenceTransformMatrix, m_PreviousStylusTipToReferenceTransformMatrix);
+    }
+
+    // If current point is close to the previous one, or too far (outlier), we do not insert it
+    if (positionDifferenceMm < orientationDifferenceLowThresholdDegrees && orientationDifferenceDegrees < orientationDifferenceLowThresholdDegrees)
+    {
+      LOG_DEBUG("Acquired position is too close to the previous - it is skipped");
+    }
+    else if (positionDifferenceMm > positionDifferenceHighThresholdMm || orientationDifferenceDegrees > orientationDifferenceHighThresholdDegrees)
+    {
+      LOG_DEBUG("Acquired position seems to be an outlier - it is skipped");
+    }
+    else
+    {
+      // Add the point into the registration dataset
+      m_PhantomLinearObjectRegistration->InsertNextCalibrationPoint(stylusTipToReferenceTransformMatrix);
+
+      // Add to polydata for rendering
+      points->InsertPoint(m_CurrentPointNumber, stylusTipToReferenceTransformMatrix->GetElement(0,3), stylusTipToReferenceTransformMatrix->GetElement(1,3), stylusTipToReferenceTransformMatrix->GetElement(2,3));
+      points->Modified();
+
+      // Set new current point number
+      ++m_CurrentPointNumber;
+
+      // Reset the camera once in a while
+      if ((m_CurrentPointNumber > 0) && ((m_CurrentPointNumber % 10 == 0) || (m_CurrentPointNumber == 5)))
+      {
+        m_ParentMainWindow->GetVisualizationController()->GetCanvasRenderer()->ResetCamera();
+      }
+
+      //TODO: if there are more than 3 planes recorded, try to add a visualization of the phantom to the GUI
+
+      m_PreviousStylusTipToReferenceTransformMatrix->DeepCopy(stylusTipToReferenceTransformMatrix);
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void PhantomRegistrationToolbox::SetLinearObjectRegistrationState( LinearObjectRegistrationState state )
+{
+  m_LinearObjectRegistrationState = state;
+}
+
+//-----------------------------------------------------------------------------
+
+LinearObjectRegistrationState PhantomRegistrationToolbox::GetLinearObjectRegistrationState()
+{
+  return m_LinearObjectRegistrationState;
+}
+
+//-----------------------------------------------------------------------------
+
+vtkPhantomLandmarkRegistrationAlgo* PhantomRegistrationToolbox::GetPhantomLandmarkRegistrationAlgo()
+{
+  return m_PhantomLandmarkRegistration;
+}
+
+//-----------------------------------------------------------------------------
+
+vtkPhantomLinearObjectRegistrationAlgo* PhantomRegistrationToolbox::GetPhantomLinearObjectRegistrationAlgo()
+{
+  return m_PhantomLinearObjectRegistration;
 }

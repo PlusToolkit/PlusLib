@@ -27,7 +27,8 @@
       <InputChannels>
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="VideoStream" />
-      </InputChannels>      
+      </InputChannels>
+      
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>
@@ -40,13 +41,13 @@
       BufferSize="2500"
       AcquisitionRate="50"
       AveragedItemsForFiltering="20"
-      LocalTimeOffsetSec="0"
-      ToolReferenceFrame="Tracker" >
+      LocalTimeOffsetSec="0">
       <DataSources>
         <DataSource Type="Tool" Id="Probe" PortName="5" RomFile="NdiToolDefinitions\8700339.rom"/>
         <DataSource Type="Tool" Id="Stylus" PortName="6" RomFile="NdiToolDefinitions\8700340.rom"/>
         <DataSource Type="Tool" Id="Reference" PortName="7" RomFile="NdiToolDefinitions\8700449.rom"/>
       </DataSources>
+
       <OutputChannels>
         <OutputChannel Id="VideoOutput" />
           <DataSource Id="Probe"/>
@@ -73,6 +74,7 @@
       <DataSources>
         <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="100" AveragedItemsForFiltering="20" />
       </DataSources>
+
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
@@ -87,35 +89,35 @@
         0.287228	-0.0112942	0.00338596	-168.562
         0.011413	0.283017	0.00407425	106.648
         0	0	0	1"
-      Error="0.961919" Date="021513_103745"/>
+       Error="0.961919" Date="021513_103745"/>
     <Transform From="Image" To="TransducerOriginPixel"
       Matrix="
         1	0	0	-410
         0	1	0	5
         0	0	1	0
         0	0	0	1"
-      Date="2011.12.06 17:57:00"/>
+       Date="2011.12.06 17:57:00"/>
     <Transform From="Phantom" To="Reference"
       Matrix="
         -0.216017	-0.970838	-0.103975	3.31969
         -0.801753	0.237148	-0.548592	-2.94423
         0.557251	-0.0351424	-0.8296	257.753
         0	0	0	1"
-      Error="0.510761" Date="010713_021030"/>
+       Error="0.510761" Date="010713_021030"/>
     <Transform From="StylusTip" To="Stylus"
       Matrix="
         -0.11685	0.001114	0.993149	-18.5208
         0.00953313	0.999955	0	1.51101
         -0.993104	0.00946782	-0.116855	-157.408
         0	0	0	1"
-      Error="0.222091" Date="010713_020912"/>
+       Error="0.222091" Date="010713_020912"/>
     <Transform From="TransducerOriginPixel" To="TransducerOrigin"
       Matrix="
         0.287477	0	0	0
         0	0.283269	0	0
         0	0	0.285373	0
         0	0	0	1"
-      Date="021513_103746"/>
+       Date="021513_103746"/>
   </CoordinateDefinitions>
   <Rendering WorldCoordinateFrame="Reference">
     <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" Id="ProbeModel" File="L14-5_38_ProbeModel.stl"
@@ -123,14 +125,16 @@
         -1	0	0	29.7
         0	-1	0	1.5
         0	0	1	-14
-        0	0	0	1" />
+        0	0	0	1"
+      />
     <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel" File="Stylus_Example.stl"
       ModelToObjectTransform="
         1	0	0	-210
         0	1	0	0
         0	0	1	0
-        0	0	0	1" />
+        0	0	0	1"
+      />
     <DisplayableObject
       Id="PhantomModel"
       Type="Model"
@@ -141,10 +145,9 @@
         1	0	0	-35
         0	1	0	-10
         0	0	1	-5
-        0	0	0	1" />
+        0	0	0	1"/>
     <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
   </Rendering>
-  
   <PhantomDefinition>
     <Description Name="fCAL" Type="Double-N" Version="2.0" WiringVersion="2.0" Institution="Queen&apos;s University PerkLab"/>
     <Geometry>
@@ -175,7 +178,6 @@
       </Landmarks>
     </Geometry>
   </PhantomDefinition>
-  
   <VolumeReconstruction
     OutputSpacing="0.5 0.5 0.5"
     ClipRectangleOrigin="0 0"
@@ -184,7 +186,6 @@
     Optimization="FULL"
     Compounding="On"
     FillHoles="Off"/>
-    
   <fCal
     PhantomModelId="PhantomModel"
     ReconstructedVolumeId="Volume"
@@ -202,11 +203,9 @@
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
     TemporalCalibrationDurationSec="10"/>
-    
   <vtkPivotCalibrationAlgo ObjectMarkerCoordinateFrame="Stylus" ReferenceCoordinateFrame="Reference" ObjectPivotPointCoordinateFrame="StylusTip"/>
-  
-  <vtkPhantomRegistrationAlgo PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference" StylusTipCoordinateFrame="StylusTip"/>
-  
+  <vtkPhantomLandmarkRegistrationAlgo PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference" StylusTipCoordinateFrame="StylusTip"/>
+  <vtkPhantomLinearObjectRegistrationAlgo PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference" StylusTipCoordinateFrame="StylusTip"/>
   <vtkProbeCalibrationAlgo
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"
@@ -214,7 +213,6 @@
     ReferenceCoordinateFrame="Reference"
     OptimizationMethod="2D"
     IsotropicPixelSpacing="FALSE"/>
-    
   <Segmentation
     ApproximateSpacingMmPerPixel="0.28692"
     MorphologicalOpeningCircleRadiusMm="0.15"
@@ -231,5 +229,4 @@
     UseOriginalImageIntensityForDotIntensityScore="1"
     MaxLineShiftMm="10"
     NumberOfMaximumFiducialPointCandidates="35"/>
-    
 </PlusConfiguration>

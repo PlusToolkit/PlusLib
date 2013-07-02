@@ -12,13 +12,13 @@
       Type="Ascension3DG"
       Frequency="15"
       LocalTimeOffset="0.0"
-      FilterAcWideNotch="1"
-      ToolReferenceFrame="Tracker" >
+      FilterAcWideNotch="1">
       <DataSources>
         <DataSource Type="Tool" Id="Probe" BufferSize="2500" AveragedItemsForFiltering="20" PortName="0" />
         <DataSource Type="Tool" Id="Reference" BufferSize="2500" AveragedItemsForFiltering="20" PortName="1" />
         <DataSource Type="Tool" Id="Stylus" BufferSize="2500" AveragedItemsForFiltering="20" PortName="2" />
       </DataSources>
+
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
           <DataSource Id="Probe"/>
@@ -36,13 +36,13 @@
       LocalTimeOffsetSec="0.0"
       SequenceMetafile="SpinePhantom2Freehand.mha"
       UseOriginalTimestamps="FALSE"
-      RepeatEnabled="TRUE" 
-      ToolReferenceFrame="Tracker" >
+      RepeatEnabled="TRUE" >
       <DataSources>
         <DataSource Type="Tool" Id="Probe" PortName="0" Model="L14-5_38" BufferSize="2500" AveragedItemsForFiltering="20"/>
         <DataSource Type="Tool" Id="Reference" PortName="1" BufferSize="2500" AveragedItemsForFiltering="20"/>
         <DataSource Type="Tool" Id="Stylus" PortName="2" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>      
       </DataSources>
+
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
           <DataSource Id="Probe"/>
@@ -60,13 +60,16 @@
       AcquisitionRate="15" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="500" />  
-      </DataSources>      
+      </DataSources>
+      
       <InputChannels>
         <InputChannel Id="TrackerStream" />
       </InputChannels>
+
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
+
       <vtkUsSimulatorAlgo
         BackgroundValue="155"
         ImageCoordinateFrame="Image"
@@ -107,7 +110,8 @@
       <InputChannels>
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="VideoStream" />
-      </InputChannels>      
+      </InputChannels>
+      
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>
@@ -155,12 +159,14 @@
         NumberOfSticksToUse="1" />
     </HoleFilling>
   </VolumeReconstruction>
+
   
   <PlusOpenIGTLinkServer 
     ListeningPort="18944" 
     MaxNumberOfIgtlMessagesToSend="1" 
     MaxTimeSpentWithProcessingMs="10"
-    OutputChannelId="TrackedVideoStream" > 
+    OutputChannelId="TrackedVideoStream"
+    > 
     <DefaultClientInfo> 
       <MessageTypes> 
         <Message Type="IMAGE" />

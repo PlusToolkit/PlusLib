@@ -30,7 +30,9 @@
       Type="Double-N"
       Version="1.0"
       WiringVersion="1.0"
-      Institution="Queen's University PerkLab" />    
+      Institution="Queen's University PerkLab"
+    />
+    
     <Geometry>
       <!-- Phantom origin is the inner end of the hole that is on the side of the templete holder, on the side of the triangle shaped hole on the inner part, and closest to the probe -->
       <Pattern Type="NWire">
@@ -43,6 +45,7 @@
         <Wire Id="5" Name="Wire5" EndPointFront="19.86 34.385 62.05" EndPointBack="39.86 34.385 142.05" />
         <Wire Id="6" Name="Wire6" EndPointFront="9.86 34.385 62.05" EndPointBack="9.86 34.385 142.05" />
       </Pattern>
+
       <Landmarks>
         <Landmark Name="?" Position="0.0 0.0 0.0" />
       </Landmarks>

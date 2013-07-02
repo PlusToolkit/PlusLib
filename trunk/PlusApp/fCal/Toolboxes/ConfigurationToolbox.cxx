@@ -10,7 +10,7 @@ See License.txt for details.
 #include "ToolStateDisplayWidget.h"
 #include "fCalMainWindow.h"
 #include "vtkLineSource.h"
-#include "vtkPhantomRegistrationAlgo.h"
+#include "vtkPhantomLandmarkRegistrationAlgo.h"
 #include "vtkPlusChannel.h"
 #include "vtkVisualizationController.h"
 #include "vtkXMLDataElement.h"
@@ -425,7 +425,7 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
 
   if( fCalElement == NULL)
   {
-    LOG_ERROR("Failed to find fCal configuration!");
+    LOG_ERROR("Failed to find fCal confuguration!");
     return PLUS_FAIL;
   }
 
@@ -522,14 +522,14 @@ PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
   LOG_TRACE("ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization"); 
 
   // Get phantom coordinate frame name
-  vtkXMLDataElement* phantomRegistrationElement = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName( vtkPhantomRegistrationAlgo::GetConfigurationElementName().c_str() ); 
+  vtkXMLDataElement* phantomRegistrationElement = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName( vtkPhantomLandmarkRegistrationAlgo::GetConfigurationElementName().c_str() ); 
   if (phantomRegistrationElement == NULL)
   {
     LOG_INFO("No phantom registration algorithm configuration are found - no phantom will be shown");
     return PLUS_SUCCESS;
   }
 
-  vtkSmartPointer<vtkPhantomRegistrationAlgo> phantomRegistration = vtkSmartPointer<vtkPhantomRegistrationAlgo>::New();
+  vtkSmartPointer<vtkPhantomLandmarkRegistrationAlgo> phantomRegistration = vtkSmartPointer<vtkPhantomLandmarkRegistrationAlgo>::New();
 
   if (phantomRegistration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
   {
@@ -628,7 +628,7 @@ PlusStatus ConfigurationToolbox::SelectChannel(vtkPlusChannel*& aChannel, vtkXML
       if( aDevice->OutputChannelCount() > 0 )
       {
         aChannel = *(aDevice->GetOutputChannelsStart());
-        LOG_WARNING("No default channel selected, first channel found is now active: "<<aChannel->GetChannelId()<<". To avoid this warning add the DefaultSelectedChannelId attribute to the fCal element in the configuration file");
+        LOG_WARNING("No default channel selected, first channel found is now active: "<<aChannel->GetChannelId());
         return PLUS_SUCCESS;
       }
     }

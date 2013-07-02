@@ -194,6 +194,6 @@
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
     TemporalCalibrationDurationSec="10"/>
   <vtkPivotCalibrationAlgo ObjectMarkerCoordinateFrame="Pointer" ReferenceCoordinateFrame="InstrumentM" ObjectPivotPointCoordinateFrame="PointerTip"/>
-  <vtkPhantomRegistrationAlgo PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="InstrumentM" StylusTipCoordinateFrame="PointerTip"/>
+  <vtkPhantomLandmarkRegistrationAlgo PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="InstrumentM" StylusTipCoordinateFrame="PointerTip"/>
   <vtkProbeCalibrationAlgo ImageCoordinateFrame="Image" ProbeCoordinateFrame="Ultrasound" PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="InstrumentM"/>
 </PlusConfiguration>

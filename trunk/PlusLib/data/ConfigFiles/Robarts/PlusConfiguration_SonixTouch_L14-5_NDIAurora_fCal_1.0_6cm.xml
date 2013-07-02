@@ -13,14 +13,14 @@
       SerialPort="7"
       BaudRate="115200"
       AcquisitionRate="50"
-      LocalTimeOffsetSec="0.0"
-      ToolReferenceFrame="Tracker" >
+      LocalTimeOffsetSec="0.0">
       <DataSources>
         <DataSource Type="Tool" Id="Probe" PortName="0" Model="L14-5_38" BufferSize="2500" AveragedItemsForFiltering="20"/>
         <DataSource Type="Tool" Id="Reference" PortName="1" BufferSize="2500" AveragedItemsForFiltering="20"/>
         <DataSource Type="Tool" Id="Stylus" PortName="2" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
         <DataSource Type="Tool" Id="Needle" PortName="3" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
       </DataSources>
+
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
           <DataSource Id="Probe"/>
@@ -49,6 +49,7 @@
       <DataSources>
         <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="500" AveragedItemsForFiltering="20" />
       </DataSources>
+
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video"  />
       </OutputChannels>
@@ -61,9 +62,11 @@
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="VideoStream" />
       </InputChannels>
+
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream"/>
-      </OutputChannels>      
+      </OutputChannels>
+      
     </Device>
 
   </DataCollection>
@@ -112,22 +115,24 @@
         -1 0 0 29.7
         0 -1 0 1.5
         0 0 1 -14
-        0 0 0 1" />
+        0 0 0 1"
+      />
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel" File="Stylus_Example.stl"
       ModelToObjectTransform="
         1  0  0  -210
         0  1  0  0
         0  0  1  0
-        0  0  0  1" />
+        0  0  0  1"
+      />
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom" Opacity="0.6" File="FCal_1.0.stl"
       ModelToObjectTransform="
         1  0  0  -15
         0  1  0  10
         0  0  1  -5
-        0  0  0  1" />
+        0  0  0  1"
+      />
     <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
   </Rendering>
-  
   <Segmentation
     ApproximateSpacingMmPerPixel="0.104624"
     MorphologicalOpeningCircleRadiusMm="0.37"
@@ -142,7 +147,6 @@
     ThresholdImagePercent="10"
     CollinearPointsMaxDistanceFromLineMm="0.6"
     UseOriginalImageIntensityForDotIntensityScore="0"/>
-    
   <PhantomDefinition>
     <Description Name="fCAL" Type="Double-N" Version="1.0" WiringVersion="1.0" Institution="Queen&apos;s University PerkLab"/>
     <Geometry>
@@ -168,7 +172,6 @@
       </Landmarks>
     </Geometry>
   </PhantomDefinition>
-  
   <VolumeReconstruction
     OutputSpacing="0.5 0.5 0.5"
     ClipRectangleOrigin="0 0"
@@ -177,7 +180,6 @@
     Optimization="FULL"
     Compounding="On"
     FillHoles="Off"/>
-    
   <fCal
     PhantomModelId="PhantomModel"
     TransducerModelId="ProbeModel"
@@ -194,11 +196,9 @@
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
     TemporalCalibrationDurationSec="10"/>
-    
     <vtkPivotCalibrationAlgo ObjectMarkerCoordinateFrame="Stylus" ReferenceCoordinateFrame="Reference" ObjectPivotPointCoordinateFrame="StylusTip"/>
-    
-    <vtkPhantomRegistrationAlgo PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference" StylusTipCoordinateFrame="StylusTip"/>
-    
+    <vtkPhantomLandmarkRegistrationAlgo PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference" StylusTipCoordinateFrame="StylusTip"/>
+  <vtkPhantomLinearObjectRegistrationAlgo PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference" StylusTipCoordinateFrame="StylusTip"/>
     <vtkProbeCalibrationAlgo ImageCoordinateFrame="Image" ProbeCoordinateFrame="Probe" PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference"/>
     
 </PlusConfiguration>

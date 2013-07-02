@@ -4,17 +4,18 @@
     <DeviceSet 
       Name="No video + NDI Aurora" 
       Description="Configuration file for No video + NDI Aurora
-The computer needs to be on the same local network as Aurora SCU unit. The tools need to be plugged in the slots as following: 1: Probe, 2: Reference, 3: Stylus, 4: Needle (optional)" />
+The computer needs to be on the same local network as Aurora SCU unit. The tools need to be plugged in the slots as following: 1: Probe, 2: Reference, 3: Stylus, 4: Needle (optional)" 
+    />
     <Device
       Id="TrackerDevice" 
       Type="AuroraTracker"
       SerialPort="4"
       AcquisitionRate="50"
-      LocalTimeOffsetSec="0.0" 
-      ToolReferenceFrame="Tracker" >
+      LocalTimeOffsetSec="0.0" >
       <DataSources>
         <DataSource Type="Tool" Id="Needle" PortName="0" BufferSize="2500" AveragedItemsForFiltering="20"/>
       </DataSources>
+
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
           <DataSource Id="Needle" />
@@ -28,6 +29,7 @@ The computer needs to be on the same local network as Aurora SCU unit. The tools
     <DisplayableObject Type="Axes" ObjectCoordinateFrame="Tracker" />
   </Rendering>
 
+
   <PhantomDefinition>
     <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
@@ -35,7 +37,9 @@ The computer needs to be on the same local network as Aurora SCU unit. The tools
       Type="Double-N"
       Version="1.0"
       WiringVersion="1.0"
-      Institution="Queen's University PerkLab" />
+      Institution="Queen's University PerkLab"
+      />
+
     <Geometry>
       <Pattern Type="NWire">
         <Wire Name="1:E3_e3" EndPointFront="20.0 0.0 5.0" EndPointBack="20.0 40.0 5.0" />
@@ -47,11 +51,13 @@ The computer needs to be on the same local network as Aurora SCU unit. The tools
         <Wire Name="5:J4_f4" EndPointFront="45.0 0.0 0.0" EndPointBack="25.0 40.0 0.0" />
         <Wire Name="6:K4_k4" EndPointFront="50.0 0.0 0.0" EndPointBack="50.0 40.0 0.0" />
       </Pattern>
+
       <Landmarks>
         <Landmark Name="#1" Position="95.0 5.0 15.0" />
         <Landmark Name="#2" Position="95.0 40.0 15.0" />
         <Landmark Name="#3" Position="95.0 40.0 0.0" />
         <Landmark Name="#4" Position="95.0 0.0 0.0" />
+
         <Landmark Name="#5" Position="-25.0 40.0 15.0" />
         <Landmark Name="#6" Position="-25.0 0.0 10.0" />
         <Landmark Name="#7" Position="-25.0 0.0 0.0" />
@@ -59,6 +65,7 @@ The computer needs to be on the same local network as Aurora SCU unit. The tools
       </Landmarks>
     </Geometry>
   </PhantomDefinition>
+
 
   <fCal
     PhantomModelId="PhantomModel"
@@ -75,6 +82,7 @@ The computer needs to be on the same local network as Aurora SCU unit. The tools
     ReferenceCoordinateFrame="Reference"
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
-    TemporalCalibrationDurationSec="10" />
+    TemporalCalibrationDurationSec="10"
+  />
 
 </PlusConfiguration>

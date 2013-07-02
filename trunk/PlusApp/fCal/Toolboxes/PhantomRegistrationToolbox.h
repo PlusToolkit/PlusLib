@@ -14,10 +14,24 @@
 
 #include <QWidget>
 
-class vtkPhantomRegistrationAlgo;
+class vtkPhantomLandmarkRegistrationAlgo;
+class vtkPhantomLinearObjectRegistrationAlgo;
 class vtkActor;
 class vtkPolyData;
 class vtkRenderer;
+
+enum TabIndex
+{
+  TabIndex_Landmark,
+  TabIndex_LinearObject
+};
+
+enum LinearObjectRegistrationState
+{
+  LinearObjectRegistrationState_Incomplete,
+  LinearObjectRegistrationState_InProgress,
+  LinearObjectRegistrationState_Complete
+};
 
 //-----------------------------------------------------------------------------
 
@@ -65,10 +79,26 @@ public:
   void SetDisplayAccordingToState();
 
   /*!
-  * Return phantom registration algorithm object
+  * Return phantom landmark registration algorithm object
   * \return Phantom registration algo
   */
-  vtkPhantomRegistrationAlgo* GetPhantomRegistrationAlgo() { return m_PhantomRegistration; };
+  vtkPhantomLandmarkRegistrationAlgo* GetPhantomLandmarkRegistrationAlgo();;
+
+  /*!
+  * Return phantom linear object registration algorithm object
+  * \return Phantom registration algo
+  */
+  vtkPhantomLinearObjectRegistrationAlgo* GetPhantomLinearObjectRegistrationAlgo();;
+
+  /*!
+  * Sets the state of 
+  */
+  void SetLinearObjectRegistrationState(LinearObjectRegistrationState state);
+
+  /*!
+  * Return state of the linear object registration
+  */
+  LinearObjectRegistrationState GetLinearObjectRegistrationState();;
 
 protected:
   /*!
@@ -93,38 +123,73 @@ protected slots:
   void OpenStylusCalibration();
 
   /*!
-  * Slot handling record button click
+  * Slot handling record button for the landmark registration click
   */
   void RecordPoint();
 
   /*!
-  * Slot handling undo button click
+  * Slot handling undo button for the landmark registration click
   */
   void Undo();
 
   /*!
-  * Slot handling reset button click (and also is an overridden method of AbstractToolbox which is called when disconnecting from the device set)
+  * Slot handling reset button for the landmark registration click (and also is an overridden method of AbstractToolbox which is called when disconnecting from the device set)
   */
   void Reset();
 
+  /*!
+  Slot handling start button for the linear object registration click
+  */
+  void StartLinearObjectRegistration();
+  
+  /*!
+  Slot handling stop button for the linear object registration click
+  */
+  void StopLinearObjectRegistration();
+  
+  /*!
+  Slot handling reset button for the linear object registration click
+  */
+  void ResetLinearObjectRegistration();
+  
+  /*!
+  Slot handling the continuous point acquisition during the linear object registration
+  */
+  void AddStylusTipPositionToLinearObjectRegistration();
+
 protected:
-  /*! Phantom registration algorithm */
-  vtkPhantomRegistrationAlgo* m_PhantomRegistration;
+  /*! Phantom landmark registration algorithm */
+  vtkPhantomLandmarkRegistrationAlgo*     m_PhantomLandmarkRegistration;
+
+  /*! Phantom linear object registration algorithm */
+  vtkPhantomLinearObjectRegistrationAlgo* m_PhantomLinearObjectRegistration;
 
   /*! Renderer for the canvas */
-  vtkRenderer*                m_PhantomRenderer;
+  vtkRenderer*                            m_PhantomRenderer;
 
   /*! Actor for displaying the phantom geometry in phantom canvas */
-  vtkActor*                    m_PhantomActor;
+  vtkActor*                               m_PhantomActor;
 
   /*! Actor for displaying the defined landmark from the configuration file */
-  vtkActor*                    m_RequestedLandmarkActor;
+  vtkActor*                               m_RequestedLandmarkActor;
 
   /*! Polydata holding the requested landmark for highlighting in phantom canvas */
-  vtkPolyData*                m_RequestedLandmarkPolyData;
+  vtkPolyData*                            m_RequestedLandmarkPolyData;
 
   /*! Index of current landmark */
-  int                          m_CurrentLandmarkIndex;
+  int                                     m_CurrentLandmarkIndex;
+
+  /*! State of the collection of linear objects */
+  LinearObjectRegistrationState           m_LinearObjectRegistrationState;
+
+  /*! Number of points acquired for linear object registration so far */
+  int                                     m_CurrentPointNumber;
+
+ /*! Stylus or stylus tip position (depending on the state) as string */
+  QString                                 m_StylusPositionString;
+
+  /*! Previous stylus tip to reference transform matrix to determine the difference at each point acquisition */
+  vtkMatrix4x4*                           m_PreviousStylusTipToReferenceTransformMatrix;
 
 protected:
   Ui::PhantomRegistrationToolbox ui;
