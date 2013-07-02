@@ -725,7 +725,7 @@ PlusStatus vtkMetaImageSequenceIO::AppendImagesToHeader()
   // Write frame fields (Seq_Frame0000_... = ...)
   for (unsigned int frameNumber = m_CurrentFrameOffset; frameNumber < this->TrackedFrameList->GetNumberOfTrackedFrames() + m_CurrentFrameOffset; frameNumber++)
   {
-    LOG_INFO(frameNumber);
+    LOG_DEBUG("Writing frame "<<frameNumber);
     unsigned int adjustedFrameNumber = frameNumber - m_CurrentFrameOffset;
     TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(adjustedFrameNumber);
 
