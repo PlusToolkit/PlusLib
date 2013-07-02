@@ -17,7 +17,7 @@ See License.txt for details.
 #include "vtkFakeTracker.h"
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
-#include "vtkPhantomRegistrationAlgo.h"
+#include "vtkPhantomLandmarkRegistrationAlgo.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusConfig.h"
 #include "vtkSmartPointer.h"
@@ -119,7 +119,7 @@ int main (int argc, char* argv[])
   }
 
   // Initialize phantom registration
-  vtkSmartPointer<vtkPhantomRegistrationAlgo> phantomRegistration = vtkSmartPointer<vtkPhantomRegistrationAlgo>::New();
+  vtkSmartPointer<vtkPhantomLandmarkRegistrationAlgo> phantomRegistration = vtkSmartPointer<vtkPhantomLandmarkRegistrationAlgo>::New();
   if (phantomRegistration == NULL)
   {
     LOG_ERROR("Unable to instantiate phantom registration algorithm class!");

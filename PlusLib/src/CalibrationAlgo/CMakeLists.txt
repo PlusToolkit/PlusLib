@@ -5,7 +5,8 @@ SET (CalibrationAlgo_SRCS
   vtkProbeCalibrationAlgo.cxx 
   vtkMeanShiftClustering.cxx 
   vtkPivotCalibrationAlgo.cxx
-  vtkPhantomRegistrationAlgo.cxx
+  vtkPhantomLandmarkRegistrationAlgo.cxx
+  vtkPhantomLinearObjectRegistrationAlgo.cxx
   vtkSpacingCalibAlgo.cxx 
   vtkCenterOfRotationCalibAlgo.cxx
   vtkBrachyStepperPhantomRegistrationAlgo.cxx
@@ -15,6 +16,15 @@ SET (CalibrationAlgo_SRCS
   vtkProbeCalibrationOptimizerAlgo.cxx
   itkFiducialTransformComputation.cxx
   vtkSingleWallCalibrationAlgo.cxx
+  Line.cxx
+  LinearObject.cxx
+  LinearObjectBuffer.cxx
+  Plane.cxx
+  Planes.cxx
+  Point.cxx
+  PointObservation.cxx
+  PointObservationBuffer.cxx
+  Reference.cxx
   )
 
 SET (CalibrationAlgo_HDRS)  
@@ -23,7 +33,8 @@ IF (WIN32)
     vtkProbeCalibrationAlgo.h
     vtkMeanShiftClustering.h
     vtkPivotCalibrationAlgo.h
-    vtkPhantomRegistrationAlgo.h
+    vtkPhantomLandmarkRegistrationAlgo.h
+    vtkPhantomLinearObjectRegistrationAlgo.h
     vtkSpacingCalibAlgo.h 
     vtkCenterOfRotationCalibAlgo.h
     vtkBrachyStepperPhantomRegistrationAlgo.h
@@ -33,6 +44,15 @@ IF (WIN32)
     vtkProbeCalibrationOptimizerAlgo.h
     itkFiducialTransformComputation.h
     vtkSingleWallCalibrationAlgo.h
+    Line.h
+	LinearObject.h
+	LinearObjectBuffer.h
+	Plane.h
+	Planes.h
+	Point.h
+	PointObservation.h
+	PointObservationBuffer.h
+	Reference.h
     )
 ENDIF (WIN32)
 

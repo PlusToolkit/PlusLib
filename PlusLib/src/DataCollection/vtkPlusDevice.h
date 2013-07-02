@@ -444,7 +444,7 @@ protected:
   vtkSetMacro(CorrectlyConfigured, bool);
 
   vtkSetMacro(StartThreadForInternalUpdates, bool);
-  vtkGetMacro(StartThreadForInternalUpdates, bool);
+  vtkGetMacro(StartThreadForInternalUpdates, bool); 
 
   virtual vtkDataCollector* GetDataCollector() { return this->DataCollector; }
 
