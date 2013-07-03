@@ -375,7 +375,11 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
   }
 
   int frameCount=this->Dimensions[2];
-  unsigned int frameSizeInBytes=this->Dimensions[0]*this->Dimensions[1]*PlusVideoFrame::GetNumberOfBytesPerPixel(this->PixelType);
+  unsigned int frameSizeInBytes=0;
+  if (this->Dimensions[0]>0 && this->Dimensions[1])
+  {
+    frameSizeInBytes=this->Dimensions[0]*this->Dimensions[1]*PlusVideoFrame::GetNumberOfBytesPerPixel(this->PixelType);
+  }
   
   std::vector<unsigned char> allFramesPixelBuffer;
   if (this->UseCompression)
