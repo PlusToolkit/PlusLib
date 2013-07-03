@@ -39,6 +39,7 @@ public:
   vtkGetObjectConstMacro(OutputStream, vtkPlusChannel);
 
   virtual bool IsTracker() const { return false; }
+  virtual bool IsVirtual() const { return true; }
 
 protected:
   virtual PlusStatus InternalUpdate();

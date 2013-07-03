@@ -115,6 +115,7 @@ public:
   /*! Is this device a tracker */
   virtual bool IsTracker() const;
 
+  virtual bool IsVirtual() const { return false; }
   /*!
     Reset the device
   */
@@ -201,10 +202,8 @@ public:
   void SetToolsBufferSize( int aBufferSize ); 
 
   /*! Set local time offset of all available buffers */
-  virtual void SetVideoLocalTimeOffsetSec( double aTimeOffsetSec );
-  virtual void SetToolLocalTimeOffsetSec( double aTimeOffsetSec );
-  virtual PlusStatus GetToolLocalTimeOffsetSec(double &anOffset);
-  virtual PlusStatus GetVideoLocalTimeOffsetSec(double &anOffset);
+  virtual void SetLocalTimeOffsetSec( double aTimeOffsetSec );
+  virtual double GetLocalTimeOffsetSec();
 
   /*! Make the unit emit a string of audible beeps.  This is supported by the POLARIS. */
   void Beep(int n);
@@ -510,6 +509,8 @@ protected:
     This update mechanism is useful for devices that don't provide callback functions but require polling.
   */
   bool StartThreadForInternalUpdates;
+
+  double LocalTimeOffsetSec;
 
 protected:
   /*
