@@ -1258,7 +1258,6 @@ ItemStatus vtkPlusBuffer::GetInterpolatedStreamBufferItemFromTime( double time, 
     interpolatedMatrix->Element[i][1] = interpolatedRotation[i][1];
     interpolatedMatrix->Element[i][2] = interpolatedRotation[i][2];
     interpolatedMatrix->Element[i][3] = xyzA[i]*itemAweight + xyzB[i]*itemBweight;
-    //fprintf(stderr, "%f %f %f %f\n", xyz0[i], xyz1[i],  matrix->Element[i][3], f);
   } 
 
   //============== Interpolate time ==================

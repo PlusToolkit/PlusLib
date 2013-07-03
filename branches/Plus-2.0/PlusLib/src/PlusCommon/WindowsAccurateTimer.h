@@ -32,7 +32,15 @@ static const int MAX_RESUME_ATTEMPTS=100;
 
   This timer class was designed to give high precision < 2% average
   error and it was designed to work best with multi-threaded clients
-  waiting on the single instance of this timer
+  waiting on the single instance of this timer.
+
+  Note that there are timer API that are simpler to implement or use, but they are far more inaccurate.
+  For example, for a 1ms time delay the measured error (http://omeg.pl/blog/2011/11/on-winapi-timers-and-their-resolution/)
+    timeSetEvent             : count= 999, avg error= 1.268%, std dev= 1.695
+    Busy wait                : count= 999, avg error= 0.225%, std dev= 3.743
+    CreateTimerQueueTimer    : count= 999, avg error= 4.185%, std dev=11.480
+    SetTimer                 : count=  62, avg error=1450.387%, std dev=415.344
+  timeSetEvent API has the smallest variability and negligible mean error.
 
   The implementation is based on this code sample:
   From http://www.codeguru.com/Cpp/W-P/system/timers/comments.php/c5759/?thread=63096

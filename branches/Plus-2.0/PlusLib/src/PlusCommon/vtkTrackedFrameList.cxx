@@ -115,12 +115,12 @@ TrackedFrame* vtkTrackedFrameList::GetTrackedFrame(int frameNumber)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTrackedFrameList::AddTrackedFrameList(vtkTrackedFrameList* inTrackedFrameList)
+PlusStatus vtkTrackedFrameList::AddTrackedFrameList(vtkTrackedFrameList* inTrackedFrameList, InvalidFrameAction action /*=ADD_INVALID_FRAME_AND_REPORT_ERROR*/)
 {
   PlusStatus status = PLUS_SUCCESS; 
   for ( unsigned int i = 0; i < inTrackedFrameList->GetNumberOfTrackedFrames(); ++i )
   {
-    if ( this->AddTrackedFrame( inTrackedFrameList->GetTrackedFrame(i) ) != PLUS_SUCCESS )
+    if ( this->AddTrackedFrame( inTrackedFrameList->GetTrackedFrame(i), action ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to add tracked frame to the list!"); 
       status = PLUS_FAIL; 
@@ -132,7 +132,7 @@ PlusStatus vtkTrackedFrameList::AddTrackedFrameList(vtkTrackedFrameList* inTrack
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTrackedFrameList::AddTrackedFrame(TrackedFrame *trackedFrame, InvalidFrameAction action/*=ADD_INVALID_FRAME_AND_REPORT_ERROR*/ )
+PlusStatus vtkTrackedFrameList::AddTrackedFrame(TrackedFrame *trackedFrame, InvalidFrameAction action /*=ADD_INVALID_FRAME_AND_REPORT_ERROR*/ )
 {
   bool isFrameValid = true; 
   if ( action != ADD_INVALID_FRAME )
@@ -721,4 +721,19 @@ double vtkTrackedFrameList::GetMostRecentTimestamp()
   }
 
   return mostRecentTimestamp;
+}
+
+//-----------------------------------------------------------------------------
+bool vtkTrackedFrameList::IsContainingValidImageData()
+{ 
+  for ( unsigned int i = 0; i < this->GetNumberOfTrackedFrames(); ++i )
+  {
+    if ( this->GetTrackedFrame(i)->GetImageData()->IsImageValid() )
+    {
+      // found a valid image
+      return true;
+    }
+  }
+  // no valid images found
+  return false;
 }

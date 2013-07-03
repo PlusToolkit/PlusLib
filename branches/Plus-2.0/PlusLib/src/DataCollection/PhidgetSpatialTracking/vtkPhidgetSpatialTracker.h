@@ -29,6 +29,8 @@ Tools:
     The values are stored in the translation part of the transformation matrix.
     The rotation part is identity.
   TiltSensor: 2-DOF sensor tilt is computed as a rotation matrix. Only the accelerometer is used.
+  FilteredTiltSensor: Modifies OrientationSensor output, with one axis constrained to always point west.  Used to constrain rotational error
+  around the Z axis.
   OrientationSensor: 3-DOF sensor orientation is computed using sensor fusion.
     With ...IMU algorithm only the accelerometer and gyroscope data are used.
     With ...AHRS algorithm accelerometer, gyroscope, and magnetometer data are used.
@@ -114,7 +116,9 @@ protected:
 private:  // Functions.
 
   vtkPhidgetSpatialTracker( const vtkPhidgetSpatialTracker& );
-  void operator=( const vtkPhidgetSpatialTracker& );  
+  void operator=( const vtkPhidgetSpatialTracker& ); 
+
+  //void Get3x3RotMatrixFromIMUQuat(double rotMatrix[3][3], AhrsAlgo* AhrsAlgo);
 
 private:  // Variables.  
 
@@ -128,12 +132,14 @@ private:  // Variables.
   vtkMatrix4x4* LastGyroscopeToTrackerTransform;
   vtkMatrix4x4* LastMagnetometerToTrackerTransform;
   vtkMatrix4x4* LastTiltSensorToTrackerTransform;
+  vtkMatrix4x4* LastFilteredTiltSensorToTrackerTransform;
   vtkMatrix4x4* LastOrientationSensorToTrackerTransform;
 
   vtkPlusDataSource* AccelerometerTool;
   vtkPlusDataSource* GyroscopeTool;
   vtkPlusDataSource* MagnetometerTool;
   vtkPlusDataSource* TiltSensorTool;
+  vtkPlusDataSource* FilteredTiltSensorTool;
   vtkPlusDataSource* OrientationSensorTool;
 
   enum AHRS_METHOD
@@ -142,7 +148,10 @@ private:  // Variables.
     AHRS_MAHONY
   };
 
+  AhrsAlgo* FilteredTiltSensorAhrsAlgo;
+
   AhrsAlgo* AhrsAlgo;
+
 
   /*!
     If AhrsUseMagnetometer enabled (a ..._MARG algorithm is chosen) then heading will be estimated using magnetometer data.
@@ -156,9 +165,11 @@ private:  // Variables.
     Higher gain gives higher reliability to accelerometer&magnetometer data.
   */
   double AhrsAlgorithmGain[2];
+  double FilteredTiltSensorAhrsAlgorithmGain[2];
 
   /*! last AHRS update time (in system time) */
   double AhrsLastUpdateTime;
+  double FilteredTiltSensorAhrsLastUpdateTime;
 
   /*!
     In tilt sensor mode we don't use the magnetometer, so we have to provide a direction reference.
@@ -169,6 +180,7 @@ private:  // Variables.
     If sensor axis 2 points down (the sensor plane is about horizontal) => TiltSensorDownAxisIndex = 1.
   */
   int TiltSensorWestAxisIndex;
+  int FilteredTiltSensorWestAxisIndex;
 
   /*! Zero the gyroscope when connecting to the device */
   bool ZeroGyroscopeOnConnect;

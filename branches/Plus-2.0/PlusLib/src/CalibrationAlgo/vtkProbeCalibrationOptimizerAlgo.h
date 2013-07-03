@@ -95,7 +95,7 @@ public:
 
   OptimizationMethodType GetOptimizationMethod() { return this->OptimizationMethod; }
   void SetOptimizationMethod(OptimizationMethodType optimizationMethod) { this->OptimizationMethod=optimizationMethod; }
-  static char* GetOptimizationMethodAsString(OptimizationMethodType type);
+  static const char* GetOptimizationMethodAsString(OptimizationMethodType type);
 
   void SetImageToProbeSeedTransform(const vnl_matrix_fixed<double,4,4> &imageToProbeTransformMatrix);
 

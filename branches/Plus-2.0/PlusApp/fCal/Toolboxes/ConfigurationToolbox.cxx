@@ -10,7 +10,7 @@ See License.txt for details.
 #include "ToolStateDisplayWidget.h"
 #include "fCalMainWindow.h"
 #include "vtkLineSource.h"
-#include "vtkPhantomRegistrationAlgo.h"
+#include "vtkPhantomLandmarkRegistrationAlgo.h"
 #include "vtkPlusChannel.h"
 #include "vtkVisualizationController.h"
 #include "vtkXMLDataElement.h"
@@ -250,9 +250,9 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
     m_ParentMainWindow->Set3DManipulationMenuEnabled(false);
     m_ParentMainWindow->SetImageManipulationMenuEnabled(false);
 
+    m_ParentMainWindow->GetVisualizationController()->StopAndDisconnectDataCollector();
     m_ParentMainWindow->ResetShowDevices();
     m_ParentMainWindow->ResetAllToolboxes();
-    m_ParentMainWindow->GetVisualizationController()->StopAndDisconnectDataCollector();
     m_ParentMainWindow->GetVisualizationController()->Reset();
     m_ParentMainWindow->GetVisualizationController()->ClearTransformRepository();
     m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
@@ -522,14 +522,14 @@ PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
   LOG_TRACE("ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization"); 
 
   // Get phantom coordinate frame name
-  vtkXMLDataElement* phantomRegistrationElement = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName( vtkPhantomRegistrationAlgo::GetConfigurationElementName().c_str() ); 
+  vtkXMLDataElement* phantomRegistrationElement = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName( vtkPhantomLandmarkRegistrationAlgo::GetConfigurationElementName().c_str() ); 
   if (phantomRegistrationElement == NULL)
   {
     LOG_INFO("No phantom registration algorithm configuration are found - no phantom will be shown");
     return PLUS_SUCCESS;
   }
 
-  vtkSmartPointer<vtkPhantomRegistrationAlgo> phantomRegistration = vtkSmartPointer<vtkPhantomRegistrationAlgo>::New();
+  vtkSmartPointer<vtkPhantomLandmarkRegistrationAlgo> phantomRegistration = vtkSmartPointer<vtkPhantomLandmarkRegistrationAlgo>::New();
 
   if (phantomRegistration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
   {

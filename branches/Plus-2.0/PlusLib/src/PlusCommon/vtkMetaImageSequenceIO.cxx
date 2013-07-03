@@ -653,11 +653,14 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader()
   SetCustomString("DimSize", dimSizeStr.str().c_str());  
 
   // PixelType
-  this->PixelType=this->TrackedFrameList->GetPixelType();
-  if ( this->PixelType == itk::ImageIOBase::UNKNOWNCOMPONENTTYPE )
+  if (this->TrackedFrameList->IsContainingValidImageData())
   {
-    // If the pixel type was not defined, define it to UCHAR
-    this->PixelType = itk::ImageIOBase::UCHAR; 
+    this->PixelType=this->TrackedFrameList->GetPixelType();
+    if ( this->PixelType == itk::ImageIOBase::UNKNOWNCOMPONENTTYPE )
+    {
+      // If the pixel type was not defined, define it to UCHAR
+      this->PixelType = itk::ImageIOBase::UCHAR; 
+    }
   }
   std::string pixelTypeStr;
   vtkMetaImageSequenceIO::ConvertItkPixelTypeToMetaElementType(this->PixelType, pixelTypeStr);
@@ -725,7 +728,7 @@ PlusStatus vtkMetaImageSequenceIO::AppendImagesToHeader()
   // Write frame fields (Seq_Frame0000_... = ...)
   for (unsigned int frameNumber = m_CurrentFrameOffset; frameNumber < this->TrackedFrameList->GetNumberOfTrackedFrames() + m_CurrentFrameOffset; frameNumber++)
   {
-    LOG_INFO(frameNumber);
+    LOG_DEBUG("Writing frame "<<frameNumber);
     unsigned int adjustedFrameNumber = frameNumber - m_CurrentFrameOffset;
     TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(adjustedFrameNumber);
 
@@ -808,7 +811,7 @@ void vtkMetaImageSequenceIO::GetMaximumImageDimensions(int maxFrameSize[2])
 //----------------------------------------------------------------------------
 PlusStatus vtkMetaImageSequenceIO::WriteImagePixels(const std::string& aFilename, bool forceAppend /* = false */)
 {
-  if (this->ImageOrientationInFile!=this->TrackedFrameList->GetImageOrientation())
+  if (this->TrackedFrameList->IsContainingValidImageData() && this->ImageOrientationInFile!=this->TrackedFrameList->GetImageOrientation())
   {
     // Reordering of the frames is not implemented, so return with an error
     LOG_ERROR("Saving of images is supported only in the same orientation as currently in the memory");
@@ -1273,28 +1276,31 @@ PlusStatus vtkMetaImageSequenceIO::FileOpen(FILE **stream, const char* filename,
 //----------------------------------------------------------------------------
 PlusStatus vtkMetaImageSequenceIO::PrepareHeader()
 {
-  if (this->ImageOrientationInFile==US_IMG_ORIENT_XX)
+  if (this->TrackedFrameList->IsContainingValidImageData())
   {
-    // No specific orientation is requested, so just use the same as in the memory
-    this->ImageOrientationInFile=this->TrackedFrameList->GetImageOrientation();
-  }  
-  if (this->ImageOrientationInFile!=this->TrackedFrameList->GetImageOrientation())
-  {
-    // Reordering of the frames is not implemented, so just save the images as they are in the memory
-    LOG_WARNING("Saving of images is supported only in the same orientation as currently in the memory");
-    this->ImageOrientationInFile=this->TrackedFrameList->GetImageOrientation();
-  }
+    if (this->ImageOrientationInFile==US_IMG_ORIENT_XX)
+    {
+      // No specific orientation is requested, so just use the same as in the memory
+      this->ImageOrientationInFile=this->TrackedFrameList->GetImageOrientation();
+    }  
+    if (this->ImageOrientationInFile!=this->TrackedFrameList->GetImageOrientation())
+    {
+      // Reordering of the frames is not implemented, so just save the images as they are in the memory
+      LOG_WARNING("Saving of images is supported only in the same orientation as currently in the memory");
+      this->ImageOrientationInFile=this->TrackedFrameList->GetImageOrientation();
+    }
 
-  if (this->ImageType == US_IMG_TYPE_XX)
-  {
-    // No specific type is requested, so just use the same as in the memory
-    this->ImageType = this->TrackedFrameList->GetImageType();
-  }
-  if (this->ImageType!=this->TrackedFrameList->GetImageType())
-  {
-    // Reordering of the frames is not implemented, so just save the images as they are in the memory
-    LOG_WARNING("Saving of images is supported only in the same type as currently in the memory");
-    this->ImageType=this->TrackedFrameList->GetImageType();
+    if (this->ImageType == US_IMG_TYPE_XX)
+    {
+      // No specific type is requested, so just use the same as in the memory
+      this->ImageType = this->TrackedFrameList->GetImageType();
+    }
+    if (this->ImageType!=this->TrackedFrameList->GetImageType())
+    {
+      // Reordering of the frames is not implemented, so just save the images as they are in the memory
+      LOG_WARNING("Saving of images is supported only in the same type as currently in the memory");
+      this->ImageType=this->TrackedFrameList->GetImageType();
+    }
   }
 
   if( this->TempHeaderFileName.empty())
@@ -1404,6 +1410,9 @@ PlusStatus vtkMetaImageSequenceIO::SetFileName( const char* aFilename )
   }
   
   this->FileName = aFilename;
+  // Trim whitespace and " characters from the beginning and end of the filename
+  this->FileName.erase(this->FileName.find_last_not_of(" \"\t\r\n")+1);
+  this->FileName.erase(0,this->FileName.find_first_not_of(" \"\t\r\n"));
 
   // Set pixel data filename at the same time
   std::string fileExt = vtksys::SystemTools::GetFilenameLastExtension(this->FileName);

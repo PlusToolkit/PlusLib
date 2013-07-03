@@ -239,7 +239,7 @@
            <x>0</x>
            <y>0</y>
            <width>248</width>
-           <height>478</height>
+           <height>451</height>
           </rect>
          </property>
          <attribute name="label">
@@ -304,11 +304,16 @@
            <x>0</x>
            <y>0</y>
            <width>248</width>
-           <height>478</height>
+           <height>451</height>
           </rect>
          </property>
          <attribute name="label">
           <string>Spatial calibration</string>
+         </attribute>
+        </widget>
+        <widget class="QWidget" name="toolbox_SingleWallCalibration">
+         <attribute name="label">
+          <string>Single wall calibration</string>
          </attribute>
         </widget>
         <widget class="QWidget" name="toolbox_VolumeReconstruction">

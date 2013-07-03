@@ -7,6 +7,7 @@ See License.txt for details.
 #ifndef __fCalMainWindow_h
 #define __fCalMainWindow_h
 
+#include "PlusAppConfigure.h"
 #include "PlusConfigure.h"
 #include "ui_fCalMainWindow.h"
 #include "vtkPlusDeviceTypes.h"
@@ -33,7 +34,9 @@ enum ToolboxType
   ToolboxType_TemporalCalibration,
   ToolboxType_SpatialCalibration,
   ToolboxType_Capturing,
-  ToolboxType_VolumeReconstruction
+  ToolboxType_VolumeReconstruction,
+  ToolboxType_SingleWallCalibration,
+  ToolboxType_Count,
 };
 
 //-----------------------------------------------------------------------------

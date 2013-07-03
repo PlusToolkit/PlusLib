@@ -49,6 +49,8 @@ public:
   /*! Get the scan converter object */
   vtkGetMacro(ScanConverter, vtkUsScanConvert*);
 
+  static const char* GetRfProcessorTagName();
+
 protected:
   vtkRfProcessor();
   virtual ~vtkRfProcessor(); 
@@ -59,6 +61,8 @@ protected:
   std::vector<vtkUsScanConvert*> AvailableScanConverters;  
 
   vtkImageCast* ImageCaster;
+
+  static const char* RF_PROCESSOR_TAG_NAME;
 }; 
 
 #endif

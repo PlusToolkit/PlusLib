@@ -14,7 +14,7 @@
 
 /*!
 \class itkFiducialTransformComputation
-\brief This class compute the similarity transform between two set of ordered points.
+\brief This class compute the similarity transform between two sets of ordered points.
 It is an adaptation of the slicer fiducial registration module.
 \ingroup PlusLibCalibrationAlgorithm
 */

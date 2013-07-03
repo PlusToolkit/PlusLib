@@ -88,12 +88,14 @@ PlusStatus vtkPlusRequestChannelIDsCommand::Execute()
   if (dataCollector == NULL)
   {
     LOG_ERROR("Data collector is invalid");    
+    SetCommandCompleted(PLUS_FAIL, "Command failed, no data collector");
     return PLUS_FAIL;
   }  
   DeviceCollection aCollection;
   if( dataCollector->GetDevices(aCollection) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve devices.");
+    SetCommandCompleted(PLUS_FAIL, "Unable to retrieve devices.");
     return PLUS_FAIL;
   }
 
@@ -122,12 +124,6 @@ PlusStatus vtkPlusRequestChannelIDsCommand::Execute()
         {
           reply << ",";
         }
-      }
-      else
-      {
-        LOG_ERROR("Unable to retrieve channel list. Channel list is empty.");
-        reply << "Unable to retrieve channel list, failed.";
-        status = PLUS_FAIL;
       }
     }
   }

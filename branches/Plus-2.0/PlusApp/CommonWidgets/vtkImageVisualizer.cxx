@@ -725,15 +725,27 @@ PlusStatus vtkImageVisualizer::ReadConfiguration( vtkXMLDataElement* aConfig )
   }
   else
   {
-    int regionOfInterest[4] = {0}; 
-    if ( segmentationParameters->GetVectorAttribute("RegionOfInterest", 4, regionOfInterest) )
+    // clipping parameters
+    int clipRectangleOrigin[2]={-1, -1};
+    if (!segmentationParameters->GetVectorAttribute("ClipRectangleOrigin", 2, clipRectangleOrigin))
     {
-      this->SetROIBounds(regionOfInterest[0], regionOfInterest[2], regionOfInterest[1], regionOfInterest[3]);
+      LOG_WARNING("Cannot find ClipRectangleOrigin attribute in the segmentation parameters section of the configuration, region of interest will not be displayed");
+    }
+    int clipRectangleSize[2]={-1, -1};
+    if (!segmentationParameters->GetVectorAttribute("ClipRectangleSize", 2, clipRectangleSize))
+    {
+      LOG_WARNING("Cannot find ClipRectangleSize attribute in the segmentation parameters section of the configuration, region of interest will not be displayed");
+    }
+    if (clipRectangleOrigin[0]>=0 && clipRectangleOrigin[1]>=0 && clipRectangleSize[0]>0 && clipRectangleSize[1]>0)
+    {
+      this->SetROIBounds(clipRectangleOrigin[0], clipRectangleOrigin[0]+clipRectangleSize[0], clipRectangleOrigin[1], clipRectangleOrigin[1]+clipRectangleSize[1]);
     } 
-    else {
-      LOG_WARNING("Cannot find RegionOfInterest attribute in the configuration. ROI will not be displayed until valid values are updated.");
+    else
+    {
+      LOG_DEBUG("Region of interest will not be displayed until valid values are specified");
       this->EnableROI(false);
     }
+     
   }
 
   if( InitializeWireLabelVisualization(aConfig) != PLUS_SUCCESS )

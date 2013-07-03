@@ -64,6 +64,8 @@ public:
     JOYSTICK_MODE
   };
 
+  virtual bool IsTracker() const { return true; }
+  
 protected:
 
   vtk3dConnexionTracker();

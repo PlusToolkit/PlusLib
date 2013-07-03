@@ -11,19 +11,29 @@ See License.txt for details.
 #endif
 
 #include "PlusConfigure.h"
-#include "vtkPlusLogger.h"
-
-#include <string>
-#include <sstream>
-
-#include "vtkRecursiveCriticalSection.h"
 #include "vtkCommand.h"
 #include "vtkObjectFactory.h"
+#include "vtkPlusLogger.h"
+#include "vtkRecursiveCriticalSection.h"
 #include "vtksys/SystemTools.hxx" 
+#include <sstream>
+#include <string>
+
+//-----------------------------------------------------------------------------
 
 vtkPlusLogger* vtkPlusLogger::m_pInstance = NULL;
 
+//-----------------------------------------------------------------------------
+
 vtkStandardNewMacro(vtkPlusLoggerOutputWindow);
+
+//-----------------------------------------------------------------------------
+namespace
+{
+  vtkSimpleRecursiveCriticalSection LoggerCreationCriticalSection;
+}
+
+//-----------------------------------------------------------------------------
 
 void vtkPlusLoggerOutputWindow::ReplaceNewlineBySeparator(std::string &str)
 {
@@ -56,19 +66,19 @@ void vtkPlusLoggerOutputWindow::DisplayText(const char* text)
 //-------------------------------------------------------
 void vtkPlusLoggerOutputWindow::DisplayErrorText(const char* text)
 {
-  if(text==NULL)
+  if(text == NULL)
   {
     return;
   }
-  std::string textStr=text;
+  std::string textStr = text;
   ReplaceNewlineBySeparator(textStr);
   LOG_ERROR("VTK log: " << textStr);
 
 #ifdef _WIN32
   DWORD lastErr=GetLastError();
-  LOG_ERROR("Last error: "<<lastErr);
+  LOG_ERROR("Last error: " << lastErr);
 #else
-  LOG_ERROR("Last error: "<<strerror(errno));
+  LOG_ERROR("Last error: " << strerror(errno));
 #endif
 
   this->InvokeEvent(vtkCommand::ErrorEvent, (void*)text);
@@ -153,16 +163,26 @@ vtkPlusLogger::~vtkPlusLogger()
 //-------------------------------------------------------
 vtkPlusLogger* vtkPlusLogger::Instance() 
 {
-  if (m_pInstance==NULL)
+  if (m_pInstance == NULL)
   {
-    m_pInstance = new vtkPlusLogger;  
+    PlusLockGuard<vtkSimpleRecursiveCriticalSection> loggerCreationGuard(&LoggerCreationCriticalSection);
+    if( m_pInstance != NULL )
+    {
+      return m_pInstance;
+    }
+
+    m_pInstance = new vtkPlusLogger; 
     vtkPlusConfig::GetInstance(); // set the log file name from the XML config
-    std::string strPlusLibVersion = std::string(" Software version: ")+PlusCommon::GetPlusLibVersionString(); 
+    std::string strPlusLibVersion = std::string(" Software version: ") + 
+      PlusCommon::GetPlusLibVersionString(); 
+
 #ifdef _DEBUG
     strPlusLibVersion += " (debug build)";
-#endif    
+#endif
+
     m_pInstance->LogMessage(LOG_LEVEL_INFO, strPlusLibVersion.c_str(), "vtkPlusLogger", __LINE__); 
   }
+
   return m_pInstance;
 }
 
@@ -180,15 +200,16 @@ void vtkPlusLogger::SetLogLevel(int logLevel)
     // keeping the current log level is requested
     return;
   }
-  m_CriticalSection->Lock();
-  m_LogLevel=logLevel;
-  m_CriticalSection->Unlock();
+
+  PlusLockGuard<vtkRecursiveCriticalSection> critSectionGuard(this->m_CriticalSection);
+  m_LogLevel = logLevel;
 }
 
 //-------------------------------------------------------
 void vtkPlusLogger::SetLogFileName(const char* logfilename) 
 { 
-  m_CriticalSection->Lock(); 
+  PlusLockGuard<vtkRecursiveCriticalSection> critSectionGuard(this->m_CriticalSection);
+
   if ( this->m_FileStream.is_open() )
   {
     if (m_LogFileName.compare(logfilename)==0)
@@ -209,7 +230,6 @@ void vtkPlusLogger::SetLogFileName(const char* logfilename)
   {
     m_LogFileName.clear(); 
   }
-  m_CriticalSection->Unlock(); 
 }
 
 //-------------------------------------------------------
@@ -227,7 +247,7 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* 
     return;
   }
 
-  std::string timestamp=vtkAccurateTimer::GetInstance()->GetDateAndTimeMSecString();
+  std::string timestamp = vtkAccurateTimer::GetInstance()->GetDateAndTimeMSecString();
 
   std::ostringstream log; 
   switch (level)
@@ -262,84 +282,84 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* 
     log << "|in " << fileName << "(" << lineNumber << ")"; // add filename and line number
   }
 
-  m_CriticalSection->Lock(); 
+  {
+    PlusLockGuard<vtkRecursiveCriticalSection> critSectionGuard(this->m_CriticalSection);
 
-  if (m_LogLevel >= level)
-  { 
+    if (m_LogLevel >= level)
+    { 
 
 #ifdef _WIN32
 
-    // Set the text color to highlight error and warning messages (supported only on windows)
-    switch (level)
-    {
-    case LOG_LEVEL_ERROR:  
+      // Set the text color to highlight error and warning messages (supported only on windows)
+      switch (level)
+      {
+      case LOG_LEVEL_ERROR:  
+        {
+          HANDLE hStdout = GetStdHandle(STD_ERROR_HANDLE); 
+          SetConsoleTextAttribute(hStdout, FOREGROUND_RED|FOREGROUND_INTENSITY);
+        }
+        break;
+      case LOG_LEVEL_WARNING:
+        {
+          HANDLE hStdout = GetStdHandle(STD_ERROR_HANDLE); 
+          SetConsoleTextAttribute(hStdout, FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_INTENSITY);
+        }
+        break;
+      default:
+        {
+          HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE); 
+          SetConsoleTextAttribute(hStdout, FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE);
+        }
+        break;
+      }    
+#endif
+
+      if (level>LOG_LEVEL_WARNING)
+      {
+        std::cout << log.str() << std::endl; 
+      }
+      else
+      {
+        std::cerr << log.str() << std::endl; 
+      }
+
+#ifdef _WIN32
+      // Revert the text color (supported only on windows)
+      if (level==LOG_LEVEL_ERROR || level==LOG_LEVEL_WARNING)
       {
         HANDLE hStdout = GetStdHandle(STD_ERROR_HANDLE); 
-        SetConsoleTextAttribute(hStdout, FOREGROUND_RED|FOREGROUND_INTENSITY);
-      }
-      break;
-    case LOG_LEVEL_WARNING:
-      {
-        HANDLE hStdout = GetStdHandle(STD_ERROR_HANDLE); 
-        SetConsoleTextAttribute(hStdout, FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_INTENSITY);
-      }
-      break;
-    default:
-      {
-        HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE); 
         SetConsoleTextAttribute(hStdout, FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE);
       }
-      break;
-    }    
 #endif
 
-    if (level>LOG_LEVEL_WARNING)
-    {
-      std::cout << log.str() << std::endl; 
-    }
-    else
-    {
-      std::cerr << log.str() << std::endl; 
-    }
+      // Call display message callbacks if higher priority than trace
+      if (level < LOG_LEVEL_TRACE)
+      {
+        std::ostringstream callDataStream;
+        callDataStream << level << "|" << log.str();
 
-#ifdef _WIN32
-    // Revert the text color (supported only on windows)
-    if (level==LOG_LEVEL_ERROR || level==LOG_LEVEL_WARNING)
-    {
-      HANDLE hStdout = GetStdHandle(STD_ERROR_HANDLE); 
-      SetConsoleTextAttribute(hStdout, FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE);
+        InvokeEvent(vtkCommand::UserEvent, (void*)(callDataStream.str().c_str()));      
+      }
+
+      // Add to log stream (file)
+      this->m_LogStream << std::setw(17) << std::left << timestamp << log.str() << std::endl; 
     }
-#endif
-
-    // Call display message callbacks if higher priority than trace
-    if (level < LOG_LEVEL_TRACE)
-    {
-      std::ostringstream callDataStream;
-      callDataStream << level << "|" << log.str();
-
-      InvokeEvent(vtkCommand::UserEvent, (void*)(callDataStream.str().c_str()));      
-    }
-
-    // Add to log stream (file)
-    this->m_LogStream << std::setw(17) << std::left << timestamp << log.str() << std::endl; 
   }
 
-  this->Flush(); 
-
-  m_CriticalSection->Unlock(); 
+  this->Flush();
 }
 
 //-------------------------------------------------------
 void vtkPlusLogger::Flush()
 {
-  m_CriticalSection->Lock(); 
+  PlusLockGuard<vtkRecursiveCriticalSection> critSectionGuard(this->m_CriticalSection);
+
   if ( this->m_FileStream.is_open() )
   {
     this->m_FileStream << this->m_LogStream.str(); 
     this->m_FileStream.flush(); 
     this->m_LogStream.str(""); 
   }
-  m_CriticalSection->Unlock(); 
 }
 
 //-------------------------------------------------------

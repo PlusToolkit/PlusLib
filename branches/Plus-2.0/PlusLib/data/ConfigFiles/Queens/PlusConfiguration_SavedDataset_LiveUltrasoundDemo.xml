@@ -199,7 +199,13 @@
   />
 
 
-  <vtkPhantomRegistrationAlgo
+  <vtkPhantomLandmarkRegistrationAlgo
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+    StylusTipCoordinateFrame="StylusTip"
+  />
+  
+  <vtkPhantomLinearObjectRegistrationAlgo
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
     StylusTipCoordinateFrame="StylusTip"

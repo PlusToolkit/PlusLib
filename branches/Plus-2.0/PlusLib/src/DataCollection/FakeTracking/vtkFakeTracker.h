@@ -55,6 +55,8 @@ public:
   /*! Set fake mode (tool info for fake tools) */
   void SetMode(FakeTrackerMode);
 
+  virtual bool IsTracker() const { return true; }
+
   /*! Set counter value used for translating landmark points */
   vtkSetMacro(Counter, int);
 

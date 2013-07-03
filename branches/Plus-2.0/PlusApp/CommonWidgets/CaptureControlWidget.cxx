@@ -5,6 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "CaptureControlWidget.h"
+#include "vtkDataCollector.h"
 #include "vtkPlusChannel.h"
 #include "vtkVirtualDiscCapture.h"
 #include "vtksys/SystemTools.hxx"

@@ -12,6 +12,7 @@
 #include "vtkObject.h"
 #include "vtkXMLDataElement.h"
 class vtkMatrix4x4; 
+class vtkRecursiveCriticalSection;
 //-----------------------------------------------------------------------------
 
 /*!
@@ -220,7 +221,7 @@ protected:
   /*! Get application configuration data */
   vtkGetObjectMacro(ApplicationConfigurationData, vtkXMLDataElement); 
   /*! Set application configuration data */
-  vtkSetObjectMacro(ApplicationConfigurationData, vtkXMLDataElement); 
+  vtkSetObjectMacro(ApplicationConfigurationData, vtkXMLDataElement);
 
 protected:
   /*!

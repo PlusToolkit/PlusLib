@@ -74,6 +74,8 @@ public:
   /*! Get local video buffer */
   vtkGetObjectMacro(LocalVideoBuffer, vtkPlusBuffer); 
 
+  virtual bool IsTracker() const;
+
   /*!
     Perform any completion tasks once configured
   */

@@ -202,7 +202,7 @@
   />
 
 
-  <vtkPhantomRegistrationAlgo
+  <vtkPhantomLandmarkRegistrationAlgo
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
     StylusTipCoordinateFrame="StylusTip"

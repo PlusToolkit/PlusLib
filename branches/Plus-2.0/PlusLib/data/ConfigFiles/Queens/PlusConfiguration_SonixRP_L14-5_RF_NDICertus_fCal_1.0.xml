@@ -208,7 +208,13 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
   />
 
 
-  <vtkPhantomRegistrationAlgo
+  <vtkPhantomLandmarkRegistrationAlgo
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+    StylusTipCoordinateFrame="StylusTip"
+  />
+  
+  <vtkPhantomLinearObjectRegistrationAlgo
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
     StylusTipCoordinateFrame="StylusTip"

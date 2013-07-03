@@ -12,7 +12,9 @@ See License.txt for details.
 #include "vtkPlusCommandProcessor.h"
 #include "vtkPlusReconstructVolumeCommand.h"
 #include "vtkPlusRequestChannelIDsCommand.h"
+#include "vtkPlusSaveConfigCommand.h"
 #include "vtkPlusStartStopRecordingCommand.h"
+#include "vtkPlusUpdateTransformCommand.h"
 #include "vtkRecursiveCriticalSection.h"
 #include "vtkXMLUtilities.h"
 
@@ -28,17 +30,27 @@ vtkPlusCommandProcessor::vtkPlusCommandProcessor()
 {
   // Register default commands
   {
-    vtkPlusCommand* cmd=vtkPlusStartStopRecordingCommand::New();
+    vtkPlusCommand* cmd = vtkPlusStartStopRecordingCommand::New();
     RegisterPlusCommand(cmd);
     cmd->Delete();
   }
   {
-    vtkPlusCommand* cmd=vtkPlusReconstructVolumeCommand::New();
+    vtkPlusCommand* cmd = vtkPlusReconstructVolumeCommand::New();
     RegisterPlusCommand(cmd);
     cmd->Delete();
   }
   {
-    vtkPlusCommand* cmd=vtkPlusRequestChannelIDsCommand::New();
+    vtkPlusCommand* cmd = vtkPlusRequestChannelIDsCommand::New();
+    RegisterPlusCommand(cmd);
+    cmd->Delete();
+  }
+  {
+    vtkPlusCommand* cmd = vtkPlusUpdateTransformCommand::New();
+    RegisterPlusCommand(cmd);
+    cmd->Delete();
+  }
+  {
+    vtkPlusCommand* cmd = vtkPlusSaveConfigCommand::New();
     RegisterPlusCommand(cmd);
     cmd->Delete();
   }
@@ -240,7 +252,7 @@ vtkPlusCommand* vtkPlusCommandProcessor::CreatePlusCommand(const std::string &co
     LOG_ERROR("Unknown command: "<<cmdName);
     return NULL;
   }
-  vtkPlusCommand* cmd=(this->RegisteredCommands[cmdName])->Clone();
+  vtkPlusCommand* cmd = (this->RegisteredCommands[cmdName])->Clone();
   if (cmd->ReadConfiguration(cmdElement)!=PLUS_SUCCESS)
   {
     cmd->Delete();
@@ -259,8 +271,8 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(unsigned int clientId, const st
     LOG_ERROR("Command string is undefined");
     return PLUS_FAIL;
   }
-  vtkPlusCommand* cmd=CreatePlusCommand(commandString);
-  if (cmd==NULL)
+  vtkPlusCommand* cmd = CreatePlusCommand(commandString);
+  if (cmd == NULL)
   {
     std::string reply("Failed to create command from string: ");
     reply += commandString;
@@ -271,6 +283,7 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(unsigned int clientId, const st
   cmd->SetCommandProcessor(this);
   cmd->SetClientId(clientId);
   cmd->SetDeviceName(deviceName.c_str());
+
   {
     // Add command to the execution queue
     PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);

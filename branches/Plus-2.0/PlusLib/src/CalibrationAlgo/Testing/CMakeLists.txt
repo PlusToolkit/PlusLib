@@ -195,9 +195,33 @@ TARGET_LINK_LIBRARIES( TemporalCalibrationAlgoTest vtkPlusCommon vtkCalibrationA
 
 ADD_TEST(TemporalCalibrationAlgoTest1 
     ${EXECUTABLE_OUTPUT_PATH}/TemporalCalibrationAlgoTest
-    --tracker-seq-file=${TestDataDir}/WaterTankBottomTranslationTrackerBuffer.mha
-    --video-seq-file=${TestDataDir}/WaterTankBottomTranslationVideoBuffer.mha
+    --moving-seq-file=${TestDataDir}/WaterTankBottomTranslationTrackerBuffer.mha
+    --moving-probe-to-reference-transform=ProbeToReference
+    --fixed-seq-file=${TestDataDir}/WaterTankBottomTranslationVideoBuffer.mha
     --sampling-resolution-sec=0.001
-    --verbose=2
+    --baseline-file=${TestDataDir}/TemporalCalibrationResultsBaseline.xml
     )
 SET_TESTS_PROPERTIES( TemporalCalibrationAlgoTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+#--------------------------------------------------------------------------------------------
+ADD_EXECUTABLE(SingleWallCalibrationAlgoTest vtkSingleWallCalibrationAlgoTest.cxx)
+TARGET_LINK_LIBRARIES( SingleWallCalibrationAlgoTest vtkPlusCommon vtkCalibrationAlgo vtkCommon vtkDataCollection vtkCharts)
+
+ADD_TEST(SingleWallCalibrationAlgoTest1
+    ${EXECUTABLE_OUTPUT_PATH}/SingleWallCalibrationAlgoTest
+    --input-seq-file=${TestDataDir}/SingleWallCalibrationTest.mha 
+    --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_File_SingleWallCalibrationAlgoTest.xml
+    )
+SET_TESTS_PROPERTIES( SingleWallCalibrationAlgoTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+#--------------------------------------------------------------------------------------------
+ADD_EXECUTABLE(vtkLineSegmentationAlgoTest vtkLineSegmentationAlgoTest.cxx)
+TARGET_LINK_LIBRARIES( vtkLineSegmentationAlgoTest vtkPlusCommon vtkCalibrationAlgo vtkCommon)
+
+ADD_TEST(vtkLineSegmentationAlgoTest1
+    ${EXECUTABLE_OUTPUT_PATH}/vtkLineSegmentationAlgoTest
+    --seq-file=${TestDataDir}/WaterTankBottomTranslationVideoBuffer.mha
+    --baseline-file=${TestDataDir}/LineSegmentationResultsBaseline.xml
+    --clip-rect-origin 225 40 --clip-rect-size 350 510
+    )
+SET_TESTS_PROPERTIES( vtkLineSegmentationAlgoTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )

@@ -24,6 +24,8 @@ See License.txt for details.
 vtkCxxRevisionMacro(vtkDataCollector, "$Revision: 2.0$");
 vtkStandardNewMacro(vtkDataCollector);
 
+DataCollectorCollection vtkDataCollector::DataCollectors;
+
 //----------------------------------------------------------------------------
 
 vtkDataCollector::vtkDataCollector()
@@ -52,6 +54,16 @@ vtkDataCollector::~vtkDataCollector()
     (*it)->Delete();
   }
   Devices.clear();
+
+  DataCollectorCollectionIterator it = std::find(DataCollectors.begin(), DataCollectors.end(), this);
+  if( it != DataCollectors.end() )
+  {
+    DataCollectors.erase(it);
+  }
+  else
+  {
+    LOG_WARNING("Unable to locate data collector in list. Mismatch between add and remove.");
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -93,13 +105,25 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
       vtkPlusDevice* device = NULL;
       if( deviceElement->GetAttribute("Id") == NULL )
       {
-        LOG_ERROR("Device of type " << deviceElement->GetAttribute("Type") << " with no ID. Unable to continue operating with an incomplete device configuration.");
-        return PLUS_FAIL;
+        LOG_ERROR("Device of type " << ( deviceElement->GetAttribute("Type") == NULL ? "UNDEFINED" : deviceElement->GetAttribute("Type")) << " with no ID. Skipping device configuration.");
+        continue;
       }
+      bool skip(false);
+      for( DeviceCollectionIterator it = this->Devices.begin(); it != this->Devices.end(); ++it )
+      {
+        if( STRCASECMP((*it)->GetDeviceId(), deviceElement->GetAttribute("Id")) == 0 )
+        {
+          LOG_ERROR("Device already exists with Id:\'" << (*it)->GetDeviceId() << "\'. Skipping configuration of second device.");
+          skip = true;
+          break;
+        }
+      }
+      if( skip ) continue;
+
       if( factory->CreateInstance(deviceElement->GetAttribute("Type"), device, deviceElement->GetAttribute("Id")) == PLUS_FAIL )
       {    
         LOG_ERROR("Unable to create device: " << deviceElement->GetAttribute("Type"));
-        return PLUS_FAIL;
+        continue;
       }
       device->SetDataCollector(this);
       device->ReadConfiguration(aConfig);
@@ -152,7 +176,7 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
           vtkXMLDataElement* inputChannelElement = inputChannelsElement->GetNestedElement(i); 
           if( STRCASECMP(inputChannelElement->GetName(), "InputChannel") == 0 )
           {
-            // We have an input stream, lets find it
+            // We have an input channel, lets find it
             for( DeviceCollectionIterator it = Devices.begin(); it != Devices.end(); ++it )
             {
               vtkPlusDevice* device = (*it);
@@ -614,4 +638,19 @@ PlusStatus vtkDataCollector::SetLoopTimes()
   }
 
   return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkDataCollector::GetChannel( vtkPlusChannel* &aChannel, const std::string &aChannelId ) const
+{
+  for( DeviceCollectionConstIterator it = this->Devices.begin(); it != this->Devices.end(); ++it )
+  {
+    if( (*it)->GetOutputChannelByName(aChannel, aChannelId.c_str()) == PLUS_SUCCESS )
+    {
+      return PLUS_SUCCESS;
+    }
+  }
+
+  aChannel = NULL;
+  return PLUS_FAIL;
 }

@@ -365,7 +365,7 @@ bool vtkProbeCalibrationOptimizerAlgo::Enabled()
 }
 
 //----------------------------------------------------------------------------
-char* vtkProbeCalibrationOptimizerAlgo::GetOptimizationMethodAsString(OptimizationMethodType type)
+const char* vtkProbeCalibrationOptimizerAlgo::GetOptimizationMethodAsString(OptimizationMethodType type)
 {
   switch (type)
   {

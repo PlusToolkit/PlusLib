@@ -78,6 +78,18 @@ public:
   */
   static void Slerp(double *result, double t, double *from, double *to, bool adjustSign = true); 
 
+  /*
+    This function constrain an orientation in 3DOF to 2DOF (rotation around two axes)    
+    This function is given a rotation axis vector ("down" vector, in the sensor coordinate system;
+    the down vector equals the acceleration direction if the sensor is not moving).
+    The updated orientation will be rotated along this rotation axis so that the specified (notRotatingAxisIndex-th) axis
+    points to the (0,1,0) orientation in the SouthWestDown coordinate system.
+    The input sensorToSouthWestDownTransform is updated with the constrained transformation matrix.
+    This can be used for setting the West direction explicitly when a compass is not used for getting the rotation around the Down axis.
+    The notRotatingAxisIndex is the index of the sensor axis that will be constrained to always point to the West direction.
+  */
+  static PlusStatus ConstrainRotationToTwoAxes(double downVector_Sensor[3], int notRotatingAxisIndex, vtkMatrix4x4* sensorToSouthWestDownTransform);
+  
   /*! Returns a string containing the parameters (rotation, translation, scaling) from a transformation */
   static std::string GetTransformParametersString(vtkTransform* transform);
 

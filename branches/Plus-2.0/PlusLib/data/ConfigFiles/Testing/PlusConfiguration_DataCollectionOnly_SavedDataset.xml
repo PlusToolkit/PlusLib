@@ -13,6 +13,7 @@
       AcquisitionRate="10"
       LocalTimeOffsetSec="0.0"
       DefaultToolName="Probe"
+      ToolReferenceFrame="Tracker" 
       SequenceMetafile="NwirePhantomFreehand.mha" >
       <DataSources>
         <DataSource Type="Tool" Id="Tool" BufferSize="200" AveragedItemsForFiltering="20" PortName="0" />

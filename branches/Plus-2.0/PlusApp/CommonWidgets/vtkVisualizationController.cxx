@@ -479,10 +479,10 @@ PlusStatus vtkVisualizationController::GetTransformTranslationString(PlusTransfo
     return PLUS_FAIL;
   }
 
-  char positionChars[32];
-  SNPRINTF(positionChars, 32, "%.1lf X %.1lf X %.1lf", transformMatrix->GetElement(0,3), transformMatrix->GetElement(1,3), transformMatrix->GetElement(2,3));
+  std::stringstream ss;
+  ss << std::fixed << transformMatrix->GetElement(0,3) << " " << transformMatrix->GetElement(1,3) << " " << transformMatrix->GetElement(2,3);
 
-  aTransformTranslationString = std::string(positionChars);
+  aTransformTranslationString = ss.str();
 
   return PLUS_SUCCESS;
 }
@@ -720,18 +720,18 @@ PlusStatus vtkVisualizationController::ReadConfiguration(vtkXMLDataElement* aXML
 
 PlusStatus vtkVisualizationController::WriteConfiguration(vtkXMLDataElement* aXMLElement)
 {
-  PlusStatus status=PLUS_SUCCESS;
+  PlusStatus status = PLUS_SUCCESS;
 
   if (this->DataCollector->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to save configuration of data collector"); 
-    status=PLUS_FAIL;
+    status = PLUS_FAIL;
   }
 
   if (this->TransformRepository->WriteConfiguration(aXMLElement) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to save configuration of transform repository"); 
-    status=PLUS_FAIL;
+    status = PLUS_FAIL;
   }
 
   // Here we could give a chance to PerspectiveVisualizer and ImageVisualizer

@@ -5,6 +5,12 @@
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
+#include "vtkDirectory.h"
+#include "vtkMatrix4x4.h"
+#include "vtkPlusConfig.h"
+#include "vtkRecursiveCriticalSection.h"
+#include "vtkXMLUtilities.h"
+#include "vtksys/SystemTools.hxx" 
 
 // Needed for proper singleton initialization 
 // The vtkDebugLeaks singleton must be initialized before and
@@ -12,21 +18,13 @@
 #include "vtkDebugLeaksManager.h"
 #include "vtkObjectFactory.h"
 
-#include "vtkPlusConfig.h"
+static const char APPLICATION_CONFIGURATION_FILE_NAME[] = "PlusConfig.xml";
 
-#include "vtksys/SystemTools.hxx" 
-#include "vtkDirectory.h"
-#include "vtkXMLUtilities.h"
-#include "vtkMatrix4x4.h"
+vtkCxxRevisionMacro(vtkPlusConfig, "$Revision: 1.1 $");
 
-static const char APPLICATION_CONFIGURATION_FILE_NAME[]="PlusConfig.xml";
+vtkPlusConfig *vtkPlusConfig::Instance = NULL;
 
-vtkCxxRevisionMacro(vtkPlusConfig, "$Revision: 1.0 $");
-
-vtkPlusConfig *vtkPlusConfig::Instance = 0;
-
-
-//----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 class vtkPlusConfigCleanup
 {
 public:
@@ -42,7 +40,12 @@ public:
     }
   }
 };
-static vtkPlusConfigCleanup vtkPlusConfigCleanupGlobal;
+//------ File local content ---------------------------------------------------
+namespace
+{
+  vtkPlusConfigCleanup vtkPlusConfigCleanupGlobal;
+  vtkSimpleRecursiveCriticalSection ConfigCreationCriticalSection;
+}
 
 //-----------------------------------------------------------------------------
 vtkPlusConfig* vtkPlusConfig::New()
@@ -55,26 +58,30 @@ vtkPlusConfig* vtkPlusConfig::GetInstance()
 {
   if(!vtkPlusConfig::Instance) 
   {
-    if(!vtkPlusConfig::Instance) 
+    PlusLockGuard<vtkSimpleRecursiveCriticalSection> criticalSectionGuardedLock(&ConfigCreationCriticalSection);
+
+    if( vtkPlusConfig::Instance != NULL )
     {
-      vtkPlusConfigCleanupGlobal.Use();
+      return vtkPlusConfig::Instance;
+    }
 
-      // Need to call vtkObjectFactory::CreateInstance method because this
-      // registers the class in the vtkDebugLeaks::MemoryTable.
-      // Without this we would get a "Deleting unknown object" VTK warning on application exit
-      // (in debug mode, with debug leak checking enabled).
-      vtkObject* ret = vtkObjectFactory::CreateInstance("vtkPlusConfig");
-      if(ret)
-      {
-        vtkPlusConfig::Instance = static_cast<vtkPlusConfig*>(ret);
-      }
-      else
-      {
-        vtkPlusConfig::Instance = new vtkPlusConfig();   
-      }
+    vtkPlusConfigCleanupGlobal.Use();
 
+    // Need to call vtkObjectFactory::CreateInstance method because this
+    // registers the class in the vtkDebugLeaks::MemoryTable.
+    // Without this we would get a "Deleting unknown object" VTK warning on application exit
+    // (in debug mode, with debug leak checking enabled).
+    vtkObject* ret = vtkObjectFactory::CreateInstance("vtkPlusConfig");
+    if(ret)
+    {
+      vtkPlusConfig::Instance = static_cast<vtkPlusConfig*>(ret);
+    }
+    else
+    {
+      vtkPlusConfig::Instance = new vtkPlusConfig();   
     }
   }
+
   // return the instance
   return vtkPlusConfig::Instance;
 }
@@ -92,22 +99,21 @@ void vtkPlusConfig::SetInstance(vtkPlusConfig* instance)
     vtkPlusConfig::Instance->Delete();
   }
   vtkPlusConfig::Instance = instance;
-  if (!instance)
-  {
-    return;
-  }
+
   // user will call ->Delete() after setting instance
-  instance->Register(NULL);
+  if( instance != NULL )
+  {
+    instance->Register(NULL);
+  }
 }
 
 //-----------------------------------------------------------------------------
 vtkPlusConfig::vtkPlusConfig()
+: DeviceSetConfigurationData(NULL)
+, ApplicationConfigurationData(NULL)
+, EditorApplicationExecutable(NULL)
 {
-  this->DeviceSetConfigurationData = NULL;
-  this->ApplicationConfigurationData = NULL;
-  this->EditorApplicationExecutable = NULL;
-
-  this->ApplicationStartTimestamp=vtkAccurateTimer::GetInstance()->GetDateAndTimeString(); 
+  this->ApplicationStartTimestamp = vtkAccurateTimer::GetInstance()->GetDateAndTimeString(); 
   
   // Retrieve the program directory (where the exe file is located)
   SetProgramDirectory();
@@ -958,7 +964,7 @@ std::string vtkPlusConfig::GetApplicationStartTimestamp()
 void vtkPlusConfig::SetDeviceSetConfigurationData(vtkXMLDataElement* deviceSetConfigurationData)
 {
   vtkSetObjectBodyMacro(DeviceSetConfigurationData,vtkXMLDataElement,deviceSetConfigurationData);
-  if (this->DeviceSetConfigurationData!=NULL)
+  if (this->DeviceSetConfigurationData != NULL)
   {    
     std::string plusLibVersion=PlusCommon::GetPlusLibVersionString();
     this->DeviceSetConfigurationData->SetAttribute("PlusRevision", plusLibVersion.c_str());

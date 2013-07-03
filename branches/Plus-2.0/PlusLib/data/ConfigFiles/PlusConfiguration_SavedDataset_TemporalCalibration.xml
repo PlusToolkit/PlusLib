@@ -191,6 +191,8 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
     TemporalCalibrationDurationSec="10"
+    FixedToReferenceFrame="Tracker" 
+    MovingToReferenceFrame="Tracker" 
   />
 
 
@@ -201,7 +203,13 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
   />
 
 
-  <vtkPhantomRegistrationAlgo
+  <vtkPhantomLandmarkRegistrationAlgo
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+    StylusTipCoordinateFrame="StylusTip"
+  />
+  
+  <vtkPhantomLinearObjectRegistrationAlgo
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
     StylusTipCoordinateFrame="StylusTip"

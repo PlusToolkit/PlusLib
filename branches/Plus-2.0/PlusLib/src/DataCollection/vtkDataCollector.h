@@ -13,10 +13,14 @@ See License.txt for details.
 #include <vector>
 
 class TrackedFrame;
+class vtkDataCollector;
 class vtkTrackedFrameList;
 class vtkVirtualMixer;
 class vtkXMLDataElement;
 class vtkPlusDevice;
+
+typedef std::vector<vtkDataCollector*> DataCollectorCollection; 
+typedef DataCollectorCollection::iterator DataCollectorCollectionIterator;
 
 /*!
 \class vtkDataCollector 
@@ -85,6 +89,13 @@ public:
   PlusStatus GetDevice(vtkPlusDevice* &aDevice, const std::string &aDeviceId) const;
 
   /*!
+    Return the requested channel
+    \param aChannel the device pointer to fill
+    \param aChannelId the ID of the requested device
+  */
+  PlusStatus GetChannel(vtkPlusChannel* &aChannel, const std::string &aChannelId) const;
+
+  /*!
     Allow iteration over devices
   */
   DeviceCollectionConstIterator GetDeviceConstIteratorBegin() const;
@@ -121,6 +132,8 @@ public:
   /*! Get startup delay in sec to give some time to the buffers for proper initialization */
   vtkGetMacro(StartupDelaySec, double);
 
+  static DataCollectorCollection& GetDataCollectors();
+
 protected:
   vtkDataCollector();
   virtual ~vtkDataCollector();
@@ -132,6 +145,8 @@ protected:
 
   bool Connected;
   bool Started;
+
+  static DataCollectorCollection DataCollectors;
 
 private:
   vtkDataCollector(const vtkDataCollector&);

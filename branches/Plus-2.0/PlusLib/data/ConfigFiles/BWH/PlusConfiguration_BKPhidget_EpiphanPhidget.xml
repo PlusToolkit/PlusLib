@@ -1,11 +1,11 @@
 <PlusConfiguration version="2.2">
 
-    <DataCollection StartupDelaySec="1.0">
+  <DataCollection StartupDelaySec="1.0">
+  
     <DeviceSet 
       Name="BK ProFocus RF-mode + PhidgetSpatial with raw sensor data + Epiphan framegrabber + 2 mixers + 2 captures of mixed streams 2.1 March 8"
       Description="BK ProFocus ultrasound with transrectal probe (RF-mode) and Epiphan image
-      acquisition. Support of both transverse and linear arrays. PhidgetSpatial rotation tracking." 
-    />
+      acquisition. Support of both transverse and linear arrays. PhidgetSpatial rotation tracking." />
 	
   <Device
    Type="BkProFocus"
@@ -15,11 +15,9 @@
    LocalTimeOffsetSec="0"
    Selectable="false"
    ImagingMode="RfMode" >
-
    <DataSources>
      <DataSource Type="Video" Id="Video" PortUsImageOrientation="FM" BufferSize="100" AveragedItemsForFiltering="20" />
-   </DataSources>
-   
+   </DataSources>   
    <OutputChannels>
       <OutputChannel Id="BKVideoStream" VideoDataSourceId="Video" >
         <RfProcessing>
@@ -53,22 +51,21 @@
 
   <!-- PhidgetSpatial tracker -->
   <Device
-   Type="PhidgetSpatial"
-   Id="TrackerDevice"
-   AhrsAlgorithm="MADGWICK_MARG" 
-   AhrsAlgorithmGain="1.5" 
-   TiltSensorWestAxisIndex="1"   
-   AcquisitionRate="125" 
-   LocalTimeOffsetSec="0.0">
-   
+    Type="PhidgetSpatial"
+    Id="TrackerDevice"
+    AhrsAlgorithm="MADGWICK_MARG" 
+    AhrsAlgorithmGain="1.5" 
+    TiltSensorWestAxisIndex="1"   
+    AcquisitionRate="125" 
+    LocalTimeOffsetSec="0.0"
+    ToolReferenceFrame="Tracker" >   
    <DataSources>
     <DataSource Type="Tool" Id="Accelerometer" PortName="Accelerometer" BufferSize="2500" AveragedItemsForFiltering="20"/>
     <DataSource Type="Tool" Id="Gyroscope" PortName="Gyroscope" BufferSize="2500" AveragedItemsForFiltering="20"/>
     <DataSource Type="Tool" Id="Magnetometer" PortName="Magnetometer" BufferSize="2500" AveragedItemsForFiltering="20"/>
     <DataSource Type="Tool" Id="TiltSensor" PortName="TiltSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>
     <DataSource Type="Tool" Id="OrientationSensor" PortName="OrientationSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>                           
-   </DataSources>
-   
+   </DataSources>   
    <OutputChannels>
     <OutputChannel Id="TrackerStream" >
      <DataSource Id="Accelerometer"/>
@@ -84,23 +81,20 @@
     <InputChannels>
       <InputChannel Id="TrackerStream" />
       <InputChannel Id="BKVideoStream" />
-    </InputChannels>
-    
+    </InputChannels>    
     <OutputChannels>
       <OutputChannel Id="BKTrackedVideoStream" />
     </OutputChannels>        
   </Device>
 
-    <Device Id="EpiphanTrackedVideoDevice" Type="VirtualMixer">
+  <Device Id="EpiphanTrackedVideoDevice" Type="VirtualMixer">
     <InputChannels>
       <InputChannel Id="TrackerStream" />
       <InputChannel Id="EpiphanVideoStream" />
-    </InputChannels>
-    
+    </InputChannels>    
     <OutputChannels>
       <OutputChannel Id="EpiphanTrackedVideoStream"/>
     </OutputChannels>    
-    
   </Device>
   
     <Device

@@ -11,6 +11,7 @@
       SequenceMetafile="fCal_Test_Calibration_3NWires.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"
+      ToolReferenceFrame="Tracker" 
       RepeatEnabled="TRUE" >
       <DataSources>
         <DataSource Type="Video" Id="Video" BufferSize="100" />
@@ -216,7 +217,13 @@
   />
 
 
-  <vtkPhantomRegistrationAlgo
+  <vtkPhantomLandmarkRegistrationAlgo
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+    StylusTipCoordinateFrame="StylusTip"
+  />
+  
+  <vtkPhantomLinearObjectRegistrationAlgo
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
     StylusTipCoordinateFrame="StylusTip"

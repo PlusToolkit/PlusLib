@@ -39,6 +39,7 @@ static const double MIN_X_SLOPE_COMPONENT_FOR_DETECTED_LINE = 0.01; // if the de
 static const int MINIMUM_NUMBER_OF_VALID_SCANLINES = 5; // minimum number of valid scanlines to compute line position
 static const int NUMBER_OF_SCANLINES = 40; // number of scan-lines for line detection
 static const unsigned int DIMENSION = 2; // dimension of video frames (used for Ransac plane)
+static const double EXPECTED_LINE_SEGMENTATION_SUCCESS_RATE=0.5; // log a warning if the actual line segmentation success rate (fraction of frames where the line segmentation was successful) is below this threshold
 
 enum PEAK_POS_METRIC_TYPE
 {
@@ -176,9 +177,17 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
 {
   m_SignalValues.clear();
   m_SignalTimestamps.clear();
-  m_LineParameters.clear();
+  
+  LineParameters nonDetectedLineParams;
+  nonDetectedLineParams.lineDetected=false;
+  nonDetectedLineParams.lineOriginPoint_Image[0]=0;
+  nonDetectedLineParams.lineOriginPoint_Image[1]=0;
+  nonDetectedLineParams.lineDirectionVector_Image[0]=0;
+  nonDetectedLineParams.lineDirectionVector_Image[1]=1;
+  m_LineParameters.assign(m_TrackedFrameList->GetNumberOfTrackedFrames(), nonDetectedLineParams);
 
   //  For each video frame, detect line and extract mindpoint and slope parameters
+  int numberOfSuccessfulLineSegmentations=0;
   bool signalTimeRangeDefined=(m_SignalTimeRangeMin<=m_SignalTimeRangeMax);
   for(unsigned int frameNumber = 0; frameNumber < m_TrackedFrameList->GetNumberOfTrackedFrames(); ++frameNumber)
   {
@@ -206,7 +215,6 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
     typedef itk::ImageDuplicator<CharImageType> DuplicatorType;
     DuplicatorType::Pointer duplicator = DuplicatorType::New();
     CharImageType::Pointer scanlineImage;
-    CharImageType::Pointer IntensityPeakAndRansacLineImage;
     if(m_SaveIntermediateImages == true)
     {
       duplicator->SetInputImage(localImage);
@@ -214,9 +222,6 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
 
       // Create an image copy to draw the scanlines on
       scanlineImage = duplicator->GetOutput();
-
-      // Create an image copy to draw the detected intensity peaks and Ransac line
-      IntensityPeakAndRansacLineImage = duplicator->GetOutput();
     }
 
     std::vector<itk::Point<double,2> > intensityPeakPositions;
@@ -229,8 +234,8 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
     {
       // Set the scanline start pixel
       CharImageType::IndexType startPixel;
-      int scanlineSpacingPix = static_cast<int>(region.GetSize()[0] / (NUMBER_OF_SCANLINES + 1) );
-      startPixel[0] = region.GetIndex()[0]+scanlineSpacingPix * (currScanlineNum + 1); // TODO: why the +1?
+      double scanlineSpacingPix = static_cast<double>(region.GetSize()[0]-1) / (NUMBER_OF_SCANLINES - 1);
+      startPixel[0] = region.GetIndex()[0]+scanlineSpacingPix * (currScanlineNum);
       startPixel[1] = region.GetIndex()[1];
 
       // Set the scanline end pixel
@@ -246,7 +251,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
       if(m_SaveIntermediateImages == true)
       {
         // Iterator for the scanline image copy
-        // TODO: explain that it's expensive to instantiate this object
+        // it's time-consuming to instantiate this iterator, so only do it if intermediate image saving is requested
         itScanlineImage = new itk::LineIterator<CharImageType>(scanlineImage, startPixel, endPixel);
         itScanlineImage->GoToBegin();
       }
@@ -278,10 +283,10 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
       }
 
       // Find the max intensity value from the peak with the largest area
-      int MaxFromLargestArea = -1;
-      int MaxFromLargestAreaIndex = -1;
+      int maxFromLargestArea = -1;
+      int maxFromLargestAreaIndex = -1;
       int startOfMaxArea = -1;
-      if(FindLargestPeak(intensityProfile, MaxFromLargestArea, MaxFromLargestAreaIndex, startOfMaxArea) == PLUS_SUCCESS)
+      if(FindLargestPeak(intensityProfile, maxFromLargestArea, maxFromLargestAreaIndex, startOfMaxArea) == PLUS_SUCCESS)
       {
         double currPeakPos_y = -1; 
         switch (PEAK_POS_METRIC)
@@ -299,7 +304,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
         case PEAK_POS_START:
           {
             /* Use peak start as peak-position metric*/
-            if(FindPeakStart(intensityProfile,MaxFromLargestArea, startOfMaxArea, currPeakPos_y) != PLUS_SUCCESS)
+            if(FindPeakStart(intensityProfile,maxFromLargestArea, startOfMaxArea, currPeakPos_y) != PLUS_SUCCESS)
             {
               // unable to compute peak start; this scanline is invalid
               continue;
@@ -325,37 +330,44 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
     }
 
     LineParameters params;
-    if( ComputeLineParameters(intensityPeakPositions, params) == PLUS_SUCCESS )
+    ComputeLineParameters(intensityPeakPositions, params);
+    if( !params.lineDetected )
     {
-      if( params.lineDirectionVector_Image[0] < MIN_X_SLOPE_COMPONENT_FOR_DETECTED_LINE)
-      {
-        // Line is close to vertical, skip frame because intersection of 
-        // line with image's horizontal half point is unstable
-        continue;
-      }
-
-      m_LineParameters.push_back(params);
-
-      // Store the y-value of the line, when the line's x-value is half of the image's width
-      double t = ( region.GetIndex()[0] + 0.5 * region.GetSize()[0] - params.lineOriginPoint_Image[0] ) / params.lineDirectionVector_Image[0]; 
-      m_SignalValues.push_back( std::abs( params.lineOriginPoint_Image[1] + t * params.lineDirectionVector_Image[1] ) );
-
-      //  Store timestamp for image frame
-      m_SignalTimestamps.push_back(m_TrackedFrameList->GetTrackedFrame(frameNumber)->GetTimestamp());
-
-      if(m_SaveIntermediateImages == true)
-      {
-        SaveIntermediateImage(frameNumber, scanlineImage, 
-          params.lineOriginPoint_Image[0], params.lineOriginPoint_Image[1], params.lineDirectionVector_Image[0], params.lineDirectionVector_Image[1], 
-          numOfValidScanlines, intensityPeakPositions);
-      }
+      LOG_DEBUG("Unable to compute line parameters for frame " << frameNumber);
+      continue;
     }
-    else
+    if( params.lineDirectionVector_Image[0] < MIN_X_SLOPE_COMPONENT_FOR_DETECTED_LINE)
     {
-      LOG_WARNING("Unable to compute line parameters for frame " << frameNumber << ".");
+      // Line is close to vertical, skip frame because intersection of 
+      // line with image's horizontal half point is unstable
+      LOG_TRACE("Line on frame "<<frameNumber<<" is too close to vertical, skip the frame");
+      continue;
+    }
+
+    ++numberOfSuccessfulLineSegmentations;
+    m_LineParameters[frameNumber]=params;
+
+    // Store the y-value of the line, when the line's x-value is half of the image's width
+    double t = ( region.GetIndex()[0] + 0.5 * region.GetSize()[0] - params.lineOriginPoint_Image[0] ) / params.lineDirectionVector_Image[0]; 
+    m_SignalValues.push_back( std::abs( params.lineOriginPoint_Image[1] + t * params.lineDirectionVector_Image[1] ) );
+
+    //  Store timestamp for image frame
+    m_SignalTimestamps.push_back(m_TrackedFrameList->GetTrackedFrame(frameNumber)->GetTimestamp());
+
+    if(m_SaveIntermediateImages == true)
+    {
+      SaveIntermediateImage(frameNumber, scanlineImage, 
+        params.lineOriginPoint_Image[0], params.lineOriginPoint_Image[1], params.lineDirectionVector_Image[0], params.lineDirectionVector_Image[1], 
+        numOfValidScanlines, intensityPeakPositions);
     }
 
   } // end frameNum loop
+
+  double segmentationSuccessRate=double(numberOfSuccessfulLineSegmentations)/m_TrackedFrameList->GetNumberOfTrackedFrames();
+  if (segmentationSuccessRate<EXPECTED_LINE_SEGMENTATION_SUCCESS_RATE)
+  {
+    LOG_WARNING("Line segmentation success rate is very low ("<<segmentationSuccessRate*100<<"%): a line could only be detected on "<<numberOfSuccessfulLineSegmentations<<" frames out of "<<m_TrackedFrameList->GetNumberOfTrackedFrames());
+  }
 
   bool plotVideoMetric = vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE;
   if (plotVideoMetric)
@@ -368,10 +380,10 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
 } //  End LineDetection
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkLineSegmentationAlgo::FindPeakStart(std::deque<int> &intensityProfile,int MaxFromLargestArea, int startOfMaxArea, double &startOfPeak)
+PlusStatus vtkLineSegmentationAlgo::FindPeakStart(std::deque<int> &intensityProfile,int maxFromLargestArea, int startOfMaxArea, double &startOfPeak)
 {
   // Start of peak is defined as the location at which it reaches 50% of its maximum value.
-  double startPeakValue = MaxFromLargestArea * 0.5;
+  double startPeakValue = maxFromLargestArea * 0.5;
 
   int pixelIndex = startOfMaxArea;
 
@@ -386,7 +398,7 @@ PlusStatus vtkLineSegmentationAlgo::FindPeakStart(std::deque<int> &intensityProf
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkLineSegmentationAlgo::FindLargestPeak(std::deque<int> &intensityProfile,int &MaxFromLargestArea, int &MaxFromLargestAreaIndex, int &startOfMaxArea)
+PlusStatus vtkLineSegmentationAlgo::FindLargestPeak(std::deque<int> &intensityProfile,int &maxFromLargestArea, int &maxFromLargestAreaIndex, int &startOfMaxArea)
 {
   int currentLargestArea = 0;
   int currentArea = 0;
@@ -451,8 +463,8 @@ PlusStatus vtkLineSegmentationAlgo::FindLargestPeak(std::deque<int> &intensityPr
     }
   } //end loop through intensity profile
 
-  MaxFromLargestArea = currentMaxFromLargestArea;
-  MaxFromLargestAreaIndex = currentMaxFromLargestAreaIndex;
+  maxFromLargestArea = currentMaxFromLargestArea;
+  maxFromLargestAreaIndex = currentMaxFromLargestAreaIndex;
   startOfMaxArea = currentStartOfMaxArea;
 
   if(currentLargestArea == 0)
@@ -504,8 +516,10 @@ PlusStatus vtkLineSegmentationAlgo::ComputeCenterOfGravity(std::deque<int> &inte
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point<double,2> >& data, LineParameters& OutputParameters)
+void vtkLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point<double,2> >& data, LineParameters& outputParameters)
 {
+  outputParameters.lineDetected=false;
+
   std::vector<double> ransacParameterResult;
   typedef itk::PlaneParametersEstimator<DIMENSION> PlaneEstimatorType;
   typedef itk::RANSAC<itk::Point<double, DIMENSION>, double> RANSACType;
@@ -517,7 +531,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point
   planeEstimator->LeastSquaresEstimate( data, ransacParameterResult );
   if( ransacParameterResult.empty() )
   {
-    LOG_ERROR("Unable to fit line through points with least squares estimation");
+    LOG_DEBUG("Unable to fit line through points with least squares estimation");
   }
   else
   {
@@ -538,8 +552,8 @@ PlusStatus vtkLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point
   }
   catch( std::exception& e) 
   {
-    LOG_ERROR(e.what());
-    return PLUS_FAIL;
+    LOG_DEBUG(e.what());
+    return;
   }
 
   try
@@ -548,8 +562,8 @@ PlusStatus vtkLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point
   }
   catch( std::exception& e)
   {
-    LOG_ERROR(e.what());
-    return PLUS_FAIL;
+    LOG_DEBUG(e.what());
+    return;
   }
 
 
@@ -559,14 +573,14 @@ PlusStatus vtkLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point
   }
   catch( std::exception& e)
   {
-    LOG_ERROR(e.what());
-    return PLUS_FAIL;
+    LOG_DEBUG(e.what());
+    return;
   }
 
   if( ransacParameterResult.empty() )
   {
-    LOG_ERROR("Unable to fit line through points with RANSAC, line segmentation failed");
-    return PLUS_FAIL;
+    LOG_DEBUG("Unable to fit line through points with RANSAC, line segmentation failed");
+    return;
   }
 
   LOG_TRACE("RANSAC line fitting parameters (n, a):");
@@ -576,24 +590,18 @@ PlusStatus vtkLineSegmentationAlgo::ComputeLineParameters(std::vector<itk::Point
     LOG_TRACE(" RANSAC parameter: " << ransacParameterResult[i]);
   }
 
-  OutputParameters.lineDirectionVector_Image[0] = -ransacParameterResult[1];
-  OutputParameters.lineDirectionVector_Image[1] = ransacParameterResult[0];
-  OutputParameters.lineOriginPoint_Image[0] = ransacParameterResult[2];
-  OutputParameters.lineOriginPoint_Image[1] = ransacParameterResult[3];
-
-  return PLUS_SUCCESS;
+  outputParameters.lineDetected=true;
+  outputParameters.lineDirectionVector_Image[0] = -ransacParameterResult[1];
+  outputParameters.lineDirectionVector_Image[1] = ransacParameterResult[0];
+  outputParameters.lineOriginPoint_Image[0] = ransacParameterResult[2];
+  outputParameters.lineOriginPoint_Image[1] = ransacParameterResult[3];
 }
 
 //-----------------------------------------------------------------------------
 void vtkLineSegmentationAlgo::SaveIntermediateImage(int frameNumber, CharImageType::Pointer scanlineImage, double x_0, double y_0, double r_x, double r_y, int numOfValidScanlines, const std::vector<itk::Point<double,2> > &intensityPeakPositions)
 {
-  // Write image showing the scan lines to file
-  std::ostrstream scanLineImageFilename;
-  scanLineImageFilename << m_IntermediateFilesOutputDirectory << "/scanLineImage" << std::setw(3) << std::setfill('0') << frameNumber << ".bmp" << std::ends;
-  LOG_DEBUG("Save line segmentation intermediate image to "<<scanLineImageFilename.str());
-  PlusVideoFrame::SaveImageToFile(scanlineImage, scanLineImageFilename.str());
+  // The scanlineImage already contains the vertical lines, but not the segmented line.
 
-  // Test writing of colour image to file
   typedef itk::RGBPixel<unsigned char> rgbPixelType;
   typedef itk::Image<rgbPixelType, 2> rgbImageType;
   rgbImageType::Pointer rgbImageCopy = rgbImageType::New();
@@ -672,7 +680,11 @@ void vtkLineSegmentationAlgo::SaveIntermediateImage(int frameNumber, CharImageTy
   }
 
   std::ostrstream rgbImageFilename;
-  rgbImageFilename << m_IntermediateFilesOutputDirectory << "/rgbImage" << std::setw(3) << std::setfill('0') << frameNumber << ".png" << std::ends;
+  if (!m_IntermediateFilesOutputDirectory.empty())
+  {
+    rgbImageFilename << m_IntermediateFilesOutputDirectory << "/";
+  }
+  rgbImageFilename << "LineSegmentationResult_" << std::setw(3) << std::setfill('0') << frameNumber << ".png" << std::ends;
 
   typedef itk::ImageFileWriter<rgbImageType> rgbImageWriterType;
   rgbImageWriterType::Pointer rgbImageWriter = rgbImageWriterType::New();
@@ -919,6 +931,16 @@ PlusStatus vtkLineSegmentationAlgo::ReadConfiguration( vtkXMLDataElement* aConfi
   {
     m_IntermediateFilesOutputDirectory = vtkPlusConfig::GetInstance()->GetOutputDirectory();
   }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkLineSegmentationAlgo::Reset()
+{
+  m_SignalValues.clear();
+  m_SignalTimestamps.clear();
+  m_LineParameters.clear();
 
   return PLUS_SUCCESS;
 }

@@ -14,8 +14,11 @@ See License.txt for details.
 #include "vtkImageData.h"
 
 //----------------------------------------------------------------------------
-vtkCxxRevisionMacro(vtkRfProcessor, "$Revision: 1.0 $");
-vtkStandardNewMacro(vtkRfProcessor); 
+vtkCxxRevisionMacro(vtkRfProcessor, "$Revision: 1.1 $");
+vtkStandardNewMacro(vtkRfProcessor);
+//----------------------------------------------------------------------------
+const char* vtkRfProcessor::RF_PROCESSOR_TAG_NAME = "RfProcessing";
+//----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------
 vtkRfProcessor::vtkRfProcessor()
@@ -136,7 +139,7 @@ PlusStatus vtkRfProcessor::ReadConfiguration(vtkXMLDataElement* rfProcessingElem
           status=PLUS_FAIL;
         }
       }
-      if (this->ScanConverter->ReadConfiguration(scanConversionElement)!=PLUS_SUCCESS)
+      if (this->ScanConverter != NULL && this->ScanConverter->ReadConfiguration(scanConversionElement)!=PLUS_SUCCESS)
       {
         status=PLUS_FAIL;
       }
@@ -202,4 +205,10 @@ PlusStatus vtkRfProcessor::WriteConfiguration(vtkXMLDataElement* rfElement)
   }
 
   return status;
+}
+
+//-----------------------------------------------------------------------------
+const char* vtkRfProcessor::GetRfProcessorTagName()
+{
+  return vtkRfProcessor::RF_PROCESSOR_TAG_NAME;
 }

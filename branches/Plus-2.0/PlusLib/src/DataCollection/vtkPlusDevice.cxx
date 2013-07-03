@@ -62,6 +62,7 @@ vtkPlusDevice::vtkPlusDevice()
 , OutputNeedsInitialization(1)
 , CorrectlyConfigured(true)
 , StartThreadForInternalUpdates(false)
+, LocalTimeOffsetSec(0.0)
 , RequireImageOrientationInConfiguration(false)
 , RequireFrameBufferSizeInDeviceSetConfiguration(false)
 , RequireAcquisitionRateInDeviceSetConfiguration(false)
@@ -330,54 +331,26 @@ void vtkPlusDevice::SetToolsBufferSize( int aBufferSize )
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusDevice::SetVideoLocalTimeOffsetSec( double aTimeOffsetSec )
+void vtkPlusDevice::SetLocalTimeOffsetSec( double aTimeOffsetSec )
 {
   for( DataSourceContainerIterator it = this->VideoSources.begin(); it != this->VideoSources.end(); ++it )
   {
     vtkPlusDataSource* image = it->second;
     image->GetBuffer()->SetLocalTimeOffsetSec(aTimeOffsetSec);
   }
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusDevice::SetToolLocalTimeOffsetSec( double aTimeOffsetSec )
-{
   // local tools
   for( DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it )
   {
     vtkPlusDataSource* tool = it->second;
     tool->GetBuffer()->SetLocalTimeOffsetSec(aTimeOffsetSec);
   }
+  this->LocalTimeOffsetSec = aTimeOffsetSec;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetToolLocalTimeOffsetSec(double &anOffset)
+double vtkPlusDevice::GetLocalTimeOffsetSec()
 {
-  // local tools
-  for( DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it )
-  {
-    vtkPlusDataSource* tool = it->second;
-    double aTimeOffsetSec=tool->GetBuffer()->GetLocalTimeOffsetSec();
-    anOffset = aTimeOffsetSec;
-    return PLUS_SUCCESS;
-  }
-  anOffset = 0.0;
-  return PLUS_FAIL;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetVideoLocalTimeOffsetSec(double &anOffset)
-{
-  // local images
-  for( DataSourceContainerIterator it = this->VideoSources.begin(); it != this->VideoSources.end(); ++it )
-  {
-    vtkPlusDataSource* image = it->second;
-    double aTimeOffsetSec = image->GetBuffer()->GetLocalTimeOffsetSec();
-    anOffset = aTimeOffsetSec;
-    return PLUS_SUCCESS;
-  }
-  anOffset = 0.0;
-  return PLUS_FAIL;
+  return this->LocalTimeOffsetSec;
 }
 
 //-----------------------------------------------------------------------------
@@ -720,6 +693,17 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
     return PLUS_FAIL;
   }
 
+  // Continue with device configuration
+  const char* referenceName = deviceXMLElement->GetAttribute("ToolReferenceFrame");
+  if ( referenceName != NULL )
+  {
+    this->SetToolReferenceFrameName(referenceName);
+  }
+  else if( this->IsTracker() )
+  {
+	  LOG_WARNING(this->GetDeviceId() << ": ToolReferenceFrame is undefined. Default of \"Tracker\" will be used.");
+  }
+
   vtkXMLDataElement* dataSourcesElement = deviceXMLElement->FindNestedElementWithName("DataSources");
   if( dataSourcesElement != NULL )
   {
@@ -786,6 +770,24 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
         continue; 
       }
 
+      if( channelElement->GetAttribute("Id") == NULL )
+      {
+        LOG_ERROR("No channel Id present. Skipping channel configuration.");
+        continue;
+      }
+
+      bool skip(false);
+      for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it )
+      {
+        if( STRCASECMP((*it)->GetChannelId(), channelElement->GetAttribute("Id")) == 0 )
+        {
+          LOG_ERROR("Channel with duplicate channel Id. Skipping channel configuration.");
+          skip = true;
+          break;
+        }
+      }
+      if(skip) continue;
+
       vtkSmartPointer<vtkPlusChannel> aChannel = vtkSmartPointer<vtkPlusChannel>::New();
       aChannel->SetOwnerDevice(this);
       aChannel->ReadConfiguration(channelElement, this->RequireRfElementInDeviceSetConfiguration, this->RequireImageOrientationInConfiguration);
@@ -799,10 +801,9 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
     LOG_INFO("Device local time offset for "
       <<(this->GetDeviceId()==NULL?"an unknown device":this->GetDeviceId())
       <<": " << 1000*localTimeOffsetSec << "ms" );
-    this->SetVideoLocalTimeOffsetSec(localTimeOffsetSec);
-    this->SetToolLocalTimeOffsetSec(localTimeOffsetSec);
+    this->SetLocalTimeOffsetSec(localTimeOffsetSec);
   }
-  else if ( RequireLocalTimeOffsetSecInDeviceSetConfiguration )
+  else if ( this->RequireLocalTimeOffsetSecInDeviceSetConfiguration )
   {
     LOG_ERROR("Unable to find local time offset in device configuration when it is required.");
   }
@@ -870,15 +871,7 @@ PlusStatus vtkPlusDevice::WriteConfiguration( vtkXMLDataElement* config )
 
   this->InternalWriteInputChannels(config);
 
-  double offset;
-  if( this->GetVideoLocalTimeOffsetSec(offset) == PLUS_SUCCESS )
-  {
-    deviceDataElement->SetDoubleAttribute("LocalTimeOffsetSec", offset);
-  }
-  else if( this->GetToolLocalTimeOffsetSec(offset) == PLUS_SUCCESS )
-  {
-    deviceDataElement->SetDoubleAttribute("LocalTimeOffsetSec", offset);
-  }
+  deviceDataElement->SetDoubleAttribute("LocalTimeOffsetSec", this->GetLocalTimeOffsetSec());
 
   return PLUS_SUCCESS;
 }

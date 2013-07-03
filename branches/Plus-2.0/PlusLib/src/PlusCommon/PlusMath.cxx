@@ -434,7 +434,50 @@ void PlusMath::Slerp(double *result, double t, double *from, double *to, bool ad
 }
 
 //----------------------------------------------------------------------------
+PlusStatus PlusMath::ConstrainRotationToTwoAxes(double downVector_Sensor[3], int notRotatingAxisIndex, vtkMatrix4x4* sensorToSouthWestDownTransform)
+{
+  if (notRotatingAxisIndex<0 || notRotatingAxisIndex>=3)
+  {
+    LOG_ERROR("Invalid notRotatingAxisIndex is specified (valid values are 0, 1, 2). Use default: 1.");
+    notRotatingAxisIndex = 1;
+  }
 
+  // Sensor axis vector that is assumed to always point to West. This is chosen so that cross(westVector_Sensor, downVector_Sensor) = southVector_Sensor.
+  double westVector_Sensor[4]={0,0,0,0};
+  double southVector_Sensor[4] = {0,0,0,0};
+
+  westVector_Sensor[notRotatingAxisIndex]=1; 
+
+  vtkMath::Cross(westVector_Sensor, downVector_Sensor, southVector_Sensor); // compute South
+  vtkMath::Normalize(southVector_Sensor);
+  vtkMath::Cross(downVector_Sensor, southVector_Sensor, westVector_Sensor); // compute West
+  vtkMath::Normalize(westVector_Sensor);
+
+  // row 0
+  sensorToSouthWestDownTransform->SetElement(0,0,southVector_Sensor[0]);
+  sensorToSouthWestDownTransform->SetElement(0,1,southVector_Sensor[1]);
+  sensorToSouthWestDownTransform->SetElement(0,2,southVector_Sensor[2]);
+  // row 1
+  sensorToSouthWestDownTransform->SetElement(1,0,westVector_Sensor[0]);
+  sensorToSouthWestDownTransform->SetElement(1,1,westVector_Sensor[1]);
+  sensorToSouthWestDownTransform->SetElement(1,2,westVector_Sensor[2]);
+  // row 2
+  sensorToSouthWestDownTransform->SetElement(2,0,downVector_Sensor[0]);
+  sensorToSouthWestDownTransform->SetElement(2,1,downVector_Sensor[1]);
+  sensorToSouthWestDownTransform->SetElement(2,2,downVector_Sensor[2]);
+
+  if (notRotatingAxisIndex<0 || notRotatingAxisIndex>=3)
+  {
+    return PLUS_FAIL;
+  }
+  else
+  {
+    return PLUS_SUCCESS;  
+  }
+
+}
+
+//----------------------------------------------------------------------------
 std::string PlusMath::GetTransformParametersString(vtkTransform* transform)
 {
   double rotation[3];

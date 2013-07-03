@@ -28,7 +28,7 @@ class vtkXMLDataElement;
 \brief Abstract interface for tracker and video devices
 
 vtkPlusDevice is an abstract VTK interface to real-time tracking and imaging
-systems.  Derived classes should override the Connect(), Disconnect(), 
+systems.  Derived classes should override the InternalConnect(), InternalDisconnect(), 
 GetSdkVersion(), ReadConfiguration(), WriteConfiguration() methods.
 
 \ingroup PlusLibDataCollection
@@ -115,6 +115,7 @@ public:
   /*! Is this device a tracker */
   virtual bool IsTracker() const;
 
+  virtual bool IsVirtual() const { return false; }
   /*!
     Reset the device
   */
@@ -195,16 +196,14 @@ public:
   vtkGetMacro(CorrectlyConfigured, bool);
 
   /*! Set the parent data collector */
-  vtkSetObjectMacro(DataCollector, vtkDataCollector);
+  void SetDataCollector(vtkDataCollector* _arg) { this->DataCollector = _arg; }
 
   /*! Set buffer size of all available tools */
   void SetToolsBufferSize( int aBufferSize ); 
 
   /*! Set local time offset of all available buffers */
-  virtual void SetVideoLocalTimeOffsetSec( double aTimeOffsetSec );
-  virtual void SetToolLocalTimeOffsetSec( double aTimeOffsetSec );
-  virtual PlusStatus GetToolLocalTimeOffsetSec(double &anOffset);
-  virtual PlusStatus GetVideoLocalTimeOffsetSec(double &anOffset);
+  virtual void SetLocalTimeOffsetSec( double aTimeOffsetSec );
+  virtual double GetLocalTimeOffsetSec();
 
   /*! Make the unit emit a string of audible beeps.  This is supported by the POLARIS. */
   void Beep(int n);
@@ -349,7 +348,7 @@ public:
   /*! Access the available output channels */
   PlusStatus GetOutputChannelByName(vtkPlusChannel*& aChannel, const char * aChannelId);
 
-  int OutputChannelCount() const { return OutputChannels.size(); }
+  virtual int OutputChannelCount() const { return OutputChannels.size(); }
 
   ChannelContainerConstIterator GetOutputChannelsStart() const;
   ChannelContainerConstIterator GetOutputChannelsEnd() const;
@@ -444,7 +443,7 @@ protected:
   vtkSetMacro(CorrectlyConfigured, bool);
 
   vtkSetMacro(StartThreadForInternalUpdates, bool);
-  vtkGetMacro(StartThreadForInternalUpdates, bool);
+  vtkGetMacro(StartThreadForInternalUpdates, bool); 
 
   virtual vtkDataCollector* GetDataCollector() { return this->DataCollector; }
 
@@ -510,6 +509,8 @@ protected:
     This update mechanism is useful for devices that don't provide callback functions but require polling.
   */
   bool StartThreadForInternalUpdates;
+
+  double LocalTimeOffsetSec;
 
 protected:
   /*

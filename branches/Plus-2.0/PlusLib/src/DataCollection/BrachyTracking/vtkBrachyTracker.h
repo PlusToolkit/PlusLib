@@ -99,6 +99,8 @@ public:
   /*! Get stepper encoder values from the tracked frame */
   static PlusStatus GetStepperEncoderValues( TrackedFrame* trackedFrame, double &probePosition, double &probeRotation, double &templatePosition); 
 
+  virtual bool IsTracker() const { return true; }
+
   /*! Get the a string (perhaps a long one) describing the type and version of the device. */
   vtkGetStringMacro(ModelVersion);
 
