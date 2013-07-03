@@ -27,6 +27,8 @@ public:
   /*! Answer if device is a tracker */
   virtual bool IsTracker() const;
 
+  virtual bool IsVirtual() const { return true; }
+
   /*!
     Return whether or not the device can be reset
   */

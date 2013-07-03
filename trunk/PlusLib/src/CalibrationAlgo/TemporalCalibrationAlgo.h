@@ -61,14 +61,19 @@ public:
     TEMPORAL_CALIBRATION_ERROR_CORRELATION_RESULT_EMPTY,
     TEMPORAL_CALIBRATION_ERROR_NO_VIDEO_DATA,
     TEMPORAL_CALIBRATION_ERROR_NOT_MF_ORIENTATION,
-    TEMPORAL_CALIBRATION_ERROR_NO_FRAMES_IN_VIDEO_DATA,
+    TEMPORAL_CALIBRATION_ERROR_NOT_ENOUGH_FIXED_FRAMES,
     TEMPORAL_CALIBRATION_ERROR_NO_FRAMES_IN_ULTRASOUND_DATA,
     TEMPORAL_CALIBRATION_ERROR_SAMPLING_RESOLUTION_TOO_SMALL,
+    TEMPORAL_CALIBRATION_ERROR_FAILED_COMPUTE_FIXED,
+    TEMPORAL_CALIBRATION_ERROR_FAILED_COMPUTE_MOVING,
+    TEMPORAL_CALIBRATION_ERROR_NO_COMMON_TIME_RANGE,
   };
 
   enum FRAME_TYPE {
-    TRACKER_FRAME,     /*!< The tracked frame list contains tracker data */
-    PLANE_VIDEO_FRAME  /*!< The tracked frame list contains US video data of a plane (e.g., bottom of water tank) */
+    FRAME_TYPE_NONE,
+    FRAME_TYPE_TRACKER, // The tracked frame list contains tracker data
+    FRAME_TYPE_VIDEO    // The tracked frame list contains US video data of a plane 
+                        // (e.g., bottom of water tank)
   };
 
   struct SignalType
@@ -95,12 +100,6 @@ public:
 
   /*! Sets sampling resolution [s]. Default is 0.001 seconds. */  
   void SetSamplingResolutionSec(double samplingResolutionSec); 
-
-  /*! Sets the tracker frames; frames are assumed to be the raw (not interpolated) tracker frames. Convenience function that calls SetMovingFrames.  */  
-  void SetTrackerFrames(vtkTrackedFrameList* trackerFrames, const std::string &probeToReferenceTransformName);
-
-  /*! Sets the US video frames; frames are assumed to be the video frames. Convenience function that calls SetFixedFrames. */  
-  void SetVideoFrames(vtkTrackedFrameList* videoFrames);
 
   /*! Sets the list of frames and the type of the data set (tracking data, video data, ...) that will be used to compute the "fixed" position signal (usually the video data) */  
   void SetFixedFrames(vtkTrackedFrameList* frameList, FRAME_TYPE frameType); 
@@ -156,7 +155,7 @@ public:
   PlusStatus GetMaxCalibrationError(double &maxCalibrationError);
 
 private:   
-  PlusStatus ComputeMovingSignalLagSec();
+  PlusStatus ComputeMovingSignalLagSec(TEMPORAL_CALIBRATION_ERROR& error);
   PlusStatus ComputePositionSignalValues(SignalType &signal);
   PlusStatus GetSignalRange(const std::deque<double> &signal, int startIndex, int stopIndex, double &minValue, double &maxValue);
   PlusStatus VerifyTrackerInput(vtkTrackedFrameList *trackerFrames, TEMPORAL_CALIBRATION_ERROR &error);
@@ -212,7 +211,7 @@ private:
   std::deque<double> m_CalibrationErrorVector;
 
   /*! Time [s] that tracker lags video. If lag < 0, the tracker leads the video */
-  double m_TrackerLagSec;
+  double m_MovingLagSec;
 
   /*! The residual error after temporal calibration of the video and tracker signals */
   double m_CalibrationError;

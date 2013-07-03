@@ -7,16 +7,15 @@ See License.txt for details.
 #ifndef TEMPORALCALIBRATIONTOOLBOX_H
 #define TEMPORALCALIBRATIONTOOLBOX_H
 
-#include "ui_TemporalCalibrationToolbox.h"
-
 #include "AbstractToolbox.h"
 #include "PlusConfigure.h"
-
+#include "TemporalCalibrationAlgo.h"
+#include "ui_TemporalCalibrationToolbox.h"
 #include <QWidget>
-
-class vtkTrackedFrameList;
-class vtkTable;
 class vtkContextView;
+class vtkPlusChannel;
+class vtkTable;
+class vtkTrackedFrameList;
 
 //-----------------------------------------------------------------------------
 
@@ -84,64 +83,80 @@ protected slots:
   /*! Compute calibration results from the collected data and display the results */
   void ComputeCalibrationResults();
 
+  /*! A signal combo box was changed */
+  void FixedSignalChanged(int newIndex);
+
+  void MovingSignalChanged(int newIndex);
+
+  void FixedSourceChanged(int newIndex);
+
+  void MovingSourceChanged(int newIndex);
+
 protected:
   /*! Tracked frame for tracking data for temporal calibration */
-  vtkTrackedFrameList* m_TemporalCalibrationTrackingData;
+  vtkTrackedFrameList* TemporalCalibrationFixedData;
 
   /*! Tracked frame for video data for temporal calibration */
-  vtkTrackedFrameList* m_TemporalCalibrationVideoData;
+  vtkTrackedFrameList* TemporalCalibrationMovingData;
 
   /*! Flag if cancel is requested */
-  bool m_CancelRequest;
+  bool CancelRequest;
 
   /*! Duration of the temporal calibration process in seconds */
-  int m_TemporalCalibrationDurationSec;
+  int TemporalCalibrationDurationSec;
 
   /*! Clip rectangle origin for the line segmentation (in pixels). Everything outside the rectangle is ignored. */
-  int m_LineSegmentationClipRectangleOrigin[2];
+  int LineSegmentationClipRectangleOrigin[2];
 
   /*! Clip rectangle origin for the line segmentation (in pixels). Everything outside the rectangle is ignored. */
-  int m_LineSegmentationClipRectangleSize[2]; 
+  int LineSegmentationClipRectangleSize[2]; 
 
   /*! Timestamp of last recorded video item (items acquired since this timestamp will be recorded) */
-  double m_LastRecordedTrackingItemTimestamp;
+  double LastRecordedFixedItemTimestamp;
 
   /*! Timestamp of last recorded tracker item (items acquired since this timestamp will be recorded) */
-  double m_LastRecordedVideoItemTimestamp;
+  double LastRecordedMovingItemTimestamp;
 
   /*! Time interval between recording (sampling) cycles (in milliseconds) */
-  int m_RecordingIntervalMs;
+  int RecordingIntervalMs;
 
   /*! Time of starting temporal calibration */
-  double m_StartTimeSec;
+  double StartTimeSec;
 
   /*! Saved tracker offset in case the temporal calibration is canceled or unsuccessful */
-  double m_PreviousTrackerOffset;
+  double PreviousFixedOffset;
 
   /*! Saved video offset in case the temporal calibration is canceled or unsuccessful */
-  double m_PreviousVideoOffset;
+  double PreviousMovingOffset;
 
   /*! Metric table of video positions for temporal calibration */
-  vtkTable* m_VideoPositionMetric;
+  vtkTable* VideoPositionMetric;
 
   /*! Metric table of uncalibrated tracker positions for temporal calibration */
-  vtkTable* m_UncalibratedTrackerPositionMetric;
+  vtkTable* UncalibratedTrackerPositionMetric;
 
   /*! Metric table of calibrated tracker positions for temporal calibration */
-  vtkTable* m_CalibratedTrackerPositionMetric;
+  vtkTable* CalibratedTrackerPositionMetric;
 
 	/*! Window that is created/deleted when Show Plots button is toggled */
-	QWidget* m_TemporalCalibrationPlotsWindow;
+	QWidget* TemporalCalibrationPlotsWindow;
 
   /*! Chart view for the uncalibrated plot */
-  vtkContextView* m_UncalibratedPlotContextView;
+  vtkContextView* UncalibratedPlotContextView;
 
   /*! Chart view for the calibrated plot */
-  vtkContextView* m_CalibratedPlotContextView;
+  vtkContextView* CalibratedPlotContextView;
+
+  vtkPlusChannel* FixedChannel;
+  TemporalCalibration::FRAME_TYPE FixedType;
+  vtkPlusChannel* MovingChannel;
+  TemporalCalibration::FRAME_TYPE MovingType;
+
+  std::string FixedToReferenceFrame;
+  std::string MovingToReferenceFrame;
 
 protected:
   Ui::TemporalCalibrationToolbox ui;
-
 };
 
 #endif

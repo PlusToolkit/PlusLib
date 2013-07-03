@@ -69,6 +69,7 @@ public:
   virtual vtkDataCollector* GetDataCollector() { return this->DataCollector; }
 
   virtual bool IsTracker() const { return false; }
+  virtual bool IsVirtual() const { return true; }
 
 protected:
   virtual PlusStatus ClearRecordedFrames();

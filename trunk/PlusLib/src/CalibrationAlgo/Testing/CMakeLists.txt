@@ -195,8 +195,9 @@ TARGET_LINK_LIBRARIES( TemporalCalibrationAlgoTest vtkPlusCommon vtkCalibrationA
 
 ADD_TEST(TemporalCalibrationAlgoTest1 
     ${EXECUTABLE_OUTPUT_PATH}/TemporalCalibrationAlgoTest
-    --tracker-seq-file=${TestDataDir}/WaterTankBottomTranslationTrackerBuffer.mha
-    --video-seq-file=${TestDataDir}/WaterTankBottomTranslationVideoBuffer.mha
+    --moving-seq-file=${TestDataDir}/WaterTankBottomTranslationTrackerBuffer.mha
+    --moving-probe-to-reference-transform=ProbeToReference
+    --fixed-seq-file=${TestDataDir}/WaterTankBottomTranslationVideoBuffer.mha
     --sampling-resolution-sec=0.001
     --baseline-file=${TestDataDir}/TemporalCalibrationResultsBaseline.xml
     )
