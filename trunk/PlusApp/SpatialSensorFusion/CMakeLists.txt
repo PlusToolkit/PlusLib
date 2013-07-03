@@ -17,8 +17,8 @@ ADD_TEST(SpatialSensorFusionTest
 ${EXECUTABLE_OUTPUT_PATH}/SpatialSensorFusion
 --ahrs-algo=MADGWICK_IMU
 --ahrs-algo-gain 1.5 
---converge-gain=1
---converge-frames=1000
+--initial-gain 1
+--initial-repeated-frame-number=1000
 --input-seq-file="${TestDataDir}/SpatialSensorFusionTestInput.mha"
 --output-seq-file="${TestDataDir}/SpatialSensorFusionTestOutput.mha" 
 --baseline-seq-file="${TestDataDir}/SpatialSensorFusionTestBaseline.mha"
