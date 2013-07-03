@@ -474,9 +474,10 @@ PlusStatus TrackedFrame::SetCustomFrameTransformStatus(const PlusTransformName& 
 PlusStatus TrackedFrame::SetCustomFrameTransform(const PlusTransformName& frameTransformName, double transform[16]) 
 {
   std::ostringstream strTransform; 
+  const int precision=6;
   for ( int i = 0; i < 16; ++i )
   {
-    strTransform << transform[ i ] << " ";
+    strTransform << std::fixed << std::setprecision(precision) << std::setw(precision+3) << transform[ i ] << " ";
   }
 
   std::string transformName; 
