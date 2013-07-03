@@ -1404,6 +1404,9 @@ PlusStatus vtkMetaImageSequenceIO::SetFileName( const char* aFilename )
   }
   
   this->FileName = aFilename;
+  // Trim whitespace and " characters from the beginning and end of the filename
+  this->FileName.erase(this->FileName.find_last_not_of(" \"\t\r\n")+1);
+  this->FileName.erase(0,this->FileName.find_first_not_of(" \"\t\r\n"));
 
   // Set pixel data filename at the same time
   std::string fileExt = vtksys::SystemTools::GetFilenameLastExtension(this->FileName);
