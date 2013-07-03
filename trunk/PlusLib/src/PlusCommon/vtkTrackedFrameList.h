@@ -200,6 +200,9 @@ public:
   */
   static PlusStatus VerifyProperties(vtkTrackedFrameList* trackedFrameList, US_IMAGE_ORIENTATION expectedOrientation, US_IMAGE_TYPE expectedType);
 
+  /*! Return true if the list contains at least one valid image frame */
+  bool IsContainingValidImageData();
+
 protected:
   vtkTrackedFrameList();
   virtual ~vtkTrackedFrameList();

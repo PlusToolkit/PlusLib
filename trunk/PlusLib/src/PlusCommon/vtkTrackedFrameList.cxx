@@ -722,3 +722,18 @@ double vtkTrackedFrameList::GetMostRecentTimestamp()
 
   return mostRecentTimestamp;
 }
+
+//-----------------------------------------------------------------------------
+bool vtkTrackedFrameList::IsContainingValidImageData()
+{ 
+  for ( unsigned int i = 0; i < this->GetNumberOfTrackedFrames(); ++i )
+  {
+    if ( this->GetTrackedFrame(i)->GetImageData()->IsImageValid() )
+    {
+      // found a valid image
+      return true;
+    }
+  }
+  // no valid images found
+  return false;
+}
