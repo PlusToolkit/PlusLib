@@ -91,13 +91,6 @@ public:
   */
   virtual PlusStatus Reset();
 
-  /*
-    This function is given a down Vector, and an axis to be chosen to be constrained to West in  the
-    tracker coordinate system.  A transfrom matrix is computed from those parameters and saved in the
-    4x4 matrix passed as a parameter.
-  */
-  static PlusStatus ConstrainWestAxis(double downVector_Sensor[3], int westAxisIndex, vtkMatrix4x4* lastSensorToTrackerTransform);
-
 protected:
 
   vtkPhidgetSpatialTracker();
