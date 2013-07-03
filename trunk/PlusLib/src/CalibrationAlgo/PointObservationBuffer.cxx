@@ -5,6 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PointObservationBuffer.h"
+#include "PlusCommon.h"
 
 PointObservationBuffer::PointObservationBuffer()
 {
@@ -79,7 +80,7 @@ vnl_matrix<double>* PointObservationBuffer::SphericalRegistration( PointObservat
   vnl_svd<double>* SVDMatrix = new vnl_svd<double>( *DataMatrix, 0.0 );
   if ( SVDMatrix->well_condition() < CONDITION_THRESHOLD ) // This is the inverse of the condition number
   {
-    throw std::logic_error("Failed - spherical registration is ill-conditioned!");
+    LOG_ERROR("Failed - spherical registration is ill-conditioned!");
   } // TODO: Error if ill-conditioned
 
   return new vnl_matrix<double>( SVDMatrix->V() * SVDMatrix->U().transpose() );
