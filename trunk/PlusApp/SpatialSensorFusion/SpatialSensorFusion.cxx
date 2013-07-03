@@ -30,13 +30,14 @@ See License.txt for details.
 #include "MahonyAhrsAlgo.h"
 #include "PlusMath.h"
 
-void Update(AhrsAlgo* ahrsAlgo, TrackedFrame *frame, int westAxisIndex, bool useTimestamps, vtkMatrix4x4* filteredTiltSensorToTrackerTransformReturn=NULL);
+void Update(AhrsAlgo* ahrsAlgo, TrackedFrame *frame, const std::string &trackerReferenceFrame, int westAxisIndex, bool useTimestamps, vtkMatrix4x4* filteredTiltSensorToTrackerTransformReturn=NULL);
 
 //-----------------------------------------------------------------------------
 int main(int argc, char **argv)
 {
   std::string inputImgFile;
   std::string outputImgFile;
+  std::string trackerReferenceFrame="Tracker";
   std::string ahrsAlgoName;
   std::string baselineImgFile;
 
@@ -51,6 +52,7 @@ int main(int argc, char **argv)
 
   args.AddArgument("--input-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImgFile, "File name of input image");
   args.AddArgument("--output-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputImgFile, "File name of the image with the transform added");
+  args.AddArgument("--tracker-reference-frame", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &trackerReferenceFrame, "Name of the tracker's reference frame (by default: Tracker)");
   args.AddArgument("--ahrs-algo",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &ahrsAlgoName, "Ahrs Algorithm for Filtered Tilt Sensor.  Allowed inputs: MADGWICK_IMU, MAHONY_IMU");
   args.AddArgument("--ahrs-algo-gain", vtksys::CommandLineArguments::MULTI_ARGUMENT, &ahrsAlgoGain, "Opt1: Proportional Feedback Gain.  Opt2: Integral Feedback Gain (Integral gain used in Mahony only). "); 
   args.AddArgument("--west-axis-index",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &westAxisIndex, "Axis index to constrain to west");
@@ -139,7 +141,7 @@ int main(int argc, char **argv)
   ahrsAlgo->SetSampleFreqHz(samplingFreqHz);
   for (int frameIndex = 0; frameIndex<numberOfRepeatedFramesForInitialization; frameIndex++)
   {     
-    Update(ahrsAlgo, frame0, westAxisIndex, false);
+    Update(ahrsAlgo, frame0, trackerReferenceFrame, westAxisIndex, false);
   }
 
   //set gain to normal running value after convergance time
@@ -149,10 +151,9 @@ int main(int argc, char **argv)
   for (int frameIndex = 0; frameIndex<nFrames; frameIndex++)
   { 
     TrackedFrame *frame=frameList->GetTrackedFrame(frameIndex); 
-    Update(ahrsAlgo, frame, westAxisIndex, true, filteredTiltSensorToTrackerTransform);
-    //Update(ahrsAlgo, frame, westAxisIndex, false, filteredTiltSensorToTrackerTransform);
-    frame->SetCustomFrameTransform(PlusTransformName("FilteredTiltSensor","Tracker"),filteredTiltSensorToTrackerTransform);
-    frame->SetCustomFrameTransformStatus(PlusTransformName("FilteredTiltSensor","Tracker"),FIELD_OK);
+    Update(ahrsAlgo, frame, trackerReferenceFrame, westAxisIndex, true, filteredTiltSensorToTrackerTransform);
+    frame->SetCustomFrameTransform(PlusTransformName("FilteredTiltSensor",trackerReferenceFrame),filteredTiltSensorToTrackerTransform);
+    frame->SetCustomFrameTransformStatus(PlusTransformName("FilteredTiltSensor",trackerReferenceFrame),FIELD_OK);
   }
 
   vtkSmartPointer<vtkMetaImageSequenceIO> outputImgSeqFileWriter = vtkSmartPointer<vtkMetaImageSequenceIO>::New(); 
@@ -179,10 +180,10 @@ int main(int argc, char **argv)
         TrackedFrame *baselineFrame=baselineFrameList->GetTrackedFrame(frameIndex);
 
         vtkSmartPointer<vtkMatrix4x4> filteredTilt = vtkSmartPointer<vtkMatrix4x4>::New();
-        frame->GetCustomFrameTransform(PlusTransformName("FilteredTiltSensor","Tracker"), filteredTilt);
+        frame->GetCustomFrameTransform(PlusTransformName("FilteredTiltSensor",trackerReferenceFrame), filteredTilt);
 
         vtkSmartPointer<vtkMatrix4x4> baselineFilteredTilt = vtkSmartPointer<vtkMatrix4x4>::New();
-        baselineFrame->GetCustomFrameTransform(PlusTransformName("FilteredTiltSensor","Tracker"), baselineFilteredTilt);
+        baselineFrame->GetCustomFrameTransform(PlusTransformName("FilteredTiltSensor",trackerReferenceFrame), baselineFilteredTilt);
          
         //check for element by element equality
         for(int r = 0; r < 4; r++)
@@ -209,13 +210,13 @@ int main(int argc, char **argv)
 }
 
 
-void Update(AhrsAlgo* ahrsAlgo, TrackedFrame *frame, int westAxisIndex, bool useTimestamps, vtkMatrix4x4* filteredTiltSensorToTrackerTransformReturn/*=NULL*/)
+void Update(AhrsAlgo* ahrsAlgo, TrackedFrame *frame, const std::string &trackerReferenceFrame, int westAxisIndex, bool useTimestamps, vtkMatrix4x4* filteredTiltSensorToTrackerTransformReturn/*=NULL*/)
 {
   double timestamp = frame->GetTimestamp();
   vtkSmartPointer<vtkMatrix4x4> gyroscopeMat = vtkSmartPointer<vtkMatrix4x4>::New();
-  frame->GetCustomFrameTransform(PlusTransformName("Gyroscope","Tracker"), gyroscopeMat);
+  frame->GetCustomFrameTransform(PlusTransformName("Gyroscope",trackerReferenceFrame), gyroscopeMat);
   vtkSmartPointer<vtkMatrix4x4> accelerometerMat = vtkSmartPointer<vtkMatrix4x4>::New();
-  frame->GetCustomFrameTransform(PlusTransformName("Accelerometer","Tracker"), accelerometerMat);
+  frame->GetCustomFrameTransform(PlusTransformName("Accelerometer",trackerReferenceFrame), accelerometerMat);
 
   if (useTimestamps)
   {
