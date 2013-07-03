@@ -28,8 +28,7 @@ See License.txt for details.
 #include "AhrsAlgo.h"
 #include "MadgwickAhrsAlgo.h"
 #include "MahonyAhrsAlgo.h"
-#include "vtkPhidgetSpatialTracker.h"
-
+#include "PlusMath.h"
 
 void Update(AhrsAlgo* ahrsAlgo, TrackedFrame *frame, int westAxisIndex, bool useTimestamps, vtkMatrix4x4* filteredTiltSensorToTrackerTransformReturn=NULL);
 
@@ -241,7 +240,7 @@ void Update(AhrsAlgo* ahrsAlgo, TrackedFrame *frame, int westAxisIndex, bool use
   vtkMath::Normalize(filteredDownVector_Sensor);
 
   vtkSmartPointer<vtkMatrix4x4> filteredTiltSensorToTrackerTransform = vtkSmartPointer<vtkMatrix4x4>::New();
-  vtkPhidgetSpatialTracker::ConstrainWestAxis(filteredDownVector_Sensor, westAxisIndex, filteredTiltSensorToTrackerTransform);
+  PlusMath::ConstrainRotationToTwoAxes(filteredDownVector_Sensor, westAxisIndex, filteredTiltSensorToTrackerTransform);
 
   // write back the results to the FilteredTiltSensor_AHRS algorithm
   for (int c=0;c<3; c++)
