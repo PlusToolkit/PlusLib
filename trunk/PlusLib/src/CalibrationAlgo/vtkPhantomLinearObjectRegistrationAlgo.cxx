@@ -71,7 +71,7 @@ PlusStatus vtkPhantomLinearObjectRegistrationAlgo::Register(vtkTransformReposito
     //-----------------------------------------------------------------
   }
 
-  std::copy(this->DefinedPlanes.PlanesBegin(), this->DefinedPlanes.PlanesEnd(), fixedPlanes.PlanesBegin());
+  fixedPlanes = this->DefinedPlanes;
 
   // Look at matthew's code to see what his algorithnm wants as input
   // hint I think it's planes and an xml
@@ -79,7 +79,7 @@ PlusStatus vtkPhantomLinearObjectRegistrationAlgo::Register(vtkTransformReposito
 
   //for each plane recorded by the stylus
   int i(0);
-  for (std::vector<Plane>::iterator it = this->RecordedPlanes.PlanesBegin(); it != this->RecordedPlanes.PlanesEnd(); ++it )
+  for (std::vector<Plane>::const_iterator it = this->RecordedPlanes.PlanesBegin(); it != this->RecordedPlanes.PlanesEnd(); ++it )
   {
     LOG_DEBUG("Phantom plane " << i << ": Defined: " << it->ToXMLString() << "  Recorded: " << movingPlanes.GetPlane(i).ToXMLString() );
     ++i;
