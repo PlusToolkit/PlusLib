@@ -15,6 +15,7 @@
 
 const std::string TrackedFrame::TransformPostfix = "Transform";
 const std::string TrackedFrame::TransformStatusPostfix = "TransformStatus";
+const int FLOATING_POINT_PRECISION=16; // Number of digits used when writing transforms and timestamps
 
 //----------------------------------------------------------------------------
 TrackedFrame::TrackedFrame()
@@ -240,7 +241,7 @@ void TrackedFrame::SetTimestamp(double value)
 { 
   this->Timestamp = value; 
   std::ostringstream strTimestamp; 
-  strTimestamp << this->Timestamp; 
+  strTimestamp << std::setprecision(FLOATING_POINT_PRECISION) << this->Timestamp; 
   this->CustomFrameFields["Timestamp"]=strTimestamp.str();
 }
 
@@ -474,10 +475,9 @@ PlusStatus TrackedFrame::SetCustomFrameTransformStatus(const PlusTransformName& 
 PlusStatus TrackedFrame::SetCustomFrameTransform(const PlusTransformName& frameTransformName, double transform[16]) 
 {
   std::ostringstream strTransform; 
-  const int precision=6;
   for ( int i = 0; i < 16; ++i )
   {
-    strTransform << std::fixed << std::setprecision(precision) << std::setw(precision+3) << transform[ i ] << " ";
+    strTransform << std::setprecision(FLOATING_POINT_PRECISION) << transform[ i ] << " ";
   }
 
   std::string transformName; 
