@@ -118,7 +118,7 @@ public:
   void SetMovingProbeToReferenceTransformName(const std::string &probeToReferenceTransformName); 
 
   /*! Sets the maximum allowable time lag between the corresponding tracker and video frames. Default is 2 seconds */  
-  void SetMaximumVideoTrackerLagSec(double maxLagSec);
+  void SetMaximumMovingLagSec(double maxLagSec);
 
   /*! Sets a clipping rectangle for the video frames. Line will only be searched within the specified region. If rectangle size is (0,0) (as it is by default) then the whole frame is used. */  
   void SetVideoClipRectangle(int clipRectangleOrigin[2], int clipRectangleSize[2]);
@@ -137,7 +137,7 @@ public:
     The computed lag corresponds to the time offset that minimizes the difference between the position
     metric that is computed from the tracker and the video: min( sum(|VideoPositionMetric(t)-TrackerPositionMetric(t+lag)|) )
   */  
-  PlusStatus GetTrackerLagSec(double &lag);
+  PlusStatus GetMovingLagSec(double &lag);
   
   /*!
     Returns the calibration error. If the error is large then the computed tracker lag is not reliable.
@@ -145,9 +145,9 @@ public:
   */
   PlusStatus GetCalibrationError(double &error);
 
-  PlusStatus GetUncalibratedTrackerPositionSignal(vtkTable* unCalibratedvideoPositionSignal);
-  PlusStatus GetCalibratedTrackerPositionSignal(vtkTable* calibratedvideoPositionSignal);
-  PlusStatus GetVideoPositionSignal(vtkTable* TrackerPositionSignal);
+  PlusStatus GetUncalibratedMovingPositionSignal(vtkTable* unCalibratedMovingPositionSignal);
+  PlusStatus GetCalibratedMovingPositionSignal(vtkTable* calibratedMovingPositionSignal);
+  PlusStatus GetFixedPositionSignal(vtkTable* fixedPositionSignal);
   PlusStatus GetCorrelationSignal(vtkTable* correlationSignal);
   PlusStatus GetCorrelationSignalFine(vtkTable* correlationSignal);
 

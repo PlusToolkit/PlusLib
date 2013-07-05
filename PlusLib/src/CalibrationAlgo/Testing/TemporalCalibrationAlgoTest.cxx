@@ -288,7 +288,7 @@ int main(int argc, char **argv)
   testTemporalCalibrationObject.SetSamplingResolutionSec(samplingResolutionSec);
   testTemporalCalibrationObject.SetSaveIntermediateImages(saveIntermediateImages);
   testTemporalCalibrationObject.SetIntermediateFilesOutputDirectory(intermediateFileOutputDirectory);
-  testTemporalCalibrationObject.SetMaximumVideoTrackerLagSec(maxTimeOffsetSec);
+  testTemporalCalibrationObject.SetMaximumMovingLagSec(maxTimeOffsetSec);
 
   if (clipRectOrigin.size() > 0 || clipRectSize.size() > 0)
   {
@@ -313,7 +313,7 @@ int main(int argc, char **argv)
 
   // Display results
   TemporalCalibrationResult calibResult;
-  if (testTemporalCalibrationObject.GetTrackerLagSec(calibResult.trackerLagSec) != PLUS_SUCCESS)
+  if (testTemporalCalibrationObject.GetMovingLagSec(calibResult.trackerLagSec) != PLUS_SUCCESS)
   {
     LOG_ERROR("Cannot determine tracker lag, temporal calibration failed");
     exit(EXIT_FAILURE);
@@ -340,11 +340,11 @@ int main(int argc, char **argv)
   if (plotResults)
   {
     vtkSmartPointer<vtkTable> videoPositionMetric=vtkSmartPointer<vtkTable>::New();
-    testTemporalCalibrationObject.GetVideoPositionSignal(videoPositionMetric);
+    testTemporalCalibrationObject.GetFixedPositionSignal(videoPositionMetric);
 
     // Uncalibrated
     vtkSmartPointer<vtkTable> uncalibratedTrackerPositionMetric=vtkSmartPointer<vtkTable>::New();
-    testTemporalCalibrationObject.GetUncalibratedTrackerPositionSignal(uncalibratedTrackerPositionMetric);
+    testTemporalCalibrationObject.GetUncalibratedMovingPositionSignal(uncalibratedTrackerPositionMetric);
     std::string filename=intermediateFileOutputDirectory + "/MetricPlotUncalibrated.png";
 
     std::string xLabel = "Time [s]";
@@ -353,7 +353,7 @@ int main(int argc, char **argv)
   
     // Calibrated
     vtkSmartPointer<vtkTable> calibratedTrackerPositionMetric=vtkSmartPointer<vtkTable>::New();
-    testTemporalCalibrationObject.GetCalibratedTrackerPositionSignal(calibratedTrackerPositionMetric);
+    testTemporalCalibrationObject.GetCalibratedMovingPositionSignal(calibratedTrackerPositionMetric);
     filename=intermediateFileOutputDirectory + "/MetricPlotCalibrated.png";
     SaveMetricPlot(filename.c_str(), videoPositionMetric, calibratedTrackerPositionMetric,  xLabel, yLabel);
 

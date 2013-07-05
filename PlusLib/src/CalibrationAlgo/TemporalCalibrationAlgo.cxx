@@ -160,7 +160,7 @@ void TemporalCalibration::SetSamplingResolutionSec(double samplingResolutionSec)
 }
 
 //-----------------------------------------------------------------------------
-void TemporalCalibration::SetMaximumVideoTrackerLagSec(double maxLagSec)
+void TemporalCalibration::SetMaximumMovingLagSec(double maxLagSec)
 {
   m_MaxMovingLagSec = maxLagSec;
 }
@@ -172,7 +172,7 @@ void TemporalCalibration::SetIntermediateFilesOutputDirectory(const std::string 
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus TemporalCalibration::GetTrackerLagSec(double &lag)
+PlusStatus TemporalCalibration::GetMovingLagSec(double &lag)
 {
   if (m_NeverUpdated)
   {
@@ -220,47 +220,41 @@ PlusStatus TemporalCalibration::GetMaxCalibrationError(double &maxCalibrationErr
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus TemporalCalibration::GetUncalibratedTrackerPositionSignal(vtkTable* uncalibratedTrackerPositionSignal)
+PlusStatus TemporalCalibration::GetUncalibratedMovingPositionSignal(vtkTable* unCalibratedMovingPositionSignal)
 {
-  ConstructTableSignal(m_MovingSignal.normalizedSignalTimestamps, m_MovingSignal.normalizedSignalValues, uncalibratedTrackerPositionSignal, 0); 
-  if(uncalibratedTrackerPositionSignal->GetNumberOfColumns() != 2)
+  ConstructTableSignal(m_MovingSignal.normalizedSignalTimestamps, m_MovingSignal.normalizedSignalValues, unCalibratedMovingPositionSignal, 0); 
+  if(unCalibratedMovingPositionSignal->GetNumberOfColumns() != 2)
   {
-    LOG_ERROR("Error in constructing the vtk tables that are to hold video signal. Table has " << 
-               uncalibratedTrackerPositionSignal->GetNumberOfColumns() << " columns, but should have two columns");
+    LOG_ERROR("Error in constructing the vtk tables that are to hold moving signal. Table has " << 
+               unCalibratedMovingPositionSignal->GetNumberOfColumns() << " columns, but should have two columns");
     return PLUS_FAIL;
   }
-  uncalibratedTrackerPositionSignal->GetColumn(0)->SetName("Time [s]");
-  uncalibratedTrackerPositionSignal->GetColumn(1)->SetName("Uncalibrated Tracker Position Metric");
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus TemporalCalibration::GetCalibratedTrackerPositionSignal(vtkTable* calibratedTrackerPositionSignal)
+PlusStatus TemporalCalibration::GetCalibratedMovingPositionSignal(vtkTable* calibratedMovingPositionSignal)
 {
-  ConstructTableSignal(m_MovingSignal.normalizedSignalTimestamps, m_MovingSignal.normalizedSignalValues, calibratedTrackerPositionSignal, -m_MovingLagSec); 
-  if(calibratedTrackerPositionSignal->GetNumberOfColumns() != 2)
+  ConstructTableSignal(m_MovingSignal.normalizedSignalTimestamps, m_MovingSignal.normalizedSignalValues, calibratedMovingPositionSignal, -m_MovingLagSec); 
+  if(calibratedMovingPositionSignal->GetNumberOfColumns() != 2)
   {
-    LOG_ERROR("Error in constructing the vtk tables that are to hold video signal. Table has " << 
-               calibratedTrackerPositionSignal->GetNumberOfColumns() << " columns, but should have two columns");
+    LOG_ERROR("Error in constructing the vtk tables that are to hold moving signal. Table has " << 
+               calibratedMovingPositionSignal->GetNumberOfColumns() << " columns, but should have two columns");
     return PLUS_FAIL;
   }
-  calibratedTrackerPositionSignal->GetColumn(0)->SetName("Time [s]");
-  calibratedTrackerPositionSignal->GetColumn(1)->SetName("Calibrated Tracker Position Metric");
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus TemporalCalibration::GetVideoPositionSignal(vtkTable *videoPositionSignal)
+PlusStatus TemporalCalibration::GetFixedPositionSignal(vtkTable *FixedPositionSignal)
 {
-  ConstructTableSignal(m_FixedSignal.signalTimestamps, m_FixedSignal.signalValues, videoPositionSignal, 0); 
-  if(videoPositionSignal->GetNumberOfColumns() != 2)
+  ConstructTableSignal(m_FixedSignal.signalTimestamps, m_FixedSignal.signalValues, FixedPositionSignal, 0); 
+  if(FixedPositionSignal->GetNumberOfColumns() != 2)
   {
-    LOG_ERROR("Error in constructing the vtk tables that are to hold uncalibrated tracker signal. Table has " << 
-               videoPositionSignal->GetNumberOfColumns() << " columns, but should have two columns");
+    LOG_ERROR("Error in constructing the vtk tables that are to hold fixed signal. Table has " << 
+               FixedPositionSignal->GetNumberOfColumns() << " columns, but should have two columns");
     return PLUS_FAIL;
   }
-  videoPositionSignal->GetColumn(0)->SetName("Time [s]");
-  videoPositionSignal->GetColumn(1)->SetName("Video Position Metric");
   return PLUS_SUCCESS;
 }
 
@@ -270,7 +264,7 @@ PlusStatus TemporalCalibration::GetCorrelationSignal(vtkTable* correlationSignal
   ConstructTableSignal(m_CorrTimeOffsets, m_CorrValues, correlationSignal, 0); 
   if(correlationSignal->GetNumberOfColumns() != 2)
   {
-    LOG_ERROR("Error in constructing the vtk tables that are to hold video signal. Table has " << 
+    LOG_ERROR("Error in constructing the vtk tables that are to hold correlated signal. Table has " << 
                correlationSignal->GetNumberOfColumns() << " columns, but should have two columns");
     return PLUS_FAIL;
   }
@@ -285,7 +279,7 @@ PlusStatus TemporalCalibration::GetCorrelationSignalFine(vtkTable* correlationSi
   ConstructTableSignal(m_CorrTimeOffsetsFine, m_CorrValuesFine, correlationSignal, 0); 
   if(correlationSignal->GetNumberOfColumns() != 2)
   {
-    LOG_ERROR("Error in constructing the vtk tables that are to hold video signal. Table has " << 
+    LOG_ERROR("Error in constructing the vtk tables that are to hold fine correlated signal. Table has " << 
                correlationSignal->GetNumberOfColumns() << " columns, but should have two columns");
     return PLUS_FAIL;
   }
@@ -849,7 +843,7 @@ PlusStatus TemporalCalibration::ConstructTableSignal(std::deque<double> &x, std:
     table->RemoveColumn(0);
   }
 
-  //  Create array correpsonding to the time values of the tracker plot
+  //  Create array corresponding to the time values of the tracker plot
   vtkSmartPointer<vtkDoubleArray> arrX = vtkSmartPointer<vtkDoubleArray>::New();
   table->AddColumn(arrX);
  
