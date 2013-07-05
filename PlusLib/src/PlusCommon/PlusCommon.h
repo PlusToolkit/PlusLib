@@ -12,7 +12,6 @@
 #include "vtkPlusLogger.h"
 #include "vtkPlusMacro.h"
 #include "vtksys/SystemTools.hxx"
-//#include <stdio.h>
 #include <strstream>
 
 enum PlusStatus
@@ -147,7 +146,7 @@ namespace PlusCommon
   //----------------------------------------------------------------------------
   /*! Quick and robust string to int conversion */
   template<class T>
-  static PlusStatus StringToInt(const char* strPtr, T &result)
+  VTK_EXPORT PlusStatus StringToInt(const char* strPtr, T &result)
   {
     if (strPtr==NULL || strlen(strPtr) == 0 )
     {
@@ -165,7 +164,7 @@ namespace PlusCommon
   //----------------------------------------------------------------------------
   /*! Quick and robust string to double conversion */
   template<class T>
-  static PlusStatus StringToDouble(const char* strPtr, T &result)
+  VTK_EXPORT PlusStatus StringToDouble(const char* strPtr, T &result)
   {
     if (strPtr==NULL || strlen(strPtr) == 0 )
     {
@@ -183,7 +182,7 @@ namespace PlusCommon
   //----------------------------------------------------------------------------
   /*! Quick and robust string to int conversion */
   template<class T>
-  static PlusStatus StringToLong(const char* strPtr, T &result)
+  VTK_EXPORT PlusStatus StringToLong(const char* strPtr, T &result)
   {
     if (strPtr==NULL || strlen(strPtr) == 0 )
     {
@@ -198,21 +197,10 @@ namespace PlusCommon
     return PLUS_SUCCESS;
   }
 
-  //-------------------------------------------------------
-  static std::vector<std::string>& SplitStringIntoTokens(const std::string &s, char delim, std::vector<std::string> &elems)
-  {
-    std::stringstream ss(s);
-    std::string item;
-    while (std::getline(ss, item, delim)) {
-      elems.push_back(item);
-    }
-    return elems;
-  }
+  VTK_EXPORT void SplitStringIntoTokens(const std::string &s, char delim, std::vector<std::string> &elems);
 
-  //----------------------------------------------------------------------------
   VTK_EXPORT PlusStatus CreateTemporaryFilename( std::string& aString, const std::string& anOutputDirectory );
 
-  //----------------------------------------------------------------------------
   /*! Trim whitespace characters from the left and right */
   VTK_EXPORT void Trim(std::string &str);
   
