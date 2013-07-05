@@ -152,8 +152,8 @@ protected:
   vtkPlusChannel* MovingChannel;
   TemporalCalibration::FRAME_TYPE MovingType;
 
-  std::string FixedToReferenceFrame;
-  std::string MovingToReferenceFrame;
+  PlusTransformName FixedValidationTransformName;
+  PlusTransformName MovingValidationTransformName;
 
 protected:
   Ui::TemporalCalibrationToolbox ui;

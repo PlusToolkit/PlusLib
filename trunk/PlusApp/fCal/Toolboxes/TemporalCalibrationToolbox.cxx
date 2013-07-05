@@ -48,8 +48,6 @@ TemporalCalibrationToolbox::TemporalCalibrationToolbox(fCalMainWindow* aParentMa
 , FixedType(TemporalCalibration::FRAME_TYPE_NONE)
 , MovingChannel(NULL)
 , MovingType(TemporalCalibration::FRAME_TYPE_NONE)
-, FixedToReferenceFrame("")
-, MovingToReferenceFrame("")
 {
   ui.setupUi(this);
 
@@ -260,16 +258,6 @@ PlusStatus TemporalCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
     }
   }
 
-  if( fCalElement->GetAttribute("FixedToReferenceFrame") != NULL )
-  {
-    this->FixedToReferenceFrame = std::string(fCalElement->GetAttribute("FixedToReferenceFrame"));
-  }
-
-  if( fCalElement->GetAttribute("MovingToReferenceFrame") != NULL )
-  {
-    this->MovingToReferenceFrame = std::string(fCalElement->GetAttribute("MovingToReferenceFrame"));
-  }
-
   return PLUS_SUCCESS;
 }
 
@@ -454,9 +442,8 @@ void TemporalCalibrationToolbox::StartCalibration()
   {
     this->FixedType = TemporalCalibration::FRAME_TYPE_TRACKER;
     this->TemporalCalibrationFixedData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK );
-    PlusTransformName transformNameForValidation;
-    transformNameForValidation.SetTransformName(std::string(ui.comboBox_FixedSourceValue->currentText().toLatin1()).c_str());
-    this->TemporalCalibrationFixedData->SetFrameTransformNameForValidation(transformNameForValidation);
+    this->FixedValidationTransformName.SetTransformName(std::string(ui.comboBox_FixedSourceValue->currentText().toLatin1()).c_str());
+    this->TemporalCalibrationFixedData->SetFrameTransformNameForValidation(this->FixedValidationTransformName);
   }    
   double offset(INVALID_OFFSET);
   offset = this->FixedChannel->GetOwnerDevice()->GetLocalTimeOffsetSec();
@@ -470,9 +457,8 @@ void TemporalCalibrationToolbox::StartCalibration()
   {
     this->MovingType = TemporalCalibration::FRAME_TYPE_TRACKER;
     this->TemporalCalibrationMovingData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK );
-    PlusTransformName transformNameForValidation;
-    transformNameForValidation.SetTransformName(std::string(ui.comboBox_MovingSourceValue->currentText().toLatin1()).c_str());
-    this->TemporalCalibrationMovingData->SetFrameTransformNameForValidation(transformNameForValidation);
+    this->MovingValidationTransformName.SetTransformName(std::string(ui.comboBox_MovingSourceValue->currentText().toLatin1()).c_str());
+    this->TemporalCalibrationMovingData->SetFrameTransformNameForValidation(this->MovingValidationTransformName);
   }
   offset = this->MovingChannel->GetOwnerDevice()->GetLocalTimeOffsetSec();
   this->PreviousMovingOffset = offset;
@@ -733,6 +719,8 @@ void TemporalCalibrationToolbox::CancelCalibration()
   this->MovingChannel = NULL;
   this->FixedType = TemporalCalibration::FRAME_TYPE_NONE;
   this->MovingType = TemporalCalibration::FRAME_TYPE_NONE;
+  this->FixedValidationTransformName.Clear();
+  this->MovingValidationTransformName.Clear();
 
   m_ParentMainWindow->SetToolboxesEnabled(true);
 
@@ -902,27 +890,42 @@ void TemporalCalibrationToolbox::FixedSignalChanged( int newIndex )
     
     std::vector<PlusTransformName> nameList;
     frame.GetCustomFrameTransformNameList(nameList);
-    if( nameList.size() > 0 && this->FixedToReferenceFrame.empty() )
-    {
-      LOG_WARNING("Found transforms in channel " << this->FixedChannel->GetChannelId() << " but no reference frame was defined. I don't know what transforms to look for!");
-      return;
-    }
+    std::vector<std::string> fromList;
+    std::vector<std::string> toList;
     for (std::vector<PlusTransformName>::iterator it = nameList.begin(); it != nameList.end(); ++it )
     {
-      if( it->From().compare(this->FixedToReferenceFrame) == 0 )
+      if( std::find(fromList.begin(), fromList.end(), it->From()) == fromList.end() )
       {
-        // If "From" matches saved "To", skip
-        continue;
+        fromList.push_back(it->From());
+        toList.push_back(it->From());
       }
-
-      PlusTransformName trans(it->From(), this->FixedToReferenceFrame);
-
-      if( repo->IsExistingTransform(trans) )
+      if( std::find(toList.begin(), toList.end(), it->To()) == toList.end() )
       {
-        QVariant strVar = QVariant::fromValue(QString("Transform"));
-        std::string output;
-        trans.GetTransformName(output);
-        ui.comboBox_FixedSourceValue->addItem(QString(output.c_str()), strVar);
+        fromList.push_back(it->To());
+        toList.push_back(it->To());
+      }
+    }
+
+    // build exhaustive list of all possible transforms
+    for (std::vector<std::string>::iterator fromIt = fromList.begin(); fromIt != fromList.end(); ++fromIt )
+    {
+      for (std::vector<std::string>::iterator toIt = toList.begin(); toIt != toList.end(); ++toIt )
+      {
+        if( fromIt->compare(*toIt) == 0 )
+        {
+          continue;
+        }
+
+        PlusTransformName trans;
+        std::stringstream ss;
+        ss << (*fromIt) << "To" << (*toIt);
+        trans.SetTransformName(ss.str().c_str());
+
+        if( trans.IsValid() && repo->IsExistingTransform(trans) )
+        {
+          QVariant strVar = QVariant::fromValue(QString("Transform"));
+          ui.comboBox_FixedSourceValue->addItem(QString(ss.str().c_str()), strVar);
+        }
       }
     }
 
@@ -965,27 +968,42 @@ void TemporalCalibrationToolbox::MovingSignalChanged( int newIndex )
 
     std::vector<PlusTransformName> nameList;
     frame.GetCustomFrameTransformNameList(nameList);
-    if( nameList.size() > 0 && this->MovingToReferenceFrame.empty() )
-    {
-      LOG_WARNING("Found transforms in channel " << this->MovingChannel->GetChannelId() << " but no reference frame was defined. I don't know what transforms to look for!");
-      return;
-    }
+    std::vector<std::string> fromList;
+    std::vector<std::string> toList;
     for (std::vector<PlusTransformName>::iterator it = nameList.begin(); it != nameList.end(); ++it )
     {
-      if( it->From().compare(this->MovingToReferenceFrame) == 0 )
+      if( std::find(fromList.begin(), fromList.end(), it->From()) == fromList.end() )
       {
-        // If "From" matches saved "To", skip
-        continue;
+        fromList.push_back(it->From());
+        toList.push_back(it->From());
       }
-
-      PlusTransformName trans(it->From(), this->MovingToReferenceFrame);
-
-      if( repo->IsExistingTransform(trans) )
+      if( std::find(toList.begin(), toList.end(), it->To()) == toList.end() )
       {
-        QVariant strVar = QVariant::fromValue(QString("Transform"));
-        std::string output;
-        trans.GetTransformName(output);
-        ui.comboBox_MovingSourceValue->addItem(QString(output.c_str()), strVar);
+        fromList.push_back(it->To());
+        toList.push_back(it->To());
+      }
+    }
+
+    // build exhaustive list of all possible transforms
+    for (std::vector<std::string>::iterator fromIt = fromList.begin(); fromIt != fromList.end(); ++fromIt )
+    {
+      for (std::vector<std::string>::iterator toIt = toList.begin(); toIt != toList.end(); ++toIt )
+      {
+        if( fromIt->compare(*toIt) == 0 )
+        {
+          continue;
+        }
+
+        PlusTransformName trans;
+        std::stringstream ss;
+        ss << (*fromIt) << "To" << (*toIt);
+        trans.SetTransformName(ss.str().c_str());
+        
+        if( trans.IsValid() && repo->IsExistingTransform(trans) )
+        {
+          QVariant strVar = QVariant::fromValue(QString("Transform"));
+          ui.comboBox_MovingSourceValue->addItem(QString(ss.str().c_str()), strVar);
+        }
       }
     }
 

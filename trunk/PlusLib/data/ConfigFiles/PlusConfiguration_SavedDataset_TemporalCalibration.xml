@@ -26,7 +26,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
       UseData="TRANSFORM"
       AcquisitionRate="10"
       LocalTimeOffsetSec="0.0"
-      SequenceMetafile="WaterTankBottomTranslationTrackerBuffer.mha"
+      SequenceMetafile="WaterTankBottomTranslationTrackerBuffer-trimmed.mha"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE" >
       <DataSources>

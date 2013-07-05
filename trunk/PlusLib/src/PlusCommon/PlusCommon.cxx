@@ -148,6 +148,13 @@ void PlusTransformName::Capitalize(std::string& aString )
   aString[0] = toupper( aString[0] );
 }
 
+//-------------------------------------------------------
+void PlusTransformName::Clear()
+{
+  this->m_From = "";
+  this->m_To = "";
+}
+
 //----------------------------------------------------------------------------
 PlusStatus PlusCommon::CreateTemporaryFilename( std::string& aString, const std::string& anOutputDirectory )
 {

@@ -184,7 +184,7 @@ vtkPlusBuffer::vtkPlusBuffer()
 , MaxAllowedTimeDifference(0.5)
 , DescriptiveName(NULL)
 {
-  this->FrameSize[0] = this->FrameSize[1] = -1;
+  this->FrameSize[0] = this->FrameSize[1] = 0;
   this->PixelType=itk::ImageIOBase::UCHAR; 
   this->ImageType=US_IMG_BRIGHTNESS; 
   this->ImageOrientation=US_IMG_ORIENT_MF; 
