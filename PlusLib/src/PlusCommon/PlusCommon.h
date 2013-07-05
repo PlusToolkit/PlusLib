@@ -287,6 +287,9 @@ public:
   /*! Return 'To' coordinate frame name, give a warning if it's not capitalized and capitalize it */ 
   std::string To() const; 
 
+  /*! Clear the 'From' and 'To' fields */
+  void Clear();
+
   /*! Check if the current transform name is valid */ 
   bool IsValid() const; 
 
@@ -299,7 +302,6 @@ private:
 
   /*! Check if the input string is capitalized, if not capitalize it */ 
   void Capitalize(std::string& aString ); 
-
   std::string m_From; /*! From coordinate frame name */
   std::string m_To; /*! To coordinate frame name */
 }; 
