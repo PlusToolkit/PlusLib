@@ -82,12 +82,12 @@ int main(int argc, char *argv[])
   }
                           //create and initialize the RANSAC algorithm
   double desiredProbabilityForNoOutliers = 0.999;
-  double percentageOfDataUsed;
   RANSACType::Pointer ransacEstimator = RANSACType::New();
   ransacEstimator->SetData( data );
   ransacEstimator->SetParametersEstimator( sphereEstimator.GetPointer() );
-  percentageOfDataUsed = 
+  double percentageOfDataUsed = 
     ransacEstimator->Compute( sphereParameters, desiredProbabilityForNoOutliers );
+  std::cout<<"Percentage of data used: "<<percentageOfDataUsed<<std::endl;
   if( sphereParameters.empty() )
     std::cout<<"RANSAC estimate failed, degenerate configuration?\n";
   else

@@ -895,8 +895,6 @@ PlusStatus CropRectangle(vtkTrackedFrameList* trackedFrameList, const std::vecto
     TrackedFrame *trackedFrame = trackedFrameList->GetTrackedFrame(i); 
     PlusVideoFrame* videoFrame = trackedFrame->GetImageData();
 
-    vtkImageData *image = videoFrame->GetVtkImage();
-
     int frameSize[2]={0,0};
     if (videoFrame == NULL || videoFrame->GetFrameSize(frameSize)!=PLUS_SUCCESS)
     {
