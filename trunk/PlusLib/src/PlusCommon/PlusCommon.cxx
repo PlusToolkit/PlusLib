@@ -378,3 +378,13 @@ std::string PlusCommon::GetPlusLibVersionString()
   std::string plusLibVersion = std::string("Plus-") + std::string(PLUSLIB_VERSION) + "." + std::string(PLUSLIB_REVISION); 
   return plusLibVersion;
 }
+
+//-------------------------------------------------------
+void PlusCommon::SplitStringIntoTokens(const std::string &s, char delim, std::vector<std::string> &elems)
+{
+  std::stringstream ss(s);
+  std::string item;
+  while (std::getline(ss, item, delim)) {
+    elems.push_back(item);
+  }
+}
