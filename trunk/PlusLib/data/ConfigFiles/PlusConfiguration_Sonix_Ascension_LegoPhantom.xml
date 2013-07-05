@@ -99,10 +99,10 @@
         0 0 1 0
         0 0 0 1"
     />
-	<!-- TODO: make sure the File attribute of the following DisplayableObject has the correct path -->
+	
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
       Opacity="0.6"
-      File="c:\devel\PlusBuild-bin\PlusLib\data\CADModels\LegoPhantom\LegoPhantom.stl"
+      File="LegoPhantom.stl"
       ModelToObjectTransform="
         1 0 0 0
         0 1 0 0
