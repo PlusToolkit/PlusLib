@@ -33,7 +33,7 @@ OPTION(BUILD_TESTING
 #
 
 # Need subversion for the automatic update of the repository
-find_package(Subversion)
+FIND_PACKAGE(Subversion)
 IF(Subversion_FOUND)
   Subversion_WC_INFO(${CMAKE_CURRENT_SOURCE_DIR} PLUSLIB_SVN_INFO)
   MESSAGE(STATUS "Current revision is ${PLUSLIB_SVN_INFO_WC_REVISION}") 
