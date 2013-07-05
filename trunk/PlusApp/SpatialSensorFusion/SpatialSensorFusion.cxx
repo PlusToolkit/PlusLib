@@ -186,15 +186,33 @@ int main(int argc, char **argv)
         baselineFrame->GetCustomFrameTransform(PlusTransformName("FilteredTiltSensor",trackerReferenceFrame), baselineFilteredTilt);
          
         //check for element by element equality
+        bool matricesDifferent=false;
         for(int r = 0; r < 4; r++)
         {
           for(int c = 0; c < 4; c++)
           {
             if(filteredTilt->GetElement(r,c) != baselineFilteredTilt->GetElement(r,c))
             {
-              numberOfErrors++;
+              matricesDifferent=true;
             }
           }
+        }
+        if (matricesDifferent)
+        {
+            std::ostringstream errorMsgStream;
+            LOG_ERROR("Mismatch in filtered tilt sensor matrices in frame "<<frameIndex);
+            const int precision=8;
+            LOG_INFO("Computed matrix in frame "<<frameIndex<<":");
+            PlusMath::LogVtkMatrix(filteredTilt, precision);
+            LOG_INFO("Baseline matrix in frame "<<frameIndex<<":");
+            PlusMath::LogVtkMatrix(baselineFilteredTilt, precision);
+            numberOfErrors++;
+        }
+
+        if (numberOfErrors>20)
+        {
+          LOG_INFO("Too many errors, stop comparison");
+          break;
         }
 
       }
