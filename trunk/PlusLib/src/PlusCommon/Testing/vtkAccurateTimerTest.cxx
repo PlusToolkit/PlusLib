@@ -17,7 +17,7 @@
 // Global variables for communicating with the threads
 double gMaxDelaySec = 0.005;
 bool gStopRequested = false;
-const int MAX_DELAY_ERROR_SAMPLES=5e6; // limit the max number of samples to avoid crashes due to memory problems
+const unsigned int MAX_DELAY_ERROR_SAMPLES=5e6; // limit the max number of samples to avoid crashes due to memory problems
 std::vector<double> gDelayErrorsSec; // access controlled by gCritSec
 int gNumberOfDelayErrors = 0; // access controlled by gCritSec
 int gNumberOfThreadCompletions = 0; // access controlled by gCritSec
