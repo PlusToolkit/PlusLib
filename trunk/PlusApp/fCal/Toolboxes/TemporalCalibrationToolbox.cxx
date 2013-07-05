@@ -61,9 +61,9 @@ TemporalCalibrationToolbox::TemporalCalibrationToolbox(fCalMainWindow* aParentMa
   TemporalCalibrationMovingData = vtkTrackedFrameList::New();
 
   // Create temporal calibration metric tables
-  VideoPositionMetric = vtkTable::New();
-  UncalibratedTrackerPositionMetric = vtkTable::New();
-  CalibratedTrackerPositionMetric = vtkTable::New();
+  FixedPositionMetric = vtkTable::New();
+  UncalibratedMovingPositionMetric = vtkTable::New();
+  CalibratedMovingPositionMetric = vtkTable::New();
 
   // Connect events
   connect( ui.pushButton_StartTemporal, SIGNAL( clicked() ), this, SLOT( StartCalibration() ) );
@@ -93,22 +93,22 @@ TemporalCalibrationToolbox::~TemporalCalibrationToolbox()
     TemporalCalibrationMovingData = NULL;
   } 
 
-  if (VideoPositionMetric != NULL)
+  if (FixedPositionMetric != NULL)
   {
-    VideoPositionMetric->Delete();
-    VideoPositionMetric = NULL;
+    FixedPositionMetric->Delete();
+    FixedPositionMetric = NULL;
   } 
 
-  if (UncalibratedTrackerPositionMetric != NULL)
+  if (UncalibratedMovingPositionMetric != NULL)
   {
-    UncalibratedTrackerPositionMetric->Delete();
-    UncalibratedTrackerPositionMetric = NULL;
+    UncalibratedMovingPositionMetric->Delete();
+    UncalibratedMovingPositionMetric = NULL;
   } 
 
-  if (CalibratedTrackerPositionMetric != NULL)
+  if (CalibratedMovingPositionMetric != NULL)
   {
-    CalibratedTrackerPositionMetric->Delete();
-    CalibratedTrackerPositionMetric = NULL;
+    CalibratedMovingPositionMetric->Delete();
+    CalibratedMovingPositionMetric = NULL;
   } 
 
   if (TemporalCalibrationPlotsWindow != NULL)
@@ -579,7 +579,7 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
 
   // Get result
   double trackerLagSec = 0;
-  if (temporalCalibrationObject.GetTrackerLagSec(trackerLagSec)!=PLUS_SUCCESS)
+  if (temporalCalibrationObject.GetMovingLagSec(trackerLagSec)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Cannot determine tracker lag, temporal calibration failed");
     CancelCalibration();
@@ -613,9 +613,15 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
     return;
   }
   // Save metric tables
-  temporalCalibrationObject.GetVideoPositionSignal(VideoPositionMetric);
-  temporalCalibrationObject.GetUncalibratedTrackerPositionSignal(UncalibratedTrackerPositionMetric);
-  temporalCalibrationObject.GetCalibratedTrackerPositionSignal(CalibratedTrackerPositionMetric);
+  temporalCalibrationObject.GetFixedPositionSignal(this->FixedPositionMetric);
+  this->FixedPositionMetric->GetColumn(0)->SetName("Time [s]");
+  this->FixedPositionMetric->GetColumn(1)->SetName("Fixed Signal");
+  temporalCalibrationObject.GetUncalibratedMovingPositionSignal(this->UncalibratedMovingPositionMetric);
+  this->UncalibratedMovingPositionMetric->GetColumn(0)->SetName("Time [s]");
+  this->UncalibratedMovingPositionMetric->GetColumn(1)->SetName("Uncalibrated Moving Signal");
+  temporalCalibrationObject.GetCalibratedMovingPositionSignal(this->CalibratedMovingPositionMetric);
+  this->CalibratedMovingPositionMetric->GetColumn(0)->SetName("Time [s]");
+  this->CalibratedMovingPositionMetric->GetColumn(1)->SetName("Calibrated Moving Signal");
 
   TemporalCalibrationFixedData->Clear();
   TemporalCalibrationMovingData->Clear();
@@ -775,7 +781,7 @@ void TemporalCalibrationToolbox::ShowPlotsToggled(bool aOn)
     uncalibratedChart->Register(UncalibratedPlotContextView);
 
     vtkPlot *uncalibratedTrackerMetricLine = uncalibratedChart->AddPlot(vtkChart::LINE);
-    uncalibratedTrackerMetricLine->SetInput(UncalibratedTrackerPositionMetric, 0, 1);
+    uncalibratedTrackerMetricLine->SetInput(UncalibratedMovingPositionMetric, 0, 1);
     //vtkVariantArray* array = vtkVariantArray::New();
     //m_UncalibratedTrackerPositionMetric->GetRow(13, array);
     //array->PrintSelf(std::cout, *(vtkIndent::New()));
@@ -784,7 +790,7 @@ void TemporalCalibrationToolbox::ShowPlotsToggled(bool aOn)
     uncalibratedTrackerMetricLine->SetWidth(1.0);
 
     vtkPlot *videoPositionMetricLineU = uncalibratedChart->AddPlot(vtkChart::LINE);
-    videoPositionMetricLineU->SetInput(VideoPositionMetric, 0, 1);
+    videoPositionMetricLineU->SetInput(FixedPositionMetric, 0, 1);
     videoPositionMetricLineU->SetColor(0,0,1);
     videoPositionMetricLineU->SetWidth(1.0);
 
@@ -806,12 +812,12 @@ void TemporalCalibrationToolbox::ShowPlotsToggled(bool aOn)
     calibratedChart->Register(CalibratedPlotContextView);
 
     vtkPlot *calibratedTrackerMetricLine = calibratedChart->AddPlot(vtkChart::LINE);
-    calibratedTrackerMetricLine->SetInput(CalibratedTrackerPositionMetric, 0, 1);
+    calibratedTrackerMetricLine->SetInput(CalibratedMovingPositionMetric, 0, 1);
     calibratedTrackerMetricLine->SetColor(0,1,0);
     calibratedTrackerMetricLine->SetWidth(1.0);
 
     vtkPlot *videoPositionMetricLineC = calibratedChart->AddPlot(vtkChart::LINE);
-    videoPositionMetricLineC->SetInput(VideoPositionMetric, 0, 1);
+    videoPositionMetricLineC->SetInput(FixedPositionMetric, 0, 1);
     videoPositionMetricLineC->SetColor(0,0,1);
     videoPositionMetricLineC->SetWidth(1.0);
 

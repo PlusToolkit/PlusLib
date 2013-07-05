@@ -130,13 +130,13 @@ protected:
   double PreviousMovingOffset;
 
   /*! Metric table of video positions for temporal calibration */
-  vtkTable* VideoPositionMetric;
+  vtkTable* FixedPositionMetric;
 
   /*! Metric table of uncalibrated tracker positions for temporal calibration */
-  vtkTable* UncalibratedTrackerPositionMetric;
+  vtkTable* UncalibratedMovingPositionMetric;
 
   /*! Metric table of calibrated tracker positions for temporal calibration */
-  vtkTable* CalibratedTrackerPositionMetric;
+  vtkTable* CalibratedMovingPositionMetric;
 
 	/*! Window that is created/deleted when Show Plots button is toggled */
 	QWidget* TemporalCalibrationPlotsWindow;
