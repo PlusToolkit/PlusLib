@@ -91,6 +91,10 @@ OPTION(PLUS_USE_ULTRASONIX_VIDEO "Provide support for the Ultrasonix ultrasound 
 SET (PLUS_ULTRASONIX_SDK_MAJOR_VERSION 5 CACHE STRING "Set Ultrasonix SDK major version (version: [major].[minor].[patch])")
 SET (PLUS_ULTRASONIX_SDK_MINOR_VERSION 7 CACHE STRING "Set Ultrasonix SDK minor version (version: [major].[minor].[patch])")
 SET (PLUS_ULTRASONIX_SDK_PATCH_VERSION 1 CACHE STRING "Set Ultrasonix SDK patch version (version: [major].[minor].[patch])")
+OPTION(PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer. " OFF)  
+IF (PLUS_TEST_ULTRASONIX)
+  SET (PLUS_TEST_ULTRASONIX_IP_ADDRESS "130.15.7.24" CACHE STRING "IP address of the Ultrasonix scanner that is used during testing")
+ENDIF()
 
 OPTION(PLUS_USE_BKPROFOCUS_VIDEO "Provide support for BK ProFocus ultrasound systems through the OEM (TCP/IP) interface" OFF)
 IF (PLUS_USE_BKPROFOCUS_VIDEO)
@@ -131,7 +135,11 @@ OPTION (PLUSAPP_TEST_GUI "Enable Sikuli GUI tests" ON)
 # Warnings for work in progress features
 #-----------------------------------------------------------------------------
 IF (PLUS_USE_USBECGBOX)
-  MESSAGE("Provide support for the USB ECG box option was selected. This is a work in progress feature. See more details at https://www.assembla.com/spaces/plus/tickets/396")
+  MESSAGE(WARNING "PLUS_USE_USBECGBOX option is enabled, which may cause build errors if the necessary Universal Library is not installed. This is an experimental feature for supporting ECG signal acquisition through an USB digitizer, see more details at https://www.assembla.com/spaces/plus/tickets/396")
+ENDIF()
+
+IF (PLUS_USE_HEARTSIGNALBOX)
+  MESSAGE(WARNING "PLUS_USE_HEARTSIGNALBOX option is enabled, which may cause build errors if the necessary library from http://www.logix4u.net/ is not installed. This is an experimental feature, see more details at https://www.assembla.com/spaces/plus/tickets/396")
 ENDIF()
 
 #-----------------------------------------------------------------------------

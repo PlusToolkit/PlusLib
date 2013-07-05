@@ -58,14 +58,27 @@ int Planes::GetNumberOfPlanes()
 
 //-----------------------------------------------------------------------------
 
-std::vector<Plane>::iterator Planes::PlanesBegin()
+std::vector<Plane>::const_iterator Planes::PlanesBegin() const
 {
   return this->m_PlaneList.begin();
 }
 
 //-----------------------------------------------------------------------------
 
-std::vector<Plane>::iterator Planes::PlanesEnd()
+std::vector<Plane>::const_iterator Planes::PlanesEnd() const
 {
   return this->m_PlaneList.end();
+}
+
+//-----------------------------------------------------------------------------
+
+Planes& Planes::operator=(const Planes& rhs)
+{
+  if (this != &rhs)
+  {
+    this->m_PlaneList.clear();
+    this->m_PlaneList.resize(rhs.m_PlaneList.size());
+    std::copy(rhs.PlanesBegin(), rhs.PlanesEnd(), this->m_PlaneList.begin());
+  }
+  return *this;
 }
