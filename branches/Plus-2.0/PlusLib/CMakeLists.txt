@@ -90,15 +90,15 @@ ADD_SUBDIRECTORY(src)
 # Generate convenience files for automatic build, test, and packaging
 #
 
-configure_file(
+CONFIGURE_FILE(
 	${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.bat.in 
 	${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.bat
 	)
-configure_file(
+CONFIGURE_FILE(
 	${CMAKE_CURRENT_SOURCE_DIR}/CreateDoc.bat.in 
 	${CMAKE_CURRENT_BINARY_DIR}/CreateDoc.bat
 	)
-configure_file(
+CONFIGURE_FILE(
         ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.sh.in 
         ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.sh
         )
