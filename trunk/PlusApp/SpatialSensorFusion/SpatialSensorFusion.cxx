@@ -30,6 +30,14 @@ See License.txt for details.
 #include "MahonyAhrsAlgo.h"
 #include "PlusMath.h"
 
+// define tolerance used for comparing double numbers
+#ifndef _WIN32
+  const double DOUBLE_DIFF = 0.001;
+#else
+  const double DOUBLE_DIFF = 0.00001;
+#endif
+
+
 void Update(AhrsAlgo* ahrsAlgo, TrackedFrame *frame, const std::string &trackerReferenceFrame, int westAxisIndex, bool useTimestamps, vtkMatrix4x4* filteredTiltSensorToTrackerTransformReturn=NULL);
 
 //-----------------------------------------------------------------------------
@@ -191,7 +199,7 @@ int main(int argc, char **argv)
         {
           for(int c = 0; c < 4; c++)
           {
-            if(filteredTilt->GetElement(r,c) != baselineFilteredTilt->GetElement(r,c))
+            if(fabs(filteredTilt->GetElement(r,c)-baselineFilteredTilt->GetElement(r,c))>DOUBLE_DIFF)
             {
               matricesDifferent=true;
             }
