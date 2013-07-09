@@ -10,7 +10,7 @@ SET (CalibrationAlgo_SRCS
   vtkSpacingCalibAlgo.cxx 
   vtkCenterOfRotationCalibAlgo.cxx
   vtkBrachyStepperPhantomRegistrationAlgo.cxx
-  TemporalCalibrationAlgo.cxx
+  vtkTemporalCalibrationAlgo.cxx
   vtkLineSegmentationAlgo.cxx 
   vtkPrincipalMotionDetectionAlgo.cxx 
   vtkProbeCalibrationOptimizerAlgo.cxx
@@ -38,7 +38,7 @@ IF (WIN32)
     vtkSpacingCalibAlgo.h 
     vtkCenterOfRotationCalibAlgo.h
     vtkBrachyStepperPhantomRegistrationAlgo.h
-    TemporalCalibrationAlgo.h
+    vtkTemporalCalibrationAlgo.h
     vtkLineSegmentationAlgo.h
     vtkPrincipalMotionDetectionAlgo.h
     vtkProbeCalibrationOptimizerAlgo.h

@@ -126,6 +126,12 @@ PlusStatus PlusTransformName::GetTransformName(std::string& aTransformName) cons
 }
 
 //-------------------------------------------------------
+std::string PlusTransformName::GetTransformName() const
+{
+  return ( this->m_From + std::string("To") + this->m_To); 
+}
+
+//-------------------------------------------------------
 std::string PlusTransformName::From() const
 {
   return this->m_From; 

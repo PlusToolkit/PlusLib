@@ -15,40 +15,44 @@ See License.txt for details.
   it has not been tested under these conditions.
 
   \ingroup PlusLibCalibrationAlgorithm
-*/ 
-#include "PlusConfigure.h"
+*/
 
-#include "vtksys/CommandLineArguments.hxx"
-#include "vtkXMLDataElement.h"
-#include "vtkXMLUtilities.h"
-#include "vtkContextView.h"
-#include "vtkContextScene.h"
+#include "PlusConfigure.h"
+#include "TrackedFrame.h"
+#include "vtkAxis.h"
 #include "vtkChartXY.h"
+#include "vtkContextScene.h"
+#include "vtkContextView.h"
+#include "vtkPNGWriter.h"
 #include "vtkPlot.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderer.h"
-#include "vtkAxis.h"
+#include "vtkTemporalCalibrationAlgo.h"
+#include "vtkTrackedFrameList.h"
 #include "vtkWindowToImageFilter.h"
-#include "vtkPNGWriter.h"
-
-#include "TemporalCalibrationAlgo.h"
+#include "vtkXMLDataElement.h"
+#include "vtkXMLUtilities.h"
+#include "vtksys/CommandLineArguments.hxx"
 
 // define tolerance used for comparing double numbers
-const double MAX_ALLOWED_TIME_LAG_DIFF_SEC = 0.005;
-const double MAX_ALLOWED_ERROR_DIFF = 1.0;
-
-struct TemporalCalibrationResult
+namespace
 {
-  double trackerLagSec;
-  double calibrationError;
-  double maxCalibrationError;
+  const double MAX_ALLOWED_TIME_LAG_DIFF_SEC = 0.005;
+  const double MAX_ALLOWED_ERROR_DIFF = 1.0;
 
-  TemporalCalibrationResult()
-  : trackerLagSec(0)
-  , calibrationError(0)
-  , maxCalibrationError(0)
-  {}
-};
+  struct TemporalCalibrationResult
+  {
+    double trackerLagSec;
+    double calibrationError;
+    double maxCalibrationError;
+
+    TemporalCalibrationResult()
+      : trackerLagSec(0)
+      , calibrationError(0)
+      , maxCalibrationError(0)
+    {}
+  };
+}
 
 //----------------------------------------------------------------------------
 void SaveMetricPlot(const char* filename, vtkTable* videoPositionMetric, vtkTable* trackerPositionMetric, std::string &xAxisLabel,
@@ -237,33 +241,33 @@ int main(int argc, char **argv)
     intermediateFileOutputDirectory = vtkPlusConfig::GetInstance()->GetOutputDirectory();
   }
 
-  TemporalCalibration testTemporalCalibrationObject;
-  TemporalCalibration::FRAME_TYPE movingType(TemporalCalibration::FRAME_TYPE_NONE);
-  TemporalCalibration::FRAME_TYPE fixedType(TemporalCalibration::FRAME_TYPE_NONE);
+  vtkTemporalCalibrationAlgo* testTemporalCalibrationObject = vtkTemporalCalibrationAlgo::New();
+  vtkTemporalCalibrationAlgo::FRAME_TYPE movingType(vtkTemporalCalibrationAlgo::FRAME_TYPE_NONE);
+  vtkTemporalCalibrationAlgo::FRAME_TYPE fixedType(vtkTemporalCalibrationAlgo::FRAME_TYPE_NONE);
   vtkSmartPointer<vtkTrackedFrameList> movingFrames = vtkSmartPointer<vtkTrackedFrameList>::New();
   vtkSmartPointer<vtkTrackedFrameList> fixedFrames = vtkSmartPointer<vtkTrackedFrameList>::New();
   if( !fixedProbeToReferenceTransformNameStr.empty() )
   {
     fixedFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK);
-    testTemporalCalibrationObject.SetFixedProbeToReferenceTransformName(fixedProbeToReferenceTransformNameStr);
-    fixedType = TemporalCalibration::FRAME_TYPE_TRACKER;
+    testTemporalCalibrationObject->SetFixedProbeToReferenceTransformName(fixedProbeToReferenceTransformNameStr);
+    fixedType = vtkTemporalCalibrationAlgo::FRAME_TYPE_TRACKER;
   }
   else
   {
     fixedFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP);
-    fixedType = TemporalCalibration::FRAME_TYPE_VIDEO;
+    fixedType = vtkTemporalCalibrationAlgo::FRAME_TYPE_VIDEO;
   }
 
   if( !movingProbeToReferenceTransformNameStr.empty() )
   {
     movingFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK);
-    testTemporalCalibrationObject.SetMovingProbeToReferenceTransformName(movingProbeToReferenceTransformNameStr);
-    movingType = TemporalCalibration::FRAME_TYPE_TRACKER;
+    testTemporalCalibrationObject->SetMovingProbeToReferenceTransformName(movingProbeToReferenceTransformNameStr);
+    movingType = vtkTemporalCalibrationAlgo::FRAME_TYPE_TRACKER;
   }
   else
   {
     movingFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP);
-    movingType = TemporalCalibration::FRAME_TYPE_VIDEO;
+    movingType = vtkTemporalCalibrationAlgo::FRAME_TYPE_VIDEO;
   }
 
   //  Read moving frames
@@ -273,7 +277,7 @@ int main(int argc, char **argv)
     LOG_ERROR("Failed to read moving data from sequence metafile: " << inputMovingSequenceMetafile << ". Exiting...");
     exit(EXIT_FAILURE);
   }
-  testTemporalCalibrationObject.SetMovingFrames(movingFrames, movingType);
+  testTemporalCalibrationObject->SetMovingFrames(movingFrames, movingType);
 
   //  Read fixed frames
   LOG_DEBUG("Read video data from " << inputFixedSequenceMetafile);
@@ -282,13 +286,13 @@ int main(int argc, char **argv)
     LOG_ERROR("Failed to read fixed data from sequence metafile: " << inputFixedSequenceMetafile << ". Exiting...");
     exit(EXIT_FAILURE);
   }
-  testTemporalCalibrationObject.SetFixedFrames(fixedFrames, fixedType);
+  testTemporalCalibrationObject->SetFixedFrames(fixedFrames, fixedType);
   
   //  Create temporal calibration object; Set pertinent parameters
-  testTemporalCalibrationObject.SetSamplingResolutionSec(samplingResolutionSec);
-  testTemporalCalibrationObject.SetSaveIntermediateImages(saveIntermediateImages);
-  testTemporalCalibrationObject.SetIntermediateFilesOutputDirectory(intermediateFileOutputDirectory);
-  testTemporalCalibrationObject.SetMaximumMovingLagSec(maxTimeOffsetSec);
+  testTemporalCalibrationObject->SetSamplingResolutionSec(samplingResolutionSec);
+  testTemporalCalibrationObject->SetSaveIntermediateImages(saveIntermediateImages);
+  testTemporalCalibrationObject->SetIntermediateFilesOutputDirectory(intermediateFileOutputDirectory);
+  testTemporalCalibrationObject->SetMaximumMovingLagSec(maxTimeOffsetSec);
 
   if (clipRectOrigin.size() > 0 || clipRectSize.size() > 0)
   {
@@ -299,13 +303,13 @@ int main(int argc, char **argv)
     }
     int clipRectOriginIntVec[2] = { clipRectOrigin[0], clipRectOrigin[1] };
     int clipRectSizeIntVec[2] = { clipRectSize[0], clipRectSize[1] };
-    testTemporalCalibrationObject.SetVideoClipRectangle(clipRectOriginIntVec, clipRectSizeIntVec);
+    testTemporalCalibrationObject->SetVideoClipRectangle(clipRectOriginIntVec, clipRectSizeIntVec);
   }
 
-  TemporalCalibration::TEMPORAL_CALIBRATION_ERROR error(TemporalCalibration::TEMPORAL_CALIBRATION_ERROR_NONE);
+  vtkTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR error(vtkTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NONE);
 
   //  Calculate the time-offset
-  if (testTemporalCalibrationObject.Update(error) != PLUS_SUCCESS)
+  if (testTemporalCalibrationObject->Update(error) != PLUS_SUCCESS)
   {
     LOG_ERROR("Cannot determine tracker lag, temporal calibration failed");
     exit(EXIT_FAILURE);
@@ -313,19 +317,19 @@ int main(int argc, char **argv)
 
   // Display results
   TemporalCalibrationResult calibResult;
-  if (testTemporalCalibrationObject.GetMovingLagSec(calibResult.trackerLagSec) != PLUS_SUCCESS)
+  if (testTemporalCalibrationObject->GetMovingLagSec(calibResult.trackerLagSec) != PLUS_SUCCESS)
   {
     LOG_ERROR("Cannot determine tracker lag, temporal calibration failed");
     exit(EXIT_FAILURE);
   }
   LOG_INFO("Tracker lag: " << calibResult.trackerLagSec << " sec (>0 if the tracker data lags)");
-  if (testTemporalCalibrationObject.GetCalibrationError(calibResult.calibrationError)!=PLUS_SUCCESS)
+  if (testTemporalCalibrationObject->GetCalibrationError(calibResult.calibrationError)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Cannot determine calibration error, temporal calibration failed");
     exit(EXIT_FAILURE);
   }
   LOG_INFO("Calibration error: " << calibResult.calibrationError);
-  if (testTemporalCalibrationObject.GetMaxCalibrationError(calibResult.maxCalibrationError)!=PLUS_SUCCESS)
+  if (testTemporalCalibrationObject->GetMaxCalibrationError(calibResult.maxCalibrationError)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Cannot determine max calibration error, temporal calibration failed");
     exit(EXIT_FAILURE);
@@ -340,11 +344,11 @@ int main(int argc, char **argv)
   if (plotResults)
   {
     vtkSmartPointer<vtkTable> videoPositionMetric=vtkSmartPointer<vtkTable>::New();
-    testTemporalCalibrationObject.GetFixedPositionSignal(videoPositionMetric);
+    testTemporalCalibrationObject->GetFixedPositionSignal(videoPositionMetric);
 
     // Uncalibrated
     vtkSmartPointer<vtkTable> uncalibratedTrackerPositionMetric=vtkSmartPointer<vtkTable>::New();
-    testTemporalCalibrationObject.GetUncalibratedMovingPositionSignal(uncalibratedTrackerPositionMetric);
+    testTemporalCalibrationObject->GetUncalibratedMovingPositionSignal(uncalibratedTrackerPositionMetric);
     std::string filename=intermediateFileOutputDirectory + "/MetricPlotUncalibrated.png";
 
     std::string xLabel = "Time [s]";
@@ -353,15 +357,15 @@ int main(int argc, char **argv)
   
     // Calibrated
     vtkSmartPointer<vtkTable> calibratedTrackerPositionMetric=vtkSmartPointer<vtkTable>::New();
-    testTemporalCalibrationObject.GetCalibratedMovingPositionSignal(calibratedTrackerPositionMetric);
+    testTemporalCalibrationObject->GetCalibratedMovingPositionSignal(calibratedTrackerPositionMetric);
     filename=intermediateFileOutputDirectory + "/MetricPlotCalibrated.png";
     SaveMetricPlot(filename.c_str(), videoPositionMetric, calibratedTrackerPositionMetric,  xLabel, yLabel);
 
     // Correlation Signal
     vtkSmartPointer<vtkTable> correlationSignal = vtkSmartPointer<vtkTable>::New();
-    testTemporalCalibrationObject.GetCorrelationSignal(correlationSignal);
+    testTemporalCalibrationObject->GetCorrelationSignal(correlationSignal);
     vtkSmartPointer<vtkTable> correlationSignalFine = vtkSmartPointer<vtkTable>::New();
-    testTemporalCalibrationObject.GetCorrelationSignalFine(correlationSignalFine);
+    testTemporalCalibrationObject->GetCorrelationSignalFine(correlationSignalFine);
     filename = intermediateFileOutputDirectory + "/CorrelationSignal.png";
     xLabel = "Tracker Offset [s]"; 
     yLabel = "Correlation Value";
@@ -386,6 +390,8 @@ int main(int argc, char **argv)
     }
     LOG_INFO("Baseline comparison completed successfully");
   }
+
+  testTemporalCalibrationObject->Delete();
 
   return EXIT_SUCCESS;
 }

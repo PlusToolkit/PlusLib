@@ -280,6 +280,7 @@ public:
 
   /*! Return combined transform name between 'From' and 'To' coordinate frames: [From]To[To] */
   PlusStatus GetTransformName(std::string& aTransformName) const; 
+  std::string GetTransformName() const; 
 
   /*! Return 'From' coordinate frame name, give a warning if it's not capitalized and capitalize it*/ 
   std::string From() const; 

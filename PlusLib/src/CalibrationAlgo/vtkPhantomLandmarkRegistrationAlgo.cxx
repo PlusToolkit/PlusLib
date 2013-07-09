@@ -4,17 +4,15 @@
   See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "vtkPhantomLandmarkRegistrationAlgo.h"
-#include "vtkTransformRepository.h"
-
-#include "vtkObjectFactory.h"
-#include "vtkXMLUtilities.h"
-#include "vtksys/SystemTools.hxx" 
-#include "vtkMath.h"
-
 #include "itkImage.h"
 #include "itkLandmarkBasedTransformInitializer.h"
 #include "itkSimilarity3DTransform.h"
+#include "vtkMath.h"
+#include "vtkObjectFactory.h"
+#include "vtkPhantomLandmarkRegistrationAlgo.h"
+#include "vtkTransformRepository.h"
+#include "vtkXMLUtilities.h"
+#include "vtksys/SystemTools.hxx" 
 
 //-----------------------------------------------------------------------------
 
