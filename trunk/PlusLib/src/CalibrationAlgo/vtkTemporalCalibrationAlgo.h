@@ -8,15 +8,17 @@
 #define _TEMPORAL_CALIBRATION_H
 
 #include "PlusConfigure.h"
-#include "TrackedFrame.h"
-#include "vtkTrackedFrameList.h"
+#include "vtkObject.h"
+#include <deque>
 #include <iostream>
 #include <time.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkTable.h>
+class TrackedFrame;
+class vtkTrackedFrameList;
 
 /*!
-  \class TemporalCalibration
+  \class vtkTemporalCalibrationAlgo
   \brief Computes the time lag of the US probe's tracker stream relative to the US video stream.
 
   The inputted data--video and tracker--is assumed to be collected by a US probe imaging a planar object. Furthermore,
@@ -49,8 +51,12 @@
 */
 
 
-class TemporalCalibration
+class vtkTemporalCalibrationAlgo : public vtkObject
 {
+public:
+  vtkTypeRevisionMacro(vtkTemporalCalibrationAlgo,vtkObject);
+  static vtkTemporalCalibrationAlgo *New();
+
 public:
   enum TEMPORAL_CALIBRATION_ERROR {
     TEMPORAL_CALIBRATION_ERROR_NONE,
@@ -95,8 +101,7 @@ public:
     double signalTimeRangeMax;
   };
 
-  TemporalCalibration();
-  ~TemporalCalibration();
+  PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
   /*! Sets sampling resolution [s]. Default is 0.001 seconds. */  
   void SetSamplingResolutionSec(double samplingResolutionSec); 
@@ -120,13 +125,12 @@ public:
   /*! Sets the maximum allowable time lag between the corresponding tracker and video frames. Default is 2 seconds */  
   void SetMaximumMovingLagSec(double maxLagSec);
 
-  /*! Sets a clipping rectangle for the video frames. Line will only be searched within the specified region. If rectangle size is (0,0) (as it is by default) then the whole frame is used. */  
-  void SetVideoClipRectangle(int clipRectangleOrigin[2], int clipRectangleSize[2]);
-
   /*! Enable/disable saving of intermediate images for debugging. Need to call before SetVideoFrames. */
   void SetSaveIntermediateImages(bool saveIntermediateImages);
 
   void SetIntermediateFilesOutputDirectory(const std::string &outputDirectory);
+
+  void SetVideoClipRectangle( int* clipRectOriginIntVec, int* clipRectSizeIntVec );
 
   /*! Compute the tracker lag */  
   PlusStatus Update(TEMPORAL_CALIBRATION_ERROR &error); 
@@ -154,7 +158,7 @@ public:
   PlusStatus GetBestCorrelation(double &videoCorrelation);
   PlusStatus GetMaxCalibrationError(double &maxCalibrationError);
 
-private:   
+protected:   
   PlusStatus ComputeMovingSignalLagSec(TEMPORAL_CALIBRATION_ERROR& error);
   PlusStatus ComputePositionSignalValues(SignalType &signal);
   PlusStatus GetSignalRange(const std::deque<double> &signal, int startIndex, int stopIndex, double &minValue, double &maxValue);
@@ -175,62 +179,65 @@ private:
 
   PlusStatus ResampleSignalLinearly(const std::deque<double>& templateSignalTimestamps, const vtkSmartPointer<vtkPiecewiseFunction>& signalFunction, std::deque<double>& resampledSignalValues);
 
-  SignalType m_FixedSignal;
-  SignalType m_MovingSignal;
+  SignalType FixedSignal;
+  SignalType MovingSignal;
 
   /*! Stores whether the user has called Update(); will not return tracker lag until set to "true" */
-  bool m_TrackerLagUpToDate;  
+  bool TrackerLagUpToDate;  
   /*! Has the user ever succsfully called Update() */
-  bool m_NeverUpdated;
+  bool NeverUpdated;
 
   /*! If "true" then images of intermediate steps are saved */
-  bool m_SaveIntermediateImages;
+  bool SaveIntermediateImages;
   /*! Directory where the intermediate files are written to */
-  std::string m_IntermediateFilesOutputDirectory;
+  std::string IntermediateFilesOutputDirectory;
   
   /*! Resolution used for re-sampling [s]*/
-  double m_SamplingResolutionSec;
+  double SamplingResolutionSec;
     
   /*! The computed signal correlation values (corresponding to the better sign convention) */
-  std::deque<double> m_CorrValues;
+  std::deque<double> CorrelationValues;
   /*! The time-offsets used to compute the correlations */
-  std::deque<double> m_CorrTimeOffsets;
+  std::deque<double> CorrelationTimeOffsets;
 
   /*! The computed signal correlation values (corresponding to the better sign convention, in the second phase with fine resolution) */
-  std::deque<double> m_CorrValuesFine;
+  std::deque<double> CorrelationValuesFine;
   /*! The time-offsets used to compute the correlations (in the second phase with fine resolution) */
-  std::deque<double> m_CorrTimeOffsetsFine;
+  std::deque<double> CorrelationTimeOffsetsFine;
   
   /*! The highest correlation value for the tested time-offsets */
-  double m_BestCorrelationValue;
+  double BestCorrelationValue;
   /*! Given index for the calculated best fit */
-  double m_BestCorrelationLagIndex;
+  double BestCorrelationLagIndex;
   /*! Given time offset for the calculated best fit */
-  double m_BestCorrelationTimeOffset;
+  double BestCorrelationTimeOffset;
   
-  std::deque<double> m_CalibrationErrorVector;
+  std::deque<double> CalibrationErrorVector;
 
   /*! Time [s] that tracker lags video. If lag < 0, the tracker leads the video */
-  double m_MovingLagSec;
+  double MovingLagSec;
 
   /*! The residual error after temporal calibration of the video and tracker signals */
-  double m_CalibrationError;
-  double m_MaxCalibrationError;
+  double CalibrationError;
+  double MaxCalibrationError;
 
   /*! Maximum allowed tracker lag--if lag is greater, will exit computation */
-  double m_MaxMovingLagSec;  
+  double MaxMovingLagSec;  
    
   /*! Normalization factor used for the tracker metric. Used for computing calibration error. */
-  double m_BestCorrelationNormalizationFactor;
+  double BestCorrelationNormalizationFactor;
   /*! Normalization factor used for the video metric. Used for computing calibration error. */
-  double m_FixedSignalValuesNormalizationFactor;
+  double FixedSignalValuesNormalizationFactor;
 
   /*! Clip rectangle origin for the line segmentation (in pixels). Everything outside the rectangle is ignored. */
-  int m_LineSegmentationClipRectangleOrigin[2];
+  int LineSegmentationClipRectangleOrigin[2];
 
   /*! Clip rectangle origin for the line segmentation (in pixels). Everything outside the rectangle is ignored. */
-  int m_LineSegmentationClipRectangleSize[2]; 
+  int LineSegmentationClipRectangleSize[2]; 
 
+private:
+  vtkTemporalCalibrationAlgo();
+  ~vtkTemporalCalibrationAlgo();
 };
 
 

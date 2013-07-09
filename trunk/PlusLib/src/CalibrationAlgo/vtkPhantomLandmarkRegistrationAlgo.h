@@ -8,9 +8,8 @@ See License.txt for details.
 #define __vtkPhantomLandmarkRegistrationAlgo_h
 
 #include "PlusConfigure.h"
-
-#include "vtkObject.h"
 #include "vtkMatrix4x4.h"
+#include "vtkObject.h"
 #include "vtkPoints.h"
 
 class vtkTransformRepository;

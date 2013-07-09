@@ -668,9 +668,22 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList( double& aTimestampFrom, vtkTrack
         return PLUS_FAIL;
       }
       BufferItemUidType trackerUidFrom = 0; 
-      if ( trackerBuffer->GetItemUidFromTime(aTimestampFrom, trackerUidFrom) != ITEM_OK )
+      ItemStatus status = trackerBuffer->GetItemUidFromTime(aTimestampFrom, trackerUidFrom);
+      if ( status != ITEM_OK )
       {
-        LOG_ERROR("Failed to get tracker buffer item by timestamp " << aTimestampFrom);
+        switch(status)
+        {
+        case ITEM_NOT_AVAILABLE_YET:
+          LOG_ERROR("Failed to get tracker buffer item by timestamp " << aTimestampFrom << ". Item not available yet.");
+          break;
+        case ITEM_NOT_AVAILABLE_ANYMORE:
+          LOG_ERROR("Failed to get tracker buffer item by timestamp " << aTimestampFrom << ". Item not available anymore.");
+          break;
+        case ITEM_UNKNOWN_ERROR:
+        default:
+          LOG_ERROR("Failed to get tracker buffer item by timestamp " << aTimestampFrom);
+          break;
+        }
         return PLUS_FAIL;
       }
 

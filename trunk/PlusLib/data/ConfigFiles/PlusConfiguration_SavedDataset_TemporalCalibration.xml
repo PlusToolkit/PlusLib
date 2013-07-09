@@ -191,8 +191,10 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
     TemporalCalibrationDurationSec="10"
-    FixedToReferenceFrame="Tracker" 
-    MovingToReferenceFrame="Tracker" 
+    FixedChannelId="VideoStream" 
+    FixedSourceId="Video"
+    MovingChannelId="TrackerOutput"
+    MovingSourceId="ProbeToTracker"
   />
 
 
@@ -200,6 +202,12 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
     ObjectMarkerCoordinateFrame="Stylus"
     ReferenceCoordinateFrame="Reference"
     ObjectPivotPointCoordinateFrame="StylusTip"
+  />
+  
+  
+  <vtkTemporalCalibrationAlgo
+    ClipRectangleOrigin="27 27" 
+    ClipRectangleSize="766 562" 
   />
 
 

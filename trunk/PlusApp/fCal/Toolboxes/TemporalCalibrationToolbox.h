@@ -9,8 +9,8 @@ See License.txt for details.
 
 #include "AbstractToolbox.h"
 #include "PlusConfigure.h"
-#include "TemporalCalibrationAlgo.h"
 #include "ui_TemporalCalibrationToolbox.h"
+#include "vtkTemporalCalibrationAlgo.h"
 #include <QWidget>
 class vtkContextView;
 class vtkPlusChannel;
@@ -105,12 +105,6 @@ protected:
   /*! Duration of the temporal calibration process in seconds */
   int TemporalCalibrationDurationSec;
 
-  /*! Clip rectangle origin for the line segmentation (in pixels). Everything outside the rectangle is ignored. */
-  int LineSegmentationClipRectangleOrigin[2];
-
-  /*! Clip rectangle origin for the line segmentation (in pixels). Everything outside the rectangle is ignored. */
-  int LineSegmentationClipRectangleSize[2]; 
-
   /*! Timestamp of last recorded video item (items acquired since this timestamp will be recorded) */
   double LastRecordedFixedItemTimestamp;
 
@@ -148,12 +142,19 @@ protected:
   vtkContextView* CalibratedPlotContextView;
 
   vtkPlusChannel* FixedChannel;
-  TemporalCalibration::FRAME_TYPE FixedType;
+  vtkTemporalCalibrationAlgo::FRAME_TYPE FixedType;
   vtkPlusChannel* MovingChannel;
-  TemporalCalibration::FRAME_TYPE MovingType;
+  vtkTemporalCalibrationAlgo::FRAME_TYPE MovingType;
 
   PlusTransformName FixedValidationTransformName;
   PlusTransformName MovingValidationTransformName;
+
+  vtkTemporalCalibrationAlgo* TemporalCalibrationAlgo;
+
+  std::string RequestedFixedChannel;
+  std::string RequestedMovingChannel;
+  std::string RequestedFixedSource;
+  std::string RequestedMovingSource;
 
 protected:
   Ui::TemporalCalibrationToolbox ui;

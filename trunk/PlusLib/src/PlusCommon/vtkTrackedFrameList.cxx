@@ -4,22 +4,20 @@
   See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "vtkTrackedFrameList.h" 
-#include "TrackedFrame.h"
 #include "PlusMath.h"
-
-#include <math.h>
-#include "vtkObjectFactory.h"
-#include "vtksys/SystemTools.hxx"
-#include "vtkXMLUtilities.h"
+#include "TrackedFrame.h"
 #include "vtkMetaImageSequenceIO.h"
-
-
+#include "vtkObjectFactory.h"
+#include "vtkTrackedFrameList.h" 
+#include "vtkTransformRepository.h"
+#include "vtkXMLUtilities.h"
+#include "vtksys/SystemTools.hxx"
+#include <math.h>
 
 //----------------------------------------------------------------------------
 // ************************* vtkTrackedFrameList *****************************
 //----------------------------------------------------------------------------
-vtkCxxRevisionMacro(vtkTrackedFrameList, "$Revision: 1.0 $");
+vtkCxxRevisionMacro(vtkTrackedFrameList, "$Revision: 1.1 $");
 vtkStandardNewMacro(vtkTrackedFrameList); 
 
 //----------------------------------------------------------------------------
@@ -294,24 +292,16 @@ bool vtkTrackedFrameList::ValidateTransform(TrackedFrame* trackedFrame)
 //----------------------------------------------------------------------------
 bool vtkTrackedFrameList::ValidateStatus(TrackedFrame* trackedFrame)
 {
-  TrackedFrameFieldStatus status = FIELD_INVALID;
-  std::string transformName; 
-  if ( this->FrameTransformNameForValidation.GetTransformName(transformName) != PLUS_SUCCESS )
+  vtkTransformRepository* repo = vtkTransformRepository::New();
+  repo->SetTransforms(*trackedFrame);
+  bool isValid(false);
+  if( repo->GetTransformValid(this->FrameTransformNameForValidation, isValid) != PLUS_SUCCESS )
   {
-    LOG_WARNING("Failed to validate transform status - transform name for validation is incorrect!"); 
-    return false; 
+    LOG_ERROR("Unable to retrieve transform \'" << this->FrameTransformNameForValidation.GetTransformName() << "\'.");
   }
+  repo->Delete();
 
-  std::string toolStatusFrameFieldName = transformName + std::string("TransformStatus");
-  status = TrackedFrame::ConvertFieldStatusFromString( trackedFrame->GetCustomFrameField( toolStatusFrameFieldName.c_str() ) );
-
-  if ( status != FIELD_OK )
-  {
-    LOG_DEBUG("Tracked frame status validation result: tracked frame status invalid for tool " << transformName); 
-    return false;
-  }
-
-  return true;
+  return isValid;
 }
 
 //----------------------------------------------------------------------------
