@@ -89,12 +89,6 @@ void vtkPlusCommand::SetCommandProcessor( vtkPlusCommandProcessor *processor )
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusCommand::SetCommandCompleted(PlusStatus replyStatus, const std::string& replyString)
 {
-  return SetCommandCompleted(replyStatus, replyString, vtkPlusCommand::GetDefaultReplyDeviceName(this->DeviceName));
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusCommand::SetCommandCompleted(PlusStatus replyStatus, const std::string& replyString, const std::string& replyDeviceName)
-{
   if (this->CommandProcessor==NULL)
   {
     LOG_ERROR("vtkPlusCommand::SetCommandCompleted failed, command processor is invalid");
@@ -102,7 +96,7 @@ PlusStatus vtkPlusCommand::SetCommandCompleted(PlusStatus replyStatus, const std
   }
   else
   {
-    this->CommandProcessor->QueueReply(this->ClientId, replyStatus, replyString, replyDeviceName);
+    this->CommandProcessor->QueueReply(this->ClientId, replyStatus, replyString, vtkPlusCommand::GetReplyDeviceName(this->DeviceName));
   }
   this->Completed=true;
   return PLUS_FAIL;
@@ -193,8 +187,13 @@ PlusStatus vtkPlusCommand::ValidateName()
 }
 
 //----------------------------------------------------------------------------
-std::string vtkPlusCommand::GetDefaultReplyDeviceName(const std::string& aDeviceName)
-{ 
-  std::string replyDeviceName = std::string(aDeviceName)+"Reply";
-  return replyDeviceName;
+std::string vtkPlusCommand::GetReplyDeviceName(const std::string& aDeviceName)
+{
+  std::stringstream ss;
+  ss << "ACQ";
+  if( this->Id != vtkPlusOpenIGTLinkServer::INVALID_UID )
+  {
+    ss << "_" << this->Id;
+  }
+  return ss.str();
 }

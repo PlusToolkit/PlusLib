@@ -242,7 +242,7 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
       }
       SetEnableAddingFrames(true);
       this->LiveReconstructionInProgress=true;
-      std::string replyDeviceName=vtkPlusCommand::GetDefaultReplyDeviceName(this->DeviceName);
+      std::string replyDeviceName = this->GetReplyDeviceName(this->DeviceName);
       std::stringstream ss;
       ss << this->Name << " " << "Live volume reconstruction started||" << this->GetId();
       this->CommandProcessor->QueueReply(this->ClientId, PLUS_SUCCESS, ss.str(), replyDeviceName);
@@ -392,12 +392,12 @@ PlusStatus vtkPlusReconstructVolumeCommand::SendReconstructionResults()
     vtkMatrix4x4* volumeToReferenceTransform = vtkMatrix4x4::New(); // will be deleted by the command processor
     volumeToReferenceTransform->Identity(); // we leave it as identity, as the volume coordinate system is the same as the reference coordinate system (we may extend this later so that the client can request the volume in any coordinate system)
 
-    this->CommandProcessor->QueueReply(this->ClientId, PLUS_SUCCESS, "Volume reconstruction completed, image sent to the client", vtkPlusCommand::GetDefaultReplyDeviceName(this->DeviceName), this->OutputVolDeviceName, volumeToSend, volumeToReferenceTransform);
+    this->CommandProcessor->QueueReply(this->ClientId, PLUS_SUCCESS, "Volume reconstruction completed, image sent to the client", vtkPlusCommand::GetReplyDeviceName(this->DeviceName), this->OutputVolDeviceName, volumeToSend, volumeToReferenceTransform);
   }
   else
   {
     // send only a status reply
-    this->CommandProcessor->QueueReply(this->ClientId, PLUS_SUCCESS, "Volume reconstruction completed", vtkPlusCommand::GetDefaultReplyDeviceName(this->DeviceName));
+    this->CommandProcessor->QueueReply(this->ClientId, PLUS_SUCCESS, "Volume reconstruction completed", vtkPlusCommand::GetReplyDeviceName(this->DeviceName));
   }
   LOG_INFO("Volume reconstruction results are sent to disk/client");
   return PLUS_SUCCESS;

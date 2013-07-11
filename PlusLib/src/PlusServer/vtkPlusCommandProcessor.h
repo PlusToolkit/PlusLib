@@ -7,13 +7,11 @@
 #ifndef __vtkPlusCommandProcessor_h
 #define __vtkPlusCommandProcessor_h
 
+#include "vtkMultiThreader.h"
+#include "vtkObject.h"
+#include "vtkPlusOpenIGTLinkServer.h"
 #include <deque>
 #include <string>
-
-#include "vtkObject.h"
-#include "vtkMultiThreader.h"
-
-#include "vtkPlusOpenIGTLinkServer.h"
 
 class vtkPlusCommand;
 class vtkImageData;
@@ -77,7 +75,7 @@ public:
   virtual PlusStatus RegisterPlusCommand(vtkPlusCommand *cmd);
 
   /*! Adds a command to the queue for execution. Can be called from any thread.  */
-  virtual PlusStatus QueueCommand(unsigned int clientId, const std::string &commandString, const std::string &deviceName); 
+  virtual PlusStatus QueueCommand(unsigned int clientId, const std::string &commandString, const std::string &deviceName, int uid); 
 
   /*! Return the queued command replies and removes the items from the queue (so that each item is returned only once). Can be called from any thread. */
   virtual PlusStatus GetCommandReplies(PlusCommandReplyList &replies);

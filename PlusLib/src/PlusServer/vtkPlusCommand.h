@@ -69,13 +69,9 @@ public:
   vtkGetMacro(Id, int);
   vtkSetMacro(Id, int);
 
-  /*! Returns the default reply device name, which is the same as receiver device name with the "Reply" appended to the end */
-  static std::string GetDefaultReplyDeviceName(const std::string& aDeviceName);
-
 protected:
-
-  /*! Send a reply to the caller and set the status of the command completed (so it can be removed from the queue) */
-  PlusStatus SetCommandCompleted(PlusStatus replyStatus, const std::string& replyString, const std::string& replyDeviceName);
+  /*! Returns the default reply device name, which conforms to the new CMD/ACQ protocol */
+  std::string GetReplyDeviceName(const std::string& aDeviceName);
 
   /*! Sends a reply to the default reply device with the default reply device name */
   PlusStatus SetCommandCompleted(PlusStatus replyStatus, const std::string& replyString);
