@@ -264,7 +264,7 @@ vtkPlusCommand* vtkPlusCommandProcessor::CreatePlusCommand(const std::string &co
 }
 
 //------------------------------------------------------------------------------
-PlusStatus vtkPlusCommandProcessor::QueueCommand(unsigned int clientId, const std::string &commandString, const std::string &deviceName, int uid)
+PlusStatus vtkPlusCommandProcessor::QueueCommand(unsigned int clientId, const std::string &commandString, const std::string &deviceName, const std::string& uid)
 {  
   if (commandString.empty())
   {
@@ -276,14 +276,14 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(unsigned int clientId, const st
   {
     std::string reply("Failed to create command from string: ");
     reply += commandString;
-    this->QueueReply( clientId, PLUS_FAIL, reply, "ACQ" );
+    this->QueueReply( clientId, PLUS_FAIL, reply, vtkPlusCommand::COMMAND_REPLY_NAME );
     LOG_ERROR(reply);
     return PLUS_FAIL;
   }
   cmd->SetCommandProcessor(this);
   cmd->SetClientId(clientId);
   cmd->SetDeviceName(deviceName.c_str());
-  cmd->SetId(uid);
+  cmd->SetId(uid.c_str());
 
   {
     // Add command to the execution queue
@@ -341,20 +341,18 @@ bool vtkPlusCommandProcessor::IsRunning()
 }
 
 //----------------------------------------------------------------------------
-vtkPlusCommand* vtkPlusCommandProcessor::GetQueuedCommand(int clientId, int commandId)
+vtkPlusCommand* vtkPlusCommandProcessor::GetQueuedCommand(int clientId, const std::string& commandId)
 {
   PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
   // Find the command with the specified id
   for (std::deque< vtkPlusCommand* >::iterator cmdIt=this->ActiveCommands.begin(); cmdIt!=this->ActiveCommands.end(); ++cmdIt)
   {
-    if ((*cmdIt)->GetId()==commandId 
-      // &&(*cmdIt)->GetClientId()==clientId  TODO: temporarily clientId check is disabled to allow a client to talk to another client's command - in the long term a command should be deactivated if the requesting client is not connected anymore)
-      )
+    // &&(*cmdIt)->GetClientId()==clientId  TODO: temporarily clientId check is disabled to allow a client to talk to another client's command - in the long term a command should be deactivated if the requesting client is not connected anymore)
+    if ( STRCASECMP((*cmdIt)->GetId(), commandId.c_str()) == 0 )
     {
-      // found!
       return (*cmdIt);
     }
   }
-  // not found
+
   return NULL;
 }

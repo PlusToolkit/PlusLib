@@ -32,8 +32,6 @@ class vtkTransformRepository;
 class VTK_EXPORT vtkPlusOpenIGTLinkServer: public vtkObject
 {
 public:
-  static const int INVALID_UID;
-
   static vtkPlusOpenIGTLinkServer *New();
   vtkTypeRevisionMacro( vtkPlusOpenIGTLinkServer, vtkObject );
   virtual void PrintSelf( ostream& os, vtkIndent indent );

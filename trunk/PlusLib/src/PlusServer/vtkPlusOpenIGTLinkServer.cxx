@@ -32,8 +32,6 @@ vtkStandardNewMacro( vtkPlusOpenIGTLinkServer );
 vtkCxxSetObjectMacro(vtkPlusOpenIGTLinkServer, TransformRepository, vtkTransformRepository);
 vtkCxxSetObjectMacro(vtkPlusOpenIGTLinkServer, DataCollector, vtkDataCollector);
 
-const int vtkPlusOpenIGTLinkServer::INVALID_UID = -1;
-
 //----------------------------------------------------------------------------
 vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
 : ListeningPort(-1)
@@ -560,19 +558,16 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
 
           // DeviceName will be CMD_uid, optional _uid (booooo!)
           std::string deviceNameStr(deviceName);
-          int uid(vtkPlusOpenIGTLinkServer::INVALID_UID);
+          std::string uid("");
           if( deviceNameStr.find("_") != std::string::npos )
           {
-            std::string uidStr = deviceNameStr.substr(deviceNameStr.find("_")+1);
-            std::stringstream ss;
-            ss << uidStr;
-            ss >> uid;
+            uid = deviceNameStr.substr(deviceNameStr.find("_")+1);
             deviceNameStr = deviceNameStr.substr(0, deviceNameStr.find("_"));
           }
 
           std::stringstream ss;
           ss << "Received command from device " << deviceNameStr;
-          if( uid != vtkPlusOpenIGTLinkServer::INVALID_UID )
+          if( !uid.empty() )
           {
             ss << " with UID " << uid;
           }

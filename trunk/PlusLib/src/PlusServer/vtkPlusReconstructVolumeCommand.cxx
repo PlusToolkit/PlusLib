@@ -37,7 +37,7 @@ vtkPlusReconstructVolumeCommand::vtkPlusReconstructVolumeCommand()
 , LastRecordedFrameTimestamp(0)
 , EnableAddingFrames(false)
 , StopReconstructionRequested(false)
-, ReferencedCommandId(-1)
+, ReferencedCommandId(NULL)
 , LiveReconstructionInProgress(false)
 , ReconstructionSnapshotRequested(false)
 {
@@ -50,6 +50,7 @@ vtkPlusReconstructVolumeCommand::~vtkPlusReconstructVolumeCommand()
   SetOutputVolFilename(NULL);
   SetOutputVolDeviceName(NULL);
   SetChannelId(NULL);
+  SetReferencedCommandId(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -123,11 +124,11 @@ PlusStatus vtkPlusReconstructVolumeCommand::ReadConfiguration(vtkXMLDataElement*
   {
     return PLUS_FAIL;
   }
-  SetInputSeqFilename(aConfig->GetAttribute("InputSeqFilename"));
-  SetOutputVolFilename(aConfig->GetAttribute("OutputVolFilename"));
-  SetOutputVolDeviceName(aConfig->GetAttribute("OutputVolDeviceName"));
-  SetChannelId(aConfig->GetAttribute("ChannelId"));
-  aConfig->GetScalarAttribute("ReferencedCommandId",this->ReferencedCommandId);     
+  this->SetInputSeqFilename(aConfig->GetAttribute("InputSeqFilename"));
+  this->SetOutputVolFilename(aConfig->GetAttribute("OutputVolFilename"));
+  this->SetOutputVolDeviceName(aConfig->GetAttribute("OutputVolDeviceName"));
+  this->SetChannelId(aConfig->GetAttribute("ChannelId"));
+  this->SetReferencedCommandId(aConfig->GetAttribute("ReferencedCommandId"));
   return PLUS_SUCCESS;
 }
 
@@ -154,9 +155,9 @@ PlusStatus vtkPlusReconstructVolumeCommand::WriteConfiguration(vtkXMLDataElement
   {
     aConfig->SetAttribute("ChannelId",this->ChannelId);
   }
-  if (this->ReferencedCommandId!=0)
+  if (this->ReferencedCommandId!=NULL)
   {
-    aConfig->SetIntAttribute("ReferencedCommandId",this->ReferencedCommandId);     
+    aConfig->SetAttribute("ReferencedCommandId",this->ReferencedCommandId);     
   }
 
   return PLUS_SUCCESS;
@@ -242,7 +243,7 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
       }
       SetEnableAddingFrames(true);
       this->LiveReconstructionInProgress=true;
-      std::string replyDeviceName = this->GetReplyDeviceName(this->DeviceName);
+      std::string replyDeviceName = this->GetReplyDeviceName();
       std::stringstream ss;
       ss << this->Name << " " << "Live volume reconstruction started||" << this->GetId();
       this->CommandProcessor->QueueReply(this->ClientId, PLUS_SUCCESS, ss.str(), replyDeviceName);
@@ -392,12 +393,12 @@ PlusStatus vtkPlusReconstructVolumeCommand::SendReconstructionResults()
     vtkMatrix4x4* volumeToReferenceTransform = vtkMatrix4x4::New(); // will be deleted by the command processor
     volumeToReferenceTransform->Identity(); // we leave it as identity, as the volume coordinate system is the same as the reference coordinate system (we may extend this later so that the client can request the volume in any coordinate system)
 
-    this->CommandProcessor->QueueReply(this->ClientId, PLUS_SUCCESS, "Volume reconstruction completed, image sent to the client", vtkPlusCommand::GetReplyDeviceName(this->DeviceName), this->OutputVolDeviceName, volumeToSend, volumeToReferenceTransform);
+    this->CommandProcessor->QueueReply(this->ClientId, PLUS_SUCCESS, "Volume reconstruction completed, image sent to the client", this->GetReplyDeviceName(), this->OutputVolDeviceName, volumeToSend, volumeToReferenceTransform);
   }
   else
   {
     // send only a status reply
-    this->CommandProcessor->QueueReply(this->ClientId, PLUS_SUCCESS, "Volume reconstruction completed", vtkPlusCommand::GetReplyDeviceName(this->DeviceName));
+    this->CommandProcessor->QueueReply(this->ClientId, PLUS_SUCCESS, "Volume reconstruction completed", this->GetReplyDeviceName());
   }
   LOG_INFO("Volume reconstruction results are sent to disk/client");
   return PLUS_SUCCESS;

@@ -9,12 +9,14 @@
 #include "vtkPlusCommandProcessor.h"
 #include "vtkVersion.h"
 
+const char* vtkPlusCommand::COMMAND_REPLY_NAME = "ACK";
+
 //----------------------------------------------------------------------------
 vtkPlusCommand::vtkPlusCommand()
 : Completed(false)
 , CommandProcessor(NULL)
 , ClientId(0)
-, Id(0)
+, Id(NULL)
 , Name(NULL)
 , DeviceName(NULL)
 {
@@ -23,8 +25,9 @@ vtkPlusCommand::vtkPlusCommand()
 //----------------------------------------------------------------------------
 vtkPlusCommand::~vtkPlusCommand()
 {  
-  SetName(NULL);
-  SetDeviceName(NULL);
+  this->SetName(NULL);
+  this->SetDeviceName(NULL);
+  this->SetId(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -36,14 +39,13 @@ void vtkPlusCommand::PrintSelf( ostream& os, vtkIndent indent )
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusCommand::ReadConfiguration(vtkXMLDataElement* aConfig)
 {  
-  if (aConfig==NULL)
+  if (aConfig == NULL)
   {
     LOG_ERROR("vtkPlusCommand::ReadConfiguration failed, input is NULL");
     return PLUS_FAIL;
   }
-  aConfig->GetScalarAttribute("Id",this->Id);
   SetName(aConfig->GetAttribute("Name"));
-  if (ValidateName()!=PLUS_SUCCESS)
+  if (ValidateName() != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
@@ -73,10 +75,6 @@ PlusStatus vtkPlusCommand::WriteConfiguration(vtkXMLDataElement* aConfig)
       aConfig->SetAttribute("Name",cmdNames.front().c_str());
     }
   }
-  if (this->Id!=0)
-  {
-    aConfig->SetIntAttribute("Id",this->Id);
-  }
   return PLUS_SUCCESS;
 }
 
@@ -96,7 +94,7 @@ PlusStatus vtkPlusCommand::SetCommandCompleted(PlusStatus replyStatus, const std
   }
   else
   {
-    this->CommandProcessor->QueueReply(this->ClientId, replyStatus, replyString, vtkPlusCommand::GetReplyDeviceName(this->DeviceName));
+    this->CommandProcessor->QueueReply(this->ClientId, replyStatus, replyString, this->GetReplyDeviceName());
   }
   this->Completed=true;
   return PLUS_FAIL;
@@ -187,11 +185,11 @@ PlusStatus vtkPlusCommand::ValidateName()
 }
 
 //----------------------------------------------------------------------------
-std::string vtkPlusCommand::GetReplyDeviceName(const std::string& aDeviceName)
+std::string vtkPlusCommand::GetReplyDeviceName()
 {
   std::stringstream ss;
-  ss << "ACQ";
-  if( this->Id != vtkPlusOpenIGTLinkServer::INVALID_UID )
+  ss << vtkPlusCommand::COMMAND_REPLY_NAME;
+  if( this->Id != NULL && strlen(Id) != 0 )
   {
     ss << "_" << this->Id;
   }

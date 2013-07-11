@@ -21,7 +21,7 @@ See License.txt for details.
 // Normally a client should generate unique command IDs for each executed command
 // for sake of simplicity, in this sample app we don't generate new IDs, just use
 // this single hardcoded value.
-static const int COMMAND_ID=101;
+static const char* COMMAND_ID="101";
 
 int main( int argc, char** argv )
 {
