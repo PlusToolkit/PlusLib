@@ -26,11 +26,13 @@ static const double DELAY_ON_SENDING_ERROR_SEC = 0.02;
 static const double DELAY_ON_NO_NEW_FRAMES_SEC = 0.005; 
 static const int CLIENT_SOCKET_TIMEOUT_MSEC = 500; 
 
-vtkCxxRevisionMacro( vtkPlusOpenIGTLinkServer, "$Revision: 1.1 $" );
+vtkCxxRevisionMacro( vtkPlusOpenIGTLinkServer, "$Revision: 1.2 $" );
 vtkStandardNewMacro( vtkPlusOpenIGTLinkServer ); 
 
 vtkCxxSetObjectMacro(vtkPlusOpenIGTLinkServer, TransformRepository, vtkTransformRepository);
 vtkCxxSetObjectMacro(vtkPlusOpenIGTLinkServer, DataCollector, vtkDataCollector);
+
+const int vtkPlusOpenIGTLinkServer::INVALID_UID = -1;
 
 //----------------------------------------------------------------------------
 vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
@@ -547,7 +549,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
         if (c & igtl::MessageHeader::UNPACK_BODY) 
         {          
           const char* deviceName="UNKNOWN";
-          if (headerMsg->GetDeviceName()!=NULL)
+          if (headerMsg->GetDeviceName() != NULL)
           {
             deviceName=headerMsg->GetDeviceName();
           }
@@ -555,9 +557,29 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
           {
             LOG_ERROR("Received message from unknown device");
           }
-          LOG_INFO("Received command from device "<<deviceName<<": "<<commandMsg->GetString());
 
-          self->PlusCommandProcessor->QueueCommand(client.ClientId, commandMsg->GetString(), deviceName);
+          // DeviceName will be CMD_uid, optional _uid (booooo!)
+          std::string deviceNameStr(deviceName);
+          int uid(vtkPlusOpenIGTLinkServer::INVALID_UID);
+          if( deviceNameStr.find("_") != std::string::npos )
+          {
+            std::string uidStr = deviceNameStr.substr(deviceNameStr.find("_")+1);
+            std::stringstream ss;
+            ss << uidStr;
+            ss >> uid;
+            deviceNameStr = deviceNameStr.substr(0, deviceNameStr.find("_"));
+          }
+
+          std::stringstream ss;
+          ss << "Received command from device " << deviceNameStr;
+          if( uid != vtkPlusOpenIGTLinkServer::INVALID_UID )
+          {
+            ss << " with UID " << uid;
+          }
+          ss << ": " << commandMsg->GetString();
+          LOG_INFO(ss.str());
+
+          self->PlusCommandProcessor->QueueCommand(client.ClientId, commandMsg->GetString(), deviceNameStr, uid);
         }
         else
         {

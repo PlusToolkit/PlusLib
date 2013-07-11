@@ -264,7 +264,7 @@ vtkPlusCommand* vtkPlusCommandProcessor::CreatePlusCommand(const std::string &co
 }
 
 //------------------------------------------------------------------------------
-PlusStatus vtkPlusCommandProcessor::QueueCommand(unsigned int clientId, const std::string &commandString, const std::string &deviceName)
+PlusStatus vtkPlusCommandProcessor::QueueCommand(unsigned int clientId, const std::string &commandString, const std::string &deviceName, int uid)
 {  
   if (commandString.empty())
   {
@@ -276,13 +276,14 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(unsigned int clientId, const st
   {
     std::string reply("Failed to create command from string: ");
     reply += commandString;
-    this->QueueReply( clientId, PLUS_FAIL, reply, vtkPlusCommand::GetDefaultReplyDeviceName(deviceName) );
+    this->QueueReply( clientId, PLUS_FAIL, reply, "ACQ" );
     LOG_ERROR(reply);
     return PLUS_FAIL;
   }
   cmd->SetCommandProcessor(this);
   cmd->SetClientId(clientId);
   cmd->SetDeviceName(deviceName.c_str());
+  cmd->SetId(uid);
 
   {
     // Add command to the execution queue
