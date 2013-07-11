@@ -71,8 +71,8 @@ public:
   vtkSetMacro(ReconstructionSnapshotRequested, bool);
 
   /*! Id of the live reconstruction command to be stopped, suspended, or resumed at the next Execute */
-  vtkGetMacro(ReferencedCommandId, int);
-  vtkSetMacro(ReferencedCommandId, int);
+  vtkGetStringMacro(ReferencedCommandId);
+  vtkSetStringMacro(ReferencedCommandId);
 
   void SetNameToReconstruct();
   void SetNameToStart();
@@ -107,7 +107,7 @@ private:
   bool StopReconstructionRequested;
   bool ReconstructionSnapshotRequested;
 
-  int ReferencedCommandId;
+  char* ReferencedCommandId;
 
   vtkPlusReconstructVolumeCommand( const vtkPlusReconstructVolumeCommand& );
   void operator=( const vtkPlusReconstructVolumeCommand& );

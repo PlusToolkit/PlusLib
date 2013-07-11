@@ -75,7 +75,7 @@ public:
   virtual PlusStatus RegisterPlusCommand(vtkPlusCommand *cmd);
 
   /*! Adds a command to the queue for execution. Can be called from any thread.  */
-  virtual PlusStatus QueueCommand(unsigned int clientId, const std::string &commandString, const std::string &deviceName, int uid); 
+  virtual PlusStatus QueueCommand(unsigned int clientId, const std::string &commandString, const std::string &deviceName, const std::string& uid); 
 
   /*! Return the queued command replies and removes the items from the queue (so that each item is returned only once). Can be called from any thread. */
   virtual PlusStatus GetCommandReplies(PlusCommandReplyList &replies);
@@ -87,7 +87,7 @@ public:
   vtkSetObjectMacro(PlusServer, vtkPlusOpenIGTLinkServer); 
 
   /*! Get a command in the queue belonging to a specific client, based on its command id. Thread-safe. */
-  vtkPlusCommand* GetQueuedCommand(int clientId, int commandId);
+  vtkPlusCommand* GetQueuedCommand(int clientId, const std::string& commandId);
 
 protected:
   vtkPlusCommand* CreatePlusCommand(const std::string &commandStr);

@@ -23,6 +23,7 @@ class vtkTransformRepository;
 class VTK_EXPORT vtkPlusCommand : public vtkObject
 {
 public:
+  static const char* COMMAND_REPLY_NAME;
 
   virtual vtkPlusCommand* Clone() = 0;
 
@@ -66,12 +67,12 @@ public:
   vtkGetStringMacro(DeviceName);
   vtkSetStringMacro(DeviceName);
 
-  vtkGetMacro(Id, int);
-  vtkSetMacro(Id, int);
+  vtkGetStringMacro(Id);
+  vtkSetStringMacro(Id);
 
 protected:
   /*! Returns the default reply device name, which conforms to the new CMD/ACQ protocol */
-  std::string GetReplyDeviceName(const std::string& aDeviceName);
+  std::string GetReplyDeviceName();
 
   /*! Sends a reply to the default reply device with the default reply device name */
   PlusStatus SetCommandCompleted(PlusStatus replyStatus, const std::string& replyString);
@@ -96,7 +97,7 @@ protected:
   char* DeviceName;
   
   // Unique identifier of the command. It can be used to match commands and replies.
-  int Id;
+  char* Id;
 
   char* Name;
       
