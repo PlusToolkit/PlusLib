@@ -26,11 +26,17 @@ static const double DELAY_ON_SENDING_ERROR_SEC = 0.02;
 static const double DELAY_ON_NO_NEW_FRAMES_SEC = 0.005; 
 static const int CLIENT_SOCKET_TIMEOUT_MSEC = 500; 
 
-vtkCxxRevisionMacro( vtkPlusOpenIGTLinkServer, "$Revision: 1.2 $" );
+vtkCxxRevisionMacro( vtkPlusOpenIGTLinkServer, "$Revision: 1.3 $" );
 vtkStandardNewMacro( vtkPlusOpenIGTLinkServer ); 
 
 vtkCxxSetObjectMacro(vtkPlusOpenIGTLinkServer, TransformRepository, vtkTransformRepository);
 vtkCxxSetObjectMacro(vtkPlusOpenIGTLinkServer, DataCollector, vtkDataCollector);
+
+namespace
+{
+  const double CLEAR_PREVIOUS_COMMANDS_TIMEOUT_SEC = 30.0;
+  const int IGTL_EMPTY_DATA_SIZE = -1;
+}
 
 //----------------------------------------------------------------------------
 vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
@@ -232,6 +238,7 @@ void* vtkPlusOpenIGTLinkServer::ConnectionReceiverThread( vtkMultiThreader::Thre
       client.ClientSocket = newClientSocket;
 
       self->IgtlClients.push_back(client); 
+      self->LastCommandTimestamp[client.ClientId] = vtkAccurateTimer::GetSystemTime();
 
       int port = -1; 
       std::string address; 
@@ -486,14 +493,20 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
       headerMsg = igtl::MessageHeader::New();
       headerMsg->InitPack();
 
+      if( vtkAccurateTimer::GetSystemTime() - self->LastCommandTimestamp[client.ClientId] > CLEAR_PREVIOUS_COMMANDS_TIMEOUT_SEC && !self->PreviousCommands[client.ClientId].empty() )
+      {
+        self->LastCommandTimestamp[client.ClientId] = vtkAccurateTimer::GetSystemTime();
+        self->PreviousCommands[client.ClientId].clear();
+      }
+
       // Receive generic header from the socket
-      int numOfBytesReceived = client.ClientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize() );
-      if ( numOfBytesReceived == 0  // No message received
-        || numOfBytesReceived != headerMsg->GetPackSize() // Received data is not as we expected
-        )
+      int bytesReceived = client.ClientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize() );
+      if ( bytesReceived == IGTL_EMPTY_DATA_SIZE || bytesReceived != headerMsg->GetPackSize() )
       {
         continue; 
       }
+
+      self->LastCommandTimestamp[client.ClientId] = vtkAccurateTimer::GetSystemTime();
 
       headerMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
       if (strcmp(headerMsg->GetDeviceType(), "CLIENTINFO") == 0)
@@ -546,10 +559,10 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
         int c = commandMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
         if (c & igtl::MessageHeader::UNPACK_BODY) 
         {          
-          const char* deviceName="UNKNOWN";
+          const char* deviceName = "UNKNOWN";
           if (headerMsg->GetDeviceName() != NULL)
           {
-            deviceName=headerMsg->GetDeviceName();
+            deviceName = headerMsg->GetDeviceName();
           }
           else
           {
@@ -563,6 +576,16 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
           {
             uid = deviceNameStr.substr(deviceNameStr.find("_")+1);
             deviceNameStr = deviceNameStr.substr(0, deviceNameStr.find("_"));
+            if( std::find(self->PreviousCommands[client.ClientId].begin(), self->PreviousCommands[client.ClientId].end(), uid) != self->PreviousCommands[client.ClientId].end() )
+            {
+              // Command already exists
+              LOG_WARNING("Command already received with ID: " << uid << ".");
+              continue;
+            }
+            else
+            {
+              self->PreviousCommands[client.ClientId].push_back(uid);
+            }
           }
 
           std::stringstream ss;

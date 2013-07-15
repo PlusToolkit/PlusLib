@@ -31,6 +31,12 @@ class vtkTransformRepository;
 */
 class VTK_EXPORT vtkPlusOpenIGTLinkServer: public vtkObject
 {
+  typedef std::map< int, std::vector<std::string> > PreviousCommandIdMap;
+  typedef PreviousCommandIdMap::iterator PreviousCommandIdMapIterator;
+
+  typedef std::map< int, double> LastCommandTimestampMap;
+  typedef LastCommandTimestampMap::iterator LastCommandTimestampMapIterator;
+
 public:
   static vtkPlusOpenIGTLinkServer *New();
   vtkTypeRevisionMacro( vtkPlusOpenIGTLinkServer, vtkObject );
@@ -196,6 +202,12 @@ private:
   vtkPlusChannel* BroadcastChannel;
 
   char* ConfigFilename;
+
+  /* Record the previous IDs received for all clients */
+  PreviousCommandIdMap PreviousCommands;
+
+  /* Record the last received command timestamp */
+  LastCommandTimestampMap LastCommandTimestamp;
 };
 
 
