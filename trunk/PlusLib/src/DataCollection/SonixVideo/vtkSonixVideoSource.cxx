@@ -104,6 +104,10 @@ vtkSonixVideoSource::vtkSonixVideoSource()
 
   // This effectively forces only one sonixvideosource at a time, but it paves the way
   // for a non-singleton architecture when the SDK supports it
+  if( vtkSonixVideoSource::ActiveSonixDevice != NULL )
+  {
+    LOG_WARNING("Overwriting active sonix device, this is probably not wanted.");
+  }
   vtkSonixVideoSource::ActiveSonixDevice = this;
 }
 
