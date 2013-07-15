@@ -2,57 +2,57 @@
 # Sources
 
 SET (CalibrationAlgo_SRCS
-  vtkProbeCalibrationAlgo.cxx 
+  vtkProbeCalibrationAlgo/vtkProbeCalibrationAlgo.cxx 
+  vtkProbeCalibrationAlgo/vtkProbeCalibrationOptimizerAlgo.cxx
   vtkMeanShiftClustering.cxx 
-  vtkPivotCalibrationAlgo.cxx
-  vtkPhantomLandmarkRegistrationAlgo.cxx
-  vtkPhantomLinearObjectRegistrationAlgo.cxx
-  vtkSpacingCalibAlgo.cxx 
-  vtkCenterOfRotationCalibAlgo.cxx
-  vtkBrachyStepperPhantomRegistrationAlgo.cxx
-  vtkTemporalCalibrationAlgo.cxx
-  vtkLineSegmentationAlgo.cxx 
-  vtkPrincipalMotionDetectionAlgo.cxx 
-  vtkProbeCalibrationOptimizerAlgo.cxx
+  vtkPivotCalibrationAlgo/vtkPivotCalibrationAlgo.cxx
+  vtkPhantomLandmarkRegistrationAlgo/vtkPhantomLandmarkRegistrationAlgo.cxx
+  vtkPhantomLinearObjectRegistrationAlgo/vtkPhantomLinearObjectRegistrationAlgo.cxx
+  vtkSpacingCalibAlgo/vtkSpacingCalibAlgo.cxx 
+  vtkCenterOfRotationCalibAlgo/vtkCenterOfRotationCalibAlgo.cxx
+  vtkBrachyStepperPhantomRegistrationAlgo/vtkBrachyStepperPhantomRegistrationAlgo.cxx
+  vtkTemporalCalibrationAlgo/vtkTemporalCalibrationAlgo.cxx
+  vtkTemporalCalibrationAlgo/vtkPrincipalMotionDetectionAlgo.cxx 
+  vtkLineSegmentationAlgo/vtkLineSegmentationAlgo.cxx 
   itkFiducialTransformComputation.cxx
-  vtkSingleWallCalibrationAlgo.cxx
-  Line.cxx
-  LinearObject.cxx
-  LinearObjectBuffer.cxx
-  Plane.cxx
-  Planes.cxx
-  Point.cxx
-  PointObservation.cxx
-  PointObservationBuffer.cxx
-  Reference.cxx
+  vtkSingleWallCalibrationAlgo/vtkSingleWallCalibrationAlgo.cxx
+  vtkPhantomLinearObjectRegistrationAlgo/Line.cxx
+  vtkPhantomLinearObjectRegistrationAlgo/LinearObject.cxx
+  vtkPhantomLinearObjectRegistrationAlgo/LinearObjectBuffer.cxx
+  vtkPhantomLinearObjectRegistrationAlgo/Plane.cxx
+  vtkPhantomLinearObjectRegistrationAlgo/Planes.cxx
+  vtkPhantomLinearObjectRegistrationAlgo/Point.cxx
+  vtkPhantomLinearObjectRegistrationAlgo/PointObservation.cxx
+  vtkPhantomLinearObjectRegistrationAlgo/PointObservationBuffer.cxx
+  vtkPhantomLinearObjectRegistrationAlgo/Reference.cxx
   )
 
 SET (CalibrationAlgo_HDRS)  
 IF (WIN32)  
   SET (CalibrationAlgo_HDRS
-    vtkProbeCalibrationAlgo.h
+    vtkProbeCalibrationAlgo/vtkProbeCalibrationAlgo.h
+    vtkProbeCalibrationAlgo/vtkProbeCalibrationOptimizerAlgo.h
     vtkMeanShiftClustering.h
-    vtkPivotCalibrationAlgo.h
-    vtkPhantomLandmarkRegistrationAlgo.h
-    vtkPhantomLinearObjectRegistrationAlgo.h
-    vtkSpacingCalibAlgo.h 
-    vtkCenterOfRotationCalibAlgo.h
-    vtkBrachyStepperPhantomRegistrationAlgo.h
-    vtkTemporalCalibrationAlgo.h
-    vtkLineSegmentationAlgo.h
-    vtkPrincipalMotionDetectionAlgo.h
-    vtkProbeCalibrationOptimizerAlgo.h
+    vtkPivotCalibrationAlgo/vtkPivotCalibrationAlgo.h
+    vtkPhantomLandmarkRegistrationAlgo/vtkPhantomLandmarkRegistrationAlgo.h
+    vtkPhantomLinearObjectRegistrationAlgo/vtkPhantomLinearObjectRegistrationAlgo.h
+    vtkSpacingCalibAlgo/vtkSpacingCalibAlgo.h 
+    vtkCenterOfRotationCalibAlgo/vtkCenterOfRotationCalibAlgo.h
+    vtkBrachyStepperPhantomRegistrationAlgo/vtkBrachyStepperPhantomRegistrationAlgo.h
+    vtkTemporalCalibrationAlgo/vtkTemporalCalibrationAlgo.h
+    vtkTemporalCalibrationAlgo/vtkPrincipalMotionDetectionAlgo.h
+    vtkLineSegmentationAlgo/vtkLineSegmentationAlgo.h
     itkFiducialTransformComputation.h
-    vtkSingleWallCalibrationAlgo.h
-    Line.h
-	LinearObject.h
-	LinearObjectBuffer.h
-	Plane.h
-	Planes.h
-	Point.h
-	PointObservation.h
-	PointObservationBuffer.h
-	Reference.h
+    vtkSingleWallCalibrationAlgo/vtkSingleWallCalibrationAlgo.h
+    vtkPhantomLinearObjectRegistrationAlgo/Line.h
+	  vtkPhantomLinearObjectRegistrationAlgo/LinearObject.h
+	  vtkPhantomLinearObjectRegistrationAlgo/LinearObjectBuffer.h
+	  vtkPhantomLinearObjectRegistrationAlgo/Plane.h
+	  vtkPhantomLinearObjectRegistrationAlgo/Planes.h
+	  vtkPhantomLinearObjectRegistrationAlgo/Point.h
+	  vtkPhantomLinearObjectRegistrationAlgo/PointObservation.h
+	  vtkPhantomLinearObjectRegistrationAlgo/PointObservationBuffer.h
+	  vtkPhantomLinearObjectRegistrationAlgo/Reference.h
     )
 ENDIF (WIN32)
 
