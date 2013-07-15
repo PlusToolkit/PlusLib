@@ -40,7 +40,7 @@ public:
   virtual double GetAcquisitionRate() const;
 
   /*! Open the output file for writing */
-  virtual PlusStatus OpenFile();
+  virtual PlusStatus OpenFile(const char* aFilename = NULL);
 
   /*! Close the output file */
   virtual PlusStatus CloseFile(const char* aFilename = NULL);
@@ -131,6 +131,7 @@ protected:
   double m_LastUpdateTime;
 
   /*! File to write */
+  std::string m_CurrentFilename;
   std::string m_BaseFilename;
 
   /*! Meta sequence to write to */

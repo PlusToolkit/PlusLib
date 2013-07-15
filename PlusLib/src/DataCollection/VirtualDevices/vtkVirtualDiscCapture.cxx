@@ -214,13 +214,32 @@ PlusStatus vtkVirtualDiscCapture::InternalDisconnect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualDiscCapture::OpenFile()
+PlusStatus vtkVirtualDiscCapture::OpenFile(const char* aFilename)
 {
   PlusLockGuard<vtkRecursiveCriticalSection> writerLock(this->WriterAccessMutex);
 
   // Because this virtual device continually appends data to the file, we cannot do live compression
   m_Writer->SetUseCompression(false);
   m_Writer->SetTrackedFrameList(m_RecordedFrames);
+
+  if( aFilename == NULL || strlen(aFilename) == 0 )
+  {
+    std::string filenameRoot = vtksys::SystemTools::GetFilenameWithoutExtension(m_BaseFilename);
+    std::string ext = vtksys::SystemTools::GetFilenameExtension(m_BaseFilename);
+    if( ext.empty() )
+    {
+      ext = ".mha";
+    }
+    m_CurrentFilename = filenameRoot + "_" + vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S") + ext;
+    aFilename = m_CurrentFilename.c_str();
+  }
+  else
+  {
+    m_CurrentFilename = aFilename;
+  }
+
+  // Need to set the filename before finalizing header, because the pixel data file name depends on the file extension
+  m_Writer->SetFileName(aFilename);
 
   return PLUS_SUCCESS;
 }
@@ -237,20 +256,12 @@ PlusStatus vtkVirtualDiscCapture::CloseFile(const char* aFilename)
     return PLUS_SUCCESS;
   }
 
-  std::string finalFilename;
-  if( aFilename == NULL || strlen(aFilename) == 0 )
+  if( aFilename != NULL && strlen(aFilename) != 0 )
   {
-    std::string filenameRoot = vtksys::SystemTools::GetFilenameWithoutExtension(m_BaseFilename);
-    std::string ext = vtksys::SystemTools::GetFilenameExtension(m_BaseFilename);
-    if( ext.empty() )
-    {
-      ext = ".mha";
-    }
-    finalFilename = filenameRoot + "_" + vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S") + ext;
-    aFilename = finalFilename.c_str();
+    // Need to set the filename before finalizing header, because the pixel data file name depends on the file extension
+    m_Writer->SetFileName(aFilename);
+    m_CurrentFilename = aFilename;
   }
-  // Need to set the filename before finalizing header, because the pixel data file name depends on the file extension
-  m_Writer->SetFileName(aFilename);
 
   std::ostringstream dimSizeStr; 
   int dimensions[3]={0};
@@ -270,7 +281,7 @@ PlusStatus vtkVirtualDiscCapture::CloseFile(const char* aFilename)
 
   m_Writer->Close();
 
-  std::string fullPath = vtkPlusConfig::GetInstance()->GetOutputPath(std::string(aFilename));
+  std::string fullPath = vtkPlusConfig::GetInstance()->GetOutputPath(m_CurrentFilename);
   std::string path = vtksys::SystemTools::GetFilenamePath(fullPath); 
   std::string filename = vtksys::SystemTools::GetFilenameWithoutExtension(fullPath); 
   std::string configFileName = path + "/" + filename + "_config.xml";
