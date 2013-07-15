@@ -106,7 +106,7 @@ vtkSonixVideoSource::vtkSonixVideoSource()
   // for a non-singleton architecture when the SDK supports it
   if( vtkSonixVideoSource::ActiveSonixDevice != NULL )
   {
-    LOG_WARNING("Overwriting active sonix device, this is probably not wanted.");
+    LOG_WARNING("There is already an active vtkSonixVideoSource device. Ultrasonix SDK only supports one connection at a time, so the existing device is now deactivated and the newly created class is activated instead.");
   }
   vtkSonixVideoSource::ActiveSonixDevice = this;
 }
