@@ -84,17 +84,16 @@ void vtkPlusStartStopRecordingCommand::PrintSelf( ostream& os, vtkIndent indent 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusStartStopRecordingCommand::ReadConfiguration(vtkXMLDataElement* aConfig)
 {  
-  if (vtkPlusCommand::ReadConfiguration(aConfig)!=PLUS_SUCCESS)
+  if (vtkPlusCommand::ReadConfiguration(aConfig) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
   // Common parameters
   SetCaptureDeviceId(aConfig->GetAttribute("CaptureDeviceId"));
+
   // Stop parameters
-  if (STRCASECMP(this->Name, STOP_CMD)==0)
-  {
-    SetOutputFilename(aConfig->GetAttribute("OutputFilename"));
-  }
+  SetOutputFilename(aConfig->GetAttribute("OutputFilename"));
+
   return PLUS_SUCCESS;
 }
 
@@ -118,16 +117,13 @@ PlusStatus vtkPlusStartStopRecordingCommand::WriteConfiguration(vtkXMLDataElemen
   }
 
   // Start parameters
-  if (STRCASECMP(this->Name, STOP_CMD)==0)
+  if (this->OutputFilename != NULL)
   {
-    if (this->OutputFilename!=NULL)
-    {
-      aConfig->SetAttribute("OutputFilename",this->OutputFilename);
-    }
-    else
-    {
-      aConfig->RemoveAttribute("OutputFilename");
-    }
+    aConfig->SetAttribute("OutputFilename",this->OutputFilename);
+  }
+  else
+  {
+    aConfig->RemoveAttribute("OutputFilename");
   }
 
   return PLUS_SUCCESS;
@@ -208,8 +204,8 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
   std::string reply=std::string("VirtualStreamCapture (")+captureDevice->GetDeviceId()+") "+this->Name+" ";  
   LOG_INFO("vtkPlusStartStopRecordingCommand::Execute: "<<this->Name);
   if (STRCASECMP(this->Name, START_CMD)==0)
-  {    
-    if (captureDevice->OpenFile()!=PLUS_SUCCESS)
+  {
+    if (captureDevice->OpenFile(this->OutputFilename)!=PLUS_SUCCESS)
     {
       status=PLUS_FAIL;
     }
