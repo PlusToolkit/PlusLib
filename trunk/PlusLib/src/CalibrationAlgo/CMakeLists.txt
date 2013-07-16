@@ -4,7 +4,6 @@
 SET (CalibrationAlgo_SRCS
   vtkProbeCalibrationAlgo/vtkProbeCalibrationAlgo.cxx 
   vtkProbeCalibrationAlgo/vtkProbeCalibrationOptimizerAlgo.cxx
-  vtkMeanShiftClustering.cxx 
   vtkPivotCalibrationAlgo/vtkPivotCalibrationAlgo.cxx
   vtkPhantomLandmarkRegistrationAlgo/vtkPhantomLandmarkRegistrationAlgo.cxx
   vtkPhantomLinearObjectRegistrationAlgo/vtkPhantomLinearObjectRegistrationAlgo.cxx
@@ -14,7 +13,6 @@ SET (CalibrationAlgo_SRCS
   vtkTemporalCalibrationAlgo/vtkTemporalCalibrationAlgo.cxx
   vtkTemporalCalibrationAlgo/vtkPrincipalMotionDetectionAlgo.cxx 
   vtkLineSegmentationAlgo/vtkLineSegmentationAlgo.cxx 
-  itkFiducialTransformComputation.cxx
   vtkSingleWallCalibrationAlgo/vtkSingleWallCalibrationAlgo.cxx
   vtkPhantomLinearObjectRegistrationAlgo/Line.cxx
   vtkPhantomLinearObjectRegistrationAlgo/LinearObject.cxx
@@ -32,7 +30,6 @@ IF (WIN32)
   SET (CalibrationAlgo_HDRS
     vtkProbeCalibrationAlgo/vtkProbeCalibrationAlgo.h
     vtkProbeCalibrationAlgo/vtkProbeCalibrationOptimizerAlgo.h
-    vtkMeanShiftClustering.h
     vtkPivotCalibrationAlgo/vtkPivotCalibrationAlgo.h
     vtkPhantomLandmarkRegistrationAlgo/vtkPhantomLandmarkRegistrationAlgo.h
     vtkPhantomLinearObjectRegistrationAlgo/vtkPhantomLinearObjectRegistrationAlgo.h
@@ -42,7 +39,6 @@ IF (WIN32)
     vtkTemporalCalibrationAlgo/vtkTemporalCalibrationAlgo.h
     vtkTemporalCalibrationAlgo/vtkPrincipalMotionDetectionAlgo.h
     vtkLineSegmentationAlgo/vtkLineSegmentationAlgo.h
-    itkFiducialTransformComputation.h
     vtkSingleWallCalibrationAlgo/vtkSingleWallCalibrationAlgo.h
     vtkPhantomLinearObjectRegistrationAlgo/Line.h
 	  vtkPhantomLinearObjectRegistrationAlgo/LinearObject.h
@@ -57,7 +53,6 @@ IF (WIN32)
 ENDIF (WIN32)
 
 SET (CalibrationAlgo_INCLUDE_DIRS 
-  ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkBrachyStepperPhantomRegistrationAlgo
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkCenterOfRotationCalibAlgo
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkLineSegmentationAlgo
