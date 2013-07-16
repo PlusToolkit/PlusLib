@@ -56,7 +56,19 @@ IF (WIN32)
     )
 ENDIF (WIN32)
 
-SET (CalibrationAlgo_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
+SET (CalibrationAlgo_INCLUDE_DIRS 
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkBrachyStepperPhantomRegistrationAlgo
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkCenterOfRotationCalibAlgo
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkLineSegmentationAlgo
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkPhantomLandmarkRegistrationAlgo
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkPhantomLinearObjectRegistrationAlgo
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkPivotCalibrationAlgo
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkProbeCalibrationAlgo
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkSingleWallCalibrationAlgo
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkSpacingCalibAlgo
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkTemporalCalibrationAlgo 
+  CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Build the library

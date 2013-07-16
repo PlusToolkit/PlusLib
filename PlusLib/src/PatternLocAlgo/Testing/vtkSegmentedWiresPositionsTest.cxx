@@ -12,7 +12,6 @@
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
 #include "vtkMath.h"
-#include "vtkProbeCalibrationAlgo.h"
 #include "TrackedFrame.h"
 #include "vtkTrackedFrameList.h"
 
