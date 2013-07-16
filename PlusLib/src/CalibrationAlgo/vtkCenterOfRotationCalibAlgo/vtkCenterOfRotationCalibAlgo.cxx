@@ -15,7 +15,6 @@
 #include "vtkHTMLGenerator.h"
 #include "vtkDoubleArray.h"
 #include "vtkVariantArray.h"
-#include "vtkMeanShiftClustering.h"
 
 #ifdef PLUS_USE_BRACHY_TRACKER
   #include "vtkBrachyTracker.h"
