@@ -193,8 +193,8 @@ int main(int argc, char **argv)
     frame.SetCustomFrameTransformStatus(PlusTransformName("GyroscopeOrientation","Tracker"),FIELD_OK);
     
     if(angularRateThresholdAxis == -1 ||
-      (angularRate[angularRateThresholdAxis]>=angularRateMin &&
-       angularRate[angularRateThresholdAxis]<angularRateMax)){
+      (fabs(angularRate[angularRateThresholdAxis])>=angularRateMin &&
+       fabs(angularRate[angularRateThresholdAxis])<angularRateMax)){
       newFrameList->AddTrackedFrame(&frame);
       nFramesIncluded++;
     }
