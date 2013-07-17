@@ -115,6 +115,18 @@
         <Plane Name="Outside Anterior" BasePoint="130.0 60.0 30.0" EndPoint1="20.0 60.0 30.0" EndPoint2="20.0 60.0 5.0" />
       </Planes>
       
+      <References>
+        <Reference Name="#1" Position="104.3 5.0 20.0" />
+        <Reference Name="#2" Position="104.3 45.0 20.0" />
+        <Reference Name="#3" Position="104.3 45.0 0.0" />
+        <Reference Name="#4" Position="104.3 -5.0 0.0" />
+        
+        <Reference Name="#5" Position="-34.3 45.0 15.0" />
+        <Reference Name="#6" Position="-34.3 -5.0 20.0" />
+        <Reference Name="#7" Position="-34.3 -5.0 0.0" />
+        <Reference Name="#8" Position="-34.3 45.0 0.0" />
+      </References>
+      
     </Geometry>
   </PhantomDefinition>
 

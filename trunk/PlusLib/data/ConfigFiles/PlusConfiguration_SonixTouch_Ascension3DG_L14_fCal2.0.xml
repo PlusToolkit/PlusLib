@@ -164,6 +164,29 @@
         <Landmark Name="#8" Position="-34.3 45.0 0.0" />
       </Landmarks>
       
+      <Planes>
+        <Plane Name="Superior" BasePoint="5.5 3.0 35.0" EndPoint1="135.0 3.0 35.0" EndPoint2="135.0 55.0 35.0" />
+        <Plane Name="Inferior" BasePoint="5.5 55.0 0.0" EndPoint1="135.0 55.0 0.0" EndPoint2="135.0 5.5 0.0" />
+        <Plane Name="Outside Unmarked" BasePoint="140.0 5.0 30.0" EndPoint1="140.0 50.0 30.0" EndPoint2="140.0 50.0 5.0" />
+        <Plane Name="Inside Unmarked" BasePoint="125.0 40.0 30.0" EndPoint1="125.0 20.0 10.0" EndPoint2="125.0 40.0 10.0" />
+        <Plane Name="Outside Marked" BasePoint="0.0 40.0 30.0" EndPoint1="0.0 40.0 5.5" EndPoint2="0.0 15.5 5.5" />
+        <Plane Name="Outside Posterior" BasePoint="130.0 0.0 30.0" EndPoint1="20.0 0.0 30.0" EndPoint2="20.0 0.0 15.0" />
+        <Plane Name="Inside Posterior" BasePoint="110.0 10.0 30.0" EndPoint1="40.0 10.0 30.0" EndPoint2="30.0 10.0 10.0" />
+        <Plane Name="Outside Anterior" BasePoint="130.0 60.0 30.0" EndPoint1="20.0 60.0 30.0" EndPoint2="20.0 60.0 5.0" />
+      </Planes>
+      
+      <References>
+        <Reference Name="#1" Position="104.3 5.0 20.0" />
+        <Reference Name="#2" Position="104.3 45.0 20.0" />
+        <Reference Name="#3" Position="104.3 45.0 0.0" />
+        <Reference Name="#4" Position="104.3 -5.0 0.0" />
+        
+        <Reference Name="#5" Position="-34.3 45.0 15.0" />
+        <Reference Name="#6" Position="-34.3 -5.0 20.0" />
+        <Reference Name="#7" Position="-34.3 -5.0 0.0" />
+        <Reference Name="#8" Position="-34.3 45.0 0.0" />
+      </References>
+      
     </Geometry>
   </PhantomDefinition>
 

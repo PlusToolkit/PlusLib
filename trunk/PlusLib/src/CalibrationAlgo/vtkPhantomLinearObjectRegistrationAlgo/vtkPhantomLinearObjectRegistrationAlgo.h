@@ -9,6 +9,8 @@ See License.txt for details.
 
 #include "Plane.h"
 #include "Planes.h"
+#include "Reference.h"
+#include "References.h"
 #include "PlusConfigure.h"
 #include "vtkDoubleArray.h"
 #include "vtkMatrix4x4.h"
@@ -108,6 +110,15 @@ protected:
 
   /*! Plane array holding the recorded planes */
   Planes                    RecordedPlanes;
+
+  /*Names of the references defined in the configuration file*/
+  std::vector<std::string>  DefinedReferenceNames;
+  
+  /*! References array holding the predefined references from the configuration file*/
+  References                DefinedReferences;
+
+  /*! Reference array holding the recorded references */
+  References                RecordedReferences;
   
   /*! Point array holding the recorded points */
   vtkPoints*                RecordedPoints;

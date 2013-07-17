@@ -17,12 +17,13 @@ SET (CalibrationAlgo_SRCS
   vtkPhantomLinearObjectRegistrationAlgo/Line.cxx
   vtkPhantomLinearObjectRegistrationAlgo/LinearObject.cxx
   vtkPhantomLinearObjectRegistrationAlgo/LinearObjectBuffer.cxx
+  vtkPhantomLinearObjectRegistrationAlgo/Point.cxx
   vtkPhantomLinearObjectRegistrationAlgo/Plane.cxx
   vtkPhantomLinearObjectRegistrationAlgo/Planes.cxx
-  vtkPhantomLinearObjectRegistrationAlgo/Point.cxx
   vtkPhantomLinearObjectRegistrationAlgo/PointObservation.cxx
   vtkPhantomLinearObjectRegistrationAlgo/PointObservationBuffer.cxx
   vtkPhantomLinearObjectRegistrationAlgo/Reference.cxx
+  vtkPhantomLinearObjectRegistrationAlgo/References.cxx
   )
 
 SET (CalibrationAlgo_HDRS)  
@@ -43,12 +44,13 @@ IF (WIN32)
     vtkPhantomLinearObjectRegistrationAlgo/Line.h
 	  vtkPhantomLinearObjectRegistrationAlgo/LinearObject.h
 	  vtkPhantomLinearObjectRegistrationAlgo/LinearObjectBuffer.h
+      vtkPhantomLinearObjectRegistrationAlgo/Point.cxx
 	  vtkPhantomLinearObjectRegistrationAlgo/Plane.h
 	  vtkPhantomLinearObjectRegistrationAlgo/Planes.h
-	  vtkPhantomLinearObjectRegistrationAlgo/Point.h
 	  vtkPhantomLinearObjectRegistrationAlgo/PointObservation.h
 	  vtkPhantomLinearObjectRegistrationAlgo/PointObservationBuffer.h
 	  vtkPhantomLinearObjectRegistrationAlgo/Reference.h
+	  vtkPhantomLinearObjectRegistrationAlgo/References.h
     )
 ENDIF (WIN32)
 

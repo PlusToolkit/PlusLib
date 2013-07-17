@@ -62,6 +62,8 @@ PlusStatus vtkPhantomLinearObjectRegistrationAlgo::Register(vtkTransformReposito
 
   Planes fixedPlanes;
   Planes movingPlanes;
+  References fixedReferences;
+  References movingReferences;
 
   for (int i=0; i<this->RecordedPoints->GetNumberOfPoints(); i++)
   {
@@ -72,6 +74,7 @@ PlusStatus vtkPhantomLinearObjectRegistrationAlgo::Register(vtkTransformReposito
   }
 
   fixedPlanes = this->DefinedPlanes;
+  fixedReferences = this->DefinedReferences;
 
   // Look at matthew's code to see what his algorithnm wants as input
   // hint I think it's planes and an xml
@@ -176,6 +179,68 @@ PlusStatus vtkPhantomLinearObjectRegistrationAlgo::ReadConfiguration(vtkXMLDataE
   if (geometry == NULL)
   {
     LOG_ERROR("Phantom geometry information not found!");
+    return PLUS_FAIL;
+  }
+
+// Read references (NWires are not interesting at this point, it is only parsed if segmentation is needed)
+  vtkXMLDataElement* references = geometry->FindNestedElementWithName("References"); 
+  if (references == NULL)
+  {
+    if(geometry->FindNestedElementWithName("Landmarks") == NULL)
+    {
+      LOG_ERROR("No References or Landmarks found in configuration file found, registration is not possible!");
+      return PLUS_FAIL;
+    }
+    else
+    {
+      LOG_WARNING("No References found in configuration file found, perform Landmark Registration");
+      return PLUS_FAIL;
+    }
+  }
+  else
+  {
+    //find the number of references defined in the config file
+    int numberOfReferences = references->GetNumberOfNestedElements();
+    this->DefinedReferenceNames.resize(numberOfReferences);
+
+    //for each reference
+    for (int i=0; i<numberOfReferences; ++i)
+    {
+      //define a reference variable
+      vtkXMLDataElement* reference = references->GetNestedElement(i);
+
+      if ((reference == NULL) || (STRCASECMP("Reference", reference->GetName())))
+      {
+        LOG_WARNING("Invalid reference definition found!");
+        continue;
+      }
+
+      //define a varaible to store the name of the reference
+      const char* referenceName = reference->GetAttribute("Name");
+      std::string referenceNameString(referenceName);
+
+      double referencePosition[3];
+      std::vector<double> referencePositionVector;
+
+      if (! reference->GetVectorAttribute("Position", 3, referencePosition))
+      {
+        LOG_WARNING("Invalid reference position!");
+        continue;
+      }
+      
+      for(int j=0; j<3;j++)
+      {
+        referencePositionVector.push_back(referencePosition[j]);
+      }
+      
+      this->DefinedReferences.InsertReference(Reference(referencePositionVector));
+      this->DefinedReferenceNames[i] = referenceNameString;
+    }
+  }
+
+  if (this->DefinedReferences.GetNumberOfReferences() == 0)
+  {
+    LOG_ERROR("No valid references were found!");
     return PLUS_FAIL;
   }
 
