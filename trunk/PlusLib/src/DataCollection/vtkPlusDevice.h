@@ -36,15 +36,12 @@ GetSdkVersion(), ReadConfiguration(), WriteConfiguration() methods.
 class VTK_EXPORT vtkPlusDevice : public vtkImageAlgorithm
 {
 public:
-  
-
-protected:
   class ParamIndexKey
   {
   public:
     static const double NO_DEPTH;
   public:
-    ParamIndexKey();
+    ParamIndexKey(){};
 
   public:
     double Depth;
