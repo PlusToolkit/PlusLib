@@ -86,24 +86,19 @@ PlusStatus vtkPlusChannel::ReadConfiguration( vtkXMLDataElement* aChannelElement
       continue;
     }
 
+    PlusTransformName idName(id, this->OwnerDevice->GetToolReferenceFrameName());
     if( this->OwnerDevice != NULL && this->OwnerDevice->GetDataSource(id, aSource) == PLUS_SUCCESS)
     {
-      if( aSource->GetType() == DATA_SOURCE_TYPE_VIDEO )
-      {
-        LOG_ERROR("Do not put Video sources as sub-tags of an output channel. Use the VideoDataSourceId attribute of the OutputChannel tag.");
-      }
-      else if( aSource->GetType() == DATA_SOURCE_TYPE_TOOL )
-      {
-        this->Tools[id] = aSource;
-      }
-      else
-      {
-        LOG_ERROR("Unknown source type when reading channel configuration. Id: " << id);
-      }
+      this->Tools[aSource->GetSourceId()] = aSource;
+    }
+    else if( this->OwnerDevice != NULL && this->OwnerDevice->GetDataSource(idName.GetTransformName().c_str(), aSource) == PLUS_SUCCESS )
+    {
+
+      this->Tools[aSource->GetSourceId()] = aSource;
     }
     else
     {
-      LOG_ERROR("Unable to add tool data source \'" << id << "\'.");
+      LOG_ERROR("Unable to find data source with Id=\'" << id << "\'.");
       return PLUS_FAIL;
     }
   }
@@ -461,7 +456,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrame( double timestamp, TrackedFrame& aTra
   for (DataSourceContainerConstIterator it = this->GetToolsStartIterator(); it != this->GetToolsEndIterator(); ++it)
   {
     vtkPlusDataSource* aTool = it->second;
-    PlusTransformName toolTransformName(aTool->GetSourceId(), aTool->GetReferenceCoordinateFrameName() ); 
+    PlusTransformName toolTransformName( aTool->GetSourceId() ); 
     if ( !toolTransformName.IsValid() )
     {
       LOG_ERROR("Tool transform name is invalid!"); 
@@ -1037,7 +1032,7 @@ PlusStatus vtkPlusChannel::GetMostRecentTimestamp(double &ts)
       vtkPlusDataSource* tool=it->second;
       if (tool==NULL)
       {
-        LOG_ERROR("Invalid tool "<<it->first);
+        LOG_ERROR("Invalid tool " << it->first);
         continue;
       }
       vtkPlusBuffer* trackerBuffer = tool->GetBuffer(); 
@@ -1381,13 +1376,37 @@ vtkImageData* vtkPlusChannel::GetBrightnessOutput()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::GetCustomAttribute( const std::string& attributeId, std::string& output )
+PlusStatus vtkPlusChannel::GetCustomAttribute( const std::string& attributeId, std::string& output ) const
 {
   if( this->CustomAttributes.find(attributeId) != this->CustomAttributes.end() )
   {
-    output = this->CustomAttributes[attributeId];
+    output = this->CustomAttributes.find(attributeId)->second;
     return PLUS_SUCCESS;
   }
 
   return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusChannel::GetCustomAttributeMap( CustomAttributeMap& output ) const
+{
+  for( CustomAttributeMapConstIterator it = this->CustomAttributes.begin(); it != this->CustomAttributes.end(); ++it )
+  {
+    output[it->first] = it->second;
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusChannel::SetCustomAttribute( const std::string& attributeId, const std::string& value )
+{
+  std::string tempValue;
+  if( this->GetCustomAttribute(attributeId, tempValue) == PLUS_SUCCESS )
+  {
+    LOG_WARNING("Attribute: " << attributeId << " will be overwritten with value: " << value);
+  }
+  this->CustomAttributes[attributeId] = value;
+
+  return PLUS_SUCCESS;
 }

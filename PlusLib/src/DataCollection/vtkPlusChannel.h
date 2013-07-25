@@ -23,6 +23,7 @@ class vtkPlusDevice;
 */
 class VTK_EXPORT vtkPlusChannel : public vtkDataObject
 {
+public:
   typedef std::map< std::string, std::string > CustomAttributeMap;
   typedef CustomAttributeMap::iterator CustomAttributeMapIterator;
   typedef CustomAttributeMap::const_iterator CustomAttributeMapConstIterator;
@@ -34,11 +35,11 @@ public:
   /*!
     Parse the XML, read the details about the stream
   */
-  PlusStatus ReadConfiguration(vtkXMLDataElement* aChannelElement, bool RequireRfElementInDeviceSetConfiguration, bool RequireImageOrientationInChannelConfiguration );
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* aChannelElement, bool RequireRfElementInDeviceSetConfiguration, bool RequireImageOrientationInChannelConfiguration );
   /*!
     Write the details about the stream to XML
   */
-  PlusStatus WriteConfiguration(vtkXMLDataElement* aChannelElement);
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* aChannelElement);
 
   PlusStatus GetVideoSource( vtkPlusDataSource*& aVideoSource );
   PlusStatus GetVideoSource( vtkPlusDataSource*& aVideoSource ) const;
@@ -92,7 +93,7 @@ public:
   PlusStatus GetTrackedFrameList( double& aTimestampFrom, vtkTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd );
 
   /*! Get the closest tracked frame timestamp to the specified time */
-  double GetClosestTrackedFrameTimestampByTime(double time);
+  virtual double GetClosestTrackedFrameTimestampByTime(double time);
 
   /*! 
     Get the tracked frame from devices by time with each tool transforms
@@ -107,16 +108,18 @@ public:
   /*! Return the oldest synchronized timestamp in the buffers */
   virtual PlusStatus GetOldestTimestamp(double &ts); 
 
-  PlusStatus Clear();
+  virtual PlusStatus Clear();
 
   virtual void ShallowCopy(const vtkPlusChannel& aChannel);
 
-  PlusStatus GetLatestTimestamp(double& aTimestamp) const;
+  virtual PlusStatus GetLatestTimestamp(double& aTimestamp) const;
 
   void SetOwnerDevice(vtkPlusDevice* _arg){ this->OwnerDevice = _arg; }
   vtkPlusDevice* GetOwnerDevice() { return this->OwnerDevice; }
 
-  PlusStatus GetCustomAttribute( const std::string& attributeId, std::string& output );
+  PlusStatus SetCustomAttribute( const std::string& attributeId, const std::string& value );
+  PlusStatus GetCustomAttribute( const std::string& attributeId, std::string& output ) const;
+  PlusStatus GetCustomAttributeMap( CustomAttributeMap& output ) const;
 
   vtkSetStringMacro(ChannelId);
   vtkGetStringMacro(ChannelId);
@@ -128,7 +131,7 @@ public:
 
 protected:
   /*! Get number of tracked frames between two given timestamps (inclusive) */
-  int GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, double aTimestampTo);
+  virtual int GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, double aTimestampTo);
 
 protected:
   DataSourceContainer       Tools;

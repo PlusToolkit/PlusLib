@@ -69,163 +69,180 @@ PlusStatus vtkFakeTracker::InternalConnect()
   {
   case (FakeTrackerMode_Default):
 
-    //*************************************************************
-    // Check Reference
-    if ( this->GetTool("Reference", tool) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to get tool: Reference in FakeTracker Default mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()); 
-      return PLUS_FAIL; 
+      //*************************************************************
+      // Check Reference
+      PlusTransformName toolName("Reference", this->GetToolReferenceFrameName());
+      if ( this->GetTool(toolName.GetTransformName(), tool) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to get tool: Reference in FakeTracker Default mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()); 
+        return PLUS_FAIL; 
+      }
+      tool->SetToolRevision("1.3");
+      tool->SetToolManufacturer("ACME Inc.");
+      tool->SetToolPartNumber("Stationary");
+      tool->SetToolSerialNumber("A34643");
     }
-    tool->SetToolRevision("1.3");
-    tool->SetToolManufacturer("ACME Inc.");
-    tool->SetToolPartNumber("Stationary");
-    tool->SetToolSerialNumber("A34643");
-    
-
-    //*************************************************************
-    // Check Stylus
-    if ( this->GetTool("Stylus", tool) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to get tool: Stylus in FakeTracker Default mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()); 
-      return PLUS_FAIL; 
+      //*************************************************************
+      // Check Stylus
+      PlusTransformName toolName("Stylus", this->GetToolReferenceFrameName());
+      if ( this->GetTool(toolName.GetTransformName(), tool) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to get tool: Stylus in FakeTracker Default mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()); 
+        return PLUS_FAIL; 
+      }
+      tool->SetToolRevision("1.1");
+      tool->SetToolManufacturer("ACME Inc.");
+      tool->SetToolPartNumber("Rotate");
+      tool->SetToolSerialNumber("B3464C");
     }
-    tool->SetToolRevision("1.1");
-    tool->SetToolManufacturer("ACME Inc.");
-    tool->SetToolPartNumber("Rotate");
-    tool->SetToolSerialNumber("B3464C");
-    
-
-    //*************************************************************
-    // Check Stlyus-2
-    if ( this->GetTool("Stylus-2", tool) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to get tool: Stylus-2 in FakeTracker Default mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()); 
-      return PLUS_FAIL; 
+      //*************************************************************
+      // Check Stlyus-2
+      PlusTransformName toolName("Stylus-2", this->GetToolReferenceFrameName());
+      if ( this->GetTool(toolName.GetTransformName(), tool) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to get tool: Stylus-2 in FakeTracker Default mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()); 
+        return PLUS_FAIL; 
+      }
+      tool->SetToolRevision("1.1");
+      tool->SetToolManufacturer("ACME Inc.");
+      tool->SetToolPartNumber("Rotate");
+      tool->SetToolSerialNumber("Q45P5");
     }
-    tool->SetToolRevision("1.1");
-    tool->SetToolManufacturer("ACME Inc.");
-    tool->SetToolPartNumber("Rotate");
-    tool->SetToolSerialNumber("Q45P5");
-    
-
-    //*************************************************************
-    // Check Stlyus-3
-    if ( this->GetTool("Stylus-3", tool) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to get tool: Stylus-3 in FakeTracker Default mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()); 
-      return PLUS_FAIL; 
+      //*************************************************************
+      // Check Stlyus-3
+      PlusTransformName toolName("Stylus-3", this->GetToolReferenceFrameName());
+      if ( this->GetTool(toolName.GetTransformName(), tool) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to get tool: Stylus-3 in FakeTracker Default mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()); 
+        return PLUS_FAIL; 
+      }
+      tool->SetToolRevision("2.0");
+      tool->SetToolManufacturer("ACME Inc.");
+      tool->SetToolPartNumber("Spin");
+      tool->SetToolSerialNumber("Q34653");
     }
-    tool->SetToolRevision("2.0");
-    tool->SetToolManufacturer("ACME Inc.");
-    tool->SetToolPartNumber("Spin");
-    tool->SetToolSerialNumber("Q34653");
-    
     break;
 
   case ( FakeTrackerMode_SmoothMove ): 
-
-    //*************************************************************
-    // Check Probe
-    if ( this->GetTool("Probe", tool) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to get tool: Probe in FakeTracker SmoothMove mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()); 
-      return PLUS_FAIL; 
+      //*************************************************************
+      // Check Probe
+      PlusTransformName toolName("Probe", this->GetToolReferenceFrameName());
+      if ( this->GetTool(toolName.GetTransformName(), tool) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to get tool: Probe in FakeTracker SmoothMove mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()); 
+        return PLUS_FAIL; 
+      }
     }
-
-    //*************************************************************
-    // Check Reference
-    if ( this->GetTool("Reference", tool) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to get tool: Reference in FakeTracker SmoothMove mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()); 
-      return PLUS_FAIL; 
+      //*************************************************************
+      // Check Reference
+      PlusTransformName toolName("Reference", this->GetToolReferenceFrameName());
+      if ( this->GetTool(toolName.GetTransformName(), tool) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to get tool: Reference in FakeTracker SmoothMove mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()); 
+        return PLUS_FAIL; 
+      }
     }
-
-    //*************************************************************
-    // Check MissingTool
-    if ( this->GetTool("MissingTool", tool) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to get tool: MissingTool in FakeTracker SmoothMove mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
-      return PLUS_FAIL; 
+      //*************************************************************
+      // Check MissingTool
+      PlusTransformName toolName("MissingTool", this->GetToolReferenceFrameName());
+      if ( this->GetTool(toolName.GetTransformName(), tool) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to get tool: MissingTool in FakeTracker SmoothMove mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
+        return PLUS_FAIL; 
+      }
+      break; 
     }
-    break; 
-
   case (FakeTrackerMode_PivotCalibration):
-
-    //*************************************************************
-    // Check Reference
-    if ( this->GetTool("Reference", tool) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to get tool: Reference in FakeTracker PivotCalibration mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
-      return PLUS_FAIL; 
+      //*************************************************************
+      // Check Reference
+      PlusTransformName toolName("Reference", this->GetToolReferenceFrameName());
+      if ( this->GetTool(toolName.GetTransformName(), tool) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to get tool: Reference in FakeTracker PivotCalibration mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
+        return PLUS_FAIL; 
+      }
+
+      tool->SetToolRevision("1.3");
+      tool->SetToolManufacturer("ACME Inc.");
+      tool->SetToolPartNumber("Stationary");
+      tool->SetToolSerialNumber("A11111");
     }
-
-    tool->SetToolRevision("1.3");
-    tool->SetToolManufacturer("ACME Inc.");
-    tool->SetToolPartNumber("Stationary");
-    tool->SetToolSerialNumber("A11111");
-    
-
-    //*************************************************************
-    // Check Stylus
-    if ( this->GetTool("Stylus", tool) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to get tool: Stylus in FakeTracker PivotCalibration mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
-      return PLUS_FAIL; 
-    }
+      //*************************************************************
+      // Check Stylus
+      PlusTransformName toolName("Stylus", this->GetToolReferenceFrameName());
+      if ( this->GetTool(toolName.GetTransformName(), tool) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to get tool: Stylus in FakeTracker PivotCalibration mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
+        return PLUS_FAIL; 
+      }
 
-    tool->SetToolRevision("1.1");
-    tool->SetToolManufacturer("ACME Inc.");
-    tool->SetToolPartNumber("Stylus");
-    tool->SetToolSerialNumber("B22222");
-    
+      tool->SetToolRevision("1.1");
+      tool->SetToolManufacturer("ACME Inc.");
+      tool->SetToolPartNumber("Stylus");
+      tool->SetToolSerialNumber("B22222");
+    }
     break;
 
   case (FakeTrackerMode_RecordPhantomLandmarks):
-    //*************************************************************
-    // Check Reference
-    if ( this->GetTool("Reference", tool) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to get tool: Reference in FakeTracker RecordPhantomLandmarks mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
-      return PLUS_FAIL; 
-    }
-    
-    tool->SetToolRevision("1.3");
-    tool->SetToolManufacturer("ACME Inc.");
-    tool->SetToolPartNumber("Stationary");
-    tool->SetToolSerialNumber("A11111");
+      //*************************************************************
+      // Check Reference
+      PlusTransformName toolName("Reference", this->GetToolReferenceFrameName());
+      if ( this->GetTool(toolName.GetTransformName(), tool) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to get tool: Reference in FakeTracker RecordPhantomLandmarks mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
+        return PLUS_FAIL; 
+      }
 
-    //*************************************************************
-    // Check Stylus
-    if ( this->GetTool("Stylus", tool) != PLUS_SUCCESS )
+      tool->SetToolRevision("1.3");
+      tool->SetToolManufacturer("ACME Inc.");
+      tool->SetToolPartNumber("Stationary");
+      tool->SetToolSerialNumber("A11111");
+    }
     {
-      LOG_ERROR("Failed to get tool: Stylus in FakeTracker RecordPhantomLandmarks mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
-      return PLUS_FAIL; 
-    }
+      //*************************************************************
+      // Check Stylus
+      PlusTransformName toolName("Stylus", this->GetToolReferenceFrameName());
+      if ( this->GetTool(toolName.GetTransformName(), tool) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to get tool: Stylus in FakeTracker RecordPhantomLandmarks mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
+        return PLUS_FAIL; 
+      }
 
-    tool->SetToolRevision("1.1");
-    tool->SetToolManufacturer("ACME Inc.");
-    tool->SetToolPartNumber("Stylus");
-    tool->SetToolSerialNumber("B22222");
-    
+      tool->SetToolRevision("1.1");
+      tool->SetToolManufacturer("ACME Inc.");
+      tool->SetToolPartNumber("Stylus");
+      tool->SetToolSerialNumber("B22222");
+    }
 
     this->Counter = -1;
 
     break;
   case (FakeTrackerMode_ToolState):
-
-    //*************************************************************
-    // Check Test
-    if ( this->GetTool("Test", tool) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to get tool: Test in FakeTracker ToolState mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
-      return PLUS_FAIL; 
-    }
+      //*************************************************************
+      // Check Test
+      PlusTransformName toolName("Test", this->GetToolReferenceFrameName());
+      if ( this->GetTool(toolName.GetTransformName(), tool) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to get tool: Test in FakeTracker ToolState mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
+        return PLUS_FAIL; 
+      }
 
-    tool->SetToolRevision("1.3");
-    tool->SetToolManufacturer("ACME Inc.");
-    tool->SetToolPartNumber("Stationary");
-    tool->SetToolSerialNumber("A11111");
-    
+      tool->SetToolRevision("1.3");
+      tool->SetToolManufacturer("ACME Inc.");
+      tool->SetToolPartNumber("Stationary");
+      tool->SetToolSerialNumber("A11111");
+    }
 
     this->Counter = 0;
 
@@ -350,14 +367,23 @@ PlusStatus vtkFakeTracker::InternalUpdate()
       this->InternalTransform->Identity();
       this->InternalTransform->Translate(tx, ty, tz);
       this->InternalTransform->RotateY(ry); 
-      // Probe transform 
-      this->ToolTimeStampedUpdate("Probe",this->InternalTransform->GetMatrix(),toolStatus,this->Frame, unfilteredTimestamp);   
+      // Probe transform
+      {
+        PlusTransformName name("Probe", this->GetToolReferenceFrameName());
+        this->ToolTimeStampedUpdate(name.GetTransformName().c_str(),this->InternalTransform->GetMatrix(),toolStatus,this->Frame, unfilteredTimestamp);   
+      }
 
       this->InternalTransform->Identity();
       this->InternalTransform->Translate(0, 0, 50); 
       // Reference transform 
-      this->ToolTimeStampedUpdate("Reference",this->InternalTransform->GetMatrix(),toolStatus,this->Frame, unfilteredTimestamp);   
-      this->ToolTimeStampedUpdate("MissingTool",this->InternalTransform->GetMatrix(),TOOL_MISSING,this->Frame, unfilteredTimestamp);   
+      {
+        PlusTransformName name("Reference", this->GetToolReferenceFrameName());
+        this->ToolTimeStampedUpdate(name.GetTransformName().c_str(),this->InternalTransform->GetMatrix(),toolStatus,this->Frame, unfilteredTimestamp);   
+      }
+      {
+        PlusTransformName name("MissingTool", this->GetToolReferenceFrameName());
+        this->ToolTimeStampedUpdate(name.GetTransformName().c_str(),this->InternalTransform->GetMatrix(),TOOL_MISSING,this->Frame, unfilteredTimestamp);   
+      }
 
     }
     break;
@@ -387,7 +413,10 @@ PlusStatus vtkFakeTracker::InternalUpdate()
       referenceToTrackerTransform->Translate(300, 400, 700);
       referenceToTrackerTransform->RotateZ(90);
 
-      this->ToolTimeStampedUpdate("Reference", referenceToTrackerTransform->GetMatrix(), toolStatus, this->Frame, unfilteredTimestamp);
+      {
+        PlusTransformName name("Reference", this->GetToolReferenceFrameName());
+        this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), referenceToTrackerTransform->GetMatrix(), toolStatus, this->Frame, unfilteredTimestamp);
+      }
       // create random positions along a sphere (with built-in error)
       double exactRadius = 210.0;
       double deltaTheta = 60.0;
@@ -416,9 +445,12 @@ PlusStatus vtkFakeTracker::InternalUpdate()
       stylusToTrackerTransform->Concatenate(stylusToReferenceTransform);
 
       random->Delete();
-      this->ToolTimeStampedUpdate("Stylus", stylusToTrackerTransform->GetMatrix(), toolStatus, this->Frame, unfilteredTimestamp);       }
+      {
+        PlusTransformName name("Stylus", this->GetToolReferenceFrameName());
+        this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), stylusToTrackerTransform->GetMatrix(), toolStatus, this->Frame, unfilteredTimestamp);       
+      }
     break;
-
+    }
   case (FakeTrackerMode_RecordPhantomLandmarks): // Touches some positions with 1 sec difference
     {
       ToolStatus toolStatus = TOOL_OK;
@@ -431,7 +463,10 @@ PlusStatus vtkFakeTracker::InternalUpdate()
       referenceToTrackerTransform->Translate(300, 400, 700);
       referenceToTrackerTransform->RotateZ(90);
 
-      this->ToolTimeStampedUpdate("Reference", referenceToTrackerTransform->GetMatrix(), toolStatus, this->Frame, unfilteredTimestamp);
+      {
+        PlusTransformName name("Reference", this->GetToolReferenceFrameName());
+        this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), referenceToTrackerTransform->GetMatrix(), toolStatus, this->Frame, unfilteredTimestamp);
+      }
       // touch landmark points
       vtkSmartPointer<vtkTransform> landmarkToPhantomTransform = vtkSmartPointer<vtkTransform>::New();
       landmarkToPhantomTransform->Identity();
@@ -478,7 +513,10 @@ PlusStatus vtkFakeTracker::InternalUpdate()
       stylusToTrackerTransform->Concatenate(landmarkToPhantomTransform);
       stylusToTrackerTransform->Concatenate(stylusToStylusTipTransform); // Un-calibrate it
 
-      this->ToolTimeStampedUpdate("Stylus", stylusToTrackerTransform->GetMatrix(), toolStatus, this->Frame, unfilteredTimestamp);   
+      {
+        PlusTransformName name("Stylus", this->GetToolReferenceFrameName());
+        this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), stylusToTrackerTransform->GetMatrix(), toolStatus, this->Frame, unfilteredTimestamp);   
+      }
     }
     break;
 

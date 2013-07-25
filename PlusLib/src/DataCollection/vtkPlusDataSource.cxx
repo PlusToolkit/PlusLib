@@ -270,11 +270,7 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
   }
 
   const char* sourceId = sourceElement->GetAttribute("Id"); 
-  if ( sourceId != NULL ) 
-  {
-    this->SetSourceId(sourceId); 
-  }
-  else
+  if ( sourceId == NULL ) 
   {
     LOG_ERROR("Unable to find attribute Id! Id attribute is mandatory in source definition."); 
     return PLUS_FAIL; 
@@ -289,6 +285,8 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
   const char* type = sourceElement->GetAttribute("Type"); 
   if ( type != NULL && STRCASECMP(type, "Tool") == 0 ) 
   {
+    PlusTransformName idName(sourceId, this->GetReferenceCoordinateFrameName());
+    this->SetSourceId(idName.GetTransformName().c_str());
     this->SetType(DATA_SOURCE_TYPE_TOOL);
     
     if( portName == NULL )
@@ -299,6 +297,7 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
   }
   else if ( type != NULL && STRCASECMP(type, "Video") == 0 ) 
   {
+    this->SetSourceId(sourceId); 
     this->SetType(DATA_SOURCE_TYPE_VIDEO);
 
     const char* usImageOrientation = sourceElement->GetAttribute("PortUsImageOrientation");
@@ -416,4 +415,13 @@ DataSourceType vtkPlusDataSource::GetType() const
 void vtkPlusDataSource::SetType( DataSourceType aType )
 {
   this->Type = aType;
+}
+
+//-----------------------------------------------------------------------------
+
+std::string vtkPlusDataSource::GetTransformName() const
+{
+  std::stringstream ss;
+  ss << this->SourceId << "To" << this->ReferenceCoordinateFrameName;
+  return ss.str();
 }

@@ -143,7 +143,10 @@ PlusStatus vtkVirtualMixer::NotifyConfigured()
       if( !found )
       {
         this->OutputChannels[0]->AddTool(anInputTool);
-        this->AddTool(anInputTool);
+        if( this->AddTool(anInputTool, false) != PLUS_SUCCESS )
+        {
+          LOG_ERROR("Unable to add tool " << anInputTool->GetSourceId() << " to device " << this->GetDeviceId());
+        }
       }
     }
 

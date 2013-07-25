@@ -36,15 +36,36 @@ GetSdkVersion(), ReadConfiguration(), WriteConfiguration() methods.
 class VTK_EXPORT vtkPlusDevice : public vtkImageAlgorithm
 {
 public:
+  
+
+protected:
+  class ParamIndexKey
+  {
+  public:
+    static const double NO_DEPTH;
+  public:
+    ParamIndexKey();
+
+  public:
+    double Depth;
+    std::string ProbeId;
+    PlusImagingMode Mode;
+  };
+
+public:
   static vtkPlusDevice* New();
   vtkTypeRevisionMacro(vtkPlusDevice, vtkImageAlgorithm);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   static const char* BMODE_PORT_NAME;
+  static const char* DEFAULT_TRACKER_REFERENCE_FRAME_NAME;
   static const char* RFMODE_PORT_NAME;
+  static const std::string PROBE_SWITCH_ATTRIBUTE_NAME;
+  static const std::string DEPTH_SWITCH_ATTRIBUTE_NAME;
+  static const std::string MODE_SWITCH_ATTRIBUTE_NAME;
   /*! 
-    Probe to see to see if the device is connected to the 
-    computer.  This method should be overridden in subclasses. 
+  Probe to see to see if the device is connected to the 
+  computer.  This method should be overridden in subclasses. 
   */
   virtual PlusStatus Probe();
 
@@ -61,26 +82,26 @@ public:
   virtual PlusStatus Connect();
 
   /*!
-    Force the hardware to device to acquire a frame
-    It requires overriding of the InternalUpdate() function in the child class.
+  Force the hardware to device to acquire a frame
+  It requires overriding of the InternalUpdate() function in the child class.
   */
   virtual PlusStatus ForceUpdate();
 
   /*!
-    Disconnect from device.
-    This method must be called before application exit, or else the
-    application might hang during exit.
+  Disconnect from device.
+  This method must be called before application exit, or else the
+  application might hang during exit.
   */
   virtual PlusStatus Disconnect();
 
   /*!
-    Return whether or not the device can be reset
+  Return whether or not the device can be reset
   */
   virtual bool IsResettable();
-  
+
   /*!
-    Record incoming data at the specified acquisition rate.  The recording
-    continues indefinitely until StopRecording() is called. 
+  Record incoming data at the specified acquisition rate.  The recording
+  continues indefinitely until StopRecording() is called. 
   */
   virtual PlusStatus StartRecording();
 
@@ -91,16 +112,16 @@ public:
   static PlusStatus GetToolReferenceFrameFromTrackedFrame(TrackedFrame& aFrame, std::string &aToolReferenceFrameName);
 
   /*! 
-    Get the buffer that is used to hold the data
-    There are cases when multiple externally controlled buffers are needed.
-    There must always be a valid buffer in the data object, therefore
-    the input parameter shall not be NULL.
+  Get the buffer that is used to hold the data
+  There are cases when multiple externally controlled buffers are needed.
+  There must always be a valid buffer in the data object, therefore
+  the input parameter shall not be NULL.
   */
   //virtual PlusStatus SetBuffer(vtkPlusBuffer* newBuffer);
 
   /*! 
-    Set size of the internal frame buffer, i.e. the number of most recent frames that
-    are stored in the video source class internally.
+  Set size of the internal frame buffer, i.e. the number of most recent frames that
+  are stored in the video source class internally.
   */
   virtual PlusStatus SetBufferSize(vtkPlusChannel& aChannel, int FrameBufferSize, const char* toolName = NULL);
   /*! Get size of the internal frame buffer. */
@@ -117,7 +138,7 @@ public:
 
   virtual bool IsVirtual() const { return false; }
   /*!
-    Reset the device
+  Reset the device
   */
   virtual PlusStatus Reset();
 
@@ -138,14 +159,15 @@ public:
 
   /*! Get the tool object for the specified tool name */
   PlusStatus GetTool(const char* aToolName, vtkPlusDataSource*& aTool);
+  PlusStatus GetTool(const std::string& aToolName, vtkPlusDataSource*& aTool);
 
   /*! Get the first active tool object */
   PlusStatus GetFirstActiveTool(vtkPlusDataSource*& aTool) const; 
 
   /*! Get the tool object for the specified tool port name */
-  PlusStatus GetToolByPortName( const char* aPortName, vtkPlusDataSource*& aTool); 
+  PlusStatus GetToolByPortName( const char* aPortName, vtkPlusDataSource*& aSource); 
   /*! Get the tool object for the specified tool port name */
-  PlusStatus GetVideoSourceByPortName( const char* aPortName, vtkPlusDataSource*& aTool); 
+  PlusStatus GetVideoSourcesByPortName( const char* aPortName, std::vector<vtkPlusDataSource*>& sources); 
 
   /*! Get the beginning of the tool iterator */
   DataSourceContainerConstIterator GetToolIteratorBegin() const; 
@@ -154,7 +176,7 @@ public:
   DataSourceContainerConstIterator GetToolIteratorEnd() const;
 
   /*! Add tool to the device */
-  PlusStatus AddTool(vtkPlusDataSource* tool ); 
+  PlusStatus AddTool(vtkPlusDataSource* tool, bool requireUniquePortName = true ); 
 
   /*! Get number of images */
   int GetNumberOfTools() const;
@@ -196,7 +218,7 @@ public:
   vtkGetMacro(CorrectlyConfigured, bool);
 
   /*! Set the parent data collector */
-  void SetDataCollector(vtkDataCollector* _arg) { this->DataCollector = _arg; }
+  virtual void SetDataCollector(vtkDataCollector* _arg);
 
   /*! Set buffer size of all available tools */
   void SetToolsBufferSize( int aBufferSize ); 
@@ -209,13 +231,13 @@ public:
   void Beep(int n);
 
   /*!
-    Turn one of the LEDs on the specified tool on or off.  This is supported by the POLARIS.
+  Turn one of the LEDs on the specified tool on or off.  This is supported by the POLARIS.
   */
   void SetToolLED(const char* portName, int led, int state);
 
   /*! 
-    Add generated html report from data acquisition to the existing html report. 
-    htmlReport and plotter arguments has to be defined by the caller function 
+  Add generated html report from data acquisition to the existing html report. 
+  htmlReport and plotter arguments has to be defined by the caller function 
   */
   virtual PlusStatus GenerateDataAcquisitionReport( vtkPlusChannel& aChannel, vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter ); 
 
@@ -254,50 +276,50 @@ public:
   // Set the device Id
   vtkSetStringMacro(DeviceId);
 
-    /*! 
-    Set the number of frames to copy to the output on each execute.
-    The frames will be concatenated along the Z dimension, with the 
-    most recent frame first.  The default is 1.
+  /*! 
+  Set the number of frames to copy to the output on each execute.
+  The frames will be concatenated along the Z dimension, with the 
+  most recent frame first.  The default is 1.
   */
   vtkSetMacro(NumberOfOutputFrames,int);
   /*! Get the number of frames to copy to the output on each execute. */
   vtkGetMacro(NumberOfOutputFrames,int);
 
   /*!
-    Get the frame number (some devices has frame numbering, otherwise 
-    just increment if new frame received)
+  Get the frame number (some devices has frame numbering, otherwise 
+  just increment if new frame received)
   */
   vtkGetMacro(FrameNumber, unsigned long);
 
   /*!
-    Get a time stamp in seconds (resolution of milliseconds) for
-    the most recent frame.  Time began on Jan 1, 1970.  This timestamp is only
-    valid after the Output has been Updated.  Usually set to the
-    timestamp for the output if UpdateWithDesiredTimestamp is off,
-    otherwise it is the timestamp for the most recent frame, which is not
-    necessarily the output
+  Get a time stamp in seconds (resolution of milliseconds) for
+  the most recent frame.  Time began on Jan 1, 1970.  This timestamp is only
+  valid after the Output has been Updated.  Usually set to the
+  timestamp for the output if UpdateWithDesiredTimestamp is off,
+  otherwise it is the timestamp for the most recent frame, which is not
+  necessarily the output
   */
   virtual double GetFrameTimeStamp() { return this->FrameTimeStamp; };
 
   /*!
-    The result of GetOutput() will be the frame closest to DesiredTimestamp
-    if it is set and if UpdateWithDesiredTimestamp is set on (default off)
+  The result of GetOutput() will be the frame closest to DesiredTimestamp
+  if it is set and if UpdateWithDesiredTimestamp is set on (default off)
   */
   vtkSetMacro(UpdateWithDesiredTimestamp, int);
   /*!
-    The result of GetOutput() will be the frame closest to DesiredTimestamp
-    if it is set and if UpdateWithDesiredTimestamp is set on (default off)
+  The result of GetOutput() will be the frame closest to DesiredTimestamp
+  if it is set and if UpdateWithDesiredTimestamp is set on (default off)
   */
   vtkGetMacro(UpdateWithDesiredTimestamp, int);
   /*!
-    The result of GetOutput() will be the frame closest to DesiredTimestamp
-    if it is set and if UpdateWithDesiredTimestamp is set on (default off)
+  The result of GetOutput() will be the frame closest to DesiredTimestamp
+  if it is set and if UpdateWithDesiredTimestamp is set on (default off)
   */
   vtkBooleanMacro(UpdateWithDesiredTimestamp, int);
 
   /*!
-    Set the desired timestamp. The result of GetOutput() will be the frame closest to DesiredTimestamp
-    if it is set and if UpdateWithDesiredTimestamp is set on (default off)
+  Set the desired timestamp. The result of GetOutput() will be the frame closest to DesiredTimestamp
+  if it is set and if UpdateWithDesiredTimestamp is set on (default off)
   */
   vtkSetMacro(DesiredTimestamp, double);
   /*! Get the desired timestamp */
@@ -309,17 +331,17 @@ public:
   /*! Are we connected? */
   vtkGetMacro(Connected, int);
 
-    /*!
-    Set the full-frame size.  This must be an allowed size for the device,
-    the device may either refuse a request for an illegal frame size or
-    automatically choose a new frame size.
+  /*!
+  Set the full-frame size.  This must be an allowed size for the device,
+  the device may either refuse a request for an illegal frame size or
+  automatically choose a new frame size.
   */
   virtual PlusStatus SetFrameSize(vtkPlusDataSource& aSource, int x, int y);
 
   /*!
-    Set the full-frame size.  This must be an allowed size for the device,
-    the device may either refuse a request for an illegal frame size or
-    automatically choose a new frame size.
+  Set the full-frame size.  This must be an allowed size for the device,
+  the device may either refuse a request for an illegal frame size or
+  automatically choose a new frame size.
   */
   virtual PlusStatus SetFrameSize(vtkPlusDataSource& aSource, int dim[2]) { return this->SetFrameSize(aSource, dim[0], dim[1]); };
 
@@ -359,27 +381,29 @@ public:
   PlusStatus AddInputChannel(vtkPlusChannel* aChannel);
 
   /*!
-    Perform any completion tasks once configured
+  Perform any completion tasks once configured
   */
   virtual PlusStatus NotifyConfigured(){ return PLUS_SUCCESS; }
 
   /*! 
-    Return the latest or desired image frame. This method can be overridden in subclasses 
-    Part of the vtkAlgorithm pipeline
+  Return the latest or desired image frame. This method can be overridden in subclasses 
+  Part of the vtkAlgorithm pipeline
   */
   virtual int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
   /*! 
-    Return the latest or desired image frame. This method can be overridden in subclasses 
-    Part of the vtkAlgorithm pipeline
+  Return the latest or desired image frame. This method can be overridden in subclasses 
+  Part of the vtkAlgorithm pipeline
   */
   virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
 protected:
   static void *vtkDataCaptureThread(vtkMultiThreader::ThreadInfo *data);
 
+  PlusStatus BuildParameterIndexList(const ChannelContainer& channels, bool& depthSwitchingEnabled, bool& modeSwitchingEnabled, bool& probeSwitchingEnabled, std::vector<ParamIndexKey*>& output );
+
   /*! 
-    This method should be overridden for devices that have one or more LEDs on the tracked tools. 
+  This method should be overridden for devices that have one or more LEDs on the tracked tools. 
   */
   virtual PlusStatus InternalSetToolLED(const char* portName, int led, int state) { return PLUS_SUCCESS; };
 
@@ -393,14 +417,14 @@ protected:
   virtual PlusStatus InternalDisconnect() { return PLUS_SUCCESS; };
 
   /*!
-    Called at the end of StartRecording to allow hardware-specific
-    actions for starting the recording
+  Called at the end of StartRecording to allow hardware-specific
+  actions for starting the recording
   */
   virtual PlusStatus InternalStartRecording() { return PLUS_SUCCESS; };
 
   /*! 
-    Called at the beginning of StopRecording to allow hardware-specific
-    actions for stopping the recording
+  Called at the beginning of StopRecording to allow hardware-specific
+  actions for stopping the recording
   */
   virtual PlusStatus InternalStopRecording() { return PLUS_SUCCESS; };
 
@@ -420,23 +444,23 @@ protected:
   PlusStatus ToolTimeStampedUpdateWithoutFiltering(const char* aToolName, vtkMatrix4x4 *matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp);
 
   /*!
-    Helper function used during configuration to locate the correct XML element for a device
+  Helper function used during configuration to locate the correct XML element for a device
   */
   vtkXMLDataElement* FindThisDeviceElement(vtkXMLDataElement* rootXMLElement);
   /*!
-    Helper function used during configuration to locate the correct XML element for an output stream
+  Helper function used during configuration to locate the correct XML element for an output stream
   */
   vtkXMLDataElement* FindOutputChannelElement(vtkXMLDataElement* rootXMLElement, const char* aChannelId);
   /*!
-    Helper function used during configuration to locate the correct XML element for an input stream
+  Helper function used during configuration to locate the correct XML element for an input stream
   */
   vtkXMLDataElement* FindInputChannelElement(vtkXMLDataElement* rootXMLElement, const char* aChannelId);
   /*!
-    Method that writes output streams to XML
+  Method that writes output streams to XML
   */
   virtual void InternalWriteOutputChannels(vtkXMLDataElement* rootXMLElement);
   /*!
-    Method that writes output streams to XML
+  Method that writes output streams to XML
   */
   virtual void InternalWriteInputChannels(vtkXMLDataElement* rootXMLElement);
 
@@ -505,8 +529,8 @@ protected:
   bool CorrectlyConfigured;
 
   /*!
-    If enabled, then a data capture thread is created when the device is connected that regularly calls InternalUpdate.
-    This update mechanism is useful for devices that don't provide callback functions but require polling.
+  If enabled, then a data capture thread is created when the device is connected that regularly calls InternalUpdate.
+  This update mechanism is useful for devices that don't provide callback functions but require polling.
   */
   bool StartThreadForInternalUpdates;
 
@@ -514,8 +538,8 @@ protected:
 
 protected:
   /*
-    When defining a device, it may be a tracker or imaging device
-    These variables allow a device to define which section of the configuration it is expecting
+  When defining a device, it may be a tracker or imaging device
+  These variables allow a device to define which section of the configuration it is expecting
   */
   bool RequireImageOrientationInConfiguration;
   bool RequireFrameBufferSizeInDeviceSetConfiguration;

@@ -20,6 +20,13 @@ enum PlusStatus
   PLUS_SUCCESS=1
 };
 
+enum PlusImagingMode
+{
+  Plus_UnknownMode,
+  Plus_BMode,
+  Plus_RfMode
+};
+
 #define UNDEFINED_TIMESTAMP DBL_MAX
 
 /* Define case insensitive string compare for Windows. */
@@ -263,6 +270,7 @@ public:
   PlusTransformName(); 
   ~PlusTransformName(); 
   PlusTransformName(std::string aFrom, std::string aTo ); 
+  PlusTransformName(const std::string& transformName ); 
 
   /*! 
     Set 'From' and 'To' coordinate frame names from a combined transform name with the following format [FrameFrom]To[FrameTo]. 
