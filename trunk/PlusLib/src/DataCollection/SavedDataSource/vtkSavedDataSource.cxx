@@ -533,7 +533,7 @@ PlusStatus vtkSavedDataSource::InternalConnectTracker(vtkTrackedFrameList* saved
       continue;
     }        
 
-    PlusTransformName toolTransformName(tool->GetSourceId(), this->ToolReferenceFrameName ); 
+    PlusTransformName toolTransformName( tool->GetSourceId() ); 
     if (!frame->IsCustomFrameTransformNameDefined(toolTransformName) )
     {
       std::string strTransformName; 

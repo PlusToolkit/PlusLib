@@ -39,8 +39,12 @@ vtkStandardNewMacro(vtkPlusDevice);
 
 const int vtkPlusDevice::VIRTUAL_DEVICE_FRAME_RATE = 50;
 static const int FRAME_RATE_AVERAGING = 10;
+const char* vtkPlusDevice::DEFAULT_TRACKER_REFERENCE_FRAME_NAME = "Tracker";
 const char* vtkPlusDevice::BMODE_PORT_NAME = "B";
 const char* vtkPlusDevice::RFMODE_PORT_NAME = "Rf";
+const std::string vtkPlusDevice::PROBE_SWITCH_ATTRIBUTE_NAME = "ProbeId";
+const std::string vtkPlusDevice::DEPTH_SWITCH_ATTRIBUTE_NAME = "Depth";
+const std::string vtkPlusDevice::MODE_SWITCH_ATTRIBUTE_NAME = "Mode";
 
 //----------------------------------------------------------------------------
 vtkPlusDevice::vtkPlusDevice()
@@ -74,7 +78,7 @@ vtkPlusDevice::vtkPlusDevice()
 {
   this->SetNumberOfInputPorts(0);
 
-  this->SetToolReferenceFrameName("Tracker");
+  this->SetToolReferenceFrameName(DEFAULT_TRACKER_REFERENCE_FRAME_NAME);
 
   this->Threader = vtkMultiThreader::New();
 
@@ -199,7 +203,7 @@ int vtkPlusDevice::GetNumberOfTools() const
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::AddTool( vtkPlusDataSource* tool )
+PlusStatus vtkPlusDevice::AddTool( vtkPlusDataSource* tool, bool requireUniquePortName )
 {
   if ( tool == NULL )
   {
@@ -215,14 +219,17 @@ PlusStatus vtkPlusDevice::AddTool( vtkPlusDataSource* tool )
 
   if ( this->Tools.find( tool->GetSourceId() ) == this->GetToolIteratorEnd() )
   {
-    // Check tool port names, it should be unique too
-    for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+    if( requireUniquePortName )
     {
-      if ( STRCASECMP( tool->GetPortName(), it->second->GetPortName() ) == 0 )
+      // Check tool port names, it should be unique too
+      for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
       {
-        LOG_ERROR("Failed to add '" << tool->GetSourceId() << "' tool to container: tool with name '" << it->second->GetSourceId() 
-          << "' is already defined on port '" << tool->GetPortName() << "'!"); 
-        return PLUS_FAIL; 
+        if ( STRCASECMP( tool->GetPortName(), it->second->GetPortName() ) == 0 )
+        {
+          LOG_ERROR("Failed to add '" << tool->GetSourceId() << "' tool to container: tool with name '" << it->second->GetSourceId() 
+            << "' is already defined on port '" << tool->GetPortName() << "'!"); 
+          return PLUS_FAIL; 
+        }
       }
     }
 
@@ -272,6 +279,12 @@ PlusStatus vtkPlusDevice::GetTool(const char* aToolName, vtkPlusDataSource*& aTo
   return PLUS_FAIL;
 }
 
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::GetTool(const std::string& aToolName, vtkPlusDataSource*& aTool)
+{
+  return this->GetTool(aToolName.c_str(), aTool);
+}
+
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::GetToolByPortName( const char* portName, vtkPlusDataSource*& aTool)
 {
@@ -294,9 +307,9 @@ PlusStatus vtkPlusDevice::GetToolByPortName( const char* portName, vtkPlusDataSo
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetVideoSourceByPortName( const char* portName, vtkPlusDataSource*& aVideoSource)
+PlusStatus vtkPlusDevice::GetVideoSourcesByPortName( const char* aPortName, std::vector<vtkPlusDataSource*>& sources )
 {
-  if ( portName == NULL )
+  if ( aPortName == NULL )
   {
     LOG_ERROR("Failed to get video source - port name is NULL!"); 
     return PLUS_FAIL; 
@@ -310,14 +323,13 @@ PlusStatus vtkPlusDevice::GetVideoSourceByPortName( const char* portName, vtkPlu
         <<" in device "<<it->second->GetDevice()->GetDeviceId());
       continue;
     }
-    if ( STRCASECMP( portName, it->second->GetPortName() ) == 0 )
+    if ( STRCASECMP( aPortName, it->second->GetPortName() ) == 0 )
     {
-      aVideoSource = it->second; 
-      return PLUS_SUCCESS; 
+      sources.push_back(it->second);
     }
   }
 
-  return PLUS_FAIL; 
+  return PLUS_SUCCESS; 
 }
 
 //-----------------------------------------------------------------------------
@@ -701,7 +713,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
   }
   else if( this->IsTracker() )
   {
-	  LOG_WARNING(this->GetDeviceId() << ": ToolReferenceFrame is undefined. Default of \"Tracker\" will be used.");
+    LOG_WARNING(this->GetDeviceId() << ": ToolReferenceFrame is undefined. Default of \"" << vtkPlusDevice::DEFAULT_TRACKER_REFERENCE_FRAME_NAME << "\" will be used.");
   }
 
   vtkXMLDataElement* dataSourcesElement = deviceXMLElement->FindNestedElementWithName("DataSources");
@@ -721,13 +733,13 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
       vtkSmartPointer<vtkPlusDataSource> aDataSource = vtkSmartPointer<vtkPlusDataSource>::New(); 
       if( dataSourceElement->GetAttribute("Type") != NULL && STRCASECMP(dataSourceElement->GetAttribute("Type"), "Tool") == 0 )
       {
+        aDataSource->SetReferenceName(this->ToolReferenceFrameName);
+
         if ( aDataSource->ReadConfiguration(dataSourceElement, this->RequireToolAveragedItemsForFilteringInDeviceSetConfiguration, this->RequireImageOrientationInConfiguration, this->GetDeviceId() ) != PLUS_SUCCESS )
         {
           LOG_ERROR("Unable to add tool to tracker - failed to read tool configuration"); 
           continue; 
         }
-
-        aDataSource->SetReferenceName(this->ToolReferenceFrameName);
 
         if ( this->AddTool(aDataSource) != PLUS_SUCCESS )
         {
@@ -781,7 +793,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
       {
         if( STRCASECMP((*it)->GetChannelId(), channelElement->GetAttribute("Id")) == 0 )
         {
-          LOG_ERROR("Channel with duplicate channel Id. Skipping channel configuration.");
+          LOG_ERROR("Channel with duplicate channel Id \'" << (*it)->GetChannelId() << "\'. Skipping channel configuration.");
           skip = true;
           break;
         }
@@ -1410,7 +1422,7 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
                                vtkInformationVector *vtkNotUsed(outputVector))
 {
   LOG_TRACE("vtkPlusDevice::RequestData");
-  
+
   // Find a video source and set extent
   vtkPlusDataSource* aSource(NULL);
   for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it )
@@ -1840,5 +1852,114 @@ PlusStatus vtkPlusDevice::AddOutputChannel(vtkPlusChannel* aChannel)
   }
   this->OutputChannels.push_back(aChannel);
   aChannel->Register(this);
+  return PLUS_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
+void vtkPlusDevice::SetDataCollector( vtkDataCollector* _arg )
+{
+  this->DataCollector = _arg;
+}
+
+//------------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::BuildParameterIndexList(const ChannelContainer& channels, bool& depthSwitchingEnabled, bool& modeSwitchingEnabled, bool& probeSwitchingEnabled, std::vector<ParamIndexKey*>& output )
+{
+  std::vector<double> depthList;
+  std::vector<std::string> modeList;
+  std::vector<std::string> probeList;
+
+  for ( ChannelContainerConstIterator it = channels.begin(); it != channels.end(); ++it )
+  {
+    std::string value;
+    if( (*it)->GetCustomAttribute(std::string(vtkPlusDevice::DEPTH_SWITCH_ATTRIBUTE_NAME), value) == PLUS_SUCCESS )
+    {
+      std::stringstream ss;
+      ss << value;
+      double depth;
+      ss >> depth;
+      depthList.push_back(depth);
+    }
+
+    if( (*it)->GetCustomAttribute(std::string(vtkPlusDevice::PROBE_SWITCH_ATTRIBUTE_NAME), value) == PLUS_SUCCESS )
+    {
+      probeList.push_back(value);
+    }
+
+    if( (*it)->GetCustomAttribute(std::string(vtkPlusDevice::MODE_SWITCH_ATTRIBUTE_NAME), value) == PLUS_SUCCESS )
+    {
+      modeList.push_back(value);
+    }
+  }
+
+  if( depthList.size() == 0 &&
+    modeList.size() == 0 &&
+    probeList.size() == 0 )
+  {
+    // We have no switching going on, we're done here
+    return PLUS_SUCCESS;
+  }
+
+  depthSwitchingEnabled = depthList.size() > 1;
+  modeSwitchingEnabled = modeList.size() > 1;
+  probeSwitchingEnabled = probeList.size() > 1;
+
+  int numErrors(0);
+  for ( ChannelContainerConstIterator it = channels.begin(); it != channels.end(); ++it )
+  {
+    // Create a key to index this channel element
+    ParamIndexKey* key = new ParamIndexKey();
+    // set the depth
+    std::string value;
+    if( (*it)->GetCustomAttribute(std::string(vtkPlusDevice::DEPTH_SWITCH_ATTRIBUTE_NAME), value) == PLUS_SUCCESS )
+    {
+      std::stringstream ss;
+      ss << value;
+      ss >> key->Depth;
+    }
+    else if( depthList.size() > 0)
+    {
+      LOG_ERROR("Channel " << (*it)->GetChannelId() << " does not have a \'" << vtkPlusDevice::DEPTH_SWITCH_ATTRIBUTE_NAME << "\' sub-attribute specified. Please specify the depth on all channels.");
+      numErrors++;
+      continue;
+    }
+
+    // set the probe id
+    if( (*it)->GetCustomAttribute(std::string(vtkPlusDevice::PROBE_SWITCH_ATTRIBUTE_NAME), key->ProbeId) != PLUS_SUCCESS && probeList.size() > 0)
+    {
+      LOG_ERROR("Channel " << (*it)->GetChannelId() << " does not have a \'" << vtkPlusDevice::PROBE_SWITCH_ATTRIBUTE_NAME << "\' sub-attribute specified. Please specify the probe details for all channels.");
+      numErrors++;
+      continue;
+    }
+
+    // determine and set the mode
+    if( (*it)->GetCustomAttribute(std::string(vtkPlusDevice::MODE_SWITCH_ATTRIBUTE_NAME), value) == PLUS_SUCCESS )
+    {
+      if(value.compare(std::string(vtkPlusDevice::RFMODE_PORT_NAME)) == 0 )
+      {
+        key->Mode = Plus_RfMode;
+      }
+      else if(value.compare(std::string(vtkPlusDevice::BMODE_PORT_NAME)) == 0 )
+      {
+        key->Mode = Plus_BMode;
+      }
+      else
+      {
+        LOG_WARNING("Unable to determine Mode. Please specify a sub-attribute with Id \'" << vtkPlusDevice::MODE_SWITCH_ATTRIBUTE_NAME << "\'=" << vtkPlusDevice::BMODE_PORT_NAME << " or " << vtkPlusDevice::RFMODE_PORT_NAME << ". Defaulting to " << vtkPlusDevice::BMODE_PORT_NAME);
+        key->Mode = Plus_BMode;
+      }
+    }
+    else if( (*it)->GetRfProcessor() == NULL )
+    {
+      key->Mode = Plus_BMode;
+      LOG_WARNING("No \'" << vtkPlusDevice::MODE_SWITCH_ATTRIBUTE_NAME << "\' tag found on channel " << (*it)->GetChannelId() << ". Defaulting to " << vtkPlusDevice::BMODE_PORT_NAME << ".");
+    }
+    else
+    {
+      key->Mode = Plus_RfMode;
+      LOG_INFO("No \'" << vtkPlusDevice::MODE_SWITCH_ATTRIBUTE_NAME << "\' tag found on channel " << (*it)->GetChannelId() << ". Found tag " << vtkRfProcessor::GetRfProcessorTagName() << " so setting channel Mode to " << vtkPlusDevice::RFMODE_PORT_NAME << ".");
+    }
+    output.push_back(key);
+  }
+
   return PLUS_SUCCESS;
 }

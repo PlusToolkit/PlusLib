@@ -52,6 +52,8 @@ public:
   /*! Set reference name. Reference name is used to convey context about the coordinate frame that the tool is based */
   PlusStatus SetReferenceName(const char* referenceName);
 
+  std::string GetTransformName() const;
+
   /*! Set port name. Port name is used to identify the source among all the sources provided by the device 
   therefore it must be unique */
   PlusStatus SetPortName(const char* portName);

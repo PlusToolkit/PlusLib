@@ -425,7 +425,7 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
 
   if( fCalElement == NULL)
   {
-    LOG_ERROR("Failed to find fCal confuguration!");
+    LOG_ERROR("Failed to find fCal configuration!");
     return PLUS_FAIL;
   }
 

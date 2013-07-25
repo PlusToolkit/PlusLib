@@ -112,7 +112,7 @@ PlusStatus ToolStateDisplayWidget::InitializeTools(vtkPlusChannel* aChannel, boo
   for (it = transformNames.begin(), i = 0; it != transformNames.end(); ++it, ++i)
   {
     // Assemble tool name and add label to layout and label list
-    QString toolNameString = QString("%1: %2").arg(i).arg(it->From().c_str());
+    QString toolNameString = QString("%1: %2").arg(i).arg(it->GetTransformName().c_str());
 
     QLabel* toolNameLabel = new QLabel(this);
     toolNameLabel->setText(toolNameString);

@@ -14,6 +14,7 @@ class vtkPlusDataSource;
 class vtkPlusDataSource;
 class vtkVirtualMixer;
 
+#include "PlusCommon.h"
 #include "PlusVideoFrame.h"
 #include "vtkMatrix4x4.h"
 #include "vtkSmartPointer.h"

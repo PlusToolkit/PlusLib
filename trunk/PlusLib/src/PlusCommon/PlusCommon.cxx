@@ -25,6 +25,12 @@ PlusTransformName::PlusTransformName(std::string aFrom, std::string aTo )
 }
 
 //-------------------------------------------------------
+PlusTransformName::PlusTransformName(const std::string& transformName )
+{
+  this->SetTransformName(transformName.c_str());
+}
+
+//-------------------------------------------------------
 bool PlusTransformName::IsValid() const
 {
   if ( this->m_From.empty() )
