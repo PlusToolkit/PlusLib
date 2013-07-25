@@ -41,7 +41,7 @@ public:
   public:
     static const double NO_DEPTH;
   public:
-    ParamIndexKey(){};
+    ParamIndexKey();
 
   public:
     double Depth;
