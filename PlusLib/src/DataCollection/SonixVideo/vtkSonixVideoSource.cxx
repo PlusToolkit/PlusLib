@@ -211,16 +211,16 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
     return PLUS_SUCCESS;
   }
 
-  vtkPlusDataSource* aSource;
+  std::vector<vtkPlusDataSource*> sources;
   PlusCommon::ITKScalarPixelType pixelType = itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;    
   US_IMAGE_TYPE imgType = US_IMG_TYPE_XX;    
 
-  if( (uData)type == udtBPost && this->GetVideoSourceByPortName(vtkPlusDevice::BMODE_PORT_NAME, aSource) == PLUS_SUCCESS )
+  if( (uData)type == udtBPost && this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, sources) == PLUS_SUCCESS )
   {
     pixelType = itk::ImageIOBase::UCHAR;
     imgType = US_IMG_BRIGHTNESS;
   }
-  else if( (uData)type == udtRF && this->GetVideoSourceByPortName(vtkPlusDevice::RFMODE_PORT_NAME, aSource) == PLUS_SUCCESS )
+  else if( (uData)type == udtRF && this->GetVideoSourcesByPortName(vtkPlusDevice::RFMODE_PORT_NAME, sources) == PLUS_SUCCESS )
   {
     pixelType = itk::ImageIOBase::SHORT;
     imgType = US_IMG_RF_I_LINE_Q_LINE;
@@ -234,6 +234,8 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
   // use the information about data type and frmnum to do cross checking that you are maintaining correct frame index, & receiving
   // expected data type
   this->FrameNumber = frmnum; 
+
+  vtkPlusDataSource* aSource = sources[0];
 
   int frameSize[2] = {0,0};
   aSource->GetBuffer()->GetFrameSize(frameSize);
@@ -498,10 +500,10 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* config)
     LOG_WARNING("Ultrasonix IP address is not defined. Defaulting to " << this->GetSonixIP() );
   }  
 
-  vtkPlusDataSource* bSource(NULL);
-  vtkPlusDataSource* rfSource(NULL);
-  bool bMode = this->GetVideoSourceByPortName(vtkPlusDevice::BMODE_PORT_NAME, bSource) == PLUS_SUCCESS;
-  bool rfMode = this->GetVideoSourceByPortName(vtkPlusDevice::RFMODE_PORT_NAME, bSource) == PLUS_SUCCESS;
+  std::vector<vtkPlusDataSource*> bSources;
+  std::vector<vtkPlusDataSource*> rfSources;
+  bool bMode = this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, bSources) == PLUS_SUCCESS;
+  bool rfMode = this->GetVideoSourcesByPortName(vtkPlusDevice::RFMODE_PORT_NAME, rfSources) == PLUS_SUCCESS;
 
   if (bMode && !rfMode)
   {
@@ -1151,13 +1153,16 @@ bool vtkSonixVideoSource::WantDataType( uData aValue )
 PlusStatus vtkSonixVideoSource::ConfigureVideoSource( uData aValue )
 {
   vtkPlusDataSource* aSource(NULL);
+  std::vector<vtkPlusDataSource*> sources;
   if( (aValue & udtBPost) > 0)
   {
-    this->GetVideoSourceByPortName(vtkPlusDevice::BMODE_PORT_NAME, aSource);
+    this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, sources);
+    aSource = sources[0];
   }
   else if( (aValue & udtRF) > 0)
   {
-    this->GetVideoSourceByPortName(vtkPlusDevice::RFMODE_PORT_NAME, aSource);
+    this->GetVideoSourcesByPortName(vtkPlusDevice::RFMODE_PORT_NAME, sources);
+    aSource = sources[0];
   }
   else
   {

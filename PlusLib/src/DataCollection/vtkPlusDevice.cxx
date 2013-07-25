@@ -47,6 +47,17 @@ const std::string vtkPlusDevice::DEPTH_SWITCH_ATTRIBUTE_NAME = "Depth";
 const std::string vtkPlusDevice::MODE_SWITCH_ATTRIBUTE_NAME = "Mode";
 
 //----------------------------------------------------------------------------
+const double vtkPlusDevice::ParamIndexKey::NO_DEPTH = -1.0;
+
+vtkPlusDevice::ParamIndexKey::ParamIndexKey()
+: Depth(NO_DEPTH)
+, Mode(Plus_UnknownMode)
+, ProbeId("")
+{
+
+}
+
+//----------------------------------------------------------------------------
 vtkPlusDevice::vtkPlusDevice()
 : ThreadAlive(false)
 , Connected(0)
