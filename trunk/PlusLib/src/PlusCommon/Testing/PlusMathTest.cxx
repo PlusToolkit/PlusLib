@@ -3,6 +3,9 @@
   Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
   See License.txt for details.
 =========================================================Plus=header=end*/
+
+#include <deque>
+
 #include "vtkDebugLeaksManager.h"
 #include "vtkSystemIncludes.h"
 #include "vtkDebugLeaksManager.h"
@@ -300,7 +303,7 @@ PlusStatus GenerateLSQRData(vtkXMLDataElement* xmlLSQRMinimize, int numberOfData
 
 template<class floatType> int TestFloor(const char* floatName)
 {
-  const int repeatOperations=1000;
+  const int repeatOperations=500;
   const int numberOfOperations=100000;
 
   // initialize random number generation with the sub-millisecond part of the current time
@@ -308,40 +311,36 @@ template<class floatType> int TestFloor(const char* floatName)
 
   //typedef double floatType;
 
-  floatType testFloatNumbers[numberOfOperations];
+  std::deque<floatType> testFloatNumbers(numberOfOperations);
   for (int i=0; i<numberOfOperations; i++)
   {
     testFloatNumbers[i]=1000 * floatType(rand())/floatType(RAND_MAX) - 500;
   }
   
-  floatType testResultsPlusFloor[numberOfOperations];
+  std::deque<floatType> testResultsPlusFloor(numberOfOperations);
   double timestampDiffPlusFloor=0;
   {
     double timestampBefore=vtkAccurateTimer::GetSystemTime();
     for (int rep=0; rep<repeatOperations; rep++)
     {
-      floatType *inputVal=testFloatNumbers;
-      floatType *outputVal=testResultsPlusFloor;
       for (int i=0; i<numberOfOperations; i++)
       {
-        *outputVal++=PlusMath::Floor(*inputVal++);
+        testResultsPlusFloor[i]=PlusMath::Floor(testFloatNumbers[i]);
       }
     }
     double timestampAfter=vtkAccurateTimer::GetSystemTime(); 
     timestampDiffPlusFloor=timestampAfter-timestampBefore;
   }
 
-  floatType testResultsFloor[numberOfOperations];
+  std::deque<floatType> testResultsFloor(numberOfOperations);
   double timestampDiffFloor=0;
   {
     double timestampBefore=vtkAccurateTimer::GetSystemTime();
     for (int rep=0; rep<repeatOperations; rep++)
     {
-      floatType *inputVal=testFloatNumbers;
-      floatType *outputVal=testResultsFloor;
       for (int i=0; i<numberOfOperations; i++)
       {
-        *outputVal++=floor(*inputVal++);
+        testResultsFloor[i]=floor(testFloatNumbers[i]);
       }
     }
     double timestampAfter=vtkAccurateTimer::GetSystemTime(); 
@@ -353,11 +352,9 @@ template<class floatType> int TestFloor(const char* floatName)
     double timestampBefore=vtkAccurateTimer::GetSystemTime();
     for (int rep=0; rep<repeatOperations; rep++)
     {
-      floatType *inputVal=testFloatNumbers;
-      floatType *outputVal=testResultsFloor;
       for (int i=0; i<numberOfOperations; i++)
       {
-        *outputVal++=vtkMath::Floor(*inputVal++);
+        testResultsFloor[i]=vtkMath::Floor(testFloatNumbers[i]);
       }
     }
     double timestampAfter=vtkAccurateTimer::GetSystemTime(); 
@@ -365,22 +362,16 @@ template<class floatType> int TestFloor(const char* floatName)
   }
 
   int numberOfErrors=0;
-  floatType *floorInputs=testFloatNumbers;
-  floatType *floorResults=testResultsFloor;
-  floatType *plusFloorResults=testResultsPlusFloor;
   int numberOfPlusMathFloorMismatches=0;
   for (int i=0; i<numberOfOperations; i++)
   {
-    if ( *floorResults != *plusFloorResults )
+    if ( testResultsFloor[i] != testResultsPlusFloor[i] )
     {
       LOG_INFO("PlusMath::Floor computation mismatch for input "
 	<<std::scientific<<std::setprecision(std::numeric_limits<double>::digits10+1)
-	<<*floorInputs<<": "<<*floorResults<<" (using vtkMath::Floor) != "<<*plusFloorResults<<" (using PlusMath::Floor)");
+	<<testFloatNumbers[i]<<": "<<testResultsFloor[i]<<" (using vtkMath::Floor) != "<<testResultsPlusFloor[i]<<" (using PlusMath::Floor)");
       numberOfPlusMathFloorMismatches++;      
-    }
-    floorInputs++;
-    floorResults++;
-    plusFloorResults++;
+    }    
   }
   
   double percentagePlusMathFloorMismatches=double(numberOfPlusMathFloorMismatches)/numberOfOperations*100.0;
