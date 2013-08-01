@@ -52,6 +52,20 @@
   booktitle = {MICCAI (2)},
   year = {2005},
   pages = {65-72},
+  abstract = {This paper introduces a novel method for ultrasound calibration for
+	both spatial and temporal parameters. The main advantage of this
+	method is that it does not require a phantom, which is usually expensive
+	to fabricate. Furthermore, the method does not require extensive
+	image processing. For spatial calibration, we solve an optimization
+	problem established by a set of equations that relate the orientations
+	of a line (i.e., calibration pointer) to the intersection points
+	appearing in the ultrasound image. The line orientation is provided
+	through calibration of both ends of the calibration pointer. Temporal
+	calibration is achieved by processing of the captured pointer orientations
+	and the corresponding image positions of intersection along with
+	the timing information. The effectiveness of the unified method for
+	both spatial and temporal calibration is apparent from the quality
+	of the 3D reconstructions of a known object.},
   bibsource = {DBLP, http://dblp.uni-trier.de},
   crossref = {DBLP:conf/miccai/2005-2},
   ee = {http://dx.doi.org/10.1007/11566489_9},
@@ -1138,41 +1152,63 @@
   timestamp = {2012.10.19}
 }
 
-@ARTICLE{Khamene2005a,
-  author = {Khamene, Ali and Sauer, Frank},
-  title = {A novel phantom-less spatial and temporal ultrasound calibration
-	method.},
-  journal = {Med Image Comput Comput Assist Interv},
-  year = {2005},
-  volume = {8},
-  pages = {65--72},
-  number = {Pt 2},
-  abstract = {This paper introduces a novel method for ultrasound calibration for
-	both spatial and temporal parameters. The main advantage of this
-	method is that it does not require a phantom, which is usually expensive
-	to fabricate. Furthermore, the method does not require extensive
-	image processing. For spatial calibration, we solve an optimization
-	problem established by a set of equations that relate the orientations
-	of a line (i.e., calibration pointer) to the intersection points
-	appearing in the ultrasound image. The line orientation is provided
-	through calibration of both ends of the calibration pointer. Temporal
-	calibration is achieved by processing of the captured pointer orientations
-	and the corresponding image positions of intersection along with
-	the timing information. The effectiveness of the unified method for
-	both spatial and temporal calibration is apparent from the quality
-	of the 3D reconstructions of a known object.},
-  institution = {Imaging and Visualization Dept., Siemens Corporate Research, 755
-	College Road East, Princeton, NJ 08540, USA. ali.khamene@scr.siemens.com},
-  keywords = {Algorithms; Calibration; Equipment Failure Analysis, methods; Image
-	Enhancement, methods/standards; Image Interpretation, Computer-Assisted,
-	methods; Imaging, Three-Dimensional, methods; Phantoms, Imaging;
-	Reproducibility of Results; Sensitivity and Specificity; Time Factors;
-	Ultrasonography, methods/standards},
-  language = {eng},
-  medline-pst = {ppublish},
+@ARTICLE{Kim2013,
+  author = {Chunwoo Kim and Doyoung Chang and Doru Petrisor and Gregory Chirikjian
+	and Misop Han and Dan Stoianovici},
+  title = {Ultrasound Probe and Needle-Guide Calibration for Robotic Ultrasound
+	Scanning and Needle Targeting},
+  journal = {IEEE TBME},
+  year = {2013},
+  volume = {6},
+  pages = {1728-1734},
+  file = {Kim2013.pdf:Kim2013.pdf:PDF},
   owner = {lasso},
-  pmid = {16685944},
-  timestamp = {2012.10.19}
+  review = {The probe calibration is poorly done, but overall their system is
+	quite nice.
+	
+	
+	Good:
+	
+	• I like the idea of implanting a marker with the needle guide and
+	scan it
+	
+	• The targeting experiments are nice
+	
+	
+	Bad:
+	
+	• They use commercial (Amira) and proprietary (custom TCP/IP protocol
+	instead of OpenIGTLink) software modules instead of open-source
+	
+	• Sequential optimization of scaling, rotation, and offset increases
+	the error, as an error in the estimation of one component causes
+	error in other components; they should repeat the sequential optimization
+	many times, or even better they should optimize all the unknown parameters
+	simultaneously
+	
+	• They think that the non-square pixels are caused by the framegrabber
+	digitization (while it’s due to speed of sound mismatch)
+	
+	• They use the pixel spacing reported by the US machine
+	
+	• The “isocenter” (center of the transducer) does not remain at the
+	same place on all ultrasound systems, so such isocenter point may
+	not exist
+	
+	• For me it seems that the linearization of the non-linear optimization
+	problem and the iterative solution is basically a naïve non-linear
+	iterative optimizer implementation – I think it’s better to use a
+	standard non-linear optimizer (developed, tested, and optimized by
+	many smart people over many years)
+	
+	• Strange and error-prone that half of the calibration (probe calibration)
+	is done in water, while the other half (needle guide calibration)
+	is done in gel
+	
+	• They should have used standard accuracy and precision measurement
+	(using independent point target and repeated calibrations) instead
+	of trying to find out something from reconstructing a volume},
+  timestamp = {2013.07.31}
 }
 
 @INPROCEEDINGS{341081,
@@ -2365,13 +2401,12 @@ gee2007\;Maul2004\;Newey2003\;Persoon2010\;Shams2008\;Skehan2011\;Stab
 oulidou2010\;Vidal2008\;Vidal2009\;Weidenbach2004\;Weidenbach2007\;Wei
 n2007\;Zhu2010\;;
 1 ExplicitGroup:Temporal calibration\;0\;Chen2006\;Gooding2005\;Hsu200
-6\;Hsu2008\;Huber2009\;Khamene2005\;Khamene2005a\;Lasso2012d\;Meairs20
-00\;Mercier2005\;Prager1998\;Prager1999\;Rousseau2002\;Rousseau2006\;T
-reece2003\;;
+6\;Hsu2008\;Huber2009\;Khamene2005\;Lasso2012d\;Meairs2000\;Mercier200
+5\;Prager1998\;Prager1999\;Rousseau2002\;Rousseau2006\;Treece2003\;;
 1 ExplicitGroup:Spatial calibration\;0\;Chen2006\;Chen2009\;Hsu2006\;H
-su2006a\;Hsu2007\;Hsu2008\;Khamene2005\;Khamene2005a\;Lasso2012d\;Merc
-ier2005\;Najafi2012\;Prager1998\;Prager1999\;Rousseau2002\;Rousseau200
-5\;Treece2003\;;
+su2006a\;Hsu2007\;Hsu2008\;Khamene2005\;Kim2013\;Lasso2012d\;Mercier20
+05\;Najafi2012\;Prager1998\;Prager1999\;Rousseau2002\;Rousseau2005\;Tr
+eece2003\;;
 1 ExplicitGroup:Ultrasound image processing\;0\;McCormick2010\;;
 1 ExplicitGroup:Applications of Plus\;0\;Ghoshal2013\;Ungi2012b\;Ungi2
 012c\;;
