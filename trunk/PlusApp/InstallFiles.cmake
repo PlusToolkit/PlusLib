@@ -5,6 +5,7 @@ SET ( PLUSLIB_CONFIG_FILES
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_BkProFocus_OpenIGTLinkTracker.xml 
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_Epiphan_NDIPolaris.xml
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_File_fCal_2.0.xml
+  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_File_PlusServer.xml
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_NoVideo_NDIAurora.xml
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_NwirePhantomFreehandReconstructionOnly.xml 
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_SavedDataset_TemporalCalibration.xml
@@ -37,6 +38,7 @@ SET (BK_SETTINGS
 )
 
 SET ( PLUSLIB_DATA_FILES
+  ${PLUSLIB_DATA_DIR}/TestImages/fCal_Test_Calibration_3NWires.mha
   ${PLUSLIB_DATA_DIR}/TestImages/fCal_Test_Calibration_3NWires_fCal2.0.mha
   ${PLUSLIB_DATA_DIR}/TestImages/WaterTankBottomTranslationTrackerBuffer.mha
   ${PLUSLIB_DATA_DIR}/TestImages/WaterTankBottomTranslationVideoBuffer.mha
