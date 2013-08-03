@@ -1,0 +1,70 @@
+<PlusConfiguration version="2.1">
+
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="Data collection from file and broadcasting through OpenIGTLink" 
+      Description="Free-hand probe motion, imaging 3 NWires, after spatial calibration. OpenIGTLink broadcasting through PlusServer of IMAGE and TRANSFORM messages." 
+    />
+    <Device
+      Id="TrackedVideoDevice"
+      Type="SavedDataSource"
+      SequenceMetafile="fCal_Test_Calibration_3NWires.mha"
+      UseData="IMAGE_AND_TRANSFORM"
+      UseOriginalTimestamps="TRUE"
+      ToolReferenceFrame="Tracker" 
+      RepeatEnabled="TRUE" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" BufferSize="100" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+  </DataCollection>
+    
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="10" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="TrackedVideoStream" 
+    > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="ProbeToTracker" /> 
+        <Transform Name="ReferenceToTracker" /> 
+    <Transform Name="ProbeToReference" />
+      </TransformNames>
+    <ImageNames>
+      <Image Name="Image" EmbeddedTransformToFrame="Reference" />
+    </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+  
+  <CoordinateDefinitions>
+    <Transform From="Image" To="TransducerOriginPixel"
+      Matrix="1 0 0 -410 0 1 0 5 0 0 1 0 0 0 0 1"
+      Date="2011.12.06 17:57:00"
+    />
+    <Transform From="Phantom" To="Reference"
+      Matrix="0.00898765 -0.0136951 -0.999866 9.59137 0.0246163 -0.9996 0.0139127 36.0012 -0.999657 -0.024738 -0.00864693 87.8909 0 0 0 1"
+      Error="0.404711" Date="012712_152104"
+    />
+    <Transform From="StylusTip" To="Stylus"
+      Matrix="1 0 0 203.772 0 1 0 -12.283 0 0 1 1.17469 0 0 0 1"
+      Error="0.582721" Date="012712_152030"
+    />
+  <Transform From="Image" To="Probe"
+      Matrix=" 0    0.08 0    11
+             -0.08 0    0    50
+          0    0    0.08  0
+         0    0    0     1"
+      Error="0.582721" Date="012712_152030"
+    />
+  </CoordinateDefinitions> 
+    
+</PlusConfiguration>
