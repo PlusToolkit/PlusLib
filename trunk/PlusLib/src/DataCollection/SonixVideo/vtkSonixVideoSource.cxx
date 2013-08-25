@@ -1157,12 +1157,18 @@ PlusStatus vtkSonixVideoSource::ConfigureVideoSource( uData aValue )
   if( (aValue & udtBPost) > 0)
   {
     this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, sources);
-    aSource = sources[0];
+    if (!sources.empty())
+    {
+      aSource = sources[0];
+    }
   }
   else if( (aValue & udtRF) > 0)
   {
     this->GetVideoSourcesByPortName(vtkPlusDevice::RFMODE_PORT_NAME, sources);
-    aSource = sources[0];
+    if (!sources.empty())
+    {
+      aSource = sources[0];
+    }
   }
   else
   {
