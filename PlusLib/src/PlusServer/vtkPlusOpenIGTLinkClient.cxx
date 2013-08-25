@@ -20,9 +20,6 @@ See License.txt for details.
 
 static const int CLIENT_SOCKET_TIMEOUT_MSEC = 500; 
 
-static const char DEVICE_NAME[]="PlusCmd";
-static const char REPLY_DEVICE_NAME[]="PlusCmdReply";
-
 vtkCxxRevisionMacro( vtkPlusOpenIGTLinkClient, "$Revision: 1.0 $" );
 vtkStandardNewMacro( vtkPlusOpenIGTLinkClient ); 
 
@@ -96,14 +93,20 @@ PlusStatus vtkPlusOpenIGTLinkClient::SendCommand( vtkPlusCommand* command )
 {  
   // Convert the command to a string message.
 
+  // Get the XML string
   vtkSmartPointer<vtkXMLDataElement> cmdConfig=vtkSmartPointer<vtkXMLDataElement>::New();
   command->WriteConfiguration(cmdConfig);
   std::ostringstream xmlStr;
   vtkXMLUtilities::FlattenElement(cmdConfig, xmlStr);
   xmlStr << std::ends;
 
+  // Get the device name, generate unique command identifier from timestamp (CMD_2342342)
+  std::ostringstream commandUidStr;
+  commandUidStr << std::fixed << vtkAccurateTimer::GetUniversalTime() << std::ends;
+  std::string deviceNameString=vtkPlusCommand::GenerateCommandDeviceName(commandUidStr.str());
+
   igtl::StringMessage::Pointer stringMessage = igtl::StringMessage::New();
-  stringMessage->SetDeviceName( DEVICE_NAME );
+  stringMessage->SetDeviceName( deviceNameString.c_str() );
   std::string xmlString=xmlStr.str();
   stringMessage->SetString( xmlString.c_str() );
   stringMessage->Pack();
@@ -194,8 +197,9 @@ void* vtkPlusOpenIGTLinkClient::DataReceiverThread( vtkMultiThreader::ThreadInfo
     }
 
     if (strcmp(headerMsg->GetDeviceType(), "STRING") == 0
-      && strcmp(headerMsg->GetDeviceName(), REPLY_DEVICE_NAME) == 0)
+      && vtkPlusCommand::IsReplyDeviceName(headerMsg->GetDeviceName(),""))
     {
+
       igtl::StringMessage::Pointer replyMsg = igtl::StringMessage::New(); 
       replyMsg->SetMessageHeader(headerMsg); 
       replyMsg->AllocatePack(); 

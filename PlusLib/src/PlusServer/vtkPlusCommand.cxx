@@ -9,7 +9,8 @@
 #include "vtkPlusCommandProcessor.h"
 #include "vtkVersion.h"
 
-const char* vtkPlusCommand::COMMAND_REPLY_NAME = "ACK";
+static const char* DEVICE_NAME_COMMAND = "CMD";
+static const char* DEVICE_NAME_REPLY = "ACK";
 
 //----------------------------------------------------------------------------
 vtkPlusCommand::vtkPlusCommand()
@@ -187,11 +188,82 @@ PlusStatus vtkPlusCommand::ValidateName()
 //----------------------------------------------------------------------------
 std::string vtkPlusCommand::GetReplyDeviceName()
 {
-  std::stringstream ss;
-  ss << vtkPlusCommand::COMMAND_REPLY_NAME;
-  if( this->Id != NULL && strlen(Id) != 0 )
+  std::string uid;
+  if( this->Id != NULL)
   {
-    ss << "_" << this->Id;
+    uid=this->Id;
+  }
+  return GenerateReplyDeviceName(uid);
+}
+
+//----------------------------------------------------------------------------
+std::string vtkPlusCommand::GenerateCommandDeviceName(const std::string &uid)
+{
+  std::stringstream ss;
+  ss << DEVICE_NAME_COMMAND;
+  if( !uid.empty() )
+  {
+    ss << "_" << uid;
   }
   return ss.str();
+}
+
+//----------------------------------------------------------------------------
+std::string vtkPlusCommand::GenerateReplyDeviceName(const std::string &uid)
+{
+  std::stringstream ss;
+  ss << DEVICE_NAME_REPLY;
+  if( !uid.empty() )
+  {
+    ss << "_" << uid;
+  }
+  return ss.str();
+}
+
+//----------------------------------------------------------------------------
+bool vtkPlusCommand::IsReplyDeviceName(const std::string &deviceName, const std::string &uid)
+{
+  std::string prefix=GetPrefixFromCommandDeviceName(deviceName);
+  if (prefix.compare(DEVICE_NAME_REPLY)!=0)
+  {
+    // not ACK_...
+    return false;
+  }
+  if (uid.empty())
+  {
+    // ACK is received and no uid check is needed
+    return true;
+  }
+  std::string uidInDeviceName=GetUidFromCommandDeviceName(deviceName);
+  if (uidInDeviceName.compare(uid)!=0)
+  {
+    // uid mismatch
+    return false;
+  }
+  // this is an ACK_... message and the uid matches
+  return true;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkPlusCommand::GetUidFromCommandDeviceName(const std::string &deviceName)
+{
+  std::string uid("");
+  std::size_t separatorPos=deviceName.find("_");
+  if( separatorPos != std::string::npos )
+  {
+    uid = deviceName.substr(separatorPos+1);
+  }
+  return uid;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkPlusCommand::GetPrefixFromCommandDeviceName(const std::string &deviceName)
+{
+  std::string prefix(deviceName);
+  std::size_t separatorPos=deviceName.find("_");
+  if( separatorPos != std::string::npos )
+  {
+    prefix = deviceName.substr(0, separatorPos);
+  }
+  return prefix;
 }

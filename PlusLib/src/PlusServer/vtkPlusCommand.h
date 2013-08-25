@@ -23,7 +23,6 @@ class vtkTransformRepository;
 class VTK_EXPORT vtkPlusCommand : public vtkObject
 {
 public:
-  static const char* COMMAND_REPLY_NAME;
 
   virtual vtkPlusCommand* Clone() = 0;
 
@@ -69,6 +68,34 @@ public:
 
   vtkGetStringMacro(Id);
   vtkSetStringMacro(Id);
+
+  /*!
+    Generates a command device name from a specified unique identifier (UID).
+    The device name is "CMD_uidvalue" (if the UID is empty then the device name is "CMD").
+  */
+  static std::string GenerateCommandDeviceName(const std::string &uid);
+
+  /*!
+    Generates a command reply device name from a specified unique identifier (UID).
+    The device name is "ACK_uidvalue" (if the UID is empty then the device name is "ACK").
+  */
+  static std::string GenerateReplyDeviceName(const std::string &uid);
+
+  /*!
+    Returns true if the device name is an acknowledgment.
+    If the uid is non-empty then it returns true only if it acknowledges the command with the specified uid.
+  */
+  static bool IsReplyDeviceName(const std::string &deviceName, const std::string &uid);
+
+  /*!
+    Gets the uid from a device name (e.g., device name is CMD_abc123, it returns abc123)
+  */
+  static std::string GetUidFromCommandDeviceName(const std::string &deviceName);
+
+  /*!
+    Gets the prefix from a device name (e.g., device name is CMD_abc123, it returns CMD)
+  */
+  static std::string GetPrefixFromCommandDeviceName(const std::string &deviceName);
 
 protected:
   /*! Returns the default reply device name, which conforms to the new CMD/ACQ protocol */
