@@ -21,6 +21,7 @@ See License.txt for details.
 #include "vtkRecursiveCriticalSection.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkTransformRepository.h" 
+#include "vtkPlusCommand.h"
 
 static const double DELAY_ON_SENDING_ERROR_SEC = 0.02; 
 static const double DELAY_ON_NO_NEW_FRAMES_SEC = 0.005; 
@@ -569,13 +570,10 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
             LOG_ERROR("Received message from unknown device");
           }
 
-          // DeviceName will be CMD_uid, optional _uid (booooo!)
-          std::string deviceNameStr(deviceName);
-          std::string uid("");
-          if( deviceNameStr.find("_") != std::string::npos )
+          std::string deviceNameStr=vtkPlusCommand::GetPrefixFromCommandDeviceName(deviceName);
+          std::string uid=vtkPlusCommand::GetUidFromCommandDeviceName(deviceName);;
+          if( !uid.empty() )
           {
-            uid = deviceNameStr.substr(deviceNameStr.find("_")+1);
-            deviceNameStr = deviceNameStr.substr(0, deviceNameStr.find("_"));
             if( std::find(self->PreviousCommands[client.ClientId].begin(), self->PreviousCommands[client.ClientId].end(), uid) != self->PreviousCommands[client.ClientId].end() )
             {
               // Command already exists

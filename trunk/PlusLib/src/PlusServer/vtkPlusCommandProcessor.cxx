@@ -276,7 +276,8 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(unsigned int clientId, const st
   {
     std::string reply("Failed to create command from string: ");
     reply += commandString;
-    this->QueueReply( clientId, PLUS_FAIL, reply, vtkPlusCommand::COMMAND_REPLY_NAME );
+    std::string replyDeviceName=vtkPlusCommand::GenerateReplyDeviceName(uid);
+    this->QueueReply( clientId, PLUS_FAIL, reply, replyDeviceName );
     LOG_ERROR(reply);
     return PLUS_FAIL;
   }
