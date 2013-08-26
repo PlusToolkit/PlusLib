@@ -158,7 +158,7 @@ int main( int argc, char** argv )
       }
       else
       {
-        LOG_ERROR("--device is not specified");
+        LOG_ERROR("--channel is not specified");
         exit(EXIT_FAILURE);
       }
       cmd->SetNameToStart();

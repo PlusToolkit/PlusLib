@@ -101,9 +101,19 @@ PlusStatus vtkPlusOpenIGTLinkClient::SendCommand( vtkPlusCommand* command )
   xmlStr << std::ends;
 
   // Get the device name, generate unique command identifier from timestamp (CMD_2342342)
-  std::ostringstream commandUidStr;
-  commandUidStr << std::fixed << vtkAccurateTimer::GetUniversalTime() << std::ends;
-  std::string deviceNameString=vtkPlusCommand::GenerateCommandDeviceName(commandUidStr.str());
+  std::string commandUid;
+  if (command->GetId())
+  {
+    commandUid=command->GetId();
+  }
+  else
+  {
+    // command UID is not specified, generate one automatically from the timestamp
+    std::ostringstream commandUidStr;
+    commandUidStr << std::fixed << vtkAccurateTimer::GetUniversalTime() << std::ends;
+    commandUid=commandUidStr.str();
+  }
+  std::string deviceNameString=vtkPlusCommand::GenerateCommandDeviceName(commandUid);
 
   igtl::StringMessage::Pointer stringMessage = igtl::StringMessage::New();
   stringMessage->SetDeviceName( deviceNameString.c_str() );
