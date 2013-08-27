@@ -281,11 +281,12 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
     return PLUS_SUCCESS;
   }
   else
-  {    
-    vtkPlusReconstructVolumeCommand* referencedCommand=vtkPlusReconstructVolumeCommand::SafeDownCast(this->CommandProcessor->GetQueuedCommand(this->ClientId, this->ReferencedCommandId));
+  { 
+    std::string referencedCommandId=(this->ReferencedCommandId==NULL)?"(undefined)":this->ReferencedCommandId;
+    vtkPlusReconstructVolumeCommand* referencedCommand=vtkPlusReconstructVolumeCommand::SafeDownCast(this->CommandProcessor->GetQueuedCommand(this->ClientId, referencedCommandId));
     if (referencedCommand==NULL)
     {
-      LOG_ERROR("vtkPlusReconstructVolumeCommand::Execute: failed, no active vtkPlusReconstructVolumeCommand command found with Id="<<this->ReferencedCommandId);    
+      LOG_ERROR("vtkPlusReconstructVolumeCommand::Execute: failed, no active vtkPlusReconstructVolumeCommand command found with Id="<<referencedCommandId);    
       SetCommandCompleted(PLUS_FAIL,"Volume reconstruction failed, referenced volume reconstruction command not found");
       return PLUS_FAIL;
     }    
