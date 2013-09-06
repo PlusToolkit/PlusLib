@@ -1487,7 +1487,6 @@
   year = {2013},
   pages = {1--8},
   month = {Jun},
-  __markedentry = {[lasso:]},
   abstract = {IMPORTANCE Increased use of computed tomography (CT) in pediatrics
 	raises concerns about cancer risk from exposure to ionizing radiation.
 	OBJECTIVES To quantify trends in the use of CT in pediatrics and
@@ -1530,6 +1529,63 @@
   pmid = {23754213},
   timestamp = {2013.06.12},
   url = {http://dx.doi.org/10.1001/jamapediatrics.2013.311}
+}
+
+@ARTICLE{Miller2012,
+  author = {Miller, D. and Lippert, C. and Vollmer, F. and Bozinov, O. and Benes,
+	L. and Schulte, D. M. and Sure, U.},
+  title = {Comparison of different reconstruction algorithms for three-dimensional
+	ultrasound imaging in a neurosurgical setting.},
+  journal = {Int J Med Robot},
+  year = {2012},
+  volume = {8},
+  pages = {348--359},
+  number = {3},
+  month = {Sep},
+  __markedentry = {[lasso:]},
+  abstract = {Freehand three-dimensional ultrasound imaging (3D-US) is increasingly
+	used in image-guided surgery. During image acquisition, a set of
+	B-scans is acquired that is distributed in a non-parallel manner
+	over the area of interest. Reconstructing these images into a regular
+	array allows 3D visualization. However, the reconstruction process
+	may introduce artefacts and may therefore reduce image quality. The
+	aim of the study is to compare different algorithms with respect
+	to image quality and diagnostic value for image guidance in neurosurgery.3D-US
+	data sets were acquired during surgery of various intracerebral lesions
+	using an integrated ultrasound-navigation device. They were stored
+	for post-hoc evaluation. Five different reconstruction algorithms,
+	a standard multiplanar reconstruction with interpolation (MPR), a
+	pixel nearest neighbour method (PNN), a voxel nearest neighbour method
+	(VNN) and two voxel based distance-weighted algorithms (VNN2 and
+	DW) were tested with respect to image quality and artefact formation.
+	The capability of the algorithm to fill gaps within the sample volume
+	was investigated and a clinical evaluation with respect to the diagnostic
+	value of the reconstructed images was performed.MPR was significantly
+	worse than the other algorithms in filling gaps. In an image subtraction
+	test, VNN2 and DW reliably reconstructed images even if large amounts
+	of data were missing. However, the quality of the reconstruction
+	improved, if data acquisition was performed in a structured manner.
+	When evaluating the diagnostic value of reconstructed axial, sagittal
+	and coronal views, VNN2 and DW were judged to be significantly better
+	than MPR and VNN.VNN2 and DW could be identified as robust algorithms
+	that generate reconstructed US images with a high diagnostic value.
+	These algorithms improve the utility and reliability of 3D-US imaging
+	during intraoperative navigation.},
+  doi = {10.1002/rcs.1420},
+  file = {Miller2012.pdf:Miller2012.pdf:PDF},
+  institution = {Department of Neurosurgery, University Hospital Essen. dorothea.miller@uk-essen.de},
+  keywords = {Algorithms; Brain, pathology/surgery; Computer Simulation; Echoencephalography,
+	statistics /&/ numerical data; Humans; Image Processing, Computer-Assisted,
+	statistics /&/ numerical data; Imaging, Three-Dimensional, statistics
+	/&/ numerical data; Magnetic Resonance Imaging, statistics /&/ numerical
+	data; Neurosurgical Procedures, statistics /&/ numerical data; Surgery,
+	Computer-Assisted, statistics /&/ numerical data},
+  language = {eng},
+  medline-pst = {ppublish},
+  owner = {lasso},
+  pmid = {22374854},
+  timestamp = {2013.09.06},
+  url = {http://dx.doi.org/10.1002/rcs.1420}
 }
 
 @ARTICLE{1350978019970101,
@@ -2340,6 +2396,31 @@
   year = {2011},
   file = {Yaniv2011.pdf:Yaniv2011.pdf:PDF},
   owner = {lasso},
+  review = {Implements three methods:
+	
+	* phantom-less method using a tracked pointer tool in addition to
+	the tracked US: very manual, very operator-dependent
+	
+	* using a cross-wire phantom
+	
+	* using of a plane phantom
+	
+	
+	Current is 4.2. Spatial calibration of 2D US is expected to be available
+	in the next release of the toolkit.
+	
+	Algorithm is in an external library.
+	
+	Image acquisition by Porta by Ultrasonix, but Porta image acquisition
+	support is nowhere in IGSTK. There are traces of Terason imaging
+	support.
+	
+	
+	“A key feature of IGSTK is the use of state machines to ensure safety.
+	While this is crucial in medical applications it has its drawbacks.
+	Primarily, the architecture is cumbersome for algorithmic development.
+	As a consequence we have implemented our algorithms as an external
+	library.”},
   timestamp = {2011.11.03}
 }
 
@@ -2400,10 +2481,10 @@
 1 ExplicitGroup:Volume reconstruction\;0\;1350978019970101\;1539054\;3
 41081\;4145\;5417235\;759114\;Barry19971209\;Coupe2007\;Detmer1994923\
 ;Franke1982\;Gobbi2002\;Hellier2008\;Hernandez1996229\;Karamalis2009\;
-Lasso2012d\;Leotta1997597\;Leotta2000509\;Meairs2000\;Obuchi1992\;Prag
-er1999129\;Rohling1997177\;Rohling1998\;Rohling1998841\;Rohling1999\;S
-anJose2003a\;SanJose2003b\;Sanches2000917\;Solberg2007\;Solberg2011\;T
-robaugh1994315\;Vaughan2012\;;
+Lasso2012d\;Leotta1997597\;Leotta2000509\;Meairs2000\;Miller2012\;Obuc
+hi1992\;Prager1999129\;Rohling1997177\;Rohling1998\;Rohling1998841\;Ro
+hling1999\;SanJose2003a\;SanJose2003b\;Sanches2000917\;Solberg2007\;So
+lberg2011\;Trobaugh1994315\;Vaughan2012\;;
 1 ExplicitGroup:Ultrasound simulation\;0\;Boe2010\;Cae2012\;Dauliganac
 2006\;Ehricke1998\;Gill2012\;Goksel2009\;Gore1977\;Henry1996\;Jensen19
 91\;Jensen1992\;Jensen1996\;Jensen2002\;Karamalis2009\;Kaufman2008\;Ma
