@@ -830,8 +830,17 @@ PlusStatus vtkPlusConfig::FindImagePath(const std::string& aImagePath, std::stri
   }
   LOG_DEBUG("Absolute path not found at: " << aFoundAbsolutePath);
 
+  // Check file relative to the current working directory
+  aFoundAbsolutePath=vtksys::SystemTools::CollapseFullPath(aImagePath.c_str(), vtksys::SystemTools::GetCurrentWorkingDirectory().c_str());
+  if (vtksys::SystemTools::FileExists(aFoundAbsolutePath.c_str()))
+  {    
+    return PLUS_SUCCESS;
+  }
+
   aFoundAbsolutePath = "";
-  LOG_ERROR("Image with relative path '" << aImagePath << "' cannot be found neither relative to image directory ("<<GetImageDirectory()<<") nor to device set configuration directory ("<<GetDeviceSetConfigurationDirectory()<<")!");
+  LOG_ERROR("Image with relative path '" << aImagePath << "' cannot be found neither relative to image directory ("<<GetImageDirectory()<<")"
+    <<" nor to device set configuration directory ("<<GetDeviceSetConfigurationDirectory()<<")"
+    <<" nor the current working directory directory ("<<vtksys::SystemTools::GetCurrentWorkingDirectory()<<")");
   return PLUS_FAIL;
 }
 
@@ -870,8 +879,17 @@ PlusStatus vtkPlusConfig::FindModelPath(const std::string& aModelPath, std::stri
   }
   LOG_DEBUG("Absolute path not found at: " << aFoundAbsolutePath);
 
+  // Check file relative to the current working directory
+  aFoundAbsolutePath=vtksys::SystemTools::CollapseFullPath(aModelPath.c_str(), vtksys::SystemTools::GetCurrentWorkingDirectory().c_str());
+  if (vtksys::SystemTools::FileExists(aFoundAbsolutePath.c_str()))
+  {    
+    return PLUS_SUCCESS;
+  }
+
   aFoundAbsolutePath = "";
-  LOG_ERROR("Model with relative path '" << aModelPath << "' cannot be found neither within the model directory ("<<absoluteModelDirectoryPath<<") nor in device set configuration directory ("<<GetDeviceSetConfigurationDirectory()<<")!");
+  LOG_ERROR("Model with relative path '" << aModelPath << "' cannot be found neither within the model directory ("<<absoluteModelDirectoryPath<<")"
+    <<" nor to device set configuration directory ("<<GetDeviceSetConfigurationDirectory()<<")"
+    <<" nor the current working directory directory ("<<vtksys::SystemTools::GetCurrentWorkingDirectory()<<")");
   return PLUS_FAIL;
 }
 
