@@ -502,8 +502,10 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* config)
 
   std::vector<vtkPlusDataSource*> bSources;
   std::vector<vtkPlusDataSource*> rfSources;
-  bool bMode = this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, bSources) == PLUS_SUCCESS;
-  bool rfMode = this->GetVideoSourcesByPortName(vtkPlusDevice::RFMODE_PORT_NAME, rfSources) == PLUS_SUCCESS;
+  this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, bSources);
+  this->GetVideoSourcesByPortName(vtkPlusDevice::RFMODE_PORT_NAME, rfSources);
+  bool bMode = bSources.size() > 0;
+  bool rfMode = rfSources.size() > 0;
 
   if (bMode && !rfMode)
   {
