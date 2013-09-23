@@ -686,7 +686,7 @@ void SpatialCalibrationToolbox::DoCalibration()
     m_LastRecordedFrameTimestamp, trackedFrameListToUse, numberOfFramesToGet) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 
-    CancelCalibration();
+    QTimer::singleShot(50, this, SLOT(DoCalibration()));
     return; 
   }
 
@@ -752,7 +752,7 @@ void SpatialCalibrationToolbox::DoCalibration()
   LOG_DEBUG("Computation time: " << computationTimeMs);
   LOG_DEBUG("Waiting time: " << waitTimeMs);
 
-  QTimer::singleShot(waitTimeMs , this, SLOT(DoCalibration())); 
+  QTimer::singleShot(waitTimeMs , this, SLOT(DoCalibration()));
 }
 
 //-----------------------------------------------------------------------------
