@@ -20,10 +20,26 @@
         <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
     </Device>
-  </DataCollection>
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="RecordingTest.mha"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="TrackedVideoStream" />
+      </InputChannels>
+    </Device>
+    </DataCollection>
+    
+  <VolumeReconstruction
+    ImageCoordinateFrame="Image" ReferenceCoordinateFrame="Reference"
+    Interpolation="LINEAR" Optimization="NONE" Compounding="On" FillHoles="Off" NumberOfThreads="2"
+    ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
+    OutputOrigin="-15 -15 30" OutputExtent="0 300 0 300 0 300" OutputSpacing="0.15 0.15 0.15"
+  />
     
   <PlusOpenIGTLinkServer 
-    MaxNumberOfIgtlMessagesToSend="10" 
+    MaxNumberOfIgtlMessagesToSend="1" 
     MaxTimeSpentWithProcessingMs="50" 
     ListeningPort="18944" 
     SendValidTransformsOnly="true" 
