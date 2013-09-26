@@ -16,7 +16,7 @@ See License.txt for details.
 #include "vtkVolumeReconstructor.h"
 
 static const int MAX_NUMBER_OF_FRAMES_ADDED_PER_EXECUTE=50;
-static const double PROCESSING_LAG_RECORD_THRESHOLD_SEC=0.5; // log a warning if volume reconstruction falls behind by more than this threshold
+static const double SKIPPED_PERIOD_REPORTING_THRESHOLD_SEC=0.2; // log a warning if volume reconstruction cannot keep up with the acquisition and skips more than this time period of acquired frames
 
 static const char RECONSTRUCT_PRERECORDED_CMD[]="ReconstructVolume";
 static const char START_LIVE_RECONSTRUCTION_CMD[]="StartVolumeReconstruction";
@@ -269,17 +269,27 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
     {
       if (trackedVideoChannel!=NULL)
       {
-        vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-        trackedVideoChannel->GetTrackedFrameList(this->LastRecordedFrameTimestamp, trackedFrameList, MAX_NUMBER_OF_FRAMES_ADDED_PER_EXECUTE);
-        double processingLagSec=vtkAccurateTimer::GetSystemTime() - this->LastRecordedFrameTimestamp;
-        if (processingLagSec>PROCESSING_LAG_RECORD_THRESHOLD_SEC)
+        double lastFrameOfPreviousFramelistTimestamp=this->LastRecordedFrameTimestamp;
+        vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();         
+        trackedVideoChannel->GetTrackedFrameList(this->LastRecordedFrameTimestamp, trackedFrameList, MAX_NUMBER_OF_FRAMES_ADDED_PER_EXECUTE);        
+        
+        // Log warning if frames are skipped
+        if (lastFrameOfPreviousFramelistTimestamp>0.0 && trackedFrameList->GetNumberOfTrackedFrames()>0)
         {
-          LOG_WARNING("Volume reconstructor cannot keep up with the acquired frames (lags "
-            <<processingLagSec<<"sec). Try to reduce the volume size, increase the spacing, or use NEAREST_NEIGHBOR interpolation");
+          double firstFrameOfCurrentFramelistTimestamp=trackedFrameList->GetTrackedFrame(0)->GetTimestamp();
+          double skippedPeriodLengthSec=firstFrameOfCurrentFramelistTimestamp-lastFrameOfPreviousFramelistTimestamp;
+          if (skippedPeriodLengthSec>SKIPPED_PERIOD_REPORTING_THRESHOLD_SEC)
+          {
+            LOG_WARNING("Volume reconstruction cannot keep up with the acquisition."
+              <<" A period of "<<skippedPeriodLengthSec<<"sec of acquired frames were not pasted into the volume."
+              <<" Try to reduce the volume size, increase the spacing, enable optimization, decrease the acquisition frame rate, or use NEAREST_NEIGHBOR interpolation, or use a faster computer.");
+          }
         }
         LOG_DEBUG("Add "<<trackedFrameList->GetNumberOfTrackedFrames()
           <<" frames for volume reconstruction: "<<trackedFrameList->GetTrackedFrame(0)->GetTimestamp()
           <<" - "<<trackedFrameList->GetTrackedFrame(trackedFrameList->GetNumberOfTrackedFrames()-1)->GetTimestamp());
+
+        // Paste slices into the volume
         AddFrames(trackedFrameList);
       }
       else
@@ -296,7 +306,7 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
     vtkPlusReconstructVolumeCommand* referencedCommand=vtkPlusReconstructVolumeCommand::SafeDownCast(this->CommandProcessor->GetQueuedCommand(this->ClientId, referencedCommandId));
     if (referencedCommand==NULL)
     {
-      LOG_ERROR("vtkPlusReconstructVolumeCommand::Execute: failed, no active vtkPlusReconstructVolumeCommand command found with Id="<<referencedCommandId);    
+      LOG_ERROR("vtkPlusReconstructVolumeCommand::Execute: failed, no active vtkPlusReconstructVolumeCommand command found with ReferencedCommandId="<<referencedCommandId);    
       SetCommandCompleted(PLUS_FAIL,"Volume reconstruction failed, referenced volume reconstruction command not found");
       return PLUS_FAIL;
     }    
