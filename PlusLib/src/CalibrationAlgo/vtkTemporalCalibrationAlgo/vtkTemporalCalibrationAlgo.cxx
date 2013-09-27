@@ -72,26 +72,26 @@ vtkTemporalCalibrationAlgo::vtkTemporalCalibrationAlgo() :
   FixedSignalValuesNormalizationFactor(0.0),
   BestCorrelationLagIndex(-1)
 {
-  FixedSignal.frameList=NULL;
-  MovingSignal.frameList=NULL;
-  LineSegmentationClipRectangleOrigin[0] = 0;
-  LineSegmentationClipRectangleOrigin[1] = 0;
-  LineSegmentationClipRectangleSize[0] = 0;
-  LineSegmentationClipRectangleSize[1] = 0;
+  this->FixedSignal.frameList=NULL;
+  this->MovingSignal.frameList=NULL;
+  this->LineSegmentationClipRectangleOrigin[0] = 0;
+  this->LineSegmentationClipRectangleOrigin[1] = 0;
+  this->LineSegmentationClipRectangleSize[0] = 0;
+  this->LineSegmentationClipRectangleSize[1] = 0;
 }
 
 //-----------------------------------------------------------------------------
 vtkTemporalCalibrationAlgo::~vtkTemporalCalibrationAlgo()
 {
-  if (FixedSignal.frameList != NULL)
+  if (this->FixedSignal.frameList != NULL)
   {
-    FixedSignal.frameList->UnRegister(NULL);
-    FixedSignal.frameList = NULL;
+    this->FixedSignal.frameList->UnRegister(NULL);
+    this->FixedSignal.frameList = NULL;
   }
-  if (MovingSignal.frameList != NULL)
+  if (this->MovingSignal.frameList != NULL)
   {
-    MovingSignal.frameList->UnRegister(NULL);
-    MovingSignal.frameList = NULL;
+    this->MovingSignal.frameList->UnRegister(NULL);
+    this->MovingSignal.frameList = NULL;
   }
 }
 
@@ -109,51 +109,51 @@ PlusStatus vtkTemporalCalibrationAlgo::Update(TEMPORAL_CALIBRATION_ERROR &error)
 //-----------------------------------------------------------------------------
 void vtkTemporalCalibrationAlgo::SetSaveIntermediateImages(bool saveIntermediateImages)
 {
-  SaveIntermediateImages = saveIntermediateImages;
+  this->SaveIntermediateImages = saveIntermediateImages;
 }
 
 //-----------------------------------------------------------------------------
 void vtkTemporalCalibrationAlgo::SetFixedFrames(vtkTrackedFrameList* frameList, FRAME_TYPE frameType)
 {
-  if (frameList != FixedSignal.frameList)
+  if (frameList != this->FixedSignal.frameList)
   {
-    if (FixedSignal.frameList != NULL)
+    if (this->FixedSignal.frameList != NULL)
     {
-      FixedSignal.frameList->UnRegister(NULL);
-      FixedSignal.frameList = NULL;
+      this->FixedSignal.frameList->UnRegister(NULL);
+      this->FixedSignal.frameList = NULL;
     }
-    FixedSignal.frameList = frameList;
-    FixedSignal.frameList->Register(NULL);
+    this->FixedSignal.frameList = frameList;
+    this->FixedSignal.frameList->Register(NULL);
   }
-  FixedSignal.frameType=frameType;
+  this->FixedSignal.frameType=frameType;
 }
 
 //-----------------------------------------------------------------------------
 void vtkTemporalCalibrationAlgo::SetFixedProbeToReferenceTransformName(const std::string &probeToReferenceTransformName)
 {
-  FixedSignal.probeToReferenceTransformName=probeToReferenceTransformName;
+  this->FixedSignal.probeToReferenceTransformName=probeToReferenceTransformName;
 }
 
 //-----------------------------------------------------------------------------
 void vtkTemporalCalibrationAlgo::SetMovingFrames(vtkTrackedFrameList* frameList, FRAME_TYPE frameType)
 {
-  if (frameList != MovingSignal.frameList)
+  if (frameList != this->MovingSignal.frameList)
   {
-    if (MovingSignal.frameList != NULL)
+    if (this->MovingSignal.frameList != NULL)
     {
-      MovingSignal.frameList->UnRegister(NULL);
-      MovingSignal.frameList = NULL;
+      this->MovingSignal.frameList->UnRegister(NULL);
+      this->MovingSignal.frameList = NULL;
     }
-    MovingSignal.frameList = frameList;
-    MovingSignal.frameList->Register(NULL);
+    this->MovingSignal.frameList = frameList;
+    this->MovingSignal.frameList->Register(NULL);
   }
-  MovingSignal.frameType=frameType;
+  this->MovingSignal.frameType=frameType;
 }
 
 //-----------------------------------------------------------------------------
 void vtkTemporalCalibrationAlgo::SetMovingProbeToReferenceTransformName(const std::string &probeToReferenceTransformName)
 {
-  MovingSignal.probeToReferenceTransformName = probeToReferenceTransformName;
+  this->MovingSignal.probeToReferenceTransformName = probeToReferenceTransformName;
 }
 
 //-----------------------------------------------------------------------------
@@ -164,73 +164,73 @@ void vtkTemporalCalibrationAlgo::SetSamplingResolutionSec(double samplingResolut
     LOG_ERROR("Specified resampling resolution (" << samplingResolutionSec << " seconds) is too small. Sampling resolution must be greater than: " << MINIMUM_SAMPLING_RESOLUTION_SEC << " seconds");
     return;
   }
-  SamplingResolutionSec = samplingResolutionSec;
+  this->SamplingResolutionSec = samplingResolutionSec;
 }
 
 //-----------------------------------------------------------------------------
 void vtkTemporalCalibrationAlgo::SetMaximumMovingLagSec(double maxLagSec)
 {
-  MaxMovingLagSec = maxLagSec;
+  this->MaxMovingLagSec = maxLagSec;
 }
 
 //-----------------------------------------------------------------------------
 void vtkTemporalCalibrationAlgo::SetIntermediateFilesOutputDirectory(const std::string &outputDirectory)
 {
-  IntermediateFilesOutputDirectory = outputDirectory;
+  this->IntermediateFilesOutputDirectory = outputDirectory;
 }
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkTemporalCalibrationAlgo::GetMovingLagSec(double &lag)
 {
-  if (NeverUpdated)
+  if (this->NeverUpdated)
   {
     LOG_ERROR("You must first call the \"Update()\" to compute the tracker lag.");
     return PLUS_FAIL;
   }
-  lag = MovingLagSec;
+  lag = this->MovingLagSec;
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkTemporalCalibrationAlgo::GetBestCorrelation( double &videoCorrelation )
 {
-  if (NeverUpdated)
+  if (this->NeverUpdated)
   {
     LOG_ERROR("You must first call the \"Update()\" to compute the best correlation metric.");
     return PLUS_FAIL;
   }
-  videoCorrelation = BestCorrelationValue;
+  videoCorrelation = this->BestCorrelationValue;
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkTemporalCalibrationAlgo::GetCalibrationError(double &error)
 {
-  if(NeverUpdated)
+  if(this->NeverUpdated)
   {
     LOG_ERROR("You must first call the \"Update()\" to compute the calibration error.");
     return PLUS_FAIL;
   }
-  error = CalibrationError;
+  error = this->CalibrationError;
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkTemporalCalibrationAlgo::GetMaxCalibrationError(double &maxCalibrationError)
 {
-  if(NeverUpdated)
+  if(this->NeverUpdated)
   {
     LOG_ERROR("You must first call the \"Update()\" to compute the calibration error.");
     return PLUS_FAIL;
   }
-  maxCalibrationError = MaxCalibrationError;
+  maxCalibrationError = this->MaxCalibrationError;
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkTemporalCalibrationAlgo::GetUncalibratedMovingPositionSignal(vtkTable* unCalibratedMovingPositionSignal)
 {
-  ConstructTableSignal(MovingSignal.normalizedSignalTimestamps, MovingSignal.normalizedSignalValues, unCalibratedMovingPositionSignal, 0); 
+  ConstructTableSignal(this->MovingSignal.normalizedSignalTimestamps, this->MovingSignal.normalizedSignalValues, unCalibratedMovingPositionSignal, 0); 
   if(unCalibratedMovingPositionSignal->GetNumberOfColumns() != 2)
   {
     LOG_ERROR("Error in constructing the vtk tables that are to hold moving signal. Table has " << 
@@ -243,7 +243,7 @@ PlusStatus vtkTemporalCalibrationAlgo::GetUncalibratedMovingPositionSignal(vtkTa
 //-----------------------------------------------------------------------------
 PlusStatus vtkTemporalCalibrationAlgo::GetCalibratedMovingPositionSignal(vtkTable* calibratedMovingPositionSignal)
 {
-  ConstructTableSignal(MovingSignal.normalizedSignalTimestamps, MovingSignal.normalizedSignalValues, calibratedMovingPositionSignal, -MovingLagSec); 
+  ConstructTableSignal(this->MovingSignal.normalizedSignalTimestamps, this->MovingSignal.normalizedSignalValues, calibratedMovingPositionSignal, -this->MovingLagSec); 
   if(calibratedMovingPositionSignal->GetNumberOfColumns() != 2)
   {
     LOG_ERROR("Error in constructing the vtk tables that are to hold moving signal. Table has " << 
@@ -256,7 +256,7 @@ PlusStatus vtkTemporalCalibrationAlgo::GetCalibratedMovingPositionSignal(vtkTabl
 //-----------------------------------------------------------------------------
 PlusStatus vtkTemporalCalibrationAlgo::GetFixedPositionSignal(vtkTable *FixedPositionSignal)
 {
-  ConstructTableSignal(FixedSignal.signalTimestamps, FixedSignal.signalValues, FixedPositionSignal, 0); 
+  ConstructTableSignal(this->FixedSignal.signalTimestamps, this->FixedSignal.signalValues, FixedPositionSignal, 0); 
   if(FixedPositionSignal->GetNumberOfColumns() != 2)
   {
     LOG_ERROR("Error in constructing the vtk tables that are to hold fixed signal. Table has " << 
@@ -269,7 +269,7 @@ PlusStatus vtkTemporalCalibrationAlgo::GetFixedPositionSignal(vtkTable *FixedPos
 //-----------------------------------------------------------------------------
 PlusStatus vtkTemporalCalibrationAlgo::GetCorrelationSignal(vtkTable* correlationSignal)
 {
-  ConstructTableSignal(CorrelationTimeOffsets, CorrelationValues, correlationSignal, 0); 
+  ConstructTableSignal(this->CorrelationTimeOffsets, this->CorrelationValues, correlationSignal, 0); 
   if(correlationSignal->GetNumberOfColumns() != 2)
   {
     LOG_ERROR("Error in constructing the vtk tables that are to hold correlated signal. Table has " << 
@@ -284,7 +284,7 @@ PlusStatus vtkTemporalCalibrationAlgo::GetCorrelationSignal(vtkTable* correlatio
 //-----------------------------------------------------------------------------
 PlusStatus vtkTemporalCalibrationAlgo::GetCorrelationSignalFine(vtkTable* correlationSignal)
 {
-  ConstructTableSignal(CorrelationTimeOffsetsFine, CorrelationValuesFine, correlationSignal, 0); 
+  ConstructTableSignal(this->CorrelationTimeOffsetsFine, this->CorrelationValuesFine, correlationSignal, 0); 
   if(correlationSignal->GetNumberOfColumns() != 2)
   {
     LOG_ERROR("Error in constructing the vtk tables that are to hold fine correlated signal. Table has " << 
@@ -438,15 +438,14 @@ PlusStatus vtkTemporalCalibrationAlgo::ResampleSignalLinearly(const std::deque<d
 void vtkTemporalCalibrationAlgo::ComputeCorrelationBetweenFixedAndMovingSignal(double minTrackerLagSec, double maxTrackerLagSec, double stepSizeSec, double &bestCorrelationValue, double &bestCorrelationTimeOffset, double &bestCorrelationNormalizationFactor, std::deque<double> &corrTimeOffsets, std::deque<double> &corrValues)
 {
   // We will let the tracker metric be the "sliding" metric and let the video metric be the "fixed" metric. Since we are assuming a maximum offset between the two streams.
-  // NormalizeMetricValues(m_FixedSignal.signalValues, m_FixedSignalValuesNormalizationFactor);
 
   //  Constuct piecewise function for tracker signal
   vtkSmartPointer<vtkPiecewiseFunction> trackerPositionPiecewiseSignal = vtkSmartPointer<vtkPiecewiseFunction>::New();
   double midpoint = 0.5;
   double sharpness = 0;
-  for(int i = 0; i < MovingSignal.signalTimestamps.size(); ++i)
+  for(int i = 0; i < this->MovingSignal.signalTimestamps.size(); ++i)
   {
-    trackerPositionPiecewiseSignal->AddPoint(MovingSignal.signalTimestamps.at(i), MovingSignal.signalValues.at(i), midpoint, sharpness);
+    trackerPositionPiecewiseSignal->AddPoint(this->MovingSignal.signalTimestamps.at(i), this->MovingSignal.signalValues.at(i), midpoint, sharpness);
   }
 
   // Compute alignment metric for each offset
@@ -456,7 +455,7 @@ void vtkTemporalCalibrationAlgo::ComputeCorrelationBetweenFixedAndMovingSignal(d
     LOG_ERROR("Sampling resolution is too small: "<<stepSizeSec<<" sec");
     return;
   }
-  std::deque<double> slidingSignalTimestamps(FixedSignal.signalTimestamps.size()); 
+  std::deque<double> slidingSignalTimestamps(this->FixedSignal.signalTimestamps.size()); 
   std::deque<double> resampledTrackerPositionMetric;
   corrValues.clear();
   corrTimeOffsets.clear();
@@ -466,17 +465,17 @@ void vtkTemporalCalibrationAlgo::ComputeCorrelationBetweenFixedAndMovingSignal(d
     corrTimeOffsets.push_back(offsetValueSec);
     for(int i = 0; i < slidingSignalTimestamps.size(); ++i)
     {
-      slidingSignalTimestamps.at(i) =  FixedSignal.signalTimestamps.at(i)+offsetValueSec;
+      slidingSignalTimestamps.at(i) =  this->FixedSignal.signalTimestamps.at(i)+offsetValueSec;
     }
 
-    NormalizeMetricValues(FixedSignal.signalValues, FixedSignalValuesNormalizationFactor, slidingSignalTimestamps.front(), slidingSignalTimestamps.back(), FixedSignal.signalTimestamps);
+    NormalizeMetricValues(this->FixedSignal.signalValues, this->FixedSignalValuesNormalizationFactor, slidingSignalTimestamps.front(), slidingSignalTimestamps.back(), this->FixedSignal.signalTimestamps);
 
     ResampleSignalLinearly(slidingSignalTimestamps,trackerPositionPiecewiseSignal,resampledTrackerPositionMetric);
     double normalizationFactor=1.0;
     NormalizeMetricValues(resampledTrackerPositionMetric, normalizationFactor);
     normalizationFactors.push_back(normalizationFactor);
 
-    corrValues.push_back(ComputeAlignmentMetric(FixedSignal.signalValues, resampledTrackerPositionMetric));
+    corrValues.push_back(ComputeAlignmentMetric(this->FixedSignal.signalValues, resampledTrackerPositionMetric));
     
   }
 
@@ -584,10 +583,10 @@ PlusStatus vtkTemporalCalibrationAlgo::ComputePositionSignalValues(SignalType &s
     {
       vtkSmartPointer<vtkLineSegmentationAlgo> lineSegmenter = vtkSmartPointer<vtkLineSegmentationAlgo>::New();
       lineSegmenter->SetTrackedFrameList(signal.frameList);
-      lineSegmenter->SetClipRectangle(LineSegmentationClipRectangleOrigin, LineSegmentationClipRectangleSize);
+      lineSegmenter->SetClipRectangle(this->LineSegmentationClipRectangleOrigin, this->LineSegmentationClipRectangleSize);
       lineSegmenter->SetSignalTimeRange(signal.signalTimeRangeMin, signal.signalTimeRangeMax);
-      lineSegmenter->SetSaveIntermediateImages(SaveIntermediateImages);
-      lineSegmenter->SetIntermediateFilesOutputDirectory(IntermediateFilesOutputDirectory);
+      lineSegmenter->SetSaveIntermediateImages(this->SaveIntermediateImages);
+      lineSegmenter->SetIntermediateFilesOutputDirectory(this->IntermediateFilesOutputDirectory);
       if ( lineSegmenter->Update() != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get line positions from video frames");
@@ -618,34 +617,34 @@ PlusStatus vtkTemporalCalibrationAlgo::ComputePositionSignalValues(SignalType &s
 //-----------------------------------------------------------------------------
 PlusStatus vtkTemporalCalibrationAlgo::ComputeCommonTimeRange()
 {
-  if (FixedSignal.frameList->GetNumberOfTrackedFrames()<1)
+  if (this->FixedSignal.frameList->GetNumberOfTrackedFrames()<1)
   {
     LOG_ERROR("Fixed signal frame list are empty");
     return PLUS_FAIL;
   }
-  if (MovingSignal.frameList->GetNumberOfTrackedFrames()<1)
+  if (this->MovingSignal.frameList->GetNumberOfTrackedFrames()<1)
   {
     LOG_ERROR("Moving signal frame list are empty");
     return PLUS_FAIL;
   }
 
-  double fixedTimestampMin = FixedSignal.frameList->GetTrackedFrame(0)->GetTimestamp();
-  double fixedTimestampMax = FixedSignal.frameList->GetTrackedFrame(FixedSignal.frameList->GetNumberOfTrackedFrames()-1)->GetTimestamp();;
-  double movingTimestampMin = MovingSignal.frameList->GetTrackedFrame(0)->GetTimestamp();
-  double movingTimestampMax = MovingSignal.frameList->GetTrackedFrame(MovingSignal.frameList->GetNumberOfTrackedFrames()-1)->GetTimestamp();;
+  double fixedTimestampMin = this->FixedSignal.frameList->GetTrackedFrame(0)->GetTimestamp();
+  double fixedTimestampMax = this->FixedSignal.frameList->GetTrackedFrame(this->FixedSignal.frameList->GetNumberOfTrackedFrames()-1)->GetTimestamp();;
+  double movingTimestampMin = this->MovingSignal.frameList->GetTrackedFrame(0)->GetTimestamp();
+  double movingTimestampMax = this->MovingSignal.frameList->GetTrackedFrame(this->MovingSignal.frameList->GetNumberOfTrackedFrames()-1)->GetTimestamp();;
   
   double commonRangeMin = std::max(fixedTimestampMin, movingTimestampMin); 
   double commonRangeMax = std::min(fixedTimestampMax, movingTimestampMax);
-  if (commonRangeMin + MaxMovingLagSec >= commonRangeMax - MaxMovingLagSec)
+  if (commonRangeMin + this->MaxMovingLagSec >= commonRangeMax - this->MaxMovingLagSec)
   {
     LOG_ERROR("Insufficient overlap between fixed and moving frames timestamps to compute time offset"); 
     return PLUS_FAIL;
   }
   
-  FixedSignal.signalTimeRangeMin = commonRangeMin;
-  FixedSignal.signalTimeRangeMax = commonRangeMax;
-  MovingSignal.signalTimeRangeMin = commonRangeMin + MaxMovingLagSec;
-  MovingSignal.signalTimeRangeMax = commonRangeMax - MaxMovingLagSec;
+  this->FixedSignal.signalTimeRangeMin = commonRangeMin;
+  this->FixedSignal.signalTimeRangeMax = commonRangeMax;
+  this->MovingSignal.signalTimeRangeMin = commonRangeMin + this->MaxMovingLagSec;
+  this->MovingSignal.signalTimeRangeMax = commonRangeMax - this->MaxMovingLagSec;
   
   return PLUS_SUCCESS;
 }
@@ -663,13 +662,13 @@ PlusStatus vtkTemporalCalibrationAlgo::ComputeMovingSignalLagSec(TEMPORAL_CALIBR
   }
 
   // Compute the position signal values from the input frames
-  if ( ComputePositionSignalValues(FixedSignal) != PLUS_SUCCESS)
+  if ( ComputePositionSignalValues(this->FixedSignal) != PLUS_SUCCESS)
   {
     error = TEMPORAL_CALIBRATION_ERROR_FAILED_COMPUTE_FIXED;
     LOG_ERROR("Failed to compute position signal from fixed frames");
     return PLUS_FAIL;
   }
-  if ( ComputePositionSignalValues(MovingSignal) != PLUS_SUCCESS)
+  if ( ComputePositionSignalValues(this->MovingSignal) != PLUS_SUCCESS)
   {
     error = TEMPORAL_CALIBRATION_ERROR_FAILED_COMPUTE_MOVING;
     LOG_ERROR("Failed to compute position signal from moving frames");
@@ -677,15 +676,15 @@ PlusStatus vtkTemporalCalibrationAlgo::ComputeMovingSignalLagSec(TEMPORAL_CALIBR
   }
 
   // Compute approx image image frame period. We will use this frame period as a step size in the coarse optimum search phase.
-  double fixedTimestampMin = FixedSignal.signalTimestamps.at(0);
-  double fixedTimestampMax = FixedSignal.signalTimestamps.at(FixedSignal.signalTimestamps.size() - 1);  
-  if (FixedSignal.signalTimestamps.size() < 2)
+  double fixedTimestampMin = this->FixedSignal.signalTimestamps.at(0);
+  double fixedTimestampMax = this->FixedSignal.signalTimestamps.at(this->FixedSignal.signalTimestamps.size() - 1);  
+  if (this->FixedSignal.signalTimestamps.size() < 2)
   {
     error = TEMPORAL_CALIBRATION_ERROR_NOT_ENOUGH_FIXED_FRAMES;
     LOG_ERROR("Not enough fixed frames are available");
     return PLUS_FAIL;
   }
-  double imageFramePeriodSec = (fixedTimestampMax-fixedTimestampMin) / (FixedSignal.signalTimestamps.size()-1);
+  double imageFramePeriodSec = (fixedTimestampMax-fixedTimestampMin) / (this->FixedSignal.signalTimestamps.size()-1);
 
   double searchRangeFineStep = imageFramePeriodSec*3;
 
@@ -696,18 +695,18 @@ PlusStatus vtkTemporalCalibrationAlgo::ComputeMovingSignalLagSec(TEMPORAL_CALIBR
   double bestCorrelationNormalizationFactor=1.0;
   std::deque<double> corrTimeOffsets;
   std::deque<double> corrValues;
-  ComputeCorrelationBetweenFixedAndMovingSignal(-MaxMovingLagSec,MaxMovingLagSec,imageFramePeriodSec,bestCorrelationValue,bestCorrelationTimeOffset,bestCorrelationNormalizationFactor, corrTimeOffsets, corrValues);
+  ComputeCorrelationBetweenFixedAndMovingSignal(-this->MaxMovingLagSec,this->MaxMovingLagSec,imageFramePeriodSec,bestCorrelationValue,bestCorrelationTimeOffset,bestCorrelationNormalizationFactor, corrTimeOffsets, corrValues);
   std::deque<double> corrTimeOffsetsFine;
   std::deque<double> corrValuesFine;
-  ComputeCorrelationBetweenFixedAndMovingSignal(bestCorrelationTimeOffset-searchRangeFineStep,bestCorrelationTimeOffset+searchRangeFineStep,SamplingResolutionSec,bestCorrelationValue,bestCorrelationTimeOffset,bestCorrelationNormalizationFactor, corrTimeOffsetsFine, corrValuesFine);
+  ComputeCorrelationBetweenFixedAndMovingSignal(bestCorrelationTimeOffset-searchRangeFineStep,bestCorrelationTimeOffset+searchRangeFineStep,this->SamplingResolutionSec,bestCorrelationValue,bestCorrelationTimeOffset,bestCorrelationNormalizationFactor, corrTimeOffsetsFine, corrValuesFine);
   LOG_DEBUG("Time offset with sign convention #1: " << bestCorrelationTimeOffset);
   
   //  Compute cross correlation with sign convention #2
   LOG_DEBUG("ComputeCorrelationBetweenFixedAndMovingSignal(sign convention #2)");
   // Mirror tracker metric signal about x-axis 
-  for(long int i = 0; i < MovingSignal.signalValues.size(); ++i)
+  for(long int i = 0; i < this->MovingSignal.signalValues.size(); ++i)
   {
-    MovingSignal.signalValues.at(i) *= -1;
+    this->MovingSignal.signalValues.at(i) *= -1;
   }
   double bestCorrelationValueInvertedTracker(0);
   double bestCorrelationTimeOffsetInvertedTracker(0);
@@ -715,8 +714,8 @@ PlusStatus vtkTemporalCalibrationAlgo::ComputeMovingSignalLagSec(TEMPORAL_CALIBR
   std::deque<double> corrTimeOffsetsInvertedTracker;
   std::deque<double> corrValuesInvertedTracker;
   ComputeCorrelationBetweenFixedAndMovingSignal(
-    -MaxMovingLagSec,
-    MaxMovingLagSec,
+    -this->MaxMovingLagSec,
+    this->MaxMovingLagSec,
     imageFramePeriodSec,
     bestCorrelationValueInvertedTracker,
     bestCorrelationTimeOffsetInvertedTracker,
@@ -729,7 +728,7 @@ PlusStatus vtkTemporalCalibrationAlgo::ComputeMovingSignalLagSec(TEMPORAL_CALIBR
   ComputeCorrelationBetweenFixedAndMovingSignal(
     bestCorrelationTimeOffsetInvertedTracker-searchRangeFineStep,
     bestCorrelationTimeOffsetInvertedTracker+searchRangeFineStep,
-    SamplingResolutionSec,bestCorrelationValueInvertedTracker,
+    this->SamplingResolutionSec,bestCorrelationValueInvertedTracker,
     bestCorrelationTimeOffsetInvertedTracker,
     bestCorrelationNormalizationFactorInvertedTracker, 
     corrTimeOffsetsInvertedTrackerFine, 
@@ -740,63 +739,61 @@ PlusStatus vtkTemporalCalibrationAlgo::ComputeMovingSignalLagSec(TEMPORAL_CALIBR
   // Adopt the smallest tracker lag
   if(std::abs(bestCorrelationTimeOffset) < std::abs(bestCorrelationTimeOffsetInvertedTracker))
   {
-    MovingLagSec = bestCorrelationTimeOffset;
-    BestCorrelationTimeOffset = bestCorrelationTimeOffset;
-    BestCorrelationValue = bestCorrelationValue;
-    BestCorrelationNormalizationFactor = bestCorrelationNormalizationFactor;
-    CorrelationTimeOffsets=corrTimeOffsets;
-    CorrelationValues=corrValues;
-    CorrelationTimeOffsetsFine=corrTimeOffsetsFine;
-    CorrelationValuesFine=corrValuesFine;
+    this->MovingLagSec = bestCorrelationTimeOffset;
+    this->BestCorrelationTimeOffset = bestCorrelationTimeOffset;
+    this->BestCorrelationValue = bestCorrelationValue;
+    this->BestCorrelationNormalizationFactor = bestCorrelationNormalizationFactor;
+    this->CorrelationTimeOffsets=corrTimeOffsets;
+    this->CorrelationValues=corrValues;
+    this->CorrelationTimeOffsetsFine=corrTimeOffsetsFine;
+    this->CorrelationValuesFine=corrValuesFine;
 
     // Flip tracker metric signal back to correspond to sign convention #1 
-    for(long int i = 0; i < MovingSignal.signalValues.size(); ++i)
+    for(long int i = 0; i < this->MovingSignal.signalValues.size(); ++i)
     {
-      MovingSignal.signalValues.at(i) *= -1;
+      this->MovingSignal.signalValues.at(i) *= -1;
     }
   }
   else
   {
-    MovingLagSec = bestCorrelationTimeOffsetInvertedTracker;
-    BestCorrelationTimeOffset = bestCorrelationTimeOffsetInvertedTracker;
-    BestCorrelationValue = bestCorrelationValueInvertedTracker;
-    BestCorrelationNormalizationFactor = bestCorrelationNormalizationFactorInvertedTracker;
-    CorrelationTimeOffsets=corrTimeOffsetsInvertedTracker;
-    CorrelationValues=corrValuesInvertedTracker;
-    CorrelationTimeOffsetsFine=corrTimeOffsetsInvertedTrackerFine;
-    CorrelationValuesFine=corrValuesInvertedTrackerFine;
+    this->MovingLagSec = bestCorrelationTimeOffsetInvertedTracker;
+    this->BestCorrelationTimeOffset = bestCorrelationTimeOffsetInvertedTracker;
+    this->BestCorrelationValue = bestCorrelationValueInvertedTracker;
+    this->BestCorrelationNormalizationFactor = bestCorrelationNormalizationFactorInvertedTracker;
+    this->CorrelationTimeOffsets=corrTimeOffsetsInvertedTracker;
+    this->CorrelationValues=corrValuesInvertedTracker;
+    this->CorrelationTimeOffsetsFine=corrTimeOffsetsInvertedTrackerFine;
+    this->CorrelationValuesFine=corrValuesInvertedTrackerFine;
   }
      
-  //NormalizeMetricValues(m_FixedSignal.signalValues, m_FixedSignalValuesNormalizationFactor, m_MovingSignal.signalTimestamps.front()-m_TrackerLagSec, m_MovingSignal.signalTimestamps.back()-m_TrackerLagSec, m_FixedSignal.signalTimestamps);
-
   // Normalize the tracker metric based on the best index offset (only considering the overlap "window"
-  MovingSignal.normalizedSignalValues.clear();
-  MovingSignal.normalizedSignalTimestamps.clear();
-  for(int i = 0; i < MovingSignal.signalTimestamps.size(); ++i)
+  this->MovingSignal.normalizedSignalValues.clear();
+  this->MovingSignal.normalizedSignalTimestamps.clear();
+  for(int i = 0; i < this->MovingSignal.signalTimestamps.size(); ++i)
   {
-    if(MovingSignal.signalTimestamps.at(i) > FixedSignal.signalTimestamps.at(0) + MovingLagSec && MovingSignal.signalTimestamps.at(i) < FixedSignal.signalTimestamps.at(FixedSignal.signalTimestamps.size() -1) + MovingLagSec)
+    if(this->MovingSignal.signalTimestamps.at(i) > this->FixedSignal.signalTimestamps.at(0) + this->MovingLagSec && this->MovingSignal.signalTimestamps.at(i) < this->FixedSignal.signalTimestamps.at(this->FixedSignal.signalTimestamps.size() -1) + this->MovingLagSec)
     {
-      MovingSignal.normalizedSignalValues.push_back(MovingSignal.signalValues.at(i));
-      MovingSignal.normalizedSignalTimestamps.push_back(MovingSignal.signalTimestamps.at(i));
+      this->MovingSignal.normalizedSignalValues.push_back(this->MovingSignal.signalValues.at(i));
+      this->MovingSignal.normalizedSignalTimestamps.push_back(this->MovingSignal.signalTimestamps.at(i));
     }
   }
 
   // Get a normalized tracker position metric that can be displayed
    double unusedNormFactor=1.0;
-   NormalizeMetricValues(MovingSignal.normalizedSignalValues, unusedNormFactor);
+   NormalizeMetricValues(this->MovingSignal.normalizedSignalValues, unusedNormFactor);
 
-  CalibrationError=sqrt(-BestCorrelationValue) / BestCorrelationNormalizationFactor; // RMSE in mm
+  this->CalibrationError=sqrt(-this->BestCorrelationValue) / this->BestCorrelationNormalizationFactor; // RMSE in mm
 
-  LOG_DEBUG("Moving signal lags fixed signal by: " << MovingLagSec << " [s]");
+  LOG_DEBUG("Moving signal lags fixed signal by: " << this->MovingLagSec << " [s]");
 
 
   // Get maximum calibration error
 
   //  Get the timestamps of the sliding signal (i.e. cropped video signal) shifted by the best-found offset
   std::deque<double> shiftedSlidingSignalTimestamps;
-  for(int i = 0; i < FixedSignal.signalTimestamps.size(); ++i)
+  for(int i = 0; i < this->FixedSignal.signalTimestamps.size(); ++i)
   {
-    shiftedSlidingSignalTimestamps.push_back(FixedSignal.signalTimestamps.at(i) + MovingLagSec); // TODO: check this
+    shiftedSlidingSignalTimestamps.push_back(this->FixedSignal.signalTimestamps.at(i) + this->MovingLagSec); // TODO: check this
   }
 
   //  Get the values of the tracker metric at the offset sliding signal values
@@ -805,44 +802,44 @@ PlusStatus vtkTemporalCalibrationAlgo::ComputeMovingSignalLagSec(TEMPORAL_CALIBR
   vtkSmartPointer<vtkPiecewiseFunction> trackerPositionPiecewiseSignal = vtkSmartPointer<vtkPiecewiseFunction>::New();
   double midpoint = 0.5;
   double sharpness = 0;
-  for(int i = 0; i < MovingSignal.normalizedSignalTimestamps.size(); ++i)
+  for(int i = 0; i < this->MovingSignal.normalizedSignalTimestamps.size(); ++i)
   {
-    trackerPositionPiecewiseSignal->AddPoint(MovingSignal.normalizedSignalTimestamps.at(i), MovingSignal.normalizedSignalValues.at(i), midpoint, sharpness);
+    trackerPositionPiecewiseSignal->AddPoint(this->MovingSignal.normalizedSignalTimestamps.at(i), this->MovingSignal.normalizedSignalValues.at(i), midpoint, sharpness);
   }
 
   std::deque<double> resampledNormalizedTrackerPositionMetric;
   ResampleSignalLinearly(shiftedSlidingSignalTimestamps,trackerPositionPiecewiseSignal,resampledNormalizedTrackerPositionMetric);
 
-  CalibrationErrorVector.clear();
+  this->CalibrationErrorVector.clear();
   for(long int i = 0; i < resampledNormalizedTrackerPositionMetric.size(); ++i)
   {
-    double diff = resampledNormalizedTrackerPositionMetric.at(i) - FixedSignal.signalValues.at(i); //SSD
-    CalibrationErrorVector.push_back(diff*diff); 
+    double diff = resampledNormalizedTrackerPositionMetric.at(i) - this->FixedSignal.signalValues.at(i); //SSD
+    this->CalibrationErrorVector.push_back(diff*diff); 
   }
 
-  MaxCalibrationError = 0;
-  for(long int i = 0; i < CalibrationErrorVector.size(); ++i)
+  this->MaxCalibrationError = 0;
+  for(long int i = 0; i < this->CalibrationErrorVector.size(); ++i)
   {
-    if(CalibrationErrorVector.at(i) > MaxCalibrationError)
+    if(this->CalibrationErrorVector.at(i) > this->MaxCalibrationError)
     {
-      MaxCalibrationError = CalibrationErrorVector.at(i);
+      this->MaxCalibrationError = this->CalibrationErrorVector.at(i);
     }
   }
 
-  MaxCalibrationError = std::sqrt(MaxCalibrationError)/BestCorrelationNormalizationFactor;
+  this->MaxCalibrationError = std::sqrt(this->MaxCalibrationError)/this->BestCorrelationNormalizationFactor;
 
-  NeverUpdated = false;
+  this->NeverUpdated = false;
 
-  if( BestCorrelationValue <= SIGNAL_ALIGNMENT_METRIC_THRESHOLD[SIGNAL_ALIGNMENT_METRIC] )
+  if( this->BestCorrelationValue <= SIGNAL_ALIGNMENT_METRIC_THRESHOLD[SIGNAL_ALIGNMENT_METRIC] )
   {
     error = TEMPORAL_CALIBRATION_ERROR_RESULT_ABOVE_THRESHOLD;
     LOG_ERROR("Calculated correlation exceeds threshold value. This may be an indicator of a poor calibration.");
     return PLUS_FAIL;
   }
 
-  LOG_DEBUG("Temporal calibration BestCorrelationValue = "<<BestCorrelationValue<<" (threshold="<<SIGNAL_ALIGNMENT_METRIC_THRESHOLD[SIGNAL_ALIGNMENT_METRIC]<<")");
-  LOG_DEBUG("MaxCalibrationError="<<MaxCalibrationError);
-  LOG_DEBUG("CalibrationError="<<CalibrationError);
+  LOG_DEBUG("Temporal calibration BestCorrelationValue = "<<this->BestCorrelationValue<<" (threshold="<<SIGNAL_ALIGNMENT_METRIC_THRESHOLD[SIGNAL_ALIGNMENT_METRIC]<<")");
+  LOG_DEBUG("MaxCalibrationError="<<this->MaxCalibrationError);
+  LOG_DEBUG("CalibrationError="<<this->CalibrationError);
   return PLUS_SUCCESS;
 }
 
@@ -892,10 +889,10 @@ PlusStatus vtkTemporalCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* aCo
     if ( calibrationParameters->GetVectorAttribute("ClipRectangleOrigin", 2, clipOrigin) && 
       calibrationParameters->GetVectorAttribute("ClipRectangleSize", 2, clipSize) )
     {
-      LineSegmentationClipRectangleOrigin[0] = clipOrigin[0];
-      LineSegmentationClipRectangleOrigin[1] = clipOrigin[1];
-      LineSegmentationClipRectangleSize[0] = clipSize[0];
-      LineSegmentationClipRectangleSize[1] = clipSize[1];
+      this->LineSegmentationClipRectangleOrigin[0] = clipOrigin[0];
+      this->LineSegmentationClipRectangleOrigin[1] = clipOrigin[1];
+      this->LineSegmentationClipRectangleSize[0] = clipSize[0];
+      this->LineSegmentationClipRectangleSize[1] = clipSize[1];
     }
     else
     {
@@ -909,8 +906,8 @@ PlusStatus vtkTemporalCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* aCo
 //-----------------------------------------------------------------------------
 void vtkTemporalCalibrationAlgo::SetVideoClipRectangle( int* clipRectOriginIntVec, int* clipRectSizeIntVec )
 {
-  LineSegmentationClipRectangleOrigin[0] = clipRectOriginIntVec[0];
-  LineSegmentationClipRectangleOrigin[1] = clipRectOriginIntVec[1];
-  LineSegmentationClipRectangleSize[0] = clipRectSizeIntVec[0];
-  LineSegmentationClipRectangleSize[1] = clipRectSizeIntVec[1];
+  this->LineSegmentationClipRectangleOrigin[0] = clipRectOriginIntVec[0];
+  this->LineSegmentationClipRectangleOrigin[1] = clipRectOriginIntVec[1];
+  this->LineSegmentationClipRectangleSize[0] = clipRectSizeIntVec[0];
+  this->LineSegmentationClipRectangleSize[1] = clipRectSizeIntVec[1];
 }
