@@ -458,6 +458,8 @@ void vtkTemporalCalibrationAlgo::ComputeCorrelationBetweenFixedAndMovingSignal(d
   }
   std::deque<double> slidingSignalTimestamps(FixedSignal.signalTimestamps.size()); 
   std::deque<double> resampledTrackerPositionMetric;
+  corrValues.clear();
+  corrTimeOffsets.clear();
   for(double offsetValueSec = minTrackerLagSec; offsetValueSec <= maxTrackerLagSec; offsetValueSec+=stepSizeSec)
   {
     //LOG_DEBUG("offsetValueSec = " << offsetValueSec);
@@ -768,6 +770,8 @@ PlusStatus vtkTemporalCalibrationAlgo::ComputeMovingSignalLagSec(TEMPORAL_CALIBR
   //NormalizeMetricValues(m_FixedSignal.signalValues, m_FixedSignalValuesNormalizationFactor, m_MovingSignal.signalTimestamps.front()-m_TrackerLagSec, m_MovingSignal.signalTimestamps.back()-m_TrackerLagSec, m_FixedSignal.signalTimestamps);
 
   // Normalize the tracker metric based on the best index offset (only considering the overlap "window"
+  MovingSignal.normalizedSignalValues.clear();
+  MovingSignal.normalizedSignalTimestamps.clear();
   for(int i = 0; i < MovingSignal.signalTimestamps.size(); ++i)
   {
     if(MovingSignal.signalTimestamps.at(i) > FixedSignal.signalTimestamps.at(0) + MovingLagSec && MovingSignal.signalTimestamps.at(i) < FixedSignal.signalTimestamps.at(FixedSignal.signalTimestamps.size() -1) + MovingLagSec)
@@ -809,6 +813,7 @@ PlusStatus vtkTemporalCalibrationAlgo::ComputeMovingSignalLagSec(TEMPORAL_CALIBR
   std::deque<double> resampledNormalizedTrackerPositionMetric;
   ResampleSignalLinearly(shiftedSlidingSignalTimestamps,trackerPositionPiecewiseSignal,resampledNormalizedTrackerPositionMetric);
 
+  CalibrationErrorVector.clear();
   for(long int i = 0; i < resampledNormalizedTrackerPositionMetric.size(); ++i)
   {
     double diff = resampledNormalizedTrackerPositionMetric.at(i) - FixedSignal.signalValues.at(i); //SSD
