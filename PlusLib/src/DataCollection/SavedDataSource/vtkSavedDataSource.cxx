@@ -607,9 +607,24 @@ PlusStatus vtkSavedDataSource::ReadConfiguration(vtkXMLDataElement* config)
     }
     else
     {
-      LOG_ERROR("Unable to find SequenceMetafile element in configuration XML structure!");
-      return PLUS_FAIL;
+      std::string seqMetaFileTrim = PlusCommon::Trim(sequenceMetafile);
+      std::string foundAbsoluteImagePath;
+      if (vtkPlusConfig::GetInstance()->FindImagePath(seqMetaFileTrim, foundAbsoluteImagePath) == PLUS_SUCCESS)
+      {
+        this->SetSequenceMetafile(foundAbsoluteImagePath.c_str());
+      }
+      else
+      {
+        LOG_ERROR("Unable to locate file: " << sequenceMetafile << ". Please verify location on disk.");
+        return PLUS_FAIL;
+      }
     }
+
+  }
+  else
+  {
+    LOG_ERROR("Unable to find SequenceMetafile element in configuration XML structure!");
+    return PLUS_FAIL;
   }
 
   const char* repeatEnabled = imageAcquisitionConfig->GetAttribute("RepeatEnabled"); 
