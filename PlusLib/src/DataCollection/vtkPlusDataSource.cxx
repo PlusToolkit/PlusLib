@@ -374,7 +374,15 @@ PlusStatus vtkPlusDataSource::WriteConfiguration( vtkXMLDataElement* aSourceElem
     return PLUS_FAIL; 
   }
 
-  aSourceElement->SetAttribute("Id", this->GetSourceId());
+  if( this->GetType() == DATA_SOURCE_TYPE_TOOL )
+  {
+    PlusTransformName sourceId(this->GetSourceId());
+    aSourceElement->SetAttribute("Id", sourceId.From().c_str());
+  }
+  else
+  {
+    aSourceElement->SetAttribute("Id", this->GetSourceId());
+  }
   aSourceElement->SetAttribute("PortName", this->GetPortName());
   aSourceElement->SetIntAttribute("BufferSize", this->GetBuffer()->GetBufferSize());
 
@@ -397,7 +405,15 @@ PlusStatus vtkPlusDataSource::WriteCompactConfiguration( vtkXMLDataElement* aSou
     return PLUS_FAIL; 
   }
 
-  aSourceElement->SetAttribute("Id", this->GetSourceId());
+  if( this->GetType() == DATA_SOURCE_TYPE_TOOL )
+  {
+    PlusTransformName sourceId(this->GetSourceId());
+    aSourceElement->SetAttribute("Id", sourceId.From().c_str());
+  }
+  else
+  {
+    aSourceElement->SetAttribute("Id", this->GetSourceId());
+  }
   aSourceElement->SetAttribute("PortName", this->GetPortName());
 
   return PLUS_SUCCESS;
