@@ -294,20 +294,7 @@ void TemporalCalibrationToolbox::SetDisplayAccordingToState()
     }
 
     // Enable or disable the image manipulation menu
-    m_ParentMainWindow->SetImageManipulationMenuEnabled( m_ParentMainWindow->GetVisualizationController()->Is2DMode() );
-
-    if (m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL)
-    {
-      // TODO : replace this with.... the value between two devices?
-      // possibly do this on combobox callback?
-      if ( m_ParentMainWindow->GetSelectedChannel() != NULL )
-      {
-        timeOffset = m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->GetLocalTimeOffsetSec();
-      }
-    }
-
-    // Update state message
-    ui.label_State->setText(tr("Current video time offset: %1 s").arg(timeOffset));
+    m_ParentMainWindow->SetImageManipulationMenuEnabled( m_ParentMainWindow->GetVisualizationController()->Is2DMode() );        
   }
 
   // Set widget states according to state
@@ -598,25 +585,18 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
 
   LOG_INFO("Video offset: " << trackerLagSec << " s ( > 0 if the video data lags )");
 
-  // Set the result local time offset
-  bool offsetsSuccessfullySet = false;
-
-  if( m_ParentMainWindow->GetSelectedChannel() != NULL )
+  if( this->FixedChannel != NULL )
   {
-    m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->SetLocalTimeOffsetSec(trackerLagSec);
-    offsetsSuccessfullySet = true;
+    this->FixedChannel->GetOwnerDevice()->SetLocalTimeOffsetSec(0.0);
   }
-  if (!offsetsSuccessfullySet)
+  if( this->MovingChannel )
   {
-    LOG_ERROR("Tracker and video offset setting failed due to problems with data collector or the buffers!");
-    CancelCalibration();
-
-    temporalCalibrationDialog->done(0);
-    temporalCalibrationDialog->hide();
-    delete temporalCalibrationDialog;
-
-    return;
+    this->MovingChannel->GetOwnerDevice()->SetLocalTimeOffsetSec(trackerLagSec);
   }
+
+    // Update state message
+  ui.label_State->setText(tr("Current moving time offset: %1 s").arg(trackerLagSec));
+
   // Save metric tables
   this->TemporalCalibrationAlgo->GetFixedPositionSignal(this->FixedPositionMetric);
   this->FixedPositionMetric->GetColumn(0)->SetName("Time [s]");

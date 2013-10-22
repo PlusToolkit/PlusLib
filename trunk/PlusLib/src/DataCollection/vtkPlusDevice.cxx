@@ -871,7 +871,8 @@ PlusStatus vtkPlusDevice::WriteConfiguration( vtkXMLDataElement* config )
       vtkPlusDataSource* aDataSource=NULL;
       if( dataSourceElement->GetAttribute("Type") != NULL && STRCASECMP(dataSourceElement->GetAttribute("Type"), "Tool") == 0)
       {
-        if( dataSourceElement->GetAttribute("Id") == NULL || this->GetTool(dataSourceElement->GetAttribute("Id"), aDataSource) != PLUS_SUCCESS )
+        PlusTransformName toolId(dataSourceElement->GetAttribute("Id"), this->GetToolReferenceFrameName());
+        if( dataSourceElement->GetAttribute("Id") == NULL || this->GetTool(toolId.GetTransformName(), aDataSource) != PLUS_SUCCESS )
         {
           LOG_ERROR("Unable to retrieve tool when saving config.");
           return PLUS_FAIL;
@@ -894,7 +895,10 @@ PlusStatus vtkPlusDevice::WriteConfiguration( vtkXMLDataElement* config )
 
   this->InternalWriteInputChannels(config);
 
-  deviceDataElement->SetDoubleAttribute("LocalTimeOffsetSec", this->GetLocalTimeOffsetSec());
+  if( this->GetLocalTimeOffsetSec() != 0.0 )
+  {
+    deviceDataElement->SetDoubleAttribute("LocalTimeOffsetSec", this->GetLocalTimeOffsetSec());
+  }
 
   return PLUS_SUCCESS;
 }
