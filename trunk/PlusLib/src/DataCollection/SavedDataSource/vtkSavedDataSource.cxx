@@ -612,6 +612,7 @@ PlusStatus vtkSavedDataSource::ReadConfiguration(vtkXMLDataElement* config)
       if (vtkPlusConfig::GetInstance()->FindImagePath(seqMetaFileTrim, foundAbsoluteImagePath) == PLUS_SUCCESS)
       {
         this->SetSequenceMetafile(foundAbsoluteImagePath.c_str());
+        LOG_WARNING("Filename contains unexpected characters at beginning or end of string. Please correct. Filename: " << sequenceMetafile);
       }
       else
       {
