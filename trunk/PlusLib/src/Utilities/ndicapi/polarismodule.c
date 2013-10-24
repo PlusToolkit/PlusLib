@@ -2,7 +2,7 @@
 #include "polaris_math.h"
 #include "Python.h"
 
-#if defined(WIN32) || defined(_WIN32)
+#ifdef _WIN32
   #define POLARIS_EXPORT __declspec( dllexport )
 #else
   #define POLARIS_EXPORT

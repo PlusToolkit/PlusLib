@@ -8,7 +8,7 @@
 #ifndef _RAWSERIALLINE_H_
 #define _RAWSERIALLINE_H_
 
-#if defined(WIN32) || defined(_WIN32)
+#ifdef _WIN32
 #include <windows.h>
 #else
 #define INVALID_HANDLE_VALUE (-1)
@@ -31,7 +31,7 @@ public:
   typedef unsigned int UINT;
   typedef unsigned char BYTE;
 
-#if defined(WIN32) || defined(_WIN32)
+#ifdef _WIN32
   // HANDLE is defined for Windows already
 #else
   typedef int HANDLE;
@@ -82,7 +82,7 @@ private:
   DWORD m_SerialPortSpeed;
   int m_MaxReplyTime;
   int UpdateSerialBuffer();
-#if defined(WIN32) || defined(_WIN32)  
+#ifdef _WIN32
   OVERLAPPED m_osReadWrite;
 #endif
 };

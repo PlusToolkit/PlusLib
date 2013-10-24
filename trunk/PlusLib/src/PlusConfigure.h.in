@@ -23,7 +23,7 @@
 // disable warnings for std::copy
 #define _SCL_SECURE_NO_WARNINGS
 
-#if defined(WIN32) && !defined(VTKSLICER_STATIC)
+#if defined(_WIN32) && !defined(VTKSLICER_STATIC)
   #pragma warning ( disable : 4275 )
 #endif
 
