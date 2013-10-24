@@ -57,7 +57,7 @@ POSSIBILITY OF SUCH DAMAGES.
 #include <string.h>
 
 /* =========== windows includes */
-#if defined(WIN32) || defined(_WIN32)
+#ifdef _WIN32
 #include <windows.h>
 #include <winbase.h>
 #include <sys/timeb.h>
@@ -85,7 +85,7 @@ POSSIBILITY OF SUCH DAMAGES.
 
 
 /* USB versions of NDI tracking can communicate at baud rate 921600 but is not defined in WinBase.h */
-#if defined(WIN32) || defined(_WIN32)
+#ifdef _WIN32
   #ifndef  CBR_921600
     #define  CBR_921600 921600
   #endif
@@ -102,7 +102,7 @@ POSSIBILITY OF SUCH DAMAGES.
    we can restore the comm parameters (baud rate etc) when they are closed.
    Restoring the comm parameters is just part of being a good neighbor. */
 
-#if defined(WIN32) || defined(_WIN32)
+#ifdef _WIN32
 
 #define NDI_MAX_SAVE_STATE 4
 static HANDLE ndi_open_handles[4] = { INVALID_HANDLE_VALUE,
@@ -128,7 +128,7 @@ static long ndi_open_handles[4] = { -1, -1, -1, -1 };
 #endif
 
 /*---------------------------------------------------------------------*/
-#if defined(WIN32) || defined(_WIN32)
+#ifdef _WIN32
 
 HANDLE ndiSerialOpen(const char *device)
 {
@@ -313,7 +313,7 @@ long ndiSerialOpen(const char *device)
 #endif /* macintosh */
 
 /*---------------------------------------------------------------------*/
-#if defined(WIN32) || defined(_WIN32)
+#ifdef _WIN32
 
 void ndiSerialClose(HANDLE serial_port)
 {
@@ -376,7 +376,7 @@ void ndiSerialClose(long serial_port)
 #endif /* macintosh */
 
 /*---------------------------------------------------------------------*/
-#if defined(WIN32) || defined(_WIN32)
+#ifdef _WIN32
 
 int ndiSerialCheckDSR(HANDLE serial_port)
 {
@@ -412,7 +412,7 @@ int ndiSerialCheckDSR(long serial_port)
 #endif /* macintosh */
 
 /*---------------------------------------------------------------------*/
-#if defined(WIN32) || defined(_WIN32)
+#ifdef _WIN32
 
 int ndiSerialBreak(HANDLE serial_port)
 {
@@ -457,7 +457,7 @@ int ndiSerialBreak(long serial_port)
 #endif /* macintosh */
 
 /*---------------------------------------------------------------------*/
-#if defined(WIN32) || defined(_WIN32)
+#ifdef _WIN32
 
 int ndiSerialFlush(HANDLE serial_port, int buffers)
 {
@@ -507,7 +507,7 @@ int ndiSerialFlush(long serial_port, int buffers)
 #endif /* macintosh */
 
 /*---------------------------------------------------------------------*/
-#if defined(WIN32) || defined(_WIN32)
+#ifdef _WIN32
 
 int ndiSerialComm(HANDLE serial_port, int baud, const char *mode,
                  int handshake)
@@ -777,7 +777,7 @@ int ndiSerialComm(long serial_port, int baud, const char mode[4], int handshake)
 #endif /* macintosh */
 
 /*---------------------------------------------------------------------*/
-#if defined(WIN32) || defined(_WIN32)
+#ifdef _WIN32
 
 int ndiSerialTimeout(HANDLE serial_port, int milliseconds)
 {
@@ -830,7 +830,7 @@ int ndiSerialTimeout(long serial_port, int milliseconds)
 #endif /* macintosh */
 
 /*---------------------------------------------------------------------*/
-#if defined(WIN32) || defined(_WIN32)
+#ifdef _WIN32
 
 int ndiSerialWrite(HANDLE serial_port, const char *text, int n)
 {
@@ -895,7 +895,7 @@ int ndiSerialWrite(long serial_port, const char *text, int n)
 #endif /* macintosh */
 
 /*---------------------------------------------------------------------*/
-#if defined(WIN32) || defined(_WIN32)
+#ifdef _WIN32
 
 int ndiSerialRead(HANDLE serial_port, char *reply, int n)
 {
@@ -991,7 +991,7 @@ int ndiSerialRead(long serial_port, char *reply, int n)
 #endif /* macintosh */
 
 /*---------------------------------------------------------------------*/
-#if defined(WIN32) || defined(_WIN32)
+#ifdef _WIN32
 
 int ndiSerialSleep(HANDLE serial_port, int milliseconds)
 {

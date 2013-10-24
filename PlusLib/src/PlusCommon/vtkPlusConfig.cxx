@@ -18,6 +18,10 @@
 #include "vtkDebugLeaksManager.h"
 #include "vtkObjectFactory.h"
 
+#if defined(unix) || defined(__unix__) || defined(__unix)
+#include "unistd.h"
+#endif
+
 static const char APPLICATION_CONFIGURATION_FILE_NAME[] = "PlusConfig.xml";
 
 vtkCxxRevisionMacro(vtkPlusConfig, "$Revision: 1.1 $");
@@ -133,7 +137,7 @@ vtkPlusConfig::~vtkPlusConfig()
 //-----------------------------------------------------------------------------
 void vtkPlusConfig::SetProgramDirectory()
 {
-#ifdef WIN32
+#ifdef _WIN32
   char cProgramPath[2048]={'\0'};
   GetModuleFileName ( NULL, cProgramPath, 2048 ); 
   this->ProgramDirectory=vtksys::SystemTools::GetProgramPath(cProgramPath); 

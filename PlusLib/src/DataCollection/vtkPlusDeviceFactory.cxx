@@ -54,7 +54,7 @@ See License.txt for details.
 #include "vtkSavedDataSource.h"
 #include "vtkUsSimulatorVideoSource.h"
 
-#ifdef WIN32
+#ifdef _WIN32
 #ifdef PLUS_USE_VFW_VIDEO
 #include "vtkWin32VideoSource2.h"
 #endif

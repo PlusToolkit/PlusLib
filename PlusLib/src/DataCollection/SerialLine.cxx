@@ -14,7 +14,7 @@ SerialLine::SerialLine()
   m_SerialPortSpeed=9600;
   m_CommHandle=INVALID_HANDLE_VALUE;
 
-#if defined(WIN32) || defined(_WIN32)
+#ifdef _WIN32
   memset(&m_osReadWrite,0,sizeof(m_osReadWrite));
   m_osReadWrite.hEvent = CreateEvent(NULL, true, false, NULL);
   assert(m_osReadWrite.hEvent!=NULL);  // Error creating overlapped event handle.
@@ -24,7 +24,7 @@ SerialLine::SerialLine()
 
 SerialLine::~SerialLine()
 {
-#if defined(WIN32) || defined(_WIN32)    
+#ifdef _WIN32
   CloseHandle(m_osReadWrite.hEvent);
 #endif
   if (m_CommHandle!=INVALID_HANDLE_VALUE)
@@ -33,7 +33,7 @@ SerialLine::~SerialLine()
 
 void SerialLine::Close()
 {
-#if defined(WIN32) || defined(_WIN32)    
+#ifdef _WIN32
   if (m_CommHandle!=INVALID_HANDLE_VALUE)
     CloseHandle(m_CommHandle);
 #endif  
@@ -45,7 +45,7 @@ bool SerialLine::Open()
   if (m_CommHandle!=INVALID_HANDLE_VALUE)
     Close();
   // Open serial port
-#if defined(WIN32) || defined(_WIN32)    
+#ifdef _WIN32
   m_CommHandle=CreateFile(m_PortName.c_str(),GENERIC_READ|GENERIC_WRITE,0,0,OPEN_EXISTING,
             FILE_FLAG_OVERLAPPED,NULL);
   if (m_CommHandle==INVALID_HANDLE_VALUE)
@@ -92,7 +92,7 @@ bool SerialLine::Open()
 
 int SerialLine::Write(const BYTE data)
 {
-#if defined(WIN32) || defined(_WIN32)    
+#ifdef _WIN32
   DWORD dwWritten;
   // Create this writes OVERLAPPED structure hEvent.
   ResetEvent(m_osReadWrite.hEvent);
@@ -124,7 +124,7 @@ int SerialLine::Write(const BYTE data)
 
 bool SerialLine::Read(BYTE &data)
 {
-#if defined(WIN32) || defined(_WIN32)    
+#ifdef _WIN32
   ResetEvent(m_osReadWrite.hEvent);
   DWORD dwRead;
   
@@ -156,7 +156,7 @@ bool SerialLine::Read(BYTE &data)
 
 SerialLine::DWORD SerialLine::ClearError()
 {
-#if defined(WIN32) || defined(_WIN32)    
+#ifdef _WIN32
   DWORD dwErrors=0;
   COMSTAT comStat;
   ClearCommError(m_CommHandle,&dwErrors, &comStat);
@@ -169,7 +169,7 @@ SerialLine::DWORD SerialLine::ClearError()
 
 unsigned int SerialLine::GetNumberOfBytesAvailableForReading() const
 {
-#if defined(WIN32) || defined(_WIN32)      
+#ifdef _WIN32
   DWORD dwErrorFlags=0;
   COMSTAT comStat;
   ClearCommError( m_CommHandle, &dwErrorFlags, &comStat );

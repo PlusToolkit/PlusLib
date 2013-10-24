@@ -10,7 +10,8 @@
 #include "MTVideo.h"
 #include "Cameras.h"
 #include <sstream>
-#ifdef WIN32
+
+#ifdef _WIN32
 #include <direct.h>
 #include <io.h>
 #endif
@@ -1291,7 +1292,7 @@ std::string MicronTrackerInterface::GetSdkVersion()
 
 void MicronTrackerInterface::getFileNamesFromDirectory(std::vector<std::string> &fileNames, const std::string &dir, bool returnCompletePath)
 {  
-#if(WIN32) // Windows
+#ifdef _WIN32 // Windows
     _finddata_t file; 
     std::string findPath=dir+"\\*.*";
     long currentPosition = _findfirst(findPath.c_str(), &file); //find the first file in directory

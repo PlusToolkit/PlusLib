@@ -50,7 +50,7 @@ POSSIBILITY OF SUCH DAMAGES.
    type which does not exists in POSIX threads (more information is
    provided below) */
 
-#if defined(WIN32) || defined(_WIN32)
+#ifdef _WIN32
 
 HANDLE ndiMutexCreate()
 {
@@ -100,7 +100,7 @@ void ndiMutexUnlock(pthread_mutex_t *mutex)
 
 #endif
 
-#if defined(WIN32) || defined(_WIN32)
+#ifdef _WIN32
 
 HANDLE ndiEventCreate()
 {
@@ -228,7 +228,7 @@ int ndiEventWait(pl_cond_and_mutex_t *event, int milliseconds)
 
 #endif
 
-#if defined(WIN32) || defined(_WIN32)
+#ifdef _WIN32
 
 HANDLE ndiThreadSplit(void *thread_func(void *userdata), void *userdata)
 {

@@ -22,7 +22,7 @@ See License.txt for details.
 
 #include <math.h>
 
-#ifdef WIN32
+#ifdef _WIN32
   #include <io.h> // for findnext
 #else
   #include <dirent.h>
@@ -267,7 +267,7 @@ PlusStatus vtkChRoboticsTracker::FindFirmwareDefinition(const std::string& reque
 //----------------------------------------------------------------------------
 void vtkChRoboticsTracker::GetFileNamesFromDirectory(std::vector<std::string> &fileNames, const std::string &dir)
 {  
-#if(WIN32) // Windows
+#ifdef _WIN32 // Windows
   _finddata_t file; 
   std::string findPath=dir+"\\*.*";
   long currentPosition = _findfirst(findPath.c_str(), &file); //find the first file in directory
