@@ -65,9 +65,9 @@ public:
   vtkGetMacro(BackgroundValue, int);
 
    /*! Set US frequency*/
-  vtkSetMacro(ImagingFrequencyMHz, double); 
+  vtkSetMacro(ImagingFrequencyMhz, double); 
   /*! Get US frequency */
-  vtkGetMacro(ImagingFrequencyMHz, double);
+  vtkGetMacro(ImagingFrequencyMhz, double);
 
      /*! Set max intensity in watts per cm squared*/
   vtkSetMacro(IncomingIntensityWattsPerCm2, double); 
@@ -118,7 +118,7 @@ private:
   int NumberOfSamplesPerScanline;
 
   /*! Frequency of the ultrasound image to be generated*/
-  double ImagingFrequencyMHz; 
+  double ImagingFrequencyMhz; 
   
   /*! incoming Intensity*/
   double IncomingIntensityWattsPerCm2;
