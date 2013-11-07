@@ -6,21 +6,21 @@
 #include "PlusConfigure.h"
 #include "SpatialModel.h"
 #include "vtkObjectFactory.h"
-double DECIBEL_PER_NEPER = 8.685889638;
-double CONVERSION_TO_MEGARAYLS = 1000000;
+
+// If fraction of the transmitted beam intensity is smaller then this value then we consider the beam to be completely absorbed
+const double MINIMUM_BEAM_INTENSITY=1e-6;
 
 SpatialModel::SpatialModel()
 {
   this->Name = NULL; 
   this->ModelFileName = NULL; 
-  this->ModelFileToSpatialModelMatrix =NULL; 
+  this->ModelFileToSpatialModelTransform =NULL; 
   this->DensityKgPerM3 = 0; 
   this->SoundVelocityMPerSec = 0; 
-  this->AttenuationCoefficientNpPerCm = 0; 
-  this->ScatterCoefficientNpPerCm = 0; 
-  this->SpecularReflectionRatio = 0; 
-  this->ImagingFrequencyMHz = 0; 
-  this->IncomingIntensityWattsPerCm2 = 0;
+  this->AttenuationCoefficientDbPerCmMhz = 0;
+  this->BackscatterDiffuseReflectionCoefficient = 0;
+  this->BackscatterSpecularReflectionCoefficient = 0; 
+  this->ImagingFrequencyMhz = 0;  
 }
 
 PlusStatus SpatialModel::ReadConfiguration(vtkXMLDataElement* config)
@@ -48,10 +48,10 @@ PlusStatus SpatialModel::ReadConfiguration(vtkXMLDataElement* config)
     this->ModelFileName = sceneDescriptionElement->GetAttribute("ModelFileName");; 
     
    
-    double vectorModelFileToSpatialModelMatrix[16]={0}; 
-    if ( spatialModelElement->GetVectorAttribute("ModelFileToSpatialModelTransform", 16, vectorModelFileToSpatialModelMatrix) )
+    double vectorModelFileToSpatialModelTransform[16]={0}; 
+    if ( spatialModelElement->GetVectorAttribute("ModelFileToSpatialModelTransform", 16, vectorModelFileToSpatialModelTransform) )
     {
-      this->ModelFileToSpatialModelMatrix->DeepCopy(vectorModelFileToSpatialModelMatrix); 
+      this->ModelFileToSpatialModelTransform->DeepCopy(vectorModelFileToSpatialModelTransform); 
     }
     
     double densityKGPerM3 = 0; 
@@ -66,39 +66,37 @@ PlusStatus SpatialModel::ReadConfiguration(vtkXMLDataElement* config)
       this->SoundVelocityMPerSec = soundVelocityMperSec;
     }
     
-    double attenuationCoefficientNpPerCm = 0;
-    if(sceneDescriptionElement->GetScalarAttribute("AttenuationCoefficientNpPerCm",attenuationCoefficientNpPerCm)) 
+    double attenuationCoefficientDbPerCmMhz = 0;
+    if(sceneDescriptionElement->GetScalarAttribute("AttenuationCoefficientDbPerCmMhz",attenuationCoefficientDbPerCmMhz)) 
     {
-      this->AttenuationCoefficientNpPerCm = attenuationCoefficientNpPerCm;
+      this->AttenuationCoefficientDbPerCmMhz = attenuationCoefficientDbPerCmMhz;
     }
     
-    double scatterCoefficientNpPerCm = 0;
-    if(sceneDescriptionElement->GetScalarAttribute("ScatterCoefficientNpPerCm",scatterCoefficientNpPerCm)) 
+    double diffuseReflectionCoefficient = 0;
+    if(sceneDescriptionElement->GetScalarAttribute("BackscatterDiffuseReflectionCoefficient", diffuseReflectionCoefficient)) 
     {
-      this->ScatterCoefficientNpPerCm = scatterCoefficientNpPerCm;
+      this->BackscatterDiffuseReflectionCoefficient = diffuseReflectionCoefficient;
     }
   
-    double specularReflectionRatio = 0;
-    if(sceneDescriptionElement->GetScalarAttribute("SpecularReflectionRatio",specularReflectionRatio)) 
+    double specularReflectionCoefficient = 0;
+    if(sceneDescriptionElement->GetScalarAttribute("BackscatterSpecularReflectionCoefficient",specularReflectionCoefficient)) 
     {
-      this->SpecularReflectionRatio = specularReflectionRatio;
-    }
-    
+      this->BackscatterSpecularReflectionCoefficient = specularReflectionCoefficient;
+    }    
      
   }
 
   return status;
 }
 
-void SpatialModel::SetFrequencyMHz(double frequencyMHz)
+void SpatialModel::SetFrequencyMhz(double frequencyMhz)
 {
-  this->ImagingFrequencyMHz = frequencyMHz; 
+  this->ImagingFrequencyMhz = frequencyMhz; 
 }
 
-
-void SpatialModel::SetAttenuationCoefficientNpPerCm(double attenuationCoefficientNpPerCm)
+void SpatialModel::SetAttenuationCoefficientDbPerCmMhz(double attenuationCoefficientDbPerCmMhz)
 {
-  this->AttenuationCoefficientNpPerCm = attenuationCoefficientNpPerCm; 
+  this->AttenuationCoefficientDbPerCmMhz = attenuationCoefficientDbPerCmMhz;
 }
 
 void SpatialModel::SetDensityKgPerM3(double densityKgPerM3)
@@ -111,81 +109,60 @@ void SpatialModel::SetSoundVelocityMPerSec(double soundVelocityMPerSec)
   this->SoundVelocityMPerSec = soundVelocityMPerSec; 
 }
 
-void SpatialModel::SetIncomingIntensityWattsPerCm2(double incomingIntensityWattsPerCm2)
+double SpatialModel::GetAcousticImpedanceMegarayls()
 {
-  this->IncomingIntensityWattsPerCm2 = incomingIntensityWattsPerCm2; 
+  double acousticImpedanceRayls = this->DensityKgPerM3 * this->SoundVelocityMPerSec; // kg / (s * m2)
+  return acousticImpedanceRayls * 1e-6; // megarayls
 }
 
-double SpatialModel::GetIncomingIntensityWattsPerCm2()
+void SpatialModel::CalculateIntensity(std::vector<double>& reflectedIntensity, int numberOfFilledPixels, double distanceBetweenScanlineSamplePointsMm, double previousModelAcousticImpedanceMegarayls, double incidentIntensity, double &transmittedIntensity)
 {
-  return this->IncomingIntensityWattsPerCm2;
-}
-
-double SpatialModel::GetAcousticImpedance()
-{
-	return ((this->DensityKgPerM3 * this->SoundVelocityMPerSec)/ CONVERSION_TO_MEGARAYLS);
-}
-
-void SpatialModel::CalculateIntensity(std::vector<double>& intensities, int numberOfFilledPixels, double distanceBetweenScanlineSamplePointsMm, double previousModelAcousticImpedance, double incomingBeamIntensity, double outgoingBeamIntensity)
-{
-	
-  // if beam intensity is 0 return 0
- // if (this->IncomingIntensityWattsPerCm2<1)
-	//{
-	//	return this->IncomingIntensityWattsPerCm2 ;
-	//}
- 
-  for(int currentPixelInFilledPixels = 0; currentPixelInFilledPixels<numberOfFilledPixels; currentPixelInFilledPixels++)
+  if (numberOfFilledPixels<=0)
   {
-	
-    double intensityAttenuationCoefficientNpPerCmPerHz = 0;
-    intensityAttenuationCoefficientNpPerCmPerHz= this->AttenuationCoefficientNpPerCm *2;
-    
-    // convert to intensityAttentuationCoefficient.
-    double intensityAttenuationCoefficientdBPerCmPerHz = 0; 
-    intensityAttenuationCoefficientdBPerCmPerHz = intensityAttenuationCoefficientNpPerCmPerHz * DECIBEL_PER_NEPER* this->ImagingFrequencyMHz; 
-    
-    // calculate intensity loss for transmitted wave( mu* frequency*distance traveled), which is equal to the loss caused by the reflected wave
-    double intensityLossDuringWaveTransmissionDecibels = 0; 
-    intensityLossDuringWaveTransmissionDecibels = intensityAttenuationCoefficientdBPerCmPerHz*this->ImagingFrequencyMHz*(distanceBetweenScanlineSamplePointsMm*currentPixelInFilledPixels/10);
+    reflectedIntensity.clear();
+    return;
+  }
 
-    //calcualte acoustic impedance from the denisty and velocity of the material 
-    double acousticImpedanceMegarayles = (this->DensityKgPerM3 / this->SoundVelocityMPerSec); // / CONVERSION_TO_MEGARAYLS; 
-   
-    double totalIntensityLoss = 0; 
+  reflectedIntensity.resize(numberOfFilledPixels);
 
-   
-    // If the material hasn't changed from the previous pixel, do not incorporate reflection ( for now.. TODO: add reflection using phong illumination model)
-    if(previousModelAcousticImpedance = acousticImpedanceMegarayles)
-    {
-      totalIntensityLoss = intensityLossDuringWaveTransmissionDecibels * 2; // 2 for reflected wave... still counts as magic number?
-    }
-    else
-    {
-      // calculate reflection   
-      double reflection = pow((previousModelAcousticImpedance - acousticImpedanceMegarayles)/(previousModelAcousticImpedance + acousticImpedanceMegarayles),2)*100; 
-      double intensityLossDueToReflection = 10 * log10(100/reflection); 
-      totalIntensityLoss = (intensityLossDuringWaveTransmissionDecibels * 2) + intensityLossDueToReflection; 
+  // Compute reflection from the surface of the previous and this model
+  double acousticImpedanceMegarayls = GetAcousticImpedanceMegarayls();
+  double intensityReflectionCoefficient = /* reflected beam intensity / incident beam intensity */
+    (previousModelAcousticImpedanceMegarayls - acousticImpedanceMegarayls)*(previousModelAcousticImpedanceMegarayls - acousticImpedanceMegarayls)
+    /(previousModelAcousticImpedanceMegarayls + acousticImpedanceMegarayls)/(previousModelAcousticImpedanceMegarayls + acousticImpedanceMegarayls);
+  double surfaceReflectedBeamIntensity = incidentIntensity * intensityReflectionCoefficient;
+  double surfaceTransmittedBeamIntensity = incidentIntensity - surfaceReflectedBeamIntensity;
 
-    }
-    //convert intensity to watts per cm^2
-    
-    totalIntensityLoss = totalIntensityLoss*-1; 
-    double totalIntensityLossWattsPerCm2 = 0; 
-    totalIntensityLossWattsPerCm2 = pow(10,totalIntensityLoss/10) * incomingBeamIntensity;
-    // set outgoingBeamIntensity
-    outgoingBeamIntensity = incomingBeamIntensity-totalIntensityLossWattsPerCm2;
-    
-    
-    // if total intensity more than incoming intensity, return incoming intenstity ( so that when it is subtracted in from the intensity in UsSimulatorAlgo
-    if(totalIntensityLossWattsPerCm2> incomingBeamIntensity)
+  // Compute attenuation within this model
+  double intensityAttenuationCoefficientdBPerPixel = this->AttenuationCoefficientDbPerCmMhz*(distanceBetweenScanlineSamplePointsMm/10.0)*this->ImagingFrequencyMhz;
+  double intensityAttenuationCoefficientPerPixel = /* transmitted beam intensity / incident beam intensity */
+    pow(10.0,intensityAttenuationCoefficientdBPerPixel/10.0);
+  double intensityTransmittanceCoefficientPerPixel = (1-intensityAttenuationCoefficientPerPixel); // how big fraction of the intensity is transmitted over one voxel
+  double intensityTransmittanceCoefficientPerPixelTwoWay = (1-intensityAttenuationCoefficientPerPixel)*(1-intensityAttenuationCoefficientPerPixel); // takes into account both propagation directions
+  
+  // We put all the reflected beam intensity in the first (surface) pixel
+  reflectedIntensity[0] =
+    surfaceReflectedBeamIntensity // reflected from the surface
+    + surfaceTransmittedBeamIntensity * intensityAttenuationCoefficientPerPixel * this->BackscatterDiffuseReflectionCoefficient; // backscattering from the firs pixel's region
+
+  transmittedIntensity = surfaceTransmittedBeamIntensity * intensityTransmittanceCoefficientPerPixelTwoWay;
+
+  for(int currentPixelInFilledPixels = 1; currentPixelInFilledPixels<numberOfFilledPixels; currentPixelInFilledPixels++)  
+  {
+    // The beam intensity is very close to 0, so we terminate early instead of computing all the remaining miniscule values
+    if (transmittedIntensity<MINIMUM_BEAM_INTENSITY)
     {
-      intensities.push_back(0);// Intensity loss is greater than original intensity
+      transmittedIntensity=0;
+      for (int i=currentPixelInFilledPixels; i<numberOfFilledPixels; i++)
+      {
+        reflectedIntensity[i]=0.0;
+      }
+      break;
     }
 
-    else
-    {
-      intensities.push_back(outgoingBeamIntensity); 
-    }
+    // a fraction of the attenuation is caused by backscattering, the backscattering is sensed by the transducer
+    reflectedIntensity[currentPixelInFilledPixels] = transmittedIntensity * intensityAttenuationCoefficientPerPixel * this->BackscatterDiffuseReflectionCoefficient;
+
+    transmittedIntensity *= intensityTransmittanceCoefficientPerPixelTwoWay;    
   }
 }

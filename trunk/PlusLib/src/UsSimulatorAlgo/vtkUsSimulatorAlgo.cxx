@@ -70,7 +70,7 @@ vtkUsSimulatorAlgo::vtkUsSimulatorAlgo()
 
   this->NumberOfScanlines=256;
   this->NumberOfSamplesPerScanline=1000;
-  this->ImagingFrequencyMHz = 2.5;
+  this->ImagingFrequencyMhz = 2.5;
 
   this->RfProcessor=vtkRfProcessor::New();
 
@@ -89,8 +89,8 @@ vtkUsSimulatorAlgo::vtkUsSimulatorAlgo()
 
   this->BackgroundSpatialModel = new SpatialModel(); //= vtkSmartPointer<vtkUsSimulatorAlgo>::New(); 
   this->BoneSpatialModel = new SpatialModel();//= vtkSmartPointer<vtkUsSimulatorAlgo>::New(); 
-  this->BoneSpatialModel->SetFrequencyMHz(this->ImagingFrequencyMHz);
-  this->BackgroundSpatialModel->SetFrequencyMHz(this->ImagingFrequencyMHz);
+  this->BoneSpatialModel->SetFrequencyMhz(this->ImagingFrequencyMhz);
+  this->BackgroundSpatialModel->SetFrequencyMhz(this->ImagingFrequencyMhz);
 }
 
 //-----------------------------------------------------------------------------
@@ -422,12 +422,12 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
     this->SetNumberOfSamplesPerScanline(numberOfSamplesPerScanline); 
   }
 
-  double usFrequencyMHz = -1;
-  if ( usSimulatorAlgoElement->GetScalarAttribute("FrequencyMHz", usFrequencyMHz )) 
+  double usFrequencyMhz = -1;
+  if ( usSimulatorAlgoElement->GetScalarAttribute("FrequencyMhz", usFrequencyMhz )) 
   {
-    this->SetImagingFrequencyMHz(usFrequencyMHz); 
-	  this->BackgroundSpatialModel->SetFrequencyMHz(usFrequencyMHz); 
-	  this->BoneSpatialModel->SetFrequencyMHz(usFrequencyMHz); 
+    this->SetImagingFrequencyMhz(usFrequencyMhz); 
+	  this->BackgroundSpatialModel->SetFrequencyMhz(usFrequencyMhz); 
+	  this->BoneSpatialModel->SetFrequencyMhz(usFrequencyMhz); 
   }
 
   double incomingIntensityWpercm2 = -1;
@@ -448,10 +448,10 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
 	  this->BackgroundSpatialModel->SetSoundVelocityMPerSec(bkgdSoundVelocityMPerSec);
   }
 
-      double bkgdAttentuationCoefficientNpPerCm  = -1;
-  if ( usSimulatorAlgoElement->GetScalarAttribute("BkgdAttentuationCoefficientNpPerCm", bkgdAttentuationCoefficientNpPerCm )) 
+      double bkgdAttentuationCoefficientDbPerCmMhz = -1;
+      if ( usSimulatorAlgoElement->GetScalarAttribute("BkgdAttentuationCoefficientDbPerCmMhz", bkgdAttentuationCoefficientDbPerCmMhz )) 
   {
-	  this->BackgroundSpatialModel->SetAttenuationCoefficientNpPerCm(bkgdAttentuationCoefficientNpPerCm);
+	  this->BackgroundSpatialModel->SetAttenuationCoefficientDbPerCmMhz(bkgdAttentuationCoefficientDbPerCmMhz);
   }
 
   double densityKgPerM3  = -1;
@@ -466,10 +466,10 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
 	  this->BoneSpatialModel->SetSoundVelocityMPerSec(soundVelocityMPerSec);
   }
 
-      double attentuationCoefficientNpPerCm  = -1;
-  if ( usSimulatorAlgoElement->GetScalarAttribute("AttentuationCoefficientNpPerCm", attentuationCoefficientNpPerCm )) 
+      double attentuationCoefficientDbPerCmMhz = -1;
+  if ( usSimulatorAlgoElement->GetScalarAttribute("AttentuationCoefficientDbPerCmMhz", attentuationCoefficientDbPerCmMhz )) 
   {
-	  this->BoneSpatialModel->SetAttenuationCoefficientNpPerCm(attentuationCoefficientNpPerCm);
+	  this->BoneSpatialModel->SetAttenuationCoefficientDbPerCmMhz(attentuationCoefficientDbPerCmMhz);
   } 
 /*
 
