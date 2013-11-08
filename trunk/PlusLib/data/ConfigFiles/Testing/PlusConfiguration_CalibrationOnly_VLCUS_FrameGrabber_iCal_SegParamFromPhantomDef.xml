@@ -1,7 +1,7 @@
 <PlusConfiguration version="2.1">
 
-  <Segmentation
-  NumberOfMaximumFiducialPointCandidates="50"    ComputeSegmentationParametersFromPhantomDefinition="1"
+  <Segmentation    
+    ComputeSegmentationParametersFromPhantomDefinition="1"
     MorphologicalOpeningCircleRadiusMm="0.55"
     MorphologicalOpeningBarSizeMm="2.0"
     ClipRectangleOrigin="68 145" 
@@ -15,6 +15,7 @@
     ImageScalingTolerancePercent="-10 10 -10 10"                                
     ImageNormalVectorInPhantomFrameEstimation="0 0 1"
     ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg="-30 30 -30 30 -50 50"
+    NumberOfMaximumFiducialPointCandidates="50"
   />
 
   <CoordinateDefinitions>

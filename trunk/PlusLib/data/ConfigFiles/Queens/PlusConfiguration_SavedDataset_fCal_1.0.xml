@@ -121,7 +121,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
   <Segmentation
     ApproximateSpacingMmPerPixel="0.078"
     MorphologicalOpeningCircleRadiusMm="0.37"
-    MorphologicalOpeningBarSizeMm="1.0"
+    MorphologicalOpeningBarSizeMm="2.0"
     ClipRectangleOrigin="27 27" 
     ClipRectangleSize="766 562" 
     MaxLinePairDistanceErrorPercent="10"
@@ -133,6 +133,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
     ThresholdImagePercent="10"
     CollinearPointsMaxDistanceFromLineMm="0.6"
     UseOriginalImageIntensityForDotIntensityScore="0"
+    NumberOfMaximumFiducialPointCandidates="20"
   />
 
 

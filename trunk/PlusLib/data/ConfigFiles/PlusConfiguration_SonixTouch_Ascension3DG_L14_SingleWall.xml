@@ -109,7 +109,7 @@
   <Segmentation
     ApproximateSpacingMmPerPixel="0.078"
     MorphologicalOpeningCircleRadiusMm="0.27"
-    MorphologicalOpeningBarSizeMm="1.0"
+    MorphologicalOpeningBarSizeMm="2.0"
     ClipRectangleOrigin="27 27" 
     ClipRectangleSize="766 562" 
     MaxLinePairDistanceErrorPercent="10"
@@ -120,6 +120,7 @@
     ThresholdImagePercent="10"
     CollinearPointsMaxDistanceFromLineMm="0.6"
     UseOriginalImageIntensityForDotIntensityScore="0"
+    NumberOfMaximumFiducialPointCandidates="20"
   />
 
 

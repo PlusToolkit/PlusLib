@@ -72,7 +72,6 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
   </DataCollection>
   
   <Segmentation
-    NumberOfMaximumFiducialPointCandidates="50"
     ApproximateSpacingMmPerPixel="0.145"
     MorphologicalOpeningCircleRadiusMm="0.47"
     MorphologicalOpeningBarSizeMm="2.0"
@@ -87,6 +86,7 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
     ThresholdImagePercent="10.0"
     CollinearPointsMaxDistanceFromLineMm="0.77"
     UseOriginalImageIntensityForDotIntensityScore="0"
+    NumberOfMaximumFiducialPointCandidates="50"
   />
 
   <CoordinateDefinitions>

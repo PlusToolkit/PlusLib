@@ -136,7 +136,9 @@
     ThresholdImagePercent="10"
     CollinearPointsMaxDistanceFromLineMm="0.6"
     UseOriginalImageIntensityForDotIntensityScore="0"
-    MaxLineShiftMm="10"/>
+    MaxLineShiftMm="10"
+    NumberOfMaximumFiducialPointCandidates="20"
+    />
   <PhantomDefinition>
     <Description Name="fCAL" Type="Double-N" Version="2.0" WiringVersion="2.0" Institution="Queen&apos;s University PerkLab"/>
     <Geometry>

@@ -136,6 +136,7 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
     ThresholdImagePercent="10.0"
     CollinearPointsMaxDistanceFromLineMm="0.52"
     UseOriginalImageIntensityForDotIntensityScore="0"
+    NumberOfMaximumFiducialPointCandidates="20"
   />
 
 

@@ -1,7 +1,6 @@
 <PlusConfiguration version="2.1">
 
   <Segmentation
-    NumberOfMaximumFiducialPointCandidates="30"
     ApproximateSpacingMmPerPixel="0.26"
     MorphologicalOpeningCircleRadiusMm="0.55"
     MorphologicalOpeningBarSizeMm="2.0"
@@ -16,6 +15,7 @@
     ThresholdImagePercent="10.0"
     CollinearPointsMaxDistanceFromLineMm="1.38"
     UseOriginalImageIntensityForDotIntensityScore="0"
+    NumberOfMaximumFiducialPointCandidates="30"
   />
   
   <CoordinateDefinitions>

@@ -139,7 +139,9 @@
     MaxThetaDegrees="70"
     ThresholdImagePercent="10"
     CollinearPointsMaxDistanceFromLineMm="0.6"
-    UseOriginalImageIntensityForDotIntensityScore="0"/>
+    UseOriginalImageIntensityForDotIntensityScore="0"
+    NumberOfMaximumFiducialPointCandidates="20"
+    />
   <PhantomDefinition>
     <Description Name="fCAL" Type="Double-N" Version="1.0" WiringVersion="1.0" Institution="Queen&apos;s University PerkLab"/>
     <Geometry>

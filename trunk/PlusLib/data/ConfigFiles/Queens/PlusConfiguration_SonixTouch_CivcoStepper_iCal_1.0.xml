@@ -73,7 +73,6 @@ Plug in the US Digital ED2 digital display through Serial2USB converter cable in
 
   
   <Segmentation
-    NumberOfMaximumFiducialPointCandidates="50"
     ApproximateSpacingMmPerPixel="0.145"
     MorphologicalOpeningCircleRadiusMm="0.47"
     MorphologicalOpeningBarSizeMm="2.0"
@@ -88,6 +87,7 @@ Plug in the US Digital ED2 digital display through Serial2USB converter cable in
     ThresholdImagePercent="10.0"
     CollinearPointsMaxDistanceFromLineMm="0.77"
     UseOriginalImageIntensityForDotIntensityScore="0"
+    NumberOfMaximumFiducialPointCandidates="50"
   />
 
   

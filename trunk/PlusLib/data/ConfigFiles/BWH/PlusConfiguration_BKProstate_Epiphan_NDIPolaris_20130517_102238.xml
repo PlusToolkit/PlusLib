@@ -197,6 +197,8 @@
     MaxLineShiftMm="10"
     ThresholdImagePercent="10"
     CollinearPointsMaxDistanceFromLineMm="0.6"
-    UseOriginalImageIntensityForDotIntensityScore="0"/>
+    UseOriginalImageIntensityForDotIntensityScore="0"
+    NumberOfMaximumFiducialPointCandidates="20"
+    />
 
 </PlusConfiguration>

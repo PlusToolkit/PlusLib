@@ -128,6 +128,7 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
     ThresholdImagePercent="10.0"
     CollinearPointsMaxDistanceFromLineMm="1.59"
     UseOriginalImageIntensityForDotIntensityScore="0"
+    NumberOfMaximumFiducialPointCandidates="20"
   />
 
   <PhantomDefinition>

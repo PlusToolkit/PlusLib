@@ -35,7 +35,7 @@
   </CoordinateDefinitions> 
 
   <Segmentation
-    NumberOfMaximumFiducialPointCandidates="50"    ApproximateSpacingMmPerPixel="0.19"
+    ApproximateSpacingMmPerPixel="0.19"
     MorphologicalOpeningCircleRadiusMm="0.55"
     MorphologicalOpeningBarSizeMm="2.0"
     ClipRectangleOrigin="50 40" 
@@ -49,6 +49,7 @@
     ThresholdImagePercent="10.0"
     CollinearPointsMaxDistanceFromLineMm="1.0"
     UseOriginalImageIntensityForDotIntensityScore="0"
+    NumberOfMaximumFiducialPointCandidates="50"
   />
 
   <iCal version="1.0" 

@@ -17,6 +17,7 @@
     ThresholdImagePercent="19.0"
     CollinearPointsMaxDistanceFromLineMm="0.41"
     UseOriginalImageIntensityForDotIntensityScore="0"
+    NumberOfMaximumFiducialPointCandidates="20"
   />
   
 
