@@ -48,7 +48,7 @@ int main (int argc, char* argv[])
 
   std::string inputConfigFileName;
   std::string inputBaselineFileName;
-  std::string resultConfigFileName = "";
+  std::string resultConfigFileName;
 
 #ifndef _WIN32
   double inputTranslationErrorThreshold(LINUXTOLERANCE*2); // *PE* methods on linux can have up to about 0.7mm translation error
