@@ -12,6 +12,7 @@
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkUsSimulatorVideoSource.h"
+#include "vtkTransformRepository.h"
 
 vtkCxxRevisionMacro(vtkUsSimulatorVideoSource, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkUsSimulatorVideoSource);
@@ -29,9 +30,8 @@ vtkUsSimulatorVideoSource::vtkUsSimulatorVideoSource()
   this->SetUsSimulator(usSimulator);
 
   // Create transform repository
-  this->TransformRepository = NULL;
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
-  this->SetTransformRepository(transformRepository);
+  this->GetUsSimulator()->SetTransformRepository(transformRepository);
 
   this->RequireImageOrientationInConfiguration = true;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
@@ -55,7 +55,6 @@ vtkUsSimulatorVideoSource::~vtkUsSimulatorVideoSource()
 
   this->SetTracker(NULL);
   this->SetUsSimulator(NULL);
-  this->SetTransformRepository(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -105,24 +104,14 @@ PlusStatus vtkUsSimulatorVideoSource::InternalUpdate()
   // For simplicity, we increase it always by 1.
   this->FrameNumber++;
   
-  if ( this->TransformRepository->SetTransforms(*trackedFrame) != PLUS_SUCCESS )
+  if ( this->UsSimulator->GetTransformRepository()->SetTransforms(*trackedFrame) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to set repository transforms from tracked frame!"); 
     return PLUS_FAIL;
   }
 
-  PlusTransformName referenceToImageTransformName(this->UsSimulator->GetReferenceCoordinateFrame(), this->UsSimulator->GetImageCoordinateFrame());
-  vtkSmartPointer<vtkMatrix4x4> referenceToImageTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();   
-  if (this->TransformRepository->GetTransform(referenceToImageTransformName, referenceToImageTransformMatrix) != PLUS_SUCCESS)
-  {
-    std::string strTransformName; 
-    referenceToImageTransformName.GetTransformName(strTransformName); 
-    LOG_ERROR("Failed to get transform from repository: " << strTransformName ); 
-    return PLUS_FAIL;
-  }
-
-  // Get the simulated US image
-  this->UsSimulator->SetModelToImageMatrix(referenceToImageTransformMatrix);
+  // Get the simulated US image  
+  this->UsSimulator->Modified(); // Signal that the transforms have changed so we need to recompute
   this->UsSimulator->Update();
 
   vtkPlusDataSource* aSource(NULL);
@@ -200,8 +189,8 @@ PlusStatus vtkUsSimulatorVideoSource::ReadConfiguration(vtkXMLDataElement* confi
   }
 
   // Read transform repository configuration
-  if ( !this->TransformRepository
-    || this->TransformRepository->ReadConfiguration(config) != PLUS_SUCCESS )
+  if ( !this->UsSimulator->GetTransformRepository()
+    || this->UsSimulator->GetTransformRepository()->ReadConfiguration(config) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read transform repository configuration!"); 
     return PLUS_FAIL;

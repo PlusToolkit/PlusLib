@@ -94,31 +94,100 @@ void CreateSliceModels(vtkTrackedFrameList *trackedFrameList, vtkTransformReposi
 }
 
 //-----------------------------------------------------------------------------
-int main(int argc, char **argv)
+void ShowResults(vtkTrackedFrameList* trackedFrameList, vtkTransformRepository* transformRepository, PlusTransformName imageToReferenceTransformName, std::string intersectionFile)
 {
-  
-  
-  
-  std::string inputModelFile;
+  // Setup Renderer to visualize surface model and ultrasound planes
+  vtkSmartPointer<vtkRenderer> rendererPoly = vtkSmartPointer<vtkRenderer>::New();
+  vtkSmartPointer<vtkRenderWindow> renderWindowPoly = vtkSmartPointer<vtkRenderWindow>::New();
+  renderWindowPoly->AddRenderer(rendererPoly);
+  vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractorPoly = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+  renderWindowInteractorPoly->SetRenderWindow(renderWindowPoly);
+  vtkSmartPointer<vtkInteractorStyleTrackballCamera> style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New(); 
+  renderWindowInteractorPoly->SetInteractorStyle(style);
+
+  // Visualization of the surface model
+
+  /*
+  TODO: add surface model of each SpatialModel in the simulator
+  vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  mapper->SetInput((vtkPolyData*)usSimulator->GetInput());  
+  vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+  actor->SetMapper(mapper);
+  rendererPoly->AddActor(actor);
+  */
+
+  // Visualization of the image planes
+  vtkSmartPointer< vtkPolyData > slicesPolyData = vtkSmartPointer< vtkPolyData >::New();
+  CreateSliceModels(trackedFrameList, transformRepository, imageToReferenceTransformName, slicesPolyData);
+
+  if(!intersectionFile.empty()) 
+  {
+    vtkSmartPointer<vtkSTLWriter> surfaceModelWriter = vtkSmartPointer<vtkSTLWriter>::New(); 
+    surfaceModelWriter->SetFileName(intersectionFile.c_str()); 
+    surfaceModelWriter->SetInput(slicesPolyData);
+    surfaceModelWriter->Write(); 
+  }
+
+  vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  mapper->SetInput(slicesPolyData);  
+  vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+  actor->SetMapper(mapper);
+  rendererPoly->AddActor(actor);
+
+  renderWindowPoly->Render();
+  renderWindowInteractorPoly->Start();
+}
+
+//-----------------------------------------------------------------------------
+void ShowImage(vtkImageData* simOutput)
+{
+  vtkSmartPointer<vtkImageData> usImage = vtkSmartPointer<vtkImageData>::New(); 
+  usImage->DeepCopy(simOutput);
+
+  // Display output of filter
+  vtkSmartPointer<vtkImageActor> redImageActor = vtkSmartPointer<vtkImageActor>::New();
+  redImageActor->SetInput(simOutput);
+
+  // Visualize
+  vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
+
+  // Red image is displayed
+  renderer->AddActor(redImageActor);
+  renderer->ResetCamera();
+
+  vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
+  renderWindow->AddRenderer(renderer);
+  renderer->SetBackground(0, 72, 0);
+
+  vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+  vtkSmartPointer<vtkInteractorStyleImage> style = vtkSmartPointer<vtkInteractorStyleImage>::New();
+
+  renderWindowInteractor->SetInteractorStyle(style);
+  renderWindowInteractor->SetRenderWindow(renderWindow);
+}
+
+//-----------------------------------------------------------------------------
+int main(int argc, char **argv)
+{  
+  bool printHelp=false;
   std::string inputTransformsFile;
   std::string inputConfigFile;
   std::string outputUsImageFile;
   std::string intersectionFile;
-  std::string showModel; 
+  bool showResults=false;
 
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
-  args.AddArgument("--model-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputModelFile, "File name of the input model, for which ultrasound images will be generated.");
-  args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFile, "Config file containing the image to probe and phantom to reference transformations  ");
-  args.AddArgument("--transforms-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformsFile, "File containing coordinate frames and the associated model to image transformations"); 
-  args.AddArgument("--output-us-img-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputUsImageFile, "File name of the generated output ultrasound image.");
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
-  args.AddArgument("--output-model-frame-intersection-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &intersectionFile, "Name of stl file containing the visualization of the intersection between the model and the frames");
-  args.AddArgument("--show-model-frames-intersection-display",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &showModel,"If empty, does not display a visualization of the model and the frame"); 
-
+  args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFile, "Config file containing the image to probe and phantom to reference transformations");
+  args.AddArgument("--transforms-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformsFile, "Input file containing coordinate frames and the associated model to image transformations");
+  args.AddArgument("--output-us-img-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputUsImageFile, "File name of the generated output ultrasound image");
+  args.AddArgument("--output-slice-model-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &intersectionFile, "Name of STL output file containing the model of all the frames (optional)");
+  args.AddArgument("--show-results",vtksys::CommandLineArguments::NO_ARGUMENT, &showResults,"Show the simulated image on the screen");
 
   // Input arguments error checking
   if ( !args.Parse() )
@@ -127,8 +196,12 @@ int main(int argc, char **argv)
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
-
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  if ( printHelp ) 
+  {
+    std::cout << "\n\nvtkSonixVideoSourceTest1 help:" << args.GetHelp() << std::endl;
+    exit(EXIT_SUCCESS); 
+  }
 
   if (inputConfigFile.empty())
   {
@@ -157,9 +230,10 @@ int main(int argc, char **argv)
 
   // Read config file
   LOG_DEBUG("Reading config file...")
-  vtkSmartPointer<vtkXMLDataElement> configRead = vtkSmartPointer<vtkXMLDataElement>::Take(::vtkXMLUtilities::ReadElementFromFile(inputConfigFile.c_str())); 
+    vtkSmartPointer<vtkXMLDataElement> configRead = vtkSmartPointer<vtkXMLDataElement>::Take(::vtkXMLUtilities::ReadElementFromFile(inputConfigFile.c_str())); 
   LOG_DEBUG("Reading config file finished.");
 
+  // Create transform repository
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
   if ( transformRepository->ReadConfiguration(configRead) != PLUS_SUCCESS )
   {
@@ -169,75 +243,41 @@ int main(int argc, char **argv)
 
   // Create simulator
   vtkSmartPointer<vtkUsSimulatorAlgo> usSimulator = vtkSmartPointer<vtkUsSimulatorAlgo>::New(); 
-  
   if ( usSimulator->ReadConfiguration(configRead) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read US simulator configuration!"); 
     exit(EXIT_FAILURE); 
-  }
- 
-  if(!inputModelFile.empty())
-  {
-    usSimulator->LoadModel(inputModelFile.c_str()); 
-  }
-
+  } 
+  usSimulator->SetTransformRepository(transformRepository);
   PlusTransformName imageToReferenceTransformName(usSimulator->GetImageCoordinateFrame(), usSimulator->GetReferenceCoordinateFrame());
 
-  // Setup Renderer to visualize surface model and ultrasound planes
-  vtkSmartPointer<vtkRenderer> rendererPoly = vtkSmartPointer<vtkRenderer>::New();
-  vtkSmartPointer<vtkRenderWindow> renderWindowPoly = vtkSmartPointer<vtkRenderWindow>::New();
-  renderWindowPoly->AddRenderer(rendererPoly);
-  vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractorPoly = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-  renderWindowInteractorPoly->SetRenderWindow(renderWindowPoly);
-  {
-    vtkSmartPointer<vtkInteractorStyleTrackballCamera> style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New(); 
-    renderWindowInteractorPoly->SetInteractorStyle(style);
-  }
-
-  // Visualization of the surface model
-  {
-    vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    mapper->SetInput((vtkPolyData*)usSimulator->GetInput());  
-    vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-    actor->SetMapper(mapper);
-    rendererPoly->AddActor(actor);
-  }
-
-  // Visualization of the image planes
+  // Write slice model file
+  if(!intersectionFile.empty()) 
   {
     vtkSmartPointer< vtkPolyData > slicesPolyData = vtkSmartPointer< vtkPolyData >::New();
     CreateSliceModels(trackedFrameList, transformRepository, imageToReferenceTransformName, slicesPolyData);
-
-    if(!intersectionFile.empty()) 
-    {
-      vtkSmartPointer<vtkSTLWriter> surfaceModelWriter = vtkSmartPointer<vtkSTLWriter>::New(); 
-      surfaceModelWriter->SetFileName(intersectionFile.c_str()); 
-      surfaceModelWriter->SetInput(slicesPolyData);
-      surfaceModelWriter->Write(); 
-    }
-
-    vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    mapper->SetInput(slicesPolyData);  
-    vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-    actor->SetMapper(mapper);
-    rendererPoly->AddActor(actor);
+    vtkSmartPointer<vtkSTLWriter> surfaceModelWriter = vtkSmartPointer<vtkSTLWriter>::New(); 
+    surfaceModelWriter->SetFileName(intersectionFile.c_str()); 
+    surfaceModelWriter->SetInput(slicesPolyData);
+    surfaceModelWriter->Write(); 
   }
 
-  if(!showModel.empty()) 
-  { 
-    renderWindowPoly->Render();
-    renderWindowInteractorPoly->Start();
+  if (showResults) 
+  {     
+    ShowResults(trackedFrameList, transformRepository, imageToReferenceTransformName, intersectionFile);
   }
 
-  
   std::vector<double> timeElapsedPerFrameSec;
   double startTimeSec = 0; 
-  double endTimeSec = 0;   
-  //for (int i = 0; i<30; i++)
+  double endTimeSec = 0;
+
+  // TODO: remove this, it's just for testing
+  trackedFrameList->RemoveTrackedFrameRange(15,trackedFrameList->GetNumberOfTrackedFrames()-1);
+
   for (unsigned int i = 0; i<trackedFrameList->GetNumberOfTrackedFrames(); i++)      
   {
     startTimeSec = vtkTimerLog::GetUniversalTime(); 
-    
+
     LOG_DEBUG("Processing frame "<<i);
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame(i);
 
@@ -248,75 +288,47 @@ int main(int argc, char **argv)
       return EXIT_FAILURE;
     }
 
-    // We use the model coordinate system as reference coordinate system
-    // TODO: Alter to get new position? Or does it do it automatically?
-    vtkSmartPointer<vtkMatrix4x4> imageToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();   
-    if ( transformRepository->GetTransform(imageToReferenceTransformName, imageToReferenceMatrix) != PLUS_SUCCESS )
-    {
-      std::string strTransformName; 
-      imageToReferenceTransformName.GetTransformName(strTransformName); 
-      LOG_ERROR("Failed to get transform from repository: " << strTransformName ); 
-      return EXIT_FAILURE;
-    }
-
-    // Prepare filter and filter input
-    vtkSmartPointer<vtkMatrix4x4> modelToImageMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-    modelToImageMatrix->DeepCopy(imageToReferenceMatrix);
-    modelToImageMatrix->Invert();
-    usSimulator->SetModelToImageMatrix(modelToImageMatrix);
+    // TODO: would be nice to implement an automatic mechanism to find out if the transforms have been changed
+    usSimulator->Modified(); // Signal that the transforms have changed so we need to recompute
     usSimulator->Update();
-
     vtkImageData* simOutput = usSimulator->GetOutput();
-
-    double origin[3]={
-      imageToReferenceMatrix->Element[0][3],
-      imageToReferenceMatrix->Element[1][3],
-      imageToReferenceMatrix->Element[2][3]};
-    simOutput->SetOrigin(origin);
-    
-    double spacing[3]={
-      sqrt(imageToReferenceMatrix->Element[0][0]*imageToReferenceMatrix->Element[0][0]+
-      imageToReferenceMatrix->Element[1][0]*imageToReferenceMatrix->Element[1][0]+
-      imageToReferenceMatrix->Element[2][0]*imageToReferenceMatrix->Element[2][0]),
-      sqrt(imageToReferenceMatrix->Element[0][1]*imageToReferenceMatrix->Element[0][1]+
-      imageToReferenceMatrix->Element[1][1]*imageToReferenceMatrix->Element[1][1]+
-      imageToReferenceMatrix->Element[2][1]*imageToReferenceMatrix->Element[2][1]),
-      1.0};
-    simOutput->SetSpacing(spacing);
 
     PlusVideoFrame * simulatorOutputPlusVideoFrame = new PlusVideoFrame(); 
     simulatorOutputPlusVideoFrame->DeepCopyFrom(simOutput); 
 
-    frame->SetImageData(*simulatorOutputPlusVideoFrame); 
+    frame->SetImageData(*simulatorOutputPlusVideoFrame);
 
-    vtkSmartPointer<vtkImageData> usImage = vtkSmartPointer<vtkImageData>::New(); 
-    usImage->DeepCopy(simOutput);
+    /*
+    double origin[3]=
+    {
+    imageToReferenceMatrix->Element[0][3],
+    imageToReferenceMatrix->Element[1][3],
+    imageToReferenceMatrix->Element[2][3]
+    };
+    simulatedUsImage->SetOrigin(origin);
 
-    // Display output of filter
-    vtkSmartPointer<vtkImageActor> redImageActor = vtkSmartPointer<vtkImageActor>::New();
-    redImageActor->SetInput(simOutput);
-    
-    // Visualize
-    vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
+    double spacing[3]=
+    {
+    sqrt(imageToReferenceMatrix->Element[0][0]*imageToReferenceMatrix->Element[0][0]+
+    imageToReferenceMatrix->Element[1][0]*imageToReferenceMatrix->Element[1][0]+
+    imageToReferenceMatrix->Element[2][0]*imageToReferenceMatrix->Element[2][0]),
+    sqrt(imageToReferenceMatrix->Element[0][1]*imageToReferenceMatrix->Element[0][1]+
+    imageToReferenceMatrix->Element[1][1]*imageToReferenceMatrix->Element[1][1]+
+    imageToReferenceMatrix->Element[2][1]*imageToReferenceMatrix->Element[2][1]),
+    1.0
+    };
+    simulatedUsImage->SetSpacing(spacing);
+    */
 
-    // Red image is displayed
-    renderer->AddActor(redImageActor);
-    renderer->ResetCamera();
-
-    vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
-    renderWindow->AddRenderer(renderer);
-    renderer->SetBackground(0, 72, 0);
-
-    vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-    vtkSmartPointer<vtkInteractorStyleImage> style = vtkSmartPointer<vtkInteractorStyleImage>::New();
-
-    renderWindowInteractor->SetInteractorStyle(style);
-    renderWindowInteractor->SetRenderWindow(renderWindow);
+    if (showResults)
+    {
+      ShowImage(simOutput);
+    }
 
     endTimeSec = vtkTimerLog::GetUniversalTime(); 
     timeElapsedPerFrameSec.push_back(endTimeSec-startTimeSec); 
   }
- 
+
   vtkSmartPointer<vtkMetaImageSequenceIO> simulatedUsSequenceFileWriter = vtkSmartPointer<vtkMetaImageSequenceIO>::New(); 
   simulatedUsSequenceFileWriter->SetFileName(outputUsImageFile.c_str()); 
   simulatedUsSequenceFileWriter->SetTrackedFrameList(trackedFrameList); 
@@ -334,5 +346,5 @@ int main(int argc, char **argv)
   LOG_INFO(" Standard dev computation time per frame (sec): " << stdevTimeElapsedPerFrameSec ) ; 
   LOG_INFO(" Average fps:  " << 1/meanTimeElapsedPerFrameSec ) ; 
 
-	return EXIT_SUCCESS; 
+  return EXIT_SUCCESS; 
 }
