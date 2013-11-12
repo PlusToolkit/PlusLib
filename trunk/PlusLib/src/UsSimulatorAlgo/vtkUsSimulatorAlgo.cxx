@@ -304,21 +304,19 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
   return 1; 
 }
 
+bool lineIntersectionLessThan(SpatialModel::LineIntersectionInfo a, SpatialModel::LineIntersectionInfo b)
+{   
+  return a.IntersectionDistanceFromStartPointMm < b.IntersectionDistanceFromStartPointMm;
+}
+
 // In the input the "Model" in the line model intersections refers to the model that either starts or ends
 // at the given intersection position (e.g., background/spine/spine).
 // We overwrite the "Model" by the model that starts from that intersection position (e.g., background/spine/background).
 //-----------------------------------------------------------------------------
 void vtkUsSimulatorAlgo::ConvertLineModelIntersectionsToSegmentDescriptor(std::deque<SpatialModel::LineIntersectionInfo> &lineIntersectionsWithModels)
 {
-  // sort intersections using a custom functor
-  struct
-  {
-    bool operator() (SpatialModel::LineIntersectionInfo a, SpatialModel::LineIntersectionInfo b)
-    {   
-      return a.IntersectionDistanceFromStartPointMm < b.IntersectionDistanceFromStartPointMm;
-    }   
-  } customLess;
-  std::sort(lineIntersectionsWithModels.begin(), lineIntersectionsWithModels.end(), customLess);  
+  // sort intersections based on the intersection distance
+  std::sort(lineIntersectionsWithModels.begin(), lineIntersectionsWithModels.end(), lineIntersectionLessThan);  
 
   // Cohesiveness defines how likely that the model contains another model.
   // If cohesiveness is low then the model likely to contain other models (e.g., the background material has the lowest cohesiveness value).
