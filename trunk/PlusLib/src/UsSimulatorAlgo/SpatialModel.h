@@ -53,13 +53,15 @@ public:
   const std::string& GetObjectCoordinateFrame() { return this->ObjectCoordinateFrame; };
   vtkMatrix4x4* GetModelToObjectTransform() { return this->ModelToObjectTransform; };
 
+  void SetReferenceToObjectTransform(vtkMatrix4x4* referenceToObjectTransform);
+
   /*!
     Get all the intersection points of the model and a line. Input and output points are all in Model coordinate system.
     The results are appended to the lineIntersections structure.
     If the line starts inside the model then the first intersection position is 0.
     The unit of the reference coordinate system must be in mm.
   */
-  void GetLineIntersections(std::deque<LineIntersectionInfo>& lineIntersections, double* scanLineStartPoint_Reference, double* scanLineEndPoint_Reference, vtkMatrix4x4* referenceToObjectMatrix);
+  void GetLineIntersections(std::deque<LineIntersectionInfo>& lineIntersections, double* scanLineStartPoint_Reference, double* scanLineEndPoint_Reference);
 
   double GetAcousticImpedanceMegarayls();
   
@@ -76,9 +78,10 @@ protected:
 
   void SetPolyData(vtkPolyData* polyData);
   void SetModelLocalizer(vtkModifiedBSPTree* modelLocalizer);
-  void SetModelToObjectTransform(vtkMatrix4x4* modelToObjectTransform);  
+  void SetModelToObjectTransform(vtkMatrix4x4* modelToObjectTransform);
 
   PlusStatus UpdateModelFile();
+  void UpdatePrecomputedAttenuations(double intensityTransmittedFractionPerPixelTwoWay, int numberOfElements);
 
 private:
 
@@ -98,6 +101,13 @@ private:
     to spatial object coordinate system (ObjectCoordinateFrame)
   */
   vtkMatrix4x4* ModelToObjectTransform;
+
+  /*!
+    Transformation matrix from the reference coordinate system (that is used by external methods)
+    to the object coordinate system (ObjectCoordinateFrame).
+    This transform is not serialized to/from the XML configuration.
+  */
+  vtkMatrix4x4* ReferenceToObjectTransform;
 
   /*! This variable defines the name of the spatial object's coordinate frame */
   std::string ObjectCoordinateFrame;
@@ -143,6 +153,9 @@ private:
 
   /*! Surface mesh. Points are stored in the Model coordinate system (as in the input file) */
   vtkPolyData* PolyData;
+
+  /*! List of attenuations: intensityTransmittedFractionPerPixelTwoWay, intensityTransmittedFractionPerPixelTwoWay^2, intensityTransmittedFractionPerPixelTwoWay^3, ... */
+  std::vector<double> PrecomputedAttenuations;
 
 };
 

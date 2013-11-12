@@ -27,9 +27,12 @@
   <vtkUsSimulatorAlgo
     ImageCoordinateFrame="Image"
     ReferenceCoordinateFrame="Phantom"
+    IncomingIntensityMwPerCm2="100"
+    BrightnessConversionGamma="0.2"
+    BrighntessConversionOffset="30"
     NumberOfScanlines="256"
     NumberOfSamplesPerScanline="1000"
-    NoiseAmplitude="0.1"
+    NoiseAmplitude="5.0"
     NoiseFrequency="2.5 3.5 1"
     NoisePhase="50 20 0"
     >
@@ -39,7 +42,6 @@
       SoundVelocityMPerSec="1540"
       AttenuationCoefficientDbPerCmMhz="0.65"
       BackscatterDiffuseReflectionCoefficient="0.1"
-      BackscatterSpecularReflectionCoefficient="0"
     />
     <!-- AttenuationCoefficientDbPerCmMhz should be about 5.0 for spine, but 15.0 produces more realistic-looking images -->
     <!-- DensityKgPerM3 should be about 1900 for spine, but 6000 produces more realistic-looking images -->
@@ -56,12 +58,10 @@
       SoundVelocityMPerSec="4000"
       AttenuationCoefficientDbPerCmMhz="15.0"
       BackscatterDiffuseReflectionCoefficient="0.03"
-      BackscatterSpecularReflectionCoefficient="0"
     />
     <SpatialModel
       Name="Needle"
       ObjectCoordinateFrame="ZShaft"
-      xModelFile="CylinderDiam1mmTriang.stl"
       ModelFile="Needle_20cm.stl"
       ModelToObjectTransform="
         1 0 0 0
@@ -69,10 +69,10 @@
         0 0 1 0
         0 0 0 1"
       DensityKgPerM3="2000"
-      SoundVelocityMPerSec="2000"
-      AttenuationCoefficientDbPerCmMhz="2.0"
-      BackscatterDiffuseReflectionCoefficient="0.1"
-      BackscatterSpecularReflectionCoefficient="0"
+      SoundVelocityMPerSec="2000"      
+      AttenuationCoefficientDbPerCmMhz="8.0"
+      BackscatterDiffuseReflectionCoefficient="0.2"
+      SurfaceReflectionIntensityDecayDbPerMm="5"
     />
     <RfProcessing>
       <ScanConversion
