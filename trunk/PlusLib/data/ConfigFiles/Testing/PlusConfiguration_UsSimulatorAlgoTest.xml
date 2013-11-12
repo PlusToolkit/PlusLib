@@ -4,11 +4,17 @@
   <CoordinateDefinitions>
     <Transform
       From="Image" To="Probe"
-      Matrix="0.0       0.084     0.0        12.5
-              -0.087    0.0       0.0        51.0
-              0.0       0.0       0.087      -4.3    
+      Matrix="0.0       0.087     0.0        12.5
+              -0.084    0.0       0.0        51.0
+              0.0       0.0       0.087      -4.3
               0         0         0          1"
-      Error="1.0" Date="022412_110829" />      
+      Error="1.0" Date="022412_110829" />
+    <Transform
+      From="ZShaft" To="Phantom" 
+      Matrix="0.998477 0.029572 0.046565 -10.2203
+        0.052328 -0.240704 -0.969187 -43.4423
+        -0.0174524 0.970148 -0.241885 83.2068
+        0 0 0 1" />
     <Transform
       From="Phantom" To="Reference" 
       Matrix="-0.0217475 0.999619 0.0170018  74.7552 
@@ -19,21 +25,56 @@
   </CoordinateDefinitions>
 
   <vtkUsSimulatorAlgo
-    BackgroundValue="155"
     ImageCoordinateFrame="Image"
     ReferenceCoordinateFrame="Phantom"
-
     NumberOfScanlines="256"
     NumberOfSamplesPerScanline="1000"
-
-    ModelFileName="SpinePhantom2Model.stl"
-    ModelToReferenceTransform="
-      1 0 0 0
-      0 1 0 0
-      0 0 1 0
-      0 0 0 1" >
+    NoiseAmplitude="0.1"
+    NoiseFrequency="2.5 3.5 1"
+    NoisePhase="50 20 0"
+    >
+    <SpatialModel
+      Name="Background"
+      DensityKgPerM3="910"
+      SoundVelocityMPerSec="1540"
+      AttenuationCoefficientDbPerCmMhz="0.65"
+      BackscatterDiffuseReflectionCoefficient="0.1"
+      BackscatterSpecularReflectionCoefficient="0"
+    />
+    <!-- AttenuationCoefficientDbPerCmMhz should be about 5.0 for spine, but 15.0 produces more realistic-looking images -->
+    <!-- DensityKgPerM3 should be about 1900 for spine, but 6000 produces more realistic-looking images -->
+    <SpatialModel
+      Name="Spine"
+      ObjectCoordinateFrame="Phantom"
+      ModelFile="SpinePhantom2Model.stl"
+      ModelToObjectTransform="
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        0 0 0 1"
+      DensityKgPerM3="1900"
+      SoundVelocityMPerSec="4000"
+      AttenuationCoefficientDbPerCmMhz="15.0"
+      BackscatterDiffuseReflectionCoefficient="0.03"
+      BackscatterSpecularReflectionCoefficient="0"
+    />
+    <SpatialModel
+      Name="Needle"
+      ObjectCoordinateFrame="ZShaft"
+      xModelFile="CylinderDiam1mmTriang.stl"
+      ModelFile="Needle_20cm.stl"
+      ModelToObjectTransform="
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        0 0 0 1"
+      DensityKgPerM3="2000"
+      SoundVelocityMPerSec="2000"
+      AttenuationCoefficientDbPerCmMhz="2.0"
+      BackscatterDiffuseReflectionCoefficient="0.1"
+      BackscatterSpecularReflectionCoefficient="0"
+    />
     <RfProcessing>
-
       <ScanConversion
         TransducerName="Ultrasonix_L9-4/38"
         TransducerGeometry="LINEAR"
@@ -41,7 +82,6 @@
         TransducerWidthMm="40.0"
         OutputImageSizePixel="476 689"
         OutputImageSpacingMmPerPixel="0.084 0.087"/>
-
       <!-- Example for a curvilinear transducer: -->
       <xScanConversion
         TransducerName="BK_8848-axial"
@@ -52,9 +92,8 @@
         ThetaStopDeg="60.0"
         OutputImageStartDepthMm="2.0"
         OutputImageSizePixel="1200 800"
-        OutputImageSpacingMmPerPixel="0.084 0.087" />       
-
-    </RfProcessing>  
+        OutputImageSpacingMmPerPixel="0.084 0.087" />
+    </RfProcessing>
   </vtkUsSimulatorAlgo>
-  
+
 </PlusConfiguration>

@@ -8,7 +8,6 @@
 #define __vtkUsSimulatorVideoSource_h
 
 #include "vtkPlusDevice.h"
-#include "vtkTransformRepository.h"
 #include "vtkUsSimulatorAlgo.h"
 
 class vtkPlusDataBuffer; 
@@ -47,9 +46,6 @@ protected:
   /*! Set ultrasound simulator */
   vtkSetObjectMacro(UsSimulator, vtkUsSimulatorAlgo); 
 
-  /*! Set transform repository */
-  vtkSetObjectMacro(TransformRepository, vtkTransformRepository);
-
 protected:
   /*! Constructor */
   vtkUsSimulatorVideoSource();
@@ -71,9 +67,6 @@ protected:
 
   /*! Tracker used in the simulator */
   vtkPlusDevice* Tracker;
-
-  /* Transform repository */
-  vtkTransformRepository* TransformRepository;
 
   /* Timestamp of the last tracking item that has been processed already */
   double LastProcessedTrackingDataTimestamp;
