@@ -14,7 +14,7 @@ See License.txt for details.
 #include "vtkXMLPolyDataReader.h"
 
 // If fraction of the transmitted beam intensity is smaller then this value then we consider the beam to be completely absorbed
-const double MINIMUM_BEAM_INTENSITY=1e-6;
+const double MINIMUM_BEAM_INTENSITY=1e-9;
 
 //-----------------------------------------------------------------------------
 SpatialModel::SpatialModel()
@@ -22,20 +22,22 @@ SpatialModel::SpatialModel()
   this->DensityKgPerM3 = 0; 
   this->SoundVelocityMPerSec = 0; 
   this->AttenuationCoefficientDbPerCmMhz = 0;
-  this->SurfaceReflectionIntensityDecayDbPerMm = 30;
+  this->SurfaceReflectionIntensityDecayDbPerMm = 20;
   this->BackscatterDiffuseReflectionCoefficient = 0;
   this->BackscatterSpecularReflectionCoefficient = 0; 
   this->ImagingFrequencyMhz = 0;
   this->ModelToObjectTransform = vtkMatrix4x4::New(); 
+  this->ReferenceToObjectTransform = vtkMatrix4x4::New();
   this->ModelLocalizer=vtkModifiedBSPTree::New();
   this->PolyData=NULL;
-  this->ModelFileNeedsUpdate=false;
+  this->ModelFileNeedsUpdate=false;  
 }
 
 //-----------------------------------------------------------------------------
 SpatialModel::~SpatialModel()
 {
   SetModelToObjectTransform(NULL);
+  SetReferenceToObjectTransform(NULL);
   SetModelLocalizer(NULL);
   SetPolyData(NULL);
 }
@@ -54,12 +56,15 @@ SpatialModel::SpatialModel(const SpatialModel& model)
   this->BackscatterDiffuseReflectionCoefficient=model.BackscatterDiffuseReflectionCoefficient;
   this->BackscatterSpecularReflectionCoefficient=model.BackscatterSpecularReflectionCoefficient;
   this->ModelToObjectTransform = NULL; 
+  this->ReferenceToObjectTransform = NULL; 
   this->ModelLocalizer = NULL;
   this->PolyData = NULL;
   SetModelToObjectTransform(model.ModelToObjectTransform);
+  SetReferenceToObjectTransform(model.ReferenceToObjectTransform);
   SetModelLocalizer(model.ModelLocalizer);
   SetPolyData(model.PolyData);
   this->ModelFileNeedsUpdate=model.ModelFileNeedsUpdate;
+  this->PrecomputedAttenuations=model.PrecomputedAttenuations;
 }
 
 //-----------------------------------------------------------------------------
@@ -76,9 +81,11 @@ void SpatialModel::operator=(const SpatialModel& model)
   this->BackscatterDiffuseReflectionCoefficient=model.BackscatterDiffuseReflectionCoefficient;
   this->BackscatterSpecularReflectionCoefficient=model.BackscatterSpecularReflectionCoefficient;
   SetModelToObjectTransform(model.ModelToObjectTransform);
+  SetReferenceToObjectTransform(model.ReferenceToObjectTransform);
   SetModelLocalizer(model.ModelLocalizer);
   SetPolyData(model.PolyData);
   this->ModelFileNeedsUpdate=model.ModelFileNeedsUpdate;
+  this->PrecomputedAttenuations=model.PrecomputedAttenuations;
 }
 
 //-----------------------------------------------------------------------------
@@ -98,6 +105,25 @@ void SpatialModel::SetModelToObjectTransform(vtkMatrix4x4* modelToObjectTransfor
     this->ModelToObjectTransform->Register(NULL);
   }
 }
+
+//-----------------------------------------------------------------------------
+void SpatialModel::SetReferenceToObjectTransform(vtkMatrix4x4* referenceToObjectTransform)
+{
+  if (this->ReferenceToObjectTransform==referenceToObjectTransform)
+  {
+    return;
+  }
+  if (this->ReferenceToObjectTransform!=NULL)
+  {
+    this->ReferenceToObjectTransform->Delete();
+  }
+  this->ReferenceToObjectTransform=referenceToObjectTransform;
+  if (this->ReferenceToObjectTransform!=NULL)
+  {
+    this->ReferenceToObjectTransform->Register(NULL);
+  }
+}
+
 
 //-----------------------------------------------------------------------------
 void SpatialModel::SetPolyData(vtkPolyData* polyData)
@@ -260,44 +286,55 @@ void SpatialModel::CalculateIntensity(std::vector<double>& reflectedIntensity, i
 
   transmittedIntensity = surfaceTransmittedBeamIntensity * intensityTransmittedFractionPerPixelTwoWay;
 
-  for(int currentPixelInFilledPixels = 0; currentPixelInFilledPixels<numberOfFilledPixels; currentPixelInFilledPixels++)  
+  if (numberOfFilledPixels>0 && this->PrecomputedAttenuations.size()<numberOfFilledPixels || intensityTransmittedFractionPerPixelTwoWay!=this->PrecomputedAttenuations[0])
   {
-    // The beam intensity is very close to 0, so we terminate early instead of computing all the remaining miniscule values
+    UpdatePrecomputedAttenuations(intensityTransmittedFractionPerPixelTwoWay, numberOfFilledPixels);
+  }
 
-    if (transmittedIntensity<MINIMUM_BEAM_INTENSITY)
+  // We iterate until transmittedIntensity * intensityTransmittedFractionPerPixelTwoWay^n > MINIMUM_BEAM_INTENSITY
+  // So, n = log(MINIMUM_BEAM_INTENSITY/transmittedIntensity) / log(intensityTransmittedFractionPerPixelTwoWay)
+  int numberOfIterationsToReachMinimumBeamIntensity = 0;
+  if (transmittedIntensity>MINIMUM_BEAM_INTENSITY)
+  {
+    numberOfIterationsToReachMinimumBeamIntensity=std::min<int>(numberOfFilledPixels, floor(log(MINIMUM_BEAM_INTENSITY/transmittedIntensity) / log(intensityTransmittedFractionPerPixelTwoWay))+1);
+    double backScatterFactor = transmittedIntensity * intensityAttenuatedFractionPerPixel * this->BackscatterDiffuseReflectionCoefficient / intensityTransmittedFractionPerPixelTwoWay;
+    for(int currentPixelInFilledPixels = 0; currentPixelInFilledPixels<numberOfIterationsToReachMinimumBeamIntensity; currentPixelInFilledPixels++)  
     {
-      transmittedIntensity=0;
-      for (int i=currentPixelInFilledPixels; i<numberOfFilledPixels; i++)
-      {
-        reflectedIntensity[i]=0.0;
-      }
-      break;
+      // a fraction of the attenuation is caused by backscattering, the backscattering is sensed by the transducer
+      // TODO: take into account specular reflection as well
+      //reflectedIntensity[currentPixelInFilledPixels] = *(attenuation++) * backScatterFactor;
+      reflectedIntensity[currentPixelInFilledPixels] = this->PrecomputedAttenuations[currentPixelInFilledPixels] * backScatterFactor;
     }
-
-    // a fraction of the attenuation is caused by backscattering, the backscattering is sensed by the transducer
-    // TODO: take into account specular reflection as well
-    reflectedIntensity[currentPixelInFilledPixels] = transmittedIntensity * intensityAttenuatedFractionPerPixel * this->BackscatterDiffuseReflectionCoefficient;
-
-    transmittedIntensity *= intensityTransmittedFractionPerPixelTwoWay;    
+    transmittedIntensity*=pow(intensityTransmittedFractionPerPixelTwoWay,numberOfIterationsToReachMinimumBeamIntensity);
+  }
+  else
+  {
+    transmittedIntensity=0;
+  }   
+  // The beam intensity is very close to 0, so fill the remaining values with 0 instead of computing miniscule values
+  for(int currentPixelInFilledPixels = numberOfIterationsToReachMinimumBeamIntensity; currentPixelInFilledPixels<numberOfFilledPixels; currentPixelInFilledPixels++)  
+  {
+    reflectedIntensity[currentPixelInFilledPixels]=0.0;
   }
 
   // Add surface reflection
-  double surfaceReflectionIntensityDecayPerPixel = pow(10.0,-this->SurfaceReflectionIntensityDecayDbPerMm*distanceBetweenScanlineSamplePointsMm/10.0);
-  for(int currentPixelInFilledPixels = 0; currentPixelInFilledPixels<numberOfFilledPixels; currentPixelInFilledPixels++)  
+  if (backscatteredReflectedIntensity>MINIMUM_BEAM_INTENSITY)
   {
-    if (backscatteredReflectedIntensity<MINIMUM_BEAM_INTENSITY)
+    double surfaceReflectionIntensityDecayPerPixel = pow(10.0,-this->SurfaceReflectionIntensityDecayDbPerMm*distanceBetweenScanlineSamplePointsMm/10.0);
+    // We iterate until backscatteredReflectedIntensity * surfaceReflectionIntensityDecayPerPixel^n > MINIMUM_BEAM_INTENSITY
+    // So, n = log(MINIMUM_BEAM_INTENSITY/backscatteredReflectedIntensity) / log(surfaceReflectionIntensityDecayPerPixel)
+    int numberOfIterationsToReachMinimumBackscatteredIntensity = std::min<int>(numberOfFilledPixels, floor(log(MINIMUM_BEAM_INTENSITY/backscatteredReflectedIntensity) / log(surfaceReflectionIntensityDecayPerPixel))+1);
+    for(int currentPixelInFilledPixels = 0; currentPixelInFilledPixels<numberOfIterationsToReachMinimumBackscatteredIntensity; currentPixelInFilledPixels++)  
     {
-      break;
+      // a fraction of the attenuation is caused by backscattering, the backscattering is sensed by the transducer
+      reflectedIntensity[currentPixelInFilledPixels] += backscatteredReflectedIntensity;
+      backscatteredReflectedIntensity *= surfaceReflectionIntensityDecayPerPixel;
     }
-    // a fraction of the attenuation is caused by backscattering, the backscattering is sensed by the transducer
-    reflectedIntensity[currentPixelInFilledPixels] += backscatteredReflectedIntensity;
-    backscatteredReflectedIntensity *= surfaceReflectionIntensityDecayPerPixel;
   }
-
 }
 
 //-----------------------------------------------------------------------------
-void SpatialModel::GetLineIntersections(std::deque<LineIntersectionInfo>& lineIntersections, double* scanLineStartPoint_Reference, double* scanLineEndPoint_Reference, vtkMatrix4x4* referenceToObjectMatrix)
+void SpatialModel::GetLineIntersections(std::deque<LineIntersectionInfo>& lineIntersections, double* scanLineStartPoint_Reference, double* scanLineEndPoint_Reference)
 {
   UpdateModelFile();
 
@@ -317,9 +354,8 @@ void SpatialModel::GetLineIntersections(std::deque<LineIntersectionInfo>& lineIn
 
   vtkSmartPointer<vtkMatrix4x4> objectToModelMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   vtkMatrix4x4::Invert(this->ModelToObjectTransform, objectToModelMatrix);
-
   vtkSmartPointer<vtkMatrix4x4> referenceToModelMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  vtkMatrix4x4::Multiply4x4(objectToModelMatrix,referenceToObjectMatrix,referenceToModelMatrix);
+  vtkMatrix4x4::Multiply4x4(objectToModelMatrix,this->ReferenceToObjectTransform,referenceToModelMatrix);
 
   double scanLineStartPoint_Model[4] = {0,0,0,1};
   double scanLineEndPoint_Model[4] = {0,0,0,1};
@@ -427,5 +463,17 @@ void SpatialModel::SetModelFile(const char* modelFile)
   if (this->ModelFile.compare(oldModelFile)!=0)
   {
     this->ModelFileNeedsUpdate=true;
+  }
+}
+
+//-----------------------------------------------------------------------------
+void SpatialModel::UpdatePrecomputedAttenuations(double intensityTransmittedFractionPerPixelTwoWay, int numberOfElements)
+{
+  this->PrecomputedAttenuations.resize(numberOfElements);
+  double attenuation=intensityTransmittedFractionPerPixelTwoWay;  
+  for (int i=0; i<numberOfElements; i++)
+  {
+    this->PrecomputedAttenuations[i]=attenuation;
+    attenuation*=intensityTransmittedFractionPerPixelTwoWay;
   }
 }

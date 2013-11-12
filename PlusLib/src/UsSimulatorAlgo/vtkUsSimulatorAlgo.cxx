@@ -54,7 +54,11 @@ vtkUsSimulatorAlgo::vtkUsSimulatorAlgo()
 
   this->NumberOfScanlines=256;
   this->NumberOfSamplesPerScanline=1000;
+  this->IncomingIntensityMwPerCm2 = 100;
   this->ImagingFrequencyMhz = 2.5;
+  this->BrightnessConversionGamma = 0.333;
+  this->BrightnessConversionOffset = 30;
+  this->BrightnessConversionScale = 30;
 
   this->RfProcessor=vtkRfProcessor::New();
 
@@ -92,6 +96,17 @@ int vtkUsSimulatorAlgo::FillOutputPortInformation(int, vtkInformation * info)
   info->Set(vtkDataObject::DATA_TYPE_NAME(), "vtkImageData"); 
 
   return 1; 
+}
+
+inline double fastPow(double a, double b)
+{
+  union {
+    double d;
+    int x[2];
+  } u = { a };
+  u.x[1] = (int)(b * (u.x[1] - 1072632447) + 1072632447);
+  u.x[0] = 0;
+  return u.d;
 }
 
 //-----------------------------------------------------------------------------
@@ -168,6 +183,22 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
   double scanLineStartPoint_Reference[4] = {0,0,0,1};
   double scanLineEndPoint_Reference[4] = {0,0,0,1};
 
+  for (std::vector<SpatialModel>::iterator spatialModelIt=this->SpatialModels.begin(); spatialModelIt!=this->SpatialModels.end(); ++spatialModelIt)
+  {
+    vtkSmartPointer<vtkMatrix4x4> referenceToObjectMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    if (!spatialModelIt->GetObjectCoordinateFrame().empty())
+    {
+      PlusTransformName referenceToObjectTransformName(this->GetReferenceCoordinateFrame(), spatialModelIt->GetObjectCoordinateFrame());
+      if ( this->TransformRepository->GetTransform(referenceToObjectTransformName, referenceToObjectMatrix) != PLUS_SUCCESS )
+      {
+        std::string strTransformName; 
+        imageToReferenceTransformName.GetTransformName(strTransformName); 
+        LOG_ERROR("Error computing spatial position of "<<spatialModelIt->GetName()<<" SpatialModel: failed to get transform from repository: " << strTransformName ); 
+      }
+    }
+    spatialModelIt->SetReferenceToObjectTransform(referenceToObjectMatrix);
+  }
+
   for(int scanLineIndex=0;scanLineIndex<this->NumberOfScanlines; scanLineIndex++)
   {    
     scanConverter->GetScanLineEndPoints(scanLineIndex, scanLineStartPoint_Image, scanLineEndPoint_Image);     
@@ -183,28 +214,11 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
     }
 
     // Get model intersection positions along the scanline for all the models
-    std::deque<SpatialModel::LineIntersectionInfo> lineIntersectionsWithModels;
+    std::deque<SpatialModel::LineIntersectionInfo> lineIntersectionsWithModels;    
     for (std::vector<SpatialModel>::iterator spatialModelIt=this->SpatialModels.begin(); spatialModelIt!=this->SpatialModels.end(); ++spatialModelIt)
     {
-      std::vector<double> intersectionDistancesFromStartPoint_Reference;
-      // Get reference to object transform
-      vtkSmartPointer<vtkMatrix4x4> referenceToObjectMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-      if (!spatialModelIt->GetObjectCoordinateFrame().empty())
-      {
-        PlusTransformName referenceToObjectTransformName(this->GetReferenceCoordinateFrame(), spatialModelIt->GetObjectCoordinateFrame());
-        if ( this->TransformRepository->GetTransform(referenceToObjectTransformName, referenceToObjectMatrix) != PLUS_SUCCESS )
-        {
-          std::string strTransformName; 
-          imageToReferenceTransformName.GetTransformName(strTransformName); 
-          LOG_ERROR("Error computing spatial position of "<<spatialModelIt->GetName()<<" SpatialModel: failed to get transform from repository: " << strTransformName ); 
-          continue;
-        }
-      }      
-      //const double startTime = vtkAccurateTimer::GetSystemTime();      
       // Append line intersections found with this model to lineIntersectionsWithModels
-      spatialModelIt->GetLineIntersections(lineIntersectionsWithModels, scanLineStartPoint_Reference, scanLineEndPoint_Reference, referenceToObjectMatrix);
-      //const double stopTime = vtkAccurateTimer::GetSystemTime(); 
-      //LOG_INFO("this->ModelLocalizer->IntersectWithLine: "<<(stopTime-startTime)*1000<<" msec");
+      spatialModelIt->GetLineIntersections(lineIntersectionsWithModels, scanLineStartPoint_Reference, scanLineEndPoint_Reference);
     }
 
     ConvertLineModelIntersectionsToSegmentDescriptor(lineIntersectionsWithModels);
@@ -212,7 +226,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
     int currentPixelIndex=0;
     int scanLineExtent[6]={0,this->NumberOfSamplesPerScanline-1,scanLineIndex,scanLineIndex,0,0};
     unsigned char* dstPixelAddress=(unsigned char*)scanLines->GetScalarPointerForExtent(scanLineExtent);
-    double incomingBeamIntensity=50000; // TODO: magic number (should be in mW/cm2)
+    double incomingBeamIntensity=this->IncomingIntensityMwPerCm2*1000;
     int numIntersectionPoints=lineIntersectionsWithModels.size();
     if (numIntersectionPoints<1)
     {
@@ -264,7 +278,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
       }
 
       double outgoingBeamIntensity=0;
-      currentModel->CalculateIntensity(intensities, numberOfFilledPixels, distanceBetweenScanlineSamplePointsMm, previousModel->GetAcousticImpedanceMegarayls(), incomingBeamIntensity, outgoingBeamIntensity);      
+      currentModel->CalculateIntensity(intensities, numberOfFilledPixels, distanceBetweenScanlineSamplePointsMm, previousModel->GetAcousticImpedanceMegarayls(), incomingBeamIntensity, outgoingBeamIntensity);
 
       if (this->NoiseAmplitude>0)
       {
@@ -272,16 +286,15 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
         { 
           samplePointPositions_Reference->GetPoint(currentPixelIndex+pixelIndex, samplePointPosition_Reference);
           double noise=noiseFunction->EvaluateFunction(samplePointPosition_Reference);
-          //unsigned char pixelIntensity=std::max(std::min(10+intensities[pixelIndex]*(1+noise)-noise*100,255.0),0.0);
-          unsigned char pixelIntensity=std::max(std::min(10+GetPixelColorFromBeamIntensity(intensities[pixelIndex])*(1+noise)-noise*100,255.0),0.0);
-          (*dstPixelAddress++)=pixelIntensity;
+          // Noise is multiplicative: NoisySignal = signal + noise * (signal-SignalMean) = signal*(1+noise) - noise*SignalMean;
+          (*dstPixelAddress++)=std::max(std::min(this->BrightnessConversionOffset+this->BrightnessConversionScale*fastPow(intensities[pixelIndex],this->BrightnessConversionGamma)+noise,255.0),0.0);
         }
       }
       else
       {
         for (int pixelIndex=0; pixelIndex<numberOfFilledPixels; pixelIndex++)
         { 
-          (*dstPixelAddress++)=GetPixelColorFromBeamIntensity(intensities[pixelIndex]);
+          (*dstPixelAddress++)=std::max(std::min(this->BrightnessConversionOffset+this->BrightnessConversionScale*fastPow(intensities[pixelIndex],this->BrightnessConversionGamma),255.0),0.0);
         }
       }
       
@@ -298,9 +311,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
     return 0; 
   }
   this->RfProcessor->SetRfFrame(scanLines, US_IMG_BRIGHTNESS);
-  //simulatedUsImage->DeepCopy(scanLines); // TODO: check if it's enough or DeepCopy is needed  
-  simulatedUsImage->DeepCopy(this->RfProcessor->GetBrightessScanConvertedImage()); // TODO: check if it's enough or DeepCopy is needed  
-
+  simulatedUsImage->DeepCopy(this->RfProcessor->GetBrightessScanConvertedImage());
   return 1; 
 }
 
@@ -404,6 +415,28 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
     this->SetImagingFrequencyMhz(usFrequencyMhz); 
   }
 
+  double brightnessConversionGamma = -1;
+  if ( usSimulatorAlgoElement->GetScalarAttribute("BrightnessConversionGamma", brightnessConversionGamma )) 
+  {
+    this->SetBrightnessConversionGamma(brightnessConversionGamma);
+  }
+  double brightnessConversionOffset = -1;
+  if ( usSimulatorAlgoElement->GetScalarAttribute("BrightnessConversionOffset", brightnessConversionOffset )) 
+  {
+    this->SetBrightnessConversionOffset(brightnessConversionOffset);
+  }
+  double brightnessConversionScale = -1;
+  if ( usSimulatorAlgoElement->GetScalarAttribute("BrightnessConversionScale", brightnessConversionScale )) 
+  {
+    this->SetBrightnessConversionScale(brightnessConversionScale);
+  }
+  
+  double incomingIntensityMwPerCm2 = -1;
+  if ( usSimulatorAlgoElement->GetScalarAttribute("IncomingIntensityMwPerCm2", incomingIntensityMwPerCm2 )) 
+  {
+    this->SetIncomingIntensityMwPerCm2(incomingIntensityMwPerCm2);
+  }
+
   usSimulatorAlgoElement->GetScalarAttribute("NoiseAmplitude", this->NoiseAmplitude);
   usSimulatorAlgoElement->GetVectorAttribute("NoiseFrequency", 3, this->NoiseFrequency);
   usSimulatorAlgoElement->GetVectorAttribute("NoisePhase", 3, this->NoisePhase);
@@ -450,13 +483,6 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
   }
 
   return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-int vtkUsSimulatorAlgo::GetPixelColorFromBeamIntensity(double intensity)
-{ 
-  double pixelValue = pow(intensity*1e6,(1.0/3.0)); // TODO: expose magic numbers in the config file
-  return (int)pixelValue; 
 }
 
 //-----------------------------------------------------------------------------

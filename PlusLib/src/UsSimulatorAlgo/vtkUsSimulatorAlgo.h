@@ -58,10 +58,25 @@ public:
   /*! Get US frequency */
   vtkGetMacro(ImagingFrequencyMhz, double);
 
-     /*! Set max intensity in watts per cm squared*/
-  vtkSetMacro(IncomingIntensityWattsPerCm2, double); 
-  /*! Get max intensity in watts per cm squared */
-  vtkGetMacro(IncomingIntensityWattsPerCm2, double);
+  /*! Set max intensity in mW/cm2 */
+  vtkSetMacro(IncomingIntensityMwPerCm2, double); 
+  /*! Get max intensity in mW/cm2 */
+  vtkGetMacro(IncomingIntensityMwPerCm2, double);
+
+  /*! A non-linear function is used for mapping intensities to pixel values: pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma */
+  vtkGetMacro(BrightnessConversionGamma, double);
+  /*! A non-linear function is used for mapping intensities to pixel values: pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma */
+  vtkSetMacro(BrightnessConversionGamma, double);
+
+  /*! A non-linear function is used for mapping intensities to pixel values: pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma */
+  vtkGetMacro(BrightnessConversionOffset, double);
+  /*! A non-linear function is used for mapping intensities to pixel values: pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma */
+  vtkSetMacro(BrightnessConversionOffset, double);
+
+  /*! A non-linear function is used for mapping intensities to pixel values: pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma */
+  vtkGetMacro(BrightnessConversionScale, double);
+  /*! A non-linear function is used for mapping intensities to pixel values: pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma */
+  vtkSetMacro(BrightnessConversionScale, double);
 
   /*! Set number of simulated scanlines */
   vtkSetMacro(NumberOfScanlines, int); 
@@ -76,7 +91,6 @@ protected:
   virtual int RequestData(vtkInformation *request,
                         vtkInformationVector** inputVector,
                         vtkInformationVector* outputVector);
-  int GetPixelColorFromBeamIntensity(double intensity); 
 
   void ConvertLineModelIntersectionsToSegmentDescriptor(std::deque<SpatialModel::LineIntersectionInfo> &lineIntersectionsWithModels);
 
@@ -105,9 +119,18 @@ private:
 
   /*! Frequency of the ultrasound image to be generated*/
   double ImagingFrequencyMhz; 
+
+  /*! A non-linear function is used for mapping intensities to pixel values: pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma */
+  double BrightnessConversionGamma;
+
+  /*! A non-linear function is used for mapping intensities to pixel values. See also BrightnessConversionGamma. */
+  double BrightnessConversionOffset;
+
+  /*! A non-linear function is used for mapping intensities to pixel values. See also BrightnessConversionGamma. */
+  double BrightnessConversionScale;
   
-  /*! incoming Intensity*/
-  double IncomingIntensityWattsPerCm2;  
+  /*! Incoming Intensity in mW/cm2 */
+  double IncomingIntensityMwPerCm2;  
   
   std::vector<SpatialModel> SpatialModels;
 
