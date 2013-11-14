@@ -1,57 +1,64 @@
-<PlusConfiguration version="2.1">
+<PlusConfiguration version="2.3">
 
   <DataCollection StartupDelaySec="1.0" >
-
     <DeviceSet 
-      Name="Simulated ultrasound image with pre-recorded probe motion"
-      Description="No hardware is needed. Can be used for testing data acquisition and volume reconstruction with remotely controlled PlusServer." 
+      Name="Vascular needle insertion simulation"
+      Description="ProbeToTracker, ReferenceToTracker, NeedleToTracker transforms has to be sent from Slicer through OpenIGTLink on port (Test_PlusConfiguration_SimulatedUS.mrb scene already contains a full setup). If used with Ascension tracker: 1 Probe, 2 Reference, 3 Stylus"
     />
-
-    <xDevice
+    
+    <!--
+      For getting transforms from Slicer through OpenIGTLink:
+        UseReceivedTimestamps="false"
+        UseLastTransformsOnReceiveTimeout="true"
+    -->
+     <Device
       Id="TrackerDevice"
-      Type="Ascension3DG"
-      Frequency="15"
+      Type="OpenIGTLinkTracker"
+      MessageType="TRANSFORM"
+      ServerAddress="127.0.0.1"
+      ServerPort="18946"
+      IgtlMessageCrcCheckEnabled="true"
+      UseReceivedTimestamps="false"
+      UseLastTransformsOnReceiveTimeout="true"
+      AcquisitionRate="30"
       LocalTimeOffset="0.0"
-      FilterAcWideNotch="1">
+      ToolReferenceFrame="Tracker">
       <DataSources>
-        <DataSource Type="Tool" Id="Probe" BufferSize="2500" AveragedItemsForFiltering="20" PortName="0" />
-        <DataSource Type="Tool" Id="Reference" BufferSize="2500" AveragedItemsForFiltering="20" PortName="1" />
-        <DataSource Type="Tool" Id="Stylus" BufferSize="2500" AveragedItemsForFiltering="20" PortName="2" />
+        <DataSource Type="Tool" Id="Probe" BufferSize="1000" PortName="0" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" Id="Reference" BufferSize="1000" PortName="1" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" Id="Needle" BufferSize="1000" PortName="2" AveragedItemsForFiltering="20" />
       </DataSources>
-
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream">
+          <DataSource Id="Probe" />
+          <DataSource Id="Reference" />
+          <DataSource Id="Needle"/>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>    
+    <!-- For getting transforms from an Ascension tracker -->    
+    <xDevice
+      Id="TrackerDevice" 
+      Type="Ascension3DG" 
+      AcquisitionRate="50" 
+      LocalTimeOffsetSec="0.0" 
+      FilterAcWideNotch="1"
+	  ToolReferenceFrame="Tracker">
+      <DataSources>
+        <DataSource Type="Tool" Id="Probe" BufferSize="500" PortName="0" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" Id="Reference" BufferSize="500" PortName="1" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" Id="Needle" BufferSize="500" PortName="2" AveragedItemsForFiltering="20" />
+      </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
           <DataSource Id="Probe"/>
           <DataSource Id="Reference"/>
-          <DataSource Id="Stylus"/>
+          <DataSource Id="Needle"/>
         </OutputChannel>
       </OutputChannels>
     </xDevice>
 
-    <Device
-      Id="TrackerDevice"
-      Type="SavedDataSource"
-      UseData="TRANSFORM"
-      AcquisitionRate="10"
-      LocalTimeOffsetSec="0.0"
-      SequenceMetafile="SpinePhantom2Freehand.mha"
-      UseOriginalTimestamps="FALSE"
-      RepeatEnabled="TRUE" >
-      <DataSources>
-        <DataSource Type="Tool" Id="Probe" PortName="0" Model="L14-5_38" BufferSize="2500" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="Reference" PortName="1" BufferSize="2500" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="Stylus" PortName="2" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>      
-      </DataSources>
-
-      <OutputChannels>
-        <OutputChannel Id="TrackerStream" >
-          <DataSource Id="Probe"/>
-          <DataSource Id="Reference"/>
-          <DataSource Id="Stylus"/>
-        </OutputChannel>
-      </OutputChannels>
-    </Device>
-
+    <!-- For getting images from the US simulator -->
     <Device
       Id="VideoDevice"
       Type="UsSimulator"
@@ -60,37 +67,82 @@
       AcquisitionRate="15" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="500" />  
-      </DataSources>
-      
+      </DataSources>      
       <InputChannels>
         <InputChannel Id="TrackerStream" />
       </InputChannels>
-
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
-      </OutputChannels>
-
+      </OutputChannels>      
       <vtkUsSimulatorAlgo
-        BackgroundValue="155"
         ImageCoordinateFrame="Image"
-        ReferenceCoordinateFrame="Phantom"
+        ReferenceCoordinateFrame="Reference"
+        IncomingIntensityMwPerCm2="100"
+        BrightnessConversionGamma="0.2"
+        BrighntessConversionOffset="30"
         NumberOfScanlines="256"
         NumberOfSamplesPerScanline="1000"
-        ModelFileName="SpinePhantom2Model.stl"
-        ModelToReferenceTransform="
-          1 0 0 0
-          0 1 0 0
-          0 0 1 0
-          0 0 0 1" >
+        NoiseAmplitude="5.0"
+        NoiseFrequency="2.5 3.5 1"
+        NoisePhase="50 20 0"        
+        >
+        <SpatialModel
+          Name="Air"
+          DensityKgPerM3="1.2"
+          SoundVelocityMPerSec="343"
+          AttenuationCoefficientDbPerCmMhz="100.0"
+          BackscatterDiffuseReflectionCoefficient="0.1"
+          SurfaceReflectionIntensityDecayDbPerMm="50"
+        />
+        <SpatialModel
+          Name="GelBlock"
+          ObjectCoordinateFrame="Reference"
+          ModelFile="GelBlockModel_Reference.stl"
+          DensityKgPerM3="910"
+          SoundVelocityMPerSec="1540"
+          AttenuationCoefficientDbPerCmMhz="0.65"
+          BackscatterDiffuseReflectionCoefficient="0.1"
+          TransducerSpatialModelMaxOverlapMm="50"
+        />        
+        <SpatialModel
+          Name="Vessel"
+          ObjectCoordinateFrame="Reference"
+          ModelFile="VesselModel_Reference.stl"
+          ModelToObjectTransform="
+            1 0 0 0
+            0 1 0 0
+            0 0 1 0
+            0 0 0 1"
+          DensityKgPerM3="1900"
+          SoundVelocityMPerSec="4000"
+          AttenuationCoefficientDbPerCmMhz="0.1"
+          BackscatterDiffuseReflectionCoefficient="0.03"
+        />
+        <SpatialModel
+          Name="Needle"
+          ObjectCoordinateFrame="NeedleTip"
+          ModelFile="NeedleModel_NeedleTip.stl"
+          ModelToObjectTransform="
+            1 0 0 0
+            0 1 0 0
+            0 0 1 0
+            0 0 0 1"
+          DensityKgPerM3="2000"
+          SoundVelocityMPerSec="2000"      
+          AttenuationCoefficientDbPerCmMhz="8.0"
+          BackscatterDiffuseReflectionCoefficient="0.2"
+          SurfaceReflectionIntensityDecayDbPerMm="5"
+        />
         <RfProcessing>
-          <xScanConversion
+          <ScanConversion
             TransducerName="Ultrasonix_L9-4/38"
             TransducerGeometry="LINEAR"
             ImagingDepthMm="60.0"
             TransducerWidthMm="40.0"
             OutputImageSizePixel="476 689"
             OutputImageSpacingMmPerPixel="0.084 0.087"/>
-          <ScanConversion
+          <!-- Example for a curvilinear transducer: -->
+          <xScanConversion
             TransducerName="BK_8848-axial"
             TransducerGeometry="CURVILINEAR"
             RadiusStartMm="5.0"
@@ -99,11 +151,32 @@
             ThetaStopDeg="60.0"
             OutputImageStartDepthMm="2.0"
             OutputImageSizePixel="1200 800"
-            OutputImageSpacingMmPerPixel="0.084 0.087" />       
-        </RfProcessing>  
-      </vtkUsSimulatorAlgo>      
+            OutputImageSpacingMmPerPixel="0.084 0.087" />
+        </RfProcessing>
+      </vtkUsSimulatorAlgo>
+
     </Device>
 
+    <!-- For getting images from a real US system -->    
+    <xDevice
+      Id="VideoDevice"
+      Type="SonixVideo" 
+      AcquisitionRate="30" 
+      LocalTimeOffsetSec="0.0"
+      IP="localhost" 
+      Depth="50" 
+      CompressionStatus="0"
+      SoundVelocity="1500">
+      <DataSources>
+        <DataSource
+          Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="500" AveragedItemsForFiltering="20"
+          />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video"/>
+      </OutputChannels>
+    </xDevice>
+    
     <Device 
       Id="TrackedVideoDevice" 
       Type="VirtualMixer" >
@@ -116,70 +189,217 @@
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>
     </Device>
-
+    
     <Device
       Id="CaptureDevice"
       Type="VirtualDiscCapture"
-      BaseFilename="SimulatedUSTrackedVideoRecording.mha"
+      BaseFilename="RecordingTest.mha"
       EnableCapturing="FALSE" >
       <InputChannels>
         <InputChannel Id="TrackedVideoStream" />
       </InputChannels>
     </Device>
-    
-  </DataCollection>
-  
-  <CoordinateDefinitions>
-    <Transform
-      From="Image" To="Probe"
-      Matrix="0.0       0.084     0.0        12.5
-              -0.087    0.0       0.0        51.0
-              0.0       0.0       0.087      -4.3    
-              0         0         0          1"
-      Error="1.0" Date="022412_110829" />         
-    <Transform
-      From="Reference" To="Phantom" 
-      Matrix="-0.0217475 0.0054051 0.999749  -35.3258 
-              0.999619 -0.016888  0.021836  -75.1438 
-              0.0170018   0.999843 -0.00503578 -24.2369 
-              0          0         0          1" 
-      Error="0.965947" Date="022412_105333" /> 
-  </CoordinateDefinitions> 
-    
-  <VolumeReconstruction
-    ImageCoordinateFrame="Image" ReferenceCoordinateFrame="Phantom"
-    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off" NumberOfThreads="2"
-    xClipRectangleOrigin="167 62" xClipRectangleSize="495 488" 
-    FanOrigin="357 -20" FanAngles="-60 60" FanDepth="680"
-    OutputOrigin="-90 -115 -30" OutputExtent="0 280 0 200 0 300" OutputSpacing="0.5 0.5 0.5" >
-    <HoleFilling>
-      <HoleFillingElement
-        Type="STICK"     
-        StickLengthLimit="9"
-        NumberOfSticksToUse="1" />
-    </HoleFilling>
-  </VolumeReconstruction>
 
-  
-  <PlusOpenIGTLinkServer 
-    ListeningPort="18944" 
-    MaxNumberOfIgtlMessagesToSend="1" 
-    MaxTimeSpentWithProcessingMs="10"
+  </DataCollection>
+
+  <PlusOpenIGTLinkServer
+    MaxNumberOfIgtlMessagesToSend="10"
+    MaxTimeSpentWithProcessingMs="50"
+    ListeningPort="18944"
+    SendValidTransformsOnly="true"
     OutputChannelId="TrackedVideoStream"
-    > 
-    <DefaultClientInfo> 
-      <MessageTypes> 
+    >
+    <DefaultClientInfo>
+      <MessageTypes>
         <Message Type="IMAGE" />
         <Message Type="TRANSFORM" />
       </MessageTypes>
-      <TransformNames> 
-        <Transform Name="ProbeToPhantom" /> 
-        <Transform Name="StylusToPhantom" /> 
+      <TransformNames>
+        <Transform Name="ProbeToReference" />
+		<Transform Name="NeedleTipToReference" />
       </TransformNames>
-      <ImageNames>
-        <Image Name="Image" EmbeddedTransformToFrame="Phantom" />
-      </ImageNames> 
+    <ImageNames>
+      <Image Name="Image" EmbeddedTransformToFrame="Reference" />
+    </ImageNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>
+
+  <CoordinateDefinitions>
+    <Transform From="NeedleTip" To="Needle"
+      Matrix="
+	     0 0 1 6.0
+         0 1 0 0
+        -1 0 0 0
+         0 0 0 1"
+      Date="2012.02.06 17:57:00" Error="0.0"
+    />
+	
+    <!-- ImageFullFrameToProbe is renamed from the non-simulated ImageToProbe (820x616 image) -->
+    <Transform From="ImageFullFrame" To="Probe"
+      Matrix="
+         -0.00228039 0.0860508 -0.00121134 52.5973
+		 -0.0860501 -0.00229763 -0.00122624 35.9178
+		 -0.00125802 0.0011783 0.0860722 16.3705
+		  0 0 0 1"
+      Error="0.582721" Date="2012.02.06 17:57:00"
+    />
+    
+    <!-- Simulated US frame (Image) within the full 820x616 image frame (ImageFullFrame): topleft=(176,0) -->
+    <Transform From="Image" To="ImageFullFrame"
+      Matrix="
+        1 0 0 176
+        0 1 0 0
+        0 0 1 0
+		0 0 0 1"
+    />  
+            
+    <Transform From="Image" To="TransducerOriginPixel"
+      Matrix="1 0 0 -410
+              0 1 0 5
+              0 0 1 0
+              0 0 0 1"
+      Date="2011.12.06 17:57:00" Error="0.0"
+    />    
+  </CoordinateDefinitions> 
+
+
+  <Rendering WorldCoordinateFrame="Reference">
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" Id="ProbeModel"
+      File="L14-5_38_ProbeModel.stl"
+      ModelToObjectTransform="
+        -1 0 0 29.7
+        0 -1 0 1.5
+        0 0 1 -14
+        0 0 0 1"
+    />
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel"
+      File="Stylus_Example.stl"
+      ModelToObjectTransform="
+        1 0 0 -210.0
+        0 1 0 0
+        0 0 1 0
+        0 0 0 1"
+    />
+    <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
+      Opacity="0.6"
+      File="FCal_2.0.stl"
+      ModelToObjectTransform="
+        1 0 0 -35.0
+        0 1 0 -10.0
+        0 0 1 -5.0
+        0 0 0 1"
+    />
+    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
+  </Rendering>
+
+
+  <Segmentation
+    ApproximateSpacingMmPerPixel="0.078"
+    MorphologicalOpeningCircleRadiusMm="0.27"
+    MorphologicalOpeningBarSizeMm="1.0"
+    ClipRectangleOrigin="27 27" 
+    ClipRectangleSize="766 562" 
+    MaxLinePairDistanceErrorPercent="10"
+    AngleToleranceDegrees="10"
+    MaxAngleDifferenceDegrees="10"
+    MinThetaDegrees="-70"
+    MaxThetaDegrees="70"
+    ThresholdImagePercent="10"
+    CollinearPointsMaxDistanceFromLineMm="0.6"
+    UseOriginalImageIntensityForDotIntensityScore="0"
+  />
+
+
+  <PhantomDefinition>
+    <!-- Supported types are: Double-N, U-Shaped-N -->
+    <Description
+      Name="fCAL"
+      Type="Double-N"
+      Version="2.0"
+      WiringVersion="2.0"
+      Institution="Queen's University PerkLab"
+    />
+
+    <Geometry>
+      <Pattern Type="NWire">
+        <Wire Name="7:G1_g1" EndPointFront="30.0 0.0 20.0" EndPointBack="30.0 40.0 20.0" />
+        <Wire Name="8:L1_h1" EndPointFront="55.0 0.0 20.0" EndPointBack="35.0 40.0 20.0" />
+        <Wire Name="9:M1_m1" EndPointFront="60.0 0.0 20.0" EndPointBack="60.0 40.0 20.0" />
+      </Pattern>
+    <Pattern Type="NWire">
+        <Wire Name="4:G3_g3" EndPointFront="30.0 0.0 10.0" EndPointBack="30.0 40.0 10.0" />
+        <Wire Name="5:H3_l3" EndPointFront="35.0 0.0 10.0" EndPointBack="55.0 40.0 10.0" />
+        <Wire Name="6:M3_m3" EndPointFront="60.0 0.0 10.0" EndPointBack="60.0 40.0 10.0" />
+      </Pattern>
+      <Pattern Type="NWire">
+        <Wire Name="1:H5_h5" EndPointFront="35.0 0.0 0.0" EndPointBack="35.0 40.0 0.0" />
+        <Wire Name="2:L5_i5" EndPointFront="55.0 0.0 0.0" EndPointBack="40.0 40.0 0.0" />
+        <Wire Name="3:M5_m5" EndPointFront="60.0 0.0 0.0" EndPointBack="60.0 40.0 0.0" />
+      </Pattern>
+
+      <Landmarks>
+        <Landmark Name="#1" Position="104.3 5.0 20.0" />
+        <Landmark Name="#2" Position="104.3 45.0 20.0" />
+        <Landmark Name="#3" Position="104.3 45.0 0.0" />
+        <Landmark Name="#4" Position="104.3 -5.0 0.0" />
+        
+        <Landmark Name="#5" Position="-34.3 45.0 15.0" />
+        <Landmark Name="#6" Position="-34.3 -5.0 20.0" />
+        <Landmark Name="#7" Position="-34.3 -5.0 0.0" />
+        <Landmark Name="#8" Position="-34.3 45.0 0.0" />
+      </Landmarks>
+      
+    </Geometry>
+  </PhantomDefinition>
+
+
+  <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
+    ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
+    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"
+  />
+
+
+  <fCal
+    PhantomModelId="PhantomModel"
+    ReconstructedVolumeId="Volume"
+    TransducerModelId="ProbeModel"
+    StylusModelId="StylusModel"
+    ImageDisplayableObjectId="LiveImage"
+    NumberOfCalibrationImagesToAcquire="200"
+    NumberOfValidationImagesToAcquire="100"
+    NumberOfStylusCalibrationPointsToAcquire="200"
+    RecordingIntervalMs="100"
+    MaxTimeSpentWithProcessingMs="70"
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Probe"
+    ReferenceCoordinateFrame="Reference"
+    TransducerOriginCoordinateFrame="TransducerOrigin"
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+    TemporalCalibrationDurationSec="10" 
+	  DefaultSelectedChannelId="TrackedVideoStream" 
+  />
+
+
+  <vtkPivotCalibrationAlgo
+    ObjectMarkerCoordinateFrame="Stylus"
+    ReferenceCoordinateFrame="Reference"
+    ObjectPivotPointCoordinateFrame="StylusTip"
+  />
+
+
+  <vtkPhantomRegistrationAlgo
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+    StylusTipCoordinateFrame="StylusTip"
+  />
+
+
+  <vtkProbeCalibrationAlgo
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Probe"
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+  />
 
 </PlusConfiguration>
