@@ -141,6 +141,20 @@ private:
   double BackscatterDiffuseReflectionCoefficient;
 
   /*!
+    TransducerSpatialModelMaxOverlapMm determines how far from the transducer surface (inside the transducer) we start searching
+    for scanline/SpatialModel intersections.
+    If the value is too small then inside/outside segments may be inverted for the overlapping model.
+    If the value is too large then it may slightly slow down the simulation. 
+    When it is decided if a certain part of a scanline is inside or outside of a model it is assumed that
+    after 1 (or 3, 5, 7, ...) intersections we are inside the model and after 2 (or 4, 6, 8, ...) intersections we are outside the model.
+    This is only true if the scanline start point is outside every spatial model. This is always true in theory, but in practice, due to
+    slight registration errors or deformations the transducer surface may get inside a spatial model by a few mm.
+    To avoid inversion of inside/outside, we start the scanline a few mm away from the true transducer surface so that we can detect intersections
+    that are very close to the transducer surface.
+  */
+  double TransducerSpatialModelMaxOverlapMm;
+
+  /*!
     The fraction of the attenuated intensity that is reflected (backscattered) in a mirror-like way.
     Smooth, polished surfaces have higher values (range: 0.0-1.0).
     A value of one means all the attenuation is caused by a perfect reflection.    
