@@ -26,6 +26,10 @@ static const int CLIENT_SOCKET_TIMEOUT_MSEC = 500;
 
 vtkStandardNewMacro(vtkOpenIGTLinkTracker);
 
+#ifdef _WIN32
+  #include <Winsock2.h>
+#endif
+
 //----------------------------------------------------------------------------
 vtkOpenIGTLinkTracker::vtkOpenIGTLinkTracker()
 : MessageType(NULL)
@@ -37,6 +41,7 @@ vtkOpenIGTLinkTracker::vtkOpenIGTLinkTracker()
 , ClientSocket(igtl::ClientSocket::New())
 , ReconnectOnReceiveTimeout(true)
 , TrackerInternalCoordinateSystemName(NULL)
+, UseLastTransformsOnReceiveTimeout(false)
 {
   this->RequireImageOrientationInConfiguration = false;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
@@ -255,18 +260,72 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdate()
   headerMsg->InitPack();
 
   int numOfBytesReceived = 0;
-  RETRY_UNTIL_TRUE( 
+  RETRY_UNTIL_TRUE(
     (numOfBytesReceived = this->ClientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize() ))!=0,
     this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
    
-  if ( numOfBytesReceived == 0 ) 
+  if ( numOfBytesReceived <= 0 ) 
   {
-    // No message received - data has not been sent yet
-    LOG_WARNING("No data coming from OpenIGTLink Tracker!");
+    std::string logMessage;
+    bool socketError = numOfBytesReceived<0; /* -1 == SOCKET_ERROR */
+#ifdef _WIN32
+    if (socketError)
+    {     
+      int socketErrorCode=WSAGetLastError();
+      if (socketErrorCode==WSAETIMEDOUT)
+      {
+        // timeout, it just means that no data was received, no need to reconnect
+        logMessage="No data coming from OpenIGTLink Tracker (timeout)";
+        socketError=false;
+      }
+      else
+      {
+        LPTSTR errorMsgPtr = 0;
+        if(FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, socketErrorCode, 0, (LPTSTR)&errorMsgPtr, 0, NULL) != 0)
+        {
+          logMessage="No data coming from OpenIGTLink Tracker (socket error: "+std::string(errorMsgPtr);
+        }
+        else
+        {
+          logMessage="No data coming from OpenIGTLink Tracker (unknown socket error)";
+        }
+      }
+    }
+    else
+    {
+      logMessage="No data coming from OpenIGTLink Tracker";
+    }
+#else
+    logMessage="No data coming from OpenIGTLink Tracker";
+#endif  
+
+    if (this->UseLastTransformsOnReceiveTimeout)
+    {
+      // The server only sends update if a transform is modified, it's not an error
+      LOG_DEBUG(logMessage);
+    }
+    else
+    {
+      LOG_WARNING(logMessage);
+    }
+
+    // There is an error with this socket, try to reconnect
     if( this->GetReconnectOnReceiveTimeout() )
     {
-      this->ClientSocket->CloseSocket(); 
-      return this->Connect(); 
+      // if UseLastTransformsOnReceiveTimeout is enabled then timeout is not an error, so don't reconnect (reconnect would erase all items in the buffers)
+      if (socketError || !this->UseLastTransformsOnReceiveTimeout)
+      {        
+        this->ClientSocket->CloseSocket();
+        LOG_DEBUG("Reconnect socket");
+        this->InternalConnect();
+      }
+    }
+    if ( this->UseLastTransformsOnReceiveTimeout )
+    {
+      // Store the last known transform values (useful when the server only notifies about transform changes
+      double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
+      StoreMostRecentTransformValues(unfilteredTimestamp);
+      return PLUS_FAIL;
     }
     return PLUS_FAIL;
   }
@@ -287,7 +346,12 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdate()
   std::string igtlTransformName; 
   
   headerMsg->Unpack(this->IgtlMessageCrcCheckEnabled);
-  if (strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0)
+  if (strcmp( headerMsg->GetDeviceType(), "TDATA" ) == 0 )
+  {
+    // TDATA messages are processed completely differently from other message types
+    return ProcessTDataMessage(headerMsg);
+  }
+  else if (strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0)
   {
     if ( vtkPlusIgtlMessageCommon::UnpackTransformMessage(headerMsg, this->ClientSocket.GetPointer(), toolMatrix, igtlTransformName, unfilteredTimestampUtc, this->IgtlMessageCrcCheckEnabled) != PLUS_SUCCESS )
     {
@@ -309,79 +373,6 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdate()
     toolMatrix->SetElement(1,3, position[1]); 
     toolMatrix->SetElement(2,3, position[2]); 
   }
-  else if (strcmp( headerMsg->GetDeviceType(), "TDATA" ) == 0 )
-  {
-    igtl::TrackingDataMessage::Pointer tdataMsg = igtl::TrackingDataMessage::New();
-    tdataMsg->SetMessageHeader( headerMsg );
-    tdataMsg->AllocatePack();
-
-    this->ClientSocket->Receive( tdataMsg->GetPackBodyPointer(), tdataMsg->GetPackBodySize() );
-    int c = tdataMsg->Unpack( this->IgtlMessageCrcCheckEnabled );
-    if ( ! ( c & igtl::MessageHeader::UNPACK_BODY ) )
-    {
-      LOG_ERROR( "Couldn't receive TDATA message from server!" );
-      return PLUS_FAIL;
-    }
-
-    // for now just use system time, all coordinates will be sequential.
-    double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
-    double filteredTimestamp = unfilteredTimestamp; // No need to filter already filtered timestamped items received over OpenIGTLink 
-    // We store the list of identified tools (tools we get information about from the tracker).
-    // The tools that are missing from the tracker message are assumed to be out of view. 
-    std::set<std::string> identifiedToolNames;
-    for ( int i = 0; i < tdataMsg->GetNumberOfTrackingDataElements(); ++ i )
-    {
-      igtl::TrackingDataElement::Pointer tdataElem = igtl::TrackingDataElement::New();
-      tdataMsg->GetTrackingDataElement( i, tdataElem );
-
-      igtl::Matrix4x4 igtlMatrix;
-      tdataElem->GetMatrix(igtlMatrix);
-      vtkSmartPointer<vtkMatrix4x4> toolMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-      // convert igtl matrix to vtk matrix 
-      for ( int r = 0; r < 4; r++ )
-      {
-        for ( int c = 0; c < 4; c++ )
-        {
-          toolMatrix->SetElement(r,c, igtlMatrix[r][c]); 
-        }
-      }
-
-      // Get timestamp 
-      igtl::TimeStamp::Pointer igtlTimestamp = igtl::TimeStamp::New(); 
-      tdataMsg->GetTimeStamp(igtlTimestamp); 
-      unfilteredTimestampUtc = igtlTimestamp->GetTimeStamp();  
-
-      // Get igtl transform name 
-      igtlTransformName = tdataElem->GetName();
-
-      // Set internal transform name
-      PlusTransformName transformName(igtlTransformName.c_str(), this->TrackerInternalCoordinateSystemName);
-      if ( this->ToolTimeStampedUpdateWithoutFiltering(transformName.From().c_str(), toolMatrix, TOOL_OK, unfilteredTimestamp, filteredTimestamp) == PLUS_SUCCESS )
-      {
-        identifiedToolNames.insert(transformName.From());
-      }
-      else
-      {
-        LOG_ERROR("ToolTimeStampedUpdate failed for tool: " << transformName.From() << " with timestamp: " << std::fixed << unfilteredTimestamp); 
-        // DO NOT return here: we want to update the other tools.
-      }
-    }
-    // Set status for non-detected tools
-    vtkSmartPointer<vtkMatrix4x4> toolMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-    toolMatrix->Identity();
-    for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
-    {    
-      if (identifiedToolNames.find(it->second->GetSourceId())!=identifiedToolNames.end())
-      {
-        // this tool has been found and update has been already called with the correct transform
-        LOG_TRACE("Tool "<<it->second->GetSourceId()<<": found");
-        continue;
-      }
-      LOG_TRACE("Tool "<<it->second->GetSourceId()<<": not found");
-      this->ToolTimeStampedUpdateWithoutFiltering(it->second->GetSourceId(), toolMatrix, TOOL_OUT_OF_VIEW, unfilteredTimestamp, filteredTimestamp);
-    }
-    return PLUS_SUCCESS;
-  }
   else
   {
     // if the data type is unknown, skip reading. 
@@ -396,17 +387,150 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdate()
     LOG_ERROR("Failed to update tracker tool - unrecognized transform name: " << igtlTransformName ); 
     return PLUS_FAIL; 
   }
-  
-  // Convert timestamp from UTC to system  
-  double unfilteredTimestamp = vtkAccurateTimer::GetSystemTimeFromUniversalTime(unfilteredTimestampUtc); 
+    
+  double unfilteredTimestamp = 0;
+  // TODO: read UseReceivedTimestamps from config file
+  if (/*this->UseReceivedTimestamps*/false)
+  {
+    // Convert timestamp from UTC to system  
+    unfilteredTimestamp = vtkAccurateTimer::GetSystemTimeFromUniversalTime(unfilteredTimestampUtc); 
+  }
+  else
+  {
+    unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
+  }
 
   double filteredTimestamp = unfilteredTimestamp; // No need to filter already filtered timestamped items received over OpenIGTLink 
-  if ( this->ToolTimeStampedUpdateWithoutFiltering(transformName.From().c_str(), toolMatrix, TOOL_OK, unfilteredTimestamp, filteredTimestamp) != PLUS_SUCCESS )
+
+  // Store the transform that we've just received
+  if ( this->ToolTimeStampedUpdateWithoutFiltering(transformName.GetTransformName().c_str(), toolMatrix, TOOL_OK, unfilteredTimestamp, filteredTimestamp) != PLUS_SUCCESS )
   {
-    LOG_ERROR("ToolTimeStampedUpdate failed for tool: " << transformName.From() << " with timestamp: " << std::fixed << unfilteredTimestamp); 
+    LOG_ERROR("ToolTimeStampedUpdate failed for tool: " << transformName.GetTransformName() << " with timestamp: " << std::fixed << unfilteredTimestamp); 
+    return PLUS_FAIL;
+  }
+  if ( this->UseLastTransformsOnReceiveTimeout )
+  {
+    // Store all the other transforms with the last known value
+    StoreMostRecentTransformValues(filteredTimestamp);
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkOpenIGTLinkTracker::StoreMostRecentTransformValues(double unfilteredTimestamp)
+{
+  PlusStatus status=PLUS_SUCCESS;
+  // Set status for tools with non-detected markers
+  for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  {
+    vtkSmartPointer<vtkMatrix4x4> toolMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+    // retrieve latest transform value from the buffer
+    if (it->second->GetBuffer()->GetNumberOfItems()>0)
+    {
+      BufferItemUidType latestItemUid = it->second->GetBuffer()->GetLatestItemUidInBuffer();
+      StreamBufferItem item; 
+      if ( it->second->GetBuffer()->GetStreamBufferItem(latestItemUid, &item) == ITEM_OK )
+      {
+        if (item.GetUnfilteredTimestamp(this->GetLocalTimeOffsetSec()) >= unfilteredTimestamp)
+        {
+          // this item already has an updated value for this timestamp, no need to store it again
+          continue;
+        }
+        if (item.GetMatrix(toolMatrix)!=PLUS_SUCCESS)
+        {
+          LOG_WARNING("Failed to get matrix from buffer item with UID: " << latestItemUid );
+          status=PLUS_FAIL;
+        }
+      }
+      else
+      {
+        LOG_WARNING("Failed to get buffer item with UID: " << latestItemUid );
+        status=PLUS_FAIL;
+      }
+    }
+    if ( this->ToolTimeStampedUpdateWithoutFiltering(it->second->GetSourceId(), toolMatrix, TOOL_OK, unfilteredTimestamp, unfilteredTimestamp) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("ToolTimeStampedUpdate failed for tool: " << it->second->GetSourceId() << " with timestamp: " << std::fixed << unfilteredTimestamp); 
+      status=PLUS_FAIL;
+    }
+  }
+  
+  return status;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkOpenIGTLinkTracker::ProcessTDataMessage(igtl::MessageHeader::Pointer headerMsg)
+{
+  igtl::TrackingDataMessage::Pointer tdataMsg = igtl::TrackingDataMessage::New();
+  tdataMsg->SetMessageHeader( headerMsg );
+  tdataMsg->AllocatePack();
+
+  this->ClientSocket->Receive( tdataMsg->GetPackBodyPointer(), tdataMsg->GetPackBodySize() );
+  int c = tdataMsg->Unpack( this->IgtlMessageCrcCheckEnabled );
+  if ( ! ( c & igtl::MessageHeader::UNPACK_BODY ) )
+  {
+    LOG_ERROR( "Couldn't receive TDATA message from server!" );
     return PLUS_FAIL;
   }
 
+  // for now just use system time, all coordinates will be sequential.
+  double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
+  double filteredTimestamp = unfilteredTimestamp; // No need to filter already filtered timestamped items received over OpenIGTLink 
+  // We store the list of identified tools (tools we get information about from the tracker).
+  // The tools that are missing from the tracker message are assumed to be out of view. 
+  std::set<std::string> identifiedToolNames;
+  for ( int i = 0; i < tdataMsg->GetNumberOfTrackingDataElements(); ++ i )
+  {
+    igtl::TrackingDataElement::Pointer tdataElem = igtl::TrackingDataElement::New();
+    tdataMsg->GetTrackingDataElement( i, tdataElem );
+
+    igtl::Matrix4x4 igtlMatrix;
+    tdataElem->GetMatrix(igtlMatrix);
+    vtkSmartPointer<vtkMatrix4x4> toolMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    // convert igtl matrix to vtk matrix 
+    for ( int r = 0; r < 4; r++ )
+    {
+      for ( int c = 0; c < 4; c++ )
+      {
+        toolMatrix->SetElement(r,c, igtlMatrix[r][c]); 
+      }
+    }
+
+    // Get timestamp 
+    igtl::TimeStamp::Pointer igtlTimestamp = igtl::TimeStamp::New(); 
+    tdataMsg->GetTimeStamp(igtlTimestamp); 
+    double unfilteredTimestampUtc = igtlTimestamp->GetTimeStamp();  
+
+    // Get igtl transform name 
+    std::string igtlTransformName = tdataElem->GetName();
+
+    // Set internal transform name
+    PlusTransformName transformName(igtlTransformName.c_str(), this->TrackerInternalCoordinateSystemName);
+    if ( this->ToolTimeStampedUpdateWithoutFiltering(transformName.From().c_str(), toolMatrix, TOOL_OK, unfilteredTimestamp, filteredTimestamp) == PLUS_SUCCESS )
+    {
+      identifiedToolNames.insert(transformName.From());
+    }
+    else
+    {
+      LOG_ERROR("ToolTimeStampedUpdate failed for tool: " << transformName.From() << " with timestamp: " << std::fixed << unfilteredTimestamp); 
+      // DO NOT return here: we want to update the other tools.
+    }
+  }
+  // Set status for non-detected tools
+  vtkSmartPointer<vtkMatrix4x4> toolMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  toolMatrix->Identity();
+  for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  {    
+    if (identifiedToolNames.find(it->second->GetSourceId())!=identifiedToolNames.end())
+    {
+      // this tool has been found and update has been already called with the correct transform
+      LOG_TRACE("Tool "<<it->second->GetSourceId()<<": found");
+      continue;
+    }
+    LOG_TRACE("Tool "<<it->second->GetSourceId()<<": not found");
+    this->ToolTimeStampedUpdateWithoutFiltering(it->second->GetSourceId(), toolMatrix, TOOL_OUT_OF_VIEW, unfilteredTimestamp, filteredTimestamp);
+  }
   return PLUS_SUCCESS;
 }
 
@@ -469,6 +593,12 @@ PlusStatus vtkOpenIGTLinkTracker::ReadConfiguration( vtkXMLDataElement* config )
   {
     this->SetReconnectOnReceiveTimeout(STRCASECMP(reconnect, "true") == 0 ? true : false);
   }
+
+  const char* useLastTransformsOnReceiveTimeout = trackerConfig->GetAttribute("UseLastTransformsOnReceiveTimeout"); 
+  if ( useLastTransformsOnReceiveTimeout != NULL )
+  {
+    this->UseLastTransformsOnReceiveTimeout = (STRCASECMP(useLastTransformsOnReceiveTimeout, "true") == 0 ? true : false);
+  }  
 
   const char* igtlMessageCrcCheckEnabled = trackerConfig->GetAttribute("IgtlMessageCrcCheckEnabled"); 
   if ( igtlMessageCrcCheckEnabled != NULL )

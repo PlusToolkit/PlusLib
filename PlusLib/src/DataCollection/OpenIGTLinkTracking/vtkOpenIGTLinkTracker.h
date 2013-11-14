@@ -10,6 +10,7 @@
 #include "PlusConfigure.h"
 #include "vtkPlusDevice.h"
 #include "igtlClientSocket.h"
+#include "igtlMessageBase.h"
 
 /*!
 \class vtkOpenIGTLinkTracker 
@@ -92,6 +93,16 @@ protected:
   /*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking */
   PlusStatus InternalStopRecording();
 
+  /*! Process a TDATA message (add all the received transforms to the buffers) */
+  PlusStatus ProcessTDataMessage(igtl::MessageHeader::Pointer headerMsg);
+
+  /*!
+    Store the latest transforms again in the buffers with the provided timestamp.
+    If no transforms are defined then identity transform will be stored.
+    If there is a transform defined already with the same timestamp then it will not be overwritten.
+  */
+  PlusStatus StoreMostRecentTransformValues(double unfilteredTimestamp);
+
   /*! Set the ReconnectOnNoData flag */
   vtkSetMacro(ReconnectOnReceiveTimeout, bool);
 
@@ -124,6 +135,9 @@ protected:
     using an STT_TDATA message.
   */
   char* TrackerInternalCoordinateSystemName;
+
+  /*! Use the last known transform value if not received a new value. Useful for servers that only notify about changes in the transforms. */
+  bool UseLastTransformsOnReceiveTimeout;
 
 private:  
   
