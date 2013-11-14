@@ -30,7 +30,8 @@ SpatialModel::SpatialModel()
   this->ReferenceToObjectTransform = vtkMatrix4x4::New();
   this->ModelLocalizer=vtkModifiedBSPTree::New();
   this->PolyData=NULL;
-  this->ModelFileNeedsUpdate=false;  
+  this->ModelFileNeedsUpdate=false;
+  this->TransducerSpatialModelMaxOverlapMm=10;
 }
 
 //-----------------------------------------------------------------------------
@@ -230,6 +231,12 @@ PlusStatus SpatialModel::ReadConfiguration(vtkXMLDataElement* spatialModelElemen
     this->BackscatterSpecularReflectionCoefficient = specularReflectionCoefficient;
   }
 
+  double transducerSpatialModelMaxOverlapMm = 0;
+  if(spatialModelElement->GetScalarAttribute("TransducerSpatialModelMaxOverlapMm",transducerSpatialModelMaxOverlapMm)) 
+  {
+    this->TransducerSpatialModelMaxOverlapMm = transducerSpatialModelMaxOverlapMm;
+  }
+
   return status;
 }
 
@@ -331,6 +338,7 @@ void SpatialModel::CalculateIntensity(std::vector<double>& reflectedIntensity, i
       backscatteredReflectedIntensity *= surfaceReflectionIntensityDecayPerPixel;
     }
   }
+  // TODO: to simulate beamwidth, take into account the incidence angle and disperse the reflection on a larger area if the angle is large
 }
 
 //-----------------------------------------------------------------------------
@@ -350,20 +358,33 @@ void SpatialModel::GetLineIntersections(std::deque<LineIntersectionInfo>& lineIn
     return;
   }
 
-  // TODO: add check if the starting point is inside the object, if it is then add an intersection point at (0) distance
+  // non-normalized direction vector of the scanline
+  double scanLineDirectionVector_Reference[4] =
+  {
+    scanLineEndPoint_Reference[0]-scanLineStartPoint_Reference[0],
+    scanLineEndPoint_Reference[1]-scanLineStartPoint_Reference[1],
+    scanLineEndPoint_Reference[2]-scanLineStartPoint_Reference[2],
+    0
+  };
+  double scanLineDirectionVectorNorm_Reference=vtkMath::Norm(scanLineDirectionVector_Reference);
+  double searchLineStartPoint_Reference[4] = {0,0,0,1};
+  for (int i=0; i<3; i++)
+  {
+    searchLineStartPoint_Reference[i]=scanLineStartPoint_Reference[i]-this->TransducerSpatialModelMaxOverlapMm*scanLineDirectionVector_Reference[i]/scanLineDirectionVectorNorm_Reference;
+  }
 
   vtkSmartPointer<vtkMatrix4x4> objectToModelMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   vtkMatrix4x4::Invert(this->ModelToObjectTransform, objectToModelMatrix);
   vtkSmartPointer<vtkMatrix4x4> referenceToModelMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   vtkMatrix4x4::Multiply4x4(objectToModelMatrix,this->ReferenceToObjectTransform,referenceToModelMatrix);
 
-  double scanLineStartPoint_Model[4] = {0,0,0,1};
+  double searchLineStartPoint_Model[4] = {0,0,0,1};
   double scanLineEndPoint_Model[4] = {0,0,0,1};
-  referenceToModelMatrix->MultiplyPoint(scanLineStartPoint_Reference,scanLineStartPoint_Model);
+  referenceToModelMatrix->MultiplyPoint(searchLineStartPoint_Reference,searchLineStartPoint_Model);
   referenceToModelMatrix->MultiplyPoint(scanLineEndPoint_Reference,scanLineEndPoint_Model);
 
   vtkSmartPointer<vtkPoints> intersectionPoints_Model=vtkSmartPointer<vtkPoints>::New();
-  this->ModelLocalizer->IntersectWithLine(scanLineStartPoint_Model, scanLineEndPoint_Model, 0.0, intersectionPoints_Model, NULL);
+  this->ModelLocalizer->IntersectWithLine(searchLineStartPoint_Model, scanLineEndPoint_Model, 0.0, intersectionPoints_Model, NULL);
 
   if (intersectionPoints_Model->GetNumberOfPoints()<1)
   {
@@ -375,19 +396,44 @@ void SpatialModel::GetLineIntersections(std::deque<LineIntersectionInfo>& lineIn
   vtkMatrix4x4::Invert(referenceToModelMatrix, modelToReferenceMatrix);
 
   // Measure the distance from the starting point in the reference coordinate system
-  // TODO: to simulate beamwidth, take into account the incidence angle and disperse the reflection on a larger area if the angle is large
   double intersectionPoint_Model[4] = {0,0,0,1};
   double intersectionPoint_Reference[4] = {0,0,0,1};
+  int intersectionPointIndex=0;
+  bool scanLineStartPointInsideModel=false;
+  // Search for intersection points in the search line that are not part of the scanline to detect
+  // potential model/transducer overlap
+  for (; intersectionPointIndex<intersectionPoints_Model->GetNumberOfPoints(); intersectionPointIndex++)
+  {
+    intersectionPoints_Model->GetPoint(intersectionPointIndex,intersectionPoint_Model);
+    modelToReferenceMatrix->MultiplyPoint(intersectionPoint_Model,intersectionPoint_Reference);
+    double intersectionDistanceFromSearchLineStartPointMm = sqrt(vtkMath::Distance2BetweenPoints(searchLineStartPoint_Reference, intersectionPoint_Reference));
+    if (intersectionDistanceFromSearchLineStartPointMm<=this->TransducerSpatialModelMaxOverlapMm)
+    {
+      // there is an intersection point in the searchline that is not part of the scanline
+      scanLineStartPointInsideModel = (!scanLineStartPointInsideModel);
+    }
+    else
+    {
+      // we reached the scanline starting point
+      break;
+    }
+  }
   LineIntersectionInfo intersectionInfo;
   intersectionInfo.Model=this;
-  for (int i=0; i<intersectionPoints_Model->GetNumberOfPoints(); i++)
+  if (scanLineStartPointInsideModel)
   {
-    intersectionPoints_Model->GetPoint(i,intersectionPoint_Model);
+    // the scanline starting point is inside the model, so add an intersection point at 0 distance
+    intersectionInfo.IntersectionDistanceFromStartPointMm=0;    
+    lineIntersections.push_back(intersectionInfo);
+  }
+  for (; intersectionPointIndex<intersectionPoints_Model->GetNumberOfPoints(); intersectionPointIndex++)
+  {
+    intersectionPoints_Model->GetPoint(intersectionPointIndex,intersectionPoint_Model);
     modelToReferenceMatrix->MultiplyPoint(intersectionPoint_Model,intersectionPoint_Reference);
     intersectionInfo.IntersectionDistanceFromStartPointMm = sqrt(vtkMath::Distance2BetweenPoints(scanLineStartPoint_Reference, intersectionPoint_Reference));
+    lineIntersections.push_back(intersectionInfo);    
     // TODO: also compute and set the intersectionInfo.IntersectionIncidenceAngleDeg
-    //  It may be useful to return the full normal to make the beamwidth-related computations more accurate.
-    lineIntersections.push_back(intersectionInfo);
+    //  It may be useful to return the full normal to make the beamwidth-related computations more accurate.    
   }
 
 }
