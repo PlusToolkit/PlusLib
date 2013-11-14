@@ -19,19 +19,19 @@ const double MINIMUM_BEAM_INTENSITY=1e-9;
 //-----------------------------------------------------------------------------
 SpatialModel::SpatialModel()
 {  
-  this->DensityKgPerM3 = 0; 
-  this->SoundVelocityMPerSec = 0; 
-  this->AttenuationCoefficientDbPerCmMhz = 0;
+  this->DensityKgPerM3 = 910;
+  this->SoundVelocityMPerSec = 1540;
+  this->AttenuationCoefficientDbPerCmMhz = 0.65;
   this->SurfaceReflectionIntensityDecayDbPerMm = 20;
-  this->BackscatterDiffuseReflectionCoefficient = 0;
-  this->BackscatterSpecularReflectionCoefficient = 0; 
-  this->ImagingFrequencyMhz = 0;
+  this->BackscatterDiffuseReflectionCoefficient = 0.1;
+  this->BackscatterSpecularReflectionCoefficient = 0.0; 
+  this->ImagingFrequencyMhz = 5.0;
   this->ModelToObjectTransform = vtkMatrix4x4::New(); 
   this->ReferenceToObjectTransform = vtkMatrix4x4::New();
   this->ModelLocalizer=vtkModifiedBSPTree::New();
   this->PolyData=NULL;
   this->ModelFileNeedsUpdate=false;
-  this->TransducerSpatialModelMaxOverlapMm=10;
+  this->TransducerSpatialModelMaxOverlapMm=10.0;
 }
 
 //-----------------------------------------------------------------------------
@@ -66,6 +66,7 @@ SpatialModel::SpatialModel(const SpatialModel& model)
   SetPolyData(model.PolyData);
   this->ModelFileNeedsUpdate=model.ModelFileNeedsUpdate;
   this->PrecomputedAttenuations=model.PrecomputedAttenuations;
+  this->TransducerSpatialModelMaxOverlapMm=model.TransducerSpatialModelMaxOverlapMm;
 }
 
 //-----------------------------------------------------------------------------
@@ -87,6 +88,7 @@ void SpatialModel::operator=(const SpatialModel& model)
   SetPolyData(model.PolyData);
   this->ModelFileNeedsUpdate=model.ModelFileNeedsUpdate;
   this->PrecomputedAttenuations=model.PrecomputedAttenuations;
+  this->TransducerSpatialModelMaxOverlapMm=model.TransducerSpatialModelMaxOverlapMm;
 }
 
 //-----------------------------------------------------------------------------
