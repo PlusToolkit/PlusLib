@@ -69,6 +69,9 @@ vtkUsSimulatorAlgo::vtkUsSimulatorAlgo()
   this->NoisePhase[0]=0;
   this->NoisePhase[1]=0;
   this->NoisePhase[2]=0;
+
+  // this->TransducerSpatialModel doesn't have to be initialized, as the default parameters of SpatialModel
+  // are for soft tissue that should match the transducer material in acoustic impedance
 }
 
 //-----------------------------------------------------------------------------
@@ -125,6 +128,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
   {
     spatialModelIt->SetImagingFrequencyMhz(this->ImagingFrequencyMhz);
   }
+  this->TransducerSpatialModel.SetImagingFrequencyMhz(this->ImagingFrequencyMhz);
 
   vtkSmartPointer<vtkImageData> scanLines = vtkSmartPointer<vtkImageData>::New(); // image data containing the scanlines in rows (FM orientation)
   scanLines->SetExtent(0,this->NumberOfSamplesPerScanline-1,0,this->NumberOfScanlines-1,0,0);
@@ -233,6 +237,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
       LOG_ERROR("No intersections with any SpatialObjects. Probably no background object is specified.");
       return 0;
     }
+    SpatialModel *previousModel=&this->TransducerSpatialModel;
     for(vtkIdType intersectionIndex=0;(intersectionIndex<=numIntersectionPoints)&&(currentPixelIndex<this->NumberOfSamplesPerScanline); intersectionIndex++)
     {      
       // determine end of segment position and pixel color
@@ -254,7 +259,11 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
         endOfSegmentPixelIndex=this->NumberOfSamplesPerScanline-1;
       }
 
-      int numberOfFilledPixels=endOfSegmentPixelIndex-currentPixelIndex+1;
+      int numberOfFilledPixels=endOfSegmentPixelIndex-currentPixelIndex;
+      if (numberOfFilledPixels<1)
+      {
+        continue;
+      }
 
       SpatialModel *currentModel=NULL;
       if (intersectionIndex<numIntersectionPoints)
@@ -266,19 +275,10 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
         // the segment after the last intersection point is assumed to belong to the model of the last intersection
         currentModel=lineIntersectionsWithModels[numIntersectionPoints-1].Model;
       }
-      SpatialModel *previousModel=NULL;
-      if (intersectionIndex==0)
-      {
-        // to avoid any reflections at the first pixel
-        previousModel=currentModel;
-      }
-      else
-      {
-        previousModel=lineIntersectionsWithModels[intersectionIndex-1].Model;
-      }
-
+      
       double outgoingBeamIntensity=0;
       currentModel->CalculateIntensity(intensities, numberOfFilledPixels, distanceBetweenScanlineSamplePointsMm, previousModel->GetAcousticImpedanceMegarayls(), incomingBeamIntensity, outgoingBeamIntensity);
+      previousModel=currentModel;
 
       if (this->NoiseAmplitude>0)
       {

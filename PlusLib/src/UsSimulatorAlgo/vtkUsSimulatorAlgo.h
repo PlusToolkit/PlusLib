@@ -134,6 +134,9 @@ private:
   
   std::vector<SpatialModel> SpatialModels;
 
+  /*! Contains material properties of the transducer. Used for computing the sound reflection from the transducer surface. */
+  SpatialModel TransducerSpatialModel;
+
   std::vector<double> InsideObjectReflection;
   std::vector<double> OutsideObjectReflection;
 
