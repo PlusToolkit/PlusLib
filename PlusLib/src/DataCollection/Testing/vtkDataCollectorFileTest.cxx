@@ -145,7 +145,7 @@ int main( int argc, char** argv )
   double timeOffset=timestampOfFirstFrameInFile-recordingStartTime;
 
   // Frame 0001
-  aChannel->GetTrackedFrameByTime(218.792613-timeOffset, &trackedFrame);
+  aChannel->GetTrackedFrame(218.792613-timeOffset, trackedFrame);
   transformRepository->SetTransforms(trackedFrame);
   
   if (CompareTransform(referenceToTrackerTransformName, transformRepository, -292.088, 60.4261, -1762.41)!=PLUS_SUCCESS)
@@ -175,7 +175,7 @@ int main( int argc, char** argv )
   }
 
   // Frame 0013
-  aChannel->GetTrackedFrameByTime(222.619279-timeOffset, &trackedFrame);
+  aChannel->GetTrackedFrame(222.619279-timeOffset, trackedFrame);
   transformRepository->SetTransforms(trackedFrame);
 
   if (CompareTransform(referenceToTrackerTransformName, transformRepository, -292.056, 60.6586, -1762.65)!=PLUS_SUCCESS)

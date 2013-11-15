@@ -76,10 +76,29 @@ PlusStatus vtkUsSimulatorVideoSource::InternalUpdate()
 
   // Get image to tracker transform from the tracker (only request 1 frame, the latest)
   vtkSmartPointer<vtkTrackedFrameList> trackingFrames=vtkSmartPointer<vtkTrackedFrameList>::New();  
+  if (!this->InputChannels[0]->GetTrackingDataAvailable())
+  {
+    LOG_DEBUG("Simulated US image is not generated, as no tracking data is available yet. Device ID: " << this->GetDeviceId() ); 
+    return PLUS_SUCCESS;
+  }
+  double oldestTrackingTimestamp=0;
+  if (this->InputChannels[0]->GetOldestTimestamp(oldestTrackingTimestamp)==PLUS_SUCCESS)
+  {
+    if (this->LastProcessedTrackingDataTimestamp<oldestTrackingTimestamp)
+    {
+      LOG_INFO("Simulated US image generation started. No tracking data was available between "<<this->LastProcessedTrackingDataTimestamp<<"-"<<oldestTrackingTimestamp<<"sec, therefore no simulated images were generated during this time period.");
+      this->LastProcessedTrackingDataTimestamp=oldestTrackingTimestamp;
+    }
+  }
   if ( this->InputChannels[0]->GetTrackedFrameList(this->LastProcessedTrackingDataTimestamp, trackingFrames, 1) != PLUS_SUCCESS )
   {
     LOG_ERROR("Error while getting tracked frame list from data collector during capturing. Last recorded timestamp: " << std::fixed << this->LastProcessedTrackingDataTimestamp << ". Device ID: " << this->GetDeviceId() ); 
     this->LastProcessedTrackingDataTimestamp=vtkAccurateTimer::GetSystemTime(); // forget about the past, try to add frames that are acquired from now on
+    return PLUS_FAIL;
+  }
+  if (trackingFrames->GetNumberOfTrackedFrames()<1)
+  {
+    LOG_ERROR("Simulated US image is not generated, as no tracking data is available. Device ID: " << this->GetDeviceId() ); 
     return PLUS_FAIL;
   }
   TrackedFrame* trackedFrame=trackingFrames->GetTrackedFrame(0);

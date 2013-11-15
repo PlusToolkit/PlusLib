@@ -449,9 +449,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrame( double timestamp, TrackedFrame& aTra
   }
 
   // Add main tool timestamp
-  std::ostringstream timestampFieldValue; 
-  timestampFieldValue << std::fixed << synchronizedTimestamp; 
-  aTrackedFrame.SetCustomFrameField("Timestamp", timestampFieldValue.str()); 
+  aTrackedFrame.SetTimestamp(synchronizedTimestamp);
 
   for (DataSourceContainerConstIterator it = this->GetToolsStartIterator(); it != this->GetToolsEndIterator(); ++it)
   {
@@ -538,7 +536,13 @@ PlusStatus vtkPlusChannel::GetTrackedFrame(TrackedFrame* trackedFrame)
     return PLUS_FAIL;
   }
 
-  return this->GetTrackedFrameByTime(mostRecentFrameTimestamp, trackedFrame); 
+  if (trackedFrame==NULL)
+  {
+    LOG_ERROR("Failed to get most recent tracked frame: trackedFrame pointer is invalid"); 
+    return PLUS_FAIL;
+  }
+
+  return this->GetTrackedFrame(mostRecentFrameTimestamp, *trackedFrame);
 }
 
 //----------------------------------------------------------------------------
@@ -738,7 +742,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList( double& aTimestampFrom, vtkTrack
     // Get tracked frame from buffer
     TrackedFrame trackedFrame; 
 
-    if ( this->GetTrackedFrameByTime(aTimestampFrom, &trackedFrame) != PLUS_SUCCESS )
+    if ( this->GetTrackedFrame(aTimestampFrom, trackedFrame) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to get tracked frame by time: " << std::fixed << aTimestampFrom ); 
       return PLUS_FAIL;
@@ -878,7 +882,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrameListSampled(double &aTimestampOfLastFr
     }
     // Get tracked frame from buffer (actually copies pixel and field data)
     TrackedFrame trackedFrame; 
-    if ( GetTrackedFrameByTime(closestTimestamp, &trackedFrame) != PLUS_SUCCESS )
+    if ( GetTrackedFrame(closestTimestamp, trackedFrame) != PLUS_SUCCESS )
     {
       LOG_WARNING("vtkPlusChannel::GetTrackedFrameListSampled: Unable retrieve frame from the devices for time: " << std::fixed << aTimestampOfNextFrameToBeAdded <<", probably the item is not available in the buffers anymore. Frames may be lost."); 
       continue;
@@ -894,25 +898,6 @@ PlusStatus vtkPlusChannel::GetTrackedFrameListSampled(double &aTimestampOfLastFr
 
 
   return status;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::GetTrackedFrameByTime(double time, TrackedFrame* trackedFrame)
-{
-  LOG_TRACE("vtkPlusChannel::GetTrackedFrameByTime");
-
-  if ( this->GetTrackedFrame(time, *trackedFrame) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to get tracked frame from channel " << this->GetChannelId() << " for timestamp time: " << std::fixed << time );
-    return PLUS_FAIL;
-  }
-
-  // Save frame timestamp
-  std::ostringstream strTimestamp; 
-  strTimestamp << std::fixed << trackedFrame->GetTimestamp(); 
-  trackedFrame->SetCustomFrameField("Timestamp", strTimestamp.str()); 
-
-  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
@@ -952,11 +937,6 @@ PlusStatus vtkPlusChannel::GetOldestTimestamp(double &ts)
     }
 
     BufferItemUidType uid = trackerBuffer->GetOldestItemUidInBuffer(); 
-    if ( uid + 1 < trackerBuffer->GetLatestItemUidInBuffer() )
-    {
-      // Always use the oldestItemUid + 1 to be able to interpolate transforms
-      uid = uid + 1; 
-    }
     // Get the oldest valid timestamp from the tracker buffer
     if ( trackerBuffer->GetTimeStamp(uid, oldestTrackerTimestamp ) != ITEM_OK )
     {
@@ -974,30 +954,37 @@ PlusStatus vtkPlusChannel::GetOldestTimestamp(double &ts)
     oldestTrackerTimestamp = oldestVideoTimestamp; 
   }
 
-  // If the video timestamp is older than the tracker timestamp, adopt to the tracker timestamp
-  while ( oldestVideoTimestamp < oldestTrackerTimestamp )
+  // If the video timestamp is older than the tracker timestamp, then use the earliest video timestamp that comes after the first tracker timestamp
+  if ( oldestVideoTimestamp < oldestTrackerTimestamp )
   {
-    // Start from the oldest tracker timestamp 
-    oldestVideoTimestamp = oldestTrackerTimestamp; 
-
+    // Get the video timestamp that is closest to the oldest tracker timestamp 
     BufferItemUidType videoUid(0); 
-    if ( this->VideoSource->GetBuffer()->GetItemUidFromTime(oldestVideoTimestamp, videoUid) != ITEM_OK )
+    if ( this->VideoSource->GetBuffer()->GetItemUidFromTime(oldestTrackerTimestamp, videoUid) != ITEM_OK )
     {
       LOG_ERROR("Failed to get video buffer item UID from time: " << std::fixed << oldestVideoTimestamp ); 
       return PLUS_FAIL; 
     }
-
-    if ( videoUid + 1 <= this->VideoSource->GetBuffer()->GetLatestItemUidInBuffer() ) 
+    if (oldestVideoTimestamp < oldestTrackerTimestamp)
     {
-      // Always use the next video UID to have an overlap between the two buffers 
-      videoUid = videoUid + 1; 
-    }
-
-    if ( this->VideoSource->GetBuffer()->GetTimeStamp(videoUid, oldestVideoTimestamp) != ITEM_OK )
-    {
-      LOG_ERROR("Failed to get video buffer timestamp from UID: " << videoUid); 
-      return PLUS_FAIL; 
-    }
+      // the closest video timestamp is still smaller than the first tracking data,
+      // so we need the next video timestamp (that should have a timestamp that is larger than the first tracking data)
+      if ( videoUid + 1 > this->VideoSource->GetBuffer()->GetLatestItemUidInBuffer() ) 
+      {
+        // the next video item does not exist, so there is no overlap between the tracking and video data
+        LOG_ERROR("Failed to get oldest timestamp: no overlap between tracking and video data"); 
+        return PLUS_FAIL; 
+      }
+      if ( this->VideoSource->GetBuffer()->GetTimeStamp(videoUid+1, oldestVideoTimestamp) != ITEM_OK )
+      {
+        LOG_ERROR("Failed to get video buffer timestamp from UID: " << videoUid); 
+        return PLUS_FAIL; 
+      }
+      if ( oldestVideoTimestamp < oldestTrackerTimestamp )
+      {
+        LOG_ERROR("Failed to get oldest timestamp: no overlap between tracking and video data"); 
+        return PLUS_FAIL; 
+      }
+    }    
   }
   
   ts = oldestVideoTimestamp; 
@@ -1082,11 +1069,6 @@ PlusStatus vtkPlusChannel::GetMostRecentTimestamp(double &ts)
       LOG_ERROR("Failed to get video buffer item UID from time: " << std::fixed << latestTrackerTimestamp ); 
       return PLUS_FAIL; 
     }
-    if ( uid > 1 )
-    {
-      // Always use the latestItemUid - 1 to be able to interpolate transforms
-      uid = uid - 1; 
-    }
  
     double latestTrackerTimestampForFirstActiveTool=0;
     // Get the most recent valid timestamp from the tracker buffer
@@ -1107,31 +1089,37 @@ PlusStatus vtkPlusChannel::GetMostRecentTimestamp(double &ts)
   {
     latestTrackerTimestamp = latestVideoTimestamp; 
   }
-
-  // If the video timestamp is newer than the tracker timestamp, adopt to the tracker timestamp 
-  while ( latestVideoTimestamp > latestTrackerTimestamp )
+  
+  // If the video timestamp is newer than the tracker timestamp, then use the latest video timestamp that comes before the first tracker timestamp
+  if ( latestVideoTimestamp > latestTrackerTimestamp )
   {
-    // Start from the latest tracker timestamp 
-    latestVideoTimestamp = latestTrackerTimestamp; 
-
     BufferItemUidType videoUid(0); 
-    if ( this->VideoSource->GetBuffer()->GetItemUidFromTime(latestVideoTimestamp, videoUid) != ITEM_OK )
+    if ( this->VideoSource->GetBuffer()->GetItemUidFromTime(latestTrackerTimestamp, videoUid) != ITEM_OK )
     {
       LOG_ERROR("Failed to get video buffer item UID from time: " << std::fixed << latestVideoTimestamp ); 
       return PLUS_FAIL; 
     }
-
-    if ( videoUid > 1 ) 
+    if ( latestVideoTimestamp > latestTrackerTimestamp )
     {
-      // Always use the preceding video UID to have time for transform interpolation 
-      videoUid = videoUid - 1; 
-    }
-
-    if ( this->VideoSource->GetBuffer()->GetTimeStamp(videoUid, latestVideoTimestamp) != ITEM_OK )
-    {
-      LOG_ERROR("Failed to get video buffer timestamp from UID: " << videoUid); 
-      return PLUS_FAIL; 
-    }
+      // the closest video timestamp is still larger than the last tracking data,
+      // so we need the previous video timestamp (that should have a timestamp that is smaller than the first tracking data)
+      if ( videoUid-1 < this->VideoSource->GetBuffer()->GetOldestItemUidInBuffer() ) 
+      {
+        // the previous video item does not exist, so there is no overlap between the tracking and video data
+        LOG_ERROR("Failed to get most recent timestamp: no overlap between tracking and video data"); 
+        return PLUS_FAIL; 
+      }
+      if ( this->VideoSource->GetBuffer()->GetTimeStamp(videoUid-1, latestVideoTimestamp) != ITEM_OK )
+      {
+        LOG_ERROR("Failed to get video buffer timestamp from UID: " << videoUid); 
+        return PLUS_FAIL; 
+      }
+      if ( latestVideoTimestamp > latestTrackerTimestamp )
+      {
+        LOG_ERROR("Failed to get most recent timestamp: no overlap between tracking and video data"); 
+        return PLUS_FAIL; 
+      }
+    }   
   }
 
   ts = latestVideoTimestamp; 

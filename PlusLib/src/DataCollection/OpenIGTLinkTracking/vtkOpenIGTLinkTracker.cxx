@@ -42,6 +42,7 @@ vtkOpenIGTLinkTracker::vtkOpenIGTLinkTracker()
 , ReconnectOnReceiveTimeout(true)
 , TrackerInternalCoordinateSystemName(NULL)
 , UseLastTransformsOnReceiveTimeout(false)
+, UseReceivedTimestamps(true)
 {
   this->RequireImageOrientationInConfiguration = false;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
@@ -87,98 +88,15 @@ PlusStatus vtkOpenIGTLinkTracker::InternalConnect()
 {
   LOG_TRACE( "vtkOpenIGTLinkTracker::InternalConnect" ); 
 
+  // Clear buffers on connect
+  this->ClearAllBuffers();   
+
   if ( this->ClientSocket->GetConnected() )
   {
     return PLUS_SUCCESS; 
   }
 
-  if ( this->ServerAddress == NULL )
-  {
-    LOG_ERROR("Unable to connect OpenIGTLink server - server address is undefined" ); 
-    return PLUS_FAIL; 
-  }
-
-  if ( this->ServerPort < 0 )
-  {
-    LOG_ERROR("Unable to connect OpenIGTLink server - server port is invalid: " << this->ServerPort ); 
-    return PLUS_FAIL; 
-  }
-
-  int errorCode = 0; // 0 means success
-  RETRY_UNTIL_TRUE( 
-    (errorCode = this->ClientSocket->ConnectToServer( this->ServerAddress, this->ServerPort ))==0,
-    this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
-
-  if ( errorCode != 0 )
-  {
-    LOG_ERROR( "Cannot connect to the server (" << this->ServerAddress << ":" << this->ServerPort << ")." );
-    return PLUS_FAIL;
-  }
-  else
-  {
-    LOG_DEBUG( "Client successfully connected to server (" << this->ServerAddress << ":" << this->ServerPort << ")."  );
-  }
-
-  this->ClientSocket->SetTimeout(CLIENT_SOCKET_TIMEOUT_MSEC); 
-
-  // Clear buffers on connect
-  this->ClearAllBuffers(); 
-
-  // If we need TDATA, request server to start streaming.
-  if ( std::string( this->MessageType ).compare( "TDATA" ) == 0 )
-  {
-    igtl::StartTrackingDataMessage::Pointer sttMsg = igtl::StartTrackingDataMessage::New();
-    sttMsg->SetDeviceName("");
-    sttMsg->SetResolution(50);
-    sttMsg->SetCoordinateName(this->TrackerInternalCoordinateSystemName);
-    sttMsg->Pack();
-
-    int retValue = 0;
-    RETRY_UNTIL_TRUE( 
-      (retValue = this->ClientSocket->Send( sttMsg->GetPackPointer(), sttMsg->GetPackSize() ))!=0,
-      this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
-
-    if ( retValue == 0 )
-    {
-      LOG_ERROR("Failed to send STT_TDATA message to server!"); 
-      return PLUS_FAIL; 
-    }
-  }
-
-  // If we specified message type, try to send it to the server
-  if ( this->MessageType != NULL )
-  {
-    // Send client info request to the server
-    PlusIgtlClientInfo clientInfo; 
-    // Set message type
-    clientInfo.IgtlMessageTypes.push_back(this->MessageType); 
-
-    // We need the following tool names from the server 
-    for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it )
-    {
-      PlusTransformName tName( it->second->GetSourceId(), this->GetToolReferenceFrameName() ); 
-      clientInfo.TransformNames.push_back( tName ); 
-    }
-
-    // Pack client info message 
-    igtl::PlusClientInfoMessage::Pointer clientInfoMsg = igtl::PlusClientInfoMessage::New(); 
-    clientInfoMsg->SetClientInfo(clientInfo); 
-    clientInfoMsg->Pack(); 
-
-    // Send message to server 
-    int retValue = 0;
-    RETRY_UNTIL_TRUE( 
-      (retValue = this->ClientSocket->Send( clientInfoMsg->GetPackPointer(), clientInfoMsg->GetPackSize() ))!=0,
-      this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
-
-    if ( retValue == 0 )
-    {
-      LOG_ERROR("Failed to send PlusClientInfo message to server!"); 
-      return PLUS_FAIL; 
-    }
-  }
-
-  return PLUS_SUCCESS; 
+  return ClientSocketReconnect();  
 }
 
 //----------------------------------------------------------------------------
@@ -256,6 +174,158 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdate()
   }
 
   igtl::MessageHeader::Pointer headerMsg;
+  PlusStatus socketStatus=ReceiveMessageHeader(headerMsg);
+  if (socketStatus==PLUS_FAIL)
+  {
+    // There is a socket error
+    if (this->GetReconnectOnReceiveTimeout())
+    {
+      LOG_ERROR("Socket error in device "<<this->GetDeviceId()<<": failed to receive OpenIGTLink transforms. Attempt to reconnect.");
+      ClientSocketReconnect();
+    }
+    else
+    {
+      LOG_ERROR("Socket error in device "<<this->GetDeviceId()<<": failed to receive OpenIGTLink transforms");
+    }
+  }
+  if (headerMsg.IsNull())
+  {
+    // Has not received data
+    if (this->UseLastTransformsOnReceiveTimeout)
+    {
+      // The server only sends update if a transform is modified, it's not an error
+      LOG_TRACE("No OpenIGTLink message has been received in device "<<this->GetDeviceId());
+      // Store the last known transform values (useful when the server only notifies about transform changes
+      double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
+      StoreMostRecentTransformValues(unfilteredTimestamp);
+      return PLUS_SUCCESS;
+    }
+    else
+    {
+      if (this->GetReconnectOnReceiveTimeout())
+      {
+        LOG_WARNING("No OpenIGTLink message has been received in device "<<this->GetDeviceId()<<": failed to receive OpenIGTLink transforms. Attempt to reconnect.");
+        ClientSocketReconnect();
+      }
+      else
+      {
+        LOG_WARNING("No OpenIGTLink message has been received in device "<<this->GetDeviceId());
+      }
+      return PLUS_FAIL;
+    }
+  }
+
+  // We've received valid header data
+
+  if (strcmp( headerMsg->GetDeviceType(), "TDATA" ) == 0 )
+  {
+    // TDATA message
+    return ProcessTDataMessage(headerMsg);
+  }
+  
+  // TRANSFORM or POSITION message
+  return ProcessTransformMessage(headerMsg);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkOpenIGTLinkTracker::ClientSocketReconnect()
+{ 
+  LOG_DEBUG("Attempt to connect to client socket in device "<<this->GetDeviceId());
+  
+  if ( this->ClientSocket->GetConnected() )
+  {
+    this->ClientSocket->CloseSocket();  
+  }
+
+  if ( this->ServerAddress == NULL )
+  {
+    LOG_ERROR("Unable to connect OpenIGTLink server - server address is undefined" ); 
+    return PLUS_FAIL; 
+  }
+
+  if ( this->ServerPort < 0 )
+  {
+    LOG_ERROR("Unable to connect OpenIGTLink server - server port is invalid: " << this->ServerPort ); 
+    return PLUS_FAIL; 
+  }
+
+  int errorCode = 0; // 0 means success
+  RETRY_UNTIL_TRUE( 
+    (errorCode = this->ClientSocket->ConnectToServer( this->ServerAddress, this->ServerPort ))==0,
+    this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
+
+  if ( errorCode != 0 )
+  {
+    LOG_ERROR( "Cannot connect to the server (" << this->ServerAddress << ":" << this->ServerPort << ")." );
+    return PLUS_FAIL;
+  }
+  else
+  {
+    LOG_DEBUG( "Client successfully connected to server (" << this->ServerAddress << ":" << this->ServerPort << ")."  );
+  }
+
+  this->ClientSocket->SetTimeout(CLIENT_SOCKET_TIMEOUT_MSEC); 
+
+  // If we need TDATA, request server to start streaming.
+  if ( std::string( this->MessageType ).compare( "TDATA" ) == 0 )
+  {
+    igtl::StartTrackingDataMessage::Pointer sttMsg = igtl::StartTrackingDataMessage::New();
+    sttMsg->SetDeviceName("");
+    sttMsg->SetResolution(50);
+    sttMsg->SetCoordinateName(this->TrackerInternalCoordinateSystemName);
+    sttMsg->Pack();
+
+    int retValue = 0;
+    RETRY_UNTIL_TRUE( 
+      (retValue = this->ClientSocket->Send( sttMsg->GetPackPointer(), sttMsg->GetPackSize() ))!=0,
+      this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
+
+    if ( retValue == 0 )
+    {
+      LOG_ERROR("Failed to send STT_TDATA message to server!"); 
+      return PLUS_FAIL; 
+    }
+  }
+
+  // If we specified message type, try to send it to the server
+  if ( this->MessageType != NULL )
+  {
+    // Send client info request to the server
+    PlusIgtlClientInfo clientInfo; 
+    // Set message type
+    clientInfo.IgtlMessageTypes.push_back(this->MessageType); 
+
+    // We need the following tool names from the server 
+    for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it )
+    {
+      PlusTransformName tName( it->second->GetSourceId(), this->GetToolReferenceFrameName() ); 
+      clientInfo.TransformNames.push_back( tName ); 
+    }
+
+    // Pack client info message 
+    igtl::PlusClientInfoMessage::Pointer clientInfoMsg = igtl::PlusClientInfoMessage::New(); 
+    clientInfoMsg->SetClientInfo(clientInfo); 
+    clientInfoMsg->Pack(); 
+
+    // Send message to server 
+    int retValue = 0;
+    RETRY_UNTIL_TRUE( 
+      (retValue = this->ClientSocket->Send( clientInfoMsg->GetPackPointer(), clientInfoMsg->GetPackSize() ))!=0,
+      this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
+
+    if ( retValue == 0 )
+    {
+      LOG_ERROR("Failed to send PlusClientInfo message to server!"); 
+      return PLUS_FAIL; 
+    }
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkOpenIGTLinkTracker::ReceiveMessageHeader(igtl::MessageHeader::Pointer &headerMsg)
+{  
   headerMsg = igtl::MessageHeader::New();
   headerMsg->InitPack();
 
@@ -263,158 +333,57 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdate()
   RETRY_UNTIL_TRUE(
     (numOfBytesReceived = this->ClientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize() ))!=0,
     this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
-   
-  if ( numOfBytesReceived <= 0 ) 
+
+  if ( numOfBytesReceived > 0)
   {
-    std::string logMessage;
-    bool socketError = numOfBytesReceived<0; /* -1 == SOCKET_ERROR */
+    // Data is received
+    if ( numOfBytesReceived != headerMsg->GetPackSize() )
+    {
+      // Received data is not as we expected
+      LOG_ERROR("Couldn't receive data from OpenIGTLink tracker (unexpected header size)"); 
+      headerMsg=NULL;
+      return PLUS_FAIL; 
+    }
+    return PLUS_SUCCESS;
+  }
+   
+  // No data has been received
+  headerMsg=NULL; // this will indicate the caller that no data has been read
+
+  bool socketError = numOfBytesReceived<0; /* -1 == SOCKET_ERROR */
 #ifdef _WIN32
-    if (socketError)
-    {     
-      int socketErrorCode=WSAGetLastError();
-      if (socketErrorCode==WSAETIMEDOUT)
+  // On Windows try to get some more details about the socket error
+  if (socketError)
+  {     
+    int socketErrorCode=WSAGetLastError();
+    if (socketErrorCode==WSAETIMEDOUT)
+    {
+      // timeout, it just means that no data was received, no need to reconnect
+      LOG_TRACE("No data coming from OpenIGTLink Tracker (timeout)");
+      socketError=false;
+    }
+    else
+    {
+      LPTSTR errorMsgPtr = 0;
+      if(FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, socketErrorCode, 0, (LPTSTR)&errorMsgPtr, 0, NULL) != 0)
       {
-        // timeout, it just means that no data was received, no need to reconnect
-        logMessage="No data coming from OpenIGTLink Tracker (timeout)";
-        socketError=false;
+        LOG_DEBUG("No data coming from OpenIGTLink Tracker (socket error: "<<errorMsgPtr<<")");
       }
       else
       {
-        LPTSTR errorMsgPtr = 0;
-        if(FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, socketErrorCode, 0, (LPTSTR)&errorMsgPtr, 0, NULL) != 0)
-        {
-          logMessage="No data coming from OpenIGTLink Tracker (socket error: "+std::string(errorMsgPtr);
-        }
-        else
-        {
-          logMessage="No data coming from OpenIGTLink Tracker (unknown socket error)";
-        }
+        LOG_DEBUG("No data coming from OpenIGTLink Tracker (unknown socket error)");
       }
     }
-    else
-    {
-      logMessage="No data coming from OpenIGTLink Tracker";
-    }
+  }
+  else
+  {
+    LOG_DEBUG("No data coming from OpenIGTLink Tracker");
+  }
 #else
-    logMessage="No data coming from OpenIGTLink Tracker";
+  LOG_DEBUG("No data coming from OpenIGTLink Tracker");
 #endif  
-
-    if (this->UseLastTransformsOnReceiveTimeout)
-    {
-      // The server only sends update if a transform is modified, it's not an error
-      LOG_DEBUG(logMessage);
-    }
-    else
-    {
-      LOG_WARNING(logMessage);
-    }
-
-    // There is an error with this socket, try to reconnect
-    if( this->GetReconnectOnReceiveTimeout() )
-    {
-      // if UseLastTransformsOnReceiveTimeout is enabled then timeout is not an error, so don't reconnect (reconnect would erase all items in the buffers)
-      if (socketError || !this->UseLastTransformsOnReceiveTimeout)
-      {        
-        this->ClientSocket->CloseSocket();
-        LOG_DEBUG("Reconnect socket");
-        this->InternalConnect();
-      }
-    }
-    if ( this->UseLastTransformsOnReceiveTimeout )
-    {
-      // Store the last known transform values (useful when the server only notifies about transform changes
-      double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
-      StoreMostRecentTransformValues(unfilteredTimestamp);
-      return PLUS_FAIL;
-    }
-    return PLUS_FAIL;
-  }
-
-  // Received data is not as we expected
-  if ( numOfBytesReceived != headerMsg->GetPackSize() )
-  {
-    LOG_ERROR("Couldn't receive data from OpenIGTLink tracker"); 
-    return PLUS_FAIL; 
-  }
-
-  vtkSmartPointer<vtkMatrix4x4> toolMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
-  double unfilteredTimestampUtc = 0; 
-
-  igtl::TimeStamp::Pointer igtlTimestamp = igtl::TimeStamp::New(); 
-  igtl::Matrix4x4 igtlMatrix;
-  igtl::IdentityMatrix(igtlMatrix);
-  std::string igtlTransformName; 
-  
-  headerMsg->Unpack(this->IgtlMessageCrcCheckEnabled);
-  if (strcmp( headerMsg->GetDeviceType(), "TDATA" ) == 0 )
-  {
-    // TDATA messages are processed completely differently from other message types
-    return ProcessTDataMessage(headerMsg);
-  }
-  else if (strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0)
-  {
-    if ( vtkPlusIgtlMessageCommon::UnpackTransformMessage(headerMsg, this->ClientSocket.GetPointer(), toolMatrix, igtlTransformName, unfilteredTimestampUtc, this->IgtlMessageCrcCheckEnabled) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Couldn't receive transform message from server!"); 
-      return PLUS_FAIL;
-    }
-  }
-  else if (strcmp(headerMsg->GetDeviceType(), "POSITION") == 0)
-  {
-    float position[3] = {0}; 
-    if ( vtkPlusIgtlMessageCommon::UnpackPositionMessage(headerMsg, this->ClientSocket.GetPointer(), position, igtlTransformName, unfilteredTimestampUtc, this->IgtlMessageCrcCheckEnabled) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Couldn't receive position message from server!"); 
-      return PLUS_FAIL;
-    }
-
-    toolMatrix->Identity(); 
-    toolMatrix->SetElement(0,3, position[0]); 
-    toolMatrix->SetElement(1,3, position[1]); 
-    toolMatrix->SetElement(2,3, position[2]); 
-  }
-  else
-  {
-    // if the data type is unknown, skip reading. 
-    this->ClientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
-    return PLUS_SUCCESS; 
-  }
-
-  // Set transform name
-  PlusTransformName transformName;
-  if ( transformName.SetTransformName( igtlTransformName.c_str() ) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to update tracker tool - unrecognized transform name: " << igtlTransformName ); 
-    return PLUS_FAIL; 
-  }
-    
-  double unfilteredTimestamp = 0;
-  // TODO: read UseReceivedTimestamps from config file
-  if (/*this->UseReceivedTimestamps*/false)
-  {
-    // Convert timestamp from UTC to system  
-    unfilteredTimestamp = vtkAccurateTimer::GetSystemTimeFromUniversalTime(unfilteredTimestampUtc); 
-  }
-  else
-  {
-    unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
-  }
-
-  double filteredTimestamp = unfilteredTimestamp; // No need to filter already filtered timestamped items received over OpenIGTLink 
-
-  // Store the transform that we've just received
-  if ( this->ToolTimeStampedUpdateWithoutFiltering(transformName.GetTransformName().c_str(), toolMatrix, TOOL_OK, unfilteredTimestamp, filteredTimestamp) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("ToolTimeStampedUpdate failed for tool: " << transformName.GetTransformName() << " with timestamp: " << std::fixed << unfilteredTimestamp); 
-    return PLUS_FAIL;
-  }
-  if ( this->UseLastTransformsOnReceiveTimeout )
-  {
-    // Store all the other transforms with the last known value
-    StoreMostRecentTransformValues(filteredTimestamp);
-  }
-
-  return PLUS_SUCCESS;
+   
+  return socketError ? PLUS_FAIL : PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -535,6 +504,81 @@ PlusStatus vtkOpenIGTLinkTracker::ProcessTDataMessage(igtl::MessageHeader::Point
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkOpenIGTLinkTracker::ProcessTransformMessage(igtl::MessageHeader::Pointer headerMsg)
+{
+  double unfilteredTimestampUtc = 0; 
+  vtkSmartPointer<vtkMatrix4x4> toolMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  std::string igtlTransformName; 
+  
+  headerMsg->Unpack(this->IgtlMessageCrcCheckEnabled);
+  if (strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0)
+  {
+    if ( vtkPlusIgtlMessageCommon::UnpackTransformMessage(headerMsg, this->ClientSocket.GetPointer(), toolMatrix, igtlTransformName, unfilteredTimestampUtc, this->IgtlMessageCrcCheckEnabled) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Couldn't receive transform message from server!"); 
+      return PLUS_FAIL;
+    }
+  }
+  else if (strcmp(headerMsg->GetDeviceType(), "POSITION") == 0)
+  {
+    float position[3] = {0}; 
+    if ( vtkPlusIgtlMessageCommon::UnpackPositionMessage(headerMsg, this->ClientSocket.GetPointer(), position, igtlTransformName, unfilteredTimestampUtc, this->IgtlMessageCrcCheckEnabled) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Couldn't receive position message from server!"); 
+      return PLUS_FAIL;
+    }
+    toolMatrix->Identity(); 
+    toolMatrix->SetElement(0,3, position[0]); 
+    toolMatrix->SetElement(1,3, position[1]); 
+    toolMatrix->SetElement(2,3, position[2]); 
+  }
+  else
+  {
+    // if the data type is unknown, skip reading. 
+    this->ClientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
+    return PLUS_SUCCESS; 
+  }
+
+  // Set transform name
+  PlusTransformName transformName;
+  if ( transformName.SetTransformName( igtlTransformName.c_str() ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to update tracker tool - unrecognized transform name: " << igtlTransformName ); 
+    return PLUS_FAIL; 
+  }
+    
+  double unfilteredTimestamp = 0;
+  if (this->UseReceivedTimestamps)
+  {
+    // Use the timestamp in the OpenIGTLink message
+    // The received timestamp is in UTC and timestampts in the buffer are in system time, so conversion is needed
+    unfilteredTimestamp = vtkAccurateTimer::GetSystemTimeFromUniversalTime(unfilteredTimestampUtc); 
+  }
+  else
+  {
+    unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
+  }  
+
+  // No need to filter already filtered timestamped items received over OpenIGTLink 
+  // If the original timestamps are not used it's still safer not to use filtering, as filtering assumes uniform framerate, which is not guaranteed
+  double filteredTimestamp = unfilteredTimestamp;
+
+  // Store the transform that we've just received
+  if ( this->ToolTimeStampedUpdateWithoutFiltering(transformName.GetTransformName().c_str(), toolMatrix, TOOL_OK, unfilteredTimestamp, filteredTimestamp) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("ToolTimeStampedUpdate failed for tool: " << transformName.GetTransformName() << " with timestamp: " << std::fixed << unfilteredTimestamp); 
+    return PLUS_FAIL;
+  }
+  if ( this->UseLastTransformsOnReceiveTimeout )
+  {
+    // Store all the other transforms with the last known value
+    StoreMostRecentTransformValues(filteredTimestamp);
+  }
+
+  return PLUS_SUCCESS;
+  }
+
+//----------------------------------------------------------------------------
 PlusStatus vtkOpenIGTLinkTracker::ReadConfiguration( vtkXMLDataElement* config )
 {
   // Read superclass configuration first
@@ -598,6 +642,12 @@ PlusStatus vtkOpenIGTLinkTracker::ReadConfiguration( vtkXMLDataElement* config )
   if ( useLastTransformsOnReceiveTimeout != NULL )
   {
     this->UseLastTransformsOnReceiveTimeout = (STRCASECMP(useLastTransformsOnReceiveTimeout, "true") == 0 ? true : false);
+  }
+
+  const char* useReceivedTimestamps = trackerConfig->GetAttribute("UseReceivedTimestamps"); 
+  if ( useReceivedTimestamps != NULL )
+  {
+    this->UseReceivedTimestamps = (STRCASECMP(useReceivedTimestamps, "true") == 0 ? true : false);
   }  
 
   const char* igtlMessageCrcCheckEnabled = trackerConfig->GetAttribute("IgtlMessageCrcCheckEnabled"); 

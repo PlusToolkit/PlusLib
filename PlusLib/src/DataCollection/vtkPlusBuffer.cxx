@@ -617,24 +617,24 @@ ItemStatus vtkPlusBuffer::GetStreamBufferItem(BufferItemUidType uid, StreamBuffe
 {
   if ( bufferItem == NULL )
   {
-    LOCAL_LOG_ERROR("Unable to copy data buffer item into a NULL data buffer item!"); 
+    LOCAL_LOG_ERROR("Unable to copy data buffer item into a NULL data buffer item!");
     return ITEM_UNKNOWN_ERROR; 
   }
 
   ItemStatus status = this->StreamBuffer->GetFrameStatus(uid); 
   if ( status != ITEM_OK )
   {
-    if (  status == ITEM_NOT_AVAILABLE_ANYMORE )
+    if ( status == ITEM_NOT_AVAILABLE_ANYMORE )
     {
-      LOCAL_LOG_WARNING("Failed to get data buffer item: data item not available anymore"); 
+      LOCAL_LOG_DEBUG("Failed to get data buffer item: data item not available anymore"); 
     }
     else if (  status == ITEM_NOT_AVAILABLE_YET )
     {
-      LOCAL_LOG_WARNING("Failed to get data buffer item: data item not available yet"); 
+      LOCAL_LOG_DEBUG("Failed to get data buffer item: data item not available yet"); 
     }
     else
     {
-      LOCAL_LOG_WARNING("Failed to get data buffer item!"); 
+      LOCAL_LOG_WARNING("Failed to get data buffer item"); 
     }
     return status; 
   }

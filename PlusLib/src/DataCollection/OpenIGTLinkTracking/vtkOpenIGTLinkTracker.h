@@ -93,6 +93,19 @@ protected:
   /*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking */
   PlusStatus InternalStopRecording();
 
+  /*! Reconnect the client socket. Used when the connection is established or there is a socket error. */
+  PlusStatus ClientSocketReconnect();
+
+  /*!
+    Receive an OpenITGLink message header.
+    Returns PLUS_FAIL if there was a socket error.
+    The headerMsg is NULL is no data is received.
+  */
+  PlusStatus ReceiveMessageHeader(igtl::MessageHeader::Pointer &headerMsg);
+
+  /*! Process a TRANSFORM or POSITION message (add the received transform to the buffer) */
+  PlusStatus ProcessTransformMessage(igtl::MessageHeader::Pointer headerMsg);
+
   /*! Process a TDATA message (add all the received transforms to the buffers) */
   PlusStatus ProcessTDataMessage(igtl::MessageHeader::Pointer headerMsg);
 
@@ -138,6 +151,12 @@ protected:
 
   /*! Use the last known transform value if not received a new value. Useful for servers that only notify about changes in the transforms. */
   bool UseLastTransformsOnReceiveTimeout;
+
+  /*!
+    Use the timestamp embedded in the OpenIGTLink message (the timestamp is converted form the UTC time to system time).
+    If it is false then the time of reception is used as timestamp.
+  */
+  bool UseReceivedTimestamps;
 
 private:  
   

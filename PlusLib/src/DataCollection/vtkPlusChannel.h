@@ -95,13 +95,6 @@ public:
   /*! Get the closest tracked frame timestamp to the specified time */
   virtual double GetClosestTrackedFrameTimestampByTime(double time);
 
-  /*! 
-    Get the tracked frame from devices by time with each tool transforms
-    \param time The closes frame to this timestamp will be retrieved
-    \param trackedFrame The output where the tracked frame information will be copied
-  */
-  virtual PlusStatus GetTrackedFrameByTime(double time, TrackedFrame* trackedFrame); 
-
   /*! Return the most recent synchronized timestamp in the buffers */
   virtual PlusStatus GetMostRecentTimestamp(double &ts); 
 
