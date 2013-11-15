@@ -416,20 +416,34 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
     // Maximize the number of frames to send
     numberOfFramesToGet = std::min(numberOfFramesToGet, self->MaxNumberOfIgtlMessagesToSend); 
 
-    if ( self->BroadcastChannel->GetTrackedFrameList(self->LastSentTrackedFrameTimestamp, trackedFrameList, numberOfFramesToGet) != PLUS_SUCCESS )
+    trackedFrameList->Clear();
+    if ( ( self->BroadcastChannel->HasVideoSource() && !self->BroadcastChannel->GetVideoDataAvailable())
+      || (!self->BroadcastChannel->HasVideoSource() && !self->BroadcastChannel->GetTrackingDataAvailable()) )
     {
-      LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << self->LastSentTrackedFrameTimestamp ); 
-      self->KeepAlive(); 
-      elapsedTimeSinceLastPacketSentSec = 0; 
-      self->LastSentTrackedFrameTimestamp = 0; // next time start from the most recent timestamp
-      vtkAccurateTimer::Delay(DELAY_ON_SENDING_ERROR_SEC); 
-      continue; 
+      LOG_DEBUG("No data is broadcasted, as no data is available yet"); 
+    }
+    else
+    {
+      double oldestDataTimestamp=0;
+      if (self->BroadcastChannel->GetOldestTimestamp(oldestDataTimestamp)==PLUS_SUCCESS)
+      {
+        if (self->LastSentTrackedFrameTimestamp<oldestDataTimestamp)
+        {
+          LOG_INFO("OpenIGTLink broadcasting started. No data was available between "<<self->LastSentTrackedFrameTimestamp<<"-"<<oldestDataTimestamp<<"sec, therefore no data were broadcasted during this time period.");
+          self->LastSentTrackedFrameTimestamp=oldestDataTimestamp;
+        }
+        if ( self->BroadcastChannel->GetTrackedFrameList(self->LastSentTrackedFrameTimestamp, trackedFrameList, numberOfFramesToGet) != PLUS_SUCCESS )
+        {
+          LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << self->LastSentTrackedFrameTimestamp ); 
+          vtkAccurateTimer::Delay(DELAY_ON_SENDING_ERROR_SEC); 
+        }
+      }      
     }
 
     // There is no new frame in the buffer
     if ( trackedFrameList->GetNumberOfTrackedFrames() == 0 )
     {
-      vtkAccurateTimer::Delay(DELAY_ON_NO_NEW_FRAMES_SEC); 
+      vtkAccurateTimer::Delay(DELAY_ON_NO_NEW_FRAMES_SEC);
       elapsedTimeSinceLastPacketSentSec += vtkAccurateTimer::GetSystemTime() - startTimeSec; 
 
       // Send keep alive packet to clients 
