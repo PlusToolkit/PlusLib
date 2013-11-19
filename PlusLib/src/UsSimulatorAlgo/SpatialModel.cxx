@@ -12,9 +12,17 @@ See License.txt for details.
 #include "vtkObjectFactory.h"
 #include "vtkSTLReader.h"
 #include "vtkXMLPolyDataReader.h"
+#include "vtkPolyDataNormals.h"
+#include "vtkProbeFilter.h"
+#include "vtkPointData.h"
+#include "vtkIdList.h"
+#include "vtkTriangle.h"
 
 // If fraction of the transmitted beam intensity is smaller then this value then we consider the beam to be completely absorbed
 const double MINIMUM_BEAM_INTENSITY=1e-9;
+
+// Characterizes the specular reflection BRDF. If the value is smaller then reflection is limited to a smaller angle range (closer to 90deg incidence angle).
+double SPECULAR_REFLECTION_BRDF_STDEV=30.0;
 
 //-----------------------------------------------------------------------------
 SpatialModel::SpatialModel()
@@ -24,7 +32,8 @@ SpatialModel::SpatialModel()
   this->AttenuationCoefficientDbPerCmMhz = 0.65;
   this->SurfaceReflectionIntensityDecayDbPerMm = 20;
   this->BackscatterDiffuseReflectionCoefficient = 0.1;
-  this->BackscatterSpecularReflectionCoefficient = 0.0; 
+  this->SurfaceDiffuseReflectionCoefficient = 0.1;
+  this->SurfaceSpecularReflectionCoefficient = 0.0;
   this->ImagingFrequencyMhz = 5.0;
   this->ModelToObjectTransform = vtkMatrix4x4::New(); 
   this->ReferenceToObjectTransform = vtkMatrix4x4::New();
@@ -55,7 +64,8 @@ SpatialModel::SpatialModel(const SpatialModel& model)
   this->AttenuationCoefficientDbPerCmMhz=model.AttenuationCoefficientDbPerCmMhz;
   this->SurfaceReflectionIntensityDecayDbPerMm=model.SurfaceReflectionIntensityDecayDbPerMm;
   this->BackscatterDiffuseReflectionCoefficient=model.BackscatterDiffuseReflectionCoefficient;
-  this->BackscatterSpecularReflectionCoefficient=model.BackscatterSpecularReflectionCoefficient;
+  this->SurfaceDiffuseReflectionCoefficient=model.SurfaceDiffuseReflectionCoefficient;
+  this->SurfaceSpecularReflectionCoefficient=model.SurfaceSpecularReflectionCoefficient;
   this->ModelToObjectTransform = NULL; 
   this->ReferenceToObjectTransform = NULL; 
   this->ModelLocalizer = NULL;
@@ -81,7 +91,8 @@ void SpatialModel::operator=(const SpatialModel& model)
   this->AttenuationCoefficientDbPerCmMhz=model.AttenuationCoefficientDbPerCmMhz;
   this->SurfaceReflectionIntensityDecayDbPerMm=model.SurfaceReflectionIntensityDecayDbPerMm;
   this->BackscatterDiffuseReflectionCoefficient=model.BackscatterDiffuseReflectionCoefficient;
-  this->BackscatterSpecularReflectionCoefficient=model.BackscatterSpecularReflectionCoefficient;
+  this->SurfaceDiffuseReflectionCoefficient=model.SurfaceDiffuseReflectionCoefficient;
+  this->SurfaceSpecularReflectionCoefficient=model.SurfaceSpecularReflectionCoefficient;
   SetModelToObjectTransform(model.ModelToObjectTransform);
   SetReferenceToObjectTransform(model.ReferenceToObjectTransform);
   SetModelLocalizer(model.ModelLocalizer);
@@ -126,7 +137,6 @@ void SpatialModel::SetReferenceToObjectTransform(vtkMatrix4x4* referenceToObject
     this->ReferenceToObjectTransform->Register(NULL);
   }
 }
-
 
 //-----------------------------------------------------------------------------
 void SpatialModel::SetPolyData(vtkPolyData* polyData)
@@ -227,10 +237,16 @@ PlusStatus SpatialModel::ReadConfiguration(vtkXMLDataElement* spatialModelElemen
     this->BackscatterDiffuseReflectionCoefficient = diffuseReflectionCoefficient;
   }
 
-  double specularReflectionCoefficient = 0;
-  if(spatialModelElement->GetScalarAttribute("BackscatterSpecularReflectionCoefficient",specularReflectionCoefficient)) 
+  double surfaceDiffuseReflectionCoefficient = 0;
+  if(spatialModelElement->GetScalarAttribute("SurfaceDiffuseReflectionCoefficient",surfaceDiffuseReflectionCoefficient)) 
   {
-    this->BackscatterSpecularReflectionCoefficient = specularReflectionCoefficient;
+    this->SurfaceDiffuseReflectionCoefficient = surfaceDiffuseReflectionCoefficient;
+  }
+
+  double surfaceSpecularReflectionCoefficient = 0;
+  if(spatialModelElement->GetScalarAttribute("SurfaceSpecularReflectionCoefficient",surfaceSpecularReflectionCoefficient)) 
+  {
+    this->SurfaceSpecularReflectionCoefficient = surfaceSpecularReflectionCoefficient;
   }
 
   double transducerSpatialModelMaxOverlapMm = 0;
@@ -256,7 +272,7 @@ double SpatialModel::GetAcousticImpedanceMegarayls()
 }
 
 //-----------------------------------------------------------------------------
-void SpatialModel::CalculateIntensity(std::vector<double>& reflectedIntensity, int numberOfFilledPixels, double distanceBetweenScanlineSamplePointsMm, double previousModelAcousticImpedanceMegarayls, double incidentIntensity, double &transmittedIntensity)
+void SpatialModel::CalculateIntensity(std::vector<double>& reflectedIntensity, int numberOfFilledPixels, double distanceBetweenScanlineSamplePointsMm, double previousModelAcousticImpedanceMegarayls, double incidentIntensity, double &transmittedIntensity, double incidenceAngleRad)
 {
   UpdateModelFile();
 
@@ -280,9 +296,25 @@ void SpatialModel::CalculateIntensity(std::vector<double>& reflectedIntensity, i
     /(previousModelAcousticImpedanceMegarayls + acousticImpedanceMegarayls)/(previousModelAcousticImpedanceMegarayls + acousticImpedanceMegarayls);
   double surfaceReflectedBeamIntensity = incidentIntensity * intensityReflectionCoefficient;
   double surfaceTransmittedBeamIntensity = incidentIntensity - surfaceReflectedBeamIntensity;
+
   // backscatteredReflectedIntensity: intensity reflected from the surface
-  // TODO: take into account specular reflection as well
-  double backscatteredReflectedIntensity = this->BackscatterDiffuseReflectionCoefficient * surfaceReflectedBeamIntensity;
+  double backscatteredReflectedIntensity = this->SurfaceDiffuseReflectionCoefficient * surfaceReflectedBeamIntensity;;
+  if (this->SurfaceSpecularReflectionCoefficient>0)
+  {  
+    // There is specular reflection
+    // Normalize incidence angle to -90..90 deg
+    if (incidenceAngleRad>vtkMath::Pi()/2)
+    {
+      incidenceAngleRad-=vtkMath::Pi();
+    }
+    else if (incidenceAngleRad<-vtkMath::Pi()/2)
+    {
+      incidenceAngleRad+=vtkMath::Pi();
+    }
+    const double stdev=vtkMath::RadiansFromDegrees(SPECULAR_REFLECTION_BRDF_STDEV);
+    float reflectionDirectionFactor=exp(-(incidenceAngleRad*incidenceAngleRad)/(stdev*stdev));
+    backscatteredReflectedIntensity += reflectionDirectionFactor * this->SurfaceSpecularReflectionCoefficient * surfaceReflectedBeamIntensity;    
+  }
 
   // Compute attenuation within this model
   double intensityAttenuationCoefficientdBPerPixel = this->AttenuationCoefficientDbPerCmMhz*(distanceBetweenScanlineSamplePointsMm/10.0)*this->ImagingFrequencyMhz;
@@ -310,7 +342,6 @@ void SpatialModel::CalculateIntensity(std::vector<double>& reflectedIntensity, i
     for(int currentPixelInFilledPixels = 0; currentPixelInFilledPixels<numberOfIterationsToReachMinimumBeamIntensity; currentPixelInFilledPixels++)  
     {
       // a fraction of the attenuation is caused by backscattering, the backscattering is sensed by the transducer
-      // TODO: take into account specular reflection as well
       //reflectedIntensity[currentPixelInFilledPixels] = *(attenuation++) * backScatterFactor;
       reflectedIntensity[currentPixelInFilledPixels] = this->PrecomputedAttenuations[currentPixelInFilledPixels] * backScatterFactor;
     }
@@ -354,7 +385,7 @@ void SpatialModel::GetLineIntersections(std::deque<LineIntersectionInfo>& lineIn
     // add an intersection point at 0 distance, which means that the whole scanline is in this model
     LineIntersectionInfo intersectionInfo;
     intersectionInfo.Model=this;
-    intersectionInfo.IntersectionIncidenceAngleDeg=0;
+    intersectionInfo.IntersectionIncidenceAngleRad=0;
     intersectionInfo.IntersectionDistanceFromStartPointMm=0;    
     lineIntersections.push_back(intersectionInfo);
     return;
@@ -386,7 +417,8 @@ void SpatialModel::GetLineIntersections(std::deque<LineIntersectionInfo>& lineIn
   referenceToModelMatrix->MultiplyPoint(scanLineEndPoint_Reference,scanLineEndPoint_Model);
 
   vtkSmartPointer<vtkPoints> intersectionPoints_Model=vtkSmartPointer<vtkPoints>::New();
-  this->ModelLocalizer->IntersectWithLine(searchLineStartPoint_Model, scanLineEndPoint_Model, 0.0, intersectionPoints_Model, NULL);
+  vtkSmartPointer<vtkIdList> intersectionCellIds=vtkSmartPointer<vtkIdList>::New();
+  this->ModelLocalizer->IntersectWithLine(searchLineStartPoint_Model, scanLineEndPoint_Model, 0.0, intersectionPoints_Model, intersectionCellIds);
 
   if (intersectionPoints_Model->GetNumberOfPoints()<1)
   {
@@ -428,14 +460,55 @@ void SpatialModel::GetLineIntersections(std::deque<LineIntersectionInfo>& lineIn
     intersectionInfo.IntersectionDistanceFromStartPointMm=0;    
     lineIntersections.push_back(intersectionInfo);
   }
+
+  // Get surface normals at intersection points  
+  vtkDataArray* normals_Model=NULL;
+  if (this->PolyData->GetPointData())
+  {
+    normals_Model=this->PolyData->GetPointData()->GetNormals();
+  }
+
+  double scanLineDirectionVector_Model[4]={0,0,0,0};
+  referenceToModelMatrix->MultiplyPoint(scanLineDirectionVector_Reference, scanLineDirectionVector_Model);
+  vtkMath::Normalize(scanLineDirectionVector_Model);
+
   for (; intersectionPointIndex<intersectionPoints_Model->GetNumberOfPoints(); intersectionPointIndex++)
   {
     intersectionPoints_Model->GetPoint(intersectionPointIndex,intersectionPoint_Model);
     modelToReferenceMatrix->MultiplyPoint(intersectionPoint_Model,intersectionPoint_Reference);
     intersectionInfo.IntersectionDistanceFromStartPointMm = sqrt(vtkMath::Distance2BetweenPoints(scanLineStartPoint_Reference, intersectionPoint_Reference));
-    lineIntersections.push_back(intersectionInfo);    
-    // TODO: also compute and set the intersectionInfo.IntersectionIncidenceAngleDeg
-    //  It may be useful to return the full normal to make the beamwidth-related computations more accurate.    
+    vtkTriangle* cell=vtkTriangle::SafeDownCast(this->PolyData->GetCell(intersectionCellIds->GetId(intersectionPointIndex)));
+    if (cell!=NULL && normals_Model!=NULL)
+    {
+      const int NUMBER_OF_POINTS_PER_CELL=3; // triangle cell
+      double pcoords[NUMBER_OF_POINTS_PER_CELL]={0,0,0};
+      double dist2=0;
+      double weights[NUMBER_OF_POINTS_PER_CELL]={0,0,0};
+      double closestPoint[3]={0,0,0};
+      int subId=0;
+      cell->EvaluatePosition(intersectionPoint_Model, closestPoint, subId, pcoords, dist2, weights);            
+      double interpolatedNormal_Model[3]={0,0,0};
+      for (int pointIndex=0; pointIndex<NUMBER_OF_POINTS_PER_CELL; pointIndex++)
+      {
+        double* normalAtCellCorner=normals_Model->GetTuple3(cell->GetPointId(pointIndex));
+        if (normalAtCellCorner==NULL)
+        {
+          LOG_ERROR("SpatialModel::GetLineIntersections error: invalid normal");
+          continue;
+        }
+        interpolatedNormal_Model[0] += normalAtCellCorner[0]*weights[pointIndex];
+        interpolatedNormal_Model[1] += normalAtCellCorner[1]*weights[pointIndex];
+        interpolatedNormal_Model[2] += normalAtCellCorner[2]*weights[pointIndex];
+      }
+      vtkMath::Normalize(interpolatedNormal_Model);
+      intersectionInfo.IntersectionIncidenceAngleRad = acos(vtkMath::Dot(interpolatedNormal_Model,scanLineDirectionVector_Model));
+    }
+    else
+    {
+      LOG_ERROR("SpatialModel::GetLineIntersections error: surface normal is not available");
+      intersectionInfo.IntersectionIncidenceAngleRad = 0;
+    }
+    lineIntersections.push_back(intersectionInfo);
   }
 
 }
@@ -461,7 +534,7 @@ PlusStatus SpatialModel::UpdateModelFile()
     LOG_DEBUG("ModelFileName is not specified for SpatialModel "<<(this->Name.empty()?"(undefined)":this->Name)<<" it will be used as background media");
     return PLUS_SUCCESS;
   }
-
+  
   std::string foundAbsoluteImagePath;
   // FindImagePath is used instead of FindModelPath, as the model is expected to be in the image directory
   // it might be more reasonable to move the model to the model directory and change this to FindModelPath
@@ -471,29 +544,35 @@ PlusStatus SpatialModel::UpdateModelFile()
     return PLUS_FAIL;
   }
 
+  vtkSmartPointer<vtkPolyData> polyData;
+
   std::string fileExt=vtksys::SystemTools::GetFilenameLastExtension(foundAbsoluteImagePath);
   if (STRCASECMP(fileExt.c_str(),".stl")==0)
   {  
     vtkSmartPointer<vtkSTLReader> modelReader = vtkSmartPointer<vtkSTLReader>::New();
     modelReader->SetFileName(foundAbsoluteImagePath.c_str());
     modelReader->Update();
-    this->PolyData = modelReader->GetOutput();
-    this->PolyData->Register(NULL);
+    polyData=modelReader->GetOutput();
   }
   else //if (STRCASECMP(fileExt.c_str(),".vtp")==0)
   {
     vtkSmartPointer<vtkXMLPolyDataReader> modelReader = vtkSmartPointer<vtkXMLPolyDataReader>::New();
     modelReader->SetFileName(foundAbsoluteImagePath.c_str());
     modelReader->Update();
-    this->PolyData = modelReader->GetOutput();
-    this->PolyData->Register(NULL);
+    polyData=modelReader->GetOutput();
   }
 
-  if (this->PolyData==NULL || this->PolyData->GetNumberOfPoints()==0)
+  if (polyData.GetPointer()==NULL || polyData->GetNumberOfPoints()==0)
   {
     LOG_ERROR("Model specified cannot be found: "<<foundAbsoluteImagePath);    
     return PLUS_FAIL;
   }
+
+  vtkSmartPointer<vtkPolyDataNormals> polyDataNormalsComputer = vtkSmartPointer<vtkPolyDataNormals>::New(); 
+  polyDataNormalsComputer->SetInput(polyData);
+  polyDataNormalsComputer->Update();
+  this->PolyData = polyDataNormalsComputer->GetOutput();
+  this->PolyData->Register(NULL);
 
   this->ModelLocalizer->SetDataSet(this->PolyData); 
   this->ModelLocalizer->SetMaxLevel(24); 
