@@ -277,7 +277,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
       }
       
       double outgoingBeamIntensity=0;
-      currentModel->CalculateIntensity(intensities, numberOfFilledPixels, distanceBetweenScanlineSamplePointsMm, previousModel->GetAcousticImpedanceMegarayls(), incomingBeamIntensity, outgoingBeamIntensity);
+      currentModel->CalculateIntensity(intensities, numberOfFilledPixels, distanceBetweenScanlineSamplePointsMm, previousModel->GetAcousticImpedanceMegarayls(), incomingBeamIntensity, outgoingBeamIntensity,lineIntersectionsWithModels[intersectionIndex].IntersectionIncidenceAngleRad);
       previousModel=currentModel;
 
       if (this->NoiseAmplitude>0)

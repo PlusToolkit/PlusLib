@@ -77,7 +77,7 @@
       <vtkUsSimulatorAlgo
         ImageCoordinateFrame="Image"
         ReferenceCoordinateFrame="Reference"
-        IncomingIntensityMwPerCm2="100"
+        IncomingIntensityMwPerCm2="300"
         BrightnessConversionGamma="0.2"
         BrighntessConversionOffset="30"
         NumberOfScanlines="256"
@@ -100,8 +100,10 @@
           ModelFile="GelBlockModel_Reference.stl"
           DensityKgPerM3="910"
           SoundVelocityMPerSec="1540"
-          AttenuationCoefficientDbPerCmMhz="0.65"
+          AttenuationCoefficientDbPerCmMhz="3.0"
           BackscatterDiffuseReflectionCoefficient="0.1"
+          SurfaceSpecularReflectionCoefficient="0.1"
+          SurfaceDiffuseReflectionCoefficient="0.0"
           TransducerSpatialModelMaxOverlapMm="50"
         />        
         <SpatialModel
@@ -113,10 +115,12 @@
             0 1 0 0
             0 0 1 0
             0 0 0 1"
-          DensityKgPerM3="1900"
-          SoundVelocityMPerSec="4000"
-          AttenuationCoefficientDbPerCmMhz="0.1"
-          BackscatterDiffuseReflectionCoefficient="0.03"
+          DensityKgPerM3="1800"
+          SoundVelocityMPerSec="2000"
+          AttenuationCoefficientDbPerCmMhz="0.0001"
+          BackscatterDiffuseReflectionCoefficient="0.03"          
+          SurfaceSpecularReflectionCoefficient="0.1"
+          SurfaceDiffuseReflectionCoefficient="0.0"
         />
         <SpatialModel
           Name="Needle"
@@ -131,6 +135,8 @@
           SoundVelocityMPerSec="2000"      
           AttenuationCoefficientDbPerCmMhz="8.0"
           BackscatterDiffuseReflectionCoefficient="0.2"
+          SurfaceSpecularReflectionCoefficient="0.1"
+          SurfaceDiffuseReflectionCoefficient="0.0"
           SurfaceReflectionIntensityDecayDbPerMm="5"
         />
         <RfProcessing>

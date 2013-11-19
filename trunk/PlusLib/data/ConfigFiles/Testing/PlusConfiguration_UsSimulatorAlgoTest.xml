@@ -58,6 +58,9 @@
       SoundVelocityMPerSec="4000"
       AttenuationCoefficientDbPerCmMhz="15.0"
       BackscatterDiffuseReflectionCoefficient="0.03"
+      SurfaceSpecularReflectionCoefficient="0.1"
+      SurfaceDiffuseReflectionCoefficient="0.0"
+      TransducerSpatialModelMaxOverlapMm="10"
     />
     <SpatialModel
       Name="Needle"
@@ -71,8 +74,11 @@
       DensityKgPerM3="2000"
       SoundVelocityMPerSec="2000"      
       AttenuationCoefficientDbPerCmMhz="8.0"
-      BackscatterDiffuseReflectionCoefficient="0.2"
+      BackscatterDiffuseReflectionCoefficient="0.2"      
       SurfaceReflectionIntensityDecayDbPerMm="5"
+      SurfaceSpecularReflectionCoefficient="0.1"
+      SurfaceDiffuseReflectionCoefficient="0.0"
+      TransducerSpatialModelMaxOverlapMm="80"
     />
     <RfProcessing>
       <ScanConversion

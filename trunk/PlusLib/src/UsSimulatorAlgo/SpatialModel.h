@@ -24,13 +24,13 @@ public:
     {
       Model=NULL;
       IntersectionDistanceFromStartPointMm=0;
-      IntersectionIncidenceAngleDeg=0;
+      IntersectionIncidenceAngleRad=0;
     }
     SpatialModel* Model;
     // Distance between the line starting point and the intersection point, in mm
     double IntersectionDistanceFromStartPointMm;
     // Angle between the intersecting line and the surface normal (0 if the line is parallel to the surface normal)
-    double IntersectionIncidenceAngleDeg;
+    double IntersectionIncidenceAngleRad;
   };
 
   SpatialModel(); 
@@ -72,7 +72,7 @@ public:
     \param transmittedIntensity: intensity when the beam leaves the model
   */
   void CalculateIntensity(std::vector<double>& reflectedIntensity, int numberOfFilledPixels, double distanceBetweenScanlineSamplePointsMm,
-    double previousModelAcousticImpedanceMegarayls, double incidentIntensity, double &transmittedIntensity);  
+    double previousModelAcousticImpedanceMegarayls, double incidentIntensity, double &transmittedIntensity, double incidenceAngleRad);
 
 protected:
 
@@ -159,9 +159,13 @@ private:
     Smooth, polished surfaces have higher values (range: 0.0-1.0).
     A value of one means all the attenuation is caused by a perfect reflection.    
     Usually not just scattering occurs (there are various ways of scattering) but also absorption, so the value is much less than 1.0.
-    This value is not used now, so no specular reflection is assumed.
-    */
-  double BackscatterSpecularReflectionCoefficient;
+  */
+  double SurfaceSpecularReflectionCoefficient;
+
+  /*!
+    The fraction of the attenuated intensity that is reflected (backscattered) in an incidence-angle indepentent way.
+  */
+  double SurfaceDiffuseReflectionCoefficient;
 
   vtkModifiedBSPTree* ModelLocalizer;
 
