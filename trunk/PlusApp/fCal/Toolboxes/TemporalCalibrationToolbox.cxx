@@ -428,7 +428,7 @@ void TemporalCalibrationToolbox::StartCalibration()
 
   // Set validation transform names for tracked frame list
   // Set the local time offset to 0 before synchronization
-  QString curFixedType = ui.comboBox_FixedSourceValue->itemData(ui.comboBox_FixedSourceValue->currentIndex()).asString();
+  QString curFixedType = ui.comboBox_FixedSourceValue->itemData(ui.comboBox_FixedSourceValue->currentIndex()).toString();
   this->FixedType = vtkTemporalCalibrationAlgo::FRAME_TYPE_VIDEO;
   this->TemporalCalibrationFixedData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP);
   if( QString::compare(curFixedType, QString("Video")) != 0 )
@@ -443,7 +443,7 @@ void TemporalCalibrationToolbox::StartCalibration()
   this->PreviousFixedOffset = offset;
   this->FixedChannel->GetOwnerDevice()->SetLocalTimeOffsetSec(0.0);
 
-  QString curMovingType = ui.comboBox_MovingSourceValue->itemData(ui.comboBox_MovingSourceValue->currentIndex()).asString();
+  QString curMovingType = ui.comboBox_MovingSourceValue->itemData(ui.comboBox_MovingSourceValue->currentIndex()).toString();
   this->MovingType = vtkTemporalCalibrationAlgo::FRAME_TYPE_VIDEO;
   this->TemporalCalibrationMovingData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP);
   if( QString::compare(curMovingType, QString("Video")) != 0 )
