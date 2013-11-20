@@ -29,7 +29,9 @@ CaptureControlWidget::CaptureControlWidget(QWidget* aParent)
 
   ui.startStopButton->setText("Start");
 
-  ui.startStopButton->setPaletteBackgroundColor(QColor::fromRgb(255, 255, 255));
+  QPalette palette;
+  palette.setColor(ui.startStopButton->backgroundRole(), QColor::fromRgb(255, 255, 255));
+  ui.startStopButton->setPalette(palette);
 }
 
 //-----------------------------------------------------------------------------
@@ -216,7 +218,7 @@ void CaptureControlWidget::SamplingRateChanged( int aValue )
   LOG_TRACE("CaptureControlWidget::RecordingFrameRateChanged(" << aValue << ")"); 
 
   double maxFrameRate = GetMaximumFrameRate();
-  int samplingRate = (int)(pow(2.0, ui.samplingRateSlider->maxValue() - aValue));
+  int samplingRate = (int)(pow(2.0, ui.samplingRateSlider->maximum() - aValue));
   double requestedFrameRate(0.0);
 
   if (samplingRate>0)

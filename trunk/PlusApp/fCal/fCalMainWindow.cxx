@@ -265,7 +265,7 @@ void fCalMainWindow::CreateToolboxes()
     grid->setRowStretch(1, 1);
     grid->setMargin(5);
     grid->setSpacing(0);
-    grid->setName("");
+    grid->setObjectName("");
     grid->addWidget(spatialCalibrationToolbox);
     ui.toolbox_SpatialCalibration->setLayout(grid);
   }
@@ -300,7 +300,7 @@ void fCalMainWindow::CreateToolboxes()
   }
   m_ToolboxList[ToolboxType_SingleWallCalibration] = singleWallToolbox;
 #else
-  ui.toolbox->removeItem(ui.toolbox_SingleWallCalibration);
+  ui.toolbox->removeItem(ui.toolbox->indexOf(ui.toolbox_SingleWallCalibration));
 #endif
 }
 

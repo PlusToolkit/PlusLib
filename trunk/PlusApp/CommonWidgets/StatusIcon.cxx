@@ -23,7 +23,7 @@ StatusIcon::StatusIcon(QWidget* aParent, Qt::WFlags aFlags)
   this->setMinimumSize(18, 16);
   this->setMaximumSize(18, 16);
   this->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
-
+  
   // Set up layout and create dot label
   QGridLayout* grid = new QGridLayout();
   grid->setSpacing(0);
@@ -68,7 +68,8 @@ void StatusIcon::AddMessage(QString aInputString)
 {
   // Parse input string and extract log level and the message
   bool ok;
-  unsigned int pos = aInputString.find('|');
+  unsigned int pos = aInputString.indexOf('|');
+
   int logLevel = aInputString.left(pos).toInt(&ok);
   if (! ok) {
     logLevel = -1;

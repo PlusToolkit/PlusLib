@@ -94,8 +94,8 @@ void SegmentationParameterDialogTest::ConnectToDevicesByConfigFile(std::string a
       // Create dialog
       QDialog* connectDialog = new QDialog(this, Qt::Dialog);
       connectDialog->setMinimumSize(QSize(360,80));
-      connectDialog->setCaption(tr("fCal"));
-      connectDialog->setBackgroundColor(QColor(224, 224, 224));
+      connectDialog->setWindowTitle(tr("fCal"));
+      connectDialog->setStyleSheet("QDialog { background-color: rgb(224, 224, 224); }");
 
       QLabel* connectLabel = new QLabel(QString("Connecting to devices, please wait..."), connectDialog);
       connectLabel->setFont(QFont("SansSerif", 16));

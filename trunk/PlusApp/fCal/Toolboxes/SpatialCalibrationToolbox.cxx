@@ -270,19 +270,25 @@ void SpatialCalibrationToolbox::SetDisplayAccordingToState()
             errorStr = "N/A";
           }
 
-          ui.label_State->setPaletteForegroundColor(Qt::black);
+          QPalette palette;
+          palette.setColor(ui.label_State->foregroundRole(), Qt::black);
+          ui.label_State->setPalette(palette);
           ui.label_State->setText( QString("%1 transform present.\nDate: %2, Error: %3").arg(imageToProbeTransformNameStr.c_str()).arg(date.c_str()).arg(errorStr.c_str()) );
         }
         else
         {
-          ui.label_State->setPaletteForegroundColor(QColor::fromRgb(255, 128, 0));
+          QPalette palette;
+          palette.setColor(ui.label_State->foregroundRole(), QColor::fromRgb(255, 128, 0));
+          ui.label_State->setPalette(palette);
           ui.label_State->setText( QString("%1 transform is absent, spatial calibration needs to be performed.").arg(imageToProbeTransformNameStr.c_str()) );
           LOG_INFO(imageToProbeTransformNameStr << " transform is absent, spatial calibration needs to be performed");
         }
       }
       else
       {
-        ui.label_State->setPaletteForegroundColor(QColor::fromRgb(255, 128, 0));
+        QPalette palette;
+        palette.setColor(ui.label_State->foregroundRole(), QColor::fromRgb(255, 128, 0));
+        ui.label_State->setPalette(palette);
         ui.label_State->setText( tr("Phantom registration is missing. It needs to be performed or imported") );
         LOG_INFO("Phantom registration is missing. It needs to be performed or imported");
         m_State = ToolboxState_Error;
@@ -290,7 +296,9 @@ void SpatialCalibrationToolbox::SetDisplayAccordingToState()
     }
     else
     {
-      ui.label_State->setPaletteForegroundColor(QColor::fromRgb(255, 128, 0));
+      QPalette palette;
+      palette.setColor(ui.label_State->foregroundRole(), QColor::fromRgb(255, 128, 0));
+      ui.label_State->setPalette(palette);
       ui.label_State->setText( QString("Probe calibration configuration is missing!") );
       LOG_INFO("Probe calibration configuration is missing");
       m_State = ToolboxState_Error;
@@ -298,7 +306,9 @@ void SpatialCalibrationToolbox::SetDisplayAccordingToState()
   }
   else
   {
-    ui.label_State->setPaletteForegroundColor(QColor::fromRgb(255, 128, 0));
+    QPalette palette;
+    palette.setColor(ui.label_State->foregroundRole(), QColor::fromRgb(255, 128, 0));
+    ui.label_State->setPalette(palette);
     ui.label_State->setText(tr("fCal is not connected to devices. Switch to Configuration toolbox to connect."));
     LOG_INFO("fCal is not connected to devices");
   }
@@ -373,13 +383,17 @@ void SpatialCalibrationToolbox::SetDisplayAccordingToState()
 
     if (m_Calibration->GetCalibrationReprojectionError3DMean() >= 2.0)
     {
-      ui.label_Warning->setPaletteForegroundColor(QColor::fromRgb(223, 0, 0));
+      QPalette palette;
+      palette.setColor(ui.label_Warning->foregroundRole(), QColor::fromRgb(233, 0, 0));
+      ui.label_Warning->setPalette(palette);
       ui.label_Warning->setVisible(true);
       ui.label_Warning->setText(tr("Calibration error is too high!\n  Please re-calibrate"));
     }
     else if (m_Calibration->GetCalibrationReprojectionError3DMean() >= 1.0)
     {
-      ui.label_Warning->setPaletteForegroundColor(QColor::fromRgb(255, 128, 0));
+      QPalette palette;
+      palette.setColor(ui.label_Warning->foregroundRole(), QColor::fromRgb(255, 128, 0));
+      ui.label_Warning->setPalette(palette);
       ui.label_Warning->setVisible(true);
       ui.label_Warning->setText(tr("Calibration error is relatively high!\n  Consider re-calibrating"));
     }

@@ -171,8 +171,8 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
       // Create dialog
       QDialog* connectDialog = new QDialog(this, Qt::Dialog);
       connectDialog->setMinimumSize(QSize(360,80));
-      connectDialog->setCaption(tr("fCal"));
-      connectDialog->setBackgroundColor(QColor(224, 224, 224));
+      connectDialog->setWindowTitle(tr("fCal"));
+      connectDialog->setStyleSheet("QDialog { background-color: rgb(224, 224, 224); }");
 
       QLabel* connectLabel = new QLabel(QString("Connecting to devices, please wait..."), connectDialog);
       connectLabel->setFont(QFont("SansSerif", 16));
@@ -278,8 +278,8 @@ void ConfigurationToolbox::PopOutToggled(bool aOn)
     m_ToolStatePopOutWindow = new QWidget(this, Qt::Tool);
     m_ToolStatePopOutWindow->setMinimumSize(QSize(180, m_ToolStateDisplayWidget->GetDesiredHeight()));
     m_ToolStatePopOutWindow->setMaximumSize(QSize(180, m_ToolStateDisplayWidget->GetDesiredHeight()));
-    m_ToolStatePopOutWindow->setCaption(tr("Tool state display"));
-    m_ToolStatePopOutWindow->setBackgroundColor(QColor::fromRgb(255, 255, 255));
+    m_ToolStatePopOutWindow->setWindowTitle(tr("Tool state display"));
+    m_ToolStatePopOutWindow->setStyleSheet("QWidget { background-color: rgb(255, 255, 255); }");
 
     QGridLayout* gridToolStateDisplay = new QGridLayout(m_ToolStatePopOutWindow);
     gridToolStateDisplay->setColumnStretch(1, 1);

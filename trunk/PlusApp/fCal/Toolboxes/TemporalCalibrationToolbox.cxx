@@ -479,8 +479,8 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
   // Create dialog
   QDialog* temporalCalibrationDialog = new QDialog(this, Qt::Dialog);
   temporalCalibrationDialog->setMinimumSize(QSize(360,80));
-  temporalCalibrationDialog->setCaption(tr("fCal"));
-  temporalCalibrationDialog->setBackgroundColor(QColor(224, 224, 224));
+  temporalCalibrationDialog->setWindowTitle(tr("fCal"));
+  temporalCalibrationDialog->setStyleSheet("QDialog { background-color: rgb(224, 224, 224); }");
 
   QLabel* temporalCalibrationLabel = new QLabel(QString("Computing temporal calibration, please wait..."), temporalCalibrationDialog);
   temporalCalibrationLabel->setFont(QFont("SansSerif", 16));
@@ -559,7 +559,9 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
     LOG_ERROR("Cannot determine tracker lag, temporal calibration failed! Error: " << errorStr);
     CancelCalibration();
 
-    ui.label_State->setPaletteForegroundColor(QColor::fromRgb(255, 0, 0));
+    QPalette palette;
+    palette.setColor(ui.label_State->foregroundRole(), QColor::fromRgb(255, 0, 0));
+    ui.label_State->setPalette(palette);
     ui.label_State->setText( QString(errorStr.c_str()) );
 
     temporalCalibrationDialog->done(0);
@@ -746,8 +748,8 @@ void TemporalCalibrationToolbox::ShowPlotsToggled(bool aOn)
     // Create window and layout
     TemporalCalibrationPlotsWindow = new QWidget(this, Qt::Tool);
     TemporalCalibrationPlotsWindow->setMinimumSize(QSize(800, 600));
-    TemporalCalibrationPlotsWindow->setCaption(tr("Temporal calibration report"));
-    TemporalCalibrationPlotsWindow->setBackgroundColor(QColor::fromRgb(255, 255, 255));
+    TemporalCalibrationPlotsWindow->setWindowTitle(tr("Temporal calibration report"));
+    TemporalCalibrationPlotsWindow->setStyleSheet("QWidget { background-color: rgb(255, 255, 255); }");
 
     // Install event filter that is called on closing the window
     TemporalCalibrationPlotsWindow->installEventFilter(this);
