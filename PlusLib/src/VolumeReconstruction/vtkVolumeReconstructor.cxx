@@ -831,7 +831,9 @@ PlusStatus vtkVolumeReconstructor::SaveReconstructedVolumeToMetafile(const char*
                                        volumeToSave->GetSpacing()[0], volumeToSave->GetSpacing()[1], volumeToSave->GetSpacing()[2],
                                        scalarType, 1, volumeToSave->GetScalarPointer());
   metaImage.Origin(volumeToSave->GetOrigin());
-  metaImage.AnatomicalOrientation("LPS");
+  // By definition, LPS orientation in DICOM sense = RAI orientation in MetaIO. See details at:
+  // http://www.itk.org/Wiki/Proposals:Orientation#Some_notes_on_the_DICOM_convention_and_current_ITK_usage
+  metaImage.AnatomicalOrientation("RAI");
   metaImage.BinaryData(true);
   metaImage.CompressedData(useCompression);
   metaImage.ElementDataFileName("LOCAL");
