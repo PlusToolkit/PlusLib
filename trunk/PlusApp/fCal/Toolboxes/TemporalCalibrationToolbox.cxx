@@ -587,10 +587,6 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
 
   LOG_INFO("Video offset: " << trackerLagSec << " s ( > 0 if the video data lags )");
 
-  if( this->FixedChannel != NULL )
-  {
-    this->FixedChannel->GetOwnerDevice()->SetLocalTimeOffsetSec(0.0);
-  }
   if( this->MovingChannel )
   {
     this->MovingChannel->GetOwnerDevice()->SetLocalTimeOffsetSec(trackerLagSec);
