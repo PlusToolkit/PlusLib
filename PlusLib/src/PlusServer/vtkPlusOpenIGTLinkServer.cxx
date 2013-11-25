@@ -65,6 +65,9 @@ vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
 , OutputChannelId(NULL)
 , BroadcastChannel(NULL)
 , ConfigFilename(NULL)
+, GracePeriodLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG)
+, MissingInputGracePeriodSec(0.0)
+, BroadcastStartTime(0.0)
 {
   
 }
@@ -146,6 +149,8 @@ PlusStatus vtkPlusOpenIGTLinkServer::Start()
 
   this->PlusCommandProcessor->SetPlusServer(this);
   //this->PlusCommandProcessor->Start();
+
+  this->BroadcastStartTime = vtkAccurateTimer::GetSystemTime();
 
   return PLUS_SUCCESS;
 }
@@ -331,6 +336,11 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
       continue; 
     }
 
+    if( self->HasGracePeriodExpired() )
+    {
+      self->GracePeriodLogLevel = vtkPlusLogger::LOG_LEVEL_WARNING;
+    }
+
     // Send remote command execution replies to clients
     PlusCommandReplyList replies;
     self->PlusCommandProcessor->GetCommandReplies(replies);
@@ -420,7 +430,7 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
     if ( ( self->BroadcastChannel->HasVideoSource() && !self->BroadcastChannel->GetVideoDataAvailable())
       || (!self->BroadcastChannel->HasVideoSource() && !self->BroadcastChannel->GetTrackingDataAvailable()) )
     {
-      LOG_DEBUG("No data is broadcasted, as no data is available yet"); 
+      LOG_DYNAMIC("No data is broadcasted, as no data is available yet.", self->GracePeriodLogLevel); 
     }
     else
     {
@@ -835,6 +845,11 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfi
     return PLUS_FAIL;
   }
 
+  if( plusOpenIGTLinkServerConfig->GetAttribute("MissingInputGracePeriodSec") != NULL )
+  {
+    plusOpenIGTLinkServerConfig->GetScalarAttribute("MissingInputGracePeriodSec", this->MissingInputGracePeriodSec);
+  }
+
   const char* outputChannelId = plusOpenIGTLinkServerConfig->GetAttribute("OutputChannelId");
   this->SetOutputChannelId(outputChannelId);
 
@@ -998,4 +1013,10 @@ vtkDataCollector* vtkPlusOpenIGTLinkServer::GetDataCollector()
 vtkTransformRepository* vtkPlusOpenIGTLinkServer::GetTransformRepository()
 {
   return this->TransformRepository;
+}
+
+//------------------------------------------------------------------------------
+bool vtkPlusOpenIGTLinkServer::HasGracePeriodExpired()
+{
+  return (vtkAccurateTimer::GetSystemTime() - this->BroadcastStartTime) > this->MissingInputGracePeriodSec;
 }
