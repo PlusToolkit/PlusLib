@@ -71,6 +71,9 @@ protected:
   /* Timestamp of the last tracking item that has been processed already */
   double LastProcessedTrackingDataTimestamp;
 
+  /* Output to different logs depending on the status of the grace period */
+  vtkPlusLogger::LogLevelType GracePeriodLogLevel;
+
 private:
   static vtkUsSimulatorVideoSource* Instance;
   vtkUsSimulatorVideoSource(const vtkUsSimulatorVideoSource&);  // Not implemented.

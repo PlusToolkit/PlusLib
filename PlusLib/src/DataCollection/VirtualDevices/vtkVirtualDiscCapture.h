@@ -153,6 +153,11 @@ protected:
   /*! Mutex instance simultaneous access of writer (writer may be accessed from command processing thread and also the internal update thread) */ 
   vtkSmartPointer<vtkRecursiveCriticalSection> WriterAccessMutex;
 
+  vtkPlusLogger::LogLevelType GracePeriodLogLevel;
+
+  PlusStatus GetInputTrackedFrame(TrackedFrame* aFrame);
+  PlusStatus GetInputTrackedFrameListSampled(double lastAlreadyRecordedFrameTimestamp, double nextFrameToBeRecordedTimestamp, vtkTrackedFrameList* recordedFrames, double requestedFramePeriodSec, double maxProcessingTimeSec);
+
 private:
   vtkVirtualDiscCapture(const vtkVirtualDiscCapture&);  // Not implemented.
   void operator=(const vtkVirtualDiscCapture&);  // Not implemented. 

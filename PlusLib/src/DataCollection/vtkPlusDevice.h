@@ -394,6 +394,10 @@ public:
   */
   virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
+  /* Accessors for the grace period value */
+  vtkSetMacro(MissingInputGracePeriodSec, double);
+  vtkGetMacro(MissingInputGracePeriodSec, double);
+
 protected:
   static void *vtkDataCaptureThread(vtkMultiThreader::ThreadInfo *data);
 
@@ -466,7 +470,12 @@ protected:
   vtkSetMacro(StartThreadForInternalUpdates, bool);
   vtkGetMacro(StartThreadForInternalUpdates, bool); 
 
+  vtkSetMacro(RecordingStartTime, double);
+  vtkGetMacro(RecordingStartTime, double); 
+
   virtual vtkDataCollector* GetDataCollector() { return this->DataCollector; }
+
+  bool HasGracePeriodExpired();
 
   vtkPlusDevice();
   virtual ~vtkPlusDevice();
@@ -531,7 +540,12 @@ protected:
   */
   bool StartThreadForInternalUpdates;
 
+  /* Value to use when mixing data with another temporally calibrated device*/
   double LocalTimeOffsetSec;
+
+  /* Adjust the device reporting behaviour depending on whether or not a grace period has expired */
+  double MissingInputGracePeriodSec;
+  double RecordingStartTime;
 
 protected:
   /*
