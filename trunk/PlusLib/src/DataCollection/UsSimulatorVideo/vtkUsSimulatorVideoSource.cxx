@@ -19,13 +19,12 @@ vtkStandardNewMacro(vtkUsSimulatorVideoSource);
 
 //----------------------------------------------------------------------------
 vtkUsSimulatorVideoSource::vtkUsSimulatorVideoSource()
-: LastProcessedTrackingDataTimestamp(0)
+: UsSimulator(NULL)
+, Tracker(NULL)
+, LastProcessedTrackingDataTimestamp(0)
+, GracePeriodLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG)
 {
-  this->Tracker = NULL;
-  this->LastProcessedTrackingDataTimestamp = 0;
-
   // Create and set up US simulator
-  this->UsSimulator = NULL;
   vtkSmartPointer<vtkUsSimulatorAlgo> usSimulator = vtkSmartPointer<vtkUsSimulatorAlgo>::New();
   this->SetUsSimulator(usSimulator);
 
@@ -42,7 +41,7 @@ vtkUsSimulatorVideoSource::vtkUsSimulatorVideoSource()
   this->RequireRfElementInDeviceSetConfiguration = false;
 
   // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
-  this->StartThreadForInternalUpdates=true;
+  this->StartThreadForInternalUpdates = true;
 }
 
 //----------------------------------------------------------------------------
@@ -74,35 +73,41 @@ PlusStatus vtkUsSimulatorVideoSource::InternalUpdate()
     return PLUS_FAIL;
   }
 
+  if( this->HasGracePeriodExpired() )
+  {
+    this->GracePeriodLogLevel = vtkPlusLogger::LOG_LEVEL_WARNING;
+  }
+
   // Get image to tracker transform from the tracker (only request 1 frame, the latest)
-  vtkSmartPointer<vtkTrackedFrameList> trackingFrames=vtkSmartPointer<vtkTrackedFrameList>::New();  
+  vtkSmartPointer<vtkTrackedFrameList> trackingFrames = vtkSmartPointer<vtkTrackedFrameList>::New();  
   if (!this->InputChannels[0]->GetTrackingDataAvailable())
   {
     LOG_DEBUG("Simulated US image is not generated, as no tracking data is available yet. Device ID: " << this->GetDeviceId() ); 
     return PLUS_SUCCESS;
   }
-  double oldestTrackingTimestamp=0;
-  if (this->InputChannels[0]->GetOldestTimestamp(oldestTrackingTimestamp)==PLUS_SUCCESS)
+  double oldestTrackingTimestamp(0);
+  if (this->InputChannels[0]->GetOldestTimestamp(oldestTrackingTimestamp) == PLUS_SUCCESS)
   {
-    if (this->LastProcessedTrackingDataTimestamp<oldestTrackingTimestamp)
+    if (this->LastProcessedTrackingDataTimestamp < oldestTrackingTimestamp)
     {
-      LOG_INFO("Simulated US image generation started. No tracking data was available between "<<this->LastProcessedTrackingDataTimestamp<<"-"<<oldestTrackingTimestamp<<"sec, therefore no simulated images were generated during this time period.");
-      this->LastProcessedTrackingDataTimestamp=oldestTrackingTimestamp;
+      LOG_INFO("Simulated US image generation started. No tracking data was available between " << this->LastProcessedTrackingDataTimestamp << "-" << oldestTrackingTimestamp <<
+        "sec, therefore no simulated images were generated during this time period.");
+      this->LastProcessedTrackingDataTimestamp = oldestTrackingTimestamp;
     }
   }
   if ( this->InputChannels[0]->GetTrackedFrameList(this->LastProcessedTrackingDataTimestamp, trackingFrames, 1) != PLUS_SUCCESS )
   {
     LOG_ERROR("Error while getting tracked frame list from data collector during capturing. Last recorded timestamp: " << std::fixed << this->LastProcessedTrackingDataTimestamp << ". Device ID: " << this->GetDeviceId() ); 
-    this->LastProcessedTrackingDataTimestamp=vtkAccurateTimer::GetSystemTime(); // forget about the past, try to add frames that are acquired from now on
+    this->LastProcessedTrackingDataTimestamp = vtkAccurateTimer::GetSystemTime(); // forget about the past, try to add frames that are acquired from now on
     return PLUS_FAIL;
   }
-  if (trackingFrames->GetNumberOfTrackedFrames()<1)
+  if (trackingFrames->GetNumberOfTrackedFrames() < 1)
   {
-    LOG_ERROR("Simulated US image is not generated, as no tracking data is available. Device ID: " << this->GetDeviceId() ); 
+    LOG_DYNAMIC("Simulated US image is not generated, as no tracking data is available. Device ID: " << this->GetDeviceId(), this->GracePeriodLogLevel ); 
     return PLUS_FAIL;
   }
-  TrackedFrame* trackedFrame=trackingFrames->GetTrackedFrame(0);
-  if (trackedFrame==NULL)
+  TrackedFrame* trackedFrame = trackingFrames->GetTrackedFrame(0);
+  if (trackedFrame == NULL)
   {
     LOG_ERROR("Error while getting tracked frame from data collector during capturing. Last recorded timestamp: " << std::fixed << this->LastProcessedTrackingDataTimestamp << ". Device ID: " << this->GetDeviceId() ); 
     return PLUS_FAIL;

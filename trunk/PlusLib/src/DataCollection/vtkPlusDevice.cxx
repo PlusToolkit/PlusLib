@@ -78,6 +78,7 @@ vtkPlusDevice::vtkPlusDevice()
 , CorrectlyConfigured(true)
 , StartThreadForInternalUpdates(false)
 , LocalTimeOffsetSec(0.0)
+, MissingInputGracePeriodSec(0.0)
 , RequireImageOrientationInConfiguration(false)
 , RequireFrameBufferSizeInDeviceSetConfiguration(false)
 , RequireAcquisitionRateInDeviceSetConfiguration(false)
@@ -728,6 +729,11 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
     this->SetToolReferenceFrameName(this->GetDeviceId());
   }
 
+  if( deviceXMLElement->GetAttribute("MissingInputGracePeriodSec") != NULL )
+  {
+    deviceXMLElement->GetScalarAttribute("MissingInputGracePeriodSec", this->MissingInputGracePeriodSec);
+  }
+
   vtkXMLDataElement* dataSourcesElement = deviceXMLElement->FindNestedElementWithName("DataSources");
   if( dataSourcesElement != NULL )
   {
@@ -977,6 +983,7 @@ PlusStatus vtkPlusDevice::StartRecording()
     return PLUS_FAIL;
   }
 
+  this->RecordingStartTime = vtkAccurateTimer::GetSystemTime();
   this->Recording = 1;
 
   if( this->StartThreadForInternalUpdates )
@@ -1978,4 +1985,10 @@ PlusStatus vtkPlusDevice::BuildParameterIndexList(const ChannelContainer& channe
   }
 
   return PLUS_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
+bool vtkPlusDevice::HasGracePeriodExpired()
+{
+  return (vtkAccurateTimer::GetSystemTime() - this->RecordingStartTime) > this->MissingInputGracePeriodSec;
 }

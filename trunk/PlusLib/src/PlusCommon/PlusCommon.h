@@ -84,7 +84,15 @@ enum PlusImagingMode
   msgStream << " " << msg << std::ends; \
   vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_TRACE, msgStream.str(), __FILE__, __LINE__); \
   msgStream.rdbuf()->freeze(0); \
-  }  
+  }
+
+#define LOG_DYNAMIC(msg, logLevel) \
+{ \
+  std::ostrstream msgStream; \
+  msgStream << " " << msg << std::ends; \
+  vtkPlusLogger::Instance()->LogMessage(logLevel, msgStream.str(), __FILE__, __LINE__); \
+  msgStream.rdbuf()->freeze(0); \
+  }
   
 /////////////////////////////////////////////////////////////////// 
 

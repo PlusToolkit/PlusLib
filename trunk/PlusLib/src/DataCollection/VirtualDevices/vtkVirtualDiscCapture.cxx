@@ -39,6 +39,7 @@ vtkVirtualDiscCapture::vtkVirtualDiscCapture()
 , EnableCapturing(true)
 , FrameBufferSize(DISABLE_FRAME_BUFFER)
 , WriterAccessMutex(vtkSmartPointer<vtkRecursiveCriticalSection>::New())
+, GracePeriodLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG)
 {
   m_RecordedFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP); 
 
@@ -348,6 +349,11 @@ PlusStatus vtkVirtualDiscCapture::InternalUpdate()
   {
     LOG_WARNING("RequestedFrameRate is invalid");
   }
+
+  if( this->HasGracePeriodExpired() )
+  {
+    this->GracePeriodLogLevel = vtkPlusLogger::LOG_LEVEL_WARNING;
+  }
   
   PlusLockGuard<vtkRecursiveCriticalSection> writerLock(this->WriterAccessMutex);
   if (!this->EnableCapturing)
@@ -357,11 +363,17 @@ PlusStatus vtkVirtualDiscCapture::InternalUpdate()
   }
 
   int nbFramesBefore = m_RecordedFrames->GetNumberOfTrackedFrames();
-  if ( this->OutputChannels[0]->GetTrackedFrameListSampled(m_LastAlreadyRecordedFrameTimestamp, m_NextFrameToBeRecordedTimestamp, m_RecordedFrames, requestedFramePeriodSec, maxProcessingTimeSec) != PLUS_SUCCESS )
+  if ( this->GetInputTrackedFrameListSampled(m_LastAlreadyRecordedFrameTimestamp, m_NextFrameToBeRecordedTimestamp, m_RecordedFrames, requestedFramePeriodSec, maxProcessingTimeSec) != PLUS_SUCCESS )
   {
     LOG_ERROR("Error while getting tracked frame list from data collector during capturing. Last recorded timestamp: " << std::fixed << m_NextFrameToBeRecordedTimestamp ); 
   }
   int nbFramesAfter = m_RecordedFrames->GetNumberOfTrackedFrames();
+
+  if( nbFramesAfter - nbFramesBefore == 0 && m_RecordedFrames->GetNumberOfTrackedFrames() == 0 ) // spin wheels until data to write)
+  {
+    LOG_DYNAMIC("No input data available to capture thread. Waiting until input data arrives.", this->GracePeriodLogLevel);
+    return PLUS_SUCCESS;
+  }
 
   if( this->WriteFrames() != PLUS_SUCCESS )
   {
@@ -589,7 +601,7 @@ PlusStatus vtkVirtualDiscCapture::TakeSnapshot()
   }
 
   TrackedFrame trackedFrame;
-  if( this->OutputChannels[0]->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
+  if( this->GetInputTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
   {
     LOG_ERROR(this->GetDeviceId() << ": Failed to get tracked frame for the snapshot!");
     return PLUS_FAIL;
@@ -716,4 +728,16 @@ int vtkVirtualDiscCapture::OutputChannelCount() const
   // Even though we fake one output channel for easy GetTrackedFrame ability, 
   //  we shouldn't return actual output channel size
   return 0;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkVirtualDiscCapture::GetInputTrackedFrame( TrackedFrame* aFrame )
+{
+  return this->OutputChannels[0]->GetTrackedFrame(aFrame);
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkVirtualDiscCapture::GetInputTrackedFrameListSampled( double lastAlreadyRecordedFrameTimestamp, double nextFrameToBeRecordedTimestamp, vtkTrackedFrameList* recordedFrames, double requestedFramePeriodSec, double maxProcessingTimeSec )
+{
+  return this->OutputChannels[0]->GetTrackedFrameListSampled(lastAlreadyRecordedFrameTimestamp, nextFrameToBeRecordedTimestamp, recordedFrames, requestedFramePeriodSec, maxProcessingTimeSec);
 }
