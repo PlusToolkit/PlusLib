@@ -112,6 +112,8 @@ protected:
 
   vtkSetStringMacro(ConfigFilename);
 
+  bool HasGracePeriodExpired();
+
 private:
 	
   /*! Get client socket corresponding to a client ID. Used by the command processor, which identifies clients by ID. */
@@ -119,7 +121,7 @@ private:
 
   vtkPlusOpenIGTLinkServer( const vtkPlusOpenIGTLinkServer& );
   void operator=( const vtkPlusOpenIGTLinkServer& );
-  
+
   /*! IGTL server socket */ 
   igtl::ServerSocket::Pointer ServerSocket;
   
@@ -208,6 +210,10 @@ private:
 
   /* Record the last received command timestamp */
   LastCommandTimestampMap LastCommandTimestamp;
+
+  vtkPlusLogger::LogLevelType GracePeriodLogLevel;
+  double MissingInputGracePeriodSec;
+  double BroadcastStartTime;
 };
 
 
