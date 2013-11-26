@@ -10,6 +10,7 @@ See License.txt for details.
 // #define USE_MICRONTRACKER_TIMESTAMPS
 
 #include "MicronTrackerInterface.h"
+#include "MicronTrackerLogger.h"
 #include "PlusConfigure.h"
 #include "PlusVideoFrame.h"
 #include "vtkImageData.h"
@@ -36,6 +37,7 @@ vtkMicronTracker::vtkMicronTracker()
 
   this->IsMicronTrackingInitialized = 0;
   this->MT = new MicronTrackerInterface();
+  MicronTrackerLogger::Instance()->SetLogMessageCallback(LogMessageCallback, this);
 
   // for accurate timing
   this->FrameNumber = 0;
@@ -392,7 +394,7 @@ PlusStatus vtkMicronTracker::InternalConnect()
   // Try to attach the cameras till find the cameras
   if (this->MT->mtSetupCameras()!=1)
   {
-    LOG_ERROR("Error in initializing Micron Tracker: setup cameras failed. Check the camera connections.");
+    LOG_ERROR("Error in initializing Micron Tracker: setup cameras failed. Check the camera connections and INI and Markers file locations.");
     this->MT->mtEnd();
     return PLUS_FAIL;
   }
@@ -400,7 +402,7 @@ PlusStatus vtkMicronTracker::InternalConnect()
   int numOfCameras = this->MT->mtGetNumOfCameras();
   if (numOfCameras==0)
   {
-    LOG_ERROR("Error in initializing Micron Tracker: no cameras attached. Check the camera connections.");
+    LOG_ERROR("Error in initializing Micron Tracker: no cameras attached. Check the camera connections and INI and Markers file locations.");
     this->MT->mtEnd();
     return PLUS_FAIL;
   }
@@ -415,7 +417,7 @@ PlusStatus vtkMicronTracker::InternalConnect()
 
   if (RefreshMarkerTemplates()!=PLUS_SUCCESS)
   {
-    LOG_ERROR("Error in initializing Micron Tracker: Failed to load marker templates. Check if the template directory is correct.");
+    LOG_ERROR("Error in initializing Micron Tracker: Failed to load marker templates. Check if the marker directory is set correctly.");
     this->MT->mtEnd();
     return PLUS_FAIL;
   }
@@ -439,4 +441,25 @@ PlusStatus vtkMicronTracker::InternalDisconnect()
     this->IsMicronTrackingInitialized=false;
   }  
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+void vtkMicronTracker::LogMessageCallback(int level, const char *message, void* /*userdata*/ )
+{ 
+  switch (level)
+  {
+  case MicronTrackerLogger::WARNING_LEVEL:
+    LOG_WARNING("MicronTracker: "<<(message?message:"") );
+    break;
+  case MicronTrackerLogger::DEBUG_LEVEL:
+    if (message)
+    {
+      LOG_DEBUG("MicronTracker: "<<message);
+    }
+    break;
+  case MicronTrackerLogger::ERROR_LEVEL:
+  default:
+    LOG_ERROR("MicronTracker: "<<(message?message:"") );
+    break;
+  }
 }

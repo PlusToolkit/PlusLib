@@ -14,6 +14,7 @@
 #include "MCamera.h"
 #include "MTC.h"
 #include "MTVideo.h"
+#include "MicronTrackerLoggerMacros.h"
 
 /****************************/
 /** Constructor */
@@ -55,6 +56,7 @@ MCamera* Cameras::getCamera(int index)
 {
   if (index>=(int)this->m_vCameras.size() || index<0)
   {
+    LOG_ERROR("Invalid camera index: "<<index);
     return NULL;
   }
   return this->m_vCameras[index];
@@ -108,6 +110,7 @@ int Cameras::getMTHome(std::string &mtHomeDirectory)
   HKEY key=NULL;
   if ( (err = RegOpenKeyEx(topkey, subkey, 0, KEY_QUERY_VALUE, &key)) != ERROR_SUCCESS ) 
   {
+    LOG_ERROR("Failed to opern registry key: "<<subkey);
     return (-1);
   }
 
@@ -119,6 +122,7 @@ int Cameras::getMTHome(std::string &mtHomeDirectory)
   if ( RegQueryValueEx( key, mfile, 0,  /* reserved */ &value_type, (unsigned char*)smtHomeDirectory, &value_size ) != ERROR_SUCCESS || value_size <= 1 )
   {
     /* size always >1 if exists ('\0' terminator) ? */
+    LOG_ERROR("Failed to get environment variable "<<mfile);
     return (-1);
   }
   mtHomeDirectory=smtHomeDirectory;
@@ -140,6 +144,7 @@ int Cameras::AttachAvailableCameras()
   if ( getMTHome(calibrationDir) != 0 ) 
   {
     // No Environment
+    LOG_ERROR("MT home directory was not found");
     return -1;
   } 
   calibrationDir+=std::string("/CalibrationFiles");
@@ -163,6 +168,7 @@ int Cameras::AttachAvailableCameras()
   int result = Cameras_AttachAvailableCameras((char*)calibrationDir.c_str());
   if ( result != mtOK) 
   {
+    LOG_ERROR("Failed to attach cameras using calibration data at: "<<calibrationDir.c_str());
     return -1;
   }
 
@@ -170,6 +176,7 @@ int Cameras::AttachAvailableCameras()
   this->m_attachedCamNums = Cameras_Count();
   if (this->m_attachedCamNums <=0) 
   {
+    LOG_ERROR("No attached cameras were found");
     return -1;
   }
 

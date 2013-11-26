@@ -473,7 +473,7 @@ private:
 
   int removeFile(const std::string& fileName, const std::string& dir);
   int renameFile(const std::string &oldName, const std::string &newName, const std::string& dir);
-  std::string handleErrors(int errorNum);
+  void handleError(int errorNum, const char* description=NULL);
 
   enum    mti_Error{
             MTI_FAIL = 0,
