@@ -87,6 +87,7 @@ vtkPlusDevice::vtkPlusDevice()
 , RequireLocalTimeOffsetSecInDeviceSetConfiguration(false)
 , RequireUsImageOrientationInDeviceSetConfiguration(false)
 , RequireRfElementInDeviceSetConfiguration(false)
+, ReportUnknownToolsOnce(false)
 {
   this->SetNumberOfInputPorts(0);
 
@@ -185,7 +186,11 @@ bool vtkPlusDevice::IsResettable()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::Reset()
 {
-  // By default, do nothing
+  this->MissingInputGracePeriodSec = 0.0;
+  this->RecordingStartTime = 0.0;
+  this->ReportedUnknownTools.clear();
+  this->ReportUnknownToolsOnce = false;
+
   return PLUS_SUCCESS;
 }
 
@@ -734,6 +739,12 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
     deviceXMLElement->GetScalarAttribute("MissingInputGracePeriodSec", this->MissingInputGracePeriodSec);
   }
 
+  const char* reportUnknownToolsOnce = deviceXMLElement->GetAttribute("ReportUnknownToolsOnce");
+  if( reportUnknownToolsOnce != NULL )
+  {
+    this->ReportUnknownToolsOnce = STRCASECMP(reportUnknownToolsOnce, "TRUE") == 0;
+  }
+
   vtkXMLDataElement* dataSourcesElement = deviceXMLElement->FindNestedElementWithName("DataSources");
   if( dataSourcesElement != NULL )
   {
@@ -1093,7 +1104,7 @@ PlusStatus vtkPlusDevice::GetBufferSize( vtkPlusChannel& aChannel, int& outVal, 
     vtkPlusDataSource* aSource(NULL);
     if( aChannel.GetVideoSource(aSource) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Unable to retrieve the video source.");
+      LOG_ERROR("Unable to retrieve the buffer size of the video source in channel: " << aChannel.GetChannelId() << ".");
       return PLUS_FAIL;
     }
 
@@ -1110,7 +1121,7 @@ PlusStatus vtkPlusDevice::GetBufferSize( vtkPlusChannel& aChannel, int& outVal, 
     }
   }
 
-  LOG_ERROR("Unable to find tool " << toolName << " when looking its buffer size");
+  LOG_ERROR("Unable to find tool " << toolName << " when requesting its buffer size.");
   return PLUS_FAIL;
 }
 
@@ -1256,7 +1267,18 @@ PlusStatus vtkPlusDevice::ToolTimeStampedUpdateWithoutFiltering(const char* aToo
   vtkPlusDataSource* tool = NULL; 
   if ( this->GetTool(aToolName, tool) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to update tool - unable to find tool!" << aToolName ); 
+    if( this->ReportUnknownToolsOnce )
+    {
+      if( std::find(this->ReportedUnknownTools.begin(), this->ReportedUnknownTools.end(), std::string(aToolName)) == this->ReportedUnknownTools.end() )
+      {
+        LOG_ERROR(this->GetDeviceId() << "::Failed to update tool - unable to find tool: " << aToolName);
+        this->ReportedUnknownTools.push_back(std::string(aToolName));
+      }
+    }
+    else
+    {
+      LOG_ERROR(this->GetDeviceId() << "::Failed to update tool - unable to find tool: " << aToolName);
+    }
     return PLUS_FAIL; 
   }
 
@@ -1281,7 +1303,18 @@ PlusStatus vtkPlusDevice::ToolTimeStampedUpdate(const char* aToolName, vtkMatrix
   vtkPlusDataSource* tool = NULL; 
   if ( this->GetTool(aToolName, tool) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to update tool - unable to find tool!" << aToolName ); 
+    if( this->ReportUnknownToolsOnce )
+    {
+      if( std::find(this->ReportedUnknownTools.begin(), this->ReportedUnknownTools.end(), std::string(aToolName)) == this->ReportedUnknownTools.end() )
+      {
+        LOG_ERROR(this->GetDeviceId() << "::Failed to update tool - unable to find tool: " << aToolName);
+        this->ReportedUnknownTools.push_back(std::string(aToolName));
+      }
+    }
+    else
+    {
+      LOG_ERROR(this->GetDeviceId() << "::Failed to update tool - unable to find tool: " << aToolName);
+    }
     return PLUS_FAIL; 
   }
 
