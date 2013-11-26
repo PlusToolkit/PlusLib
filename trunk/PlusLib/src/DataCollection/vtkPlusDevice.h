@@ -401,6 +401,7 @@ public:
 protected:
   static void *vtkDataCaptureThread(vtkMultiThreader::ThreadInfo *data);
 
+  /* Construct a lookup table for indexing channels by depth, mode and probe */
   PlusStatus BuildParameterIndexList(const ChannelContainer& channels, bool& depthSwitchingEnabled, bool& modeSwitchingEnabled, bool& probeSwitchingEnabled, std::vector<ParamIndexKey*>& output );
 
   /*! 
@@ -546,6 +547,10 @@ protected:
   /* Adjust the device reporting behaviour depending on whether or not a grace period has expired */
   double MissingInputGracePeriodSec;
   double RecordingStartTime;
+
+  /* When data comes in for an unknown tool, these values affect how the device responds */
+  bool ReportUnknownToolsOnce;
+  std::vector< std::string > ReportedUnknownTools;
 
 protected:
   /*
