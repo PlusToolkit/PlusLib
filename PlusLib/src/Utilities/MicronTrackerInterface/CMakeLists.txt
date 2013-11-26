@@ -8,6 +8,8 @@ SET (vtkMicronTrackerInterface_INCLUDE_DIRS
 SET(vtkMicronTrackerInterface_SRCS
   MicronTrackerInterface.h
   MicronTrackerInterface.cpp
+  MicronTrackerLogger.h
+  MicronTrackerLogger.cpp
   Cameras.h
   Cameras.cpp
   MCamera.h

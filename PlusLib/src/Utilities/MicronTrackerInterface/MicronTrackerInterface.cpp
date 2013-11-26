@@ -6,6 +6,7 @@
 /****************************/
 
 #include "MicronTrackerInterface.h"
+#include "MicronTrackerLoggerMacros.h"
 #include "MTC.h"
 #include "MTVideo.h"
 #include "Cameras.h"
@@ -25,7 +26,7 @@ MicronTrackerInterface::~MicronTrackerInterface()
 //------------------------------------------
 int MicronTrackerInterface::mtInit(const std::string &iniFilePath)
 {
-  this->m_errorString = "No error!";
+  this->m_errorString.clear();
   this->isCameraAttached = false;
   this->m_pMarkers = new Markers();
   this->m_pPers = new Persistence();
@@ -81,7 +82,7 @@ int MicronTrackerInterface::mtSetupCameras()
   }
   else
   {
-    this->m_errorString = this->handleErrors(result);
+    this->handleError(result);
     return 0;
   }
 }
@@ -108,7 +109,7 @@ bool MicronTrackerInterface::checkCamIndex(int id)
   }
   else
   {
-    this->m_errorString = "Camera index out of bound.";
+    handleError(-1, "Camera index out of bound");
     return false;
   }
 }
@@ -175,16 +176,17 @@ int MicronTrackerInterface::mtRefreshTemplates(std::vector<std::string> &tmplsNa
 {
   getFileNamesFromDirectory(tmplsName, tmplsPath, true);
   int status = this->m_pMarkers->clearTemplates();
-  if (status!=0)
+  if (status!=mtOK)
   {
-    // LOG_ERROR("Clear templates failed");
+    handleError(status, "Clear templates failed");
     return -1;
   }
-  //LOG_DEBUG("Cleared templates");
+  LOG_DEBUG("Cleared templates");
   status = Markers_LoadTemplates((char*)tmplsPath.c_str()); // need casting to non-const char because of the improper MTC interface definition
-  if (status!=0)
+  if (status!=mtOK)
   {
-    // LOG_ERROR("Load templates failed");
+    std::string msg="Load templates failed from directory: "+tmplsPath;
+    handleError(status, msg.c_str());
     return -1;
   }
   return 0;
@@ -215,8 +217,7 @@ int MicronTrackerInterface::mtProcessFrame()
   int result = this->m_pMarkers->processFrame(this->m_pCurrCam);
   if (result != mtOK)
   {
-    result = -1;
-    this->m_errorString = this->handleErrors(result);
+    this->handleError(result);
   }
   return result;
 }
@@ -332,14 +333,16 @@ int MicronTrackerInterface::mtStopSampling(char* templateName, double jitterValu
       result = this->m_pCurrMarker->addTemplateFacet(f, Xf);
       if(result != mtOK)
       {
-        this->m_errorString = "Error occured creating the new marker!";
+        std::string msg = "Error occured creating the new marker ("+errorsString+")";
+        handleError(result, msg.c_str());
         result = -1;
       }
     }
   }
   else
   {
-    this->m_errorString = "Error occured creating the new marker!";
+    std::string msg = "Error occured creating the new marker ("+errorsString+")";
+    handleError(-1, msg.c_str());
     result = -1;
   }
   return result;
@@ -354,7 +357,7 @@ int MicronTrackerInterface::mtSaveMarkerTemplate(const std::string &templName, c
   int storeResult = this->m_pCurrMarker->storeTemplate(newPersistence, "");
   if (storeResult != mtOK)
   {
-    this->m_errorString = "Error in saving the current template";
+    handleError(storeResult, "Error in saving the current template");
     return -1;
   }
   mtResetSamples();
@@ -1067,7 +1070,8 @@ int MicronTrackerInterface::mtSetTemplateName(int index, char* templName)
   // Check the index
   if (index < 0 || index > this->m_pMarkers->getTemplateCount() )
   {
-    this->m_errorString = "Marker index out of range!";
+    handleError(-1, "Marker index out of range");
+    return result;
   }
   char* oldN = this->mtGetTemplateName(index);
   result = this->m_pMarkers->setTemplateItemName(index, templName);
@@ -1075,7 +1079,7 @@ int MicronTrackerInterface::mtSetTemplateName(int index, char* templName)
   result = this->renameFile(oldN, templName, "Markers");
   if (result != mtOK)
   {
-    this->m_errorString = "Changing the name of the template was not successful.";
+    handleError(result, "Changing the name of the template failed");
   }
   return result;
 }
@@ -1112,12 +1116,12 @@ int MicronTrackerInterface::mtDeleteTemplate(int index)
     result = this->removeFile(templateName, "Markers");
     if (result != 0)
     {
-      this->m_errorString = "Could not delete the template!";
+      handleError(result, "Could not delete the template");
     }
   }
   else
   {
-    this->m_errorString = "Marker index out of range!";
+    handleError(-1, "Marker index out of range");
   }
   return result;
 }
@@ -1221,8 +1225,15 @@ int MicronTrackerInterface::renameFile(const std::string& oldName, const std::st
   return 0;
 }
 //------------------------------------------
-std::string MicronTrackerInterface::handleErrors(int errorNum)
+void MicronTrackerInterface::handleError(int errorNum, const char* description/*=NULL*/)
 {
+  if (errorNum==mtOK)
+  {
+    // everything is OK, no error to report
+    return;
+  }
+  std::ostringstream msg;
+  msg << "MicronTracker error: " << errorNum;
   /*mtOK=0,
   mtError,
   mtInvalidHandle,
@@ -1261,26 +1272,33 @@ std::string MicronTrackerInterface::handleErrors(int errorNum)
   std::string error = "";
   switch (errorNum)
   {
-  case 1:
-    error = "Unknown error!";
+  case -1:
+    msg << " (generic)";
     break;
   case 2:
-    error = "Invalid handle!";
+    msg << " (invalid handle)";
     break;
   case 3:
-    error = "Null pointer!";
+    msg << " (null pointer)";
     break;
   case 4:
-    error = "Out of memory";
+    msg << " (out of memory)";
     break;
   case 5:
-    error = "String parameter is too long!";
+    msg << " (string parameter is too long)";
     break;
-  default:
-    error = "Unknown error";
+  default:    
     break;
   }
-  return error;
+  if (description)
+  {
+    msg << ": " << description;
+  }
+  msg << std::ends;
+
+  m_errorString = msg.str();
+
+  LOG_ERROR(m_errorString.c_str());
 }
 
 std::string MicronTrackerInterface::GetSdkVersion()

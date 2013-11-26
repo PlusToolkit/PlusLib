@@ -79,6 +79,8 @@ public:
 
   MicronTrackerInterface* GetMicronTrackerInterface() { return this->MT; };
 
+  static void LogMessageCallback(int level, const char *message, void *userdata);
+
 protected:
   vtkMicronTracker();
   ~vtkMicronTracker();
