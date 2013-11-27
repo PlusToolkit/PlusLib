@@ -11,6 +11,11 @@
 #include <QSizePolicy>
 
 //-----------------------------------------------------------------------------
+namespace
+{
+  const int UNLIMITED_LOG_MESSAGES = -1;
+}
+//-----------------------------------------------------------------------------
 
 StatusIcon::StatusIcon(QWidget* aParent, Qt::WFlags aFlags)
   : QWidget(aParent, aFlags)
@@ -19,6 +24,7 @@ StatusIcon::StatusIcon(QWidget* aParent, Qt::WFlags aFlags)
   , m_MessageListWidget(NULL)
   , m_MessageTextEdit(NULL)
   , m_DisplayMessageCallbackTag(0)
+  , m_MaxMessageCount(UNLIMITED_LOG_MESSAGES)
 {
   this->setMinimumSize(18, 16);
   this->setMaximumSize(18, 16);
@@ -69,6 +75,12 @@ void StatusIcon::AddMessage(QString aInputString)
   // Parse input string and extract log level and the message
   bool ok;
   unsigned int pos = aInputString.indexOf('|');
+
+  if( aInputString.contains('\n') )
+  {
+    int x = 5;
+    x = x + 5;
+  }
 
   int logLevel = aInputString.left(pos).toInt(&ok);
   if (! ok) {
@@ -214,4 +226,25 @@ void StatusIcon::ResetIconState()
 {
   m_Level = vtkPlusLogger::LOG_LEVEL_INFO;
   m_DotLabel->setPixmap( QPixmap( ":/icons/Resources/icon_DotGreen.png" ) );
+}
+
+//-----------------------------------------------------------------------------
+void StatusIcon::SetMaxMessageCount( int count )
+{
+  if( count < 0 )
+  {
+    count = UNLIMITED_LOG_MESSAGES;
+  }
+  this->m_MaxMessageCount = count;
+}
+
+//-----------------------------------------------------------------------------
+void vtkDisplayMessageCallback::Execute( vtkObject *caller, unsigned long eventId, void *callData )
+{
+  if (vtkCommand::UserEvent == eventId)
+  {
+    char* callDataChars = reinterpret_cast<char*>(callData);
+
+    emit AddMessage(QString::fromAscii(callDataChars));
+  }
 }

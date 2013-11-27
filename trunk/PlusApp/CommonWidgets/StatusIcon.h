@@ -37,15 +37,7 @@ public:
     : QObject()
   { }
 
-  virtual void Execute(vtkObject *caller, unsigned long eventId, void *callData)
-  {
-    if (vtkCommand::UserEvent == eventId)
-    {
-      char* callDataChars = reinterpret_cast<char*>(callData);
-
-      emit AddMessage(QString::fromAscii(callDataChars));
-    }
-  }
+  virtual void Execute(vtkObject *caller, unsigned long eventId, void *callData);
 
 signals:
   void AddMessage(QString);
@@ -76,6 +68,8 @@ public:
   * Destructor
   */
   ~StatusIcon();
+
+  void SetMaxMessageCount(int count);
 
 protected:
   /*!
@@ -130,6 +124,9 @@ protected:
 
   /*! Tag number of the display message callback */
   unsigned long m_DisplayMessageCallbackTag;
+
+  /* Allow a maximum number of messages to be logged */
+  int m_MaxMessageCount;
 };
 
 #endif

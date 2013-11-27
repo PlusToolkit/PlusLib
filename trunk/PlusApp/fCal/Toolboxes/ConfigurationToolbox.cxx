@@ -477,6 +477,15 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
     return PLUS_FAIL;
   }
 
+  // Control the behaviour of the status icon
+  const char* statusIconMaxMessageCount = fCalElement->GetAttribute("MaxLogMessageCount");
+  if (statusIconMaxMessageCount != NULL)
+  {
+    int logMessageCount;
+    fCalElement->GetScalarAttribute("MaxLogMessageCount", logMessageCount);
+    m_ParentMainWindow->SetStatusIconMaxMessageCount(logMessageCount);
+  }
+
   m_ParentMainWindow->SetTransducerOriginPixelCoordinateFrame(transducerOriginPixelCoordinateFrame);
 
   // phantom model id
