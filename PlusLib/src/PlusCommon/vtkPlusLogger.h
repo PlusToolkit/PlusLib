@@ -115,6 +115,8 @@ public:
     LOG_LEVEL_UNDEFINED=100
   };
 
+  static int UnlimitedLogMessages(){ return -1; };
+
   /*!  Get a pointer to the single existing object instance */
   static vtkPlusLogger* Instance(); 
 
