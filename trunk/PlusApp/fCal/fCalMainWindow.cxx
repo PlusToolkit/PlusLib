@@ -183,11 +183,7 @@ void fCalMainWindow::CreateToolboxes()
   LOG_TRACE("fCalMainWindow::CreateToolboxes");
 
   // Resize toolbox list to the number of toolboxes
-#ifdef PLUSAPP_ENABLE_EXPERIMENTAL_GUI
   m_ToolboxList.resize(ToolboxType_Count);
-#else
-  m_ToolboxList.resize(ToolboxType_Count - 1);
-#endif
 
   // Configuration widget
   ConfigurationToolbox* configurationToolbox = new ConfigurationToolbox(this);
@@ -865,7 +861,7 @@ void fCalMainWindow::ChannelSelected( vtkPlusChannel* aChannel )
     {
       LOG_ERROR("Image data is not B-mode format.");
     }
-    
+
     this->GetVisualizationController()->DisconnectInput();
     this->GetVisualizationController()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_NONE);
   }
@@ -895,4 +891,10 @@ void fCalMainWindow::SetSelectedChannel( vtkPlusChannel* aChannel )
   this->GetVisualizationController()->SetSelectedChannel(aChannel);
 
   this->m_ToolboxList[m_ActiveToolbox]->SetDisplayAccordingToState();
+}
+
+//-----------------------------------------------------------------------------
+void fCalMainWindow::SetStatusIconMaxMessageCount( int count )
+{
+  this->m_StatusIcon->SetMaxMessageCount(count);
 }

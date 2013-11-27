@@ -178,6 +178,9 @@ public:
   void SetSelectedChannel(vtkPlusChannel* aChannel);
   vtkPlusChannel* GetSelectedChannel(){ return m_SelectedChannel; }
 
+  /* Control the behaviour of the status icon */
+  void SetStatusIconMaxMessageCount(int count);
+
 protected:
   /*!
   * Create toolboxes
