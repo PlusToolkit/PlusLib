@@ -118,6 +118,19 @@ int main( int argc, char** argv )
     return EXIT_FAILURE; 
   }
 
+  // Get the image size from the trackedFrameList header (so that we can create models without having
+  // access to the image data)
+  std::istringstream issDimSize(trackedFrameList->GetCustomString("DimSize")); // DimSize = 640 480 567
+  int frameSize[2]={0,0};
+  issDimSize >> frameSize[0];
+  issDimSize >> frameSize[1];
+  if (frameSize[0]<=0 || frameSize[1]<=0)
+  {
+    LOG_ERROR("Invalid frame size: "<<frameSize[0]<<"x"<<frameSize[1]);
+    frameSize[0]=0;
+    frameSize[1]=0;
+  }
+
   // Loop over each tracked image slice.
   for ( int frameIndex = 0; frameIndex < trackedFrameList->GetNumberOfTrackedFrames(); ++ frameIndex )
   {
@@ -141,8 +154,6 @@ int main( int argc, char** argv )
 
     vtkSmartPointer< vtkTransform > imageToReferenceTransform = vtkSmartPointer< vtkTransform >::New();
     imageToReferenceTransform->SetMatrix( imageToReferenceTransformMatrix );    
-
-    int* frameSize = frame->GetFrameSize();
 
     vtkSmartPointer< vtkTransform > tCubeToImage = vtkSmartPointer< vtkTransform >::New();
     tCubeToImage->Scale( frameSize[ 0 ], frameSize[ 1 ], 1 );
