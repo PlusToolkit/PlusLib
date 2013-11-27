@@ -13,7 +13,10 @@
 //-----------------------------------------------------------------------------
 namespace
 {
-  const int UNLIMITED_LOG_MESSAGES = -1;
+  const QString errorHtml = "<font color=\"#DF0000\">";
+  const QString warningHtml = "<font color=\"#FF8000\">";
+  const QString infoHtml = "<font color=\"Black\">";
+  const QString endHtml = "</font>";
 }
 //-----------------------------------------------------------------------------
 
@@ -24,7 +27,7 @@ StatusIcon::StatusIcon(QWidget* aParent, Qt::WFlags aFlags)
   , m_MessageListWidget(NULL)
   , m_MessageTextEdit(NULL)
   , m_DisplayMessageCallbackTag(0)
-  , m_MaxMessageCount(UNLIMITED_LOG_MESSAGES)
+  , m_MaxMessageCount(vtkPlusLogger::UnlimitedLogMessages())
 {
   this->setMinimumSize(18, 16);
   this->setMaximumSize(18, 16);
@@ -76,45 +79,54 @@ void StatusIcon::AddMessage(QString aInputString)
   bool ok;
   unsigned int pos = aInputString.indexOf('|');
 
-  if( aInputString.contains('\n') )
-  {
-    int x = 5;
-    x = x + 5;
-  }
-
   int logLevel = aInputString.left(pos).toInt(&ok);
   if (! ok) {
     logLevel = -1;
   }
-  QString message = aInputString.right( aInputString.size() - pos - 1 );
 
-  // Re-color dot if necessary
+  QString message;
+
+  // Re-color dot and message text if necessary
   switch (logLevel) {
     case vtkPlusLogger::LOG_LEVEL_ERROR:
       if (m_Level > vtkPlusLogger::LOG_LEVEL_ERROR) {
         m_Level = vtkPlusLogger::LOG_LEVEL_ERROR;
         m_DotLabel->setPixmap( QPixmap( ":/icons/Resources/icon_DotRed.png" ) );
       }
-
-      m_MessageTextEdit->setTextColor(QColor::fromRgb(223, 0, 0));
-
+      message = errorHtml;
       break;
-
     case vtkPlusLogger::LOG_LEVEL_WARNING:
       if (m_Level > vtkPlusLogger::LOG_LEVEL_WARNING) {
         m_Level = vtkPlusLogger::LOG_LEVEL_WARNING;
         m_DotLabel->setPixmap( QPixmap( ":/icons/Resources/icon_DotOrange.png" ) );
       }
-
-      m_MessageTextEdit->setTextColor(QColor::fromRgb(255, 128, 0));
-
+      message = warningHtml;
       break;
-
     default:
-      m_MessageTextEdit->setTextColor(Qt::black);
+      message = infoHtml;
       break;
   }
 
+  message = message.append(aInputString.right( aInputString.size() - pos - 1 )).append(endHtml);
+
+  if( m_MaxMessageCount != vtkPlusLogger::UnlimitedLogMessages() && m_MessageTextEdit->document()->lineCount() > m_MaxMessageCount )
+  {
+    while( m_MessageTextEdit->document()->lineCount() > m_MaxMessageCount )
+    {
+      QTextCursor tc = m_MessageTextEdit->textCursor();
+
+      tc.movePosition( QTextCursor::Start );
+      tc.select( QTextCursor::LineUnderCursor );
+      tc.removeSelectedText();
+      tc.deleteChar(); // delete the newline
+
+      m_MessageTextEdit->setTextCursor( tc );
+    }
+  }
+
+  QTextCursor cursor = m_MessageTextEdit->textCursor();
+  cursor.movePosition(QTextCursor::End);
+  m_MessageTextEdit->setTextCursor(cursor);
   m_MessageTextEdit->append(message);
 }
 
@@ -125,7 +137,8 @@ PlusStatus StatusIcon::ConstructMessageListWidget()
   LOG_TRACE("ToolStateDisplayWidget::ConstructMessageListWidget"); 
 
   // (Re-)Create message list widget
-  if (m_MessageListWidget != NULL) {
+  if (m_MessageListWidget != NULL) 
+  {
     delete m_MessageListWidget;
     m_MessageListWidget = NULL;
   }
@@ -158,6 +171,10 @@ PlusStatus StatusIcon::ConstructMessageListWidget()
   grid->addWidget(m_MessageTextEdit);
   m_MessageListWidget->setLayout(grid);
 
+  QTextCursor tc = m_MessageTextEdit->textCursor();
+  tc.movePosition( QTextCursor::End );
+  m_MessageTextEdit->setTextCursor( tc );
+
   return PLUS_SUCCESS;
 }
 
@@ -165,12 +182,15 @@ PlusStatus StatusIcon::ConstructMessageListWidget()
 
 bool StatusIcon::eventFilter(QObject *obj, QEvent *ev)
 {
-  if ( ev->type() == QEvent::MouseButtonPress ) {
+  if ( ev->type() == QEvent::MouseButtonPress ) 
+  {
     QMouseEvent* mouseEvent = dynamic_cast<QMouseEvent*>(ev);
-    if (mouseEvent != NULL) {
-      if (mouseEvent->buttons() == Qt::LeftButton) {
-
-        if ((m_MessageListWidget == NULL) || (! m_MessageListWidget->isVisible())) {
+    if (mouseEvent != NULL) 
+    {
+      if (mouseEvent->buttons() == Qt::LeftButton) 
+      {
+        if ((m_MessageListWidget == NULL) || (! m_MessageListWidget->isVisible())) 
+        {
           m_Level = vtkPlusLogger::LOG_LEVEL_INFO;
           m_DotLabel->setPixmap( QPixmap( ":/icons/Resources/icon_DotGreen.png" ) );
 
@@ -182,7 +202,9 @@ bool StatusIcon::eventFilter(QObject *obj, QEvent *ev)
           m_MessageListWidget->move( mapToGlobal( QPoint( m_DotLabel->x() - m_MessageListWidget->width(), m_DotLabel->y() - m_MessageListWidget->height() - 40 ) ) );
           m_MessageListWidget->show();
 
-        } else {
+        }
+        else
+        {
           ResetIconState();
           m_MessageListWidget->hide();
         }
@@ -190,7 +212,9 @@ bool StatusIcon::eventFilter(QObject *obj, QEvent *ev)
         return true;
       }
     }
-  } else if ( (obj == m_MessageListWidget) && (ev->type() == QEvent::Close) ) {
+  }
+  else if ( (obj == m_MessageListWidget) && (ev->type() == QEvent::Close) ) 
+  {
     m_Level = vtkPlusLogger::LOG_LEVEL_INFO;
     m_DotLabel->setPixmap( QPixmap( ":/icons/Resources/icon_DotGreen.png" ) );
   }
@@ -233,7 +257,7 @@ void StatusIcon::SetMaxMessageCount( int count )
 {
   if( count < 0 )
   {
-    count = UNLIMITED_LOG_MESSAGES;
+    count = vtkPlusLogger::UnlimitedLogMessages();
   }
   this->m_MaxMessageCount = count;
 }

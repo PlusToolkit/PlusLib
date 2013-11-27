@@ -196,6 +196,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
     FixedSourceId="Video"
     MovingChannelId="TrackerOutput"
     MovingSourceId="ProbeToTracker"
+	MaxLogMessageCount="8" 
   />
 
 

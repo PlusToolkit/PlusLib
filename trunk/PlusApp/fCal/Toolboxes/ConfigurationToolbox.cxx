@@ -485,6 +485,10 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
     fCalElement->GetScalarAttribute("MaxLogMessageCount", logMessageCount);
     m_ParentMainWindow->SetStatusIconMaxMessageCount(logMessageCount);
   }
+  else
+  {
+    m_ParentMainWindow->SetStatusIconMaxMessageCount(vtkPlusLogger::UnlimitedLogMessages());
+  }
 
   m_ParentMainWindow->SetTransducerOriginPixelCoordinateFrame(transducerOriginPixelCoordinateFrame);
 
