@@ -652,13 +652,13 @@ PlusStatus vtkVolumeReconstructor::AddTrackedFrame(TrackedFrame* frame, vtkTrans
 
   if ( frame == NULL )
   {
-    LOG_ERROR("Failed to add tracked frame to volume - input frame is NULL!"); 
+    LOG_ERROR("Failed to add tracked frame to volume - input frame is NULL"); 
     return PLUS_FAIL; 
   }
 
   if ( transformRepository == NULL )
   {
-    LOG_ERROR("Failed to add tracked frame to volume - input transform repository is NULL!"); 
+    LOG_ERROR("Failed to add tracked frame to volume - input transform repository is NULL"); 
     return PLUS_FAIL; 
   }
 
@@ -668,7 +668,7 @@ PlusStatus vtkVolumeReconstructor::AddTrackedFrame(TrackedFrame* frame, vtkTrans
   {
     std::string strImageToReferenceTransformName; 
     imageToReferenceTransformName.GetTransformName(strImageToReferenceTransformName); 
-    LOG_ERROR("Failed to get transform '"<<strImageToReferenceTransformName<<"' from transform repository!"); 
+    LOG_ERROR("Failed to get transform '"<<strImageToReferenceTransformName<<"' from transform repository"); 
     return PLUS_FAIL; 
   }
 
@@ -679,7 +679,10 @@ PlusStatus vtkVolumeReconstructor::AddTrackedFrame(TrackedFrame* frame, vtkTrans
 
   if ( !isMatrixValid )
   {
-    // Insert only valid frame into volume 
+    // Insert only valid frame into volume
+    std::string strImageToReferenceTransformName; 
+    imageToReferenceTransformName.GetTransformName(strImageToReferenceTransformName); 
+    LOG_DEBUG("Transform '"<<strImageToReferenceTransformName<<"' is invalid for the current frame, therefore this frame is not be inserted into the volume"); 
     return PLUS_SUCCESS; 
   }
 
