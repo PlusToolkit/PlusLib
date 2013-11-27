@@ -204,17 +204,6 @@ ADD_TEST(TemporalCalibrationAlgoTest1
 SET_TESTS_PROPERTIES( TemporalCalibrationAlgoTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #--------------------------------------------------------------------------------------------
-ADD_EXECUTABLE(SingleWallCalibrationAlgoTest vtkSingleWallCalibrationAlgoTest.cxx)
-TARGET_LINK_LIBRARIES( SingleWallCalibrationAlgoTest vtkPlusCommon vtkCalibrationAlgo vtkCommon vtkDataCollection vtkCharts)
-
-ADD_TEST(SingleWallCalibrationAlgoTest1
-    ${EXECUTABLE_OUTPUT_PATH}/SingleWallCalibrationAlgoTest
-    --input-seq-file=${TestDataDir}/SingleWallCalibrationTest.mha 
-    --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_File_SingleWallCalibrationAlgoTest.xml
-    )
-SET_TESTS_PROPERTIES( SingleWallCalibrationAlgoTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-
-#--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkLineSegmentationAlgoTest vtkLineSegmentationAlgoTest.cxx)
 TARGET_LINK_LIBRARIES( vtkLineSegmentationAlgoTest vtkPlusCommon vtkCalibrationAlgo vtkCommon)
 

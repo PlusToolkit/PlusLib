@@ -9,7 +9,6 @@ See License.txt for details.
 #include "ConfigurationToolbox.h"
 #include "PhantomRegistrationToolbox.h"
 #include "QCustomAction.h"
-#include "SingleWallCalibrationToolbox.h"
 #include "SpatialCalibrationToolbox.h"
 #include "StatusIcon.h"
 #include "StylusCalibrationToolbox.h"
@@ -284,24 +283,6 @@ void fCalMainWindow::CreateToolboxes()
     ui.toolbox_VolumeReconstruction->setLayout(grid);
   }
   m_ToolboxList[ToolboxType_VolumeReconstruction] = volumeReconstructionToolbox;
-
-#ifdef PLUSAPP_ENABLE_EXPERIMENTAL_GUI
-  // Single wall toolbox
-  SingleWallCalibrationToolbox* singleWallToolbox = new SingleWallCalibrationToolbox(this);
-  if (singleWallToolbox != NULL)
-  {
-    QGridLayout* grid = new QGridLayout(ui.toolbox_SingleWallCalibration);
-    grid->setColumnStretch(1, 1);
-    grid->setRowStretch(1, 1);
-    grid->setMargin(5);
-    grid->setSpacing(0);
-    grid->addWidget(singleWallToolbox);
-    ui.toolbox_SingleWallCalibration->setLayout(grid);
-  }
-  m_ToolboxList[ToolboxType_SingleWallCalibration] = singleWallToolbox;
-#else
-  ui.toolbox->removeItem(ui.toolbox->indexOf(ui.toolbox_SingleWallCalibration));
-#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -368,12 +349,6 @@ void fCalMainWindow::CurrentToolboxChanged(int aToolboxIndex)
   {
     m_ActiveToolbox = ToolboxType_VolumeReconstruction;
   }
-#ifdef PLUSAPP_ENABLE_EXPERIMENTAL_GUI
-  else if (currentToolboxText == QString("Single wall calibration"))
-  {
-    m_ActiveToolbox = ToolboxType_SingleWallCalibration;
-  }
-#endif
   else
   {
     LOG_ERROR("No toolbox with this title found!");

@@ -13,7 +13,6 @@ SET (CalibrationAlgo_SRCS
   vtkTemporalCalibrationAlgo/vtkTemporalCalibrationAlgo.cxx
   vtkTemporalCalibrationAlgo/vtkPrincipalMotionDetectionAlgo.cxx 
   vtkLineSegmentationAlgo/vtkLineSegmentationAlgo.cxx 
-  vtkSingleWallCalibrationAlgo/vtkSingleWallCalibrationAlgo.cxx
   vtkPhantomLinearObjectRegistrationAlgo/Line.cxx
   vtkPhantomLinearObjectRegistrationAlgo/LinearObject.cxx
   vtkPhantomLinearObjectRegistrationAlgo/LinearObjectBuffer.cxx
@@ -40,17 +39,16 @@ IF (WIN32)
     vtkTemporalCalibrationAlgo/vtkTemporalCalibrationAlgo.h
     vtkTemporalCalibrationAlgo/vtkPrincipalMotionDetectionAlgo.h
     vtkLineSegmentationAlgo/vtkLineSegmentationAlgo.h
-    vtkSingleWallCalibrationAlgo/vtkSingleWallCalibrationAlgo.h
     vtkPhantomLinearObjectRegistrationAlgo/Line.h
-	  vtkPhantomLinearObjectRegistrationAlgo/LinearObject.h
-	  vtkPhantomLinearObjectRegistrationAlgo/LinearObjectBuffer.h
-      vtkPhantomLinearObjectRegistrationAlgo/Point.cxx
-	  vtkPhantomLinearObjectRegistrationAlgo/Plane.h
-	  vtkPhantomLinearObjectRegistrationAlgo/Planes.h
-	  vtkPhantomLinearObjectRegistrationAlgo/PointObservation.h
-	  vtkPhantomLinearObjectRegistrationAlgo/PointObservationBuffer.h
-	  vtkPhantomLinearObjectRegistrationAlgo/Reference.h
-	  vtkPhantomLinearObjectRegistrationAlgo/References.h
+    vtkPhantomLinearObjectRegistrationAlgo/LinearObject.h
+    vtkPhantomLinearObjectRegistrationAlgo/LinearObjectBuffer.h
+    vtkPhantomLinearObjectRegistrationAlgo/Point.cxx
+    vtkPhantomLinearObjectRegistrationAlgo/Plane.h
+    vtkPhantomLinearObjectRegistrationAlgo/Planes.h
+    vtkPhantomLinearObjectRegistrationAlgo/PointObservation.h
+    vtkPhantomLinearObjectRegistrationAlgo/PointObservationBuffer.h
+    vtkPhantomLinearObjectRegistrationAlgo/Reference.h
+    vtkPhantomLinearObjectRegistrationAlgo/References.h
     )
 ENDIF (WIN32)
 
@@ -62,7 +60,6 @@ SET (CalibrationAlgo_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkPhantomLinearObjectRegistrationAlgo
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkPivotCalibrationAlgo
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkProbeCalibrationAlgo
-  ${CMAKE_CURRENT_SOURCE_DIR}/vtkSingleWallCalibrationAlgo
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkSpacingCalibAlgo
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkTemporalCalibrationAlgo 
   CACHE INTERNAL "" FORCE)

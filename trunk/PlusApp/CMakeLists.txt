@@ -83,7 +83,6 @@ SET( INSTALL_DESTINATION_DIR "PlusApp_v${PLUSAPP_VERSION_MAJOR}.${PLUSAPP_VERSIO
 OPTION (PLUSAPP_BUILD_DiagnosticTools "Build the DiagnosticTools" ON)
 OPTION (PLUSAPP_BUILD_fCal "Build the fCal application (Qt)" ON)
 OPTION (PLUSAPP_TEST_GUI "Enable Sikuli GUI tests" ON)
-OPTION (PLUSAPP_ENABLE_EXPERIMENTAL_GUI OFF)
 
 # --------------------------------------------------------------------------
 # Packaging
@@ -180,10 +179,6 @@ configure_file(
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.sh.in 
   ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.sh
-  )
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/PlusAppConfigure.h.in
-  ${CMAKE_CURRENT_BINARY_DIR}/PlusAppConfigure.h
   )
 #-----------------------------------------------------------------------------
 # Install files 

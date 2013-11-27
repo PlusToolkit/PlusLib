@@ -13,7 +13,6 @@ SET (fCal_SRCS
   Toolboxes/ConfigurationToolbox.cxx
   Toolboxes/CapturingToolbox.cxx
   Toolboxes/SpatialCalibrationToolbox.cxx
-  Toolboxes/SingleWallCalibrationToolbox.cxx
   Toolboxes/TemporalCalibrationToolbox.cxx
   Toolboxes/StylusCalibrationToolbox.cxx
   Toolboxes/PhantomRegistrationToolbox.cxx
@@ -32,7 +31,6 @@ SET (fCal_UI_HDRS
     Toolboxes/ConfigurationToolbox.h
     Toolboxes/CapturingToolbox.h
     Toolboxes/SpatialCalibrationToolbox.h
-    Toolboxes/SingleWallCalibrationToolbox.h
     Toolboxes/TemporalCalibrationToolbox.h
     Toolboxes/StylusCalibrationToolbox.h
     Toolboxes/PhantomRegistrationToolbox.h
@@ -44,7 +42,6 @@ SET (fCal_UI_SRCS
   Toolboxes/ConfigurationToolbox.ui
   Toolboxes/CapturingToolbox.ui
   Toolboxes/SpatialCalibrationToolbox.ui
-  Toolboxes/SingleWallCalibrationToolbox.ui
   Toolboxes/TemporalCalibrationToolbox.ui
   Toolboxes/StylusCalibrationToolbox.ui
   Toolboxes/PhantomRegistrationToolbox.ui
@@ -68,7 +65,6 @@ QT4_ADD_RESOURCES( fCal_QT_RCC_Files ${fCal_QT_Resources} )
 SOURCE_GROUP("Generated Files" FILES ${fCal_QT_MOC_Files} ${fCal_QT_UI_Headers} ${fCal_QT_MOC_UI_Files} ${fCal_QT_RCC_Files})
 SOURCE_GROUP("UI Files" FILES ${fCal_UI_SRCS})
 
-include_directories(${PlusApp_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Toolboxes)
