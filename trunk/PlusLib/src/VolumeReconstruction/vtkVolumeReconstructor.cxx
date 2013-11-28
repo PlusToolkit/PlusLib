@@ -879,3 +879,15 @@ PlusStatus vtkVolumeReconstructor::SaveReconstructedVolumeToVtkFile(const char* 
 
   return PLUS_SUCCESS;
 }
+
+//----------------------------------------------------------------------------
+int* vtkVolumeReconstructor::GetClipRectangleOrigin()
+{
+  return this->Reconstructor->GetClipRectangleOrigin();
+}
+
+//----------------------------------------------------------------------------
+int* vtkVolumeReconstructor::GetClipRectangleSize()
+{
+  return this->Reconstructor->GetClipRectangleSize();
+}
