@@ -85,6 +85,18 @@ PlusStatus vtkMicronTracker::Probe()
   }
 
   std::string iniFilePath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->IniFile);
+  LOG_DEBUG("Use MicronTracker ini file: "<<iniFilePath);
+  if ( !vtksys::SystemTools::FileExists( iniFilePath.c_str(), true) )
+  {
+    LOG_DEBUG("Unable to find MicronTracker IniFile file at: " << iniFilePath);
+  }
+  std::string templateFullPath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->TemplateDirectory.c_str());
+  LOG_DEBUG("Loading the marker templates from "<<templateFullPath);
+  if ( !vtksys::SystemTools::FileExists( templateFullPath.c_str(), false) )
+  {
+    LOG_DEBUG("Unable to find MicronTracker TemplateDirectory at: " << templateFullPath);
+  }
+
   if (this->MT->mtInit(iniFilePath)!=1)
   {
     LOG_ERROR("Error in initializing Micron Tracker");
@@ -231,6 +243,10 @@ PlusStatus vtkMicronTracker::RefreshMarkerTemplates()
 
   std::string templateFullPath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->TemplateDirectory.c_str());
   LOG_DEBUG("Loading the marker templates from "<<templateFullPath);
+  if ( !vtksys::SystemTools::FileExists( templateFullPath.c_str(), false) )
+  {
+    LOG_WARNING("Unable to find MicronTracker TemplateDirectory at: " << templateFullPath);
+  }
   int callResult = this->MT->mtRefreshTemplates(vTemplatesName, vTemplatesError, templateFullPath);
   for (int i=0; i<vTemplatesName.size(); i++)
   {
@@ -384,7 +400,18 @@ PlusStatus vtkMicronTracker::InternalConnect()
   }
   
   std::string iniFilePath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->IniFile);
-  LOG_INFO("Use MicronTracker ini file: "<<iniFilePath);
+  LOG_DEBUG("Use MicronTracker ini file: "<<iniFilePath);
+  if ( !vtksys::SystemTools::FileExists( iniFilePath.c_str(), true) )
+  {
+    LOG_WARNING("Unable to find MicronTracker IniFile file at: " << iniFilePath);
+  }
+  std::string templateFullPath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->TemplateDirectory.c_str());
+  LOG_DEBUG("Loading the marker templates from "<<templateFullPath);
+  if ( !vtksys::SystemTools::FileExists( templateFullPath.c_str(), false) )
+  {
+    LOG_ERROR("Unable to find MicronTracker TemplateDirectory at: " << templateFullPath);
+  }
+
   if (this->MT->mtInit(iniFilePath)!=1)
   {
     LOG_ERROR("Error in initializing Micron Tracker");
