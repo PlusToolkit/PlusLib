@@ -118,6 +118,15 @@ public:
   vtkGetStringMacro(ReferenceCoordinateFrame);
   vtkSetStringMacro(ReferenceCoordinateFrame);
 
+
+  /*!
+    Get the clip rectangle origin to apply to the image in pixel coordinates.
+  */
+  int* GetClipRectangleOrigin();
+
+  /*! Get the clip rectangle size in pixels */
+  int* GetClipRectangleSize();
+
 protected: 
   vtkVolumeReconstructor();
   virtual ~vtkVolumeReconstructor();

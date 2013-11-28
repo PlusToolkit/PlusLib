@@ -86,6 +86,20 @@ int main( int argc, char** argv )
   LOG_DEBUG("Reading input done.");
   LOG_DEBUG("Number of frames: " << trackedFrameList->GetNumberOfTrackedFrames());
 
+  // Get the image size from the trackedFrameList header (so that we can create models without having
+  // access to the image data)
+  int clipRectangleOrigin[2]={0,0};
+  std::istringstream issDimSize(trackedFrameList->GetCustomString("DimSize")); // DimSize = 640 480 567
+  int clipRectangleSize[2]={0,0};
+  issDimSize >> clipRectangleSize[0];
+  issDimSize >> clipRectangleSize[1];
+  if (clipRectangleSize[0]<=0 || clipRectangleSize[1]<=0)
+  {
+    LOG_ERROR("Invalid frame size: "<<clipRectangleSize[0]<<"x"<<clipRectangleSize[1]);
+    clipRectangleSize[0]=0;
+    clipRectangleSize[1]=0;
+  }
+
   // Read calibration matrices from the config file
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
   if ( !inputConfigFileName.empty() )
@@ -99,6 +113,18 @@ int main( int argc, char** argv )
     {
       LOG_ERROR("Failed to read transforms for transform repository!"); 
       return EXIT_FAILURE; 
+    }
+    int* clipRectangleOriginInConfig=reconstructor->GetClipRectangleOrigin();
+    if (clipRectangleOriginInConfig!=NULL && clipRectangleOriginInConfig[0]>=0 && clipRectangleOriginInConfig[1]>=0)
+    {
+      clipRectangleOrigin[0]=clipRectangleOriginInConfig[0];
+      clipRectangleOrigin[1]=clipRectangleOriginInConfig[1];
+    }
+    int* clipRectangleSizeInConfig=reconstructor->GetClipRectangleSize();
+    if (clipRectangleSizeInConfig!=NULL && clipRectangleSizeInConfig[0]>=0 && clipRectangleSizeInConfig[1]>=0)
+    {
+      clipRectangleSize[0]=clipRectangleSizeInConfig[0];
+      clipRectangleSize[1]=clipRectangleSizeInConfig[1];
     }
   }
   else
@@ -116,19 +142,6 @@ int main( int argc, char** argv )
   {    
     LOG_ERROR("Invalid image to reference transform name: " << imageToReferenceTransformNameStr ); 
     return EXIT_FAILURE; 
-  }
-
-  // Get the image size from the trackedFrameList header (so that we can create models without having
-  // access to the image data)
-  std::istringstream issDimSize(trackedFrameList->GetCustomString("DimSize")); // DimSize = 640 480 567
-  int frameSize[2]={0,0};
-  issDimSize >> frameSize[0];
-  issDimSize >> frameSize[1];
-  if (frameSize[0]<=0 || frameSize[1]<=0)
-  {
-    LOG_ERROR("Invalid frame size: "<<frameSize[0]<<"x"<<frameSize[1]);
-    frameSize[0]=0;
-    frameSize[1]=0;
   }
 
   // Loop over each tracked image slice.
@@ -156,7 +169,8 @@ int main( int argc, char** argv )
     imageToReferenceTransform->SetMatrix( imageToReferenceTransformMatrix );    
 
     vtkSmartPointer< vtkTransform > tCubeToImage = vtkSmartPointer< vtkTransform >::New();
-    tCubeToImage->Scale( frameSize[ 0 ], frameSize[ 1 ], 1 );
+    tCubeToImage->Translate( clipRectangleOrigin[ 0 ], clipRectangleOrigin[ 1 ], 1 );
+    tCubeToImage->Scale( clipRectangleSize[ 0 ], clipRectangleSize[ 1 ], 1 );
     tCubeToImage->Translate( 0.5, 0.5, 0.5 );  // Moving the corner to the origin.
 
     vtkSmartPointer< vtkTransform > tCubeToTracker = vtkSmartPointer< vtkTransform >::New();
