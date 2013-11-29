@@ -75,15 +75,14 @@ int main(int argc, char **argv)
 	}
 
 	vtkSmartPointer<vtkWin32VideoSource2> frameGrabber = vtkSmartPointer<vtkWin32VideoSource2>::New();
-
+  frameGrabber->TestCreateDefaultVideoSource();
   vtkPlusChannel* aChannel(NULL);
   vtkPlusDataSource* aSource(NULL);
-  if( frameGrabber->GetOutputChannelByName(aChannel, "VideoStream") != PLUS_SUCCESS || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( frameGrabber->GetOutputChannelByName(aChannel, "DefaultChannel") != PLUS_SUCCESS || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source.");
     return NULL;
   }
-  aSource->SetPortImageOrientation( US_IMG_ORIENT_MN );
 
 	// Add an observer to warning and error events for redirecting it to the stdout 
 	vtkSmartPointer<vtkCallbackCommand> callbackCommand = vtkSmartPointer<vtkCallbackCommand>::New();
@@ -92,7 +91,9 @@ int main(int argc, char **argv)
 	frameGrabber->AddObserver("ErrorEvent", callbackCommand); 
 
 	LOG_INFO("Initialize..."); 
-	frameGrabber->Connect(); 
+	frameGrabber->Connect();
+
+  aSource->SetPortImageOrientation( US_IMG_ORIENT_MN );
 
   if (showDialogs)
   {
