@@ -1793,7 +1793,7 @@ PlusStatus vtkPlusDevice::GetFirstActiveVideoSource(vtkPlusDataSource*& aVideoSo
 
   aVideoSource = this->VideoSources.begin()->second;
 
-  return PLUS_FAIL; 
+  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
@@ -2024,4 +2024,40 @@ PlusStatus vtkPlusDevice::BuildParameterIndexList(const ChannelContainer& channe
 bool vtkPlusDevice::HasGracePeriodExpired()
 {
   return (vtkAccurateTimer::GetSystemTime() - this->RecordingStartTime) > this->MissingInputGracePeriodSec;
+}
+
+//------------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::TestCreateDefaultChannel()
+{
+  // Create output channel
+  vtkSmartPointer<vtkPlusChannel> aChannel = vtkSmartPointer<vtkPlusChannel>::New();
+  aChannel->SetOwnerDevice(this);
+  aChannel->SetChannelId("DefaultChannel");
+  return this->AddOutputChannel(aChannel);
+}
+
+//------------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::TestCreateDefaultVideoSource()
+{
+  if( this->OutputChannels.size() == 0 )
+  {
+    if( this->TestCreateDefaultChannel() != PLUS_SUCCESS )
+    {
+      return PLUS_FAIL;
+    }
+  }
+
+  // Create a video source for this channel
+  vtkPlusDataSource* aDataSource = vtkPlusDataSource::New(); 
+  if( aDataSource->SetSourceId("Video") != PLUS_SUCCESS )
+  {
+    return PLUS_FAIL;
+  }
+  if( this->AddVideo(aDataSource) != PLUS_SUCCESS )
+  {
+    return PLUS_FAIL;
+  }
+  this->OutputChannels[0]->SetVideoSource(aDataSource);
+
+  return PLUS_SUCCESS;
 }

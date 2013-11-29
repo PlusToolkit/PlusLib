@@ -398,6 +398,9 @@ public:
   vtkSetMacro(MissingInputGracePeriodSec, double);
   vtkGetMacro(MissingInputGracePeriodSec, double);
 
+  PlusStatus TestCreateDefaultChannel();
+  PlusStatus TestCreateDefaultVideoSource();
+
 protected:
   static void *vtkDataCaptureThread(vtkMultiThreader::ThreadInfo *data);
 
