@@ -1495,8 +1495,11 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
 
   if ( aSource->GetBuffer() == NULL || aSource->GetBuffer()->GetNumberOfItems() < 1 )
   {
-    // If the video buffer is empty, we can return immediately
     LOG_DEBUG("Cannot request data from video source, the video buffer is empty or does not exist!");
+    vtkImageData *data = vtkImageData::SafeDownCast(this->GetOutputDataObject(0));
+    int frameSize[2]={aSource->GetBuffer()->GetFrameSize()[0],aSource->GetBuffer()->GetFrameSize()[1] };
+    data->SetExtent(0,frameSize[0]-1,0,frameSize[1]-1,0,0);
+    data->AllocateScalars();
     return 1;
   }
 

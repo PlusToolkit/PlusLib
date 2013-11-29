@@ -331,6 +331,44 @@ PlusStatus vtkWin32VideoSource2::InternalConnect()
     return PLUS_FAIL;
   }
 
+  int width = this->Internal->BitMapInfoPtr->bmiHeader.biWidth;
+  int height = this->Internal->BitMapInfoPtr->bmiHeader.biHeight;
+  this->ReleaseSystemResources();
+  this->Internal->ParentWnd = CreateWindow(this->WndClassName,"Plus video capture window", style, 0, 0, 
+    width+2*GetSystemMetrics(SM_CXFIXEDFRAME),
+    height+2*GetSystemMetrics(SM_CYFIXEDFRAME)+GetSystemMetrics(SM_CYBORDER)+GetSystemMetrics(SM_CYSIZE),
+    NULL,NULL,hinstance,NULL);
+
+  if (!this->Internal->ParentWnd) 
+  {
+    LOG_ERROR("Initialize: failed to create window (" << GetLastError() << ")");
+    return PLUS_FAIL;
+  }
+
+  // set the user data to 'this'
+  vtkSetWindowLong(this->Internal->ParentWnd,vtkGWL_USERDATA,(LONG)this);
+
+  // Create the capture window
+  this->Internal->CapWnd = capCreateCaptureWindow("Capture", WS_CHILD|WS_VISIBLE, 0, 0, 
+    frameSize[0], frameSize[1], this->Internal->ParentWnd,1);
+
+  if (!this->Internal->CapWnd) 
+  {
+    LOG_ERROR("Initialize: failed to create capture window (" << GetLastError() << ")");
+    this->ReleaseSystemResources();
+    return PLUS_FAIL;
+  }
+
+  // connect to the driver
+  if (!capDriverConnect(this->Internal->CapWnd,0))
+  {
+    LOG_ERROR("Initialize: couldn't connect to driver (" << GetLastError() << ")");
+    this->ReleaseSystemResources();
+    return PLUS_FAIL;
+  }
+
+  capDriverGetCaps(this->Internal->CapWnd,&this->Internal->CapDriverCaps,sizeof(CAPDRIVERCAPS));
+
   // set the capture parameters
   capCaptureGetSetup(this->Internal->CapWnd,&this->Internal->CaptureParms,sizeof(CAPTUREPARMS));
 
