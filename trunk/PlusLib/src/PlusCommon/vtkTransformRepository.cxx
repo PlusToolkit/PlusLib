@@ -208,7 +208,8 @@ PlusStatus vtkTransformRepository::SetTransform(const PlusTransformName& aTransf
     fromToTransformInfo->m_IsValid = isValid;
 
     // Set the same status for the computed inverse transform
-    TransformInfo* toFromTransformInfo = GetOriginalTransform(aTransformName);
+    PlusTransformName toFromTransformName(aTransformName.To(), aTransformName.From());
+    TransformInfo* toFromTransformInfo = GetOriginalTransform(toFromTransformName);
     if (toFromTransformInfo==NULL)
     {
       LOG_ERROR("The computed " << aTransformName.To() <<"To" << aTransformName.From()
