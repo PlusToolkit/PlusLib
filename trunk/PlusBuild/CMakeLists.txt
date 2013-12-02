@@ -159,16 +159,16 @@ IF(PLUSBUILD_BUILD_PLUSAPP AND NOT PLUSBUILD_USE_3DSlicer)
   FIND_FILE(QT_QMAKE_EXECUTABLE qmake${CMAKE_EXECUTABLE_SUFFIX} 
     PATH
       $ENV{QTDIR}
-      "C:/Qt/4.7.3/bin"
-      "../Qt/4.7.3/bin"
-      "../../Qt/4.7.3/bin"
+      "C:/Qt/4.7.4/bin"
+      "../Qt/4.7.4/bin"
+      "../../Qt/4.7.4/bin"
     )
   FIND_PACKAGE(Qt4)
   IF ( NOT QT4_FOUND)
       MESSAGE( FATAL_ERROR "This project requires Qt4 for building PlusApp. One of these components is missing. Please verify configuration by selecting QT_QMAKE_EXECUTABLE or turn off PLUSBUILD_BUILD_PLUSAPP option.")
   ENDIF()  
   
-  SET(QT_USE_QT3SUPPORT TRUE) 
+  SET(QT_USE_QT3SUPPORT FALSE) 
   INCLUDE(${QT_USE_FILE})
 ENDIF(PLUSBUILD_BUILD_PLUSAPP AND NOT PLUSBUILD_USE_3DSlicer) 
 
