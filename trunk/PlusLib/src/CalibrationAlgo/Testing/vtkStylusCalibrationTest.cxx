@@ -15,6 +15,7 @@
 #include "TrackedFrame.h"
 #include "vtkDataCollector.h"
 #include "vtkMatrix4x4.h"
+#include "vtkMinimalStandardRandomSequence.h"
 #include "vtkPivotCalibrationAlgo.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusConfig.h"
@@ -42,6 +43,7 @@ int main (int argc, char* argv[])
 
   int numberOfPointsToAcquire=100;
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  double outlierGenerationProbability=0.0;
 
   vtksys::CommandLineArguments cmdargs;
   cmdargs.Initialize(argc, argv);
@@ -49,6 +51,7 @@ int main (int argc, char* argv[])
   cmdargs.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
   cmdargs.AddArgument("--baseline-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
   cmdargs.AddArgument("--number-of-points-to-acquire", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &numberOfPointsToAcquire, "Number of acquired points during the pivot calibration (default: 100)");
+  cmdargs.AddArgument("--outlier-generation-probability", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outlierGenerationProbability, "Probability for a point being an outlier. If this number is larger than 0 then some valid measurement points are replaced by randomly generated samples to test the robustness of the algorithm. (range: 0.0-1.0; default: 0.0)");
   cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
 
   if ( !cmdargs.Parse() )
@@ -136,6 +139,10 @@ int main (int argc, char* argv[])
   // Check stylus tool
   PlusTransformName stylusToReferenceTransformName(pivotCalibration->GetObjectMarkerCoordinateFrame(), pivotCalibration->GetReferenceCoordinateFrame());
 
+  vtkSmartPointer<vtkMinimalStandardRandomSequence> random = vtkSmartPointer<vtkMinimalStandardRandomSequence>::New();
+  random->SetSeed(183495439); // Just some random number was chosen as seed
+  int numberOfOutliers=0;
+
   // Acquire positions for pivot calibration
   for (int i=0; i < numberOfPointsToAcquire; ++i)
   {
@@ -165,15 +172,51 @@ int main (int argc, char* argv[])
       exit(EXIT_FAILURE);
     }
 
+    // Generate an outlier point to see if the calibration algorithm is robust enough
+    random->Next();
+    if (random->GetValue() < outlierGenerationProbability)
+    {
+      numberOfOutliers++;
+      random->Next();
+      double rotX = random->GetRangeValue(-160, 160);
+      random->Next();
+      double rotY = random->GetRangeValue(-160, 160);
+      random->Next();
+      double rotZ = random->GetRangeValue(-160, 160);
+      double translation[3]={0};
+      random->Next();
+      translation[0] = random->GetRangeValue(-1000, 1000);
+      random->Next();
+      translation[1] = random->GetRangeValue(-1000, 1000);
+      random->Next();
+      translation[2] = random->GetRangeValue(-1000, 1000);
+      // Random matrix that perturbs the actual perfect transform      
+      vtkSmartPointer<vtkTransform> randomStylusToReferenceTransform=vtkSmartPointer<vtkTransform>::New();
+      randomStylusToReferenceTransform->Identity();
+      randomStylusToReferenceTransform->Translate(translation);
+      randomStylusToReferenceTransform->RotateX(rotX);
+      randomStylusToReferenceTransform->RotateY(rotY);
+      randomStylusToReferenceTransform->RotateZ(rotZ);
+      stylusToReferenceMatrix->DeepCopy(randomStylusToReferenceTransform->GetMatrix());
+    }
+
     pivotCalibration->InsertNextCalibrationPoint(stylusToReferenceMatrix);
   }
   vtkPlusLogger::PrintProgressbar(100.0); 
+
+  if (numberOfOutliers>0)
+  {
+    LOG_INFO("Number of generated outlier samples: "<<numberOfOutliers);
+  }
 
   if (pivotCalibration->DoPivotCalibration(transformRepository) != PLUS_SUCCESS)
   {
     LOG_ERROR("Calibration error!");
     exit(EXIT_FAILURE);
   }
+
+  LOG_INFO("Number of detected outliers: "<<pivotCalibration->GetNumberOfDetectedOutliers());
+  LOG_INFO("Mean calibration error: "<<pivotCalibration->GetCalibrationError()<<" mm");
 
   // Save result
   if (transformRepository->WriteConfiguration(configRootElement) != PLUS_SUCCESS )

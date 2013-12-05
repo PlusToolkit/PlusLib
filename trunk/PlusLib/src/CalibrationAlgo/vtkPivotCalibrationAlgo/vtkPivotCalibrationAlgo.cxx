@@ -6,6 +6,7 @@
 
 #include "vtkPivotCalibrationAlgo.h"
 #include "vtkTransformRepository.h"
+#include "PlusMath.h"
 
 #include "vtkObjectFactory.h"
 #include "vtkTransform.h"
@@ -13,152 +14,156 @@
 #include "vtkMath.h"
 #include "vtksys/SystemTools.hxx"
 
-//-----------------------------------------------------------------------------
-
 vtkCxxRevisionMacro(vtkPivotCalibrationAlgo, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkPivotCalibrationAlgo);
 
 //-----------------------------------------------------------------------------
-
 vtkPivotCalibrationAlgo::vtkPivotCalibrationAlgo()
 {
   this->PivotPointToMarkerTransformMatrix = NULL;
   this->CalibrationError = -1.0;
-  this->Minimizer = NULL;
-  this->MarkerToReferenceTransformMatrixArray = NULL;
   this->ObjectMarkerCoordinateFrame = NULL;
   this->ReferenceCoordinateFrame = NULL;
   this->ObjectPivotPointCoordinateFrame = NULL;
 
-  vtkSmartPointer<vtkAmoebaMinimizer> minimizer = vtkSmartPointer<vtkAmoebaMinimizer>::New();
-  this->SetMinimizer(minimizer);
-
-  vtkSmartPointer<vtkDoubleArray> markerToReferenceTransformMatrixArray = vtkSmartPointer<vtkDoubleArray>::New();
-  this->SetMarkerToReferenceTransformMatrixArray(markerToReferenceTransformMatrixArray);
-  this->MarkerToReferenceTransformMatrixArray->SetNumberOfComponents(16);
-
-  this->PivotPointPosition[0] = 0.0;
-  this->PivotPointPosition[1] = 0.0;
-  this->PivotPointPosition[2] = 0.0;
-
-  Initialize();
+  this->PivotPointPosition_Reference[0] = 0.0;
+  this->PivotPointPosition_Reference[1] = 0.0;
+  this->PivotPointPosition_Reference[2] = 0.0;
+  this->PivotPointPosition_Reference[3] = 1.0;
 }
 
 //-----------------------------------------------------------------------------
-
 vtkPivotCalibrationAlgo::~vtkPivotCalibrationAlgo()
 {
   this->SetPivotPointToMarkerTransformMatrix(NULL);
-  this->SetMarkerToReferenceTransformMatrixArray(NULL);
-  this->SetMinimizer(NULL);
+  this->RemoveAllCalibrationPoints();
 }
 
-//----------------------------------------------------------------------------
-
-PlusStatus vtkPivotCalibrationAlgo::Initialize()
+//-----------------------------------------------------------------------------
+void vtkPivotCalibrationAlgo::RemoveAllCalibrationPoints()
 {
-  LOG_TRACE("vtkPivotCalibrationAlgo::Initialize");
-
-  this->MarkerToReferenceTransformMatrixArray->SetNumberOfTuples(0);
-
-  return PLUS_SUCCESS; 
+  for (std::list< vtkMatrix4x4* >::iterator it=this->MarkerToReferenceTransformMatrixArray.begin();
+    it!=this->MarkerToReferenceTransformMatrixArray.end(); ++it)
+  {
+    (*it)->Delete();
+  }
+  this->MarkerToReferenceTransformMatrixArray.clear();
+  this->OutlierIndices.clear();
 }
 
 //----------------------------------------------------------------------------
-
 PlusStatus vtkPivotCalibrationAlgo::InsertNextCalibrationPoint(vtkMatrix4x4* aMarkerToReferenceTransformMatrix)
 {
-  //LOG_TRACE("vtkPivotCalibrationAlgo::InsertNextCalibrationPoint");
-
-  this->MarkerToReferenceTransformMatrixArray->InsertNextTuple(*aMarkerToReferenceTransformMatrix->Element);
-
+  vtkMatrix4x4* markerToReferenceTransformMatrixCopy = vtkMatrix4x4::New();
+  markerToReferenceTransformMatrixCopy->DeepCopy(aMarkerToReferenceTransformMatrix);
+  this->MarkerToReferenceTransformMatrixArray.push_back(markerToReferenceTransformMatrixCopy);  
   return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
+/*
+In homogeneous coordinates:
+ PivotPoint_Reference = MarkerToReferenceTransformMatrix * PivotPoint_Marker
 
-void vtkTrackerToolCalibrationFunction(void *userData)
+MarkerToReferenceTransformMatrix decomosed to rotation matrix and translation vector:
+ PivotPoint_Reference = MarkerToReferenceTransformRotationMatrix * PivotPoint_Marker + MarkerToReferenceTransformTranslationVector
+rearranged:
+ MarkerToReferenceTransformRotationMatrix * PivotPoint_Marker - PivotPoint_Reference = -MarkerToReferenceTransformTranslationVector
+in a matrix form:
+ [ MarkerToReferenceTransformRotationMatrix | -Identity3x3 ] * [ PivotPoint_Marker    ] = [ -MarkerToReferenceTransformTranslationVector ]
+                                                               [ PivotPoint_Reference ]
+
+It's an Ax=b linear problem that can be solved with robust LSQR:
+ Ai = [ MarkerToReferenceTransformRotationMatrix | -Identity3x3 ]
+ xi = [ PivotPoint_Marker    ]
+      [ PivotPoint_Reference ]
+ bi = [ -MarkerToReferenceTransformTranslationVector ]
+*/
+PlusStatus vtkPivotCalibrationAlgo::GetPivotPointPosition_Marker(double* pivotPoint_Marker)
 {
-  LOG_TRACE("(vtkPivotCalibrationAlgo)vtkTrackerToolCalibrationFunction");
+  std::vector<vnl_vector<double> > aMatrix; 
+  std::vector<double> bVector;  
+  vnl_vector<double> xVector(6,0); // result vector
 
-  vtkPivotCalibrationAlgo *self = (vtkPivotCalibrationAlgo*)userData;
-
-  int i;
-  int n = self->MarkerToReferenceTransformMatrixArray->GetNumberOfTuples();
-
-  double x = self->Minimizer->GetParameterValue("x");
-  double y = self->Minimizer->GetParameterValue("y");
-  double z = self->Minimizer->GetParameterValue("z");
-  double nx,ny,nz,sx,sy,sz,sxx,syy,szz;
-
-  double matrix[4][4];
-
-  sx = sy = sz = 0.0;
-  sxx = syy = szz = 0.0;
-
-  for (i = 0; i < n; i++)
-  {
-    self->MarkerToReferenceTransformMatrixArray->GetTuple(i,*matrix);
-
-    nx = matrix[0][0]*x + matrix[0][1]*y + matrix[0][2]*z + matrix[0][3];
-    ny = matrix[1][0]*x + matrix[1][1]*y + matrix[1][2]*z + matrix[1][3];
-    nz = matrix[2][0]*x + matrix[2][1]*y + matrix[2][2]*z + matrix[2][3];
-
-    sx += nx;
-    sy += ny;
-    sz += nz;
-
-    sxx += nx*nx;
-    syy += ny*ny;
-    szz += nz*nz;
+  vnl_vector<double> aMatrixRow(6);
+  for (std::list< vtkMatrix4x4* >::iterator markerToReferenceTransformIt=this->MarkerToReferenceTransformMatrixArray.begin();
+    markerToReferenceTransformIt!=this->MarkerToReferenceTransformMatrixArray.end(); ++markerToReferenceTransformIt)
+  {    
+    for (int i=0; i<3; i++)
+    {
+      aMatrixRow(0)=(*markerToReferenceTransformIt)->Element[i][0];
+      aMatrixRow(1)=(*markerToReferenceTransformIt)->Element[i][1];
+      aMatrixRow(2)=(*markerToReferenceTransformIt)->Element[i][2];
+      aMatrixRow(3)= (i==0?-1:0);
+      aMatrixRow(4)= (i==1?-1:0);
+      aMatrixRow(5)= (i==2?-1:0);
+      aMatrix.push_back(aMatrixRow);
+    }
+    bVector.push_back(-(*markerToReferenceTransformIt)->Element[0][3]);
+    bVector.push_back(-(*markerToReferenceTransformIt)->Element[1][3]);
+    bVector.push_back(-(*markerToReferenceTransformIt)->Element[2][3]);
   }
 
-  double r;
-
-  if (n > 1)
+  double mean = 0;
+  double stdev = 0;
+  vnl_vector<unsigned int> notOutliersIndices;
+  notOutliersIndices.clear();
+  notOutliersIndices.set_size(bVector.size());
+  for ( unsigned int i = 0; i < bVector.size(); ++i )
   {
-    r = sqrt((sxx - sx*sx/n)/(n-1) +
-      (syy - sy*sy/n)/(n-1) +
-      (szz - sz*sz/n)/(n-1));
+    notOutliersIndices.put(i,i);
   }
-  else
+  if ( PlusMath::LSQRMinimize(aMatrix, bVector, xVector, &mean, &stdev, &notOutliersIndices) != PLUS_SUCCESS )
   {
-    r = 0;
+    LOG_ERROR("vtkPivotCalibrationAlgo failed: LSQRMinimize error"); 
+    return PLUS_FAIL;
   }
 
-  self->Minimizer->SetFunctionValue(r);
+  this->OutlierIndices.clear();
+  unsigned int processFromRowIndex=0;
+  for (int i=0; i<notOutliersIndices.size(); i++)
+  {
+    unsigned int nextNotOutlierRowIndex=notOutliersIndices[i];
+    if (nextNotOutlierRowIndex>processFromRowIndex)
+    {
+      // samples were missed, so they are outliers
+      for (unsigned int outlierRowIndex=processFromRowIndex; outlierRowIndex<nextNotOutlierRowIndex; outlierRowIndex++)
+      {
+        int sampleIndex=outlierRowIndex/3;  // 3 rows are generated per sample
+        this->OutlierIndices.insert(sampleIndex);
+      }
+    }
+    processFromRowIndex=nextNotOutlierRowIndex+1;
+  }
+
+  pivotPoint_Marker[0]=xVector[0];
+  pivotPoint_Marker[1]=xVector[1];
+  pivotPoint_Marker[2]=xVector[2];
+
+
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-
 PlusStatus vtkPivotCalibrationAlgo::DoPivotCalibration(vtkTransformRepository* aTransformRepository/* = NULL*/)
 {
-  LOG_TRACE("vtkPivotCalibrationAlgo::DoPivotCalibration");
-
-  if (this->MarkerToReferenceTransformMatrixArray->GetNumberOfTuples()<1)
+  if (this->MarkerToReferenceTransformMatrixArray.empty())
   {
     LOG_ERROR("No points are available for pivot calibration"); 
     return PLUS_FAIL;
   }
 
-  // Set up minimizer and run the optimalization
-  this->Minimizer->SetFunction(vtkTrackerToolCalibrationFunction,this);
-  this->Minimizer->SetFunctionArgDelete(NULL);
-  this->Minimizer->SetParameterValue("x",0);
-  this->Minimizer->SetParameterScale("x",1000);
-  this->Minimizer->SetParameterValue("y",0);
-  this->Minimizer->SetParameterScale("y",1000);
-  this->Minimizer->SetParameterValue("z",0);
-  this->Minimizer->SetParameterScale("z",1000);
-
-  this->Minimizer->Minimize();
-
-  this->CalibrationError = this->Minimizer->GetFunctionValue();
+  double pivotPoint_Marker[4]={0,0,0,1};
+  if (GetPivotPointPosition_Marker(pivotPoint_Marker)!=PLUS_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }    
 
   // Get the result (tooltip to tool transform)
-  double x = this->Minimizer->GetParameterValue("x");
-  double y = this->Minimizer->GetParameterValue("y");
-  double z = this->Minimizer->GetParameterValue("z");
+  double x = pivotPoint_Marker[0];
+  double y = pivotPoint_Marker[1];
+  double z = pivotPoint_Marker[2];
 
   vtkSmartPointer<vtkMatrix4x4> pivotPointToMarkerTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   pivotPointToMarkerTransformMatrix->SetElement(0,3,x);
@@ -219,10 +224,8 @@ PlusStatus vtkPivotCalibrationAlgo::DoPivotCalibration(vtkTransformRepository* a
   this->SetPivotPointToMarkerTransformMatrix(pivotPointToMarkerTransformMatrix);
 
   // Compute a tooltip position based on the first acquired position
-  double firstMarkerToReferenceTransformElements[16];
-  this->MarkerToReferenceTransformMatrixArray->GetTuple(0, firstMarkerToReferenceTransformElements);
   vtkSmartPointer<vtkMatrix4x4> firstMarkerToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  firstMarkerToReferenceTransformMatrix->DeepCopy(firstMarkerToReferenceTransformElements);
+  firstMarkerToReferenceTransformMatrix->DeepCopy(this->MarkerToReferenceTransformMatrixArray.front());
 
   vtkSmartPointer<vtkTransform> pivotPointToReferenceTransform = vtkSmartPointer<vtkTransform>::New();
   pivotPointToReferenceTransform->Identity();
@@ -230,7 +233,9 @@ PlusStatus vtkPivotCalibrationAlgo::DoPivotCalibration(vtkTransformRepository* a
   pivotPointToReferenceTransform->Concatenate(this->PivotPointToMarkerTransformMatrix);
 
   // Set pivot point position
-  pivotPointToReferenceTransform->GetPosition(this->PivotPointPosition);
+  pivotPointToReferenceTransform->GetPosition(this->PivotPointPosition_Reference);
+
+  ComputeCalibrationError();
 
   // Save result
   if (aTransformRepository)
@@ -250,11 +255,8 @@ PlusStatus vtkPivotCalibrationAlgo::DoPivotCalibration(vtkTransformRepository* a
 }
 
 //-----------------------------------------------------------------------------
-
 std::string vtkPivotCalibrationAlgo::GetPivotPointToMarkerTranslationString( double aPrecision/*=3*/ )
 {
-  //LOG_TRACE("vtkPivotCalibrationAlgo::GetPivotPointToMarkerTranslationString");
-
   if (this->PivotPointToMarkerTransformMatrix == NULL) {
     LOG_ERROR("Tooltip to tool transform is not initialized!");
     return "";
@@ -271,11 +273,8 @@ std::string vtkPivotCalibrationAlgo::GetPivotPointToMarkerTranslationString( dou
 }
 
 //-----------------------------------------------------------------------------
-
 PlusStatus vtkPivotCalibrationAlgo::ReadConfiguration(vtkXMLDataElement* aConfig)
 {
-  LOG_TRACE("vtkPivotCalibrationAlgo::ReadConfiguration");
-
   if (aConfig == NULL)
   {
     LOG_ERROR("Unable to read configuration"); 
@@ -319,4 +318,46 @@ PlusStatus vtkPivotCalibrationAlgo::ReadConfiguration(vtkXMLDataElement* aConfig
   this->SetObjectPivotPointCoordinateFrame(objectPivotPointCoordinateFrame);
 
   return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+void vtkPivotCalibrationAlgo::ComputeCalibrationError()
+{
+  double* pivotPoint_Reference=this->PivotPointPosition_Reference;
+  
+  vtkSmartPointer<vtkMatrix4x4> pivotPointToReferenceMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+
+  // Compute the error for each sample as distance between the mean pivot point position and the pivot point position computed from each sample
+  std::vector<double> errorValues;
+  double currentPivotPoint_Reference[4]={0,0,0,1};
+  unsigned int sampleIndex=0;
+  for (std::list< vtkMatrix4x4* >::iterator markerToReferenceTransformIt=this->MarkerToReferenceTransformMatrixArray.begin();
+    markerToReferenceTransformIt!=this->MarkerToReferenceTransformMatrixArray.end(); ++markerToReferenceTransformIt, ++sampleIndex)
+  {
+    if (this->OutlierIndices.find(sampleIndex)!=this->OutlierIndices.end())
+    {
+      // outlier, so skip from the error computation
+      continue;
+    }
+
+    vtkMatrix4x4::Multiply4x4((*markerToReferenceTransformIt),this->PivotPointToMarkerTransformMatrix,pivotPointToReferenceMatrix);
+    for (int i=0; i<3; i++)
+    {
+      currentPivotPoint_Reference[i] = pivotPointToReferenceMatrix->Element[i][3];
+    }
+    double errorValue = sqrt(vtkMath::Distance2BetweenPoints(currentPivotPoint_Reference, pivotPoint_Reference));
+    errorValues.push_back(errorValue);
+  }
+
+  double mean=0;
+  double stdev=0;
+  PlusMath::ComputeMeanAndStdev(errorValues, mean, stdev);
+
+  this->CalibrationError = mean;
+}
+
+//-----------------------------------------------------------------------------
+int vtkPivotCalibrationAlgo::GetNumberOfDetectedOutliers()
+{
+  return this->OutlierIndices.size();
 }
