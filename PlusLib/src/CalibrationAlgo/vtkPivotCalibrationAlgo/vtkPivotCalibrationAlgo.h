@@ -10,9 +10,10 @@ See License.txt for details.
 #include "PlusConfigure.h"
 
 #include "vtkObject.h"
-#include "vtkAmoebaMinimizer.h"
-#include "vtkDoubleArray.h"
 #include "vtkMatrix4x4.h"
+
+#include <list>
+#include <set>
 
 class vtkTransformRepository;
 class vtkXMLDataElement;
@@ -38,14 +39,18 @@ public:
   vtkTypeRevisionMacro(vtkPivotCalibrationAlgo,vtkObject);
   static vtkPivotCalibrationAlgo *New();
 
-  /*! Initialize algorithm - clear the MarkerToReferenceTransformMatrix array */
-  PlusStatus Initialize();
-
   /*!
   * Read configuration
   * \param aConfig Root element of the device set configuration
   */
   PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
+
+  /*!
+    Remove all previously inserted calibration points.
+    Call this method to get rid of previously added calibration points
+    before starting a new calibration.
+  */
+  void RemoveAllCalibrationPoints();
 
   /*!
     Insert acquired point to calibration point list
@@ -66,13 +71,15 @@ public:
   */
   std::string GetPivotPointToMarkerTranslationString(double aPrecision=3);
 
+  int GetNumberOfDetectedOutliers();
+
 public:
 
   vtkGetMacro(CalibrationError, double);
 
   vtkGetObjectMacro(PivotPointToMarkerTransformMatrix, vtkMatrix4x4); 
 
-  vtkGetVector3Macro(PivotPointPosition, double);
+  vtkGetVector3Macro(PivotPointPosition_Reference, double);
 
   vtkGetStringMacro(ObjectMarkerCoordinateFrame);
   vtkGetStringMacro(ReferenceCoordinateFrame);
@@ -81,10 +88,6 @@ public:
 protected:
 
   vtkSetObjectMacro(PivotPointToMarkerTransformMatrix, vtkMatrix4x4);
-
-  vtkSetObjectMacro(Minimizer, vtkAmoebaMinimizer);
-
-  vtkSetObjectMacro(MarkerToReferenceTransformMatrixArray, vtkDoubleArray);
 
   vtkSetStringMacro(ObjectMarkerCoordinateFrame);
   vtkSetStringMacro(ReferenceCoordinateFrame);
@@ -95,21 +98,20 @@ protected:
   virtual  ~vtkPivotCalibrationAlgo();
 
 protected:
-  /*! Callback function for the minimizer (function to minimize) */
-  friend void vtkTrackerToolCalibrationFunction(void *userData);
+  /*! Compute the mean position error of the pivot point (in mm) */
+  void ComputeCalibrationError();
+
+  PlusStatus GetPivotPointPosition_Marker(double* pivotPoint_Marker);
 
 protected:
   /*! Pivot point to marker transform (eg. stylus tip to stylus) - the result of the calibration */
   vtkMatrix4x4*        PivotPointToMarkerTransformMatrix;
 
-  /*! Uncertainty (standard deviation), error of the calibration result in mm */
+  /*! Mean error of the calibration result in mm */
   double              CalibrationError;
 
-  /*! Minimizer algorithm object */
-  vtkAmoebaMinimizer* Minimizer;
-
   /*! Array of the input points */
-  vtkDoubleArray*     MarkerToReferenceTransformMatrixArray;
+  std::list< vtkMatrix4x4* > MarkerToReferenceTransformMatrixArray;
 
   /*! Name of the object marker coordinate frame (eg. Stylus) */
   char*               ObjectMarkerCoordinateFrame;
@@ -120,8 +122,11 @@ protected:
   /*! Name of the object pivot point coordinate frame (eg. StylusTip) */
   char*               ObjectPivotPointCoordinateFrame;
 
-  /*! Pivot point position in reference frame */
-  double              PivotPointPosition[3];
+  /*! Pivot point position in the Reference coordinate system */
+  double              PivotPointPosition_Reference[4];
+
+  /*! List of outlier sample indices */
+  std::set<unsigned int> OutlierIndices;
 };
 
 #endif
