@@ -111,6 +111,7 @@ ENDIF ()
 
 OPTION(PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber device" OFF)
 OPTION(PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
+OPTION(PLUS_USE_MMF_VIDEO "Provide support for the Microsoft Media Foundation video digitizer" OFF)
 OPTION(PLUS_USE_EPIPHAN "Provide support for the Epiphan framegrabber device" OFF)
 
 # Tracking hardware

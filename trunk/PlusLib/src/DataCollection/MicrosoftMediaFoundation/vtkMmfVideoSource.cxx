@@ -45,11 +45,11 @@ namespace
 
 //----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkMMFVideoSource, "$Revision: 1.0 $");
-vtkStandardNewMacro(vtkMMFVideoSource);
+vtkCxxRevisionMacro(vtkMmfVideoSource, "$Revision: 1.0 $");
+vtkStandardNewMacro(vtkMmfVideoSource);
 
 //----------------------------------------------------------------------------
-vtkMMFVideoSource::vtkMMFVideoSource()
+vtkMmfVideoSource::vtkMmfVideoSource()
 : FrameIndex(0)
 , CaptureDevices(NULL)
 , CaptureAttributes(NULL)
@@ -70,14 +70,14 @@ vtkMMFVideoSource::vtkMMFVideoSource()
 }
 
 //----------------------------------------------------------------------------
-vtkMMFVideoSource::~vtkMMFVideoSource()
+vtkMmfVideoSource::~vtkMmfVideoSource()
 { 
 
 }
 
 
 //----------------------------------------------------------------------------
-void vtkMMFVideoSource::PrintSelf(ostream& os, vtkIndent indent)
+void vtkMmfVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
@@ -85,7 +85,7 @@ void vtkMMFVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMMFVideoSource::InternalConnect()
+PlusStatus vtkMmfVideoSource::InternalConnect()
 {
   HRESULT hr = MFStartup(MF_VERSION);
   if( FAILED(hr) )
@@ -139,7 +139,7 @@ PlusStatus vtkMMFVideoSource::InternalConnect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMMFVideoSource::InternalDisconnect()
+PlusStatus vtkMmfVideoSource::InternalDisconnect()
 {
   SafeRelease(&this->CaptureSource);
   SafeRelease(&this->CaptureSourceReader);
@@ -157,7 +157,7 @@ PlusStatus vtkMMFVideoSource::InternalDisconnect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMMFVideoSource::InternalStartRecording()
+PlusStatus vtkMmfVideoSource::InternalStartRecording()
 {
   HRESULT hr;
   if( this->CaptureSource != NULL )
@@ -191,7 +191,7 @@ PlusStatus vtkMMFVideoSource::InternalStartRecording()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMMFVideoSource::InternalStopRecording()
+PlusStatus vtkMmfVideoSource::InternalStopRecording()
 {
   if( this->CaptureSource != NULL )
   {
@@ -202,14 +202,14 @@ PlusStatus vtkMMFVideoSource::InternalStopRecording()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMMFVideoSource::VideoFormatDialog()
+PlusStatus vtkMmfVideoSource::VideoFormatDialog()
 {
   /* Configure video format parameters via a windows provided dialog */
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMMFVideoSource::VideoSourceDialog()
+PlusStatus vtkMmfVideoSource::VideoSourceDialog()
 {
   /* Configure capture device choice via a windows provided dialog */
   return PLUS_SUCCESS;
@@ -217,7 +217,7 @@ PlusStatus vtkMMFVideoSource::VideoSourceDialog()
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkMMFVideoSource::NotifyConfigured()
+PlusStatus vtkMmfVideoSource::NotifyConfigured()
 {
   if( this->OutputChannels.size() > 1 )
   {
@@ -237,11 +237,11 @@ PlusStatus vtkMMFVideoSource::NotifyConfigured()
 
 //----------------------------------------------------------------------------
 
-STDMETHODIMP vtkMMFVideoSource::QueryInterface( REFIID iid, void** ppv )
+STDMETHODIMP vtkMmfVideoSource::QueryInterface( REFIID iid, void** ppv )
 {
   static const QITAB qit[] =
   {
-    QITABENT(vtkMMFVideoSource, IMFSourceReaderCallback),
+    QITABENT(vtkMmfVideoSource, IMFSourceReaderCallback),
     { 0 },
   };
   return QISearch(this, qit, iid, ppv);
@@ -249,14 +249,14 @@ STDMETHODIMP vtkMMFVideoSource::QueryInterface( REFIID iid, void** ppv )
 
 //----------------------------------------------------------------------------
 
-STDMETHODIMP_(ULONG) vtkMMFVideoSource::AddRef()
+STDMETHODIMP_(ULONG) vtkMmfVideoSource::AddRef()
 {
   return InterlockedIncrement(&RefCount);
 }
 
 //----------------------------------------------------------------------------
 
-STDMETHODIMP_(ULONG) vtkMMFVideoSource::Release()
+STDMETHODIMP_(ULONG) vtkMmfVideoSource::Release()
 {
   ULONG uCount = InterlockedDecrement(&RefCount);
   if (uCount == 0)
@@ -268,21 +268,21 @@ STDMETHODIMP_(ULONG) vtkMMFVideoSource::Release()
 
 //----------------------------------------------------------------------------
 
-STDMETHODIMP vtkMMFVideoSource::OnEvent( DWORD, IMFMediaEvent * )
+STDMETHODIMP vtkMmfVideoSource::OnEvent( DWORD, IMFMediaEvent * )
 {
   return S_OK;
 }
 
 //----------------------------------------------------------------------------
 
-STDMETHODIMP vtkMMFVideoSource::OnFlush( DWORD )
+STDMETHODIMP vtkMmfVideoSource::OnFlush( DWORD )
 {
   return S_OK;
 }
 
 //----------------------------------------------------------------------------
 
-STDMETHODIMP vtkMMFVideoSource::OnReadSample( HRESULT hrStatus, DWORD dwStreamIndex, DWORD dwStreamFlags, LONGLONG llTimestamp, IMFSample *pSample )
+STDMETHODIMP vtkMmfVideoSource::OnReadSample( HRESULT hrStatus, DWORD dwStreamIndex, DWORD dwStreamFlags, LONGLONG llTimestamp, IMFSample *pSample )
 {
   PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
 
@@ -357,7 +357,7 @@ STDMETHODIMP vtkMMFVideoSource::OnReadSample( HRESULT hrStatus, DWORD dwStreamIn
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkMMFVideoSource::ConfigureDecoder()
+PlusStatus vtkMmfVideoSource::ConfigureDecoder()
 {
   IMFMediaType *pNativeType = NULL;
   IMFMediaType *pType = NULL;
@@ -489,7 +489,7 @@ PlusStatus vtkMMFVideoSource::ConfigureDecoder()
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkMMFVideoSource::UpdateFrameSize()
+PlusStatus vtkMmfVideoSource::UpdateFrameSize()
 {
   UINT32 width = 0;
   UINT32 height = 0;
@@ -523,7 +523,7 @@ PlusStatus vtkMMFVideoSource::UpdateFrameSize()
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkMMFVideoSource::ReadConfiguration( vtkXMLDataElement* rootXmlElement )
+PlusStatus vtkMmfVideoSource::ReadConfiguration( vtkXMLDataElement* rootXmlElement )
 {
   // Read superclass configuration
   Superclass::ReadConfiguration(rootXmlElement); 
@@ -560,7 +560,7 @@ PlusStatus vtkMMFVideoSource::ReadConfiguration( vtkXMLDataElement* rootXmlEleme
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkMMFVideoSource::WriteConfiguration( vtkXMLDataElement* rootXmlElement )
+PlusStatus vtkMmfVideoSource::WriteConfiguration( vtkXMLDataElement* rootXmlElement )
 {
   // Write superclass configuration
   Superclass::WriteConfiguration(rootXmlElement); 

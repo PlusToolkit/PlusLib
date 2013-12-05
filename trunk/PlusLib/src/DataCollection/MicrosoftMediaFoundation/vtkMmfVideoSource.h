@@ -30,7 +30,7 @@ Authors include: Danielle Pace
   \sa vtkPlusDevice
   \ingroup PlusLibDataCollection
 */ 
-class VTK_EXPORT vtkMMFVideoSource : public vtkPlusDevice, public IMFSourceReaderCallback
+class VTK_EXPORT vtkMmfVideoSource : public vtkPlusDevice, public IMFSourceReaderCallback
 {
   class VideoFormat
   {
@@ -41,8 +41,8 @@ class VTK_EXPORT vtkMMFVideoSource : public vtkPlusDevice, public IMFSourceReade
   };
 
 public:
-  static vtkMMFVideoSource *New();
-  vtkTypeRevisionMacro(vtkMMFVideoSource, vtkPlusDevice);
+  static vtkMmfVideoSource *New();
+  vtkTypeRevisionMacro(vtkMmfVideoSource, vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Bring up a modal dialog box for video format selection. */
@@ -61,9 +61,9 @@ public:
 
 protected:
   /*! Constructor */
-  vtkMMFVideoSource();
+  vtkMmfVideoSource();
   /*! Destructor */
-  ~vtkMMFVideoSource();
+  ~vtkMmfVideoSource();
 
   /*! Device-specific connect */
   virtual PlusStatus InternalConnect();
@@ -95,8 +95,8 @@ protected:
   VideoFormat ActiveVideoFormat;
 
 private:
-  vtkMMFVideoSource(const vtkMMFVideoSource&);  // Not implemented.
-  void operator=(const vtkMMFVideoSource&);  // Not implemented.
+  vtkMmfVideoSource(const vtkMmfVideoSource&);  // Not implemented.
+  void operator=(const vtkMmfVideoSource&);  // Not implemented.
 
  //------- IMFSourceReaderCallback functions ----------------------
 public:
