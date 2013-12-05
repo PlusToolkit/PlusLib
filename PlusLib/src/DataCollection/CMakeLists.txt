@@ -613,11 +613,11 @@ ENDIF (PLUS_USE_VFW_VIDEO)
 IF (PLUS_USE_MMF_VIDEO)
 
   SET (DataCollection_SRCS ${DataCollection_SRCS} 
-    MicrosoftMediaFoundation/vtkMMFVideoSource.cxx 
+    MicrosoftMediaFoundation/vtkMmfVideoSource.cxx 
     )
   if (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
-      MicrosoftMediaFoundation/vtkMMFVideoSource.h 
+      MicrosoftMediaFoundation/vtkMmfVideoSource.h 
       )
   endif (WIN32)
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 

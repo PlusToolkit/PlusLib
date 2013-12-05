@@ -151,7 +151,7 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
   DeviceTypes["VFWVideo"]=(PointerToDevice)&vtkWin32VideoSource2::New; 
 #endif 
 #ifdef PLUS_USE_MMF_VIDEO
-  DeviceTypes["MMFVideo"]=(PointerToDevice)&vtkMMFVideoSource::New; 
+  DeviceTypes["MmfVideo"]=(PointerToDevice)&vtkMmfVideoSource::New; 
 #endif 
 #ifdef PLUS_USE_ICCAPTURING_VIDEO
   DeviceTypes["ICCapturing"]=(PointerToDevice)&vtkICCapturingSource::New; 
