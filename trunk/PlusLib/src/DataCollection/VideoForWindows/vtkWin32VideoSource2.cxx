@@ -12,14 +12,14 @@ See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
 Authors include: Danielle Pace
 =========================================================================*/ 
 
+#include "PixelCodec.h"
 #include "PlusConfigure.h"
 #include "vtkObjectFactory.h"
+#include "vtkPlusBuffer.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusBuffer.h"
 #include "vtkUnsignedCharArray.h"
 #include "vtkWin32VideoSource2.h"
-#include "PixelCodec.h"
 
 #include <ctype.h>
 
@@ -29,8 +29,8 @@ Authors include: Danielle Pace
 #endif
 
 #include "vtkWindows.h"
-#include <winuser.h>
 #include <vfw.h>
+#include <winuser.h>
 
 #ifdef _MSC_VER
 #pragma warning (pop)
@@ -113,14 +113,11 @@ vtkStandardNewMacro(vtkWin32VideoSource2);
 
 //----------------------------------------------------------------------------
 vtkWin32VideoSource2::vtkWin32VideoSource2()
+: Internal(new vtkWin32VideoSource2Internal)
+, WndClassName(NULL)
+, Preview(0)
+, FrameIndex(0)
 {
-  this->Internal = new vtkWin32VideoSource2Internal;
-
-  this->WndClassName=NULL;
-
-  this->Preview = 0;
-  this->FrameIndex = 0;
-
   this->RequireImageOrientationInConfiguration = true;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
@@ -138,7 +135,7 @@ vtkWin32VideoSource2::~vtkWin32VideoSource2()
   this->vtkWin32VideoSource2::ReleaseSystemResources();
 
   delete this->Internal;
-  this->Internal=NULL;
+  this->Internal = NULL;
 }
 
 //----------------------------------------------------------------------------

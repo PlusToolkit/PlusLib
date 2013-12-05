@@ -16,7 +16,7 @@ SET(PLUSLIB_VERSION ${PLUSLIB_VERSION_MAJOR}.${PLUSLIB_VERSION_MINOR}.${PLUSLIB_
 # System Settings
 IF(${WIN32})
   #this method adds the necessary compiler flag
-  SET (RUNTIME_MINIMUM_WINDOWS_VERSION "0x0501")
+  SET (RUNTIME_MINIMUM_WINDOWS_VERSION "0x0602")
 ENDIF()
 
 # --------------------------------------------------------------------------

@@ -58,6 +58,10 @@ See License.txt for details.
 #include "vtkWin32VideoSource2.h"
 #endif
 
+#ifdef PLUS_USE_MMF_VIDEO
+#include "vtkMMFVideoSource.h"
+#endif
+
 #ifdef PLUS_USE_ULTRASONIX_VIDEO
 #include "vtkSonixVideoSource.h"
 #include "vtkSonixPortaVideoSource.h"
@@ -145,6 +149,9 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
 #endif 
 #ifdef PLUS_USE_VFW_VIDEO
   DeviceTypes["VFWVideo"]=(PointerToDevice)&vtkWin32VideoSource2::New; 
+#endif 
+#ifdef PLUS_USE_MMF_VIDEO
+  DeviceTypes["MMFVideo"]=(PointerToDevice)&vtkMMFVideoSource::New; 
 #endif 
 #ifdef PLUS_USE_ICCAPTURING_VIDEO
   DeviceTypes["ICCapturing"]=(PointerToDevice)&vtkICCapturingSource::New; 
