@@ -115,9 +115,6 @@ protected:
 
   vtkWin32VideoSource2Internal *Internal;
 
-  /*! Update the capture settings to match the buffer format */
-  PlusStatus SetCaptureSettings(int widh, int height);
-
   /*! Update the buffer format to match the capture settings */
   PlusStatus UpdateFrameBuffer();
 

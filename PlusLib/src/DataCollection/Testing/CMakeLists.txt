@@ -231,6 +231,12 @@ IF (PLUS_USE_VFW_VIDEO)
 	TARGET_LINK_LIBRARIES(vtkWin32VideoSourceTest vtkDataCollection )
 ENDIF (PLUS_USE_VFW_VIDEO)
 
+#***************************  vtkMMFVideoSourceTest.cxx ***************************
+IF (PLUS_USE_MMF_VIDEO)
+	ADD_EXECUTABLE(vtkMMFVideoSourceTest vtkMMFVideoSourceTest.cxx )
+	TARGET_LINK_LIBRARIES(vtkMMFVideoSourceTest vtkDataCollection )
+ENDIF (PLUS_USE_MMF_VIDEO)
+
 #***************************  vtkEpiphanVideoSourceTest.cxx ***************************
 IF (PLUS_USE_EPIPHAN)
 	ADD_EXECUTABLE(vtkEpiphanVideoSourceTest vtkEpiphanVideoSourceTest.cxx )

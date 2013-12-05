@@ -608,6 +608,32 @@ IF (PLUS_USE_VFW_VIDEO)
 ENDIF (PLUS_USE_VFW_VIDEO)
 
 # --------------------------------------------------------------------------
+# Microsoft Media Foundation video digitizer support
+
+IF (PLUS_USE_MMF_VIDEO)
+
+  SET (DataCollection_SRCS ${DataCollection_SRCS} 
+    MicrosoftMediaFoundation/vtkMMFVideoSource.cxx 
+    )
+  if (WIN32)  
+    SET (DataCollection_HDRS ${DataCollection_HDRS}
+      MicrosoftMediaFoundation/vtkMMFVideoSource.h 
+      )
+  endif (WIN32)
+  SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
+    ${CMAKE_CURRENT_SOURCE_DIR}/MicrosoftMediaFoundation 
+    )      
+  SET (DataCollection_LIBS ${DataCollection_LIBS} 
+    Evr.lib	
+	Mf.lib 
+	Mfplat.lib 
+	Shlwapi.lib 
+	Mfreadwrite.lib 
+	mfuuid.lib 
+    )
+ENDIF (PLUS_USE_MMF_VIDEO)
+
+# --------------------------------------------------------------------------
 # Epiphan support
 
 IF (PLUS_USE_EPIPHAN)

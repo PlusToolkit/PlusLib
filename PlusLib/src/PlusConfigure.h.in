@@ -62,6 +62,7 @@
 #cmakedefine PLUS_USE_EPIPHAN
 
 #cmakedefine PLUS_USE_VFW_VIDEO
+#cmakedefine PLUS_USE_MMF_VIDEO
 #cmakedefine PLUS_USE_ULTRASONIX_VIDEO
 #cmakedefine PLUS_USE_ICCAPTURING_VIDEO
 #cmakedefine PLUS_USE_BKPROFOCUS_VIDEO
