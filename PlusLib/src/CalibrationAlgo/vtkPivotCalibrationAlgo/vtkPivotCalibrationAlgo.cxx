@@ -79,7 +79,7 @@ It's an Ax=b linear problem that can be solved with robust LSQR:
       [ PivotPoint_Reference ]
  bi = [ -MarkerToReferenceTransformTranslationVector ]
 */
-PlusStatus vtkPivotCalibrationAlgo::GetPivotPointPosition_Marker(double* pivotPoint_Marker)
+PlusStatus vtkPivotCalibrationAlgo::GetPivotPointPosition(double* pivotPoint_Marker, double* pivotPoint_Reference)
 {
   std::vector<vnl_vector<double> > aMatrix; 
   std::vector<double> bVector;  
@@ -140,7 +140,9 @@ PlusStatus vtkPivotCalibrationAlgo::GetPivotPointPosition_Marker(double* pivotPo
   pivotPoint_Marker[1]=xVector[1];
   pivotPoint_Marker[2]=xVector[2];
 
-
+  pivotPoint_Reference[0]=xVector[3];
+  pivotPoint_Reference[1]=xVector[4];
+  pivotPoint_Reference[2]=xVector[5];
 
   return PLUS_SUCCESS;
 }
@@ -155,7 +157,8 @@ PlusStatus vtkPivotCalibrationAlgo::DoPivotCalibration(vtkTransformRepository* a
   }
 
   double pivotPoint_Marker[4]={0,0,0,1};
-  if (GetPivotPointPosition_Marker(pivotPoint_Marker)!=PLUS_SUCCESS)
+  double pivotPoint_Reference[4]={0,0,0,1};
+  if (GetPivotPointPosition(pivotPoint_Marker, pivotPoint_Reference)!=PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }    
@@ -223,17 +226,9 @@ PlusStatus vtkPivotCalibrationAlgo::DoPivotCalibration(vtkTransformRepository* a
 
   this->SetPivotPointToMarkerTransformMatrix(pivotPointToMarkerTransformMatrix);
 
-  // Compute a tooltip position based on the first acquired position
-  vtkSmartPointer<vtkMatrix4x4> firstMarkerToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  firstMarkerToReferenceTransformMatrix->DeepCopy(this->MarkerToReferenceTransformMatrixArray.front());
-
-  vtkSmartPointer<vtkTransform> pivotPointToReferenceTransform = vtkSmartPointer<vtkTransform>::New();
-  pivotPointToReferenceTransform->Identity();
-  pivotPointToReferenceTransform->Concatenate(firstMarkerToReferenceTransformMatrix);
-  pivotPointToReferenceTransform->Concatenate(this->PivotPointToMarkerTransformMatrix);
-
-  // Set pivot point position
-  pivotPointToReferenceTransform->GetPosition(this->PivotPointPosition_Reference);
+  this->PivotPointPosition_Reference[0]=pivotPoint_Reference[0];
+  this->PivotPointPosition_Reference[1]=pivotPoint_Reference[1];
+  this->PivotPointPosition_Reference[2]=pivotPoint_Reference[2];
 
   ComputeCalibrationError();
 
