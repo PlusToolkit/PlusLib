@@ -59,7 +59,7 @@ See License.txt for details.
 #endif
 
 #ifdef PLUS_USE_MMF_VIDEO
-#include "vtkMMFVideoSource.h"
+#include "vtkMmfVideoSource.h"
 #endif
 
 #ifdef PLUS_USE_ULTRASONIX_VIDEO

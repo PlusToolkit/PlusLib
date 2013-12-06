@@ -3,7 +3,7 @@
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
       Name="TEST Media Foundation WebCam with Fake tracker" 
-      Description="Test mode for vtkDataCollectorTest with MMFVideo and Fake tracker" 
+      Description="Test mode for vtkDataCollectorTest with MmfVideo (Microsoft Media Foundation image capturing device) and Fake tracker" 
     />
 
     <Device
@@ -11,7 +11,8 @@
       Type="FakeTracker"
       AcquisitionRate="20"
       LocalTimeOffset="0.0"
-      Mode="SmoothMove" >
+      Mode="SmoothMove"
+      ToolReferenceFrame="TrackerDevice" >
       <DataSources>
         <DataSource Type="Tool" Id="Probe" PortName="0" BufferSize="1000" AveragedItemsForFiltering="20"/> 
         <DataSource Type="Tool" Id="Reference" PortName="1" BufferSize="1000" AveragedItemsForFiltering="20"/>
@@ -29,7 +30,7 @@
 
     <Device
       Id="VideoDevice" 
-      Type="MMFVideo" >
+      Type="MmfVideo" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="100" AveragedItemsForFiltering="20" />     
       </DataSources>
@@ -64,8 +65,7 @@
     <Transform From="Phantom" To="Reference" Matrix="0.00898765 -0.0136951 -0.999866 9.59137 0.0246163 -0.9996 0.0139127 36.0012 -0.999657 -0.024738 -0.00864693 87.8909 0 0 0 1" Error="0.404711" Date="012712_152104" />
   </CoordinateDefinitions>
     
-  <Rendering WorldCoordinateFrame="Reference">
-    <!-- TODO EC9 model and proper transform -->
+  <Rendering WorldCoordinateFrame="Reference" DisplayedImageOrientation="MF">
     <xDisplayableObject Type="Model" ObjectCoordinateFrame="Probe" Id="ProbeModel"
       File="L14-5_38_ProbeModel.stl"
       ModelToObjectTransform="
@@ -79,15 +79,16 @@
 
   <fCal
     PhantomModelId="PhantomModel"
-  TransducerModelId="ProbeModel"
-  StylusModelId="StylusModel"
-  ImageDisplayableObjectId="LiveImage"
+    TransducerModelId="ProbeModel"
+    StylusModelId="StylusModel"
+    ImageDisplayableObjectId="LiveImage"
     NumberOfStylusCalibrationPointsToAcquire="200"
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"
     ReferenceCoordinateFrame="Reference"
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+    DefaultSelectedChannelId="TrackedVideoStream"
   />
 
 </PlusConfiguration>
