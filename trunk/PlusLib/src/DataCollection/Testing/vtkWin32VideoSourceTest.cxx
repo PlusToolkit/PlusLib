@@ -82,7 +82,7 @@ int main(int argc, char **argv)
   if( frameGrabber->GetOutputChannelByName(aChannel, "DefaultChannel") != PLUS_SUCCESS || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source.");
-    return NULL;
+    exit(EXIT_FAILURE);
   }
 
   // Add an observer to warning and error events for redirecting it to the stdout 
