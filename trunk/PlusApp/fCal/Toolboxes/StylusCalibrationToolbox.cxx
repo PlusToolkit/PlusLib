@@ -396,7 +396,7 @@ void StylusCalibrationToolbox::Start()
   m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->SetPoints(resultPointsPoint);
 
   // Initialize calibration
-  m_PivotCalibration->Initialize();
+  m_PivotCalibration->RemoveAllCalibrationPoints();
 
   // Initialize stylus tool
   vtkDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetStylusModelId());
@@ -432,10 +432,10 @@ void StylusCalibrationToolbox::Stop()
     LOG_INFO("Stylus calibration successful");
 
     // Set result point
-    double stylustipPosition[3];
-    m_PivotCalibration->GetPivotPointPosition(stylustipPosition);
+    double stylustipPosition_Reference[4]={0,0,0,1};
+    m_PivotCalibration->GetPivotPointPosition_Reference(stylustipPosition_Reference);
     vtkPoints* points = m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->GetPoints();
-    points->InsertPoint(0, stylustipPosition);
+    points->InsertPoint(0, stylustipPosition_Reference);
     points->Modified();
 
     // Save result in configuration
