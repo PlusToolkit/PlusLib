@@ -20,7 +20,8 @@ Authors include: Danielle Pace
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 
-// Media Foundation Includes
+// Media foundation includes - require Microsoft Windows SDK 7.1 or later.
+// Download from: http://www.microsoft.com/en-us/download/details.aspx?id=8279
 #include <Mfapi.h>
 
 // Windows includes

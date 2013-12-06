@@ -19,8 +19,7 @@ Authors include: Danielle Pace
 #include "PlusVideoFrame.h"
 #include "vtkPlusDevice.h"
 
-// Media foundation includes
-// They require Microsoft Windows SDK 7.1 or later
+// Media foundation includes - require Microsoft Windows SDK 7.1 or later.
 // Download from: http://www.microsoft.com/en-us/download/details.aspx?id=8279
 #include <Mfidl.h>
 #include <Mfreadwrite.h>
