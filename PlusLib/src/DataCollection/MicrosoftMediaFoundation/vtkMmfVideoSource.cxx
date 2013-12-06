@@ -14,7 +14,7 @@ Authors include: Danielle Pace
 
 #include "PixelCodec.h"
 #include "PlusConfigure.h"
-#include "vtkMMFVideoSource.h"
+#include "vtkMmfVideoSource.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusBuffer.h"
 #include "vtkPlusChannel.h"
@@ -221,7 +221,7 @@ PlusStatus vtkMmfVideoSource::NotifyConfigured()
 {
   if( this->OutputChannels.size() > 1 )
   {
-    LOG_WARNING("vtkMMFVideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
+    LOG_WARNING("vtkMmfVideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
     return PLUS_FAIL;
   }
 
@@ -530,14 +530,14 @@ PlusStatus vtkMmfVideoSource::ReadConfiguration( vtkXMLDataElement* rootXmlEleme
 
   if ( rootXmlElement == NULL ) 
   {
-    LOG_WARNING("Unable to find MMFVideoSource XML data element");
+    LOG_WARNING("Unable to find MmfVideoSource XML data element");
     return PLUS_FAIL; 
   }
 
   vtkXMLDataElement* deviceConfig = this->FindThisDeviceElement(rootXmlElement);
   if (deviceConfig == NULL) 
   {
-    LOG_ERROR("Cannot find MMFVideoSource element in XML tree!");
+    LOG_ERROR("Cannot find MmfVideoSource element in XML tree!");
     return PLUS_FAIL;
   }
 
@@ -567,14 +567,14 @@ PlusStatus vtkMmfVideoSource::WriteConfiguration( vtkXMLDataElement* rootXmlElem
 
   if ( rootXmlElement == NULL ) 
   {
-    LOG_WARNING("Unable to find MMFVideoSource XML data element");
+    LOG_WARNING("Unable to find MmfVideoSource XML data element");
     return PLUS_FAIL; 
   }
 
   vtkXMLDataElement* deviceConfig = this->FindThisDeviceElement(rootXmlElement);
   if (deviceConfig == NULL) 
   {
-    LOG_ERROR("Cannot find MMFVideoSource element in XML tree!");
+    LOG_ERROR("Cannot find MmfVideoSource element in XML tree!");
     return PLUS_FAIL;
   }
 

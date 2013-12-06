@@ -13,18 +13,20 @@ Authors include: Danielle Pace
 (Robarts Research Institute and The University of Western Ontario)
 =========================================================================*/ 
 
-#ifndef __vtkMMFVideoSource_h
-#define __vtkMMFVideoSource_h
+#ifndef __vtkMmfVideoSource_h
+#define __vtkMmfVideoSource_h
 
 #include "PlusVideoFrame.h"
 #include "vtkPlusDevice.h"
 
 // Media foundation includes
+// They require Microsoft Windows SDK 7.1 or later
+// Download from: http://www.microsoft.com/en-us/download/details.aspx?id=8279
 #include <Mfidl.h>
 #include <Mfreadwrite.h>
 
 /*!
-  \class vtkMMFVideoSource 
+  \class vtkMmfVideoSource 
   \brief Microsoft media foundation video digitizer
 
   \sa vtkPlusDevice
