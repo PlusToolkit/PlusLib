@@ -165,6 +165,11 @@ PlusStatus vtkAscension3DGTrackerBase::InternalConnect()
   // Check that all tools were connected that was defined in the configuration file
   for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
+    if (STRCASECMP(it->second->GetPortName(), QUALITY_PORT_NAME)==0)
+    {
+      // Quality port is a virtual port, no real sensor is associated
+      continue;
+    }
     std::stringstream convert(it->second->GetPortName());
     int port(-1); 
     if ( ! (convert >> port ) )
@@ -384,12 +389,12 @@ PlusStatus vtkAscension3DGTrackerBase::InternalUpdate()
   }
   
   vtkPlusDataSource* qualityTool = NULL;
-  if ( this->GetToolByPortName(QUALITY_PORT_NAME, qualityTool) == PLUS_SUCCESS && qualityTool!=NULL )
+  if ( this->GetToolByPortName(QUALITY_PORT_NAME, qualityTool) == PLUS_SUCCESS )
   {
     vtkSmartPointer< vtkMatrix4x4 > qualityStorageMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();    
-    qualityStorageMatrix->SetElement(3,0,-1);
-    qualityStorageMatrix->SetElement(3,1,-1);
-    qualityStorageMatrix->SetElement(3,2,-1);
+    qualityStorageMatrix->SetElement(0,3,-1);
+    qualityStorageMatrix->SetElement(1,3,-1);
+    qualityStorageMatrix->SetElement(2,3,-1);
     qualityStorageMatrix->SetElement(0,0,-1);
     qualityStorageMatrix->SetElement(1,1,-1);
     qualityStorageMatrix->SetElement(2,2,-1);
@@ -398,9 +403,9 @@ PlusStatus vtkAscension3DGTrackerBase::InternalUpdate()
     {
       switch (sensorIndex)
       {
-      case 0: qualityStorageMatrix->SetElement(3,0,qualityValues[sensorIndex]); break;
-      case 1: qualityStorageMatrix->SetElement(3,1,qualityValues[sensorIndex]); break;
-      case 2: qualityStorageMatrix->SetElement(3,2,qualityValues[sensorIndex]); break;
+      case 0: qualityStorageMatrix->SetElement(0,3,qualityValues[sensorIndex]); break;
+      case 1: qualityStorageMatrix->SetElement(1,3,qualityValues[sensorIndex]); break;
+      case 2: qualityStorageMatrix->SetElement(2,3,qualityValues[sensorIndex]); break;
       case 3: qualityStorageMatrix->SetElement(0,0,qualityValues[sensorIndex]); break;
       case 4: qualityStorageMatrix->SetElement(1,1,qualityValues[sensorIndex]); break;
       case 5: qualityStorageMatrix->SetElement(2,2,qualityValues[sensorIndex]); break;
@@ -410,9 +415,16 @@ PlusStatus vtkAscension3DGTrackerBase::InternalUpdate()
         LOG_WARNING("Quality value of sensor "<<sensorIndex<<" cannot be stored. Quality values can only be stored for maximum 6 tools.");
       }
     }
-    // Devices has no frame numbering, so just auto increment tool frame number
-    unsigned long frameNumber = qualityTool->GetFrameNumber() + 1 ; 
-    this->ToolTimeStampedUpdate( qualityTool->GetSourceId(), qualityStorageMatrix, TOOL_OK, frameNumber, unfilteredTimestamp);
+    if (qualityTool!=NULL)
+    {
+      // Devices has no frame numbering, so just auto increment tool frame number
+      unsigned long frameNumber = qualityTool->GetFrameNumber() + 1 ; 
+      this->ToolTimeStampedUpdate( qualityTool->GetSourceId(), qualityStorageMatrix, TOOL_OK, frameNumber, unfilteredTimestamp);
+    }
+    else
+    {
+      LOG_ERROR("Quality values could not be recorded, as the quality tool port is undefined");
+    }
   }
 
   return (numberOfErrors > 0 ? PLUS_FAIL : PLUS_SUCCESS);
@@ -514,3 +526,5 @@ PlusStatus vtkAscension3DGTrackerBase::WriteConfiguration(vtkXMLDataElement* roo
 
   return PLUS_SUCCESS;
 }
+
+// TODO: add API to change slope, sensitivity, offset, alpha sensor parameters

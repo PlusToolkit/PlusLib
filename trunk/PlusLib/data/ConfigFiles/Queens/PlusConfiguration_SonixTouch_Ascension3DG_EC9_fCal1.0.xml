@@ -24,6 +24,7 @@
           <DataSource Id="Probe"/>
           <DataSource Id="Reference"/>
           <DataSource Id="Stylus"/>
+          <DataSource Id="Quality"/>
         </OutputChannel>
       </OutputChannels>
     </Device>
@@ -33,7 +34,7 @@
       Type="SonixVideo" 
       AcquisitionRate="30" 
       LocalTimeOffsetSec="-0.2976"
-      IP="130.15.7.20" 
+      IP="127.0.0.1" 
       Depth="-1" 
       Sector="-1" 
       Gain="-1" 
