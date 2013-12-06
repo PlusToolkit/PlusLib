@@ -15,6 +15,8 @@ See License.txt for details.
 #include "vtksys/SystemTools.hxx"
 #include <sstream>
 
+static const char* QUALITY_PORT_NAME="quality";
+
 vtkStandardNewMacro(vtkAscension3DGTrackerBase);
 typedef DOUBLE_POSITION_ANGLES_MATRIX_QUATERNION_TIME_Q_BUTTON_RECORD AscensionRecordType;
 
@@ -322,7 +324,8 @@ PlusStatus vtkAscension3DGTrackerBase::InternalUpdate()
   ToolStatus toolStatus = TOOL_OK;
   const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
   int numberOfErrors(0); 
-
+  // Vector to store the quality value for each tool
+  std::vector<unsigned short> qualityValues(sysConfig.numberSensors,0);
   for ( unsigned short sensorIndex = 0; sensorIndex < sysConfig.numberSensors; ++ sensorIndex )
   {
     if ( ! SensorAttached [ sensorIndex ] )
@@ -353,6 +356,7 @@ PlusStatus vtkAscension3DGTrackerBase::InternalUpdate()
         mToolToTracker->SetElement( row, col, record[ sensorIndex ].s[ row ][ col ] );
       }
     }
+    qualityValues[sensorIndex] = record[sensorIndex].quality;
     
     mToolToTracker->Invert();
 
@@ -377,6 +381,38 @@ PlusStatus vtkAscension3DGTrackerBase::InternalUpdate()
     // Devices has no frame numbering, so just auto increment tool frame number
     unsigned long frameNumber = tool->GetFrameNumber() + 1 ; 
     this->ToolTimeStampedUpdate( tool->GetSourceId(), mToolToTracker, toolStatus, frameNumber, unfilteredTimestamp);
+  }
+  
+  vtkPlusDataSource* qualityTool = NULL;
+  if ( this->GetToolByPortName(QUALITY_PORT_NAME, qualityTool) == PLUS_SUCCESS && qualityTool!=NULL )
+  {
+    vtkSmartPointer< vtkMatrix4x4 > qualityStorageMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();    
+    qualityStorageMatrix->SetElement(3,0,-1);
+    qualityStorageMatrix->SetElement(3,1,-1);
+    qualityStorageMatrix->SetElement(3,2,-1);
+    qualityStorageMatrix->SetElement(0,0,-1);
+    qualityStorageMatrix->SetElement(1,1,-1);
+    qualityStorageMatrix->SetElement(2,2,-1);
+    // The "quality" tool is defined, which contains the quality values for all the tools
+    for ( unsigned short sensorIndex = 0; sensorIndex < sysConfig.numberSensors; ++sensorIndex )
+    {
+      switch (sensorIndex)
+      {
+      case 0: qualityStorageMatrix->SetElement(3,0,qualityValues[sensorIndex]); break;
+      case 1: qualityStorageMatrix->SetElement(3,1,qualityValues[sensorIndex]); break;
+      case 2: qualityStorageMatrix->SetElement(3,2,qualityValues[sensorIndex]); break;
+      case 3: qualityStorageMatrix->SetElement(0,0,qualityValues[sensorIndex]); break;
+      case 4: qualityStorageMatrix->SetElement(1,1,qualityValues[sensorIndex]); break;
+      case 5: qualityStorageMatrix->SetElement(2,2,qualityValues[sensorIndex]); break;
+      default:
+        // Usually only 4 tools can be connected to the tracker, so 6 values should cover everything.
+        // If we need to store more quality values then we can store more matrices.
+        LOG_WARNING("Quality value of sensor "<<sensorIndex<<" cannot be stored. Quality values can only be stored for maximum 6 tools.");
+      }
+    }
+    // Devices has no frame numbering, so just auto increment tool frame number
+    unsigned long frameNumber = qualityTool->GetFrameNumber() + 1 ; 
+    this->ToolTimeStampedUpdate( qualityTool->GetSourceId(), qualityStorageMatrix, TOOL_OK, frameNumber, unfilteredTimestamp);
   }
 
   return (numberOfErrors > 0 ? PLUS_FAIL : PLUS_SUCCESS);

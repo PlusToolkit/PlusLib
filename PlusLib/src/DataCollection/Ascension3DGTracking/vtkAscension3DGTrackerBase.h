@@ -14,6 +14,15 @@ class vtkPlusDataBuffer;
 
 This class talks with Ascension3DG tracker over the ATC trakSTAR device driver
 
+There is a special tool port ("quality"), which provides the quality values for all the tools.
+The quality numbers are stored in a 4x4 matrix as described below. If a value is not available then it is set to -1.
+  Port 0: matrix row 0, column 3
+  Port 1: matrix row 1, column 3
+  Port 2: matrix row 2, column 3
+  Port 3: matrix row 0, column 0
+  Port 4: matrix row 1, column 1
+  Port 5: matrix row 2, column 2
+
 \ingroup PlusLibDataCollection
 */
 class
