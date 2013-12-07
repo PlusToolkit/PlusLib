@@ -255,6 +255,8 @@ void vtkPlusDataSource::DeepCopy(vtkPlusDataSource *aSource)
   this->Buffer->DeepCopy( aSource->GetBuffer() );
 
   this->SetFrameNumber( aSource->GetFrameNumber() );
+
+  this->CustomProperties=aSource->CustomProperties;
 }
 
 
@@ -391,6 +393,8 @@ PlusStatus vtkPlusDataSource::WriteConfiguration( vtkXMLDataElement* aSourceElem
     aSourceElement->SetIntAttribute("AveragedItemsForFiltering", this->GetBuffer()->GetAveragedItemsForFiltering());
   }
 
+  // TODO: write custom properties
+
   return PLUS_SUCCESS;
 }
 
@@ -420,24 +424,39 @@ PlusStatus vtkPlusDataSource::WriteCompactConfiguration( vtkXMLDataElement* aSou
 }
 
 //-----------------------------------------------------------------------------
-
 DataSourceType vtkPlusDataSource::GetType() const
 {
   return this->Type;
 }
 
 //-----------------------------------------------------------------------------
-
 void vtkPlusDataSource::SetType( DataSourceType aType )
 {
   this->Type = aType;
 }
 
 //-----------------------------------------------------------------------------
-
 std::string vtkPlusDataSource::GetTransformName() const
 {
   std::stringstream ss;
   ss << this->SourceId << "To" << this->ReferenceCoordinateFrameName;
   return ss.str();
+}
+
+//-----------------------------------------------------------------------------
+std::string vtkPlusDataSource::GetCustomProperty(const std::string& propertyName)
+{
+  std::map< std::string, std::string > :: iterator prop=this->CustomProperties.find(propertyName);
+  std::string propValue;
+  if (prop!=this->CustomProperties.end())
+  {
+    propValue=prop->second;
+  }
+  return propValue;
+}
+
+//-----------------------------------------------------------------------------
+void vtkPlusDataSource::SetCustomProperty(const std::string& propertyName, const std::string& propertyValue)
+{
+  this->CustomProperties[propertyName]=propertyValue;
 }

@@ -15,7 +15,12 @@ See License.txt for details.
 #include "vtksys/SystemTools.hxx"
 #include <sstream>
 
-static const char* QUALITY_PORT_NAME="quality";
+static const char QUALITY_PORT_NAME[]="quality";
+
+static const char PROP_QUALITY_ERROR_SLOPE[]="QualityErrorSlope";
+static const char PROP_QUALITY_ERROR_OFFSET[]="QualityErrorOffset";
+static const char PROP_QUALITY_ERROR_SENSITIVITY[]="QualityErrorSensitivity";
+static const char PROP_QUALITY_FILTER_ALPHA[]="QualityFilterAlpha";
 
 vtkStandardNewMacro(vtkAscension3DGTrackerBase);
 typedef DOUBLE_POSITION_ANGLES_MATRIX_QUATERNION_TIME_Q_BUTTON_RECORD AscensionRecordType;
@@ -105,10 +110,9 @@ PlusStatus vtkAscension3DGTrackerBase::InternalConnect()
 
   // Go through all tools.
 
-  int sensorID;
   DATA_FORMAT_TYPE formatType = DOUBLE_POSITION_ANGLES_MATRIX_QUATERNION_TIME_Q_BUTTON;
 
-  for ( sensorID = 0; sensorID < systemConfig.numberSensors; ++ sensorID )
+  for ( int sensorID = 0; sensorID < systemConfig.numberSensors; ++ sensorID )
   {
     // Set data format
     this->CheckReturnStatus( SetSensorParameter( sensorID, DATA_FORMAT, &formatType, sizeof( formatType ) ) );
@@ -121,12 +125,12 @@ PlusStatus vtkAscension3DGTrackerBase::InternalConnect()
 
     tagADAPTIVE_PARAMETERS alphaStruct;
     alphaStruct.alphaMin[0] = alphaStruct.alphaMin[1] = alphaStruct.alphaMin[2] = alphaStruct.alphaMin[3]
-      = alphaStruct.alphaMin[4] = alphaStruct.alphaMin[5] = alphaStruct.alphaMin[6] = 655;
+    = alphaStruct.alphaMin[4] = alphaStruct.alphaMin[5] = alphaStruct.alphaMin[6] = 655;
     alphaStruct.alphaMax[0] = alphaStruct.alphaMax[1] = alphaStruct.alphaMax[2] = alphaStruct.alphaMax[3]
-      = alphaStruct.alphaMax[4] = alphaStruct.alphaMax[5] = alphaStruct.alphaMax[6] = 29491;
+    = alphaStruct.alphaMax[4] = alphaStruct.alphaMax[5] = alphaStruct.alphaMax[6] = 29491;
     alphaStruct.vm[0] = 2;
     alphaStruct.vm[1] = alphaStruct.vm[2] = alphaStruct.vm[3]
-      = alphaStruct.vm[4] = alphaStruct.vm[5] = alphaStruct.vm[6] = 4;
+    = alphaStruct.vm[4] = alphaStruct.vm[5] = alphaStruct.vm[6] = 4;
     alphaStruct.alphaOn = this->FilterAlpha;
     this->CheckReturnStatus( SetSensorParameter( sensorID, FILTER_ALPHA_PARAMETERS, &alphaStruct, sizeof( alphaStruct ) ) );
 
@@ -137,6 +141,63 @@ PlusStatus vtkAscension3DGTrackerBase::InternalConnect()
     this->SensorAttached.push_back( ( status & NOT_ATTACHED ) ? false : true );
     this->SensorInMotion.push_back( ( status & OUT_OF_MOTIONBOX ) ? false : true );
     this->TransmitterAttached = ( ( status & NO_TRANSMITTER_ATTACHED ) ? false : true );
+
+    std::ostringstream portName;
+    portName << sensorID; 
+    vtkPlusDataSource* tool = NULL; 
+    if ( this->GetToolByPortName(portName.str().c_str(), tool) != PLUS_SUCCESS )
+    {
+      LOG_WARNING("Undefined connected tool found on port '" << portName.str() << "', disabled it until not defined in the config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
+      this->SensorAttached[ sensorID ] = false; 
+      continue;
+    }
+    if (tool==NULL)
+    {
+      LOG_ERROR("Invalid tool");
+      continue;
+    }
+
+    // Remaining setup is only for attached sensors
+    if ( !this->SensorAttached[ sensorID ] )
+    {
+      continue;
+    }
+    
+    std::string slopeStr=tool->GetCustomProperty(PROP_QUALITY_ERROR_SLOPE);
+    std::string offsetStr=tool->GetCustomProperty(PROP_QUALITY_ERROR_OFFSET);
+    std::string sensitivityStr=tool->GetCustomProperty(PROP_QUALITY_ERROR_SENSITIVITY);
+    std::string alphaStr=tool->GetCustomProperty(PROP_QUALITY_FILTER_ALPHA);
+    if (!slopeStr.empty() || !offsetStr.empty() || !sensitivityStr.empty() || !alphaStr.empty())
+    {
+      // at least one sensitivity parameter is defined
+      tagQUALITY_PARAMETERS qualityStruct;
+      // The slope should have a value between –127 and +127. (Default is 0)
+      // The offset should have a value between –127 and +127. (The default is 0)
+      // The sensitivity should have a value between 0 and +127 (Default is 2)
+      // The alpha should have a value between 0 and 127. (The default is 12)
+      qualityStruct.error_slope=0;
+      qualityStruct.error_offset=0;
+      qualityStruct.error_sensitivity=2;
+      qualityStruct.filter_alpha=12;
+      if ( !slopeStr.empty() && PlusCommon::StringToDouble(slopeStr.c_str(), qualityStruct.error_slope) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to parse "<<PROP_QUALITY_ERROR_SLOPE<<" attribute in tool "<<tool->GetPortName());
+      }
+      if ( !offsetStr.empty() && PlusCommon::StringToDouble(offsetStr.c_str(), qualityStruct.error_offset) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to parse "<<PROP_QUALITY_ERROR_OFFSET<<" attribute in tool "<<tool->GetPortName());
+      }
+      if ( !sensitivityStr.empty() && PlusCommon::StringToDouble(sensitivityStr.c_str(), qualityStruct.error_sensitivity) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to parse "<<PROP_QUALITY_ERROR_SENSITIVITY<<" attribute in tool "<<tool->GetPortName());
+      }
+      if ( !alphaStr.empty() && PlusCommon::StringToDouble(alphaStr.c_str(), qualityStruct.filter_alpha) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to parse "<<PROP_QUALITY_FILTER_ALPHA<<" attribute in tool "<<tool->GetPortName());
+      }
+      this->CheckReturnStatus( SetSensorParameter( sensorID, QUALITY, &qualityStruct, sizeof( qualityStruct ) ) );
+    }
+
   }
 
   this->NumberOfSensors = systemConfig.numberSensors; 
@@ -144,22 +205,6 @@ PlusStatus vtkAscension3DGTrackerBase::InternalConnect()
   if ( this->AscensionRecordBuffer == NULL )
   {
     this->AscensionRecordBuffer = new AscensionRecordType[this->NumberOfSensors ];
-  }
-
-  // Enable tools
-  for ( int i = 0; i < this->GetNumberOfSensors(); i++ )
-  {
-    if ( this->SensorAttached[ i ] )
-    {
-      std::ostringstream portName; 
-      portName << i; 
-      vtkPlusDataSource* tool = NULL; 
-      if ( this->GetToolByPortName(portName.str().c_str(), tool) != PLUS_SUCCESS )
-      {
-        LOG_WARNING("Undefined connected tool found on port '" << portName.str() << "', disabled it until not defined in the config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
-        this->SensorAttached[ i ] = false; 
-      }
-    }
   }
 
   // Check that all tools were connected that was defined in the configuration file
@@ -220,7 +265,7 @@ PlusStatus vtkAscension3DGTrackerBase::InternalStartRecording()
   bool found = false;
   while( ( i < boardConfig.numberTransmitters ) && ( found == false ) )
   {
-     TRANSMITTER_CONFIGURATION transConfig;
+    TRANSMITTER_CONFIGURATION transConfig;
     this->CheckReturnStatus( GetTransmitterConfiguration( i, &transConfig ) );
     if ( transConfig.attached )
     {
@@ -362,7 +407,7 @@ PlusStatus vtkAscension3DGTrackerBase::InternalUpdate()
       }
     }
     qualityValues[sensorIndex] = record[sensorIndex].quality;
-    
+
     mToolToTracker->Invert();
 
     mToolToTracker->SetElement( 0, 3, record[ sensorIndex ].x );
@@ -371,7 +416,7 @@ PlusStatus vtkAscension3DGTrackerBase::InternalUpdate()
 
     if ( ! attached ) toolStatus = TOOL_MISSING;
     if ( ! inMotionBox ) toolStatus = TOOL_OUT_OF_VIEW;
-    
+
     std::ostringstream toolPortName; 
     toolPortName << sensorIndex; 
 
@@ -382,12 +427,12 @@ PlusStatus vtkAscension3DGTrackerBase::InternalUpdate()
       numberOfErrors++; 
       continue; 
     }
-          
+
     // Devices has no frame numbering, so just auto increment tool frame number
     unsigned long frameNumber = tool->GetFrameNumber() + 1 ; 
     this->ToolTimeStampedUpdate( tool->GetSourceId(), mToolToTracker, toolStatus, frameNumber, unfilteredTimestamp);
   }
-  
+
   vtkPlusDataSource* qualityTool = NULL;
   if ( this->GetToolByPortName(QUALITY_PORT_NAME, qualityTool) == PLUS_SUCCESS )
   {
@@ -496,6 +541,73 @@ PlusStatus vtkAscension3DGTrackerBase::ReadConfiguration(vtkXMLDataElement* root
     this->SetFilterAlpha(filterAlpha>0?true:false); 
   }
 
+  // Read ROM files for tools
+  vtkXMLDataElement* dataSourcesElement = trackerConfig->FindNestedElementWithName("DataSources");
+  if( dataSourcesElement == NULL )
+  {
+    LOG_ERROR("Unable to find any data sources in the NDI tracker. No transforms will be outputted.");
+    return PLUS_FAIL;
+  }
+
+  for ( int toolIndex = 0; toolIndex < dataSourcesElement->GetNumberOfNestedElements(); toolIndex++ )
+  {
+    vtkXMLDataElement* toolDataElement = dataSourcesElement->GetNestedElement(toolIndex); 
+    if ( STRCASECMP(toolDataElement->GetName(), "DataSource") != 0 )
+    {
+      // if this is not a data source element, skip it
+      continue; 
+    }
+
+    if ( toolDataElement->GetAttribute("Type") != NULL && STRCASECMP(toolDataElement->GetAttribute("Type"), "Tool") != 0 )
+    {
+      // if this is not a Tool element, skip it
+      continue; 
+    }
+
+    const char* portName = toolDataElement->GetAttribute("PortName");
+    if ( portName==NULL )
+    {
+      LOG_ERROR("Cannot set sensor-specific parameters: tool portname is undefined");
+      continue;
+    }
+    vtkPlusDataSource* tool = NULL;
+    if ( this->GetToolByPortName(portName, tool) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Cannot set sensor-specific parameters: tool "<<portName<<" was not found");
+      continue;
+    }
+    if ( tool==NULL )
+    {
+      LOG_ERROR("Cannot set sensor-specific parameters: tool "<<portName<<" was not found");
+      continue;
+    }
+
+    const char* paramValue=toolDataElement->GetAttribute(PROP_QUALITY_ERROR_SLOPE);
+    if (paramValue!=NULL)
+    {
+      tool->SetCustomProperty(PROP_QUALITY_ERROR_SLOPE,paramValue);
+    }
+
+    paramValue=toolDataElement->GetAttribute(PROP_QUALITY_ERROR_OFFSET);
+    if (paramValue!=NULL)
+    {
+      tool->SetCustomProperty(PROP_QUALITY_ERROR_OFFSET,paramValue);
+    }
+
+    paramValue=toolDataElement->GetAttribute(PROP_QUALITY_ERROR_SENSITIVITY);
+    if (paramValue!=NULL)
+    {
+      tool->SetCustomProperty(PROP_QUALITY_ERROR_SENSITIVITY,paramValue);
+    }
+
+    paramValue=toolDataElement->GetAttribute(PROP_QUALITY_FILTER_ALPHA);
+    if (paramValue!=NULL)
+    {
+      tool->SetCustomProperty(PROP_QUALITY_FILTER_ALPHA,paramValue);
+    }
+
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -526,5 +638,3 @@ PlusStatus vtkAscension3DGTrackerBase::WriteConfiguration(vtkXMLDataElement* roo
 
   return PLUS_SUCCESS;
 }
-
-// TODO: add API to change slope, sensitivity, offset, alpha sensor parameters

@@ -121,7 +121,20 @@ public:
   vtkSetStringMacro(ToolPartNumber);
   /*! Set tool serial number */
   vtkSetStringMacro(ToolSerialNumber);
-    
+  
+  /*!
+    Get a custom property string.
+    If the property is not defined then an empty string is returned.
+  */
+  std::string GetCustomProperty(const std::string& propertyName);
+
+  /*!
+    Set a custom property string.
+    Custom properties are useful because custom information can be stored for each tool
+    in the same class object where standard properties of the tool are stored.
+  */
+  void SetCustomProperty(const std::string& propertyName, const std::string& propertyValue);
+
   /*! Make this tracker into a copy of another tracker. You should lock both of the tracker buffers before doing this. */
   void DeepCopy(vtkPlusDataSource *source);
 
@@ -151,6 +164,8 @@ protected:
   char *ReferenceCoordinateFrameName;
 
   vtkPlusBuffer* Buffer;
+
+  std::map< std::string, std::string > CustomProperties;
 
 private:
   vtkPlusDataSource(const vtkPlusDataSource&);
