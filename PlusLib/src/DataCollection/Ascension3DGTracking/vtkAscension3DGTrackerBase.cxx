@@ -15,7 +15,8 @@ See License.txt for details.
 #include "vtksys/SystemTools.hxx"
 #include <sstream>
 
-static const char QUALITY_PORT_NAME[]="quality";
+static const char QUALITY_PORT_NAME_1[]="quality1";
+static const char QUALITY_PORT_NAME_2[]="quality2";
 
 static const char PROP_QUALITY_ERROR_SLOPE[]="QualityErrorSlope";
 static const char PROP_QUALITY_ERROR_OFFSET[]="QualityErrorOffset";
@@ -210,7 +211,7 @@ PlusStatus vtkAscension3DGTrackerBase::InternalConnect()
   // Check that all tools were connected that was defined in the configuration file
   for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
-    if (STRCASECMP(it->second->GetPortName(), QUALITY_PORT_NAME)==0)
+    if (IsQualityPortName(it->second->GetPortName()))
     {
       // Quality port is a virtual port, no real sensor is associated
       continue;
@@ -433,44 +434,8 @@ PlusStatus vtkAscension3DGTrackerBase::InternalUpdate()
     this->ToolTimeStampedUpdate( tool->GetSourceId(), mToolToTracker, toolStatus, frameNumber, unfilteredTimestamp);
   }
 
-  vtkPlusDataSource* qualityTool = NULL;
-  if ( this->GetToolByPortName(QUALITY_PORT_NAME, qualityTool) == PLUS_SUCCESS )
-  {
-    vtkSmartPointer< vtkMatrix4x4 > qualityStorageMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();    
-    qualityStorageMatrix->SetElement(0,3,-1);
-    qualityStorageMatrix->SetElement(1,3,-1);
-    qualityStorageMatrix->SetElement(2,3,-1);
-    qualityStorageMatrix->SetElement(0,0,-1);
-    qualityStorageMatrix->SetElement(1,1,-1);
-    qualityStorageMatrix->SetElement(2,2,-1);
-    // The "quality" tool is defined, which contains the quality values for all the tools
-    for ( unsigned short sensorIndex = 0; sensorIndex < sysConfig.numberSensors; ++sensorIndex )
-    {
-      switch (sensorIndex)
-      {
-      case 0: qualityStorageMatrix->SetElement(0,3,qualityValues[sensorIndex]); break;
-      case 1: qualityStorageMatrix->SetElement(1,3,qualityValues[sensorIndex]); break;
-      case 2: qualityStorageMatrix->SetElement(2,3,qualityValues[sensorIndex]); break;
-      case 3: qualityStorageMatrix->SetElement(0,0,qualityValues[sensorIndex]); break;
-      case 4: qualityStorageMatrix->SetElement(1,1,qualityValues[sensorIndex]); break;
-      case 5: qualityStorageMatrix->SetElement(2,2,qualityValues[sensorIndex]); break;
-      default:
-        // Usually only 4 tools can be connected to the tracker, so 6 values should cover everything.
-        // If we need to store more quality values then we can store more matrices.
-        LOG_WARNING("Quality value of sensor "<<sensorIndex<<" cannot be stored. Quality values can only be stored for maximum 6 tools.");
-      }
-    }
-    if (qualityTool!=NULL)
-    {
-      // Devices has no frame numbering, so just auto increment tool frame number
-      unsigned long frameNumber = qualityTool->GetFrameNumber() + 1 ; 
-      this->ToolTimeStampedUpdate( qualityTool->GetSourceId(), qualityStorageMatrix, TOOL_OK, frameNumber, unfilteredTimestamp);
-    }
-    else
-    {
-      LOG_ERROR("Quality values could not be recorded, as the quality tool port is undefined");
-    }
-  }
+  vtkAscension3DGTrackerBase::QualityToolTimeStampedUpdate(QUALITY_PORT_NAME_1, 0, qualityValues, unfilteredTimestamp);
+  vtkAscension3DGTrackerBase::QualityToolTimeStampedUpdate(QUALITY_PORT_NAME_2, 3, qualityValues, unfilteredTimestamp);
 
   return (numberOfErrors > 0 ? PLUS_FAIL : PLUS_SUCCESS);
 }
@@ -637,4 +602,49 @@ PlusStatus vtkAscension3DGTrackerBase::WriteConfiguration(vtkXMLDataElement* roo
   trackerConfig->SetIntAttribute("FilterAlpha", (this->GetFilterAlpha()?1:0));
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+bool vtkAscension3DGTrackerBase::IsQualityPortName(const char* name)
+{
+  if (STRCASECMP(name, QUALITY_PORT_NAME_1)==0
+    || STRCASECMP(name, QUALITY_PORT_NAME_2)==0)
+  {
+    return true;
+  }
+  return false;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkAscension3DGTrackerBase::QualityToolTimeStampedUpdate(const char* qualityToolName, int sensorStartIndex, const std::vector<unsigned short> &qualityValues, double unfilteredTimestamp)
+{
+  vtkPlusDataSource* qualityTool = NULL;
+  if ( this->GetToolByPortName(QUALITY_PORT_NAME_1, qualityTool) == PLUS_SUCCESS )
+  {
+    // the tool is not defined, no need to store the quality values in them
+    return PLUS_SUCCESS;
+  }
+  if (qualityTool==NULL)
+  {
+    LOG_ERROR("Quality tool "<<qualityToolName<<" is invalid");
+    return PLUS_FAIL;
+  }
+  vtkSmartPointer< vtkMatrix4x4 > qualityStorageMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();    
+  qualityStorageMatrix->SetElement(0,3,-1);
+  qualityStorageMatrix->SetElement(1,3,-1);
+  qualityStorageMatrix->SetElement(2,3,-1);
+  for ( unsigned short valueIndex = 0; valueIndex<3; ++valueIndex )
+  {
+    int sensorIndex=valueIndex+sensorStartIndex;
+    double qualityValue=-1;
+    if (sensorIndex<qualityValues.size())
+    {
+      qualityValue=qualityValues[sensorIndex];
+    }
+    qualityStorageMatrix->SetElement(valueIndex,3,qualityValue);
+  }
+
+  // Devices has no frame numbering, so just auto increment tool frame number
+  unsigned long frameNumber = qualityTool->GetFrameNumber() + 1 ; 
+  return this->ToolTimeStampedUpdate( qualityTool->GetSourceId(), qualityStorageMatrix, TOOL_OK, frameNumber, unfilteredTimestamp);
 }
