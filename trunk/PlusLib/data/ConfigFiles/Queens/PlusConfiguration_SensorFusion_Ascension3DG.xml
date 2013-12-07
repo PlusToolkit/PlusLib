@@ -22,7 +22,8 @@
           QualityErrorSlope="0" QualityErrorOffset="0" QualityErrorSensitivity="2" QualityFilterAlpha="12" />
         <DataSource Type="Tool" Id="Tool4" BufferSize="500" PortName="3" AveragedItemsForFiltering="20"
           QualityErrorSlope="0" QualityErrorOffset="0" QualityErrorSensitivity="2" QualityFilterAlpha="12" />
-        <DataSource Type="Tool" Id="Quality" BufferSize="500" PortName="quality" AveragedItemsForFiltering="20" />        
+        <DataSource Type="Tool" Id="Quality1" BufferSize="500" PortName="quality:0-2" AveragedItemsForFiltering="20" />        
+        <DataSource Type="Tool" Id="Quality2" BufferSize="500" PortName="quality:3-5" AveragedItemsForFiltering="20" />        
       </DataSources> 
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
@@ -30,7 +31,8 @@
           <DataSource Id="Tool2"/>
           <DataSource Id="Tool3"/>
           <DataSource Id="Tool4"/>
-          <DataSource Id="Quality"/>
+          <DataSource Id="Quality1"/>
+          <DataSource Id="Quality2"/>
         </OutputChannel>
       </OutputChannels>
     </Device>
@@ -47,7 +49,8 @@
         <Transform Name="Tool2ToTracker" /> 
         <Transform Name="Tool3ToTracker" /> 
         <Transform Name="Tool4ToTracker" /> 
-        <Transform Name="QualityToTracker" /> 
+        <Transform Name="Quality1ToTracker" /> 
+        <Transform Name="Quality2ToTracker" /> 
       </TransformNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>

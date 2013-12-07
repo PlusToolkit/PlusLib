@@ -14,14 +14,10 @@ class vtkPlusDataBuffer;
 
 This class talks with Ascension3DG tracker over the ATC trakSTAR device driver
 
-There is a special tool port ("quality"), which provides the quality values for all the tools.
-The quality numbers are stored in a 4x4 matrix as described below. If a value is not available then it is set to -1.
-  Port 0: matrix row 0, column 3
-  Port 1: matrix row 1, column 3
-  Port 2: matrix row 2, column 3
-  Port 3: matrix row 0, column 0
-  Port 4: matrix row 1, column 1
-  Port 5: matrix row 2, column 2
+There are special tool ports ("quality1" and "quality2"), which provide the quality values for all the tools.
+The quality numbers are stored in the translation component of the transformation matrix. If a value is not available then it is set to -1.
+  quality1: quality values for sensor port 0-2
+  quality2: quality values for sensor port 3-5 (usually there are only 4 ports, so quality values for port 4 and 5 are not available)
 
 \ingroup PlusLibDataCollection
 */
@@ -101,6 +97,15 @@ private:  // Functions.
 
   /*! Check return status and log in case of error */
   PlusStatus CheckReturnStatus( int status );
+
+  /*!
+    Adds 3 quality values (in the translation component of the transformation matrix) to the buffer.
+    For sensors sensorStartIndex, sensorStartIndex+1, and sensorStartIndex+2.
+  */
+  PlusStatus QualityToolTimeStampedUpdate(const char* qualityToolName, int sensorStartIndex, const std::vector<unsigned short> &qualityValues, double unfilteredTimestamp);
+
+  /*! Returns true if the port name belongs to a virtual tool that stores quality values */
+  bool IsQualityPortName(const char* name);
 
 
 private:  // Variables.
