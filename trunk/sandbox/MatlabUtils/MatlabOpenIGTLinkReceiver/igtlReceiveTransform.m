@@ -1,12 +1,13 @@
 function transform = igtlReceiveTransform(igtlConnection)
 
-% Read command
-transform={};
-msg=ReadOpenIGTLinkTransformMessage(clientSocketInfo);
-if(~isempty(msg) && ~isempty(msg.transformMatrix))
-    transform.name=msg.transformName;
-    transform.matrix=msg.transformMatrix;
-    tansform.timestamp=msg.timestamp;
+    transform={};
+    msg=ReadOpenIGTLinkTransformMessage(igtlConnection);
+    if(~isempty(msg) && ~isempty(msg.transformMatrix))
+        transform.name=msg.transformName;
+        transform.matrix=msg.transformMatrix;
+        transform.timestamp=msg.timestamp;
+    end
+
 end
 
 %% OpenIGTLink helper functions
@@ -181,6 +182,11 @@ function result=convertFromUint8VectorToInt64(uint8Vector)
     result = int64(sum(double(uint8Vector).*multipliers));
   end  
 end 
+
+function result=convertFromUint8VectorToFloat32(uint8Vector)
+  uintResult = uint32(uint8Vector(4)) + uint32(uint8Vector(3))*256 + uint32(uint8Vector(2))*256^2 + uint32(uint8Vector(1))*256^3;
+  result = typecast(uintResult, 'single');
+end
 
 function selectedByte=getNthByte(multibyte, n)
   selectedByte=uint8(mod(floor(multibyte/256^n),256));

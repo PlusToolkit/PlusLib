@@ -8,7 +8,7 @@ function igtlConnection = igtlConnect(hostname, port)
 
 import java.net.Socket
 import java.io.*
-import java.net.ClientSocket
+%import java.net.ClientSocket
 
 igtlConnection={};
 igtlConnection.host='localhost';
@@ -31,7 +31,7 @@ end
 
 igtlConnection.socket.setSoTimeout(igtlConnection.timeout);
 
-igtlConnection.outputStream = socket.getOutputStream;
-igtlConnection.inputStream = socket.getInputStream;       
+igtlConnection.outputStream = igtlConnection.socket.getOutputStream;
+igtlConnection.inputStream = igtlConnection.socket.getInputStream;
 igtlConnection.messageHeaderReceiveTimeoutSec=5;
 igtlConnection.messageBodyReceiveTimeoutSec=25;
