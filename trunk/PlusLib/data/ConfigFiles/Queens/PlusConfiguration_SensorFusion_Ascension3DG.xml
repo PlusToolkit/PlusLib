@@ -22,8 +22,8 @@
           QualityErrorSlope="0" QualityErrorOffset="0" QualityErrorSensitivity="2" QualityFilterAlpha="12" />
         <DataSource Type="Tool" Id="Tool4" BufferSize="500" PortName="3" AveragedItemsForFiltering="20"
           QualityErrorSlope="0" QualityErrorOffset="0" QualityErrorSensitivity="2" QualityFilterAlpha="12" />
-        <DataSource Type="Tool" Id="Quality1" BufferSize="500" PortName="quality:0-2" AveragedItemsForFiltering="20" />        
-        <DataSource Type="Tool" Id="Quality2" BufferSize="500" PortName="quality:3-5" AveragedItemsForFiltering="20" />        
+        <DataSource Type="Tool" Id="Quality1" BufferSize="500" PortName="quality1" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" Id="Quality2" BufferSize="500" PortName="quality2" AveragedItemsForFiltering="20" />
       </DataSources> 
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
