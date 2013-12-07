@@ -1,123 +1,39 @@
-% OpenIGTLink server that executes the received string commands
-function cli_commandserver(port)
+function transform = igtlReceiveTransform(igtlConnection)
 
-    global OPENIGTLINK_SERVER_SOCKET
-    
-    import java.net.Socket
-    import java.io.*
-    import java.net.ServerSocket
-    
-    % Add current directory to the path so that all cli_* functions will be available even when the current working directory is changed
-    addpath(pwd);
-    
-    serverSocketInfo.port=4100;
-    serverSocketInfo.timeout=1000;
+% Read command
+transform={};
+msg=ReadOpenIGTLinkTransformMessage(clientSocketInfo);
+if(~isempty(msg) && ~isempty(msg.transformMatrix))
+    transform.name=msg.transformName;
+    transform.matrix=msg.transformMatrix;
+    tansform.timestamp=msg.timestamp;
+end
 
-    if (nargin>0)
-        serverSocketInfo.port=port;
+%% OpenIGTLink helper functions
+
+function msg=ReadOpenIGTLinkTransformMessage(clientSocket)
+    msg=ReadOpenIGTLinkMessage(clientSocket);
+    if (length(msg.body)<5)
+        disp('Error: TRANSFORM message received with incomplete contents')
+        msg.transformName=[];
+        msg.transformMatrix=[];
+        return
     end
-
-    disp(['Starting OpenIGTLink command server at port ' num2str(serverSocketInfo.port)]);    
-
-    % Open a TCP Server Port
-    if (exist('OPENIGTLINK_SERVER_SOCKET','var'))
-        if (not(isempty(OPENIGTLINK_SERVER_SOCKET)))
-          % Socket has not been closed last time
-          disp('Socket has not been closed properly last time. Closing it now.');
-          OPENIGTLINK_SERVER_SOCKET.close;
-          OPENIGTLINK_SERVER_SOCKET=[];
-        end
-    end
-
-    try
-        serverSocketInfo.socket = ServerSocket(serverSocketInfo.port);        
-        OPENIGTLINK_SERVER_SOCKET=serverSocketInfo.socket;
-    catch 
-        error('Failed to open server port. Make sure the port is not open already or blocked by firewall.');
-    end        
-    serverSocketInfo.socket.setSoTimeout(serverSocketInfo.timeout);
-
-    disp('Waiting for client connections...');
-    
-    % Handle client connections
-    while(true)
-
-        % Wait for client connection
-        drawNowCounter=0;
-        while(true),            
-            try 
-              clientSocketInfo.socket = serverSocketInfo.socket.accept;  
-              break; 
-            catch
-            end
-            if (drawNowCounter>10)
-              drawnow
-              drawNowCounter=0;
-            end;
-            drawNowCounter=drawNowCounter+1;
-            pause(0.5);
-        end
-
-        % Client connected
-        disp('Client connected')
-        % Rehash forces re-reading of all Matlab functions from files
-        rehash        
-        
-        clientSocketInfo.remoteHost = char(clientSocketInfo.socket.getInetAddress);
-        clientSocketInfo.outputStream = clientSocketInfo.socket.getOutputStream;
-        clientSocketInfo.inputStream = clientSocketInfo.socket.getInputStream;       
-        clientSocketInfo.messageHeaderReceiveTimeoutSec=5;
-        clientSocketInfo.messageBodyReceiveTimeoutSec=25;
-
-        % Read command
-        receivedMsg=ReadOpenIGTLinkStringMessage(clientSocketInfo);
-        if(~isempty(receivedMsg) && ~isempty(receivedMsg.string))
-            dataType=deblank(char(receivedMsg.dataTypeName));
-            deviceName=deblank(char(receivedMsg.deviceName));
-            cmd=deblank(char(receivedMsg.string));
-            replyDeviceName='ACK';
-            if (~strcmp(dataType,'STRING'))
-              response=['ERROR: Expected STRING data type, received data type: [',dataType,']'];
-            elseif (length(deviceName)<3 || ~strcmp(deviceName(1:3),'CMD'))
-              response=['ERROR: Expected device name starting with CMD. Received device name: [',deviceName,']'];
-            elseif (isempty(cmd))
-              response='ERROR: Received empty command string';
-            else
-              % Reply device name for CMD is ACQ, for CMD_someuid is ACK_someuid
-              replyDeviceName=deviceName;
-              replyDeviceName(1:3)='ACK';
-              try
-                disp([' Execute command: ',cmd]);
-                response=evalc(cmd);
-                if (isempty(response))
-                  % Replace empty response by OK to indicate success
-                  response='OK';
-                end
-                disp(' Command execution completed successfully');
-              catch ME
-                response=['ERROR: Command execution failed. ',ME.getReport('extended','hyperlinks','off')];
-              end
-            end
-        else
-            response='ERROR: Error while receiving the command';            
-        end        
-        
-        % Send reply
-        responseStr=num2str(response);
-        disp([' Response (sent to device ',replyDeviceName,'): ', responseStr]);
-        WriteOpenIGTLinkStringMessage(clientSocketInfo, responseStr, replyDeviceName);
-
-        % Close connection
-        clientSocketInfo.socket.close;
-        clientSocketInfo.socket=[];
-        disp('Client connection closed');
-
-    end
-
-    % Close server socket
-    serverSocketInfo.socket.close;
-    serverSocketInfo.socket=[];
-
+    msg.transformName=msg.deviceName;
+    msg.transformMatrix=diag([1 1 1 1]);
+    % http://openigtlink.org/protocols/v2_transform.html
+    msg.transformMatrix(1,1)=convertFromUint8VectorToFloat32(msg.body(1:4));    % R11
+    msg.transformMatrix(2,1)=convertFromUint8VectorToFloat32(msg.body(5:8));    % R21
+    msg.transformMatrix(3,1)=convertFromUint8VectorToFloat32(msg.body(9:12));   % R31
+    msg.transformMatrix(1,2)=convertFromUint8VectorToFloat32(msg.body(13:16));  % R12
+    msg.transformMatrix(2,2)=convertFromUint8VectorToFloat32(msg.body(17:20));  % R22
+    msg.transformMatrix(3,2)=convertFromUint8VectorToFloat32(msg.body(21:24));  % R32
+    msg.transformMatrix(1,3)=convertFromUint8VectorToFloat32(msg.body(25:28));  % R13
+    msg.transformMatrix(2,3)=convertFromUint8VectorToFloat32(msg.body(29:32));  % R23
+    msg.transformMatrix(3,3)=convertFromUint8VectorToFloat32(msg.body(33:36));  % R33
+    msg.transformMatrix(1,4)=convertFromUint8VectorToFloat32(msg.body(37:40));  % TX
+    msg.transformMatrix(2,4)=convertFromUint8VectorToFloat32(msg.body(41:44));  % TY
+    msg.transformMatrix(3,4)=convertFromUint8VectorToFloat32(msg.body(45:48));  % TZ
 end
 
 function msg=ReadOpenIGTLinkStringMessage(clientSocket)
@@ -133,7 +49,7 @@ function msg=ReadOpenIGTLinkStringMessage(clientSocket)
     end
     strMsgLength=convertFromUint8VectorToUint16(msg.body(3:4));
     msg.string=char(msg.body(5:4+strMsgLength));
-end    
+end
 
 function msg=ReadOpenIGTLinkMessage(clientSocket)
     openIGTLinkHeaderLength=58;
@@ -236,7 +152,7 @@ function data=ReadWithTimeout(clientSocket, requestedDataLength, timeoutSec)
     end
 end
 
-%%  Parse OpenIGTLink messag header
+%%  Parse OpenIGTLink message header
 % http://openigtlink.org/protocols/v2_header.html    
 function parsedMsg=ParseOpenIGTLinkMessageHeader(rawMsg)
     parsedMsg.versionNumber=convertFromUint8VectorToUint16(rawMsg(1:2));
