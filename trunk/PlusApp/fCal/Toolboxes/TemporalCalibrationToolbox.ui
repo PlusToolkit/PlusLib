@@ -58,6 +58,9 @@
      <property name="text">
       <string>Temporal calibration is 0.0ms</string>
      </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
     </widget>
    </item>
    <item>

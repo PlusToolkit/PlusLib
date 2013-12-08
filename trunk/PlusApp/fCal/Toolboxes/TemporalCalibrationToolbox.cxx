@@ -110,7 +110,7 @@ void TemporalCalibrationToolbox::OnActivated()
     && (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetConnected()))
   {
     // Read temporal calibration configuration
-    if (ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
+    if (this->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
     {
       LOG_ERROR("Reading temporal calibration configuration failed!");
       return;
@@ -153,16 +153,6 @@ void TemporalCalibrationToolbox::OnActivated()
       }
     }
 
-    // Set initialized if it was uninitialized
-    if (m_State == ToolboxState_Uninitialized || m_State == ToolboxState_Error)
-    {
-      SetState(ToolboxState_Idle);
-    }
-    else
-    {
-      SetDisplayAccordingToState();
-    }
-
     ui.comboBox_FixedChannelValue->setCurrentIndex(requestedFixedIndex);
     this->FixedSignalChanged(requestedFixedIndex);
     if( !this->RequestedFixedSource.empty() )
@@ -192,11 +182,19 @@ void TemporalCalibrationToolbox::OnActivated()
         LOG_WARNING("Unable to find element \'" << this->RequestedMovingSource << "\' in movving source list.");
       }
     }
+
+    // Set initialized if it was uninitialized
+    if (m_State == ToolboxState_Uninitialized || m_State == ToolboxState_Error)
+    {
+      SetState(ToolboxState_Idle);
+    }
   }
   else
   {
     SetState(ToolboxState_Uninitialized);
   }
+
+  SetDisplayAccordingToState();
 }
 
 //-----------------------------------------------------------------------------
@@ -294,7 +292,32 @@ void TemporalCalibrationToolbox::SetDisplayAccordingToState()
     }
 
     // Enable or disable the image manipulation menu
-    m_ParentMainWindow->SetImageManipulationMenuEnabled( m_ParentMainWindow->GetVisualizationController()->Is2DMode() );        
+    m_ParentMainWindow->SetImageManipulationMenuEnabled( m_ParentMainWindow->GetVisualizationController()->Is2DMode() );
+
+    if (this->MovingChannel != NULL && this->FixedChannel != NULL )
+    {
+      timeOffset = this->FixedChannel->GetOwnerDevice()->GetLocalTimeOffsetSec() - this->MovingChannel->GetOwnerDevice()->GetLocalTimeOffsetSec();
+      if( timeOffset == 0 && this->MovingChannel != this->FixedChannel )
+      {
+        ui.label_State->setText(tr("Temporal calibration not yet performed."));
+      }
+      else if( this->MovingChannel == this->FixedChannel )
+      {
+        // Oh I wish I could put something funny in here...
+        //ui.label_State->setText(tr("Device is temporally calibrated with itself. Space-time continuum is safe."));
+      }
+      else
+      {
+        // Update state message
+        std::stringstream ss;
+        ss << "Offset between " << this->FixedChannel->GetOwnerDevice()->GetDeviceId() << " and " << this->MovingChannel->GetOwnerDevice()->GetDeviceId() << ": " << timeOffset << "s";
+        ui.label_State->setText(tr(ss.str().c_str()));
+      }
+    }
+    else
+    {
+      ui.label_State->setText(tr(""));
+    }
   }
 
   // Set widget states according to state
@@ -364,7 +387,7 @@ void TemporalCalibrationToolbox::SetDisplayAccordingToState()
     }
     else
     {
-      ui.label_InstructionsTemporal->setText(tr("Temporal calibration is ready to save and its result plots can be viewed\n(Video time offset: %1 s)").arg(timeOffset));
+      ui.label_InstructionsTemporal->setText(tr("Temporal calibration is ready to save and its result plots can be viewed."));
     }
     ui.pushButton_ShowPlots->setEnabled(true);
     ui.pushButton_StartTemporal->setEnabled(!result);
