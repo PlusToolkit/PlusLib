@@ -69,12 +69,14 @@ int main( int argc, char** argv )
     exit(EXIT_FAILURE); 
   }
 
+  std::string configFilePath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(inputConfigFileName);
+
   // Read main configuration file
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
-    vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
+    vtkXMLUtilities::ReadElementFromFile(configFilePath.c_str()));
   if (configRootElement == NULL)
   {	
-    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
+    LOG_ERROR("Unable to read configuration from file " << configFilePath.c_str()); 
     exit(EXIT_FAILURE);
   }
 
@@ -113,7 +115,7 @@ int main( int argc, char** argv )
   LOG_DEBUG( "Initializing Plus OpenIGTLink server... " );
   vtkSmartPointer< vtkPlusOpenIGTLinkServer > server = vtkSmartPointer< vtkPlusOpenIGTLinkServer >::New();
   server->SetDataCollector( dataCollector );
-  if ( server->ReadConfiguration(configRootElement, inputConfigFileName.c_str()) != PLUS_SUCCESS )
+  if ( server->ReadConfiguration(configRootElement, configFilePath.c_str()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read PlusOpenIGTLinkServer configuration!"); 
     exit(EXIT_FAILURE);
