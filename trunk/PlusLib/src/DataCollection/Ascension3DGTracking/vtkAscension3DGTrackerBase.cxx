@@ -148,22 +148,29 @@ PlusStatus vtkAscension3DGTrackerBase::InternalConnect()
     vtkPlusDataSource* tool = NULL; 
     if ( this->GetToolByPortName(portName.str().c_str(), tool) != PLUS_SUCCESS )
     {
-      LOG_WARNING("Undefined connected tool found on port '" << portName.str() << "', disabled it until not defined in the config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
-      this->SensorAttached[ sensorID ] = false; 
+      // No tool is defined for this sensor
+      if (this->SensorAttached[ sensorID ])
+      {
+        LOG_WARNING("A sensor is attached to port '" << portName.str() << "', but no tool is defined for this port. The sensor is disabled it until not defined in the config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
+        this->SensorAttached[ sensorID ] = false; 
+      }
       continue;
     }
+    // Tool is defined for this sensor
     if (tool==NULL)
     {
       LOG_ERROR("Invalid tool");
       continue;
     }
 
-    // Remaining setup is only for attached sensors
     if ( !this->SensorAttached[ sensorID ] )
     {
+      // A sensor is expected but not attached. A warning will be logged later.
       continue;
     }
-    
+
+    // Sensor is attached and tool is defined
+
     std::string slopeStr=tool->GetCustomProperty(PROP_QUALITY_ERROR_SLOPE);
     std::string offsetStr=tool->GetCustomProperty(PROP_QUALITY_ERROR_OFFSET);
     std::string sensitivityStr=tool->GetCustomProperty(PROP_QUALITY_ERROR_SENSITIVITY);
@@ -226,7 +233,7 @@ PlusStatus vtkAscension3DGTrackerBase::InternalConnect()
 
     if ( !this->SensorAttached[ port ] )
     {
-      LOG_WARNING("Sensor not attached for tool '" << it->second->GetSourceId() << "' on port name '" << it->second->GetPortName() << "', please check config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
+      LOG_ERROR("Sensor not attached for tool '" << it->second->GetSourceId() << "' on port name '" << it->second->GetPortName() << "', please check config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
     }
   }
   return PLUS_SUCCESS; 
@@ -619,7 +626,7 @@ bool vtkAscension3DGTrackerBase::IsQualityPortName(const char* name)
 PlusStatus vtkAscension3DGTrackerBase::QualityToolTimeStampedUpdate(const char* qualityToolName, int sensorStartIndex, const std::vector<unsigned short> &qualityValues, double unfilteredTimestamp)
 {
   vtkPlusDataSource* qualityTool = NULL;
-  if ( this->GetToolByPortName(QUALITY_PORT_NAME_1, qualityTool) == PLUS_SUCCESS )
+  if ( this->GetToolByPortName(qualityToolName, qualityTool) != PLUS_SUCCESS )
   {
     // the tool is not defined, no need to store the quality values in them
     return PLUS_SUCCESS;
