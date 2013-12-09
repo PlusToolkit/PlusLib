@@ -34,4 +34,4 @@ igtlConnection.socket.setSoTimeout(igtlConnection.timeout);
 igtlConnection.outputStream = igtlConnection.socket.getOutputStream;
 igtlConnection.inputStream = igtlConnection.socket.getInputStream;
 igtlConnection.messageHeaderReceiveTimeoutSec=5;
-igtlConnection.messageBodyReceiveTimeoutSec=25;
+igtlConnection.messageBodyReceiveTimeoutSec=50;

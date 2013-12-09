@@ -2,10 +2,14 @@ function transform = igtlReceiveTransform(igtlConnection)
 
     transform={};
     msg=ReadOpenIGTLinkTransformMessage(igtlConnection);
-    if(~isempty(msg) && ~isempty(msg.transformMatrix))
+    if ( ~isempty(msg.transformMatrix) && ~isempty(msg.transformName) && ~isempty(msg.timestamp) )
         transform.name=msg.transformName;
         transform.matrix=msg.transformMatrix;
         transform.timestamp=msg.timestamp;
+    else
+        transform.name=[];
+        transform.matrix=[];
+        transform.timestamp=[];
     end
 
 end
@@ -13,14 +17,29 @@ end
 %% OpenIGTLink helper functions
 
 function msg=ReadOpenIGTLinkTransformMessage(clientSocket)
-    msg=ReadOpenIGTLinkMessage(clientSocket);
-    if (length(msg.body)<5)
+    while (true)
+        msg=ReadOpenIGTLinkMessage(clientSocket);
+        dataType=deblank(char(msg.dataTypeName));
+        if isempty(dataType)
+            % there is no message available
+            msg.transformName=[];
+            msg.transformMatrix=[];
+            return
+        end
+        disp(['Received ', dataType, ' message']);
+        if strcmp(dataType,'TRANSFORM')
+            % received a TRANSFORM message -> process it            
+            break
+        end
+        % received a non-TRANSFORM message -> ignore it and read the next one
+    end
+    if (length(msg.body)<48)
         disp('Error: TRANSFORM message received with incomplete contents')
         msg.transformName=[];
         msg.transformMatrix=[];
         return
     end
-    msg.transformName=msg.deviceName;
+    msg.transformName=deblank(char(msg.deviceName));
     msg.transformMatrix=diag([1 1 1 1]);
     % http://openigtlink.org/protocols/v2_transform.html
     msg.transformMatrix(1,1)=convertFromUint8VectorToFloat32(msg.body(1:4));    % R11
@@ -113,16 +132,19 @@ function data=ReadWithTimeout(clientSocket, requestedDataLength, timeoutSec)
     import java.io.*
     import java.net.ServerSocket
 
+    %startTime=tic();
+    
     % preallocate to improve performance
     data=zeros(1,requestedDataLength,'uint8');
     signedDataByte=int8(0);
     bytesRead=0;
+    int64arithmeticsSupported=~isempty(find(strcmp(methods('int64'),'minus')));
     while(bytesRead<requestedDataLength)    
         % Computing (requestedDataLength-bytesRead) is an int64 operation, which may not be available on Matlab R2009 and before
-        int64arithmeticsSupported=~isempty(find(strcmp(methods('int64'),'minus')));
         if int64arithmeticsSupported
             % Full 64-bit arithmetics
-            bytesToRead=min(clientSocket.inputStream.available, requestedDataLength-bytesRead);
+            availableBytes=clientSocket.inputStream.available;
+            bytesToRead=min(availableBytes, requestedDataLength-bytesRead);
         else
             % Fall back to floating point arithmetics
             bytesToRead=min(clientSocket.inputStream.available, double(requestedDataLength)-double(bytesRead));
@@ -131,14 +153,21 @@ function data=ReadWithTimeout(clientSocket, requestedDataLength, timeoutSec)
             % starting to read message header
             tstart=tic;
         end
+        
+        for intReadIndex=bytesRead+1:4:bytesRead+floor(bytesToRead/4)*4
+            signedDataInt = DataInputStream(clientSocket.inputStream).readInt;
+            data(intReadIndex:intReadIndex+3) = typecast(swapbytes(int32(signedDataInt)), 'uint8');
+        end        
+        bytesRead=bytesRead+floor(bytesToRead/4)*4;
+        bytesToRead=mod(bytesToRead,4);
+
         for i = bytesRead+1:bytesRead+bytesToRead
-            signedDataByte = DataInputStream(clientSocket.inputStream).readByte;
-            if signedDataByte>=0
-                data(i) = signedDataByte;
-            else
-                data(i) = bitcmp(-signedDataByte,8)+1;
-            end
-        end            
+            % This is very slow.
+            % TODO: Use skipbyte() for messages that are to be ignored
+            % Using compiled Java code could speed up the bulk reading (http://matlabsproj.blogspot.ca/2012/06/tcpip-socket-communications-in-matlab-1_12.html).
+            data(i) = DataInputStream(clientSocket.inputStream).readUnsignedByte;
+        end
+        
         bytesRead=bytesRead+bytesToRead;
         if (bytesRead>0 && bytesRead<requestedDataLength)
             % check if the reading of the header has timed out yet
@@ -151,6 +180,9 @@ function data=ReadWithTimeout(clientSocket, requestedDataLength, timeoutSec)
             end
         end
     end
+    
+    %elapsedTime=toc(startTime);
+    %disp(['Transfer speed: ',num2str(bytesRead/elapsedTime),' (while reading ',num2str(bytesRead),' bytes)']);
 end
 
 %%  Parse OpenIGTLink message header
