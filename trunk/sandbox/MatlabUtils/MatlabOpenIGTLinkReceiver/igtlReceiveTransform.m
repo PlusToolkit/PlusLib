@@ -1,249 +1,141 @@
 function transform = igtlReceiveTransform(igtlConnection)
+% igtlReceiveTransform  Receives one transform from the OpenIGTLink server
+%
+%   transform = igtlReceiveTransform(igtlConnection)
+%
+%   igtlConnection: connection returned by igtlConnect(...)
+%
+%   transform: structure array containing the following fields
+%
+%     name: name of the transform (from the OpenIGTLink device name)
+%
+%     matrix: 4x4 homogeneous transformation matrix (empty, if failed to
+%       read any transform, e.g., due to timeout while waiting for a
+%       transform message)
+%
+%     timestamp: timestamp of the data acquisition, in seconds,
+%       relative to 00:00:00 January 1, 1970, UTC.
+%
+%  To change the timeout value (maximum time to wait for a message), call
+%  the setSoTimeout of the igtlConnection socket. For example, enter the
+%  following for a 1sec timeout value:
+%
+%    igtlConnection.socket.setSoTimeout(1000);
+%
 
-    transform={};
-    msg=ReadOpenIGTLinkTransformMessage(igtlConnection);
-    if ( ~isempty(msg.transformMatrix) && ~isempty(msg.transformName) && ~isempty(msg.timestamp) )
-        transform.name=msg.transformName;
-        transform.matrix=msg.transformMatrix;
-        transform.timestamp=msg.timestamp;
-    else
-        transform.name=[];
-        transform.matrix=[];
-        transform.timestamp=[];
-    end
+    transform.name=[];
+    transform.matrix=[];
+    transform.timestamp=[];
 
-end
-
-%% OpenIGTLink helper functions
-
-function msg=ReadOpenIGTLinkTransformMessage(clientSocket)
-    while (true)
-        msg=ReadOpenIGTLinkMessage(clientSocket);
-        dataType=deblank(char(msg.dataTypeName));
-        if isempty(dataType)
-            % there is no message available
-            msg.transformName=[];
-            msg.transformMatrix=[];
-            return
-        end
-        disp(['Received ', dataType, ' message']);
-        if strcmp(dataType,'TRANSFORM')
-            % received a TRANSFORM message -> process it            
-            break
-        end
-        % received a non-TRANSFORM message -> ignore it and read the next one
-    end
-    if (length(msg.body)<48)
-        disp('Error: TRANSFORM message received with incomplete contents')
-        msg.transformName=[];
-        msg.transformMatrix=[];
-        return
-    end
-    msg.transformName=deblank(char(msg.deviceName));
-    msg.transformMatrix=diag([1 1 1 1]);
-    % http://openigtlink.org/protocols/v2_transform.html
-    msg.transformMatrix(1,1)=convertFromUint8VectorToFloat32(msg.body(1:4));    % R11
-    msg.transformMatrix(2,1)=convertFromUint8VectorToFloat32(msg.body(5:8));    % R21
-    msg.transformMatrix(3,1)=convertFromUint8VectorToFloat32(msg.body(9:12));   % R31
-    msg.transformMatrix(1,2)=convertFromUint8VectorToFloat32(msg.body(13:16));  % R12
-    msg.transformMatrix(2,2)=convertFromUint8VectorToFloat32(msg.body(17:20));  % R22
-    msg.transformMatrix(3,2)=convertFromUint8VectorToFloat32(msg.body(21:24));  % R32
-    msg.transformMatrix(1,3)=convertFromUint8VectorToFloat32(msg.body(25:28));  % R13
-    msg.transformMatrix(2,3)=convertFromUint8VectorToFloat32(msg.body(29:32));  % R23
-    msg.transformMatrix(3,3)=convertFromUint8VectorToFloat32(msg.body(33:36));  % R33
-    msg.transformMatrix(1,4)=convertFromUint8VectorToFloat32(msg.body(37:40));  % TX
-    msg.transformMatrix(2,4)=convertFromUint8VectorToFloat32(msg.body(41:44));  % TY
-    msg.transformMatrix(3,4)=convertFromUint8VectorToFloat32(msg.body(45:48));  % TZ
-end
-
-function msg=ReadOpenIGTLinkStringMessage(clientSocket)
-    msg=ReadOpenIGTLinkMessage(clientSocket);
-    if (length(msg.body)<5)
-        disp('Error: STRING message received with incomplete contents')
-        msg.string='';
-        return
-    end        
-    strMsgEncoding=convertFromUint8VectorToUint16(msg.body(1:2));
-    if (strMsgEncoding~=3)
-        disp(['Warning: STRING message received with unknown encoding ',num2str(strMsgEncoding)])
-    end
-    strMsgLength=convertFromUint8VectorToUint16(msg.body(3:4));
-    msg.string=char(msg.body(5:4+strMsgLength));
-end
-
-function msg=ReadOpenIGTLinkMessage(clientSocket)
-    openIGTLinkHeaderLength=58;
-    headerData=ReadWithTimeout(clientSocket, openIGTLinkHeaderLength, clientSocket.messageHeaderReceiveTimeoutSec);
-    if (length(headerData)==openIGTLinkHeaderLength)
-        msg=ParseOpenIGTLinkMessageHeader(headerData);
-        msg.body=ReadWithTimeout(clientSocket, msg.bodySize, clientSocket.messageBodyReceiveTimeoutSec);            
-    else
-        error('ERROR: Timeout while waiting receiving OpenIGTLink message header')
-    end
-end    
-        
-function result=WriteOpenIGTLinkStringMessage(clientSocket, msgString, deviceName)
-    msg.dataTypeName='STRING';
-    msg.deviceName=deviceName;
-    msg.timestamp=0;
-    msgString=[uint8(msgString) uint8(0)]; % Convert string to uint8 vector and add terminator character
-    msg.body=[convertFromUint16ToUint8Vector(3),convertFromUint16ToUint8Vector(length(msgString)),msgString];
-    result=WriteOpenIGTLinkMessage(clientSocket, msg);
-end
-
-% Returns 1 if successful, 0 if failed
-function result=WriteOpenIGTLinkMessage(clientSocket, msg)
-    import java.net.Socket
-    import java.io.*
-    import java.net.ServerSocket
-    % Add constant fields values
-    msg.versionNumber=1;
-    msg.bodySize=length(msg.body);
-    msg.bodyCrc=0; % TODO: compute this
-    % Pack message
-    data=[];
-    data=[data, convertFromUint16ToUint8Vector(msg.versionNumber)];
-    data=[data, padString(msg.dataTypeName,12)];
-    data=[data, padString(msg.deviceName,20)];
-    data=[data, convertFromInt64ToUint8Vector(msg.timestamp)];
-    data=[data, convertFromInt64ToUint8Vector(msg.bodySize)];
-    data=[data, convertFromInt64ToUint8Vector(msg.bodyCrc)];
-    data=[data, uint8(msg.body)];    
-    result=1;
     try
-        DataOutputStream(clientSocket.outputStream).write(uint8(data),0,length(data));
-    catch ME
-        disp(ME.message)
-        result=0;
-    end
-    try
-        DataOutputStream(clientSocket.outputStream).flush;
-    catch ME
-        disp(ME.message)
-        result=0;
-    end
-    if (result==0)
-      disp('Sending OpenIGTLink message failed');
-    end
-end
 
-function data=ReadWithTimeout(clientSocket, requestedDataLength, timeoutSec)
-    import java.net.Socket
-    import java.io.*
-    import java.net.ServerSocket
-
-    %startTime=tic();
-    
-    % preallocate to improve performance
-    data=zeros(1,requestedDataLength,'uint8');
-    signedDataByte=int8(0);
-    bytesRead=0;
-    int64arithmeticsSupported=~isempty(find(strcmp(methods('int64'),'minus')));
-    while(bytesRead<requestedDataLength)    
-        % Computing (requestedDataLength-bytesRead) is an int64 operation, which may not be available on Matlab R2009 and before
-        if int64arithmeticsSupported
-            % Full 64-bit arithmetics
-            availableBytes=clientSocket.inputStream.available;
-            bytesToRead=min(availableBytes, requestedDataLength-bytesRead);
-        else
-            % Fall back to floating point arithmetics
-            bytesToRead=min(clientSocket.inputStream.available, double(requestedDataLength)-double(bytesRead));
-        end  
-        if (bytesRead==0 && bytesToRead>0)
-            % starting to read message header
-            tstart=tic;
-        end
-        
-        for intReadIndex=bytesRead+1:4:bytesRead+floor(bytesToRead/4)*4
-            signedDataInt = DataInputStream(clientSocket.inputStream).readInt;
-            data(intReadIndex:intReadIndex+3) = typecast(swapbytes(int32(signedDataInt)), 'uint8');
-        end        
-        bytesRead=bytesRead+floor(bytesToRead/4)*4;
-        bytesToRead=mod(bytesToRead,4);
-
-        for i = bytesRead+1:bytesRead+bytesToRead
-            % This is very slow.
-            % TODO: Use skipbyte() for messages that are to be ignored
-            % Using compiled Java code could speed up the bulk reading (http://matlabsproj.blogspot.ca/2012/06/tcpip-socket-communications-in-matlab-1_12.html).
-            data(i) = DataInputStream(clientSocket.inputStream).readUnsignedByte;
-        end
-        
-        bytesRead=bytesRead+bytesToRead;
-        if (bytesRead>0 && bytesRead<requestedDataLength)
-            % check if the reading of the header has timed out yet
-            timeElapsedSec=toc(tstart);
-            if(timeElapsedSec>timeoutSec)
-                % timeout, it should not happen
-                % remove the unnecessary preallocated elements
-                data=data(1:bytesRead);
+        % Read messages until a TRANSFORM message is available
+        % (all other message types are ignored)
+        while (true)
+            msg=ReadOpenIGTLinkMessageHeader(igtlConnection);
+            dataType=deblank(char(msg.dataTypeName));
+            if isempty(dataType)
+                % there is no message available, return to give chance for
+                % processing            
+                return
+            end
+            if strcmp(dataType,'TRANSFORM')
+                % received a TRANSFORM message -> process it            
                 break
             end
+            % received a non-TRANSFORM message -> ignore it and read the next one
+            IgnoreOpenIGTLinkMessageBody(igtlConnection, msg);
         end
+
+        % Check if the body size is consistent with the number of bytes that we read from the stream
+        % http://openigtlink.org/protocols/v2_transform.html
+        if (msg.bodySize ~= 48)
+            error('TRANSFORM message received with invalid body length')
+            return
+        end
+
+        % Fill info from header
+        transform.name=deblank(char(msg.deviceName));
+        transform.timestamp=msg.timestamp;
+
+        % Read matrix
+        transform.matrix=diag([1 1 1 1]);    
+        transform.matrix(1,1)=igtlConnection.dataInputStream.readFloat();  % R11
+        transform.matrix(2,1)=igtlConnection.dataInputStream.readFloat();  % R21
+        transform.matrix(3,1)=igtlConnection.dataInputStream.readFloat();  % R31
+        transform.matrix(1,2)=igtlConnection.dataInputStream.readFloat();  % R12
+        transform.matrix(2,2)=igtlConnection.dataInputStream.readFloat();  % R22
+        transform.matrix(3,2)=igtlConnection.dataInputStream.readFloat();  % R32
+        transform.matrix(1,3)=igtlConnection.dataInputStream.readFloat();  % R13
+        transform.matrix(2,3)=igtlConnection.dataInputStream.readFloat();  % R23
+        transform.matrix(3,3)=igtlConnection.dataInputStream.readFloat();  % R33
+        transform.matrix(1,4)=igtlConnection.dataInputStream.readFloat();  % TX
+        transform.matrix(2,4)=igtlConnection.dataInputStream.readFloat();  % TY
+        transform.matrix(3,4)=igtlConnection.dataInputStream.readFloat();  % TZ
+    catch ME
+        % If there is an error (e.g., timeout due to no more transforms
+        % available) then just make sure that an empty matrix is returned
+        transform.matrix=[];
     end
-    
-    %elapsedTime=toc(startTime);
-    %disp(['Transfer speed: ',num2str(bytesRead/elapsedTime),' (while reading ',num2str(bytesRead),' bytes)']);
+ 
 end
 
-%%  Parse OpenIGTLink message header
+%% OpenIGTLink socket communication helper functions
+
+% Read OpenIGTLink message header
 % http://openigtlink.org/protocols/v2_header.html    
-function parsedMsg=ParseOpenIGTLinkMessageHeader(rawMsg)
-    parsedMsg.versionNumber=convertFromUint8VectorToUint16(rawMsg(1:2));
-    parsedMsg.dataTypeName=char(rawMsg(3:14));
-    parsedMsg.deviceName=char(rawMsg(15:34));
-    parsedMsg.timestamp=convertFromUint8VectorToInt64(rawMsg(35:42));
-    parsedMsg.bodySize=convertFromUint8VectorToInt64(rawMsg(43:50));
-    parsedMsg.bodyCrc=convertFromUint8VectorToInt64(rawMsg(51:58));
+function parsedMsg=ReadOpenIGTLinkMessageHeader(igtlConnection)
+    parsedMsg.versionNumber=igtlConnection.dataInputStream.readUnsignedShort();   
+    for b=1:12 parsedMsg.dataTypeName(b)=char(igtlConnection.dataInputStream.readUnsignedByte()); end;
+    for b=1:20 parsedMsg.deviceName(b)=char(igtlConnection.dataInputStream.readUnsignedByte()); end;    
+    [sec nanosec] = unpackTimestampUint64(socketReadUint64(igtlConnection));
+    parsedMsg.timestamp=double(sec)+double(1e-9)*double(nanosec);
+    parsedMsg.bodySize=socketReadUint64(igtlConnection);
+    parsedMsg.bodyCrc=socketReadUint64(igtlConnection);
 end
 
-function result=convertFromUint8VectorToUint16(uint8Vector)
-  result=int32(uint8Vector(1))*256+int32(uint8Vector(2));
-end 
-
-function result=convertFromUint8VectorToInt64(uint8Vector)
-  multipliers = [256^7 256^6 256^5 256^4 256^3 256^2 256^1 1];
-  % Matlab R2009 and earlier versions don't support int64 arithmetics.
-  int64arithmeticsSupported=~isempty(find(strcmp(methods('int64'),'mtimes')));
-  if int64arithmeticsSupported
-    % Full 64-bit arithmetics
-    result = sum(int64(uint8Vector).*int64(multipliers));
-  else
-    % Fall back to floating point arithmetics: compute result with floating
-    % point type and convert the end result to int64
-    % (it should be precise enough for realistic file sizes)
-    result = int64(sum(double(uint8Vector).*multipliers));
-  end  
-end 
-
-function result=convertFromUint8VectorToFloat32(uint8Vector)
-  uintResult = uint32(uint8Vector(4)) + uint32(uint8Vector(3))*256 + uint32(uint8Vector(2))*256^2 + uint32(uint8Vector(1))*256^3;
-  result = typecast(uintResult, 'single');
+% Skip the message body so that the next message can be received 
+function IgnoreOpenIGTLinkMessageBody(igtlConnection, msg)
+    igtlConnection.dataInputStream.skipBytes(int32(msg.bodySize));
 end
 
-function selectedByte=getNthByte(multibyte, n)
-  selectedByte=uint8(mod(floor(multibyte/256^n),256));
+% Read a 64-bit unsigned int from the socket
+% This helper function is needed because igtlConnection.dataInputStream.readUnsignedLong()
+% does not return correct results for large numbers (because probably the long
+% value is converted to double)
+function result=socketReadUint64(igtlConnection)
+    uint8Vector=zeros(8,1,'uint8');
+    for b=8:-1:1 uint8Vector(b)=igtlConnection.dataInputStream.readUnsignedByte(); end;
+    result = typecast(uint8Vector,'uint64');
 end
 
-function result=convertFromUint16ToUint8Vector(uint16Value)
-  result=[getNthByte(uint16Value,1) getNthByte(uint16Value,0)];
-end 
+% Read a 32-bit unsigned int from the socket
+% This helper function is needed because igtlConnection.dataInputStream.readUnsignedLong()
+% does can only read signed 32-bit int
+function result=socketReadUnsignedInt32(igtlConnection)
+    signedResult = igtlConnection.dataInputStream.readInt();
+    if signedResult>=0
+        result = signedResult;
+    else
+        result = bitcmp(-signedResult,32)+1;
+    end
+    result = signedResult;
+end
 
-function result=convertFromInt64ToUint8Vector(int64Value)
-  result=zeros(1,8,'uint8');
-  result(1)=getNthByte(int64Value,7);
-  result(2)=getNthByte(int64Value,6);
-  result(3)=getNthByte(int64Value,5);
-  result(4)=getNthByte(int64Value,4);
-  result(5)=getNthByte(int64Value,3);
-  result(6)=getNthByte(int64Value,2);
-  result(7)=getNthByte(int64Value,1);
-  result(8)=getNthByte(int64Value,0);
-end 
-
-function paddedStr=padString(str,strLen)
-  paddedStr=str(1:min(length(str),strLen));
-  paddingLength=strLen-length(paddedStr);
-  if (paddingLength>0)
-      paddedStr=[paddedStr,zeros(1,paddingLength,'uint8')];
-  end
+% Retrieve timestamp information from the 64-bit OpenIGTLink timestamp
+% Timestamps are represented as a 64-bit unsigned fixed-point number.
+% http://wiki.na-mic.org/Wiki/index.php/OpenIGTLink/Timestamp
+function [sec nanosec] = unpackTimestampUint64(timestamp)
+    sec = uint32(bitshift(timestamp,-32)); % high 32 bits
+    frac = bitand(timestamp, 4294967295); % low 32 bits
+    nanosec = uint32(0);
+    convBase = uint32(1e9);
+    mask = bitshift(1,31);
+    for b=0:31
+        convBase = bitshift(convBase,-1);
+        if bitand(frac,mask)
+            nanosec = nanosec + convBase;
+        end
+        mask = bitshift(mask,-1);
+    end    
 end
