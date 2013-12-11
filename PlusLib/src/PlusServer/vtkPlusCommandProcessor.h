@@ -26,7 +26,7 @@ struct PlusCommandReply
   unsigned int ClientId;
   PlusStatus Status;
   std::string DeviceName;
-  std::string ReplyString;
+  std::string CustomAttributes;
   std::string ImageName;
   vtkImageData* ImageData;
   vtkMatrix4x4* ImageToReferenceTransform;

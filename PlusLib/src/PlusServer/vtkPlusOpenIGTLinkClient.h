@@ -56,7 +56,6 @@ protected:
 
   /*! Thread for receiveing control data from clients */ 
   static void* DataReceiverThread( vtkMultiThreader::ThreadInfo* data );
-
   
 private:
 	

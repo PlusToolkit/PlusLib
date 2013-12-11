@@ -17,6 +17,7 @@ See License.txt for details.
 #include "vtkPlusStartStopRecordingCommand.h"
 #include "vtkPlusUpdateTransformCommand.h"
 #include "vtksys/CommandLineArguments.hxx"
+#include "vtkXMLUtilities.h"
 
 // Normally a client should generate unique command IDs for each executed command
 // for sake of simplicity, in this sample app we don't generate new IDs, just use
@@ -259,6 +260,36 @@ int main( int argc, char** argv )
   else
   {
     LOG_INFO("Reply: "<<reply);
+    vtkSmartPointer<vtkXMLDataElement> replyElement = vtkSmartPointer<vtkXMLDataElement>::Take( vtkXMLUtilities::ReadElementFromString(reply.c_str()) );
+    if (replyElement == NULL)
+    {	
+      LOG_ERROR("Unable to parse reply"); 
+    }
+    else
+    {
+      if (replyElement->GetAttribute("Status")==NULL)
+      {
+        LOG_ERROR("Status: <missing>");
+      }
+      else
+      {
+        PlusStatus status=PLUS_FAIL;
+        if (STRCASECMP(replyElement->GetAttribute("Status"),"SUCCESS")==0)
+        {
+          status=PLUS_SUCCESS;
+        }
+        else if (STRCASECMP(replyElement->GetAttribute("Status"),"FAIL")==0)
+        {
+          status=PLUS_FAIL;
+        }
+        else
+        {
+          LOG_ERROR("Invalid status: "<<replyElement->GetAttribute("Status"));
+        }
+        LOG_INFO("Status: "<<(status==PLUS_SUCCESS?"SUCCESS":"FAIL"));
+      }
+      LOG_INFO("Message: "<<(replyElement->GetAttribute("Message")?replyElement->GetAttribute("Message"):"<none>"));
+    }
   }
 
   client->Disconnect();

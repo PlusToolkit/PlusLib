@@ -382,6 +382,7 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
           else
           {       
             // broadcast image result
+            LOG_INFO("Send command reply: image "<<replyIt->ImageName<<"'");
             std::list<PlusIgtlClientInfo>::iterator clientIterator; 
             for ( clientIterator = self->IgtlClients.begin(); clientIterator != self->IgtlClients.end(); ++clientIterator)
             {
@@ -406,10 +407,14 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
         // Send command reply
         igtl::StringMessage::Pointer replyMsg = igtl::StringMessage::New();
         replyMsg->SetDeviceName(replyIt->DeviceName.c_str());
-        replyIt->ReplyString.insert(0, replyIt->Status == PLUS_SUCCESS ? "SUCCESS::" : "FAIL::");
-        replyMsg->SetString(replyIt->ReplyString.c_str());
+        std::string replyStr;
+        replyStr += std::string("<CommandReply Status=\"") + (replyIt->Status == PLUS_SUCCESS ? "SUCCESS" : "FAIL") +"\"";
+        replyStr += std::string(" ") + replyIt->CustomAttributes; // usually contains: Data="reply to be displayed"
+        replyStr += " />";
+        replyMsg->SetString(replyStr.c_str());
         replyMsg->Pack(); 
         clientSocket->Send(replyMsg->GetPackPointer(), replyMsg->GetPackSize());
+        LOG_INFO("Send command reply: "<<replyStr);
       }
     }
 
