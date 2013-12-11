@@ -156,7 +156,7 @@ protected:
   vtkPlusLogger::LogLevelType GracePeriodLogLevel;
 
   PlusStatus GetInputTrackedFrame(TrackedFrame* aFrame);
-  PlusStatus GetInputTrackedFrameListSampled(double lastAlreadyRecordedFrameTimestamp, double nextFrameToBeRecordedTimestamp, vtkTrackedFrameList* recordedFrames, double requestedFramePeriodSec, double maxProcessingTimeSec);
+  PlusStatus GetInputTrackedFrameListSampled(double &lastAlreadyRecordedFrameTimestamp, double &nextFrameToBeRecordedTimestamp, vtkTrackedFrameList* recordedFrames, double requestedFramePeriodSec, double maxProcessingTimeSec);
 
 private:
   vtkVirtualDiscCapture(const vtkVirtualDiscCapture&);  // Not implemented.
