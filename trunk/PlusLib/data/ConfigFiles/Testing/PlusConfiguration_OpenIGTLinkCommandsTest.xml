@@ -15,7 +15,6 @@
       <DataSources>
         <DataSource Type="Video" Id="Video" BufferSize="200" AveragedItemsForFiltering="20" />
       </DataSources>
-
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
@@ -25,7 +24,9 @@
       Id="CaptureDevice"
       Type="VirtualDiscCapture"
       BaseFilename="OpenIGTTrackedVideoRecordingTest.mha"
-      EnableCapturing="FALSE" >
+      EnableCapturing="FALSE"
+      FrameBufferSize="100"
+      >
       <InputChannels>
         <InputChannel Id="TrackedVideoStream" />
       </InputChannels>
@@ -70,7 +71,7 @@
       </MessageTypes>
       <TransformNames> 
         <Transform Name="ProbeToReference" /> 
-        <Transform Name="StylusTipToReference" /> 
+        <Transform Name="StylusTipToReference" />
       </TransformNames>
     <ImageNames>
       <Image Name="Image" EmbeddedTransformToFrame="Reference" />

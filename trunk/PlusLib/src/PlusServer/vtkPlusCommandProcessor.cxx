@@ -300,7 +300,7 @@ void vtkPlusCommandProcessor::QueueReply(int clientId, PlusStatus replyStatus, c
   PlusCommandReply reply;
   reply.ClientId=clientId;
   reply.DeviceName=replyDeviceName;
-  reply.ReplyString=replyString;
+  reply.CustomAttributes="Message=\""+replyString+"\"";
   reply.Status=replyStatus;
   if (imageName!=NULL)
   {

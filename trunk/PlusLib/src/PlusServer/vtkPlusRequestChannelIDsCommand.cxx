@@ -101,8 +101,8 @@ PlusStatus vtkPlusRequestChannelIDsCommand::Execute()
 
   PlusStatus status = PLUS_SUCCESS;
   std::stringstream reply;
-  reply << this->Name << " ";
 
+  bool addSeparator=false;
   if (STRCASECMP(this->Name, REQUEST_CHANNEL_ID_CMD) == 0)
   {
     for( DeviceCollectionConstIterator deviceIt = aCollection.begin(); deviceIt != aCollection.end(); ++deviceIt)
@@ -113,16 +113,12 @@ PlusStatus vtkPlusRequestChannelIDsCommand::Execute()
         for( ChannelContainerConstIterator it = aDevice->GetOutputChannelsStart(); it != aDevice->GetOutputChannelsEnd(); ++it )
         {
           vtkPlusChannel* aChannel = *it;
-          reply << aChannel->GetChannelId();
-          if (it != (aDevice->GetOutputChannelsEnd() - 1) )
+          if (addSeparator)
           {
             reply << ",";
           }
-        }
-
-        if( deviceIt != (aCollection.end() - 1 ) )
-        {
-          reply << ",";
+          reply << aChannel->GetChannelId();
+          addSeparator=true;
         }
       }
     }
