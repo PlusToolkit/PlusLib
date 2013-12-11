@@ -7,7 +7,7 @@ SET (PlusServer_SRCS
   vtkPlusCommandProcessor.cxx 
   vtkPlusReconstructVolumeCommand.cxx 
   vtkPlusStartStopRecordingCommand.cxx 
-  vtkPlusRequestChannelIDsCommand.cxx 
+  vtkPlusRequestIdsCommand.cxx 
   vtkPlusUpdateTransformCommand.cxx 
   vtkPlusSaveConfigCommand.cxx 
   )
@@ -20,7 +20,7 @@ IF (WIN32)
     vtkPlusCommandProcessor.h
     vtkPlusReconstructVolumeCommand.h
     vtkPlusStartStopRecordingCommand.h
-    vtkPlusRequestChannelIDsCommand.h 
+    vtkPlusRequestIdsCommand.h 
     vtkPlusUpdateTransformCommand.h 
     vtkPlusSaveConfigCommand.h 
     )

@@ -12,7 +12,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkPlusOpenIGTLinkClient.h"
 #include "vtkPlusReconstructVolumeCommand.h"
-#include "vtkPlusRequestChannelIDsCommand.h"
+#include "vtkPlusRequestIdsCommand.h"
 #include "vtkPlusSaveConfigCommand.h"
 #include "vtkPlusStartStopRecordingCommand.h"
 #include "vtkPlusUpdateTransformCommand.h"
@@ -48,7 +48,7 @@ int main( int argc, char** argv )
   args.AddArgument( "--port", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverPort, "Port address of the OpenIGTLink server (default: 18944)" );
   args.AddArgument( "--command", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &command, 
     "Command name to be executed on the server (START_ACQUISITION, STOP_ACQUISITION, SUSPEND_ACQUISITION, RESUME_ACQUISITION, \
-    RECONSTRUCT, START_RECONSTRUCTION, SUSPEND_RECONSTRUCTION, RESUME_RECONSTRUCTION, STOP_RECONSTRUCTION, GET_RECONSTRUCTION_SNAPSHOT, GET_CHANNEL_IDS)" );
+    RECONSTRUCT, START_RECONSTRUCTION, SUSPEND_RECONSTRUCTION, RESUME_RECONSTRUCTION, STOP_RECONSTRUCTION, GET_RECONSTRUCTION_SNAPSHOT, GET_CHANNEL_IDS, GET_DEVICE_IDS)" );
   args.AddArgument( "--device", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceId, "ID of the controlled device (optional, default: first VirtualStreamCapture or VirtualVolumeReconstructor device)" );
   args.AddArgument( "--input-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFilename, "File name of the input, used for RECONSTRUCT command" );
   args.AddArgument( "--output-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFilename, "File name of the output, used for START command (optional, default: 'PlusServerRecording.mha' for acquisition, no output for volume reconstruction)" );
@@ -227,8 +227,15 @@ int main( int argc, char** argv )
   }
   else if (STRCASECMP(command.c_str(), "GET_CHANNEL_IDS")==0)
   {
-    vtkSmartPointer<vtkPlusRequestChannelIDsCommand> cmd=vtkSmartPointer<vtkPlusRequestChannelIDsCommand>::New();
-    cmd->SetNameToRequestChannelIDs();
+    vtkSmartPointer<vtkPlusRequestIdsCommand> cmd=vtkSmartPointer<vtkPlusRequestIdsCommand>::New();
+    cmd->SetNameToRequestChannelIds();
+    cmd->SetId(COMMAND_ID);
+    client->SendCommand(cmd);
+  }
+  else if (STRCASECMP(command.c_str(), "GET_DEVICE_IDS")==0)
+  {
+    vtkSmartPointer<vtkPlusRequestIdsCommand> cmd=vtkSmartPointer<vtkPlusRequestIdsCommand>::New();
+    cmd->SetNameToRequestDeviceIds();
     cmd->SetId(COMMAND_ID);
     client->SendCommand(cmd);
   }
