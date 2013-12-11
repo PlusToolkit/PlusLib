@@ -75,7 +75,7 @@ void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream 
         numFid++; 
       } 
     }
-    sumFiducialNum = sumFiducialNum + numFid; 		
+    sumFiducialNum = sumFiducialNum + numFid;     
 
     if (writeFidPositionsToFile)
     {
@@ -169,14 +169,14 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
       LOG_WARNING("Frame "<<nestedElemInd<<": Invalid current data element");
       if (reportWarningsAsFailure) 
       {
-        numberOfFailures++;			
+        numberOfFailures++;      
       }
       continue;
     }
     if (strcmp(currentElem->GetName(),UsFidSegResultFile::TEST_CASE_ELEMENT_NAME)!=0)
     { 
       // ignore all non-test-case elements
-      continue;	
+      continue;  
     }
 
     if (currentElem->GetAttribute(UsFidSegResultFile::ID_ATTRIBUTE_NAME)==NULL)  
@@ -191,20 +191,20 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
 
     LOG_DEBUG("Comparing "<<currentElem->GetAttribute(UsFidSegResultFile::ID_ATTRIBUTE_NAME));
 
-    vtkXMLDataElement* baselineElem=baselineRootElem->FindNestedElementWithNameAndId(UsFidSegResultFile::TEST_CASE_ELEMENT_NAME, currentElem->GetId());		
+    vtkXMLDataElement* baselineElem=baselineRootElem->FindNestedElementWithNameAndId(UsFidSegResultFile::TEST_CASE_ELEMENT_NAME, currentElem->GetId());    
 
     if (baselineElem==NULL)
     {
       LOG_ERROR("Frame "<<nestedElemInd<<": Cannot find corresponding baseline element for current element "<<currentElem->GetId());
-      numberOfFailures++;			
+      numberOfFailures++;      
       continue;
     }
 
     if (strcmp(baselineElem->GetName(),UsFidSegResultFile::TEST_CASE_ELEMENT_NAME)!=0)
     { 
       LOG_WARNING("Frame "<<nestedElemInd<<": Test case name mismatch");
-      if (reportWarningsAsFailure) numberOfFailures++;			
-      continue;	
+      if (reportWarningsAsFailure) numberOfFailures++;      
+      continue;  
     }
 
     vtkXMLDataElement* outputElementBaseline=baselineElem->FindNestedElementWithName("Output");
@@ -216,12 +216,12 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
     if (!outputElementBaseline->GetScalarAttribute("SegmentationSuccess", baselineSegmentationSuccess))
     {
       LOG_ERROR("Frame "<<nestedElemInd<<": baseline segmentation success is missing");
-      numberOfFailures++;			
+      numberOfFailures++;      
     }
     if (!outputElementCurrent->GetScalarAttribute("SegmentationSuccess", currentSegmentationSuccess))
     {
       LOG_ERROR("Frame "<<nestedElemInd<<": current segmentation success is missing");
-      numberOfFailures++;			
+      numberOfFailures++;      
     }
 
     if (baselineSegmentationSuccess!=currentSegmentationSuccess)
@@ -244,7 +244,7 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
     vtkXMLDataElement* fidCandidElement = currentElem->FindNestedElementWithName("FiducialPointCandidates");
     const char *fidCandid = "FiducialPointCandidates";
     if((fidCandidElement != NULL) && (strcmp(fidCandidElement->GetName(),fidCandid) == 0))
-    {					
+    {          
       int foundBaselineFiducials = 0;
 
       for(int b=0; b+1<baselineFidPointsRead; b+=2)// loop through baseline fiducials
@@ -289,7 +289,7 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
     else if(!outputElementCurrent->GetScalarAttribute("SegmentationQualityInIntensityScore",testingElementIntensity))
     {
       LOG_ERROR("Frame "<<nestedElemInd<<": Newly generated segmentation intensity is missing");
-      numberOfFailures++;			
+      numberOfFailures++;      
     } 
     else 
     {
@@ -301,8 +301,8 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
       }
     }
 
-    double fiducialPositions[MAX_FIDUCIAL_COORDINATE_COUNT];		
-    memset(fiducialPositions, 0, sizeof(fiducialPositions[0])*MAX_FIDUCIAL_COORDINATE_COUNT);		
+    double fiducialPositions[MAX_FIDUCIAL_COORDINATE_COUNT];    
+    memset(fiducialPositions, 0, sizeof(fiducialPositions[0])*MAX_FIDUCIAL_COORDINATE_COUNT);    
     int fidCoordinatesRead=outputElementCurrent->GetVectorAttribute("SegmentationPoints", MAX_FIDUCIAL_COORDINATE_COUNT, fiducialPositions);
 
     if (baselineFidPointsRead!=fidCoordinatesRead)
@@ -320,7 +320,7 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
     else if (fidCoordinatesRead<1)
     {
       LOG_ERROR("Frame "<<nestedElemInd<<": Newly generated segmentation points are missing");
-      numberOfFailures++;			
+      numberOfFailures++;      
     }
     else if (baselineFidPointsRead %2 != 0)
     {
@@ -330,17 +330,17 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
     else if (fidCoordinatesRead%2!=0)
     {
       LOG_ERROR("Frame "<<nestedElemInd<<": Unpaired Fiducial Coordinates");
-      numberOfFailures++;			
+      numberOfFailures++;      
     }
     else if (baselineFidPointsRead >MAX_FIDUCIAL_COORDINATE_COUNT)
     {
       LOG_WARNING("Frame "<<nestedElemInd<<": Too many baseline fiducials");
-      if (reportWarningsAsFailure) numberOfFailures++;			
+      if (reportWarningsAsFailure) numberOfFailures++;      
     }
     else if (fidCoordinatesRead>MAX_FIDUCIAL_COORDINATE_COUNT)
     {
       LOG_WARNING("Frame "<<nestedElemInd<<": Too many Fiducials");
-      if (reportWarningsAsFailure) numberOfFailures++;			
+      if (reportWarningsAsFailure) numberOfFailures++;      
     }
 
     else
@@ -349,12 +349,12 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
       for(int traverseFiducials=0; traverseFiducials<fidCount; ++traverseFiducials)
       {
         if(fabs(fiducialPositions[traverseFiducials]-baselineFiducialPoints[traverseFiducials])>FIDUCIAL_POSITION_TOLERANCE)
-        {																	
+        {                                  
           LOG_ERROR("Frame "<<nestedElemInd<<": Fiducial coordinate ["<<traverseFiducials<<"] mismatch: current="<<fiducialPositions[traverseFiducials]<<", baseline="<<baselineFiducialPoints[traverseFiducials]);
           numberOfFailures++;
         }
       }
-    }		
+    }    
 
   }
 
@@ -379,7 +379,7 @@ int main(int argc, char **argv)
   std::string inputConfigFileName;
   std::string outputTestResultsFileName;
   std::string outputFiducialPositionsFileName;
-  std::string fiducialGeomString;	
+  std::string fiducialGeomString;  
 
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
@@ -396,7 +396,7 @@ int main(int argc, char **argv)
 
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Calibration configuration file name");
 
-  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
 
   if ( !args.Parse() )
   {
@@ -417,7 +417,7 @@ int main(int argc, char **argv)
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
     vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
   if (configRootElement == NULL)
-  {	
+  {  
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
     exit(EXIT_FAILURE);
   }
@@ -435,7 +435,7 @@ int main(int argc, char **argv)
   }
 
   std::ofstream outFile; 
-  outFile.open(outputTestResultsFileName.c_str(), ios::trunc);	
+  outFile.open(outputTestResultsFileName.c_str(), ios::trunc);  
 
   if ( ! outFile.is_open() )
   {
@@ -461,7 +461,7 @@ int main(int argc, char **argv)
   LOG_DEBUG("Done!"); 
 
   if (!inputBaselineFileName.empty())
-  {		
+  {    
     LOG_INFO("Compare results");
     if (CompareSegmentationResults(inputBaselineFileName, outputTestResultsFileName, patternRecognition)!=0)
     {

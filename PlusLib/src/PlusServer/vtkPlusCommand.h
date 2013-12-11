@@ -128,7 +128,7 @@ protected:
 
   char* Name;
       
-private:	
+private:  
   vtkPlusCommand( const vtkPlusCommand& );
   void operator=( const vtkPlusCommand& );
   

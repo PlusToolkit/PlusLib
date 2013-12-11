@@ -58,7 +58,7 @@ protected:
   static void* DataReceiverThread( vtkMultiThreader::ThreadInfo* data );
   
 private:
-	
+  
   vtkPlusOpenIGTLinkClient( const vtkPlusOpenIGTLinkClient& );
   void operator=( const vtkPlusOpenIGTLinkClient& );  
 

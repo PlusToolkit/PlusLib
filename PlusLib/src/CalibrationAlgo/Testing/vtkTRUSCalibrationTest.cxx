@@ -36,38 +36,38 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 int main (int argc, char* argv[])
 { 
   int numberOfFailures(0); 
-	std::string inputCalibrationSeqMetafile;
-	std::string inputValidationSeqMetafile;
-	std::string inputProbeRotationSeqMetafile;
+  std::string inputCalibrationSeqMetafile;
+  std::string inputValidationSeqMetafile;
+  std::string inputProbeRotationSeqMetafile;
 
-	std::string inputConfigFileName;
-	std::string inputBaselineFileName;
+  std::string inputConfigFileName;
+  std::string inputBaselineFileName;
   std::string inputProbeToReferenceTransformName("ProbeToReference"); 
-	double inputTranslationErrorThreshold(0); 
-	double inputRotationErrorThreshold(0); 
+  double inputTranslationErrorThreshold(0); 
+  double inputRotationErrorThreshold(0); 
 
-	int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
-	vtksys::CommandLineArguments cmdargs;
-	cmdargs.Initialize(argc, argv);
+  vtksys::CommandLineArguments cmdargs;
+  cmdargs.Initialize(argc, argv);
 
-	cmdargs.AddArgument("--calibration-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputCalibrationSeqMetafile, "Sequence metafile name of input random stepper motion calibration dataset.");
-	cmdargs.AddArgument("--validation-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputValidationSeqMetafile, "Sequence metafile name of input random stepper motion validation dataset.");
-	cmdargs.AddArgument("--probe-rotation-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputProbeRotationSeqMetafile, "Sequence metafile name of input probe rotation dataset.");
-	
+  cmdargs.AddArgument("--calibration-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputCalibrationSeqMetafile, "Sequence metafile name of input random stepper motion calibration dataset.");
+  cmdargs.AddArgument("--validation-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputValidationSeqMetafile, "Sequence metafile name of input random stepper motion validation dataset.");
+  cmdargs.AddArgument("--probe-rotation-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputProbeRotationSeqMetafile, "Sequence metafile name of input probe rotation dataset.");
+  
   cmdargs.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
-	
-	cmdargs.AddArgument("--baseline-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
-	cmdargs.AddArgument("--translation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTranslationErrorThreshold, "Translation error threshold in mm.");	
-	cmdargs.AddArgument("--rotation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputRotationErrorThreshold, "Rotation error threshold in degrees.");	
-	cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
+  
+  cmdargs.AddArgument("--baseline-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
+  cmdargs.AddArgument("--translation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTranslationErrorThreshold, "Translation error threshold in mm.");  
+  cmdargs.AddArgument("--rotation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputRotationErrorThreshold, "Rotation error threshold in degrees.");  
+  cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
 
-	if ( !cmdargs.Parse() )
-	{
-		std::cerr << "Problem parsing arguments" << std::endl;
-		std::cout << "Help: " << cmdargs.GetHelp() << std::endl;
-		exit(EXIT_FAILURE);
-	}
+  if ( !cmdargs.Parse() )
+  {
+    std::cerr << "Problem parsing arguments" << std::endl;
+    std::cout << "Help: " << cmdargs.GetHelp() << std::endl;
+    exit(EXIT_FAILURE);
+  }
   
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
@@ -75,15 +75,15 @@ int main (int argc, char* argv[])
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
     vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
   if (configRootElement == NULL)
-  {	
+  {  
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
-		exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);
   }
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
 
   FidPatternRecognition patternRecognition;
   PatternRecognitionError error;
-	patternRecognition.ReadConfiguration(configRootElement);
+  patternRecognition.ReadConfiguration(configRootElement);
 
   LOG_INFO("Reading probe rotation data from sequence metafile..."); 
   vtkSmartPointer<vtkTrackedFrameList> probeRotationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
@@ -96,8 +96,8 @@ int main (int argc, char* argv[])
   LOG_INFO("Segmenting probe rotation data...");
   if (patternRecognition.RecognizePattern(probeRotationTrackedFrameList, error) != PLUS_SUCCESS)
   {
-		LOG_ERROR("Error occured during segmentation of calibration images!"); 
-		return EXIT_FAILURE;
+    LOG_ERROR("Error occured during segmentation of calibration images!"); 
+    return EXIT_FAILURE;
   }
 
   LOG_INFO("Starting spacing calibration...");
@@ -173,8 +173,8 @@ int main (int argc, char* argv[])
   int numberOfSuccessfullySegmentedValidationImages = 0;
   if (patternRecognition.RecognizePattern(validationTrackedFrameList, error, &numberOfSuccessfullySegmentedValidationImages) != PLUS_SUCCESS)
   {
-		LOG_ERROR("Error occured during segmentation of validation images!"); 
-		return EXIT_FAILURE;
+    LOG_ERROR("Error occured during segmentation of validation images!"); 
+    return EXIT_FAILURE;
   }
 
   // Load and segment calibration tracked frame list
@@ -188,40 +188,40 @@ int main (int argc, char* argv[])
   int numberOfSuccessfullySegmentedCalibrationImages = 0;
   if (patternRecognition.RecognizePattern(calibrationTrackedFrameList, error, &numberOfSuccessfullySegmentedCalibrationImages) != PLUS_SUCCESS)
   {
-		LOG_ERROR("Error occured during segmentation of calibration images!"); 
-		return EXIT_FAILURE;
+    LOG_ERROR("Error occured during segmentation of calibration images!"); 
+    return EXIT_FAILURE;
   }
 
   LOG_INFO("Segmentation success rate of validation images: " << numberOfSuccessfullySegmentedValidationImages << " out of " << validationTrackedFrameList->GetNumberOfTrackedFrames());
 
   // Initialize the probe calibration algo 
-	vtkSmartPointer<vtkProbeCalibrationAlgo> probeCal = vtkSmartPointer<vtkProbeCalibrationAlgo>::New(); 
-	probeCal->ReadConfiguration(configRootElement); 
+  vtkSmartPointer<vtkProbeCalibrationAlgo> probeCal = vtkSmartPointer<vtkProbeCalibrationAlgo>::New(); 
+  probeCal->ReadConfiguration(configRootElement); 
 
   // Calibrate
   if (probeCal->Calibrate( validationTrackedFrameList, calibrationTrackedFrameList, transformRepository, patternRecognition.GetFidLineFinder()->GetNWires()) != PLUS_SUCCESS)
   {
     LOG_ERROR("Calibration failed!");
-		return EXIT_FAILURE;
+    return EXIT_FAILURE;
   }
 
   // Compare results
-	std::string currentConfigFileName = vtkPlusConfig::GetInstance()->GetOutputPath( 
+  std::string currentConfigFileName = vtkPlusConfig::GetInstance()->GetOutputPath( 
     vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp() + ".Calibration.results.xml" );
-	if ( CompareCalibrationResultsWithBaseline( inputBaselineFileName.c_str(), currentConfigFileName.c_str(), inputTranslationErrorThreshold, inputRotationErrorThreshold ) !=0 )
-	{
+  if ( CompareCalibrationResultsWithBaseline( inputBaselineFileName.c_str(), currentConfigFileName.c_str(), inputTranslationErrorThreshold, inputRotationErrorThreshold ) !=0 )
+  {
     numberOfFailures++; 
-		LOG_ERROR("Comparison of calibration data to baseline failed");
-	}
+    LOG_ERROR("Comparison of calibration data to baseline failed");
+  }
 
   if ( numberOfFailures > 0 )
   {
     std::cout << "Test exited with failures!!!" << std::endl; 
-	  return EXIT_FAILURE;
+    return EXIT_FAILURE;
   }
 
-	std::cout << "Exit success!!!" << std::endl; 
-	return EXIT_SUCCESS; 
+  std::cout << "Exit success!!!" << std::endl; 
+  return EXIT_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
@@ -248,7 +248,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
     return ++numberOfFailures;
   }
 
-  {	//<CalibrationResults>
+  {  //<CalibrationResults>
     vtkXMLDataElement* calibrationResultsBaseline = baselineRootElem->FindNestedElementWithName("CalibrationResults"); 
     vtkXMLDataElement* calibrationResults = currentRootElem->FindNestedElementWithName("CalibrationResults"); 
 
@@ -264,7 +264,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
       return ++numberOfFailures;
     }
 
-    {	// <Transform>
+    {  // <Transform>
       vtkXMLDataElement* transformBaseline = calibrationResultsBaseline->FindNestedElementWithName("Transform"); 
       vtkXMLDataElement* transform = calibrationResults->FindNestedElementWithName("Transform");
 
@@ -291,22 +291,22 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
       if (STRCASECMP(blFrom, "Image") != 0 || STRCASECMP(blTo, "Probe"))
       {
         LOG_ERROR("Baseline From and To tags are invalid!");
-        numberOfFailures++;			
+        numberOfFailures++;      
       }
       else if (STRCASECMP(cFrom, "Image") != 0 || STRCASECMP(cTo, "Probe"))
       {
         LOG_ERROR("Current From and To tags are invalid!");
-        numberOfFailures++;			
+        numberOfFailures++;      
       }
       else if (!transformBaseline->GetVectorAttribute("Matrix", 16, blTransformImageToProbe))
       {
         LOG_ERROR("Baseline Matrix tag is missing");
-        numberOfFailures++;			
+        numberOfFailures++;      
       }
       else if (!transform->GetVectorAttribute("Matrix", 16, cTransformImageToProbe))
       {
         LOG_ERROR("Current Matrix tag is missing");
-        numberOfFailures++;			
+        numberOfFailures++;      
       }
       else
       { 
@@ -339,7 +339,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
   } // </CalibrationResults>
 
 
-  {	// <ErrorReport>
+  {  // <ErrorReport>
     vtkXMLDataElement* errorReportBaseline = baselineRootElem->FindNestedElementWithName("ErrorReport"); 
     vtkXMLDataElement* errorReport = currentRootElem->FindNestedElementWithName("ErrorReport");
 
@@ -367,7 +367,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
       double blReprojectionError3DValidationMeanMm = 0.0;
       double blReprojectionError3DValidationStdDevMm = 0.0;
-	    if ( ! reprojectionError3DStatisticsBaseline->GetScalarAttribute("ValidationMeanMm", blReprojectionError3DValidationMeanMm)
+      if ( ! reprojectionError3DStatisticsBaseline->GetScalarAttribute("ValidationMeanMm", blReprojectionError3DValidationMeanMm)
         || ! reprojectionError3DStatisticsBaseline->GetScalarAttribute("ValidationStdDevMm", blReprojectionError3DValidationStdDevMm) )
       {
         LOG_ERROR("Reading baseline validation ReprojectionError3DStatistics statistics failed: " << baselineFileName);
@@ -376,7 +376,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
       double cReprojectionError3DValidationMeanMm = 0.0;
       double cReprojectionError3DValidationStdDevMm = 0.0;
-	    if ( ! reprojectionError3DStatistics->GetScalarAttribute("ValidationMeanMm", cReprojectionError3DValidationMeanMm)
+      if ( ! reprojectionError3DStatistics->GetScalarAttribute("ValidationMeanMm", cReprojectionError3DValidationMeanMm)
         || ! reprojectionError3DStatistics->GetScalarAttribute("ValidationStdDevMm", cReprojectionError3DValidationStdDevMm) )
       {
         LOG_ERROR("Reading current validation ReprojectionError3DStatistics statistics failed: " << currentResultFileName);
@@ -398,7 +398,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
       double blReprojectionError3DCalibrationMeanMm = 0.0;
       double blReprojectionError3DCalibrationStdDevMm = 0.0;
-	    if ( ! reprojectionError3DStatisticsBaseline->GetScalarAttribute("CalibrationMeanMm", blReprojectionError3DCalibrationMeanMm)
+      if ( ! reprojectionError3DStatisticsBaseline->GetScalarAttribute("CalibrationMeanMm", blReprojectionError3DCalibrationMeanMm)
         || ! reprojectionError3DStatisticsBaseline->GetScalarAttribute("CalibrationStdDevMm", blReprojectionError3DCalibrationStdDevMm) )
       {
         LOG_ERROR("Reading baseline calibration ReprojectionError3DStatistics statistics failed: " << baselineFileName);
@@ -407,7 +407,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
       double cReprojectionError3DCalibrationMeanMm = 0.0;
       double cReprojectionError3DCalibrationStdDevMm = 0.0;
-	    if ( ! reprojectionError3DStatistics->GetScalarAttribute("CalibrationMeanMm", cReprojectionError3DCalibrationMeanMm)
+      if ( ! reprojectionError3DStatistics->GetScalarAttribute("CalibrationMeanMm", cReprojectionError3DCalibrationMeanMm)
         || ! reprojectionError3DStatistics->GetScalarAttribute("CalibrationStdDevMm", cReprojectionError3DCalibrationStdDevMm) )
       {
         LOG_ERROR("Reading current calibration ReprojectionError3DStatistics statistics failed: " << currentResultFileName);
@@ -458,7 +458,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
         double blValidationMeanPx[2];
         double blValidationStdDevPx[2];
-	      if ( ! wireBaseline->GetVectorAttribute("ValidationMeanPx", 2, blValidationMeanPx)
+        if ( ! wireBaseline->GetVectorAttribute("ValidationMeanPx", 2, blValidationMeanPx)
           || ! wireBaseline->GetVectorAttribute("ValidationStdDevPx", 2, blValidationStdDevPx) )
         {
           LOG_ERROR("Reading baseline validation ReprojectionError2DStatistics failed for wire " << wireIndex);
@@ -468,7 +468,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
         double cValidationMeanPx[2];
         double cValidationStdDevPx[2];
-	      if ( ! wire->GetVectorAttribute("ValidationMeanPx", 2, cValidationMeanPx)
+        if ( ! wire->GetVectorAttribute("ValidationMeanPx", 2, cValidationMeanPx)
           || ! wire->GetVectorAttribute("ValidationStdDevPx", 2, cValidationStdDevPx) )
         {
           LOG_ERROR("Reading current validation ReprojectionError2DStatistics failed for wire " << wireIndex);
@@ -494,7 +494,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
         double blCalibrationMeanPx[2];
         double blCalibrationStdDevPx[2];
-	      if ( ! wireBaseline->GetVectorAttribute("CalibrationMeanPx", 2, blCalibrationMeanPx)
+        if ( ! wireBaseline->GetVectorAttribute("CalibrationMeanPx", 2, blCalibrationMeanPx)
           || ! wireBaseline->GetVectorAttribute("CalibrationStdDevPx", 2, blCalibrationStdDevPx) )
         {
           LOG_ERROR("Reading baseline calibration ReprojectionError2DStatistics failed for wire " << wireIndex);
@@ -504,7 +504,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
         double cCalibrationMeanPx[2];
         double cCalibrationStdDevPx[2];
-	      if ( ! wire->GetVectorAttribute("CalibrationMeanPx", 2, cCalibrationMeanPx)
+        if ( ! wire->GetVectorAttribute("CalibrationMeanPx", 2, cCalibrationMeanPx)
           || ! wire->GetVectorAttribute("CalibrationStdDevPx", 2, cCalibrationStdDevPx) )
         {
           LOG_ERROR("Reading current calibration ReprojectionError2DStatistics failed for wire " << wireIndex);
@@ -530,7 +530,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
       } // </Wire>
     } // </ReprojectionError2DStatistics>
 
-    {	// <ValidationData>
+    {  // <ValidationData>
       vtkXMLDataElement* validationDataBaseline = errorReportBaseline->FindNestedElementWithName("ValidationData"); 
       vtkXMLDataElement* validationData = errorReport->FindNestedElementWithName("ValidationData");
 
@@ -643,7 +643,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
               double blErrorMm = 0.0;
               double cErrorMm = 0.0;
-	            if ( ! reprojectionError3DBaseline->GetScalarAttribute("ErrorMm", blErrorMm)
+              if ( ! reprojectionError3DBaseline->GetScalarAttribute("ErrorMm", blErrorMm)
                 || ! reprojectionError3D->GetScalarAttribute("ErrorMm", cErrorMm) )
               {
                 LOG_ERROR("Reading ErrorMm in ReprojectionError3D #" << reprojectionError3DIndex << " in Frame #" << frameIndex << "failed!");
@@ -714,7 +714,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
       } // </Frame>
     } // </ValidationData>
 
-    {	// <CalibrationData>
+    {  // <CalibrationData>
       vtkXMLDataElement* calibrationDataBaseline = errorReportBaseline->FindNestedElementWithName("CalibrationData"); 
       vtkXMLDataElement* calibrationData = errorReport->FindNestedElementWithName("CalibrationData");
 
@@ -893,7 +893,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
               double blErrorMm = 0.0;
               double cErrorMm = 0.0;
-	            if ( ! reprojectionError3DBaseline->GetScalarAttribute("ErrorMm", blErrorMm)
+              if ( ! reprojectionError3DBaseline->GetScalarAttribute("ErrorMm", blErrorMm)
                 || ! reprojectionError3D->GetScalarAttribute("ErrorMm", cErrorMm) )
               {
                 LOG_ERROR("Reading ErrorMm in ReprojectionError3D #" << reprojectionError3DIndex << " in Frame #" << frameIndex << "failed!");

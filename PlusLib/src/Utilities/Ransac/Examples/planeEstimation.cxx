@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
     std::cout<<"Least squares estimate failed, degenerate configuration?\n";
   else
   {
-	  std::cout<<"Least squares hyper(plane) parameters: [n,a]\n\t [ ";
+    std::cout<<"Least squares hyper(plane) parameters: [n,a]\n\t [ ";
     for( i=0; i<(2*DIMENSION-1); i++ )
       std::cout<<planeParameters[i]<<", ";
     std::cout<<planeParameters[i]<<"]\n\n";
@@ -75,14 +75,14 @@ int main(int argc, char *argv[])
     dotProduct = 0.0;
     for( i=0; i<DIMENSION; i++ )
       dotProduct+= planeParameters[i]*truePlaneParameters[i];
-	  std::cout<<"\tDot product of real and computed normals[+-1=correct]: ";
+    std::cout<<"\tDot product of real and computed normals[+-1=correct]: ";
     std::cout<<dotProduct<<"\n";
               //distance between known hyper(plane) and estimated point on plane
     dotProduct = 0.0;
     for( i=0; i<DIMENSION; i++ )
       dotProduct+= (planeParameters[DIMENSION+i] - 
                     truePlaneParameters[DIMENSION+i])*truePlaneParameters[i];
-	  std::cout<<"\tCheck if computed point is on known plane [0=correct]: ";
+    std::cout<<"\tCheck if computed point is on known plane [0=correct]: ";
     std::cout<<dotProduct<<"\n\n";
   }
 
@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
     std::cout<<"RANSAC estimate failed, degenerate configuration?\n";
   else
   {
-	  std::cout<<"RANSAC hyper(plane) parameters: [n,a]\n\t [ ";
+    std::cout<<"RANSAC hyper(plane) parameters: [n,a]\n\t [ ";
     for( i=0; i<(2*DIMENSION-1); i++ )
       std::cout<<planeParameters[i]<<", ";
     std::cout<<planeParameters[i]<<"]\n\n";
@@ -106,14 +106,14 @@ int main(int argc, char *argv[])
     dotProduct = 0.0;
     for( i=0; i<DIMENSION; i++ )
       dotProduct+= planeParameters[i]*truePlaneParameters[i];
-	  std::cout<<"\tDot product of real and computed normals[+-1=correct]: ";
+    std::cout<<"\tDot product of real and computed normals[+-1=correct]: ";
     std::cout<<dotProduct<<"\n";
               //distance between known hyper(plane) and estimated point on plane
     dotProduct = 0.0;
     for( i=0; i<DIMENSION; i++ )
       dotProduct+= ( planeParameters[DIMENSION+i] - 
                      truePlaneParameters[DIMENSION+i] )*truePlaneParameters[i];
-	  std::cout<<"\tCheck if computed point is on known plane [0=correct]: ";
+    std::cout<<"\tCheck if computed point is on known plane [0=correct]: ";
     std::cout<<dotProduct<<"\n\n";
     std::cout<<"\tPercentage of points which were used for final estimate: ";
     std::cout<<percentageOfDataUsed<<"\n\n";

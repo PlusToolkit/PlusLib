@@ -614,14 +614,33 @@ IF (PLUS_USE_MMF_VIDEO)
 
   SET (DataCollection_SRCS ${DataCollection_SRCS} 
     MicrosoftMediaFoundation/vtkMmfVideoSource.cxx 
+    MicrosoftMediaFoundation/InputCaptureLibrary/FormatReader.cpp 
+    MicrosoftMediaFoundation/InputCaptureLibrary/MediaFoundationVideoCaptureApi.cpp 
+    MicrosoftMediaFoundation/InputCaptureLibrary/MediaFoundationVideoDevice.cpp 
+    MicrosoftMediaFoundation/InputCaptureLibrary/MediaFoundationVideoDevices.cpp 
+    MicrosoftMediaFoundation/InputCaptureLibrary/RawImage.cpp 
+    MicrosoftMediaFoundation/InputCaptureLibrary/ImageGrabberThread.cpp 
+    MicrosoftMediaFoundation/InputCaptureLibrary/ImageGrabber.cpp 
+    MicrosoftMediaFoundation/InputCaptureLibrary/RawImage.cpp 
+	MicrosoftMediaFoundation/InputCaptureLibrary/MediaFoundationCaptureLibrary.cpp 
     )
   if (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
       MicrosoftMediaFoundation/vtkMmfVideoSource.h 
+      MicrosoftMediaFoundation/InputCaptureLibrary/FormatReader.h 
+      MicrosoftMediaFoundation/InputCaptureLibrary/MediaFoundationVideoCaptureApi.h 
+      MicrosoftMediaFoundation/InputCaptureLibrary/MediaFoundationVideoDevice.h 
+      MicrosoftMediaFoundation/InputCaptureLibrary/MediaFoundationVideoDevices.h 
+	  MicrosoftMediaFoundation/InputCaptureLibrary/RawImage.h 
+      MicrosoftMediaFoundation/InputCaptureLibrary/ImageGrabberThread.h 
+      MicrosoftMediaFoundation/InputCaptureLibrary/ImageGrabber.h 
+      MicrosoftMediaFoundation/InputCaptureLibrary/RawImage.h 
+	  MicrosoftMediaFoundation/InputCaptureLibrary/MediaFoundationCaptureLibrary.h 
       )
   endif (WIN32)
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/MicrosoftMediaFoundation
+	${CMAKE_CURRENT_SOURCE_DIR}/MicrosoftMediaFoundation/InputCaptureLibrary
     ${WINDOWSSDK_LATEST_DIR}/Include
     )
   IF( ${CMAKE_GENERATOR} MATCHES Win64 )
@@ -636,6 +655,7 @@ IF (PLUS_USE_MMF_VIDEO)
     ${MMF_LIB_DIR}/Shlwapi.lib 
     ${MMF_LIB_DIR}/Mfreadwrite.lib 
     ${MMF_LIB_DIR}/mfuuid.lib 
+	${MMF_LIB_DIR}/Strmiids.lib 
     )
 ENDIF (PLUS_USE_MMF_VIDEO)
 

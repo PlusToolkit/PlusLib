@@ -76,7 +76,7 @@ int main (int argc, char* argv[])
   cmdargs.AddArgument("--save-results-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &saveResultsFilename, "Save results file name");
   cmdargs.AddArgument("--operation", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strOperation, "Type of experiment to perform");
 
-  cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
+  cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
 
   if ( !cmdargs.Parse() )
   {
@@ -92,7 +92,7 @@ int main (int argc, char* argv[])
   // Read configuration
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
   if (configRootElement == NULL)
-  {	
+  {  
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
     return EXIT_FAILURE;
   }

@@ -29,7 +29,7 @@ namespace itk {
 template<class T, class S>
 class ParametersEstimator : public Object 
 {
-public:	
+public:  
 
    typedef ParametersEstimator         Self;
    typedef Object                      Superclass;
@@ -38,32 +38,32 @@ public:
  
    itkTypeMacro( ParametersEstimator, Object );
 
-	/**
-	 * Exact estimation of parameters.
-	 * @param data The data used for the estimate.
-	 * @param parameters This vector is cleared and then filled with the estimated 
+  /**
+   * Exact estimation of parameters.
+   * @param data The data used for the estimate.
+   * @param parameters This vector is cleared and then filled with the estimated 
    *                   parameter values.
-	 */
-	virtual void Estimate( std::vector<T *> &data, 
+   */
+  virtual void Estimate( std::vector<T *> &data, 
                          std::vector<S> &parameters ) = 0;
-	virtual void Estimate( std::vector<T> &data, 
+  virtual void Estimate( std::vector<T> &data, 
                          std::vector<S> &parameters ) = 0;
 
-	/**
-	 * Least squares estimation of parameters.
-	 * @param data The data used for the estimate.
-	 * @param parameters This vector is cleared and then filled with the computed 
+  /**
+   * Least squares estimation of parameters.
+   * @param data The data used for the estimate.
+   * @param parameters This vector is cleared and then filled with the computed 
    *                   parameters.
-	 */
-	virtual void LeastSquaresEstimate( std::vector<T *> &data, 
+   */
+  virtual void LeastSquaresEstimate( std::vector<T *> &data, 
                                      std::vector<S> &parameters ) = 0;
-	virtual void LeastSquaresEstimate( std::vector<T> &data, 
+  virtual void LeastSquaresEstimate( std::vector<T> &data, 
                                      std::vector<S> &parameters ) = 0;
 
-	/**
-	 * This method tests if the given data agrees with the model defined by the 
+  /**
+   * This method tests if the given data agrees with the model defined by the 
    * parameters.
-	 */
+   */
   virtual bool Agree( std::vector<S> &parameters, T &data ) = 0;
 
   /**

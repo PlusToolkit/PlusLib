@@ -33,48 +33,48 @@ typedef itk::ImageFileReader< ImageSequenceType > ImageSequenceReaderType;
 
 int main (int argc, char* argv[])
 { 
-	std::string inputSequenceMetafile;
+  std::string inputSequenceMetafile;
   std::string inputTransformName; 
-	std::string outputWirePositionFile("./SegmentedWirePositions.txt");
-	int inputImageType(1); 
+  std::string outputWirePositionFile("./SegmentedWirePositions.txt");
+  int inputImageType(1); 
 
-	std::string inputBaselineFileName;
-	double inputTranslationErrorThreshold(0); 
-	double inputRotationErrorThreshold(0); 
+  std::string inputBaselineFileName;
+  double inputTranslationErrorThreshold(0); 
+  double inputRotationErrorThreshold(0); 
 
-	int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
-	vtksys::CommandLineArguments cmdargs;
-	cmdargs.Initialize(argc, argv);
+  vtksys::CommandLineArguments cmdargs;
+  cmdargs.Initialize(argc, argv);
 
-	cmdargs.AddArgument("--image-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSequenceMetafile, "Image sequence metafile");
-	cmdargs.AddArgument("--image-position-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformName, "Transform name used for image position display");
-	cmdargs.AddArgument("--image-type", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImageType, "Image type (1=SonixVideo, 2=FrameGrabber - Default: SonixVideo");	
-	cmdargs.AddArgument("--output-wire-position-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputWirePositionFile, "Result wire position file name (Default: ./SegmentedWirePositions.txt)");
+  cmdargs.AddArgument("--image-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSequenceMetafile, "Image sequence metafile");
+  cmdargs.AddArgument("--image-position-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformName, "Transform name used for image position display");
+  cmdargs.AddArgument("--image-type", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImageType, "Image type (1=SonixVideo, 2=FrameGrabber - Default: SonixVideo");  
+  cmdargs.AddArgument("--output-wire-position-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputWirePositionFile, "Result wire position file name (Default: ./SegmentedWirePositions.txt)");
 
-	cmdargs.AddArgument("--baseline", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
-	cmdargs.AddArgument("--translation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTranslationErrorThreshold, "Translation error threshold in mm.");	
-	cmdargs.AddArgument("--rotation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputRotationErrorThreshold, "Rotation error threshold in degrees.");	
-	cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
+  cmdargs.AddArgument("--baseline", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
+  cmdargs.AddArgument("--translation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTranslationErrorThreshold, "Translation error threshold in mm.");  
+  cmdargs.AddArgument("--rotation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputRotationErrorThreshold, "Rotation error threshold in degrees.");  
+  cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
 
-	if ( !cmdargs.Parse() )
-	{
-		std::cerr << "Problem parsing arguments" << std::endl;
-		std::cout << "Help: " << cmdargs.GetHelp() << std::endl;
-		exit(EXIT_FAILURE);
-	}
+  if ( !cmdargs.Parse() )
+  {
+    std::cerr << "Problem parsing arguments" << std::endl;
+    std::cout << "Help: " << cmdargs.GetHelp() << std::endl;
+    exit(EXIT_FAILURE);
+  }
   
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-	if ( inputSequenceMetafile.empty() ) 
-	{
-		std::cerr << "image-seq-file argument required" << std::endl << std::endl;
-		std::cout << "Help: " << cmdargs.GetHelp() << std::endl;
-		exit(EXIT_FAILURE);
+  if ( inputSequenceMetafile.empty() ) 
+  {
+    std::cerr << "image-seq-file argument required" << std::endl << std::endl;
+    std::cout << "Help: " << cmdargs.GetHelp() << std::endl;
+    exit(EXIT_FAILURE);
 
-	}	
+  }  
 
-	LOG_INFO( "Reading sequence meta file");  
+  LOG_INFO( "Reading sequence meta file");  
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
   if ( trackedFrameList->ReadFromSequenceMetafile(inputSequenceMetafile.c_str()) != PLUS_SUCCESS )
   {
@@ -82,22 +82,22 @@ int main (int argc, char* argv[])
       return EXIT_FAILURE;
   }
 
-	std::ofstream positionInfo;
-	positionInfo.open (outputWirePositionFile.c_str(), ios::out );
+  std::ofstream positionInfo;
+  positionInfo.open (outputWirePositionFile.c_str(), ios::out );
 
-	LOG_INFO( "Segmenting frames..."); 
+  LOG_INFO( "Segmenting frames..."); 
 
-	for ( unsigned int frameIndex = 0; frameIndex < trackedFrameList->GetNumberOfTrackedFrames(); frameIndex++ )
-	{
-		vtkPlusLogger::PrintProgressbar( (100.0 * frameIndex) / trackedFrameList->GetNumberOfTrackedFrames() ); 
+  for ( unsigned int frameIndex = 0; frameIndex < trackedFrameList->GetNumberOfTrackedFrames(); frameIndex++ )
+  {
+    vtkPlusLogger::PrintProgressbar( (100.0 * frameIndex) / trackedFrameList->GetNumberOfTrackedFrames() ); 
 
     FidPatternRecognition patternRecognition;
     PatternRecognitionResult segResults;
     PatternRecognitionError error;
 
-		try
-		{
-			// Send the image to the Segmentation component to segment
+    try
+    {
+      // Send the image to the Segmentation component to segment
       if (trackedFrameList->GetTrackedFrame(frameIndex)->GetImageData()->GetITKScalarPixelType()!=itk::ImageIOBase::UCHAR)
       {
         LOG_ERROR("patternRecognition.RecognizePattern only works on unsigned char images");
@@ -106,12 +106,12 @@ int main (int argc, char* argv[])
       {
         patternRecognition.RecognizePattern( trackedFrameList->GetTrackedFrame(frameIndex), segResults, error, frameIndex );
       }
-  	}
-		catch(...)
-		{
-			LOG_ERROR("SegmentImage: The segmentation has failed for due to UNKNOWN exception thrown, the image was ignored!!!"); 
-			continue; 
-		}
+    }
+    catch(...)
+    {
+      LOG_ERROR("SegmentImage: The segmentation has failed for due to UNKNOWN exception thrown, the image was ignored!!!"); 
+      continue; 
+    }
 
     PlusTransformName transformName; 
     if ( transformName.SetTransformName(inputTransformName.c_str()) != PLUS_SUCCESS )
@@ -121,7 +121,7 @@ int main (int argc, char* argv[])
     }
    
     if ( segResults.GetDotsFound() )
-		{
+    {
       double defaultTransform[16]={0}; 
       if ( trackedFrameList->GetTrackedFrame(frameIndex)->GetCustomFrameTransform(transformName, defaultTransform) != PLUS_SUCCESS )
       {
@@ -132,26 +132,26 @@ int main (int argc, char* argv[])
       vtkSmartPointer<vtkTransform> frameTransform = vtkSmartPointer<vtkTransform>::New(); 
       frameTransform->SetMatrix(defaultTransform); 
 
-			double posZ = frameTransform->GetPosition()[2]; 
-			double rotZ = frameTransform->GetOrientation()[2]; 
+      double posZ = frameTransform->GetPosition()[2]; 
+      double rotZ = frameTransform->GetOrientation()[2]; 
 
-			int dataType = -1; 
-			positionInfo << dataType << "\t\t" << posZ << "\t" << rotZ << "\t\t"; 
+      int dataType = -1; 
+      positionInfo << dataType << "\t\t" << posZ << "\t" << rotZ << "\t\t"; 
 
-			for (unsigned int i=0; i < segResults.GetFoundDotsCoordinateValue().size(); i++)
-			{
-				positionInfo << segResults.GetFoundDotsCoordinateValue()[i][0] << "\t" << segResults.GetFoundDotsCoordinateValue()[i][1] << "\t\t"; 
-			}
+      for (unsigned int i=0; i < segResults.GetFoundDotsCoordinateValue().size(); i++)
+      {
+        positionInfo << segResults.GetFoundDotsCoordinateValue()[i][0] << "\t" << segResults.GetFoundDotsCoordinateValue()[i][1] << "\t\t"; 
+      }
 
-			positionInfo << std::endl; 
+      positionInfo << std::endl; 
 
-		}
-	}
-	
-	positionInfo.close(); 
-	vtkPlusLogger::PrintProgressbar(100); 
-	std::cout << std::endl; 
+    }
+  }
+  
+  positionInfo.close(); 
+  vtkPlusLogger::PrintProgressbar(100); 
+  std::cout << std::endl; 
 
-	std::cout << "Exit success!!!" << std::endl; 
-	return EXIT_SUCCESS; 
+  std::cout << "Exit success!!!" << std::endl; 
+  return EXIT_SUCCESS; 
 }

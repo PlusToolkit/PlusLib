@@ -39,9 +39,9 @@ int main(int argc, char **argv)
   args.Initialize(argc, argv);
   std::string inputDataFileName(""); 
 
-  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
-  args.AddArgument("--xml-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputDataFileName, "Input XML data file name");	
-	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
+  args.AddArgument("--xml-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputDataFileName, "Input XML data file name");  
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
 
   if ( !args.Parse() )
   {
@@ -368,8 +368,8 @@ template<class floatType> int TestFloor(const char* floatName)
     if ( testResultsFloor[i] != testResultsPlusFloor[i] )
     {
       LOG_INFO("PlusMath::Floor computation mismatch for input "
-	<<std::scientific<<std::setprecision(std::numeric_limits<double>::digits10+1)
-	<<testFloatNumbers[i]<<": "<<testResultsFloor[i]<<" (using vtkMath::Floor) != "<<testResultsPlusFloor[i]<<" (using PlusMath::Floor)");
+  <<std::scientific<<std::setprecision(std::numeric_limits<double>::digits10+1)
+  <<testFloatNumbers[i]<<": "<<testResultsFloor[i]<<" (using vtkMath::Floor) != "<<testResultsPlusFloor[i]<<" (using PlusMath::Floor)");
       numberOfPlusMathFloorMismatches++;      
     }    
   }
@@ -420,7 +420,7 @@ template<class floatType> int TestFloor(const char* floatName)
   if (plusMathFloored!=floored)
   {
     LOG_ERROR(std::fixed<<"The "<<specialValueGood<<" value was incorrectly floored by PlusMath::Floor to "<<plusMathFloored<<" (instead of "<<floored<<"). This is a known limitation of the fast floor implementation.");
-	numberOfErrors++;
+  numberOfErrors++;
   }
   else
   {

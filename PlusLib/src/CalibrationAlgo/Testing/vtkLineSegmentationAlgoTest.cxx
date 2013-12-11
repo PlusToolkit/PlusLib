@@ -27,7 +27,7 @@ const double MAX_LINE_ANGLE_DIFFERENCE_DEG=3;
 void WriteLineSegmentationResultsToFile(const std::string& resultSaveFilename, const std::vector<vtkLineSegmentationAlgo::LineParameters> &lineParameters)
 {
   std::ofstream outFile; 
-  outFile.open(resultSaveFilename.c_str());	
+  outFile.open(resultSaveFilename.c_str());  
   outFile << "<LineSegmentationResults>" << std::endl;
   for ( unsigned int frameIndex = 0; frameIndex < lineParameters.size(); ++frameIndex )
   {
@@ -218,13 +218,13 @@ int main(int argc, char **argv)
   std::string inputBaselineFileName;
   bool saveImages=false;
 
-  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
-  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
-  args.AddArgument("--seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSequenceMetafile, "Input sequence metafile name with path");	  
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
+  args.AddArgument("--seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSequenceMetafile, "Input sequence metafile name with path");    
   args.AddArgument("--clip-rect-origin", vtksys::CommandLineArguments::MULTI_ARGUMENT, &clipRectOrigin, "Origin of the clipping rectangle");
   args.AddArgument("--clip-rect-size", vtksys::CommandLineArguments::MULTI_ARGUMENT, &clipRectSize, "Size of the clipping rectangle");
-  args.AddArgument("--save-images", vtksys::CommandLineArguments::NO_ARGUMENT, &saveImages, "Save images with detected lines overlaid");	
-  args.AddArgument("--baseline-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Input xml baseline file name with path");	
+  args.AddArgument("--save-images", vtksys::CommandLineArguments::NO_ARGUMENT, &saveImages, "Save images with detected lines overlaid");  
+  args.AddArgument("--baseline-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Input xml baseline file name with path");  
 
   if ( !args.Parse() )
   {

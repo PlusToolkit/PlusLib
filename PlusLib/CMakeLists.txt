@@ -2,7 +2,7 @@ PROJECT(PlusLib)
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 if(COMMAND cmake_policy)
-	cmake_policy(SET CMP0003 NEW)
+  cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
 
 # ------------------------------------------------------------------------
@@ -91,13 +91,13 @@ ADD_SUBDIRECTORY(src)
 #
 
 configure_file(
-	${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.bat.in 
-	${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.bat
-	)
+  ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.bat.in 
+  ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.bat
+  )
 configure_file(
-	${CMAKE_CURRENT_SOURCE_DIR}/CreateDoc.bat.in 
-	${CMAKE_CURRENT_BINARY_DIR}/CreateDoc.bat
-	)
+  ${CMAKE_CURRENT_SOURCE_DIR}/CreateDoc.bat.in 
+  ${CMAKE_CURRENT_BINARY_DIR}/CreateDoc.bat
+  )
 configure_file(
         ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.sh.in 
         ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.sh

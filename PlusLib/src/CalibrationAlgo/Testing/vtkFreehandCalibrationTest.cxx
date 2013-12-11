@@ -69,12 +69,12 @@ int main (int argc, char* argv[])
   cmdargs.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name)");
   cmdargs.AddArgument("--baseline-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results. Optional.");
 
-  cmdargs.AddArgument("--translation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTranslationErrorThreshold, "Translation error threshold in mm. Used for baseline comparison.");	
-  cmdargs.AddArgument("--rotation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputRotationErrorThreshold, "Rotation error threshold in degrees. Used for baseline comparison.");	
+  cmdargs.AddArgument("--translation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTranslationErrorThreshold, "Translation error threshold in mm. Used for baseline comparison.");  
+  cmdargs.AddArgument("--rotation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputRotationErrorThreshold, "Rotation error threshold in degrees. Used for baseline comparison.");  
 
   cmdargs.AddArgument("--output-config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &resultConfigFileName, "Result configuration file name. Optional.");
 
-  cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
+  cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
 
   if ( !cmdargs.Parse() )
   {
@@ -90,7 +90,7 @@ int main (int argc, char* argv[])
   // Read configuration
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
   if (configRootElement == NULL)
-  {	
+  {  
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
     return EXIT_FAILURE;
   }
@@ -233,7 +233,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
     return ++numberOfFailures;
   }
 
-  {	//<CalibrationResults>
+  {  //<CalibrationResults>
     vtkXMLDataElement* calibrationResultsBaseline = baselineRootElem->FindNestedElementWithName("CalibrationResults"); 
     vtkXMLDataElement* calibrationResults = currentRootElem->FindNestedElementWithName("CalibrationResults"); 
 
@@ -249,7 +249,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
       return ++numberOfFailures;
     }
 
-    {	// <Transform>
+    {  // <Transform>
       vtkXMLDataElement* transformBaseline = calibrationResultsBaseline->FindNestedElementWithName("Transform"); 
       vtkXMLDataElement* transform = calibrationResults->FindNestedElementWithName("Transform");
 
@@ -276,22 +276,22 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
       if (STRCASECMP(blFrom, "Image") != 0 || STRCASECMP(blTo, "Probe"))
       {
         LOG_ERROR("Baseline From and To tags are invalid!");
-        numberOfFailures++;			
+        numberOfFailures++;      
       }
       else if (STRCASECMP(cFrom, "Image") != 0 || STRCASECMP(cTo, "Probe"))
       {
         LOG_ERROR("Current From and To tags are invalid!");
-        numberOfFailures++;			
+        numberOfFailures++;      
       }
       else if (!transformBaseline->GetVectorAttribute("Matrix", 16, blTransformImageToProbe))
       {
         LOG_ERROR("Baseline Matrix tag is missing");
-        numberOfFailures++;			
+        numberOfFailures++;      
       }
       else if (!transform->GetVectorAttribute("Matrix", 16, cTransformImageToProbe))
       {
         LOG_ERROR("Current Matrix tag is missing");
-        numberOfFailures++;			
+        numberOfFailures++;      
       }
       else
       { 
@@ -324,7 +324,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
   } // </CalibrationResults>
 
 
-  {	// <ErrorReport>
+  {  // <ErrorReport>
     vtkXMLDataElement* errorReportBaseline = baselineRootElem->FindNestedElementWithName("ErrorReport"); 
     vtkXMLDataElement* errorReport = currentRootElem->FindNestedElementWithName("ErrorReport");
 
@@ -524,7 +524,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
       } // </Wire>
     } // </ReprojectionError2DStatistics>
 
-    {	// <ValidationData>
+    {  // <ValidationData>
       vtkXMLDataElement* validationDataBaseline = errorReportBaseline->FindNestedElementWithName("ValidationData"); 
       vtkXMLDataElement* validationData = errorReport->FindNestedElementWithName("ValidationData");
 
@@ -719,7 +719,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
       } // </Frame>
     } // </ValidationData>
 
-    {	// <CalibrationData>
+    {  // <CalibrationData>
       vtkXMLDataElement* calibrationDataBaseline = errorReportBaseline->FindNestedElementWithName("CalibrationData"); 
       vtkXMLDataElement* calibrationData = errorReport->FindNestedElementWithName("CalibrationData");
 

@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
   if( sphereParameters.empty() )
     std::cout<<"Least squares estimate failed, degenerate configuration?\n";
   else {
-	  std::cout<<"Least squares hyper(sphere) parameters: [c,r]\n\t [ ";
+    std::cout<<"Least squares hyper(sphere) parameters: [c,r]\n\t [ ";
     for( i=0; i<DIMENSION; i++ )
       std::cout<<sphereParameters[i]<<", ";
     std::cout<<sphereParameters[i]<<"]\n\n";
@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
     std::cout<<"RANSAC estimate failed, degenerate configuration?\n";
   else
   {
-	  std::cout<<"RANSAC hyper(sphere) parameters: [c,r]\n\t [ ";
+    std::cout<<"RANSAC hyper(sphere) parameters: [c,r]\n\t [ ";
     for( i=0; i<DIMENSION; i++ )
       std::cout<<sphereParameters[i]<<", ";
     std::cout<<sphereParameters[i]<<"]\n\n";

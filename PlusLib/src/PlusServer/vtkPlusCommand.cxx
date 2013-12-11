@@ -34,7 +34,7 @@ vtkPlusCommand::~vtkPlusCommand()
 //----------------------------------------------------------------------------
 void vtkPlusCommand::PrintSelf( ostream& os, vtkIndent indent )
 {
-	this->Superclass::PrintSelf( os, indent );
+  this->Superclass::PrintSelf( os, indent );
 }
 
 //----------------------------------------------------------------------------

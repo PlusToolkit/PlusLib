@@ -10,10 +10,10 @@ SET (PlusServer_SRCS
   vtkPlusRequestChannelIDsCommand.cxx 
   vtkPlusUpdateTransformCommand.cxx 
   vtkPlusSaveConfigCommand.cxx 
-	)
-	
-IF (WIN32)	
-	SET (PlusServer_HDRS 
+  )
+  
+IF (WIN32)  
+  SET (PlusServer_HDRS 
     vtkPlusOpenIGTLinkServer.h
     vtkPlusOpenIGTLinkClient.h
     vtkPlusCommand.h
@@ -23,8 +23,8 @@ IF (WIN32)
     vtkPlusRequestChannelIDsCommand.h 
     vtkPlusUpdateTransformCommand.h 
     vtkPlusSaveConfigCommand.h 
-		)
-ENDIF (WIN32)	
+    )
+ENDIF (WIN32)  
 
 SET (PlusServer_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
 
@@ -62,5 +62,5 @@ INSTALL(TARGETS vtkPlusServer
 #
 
 IF (BUILD_TESTING)
-	SUBDIRS (Testing)
+  SUBDIRS (Testing)
 ENDIF (BUILD_TESTING)

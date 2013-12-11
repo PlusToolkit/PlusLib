@@ -71,7 +71,7 @@ public:
   /**
    * Set the function object that is able to estimate the desired parametric 
    * entity (e.g. PlaneParametersEstimator).
-	 * @param paramEstimator An object which can estimate the desired parameters 
+   * @param paramEstimator An object which can estimate the desired parameters 
    *                       using both an exact fit and a least squares fit.
    */ 
   void SetParametersEstimator( typename ParametersEstimator<T,S>::Pointer paramEstimator );
@@ -83,25 +83,25 @@ public:
    */
   void SetData( std::vector<T> &data );
 
-	/**
-	 * Estimate the model parameters using the RANSAC framework.
-	 * @param parameters A vector which will contain the estimated parameters.
-	 *                   If there is an error then this vector will be empty.
-	 *                   Errors are: 1. Parameter estimation object or data not
+  /**
+   * Estimate the model parameters using the RANSAC framework.
+   * @param parameters A vector which will contain the estimated parameters.
+   *                   If there is an error then this vector will be empty.
+   *                   Errors are: 1. Parameter estimation object or data not
    *                                  set, see SetParameterEstimator and 
    *                                  SetData.
-	 *                               2. The given data is in a singular 
+   *                               2. The given data is in a singular 
    *                                  configuration (e.g. trying to fit a circle
-	 *                                  to a set of colinear points).
+   *                                  to a set of colinear points).
    *                               3. The given parameter desiredProbabilityForNoOutliers 
    *                                  is not in (0,1)
-	 * @param desiredProbabilityForNoOutliers The probability that at least one of 
+   * @param desiredProbabilityForNoOutliers The probability that at least one of 
    *                                        the selected subsets doesn't contain 
    *                                        an outlier, must be in (0,1).
-	 * @return Returns the percentage of data used in the least squares estimate.
-	 */
-	 double Compute( std::vector<S> &parameters, 		             
-		               double desiredProbabilityForNoOutliers );
+   * @return Returns the percentage of data used in the least squares estimate.
+   */
+   double Compute( std::vector<S> &parameters,                  
+                   double desiredProbabilityForNoOutliers );
 
 protected:
 
@@ -115,30 +115,30 @@ protected:
 
 private:
 
-	 /**
-	  * Compute n choose m  [ n!/(m!*(n-m)!)]. 
+   /**
+    * Compute n choose m  [ n!/(m!*(n-m)!)]. 
     * If choose(n,m)>std::numeric_limits<unsigned int>::max(), or there is an
     * overflow during the computations then we return 
     * std::numeric_limits<unsigned int>::max(), otherwise the correct value
     * is returned.
-		*/
+    */
   unsigned int Choose( unsigned int n, unsigned int m );
 
-	class SubSetIndexComparator {
-	  private:
-		  int length;
-		public:
-			SubSetIndexComparator(int arrayLength) : length(arrayLength){}
-			bool operator()(const int *arr1, const int *arr2) const {
+  class SubSetIndexComparator {
+    private:
+      int length;
+    public:
+      SubSetIndexComparator(int arrayLength) : length(arrayLength){}
+      bool operator()(const int *arr1, const int *arr2) const {
         for(int i=0; i<this->length; i++) {
-					if(arr1[i] < arr2[i])
-						return true;
+          if(arr1[i] < arr2[i])
+            return true;
           else if(arr1[i] > arr2[i]) 
             return false;
         }
-				return false;			
-			}
-	};
+        return false;      
+      }
+  };
                    
   static ITK_THREAD_RETURN_TYPE RANSACThreadCallback( void *arg );
 

@@ -20,45 +20,45 @@
 
 int main (int argc, char* argv[])
 { 
-	bool printHelp(false); 
-	std::string inputFileName;
-	std::string inputBaselineName;
-	int inputFrameNumber(-1); 
+  bool printHelp(false); 
+  std::string inputFileName;
+  std::string inputBaselineName;
+  int inputFrameNumber(-1); 
   std::string outputFileName; 
 
-	vtksys::CommandLineArguments args;
-	args.Initialize(argc, argv);
+  vtksys::CommandLineArguments args;
+  args.Initialize(argc, argv);
 
-	int verboseLevel = vtkPlusLogger::LOG_LEVEL_ERROR;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_ERROR;
 
-	args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
-	args.AddArgument("--volume-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFileName, "The file name of the Sonix volume." );
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
+  args.AddArgument("--volume-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFileName, "The file name of the Sonix volume." );
   args.AddArgument("--output-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFileName, "Sequence meta file name to save (save only if defined)" );
-	args.AddArgument("--frame-number", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFrameNumber, "The frame number to compare with baseline." );
-	args.AddArgument("--baseline", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineName, "The file name of the baseline image." );
-	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (Default: 1; 1=error only, 2=warning, 3=info, 4=debug)");	
+  args.AddArgument("--frame-number", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFrameNumber, "The frame number to compare with baseline." );
+  args.AddArgument("--baseline", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineName, "The file name of the baseline image." );
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (Default: 1; 1=error only, 2=warning, 3=info, 4=debug)");  
 
-	if ( !args.Parse() )
-	{
-		std::cerr << "Problem parsing arguments" << std::endl;
-		std::cout << "\n\nvtkICCapturingSourceTest1 help:" << args.GetHelp() << std::endl;
-		exit(EXIT_FAILURE);
-	}
+  if ( !args.Parse() )
+  {
+    std::cerr << "Problem parsing arguments" << std::endl;
+    std::cout << "\n\nvtkICCapturingSourceTest1 help:" << args.GetHelp() << std::endl;
+    exit(EXIT_FAILURE);
+  }
 
-	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-	if ( printHelp ) 
-	{
-		std::cout << "\n\nvtkICCapturingSourceTest1 help:" << args.GetHelp() << std::endl;
-		exit(EXIT_SUCCESS); 
+  if ( printHelp ) 
+  {
+    std::cout << "\n\nvtkICCapturingSourceTest1 help:" << args.GetHelp() << std::endl;
+    exit(EXIT_SUCCESS); 
 
-	}
+  }
 
-	if ( inputFileName.empty() )
-	{
-		LOG_ERROR("The input-file-name  parameter is required!");
-		exit(EXIT_FAILURE); 
-	}
+  if ( inputFileName.empty() )
+  {
+    LOG_ERROR("The input-file-name  parameter is required!");
+    exit(EXIT_FAILURE); 
+  }
 
 
   vtkSmartPointer<vtkTrackedFrameList> sonixVolumeData = vtkSmartPointer<vtkTrackedFrameList>::New(); 
@@ -78,9 +78,9 @@ int main (int argc, char* argv[])
       LOG_ERROR("Failed to save sonix volume to " << path); 
     }
   }
-	
-	vtkSmartPointer<vtkImageDifference> imgDiff = vtkSmartPointer<vtkImageDifference>::New(); 
-	
+  
+  vtkSmartPointer<vtkImageDifference> imgDiff = vtkSmartPointer<vtkImageDifference>::New(); 
+  
   PlusVideoFrame baselineVideoFrame; 
   if ( PlusVideoFrame::ReadImageFromFile(baselineVideoFrame, inputBaselineName.c_str()) != PLUS_SUCCESS )
   {
@@ -117,21 +117,21 @@ int main (int argc, char* argv[])
   imageExtractorInput->SetInput(videoFrame->GetVtkImage() ); 
   imageExtractorInput->SetComponents(0,0,0); // we are using only the 0th component
   imageExtractorInput->Update(); 
-	vtkSmartPointer<vtkImageData> frameRGB = vtkSmartPointer<vtkImageData>::New(); 
+  vtkSmartPointer<vtkImageData> frameRGB = vtkSmartPointer<vtkImageData>::New(); 
   frameRGB->DeepCopy(imageExtractorInput->GetOutput()); 
   frameRGB->Update(); 
 
-	imgDiff->SetImage( baselineRGB ); 
-	imgDiff->SetInput( frameRGB ); 
-	imgDiff->Update(); 
+  imgDiff->SetImage( baselineRGB ); 
+  imgDiff->SetInput( frameRGB ); 
+  imgDiff->Update(); 
 
-	double error = imgDiff->GetError(); 
+  double error = imgDiff->GetError(); 
 
-	if ( error > 0 )
-	{
-		std::cout << "Error = " << error << std::endl; 
-		return EXIT_FAILURE; 
-	}
+  if ( error > 0 )
+  {
+    std::cout << "Error = " << error << std::endl; 
+    return EXIT_FAILURE; 
+  }
 
-	return EXIT_SUCCESS; 
+  return EXIT_SUCCESS; 
 }

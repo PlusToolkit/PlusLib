@@ -56,7 +56,7 @@ vtkPhidgetSpatialTracker::vtkPhidgetSpatialTracker()
   this->FilteredTiltSensorAhrsAlgo=new MadgwickAhrsAlgo; 
   this->FilteredTiltSensorAhrsAlgorithmGain[0]=1.5; // proportional
   this->FilteredTiltSensorAhrsAlgorithmGain[1]=0.0; // integral
-  this->FilteredTiltSensorAhrsLastUpdateTime=-1;	
+  this->FilteredTiltSensorAhrsLastUpdateTime=-1;  
 
 
   this->RequireImageOrientationInConfiguration = false;

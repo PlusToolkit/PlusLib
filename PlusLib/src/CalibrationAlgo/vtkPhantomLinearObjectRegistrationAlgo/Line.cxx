@@ -50,7 +50,7 @@ void Line::Translate( std::vector<double> vector )
   for ( unsigned int i = 0; i < vector.size(); i++ )
   {
     this->BasePoint.at(i) = this->BasePoint.at(i) + vector.at(i);
-	this->EndPoint.at(i) = this->EndPoint.at(i) + vector.at(i);
+  this->EndPoint.at(i) = this->EndPoint.at(i) + vector.at(i);
   }
 }
 
@@ -64,17 +64,17 @@ std::vector<double> Line::GetOrthogonalNormal1()
   if ( abs( this->GetDirection().at(1) ) <= abs( this->GetDirection().at(0) ) && abs( this->GetDirection().at(2) ) <= abs( this->GetDirection().at(0) ) )
   {
     e1.at(0) = 0; e1.at(1) = 1; e1.at(2) = 0;
-	e2.at(0) = 0; e2.at(1) = 0; e2.at(2) = 1;
+  e2.at(0) = 0; e2.at(1) = 0; e2.at(2) = 1;
   }
   if ( abs( this->GetDirection().at(0) ) <= abs( this->GetDirection().at(1) ) && abs( this->GetDirection().at(2) ) <= abs( this->GetDirection().at(1) ) )
   {
     e1.at(0) = 1; e1.at(1) = 0; e1.at(2) = 0;
-	e2.at(0) = 0; e2.at(1) = 0; e2.at(2) = 1;
+  e2.at(0) = 0; e2.at(1) = 0; e2.at(2) = 1;
   }
   if ( abs( this->GetDirection().at(0) ) <= abs( this->GetDirection().at(2) ) && abs( this->GetDirection().at(1) ) <= abs( this->GetDirection().at(2) ) )
   {
     e1.at(0) = 1; e1.at(1) = 0; e1.at(2) = 0;
-	e2.at(0) = 0; e2.at(1) = 1; e2.at(2) = 0;
+  e2.at(0) = 0; e2.at(1) = 1; e2.at(2) = 0;
   }
 
   std::vector<double> Normal1 = Subtract( e1, Multiply( Dot( e1, this->GetDirection() ), this->GetDirection() ) );
@@ -96,17 +96,17 @@ std::vector<double> Line::GetOrthogonalNormal2()
   if ( abs( this->GetDirection().at(1) ) <= abs( this->GetDirection().at(0) ) && abs( this->GetDirection().at(2) ) <= abs( this->GetDirection().at(0) ) )
   {
     e1.at(0) = 0; e1.at(1) = 1; e1.at(2) = 0;
-	e2.at(0) = 0; e2.at(1) = 0; e2.at(2) = 1;
+  e2.at(0) = 0; e2.at(1) = 0; e2.at(2) = 1;
   }
   if ( abs( this->GetDirection().at(0) ) <= abs( this->GetDirection().at(1) ) && abs( this->GetDirection().at(2) ) <= abs( this->GetDirection().at(1) ) )
   {
     e1.at(0) = 1; e1.at(1) = 0; e1.at(2) = 0;
-	e2.at(0) = 0; e2.at(1) = 0; e2.at(2) = 1;
+  e2.at(0) = 0; e2.at(1) = 0; e2.at(2) = 1;
   }
   if ( abs( this->GetDirection().at(0) ) <= abs( this->GetDirection().at(2) ) && abs( this->GetDirection().at(1) ) <= abs( this->GetDirection().at(2) ) )
   {
     e1.at(0) = 1; e1.at(1) = 0; e1.at(2) = 0;
-	e2.at(0) = 0; e2.at(1) = 1; e2.at(2) = 0;
+  e2.at(0) = 0; e2.at(1) = 1; e2.at(2) = 0;
   }
 
   std::vector<double> Normal1 = Subtract( e1, Multiply( Dot( e1, this->GetDirection() ), this->GetDirection() ) );

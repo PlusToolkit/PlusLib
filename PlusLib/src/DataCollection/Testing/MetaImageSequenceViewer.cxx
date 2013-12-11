@@ -40,7 +40,7 @@ See License.txt for details.
 class vtkMyCallback : public vtkCommand
 {
 public:
-  static vtkMyCallback *New()	{return new vtkMyCallback;}
+  static vtkMyCallback *New()  {return new vtkMyCallback;}
 
   void Initialize(vtkRenderWindow *renWin, vtkRenderWindowInteractor *iren, 
     vtkTextActor *textActor, vtkCollection *imageActors, 
@@ -152,9 +152,9 @@ int main(int argc, char **argv)
   args.AddArgument("--image-to-reference-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &imageToReferenceTransformNameStr, "Transform name used for displaying the slices");  
   args.AddArgument("--source-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMetaFilename, "Tracked ultrasound recorded by Plus (e.g., by the TrackedUltrasoundCapturing application) in a sequence metafile (.mha)");
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Config file containing coordinate system definitions");
-  args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run in test mode, without rendering.");	
-  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
-  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
+  args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run in test mode, without rendering.");  
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
 
   if ( !args.Parse() )
   {
@@ -185,7 +185,7 @@ int main(int argc, char **argv)
   renWin->AddRenderer(renderer); 
 
   // Create imageactor collection
-  vtkSmartPointer<vtkCollection> imageActors = vtkSmartPointer<vtkCollection>::New(); 	
+  vtkSmartPointer<vtkCollection> imageActors = vtkSmartPointer<vtkCollection>::New();   
 
   //Create the interactor that handles the event loop
   vtkSmartPointer<vtkRenderWindowInteractor> iren = vtkSmartPointer<vtkRenderWindowInteractor>::New(); 
@@ -243,7 +243,7 @@ int main(int argc, char **argv)
     {
       LOG_ERROR("Failed to set repository transforms from tracked frame!"); 
       continue; 
-    }		
+    }    
 
     vtkSmartPointer<vtkImageData> frameImageData = vtkSmartPointer<vtkImageData>::New(); 
     frameImageData->DeepCopy(frame->GetImageData()->GetVtkImage()); 
@@ -310,7 +310,7 @@ int main(int argc, char **argv)
     call->Initialize(renWin, iren, textActor, imageActors, &imageTransforms);
     iren->AddObserver(vtkCommand::TimerEvent, call);
     iren->AddObserver(vtkCommand::CharEvent, call);
-    iren->CreateTimer(VTKI_TIMER_FIRST);		//VTKI_TIMER_FIRST = 0
+    iren->CreateTimer(VTKI_TIMER_FIRST);    //VTKI_TIMER_FIRST = 0
 
     //iren must be initialized so that it can handle events
     iren->Initialize();

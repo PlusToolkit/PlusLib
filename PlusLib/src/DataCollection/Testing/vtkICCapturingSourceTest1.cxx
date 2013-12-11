@@ -46,13 +46,13 @@ int main(int argc, char **argv)
 
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
-  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
-  args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
+  args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");  
   args.AddArgument("--device-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceName, "IC Capturing device name (Default: DFG/USB2-lt)." );
   args.AddArgument("--video-norm", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &videoNorm, "IC Capturing device video norm (Default: NTSC_M)." );
   args.AddArgument("--video-format", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &videoFormat, "IC Capturing device video format (Default: Y800 (640x480))." );
   args.AddArgument("--input-channel", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputChannel, "IC Capturing device input channel (Default: 01 Video: SVideo)." );
-  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
 
   if ( !args.Parse() )
   {
@@ -128,7 +128,7 @@ int main(int argc, char **argv)
   call->viewer=viewer;
   call->iren=iren;
   iren->AddObserver(vtkCommand::TimerEvent, call);
-  iren->CreateTimer(VTKI_TIMER_FIRST);		//VTKI_TIMER_FIRST = 0
+  iren->CreateTimer(VTKI_TIMER_FIRST);    //VTKI_TIMER_FIRST = 0
 
   // iren must be initialized so that it can handle events
   iren->Initialize();

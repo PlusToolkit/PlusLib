@@ -115,7 +115,7 @@ protected:
   bool HasGracePeriodExpired();
 
 private:
-	
+  
   /*! Get client socket corresponding to a client ID. Used by the command processor, which identifies clients by ID. */
   igtl::ClientSocket::Pointer GetClientSocket(int clientId);
 
