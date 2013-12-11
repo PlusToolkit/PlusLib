@@ -36,7 +36,7 @@ vtkVirtualDiscCapture::vtkVirtualDiscCapture()
 , m_EnableFileCompression(false)
 , m_HeaderPrepared(false)
 , TotalFramesRecorded(0)
-, EnableCapturing(true)
+, EnableCapturing(false)
 , FrameBufferSize(DISABLE_FRAME_BUFFER)
 , WriterAccessMutex(vtkSmartPointer<vtkRecursiveCriticalSection>::New())
 , GracePeriodLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG)
@@ -70,7 +70,7 @@ vtkVirtualDiscCapture::~vtkVirtualDiscCapture()
   // Capture fakes an output channel to enable "GetTrackedFrame" functionality
   // We don't want the plus device deconstructor destroying something it doesn't own
   // So clear it before it runs
-  this->OutputChannels.clear();
+  // this->OutputChannels.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -449,6 +449,7 @@ PlusStatus vtkVirtualDiscCapture::NotifyConfigured()
   // GetTrackedFrame reads from the OutputChannels
   // For now, place the input stream as an output stream so its data is read
   this->OutputChannels.push_back(this->InputChannels[0]);
+  this->InputChannels[0]->Register(this); // this device uses this channel, too, se we need to update the reference count to avoid double delete in the destructor
 
   return PLUS_SUCCESS;
 }

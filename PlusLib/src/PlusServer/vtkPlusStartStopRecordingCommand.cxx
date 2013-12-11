@@ -149,7 +149,7 @@ vtkVirtualDiscCapture* vtkPlusStartStopRecordingCommand::GetCaptureDevice(const 
       return NULL;
     }
     // device found
-    captureDevice = dynamic_cast<vtkVirtualDiscCapture*>(device);
+    captureDevice = vtkVirtualDiscCapture::SafeDownCast(device);
     if (captureDevice==NULL)
     {
       // wrong type
@@ -162,7 +162,7 @@ vtkVirtualDiscCapture* vtkPlusStartStopRecordingCommand::GetCaptureDevice(const 
     // No capture device id is specified, auto-detect the first one and use that
     for( DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it )
     {
-      captureDevice = dynamic_cast<vtkVirtualDiscCapture*>(*it);
+      captureDevice = vtkVirtualDiscCapture::SafeDownCast(*it);
       if (captureDevice!=NULL)
       {      
         // found a recording device
@@ -201,7 +201,7 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
   }    
 
   PlusStatus status=PLUS_SUCCESS;
-  std::string reply=std::string("VirtualStreamCapture (")+captureDevice->GetDeviceId()+") "+this->Name+" ";  
+  std::string reply=std::string("VirtualStreamCapture (")+captureDevice->GetDeviceId()+") "+this->Name;
   LOG_INFO("vtkPlusStartStopRecordingCommand::Execute: "<<this->Name);
   if (STRCASECMP(this->Name, START_CMD)==0)
   {
@@ -221,25 +221,22 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
   }
   else if (STRCASECMP(this->Name, STOP_CMD)==0)
   {    
-    captureDevice->SetEnableCapturing(false);
+    captureDevice->SetEnableCapturing(false);    
+    long numberOfFramesRecorded=captureDevice->GetTotalFramesRecorded();    
     if (captureDevice->CloseFile(this->OutputFilename) != PLUS_SUCCESS)
     {
       status=PLUS_FAIL;
-    }   
+    }
+    std::ostringstream ss;
+    ss << ", recording " << numberOfFramesRecorded <<" frames";
+    reply+=ss.str();
   }
   else
   {
-    reply+="unknown command, ";
-    SetCommandCompleted(PLUS_FAIL,reply);
+    reply+=" unknown command";
+    status=PLUS_FAIL;
   }
-  if (status==PLUS_SUCCESS)
-  {
-    reply+="completed successfully";
-  }
-  else
-  {
-    reply+="failed";
-  }
+  reply += (status==PLUS_SUCCESS ? " completed successfully" : " failed");
   SetCommandCompleted(status,reply);
   return status;
 }

@@ -104,6 +104,14 @@ public:
   PlusStatus SaveReconstructedVolumeToMetafile(const char* filename, bool alpha=false, bool useCompression=true);
 
   /*!
+    Save reconstructed volume to metafile
+    \param volumeToSave Reconstructed volume to be saved
+    \param filename Path and filename of the output file
+    \useCompression True if compression is turned on (default), false otherwise
+  */
+  static PlusStatus SaveReconstructedVolumeToMetafile(vtkImageData* volumeToSave, const char* filename, bool useCompression=true);
+
+  /*!
     Save reconstructed volume to VTK file
     \param filename Path and filename of the output file
     \alpha True if alpha channel needs to be saved, false if gray levels (default)
@@ -126,6 +134,9 @@ public:
 
   /*! Get the clip rectangle size in pixels */
   int* GetClipRectangleSize();
+
+  /*! Clear the reconstructed volume */
+  void Reset();
 
 protected: 
   vtkVolumeReconstructor();

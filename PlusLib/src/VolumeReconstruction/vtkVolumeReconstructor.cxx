@@ -797,22 +797,6 @@ PlusStatus vtkVolumeReconstructor::ExtractAlpha(vtkImageData* reconstructedVolum
 PlusStatus vtkVolumeReconstructor::SaveReconstructedVolumeToMetafile(const char* filename, bool alpha/*=false*/, bool useCompression/*=true*/)
 {
   vtkSmartPointer<vtkImageData> volumeToSave = vtkSmartPointer<vtkImageData>::New();
-
-  MET_ValueEnumType scalarType = MET_NONE;
-  if (this->Reconstructor->GetOutputScalarMode() == VTK_UNSIGNED_CHAR)
-  {
-    scalarType = MET_UCHAR;
-  }
-  else if (this->Reconstructor->GetOutputScalarMode() == VTK_FLOAT)
-  {
-    scalarType = MET_FLOAT;
-  }
-  else
-  {
-    LOG_ERROR("Scalar type is not supported!");
-    return PLUS_FAIL;
-  }
-
   if (alpha)
   {
     if (this->ExtractAlpha(volumeToSave) != PLUS_SUCCESS)
@@ -828,6 +812,27 @@ PlusStatus vtkVolumeReconstructor::SaveReconstructedVolumeToMetafile(const char*
       LOG_ERROR("Extracting alpha channel failed!");
       return PLUS_FAIL;
     }
+  }
+  return SaveReconstructedVolumeToMetafile(volumeToSave, filename, useCompression);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkVolumeReconstructor::SaveReconstructedVolumeToMetafile(vtkImageData* volumeToSave, const char* filename, bool useCompression/*=true*/)
+{
+  if (volumeToSave==NULL)
+  {
+    LOG_ERROR("vtkVolumeReconstructor::SaveReconstructedVolumeToMetafile: invalid input image");
+    return PLUS_FAIL;
+  }
+
+  MET_ValueEnumType scalarType = MET_NONE;
+  switch (volumeToSave->GetScalarType())
+  {
+  case VTK_UNSIGNED_CHAR: scalarType = MET_UCHAR; break;
+  case VTK_FLOAT: scalarType = MET_FLOAT; break;
+  default:
+    LOG_ERROR("Scalar type is not supported!");
+    return PLUS_FAIL;
   }
 
   MetaImage metaImage(volumeToSave->GetDimensions()[0], volumeToSave->GetDimensions()[1], volumeToSave->GetDimensions()[2],
@@ -890,4 +895,10 @@ int* vtkVolumeReconstructor::GetClipRectangleOrigin()
 int* vtkVolumeReconstructor::GetClipRectangleSize()
 {
   return this->Reconstructor->GetClipRectangleSize();
+}
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::Reset()
+{
+  this->Reconstructor->ResetOutput();
 }

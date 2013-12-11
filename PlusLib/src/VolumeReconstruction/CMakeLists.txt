@@ -33,7 +33,6 @@ SET (VolumeReconstruction_LIBS
   vtkFiltering 
   vtkPlusCommon 
   vtkSignaling  
-  vtkDataCollection 
   )
 
 INCLUDE_DIRECTORIES( ${VolumeReconstruction_INCLUDE_DIRS} )
