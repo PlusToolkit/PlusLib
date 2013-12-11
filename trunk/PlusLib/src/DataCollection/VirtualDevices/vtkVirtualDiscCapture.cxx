@@ -28,7 +28,7 @@ vtkVirtualDiscCapture::vtkVirtualDiscCapture()
 , m_SamplingFrameRate(8)
 , RequestedFrameRate(0.0)
 , ActualFrameRate(0.0)
-, m_FirstFrameIndexInThisSegment(0.0)
+, m_FirstFrameIndexInThisSegment(0)
 , m_TimeWaited(0.0)
 , m_LastUpdateTime(0.0)
 , m_BaseFilename("TrackedImageSequence.mha")
@@ -90,7 +90,7 @@ PlusStatus vtkVirtualDiscCapture::ReadConfiguration( vtkXMLDataElement* rootConf
   vtkXMLDataElement* deviceElement = this->FindThisDeviceElement(rootConfig);
   if (deviceElement == NULL) 
   {
-    LOG_ERROR("Cannot find 3dConnexion element in XML tree!");
+    LOG_ERROR("Cannot find the virtual disc capture device element in XML tree");
     return PLUS_FAIL;
   }
 
@@ -112,7 +112,7 @@ PlusStatus vtkVirtualDiscCapture::ReadConfiguration( vtkXMLDataElement* rootConf
     this->EnableCapturing = STRCASECMP(enableCapturing, "true") == 0 ? true : false;
   }
 
-  double requestedFrameRate;
+  double requestedFrameRate=15.0;
   if( deviceElement->GetScalarAttribute("RequestedFrameRate", requestedFrameRate) )
   {
     this->SetRequestedFrameRate(requestedFrameRate);
@@ -122,7 +122,7 @@ PlusStatus vtkVirtualDiscCapture::ReadConfiguration( vtkXMLDataElement* rootConf
     this->SetRequestedFrameRate(15.0);
   }
 
-  int frameBufferSize;
+  int frameBufferSize=0;
   if( deviceElement->GetScalarAttribute("FrameBufferSize", frameBufferSize) && frameBufferSize > 0 )
   {
     // This is a buffered disc capture device
@@ -268,7 +268,7 @@ PlusStatus vtkVirtualDiscCapture::CloseFile(const char* aFilename)
   int dimensions[3]={0};
   dimensions[0] = m_Writer->GetDimensions()[0];
   dimensions[1] = m_Writer->GetDimensions()[1];
-  dimensions[2] = TotalFramesRecorded;
+  dimensions[2] = this->TotalFramesRecorded;
   dimSizeStr << dimensions[0] << " " << dimensions[1] << " " << dimensions[2];
   m_Writer->GetTrackedFrameList()->SetCustomString("DimSize", dimSizeStr.str().c_str());
   m_Writer->UpdateFieldInImageHeader("DimSize");
@@ -366,14 +366,8 @@ PlusStatus vtkVirtualDiscCapture::InternalUpdate()
   if ( this->GetInputTrackedFrameListSampled(m_LastAlreadyRecordedFrameTimestamp, m_NextFrameToBeRecordedTimestamp, m_RecordedFrames, requestedFramePeriodSec, maxProcessingTimeSec) != PLUS_SUCCESS )
   {
     LOG_ERROR("Error while getting tracked frame list from data collector during capturing. Last recorded timestamp: " << std::fixed << m_NextFrameToBeRecordedTimestamp ); 
-  }
+  }  
   int nbFramesAfter = m_RecordedFrames->GetNumberOfTrackedFrames();
-
-  if( nbFramesAfter - nbFramesBefore == 0 && m_RecordedFrames->GetNumberOfTrackedFrames() == 0 ) // spin wheels until data to write)
-  {
-    LOG_DYNAMIC("No input data available to capture thread. Waiting until input data arrives.", this->GracePeriodLogLevel);
-    return PLUS_SUCCESS;
-  }
 
   if( this->WriteFrames() != PLUS_SUCCESS )
   {
@@ -383,14 +377,20 @@ PlusStatus vtkVirtualDiscCapture::InternalUpdate()
 
   this->TotalFramesRecorded += nbFramesAfter - nbFramesBefore;
 
+  if( this->TotalFramesRecorded == 0)
+  {
+    // We haven't received any data so far
+    LOG_DYNAMIC("No input data available to capture thread. Waiting until input data arrives.", this->GracePeriodLogLevel);
+  }
+
   // Check whether the recording needed more time than the sampling interval
   double recordingTimeSec = vtkAccurateTimer::GetSystemTime() - startTimeSec;
   if (recordingTimeSec > GetSamplingPeriodSec())
   {
     LOG_WARNING("Recording of frames takes too long time (" << recordingTimeSec << "sec instead of the allocated " << GetSamplingPeriodSec() << "sec). This can cause slow-down of the application and non-uniform sampling. Reduce the acquisition rate or sampling rate to resolve the problem.");
   }
-  double recordingLagSec = vtkAccurateTimer::GetSystemTime() - m_NextFrameToBeRecordedTimestamp;
 
+  double recordingLagSec = vtkAccurateTimer::GetSystemTime() - m_NextFrameToBeRecordedTimestamp;
   if (recordingLagSec > MAX_ALLOWED_RECORDING_LAG_SEC)
   {
     LOG_ERROR("Recording cannot keep up with the acquisition. Skip " << recordingLagSec << " seconds of the data stream to catch up.");
@@ -737,7 +737,7 @@ PlusStatus vtkVirtualDiscCapture::GetInputTrackedFrame( TrackedFrame* aFrame )
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkVirtualDiscCapture::GetInputTrackedFrameListSampled( double lastAlreadyRecordedFrameTimestamp, double nextFrameToBeRecordedTimestamp, vtkTrackedFrameList* recordedFrames, double requestedFramePeriodSec, double maxProcessingTimeSec )
+PlusStatus vtkVirtualDiscCapture::GetInputTrackedFrameListSampled( double &lastAlreadyRecordedFrameTimestamp, double &nextFrameToBeRecordedTimestamp, vtkTrackedFrameList* recordedFrames, double requestedFramePeriodSec, double maxProcessingTimeSec )
 {
   return this->OutputChannels[0]->GetTrackedFrameListSampled(lastAlreadyRecordedFrameTimestamp, nextFrameToBeRecordedTimestamp, recordedFrames, requestedFramePeriodSec, maxProcessingTimeSec);
 }
