@@ -19,26 +19,26 @@
 int main(int argc, char **argv)
 {
   // Parse command-line arguments
-	bool printHelp(false);
-	int verboseLevel(vtkPlusLogger::LOG_LEVEL_UNDEFINED);
-	vtksys::CommandLineArguments args;
-	args.Initialize(argc, argv);
-	args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
-	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
-	if ( !args.Parse() )
-	{
-		std::cerr << "Problem parsing arguments" << std::endl;
-		std::cout << "Help: " << args.GetHelp() << std::endl;
-		exit(EXIT_FAILURE);
-	}
+  bool printHelp(false);
+  int verboseLevel(vtkPlusLogger::LOG_LEVEL_UNDEFINED);
+  vtksys::CommandLineArguments args;
+  args.Initialize(argc, argv);
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
+  if ( !args.Parse() )
+  {
+    std::cerr << "Problem parsing arguments" << std::endl;
+    std::cout << "Help: " << args.GetHelp() << std::endl;
+    exit(EXIT_FAILURE);
+  }
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
   
-	if ( printHelp ) 
-	{
-		std::cout << "Help: " << args.GetHelp() << std::endl;
-		exit(EXIT_SUCCESS); 
+  if ( printHelp ) 
+  {
+    std::cout << "Help: " << args.GetHelp() << std::endl;
+    exit(EXIT_SUCCESS); 
 
-	}	
+  }  
 
   /////////////////////////////////////////////////////////////////////////////
   // Set up coordinate transforms
@@ -346,5 +346,5 @@ int main(int argc, char **argv)
   }
 
   LOG_INFO("Test successfully completed");
-	return EXIT_SUCCESS; 
+  return EXIT_SUCCESS; 
  }

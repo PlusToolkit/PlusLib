@@ -115,41 +115,41 @@ int main(int argc, char **argv)
   int fillGrayLevel=0; // Rectangle fill color
 
   args.Initialize(argc, argv);
-  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
-  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
 
-  args.AddArgument("--source-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFileName, "Input sequence metafile name with path to edit");	
-  args.AddArgument("--source-seq-files", vtksys::CommandLineArguments::MULTI_ARGUMENT, &inputFileNames, "Input sequence metafile name list with path to edit");	
-  args.AddArgument("--output-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFileName, "Output sequence metafile name with path to save the result");	
+  args.AddArgument("--source-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFileName, "Input sequence metafile name with path to edit");  
+  args.AddArgument("--source-seq-files", vtksys::CommandLineArguments::MULTI_ARGUMENT, &inputFileNames, "Input sequence metafile name list with path to edit");  
+  args.AddArgument("--output-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFileName, "Output sequence metafile name with path to save the result");  
 
-  args.AddArgument("--operation", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strOperation, "Operation to modify sequence file (Available operations: UPDATE_FRAME_FIELD_NAME, UPDATE_FRAME_FIELD_VALUE, DELETE_FRAME_FIELD, UPDATE_FIELD_NAME, UPDATE_FIELD_VALUE, DELETE_FIELD, TRIM, MERGE, FILL_IMAGE_RECTANGLE, CROP)." );	
+  args.AddArgument("--operation", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strOperation, "Operation to modify sequence file (Available operations: UPDATE_FRAME_FIELD_NAME, UPDATE_FRAME_FIELD_VALUE, DELETE_FRAME_FIELD, UPDATE_FIELD_NAME, UPDATE_FIELD_VALUE, DELETE_FIELD, TRIM, MERGE, FILL_IMAGE_RECTANGLE, CROP)." );  
 
   // Trimming parameters 
-  args.AddArgument("--first-frame-index", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &firstFrameIndex, "First frame index used for trimming the sequence metafile. Index of the first frame of the sequence is 0.");	
-  args.AddArgument("--last-frame-index", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &lastFrameIndex, "Last frame index used for trimming the sequence metafile.");	
+  args.AddArgument("--first-frame-index", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &firstFrameIndex, "First frame index used for trimming the sequence metafile. Index of the first frame of the sequence is 0.");  
+  args.AddArgument("--last-frame-index", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &lastFrameIndex, "Last frame index used for trimming the sequence metafile.");  
 
-  args.AddArgument("--field-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &fieldName, "Field name to edit");	
-  args.AddArgument("--updated-field-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &updatedFieldName, "Updated field name after edit");	
-  args.AddArgument("--updated-field-value", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &updatedFieldValue, "Updated field value after edit");	
+  args.AddArgument("--field-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &fieldName, "Field name to edit");  
+  args.AddArgument("--updated-field-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &updatedFieldName, "Updated field name after edit");  
+  args.AddArgument("--updated-field-value", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &updatedFieldValue, "Updated field value after edit");  
   
-  args.AddArgument("--frame-scalar-start", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frameScalarStart, "Frame scalar field value starting index (Default: 0.0)");	
-  args.AddArgument("--frame-scalar-increment", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frameScalarIncrement, "Frame scalar field value increment (Default: 1.0)");	
-  args.AddArgument("--frame-scalar-decimal-digits", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frameScalarDecimalDigits, "Number of digits saved for frame scalar field value into sequence metafile (Default: 5)");	
+  args.AddArgument("--frame-scalar-start", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frameScalarStart, "Frame scalar field value starting index (Default: 0.0)");  
+  args.AddArgument("--frame-scalar-increment", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frameScalarIncrement, "Frame scalar field value increment (Default: 1.0)");  
+  args.AddArgument("--frame-scalar-decimal-digits", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frameScalarDecimalDigits, "Number of digits saved for frame scalar field value into sequence metafile (Default: 5)");  
 
-  args.AddArgument("--frame-transform-start", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strFrameTransformStart, "Frame transform field starting 4x4 transform matrix (Default: identity)");	
-  args.AddArgument("--frame-transform-increment", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strFrameTransformIncrement, "Frame transform increment 4x4 transform matrix (Default: identity)");	
+  args.AddArgument("--frame-transform-start", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strFrameTransformStart, "Frame transform field starting 4x4 transform matrix (Default: identity)");  
+  args.AddArgument("--frame-transform-increment", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strFrameTransformIncrement, "Frame transform increment 4x4 transform matrix (Default: identity)");  
  
-  args.AddArgument("--update-reference-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strUpdatedReferenceTransformName, "Set the reference transform name to update old metafiles by changing all ToolToReference transforms to ToolToTracker transform.");	
+  args.AddArgument("--update-reference-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strUpdatedReferenceTransformName, "Set the reference transform name to update old metafiles by changing all ToolToReference transforms to ToolToTracker transform.");  
  
-  args.AddArgument("--use-compression", vtksys::CommandLineArguments::NO_ARGUMENT, &useCompression, "Compress sequence metafile images.");	
-  args.AddArgument("--increment-timestamps", vtksys::CommandLineArguments::NO_ARGUMENT, &incrementTimestamps, "Increment timestamps in the order of the input-file-names");	
+  args.AddArgument("--use-compression", vtksys::CommandLineArguments::NO_ARGUMENT, &useCompression, "Compress sequence metafile images.");  
+  args.AddArgument("--increment-timestamps", vtksys::CommandLineArguments::NO_ARGUMENT, &incrementTimestamps, "Increment timestamps in the order of the input-file-names");  
 
-  args.AddArgument("--add-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformNameToAdd, "Name of the transform to add to each frame (eg. 'StylusTipToTracker')");	
-  args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceSetConfigurationFileName, "Used device set configuration file path and name");	
+  args.AddArgument("--add-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformNameToAdd, "Name of the transform to add to each frame (eg. 'StylusTipToTracker')");  
+  args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceSetConfigurationFileName, "Used device set configuration file path and name");  
 
   args.AddArgument("--rect-origin", vtksys::CommandLineArguments::MULTI_ARGUMENT, &rectOriginPix, "Fill or crop rectangle top-left corner position in MF coordinate frame, in pixels. Required for FILL_IMAGE_RECTANGLE and CROP operations.");
   args.AddArgument("--rect-size", vtksys::CommandLineArguments::MULTI_ARGUMENT, &rectSizePix, "Fill or crop rectangle size in MF coordinate frame, in pixels. Required for FILL_IMAGE_RECTANGLE and CROP operations.");
-  args.AddArgument("--fill-gray-level", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &fillGrayLevel, "Rectangle fill gray level. 0 = black, 255 = white. (Default: 0)");	
+  args.AddArgument("--fill-gray-level", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &fillGrayLevel, "Rectangle fill gray level. 0 = black, 255 = white. (Default: 0)");  
 
   if ( !args.Parse() )
   {
@@ -282,16 +282,16 @@ int main(int argc, char **argv)
   double lastTimestamp = 0; 
   for ( unsigned int i = 0; i < inputFileNames.size(); i++ )
   {
-    vtkSmartPointer<vtkMetaImageSequenceIO> reader = vtkSmartPointer<vtkMetaImageSequenceIO>::New();				
+    vtkSmartPointer<vtkMetaImageSequenceIO> reader = vtkSmartPointer<vtkMetaImageSequenceIO>::New();        
     reader->SetFileName(inputFileNames[i].c_str());
 
     LOG_INFO("Read input sequence metafile: " << inputFileNames[i] ); 
 
     if (reader->Read()!=PLUS_SUCCESS)
-    {		
+    {    
       LOG_ERROR("Couldn't read sequence metafile: " <<  inputFileName ); 
       return EXIT_FAILURE;
-    }	
+    }  
 
     if ( incrementTimestamps )
     {
@@ -561,16 +561,16 @@ int main(int argc, char **argv)
   // Save output file to metafile 
 
   LOG_INFO("Save output sequence metafile to: " << outputFileName ); 
-  vtkSmartPointer<vtkMetaImageSequenceIO> writer=vtkSmartPointer<vtkMetaImageSequenceIO>::New();			
+  vtkSmartPointer<vtkMetaImageSequenceIO> writer=vtkSmartPointer<vtkMetaImageSequenceIO>::New();      
   writer->SetFileName(outputFileName.c_str());
   writer->SetTrackedFrameList(trackedFrameList); 
   writer->SetUseCompression(useCompression);
 
   if (writer->Write() != PLUS_SUCCESS)
-  {		
+  {    
     LOG_ERROR("Couldn't write sequence metafile: " <<  outputFileName ); 
     return EXIT_FAILURE;
-  }	
+  }  
 
   LOG_INFO("Sequence metafile editing was successful!"); 
   return EXIT_SUCCESS; 
@@ -694,7 +694,7 @@ PlusStatus UpdateFrameFieldValue( FrameFieldUpdate& fieldUpdate )
         double transformMatrix[16]={0}; 
         vtkMatrix4x4::DeepCopy(transformMatrix, frameTransform->GetMatrix()); 
         std::ostringstream strTransform; 
-        strTransform	<< std::fixed << std::setprecision(fieldUpdate.FrameScalarDecimalDigits) 
+        strTransform  << std::fixed << std::setprecision(fieldUpdate.FrameScalarDecimalDigits) 
           << transformMatrix[0]  << " " << transformMatrix[1]  << " " << transformMatrix[2]  << " " << transformMatrix[3]  << " " 
           << transformMatrix[4]  << " " << transformMatrix[5]  << " " << transformMatrix[6]  << " " << transformMatrix[7]  << " " 
           << transformMatrix[8]  << " " << transformMatrix[9]  << " " << transformMatrix[10] << " " << transformMatrix[11] << " " 
@@ -765,7 +765,7 @@ PlusStatus AddTransform( vtkTrackedFrameList* trackedFrameList, std::string tran
   // Read configuration
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(deviceSetConfigurationFileName.c_str()));
   if (configRootElement == NULL)
-  {	
+  {  
     LOG_ERROR("Unable to read device set configuration from file " << deviceSetConfigurationFileName); 
     return PLUS_FAIL;
   }

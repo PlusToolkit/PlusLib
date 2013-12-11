@@ -205,7 +205,7 @@ int main(int argc, char **argv)
   args.AddArgument("--intermediate-file-output-dir", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &intermediateFileOutputDirectory, "Directory into which the intermediate files are written");
   args.AddArgument("--clip-rect-origin", vtksys::CommandLineArguments::MULTI_ARGUMENT, &clipRectOrigin, "Origin of the clipping rectangle");
   args.AddArgument("--clip-rect-size", vtksys::CommandLineArguments::MULTI_ARGUMENT, &clipRectSize, "Size of the clipping rectangle");
-  args.AddArgument("--baseline-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Input xml baseline file name with path");	  
+  args.AddArgument("--baseline-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Input xml baseline file name with path");    
 
   if ( !args.Parse() )
   {
@@ -340,7 +340,7 @@ int main(int argc, char **argv)
   std::ostrstream trackerLagOutputFilename;
   trackerLagOutputFilename << intermediateFileOutputDirectory << "/TemporalCalibrationResults.xml" << std::ends;
   WriteCalibrationResultToFile(trackerLagOutputFilename.str(), calibResult);
-	
+  
   if (plotResults)
   {
     vtkSmartPointer<vtkTable> videoPositionMetric=vtkSmartPointer<vtkTable>::New();
@@ -370,7 +370,7 @@ int main(int argc, char **argv)
     xLabel = "Tracker Offset [s]"; 
     yLabel = "Correlation Value";
     SaveMetricPlot(filename.c_str(), correlationSignal, correlationSignalFine, xLabel, yLabel);
-	}
+  }
 
     // Compare result to baseline
   if (!inputBaselineFileName.empty())

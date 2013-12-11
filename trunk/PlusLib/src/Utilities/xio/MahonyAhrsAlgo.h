@@ -7,9 +7,9 @@ See License.txt for details.
 // Madgwick's implementation of Mahony's AHRS algorithm.
 // See: http://www.x-io.co.uk/node/8#open_source_ahrs_and_imu_algorithms
 //
-// Date			Author			Notes
-// 29/09/2011	SOH Madgwick    Initial release
-// 02/10/2011	SOH Madgwick	Optimised for reduced CPU load
+// Date      Author      Notes
+// 29/09/2011  SOH Madgwick    Initial release
+// 02/10/2011  SOH Madgwick  Optimised for reduced CPU load
 
 #ifndef MahonyAhrsAlgo_h
 #define MahonyAhrsAlgo_h
@@ -37,8 +37,8 @@ public:
 
 protected:  
 
-  float twoKp;			// 2 * proportional gain (Kp)
-  float twoKi;			// 2 * integral gain (Ki)
+  float twoKp;      // 2 * proportional gain (Kp)
+  float twoKi;      // 2 * integral gain (Ki)
   
   // integral error terms scaled by Ki
   float integralFBx;

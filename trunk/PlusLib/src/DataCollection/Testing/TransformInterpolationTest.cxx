@@ -19,47 +19,47 @@ int main(int argc, char **argv)
 {
   int numberOfErrors(0); 
 
-	bool printHelp(false);
+  bool printHelp(false);
   std::string inputMetafile;
   std::string inputBaselineReportFilePath(""); 
   double inputMaxTranslationDifference(0.5); 
   double inputMaxRotationDifference(1.0); 
   std::string inputTransformName; 
 
-	int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
-	vtksys::CommandLineArguments args;
-	args.Initialize(argc, argv);
+  vtksys::CommandLineArguments args;
+  args.Initialize(argc, argv);
 
   args.AddArgument("--transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformName, "Transform name used for generating transform interpolation");
-	args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
   args.AddArgument("--source-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMetafile, "Input sequence metafile.");
   args.AddArgument("--max-rotation-difference", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMaxRotationDifference, "Maximum rotation difference in degrees (Default: 1 deg).");
   args.AddArgument("--max-translation-difference", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMaxTranslationDifference, "Maximum translation difference (Default: 0.5 mm).");
-	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
-	
-	if ( !args.Parse() )
-	{
-		std::cerr << "Problem parsing arguments" << std::endl;
-		std::cout << "Help: " << args.GetHelp() << std::endl;
-		exit(EXIT_FAILURE);
-	}
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
+  
+  if ( !args.Parse() )
+  {
+    std::cerr << "Problem parsing arguments" << std::endl;
+    std::cout << "Help: " << args.GetHelp() << std::endl;
+    exit(EXIT_FAILURE);
+  }
   
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-	if ( printHelp ) 
-	{
-		std::cout << "Help: " << args.GetHelp() << std::endl;
-		exit(EXIT_SUCCESS); 
+  if ( printHelp ) 
+  {
+    std::cout << "Help: " << args.GetHelp() << std::endl;
+    exit(EXIT_SUCCESS); 
 
-	}
+  }
 
   if ( inputMetafile.empty() )
   {
     std::cerr << "input-metafile argument required!" << std::endl; 
     std::cout << "Help: " << args.GetHelp() << std::endl;
-		exit(EXIT_FAILURE); 
-  }	
+    exit(EXIT_FAILURE); 
+  }  
 
   // Read buffer 
   LOG_INFO("Reading tracker meta file..."); 
@@ -169,6 +169,6 @@ int main(int argc, char **argv)
   }
 
   LOG_INFO("Test completed successfully!");
-	return EXIT_SUCCESS; 
+  return EXIT_SUCCESS; 
  } 
 

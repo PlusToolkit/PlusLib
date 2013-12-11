@@ -106,7 +106,7 @@ public:
   void SetToolToTrackerTransform(const char * aToolName, vtkMatrix4x4*  toolToTrackerTransform)
   {
     vtkSmartPointer<vtkTransform> normalizedTransform=vtkSmartPointer<vtkTransform>::New();
-    normalizedTransform->SetMatrix(toolToTrackerTransform);	
+    normalizedTransform->SetMatrix(toolToTrackerTransform);  
     this->ToolActors[aToolName]->SetUserTransform(normalizedTransform);
   }
 
@@ -161,7 +161,7 @@ public:
 
       if ( status!=FIELD_OK )
       {
-        ss	<< "missing or out of view\n"; 
+        ss  << "missing or out of view\n"; 
         SetToolVisible(tool->GetSourceId(),false);        
         continue;
       }
@@ -169,7 +169,7 @@ public:
       // There is a valid transform
       SetToolToTrackerTransform(tool->GetSourceId(), toolToTrackerTransform);
       SetToolVisible(tool->GetSourceId(),true);
-      ss	<< std::fixed 
+      ss  << std::fixed 
         << toolToTrackerTransform->GetElement(0,0) << "   " << toolToTrackerTransform->GetElement(0,1) << "   " << toolToTrackerTransform->GetElement(0,2) << "   " << toolToTrackerTransform->GetElement(0,3) << " / "
         << toolToTrackerTransform->GetElement(1,0) << "   " << toolToTrackerTransform->GetElement(1,1) << "   " << toolToTrackerTransform->GetElement(1,2) << "   " << toolToTrackerTransform->GetElement(1,3) << " / "
         << toolToTrackerTransform->GetElement(2,0) << "   " << toolToTrackerTransform->GetElement(2,1) << "   " << toolToTrackerTransform->GetElement(2,2) << "   " << toolToTrackerTransform->GetElement(2,3) << " / "
@@ -216,11 +216,11 @@ int main(int argc, char **argv)
   args.Initialize(argc, argv);
 
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Name of the input configuration file.");
-  args.AddArgument("--tool-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputToolName, "Will print the actual transform of this tool (names were defined in the config file, default is the first active tool)");	
-  args.AddArgument("--acq-time-length", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputAcqTimeLength, "Length of acquisition time in seconds (Default: 60s)");	
+  args.AddArgument("--tool-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputToolName, "Will print the actual transform of this tool (names were defined in the config file, default is the first active tool)");  
+  args.AddArgument("--acq-time-length", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputAcqTimeLength, "Length of acquisition time in seconds (Default: 60s)");  
   args.AddArgument("--output-tracker-buffer-seq-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputTrackerBufferSequenceFileName, "Filename of the output tracker bufffer sequence metafile (Default: TrackerBufferMetafile)");
-  args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
-  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
+  args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");  
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
 
   if ( !args.Parse() )
   {
@@ -242,7 +242,7 @@ int main(int argc, char **argv)
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
     vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
   if (configRootElement == NULL)
-  {	
+  {  
     std::cerr << "Unable to read configuration from file " << inputConfigFileName.c_str()<< std::endl;
     exit(EXIT_FAILURE);
   }
@@ -369,7 +369,7 @@ int main(int argc, char **argv)
     iren->SetInteractorStyle(style); 
 
     // Must be called after iren and renderer are linked or there will be problems
-    renderer->Render();	
+    renderer->Render();  
 
     // iren must be initialized so that it can handle events
     iren->Initialize();

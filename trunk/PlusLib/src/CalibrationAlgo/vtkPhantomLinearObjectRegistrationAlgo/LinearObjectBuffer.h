@@ -25,7 +25,7 @@ See License.txt for details.
 class LinearObjectBuffer
 {
 private:
-	std::vector<LinearObject*> objects;
+  std::vector<LinearObject*> objects;
 
 public:
   LinearObjectBuffer();

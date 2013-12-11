@@ -82,18 +82,18 @@ void PointObservation
   for ( int i = 0; i < 16; i++ )
   {
     matrixstring >> value;
-	if ( i == 3 )
-	{
-	  this->Observation.at(0) = value;
-	}
-	if ( i == 7 )
-	{
-	  this->Observation.at(1) = value;
-	}
-	if ( i == 11 )
-	{
-	  this->Observation.at(2) = value;
-	}
+  if ( i == 3 )
+  {
+    this->Observation.at(0) = value;
+  }
+  if ( i == 7 )
+  {
+    this->Observation.at(1) = value;
+  }
+  if ( i == 11 )
+  {
+    this->Observation.at(2) = value;
+  }
   }
 
 }
@@ -125,23 +125,23 @@ bool PointObservation
   for ( int i = 0; i < 16; i++ )
   {
     currmatrixstring >> currValue;
-	prevmatrixstring >> prevValue;
-	if ( i == 0 || i == 1 || i == 2 || i == 4 || i == 5 || i == 6 || i == 8 || i == 9 || i == 10 )
-	{
-	  currRotation.push_back( currValue );
-	  prevRotation.push_back( prevValue );
-	}
-	if ( i == 3 || i == 7 || i == 11 )
-	{
-	  currTranslation.push_back( currValue );
-	  prevTranslation.push_back( prevValue );
-	}
+  prevmatrixstring >> prevValue;
+  if ( i == 0 || i == 1 || i == 2 || i == 4 || i == 5 || i == 6 || i == 8 || i == 9 || i == 10 )
+  {
+    currRotation.push_back( currValue );
+    prevRotation.push_back( prevValue );
+  }
+  if ( i == 3 || i == 7 || i == 11 )
+  {
+    currTranslation.push_back( currValue );
+    prevTranslation.push_back( prevValue );
+  }
   }
 
   if ( LinearObject::Distance( currRotation, prevRotation ) > ROTATION_THRESHOLD || LinearObject::Distance( currTranslation, prevTranslation ) > TRANSLATION_THRESHOLD )
   {
     this->FromXMLElement( currElement );
-	return true;
+  return true;
   }
 
   return false;

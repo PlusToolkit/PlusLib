@@ -36,9 +36,10 @@ class VTK_EXPORT vtkMmfVideoSource : public vtkPlusDevice, public IMFSourceReade
   class VideoFormat
   {
   public:
-    GUID SourcePixelFormat;
-    int width;
-    int height;
+    GUID PixelFormat;
+    std::string PixelFormatName;
+    int Width;
+    int Height;
   };
 
 public:
@@ -69,6 +70,9 @@ protected:
   /*! Device-specific connect */
   virtual PlusStatus InternalConnect();
 
+  /*! Set the capture device to the specified parameters */
+  void ConfigureCaptureDevice();
+
   /*! Device-specific disconnect */
   virtual PlusStatus InternalDisconnect();
 
@@ -77,8 +81,6 @@ protected:
 
   /*! Device-specific recording stop */
   virtual PlusStatus InternalStopRecording();
-
-  PlusStatus ConfigureDecoder();
 
   PlusStatus UpdateFrameSize();
 

@@ -42,11 +42,11 @@ int main(int argc, char **argv)
   std::string inputBaselineFileName(""); 
   std::string inputConfigFileName(""); 
 
-  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
-	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
-  args.AddArgument("--source-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSequenceMetafile, "Input sequence metafile name with path");	
-  args.AddArgument("--baseline-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Input xml baseline file name with path");	
-  args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Input xml config file name with path");	
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
+  args.AddArgument("--source-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSequenceMetafile, "Input sequence metafile name with path");  
+  args.AddArgument("--baseline-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Input xml baseline file name with path");  
+  args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Input xml config file name with path");  
     
   if ( !args.Parse() )
   {
@@ -74,16 +74,16 @@ int main(int argc, char **argv)
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
     vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
   if (configRootElement == NULL)
-  {	
+  {  
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
-		exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);
   }
 
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
 
-	FidPatternRecognition patternRecognition;
+  FidPatternRecognition patternRecognition;
   PatternRecognitionError error;
-	patternRecognition.ReadConfiguration(configRootElement);
+  patternRecognition.ReadConfiguration(configRootElement);
 
   LOG_INFO("Read center of rotation data from metafile...");
 
@@ -196,7 +196,7 @@ int main(int argc, char **argv)
   const char calibResultSaveFilename[]="CenterOfRotationCalibrationResults.xml";
   LOG_INFO("Save calibration results to XML file: "<<calibResultSaveFilename); 
   std::ofstream outFile; 
-  outFile.open(calibResultSaveFilename);	
+  outFile.open(calibResultSaveFilename);  
   outFile << "<CalibrationResults>" << std::endl;
   outFile << "  <CenterOfRotationCalibrationResult " << std::fixed << std::setprecision(8)
     << "CenterOfRotationPx=\""<<centerOfRotationPx[0]<<" "<<centerOfRotationPx[1]<<"\" "

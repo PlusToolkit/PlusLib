@@ -51,11 +51,11 @@ int main(int argc, char* argv[])
 
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_INFO;
 
-  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
   args.AddArgument("--sonix-ip", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSonixIp, "IP address of the Ultrasonix scanner (overrides the IP address parameter defined in the config file).");
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFile, "Config file containing the device configuration.");
-  args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
-  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (Default: 1; 1=error only, 2=warning, 3=info, 4=debug)");	
+  args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");  
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (Default: 1; 1=error only, 2=warning, 3=info, 4=debug)");  
 
   if ( !args.Parse() )
   {
@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
 
   if ( sonixGrabber->GetConnected() ) 
   {
-    sonixGrabber->StartRecording();				//start recording frame from the video
+    sonixGrabber->StartRecording();        //start recording frame from the video
   } 
   else 
   {
@@ -162,20 +162,20 @@ int main(int argc, char* argv[])
   iren->SetRenderWindow(viewer->GetRenderWindow());
   viewer->SetupInteractor(iren);
 
-  viewer->Render();	//must be called after iren and viewer are linked
+  viewer->Render();  //must be called after iren and viewer are linked
   //or there will be problems
 
   //establish timer event and create timer
   vtkMyCallback* call = vtkMyCallback::New();
   iren->AddObserver(vtkCommand::TimerEvent, call);
-  iren->CreateTimer(VTKI_TIMER_FIRST);		//VTKI_TIMER_FIRST = 0
+  iren->CreateTimer(VTKI_TIMER_FIRST);    //VTKI_TIMER_FIRST = 0
 
   //iren must be initialized so that it can handle events
   iren->Initialize();
   iren->Start();
 
   //delete all instances and release the hold the win32videosource
-  //has on the pci card	
+  //has on the pci card  
   sonixGrabber->Disconnect();
   sonixGrabber->Delete();
 

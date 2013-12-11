@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 
   args.AddArgument("--img-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImageSequenceFileName, "Filename of the input image sequence.");
   args.AddArgument("--output-img-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputImageSequenceFileName, "Filename of the output image sequence.");
-  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
 
   if ( !args.Parse() )
   {
@@ -60,13 +60,13 @@ int main(int argc, char **argv)
 
   ///////////////
 
-  vtkSmartPointer<vtkMetaImageSequenceIO> reader=vtkSmartPointer<vtkMetaImageSequenceIO>::New();				
+  vtkSmartPointer<vtkMetaImageSequenceIO> reader=vtkSmartPointer<vtkMetaImageSequenceIO>::New();        
   reader->SetFileName(inputImageSequenceFileName.c_str());
   if (reader->Read()!=PLUS_SUCCESS)
-  {		
+  {    
     LOG_ERROR("Couldn't read sequence metafile: " <<  inputImageSequenceFileName ); 
     return EXIT_FAILURE;
-  }		
+  }    
   vtkTrackedFrameList* trackedFrameList = reader->GetTrackedFrameList();
 
   if (trackedFrameList==NULL)
@@ -88,7 +88,7 @@ int main(int argc, char **argv)
   if ( !trackedFrameList->GetCustomTransform("ImageToToolTransform", tImageToTool) )
   {
     LOG_ERROR("Unable to get custom transform!"); 
-    numberOfFailures++; 	
+    numberOfFailures++;   
   }
 
   // Create an absolute path to the output image sequence, in the output directory
@@ -97,7 +97,7 @@ int main(int argc, char **argv)
   // ****************************************************************************** 
   // Test writing
 
-  vtkSmartPointer<vtkMetaImageSequenceIO> writer=vtkSmartPointer<vtkMetaImageSequenceIO>::New();			
+  vtkSmartPointer<vtkMetaImageSequenceIO> writer=vtkSmartPointer<vtkMetaImageSequenceIO>::New();      
   writer->UseCompressionOn();
   writer->SetFileName(outputImageSequenceFileName.c_str());
   writer->SetTrackedFrameList(trackedFrameList); 
@@ -145,10 +145,10 @@ int main(int argc, char **argv)
   writer->GetTrackedFrameList()->SetCustomTransform("ImageToToolTransform", calibMatrix); 
 
   if (writer->Write()!=PLUS_SUCCESS)
-  {		
+  {    
     LOG_ERROR("Couldn't write sequence metafile: " <<  outputImageSequenceFileName ); 
     return EXIT_FAILURE;
-  }	
+  }  
 
   PlusTransformName tnToolToTracker("Tool", "Tracker"); 
   LOG_INFO("Test GetFrameTransform method ..."); 
@@ -238,24 +238,24 @@ int main(int argc, char **argv)
   dummyTrackedFrame->AddTrackedFrame(&invalidFrame); 
   dummyTrackedFrame->AddTrackedFrame(&validFrame_copy); 
 
-  vtkSmartPointer<vtkMetaImageSequenceIO> writerImageStatus=vtkSmartPointer<vtkMetaImageSequenceIO>::New();			
+  vtkSmartPointer<vtkMetaImageSequenceIO> writerImageStatus=vtkSmartPointer<vtkMetaImageSequenceIO>::New();      
   writerImageStatus->SetFileName(outputImageSequenceFileName.c_str());
   writerImageStatus->SetTrackedFrameList(dummyTrackedFrame); 
   writerImageStatus->UseCompressionOn();
 
   if (writerImageStatus->Write()!=PLUS_SUCCESS)
-  {		
+  {    
     LOG_ERROR("Couldn't write sequence metafile: " <<  outputImageSequenceFileName ); 
     return EXIT_FAILURE;
-  }	
+  }  
 
-  vtkSmartPointer<vtkMetaImageSequenceIO> readerImageStatus=vtkSmartPointer<vtkMetaImageSequenceIO>::New();				
+  vtkSmartPointer<vtkMetaImageSequenceIO> readerImageStatus=vtkSmartPointer<vtkMetaImageSequenceIO>::New();        
   readerImageStatus->SetFileName(outputImageSequenceFileName.c_str());
   if (readerImageStatus->Read()!=PLUS_SUCCESS)
-  {		
+  {    
     LOG_ERROR("Couldn't read sequence metafile: " <<  outputImageSequenceFileName ); 
     return EXIT_FAILURE;
-  }		
+  }    
   vtkTrackedFrameList* trackedFrameListImageStatus=readerImageStatus->GetTrackedFrameList();
   if (trackedFrameListImageStatus==NULL)
   {
@@ -281,7 +281,7 @@ int main(int argc, char **argv)
   differentSizeFrame.SetTimestamp(6.0); 
   dummyTrackedFrame->AddTrackedFrame(&differentSizeFrame); 
 
-  vtkSmartPointer<vtkMetaImageSequenceIO> writerDiffSize=vtkSmartPointer<vtkMetaImageSequenceIO>::New();			
+  vtkSmartPointer<vtkMetaImageSequenceIO> writerDiffSize=vtkSmartPointer<vtkMetaImageSequenceIO>::New();      
   writerDiffSize->SetFileName(outputImageSequenceFileName.c_str());
   writerDiffSize->SetTrackedFrameList(dummyTrackedFrame); 
   writerDiffSize->UseCompressionOff();
@@ -290,7 +290,7 @@ int main(int argc, char **argv)
   int oldVerboseLevel=vtkPlusLogger::Instance()->GetLogLevel();
   vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_ERROR-1); // temporarily disable error logging (as we are expecting an error)
   if (writerDiffSize->Write()==PLUS_SUCCESS)
-  {		
+  {    
     vtkPlusLogger::Instance()->SetLogLevel(oldVerboseLevel);
     LOG_ERROR("Expect a 'Frame size mismatch' error in vtkMetaImageSequenceIO but the operation has been reported to be successful." ); 
     return EXIT_FAILURE;

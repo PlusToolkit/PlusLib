@@ -76,7 +76,7 @@ public:
         && status == FIELD_OK )
       {
         trackedFrame.GetCustomFrameTransform(TransformName, tFrame2Tracker); 
-        ss	<< std::fixed 
+        ss  << std::fixed 
           << tFrame2Tracker->GetElement(0,0) << "   " << tFrame2Tracker->GetElement(0,1) << "   " << tFrame2Tracker->GetElement(0,2) << "   " << tFrame2Tracker->GetElement(0,3) << "\n"
           << tFrame2Tracker->GetElement(1,0) << "   " << tFrame2Tracker->GetElement(1,1) << "   " << tFrame2Tracker->GetElement(1,2) << "   " << tFrame2Tracker->GetElement(1,3) << "\n"
           << tFrame2Tracker->GetElement(2,0) << "   " << tFrame2Tracker->GetElement(2,1) << "   " << tFrame2Tracker->GetElement(2,2) << "   " << tFrame2Tracker->GetElement(2,3) << "\n"
@@ -86,7 +86,7 @@ public:
       {
         std::string strTransformName; 
         TransformName.GetTransformName(strTransformName); 
-        ss	<< "Transform '" << strTransformName << "' is invalid ..."; 
+        ss  << "Transform '" << strTransformName << "' is invalid ..."; 
       }
       this->StepperTextActor->SetInput(ss.str().c_str());
       this->StepperTextActor->Modified(); 
@@ -132,9 +132,9 @@ int main(int argc, char **argv)
   args.AddArgument("--tracker-buffer-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTrackerBufferMetafile, "Tracker buffer sequence metafile.");
   args.AddArgument("--transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformName, "Name of the transform displayed.");
   
-  args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
+  args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");  
   args.AddArgument("--repeat", vtksys::CommandLineArguments::NO_ARGUMENT, &inputRepeat, "Repeat tracked frames after reached the latest one." );
-  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
 
   if ( !args.Parse() )
   {
@@ -156,7 +156,7 @@ int main(int argc, char **argv)
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
     vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
   if (configRootElement == NULL)
-  {	
+  {  
     std::cerr << "Unable to read configuration from file " << inputConfigFileName.c_str() << std::endl;
     exit( EXIT_FAILURE );
   }
@@ -277,7 +277,7 @@ int main(int argc, char **argv)
     iren->SetRenderWindow(viewer->GetRenderWindow());
     viewer->SetupInteractor(iren);
 
-    viewer->Render();	//must be called after iren and viewer are linked
+    viewer->Render();  //must be called after iren and viewer are linked
     //or there will be problems
 
     vtkSmartPointer<vtkImageData> imageData = vtkSmartPointer<vtkImageData>::New();
@@ -305,7 +305,7 @@ int main(int argc, char **argv)
     }
 
     iren->AddObserver(vtkCommand::TimerEvent, call);
-    iren->CreateTimer(VTKI_TIMER_FIRST);		//VTKI_TIMER_FIRST = 0
+    iren->CreateTimer(VTKI_TIMER_FIRST);    //VTKI_TIMER_FIRST = 0
 
     //iren must be initialized so that it can handle events
     iren->Initialize();

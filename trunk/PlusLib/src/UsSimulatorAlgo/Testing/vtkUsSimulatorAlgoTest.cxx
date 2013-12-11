@@ -181,7 +181,7 @@ int main(int argc, char **argv)
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
-  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFile, "Config file containing the image to probe and phantom to reference transformations");
   args.AddArgument("--transforms-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformsFile, "Input file containing coordinate frames and the associated model to image transformations");
@@ -221,7 +221,7 @@ int main(int argc, char **argv)
 
   // Read transformations data 
   LOG_DEBUG("Reading input meta file..."); 
-  vtkSmartPointer< vtkTrackedFrameList > trackedFrameList = vtkSmartPointer< vtkTrackedFrameList >::New(); 				
+  vtkSmartPointer< vtkTrackedFrameList > trackedFrameList = vtkSmartPointer< vtkTrackedFrameList >::New();         
   trackedFrameList->ReadFromSequenceMetafile( inputTransformsFile.c_str() );
   LOG_DEBUG("Reading input meta file completed"); 
 

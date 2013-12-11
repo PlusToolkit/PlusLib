@@ -54,19 +54,19 @@ double PlaneParametersEstimator<dimension>::GetDelta()
  */
 template< unsigned int dimension  >
 void PlaneParametersEstimator<dimension>::Estimate( std::vector< Point<double, dimension> *> &data, 
-																	                  std::vector<double> &parameters )
+                                                    std::vector<double> &parameters )
 {
-	unsigned int i, j;
-	double norm;
-	const double EPS = 2*NumericTraits<double>::epsilon(); 
+  unsigned int i, j;
+  double norm;
+  const double EPS = 2*NumericTraits<double>::epsilon(); 
 
-	parameters.clear();
-	              //user forgot to initialize the minimal number of required 
+  parameters.clear();
+                //user forgot to initialize the minimal number of required 
                 //elements or there are not enough data elements for computation
-	if( this->minForEstimate==0 || data.size() < this->minForEstimate )
-		return;
-	
-	if( dimension == 3 ) { //compute plane normal directly
+  if( this->minForEstimate==0 || data.size() < this->minForEstimate )
+    return;
+  
+  if( dimension == 3 ) { //compute plane normal directly
     double nx,ny,nz;
     vnl_vector<double> v1(3), v2(3);
   
@@ -80,36 +80,36 @@ void PlaneParametersEstimator<dimension>::Estimate( std::vector< Point<double, d
     nx = v1[1]*v2[2] - v1[2]*v2[1];
     ny = v1[2]*v2[0] - v1[0]*v2[2];
     nz = v1[0]*v2[1] - v1[1]*v2[0];
-	  norm = sqrt(nx*nx+ny*ny+nz*nz);
+    norm = sqrt(nx*nx+ny*ny+nz*nz);
     
     if( norm< EPS ) //points are collinear
       return;
-	  parameters.push_back(nx/norm);
-	  parameters.push_back(ny/norm);
-	  parameters.push_back(nz/norm);
-	}
-	else { //get the plane normal as the null space of the matrix described above	
-	  vnl_matrix<double> A( this->minForEstimate,
+    parameters.push_back(nx/norm);
+    parameters.push_back(ny/norm);
+    parameters.push_back(nz/norm);
+  }
+  else { //get the plane normal as the null space of the matrix described above  
+    vnl_matrix<double> A( this->minForEstimate,
                           this->minForEstimate+1 );
 
-	  for( i=0; i<this->minForEstimate; i++ ) {
-		  Point<double, dimension> &pnt = *(data[i]);
-		  for( j=0; j<this->minForEstimate; j++ )
-			  A(i,j) = pnt[j];
-		  A(i,j) = -1;
-	  }
+    for( i=0; i<this->minForEstimate; i++ ) {
+      Point<double, dimension> &pnt = *(data[i]);
+      for( j=0; j<this->minForEstimate; j++ )
+        A(i,j) = pnt[j];
+      A(i,j) = -1;
+    }
 
-	  vnl_svd<double> svdA( A );
+    vnl_svd<double> svdA( A );
                  //explicitly zero out small singular values 
     svdA.zero_out_absolute( EPS );
-	        //the points are linearly dependent, need at least k linearly 
+          //the points are linearly dependent, need at least k linearly 
           //independent points (gives us rank(A)=k)
-	  if( svdA.rank()<this->minForEstimate )
-		  return;
+    if( svdA.rank()<this->minForEstimate )
+      return;
 
-	               //the one dimensional null space of A is the solution we seek
-	  vnl_vector<double> x(this->minForEstimate+1);
-	  x = svdA.nullvector();
+                 //the one dimensional null space of A is the solution we seek
+    vnl_vector<double> x(this->minForEstimate+1);
+    x = svdA.nullvector();
             //get the (hyper)plane normal, we need to set it so ||n||=1, this 
             //means we need to scale our solution to be 
             // 1/||n_computed||*[n_computed,d] which is also a solution to the 
@@ -117,7 +117,7 @@ void PlaneParametersEstimator<dimension>::Estimate( std::vector< Point<double, d
     norm = 0;
     for( i=0; i<this->minForEstimate; i++ ) {
       norm+=x[i]*x[i];
-		  parameters.push_back( x[i] );
+      parameters.push_back( x[i] );
     }
     norm = 1.0/sqrt(norm);
     for( i=0; i<this->minForEstimate; i++ )
@@ -125,20 +125,20 @@ void PlaneParametersEstimator<dimension>::Estimate( std::vector< Point<double, d
   }
                         //first point is arbitrarily chosen to be the 
                         //"point on plane"
-	for( i=0; i<dimension; i++ )
-		parameters.push_back( (*data[0])[i] );
+  for( i=0; i<dimension; i++ )
+    parameters.push_back( (*data[0])[i] );
 }
 
 
 template< unsigned int dimension  >
 void PlaneParametersEstimator<dimension>::Estimate(std::vector< Point<double, dimension> > &data, 
-									               std::vector<double> &parameters )
+                                 std::vector<double> &parameters )
 {
-	std::vector< Point<double, dimension> *> usedData;
-	int dataSize = data.size();
-	for( int i=0; i<dataSize; i++ )
-		usedData.push_back( &(data[i]) );
-	Estimate( usedData, parameters );
+  std::vector< Point<double, dimension> *> usedData;
+  int dataSize = data.size();
+  for( int i=0; i<dataSize; i++ )
+    usedData.push_back( &(data[i]) );
+  Estimate( usedData, parameters );
 }
 
 
@@ -147,13 +147,13 @@ void PlaneParametersEstimator<dimension>::Estimate(std::vector< Point<double, di
  */
 template< unsigned int dimension  >
 void PlaneParametersEstimator<dimension>::LeastSquaresEstimate( std::vector< Point<double, dimension> *> &data, 
-														        std::vector<double> &parameters )
+                                    std::vector<double> &parameters )
 {
-	parameters.clear();
-	              //user forgot to initialize the minimal number of required 
+  parameters.clear();
+                //user forgot to initialize the minimal number of required 
                 //elements or there are not enough data elements for computation
-	if( this->minForEstimate==0 || data.size() < this->minForEstimate )
-		return;
+  if( this->minForEstimate==0 || data.size() < this->minForEstimate )
+    return;
 
   unsigned int i, j, k, pointNum = data.size();
   vnl_matrix<double> meanMat( dimension, dimension ), 
@@ -196,13 +196,13 @@ void PlaneParametersEstimator<dimension>::LeastSquaresEstimate( std::vector< Poi
 
 template< unsigned int dimension  >
 void PlaneParametersEstimator<dimension>::LeastSquaresEstimate( std::vector< Point<double, dimension> > &data, 
-															    std::vector<double> &parameters )
+                                  std::vector<double> &parameters )
 {
-	std::vector< Point<double, dimension> *> usedData;
-	int dataSize = data.size();
-	for( int i=0; i<dataSize; i++ )
-		usedData.push_back( &(data[i]) );
-	LeastSquaresEstimate( usedData, parameters );
+  std::vector< Point<double, dimension> *> usedData;
+  int dataSize = data.size();
+  for( int i=0; i<dataSize; i++ )
+    usedData.push_back( &(data[i]) );
+  LeastSquaresEstimate( usedData, parameters );
 }
 
 
@@ -216,8 +216,8 @@ bool PlaneParametersEstimator<dimension>::Agree( std::vector<double> &parameters
 {
   double signedDistance = 0;
   for( unsigned int i=0; i<dimension; i++ )
-	  signedDistance += parameters[i]*( data[i]-parameters[dimension+i] );
-	return ( (signedDistance*signedDistance) < this->deltaSquared );
+    signedDistance += parameters[i]*( data[i]-parameters[dimension+i] );
+  return ( (signedDistance*signedDistance) < this->deltaSquared );
 }
 
 } // end namespace itk

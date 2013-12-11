@@ -9,7 +9,7 @@ The following copyright notice is applicable to parts of this file:
 Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 All rights reserved.
 See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
-Authors include: Danielle Pace
+Authors include: Adam Rankin
 =========================================================================*/ 
 
 #include "PixelCodec.h"
@@ -19,6 +19,9 @@ Authors include: Danielle Pace
 #include "vtkPlusBuffer.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
+
+#include "MediaFoundationVideoCaptureApi.h"
+#include "FormatReader.h"
 
 // Media foundation includes - require Microsoft Windows SDK 7.1 or later.
 // Download from: http://www.microsoft.com/en-us/download/details.aspx?id=8279
@@ -122,6 +125,7 @@ PlusStatus vtkMmfVideoSource::InternalConnect()
   if (DeviceCount == 0)
   {
     hr = E_FAIL;
+    LOG_ERROR("No available capture devices.");
     return PLUS_FAIL;
   }
 
@@ -176,12 +180,7 @@ PlusStatus vtkMmfVideoSource::InternalStartRecording()
       return PLUS_FAIL;
     }
 
-    if( ConfigureDecoder() != PLUS_SUCCESS )
-    {
-      this->StopRecording();
-      this->Disconnect();
-      return PLUS_FAIL;
-    }
+    this->ConfigureCaptureDevice();
 
     this->UpdateFrameSize();
 
@@ -358,165 +357,22 @@ STDMETHODIMP vtkMmfVideoSource::OnReadSample( HRESULT hrStatus, DWORD dwStreamIn
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkMmfVideoSource::ConfigureDecoder()
-{
-  IMFMediaType *pNativeType = NULL;
-  IMFMediaType *pType = NULL;
-
-  // Find the native format of the stream.
-  HRESULT hr = this->CaptureSourceReader->GetNativeMediaType(MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, &pNativeType);
-  if (FAILED(hr))
-  {
-    return PLUS_FAIL;
-  }
-
-  // Query the native type for information
-  hr = pNativeType->GetUINT32(MF_MT_DEFAULT_STRIDE, &this->ImageStride);
-  if( FAILED(hr) )
-  {
-    // Default stride not populated, try to calculate
-    GUID subtype = GUID_NULL;
-
-    // Get the subtype and the image size.
-    hr = pNativeType->GetGUID(MF_MT_SUBTYPE, &subtype);
-    if (FAILED(hr))
-    {
-      return PLUS_FAIL;
-    }
-
-    vtkPlusDataSource* videoSource(NULL);
-    if( this->GetFirstActiveVideoSource(videoSource) != PLUS_SUCCESS )
-    {
-      SafeRelease(&pNativeType);
-      return PLUS_FAIL;
-    }
-
-    LONG stride;
-    hr = MFGetStrideForBitmapInfoHeader(subtype.Data1, videoSource->GetBuffer()->GetFrameSize()[0], &stride);
-    if (FAILED(hr))
-    {
-      return PLUS_FAIL;
-    }
-    this->ImageStride = (UINT32)(stride);
-
-    // Set the attribute for later reference.
-    (void)pNativeType->SetUINT32(MF_MT_DEFAULT_STRIDE, UINT32(this->ImageStride));
-  }
-
-  GUID majorType, subtype;
-
-  // Find the major type.
-  hr = pNativeType->GetGUID(MF_MT_MAJOR_TYPE, &majorType);
-  if (FAILED(hr))
-  {
-    SafeRelease(&pNativeType);
-    return PLUS_FAIL;
-  }
-
-  // Define the output type.
-  hr = MFCreateMediaType(&pType);
-  if (FAILED(hr))
-  {
-    SafeRelease(&pNativeType);
-    return PLUS_FAIL;
-  }
-
-  hr = pType->SetGUID(MF_MT_MAJOR_TYPE, majorType);
-  if (FAILED(hr))
-  {
-    SafeRelease(&pNativeType);
-    SafeRelease(&pType);
-    return PLUS_FAIL;
-  }
-
-  bool hasCompatibleFormat(false);
-  if (majorType == MFMediaType_Video)
-  {
-    GUID compatibleTypes[2] = { MFVideoFormat_YUY2, MFVideoFormat_RGB24 };
-
-    for( int i = 0; i < 2; ++i )
-    {
-      RequestedVideoFormat.SourcePixelFormat = compatibleTypes[i];
-
-      hr = pType->SetGUID(MF_MT_SUBTYPE, RequestedVideoFormat.SourcePixelFormat);
-      if (FAILED(hr))
-      {
-        SafeRelease(&pNativeType);
-        SafeRelease(&pType);
-        return PLUS_FAIL;
-      }
-
-      // Set the uncompressed format.
-      hr = this->CaptureSourceReader->SetCurrentMediaType(MF_SOURCE_READER_FIRST_VIDEO_STREAM, NULL, pType);
-      if (SUCCEEDED(hr))
-      {
-        this->ActiveVideoFormat.SourcePixelFormat = compatibleTypes[i];
-        hasCompatibleFormat = true;
-        break;
-      }
-    }
-  }
-  else if (majorType == MFMediaType_Audio)
-  {
-    subtype = MFAudioFormat_PCM;
-
-    hr = pType->SetGUID(MF_MT_SUBTYPE, subtype);
-    if (FAILED(hr))
-    {
-      SafeRelease(&pNativeType);
-      SafeRelease(&pType);
-      return PLUS_FAIL;
-    }
-
-    // Set the uncompressed format.
-    hr = this->CaptureSourceReader->SetCurrentMediaType(MF_SOURCE_READER_FIRST_AUDIO_STREAM, NULL, pType);
-    if (SUCCEEDED(hr))
-    { 
-      hasCompatibleFormat = true;
-    }
-  }
-
-  if( !hasCompatibleFormat )
-  {
-    LOG_ERROR("Capture device cannot capture video in RGB24 or YUY2, audio in PCM. Unable to continue.");
-    return PLUS_FAIL;
-  }
-  
-  SafeRelease(&pNativeType);
-  SafeRelease(&pType);
-
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-
 PlusStatus vtkMmfVideoSource::UpdateFrameSize()
 {
-  UINT32 width = 0;
-  UINT32 height = 0;
-  IMFMediaType* pNativeType(NULL);
   if( this->CaptureSourceReader != NULL )
   {
-    HRESULT hr = this->CaptureSourceReader->GetNativeMediaType(MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, &pNativeType);
-    hr = MFGetAttributeSize(pNativeType, MF_MT_FRAME_SIZE, &width, &height);
-    if (FAILED(hr))
-    {
-      return PLUS_FAIL;
-    }
     int currentFrameSize[2] = {0,0};
     vtkPlusDataSource* videoSource(NULL);
     this->GetFirstActiveVideoSource(videoSource);
     videoSource->GetBuffer()->GetFrameSize(currentFrameSize);
-    if( currentFrameSize[0] != width || currentFrameSize[1] != height )
+    if( currentFrameSize[0] != this->ActiveVideoFormat.Width || currentFrameSize[1] != this->ActiveVideoFormat.Height )
     {
-      currentFrameSize[0] = width;
-      currentFrameSize[1] = height;
+      currentFrameSize[0] = this->ActiveVideoFormat.Width;
+      currentFrameSize[1] = this->ActiveVideoFormat.Height;
       videoSource->GetBuffer()->SetFrameSize(currentFrameSize);
       PlusCommon::ITKScalarPixelType pixelType = itk::ImageIOBase::UCHAR; // always convert output to 8-bit grayscale
       this->UncompressedVideoFrame.AllocateFrame(currentFrameSize, pixelType);
     }
-
-    SafeRelease(&pNativeType);
   }
 
   return PLUS_SUCCESS;
@@ -547,14 +403,32 @@ PlusStatus vtkMmfVideoSource::ReadConfiguration( vtkXMLDataElement* rootXmlEleme
   {
     xRes = DEFAULT_X_RESOLUTION;
   }
-  this->RequestedVideoFormat.width = xRes;
+  this->RequestedVideoFormat.Width = xRes;
 
   int yRes = -1; 
   if ( !deviceConfig->GetScalarAttribute("YResolution", yRes) ) 
   {
     yRes = DEFAULT_Y_RESOLUTION;
   }
-  this->RequestedVideoFormat.height = yRes;
+  this->RequestedVideoFormat.Height = yRes;
+
+  if( deviceConfig->GetAttribute("PixelFormat") != NULL )
+  {
+    std::string pixAttrStr(deviceConfig->GetAttribute("PixelFormat"));
+    std::wstring pixAttrWStr(pixAttrStr.begin(), pixAttrStr.end());
+    GUID pixelFormat = MfVideoCapture::FormatReader::GUIDFromString(pixAttrWStr);
+    if( pixelFormat == GUID_NULL)
+    {
+      LOG_ERROR("Cannot recognize requested pixel format. Defaulting to \'MFVideoFormat_YUY2\'.");
+      this->RequestedVideoFormat.PixelFormat = MFVideoFormat_YUY2;
+      this->RequestedVideoFormat.PixelFormatName = "MFVideoFormat_YUY2";
+    }
+    else
+    {
+      this->RequestedVideoFormat.PixelFormat = pixelFormat;
+      this->RequestedVideoFormat.PixelFormatName = pixAttrStr;
+    }
+  }
 
   return PLUS_SUCCESS;
 }
@@ -579,8 +453,28 @@ PlusStatus vtkMmfVideoSource::WriteConfiguration( vtkXMLDataElement* rootXmlElem
     return PLUS_FAIL;
   }
 
-  deviceConfig->SetIntAttribute("XResolution", this->RequestedVideoFormat.width);
-  deviceConfig->SetIntAttribute("YResolution", this->RequestedVideoFormat.height);
+  deviceConfig->SetIntAttribute("XResolution", this->RequestedVideoFormat.Width);
+  deviceConfig->SetIntAttribute("YResolution", this->RequestedVideoFormat.Height);
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+
+void vtkMmfVideoSource::ConfigureCaptureDevice()
+{
+  MfVideoCapture::MediaType defaultFormat;
+  defaultFormat.width = this->RequestedVideoFormat.Width;
+  defaultFormat.height = this->RequestedVideoFormat.Height;
+  defaultFormat.MF_MT_MAJOR_TYPE = MFMediaType_Video;
+  defaultFormat.MF_MT_SUBTYPE = this->RequestedVideoFormat.PixelFormat;
+  if( !MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().SetupDevice(0, this->RequestedVideoFormat.Width, this->RequestedVideoFormat.Height, this->AcquisitionRate, this->RequestedVideoFormat.PixelFormat) )
+  {
+    LOG_ERROR("Unable to choose format: " << this->RequestedVideoFormat.Width << ", " << this->RequestedVideoFormat.Height << ", " << this->AcquisitionRate << "fps, " << this->RequestedVideoFormat.PixelFormatName << ".");
+    defaultFormat = MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().GetFormat(0, 0);
+    MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().SetupDevice(0, 0);
+  }
+  this->ActiveVideoFormat.Width = defaultFormat.width;
+  this->ActiveVideoFormat.Height = defaultFormat.height;
+  this->ActiveVideoFormat.PixelFormat = defaultFormat.MF_MT_SUBTYPE;
 }

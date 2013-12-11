@@ -173,5 +173,5 @@ int main(int argc, char **argv)
     outputImgSeqFileWriter->Write(); 
   }
 
-	return EXIT_SUCCESS; 
+  return EXIT_SUCCESS; 
 }

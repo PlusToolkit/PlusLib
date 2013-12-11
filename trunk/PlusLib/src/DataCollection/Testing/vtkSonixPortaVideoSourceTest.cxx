@@ -140,7 +140,7 @@ vtkStandardNewMacro(vtkExtractImageRow);
 class vtkMyPlotCallback : public vtkCommand
 {
 public:
-  static vtkMyPlotCallback *New()	{ return new vtkMyPlotCallback; }
+  static vtkMyPlotCallback *New()  { return new vtkMyPlotCallback; }
 
   virtual void Execute(vtkObject *caller, unsigned long eventId, void* callData)
   {   
@@ -214,7 +214,7 @@ void TestLinePlot(vtkSonixPortaVideoSource *portaGrabber)
 class vtkMyCallback : public vtkCommand
 {
 public:
-  static vtkMyCallback *New()	{ return new vtkMyCallback; }
+  static vtkMyCallback *New()  { return new vtkMyCallback; }
 
   virtual void Execute(vtkObject *caller, unsigned long, void*)
   {
@@ -254,11 +254,11 @@ int main(int argc, char* argv[])
 
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
-  args.AddArgument("--setting-path", vtksys::CommandLineArguments::NO_ARGUMENT, &PortaSettingPath, "Setting path.");	
+  args.AddArgument("--setting-path", vtksys::CommandLineArguments::NO_ARGUMENT, &PortaSettingPath, "Setting path.");  
   args.AddArgument("--lut-path", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &LUTPath, "LUT Path." );
-  args.AddArgument("--firmware-path", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &PortaFirmwarePath, "Firmware path.");	
-  args.AddArgument("--license-path", vtksys::CommandLineArguments::NO_ARGUMENT, &LicensePath, "License path.");	
-  args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
+  args.AddArgument("--firmware-path", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &PortaFirmwarePath, "Firmware path.");  
+  args.AddArgument("--license-path", vtksys::CommandLineArguments::NO_ARGUMENT, &LicensePath, "License path.");  
+  args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");  
 
   if ( !args.Parse() )
   {
@@ -307,7 +307,7 @@ int main(int argc, char* argv[])
 
 
 
-  portaGrabber->StartRecording();				//start recording frame from the video
+  portaGrabber->StartRecording();        //start recording frame from the video
 
   if (renderingOff)
   {
@@ -333,7 +333,7 @@ int main(int argc, char* argv[])
     iren->SetRenderWindow(viewer->GetRenderWindow());
     viewer->SetupInteractor(iren);
 
-    viewer->Render();	//must be called after iren and viewer are linked or there will be problems
+    viewer->Render();  //must be called after iren and viewer are linked or there will be problems
 
     // Establish timer event and create timer to update the live image
     vtkSmartPointer<vtkMyCallback> call = vtkSmartPointer<vtkMyCallback>::New();
