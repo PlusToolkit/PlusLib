@@ -35,6 +35,7 @@ SET (DataCollection_SRCS
   VirtualDevices/vtkVirtualMixer.cxx
   VirtualDevices/vtkVirtualSwitcher.cxx
   VirtualDevices/vtkVirtualDiscCapture.cxx 
+  VirtualDevices/vtkVirtualVolumeReconstructor.cxx
   SerialLine.cxx
   itkFcsvReader.cxx
   itkFcsvWriter.cxx
@@ -57,6 +58,7 @@ if (WIN32)
     VirtualDevices/vtkVirtualMixer.h
     VirtualDevices/vtkVirtualSwitcher.h
     VirtualDevices/vtkVirtualDiscCapture.h
+    VirtualDevices/vtkVirtualVolumeReconstructor.h
     SerialLine.h
     itkFcsvReader.h
     itkFcsvWriter.h
@@ -706,6 +708,7 @@ SET (DataCollection_LIBS ${DataCollection_LIBS}
   vtkSignaling
   ${ITK_LIBRARIES}
   vtkUsSimulatorAlgo
+  vtkVolumeReconstruction
   vtkRfProcessingAlgo
   ) 
   

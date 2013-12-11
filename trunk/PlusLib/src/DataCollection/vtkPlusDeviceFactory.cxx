@@ -13,6 +13,7 @@ See License.txt for details.
 #include "vtkVirtualMixer.h"
 #include "vtkVirtualSwitcher.h"
 #include "vtkVirtualDiscCapture.h"
+#include "vtkVirtualVolumeReconstructor.h"
 
 //----------------------------------------------------------------------------
 // Tracker devices
@@ -165,6 +166,8 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
   DeviceTypes["VirtualSwitcher"]=(PointerToDevice)&vtkVirtualSwitcher::New;
   DeviceTypes["VirtualDiscCapture"]=(PointerToDevice)&vtkVirtualDiscCapture::New;
   DeviceTypes["VirtualBufferedDiscCapture"]=(PointerToDevice)&vtkVirtualDiscCapture::New;
+  DeviceTypes["VirtualVolumeReconstructor"]=(PointerToDevice)&vtkVirtualVolumeReconstructor::New;
+  
 }
 
 //----------------------------------------------------------------------------
