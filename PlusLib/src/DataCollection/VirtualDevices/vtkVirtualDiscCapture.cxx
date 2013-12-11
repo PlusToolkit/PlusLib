@@ -264,6 +264,12 @@ PlusStatus vtkVirtualDiscCapture::CloseFile(const char* aFilename)
     m_CurrentFilename = aFilename;
   }
 
+  // Do we have any outstanding unwritten data?
+  if( m_RecordedFrames->GetNumberOfTrackedFrames() != 0 )
+  {
+    this->WriteFrames(true);
+  }
+
   std::ostringstream dimSizeStr; 
   int dimensions[3]={0};
   dimensions[0] = m_Writer->GetDimensions()[0];
@@ -273,12 +279,6 @@ PlusStatus vtkVirtualDiscCapture::CloseFile(const char* aFilename)
   m_Writer->GetTrackedFrameList()->SetCustomString("DimSize", dimSizeStr.str().c_str());
   m_Writer->UpdateFieldInImageHeader("DimSize");
   m_Writer->FinalizeHeader();
-
-  // Do we have any outstanding unwritten data?
-  if( m_RecordedFrames->GetNumberOfTrackedFrames() != 0 )
-  {
-    this->WriteFrames(true);
-  }
 
   m_Writer->Close();
 
