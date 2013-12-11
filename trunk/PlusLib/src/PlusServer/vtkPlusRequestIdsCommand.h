@@ -4,8 +4,8 @@
   See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#ifndef __vtkPlusRequestChannelIDsCommand_h
-#define __vtkPlusRequestChannelIDsCommand_h
+#ifndef __vtkPlusRequestIdsCommand_h
+#define __vtkPlusRequestIdsCommand_h
 
 #include "vtkPlusCommand.h"
 
@@ -14,12 +14,12 @@
   \brief This command returns the list of devices to the client
   \ingroup PlusLibDataCollection
  */ 
-class VTK_EXPORT vtkPlusRequestChannelIDsCommand : public vtkPlusCommand
+class VTK_EXPORT vtkPlusRequestIdsCommand : public vtkPlusCommand
 {
 public:
 
-  static vtkPlusRequestChannelIDsCommand *New();
-  vtkTypeMacro(vtkPlusRequestChannelIDsCommand, vtkPlusCommand);
+  static vtkPlusRequestIdsCommand *New();
+  vtkTypeMacro(vtkPlusRequestIdsCommand, vtkPlusCommand);
   virtual void PrintSelf( ostream& os, vtkIndent indent );
   virtual vtkPlusCommand* Clone() { return New(); }
 
@@ -32,7 +32,8 @@ public:
   /*! Gets the description for the specified command name. */
   virtual std::string GetDescription(const char* commandName);
 
-  void SetNameToRequestChannelIDs();
+  void SetNameToRequestChannelIds();
+  void SetNameToRequestDeviceIds();
 
   /*! Read command parameters from XML */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
@@ -40,15 +41,21 @@ public:
   /*! Write command parameters to XML */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* aConfig);
 
+  /*! Restrict the returned device IDs to this type */
+  vtkSetStringMacro(DeviceType);
+  vtkGetStringMacro(DeviceType);
+
 protected:
 
-  vtkPlusRequestChannelIDsCommand();
-  virtual ~vtkPlusRequestChannelIDsCommand();
+  vtkPlusRequestIdsCommand();
+  virtual ~vtkPlusRequestIdsCommand();
+
+  char* DeviceType;
 
 private:
 
-  vtkPlusRequestChannelIDsCommand( const vtkPlusRequestChannelIDsCommand& );
-  void operator=( const vtkPlusRequestChannelIDsCommand& );
+  vtkPlusRequestIdsCommand( const vtkPlusRequestIdsCommand& );
+  void operator=( const vtkPlusRequestIdsCommand& );
   
 };
 

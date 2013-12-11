@@ -7,35 +7,39 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkDataCollector.h"
 #include "vtkPlusChannel.h"
-#include "vtkPlusRequestChannelIDsCommand.h"
+#include "vtkPlusRequestIdsCommand.h"
 
-vtkStandardNewMacro( vtkPlusRequestChannelIDsCommand );
+vtkStandardNewMacro( vtkPlusRequestIdsCommand );
 
-static const char REQUEST_CHANNEL_ID_CMD[]="RequestChannelIDs";
+static const char REQUEST_CHANNEL_ID_CMD[]="RequestChannelIds";
+static const char REQUEST_DEVICE_ID_CMD[]="RequestDeviceIds";
 
 //----------------------------------------------------------------------------
-vtkPlusRequestChannelIDsCommand::vtkPlusRequestChannelIDsCommand()
+vtkPlusRequestIdsCommand::vtkPlusRequestIdsCommand()
+: DeviceType(NULL)
 {
 }
 
 //----------------------------------------------------------------------------
-vtkPlusRequestChannelIDsCommand::~vtkPlusRequestChannelIDsCommand()
+vtkPlusRequestIdsCommand::~vtkPlusRequestIdsCommand()
 {
 
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusRequestChannelIDsCommand::SetNameToRequestChannelIDs() { SetName(REQUEST_CHANNEL_ID_CMD); }
+void vtkPlusRequestIdsCommand::SetNameToRequestChannelIds() { SetName(REQUEST_CHANNEL_ID_CMD); }
+void vtkPlusRequestIdsCommand::SetNameToRequestDeviceIds() { SetName(REQUEST_DEVICE_ID_CMD); }
 
 //----------------------------------------------------------------------------
-void vtkPlusRequestChannelIDsCommand::GetCommandNames(std::list<std::string> &cmdNames)
+void vtkPlusRequestIdsCommand::GetCommandNames(std::list<std::string> &cmdNames)
 { 
   cmdNames.clear(); 
   cmdNames.push_back(REQUEST_CHANNEL_ID_CMD);
+  cmdNames.push_back(REQUEST_DEVICE_ID_CMD);
 }
 
 //----------------------------------------------------------------------------
-std::string vtkPlusRequestChannelIDsCommand::GetDescription(const char* commandName)
+std::string vtkPlusRequestIdsCommand::GetDescription(const char* commandName)
 { 
   std::string desc;
   if (commandName == NULL || STRCASECMP(commandName, REQUEST_CHANNEL_ID_CMD) )
@@ -43,39 +47,51 @@ std::string vtkPlusRequestChannelIDsCommand::GetDescription(const char* commandN
     desc += REQUEST_CHANNEL_ID_CMD;
     desc += ": Request the list of channels for all devices.";
   }
+  if (commandName == NULL || STRCASECMP(commandName, REQUEST_DEVICE_ID_CMD) )
+  {
+    desc += REQUEST_DEVICE_ID_CMD;
+    desc += ": Request the list of devices. Attributes: DeviceType: restrict the returned list of devices to a specific type (VirtualDiscCapture, VirtualVolumeReconstructor, etc.)";
+  }
   return desc;
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusRequestChannelIDsCommand::PrintSelf( ostream& os, vtkIndent indent )
+void vtkPlusRequestIdsCommand::PrintSelf( ostream& os, vtkIndent indent )
 {
   this->Superclass::PrintSelf( os, indent );
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusRequestChannelIDsCommand::ReadConfiguration(vtkXMLDataElement* aConfig)
+PlusStatus vtkPlusRequestIdsCommand::ReadConfiguration(vtkXMLDataElement* aConfig)
 {  
   if (vtkPlusCommand::ReadConfiguration(aConfig) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
+
+  this->SetDeviceType(aConfig->GetAttribute("DeviceType"));
  
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusRequestChannelIDsCommand::WriteConfiguration(vtkXMLDataElement* aConfig)
+PlusStatus vtkPlusRequestIdsCommand::WriteConfiguration(vtkXMLDataElement* aConfig)
 {  
   if (vtkPlusCommand::WriteConfiguration(aConfig) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
 
+  if (this->DeviceType!=NULL)
+  {
+    aConfig->SetAttribute("DeviceType",this->DeviceType);
+  }
+
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusRequestChannelIDsCommand::Execute()
+PlusStatus vtkPlusRequestIdsCommand::Execute()
 {
   if (this->Name == NULL)
   {
@@ -90,7 +106,8 @@ PlusStatus vtkPlusRequestChannelIDsCommand::Execute()
     LOG_ERROR("Data collector is invalid");    
     SetCommandCompleted(PLUS_FAIL, "Command failed, no data collector");
     return PLUS_FAIL;
-  }  
+  }
+
   DeviceCollection aCollection;
   if( dataCollector->GetDevices(aCollection) != PLUS_SUCCESS )
   {
@@ -120,6 +137,31 @@ PlusStatus vtkPlusRequestChannelIDsCommand::Execute()
           reply << aChannel->GetChannelId();
           addSeparator=true;
         }
+      }
+    }
+  }
+  else if (STRCASECMP(this->Name, REQUEST_DEVICE_ID_CMD) == 0)
+  {
+    for( DeviceCollectionConstIterator deviceIt = aCollection.begin(); deviceIt != aCollection.end(); ++deviceIt)
+    {
+      vtkPlusDevice* aDevice = *deviceIt;
+      if (aDevice==NULL)
+      {
+        continue;
+      }
+      std::string deviceClassName;
+      if (this->DeviceType!=NULL)
+      {
+        deviceClassName=std::string("vtk")+this->DeviceType;
+      }
+      if (deviceClassName.empty() || aDevice->GetClassName()==deviceClassName)
+      {
+        if (addSeparator)
+        {
+          reply << ",";
+        }
+        reply << aDevice->GetDeviceId();
+        addSeparator=true;
       }
     }
   }
