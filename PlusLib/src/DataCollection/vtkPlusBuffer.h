@@ -38,7 +38,8 @@ public:
   enum DataItemTemporalInterpolationType
   {
     EXACT_TIME, /*!< only returns the item if the requested timestamp exactly matches the timestamp of an existing element */
-    INTERPOLATED /*!< returns interpolated transform (requires valid transform at the requested timestamp) */
+    INTERPOLATED, /*!< returns interpolated transform (requires valid transform at the requested timestamp) */
+    CLOSEST_TIME /*!< returns the closest item  */
   };
 
   static vtkPlusBuffer *New();

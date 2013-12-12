@@ -10,6 +10,7 @@
 class vtkDataCollector;
 class vtkPlusCommandProcessor;
 class vtkTransformRepository;
+class vtkImageData;
 
 /*!
   \class vtkPlusCommand 
@@ -43,7 +44,7 @@ public:
   /*! Set the command processor to get access to the data collection devices and other commands */
   virtual void SetCommandProcessor( vtkPlusCommandProcessor* processor );  
 
-  /*! Set the command processor to get access to the data collection devices and other commands */
+  /*! Set the id of the client that requested the command */
   virtual void SetClientId( int clientId );  
   vtkGetMacro(ClientId, int);
 
@@ -56,9 +57,6 @@ public:
 
   /*! Returns the list of command names that this command can process */
   virtual void GetCommandNames(std::list<std::string> &cmdNames)=0;
-
-  /*! Returns true if the command has been completed and no more need to call its Execute function */
-  virtual bool IsCompleted();
   
   vtkGetStringMacro(Name);
   vtkSetStringMacro(Name);
@@ -68,6 +66,11 @@ public:
 
   vtkGetStringMacro(Id);
   vtkSetStringMacro(Id);
+
+  std::string GetResponseMessage() { return this->ResponseMessage; };
+  vtkGetMacro(ResponseImage, vtkImageData*);
+  std::string GetResponseImageDeviceName() { return this->ResponseImageDeviceName; };
+  vtkGetMacro(ResponseImageToReferenceTransform, vtkMatrix4x4*);
 
   /*!
     Generates a command device name from a specified unique identifier (UID).
@@ -97,13 +100,10 @@ public:
   */
   static std::string GetPrefixFromCommandDeviceName(const std::string &deviceName);
 
-protected:
   /*! Returns the default reply device name, which conforms to the new CMD/ACQ protocol */
   std::string GetReplyDeviceName();
 
-  /*! Sends a reply to the default reply device with the default reply device name */
-  PlusStatus SetCommandCompleted(PlusStatus replyStatus, const std::string& replyString);
-
+protected:
   /*! Convenience function for getting a pointer to the data collector */
   virtual vtkDataCollector* GetDataCollector();
 
@@ -112,12 +112,17 @@ protected:
 
   /*! Check if the command name is in the list of command names */
   PlusStatus ValidateName();
+
+  /*! Clears all the execute response member variables */
+  void ResetResponse();
+
+  void SetResponseImage(vtkImageData *imageData);
+  void SetResponseImageToReferenceTransform(vtkMatrix4x4 *matrix);
   
   vtkPlusCommand();
   virtual ~vtkPlusCommand();
     
   vtkPlusCommandProcessor* CommandProcessor;
-  bool Completed;
   int ClientId;
   
   // Device name of the received command. Reply device name is DeviceNameReply by default.
@@ -127,6 +132,11 @@ protected:
   char* Id;
 
   char* Name;
+
+  std::string ResponseMessage;
+  vtkImageData* ResponseImage;
+  std::string ResponseImageDeviceName;
+  vtkMatrix4x4* ResponseImageToReferenceTransform;
       
 private:  
   vtkPlusCommand( const vtkPlusCommand& );

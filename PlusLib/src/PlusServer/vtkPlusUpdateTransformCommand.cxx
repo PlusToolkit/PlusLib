@@ -18,15 +18,11 @@ static const char UPDATE_TRANSFORM_CMD[] = "UpdateTransform";
 //----------------------------------------------------------------------------
 vtkPlusUpdateTransformCommand::vtkPlusUpdateTransformCommand()
 : TransformName(NULL)
-, TransformValue(vtkMatrix4x4::New())
-, hasMatrix(false)
-, TransformPersistent(false)
-, hasPersistent(false)
+, TransformValue(NULL)
+, TransformPersistent(true)
 , TransformError(-1.0)
-, hasError(false)
 , TransformDate(NULL)
 {
-  this->SetTransformDate("");
 }
 
 //----------------------------------------------------------------------------
@@ -78,39 +74,33 @@ PlusStatus vtkPlusUpdateTransformCommand::ReadConfiguration(vtkXMLDataElement* a
 
   this->SetTransformName(aConfig->GetAttribute("TransformName"));
 
-  if( aConfig->GetAttribute("TransformValue") != NULL )
+  double transformMatrix[16]={0}; 
+  if ( aConfig->GetVectorAttribute("TransformValue", 16, transformMatrix) )
   {
-    std::vector<std::string> elems;
-    PlusCommon::SplitStringIntoTokens(aConfig->GetAttribute("TransformValue"), ' ', elems);
-    for (int i = 0; i < 4; i++)
-    {
-      for (int j = 0; j < 4; j++)
-      {
-        double value;
-        std::stringstream stream(elems[i*4+j]);
-        stream >> value;
-        this->TransformValue->SetElement(i, j, value);
-      }
-    }
-    this->hasMatrix = true;
+    vtkSmartPointer<vtkMatrix4x4> transform=vtkSmartPointer<vtkMatrix4x4>::New();
+    transform->DeepCopy(transformMatrix);
+    SetTransformValue(transform);
   }
   else
   {
-    this->hasMatrix = false;
+    SetTransformValue(NULL);
   }
 
   if( aConfig->GetAttribute("TransformPersistent") != NULL )
   {
     this->SetTransformPersistent(STRCASECMP(aConfig->GetAttribute("TransformPersistent"), "TRUE") == 0);
-    this->hasPersistent = true;
   }
-  double error;
+
+  double error=0.0;
   if( aConfig->GetScalarAttribute("TransformError", error) )
   {
-    aConfig->GetScalarAttribute("TransformError", error);
     this->SetTransformError(error);
-    this->hasError = true;
   }
+  else
+  {
+    this->SetTransformError(-1.0);
+  }
+
   this->SetTransformDate(aConfig->GetAttribute("TransformDate"));
 
   return PLUS_SUCCESS;
@@ -124,112 +114,76 @@ PlusStatus vtkPlusUpdateTransformCommand::WriteConfiguration(vtkXMLDataElement* 
     return PLUS_FAIL;
   }  
 
-  // Common parameters
-  aConfig->SetAttribute("Name",this->Name);
-
-  // Start parameters
   aConfig->SetAttribute("TransformName", this->GetTransformName());
 
-  if( hasMatrix )
+  if (this->GetTransformValue())
   {
-    std::stringstream ss;
-    for (int i = 0; i < 4; i++)
-    {
-      for (int j = 0; j < 4; j++)
-      {
-        ss << this->GetTransformValue()->GetElement(i, j) << " ";
-      }
-    }
-    std::string valueStringRepresentation = ss.str();
-    valueStringRepresentation = PlusCommon::Trim(valueStringRepresentation.c_str());
-    aConfig->SetAttribute("TransformValue", valueStringRepresentation.c_str());
+    double vectorMatrix[16]={0}; 
+    vtkMatrix4x4::DeepCopy(vectorMatrix,GetTransformValue()); 
+    aConfig->SetVectorAttribute("TransformValue", 16, vectorMatrix);
   }
 
-  std::string date(this->GetTransformDate());
-  if( !date.empty() )
+  if (this->GetTransformDate())
   {
     aConfig->SetAttribute("TransformDate", this->GetTransformDate());
   }
 
-  if( this->hasError )
+  if (this->GetTransformError()>=0)
   {
     aConfig->SetDoubleAttribute("TransformError", this->GetTransformError());
   }
-  if( this->hasPersistent )
-  {
-    aConfig->SetAttribute("TransformPersistent", this->GetTransformPersistent() ? "TRUE" : "FALSE");
-  }
+  
+  aConfig->SetAttribute("TransformPersistent", this->GetTransformPersistent() ? "TRUE" : "FALSE");
+  
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusUpdateTransformCommand::Execute()
 {
-  if (this->Name == NULL)
+  LOG_INFO("vtkPlusUpdateTransformCommand::Execute:");
+
+  this->ResponseMessage=std::string("UpdateTransform (") + TransformName + ")";
+
+  if( this->GetTransformRepository() == NULL )
   {
-    LOG_ERROR("Command failed, no command name specified");
-    this->SetCommandCompleted(PLUS_FAIL, "Command failed, no command name specified");
+    this->ResponseMessage += " failed: invalid transform repository";
     return PLUS_FAIL;
   }
 
-  PlusStatus status = PLUS_SUCCESS;
-  std::string reply = std::string("UpdateTransform (") + TransformName + 
-    ") " + this->Name + " ";  
+  PlusTransformName aName;
+  aName.SetTransformName(this->GetTransformName());
 
-  LOG_INFO("vtkPlusUpdateTransformCommand::Execute: " << this->Name);
+  if( this->GetTransformRepository()->IsExistingTransform(aName) == PLUS_SUCCESS)
+  {
+    bool persistent=false;
+    this->GetTransformRepository()->GetTransformPersistent(aName, persistent);
+    if ( !persistent && this->GetTransformPersistent() )
+    {
+      this->ResponseMessage += " WARNING: replacing non-persistent transform with a persistent transform.";
+    }
+  }
 
-  if (STRCASECMP(this->Name, UPDATE_TRANSFORM_CMD) == 0)
-  {    
-    if( this->GetTransformRepository() != NULL )
-    {
-      vtkMatrix4x4* aMatrix = vtkMatrix4x4::New();
-      bool persistent;
-      PlusTransformName aName;
-      aName.SetTransformName(this->GetTransformName());
-      if( this->GetTransformRepository()->IsExistingTransform(aName) == PLUS_SUCCESS &&
-        this->GetTransformRepository()->GetTransformPersistent(aName, persistent) && 
-        !persistent && this->GetTransformPersistent() )
-      {
-        reply += "WARNING: replacing non-persistent transform with a persistent transform, ";
-      }
-      if( this->hasMatrix )
-      {
-        this->GetTransformRepository()->SetTransform(aName, this->TransformValue);
-      }
-      if( this->hasPersistent )
-      {
-        this->GetTransformRepository()->SetTransformPersistent(aName, this->GetTransformPersistent());
-      }
-      std::string date(this->GetTransformDate());
-      if( !date.empty() )
-      {
-        this->GetTransformRepository()->SetTransformDate(aName, this->GetTransformDate());
-      }
-      if( this->hasError )
-      {
-        this->GetTransformRepository()->SetTransformError(aName, this->GetTransformError());
-      }
-    }
-    else
-    {
-      reply += "NULL transform repository, ";
-      status = PLUS_FAIL;
-    }
+  if (this->TransformValue)
+  {
+    this->GetTransformRepository()->SetTransform(aName, this->TransformValue);
   }
   else
   {
-    reply += "unknown command, ";
-    status = PLUS_FAIL;
+    this->ResponseMessage += " WARNING: transform is not specified.";
   }
 
-  if (status == PLUS_SUCCESS)
+  this->GetTransformRepository()->SetTransformPersistent(aName, this->GetTransformPersistent());
+  
+  if( this->GetTransformDate() )
   {
-    reply += "completed successfully";
+    this->GetTransformRepository()->SetTransformDate(aName, this->GetTransformDate());
   }
-  else
+  if ( this->GetTransformError()>=0 )
   {
-    reply += "failed";
+    this->GetTransformRepository()->SetTransformError(aName, this->GetTransformError());
   }
-  this->SetCommandCompleted(status,reply);
-  return status;
+
+  this->ResponseMessage += " completed successfully";
+  return PLUS_SUCCESS;
 }

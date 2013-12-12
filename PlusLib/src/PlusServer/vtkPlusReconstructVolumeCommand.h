@@ -28,7 +28,7 @@ public:
   virtual vtkPlusCommand* Clone() { return New(); }
 
   /*! Executes the command  */
-  virtual PlusStatus Execute();
+  virtual PlusStatus Execute();  
 
   /*! Read command parameters from XML */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
@@ -67,7 +67,8 @@ public:
 
 protected:
 
-  PlusStatus SetCommandCompletedWithImage(vtkImageData* volumeToSend, const std::string &message);
+  /*! Saves image to disk (if requested) and prepare sending image as a response (if requested) */
+  PlusStatus ProcessImageReply(vtkImageData* volumeToSend);
 
   vtkVirtualVolumeReconstructor* GetVolumeReconstructorDevice();
 

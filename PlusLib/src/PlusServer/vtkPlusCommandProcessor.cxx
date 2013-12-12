@@ -128,17 +128,14 @@ void* vtkPlusCommandProcessor::CommandExecutionThread( vtkMultiThreader::ThreadI
   // Execute commands until a stop is requested  
   while ( self->CommandExecutionActive.first )
   {
-    int numberOfExecutedCommands=self->ExecuteCommands();
-    if (numberOfExecutedCommands==0)
-    {
-      // no commands in the queue, wait a bit before checking again
-      const double commandQueuePollIntervalSec=0.010;
+    self->ExecuteCommands();
+    // no commands in the queue, wait a bit before checking again
+    const double commandQueuePollIntervalSec=0.010;
 #ifdef _WIN32
-      Sleep(commandQueuePollIntervalSec*1000);
+    Sleep(commandQueuePollIntervalSec*1000);
 #else
-      usleep(commandQueuePollIntervalSec * 1000000);
+    usleep(commandQueuePollIntervalSec * 1000000);
 #endif
-    }
   }
 
   // Close thread
@@ -149,57 +146,57 @@ void* vtkPlusCommandProcessor::CommandExecutionThread( vtkMultiThreader::ThreadI
 
 //----------------------------------------------------------------------------
 int vtkPlusCommandProcessor::ExecuteCommands()
-{
-  vtkPlusCommand* cmd=NULL; // next command to be processed
-  int numberOfExecutedCommands=0;
-  {
-    PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
-    if (this->ActiveCommands.empty())
-    {
-      return numberOfExecutedCommands;
-    }
-    cmd=this->ActiveCommands.front();
-  }
-    
-  // Execute each active command once and remove completed command from the queue if completed.
+{   
   // Implemented in a while loop to not block the mutex during command execution, only during management of the queue.
+  int numberOfExecutedCommands=0;
   while (1)
-  {    
-    LOG_DEBUG("Executing command");
-    cmd->Execute();
-    numberOfExecutedCommands++;
-
+  {
+    vtkPlusCommand* cmd=NULL; // next command to be processed  
     {
-      // Remove the current command from the queue if completed and get next command
       PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
-      // Find the current command in the queue
-      std::deque< vtkPlusCommand* >::iterator cmdIt=std::find(this->ActiveCommands.begin(), this->ActiveCommands.end(), cmd);
-      if (cmdIt==this->ActiveCommands.end())
+      if (this->CommandQueue.empty())
       {
-        // the command has been removed, it should not happen, as commands should be removed only when they are executed in this method
-        LOG_ERROR("Command that was under execution was removed from the queue");
         return numberOfExecutedCommands;
-      }      
-      if (cmd->IsCompleted())
+      }
+      cmd=this->CommandQueue.front();
+      this->CommandQueue.pop_front();
+    }
+
+    LOG_DEBUG("Executing command");
+    std::string messageToSend;
+    vtkImageData* imageToSend=NULL;
+    PlusStatus status=cmd->Execute();
+    if (status==PLUS_SUCCESS)
+    {
+      if (cmd->GetResponseImage()!=NULL)
       {
-        // the command execution is completed, so remove it from the queue of active commands
-        cmd->UnRegister(this); // delete command
-        cmdIt=this->ActiveCommands.erase(cmdIt);        
+        if (cmd->GetResponseImageDeviceName().empty() || cmd->GetResponseImageToReferenceTransform()==NULL)
+        {
+          LOG_WARNING("Response image device name or ImageToReferenceTransform is undefined");
+        }
+        // send message+image as a response
+        QueueReply(cmd->GetClientId(), PLUS_SUCCESS, cmd->GetResponseMessage(), cmd->GetReplyDeviceName(),
+          cmd->GetResponseImageDeviceName().c_str(), cmd->GetResponseImage(), cmd->GetResponseImageToReferenceTransform());
       }
       else
       {
-        // the command has not been completed, so keep in the queue and progress to the next command
-        ++cmdIt;
+        // send only message as a response
+        QueueReply(cmd->GetClientId(), PLUS_SUCCESS, cmd->GetResponseMessage(), cmd->GetReplyDeviceName());
       }
-      if (cmdIt==this->ActiveCommands.end())
-      {
-        // it was the last command in the queue
-        break;
-      }
-      cmd=*cmdIt;
     }
+    else
+    {
+      // send error message as response
+      LOG_ERROR(cmd->GetResponseMessage());
+      QueueReply(cmd->GetClientId(), status, cmd->GetResponseMessage(), cmd->GetReplyDeviceName());
+    }
+
+    // the command execution is completed, so remove it from the queue of active commands
+    cmd->UnRegister(this); // delete command
+    numberOfExecutedCommands++;
   }
 
+  // we never actually reach this point
   return numberOfExecutedCommands;
 }
 
@@ -289,7 +286,7 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(unsigned int clientId, const st
   {
     // Add command to the execution queue
     PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
-    this->ActiveCommands.push_back(cmd);
+    this->CommandQueue.push_back(cmd);
   }
   return PLUS_SUCCESS;
 }
@@ -339,21 +336,4 @@ PlusStatus vtkPlusCommandProcessor::GetCommandReplies(PlusCommandReplyList &repl
 bool vtkPlusCommandProcessor::IsRunning()
 {
   return this->CommandExecutionActive.second;
-}
-
-//----------------------------------------------------------------------------
-vtkPlusCommand* vtkPlusCommandProcessor::GetQueuedCommand(int clientId, const std::string& commandId)
-{
-  PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
-  // Find the command with the specified id
-  for (std::deque< vtkPlusCommand* >::iterator cmdIt=this->ActiveCommands.begin(); cmdIt!=this->ActiveCommands.end(); ++cmdIt)
-  {
-    // &&(*cmdIt)->GetClientId()==clientId  TODO: temporarily clientId check is disabled to allow a client to talk to another client's command - in the long term a command should be deactivated if the requesting client is not connected anymore)
-    if ( STRCASECMP((*cmdIt)->GetId(), commandId.c_str()) == 0 )
-    {
-      return (*cmdIt);
-    }
-  }
-
-  return NULL;
 }

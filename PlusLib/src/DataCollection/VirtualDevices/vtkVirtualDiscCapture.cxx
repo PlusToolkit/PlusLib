@@ -41,6 +41,7 @@ vtkVirtualDiscCapture::vtkVirtualDiscCapture()
 , WriterAccessMutex(vtkSmartPointer<vtkRecursiveCriticalSection>::New())
 , GracePeriodLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG)
 {
+  this->MissingInputGracePeriodSec=2.0;
   m_RecordedFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP); 
 
   // The data capture thread will be used to regularly read the frames and write to disk
@@ -509,6 +510,7 @@ void vtkVirtualDiscCapture::SetEnableCapturing( bool aValue )
     m_LastAlreadyRecordedFrameTimestamp = UNDEFINED_TIMESTAMP;
     m_NextFrameToBeRecordedTimestamp = 0.0;
     m_FirstFrameIndexInThisSegment = 0.0;
+    this->RecordingStartTime = vtkAccurateTimer::GetSystemTime(); // reset the starting time for the grace period
   }
 }
 

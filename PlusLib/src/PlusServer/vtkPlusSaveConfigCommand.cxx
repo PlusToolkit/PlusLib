@@ -66,16 +66,7 @@ PlusStatus vtkPlusSaveConfigCommand::ReadConfiguration(vtkXMLDataElement* aConfi
   {
     return PLUS_FAIL;
   }
-
-  if( aConfig->GetAttribute("Filename") != NULL )
-  {
-    this->SetFilename(aConfig->GetAttribute("Filename"));
-  }
-  else
-  {
-    this->SetFilename(this->CommandProcessor->GetPlusServer()->GetConfigFilename());
-  }
-
+  this->SetFilename(aConfig->GetAttribute("Filename"));
   return PLUS_SUCCESS;
 }
 
@@ -86,70 +77,38 @@ PlusStatus vtkPlusSaveConfigCommand::WriteConfiguration(vtkXMLDataElement* aConf
   {
     return PLUS_FAIL;
   }  
-
-  // Common parameters
-  aConfig->SetAttribute("Name",this->Name);
-
   // Start parameters
   if( this->GetFilename() != NULL )
   {
     aConfig->SetAttribute("Filename", this->GetFilename());
   }
-
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusSaveConfigCommand::Execute()
 {
-  if (this->Name == NULL)
+  LOG_INFO("vtkPlusSaveConfigCommand::Execute");
+
+  this->ResetResponse();
+  if (GetFilename()==NULL)
   {
-    LOG_ERROR("Command failed, no command name specified");
-    this->SetCommandCompleted(PLUS_FAIL, "Command failed, no command name specified");
+    this->SetFilename(this->CommandProcessor->GetPlusServer()->GetConfigFilename());
+  }
+  this->ResponseMessage = std::string("SaveConfig (") + (this->Filename?this->Filename:"undefined") + ")";
+
+  if( this->GetDataCollector() == NULL)
+  {
+    this->ResponseMessage += " can't access data collector, ";
     return PLUS_FAIL;
   }
-
-  PlusStatus status = PLUS_SUCCESS;
-  std::string reply = std::string("SaveConfig (") + this->Filename + 
-    ") " + this->Name + " ";  
-
-  LOG_INFO("vtkPlusSaveConfigCommand::Execute: " << this->Name);
-
-  if (STRCASECMP(this->Name, SAVE_CONFIG_CMD) == 0)
-  {    
-    if( this->GetDataCollector() != NULL)
-    {
-      if( this->GetDataCollector()->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS
-        || this->GetTransformRepository()->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS )
-      {
-        reply += "unable to write configuration, ";
-        status = PLUS_FAIL;
-      }
-      else
-      {
-        PlusCommon::PrintXML(this->GetFilename(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
-      }
-    }
-    else
-    {
-      reply += "can't access data collector, ";
-      status = PLUS_FAIL;
-    }
-  }
-  else
+  if( this->GetDataCollector()->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS
+    || this->GetTransformRepository()->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS )
   {
-    reply += "unknown command, ";
-    status = PLUS_FAIL;
+    this->ResponseMessage += " unable to write configuration";
+    return PLUS_FAIL;
   }
-
-  if (status == PLUS_SUCCESS)
-  {
-    reply += "completed successfully";
-  }
-  else
-  {
-    reply += "failed";
-  }
-  this->SetCommandCompleted(status, reply);
-  return status;
+  PlusCommon::PrintXML(this->GetFilename(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+  this->ResponseMessage += " completed successfully";
+  return PLUS_SUCCESS;
 }

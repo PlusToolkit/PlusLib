@@ -1076,7 +1076,9 @@ ItemStatus vtkPlusBuffer::GetStreamBufferItemFromTime( double time, StreamBuffer
   case EXACT_TIME:
     return GetStreamBufferItemFromExactTime(time, bufferItem); 
   case INTERPOLATED:
-    return GetInterpolatedStreamBufferItemFromTime(time, bufferItem); 
+    return GetInterpolatedStreamBufferItemFromTime(time, bufferItem);
+  case CLOSEST_TIME:
+    return GetStreamBufferItemFromClosestTime(time, bufferItem);
   default:
     LOCAL_LOG_WARNING("Unknown interpolation type: " << interpolation << ". Defaulting to exact time request.");
     return GetStreamBufferItemFromExactTime(time, bufferItem); 
