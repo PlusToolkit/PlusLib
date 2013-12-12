@@ -86,9 +86,6 @@ public:
   vtkGetObjectMacro(PlusServer, vtkPlusOpenIGTLinkServer);
   vtkSetObjectMacro(PlusServer, vtkPlusOpenIGTLinkServer); 
 
-  /*! Get a command in the queue belonging to a specific client, based on its command id. Thread-safe. */
-  vtkPlusCommand* GetQueuedCommand(int clientId, const std::string& commandId);
-
 protected:
   vtkPlusCommand* CreatePlusCommand(const std::string &commandStr);
 
@@ -122,7 +119,7 @@ private:
     After a command's execute method is called it may still remain active (remain in the queue),
     until it signals that it is completed.
   */
-  std::deque<vtkPlusCommand*> ActiveCommands;
+  std::deque<vtkPlusCommand*> CommandQueue;
   PlusCommandReplyList CommandReplies;
 
   vtkPlusCommandProcessor(const vtkPlusCommandProcessor&);  // Not implemented.

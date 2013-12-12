@@ -1215,13 +1215,13 @@ int vtkPlusChannel::GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, do
   if ( this->GetVideoDataAvailable() )
   {
     StreamBufferItem vFromItem; 
-    if (this->VideoSource->GetBuffer()->GetStreamBufferItemFromTime(aTimestampFrom, &vFromItem, vtkPlusBuffer::EXACT_TIME) != ITEM_OK )
+    if (this->VideoSource->GetBuffer()->GetStreamBufferItemFromTime(aTimestampFrom, &vFromItem, vtkPlusBuffer::CLOSEST_TIME) != ITEM_OK )
     {
       return 0;
     }
 
     StreamBufferItem vToItem; 
-    if (this->VideoSource->GetBuffer()->GetStreamBufferItemFromTime(aTimestampTo, &vToItem, vtkPlusBuffer::EXACT_TIME) != ITEM_OK )
+    if (this->VideoSource->GetBuffer()->GetStreamBufferItemFromTime(aTimestampTo, &vToItem, vtkPlusBuffer::CLOSEST_TIME) != ITEM_OK )
     {
       return 0;
     }

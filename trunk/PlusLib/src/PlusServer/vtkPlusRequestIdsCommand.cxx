@@ -23,7 +23,6 @@ vtkPlusRequestIdsCommand::vtkPlusRequestIdsCommand()
 //----------------------------------------------------------------------------
 vtkPlusRequestIdsCommand::~vtkPlusRequestIdsCommand()
 {
-
 }
 
 //----------------------------------------------------------------------------
@@ -68,9 +67,7 @@ PlusStatus vtkPlusRequestIdsCommand::ReadConfiguration(vtkXMLDataElement* aConfi
   {
     return PLUS_FAIL;
   }
-
   this->SetDeviceType(aConfig->GetAttribute("DeviceType"));
- 
   return PLUS_SUCCESS;
 }
 
@@ -81,47 +78,43 @@ PlusStatus vtkPlusRequestIdsCommand::WriteConfiguration(vtkXMLDataElement* aConf
   {
     return PLUS_FAIL;
   }
-
   if (this->DeviceType!=NULL)
   {
     aConfig->SetAttribute("DeviceType",this->DeviceType);
   }
-
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusRequestIdsCommand::Execute()
 {
+  ResetResponse();
+
   if (this->Name == NULL)
   {
-    LOG_ERROR("Command failed, no command name specified");
-    SetCommandCompleted(PLUS_FAIL, "Command failed, no command name specified");
+    this->ResponseMessage="Command failed, no command name specified";
     return PLUS_FAIL;
   }
 
   vtkDataCollector* dataCollector = this->GetDataCollector();
   if (dataCollector == NULL)
   {
-    LOG_ERROR("Data collector is invalid");    
-    SetCommandCompleted(PLUS_FAIL, "Command failed, no data collector");
+    this->ResponseMessage="Command failed, no data collector";
     return PLUS_FAIL;
   }
 
   DeviceCollection aCollection;
   if( dataCollector->GetDevices(aCollection) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Unable to retrieve devices.");
-    SetCommandCompleted(PLUS_FAIL, "Unable to retrieve devices.");
+    this->ResponseMessage="Command failed, unable to retrieve devices.";
     return PLUS_FAIL;
   }
 
   PlusStatus status = PLUS_SUCCESS;
-  std::stringstream reply;
-
-  bool addSeparator=false;
+  
   if (STRCASECMP(this->Name, REQUEST_CHANNEL_ID_CMD) == 0)
   {
+    bool addSeparator=false;
     for( DeviceCollectionConstIterator deviceIt = aCollection.begin(); deviceIt != aCollection.end(); ++deviceIt)
     {
       vtkPlusDevice* aDevice = *deviceIt;
@@ -132,16 +125,18 @@ PlusStatus vtkPlusRequestIdsCommand::Execute()
           vtkPlusChannel* aChannel = *it;
           if (addSeparator)
           {
-            reply << ",";
+            this->ResponseMessage += ",";
           }
-          reply << aChannel->GetChannelId();
+          this->ResponseMessage += aChannel->GetChannelId();
           addSeparator=true;
         }
       }
     }
+    return PLUS_SUCCESS;
   }
   else if (STRCASECMP(this->Name, REQUEST_DEVICE_ID_CMD) == 0)
   {
+    bool addSeparator=false;
     for( DeviceCollectionConstIterator deviceIt = aCollection.begin(); deviceIt != aCollection.end(); ++deviceIt)
     {
       vtkPlusDevice* aDevice = *deviceIt;
@@ -157,20 +152,16 @@ PlusStatus vtkPlusRequestIdsCommand::Execute()
       if (deviceClassName.empty() || aDevice->GetClassName()==deviceClassName)
       {
         if (addSeparator)
-        {
-          reply << ",";
-        }
-        reply << aDevice->GetDeviceId();
+          {
+            this->ResponseMessage += ",";
+          }
+        this->ResponseMessage += aDevice->GetDeviceId();
         addSeparator=true;
       }
     }
-  }
-  else
-  {
-    reply << "Unknown command, failed.";
-    SetCommandCompleted(PLUS_FAIL, reply.str());
+    return PLUS_SUCCESS;
   }
 
-  SetCommandCompleted(status, reply.str());
-  return status;
+  this->ResponseMessage="Unknown command, failed";
+  return PLUS_FAIL;    
 }

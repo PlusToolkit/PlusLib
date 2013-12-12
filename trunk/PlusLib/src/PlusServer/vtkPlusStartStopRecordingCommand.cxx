@@ -106,7 +106,6 @@ PlusStatus vtkPlusStartStopRecordingCommand::WriteConfiguration(vtkXMLDataElemen
   }  
   
   // Common parameters
-  aConfig->SetAttribute("Name",this->Name);
   if (this->CaptureDeviceId!=NULL)
   {
     aConfig->SetAttribute("CaptureDeviceId",this->CaptureDeviceId);
@@ -181,62 +180,63 @@ vtkVirtualDiscCapture* vtkPlusStartStopRecordingCommand::GetCaptureDevice(const 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusStartStopRecordingCommand::Execute()
 {
+  this->ResetResponse();
+
   if (this->Name==NULL)
   {
-    LOG_ERROR("Command failed, no command name specified");
-    SetCommandCompleted(PLUS_FAIL,"Command failed, no command name specified");
+    this->ResponseMessage="Command failed, no command name specified";
     return PLUS_FAIL;
   }
 
   vtkVirtualDiscCapture *captureDevice=GetCaptureDevice(this->CaptureDeviceId);
   if (captureDevice==NULL)
   {            
-    std::string reply="VirtualStreamCapture has not been found (";
-    reply+= this->CaptureDeviceId ? this->CaptureDeviceId : "auto-detect";
-    reply+= "), ";
-    reply+= this->Name;
-    reply+= "failed";
-    SetCommandCompleted(PLUS_FAIL,reply);
+    this->ResponseMessage=std::string("VirtualStreamCapture has not been found (")
+      + (this->CaptureDeviceId ? this->CaptureDeviceId : "auto-detect") + "), "+this->Name+" failed";    
     return PLUS_FAIL;
   }    
 
-  PlusStatus status=PLUS_SUCCESS;
-  std::string reply=std::string("VirtualStreamCapture (")+captureDevice->GetDeviceId()+") "+this->Name;
+  this->ResponseMessage=std::string("VirtualStreamCapture (")+captureDevice->GetDeviceId()+") "+this->Name;
   LOG_INFO("vtkPlusStartStopRecordingCommand::Execute: "<<this->Name);
   if (STRCASECMP(this->Name, START_CMD)==0)
   {
     if (captureDevice->OpenFile(this->OutputFilename)!=PLUS_SUCCESS)
     {
-      status=PLUS_FAIL;
+      this->ResponseMessage += std::string(" failed to open file ")+(this->OutputFilename?this->OutputFilename:"(undefined)");
+      return PLUS_FAIL;
     }
     captureDevice->SetEnableCapturing(true);
+    this->ResponseMessage+=" successful";
+    return PLUS_SUCCESS;
   }
   else if (STRCASECMP(this->Name, SUSPEND_CMD)==0)
   {    
     captureDevice->SetEnableCapturing(false);
+    this->ResponseMessage+=" successful";
+    return PLUS_SUCCESS;
   }
   else if (STRCASECMP(this->Name, RESUME_CMD)==0)
   {    
     captureDevice->SetEnableCapturing(true);
+    this->ResponseMessage+=" successful";
+    return PLUS_SUCCESS;
   }
   else if (STRCASECMP(this->Name, STOP_CMD)==0)
-  {    
+  { 
     captureDevice->SetEnableCapturing(false);    
+    
     long numberOfFramesRecorded=captureDevice->GetTotalFramesRecorded();    
     if (captureDevice->CloseFile(this->OutputFilename) != PLUS_SUCCESS)
     {
-      status=PLUS_FAIL;
+      this->ResponseMessage += std::string(" failed to finalize file ")+(this->OutputFilename?this->OutputFilename:"(undefined)");
+      return PLUS_FAIL;
     }
     std::ostringstream ss;
-    ss << ", recording " << numberOfFramesRecorded <<" frames";
-    reply+=ss.str();
+    ss << ", recording " << numberOfFramesRecorded <<" frames successful to file "<<captureDevice->GetOutputFileName();
+    this->ResponseMessage+=ss.str();
+    return PLUS_SUCCESS;
   }
-  else
-  {
-    reply+=" unknown command";
-    status=PLUS_FAIL;
-  }
-  reply += (status==PLUS_SUCCESS ? " completed successfully" : " failed");
-  SetCommandCompleted(status,reply);
-  return status;
+
+  this->ResponseMessage+=" unknown command";
+  return PLUS_FAIL;
 }

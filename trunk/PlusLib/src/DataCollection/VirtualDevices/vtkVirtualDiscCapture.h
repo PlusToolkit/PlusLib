@@ -71,6 +71,8 @@ public:
   virtual bool IsTracker() const { return false; }
   virtual bool IsVirtual() const { return true; }
 
+  virtual std::string GetOutputFileName() { return vtkPlusConfig::GetInstance()->GetOutputPath(m_CurrentFilename); };
+
 protected:
   virtual PlusStatus ClearRecordedFrames();
 

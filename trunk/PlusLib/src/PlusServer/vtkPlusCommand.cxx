@@ -8,18 +8,24 @@
 #include "vtkPlusCommand.h"
 #include "vtkPlusCommandProcessor.h"
 #include "vtkVersion.h"
+#include "vtkImageData.h"
+#include "vtkMatrix4x4.h"
 
 static const char* DEVICE_NAME_COMMAND = "CMD";
 static const char* DEVICE_NAME_REPLY = "ACK";
 
+vtkCxxSetObjectMacro(vtkPlusCommand, ResponseImage, vtkImageData);
+vtkCxxSetObjectMacro(vtkPlusCommand, ResponseImageToReferenceTransform, vtkMatrix4x4);
+
 //----------------------------------------------------------------------------
 vtkPlusCommand::vtkPlusCommand()
-: Completed(false)
-, CommandProcessor(NULL)
+: CommandProcessor(NULL)
 , ClientId(0)
 , Id(NULL)
 , Name(NULL)
 , DeviceName(NULL)
+, ResponseImage(NULL)
+, ResponseImageToReferenceTransform(NULL)
 {
 }
 
@@ -29,6 +35,8 @@ vtkPlusCommand::~vtkPlusCommand()
   this->SetName(NULL);
   this->SetDeviceName(NULL);
   this->SetId(NULL);
+  this->SetResponseImage(NULL);
+  this->SetResponseImageToReferenceTransform(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -83,28 +91,6 @@ PlusStatus vtkPlusCommand::WriteConfiguration(vtkXMLDataElement* aConfig)
 void vtkPlusCommand::SetCommandProcessor( vtkPlusCommandProcessor *processor )
 {  
   this->CommandProcessor=processor;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusCommand::SetCommandCompleted(PlusStatus replyStatus, const std::string& replyString)
-{
-  if (this->CommandProcessor==NULL)
-  {
-    LOG_ERROR("vtkPlusCommand::SetCommandCompleted failed, command processor is invalid");
-    return PLUS_FAIL;
-  }
-  else
-  {
-    this->CommandProcessor->QueueReply(this->ClientId, replyStatus, replyString, this->GetReplyDeviceName());
-  }
-  this->Completed=true;
-  return PLUS_FAIL;
-}
-
-//----------------------------------------------------------------------------
-bool vtkPlusCommand::IsCompleted()
-{  
-  return this->Completed;
 }
 
 //----------------------------------------------------------------------------
@@ -266,4 +252,13 @@ std::string vtkPlusCommand::GetPrefixFromCommandDeviceName(const std::string &de
     prefix = deviceName.substr(0, separatorPos);
   }
   return prefix;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusCommand::ResetResponse()
+{
+  this->ResponseMessage.clear();
+  this->ResponseImageDeviceName.clear();
+  this->SetResponseImage(NULL);
+  this->SetResponseImageToReferenceTransform(NULL);
 }
