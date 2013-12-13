@@ -216,7 +216,7 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdate()
   }
 
   // We've received valid header data
-
+  headerMsg->Unpack(this->IgtlMessageCrcCheckEnabled);
   if (strcmp( headerMsg->GetDeviceType(), "TDATA" ) == 0 )
   {
     // TDATA message
@@ -476,9 +476,9 @@ PlusStatus vtkOpenIGTLinkTracker::ProcessTDataMessage(igtl::MessageHeader::Point
 
     // Set internal transform name
     PlusTransformName transformName(igtlTransformName.c_str(), this->TrackerInternalCoordinateSystemName);
-    if ( this->ToolTimeStampedUpdateWithoutFiltering(transformName.From().c_str(), toolMatrix, TOOL_OK, unfilteredTimestamp, filteredTimestamp) == PLUS_SUCCESS )
+    if ( this->ToolTimeStampedUpdateWithoutFiltering(transformName.GetTransformName().c_str(), toolMatrix, TOOL_OK, unfilteredTimestamp, filteredTimestamp) == PLUS_SUCCESS )
     {
-      identifiedToolNames.insert(transformName.From());
+      identifiedToolNames.insert(transformName.GetTransformName());
     }
     else
     {
@@ -510,7 +510,6 @@ PlusStatus vtkOpenIGTLinkTracker::ProcessTransformMessage(igtl::MessageHeader::P
   vtkSmartPointer<vtkMatrix4x4> toolMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
   std::string igtlTransformName; 
   
-  headerMsg->Unpack(this->IgtlMessageCrcCheckEnabled);
   if (strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0)
   {
     if ( vtkPlusIgtlMessageCommon::UnpackTransformMessage(headerMsg, this->ClientSocket.GetPointer(), toolMatrix, igtlTransformName, unfilteredTimestampUtc, this->IgtlMessageCrcCheckEnabled) != PLUS_SUCCESS )
