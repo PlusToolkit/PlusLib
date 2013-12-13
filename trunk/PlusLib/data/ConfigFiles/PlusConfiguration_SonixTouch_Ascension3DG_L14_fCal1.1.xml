@@ -2,7 +2,7 @@
 
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
-      Name="SonixTouch Ascension3DG(GPS) L14-5 + Reference + Stylus + 3Nwires"
+      Name="fCal: SonixTouch US (L14-5 probe) + Ascension3DG tracker (Probe, Reference, Stylus) - fCal Phantom 2.0 - 3Nwires"
       Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." 
     />
 

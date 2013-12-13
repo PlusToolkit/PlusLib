@@ -2,7 +2,7 @@
 
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
-      Name="SonixTouch MicronTracker L14-5 + Reference + Stylus"
+      Name="fCal: SonixTouch US (L14-5 probe) + NDI Polaris tracker (Probe, Reference, Stylus)"
       Description="MicronTracker" 
     />
 

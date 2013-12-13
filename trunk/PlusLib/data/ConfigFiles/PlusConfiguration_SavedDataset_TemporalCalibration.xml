@@ -2,7 +2,7 @@
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
-      Name="Simulation mode for temporal calibration" 
+      Name="fCal: Simulation mode for temporal calibration" 
       Description="Configuration file for Saved dataset + fCal 1.0
 It loads an fCal test image, but it can be changed by modifying the SequenceMetafile attributes (absolute path is needed if the image is not in the test image directory"
     />

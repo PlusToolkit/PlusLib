@@ -2,7 +2,7 @@
 
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
-      Name="SonixTouch NDI Polaris L14-5 + Reference + Stylus + Phantom 2.0"
+      Name="fCal: SonixTouch US (L14-5 probe) + NDI Polaris tracker (Probe, Reference, Stylus) - fCal Phantom 2.0"
       Description="NDI Polaris with SonixTouch L14-5" 
     />
 

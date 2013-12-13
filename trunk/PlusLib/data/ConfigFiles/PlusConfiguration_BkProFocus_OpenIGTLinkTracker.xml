@@ -2,7 +2,7 @@
 
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
-      Name="BK ProFocus scanner and OpenIGTLink tracker connection"
+      Name="fCal: BK ProFocus US CameraLink + OpenIGTLink tracker connection (Probe, Reference)"
       Description="BK ProFocus ultrasound scanner and OpenIGTLink TRANSFORM messages + fCal 1.2. Plus must be built in 64-bit if the operating system is 64-bit." 
     />
 
@@ -17,7 +17,6 @@
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="FM" BufferSize="500" AveragedItemsForFiltering="20" />
       </DataSources>
-
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" >
           <RfProcessing>
@@ -52,7 +51,6 @@
         <DataSource Type="Tool" Id="Probe" PortName="0" BufferSize="500" AveragedItemsForFiltering="20"/>
         <DataSource Type="Tool" Id="Reference" PortName="1" BufferSize="500" AveragedItemsForFiltering="20"/>
       </DataSources>
-
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
           <DataSource Id="Probe" />

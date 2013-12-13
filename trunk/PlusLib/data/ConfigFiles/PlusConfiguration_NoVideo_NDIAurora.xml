@@ -2,7 +2,7 @@
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
-      Name="No video + NDI Aurora" 
+      Name="fCal: NDI Aurora tracker (Needle)"
       Description="Configuration file for No video + NDI Aurora
 The computer needs to be on the same local network as Aurora SCU unit. The tools need to be plugged in the slots as following: 1: Probe, 2: Reference, 3: Stylus, 4: Needle (optional)" 
     />

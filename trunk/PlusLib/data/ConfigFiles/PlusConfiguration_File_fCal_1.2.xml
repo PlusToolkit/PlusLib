@@ -2,7 +2,7 @@
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
-      Name="Simulation mode for freehand spatial calibration with phantom containing 3 NWires" 
+      Name="fCal: Simulation mode for spatial calibration - fCal Phantom 1.2 - 3Nwires"
       Description="Data collector in file mode providing sequence for freehand calibration" 
     />
     <Device
@@ -182,5 +182,29 @@
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
   />
+
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="TrackedVideoStream" 
+    > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="ProbeToTracker" /> 
+        <Transform Name="ReferenceToTracker" /> 
+    <Transform Name="ProbeToReference" />
+      </TransformNames>
+    <ImageNames>
+      <Image Name="Image" EmbeddedTransformToFrame="Reference" />
+    </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
 
 </PlusConfiguration>

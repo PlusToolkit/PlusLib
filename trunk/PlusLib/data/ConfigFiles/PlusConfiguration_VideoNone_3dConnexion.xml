@@ -2,7 +2,7 @@
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
-      Name="3dConnexion SpaceNavigator" 
+      Name="PlusServer: 3dConnexion SpaceNavigator tracker" 
       Description="Configuration file for 3dConnexion SpaceMouse" 
     />
     <Device
