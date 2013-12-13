@@ -1,56 +1,80 @@
 /*=Plus=header=begin======================================================
-Program: Plus
-Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-See License.txt for details.
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusServerLauncherMainWindow.h"
-#include "vtkPlusDeviceFactory.h"
-#include "vtkXMLDataElement.h"
-#include "vtkXMLUtilities.h"
 
+#include "DeviceSetSelectorWidget.h"
+#include "StatusIcon.h"
+
+#include "vtkPlusDeviceFactory.h"
 #include "vtkPlusOpenIGTLinkServer.h"
 
-#include "StatusIcon.h"
-#include "DeviceSetSelectorWidget.h"
-
 #include <QTimer>
+#include <QIcon>
 
 //-----------------------------------------------------------------------------
-PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent, Qt::WFlags flags)
-: QMainWindow(parent, flags)
+PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent, Qt::WFlags flags, bool autoConnect)
+  : QDialog(parent, flags|Qt::WindowMinimizeButtonHint)
+  , m_DeviceSetSelectorWidget(NULL)
+  , m_Server(NULL)
 {
   m_Server = vtkPlusOpenIGTLinkServer::New();
 
-  ui.setupUi(this);
+  setIcon(QPixmap( ":/icons/Resources/icon_ConnectLarge.png" ));
 
-  // Create and setup device set selector widget
+  setMinimumSize(480, 320);
+  setMaximumSize(1200, 800);
+
+  // Create device set selector widget
   m_DeviceSetSelectorWidget = new DeviceSetSelectorWidget(this);
+  m_DeviceSetSelectorWidget->setMaximumWidth(1200);
+  m_DeviceSetSelectorWidget->setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding);
   connect( m_DeviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( connectToDevicesByConfigFile(std::string) ) );
-  // Re-parse the directory to properly select the previously selected device set (it is called in its constructor but there are no connects set up yet)
-  m_DeviceSetSelectorWidget->SetConfigurationDirectory(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory().c_str());
-  // Insert widgets into placeholders
-  ui.deviceSelectorWidget->addWidget(m_DeviceSetSelectorWidget);
 
   // Create status icon
-  m_StatusIcon = new StatusIcon(this);
-  ui.statusbar->addPermanentWidget(m_StatusIcon);
+  StatusIcon* statusIcon = new StatusIcon(this);
+
+  // Insert widgets into placeholders
+  QGridLayout* mainGrid = new QGridLayout(this);
+  mainGrid->setMargin(4);
+  mainGrid->setSpacing(4);
+  mainGrid->addWidget(m_DeviceSetSelectorWidget, 0, 0);
+  mainGrid->addWidget(statusIcon, 1, 0, Qt::AlignRight);
+  this->setLayout(mainGrid);
 
   // Set up timer for processing pending commands
   m_ProcessPendingCommandsTimer = new QTimer(this);
   connect( m_ProcessPendingCommandsTimer, SIGNAL( timeout() ), this, SLOT( processPendingCommands() ) );
   m_ProcessPendingCommandsTimer->start(50);
 
+  // Log basic info (Plus version, supported devices)
   std::string strPlusLibVersion = std::string(" Software version: ") + PlusCommon::GetPlusLibVersionString(); 
   LOG_INFO(strPlusLibVersion);
-
   LOG_INFO("Loging at level "<<vtkPlusLogger::Instance()->GetLogLevel()<<" to file: "<<vtkPlusLogger::Instance()->GetLogFileName());
-
   vtkSmartPointer<vtkPlusDeviceFactory> deviceFactory = vtkSmartPointer<vtkPlusDeviceFactory>::New(); 
   std::ostringstream supportedDevices; 
   deviceFactory->PrintAvailableDevices(supportedDevices, vtkIndent()); 
   LOG_INFO(supportedDevices.str());
 
+  if (autoConnect)
+  {
+    std::string configFileName=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName();
+    if (configFileName.empty())
+    {
+      LOG_ERROR("Auto-connect failed: device set configuration file is not specified");
+    }
+    else
+    {
+      connectToDevicesByConfigFile(configFileName);
+      if (m_DeviceSetSelectorWidget->GetConnectionSuccessful())
+      {
+        showMinimized();
+      }
+    }    
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -68,12 +92,6 @@ PlusServerLauncherMainWindow::~PlusServerLauncherMainWindow()
     m_Server->Stop();
     m_Server->Delete();
     m_Server = NULL; 
-  } 
-
-  if ( m_StatusIcon != NULL )
-  {
-    delete m_StatusIcon; 
-    m_StatusIcon = NULL; 
   }
 
   if ( m_DeviceSetSelectorWidget != NULL )
@@ -102,7 +120,6 @@ void PlusServerLauncherMainWindow::connectToDevicesByConfigFile(std::string aCon
   // Empty parameter string means disconnect from device
   if (STRCASECMP(aConfigFile.c_str(), "") == 0)
   {
-    //ui.ConnectionStatusLabel->setText("Device not connected."); 
     if ( m_Server != NULL )
     {
       m_Server->Stop(); 
@@ -123,4 +140,18 @@ void PlusServerLauncherMainWindow::connectToDevicesByConfigFile(std::string aCon
   }
   m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
   vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
+}
+
+//-----------------------------------------------------------------------------
+void PlusServerLauncherMainWindow::keyPressEvent(QKeyEvent *e)
+{
+  // If ESC key is pressed don't quit the application, just minimize
+  if(e->key() != Qt::Key_Escape)
+  {
+    QDialog::keyPressEvent(e);
+  }
+  else
+  {
+    showMinimized();
+  }
 }

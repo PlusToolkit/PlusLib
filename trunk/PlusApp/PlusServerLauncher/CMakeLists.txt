@@ -12,7 +12,7 @@ SET (PlusServerLauncher_SRCS
   PlusServerLauncherMainWindow.cxx
   )
 
-if (WIN32)	
+if (WIN32)
   SET (PlusServerLauncher_SRCS
     ${PlusServerLauncher_SRCS}
     )
@@ -23,7 +23,6 @@ SET (PlusServerLauncher_UI_HDRS
   )
 
 SET (PlusServerLauncher_UI_SRCS
-  PlusServerLauncherMainWindow.ui
   )
 
 SET (PlusServerLauncher_QT_Resources
@@ -33,7 +32,7 @@ SET (PlusServerLauncher_QT_Resources
 # --------------------------------------------------------------------------
 # Qt specific commands
 
-QT4_WRAP_CPP( PlusServerLauncher_QT_MOC_Files ${PlusServerLauncher_UI_HDRS} )			  
+QT4_WRAP_CPP( PlusServerLauncher_QT_MOC_Files ${PlusServerLauncher_UI_HDRS} )
 QT4_WRAP_UI( PlusServerLauncher_QT_UI_Headers ${PlusServerLauncher_UI_SRCS} )
 QT4_WRAP_CPP( PlusServerLauncher_QT_MOC_UI_Files ${PlusServerLauncher_QT_UI_Headers} )
 QT4_ADD_RESOURCES( PlusServerLauncher_QT_RCC_Files ${PlusServerLauncher_QT_Resources} )

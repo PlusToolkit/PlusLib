@@ -40,7 +40,7 @@ SET (BK_SETTINGS
 SET ( PLUSLIB_DATA_FILES
   ${PLUSLIB_DATA_DIR}/TestImages/fCal_Test_Calibration_3NWires.mha
   ${PLUSLIB_DATA_DIR}/TestImages/fCal_Test_Calibration_3NWires_fCal2.0.mha
-  ${PLUSLIB_DATA_DIR}/TestImages/WaterTankBottomTranslationTrackerBuffer.mha
+  ${PLUSLIB_DATA_DIR}/TestImages/WaterTankBottomTranslationTrackerBuffer-trimmed.mha
   ${PLUSLIB_DATA_DIR}/TestImages/WaterTankBottomTranslationVideoBuffer.mha
 )
 

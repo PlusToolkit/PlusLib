@@ -7,65 +7,57 @@
 #ifndef __PlusServerLauncherMainWindow_h
 #define __PlusServerLauncherMainWindow_h
 
-#include "ui_PlusServerLauncherMainWindow.h"
-
-
 #include "PlusConfigure.h"
 
-#include <QtGui/QMainWindow>
-#include <deque>
+#include <QDialog>
 
 class DeviceSetSelectorWidget;
-class StatusIcon;
-class vtkPlusOpenIGTLinkServer; 
+class vtkPlusOpenIGTLinkServer;
 
-class QLabel;
-class QProgressBar;
-class QTimer;
+//-----------------------------------------------------------------------------
 
 /*!
   \class PlusServerLauncherMainWindow 
-  \brief Main window of the PlusServerLauncher application
+  \brief GUI application for starting an OpenIGTLink server with the selected device configuration file
   \ingroup PlusAppPlusServerLauncher
-*/
-class PlusServerLauncherMainWindow : public QMainWindow
+ */
+class PlusServerLauncherMainWindow : public QDialog
 {
-	Q_OBJECT
+  Q_OBJECT
 
 public:
-	PlusServerLauncherMainWindow(QWidget *parent = 0, Qt::WFlags flags = 0);
-	~PlusServerLauncherMainWindow();
+  /*!
+    Constructor
+    \param aParent parent
+    \param aFlags widget flag
+  */
+  PlusServerLauncherMainWindow(QWidget *parent = 0, Qt::WFlags flags = 0, bool autoConnect=false);
 
-protected:
-  
+  /*! Destructor */
+  ~PlusServerLauncherMainWindow();
+
 protected slots:
-	
-  /*! Updates every part of the GUI (called by ui refresh timer) */
+  /*!
+    Connect to devices described in the argument configuration file in response by clicking on the Connect button
+    \param aConfigFile DeviceSet configuration file path and name
+  */
+  void connectToDevicesByConfigFile(std::string);
+
+  /*! Processes pending OpenIGTLink command requests and sends responses */
 	void processPendingCommands();
- 
-  /*! Connect to devices by configuration file with */ 
-  void connectToDevicesByConfigFile(std::string aConfigFile); 
+
+  /*! Called whenever a key is pressed while the windows is active, used for intercepting the ESC key */
+  void keyPressEvent(QKeyEvent *e);
 
 protected:
-
   /*! Device set selector widget */
-	DeviceSetSelectorWidget*	m_DeviceSetSelectorWidget;
-
-	/*! Label on the left of the statusbar */
-	QLabel*					    m_StatusBarLabel;
-
-  /*! Status icon instance */
-  StatusIcon*         m_StatusIcon;
+  DeviceSetSelectorWidget* m_DeviceSetSelectorWidget;
 
   /*! PlusServer instance that is responsible for all data collection and network transfer */
   vtkPlusOpenIGTLinkServer* m_Server;
 
   /*! Timer that refreshes the UI */
-  QTimer*             m_ProcessPendingCommandsTimer; 
-
-private:
-	Ui::PlusServerLauncherMainWindow	ui;
-
+  QTimer* m_ProcessPendingCommandsTimer; 
 };
 
-#endif 
+#endif // __PlusServerLauncherMainWindow_h
