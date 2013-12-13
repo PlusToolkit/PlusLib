@@ -5,10 +5,14 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusServerLauncherMainWindow.h"
+#include "vtkPlusDeviceFactory.h"
+#include "vtkXMLDataElement.h"
+#include "vtkXMLUtilities.h"
+
+#include "vtkPlusOpenIGTLinkServer.h"
 
 #include "StatusIcon.h"
 #include "DeviceSetSelectorWidget.h"
-#include "vtkPlusOpenIGTLinkServer.h"
 
 #include <QTimer>
 
@@ -36,6 +40,17 @@ PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent, Qt::
   m_ProcessPendingCommandsTimer = new QTimer(this);
   connect( m_ProcessPendingCommandsTimer, SIGNAL( timeout() ), this, SLOT( processPendingCommands() ) );
   m_ProcessPendingCommandsTimer->start(50);
+
+  std::string strPlusLibVersion = std::string(" Software version: ") + PlusCommon::GetPlusLibVersionString(); 
+  LOG_INFO(strPlusLibVersion);
+
+  LOG_INFO("Loging at level "<<vtkPlusLogger::Instance()->GetLogLevel()<<" to file: "<<vtkPlusLogger::Instance()->GetLogFileName());
+
+  vtkSmartPointer<vtkPlusDeviceFactory> deviceFactory = vtkSmartPointer<vtkPlusDeviceFactory>::New(); 
+  std::ostringstream supportedDevices; 
+  deviceFactory->PrintAvailableDevices(supportedDevices, vtkIndent()); 
+  LOG_INFO(supportedDevices.str());
+
 }
 
 //-----------------------------------------------------------------------------
