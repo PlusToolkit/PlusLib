@@ -78,7 +78,7 @@ ADD_EXECUTABLE( ReplayRecordedDataTest
 TARGET_LINK_LIBRARIES( ReplayRecordedDataTest vtkDataCollection vtkCommon )
 ADD_TEST( ReplayRecordedDataTest
   ${EXECUTABLE_OUTPUT_PATH}/ReplayRecordedDataTest
-  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_OpenIGTLinkTest.xml
+  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_OpenIGTLinkTestServer.xml
   )
 SET_TESTS_PROPERTIES( ReplayRecordedDataTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR" )
 
