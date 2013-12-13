@@ -1040,6 +1040,12 @@ PlusStatus vtkPlusOpenIGTLinkServer::Start(const std::string &inputConfigFileNam
     return PLUS_FAIL;
   }
 
+  // Print configuration file contents for debugging purposes
+  LOG_DEBUG("Device set configuration is read from file: " << configFilePath);
+  std::ostringstream xmlFileContents; 
+  PlusCommon::PrintXML(xmlFileContents, vtkIndent(1), configRootElement);
+  LOG_DEBUG("Device set configuration file contents: " << std::endl << xmlFileContents.str());
+
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
 
   // Create data collector instance 
