@@ -42,6 +42,14 @@ public:
   vtkTypeRevisionMacro( vtkPlusOpenIGTLinkServer, vtkObject );
   virtual void PrintSelf( ostream& os, vtkIndent indent );
   
+
+  /*! Configures and starts the server from the provided device set configuration file */
+  PlusStatus Start(const std::string &inputConfigFileName);
+
+  /*! Configures and starts the server from the provided device set configuration file */
+  PlusStatus Stop();
+
+
   /*! Read the configuration file in XML format and set up the devices */
   virtual PlusStatus ReadConfiguration( vtkXMLDataElement* aDataCollectionConfig, const char* aFilename ); 
 
@@ -64,10 +72,10 @@ public:
   virtual int GetNumberOfConnectedClients(); 
 
   /*! Start server */ 
-  PlusStatus Start();
+  PlusStatus StartOpenIGTLinkService();
   
   /*! Stop server */ 
-  PlusStatus Stop();
+  PlusStatus StopOpenIGTLinkService();
 
   vtkGetStringMacro(ConfigFilename);
     

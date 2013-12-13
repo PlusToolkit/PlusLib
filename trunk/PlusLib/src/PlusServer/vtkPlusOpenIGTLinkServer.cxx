@@ -69,7 +69,7 @@ vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
 , MissingInputGracePeriodSec(0.0)
 , BroadcastStartTime(0.0)
 {
-  
+
 }
 
 //----------------------------------------------------------------------------
@@ -88,7 +88,7 @@ void vtkPlusOpenIGTLinkServer::PrintSelf( ostream& os, vtkIndent indent )
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusOpenIGTLinkServer::Start()
+PlusStatus vtkPlusOpenIGTLinkServer::StartOpenIGTLinkService()
 {
   if ( this->DataCollector == NULL )
   {
@@ -156,19 +156,19 @@ PlusStatus vtkPlusOpenIGTLinkServer::Start()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusOpenIGTLinkServer::Stop()
+PlusStatus vtkPlusOpenIGTLinkServer::StopOpenIGTLinkService()
 {
-  
+
   /*
   // Stop command processor thread 
   if ( this->PlusCommandProcessor->IsRunning() )
   {
-    this->PlusCommandProcessor->Stop();
-    while ( this->PlusCommandProcessor->IsRunning() )
-    {
-      // Wait until the thread stops 
-      vtkAccurateTimer::Delay( 0.2 ); 
-    }
+  this->PlusCommandProcessor->Stop();
+  while ( this->PlusCommandProcessor->IsRunning() )
+  {
+  // Wait until the thread stops 
+  vtkAccurateTimer::Delay( 0.2 ); 
+  }
   }
   */
 
@@ -302,7 +302,7 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
       break;
     }
   }
-    
+
   if( aChannel == NULL )
   {
     for( DeviceCollectionIterator it = aCollection.begin(); it != aCollection.end(); ++it )
@@ -585,7 +585,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
         commandMsg->SetMessageHeader(headerMsg); 
         commandMsg->AllocatePack(); 
         client.ClientSocket->Receive(commandMsg->GetPackBodyPointer(), commandMsg->GetPackBodySize() ); 
-      
+
         int c = commandMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
         if (c & igtl::MessageHeader::UNPACK_BODY) 
         {          
@@ -659,7 +659,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
   {
     if ( this->TransformRepository->SetTransforms(trackedFrame) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to set current transforms to transform repository!"); 
+      LOG_ERROR("Failed to set current transforms to transform repository"); 
       numberOfErrors++;
     }
   }
@@ -706,7 +706,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
     vtkSmartPointer<vtkPlusIgtlMessageFactory> igtlMessageFactory = vtkSmartPointer<vtkPlusIgtlMessageFactory>::New(); 
     if ( igtlMessageFactory->PackMessages( messageTypes, igtlMessages, trackedFrame, transformNames, imageStreams, this->SendValidTransformsOnly, this->TransformRepository ) != PLUS_SUCCESS )
     {
-      LOG_WARNING("Failed to pack all IGT messages!"); 
+      LOG_WARNING("Failed to pack all IGT messages"); 
     }
 
     // Send all messages to a client 
@@ -846,7 +846,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfi
   vtkXMLDataElement* plusOpenIGTLinkServerConfig = aConfigurationData->FindNestedElementWithName("PlusOpenIGTLinkServer");
   if (plusOpenIGTLinkServerConfig == NULL)
   {
-    LOG_ERROR("Cannot find PlusOpenIGTLinkServer element in XML tree!");
+    LOG_ERROR("Cannot find PlusOpenIGTLinkServer element in XML tree");
     return PLUS_FAIL;
   }
 
@@ -1024,4 +1024,88 @@ vtkTransformRepository* vtkPlusOpenIGTLinkServer::GetTransformRepository()
 bool vtkPlusOpenIGTLinkServer::HasGracePeriodExpired()
 {
   return (vtkAccurateTimer::GetSystemTime() - this->BroadcastStartTime) > this->MissingInputGracePeriodSec;
+}
+
+//------------------------------------------------------------------------------
+PlusStatus vtkPlusOpenIGTLinkServer::Start(const std::string &inputConfigFileName)
+{
+  std::string configFilePath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(inputConfigFileName);
+
+  // Read main configuration file
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
+    vtkXMLUtilities::ReadElementFromFile(configFilePath.c_str()));
+  if (configRootElement == NULL)
+  {  
+    LOG_ERROR("Unable to read configuration from file " << configFilePath.c_str()); 
+    return PLUS_FAIL;
+  }
+
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
+
+  // Create data collector instance 
+  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New();
+  if ( dataCollector->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Datacollector failed to read configuration"); 
+    return PLUS_FAIL;
+  }
+
+  // Create transform repository instance 
+  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
+  if ( transformRepository->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Transform repository failed to read configuration"); 
+    return PLUS_FAIL;
+  }
+
+  LOG_DEBUG( "Initializing data collector... " );
+  if ( dataCollector->Connect() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Datacollector failed to connect to devices"); 
+    return PLUS_FAIL;
+  }
+
+  if ( dataCollector->Start() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Datacollector failed to start"); 
+    return PLUS_FAIL;
+  }
+
+  SetDataCollector( dataCollector );
+  if ( ReadConfiguration(configRootElement, configFilePath.c_str()) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to read PlusOpenIGTLinkServer configuration"); 
+    return PLUS_FAIL;
+  }
+
+  SetTransformRepository( transformRepository ); 
+  if ( StartOpenIGTLinkService() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to start Plus OpenIGTLink server"); 
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
+PlusStatus vtkPlusOpenIGTLinkServer::Stop()
+{
+  PlusStatus status=PLUS_SUCCESS;
+
+  if (StopOpenIGTLinkService()!=PLUS_SUCCESS)
+  {
+    status=PLUS_FAIL;
+  }
+
+  if (this->GetDataCollector())
+  {
+    this->GetDataCollector()->Stop();
+    this->GetDataCollector()->Disconnect();
+  }
+  SetDataCollector(NULL);
+
+  SetTransformRepository(NULL);
+
+  return status;
 }

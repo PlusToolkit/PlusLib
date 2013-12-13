@@ -10,9 +10,9 @@ IF (PLUS_USE_OpenIGTLink )
   
   ADD_TEST( PlusServer
     ${EXECUTABLE_OUTPUT_PATH}/PlusServer
-    --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_OpenIGTLinkTest.xml
+    --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_OpenIGTLinkTestServer.xml
     --running-time=5
-    --testing
+    --testing-config-file=${ConfigFilesDir}/Testing/PlusConfiguration_OpenIGTLinkTestClient.xml
     )
   SET_TESTS_PROPERTIES( PlusServer PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
   
