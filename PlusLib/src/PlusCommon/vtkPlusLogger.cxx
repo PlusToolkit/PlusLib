@@ -277,7 +277,8 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* 
   log << "|" << std::fixed << std::setw(10) << std::right << std::setfill('0') << currentTime; 
 
   log << "|" << msg;
-  if ( m_LogLevel > LOG_LEVEL_INFO || level != LOG_LEVEL_INFO )
+  bool displayLineNumberAndFile = (m_LogLevel > LOG_LEVEL_INFO || level != LOG_LEVEL_INFO);
+  if ( displayLineNumberAndFile )
   {
     log << "|in " << fileName << "(" << lineNumber << ")"; // add filename and line number
   }
@@ -342,7 +343,13 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* 
       }
 
       // Add to log stream (file)
-      this->m_LogStream << std::setw(17) << std::left << timestamp << log.str() << std::endl; 
+      this->m_LogStream << std::setw(17) << std::left << timestamp << log.str();
+      if ( !displayLineNumberAndFile )
+      {
+        // filename and line number was skipped from displayed message, so add it to the log
+        this->m_LogStream << "|in " << fileName << "(" << lineNumber << ")";
+      }
+      this->m_LogStream << std::endl; 
     }
   }
 

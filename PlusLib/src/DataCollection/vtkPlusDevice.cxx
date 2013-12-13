@@ -925,7 +925,7 @@ PlusStatus vtkPlusDevice::WriteConfiguration( vtkXMLDataElement* config )
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::Connect()
 {
-  LOG_TRACE("vtkPlusDevice::Connect");
+  LOG_DEBUG("vtkPlusDevice::Connect: "<<(this->DeviceId?this->DeviceId:"undefined"));
 
   if (this->Connected)
   {
