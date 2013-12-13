@@ -54,7 +54,7 @@ vtkImageVisualizer::vtkImageVisualizer()
 , BottomLineSource(NULL)
 , SelectedChannel(NULL)
 {
-  memset(RegionOfInterest, 0, sizeof(double[4]));
+  this->RegionOfInterest[0] = this->RegionOfInterest[1] = this->RegionOfInterest[2] = this->RegionOfInterest[3] = -1;
 
   vtkSmartPointer<vtkProp3DCollection> screenAlignedProps = vtkSmartPointer<vtkProp3DCollection>::New();
   this->SetScreenAlignedProps(screenAlignedProps);
@@ -380,7 +380,7 @@ PlusStatus vtkImageVisualizer::UpdateCameraPose()
     return PLUS_FAIL;
   }
 
-  this->SetROIBounds(RegionOfInterest[0], RegionOfInterest[1], RegionOfInterest[2], RegionOfInterest[3]);
+  this->SetROIBounds(this->RegionOfInterest[0], this->RegionOfInterest[1], this->RegionOfInterest[2], this->RegionOfInterest[3]);
 
   return UpdateOrientationMarkerLabelling();
 }
@@ -710,7 +710,7 @@ PlusStatus vtkImageVisualizer::ReadConfiguration( vtkXMLDataElement* aConfig )
   US_IMAGE_ORIENTATION orientationValue = PlusVideoFrame::GetUsImageOrientationFromString(orientation);
   if( orientationValue == US_IMG_ORIENT_XX )
   {
-    LOG_WARNING("Unable to read image orientation from configuration file. Defauting to MF.");
+    LOG_WARNING("Unable to read image orientation from configuration file (Rendering tag, DisplayedImageOrientation attribute). Defauting to MF.");
     orientationValue = US_IMG_ORIENT_MF;
   }
   this->CurrentMarkerOrientation = orientationValue;
@@ -720,7 +720,7 @@ PlusStatus vtkImageVisualizer::ReadConfiguration( vtkXMLDataElement* aConfig )
   if (segmentationParameters == NULL)
   {
     LOG_WARNING("No Segmentation element is found in the XML tree!");
-    RegionOfInterest[0] = RegionOfInterest[1] = RegionOfInterest[2] = RegionOfInterest[3] = -1;
+    this->RegionOfInterest[0] = this->RegionOfInterest[1] = this->RegionOfInterest[2] = this->RegionOfInterest[3] = -1;
     this->EnableROI(false);
   }
   else
@@ -764,16 +764,16 @@ PlusStatus vtkImageVisualizer::SetROIBounds( int xMin, int xMax, int yMin, int y
   LOG_TRACE("vtkImageVisualizer::SetROIBounds");
 
   if (xMin > 0) {
-    RegionOfInterest[0] = xMin;
+    this->RegionOfInterest[0] = xMin;
   }
   if (xMax > 0) {
-    RegionOfInterest[1] = xMax;
+    this->RegionOfInterest[1] = xMax;
   }
   if (yMin > 0) {
-    RegionOfInterest[2] = yMin;
+    this->RegionOfInterest[2] = yMin;
   }
   if (yMax > 0) {
-    RegionOfInterest[3] = yMax;
+    this->RegionOfInterest[3] = yMax;
   }
 
   double zPos = -1.0;
@@ -783,14 +783,14 @@ PlusStatus vtkImageVisualizer::SetROIBounds( int xMin, int xMax, int yMin, int y
   }
 
   // Set line positions
-  LeftLineSource->SetPoint1(RegionOfInterest[0], RegionOfInterest[2], zPos);
-  LeftLineSource->SetPoint2(RegionOfInterest[0], RegionOfInterest[3],  zPos);
-  TopLineSource->SetPoint1(RegionOfInterest[0], RegionOfInterest[2], zPos);
-  TopLineSource->SetPoint2(RegionOfInterest[1], RegionOfInterest[2], zPos);
-  RightLineSource->SetPoint1(RegionOfInterest[1], RegionOfInterest[2], zPos);
-  RightLineSource->SetPoint2(RegionOfInterest[1], RegionOfInterest[3], zPos);
-  BottomLineSource->SetPoint1(RegionOfInterest[0], RegionOfInterest[3], zPos);
-  BottomLineSource->SetPoint2(RegionOfInterest[1], RegionOfInterest[3], zPos);
+  LeftLineSource->SetPoint1(this->RegionOfInterest[0], this->RegionOfInterest[2], zPos);
+  LeftLineSource->SetPoint2(this->RegionOfInterest[0], this->RegionOfInterest[3],  zPos);
+  TopLineSource->SetPoint1(this->RegionOfInterest[0], this->RegionOfInterest[2], zPos);
+  TopLineSource->SetPoint2(this->RegionOfInterest[1], this->RegionOfInterest[2], zPos);
+  RightLineSource->SetPoint1(this->RegionOfInterest[1], this->RegionOfInterest[2], zPos);
+  RightLineSource->SetPoint2(this->RegionOfInterest[1], this->RegionOfInterest[3], zPos);
+  BottomLineSource->SetPoint1(this->RegionOfInterest[0], this->RegionOfInterest[3], zPos);
+  BottomLineSource->SetPoint2(this->RegionOfInterest[1], this->RegionOfInterest[3], zPos);
 
   return PLUS_SUCCESS;
 }
@@ -849,9 +849,9 @@ PlusStatus vtkImageVisualizer::EnableROI( bool aEnable )
 {
   LOG_TRACE("vtkImageVisualizer::EnableROI");
 
-  if( RegionOfInterest[0] == -1  || RegionOfInterest[1] == -1  || RegionOfInterest[2] == -1  || RegionOfInterest[3] == -1)
+  if( this->RegionOfInterest[0] == -1  || this->RegionOfInterest[1] == -1  || this->RegionOfInterest[2] == -1  || this->RegionOfInterest[3] == -1)
   {
-    LOG_WARNING("Invalid ROI defined. Check configuration or define valid ROI.");
+    LOG_WARNING("Valid ROI is not defined. Check configuration or define valid ROI (Segmentation element, ClipRectangleOrigin and ClipRectangleSize attributes)");
     return PLUS_FAIL;
   }
 

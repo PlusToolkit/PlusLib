@@ -41,16 +41,12 @@ TARGET_LINK_LIBRARIES(SegmentationParameterDialogTest ${SegmentationParameterDia
 # --------------------------------------------------------------------------
 # Install
 IF(PLUSAPP_INSTALL_BIN_DIR)
-# show up in the Start Menu in Windows
-if( WIN32 AND NOT UNIX )
-    SET(CPACK_PACKAGE_EXECUTABLES "SegmentationParameterDialogTest" "SegmentationParameterDialogTest")
-endif()
 
-INSTALL(TARGETS SegmentationParameterDialogTest 
-  DESTINATION ${PLUSAPP_INSTALL_BIN_DIR}
-  COMPONENT RuntimeLibraries
-  )
-  
+  INSTALL(TARGETS SegmentationParameterDialogTest 
+    DESTINATION ${PLUSAPP_INSTALL_BIN_DIR}
+    COMPONENT RuntimeLibraries
+    )
+
 ENDIF(PLUSAPP_INSTALL_BIN_DIR)
 
 # --------------------------------------------------------------------------

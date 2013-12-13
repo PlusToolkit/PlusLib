@@ -8,29 +8,27 @@ INCLUDE(${QT_USE_FILE})
 # Sources
 
 SET (PlusServerLauncher_SRCS
-	PlusServerLauncherMain.cxx
-	PlusServerLauncherMainWindow.cxx
+  PlusServerLauncherMain.cxx
+  PlusServerLauncherMainWindow.cxx
   )
 
 if (WIN32)	
-	SET (PlusServerLauncher_SRCS
-		${PlusServerLauncher_SRCS}
-		)
+  SET (PlusServerLauncher_SRCS
+    ${PlusServerLauncher_SRCS}
+    )
 endif (WIN32)	
 
 SET (PlusServerLauncher_UI_HDRS
-		PlusServerLauncherMainWindow.h
-	)
+  PlusServerLauncherMainWindow.h
+  )
 
 SET (PlusServerLauncher_UI_SRCS
-	PlusServerLauncherMainWindow.ui
-	)
+  PlusServerLauncherMainWindow.ui
+  )
 
 SET (PlusServerLauncher_QT_Resources
-	PlusServerLauncher.qrc
-	${PlusApp_SOURCE_DIR}/CommonWidgets/CommonWidgets.qrc
-	)
-	
+  ${PlusApp_SOURCE_DIR}/CommonWidgets/CommonWidgets.qrc
+  )
 
 # --------------------------------------------------------------------------
 # Qt specific commands
@@ -55,13 +53,7 @@ SET (PlusServerLauncher_LIBS
     ${PlusServerLauncher_LIBS} 
     ${QT_LIBRARIES} 
     CommonWidgets
-    vtkPlusCommon
-    ${ITK_LIBRARIES}
-    vtkCommon 
-    vtkRendering 
-    vtkHybrid 
-    OpenIGTLink
-    vtkDataCollection 
+    vtkPlusServer    
     )
 
 ADD_EXECUTABLE( PlusServerLauncher ${PlusServerLauncher_SRCS} ${PlusServerLauncher_UI_HDRS} ${PlusServerLauncher_QT_UI_Headers} ${PlusServerLauncher_QT_UI_Headers} ${PlusServerLauncher_QT_MOC_Files} ${PlusServerLauncher_QT_MOC_UI_Files} ${PlusServerLauncher_QT_RCC_Files})
@@ -72,13 +64,9 @@ TARGET_LINK_LIBRARIES( PlusServerLauncher QVTK ${PlusServerLauncher_LIBS} )
 # Install
 #
 IF(PLUSAPP_INSTALL_BIN_DIR)
-	# show up in the Start Menu in Windows
-	IF( WIN32 AND NOT UNIX )
-		SET(CPACK_PACKAGE_EXECUTABLES "PlusServerLauncher" "PlusServerLauncher")
-	ENDIF()
-
-	INSTALL(TARGETS PlusServerLauncher 
-	  DESTINATION ${PLUSAPP_INSTALL_BIN_DIR}
-	  COMPONENT RuntimeLibraries
-	  )
+  INSTALL(TARGETS PlusServerLauncher 
+    DESTINATION ${PLUSAPP_INSTALL_BIN_DIR}
+    COMPONENT RuntimeLibraries
+    )
 ENDIF(PLUSAPP_INSTALL_BIN_DIR)
+

@@ -11,6 +11,12 @@ int main(int argc, char *argv[])
 {
 	QApplication app(argc, argv);
 
+  // Hide console window - we can see log messages using the status icon anyway
+#ifdef _WIN32
+  HWND hwnd = GetConsoleWindow();
+  ShowWindow(hwnd, 0);
+#endif
+
 	PlusServerLauncherMainWindow mainWindow;
 	mainWindow.show();
 

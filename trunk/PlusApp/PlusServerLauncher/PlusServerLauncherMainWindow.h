@@ -16,18 +16,18 @@
 #include <deque>
 
 class DeviceSetSelectorWidget;
-class BroadcastedToolInfoWidget; 
 class StatusIcon;
-class vtkDataCollector; 
+class vtkPlusOpenIGTLinkServer; 
 
 class QLabel;
 class QProgressBar;
 class QTimer;
 
-/*! \class PlusServerLauncherMainWindow 
- * \brief Main window of the PlusServerLauncher application
- * \ingroup PlusAppPlusServerLauncher
- */
+/*!
+  \class PlusServerLauncherMainWindow 
+  \brief Main window of the PlusServerLauncher application
+  \ingroup PlusAppPlusServerLauncher
+*/
 class PlusServerLauncherMainWindow : public QMainWindow
 {
 	Q_OBJECT
@@ -37,25 +37,16 @@ public:
 	~PlusServerLauncherMainWindow();
 
 protected:
-
-	/*! Set up status bar (label and progress) */
-	void setupStatusBar();
   
 protected slots:
 	
   /*! Updates every part of the GUI (called by ui refresh timer) */
-	void updateGUI();
+	void processPendingCommands();
  
-  /*! Save current device set configuration */
-  void saveDeviceSetConfiguration();
-
   /*! Connect to devices by configuration file with */ 
   void connectToDevicesByConfigFile(std::string aConfigFile); 
 
 protected:
-
-  /*! Data collector instance */
-  vtkDataCollector* m_DataCollector;
 
   /*! Device set selector widget */
 	DeviceSetSelectorWidget*	m_DeviceSetSelectorWidget;
@@ -66,11 +57,11 @@ protected:
   /*! Status icon instance */
   StatusIcon*         m_StatusIcon;
 
-  /*! Container for transform tool info widgets */
-  std::deque<BroadcastedToolInfoWidget*> m_BroadcastedTransformsInfo; 
+  /*! PlusServer instance that is responsible for all data collection and network transfer */
+  vtkPlusOpenIGTLinkServer* m_Server;
 
-  /*! Image tool info widget instance */
-  BroadcastedToolInfoWidget* m_BroadcastedImageInfo; 
+  /*! Timer that refreshes the UI */
+  QTimer*             m_ProcessPendingCommandsTimer; 
 
 private:
 	Ui::PlusServerLauncherMainWindow	ui;
