@@ -97,6 +97,7 @@ ADD_SUBDIRECTORY(CommonWidgets)
 # Build various utilities
 ADD_SUBDIRECTORY(PointSetExtractor)
 ADD_SUBDIRECTORY(SpatialSensorFusion)
+ADD_SUBDIRECTORY(PlusServerLauncher)
 
 # --------------------------------------------------------------------------
 # Build the DiagnosticTools 
