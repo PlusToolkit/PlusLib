@@ -291,10 +291,25 @@ STDMETHODIMP vtkMmfVideoSource::OnReadSample( HRESULT hrStatus, DWORD dwStreamIn
     if (pSample)
     {
       IMFMediaBuffer* aBuffer;
+      DWORD bufferCount;
+      pSample->GetBufferCount(&bufferCount);
+      if( bufferCount < 1 )
+      {
+        LOG_ERROR("No buffer available in the sample.");
+        return S_FALSE;
+      }
       pSample->GetBufferByIndex(0, &aBuffer);
       BYTE* bufferData;
       DWORD maxLength;
       DWORD currentLength;
+
+      // Get the media type from the stream.
+      IMFMediaType* pType;
+      this->CaptureSourceReader->GetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, 
+        &pType);
+
+      UINT32 width, height;
+      MFGetAttributeSize(pType, MF_MT_FRAME_SIZE, &width, &height);
 
       HRESULT hr = aBuffer->Lock(&bufferData, &maxLength, &currentLength);
       if( FAILED(hr) ) 
@@ -327,6 +342,7 @@ STDMETHODIMP vtkMmfVideoSource::OnReadSample( HRESULT hrStatus, DWORD dwStreamIn
 
         this->Modified();
       }
+
       aBuffer->Unlock();
       SafeRelease(&aBuffer);
     }

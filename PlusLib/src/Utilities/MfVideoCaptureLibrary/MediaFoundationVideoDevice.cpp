@@ -20,7 +20,7 @@ The "videoInput" library has been adapted to fit within a namespace.
 #include "ImageGrabber.h"
 #include "ImageGrabberThread.h"
 #include "MediaFoundationVideoDevice.h"
-#include "PlusCommon.h"
+#include "MfVideoCaptureLoggerMacros.h"
 #include "RawImage.h"
 #include <Strmif.h>
 #include <mfapi.h>

@@ -16,12 +16,12 @@ The "videoInput" library has been adapted to fit within a namespace.
 
 =========================================================Plus=header=end*/
 
-#include "PlusCommon.h"
-#include "MediaFoundationVideoDevice.h"
-#include "MediaFoundationVideoDevices.h"
-#include "RawImage.h"
 #include "MediaFoundationCaptureLibrary.h"
 #include "MediaFoundationVideoCaptureApi.h"
+#include "MediaFoundationVideoDevice.h"
+#include "MediaFoundationVideoDevices.h"
+#include "MfVideoCaptureLoggerMacros.h"
+#include "RawImage.h"
 
 //----------------------------------------------------------------------------
 

@@ -16,9 +16,9 @@ The "videoInput" library has been adapted to fit within a namespace.
 
 =========================================================Plus=header=end*/
 
+#include "MfVideoCaptureLoggerMacros.h"
 #include "FormatReader.h"
 #include "ImageGrabber.h"
-#include "PlusCommon.h"
 #include "RawImage.h"
 #include <Shlwapi.h>
 #include <mfapi.h>

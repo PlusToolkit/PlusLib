@@ -16,10 +16,9 @@ The "videoInput" library has been adapted to fit within a namespace.
 
 =========================================================Plus=header=end*/
 
-#include <Mfapi.h>
-
 #include "FormatReader.h"
 #include "Strsafe.h"
+#include <Mfapi.h>
 
 //----------------------------------------------------------------------------
 
