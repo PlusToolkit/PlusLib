@@ -31,8 +31,8 @@
     <Device
       Id="VideoDevice" 
       Type="MmfVideo" 
-      XResolution="320"
-      YResolution="240" 
+      XResolution="1280"
+      YResolution="720" 
       PixelFormat="MFVideoFormat_YUY2" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="100" AveragedItemsForFiltering="20" />     

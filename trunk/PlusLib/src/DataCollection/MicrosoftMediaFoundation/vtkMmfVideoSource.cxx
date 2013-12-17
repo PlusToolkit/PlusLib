@@ -55,11 +55,8 @@ vtkStandardNewMacro(vtkMmfVideoSource);
 //----------------------------------------------------------------------------
 vtkMmfVideoSource::vtkMmfVideoSource()
 : FrameIndex(0)
-, CaptureDevices(NULL)
-, CaptureAttributes(NULL)
 , CaptureSource(NULL)
 , CaptureSourceReader(NULL)
-, DeviceCount(-1)
 , Mutex(vtkSmartPointer<vtkRecursiveCriticalSection>::New())
 {
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
@@ -91,52 +88,30 @@ void vtkMmfVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 PlusStatus vtkMmfVideoSource::InternalConnect()
 {
-  HRESULT hr = MFStartup(MF_VERSION);
-  if( FAILED(hr) )
+  this->ActiveVideoFormat.Width = this->RequestedVideoFormat.Width;
+  this->ActiveVideoFormat.Height = this->RequestedVideoFormat.Height;
+  this->ActiveVideoFormat.PixelFormat = this->RequestedVideoFormat.PixelFormat;
+  this->ActiveVideoFormat.PixelFormatName = this->RequestedVideoFormat.PixelFormatName;
+
+  if( !MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().SetupDevice(0, 
+    this->RequestedVideoFormat.Width,
+    this->RequestedVideoFormat.Height,
+    this->AcquisitionRate) )
   {
-    LOG_ERROR("Unable to initialize the media founation framework. Cannot create capture device.");
-    return PLUS_FAIL;
+    if( !MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().SetupDevice(0, DEFAULT_X_RESOLUTION, DEFAULT_Y_RESOLUTION, 50) )
+    {
+      LOG_ERROR("Unable to initialize capture device with default details.");
+      return PLUS_FAIL;
+    }
+    LOG_WARNING("Unable to init capture device with requested details. Backing up to defaults.");
+
+    this->ActiveVideoFormat.Width = DEFAULT_X_RESOLUTION;
+    this->ActiveVideoFormat.Height = DEFAULT_Y_RESOLUTION;
+    this->ActiveVideoFormat.PixelFormat = MFVideoFormat_YUY2;
+    this->ActiveVideoFormat.PixelFormatName = "MFVideoFormat_YUY2";
   }
 
-  // Create an attribute store to specify the enumeration parameters.
-  hr = MFCreateAttributes(&this->CaptureAttributes, 2);
-  if (FAILED(hr))
-  {
-    return PLUS_FAIL;
-  }
-
-  // Source type: video capture devices
-  hr = this->CaptureAttributes->SetGUID(
-    MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE, 
-    MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID
-    );
-  if (FAILED(hr))
-  {
-    return PLUS_FAIL;
-  }
-
-  // Enumerate devices.
-  hr = MFEnumDeviceSources(this->CaptureAttributes, &this->CaptureDevices, &DeviceCount);
-  if (FAILED(hr))
-  {
-    return PLUS_FAIL;
-  }
-
-  if (DeviceCount == 0)
-  {
-    hr = E_FAIL;
-    LOG_ERROR("No available capture devices.");
-    return PLUS_FAIL;
-  }
-
-  // Create the media source object.
-  hr = CaptureDevices[0]->ActivateObject(IID_PPV_ARGS(&this->CaptureSource));
-  if (FAILED(hr))
-  {
-    return PLUS_FAIL;
-  }
-
-  (*CaptureDevices)->AddRef();
+  this->CaptureSource = MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().GetMediaSource(0);
 
   this->FrameIndex = 0;
 
@@ -146,17 +121,9 @@ PlusStatus vtkMmfVideoSource::InternalConnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkMmfVideoSource::InternalDisconnect()
 {
-  SafeRelease(&this->CaptureSource);
   SafeRelease(&this->CaptureSourceReader);
-  SafeRelease(&this->CaptureAttributes);
 
-  for (DWORD i = 0; i < DeviceCount; i++)
-  {
-    SafeRelease(&this->CaptureDevices[i]);
-  }
-  CoTaskMemFree(CaptureDevices);
-
-  MFShutdown();
+  MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().CloseAllDevices();
 
   return PLUS_SUCCESS;
 }
@@ -167,22 +134,16 @@ PlusStatus vtkMmfVideoSource::InternalStartRecording()
   HRESULT hr;
   if( this->CaptureSource != NULL )
   {
-    hr = this->CaptureAttributes->SetUnknown(MF_SOURCE_READER_ASYNC_CALLBACK, this);
-    hr = this->CaptureAttributes->SetUINT32(MF_READWRITE_DISABLE_CONVERTERS, TRUE);
+    IMFAttributes* attr;
+    MFCreateAttributes(&attr, 2);
+    hr = attr->SetUnknown(MF_SOURCE_READER_ASYNC_CALLBACK, this);
+    hr = attr->SetUINT32(MF_READWRITE_DISABLE_CONVERTERS, TRUE);
 
-    hr = MFCreateSourceReaderFromMediaSource(this->CaptureSource, this->CaptureAttributes, &this->CaptureSourceReader);
-
-    if( FAILED(hr) )
-    {
-      LOG_ERROR("Unable to create media source reader from the capture source.");
-      this->StopRecording();
-      this->Disconnect();
-      return PLUS_FAIL;
-    }
-
-    this->ConfigureCaptureDevice();
+    hr = MFCreateSourceReaderFromMediaSource(this->CaptureSource, attr, &this->CaptureSourceReader);
 
     this->UpdateFrameSize();
+
+    attr->Release();
 
     this->CaptureSourceReader->ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, NULL, NULL, NULL, NULL);
   }
@@ -459,24 +420,4 @@ PlusStatus vtkMmfVideoSource::WriteConfiguration( vtkXMLDataElement* rootXmlElem
   deviceConfig->SetIntAttribute("YResolution", this->RequestedVideoFormat.Height);
 
   return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-
-void vtkMmfVideoSource::ConfigureCaptureDevice()
-{
-  MfVideoCapture::MediaType defaultFormat;
-  defaultFormat.width = this->RequestedVideoFormat.Width;
-  defaultFormat.height = this->RequestedVideoFormat.Height;
-  defaultFormat.MF_MT_MAJOR_TYPE = MFMediaType_Video;
-  defaultFormat.MF_MT_SUBTYPE = this->RequestedVideoFormat.PixelFormat;
-  if( !MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().SetupDevice(0, this->RequestedVideoFormat.Width, this->RequestedVideoFormat.Height, this->AcquisitionRate, this->RequestedVideoFormat.PixelFormat) )
-  {
-    LOG_ERROR("Unable to choose format: " << this->RequestedVideoFormat.Width << ", " << this->RequestedVideoFormat.Height << ", " << this->AcquisitionRate << "fps, " << this->RequestedVideoFormat.PixelFormatName << ".");
-    defaultFormat = MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().GetFormat(0, 0);
-    MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().SetupDevice(0, 0);
-  }
-  this->ActiveVideoFormat.Width = defaultFormat.width;
-  this->ActiveVideoFormat.Height = defaultFormat.height;
-  this->ActiveVideoFormat.PixelFormat = defaultFormat.MF_MT_SUBTYPE;
 }
