@@ -640,7 +640,7 @@ IF (PLUS_USE_MMF_VIDEO)
     ${MMF_LIB_DIR}/Mfreadwrite.lib 
     ${MMF_LIB_DIR}/mfuuid.lib 
 	${MMF_LIB_DIR}/Strmiids.lib 
-	MfVideoCapture
+	MfVideoCaptureLibrary
     )
 ENDIF (PLUS_USE_MMF_VIDEO)
 

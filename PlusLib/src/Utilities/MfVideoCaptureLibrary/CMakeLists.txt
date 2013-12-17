@@ -1,11 +1,11 @@
-PROJECT(MfVideoCapture)
+PROJECT(MfVideoCaptureLibrary)
 
-SET (MfVideoCapture_INCLUDE_DIRS
-  ${MfVideoCapture_SOURCE_DIR} 
-  ${MfVideoCapture_BINARY_DIR}
+SET (MfVideoCaptureLibrary_INCLUDE_DIRS
+  ${MfVideoCaptureLibrary_SOURCE_DIR} 
+  ${MfVideoCaptureLibrary_BINARY_DIR}
   )
 
-SET(MfVideoCapture_SRCS
+SET(MfVideoCaptureLibrary_SRCS
     FormatReader.cpp 
     MediaFoundationVideoCaptureApi.cpp 
     MediaFoundationVideoDevice.cpp 
@@ -18,7 +18,7 @@ SET(MfVideoCapture_SRCS
 	MfVideoCaptureLogger.cpp 
   )
   
-SET (MfVideoCapture_HDRS ${MfVideoCapture_HDRS}
+SET (MfVideoCaptureLibrary_HDRS ${MfVideoCaptureLibrary_HDRS}
     FormatReader.h 
     MediaFoundationVideoCaptureApi.h 
     MediaFoundationVideoDevice.h 
@@ -32,17 +32,17 @@ SET (MfVideoCapture_HDRS ${MfVideoCapture_HDRS}
 	MfVideoCaptureLoggerMacros.h 
 	)
 
-INCLUDE_DIRECTORIES( ${MfVideoCapture_INCLUDE_DIRS} )
-SET (Utilities_INCLUDE_DIRS ${Utilities_INCLUDE_DIRS} ${MfVideoCapture_INCLUDE_DIRS} CACHE INTERNAL "")
+INCLUDE_DIRECTORIES( ${MfVideoCaptureLibrary_INCLUDE_DIRS} )
+SET (Utilities_INCLUDE_DIRS ${Utilities_INCLUDE_DIRS} ${MfVideoCaptureLibrary_INCLUDE_DIRS} CACHE INTERNAL "")
 
-ADD_LIBRARY(MfVideoCapture STATIC ${MfVideoCapture_SRCS} ${MfVideoCapture_HDRS})
-TARGET_LINK_LIBRARIES( MfVideoCapture )
+ADD_LIBRARY(MfVideoCaptureLibrary STATIC ${MfVideoCaptureLibrary_SRCS} ${MfVideoCaptureLibrary_HDRS})
+TARGET_LINK_LIBRARIES( MfVideoCaptureLibrary )
 
 # --------------------------------------------------------------------------
 # Set external MS project 
-SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} MfVideoCapture CACHE INTERNAL "" FORCE)
+SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} MfVideoCaptureLibrary CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_MfVideoCapture MfVideoCapture;"${PlusLib_BINARY_DIR}/src/Utilities/MfVideoCapture/MfVideoCapture.vcproj" CACHE INTERNAL "" FORCE)
+SET(vcProj_MfVideoCaptureLibrary MfVideoCaptureLibrary;"${PlusLib_BINARY_DIR}/src/Utilities/MfVideoCaptureLibrary/MfVideoCaptureLibrary.vcproj" CACHE INTERNAL "" FORCE)
 
-INSTALL_TARGETS(/lib MfVideoCapture)
+INSTALL_TARGETS(/lib MfVideoCaptureLibrary)
