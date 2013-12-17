@@ -202,20 +202,6 @@ PlusStatus vtkMmfVideoSource::InternalStopRecording()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMmfVideoSource::VideoFormatDialog()
-{
-  /* Configure video format parameters via a windows provided dialog */
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkMmfVideoSource::VideoSourceDialog()
-{
-  /* Configure capture device choice via a windows provided dialog */
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
 
 PlusStatus vtkMmfVideoSource::NotifyConfigured()
 {

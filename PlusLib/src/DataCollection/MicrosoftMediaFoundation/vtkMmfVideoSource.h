@@ -47,12 +47,6 @@ public:
   vtkTypeRevisionMacro(vtkMmfVideoSource, vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  /*! Bring up a modal dialog box for video format selection. */
-  PlusStatus VideoFormatDialog();
-
-  /*! Bring up a modal dialog box for video input selection. */
-  PlusStatus VideoSourceDialog();
-
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* xmlElement);
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* xmlElement);
 

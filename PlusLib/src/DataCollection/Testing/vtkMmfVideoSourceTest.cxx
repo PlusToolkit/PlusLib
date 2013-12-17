@@ -1,11 +1,10 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "vtkCallbackCommand.h"
 #include "vtkCommand.h"
 #include "vtkImageData.h"
 #include "vtkImageViewer2.h"
@@ -29,7 +28,7 @@ public:
   virtual void Execute(vtkObject *caller, unsigned long, void*)
   {
     viewer->Render();
-        
+
     //update the timer so it will trigger again
     iren->CreateTimer(VTKI_TIMER_UPDATE);
   }
@@ -47,7 +46,9 @@ int main(int argc, char **argv)
 {
   bool printHelp(false); 
   bool renderingOff(false);
-  bool showDialogs(false);  
+  bool showDialogs(false);
+  int width(640);
+  int height(480);
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -56,8 +57,9 @@ int main(int argc, char **argv)
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
   args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");  
-  args.AddArgument("--show-dialogs", vtksys::CommandLineArguments::NO_ARGUMENT, &showDialogs, "Show video source and format dialogs");  
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
+  args.AddArgument("--width", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &width, "X resolution for the capture device.");
+  args.AddArgument("--height", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &height, "Y resolution for the capture device.");
 
   if ( !args.Parse() )
   {
@@ -67,7 +69,7 @@ int main(int argc, char **argv)
   }
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
-  
+
   if ( printHelp ) 
   {
     std::cout << "\n\nvtkMmfVideoSourceTest help:" << args.GetHelp() << std::endl;
@@ -85,22 +87,10 @@ int main(int argc, char **argv)
     return NULL;
   }
 
-  // Add an observer to warning and error events for redirecting it to the stdout 
-  vtkSmartPointer<vtkCallbackCommand> callbackCommand = vtkSmartPointer<vtkCallbackCommand>::New();
-  callbackCommand->SetCallback(PrintLogsCallback);
-  frameGrabber->AddObserver("WarningEvent", callbackCommand); 
-  frameGrabber->AddObserver("ErrorEvent", callbackCommand); 
-
   LOG_INFO("Initialize..."); 
   frameGrabber->Connect();
 
   aSource->SetPortImageOrientation( US_IMG_ORIENT_MN );
-
-  if (showDialogs)
-  {
-    frameGrabber->VideoFormatDialog();
-    frameGrabber->VideoSourceDialog();
-  }
 
   if ( frameGrabber->GetConnected() )
   {
@@ -110,7 +100,7 @@ int main(int argc, char **argv)
   else
   {
     frameGrabber->Disconnect();
-    LOG_ERROR( "Unable to connect to IC capture device"); 
+    LOG_ERROR( "Unable to connect to media foundation capture device."); 
     exit(EXIT_FAILURE); 
   }
 
@@ -128,16 +118,16 @@ int main(int argc, char **argv)
 
   viewer->SetColorWindow(255);
   viewer->SetColorLevel(100.5);
-  viewer->SetSize(aSource->GetBuffer()->GetFrameSize()[0],aSource->GetBuffer()->GetFrameSize()[1]); 
+  viewer->SetSize(aSource->GetBuffer()->GetFrameSize()[0], aSource->GetBuffer()->GetFrameSize()[1]); 
 
-  vtkImageData* output = vtkImageData::SafeDownCast(frameGrabber->GetOutputDataObject(0));
-  viewer->SetInput(vtkImageData::SafeDownCast(frameGrabber->GetOutputDataObject(0))); 
+  vtkImageData* output = vtkImageData::SafeDownCast(frameGrabber->GetOutput());
+  viewer->SetInput(vtkImageData::SafeDownCast(frameGrabber->GetOutput())); 
 
   //Create the interactor that handles the event loop
   vtkSmartPointer<vtkRenderWindowInteractor> iren = vtkSmartPointer<vtkRenderWindowInteractor>::New();
   iren->SetRenderWindow(viewer->GetRenderWindow());
   viewer->SetupInteractor(iren);
-  
+
   viewer->Render(); 
 
   //establish timer event and create timer
@@ -154,17 +144,4 @@ int main(int argc, char **argv)
   LOG_INFO("Exit successfully"); 
   return EXIT_SUCCESS; 
 
- }
-
- // Callback function for error and warning redirects
-void PrintLogsCallback(vtkObject* obj, unsigned long eid, void* clientdata, void* calldata)
-{
-  if ( eid == vtkCommand::GetEventIdFromString("WarningEvent") )
-  {
-    LOG_WARNING((const char*)calldata);
-  }
-  else if ( eid == vtkCommand::GetEventIdFromString("ErrorEvent") )
-  {
-    LOG_ERROR((const char*)calldata);
-  }
 }
