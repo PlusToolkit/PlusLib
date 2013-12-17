@@ -4,16 +4,13 @@
   See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "PlusServerLauncherMainWindow.h"
-
 #include "DeviceSetSelectorWidget.h"
+#include "PlusServerLauncherMainWindow.h"
 #include "StatusIcon.h"
-
 #include "vtkPlusDeviceFactory.h"
 #include "vtkPlusOpenIGTLinkServer.h"
-
-#include <QTimer>
 #include <QIcon>
+#include <QTimer>
 
 //-----------------------------------------------------------------------------
 PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent, Qt::WFlags flags, bool autoConnect)
@@ -23,7 +20,7 @@ PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent, Qt::
 {
   m_Server = vtkPlusOpenIGTLinkServer::New();
 
-  setIcon(QPixmap( ":/icons/Resources/icon_ConnectLarge.png" ));
+  setWindowIcon(QPixmap( ":/icons/Resources/icon_ConnectLarge.png" ));
 
   setMinimumSize(480, 320);
   setMaximumSize(1200, 800);
