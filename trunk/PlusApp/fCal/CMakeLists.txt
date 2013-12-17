@@ -22,6 +22,7 @@ SET (fCal_SRCS
 if (WIN32)  
   SET (fCal_SRCS
     ${fCal_SRCS}
+    fCal.rc
     )
 endif (WIN32)  
 

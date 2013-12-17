@@ -15,6 +15,7 @@ SET (PlusServerLauncher_SRCS
 if (WIN32)
   SET (PlusServerLauncher_SRCS
     ${PlusServerLauncher_SRCS}
+    PlusServerLauncher.rc
     )
 endif (WIN32)	
 
