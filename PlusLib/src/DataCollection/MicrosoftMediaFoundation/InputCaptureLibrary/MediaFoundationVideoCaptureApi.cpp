@@ -673,4 +673,25 @@ namespace MfVideoCapture
       }
     }
   }
+
+  //----------------------------------------------------------------------------
+
+  unsigned int MediaFoundationVideoCaptureApi::GetDeviceActiveFormat( unsigned int deviceID )
+  {
+    if(AccessToDevices)
+    {
+      MediaFoundationVideoDevices *VDS = &MediaFoundationVideoDevices::GetInstance();
+      MediaFoundationVideoDevice * VD = VDS->GetDevice(deviceID);
+
+      if(VD)
+        return VD->GetActiveType();
+    }
+    else
+    {
+      LOG_ERROR("VIDEODEVICE(s): There are not any suitable video devices.");
+    }
+
+    return -1;
+  }
+
 }

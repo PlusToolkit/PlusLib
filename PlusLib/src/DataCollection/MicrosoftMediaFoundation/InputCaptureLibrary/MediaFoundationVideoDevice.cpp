@@ -55,7 +55,7 @@ namespace MfVideoCapture
     , Source(NULL)
     , StopEventCallbackFunc(NULL)
     , GrabberThread(NULL)
-    , CurrentNumber(-1)
+    , DeviceIndex(-1)
     , UserData(NULL)
   {  
 
@@ -204,7 +204,7 @@ namespace MfVideoCapture
       {      
         FriendlyName = NULL;
 
-        LOG_ERROR("VIDEODEVICE " << CurrentNumber << ": IMFMediaSource interface cannot be created.");
+        LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": IMFMediaSource interface cannot be created.");
       }
     }
 
@@ -216,7 +216,7 @@ namespace MfVideoCapture
   long MediaFoundationVideoDevice::ReadDeviceInfo(IMFActivate *pActivate, unsigned int Num)
   {
     HRESULT hr = -1;
-    CurrentNumber = Num;
+    DeviceIndex = Num;
 
     hr = ResetDevice(pActivate);
 
@@ -238,9 +238,9 @@ namespace MfVideoCapture
     {
       if(count > 0)
       {
-        if(count > CurrentNumber)
+        if(count > DeviceIndex)
         {      
-          hr = ppDevices[CurrentNumber]->GetAllocatedString(
+          hr = ppDevices[DeviceIndex]->GetAllocatedString(
             MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME,
             &newFriendlyName,
             NULL
@@ -250,24 +250,24 @@ namespace MfVideoCapture
           {
             if(wcscmp(newFriendlyName, FriendlyName) != 0)
             {
-              LOG_ERROR("VIDEODEVICE " << CurrentNumber << ": Chosen device cannot be found.");
+              LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": Chosen device cannot be found.");
               hr = -1;
               pDevice = NULL;
             }
             else
             {
-              *pDevice = ppDevices[CurrentNumber];
+              *pDevice = ppDevices[DeviceIndex];
               (*pDevice)->AddRef();
             }
           }
           else
           {
-            LOG_ERROR("VIDEODEVICE " << CurrentNumber << ": Name of device cannot be gotten.");
+            LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": Name of device cannot be gotten.");
           }
         }
         else
         {
-          LOG_ERROR("VIDEODEVICE " << CurrentNumber << ": Number of devices more than corrent number of the device.");
+          LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": Number of devices more than corrent number of the device.");
           hr = -1;
         }
 
@@ -283,7 +283,7 @@ namespace MfVideoCapture
     }
     else
     {
-      LOG_ERROR("VIDEODEVICE " << CurrentNumber << ": List of DeviceSources cannot be enumerated.");
+      LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": List of DeviceSources cannot be enumerated.");
     }
 
     return hr;
@@ -330,12 +330,12 @@ namespace MfVideoCapture
       }
       else
       {
-        LOG_ERROR("VIDEODEVICE " << CurrentNumber << ": Cannot activate device.");
+        LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": Cannot activate device.");
       }
     }  
     else
     {
-      LOG_ERROR("VIDEODEVICE " << CurrentNumber << ": The attribute of the capture device cannot be retrieved.");
+      LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": The attribute of the capture device cannot be retrieved.");
     }
 
     SafeRelease(&pAttributes);
@@ -390,7 +390,7 @@ namespace MfVideoCapture
       GrabberThread = NULL;
       LockOut = OpenLock;  
 
-      LOG_DEBUG("VIDEODEVICE " << CurrentNumber << ": Device is stopped.");
+      LOG_DEBUG("VIDEODEVICE " << DeviceIndex << ": Device is stopped.");
     }
   }
 
@@ -488,7 +488,7 @@ namespace MfVideoCapture
 
     if(STMMax.size() == 0)
     {
-      LOG_ERROR("VIDEODEVICE " << CurrentNumber << ": No pixel formats available.");
+      LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": No pixel formats available.");
       return -1;
     }
 
@@ -498,7 +498,7 @@ namespace MfVideoCapture
     SUBTYPEMap::iterator selectedSubtype;
     if( STMMax.find(subtypeName) == STMMax.end() )
     {
-      LOG_ERROR("VIDEODEVICE " << CurrentNumber << ": Requested pixel format not available. Defaulting to first available.");
+      LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": Requested pixel format not available. Defaulting to first available.");
       VN = STMMax.begin()->second;
     }
     else
@@ -508,7 +508,7 @@ namespace MfVideoCapture
 
     if(VN.size() == 0)
     {
-      LOG_ERROR("VIDEODEVICE " << CurrentNumber << ": No vector num available.");
+      LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": No vector num available.");
       return -1;
     }
 
@@ -606,7 +606,7 @@ done:
       return GrabberThread->GetImageGrabber()->getRawImage();  
     else
     {
-      LOG_ERROR("VIDEODEVICE " << CurrentNumber << ": The instance of ImageGrabberThread class does not exist.");
+      LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": The instance of ImageGrabberThread class does not exist.");
     }
     return NULL;
   }
@@ -623,11 +623,11 @@ done:
       {
         LockOut = RawDataLock;
 
-        HRESULT hr = ImageGrabberThread::CreateInstance(&GrabberThread, Source, CurrentNumber);
+        HRESULT hr = ImageGrabberThread::CreateInstance(&GrabberThread, Source, DeviceIndex);
 
         if(FAILED(hr))
         {
-          LOG_ERROR("VIDEODEVICE " << CurrentNumber << ": The instance of ImageGrabberThread class cannot be created.");
+          LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": The instance of ImageGrabberThread class cannot be created.");
           return false;
         }
 
@@ -681,20 +681,21 @@ done:
 
         if(IsSetup)
         {
-          LOG_DEBUG("VIDEODEVICE " << CurrentNumber << ": Device is setup.");
+          LOG_DEBUG("VIDEODEVICE " << DeviceIndex << ": Device is setup.");
         }
         PreviousParameters = GetParameters();
+        this->ActiveType = id;
         return IsSetup;
       }
       else
       {
-        LOG_ERROR("VIDEODEVICE " << CurrentNumber << ": Interface IMFMediaSource cannot be retrieved.");
+        LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": Interface IMFMediaSource cannot be retrieved.");
         return false;
       }
     }
     else
     {
-      LOG_ERROR("VIDEODEVICE " << CurrentNumber << ": Device is already setup.");
+      LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": Device is already setup.");
       return false;
     }  
   }
@@ -707,9 +708,10 @@ done:
 
     if( id == -1 )
     {
-      LOG_ERROR("VIDEODEVICE " << CurrentNumber << ": Cannot find the requested type.");
+      LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": Cannot find the requested type.");
       return false;
     }
+
     return SetupDevice(id);
   }
 
@@ -790,4 +792,12 @@ done:
     SafeRelease(&pType);
     return hr;
   }
+
+  //----------------------------------------------------------------------------
+
+  unsigned int MediaFoundationVideoDevice::GetActiveType() const
+  {
+    return this->ActiveType;
+  }
+
 }

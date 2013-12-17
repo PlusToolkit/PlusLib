@@ -68,6 +68,7 @@ namespace MfVideoCapture
     unsigned int GetWidth() const;
     unsigned int GetHeight() const;
     MediaType GetFormat(unsigned int id) const;
+    unsigned int GetActiveType() const;
     bool SetupDevice(unsigned int w, unsigned int h, unsigned int idealFramerate = 0, GUID subtype = MFVideoFormat_YUY2);
     bool SetupDevice(unsigned int id);
     bool IsDeviceSetup() const;
@@ -95,7 +96,8 @@ namespace MfVideoCapture
     emergencyStopEventCallback StopEventCallbackFunc;
     ImageGrabberThread *GrabberThread;
     CaptureDeviceParameters PreviousParameters;
-    unsigned int CurrentNumber;
+    unsigned int DeviceIndex;
+    unsigned int ActiveType;
     std::map<uint64_t, FrameRateMap> CaptureFormats;
     std::vector<MediaType> CurrentFormats;
     void *UserData;

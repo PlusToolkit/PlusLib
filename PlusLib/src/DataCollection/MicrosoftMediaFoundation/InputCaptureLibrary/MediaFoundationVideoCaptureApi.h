@@ -133,6 +133,9 @@ namespace MfVideoCapture
     // Getting numbers of formats, which are supported by videodevice with deviceID
     unsigned int GetFormatCount(unsigned int deviceID);
 
+    // Get active format for the given device
+    unsigned int GetDeviceActiveFormat(unsigned int deviceID);
+
     // Getting width of image, which is getting from videodevice with deviceID
     unsigned int GetWidth(unsigned int deviceID);
 
