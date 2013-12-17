@@ -2,7 +2,7 @@ The Plus license below is a BSD style license, with extensions
 to cover contributions and other issues specific to Plus.
 
 For more information, please see:
-http://www.assembla.com/spaces/Plus
+http://www.plustoolkit.org
 ______________________________________________________________
 
 How to cite Plus:
