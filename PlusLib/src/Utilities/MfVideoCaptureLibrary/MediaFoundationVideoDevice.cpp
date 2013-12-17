@@ -704,7 +704,7 @@ done:
 
   bool MediaFoundationVideoDevice::SetupDevice(unsigned int w, unsigned int h, unsigned int idealFramerate, GUID subtype)
   {  
-    unsigned int id = FindType(w * h, idealFramerate, subtype);
+    int id = FindType(w * h, idealFramerate, subtype);
 
     if( id == -1 )
     {

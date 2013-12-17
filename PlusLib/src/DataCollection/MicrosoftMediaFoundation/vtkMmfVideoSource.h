@@ -64,9 +64,6 @@ protected:
   /*! Device-specific connect */
   virtual PlusStatus InternalConnect();
 
-  /*! Set the capture device to the specified parameters */
-  void ConfigureCaptureDevice();
-
   /*! Device-specific disconnect */
   virtual PlusStatus InternalDisconnect();
 
@@ -80,12 +77,9 @@ protected:
 
   int FrameIndex;
 
-  IMFActivate** CaptureDevices;
-  IMFAttributes* CaptureAttributes;
   IMFMediaSource* CaptureSource;
   IMFSourceReader* CaptureSourceReader;
-  UINT32 DeviceCount;
-  UINT32 ImageStride;
+
   vtkSmartPointer<vtkRecursiveCriticalSection> Mutex;
   PlusVideoFrame UncompressedVideoFrame;
   VideoFormat RequestedVideoFormat;
