@@ -361,35 +361,44 @@ PlusStatus vtkMmfVideoSource::ReadConfiguration( vtkXMLDataElement* rootXmlEleme
     return PLUS_FAIL;
   }
 
-  int xRes = -1; 
-  if ( !deviceConfig->GetScalarAttribute("XResolution", xRes) ) 
+  int xRes = DEFAULT_X_RESOLUTION; int yRes = DEFAULT_Y_RESOLUTION; 
+  if( deviceConfig->GetAttribute("FrameSize") != NULL )
   {
-    xRes = DEFAULT_X_RESOLUTION;
+    std::vector<std::string> frameSize;
+    PlusCommon::SplitStringIntoTokens(deviceConfig->GetAttribute("FrameSize"), 'x', frameSize);
+    if( frameSize.size() != 2 )
+    {
+      LOG_ERROR("Unable to parse FrameSize.");
+    }
+    else
+    {
+      std::stringstream xResolution(frameSize[0]);
+      xResolution >> xRes;
+      std::stringstream yResolution(frameSize[1]);
+      yResolution >> yRes;
+    }
   }
+  
   this->RequestedVideoFormat.Width = xRes;
-
-  int yRes = -1; 
-  if ( !deviceConfig->GetScalarAttribute("YResolution", yRes) ) 
-  {
-    yRes = DEFAULT_Y_RESOLUTION;
-  }
   this->RequestedVideoFormat.Height = yRes;
 
-  if( deviceConfig->GetAttribute("PixelFormat") != NULL )
+  if( deviceConfig->GetAttribute("VideoFormat") != NULL )
   {
-    std::string pixAttrStr(deviceConfig->GetAttribute("PixelFormat"));
-    std::wstring pixAttrWStr(pixAttrStr.begin(), pixAttrStr.end());
-    GUID pixelFormat = MfVideoCapture::FormatReader::GUIDFromString(pixAttrWStr);
+    std::string pixAttrStr(deviceConfig->GetAttribute("VideoFormat"));
+    std::string videoFormat = "MFVideoFormat_";
+    videoFormat.append(pixAttrStr);
+    std::wstring videoFormatWStr(videoFormat.begin(), videoFormat.end());
+    GUID pixelFormat = MfVideoCapture::FormatReader::GUIDFromString(videoFormatWStr);
     if( pixelFormat == GUID_NULL)
     {
-      LOG_ERROR("Cannot recognize requested pixel format. Defaulting to \'MFVideoFormat_YUY2\'.");
+      LOG_ERROR("Cannot recognize requested pixel format. Defaulting to \'YUY2\'.");
       this->RequestedVideoFormat.PixelFormat = MFVideoFormat_YUY2;
       this->RequestedVideoFormat.PixelFormatName = "MFVideoFormat_YUY2";
     }
     else
     {
       this->RequestedVideoFormat.PixelFormat = pixelFormat;
-      this->RequestedVideoFormat.PixelFormatName = pixAttrStr;
+      this->RequestedVideoFormat.PixelFormatName = videoFormat;
     }
   }
 
