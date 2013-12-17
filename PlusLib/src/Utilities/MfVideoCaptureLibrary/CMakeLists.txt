@@ -1,3 +1,15 @@
+SET(CMAKE_MODULE_PATH
+  ${CMAKE_CURRENT_SOURCE_DIR}/Modules 
+  ${CMAKE_MODULE_PATH}
+  )
+
+find_package(WindowsSDK)
+
+IF( NOT WINSDK7.1_FOUND )
+	MESSAGE("Media Foundation Capture library requires Windows SDK 7.1 be installed. It was not found.")
+	Return()
+ENDIF(NOT WINSDK7.1_FOUND)
+
 PROJECT(MfVideoCaptureLibrary)
 
 SET (MfVideoCaptureLibrary_INCLUDE_DIRS
