@@ -16,9 +16,9 @@ The "videoInput" library has been adapted to fit within a namespace.
 
 =========================================================Plus=header=end*/
 
+#include "MfVideoCaptureLoggerMacros.h"
 #include "MediaFoundationVideoDevice.h"
 #include "MediaFoundationVideoDevices.h"
-#include "PlusCommon.h"
 #include <Mfidl.h>
 #include <Mfobjects.h>
 

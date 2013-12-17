@@ -16,7 +16,7 @@ The "videoInput" library has been adapted to fit within a namespace.
 
 =========================================================Plus=header=end*/
 
-#include "PlusCommon.h"
+#include "MfVideoCaptureLoggerMacros.h"
 #include "ImageGrabber.h"
 #include "ImageGrabberThread.h"
 #include <mfapi.h>
@@ -129,7 +129,7 @@ namespace MfVideoCapture
 
     if(!ShouldStop)
     {
-      LOG_INFO("IMAGEGRABBERTHREAD VIDEODEVICE " << DeviceId << ":IMAGEGRABBERTHREAD VIDEODEVICE %i: Emergency Stop thread.");
+      LOG_INFO("IMAGEGRABBERTHREAD VIDEODEVICE " << DeviceId << ": Emergency Stop thread.");
 
       if(StopEventCallbackFunc)
       {

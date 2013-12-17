@@ -19,7 +19,7 @@ The "videoInput" library has been adapted to fit within a namespace.
 #include "MediaFoundationCaptureLibrary.h"
 #include "MediaFoundationVideoDevice.h"
 #include "MediaFoundationVideoDevices.h"
-#include "PlusCommon.h"
+#include "MfVideoCaptureLoggerMacros.h"
 #include <mfapi.h>
 #include <mfidl.h>
 #include <mfplay.h>
