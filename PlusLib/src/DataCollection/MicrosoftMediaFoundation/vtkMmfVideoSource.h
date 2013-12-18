@@ -51,8 +51,10 @@ public:
   
   std::string GetRequestedDeviceName();
   std::string GetActiveDeviceName();
-  void GetListOfCaptureVideoFormats(std::vector< std::string > &videoModes);
+  void GetListOfCaptureVideoFormats(std::vector< std::string > &videoModes, unsigned int deviceId);
+  void LogListOfCaptureVideoFormats(unsigned int deviceId);
   void GetListOfCaptureDevices(std::vector< std::string > &deviceNames);
+  void LogListOfCaptureDevices();
 
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* xmlElement);
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* xmlElement);
@@ -82,7 +84,9 @@ protected:
 
   PlusStatus UpdateFrameSize();
 
-  PlusStatus AddFrame(unsigned char* bufferData);
+  PlusStatus AddFrame(unsigned char* bufferData);  
+
+  std::string GetCaptureDeviceName(unsigned int deviceId);
 
   int FrameIndex;
 

@@ -87,14 +87,7 @@ int main(int argc, char **argv)
 
   if (listDevices)
   {
-    LOG_INFO("Found capture devices:");
-    std::vector< std::string > deviceNames;
-    frameGrabber->GetListOfCaptureDevices(deviceNames);
-    int id=0;
-    for (std::vector< std::string > :: iterator deviceNameIt=deviceNames.begin(); deviceNameIt!=deviceNames.end(); ++deviceNameIt, id++)
-    {
-      LOG_INFO("  "<<id<<": "<<(*deviceNameIt));
-    }
+    frameGrabber->LogListOfCaptureDevices();
     exit(EXIT_SUCCESS);
   }
 
@@ -102,13 +95,7 @@ int main(int argc, char **argv)
 
   if (listVideoFormats)
   {
-    LOG_INFO("Supported video modes for device "<<deviceId<<" ("<<frameGrabber->GetRequestedDeviceName()<<"):");
-    std::vector< std::string > videoModes;
-    frameGrabber->GetListOfCaptureVideoFormats(videoModes);
-    for (std::vector< std::string > :: iterator modeIt=videoModes.begin(); modeIt!=videoModes.end(); ++modeIt)
-    {
-      LOG_INFO("  "<<(*modeIt));
-    }
+    frameGrabber->LogListOfCaptureVideoFormats(deviceId);
     exit(EXIT_SUCCESS);
   }
 
