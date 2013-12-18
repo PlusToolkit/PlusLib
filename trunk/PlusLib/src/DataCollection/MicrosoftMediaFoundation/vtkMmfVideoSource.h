@@ -33,19 +33,25 @@ Authors include: Danielle Pace
 */ 
 class VTK_EXPORT vtkMmfVideoSource : public vtkPlusDevice, public IMFSourceReaderCallback
 {
-  class VideoFormat
+  struct VideoFormat
   {
-  public:
-    GUID PixelFormat;
-    std::string PixelFormatName;
-    int Width;
-    int Height;
+    unsigned int DeviceId;
+    int FrameSize[2];
+    std::string PixelFormatName; // e.g., YUY2    
   };
 
 public:
   static vtkMmfVideoSource *New();
   vtkTypeRevisionMacro(vtkMmfVideoSource, vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
+
+  virtual void SetRequestedDeviceId(unsigned int deviceId);
+  virtual void SetRequestedVideoFormat(const std::string& pixelFormatName);
+  virtual void SetRequestedFrameSize(int frameSize[2]);
+  
+  std::string GetRequestedDeviceName();
+  void GetListOfCaptureVideoFormats(std::vector< std::string > &videoModes);
+  void GetListOfCaptureDevices(std::vector< std::string > &deviceNames);
 
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* xmlElement);
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* xmlElement);

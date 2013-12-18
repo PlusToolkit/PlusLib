@@ -22,6 +22,7 @@ The "videoInput" library has been adapted to fit within a namespace.
 #include <guiddef.h>
 #include <mfapi.h>
 #include <string>
+#include <vector>
 
 struct IMFMediaSource;
 
@@ -129,6 +130,9 @@ namespace MfVideoCapture
 
     // List any existing capture devices
     unsigned int ListDevices();
+
+    // Get a list of existing capture device names
+    void GetDeviceNames(std::vector< std::wstring > &deviceNames);
 
     // Getting numbers of formats, which are supported by videodevice with deviceID
     unsigned int GetFormatCount(unsigned int deviceID);
