@@ -399,11 +399,11 @@ std::string PlusCommon::GetPlusLibVersionString()
   plusLibVersion += " (debug build)";
 #endif
 #if defined _WIN64
-  plusLibVersion += "- Win64";
+  plusLibVersion += " - Win64";
 #elif defined _WIN32
-  plusLibVersion += "- Win32";
+  plusLibVersion += " - Win32";
 #else
-  plusLibVersion += "- Linux/Mac";
+  plusLibVersion += " - Linux/Mac";
 #endif
   return plusLibVersion;
 }

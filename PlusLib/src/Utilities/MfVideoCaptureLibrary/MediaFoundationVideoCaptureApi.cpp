@@ -502,6 +502,29 @@ namespace MfVideoCapture
 
   //----------------------------------------------------------------------------
 
+  void MediaFoundationVideoCaptureApi::GetDeviceNames(std::vector< std::wstring > &deviceNames)
+  {
+    deviceNames.clear();
+
+    if(AccessToDevices)
+    {
+      MediaFoundationVideoDevices *VDS = &MediaFoundationVideoDevices::GetInstance();
+      int out = VDS->GetCount();
+      for(int i = 0; i < out; i++)
+      {
+        std::wstring deviceName=GetCaptureDeviceName(i);
+        deviceNames.push_back(deviceName);
+      }
+    }
+    else
+    {
+      LOG_ERROR("VIDEODEVICE(s): There are not any suitable video devices.");
+    }
+
+  }
+
+  //----------------------------------------------------------------------------
+
   MediaFoundationVideoCaptureApi& MediaFoundationVideoCaptureApi::GetInstance() 
   {
     static MediaFoundationVideoCaptureApi instance;

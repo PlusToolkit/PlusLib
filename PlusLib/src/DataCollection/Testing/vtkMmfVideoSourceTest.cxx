@@ -47,19 +47,25 @@ int main(int argc, char **argv)
   bool printHelp(false); 
   bool renderingOff(false);
   bool showDialogs(false);
-  int width(640);
-  int height(480);
+  std::vector<int> frameSize;
+  int deviceId=0;
+  std::string pixelFormatName;
+  bool listDevices=false;
+  bool listVideoFormats=false;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
+  args.AddArgument("--list-devices", vtksys::CommandLineArguments::NO_ARGUMENT, &listDevices, "Show the list of available devices and exit");
+  args.AddArgument("--list-video-formats", vtksys::CommandLineArguments::NO_ARGUMENT, &listVideoFormats, "Show the list of supported video formats for the selected device and exit");  
+  args.AddArgument("--device-id", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceId, "Capture device ID (default: 0)");
+  args.AddArgument("--frame-size", vtksys::CommandLineArguments::MULTI_ARGUMENT, &frameSize, "Requested frame size from the capture device");
+  args.AddArgument("--video-format", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &pixelFormatName, "Requested video format (YUY2, ...)");
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
   args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");  
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
-  args.AddArgument("--width", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &width, "X resolution for the capture device.");
-  args.AddArgument("--height", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &height, "Y resolution for the capture device.");
 
   if ( !args.Parse() )
   {
@@ -73,12 +79,54 @@ int main(int argc, char **argv)
   if ( printHelp ) 
   {
     std::cout << "\n\nvtkMmfVideoSourceTest help:" << args.GetHelp() << std::endl;
-    exit(EXIT_SUCCESS); 
-
+    exit(EXIT_SUCCESS);
   }
 
   vtkSmartPointer<vtkMmfVideoSource> frameGrabber = vtkSmartPointer<vtkMmfVideoSource>::New();
   frameGrabber->TestCreateDefaultVideoSource();
+
+  if (listDevices)
+  {
+    LOG_INFO("Found capture devices:");
+    std::vector< std::string > deviceNames;
+    frameGrabber->GetListOfCaptureDevices(deviceNames);
+    int id=0;
+    for (std::vector< std::string > :: iterator deviceNameIt=deviceNames.begin(); deviceNameIt!=deviceNames.end(); ++deviceNameIt, id++)
+    {
+      LOG_INFO("  "<<id<<": "<<(*deviceNameIt));
+    }
+    exit(EXIT_SUCCESS);
+  }
+
+  frameGrabber->SetRequestedDeviceId(deviceId);
+
+  if (listVideoFormats)
+  {
+    LOG_INFO("Supported video modes for device "<<deviceId<<" ("<<frameGrabber->GetRequestedDeviceName()<<"):");
+    std::vector< std::string > videoModes;
+    frameGrabber->GetListOfCaptureVideoFormats(videoModes);
+    for (std::vector< std::string > :: iterator modeIt=videoModes.begin(); modeIt!=videoModes.end(); ++modeIt)
+    {
+      LOG_INFO("  "<<(*modeIt));
+    }
+    exit(EXIT_SUCCESS);
+  }
+
+  if (!pixelFormatName.empty())
+  {
+    frameGrabber->SetRequestedVideoFormat(pixelFormatName);
+  }
+
+  if (!frameSize.empty())
+  {
+    if (frameSize.size()!=2)
+    {
+      LOG_ERROR("Frame size shall contain two numbers, separated by a space");
+      return EXIT_FAILURE;
+    }
+    frameGrabber->SetRequestedFrameSize(&(frameSize[0]));
+  }
+
   vtkPlusChannel* aChannel(NULL);
   vtkPlusDataSource* aSource(NULL);
   if( frameGrabber->GetOutputChannelByName(aChannel, "DefaultChannel") != PLUS_SUCCESS || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
