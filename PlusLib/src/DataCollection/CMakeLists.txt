@@ -624,23 +624,11 @@ IF (PLUS_USE_MMF_VIDEO)
   endif (WIN32)
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/MicrosoftMediaFoundation
-	${CMAKE_CURRENT_SOURCE_DIR}/MicrosoftMediaFoundation/InputCaptureLibrary
+    ${CMAKE_CURRENT_SOURCE_DIR}/MicrosoftMediaFoundation/InputCaptureLibrary
     ${WINDOWSSDK_LATEST_DIR}/Include
     )
-  IF( ${CMAKE_GENERATOR} MATCHES Win64 )
-    SET( MMF_LIB_DIR ${WINDOWSSDK_LATEST_DIR}/Lib/x64 )
-  ELSE()
-    SET( MMF_LIB_DIR ${WINDOWSSDK_LATEST_DIR}/Lib )
-  ENDIF()
   SET (DataCollection_LIBS ${DataCollection_LIBS} 
-    ${MMF_LIB_DIR}/Evr.lib
-    ${MMF_LIB_DIR}/Mf.lib 
-    ${MMF_LIB_DIR}/Mfplat.lib 
-    ${MMF_LIB_DIR}/Shlwapi.lib 
-    ${MMF_LIB_DIR}/Mfreadwrite.lib 
-    ${MMF_LIB_DIR}/mfuuid.lib 
-	${MMF_LIB_DIR}/Strmiids.lib 
-	MfVideoCaptureLibrary
+    MfVideoCaptureLibrary
     )
 ENDIF (PLUS_USE_MMF_VIDEO)
 

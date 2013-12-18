@@ -3,13 +3,6 @@ SET(CMAKE_MODULE_PATH
   ${CMAKE_MODULE_PATH}
   )
 
-find_package(WindowsSDK)
-
-IF( NOT WINSDK7.1_FOUND )
-	MESSAGE("Media Foundation Capture library requires Windows SDK 7.1 be installed. It was not found.")
-	Return()
-ENDIF(NOT WINSDK7.1_FOUND)
-
 PROJECT(MfVideoCaptureLibrary)
 
 SET (MfVideoCaptureLibrary_INCLUDE_DIRS
@@ -26,8 +19,8 @@ SET(MfVideoCaptureLibrary_SRCS
     ImageGrabberThread.cpp 
     ImageGrabber.cpp 
     RawImage.cpp 
-	MediaFoundationCaptureLibrary.cpp 
-	MfVideoCaptureLogger.cpp 
+    MediaFoundationCaptureLibrary.cpp 
+    MfVideoCaptureLogger.cpp 
   )
   
 SET (MfVideoCaptureLibrary_HDRS ${MfVideoCaptureLibrary_HDRS}
@@ -40,15 +33,31 @@ SET (MfVideoCaptureLibrary_HDRS ${MfVideoCaptureLibrary_HDRS}
     ImageGrabber.h 
     RawImage.h 
     MediaFoundationCaptureLibrary.h 
-	MfVideoCaptureLogger.h 
-	MfVideoCaptureLoggerMacros.h 
+    MfVideoCaptureLogger.h 
+    MfVideoCaptureLoggerMacros.h 
 	)
 
-INCLUDE_DIRECTORIES( ${MfVideoCaptureLibrary_INCLUDE_DIRS} )
-SET (Utilities_INCLUDE_DIRS ${Utilities_INCLUDE_DIRS} ${MfVideoCaptureLibrary_INCLUDE_DIRS} CACHE INTERNAL "")
+INCLUDE_DIRECTORIES( ${MfVideoCaptureLibrary_INCLUDE_DIRS} ${WINDOWSSDK_LATEST_DIR}/Include)
+SET (Utilities_INCLUDE_DIRS ${Utilities_INCLUDE_DIRS} ${MfVideoCaptureLibrary_INCLUDE_DIRS} ${WINDOWSSDK_LATEST_DIR}/Include CACHE INTERNAL "")
+
+IF( ${CMAKE_GENERATOR} MATCHES Win64 )
+  SET( MF_LIB_DIR ${WINDOWSSDK_LATEST_DIR}/Lib/x64 )
+ELSE()
+  SET( MF_LIB_DIR ${WINDOWSSDK_LATEST_DIR}/Lib )
+ENDIF()
+
+SET (MfVideoCaptureLibrary_LIBS
+  ${MF_LIB_DIR}/Evr.lib
+  ${MF_LIB_DIR}/Mf.lib 
+  ${MF_LIB_DIR}/Mfplat.lib 
+  ${MF_LIB_DIR}/Shlwapi.lib 
+  ${MF_LIB_DIR}/Mfreadwrite.lib 
+  ${MF_LIB_DIR}/mfuuid.lib 
+  ${MF_LIB_DIR}/Strmiids.lib
+  )
 
 ADD_LIBRARY(MfVideoCaptureLibrary STATIC ${MfVideoCaptureLibrary_SRCS} ${MfVideoCaptureLibrary_HDRS})
-TARGET_LINK_LIBRARIES( MfVideoCaptureLibrary )
+TARGET_LINK_LIBRARIES( MfVideoCaptureLibrary ${MfVideoCaptureLibrary_LIBS})
 
 # --------------------------------------------------------------------------
 # Set external MS project 
