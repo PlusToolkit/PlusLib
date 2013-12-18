@@ -743,7 +743,13 @@ done:
     IMFMediaTypeHandler *pHandler = NULL;
     IMFMediaType *pType = NULL;
 
-    HRESULT hr = pSource->CreatePresentationDescriptor(&pPD);
+    HRESULT hr=-1;
+    if (pSource==NULL)
+    {
+      goto done;
+    }
+
+    hr = pSource->CreatePresentationDescriptor(&pPD);
     if (FAILED(hr))
     {
       goto done;

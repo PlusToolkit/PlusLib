@@ -84,7 +84,7 @@ vtkMmfVideoSource::vtkMmfVideoSource()
 
 //----------------------------------------------------------------------------
 vtkMmfVideoSource::~vtkMmfVideoSource()
-{ 
+{
 
 }
 
@@ -186,6 +186,8 @@ PlusStatus vtkMmfVideoSource::InternalStartRecording()
 //----------------------------------------------------------------------------
 PlusStatus vtkMmfVideoSource::InternalStopRecording()
 {
+  LOG_DEBUG("vtkMmfVideoSource::InternalStopRecording");
+
   if( this->CaptureSource != NULL )
   {
     this->CaptureSource->Stop();
@@ -272,6 +274,11 @@ STDMETHODIMP vtkMmfVideoSource::OnReadSample( HRESULT hrStatus, DWORD dwStreamIn
     return S_FALSE;
   }
 
+  if (this->CaptureSourceReader==NULL)
+  {
+    return S_FALSE;
+  }
+
   if (pSample!=NULL)
   {
 
@@ -336,10 +343,6 @@ STDMETHODIMP vtkMmfVideoSource::OnReadSample( HRESULT hrStatus, DWORD dwStreamIn
     // This should never occur under normal operation.
   }
 
-  if( CaptureSourceReader == NULL )
-  {
-    return S_FALSE;
-  }
   this->CaptureSourceReader->ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, NULL, NULL, NULL, NULL);
 
   return S_OK;
