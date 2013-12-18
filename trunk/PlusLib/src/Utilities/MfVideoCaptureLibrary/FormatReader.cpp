@@ -304,7 +304,7 @@ done:
         out.MF_MT_FRAME_RATE_low = uLow;
       }
       else
-        if (guid == MF_MT_FRAME_RATE_RANGE_MAX)
+        if (guid == MF_MT_FRAME_RATE_RANGE_MAX) // if "undeclared identifier" error occurs then install Windows Platform SDK 7.1 or later
         {
           UINT32 uHigh = 0, uLow = 0;
 
