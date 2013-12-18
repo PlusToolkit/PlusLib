@@ -271,17 +271,6 @@ STDMETHODIMP vtkMmfVideoSource::OnReadSample( HRESULT hrStatus, DWORD dwStreamIn
       DWORD maxLength;
       DWORD currentLength;
 
-      // Get the media type from the stream.
-      IMFMediaType* pType;
-      this->CaptureSourceReader->GetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, 
-        &pType);
-
-      UINT32 width, height;
-      MFGetAttributeSize(pType, MF_MT_FRAME_SIZE, &width, &height);
-
-      GUID pixelType=DEFAULT_PIXEL_TYPE;
-      pType->GetGUID( MF_MT_SUBTYPE, &pixelType );
-
       HRESULT hr = aBuffer->Lock(&bufferData, &maxLength, &currentLength);
       if( FAILED(hr) ) 
       {
@@ -298,11 +287,11 @@ STDMETHODIMP vtkMmfVideoSource::OnReadSample( HRESULT hrStatus, DWORD dwStreamIn
         videoSource->GetBuffer()->GetFrameSize(frameSize);
         
         PlusStatus decodingStatus=PLUS_FAIL;
-        if (pixelType==MFVideoFormat_YUY2)
+        if (this->ActiveVideoFormat.PixelFormatName.compare("MFVideoFormat_YUY2") == 0)
         {
           decodingStatus=PixelCodec::ConvertToGray(VTK_BI_YUY2, frameSize[0], frameSize[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetBufferPointer());
         }
-        else if (pixelType==MFVideoFormat_RGB24)
+        else if (this->ActiveVideoFormat.PixelFormatName.compare("MFVideoFormat_RGB24") == 0 )
         {
           decodingStatus=PixelCodec::ConvertToGray(BI_RGB, frameSize[0], frameSize[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetBufferPointer());
         }
