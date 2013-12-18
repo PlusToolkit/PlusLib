@@ -38,6 +38,7 @@ vtkDataCollector::vtkDataCollector()
 
 vtkDataCollector::~vtkDataCollector()
 {
+  LOG_TRACE("vtkDataCollector::~vtkDataCollector()");
   if( this->Started )
   {
     this->Stop();
@@ -317,6 +318,7 @@ PlusStatus vtkDataCollector::Disconnect()
   }
 
   Connected = false;
+  LOG_DEBUG("vtkDataCollector::Disconnect: All devices have been disconnected");
 
   return status;
 }
