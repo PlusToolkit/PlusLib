@@ -73,6 +73,11 @@ ENDIF()
 
 IF ( PLUS_USE_MMF_VIDEO )
     FIND_PACKAGE(WindowsSDK REQUIRED)
+    # Tests if the available latest Windows SDK is recent enough for Plus
+    INCLUDE(TestWindowsSDK)
+    IF (NOT PLUS_WINDOWS_SDK_IS_COMPATIBLE)
+      MESSAGE(FATAL_ERROR "Windows SDK is not compatible with Plus requirements. Either disable the PLUS_USE_MMF_VIDEO option or install Windows SDK 7.1 or later.")
+    ENDIF()
     SET(PLUSBUILD_ADDITIONAL_SDK_ARGS ${PLUSBUILD_ADDITIONAL_SDK_ARGS} 
     -DWINDOWSSDK_LATEST_DIR:PATH=${WINDOWSSDK_LATEST_DIR}
     )
