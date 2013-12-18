@@ -76,7 +76,9 @@ vtkMmfVideoSource::vtkMmfVideoSource()
   this->RequestedVideoFormat.FrameSize[1]=DEFAULT_FRAME_SIZE[1];
   this->RequestedVideoFormat.PixelFormatName=DEFAULT_PIXEL_TYPE_NAME;
 
-  this->ActiveVideoFormat=this->RequestedVideoFormat;
+  this->ActiveVideoFormat.DeviceId=0;
+  this->ActiveVideoFormat.FrameSize[0]=0;
+  this->ActiveVideoFormat.FrameSize[1]=0;
 }
 
 //----------------------------------------------------------------------------
@@ -100,14 +102,14 @@ PlusStatus vtkMmfVideoSource::InternalConnect()
   this->ActiveVideoFormat = this->RequestedVideoFormat;
 
   GUID pixelFormat = DEFAULT_PIXEL_TYPE;
-  if (!this->ActiveVideoFormat.PixelFormatName.empty())
+  if (!this->RequestedVideoFormat.PixelFormatName.empty())
   {
-    std::string videoFormat = MF_VIDEO_FORMAT_PREFIX + this->ActiveVideoFormat.PixelFormatName;
+    std::string videoFormat = MF_VIDEO_FORMAT_PREFIX + this->RequestedVideoFormat.PixelFormatName;
     std::wstring videoFormatWStr(videoFormat.begin(), videoFormat.end());
     pixelFormat = MfVideoCapture::FormatReader::GUIDFromString(videoFormatWStr);
     if( pixelFormat == GUID_NULL)
     {
-      LOG_ERROR("Cannot recognize requested pixel format: "<<this->ActiveVideoFormat.PixelFormatName<<". Defaulting to \'"<<DEFAULT_PIXEL_TYPE_NAME<<"\'.");
+      LOG_ERROR("Cannot recognize requested pixel format: "<<this->RequestedVideoFormat.PixelFormatName<<". Defaulting to \'"<<DEFAULT_PIXEL_TYPE_NAME<<"\'.");
       pixelFormat = DEFAULT_PIXEL_TYPE;
     }
   }
@@ -123,13 +125,19 @@ PlusStatus vtkMmfVideoSource::InternalConnect()
       LOG_ERROR("Unable to initialize capture device with default details (device ID: 0, "<<DEFAULT_FRAME_SIZE[0]<<"x"<<DEFAULT_FRAME_SIZE[1]<<", "<<DEFAULT_ACQUISITION_RATE<<"Hz, "<<DEFAULT_PIXEL_TYPE_NAME<<").");
       return PLUS_FAIL;
     }
-    LOG_WARNING("Unable to init capture device with requested details (device ID: "<<this->RequestedVideoFormat.DeviceId<<", "<<this->RequestedVideoFormat.FrameSize[0]<<"x"<<this->RequestedVideoFormat.FrameSize[1]<<", "<<this->AcquisitionRate<<"Hz, "<<this->ActiveVideoFormat.PixelFormatName<<")."
-      " Backing up to defaults (device ID: 0, "<<DEFAULT_FRAME_SIZE[0]<<"x"<<DEFAULT_FRAME_SIZE[1]<<", "<<DEFAULT_ACQUISITION_RATE<<"Hz, "<<DEFAULT_PIXEL_TYPE_NAME<<").");
-
     this->ActiveVideoFormat.DeviceId=0;
     this->ActiveVideoFormat.FrameSize[0] = DEFAULT_FRAME_SIZE[0];
     this->ActiveVideoFormat.FrameSize[1] = DEFAULT_FRAME_SIZE[1];
     this->ActiveVideoFormat.PixelFormatName = DEFAULT_PIXEL_TYPE_NAME;
+
+    LOG_WARNING("Unable to init capture device with requested details"
+      << "(device ID: "<<this->RequestedVideoFormat.DeviceId<< " ("<<GetRequestedDeviceName()<<")"
+      << ", "<<this->RequestedVideoFormat.FrameSize[0]<<"x"<<this->RequestedVideoFormat.FrameSize[1]
+      << ", "<<this->AcquisitionRate<<"Hz, "<<this->ActiveVideoFormat.PixelFormatName<<")."
+      << " Backing up to defaults"
+      << "(device ID: "<<this->ActiveVideoFormat.DeviceId<< " ("<<GetActiveDeviceName()<<")"
+      << ", "<<this->ActiveVideoFormat.FrameSize[0]<<"x"<<this->ActiveVideoFormat.FrameSize[1]
+      << ", "<<DEFAULT_ACQUISITION_RATE<<"Hz, "<<this->ActiveVideoFormat.PixelFormatName<<").");
   }
 
   this->CaptureSource = MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().GetMediaSource(this->ActiveVideoFormat.DeviceId);
@@ -254,79 +262,66 @@ STDMETHODIMP vtkMmfVideoSource::OnReadSample( HRESULT hrStatus, DWORD dwStreamIn
 {
   PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
 
-  if (SUCCEEDED(hrStatus))
-  {
-    if (pSample)
-    {
-      IMFMediaBuffer* aBuffer;
-      DWORD bufferCount;
-      pSample->GetBufferCount(&bufferCount);
-      if( bufferCount < 1 )
-      {
-        LOG_ERROR("No buffer available in the sample.");
-        return S_FALSE;
-      }
-      pSample->GetBufferByIndex(0, &aBuffer);
-      BYTE* bufferData;
-      DWORD maxLength;
-      DWORD currentLength;
-
-      HRESULT hr = aBuffer->Lock(&bufferData, &maxLength, &currentLength);
-      if( FAILED(hr) ) 
-      {
-        LOG_ERROR("Unable to lock the buffer.");
-      }
-      else
-      {
-        int frameSize[2]={0,0};
-        vtkPlusDataSource* videoSource(NULL);
-        if( this->GetFirstActiveVideoSource(videoSource) != PLUS_SUCCESS )
-        {
-          return S_FALSE;
-        }
-        videoSource->GetBuffer()->GetFrameSize(frameSize);
-        
-        PlusStatus decodingStatus=PLUS_FAIL;
-        if (this->ActiveVideoFormat.PixelFormatName.compare("MFVideoFormat_YUY2") == 0)
-        {
-          decodingStatus=PixelCodec::ConvertToGray(VTK_BI_YUY2, frameSize[0], frameSize[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetBufferPointer());
-        }
-        else if (this->ActiveVideoFormat.PixelFormatName.compare("MFVideoFormat_RGB24") == 0 )
-        {
-          decodingStatus=PixelCodec::ConvertToGray(BI_RGB, frameSize[0], frameSize[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetBufferPointer());
-        }
-        else
-        {
-          LOG_ERROR("Unknown pixel type (only YUY2 and RGB24 are supported)");
-          decodingStatus=PLUS_FAIL;
-        }
-
-        if (decodingStatus != PLUS_SUCCESS)
-        {
-          LOG_ERROR("Error while decoding the grabbed image");
-          return PLUS_FAIL;
-        }
-
-        this->FrameIndex++;
-        vtkPlusDataSource* aSource(NULL);
-        if( this->GetFirstActiveVideoSource(aSource) != PLUS_SUCCESS )
-        {
-          LOG_ERROR("Unable to retrieve the video source in the media foundation capture device.");
-          return PLUS_FAIL;
-        }
-        PlusStatus status = aSource->GetBuffer()->AddItem(&this->UncompressedVideoFrame, this->FrameIndex); 
-
-        this->Modified();
-      }
-
-      aBuffer->Unlock();
-      SafeRelease(&aBuffer);
-    }
-  }
-  else
+  if (!SUCCEEDED(hrStatus))
   {
     // Streaming error.
     LOG_ERROR("Source Reader error: " << std::hex << hrStatus);
+    return S_FALSE;
+  }
+
+  if (pSample!=NULL)
+  {
+
+    // Get the media type from the stream.
+    IMFMediaType* pType=NULL;
+    this->CaptureSourceReader->GetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, &pType);
+    if (pType==NULL)
+    {
+      LOG_ERROR("Cannot get current media type");
+    }
+    // Check the pixel type, as it may be different from what we requested (even if setup does not give any error).
+    // Mostly happens for larger resolutions (e.g., when requesting webcam feed at 1280x720 with YUY then we get MJPG).
+    // The check has to be done here, the media type is not yet available at InternalConnect time.
+    GUID videoFormat=DEFAULT_PIXEL_TYPE;
+    pType->GetGUID( MF_MT_SUBTYPE, &videoFormat );
+    std::wstring videoFormatWStr = MfVideoCapture::FormatReader::StringFromGUID(videoFormat);
+    std::string videoFormatStr(videoFormatWStr.begin(), videoFormatWStr.end());
+    if (videoFormatStr.compare(0, MF_VIDEO_FORMAT_PREFIX.size(), MF_VIDEO_FORMAT_PREFIX)==0)
+    {
+      // found standard prefix, remove it
+      videoFormatStr.erase(0,MF_VIDEO_FORMAT_PREFIX.size());
+    }
+
+    if (videoFormatStr.compare(this->ActiveVideoFormat.PixelFormatName)!=0)
+    {
+      LOG_ERROR("Unexpected video format: "<<videoFormatStr<<" (expected: "<<this->ActiveVideoFormat.PixelFormatName<<")"); 
+      return S_FALSE;
+    }
+
+    IMFMediaBuffer* aBuffer=NULL;
+    DWORD bufferCount=0;
+    pSample->GetBufferCount(&bufferCount);
+    if( bufferCount < 1 )
+    {
+      LOG_ERROR("No buffer available in the sample.");
+      return S_FALSE;
+    }
+    pSample->GetBufferByIndex(0, &aBuffer);
+    BYTE* bufferData=NULL;
+    DWORD maxLength=0;
+    DWORD currentLength=0;
+
+    HRESULT hr = aBuffer->Lock(&bufferData, &maxLength, &currentLength);
+    if( SUCCEEDED(hr) ) 
+    {
+      AddFrame(bufferData);
+      aBuffer->Unlock();
+    }  
+    else
+    {
+      LOG_ERROR("Unable to lock the buffer.");
+    }
+    SafeRelease(&aBuffer);
   }
 
   if (MF_SOURCE_READERF_ENDOFSTREAM & dwStreamFlags)
@@ -480,11 +475,7 @@ void vtkMmfVideoSource::GetListOfCaptureVideoFormats(std::vector< std::string > 
   for (DWORD i = 0; i < numberOfVideoFormats; i++)
   {
     MfVideoCapture::MediaType type = MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().GetFormat(this->RequestedVideoFormat.DeviceId, i);
-    //wchar_t szFriendlyName[512];
-    //wsprintf(&(szFriendlyName[0]), L"size frame: %i x %i, framerate: %i fps, TypeVideoStream: %s, VIDEO_LIGHTING: %i",type.width, type.height, type.MF_MT_FRAME_RATE, type.MF_MT_SUBTYPEName, type.MF_MT_VIDEO_LIGHTING);
-    //std::wstring wFriendlyName=szFriendlyName;
     std::string pixelType(type.MF_MT_SUBTYPEName.begin(), type.MF_MT_SUBTYPEName.end());
-    std::string prefix;
     if (pixelType.compare(0, MF_VIDEO_FORMAT_PREFIX.size(), MF_VIDEO_FORMAT_PREFIX)==0)
     {
       // found standard prefix, remove it
@@ -504,4 +495,57 @@ std::string vtkMmfVideoSource::GetRequestedDeviceName()
   std::wstring nameW=MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().GetCaptureDeviceName(this->RequestedVideoFormat.DeviceId);
   std::string name(nameW.begin(), nameW.end());
   return name;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkMmfVideoSource::GetActiveDeviceName()
+{
+  std::wstring nameW=MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().GetCaptureDeviceName(this->ActiveVideoFormat.DeviceId);
+  std::string name(nameW.begin(), nameW.end());
+  return name;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkMmfVideoSource::AddFrame(unsigned char* bufferData)
+{
+  int frameSize[2]={0,0};
+  vtkPlusDataSource* videoSource(NULL);
+  if( this->GetFirstActiveVideoSource(videoSource) != PLUS_SUCCESS )
+  {
+    return PLUS_FAIL;
+  }
+  videoSource->GetBuffer()->GetFrameSize(frameSize);
+
+  PlusStatus decodingStatus=PLUS_FAIL;
+  if (this->ActiveVideoFormat.PixelFormatName.compare("YUY2") == 0)
+  {
+    decodingStatus=PixelCodec::ConvertToGray(VTK_BI_YUY2, frameSize[0], frameSize[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetBufferPointer());
+  }
+  else if (this->ActiveVideoFormat.PixelFormatName.compare("RGB24") == 0 )
+  {
+    decodingStatus=PixelCodec::ConvertToGray(BI_RGB, frameSize[0], frameSize[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetBufferPointer());
+  }
+  else
+  {
+    LOG_ERROR("Unknown pixel type: "<<this->ActiveVideoFormat.PixelFormatName<<" (only YUY2 and RGB24 are supported)");
+    decodingStatus=PLUS_FAIL;
+  }
+
+  if (decodingStatus != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Error while decoding the grabbed image");
+    return PLUS_FAIL;
+  }
+
+  this->FrameIndex++;
+  vtkPlusDataSource* aSource(NULL);
+  if( this->GetFirstActiveVideoSource(aSource) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to retrieve the video source in the media foundation capture device.");
+    return PLUS_FAIL;
+  }
+  PlusStatus status = aSource->GetBuffer()->AddItem(&this->UncompressedVideoFrame, this->FrameIndex); 
+
+  this->Modified();
+  return status;
 }

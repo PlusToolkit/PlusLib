@@ -45,11 +45,12 @@ public:
   vtkTypeRevisionMacro(vtkMmfVideoSource, vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  virtual void SetRequestedDeviceId(unsigned int deviceId);
+  virtual void SetRequestedDeviceId(unsigned int deviceId);  
   virtual void SetRequestedVideoFormat(const std::string& pixelFormatName);
   virtual void SetRequestedFrameSize(int frameSize[2]);
   
   std::string GetRequestedDeviceName();
+  std::string GetActiveDeviceName();
   void GetListOfCaptureVideoFormats(std::vector< std::string > &videoModes);
   void GetListOfCaptureDevices(std::vector< std::string > &deviceNames);
 
@@ -80,6 +81,8 @@ protected:
   virtual PlusStatus InternalStopRecording();
 
   PlusStatus UpdateFrameSize();
+
+  PlusStatus AddFrame(unsigned char* bufferData);
 
   int FrameIndex;
 
