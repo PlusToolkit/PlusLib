@@ -16,9 +16,8 @@ SET(CPACK_INSTALL_CMAKE_PROJECTS "${PlusApp_BINARY_DIR};PlusApp;ALL;/")
 SET(CPACK_NSIS_INSTALL_ROOT "$PROFILE")
 
 SET(CPACK_PACKAGE_EXECUTABLES 
+  "PlusServerLauncher" "Plus Server"
   "fCal" "Free-hand calibration (fCal)"
-  "PlusServerLauncher" "PlusServer"
-  "SegmentationParameterDialogTest" "Segmentation parameter adjustment"
   )
  
 IF(EXISTS "${PLUSLIB_DIR}/CMakeCache.txt")
