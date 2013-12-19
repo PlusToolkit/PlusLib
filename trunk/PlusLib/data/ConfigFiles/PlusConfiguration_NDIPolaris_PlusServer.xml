@@ -1,0 +1,48 @@
+<PlusConfiguration version="2.1">
+
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="PlusServer: NDI Polaris tracker with passive markers" 
+      Description="NDI Polaris passive markers (supplied with the start kit) tracked and data is broadcasted through OpenIGTLink" />
+    <Device
+      Id="TrackerDevice"
+      Type="PolarisTracker"
+      SerialPort="3"
+      BaudRate="115200"
+      AcquisitionRate="50"
+      LocalTimeOffsetSec="0.0"
+      ToolReferenceFrame="Tracker" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Tool" PortName="4" RomFile="8700339.rom" AveragedItemsForFiltering="20" BufferSize="2500"/>
+        <DataSource Type="Tool" Id="Stylus" PortName="5" RomFile="8700340.rom" AveragedItemsForFiltering="20" BufferSize="2500"/>
+        <DataSource Type="Tool" Id="Reference" PortName="6" RomFile="8700449.rom" AveragedItemsForFiltering="20" BufferSize="2500"/>
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream" >
+          <DataSource Id="Tool"/>
+          <DataSource Id="Reference"/>
+          <DataSource Id="Stylus"/>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+  </DataCollection>
+
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="TrackerStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="ToolToTracker" />
+        <Transform Name="StylusToTracker" />
+        <Transform Name="ReferenceToTracker" />
+      </TransformNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+</PlusConfiguration>
