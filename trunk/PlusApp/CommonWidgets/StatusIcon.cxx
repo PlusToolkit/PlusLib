@@ -9,7 +9,8 @@
 #include <QGridLayout>
 #include <QMenu>
 #include <QSizePolicy>
-
+#include <QScrollBar>
+#include <QCoreApplication>
 //-----------------------------------------------------------------------------
 namespace
 {
@@ -111,22 +112,49 @@ void StatusIcon::AddMessage(QString aInputString)
 
   if( m_MaxMessageCount != vtkPlusLogger::UnlimitedLogMessages() && m_MessageTextEdit->document()->lineCount() > m_MaxMessageCount )
   {
-    while( m_MessageTextEdit->document()->lineCount() > m_MaxMessageCount )
-    {
-      QTextCursor tc = m_MessageTextEdit->textCursor();
+    QTextCursor tc = m_MessageTextEdit->textCursor();
+    int originalSelectionStart=tc.selectionStart();
+    int originalSelectionLength=tc.selectionEnd()-originalSelectionStart;
 
+    // Keep only the most recent 80% of the lines
+    int linesToKeep=m_MaxMessageCount*0.80;
+
+    while( m_MessageTextEdit->document()->lineCount() > linesToKeep )
+    {     
       tc.movePosition( QTextCursor::Start );
       tc.select( QTextCursor::LineUnderCursor );
+      originalSelectionStart -= (tc.selectionEnd()-tc.selectionStart())+1; // +1 because of the newline
+
       tc.removeSelectedText();
       tc.deleteChar(); // delete the newline
-
-      m_MessageTextEdit->setTextCursor( tc );
     }
+
+    if (originalSelectionStart>0 && originalSelectionLength>0)
+    {
+      // if there was a selection, then restore it
+      tc.movePosition(QTextCursor::Start);
+      tc.movePosition(QTextCursor::NextCharacter,QTextCursor::MoveAnchor,originalSelectionStart);
+      m_MessageTextEdit->setTextCursor( tc );
+      m_MessageTextEdit->ensureCursorVisible();
+      tc.movePosition(QTextCursor::NextCharacter,QTextCursor::KeepAnchor,originalSelectionLength);
+      m_MessageTextEdit->setTextCursor( tc );
+      m_MessageTextEdit->ensureCursorVisible();
+    }
+    else
+    {
+      // there was no selection, so just follow the tail
+      m_MessageTextEdit->moveCursor (QTextCursor::End);
+      m_MessageTextEdit->setTextCursor( tc );
+      QCoreApplication::processEvents(); // need to call this to update the max position of the slider
+      QScrollBar *vScrollBar = m_MessageTextEdit->verticalScrollBar();
+      if (vScrollBar)
+      {
+        vScrollBar->triggerAction(QScrollBar::SliderToMaximum);
+      }
+    }
+
   }
 
-  QTextCursor cursor = m_MessageTextEdit->textCursor();
-  cursor.movePosition(QTextCursor::End);
-  m_MessageTextEdit->setTextCursor(cursor);
   m_MessageTextEdit->append(message);
 }
 

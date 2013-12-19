@@ -151,8 +151,6 @@ PlusStatus ToolStateDisplayWidget::InitializeTools(vtkPlusChannel* aChannel, boo
 
 bool ToolStateDisplayWidget::IsInitialized()
 {
-  LOG_TRACE("ToolStateDisplayWidget::IsInitialized"); 
-
   return m_Initialized;
 }
 

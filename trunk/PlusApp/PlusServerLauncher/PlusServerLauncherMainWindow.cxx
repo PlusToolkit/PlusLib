@@ -33,6 +33,9 @@ PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent, Qt::
 
   // Create status icon
   StatusIcon* statusIcon = new StatusIcon(this);
+  // Show only the last few thousand messages
+  // (it should be enough, as all the messages are available in log files anyway)
+  statusIcon->SetMaxMessageCount(3000);
 
   // Insert widgets into placeholders
   QGridLayout* mainGrid = new QGridLayout(this);

@@ -487,7 +487,9 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
   }
   else
   {
-    m_ParentMainWindow->SetStatusIconMaxMessageCount(vtkPlusLogger::UnlimitedLogMessages());
+    // By default show only the last few thousand messages - it should be enough, as all the messages
+    // are available in log files anyway
+    m_ParentMainWindow->SetStatusIconMaxMessageCount(3000);
   }
 
   m_ParentMainWindow->SetTransducerOriginPixelCoordinateFrame(transducerOriginPixelCoordinateFrame);
