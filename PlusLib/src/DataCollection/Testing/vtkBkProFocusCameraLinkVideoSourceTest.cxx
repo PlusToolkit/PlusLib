@@ -10,8 +10,6 @@ See License.txt for details.
 #include "vtkCommand.h"
 #include "vtkImageData.h"
 #include "vtkImageViewer2.h"
-#include "vtkPlusChannel.h"
-#include "vtkPlusDataSource.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
@@ -85,14 +83,14 @@ int main(int argc, char **argv)
   frameGrabber->SetShowSaperaWindow(showSapera);
   frameGrabber->SetImagingMode(vtkBkProFocusCameraLinkVideoSource::RfMode);
 
-  vtkPlusChannel* aChannel(NULL);
-  vtkPlusDataSource* aSource(NULL);
-  if( frameGrabber->GetOutputChannelByName(aChannel, "VideoStream") != PLUS_SUCCESS || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  frameGrabber->CreateDefaultOutputChannel();
+  vtkPlusDataSource* videoSource=NULL;
+  if (frameGrabber->GetFirstActiveOutputVideoSource(videoSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source.");
-    return NULL;
+    exit(EXIT_FAILURE);
   }
-  aSource->SetPortImageOrientation(US_IMG_ORIENT_FM);
+  videoSource->SetPortImageOrientation(US_IMG_ORIENT_FM);
 
   LOG_INFO("Initialize..."); 
   frameGrabber->Connect(); 

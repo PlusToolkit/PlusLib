@@ -32,10 +32,9 @@ vtkVirtualMixer::~vtkVirtualMixer()
     this->OutputChannels[0]->SetRfProcessor(NULL);
   }
 
-  // To fix: #756
   // Mixer fakes an output channel to enable "GetTrackedFrame" functionality
   // We don't want the plus device deconstructor destroying something it doesn't own
-  // So clear it before it runs
+  // So clear it before it runs (see #756)
   this->OutputChannels.clear();
 }
 

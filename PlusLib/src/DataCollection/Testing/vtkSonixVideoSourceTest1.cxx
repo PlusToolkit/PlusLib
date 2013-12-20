@@ -28,8 +28,6 @@
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkPlot.h"
-#include "vtkPlusChannel.h"
-#include "vtkPlusDataSource.h"
 #include "vtkPlusBuffer.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
@@ -319,19 +317,6 @@ int main(int argc, char* argv[])
   if (!inputSonixIp.empty())
   {
     sonixGrabber->SetSonixIP(inputSonixIp.c_str());
-  }
-
-  vtkPlusChannel* aChannel(NULL);
-  vtkPlusDataSource* aSource(NULL);
-  if( sonixGrabber->GetOutputChannelByName(aChannel, "VideoStream") != PLUS_SUCCESS || aChannel == NULL || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Unable to retrieve the video source.");
-    return NULL;
-  }
-  if ( aSource->GetBuffer()->SetBufferSize(30) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to set video buffer size!"); 
-    exit(EXIT_FAILURE);
   }
 
   if ( sonixGrabber->Connect()!=PLUS_SUCCESS ) 

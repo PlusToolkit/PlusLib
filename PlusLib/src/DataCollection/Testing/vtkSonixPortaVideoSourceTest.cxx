@@ -280,32 +280,24 @@ int main(int argc, char* argv[])
 
   DisplayMode displayMode=SHOW_IMAGE;
   
-
   LOG_DEBUG("Acquisition mode: B");
   portaGrabber->SetImagingMode(BMode);
   displayMode=SHOW_IMAGE;
 
-  vtkPlusChannel* aChannel(NULL);
+  portaGrabber->CreateDefaultOutputChannel();
   vtkPlusDataSource* aSource(NULL);
-  if( portaGrabber->GetOutputChannelByName(aChannel, "VideoStream") != PLUS_SUCCESS || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if (portaGrabber->GetFirstActiveOutputVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source.");
-    return NULL;
-  }
-  aSource->SetPortImageOrientation( US_IMG_ORIENT_UF );
-  if ( aSource->GetBuffer()->SetBufferSize(30) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to set video buffer size!"); 
     exit(EXIT_FAILURE);
   }
+  aSource->SetPortImageOrientation( US_IMG_ORIENT_UF );
 
   if ( portaGrabber->Connect()!=PLUS_SUCCESS ) 
   {
     LOG_ERROR( "Unable to connect to Porta" ); 
     exit(EXIT_FAILURE); 
   }
-
-
 
   portaGrabber->StartRecording();        //start recording frame from the video
 

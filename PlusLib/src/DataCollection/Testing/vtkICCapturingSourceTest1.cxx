@@ -10,8 +10,6 @@ See License.txt for details.
 #include "vtkICCapturingSource.h"
 #include "vtkImageData.h"
 #include "vtkImageViewer2.h"
-#include "vtkPlusChannel.h"
-#include "vtkPlusDataSource.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
@@ -76,14 +74,7 @@ int main(int argc, char **argv)
   frameGrabber->SetVideoFormat(videoFormat.c_str()); 
   frameGrabber->SetInputChannel(inputChannel.c_str()); 
 
-  vtkPlusChannel* aChannel(NULL);
-  vtkPlusDataSource* aSource(NULL);
-  if( frameGrabber->GetOutputChannelByName(aChannel, "VideoStream") != PLUS_SUCCESS || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Unable to retrieve the video source.");
-    return NULL;
-  }
-  aSource->SetPortImageOrientation( US_IMG_ORIENT_MF );
+  frameGrabber->CreateDefaultOutputChannel();
 
   LOG_INFO("Initialize..."); 
   frameGrabber->Connect(); 

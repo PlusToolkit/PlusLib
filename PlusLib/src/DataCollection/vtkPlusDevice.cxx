@@ -2112,37 +2112,67 @@ bool vtkPlusDevice::HasGracePeriodExpired()
 }
 
 //------------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::TestCreateDefaultChannel()
+PlusStatus vtkPlusDevice::CreateDefaultOutputChannel(bool addSource/*=true*/)
 {
   // Create output channel
   vtkSmartPointer<vtkPlusChannel> aChannel = vtkSmartPointer<vtkPlusChannel>::New();
   aChannel->SetOwnerDevice(this);
-  aChannel->SetChannelId("DefaultChannel");
-  return this->AddOutputChannel(aChannel);
-}
-
-//------------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::TestCreateDefaultVideoSource()
-{
-  if( this->OutputChannels.size() == 0 )
+  aChannel->SetChannelId("VideoStream");
+  if (this->AddOutputChannel(aChannel)!=PLUS_SUCCESS)
   {
-    if( this->TestCreateDefaultChannel() != PLUS_SUCCESS )
+    return PLUS_FAIL;
+  }
+  if (!addSource)
+  {
+    // no need to add sources, so we are done
+    return PLUS_SUCCESS;
+  }
+
+  if (this->IsTracker())
+  {
+    // TODO: add default tools
+  }
+  else
+  {
+    // Create an output video stream for this channel
+    vtkPlusDataSource* aDataSource = vtkPlusDataSource::New();     
+    if ( aDataSource->GetBuffer()->SetBufferSize(30) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to set video buffer size!"); 
+      return PLUS_FAIL;
+    }
+    aDataSource->SetPortImageOrientation(US_IMG_ORIENT_MN);
+    if( aDataSource->SetSourceId("Video") != PLUS_SUCCESS )
     {
       return PLUS_FAIL;
     }
+    if( this->AddVideo(aDataSource) != PLUS_SUCCESS )
+    {
+      return PLUS_FAIL;
+    }
+    aChannel->SetVideoSource(aDataSource);
   }
-
-  // Create a video source for this channel
-  vtkPlusDataSource* aDataSource = vtkPlusDataSource::New(); 
-  if( aDataSource->SetSourceId("Video") != PLUS_SUCCESS )
-  {
-    return PLUS_FAIL;
-  }
-  if( this->AddVideo(aDataSource) != PLUS_SUCCESS )
-  {
-    return PLUS_FAIL;
-  }
-  this->OutputChannels[0]->SetVideoSource(aDataSource);
-
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::GetFirstActiveOutputVideoSource(vtkPlusDataSource*& aVideoSource)
+{
+  aVideoSource=NULL;
+  if ( this->OutputChannels.empty() )
+  {
+    LOCAL_LOG_ERROR("Failed to get first active output video source - there are no output channels"); 
+    return PLUS_FAIL; 
+  }
+  for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it)
+  {
+    if ((*it)->GetVideoSource(aVideoSource)==PLUS_SUCCESS && aVideoSource!=NULL)
+    {
+      // found a video source in the output channel
+      return PLUS_SUCCESS;
+    }
+  }
+
+  LOG_ERROR("There is no active video sources in the output channel(s)");
+  return PLUS_FAIL;
 }

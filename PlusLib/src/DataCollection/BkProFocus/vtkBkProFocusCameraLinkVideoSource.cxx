@@ -783,6 +783,7 @@ vtkPlusChannel* vtkBkProFocusCameraLinkVideoSource::FindChannelByPlane()
 {
   if (this->OutputChannels.size() != 2 )
   {
+    LOG_ERROR("vtkBkProFocusCameraLinkVideoSource::FindChannelByPlane failed: expected two output channels");
     return NULL;
   }
 

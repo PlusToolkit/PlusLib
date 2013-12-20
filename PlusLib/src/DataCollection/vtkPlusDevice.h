@@ -398,8 +398,14 @@ public:
   vtkSetMacro(MissingInputGracePeriodSec, double);
   vtkGetMacro(MissingInputGracePeriodSec, double);
 
-  PlusStatus TestCreateDefaultChannel();
-  PlusStatus TestCreateDefaultVideoSource();
+  /*!
+    Creates a default output channel for the device with the name 'VideoStream'.
+    \param addSource If true then for imaging devices a default 'Video' source is added to the output.
+  */
+  virtual PlusStatus CreateDefaultOutputChannel(bool addSource=true);
+
+  /*! Convenience function for getting the first available video source in the output channels */
+  PlusStatus GetFirstActiveOutputVideoSource(vtkPlusDataSource*& aVideoSource);
 
 protected:
   static void *vtkDataCaptureThread(vtkMultiThreader::ThreadInfo *data);
