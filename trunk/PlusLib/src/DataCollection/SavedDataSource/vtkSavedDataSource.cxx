@@ -459,7 +459,12 @@ PlusStatus vtkSavedDataSource::InternalConnect()
 PlusStatus vtkSavedDataSource::InternalConnectVideo(vtkTrackedFrameList* savedDataBuffer)
 {
   // Set buffer parameters based on the input tracked frame list
-  if ( this->GetOutputBuffer()->SetImageType( savedDataBuffer->GetImageType() ) != PLUS_SUCCESS )
+  vtkPlusBuffer* outputBuffer=this->GetOutputBuffer();
+  if (outputBuffer==NULL)
+  {
+    return PLUS_FAIL;
+  }
+  if ( outputBuffer->SetImageType( savedDataBuffer->GetImageType() ) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to set video buffer image type"); 
     return PLUS_FAIL; 
@@ -731,7 +736,14 @@ PlusStatus vtkSavedDataSource::WriteConfiguration(vtkXMLDataElement* config)
 
   if (this->UseAllFrameFields)
   {
-    imageAcquisitionConfig->SetAttribute("UseData", "IMAGE_AND_TRANSFORM");
+    if (this->SimulatedStream == VIDEO_STREAM)
+    {
+      imageAcquisitionConfig->SetAttribute("UseData", "IMAGE_AND_TRANSFORM");
+    }
+    else if (this->SimulatedStream == TRACKER_STREAM)
+    {
+      imageAcquisitionConfig->SetAttribute("UseData", "TRANSFORM");
+    }
   }
   else
   {
