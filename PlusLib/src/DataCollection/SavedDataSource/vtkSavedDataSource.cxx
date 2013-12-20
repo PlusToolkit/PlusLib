@@ -468,8 +468,14 @@ PlusStatus vtkSavedDataSource::InternalConnectVideo(vtkTrackedFrameList* savedDa
   {
     // Brightness images will be imported into MF orientation
     this->GetOutputBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
+    if( this->OutputChannels.empty() )
+    {
+      LOG_ERROR("No output channels defined" );
+      return PLUS_FAIL;
+    }
+    vtkPlusChannel* outputChannel=this->OutputChannels[0];
     vtkPlusDataSource* aSource(NULL);
-    if( this->OutputChannels[0]->GetVideoSource(aSource) != PLUS_SUCCESS )
+    if (outputChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
     {
       LOG_ERROR(this->GetDeviceId() << ": Unable to retrieve video source.");
       return PLUS_FAIL;
@@ -754,7 +760,7 @@ PlusStatus vtkSavedDataSource::NotifyConfigured()
     return PLUS_FAIL;
   }
 
-  if( this->OutputChannels.size() == 0 )
+  if( this->OutputChannels.empty() )
   {
     LOG_ERROR("No output channels defined for vtkSavedDataSource. Cannot proceed." );
     this->SetCorrectlyConfigured(false);
@@ -914,12 +920,19 @@ vtkPlusBuffer* vtkSavedDataSource::GetOutputBuffer()
 {
   vtkPlusBuffer* buff=NULL;
 
+  if( this->OutputChannels.empty() )
+  {
+    LOG_ERROR("No output channels defined" );
+    return NULL;
+  }
+  vtkPlusChannel* outputChannel=this->OutputChannels[0];
+
   switch (this->SimulatedStream)
   {
   case VIDEO_STREAM:
     {
       vtkPlusDataSource* aSource(NULL);
-      if( this->OutputChannels[0]->GetVideoSource(aSource) != PLUS_SUCCESS )
+      if( outputChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
       {
         LOG_ERROR("Unable to retrieve the video source in the SavedDataSource device.");
         return NULL;

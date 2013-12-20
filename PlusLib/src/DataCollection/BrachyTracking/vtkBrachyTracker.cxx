@@ -1034,18 +1034,19 @@ PlusStatus vtkBrachyTracker::NotifyConfigured()
     return PLUS_FAIL;
   }
 
-  if( this->OutputChannels.size() == 0 )
+  if( this->OutputChannels.empty() )
   {
     LOG_ERROR("No output channels defined for vtkBrachyTracker. Cannot proceed." );
     this->SetCorrectlyConfigured(false);
     return PLUS_FAIL;
   }
 
-  this->OutputChannels[0]->Clear();
+  vtkPlusChannel* outputChannel=this->OutputChannels[0];
 
+  outputChannel->Clear();
   for( DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it )
   {
-    this->OutputChannels[0]->AddTool(it->second);
+    outputChannel->AddTool(it->second);
   }
 
   return PLUS_SUCCESS;

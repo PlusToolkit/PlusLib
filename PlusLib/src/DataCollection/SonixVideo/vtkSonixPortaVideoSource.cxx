@@ -272,11 +272,18 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
     return PLUS_SUCCESS;
   }
 
+  if( this->OutputChannels.empty() )
+  {
+    LOG_ERROR("No output channels defined for vtkSonixPortaVideoSource" );
+    return PLUS_FAIL;
+  }
+  vtkPlusChannel* outputChannel=this->OutputChannels[0];
+
   this->FrameNumber++;
   int frameSize[2] = {0,0};
-  this->GetFrameSize(*(this->OutputChannels[0]), frameSize);
+  this->GetFrameSize(*outputChannel, frameSize);
   vtkPlusDataSource* aSource(NULL);
-  if( this->OutputChannels[0]->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( outputChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source in the SonixPorta device.");
     return PLUS_FAIL;
@@ -842,7 +849,7 @@ PlusStatus vtkSonixPortaVideoSource::NotifyConfigured()
     return PLUS_FAIL;
   }
 
-  if( this->OutputChannels.size() == 0 )
+  if( this->OutputChannels.empty() )
   {
     LOG_ERROR("No output channels defined for vtkSonixPortaVideoSource. Cannot proceed." );
     this->SetCorrectlyConfigured(false);

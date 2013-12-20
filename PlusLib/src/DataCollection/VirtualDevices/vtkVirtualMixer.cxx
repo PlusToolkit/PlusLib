@@ -27,13 +27,17 @@ vtkVirtualMixer::vtkVirtualMixer()
 vtkVirtualMixer::~vtkVirtualMixer()
 {
   // Clear reference to rf processor
-  if( this->OutputChannels.size() > 0 && this->OutputChannels[0] != NULL && this->OutputChannels[0]->GetRfProcessor() != NULL )
+  if (!this->OutputChannels.empty())
   {
-    this->OutputChannels[0]->SetRfProcessor(NULL);
+    vtkPlusChannel* outputChannel=this->OutputChannels[0];
+    if ( outputChannel != NULL && outputChannel->GetRfProcessor() != NULL )
+    {
+      outputChannel->SetRfProcessor(NULL);
+    }
   }
 
   // Mixer fakes an output channel to enable "GetTrackedFrame" functionality
-  // We don't want the plus device deconstructor destroying something it doesn't own
+  // We don't want the plus device deconstructor destroying sources in output channels it doesn't own
   // So clear it before it runs (see #756)
   this->OutputChannels.clear();
 }
@@ -102,8 +106,15 @@ double vtkVirtualMixer::GetAcquisitionRate() const
 PlusStatus vtkVirtualMixer::NotifyConfigured()
 {
   // First, empty whatever is there, because this can be called at any point after a configuration
-  this->OutputChannels[0]->RemoveTools();
-  this->OutputChannels[0]->Clear();
+  if( this->OutputChannels.empty() )
+  {
+    LOG_ERROR("No output channels defined" );
+    return PLUS_FAIL;
+  }
+  vtkPlusChannel* outputChannel=this->OutputChannels[0];
+
+  outputChannel->RemoveTools();
+  outputChannel->Clear();
 
   for( ChannelContainerIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
   {
@@ -112,7 +123,7 @@ PlusStatus vtkVirtualMixer::NotifyConfigured()
 
     if( anInputChannel->HasVideoSource() && anInputChannel->GetVideoSource(aSource) == PLUS_SUCCESS )
     {
-      this->OutputChannels[0]->SetVideoSource(aSource);
+      outputChannel->SetVideoSource(aSource);
       this->AddVideo(aSource);
     }
 
@@ -121,7 +132,7 @@ PlusStatus vtkVirtualMixer::NotifyConfigured()
       vtkPlusDataSource* anInputTool = inputToolIter->second;
 
       bool found = false;
-      for( DataSourceContainerConstIterator outputToolIt = this->OutputChannels[0]->GetToolsStartConstIterator(); outputToolIt != this->OutputChannels[0]->GetToolsEndConstIterator(); ++outputToolIt )
+      for( DataSourceContainerConstIterator outputToolIt = outputChannel->GetToolsStartConstIterator(); outputToolIt != outputChannel->GetToolsEndConstIterator(); ++outputToolIt )
       {
         vtkPlusDataSource* anOutputTool = outputToolIt->second;
         // Check for double adds or name conflicts
@@ -141,7 +152,7 @@ PlusStatus vtkVirtualMixer::NotifyConfigured()
 
       if( !found )
       {
-        this->OutputChannels[0]->AddTool(anInputTool);
+        outputChannel->AddTool(anInputTool);
         if( this->AddTool(anInputTool, false) != PLUS_SUCCESS )
         {
           LOG_ERROR("Unable to add tool " << anInputTool->GetSourceId() << " to device " << this->GetDeviceId());
@@ -149,11 +160,11 @@ PlusStatus vtkVirtualMixer::NotifyConfigured()
       }
     }
 
-    if( anInputChannel->GetRfProcessor() != NULL && this->OutputChannels[0]->GetRfProcessor() == NULL )
+    if( anInputChannel->GetRfProcessor() != NULL && outputChannel->GetRfProcessor() == NULL )
     {
-      this->OutputChannels[0]->SetRfProcessor(anInputChannel->GetRfProcessor());
+      outputChannel->SetRfProcessor(anInputChannel->GetRfProcessor());
     }
-    else if( anInputChannel->GetRfProcessor() != NULL && this->OutputChannels[0]->GetRfProcessor() != NULL )
+    else if( anInputChannel->GetRfProcessor() != NULL && outputChannel->GetRfProcessor() != NULL )
     {
       LOG_WARNING("Multiple RfProcessors defined in InputChannels to mixer: " << this->GetDeviceId() << ". Check input configuration.");
     }

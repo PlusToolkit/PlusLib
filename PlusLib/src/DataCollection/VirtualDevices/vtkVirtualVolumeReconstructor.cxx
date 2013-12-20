@@ -196,8 +196,15 @@ PlusStatus vtkVirtualVolumeReconstructor::InternalUpdate()
     return PLUS_SUCCESS;
   }
 
+  if( this->OutputChannels.empty() )
+  {
+    LOG_ERROR("No output channels defined" );
+    return PLUS_FAIL;
+  }
+  vtkPlusChannel* outputChannel=this->OutputChannels[0];
+
   vtkSmartPointer<vtkTrackedFrameList> recordedFrames=vtkSmartPointer<vtkTrackedFrameList>::New();
-  if ( this->OutputChannels[0]->GetTrackedFrameListSampled(m_LastAlreadyRecordedFrameTimestamp, m_NextFrameToBeRecordedTimestamp, recordedFrames, requestedFramePeriodSec, maxProcessingTimeSec) != PLUS_SUCCESS )
+  if ( outputChannel->GetTrackedFrameListSampled(m_LastAlreadyRecordedFrameTimestamp, m_NextFrameToBeRecordedTimestamp, recordedFrames, requestedFramePeriodSec, maxProcessingTimeSec) != PLUS_SUCCESS )
   {
     LOG_ERROR("Error while getting tracked frame list from data collector during volume reconstruction. Last recorded timestamp: " << std::fixed << m_NextFrameToBeRecordedTimestamp ); 
   }
@@ -226,15 +233,6 @@ PlusStatus vtkVirtualVolumeReconstructor::InternalUpdate()
   }
 
   m_LastUpdateTime = vtkAccurateTimer::GetSystemTime();
-
-/*
-  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  if( this->InputChannels.size() <= 0 )
-  {
-    return PLUS_FAIL;
-  }
-  this->InputChannels[0]->GetTrackedFrameList(this->LastRecordedFrameTimestamp, trackedFrameList, MAX_NUMBER_OF_FRAMES_ADDED_PER_UPDATE);
-*/
   
   return PLUS_SUCCESS;
 }
@@ -243,22 +241,23 @@ PlusStatus vtkVirtualVolumeReconstructor::InternalUpdate()
 //-----------------------------------------------------------------------------
 PlusStatus vtkVirtualVolumeReconstructor::NotifyConfigured()
 {
-  if( this->OutputChannels.size() > 0 )
+  if( !this->OutputChannels.empty() )
   {
     LOG_WARNING("vtkVirtualDiscCapture is expecting no output channel(s) and there are " << this->OutputChannels.size() << " channels. Output channel information will be dropped.");
     this->OutputChannels.clear();
   }
 
-  if( this->InputChannels.size() == 0 )
+  if( this->InputChannels.empty() )
   {
     LOG_ERROR("No input channel sent to vtkVirtualDiscCapture. Unable to save anything.");
     return PLUS_FAIL;
   }
+  vtkPlusChannel* inputChannel=this->InputChannels[0];
 
   // GetTrackedFrame reads from the OutputChannels
   // For now, place the input stream as an output stream so its data is read
-  this->OutputChannels.push_back(this->InputChannels[0]);
-  this->InputChannels[0]->Register(this); // this device uses this channel, too, se we need to update the reference count to avoid double delete in the destructor
+  this->OutputChannels.push_back(inputChannel);
+  inputChannel->Register(this); // this device uses this channel, too, se we need to update the reference count to avoid double delete in the destructor
 
   return PLUS_SUCCESS;
 }
