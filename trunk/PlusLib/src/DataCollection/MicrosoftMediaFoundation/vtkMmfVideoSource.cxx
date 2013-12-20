@@ -100,6 +100,8 @@ void vtkMmfVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 PlusStatus vtkMmfVideoSource::InternalConnect()
 {
+  PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+
   this->ActiveVideoFormat = this->RequestedVideoFormat;
 
   GUID pixelFormat = DEFAULT_PIXEL_TYPE;
@@ -153,8 +155,13 @@ PlusStatus vtkMmfVideoSource::InternalConnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkMmfVideoSource::InternalDisconnect()
 {
-  SafeRelease(&this->CaptureSourceReader);
+  PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
 
+  SafeRelease(&this->CaptureSource);
+
+  //TODO: We should probably release this, but then the application crashes (stack corruption?)
+  //SafeRelease(&this->CaptureSourceReader);
+ 
   MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().CloseAllDevices();
 
   return PLUS_SUCCESS;
@@ -163,6 +170,8 @@ PlusStatus vtkMmfVideoSource::InternalDisconnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkMmfVideoSource::InternalStartRecording()
 {
+  PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+
   HRESULT hr;
   if( this->CaptureSource != NULL )
   {
@@ -187,6 +196,8 @@ PlusStatus vtkMmfVideoSource::InternalStartRecording()
 PlusStatus vtkMmfVideoSource::InternalStopRecording()
 {
   LOG_DEBUG("vtkMmfVideoSource::InternalStopRecording");
+
+  PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
 
   if( this->CaptureSource != NULL )
   {
@@ -437,7 +448,6 @@ PlusStatus vtkMmfVideoSource::WriteConfiguration( vtkXMLDataElement* rootXmlElem
   deviceConfig->SetVectorAttribute("FrameSize", 2, this->RequestedVideoFormat.FrameSize);
   deviceConfig->SetAttribute("VideoFormat", this->RequestedVideoFormat.PixelFormatName.c_str());
 
-
   return PLUS_SUCCESS;
 }
 
@@ -510,6 +520,12 @@ std::string vtkMmfVideoSource::GetActiveDeviceName()
 //----------------------------------------------------------------------------
 PlusStatus vtkMmfVideoSource::AddFrame(unsigned char* bufferData)
 {
+  if (!this->Recording)
+  {
+    LOG_ERROR("vtkMmfVideoSource::AddFrame skipped, not recording anymore");
+    return PLUS_SUCCESS;
+  }
+
   int frameSize[2]={0,0};
   vtkPlusDataSource* videoSource(NULL);
   if( this->GetFirstActiveVideoSource(videoSource) != PLUS_SUCCESS )
