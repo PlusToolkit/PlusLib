@@ -14,6 +14,7 @@ See License.txt for details.
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
 #include "vtksys/CommandLineArguments.hxx"
+#include "vtkPlusDataSource.h"
 
 void PrintLogsCallback(vtkObject* obj, unsigned long eid, void* clientdata, void* calldata); 
 
