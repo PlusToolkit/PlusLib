@@ -9,9 +9,8 @@
 #include "vtkCommand.h"
 #include "vtkImageData.h"
 #include "vtkImageViewer2.h"
-#include "vtkPlusBuffer.h"
-#include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
+#include "vtkPlusBuffer.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
@@ -76,14 +75,8 @@ int main(int argc, char **argv)
   }
 
   vtkSmartPointer<vtkWin32VideoSource2> frameGrabber = vtkSmartPointer<vtkWin32VideoSource2>::New();
-  frameGrabber->TestCreateDefaultVideoSource();
-  vtkPlusChannel* aChannel(NULL);
-  vtkPlusDataSource* aSource(NULL);
-  if( frameGrabber->GetOutputChannelByName(aChannel, "DefaultChannel") != PLUS_SUCCESS || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Unable to retrieve the video source.");
-    exit(EXIT_FAILURE);
-  }
+
+  frameGrabber->CreateDefaultOutputChannel();
 
   // Add an observer to warning and error events for redirecting it to the stdout 
   vtkSmartPointer<vtkCallbackCommand> callbackCommand = vtkSmartPointer<vtkCallbackCommand>::New();
@@ -93,8 +86,6 @@ int main(int argc, char **argv)
 
   LOG_INFO("Initialize..."); 
   frameGrabber->Connect();
-
-  aSource->SetPortImageOrientation( US_IMG_ORIENT_MN );
 
   if (showDialogs)
   {
@@ -128,7 +119,13 @@ int main(int argc, char **argv)
 
   viewer->SetColorWindow(255);
   viewer->SetColorLevel(100.5);
-  viewer->SetSize(aSource->GetBuffer()->GetFrameSize()[0],aSource->GetBuffer()->GetFrameSize()[1]); 
+  vtkPlusDataSource* videoSource=NULL;
+  if (frameGrabber->GetFirstActiveOutputVideoSource(videoSource) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to retrieve the video source.");
+    exit(EXIT_FAILURE);
+  }
+  viewer->SetSize(videoSource->GetBuffer()->GetFrameSize()[0], videoSource->GetBuffer()->GetFrameSize()[1]); 
 
   vtkImageData* output = vtkImageData::SafeDownCast(frameGrabber->GetOutputDataObject(0));
   viewer->SetInput(vtkImageData::SafeDownCast(frameGrabber->GetOutputDataObject(0))); 

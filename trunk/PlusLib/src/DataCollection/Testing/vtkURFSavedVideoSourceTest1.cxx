@@ -87,19 +87,8 @@ int main(int argc, char* argv[])
     sonixGrabber->SetSonixIP(inputSonixIp.c_str());
   }
 
-  vtkPlusChannel* aChannel(NULL);
-  vtkPlusDataSource* aSource(NULL);
-  if( sonixGrabber->GetOutputChannelByName(aChannel, "VideoStream") != PLUS_SUCCESS || aChannel == NULL || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Unable to retrieve the video source.");
-    return NULL;
-  }
-  if ( aSource->GetBuffer()->SetBufferSize(30) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to set video buffer size!"); 
-    exit(EXIT_FAILURE);
-  }
-
+  sonixGrabber->CreateDefaultOutputChannel();
+  
   sonixGrabber->Connect(); 
 
   if ( sonixGrabber->GetConnected() ) 

@@ -67,7 +67,6 @@ void vtkSavedDataSource::PrintSelf(ostream& os, vtkIndent indent)
 PlusStatus vtkSavedDataSource::InternalUpdate()
 {
   //LOG_TRACE("vtkSavedDataSource::InternalUpdate");
-
   const int numberOfFramesInTheLoop=this->LoopLastFrameUid-this->LoopFirstFrameUid+1;
 
   // Determine the UID and loop index of the next frame that will be added

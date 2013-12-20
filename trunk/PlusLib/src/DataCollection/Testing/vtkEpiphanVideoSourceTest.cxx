@@ -10,8 +10,6 @@
 #include "vtkEpiphanVideoSource.h"
 #include "vtkImageData.h"
 #include "vtkImageViewer2.h"
-#include "vtkPlusChannel.h"
-#include "vtkPlusDataSource.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
@@ -99,14 +97,7 @@ int main(int argc, char **argv)
     frameGrabber->SetClipRectangleSize(clipRectSize[0],clipRectSize[1]);
   }
  
-  vtkPlusChannel* aChannel(NULL);
-  vtkPlusDataSource* aSource(NULL);
-  if( frameGrabber->GetOutputChannelByName(aChannel, "VideoStream") != PLUS_SUCCESS || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Unable to retrieve the video source.");
-    return NULL;
-  }
-  aSource->SetPortImageOrientation( US_IMG_ORIENT_MN );
+  frameGrabber->CreateDefaultOutputChannel();
 
   // Add an observer to warning and error events for redirecting it to the stdout 
   vtkSmartPointer<vtkCallbackCommand> callbackCommand = vtkSmartPointer<vtkCallbackCommand>::New();

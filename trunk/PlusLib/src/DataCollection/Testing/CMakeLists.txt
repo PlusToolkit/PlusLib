@@ -239,8 +239,7 @@ IF (PLUS_USE_MMF_VIDEO)
   ADD_TEST(MmfVideoSourceTest 
   ${EXECUTABLE_OUTPUT_PATH}/vtkMmfVideoSourceTest
   --rendering-off
-  --width=640
-  --height=480
+  --frame-size 640 480
   )
 ENDIF (PLUS_USE_MMF_VIDEO)
 

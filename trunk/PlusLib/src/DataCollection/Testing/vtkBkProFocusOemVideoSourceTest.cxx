@@ -10,7 +10,6 @@ See License.txt for details.
 #include "vtkBkProFocusOemVideoSource.h"
 #include "vtkImageData.h"
 #include "vtkImageViewer2.h"
-#include "vtkPlusChannel.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
@@ -82,17 +81,8 @@ int main(int argc, char **argv)
   frameGrabber->SetIniFileName(iniFile.c_str());
   frameGrabber->SetAcquisitionRate(frameRate);
 
-
-  vtkSmartPointer<vtkPlusDataSource> videoSource = vtkSmartPointer<vtkPlusDataSource>::New();
-  videoSource->SetSourceId("VideoSource");
-  videoSource->SetPortImageOrientation(US_IMG_ORIENT_MN);
-  frameGrabber->AddVideo(videoSource);
-
-  vtkSmartPointer<vtkPlusChannel> outputChannel = vtkSmartPointer<vtkPlusChannel>::New();
-  outputChannel->SetChannelId("VideoStream");
-  outputChannel->SetVideoSource(videoSource);
-  frameGrabber->AddOutputChannel(outputChannel);    
-
+  frameGrabber->CreateDefaultOutputChannel();
+  
   // Add an observer to warning and error events for redirecting it to the stdout 
   vtkSmartPointer<vtkCallbackCommand> callbackCommand = vtkSmartPointer<vtkCallbackCommand>::New();
   callbackCommand->SetCallback(PrintLogsCallback);
@@ -117,6 +107,12 @@ int main(int argc, char **argv)
   // If we started the viewer now then most likely the first rendering would be done using an empty frame
   // and so the image position and scaling would be off. 
   // So, wait until at least a frame is acquired and only then connect the video source to the viewer.
+  vtkPlusDataSource* videoSource=NULL;
+  if (frameGrabber->GetFirstActiveOutputVideoSource(videoSource) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to retrieve the video source.");
+    exit(EXIT_FAILURE);
+  }
   for (int retries=0; retries<50; retries++)
   {
     if (videoSource->GetBuffer()->GetNumberOfItems()>=1)

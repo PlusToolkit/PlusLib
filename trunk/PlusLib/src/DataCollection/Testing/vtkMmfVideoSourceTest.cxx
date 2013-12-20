@@ -8,9 +8,8 @@ See License.txt for details.
 #include "vtkCommand.h"
 #include "vtkImageData.h"
 #include "vtkImageViewer2.h"
-#include "vtkMmfVideoSource.h"
 #include "vtkPlusBuffer.h"
-#include "vtkPlusChannel.h"
+#include "vtkMmfVideoSource.h"
 #include "vtkPlusDataSource.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
@@ -82,8 +81,7 @@ int main(int argc, char **argv)
     exit(EXIT_SUCCESS);
   }
 
-  vtkSmartPointer<vtkMmfVideoSource> frameGrabber = vtkSmartPointer<vtkMmfVideoSource>::New();
-  frameGrabber->TestCreateDefaultVideoSource();
+  vtkSmartPointer<vtkMmfVideoSource> frameGrabber = vtkSmartPointer<vtkMmfVideoSource>::New();  
 
   if (listDevices)
   {
@@ -111,21 +109,12 @@ int main(int argc, char **argv)
       LOG_ERROR("Frame size shall contain two numbers, separated by a space");
       return EXIT_FAILURE;
     }
-    frameGrabber->SetRequestedFrameSize(&(frameSize[0]));
+    frameGrabber->SetRequestedFrameSize(&(frameSize[0]));   
   }
-
-  vtkPlusChannel* aChannel(NULL);
-  vtkPlusDataSource* aSource(NULL);
-  if( frameGrabber->GetOutputChannelByName(aChannel, "DefaultChannel") != PLUS_SUCCESS || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Unable to retrieve the video source.");
-    return NULL;
-  }
-
+ 
+  frameGrabber->CreateDefaultOutputChannel();
   LOG_INFO("Initialize..."); 
   frameGrabber->Connect();
-
-  aSource->SetPortImageOrientation( US_IMG_ORIENT_MN );
 
   if ( frameGrabber->GetConnected() )
   {
@@ -153,7 +142,13 @@ int main(int argc, char **argv)
 
   viewer->SetColorWindow(255);
   viewer->SetColorLevel(100.5);
-  viewer->SetSize(aSource->GetBuffer()->GetFrameSize()[0], aSource->GetBuffer()->GetFrameSize()[1]); 
+  vtkPlusDataSource* videoSource=NULL;
+  if (frameGrabber->GetFirstActiveOutputVideoSource(videoSource) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to retrieve the video source.");
+    exit(EXIT_FAILURE);
+  }
+  viewer->SetSize(videoSource->GetBuffer()->GetFrameSize()[0], videoSource->GetBuffer()->GetFrameSize()[1]); 
 
   vtkImageData* output = vtkImageData::SafeDownCast(frameGrabber->GetOutput());
   viewer->SetInput(vtkImageData::SafeDownCast(frameGrabber->GetOutput())); 
