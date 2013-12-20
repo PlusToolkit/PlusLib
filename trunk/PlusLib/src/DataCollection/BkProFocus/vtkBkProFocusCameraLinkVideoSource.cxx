@@ -759,7 +759,7 @@ PlusStatus vtkBkProFocusCameraLinkVideoSource::NotifyConfigured()
     LOG_WARNING("vtkBkProFocusCameraLinkVideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
   }
 
-  if( this->OutputChannels.size() == 0 )
+  if( this->OutputChannels.empty() )
   {
     LOG_ERROR("No output channels defined for vtkBkProFocusCameraLinkVideoSource. Cannot proceed." );
     this->CorrectlyConfigured = false;

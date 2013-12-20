@@ -421,7 +421,7 @@ PlusStatus vtkBkProFocusOemVideoSource::NotifyConfigured()
     LOG_WARNING("vtkBkProFocusOemVideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
   }
 
-  if( this->OutputChannels.size() == 0 )
+  if( this->OutputChannels.empty() )
   {
     LOG_ERROR("No output channels defined for vtkBkProFocusOemVideoSource. Cannot proceed." );
     this->CorrectlyConfigured = false;

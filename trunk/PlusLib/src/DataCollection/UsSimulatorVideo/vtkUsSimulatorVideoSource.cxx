@@ -116,8 +116,14 @@ PlusStatus vtkUsSimulatorVideoSource::InternalUpdate()
   // Get latest tracker timestamp
   double latestTrackerTimestamp = trackedFrame->GetTimestamp();
   
+  if( this->OutputChannels.empty() )
+  {
+    LOG_ERROR("No output channels defined" );
+    return PLUS_FAIL;
+  }
+  vtkPlusChannel* outputChannel=this->OutputChannels[0];
   double latestFrameAlreadyAddedTimestamp=0;
-  this->OutputChannels[0]->GetMostRecentTimestamp(latestFrameAlreadyAddedTimestamp);
+  outputChannel->GetMostRecentTimestamp(latestFrameAlreadyAddedTimestamp);
   if (latestFrameAlreadyAddedTimestamp>=latestTrackerTimestamp)
   {
     // simulated frame has been already generated for this timestamp
@@ -139,7 +145,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalUpdate()
   this->UsSimulator->Update();
 
   vtkPlusDataSource* aSource(NULL);
-  if( this->OutputChannels[0]->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( outputChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source in the USSimulator device.");
     return PLUS_FAIL;
@@ -157,8 +163,15 @@ PlusStatus vtkUsSimulatorVideoSource::InternalConnect()
 {
   LOG_TRACE("vtkUsSimulatorVideoSource::InternalConnect"); 
 
+  if( this->OutputChannels.empty() )
+  {
+    LOG_ERROR("No output channels defined" );
+    return PLUS_FAIL;
+  }
+  vtkPlusChannel* outputChannel=this->OutputChannels[0];
+
   vtkPlusDataSource* aSource(NULL);
-  if( this->OutputChannels[0]->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( outputChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source in the USSimulator device.");
     return PLUS_FAIL;
@@ -232,7 +245,7 @@ PlusStatus vtkUsSimulatorVideoSource::NotifyConfigured()
     return PLUS_FAIL;
   }
 
-  if( this->OutputChannels.size() == 0 )
+  if( this->OutputChannels.empty() )
   {
     LOG_ERROR("No output channels defined for vtkUsSimulatorVideoSource. Cannot proceed." );
     this->SetCorrectlyConfigured(false);

@@ -176,7 +176,14 @@ PlusStatus vtkVirtualSwitcher::ReadConfiguration( vtkXMLDataElement* element)
     return PLUS_FAIL;
   }
 
-  SetOutputStream(this->OutputChannels[0]);
+  if( this->OutputChannels.empty() )
+  {
+    LOG_ERROR("No output channels defined" );
+    return PLUS_FAIL;
+  }
+  vtkPlusChannel* outputChannel=this->OutputChannels[0];
+
+  SetOutputStream(outputChannel);
 
   return PLUS_SUCCESS;
 }
