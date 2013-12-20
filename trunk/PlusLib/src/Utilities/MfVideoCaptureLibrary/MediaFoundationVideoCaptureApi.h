@@ -122,6 +122,12 @@ namespace MfVideoCapture
     // Closing all devices
     void CloseAllDevices();
 
+    // Tell a device to start recording
+    bool StartRecording(unsigned int deviceID);
+
+    // Tell a device to stop recording
+    bool StopRecording(unsigned int deviceID);
+
     // Getting of parametrs of video device with deviceID
     CaptureDeviceParameters GetParameters(unsigned int deviceID);
 

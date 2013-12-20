@@ -376,7 +376,7 @@ namespace MfVideoCapture
     if(IsSetup)
     {
       IsSetup = false;
-      Source->Stop();
+      this->Stop();
 
       SafeRelease(&Source);
 
@@ -392,6 +392,40 @@ namespace MfVideoCapture
 
       LOG_DEBUG("VIDEODEVICE " << DeviceIndex << ": Device is stopped.");
     }
+  }
+
+  //----------------------------------------------------------------------------
+
+  bool MediaFoundationVideoDevice::Start()
+  {
+    if( this->Source != NULL && IsSetup )
+    {
+      IMFPresentationDescriptor *pPD = NULL;
+
+      HRESULT hr = Source->CreatePresentationDescriptor(&pPD);
+      if (FAILED(hr))
+      {
+        return false;
+      }
+
+      Source->Start(pPD, NULL, NULL);
+
+      SafeRelease(&pPD);
+      return true;
+    }
+    return false;
+  }
+
+  //----------------------------------------------------------------------------
+
+  bool MediaFoundationVideoDevice::Stop()
+  {
+    if( this->Source != NULL && IsSetup )
+    {
+      Source->Stop();
+      return true;
+    }
+    return false;
   }
 
   //----------------------------------------------------------------------------
@@ -805,5 +839,4 @@ done:
   {
     return this->ActiveType;
   }
-
 }

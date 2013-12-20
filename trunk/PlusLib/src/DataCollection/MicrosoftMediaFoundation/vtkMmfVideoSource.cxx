@@ -123,7 +123,7 @@ PlusStatus vtkMmfVideoSource::InternalConnect()
     LOG_WARNING("Unable to init capture device with requested details:"
       << " device ID: "<<this->RequestedVideoFormat.DeviceId<< " ("<<GetRequestedDeviceName()<<")"
       << ", "<<this->RequestedVideoFormat.FrameSize[0]<<"x"<<this->RequestedVideoFormat.FrameSize[1]
-      << ", "<<this->AcquisitionRate<<"Hz, "<<this->ActiveVideoFormat.PixelFormatName);
+    << ", "<<this->AcquisitionRate<<"Hz, "<<this->ActiveVideoFormat.PixelFormatName);
 
     LogListOfCaptureVideoFormats(this->RequestedVideoFormat.DeviceId);
 
@@ -142,10 +142,15 @@ PlusStatus vtkMmfVideoSource::InternalConnect()
     LOG_INFO("Backing up to connecting with default capture settings:"
       << " device ID: "<<this->ActiveVideoFormat.DeviceId<< " ("<<GetActiveDeviceName()<<")"
       << ", "<<this->ActiveVideoFormat.FrameSize[0]<<"x"<<this->ActiveVideoFormat.FrameSize[1]
-      << ", "<<DEFAULT_ACQUISITION_RATE<<"Hz, "<<this->ActiveVideoFormat.PixelFormatName);
+    << ", "<<DEFAULT_ACQUISITION_RATE<<"Hz, "<<this->ActiveVideoFormat.PixelFormatName);
   }
 
   this->CaptureSource = MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().GetMediaSource(this->ActiveVideoFormat.DeviceId);
+  if (this->CaptureSource == NULL )
+  {
+    LOG_ERROR("Unable to request capture source from the media foundation library.");
+    return PLUS_FAIL;
+  }
 
   this->FrameIndex = 0;
 
@@ -157,12 +162,8 @@ PlusStatus vtkMmfVideoSource::InternalDisconnect()
 {
   PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
 
-  SafeRelease(&this->CaptureSource);
-
-  //TODO: We should probably release this, but then the application crashes (stack corruption?)
-  //SafeRelease(&this->CaptureSourceReader);
- 
-  MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().CloseAllDevices();
+  MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().CloseDevice(this->ActiveVideoFormat.DeviceId);
+  this->CaptureSource = NULL;
 
   return PLUS_SUCCESS;
 }
@@ -182,11 +183,23 @@ PlusStatus vtkMmfVideoSource::InternalStartRecording()
 
     hr = MFCreateSourceReaderFromMediaSource(this->CaptureSource, attr, &this->CaptureSourceReader);
 
+    if( FAILED(hr) )
+    {
+      LOG_ERROR("Unable to create source reader from media source.");
+      return PLUS_FAIL;
+    }
     this->UpdateFrameSize();
 
     attr->Release();
 
+    MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().StartRecording(this->ActiveVideoFormat.DeviceId);
+
     this->CaptureSourceReader->ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, NULL, NULL, NULL, NULL);
+  }
+  else
+  {
+    LOG_ERROR("Unable to request IMFMediaSource from the media foundation capture library. Unable to continue.");
+    return PLUS_FAIL;
   }
 
   return PLUS_SUCCESS;
@@ -199,11 +212,10 @@ PlusStatus vtkMmfVideoSource::InternalStopRecording()
 
   PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
 
-  if( this->CaptureSource != NULL )
-  {
-    this->CaptureSource->Stop();
-  }
+  MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().StopRecording(this->ActiveVideoFormat.DeviceId);
 
+  this->CaptureSourceReader->Flush(MF_SOURCE_READER_FIRST_VIDEO_STREAM);
+  SafeRelease(&this->CaptureSourceReader);
   return PLUS_SUCCESS; 
 }
 
@@ -283,6 +295,11 @@ STDMETHODIMP vtkMmfVideoSource::OnReadSample( HRESULT hrStatus, DWORD dwStreamIn
     // Streaming error.
     LOG_ERROR("Source Reader error: " << std::hex << hrStatus);
     return S_FALSE;
+  }
+
+  if( !this->IsRecording() )
+  {
+    return S_OK;
   }
 
   if (this->CaptureSourceReader==NULL)
