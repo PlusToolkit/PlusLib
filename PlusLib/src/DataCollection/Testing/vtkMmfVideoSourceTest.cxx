@@ -124,7 +124,7 @@ int main(int argc, char **argv)
   else
   {
     frameGrabber->Disconnect();
-    LOG_ERROR( "Unable to connect to media foundation capture device."); 
+    LOG_ERROR( "Unable to disconnect from media foundation capture device."); 
     exit(EXIT_FAILURE); 
   }
 
@@ -132,7 +132,6 @@ int main(int argc, char **argv)
   if (renderingOff)
   {
     LOG_INFO("No need for rendering, stop the device..."); 
-    frameGrabber->StopRecording(); 
     frameGrabber->Disconnect();
     LOG_INFO("Exit successfully"); 
     exit(EXIT_SUCCESS); 

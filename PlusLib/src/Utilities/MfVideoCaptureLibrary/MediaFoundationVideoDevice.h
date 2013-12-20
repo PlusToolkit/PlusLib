@@ -64,6 +64,8 @@ namespace MfVideoCapture
     void SetEmergencyStopEvent(void *userData, void(*func)(int, void *));
     long ReadDeviceInfo(IMFActivate *pActivate, unsigned int Num);
     wchar_t *GetName();
+    bool Start();
+    bool Stop();
     int GetCountFormats() const;
     unsigned int GetWidth() const;
     unsigned int GetHeight() const;
