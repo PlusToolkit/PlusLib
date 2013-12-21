@@ -2,21 +2,19 @@
 # Install
 # 
 SET ( PLUSLIB_CONFIG_FILES
-  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_BkProFocus_OpenIGTLinkTracker.xml 
+  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_BkProFocus_OpenIGTLinkTracker.xml
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_Epiphan_NDIPolaris.xml
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_File_fCal_2.0.xml
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_File_PlusServer.xml
-  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_NoVideo_NDIAurora.xml
-  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_NwirePhantomFreehandReconstructionOnly.xml 
+  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_NDIAurora.xml
+  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_3dConnexion.xml
+  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_NwirePhantomFreehandReconstructionOnly.xml
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_SavedDataset_TemporalCalibration.xml
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_SonixRP_L14-5_NDICertus_fCal_1.0.xml
-  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_SonixTouch_Ascension3DG_L14_fCal1.0.xml
-  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_SonixTouch_Ascension3DG_L14_fCal1.1.xml
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_SonixTouch_Ascension3DG_L14_fCal2.0.xml
-  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_SonixTouch_L14-5_NDICertus_fCal_1.0.xml
-  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_VideoNone_FakeTracker_PivotCalibration_fCal.xml
-  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_VideoNone_FakeTracker_RecordPhantomLandmarks_fCal2.0.xml
-  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_VideoNone_3dConnexion.xml
+  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_SonixTouch_MicronTracker_3.2_L14_fCal2.0.xml
+  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_FakeTracker_PivotCalibration_fCal.xml
+  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusConfiguration_FakeTracker_RecordPhantomLandmarks_fCal2.0.xml
   ${PLUSLIB_DATA_DIR}/CADModels/EndocavityProbe/EC9-5_10_Assembly.stl
   ${PLUSLIB_DATA_DIR}/CADModels/fCalPhantom/FCal_1.0.stl
   ${PLUSLIB_DATA_DIR}/CADModels/fCalPhantom/FCal_1.1.stl
