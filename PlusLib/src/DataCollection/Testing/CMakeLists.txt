@@ -29,7 +29,7 @@ ADD_EXECUTABLE(vtkDataCollectorTest1 vtkDataCollectorTest1.cxx)
 TARGET_LINK_LIBRARIES(vtkDataCollectorTest1 vtkDataCollection )
 ADD_TEST(vtkDataCollectorTest1 
   ${EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorTest1
-  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_DataCollectionOnly_SavedDataset.xml 
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_SavedDataset.xml 
   --video-buffer-seq-file=${TestDataDir}/DataCollectorSyncVideoBuffer.mha 
   --tracker-buffer-seq-file=${TestDataDir}/DataCollectorSyncTrackerBuffer.mha 
   --rendering-off
@@ -39,7 +39,7 @@ SET_TESTS_PROPERTIES( vtkDataCollectorTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "
 IF (PLUS_USE_ULTRASONIX_VIDEO AND PLUS_TEST_ULTRASONIX)
   ADD_TEST(vtkDataCollectorTest1_SonixVideo
     ${EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorTest1
-    --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_DataCollectionOnly_SonixVideo_FakeTracker.xml 
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_SonixVideo_FakeTracker.xml 
     --rendering-off
     --sonix-ip=${PLUS_TEST_ULTRASONIX_IP_ADDRESS}
     )
@@ -53,7 +53,7 @@ ADD_TEST(vtkDataCollectorTest2
   ${EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorTest2
   --video-buffer-seq-file=${TestDataDir}/DataCollectorSyncVideoBuffer.mha 
   --tracker-buffer-seq-file=${TestDataDir}/DataCollectorSyncTrackerBuffer.mha 
-  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_DataCollectionOnly_SavedDataset.xml 
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_SavedDataset.xml 
   --acq-time-length=5
   --verbose=3
   )
@@ -78,7 +78,7 @@ ADD_EXECUTABLE( ReplayRecordedDataTest
 TARGET_LINK_LIBRARIES( ReplayRecordedDataTest vtkDataCollection vtkCommon )
 ADD_TEST( ReplayRecordedDataTest
   ${EXECUTABLE_OUTPUT_PATH}/ReplayRecordedDataTest
-  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_OpenIGTLinkTestServer.xml
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_OpenIGTLinkTestServer.xml
   )
 SET_TESTS_PROPERTIES( ReplayRecordedDataTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR" )
 
@@ -87,7 +87,7 @@ ADD_EXECUTABLE(vtkDataCollectorFileTest vtkDataCollectorFileTest.cxx)
 TARGET_LINK_LIBRARIES(vtkDataCollectorFileTest vtkDataCollection )
 ADD_TEST(vtkDataCollectorFileTest 
   ${EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorFileTest
-  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_DataCollectionOnly_File.xml 
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_File.xml 
   )
 SET_TESTS_PROPERTIES( vtkDataCollectorFileTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -114,7 +114,7 @@ TARGET_LINK_LIBRARIES(MetaImageSequenceViewer vtkDataCollection )
 ADD_TEST(MetaImageSequenceViewerTest
   ${EXECUTABLE_OUTPUT_PATH}/MetaImageSequenceViewer
   --source-seq-file=${TestDataDir}/SpinePhantomFreehand.mha
-  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_SpinePhantomFreehandReconstructionOnly.xml
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_SpinePhantomFreehandReconstructionOnly.xml
   --image-to-reference-transform=ImageToTracker
   --rendering-off
   )
@@ -143,7 +143,7 @@ IF (PLUS_USE_ULTRASONIX_VIDEO AND PLUS_TEST_ULTRASONIX)
   ADD_TEST(vtkSonixVideoSourceTest1 
   ${EXECUTABLE_OUTPUT_PATH}/vtkSonixVideoSourceTest1
     --rendering-off 
-    --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_SonixVideoSourceTest.xml
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_SonixVideoSourceTest.xml
     --sonix-ip=${PLUS_TEST_ULTRASONIX_IP_ADDRESS}
   )
   SET_TESTS_PROPERTIES( vtkSonixVideoSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )

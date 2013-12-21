@@ -7,7 +7,7 @@ TARGET_LINK_LIBRARIES(RfProcessor vtkRfProcessingAlgo vtkCommon )
 # --------------------------------------------------------------------------
 ADD_TEST(vtkRfToBrightnessConvertRunTest
   ${EXECUTABLE_OUTPUT_PATH}/RfProcessor
-  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_RfProcessingAlgoCurvilinearTest.xml
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_RfProcessingAlgoCurvilinearTest.xml
   --rf-file=${TestDataDir}/UltrasonixCurvilinearRfData.mha
   --output-img-file=outputUltrasonixCurvilinearBrightnessData.mha 
   --operation=BRIGHTNESS_CONVERT
@@ -24,7 +24,7 @@ SET_TESTS_PROPERTIES(vtkRfToBrightnessConvertCompareToBaselineTest PROPERTIES DE
 # --------------------------------------------------------------------------
 ADD_TEST(vtkUsScanConvertCurvilinearRunTest
   ${EXECUTABLE_OUTPUT_PATH}/RfProcessor
-  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_RfProcessingAlgoCurvilinearTest.xml
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_RfProcessingAlgoCurvilinearTest.xml
   --rf-file=${TestDataDir}/UltrasonixCurvilinearRfData.mha
   --output-img-file=outputUltrasonixCurvilinearScanConvertedData.mha 
   --operation=BRIGHTNESS_SCAN_CONVERT
@@ -41,7 +41,7 @@ SET_TESTS_PROPERTIES(vtkUsScanConvertCurvilinearCompareToBaselineTest PROPERTIES
 # --------------------------------------------------------------------------
 ADD_TEST(vtkUsScanConvertLinearRunTest
   ${EXECUTABLE_OUTPUT_PATH}/RfProcessor
-  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_RfProcessingAlgoLinearTest.xml
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_RfProcessingAlgoLinearTest.xml
   --rf-file=${TestDataDir}/UltrasonixLinearRfData.mha
   --output-img-file=outputUltrasonixLinearScanConvertedData.mha 
   --operation=BRIGHTNESS_SCAN_CONVERT
@@ -58,7 +58,7 @@ SET_TESTS_PROPERTIES(vtkUsScanConvertLinearCompareToBaselineTest PROPERTIES DEPE
 # --------------------------------------------------------------------------
 ADD_TEST(vtkUsScanConvertBkCurvilinearRunTest
   ${EXECUTABLE_OUTPUT_PATH}/RfProcessor
-  --config-file=${ConfigFilesDir}/PlusConfiguration_BkProFocus_OpenIGTLinkTracker.xml
+  --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_BkProFocus_OpenIGTLinkTracker.xml
   --rf-file=${TestDataDir}/BkCurvilinearRfData.mhd
   --output-img-file=outputBkCurvilinearScanConvertedData.mha 
   --operation=BRIGHTNESS_SCAN_CONVERT
