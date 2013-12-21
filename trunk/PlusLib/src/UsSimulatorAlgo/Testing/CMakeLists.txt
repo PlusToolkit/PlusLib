@@ -5,7 +5,7 @@ ADD_EXECUTABLE(vtkUsSimulatorAlgoTest vtkUsSimulatorAlgoTest.cxx )
 TARGET_LINK_LIBRARIES(vtkUsSimulatorAlgoTest vtkUsSimulatorAlgo vtkCommon )
 ADD_TEST(vtkUsSimulatorAlgoRunTest
   ${EXECUTABLE_OUTPUT_PATH}/vtkUsSimulatorAlgoTest
-  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_UsSimulatorAlgoTest.xml
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_UsSimulatorAlgoTest.xml
   --transforms-seq-file=${TestDataDir}/SpinePhantom2Freehand.mha
   --output-us-img-file=simulatorOutput.mha 
   )

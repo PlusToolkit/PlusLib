@@ -1,0 +1,62 @@
+<PlusConfiguration version="2.1">
+
+  <DataCollection StartupDelaySec="1.0">
+    <DeviceSet 
+      Name="PlusServer: PhidgetSpatial MARG sensor" 
+      Description="Broadcasting tool tracking data through OpenIGTLink
+Keep the device stationary for 2 seconds after connect for accurate gyroscope initialization."
+    />
+    <Device
+      Id="TrackerDevice"
+      Type="PhidgetSpatial"
+      AhrsAlgorithm="MADGWICK_MARG"
+      AhrsAlgorithmGain="1.5"
+      TiltSensorWestAxisIndex="1"
+      FilteredTiltSensorAhrsAlgorithm="MADGWICK_IMU"
+      FilteredTiltSensorAhrsAlgorithmGain="0.01"
+      FilteredTiltSensorWestAxisIndex="1"      
+      AcquisitionRate="125"
+      LocalTimeOffsetSec="0.0"
+      ToolReferenceFrame="Tracker" >
+      <DataSources>
+        <DataSource Type="Tool" Id="OrientationSensor" PortName="OrientationSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>    
+        <DataSource Type="Tool" Id="TiltSensor" PortName="TiltSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="FilteredTiltSensor" PortName="FilteredTiltSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Accelerometer" PortName="Accelerometer" BufferSize="2500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Gyroscope" PortName="Gyroscope" BufferSize="2500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Magnetometer" PortName="Magnetometer" BufferSize="2500" AveragedItemsForFiltering="20"/>
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream" >
+          <DataSource Id="OrientationSensor"/>
+          <DataSource Id="TiltSensor"/>
+          <DataSource Id="FilteredTiltSensor"/>
+          <DataSource Id="Accelerometer"/>
+          <DataSource Id="Gyroscope"/>
+          <DataSource Id="Magnetometer"/>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+  </DataCollection>
+  
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    OutputChannelId="TrackerStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="OrientationSensorToTracker" /> 
+        <Transform Name="TiltSensorToTracker" /> 
+        <Transform Name="FilteredTiltSensorToTracker" /> 
+        <xTransform Name="AccelerometerToTracker" /> 
+        <xTransform Name="GyroscopeToTracker" /> 
+        <xTransform Name="MagnetometerToTracker" /> 
+      </TransformNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+  
+</PlusConfiguration>

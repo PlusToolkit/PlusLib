@@ -1,78 +1,69 @@
-<PlusConfiguration version="2.1">
+<PlusConfiguration version="2.3">
 
-  <DataCollection StartupDelaySec="1.0">
+  <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
-      Name="fCal: Simulation mode for temporal calibration" 
-      Description="Configuration file for Saved dataset + fCal 1.0
-It loads an fCal test image, but it can be changed by modifying the SequenceMetafile attributes (absolute path is needed if the image is not in the test image directory"
+      Name="fCal: SonixTouch US (L14-5 probe) + NDI Certus tracker (Probe, Reference, Stylus, Needle)" 
+      Description="Configuration file for SonixTouch L14-5 + NDI Certus + fCal 1.0
+The computer needs to be on the same local network as SonixTOUCH and the Certus SCU unit. The tools need to be plugged in the slots as following: 1: Probe, 2: Reference, 3: Stylus, 4: Needle (optional)" 
     />
-    
+
+    <Device
+      Id="TrackerDevice"
+      Type="CertusTracker"      
+      AcquisitionRate="50"
+      LocalTimeOffsetSec="0.0"
+      ToolReferenceFrame="Tracker" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Probe" PortName="0" Model="L14-5_38" BufferSize="2500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Reference" PortName="1" BufferSize="2500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Stylus" PortName="2" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Needle" PortName="3" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
+      </DataSources>
+      <OutputChannel Id="TrackerStream" >
+        <DataSource Id="Probe"/>
+        <DataSource Id="Reference"/>
+        <DataSource Id="Stylus"/>
+      </OutputChannel>
+    </Device>
+
+    <Device
+      Id="VideoDevice"
+      Type="SonixVideo" 
+      AcquisitionRate="30" 
+      LocalTimeOffsetSec="-0.2976"
+      IP="130.15.7.20" 
+      Depth="-1" 
+      Sector="-1" 
+      Gain="-1" 
+      DynRange="-1" 
+      Zoom="-1" 
+      Frequency="-1" 
+      Timeout="-1" 
+      CompressionStatus="0" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="500" AveragedItemsForFiltering="20" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+
     <Device 
       Id="TrackedVideoDevice" 
       Type="VirtualMixer" >
       <InputChannels>
-        <InputChannel Id="TrackerOutput" />
+        <InputChannel Id="TrackerStream" />
         <InputChannel Id="VideoStream" />
       </InputChannels>
-      
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>
     </Device>
 
-    <Device
-      Id="TrackerDeviceSavedDataset"
-      Type="SavedDataSource"
-      UseData="TRANSFORM"
-      AcquisitionRate="10"
-      LocalTimeOffsetSec="0.0"
-      SequenceMetafile="WaterTankBottomTranslationTrackerBuffer-trimmed.mha"
-      UseOriginalTimestamps="TRUE"
-      RepeatEnabled="TRUE" >
-      <DataSources>
-        <DataSource Type="Tool" Id="Probe" PortName="0" Model="L14-5_38" BufferSize="2500" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="Reference" PortName="1" BufferSize="2500" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="Stylus" PortName="2" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
-      </DataSources>
-      
-      <OutputChannels>
-        <OutputChannel Id="TrackerOutput" >
-          <DataSource Id="Probe"/>
-          <DataSource Id="Reference"/>
-          <DataSource Id="Stylus"/>
-        </OutputChannel>
-      </OutputChannels>
-    </Device>
-
-    <Device
-      Id="VideoDeviceSavedDataset" 
-      Type="SavedDataSource"
-      UseData="IMAGE"
-      AcquisitionRate="10" 
-      LocalTimeOffsetSec="0.0" 
-      SequenceMetafile="WaterTankBottomTranslationVideoBuffer.mha"
-      UseOriginalTimestamps="TRUE"
-      RepeatEnabled="TRUE" >
-      <DataSources>
-        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="200" AveragedItemsForFiltering="20" />
-      </DataSources>
-      
-      <OutputChannels>
-        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
-      </OutputChannels>
-    </Device>
-    
   </DataCollection>
 
 
   <CoordinateDefinitions>
-    <Transform From="StylusTip" To="Stylus"
-      Matrix="1 0 0 210.0
-              0 1 0 0
-              0 0 1 0
-              0 0 0 1"
-      Date="2011.12.01 17:22:12"
-    /> 
     <Transform From="Image" To="TransducerOriginPixel"
       Matrix="1 0 0 -410
               0 1 0 5
@@ -92,7 +83,6 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
         0 0 1 -14
         0 0 0 1"
     />
-  <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel"
       File="Stylus_Example.stl"
       ModelToObjectTransform="
@@ -101,6 +91,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
         0 0 1 0
         0 0 0 1"
     />
+  <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
       Opacity="0.6"
       File="FCal_1.0.stl"
@@ -140,7 +131,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
       Version="1.0"
       WiringVersion="1.0"
       Institution="Queen's University PerkLab"
-    />
+      />
 
     <Geometry>
       <Pattern Type="NWire">
@@ -169,12 +160,17 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
   </PhantomDefinition>
 
 
-  <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
-    ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
-    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"
+  <VolumeReconstruction 
+    OutputSpacing="0.5 0.5 0.5"
+    ClipRectangleOrigin="0 0" 
+    ClipRectangleSize="820 616"
+    Interpolation="LINEAR" 
+    Optimization="FULL" 
+    Compounding="On" 
+    FillHoles="Off"
   />
 
-
+    
   <fCal
     PhantomModelId="PhantomModel"
     ReconstructedVolumeId="Volume"
@@ -192,10 +188,6 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
     TemporalCalibrationDurationSec="10"
-    FixedChannelId="VideoStream" 
-    FixedSourceId="Video"
-    MovingChannelId="TrackerOutput"
-    MovingSourceId="ProbeToTracker"
   />
 
 
@@ -204,21 +196,9 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
     ReferenceCoordinateFrame="Reference"
     ObjectPivotPointCoordinateFrame="StylusTip"
   />
-  
-  
-  <vtkTemporalCalibrationAlgo
-    ClipRectangleOrigin="27 27" 
-    ClipRectangleSize="766 562" 
-  />
 
 
   <vtkPhantomLandmarkRegistrationAlgo
-    PhantomCoordinateFrame="Phantom"
-    ReferenceCoordinateFrame="Reference"
-    StylusTipCoordinateFrame="StylusTip"
-  />
-  
-  <vtkPhantomLinearObjectRegistrationAlgo
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
     StylusTipCoordinateFrame="StylusTip"

@@ -2,8 +2,8 @@
 
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
-      Name="PlusServer: Replay of fCal phantom scan with SonixTouch US (L14-5 probe) + Ascension3DG tracker (Probe, Reference, Stylus)"
-      Description="Free-hand probe motion, imaging 3 NWires, after spatial calibration. OpenIGTLink broadcasting through PlusServer of IMAGE and TRANSFORM messages." 
+      Name="PlusServer: Replay fCal phantom scan with SonixTouch US (L14-5 probe) + Ascension3DG tracker (Probe, Reference, Stylus)"
+      Description="Free-hand probe motion, imaging 3 NWires, after spatial calibration. OpenIGTLink broadcasting through PlusServer of image and tool tracking data." 
     />
     <Device
       Id="TrackedVideoDevice"

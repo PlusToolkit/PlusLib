@@ -1,0 +1,49 @@
+<PlusConfiguration version="2.3">
+
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="PlusServer: Claron MicronTracker tracker"
+      Description="Broadcasting tool tracking data through OpenIGTLink
+Tools: Probe (1b), Reference (TTBlock), Stylus (2b) tools" 
+    />
+    <Device
+      Id="TrackerDevice"
+      Type="MicronTracker"
+      AcquisitionRate="20"
+      LocalTimeOffsetSec="0.0"
+      TemplateDirectory="Markers"
+      IniFile="MicronTracker.ini"
+      ToolReferenceFrame="Tracker" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Probe" PortName="1b" BufferSize="500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Reference"  PortName="TTblock" BufferSize="500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Stylus" PortName="2b" BufferSize="500" AveragedItemsForFiltering="20"/>
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream" >
+          <DataSource Id="Probe"/>
+          <DataSource Id="Reference"/>
+          <DataSource Id="Stylus"/>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+  </DataCollection>
+
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    OutputChannelId="TrackerStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="ProbeToTracker" />
+        <Transform Name="ReferenceToTracker" />
+        <Transform Name="StylusToTracker" />
+      </TransformNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+</PlusConfiguration>

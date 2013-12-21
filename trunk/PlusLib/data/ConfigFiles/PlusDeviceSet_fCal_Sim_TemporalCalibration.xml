@@ -1,23 +1,27 @@
-<PlusConfiguration version="2.3">
+<PlusConfiguration version="2.1">
 
-  <DataCollection StartupDelaySec="1.0" >
+  <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
-      Name="fCal: SonixTouch US (L14-5 probe) + Ascension3DG tracker (Probe, Reference, Stylus) - fCal Phantom 3.0"
-      Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." 
+      Name="fCal: Simulation mode for temporal calibration" 
+      Description="Configuration file for Saved dataset + fCal 1.0
+It loads an fCal test image, but it can be changed by modifying the SequenceMetafile attributes (absolute path is needed if the image is not in the test image directory"
     />
 
     <Device
-      Id="TrackerDevice" 
-      Type="Ascension3DG" 
-      AcquisitionRate="50" 
-      LocalTimeOffsetSec="0.0" 
-      FilterAcWideNotch="1" >
+      Id="TrackerDeviceSavedDataset"
+      Type="SavedDataSource"
+      UseData="TRANSFORM"
+      AcquisitionRate="10"
+      LocalTimeOffsetSec="0.0"
+      SequenceMetafile="WaterTankBottomTranslationTrackerBuffer-trimmed.mha"
+      UseOriginalTimestamps="TRUE"
+      RepeatEnabled="TRUE"
+      ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="Probe" BufferSize="500" PortName="0" AveragedItemsForFiltering="20" />
-        <DataSource Type="Tool" Id="Reference" BufferSize="500" PortName="1" AveragedItemsForFiltering="20" />
-        <DataSource Type="Tool" Id="Stylus" BufferSize="500" PortName="2" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" Id="Probe" PortName="0" Model="L14-5_38" BufferSize="2500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Reference" PortName="1" BufferSize="2500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Stylus" PortName="2" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
       </DataSources>
-
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
           <DataSource Id="Probe"/>
@@ -28,28 +32,22 @@
     </Device>
 
     <Device
-      Id="VideoDevice"
-      Type="SonixVideo" 
-      AcquisitionRate="30" 
-      LocalTimeOffsetSec="0"
-      IP="127.0.0.1" 
-      Depth="-1" 
-      Sector="-1" 
-      Gain="-1" 
-      DynRange="-1" 
-      Zoom="-1" 
-      Frequency="-1" 
-      Timeout="-1" 
-      CompressionStatus="0" >
+      Id="VideoDeviceSavedDataset" 
+      Type="SavedDataSource"
+      UseData="IMAGE"
+      AcquisitionRate="10" 
+      LocalTimeOffsetSec="0.0" 
+      SequenceMetafile="WaterTankBottomTranslationVideoBuffer.mha"
+      UseOriginalTimestamps="TRUE"
+      RepeatEnabled="TRUE" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="500" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="200" AveragedItemsForFiltering="20" />
       </DataSources>
-
       <OutputChannels>
-        <OutputChannel Id="VideoStream" VideoDataSourceId="Video"/>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
     </Device>
-
+    
     <Device 
       Id="TrackedVideoDevice" 
       Type="VirtualMixer" >
@@ -57,7 +55,6 @@
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="VideoStream" />
       </InputChannels>
-      
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>
@@ -67,6 +64,13 @@
 
 
   <CoordinateDefinitions>
+    <Transform From="StylusTip" To="Stylus"
+      Matrix="1 0 0 210.0
+              0 1 0 0
+              0 0 1 0
+              0 0 0 1"
+      Date="2011.12.01 17:22:12"
+    /> 
     <Transform From="Image" To="TransducerOriginPixel"
       Matrix="1 0 0 -410
               0 1 0 5
@@ -86,7 +90,7 @@
         0 0 1 -14
         0 0 0 1"
     />
-    <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
+  <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel"
       File="Stylus_Example.stl"
       ModelToObjectTransform="
@@ -97,20 +101,20 @@
     />
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
       Opacity="0.6"
-      File="fCal_3.1.stl"
+      File="FCal_1.0.stl"
       ModelToObjectTransform="
-        1 0 0 -13.5
-        0 1 0 -10.0
-        0 0 1 15.5
+        1 0 0 -15.0
+        0 1 0 10.0
+        0 0 1 -5.0
         0 0 0 1"
-  />
+      />
     <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
   </Rendering>
 
 
   <Segmentation
     ApproximateSpacingMmPerPixel="0.078"
-    MorphologicalOpeningCircleRadiusMm="0.27"
+    MorphologicalOpeningCircleRadiusMm="0.37"
     MorphologicalOpeningBarSizeMm="2.0"
     ClipRectangleOrigin="27 27" 
     ClipRectangleSize="766 562" 
@@ -130,44 +134,35 @@
     <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
       Name="fCAL"
-      Type="Triple-N"
-      Version="3.0"
+      Type="Double-N"
+      Version="1.0"
       WiringVersion="1.0"
       Institution="Queen's University PerkLab"
     />
 
-    <Geometry>      
+    <Geometry>
       <Pattern Type="NWire">
-        <Wire Name="7:G6_g6" EndPointFront="60.0 0.0 0.0" EndPointBack="60.0 40.0 0.0" />
-        <Wire Name="8:J6_g6" EndPointFront="90.0 0.0 0.0" EndPointBack="60.0 40.0 0.0" />
-        <Wire Name="9:J6_j6" EndPointFront="90.0 0.0 0.0" EndPointBack="90.0 40.0 0.0" />
+        <Wire Name="1:E3_e3" EndPointFront="20.0 0.0 5.0" EndPointBack="20.0 40.0 5.0" />
+        <Wire Name="2:F3_j3" EndPointFront="25.0 0.0 5.0" EndPointBack="45.0 40.0 5.0" />
+        <Wire Name="3:K3_k3" EndPointFront="50.0 0.0 5.0" EndPointBack="50.0 40.0 5.0" />
       </Pattern>
       <Pattern Type="NWire">
-        <Wire Name="4:G7_g7" EndPointFront="60.0 0.0 -10.0" EndPointBack="60.0 40.0 -10.0" />
-        <Wire Name="5:G7_j7" EndPointFront="60.0 0.0 -10.0" EndPointBack="90.0 40.0 -10.0" />
-        <Wire Name="6:J7_j7" EndPointFront="90.0 0.0 -10.0" EndPointBack="90.0 40.0 -10.0" />
-      </Pattern>
-      <Pattern Type="NWire">
-        <Wire Name="1:H8_h8" EndPointFront="70.0 0.0 -20.0" EndPointBack="70.0 40.0 -20.0" />
-        <Wire Name="2:J8_h8" EndPointFront="90.0 0.0 -20.0" EndPointBack="70.0 40.0 -20.0" />
-        <Wire Name="3:J8_j8" EndPointFront="90.0 0.0 -20.0" EndPointBack="90.0 40.0 -20.0" />
+        <Wire Name="4:E4_e4" EndPointFront="20.0 0.0 0.0" EndPointBack="20.0 40.0 0.0" />
+        <Wire Name="5:J4_f4" EndPointFront="45.0 0.0 0.0" EndPointBack="25.0 40.0 0.0" />
+        <Wire Name="6:K4_k4" EndPointFront="50.0 0.0 0.0" EndPointBack="50.0 40.0 0.0" />
       </Pattern>
 
       <Landmarks>
-        <Landmark Name="#1" Position="186 -5.0 35.5"/>
-        <Landmark Name="#2" Position="186 -5.0 -19.5"/>
-        <Landmark Name="#3" Position="186 -5.0 -94.5"/>
-        <Landmark Name="#4" Position="186 45.0 40.5"/>
-        <Landmark Name="#5" Position="186 45.0 10.5"/>
-        <Landmark Name="#6" Position="186 45.0 -94.5"/>
-        <Landmark Name="#7" Position="-32.3 45.0 40.5"/>
-        <Landmark Name="#8" Position="-32.3 45.0 10.5"/>
-        <Landmark Name="#9" Position="-32.3 45.0 -94.5"/>
-        <Landmark Name="#10" Position="-32.5 -5.0 40.5"/>
-        <Landmark Name="#11" Position="-32.5 -5.0 -19.5"/>
-        <Landmark Name="#12" Position="-32.9 -5.0 -84.5"/>
+        <Landmark Name="#1" Position="95.0 5.0 15.0" />
+        <Landmark Name="#2" Position="95.0 40.0 15.0" />
+        <Landmark Name="#3" Position="95.0 40.0 0.0" />
+        <Landmark Name="#4" Position="95.0 0.0 0.0" />
+
+        <Landmark Name="#5" Position="-25.0 40.0 15.0" />
+        <Landmark Name="#6" Position="-25.0 0.0 10.0" />
+        <Landmark Name="#7" Position="-25.0 0.0 0.0" />
+        <Landmark Name="#8" Position="-25.0 40.0 0.0" />
       </Landmarks>
-      
     </Geometry>
   </PhantomDefinition>
 
@@ -194,8 +189,11 @@
     ReferenceCoordinateFrame="Reference"
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
-    TemporalCalibrationDurationSec="10" 
-	  DefaultSelectedChannelId="TrackedVideoStream" 
+    TemporalCalibrationDurationSec="10"
+    FixedChannelId="VideoStream" 
+    FixedSourceId="Video"
+    MovingChannelId="TrackerStream"
+    MovingSourceId="ProbeToTracker"
   />
 
 
@@ -204,9 +202,21 @@
     ReferenceCoordinateFrame="Reference"
     ObjectPivotPointCoordinateFrame="StylusTip"
   />
+  
+  
+  <vtkTemporalCalibrationAlgo
+    ClipRectangleOrigin="27 27" 
+    ClipRectangleSize="766 562" 
+  />
 
 
   <vtkPhantomLandmarkRegistrationAlgo
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+    StylusTipCoordinateFrame="StylusTip"
+  />
+  
+  <vtkPhantomLinearObjectRegistrationAlgo
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
     StylusTipCoordinateFrame="StylusTip"

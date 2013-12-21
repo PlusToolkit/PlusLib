@@ -1,70 +1,109 @@
-<PlusConfiguration version="2.1">
+<PlusConfiguration version="2.3">
 
-  <DataCollection StartupDelaySec="1.0">
+  <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
-      Name="No video + Phidget Spatial" 
-      Description="Configuration file for No video + Phidget Spatial accelerometer. Keep the device stationary for 2 seconds after connect." 
+      Name="fCal: SonixTouch US (L14-5 probe) + NDI Polaris tracker (Probe, Reference, Stylus) - fCal Phantom 2.0"
+      Description="NDI Polaris with SonixTouch L14-5" 
     />
+
     <Device
       Id="TrackerDevice"
-      Type="PhidgetSpatial"
-      AhrsAlgorithm="MADGWICK_MARG"
-      AhrsAlgorithmGain="1.5"
-      TiltSensorWestAxisIndex="1"
-      FilteredTiltSensorAhrsAlgorithm="MADGWICK_IMU"
-      FilteredTiltSensorAhrsAlgorithmGain="0.01"
-      FilteredTiltSensorWestAxisIndex="1"      
-      AcquisitionRate="125"
-      LocalTimeOffsetSec="0.0" >
+      Type="PolarisTracker"
+      SerialPort="3"
+      BaudRate="115200"
+      AcquisitionRate="50"
+      LocalTimeOffsetSec="0.0"
+      ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="OrientationSensor" PortName="OrientationSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>    
-        <DataSource Type="Tool" Id="TiltSensor" PortName="TiltSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="FilteredTiltSensor" PortName="FilteredTiltSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="Accelerometer" PortName="Accelerometer" BufferSize="2500" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="Gyroscope" PortName="Gyroscope" BufferSize="2500" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="Magnetometer" PortName="Magnetometer" BufferSize="2500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Probe" PortName="4" RomFile="NdiToolDefinitions\8700339.rom" AveragedItemsForFiltering="20" BufferSize="2500"/>
+        <DataSource Type="Tool" Id="Stylus" PortName="5" RomFile="NdiToolDefinitions\8700340.rom" AveragedItemsForFiltering="20" BufferSize="2500"/>
+        <DataSource Type="Tool" Id="Reference" PortName="6" RomFile="NdiToolDefinitions\8700449.rom" AveragedItemsForFiltering="20" BufferSize="2500"/>
       </DataSources>
-
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
-          <DataSource Id="OrientationSensor"/>
-          <DataSource Id="TiltSensor"/>
-          <DataSource Id="FilteredTiltSensor"/>
-          <DataSource Id="Accelerometer"/>
-          <DataSource Id="Gyroscope"/>
-          <DataSource Id="Magnetometer"/>
+          <DataSource Id="Probe"/>
+          <DataSource Id="Reference"/>
+          <DataSource Id="Stylus"/>
         </OutputChannel>
       </OutputChannels>
     </Device>
+
+    <Device
+      Id="VideoDevice"
+      Type="SonixVideo" 
+      AcquisitionRate="30" 
+      LocalTimeOffsetSec="-0.2976"
+      IP="130.15.7.20" 
+      Depth="-1" 
+      Sector="-1" 
+      Gain="-1" 
+      DynRange="-1" 
+      Zoom="-1" 
+      Frequency="-1" 
+      Timeout="-1" 
+      CompressionStatus="0" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="500" AveragedItemsForFiltering="20" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+
+    <Device 
+      Id="TrackedVideoDevice" 
+      Type="VirtualMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="VideoStream" />
+      </InputChannels>      
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream"/>
+      </OutputChannels>
+    </Device>
+    
   </DataCollection>
-  
-  <PlusOpenIGTLinkServer 
-    MaxNumberOfIgtlMessagesToSend="1" 
-    MaxTimeSpentWithProcessingMs="50" 
-    ListeningPort="18944" 
-    OutputChannelId="TrackerStream"
-    > 
-    <DefaultClientInfo> 
-      <MessageTypes> 
-        <Message Type="TRANSFORM" />
-      </MessageTypes>
-      <TransformNames> 
-        <Transform Name="OrientationSensorToTracker" /> 
-        <Transform Name="TiltSensorToTracker" /> 
-        <Transform Name="FilteredTiltSensorToTracker" /> 
-        <xTransform Name="AccelerometerToTracker" /> 
-        <xTransform Name="GyroscopeToTracker" /> 
-        <xTransform Name="MagnetometerToTracker" /> 
-      </TransformNames>
-    </DefaultClientInfo>
-  </PlusOpenIGTLinkServer>
-  
-  <Rendering WorldCoordinateFrame="Tracker" DisplayedImageOrientation="MF">
-    <DisplayableObject Type="Axes" ObjectCoordinateFrame="OrientationSensor" Id="OrientationSensorAxes"/>\
-    <DisplayableObject Type="Axes" ObjectCoordinateFrame="TiltSensor" Id="TiltSensorAxes"/>\
-    <DisplayableObject Type="Axes" ObjectCoordinateFrame="Accelerometer" Id="AccelerometerAxes"/>\
-    <DisplayableObject Type="Axes" ObjectCoordinateFrame="Gyroscope" Id="GyroscopeAxes"/>\
-    <DisplayableObject Type="Axes" ObjectCoordinateFrame="Magnetometer" Id="MagnetometerAxes"/>\
+
+
+  <CoordinateDefinitions>
+    <Transform From="Image" To="TransducerOriginPixel"
+      Matrix="1 0 0 -410
+              0 1 0 5
+              0 0 1 0
+              0 0 0 1"
+      Date="2011.12.06 17:57:00" Error="0.0"
+    />    
+  </CoordinateDefinitions> 
+
+
+  <Rendering WorldCoordinateFrame="Reference">
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" Id="ProbeModel"
+      File="L14-5_38_ProbeModel.stl"
+      ModelToObjectTransform="
+        -1 0 0 29.7
+        0 -1 0 1.5
+        0 0 1 -14
+        0 0 0 1"
+    />
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel"
+      File="Stylus_Example.stl"
+      ModelToObjectTransform="
+        1 0 0 -210.0
+        0 1 0 0
+        0 0 1 0
+        0 0 0 1"
+    />
+    <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
+      Opacity="0.6"
+      File="FCal_2.0.stl"
+      ModelToObjectTransform="
+        1 0 0 -35.0
+        0 1 0 -10.0
+        0 0 1 -5.0
+        0 0 0 1"
+  />
+    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
   </Rendering>
 
 
@@ -79,13 +118,12 @@
     MaxAngleDifferenceDegrees="10"
     MinThetaDegrees="-70"
     MaxThetaDegrees="70"
-    MaxLineShiftMm="10.0"
     ThresholdImagePercent="10"
     CollinearPointsMaxDistanceFromLineMm="0.6"
     UseOriginalImageIntensityForDotIntensityScore="0"
     NumberOfMaximumFiducialPointCandidates="20"
   />
-  
+
 
   <PhantomDefinition>
     <!-- Supported types are: Double-N, U-Shaped-N -->
@@ -97,13 +135,13 @@
       Institution="Queen's University PerkLab"
     />
 
-    <Geometry>      
+    <Geometry>
       <Pattern Type="NWire">
         <Wire Name="7:G1_g1" EndPointFront="30.0 0.0 20.0" EndPointBack="30.0 40.0 20.0" />
         <Wire Name="8:L1_h1" EndPointFront="55.0 0.0 20.0" EndPointBack="35.0 40.0 20.0" />
         <Wire Name="9:M1_m1" EndPointFront="60.0 0.0 20.0" EndPointBack="60.0 40.0 20.0" />
       </Pattern>
-      <Pattern Type="NWire">
+    <Pattern Type="NWire">
         <Wire Name="4:G3_g3" EndPointFront="30.0 0.0 10.0" EndPointBack="30.0 40.0 10.0" />
         <Wire Name="5:H3_l3" EndPointFront="35.0 0.0 10.0" EndPointBack="55.0 40.0 10.0" />
         <Wire Name="6:M3_m3" EndPointFront="60.0 0.0 10.0" EndPointBack="60.0 40.0 10.0" />
@@ -129,6 +167,7 @@
     </Geometry>
   </PhantomDefinition>
 
+
   <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
     ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
     Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"
@@ -141,8 +180,8 @@
     TransducerModelId="ProbeModel"
     StylusModelId="StylusModel"
     ImageDisplayableObjectId="LiveImage"
-    NumberOfCalibrationImagesToAcquire="140"
-    NumberOfValidationImagesToAcquire="70"
+    NumberOfCalibrationImagesToAcquire="200"
+    NumberOfValidationImagesToAcquire="100"
     NumberOfStylusCalibrationPointsToAcquire="200"
     RecordingIntervalMs="100"
     MaxTimeSpentWithProcessingMs="70"
@@ -152,7 +191,7 @@
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
     TemporalCalibrationDurationSec="10"
-    DefaultSelectedChannelId="TrackerStream"
+    DefaultSelectedChannelId="TrackedVideoStream"
   />
 
 
@@ -168,12 +207,6 @@
     ReferenceCoordinateFrame="Reference"
     StylusTipCoordinateFrame="StylusTip"
   />
-  
-  <vtkPhantomLinearObjectRegistrationAlgo
-    PhantomCoordinateFrame="Phantom"
-    ReferenceCoordinateFrame="Reference"
-    StylusTipCoordinateFrame="StylusTip"
-  />
 
 
   <vtkProbeCalibrationAlgo
@@ -182,5 +215,5 @@
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
   />
-  
+
 </PlusConfiguration>

@@ -11,7 +11,7 @@ IF (PLUS_USE_BRACHY_TRACKER)
     --calibration-seq-file=${TestDataDir}/USTC_Ulterius_RandomStepperMotionData1.mha 
     --validation-seq-file=${TestDataDir}/USTC_Ulterius_RandomStepperMotionData2.mha 
     --probe-rotation-seq-file=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha 
-    --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_iCal.xml
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_iCal_CalibrationOnly.xml
     --baseline-file=${TestDataDir}/UsTemplateCalibration.results.xml 
     )
   SET_TESTS_PROPERTIES( vtkTRUSCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -21,7 +21,7 @@ IF (PLUS_USE_BRACHY_TRACKER)
     --calibration-seq-file=${TestDataDir}/USTC_FrameGrabber_RandomStepperMotionData1.mha 
     --validation-seq-file=${TestDataDir}/USTC_FrameGrabber_RandomStepperMotionData2.mha 
     --probe-rotation-seq-file=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha 
-    --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_iCal_CalibrationOnly_FrameGrabber.xml
     --baseline-file=${TestDataDir}/UsTemplateCalibration_FrameGrabber.results.xml 
     )
   SET_TESTS_PROPERTIES( vtkTRUSCalibrationTest_FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -31,7 +31,7 @@ IF (PLUS_USE_BRACHY_TRACKER)
     --calibration-seq-file=${TestDataDir}/USTC_3NWires_RandomStepperMotionCalibration.mha 
     --validation-seq-file=${TestDataDir}/USTC_3NWires_RandomStepperMotionValidation.mha 
     --probe-rotation-seq-file=${TestDataDir}/USTC_3NWires_ProbeRotation.mha
-    --config-file=${ConfigFilesDir}/Queens/PlusConfiguration_SonixTouch_BlackTargetGuideStepper_iCal_1.1.xml
+    --config-file=${ConfigFilesDir}/Queens/PlusDeviceSet_iCal_SonixTouch_BlackTargetGuideStepper_1.1.xml
     --baseline-file=${TestDataDir}/UsTemplateCalibration_3NWires.results.xml 
     )
   # A warning is expected for non-orthogonal ImageToProbeTransform axes, so don't include "WARNING" in the FAIL_REGULAR_EXPRESSION
@@ -45,7 +45,7 @@ TARGET_LINK_LIBRARIES(vtkStylusCalibrationTest itkvnl itkvnl_algo vtkCommon vtkC
 
 ADD_TEST(vtkStylusCalibrationTest
   ${EXECUTABLE_OUTPUT_PATH}/vtkStylusCalibrationTest
-  --config-file=${ConfigFilesDir}/PlusConfiguration_VideoNone_FakeTracker_PivotCalibration_fCal.xml
+  --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_Sim_PivotCalibration.xml
   --baseline-file=${TestDataDir}/StylusCalibration.results.xml 
   --outlier-generation-probability=0.05
   )
@@ -57,7 +57,7 @@ TARGET_LINK_LIBRARIES(vtkPhantomRegistrationTest itkvnl itkvnl_algo vtkCommon vt
 
 ADD_TEST(vtkPhantomRegistrationTest
   ${EXECUTABLE_OUTPUT_PATH}/vtkPhantomRegistrationTest
-  --config-file=${ConfigFilesDir}/PlusConfiguration_VideoNone_FakeTracker_RecordPhantomLandmarks_fCal2.0.xml
+  --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_Sim_RecordPhantomLandmarks.xml
   --baseline-file=${TestDataDir}/PhantomRegistration.results.xml
   )
 SET_TESTS_PROPERTIES( vtkPhantomRegistrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -71,7 +71,7 @@ TARGET_LINK_LIBRARIES(vtkFreehandCalibrationStatisticalEvaluation itkvnl itkvnl_
 
 ADD_TEST(vtkFreehandCalibration2NWiresTest
   ${EXECUTABLE_OUTPUT_PATH}/vtkFreehandCalibrationTest
-  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixTouch_Ulterius_fCal.xml
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_fCal_CalibrationOnly_SonixTouch_Ulterius.xml
   --calibration-seq-file=${TestDataDir}/fCal_Test_Calibration.mha 
   --validation-seq-file=${TestDataDir}/fCal_Test_Validation.mha 
   --baseline-file=${TestDataDir}/FreehandCalibration2NWires.results.xml
@@ -80,7 +80,7 @@ SET_TESTS_PROPERTIES( vtkFreehandCalibration2NWiresTest PROPERTIES FAIL_REGULAR_
 
 ADD_TEST(vtkFreehandCalibration3NWiresTest
   ${EXECUTABLE_OUTPUT_PATH}/vtkFreehandCalibrationTest
-  --config-file=${ConfigFilesDir}/PlusConfiguration_File_fCal_1.2.xml
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_fCal_Sim_SpatialCalibration_1.2.xml
   --calibration-seq-file=${TestDataDir}/fCal_Test_Calibration_3NWires.mha 
   --validation-seq-file=${TestDataDir}/fCal_Test_Validation_3NWires.mha 
   --baseline-file=${TestDataDir}/FreehandCalibration3NWires.results.xml
@@ -89,7 +89,7 @@ SET_TESTS_PROPERTIES( vtkFreehandCalibration3NWiresTest PROPERTIES FAIL_REGULAR_
 
 ADD_TEST(vtkFreehandCalibration3NWiresfCal20Test
   ${EXECUTABLE_OUTPUT_PATH}/vtkFreehandCalibrationTest
-  --config-file=${ConfigFilesDir}/PlusConfiguration_File_fCal_2.0.xml
+  --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_Sim_SpatialCalibration_2.0.xml
   --calibration-seq-file=${TestDataDir}/fCal_Test_Calibration_3NWires_fCal2.0.mha 
   --validation-seq-file=${TestDataDir}/fCal_Test_Validation_3NWires_fCal2.0.mha 
   --baseline-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0.results.xml
@@ -98,7 +98,7 @@ SET_TESTS_PROPERTIES( vtkFreehandCalibration3NWiresTest PROPERTIES FAIL_REGULAR_
 
 ADD_TEST(vtkFreehandCalibrationIPEIOptimizationMethodTest
   ${EXECUTABLE_OUTPUT_PATH}/vtkFreehandCalibrationTest
-  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_IPEI_OptimizationMethod.xml
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IPEI_OptimizationMethod.xml
   --calibration-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_1.mha 
   --validation-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_2.mha 
   --baseline-file=${TestDataDir}/IPEI_OptimizationMethod_Calibration.results.xml
@@ -107,7 +107,7 @@ SET_TESTS_PROPERTIES( vtkFreehandCalibrationIPEIOptimizationMethodTest PROPERTIE
 
 ADD_TEST(vtkFreehandCalibrationIPEAOptimizationMethodTest
   ${EXECUTABLE_OUTPUT_PATH}/vtkFreehandCalibrationTest
-  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_IPEA_OptimizationMethod.xml
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IPEA_OptimizationMethod.xml
   --calibration-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_1.mha 
   --validation-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_2.mha 
   --baseline-file=${TestDataDir}/IPEA_OptimizationMethod_Calibration.results.xml
@@ -116,7 +116,7 @@ SET_TESTS_PROPERTIES( vtkFreehandCalibrationIPEAOptimizationMethodTest PROPERTIE
 
 ADD_TEST(vtkFreehandCalibrationOPEIOptimizationMethodTest
   ${EXECUTABLE_OUTPUT_PATH}/vtkFreehandCalibrationTest
-  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_OPEI_OptimizationMethod.xml
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_OPEI_OptimizationMethod.xml
   --calibration-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_1.mha 
   --validation-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_2.mha 
   --baseline-file=${TestDataDir}/OPEI_OptimizationMethod_Calibration.results.xml
@@ -125,7 +125,7 @@ SET_TESTS_PROPERTIES( vtkFreehandCalibrationOPEIOptimizationMethodTest PROPERTIE
 
 ADD_TEST(vtkFreehandCalibrationOPEAOptimizationMethodTest
   ${EXECUTABLE_OUTPUT_PATH}/vtkFreehandCalibrationTest
-  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_OPEA_OptimizationMethod.xml
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_OPEA_OptimizationMethod.xml
   --calibration-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_1.mha 
   --validation-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_2.mha 
   --baseline-file=${TestDataDir}/OPEA_OptimizationMethod_Calibration.results.xml
@@ -139,7 +139,7 @@ TARGET_LINK_LIBRARIES(vtkCenterOfRotationCalibAlgoTest vtkPlusCommon vtkCalibrat
 
 ADD_TEST(CenterOfRotationCalibration-Ulterius
   ${EXECUTABLE_OUTPUT_PATH}/vtkCenterOfRotationCalibAlgoTest
-  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_iCal_CalibrationOnly_SonixRP_Ulterius.xml 
   --source-seq-file=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha
   --baseline-file=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
   )
@@ -147,7 +147,7 @@ SET_TESTS_PROPERTIES( CenterOfRotationCalibration-Ulterius PROPERTIES FAIL_REGUL
 
 ADD_TEST(CenterOfRotationCalibration-FrameGrabber
   ${EXECUTABLE_OUTPUT_PATH}/vtkCenterOfRotationCalibAlgoTest
-  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml 
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_iCal_CalibrationOnly_FrameGrabber.xml 
   --source-seq-file=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha
   --baseline-file=${TestDataDir}/USTC_FrameGrabber_StepperCalibrationResultBaseline.xml
   )
@@ -155,7 +155,7 @@ SET_TESTS_PROPERTIES( CenterOfRotationCalibration-FrameGrabber PROPERTIES FAIL_R
 
 ADD_TEST(CenterOfRotationCalibration-3NWires
   ${EXECUTABLE_OUTPUT_PATH}/vtkCenterOfRotationCalibAlgoTest
-  --config-file=${ConfigFilesDir}/Queens/PlusConfiguration_SonixTouch_BlackTargetGuideStepper_iCal_1.1.xml
+  --config-file=${ConfigFilesDir}/Queens/PlusDeviceSet_iCal_SonixTouch_BlackTargetGuideStepper_1.1.xml
   --source-seq-file=${TestDataDir}/USTC_3NWires_ProbeRotation.mha 
   --baseline-file=${TestDataDir}/USTC_3NWires_StepperCalibrationResultBaseline.xml 
   )
@@ -167,7 +167,7 @@ TARGET_LINK_LIBRARIES(vtkSpacingCalibAlgoTest vtkPlusCommon vtkCalibrationAlgo v
 
 ADD_TEST(SpacingCalibAlgoTest-Ulterius
   ${EXECUTABLE_OUTPUT_PATH}/vtkSpacingCalibAlgoTest
-  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_SonixRP_Ulterius_iCal.xml 
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_iCal_CalibrationOnly_SonixRP_Ulterius.xml 
   --source-seq-files ${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha 
   --baseline-file=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
   )
@@ -175,7 +175,7 @@ SET_TESTS_PROPERTIES( SpacingCalibAlgoTest-Ulterius PROPERTIES FAIL_REGULAR_EXPR
 
 ADD_TEST(SpacingCalibAlgoTest-FrameGrabber
   ${EXECUTABLE_OUTPUT_PATH}/vtkSpacingCalibAlgoTest
-  --config-file=${ConfigFilesDir}/Testing/PlusConfiguration_CalibrationOnly_FrameGrabber_iCal.xml 
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_iCal_CalibrationOnly_FrameGrabber.xml 
   --source-seq-files ${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha 
   --baseline-file=${TestDataDir}/USTC_FrameGrabber_StepperCalibrationResultBaseline.xml
   )
@@ -183,7 +183,7 @@ SET_TESTS_PROPERTIES( SpacingCalibAlgoTest-FrameGrabber PROPERTIES FAIL_REGULAR_
 
 ADD_TEST(SpacingCalibAlgoTest-3NWires
   ${EXECUTABLE_OUTPUT_PATH}/vtkSpacingCalibAlgoTest
-  --config-file=${ConfigFilesDir}/Queens/PlusConfiguration_SonixTouch_BlackTargetGuideStepper_iCal_1.1.xml
+  --config-file=${ConfigFilesDir}/Queens/PlusDeviceSet_iCal_SonixTouch_BlackTargetGuideStepper_1.1.xml
   --source-seq-files ${TestDataDir}/USTC_3NWires_ProbeRotation.mha 
   --baseline-file=${TestDataDir}/USTC_3NWires_StepperCalibrationResultBaseline.xml 
   )

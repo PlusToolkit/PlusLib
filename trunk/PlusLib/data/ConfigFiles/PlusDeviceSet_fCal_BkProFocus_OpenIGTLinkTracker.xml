@@ -46,7 +46,8 @@
       ServerPort="18944"
       IgtlMessageCrcCheckEnabled="true"
       AcquisitionRate="30"
-      LocalTimeOffset="0.0" >
+      LocalTimeOffset="0.0"
+      ToolReferenceFrame="Tracker" >
       <DataSources>
         <DataSource Type="Tool" Id="Probe" PortName="0" BufferSize="500" AveragedItemsForFiltering="20"/>
         <DataSource Type="Tool" Id="Reference" PortName="1" BufferSize="500" AveragedItemsForFiltering="20"/>

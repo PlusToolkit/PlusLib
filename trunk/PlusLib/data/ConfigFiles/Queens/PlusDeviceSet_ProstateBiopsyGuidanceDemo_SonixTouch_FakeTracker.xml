@@ -6,7 +6,7 @@
       Description="SonixTouch and Fake tracker. The SonixTouch US device should be in research mode. Used at UBC"
     />
 
-    <xDevice
+    <Device
       Id="TrackerDevice"
       Type="FakeTracker"
       AcquisitionRate="30"
@@ -24,7 +24,7 @@
           <DataSource Id="Stylus"/>
         </OutputChannel>
       </OutputChannels>
-    </xDevice>
+    </Device>
 
     <Device
       Type="SonixVideo"
@@ -41,8 +41,7 @@
       CompressionStatus="0" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="MF" BufferSize="500" AveragedItemsForFiltering="20" />
-      </DataSources>
-      
+      </DataSources>      
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
@@ -54,8 +53,7 @@
       <InputChannels>
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="VideoStream" />
-      </InputChannels>
-      
+      </InputChannels>      
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>
@@ -65,9 +63,9 @@
 
   <fCal
     PhantomModelId="PhantomModel"
-  TransducerModelId="ProbeModel"
-  StylusModelId="StylusModel"
-  ImageDisplayableObjectId="LiveImage"
+    TransducerModelId="ProbeModel"
+    StylusModelId="StylusModel"
+    ImageDisplayableObjectId="LiveImage"
     NumberOfCalibrationImagesToAcquire="200"
     NumberOfValidationImagesToAcquire="100"
     NumberOfStylusCalibrationPointsToAcquire="200"
@@ -81,7 +79,7 @@
     TemporalCalibrationDurationSec="10"
   />
 
-  <xCoordinateDefinitions>
+  <CoordinateDefinitions>
     <Transform From="Image" To="Probe"
       Matrix="
         -0.0683412  -0.0064516  0.0417947  16.3721
@@ -117,8 +115,7 @@
         0  0  0.07799  0
         0  0  0  1"
        Date="060612_154723"/>
-  </xCoordinateDefinitions>
-
+  </CoordinateDefinitions>
   
   <ProstateBiopsy AcquisitionTime="3" />
 

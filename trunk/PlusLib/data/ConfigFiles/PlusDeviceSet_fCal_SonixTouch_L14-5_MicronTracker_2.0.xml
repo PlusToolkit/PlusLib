@@ -1,50 +1,89 @@
-<PlusConfiguration version="2.1">
+<PlusConfiguration version="2.3">
 
-  <DataCollection StartupDelaySec="1.0">
+  <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
-      Name="fCal: Simulation mode for Phantom registration - fCal Phantom 2.0" 
-      Description="No Video with Fake tracker in Record phantom landmarks mode vtkPhantomRegistrationTest uses this configuration" 
+      Name="fCal: SonixTouch US (L14-5 probe) + Claron MicronTracker (Probe, Reference, Stylus) - fCal Phantom 2.0"
+      Description="MicronTracker with Probe (1b), Reference (TTBlock), Stylus (2b) tools" 
     />
 
     <Device
       Id="TrackerDevice"
-      Type="FakeTracker" 
+      Type="MicronTracker"
       AcquisitionRate="20"
       LocalTimeOffsetSec="0.0"
-      ToolReferenceFrame="Tracker" 
-      Mode="RecordPhantomLandmarks" >
+      TemplateDirectory="Markers"
+      IniFile="MicronTracker.ini"
+      ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="Reference" BufferSize="1000" AveragedItemsForFiltering="20" PortName="0" />
-        <DataSource Type="Tool" Id="Stylus" BufferSize="1000" AveragedItemsForFiltering="20" PortName="1" Model="Example" />     
-      </DataSources> 
+        <DataSource Type="Tool" Id="Probe" PortName="1b" BufferSize="500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Reference"  PortName="TTblock" BufferSize="500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Stylus" PortName="2b" BufferSize="500" AveragedItemsForFiltering="20"/>
+      </DataSources>
       <OutputChannels>
-        <OutputChannel Id="TrackerStream">
-          <DataSource Id="Reference" />
-          <DataSource Id="Stylus" />
+        <OutputChannel Id="TrackerStream" >
+          <DataSource Id="Probe"/>
+          <DataSource Id="Reference"/>
+          <DataSource Id="Stylus"/>
         </OutputChannel>
       </OutputChannels>
     </Device>
-  </DataCollection> 
+
+    <Device
+      Id="VideoDevice"
+      Type="SonixVideo" 
+      AcquisitionRate="30" 
+      LocalTimeOffsetSec="-0.2976"
+      IP="130.15.7.20" 
+      Depth="-1" 
+      Sector="-1" 
+      Gain="-1" 
+      DynRange="-1" 
+      Zoom="-1" 
+      Frequency="-1" 
+      Timeout="-1" 
+      CompressionStatus="0" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="500" AveragedItemsForFiltering="20" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video"/>
+      </OutputChannels>
+    </Device>
+
+    <Device 
+      Id="TrackedVideoDevice" 
+      Type="VirtualMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="VideoStream" />
+      </InputChannels>      
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream"/>
+      </OutputChannels>
+    </Device>
+    
+  </DataCollection>
 
   <CoordinateDefinitions>
-    <Transform From="Reference" To="Tracker"
-      Matrix="0 -1 0 300.0
-              1 0 0 400.0
-              0 0 1 700.0
-              0 0 0 1"
-      Date="2011.12.01 11:57:00"
-    />
-    <Transform From="StylusTip" To="Stylus"
-      Matrix="1 0 0 210.0
-              0 1 0 0
+    <Transform From="Image" To="TransducerOriginPixel"
+      Matrix="1 0 0 -410
+              0 1 0 5
               0 0 1 0
               0 0 0 1"
-      Date="2011.12.01 17:22:12"
-    />
-  </CoordinateDefinitions>
-
+      Date="2011.12.06 17:57:00" Error="0.0"
+    />    
+  </CoordinateDefinitions> 
 
   <Rendering WorldCoordinateFrame="Reference">
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" Id="ProbeModel"
+      File="L14-5_38_ProbeModel.stl"
+      ModelToObjectTransform="
+        -1 0 0 29.7
+        0 -1 0 1.5
+        0 0 1 -14
+        0 0 0 1"
+    />
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel"
       File="Stylus_Example.stl"
       ModelToObjectTransform="
@@ -55,15 +94,32 @@
     />
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
       Opacity="0.6"
-      File="fCal_2.0.stl"
+      File="FCal_2.0.stl"
       ModelToObjectTransform="
         1 0 0 -35.0
         0 1 0 -10.0
         0 0 1 -5.0
         0 0 0 1"
-      />
+  />
+    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
   </Rendering>
 
+  <Segmentation
+    ApproximateSpacingMmPerPixel="0.078"
+    MorphologicalOpeningCircleRadiusMm="0.27"
+    MorphologicalOpeningBarSizeMm="2.0"
+    ClipRectangleOrigin="27 27" 
+    ClipRectangleSize="766 562" 
+    MaxLinePairDistanceErrorPercent="10"
+    AngleToleranceDegrees="10"
+    MaxAngleDifferenceDegrees="10"
+    MinThetaDegrees="-70"
+    MaxThetaDegrees="70"
+    ThresholdImagePercent="10"
+    CollinearPointsMaxDistanceFromLineMm="0.6"
+    UseOriginalImageIntensityForDotIntensityScore="0"
+    NumberOfMaximumFiducialPointCandidates="20"
+  />
 
   <PhantomDefinition>
     <!-- Supported types are: Double-N, U-Shaped-N -->
@@ -81,7 +137,7 @@
         <Wire Name="8:L1_h1" EndPointFront="55.0 0.0 20.0" EndPointBack="35.0 40.0 20.0" />
         <Wire Name="9:M1_m1" EndPointFront="60.0 0.0 20.0" EndPointBack="60.0 40.0 20.0" />
       </Pattern>
-      <Pattern Type="NWire">
+    <Pattern Type="NWire">
         <Wire Name="4:G3_g3" EndPointFront="30.0 0.0 10.0" EndPointBack="30.0 40.0 10.0" />
         <Wire Name="5:H3_l3" EndPointFront="35.0 0.0 10.0" EndPointBack="55.0 40.0 10.0" />
         <Wire Name="6:M3_m3" EndPointFront="60.0 0.0 10.0" EndPointBack="60.0 40.0 10.0" />
@@ -130,19 +186,31 @@
     </Geometry>
   </PhantomDefinition>
 
+  <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
+    ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
+    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"
+  />
+
   <fCal
     PhantomModelId="PhantomModel"
+    ReconstructedVolumeId="Volume"
     TransducerModelId="ProbeModel"
     StylusModelId="StylusModel"
     ImageDisplayableObjectId="LiveImage"
+    NumberOfCalibrationImagesToAcquire="200"
+    NumberOfValidationImagesToAcquire="100"
     NumberOfStylusCalibrationPointsToAcquire="200"
+    RecordingIntervalMs="100"
+    MaxTimeSpentWithProcessingMs="70"
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"
     ReferenceCoordinateFrame="Reference"
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+    TemporalCalibrationDurationSec="10"
+    DefaultSelectedChannelId="TrackedVideoStream" 
   />
-  
+
   <vtkPivotCalibrationAlgo
     ObjectMarkerCoordinateFrame="Stylus"
     ReferenceCoordinateFrame="Reference"
@@ -154,11 +222,12 @@
     ReferenceCoordinateFrame="Reference"
     StylusTipCoordinateFrame="StylusTip"
   />
-  
-  <vtkPhantomLinearObjectRegistrationAlgo
+
+  <vtkProbeCalibrationAlgo
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Probe"
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
-    StylusTipCoordinateFrame="StylusTip"
   />
 
 </PlusConfiguration>

@@ -1,24 +1,22 @@
-<PlusConfiguration version="2.1">
+<PlusConfiguration version="2.3">
 
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
-      Name="Saved dataset for both video and tracking (fCal)" 
-      Description="Configuration file for Saved dataset + fCal 1.0
-It loads an fCal test image, but it can be changed by modifying the SequenceMetafile attributes (absolute path is needed if the image is not in the test image directory"
+      Name="fCal: SonixTouch US (L14-5 probe) + Claron MicronTracker (Probe, Reference, Stylus)"
+      Description="MicronTracker with Probe (1b), Reference (TTBlock), Stylus (2b) tools" 
     />
 
     <Device
       Id="TrackerDevice"
-      Type="SavedDataSource"
-      UseData="TRANSFORM"
-      AcquisitionRate="10"
+      Type="MicronTracker"
+      AcquisitionRate="20"
       LocalTimeOffsetSec="0.0"
-      SequenceMetafile="fCal_Test_Calibration.mha"
-      RepeatEnabled="TRUE" >
+      TemplateDirectory="Markers"
+      IniFile="MicronTracker.ini" >
       <DataSources>
-        <DataSource Type="Tool" Id="Probe" PortName="0" Model="L14-5_38" BufferSize="2500" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="Reference" PortName="1" BufferSize="2500" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="Stylus" PortName="2" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Probe" PortName="1b" BufferSize="500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Reference"  PortName="TTblock" BufferSize="500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Stylus" PortName="2b" BufferSize="500" AveragedItemsForFiltering="20"/>
       </DataSources>
 
       <OutputChannels>
@@ -31,15 +29,21 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
     </Device>
 
     <Device
-      Id="VideoDevice" 
-      Type="SavedDataSource"
-      UseData="IMAGE"
-      AcquisitionRate="10" 
-      LocalTimeOffsetSec="0.0" 
-      SequenceMetafile="fCal_Test_Calibration.mha"
-      RepeatEnabled="TRUE" >
+      Id="VideoDevice"
+      Type="SonixVideo" 
+      AcquisitionRate="30" 
+      LocalTimeOffsetSec="-0.2976"
+      IP="130.15.7.20" 
+      Depth="-1" 
+      Sector="-1" 
+      Gain="-1" 
+      DynRange="-1" 
+      Zoom="-1" 
+      Frequency="-1" 
+      Timeout="-1" 
+      CompressionStatus="0" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" BufferSize="100" PortUsImageOrientation="MF" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="100" AveragedItemsForFiltering="20" />
       </DataSources>
       
       <OutputChannels>
@@ -59,25 +63,10 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>
     </Device>
-
   </DataCollection>
 
 
   <CoordinateDefinitions>
-    <Transform From="Phantom" To="Reference"
-      Matrix="0.9968 0.0075 -0.0795 -35.6089
-              0.0794 0.0055 0.9968 -124.9852
-              0.0079 -1.0000 0.0049 -16.7
-              0 0 0 1"
-      Date="2011.12.01 17:57:00" Error="0.0"
-    />
-    <Transform From="StylusTip" To="Stylus"
-      Matrix="1 0 0 210.0
-              0 1 0 0
-              0 0 1 0
-              0 0 0 1"
-      Date="2011.12.01 17:22:12"
-    /> 
     <Transform From="Image" To="TransducerOriginPixel"
       Matrix="1 0 0 -410
               0 1 0 5
@@ -97,6 +86,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
         0 0 1 -14
         0 0 0 1"
     />
+  <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel"
       File="Stylus_Example.stl"
       ModelToObjectTransform="
@@ -107,11 +97,11 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
     />
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
       Opacity="0.6"
-      File="FCal_1.0.stl"
+      File="FCal_1.2.stl"
       ModelToObjectTransform="
-        1 0 0 -15.0
-        0 1 0 10.0
-        0 0 1 -5.0
+        1 0 0 -25.0
+        0 0 -1 45.0
+        0 1 0 -5.0
         0 0 0 1"
       />
     <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
@@ -182,9 +172,10 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
 
   <fCal
     PhantomModelId="PhantomModel"
-  TransducerModelId="ProbeModel"
-  StylusModelId="StylusModel"
-  ImageDisplayableObjectId="LiveImage"
+    TransducerModelId="ProbeModel"
+    StylusModelId="StylusModel"
+    ImageDisplayableObjectId="LiveImage"
+    ReconstructedVolumeId="Volume"
     NumberOfCalibrationImagesToAcquire="200"
     NumberOfValidationImagesToAcquire="100"
     NumberOfStylusCalibrationPointsToAcquire="200"
@@ -196,6 +187,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
     TemporalCalibrationDurationSec="10"
+    DefaultSelectedChannelId="TrackedVideoStream"
   />
 
 
@@ -207,12 +199,6 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
 
 
   <vtkPhantomLandmarkRegistrationAlgo
-    PhantomCoordinateFrame="Phantom"
-    ReferenceCoordinateFrame="Reference"
-    StylusTipCoordinateFrame="StylusTip"
-  />
-  
-  <vtkPhantomLinearObjectRegistrationAlgo
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
     StylusTipCoordinateFrame="StylusTip"

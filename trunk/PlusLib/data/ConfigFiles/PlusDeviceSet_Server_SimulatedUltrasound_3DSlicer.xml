@@ -2,8 +2,10 @@
 
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
-      Name="Vascular needle insertion simulation"
-      Description="ProbeToTracker, ReferenceToTracker, NeedleToTracker transforms has to be sent from Slicer through OpenIGTLink on port (Test_PlusConfiguration_SimulatedUS.mrb scene already contains a full setup). If used with Ascension tracker: 1 Probe, 2 Reference, 3 Stylus"
+      Name="PlusServer: Vascular needle insertion simulation"
+      Description="Tool positions are received through OpenIGTLink, simulated images are broadcasted through OpenIGTLink.
+ProbeToTracker, ReferenceToTracker, NeedleToTracker transforms has to be sent from Slicer through OpenIGTLink on port (Test_PlusConfiguration_SimulatedUS.mrb scene already contains a full setup).
+If used with Ascension tracker (need to enable the Ascension3DG device and disable the OpenIGTLinkTracker device): 1 Probe, 2 Reference, 3 Stylus."
     />
     
     <!--
@@ -21,7 +23,7 @@
       UseLastTransformsOnReceiveTimeout="true"
       AcquisitionRate="30"
       LocalTimeOffset="0.0"
-      ToolReferenceFrame="Tracker">
+      ToolReferenceFrame="Tracker" >
       <DataSources>
         <DataSource Type="Tool" Id="Probe" BufferSize="1000" PortName="0" AveragedItemsForFiltering="20" />
         <DataSource Type="Tool" Id="Reference" BufferSize="1000" PortName="1" AveragedItemsForFiltering="20" />
@@ -43,7 +45,7 @@
       AcquisitionRate="50" 
       LocalTimeOffsetSec="0.0" 
       FilterAcWideNotch="1"
-	  ToolReferenceFrame="Tracker">
+      ToolReferenceFrame="Tracker" >
       <DataSources>
         <DataSource Type="Tool" Id="Probe" BufferSize="500" PortName="0" AveragedItemsForFiltering="20" />
         <DataSource Type="Tool" Id="Reference" BufferSize="500" PortName="1" AveragedItemsForFiltering="20" />
@@ -98,7 +100,7 @@
         <SpatialModel
           Name="GelBlock"
           ObjectCoordinateFrame="Reference"
-          ModelFile="GelBlockModel_Reference.stl"
+          ModelFile="SimulatedUltrasound_GelBlockModel_Reference.stl"
           DensityKgPerM3="910"
           SoundVelocityMPerSec="1540"
           AttenuationCoefficientDbPerCmMhz="3.0"
@@ -110,7 +112,7 @@
         <SpatialModel
           Name="Vessel"
           ObjectCoordinateFrame="Reference"
-          ModelFile="VesselModel_Reference.stl"
+          ModelFile="SimulatedUltrasound_VesselModel_Reference.stl"
           ModelToObjectTransform="
             1 0 0 0
             0 1 0 0
@@ -126,7 +128,7 @@
         <SpatialModel
           Name="Needle"
           ObjectCoordinateFrame="NeedleTip"
-          ModelFile="NeedleModel_NeedleTip.stl"
+          ModelFile="SimulatedUltrasound_NeedleModel_NeedleTip.stl"
           ModelToObjectTransform="
             1 0 0 0
             0 1 0 0
