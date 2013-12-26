@@ -237,6 +237,8 @@ PlusStatus vtkTemporalCalibrationAlgo::GetUncalibratedMovingPositionSignal(vtkTa
                unCalibratedMovingPositionSignal->GetNumberOfColumns() << " columns, but should have two columns");
     return PLUS_FAIL;
   }
+  unCalibratedMovingPositionSignal->GetColumn(0)->SetName("Time [s]");
+  unCalibratedMovingPositionSignal->GetColumn(1)->SetName("Uncalibrated Moving Signal");
   return PLUS_SUCCESS;
 }
 
@@ -250,19 +252,23 @@ PlusStatus vtkTemporalCalibrationAlgo::GetCalibratedMovingPositionSignal(vtkTabl
                calibratedMovingPositionSignal->GetNumberOfColumns() << " columns, but should have two columns");
     return PLUS_FAIL;
   }
+  calibratedMovingPositionSignal->GetColumn(0)->SetName("Time [s]");
+  calibratedMovingPositionSignal->GetColumn(1)->SetName("Calibrated Moving Signal");
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkTemporalCalibrationAlgo::GetFixedPositionSignal(vtkTable *FixedPositionSignal)
+PlusStatus vtkTemporalCalibrationAlgo::GetFixedPositionSignal(vtkTable *fixedPositionSignal)
 {
-  ConstructTableSignal(this->FixedSignal.signalTimestamps, this->FixedSignal.signalValues, FixedPositionSignal, 0); 
-  if(FixedPositionSignal->GetNumberOfColumns() != 2)
+  ConstructTableSignal(this->FixedSignal.signalTimestamps, this->FixedSignal.signalValues, fixedPositionSignal, 0); 
+  if(fixedPositionSignal->GetNumberOfColumns() != 2)
   {
     LOG_ERROR("Error in constructing the vtk tables that are to hold fixed signal. Table has " << 
-               FixedPositionSignal->GetNumberOfColumns() << " columns, but should have two columns");
+               fixedPositionSignal->GetNumberOfColumns() << " columns, but should have two columns");
     return PLUS_FAIL;
   }
+  fixedPositionSignal->GetColumn(0)->SetName("Time [s]");
+  fixedPositionSignal->GetColumn(1)->SetName("Fixed Signal");
   return PLUS_SUCCESS;
 }
 
