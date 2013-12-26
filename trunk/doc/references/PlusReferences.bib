@@ -340,6 +340,61 @@
   url = {http://www.sciencedirect.com/science/article/pii/S0301562997001233}
 }
 
+@ARTICLE{Bartha2013,
+  author = {Bartha, Laura and Lasso, Andras and Pinter, Csaba and Ungi, Tamas
+	and Keri, Zsuzsanna and Fichtinger, Gabor},
+  title = {Open-source surface mesh-based ultrasound-guided spinal intervention
+	simulator.},
+  journal = {Int J Comput Assist Radiol Surg},
+  year = {2013},
+  volume = {8},
+  pages = {1043--1051},
+  number = {6},
+  month = {Nov},
+  abstract = {   Ultrasound is prevalent in image-guided therapy as a safe, inexpensive,
+	and widely available imaging modality. However, extensive training
+	in interpreting ultrasound images is essential for successful procedures.
+	An open-source ultrasound image simulator was developed to facilitate
+	the training of ultrasound-guided spinal intervention procedures,
+	thereby eliminating the need for an ultrasound machine from the phantom-based
+	training environment.   Anatomical structures and surgical tools
+	are converted to surface meshes for data compression. Anatomical
+	data are converted from segmented volumetric images, while the geometry
+	of surgical tools is available as a surface mesh. The pose of the
+	objects are either constants or coming from a pose-tracking device.
+	Intersection points between the surface models and the ultrasound
+	scan lines are determined with a binary space partitioning tree.
+	The scan lines are divided into segments and filled with gray values
+	determined by an intensity calculation accounting for material properties,
+	reflection, and attenuation parameters defined in a configuration
+	file. The scan lines are finally converted to a regular brightness-mode
+	ultrasound image.   The simulator was tested in a tracked ultrasound
+	imaging system, with a mock transducer tracked with an Ascension
+	trakSTAR electromagnetic tracker, on a spine phantom. A mesh model
+	of the spine was created from CT data. The simulated ultrasound images
+	were generated at a speed of 50 frames per second, and a resolution
+	of [Formula: see text] pixels, with 256 scan lines per frame, on
+	a PC with a 3.4 GHz processor. A human subject trial was conducted
+	to compare the learning performance of novice trainees, with real
+	and simulated ultrasound, in the localization of facet joints of
+	a spine phantom. With 22 participants split into two equal groups,
+	and each participant localizing 6 facet joints, there was no statistical
+	difference in the performance of the two groups, indicating that
+	simulated ultrasound could indeed replace the real ultrasound in
+	phantom-based ultrasonography training for spinal interventions.   The
+	ultrasound simulator was implemented and integrated into the open-source
+	Public Library for Ultrasound (PLUS) toolkit.},
+  doi = {10.1007/s11548-013-0901-z},
+  institution = {Laboratory for Percutaneous Surgery, School of Computing, Queen's
+	University, Kingston, ON, Canada, bartha@cs.queensu.ca.},
+  language = {eng},
+  medline-pst = {ppublish},
+  owner = {lasso},
+  pmid = {23729333},
+  timestamp = {2013.12.21},
+  url = {http://dx.doi.org/10.1007/s11548-013-0901-z}
+}
+
 @INPROCEEDINGS{Boisvert2008,
   author = {Jonathan Boisvert and David Gobbi and Siddharth Vikal and Robert
 	Rohling and Gabor Fichtinger and Purang Abolmaesumi},
@@ -1412,6 +1467,59 @@
   url = {http://www.sciencedirect.com/science/article/pii/S0301562999001738}
 }
 
+@ARTICLE{Lu2012,
+  author = {Lu, Tong and Liang, Ping and Wu, Wen-Bo and Xue, Jin and Lei, Cheng-Long
+	and Li, Yin-Yan and Sun, Yun-Na and Liu, Fang-Yi},
+  title = {Integration of the Image-Guided Surgery Toolkit (IGSTK) into the
+	Medical Imaging Interaction Toolkit (MITK).},
+  journal = {J Digit Imaging},
+  year = {2012},
+  volume = {25},
+  pages = {729--737},
+  number = {6},
+  month = {Dec},
+  __markedentry = {[lasso:]},
+  abstract = {The development cycle of an image-guided surgery navigation system
+	is too long to meet current clinical needs. This paper presents an
+	integrated system developed by the integration of two open-source
+	software (IGSTK and MITK) to shorten the development cycle of the
+	image-guided surgery navigation system and save human resources simultaneously.
+	An image-guided surgery navigation system was established by connecting
+	the two aforementioned open-source software libraries. It used the
+	Medical Imaging Interaction Toolkit (MITK) as a framework providing
+	image processing tools for the image-guided surgery navigation system
+	of medical imaging software with a high degree of interaction and
+	used the Image-Guided Surgery Toolkit (IGSTK) as a library that provided
+	the basic components of the system for location, tracking, and registration.
+	The electromagnetic tracking device was used to measure the real-time
+	position of surgical tools and fiducials attached to the patient's
+	anatomy. IGSTK was integrated into MITK; at the same time, the compatibility
+	and the stability of this system were emphasized. Experiments showed
+	that an integrated system of the image-guided surgery navigation
+	system could be developed in 2 months. The integration of IGSTK into
+	MITK is feasible. Several techniques for 3D reconstruction, geometric
+	analysis, mesh generation, and surface data analysis for medical
+	image analysis of MITK can connect with the techniques for location,
+	tracking, and registration of IGSTK. This integration of advanced
+	modalities can decrease software development time and emphasize the
+	precision, safety, and robustness of the image-guided surgery navigation
+	system.},
+  doi = {10.1007/s10278-012-9477-3},
+  institution = {Department of Interventional Ultrasound, Chinese PLA General Hospital,
+	Beijing, China.},
+  keywords = {Calibration; Computer Systems; Data Display; Database Management Systems;
+	Diagnostic Imaging; Humans; Image Processing, Computer-Assisted,
+	methods; Information Storage and Retrieval; Phantoms, Imaging; Software;
+	Software Design; Software Validation; Surgery, Computer-Assisted;
+	Systems Integration; User-Computer Interface},
+  language = {eng},
+  medline-pst = {ppublish},
+  owner = {lasso},
+  pmid = {22535192},
+  timestamp = {2013.12.25},
+  url = {http://dx.doi.org/10.1007/s10278-012-9477-3}
+}
+
 @ARTICLE{Magee2007,
   author = {Magee, D. and Zhu, Y. and Ratnalingam, R. and Gardner, P. and Kessel,
 	D.},
@@ -1455,7 +1563,6 @@
   journal = {Int J Comput Assist Radiol Surg},
   year = {2013},
   month = {Dec},
-  __markedentry = {[lasso:]},
   abstract = {   Intra-procedural acquisition of the patient anatomy is a key technique
 	in the context of computer-assisted interventions (CAI). Ultrasound
 	(US) offers major advantages as an interventional imaging modality
@@ -2421,6 +2528,54 @@
   timestamp = {2012.12.29}
 }
 
+@ARTICLE{Ungi2013f,
+  author = {Ungi, Tamas and King, Franklin and Kempston, Michael and Keri, Zsuzsanna
+	and Lasso, Andras and Mousavi, Parvin and Rudan, John and Borschneck,
+	Daniel P. and Fichtinger, Gabor},
+  title = {Spinal Curvature Measurement by Tracked Ultrasound Snapshots.},
+  journal = {Ultrasound Med Biol},
+  year = {2013},
+  month = {Nov},
+  abstract = {Monitoring spinal curvature in adolescent kyphoscoliosis requires
+	regular radiographic examinations; however, the applied ionizing
+	radiation increases the risk of cancer. Ultrasound imaging is favored
+	over radiography because it does not emit ionizing radiation. Therefore,
+	we tested an ultrasound system for spinal curvature measurement,
+	with the help of spatial tracking of the ultrasound transducer. Tracked
+	ultrasound was used to localize vertebral transverse processes as
+	landmarks along the spine to measure curvature angles. The method
+	was tested in two scoliotic spine models by localizing the same landmarks
+	using both ultrasound and radiographic imaging and comparing the
+	angles obtained. A close correlation was found between tracked ultrasound
+	and radiographic curvature measurements. Differences between results
+	of the two methods were 1.27 ± 0.84° (average ± SD) in an adult model
+	and 0.96 ± 0.87° in a pediatric model. Our results suggest that tracked
+	ultrasound may become a more tolerable and more accessible alternative
+	to radiographic spine monitoring in adolescent kyphoscoliosis.},
+  doi = {10.1016/j.ultrasmedbio.2013.09.021},
+  institution = {Laboratory for Percutaneous Surgery, School of Computing, Queen's
+	University, Kingston, Ontario, Canada. Electronic address: ungi@cs.queensu.ca.},
+  language = {eng},
+  medline-pst = {aheadofprint},
+  owner = {lasso},
+  pii = {S0301-5629(13)01055-7},
+  pmid = {24268452},
+  timestamp = {2013.12.21},
+  url = {http://dx.doi.org/10.1016/j.ultrasmedbio.2013.09.021}
+}
+
+@ARTICLE{Ungi2013e,
+  author = {Ungi, Tamas and Eric Moult and Joseph H. Schwab and Gabor Fichtinger},
+  title = {Ultrasound Snapshots in Percutaneous Pedicle Screw Placement Navigation:
+	A Feasibility Study},
+  journal = {Clinical Orthopaedics and Related Research },
+  year = {In Press},
+  month = {2013},
+  attachments = {http://perk.cs.queensu.ca/sites/perk.cs.queensu.ca/files/Ungi2013e.pdf},
+  owner = {lasso},
+  timestamp = {2013.09.18}
+}
+
 @ARTICLE{Ungi2012c,
   author = {Ungi, Tamas and Sargent, D. and E. Moult and Andras Lasso and Csaba
 	Pinter and McGraw, Robert C and Gabor Fichtinger},
@@ -2667,12 +2822,12 @@ Lasso2012d\;Leotta1997597\;Leotta2000509\;Meairs2000\;Miller2012\;Obuc
 hi1992\;Prager1999129\;Rohling1997177\;Rohling1998\;Rohling1998841\;Ro
 hling1999\;SanJose2003a\;SanJose2003b\;Sanches2000917\;Solberg2007\;So
 lberg2011\;Trobaugh1994315\;Vaughan2012\;;
-1 ExplicitGroup:Ultrasound simulation\;0\;Boe2010\;Cae2012\;Dauliganac
-2006\;Ehricke1998\;Gill2012\;Goksel2009\;Gore1977\;Henry1996\;Jensen19
-91\;Jensen1992\;Jensen1996\;Jensen2002\;Karamalis2009\;Kaufman2008\;La
-w2011\;Magee2007\;Maul2004\;Newey2003\;Persoon2010\;Shams2008\;Skehan2
-011\;Staboulidou2010\;Vidal2008\;Vidal2009\;Weidenbach2004\;Weidenbach
-2007\;Wein2007\;Zhu2010\;;
+1 ExplicitGroup:Ultrasound simulation\;0\;Bartha2013\;Boe2010\;Cae2012
+\;Dauliganac2006\;Ehricke1998\;Gill2012\;Goksel2009\;Gore1977\;Henry19
+96\;Jensen1991\;Jensen1992\;Jensen1996\;Jensen2002\;Karamalis2009\;Kau
+fman2008\;Law2011\;Magee2007\;Maul2004\;Newey2003\;Persoon2010\;Shams2
+008\;Skehan2011\;Staboulidou2010\;Vidal2008\;Vidal2009\;Weidenbach2004
+\;Weidenbach2007\;Wein2007\;Zhu2010\;;
 1 ExplicitGroup:Temporal calibration\;0\;Ackerman2013\;Chen2006\;Goodi
 ng2005\;Hsu2006\;Hsu2008\;Huber2009\;Khamene2005\;Lasso2012d\;Meairs20
 00\;Mercier2005\;Prager1998\;Prager1999\;Rousseau2002\;Rousseau2006\;T
@@ -2683,7 +2838,9 @@ reece2003\;;
 seau2002\;Rousseau2005\;Treece2003\;Yaniv2011\;;
 1 ExplicitGroup:Ultrasound image processing\;0\;McCormick2010\;;
 1 ExplicitGroup:Applications of Plus\;0\;Al-DeenAshab2013\;Ghoshal2013
-\;Maerz2013\;Rasoulian2013\;Ungi2012b\;Ungi2012c\;;
+\;Maerz2013\;Rasoulian2013\;Ungi2012b\;Ungi2012c\;Ungi2013e\;Ungi2013f
+\;;
 1 ExplicitGroup:Motivation for ultrasound usage\;0\;Miglioretti2013\;;
+1 ExplicitGroup:Alternatives to Plus\;0\;Lu2012\;Maerz2013\;;
 }
 
