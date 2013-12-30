@@ -3,9 +3,13 @@
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
       Name="PlusServer: Vascular needle insertion simulation"
-      Description="Tool positions are received through OpenIGTLink, simulated images are broadcasted through OpenIGTLink.
-ProbeToTracker, ReferenceToTracker, NeedleToTracker transforms has to be sent from Slicer through OpenIGTLink on port (Test_PlusConfiguration_SimulatedUS.mrb scene already contains a full setup).
-If used with Ascension tracker (need to enable the Ascension3DG device and disable the OpenIGTLinkTracker device): 1 Probe, 2 Reference, 3 Stylus."
+      Description="Usage:
+* Install 3D Slicer and its SlicerIGT extension (http://www.slicer.org).
+* Load the SimulatedUltrasound_Scene.mrb scene file (it is in the configuration directory) into 3D Slicer.
+* Change the ProbeToTracker and NeedleToTracker transforms in 3D Slicer to simulate probe and needle movement.
+
+Tool positions are received through OpenIGTLink, simulated images are broadcasted through OpenIGTLink. ProbeToTracker, ReferenceToTracker, NeedleToTracker transforms has to be provided as an input by an OpenIGTLink server.
+To use with Ascension tracker instead of a simulated tracker: enable the Ascension3DG device and disable the OpenIGTLinkTracker device. Ports: 1 Probe, 2 Reference, 3 Stylus."
     />
     
     <!--
