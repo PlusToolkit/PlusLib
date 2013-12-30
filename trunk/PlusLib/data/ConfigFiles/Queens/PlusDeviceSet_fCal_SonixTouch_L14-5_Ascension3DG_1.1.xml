@@ -79,7 +79,7 @@
 
   <Rendering WorldCoordinateFrame="Reference">
     <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" Id="ProbeModel"
-      File="L14-5_38_ProbeModel.stl"
+      File="Probe_L14-5_38.stl"
       ModelToObjectTransform="
         -1 0 0 29.7
         0 -1 0 1.5
@@ -97,7 +97,7 @@
     />
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
       Opacity="0.6"
-      File="FCal_1.1.stl"
+      File="fCal_1.1.stl"
       ModelToObjectTransform="
         1 0 0 -25.0
         0 0 -1 45.0

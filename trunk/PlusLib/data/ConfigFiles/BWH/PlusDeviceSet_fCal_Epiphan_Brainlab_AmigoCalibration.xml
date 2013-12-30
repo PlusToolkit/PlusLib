@@ -94,7 +94,7 @@
   </CoordinateDefinitions>
   
   <Rendering WorldCoordinateFrame="InstrumentM">
-    <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" Id="ProbeModel" File="L14-5_38_ProbeModel.stl"
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" Id="ProbeModel" File="Probe_L14-5_38.stl"
       ModelToObjectTransform="
         -1	0	0	29.7
         0	-1	0	1.5
@@ -114,7 +114,7 @@
       Type="Model"
       ObjectCoordinateFrame="Phantom"
       Opacity="0.6"
-      File="FCal_2.0.stl"
+      File="fCal_2.0.stl"
       ModelToObjectTransform="
         1	0	0	-35
         0	1	0	-10

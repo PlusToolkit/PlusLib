@@ -81,7 +81,7 @@
 
   <Rendering WorldCoordinateFrame="Reference" DisplayedImageOrientation="MF">
     <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" Id="ProbeModel"
-      File="L14-5_38_ProbeModel.stl"
+      File="Probe_L14-5_38.stl"
       ModelToObjectTransform="
         -1 0 0 29.7
         0 -1 0 1.5

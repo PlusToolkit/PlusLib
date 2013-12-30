@@ -2,7 +2,7 @@
   
   <PhantomDefinition version="1.0">
     <Description Name="fCAL" Type="Double-N" Version="1.0" Institution="Queen's University PerkLab" />
-    <Model File="FCal_1.0.stl"
+    <Model File="fCal_1.0.stl"
       ModelToPhantomTransform="
         1 0 0 -15.0
         0 1 0 10.0

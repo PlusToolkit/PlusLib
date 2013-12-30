@@ -103,13 +103,13 @@
   </CoordinateDefinitions>
   
   <Rendering WorldCoordinateFrame="Reference">
-    <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" Id="ProbeModel" File="L14-5_38_ProbeModel.stl" ModelToObjectTransform="
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" Id="ProbeModel" File="Probe_L14-5_38.stl" ModelToObjectTransform="
         -1 0 0 29.7
         0 -1 0 1.5
         0 0 1 -14
         0 0 0 1" />
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel" File="Stylus_Example.stl" ModelToObjectTransform="         1 0 0 -210.0         0 1 0 0         0 0 1 0         0 0 0 1" />
-    <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom" Opacity="0.6" File="FCal_1.0.stl" ModelToObjectTransform="         1 0 0 -15.0         0 1 0 10.0         0 0 1 -5.0         0 0 0 1" />
+    <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom" Opacity="0.6" File="fCal_1.0.stl" ModelToObjectTransform="         1 0 0 -15.0         0 1 0 10.0         0 0 1 -5.0         0 0 0 1" />
     <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage" />
   </Rendering>
   
