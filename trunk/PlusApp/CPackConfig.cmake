@@ -13,7 +13,11 @@ SET(CPACK_PACKAGE_INSTALL_DIRECTORY "${CPACK_PACKAGE_FILE_NAME}")
 
 SET(CPACK_INSTALL_CMAKE_PROJECTS "${PlusApp_BINARY_DIR};PlusApp;ALL;/")
 
+# Install into c:\Users\<username>\PlusApp_...
 SET(CPACK_NSIS_INSTALL_ROOT "$PROFILE")
+
+# Do not ask for admin access rights (no UAC dialog), to allow installation without admin access
+SET(CPACK_NSIS_DEFINES ${CPACK_NSIS_DEFINES} "RequestExecutionLevel user")
 
 SET(CPACK_PACKAGE_EXECUTABLES 
   "PlusServerLauncher" "Plus Server"
