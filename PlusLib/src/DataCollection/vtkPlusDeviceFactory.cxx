@@ -114,8 +114,6 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
 #endif
 #ifdef PLUS_USE_POLARIS
   DeviceTypes["PolarisTracker"]=(PointerToDevice)&vtkNDITracker::New; 
-#endif
-#ifdef PLUS_USE_POLARIS
   DeviceTypes["AuroraTracker"]=(PointerToDevice)&vtkNDITracker::New; 
 #endif
 #ifdef PLUS_USE_MICRONTRACKER  
