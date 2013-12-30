@@ -18,8 +18,6 @@ PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent, Qt::
   , m_DeviceSetSelectorWidget(NULL)
   , m_Server(NULL)
 {
-  m_Server = vtkPlusOpenIGTLinkServer::New();
-
   setWindowIcon(QPixmap( ":/icons/Resources/icon_ConnectLarge.png" ));
 
   setMinimumSize(480, 320);
@@ -117,19 +115,26 @@ void PlusServerLauncherMainWindow::connectToDevicesByConfigFile(std::string aCon
 {
   LOG_INFO("Connect using configuration file: " << aConfigFile);
 
+  // Either a connect or disconnect, we always start from a clean slate: delete any previously active servers
+  if ( m_Server != NULL )
+  {
+    m_Server->Stop();
+    m_Server->Delete();
+    m_Server=NULL;
+  }
+
+  // Disconnect
   // Empty parameter string means disconnect from device
   if (STRCASECMP(aConfigFile.c_str(), "") == 0)
   {
-    if ( m_Server != NULL )
-    {
-      m_Server->Stop(); 
-    }
     m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
     return; 
   }
 
+  // Connect
   // Start server 
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+  m_Server = vtkPlusOpenIGTLinkServer::New();
   PlusStatus status=m_Server->Start(aConfigFile) ;
   QApplication::restoreOverrideCursor();
   if ( status != PLUS_SUCCESS )
