@@ -62,6 +62,14 @@ public:
   */
   virtual PlusStatus Reset();
 
+  /*! If specified, the reconstructed volume will be saved into this filename */
+  vtkSetStringMacro(OutputVolFilename);
+  vtkGetStringMacro(OutputVolFilename);
+
+  /*! If specified, the reconstructed volume will sent to the client through OpenIGTLink, using this device name */
+  vtkSetStringMacro(OutputVolDeviceName);
+  vtkGetStringMacro(OutputVolDeviceName);
+
 protected:
 
     /*! Read main configuration from xml data */
@@ -150,6 +158,9 @@ protected:
   vtkSmartPointer<vtkTransformRepository> TransformRepository;
 
   bool EnableReconstruction;
+
+  char* OutputVolFilename;
+  char* OutputVolDeviceName;
 
   /*! Mutex instance simultaneous access of writer (writer may be accessed from command processing thread and also the internal update thread) */ 
   vtkSmartPointer<vtkRecursiveCriticalSection> VolumeReconstructorAccessMutex;

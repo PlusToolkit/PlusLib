@@ -99,12 +99,12 @@ std::string vtkPlusReconstructVolumeCommand::GetDescription(const char* commandN
   if (commandName==NULL || STRCASECMP(commandName, STOP_LIVE_RECONSTRUCTION_CMD))
   {
     desc+=STOP_LIVE_RECONSTRUCTION_CMD;
-    desc+=": Stop adding acquired frames to the volume, finalize reconstruction, and save/send the results. Attributes: VolumeReconstructorDeviceId: ID of the volume reconstructor device.";
+    desc+=": Stop adding acquired frames to the volume, finalize reconstruction, and save/send the results. Attributes: VolumeReconstructorDeviceId: ID of the volume reconstructor device. OutputVolFilename: name of the output volume file name (optional). OutputVolDeviceName: name of the OpenIGTLink device for the IMAGE message (optional).";
   }
   if (commandName==NULL || STRCASECMP(commandName, GET_LIVE_RECONSTRUCTION_SNAPSHOT_CMD))
   {
     desc+=GET_LIVE_RECONSTRUCTION_SNAPSHOT_CMD;
-    desc+=": Request a snapshot of the live reconstruction result. Attributes: VolumeReconstructorDeviceId: ID of the volume reconstructor device.";
+    desc+=": Request a snapshot of the live reconstruction result. Attributes: VolumeReconstructorDeviceId: ID of the volume reconstructor device. OutputVolFilename: name of the output volume file name (optional). OutputVolDeviceName: name of the OpenIGTLink device for the IMAGE message (optional).";
   }
   
   return desc;
@@ -153,8 +153,6 @@ PlusStatus vtkPlusReconstructVolumeCommand::WriteConfiguration(vtkXMLDataElement
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusReconstructVolumeCommand::Execute()
 {  
-  this->ResetResponse();
-
   LOG_DEBUG("vtkPlusReconstructVolumeCommand::Execute: "<<(this->Name?this->Name:"(undefined)")
     <<", device: "<<(this->VolumeReconstructorDeviceId==NULL?"(undefined)":this->VolumeReconstructorDeviceId) );
 
@@ -171,7 +169,19 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
       +(this->VolumeReconstructorDeviceId==NULL?"(undefined)":this->VolumeReconstructorDeviceId)+" is not found";
     return PLUS_FAIL;
   }
-  
+
+  // If output volume filename and/or device name is specified then update it in the reconstructor device
+  if (this->GetOutputVolFilename()!=NULL)
+  {
+    reconstructorDevice->SetOutputVolFilename(this->GetOutputVolFilename());
+  }
+  if (this->GetOutputVolDeviceName()!=NULL)
+  {
+    reconstructorDevice->SetOutputVolDeviceName(this->GetOutputVolDeviceName());
+  }  
+  std::string outputVolFilename = (reconstructorDevice->GetOutputVolFilename()?reconstructorDevice->GetOutputVolFilename():"");
+  std::string outputVolDeviceName = (reconstructorDevice->GetOutputVolDeviceName()?reconstructorDevice->GetOutputVolDeviceName():"");
+
   std::string reconstructorDeviceId=(reconstructorDevice->GetDeviceId()==NULL?"(unknown)":reconstructorDevice->GetDeviceId());  
   
   if (STRCASECMP(this->Name, RECONSTRUCT_PRERECORDED_CMD)==0)
@@ -189,7 +199,7 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
       return PLUS_FAIL;
     }
     this->ResponseMessage="Volume reconstruction from sequence file completed";
-    return ProcessImageReply(volumeToSend);
+    return ProcessImageReply(volumeToSend, outputVolFilename, outputVolDeviceName);    
   }
   else if (STRCASECMP(this->Name, START_LIVE_RECONSTRUCTION_CMD)==0)
   {    
@@ -214,8 +224,8 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
       return PLUS_FAIL;
     }
     reconstructorDevice->Reset(); // Clear volume
-    this->ResponseMessage="Volume reconstruction from sequence file completed";
-    return ProcessImageReply(volumeToSend);
+    this->ResponseMessage="Volume reconstruction from live frames completed";
+    return ProcessImageReply(volumeToSend, outputVolFilename, outputVolDeviceName);
   }     
   else if (STRCASECMP(this->Name, GET_LIVE_RECONSTRUCTION_SNAPSHOT_CMD)==0)
   {    
@@ -226,7 +236,7 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
       return PLUS_FAIL;
     }
     this->ResponseMessage="Volume reconstruction snapshot completed";
-    return ProcessImageReply(volumeToSend);
+    return ProcessImageReply(volumeToSend, outputVolFilename, outputVolDeviceName);
   }
   else if (STRCASECMP(this->Name, SUSPEND_LIVE_RECONSTRUCTION_CMD)==0)
   {
@@ -248,12 +258,12 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
 } 
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusReconstructVolumeCommand::ProcessImageReply(vtkImageData* volumeToSend)
+PlusStatus vtkPlusReconstructVolumeCommand::ProcessImageReply(vtkImageData* volumeToSend, const std::string& outputVolFilename, const std::string& outputVolDeviceName)
 {
   PlusStatus status=PLUS_SUCCESS;
-  if (this->OutputVolFilename != NULL)
+  if (!outputVolFilename.empty())
   {
-    std::string outputVolFileFullPath = vtkPlusConfig::GetInstance()->GetOutputPath(this->OutputVolFilename);
+    std::string outputVolFileFullPath = vtkPlusConfig::GetInstance()->GetOutputPath(outputVolFilename);
     LOG_INFO("Saving reconstructed volume to file: " << outputVolFileFullPath);
     this->ResponseMessage+=std::string(", saved reconstructed volume to file: ")+outputVolFileFullPath;
     if (vtkVolumeReconstructor::SaveReconstructedVolumeToMetafile(volumeToSend, outputVolFileFullPath.c_str())!=PLUS_SUCCESS)
@@ -262,17 +272,17 @@ PlusStatus vtkPlusReconstructVolumeCommand::ProcessImageReply(vtkImageData* volu
       this->ResponseMessage+=" saving reconstructed volume to "+outputVolFileFullPath+" failed";
     }
   }    
-  if (this->OutputVolDeviceName != NULL)
+  if (!outputVolDeviceName.empty())
   {    
     // send the reconstructed volume with the reply
     LOG_DEBUG("Send image to client through OpenIGTLink");
-    this->ResponseImageDeviceName=this->OutputVolDeviceName;
+    this->ResponseImageDeviceName=outputVolDeviceName;
     SetResponseImage(volumeToSend);
     vtkSmartPointer<vtkMatrix4x4> volumeToReferenceTransform = vtkSmartPointer<vtkMatrix4x4>::New();
     SetResponseImageToReferenceTransform(volumeToReferenceTransform);
     volumeToReferenceTransform->Identity(); // we leave it as identity, as the volume coordinate system is, the same as the reference coordinate system (we may extend this later so that the client can request the volume in any coordinate system)
     LOG_INFO("Send reconstructed volume to client through OpenIGTLink");
-    this->ResponseMessage+=std::string(", image sent as: ")+(this->OutputVolDeviceName?this->OutputVolDeviceName:"(undefined)");
+    this->ResponseMessage+=std::string(", image sent as: ")+this->ResponseImageDeviceName;
   }
   return status;
 }
