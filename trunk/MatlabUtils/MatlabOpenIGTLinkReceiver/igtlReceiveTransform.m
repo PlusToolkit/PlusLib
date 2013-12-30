@@ -22,6 +22,13 @@ function transform = igtlReceiveTransform(igtlConnection)
 %
 %    igtlConnection.socket.setSoTimeout(1000);
 %
+%  Example:
+%
+%   igtlConnection = igtlConnect('127.0.0.1',18944);
+%   transform = igtlReceiveTransform(igtlConnection);
+%   disp(transform.matrix);
+%   igtlDisconnect(igtlConnection);
+%
 
     transform.name=[];
     transform.matrix=[];
