@@ -38,6 +38,8 @@ vtkVirtualVolumeReconstructor::vtkVirtualVolumeReconstructor()
 , TotalFramesRecorded(0)
 , EnableReconstruction(false)
 , VolumeReconstructorAccessMutex(vtkSmartPointer<vtkRecursiveCriticalSection>::New())
+, OutputVolFilename(NULL)
+, OutputVolDeviceName(NULL)
 {
   // The data capture thread will be used to regularly read the frames and write to disk
   this->StartThreadForInternalUpdates = true;
@@ -49,6 +51,8 @@ vtkVirtualVolumeReconstructor::vtkVirtualVolumeReconstructor()
 //----------------------------------------------------------------------------
 vtkVirtualVolumeReconstructor::~vtkVirtualVolumeReconstructor()
 {
+  SetOutputVolFilename(NULL);
+  SetOutputVolDeviceName(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -78,6 +82,9 @@ PlusStatus vtkVirtualVolumeReconstructor::ReadConfiguration( vtkXMLDataElement* 
     this->EnableReconstruction = STRCASECMP(EnableReconstruction, "true") == 0 ? true : false;
   }
 
+  this->SetOutputVolFilename(deviceElement->GetAttribute("OutputVolFilename"));
+  this->SetOutputVolDeviceName(deviceElement->GetAttribute("OutputVolDeviceName"));
+
   PlusLockGuard<vtkRecursiveCriticalSection> writerLock(this->VolumeReconstructorAccessMutex);
   this->VolumeReconstructor->ReadConfiguration(deviceElement);
 
@@ -100,6 +107,9 @@ PlusStatus vtkVirtualVolumeReconstructor::WriteConfiguration( vtkXMLDataElement*
   }
 
   deviceElement->SetAttribute("EnableReconstruction", this->EnableReconstruction ? "TRUE" : "FALSE" );
+
+  deviceElement->SetAttribute("OutputVolFilename",this->OutputVolFilename);
+  deviceElement->SetAttribute("OutputVolDeviceName",this->OutputVolDeviceName);
 
   PlusLockGuard<vtkRecursiveCriticalSection> writerLock(this->VolumeReconstructorAccessMutex);
   this->VolumeReconstructor->WriteConfiguration(deviceElement->FindNestedElementWithName("VolumeReconstruction"));

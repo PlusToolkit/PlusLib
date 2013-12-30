@@ -31,7 +31,8 @@
     </Device>
     <Device
       Id="VolumeReconstructorDevice"
-      Type="VirtualVolumeReconstructor">
+      Type="VirtualVolumeReconstructor"
+      OutputVolDeviceName="RecVol_Reference">
       <InputChannels>
         <InputChannel Id="TrackedVideoStream" />
       </InputChannels>
