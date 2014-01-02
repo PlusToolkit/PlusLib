@@ -849,16 +849,17 @@ PlusStatus vtkImageVisualizer::EnableROI( bool aEnable )
 {
   LOG_TRACE("vtkImageVisualizer::EnableROI");
 
-  if( this->RegionOfInterest[0] == -1  || this->RegionOfInterest[1] == -1  || this->RegionOfInterest[2] == -1  || this->RegionOfInterest[3] == -1)
+  if (aEnable) 
   {
-    LOG_WARNING("Valid ROI is not defined. Check configuration or define valid ROI (Segmentation element, ClipRectangleOrigin and ClipRectangleSize attributes)");
-    return PLUS_FAIL;
-  }
-
-  if (aEnable) {
+    if( this->RegionOfInterest[0] == -1  || this->RegionOfInterest[1] == -1  || this->RegionOfInterest[2] == -1  || this->RegionOfInterest[3] == -1)
+    {
+      LOG_WARNING("Valid ROI is not defined. Check configuration or define valid ROI (Segmentation element, ClipRectangleOrigin and ClipRectangleSize attributes)");
+      return PLUS_FAIL;
+    }
     ROIActorAssembly->VisibilityOn();
   } 
-  else {
+  else 
+  {
     ROIActorAssembly->VisibilityOff();
   }
 
