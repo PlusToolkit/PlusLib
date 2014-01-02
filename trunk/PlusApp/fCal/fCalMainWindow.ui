@@ -311,11 +311,6 @@
           <string>Spatial calibration</string>
          </attribute>
         </widget>
-        <widget class="QWidget" name="toolbox_SingleWallCalibration">
-         <attribute name="label">
-          <string>Single wall calibration</string>
-         </attribute>
-        </widget>
         <widget class="QWidget" name="toolbox_VolumeReconstruction">
          <property name="geometry">
           <rect>
