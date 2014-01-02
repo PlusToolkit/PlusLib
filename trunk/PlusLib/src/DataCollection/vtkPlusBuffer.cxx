@@ -1264,15 +1264,15 @@ ItemStatus vtkPlusBuffer::GetInterpolatedStreamBufferItemFromTime( double time, 
 
   //============== Interpolate time ==================
 
-  double itemAunfilteredTimestamp = itemA.GetUnfilteredTimestamp(0); 
-  double itemBunfilteredTimestamp = itemB.GetUnfilteredTimestamp(0); 
+  double itemAunfilteredTimestamp = itemA.GetUnfilteredTimestamp(0.0); // 0.0 because timestamps in the buffer are in local time
+  double itemBunfilteredTimestamp = itemB.GetUnfilteredTimestamp(0.0); // 0.0 because timestamps in the buffer are in local time
   double interpolatedUnfilteredTimestamp = itemAunfilteredTimestamp*itemAweight + itemBunfilteredTimestamp*itemBweight;
 
   //============== Write interpolated results into the bufferItem ==================
 
   bufferItem->DeepCopy(&itemA);
   bufferItem->SetMatrix(interpolatedMatrix); 
-  bufferItem->SetFilteredTimestamp(time);
+  bufferItem->SetFilteredTimestamp(time-this->StreamBuffer->GetLocalTimeOffsetSec()); // global = local + offset => local = global - offset
   bufferItem->SetUnfilteredTimestamp(interpolatedUnfilteredTimestamp); 
 
   double angleDiffA=PlusMath::GetOrientationDifference(interpolatedMatrix, itemAmatrix);

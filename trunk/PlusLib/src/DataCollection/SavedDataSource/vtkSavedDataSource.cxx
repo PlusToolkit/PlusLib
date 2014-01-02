@@ -79,13 +79,13 @@ PlusStatus vtkSavedDataSource::InternalUpdate()
   }
 
   PlusStatus status=PLUS_FAIL;
-  if (!this->UseOriginalTimestamps)
+  if (this->UseOriginalTimestamps)
   {
-    status=InternalUpdateCurrentTimestamp(frameToBeAddedUid, frameToBeAddedLoopIndex);
+    status=InternalUpdateOriginalTimestamp(frameToBeAddedUid, frameToBeAddedLoopIndex);    
   }
   else
   {
-    status=InternalUpdateOriginalTimestamp(frameToBeAddedUid, frameToBeAddedLoopIndex);
+    status=InternalUpdateCurrentTimestamp(frameToBeAddedUid, frameToBeAddedLoopIndex);
   }
 
   return status;
@@ -506,6 +506,7 @@ PlusStatus vtkSavedDataSource::InternalConnectVideo(vtkTrackedFrameList* savedDa
   
   // Copy all the settings from the video buffer 
   this->LocalVideoBuffer->DeepCopy( this->GetOutputBuffer() );
+  this->LocalVideoBuffer->SetLocalTimeOffsetSec(0.0); // the time offset is copied from the output, so reset it to 0
 
   // Fill local video buffer
 
@@ -562,7 +563,8 @@ PlusStatus vtkSavedDataSource::InternalConnectTracker(vtkTrackedFrameList* saved
 
     vtkSmartPointer<vtkPlusBuffer> buffer=vtkSmartPointer<vtkPlusBuffer>::New();
     // Copy all the settings from the default tool buffer 
-    buffer->DeepCopy( tool->GetBuffer() ); 
+    buffer->DeepCopy( tool->GetBuffer() );
+    buffer->SetLocalTimeOffsetSec(0.0); // the time offset is copied from the output, so reset it to 0
     if (buffer->CopyTransformFromTrackedFrameList(savedDataBuffer, vtkPlusBuffer::READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS, toolTransformName)!=PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to retrieve tracking data from tracked frame list for tool "<<tool->GetSourceId());
