@@ -111,24 +111,25 @@ void StatusIcon::AddMessage(QString aInputString)
   message = message.append(aInputString.right( aInputString.size() - pos - 1 )).append(endHtml);
 
   if( m_MaxMessageCount != vtkPlusLogger::UnlimitedLogMessages() && m_MessageTextEdit->document()->lineCount() > m_MaxMessageCount )
-  {
+  {   
     QTextCursor tc = m_MessageTextEdit->textCursor();
+
+    // Store original selection
     int originalSelectionStart=tc.selectionStart();
     int originalSelectionLength=tc.selectionEnd()-originalSelectionStart;
 
-    // Keep only the most recent 80% of the lines
-    int linesToKeep=m_MaxMessageCount*0.80;
-
-    while( m_MessageTextEdit->document()->lineCount() > linesToKeep )
-    {     
-      tc.movePosition( QTextCursor::Start );
-      tc.select( QTextCursor::LineUnderCursor );
-      originalSelectionStart -= (tc.selectionEnd()-tc.selectionStart())+1; // +1 because of the newline
-
-      tc.removeSelectedText();
-      tc.deleteChar(); // delete the newline
+    // Keep only the most recent 80% of the lines, delete the rest
+    int linesToDelete=m_MessageTextEdit->document()->lineCount()-m_MaxMessageCount*0.80;
+    tc.movePosition( QTextCursor::Start );
+    for (int i=0; i<linesToDelete; i++)
+    {
+      tc.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
+      tc.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor);
     }
+    originalSelectionStart -= (tc.selectionEnd()-tc.selectionStart());
+    tc.removeSelectedText();
 
+    // Restore original selection
     if (originalSelectionStart>0 && originalSelectionLength>0)
     {
       // if there was a selection, then restore it
@@ -152,7 +153,7 @@ void StatusIcon::AddMessage(QString aInputString)
         vScrollBar->triggerAction(QScrollBar::SliderToMaximum);
       }
     }
-
+    
   }
 
   m_MessageTextEdit->append(message);
