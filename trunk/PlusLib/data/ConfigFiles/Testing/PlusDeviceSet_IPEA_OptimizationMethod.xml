@@ -1,9 +1,9 @@
 <PlusConfiguration version="2.3" >
+
   <DataCollection StartupDelaySec="1">
     <DeviceSet 
       Name="SonixTouch + PolarisTracker IPEA" 
-      Description="SonixTouch + PolarisTracker + Stylus Calibration + fCal 2.0 phantom, L14-5 linear transducer at 15cm depth"
-    />    
+      Description="SonixTouch + PolarisTracker + Stylus Calibration + fCal 2.0 phantom, L14-5 linear transducer at 15cm depth" />    
     
     <Device
       Id="TrackedVideoDevice"
@@ -27,8 +27,7 @@
       <InputChannels>
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="VideoStream" />
-      </InputChannels>
-      
+      </InputChannels>      
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>
@@ -38,7 +37,7 @@
       Type="PolarisTracker"
       SerialPort="4"
       BaudRate="115200"
-      BufferSize="2500"
+      BufferSize="500"
       AcquisitionRate="50"
       AveragedItemsForFiltering="20"
       LocalTimeOffsetSec="0">
@@ -47,7 +46,6 @@
         <DataSource Type="Tool" Id="Stylus" PortName="6" RomFile="NdiToolDefinitions\8700340.rom"/>
         <DataSource Type="Tool" Id="Reference" PortName="7" RomFile="NdiToolDefinitions\8700449.rom"/>
       </DataSources>
-
       <OutputChannels>
         <OutputChannel Id="VideoOutput" />
           <DataSource Id="Probe"/>
@@ -74,7 +72,6 @@
       <DataSources>
         <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="100" AveragedItemsForFiltering="20" />
       </DataSources>
-
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
@@ -82,6 +79,7 @@
     -->
     
   </DataCollection>
+  
   <CoordinateDefinitions>
     <Transform From="Image" To="Probe"
       Matrix="
@@ -119,22 +117,21 @@
         0	0	0	1"
        Date="021513_103746"/>
   </CoordinateDefinitions>
+
   <Rendering WorldCoordinateFrame="Reference">
     <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" Id="ProbeModel" File="Probe_L14-5_38.stl"
       ModelToObjectTransform="
         -1	0	0	29.7
         0	-1	0	1.5
         0	0	1	-14
-        0	0	0	1"
-      />
+        0	0	0	1" />
     <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel" File="Stylus_Example.stl"
       ModelToObjectTransform="
         1	0	0	-210
         0	1	0	0
         0	0	1	0
-        0	0	0	1"
-      />
+        0	0	0	1" />
     <DisplayableObject
       Id="PhantomModel"
       Type="Model"
@@ -148,6 +145,7 @@
         0	0	0	1"/>
     <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
   </Rendering>
+
   <PhantomDefinition>
     <Description Name="fCAL" Type="Double-N" Version="2.0" WiringVersion="2.0" Institution="Queen&apos;s University PerkLab"/>
     <Geometry>
@@ -178,6 +176,7 @@
       </Landmarks>
     </Geometry>
   </PhantomDefinition>
+
   <VolumeReconstruction
     OutputSpacing="0.5 0.5 0.5"
     ClipRectangleOrigin="0 0"
@@ -186,6 +185,7 @@
     Optimization="FULL"
     Compounding="On"
     FillHoles="Off"/>
+
   <fCal
     PhantomModelId="PhantomModel"
     ReconstructedVolumeId="Volume"
@@ -202,10 +202,13 @@
     ReferenceCoordinateFrame="Reference"
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
-    TemporalCalibrationDurationSec="10"/>
+    TemporalCalibrationDurationSec="10"
+    DefaultSelectedChannelId="TrackedVideoStream" />
+
   <vtkPivotCalibrationAlgo ObjectMarkerCoordinateFrame="Stylus" ReferenceCoordinateFrame="Reference" ObjectPivotPointCoordinateFrame="StylusTip"/>
   <vtkPhantomLandmarkRegistrationAlgo PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference" StylusTipCoordinateFrame="StylusTip"/>
   <vtkPhantomLinearObjectRegistrationAlgo PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference" StylusTipCoordinateFrame="StylusTip"/>
+
   <vtkProbeCalibrationAlgo
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"
@@ -213,6 +216,7 @@
     ReferenceCoordinateFrame="Reference"
     OptimizationMethod="2D"
     IsotropicPixelSpacing="FALSE"/>
+
   <Segmentation
     ApproximateSpacingMmPerPixel="0.28692"
     MorphologicalOpeningCircleRadiusMm="0.15"
@@ -229,4 +233,5 @@
     UseOriginalImageIntensityForDotIntensityScore="1"
     MaxLineShiftMm="10"
     NumberOfMaximumFiducialPointCandidates="35"/>
+
 </PlusConfiguration>

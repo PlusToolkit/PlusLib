@@ -3,8 +3,7 @@
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
       Name="Acquisition of RF image and tracking data from saved files" 
-      Description="For simple testing of RF data acquisition. No RF processing parameters are specified." 
-    />
+      Description="For simple testing of RF data acquisition. No RF processing parameters are specified." />
 
     <Device
       Id="TrackerDevice"

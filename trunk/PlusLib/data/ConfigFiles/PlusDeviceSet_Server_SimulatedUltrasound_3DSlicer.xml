@@ -16,7 +16,7 @@ To use with Ascension tracker instead of a simulated tracker: enable the Ascensi
       For getting transforms from 3D Slicer through OpenIGTLink
       (Slicer requires UseReceivedTimestamps="false", UseLastTransformsOnReceiveTimeout="true")
     -->
-     <Device
+    <Device
       Id="TrackerDevice"
       Type="OpenIGTLinkTracker"
       MessageType="TRANSFORM"
@@ -29,9 +29,9 @@ To use with Ascension tracker instead of a simulated tracker: enable the Ascensi
       LocalTimeOffset="0.0"
       ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="Probe" BufferSize="1000" PortName="0" AveragedItemsForFiltering="20" />
-        <DataSource Type="Tool" Id="Reference" BufferSize="1000" PortName="1" AveragedItemsForFiltering="20" />
-        <DataSource Type="Tool" Id="Needle" BufferSize="1000" PortName="2" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" Id="Probe" BufferSize="500" PortName="0" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" Id="Reference" BufferSize="500" PortName="1" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" Id="Needle" BufferSize="500" PortName="2" AveragedItemsForFiltering="20" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
@@ -238,10 +238,10 @@ To use with Ascension tracker instead of a simulated tracker: enable the Ascensi
     <!-- ImageFullFrameToProbe is renamed from the non-simulated ImageToProbe (820x616 image) -->
     <Transform From="ImageFullFrame" To="Probe"
       Matrix="
-         -0.00228039 0.0860508 -0.00121134 52.5973
-		 -0.0860501 -0.00229763 -0.00122624 35.9178
-		 -0.00125802 0.0011783 0.0860722 16.3705
-		  0 0 0 1"
+        -0.00228039 0.0860508 -0.00121134 52.5973
+        -0.0860501 -0.00229763 -0.00122624 35.9178
+        -0.00125802 0.0011783 0.0860722 16.3705
+        0 0 0 1"
       Error="0.582721" Date="2012.02.06 17:57:00" />    
     <!-- Simulated US frame (Image) within the full 820x616 image frame (ImageFullFrame): topleft=(176,0) -->
     <Transform From="Image" To="ImageFullFrame"

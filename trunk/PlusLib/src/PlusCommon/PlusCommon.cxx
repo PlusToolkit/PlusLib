@@ -319,9 +319,12 @@ PlusStatus PlusCommon::PrintXML(ostream& os, vtkIndent indent, vtkXMLDataElement
       os << matrixIndent << matrixValues[0] << "\t" << matrixValues[1] << "\t" << matrixValues[2] << "\t" << matrixValues[3] << std::endl;
       os << matrixIndent << matrixValues[4] << "\t" << matrixValues[5] << "\t" << matrixValues[6] << "\t" << matrixValues[7] << std::endl;
       os << matrixIndent << matrixValues[8] << "\t" << matrixValues[9] << "\t" << matrixValues[10] << "\t" << matrixValues[11] << std::endl;
-      os << matrixIndent << matrixValues[12] << "\t" << matrixValues[13] << "\t" << matrixValues[14] << "\t" << matrixValues[15];
-      os << "\"";
-      if (!printEachAttributeInNewLine)
+      os << matrixIndent << matrixValues[12] << "\t" << matrixValues[13] << "\t" << matrixValues[14] << "\t" << matrixValues[15] << "\"";
+      // Prevent writing additional attributes right after the last line of the matrix
+      // If this is the last attribute then we don't have to start a new line, just append the closing to the matrix line.
+      // If each attribute is written to a separate line anyway then we don't have to start a new line, it'll be added before adding the next element.
+      bool isLastAttribute = (i+1 == elem->GetNumberOfAttributes());
+      if (!isLastAttribute && !printEachAttributeInNewLine)
       {
         os << std::endl << nextIndent;
       }
@@ -372,7 +375,7 @@ PlusStatus PlusCommon::PrintXML(ostream& os, vtkIndent indent, vtkXMLDataElement
   // We can get away with short format tag.
   else
   {
-    os << "/>\n";
+    os << " />\n";
   }
   return PLUS_SUCCESS;
 }

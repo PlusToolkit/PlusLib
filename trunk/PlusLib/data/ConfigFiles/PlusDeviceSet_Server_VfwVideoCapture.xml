@@ -3,8 +3,7 @@
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
       Name="PlusServer: Video for Windows video capture device"
-      Description="Broadcasting acquired video through OpenIGTLink"
-    />
+      Description="Broadcasting acquired video through OpenIGTLink" />
     <Device
       Id="VideoDevice" 
       Type="VFWVideo" >
@@ -17,7 +16,7 @@
     </Device>   
   </DataCollection>
 
-   <CoordinateDefinitions>
+  <CoordinateDefinitions>
     <Transform From="Image" To="Reference"
       Matrix="
         0.2 0.0 0.0 0.0

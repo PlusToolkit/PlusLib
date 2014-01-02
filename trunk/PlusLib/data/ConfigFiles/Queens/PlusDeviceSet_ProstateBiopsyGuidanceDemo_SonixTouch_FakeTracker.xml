@@ -3,8 +3,7 @@
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
       Name="SonixTouch with Fake tracker (UBC)" 
-      Description="SonixTouch and Fake tracker. The SonixTouch US device should be in research mode. Used at UBC"
-    />
+      Description="SonixTouch and Fake tracker. The SonixTouch US device should be in research mode. Used at UBC" />
 
     <Device
       Id="TrackerDevice"
@@ -15,8 +14,8 @@
       Mode="PivotCalibration"
       ReferenceToolName="Reference" >
       <DataSources>
-        <DataSource Type="Tool" Id="Reference" PortName="0" BufferSize="200" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="Stylus" PortName="1" BufferSize="200" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Reference" PortName="0" BufferSize="500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Stylus" PortName="1" BufferSize="500" AveragedItemsForFiltering="20"/>
       </DataSources>  
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
@@ -40,7 +39,7 @@
       Timeout="-1" 
       CompressionStatus="0" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="MF" BufferSize="500" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="MF" BufferSize="100" AveragedItemsForFiltering="20" />
       </DataSources>      
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
@@ -77,7 +76,7 @@
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
     TemporalCalibrationDurationSec="10"
-  />
+    DefaultSelectedChannelId="TrackedVideoStream" />
 
   <CoordinateDefinitions>
     <Transform From="Image" To="Probe"

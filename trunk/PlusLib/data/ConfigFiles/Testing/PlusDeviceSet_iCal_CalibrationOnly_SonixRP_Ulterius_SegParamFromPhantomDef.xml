@@ -15,8 +15,7 @@
     ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg="-30 30 -30 30 -50 50"
     CollinearPointsMaxDistanceFromLineMm="1.0"
     UseOriginalImageIntensityForDotIntensityScore="0"
-    NumberOfMaximumFiducialPointCandidates="20"
-  />
+    NumberOfMaximumFiducialPointCandidates="20" />
 
   <CoordinateDefinitions>
     <Transform From="TemplateHolder" To="TemplateHome" Matrix=" 1 0 0 5    0 1 0 63.5   0 0 1 0   0 0 0 1" Date="2011.12.07 11:39:00" Error="0.0" />
@@ -24,15 +23,12 @@
   </CoordinateDefinitions> 
   
   <PhantomDefinition>
-    <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
       Name="iCAL"
       Type="Double-N"
       Version="1.0"
       WiringVersion="1.0"
-      Institution="Queen's University PerkLab"
-    />
-    
+      Institution="Queen's University PerkLab" />    
     <Geometry>
       <!-- Phantom origin is the inner end of the hole that is on the side of the templete holder, on the side of the triangle shaped hole on the inner part, and closest to the probe -->
       <Pattern Type="NWire">

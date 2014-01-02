@@ -3,9 +3,8 @@
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
       Name="fCal: SonixTouch US (L14-5 probe) + Claron MicronTracker (Probe, Reference, Stylus)"
-      Description="MicronTracker with Probe (1b), Reference (TTBlock), Stylus (2b) tools" 
-    />
-
+      Description="MicronTracker with Probe (1b), Reference (TTBlock), Stylus (2b) tools" />
+      
     <Device
       Id="TrackerDevice"
       Type="MicronTracker"
@@ -18,7 +17,6 @@
         <DataSource Type="Tool" Id="Reference"  PortName="TTblock" BufferSize="500" AveragedItemsForFiltering="20"/>
         <DataSource Type="Tool" Id="Stylus" PortName="2b" BufferSize="500" AveragedItemsForFiltering="20"/>
       </DataSources>
-
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
           <DataSource Id="Probe"/>
@@ -45,7 +43,6 @@
       <DataSources>
         <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="100" AveragedItemsForFiltering="20" />
       </DataSources>
-      
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
@@ -58,13 +55,11 @@
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="VideoStream" />
       </InputChannels>
-      
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>
     </Device>
   </DataCollection>
-
 
   <CoordinateDefinitions>
     <Transform From="Image" To="TransducerOriginPixel"
@@ -72,10 +67,8 @@
               0 1 0 5
               0 0 1 0
               0 0 0 1"
-      Date="2011.12.06 17:57:00" Error="0.0"
-    />    
-  </CoordinateDefinitions> 
-
+      Date="2011.12.06 17:57:00" Error="0.0" />    
+  </CoordinateDefinitions>
 
   <Rendering WorldCoordinateFrame="Reference">
     <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" Id="ProbeModel"
@@ -84,17 +77,15 @@
         -1 0 0 29.7
         0 -1 0 1.5
         0 0 1 -14
-        0 0 0 1"
-    />
-  <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
+        0 0 0 1" />
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel"
       File="Stylus_Example.stl"
       ModelToObjectTransform="
         1 0 0 -210.0
         0 1 0 0
         0 0 1 0
-        0 0 0 1"
-    />
+        0 0 0 1" />
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
       Opacity="0.6"
       File="fCal_1.2.stl"
@@ -102,11 +93,9 @@
         1 0 0 -25.0
         0 0 -1 45.0
         0 1 0 -5.0
-        0 0 0 1"
-      />
+        0 0 0 1" />
     <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
   </Rendering>
-
 
   <Segmentation
     ApproximateSpacingMmPerPixel="0.078"
@@ -123,20 +112,15 @@
     ThresholdImagePercent="10"
     CollinearPointsMaxDistanceFromLineMm="0.6"
     UseOriginalImageIntensityForDotIntensityScore="0"
-    NumberOfMaximumFiducialPointCandidates="20"
-  />
-
+    NumberOfMaximumFiducialPointCandidates="20" />
 
   <PhantomDefinition>
-    <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
       Name="fCAL"
       Type="Double-N"
       Version="1.0"
       WiringVersion="1.0"
-      Institution="Queen's University PerkLab"
-    />
-
+      Institution="Queen's University PerkLab" />
     <Geometry>
       <Pattern Type="NWire">
         <Wire Name="1:E3_e3" EndPointFront="20.0 0.0 5.0" EndPointBack="20.0 40.0 5.0" />
@@ -148,13 +132,11 @@
         <Wire Name="5:J4_f4" EndPointFront="45.0 0.0 0.0" EndPointBack="25.0 40.0 0.0" />
         <Wire Name="6:K4_k4" EndPointFront="50.0 0.0 0.0" EndPointBack="50.0 40.0 0.0" />
       </Pattern>
-
       <Landmarks>
         <Landmark Name="#1" Position="95.0 5.0 15.0" />
         <Landmark Name="#2" Position="95.0 40.0 15.0" />
         <Landmark Name="#3" Position="95.0 40.0 0.0" />
         <Landmark Name="#4" Position="95.0 0.0 0.0" />
-
         <Landmark Name="#5" Position="-25.0 40.0 15.0" />
         <Landmark Name="#6" Position="-25.0 0.0 10.0" />
         <Landmark Name="#7" Position="-25.0 0.0 0.0" />
@@ -163,12 +145,9 @@
     </Geometry>
   </PhantomDefinition>
 
-
   <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
     ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
-    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"
-  />
-
+    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off" />
 
   <fCal
     PhantomModelId="PhantomModel"
@@ -187,29 +166,22 @@
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
     TemporalCalibrationDurationSec="10"
-    DefaultSelectedChannelId="TrackedVideoStream"
-  />
-
+    DefaultSelectedChannelId="TrackedVideoStream" />
 
   <vtkPivotCalibrationAlgo
     ObjectMarkerCoordinateFrame="Stylus"
     ReferenceCoordinateFrame="Reference"
-    ObjectPivotPointCoordinateFrame="StylusTip"
-  />
-
+    ObjectPivotPointCoordinateFrame="StylusTip" />
 
   <vtkPhantomLandmarkRegistrationAlgo
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
-    StylusTipCoordinateFrame="StylusTip"
-  />
-
+    StylusTipCoordinateFrame="StylusTip" />
 
   <vtkProbeCalibrationAlgo
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"
     PhantomCoordinateFrame="Phantom"
-    ReferenceCoordinateFrame="Reference"
-  />
+    ReferenceCoordinateFrame="Reference" />
 
 </PlusConfiguration>

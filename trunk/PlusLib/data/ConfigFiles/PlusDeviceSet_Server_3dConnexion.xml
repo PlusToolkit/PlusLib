@@ -3,8 +3,7 @@
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
       Name="PlusServer: 3dConnexion SpaceNavigator 3D mouse" 
-      Description="Broadcasting tool tracking data through OpenIGTLink" 
-    />
+      Description="Broadcasting tool tracking data through OpenIGTLink" />
     <Device
       Id="TrackerDevice"
       Type="3dConnexion"
@@ -15,7 +14,7 @@
       RotationScales="0.001 -0.001 -0.001"
       ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="Navigator" PortName="SpaceNavigator" BufferSize="2500" AveragedItemsForFiltering="20"/>    
+        <DataSource Type="Tool" Id="Navigator" PortName="SpaceNavigator" BufferSize="500" AveragedItemsForFiltering="20"/>    
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >

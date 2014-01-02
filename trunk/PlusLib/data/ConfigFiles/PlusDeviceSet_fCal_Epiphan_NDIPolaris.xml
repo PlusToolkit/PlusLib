@@ -3,8 +3,7 @@
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
       Name="fCal: Epiphan framegrabber + NDI Polaris tracker (Probe, Reference, Stylus)"
-      Description="Epiphan framegrabber image acquisition + NDI Polaris for tracking"
-    />
+      Description="Epiphan framegrabber image acquisition + NDI Polaris for tracking" />
 
     <Device
       Id="TrackerDevice"
@@ -14,11 +13,10 @@
       AcquisitionRate="50"
       LocalTimeOffsetSec="0.0" >
       <DataSources>
-        <DataSource Type="Tool" Id="Tool" PortName="4" RomFile="NdiToolDefinitions\8700339.rom" AveragedItemsForFiltering="20" BufferSize="2500"/>
-        <DataSource Type="Tool" Id="Stylus" PortName="5" RomFile="NdiToolDefinitions\8700340.rom" AveragedItemsForFiltering="20" BufferSize="2500"/>
-        <DataSource Type="Tool" Id="Reference" PortName="6" RomFile="NdiToolDefinitions\8700449.rom" AveragedItemsForFiltering="20" BufferSize="2500"/>
+        <DataSource Type="Tool" Id="Tool" PortName="4" RomFile="NdiToolDefinitions\8700339.rom" AveragedItemsForFiltering="20" BufferSize="500"/>
+        <DataSource Type="Tool" Id="Stylus" PortName="5" RomFile="NdiToolDefinitions\8700340.rom" AveragedItemsForFiltering="20" BufferSize="500"/>
+        <DataSource Type="Tool" Id="Reference" PortName="6" RomFile="NdiToolDefinitions\8700449.rom" AveragedItemsForFiltering="20" BufferSize="500"/>
       </DataSources>
-
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
           <DataSource Id="Tool"/>
@@ -35,7 +33,6 @@
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="100" AveragedItemsForFiltering="20" />
       </DataSources>
-      
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
@@ -48,7 +45,6 @@
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="VideoStream" />
       </InputChannels>
-      
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>
@@ -56,23 +52,18 @@
     
   </DataCollection>
 
-
   <Rendering WorldCoordinateFrame="Tracker">
     <DisplayableObject Type="Axes" ObjectCoordinateFrame="Reference" />
     <DisplayableObject Type="Axes" ObjectCoordinateFrame="Tracker" />
   </Rendering>
 
-
   <PhantomDefinition>
-    <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
       Name="fCAL"
       Type="Double-N"
       Version="1.0"
       WiringVersion="1.0"
-      Institution="Queen's University PerkLab"
-      />
-
+      Institution="Queen's University PerkLab" />
     <Geometry>
       <Pattern Type="NWire">
         <Wire Name="1:E3_e3" EndPointFront="20.0 0.0 5.0" EndPointBack="20.0 40.0 5.0" />
@@ -84,13 +75,11 @@
         <Wire Name="5:J4_f4" EndPointFront="45.0 0.0 0.0" EndPointBack="25.0 40.0 0.0" />
         <Wire Name="6:K4_k4" EndPointFront="50.0 0.0 0.0" EndPointBack="50.0 40.0 0.0" />
       </Pattern>
-
       <Landmarks>
         <Landmark Name="#1" Position="95.0 5.0 15.0" />
         <Landmark Name="#2" Position="95.0 40.0 15.0" />
         <Landmark Name="#3" Position="95.0 40.0 0.0" />
         <Landmark Name="#4" Position="95.0 0.0 0.0" />
-
         <Landmark Name="#5" Position="-25.0 40.0 15.0" />
         <Landmark Name="#6" Position="-25.0 0.0 10.0" />
         <Landmark Name="#7" Position="-25.0 0.0 0.0" />
@@ -98,7 +87,6 @@
       </Landmarks>
     </Geometry>
   </PhantomDefinition>
-
 
   <fCal
     PhantomModelId="PhantomModel"
@@ -116,6 +104,6 @@
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
     TemporalCalibrationDurationSec="10"
-  />
+    DefaultSelectedChannelId="TrackedVideoStream" />
 
 </PlusConfiguration>

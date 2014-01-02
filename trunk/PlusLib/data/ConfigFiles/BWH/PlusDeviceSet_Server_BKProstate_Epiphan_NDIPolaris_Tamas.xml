@@ -1,4 +1,5 @@
 <PlusConfiguration version="2.1" PlusRevision="Plus-2.0.0.2864">
+
   <DataCollection StartupDelaySec="1">
     <DeviceSet Name="Prostate probe + Epiphan framegrabber + NDI Polaris 3 + Tamas" Description="Probe calibrated"/>
     <Device
@@ -16,21 +17,21 @@
           PortName="4"
           RomFile="C:\isaiah\polaris\bwh_tooldefs\HologicStar_6balls_B\HologicStar_6balls_B.rom"
           AveragedItemsForFiltering="20"
-          BufferSize="2500"/>
+          BufferSize="500"/>
         <DataSource
           Type="Tool"
           Id="Stylus"
           PortName="5"
           RomFile="C:\isaiah\polaris\bwh_tooldefs\HologicStylus\HologicStylus.rom"
           AveragedItemsForFiltering="20"
-          BufferSize="2500"/>
+          BufferSize="500"/>
         <DataSource
           Type="Tool"
           Id="Reference"
           PortName="6"
           RomFile="C:\isaiah\polaris\bwh_tooldefs\HologicTStar_3balls_1\HologicTStar_3balls_1.rom"
           AveragedItemsForFiltering="20"
-          BufferSize="2500"/>
+          BufferSize="500"/>
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
@@ -65,6 +66,7 @@
       </OutputChannels>
     </Device>
   </DataCollection>
+
   <PlusOpenIGTLinkServer MaxNumberOfIgtlMessagesToSend="1" MaxTimeSpentWithProcessingMs="10" ListeningPort="18944" OutputChannelId="TrackedVideoStream">
     <DefaultClientInfo>
       <MessageTypes>
@@ -89,15 +91,13 @@
         -1	0	0	29.7
         0	-1	0	1.5
         0	0	1	-14
-        0	0	0	1"
-      />
+        0	0	0	1" />
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel" File="Stylus_Example.stl"
       ModelToObjectTransform="
         1	0	0	-210
         0	1	0	0
         0	0	1	0
-        0	0	0	1"
-      />
+        0	0	0	1" />
     <DisplayableObject
       Id="PhantomModel"
       Type="Model"
@@ -108,9 +108,10 @@
         1	0	0	-35
         0	1	0	-10
         0	0	1	-5
-        0	0	0	1"/>
+        0	0	0	1" />
     <xDisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
   </Rendering>
+
   <PhantomDefinition>
     <Description Name="fCAL" Type="Double-N" Version="2.0" WiringVersion="2.0" Institution="Queen&apos;s University PerkLab"/>
     <Geometry>
@@ -141,6 +142,7 @@
       </Landmarks>
     </Geometry>
   </PhantomDefinition>
+
   <fCal
     PhantomModelId="PhantomModel"
     TransducerModelId="ProbeModel"
@@ -157,10 +159,12 @@
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
     TemporalCalibrationDurationSec="10"
-    DefaultSelectedChannelId="TrackedVideoStream"/>
+    DefaultSelectedChannelId="TrackedVideoStream" />
+
   <vtkPivotCalibrationAlgo ObjectMarkerCoordinateFrame="Stylus" ReferenceCoordinateFrame="Reference" ObjectPivotPointCoordinateFrame="StylusTip"/>
   <vtkPhantomLandmarkRegistrationAlgo PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference" StylusTipCoordinateFrame="StylusTip"/>
   <vtkProbeCalibrationAlgo ImageCoordinateFrame="Image" ProbeCoordinateFrame="Probe" PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference"/>
+
   <CoordinateDefinitions>
     <Transform From="Image" To="Probe"
      Matrix="
@@ -191,6 +195,7 @@
         0	0	0	1"
        Date="051713_101948"/>
   </CoordinateDefinitions>
+
   <Segmentation
     ApproximateSpacingMmPerPixel="0.078"
     MorphologicalOpeningCircleRadiusMm="0.27"
@@ -206,6 +211,6 @@
     ThresholdImagePercent="10"
     CollinearPointsMaxDistanceFromLineMm="0.6"
     UseOriginalImageIntensityForDotIntensityScore="0"
-    NumberOfMaximumFiducialPointCandidates="20"
-    />
+    NumberOfMaximumFiducialPointCandidates="20" />
+
 </PlusConfiguration>

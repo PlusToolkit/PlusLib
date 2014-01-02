@@ -3,8 +3,8 @@
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
       Name="fCal: SonixTouch US (L14-5 probe) + Ascension3DG tracker (Probe, Reference, Stylus) - Lego Phantom" 
-      Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." 
-    />
+      Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." />
+      
     <Device 
       Id="TrackerDevice" 
       Type="Ascension3DG" 
@@ -59,6 +59,7 @@
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>
     </Device>
+    
   </DataCollection>
 
   <CoordinateDefinitions>
@@ -77,7 +78,6 @@
         0  0  0  1"
        Date="091112_160011"/>
   </CoordinateDefinitions>
-  
 
   <Rendering WorldCoordinateFrame="Reference" DisplayedImageOrientation="MF">
     <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" Id="ProbeModel"
@@ -86,8 +86,7 @@
         -1 0 0 29.7
         0 -1 0 1.5
         0 0 1 -14
-        0 0 0 1"
-    />
+        0 0 0 1" />
     <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel"
       File="Stylus_Example.stl"
@@ -95,9 +94,7 @@
         1 0 0 -210.0
         0 1 0 0
         0 0 1 0
-        0 0 0 1"
-    />
-	
+        0 0 0 1" />	
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
       Opacity="0.6"
       File="LegoPhantom.stl"
@@ -105,11 +102,9 @@
         1 0 0 0
         0 1 0 0
         0 0 1 0
-        0 0 0 1"
-    />
+        0 0 0 1" />
     <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
   </Rendering>
-
 
   <Segmentation
     ApproximateSpacingMmPerPixel="0.078"
@@ -126,20 +121,15 @@
     ThresholdImagePercent="10"
     CollinearPointsMaxDistanceFromLineMm="0.6"
     UseOriginalImageIntensityForDotIntensityScore="0"
-    NumberOfMaximumFiducialPointCandidates="20"
-  />
-  
+    NumberOfMaximumFiducialPointCandidates="20" />
 
   <PhantomDefinition>
-    <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
       Name="Lego"
       Type="Triple-N"
       Version="1.4"
       WiringVersion="1.0"
-      Institution="Queen's University PerkLab"
-    />
-
+      Institution="Queen's University PerkLab" />
     <Geometry>      
       <Pattern Type="NWire"> <!-- top row from left to right -->
         <Wire Name="7:E1_e1" EndPointFront="17.3 0 19.54" EndPointBack="17.30 40.10 19.54" />
@@ -156,27 +146,22 @@
         <Wire Name="2:K3_h3" EndPointFront="40.6 0 0.08" EndPointBack="32.0 40.10 0.08" />
         <Wire Name="3:L3_l3" EndPointFront="46.54 0 0.08" EndPointBack="46.54 40.10 0.08" />
       </Pattern>
-
       <Landmarks>
         <Landmark Name="#1" Position="77.9 -6.0 23.2" />
         <Landmark Name="#2" Position="77.9 46.2 22.3" />
         <Landmark Name="#3" Position="78.3 53.6 2.9" />
         <Landmark Name="#4" Position="69.9 -13.8 3.9" />
-        
         <Landmark Name="#5" Position="-14.0 45.3 20.6" />
         <Landmark Name="#6" Position="-13.6 -5.5 21.6" />
         <Landmark Name="#7" Position="-37.5 10.7 1.6" />
         <Landmark Name="#8" Position="-38.1 37.2 1.2" />
       </Landmarks>
-      
     </Geometry>
   </PhantomDefinition>
 
   <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
     ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
-    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"
-  />
-
+    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off" />
 
   <fCal
     PhantomModelId="PhantomModel"
@@ -195,29 +180,22 @@
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
     TemporalCalibrationDurationSec="10"
-	DefaultSelectedChannelId="TrackedVideoStream"
-  />
-
+    DefaultSelectedChannelId="TrackedVideoStream" />
 
   <vtkPivotCalibrationAlgo
     ObjectMarkerCoordinateFrame="Stylus"
     ReferenceCoordinateFrame="Reference"
-    ObjectPivotPointCoordinateFrame="StylusTip"
-  />
-
+    ObjectPivotPointCoordinateFrame="StylusTip" />
 
   <vtkPhantomLandmarkRegistrationAlgo
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
-    StylusTipCoordinateFrame="StylusTip"
-  />
-
+    StylusTipCoordinateFrame="StylusTip" />
 
   <vtkProbeCalibrationAlgo
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"
     PhantomCoordinateFrame="Phantom"
-    ReferenceCoordinateFrame="Reference"
-  />
+    ReferenceCoordinateFrame="Reference" />
 
 </PlusConfiguration>

@@ -15,7 +15,7 @@
       LocalTimeOffsetSec="0.0"
       ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="OrientationSensor" PortName="OrientationSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="OrientationSensor" PortName="OrientationSensor" BufferSize="500" AveragedItemsForFiltering="20"/>
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">

@@ -3,10 +3,8 @@
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
         Name="TEST Freehand calibration offline test" 
-        Description="Tests for offline freehand calibration using SonixTouch + fCal 1.0" 
-        />
+        Description="Tests for offline freehand calibration using SonixTouch + fCal 1.0" />
   </DataCollection>
-
 
   <CoordinateDefinitions>
     <Transform From="Phantom" To="Reference"
@@ -14,10 +12,8 @@
               0.0902 0.0125 0.9958 -125.0523
               -0.0273 -0.9995 0.0150 -15.0
               0 0 0 1"
-      Date="2011.12.01 17:50:00" Error="0.0"
-    />
+      Date="2011.12.01 17:50:00" Error="0.0" />
   </CoordinateDefinitions> 
-
 
   <Segmentation
     ApproximateSpacingMmPerPixel="0.078"
@@ -34,20 +30,15 @@
     ThresholdImagePercent="10"
     CollinearPointsMaxDistanceFromLineMm="0.6"
     UseOriginalImageIntensityForDotIntensityScore="0"
-    NumberOfMaximumFiducialPointCandidates="50"
-  />
-
+    NumberOfMaximumFiducialPointCandidates="50" />
 
   <PhantomDefinition>
-    <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
       Name="fCAL"
       Type="Double-N"
       Version="1.0"
       WiringVersion="1.0"
-      Institution="Queen's University PerkLab"
-    />
-
+      Institution="Queen's University PerkLab" />
     <Geometry>
       <Pattern Type="NWire" Name="top">
         <Wire Name="E3_e3" EndPointFront="20.0 0.0 5.0" EndPointBack="20.0 40.0 5.0" />
@@ -59,13 +50,11 @@
         <Wire Name="J4_f4" EndPointFront="45.0 0.0 0.0" EndPointBack="25.0 40.0 0.0" />
         <Wire Name="K4_k4" EndPointFront="50.0 0.0 0.0" EndPointBack="50.0 40.0 0.0" />
       </Pattern>
-
       <Landmarks>
         <Landmark Name="#1" Position="95.0 5.0 15.0" />
         <Landmark Name="#2" Position="95.0 40.0 15.0" />
         <Landmark Name="#3" Position="95.0 40.0 0.0" />
         <Landmark Name="#4" Position="95.0 0.0 0.0" />
-
         <Landmark Name="#5" Position="-25.0 40.0 15.0" />
         <Landmark Name="#6" Position="-25.0 0.0 10.0" />
         <Landmark Name="#7" Position="-25.0 0.0 0.0" />
@@ -74,12 +63,10 @@
     </Geometry>
   </PhantomDefinition>
 
-
   <vtkProbeCalibrationAlgo
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"
     PhantomCoordinateFrame="Phantom"
-    ReferenceCoordinateFrame="Reference"
-  />
+    ReferenceCoordinateFrame="Reference" />
 
 </PlusConfiguration>

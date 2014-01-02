@@ -14,9 +14,9 @@ For NDI Polaris passive marker starting kit: Tool (8700339), Stylus (8700340), R
       LocalTimeOffsetSec="0.0"
       ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="Tool" PortName="4" RomFile="8700339.rom" AveragedItemsForFiltering="20" BufferSize="2500"/>
-        <DataSource Type="Tool" Id="Stylus" PortName="5" RomFile="8700340.rom" AveragedItemsForFiltering="20" BufferSize="2500"/>
-        <DataSource Type="Tool" Id="Reference" PortName="6" RomFile="8700449.rom" AveragedItemsForFiltering="20" BufferSize="2500"/>
+        <DataSource Type="Tool" Id="Tool" PortName="4" RomFile="8700339.rom" AveragedItemsForFiltering="20" BufferSize="500"/>
+        <DataSource Type="Tool" Id="Stylus" PortName="5" RomFile="8700340.rom" AveragedItemsForFiltering="20" BufferSize="500"/>
+        <DataSource Type="Tool" Id="Reference" PortName="6" RomFile="8700449.rom" AveragedItemsForFiltering="20" BufferSize="500"/>
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >

@@ -2,8 +2,7 @@
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
       Name="TEST No Video with Fake tracker in Tool state mode" 
-      Description="ToolStateDisplayWidgetTest uses this configuration" 
-    />
+      Description="ToolStateDisplayWidgetTest uses this configuration" />
 
     <Device
       Id="TrackerDevice"
@@ -12,9 +11,8 @@
       LocalTimeOffsetSec="0.0"
       Mode="ToolState" >
       <DataSources>
-        <DataSource Type="Tool" Id="Test" PortName="0" BufferSize="1000" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Test" PortName="0" BufferSize="500" AveragedItemsForFiltering="20"/>
       </DataSources>
-
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
           <DataSource Id="Test"/>

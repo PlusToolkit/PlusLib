@@ -17,9 +17,8 @@
       AcquisitionRate="50"
       LocalTimeOffsetSec="0.0" >
       <DataSources>
-        <DataSource Type="Tool" Id="Probe" PortName="0" BufferSize="2500" Model="L14-5_38" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Probe" PortName="0" BufferSize="500" Model="L14-5_38" AveragedItemsForFiltering="20"/>
       </DataSources>
-
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
           <DataSource Id="Probe"/>
@@ -30,24 +29,25 @@
 
   <CoordinateDefinitions>
     <Transform From="Phantom" To="Reference"
-      Matrix="1 0 0 0  0 1 0 0  0 0 1 0 0 0 0 1"
-      Error="0.0"
-    />
+      Matrix="
+        1 0 0 0  
+        0 1 0 0  
+        0 0 1 0 
+        0 0 0 1"
+      Error="0.0" />
     <Transform From="Image" To="Probe"
-      Matrix="0.191647 0.00743877 0.0242208 -65.3006
-              -0.00410587 0.183884 -0.00547576 -86.7768
-              -0.0249356 0.0044197 0.187056 160.661
-              0 0 0 1"
-      Date="2011.07.28 21:42:34" Error="0.0"
-    />
+      Matrix="
+        0.191647 0.00743877 0.0242208 -65.3006
+        -0.00410587 0.183884 -0.00547576 -86.7768
+        -0.0249356 0.0044197 0.187056 160.661
+        0 0 0 1"
+      Date="2011.07.28 21:42:34" Error="0.0" />
   </CoordinateDefinitions>
-
 
   <VolumeReconstruction ImageCoordinateFrame="Image"
     ReferenceCoordinateFrame="Phantom"
     OutputSpacing="0.3 0.3 0.3" 
     FanAngles="-45 45" FanOrigin="320 465" FanDepth="300" 
-    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"
-  />
+    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off" />
 
 </PlusConfiguration>

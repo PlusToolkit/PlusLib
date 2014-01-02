@@ -4,8 +4,7 @@
     <DeviceSet 
       Name="SonixMDP through FrameGrabber TRUS probe + Burdette Medical Systems Digital Stepper + 70mm depth + iCAL" 
       Description="Configuration file for SonixMDP through FrameGrabber TRUS + Burdette Medical Systems Digital Stepper + iCal 1.0 + 70mm depth
-Connect the framegrabber via USB and plug in the stepper through Serial2USB converter cable into USB slot. Look for the Serial port number in the control panel" 
-    />
+Connect the framegrabber via USB and plug in the stepper through Serial2USB converter cable into USB slot. Look for the Serial port number in the control panel" />
 
     <Device
       Id="TrackerDevice"
@@ -18,9 +17,9 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
       ModelNumber="4012A18-a"
       ModelVersion=""
       ModelSerialNumber="01-50-149" >
-        <OutputChannels>
-          <OutputChannel Id="TrackerOutput" />
-        </OutputChannels>
+      <OutputChannels>
+        <OutputChannel Id="TrackerOutput" />
+      </OutputChannels>
     </Device>
 
     <Device
@@ -35,8 +34,7 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
       ICBufferSize="50" >
       <DataSources>
         <DataSource Type="Video" Id="Video" BufferSize="100" PortUsImageOrientation="MF" AveragedItemsForFiltering="20" />
-      </DataSources>
-      
+      </DataSources>      
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
@@ -49,19 +47,17 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="VideoStream" />
       </InputChannels>
-      
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>
     </Device>
-  </DataCollection>
 
+  </DataCollection>
   
   <CoordinateDefinitions>
     <Transform From="TemplateHolder" To="TemplateHome" Matrix=" 1 0 0 5    0 1 0 63.5   0 0 1 0   0 0 0 1" Date="2011.12.07 11:39:00" Error="0.0" />
     <Transform From="TemplateHolder" To="Phantom" Matrix=" 1 0 0 5    0 1 0 63.5   0 0 1 0   0 0 0 1" Date="2011.12.07 11:39:00" Error="0.0" />
   </CoordinateDefinitions> 
-
 
   <iCal version="1.0" 
     NumberOfImagesForValidation="50"
@@ -82,20 +78,16 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
     <CalibrationData Type="CALIB_TEMPORAL" DurationSec="10" FrameTransformNameForValidation="ProbeToStepperHome" />
   </iCal>
 
-
   <vtkBrachyStepperPhantomRegistrationAlgo
     PhantomCoordinateFrame="Phantom"
-    ReferenceCoordinateFrame="StepperHome"
-  />
+    ReferenceCoordinateFrame="StepperHome" />
 
 
   <vtkProbeCalibrationAlgo
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"
     PhantomCoordinateFrame="Phantom"
-    ReferenceCoordinateFrame="StepperHome"
-  />
-
+    ReferenceCoordinateFrame="StepperHome" />
 
   <Rendering WorldCoordinateFrame="TemplateHome">
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
@@ -105,13 +97,11 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
         1 0 0  0.7
         0 0 -1 48.6
         0 1 0  51.3
-        0 0 0  1"
-    />
+        0 0 0  1" />
     <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
     <DisplayableObject Type="PolyData" ObjectCoordinateFrame="CenterOfRotation" />
     <DisplayableObject Type="PolyData" ObjectCoordinateFrame="PhantomWires" />
   </Rendering>
-
 
   <Segmentation
     ApproximateSpacingMmPerPixel="0.3"
@@ -128,19 +118,15 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
     ThresholdImagePercent="10.0"
     CollinearPointsMaxDistanceFromLineMm="1.59"
     UseOriginalImageIntensityForDotIntensityScore="0"
-    NumberOfMaximumFiducialPointCandidates="20"
-  />
+    NumberOfMaximumFiducialPointCandidates="20" />
 
   <PhantomDefinition>
-    <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
       Name="iCAL"
       Type="Double-N"
       Version="1.0"
       WiringVersion="1.0"
-      Institution="Queen's University PerkLab"
-    />
-
+      Institution="Queen's University PerkLab" />
     <Geometry>
       <!-- Phantom origin is the inner end of the hole that is on the side of the templete holder, on the side of the triangle shaped hole on the inner part, and closest to the probe -->
       <Pattern Type="NWire">
@@ -153,25 +139,20 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
         <Wire Name="Wire5" EndPointFront="19.86 34.385 62.05" EndPointBack="39.86 34.385 142.05" />
         <Wire Name="Wire6" EndPointFront="9.86 34.385 62.05" EndPointBack="9.86 34.385 142.05" />
       </Pattern>
-
       <Landmarks>
         <Landmark Name="?" Position="0.0 0.0 0.0" />
       </Landmarks>
     </Geometry>
   </PhantomDefinition>
-
   
   <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
     ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
-    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off"
-  />
-
+    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off" />
 
   <TemplateModel version="1.0" >
     <TemplateHole Representation="Sphere" Radius="0.2"/>
     <!--TemplateHole Representation="Disk" Radius="0.6"/-->
     <OriginFromTemplateHolder OriginX="5" OriginY="63.5" />
-
     <LetterPositions>
       <Letter ID="A" PositionXYZ="0  -5 0" Type="Char"/>
       <Letter ID="a" PositionXYZ="5  -5 0" Type="Char"/>
@@ -186,7 +167,6 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
       <Letter ID="F" PositionXYZ="50 -5 0" Type="Char"/>
       <Letter ID="f" PositionXYZ="55 -5 0" Type="Char"/>
       <Letter ID="G" PositionXYZ="60 -5 0" Type="Char"/>
-
       <Letter ID="7"   PositionXYZ="-7 0  0" Type="Num"/>
       <Letter ID="6.5" PositionXYZ="-7 5  0" Type="Num"/>
       <Letter ID="6"   PositionXYZ="-7 10 0" Type="Num"/>
@@ -386,4 +366,5 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
       <Hole ID="G1" PositionXYZ="60 60 0"/>
     </HolePositions>
   </TemplateModel>
+  
 </PlusConfiguration>

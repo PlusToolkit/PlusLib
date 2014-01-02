@@ -19,21 +19,21 @@
           PortName="4"
           RomFile="C:\isaiah\polaris\bwh_tooldefs\BL-US-blue\BL-us-blue.rom"
           AveragedItemsForFiltering="20"
-          BufferSize="2500"/>
+          BufferSize="500"/>
         <DataSource
           Type="Tool"
           Id="Stylus"
           PortName="5"
           RomFile="C:\isaiah\polaris\bwh_tooldefs\HL-Stylus2\HL-Stylus2.rom"
           AveragedItemsForFiltering="20"
-          BufferSize="2500"/>
+          BufferSize="500"/>
         <DataSource
           Type="Tool"
           Id="Reference"
           PortName="6"
           RomFile="C:\isaiah\polaris\bwh_tooldefs\BL-Demo-Star\BL-demo-star.rom"
           AveragedItemsForFiltering="20"
-          BufferSize="2500"/>
+          BufferSize="500"/>
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
@@ -157,7 +157,9 @@
   <CoordinateDefinitions>
     <Transform From="Image" To="Probe"
       Matrix="
--9.99810954142165 0.246555656852577 -4.9008645799976325 -4.806722198073535 1.745839351266449 9.893883180823625 0.9872613807642359 10.996941074376615 -1.4608421196036157 -4023.319915852743 -43.52919877154339 145.95575022381487
+        -9.99810954142165 0.246555656852577 -4.9008645799976325 -4.806722198073535
+        1.745839351266449 9.893883180823625 0.9872613807642359 10.996941074376615
+        -1.4608421196036157 -4023.319915852743 -43.52919877154339 145.95575022381487
         0	0	0	1"
        Error="0.419667" Date="051713_101947"/>
     <Transform From="Phantom" To="Reference"

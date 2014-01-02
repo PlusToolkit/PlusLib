@@ -3,8 +3,7 @@
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
       Name="BrainLabTrackerSim with video from file" 
-      Description="To be used with the BrainLabTrackerSim simulator or with a real BrainLab tracker"
-    />
+      Description="To be used with the BrainLabTrackerSim simulator or with a real BrainLab tracker" />
 
     <Device
       Id="TrackerDevice"
@@ -22,7 +21,6 @@
         <DataSource Type="Tool" Id="Pointer" PortName="1" BufferSize="500" AveragedItemsForFiltering="20"/>
         <DataSource Type="Tool" Id="Ultrasound" PortName="2" BufferSize="500" AveragedItemsForFiltering="20"/>      
       </DataSources>
-
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
           <DataSource Id="ReferenceStar" />
@@ -42,7 +40,6 @@
       <DataSources>
         <DataSource Type="Video" Id="Video" BufferSize="200" AveragedItemsForFiltering="20" />
       </DataSources>
-
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
@@ -55,7 +52,6 @@
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="VideoStream" />
       </InputChannels>
-
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>
@@ -67,8 +63,7 @@
     MaxNumberOfIgtlMessagesToSend="1"
     MaxTimeSpentWithProcessingMs="10"
     ListeningPort="18944"
-    OutputChannelId="TrackedVideoStream"
-    > 
+    OutputChannelId="TrackedVideoStream" > 
     <DefaultClientInfo> 
       <MessageTypes> 
         <Message Type="TRANSFORM" />

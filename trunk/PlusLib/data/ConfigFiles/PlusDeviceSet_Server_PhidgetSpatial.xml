@@ -19,12 +19,12 @@ Keep the device stationary for 2 seconds after connect for accurate gyroscope in
       LocalTimeOffsetSec="0.0"
       ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="OrientationSensor" PortName="OrientationSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>    
-        <DataSource Type="Tool" Id="TiltSensor" PortName="TiltSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="FilteredTiltSensor" PortName="FilteredTiltSensor" BufferSize="2500" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="Accelerometer" PortName="Accelerometer" BufferSize="2500" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="Gyroscope" PortName="Gyroscope" BufferSize="2500" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="Magnetometer" PortName="Magnetometer" BufferSize="2500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="OrientationSensor" PortName="OrientationSensor" BufferSize="500" AveragedItemsForFiltering="20"/>    
+        <DataSource Type="Tool" Id="TiltSensor" PortName="TiltSensor" BufferSize="500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="FilteredTiltSensor" PortName="FilteredTiltSensor" BufferSize="500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Accelerometer" PortName="Accelerometer" BufferSize="500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Gyroscope" PortName="Gyroscope" BufferSize="500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Magnetometer" PortName="Magnetometer" BufferSize="500" AveragedItemsForFiltering="20"/>
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >

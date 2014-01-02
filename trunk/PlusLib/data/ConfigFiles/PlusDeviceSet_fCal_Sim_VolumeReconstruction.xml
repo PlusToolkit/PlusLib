@@ -1,30 +1,190 @@
-<PlusConfiguration version="2.0">
-  
+<PlusConfiguration version="2.1" PlusRevision="Plus-2.1.1.3105 - Win32">
+
+  <DataCollection StartupDelaySec="1">
+    <DeviceSet Name="fCal: Simulation mode for volume reconstruction" Description="Data collector in file mode with calibrated probe, ready for testing volume reconstruction in fCal."/>
+    <Device
+      Id="TrackedVideoDevice"
+      Type="SavedDataSource"
+      SequenceMetafile="fCal_Test_Calibration_3NWires_fCal2.0.mha"
+      UseData="IMAGE_AND_TRANSFORM"
+      UseOriginalTimestamps="TRUE"
+      RepeatEnabled="TRUE">
+      <DataSources>
+        <DataSource Type="Video" Id="Video" BufferSize="100"/>
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video"/>
+      </OutputChannels>
+    </Device>
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="RecordingTest.mha"
+      EnableCapturing="FALSE"
+      EnableCapture="FALSE"
+      RequestedFrameRate="30">
+      <InputChannels>
+        <InputChannel Id="TrackedVideoStream"/>
+      </InputChannels>
+    </Device>
+  </DataCollection>
+
   <CoordinateDefinitions>
     <Transform From="Image" To="Probe"
       Matrix="
-        -0.0094 -0.0739 -0.0028 -103.5322
-        0.0774 -0.0076 -0.0049 -43.1227
-        0.0046 -0.0032 0.0760 -93.3
-        0 0 0 1" 
-      Error="0.508027" Date="2011.08.19 14:11:53" />
+        -0.000538836	0.0744513	0.00095356	11.225
+        -0.0803396	-8.23381e-005	0.00160118	48.4359
+        0.00166894	-0.000915702	0.0773854	-0.302106
+        0	0	0	1"
+       Error="0.571604" Date="010214_115636"/>
+    <Transform From="Image" To="TransducerOriginPixel"
+      Matrix="
+        1	0	0	-410
+        0	1	0	5
+        0	0	1	0
+        0	0	0	1"
+       Date="2011.12.06 17:57:00"/>
+    <Transform From="Phantom" To="Reference"
+      Matrix="
+        -0.0167397	-0.0153548	-0.999742	15.6642
+        -0.999834	0.0075107	0.0166258	-25.3628
+        0.00725347	0.999854	-0.015478	-40.7799
+        0	0	0	1"
+       Error="0.660751" Date="091112_152716"/>
+    <Transform From="StylusTip" To="Stylus"
+      Matrix="
+        0.997221	0.0675365	0.0314631	194.844
+        -0.06757	0.997715	0	-13.2023
+        -0.0313912	-0.00212596	0.999505	-6.13342
+        0	0	0	1"
+       Error="0.450335" Date="091112_150057"/>
+    <Transform From="TransducerOriginPixel" To="TransducerOrigin"
+      Matrix="
+        0.0803671	0	0	0
+        0	0.074448	0	0
+        0	0	0.0774079	0
+        0	0	0	1"
+       Date="010214_115636"/>
   </CoordinateDefinitions>
-  
+
   <Rendering WorldCoordinateFrame="Reference" DisplayedImageOrientation="MF">
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" Id="ProbeModel" File="Probe_L14-5_38.stl"
+      ModelToObjectTransform="
+        -1	0	0	29.7
+        0	-1	0	1.5
+        0	0	1	-14
+        0	0	0	1" />
     <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel" File="Stylus_Example.stl"
+      ModelToObjectTransform="
+        1	0	0	-210
+        0	1	0	0
+        0	0	1	0
+        0	0	0	1" />
+    <DisplayableObject
+      Id="PhantomModel"
+      Type="Model"
+      ObjectCoordinateFrame="Phantom"
+      Opacity="0.6"
+      File="fCal_2.0.stl"
+      ModelToObjectTransform="
+        1	0	0	-35
+        0	1	0	-10
+        0	0	1	-5
+        0	0	0	1" />
+    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
   </Rendering>
-  
-  <fCal 
-    ReconstructedVolumeId="Volume"
-  />
+
+  <Segmentation
+    ApproximateSpacingMmPerPixel="0.078"
+    MorphologicalOpeningCircleRadiusMm="0.27"
+    MorphologicalOpeningBarSizeMm="2.0"
+    ClipRectangleOrigin="27 27"
+    ClipRectangleSize="766 562"
+    MaxLinePairDistanceErrorPercent="10"
+    AngleToleranceDegrees="10"
+    MaxAngleDifferenceDegrees="10"
+    MinThetaDegrees="-70"
+    MaxThetaDegrees="70"
+    MaxLineShiftMm="10.0"
+    ThresholdImagePercent="10"
+    CollinearPointsMaxDistanceFromLineMm="0.6"
+    UseOriginalImageIntensityForDotIntensityScore="0"
+    NumberOfMaximumFiducialPointCandidates="20"/>
+
+  <PhantomDefinition>
+    <Description Name="fCAL" Type="Double-N" Version="2.0" WiringVersion="2.0" Institution="Queen&apos;s University PerkLab"/>
+    <Geometry>
+      <Pattern Type="NWire">
+        <Wire Name="7:G1_g1" EndPointFront="30.0 0.0 20.0" EndPointBack="30.0 40.0 20.0"/>
+        <Wire Name="8:L1_h1" EndPointFront="55.0 0.0 20.0" EndPointBack="35.0 40.0 20.0"/>
+        <Wire Name="9:M1_m1" EndPointFront="60.0 0.0 20.0" EndPointBack="60.0 40.0 20.0"/>
+      </Pattern>
+      <Pattern Type="NWire">
+        <Wire Name="4:G3_g3" EndPointFront="30.0 0.0 10.0" EndPointBack="30.0 40.0 10.0"/>
+        <Wire Name="5:H3_l3" EndPointFront="35.0 0.0 10.0" EndPointBack="55.0 40.0 10.0"/>
+        <Wire Name="6:M3_m3" EndPointFront="60.0 0.0 10.0" EndPointBack="60.0 40.0 10.0"/>
+      </Pattern>
+      <Pattern Type="NWire">
+        <Wire Name="1:H5_h5" EndPointFront="35.0 0.0 0.0" EndPointBack="35.0 40.0 0.0"/>
+        <Wire Name="2:L5_i5" EndPointFront="55.0 0.0 0.0" EndPointBack="40.0 40.0 0.0"/>
+        <Wire Name="3:M5_m5" EndPointFront="60.0 0.0 0.0" EndPointBack="60.0 40.0 0.0"/>
+      </Pattern>
+      <Landmarks>
+        <Landmark Name="#1" Position="104.3 5.0 20.0"/>
+        <Landmark Name="#2" Position="104.3 45.0 20.0"/>
+        <Landmark Name="#3" Position="104.3 45.0 0.0"/>
+        <Landmark Name="#4" Position="104.3 -5.0 0.0"/>
+        <Landmark Name="#5" Position="-34.3 45.0 15.0"/>
+        <Landmark Name="#6" Position="-34.3 -5.0 20.0"/>
+        <Landmark Name="#7" Position="-34.3 -5.0 0.0"/>
+        <Landmark Name="#8" Position="-34.3 45.0 0.0"/>
+      </Landmarks>
+      <Planes>
+        <Plane Name="Superior" BasePoint="5.5 3.0 35.0" EndPoint1="135.0 3.0 35.0" EndPoint2="135.0 55.0 35.0"/>
+        <Plane Name="Inferior" BasePoint="5.5 55.0 0.0" EndPoint1="135.0 55.0 0.0" EndPoint2="135.0 5.5 0.0"/>
+        <Plane Name="Outside Unmarked" BasePoint="140.0 5.0 30.0" EndPoint1="140.0 50.0 30.0" EndPoint2="140.0 50.0 5.0"/>
+        <Plane Name="Inside Unmarked" BasePoint="125.0 40.0 30.0" EndPoint1="125.0 20.0 10.0" EndPoint2="125.0 40.0 10.0"/>
+        <Plane Name="Outside Marked" BasePoint="0.0 40.0 30.0" EndPoint1="0.0 40.0 5.5" EndPoint2="0.0 15.5 5.5"/>
+        <Plane Name="Outside Posterior" BasePoint="130.0 0.0 30.0" EndPoint1="20.0 0.0 30.0" EndPoint2="20.0 0.0 15.0"/>
+        <Plane Name="Inside Posterior" BasePoint="110.0 10.0 30.0" EndPoint1="40.0 10.0 30.0" EndPoint2="30.0 10.0 10.0"/>
+        <Plane Name="Outside Anterior" BasePoint="130.0 60.0 30.0" EndPoint1="20.0 60.0 30.0" EndPoint2="20.0 60.0 5.0"/>
+      </Planes>
+    </Geometry>
+  </PhantomDefinition>
 
   <VolumeReconstruction
-    Interpolation="LINEAR" 
-    Optimization="FULL" 
-    Compounding="On" 
-    FillHoles="Off" 
-    ClipRectangleOrigin="167 62" ClipRectangleSize="495 488"
-    OutputSpacing="0.5 0.5 0.5" VolumeDisplayableObjectId="Volume"
-  />
+    OutputSpacing="0.5 0.5 0.5"
+    ClipRectangleOrigin="0 0"
+    ClipRectangleSize="820 616"
+    Interpolation="LINEAR"
+    Optimization="FULL"
+    Compounding="On"
+    FillHoles="Off"/>
+
+  <fCal
+    PhantomModelId="PhantomModel"
+    ReconstructedVolumeId="Volume"
+    TransducerModelId="ProbeModel"
+    StylusModelId="StylusModel"
+    ImageDisplayableObjectId="LiveImage"
+    NumberOfCalibrationImagesToAcquire="140"
+    NumberOfValidationImagesToAcquire="70"
+    NumberOfStylusCalibrationPointsToAcquire="200"
+    RecordingIntervalMs="100"
+    MaxTimeSpentWithProcessingMs="70"
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Probe"
+    ReferenceCoordinateFrame="Reference"
+    TransducerOriginCoordinateFrame="TransducerOrigin"
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+    TemporalCalibrationDurationSec="10"
+    DefaultSelectedChannelId="TrackedVideoStream"
+    />
+
+  <vtkPivotCalibrationAlgo ObjectMarkerCoordinateFrame="Stylus" ReferenceCoordinateFrame="Reference" ObjectPivotPointCoordinateFrame="StylusTip"/>
+  <vtkPhantomLandmarkRegistrationAlgo PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference" StylusTipCoordinateFrame="StylusTip"/>
+  <vtkPhantomLinearObjectRegistrationAlgo PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference" StylusTipCoordinateFrame="StylusTip"/>
+  <vtkProbeCalibrationAlgo ImageCoordinateFrame="Image" ProbeCoordinateFrame="Probe" PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference"/>
 
 </PlusConfiguration>

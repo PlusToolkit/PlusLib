@@ -3,8 +3,7 @@
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
       Name="TEST Data collection uses sequence metafile in file mode." 
-      Description="Test configuration file for vtkDataCollectorFileTest to use a tracked frame list. The SequenceMetafile names should be defined either from command line argument or from configuration file!" 
-    />      
+      Description="Test configuration file for vtkDataCollectorFileTest to use a tracked frame list. The SequenceMetafile names should be defined either from command line argument or from configuration file!" />      
     <Device
       Id="TrackedVideoDevice"
       Type="SavedDataSource"
@@ -16,7 +15,6 @@
       <DataSources>
         <DataSource Type="Video" Id="Video" BufferSize="100" />
       </DataSources>
-
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
       </OutputChannels>

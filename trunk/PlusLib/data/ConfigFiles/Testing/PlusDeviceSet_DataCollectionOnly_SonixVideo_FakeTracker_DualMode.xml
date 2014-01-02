@@ -3,8 +3,7 @@
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
       Name="TEST SonixTouch with Fake tracker - B and Rf"
-      Description="Test mode for vtkDataCollectorTest with SonixTouch and Fake tracker. The SonixTouch US device should be in research mode." 
-    />
+      Description="Test mode for vtkDataCollectorTest with SonixTouch and Fake tracker. The SonixTouch US device should be in research mode." />
 
     <Device 
       Id="TrackerDevice"
@@ -15,10 +14,9 @@
       Mode="PivotCalibration"
       ReferenceToolName="Reference" >
       <DataSources>
-        <DataSource Type="Tool" Id="Reference" BufferSize="200" AveragedItemsForFiltering="20" PortName="0"/> 
-        <DataSource Type="Tool" Id="Stylus" BufferSize="200" AveragedItemsForFiltering="20" PortName="1" />
-      </DataSources>
-      
+        <DataSource Type="Tool" Id="Reference" BufferSize="500" AveragedItemsForFiltering="20" PortName="0"/> 
+        <DataSource Type="Tool" Id="Stylus" BufferSize="500" AveragedItemsForFiltering="20" PortName="1" />
+      </DataSources>      
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
           <DataSource Id="Reference"/>
@@ -44,7 +42,6 @@
         <DataSource Type="Video" Id="BModeVideo" PortName="B" PortUsImageOrientation="MF" BufferSize="100" AveragedItemsForFiltering="20" />
         <DataSource Type="Video" Id="RfModeVideo" PortName="Rf" PortUsImageOrientation="FM" BufferSize="40" AveragedItemsForFiltering="20" />
       </DataSources>
-      
       <OutputChannels>
         <OutputChannel Id="BModeVideoStream" VideoDataSourceId="BModeVideo" />
         <OutputChannel Id="RfModeVideoStream" VideoDataSourceId="RfModeVideo" />
@@ -58,7 +55,6 @@
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="BModeVideoStream" />
       </InputChannels>
-      
       <OutputChannels>
         <OutputChannel Id="TrackedBModeVideoStream" />
       </OutputChannels>
@@ -71,7 +67,6 @@
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="RfModeVideoStream" />
       </InputChannels>
-      
       <OutputChannels>
         <OutputChannel Id="TrackedRfModeVideoStream" />
       </OutputChannels>
@@ -81,4 +76,5 @@
   <fCal
     DefaultSelectedChannelId="TrackedBModeVideoStream" 
     />
+    
 </PlusConfiguration>

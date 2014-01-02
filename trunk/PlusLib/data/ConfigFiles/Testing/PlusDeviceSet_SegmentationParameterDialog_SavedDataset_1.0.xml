@@ -3,8 +3,7 @@
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
       Name="TEST SegmentationParameterDialogTest - Saved dataset for video only" 
-      Description="Saved dataset for video only" 
-    />
+      Description="Saved dataset for video only" />
 
     <Device
       Id="VideoDevice"
@@ -17,13 +16,11 @@
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="200" AveragedItemsForFiltering="20" />
       </DataSources>
-
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video"  />
       </OutputChannels>
     </Device>
   </DataCollection>
-
 
   <Segmentation
     ApproximateSpacingMmPerPixel="0.078"
@@ -40,21 +37,17 @@
     ThresholdImagePercent="10.0"
     CollinearPointsMaxDistanceFromLineMm="0.41"
     UseOriginalImageIntensityForDotIntensityScore="0"
-    NumberOfMaximumFiducialPointCandidates="20"
-  />
+    NumberOfMaximumFiducialPointCandidates="20" />
   
   <Rendering DisplayedImageOrientation="MF"/>
 
   <PhantomDefinition>
-    <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
       Name="fCAL"
       Type="Double-N"
       Version="1.0"
       WiringVersion="1.0"
-      Institution="Queen's University PerkLab"
-    />
-    
+      Institution="Queen's University PerkLab" />
     <Geometry>
       <Pattern Type="NWire">
         <Wire Name="1:E3_e3" EndPointFront="20.0 0.0 5.0" EndPointBack="20.0 40.0 5.0" />
@@ -66,7 +59,6 @@
         <Wire Name="5:J4_f4" EndPointFront="45.0 0.0 0.0" EndPointBack="25.0 40.0 0.0" />
         <Wire Name="6:K4_k4" EndPointFront="50.0 0.0 0.0" EndPointBack="50.0 40.0 0.0" />
       </Pattern>
-
       <Landmarks>
         <Landmark Name="#1" Position="95.0 5.0 15.0" />
         <Landmark Name="#2" Position="95.0 40.0 15.0" />
@@ -78,7 +70,6 @@
         <Landmark Name="#7" Position="-25.0 0.0 0.0" />
         <Landmark Name="#8" Position="-25.0 40.0 0.0" />
       </Landmarks>
-
     </Geometry>
   </PhantomDefinition>
 

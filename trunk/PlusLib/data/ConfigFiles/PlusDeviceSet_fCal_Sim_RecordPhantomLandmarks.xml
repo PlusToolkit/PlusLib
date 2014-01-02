@@ -3,8 +3,7 @@
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
       Name="fCal: Simulation mode for Phantom registration - fCal Phantom 2.0" 
-      Description="No Video with Fake tracker in Record phantom landmarks mode vtkPhantomRegistrationTest uses this configuration" 
-    />
+      Description="No Video with Fake tracker in Record phantom landmarks mode vtkPhantomRegistrationTest uses this configuration" />
     <Device
       Id="TrackerDevice"
       Type="FakeTracker" 
@@ -13,8 +12,8 @@
       ToolReferenceFrame="Tracker" 
       Mode="RecordPhantomLandmarks" >
       <DataSources>
-        <DataSource Type="Tool" Id="Reference" BufferSize="1000" AveragedItemsForFiltering="20" PortName="0" />
-        <DataSource Type="Tool" Id="Stylus" BufferSize="1000" AveragedItemsForFiltering="20" PortName="1" Model="Example" />     
+        <DataSource Type="Tool" Id="Reference" BufferSize="500" AveragedItemsForFiltering="20" PortName="0" />
+        <DataSource Type="Tool" Id="Stylus" BufferSize="500" AveragedItemsForFiltering="20" PortName="1" Model="Example" />     
       </DataSources> 
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
@@ -31,17 +30,14 @@
               1 0 0 400.0
               0 0 1 700.0
               0 0 0 1"
-      Date="2011.12.01 11:57:00"
-    />
+      Date="2011.12.01 11:57:00" />
     <Transform From="StylusTip" To="Stylus"
       Matrix="1 0 0 210.0
               0 1 0 0
               0 0 1 0
               0 0 0 1"
-      Date="2011.12.01 17:22:12"
-    />
+      Date="2011.12.01 17:22:12" />
   </CoordinateDefinitions>
-
 
   <Rendering WorldCoordinateFrame="Reference">
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel"
@@ -50,8 +46,7 @@
         1 0 0 -210.0
         0 1 0 0
         0 0 1 0
-        0 0 0 1"
-    />
+        0 0 0 1" />
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
       Opacity="0.6"
       File="fCal_2.0.stl"
@@ -59,21 +54,16 @@
         1 0 0 -35.0
         0 1 0 -10.0
         0 0 1 -5.0
-        0 0 0 1"
-      />
+        0 0 0 1" />
   </Rendering>
 
-
   <PhantomDefinition>
-    <!-- Supported types are: Double-N, U-Shaped-N -->
     <Description
       Name="fCAL"
       Type="Double-N"
       Version="2.0"
       WiringVersion="2.0"
-      Institution="Queen's University PerkLab"
-    />
-
+      Institution="Queen's University PerkLab" />
     <Geometry>
       <Pattern Type="NWire">
         <Wire Name="7:G1_g1" EndPointFront="30.0 0.0 20.0" EndPointBack="30.0 40.0 20.0" />
@@ -90,19 +80,16 @@
         <Wire Name="2:L5_i5" EndPointFront="55.0 0.0 0.0" EndPointBack="40.0 40.0 0.0" />
         <Wire Name="3:M5_m5" EndPointFront="60.0 0.0 0.0" EndPointBack="60.0 40.0 0.0" />
       </Pattern>
-
       <Landmarks>
         <Landmark Name="#1" Position="104.3 5.0 20.0" />
         <Landmark Name="#2" Position="104.3 45.0 20.0" />
         <Landmark Name="#3" Position="104.3 45.0 0.0" />
         <Landmark Name="#4" Position="104.3 -5.0 0.0" />
-        
         <Landmark Name="#5" Position="-34.3 45.0 15.0" />
         <Landmark Name="#6" Position="-34.3 -5.0 20.0" />
         <Landmark Name="#7" Position="-34.3 -5.0 0.0" />
         <Landmark Name="#8" Position="-34.3 45.0 0.0" />
       </Landmarks>
-      
       <Planes>
         <Plane Name="Superior" BasePoint="5.5 3.0 35.0" EndPoint1="135.0 3.0 35.0" EndPoint2="135.0 55.0 35.0" />
         <Plane Name="Inferior" BasePoint="5.5 55.0 0.0" EndPoint1="135.0 55.0 0.0" EndPoint2="135.0 5.5 0.0" />
@@ -113,19 +100,16 @@
         <Plane Name="Inside Posterior" BasePoint="110.0 10.0 30.0" EndPoint1="40.0 10.0 30.0" EndPoint2="30.0 10.0 10.0" />
         <Plane Name="Outside Anterior" BasePoint="130.0 60.0 30.0" EndPoint1="20.0 60.0 30.0" EndPoint2="20.0 60.0 5.0" />
       </Planes>
-      
       <References>
         <Reference Name="#1" Position="104.3 5.0 20.0" />
         <Reference Name="#2" Position="104.3 45.0 20.0" />
         <Reference Name="#3" Position="104.3 45.0 0.0" />
         <Reference Name="#4" Position="104.3 -5.0 0.0" />
-        
         <Reference Name="#5" Position="-34.3 45.0 15.0" />
         <Reference Name="#6" Position="-34.3 -5.0 20.0" />
         <Reference Name="#7" Position="-34.3 -5.0 0.0" />
         <Reference Name="#8" Position="-34.3 45.0 0.0" />
       </References>
-      
     </Geometry>
   </PhantomDefinition>
 
@@ -140,24 +124,21 @@
     ReferenceCoordinateFrame="Reference"
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
-  />
+    DefaultSelectedChannelId="TrackerStream" />
   
   <vtkPivotCalibrationAlgo
     ObjectMarkerCoordinateFrame="Stylus"
     ReferenceCoordinateFrame="Reference"
-    ObjectPivotPointCoordinateFrame="StylusTip"
-  />
+    ObjectPivotPointCoordinateFrame="StylusTip" />
 
   <vtkPhantomLandmarkRegistrationAlgo
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
-    StylusTipCoordinateFrame="StylusTip"
-  />
+    StylusTipCoordinateFrame="StylusTip" />
   
   <vtkPhantomLinearObjectRegistrationAlgo
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
-    StylusTipCoordinateFrame="StylusTip"
-  />
+    StylusTipCoordinateFrame="StylusTip" />
 
 </PlusConfiguration>

@@ -1,4 +1,5 @@
 <PlusConfiguration version="2.3" >
+
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet Name="SonixTouch L14-5 + NDI Aurora 5cm depth" Description="Configuration file for SonixTouch L14-5 + NDI Aurora + fCal 1.0 The computer needs to be on the same local network as SonixTOUCH. The tools need to be plugged in the slots as following: 1: Probe, 2: Reference, 3: Stylus, 4: Needle (optional)"/>
     
@@ -10,12 +11,11 @@
       AcquisitionRate="50"
       LocalTimeOffsetSec="0.0">
       <DataSources>
-        <DataSource Type="Tool" Id="Probe" PortName="0" Model="L14-5_38" BufferSize="2500" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="Reference" PortName="1" BufferSize="2500" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="Stylus" PortName="2" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="Needle" PortName="3" Model="Example" BufferSize="2500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Probe" PortName="0" Model="L14-5_38" BufferSize="500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Reference" PortName="1" BufferSize="500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Stylus" PortName="2" Model="Example" BufferSize="500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Needle" PortName="3" Model="Example" BufferSize="500" AveragedItemsForFiltering="20"/>
       </DataSources>
-
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
           <DataSource Id="Probe"/>
@@ -42,9 +42,8 @@
       CompressionStatus="0"
       ConnectionSetupDelayMs="3000" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="500" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="100" AveragedItemsForFiltering="20" />
       </DataSources>
-
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
@@ -57,13 +56,12 @@
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="VideoStream" />
       </InputChannels>
-
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>
     </Device>
 
-    </DataCollection>
+  </DataCollection>
 
   <CoordinateDefinitions>
     <Transform From="Image" To="Probe"
@@ -102,30 +100,29 @@
         0  0  0  1"
        Date="060612_161445"/>
   </CoordinateDefinitions>
+
   <Rendering WorldCoordinateFrame="Reference">
     <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" Id="ProbeModel" File="Probe_L14-5_38.stl"
       ModelToObjectTransform="
         -1 0 0 29.7
         0 -1 0 1.5
         0 0 1 -14
-        0 0 0 1"
-      />
+        0 0 0 1" />
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel" File="Stylus_Example.stl"
       ModelToObjectTransform="
         1  0  0  -210
         0  1  0  0
         0  0  1  0
-        0  0  0  1"
-      />
+        0  0  0  1" />
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom" Opacity="0.6" File="fCal_1.0.stl"
       ModelToObjectTransform="
         1  0  0  -15
         0  1  0  10
         0  0  1  -5
-        0  0  0  1"
-      />
+        0  0  0  1" />
     <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
   </Rendering>
+
   <Segmentation
     ApproximateSpacingMmPerPixel="0.0860445"
     MorphologicalOpeningCircleRadiusMm="0.37"
@@ -137,11 +134,12 @@
     MaxAngleDifferenceDegrees="10"
     MinThetaDegrees="-70"
     MaxThetaDegrees="70"
+    MaxLineShiftMm="10.0"
     ThresholdImagePercent="10"
     CollinearPointsMaxDistanceFromLineMm="0.6"
     UseOriginalImageIntensityForDotIntensityScore="0"
-    NumberOfMaximumFiducialPointCandidates="20"
-    />
+    NumberOfMaximumFiducialPointCandidates="20" />
+
   <PhantomDefinition>
     <Description Name="fCAL" Type="Double-N" Version="1.0" WiringVersion="1.0" Institution="Queen&apos;s University PerkLab"/>
     <Geometry>
@@ -167,6 +165,7 @@
       </Landmarks>
     </Geometry>
   </PhantomDefinition>
+
   <VolumeReconstruction
     OutputSpacing="0.5 0.5 0.5"
     ClipRectangleOrigin="0 0"
@@ -175,6 +174,7 @@
     Optimization="FULL"
     Compounding="On"
     FillHoles="Off"/>
+
   <fCal
     PhantomModelId="PhantomModel"
     TransducerModelId="ProbeModel"
@@ -190,9 +190,12 @@
     ReferenceCoordinateFrame="Reference"
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
-    TemporalCalibrationDurationSec="10"/>
+    TemporalCalibrationDurationSec="10"
+    DefaultSelectedChannelId="TrackedVideoStream" />
+
   <vtkPivotCalibrationAlgo ObjectMarkerCoordinateFrame="Stylus" ReferenceCoordinateFrame="Reference" ObjectPivotPointCoordinateFrame="StylusTip"/>
   <vtkPhantomLandmarkRegistrationAlgo PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference" StylusTipCoordinateFrame="StylusTip"/>
   <vtkPhantomLinearObjectRegistrationAlgo PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference" StylusTipCoordinateFrame="StylusTip"/>
   <vtkProbeCalibrationAlgo ImageCoordinateFrame="Image" ProbeCoordinateFrame="Probe" PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="Reference"/>
-</PlusConfiguration>
+
+  </PlusConfiguration>

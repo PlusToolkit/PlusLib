@@ -1,4 +1,5 @@
 <PlusConfiguration version="2.1" PlusRevision="1.7.1.2323">
+
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet Name="Brainlab fCal 2.0 Amigo Calibration Ready" Description="Tools expected from Brainlab: 0: Probe, 1: Reference, 2: Stylus."/>
     
@@ -99,16 +100,14 @@
         -1	0	0	29.7
         0	-1	0	1.5
         0	0	1	-14
-        0	0	0	1"
-      />
+        0	0	0	1" />
     <DisplayableObject Type="Model" ObjectCoordinateFrame="InstrumentM" Id="Volume"/>
     <DisplayableObject Type="Model" ObjectCoordinateFrame="PointerTip" Id="StylusModel" File="Stylus_Example.stl"
       ModelToObjectTransform="
         1	0	0	0
         0	1	0	0
         0	0	1	0
-        0	0	0	1"
-      />
+        0	0	0	1" />
     <DisplayableObject
       Id="PhantomModel"
       Type="Model"
@@ -119,9 +118,10 @@
         1	0	0	-35
         0	1	0	-10
         0	0	1	-5
-        0	0	0	1"/>
+        0	0	0	1" />
     <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
   </Rendering>
+  
   <Segmentation
     ApproximateSpacingMmPerPixel="0.105164"
     MorphologicalOpeningCircleRadiusMm="0.27"
@@ -137,8 +137,8 @@
     CollinearPointsMaxDistanceFromLineMm="0.6"
     UseOriginalImageIntensityForDotIntensityScore="0"
     MaxLineShiftMm="10"
-    NumberOfMaximumFiducialPointCandidates="20"
-    />
+    NumberOfMaximumFiducialPointCandidates="20" />
+
   <PhantomDefinition>
     <Description Name="fCAL" Type="Double-N" Version="2.0" WiringVersion="2.0" Institution="Queen&apos;s University PerkLab"/>
     <Geometry>
@@ -169,6 +169,7 @@
       </Landmarks>
     </Geometry>
   </PhantomDefinition>
+  
   <VolumeReconstruction
     OutputSpacing="0.5 0.5 0.5"
     ClipRectangleOrigin="0 0"
@@ -177,8 +178,8 @@
     Optimization="FULL"
     Compounding="On"
     FillHoles="Off"/>
+
   <fCal
-    DefaultSelectedChannelId="TrackedVideoStream"
     PhantomModelId="PhantomModel"
     ReconstructedVolumeId="Volume"
     TransducerModelId="ProbeModel"
@@ -194,8 +195,11 @@
     ReferenceCoordinateFrame="InstrumentM"
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
-    TemporalCalibrationDurationSec="10"/>
+    TemporalCalibrationDurationSec="10"
+    DefaultSelectedChannelId="TrackedVideoStream" />
+
   <vtkPivotCalibrationAlgo ObjectMarkerCoordinateFrame="Pointer" ReferenceCoordinateFrame="InstrumentM" ObjectPivotPointCoordinateFrame="PointerTip"/>
   <vtkPhantomLandmarkRegistrationAlgo PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="InstrumentM" StylusTipCoordinateFrame="PointerTip"/>
   <vtkProbeCalibrationAlgo ImageCoordinateFrame="Image" ProbeCoordinateFrame="Ultrasound" PhantomCoordinateFrame="Phantom" ReferenceCoordinateFrame="InstrumentM"/>
-</PlusConfiguration>
+
+  </PlusConfiguration>
