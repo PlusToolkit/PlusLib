@@ -266,7 +266,7 @@ public:
   PlusStatus SetAcquisitionRate(double aRate);
 
   /*! Get whether recording is underway */
-  bool IsRecording() const { return Recording == 1; }
+  bool IsRecording() const { return (this->Recording != 0); }
 
   /* Return the id of the device */
   virtual char* GetDeviceId() const { return this->DeviceId; }

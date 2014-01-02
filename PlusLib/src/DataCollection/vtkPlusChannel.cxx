@@ -515,7 +515,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrame( double timestamp, TrackedFrame& aTra
       aTrackedFrame.SetCustomFrameField((*fieldIterator).first, (*fieldIterator).second);
     }
 
-    synchronizedTimestamp = bufferItem.GetTimestamp(0);
+    synchronizedTimestamp = bufferItem.GetTimestamp(aTool->GetBuffer()->GetLocalTimeOffsetSec());
   }
 
   // Copy frame timestamp   
