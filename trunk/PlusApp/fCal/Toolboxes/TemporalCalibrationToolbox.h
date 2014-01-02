@@ -67,6 +67,9 @@ protected:
 	*/
 	bool eventFilter(QObject *obj, QEvent *ev);
 
+  /*! Prints a time value in sec as a string in msec */
+  static std::string GetTimeAsString(double timeSec);
+
 protected slots:
   /*! Acquire tracked frames for temporal calibration and calls the algorithm when done */
   void DoCalibration();
