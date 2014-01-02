@@ -27,6 +27,7 @@ See License.txt for details.
 namespace
 {
   const double INVALID_OFFSET = std::numeric_limits<double>::infinity();
+  const double NEGLIGIBLE_OFFSET_DIFFERENCE_SEC=0.0001;
 }
 
 //-----------------------------------------------------------------------------
@@ -98,7 +99,7 @@ TemporalCalibrationToolbox::~TemporalCalibrationToolbox()
 
 void TemporalCalibrationToolbox::OnActivated()
 {
-  LOG_TRACE("TemporalCalibrationToolbox::OnActivated"); 
+  LOG_TRACE("TemporalCalibrationToolbox::OnActivated");
 
   if (m_State == ToolboxState_Done)
   {
@@ -194,6 +195,9 @@ void TemporalCalibrationToolbox::OnActivated()
     SetState(ToolboxState_Uninitialized);
   }
 
+  this->PreviousFixedOffset = INVALID_OFFSET;
+  this->PreviousMovingOffset = INVALID_OFFSET;
+
   SetDisplayAccordingToState();
 }
 
@@ -277,8 +281,6 @@ void TemporalCalibrationToolbox::SetDisplayAccordingToState()
 {
   LOG_TRACE("TemporalCalibrationToolbox::SetDisplayAccordingToState");
 
-  double timeOffset = 0.0;
-
   // If connected
   if ( (m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL)
     && (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetConnected()) )
@@ -294,25 +296,45 @@ void TemporalCalibrationToolbox::SetDisplayAccordingToState()
     // Enable or disable the image manipulation menu
     m_ParentMainWindow->SetImageManipulationMenuEnabled( m_ParentMainWindow->GetVisualizationController()->Is2DMode() );
 
-    if (this->MovingChannel != NULL && this->FixedChannel != NULL )
+    if (( m_State == ToolboxState_Idle || m_State == ToolboxState_Done )
+      && this->MovingChannel != NULL && this->FixedChannel != NULL )
     {
-      timeOffset = this->FixedChannel->GetOwnerDevice()->GetLocalTimeOffsetSec() - this->MovingChannel->GetOwnerDevice()->GetLocalTimeOffsetSec();
-      if( timeOffset == 0 && this->MovingChannel != this->FixedChannel )
+      double timeOffsetDiff = this->MovingChannel->GetOwnerDevice()->GetLocalTimeOffsetSec()-this->FixedChannel->GetOwnerDevice()->GetLocalTimeOffsetSec();      
+      // Update state message and fixed/moving offset labels
+      std::string stateMsg;
+      if (fabs(timeOffsetDiff)<NEGLIGIBLE_OFFSET_DIFFERENCE_SEC)
       {
-        ui.label_State->setText(tr("Temporal calibration not yet performed."));
+        stateMsg += std::string("No time offset difference between ") + this->FixedChannel->GetOwnerDevice()->GetDeviceId() 
+          + " and " + this->MovingChannel->GetOwnerDevice()->GetDeviceId() + "."
+          + "\n\nProbably temporal calibration has not been performed yet.";
       }
-      else if( this->MovingChannel == this->FixedChannel )
+      else if (timeOffsetDiff>0)
       {
-        // Oh I wish I could put something funny in here...
-        //ui.label_State->setText(tr("Device is temporally calibrated with itself. Space-time continuum is safe."));
+        stateMsg += std::string(this->FixedChannel->GetOwnerDevice()->GetDeviceId()) + " lags compared to "
+          + this->MovingChannel->GetOwnerDevice()->GetDeviceId()
+          + " by " + GetTimeAsString(timeOffsetDiff)+".";
       }
       else
       {
-        // Update state message
-        std::stringstream ss;
-        ss << "Offset between " << this->FixedChannel->GetOwnerDevice()->GetDeviceId() << " and " << this->MovingChannel->GetOwnerDevice()->GetDeviceId() << ": " << timeOffset << "s";
-        ui.label_State->setText(tr(ss.str().c_str()));
+        stateMsg += std::string(this->MovingChannel->GetOwnerDevice()->GetDeviceId()) + " lags compared to "
+          + this->FixedChannel->GetOwnerDevice()->GetDeviceId()
+          + " by " + GetTimeAsString(-timeOffsetDiff)+".";
       }
+      if (this->PreviousFixedOffset != INVALID_OFFSET && this->PreviousMovingOffset != INVALID_OFFSET)
+      {
+        double previousTimeOffsetDiff = this->PreviousMovingOffset-this->PreviousFixedOffset;
+        if (previousTimeOffsetDiff!=timeOffsetDiff) // don't print the difference if it's exactly the same (means that the new offset has not been computed)
+        {
+          stateMsg += "\n\nDifference compared to previous temporal calibration: "+GetTimeAsString(fabs(timeOffsetDiff-previousTimeOffsetDiff))+".";
+        }
+      }
+      ui.label_State->setText(tr(stateMsg.c_str()));
+      // Fixed label
+      std::string fixedLabel = "Fixed (" + GetTimeAsString(this->FixedChannel->GetOwnerDevice()->GetLocalTimeOffsetSec())+"):";
+      ui.label_FixedSeries->setText(tr(fixedLabel.c_str()));
+      // Moving label
+      std::string movingLabel = "Moving (" + GetTimeAsString(this->MovingChannel->GetOwnerDevice()->GetLocalTimeOffsetSec())+"):";
+      ui.label_MovingSeries->setText(tr(movingLabel.c_str()));
     }
     else
     {
@@ -461,10 +483,7 @@ void TemporalCalibrationToolbox::StartCalibration()
     this->FixedValidationTransformName.SetTransformName(std::string(ui.comboBox_FixedSourceValue->currentText().toLatin1()).c_str());
     this->TemporalCalibrationFixedData->SetFrameTransformNameForValidation(this->FixedValidationTransformName);
   }    
-  double offset(INVALID_OFFSET);
-  offset = this->FixedChannel->GetOwnerDevice()->GetLocalTimeOffsetSec();
-  this->PreviousFixedOffset = offset;
-  this->FixedChannel->GetOwnerDevice()->SetLocalTimeOffsetSec(0.0);
+  this->PreviousFixedOffset = this->FixedChannel->GetOwnerDevice()->GetLocalTimeOffsetSec();
 
   QString curMovingType = ui.comboBox_MovingSourceValue->itemData(ui.comboBox_MovingSourceValue->currentIndex()).toString();
   this->MovingType = vtkTemporalCalibrationAlgo::FRAME_TYPE_VIDEO;
@@ -476,16 +495,14 @@ void TemporalCalibrationToolbox::StartCalibration()
     this->MovingValidationTransformName.SetTransformName(std::string(ui.comboBox_MovingSourceValue->currentText().toLatin1()).c_str());
     this->TemporalCalibrationMovingData->SetFrameTransformNameForValidation(this->MovingValidationTransformName);
   }
-  offset = this->MovingChannel->GetOwnerDevice()->GetLocalTimeOffsetSec();
-  this->PreviousMovingOffset = offset;
-  this->MovingChannel->GetOwnerDevice()->SetLocalTimeOffsetSec(0.0);
+  this->PreviousMovingOffset = this->MovingChannel->GetOwnerDevice()->GetLocalTimeOffsetSec();
 
   TemporalCalibrationFixedData->Clear();
   TemporalCalibrationMovingData->Clear();
 
   double currentTimeSec = vtkAccurateTimer::GetSystemTime();
-  LastRecordedFixedItemTimestamp = currentTimeSec;
-  LastRecordedMovingItemTimestamp = currentTimeSec;
+  LastRecordedFixedItemTimestamp = -1; // <=0 means start from latest
+  LastRecordedMovingItemTimestamp = -1; // <=0 means start from latest
 
   StartTimeSec = vtkAccurateTimer::GetSystemTime();
   CancelRequest = false;
@@ -595,10 +612,10 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
   }
 
   // Get result
-  double trackerLagSec = 0;
-  if (this->TemporalCalibrationAlgo->GetMovingLagSec(trackerLagSec)!=PLUS_SUCCESS)
+  double movingLagSec = 0;
+  if (this->TemporalCalibrationAlgo->GetMovingLagSec(movingLagSec)!=PLUS_SUCCESS)
   {
-    LOG_ERROR("Cannot determine tracker lag, temporal calibration failed");
+    LOG_ERROR("Cannot determine time lag, temporal calibration failed");
     CancelCalibration();
 
     temporalCalibrationDialog->done(0);
@@ -608,26 +625,26 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
     return;
   }
 
-  LOG_INFO("Video offset: " << trackerLagSec << " s ( > 0 if the video data lags )");
+  LOG_INFO("Temporal calibration result: moving stream lags by " << movingLagSec << "s");
 
   if( this->MovingChannel )
   {
-    this->MovingChannel->GetOwnerDevice()->SetLocalTimeOffsetSec(trackerLagSec);
+    this->MovingChannel->GetOwnerDevice()->SetLocalTimeOffsetSec(this->MovingChannel->GetOwnerDevice()->GetLocalTimeOffsetSec()-movingLagSec);
   }
 
-    // Update state message
-  ui.label_State->setText(tr("Current moving time offset: %1 s").arg(trackerLagSec));
+  // Update state message
+  ui.label_State->setText(tr("Current moving time offset: %1 s").arg(movingLagSec));
 
   // Save metric tables
   this->TemporalCalibrationAlgo->GetFixedPositionSignal(this->FixedPositionMetric);
   this->FixedPositionMetric->GetColumn(0)->SetName("Time [s]");
-  this->FixedPositionMetric->GetColumn(1)->SetName("Fixed Signal");
+  this->FixedPositionMetric->GetColumn(1)->SetName("Fixed signal");
   this->TemporalCalibrationAlgo->GetUncalibratedMovingPositionSignal(this->UncalibratedMovingPositionMetric);
   this->UncalibratedMovingPositionMetric->GetColumn(0)->SetName("Time [s]");
-  this->UncalibratedMovingPositionMetric->GetColumn(1)->SetName("Uncalibrated Moving Signal");
+  this->UncalibratedMovingPositionMetric->GetColumn(1)->SetName("Moving signal before calibration");
   this->TemporalCalibrationAlgo->GetCalibratedMovingPositionSignal(this->CalibratedMovingPositionMetric);
   this->CalibratedMovingPositionMetric->GetColumn(0)->SetName("Time [s]");
-  this->CalibratedMovingPositionMetric->GetColumn(1)->SetName("Calibrated Moving Signal");
+  this->CalibratedMovingPositionMetric->GetColumn(1)->SetName("Moving signal after calibration");
 
   TemporalCalibrationFixedData->Clear();
   TemporalCalibrationMovingData->Clear();
@@ -716,16 +733,8 @@ void TemporalCalibrationToolbox::CancelCalibration()
 
   CancelRequest = true;
 
-  // Reset the local time offset to the previous values
-  if (this->FixedChannel != NULL && this->PreviousFixedOffset != INVALID_OFFSET )
-  {
-    this->FixedChannel->GetOwnerDevice()->SetLocalTimeOffsetSec(this->PreviousFixedOffset);
-  }
-
-  if( this->MovingChannel != NULL && this->PreviousMovingOffset != INVALID_OFFSET )
-  {
-    this->MovingChannel->GetOwnerDevice()->SetLocalTimeOffsetSec(this->PreviousMovingOffset);
-  }
+  this->PreviousFixedOffset = INVALID_OFFSET;
+  this->PreviousMovingOffset = INVALID_OFFSET;
 
   this->FixedChannel = NULL;
   this->MovingChannel = NULL;
@@ -866,7 +875,9 @@ bool TemporalCalibrationToolbox::eventFilter(QObject *obj, QEvent *ev)
 
 void TemporalCalibrationToolbox::OnDeactivated()
 {
-
+  // The channels may get deleted (e.g., by a disconnect/connect), so make sure they are not reused
+  this->FixedChannel = NULL;
+  this->MovingChannel = NULL;
 }
 
 //-----------------------------------------------------------------------------
@@ -1037,4 +1048,13 @@ void TemporalCalibrationToolbox::FixedSourceChanged( int newIndex )
 void TemporalCalibrationToolbox::MovingSourceChanged( int newIndex )
 {
   this->SetDisplayAccordingToState();
+}
+
+//-----------------------------------------------------------------------------
+
+std::string TemporalCalibrationToolbox::GetTimeAsString(double timeSec)
+{
+  std::stringstream ss;
+  ss << std::fixed << std::setprecision(1) << 1000.0*timeSec << "ms";
+  return ss.str();
 }
