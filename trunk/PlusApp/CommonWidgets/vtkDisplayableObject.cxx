@@ -443,10 +443,13 @@ PlusStatus vtkDisplayableModel::ReadConfiguration(vtkXMLDataElement* aConfig)
   this->Displayable = false;
 
 
-  // If the tool name contains stylus then we consider it a stylus - and do a few things differently
-  // It would be probably better to define this explicitly in the config file rather than trying to figure it out from the tool name
+  std::string objectId=(this->ObjectId==NULL?"unknown":this->ObjectId);
+
+  // If the tool name contains stylus or volume then we consider it a stylus - and do a few things differently
+  // TODO: It would be probably better to define this explicitly in the config file rather than trying to figure it out from the tool name
+  bool isVolume=(objectId.find("Volume") != std::string::npos);
   std::string objectName(this->ObjectCoordinateFrame);
-  bool isStylus=(objectName.find("Stylus") != std::string::npos);
+  bool isStylus=(objectName.find("Stylus") != std::string::npos);    
 
   const char* modelFileName = aConfig->GetAttribute("File");
   if (modelFileName==NULL || STRCASECMP(modelFileName, "")==0 )
@@ -454,7 +457,7 @@ PlusStatus vtkDisplayableModel::ReadConfiguration(vtkXMLDataElement* aConfig)
     // Handle missing object models if possible
     if (isStylus)
     {
-      LOG_INFO("No stylus model file found - default model will be displayed");
+      LOG_DEBUG("No stylus model file found - default model will be displayed");
       if (SetDefaultStylusModel() != PLUS_SUCCESS)
       {
         LOG_WARNING("Failed to load default stylus model for displayable object '" << this->ObjectCoordinateFrame << "'");
@@ -463,8 +466,14 @@ PlusStatus vtkDisplayableModel::ReadConfiguration(vtkXMLDataElement* aConfig)
       this->Displayable = true;
       return PLUS_SUCCESS;
     }
-
-    LOG_WARNING("File not defined for Model: "<<(this->ObjectId==NULL?"unknown":this->ObjectId)<<". No visualization will occur until data is defined.");
+    else if (isVolume)
+    {
+      LOG_DEBUG("File not defined for Model: '"<<objectId<<"'. Assume that a polydata will be assigned later.");
+    }
+    else
+    {
+      LOG_WARNING("File not defined for Model: '"<<objectId<<"'. This model will not be displayed until a polydata is defined.");
+    }
   }
 
   // Find absolute path for the file
