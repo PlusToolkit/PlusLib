@@ -60,9 +60,9 @@ int main(int argc, char *argv[])
 
   // Start the application
   QApplication app(argc, argv);
-
-  // Hide console window - we can see log messages using the status icon anyway
+  
 #ifdef _WIN32
+  // Hide console window - we can see log messages using the status icon anyway
   if (!showConsole)
   {
     HWND hwnd = GetConsoleWindow();
@@ -73,5 +73,16 @@ int main(int argc, char *argv[])
   PlusServerLauncherMainWindow PlusServerLauncherMainWindow(0,0,autoConnect);
 	PlusServerLauncherMainWindow.show();
 
-	return app.exec();
+	int retValue=app.exec();
+
+  #ifdef _WIN32
+  // Restore the console window
+  if (!showConsole)
+  {
+    HWND hwnd = GetConsoleWindow();
+    ShowWindow(hwnd, 1);
+  }
+  #endif
+
+  return retValue;
 }
