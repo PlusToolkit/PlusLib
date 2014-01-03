@@ -17,6 +17,11 @@ class vtkPlusCommand;
 class vtkImageData;
 class vtkMatrix4x4;
 
+/*!
+  \class PlusCommandReply 
+  \brief Structure to store an OpenIGTLink command reply.
+  \ingroup PlusLibPlusServer
+*/
 struct PlusCommandReply
 {
   PlusCommandReply()
@@ -41,7 +46,7 @@ typedef std::list<PlusCommandReply> PlusCommandReplyList;
   If the commands are to be executed on a separate thread (to allow background processing, but maybe requiring more synchronization) call Start() to start an internal processing thread. 
   Probably one of the processing models would be enough, but at this point it's not clear which one is better.
   TODO: keep only one method and remove the other approach completely once the processing model decision is finalized.
-  \ingroup PlusLibDataCollection
+  \ingroup PlusLibPlusServer
 */
 class
 VTK_EXPORT

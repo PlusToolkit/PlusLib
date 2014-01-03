@@ -8,13 +8,14 @@ Plus (Public software Library for UltraSound) is an open-source software package
 
 See the <a href="https://www.assembla.com/spaces/plus/wiki">Plus Wiki</a> for more information.
 
-\defgroup PlusLibDataCollection DataCollection
-\defgroup PlusLibImageAcquisition ImageAcquisition
-\defgroup PlusLibCommon PlusCommon
-\defgroup PlusLibSignaling Signaling
-\defgroup PlusLibTracking Tracking
 \defgroup PlusLibCalibrationAlgorithm CalibrationAlgorithm
+\defgroup PlusLibDataCollection DataCollection
 \defgroup PlusLibPatternRecognition PatternRecognition
-\defgroup PlusLibVolumeReconstruction VolumeReconstruction 
+\defgroup PlusLibCommon PlusCommon
 \defgroup PlusLibOpenIGTLink PlusOpenIGTLink 
+\defgroup PlusLibPlusServer PlusServer
+\defgroup PlusLibRfProcessingAlgo RfProcessingAlgo
+\defgroup PlusLibSignaling Signaling
+\defgroup PlusLibUsSimulatorAlgo UsSimulatorAlgo
+\defgroup PlusLibVolumeReconstruction VolumeReconstruction 
 */

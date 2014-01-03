@@ -12,7 +12,7 @@ See License.txt for details.
 /*!
 \class vtkUsScanConvert
 \brief This is a base class for defining a common scan conversion algorithm interface for all kinds of probes
-\ingroup RfProcessingAlgo
+\ingroup PlusLibRfProcessingAlgo
 */ 
 class VTK_EXPORT vtkUsScanConvert : public vtkThreadedImageAlgorithm
 {

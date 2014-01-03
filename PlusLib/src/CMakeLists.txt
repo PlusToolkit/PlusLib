@@ -239,9 +239,16 @@ ENDIF()
 option(DOCUMENTATION_TARGET_IN_ALL "Include the custom target for building documentation in 'all'" OFF)
 mark_as_advanced(DOCUMENTATION_TARGET_IN_ALL)
 
-# Attempt to discover Doxygen so that DOXYGEN_EXECUTABLE is set to an appropriate default value
-SET (DOXYGEN_EXECUTABLE ${PLUSLIB_TOOLS_DIR}/Doxygen/doxygen-1.7.5.1/doxygen.exe CACHE PATH "Doxygen executable" FORCE)
-SET (DOXYGEN_DOT_EXECUTABLE ${PLUSLIB_TOOLS_DIR}/Doxygen/doxygen-1.7.5.1/Graphviz-2.28/bin/dot.exe CACHE PATH "Doxygen dot executable" FORCE)
+# Use Doxygen provided with Plus
+SET (DOXYGEN_EXECUTABLE ${PLUSLIB_TOOLS_DIR}/Doxygen/doxygen.exe CACHE PATH "Doxygen executable" FORCE)
+# Try to detect GraphViz path (CMake's Doxygen package finder only tries some obsolete paths on Windows)
+find_program(DOXYGEN_DOT_EXECUTABLE
+    NAMES dot
+    PATHS
+      "$ENV{ProgramFiles}/Graphviz2.34/bin"
+      "$ENV{ProgramFiles(x86)}/Graphviz2.34/bin"
+    DOC "Graphviz Dot tool for using Doxygen"
+  )
 find_package(Doxygen QUIET)
 
 add_subdirectory(Doxygen)

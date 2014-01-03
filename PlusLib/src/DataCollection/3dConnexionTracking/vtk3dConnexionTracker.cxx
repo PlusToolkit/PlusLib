@@ -516,7 +516,7 @@ PlusStatus vtk3dConnexionTracker::ReadConfiguration(vtkXMLDataElement* config)
   }
 
   double translationScales[3]={0.001, 0.001, 0.001};
-  int translationScalesComponentRead=trackerConfig->GetVectorAttribute("TranslationScales", 16, translationScales);
+  int translationScalesComponentRead=trackerConfig->GetVectorAttribute("TranslationScales", 3, translationScales);
   if (translationScalesComponentRead==1)
   {
     this->TranslationScales[0]=translationScales[0];
@@ -535,7 +535,7 @@ PlusStatus vtk3dConnexionTracker::ReadConfiguration(vtkXMLDataElement* config)
   }
 
   double rotationScales[3]={0.001, 0.001, 0.001};
-  int rotationScalesComponentRead=trackerConfig->GetVectorAttribute("RotationScales", 16, rotationScales);
+  int rotationScalesComponentRead=trackerConfig->GetVectorAttribute("RotationScales", 3, rotationScales);
   if (rotationScalesComponentRead==1)
   {
     this->RotationScales[0]=rotationScales[0];

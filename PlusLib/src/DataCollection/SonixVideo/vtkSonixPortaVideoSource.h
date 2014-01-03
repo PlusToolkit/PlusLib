@@ -34,7 +34,7 @@ class VTK_EXPORT vtkSonixPortaVideoSource;
 /*!
 \class vtkSonixPortaVideoSourceCleanup 
 \brief Class that cleans up (deletes singleton instance of) vtkSonixPortaVideoSource when destroyed
-\ingroup PlusLibImageAcquisition
+\ingroup PlusLibDataCollection
 */
 class VTK_EXPORT vtkSonixPortaVideoSourceCleanup 
 {
@@ -68,7 +68,7 @@ public:
   sonixGrabber->Record();
   imageviewer->SetInput( sonixGrabber->GetOutput() ); 
 
-  \ingroup PlusLibImageAcquisition
+  \ingroup PlusLibDataCollection
 */ 
 class VTK_EXPORT vtkSonixPortaVideoSource : public vtkPlusDevice {
 

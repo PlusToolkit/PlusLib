@@ -16,7 +16,7 @@
 \class vtkOpenIGTLinkTracker 
 \brief OpenIGTLink tracker client  
 
-\ingroup PlusLibTracking
+\ingroup PlusLibDataCollection
 */
 class VTK_EXPORT vtkOpenIGTLinkTracker : public vtkPlusDevice
 {

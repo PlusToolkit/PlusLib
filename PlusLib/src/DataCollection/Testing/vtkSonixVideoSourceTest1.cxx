@@ -13,7 +13,7 @@
   If the --rendering-off switch is not defined then the live ultrasound image is displayed
   in a window (useful for quick interactive testing of the image transfer).
   \todo This is a test todo
-  \ingroup PlusLibImageAcquisition
+  \ingroup PlusLibDataCollection
 */
 
 #include "PlusConfigure.h"

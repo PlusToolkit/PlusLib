@@ -20,7 +20,7 @@ class ChrSerialPacket;
 
 This class talks with CH Robotics CHR-UM6 accelerometer/magnetometer/gyroscope device
 
-\ingroup PlusLibTracking
+\ingroup PlusLibDataCollection
 */
 class VTK_EXPORT vtkChRoboticsTracker : public vtkPlusDevice
 {

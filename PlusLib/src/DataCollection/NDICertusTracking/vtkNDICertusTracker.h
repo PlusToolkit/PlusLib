@@ -21,7 +21,7 @@
 The vtkNDICertusTracker class provides an interface to the Optotrak
 Certus (Northern Digital Inc., Waterloo, Canada)
 
-\ingroup PlusLibTracking
+\ingroup PlusLibDataCollection
 */
 class VTK_EXPORT vtkNDICertusTracker : public vtkPlusDevice
 {

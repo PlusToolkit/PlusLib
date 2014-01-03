@@ -65,7 +65,7 @@ class vtkSocketCommunicator;
   This class refers to ports 1,2,3,A,B,C as ports 0,1,2,3,4,5
 
   \sa vtkPOLARISTracker
-  \ingroup PlusLibTracking
+  \ingroup PlusLibDataCollection
 */
 class VTK_EXPORT vtkNDITracker : public vtkPlusDevice
 {

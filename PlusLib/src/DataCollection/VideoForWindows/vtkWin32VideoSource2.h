@@ -37,7 +37,7 @@ class vtkWin32VideoSource2Internal;
   if your program leaked, due to exit crashes that was removed.
 
   \sa vtkPlusDevice vtkMILVideoSource2 vtkWin32VideoSource
-  \ingroup PlusLibImageAcquisition
+  \ingroup PlusLibDataCollection
 */ 
 class VTK_EXPORT vtkWin32VideoSource2 : public vtkPlusDevice
 {

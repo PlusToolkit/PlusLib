@@ -12,7 +12,7 @@
 /*!
   \class vtkPlusRequestDeviceIDsCommand 
   \brief This command returns the list of devices to the client
-  \ingroup PlusLibDataCollection
+  \ingroup PlusLibPlusServer
  */ 
 class VTK_EXPORT vtkPlusRequestIdsCommand : public vtkPlusCommand
 {

@@ -7,7 +7,7 @@
 /*!
 \class PlusBkProFocusCameraLinkReceiver 
 \brief Class for receiving images through the BK ProFocus SDK (Grabbie)
-\ingroup PlusLibImageAcquisition
+\ingroup PlusLibDataCollection
 */
 class PlusBkProFocusCameraLinkReceiver : public IAcquisitionDataReceiver
 {

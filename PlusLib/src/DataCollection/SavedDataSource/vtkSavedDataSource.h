@@ -16,7 +16,7 @@ class VTK_EXPORT vtkSavedDataSource;
 /*!
 \class vtkSavedDataSource 
 \brief Class for providing VTK video input interface from sequence metafile
-\ingroup PlusLibImageAcquisition
+\ingroup PlusLibDataCollection
 
 Attributes:
 \li SequenceMetafile: source file to read the image/transform data from

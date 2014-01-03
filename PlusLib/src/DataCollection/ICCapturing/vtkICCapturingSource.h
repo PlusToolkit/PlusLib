@@ -15,7 +15,7 @@ class VTK_EXPORT vtkICCapturingSource;
 /*!
 \class vtkICCapturingSourceCleanup 
 \brief Class that cleans up (deletes singleton instance of) vtkICCapturingSource when destroyed
-\ingroup PlusLibImageAcquisition
+\ingroup PlusLibDataCollection
 */
 class VTK_EXPORT vtkICCapturingSourceCleanup
 {
@@ -27,7 +27,7 @@ public:
 /*!
 \class vtkICCapturingSource 
 \brief Class for providing video input interfaces between VTK and ICCapturing frame grabber device
-\ingroup PlusLibImageAcquisition
+\ingroup PlusLibDataCollection
 */
 class VTK_EXPORT vtkICCapturingSource : public vtkPlusDevice
 {

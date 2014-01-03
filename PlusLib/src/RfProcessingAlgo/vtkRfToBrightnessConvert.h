@@ -31,7 +31,7 @@ range (16 bits).
 The input image type must be VTK_SHORT (signed 16-bit) and the output image type
 is always VTK_UNSIGNED_CHAR (unsigned 8-bit).
 
-\ingroup RfProcessingAlgo
+\ingroup PlusLibRfProcessingAlgo
 */ 
 class VTK_EXPORT vtkRfToBrightnessConvert : public vtkThreadedImageAlgorithm
 {

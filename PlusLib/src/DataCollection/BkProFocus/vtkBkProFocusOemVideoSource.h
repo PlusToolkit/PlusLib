@@ -12,7 +12,7 @@
 /*!
   \class vtkBkProFocusOemVideoSource 
   \brief Class for acquiring ultrasound images from BK ultrasound systems through the OEM interface
-  \ingroup PlusLibImageAcquisition
+  \ingroup PlusLibDataCollection
 */
 class VTK_EXPORT vtkBkProFocusOemVideoSource : public vtkPlusDevice
 {

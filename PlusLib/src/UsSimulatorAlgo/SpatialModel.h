@@ -14,6 +14,11 @@
 #include "vtkMatrix4x4.h"
 #include "vtkModifiedBSPTree.h"
 
+/*!
+  \class SpatialModel 
+  \brief Class to store all properties of a simulated object.
+  \ingroup PlusLibUsSimulatorAlgo
+*/
 class VTK_EXPORT SpatialModel
 {
 public:

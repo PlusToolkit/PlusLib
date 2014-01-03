@@ -32,7 +32,7 @@ This class represents a fake tracking system with tools that have
 predetermined behavior. This allows someone who doesn't have access to
 a tracking system to test code that relies on having one active.
 
-\ingroup PlusLibTracking
+\ingroup PlusLibDataCollection
 */
 class VTK_EXPORT vtkFakeTracker : public vtkPlusDevice
 {

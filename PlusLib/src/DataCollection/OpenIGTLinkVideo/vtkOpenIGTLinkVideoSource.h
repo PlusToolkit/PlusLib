@@ -19,7 +19,7 @@ class VTK_EXPORT vtkOpenIGTLinkVideoSource;
 
   vtkOpenIGTLinkVideoSource is a class for providing video input interfaces between VTK and OpenIGTLink ready video device. 
 
-  \ingroup PlusLibImageAcquisition
+  \ingroup PlusLibDataCollection
 */ 
 class VTK_EXPORT vtkOpenIGTLinkVideoSource : public vtkPlusDevice
 {

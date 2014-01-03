@@ -30,7 +30,7 @@ namespace itk
 /*!
   \class FcsvPoint
   \brief Describes a single fiducial point
-  \ingroup PlusLibImageAcquisition
+  \ingroup PlusLibDataCollection
 */
 class FcsvPoint 
 {
@@ -44,7 +44,7 @@ class FcsvPoint
 /*!
   \class FcsvData
   \brief Describes a fiducial list
-  \ingroup PlusLibImageAcquisition
+  \ingroup PlusLibDataCollection
 */
 struct FcsvData
 {
@@ -75,7 +75,7 @@ static const int FcsvNDimensions=3;
   \class FcsvReader
   \brief Reads a fiducial list (fcsv) file 
   The fcsv file is the standard file format of 3D Slicer for storing a fiducial list
-  \ingroup PlusLibImageAcquisition
+  \ingroup PlusLibDataCollection
 */
 class PLUS_EXPORT FcsvReader : public Object
 {

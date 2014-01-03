@@ -12,7 +12,7 @@
 /*!
   \class ICCapturingListener 
   \brief Class that listens for incoming framegrabber images
-  \ingroup PlusLibImageAcquisition
+  \ingroup PlusLibDataCollection
 */ 
 class ICCapturingListener : public DShowLib::GrabberListener  
 {

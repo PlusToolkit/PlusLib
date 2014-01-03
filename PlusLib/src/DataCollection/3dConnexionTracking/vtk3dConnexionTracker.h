@@ -15,9 +15,16 @@ class vtkMatrix4x4;
 
 /*!
 \class vtk3dConnexionTracker 
-\brief Interface for the CH Robotics CHR-UM6 tracker 
+\brief Interface for 3D Connexion 3D mouse devices
 
-This class talks with CH Robotics CHR-UM6 accelerometer/magnetometer/gyroscope device
+This class reads transforms from 3D mouse devices.
+
+\par Configuration settings
+- \c Mode Operation mode of the device
+  - \c MOUSE If the mouse is released then the transform does not change
+  - \c JOYSTICK If the mouse is released then the transforms reverts to identity
+- \c TranslationScales Sensitivity of the 3 translation axes. Default: <tt>"0.001 0.001 0.001"</tt>. Higher values mean higher sensitivity. Negative values can be used for inverting axes.
+- \c RotationScales Sensitivity of the 3 rotation axes. Default: <tt>"0.001 0.001 0.001"</tt>. Higher values mean higher sensitivity. Negative values can be used for inverting axes.
 
 \ingroup PlusLibDataCollection
 */

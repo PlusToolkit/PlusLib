@@ -47,8 +47,8 @@ POSSIBILITY OF SUCH DAMAGES.
 /*!
   /struct vtkFillHolesInVolumeKernel
   /brief Holds information about a user-specified kernel
-
   Holds information about a user-specified kernel
+  \ingroup PlusLibVolumeReconstruction
 */
 struct vtkFillHolesInVolumeKernel {
   int size[3];
@@ -302,6 +302,3 @@ private:
 };
 
 #endif
-
-
-
