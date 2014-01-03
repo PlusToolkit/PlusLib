@@ -61,6 +61,7 @@ vtkMmfVideoSource::vtkMmfVideoSource()
 , CaptureSource(NULL)
 , CaptureSourceReader(NULL)
 , Mutex(vtkSmartPointer<vtkRecursiveCriticalSection>::New())
+, RefCount(0)
 {
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
@@ -101,6 +102,11 @@ void vtkMmfVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 PlusStatus vtkMmfVideoSource::InternalConnect()
 {
   PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+
+  if (this->RefCount!=0)
+  {
+    LOG_WARNING("There is a reference to this class from a previous connection");
+  }
 
   this->ActiveVideoFormat = this->RequestedVideoFormat;
 
@@ -255,7 +261,12 @@ STDMETHODIMP vtkMmfVideoSource::QueryInterface( REFIID iid, void** ppv )
 
 STDMETHODIMP_(ULONG) vtkMmfVideoSource::AddRef()
 {
-  return InterlockedIncrement(&RefCount);
+  LONG uCount=InterlockedIncrement(&RefCount);
+  if (uCount==1)
+  {
+    this->Register(NULL);
+  }
+  return uCount;
 }
 
 //----------------------------------------------------------------------------
@@ -265,7 +276,8 @@ STDMETHODIMP_(ULONG) vtkMmfVideoSource::Release()
   ULONG uCount = InterlockedDecrement(&RefCount);
   if (uCount == 0)
   {
-    delete this;
+    LOG_DEBUG("vtkMmfVideoSource::Release - unregister");
+    this->UnRegister(NULL);
   }
   return uCount;
 }
