@@ -25,7 +25,7 @@ class vtkTrackedFrameList;
 /*!
   \class vtkSonixVolumeReader 
   \brief Reads a volume from file to tracked frame list
-  \ingroup PlusLibImageAcquisition
+  \ingroup PlusLibDataCollection
 */ 
 class VTK_EXPORT vtkSonixVolumeReader: public vtkImageAlgorithm
 {

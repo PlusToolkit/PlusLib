@@ -49,7 +49,7 @@ parameters cannot be stored in the device flash then they should be set in vtkPh
 The magnetometer has an internal calibration mechanism, which is running continuously. During this internal calibration no measurement
 data can be retrieved from the magnetometer. When magnetometer data is not available then the associated tool status is set to INVALID.
 
-\ingroup PlusLibTracking
+\ingroup PlusLibDataCollection
 */
 class
   VTK_EXPORT

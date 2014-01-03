@@ -30,7 +30,7 @@ namespace itk
   \class FcsvWriter
   \brief Writes a fiducial list (fcsv) file 
   The fcsv file is the standard file format of 3D Slicer for storing a fiducial list
-  \ingroup PlusLibImageAcquisition
+  \ingroup PlusLibDataCollection
 */
 
 class PLUS_EXPORT FcsvWriter : public Object

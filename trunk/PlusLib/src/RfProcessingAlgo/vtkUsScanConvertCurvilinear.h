@@ -12,7 +12,7 @@ See License.txt for details.
 /*!
 \class vtkUsScanConvertCurvilinear
 \brief This class performs scan conversion from scan lines for curvilinear probes
-\ingroup RfProcessingAlgo
+\ingroup PlusLibRfProcessingAlgo
 */ 
 class VTK_EXPORT vtkUsScanConvertCurvilinear : public vtkUsScanConvert
 {

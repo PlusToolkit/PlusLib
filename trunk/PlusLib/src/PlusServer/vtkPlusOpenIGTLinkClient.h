@@ -25,7 +25,7 @@ class vtkRecursiveCriticalSection;
 
   It connects to a Plus server, sends requests and receives responses.  
   
-  \ingroup PlusLibDataCollection
+  \ingroup PlusLibPlusServer
 */
 class VTK_EXPORT vtkPlusOpenIGTLinkClient : public vtkObject
 {

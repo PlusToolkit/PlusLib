@@ -11,7 +11,7 @@ See License.txt for details.
 \class AhrsAlgo 
 \brief Common base class for AHRS algorithms
 
-\ingroup PlusLibTracking
+\ingroup PlusLibDataCollection
 */
 
 class AhrsAlgo

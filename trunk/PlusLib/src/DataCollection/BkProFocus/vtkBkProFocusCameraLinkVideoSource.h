@@ -16,7 +16,7 @@ class PlusBkProFocusCameraLinkReceiver;
 /*!
 \class vtkBkProFocusCameraLinkVideoSource 
 \brief Class for acquiring ultrasound images from BK ProFocus scanners
-\ingroup PlusLibImageAcquisition
+\ingroup PlusLibDataCollection
 */
 class VTK_EXPORT vtkBkProFocusCameraLinkVideoSource : public vtkPlusDevice
 {

@@ -33,7 +33,7 @@ class MicronTrackerInterface;
 /*!
   \class vtkMicronTracker
   \brief Interface class to Claron MicronTracker optical trackers
-  \ingroup PlusLibTracking
+  \ingroup PlusLibDataCollection
 */
 class VTK_EXPORT vtkMicronTracker : public vtkPlusDevice
 {

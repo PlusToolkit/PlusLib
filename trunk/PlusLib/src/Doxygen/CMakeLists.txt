@@ -50,11 +50,13 @@ if( DOXYGEN_FOUND )
 
     # User documentation
     set( PlusLib_USER_DOCUMENTATION "YES" )
+    set( PlusLib_DEV_DOCUMENTATION "NO" )
     set( PlusLib_ADDITIONAL_EXCLUDE_PATTERN "*_p.h  *Private.*  */Testing/*" )
     GENERATE_DOC(doc-usr)
 
     # Dev documentation
     set( PlusLib_USER_DOCUMENTATION "NO" )
+    set( PlusLib_DEV_DOCUMENTATION "YES" )
     set( PlusLib_ADDITIONAL_EXCLUDE_PATTERN "" )
     set( PlusLib_ADDITIONAL_FILE_PATTERN "*.c \  *.cc \  *.cxx \  *.cpp \  *.c++ \  *.hxx \  *.hpp \  *.h++ \  *.txx \  *.C \  *.CC \  *.C++ \  *.moc" )
     GENERATE_DOC(doc-dev)

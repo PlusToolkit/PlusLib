@@ -21,7 +21,7 @@
 \brief Class for reading and writing data through the serial (RS-232) port
 
 \sa CSerialCommHelper
-\ingroup PlusLibTracking
+\ingroup PlusLibDataCollection
 */
 
 class SerialLine  

@@ -17,7 +17,7 @@ class VTK_EXPORT vtkUsSimulatorVideoSource;
 /*!
   \class vtkUsSimulatorVideoSource 
   \brief Class for providing VTK video input interface from simulated ultrasound
-  \ingroup PlusLibImageAcquisition
+  \ingroup PlusLibDataCollection
 */
 class VTK_EXPORT vtkUsSimulatorVideoSource : public vtkPlusDevice
 {

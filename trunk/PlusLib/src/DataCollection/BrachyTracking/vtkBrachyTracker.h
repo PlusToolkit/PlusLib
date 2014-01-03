@@ -21,7 +21,7 @@ class TrackedFrame;
 
 This class talks with CMS and CIVCO brachy steppers
 
-\ingroup PlusLibTracking
+\ingroup PlusLibDataCollection
 */
 class VTK_EXPORT vtkBrachyTracker : public vtkPlusDevice
 {

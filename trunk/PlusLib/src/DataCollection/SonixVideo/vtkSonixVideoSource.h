@@ -51,7 +51,7 @@ class VTK_EXPORT vtkSonixVideoSource;
   imageviewer->SetInput(sonixGrabber->GetOutput());
   See vtkSonixVideoSourceTest1.cxx for more details
 
-  \ingroup PlusLibImageAcquisition
+  \ingroup PlusLibDataCollection
 */
 
 class VTK_EXPORT vtkSonixVideoSource : public vtkPlusDevice

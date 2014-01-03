@@ -19,7 +19,7 @@ class vtkImageData;
   All commands have a unique string representation to enable sending commands as string messages.
   For e.g. through OpenIGTLink.
   
-  \ingroup PlusLibDataCollection
+  \ingroup PlusLibPlusServer
 */
 class VTK_EXPORT vtkPlusCommand : public vtkObject
 {

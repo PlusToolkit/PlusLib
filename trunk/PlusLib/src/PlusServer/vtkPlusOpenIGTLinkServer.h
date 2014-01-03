@@ -27,7 +27,7 @@ class vtkTransformRepository;
   After the server is started, it waits for a client sending request message of type
   "igtl::PlusClientInfoMessage" with requested message types and transform names.  
 
-  \ingroup PlusLibDataCollection
+  \ingroup PlusLibPlusServer
 */
 class VTK_EXPORT vtkPlusOpenIGTLinkServer: public vtkObject
 {

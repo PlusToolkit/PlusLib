@@ -12,7 +12,7 @@
 /*!
   \class vtkEpiphanVideoSource 
   \brief Class for providing video input interfaces between VTK and Epiphan frame grabber device
-  \ingroup PlusLibImageAcquisition
+  \ingroup PlusLibDataCollection
 */
 class VTK_EXPORT vtkEpiphanVideoSource : public vtkPlusDevice
 {

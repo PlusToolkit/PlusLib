@@ -17,7 +17,7 @@ class vtkImageCast;
 /*!
   \class vtkRfProcessor 
   \brief Convenience class to combine multiple algorithms to compute a displayable B-mode frame from RF data
-  \ingroup RfProcessingAlgo
+  \ingroup PlusLibRfProcessingAlgo
 */ 
 class VTK_EXPORT vtkRfProcessor : public vtkObject
 {
