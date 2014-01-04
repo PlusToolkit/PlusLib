@@ -114,6 +114,11 @@ IF (PLUSAPP_BUILD_fCal)
 ENDIF (PLUSAPP_BUILD_fCal)
 
 #-----------------------------------------------------------------------------
+# Generate documentation
+# 
+ADD_SUBDIRECTORY(Documentation)
+
+#-----------------------------------------------------------------------------
 # Include PlusLib MS projects 
 INCLUDE_PLUSLIB_MS_PROJECTS()
 
@@ -142,7 +147,7 @@ configure_file(PlusAppConfig.cmake.in
   "${CMAKE_CURRENT_BINARY_DIR}/PlusAppConfig.cmake" @ONLY)
 configure_file(PlusAppConfigVersion.cmake.in
   "${CMAKE_CURRENT_BINARY_DIR}/PlusAppConfigVersion.cmake" @ONLY)
-
+  
 #-----------------------------------------------------------------------------
 # Generate include file for projects that use this library 
 # 

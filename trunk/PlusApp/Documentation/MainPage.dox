@@ -1,0 +1,54 @@
+/**
+
+\mainpage
+
+\section intro_sec Introduction
+
+Plus (Public software Library for UltraSound) is an open-source software package for tracked ultrasound image acquisition, calibration, and processing. PlusLib contains the basic framework and algorithm classes.
+
+See the <a href="https://www.assembla.com/spaces/plus/wiki">Plus Wiki</a> for more information.
+
+Overview presentations
+- <a href="https://subversion.assembla.com/svn/plus/trunk/doc/overview/PlusOverview.pptx">Generic Plus overview</a>
+- <a href="https://subversion.assembla.com/svn/plus/trunk/doc/overview/SlicerIgtPlusIntro-NCIGT2013.pptx">Plus overview with some clinical applications</a>
+- <a href="https://subversion.assembla.com/svn/plus/trunk/doc/overview/PlusArchitectureOverview.pptx">Multi-channel architecture overview</a>
+
+See tutorials and workflow descriptions by selecting pages from the menu on the left side of the page (under <i>Users guide </i>branch in the pages tree).
+
+[[Downloads|Click here for downloading Plus applications releases]]
+
+For building image-guided therapy applications you can use the 3D Slicer based tools of the <a href="https://www.assembla.com/spaces/slicerigt">SlicerIGT</a> project
+
+All information about the Plus project is publicly available on this website. Register at www.assembla.com and <a href="https://www.assembla.com/spaces/watch/plus">join the Plus space as watcher</a> to be able to submit messages, bug reports, feature requests, and get notifications. Write a message to any of the <a href="https://www.assembla.com/spaces/plus/team">Owner users</a> to request write access to the repository.
+
+License: Plus has a BSD-style license, which allows any kind of use for free. See more details in&nbsp;
+<a href="https://www.assembla.com/code/plus/subversion/nodes/trunk/PlusLib/src/License.txt?rev=1564">https://www.assembla.com/code/plus/subversion/nodes/trunk/PlusLib/src/License.txt</a></li><li>How to cite: please refer to the following paper when referring to Plus in your publication
+  Andras Lasso, Tamas Heffter, Csaba Pinter, Tamas Ungi, and Gabor Fichtinger,&nbsp;"Implementation of the PLUS open-source toolkit for translational research of ultrasound-guided intervention systems", &nbsp;The MIDAS Journal - Systems and Architectures for Computer Assisted Interventions 2012, Workshop at Medical Image Computing and Computer-Assisted Intervention (MICCAI 2012), pp. 1-12, <a href="http://hdl.handle.net/10380/3367">http://hdl.handle.net/10380/3367</a>, 2012</li>
+
+<pre>
+@@INPROCEEDINGS{
+  Lasso2012d,
+  author = {Andras Lasso and Tamas Heffter and Csaba Pinter and Ungi, Tamas and	Gabor Fichtinger},
+  title = {Implementation of the PLUS open-source toolkit for translational research of ultrasound-guided intervention systems},
+  booktitle = { Workshop at Medical Image Computing and Computer-Assisted Intervention (MICCAI 2012) - Systems and Architectures for Computer Assisted Interventions},
+  year = {2012},
+  pages = {1-12},
+  address = {Nice, France},
+  month = {10/2012},
+  url = {http://hdl.handle.net/10380/3367}
+}
+</pre>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+*/
