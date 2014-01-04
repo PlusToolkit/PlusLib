@@ -19,13 +19,6 @@ class vtkMatrix4x4;
 
 This class reads transforms from 3D mouse devices.
 
-\par Configuration settings
-- \c Mode Operation mode of the device
-  - \c MOUSE If the mouse is released then the transform does not change
-  - \c JOYSTICK If the mouse is released then the transforms reverts to identity
-- \c TranslationScales Sensitivity of the 3 translation axes. Default: <tt>"0.001 0.001 0.001"</tt>. Higher values mean higher sensitivity. Negative values can be used for inverting axes.
-- \c RotationScales Sensitivity of the 3 rotation axes. Default: <tt>"0.001 0.001 0.001"</tt>. Higher values mean higher sensitivity. Negative values can be used for inverting axes.
-
 \ingroup PlusLibDataCollection
 */
 class VTK_EXPORT vtk3dConnexionTracker : public vtkPlusDevice
