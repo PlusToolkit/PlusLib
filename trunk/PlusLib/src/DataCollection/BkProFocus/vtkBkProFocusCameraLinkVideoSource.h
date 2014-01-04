@@ -16,6 +16,15 @@ class PlusBkProFocusCameraLinkReceiver;
 /*!
 \class vtkBkProFocusCameraLinkVideoSource 
 \brief Class for acquiring ultrasound images from BK ProFocus scanners
+  
+Requires the PLUS_USE_BKPROFOCUS_VIDEO and PLUS_USE_BKPROFOCUS_CAMERALINK options in CMake.
+
+Need to install the DALSA Sapera package, otherwise the applications will not start because of missing the SapClassBasic72.dll.
+This dll can only be used with 64-bit Plus build on 64-bit OS and 32-bit Plus build on a 32-bit OS.
+Therefore on a 64-bit Windows system Plus shall be built in 64-bit mode.
+
+Requires GrabbieLib (SDK provided by BK).
+
 \ingroup PlusLibDataCollection
 */
 class VTK_EXPORT vtkBkProFocusCameraLinkVideoSource : public vtkPlusDevice

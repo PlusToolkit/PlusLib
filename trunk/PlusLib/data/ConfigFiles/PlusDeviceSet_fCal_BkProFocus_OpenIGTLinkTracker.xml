@@ -6,7 +6,6 @@
       Description="BK ProFocus ultrasound scanner and OpenIGTLink TRANSFORM messages + fCal 1.2. Plus must be built in 64-bit if the operating system is 64-bit." 
     />
 
-    <!-- Bk pro focus must come first for automated tests to pass -->
     <Device 
       Id="VideoDevice"
       Type="BkProFocus"

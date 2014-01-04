@@ -1,0 +1,48 @@
+/*!
+\page DeviceAscension3DG Ascension electromagnetic tracking devices (and Ultrasonix SonixGPS)
+
+\par Supported hardware devices
+
+- Ascension trakSTAR, driveBAY, medSAFE models
+- Ultrasonix SonixGPS (it is an Ascension driveBAY)
+- Link to manufacturer's website: http://www.ascension-tech.com/medical/index.php
+
+\par Installation
+
+- Sensors must be all located in front of the frontplate of the field generator (the side with large the Ascension motif on it): tools are still tracked behind the frontplate, but their orientation may be inverted
+- If pose measurement seems to be incorrect (somewhat translated/rotated) then unplug the sensor and plug it in again
+- Tracking a Stylus: It is recommended to place the EM sensor as close to the needle tip as possible. The best accuracy is expected from a thick needle with a sensor near the needle tip. 
+- If you are using the tracker of an Ultrasonix SonixGPS system and the Exam software is running (e.g., because images are acquired using the Ulterius interface), then you need to disable the SonixGPS license to prevent the Exam software from using the tracker. This is done because only one application can communicate with the tracker at a time (either your application or the Exam software). To disable SonixGPS press menu on the touchscreen. Go to Administrator, Licenses and unselect SonixGPS from the licenses menu.
+- Supported on Windows only
+
+\par Configuration settings
+
+- Device type: \c Ascension3DG (for medSafe: \c Ascension3DGm)
+- Attributes
+  - \c FilterAcWideNotch
+  - \c FilterAcNarrowNotch
+  - \c FilterDcAdaptive
+  - \c FilterLargeChange
+  - \c FilterAlpha
+- Child elements
+  - \c DataSource
+    - \c Type Must be \c Tool
+    - \c PortName Identifies the connector (0, 1, 2, or 3) or a virtual tool that contains the quality values (\c quality1 for tool ports 0, 1, and 2; \c quality2 for tool port 3)
+    - \c QualityErrorSlope The slope should have a value between -127 and +127. (Default is 0)
+    - \c QualityErrorOffset default: The offset should have a value between -127 and +127. (The default is 0)
+    - \c QualityErrorSensitivity: The sensitivity should have a value between 0 and 127 (Default is 2)
+    - \c QualityFilterAlpha: The alpha should have a value between 0 and 127. (The default is 12)
+
+\par Quality values
+
+The tool ports \c quality1 and \c quality2  provide the quality values for all the tools.
+
+The quality numbers are stored in the translation component of the transformation matrix. If a value is not available then it is set to -1.
+- \c quality1: quality values for sensor port 0-2
+- \c quality2: quality values for sensor port 3-5 (usually there are only 4 ports, so quality values for port 4 and 5 are not available)
+
+\par Example configuration file
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_Ascension3DG.xml"
+    
+*/

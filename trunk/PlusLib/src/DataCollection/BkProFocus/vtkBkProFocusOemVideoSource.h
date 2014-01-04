@@ -12,6 +12,10 @@
 /*!
   \class vtkBkProFocusOemVideoSource 
   \brief Class for acquiring ultrasound images from BK ultrasound systems through the OEM interface
+
+  Requires the PLUS_USE_BKPROFOCUS_VIDEO option in CMake.
+  Requires GrabbieLib (SDK provided by BK).
+
   \ingroup PlusLibDataCollection
 */
 class VTK_EXPORT vtkBkProFocusOemVideoSource : public vtkPlusDevice
