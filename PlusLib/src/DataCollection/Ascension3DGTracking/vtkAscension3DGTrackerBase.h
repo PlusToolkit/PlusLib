@@ -14,11 +14,6 @@ class vtkPlusDataBuffer;
 
 This class talks with Ascension3DG tracker over the ATC trakSTAR device driver
 
-There are special tool ports ("quality1" and "quality2"), which provide the quality values for all the tools.
-The quality numbers are stored in the translation component of the transformation matrix. If a value is not available then it is set to -1.
-  quality1: quality values for sensor port 0-2
-  quality2: quality values for sensor port 3-5 (usually there are only 4 ports, so quality values for port 4 and 5 are not available)
-
 \ingroup PlusLibDataCollection
 */
 class
