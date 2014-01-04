@@ -200,13 +200,6 @@ configure_file(PlusLibConfigVersion.cmake.in
   "${CMAKE_CURRENT_BINARY_DIR}/PlusLibConfigVersion.cmake" @ONLY)
 
 #-----------------------------------------------------------------------------
-# Generate include file for projects that use this library 
-# 
-configure_file(
-	${CMAKE_CURRENT_SOURCE_DIR}/UsePlusLib.cmake.in 
-	${CMAKE_CURRENT_BINARY_DIR}/UsePlusLib.cmake @ONLY)	
-
-#-----------------------------------------------------------------------------
 # Generate default application configuration files in the non-installed executable directories (Release and Debug too)
 # 
 SET( PLUSCONFIG_DEVICESET_CONFIG_DIR "${PLUSLIB_DATA_DIR}/ConfigFiles" )
@@ -251,4 +244,12 @@ find_program(DOXYGEN_DOT_EXECUTABLE
   )
 find_package(Doxygen QUIET)
 
-add_subdirectory(Doxygen)
+add_subdirectory(Documentation)
+
+
+#-----------------------------------------------------------------------------
+# Generate include file for projects that use this library 
+# 
+configure_file(
+	${CMAKE_CURRENT_SOURCE_DIR}/UsePlusLib.cmake.in 
+	${CMAKE_CURRENT_BINARY_DIR}/UsePlusLib.cmake @ONLY)	
