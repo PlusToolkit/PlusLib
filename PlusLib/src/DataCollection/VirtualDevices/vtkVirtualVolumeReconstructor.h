@@ -70,6 +70,15 @@ public:
   vtkSetStringMacro(OutputVolDeviceName);
   vtkGetStringMacro(OutputVolDeviceName);
 
+  /*! Set the output volume's origin in the Reference coordinate system*/
+  void SetOutputOrigin(double* origin);
+
+  /*! Set the output volume's spacing in the Reference coordinate system's unit (usually mm)*/
+  void SetOutputSpacing(double* spacing);
+
+  /*! Set the output volume's extent (xStart, xEnd, yStart, yEnd, zStart, zEnd) in voxels */
+  void SetOutputExtent(int* extent);
+
 protected:
 
     /*! Read main configuration from xml data */
