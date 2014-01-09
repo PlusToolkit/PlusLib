@@ -225,14 +225,22 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
   { 
     captureDevice->SetEnableCapturing(false);    
     
+    // Once the file is closed, the filename is no longer valid, so we need to get the filename now
+    std::string resultFilename=captureDevice->GetOutputFileName();
+    // If we override the output filename then that will be the result filename
+    if (this->OutputFilename!=NULL)
+    {
+      resultFilename=this->OutputFilename;
+    }
+    
     long numberOfFramesRecorded=captureDevice->GetTotalFramesRecorded();    
     if (captureDevice->CloseFile(this->OutputFilename) != PLUS_SUCCESS)
     {
-      this->ResponseMessage += std::string(" failed to finalize file ")+(this->OutputFilename?this->OutputFilename:"(undefined)");
+      this->ResponseMessage += std::string(" failed to finalize file ")+resultFilename;
       return PLUS_FAIL;
     }
     std::ostringstream ss;
-    ss << ", recording " << numberOfFramesRecorded <<" frames successful to file "<<captureDevice->GetOutputFileName();
+    ss << ", recording " << numberOfFramesRecorded <<" frames successful to file "<<resultFilename;
     this->ResponseMessage+=ss.str();
     return PLUS_SUCCESS;
   }
