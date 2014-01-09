@@ -902,3 +902,21 @@ void vtkVolumeReconstructor::Reset()
 {
   this->Reconstructor->ResetOutput();
 }
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::SetOutputOrigin(double* origin)
+{
+  this->Reconstructor->SetOutputOrigin(origin);
+}
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::SetOutputSpacing(double* spacing)
+{
+  this->Reconstructor->SetOutputSpacing(spacing);
+}
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::SetOutputExtent(int* extent)
+{
+  this->Reconstructor->SetOutputExtent(extent);
+}

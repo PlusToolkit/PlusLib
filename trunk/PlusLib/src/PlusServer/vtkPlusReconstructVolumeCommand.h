@@ -58,6 +58,30 @@ public:
   vtkGetStringMacro(VolumeReconstructorDeviceId);
   vtkSetStringMacro(VolumeReconstructorDeviceId);
 
+  /*!
+    Set spacing of the output data in Reference coordinate system.
+    This is required to be set, otherwise the reconstructed volume will be empty.
+  */
+  vtkSetVector3Macro(OutputSpacing, vtkFloatingPointType);
+  /*! Get spacing of the output data in Reference coordinate system  */
+  vtkGetVector3Macro(OutputSpacing, vtkFloatingPointType);
+
+  /*!
+    Set origin of the output data in Reference coordinate system.
+    This is required to be set, otherwise the reconstructed volume will be empty.
+  */
+  vtkSetVector3Macro(OutputOrigin, vtkFloatingPointType);
+  /*! Get origin of the output data in Reference coordinate system  */
+  vtkGetVector3Macro(OutputOrigin, vtkFloatingPointType);
+
+  /*!
+    Set extent of the output data in Reference coordinate system.
+    This is required to be set, otherwise the reconstructed volume will be empty.
+  */
+  vtkSetVector6Macro(OutputExtent, int);
+  /*! Get extentof the output data in Reference coordinate system  */
+  vtkGetVector6Macro(OutputExtent, int);  
+
   void SetNameToReconstruct();
   void SetNameToStart();
   void SetNameToStop();
@@ -81,6 +105,11 @@ private:
   char* OutputVolFilename;
   char* OutputVolDeviceName;
   char* VolumeReconstructorDeviceId;
+
+  // Output image position and size
+  vtkFloatingPointType OutputOrigin[3];
+  vtkFloatingPointType OutputSpacing[3];
+  int OutputExtent[6];
   
   vtkPlusReconstructVolumeCommand( const vtkPlusReconstructVolumeCommand& );
   void operator=( const vtkPlusReconstructVolumeCommand& );

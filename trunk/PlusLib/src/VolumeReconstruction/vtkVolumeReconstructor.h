@@ -126,7 +126,6 @@ public:
   vtkGetStringMacro(ReferenceCoordinateFrame);
   vtkSetStringMacro(ReferenceCoordinateFrame);
 
-
   /*!
     Get the clip rectangle origin to apply to the image in pixel coordinates.
   */
@@ -137,6 +136,15 @@ public:
 
   /*! Clear the reconstructed volume */
   void Reset();
+
+  /*! Set the output volume's origin in the Reference coordinate system*/
+  void SetOutputOrigin(double* origin);
+
+  /*! Set the output volume's spacing in the Reference coordinate system's unit (usually mm)*/
+  void SetOutputSpacing(double* spacing);
+
+  /*! Set the output volume's extent (xStart, xEnd, yStart, yEnd, zStart, zEnd) in voxels */
+  void SetOutputExtent(int* extent);
 
 protected: 
   vtkVolumeReconstructor();

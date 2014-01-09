@@ -445,3 +445,21 @@ PlusStatus vtkVirtualVolumeReconstructor::UpdateTransformRepository(vtkTransform
   this->TransformRepository->DeepCopy(sharedTransformRepository);
   return PLUS_SUCCESS;
 }
+
+//----------------------------------------------------------------------------
+void vtkVirtualVolumeReconstructor::SetOutputOrigin(double* origin)
+{
+  this->VolumeReconstructor->SetOutputOrigin(origin);
+}
+
+//----------------------------------------------------------------------------
+void vtkVirtualVolumeReconstructor::SetOutputSpacing(double* spacing)
+{
+  this->VolumeReconstructor->SetOutputSpacing(spacing);
+}
+
+//----------------------------------------------------------------------------
+void vtkVirtualVolumeReconstructor::SetOutputExtent(int* extent)
+{
+  this->VolumeReconstructor->SetOutputExtent(extent);
+}

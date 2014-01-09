@@ -16,6 +16,8 @@ See License.txt for details.
 #include "vtkVolumeReconstructor.h"
 #include "vtkVirtualVolumeReconstructor.h"
 
+#define UNDEFINED_VALUE DBL_MAX
+
 static const int MAX_NUMBER_OF_FRAMES_ADDED_PER_EXECUTE=50;
 static const double SKIPPED_PERIOD_REPORTING_THRESHOLD_SEC=0.2; // log a warning if volume reconstruction cannot keep up with the acquisition and skips more than this time period of acquired frames
 
@@ -35,6 +37,18 @@ vtkPlusReconstructVolumeCommand::vtkPlusReconstructVolumeCommand()
 , OutputVolDeviceName(NULL)
 , VolumeReconstructorDeviceId(NULL)
 {
+  this->OutputOrigin[0]=UNDEFINED_VALUE;
+  this->OutputOrigin[1]=UNDEFINED_VALUE;
+  this->OutputOrigin[2]=UNDEFINED_VALUE;
+  this->OutputSpacing[0]=UNDEFINED_VALUE;
+  this->OutputSpacing[1]=UNDEFINED_VALUE;
+  this->OutputSpacing[2]=UNDEFINED_VALUE;
+  this->OutputExtent[0]=0;
+  this->OutputExtent[1]=-1;
+  this->OutputExtent[2]=0;
+  this->OutputExtent[3]=-1;
+  this->OutputExtent[4]=0;
+  this->OutputExtent[5]=-1;
 }
 
 //----------------------------------------------------------------------------
@@ -121,6 +135,25 @@ PlusStatus vtkPlusReconstructVolumeCommand::ReadConfiguration(vtkXMLDataElement*
   this->SetOutputVolFilename(aConfig->GetAttribute("OutputVolFilename"));
   this->SetOutputVolDeviceName(aConfig->GetAttribute("OutputVolDeviceName"));
   this->SetVolumeReconstructorDeviceId(aConfig->GetAttribute("VolumeReconstructorDeviceId"));
+
+  // output volume parameters
+  // origin and spacing is defined in the reference coordinate system
+  double outputSpacing[3]={UNDEFINED_VALUE,UNDEFINED_VALUE,UNDEFINED_VALUE};
+  if (aConfig->GetVectorAttribute("OutputSpacing", 3, outputSpacing))
+  {
+    SetOutputSpacing(outputSpacing);
+  }
+  double outputOrigin[3]={UNDEFINED_VALUE,UNDEFINED_VALUE,UNDEFINED_VALUE};
+  if (aConfig->GetVectorAttribute("OutputOrigin", 3, outputOrigin))
+  {
+    SetOutputOrigin(outputOrigin);
+  }
+  int outputExtent[6]={0,-1,0,-1,0,-1};
+  if (aConfig->GetVectorAttribute("OutputExtent", 6, outputExtent))
+  {
+    SetOutputExtent(outputExtent);
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -147,6 +180,28 @@ PlusStatus vtkPlusReconstructVolumeCommand::WriteConfiguration(vtkXMLDataElement
   {
     aConfig->SetAttribute("OutputVolDeviceName",this->OutputVolDeviceName);
   }
+
+  if (this->OutputOrigin[0]!=UNDEFINED_VALUE
+    && this->OutputOrigin[1]!=UNDEFINED_VALUE
+    && this->OutputOrigin[2]!=UNDEFINED_VALUE)
+  {
+    aConfig->SetVectorAttribute("OutputOrigin", 3, this->OutputOrigin);
+  }
+
+  if (this->OutputSpacing[0]!=UNDEFINED_VALUE
+    && this->OutputSpacing[1]!=UNDEFINED_VALUE
+    && this->OutputSpacing[2]!=UNDEFINED_VALUE)
+  {
+    aConfig->SetVectorAttribute("OutputSpacing", 3, this->OutputSpacing);
+  }
+
+  if (this->OutputExtent[1]>=this->OutputExtent[0]
+    && this->OutputExtent[3]>=this->OutputExtent[2]
+    && this->OutputExtent[5]>=this->OutputExtent[4])
+  {
+    aConfig->SetVectorAttribute("OutputExtent", 6, this->OutputExtent);
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -183,7 +238,36 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
   std::string outputVolDeviceName = (reconstructorDevice->GetOutputVolDeviceName()?reconstructorDevice->GetOutputVolDeviceName():"");
 
   std::string reconstructorDeviceId=(reconstructorDevice->GetDeviceId()==NULL?"(unknown)":reconstructorDevice->GetDeviceId());  
-  
+
+  // Set output volume size and resolution
+  if (STRCASECMP(this->Name, RECONSTRUCT_PRERECORDED_CMD)==0
+    || STRCASECMP(this->Name, START_LIVE_RECONSTRUCTION_CMD)==0)
+  {
+    // Only allow changing the output volume when we start the reconstruction
+
+    if (this->OutputOrigin[0]!=UNDEFINED_VALUE
+      && this->OutputOrigin[1]!=UNDEFINED_VALUE
+      && this->OutputOrigin[2]!=UNDEFINED_VALUE)
+    {
+      reconstructorDevice->SetOutputOrigin(this->OutputOrigin);
+    }
+
+    if (this->OutputSpacing[0]!=UNDEFINED_VALUE
+      && this->OutputSpacing[1]!=UNDEFINED_VALUE
+      && this->OutputSpacing[2]!=UNDEFINED_VALUE)
+    {
+      reconstructorDevice->SetOutputSpacing(this->OutputSpacing);
+    }
+
+    if (this->OutputExtent[1]>=this->OutputExtent[0]
+    && this->OutputExtent[3]>=this->OutputExtent[2]
+    && this->OutputExtent[5]>=this->OutputExtent[4])
+    {
+      reconstructorDevice->SetOutputExtent(this->OutputExtent);
+    }
+
+  }
+
   if (STRCASECMP(this->Name, RECONSTRUCT_PRERECORDED_CMD)==0)
   {
     LOG_INFO("Volume reconstruction from sequence file: "<<(this->InputSeqFilename?this->InputSeqFilename:"(undefined)")<<", device: "<<reconstructorDeviceId);
