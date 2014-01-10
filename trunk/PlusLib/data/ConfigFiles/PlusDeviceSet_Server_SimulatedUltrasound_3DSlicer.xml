@@ -204,6 +204,37 @@ To use with Ascension tracker instead of a simulated tracker: enable the Ascensi
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>
     </Device>
+
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="RecordingTest.mha"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="TrackedVideoStream" />
+      </InputChannels>
+    </Device>
+
+    <Device
+      Id="VolumeReconstructorDevice"
+      Type="VirtualVolumeReconstructor"
+      OutputVolDeviceName="RecVol_Reference">
+      <InputChannels>
+        <InputChannel Id="TrackedVideoStream" />
+      </InputChannels>
+      <VolumeReconstruction
+        ImageCoordinateFrame="Image" ReferenceCoordinateFrame="Reference"
+        Interpolation="LINEAR" Optimization="NONE" Compounding="On" FillHoles="On" NumberOfThreads="2"
+        ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
+        OutputOrigin="60 -10 -15" OutputExtent="0 334 0 396 0 542" OutputSpacing="0.15 0.15 0.15" >
+        <HoleFilling>
+          <HoleFillingElement
+            Type="STICK"     
+            StickLengthLimit="9"
+            NumberOfSticksToUse="1" />
+        </HoleFilling>
+      </VolumeReconstruction>
+    </Device>
     
   </DataCollection>
 
