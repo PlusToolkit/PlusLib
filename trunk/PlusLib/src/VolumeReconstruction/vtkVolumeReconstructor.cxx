@@ -579,6 +579,7 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
   };
 
   const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames();
+  int numberOfValidFrames = 0;
   for (int frameIndex = 0; frameIndex < numberOfFrames; ++frameIndex )
   {
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
@@ -602,12 +603,23 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
 
     if ( isMatrixValid )
     {
+      numberOfValidFrames++;
+
       // Get image (only the frame extents will be used)
       vtkImageData* frameImage=trackedFrameList->GetTrackedFrame(frameIndex)->GetImageData()->GetVtkImage();
 
       // Expand the extent_Ref to include this frame
       AddImageToExtent(frameImage, imageToReferenceTransformMatrix, extent_Ref);
     }
+  }
+
+  LOG_DEBUG("Automatic volume extent computation from frames used "<<numberOfValidFrames<<" out of "<<numberOfFrames<<" (probably wrong image or reference coordinate system was defined or all transforms were invalid)");
+  if (numberOfValidFrames==0)
+  {
+    std::string strImageToReferenceTransformName; 
+    imageToReferenceTransformName.GetTransformName(strImageToReferenceTransformName);
+    LOG_ERROR("Automatic volume extent computation failed, there were no valid "<<strImageToReferenceTransformName<<" transform available in the whole sequence");
+    return PLUS_FAIL;
   }
 
   // Set the output extent from the current min and max values, using the user-defined image resolution.
