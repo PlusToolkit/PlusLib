@@ -1,0 +1,14 @@
+/**
+
+\page DeviceSetConfig Device set configuration file specification
+
+\section intro_sec Overview
+
+Basic layout of the config file
+
+\section devices_sec Devices
+
+- \subpage device3dConnexionTracker
+- \subpage deviceMyOtherTracker 
+
+*/

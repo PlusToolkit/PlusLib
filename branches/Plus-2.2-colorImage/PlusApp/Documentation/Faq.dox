@@ -1,0 +1,87 @@
+/**
+
+\page Faq Frequently asked questions
+
+# How can I check if the coordinate systems are correctly specified?
+
+All the coordinate frames and transforms can be checked using the fCal application by simply editing the configuration file that is used to connect to the device set in question.
+Specification of coordinate frames
+Default coordinate frame for the tracker device named Tracker. This name cannot be changed.
+Tracker tools defined in the Tracker section of the configuration file
+Example: this section defines three coordinate frames (Probe, Reference, Stylus)
+
+    <Device Type="Ascension3DG" Frequency="50" LocalTimeOffset="0.0" >
+      <DataSource Type="Tool" Id="Probe" PortName="0" BufferSize="500" AveragedItemsForFiltering="20"/>
+      <DataSource Type="Tool" Id="Reference" PortName="1" BufferSize="500" AveragedItemsForFiltering="20"/>
+      <DataSource Type="Tool" Id="Stylus" PortName="2" BufferSize="500" AveragedItemsForFiltering="20"/>
+
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream" >
+          <DataSource Id="Probe"/>
+          <DataSource Id="Reference"/>
+          <DataSource Id="Stylus"/>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+
+Coordinate frames computed by calibration algorithms
+Example: vtkPivotCalibrationAlgo algorithm has two input coordinate frames and one frame that it defines (StylusTip)
+
+    <vtkPivotCalibrationAlgo
+      ObjectMarkerCoordinateFrame="Stylus"
+      ReferenceCoordinateFrame="Reference"
+      ObjectPivotPointCoordinateFrame="StylusTip"
+    />
+
+  Custom coordinate frames defined in the CoordinateDefinitions section of the configuration file
+Example: this section defines the TransducerOrigin frame that is defined by a transform linked to the Image coordinate frame and defines an alias for the Tracker coordinate frame by binding it to the AscensionDevice frame using an identity matrix
+
+    <CoordinateDefinitions>
+      <Transform From="Image" To="TransducerOriginPixel"
+        Matrix="1 0 0 410              0 1 0 5              0 0 1 0              0 0 0 1"
+        Date="2011.12.06 17:57:00" Error="0.0" />    
+      <Transform From="Tracker" To="AscensionDevice"
+        Matrix="1 0 0 0              0 1 0 0              0 0 1 0              0 0 0 1"
+        Date="2011.12.06 17:57:00" Error="0.0" />     
+    </CoordinateDefinitions>
+
+Display of coordinate frames
+fCal can display any of the existing coordinate frames by attaching a displayed object (coordinate system axes, a surface model, image, etc.) to the frame. These are defined in the Rendering section of the configuration file.
+The fCal application shows shows every object in its world coordinate system. This coordinate system is defined by the WorldCoordinateFrame attribute.
+The following objects can be visualized:
+Axes: coordinate system axes (with the red arrow pointing to the +X, the green to the +Y and the blue to the +Z direction of the defined object coordinate frame)
+Model: 3D model files are attached to each object using an STL file name (that is automatically searched for in the configuration directory, or can be defined using an absolute path) and a transform matrix that transforms the model points to the coordinate frame correctly (e.g., the stylus model is aligned so that its tip is at the origin and its body is on the -X axis).
+Determining the ModelToObjectTransform matrix: In STL files the surface points are described in a coordinate system (Model) that is not necessary meaningful (e.g., the origin may be at one extreme surface point). Therefore an additional coordinate system (Object) can be specified that has its origin at a characteristic position (e.g., the tip of the stylus, or the middle of the transducer of the probe) and its axes are aligned with characteristic orientations of the object. To determine the ModelToObject transform,  load the STL model into a 3D visualization application (such as Paraview) and retrieve the position of the characteristic point that you want to use as origin and use it in the translation component of the transformation matrix. Using the rotation component of the transformation matrix you can define arbitrary object axes orientations.
+Image: the acquired US image slice
+Example:
+The application shows every object relative to the Reference coordinate frame (that we defined as world)
+3D model of the probe is displayed in the custom TransducerOrigin coordinate frame
+3D model of the stylus model in the StylusTip coordinate frame
+3D model of the calibration phantom in the Phantom coordinate frame
+The input image is displayed as an Image in the Image coordinate frame
+The Probe coordinate frame is displayed with its three axes
+
+    <Rendering WorldCoordinateFrame="Reference">
+      <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" File="L14-5_38_ProbeModel.stl"
+        ModelToObjectTransform="1 0 0 34.5        0 -1 0 1.5        0 0 -1 14        0 0 0 1"
+      />
+      <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" File="Stylus_Example.stl"
+        ModelToObjectTransform="1 0 0 -210.0        0 1 0 0        0 0 1 0        0 0 0 1"
+      />
+      <DisplayableObject Type="Model" ObjectCoordinateFrame="Phantom" Opacity="0.6" File="FCal_1.0.stl"
+        ModelToObjectTransform="1 0 0 -15.0        0 1 0 10.0        0 0 1 -5.0        0 0 0 1"
+        />
+      <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" />
+      <DisplayableObject Type="Axes" ObjectCoordinateFrame="Probe" />
+    </Rendering>
+
+# How to determine the what hardware SDK versions are actually used by Plus
+
+The pre-built Plus binaries usually contain the latest hardware SDK. Run PlusVersion.exe to print the version of all the used hardware SDKs.
+
+# How to generate sequence metafile that contains ImageToReference transforms
+
+Use the EditSeqMetaFile utility as follows:
+EditSeqMetaFile.exe --operation=ADD_TRANSFORM --add-transform=ImageToReference --config-file=PlusConfiguration_SpinePhantomFreehandReconstructionOnly.xml --source-seq-file=SpinePhantomFreehand.mha --output-seq-file=test.mha
+
+*/
