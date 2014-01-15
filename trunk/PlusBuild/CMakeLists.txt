@@ -133,6 +133,13 @@ OPTION(PLUS_USE_USBECGBOX "Enable USB ECG Signal Box" OFF)
 OPTION (PLUSAPP_TEST_GUI "Enable Sikuli GUI tests" ON)
 
 #-----------------------------------------------------------------------------
+# Warnings for incompatible build options
+#-----------------------------------------------------------------------------
+IF (PLUS_USE_Ascension3DG AND PLUS_USE_Ascension3DGm)
+  MESSAGE(FATAL_ERROR "PLUS_USE_Ascension3DGm and PLUS_USE_Ascension3DGm options cannot be enabled at the same time. See more details at https://www.assembla.com/spaces/plus/tickets/851")
+ENDIF()
+
+#-----------------------------------------------------------------------------
 # Warnings for work in progress features
 #-----------------------------------------------------------------------------
 IF (PLUS_USE_USBECGBOX)
