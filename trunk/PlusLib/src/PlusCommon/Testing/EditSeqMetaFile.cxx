@@ -175,7 +175,7 @@ int main(int argc, char **argv)
     std::cout << "- ADD_TRANSFORM: add specified transform." << std::endl; 
 
     std::cout << "- TRIM: Trim sequence metafile." << std::endl; 
-    std::cout << "- MERGE: Merge multiple sequence metafiles into one." << std::endl; 
+    std::cout << "- MERGE: Merge multiple sequence metafiles into one. Set input files with the --source-seq-files parameter." << std::endl; 
     
     std::cout << "- FILL_IMAGE_RECTANGLE: Fill a rectangle in the image (useful for removing patient data from sequences)." << std::endl;
     std::cout << "- CROP: Crop a rectangle in the image (useful for cropping b-mode image from the data obtained via frame-grabber)." << std::endl;
