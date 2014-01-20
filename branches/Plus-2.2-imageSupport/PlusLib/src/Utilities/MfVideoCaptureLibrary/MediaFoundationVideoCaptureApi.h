@@ -182,14 +182,10 @@ namespace MfVideoCapture
     // Checking of receiving of new frame from video device with deviceID 
     bool IsFrameNew(unsigned int deviceID);
 
-    // Writing of Raw Data pixels from video device with deviceID with correction of RedAndBlue flipping flipRedAndBlue and vertical flipping flipImage
-    bool GetPixels(unsigned int deviceID, unsigned char * pixels, bool flipRedAndBlue = false, bool flipImage = false);
-
   private:
     bool AccessToDevices;
     MediaFoundationVideoCaptureApi(void);
     virtual ~MediaFoundationVideoCaptureApi(void);
-    void ProcessPixels(unsigned char * src, unsigned char * dst, unsigned int width, unsigned int height, unsigned int bpp, bool bRGB, bool bFlip);
     void UpdateListOfDevices();
   };
 

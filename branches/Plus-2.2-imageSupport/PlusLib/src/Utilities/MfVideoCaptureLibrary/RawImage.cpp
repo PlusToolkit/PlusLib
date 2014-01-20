@@ -68,31 +68,6 @@ namespace MfVideoCapture
     ri_new = true;
   }
 
-  void RawImage::fastCopy(const BYTE * pSampleBuffer)
-  {
-    int *bsrc = (int *)pSampleBuffer;
-
-    int *dst = (int *)ri_pixels;
-
-    unsigned int buffersize = ri_size/4;
-
-    _asm
-    {
-      mov ESI, bsrc
-
-        mov EDI, dst
-
-        mov ECX, buffersize
-
-        cld
-
-        rep movsd
-    }
-
-    ri_new = true;
-
-  }
-
   unsigned char * RawImage::getpPixels()
   {
     return ri_pixels;

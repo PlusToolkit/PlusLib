@@ -258,7 +258,7 @@ protected:
   ~PlusMath();
 
   /*! Remove outliers from Ax = b sparse linear equations after linear least squares method (vnl_lsqr) */
-  static PlusStatus RemoveOutliersFromLSRQ(
+  static PlusStatus RemoveOutliersFromLSQR(
     vnl_sparse_matrix<double> &sparseMatrixLeftSide, 
     vnl_vector<double> &vectorRightSide, 
     vnl_vector<double> &resultVector, 

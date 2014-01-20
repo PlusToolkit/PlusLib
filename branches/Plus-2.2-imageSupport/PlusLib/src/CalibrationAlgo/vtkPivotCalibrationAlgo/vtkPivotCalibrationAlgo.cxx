@@ -119,6 +119,13 @@ PlusStatus vtkPivotCalibrationAlgo::GetPivotPointPosition(double* pivotPoint_Mar
     return PLUS_FAIL;
   }
 
+  // Note: Outliers are detected and rejected for each row (each coordinate axis). Although most frequently
+  // an outlier sample's every component is an outlier, it may be possible that only certain components of an
+  // outlier sample are removed, which may be desirable for some cases (e.g., when the point is an outlier because
+  // temporarily it was flipped around one axis) and not desirable for others (when the point is completely randomly
+  // corrupted), but there would be no measurable difference anyway if the only a few percent of the points are
+  // outliers.
+
   this->OutlierIndices.clear();
   unsigned int processFromRowIndex=0;
   for (int i=0; i<notOutliersIndices.size(); i++)
