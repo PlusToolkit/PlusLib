@@ -32,6 +32,9 @@ class vtkXMLDataElement;
   system's Y axis; in this case the Y axis of the PivotPoint coordinate system is aligned with the marker coordinate system's Z axis). The Z axis
   of the PivotPoint coordinate system is chosen to be the cross product of the X and Y axes.
   
+  The method detects outlier points (points that have larger than 3x error than the standard deviation) and ignores them when computing the pivot point
+  coordinates and the calibration error.
+  
   \ingroup PlusLibCalibrationAlgorithm
 */
 class vtkPivotCalibrationAlgo : public vtkObject
@@ -72,6 +75,10 @@ public:
   */
   std::string GetPivotPointToMarkerTranslationString(double aPrecision=3);
 
+  /*!
+    Get the number of outlier points. It is recommended to display a warning to the user
+    if the percentage of outliers vs total number of points is larger than a few percent.
+  */
   int GetNumberOfDetectedOutliers();
 
 public:
