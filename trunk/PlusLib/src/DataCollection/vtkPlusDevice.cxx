@@ -810,7 +810,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
   }
   else if( this->IsTracker() )
   {
-    LOCAL_LOG_WARNING(this->GetDeviceId() << ": ToolReferenceFrame is undefined. Default of \"" << this->GetDeviceId() << "\" will be used.");
+    LOCAL_LOG_WARNING("ToolReferenceFrame is undefined. Default of \"" << this->GetDeviceId() << "\" will be used.");
     this->SetToolReferenceFrameName(this->GetDeviceId());
   }
 
@@ -919,20 +919,13 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
   double localTimeOffsetSec = 0;
   if ( deviceXMLElement->GetScalarAttribute("LocalTimeOffsetSec", localTimeOffsetSec) )
   {
-    LOCAL_LOG_INFO("Device local time offset for "
-      <<(this->GetDeviceId()==NULL?"an unknown device":this->GetDeviceId())
-      <<": " << 1000*localTimeOffsetSec << "ms" );
+    // DeviceId is never null, if it is, there is memory stomping occurring elsewhere
+    LOCAL_LOG_INFO("Local time offset: " << 1000*localTimeOffsetSec << "ms" );
     this->SetLocalTimeOffsetSec(localTimeOffsetSec);
   }
   else if ( this->RequireLocalTimeOffsetSecInDeviceSetConfiguration )
   {
     LOCAL_LOG_ERROR("Unable to find local time offset in device configuration when it is required.");
-  }
-
-  if( this->OutputChannels.size() == 0 )
-  {
-    LOCAL_LOG_INFO("No output channels defined for device: " << this->GetDeviceId() );
-    return PLUS_SUCCESS;
   }
 
   return PLUS_SUCCESS;
