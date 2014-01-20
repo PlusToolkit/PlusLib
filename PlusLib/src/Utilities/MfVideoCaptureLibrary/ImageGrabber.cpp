@@ -492,13 +492,13 @@ done:
   {	
     if(ig_RIE)
     {
-      ig_RIFirst->fastCopy(pSampleBuffer);
+      ig_RIFirst->setCopy(pSampleBuffer);
 
       ig_RIOut = ig_RIFirst;
     }
     else
     {
-      ig_RISecond->fastCopy(pSampleBuffer);
+      ig_RISecond->setCopy(pSampleBuffer);
 
       ig_RIOut = ig_RISecond;
     }
