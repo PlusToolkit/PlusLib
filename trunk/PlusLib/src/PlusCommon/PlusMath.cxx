@@ -174,7 +174,7 @@ PlusStatus PlusMath::LSQRMinimize(const vnl_sparse_matrix<double> &sparseMatrixL
 
     const double thresholdMultiplier = 3.0; 
 
-    if ( PlusMath::RemoveOutliersFromLSRQ(aMatrix, bVector, resultVector, outlierFound, thresholdMultiplier, mean, stdev , notOutliersIndices) != PLUS_SUCCESS )
+    if ( PlusMath::RemoveOutliersFromLSQR(aMatrix, bVector, resultVector, outlierFound, thresholdMultiplier, mean, stdev , notOutliersIndices) != PLUS_SUCCESS )
     {
       LOG_WARNING("Failed to remove outliers from linear equations!"); 
       return PLUS_FAIL; 
@@ -191,7 +191,7 @@ PlusStatus PlusMath::LSQRMinimize(const vnl_sparse_matrix<double> &sparseMatrixL
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusMath::RemoveOutliersFromLSRQ(vnl_sparse_matrix<double> &sparseMatrixLeftSide, 
+PlusStatus PlusMath::RemoveOutliersFromLSQR(vnl_sparse_matrix<double> &sparseMatrixLeftSide, 
                                             vnl_vector<double> &vectorRightSide, 
                                             vnl_vector<double> &resultVector, 
                                             bool &outlierFound, 
