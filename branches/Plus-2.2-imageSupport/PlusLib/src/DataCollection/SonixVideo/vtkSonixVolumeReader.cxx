@@ -152,7 +152,7 @@ PlusStatus vtkSonixVolumeReader::GenerateTrackedFrameFromSonixVolume(const char*
     }
 
     // Copy the frame data form file to vtkImageDataSet
-    memcpy(videoFrame.GetBufferPointer(),dataFromFile,frameSizeInBytes);
+    memcpy(videoFrame.GetScalarPointer(),dataFromFile,frameSizeInBytes);
 
     TrackedFrame trackedFrame; 
     trackedFrame.SetImageData(videoFrame); 

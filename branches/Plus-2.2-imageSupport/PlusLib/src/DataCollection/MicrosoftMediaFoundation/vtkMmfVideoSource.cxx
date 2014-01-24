@@ -566,11 +566,11 @@ PlusStatus vtkMmfVideoSource::AddFrame(unsigned char* bufferData)
   PlusStatus decodingStatus=PLUS_FAIL;
   if (this->ActiveVideoFormat.PixelFormatName.compare("YUY2") == 0)
   {
-    decodingStatus=PixelCodec::ConvertToGray(VTK_BI_YUY2, frameSize[0], frameSize[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetBufferPointer());
+    decodingStatus=PixelCodec::ConvertToGray(VTK_BI_YUY2, frameSize[0], frameSize[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetScalarPointer());
   }
   else if (this->ActiveVideoFormat.PixelFormatName.compare("RGB24") == 0 )
   {
-    decodingStatus=PixelCodec::ConvertToGray(BI_RGB, frameSize[0], frameSize[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetBufferPointer());
+    decodingStatus=PixelCodec::ConvertToGray(BI_RGB, frameSize[0], frameSize[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetScalarPointer());
   }
   else
   {

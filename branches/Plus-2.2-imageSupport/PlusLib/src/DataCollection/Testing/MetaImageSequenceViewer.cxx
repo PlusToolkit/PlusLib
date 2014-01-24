@@ -246,7 +246,7 @@ int main(int argc, char **argv)
     }    
 
     vtkSmartPointer<vtkImageData> frameImageData = vtkSmartPointer<vtkImageData>::New(); 
-    frameImageData->DeepCopy(frame->GetImageData()->GetVtkImage()); 
+    frameImageData->DeepCopy(frame->GetImageData()->GetImage()); 
 
     vtkSmartPointer<vtkImageActor> imageActor = vtkSmartPointer<vtkImageActor>::New();
     imageActor->SetInput(frameImageData); 

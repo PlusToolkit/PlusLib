@@ -202,8 +202,9 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
 
     typedef float floatPixelType; //  The type of pixel used for the Hough accumulator
 
-    // Get curent image
-    CharImageType::Pointer localImage = trackedFrame->GetImageData()->GetImage<CharPixelType>();
+    // Get current image
+    CharImageType::Pointer localImage = CharImageType::New(); 
+    PlusVideoFrame::ConvertVtkImageToItkImage<CharPixelType>(trackedFrame->GetImageData()->GetImage(), localImage);
 
     if(localImage.IsNull())
     {
@@ -225,7 +226,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
     }
 
     std::vector<itk::Point<double,2> > intensityPeakPositions;
-    CharImageType::RegionType region = localImage->GetLargestPossibleRegion();
+    region = localImage->GetLargestPossibleRegion();
     LimitToClipRegion(region);
 
     int numOfValidScanlines = 0;

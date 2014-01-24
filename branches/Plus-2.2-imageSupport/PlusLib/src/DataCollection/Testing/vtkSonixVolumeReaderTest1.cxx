@@ -89,7 +89,7 @@ int main (int argc, char* argv[])
   }
 
   vtkSmartPointer<vtkImageExtractComponents> imageExtractorBase =  vtkSmartPointer<vtkImageExtractComponents>::New(); 
-  imageExtractorBase->SetInput(baselineVideoFrame.GetVtkImage()); 
+  imageExtractorBase->SetInput(baselineVideoFrame.GetImage()); 
   imageExtractorBase->SetComponents(0,0,0); // we are using only the 0th component
   imageExtractorBase->Update(); 
 
@@ -114,7 +114,7 @@ int main (int argc, char* argv[])
 
 
   vtkSmartPointer<vtkImageExtractComponents> imageExtractorInput =  vtkSmartPointer<vtkImageExtractComponents>::New(); 
-  imageExtractorInput->SetInput(videoFrame->GetVtkImage() ); 
+  imageExtractorInput->SetInput(videoFrame->GetImage() ); 
   imageExtractorInput->SetComponents(0,0,0); // we are using only the 0th component
   imageExtractorInput->Update(); 
   vtkSmartPointer<vtkImageData> frameRGB = vtkSmartPointer<vtkImageData>::New(); 

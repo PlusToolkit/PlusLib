@@ -52,7 +52,7 @@ namespace igtl
     this->AllocateScalars();
 
     unsigned char* igtlImagePointer = (unsigned char*)( this->GetScalarPointer() );
-    unsigned char* plusImagePointer = (unsigned char*)( this->m_TrackedFrame.GetImageData()->GetBufferPointer() );
+    unsigned char* plusImagePointer = (unsigned char*)( this->m_TrackedFrame.GetImageData()->GetScalarPointer() );
 
     memcpy(igtlImagePointer, plusImagePointer, this->GetImageSize());
 

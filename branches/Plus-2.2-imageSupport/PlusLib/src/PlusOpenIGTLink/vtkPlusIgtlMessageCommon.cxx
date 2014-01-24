@@ -192,7 +192,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
   }
 
   double timestamp = trackedFrame.GetTimestamp();
-  vtkImageData* frameImage = trackedFrame.GetImageData()->GetVtkImage();
+  vtkImageData* frameImage = trackedFrame.GetImageData()->GetImage();
 
   igtl::TimeStamp::Pointer igtlFrameTime = igtl::TimeStamp::New();
   igtlFrameTime->SetTime( timestamp );
@@ -291,7 +291,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage( igtl::MessageHeader::Po
   imgMsg->GetDimensions(imgSize);
 
   // Set scalar pixel type
-  PlusCommon::ITKScalarPixelType pixelType = PlusVideoFrame::GetITKScalarPixelTypeFromIGTL(imgMsg->GetScalarType()); 
+  PlusCommon::VTKScalarPixelType pixelType = PlusVideoFrame::GetVTKScalarPixelTypeFromIGTL(imgMsg->GetScalarType()); 
   PlusVideoFrame frame; 
   if ( frame.AllocateFrame(imgSize, pixelType) != PLUS_SUCCESS )
   {
@@ -300,7 +300,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage( igtl::MessageHeader::Po
   }
 
   // Copy image to buffer 
-  memcpy(frame.GetBufferPointer(), imgMsg->GetScalarPointer(), frame.GetFrameSizeInBytes() ); 
+  memcpy(frame.GetScalarPointer(), imgMsg->GetScalarPointer(), frame.GetFrameSizeInBytes() ); 
 
   trackedFrame.SetImageData(frame); 
   trackedFrame.SetTimestamp(igtlTimestamp->GetTimeStamp());

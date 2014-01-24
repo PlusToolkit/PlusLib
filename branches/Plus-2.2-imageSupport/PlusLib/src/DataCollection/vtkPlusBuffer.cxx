@@ -209,7 +209,7 @@ void vtkPlusBuffer::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
   os << indent << "Frame size in pixel: " << this->GetFrameSize()[0] << "   " << this->GetFrameSize()[1] << std::endl; 
-  os << indent << "Scalar pixel type: " << vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(this->GetPixelType())) << std::endl; 
+  os << indent << "Scalar pixel type: " << vtkImageScalarTypeNameMacro(this->GetPixelType()) << std::endl; 
   os << indent << "Image type: " << PlusVideoFrame::GetStringFromUsImageType(this->GetImageType()) << std::endl; 
   os << indent << "Image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(this->GetImageOrientation()) << std::endl; 
 
@@ -283,7 +283,7 @@ PlusStatus vtkPlusBuffer::SetBufferSize(int bufsize)
 }
 
 //----------------------------------------------------------------------------
-bool vtkPlusBuffer::CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_TYPE imgType)
+bool vtkPlusBuffer::CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::VTKScalarPixelType pixelType, US_IMAGE_TYPE imgType)
 {
   // don't add a frame if it doesn't match the buffer frame format
   if (frameSizeInPx[0] != this->GetFrameSize()[0]||
@@ -296,8 +296,8 @@ bool vtkPlusBuffer::CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::IT
 
   if ( pixelType != this->GetPixelType() )
   {    
-    LOCAL_LOG_WARNING("Frame pixel type ("<<vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(pixelType))
-      <<") and buffer pixel type (" << vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(this->GetPixelType())) <<") mismatch"); 
+    LOCAL_LOG_WARNING("Frame pixel type ("<<vtkImageScalarTypeNameMacro(pixelType)
+      <<") and buffer pixel type (" << vtkImageScalarTypeNameMacro(this->GetPixelType()) <<") mismatch"); 
     return false; 
   }
 
@@ -312,7 +312,7 @@ bool vtkPlusBuffer::CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::IT
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, 
-                                        const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_TYPE imageType, int  numberOfBytesToSkip, long frameNumber,  
+                                        const int frameSizeInPx[2], PlusCommon::VTKScalarPixelType pixelType, US_IMAGE_TYPE imageType, int  numberOfBytesToSkip, long frameNumber,  
                                         double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
                                         const TrackedFrame::FieldMapType* customFields /*=NULL*/)
 {
@@ -381,7 +381,7 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usIm
   unsigned char* byteImageDataPtr=reinterpret_cast<unsigned char*>(imageDataPtr);
   byteImageDataPtr += numberOfBytesToSkip; 
 
-  if (PlusVideoFrame::GetOrientedImage(byteImageDataPtr, usImageOrientation, imageType, frameSizeInPx, pixelType, this->ImageOrientation, newObjectInBuffer->GetFrame())!=PLUS_SUCCESS)
+  if (PlusVideoFrame::GetOrientedImage(byteImageDataPtr, usImageOrientation, imageType, frameSizeInPx, this->ImageOrientation, newObjectInBuffer->GetFrame()) != PLUS_SUCCESS)
   {
     LOCAL_LOG_ERROR("Failed to convert input US image to the requested orientation!"); 
     return PLUS_FAIL; 
@@ -483,11 +483,11 @@ PlusStatus vtkPlusBuffer::AddItem(const PlusVideoFrame* frame, long frameNumber,
     }
   }
 
-  unsigned char* pixelBufferPointer = static_cast<unsigned char*>(frame->GetBufferPointer()); 
+  unsigned char* pixelBufferPointer = static_cast<unsigned char*>(frame->GetScalarPointer()); 
   int frameSize[2]={0,0};
   frame->GetFrameSize(frameSize);    
 
-  return this->AddItem(pixelBufferPointer, frame->GetImageOrientation(), frameSize, frame->GetITKScalarPixelType(), frame->GetImageType(), 0 /* no skip*/, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields);  
+  return this->AddItem(pixelBufferPointer, frame->GetImageOrientation(), frameSize, frame->GetVTKScalarPixelType(), frame->GetImageType(), 0 /* no skip*/, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields);  
 }
 
 //----------------------------------------------------------------------------
@@ -698,7 +698,7 @@ PlusStatus vtkPlusBuffer::SetFrameSize(int frameSize[2])
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusBuffer::SetPixelType(PlusCommon::ITKScalarPixelType pixelType) 
+PlusStatus vtkPlusBuffer::SetPixelType(PlusCommon::VTKScalarPixelType pixelType) 
 {
   if (pixelType==this->PixelType)
   {

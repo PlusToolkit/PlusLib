@@ -543,7 +543,7 @@ PlusStatus vtkWin32VideoSource2::AddFrameToBuffer(void* lpVideoHeader)
 
   unsigned char *inputPixelsPtr = lpVHdr->lpData;
   
-  unsigned char* outputPixelsPtr=(unsigned char*)this->UncompressedVideoFrame.GetBufferPointer();
+  unsigned char* outputPixelsPtr=(unsigned char*)this->UncompressedVideoFrame.GetScalarPointer();
 
   int outputFrameSize[2]={0,0};
   this->UncompressedVideoFrame.GetFrameSize(outputFrameSize);
