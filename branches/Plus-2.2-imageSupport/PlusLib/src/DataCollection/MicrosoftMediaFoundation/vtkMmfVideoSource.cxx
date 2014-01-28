@@ -403,7 +403,7 @@ PlusStatus vtkMmfVideoSource::UpdateFrameSize()
       currentFrameSize[0] = this->ActiveVideoFormat.FrameSize[0];
       currentFrameSize[1] = this->ActiveVideoFormat.FrameSize[1];
       videoSource->GetBuffer()->SetFrameSize(currentFrameSize);
-      PlusCommon::ITKScalarPixelType pixelType = itk::ImageIOBase::UCHAR; // always convert output to 8-bit grayscale
+      PlusCommon::VTKScalarPixelType pixelType = VTK_UNSIGNED_CHAR; // always convert output to 8-bit grayscale
       this->UncompressedVideoFrame.AllocateFrame(currentFrameSize, pixelType);
     }
   }

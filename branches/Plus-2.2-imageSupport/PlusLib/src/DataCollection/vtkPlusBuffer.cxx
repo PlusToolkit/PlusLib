@@ -177,7 +177,7 @@ ToolStatus StreamBufferItem::GetStatus() const
 // vtkPlusBuffer
 //----------------------------------------------------------------------------
 vtkPlusBuffer::vtkPlusBuffer()
-: PixelType(itk::ImageIOBase::UCHAR)
+: PixelType(VTK_UNSIGNED_CHAR)
 , ImageType(US_IMG_BRIGHTNESS)
 , ImageOrientation(US_IMG_ORIENT_MF)
 , StreamBuffer(vtkTimestampedCircularBuffer<StreamBufferItem>::New())
@@ -185,11 +185,6 @@ vtkPlusBuffer::vtkPlusBuffer()
 , DescriptiveName(NULL)
 {
   this->FrameSize[0] = this->FrameSize[1] = 0;
-  this->PixelType=itk::ImageIOBase::UCHAR; 
-  this->ImageType=US_IMG_BRIGHTNESS; 
-  this->ImageOrientation=US_IMG_ORIENT_MF; 
-
-  this->StreamBuffer = vtkTimestampedCircularBuffer<StreamBufferItem>::New(); 
 
   this->SetBufferSize(100); 
 }
@@ -449,8 +444,7 @@ PlusStatus vtkPlusBuffer::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usIm
 
   const int* frameExtent = mfOrientedImage->GetExtent(); 
   const int frameSize[2] = {(frameExtent[1] - frameExtent[0] + 1), (frameExtent[3] - frameExtent[2] + 1)}; 
-  PlusCommon::ITKScalarPixelType pixelType=PlusVideoFrame::GetITKScalarPixelType(frame->GetScalarType());
-  return this->AddItem( reinterpret_cast<unsigned char*>(mfOrientedImage->GetScalarPointer()), this->ImageOrientation, frameSize, pixelType, this->ImageType, 0, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields); 
+  return this->AddItem( reinterpret_cast<unsigned char*>(mfOrientedImage->GetScalarPointer()), this->ImageOrientation, frameSize, frame->GetScalarType(), this->ImageType, 0, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields); 
 }
 
 //----------------------------------------------------------------------------
@@ -750,7 +744,7 @@ PlusStatus vtkPlusBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *so
   int frameSize[2]={0,0};
   sourceTrackedFrameList->GetTrackedFrame(0)->GetImageData()->GetFrameSize(frameSize);
   this->SetFrameSize(frameSize); 
-  this->SetPixelType(sourceTrackedFrameList->GetTrackedFrame(0)->GetImageData()->GetITKScalarPixelType());
+  this->SetPixelType(sourceTrackedFrameList->GetTrackedFrame(0)->GetImageData()->GetVTKScalarPixelType());
 
   if ( this->SetBufferSize(numberOfVideoFrames) != PLUS_SUCCESS )
   {

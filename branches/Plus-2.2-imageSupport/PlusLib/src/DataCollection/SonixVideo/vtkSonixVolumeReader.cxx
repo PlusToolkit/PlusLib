@@ -130,14 +130,14 @@ PlusStatus vtkSonixVolumeReader::GenerateTrackedFrameFromSonixVolume(const char*
     // Read data from file 
     fread(dataFromFile, frameSizeInBytes, 1, fp);
 
-    PlusCommon::ITKScalarPixelType pixelType=itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;    
+    PlusCommon::VTKScalarPixelType pixelType=VTK_VOID; 
     switch (dataType)
     {
     case udtBPost:
-      pixelType=itk::ImageIOBase::UCHAR;
+      pixelType=VTK_UNSIGNED_CHAR;
       break;
     case udtRF:
-      pixelType=itk::ImageIOBase::SHORT;
+      pixelType=VTK_SHORT;
       break;
     default:
       LOG_ERROR("Uknown pixel type for data type: " << dataType);

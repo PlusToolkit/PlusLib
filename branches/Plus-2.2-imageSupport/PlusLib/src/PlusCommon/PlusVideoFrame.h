@@ -11,8 +11,8 @@ See License.txt for details.
 #include "PlusCommon.h"
 #include "itkImage.h"
 #include "itkImageIOBase.h"
-#include "vtkImageExport.h"
 #include "vtkImageData.h"
+#include "vtkImageExport.h"
 #include "vtkSmartPointer.h"
 
 /*!
@@ -53,7 +53,6 @@ enum US_IMAGE_TYPE
   US_IMG_TYPE_LAST   /*!< just a placeholder for range checking, this must be the last defined image type */  
 }; 
 
-
 /*!
 \class PlusVideoFrame 
 \brief Store images in a variety of pixel formats
@@ -66,9 +65,6 @@ functions to get/set its content from ITK and VTK images and byte arrays.
 class VTK_EXPORT PlusVideoFrame
 {
 public:
-  typedef itk::ImageBase< 2 >                    ImageBaseType;
-  typedef ImageBaseType::Pointer                 ImageBasePointer;
-  typedef ImageBaseType::ConstPointer            ImageBaseConstPointer;  
   struct FlipInfoType
   {
     FlipInfoType() : hFlip(false), vFlip(false), doubleColumn(false), doubleRow(false) {};
@@ -201,7 +197,7 @@ public:
   /*! Return true if the image data is valid (e.g. not NULL) */
   bool IsImageValid() const
   {
-    return this->Image != NULL; 
+    return this->Image != NULL;
   }
 
   /*! Fill the actual image data with black pixels (0) */
@@ -267,11 +263,9 @@ public:
   }
 
 protected:
-  vtkSmartPointer<vtkImageData> Image;
+  vtkImageData* Image;
   US_IMAGE_TYPE ImageType;
   US_IMAGE_ORIENTATION ImageOrientation;
-
-  itk::ProcessObject::Pointer Exporter;
 };
 
 //#include "PlusVideoFrame.cxx"

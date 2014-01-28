@@ -70,7 +70,7 @@ vtkMetaImageSequenceIO::vtkMetaImageSequenceIO()
 : TrackedFrameList(vtkTrackedFrameList::New())
 , UseCompression(false)
 , FileType(itk::ImageIOBase::Binary)
-, PixelType(itk::ImageIOBase::UNKNOWNCOMPONENTTYPE)
+, PixelType(VTK_VOID)
 , NumberOfComponents(1)
 , NumberOfDimensions(3)
 , m_CurrentFrameOffset(0)
@@ -842,10 +842,10 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels(const std::string& aFilename
     return PLUS_FAIL;
   }
 
-  if ( this->PixelType == itk::ImageIOBase::UNKNOWNCOMPONENTTYPE )
+  if ( this->PixelType == VTK_VOID )
   {
     // If the pixel type was not defined, define it to UCHAR
-    this->PixelType = itk::ImageIOBase::UCHAR; 
+    this->PixelType = VTK_UNSIGNED_CHAR; 
   }
 
   PlusStatus result = PLUS_SUCCESS;

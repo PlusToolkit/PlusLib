@@ -17,20 +17,25 @@ See License.txt for details.
 
 //----------------------------------------------------------------------------
 PlusVideoFrame::PlusVideoFrame()
-{
-  this->ImageType = US_IMG_BRIGHTNESS;
-  this->ImageOrientation = US_IMG_ORIENT_MF;
-}
-
-//----------------------------------------------------------------------------
-PlusVideoFrame::~PlusVideoFrame()
+: Image(NULL)
+, ImageType(US_IMG_BRIGHTNESS)
+, ImageOrientation(US_IMG_ORIENT_MF)
 {
 }
 
 //----------------------------------------------------------------------------
 PlusVideoFrame::PlusVideoFrame(const PlusVideoFrame &videoItem)
+: Image(NULL)
+, ImageType(US_IMG_BRIGHTNESS)
+, ImageOrientation(US_IMG_ORIENT_MF)
 {
   *this = videoItem;
+}
+
+//----------------------------------------------------------------------------
+PlusVideoFrame::~PlusVideoFrame()
+{
+  DELETE_IF_NOT_NULL(this->Image);
 }
 
 //----------------------------------------------------------------------------
@@ -59,10 +64,6 @@ PlusVideoFrame& PlusVideoFrame::operator=(PlusVideoFrame const&videoItem)
     {
       memcpy(this->GetScalarPointer(), videoItem.GetScalarPointer(), this->GetFrameSizeInBytes() ); 
     }
-  }
-  else
-  {
-    DELETE_IF_NOT_NULL(this->Image);
   }
 
   return *this;
@@ -115,9 +116,10 @@ PlusStatus PlusVideoFrame::AllocateFrame(int imageSize[2], PlusCommon::VTKScalar
 
   DELETE_IF_NOT_NULL(this->Image);
 
-  this->Image = vtkSmartPointer<vtkImageData>::New();
+  this->Image = vtkImageData::New();
   this->Image->SetExtent(0, imageSize[0], 0, imageSize[1], 0, 1);
   this->Image->SetScalarType(pixType);
+  this->Image->SetNumberOfScalarComponents(1);
   this->Image->AllocateScalars();
 
   return PLUS_SUCCESS; 
@@ -131,6 +133,11 @@ unsigned long PlusVideoFrame::GetFrameSizeInBytes() const
   }
   int frameSize[2] = {0,0};
   this->GetFrameSize(frameSize);
+
+  if( frameSize[0] <= 0 || frameSize[1] <= 0 )
+  {
+    return 0;
+  }
 
   int bytesPerPixel = GetNumberOfBytesPerPixel(); 
   if (bytesPerPixel != 1 && bytesPerPixel != 2 && bytesPerPixel != 4)
@@ -213,29 +220,11 @@ void* PlusVideoFrame::GetScalarPointer() const
 }
 
 //----------------------------------------------------------------------------
-// Helper method, performs the operation if the specified pixel type matches the actual pixel type 
-template <class TPixel >
-bool GetFrameSizeGeneric(PlusVideoFrame::ImageBaseType* inputImage, int frameSize[2])
-{
-  typedef itk::Image< TPixel, 2> ImageType;
-  ImageType * image = dynamic_cast< ImageType* >( inputImage );
-  if( image )
-  {
-    PlusVideoFrame::ImageBaseType::RegionType region=image->GetLargestPossibleRegion();
-    frameSize[0]=region.GetSize()[0];
-    frameSize[1]=region.GetSize()[1];
-    return true;
-  }
-  return false;
-};
-
-//----------------------------------------------------------------------------
 PlusStatus PlusVideoFrame::GetFrameSize(int frameSize[2]) const
 {
-  if (!this->IsImageValid())
+  if ( !this->IsImageValid() )
   {
-    //LOG_ERROR("Cannot get frame size, the buffer hasn't been created yet");
-    frameSize[0] = frameSize[1] = -1;
+    frameSize[0] = frameSize[1] = 0;
     return PLUS_FAIL;
   }
 
@@ -250,7 +239,11 @@ PlusStatus PlusVideoFrame::GetFrameSize(int frameSize[2]) const
 //----------------------------------------------------------------------------
 PlusCommon::VTKScalarPixelType PlusVideoFrame::GetVTKScalarPixelType() const
 {
-  return PlusVideoFrame::GetVTKScalarPixelType(GetITKScalarPixelType());
+  if( this->Image == NULL || !this->IsImageValid() )
+  {
+    return VTK_VOID;
+  }
+  return this->Image->GetScalarType();
 }
 
 //----------------------------------------------------------------------------
@@ -732,83 +725,6 @@ PlusStatus PlusVideoFrame::FlipImage(vtkImageData* inUsImage, const PlusVideoFra
     return PLUS_FAIL;
   }
 }
-
-/*
-//----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::SaveImageToFile(unsigned char* imageDataPtr, const int frameSizeInPx[2], int numberOfBitsPerPixel, const char* fileName)
-{
-
-if ( numberOfBitsPerPixel != sizeof(unsigned char)*8 )
-{
-LOG_ERROR("Failed to save image to file - pixel size mismatch (expected: " <<  sizeof(unsigned char)*8 << " bits, current: " << numberOfBitsPerPixel << " bits)!)"); 
-return PLUS_FAIL; 
-}
-
-itk::Image< unsigned char, 2 >::Pointer inUsImage = itk::Image< unsigned char, 2 >::New(); 
-itk::Image< unsigned char, 2 >::SizeType size;
-size[0]  = frameSizeInPx[0];
-size[1]  = frameSizeInPx[1];
-itk::Image< unsigned char, 2 >::IndexType start;
-start[0] = 0;
-start[1] = 0;
-itk::Image< unsigned char, 2 >::RegionType region;
-region.SetSize(size);
-region.SetIndex(start);
-inUsImage->SetRegions(region);
-itk::Image< unsigned char, 2 >::PixelContainer::Pointer pixelContainer = itk::Image< unsigned char, 2 >::PixelContainer::New(); 
-pixelContainer->SetImportPointer(imageDataPtr, frameSizeInPx[0]*frameSizeInPx[1], false); 
-inUsImage->SetPixelContainer(pixelContainer); 
-
-return PlusVideoFrame::SaveImageToFile(inUsImage, fileName); 
-}
-
-//----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::SaveImageToFile( PlusVideoFrame& frame, const char* fileName)
-{
-return PlusVideoFrame::SaveImageToFile(frame.GetDisplayableImage(), fileName); 
-}
-
-//----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::SaveImageToFile( vtkImageData* frame, const char* fileName)
-{
-PlusVideoFrame videoFrame; 
-if ( videoFrame.DeepCopyFrom(frame) != PLUS_SUCCESS )
-{
-LOG_ERROR("Failed to save image to file - vtk image copy to plus video frame failed!"); 
-return PLUS_FAIL; 
-}
-
-return PlusVideoFrame::SaveImageToFile(videoFrame, fileName); 
-}
-
-//----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::SaveImageToFile(const itk::Image< unsigned char, 2 >::Pointer image, const char* fileName)
-{
-if ( image.IsNull() )
-{
-LOG_ERROR("Failed to save image to file, input image is NULL!"); 
-return PLUS_FAIL; 
-}
-
-typedef itk::ImageFileWriter< itk::Image< unsigned char, 2 > > ImgWriterType;
-ImgWriterType::Pointer writer = ImgWriterType::New();
-writer->SetFileName( fileName ); 
-writer->SetInput( image ); 
-
-try    
-{
-writer->Update();
-}  
-catch (itk::ExceptionObject & e)
-{
-LOG_ERROR(e.GetDescription());
-return PLUS_FAIL; 
-}
-
-return PLUS_SUCCESS; 
-
-}
-*/
 
 //----------------------------------------------------------------------------
 PlusStatus PlusVideoFrame::ReadImageFromFile( PlusVideoFrame& frame, const char* fileName)

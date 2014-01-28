@@ -212,17 +212,17 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
   }
 
   std::vector<vtkPlusDataSource*> sources;
-  PlusCommon::ITKScalarPixelType pixelType = itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;    
+  PlusCommon::VTKScalarPixelType pixelType = VTK_VOID;    
   US_IMAGE_TYPE imgType = US_IMG_TYPE_XX;    
 
   if( (uData)type == udtBPost && this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, sources) == PLUS_SUCCESS )
   {
-    pixelType = itk::ImageIOBase::UCHAR;
+    pixelType = VTK_UNSIGNED_CHAR;
     imgType = US_IMG_BRIGHTNESS;
   }
   else if( (uData)type == udtRF && this->GetVideoSourcesByPortName(vtkPlusDevice::RFMODE_PORT_NAME, sources) == PLUS_SUCCESS )
   {
-    pixelType = itk::ImageIOBase::SHORT;
+    pixelType = VTK_SHORT;
     imgType = US_IMG_RF_I_LINE_Q_LINE;
   }
   else
@@ -1201,12 +1201,12 @@ PlusStatus vtkSonixVideoSource::ConfigureVideoSource( uData aValue )
   switch (aDataDescriptor.ss)
   {
   case 8:
-    aSource->GetBuffer()->SetPixelType( itk::ImageIOBase::UCHAR );
+    aSource->GetBuffer()->SetPixelType( VTK_UNSIGNED_CHAR );
     aSource->GetBuffer()->SetImageType( US_IMG_BRIGHTNESS );
     aSource->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
     break;
   case 16:
-    aSource->GetBuffer()->SetPixelType( itk::ImageIOBase::SHORT );
+    aSource->GetBuffer()->SetPixelType( VTK_SHORT );
     aSource->GetBuffer()->SetImageType( US_IMG_RF_I_LINE_Q_LINE );
     // RF data is stored line-by-line, therefore set the storage buffer to FM orientation
     aSource->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_FM);
