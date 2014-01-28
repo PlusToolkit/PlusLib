@@ -226,7 +226,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
     }
 
     std::vector<itk::Point<double,2> > intensityPeakPositions;
-    region = localImage->GetLargestPossibleRegion();
+    CharImageType::RegionType region = localImage->GetLargestPossibleRegion();
     LimitToClipRegion(region);
 
     int numOfValidScanlines = 0;
