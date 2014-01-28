@@ -58,7 +58,7 @@ void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream 
     PatternRecognitionResult segResults;
     PatternRecognitionError error;
 
-    if ( trackedFrameList->GetTrackedFrame(currentFrameIndex)->GetImageData()->GetITKScalarPixelType()!=itk::ImageIOBase::UCHAR)
+    if ( trackedFrameList->GetTrackedFrame(currentFrameIndex)->GetImageData()->GetVTKScalarPixelType() != VTK_UNSIGNED_CHAR)
     {
       LOG_ERROR("UsFidSegTest only supports 8-bit images"); 
       continue; 

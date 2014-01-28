@@ -219,7 +219,7 @@ int main(int argc, char **argv)
   vtkSmartPointer<vtkTrackedFrameList> dummyTrackedFrame = vtkSmartPointer<vtkTrackedFrameList>::New(); 
   TrackedFrame validFrame; 
   int frameSize[2]={200,200}; 
-  validFrame.GetImageData()->AllocateFrame(frameSize, itk::ImageIOBase::UCHAR); 
+  validFrame.GetImageData()->AllocateFrame(frameSize, VTK_UNSIGNED_CHAR); 
   validFrame.GetImageData()->FillBlank(); 
   validFrame.SetCustomFrameTransform(PlusTransformName("Image", "Probe"), matrix); 
   validFrame.SetCustomFrameField("FrameNumber", "0"); 
@@ -274,7 +274,7 @@ int main(int argc, char **argv)
 
   TrackedFrame differentSizeFrame; 
   int frameSizeSmaller[2]={150,150}; 
-  differentSizeFrame.GetImageData()->AllocateFrame(frameSizeSmaller, itk::ImageIOBase::UCHAR); 
+  differentSizeFrame.GetImageData()->AllocateFrame(frameSizeSmaller, VTK_UNSIGNED_CHAR); 
   differentSizeFrame.GetImageData()->FillBlank(); 
   differentSizeFrame.SetCustomFrameTransform(PlusTransformName("Image", "Probe"), matrix); 
   differentSizeFrame.SetCustomFrameField("FrameNumber", "6"); 
