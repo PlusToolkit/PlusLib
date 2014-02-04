@@ -415,7 +415,7 @@ PlusStatus vtkVisualizationController::Update()
   // because it is the image that the image actors show
   if( this->SelectedChannel != NULL )
   {
-    this->SelectedChannel->GetBrightnessOutput();
+    this->SelectedChannel->GetBrightnessOutput()->Modified();
   }
 
   return PLUS_SUCCESS;
