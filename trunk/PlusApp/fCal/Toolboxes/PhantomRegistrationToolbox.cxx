@@ -17,14 +17,14 @@ See License.txt for details.
 #include <QFileDialog>
 #include <QTimer>
 
-#include "vtkXMLUtilities.h"
-#include "vtkRenderWindow.h"
 #include "vtkAccurateTimer.h"
-#include "vtkPolyDataMapper.h"
 #include "vtkGlyph3D.h"
-#include "vtkSphereSource.h"
+#include "vtkPolyDataMapper.h"
 #include "vtkProperty.h"
+#include "vtkRenderWindow.h"
+#include "vtkSphereSource.h"
 #include "vtkSTLReader.h"
+#include "vtkXMLUtilities.h"
 
 //-----------------------------------------------------------------------------
 
@@ -85,6 +85,9 @@ PhantomRegistrationToolbox::PhantomRegistrationToolbox(fCalMainWindow* aParentMa
   m_RequestedLandmarkActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
 
   m_PhantomRenderer->AddActor(m_RequestedLandmarkActor);
+
+  m_PhantomActor = vtkActor::New();
+  m_PhantomRenderer->AddActor(m_PhantomActor);
 
   // Connect events
   connect( ui.pushButton_OpenStylusCalibration, SIGNAL( clicked() ), this, SLOT( OpenStylusCalibration() ) );
@@ -231,48 +234,37 @@ PlusStatus PhantomRegistrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
 
 PlusStatus PhantomRegistrationToolbox::LoadPhantomModel()
 {
-  LOG_TRACE("PhantomRegistrationToolbox::InitializeVisualization"); 
+  LOG_TRACE("PhantomRegistrationToolbox::InitializeVisualization");   
 
-  if (m_State == ToolboxState_Uninitialized || m_State == ToolboxState_Error)
+  vtkDisplayableModel* phantomDisplayableModel = NULL;
+  if( m_ParentMainWindow->GetPhantomModelId() == NULL )
   {
-    vtkDisplayableModel* phantomDisplayableModel = NULL;
-    if( m_ParentMainWindow->GetPhantomModelId() != NULL )
-    {
-      vtkDisplayableObject* phantom = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetPhantomModelId());
-      phantomDisplayableModel = dynamic_cast<vtkDisplayableModel*>(phantom);
-      if( phantomDisplayableModel == NULL )
-      {
-        LOG_ERROR("Unable to retreive phantom model by ID. Is the phantom model ID well defined?");
-        return PLUS_FAIL;
-      }
-    }
-    else
-    {
-      LOG_ERROR("Unable to retreive phantom model by ID. Is the phantom model ID well defined?");
-      return PLUS_FAIL;
-    }
-
-    // Initialize phantom visualization in toolbox canvas
-    const char* modelFileName=phantomDisplayableModel->GetSTLModelFileName();
-    if ( modelFileName != NULL && phantomDisplayableModel->GetModelToObjectTransform() != NULL )
-    {
-      vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
-      m_PhantomActor = vtkActor::New();
-      vtkSmartPointer<vtkPolyDataMapper> stlMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-      stlReader->SetFileName(modelFileName);
-      stlMapper->SetInputConnection(stlReader->GetOutputPort());
-      m_PhantomActor->SetMapper(stlMapper);
-      m_PhantomActor->GetProperty()->SetOpacity( phantomDisplayableModel->GetLastOpacity() );
-      m_PhantomActor->SetUserTransform(phantomDisplayableModel->GetModelToObjectTransform());
-      m_PhantomRenderer->AddActor(m_PhantomActor);
-    }
-    else
-    {
-      LOG_WARNING("Phantom cannot be visualized in toolbox canvas because model or model to object transform is invalid!");
-    }
-
-    m_PhantomRenderer->ResetCamera();
+    LOG_ERROR("Unable to retreive phantom model by ID. Is the phantom model ID well defined?");
+    return PLUS_FAIL;
   }
+  vtkDisplayableObject* phantom = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetPhantomModelId());
+  phantomDisplayableModel = dynamic_cast<vtkDisplayableModel*>(phantom);
+  if( phantomDisplayableModel == NULL )
+  {
+    LOG_ERROR("Unable to retreive phantom model by ID. Is the phantom model ID well defined?");
+    return PLUS_FAIL;
+  }  
+  
+  vtkSmartPointer<vtkPolyDataMapper> stlMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  stlMapper->SetInput(phantomDisplayableModel->GetPolyData());
+  m_PhantomActor->SetMapper(stlMapper);
+  m_PhantomActor->GetProperty()->SetOpacity( phantomDisplayableModel->GetLastOpacity() );
+  
+  if ( phantomDisplayableModel->GetModelToObjectTransform() != NULL )
+  {
+    m_PhantomActor->SetUserTransform(phantomDisplayableModel->GetModelToObjectTransform());      
+  }
+  else
+  {
+    LOG_WARNING("Phantom cannot be visualized in toolbox canvas because model or model to object transform is invalid");
+  }
+
+  m_PhantomRenderer->ResetCamera();
 
   return PLUS_SUCCESS;
 }

@@ -885,7 +885,7 @@ PlusStatus vtkVisualizationController::Reset()
   PlusStatus perspective, image;
   if( this->PerspectiveVisualizer != NULL )
   {
-    perspective = this->PerspectiveVisualizer->Reset();
+    perspective = this->PerspectiveVisualizer->ClearDisplayableObjects();
   }
   if( this->ImageVisualizer != NULL )
   {

@@ -102,7 +102,7 @@ public:
 
 protected:
   /*!
-  * Initialize 3D visualization
+  * Initialize 3D visualization of the phantom in toolbox canvas
   * \return Success flag
   */
   PlusStatus LoadPhantomModel();

@@ -619,14 +619,6 @@ vtkActor* vtk3DObjectVisualizer::GetVolumeActor()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtk3DObjectVisualizer::Reset()
-{
-  this->ClearDisplayableObjects();
-  return this->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
-}
-
-//-----------------------------------------------------------------------------
-
 void vtk3DObjectVisualizer::SetTransformRepository( vtkSmartPointer<vtkTransformRepository> aRepository )
 {
   this->TransformRepository = aRepository;
