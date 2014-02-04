@@ -1358,6 +1358,7 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
       LOG_ERROR("Unable to retrieve tracked frame.");
       return PLUS_FAIL;
     }
+    m_Frame.GetImageData()->GetImage()->Modified();
   }
 
   // Segment image
