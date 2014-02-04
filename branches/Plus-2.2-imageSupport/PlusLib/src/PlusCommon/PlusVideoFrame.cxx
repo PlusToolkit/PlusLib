@@ -107,7 +107,8 @@ PlusStatus PlusVideoFrame::AllocateFrame(int imageSize[2], PlusCommon::VTKScalar
     this->GetFrameSize(frameSize);
     if (imageSize[0] == frameSize[0] &&
       imageSize[1] == frameSize[1] &&
-      GetVTKScalarPixelType() == pixType)
+      this->GetVTKScalarPixelType() == pixType &&
+      this->Image->GetNumberOfScalarComponents() == 1)
     {
       // already allocated, no change
       return PLUS_SUCCESS;
@@ -653,12 +654,23 @@ PlusStatus PlusVideoFrame::GetOrientedImage(  unsigned char* imageDataPtr,
     return PLUS_FAIL; 
   }
 
-  int extents[6] = {0, frameSizeInPx[0], 0, frameSizeInPx[1], 0, 1};
-  // Allocate the output image
-  outUsOrientedImage->SetExtent(extents);
-  outUsOrientedImage->SetScalarType(VTK_UNSIGNED_CHAR);
-  outUsOrientedImage->SetNumberOfScalarComponents(1);
-  outUsOrientedImage->AllocateScalars();
+  int outExtents[6] = {0,0,0,0,0,0};
+  outUsOrientedImage->GetExtent(outExtents);
+  if ( !(frameSizeInPx[0] == outExtents[1] &&
+    frameSizeInPx[1] == outExtents[3] &&
+    outUsOrientedImage->GetScalarType() == VTK_UNSIGNED_CHAR &&
+    outUsOrientedImage->GetNumberOfScalarComponents() == 1) )
+  {
+    // Allocate the output image
+    outExtents[0] = outExtents[2] = outExtents[4] = 0;
+    outExtents[1] = frameSizeInPx[0];
+    outExtents[3] = frameSizeInPx[1];
+    outExtents[5] = 1;
+    outUsOrientedImage->SetExtent(outExtents);
+    outUsOrientedImage->SetScalarType(VTK_UNSIGNED_CHAR);
+    outUsOrientedImage->SetNumberOfScalarComponents(1);
+    outUsOrientedImage->AllocateScalars();
+  }
 
   vtkSmartPointer<vtkImageData> inUsImage = vtkSmartPointer<vtkImageData>::New();
   inUsImage->SetExtent(outUsOrientedImage->GetExtent());
