@@ -743,32 +743,21 @@ PlusStatus PlusVideoFrame::FlipImage(vtkImageData* inUsImage, const PlusVideoFra
 //----------------------------------------------------------------------------
 PlusStatus PlusVideoFrame::ReadImageFromFile( PlusVideoFrame& frame, const char* fileName)
 {
-  vtkSmartPointer<vtkImageData> imageData = vtkSmartPointer<vtkImageData>::New();
+  vtkImageReader2* reader(NULL);
 
   std::string extension = vtksys::SystemTools::GetFilenameExtension(std::string(fileName));
-  if( extension.find("tiff") != std::string::npos )
+  std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+  if( extension.find("tiff") != std::string::npos || extension.find("tif") != std::string::npos)
   {
-    vtkSmartPointer<vtkTIFFReader> reader = vtkSmartPointer<vtkTIFFReader>::New();
-    reader->SetFileName(fileName);
-    reader->Update();
-
-    imageData = reader->GetOutput();
+    reader = vtkTIFFReader::New();
   }
   else if( extension.find("bmp") != std::string::npos )
   {
-    vtkSmartPointer<vtkBMPReader> reader = vtkSmartPointer<vtkBMPReader>::New();
-    reader->SetFileName(fileName);
-    reader->Update();
-
-    imageData = reader->GetOutput();
+    reader = vtkBMPReader::New();
   }
   else if( extension.find("pbm") != std::string::npos || extension.find("pgm") != std::string::npos || extension.find("ppm") != std::string::npos)
   {
-    vtkSmartPointer<vtkPNMReader> reader = vtkSmartPointer<vtkPNMReader>::New();
-    reader->SetFileName(fileName);
-    reader->Update();
-
-    imageData = reader->GetOutput();
+    reader = vtkPNMReader::New();
   }
   else
   {
@@ -776,7 +765,12 @@ PlusStatus PlusVideoFrame::ReadImageFromFile( PlusVideoFrame& frame, const char*
     return PLUS_FAIL;
   }
 
-  return frame.DeepCopyFrom(imageData);
+  reader->SetFileName(fileName);
+  reader->Update();
+
+  PlusStatus result = frame.DeepCopyFrom(reader->GetOutput());
+  reader->Delete();
+  return result;
 }
 
 
