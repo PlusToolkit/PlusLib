@@ -7,9 +7,12 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "PlusVideoFrame.h"
 #include "itkImageBase.h"
+#include "vtkBMPReader.h"
 #include "vtkImageData.h"
 #include "vtkImageReader.h"
 #include "vtkObjectFactory.h"
+#include "vtkPNMReader.h"
+#include "vtkTIFFReader.h"
 
 #ifdef PLUS_USE_OpenIGTLink
 #include "igtlImageMessage.h"
@@ -740,12 +743,40 @@ PlusStatus PlusVideoFrame::FlipImage(vtkImageData* inUsImage, const PlusVideoFra
 //----------------------------------------------------------------------------
 PlusStatus PlusVideoFrame::ReadImageFromFile( PlusVideoFrame& frame, const char* fileName)
 {
-  vtkSmartPointer<vtkImageReader> reader = vtkSmartPointer<vtkImageReader>::New();
+  vtkSmartPointer<vtkImageData> imageData = vtkSmartPointer<vtkImageData>::New();
 
-  reader->SetFileName(fileName);
-  reader->Update();
+  std::string extension = vtksys::SystemTools::GetFilenameExtension(std::string(fileName));
+  if( extension.find("tiff") != std::string::npos )
+  {
+    vtkSmartPointer<vtkTIFFReader> reader = vtkSmartPointer<vtkTIFFReader>::New();
+    reader->SetFileName(fileName);
+    reader->Update();
 
-  return frame.DeepCopyFrom(reader->GetOutput());
+    imageData = reader->GetOutput();
+  }
+  else if( extension.find("bmp") != std::string::npos )
+  {
+    vtkSmartPointer<vtkBMPReader> reader = vtkSmartPointer<vtkBMPReader>::New();
+    reader->SetFileName(fileName);
+    reader->Update();
+
+    imageData = reader->GetOutput();
+  }
+  else if( extension.find("pbm") != std::string::npos || extension.find("pgm") != std::string::npos || extension.find("ppm") != std::string::npos)
+  {
+    vtkSmartPointer<vtkPNMReader> reader = vtkSmartPointer<vtkPNMReader>::New();
+    reader->SetFileName(fileName);
+    reader->Update();
+
+    imageData = reader->GetOutput();
+  }
+  else
+  {
+    LOG_ERROR("Unsupported file extension sent to PlusVideoFrame::ReadImageFromFile. Cannot load files of type " << extension);
+    return PLUS_FAIL;
+  }
+
+  return frame.DeepCopyFrom(imageData);
 }
 
 
