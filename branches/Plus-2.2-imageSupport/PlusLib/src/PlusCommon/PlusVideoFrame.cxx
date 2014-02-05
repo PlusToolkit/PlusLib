@@ -99,32 +99,42 @@ PlusStatus PlusVideoFrame::FillBlank()
 
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::AllocateFrame(int imageSize[2], PlusCommon::VTKScalarPixelType pixType)
+PlusStatus PlusVideoFrame::AllocateFrame(vtkImageData*& image, const int imageSize[2], PlusCommon::VTKScalarPixelType pixType)
 {  
-  if ( this->IsImageValid() )
+  if ( image != NULL )
   {
-    int frameSize[2] = {0,0};
-    this->GetFrameSize(frameSize);
-    if (imageSize[0] == frameSize[0] &&
-      imageSize[1] == frameSize[1] &&
-      this->GetVTKScalarPixelType() == pixType &&
-      this->Image->GetNumberOfScalarComponents() == 1)
+    int imageExtents[6] = {0,0,0,0,0,0};
+    image->GetExtent(imageExtents);
+    if (imageSize[0] == imageExtents[1]-1 &&
+      imageSize[1] == imageExtents[3]-1 &&
+      image->GetScalarType() == pixType &&
+      image->GetNumberOfScalarComponents() == 1)
     {
       // already allocated, no change
       return PLUS_SUCCESS;
     }        
   }
 
-  DELETE_IF_NOT_NULL(this->Image);
+  DELETE_IF_NOT_NULL(image);
 
-  this->Image = vtkImageData::New();
-  this->Image->SetExtent(0, imageSize[0], 0, imageSize[1], 0, 1);
-  this->Image->SetScalarType(pixType);
-  this->Image->SetNumberOfScalarComponents(1);
-  this->Image->AllocateScalars();
+  image = vtkImageData::New();
+  image->SetExtent(0, imageSize[0]-1, 0, imageSize[1]-1, 0, 0);
+  image->SetScalarType(pixType);
+  image->SetNumberOfScalarComponents(1);
+  image->AllocateScalars();
 
   return PLUS_SUCCESS; 
 }
+
+//----------------------------------------------------------------------------
+PlusStatus PlusVideoFrame::AllocateFrame(const int imageSize[2], PlusCommon::VTKScalarPixelType pixType)
+{
+  vtkImageData* imgDataPtr = this->GetImage();
+  PlusStatus allocStatus = PlusVideoFrame::AllocateFrame(imgDataPtr, imageSize, pixType);
+  this->SetImageData(imgDataPtr);
+  return allocStatus;
+}
+
 //----------------------------------------------------------------------------
 unsigned long PlusVideoFrame::GetFrameSizeInBytes() const
 {
@@ -170,12 +180,6 @@ PlusStatus PlusVideoFrame::DeepCopyFrom(vtkImageData* frame)
   memcpy(this->Image->GetScalarPointer(), frame->GetScalarPointer(), this->GetFrameSizeInBytes() );
 
   return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusCommon::ITKScalarPixelType PlusVideoFrame::GetITKScalarPixelType() const
-{
-  return PlusVideoFrame::GetITKScalarPixelType(GetVTKScalarPixelType());
 }
 
 //----------------------------------------------------------------------------
@@ -231,8 +235,8 @@ PlusStatus PlusVideoFrame::GetFrameSize(int frameSize[2]) const
 
   int extents[6] = {0,0,0,0,0,0};
   this->Image->GetExtent(extents);
-  frameSize[0] = extents[1] - extents[0]; 
-  frameSize[1] = extents[3] - extents[2];
+  frameSize[0] = extents[1] - extents[0] + 1; 
+  frameSize[1] = extents[3] - extents[2] + 1;
 
   return PLUS_SUCCESS;
 }
@@ -636,6 +640,7 @@ PlusStatus PlusVideoFrame::GetOrientedImage( vtkImageData* inUsImage, US_IMAGE_O
 PlusStatus PlusVideoFrame::GetOrientedImage(  unsigned char* imageDataPtr,                               
                                             US_IMAGE_ORIENTATION  inUsImageOrientation, 
                                             US_IMAGE_TYPE inUsImageType, 
+                                            PlusCommon::VTKScalarPixelType pixType, 
                                             const int    frameSizeInPx[2],
                                             US_IMAGE_ORIENTATION  outUsImageOrientation, 
                                             vtkImageData* outUsOrientedImage
@@ -656,49 +661,44 @@ PlusStatus PlusVideoFrame::GetOrientedImage(  unsigned char* imageDataPtr,
 
   int outExtents[6] = {0,0,0,0,0,0};
   outUsOrientedImage->GetExtent(outExtents);
-  if ( !(frameSizeInPx[0] == outExtents[1] &&
-    frameSizeInPx[1] == outExtents[3] &&
-    outUsOrientedImage->GetScalarType() == VTK_UNSIGNED_CHAR &&
+  if ( !(frameSizeInPx[0]-1 == outExtents[1] &&
+    frameSizeInPx[1]-1 == outExtents[3] &&
+    outUsOrientedImage->GetScalarType() == pixType &&
     outUsOrientedImage->GetNumberOfScalarComponents() == 1) )
   {
     // Allocate the output image
-    outExtents[0] = outExtents[2] = outExtents[4] = 0;
-    outExtents[1] = frameSizeInPx[0];
-    outExtents[3] = frameSizeInPx[1];
-    outExtents[5] = 1;
-    outUsOrientedImage->SetExtent(outExtents);
-    outUsOrientedImage->SetScalarType(VTK_UNSIGNED_CHAR);
-    outUsOrientedImage->SetNumberOfScalarComponents(1);
-    outUsOrientedImage->AllocateScalars();
+    PlusVideoFrame::AllocateFrame(outUsOrientedImage, frameSizeInPx, pixType);
   }
 
-  vtkSmartPointer<vtkImageData> inUsImage = vtkSmartPointer<vtkImageData>::New();
-  inUsImage->SetExtent(outUsOrientedImage->GetExtent());
-  inUsImage->SetScalarType(outUsOrientedImage->GetScalarType());
-  inUsImage->SetNumberOfScalarComponents(1);
-  inUsImage->AllocateScalars();
+  vtkImageData* inUsImage(NULL);
+  PlusVideoFrame::AllocateFrame(inUsImage, frameSizeInPx, outUsOrientedImage->GetScalarType());
+  
   memcpy(inUsImage->GetScalarPointer(), imageDataPtr, frameSizeInPx[0]*frameSizeInPx[1]*sizeof(unsigned char));
 
   FlipInfoType flipInfo;
   if (GetFlipAxes(inUsImageOrientation, inUsImageType, outUsImageOrientation, flipInfo) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to convert image data to the requested orientation, from " << GetStringFromUsImageOrientation(inUsImageOrientation) << " to " << GetStringFromUsImageOrientation(outUsImageOrientation));
+    DELETE_IF_NOT_NULL(inUsImage);
     return PLUS_FAIL;
   }
   if ( !flipInfo.hFlip && !flipInfo.vFlip )
   {
     // no flip
     outUsOrientedImage->DeepCopy(inUsImage);
+    DELETE_IF_NOT_NULL(inUsImage);
     return PLUS_SUCCESS; 
   }
 
-  return PlusVideoFrame::GetOrientedImage(inUsImage, inUsImageOrientation, inUsImageType, outUsImageOrientation, outUsOrientedImage); 
+  PlusStatus result = PlusVideoFrame::GetOrientedImage(inUsImage, inUsImageOrientation, inUsImageType, outUsImageOrientation, outUsOrientedImage); 
+  DELETE_IF_NOT_NULL(inUsImage);
+  return result;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, const int frameSizeInPx[2], US_IMAGE_ORIENTATION outUsImageOrientation, PlusVideoFrame &outBufferItem)
+PlusStatus PlusVideoFrame::GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, PlusCommon::VTKScalarPixelType pixType, const int frameSizeInPx[2], US_IMAGE_ORIENTATION outUsImageOrientation, PlusVideoFrame &outBufferItem)
 {
-  return PlusVideoFrame::GetOrientedImage(imageDataPtr, inUsImageOrientation, inUsImageType, frameSizeInPx, outUsImageOrientation, outBufferItem.GetImage());
+  return PlusVideoFrame::GetOrientedImage(imageDataPtr, inUsImageOrientation, inUsImageType, pixType, frameSizeInPx, outUsImageOrientation, outBufferItem.GetImage());
 }
 
 //----------------------------------------------------------------------------
@@ -709,14 +709,13 @@ PlusStatus PlusVideoFrame::FlipImage(vtkImageData* inUsImage, const PlusVideoFra
     LOG_ERROR("Null output image sent to flip image. Nothing to write into.");
     return PLUS_FAIL;
   }
-  outUsOrientedImage->SetOrigin(inUsImage->GetOrigin());
-  outUsOrientedImage->SetSpacing(inUsImage->GetSpacing());
-  outUsOrientedImage->SetExtent(inUsImage->GetExtent());
-  outUsOrientedImage->SetScalarType(inUsImage->GetScalarType());
-  outUsOrientedImage->SetNumberOfScalarComponents(1);
-  outUsOrientedImage->AllocateScalars();
-
   int extents[6] = {0,0,0,0,0,0};
+  inUsImage->GetExtent(extents);
+  int frameSize[2] = {0,0};
+  frameSize[0] = extents[1]-1;
+  frameSize[1] = extents[3]-1;
+  PlusVideoFrame::AllocateFrame(outUsOrientedImage, frameSize, inUsImage->GetScalarType());
+
   outUsOrientedImage->GetExtent(extents);
   int width = extents[1] - extents[0];
   int height = extents[3] - extents[2];
@@ -792,27 +791,6 @@ PlusCommon::VTKScalarPixelType PlusVideoFrame::GetVTKScalarPixelType(PlusCommon:
   }
 }
 
-
-//----------------------------------------------------------------------------
-PlusCommon::ITKScalarPixelType PlusVideoFrame::GetITKScalarPixelType(PlusCommon::VTKScalarPixelType vtkScalarPixelType)
-{
-  switch (vtkScalarPixelType)
-  {
-  case VTK_UNSIGNED_CHAR: return itk::ImageIOBase::UCHAR;
-  case VTK_CHAR: return itk::ImageIOBase::CHAR;
-  case VTK_UNSIGNED_SHORT: return itk::ImageIOBase::USHORT;
-  case VTK_SHORT: return itk::ImageIOBase::SHORT;
-  case VTK_UNSIGNED_INT: return itk::ImageIOBase::UINT;
-  case VTK_INT: return itk::ImageIOBase::INT;
-  case VTK_UNSIGNED_LONG: return itk::ImageIOBase::ULONG;
-  case VTK_LONG: return itk::ImageIOBase::LONG;
-  case VTK_FLOAT: return itk::ImageIOBase::FLOAT;
-  case VTK_DOUBLE: return itk::ImageIOBase::DOUBLE;
-  default:
-    return itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;      
-  }
-}
-
 #ifdef PLUS_USE_OpenIGTLink
 //----------------------------------------------------------------------------
 // static 
@@ -865,6 +843,12 @@ vtkImageData* PlusVideoFrame::GetImage() const
 }
 
 //----------------------------------------------------------------------------
+void PlusVideoFrame::SetImageData( vtkImageData* imageData )
+{
+  this->Image = imageData;
+}
+
+//----------------------------------------------------------------------------
 #define VTK_TO_STRING(pixType) case pixType: return "##pixType"
 std::string PlusVideoFrame::GetStringFromVTKPixelType( PlusCommon::VTKScalarPixelType vtkScalarPixelType )
 {
@@ -882,4 +866,5 @@ std::string PlusVideoFrame::GetStringFromVTKPixelType( PlusCommon::VTKScalarPixe
     return "Unknown";
   }
 }
+
 #undef VTK_TO_STRING

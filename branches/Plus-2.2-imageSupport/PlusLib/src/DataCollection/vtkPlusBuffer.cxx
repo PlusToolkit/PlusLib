@@ -376,7 +376,7 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usIm
   unsigned char* byteImageDataPtr=reinterpret_cast<unsigned char*>(imageDataPtr);
   byteImageDataPtr += numberOfBytesToSkip; 
 
-  if (PlusVideoFrame::GetOrientedImage(byteImageDataPtr, usImageOrientation, imageType, frameSizeInPx, this->ImageOrientation, newObjectInBuffer->GetFrame()) != PLUS_SUCCESS)
+  if (PlusVideoFrame::GetOrientedImage(byteImageDataPtr, usImageOrientation, imageType, pixelType, frameSizeInPx, this->ImageOrientation, newObjectInBuffer->GetFrame()) != PLUS_SUCCESS)
   {
     LOCAL_LOG_ERROR("Failed to convert input US image to the requested orientation!"); 
     return PLUS_FAIL; 

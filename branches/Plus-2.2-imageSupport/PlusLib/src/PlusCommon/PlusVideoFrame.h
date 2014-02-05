@@ -87,19 +87,14 @@ public:
   PlusVideoFrame& operator=(PlusVideoFrame const&videoItem); 
 
   /*! Allocate memory for the image */
-  PlusStatus AllocateFrame(int imageSize[2], PlusCommon::VTKScalarPixelType vtkScalarPixelType); 
+  static PlusStatus AllocateFrame(vtkImageData*& image, const int imageSize[2], PlusCommon::VTKScalarPixelType vtkScalarPixelType); 
+  PlusStatus AllocateFrame(const int imageSize[2], PlusCommon::VTKScalarPixelType vtkScalarPixelType); 
 
   /*! Return the pixel type using VTK enums. */
   PlusCommon::VTKScalarPixelType GetVTKScalarPixelType() const;
 
   /*! Convert between ITK and VTK scalar pixel types */  
   static PlusCommon::VTKScalarPixelType GetVTKScalarPixelType(PlusCommon::ITKScalarPixelType pixelType);
-
-  /*! Return the pixel type using ITK enums. */
-  PlusCommon::ITKScalarPixelType GetITKScalarPixelType() const;
-
-  /*! Convert between VTK and ITK scalar pixel types */
-  static PlusCommon::ITKScalarPixelType GetITKScalarPixelType(PlusCommon::VTKScalarPixelType vtkScalarPixelType);
 
   /* Return a string version of the VTK type */
   static std::string GetStringFromVTKPixelType(PlusCommon::VTKScalarPixelType vtkScalarPixelType);
@@ -181,10 +176,10 @@ public:
   static PlusStatus GetOrientedImage( vtkImageData* inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_TYPE inUsImageType, US_IMAGE_ORIENTATION outUsImageOrientation, vtkImageData* outUsOrientedImage ); 
 
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, const int frameSizeInPx[2], US_IMAGE_ORIENTATION outUsImageOrientation, vtkImageData* outUsOrientedImage); 
+  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, PlusCommon::VTKScalarPixelType inUsImagePixelType, const int frameSizeInPx[2], US_IMAGE_ORIENTATION outUsImageOrientation, vtkImageData* outUsOrientedImage); 
 
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, const int frameSizeInPx[2], US_IMAGE_ORIENTATION outUsImageOrientation, PlusVideoFrame &outBufferItem);
+  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, PlusCommon::VTKScalarPixelType inUsImagePixelType, const int frameSizeInPx[2], US_IMAGE_ORIENTATION outUsImageOrientation, PlusVideoFrame &outBufferItem);
 
   static PlusStatus GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1, US_IMAGE_TYPE usImageType1, US_IMAGE_ORIENTATION usImageOrientation2, FlipInfoType& flipInfo);
 
@@ -221,7 +216,7 @@ public:
       return PLUS_FAIL; 
     }
 
-    if( sizeof(inFrame->GetScalarType()) != sizeof(PixelType) )
+    if( PlusVideoFrame::GetNumberOfBytesPerPixel(inFrame->GetScalarType()) != sizeof(PixelType) )
     {
       LOG_ERROR("Mismatch between input and output pixel types. In: " << PlusVideoFrame::GetStringFromVTKPixelType(inFrame->GetScalarType()));
       return PLUS_FAIL;
@@ -263,6 +258,7 @@ public:
   }
 
 protected:
+  void SetImageData(vtkImageData* imageData);
   vtkImageData* Image;
   US_IMAGE_TYPE ImageType;
   US_IMAGE_ORIENTATION ImageOrientation;

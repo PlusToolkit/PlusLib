@@ -548,16 +548,11 @@ PlusStatus vtkPlusDevice::WriteToMetafile( const char* filename, bool useCompres
   for ( int i = 0 ; i < numberOfItems; i++ ) 
   {
     //Create fake image 
-    vtkSmartPointer<vtkImageData> frame = vtkSmartPointer<vtkImageData>::New();
-    frame->SetExtent(0, 1, 0, 1, 0, 1);
-    frame->SetScalarType(VTK_UNSIGNED_CHAR);
-    frame->SetNumberOfScalarComponents(1);
-    frame->AllocateScalars();
-
     TrackedFrame trackedFrame;
-    trackedFrame.GetImageData()->DeepCopyFrom(frame);
-
-    DELETE_IF_NOT_NULL(frame);
+    PlusVideoFrame videoFrame;
+    int frameSize[2] = {1,1};
+    videoFrame.AllocateFrame(frameSize, VTK_UNSIGNED_CHAR);
+    trackedFrame.SetImageData(videoFrame);
 
     StreamBufferItem bufferItem; 
     BufferItemUidType uid = firstActiveTool->GetBuffer()->GetOldestItemUidInBuffer() + i; 
