@@ -747,22 +747,40 @@ PlusStatus PlusVideoFrame::ReadImageFromFile( PlusVideoFrame& frame, const char*
 
   std::string extension = vtksys::SystemTools::GetFilenameExtension(std::string(fileName));
   std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
-  if( extension.find("tiff") != std::string::npos || extension.find("tif") != std::string::npos)
+
+  std::vector< std::string > readerExtensions;
+
+  if( reader == NULL )
   {
     reader = vtkTIFFReader::New();
+    PlusCommon::SplitStringIntoTokens(reader->GetFileExtensions(), ' ', readerExtensions);
+
+    if( std::find(readerExtensions.begin(), readerExtensions.end(), extension) == readerExtensions.end() )
+    {
+      DELETE_IF_NOT_NULL(reader);
+    }
   }
-  else if( extension.find("bmp") != std::string::npos )
+
+  if( reader == NULL )
   {
     reader = vtkBMPReader::New();
+    PlusCommon::SplitStringIntoTokens(reader->GetFileExtensions(), ' ', readerExtensions);
+
+    if( std::find(readerExtensions.begin(), readerExtensions.end(), extension) == readerExtensions.end() )
+    {
+      DELETE_IF_NOT_NULL(reader);
+    }
   }
-  else if( extension.find("pbm") != std::string::npos || extension.find("pgm") != std::string::npos || extension.find("ppm") != std::string::npos)
+
+  if( reader == NULL )
   {
     reader = vtkPNMReader::New();
-  }
-  else
-  {
-    LOG_ERROR("Unsupported file extension sent to PlusVideoFrame::ReadImageFromFile. Cannot load files of type " << extension);
-    return PLUS_FAIL;
+    PlusCommon::SplitStringIntoTokens(reader->GetFileExtensions(), ' ', readerExtensions);
+
+    if( std::find(readerExtensions.begin(), readerExtensions.end(), extension) == readerExtensions.end() )
+    {
+      DELETE_IF_NOT_NULL(reader);
+    }
   }
 
   reader->SetFileName(fileName);
