@@ -217,7 +217,8 @@ IF ( PLUSBUILD_USE_3DSlicer )
   ENDIF() 
 
   # The Slicer4 config file complains if these are set.
-  UNSET (QT_QMAKE_EXECUTABLE CACHE)  
+  UNSET (QT_QMAKE_EXECUTABLE CACHE)
+  UNSET (QT_BINARY_DIR CACHE)
   UNSET (VTK_DIR CACHE)
   UNSET (ITK_DIR CACHE)    
   UNSET (OpenIGTLink_DIR CACHE)
@@ -244,6 +245,9 @@ IF ( PLUSBUILD_USE_3DSlicer )
   IF ( NOT Slicer_FOUND AND NOT Slicer3_FOUND)
     MESSAGE( FATAL_ERROR "Unable to find Slicer at ${PLUSBUILD_SLICER_BIN_DIRECTORY} directory. Please verify configuration")
   ENDIF()
+  
+  # Qt might have been found earlier, run find_package to reset all the QT_... CMake variables
+  FIND_PACKAGE(Qt4)
   
   IF(PLUSBUILD_BUILD_PLUSAPP) 
     IF (NOT VTK_USE_QT)
