@@ -50,16 +50,22 @@ IF(PLUS_USE_BKPROFOCUS_VIDEO)
 ENDIF(PLUS_USE_BKPROFOCUS_VIDEO)
 
 IF(PLUS_USE_CERTUS)
-  SET ( PLUSLIB_CONFIG_FILES ${PLUSLIB_CONFIG_FILES}
-    ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_NDICertus_1.0.xml
-    )
+  IF(PLUS_USE_ULTRASONIX_VIDEO)
+    SET ( PLUSLIB_CONFIG_FILES ${PLUSLIB_CONFIG_FILES}
+      ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_NDICertus_1.0.xml
+      )
+  ENDIF(PLUS_USE_ULTRASONIX_VIDEO)
 ENDIF(PLUS_USE_CERTUS)
 
 IF(PLUS_USE_EPIPHAN)
   SET ( PLUSLIB_CONFIG_FILES ${PLUSLIB_CONFIG_FILES}
-    ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_Epiphan_NDIPolaris.xml
     ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_Server_EpiphanVideoCapture.xml
     )
+  IF(PLUS_USE_POLARIS)
+    SET ( PLUSLIB_CONFIG_FILES ${PLUSLIB_CONFIG_FILES}
+      ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_Epiphan_NDIPolaris.xml
+      )    
+  ENDIF(PLUS_USE_POLARIS)
 ENDIF(PLUS_USE_EPIPHAN)
 
 IF(PLUS_USE_ICCAPTURING_VIDEO)
@@ -70,7 +76,6 @@ ENDIF(PLUS_USE_ICCAPTURING_VIDEO)
 
 IF(PLUS_USE_MICRONTRACKER)
   SET ( PLUSLIB_CONFIG_FILES ${PLUSLIB_CONFIG_FILES}
-    ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_MicronTracker_2.0.xml
     ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_Server_MicronTracker.xml
     ${PLUSLIB_DATA_DIR}/ConfigFiles/MicronTracker.ini
     )
@@ -81,6 +86,11 @@ IF(PLUS_USE_MICRONTRACKER)
     ${PLUSLIB_DATA_DIR}/ConfigFiles/Markers/COOLCARD
     ${PLUSLIB_DATA_DIR}/ConfigFiles/Markers/TTblock
     )
+  IF(PLUS_USE_ULTRASONIX_VIDEO)
+    SET ( PLUSLIB_CONFIG_FILES ${PLUSLIB_CONFIG_FILES}
+      ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_MicronTracker_2.0.xml
+      )  
+  ENDIF(PLUS_USE_ULTRASONIX_VIDEO)  
 ENDIF(PLUS_USE_MICRONTRACKER)
 
 IF(PLUS_USE_MMF_VIDEO)
@@ -110,10 +120,15 @@ ENDIF(PLUS_USE_POLARIS)
 
 IF(PLUS_USE_ULTRASONIX_VIDEO)
   SET ( PLUSLIB_CONFIG_FILES ${PLUSLIB_CONFIG_FILES}
-    ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_2.0.xml
-    ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_3.0.xml
-    ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_LegoPhantom.xml
+    ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_Server_SonixTouch_L14-5.xml
     )
+  IF(PLUS_USE_Ascension3DG)
+    SET ( PLUSLIB_CONFIG_FILES ${PLUSLIB_CONFIG_FILES}
+      ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_2.0.xml
+      ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_3.0.xml
+      ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_LegoPhantom.xml
+      )
+  ENDIF(PLUS_USE_Ascension3DG)
 ENDIF(PLUS_USE_ULTRASONIX_VIDEO)
 
 IF(PLUS_USE_VFW_VIDEO)
