@@ -422,7 +422,7 @@ void PlusCommon::RemoveAttribute(vtkXMLDataElement* elem, const char *name)
   elem->RemoveAllAttributes();
   for (int i=0; i<numberOfAttributes; ++i)
   {
-    if (attNames[i].compare(name)==NULL)
+    if (attNames[i].compare(name)==0)
     {
       continue;
     }
