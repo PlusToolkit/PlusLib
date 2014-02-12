@@ -62,8 +62,8 @@ if( DOXYGEN_FOUND )
     GENERATE_DOC(doc-dev)
 
   else( DOXYGEN_DOT_FOUND )
-    message( WARNING
-      "Warning: Dot not found - Documentation will not be created"
+    message( STATUS
+      "Documentation: Doxygen not found - Documentation will not be created"
       )
   endif( DOXYGEN_DOT_FOUND )
 endif( DOXYGEN_FOUND )
