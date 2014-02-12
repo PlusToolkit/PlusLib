@@ -871,8 +871,13 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels(const std::string& aFilename
         videoFrame = trackedFrame->GetImageData(); 
       }
 
-      fwrite(videoFrame->GetScalarPointer(), 1, videoFrame->GetFrameSizeInBytes(), stream);
-      m_TotalBytesWritten += videoFrame->GetFrameSizeInBytes();
+      unsigned long result = fwrite(videoFrame->GetScalarPointer(), 1, videoFrame->GetFrameSizeInBytes(), stream);
+      if( result != videoFrame->GetFrameSizeInBytes() )
+      {
+        LOG_ERROR("Unable to write entire frame to file.");
+        continue;
+      }
+      m_TotalBytesWritten += result;
     }
   }
   else
