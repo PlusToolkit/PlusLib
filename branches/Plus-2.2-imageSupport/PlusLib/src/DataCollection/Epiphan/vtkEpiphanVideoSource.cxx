@@ -368,7 +368,9 @@ PlusStatus vtkEpiphanVideoSource::WriteConfiguration(vtkXMLDataElement* config)
   }
   else
   {
-    imageAcquisitionConfig->RemoveAttribute("GrabberLocation");
+    // TODO: replace the following line by the commented out line after upgrading to VTK 6.x (https://www.assembla.com/spaces/plus/tickets/859)
+    // imageAcquisitionConfig->RemoveAttribute("GrabberLocation");
+    PlusCommon::RemoveAttribute(imageAcquisitionConfig,"GrabberLocation");
   }
 
   // SerialNumber is an obsolete attribute, the information is stored onw in GrabberLocation

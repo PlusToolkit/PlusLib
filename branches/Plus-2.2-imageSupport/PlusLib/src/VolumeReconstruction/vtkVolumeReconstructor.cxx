@@ -446,9 +446,13 @@ PlusStatus vtkVolumeReconstructor::WriteConfiguration(vtkXMLDataElement *config)
   }
   else
   {
-    reconConfig->RemoveAttribute("FanAngles");
-    reconConfig->RemoveAttribute("FanOrigin");
-    reconConfig->RemoveAttribute("FanDepth");
+    // TODO: replace the following 3 lines by the commented out lines after upgrading to VTK 6.x (https://www.assembla.com/spaces/plus/tickets/859)
+    // reconConfig->RemoveAttribute("FanAngles");
+    // reconConfig->RemoveAttribute("FanOrigin");
+    // reconConfig->RemoveAttribute("FanDepth");
+    PlusCommon::RemoveAttribute(reconConfig, "FanAngles");
+    PlusCommon::RemoveAttribute(reconConfig, "FanOrigin");
+    PlusCommon::RemoveAttribute(reconConfig, "FanDepth");
   }
 
   // reconstruction options
@@ -462,7 +466,9 @@ PlusStatus vtkVolumeReconstructor::WriteConfiguration(vtkXMLDataElement *config)
   }
   else
   {
-    reconConfig->RemoveAttribute("NumberOfThreads");
+    // TODO: replace the following line by the commented out line after upgrading to VTK 6.x (https://www.assembla.com/spaces/plus/tickets/859)
+    // reconConfig->RemoveAttribute("NumberOfThreads");
+    PlusCommon::RemoveAttribute(reconConfig, "NumberOfThreads");
   }
 
   return PLUS_SUCCESS;

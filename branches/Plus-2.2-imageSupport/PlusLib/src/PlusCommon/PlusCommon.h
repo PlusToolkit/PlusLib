@@ -229,6 +229,12 @@ namespace PlusCommon
   */
   VTK_EXPORT PlusStatus PrintXML(ostream& os, vtkIndent indent, vtkXMLDataElement* elem);
 
+  /*!
+    Temporary patch for workaround vtkXMLDataElement::RemoveAttribute bug.
+    See details in https://www.assembla.com/spaces/plus/tickets/859
+  */
+  VTK_EXPORT void RemoveAttribute(vtkXMLDataElement* elem, const char *name);
+
   VTK_EXPORT std::string GetPlusLibVersionString();
 };
 
