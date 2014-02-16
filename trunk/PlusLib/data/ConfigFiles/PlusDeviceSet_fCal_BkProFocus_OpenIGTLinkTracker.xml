@@ -29,8 +29,8 @@
               RadiusStopMm="60.0"
               ThetaStartDeg="-70.0"
               ThetaStopDeg="70.0"
-              OutputImageStartDepthMm="2.0"
               OutputImageSizePixel="600 400"
+              TransducerCenterPixel="300 53.3333333"
               OutputImageSpacingMmPerPixel="0.15 0.15" /> 
           </RfProcessing>
         </OutputChannel>

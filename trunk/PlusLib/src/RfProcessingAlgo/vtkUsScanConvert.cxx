@@ -30,6 +30,9 @@ vtkUsScanConvert::vtkUsScanConvert()
   this->OutputImageSpacing[0]=0.2;
   this->OutputImageSpacing[1]=0.2;
   this->OutputImageSpacing[2]=1.0; // not used
+  this->TransducerCenterPixelSpecified=false;
+  this->TransducerCenterPixel[0]=0;
+  this->TransducerCenterPixel[1]=0;
 }
 
 //----------------------------------------------------------------------------
@@ -101,6 +104,14 @@ PlusStatus vtkUsScanConvert::ReadConfiguration(vtkXMLDataElement* scanConversion
     this->OutputImageExtent[5]=1;
   }
 
+  double transducerCenterPixel[2]={0};
+  if ( scanConversionElement->GetVectorAttribute("TransducerCenterPixel", 2, transducerCenterPixel)) 
+  {
+    this->TransducerCenterPixelSpecified=true;
+    this->TransducerCenterPixel[0]=transducerCenterPixel[0];
+    this->TransducerCenterPixel[1]=transducerCenterPixel[1];
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -131,6 +142,11 @@ PlusStatus vtkUsScanConvert::WriteConfiguration(vtkXMLDataElement* scanConversio
     this->OutputImageExtent[3]-this->OutputImageExtent[2]+1
   };
   scanConversionElement->SetVectorAttribute("OutputImageSizePixel", 2, outputImageSize);
+
+  if (this->TransducerCenterPixelSpecified)
+  {
+    scanConversionElement->SetVectorAttribute("TransducerCenterPixel", 2, this->TransducerCenterPixel);
+  }
 
   return PLUS_SUCCESS;
 }

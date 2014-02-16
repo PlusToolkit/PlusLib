@@ -56,6 +56,7 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
               ImagingDepthMm="55.0"
               TransducerWidthMm="38.0"
               OutputImageSizePixel="440 600"
+              TransducerCenterPixel="220 0"
               OutputImageSpacingMmPerPixel="0.1 0.1" />
           </RfProcessing>
         </OutputChannel>
