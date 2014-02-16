@@ -77,7 +77,16 @@ void vtkUsScanConvertLinear::Update()
   double zVec[3]={0,0,1.0};
   this->ImageReslice->SetResliceAxesDirectionCosines(xVec, yVec, zVec);
 
-  this->ImageReslice->SetOutputOrigin(0,0,0);
+  // Default transducer center is horizontally centered, with 0 offset along y axis
+  double halfImageWidthPixel=numberOfScanLines/2*inputWidthSpacing/this->OutputImageSpacing[0];
+  double transducerCenterPixel[2] = { halfImageWidthPixel, 0};
+  if (this->TransducerCenterPixelSpecified)
+  {
+    transducerCenterPixel[0]=this->TransducerCenterPixel[0];
+    transducerCenterPixel[1]=this->TransducerCenterPixel[1];
+  }
+
+  this->ImageReslice->SetOutputOrigin(-this->TransducerCenterPixel[0]+halfImageWidthPixel,-this->TransducerCenterPixel[1],0);
 
   this->ImageReslice->Update();
 }
@@ -145,13 +154,24 @@ PlusStatus vtkUsScanConvertLinear::GetScanLineEndPoints(int scanLineIndex, doubl
     this->OutputImageExtent[3]-this->OutputImageExtent[2]+1
   };
 
-  scanlineStartPoint_OutputImage[0] = double(scanLineIndex)/numberOfScanLines*(outputImageSizePixel[0]-1); 
-  scanlineStartPoint_OutputImage[1] = 0; 
+  // Default transducer center is horizontally centered, with 0 offset along y axis
+  double inputWidthSpacing=this->TransducerWidthMm/static_cast<double>(numberOfScanLines);
+  double halfImageWidthPixel=numberOfScanLines/2*inputWidthSpacing/this->OutputImageSpacing[0];
+  double transducerCenterPixel[2] = { halfImageWidthPixel, 0};
+  if (this->TransducerCenterPixelSpecified)
+  {
+    transducerCenterPixel[0]=this->TransducerCenterPixel[0];
+    transducerCenterPixel[1]=this->TransducerCenterPixel[1];
+  }
+  double transducerCornerPixel[2] = { transducerCenterPixel[0]-halfImageWidthPixel, transducerCenterPixel[1] };
+
+  scanlineStartPoint_OutputImage[0] = double(scanLineIndex)/numberOfScanLines*(outputImageSizePixel[0]-1) + transducerCornerPixel[0];
+  scanlineStartPoint_OutputImage[1] = transducerCornerPixel[1];
   scanlineStartPoint_OutputImage[2] = 0;
   scanlineStartPoint_OutputImage[3] = 1;
 
   scanlineEndPoint_OutputImage[0] = scanlineStartPoint_OutputImage[0];
-  scanlineEndPoint_OutputImage[1] = outputImageSizePixel[1]-1; 
+  scanlineEndPoint_OutputImage[1] = transducerCornerPixel[1] + outputImageSizePixel[1]-1;
   scanlineEndPoint_OutputImage[2] = 0;
   scanlineEndPoint_OutputImage[3] = 1;
 
