@@ -27,6 +27,15 @@ Tools: Probe (1b), Reference (TTBlock), Stylus (2b) tools"
         </OutputChannel>
       </OutputChannels>
     </Device>
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="RecordingTest.mha"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+      </InputChannels>
+    </Device>
   </DataCollection>
 
   <PlusOpenIGTLinkServer 

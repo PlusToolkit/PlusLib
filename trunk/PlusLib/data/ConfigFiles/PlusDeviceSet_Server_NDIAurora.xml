@@ -23,6 +23,15 @@ The computer needs to be on the same local network as Aurora SCU unit. The needl
         </OutputChannel>
       </OutputChannels>
     </Device>
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="RecordingTest.mha"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+      </InputChannels>
+    </Device>
   </DataCollection>
 
   <PlusOpenIGTLinkServer 

@@ -26,6 +26,15 @@ Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted o
         </OutputChannel>
       </OutputChannels>
     </Device>
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="RecordingTest.mha"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+      </InputChannels>
+    </Device>
   </DataCollection>
 
   <PlusOpenIGTLinkServer 

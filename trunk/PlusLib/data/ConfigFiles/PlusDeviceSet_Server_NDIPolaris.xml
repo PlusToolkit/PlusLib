@@ -26,6 +26,15 @@ For NDI Polaris passive marker starting kit: Tool (8700339), Stylus (8700340), R
         </OutputChannel>
       </OutputChannels>
     </Device>
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="RecordingTest.mha"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+      </InputChannels>
+    </Device>    
   </DataCollection>
 
   <PlusOpenIGTLinkServer 

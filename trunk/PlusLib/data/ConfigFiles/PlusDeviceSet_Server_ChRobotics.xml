@@ -23,6 +23,15 @@
         </OutputChannel>
       </OutputChannels>
     </Device>    
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="RecordingTest.mha"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+      </InputChannels>
+    </Device>
   </DataCollection>
   
   <PlusOpenIGTLinkServer 
