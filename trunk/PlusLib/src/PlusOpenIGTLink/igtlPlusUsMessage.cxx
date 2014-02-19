@@ -43,7 +43,7 @@ namespace igtl
     imageSizePixels[1] = size[0];
     imageSizePixels[2] = 1;
 
-    int scalarType = PlusVideoFrame::GetIGTLScalarPixelType( this->m_TrackedFrame.GetImageData()->GetITKScalarPixelType() ); 
+    int scalarType = PlusVideoFrame::GetIGTLScalarPixelType( this->m_TrackedFrame.GetImageData()->GetVTKScalarPixelType() ); 
 
     this->SetDimensions( imageSizePixels );
     this->SetSubVolume(imageSizePixels, offset); 
@@ -52,7 +52,7 @@ namespace igtl
     this->AllocateScalars();
 
     unsigned char* igtlImagePointer = (unsigned char*)( this->GetScalarPointer() );
-    unsigned char* plusImagePointer = (unsigned char*)( this->m_TrackedFrame.GetImageData()->GetBufferPointer() );
+    unsigned char* plusImagePointer = (unsigned char*)( this->m_TrackedFrame.GetImageData()->GetScalarPointer() );
 
     memcpy(igtlImagePointer, plusImagePointer, this->GetImageSize());
 

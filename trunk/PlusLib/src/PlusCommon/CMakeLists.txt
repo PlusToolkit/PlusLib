@@ -30,12 +30,13 @@ if (WIN32)
     vtkTimestampedCircularBuffer.h
     vtkTimestampedCircularBuffer.txx
     vtkPlusConfig.h
-  vtkPlusMacro.h
+	vtkPlusMacro.h
     PlusMath.h
     vtkTransformRepository.h
     vtkTrackedFrameList.h
     TrackedFrame.h
     PlusVideoFrame.h
+	PlusVideoFrame.txx
     vtkMetaImageSequenceIO.h
     vtkRecursiveCriticalSection.h
     vtkToolAxesActor.h

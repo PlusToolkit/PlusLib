@@ -192,14 +192,14 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
   }
 
   double timestamp = trackedFrame.GetTimestamp();
-  vtkImageData* frameImage = trackedFrame.GetImageData()->GetVtkImage();
+  vtkImageData* frameImage = trackedFrame.GetImageData()->GetImage();
 
   igtl::TimeStamp::Pointer igtlFrameTime = igtl::TimeStamp::New();
   igtlFrameTime->SetTime( timestamp );
   
   int imageSizePixels[3]={0}, subSizePixels[3]={0}, subOffset[3]={0};
   double imageSpacingMm[3]={0};
-  int scalarType = PlusVideoFrame::GetIGTLScalarPixelType( trackedFrame.GetImageData()->GetITKScalarPixelType() ); 
+  int scalarType = PlusVideoFrame::GetIGTLScalarPixelType( trackedFrame.GetImageData()->GetVTKScalarPixelType() ); 
 
   frameImage->GetDimensions( imageSizePixels );
   frameImage->GetSpacing( imageSpacingMm );
@@ -291,7 +291,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage( igtl::MessageHeader::Po
   imgMsg->GetDimensions(imgSize);
 
   // Set scalar pixel type
-  PlusCommon::ITKScalarPixelType pixelType = PlusVideoFrame::GetITKScalarPixelTypeFromIGTL(imgMsg->GetScalarType()); 
+  PlusCommon::VTKScalarPixelType pixelType = PlusVideoFrame::GetVTKScalarPixelTypeFromIGTL(imgMsg->GetScalarType()); 
   PlusVideoFrame frame; 
   if ( frame.AllocateFrame(imgSize, pixelType) != PLUS_SUCCESS )
   {
@@ -300,7 +300,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage( igtl::MessageHeader::Po
   }
 
   // Copy image to buffer 
-  memcpy(frame.GetBufferPointer(), imgMsg->GetScalarPointer(), frame.GetFrameSizeInBytes() ); 
+  memcpy(frame.GetScalarPointer(), imgMsg->GetScalarPointer(), frame.GetFrameSizeInBytes() ); 
 
   trackedFrame.SetImageData(frame); 
   trackedFrame.SetTimestamp(igtlTimestamp->GetTimeStamp());
@@ -361,7 +361,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage( igtl::ImageMessage::Point
   volume->GetOrigin( volumeOriginMm );
   // imageMessage->SetOrigin() is not used, because origin and normal is set later by imageMessage->SetMatrix()
 
-  int scalarType = PlusVideoFrame::GetIGTLScalarPixelType( PlusVideoFrame::GetITKScalarPixelType(volume->GetScalarType()) ); 
+  int scalarType = PlusVideoFrame::GetIGTLScalarPixelType( volume->GetScalarType() ); 
   imageMessage->SetScalarType( scalarType );
 
   imageMessage->SetEndian(igtl_is_little_endian() ? igtl::ImageMessage::ENDIAN_LITTLE : igtl::ImageMessage::ENDIAN_BIG);

@@ -413,9 +413,9 @@ PlusStatus vtkVisualizationController::Update()
 
   // Force update of the brightness image in the DataCollector,
   // because it is the image that the image actors show
-  if( this->SelectedChannel != NULL )
+  if( this->SelectedChannel != NULL && this->GetImageActor() != NULL )
   {
-    this->SelectedChannel->GetBrightnessOutput();
+    this->GetImageActor()->SetInput( this->SelectedChannel->GetBrightnessOutput() );
   }
 
   return PLUS_SUCCESS;

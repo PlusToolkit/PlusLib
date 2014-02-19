@@ -78,7 +78,7 @@ public:
     or if the frame's format doesn't match the buffer's frame format,
     then the frame is not added to the buffer.
   */
-  virtual PlusStatus AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_TYPE imageType, 
+  virtual PlusStatus AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, const int frameSizeInPx[2], PlusCommon::VTKScalarPixelType pixelType, US_IMAGE_TYPE imageType, 
     int  numberOfBytesToSkip, long   frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, double filteredTimestamp=UNDEFINED_TIMESTAMP, 
     const TrackedFrame::FieldMapType* customFields = NULL);
 
@@ -191,9 +191,9 @@ public:
   virtual PlusStatus GetFrameSize (int _arg[2]);
 
   /*! Set the pixel type */
-  PlusStatus SetPixelType(PlusCommon::ITKScalarPixelType pixelType); 
+  PlusStatus SetPixelType(PlusCommon::VTKScalarPixelType pixelType); 
   /*! Get the pixel type */
-  vtkGetMacro(PixelType, PlusCommon::ITKScalarPixelType); 
+  vtkGetMacro(PixelType, PlusCommon::VTKScalarPixelType); 
 
   /*! Set the image type. Does not convert the pixel values. */
   PlusStatus SetImageType(US_IMAGE_TYPE imageType); 
@@ -228,7 +228,7 @@ protected:
     Compares frame format with new frame imaging parameters.
     \return true if current buffer frame format matches the method arguments, otherwise false
   */
-  virtual bool CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_TYPE imgType );
+  virtual bool CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::VTKScalarPixelType pixelType, US_IMAGE_TYPE imgType );
 
   /*! Returns the two buffer items that are closest previous and next buffer items relative to the specified time. itemA is the closest item */
   PlusStatus GetPrevNextBufferItemFromTime(double time, StreamBufferItem& itemA, StreamBufferItem& itemB);
@@ -250,7 +250,7 @@ protected:
   int FrameSize[2]; 
   
   /*! Image pixel type */
-  PlusCommon::ITKScalarPixelType PixelType; 
+  PlusCommon::VTKScalarPixelType PixelType; 
 
   /*! Image type (B-Mode, RF, ...) */
   US_IMAGE_TYPE ImageType; 

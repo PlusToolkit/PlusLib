@@ -1010,7 +1010,7 @@ PlusStatus SegmentationParameterDialog::InitializeVisualization()
   m_ImageVisualizer->SetResultColor(0.8, 0.0, 0.0);
   m_ImageVisualizer->SetResultOpacity(0.8);
   ui.canvas->GetRenderWindow()->AddRenderer(m_ImageVisualizer->GetCanvasRenderer());
-  m_ImageVisualizer->SetInput(m_Frame.GetImageData()->GetVtkImage());
+  m_ImageVisualizer->SetInput(m_Frame.GetImageData()->GetImage());
 
   // Create default picker
   m_ImageVisualizer->GetCanvasRenderer()->GetRenderWindow()->GetInteractor()->CreateDefaultPicker();
@@ -1360,6 +1360,7 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
       LOG_ERROR("Unable to retrieve tracked frame.");
       return PLUS_FAIL;
     }
+    m_ImageVisualizer->SetInput(m_Frame.GetImageData()->GetImage());
   }
 
   // Segment image

@@ -98,7 +98,7 @@ int main (int argc, char* argv[])
     try
     {
       // Send the image to the Segmentation component to segment
-      if (trackedFrameList->GetTrackedFrame(frameIndex)->GetImageData()->GetITKScalarPixelType()!=itk::ImageIOBase::UCHAR)
+      if (trackedFrameList->GetTrackedFrame(frameIndex)->GetImageData()->GetVTKScalarPixelType() != VTK_UNSIGNED_CHAR)
       {
         LOG_ERROR("patternRecognition.RecognizePattern only works on unsigned char images");
       }

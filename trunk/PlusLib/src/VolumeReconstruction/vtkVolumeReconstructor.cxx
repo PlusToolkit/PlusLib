@@ -612,7 +612,7 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
       numberOfValidFrames++;
 
       // Get image (only the frame extents will be used)
-      vtkImageData* frameImage=trackedFrameList->GetTrackedFrame(frameIndex)->GetImageData()->GetVtkImage();
+      vtkImageData* frameImage=trackedFrameList->GetTrackedFrame(frameIndex)->GetImageData()->GetImage();
 
       // Expand the extent_Ref to include this frame
       AddImageToExtent(frameImage, imageToReferenceTransformMatrix, extent_Ref);
@@ -635,7 +635,7 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
   outputExtent[ 3 ] = int( ( extent_Ref[3] - extent_Ref[2] ) / outputSpacing[ 1 ] );
   outputExtent[ 5 ] = int( ( extent_Ref[5] - extent_Ref[4] ) / outputSpacing[ 2 ] );
 
-  this->Reconstructor->SetOutputScalarMode(trackedFrameList->GetTrackedFrame(0)->GetImageData()->GetVtkImage()->GetScalarType());
+  this->Reconstructor->SetOutputScalarMode(trackedFrameList->GetTrackedFrame(0)->GetImageData()->GetImage()->GetScalarType());
   this->Reconstructor->SetOutputExtent( outputExtent );
   this->Reconstructor->SetOutputOrigin( extent_Ref[0], extent_Ref[2], extent_Ref[4] ); 
   try
@@ -704,7 +704,7 @@ PlusStatus vtkVolumeReconstructor::AddTrackedFrame(TrackedFrame* frame, vtkTrans
     return PLUS_SUCCESS; 
   }
 
-  vtkImageData* frameImage=frame->GetImageData()->GetVtkImage();
+  vtkImageData* frameImage=frame->GetImageData()->GetImage();
 
   this->Modified();
 

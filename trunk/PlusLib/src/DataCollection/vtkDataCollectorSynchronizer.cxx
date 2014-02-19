@@ -314,7 +314,7 @@ PlusStatus vtkDataCollectorSynchronizer::DetectVideoMotions(const std::vector<do
     if ( videoBufferIndex < this->VideoBuffer->GetLatestItemUidInBuffer() ) 
     {
       // Set the baseframe of the image compare 
-      vtkImageData* baseframe = videoItem.GetFrame().GetVtkImage(); 
+      vtkImageData* baseframe = videoItem.GetFrame().GetImage(); 
 
       if ( baseframe == NULL )
       {
@@ -766,7 +766,7 @@ void vtkDataCollectorSynchronizer::FindStillFrame( BufferItemUidType& baseIndex,
         continue; 
       }
 
-      vtkImageData* baseframe = videoItem.GetFrame().GetVtkImage(); 
+      vtkImageData* baseframe = videoItem.GetFrame().GetImage(); 
 
       if ( baseframe == NULL )
       {
@@ -792,7 +792,7 @@ void vtkDataCollectorSynchronizer::FindStillFrame( BufferItemUidType& baseIndex,
       continue; 
     }
 
-    vtkImageData* frame = videoItem.GetFrame().GetVtkImage(); 
+    vtkImageData* frame = videoItem.GetFrame().GetImage(); 
 
     if ( frame == NULL )
     {
@@ -866,7 +866,7 @@ PlusStatus vtkDataCollectorSynchronizer::FindFrameTimestamp( BufferItemUidType& 
       return PLUS_FAIL; 
     }
 
-    vtkImageData* frame = videoItem.GetFrame().GetVtkImage(); 
+    vtkImageData* frame = videoItem.GetFrame().GetImage(); 
 
     if ( frame == NULL )
     {
@@ -942,7 +942,7 @@ PlusStatus vtkDataCollectorSynchronizer::ComputeFrameThreshold( BufferItemUidTyp
       continue; 
     }
 
-    vtkImageData* frame = videoItem.GetFrame().GetVtkImage(); 
+    vtkImageData* frame = videoItem.GetFrame().GetImage(); 
     if ( frame == NULL )
     {
       LOG_WARNING("vtkDataCollectorSynchronizer: Unable to resize actual frame for frame threshold computation if it's NULL - continue with next frame."); 

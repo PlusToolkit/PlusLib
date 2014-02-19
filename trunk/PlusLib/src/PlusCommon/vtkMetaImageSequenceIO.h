@@ -150,9 +150,9 @@ protected:
   /*! Get full path to the file for storing the pixel data */
   std::string GetPixelDataFilePath();
   /*! Conversion between ITK and METAIO pixel types */
-  PlusStatus ConvertMetaElementTypeToItkPixelType(const std::string &elementTypeStr, PlusCommon::ITKScalarPixelType &itkPixelType);
+  PlusStatus ConvertMetaElementTypeToVtkPixelType(const std::string &elementTypeStr, PlusCommon::VTKScalarPixelType &vtkPixelType);
   /*! Conversion between ITK and METAIO pixel types */
-  PlusStatus ConvertItkPixelTypeToMetaElementType(PlusCommon::ITKScalarPixelType itkPixelType, std::string &elementTypeStr);
+  PlusStatus ConvertVtkPixelTypeToMetaElementType(PlusCommon::VTKScalarPixelType vtkPixelType, std::string &elementTypeStr);
 
   /*! 
     Writes the compressed pixel data directly into file. 
@@ -188,7 +188,7 @@ private:
   /*! ASCII or binary */
   itk::ImageIOBase::FileType FileType;
   /*! Integer/float, short/long, signed/unsigned */
-  PlusCommon::ITKScalarPixelType PixelType;
+  PlusCommon::VTKScalarPixelType PixelType;
   /*! Number of components (or channels). Only single-component images are supported. */
   int NumberOfComponents;
   /*! Number of image dimensions. Only 2 (single frame) or 3 (sequence of frames) are supported. */

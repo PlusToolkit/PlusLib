@@ -864,7 +864,7 @@ PlusStatus FillRectangle(vtkTrackedFrameList* trackedFrameList, const std::vecto
     }          
     for (int y=0; y<fillRectSize[1]; y++)
     {
-      memset(static_cast<unsigned char*>(videoFrame->GetBufferPointer())+(fillRectOrigin[1]+y)*frameSize[0]+fillRectOrigin[0],fillData,fillRectSize[0]);     
+      memset(static_cast<unsigned char*>(videoFrame->GetScalarPointer())+(fillRectOrigin[1]+y)*frameSize[0]+fillRectOrigin[0],fillData,fillRectSize[0]);     
     }    
   }
   return PLUS_SUCCESS; 
@@ -931,7 +931,7 @@ PlusStatus CropRectangle(vtkTrackedFrameList* trackedFrameList, const std::vecto
     for(int y=0;y<cropRectSize[1];y++)
     {
       memcpy(static_cast<unsigned char*>(croppedImage->GetScalarPointer())+y*cropRectSize[0], 
-        static_cast<unsigned char*>(videoFrame->GetBufferPointer())+(cropRectOrigin[1]+y)*frameSize[0]+cropRectOrigin[0], 
+        static_cast<unsigned char*>(videoFrame->GetScalarPointer())+(cropRectOrigin[1]+y)*frameSize[0]+cropRectOrigin[0], 
         cropRectSize[0]);
     }
     videoFrame->DeepCopyFrom(croppedImage);

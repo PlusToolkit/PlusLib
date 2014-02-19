@@ -422,24 +422,24 @@ PlusStatus vtkTrackedFrameList::SaveToSequenceMetafile(const char* filename, boo
 }
 
 //-----------------------------------------------------------------------------
-PlusCommon::ITKScalarPixelType vtkTrackedFrameList::GetPixelType()
+PlusCommon::VTKScalarPixelType vtkTrackedFrameList::GetPixelType()
 {
   if ( this->GetNumberOfTrackedFrames() < 1 )
   {
     LOG_ERROR("Unable to get pixel type size: there is no frame in the tracked frame list!"); 
-    return itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
+    return VTK_VOID;
   }
   
   for ( unsigned int i = 0; i < this->GetNumberOfTrackedFrames(); ++i )
   {
     if ( this->GetTrackedFrame(i)->GetImageData()->IsImageValid() )
     {
-      return this->GetTrackedFrame(i)->GetImageData()->GetITKScalarPixelType();
+      return this->GetTrackedFrame(i)->GetImageData()->GetVTKScalarPixelType();
     }
   }
 
   LOG_WARNING("There are no valid images in the tracked frame list."); 
-  return itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
+  return VTK_VOID;
 }
 
 //-----------------------------------------------------------------------------
