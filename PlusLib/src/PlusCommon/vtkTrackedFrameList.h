@@ -152,7 +152,7 @@ public:
   virtual int GetNumberOfBitsPerPixel(); 
 
   /*! Get tracked frame pixel type */
-  PlusCommon::ITKScalarPixelType GetPixelType(); 
+  PlusCommon::VTKScalarPixelType GetPixelType(); 
 
   /*! Get tracked frame image orientation */
   US_IMAGE_ORIENTATION GetImageOrientation(); 

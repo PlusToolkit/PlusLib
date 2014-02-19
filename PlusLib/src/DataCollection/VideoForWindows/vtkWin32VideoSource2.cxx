@@ -543,7 +543,7 @@ PlusStatus vtkWin32VideoSource2::AddFrameToBuffer(void* lpVideoHeader)
 
   unsigned char *inputPixelsPtr = lpVHdr->lpData;
   
-  unsigned char* outputPixelsPtr=(unsigned char*)this->UncompressedVideoFrame.GetBufferPointer();
+  unsigned char* outputPixelsPtr=(unsigned char*)this->UncompressedVideoFrame.GetScalarPointer();
 
   int outputFrameSize[2]={0,0};
   this->UncompressedVideoFrame.GetFrameSize(outputFrameSize);
@@ -764,7 +764,7 @@ PlusStatus vtkWin32VideoSource2::SetOutputFormat(int format)
     }
     else
     {
-      aSource->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR);
+      aSource->GetBuffer()->SetPixelType(VTK_UNSIGNED_CHAR);
     }
   }
 
@@ -790,7 +790,7 @@ PlusStatus vtkWin32VideoSource2::UpdateFrameBuffer()
 
   int width = this->Internal->BitMapInfoPtr->bmiHeader.biWidth;
   int height = this->Internal->BitMapInfoPtr->bmiHeader.biHeight;
-  PlusCommon::ITKScalarPixelType pixelType=itk::ImageIOBase::UCHAR; // always convert output to 8-bit grayscale
+  PlusCommon::VTKScalarPixelType pixelType=VTK_UNSIGNED_CHAR; // always convert output to 8-bit grayscale
   
   vtkPlusDataSource* aSource(NULL);
   for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it )
@@ -810,57 +810,6 @@ PlusStatus vtkWin32VideoSource2::UpdateFrameBuffer()
   int frameSize[2]={width, height};
   this->UncompressedVideoFrame.AllocateFrame(frameSize,pixelType);
 
-  /*
-  int bpp = inputBitsPerPixel;
-  int compression = this->Internal->BitMapInfoPtr->bmiHeader.biCompression;
-
-  if (bpp==8 && compression==BI_RGB)
-  {
-    this->Buffer->SetPixelType(itk::ImageIOBase::UCHAR);
-  }
-  else
-  {
-    LOG_ERROR("Unsupported video format: bpp="<<bpp<<", compression="<<compression);
-    return PLUS_FAIL;
-  }
-  */
-
-  /*
-  if (bpp != outputBitsPerPixel)
-  {
-    switch (bpp)
-    {
-    case 1:
-    case 4:
-    case 8:
-      this->Buffer->GetFrameFormat()->SetPixelFormat(VTK_LUMINANCE);
-      this->NumberOfScalarComponents = 1;
-      break;
-    case 16: 
-      if (compression != VTK_BI_UYVY)
-      {
-        this->Buffer->GetFrameFormat()->SetPixelFormat(VTK_RGB);
-        this->NumberOfScalarComponents = 3;
-      }
-      break;
-    case 24:
-    case 32:
-      if (this->Buffer->GetFrameFormat()->GetPixelFormat() != VTK_RGBA)
-      {
-        this->Buffer->GetFrameFormat()->SetPixelFormat(VTK_RGB);
-        this->NumberOfScalarComponents = 3;
-      }
-      break;
-    }
-  }
-
-  if (bpp != outputBitsPerPixel ||
-  {
-    this->Buffer->GetFrameFormat()->SetBitsPerPixel(bpp);
-    this->Buffer->GetFrameFormat()->SetFrameSize(width, height, frameSize[2]);    
-
-  }
-  */
   return PLUS_SUCCESS;
 }
 

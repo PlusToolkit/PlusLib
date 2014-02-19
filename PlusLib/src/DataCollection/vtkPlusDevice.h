@@ -352,9 +352,9 @@ public:
   virtual PlusStatus GetFrameSize(vtkPlusChannel& aChannel, int dim[2]);
 
   /*! Set the pixel type (char, unsigned short, ...) */
-  virtual PlusStatus SetPixelType(vtkPlusChannel& aChannel, PlusCommon::ITKScalarPixelType pixelType);
+  virtual PlusStatus SetPixelType(vtkPlusChannel& aChannel, PlusCommon::VTKScalarPixelType pixelType);
   /*! Get the pixel type (char, unsigned short, ...) */
-  virtual PlusCommon::ITKScalarPixelType GetPixelType(vtkPlusChannel& aChannel);
+  virtual PlusCommon::VTKScalarPixelType GetPixelType(vtkPlusChannel& aChannel);
 
   /*! Set the image type (B-mode, RF, ...) provided by the video source. */
   virtual PlusStatus SetImageType(vtkPlusChannel& aChannel, US_IMAGE_TYPE imageType);

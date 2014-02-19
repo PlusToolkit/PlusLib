@@ -214,12 +214,12 @@ PlusStatus vtkICCapturingSource::AddFrameToBuffer(unsigned char * dataPtr, unsig
       clippedFramePixelPtr+=this->ClipRectangleSize[0];
       fullFramePixelPtr+=frameSize[0];
     }
-    status = aSource->GetBuffer()->AddItem(&(this->ClippedImageBuffer[0]), aSource->GetPortImageOrientation(), this->ClipRectangleSize, itk::ImageIOBase::UCHAR, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
+    status = aSource->GetBuffer()->AddItem(&(this->ClippedImageBuffer[0]), aSource->GetPortImageOrientation(), this->ClipRectangleSize, VTK_UNSIGNED_CHAR, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
   }
   else
   {
     // No clipping
-    status = aSource->GetBuffer()->AddItem(dataPtr, aSource->GetPortImageOrientation(), frameSize, itk::ImageIOBase::UCHAR, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
+    status = aSource->GetBuffer()->AddItem(dataPtr, aSource->GetPortImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
   }
   this->Modified();
 
@@ -309,7 +309,7 @@ PlusStatus vtkICCapturingSource::InternalConnect()
     LOG_ERROR("Unable to retrieve the video source in the ICCapturing device.");
     return PLUS_FAIL;
   }
-  aSource->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR );  
+  aSource->GetBuffer()->SetPixelType( VTK_UNSIGNED_CHAR );  
 
   int frameSize[2]={0,0};
   frameSize[0]=static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxX();

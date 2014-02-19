@@ -550,8 +550,12 @@ PlusStatus TrackedFrame::WriteToFile(const std::string &filename, vtkMatrix4x4* 
   typedef itk::CastImageFilter< Image2dType, Image3dType> CastFilterType;
   CastFilterType::Pointer castFilter = CastFilterType::New(); 
   try 
-  {      
-    castFilter->SetInput(this->ImageData.GetDisplayableImage());
+  {
+    // Get the vtk image, convert it to an itk image, and pass it to the algorithm
+    vtkImageData* image = this->ImageData.GetImage();
+    Image2dType::Pointer itkImage = Image2dType::New();
+    PlusVideoFrame::ConvertVtkImageToItkImage<PixelType>(image, itkImage);
+    castFilter->SetInput(itkImage);
     castFilter->Update();
   }
   catch(itk::ExceptionObject & err)

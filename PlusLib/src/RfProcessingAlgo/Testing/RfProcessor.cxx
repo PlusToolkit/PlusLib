@@ -126,7 +126,7 @@ int main(int argc, char **argv)
       TrackedFrame* rfFrame = frameList->GetTrackedFrame(j);
 
       // Do the conversion
-      rfProcessor->SetRfFrame(rfFrame->GetImageData()->GetVtkImage(), rfFrame->GetImageData()->GetImageType());
+      rfProcessor->SetRfFrame(rfFrame->GetImageData()->GetImage(), rfFrame->GetImageData()->GetImageType());
 
       if (STRCASECMP(operation.c_str(),"BRIGHTNESS_CONVERT")==0)
       {

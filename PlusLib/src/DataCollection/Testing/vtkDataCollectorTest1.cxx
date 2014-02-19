@@ -55,12 +55,12 @@ public:
       if (trackedFrame.GetImageData()->GetImageType()==US_IMG_BRIGHTNESS)
       {
         // B mode
-        this->ImageData->DeepCopy(trackedFrame.GetImageData()->GetVtkImage());        
+        this->ImageData->DeepCopy(trackedFrame.GetImageData()->GetImage());        
       }
       else
       {
         // RF mode        
-        RfProcessor->SetRfFrame(trackedFrame.GetImageData()->GetVtkImage(), trackedFrame.GetImageData()->GetImageType());
+        RfProcessor->SetRfFrame(trackedFrame.GetImageData()->GetImage(), trackedFrame.GetImageData()->GetImageType());
         this->ImageData->ShallowCopy(RfProcessor->GetBrightessScanConvertedImage());
       }
       this->Viewer->SetInput(this->ImageData); 

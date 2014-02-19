@@ -294,9 +294,6 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
   // for frame containing FC (frame count) in the beginning for data coming from cine, jump 2 bytes
   int numberOfBytesToSkip = 4; 
 
-  PlusCommon::ITKScalarPixelType pixelType=itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;    
-  pixelType=itk::ImageIOBase::UCHAR;
-
   this->Porta.getBwImage( 0, this->ImageBuffer, false );
 
   // get the pointer to the actual incoming data onto a local pointer
@@ -317,7 +314,7 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
   TrackedFrame::FieldMapType customFields; 
   customFields["MotorAngle"] = motorAngle.str(); 
 
-  PlusStatus status = aSource->GetBuffer()->AddItem(deviceDataPtr, aSource->GetPortImageOrientation(), frameSize, pixelType, US_IMG_BRIGHTNESS, numberOfBytesToSkip, this->FrameNumber, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields); 
+  PlusStatus status = aSource->GetBuffer()->AddItem(deviceDataPtr, aSource->GetPortImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, US_IMG_BRIGHTNESS, numberOfBytesToSkip, this->FrameNumber, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields); 
   this->Modified();
   return status;
 }

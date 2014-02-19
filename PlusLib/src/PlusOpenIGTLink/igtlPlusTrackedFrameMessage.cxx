@@ -41,7 +41,7 @@ namespace igtl
     // XML data size 
     this->m_MessageHeader.m_XmlDataSizeInBytes = this->m_TrackedFrameXmlData.size(); 
     // Pixel type 
-    this->m_MessageHeader.m_ScalarType = PlusVideoFrame::GetIGTLScalarPixelType( this->m_TrackedFrame.GetImageData()->GetITKScalarPixelType() ); 
+    this->m_MessageHeader.m_ScalarType = PlusVideoFrame::GetIGTLScalarPixelType( this->m_TrackedFrame.GetImageData()->GetVTKScalarPixelType() ); 
     // Image data size 
     this->m_MessageHeader.m_ImageDataSizeInBytes = this->m_TrackedFrame.GetImageData()->GetFrameSizeInBytes(); 
 
@@ -83,7 +83,7 @@ namespace igtl
 
     // Copy image data 
     void* imageData = (void*)( this->m_Body + header->GetMessageHeaderSize() + header->m_XmlDataSizeInBytes ); 
-    memcpy( imageData, this->m_TrackedFrame.GetImageData()->GetBufferPointer(), this->m_TrackedFrame.GetImageData()->GetFrameSizeInBytes()); 
+    memcpy( imageData, this->m_TrackedFrame.GetImageData()->GetScalarPointer(), this->m_TrackedFrame.GetImageData()->GetFrameSizeInBytes()); 
 
     // Set timestamp 
     igtl::TimeStamp::Pointer timestamp = igtl::TimeStamp::New();
@@ -124,13 +124,13 @@ namespace igtl
     // Copy image data 
     void* imageData = (void*)( this->m_Body + header->GetMessageHeaderSize() + header->m_XmlDataSizeInBytes ); 
     int frameSize[2] = { header->m_FrameSize[0], header->m_FrameSize[1] }; 
-    if ( this->m_TrackedFrame.GetImageData()->AllocateFrame( frameSize, PlusVideoFrame::GetITKScalarPixelTypeFromIGTL(header->m_ScalarType) ) != PLUS_SUCCESS )
+    if ( this->m_TrackedFrame.GetImageData()->AllocateFrame( frameSize, PlusVideoFrame::GetVTKScalarPixelTypeFromIGTL(header->m_ScalarType) ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to allocate memory for frame received in Plus TrackedFrame message"); 
       return 0; 
     }
 
-    memcpy( this->m_TrackedFrame.GetImageData()->GetBufferPointer(), imageData, header->m_ImageDataSizeInBytes ); 
+    memcpy( this->m_TrackedFrame.GetImageData()->GetScalarPointer(), imageData, header->m_ImageDataSizeInBytes ); 
 
     // Set timestamp 
     igtl::TimeStamp::Pointer timestamp = igtl::TimeStamp::New(); 

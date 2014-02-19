@@ -25,7 +25,6 @@ See License.txt for details.
 #include "vtksys/SystemTools.hxx"
 #include <ctype.h>
 #include <time.h>
-//#include "itkImageIOBase.h"
 
 #if ( _MSC_VER >= 1300 ) // Visual studio .NET
 #pragma warning ( disable : 4311 )
@@ -549,28 +548,11 @@ PlusStatus vtkPlusDevice::WriteToMetafile( const char* filename, bool useCompres
   for ( int i = 0 ; i < numberOfItems; i++ ) 
   {
     //Create fake image 
-    typedef itk::Image<unsigned char, 2> ImageType;
-    ImageType::Pointer frame = ImageType::New(); 
-    ImageType::SizeType size={{1,1}};
-    ImageType::IndexType start={{0,0}};
-    ImageType::RegionType region;
-    region.SetSize(size);
-    region.SetIndex(start);
-    frame->SetRegions(region);
-
-    try
-    {
-      frame->Allocate();
-    }
-    catch (itk::ExceptionObject & err) 
-    {    
-      LOCAL_LOG_ERROR("Unable to allocate memory for image: " << err.GetDescription() );
-      status=PLUS_FAIL;
-      continue; 
-    }  
-
-    TrackedFrame trackedFrame; 
-    trackedFrame.GetImageData()->SetITKImageBase(frame);
+    TrackedFrame trackedFrame;
+    PlusVideoFrame videoFrame;
+    int frameSize[2] = {1,1};
+    videoFrame.AllocateFrame(frameSize, VTK_UNSIGNED_CHAR);
+    trackedFrame.SetImageData(videoFrame);
 
     StreamBufferItem bufferItem; 
     BufferItemUidType uid = firstActiveTool->GetBuffer()->GetOldestItemUidInBuffer() + i; 
@@ -1540,7 +1522,7 @@ int vtkPlusDevice::RequestInformation(vtkInformation * vtkNotUsed(request),
   outInfo->Set(vtkDataObject::ORIGIN(),origin,3);
 
   // set default data type - unsigned char and number of components 1
-  vtkDataObject::SetPointDataActiveScalarInfo(outInfo, PlusVideoFrame::GetVTKScalarPixelType(aSource->GetBuffer()->GetPixelType()), 1);
+  vtkDataObject::SetPointDataActiveScalarInfo(outInfo, aSource->GetBuffer()->GetPixelType(), 1);
 
   return 1;
 }
@@ -1601,7 +1583,7 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
   this->FrameTimeStamp = this->CurrentStreamBufferItem->GetTimestamp( aSource->GetBuffer()->GetLocalTimeOffsetSec() );
   this->TimestampClosestToDesired = this->CurrentStreamBufferItem->GetTimestamp( aSource->GetBuffer()->GetLocalTimeOffsetSec() );
 
-  void* sourcePtr=this->CurrentStreamBufferItem->GetFrame().GetBufferPointer();
+  void* sourcePtr=this->CurrentStreamBufferItem->GetFrame().GetScalarPointer();
   int bytesToCopy=this->CurrentStreamBufferItem->GetFrame().GetFrameSizeInBytes();
 
   // The whole image buffer is copied, regardless of the UPDATE_EXTENT value to make the copying implementation simpler
@@ -1675,7 +1657,7 @@ PlusStatus vtkPlusDevice::GetFrameSize(vtkPlusChannel& aChannel, int dim[2])
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::SetPixelType(vtkPlusChannel& aChannel, PlusCommon::ITKScalarPixelType pixelType)
+PlusStatus vtkPlusDevice::SetPixelType(vtkPlusChannel& aChannel, PlusCommon::VTKScalarPixelType pixelType)
 {
   LOCAL_LOG_TRACE("vtkPlusDevice::SetPixelType");
 
@@ -1690,7 +1672,7 @@ PlusStatus vtkPlusDevice::SetPixelType(vtkPlusChannel& aChannel, PlusCommon::ITK
 }
 
 //----------------------------------------------------------------------------
-PlusCommon::ITKScalarPixelType vtkPlusDevice::GetPixelType(vtkPlusChannel& aChannel)
+PlusCommon::VTKScalarPixelType vtkPlusDevice::GetPixelType(vtkPlusChannel& aChannel)
 {
   LOCAL_LOG_TRACE("vtkPlusDevice::GetPixelType");
 
@@ -1698,7 +1680,7 @@ PlusCommon::ITKScalarPixelType vtkPlusDevice::GetPixelType(vtkPlusChannel& aChan
   if( aChannel.GetVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOCAL_LOG_ERROR("Unable to retrieve the video source.");
-    return itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
+    return VTK_VOID;
   }
 
   return aSource->GetBuffer()->GetPixelType();

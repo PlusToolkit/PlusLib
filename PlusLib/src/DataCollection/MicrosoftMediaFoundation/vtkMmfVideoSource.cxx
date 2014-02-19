@@ -26,9 +26,13 @@ Authors include: Adam Rankin
 // Media foundation includes - require Microsoft Windows SDK 7.1 or later.
 // Download from: http://www.microsoft.com/en-us/download/details.aspx?id=8279
 #include <Mfapi.h>
+#include <Mferror.h>
 
 // Windows includes
+#include <lmerr.h>
 #include <shlwapi.h>
+#include <tchar.h>
+#include <windows.h>
 
 //----------------------------------------------------------------------------
 
@@ -39,7 +43,8 @@ namespace
   const double DEFAULT_ACQUISITION_RATE=30;
   const std::string DEFAULT_PIXEL_TYPE_NAME="YUY2";
   const GUID DEFAULT_PIXEL_TYPE=MFVideoFormat_YUY2; // see http://msdn.microsoft.com/en-us/library/windows/desktop/aa370819(v=vs.85).aspx
-  const std::string MF_VIDEO_FORMAT_PREFIX="MFVideoFormat_";  
+  const std::string MF_VIDEO_FORMAT_PREFIX="MFVideoFormat_";
+  const int ERRMSGBUFFERSIZE = 1024;
   template <class T> void SafeRelease(T **ppT)
   {
     if (*ppT)
@@ -304,7 +309,7 @@ STDMETHODIMP vtkMmfVideoSource::OnReadSample( HRESULT hrStatus, DWORD dwStreamIn
 
   if (!SUCCEEDED(hrStatus))
   {
-    // Streaming error.
+    // Streaming error  
     LOG_ERROR("Source Reader error: " << std::hex << hrStatus);
     return S_FALSE;
   }
@@ -403,7 +408,7 @@ PlusStatus vtkMmfVideoSource::UpdateFrameSize()
       currentFrameSize[0] = this->ActiveVideoFormat.FrameSize[0];
       currentFrameSize[1] = this->ActiveVideoFormat.FrameSize[1];
       videoSource->GetBuffer()->SetFrameSize(currentFrameSize);
-      PlusCommon::ITKScalarPixelType pixelType = itk::ImageIOBase::UCHAR; // always convert output to 8-bit grayscale
+      PlusCommon::VTKScalarPixelType pixelType = VTK_UNSIGNED_CHAR; // always convert output to 8-bit grayscale
       this->UncompressedVideoFrame.AllocateFrame(currentFrameSize, pixelType);
     }
   }
@@ -566,11 +571,11 @@ PlusStatus vtkMmfVideoSource::AddFrame(unsigned char* bufferData)
   PlusStatus decodingStatus=PLUS_FAIL;
   if (this->ActiveVideoFormat.PixelFormatName.compare("YUY2") == 0)
   {
-    decodingStatus=PixelCodec::ConvertToGray(VTK_BI_YUY2, frameSize[0], frameSize[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetBufferPointer());
+    decodingStatus=PixelCodec::ConvertToGray(VTK_BI_YUY2, frameSize[0], frameSize[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetScalarPointer());
   }
   else if (this->ActiveVideoFormat.PixelFormatName.compare("RGB24") == 0 )
   {
-    decodingStatus=PixelCodec::ConvertToGray(BI_RGB, frameSize[0], frameSize[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetBufferPointer());
+    decodingStatus=PixelCodec::ConvertToGray(BI_RGB, frameSize[0], frameSize[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetScalarPointer());
   }
   else
   {

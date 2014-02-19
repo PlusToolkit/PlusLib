@@ -70,7 +70,7 @@ vtkMetaImageSequenceIO::vtkMetaImageSequenceIO()
 : TrackedFrameList(vtkTrackedFrameList::New())
 , UseCompression(false)
 , FileType(itk::ImageIOBase::Binary)
-, PixelType(itk::ImageIOBase::UNKNOWNCOMPONENTTYPE)
+, PixelType(VTK_VOID)
 , NumberOfComponents(1)
 , NumberOfDimensions(3)
 , m_CurrentFrameOffset(0)
@@ -288,7 +288,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
   }
 
   std::string elementTypeStr=this->TrackedFrameList->GetCustomString("ElementType");
-  if (ConvertMetaElementTypeToItkPixelType(elementTypeStr.c_str(), this->PixelType)!=PLUS_SUCCESS)
+  if (ConvertMetaElementTypeToVtkPixelType(elementTypeStr.c_str(), this->PixelType)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Unknown component type: "<<elementTypeStr);
     return PLUS_FAIL;
@@ -469,7 +469,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
         //LOG_ERROR("Could not read "<<frameSizeInBytes<<" bytes from "<<GetPixelDataFilePath());
         //numberOfErrors++;
       }
-      if ( PlusVideoFrame::GetOrientedImage(&(pixelBuffer[0]), this->ImageOrientationInFile, this->ImageType, this->Dimensions, this->PixelType, this->ImageOrientationInMemory, *trackedFrame->GetImageData()) != PLUS_SUCCESS )
+      if ( PlusVideoFrame::GetOrientedImage(&(pixelBuffer[0]), this->ImageOrientationInFile, this->ImageType, this->PixelType, this->Dimensions, this->ImageOrientationInMemory, *trackedFrame->GetImageData()) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get oriented image from sequence metafile (frame number: " << frameNumber << ")!"); 
         numberOfErrors++;
@@ -478,7 +478,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
     }
     else
     {
-      if ( PlusVideoFrame::GetOrientedImage(&(allFramesPixelBuffer[0])+frameNumber*frameSizeInBytes, this->ImageOrientationInFile, this->ImageType, this->Dimensions, this->PixelType, this->ImageOrientationInMemory, *trackedFrame->GetImageData()) != PLUS_SUCCESS )
+      if ( PlusVideoFrame::GetOrientedImage(&(allFramesPixelBuffer[0])+frameNumber*frameSizeInBytes, this->ImageOrientationInFile, this->ImageType, this->PixelType, this->Dimensions, this->ImageOrientationInMemory, *trackedFrame->GetImageData()) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get oriented image from sequence metafile (frame number: " << frameNumber << ")!"); 
         numberOfErrors++;
@@ -660,14 +660,14 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader()
   if (this->TrackedFrameList->IsContainingValidImageData())
   {
     this->PixelType=this->TrackedFrameList->GetPixelType();
-    if ( this->PixelType == itk::ImageIOBase::UNKNOWNCOMPONENTTYPE )
+    if ( this->PixelType == VTK_VOID )
     {
       // If the pixel type was not defined, define it to UCHAR
-      this->PixelType = itk::ImageIOBase::UCHAR; 
+      this->PixelType = VTK_UNSIGNED_CHAR; 
     }
   }
   std::string pixelTypeStr;
-  vtkMetaImageSequenceIO::ConvertItkPixelTypeToMetaElementType(this->PixelType, pixelTypeStr);
+  vtkMetaImageSequenceIO::ConvertVtkPixelTypeToMetaElementType(this->PixelType, pixelTypeStr);
   SetCustomString("ElementType", pixelTypeStr.c_str());  // pixel type (a.k.a component type) is stored in the ElementType element
 
   // Image orientation
@@ -842,10 +842,10 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels(const std::string& aFilename
     return PLUS_FAIL;
   }
 
-  if ( this->PixelType == itk::ImageIOBase::UNKNOWNCOMPONENTTYPE )
+  if ( this->PixelType == VTK_VOID )
   {
     // If the pixel type was not defined, define it to UCHAR
-    this->PixelType = itk::ImageIOBase::UCHAR; 
+    this->PixelType = VTK_UNSIGNED_CHAR; 
   }
 
   PlusStatus result = PLUS_SUCCESS;
@@ -853,7 +853,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels(const std::string& aFilename
   {
     // Create a blank frame if we have to write an invalid frame to metafile 
     PlusVideoFrame blankFrame; 
-    if ( blankFrame.AllocateFrame( this->Dimensions, this->PixelType)!=PLUS_SUCCESS)
+    if ( blankFrame.AllocateFrame(this->Dimensions, this->PixelType)!=PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to allocate space for blank image."); 
       return PLUS_FAIL; 
@@ -871,8 +871,13 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels(const std::string& aFilename
         videoFrame = trackedFrame->GetImageData(); 
       }
 
-      fwrite(videoFrame->GetBufferPointer(), 1, videoFrame->GetFrameSizeInBytes(), stream);
-      m_TotalBytesWritten += videoFrame->GetFrameSizeInBytes();
+      unsigned long result = fwrite(videoFrame->GetScalarPointer(), 1, videoFrame->GetFrameSizeInBytes(), stream);
+      if( result != videoFrame->GetFrameSizeInBytes() )
+      {
+        LOG_ERROR("Unable to write entire frame to file.");
+        continue;
+      }
+      m_TotalBytesWritten += result;
     }
   }
   else
@@ -923,7 +928,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteCompressedImagePixelsToFile(FILE *output
 
   // Create a blank frame if we have to write an invalid frame to metafile 
   PlusVideoFrame blankFrame; 
-  if ( blankFrame.AllocateFrame( this->Dimensions, this->PixelType)!=PLUS_SUCCESS)
+  if ( blankFrame.AllocateFrame(this->Dimensions, this->PixelType)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to allocate space for blank image."); 
     return PLUS_FAIL; 
@@ -946,7 +951,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteCompressedImagePixelsToFile(FILE *output
       videoFrame = trackedFrame->GetImageData(); 
     }
 
-    strm.next_in=(Bytef*)videoFrame->GetBufferPointer();
+    strm.next_in=(Bytef*)videoFrame->GetScalarPointer();
     strm.avail_in=videoFrame->GetFrameSizeInBytes();
 
     // Note: it's possible to request to consume all inputs and delete all history after each frame writing to allow random access
@@ -1008,110 +1013,110 @@ TrackedFrame* vtkMetaImageSequenceIO::GetTrackedFrame(int frameNumber)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMetaImageSequenceIO::ConvertMetaElementTypeToItkPixelType(const std::string &elementTypeStr, PlusCommon::ITKScalarPixelType &itkPixelType)
+PlusStatus vtkMetaImageSequenceIO::ConvertMetaElementTypeToVtkPixelType(const std::string &elementTypeStr, PlusCommon::VTKScalarPixelType &vtkPixelType)
 {
   if (elementTypeStr.compare("MET_OTHER")==0
     || elementTypeStr.compare("MET_NONE")==0
     || elementTypeStr.empty())
   {
-    itkPixelType=itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
+    vtkPixelType=VTK_VOID;
   }
-  else if (elementTypeStr.compare("MET_CHAR")==0) { itkPixelType=itk::ImageIOBase::CHAR; }
-  else if (elementTypeStr.compare("MET_ASCII_CHAR")==0) { itkPixelType=itk::ImageIOBase::CHAR; }
-  else if (elementTypeStr.compare("MET_UCHAR")==0) { itkPixelType=itk::ImageIOBase::UCHAR; }
-  else if (elementTypeStr.compare("MET_SHORT")==0) { itkPixelType=itk::ImageIOBase::SHORT; }
-  else if (elementTypeStr.compare("MET_USHORT")==0) { itkPixelType=itk::ImageIOBase::USHORT; }
-  else if (elementTypeStr.compare("MET_INT")==0) { itkPixelType=itk::ImageIOBase::INT; }
+  else if (elementTypeStr.compare("MET_CHAR")==0) { vtkPixelType = VTK_CHAR; }
+  else if (elementTypeStr.compare("MET_ASCII_CHAR")==0) { vtkPixelType = VTK_CHAR; }
+  else if (elementTypeStr.compare("MET_UCHAR")==0) { vtkPixelType = VTK_UNSIGNED_CHAR; }
+  else if (elementTypeStr.compare("MET_SHORT")==0) { vtkPixelType = VTK_SHORT; }
+  else if (elementTypeStr.compare("MET_USHORT")==0) { vtkPixelType = VTK_UNSIGNED_SHORT; }
+  else if (elementTypeStr.compare("MET_INT")==0) { vtkPixelType = VTK_INT; }
   else if (elementTypeStr.compare("MET_UINT")==0)
   {
     if(sizeof(unsigned int) == MET_ValueTypeSize[MET_UINT])
     {
-      itkPixelType=itk::ImageIOBase::UINT;
+      vtkPixelType=VTK_UNSIGNED_INT;
     }
     else if(sizeof(unsigned long) == MET_ValueTypeSize[MET_UINT])
     {
-      itkPixelType=itk::ImageIOBase::ULONG;
+      vtkPixelType=VTK_UNSIGNED_LONG;
     }
   }
   else if (elementTypeStr.compare("MET_LONG")==0)
   {
     if(sizeof(unsigned int) == MET_ValueTypeSize[MET_LONG])
     {
-      itkPixelType=itk::ImageIOBase::LONG;
+      vtkPixelType=VTK_LONG;
     }
     else if(sizeof(unsigned long) == MET_ValueTypeSize[MET_UINT])
     {
-      itkPixelType=itk::ImageIOBase::INT;
+      vtkPixelType=VTK_INT;
     }
   }
   else if (elementTypeStr.compare("MET_ULONG")==0)
   {
     if(sizeof(unsigned long) == MET_ValueTypeSize[MET_ULONG])
     {
-      itkPixelType=itk::ImageIOBase::ULONG;
+      vtkPixelType=VTK_UNSIGNED_LONG;
     }
     else if(sizeof(unsigned int) == MET_ValueTypeSize[MET_ULONG])
     {
-      itkPixelType=itk::ImageIOBase::UINT;
+      vtkPixelType=VTK_UNSIGNED_INT;
     }
   }
   else if (elementTypeStr.compare("MET_LONG_LONG")==0)
   {
     if(sizeof(long) == MET_ValueTypeSize[MET_LONG_LONG])
     {
-      itkPixelType=itk::ImageIOBase::LONG;
+      vtkPixelType=VTK_LONG;
     }
     else if(sizeof(int) == MET_ValueTypeSize[MET_LONG_LONG])
     {
-      itkPixelType=itk::ImageIOBase::INT;
+      vtkPixelType=VTK_INT;
     }
     else 
     {
-      itkPixelType=itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
+      vtkPixelType=VTK_VOID;
     }
   }
   else if (elementTypeStr.compare("MET_ULONG_LONG")==0)
   {
     if(sizeof(unsigned long) == MET_ValueTypeSize[MET_ULONG_LONG])
     {
-      itkPixelType=itk::ImageIOBase::ULONG;
+      vtkPixelType=VTK_UNSIGNED_LONG;
     }
     else if(sizeof(unsigned int) == MET_ValueTypeSize[MET_ULONG_LONG])
     {
-      itkPixelType=itk::ImageIOBase::UINT;
+      vtkPixelType=VTK_UNSIGNED_INT;
     }
     else 
     {
-      itkPixelType=itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
+      vtkPixelType=VTK_VOID;
     }
   }   
   else if (elementTypeStr.compare("MET_FLOAT")==0)
   {
     if(sizeof(float) == MET_ValueTypeSize[MET_FLOAT])
     {
-      itkPixelType=itk::ImageIOBase::FLOAT;
+      vtkPixelType=VTK_FLOAT;
     }
     else if(sizeof(double) == MET_ValueTypeSize[MET_FLOAT])
     {
-      itkPixelType=itk::ImageIOBase::DOUBLE;
+      vtkPixelType=VTK_DOUBLE;
     }
   }  
   else if (elementTypeStr.compare("MET_DOUBLE")==0)
   {
-    itkPixelType=itk::ImageIOBase::DOUBLE;
+    vtkPixelType=VTK_DOUBLE;
     if(sizeof(double) == MET_ValueTypeSize[MET_DOUBLE])
     {
-      itkPixelType=itk::ImageIOBase::DOUBLE;
+      vtkPixelType=VTK_DOUBLE;
     }
     else if(sizeof(float) == MET_ValueTypeSize[MET_DOUBLE])
     {
-      itkPixelType=itk::ImageIOBase::FLOAT;
+      vtkPixelType=VTK_FLOAT;
     }
   }
   else
   {
     LOG_ERROR("Unknown component type: "<<elementTypeStr);
-    itkPixelType=itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
+    vtkPixelType=VTK_VOID;
     return PLUS_FAIL;
   }
 
@@ -1119,9 +1124,9 @@ PlusStatus vtkMetaImageSequenceIO::ConvertMetaElementTypeToItkPixelType(const st
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMetaImageSequenceIO::ConvertItkPixelTypeToMetaElementType(PlusCommon::ITKScalarPixelType itkPixelType, std::string &elementTypeStr)
+PlusStatus vtkMetaImageSequenceIO::ConvertVtkPixelTypeToMetaElementType(PlusCommon::VTKScalarPixelType vtkPixelType, std::string &elementTypeStr)
 {
-  if (itkPixelType==itk::ImageIOBase::UNKNOWNCOMPONENTTYPE)
+  if (vtkPixelType==VTK_VOID)
   {
     elementTypeStr="MET_OTHER";
     return PLUS_SUCCESS;
@@ -1141,14 +1146,14 @@ PlusStatus vtkMetaImageSequenceIO::ConvertItkPixelTypeToMetaElementType(PlusComm
     "MET_DOUBLE",
   };
   
-  PlusCommon::ITKScalarPixelType testedPixelType=itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
+  PlusCommon::VTKScalarPixelType testedPixelType=VTK_VOID;
   for (unsigned int i=0; i<sizeof(metaElementTypes); i++)
   {    
-    if (ConvertMetaElementTypeToItkPixelType(metaElementTypes[i], testedPixelType)!=PLUS_SUCCESS)
+    if (ConvertMetaElementTypeToVtkPixelType(metaElementTypes[i], testedPixelType)!=PLUS_SUCCESS)
     {
       continue;
     }
-    if (testedPixelType==itkPixelType)
+    if (testedPixelType==vtkPixelType)
     {
       elementTypeStr=metaElementTypes[i];
       return PLUS_SUCCESS;
