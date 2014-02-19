@@ -63,7 +63,8 @@ vtkUsScanConvertCurvilinear::vtkUsScanConvertCurvilinear()
   this->InterpOutputImageSpacing[0]=0.0;
   this->InterpOutputImageSpacing[1]=0.0;
   this->InterpOutputImageSpacing[2]=0.0;
-  this->InterpOutputImageStartDepthMm=0.0;
+  this->InterpTransducerCenterPixel[0]=0.0;
+  this->InterpTransducerCenterPixel[1]=0.0;
   this->InterpIntensityScaling=0.0;
 }
 
@@ -75,7 +76,7 @@ vtkUsScanConvertCurvilinear::~vtkUsScanConvertCurvilinear()
 //----------------------------------------------------------------------------
 void vtkUsScanConvertCurvilinear::ComputeInterpolatedPointArray(
   int *inputImageExtent, double radiusStartMm, double radiusStopMm, double thetaStartDeg, double thetaStopDeg,
-  int *outputImageExtent, double *outputImageSpacing, double outputImageStartDepthMm, double intensityScaling)
+  int *outputImageExtent, double *outputImageSpacing, double* transducerCenterPixel, double intensityScaling)
 {
   // Computing the point array is a costly operation, so perform it only if a scan conversion parameter has been changed
 
@@ -103,7 +104,8 @@ void vtkUsScanConvertCurvilinear::ComputeInterpolatedPointArray(
     || (this->InterpRadiusStopMm!=radiusStopMm)
     || (this->InterpThetaStartDeg!=thetaStartDeg)
     || (this->InterpThetaStopDeg!=thetaStopDeg)
-    || (this->InterpOutputImageStartDepthMm!=outputImageStartDepthMm)
+    || (this->InterpTransducerCenterPixel[0]!=transducerCenterPixel[0])
+    || (this->InterpTransducerCenterPixel[1]!=transducerCenterPixel[1])
     || (this->InterpIntensityScaling!=intensityScaling) )
   {
     modifiedScanConversionParams=true;
@@ -130,7 +132,8 @@ void vtkUsScanConvertCurvilinear::ComputeInterpolatedPointArray(
   this->InterpRadiusStopMm=radiusStopMm;
   this->InterpThetaStartDeg=thetaStartDeg;
   this->InterpThetaStopDeg=thetaStopDeg;
-  this->InterpOutputImageStartDepthMm=outputImageStartDepthMm;
+  this->InterpTransducerCenterPixel[0]=transducerCenterPixel[0];
+  this->InterpTransducerCenterPixel[1]=transducerCenterPixel[1];
   this->InterpIntensityScaling=intensityScaling;
 
   // Compute the interpolated point array now
@@ -153,12 +156,11 @@ void vtkUsScanConvertCurvilinear::ComputeInterpolatedPointArray(
   double dx = outputImageSpacing[0];
   double dz = outputImageSpacing[1];  
 
-  // Image coordinate in mm
-  double z = outputImageStartDepthMm;
-
+  // Starting depth in image coordinates in mm
+  double z = radiusStartMm-this->InterpTransducerCenterPixel[1]*dz;
   for (int i=0; i<outputImageSizePixelsY; i++)
   {
-    double x=-(outputImageSizePixelsX-1)/2.0*dx; // image coordinate, in mm
+    double x=-(this->InterpTransducerCenterPixel[0]-0.5)*dx; // image coordinate, in mm
     double z2 = z*z;
 
     for (int j=0; j<outputImageSizePixelsX; j++)
@@ -220,7 +222,7 @@ int vtkUsScanConvertCurvilinear::RequestInformation (vtkInformation * vtkNotUsed
 
   // Create the interpolation table. It is recomputed only if the scan conversion parameters change.
   ComputeInterpolatedPointArray(inExtent, this->RadiusStartMm, this->RadiusStopMm, this->ThetaStartDeg, this->ThetaStopDeg,
-    this->OutputImageExtent, this->OutputImageSpacing, this->OutputImageStartDepthMm, this->OutputIntensityScaling);
+    this->OutputImageExtent, this->OutputImageSpacing, this->TransducerCenterPixel, this->OutputIntensityScaling);
 
   return 1;
 }
@@ -344,7 +346,7 @@ void vtkUsScanConvertCurvilinear::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
-  os << indent << "OutputImageStartDepthMm: "<< this->OutputImageStartDepthMm << "\n";  
+  os << indent << "TransducerCenterPixel: "<< this->TransducerCenterPixel[0] <<"; "<<this->TransducerCenterPixel[1]<< "\n";
   os << indent << "RadiusStartMm: "<< this->RadiusStartMm << "\n";
   os << indent << "RadiusStopMm: "<< this->RadiusStopMm << "\n";
   os << indent << "ThetaStartDeg: "<< this->ThetaStartDeg << "\n";
@@ -412,11 +414,6 @@ PlusStatus vtkUsScanConvertCurvilinear::ReadConfiguration(vtkXMLDataElement* sca
     return PLUS_FAIL;
   }
 
-  double outputImageStartDepthMm=0;
-  if ( scanConversionElement->GetScalarAttribute("OutputImageStartDepthMm", outputImageStartDepthMm)) 
-  {
-    this->OutputImageStartDepthMm=outputImageStartDepthMm; 
-  }
   double radiusStartMm=0;
   if ( scanConversionElement->GetScalarAttribute("RadiusStartMm", radiusStartMm)) 
   {
@@ -426,6 +423,31 @@ PlusStatus vtkUsScanConvertCurvilinear::ReadConfiguration(vtkXMLDataElement* sca
   if ( scanConversionElement->GetScalarAttribute("RadiusStopMm", radiusStopMm)) 
   {
     this->RadiusStopMm=radiusStopMm; 
+  }
+
+  // this->TransducerCenterPixel values will be used in this file, so set them to meaningful default values if the user has not specified them
+  if (!this->TransducerCenterPixelSpecified)
+  {
+    this->TransducerCenterPixel[0] = double(this->OutputImageExtent[1]-this->OutputImageExtent[0]+1)/2.0;
+    this->TransducerCenterPixel[1] = this->RadiusStartMm/this->OutputImageSpacing[1];
+  }
+
+  // Fill the TransducerCenterPixel from the deprecated OutputImageStartDepthMm element
+  double outputImageStartDepthMm=0;
+  if ( scanConversionElement->GetScalarAttribute("OutputImageStartDepthMm", outputImageStartDepthMm)) 
+  {
+    if (this->TransducerCenterPixelSpecified)
+    {
+      LOG_WARNING("Transducer center position in the image is specified by the TransducerCenterPixel attribute, therefore the OutputImageStartDepthMm will be ignored. Please remove the OutputImageStartDepthMm attribute from the configuration.");
+    }
+    else
+    {      
+      this->TransducerCenterPixel[0] = double(this->OutputImageExtent[1]-this->OutputImageExtent[0]+1)/2.0; // image center
+      this->TransducerCenterPixel[1] = (this->RadiusStartMm-outputImageStartDepthMm)/this->OutputImageSpacing[1]; // row index of the centerpoint of the curvature circle
+      this->TransducerCenterPixelSpecified = true;
+      LOG_WARNING("OutputImageStartDepthMm is deprecated. Use the following equivalent attribute instead: TransducerCenterPixel=\""
+        <<this->TransducerCenterPixel[0]<<" "<<this->TransducerCenterPixel[1]<<"\"");      
+    }    
   }
 
   double thetaStartDeg=0;
@@ -451,8 +473,6 @@ PlusStatus vtkUsScanConvertCurvilinear::WriteConfiguration(vtkXMLDataElement* sc
     return PLUS_FAIL;
   }
 
-  scanConversionElement->SetDoubleAttribute("OutputImageStartDepthMm", this->OutputImageStartDepthMm);
-
   scanConversionElement->SetDoubleAttribute("RadiusStartMm", this->RadiusStartMm);
   scanConversionElement->SetDoubleAttribute("RadiusStopMm", this->RadiusStopMm);
 
@@ -465,12 +485,9 @@ PlusStatus vtkUsScanConvertCurvilinear::WriteConfiguration(vtkXMLDataElement* sc
 //-----------------------------------------------------------------------------
 PlusStatus vtkUsScanConvertCurvilinear::GetScanLineEndPoints(int scanLineIndex, double scanlineStartPoint_OutputImage[4],double scanlineEndPoint_OutputImage[4])
 {
-  // (0,0) is in the pixel centerpoint
-  double fanOriginPosition_OutputImage[2]=
-  {
-    double(this->OutputImageExtent[1]-this->OutputImageExtent[0])/2.0, // image center
-    -this->OutputImageStartDepthMm/this->OutputImageSpacing[1] // row index of the centerpoint of the curvature circle
-  };
+  // (imagecenter,0) is in the pixel centerpoint
+  double fanOriginPosition_OutputImage[2]= { this->TransducerCenterPixel[0], this->TransducerCenterPixel[1]-this->RadiusStartMm/this->OutputImageSpacing[1]};
+  
   int numberOfLines=this->InputImageExtent[3]-this->InputImageExtent[2]+1;
   
   double thetaDeltaDeg=0; // angle between two scanlines

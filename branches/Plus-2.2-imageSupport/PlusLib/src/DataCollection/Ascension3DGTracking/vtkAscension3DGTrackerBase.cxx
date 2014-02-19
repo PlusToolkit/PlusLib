@@ -135,8 +135,7 @@ PlusStatus vtkAscension3DGTrackerBase::InternalConnect()
     alphaStruct.alphaOn = this->FilterAlpha;
     this->CheckReturnStatus( SetSensorParameter( sensorID, FILTER_ALPHA_PARAMETERS, &alphaStruct, sizeof( alphaStruct ) ) );
 
-    DEVICE_STATUS status;
-    status = GetSensorStatus( sensorID );
+    DEVICE_STATUS status = GetSensorStatus( sensorID );
 
     this->SensorSaturated.push_back( ( status & SATURATED ) ? true : false );
     this->SensorAttached.push_back( ( status & NOT_ATTACHED ) ? false : true );
@@ -393,18 +392,37 @@ PlusStatus vtkAscension3DGTrackerBase::InternalUpdate()
     }
 
     DEVICE_STATUS status = GetSensorStatus( sensorIndex );
-
-    saturated = status & SATURATED;
-    attached = ! ( status & NOT_ATTACHED );
-    inMotionBox = ! ( status & OUT_OF_MOTIONBOX );
-    transmitterRunning = !( status & NO_TRANSMITTER_RUNNING );
-    if( !transmitterRunning )
+    if (status == 0)
     {
-      LOG_WARNING("Attempting to produce data but sensor is not running.");
+      toolStatus = TOOL_OK;
     }
-    transmitterAttached = !( status & NO_TRANSMITTER_ATTACHED );
-    globalError = status & GLOBAL_ERROR;
-
+    else
+    {
+      toolStatus = TOOL_INVALID;
+      if( status & NO_TRANSMITTER_ATTACHED )
+      {
+        LOG_WARNING("Attempting to produce data but no transmitter is attached");
+      }
+      if( status & NO_TRANSMITTER_RUNNING )
+      {
+        LOG_WARNING("Attempting to produce data but the transmitter is not running");
+      }
+      if( status & SATURATED )
+      {
+        LOG_WARNING("Signal is saturated for sensor index "<<sensorIndex);
+      }
+      if ( status & NOT_ATTACHED )
+      {
+        // Don't log a warning, it may happen frequently and we encode the information in the toolStatus
+        toolStatus = TOOL_MISSING;
+      }
+      else if ( status & OUT_OF_MOTIONBOX )
+      {
+        // Don't log a warning, it may happen frequently and we encode the information in the toolStatus
+        toolStatus = TOOL_OUT_OF_VIEW;
+      }
+    }
+    
     vtkSmartPointer< vtkMatrix4x4 > mToolToTracker = vtkSmartPointer< vtkMatrix4x4 >::New();
     mToolToTracker->Identity();
     for ( int row = 0; row < 3; ++ row )
@@ -421,9 +439,6 @@ PlusStatus vtkAscension3DGTrackerBase::InternalUpdate()
     mToolToTracker->SetElement( 0, 3, record[ sensorIndex ].x );
     mToolToTracker->SetElement( 1, 3, record[ sensorIndex ].y );
     mToolToTracker->SetElement( 2, 3, record[ sensorIndex ].z );
-
-    if ( ! attached ) toolStatus = TOOL_MISSING;
-    if ( ! inMotionBox ) toolStatus = TOOL_OUT_OF_VIEW;
 
     std::ostringstream toolPortName; 
     toolPortName << sensorIndex; 

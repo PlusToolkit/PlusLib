@@ -37,6 +37,15 @@ Keep the device stationary for 2 seconds after connect for accurate gyroscope in
         </OutputChannel>
       </OutputChannels>
     </Device>
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="RecordingTest.mha"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+      </InputChannels>
+    </Device>    
   </DataCollection>
   
   <PlusOpenIGTLinkServer 

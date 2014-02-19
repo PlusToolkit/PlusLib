@@ -87,6 +87,7 @@
         ImagingDepthMm="60.0"
         TransducerWidthMm="40.0"
         OutputImageSizePixel="476 689"
+        TransducerCenterPixel="238.0952380952381 0"
         OutputImageSpacingMmPerPixel="0.084 0.087"/>
       <!-- Example for a curvilinear transducer: -->
       <xScanConversion
@@ -96,8 +97,8 @@
         RadiusStopMm="60.0"
         ThetaStartDeg="-60.0"
         ThetaStopDeg="60.0"
-        OutputImageStartDepthMm="2.0"
         OutputImageSizePixel="1200 800"
+        TransducerCenterPixel="600 34.48275862"
         OutputImageSpacingMmPerPixel="0.084 0.087" />
     </RfProcessing>
   </vtkUsSimulatorAlgo>
