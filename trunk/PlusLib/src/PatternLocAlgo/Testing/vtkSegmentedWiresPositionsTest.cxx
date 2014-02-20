@@ -109,7 +109,7 @@ int main (int argc, char* argv[])
     }
     catch(...)
     {
-      LOG_ERROR("SegmentImage: The segmentation has failed for due to UNKNOWN exception thrown, the image was ignored!!!"); 
+      LOG_ERROR("SegmentImage: The segmentation has failed due to UNKNOWN exception thrown, the image is ignored"); 
       continue; 
     }
 
