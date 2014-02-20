@@ -481,8 +481,6 @@ PlusStatus vtkImageVisualizer::AssignDataCollector(vtkDataCollector* aCollector 
   if( aCollector != NULL )
   {
     // Store a reference to the data collector
-    this->SetDataCollector(aCollector);
-
     if (this->DataCollector->GetConnected() == false)
     {
       LOG_ERROR("Data collection not initialized or device visualization cannot be initialized unless they are connected");

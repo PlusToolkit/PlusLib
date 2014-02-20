@@ -875,7 +875,6 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels(const std::string& aFilename
       if( result != videoFrame->GetFrameSizeInBytes() )
       {
         LOG_ERROR("Unable to write entire frame to file.");
-        continue;
       }
       m_TotalBytesWritten += result;
     }
