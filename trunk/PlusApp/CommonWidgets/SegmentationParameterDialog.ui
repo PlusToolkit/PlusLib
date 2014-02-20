@@ -207,9 +207,6 @@
              <property name="text">
               <string>X:</string>
              </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
             </widget>
            </item>
            <item row="0" column="1" rowspan="2">
@@ -280,9 +277,6 @@
              </property>
              <property name="text">
               <string>Y:</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
              </property>
             </widget>
            </item>
@@ -416,9 +410,6 @@
             <widget class="QLabel" name="label_By">
              <property name="text">
               <string>B</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
              </property>
             </widget>
            </item>
