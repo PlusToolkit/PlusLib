@@ -520,9 +520,9 @@ void vtkVirtualDiscCapture::SetRequestedFrameRate( double aValue )
   {
     aValue = maxFrameRate;
   }
-  RequestedFrameRate = aValue;
+  this->RequestedFrameRate = aValue;
 
-  LOG_INFO("Requested frame rate changed to " << RequestedFrameRate );
+  LOG_DEBUG("vtkVirtualDiscCapture requested frame rate changed to " << this->RequestedFrameRate );
 }
 
 //-----------------------------------------------------------------------------

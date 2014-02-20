@@ -49,6 +49,7 @@ namespace MfVideoCapture
     , FriendlyName(NULL)
     , Width(0)
     , Height(0)
+    , FrameRate(0)
     , Source(NULL)
     , StopEventCallbackFunc(NULL)
     , DeviceIndex(-1)
@@ -438,6 +439,16 @@ namespace MfVideoCapture
 
   //----------------------------------------------------------------------------
 
+  unsigned int MediaFoundationVideoDevice::GetFrameRate() const
+  {
+    if(IsSetup)
+      return FrameRate;
+    else
+      return 0;
+  }
+
+  //----------------------------------------------------------------------------
+
   IMFMediaSource *MediaFoundationVideoDevice::GetMediaSource()
   {
     IMFMediaSource *out = NULL;
@@ -471,14 +482,14 @@ namespace MfVideoCapture
 
     if(FRM.size() == 0)
       return -1;
-
-    UINT64 frameRateMax = 0;
+    
     SUBTYPEMap STMMax;
 
     if(frameRate == 0)
     {
+      // find the format with the maximum frame rate
+      UINT64 frameRateMax = 0;
       std::map<UINT64, SUBTYPEMap>::iterator f = FRM.begin();
-
       for(; f != FRM.end(); f++)
       {
         if((*f).first >= frameRateMax)
@@ -487,23 +498,21 @@ namespace MfVideoCapture
 
           STMMax = (*f).second;
         }
-      }    
-
+      }
     }
     else
     {
+      // find the format that is the closest to the requested frame rate
       std::map<UINT64, SUBTYPEMap>::iterator f = FRM.begin();
+      int frameRateDifferenceMin = -1;
 
       for(; f != FRM.end(); f++)
       {
-        if((*f).first >= frameRateMax)
+        int frameRateDifference=static_cast<int>((*f).first)-frameRate;
+        if ( (frameRateDifferenceMin<0) || (frameRateDifference<frameRateDifferenceMin) )
         {
-          if(frameRate > (*f).first)
-          {
-            frameRateMax = (*f).first;
-
-            STMMax = (*f).second;
-          }
+          frameRateDifferenceMin = frameRateDifference;
+          STMMax = (*f).second;
         }
       }
     }
@@ -650,6 +659,7 @@ done:
       {      
         Width = CurrentFormats[id].width; 
         Height = CurrentFormats[id].height;
+        FrameRate = CurrentFormats[id].MF_MT_FRAME_RATE;
         hr = SetDeviceFormat(Source, (DWORD) id);
         IsSetup = (SUCCEEDED(hr));
 

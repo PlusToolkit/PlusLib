@@ -163,6 +163,9 @@ PlusStatus vtkMmfVideoSource::InternalConnect()
     return PLUS_FAIL;
   }
 
+  unsigned int frameRate=MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().GetFrameRate(this->ActiveVideoFormat.DeviceId);
+  LOG_DEBUG("vtkMmfVideoSource connected to device '"<<GetActiveDeviceName()<<"' at frame rate of "<<frameRate<<"Hz");
+
   this->FrameIndex = 0;
 
   return PLUS_SUCCESS;
