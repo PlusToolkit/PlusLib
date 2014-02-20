@@ -21,7 +21,6 @@ The "videoInput" library has been adapted to fit within a namespace.
 #include "MediaFoundationVideoDevice.h"
 #include "MediaFoundationVideoDevices.h"
 #include "MfVideoCaptureLoggerMacros.h"
-#include "RawImage.h"
 
 //----------------------------------------------------------------------------
 
@@ -284,32 +283,6 @@ namespace MfVideoCapture
 
       if(VD)
         return VD->IsDeviceRawDataSource();
-    }
-    else
-    {
-      LOG_ERROR("VIDEODEVICE(s): There are not any suitable video devices.");
-    }
-
-    return false;
-  }
-
-  //----------------------------------------------------------------------------
-
-  bool MediaFoundationVideoCaptureApi::IsFrameNew(unsigned int deviceID)
-  {  
-    if(AccessToDevices)
-    {
-      if(!IsDeviceSetup(deviceID))
-      {
-        if(IsDeviceMediaSource(deviceID))
-          return false;
-      }
-
-      MediaFoundationVideoDevices *VDS = &MediaFoundationVideoDevices::GetInstance();
-      MediaFoundationVideoDevice * VD = VDS->GetDevice(deviceID);
-
-      if(VD)
-        return VD->IsFrameNew();
     }
     else
     {

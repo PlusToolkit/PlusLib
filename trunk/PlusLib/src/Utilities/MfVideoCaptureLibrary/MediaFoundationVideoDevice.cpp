@@ -17,11 +17,8 @@ The "videoInput" library has been adapted to fit within a namespace.
 =========================================================Plus=header=end*/
 
 #include "FormatReader.h"
-#include "ImageGrabber.h"
-#include "ImageGrabberThread.h"
 #include "MediaFoundationVideoDevice.h"
 #include "MfVideoCaptureLoggerMacros.h"
-#include "RawImage.h"
 #include <Strmif.h>
 #include <mfapi.h>
 #include <mfidl.h>
@@ -54,7 +51,6 @@ namespace MfVideoCapture
     , Height(0)
     , Source(NULL)
     , StopEventCallbackFunc(NULL)
-    , GrabberThread(NULL)
     , DeviceIndex(-1)
     , UserData(NULL)
   {  
@@ -380,14 +376,6 @@ namespace MfVideoCapture
 
       SafeRelease(&Source);
 
-      if(LockOut == RawDataLock)
-      {
-        GrabberThread->Stop();
-        Sleep(500);
-        delete GrabberThread;
-      }
-
-      GrabberThread = NULL;
       LockOut = OpenLock;  
 
       LOG_DEBUG("VIDEODEVICE " << DeviceIndex << ": Device is stopped.");
@@ -628,54 +616,6 @@ done:
   bool MediaFoundationVideoDevice::IsDeviceSetup() const
   {
     return IsSetup;
-  }
-
-  //----------------------------------------------------------------------------
-
-  RawImage * MediaFoundationVideoDevice::GetRawImageOut()
-  {
-    if(!IsSetup) return NULL;
-
-    if(GrabberThread)
-      return GrabberThread->GetImageGrabber()->getRawImage();  
-    else
-    {
-      LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": The instance of ImageGrabberThread class does not exist.");
-    }
-    return NULL;
-  }
-
-  //----------------------------------------------------------------------------
-
-  bool MediaFoundationVideoDevice::IsFrameNew()
-  {
-    if(!IsSetup) return false;
-
-    if(LockOut == RawDataLock || LockOut == OpenLock) 
-    {
-      if(LockOut == OpenLock)
-      {
-        LockOut = RawDataLock;
-
-        HRESULT hr = ImageGrabberThread::CreateInstance(&GrabberThread, Source, DeviceIndex);
-
-        if(FAILED(hr))
-        {
-          LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": The instance of ImageGrabberThread class cannot be created.");
-          return false;
-        }
-
-        GrabberThread->SetEmergencyStopEvent(UserData, StopEventCallbackFunc);
-        GrabberThread->Start();
-        return true;
-      }
-
-      if(GrabberThread)
-        return GrabberThread->GetImageGrabber()->getRawImage()->isNew();    
-
-    }
-
-    return false;
   }
 
   //----------------------------------------------------------------------------

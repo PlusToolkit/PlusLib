@@ -15,10 +15,6 @@ SET(MfVideoCaptureLibrary_SRCS
     MediaFoundationVideoCaptureApi.cpp 
     MediaFoundationVideoDevice.cpp 
     MediaFoundationVideoDevices.cpp 
-    RawImage.cpp 
-    ImageGrabberThread.cpp 
-    ImageGrabber.cpp 
-    RawImage.cpp 
     MediaFoundationCaptureLibrary.cpp 
     MfVideoCaptureLogger.cpp 
   )
@@ -28,10 +24,6 @@ SET (MfVideoCaptureLibrary_HDRS ${MfVideoCaptureLibrary_HDRS}
     MediaFoundationVideoCaptureApi.h 
     MediaFoundationVideoDevice.h 
     MediaFoundationVideoDevices.h 
-    RawImage.h 
-    ImageGrabberThread.h 
-    ImageGrabber.h 
-    RawImage.h 
     MediaFoundationCaptureLibrary.h 
     MfVideoCaptureLogger.h 
     MfVideoCaptureLoggerMacros.h 
