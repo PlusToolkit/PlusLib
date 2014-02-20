@@ -152,6 +152,9 @@ namespace MfVideoCapture
     // Getting height of image, which is getting from videodevice with deviceID
     unsigned int GetHeight(unsigned int deviceID);
 
+    // Getting the current frame rate of the videodevice with deviceID
+    unsigned int GetFrameRate(unsigned int deviceID);
+
     // Getting name of videodevice with deviceID
     wchar_t *GetCaptureDeviceName(unsigned int deviceID);
 

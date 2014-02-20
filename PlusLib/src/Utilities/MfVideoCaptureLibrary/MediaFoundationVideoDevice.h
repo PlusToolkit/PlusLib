@@ -67,6 +67,7 @@ namespace MfVideoCapture
     int GetCountFormats() const;
     unsigned int GetWidth() const;
     unsigned int GetHeight() const;
+    unsigned int GetFrameRate() const;
     MediaType GetFormat(unsigned int id) const;
     unsigned int GetActiveType() const;
     bool SetupDevice(unsigned int w, unsigned int h, unsigned int idealFramerate = 0, GUID subtype = MFVideoFormat_YUY2);
@@ -90,6 +91,7 @@ namespace MfVideoCapture
     wchar_t *FriendlyName;
     unsigned int Width;
     unsigned int Height;
+    unsigned int FrameRate;
     IMFMediaSource *Source;
     emergencyStopEventCallback StopEventCallbackFunc;
     CaptureDeviceParameters PreviousParameters;
