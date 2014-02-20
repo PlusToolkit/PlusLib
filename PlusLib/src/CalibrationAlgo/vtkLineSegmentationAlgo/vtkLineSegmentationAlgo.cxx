@@ -203,12 +203,17 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
     typedef float floatPixelType; //  The type of pixel used for the Hough accumulator
 
     // Get current image
+    if ( trackedFrame->GetImageData()->GetVTKScalarPixelType() != VTK_UNSIGNED_CHAR)
+    {
+      LOG_ERROR("vtkLineSegmentationAlgo::ComputeVideoPositionMetric only supports 8-bit images"); 
+      continue;
+    }
     CharImageType::Pointer localImage = CharImageType::New(); 
     PlusVideoFrame::ConvertVtkImageToItkImage<CharPixelType>(trackedFrame->GetImageData()->GetImage(), localImage);
-
     if(localImage.IsNull())
     {
       // Dropped frame
+      LOG_ERROR("vtkLineSegmentationAlgo::ComputeVideoPositionMetric failed to retrieve image data from frame"); 
       continue;
     }
 

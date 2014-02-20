@@ -63,7 +63,7 @@ if( DOXYGEN_FOUND )
 
   else( DOXYGEN_DOT_FOUND )
     message( STATUS
-      "Documentation: Doxygen not found - Documentation will not be created"
+      "Documentation: Graphviz dot tool not found (http://www.graphviz.org/Download.php, required by Doxygen for diagram generation)- Documentation will not be created"
       )
   endif( DOXYGEN_DOT_FOUND )
 endif( DOXYGEN_FOUND )

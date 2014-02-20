@@ -88,6 +88,13 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
   m_FidLineFinder.SetFrameSize(trackedFrame->GetFrameSize());
   m_FidLabeling.SetFrameSize(trackedFrame->GetFrameSize());
 
+  if ( trackedFrame->GetImageData()->GetVTKScalarPixelType() != VTK_UNSIGNED_CHAR)
+  {
+    LOG_ERROR("FidPatternRecognition::RecognizePattern only supports 8-bit images"); 
+    patternRecognitionError = PATTERN_RECOGNITION_ERROR_UNKNOWN;
+    return PLUS_FAIL;
+  }
+
   int bytes = trackedFrame->GetFrameSize()[0] * trackedFrame->GetFrameSize()[1] * sizeof(PixelType);
   PixelType* image = reinterpret_cast<PixelType*>(trackedFrame->GetImageData()->GetScalarPointer());
 
