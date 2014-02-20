@@ -37,8 +37,6 @@ typedef void(*emergencyStopEventCallback)(int, void *);
 
 namespace MfVideoCapture
 {
-  class ImageGrabberThread;
-  class RawImage;
 
   /*!
   \class MediaFoundationVideoDevice 
@@ -76,9 +74,7 @@ namespace MfVideoCapture
     bool IsDeviceSetup() const;
     bool IsDeviceMediaSource() const;
     bool IsDeviceRawDataSource() const;
-    bool IsFrameNew();
     IMFMediaSource *GetMediaSource();
-    RawImage *GetRawImageOut();
 
   protected:
     long EnumerateCaptureFormats(IMFMediaSource *pSource);
@@ -96,7 +92,6 @@ namespace MfVideoCapture
     unsigned int Height;
     IMFMediaSource *Source;
     emergencyStopEventCallback StopEventCallbackFunc;
-    ImageGrabberThread *GrabberThread;
     CaptureDeviceParameters PreviousParameters;
     unsigned int DeviceIndex;
     unsigned int ActiveType;

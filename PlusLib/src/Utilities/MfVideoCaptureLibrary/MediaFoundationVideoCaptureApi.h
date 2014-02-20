@@ -179,9 +179,6 @@ namespace MfVideoCapture
     // Initialization of video device with deviceID by width w, height h, fps idealFramerate and subtype
     bool SetupDevice(unsigned int deviceID, unsigned int w, unsigned int h, unsigned int idealFramerate = 30, GUID subtype = MFVideoFormat_YUY2);
 
-    // Checking of receiving of new frame from video device with deviceID 
-    bool IsFrameNew(unsigned int deviceID);
-
   private:
     bool AccessToDevices;
     MediaFoundationVideoCaptureApi(void);
