@@ -318,7 +318,7 @@ PlusStatus vtkBkProFocusOemVideoSource::InternalUpdate()
     LOG_DEBUG("Set up BK ProFocus image buffer");
     int* frameExtent=this->Internal->DecodedImageFrame->GetExtent();
     int frameSizeInPix[2]={frameExtent[1]-frameExtent[0]+1, frameExtent[3]-frameExtent[2]+1};
-    aSource->GetBuffer()->SetPixelType(PlusVideoFrame::GetITKScalarPixelType(this->Internal->DecodedImageFrame->GetScalarType()));
+    aSource->GetBuffer()->SetPixelType(this->Internal->DecodedImageFrame->GetScalarType());
     aSource->GetBuffer()->SetImageType(US_IMG_BRIGHTNESS);
     aSource->GetBuffer()->SetFrameSize( frameSizeInPix[0], frameSizeInPix[1] );
     aSource->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
