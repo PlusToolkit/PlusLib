@@ -524,7 +524,7 @@ PlusStatus vtkBkProFocusCameraLinkVideoSource::InternalStopRecording()
 }
 
 //----------------------------------------------------------------------------
-void vtkBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr, const int inputFrameSizeInPix[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_TYPE imageType)
+void vtkBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr, const int inputFrameSizeInPix[2], PlusCommon::VTKScalarPixelType pixelType, US_IMAGE_TYPE imageType)
 {
   PlusLockGuard<vtkRecursiveCriticalSection> critSectionGuard(this->UpdateMutex);
 
@@ -535,7 +535,7 @@ void vtkBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr, co
   };
 
   LOG_TRACE("New frame received: " << frameSizeInPix[0] << "x" << frameSizeInPix[1]
-  << ", pixel type: " << vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(pixelType))
+  << ", pixel type: " << vtkImageScalarTypeNameMacro(pixelType)
     << ", image type: " << PlusVideoFrame::GetStringFromUsImageType(imageType));
 
   vtkPlusChannel* channel = this->FindChannelByPlane();
@@ -580,7 +580,7 @@ void vtkBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr, co
 
         // Create a VTK image input for the RF to Brightness converter
         vtkSmartPointer<vtkImageImport> bufferToVtkImage = vtkSmartPointer<vtkImageImport>::New();
-        bufferToVtkImage->SetDataScalarType(PlusVideoFrame::GetVTKScalarPixelType(pixelType));
+        bufferToVtkImage->SetDataScalarType(pixelType);
         bufferToVtkImage->SetImportVoidPointer((unsigned char*)pixelDataPtr);
         bufferToVtkImage->SetDataExtent(0, frameSizeInPix[0] - 1, 0, frameSizeInPix[1] - 1, 0,0);
         bufferToVtkImage->SetWholeExtent(0, frameSizeInPix[0] - 1, 0, frameSizeInPix[1] - 1, 0,0);
@@ -595,7 +595,7 @@ void vtkBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr, co
         int *resultExtent = convertedBmodeImage->GetExtent();        
         frameSizeInPix[0] = resultExtent[1] - resultExtent[0] + 1;
         frameSizeInPix[1] = resultExtent[3] - resultExtent[2] + 1;
-        pixelType = PlusVideoFrame::GetITKScalarPixelType(convertedBmodeImage->GetScalarType());
+        pixelType = convertedBmodeImage->GetScalarType();
         imageType = US_IMG_BRIGHTNESS;
         break;
       }
@@ -631,7 +631,7 @@ void vtkBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr, co
       aSource->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_FM);
     }
     LOG_INFO("Frame size: " << frameSizeInPix[0] << "x" << frameSizeInPix[1]
-    << ", pixel type: " << vtkImageScalarTypeNameMacro(PlusVideoFrame::GetVTKScalarPixelType(pixelType))
+    << ", pixel type: " << vtkImageScalarTypeNameMacro(pixelType)
       << ", image type: " << PlusVideoFrame::GetStringFromUsImageType(imageType)
       << ", device image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetPortImageOrientation())
       << ", buffer image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetBuffer()->GetImageOrientation()));

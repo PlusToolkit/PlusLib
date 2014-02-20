@@ -82,7 +82,7 @@ protected:
   /*! Write main configuration from/to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
-  void NewFrameCallback(void* pixelDataPtr, const int frameSizeInPix[2], PlusCommon::ITKScalarPixelType pixelType, US_IMAGE_TYPE imageType);
+  void NewFrameCallback(void* pixelDataPtr, const int frameSizeInPix[2], PlusCommon::VTKScalarPixelType pixelType, US_IMAGE_TYPE imageType);
   friend PlusBkProFocusCameraLinkReceiver;
 
   /*! Called by BK to log information messages */
