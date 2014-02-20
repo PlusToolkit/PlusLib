@@ -543,7 +543,7 @@ std::string TrackedFrame::ConvertFieldStatusToString(TrackedFrameFieldStatus sta
 //----------------------------------------------------------------------------
 PlusStatus TrackedFrame::WriteToFile(const std::string &filename, vtkMatrix4x4* mImageToTracker)
 {
-  typedef unsigned char      PixelType; 
+  typedef unsigned char PixelType; 
   typedef itk::Image< PixelType, 2 > Image2dType; 
   typedef itk::Image< PixelType, 3 > Image3dType; 
 
@@ -553,8 +553,13 @@ PlusStatus TrackedFrame::WriteToFile(const std::string &filename, vtkMatrix4x4* 
   {
     // Get the vtk image, convert it to an itk image, and pass it to the algorithm
     vtkImageData* image = this->ImageData.GetImage();
+    if( PlusVideoFrame::GetNumberOfBytesPerPixel(image->GetScalarType())*image->GetNumberOfScalarComponents() != sizeof(PixelType) )
+    {
+      LOG_ERROR("Pixel type of the vtk image does not match the itk image type. Unable to convert.");
+      return PLUS_FAIL;
+    }
     Image2dType::Pointer itkImage = Image2dType::New();
-    PlusVideoFrame::ConvertVtkImageToItkImage<PixelType>(image, itkImage);
+    PlusVideoFrame::DeepCopyVtkImageToItkImage<PixelType>(image, itkImage);
     castFilter->SetInput(itkImage);
     castFilter->Update();
   }

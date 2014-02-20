@@ -3,7 +3,7 @@ Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
-template<typename PixelType> PlusStatus PlusVideoFrame::ConvertVtkImageToItkImage( vtkImageData* inFrame, typename itk::Image< PixelType, 2 >::Pointer outFrame )
+template<typename PixelType> PlusStatus PlusVideoFrame::DeepCopyVtkImageToItkImage( vtkImageData* inFrame, typename itk::Image< PixelType, 2 >::Pointer outFrame )
 {
   LOG_TRACE("PlusVideoFrame::ConvertVtkImageToItkImage"); 
 

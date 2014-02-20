@@ -199,7 +199,7 @@ public:
   PlusStatus FillBlank();
 
   /*! Convert vtkImageData to itkImage */
-  template<typename PixelType> static PlusStatus ConvertVtkImageToItkImage(vtkImageData* inFrame, typename itk::Image< PixelType, 2 >::Pointer outFrame);
+  template<typename PixelType> static PlusStatus DeepCopyVtkImageToItkImage(vtkImageData* inFrame, typename itk::Image< PixelType, 2 >::Pointer outFrame);
 
 protected:
   void SetImageData(vtkImageData* imageData);
