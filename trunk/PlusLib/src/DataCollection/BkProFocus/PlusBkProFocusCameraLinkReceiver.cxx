@@ -179,7 +179,7 @@ bool PlusBkProFocusCameraLinkReceiver::DataAvailable(int lines, int pitch, void 
       {
         // AF: each sample in m_RfFrame is twice as large as in bmode, and we do not decimate
         int frameSizeInPix[2]={m_NumberOfRfSamplesPerLine, numBmodeLines}; // each I and Q value is a sample (there are numRfSamples/2 IQ pairs in one line)
-        m_CallbackVideoSource->NewFrameCallback(m_Frame + (m_MaxNumberOfLines-numBmodeLines)*m_NumberOfRfSamplesPerLine*BYTES_PER_SAMPLE, frameSizeInPix, itk::ImageIOBase::SHORT, US_IMG_RF_IQ_LINE);
+        m_CallbackVideoSource->NewFrameCallback(m_Frame + (m_MaxNumberOfLines-numBmodeLines)*m_NumberOfRfSamplesPerLine*BYTES_PER_SAMPLE, frameSizeInPix, VTK_SHORT, US_IMG_RF_IQ_LINE);
       }
       break;
     }
