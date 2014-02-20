@@ -35,13 +35,13 @@ template<typename PixelType> PlusStatus PlusVideoFrame::DeepCopyVtkImageToItkIma
 
   double width = extent[1] - extent[0] + 1; 
   double height = extent[3] - extent[2] + 1; 
-  itk::Image< PixelType, 2 >::SizeType size;
+  typename itk::Image< PixelType, 2 >::SizeType size;
   size[0] = width;
   size[1] = height;
-  itk::Image< PixelType, 2 >::IndexType start;
+  typename itk::Image< PixelType, 2 >::IndexType start;
   start[0]=0;
   start[1]=0;
-  itk::Image< PixelType, 2 >::RegionType region;
+  typename itk::Image< PixelType, 2 >::RegionType region;
   region.SetSize(size);
   region.SetIndex(start);
   outFrame->SetRegions(region);
