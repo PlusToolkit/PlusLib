@@ -553,7 +553,7 @@ PlusStatus TrackedFrame::WriteToFile(const std::string &filename, vtkMatrix4x4* 
   {
     // Get the vtk image, convert it to an itk image, and pass it to the algorithm
     vtkImageData* image = this->ImageData.GetImage();
-    if( PlusVideoFrame::GetNumberOfBytesPerPixel(image->GetScalarType())*image->GetNumberOfScalarComponents() != sizeof(PixelType) )
+    if( image->GetScalarType() != VTK_UNSIGNED_CHAR )
     {
       LOG_ERROR("Pixel type of the vtk image does not match the itk image type. Unable to convert.");
       return PLUS_FAIL;
