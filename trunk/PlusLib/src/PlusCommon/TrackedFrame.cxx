@@ -555,7 +555,7 @@ PlusStatus TrackedFrame::WriteToFile(const std::string &filename, vtkMatrix4x4* 
     vtkImageData* image = this->ImageData.GetImage();
     if( image->GetScalarType() != VTK_UNSIGNED_CHAR )
     {
-      LOG_ERROR("Pixel type of the vtk image does not match the itk image type. Unable to convert.");
+      LOG_ERROR("Pixel type of the vtk image ("<<image->GetScalarTypeAsString()<<") does not match the itk image (unsigned char) type. Unable to convert.");
       return PLUS_FAIL;
     }
     Image2dType::Pointer itkImage = Image2dType::New();
