@@ -199,7 +199,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
   
   int imageSizePixels[3]={0}, subSizePixels[3]={0}, subOffset[3]={0};
   double imageSpacingMm[3]={0};
-  int scalarType = PlusVideoFrame::GetIGTLScalarPixelType( trackedFrame.GetImageData()->GetVTKScalarPixelType() ); 
+  int scalarType = PlusVideoFrame::GetIGTLScalarPixelTypeFromVTK( trackedFrame.GetImageData()->GetVTKScalarPixelType() ); 
 
   frameImage->GetDimensions( imageSizePixels );
   frameImage->GetSpacing( imageSpacingMm );
@@ -361,7 +361,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage( igtl::ImageMessage::Point
   volume->GetOrigin( volumeOriginMm );
   // imageMessage->SetOrigin() is not used, because origin and normal is set later by imageMessage->SetMatrix()
 
-  int scalarType = PlusVideoFrame::GetIGTLScalarPixelType( volume->GetScalarType() ); 
+  int scalarType = PlusVideoFrame::GetIGTLScalarPixelTypeFromVTK( volume->GetScalarType() ); 
   imageMessage->SetScalarType( scalarType );
 
   imageMessage->SetEndian(igtl_is_little_endian() ? igtl::ImageMessage::ENDIAN_LITTLE : igtl::ImageMessage::ENDIAN_BIG);

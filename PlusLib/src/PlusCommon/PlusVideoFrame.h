@@ -86,8 +86,8 @@ public:
   /*! Equality operator */
   PlusVideoFrame& operator=(PlusVideoFrame const&videoItem); 
 
-  /*! Allocate memory for the image */
-  static PlusStatus AllocateFrame(vtkImageData*& image, const int imageSize[2], PlusCommon::VTKScalarPixelType vtkScalarPixelType); 
+  /*! Allocate memory for the image. The image object must be already created. */
+  static PlusStatus AllocateFrame(vtkImageData* image, const int imageSize[2], PlusCommon::VTKScalarPixelType vtkScalarPixelType); 
   PlusStatus AllocateFrame(const int imageSize[2], PlusCommon::VTKScalarPixelType vtkScalarPixelType); 
 
   /*! Return the pixel type using VTK enums. */
@@ -101,7 +101,7 @@ public:
 
 #ifdef PLUS_USE_OpenIGTLink
   /*! Convert between ITK and IGTL scalar pixel types */
-  static PlusCommon::IGTLScalarPixelType GetIGTLScalarPixelType(PlusCommon::VTKScalarPixelType vtkScalarPixelType); 
+  static PlusCommon::IGTLScalarPixelType GetIGTLScalarPixelTypeFromVTK(PlusCommon::VTKScalarPixelType vtkScalarPixelType); 
 #endif
 
 #ifdef PLUS_USE_OpenIGTLink
@@ -202,7 +202,12 @@ public:
   template<typename PixelType> static PlusStatus DeepCopyVtkImageToItkImage(vtkImageData* inFrame, typename itk::Image< PixelType, 2 >::Pointer outFrame);
 
 protected:
+  
+  /*! Get the image width and height in pixels */
+  static PlusStatus GetImageSize(vtkImageData* imageData, int* imageSize);
+  
   void SetImageData(vtkImageData* imageData);
+
   vtkImageData* Image;
   US_IMAGE_TYPE ImageType;
   US_IMAGE_ORIENTATION ImageOrientation;
