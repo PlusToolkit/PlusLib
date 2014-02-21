@@ -41,7 +41,7 @@ namespace igtl
     // XML data size 
     this->m_MessageHeader.m_XmlDataSizeInBytes = this->m_TrackedFrameXmlData.size(); 
     // Pixel type 
-    this->m_MessageHeader.m_ScalarType = PlusVideoFrame::GetIGTLScalarPixelType( this->m_TrackedFrame.GetImageData()->GetVTKScalarPixelType() ); 
+    this->m_MessageHeader.m_ScalarType = PlusVideoFrame::GetIGTLScalarPixelTypeFromVTK( this->m_TrackedFrame.GetImageData()->GetVTKScalarPixelType() ); 
     // Image data size 
     this->m_MessageHeader.m_ImageDataSizeInBytes = this->m_TrackedFrame.GetImageData()->GetFrameSizeInBytes(); 
 

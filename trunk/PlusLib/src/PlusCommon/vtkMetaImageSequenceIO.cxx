@@ -364,6 +364,19 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
 // Read the spacing and dimentions of the image.
 PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
 { 
+  int frameCount=this->Dimensions[2];
+  unsigned int frameSizeInBytes=0;
+  if (this->Dimensions[0]>0 && this->Dimensions[1]>0)
+  {
+    frameSizeInBytes=this->Dimensions[0]*this->Dimensions[1]*PlusVideoFrame::GetNumberOfBytesPerPixel(this->PixelType);
+  }
+
+  if (frameSizeInBytes==0)
+  {
+    LOG_DEBUG("No image data in the metafile");
+    return PLUS_SUCCESS;
+  }
+
   int numberOfErrors=0;
 
   FILE *stream=NULL;
@@ -372,13 +385,6 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
   {
     LOG_ERROR("The file "<<GetPixelDataFilePath()<<" could not be opened for reading");
     return PLUS_FAIL;
-  }
-
-  int frameCount=this->Dimensions[2];
-  unsigned int frameSizeInBytes=0;
-  if (this->Dimensions[0]>0 && this->Dimensions[1])
-  {
-    frameSizeInBytes=this->Dimensions[0]*this->Dimensions[1]*PlusVideoFrame::GetNumberOfBytesPerPixel(this->PixelType);
   }
   
   std::vector<unsigned char> allFramesPixelBuffer;

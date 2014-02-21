@@ -43,7 +43,7 @@ namespace igtl
     imageSizePixels[1] = size[0];
     imageSizePixels[2] = 1;
 
-    int scalarType = PlusVideoFrame::GetIGTLScalarPixelType( this->m_TrackedFrame.GetImageData()->GetVTKScalarPixelType() ); 
+    int scalarType = PlusVideoFrame::GetIGTLScalarPixelTypeFromVTK( this->m_TrackedFrame.GetImageData()->GetVTKScalarPixelType() ); 
 
     this->SetDimensions( imageSizePixels );
     this->SetSubVolume(imageSizePixels, offset); 
