@@ -125,6 +125,7 @@ OPTION(PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" ${E
 OPTION(PLUS_USE_Ascension3DGm "Provide support for the Ascension MedSafe Tracker" OFF)
 OPTION(PLUS_USE_PHIDGET_SPATIAL_TRACKER "Provide support for the Phidget Spatial accelerometer" OFF)
 OPTION(PLUS_USE_3dConnexion_TRACKER "Provide support for the 3dConnexion 3d mouse" OFF)
+OPTION(PLUS_USE_StealthLink2 "Provide support for the Medtronick StealthLink Server" OFF)
 
 # Other
 
@@ -296,6 +297,16 @@ IF ( PLUS_USE_ICCAPTURING_VIDEO )
   ENDIF()
 ENDIF()
 
+<<<<<<< .mine
+IF ( PLUS_USE_StealthLink2 )
+ FIND_PACKAGE (Stealthlink2)
+  IF ( NOT Stealthlink2_FOUND)
+    MESSAGE( FATAL_ERROR "This project requires Staelthlink2 SDK for supporting communication with Medtronic StealthStation. Please verify configuration or turn off PLUS_USE_StealthLink2.")
+  ENDIF()
+ENDIF()
+
+
+=======
 IF ( PLUS_USE_INTERSON_VIDEO )
  FIND_PACKAGE (INTERSON)
   IF ( NOT INTERSON_FOUND)
@@ -303,6 +314,7 @@ IF ( PLUS_USE_INTERSON_VIDEO )
   ENDIF()
 ENDIF()
 
+>>>>>>> .r3182
 #------------------------------------------------------------------------------
 # Specify target dependencies
 #------------------------------------------------------------------------------
