@@ -14,6 +14,7 @@ OPTION (PLUS_USE_BKPROFOCUS_CAMERALINK "Provide support for BK ProFocus ultrasou
 OPTION (PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber device" OFF)
 OPTION (PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
 OPTION (PLUS_USE_EPIPHAN "Provide support for the Epiphan" OFF)
+OPTION (PLUS_USE_INTERSON_VIDEO "Provide support Interson USB ultrasound probes" OFF)
 
 OPTION (PLUS_TEST_BKPROFOCUS "Enable testing of acquisition from BK ProFocus ultrasound systems. Enable this only if a BK ProFocus device is connected to this computer." OFF)
 OPTION (PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
@@ -667,6 +668,47 @@ IF (PLUS_USE_EPIPHAN)
     ${EPIPHAN_BINARY_DIR}/frmgrab${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
 ENDIF (PLUS_USE_EPIPHAN)
+
+# --------------------------------------------------------------------------
+# Interson support
+
+IF (PLUS_USE_INTERSON_VIDEO)
+  SET (DataCollection_SRCS ${DataCollection_SRCS} 
+    Interson/vtkIntersonVideoSource.cxx
+    )
+  if (WIN32)  
+    SET (DataCollection_HDRS ${DataCollection_HDRS}
+      Interson/vtkIntersonVideoSource.h
+      )
+  endif (WIN32)
+  SET (DataCollection_LIBS ${DataCollection_LIBS} 
+    ${INTERSON_LIBRARY_DIR}/BmodeDLL${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${INTERSON_LIBRARY_DIR}/USBprobeDLL${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
+  SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}     
+    ${INTERSON_INCLUDE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/Interson
+    )          
+  IF( ${CMAKE_GENERATOR} MATCHES Win64 )
+    SET ( External_Libraries_Install ${External_Libraries_Install}
+      ${INTERSON_WIN64_BINARY_DIR}/USBprobe${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${INTERSON_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+    SET ( External_Libraries_Debug ${External_Libraries_Debug}
+      ${INTERSON_WIN64_BINARY_DIR}/USBprobe${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${INTERSON_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+  ELSE()
+      SET ( External_Libraries_Install ${External_Libraries_Install}
+      ${INTERSON_WIN32_BINARY_DIR}/USBprobe${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${INTERSON_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+    SET ( External_Libraries_Debug ${External_Libraries_Debug}
+      ${INTERSON_WIN32_BINARY_DIR}/USBprobe${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${INTERSON_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+  ENDIF()
+ENDIF (PLUS_USE_INTERSON_VIDEO)
 
 # --------------------------------------------------------------------------
 # Build the library
