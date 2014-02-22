@@ -297,7 +297,6 @@ IF ( PLUS_USE_ICCAPTURING_VIDEO )
   ENDIF()
 ENDIF()
 
-<<<<<<< .mine
 IF ( PLUS_USE_StealthLink2 )
  FIND_PACKAGE (Stealthlink2)
   IF ( NOT Stealthlink2_FOUND)
