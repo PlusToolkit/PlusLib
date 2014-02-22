@@ -585,6 +585,43 @@ IF (PLUS_USE_ICCAPTURING_VIDEO)
     )
 ENDIF (PLUS_USE_ICCAPTURING_VIDEO)
 
+# --------------------------------------------------------------------------
+# StealthLink2.0 suppport
+
+IF (PLUS_USE_StealthLink2)
+
+  SET (DataCollection_SRCS
+    ${DataCollection_SRCS}
+    StealthLink/StealthLinkQuery.cxx
+    )  
+  # This part will be decommented once the vtkClass is ready for StealthLink
+  #if (WIN32)  
+  #  SET (DataCollection_HDRS
+  #    ${DataCollection_HDRS}
+  #    ICCapturing/vtkICCapturingSource.h
+  #    ICCapturing/ICCapturingListener.h 
+  #    )
+  #endif (WIN32)  
+  # Look for ICCapturing libraries  
+  
+  SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
+    ${Stealthlink2_INCLUDE_DIRS} 
+    ${CMAKE_CURRENT_SOURCE_DIR}/StealthLink
+    )
+  
+  SET (DataCollection_LIBS ${DataCollection_LIBS} 
+    optimized ${Stealthlink2_StealthLink_STATIC_LIBRARY}
+    debug ${Stealthlink2_StealthLinkD_STATIC_LIBRARY}
+    )
+
+  SET ( External_Libraries_Install ${External_Libraries_Install}
+    ${Stealthlink2_StealthLink_SHARED_LIBRARY}
+    )
+  SET ( External_Libraries_Debug ${External_Libraries_Debug} 
+    ${Stealthlink2_StealthLinkD_SHARED_LIBRARY}
+    )
+ENDIF (PLUS_USE_StealthLink2)
+
     
 # --------------------------------------------------------------------------
 # Video-for-Windows video digitizer support
