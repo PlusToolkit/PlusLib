@@ -305,7 +305,6 @@ IF ( PLUS_USE_StealthLink2 )
 ENDIF()
 
 
-=======
 IF ( PLUS_USE_INTERSON_VIDEO )
  FIND_PACKAGE (INTERSON)
   IF ( NOT INTERSON_FOUND)
@@ -313,7 +312,6 @@ IF ( PLUS_USE_INTERSON_VIDEO )
   ENDIF()
 ENDIF()
 
->>>>>>> .r3182
 #------------------------------------------------------------------------------
 # Specify target dependencies
 #------------------------------------------------------------------------------
