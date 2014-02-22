@@ -113,6 +113,7 @@ OPTION(PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber devic
 OPTION(PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer (legacy, use Microsoft Media Foundation instead)" OFF)
 OPTION(PLUS_USE_MMF_VIDEO "Provide support for the Microsoft Media Foundation video digitizers (requires installation of Windows Platform SDK 7.1 or later)" OFF)
 OPTION(PLUS_USE_EPIPHAN "Provide support for the Epiphan framegrabber device" OFF)
+OPTION(PLUS_USE_INTERSON_VIDEO "Provide support for the Interson USB ultrasound probes" OFF)
 
 # Tracking hardware
 
@@ -270,28 +271,35 @@ ENDIF()
 IF ( PLUS_USE_CERTUS )
   FIND_PACKAGE (NDIOAPI)
   IF ( NOT NDIOAPI_FOUND)
-    MESSAGE( FATAL_ERROR "This project requires NDI Oapi for CERTUS tracking. One of these components is missing. Please verify configuration or turn off PLUS_USE_CERTUS.")
+    MESSAGE( FATAL_ERROR "This project requires NDI Oapi for CERTUS tracking. One of the components is missing. Please verify configuration or turn off PLUS_USE_CERTUS.")
   ENDIF()
 ENDIF() 
 
 IF ( PLUS_USE_ULTRASONIX_VIDEO )
   FIND_PACKAGE (ULTRASONIX_SDK)
   IF ( NOT ULTRASONIX_SDK_FOUND)
-    MESSAGE( FATAL_ERROR "This project requires Ultrasonix SDK ${ULTRASONIX_SDK_VERSION} for Ultrasonix video. One of these components is missing. Please verify configuration or turn off PLUS_USE_ULTRASONIX_VIDEO.")
+    MESSAGE( FATAL_ERROR "This project requires Ultrasonix SDK ${ULTRASONIX_SDK_VERSION} for Ultrasonix video. One of the components is missing. Please verify configuration or turn off PLUS_USE_ULTRASONIX_VIDEO.")
   ENDIF()
 ENDIF() 
 
 IF ( PLUS_USE_MICRONTRACKER )
   FIND_PACKAGE (MicronTracker)
   IF ( NOT MICRONTRACKER_FOUND)
-    MESSAGE( FATAL_ERROR "This project requires Claron MicronTracker SDK for supporting the MicronTracker tracking device. One of these components is missing. Please verify configuration or turn off PLUS_USE_MICRONTRACKER.")
+    MESSAGE( FATAL_ERROR "This project requires Claron MicronTracker SDK for supporting the MicronTracker tracking device. One of the components is missing. Please verify configuration or turn off PLUS_USE_MICRONTRACKER.")
   ENDIF()
 ENDIF() 
 
 IF ( PLUS_USE_ICCAPTURING_VIDEO )
  FIND_PACKAGE (ICCAPTURING)
   IF ( NOT ICCAPTURING_FOUND)
-    MESSAGE( FATAL_ERROR "This project requires IC Capturing SDK for supporting the Imaging Source USB frame grabber. One of these components is missing. Please verify configuration or turn off PLUS_USE_ICCAPTURING_VIDEO.")
+    MESSAGE( FATAL_ERROR "This project requires IC Capturing SDK for supporting the Imaging Source USB frame grabber. One of the components is missing. Please verify configuration or turn off PLUS_USE_ICCAPTURING_VIDEO.")
+  ENDIF()
+ENDIF()
+
+IF ( PLUS_USE_INTERSON_VIDEO )
+ FIND_PACKAGE (INTERSON)
+  IF ( NOT INTERSON_FOUND)
+    MESSAGE( FATAL_ERROR "This project requires Interson iSDK for supporting the Interson USB ultrasound probes. One of the components is missing. Please verify configuration or turn off PLUS_USE_INTERSON_VIDEO.")
   ENDIF()
 ENDIF()
 
