@@ -52,11 +52,6 @@ FIND_FILE (Stealthlink2_StealthLinkD_SHARED_LIBRARY
 		   PATHS ${Stealthlink2_PATH_HINTS}
 		   )				  
 
-MESSAGE ("STATIC Stealthlink2_StealthLink_STATIC_LIBRARY:" ${Stealthlink2_StealthLink_STATIC_LIBRARY})
-MESSAGE ("SHARED Stealthlink2_StealthLinkD_STATIC_LIBRARY:" ${Stealthlink2_StealthLinkD_STATIC_LIBRARY})
-MESSAGE ("STATIC Stealthlink2_StealthLink_SHARED_LIBRARY:" ${Stealthlink2_StealthLink_SHARED_LIBRARY})
-MESSAGE ("SHARED Stealthlink2_StealthLinkD_SHARED_LIBRARY:" ${Stealthlink2_StealthLinkD_SHARED_LIBRARY})
-
 # make sure we have everything we need
 set (Stealthlink2_FOUND FALSE)
 
@@ -81,9 +76,8 @@ INCLUDE(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(StealthLink2 DEFAULT_MSG  
   Stealthlink2_INCLUDE_DIRS  
   Stealthlink2_StealthLink_STATIC_LIBRARY
-  Stealthlink2_StealthLinkD_STATIC_LIBRARY
   Stealthlink2_StealthLink_SHARED_LIBRARY
+  Stealthlink2_StealthLinkD_STATIC_LIBRARY
   Stealthlink2_StealthLinkD_SHARED_LIBRARY
   )
-MESSAGE ( "FindPackageHandleStandardArgs:" ${FindPackageHandleStandardArgs})
 
