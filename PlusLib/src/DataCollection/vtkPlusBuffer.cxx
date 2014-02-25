@@ -179,6 +179,7 @@ ToolStatus StreamBufferItem::GetStatus() const
 vtkPlusBuffer::vtkPlusBuffer()
 : PixelType(VTK_UNSIGNED_CHAR)
 , ImageType(US_IMG_BRIGHTNESS)
+, NumberOfScalarComponents(1)
 , ImageOrientation(US_IMG_ORIENT_MF)
 , StreamBuffer(vtkTimestampedCircularBuffer<StreamBufferItem>::New())
 , MaxAllowedTimeDifference(0.5)
@@ -223,7 +224,7 @@ PlusStatus vtkPlusBuffer::AllocateMemoryForFrames()
 
   for ( int i = 0; i < this->StreamBuffer->GetBufferSize(); ++i )
   {
-    if (this->StreamBuffer->GetBufferItemFromBufferIndex(i)->GetFrame().AllocateFrame(this->GetFrameSize(), this->GetPixelType())!=PLUS_SUCCESS)
+    if (this->StreamBuffer->GetBufferItemFromBufferIndex(i)->GetFrame().AllocateFrame(this->GetFrameSize(), this->GetPixelType(), this->GetNumberOfScalarComponents())!=PLUS_SUCCESS)
     {
       LOCAL_LOG_ERROR("Failed to allocate memory for frame "<<i);
       result = PLUS_FAIL;
@@ -278,7 +279,7 @@ PlusStatus vtkPlusBuffer::SetBufferSize(int bufsize)
 }
 
 //----------------------------------------------------------------------------
-bool vtkPlusBuffer::CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::VTKScalarPixelType pixelType, US_IMAGE_TYPE imgType)
+bool vtkPlusBuffer::CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::VTKScalarPixelType pixelType, US_IMAGE_TYPE imgType, int numberOfScalarComponents)
 {
   // don't add a frame if it doesn't match the buffer frame format
   if (frameSizeInPx[0] != this->GetFrameSize()[0]||
@@ -302,12 +303,18 @@ bool vtkPlusBuffer::CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::VT
     return false; 
   }
 
+  if( numberOfScalarComponents != this->GetNumberOfScalarComponents() )
+  {
+    LOCAL_LOG_WARNING("Frame number of scalar components ("<<numberOfScalarComponents<<") and buffer number of components ("<<this->GetNumberOfScalarComponents()<<") mismatch");
+    return false;
+  }
+
   return true;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, 
-                                        const int frameSizeInPx[2], PlusCommon::VTKScalarPixelType pixelType, US_IMAGE_TYPE imageType, int  numberOfBytesToSkip, long frameNumber,  
+                                        const int frameSizeInPx[2], PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, int  numberOfBytesToSkip, long frameNumber,  
                                         double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
                                         const TrackedFrame::FieldMapType* customFields /*=NULL*/)
 {
@@ -337,7 +344,7 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usIm
     return PLUS_FAIL; 
   }
 
-  if ( !this->CheckFrameFormat(frameSizeInPx, pixelType, imageType) )
+  if ( !this->CheckFrameFormat(frameSizeInPx, pixelType, imageType, numberOfScalarComponents) )
   {
     LOG_ERROR( "vtkPlusBuffer: Unable to add frame to video buffer - frame format doesn't match!"); 
     return PLUS_FAIL; 
@@ -376,7 +383,7 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usIm
   unsigned char* byteImageDataPtr=reinterpret_cast<unsigned char*>(imageDataPtr);
   byteImageDataPtr += numberOfBytesToSkip; 
 
-  if (PlusVideoFrame::GetOrientedImage(byteImageDataPtr, usImageOrientation, imageType, pixelType, frameSizeInPx, this->ImageOrientation, newObjectInBuffer->GetFrame()) != PLUS_SUCCESS)
+  if (PlusVideoFrame::GetOrientedImage(byteImageDataPtr, usImageOrientation, imageType, pixelType, numberOfScalarComponents, frameSizeInPx, this->ImageOrientation, newObjectInBuffer->GetFrame()) != PLUS_SUCCESS)
   {
     LOCAL_LOG_ERROR("Failed to convert input US image to the requested orientation!"); 
     return PLUS_FAIL; 
@@ -444,7 +451,7 @@ PlusStatus vtkPlusBuffer::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usIm
 
   const int* frameExtent = mfOrientedImage->GetExtent(); 
   const int frameSize[2] = {(frameExtent[1] - frameExtent[0] + 1), (frameExtent[3] - frameExtent[2] + 1)}; 
-  return this->AddItem( reinterpret_cast<unsigned char*>(mfOrientedImage->GetScalarPointer()), this->ImageOrientation, frameSize, frame->GetScalarType(), this->ImageType, 0, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields); 
+  return this->AddItem( reinterpret_cast<unsigned char*>(mfOrientedImage->GetScalarPointer()), this->ImageOrientation, frameSize, frame->GetScalarType(), 1, this->ImageType, 0, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields); 
 }
 
 //----------------------------------------------------------------------------
@@ -481,7 +488,7 @@ PlusStatus vtkPlusBuffer::AddItem(const PlusVideoFrame* frame, long frameNumber,
   int frameSize[2]={0,0};
   frame->GetFrameSize(frameSize);    
 
-  return this->AddItem(pixelBufferPointer, frame->GetImageOrientation(), frameSize, frame->GetVTKScalarPixelType(), frame->GetImageType(), 0 /* no skip*/, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields);  
+  return this->AddItem(pixelBufferPointer, frame->GetImageOrientation(), frameSize, frame->GetVTKScalarPixelType(), this->GetNumberOfScalarComponents(), frame->GetImageType(), 0 /* no skip*/, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields);  
 }
 
 //----------------------------------------------------------------------------
@@ -700,6 +707,18 @@ PlusStatus vtkPlusBuffer::SetPixelType(PlusCommon::VTKScalarPixelType pixelType)
     return PLUS_SUCCESS;
   }
   this->PixelType=pixelType;
+  return AllocateMemoryForFrames();
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusBuffer::SetNumberOfScalarComponents(int numberOfScalarComponents) 
+{
+  if (numberOfScalarComponents == this->NumberOfScalarComponents)
+  {
+    // no change
+    return PLUS_SUCCESS;
+  }
+  this->NumberOfScalarComponents=numberOfScalarComponents;
   return AllocateMemoryForFrames();
 }
 

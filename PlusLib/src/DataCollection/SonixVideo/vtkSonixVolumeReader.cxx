@@ -144,8 +144,11 @@ PlusStatus vtkSonixVolumeReader::GenerateTrackedFrameFromSonixVolume(const char*
       continue; 
     }
 
+    // If in the future sonix generates color images, we can change this to support that
+    int numberOfComponents(1);
+
     PlusVideoFrame videoFrame; 
-    if ( videoFrame.AllocateFrame(frameSize, pixelType) != PLUS_SUCCESS )
+    if ( videoFrame.AllocateFrame(frameSize, pixelType, numberOfComponents) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to allocate image data for frame #" << i); 
       continue; 

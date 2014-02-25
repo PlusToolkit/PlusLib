@@ -443,6 +443,27 @@ PlusCommon::VTKScalarPixelType vtkTrackedFrameList::GetPixelType()
 }
 
 //-----------------------------------------------------------------------------
+int vtkTrackedFrameList::GetNumberOfComponents()
+{
+  if ( this->GetNumberOfTrackedFrames() < 1 )
+  {
+    LOG_ERROR("Unable to get number of components: there is no frame in the tracked frame list!"); 
+    return 1;
+  }
+
+  for ( unsigned int i = 0; i < this->GetNumberOfTrackedFrames(); ++i )
+  {
+    if ( this->GetTrackedFrame(i)->GetImageData()->IsImageValid() )
+    {
+      return this->GetTrackedFrame(i)->GetImageData()->GetImage()->GetNumberOfScalarComponents();
+    }
+  }
+
+  LOG_WARNING("There are no valid images in the tracked frame list."); 
+  return 1;
+}
+
+//-----------------------------------------------------------------------------
 US_IMAGE_ORIENTATION vtkTrackedFrameList::GetImageOrientation()
 {
   if ( this->GetNumberOfTrackedFrames() < 1 )

@@ -78,7 +78,7 @@ public:
     or if the frame's format doesn't match the buffer's frame format,
     then the frame is not added to the buffer.
   */
-  virtual PlusStatus AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, const int frameSizeInPx[2], PlusCommon::VTKScalarPixelType pixelType, US_IMAGE_TYPE imageType, 
+  virtual PlusStatus AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, const int frameSizeInPx[2], PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, 
     int  numberOfBytesToSkip, long   frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, double filteredTimestamp=UNDEFINED_TIMESTAMP, 
     const TrackedFrame::FieldMapType* customFields = NULL);
 
@@ -195,6 +195,11 @@ public:
   /*! Get the pixel type */
   vtkGetMacro(PixelType, PlusCommon::VTKScalarPixelType); 
 
+  /*! Set the number of scalar components */
+  PlusStatus SetNumberOfScalarComponents(int numberOfScalarComponents); 
+  /*! Get the number of scalar components*/
+  vtkGetMacro(NumberOfScalarComponents, int);  
+
   /*! Set the image type. Does not convert the pixel values. */
   PlusStatus SetImageType(US_IMAGE_TYPE imageType); 
   /*! Get the image type (B-mode, RF, ...) */
@@ -228,7 +233,7 @@ protected:
     Compares frame format with new frame imaging parameters.
     \return true if current buffer frame format matches the method arguments, otherwise false
   */
-  virtual bool CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::VTKScalarPixelType pixelType, US_IMAGE_TYPE imgType );
+  virtual bool CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::VTKScalarPixelType pixelType, US_IMAGE_TYPE imgType, int numberOfScalarComponents );
 
   /*! Returns the two buffer items that are closest previous and next buffer items relative to the specified time. itemA is the closest item */
   PlusStatus GetPrevNextBufferItemFromTime(double time, StreamBufferItem& itemA, StreamBufferItem& itemB);
@@ -250,7 +255,10 @@ protected:
   int FrameSize[2]; 
   
   /*! Image pixel type */
-  PlusCommon::VTKScalarPixelType PixelType; 
+  PlusCommon::VTKScalarPixelType PixelType;
+
+  /*! Number of scalar components */
+  int NumberOfScalarComponents;
 
   /*! Image type (B-Mode, RF, ...) */
   US_IMAGE_TYPE ImageType; 

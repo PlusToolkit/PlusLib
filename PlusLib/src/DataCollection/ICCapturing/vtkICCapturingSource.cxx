@@ -214,12 +214,12 @@ PlusStatus vtkICCapturingSource::AddFrameToBuffer(unsigned char * dataPtr, unsig
       clippedFramePixelPtr+=this->ClipRectangleSize[0];
       fullFramePixelPtr+=frameSize[0];
     }
-    status = aSource->GetBuffer()->AddItem(&(this->ClippedImageBuffer[0]), aSource->GetPortImageOrientation(), this->ClipRectangleSize, VTK_UNSIGNED_CHAR, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
+    status = aSource->GetBuffer()->AddItem(&(this->ClippedImageBuffer[0]), aSource->GetPortImageOrientation(), this->ClipRectangleSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
   }
   else
   {
     // No clipping
-    status = aSource->GetBuffer()->AddItem(dataPtr, aSource->GetPortImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
+    status = aSource->GetBuffer()->AddItem(dataPtr, aSource->GetPortImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
   }
   this->Modified();
 

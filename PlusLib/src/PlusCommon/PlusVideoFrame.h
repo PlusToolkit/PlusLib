@@ -87,8 +87,9 @@ public:
   PlusVideoFrame& operator=(PlusVideoFrame const&videoItem); 
 
   /*! Allocate memory for the image. The image object must be already created. */
-  static PlusStatus AllocateFrame(vtkImageData* image, const int imageSize[2], PlusCommon::VTKScalarPixelType vtkScalarPixelType); 
-  PlusStatus AllocateFrame(const int imageSize[2], PlusCommon::VTKScalarPixelType vtkScalarPixelType); 
+  static PlusStatus AllocateFrame(vtkImageData* image, const int imageSize[2], PlusCommon::VTKScalarPixelType vtkScalarPixelType, int numberOfScalarComponents); 
+  /*! Allocate memory for the image. */
+  PlusStatus AllocateFrame(const int imageSize[2], PlusCommon::VTKScalarPixelType vtkScalarPixelType, int numberOfScalarComponents); 
 
   /*! Return the pixel type using VTK enums. */
   PlusCommon::VTKScalarPixelType GetVTKScalarPixelType() const;
@@ -114,6 +115,12 @@ public:
 
   /*! Set the image orientation. Does not reorder the pixels. */
   void SetImageOrientation(US_IMAGE_ORIENTATION imgOrientation);
+
+  /*! Return the number of components */
+  int GetNumberOfComponents() const;
+
+  /*! Set the number of components */
+  void SetNumberOfComponents(int numberOfComponents);
 
   /*! Return the image type */
   US_IMAGE_TYPE GetImageType() const;
@@ -160,26 +167,14 @@ public:
   /*! Read unsigned char type image file to PlusVideoFrame */
   static PlusStatus ReadImageFromFile( PlusVideoFrame &frame, const char* fileName); 
 
-  /*! Save PlusVideoFrame to image file */
-  //static PlusStatus SaveImageToFile( PlusVideoFrame &frame, const char* fileName); 
-
-  /*! Save unsigned char itk image to image file */
-  //static PlusStatus SaveImageToFile(const itk::Image< unsigned char, 2 >::Pointer image, const char* fileName); 
-
-  /*! Save unsigned char vtk image to image file */
-  //static PlusStatus SaveImageToFile(vtkImageData* frame, const char* fileName); 
-
-  /*! Save image file */
-  //static PlusStatus SaveImageToFile(unsigned char* imageDataPtr, const int frameSizeInPx[2], int numberOfBitsPerPixel, const char* fileName); 
-
   /*! Convert oriented image to MF oriented ultrasound image */
   static PlusStatus GetOrientedImage( vtkImageData* inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_TYPE inUsImageType, US_IMAGE_ORIENTATION outUsImageOrientation, vtkImageData* outUsOrientedImage ); 
 
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, PlusCommon::VTKScalarPixelType inUsImagePixelType, const int frameSizeInPx[2], US_IMAGE_ORIENTATION outUsImageOrientation, vtkImageData* outUsOrientedImage); 
+  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, PlusCommon::VTKScalarPixelType inUsImagePixelType, int numberOfScalarComponents, const int frameSizeInPx[2], US_IMAGE_ORIENTATION outUsImageOrientation, vtkImageData* outUsOrientedImage); 
 
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, PlusCommon::VTKScalarPixelType inUsImagePixelType, const int frameSizeInPx[2], US_IMAGE_ORIENTATION outUsImageOrientation, PlusVideoFrame &outBufferItem);
+  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, PlusCommon::VTKScalarPixelType inUsImagePixelType, int numberOfScalarComponents, const int frameSizeInPx[2], US_IMAGE_ORIENTATION outUsImageOrientation, PlusVideoFrame &outBufferItem);
 
   static PlusStatus GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1, US_IMAGE_TYPE usImageType1, US_IMAGE_ORIENTATION usImageOrientation2, FlipInfoType& flipInfo);
 

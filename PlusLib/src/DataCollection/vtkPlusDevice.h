@@ -282,6 +282,14 @@ public:
   /*! Get the number of frames to copy to the output on each execute. */
   vtkGetMacro(NumberOfOutputFrames,int);
 
+  /*! 
+  Set the device flag to output color images. Will only output colour images if the
+  device supports it
+  */
+  vtkSetMacro(ColorImageOutputEnabled, bool);
+  /*! Get whether or not the device has been requested to produce colour images. */
+  vtkGetMacro(ColorImageOutputEnabled, bool);
+
   /*!
   Get the frame number (some devices has frame numbering, otherwise 
   just increment if new frame received)
@@ -550,16 +558,21 @@ protected:
   */
   bool StartThreadForInternalUpdates;
 
-  /* Value to use when mixing data with another temporally calibrated device*/
+  /*! Value to use when mixing data with another temporally calibrated device*/
   double LocalTimeOffsetSec;
 
-  /* Adjust the device reporting behaviour depending on whether or not a grace period has expired */
+  /*! Adjust the device reporting behaviour depending on whether or not a grace period has expired */
   double MissingInputGracePeriodSec;
+  /*! Adjust the device reporting behaviour depending on whether or not a grace period has expired */
   double RecordingStartTime;
 
-  /* When data comes in for an unknown tool, these values affect how the device responds */
+  /*! When data comes in for an unknown tool, these values affect how the device responds */
   bool ReportUnknownToolsOnce;
+  /*! When data comes in for an unknown tool, these values affect how the device responds */
   std::vector< std::string > ReportedUnknownTools;
+
+  /*! Set whether or not to enable color image output */
+  bool ColorImageOutputEnabled;
 
 protected:
   /*

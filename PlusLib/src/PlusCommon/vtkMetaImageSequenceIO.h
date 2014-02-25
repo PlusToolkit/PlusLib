@@ -189,7 +189,7 @@ private:
   itk::ImageIOBase::FileType FileType;
   /*! Integer/float, short/long, signed/unsigned */
   PlusCommon::VTKScalarPixelType PixelType;
-  /*! Number of components (or channels). Only single-component images are supported. */
+  /*! Number of components (or channels) */
   int NumberOfComponents;
   /*! Number of image dimensions. Only 2 (single frame) or 3 (sequence of frames) are supported. */
   int NumberOfDimensions;
