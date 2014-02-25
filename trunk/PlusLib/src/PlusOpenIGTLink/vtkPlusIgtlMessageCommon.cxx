@@ -290,10 +290,12 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage( igtl::MessageHeader::Po
   int imgSize[3]={0}; // image dimension in pixels
   imgMsg->GetDimensions(imgSize);
 
+  int numberOfComponents = 1; // greyscale images only
+
   // Set scalar pixel type
   PlusCommon::VTKScalarPixelType pixelType = PlusVideoFrame::GetVTKScalarPixelTypeFromIGTL(imgMsg->GetScalarType()); 
   PlusVideoFrame frame; 
-  if ( frame.AllocateFrame(imgSize, pixelType) != PLUS_SUCCESS )
+  if ( frame.AllocateFrame(imgSize, pixelType, numberOfComponents) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to allocate image data for tracked frame!"); 
     return PLUS_FAIL;

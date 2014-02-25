@@ -279,12 +279,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
   if (this->TrackedFrameList->GetCustomString("ElementNumberOfChannels")!=NULL)
   {
     // this field is optional
-    PlusCommon::StringToInt(this->TrackedFrameList->GetCustomString("ElementNumberOfChannels"), numberOfComponents);
-    if (numberOfComponents!=1)
-    {
-      LOG_ERROR("Images images with ElementNumberOfChannels=1 are supported. This image has "<<numberOfComponents<<" channels.");
-      return PLUS_FAIL;
-    }
+    PlusCommon::StringToInt(this->TrackedFrameList->GetCustomString("ElementNumberOfChannels"), this->NumberOfComponents);
   }
 
   std::string elementTypeStr=this->TrackedFrameList->GetCustomString("ElementType");
@@ -460,7 +455,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
     trackedFrame->GetImageData()->SetImageOrientation(this->ImageOrientationInMemory);
     trackedFrame->GetImageData()->SetImageType(this->ImageType);
 
-    if (trackedFrame->GetImageData()->AllocateFrame(this->Dimensions, this->PixelType)!=PLUS_SUCCESS)
+    if (trackedFrame->GetImageData()->AllocateFrame(this->Dimensions, this->PixelType, this->NumberOfComponents)!=PLUS_SUCCESS)
     {
       LOG_ERROR("Cannot allocate memory for frame "<<frameNumber);
       numberOfErrors++;
@@ -475,7 +470,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
         //LOG_ERROR("Could not read "<<frameSizeInBytes<<" bytes from "<<GetPixelDataFilePath());
         //numberOfErrors++;
       }
-      if ( PlusVideoFrame::GetOrientedImage(&(pixelBuffer[0]), this->ImageOrientationInFile, this->ImageType, this->PixelType, this->Dimensions, this->ImageOrientationInMemory, *trackedFrame->GetImageData()) != PLUS_SUCCESS )
+      if ( PlusVideoFrame::GetOrientedImage(&(pixelBuffer[0]), this->ImageOrientationInFile, this->ImageType, this->PixelType, this->NumberOfComponents, this->Dimensions, this->ImageOrientationInMemory, *trackedFrame->GetImageData()) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get oriented image from sequence metafile (frame number: " << frameNumber << ")!"); 
         numberOfErrors++;
@@ -484,7 +479,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
     }
     else
     {
-      if ( PlusVideoFrame::GetOrientedImage(&(allFramesPixelBuffer[0])+frameNumber*frameSizeInBytes, this->ImageOrientationInFile, this->ImageType, this->PixelType, this->Dimensions, this->ImageOrientationInMemory, *trackedFrame->GetImageData()) != PLUS_SUCCESS )
+      if ( PlusVideoFrame::GetOrientedImage(&(allFramesPixelBuffer[0])+frameNumber*frameSizeInBytes, this->ImageOrientationInFile, this->ImageType, this->PixelType, this->NumberOfComponents, this->Dimensions, this->ImageOrientationInMemory, *trackedFrame->GetImageData()) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get oriented image from sequence metafile (frame number: " << frameNumber << ")!"); 
         numberOfErrors++;
@@ -676,6 +671,15 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader()
   vtkMetaImageSequenceIO::ConvertVtkPixelTypeToMetaElementType(this->PixelType, pixelTypeStr);
   SetCustomString("ElementType", pixelTypeStr.c_str());  // pixel type (a.k.a component type) is stored in the ElementType element
 
+  // ElementNumberOfChannels
+  if (this->TrackedFrameList->IsContainingValidImageData())
+  {
+    this->NumberOfComponents=this->TrackedFrameList->GetNumberOfComponents();
+  }
+  std::stringstream ss;
+  ss << this->NumberOfComponents;
+  SetCustomString("ElementNumberOfChannels", ss.str().c_str());
+
   // Image orientation
   std::string orientationStr=PlusVideoFrame::GetStringFromUsImageOrientation(this->ImageOrientationInFile);
   SetCustomString(SEQMETA_FIELD_US_IMG_ORIENT, orientationStr.c_str());
@@ -859,7 +863,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels(const std::string& aFilename
   {
     // Create a blank frame if we have to write an invalid frame to metafile 
     PlusVideoFrame blankFrame; 
-    if ( blankFrame.AllocateFrame(this->Dimensions, this->PixelType)!=PLUS_SUCCESS)
+    if ( blankFrame.AllocateFrame(this->Dimensions, this->PixelType, this->NumberOfComponents)!=PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to allocate space for blank image."); 
       return PLUS_FAIL; 
@@ -933,7 +937,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteCompressedImagePixelsToFile(FILE *output
 
   // Create a blank frame if we have to write an invalid frame to metafile 
   PlusVideoFrame blankFrame; 
-  if ( blankFrame.AllocateFrame(this->Dimensions, this->PixelType)!=PLUS_SUCCESS)
+  if ( blankFrame.AllocateFrame(this->Dimensions, this->PixelType, this->NumberOfComponents)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to allocate space for blank image."); 
     return PLUS_FAIL; 

@@ -1,13 +1,12 @@
 #include "PlusConfigure.h"
-#include "TrackedFrame.h"
 #include "PlusMath.h"
-
+#include "TrackedFrame.h"
+#include "itkCastImageFilter.h"
+#include "itkImageFileWriter.h"
+#include "metaImage.h"
 #include "vtkMatrix4x4.h"
 #include "vtkPoints.h"
 #include "vtkXMLUtilities.h"
-
-#include "itkCastImageFilter.h"
-#include "itkImageFileWriter.h"
 
 //----------------------------------------------------------------------------
 // ************************* TrackedFrame ************************************
@@ -541,66 +540,43 @@ std::string TrackedFrame::ConvertFieldStatusToString(TrackedFrameFieldStatus sta
 }
 
 //----------------------------------------------------------------------------
-PlusStatus TrackedFrame::WriteToFile(const std::string &filename, vtkMatrix4x4* mImageToTracker)
+PlusStatus TrackedFrame::WriteToFile(const std::string &filename, vtkMatrix4x4* imageToTracker)
 {
-  typedef unsigned char PixelType; 
-  typedef itk::Image< PixelType, 2 > Image2dType; 
-  typedef itk::Image< PixelType, 3 > Image3dType; 
-
-  typedef itk::CastImageFilter< Image2dType, Image3dType> CastFilterType;
-  CastFilterType::Pointer castFilter = CastFilterType::New(); 
-  try 
+  vtkImageData* volumeToSave = this->GetImageData()->GetImage();
+  MET_ValueEnumType scalarType = MET_NONE;
+  switch (volumeToSave->GetScalarType())
   {
-    // Get the vtk image, convert it to an itk image, and pass it to the algorithm
-    vtkImageData* image = this->ImageData.GetImage();
-    if( image->GetScalarType() != VTK_UNSIGNED_CHAR )
-    {
-      LOG_ERROR("Pixel type of the vtk image ("<<image->GetScalarTypeAsString()<<") does not match the itk image (unsigned char) type. Unable to convert.");
-      return PLUS_FAIL;
-    }
-    Image2dType::Pointer itkImage = Image2dType::New();
-    PlusVideoFrame::DeepCopyVtkImageToItkImage<PixelType>(image, itkImage);
-    castFilter->SetInput(itkImage);
-    castFilter->Update();
-  }
-  catch(itk::ExceptionObject & err)
-  {
-    LOG_ERROR("Failed to cast image for writing it to file: " << err.GetDescription() ); 
-    return PLUS_FAIL; 
+  case VTK_UNSIGNED_CHAR: scalarType = MET_UCHAR; break;
+  case VTK_FLOAT: scalarType = MET_FLOAT; break;
+  default:
+    LOG_ERROR("Scalar type is not supported!");
+    return PLUS_FAIL;
   }
 
-  Image3dType::Pointer image=castFilter->GetOutput();     
-
-  double origin[3]=
+  MetaImage metaImage(volumeToSave->GetDimensions()[0], volumeToSave->GetDimensions()[1], volumeToSave->GetDimensions()[2],
+    volumeToSave->GetSpacing()[0], volumeToSave->GetSpacing()[1], volumeToSave->GetSpacing()[2],
+    scalarType, volumeToSave->GetNumberOfScalarComponents(), volumeToSave->GetScalarPointer());
+  double origin[3];
+  origin[0] = imageToTracker->Element[0][3];
+  origin[1] = imageToTracker->Element[1][3];
+  origin[2] = imageToTracker->Element[2][3];
+  metaImage.Origin(origin);
+  for(int i = 0; i < 3; ++i )
   {
-    mImageToTracker->Element[0][3],
-    mImageToTracker->Element[1][3],
-    mImageToTracker->Element[2][3],
-  };
-  image->SetOrigin(origin);
-
-  Image3dType::DirectionType dir;
-  for (int r=0; r<3; r++)
-  {
-    for (int c=0; c<3; c++)
+    for(int j = 0; j < 3; ++j )
     {
-      dir.GetVnlMatrix().put(r,c, mImageToTracker->Element[r][c]);
+      metaImage.Orientation(i, j, imageToTracker->Element[i][j]);
     }
   }
-  image->SetDirection(dir);
-
-  typedef itk::ImageFileWriter< Image3dType > WriterType; 
-  WriterType::Pointer writeImage = WriterType::New();  
-
-  writeImage->SetFileName(filename.c_str());  
-  writeImage->SetInput( image );
-  try
+  // By definition, LPS orientation in DICOM sense = RAI orientation in MetaIO. See details at:
+  // http://www.itk.org/Wiki/Proposals:Orientation#Some_notes_on_the_DICOM_convention_and_current_ITK_usage
+  metaImage.AnatomicalOrientation("RAI");
+  metaImage.BinaryData(true);
+  metaImage.CompressedData(true);
+  metaImage.ElementDataFileName("LOCAL");
+  if (metaImage.Write(filename.c_str()) == false)
   {
-    writeImage->Update(); 
-  }
-  catch (itk::ExceptionObject & err) 
-  {    
-    LOG_ERROR(" Exception! writer did not update. Error: "<< err); 
+    LOG_ERROR("Failed to save reconstructed volume in sequence metafile!");
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;

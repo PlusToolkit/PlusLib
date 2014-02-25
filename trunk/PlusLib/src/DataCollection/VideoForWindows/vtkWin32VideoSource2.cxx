@@ -443,7 +443,7 @@ PlusStatus vtkWin32VideoSource2::InternalConnect()
   }
 
   capOverlay(this->Internal->CapWnd,TRUE);
-  
+
   // update framebuffer again to reflect any changes which
   // might have occurred
   this->UpdateFrameBuffer();
@@ -542,7 +542,7 @@ PlusStatus vtkWin32VideoSource2::AddFrameToBuffer(void* lpVideoHeader)
   // dwReserved[4]          reserved for driver
 
   unsigned char *inputPixelsPtr = lpVHdr->lpData;
-  
+
   unsigned char* outputPixelsPtr=(unsigned char*)this->UncompressedVideoFrame.GetScalarPointer();
 
   int outputFrameSize[2]={0,0};
@@ -553,7 +553,7 @@ PlusStatus vtkWin32VideoSource2::AddFrameToBuffer(void* lpVideoHeader)
     LOG_ERROR("Error while decoding the grabbed image");
     return PLUS_FAIL;
   }
-  
+
   this->FrameIndex++;
   vtkPlusDataSource* aSource(NULL);
   if( this->GetFirstActiveVideoSource(aSource) != PLUS_SUCCESS )
@@ -721,7 +721,7 @@ PlusStatus vtkWin32VideoSource2::SetAcquisitionRate(double rate)
     }
     capCaptureSetSetup(this->Internal->CapWnd,&this->Internal->CaptureParms,sizeof(CAPTUREPARMS));
   }
-  
+
   this->Modified();
   return PLUS_SUCCESS;  
 }
@@ -788,27 +788,23 @@ PlusStatus vtkWin32VideoSource2::UpdateFrameBuffer()
   // get the real video format
   this->Internal->GetBitmapInfoFromCaptureDevice();
 
-  int width = this->Internal->BitMapInfoPtr->bmiHeader.biWidth;
-  int height = this->Internal->BitMapInfoPtr->bmiHeader.biHeight;
-  PlusCommon::VTKScalarPixelType pixelType=VTK_UNSIGNED_CHAR; // always convert output to 8-bit grayscale
-  
+  int width(this->Internal->BitMapInfoPtr->bmiHeader.biWidth);
+  int height(this->Internal->BitMapInfoPtr->bmiHeader.biHeight);
+  PlusCommon::VTKScalarPixelType pixelType(VTK_UNSIGNED_CHAR); // always convert output to 8-bit grayscale
+  int numberOfComponents(1);
+
   vtkPlusDataSource* aSource(NULL);
-  for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it )
+  if( this->GetFirstActiveVideoSource(aSource) != PLUS_SUCCESS )
   {
-    if( (*it)->GetVideoSource(aSource) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to retrieve the video source in the win32video device on channel " << (*it)->GetChannelId());
-      return PLUS_FAIL;
-    }
-    else
-    {
-      aSource->GetBuffer()->SetFrameSize(width, height);
-      aSource->GetBuffer()->SetPixelType(pixelType); 
-    }
+    LOG_ERROR("Unable to access video source in vtkWin32VideoSource2. Critical failure.");
+    return PLUS_FAIL;
   }
+  aSource->GetBuffer()->SetFrameSize(width, height);
+  aSource->GetBuffer()->SetPixelType(pixelType);
+  aSource->GetBuffer()->SetNumberOfScalarComponents(numberOfComponents);
 
   int frameSize[2]={width, height};
-  this->UncompressedVideoFrame.AllocateFrame(frameSize,pixelType);
+  this->UncompressedVideoFrame.AllocateFrame(frameSize,pixelType,numberOfComponents);
 
   return PLUS_SUCCESS;
 }

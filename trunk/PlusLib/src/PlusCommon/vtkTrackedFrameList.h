@@ -154,6 +154,9 @@ public:
   /*! Get tracked frame pixel type */
   PlusCommon::VTKScalarPixelType GetPixelType(); 
 
+  /*! Get number of components */
+  int GetNumberOfComponents(); 
+
   /*! Get tracked frame image orientation */
   US_IMAGE_ORIENTATION GetImageOrientation(); 
 

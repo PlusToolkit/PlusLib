@@ -37,19 +37,47 @@ static const long VTK_BI_YUY2=0x32595559;
 class VTK_EXPORT PixelCodec
 {
 public:
+  enum ComponentOrdering
+  {
+    ComponentOrder_RGB,
+    ComponentOrder_BGR
+  };
 
+  enum PixelEncoding
+  {
+    PixelEncoding_ERROR,
+    PixelEncoding_YUY2,
+    PixelEncoding_BMP,
+    PixelEncoding_MJPG
+  };
+
+  //----------------------------------------------------------------------------
   static bool IsConvertToGraySupported(int inputCompression)
   {
     switch (inputCompression)
     {  
-      // supported compression
     case VTK_BI_YUY2: return true;
     case BI_RGB: return true;
+    case BI_JPEG: return true;
     default:
       return false;
     }
   }
 
+  //----------------------------------------------------------------------------
+  static bool IsConvertToGraySupported(PixelEncoding inputCompression)
+  {
+    switch (inputCompression)
+    {  
+    case PixelEncoding_BMP: return true;
+    case PixelEncoding_YUY2: return true;
+    case PixelEncoding_MJPG: return true;
+    default:
+      return false;
+    }
+  }
+
+  //----------------------------------------------------------------------------
   static std::string GetCompressionModeAsString(int inputCompression)
   {    
     char fourccHex[16]={0};
@@ -67,6 +95,27 @@ public:
     return output;
   }
 
+  //----------------------------------------------------------------------------
+  static std::string GetCompressionModeAsString(PixelEncoding inputCompression)
+  {    
+    switch(inputCompression)
+    {
+    case PixelEncoding_BMP:
+      return "BMP";
+      break;
+    case PixelEncoding_YUY2:
+      return "YUY2";
+      break;
+    case PixelEncoding_MJPG:
+      return "MJPG";
+      break;
+    default:
+      LOG_ERROR("Unknown pixel format.");
+      return "Unknown";
+    }
+  }
+
+  //----------------------------------------------------------------------------
   static inline PlusStatus ConvertToGray(int inputCompression, int width, int height, unsigned char *s,unsigned char *d)
   {
     switch (inputCompression)
@@ -79,6 +128,9 @@ public:
       // decode the grabbed image to the requested output image type
       Yuv422pToGray(width, height, s, d);
       break;
+    case BI_JPEG:
+      // TODO
+      break;
     default:
       LOG_ERROR("Unknown compression type: "<<inputCompression);
       return PLUS_FAIL;
@@ -86,6 +138,53 @@ public:
     return PLUS_SUCCESS;
   }
 
+  //----------------------------------------------------------------------------
+  static inline PlusStatus ConvertToGray(PixelEncoding inputCompression, int width, int height, unsigned char *s,unsigned char *d)
+  {
+    switch (inputCompression)
+    {
+    case PixelEncoding_BMP:
+      // decode the grabbed image to the requested output image type
+      Rgb24ToGray(width, height, s, d);
+      break;
+    case PixelEncoding_YUY2:
+      // decode the grabbed image to the requested output image type
+      Yuv422pToGray(width, height, s, d);
+      break;
+    case PixelEncoding_MJPG:
+      // TODO
+      break;
+    default:
+      LOG_ERROR("Unknown compression type: "<<inputCompression);
+      return PLUS_FAIL;
+    }
+    return PLUS_SUCCESS;
+  }
+
+  //----------------------------------------------------------------------------
+  static inline PlusStatus ConvertToBmp24(ComponentOrdering outputOrdering, PixelEncoding inputCompression, int width, int height, unsigned char *s, unsigned char *d)
+  {
+    switch (inputCompression)
+    {
+    case PixelEncoding_BMP:
+      // Nothing to do, copy out
+      memcpy(d, s, width*height*3);
+      return PLUS_SUCCESS;
+      break;
+    case PixelEncoding_YUY2:
+      // decode the grabbed image to the requested output image type
+      return Yuv422pToBmp24(outputOrdering, width, height, s, d);
+      break;
+    case PixelEncoding_MJPG:
+      break;
+    default:
+      LOG_ERROR("Unknown compression type: " << inputCompression);
+      return PLUS_FAIL;
+    }
+    return PLUS_SUCCESS;
+  }
+
+  //----------------------------------------------------------------------------
   /*!
   Convert from RGB24 to grayscale
   Note that this method computes the intensity (simple averaging of the RGB components).
@@ -104,17 +203,17 @@ public:
 
   //----------------------------------------------------------------------------
   /*! Conversion from YUV to RGB space
-    Uses integer math, which is faster but more complex to read
-    Equivalent with the following floating point math (simpler but slower)
-    int Y = yuv[0] - 16;
-    int U = yuv[1] - 128;
-    int V = yuv[2] - 128;
+  Uses integer math, which is faster but more complex to read
+  Equivalent with the following floating point math (simpler but slower)
+  int Y = yuv[0] - 16;
+  int U = yuv[1] - 128;
+  int V = yuv[2] - 128;
 
-    int R = 1.164*Y + 1.596*V           + 0.5;
-    int G = 1.164*Y - 0.813*V - 0.391*U + 0.5;
-    int B = 1.164*Y           + 2.018*U + 0.5;
+  int R = 1.164*Y + 1.596*V           + 0.5;
+  int G = 1.164*Y - 0.813*V - 0.391*U + 0.5;
+  int B = 1.164*Y           + 2.018*U + 0.5;
   */
-  static inline void YuvToRgbPixel(unsigned char *yuv, unsigned char *rgb)
+  static inline void YuvToRgbPixel(ComponentOrdering outputOrdering, unsigned char *yuv, unsigned char *rgb)
   {   
     int Y = (yuv[0] - 16)*76284;
     int U = yuv[1] - 128;
@@ -144,9 +243,9 @@ public:
     if (B > 255) { B = 255; };
 
     // output
-    rgb[0] = R;
+    rgb[0] = (outputOrdering == ComponentOrder_BGR ? B : R);
     rgb[1] = G;
-    rgb[2] = B;
+    rgb[2] = (outputOrdering == ComponentOrder_BGR ? R : B);
   }
 
   //----------------------------------------------------------------------------
@@ -155,7 +254,7 @@ public:
   YUY2 coding is typically used for webcams
   source: http://sundararajana.blogspot.ca/2007/12/yuy2-to-rgb24-conversion.html
   */
-  static void Yuv422pToRgb24v2(int width, int height, unsigned char *s,unsigned char *d)
+  static PlusStatus Yuv422pToBmp24(ComponentOrdering outputOrdering, int width, int height, unsigned char *s,unsigned char *d)
   {
     int i;
     unsigned char *p_dest;
@@ -185,9 +284,9 @@ public:
       g = CLIP(GET_G_FROM_YUV(Y1, U, V));
       b = CLIP(GET_B_FROM_YUV(Y1, U, V));
 
-      p_dest[dstIndex] = b;
+      p_dest[dstIndex] = (outputOrdering == ComponentOrder_BGR ? b : r);
       p_dest[dstIndex + 1] = g;
-      p_dest[dstIndex + 2] = r;
+      p_dest[dstIndex + 2] = (outputOrdering == ComponentOrder_BGR ? r : b);
 
       dstIndex += 3;
 
@@ -195,14 +294,16 @@ public:
       g = CLIP(GET_G_FROM_YUV(Y2, U, V));
       b = CLIP(GET_B_FROM_YUV(Y2, U, V));
 
-      p_dest[dstIndex] = b;
+      p_dest[dstIndex] = (outputOrdering == ComponentOrder_BGR ? b : r);
       p_dest[dstIndex + 1] = g;
-      p_dest[dstIndex + 2] = r;
+      p_dest[dstIndex + 2] = (outputOrdering == ComponentOrder_BGR ? r : b);
 
       dstIndex += 3;
       srcIndex += 4;
     }
-  } 
+
+    return PLUS_SUCCESS;
+  }
 
   //----------------------------------------------------------------------------
   /*!
@@ -248,7 +349,7 @@ public:
       b = CLIP(GET_B_FROM_YUV(Y2, U, V));
 
       p_dest[dstIndex] = (int(b)+g+r)/3;
-      
+
       dstIndex ++;
       srcIndex += 4;
     }

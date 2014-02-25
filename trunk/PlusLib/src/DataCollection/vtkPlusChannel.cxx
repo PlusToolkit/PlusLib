@@ -432,6 +432,8 @@ PlusStatus vtkPlusChannel::GetTrackedFrame( double timestamp, TrackedFrame& aTra
     PlusVideoFrame frame = CurrentStreamBufferItem.GetFrame(); 
     aTrackedFrame.SetImageData(frame);
 
+    int numcomp = frame.GetImage()->GetNumberOfScalarComponents();
+
     // Copy all custom fields
     StreamBufferItem::FieldMapType fieldMap = CurrentStreamBufferItem.GetCustomFrameFieldMap();
     StreamBufferItem::FieldMapType::iterator fieldIterator;

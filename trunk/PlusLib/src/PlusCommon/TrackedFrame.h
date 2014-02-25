@@ -120,7 +120,7 @@ public:
   vtkPoints* GetFiducialPointsCoordinatePx() { return this->FiducialPointsCoordinatePx; };
 
   /*! Write image with image to tracker transform to file */ 
-  PlusStatus WriteToFile(const std::string &filename, vtkMatrix4x4* mImageToTracker);
+  PlusStatus WriteToFile(const std::string &filename, vtkMatrix4x4* imageToTracker);
 
   /*! Print tracked frame human readable serialization data to XML data */ 
   PlusStatus PrintToXML(vtkXMLDataElement* xmlData); 

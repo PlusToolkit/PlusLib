@@ -123,8 +123,9 @@ namespace igtl
 
     // Copy image data 
     void* imageData = (void*)( this->m_Body + header->GetMessageHeaderSize() + header->m_XmlDataSizeInBytes ); 
-    int frameSize[2] = { header->m_FrameSize[0], header->m_FrameSize[1] }; 
-    if ( this->m_TrackedFrame.GetImageData()->AllocateFrame( frameSize, PlusVideoFrame::GetVTKScalarPixelTypeFromIGTL(header->m_ScalarType) ) != PLUS_SUCCESS )
+    int frameSize[2] = { header->m_FrameSize[0], header->m_FrameSize[1] };
+    // greyscale images only, so set number of components to 1
+    if ( this->m_TrackedFrame.GetImageData()->AllocateFrame( frameSize, PlusVideoFrame::GetVTKScalarPixelTypeFromIGTL(header->m_ScalarType),1 ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to allocate memory for frame received in Plus TrackedFrame message"); 
       return 0; 

@@ -411,8 +411,11 @@ PlusStatus vtkMmfVideoSource::UpdateFrameSize()
       currentFrameSize[0] = this->ActiveVideoFormat.FrameSize[0];
       currentFrameSize[1] = this->ActiveVideoFormat.FrameSize[1];
       videoSource->GetBuffer()->SetFrameSize(currentFrameSize);
-      PlusCommon::VTKScalarPixelType pixelType = VTK_UNSIGNED_CHAR; // always convert output to 8-bit grayscale
-      this->UncompressedVideoFrame.AllocateFrame(currentFrameSize, pixelType);
+      PlusCommon::VTKScalarPixelType pixelType = VTK_UNSIGNED_CHAR; // each scalar component is always 8 bit
+      int numberOfComponents = (this->ColorImageOutputEnabled ? 3 : 1);
+      videoSource->GetBuffer()->SetPixelType(pixelType);
+      videoSource->GetBuffer()->SetNumberOfScalarComponents(numberOfComponents);
+      this->UncompressedVideoFrame.AllocateFrame(currentFrameSize, pixelType, numberOfComponents);
     }
   }
 
@@ -571,19 +574,33 @@ PlusStatus vtkMmfVideoSource::AddFrame(unsigned char* bufferData)
   }
   videoSource->GetBuffer()->GetFrameSize(frameSize);
 
-  PlusStatus decodingStatus=PLUS_FAIL;
+  PlusStatus decodingStatus = PLUS_SUCCESS;
+  PixelCodec::PixelEncoding encoding(PixelCodec::PixelEncoding_ERROR);
   if (this->ActiveVideoFormat.PixelFormatName.compare("YUY2") == 0)
   {
-    decodingStatus=PixelCodec::ConvertToGray(VTK_BI_YUY2, frameSize[0], frameSize[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetScalarPointer());
+    encoding = PixelCodec::PixelEncoding_YUY2;
+  }
+  else if (this->ActiveVideoFormat.PixelFormatName.compare("MJPG") == 0 )
+  {
+    encoding = PixelCodec::PixelEncoding_MJPG;
   }
   else if (this->ActiveVideoFormat.PixelFormatName.compare("RGB24") == 0 )
   {
-    decodingStatus=PixelCodec::ConvertToGray(BI_RGB, frameSize[0], frameSize[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetScalarPointer());
+    encoding = PixelCodec::PixelEncoding_BMP;
   }
   else
   {
-    LOG_ERROR("Unknown pixel type: "<<this->ActiveVideoFormat.PixelFormatName<<" (only YUY2 and RGB24 are supported)");
-    decodingStatus=PLUS_FAIL;
+    LOG_ERROR("Unknown pixel type: "<<this->ActiveVideoFormat.PixelFormatName<<" (only YUY2, MJPG and RGB24 are supported)");
+    return PLUS_FAIL;
+  }
+
+  if( this->ColorImageOutputEnabled )
+  {
+    decodingStatus = PixelCodec::ConvertToBmp24(PixelCodec::ComponentOrder_RGB, encoding, frameSize[0], frameSize[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetScalarPointer());
+  }
+  else
+  {
+    decodingStatus = PixelCodec::ConvertToGray(encoding, frameSize[0], frameSize[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetScalarPointer());
   }
 
   if (decodingStatus != PLUS_SUCCESS)
