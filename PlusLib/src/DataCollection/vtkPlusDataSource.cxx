@@ -316,6 +316,31 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
     {
       LOG_ERROR("Video image orientation is not defined in the source \'" << this->GetSourceId() << "\' element - please set PortUsImageOrientation in the source configuration");
     }
+
+    const char* imageType = sourceElement->GetAttribute("ImageType"); 
+    if ( imageType != NULL && this->GetBuffer() != NULL ) 
+    {
+      if( STRCASECMP(imageType, "BRIGHTNESS") == 0 )
+      {
+        this->GetBuffer()->SetImageType(US_IMG_BRIGHTNESS);
+      }
+      else if( STRCASECMP(imageType, "RGB_COLOUR") == 0 )
+      {
+        this->GetBuffer()->SetImageType(US_IMG_RGB_COLOUR);
+      }
+      else if( STRCASECMP(imageType, "RF_I_LINE_Q_LINE") == 0 )
+      {
+        this->GetBuffer()->SetImageType(US_IMG_RF_I_LINE_Q_LINE);
+      }
+      else if( STRCASECMP(imageType, "RF_IQ_LINE") == 0 )
+      {
+        this->GetBuffer()->SetImageType(US_IMG_RF_IQ_LINE);
+      }
+      else if( STRCASECMP(imageType, "RF_REAL") == 0 )
+      {
+        this->GetBuffer()->SetImageType(US_IMG_RF_REAL);
+      }
+    }
   }
   else
   {

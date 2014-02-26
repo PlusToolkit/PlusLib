@@ -147,7 +147,6 @@ vtkPlusDevice::vtkPlusDevice()
 , DesiredTimestamp(-1)
 , UpdateWithDesiredTimestamp(0)
 , TimestampClosestToDesired(-1)
-, ColorImageOutputEnabled(false)
 , FrameNumber(0)
 , FrameTimeStamp(0)
 , NumberOfOutputFrames(1)
@@ -910,13 +909,6 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
   else if ( this->RequireLocalTimeOffsetSecInDeviceSetConfiguration )
   {
     LOCAL_LOG_ERROR("Unable to find local time offset in device configuration when it is required.");
-  }
-
-  // Colour image output
-  const char* colourImageOutput = deviceXMLElement->GetAttribute("ColorImageOutput");
-  if( colourImageOutput != NULL )
-  {
-    this->ColorImageOutputEnabled = STRCASECMP(colourImageOutput, "TRUE") == 0;
   }
 
   return PLUS_SUCCESS;

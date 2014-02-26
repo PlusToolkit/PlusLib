@@ -1344,6 +1344,11 @@ vtkImageData* vtkPlusChannel::GetBrightnessOutput()
     // B-mode image already, just return as is
     resultImage = this->BrightnessOutputTrackedFrame.GetFrame().GetImage();
   }
+  else if(this->BrightnessOutputTrackedFrame.GetFrame().GetImageType()==US_IMG_RGB_COLOUR)
+  {
+    // B-mode colour, just return as is
+    resultImage = this->BrightnessOutputTrackedFrame.GetFrame().GetImage();
+  }
   else if (this->RfProcessor != NULL )
   {
     // RF frame, convert to B-mode frame
