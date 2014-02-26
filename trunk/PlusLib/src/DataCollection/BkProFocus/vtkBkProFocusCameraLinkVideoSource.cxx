@@ -638,7 +638,7 @@ void vtkBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr, co
 
   } 
 
-  aSource->GetBuffer()->AddItem(pixelDataPtr, aSource->GetPortImageOrientation(), frameSizeInPix, pixelType, imageType, 0, this->FrameNumber);
+  aSource->GetBuffer()->AddItem(pixelDataPtr, aSource->GetPortImageOrientation(), frameSizeInPix, pixelType, 1, imageType, 0, this->FrameNumber);
   this->Modified();
   this->FrameNumber++;
 
