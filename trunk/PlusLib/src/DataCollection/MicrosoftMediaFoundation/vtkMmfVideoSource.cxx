@@ -412,9 +412,10 @@ PlusStatus vtkMmfVideoSource::UpdateFrameSize()
       currentFrameSize[1] = this->ActiveVideoFormat.FrameSize[1];
       videoSource->GetBuffer()->SetFrameSize(currentFrameSize);
       PlusCommon::VTKScalarPixelType pixelType = VTK_UNSIGNED_CHAR; // each scalar component is always 8 bit
-      int numberOfComponents = (this->ColorImageOutputEnabled ? 3 : 1);
+      int numberOfComponents = (videoSource->GetBuffer()->GetImageType() == US_IMG_RGB_COLOUR ? 3 : 1);
       videoSource->GetBuffer()->SetPixelType(pixelType);
       videoSource->GetBuffer()->SetNumberOfScalarComponents(numberOfComponents);
+      this->UncompressedVideoFrame.SetImageType(videoSource->GetBuffer()->GetImageType());
       this->UncompressedVideoFrame.AllocateFrame(currentFrameSize, pixelType, numberOfComponents);
     }
   }
@@ -574,7 +575,7 @@ PlusStatus vtkMmfVideoSource::AddFrame(unsigned char* bufferData)
   }
   videoSource->GetBuffer()->GetFrameSize(frameSize);
 
-  PlusStatus decodingStatus = PLUS_SUCCESS;
+  PlusStatus decodingStatus(PLUS_SUCCESS);
   PixelCodec::PixelEncoding encoding(PixelCodec::PixelEncoding_ERROR);
   if (this->ActiveVideoFormat.PixelFormatName.compare("YUY2") == 0)
   {
@@ -594,7 +595,7 @@ PlusStatus vtkMmfVideoSource::AddFrame(unsigned char* bufferData)
     return PLUS_FAIL;
   }
 
-  if( this->ColorImageOutputEnabled )
+  if( videoSource->GetBuffer()->GetImageType() == US_IMG_RGB_COLOUR )
   {
     decodingStatus = PixelCodec::ConvertToBmp24(PixelCodec::ComponentOrder_RGB, encoding, frameSize[0], frameSize[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetScalarPointer());
   }

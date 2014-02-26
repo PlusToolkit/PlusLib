@@ -30,9 +30,11 @@ struct IMFMediaSource;
 struct IMFMediaType;
 struct IMFAttributes;
 
-typedef std::vector<int> vectorNum;
-typedef std::map<std::wstring, vectorNum> SUBTYPEMap;
-typedef std::map<uint64_t, SUBTYPEMap> FrameRateMap;
+typedef std::vector<int> VectorOfTypeIDs;
+typedef std::map<std::wstring, VectorOfTypeIDs> SubTypeNameToIdsMap;
+typedef std::map<uint64_t, SubTypeNameToIdsMap> FrameRateToSubTypeMap;
+typedef std::map<uint64_t, FrameRateToSubTypeMap> FrameSizeToFrameRateMap;
+
 typedef void(*emergencyStopEventCallback)(int, void *);
 
 namespace MfVideoCapture
@@ -81,7 +83,7 @@ namespace MfVideoCapture
     long EnumerateCaptureFormats(IMFMediaSource *pSource);
     long SetDeviceFormat(IMFMediaSource *pSource, unsigned long dwFormatIndex);
     void BuildLibraryofTypes();
-    int FindType(unsigned int size, unsigned int frameRate = 0, GUID subtype = MFVideoFormat_YUY2);  
+    int FindType(unsigned int size, unsigned int frameRate = 0, GUID subtype = MFVideoFormat_YUY2, MFVideoInterlaceMode interlaceMode=MFVideoInterlace_Progressive);  
     long ResetDevice(IMFActivate *pActivate);
     long InitDevice();
     long CheckDevice(IMFAttributes *pAttributes, IMFActivate **pDevice);
@@ -97,7 +99,7 @@ namespace MfVideoCapture
     CaptureDeviceParameters PreviousParameters;
     unsigned int DeviceIndex;
     unsigned int ActiveType;
-    std::map<uint64_t, FrameRateMap> CaptureFormats;
+    FrameSizeToFrameRateMap CaptureFormats;
     std::vector<MediaType> CurrentFormats;
     void *UserData;
   };

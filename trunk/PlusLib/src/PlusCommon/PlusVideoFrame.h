@@ -50,6 +50,7 @@ enum US_IMAGE_TYPE
   US_IMG_RF_REAL,    /*!< RF-mode image, signal is stored as a series of real values */
   US_IMG_RF_IQ_LINE, /*!< RF-mode image, signal is stored as a series of I and Q samples in a line (I1, Q1, I2, Q2, ...) */  
   US_IMG_RF_I_LINE_Q_LINE, /*!< RF-mode image, signal is stored as a series of I samples in a line, then Q samples in the next line (I1, I2, ..., Q1, Q2, ...) */  
+  US_IMG_RGB_COLOUR, /*!< RGB24 colour image */
   US_IMG_TYPE_LAST   /*!< just a placeholder for range checking, this must be the last defined image type */  
 }; 
 

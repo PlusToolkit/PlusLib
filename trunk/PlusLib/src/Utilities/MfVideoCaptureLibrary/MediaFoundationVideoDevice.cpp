@@ -465,59 +465,59 @@ namespace MfVideoCapture
 
   //----------------------------------------------------------------------------
 
-  int MediaFoundationVideoDevice::FindType(unsigned int size, unsigned int frameRate, GUID subtype)
+  int MediaFoundationVideoDevice::FindType(unsigned int size, unsigned int frameRate, GUID subtype, MFVideoInterlaceMode interlaceMode)
   {  
     if(CaptureFormats.size() == 0)
       return 0;
 
-    FrameRateMap FRM;
+    FrameRateToSubTypeMap rateToSubType;
     if( CaptureFormats.find(size) == CaptureFormats.end() )
     {
       return -1;
     }
     else
     {
-      FRM = CaptureFormats[size];
+      rateToSubType = CaptureFormats[size];
     }
 
-    if(FRM.size() == 0)
+    if(rateToSubType.size() == 0)
       return -1;
     
-    SUBTYPEMap STMMax;
+    SubTypeNameToIdsMap nameToIdsMaxFrameRate;
 
     if(frameRate == 0)
     {
       // find the format with the maximum frame rate
       UINT64 frameRateMax = 0;
-      std::map<UINT64, SUBTYPEMap>::iterator f = FRM.begin();
-      for(; f != FRM.end(); f++)
+      FrameRateToSubTypeMap::iterator f = rateToSubType.begin();
+      for(; f != rateToSubType.end(); f++)
       {
         if((*f).first >= frameRateMax)
         {
           frameRateMax = (*f).first;
 
-          STMMax = (*f).second;
+          nameToIdsMaxFrameRate = (*f).second;
         }
       }
     }
     else
     {
       // find the format that is the closest to the requested frame rate
-      std::map<UINT64, SUBTYPEMap>::iterator f = FRM.begin();
+      FrameRateToSubTypeMap::iterator f = rateToSubType.begin();
       int frameRateDifferenceMin = -1;
 
-      for(; f != FRM.end(); f++)
+      for(; f != rateToSubType.end(); f++)
       {
         int frameRateDifference=static_cast<int>((*f).first)-frameRate;
         if ( (frameRateDifferenceMin<0) || (frameRateDifference<frameRateDifferenceMin) )
         {
           frameRateDifferenceMin = frameRateDifference;
-          STMMax = (*f).second;
+          nameToIdsMaxFrameRate = (*f).second;
         }
       }
     }
 
-    if(STMMax.size() == 0)
+    if(nameToIdsMaxFrameRate.size() == 0)
     {
       LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": No pixel formats available.");
       return -1;
@@ -525,25 +525,25 @@ namespace MfVideoCapture
 
     std::wstring subtypeName = FormatReader::StringFromGUID(subtype);
 
-    vectorNum VN;
-    SUBTYPEMap::iterator selectedSubtype;
-    if( STMMax.find(subtypeName) == STMMax.end() )
+    VectorOfTypeIDs idList;
+    FrameRateToSubTypeMap::iterator selectedSubtype;
+    if( nameToIdsMaxFrameRate.find(subtypeName) == nameToIdsMaxFrameRate.end() )
     {
       LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": Requested pixel format not available. Defaulting to first available.");
-      VN = STMMax.begin()->second;
+      idList = nameToIdsMaxFrameRate.begin()->second;
     }
     else
     {
-      VN = STMMax[subtypeName];
+      idList = nameToIdsMaxFrameRate[subtypeName];
     }
 
-    if(VN.size() == 0)
+    if(idList.size() == 0)
     {
-      LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": No vector num available.");
+      LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": List of IDs has not been populated.");
       return -1;
     }
 
-    return VN[0];
+    return idList[0];
 
   }
 
@@ -553,24 +553,23 @@ namespace MfVideoCapture
   {
     unsigned int size;
     unsigned int framerate;
-    std::vector<MediaType>::iterator i = CurrentFormats.begin();
     int count = 0;
 
-    for(; i != CurrentFormats.end(); i++)
+    for(std::vector<MediaType>::iterator i = CurrentFormats.begin(); i != CurrentFormats.end(); ++i)
     {
       size = (*i).MF_MT_FRAME_SIZE;
 
       framerate = (*i).MF_MT_FRAME_RATE;
 
-      FrameRateMap FRM = CaptureFormats[size];
-      SUBTYPEMap STM = FRM[framerate];
+      FrameRateToSubTypeMap rateToSubType = CaptureFormats[size];
+      SubTypeNameToIdsMap nameToId = rateToSubType[framerate];
       std::wstring subTypeName = (*i).MF_MT_SUBTYPEName;
-      vectorNum VN = STM[subTypeName];
+      VectorOfTypeIDs idList = nameToId[subTypeName];
 
-      VN.push_back(count);
-      STM[subTypeName] = VN;
-      FRM[framerate] = STM;
-      CaptureFormats[size] = FRM;
+      idList.push_back(count);
+      nameToId[subTypeName] = idList;
+      rateToSubType[framerate] = nameToId;
+      CaptureFormats[size] = rateToSubType;
 
       count++;
     }

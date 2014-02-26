@@ -12,7 +12,7 @@
       ColorImageOutput="FALSE"
       CaptureDeviceId="0" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="100" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="Video" ImageType="RGB_COLOUR" PortUsImageOrientation="MF" BufferSize="100" AveragedItemsForFiltering="20" />
       </DataSources>      
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
