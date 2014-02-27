@@ -444,7 +444,7 @@ void MicronTrackerInterface::mtFindIdentifiedMarkers()
     {
       Collection* facetsCollection = new Collection(marker->identifiedFacets(this->m_pCurrCam));
 
-      // Adjust the colour temperature if we see a CoolCard marker
+      // Adjust the color temperature if we see a CoolCard marker
       std::string markerName=marker->getName();
       if ((0 == strncmp(markerName.c_str(), "COOL", 4)) ||  
         (0 == strncmp(markerName.c_str(), "cool", 4)) ||

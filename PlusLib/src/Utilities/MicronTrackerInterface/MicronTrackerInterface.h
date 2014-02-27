@@ -176,7 +176,7 @@ class MicronTrackerInterface
   // If not successful returns -1. 
   double mtGetMaxExposure(int index = -1);
 
-  // Get the colour temperature ("light coolness") used by the camera.
+  // Get the color temperature ("light coolness") used by the camera.
   // This will be automatically adjusted if a CoolCard is placed in the camera's field of view. */
   double mtGetLightCoolness(int index = -1);
 

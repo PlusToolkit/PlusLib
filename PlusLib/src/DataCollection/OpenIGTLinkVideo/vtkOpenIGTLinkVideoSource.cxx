@@ -194,6 +194,12 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalUpdate()
     (numOfBytesReceived = this->ClientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize()))!=0,
     this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
 
+  if( numOfBytesReceived == -1 )
+  {
+    this->ClientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
+    return PLUS_SUCCESS; 
+  }
+
   if ( numOfBytesReceived == 0 ) 
   {
     // No message received - server disconnected 
