@@ -8,6 +8,8 @@
 #define __vtkIntersonVideoSource_h
 
 #include "vtkPlusDevice.h"
+#include "vtkUSImagingParameters.h"
+
 
 /*!
   \class vtkIntersonVideoSource 
@@ -73,6 +75,7 @@ protected:
   bool Interpolate;
   bool BidirectionalScan;
   bool Frozen;
+
 
 private:
   vtkIntersonVideoSource(const vtkIntersonVideoSource&);  // Not implemented.
