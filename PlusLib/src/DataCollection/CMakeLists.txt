@@ -43,6 +43,7 @@ SET (DataCollection_SRCS
   itkFcsvWriter.cxx
   vtkPlusBuffer.cxx 
   UsSimulatorVideo/vtkUsSimulatorVideoSource.cxx
+  vtkUsImagingParameters.cxx
   )
 
 SET (DataCollection_HDRS)
@@ -66,6 +67,7 @@ if (WIN32)
     itkFcsvWriter.h
     vtkPlusBuffer.h 
     UsSimulatorVideo/vtkUsSimulatorVideoSource.h
+	vtkUsImagingParameters.h
     )
 endif (WIN32)  
 
