@@ -29,7 +29,7 @@ PlusMath::~PlusMath()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusMath::LSQRMinimize(const std::vector< std::vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean/*=NULL*/, double* stdev/*=NULL*/,vnl_vector<double> *notOutliersIndices/*=NULL*/)
+PlusStatus PlusMath::LSQRMinimize(const std::vector< std::vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean/*=NULL*/, double* stdev/*=NULL*/,vnl_vector<unsigned int> *notOutliersIndices/*=NULL*/)
 {
   LOG_TRACE("PlusMath::LSQRMinimize"); 
 
@@ -65,7 +65,7 @@ PlusStatus PlusMath::LSQRMinimize(const std::vector< std::vector<double> > &aMat
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusMath::LSQRMinimize(const std::vector< vnl_vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean/*=NULL*/, double* stdev/*=NULL*/, vnl_vector<double>* notOutliersIndices /*=NULL*/)
+PlusStatus PlusMath::LSQRMinimize(const std::vector< vnl_vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean/*=NULL*/, double* stdev/*=NULL*/, vnl_vector<unsigned int>* notOutliersIndices /*=NULL*/)
 {
   LOG_TRACE("PlusMath::LSQRMinimize"); 
 
@@ -106,7 +106,7 @@ PlusStatus PlusMath::LSQRMinimize(const std::vector< vnl_vector<double> > &aMatr
 
 
 //----------------------------------------------------------------------------
-PlusStatus PlusMath::LSQRMinimize(const vnl_sparse_matrix<double> &sparseMatrixLeftSide, const vnl_vector<double> &vectorRightSide, vnl_vector<double> &resultVector, double* mean/*=NULL*/, double* stdev/*=NULL*/, vnl_vector<double>* notOutliersIndices/*NULL*/)
+PlusStatus PlusMath::LSQRMinimize(const vnl_sparse_matrix<double> &sparseMatrixLeftSide, const vnl_vector<double> &vectorRightSide, vnl_vector<double> &resultVector, double* mean/*=NULL*/, double* stdev/*=NULL*/, vnl_vector<unsigned int>* notOutliersIndices/*NULL*/)
 {
   LOG_TRACE("PlusMath::LSQRMinimize"); 
 
@@ -174,7 +174,7 @@ PlusStatus PlusMath::LSQRMinimize(const vnl_sparse_matrix<double> &sparseMatrixL
 
     const double thresholdMultiplier = 3.0; 
 
-    if ( PlusMath::RemoveOutliersFromLSRQ(aMatrix, bVector, resultVector, outlierFound, thresholdMultiplier, mean, stdev , notOutliersIndices) != PLUS_SUCCESS )
+    if ( PlusMath::RemoveOutliersFromLSQR(aMatrix, bVector, resultVector, outlierFound, thresholdMultiplier, mean, stdev , notOutliersIndices) != PLUS_SUCCESS )
     {
       LOG_WARNING("Failed to remove outliers from linear equations!"); 
       return PLUS_FAIL; 
@@ -191,14 +191,14 @@ PlusStatus PlusMath::LSQRMinimize(const vnl_sparse_matrix<double> &sparseMatrixL
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusMath::RemoveOutliersFromLSRQ(vnl_sparse_matrix<double> &sparseMatrixLeftSide, 
+PlusStatus PlusMath::RemoveOutliersFromLSQR(vnl_sparse_matrix<double> &sparseMatrixLeftSide, 
                                             vnl_vector<double> &vectorRightSide, 
                                             vnl_vector<double> &resultVector, 
                                             bool &outlierFound, 
                                             double thresholdMultiplier/* = 3.0*/, 
                                             double* mean/*=NULL*/, 
                                             double* stdev/*=NULL*/,
-											vnl_vector<double>* nonOutlierIndices /*NULL*/)
+                      vnl_vector<unsigned int>* nonOutlierIndices /*NULL*/)
 {
   // Set outlierFound flag to false by default 
   outlierFound = false; 
@@ -285,10 +285,10 @@ PlusStatus PlusMath::RemoveOutliersFromLSRQ(vnl_sparse_matrix<double> &sparseMat
       matrixRowsData.push_back(rowData); 
       matrixRowsIndecies.push_back(rowIndecies); 
       bVector.push_back(vectorRightSide[row]); 
-	    if (nonOutlierIndices != NULL)
-	    {
-	      auxiliarNonOutlierIndicesVector.push_back(nonOutlierIndices->get(row));
-	    }
+      if (nonOutlierIndices != NULL)
+      {
+        auxiliarNonOutlierIndicesVector.push_back(nonOutlierIndices->get(row));
+      }
     }
     else
     {
@@ -309,15 +309,15 @@ PlusStatus PlusMath::RemoveOutliersFromLSRQ(vnl_sparse_matrix<double> &sparseMat
       vectorRightSide.put(i, bVector[i]); 
     }
 
-	if (nonOutlierIndices != NULL)
-	{
-	  (*nonOutlierIndices).clear();
+  if (nonOutlierIndices != NULL)
+  {
+    (*nonOutlierIndices).clear();
       (*nonOutlierIndices).set_size(auxiliarNonOutlierIndicesVector.size());
-	  for ( unsigned int i = 0; i < auxiliarNonOutlierIndicesVector.size(); ++i )
+    for ( unsigned int i = 0; i < auxiliarNonOutlierIndicesVector.size(); ++i )
       {
-	    (*nonOutlierIndices).put(i,auxiliarNonOutlierIndicesVector[i]);
+      (*nonOutlierIndices).put(i,auxiliarNonOutlierIndicesVector[i]);
       }
-	}
+  }
 
 
     sparseMatrixLeftSide.resize(matrixRowsData.size(), numberOfUnknowns); 
@@ -384,7 +384,7 @@ double PlusMath::GetOrientationDifference(vtkMatrix4x4* aMatrix, vtkMatrix4x4* b
 // Precondition: no aliasing problems to worry about ("result" can be "from" or "to" param).
 // Parameters: adjustSign - If true, then slerp will operate by adjusting the sign of the slerp to take shortest path. True is recommended, otherwise the interpolation sometimes give unexpected results. 
 // References: From Adv Anim and Rendering Tech. Pg 364
-void PlusMath::Slerp(double *result, double t, double *from, double *to, bool adjustSign /*= true*/) 	
+void PlusMath::Slerp(double *result, double t, double *from, double *to, bool adjustSign /*= true*/)   
 {
   const double* p = from; // just an alias to match q
 
@@ -434,7 +434,50 @@ void PlusMath::Slerp(double *result, double t, double *from, double *to, bool ad
 }
 
 //----------------------------------------------------------------------------
+PlusStatus PlusMath::ConstrainRotationToTwoAxes(double downVector_Sensor[3], int notRotatingAxisIndex, vtkMatrix4x4* sensorToSouthWestDownTransform)
+{
+  if (notRotatingAxisIndex<0 || notRotatingAxisIndex>=3)
+  {
+    LOG_ERROR("Invalid notRotatingAxisIndex is specified (valid values are 0, 1, 2). Use default: 1.");
+    notRotatingAxisIndex = 1;
+  }
 
+  // Sensor axis vector that is assumed to always point to West. This is chosen so that cross(westVector_Sensor, downVector_Sensor) = southVector_Sensor.
+  double westVector_Sensor[4]={0,0,0,0};
+  double southVector_Sensor[4] = {0,0,0,0};
+
+  westVector_Sensor[notRotatingAxisIndex]=1; 
+
+  vtkMath::Cross(westVector_Sensor, downVector_Sensor, southVector_Sensor); // compute South
+  vtkMath::Normalize(southVector_Sensor);
+  vtkMath::Cross(downVector_Sensor, southVector_Sensor, westVector_Sensor); // compute West
+  vtkMath::Normalize(westVector_Sensor);
+
+  // row 0
+  sensorToSouthWestDownTransform->SetElement(0,0,southVector_Sensor[0]);
+  sensorToSouthWestDownTransform->SetElement(0,1,southVector_Sensor[1]);
+  sensorToSouthWestDownTransform->SetElement(0,2,southVector_Sensor[2]);
+  // row 1
+  sensorToSouthWestDownTransform->SetElement(1,0,westVector_Sensor[0]);
+  sensorToSouthWestDownTransform->SetElement(1,1,westVector_Sensor[1]);
+  sensorToSouthWestDownTransform->SetElement(1,2,westVector_Sensor[2]);
+  // row 2
+  sensorToSouthWestDownTransform->SetElement(2,0,downVector_Sensor[0]);
+  sensorToSouthWestDownTransform->SetElement(2,1,downVector_Sensor[1]);
+  sensorToSouthWestDownTransform->SetElement(2,2,downVector_Sensor[2]);
+
+  if (notRotatingAxisIndex<0 || notRotatingAxisIndex>=3)
+  {
+    return PLUS_FAIL;
+  }
+  else
+  {
+    return PLUS_SUCCESS;  
+  }
+
+}
+
+//----------------------------------------------------------------------------
 std::string PlusMath::GetTransformParametersString(vtkTransform* transform)
 {
   double rotation[3];
@@ -453,7 +496,6 @@ std::string PlusMath::GetTransformParametersString(vtkTransform* transform)
 }
 
 //----------------------------------------------------------------------------
-
 std::string PlusMath::GetTransformParametersString(vtkMatrix4x4* matrix)
 {
   vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New(); 
@@ -462,60 +504,63 @@ std::string PlusMath::GetTransformParametersString(vtkMatrix4x4* matrix)
   return PlusMath::GetTransformParametersString(transform); 
 }
 
-
 //----------------------------------------------------------------------------
-
-void PlusMath::ConvertVtkMatrixToVnlMatrix(vtkMatrix4x4* inVtkMatrix, vnl_matrix<double>& outVnlMatrix )
+void PlusMath::ConvertVtkMatrixToVnlMatrix(const vtkMatrix4x4* inVtkMatrix, vnl_matrix_fixed<double,4,4>& outVnlMatrix )
 {
-	LOG_TRACE("PlusMath::ConvertVtkMatrixToVnlMatrix"); 
+  LOG_TRACE("PlusMath::ConvertVtkMatrixToVnlMatrix"); 
 
-	for (int row = 0; row < 4; row++)
-	{
-		for (int column = 0; column < 4; column++)
-		{
-			outVnlMatrix.put(row,column, inVtkMatrix->GetElement(row,column)); 
-		}
-	}
+  for (int row = 0; row < 4; row++)
+  {
+    for (int column = 0; column < 4; column++)
+    {
+      outVnlMatrix.put(row,column, inVtkMatrix->GetElement(row,column)); 
+    }
+  }
 }
 
 //----------------------------------------------------------------------------
-
-void PlusMath::ConvertVnlMatrixToVtkMatrix(vnl_matrix<double>& inVnlMatrix, vtkMatrix4x4* outVtkMatrix )
+void PlusMath::ConvertVnlMatrixToVtkMatrix(const vnl_matrix_fixed<double,4,4>& inVnlMatrix, vtkMatrix4x4* outVtkMatrix )
 {
-	LOG_TRACE("PlusMath::ConvertVnlMatrixToVtkMatrix");
+  LOG_TRACE("PlusMath::ConvertVnlMatrixToVtkMatrix");
 
-	outVtkMatrix->Identity(); 
+  outVtkMatrix->Identity(); 
 
-	for (int row = 0; row < 3; row++)
-	{
-		for (int column = 0; column < 4; column++)
-		{
-			outVtkMatrix->SetElement(row,column, inVnlMatrix.get(row, column) ); 
-		}
-	}
+  for (int row = 0; row < 3; row++)
+  {
+    for (int column = 0; column < 4; column++)
+    {
+      outVtkMatrix->SetElement(row,column, inVnlMatrix.get(row, column) ); 
+    }
+  }
 }
 
 //----------------------------------------------------------------------------
-
 void PlusMath::PrintVtkMatrix(vtkMatrix4x4* matrix, std::ostringstream &stream, int precision/* = 3*/)
 {
-	LOG_TRACE("PlusMath::PrintVtkMatrix");
+  LOG_TRACE("PlusMath::PrintVtkMatrix");
 
   for ( int i = 0; i < 4; i++ )
-	{
-		stream << std::endl;
-		for ( int j = 0; j < 4; j++ )
-		{
-			stream << std::fixed << std::setprecision(precision) << std::setw(precision+3) << std::right << matrix->GetElement(i,j) << " ";
-		}
-	}
+  {
+    stream << std::endl;
+    for ( int j = 0; j < 4; j++ )
+    {
+      stream << std::fixed << std::setprecision(precision) << std::setw(precision+3) << std::right << matrix->GetElement(i,j) << " ";
+    }
+  }
 }
 
 //----------------------------------------------------------------------------
+void PlusMath::PrintMatrix(vnl_matrix_fixed<double,4,4> matrix, std::ostringstream &stream, int precision/* = 3*/)
+{
+  vtkSmartPointer<vtkMatrix4x4> matrixVtk=vtkSmartPointer<vtkMatrix4x4>::New();
+  ConvertVnlMatrixToVtkMatrix(matrix,matrixVtk);
+  PrintVtkMatrix(matrixVtk, stream, precision);
+}
 
+//----------------------------------------------------------------------------
 void PlusMath::LogVtkMatrix(vtkMatrix4x4* matrix, int precision/* = 3*/)
 {
-	LOG_TRACE("PlusMath::LogVtkMatrix");
+  LOG_TRACE("PlusMath::LogVtkMatrix");
 
   std::ostringstream matrixStream; 
   PlusMath::PrintVtkMatrix(matrix, matrixStream, precision);
@@ -523,7 +568,14 @@ void PlusMath::LogVtkMatrix(vtkMatrix4x4* matrix, int precision/* = 3*/)
 }
 
 //----------------------------------------------------------------------------
+void PlusMath::LogMatrix(const vnl_matrix_fixed<double,4,4>& matrix, int precision/* = 3*/)
+{
+  vtkSmartPointer<vtkMatrix4x4> matrixVtk=vtkSmartPointer<vtkMatrix4x4>::New();
+  ConvertVnlMatrixToVtkMatrix(matrix,matrixVtk);
+  LogVtkMatrix(matrixVtk, precision);
+}
 
+//----------------------------------------------------------------------------
 // Description
 // Calculate distance between a line (defined by two points) and a point
 double PlusMath::ComputeDistanceLinePoint( const double x[3], // linepoint 1
@@ -574,5 +626,38 @@ PlusStatus PlusMath::ComputeMeanAndStdev(const std::vector<double> &values, doub
     variance+=(*it-mean)*(*it-mean);
   }
   stdev=sqrt(variance/double(values.size())); 
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus PlusMath::ComputeRms(const std::vector<double> &values, double &rms)
+{
+  if (values.empty())
+  {
+    LOG_ERROR("PlusMath::ComputeRms failed, the input vector is empty");
+    return PLUS_FAIL;
+  }
+  double sumSquares=0;
+  for (std::vector<double>::const_iterator it=values.begin(); it!=values.end(); ++it)
+  {
+    sumSquares+=(*it) * (*it);
+  }
+  double meanSquares=sumSquares/double(values.size());
+  rms=sqrt(meanSquares); 
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus PlusMath::ComputePercentile(const std::vector<double> &values, double percentileToKeep, double &valueMax, double &valueMean, double &valueStdev)
+{
+  std::vector<double> sortedValues=values;
+  std::sort(sortedValues.begin(), sortedValues.end());
+
+  int numberOfKeptValues = ROUND( (double)sortedValues.size() * percentileToKeep );
+  sortedValues.erase(sortedValues.begin()+numberOfKeptValues, sortedValues.end());
+
+  valueMax=sortedValues.back();
+  ComputeMeanAndStdev(sortedValues, valueMean, valueStdev);
+
   return PLUS_SUCCESS;
 }

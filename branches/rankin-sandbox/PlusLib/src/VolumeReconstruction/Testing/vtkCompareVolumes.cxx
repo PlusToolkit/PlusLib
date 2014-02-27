@@ -68,10 +68,10 @@ void vtkCompareVolumesExecute(vtkCompareVolumes *self,
 {
 
   vtkIdType inOffsets[3]={0}; //x,y,z
-	inData->GetIncrements(inOffsets[0],inOffsets[1],inOffsets[2]);
+  inData->GetIncrements(inOffsets[0],inOffsets[1],inOffsets[2]);
   
   vtkIdType outOffsets[3]={0}; //x,y,z
-	outData->GetIncrements(outOffsets[0],outOffsets[1],outOffsets[2]);
+  outData->GetIncrements(outOffsets[0],outOffsets[1],outOffsets[2]);
 
   int xtemp(0),ytemp(0),ztemp(0); // indices for each of the axes
   self->resetTrueHistogram(); // count inside the class variables
@@ -90,12 +90,12 @@ void vtkCompareVolumesExecute(vtkCompareVolumes *self,
   int countHoles(0);
 
   // iterate through all voxels
-	for (ztemp = 0; ztemp <= outExt[5] - outExt[4]; ztemp++)
-	{
-		for (ytemp = 0; ytemp <= outExt[3] - outExt[2]; ytemp++)
-		{
-			for (xtemp = 0; xtemp <= outExt[1] - outExt[0]; xtemp++)
-			{
+  for (ztemp = 0; ztemp <= outExt[5] - outExt[4]; ztemp++)
+  {
+    for (ytemp = 0; ytemp <= outExt[3] - outExt[2]; ytemp++)
+    {
+      for (xtemp = 0; xtemp <= outExt[1] - outExt[0]; xtemp++)
+      {
         int inIndex  =  inOffsets[0]*xtemp+ inOffsets[1]*ytemp+ inOffsets[2]*ztemp;
         int outIndex = outOffsets[0]*xtemp+outOffsets[1]*ytemp+outOffsets[2]*ztemp;
         if (gtAlphaPtr[inIndex] != 0) 

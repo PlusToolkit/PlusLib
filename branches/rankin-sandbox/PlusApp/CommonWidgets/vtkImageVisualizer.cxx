@@ -19,12 +19,12 @@ See License.txt for details.
 vtkStandardNewMacro(vtkImageVisualizer);
 //-----------------------------------------------------------------------------
 
-double vtkImageVisualizer::ROI_COLOUR[3] = {1.0, 0.0, 0.5};
-static double RESULT_SPHERE_COLOUR[3] = {0.0, 0.8, 0.0};
+double vtkImageVisualizer::ROI_COLOR[3] = {1.0, 0.0, 0.5};
+static double RESULT_SPHERE_COLOR[3] = {0.0, 0.8, 0.0};
 static const double MAX_WIDGET_THICKNESS = 10.0;  // maximum thickness of any object in the scene (camera is positioned at -MAX_WIDGET_THICKNESS - 1
 static double HORIZONTAL_TEXT_ORIENTATION_MARKER_OFFSET[3] = {30.0, 17.0, -1.0};
 static double VERTICAL_TEXT_ORIENTATION_MARKER_OFFSET[3] = {4.0, 40.0, -1.0};
-static double ORIENTATION_MARKER_COLOUR[3] = {0.0, 1.0, 0.0};
+static double ORIENTATION_MARKER_COLOR[3] = {0.0, 1.0, 0.0};
 static double ORIENTATION_MARKER_SIZE = 51.0;
 static double ORIENTATION_MARKER_ASSEMBLY_POSITION[3] = {12.0, 12.0, -1.0};
 static const double ORIENTATION_MARKER_CONE_RADIUS = 5.0;
@@ -52,8 +52,9 @@ vtkImageVisualizer::vtkImageVisualizer()
 , TopLineSource(NULL)
 , RightLineSource(NULL)
 , BottomLineSource(NULL)
+, SelectedChannel(NULL)
 {
-  memset(RegionOfInterest, 0, sizeof(double[4]));
+  this->RegionOfInterest[0] = this->RegionOfInterest[1] = this->RegionOfInterest[2] = this->RegionOfInterest[3] = -1;
 
   vtkSmartPointer<vtkProp3DCollection> screenAlignedProps = vtkSmartPointer<vtkProp3DCollection>::New();
   this->SetScreenAlignedProps(screenAlignedProps);
@@ -77,7 +78,7 @@ vtkImageVisualizer::vtkImageVisualizer()
   this->ResultGlyph->SetSourceConnection(resultSphereSource->GetOutputPort());
   resultMapper->SetInputConnection(this->ResultGlyph->GetOutputPort());
   this->ResultActor->SetMapper(resultMapper);
-  this->ResultActor->GetProperty()->SetColor(RESULT_SPHERE_COLOUR);
+  this->ResultActor->GetProperty()->SetColor(RESULT_SPHERE_COLOR);
 
   // Create image actor
   vtkSmartPointer<vtkImageActor> imageActor = vtkSmartPointer<vtkImageActor>::New();
@@ -142,7 +143,7 @@ PlusStatus vtkImageVisualizer::InitializeOrientationMarkers()
 
   // Since the internal orientation is always MF, display the indicators for MF in all cases
   vtkSmartPointer<vtkTextActor3D> horizontalOrientationTextActor = vtkSmartPointer<vtkTextActor3D>::New();
-  horizontalOrientationTextActor->GetTextProperty()->SetColor(ORIENTATION_MARKER_COLOUR);
+  horizontalOrientationTextActor->GetTextProperty()->SetColor(ORIENTATION_MARKER_COLOR);
   horizontalOrientationTextActor->GetTextProperty()->SetFontFamilyToArial();
   horizontalOrientationTextActor->GetTextProperty()->SetFontSize(16);
   horizontalOrientationTextActor->GetTextProperty()->SetJustificationToLeft();
@@ -155,7 +156,7 @@ PlusStatus vtkImageVisualizer::InitializeOrientationMarkers()
   this->OrientationMarkerAssembly->AddPart(horizontalOrientationTextActor);
 
   vtkSmartPointer<vtkTextActor3D> verticalOrientationTextActor = vtkSmartPointer<vtkTextActor3D>::New();
-  verticalOrientationTextActor->GetTextProperty()->SetColor(ORIENTATION_MARKER_COLOUR);
+  verticalOrientationTextActor->GetTextProperty()->SetColor(ORIENTATION_MARKER_COLOR);
   verticalOrientationTextActor->GetTextProperty()->SetFontFamilyToArial();
   verticalOrientationTextActor->GetTextProperty()->SetFontSize(16);
   verticalOrientationTextActor->GetTextProperty()->SetJustificationToLeft();
@@ -175,7 +176,7 @@ PlusStatus vtkImageVisualizer::InitializeOrientationMarkers()
   horizontal[0] *= (ORIENTATION_MARKER_SIZE * 0.9);
   horizontalLineSource->SetPoint2(horizontal);
   horizontalLineMapper->SetInputConnection(horizontalLineSource->GetOutputPort());
-  horizontalLineActor->GetProperty()->SetColor(ORIENTATION_MARKER_COLOUR);
+  horizontalLineActor->GetProperty()->SetColor(ORIENTATION_MARKER_COLOR);
   horizontalLineActor->SetMapper(horizontalLineMapper);
   this->OrientationMarkerAssembly->AddPart(horizontalLineActor);
 
@@ -187,7 +188,7 @@ PlusStatus vtkImageVisualizer::InitializeOrientationMarkers()
   vertical[1] *= (ORIENTATION_MARKER_SIZE * 0.9);
   verticalLineSource->SetPoint2(vertical);
   verticalLineMapper->SetInputConnection(verticalLineSource->GetOutputPort());
-  verticalLineActor->GetProperty()->SetColor(ORIENTATION_MARKER_COLOUR);
+  verticalLineActor->GetProperty()->SetColor(ORIENTATION_MARKER_COLOR);
   verticalLineActor->SetMapper(verticalLineMapper);
   this->OrientationMarkerAssembly->AddPart(verticalLineActor);
 
@@ -197,7 +198,7 @@ PlusStatus vtkImageVisualizer::InitializeOrientationMarkers()
   horizontalConeSource->SetHeight(ORIENTATION_MARKER_CONE_HEIGHT);
   horizontalConeSource->SetRadius(ORIENTATION_MARKER_CONE_RADIUS);
   horizontalConeMapper->SetInputConnection(horizontalConeSource->GetOutputPort());
-  horizontalConeActor->GetProperty()->SetColor(ORIENTATION_MARKER_COLOUR);
+  horizontalConeActor->GetProperty()->SetColor(ORIENTATION_MARKER_COLOR);
   horizontalConeActor->RotateWXYZ(90.0, 1.0, 0.0, 0.0); 
   horizontal[0] = ORIENTATION_MARKER_SIZE;
   horizontalConeActor->SetPosition(horizontal);
@@ -210,7 +211,7 @@ PlusStatus vtkImageVisualizer::InitializeOrientationMarkers()
   verticalConeSource->SetHeight(ORIENTATION_MARKER_CONE_HEIGHT);
   verticalConeSource->SetRadius(ORIENTATION_MARKER_CONE_RADIUS);
   verticalConeMapper->SetInputConnection(verticalConeSource->GetOutputPort());
-  verticalConeActor->GetProperty()->SetColor(ORIENTATION_MARKER_COLOUR);
+  verticalConeActor->GetProperty()->SetColor(ORIENTATION_MARKER_COLOR);
   verticalConeActor->RotateWXYZ(90.0, 1.0, 0.0, 0.0); 
   verticalConeActor->RotateWXYZ(90.0, 0.0, 0.0, 1.0); 
   vertical[1] = ORIENTATION_MARKER_SIZE;
@@ -248,6 +249,22 @@ PlusStatus vtkImageVisualizer::UpdateOrientationMarkerLabelling()
     this->GetHorizontalOrientationTextActor()->SetInput("U");
     this->GetVerticalOrientationTextActor()->SetInput("F");
     break;
+  case US_IMG_ORIENT_FM:
+    this->GetHorizontalOrientationTextActor()->SetInput("F");
+    this->GetVerticalOrientationTextActor()->SetInput("M");
+    break;
+  case US_IMG_ORIENT_FU:
+    this->GetHorizontalOrientationTextActor()->SetInput("F");
+    this->GetVerticalOrientationTextActor()->SetInput("U");
+    break;
+  case US_IMG_ORIENT_NM:
+    this->GetHorizontalOrientationTextActor()->SetInput("N");
+    this->GetVerticalOrientationTextActor()->SetInput("M");
+    break;
+  case US_IMG_ORIENT_NU:
+    this->GetHorizontalOrientationTextActor()->SetInput("N");
+    this->GetVerticalOrientationTextActor()->SetInput("U");
+    break;
   }
 
   return PLUS_SUCCESS;
@@ -275,7 +292,7 @@ PlusStatus vtkImageVisualizer::UpdateCameraPose()
   double imageCenterX = 0;
   double imageCenterY = 0;
   int dimensions[2];
-  this->DataCollector->GetBrightnessFrameSize(dimensions);
+  this->SelectedChannel->GetBrightnessFrameSize(dimensions);
   imageCenterX = dimensions[0] / 2.0;
   imageCenterY = dimensions[1] / 2.0;
 
@@ -363,7 +380,7 @@ PlusStatus vtkImageVisualizer::UpdateCameraPose()
     return PLUS_FAIL;
   }
 
-  this->SetROIBounds(RegionOfInterest[0], RegionOfInterest[1], RegionOfInterest[2], RegionOfInterest[3]);
+  this->SetROIBounds(this->RegionOfInterest[0], this->RegionOfInterest[1], this->RegionOfInterest[2], this->RegionOfInterest[3]);
 
   return UpdateOrientationMarkerLabelling();
 }
@@ -382,22 +399,7 @@ PlusStatus vtkImageVisualizer::SetScreenRightDownAxesOrientation( US_IMAGE_ORIEN
     return PLUS_FAIL;
   }
 
-  const char * orientationValue = "MARKED_RIGHT_FAR_DOWN";
-  switch(CurrentMarkerOrientation)
-  {
-  case US_IMG_ORIENT_MN:
-    orientationValue = "MARKED_RIGHT_FAR_UP";
-    break;
-  case US_IMG_ORIENT_MF:
-    orientationValue = "MARKED_RIGHT_FAR_DOWN";
-    break;
-  case US_IMG_ORIENT_UF:
-    orientationValue = "MARKED_LEFT_FAR_DOWN";
-    break;
-  case US_IMG_ORIENT_UN:
-    orientationValue = "MARKED_LEFT_FAR_UP";
-    break;
-  }
+  const char * orientationValue = PlusVideoFrame::GetStringFromUsImageOrientation(aOrientation);
   renderingParameters->SetAttribute("DisplayedImageOrientation", orientationValue);
 
   return UpdateCameraPose();
@@ -479,18 +481,15 @@ PlusStatus vtkImageVisualizer::AssignDataCollector(vtkDataCollector* aCollector 
   if( aCollector != NULL )
   {
     // Store a reference to the data collector
-    this->SetDataCollector(aCollector);
-
     if (this->DataCollector->GetConnected() == false)
     {
       LOG_ERROR("Data collection not initialized or device visualization cannot be initialized unless they are connected");
       return PLUS_FAIL;
     }
 
-    vtkPlusChannel* aChannel(NULL);
-    if( this->DataCollector->GetSelectedChannel(aChannel) == PLUS_SUCCESS )
+    if( this->SelectedChannel != NULL && this->SelectedChannel->GetBrightnessOutput() != NULL )
     {
-      this->ImageActor->SetInput(this->DataCollector->GetBrightnessOutput());
+      this->ImageActor->SetInput( this->SelectedChannel->GetBrightnessOutput() );
     }
     else
     {
@@ -609,7 +608,7 @@ PlusStatus vtkImageVisualizer::UpdateScreenAlignedActors()
     return PLUS_FAIL;
   }
 
-  this->DataCollector->GetBrightnessFrameSize(dimensions);
+  this->SelectedChannel->GetBrightnessFrameSize(dimensions);
   double newPosition[3];
   double originalPosition[3];
 
@@ -706,29 +705,11 @@ PlusStatus vtkImageVisualizer::ReadConfiguration( vtkXMLDataElement* aConfig )
 
   // Displayed image orientation
   const char* orientation = xmlElement->GetAttribute("DisplayedImageOrientation");
-  US_IMAGE_ORIENTATION orientationValue = US_IMG_ORIENT_MF;
-  if (orientation != NULL)
+  US_IMAGE_ORIENTATION orientationValue = PlusVideoFrame::GetUsImageOrientationFromString(orientation);
+  if( orientationValue == US_IMG_ORIENT_XX )
   {
-    if( STRCASECMP(orientation, "MARKED_RIGHT_FAR_UP") == 0 )
-    {
-      orientationValue = US_IMG_ORIENT_MN;
-    }
-    else if( STRCASECMP(orientation, "MARKED_LEFT_FAR_UP") == 0 )
-    {
-      orientationValue = US_IMG_ORIENT_UN;
-    }
-    else if( STRCASECMP(orientation, "MARKED_RIGHT_FAR_DOWN") == 0 )
-    {
-      // Nothing to do, but don't want to hit else case below
-    }
-    else if( STRCASECMP(orientation, "MARKED_LEFT_FAR_DOWN") == 0 )
-    {
-      orientationValue = US_IMG_ORIENT_UF;
-    }
-    else
-    {
-      LOG_WARNING("Field in DisplayedImageOrientation does not match any of MARKED_RIGHT_FAR_UP, MARKED_LEFT_FAR_UP, MARKED_RIGHT_FAR_DOWN, MARKED_LEFT_FAR_DOWN.");
-    }
+    LOG_WARNING("Unable to read image orientation from configuration file (Rendering tag, DisplayedImageOrientation attribute). Defauting to MF.");
+    orientationValue = US_IMG_ORIENT_MF;
   }
   this->CurrentMarkerOrientation = orientationValue;
 
@@ -737,20 +718,32 @@ PlusStatus vtkImageVisualizer::ReadConfiguration( vtkXMLDataElement* aConfig )
   if (segmentationParameters == NULL)
   {
     LOG_WARNING("No Segmentation element is found in the XML tree!");
-    RegionOfInterest[0] = RegionOfInterest[1] = RegionOfInterest[2] = RegionOfInterest[3] = -1;
+    this->RegionOfInterest[0] = this->RegionOfInterest[1] = this->RegionOfInterest[2] = this->RegionOfInterest[3] = -1;
     this->EnableROI(false);
   }
   else
   {
-    int regionOfInterest[4] = {0}; 
-    if ( segmentationParameters->GetVectorAttribute("RegionOfInterest", 4, regionOfInterest) )
+    // clipping parameters
+    int clipRectangleOrigin[2]={-1, -1};
+    if (!segmentationParameters->GetVectorAttribute("ClipRectangleOrigin", 2, clipRectangleOrigin))
     {
-      this->SetROIBounds(regionOfInterest[0], regionOfInterest[2], regionOfInterest[1], regionOfInterest[3]);
+      LOG_WARNING("Cannot find ClipRectangleOrigin attribute in the segmentation parameters section of the configuration, region of interest will not be displayed");
+    }
+    int clipRectangleSize[2]={-1, -1};
+    if (!segmentationParameters->GetVectorAttribute("ClipRectangleSize", 2, clipRectangleSize))
+    {
+      LOG_WARNING("Cannot find ClipRectangleSize attribute in the segmentation parameters section of the configuration, region of interest will not be displayed");
+    }
+    if (clipRectangleOrigin[0]>=0 && clipRectangleOrigin[1]>=0 && clipRectangleSize[0]>0 && clipRectangleSize[1]>0)
+    {
+      this->SetROIBounds(clipRectangleOrigin[0], clipRectangleOrigin[0]+clipRectangleSize[0], clipRectangleOrigin[1], clipRectangleOrigin[1]+clipRectangleSize[1]);
     } 
-    else {
-      LOG_WARNING("Cannot find RegionOfInterest attribute in the configuration. ROI will not be displayed until valid values are updated.");
+    else
+    {
+      LOG_DEBUG("Region of interest will not be displayed until valid values are specified");
       this->EnableROI(false);
     }
+     
   }
 
   if( InitializeWireLabelVisualization(aConfig) != PLUS_SUCCESS )
@@ -769,16 +762,16 @@ PlusStatus vtkImageVisualizer::SetROIBounds( int xMin, int xMax, int yMin, int y
   LOG_TRACE("vtkImageVisualizer::SetROIBounds");
 
   if (xMin > 0) {
-    RegionOfInterest[0] = xMin;
+    this->RegionOfInterest[0] = xMin;
   }
   if (xMax > 0) {
-    RegionOfInterest[1] = xMax;
+    this->RegionOfInterest[1] = xMax;
   }
   if (yMin > 0) {
-    RegionOfInterest[2] = yMin;
+    this->RegionOfInterest[2] = yMin;
   }
   if (yMax > 0) {
-    RegionOfInterest[3] = yMax;
+    this->RegionOfInterest[3] = yMax;
   }
 
   double zPos = -1.0;
@@ -788,14 +781,14 @@ PlusStatus vtkImageVisualizer::SetROIBounds( int xMin, int xMax, int yMin, int y
   }
 
   // Set line positions
-  LeftLineSource->SetPoint1(RegionOfInterest[0], RegionOfInterest[2], zPos);
-  LeftLineSource->SetPoint2(RegionOfInterest[0], RegionOfInterest[3],  zPos);
-  TopLineSource->SetPoint1(RegionOfInterest[0], RegionOfInterest[2], zPos);
-  TopLineSource->SetPoint2(RegionOfInterest[1], RegionOfInterest[2], zPos);
-  RightLineSource->SetPoint1(RegionOfInterest[1], RegionOfInterest[2], zPos);
-  RightLineSource->SetPoint2(RegionOfInterest[1], RegionOfInterest[3], zPos);
-  BottomLineSource->SetPoint1(RegionOfInterest[0], RegionOfInterest[3], zPos);
-  BottomLineSource->SetPoint2(RegionOfInterest[1], RegionOfInterest[3], zPos);
+  LeftLineSource->SetPoint1(this->RegionOfInterest[0], this->RegionOfInterest[2], zPos);
+  LeftLineSource->SetPoint2(this->RegionOfInterest[0], this->RegionOfInterest[3],  zPos);
+  TopLineSource->SetPoint1(this->RegionOfInterest[0], this->RegionOfInterest[2], zPos);
+  TopLineSource->SetPoint2(this->RegionOfInterest[1], this->RegionOfInterest[2], zPos);
+  RightLineSource->SetPoint1(this->RegionOfInterest[1], this->RegionOfInterest[2], zPos);
+  RightLineSource->SetPoint2(this->RegionOfInterest[1], this->RegionOfInterest[3], zPos);
+  BottomLineSource->SetPoint1(this->RegionOfInterest[0], this->RegionOfInterest[3], zPos);
+  BottomLineSource->SetPoint2(this->RegionOfInterest[1], this->RegionOfInterest[3], zPos);
 
   return PLUS_SUCCESS;
 }
@@ -812,7 +805,7 @@ PlusStatus vtkImageVisualizer::InitializeROIVisualization()
   vtkSmartPointer<vtkActor> leftLineActor = vtkSmartPointer<vtkActor>::New();
   vtkSmartPointer<vtkPolyDataMapper> leftLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   LeftLineSource = vtkLineSource::New();
-  leftLineActor->GetProperty()->SetColor(ROI_COLOUR);
+  leftLineActor->GetProperty()->SetColor(ROI_COLOR);
   leftLineMapper->SetInputConnection(LeftLineSource->GetOutputPort());
   leftLineActor->SetMapper(leftLineMapper);
   this->ROIActorAssembly->AddPart(leftLineActor);
@@ -820,7 +813,7 @@ PlusStatus vtkImageVisualizer::InitializeROIVisualization()
   vtkSmartPointer<vtkActor> topLineActor = vtkSmartPointer<vtkActor>::New();
   vtkSmartPointer<vtkPolyDataMapper> topLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   TopLineSource = vtkLineSource::New();
-  topLineActor->GetProperty()->SetColor(ROI_COLOUR);
+  topLineActor->GetProperty()->SetColor(ROI_COLOR);
   topLineMapper->SetInputConnection(TopLineSource->GetOutputPort());
   topLineActor->SetMapper(topLineMapper);
   this->ROIActorAssembly->AddPart(topLineActor);
@@ -828,7 +821,7 @@ PlusStatus vtkImageVisualizer::InitializeROIVisualization()
   vtkSmartPointer<vtkActor> rightLineActor = vtkSmartPointer<vtkActor>::New();
   vtkSmartPointer<vtkPolyDataMapper> rightLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   RightLineSource = vtkLineSource::New();
-  rightLineActor->GetProperty()->SetColor(ROI_COLOUR);
+  rightLineActor->GetProperty()->SetColor(ROI_COLOR);
   rightLineMapper->SetInputConnection(RightLineSource->GetOutputPort());
   rightLineActor->SetMapper(rightLineMapper);
   this->ROIActorAssembly->AddPart(rightLineActor);
@@ -836,7 +829,7 @@ PlusStatus vtkImageVisualizer::InitializeROIVisualization()
   vtkSmartPointer<vtkActor> bottomLineActor = vtkSmartPointer<vtkActor>::New();
   vtkSmartPointer<vtkPolyDataMapper> bottomLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   BottomLineSource = vtkLineSource::New();
-  bottomLineActor->GetProperty()->SetColor(ROI_COLOUR);
+  bottomLineActor->GetProperty()->SetColor(ROI_COLOR);
   bottomLineMapper->SetInputConnection(BottomLineSource->GetOutputPort());
   bottomLineActor->SetMapper(bottomLineMapper);
   this->ROIActorAssembly->AddPart(bottomLineActor);
@@ -854,16 +847,17 @@ PlusStatus vtkImageVisualizer::EnableROI( bool aEnable )
 {
   LOG_TRACE("vtkImageVisualizer::EnableROI");
 
-  if( RegionOfInterest[0] == -1  || RegionOfInterest[1] == -1  || RegionOfInterest[2] == -1  || RegionOfInterest[3] == -1)
+  if (aEnable) 
   {
-    LOG_WARNING("Invalid ROI defined. Check configuration or define valid ROI.");
-    return PLUS_FAIL;
-  }
-
-  if (aEnable) {
+    if( this->RegionOfInterest[0] == -1  || this->RegionOfInterest[1] == -1  || this->RegionOfInterest[2] == -1  || this->RegionOfInterest[3] == -1)
+    {
+      LOG_WARNING("Valid ROI is not defined. Check configuration or define valid ROI (Segmentation element, ClipRectangleOrigin and ClipRectangleSize attributes)");
+      return PLUS_FAIL;
+    }
     ROIActorAssembly->VisibilityOn();
   } 
-  else {
+  else 
+  {
     ROIActorAssembly->VisibilityOff();
   }
 
@@ -954,7 +948,7 @@ PlusStatus vtkImageVisualizer::InitializeWireLabelVisualization(vtkXMLDataElemen
 
           // Since the internal orientation is always MF, display the indicators for MF in all cases
           vtkSmartPointer<vtkTextActor3D> textActor = vtkSmartPointer<vtkTextActor3D>::New();
-          textActor->GetTextProperty()->SetColor(RESULT_SPHERE_COLOUR);
+          textActor->GetTextProperty()->SetColor(RESULT_SPHERE_COLOR);
           textActor->GetTextProperty()->SetFontFamilyToArial();
           textActor->GetTextProperty()->SetFontSize(16);
           textActor->GetTextProperty()->SetJustificationToLeft();

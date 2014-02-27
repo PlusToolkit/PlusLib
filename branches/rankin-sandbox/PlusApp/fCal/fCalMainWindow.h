@@ -9,18 +9,18 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "ui_fCalMainWindow.h"
+#include "vtkPlusDeviceTypes.h"
 #include <QtGui/QMainWindow>
 
-class vtkVisualizationController;
-class vtkPlusDevice;
-class vtkPlusChannel;
 class AbstractToolbox;
-class StatusIcon;
-
+class QCustomAction;
 class QLabel;
 class QProgressBar;
 class QTimer;
-class QCustomAction;
+class StatusIcon;
+class vtkPlusChannel;
+class vtkPlusDevice;
+class vtkVisualizationController;
 
 //-----------------------------------------------------------------------------
 
@@ -33,7 +33,8 @@ enum ToolboxType
   ToolboxType_TemporalCalibration,
   ToolboxType_SpatialCalibration,
   ToolboxType_Capturing,
-  ToolboxType_VolumeReconstruction
+  ToolboxType_VolumeReconstruction,
+  ToolboxType_Count,
 };
 
 //-----------------------------------------------------------------------------
@@ -173,6 +174,13 @@ public:
   /*! Dynamically build the devices menu based on the values returned from the data collector */
   void BuildChannelMenu();
 
+  /*! Accessors for selected channel functionality */
+  void SetSelectedChannel(vtkPlusChannel* aChannel);
+  vtkPlusChannel* GetSelectedChannel(){ return m_SelectedChannel; }
+
+  /* Control the behaviour of the status icon */
+  void SetStatusIconMaxMessageCount(int count);
+
 protected:
   /*!
   * Create toolboxes
@@ -223,7 +231,7 @@ protected:
     /*!
     * Activate a certain device
     */
-    void ChannelSelected(vtkPlusDevice* aDevice, vtkPlusChannel* aChannel);
+    void ChannelSelected(vtkPlusChannel* aChannel);
 
     /*!
     * Resize event handler
@@ -320,6 +328,9 @@ protected:
 
   /*! Reference to all actions that will show up in ROI list */
   std::vector<QCustomAction*> m_3DActionList;
+
+  /*! Selected channel */
+  vtkPlusChannel* m_SelectedChannel;
 
 private:
   Ui::fCalMainWindow	ui;

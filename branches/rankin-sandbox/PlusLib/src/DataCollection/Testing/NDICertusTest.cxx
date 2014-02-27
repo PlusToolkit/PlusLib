@@ -96,338 +96,335 @@ program description.
 *****************************************************************/
 int main( int argc, unsigned char *argv[] )
 {
-	char
-		pszLogFileName[] = "CfgLog.txt",
-		szNDErrorString[MAX_ERROR_STRING_LENGTH + 1];
-	unsigned int
-		uFrameCnt,
-		uFrameNumber,
-		uElements,
-		uFlags;
-	static Position3d
-		p3dData[NUM_MARKERS];
+  char
+    pszLogFileName[] = "CfgLog.txt",
+    szNDErrorString[MAX_ERROR_STRING_LENGTH + 1];
+  unsigned int
+    uFrameCnt,
+    uFrameNumber,
+    uElements,
+    uFlags;
+  static Position3d
+    p3dData[NUM_MARKERS];
 
-	fprintf( stdout, "Determining system configuration using system.nif.\n" );
+  std::cout << "Determining system configuration using system.nif." << std::endl;
 
-	/*
-	* Determine the system configuration in the default manner
-	* without any error logging. This writes the file system.nif
-	* in the standard ndigital directory.
-	*/
+  /*
+  * Determine the system configuration in the default manner
+  * without any error logging. This writes the file system.nif
+  * in the standard ndigital directory.
+  */
 
-	/*
-	* Set optional processing flags (this overides the settings in Optotrak.INI).
-	*/
-	fprintf( stdout, "...OptotrakSetProcessingFlags\n" );
-	if( OptotrakSetProcessingFlags( OPTO_LIB_POLL_REAL_DATA |
-		OPTO_CONVERT_ON_HOST |
-		OPTO_RIGID_ON_HOST ) )
-	{
-		goto ERROR_EXIT;
-	} /* if */
+  /*
+  * Set optional processing flags (this overides the settings in Optotrak.INI).
+  */
+  std::cout << "...OptotrakSetProcessingFlags" << std::endl;
 
-	fprintf( stdout, "...TransputerDetermineSystemCfg\n" );
-	if( TransputerDetermineSystemCfg( NULL ) )
-	{
-		fprintf( stderr, "Error in determining the system parameters.\n" );
-		goto ERROR_EXIT;
-	} /* if */
+  if( OptotrakSetProcessingFlags( OPTO_LIB_POLL_REAL_DATA |
+    OPTO_CONVERT_ON_HOST |
+    OPTO_RIGID_ON_HOST ) )
+  {
+    goto ERROR_EXIT;
+  } /* if */
 
-	vtkAccurateTimer::Delay(1); 
+  std::cout << "...TransputerDetermineSystemCfg" << std::endl;
+  if( TransputerDetermineSystemCfg( NULL ) )
+  {
+    std::cerr <<  "Error in determining the system parameters." << std::endl;
+    goto ERROR_EXIT;
+  } /* if */
 
-	/*
-	* Load the system of processors.
-	*/
-	fprintf( stdout, "...TransputerLoadSystem\n" );
-	if( TransputerLoadSystem( "system" ) != OPTO_NO_ERROR_CODE )
-	{
-		goto ERROR_EXIT;
-	} /* if */
+  vtkAccurateTimer::Delay(1); 
 
-	/*
-	* Wait one second to let the system finish loading.
-	*/
-	vtkAccurateTimer::Delay(1); 
+  /*
+  * Load the system of processors.
+  */
+  std::cout << "...TransputerLoadSystem" << std::endl;
+  if( TransputerLoadSystem( "system" ) != OPTO_NO_ERROR_CODE )
+  {
+    goto ERROR_EXIT;
+  } /* if */
 
-	/*
-	* Initialize the processors system.
-	*/
-	fprintf( stdout, "...TransputerInitializeSystem\n" );
-	if( TransputerInitializeSystem( OPTO_LOG_ERRORS_FLAG | OPTO_LOG_MESSAGES_FLAG ) )
-	{
-		goto ERROR_EXIT;
-	} /* if */
+  /*
+  * Wait one second to let the system finish loading.
+  */
+  vtkAccurateTimer::Delay(1); 
 
-	/*
-	* Load the standard camera parameters.
-	*/
-	fprintf( stdout, "...OptotrakLoadCameraParameters\n" );
-	if( OptotrakLoadCameraParameters( "standard" ) )
-	{
-		goto ERROR_EXIT;
-	} /* if */
+  /*
+  * Initialize the processors system.
+  */
+  std::cout << "...TransputerInitializeSystem" << std::endl;
+  if( TransputerInitializeSystem( OPTO_LOG_ERRORS_FLAG | OPTO_LOG_MESSAGES_FLAG ) )
+  {
+    goto ERROR_EXIT;
+  } /* if */
 
-	/*
-	* Set up a collection for the Optotrak.
-	*/
-	fprintf( stdout, "...OptotrakSetupCollection\n" );
-	if( OptotrakSetupCollection(
-		NUM_MARKERS,    /* Number of markers in the collection. */
-		(float)100.0,   /* Frequency to collect data frames at. */
-		(float)2500.0,  /* Marker frequency for marker maximum on-time. */
-		30,             /* Dynamic or Static Threshold value to use. */
-		160,            /* Minimum gain code amplification to use. */
-		0,              /* Stream mode for the data buffers. */
-		(float)0.35,    /* Marker Duty Cycle to use. */
-		(float)7.0,     /* Voltage to use when turning on markers. */
-		(float)1.0,     /* Number of seconds of data to collect. */
-		(float)0.0,     /* Number of seconds to pre-trigger data by. */
-		OPTOTRAK_NO_FIRE_MARKERS_FLAG | OPTOTRAK_BUFFER_RAW_FLAG | OPTOTRAK_GET_NEXT_FRAME_FLAG ) )
-	{
-		goto ERROR_EXIT;
-	} /* if */
+  /*
+  * Load the standard camera parameters.
+  */
+  std::cout << "...OptotrakLoadCameraParameters" << std::endl;
+  if( OptotrakLoadCameraParameters( "standard" ) )
+  {
+    goto ERROR_EXIT;
+  } /* if */
 
-	/*
-	* Wait one second to let the camera adjust.
-	*/
-	vtkAccurateTimer::Delay(1); 
+  /*
+  * Set up a collection for the Optotrak.
+  */
+  std::cout << "...OptotrakSetupCollection" << std::endl;
+  if( OptotrakSetupCollection(
+    NUM_MARKERS,    /* Number of markers in the collection. */
+    (float)100.0,   /* Frequency to collect data frames at. */
+    (float)2500.0,  /* Marker frequency for marker maximum on-time. */
+    30,             /* Dynamic or Static Threshold value to use. */
+    160,            /* Minimum gain code amplification to use. */
+    0,              /* Stream mode for the data buffers. */
+    (float)0.35,    /* Marker Duty Cycle to use. */
+    (float)7.0,     /* Voltage to use when turning on markers. */
+    (float)1.0,     /* Number of seconds of data to collect. */
+    (float)0.0,     /* Number of seconds to pre-trigger data by. */
+    OPTOTRAK_NO_FIRE_MARKERS_FLAG | OPTOTRAK_BUFFER_RAW_FLAG | OPTOTRAK_GET_NEXT_FRAME_FLAG ) )
+  {
+    goto ERROR_EXIT;
+  } /* if */
 
-	/*
-	* Activate the markers.
-	*/
-	fprintf( stdout, "...OptotrakActivateMarkers\n" );
-	if( OptotrakActivateMarkers() )
-	{
-		goto ERROR_EXIT;
-	} /* if */
-	vtkAccurateTimer::Delay(1); 
+  /*
+  * Wait one second to let the camera adjust.
+  */
+  vtkAccurateTimer::Delay(1); 
 
-	/*
-	* Get and display ten frames of 3D data.
-	*/
-	fprintf( stdout, "\n\nSample Program Results:\n\n" );
-	fprintf( stdout, "\n\n3D Data Display\n" );
-	for( uFrameCnt = 0; uFrameCnt < 10; ++uFrameCnt )
-	{
-		/*
-		* Get a frame of data.
-		*/
-		fprintf( stdout, "\n" );
-		if( DataGetLatest3D( &uFrameNumber, &uElements, &uFlags, p3dData ) )
-		{
-			goto ERROR_EXIT;
-		} /* if */
+  /*
+  * Activate the markers.
+  */
+  std::cout << "...OptotrakActivateMarkers" << std::endl;
+  if( OptotrakActivateMarkers() )
+  {
+    goto ERROR_EXIT;
+  } /* if */
+  vtkAccurateTimer::Delay(1); 
 
-		/*
-		* Print out the data.
-		*/
-		fprintf( stdout, "Frame Number: %8u\n", uFrameNumber );
-		fprintf( stdout, "Elements    : %8u\n", uElements );
-		fprintf( stdout, "Flags       : 0x%04x\n", uFlags );
-		//     for( uMarkerCnt = 0; uMarkerCnt < NUM_MARKERS; ++uMarkerCnt )
-		//     {
-		//DisplayMarker( uMarkerCnt + 1, p3dData[ uMarkerCnt] );
-		//     } /* for */
-	} /* for */
-	fprintf( stdout, "\n" );
+  /*
+  * Get and display ten frames of 3D data.
+  */
+  std::cout << std::endl << std::endl << "Sample Program Results:" << std::endl << std::endl;
+  std::cout << std::endl << std::endl << "3D Data Display" << std::endl;
+  for( uFrameCnt = 0; uFrameCnt < 10; ++uFrameCnt )
+  {
+    /*
+    * Get a frame of data.
+    */
+    std::cout << std::endl;
+    if( DataGetLatest3D( &uFrameNumber, &uElements, &uFlags, p3dData ) )
+    {
+      goto ERROR_EXIT;
+    } /* if */
 
-	/*
-	* De-activate the markers.
-	*/
-	fprintf( stdout, "...OptotrakDeActivateMarkers\n" );
-	if( OptotrakDeActivateMarkers() )
-	{
-		goto ERROR_EXIT;
-	} /* if */
+    /*
+    * Print out the data.
+    */
+    std::cout << "Frame Number: " << uFrameNumber << std::endl;
+    std::cout << "Elements    : " << uElements << std::endl;
+    std::cout << "Flags       : " << std::hex << uFlags << std::endl;
+    //     for( uMarkerCnt = 0; uMarkerCnt < NUM_MARKERS; ++uMarkerCnt )
+    //     {
+    //DisplayMarker( uMarkerCnt + 1, p3dData[ uMarkerCnt] );
+    //     } /* for */
+  } /* for */
+  std::cout << std::endl;
 
-	/*
-	* Stop the collection.
-	*/
-	fprintf( stdout, "...OptotrakStopCollection\n" );
-	OptotrakStopCollection( );
+  /*
+  * De-activate the markers.
+  */
+  std::cout << "...OptotrakDeActivateMarkers" << std::endl;
+  if( OptotrakDeActivateMarkers() )
+  {
+    goto ERROR_EXIT;
+  } /* if */
 
-	/*
-	* Shutdown the processors message passing system.
-	*/
-	fprintf( stdout, "...TransputerShutdownSystem\n" );
-	if( TransputerShutdownSystem() )
-	{
-		goto ERROR_EXIT;
-	} /* if */
+  /*
+  * Stop the collection.
+  */
+  std::cout << "...OptotrakStopCollection" << std::endl;
+  OptotrakStopCollection( );
 
-	vtkAccurateTimer::Delay(1); 
+  /*
+  * Shutdown the processors message passing system.
+  */
+  std::cout << "...TransputerShutdownSystem" << std::endl;
+  if( TransputerShutdownSystem() )
+  {
+    goto ERROR_EXIT;
+  } /* if */
 
-	/*
-	* Set the API to use internal storage for the system
-	* configuration.
-	*/
-	fprintf( stdout, "\nDetermining system configuration using internal strings.\n" );
+  vtkAccurateTimer::Delay(1); 
 
-	/*
-	* Set optional processing flags (this overides the settings in Optotrak.INI).
-	*/
-	fprintf( stdout, "...OptotrakSetProcessingFlags\n" );
-	if( OptotrakSetProcessingFlags( OPTO_USE_INTERNAL_NIF |
-		OPTO_LIB_POLL_REAL_DATA |
-		OPTO_CONVERT_ON_HOST |
-		OPTO_RIGID_ON_HOST ) )
-	{
-		goto ERROR_EXIT;
-	} /* if */
+  /*
+  * Set the API to use internal storage for the system
+  * configuration.
+  */
+  std::cout << std::endl << "Determining system configuration using internal strings." << std::endl;
+
+  /*
+  * Set optional processing flags (this overides the settings in Optotrak.INI).
+  */
+  std::cout << "...OptotrakSetProcessingFlags" << std::endl;
+  if( OptotrakSetProcessingFlags( OPTO_USE_INTERNAL_NIF |
+    OPTO_LIB_POLL_REAL_DATA |
+    OPTO_CONVERT_ON_HOST |
+    OPTO_RIGID_ON_HOST ) )
+  {
+    goto ERROR_EXIT;
+  } /* if */
 
 
-	/*
-	* Determine the system configuration again, but this time
-	* with error logging.
-	*/
-	fprintf( stdout, "...TransputerDetermineSystemCfg\n" );
-	if( TransputerDetermineSystemCfg( pszLogFileName ) )
-	{
-		fprintf( stderr, "Error in determining the system parameters.\n" );
-		goto ERROR_EXIT;
-	}
+  /*
+  * Determine the system configuration again, but this time
+  * with error logging.
+  */
+  std::cout << "...TransputerDetermineSystemCfg" << std::endl;
+  if( TransputerDetermineSystemCfg( pszLogFileName ) )
+  {
+    std::cerr << "Error in determining the system parameters." << std::endl;
+    goto ERROR_EXIT;
+  }
 
-	vtkAccurateTimer::Delay(1); 
+  vtkAccurateTimer::Delay(1); 
 
-	/*
-	* Load the system of processors.
-	*/
-	fprintf( stdout, "...TransputerLoadSystem\n" );
-	if( TransputerLoadSystem( "system" ) != OPTO_NO_ERROR_CODE )
-	{
-		goto ERROR_EXIT;
-	} /* if */
+  /*
+  * Load the system of processors.
+  */
+  std::cout << "...TransputerLoadSystem" << std::endl;
+  if( TransputerLoadSystem( "system" ) != OPTO_NO_ERROR_CODE )
+  {
+    goto ERROR_EXIT;
+  } /* if */
 
-	vtkAccurateTimer::Delay(1); 
+  vtkAccurateTimer::Delay(1); 
 
-	/*
-	* Initialize the processors system again in the usual manner.
-	*/
-	fprintf( stdout, "...TransputerInitializeSystem\n" );
-	if( TransputerInitializeSystem( OPTO_LOG_ERRORS_FLAG | OPTO_LOG_MESSAGES_FLAG ) )
-	{
-		goto ERROR_EXIT;
-	} /* if */
+  /*
+  * Initialize the processors system again in the usual manner.
+  */
+  std::cout << "...TransputerInitializeSystem" << std::endl;
+  if( TransputerInitializeSystem( OPTO_LOG_ERRORS_FLAG | OPTO_LOG_MESSAGES_FLAG ) )
+  {
+    goto ERROR_EXIT;
+  } /* if */
 
-	/*
-	* Load the standard camera parameters.
-	*/
-	fprintf( stdout, "...OptotrakLoadCameraParameters\n" );
-	if( OptotrakLoadCameraParameters( "standard" ) )
-	{
-		goto ERROR_EXIT;
-	} /* if */
+  /*
+  * Load the standard camera parameters.
+  */
+  std::cout << "...OptotrakLoadCameraParameters" << std::endl;
+  if( OptotrakLoadCameraParameters( "standard" ) )
+  {
+    goto ERROR_EXIT;
+  } /* if */
 
-	/*
-	* Set up a collection for the Optotrak.
-	*/
-	fprintf( stdout, "...OptotrakSetupCollection\n" );
-	if( OptotrakSetupCollection(
-		NUM_MARKERS,    /* Number of markers in the collection. */
-		(float)100.0,   /* Frequency to collect data frames at. */
-		(float)2500.0,  /* Marker frequency for marker maximum on-time. */
-		30,             /* Dynamic or Static Threshold value to use. */
-		160,            /* Minimum gain code amplification to use. */
-		0,              /* Stream mode for the data buffers. */
-		(float)0.35,    /* Marker Duty Cycle to use. */
-		(float)7.0,     /* Voltage to use when turning on markers. */
-		(float)1.0,     /* Number of seconds of data to collect. */
-		(float)0.0,     /* Number of seconds to pre-trigger data by. */
-		OPTOTRAK_NO_FIRE_MARKERS_FLAG | OPTOTRAK_BUFFER_RAW_FLAG | OPTOTRAK_GET_NEXT_FRAME_FLAG ) )
-	{
-		goto ERROR_EXIT;
-	} /* if */
+  /*
+  * Set up a collection for the Optotrak.
+  */
+  std::cout << "...OptotrakSetupCollection" << std::endl;
+  if( OptotrakSetupCollection(
+    NUM_MARKERS,    /* Number of markers in the collection. */
+    (float)100.0,   /* Frequency to collect data frames at. */
+    (float)2500.0,  /* Marker frequency for marker maximum on-time. */
+    30,             /* Dynamic or Static Threshold value to use. */
+    160,            /* Minimum gain code amplification to use. */
+    0,              /* Stream mode for the data buffers. */
+    (float)0.35,    /* Marker Duty Cycle to use. */
+    (float)7.0,     /* Voltage to use when turning on markers. */
+    (float)1.0,     /* Number of seconds of data to collect. */
+    (float)0.0,     /* Number of seconds to pre-trigger data by. */
+    OPTOTRAK_NO_FIRE_MARKERS_FLAG | OPTOTRAK_BUFFER_RAW_FLAG | OPTOTRAK_GET_NEXT_FRAME_FLAG ) )
+  {
+    goto ERROR_EXIT;
+  } /* if */
 
-	/*
-	* Wait one second to let the camera adjust.
-	*/
-	vtkAccurateTimer::Delay(1); 
+  /*
+  * Wait one second to let the camera adjust.
+  */
+  vtkAccurateTimer::Delay(1); 
 
-	/*
-	* Activate the markers.
-	*/
-	fprintf( stdout, "...OptotrakActivateMarkers\n" );
-	if( OptotrakActivateMarkers() )
-	{
-		goto ERROR_EXIT;
-	} /* if */
+  /*
+  * Activate the markers.
+  */
+  std::cout << "...OptotrakActivateMarkers" << std::endl;
+  if( OptotrakActivateMarkers() )
+  {
+    goto ERROR_EXIT;
+  } /* if */
 
-	vtkAccurateTimer::Delay(1); 
+  vtkAccurateTimer::Delay(1); 
 
-	/*
-	* Get and display ten frames of 3D data.
-	*/
-	fprintf( stdout, "\n\nSample Program Results:\n\n" );
-	fprintf( stdout, "\n\n3D Data Display\n" );
-	for( uFrameCnt = 0; uFrameCnt < 10; ++uFrameCnt )
-	{
-		/*
-		* Get a frame of data.
-		*/
-		fprintf( stdout, "\n" );
-		if( DataGetLatest3D( &uFrameNumber, &uElements, &uFlags, p3dData ) )
-		{
-			goto ERROR_EXIT;
-		} /* if */
+  /*
+  * Get and display ten frames of 3D data.
+  */
+  std::cout << std::endl << std::endl << "Sample Program Results:" << std::endl << std::endl;
+  std::cout << std::endl << std::endl << "3D Data Display" << std::endl;
+  for( uFrameCnt = 0; uFrameCnt < 10; ++uFrameCnt )
+  {
+    /*
+    * Get a frame of data.
+    */
+    std::cout << std::endl;
+    if( DataGetLatest3D( &uFrameNumber, &uElements, &uFlags, p3dData ) )
+    {
+      goto ERROR_EXIT;
+    } /* if */
 
-		/*
-		* Print out the data.
-		*/
-		fprintf( stdout, "Frame Number: %8u\n", uFrameNumber );
-		fprintf( stdout, "Elements    : %8u\n", uElements );
-		fprintf( stdout, "Flags       : 0x%04x\n", uFlags );
-		//     for( uMarkerCnt = 0; uMarkerCnt < NUM_MARKERS; ++uMarkerCnt )
-		//     {
-		//DisplayMarker( uMarkerCnt + 1, p3dData[ uMarkerCnt] );
-		//     } /* for */
-	} /* for */
-	fprintf( stdout, "\n" );
+    /*
+    * Print out the data.
+    */
+    std::cout << "Frame Number: " << uFrameNumber << std::endl;
+    std::cout << "Elements    : " << uElements << std::endl;
+    std::cout << "Flags       : " << std::hex << uFlags << std::endl;
+  }
+  std::cout << std::endl;
 
-	/*
-	* De-activate the markers.
-	*/
-	fprintf( stdout, "...OptotrakDeActivateMarkers\n" );
-	if( OptotrakDeActivateMarkers() )
-	{
-		goto ERROR_EXIT;
-	} /* if */
+  /*
+  * De-activate the markers.
+  */
+  std::cout << "...OptotrakDeActivateMarkers" << std::endl;
+  if( OptotrakDeActivateMarkers() )
+  {
+    goto ERROR_EXIT;
+  } /* if */
 
-	/*
-	* Stop the collection.
-	*/
-	fprintf( stdout, "...OptotrakStopCollection\n" );
-	OptotrakStopCollection( );
+  /*
+  * Stop the collection.
+  */
+  std::cout << "...OptotrakStopCollection" << std::endl;
+  OptotrakStopCollection( );
 
-	/*
-	* Shutdown the processors message passing system.
-	*/
-	fprintf( stdout, "...TransputerShutdownSystem\n" );
-	if( TransputerShutdownSystem() )
-	{
-		goto ERROR_EXIT;
-	} /* if */
+  /*
+  * Shutdown the processors message passing system.
+  */
+  std::cout << "...TransputerShutdownSystem" << std::endl;
+  if( TransputerShutdownSystem() )
+  {
+    goto ERROR_EXIT;
+  } /* if */
 
-	/*
-	* Exit the program.
-	*/
-	fprintf( stdout, "\nProgram execution complete.\n" );
-	exit( 0 );
+  /*
+  * Exit the program.
+  */
+  std::cout << std::endl << "Program execution complete." << std::endl;
+  exit( 0 );
 
 ERROR_EXIT:
-	/*
-	* Indicate that an error has occurred
-	*/
-	fprintf( stdout, "\nAn error has occurred during execution of the program.\n" );
-	if( OptotrakGetErrorString( szNDErrorString,
-		MAX_ERROR_STRING_LENGTH + 1 ) == 0 )
-	{
-		fprintf( stdout, szNDErrorString );
-	} /* if */
+  /*
+  * Indicate that an error has occurred
+  */
+  std::cout << std::endl << "An error has occurred during execution of the program." << std::endl;
+  if( OptotrakGetErrorString( szNDErrorString,
+    MAX_ERROR_STRING_LENGTH + 1 ) == 0 )
+  {
+    std::cout << szNDErrorString;
+  } /* if */
 
-	fprintf( stdout, "\n\n...TransputerShutdownSystem\n" );
-	TransputerShutdownSystem();
+  std::cout << std::endl << std::endl << "...TransputerShutdownSystem" << std::endl;
+  TransputerShutdownSystem();
 
-	return  1 ;
+  return  1 ;
 
 }
 

@@ -15,7 +15,7 @@ class VTK_EXPORT vtkICCapturingSource;
 /*!
 \class vtkICCapturingSourceCleanup 
 \brief Class that cleans up (deletes singleton instance of) vtkICCapturingSource when destroyed
-\ingroup PlusLibImageAcquisition
+\ingroup PlusLibDataCollection
 */
 class VTK_EXPORT vtkICCapturingSourceCleanup
 {
@@ -27,7 +27,7 @@ public:
 /*!
 \class vtkICCapturingSource 
 \brief Class for providing video input interfaces between VTK and ICCapturing frame grabber device
-\ingroup PlusLibImageAcquisition
+\ingroup PlusLibDataCollection
 */
 class VTK_EXPORT vtkICCapturingSource : public vtkPlusDevice
 {
@@ -57,7 +57,7 @@ public:
 
   /*! Hardware device SDK version. */
   virtual std::string GetSdkVersion();
-  /*! Read configuration from xml data */	virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  /*! Read configuration from xml data */  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
   /*! Write configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
@@ -109,6 +109,11 @@ public:
   If the ClipRectangleSize is (0,0) then the whole frame is captured.
   */
   vtkGetVector2Macro(ClipRectangleOrigin,int);
+
+  /*! Verify the device is correctly configured */
+  virtual PlusStatus NotifyConfigured();
+
+  virtual bool IsTracker() const { return false; }
 
 protected:
   /*! Constructor */

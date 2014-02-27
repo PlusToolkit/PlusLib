@@ -10,7 +10,6 @@ INCLUDE(${QT_USE_FILE})
 SET (fCal_SRCS
   fCalMain.cxx
   fCalMainWindow.cxx
-  QCustomAction.cxx
   Toolboxes/ConfigurationToolbox.cxx
   Toolboxes/CapturingToolbox.cxx
   Toolboxes/SpatialCalibrationToolbox.cxx
@@ -23,12 +22,12 @@ SET (fCal_SRCS
 if (WIN32)  
   SET (fCal_SRCS
     ${fCal_SRCS}
+    fCal.rc
     )
 endif (WIN32)  
 
 SET (fCal_UI_HDRS
     fCalMainWindow.h
-    QCustomAction.h
     Toolboxes/AbstractToolbox.h
     Toolboxes/ConfigurationToolbox.h
     Toolboxes/CapturingToolbox.h
@@ -81,7 +80,7 @@ SET (fCal_LIBS
     ${QT_LIBRARIES} 
     CommonWidgets
     vtkPlusCommon
-    ITKIO
+    ${ITK_LIBRARIES}
     itkvnl 
     itkvnl_algo 
     vtkCommon 
@@ -94,7 +93,7 @@ SET (fCal_LIBS
     )
 
 IF (PLUS_USE_OpenIGTLink)
-    SET (fCal_LIBS ${fCal_LIBS} OpenIGTLink)
+  SET (fCal_LIBS ${fCal_LIBS} OpenIGTLink)
 ENDIF(PLUS_USE_OpenIGTLink)
 
 ADD_EXECUTABLE( fCal MACOSX_BUNDLE ${fCal_SRCS} ${fCal_UI_HDRS} ${fCal_QT_UI_Headers} ${fCal_QT_UI_Headers} ${fCal_QT_MOC_Files} ${fCal_QT_MOC_UI_Files} ${fCal_QT_RCC_Files})
@@ -105,14 +104,10 @@ TARGET_LINK_LIBRARIES( fCal QVTK ${fCal_LIBS} )
 # Install
 #
 IF(PLUSAPP_INSTALL_BIN_DIR)
-# show up in the Start Menu in Windows
-if( WIN32 AND NOT UNIX )
-    SET(CPACK_PACKAGE_EXECUTABLES "fCal" "fCal")
-endif()
 
-INSTALL(TARGETS fCal 
-  DESTINATION ${PLUSAPP_INSTALL_BIN_DIR}
-  COMPONENT RuntimeLibraries
-  )
-  
+  INSTALL(TARGETS fCal 
+    DESTINATION ${PLUSAPP_INSTALL_BIN_DIR}
+    COMPONENT RuntimeLibraries
+    )
+
 ENDIF(PLUSAPP_INSTALL_BIN_DIR)

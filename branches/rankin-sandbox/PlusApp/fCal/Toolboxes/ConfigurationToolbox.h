@@ -16,6 +16,7 @@ See License.txt for details.
 
 class DeviceSetSelectorWidget;
 class ToolStateDisplayWidget;
+class vtkPlusChannel;
 
 //-----------------------------------------------------------------------------
 
@@ -43,12 +44,17 @@ public:
   /*!
   * Initialize toolbox
   */
-  void OnActivated();
+  virtual void OnActivated();
+
+  /*!
+  * Finalize toolbox
+  */
+  virtual void OnDeactivated();
 
   /*!
   * Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function
   */
-  void RefreshContent();
+  virtual void RefreshContent();
 
   /*!
   * Refresh contents if tool display is detached
@@ -59,6 +65,9 @@ public:
   * Sets display mode (visibility of actors) according to the current state - implementation of a pure virtual function
   */
   void SetDisplayAccordingToState();
+
+  /*! Update the toolstate display widget because the channel changed */
+  void ChannelChanged(vtkPlusChannel& aChannel);
 
 protected:
   /*!
@@ -77,6 +86,9 @@ protected:
   * \return if you want to filter the event out, i.e. stop it being handled further, return true; otherwise return false
   */
   bool eventFilter(QObject *obj, QEvent *ev);
+
+  /*! Select the channel */
+  PlusStatus SelectChannel(vtkPlusChannel*& aChannel, vtkXMLDataElement* fCalElement);
 
 signals:
   /*!

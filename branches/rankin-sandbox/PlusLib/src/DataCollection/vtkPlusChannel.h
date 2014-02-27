@@ -10,6 +10,7 @@
 #include "PlusConfigure.h"
 #include "vtkDataObject.h"
 #include "vtkPlusDevice.h"
+#include "vtkRfProcessor.h"
 
 class vtkPlusDevice;
 
@@ -23,17 +24,22 @@ class vtkPlusDevice;
 class VTK_EXPORT vtkPlusChannel : public vtkDataObject
 {
 public:
+  typedef std::map< std::string, std::string > CustomAttributeMap;
+  typedef CustomAttributeMap::iterator CustomAttributeMapIterator;
+  typedef CustomAttributeMap::const_iterator CustomAttributeMapConstIterator;
+
+public:
   static vtkPlusChannel *New();
   vtkTypeRevisionMacro(vtkPlusChannel, vtkObject);
 
   /*!
     Parse the XML, read the details about the stream
   */
-  PlusStatus ReadConfiguration(vtkXMLDataElement* aChannelElement);
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* aChannelElement, bool RequireRfElementInDeviceSetConfiguration, bool RequireImageOrientationInChannelConfiguration );
   /*!
     Write the details about the stream to XML
   */
-  PlusStatus WriteConfiguration(vtkXMLDataElement* aChannelElement);
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* aChannelElement);
 
   PlusStatus GetVideoSource( vtkPlusDataSource*& aVideoSource );
   PlusStatus GetVideoSource( vtkPlusDataSource*& aVideoSource ) const;
@@ -55,6 +61,12 @@ public:
   bool GetTrackingEnabled() const;
   bool GetVideoEnabled() const;
 
+  /*! Make a request for the latest image frame */
+  vtkImageData* GetBrightnessOutput();
+
+  /*! Return the dimensions of the brightness frame size */
+  PlusStatus GetBrightnessFrameSize(int aDim[2]);
+
   /*! Get the first active tool object */
   PlusStatus GetFirstActiveTool(vtkPlusDataSource*& aTool); 
 
@@ -70,24 +82,18 @@ public:
 
   /*!
     Get the tracked frame list from devices since time specified
-    \param aTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp. Out parameter - changed to timestamp of last added frame
+    \param aTimestampOfLastFrameAlreadyGot Used for preventing returning the same frame multiple times. In: the timestamp of the timestamp that has been already returned in previous GetTrackedFrameListSampled calls. If no frames have got yet then set it to UNDEFINED_TIMESTAMP. Out: the timestamp of the most recent frame that is returned.
+    \param aTimestampOfNextFrameToBeAdded Timestamp of the next frame that should be added. This value is increased by the multiple of aSamplingPeriodSec.
     \param aTrackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
-    \param aSamplingRateSec Sampling rate for getting the frames in seconds (timestamps are in seconds too)
+    \param aSamplingPeriodSec Sampling period time for getting the frames in seconds (timestamps are in seconds too)
     \param maxTimeLimitSec Maximum time spent in the function (in sec)
   */
-  virtual PlusStatus GetTrackedFrameListSampled(double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList, double aSamplingRateSec, double maxTimeLimitSec=-1); 
+  virtual PlusStatus GetTrackedFrameListSampled(double &aTimestampOfLastFrameAlreadyGot, double& aTimestampOfNextFrameToBeAdded, vtkTrackedFrameList* aTrackedFrameList, double aSamplingPeriodSec, double maxTimeLimitSec=-1); 
 
   PlusStatus GetTrackedFrameList( double& aTimestampFrom, vtkTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd );
 
   /*! Get the closest tracked frame timestamp to the specified time */
-  double GetClosestTrackedFrameTimestampByTime(double time);
-
-  /*! 
-    Get the tracked frame from devices by time with each tool transforms
-    \param time The closes frame to this timestamp will be retrieved
-    \param trackedFrame The output where the tracked frame information will be copied
-  */
-  virtual PlusStatus GetTrackedFrameByTime(double time, TrackedFrame* trackedFrame); 
+  virtual double GetClosestTrackedFrameTimestampByTime(double time);
 
   /*! Return the most recent synchronized timestamp in the buffers */
   virtual PlusStatus GetMostRecentTimestamp(double &ts); 
@@ -95,27 +101,47 @@ public:
   /*! Return the oldest synchronized timestamp in the buffers */
   virtual PlusStatus GetOldestTimestamp(double &ts); 
 
-  PlusStatus Clear();
+  virtual PlusStatus Clear();
 
   virtual void ShallowCopy(const vtkPlusChannel& aChannel);
 
-  PlusStatus GetLatestTimestamp(double& aTimestamp) const;
+  virtual PlusStatus GetLatestTimestamp(double& aTimestamp) const;
 
-  vtkSetObjectMacro(OwnerDevice, vtkPlusDevice);
-  vtkGetObjectMacro(OwnerDevice, vtkPlusDevice);
+  void SetOwnerDevice(vtkPlusDevice* _arg){ this->OwnerDevice = _arg; }
+  vtkPlusDevice* GetOwnerDevice() { return this->OwnerDevice; }
+
+  PlusStatus SetCustomAttribute( const std::string& attributeId, const std::string& value );
+  PlusStatus GetCustomAttribute( const std::string& attributeId, std::string& output ) const;
+  PlusStatus GetCustomAttributeMap( CustomAttributeMap& output ) const;
 
   vtkSetStringMacro(ChannelId);
   vtkGetStringMacro(ChannelId);
 
+  vtkGetObjectMacro(RfProcessor, vtkRfProcessor);
+  vtkSetObjectMacro(RfProcessor, vtkRfProcessor);
+
+  vtkSetMacro(SaveRfProcessingParameters, bool);
+
 protected:
   /*! Get number of tracked frames between two given timestamps (inclusive) */
-  int GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, double aTimestampTo);
+  virtual int GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, double aTimestampTo);
 
 protected:
   DataSourceContainer       Tools;
   vtkPlusDataSource*        VideoSource;
   vtkPlusDevice*            OwnerDevice;
   char *                    ChannelId;
+
+  /*! RF to brightness conversion */
+  vtkRfProcessor* RfProcessor;
+  vtkImageData* BlankImage;
+  StreamBufferItem BrightnessOutputTrackedFrame;
+  int BrightnessFrameSize[2];
+
+  /*! If true then RF processing parameters will be saved into the config file */
+  bool SaveRfProcessingParameters;
+
+  CustomAttributeMap CustomAttributes;
 
   vtkPlusChannel(void);
   virtual ~vtkPlusChannel(void);

@@ -645,7 +645,7 @@ void FidLineFinder::FindLinesNPoints()
             for (int f=0; f<candidatesIndex.size(); f++)
             {
               line.AddPoint(candidatesIndex[f]);
-            }			
+            }      
             line.SetStartPointIndex(currentShorterPointsLine.GetStartPointIndex());
 
 

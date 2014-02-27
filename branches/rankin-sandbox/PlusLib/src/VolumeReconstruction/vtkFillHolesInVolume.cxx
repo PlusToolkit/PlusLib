@@ -70,8 +70,8 @@ vtkStandardNewMacro(vtkFillHolesInVolume);
 
 struct FillHoleThreadFunctionInfoStruct
 {
-	vtkImageData* ReconstructedVolume;
-	vtkImageData* Accumulator;
+  vtkImageData* ReconstructedVolume;
+  vtkImageData* Accumulator;
   int Compounding;
 };
 
@@ -127,33 +127,33 @@ void FillHolesInVolumeElement::allocateGaussianMatrix()
     delete[] kernel;
   kernel = new float[size*size*size];
 
-	float range = (size-1)/2.;
-	const double Pi = 3.1415926535897932384626433832795;
+  float range = (size-1)/2.;
+  const double Pi = 3.1415926535897932384626433832795;
 
-	// divisors in the exponent
-	float divisor = stdev*stdev*2.0;
+  // divisors in the exponent
+  float divisor = stdev*stdev*2.0;
 
-	// divisor in the non-exponent
-	float termDivisor = pow(2*Pi,3./2) * pow(stdev,3);
+  // divisor in the non-exponent
+  float termDivisor = pow(2*Pi,3./2) * pow(stdev,3);
 
-	int index(0);
-	for (int z = 0; z < size; z++)
-	{
-		for (int y = 0; y < size; y++)
-		{
-			for (int x = 0; x < size; x++)
-			{
+  int index(0);
+  for (int z = 0; z < size; z++)
+  {
+    for (int y = 0; y < size; y++)
+    {
+      for (int x = 0; x < size; x++)
+      {
         double xExp = pow((double)x-range,2)/divisor;
         double yExp = pow((double)y-range,2)/divisor;
         double zExp = pow((double)z-range,2)/divisor;
         double eExp = -(xExp + yExp + zExp);
 
-				float calcVal = (1.0f)/(termDivisor)*exp(eExp);
-				kernel[index] = calcVal;
-				index++;
-			}
-		}
-	}
+        float calcVal = (1.0f)/(termDivisor)*exp(eExp);
+        kernel[index] = calcVal;
+        index++;
+      }
+    }
+  }
 
 }
 
@@ -166,28 +166,28 @@ void FillHolesInVolumeElement::allocateDistanceWeightInverse()
     delete[] kernel;
   kernel = new float[size*size*size];
 
-	float range = (size-1)/2.;
-	int index(0);
-	for (int z = 0; z < size; z++)
-	{
-		for (int y = 0; y < size; y++)
-		{
-			for (int x = 0; x < size; x++)
-			{
+  float range = (size-1)/2.;
+  int index(0);
+  for (int z = 0; z < size; z++)
+  {
+    for (int y = 0; y < size; y++)
+    {
+      for (int x = 0; x < size; x++)
+      {
         float xD = (x-range);
         float yD = (y-range);
         float zD = (z-range);
         float distance = sqrt(xD*xD+yD*yD+zD*zD); // use euclidean distance
         if (distance) { // avoid division by zero
           float invD = abs(1.0f/distance);
-  				kernel[index] = invD;
+          kernel[index] = invD;
         } else {
-  				kernel[index] = 0.0f; // center shouldn't have any weight anyway
+          kernel[index] = 0.0f; // center shouldn't have any weight anyway
         }
-				index++;
-			}
-		}
-	}
+        index++;
+      }
+    }
+  }
 
 
 }
@@ -196,55 +196,55 @@ void FillHolesInVolumeElement::allocateDistanceWeightInverse()
 
 template <class T>
 bool FillHolesInVolumeElement::applyDistanceWeightInverse(
-											  T* inputData,            // contains the dataset being interpolated between
-											  unsigned short* accData, // contains the weights of each voxel
-											  vtkIdType* inputOffsets, // contains the indexing offsets between adjacent x,y,z
-											  vtkIdType* accOffsets,
-											  const int& inputComp,	   // the component index of interest
-											  int* bounds,             // the boundaries of the thread
+                        T* inputData,            // contains the dataset being interpolated between
+                        unsigned short* accData, // contains the weights of each voxel
+                        vtkIdType* inputOffsets, // contains the indexing offsets between adjacent x,y,z
+                        vtkIdType* accOffsets,
+                        const int& inputComp,     // the component index of interest
+                        int* bounds,             // the boundaries of the thread
                         int* wholeExtent,        // the boundaries of the volume, outputExtent
-											  int* thisPixel,		       // The x,y,z coordinates of the voxel being calculated
-											  T& returnVal)            // The value of the pixel being calculated (unknown)
+                        int* thisPixel,           // The x,y,z coordinates of the voxel being calculated
+                        T& returnVal)            // The value of the pixel being calculated (unknown)
 {
 
-	// set the x, y, and z range
-	int range = (size-1)/2; // so with N = 3, our range is x-1 through x+1, and so on
-	int minX = thisPixel[0] - range;
-	int minY = thisPixel[1] - range;
-	int minZ = thisPixel[2] - range;
-	int maxX = thisPixel[0] + range;
-	int maxY = thisPixel[1] + range;
-	int maxZ = thisPixel[2] + range;
+  // set the x, y, and z range
+  int range = (size-1)/2; // so with N = 3, our range is x-1 through x+1, and so on
+  int minX = thisPixel[0] - range;
+  int minY = thisPixel[1] - range;
+  int minZ = thisPixel[2] - range;
+  int maxX = thisPixel[0] + range;
+  int maxY = thisPixel[1] + range;
+  int maxZ = thisPixel[2] + range;
 
-	double sumIntensities(0); // unsigned long because these rise in value quickly
-	double sumAccumulator(0);
-	unsigned short currentAccumulation(0);
-	int numKnownVoxels(0);
+  double sumIntensities(0); // unsigned long because these rise in value quickly
+  double sumAccumulator(0);
+  unsigned short currentAccumulation(0);
+  int numKnownVoxels(0);
 
-	for (int x = minX; x <= maxX; x++)
-	{
-		for (int y = minY; y <= maxY; y++)
-		{
-			for (int z = minZ; z <= maxZ; z++)
-			{
-				if (x <= wholeExtent[1] && x >= wholeExtent[0] &&
-					y <= wholeExtent[3] && y >= wholeExtent[2] &&
-					z <= wholeExtent[5] && z >= wholeExtent[4] ) // check bounds
-				{
-					int accIndex =   accOffsets[0]*x+  accOffsets[1]*y+  accOffsets[2]*z;
-					currentAccumulation = accData[accIndex];
-					if (currentAccumulation) { // if the accumulation buffer for the voxel is non-zero
-						int volIndex = inputOffsets[0]*x+inputOffsets[1]*y+inputOffsets[2]*z+inputComp;
-						int kerIndex = size*size*(z-minZ)+size*(y-minY)+(x-minX);
-						double weight = kernel[kerIndex];
-						sumIntensities += inputData[volIndex] * weight;
-						sumAccumulator += weight;
-						numKnownVoxels++;
-					}
-				} // end boundary check
-			} // end z loop
-		} // end y loop
-	} // end x loop
+  for (int x = minX; x <= maxX; x++)
+  {
+    for (int y = minY; y <= maxY; y++)
+    {
+      for (int z = minZ; z <= maxZ; z++)
+      {
+        if (x <= wholeExtent[1] && x >= wholeExtent[0] &&
+          y <= wholeExtent[3] && y >= wholeExtent[2] &&
+          z <= wholeExtent[5] && z >= wholeExtent[4] ) // check bounds
+        {
+          int accIndex =   accOffsets[0]*x+  accOffsets[1]*y+  accOffsets[2]*z;
+          currentAccumulation = accData[accIndex];
+          if (currentAccumulation) { // if the accumulation buffer for the voxel is non-zero
+            int volIndex = inputOffsets[0]*x+inputOffsets[1]*y+inputOffsets[2]*z+inputComp;
+            int kerIndex = size*size*(z-minZ)+size*(y-minY)+(x-minX);
+            double weight = kernel[kerIndex];
+            sumIntensities += inputData[volIndex] * weight;
+            sumAccumulator += weight;
+            numKnownVoxels++;
+          }
+        } // end boundary check
+      } // end z loop
+    } // end y loop
+  } // end x loop
 
   if (sumAccumulator == 0) { // no voxels set in the area
     returnVal = (T)0;
@@ -267,50 +267,50 @@ bool FillHolesInVolumeElement::applyDistanceWeightInverse(
 
 template <class T>
 bool FillHolesInVolumeElement::applyNearestNeighbor(
-											  T* inputData,            // contains the dataset being interpolated between
-											  unsigned short* accData, // contains the weights of each voxel
-											  vtkIdType* inputOffsets, // contains the indexing offsets between adjacent x,y,z
-											  vtkIdType* accOffsets,
-											  const int& inputComp,	   // the component index of interest
-											  int* bounds,             // the boundaries of the thread
+                        T* inputData,            // contains the dataset being interpolated between
+                        unsigned short* accData, // contains the weights of each voxel
+                        vtkIdType* inputOffsets, // contains the indexing offsets between adjacent x,y,z
+                        vtkIdType* accOffsets,
+                        const int& inputComp,     // the component index of interest
+                        int* bounds,             // the boundaries of the thread
                         int* wholeExtent,        // the boundaries of the volume, outputExtent
-											  int* thisPixel,		       // The x,y,z coordinates of the voxel being calculated
-											  T& returnVal)            // The value of the pixel being calculated (unknown)
+                        int* thisPixel,           // The x,y,z coordinates of the voxel being calculated
+                        T& returnVal)            // The value of the pixel being calculated (unknown)
 {
 
-	double sumIntensities(0); // unsigned long because these rise in value quickly
-	int sumAccumulator(0);
+  double sumIntensities(0); // unsigned long because these rise in value quickly
+  int sumAccumulator(0);
   int maxRange((size-1)/2);
   bool exit(false);
 
   for (int range = 1; range <= maxRange && !exit; range++) {
-	  int minX = thisPixel[0] - range;
-	  int minY = thisPixel[1] - range;
-	  int minZ = thisPixel[2] - range;
-	  int maxX = thisPixel[0] + range;
-	  int maxY = thisPixel[1] + range;
-	  int maxZ = thisPixel[2] + range;
-	  for (int x = minX; x <= maxX; x++)
-	  {
-		  for (int y = minY; y <= maxY; y++)
-		  {
-			  for (int z = minZ; z <= maxZ; z++)
-			  {
-				  if (x <= wholeExtent[1] && x >= wholeExtent[0] &&
-					  y <= wholeExtent[3] && y >= wholeExtent[2] &&
-					  z <= wholeExtent[5] && z >= wholeExtent[4] ) // check bounds
-				  {
-					  int accIndex =   accOffsets[0]*x+  accOffsets[1]*y+  accOffsets[2]*z;
-					  if (accData[accIndex]) { // if the accumulation buffer for the voxel is non-zero
-						  int volIndex = inputOffsets[0]*x+inputOffsets[1]*y+inputOffsets[2]*z+inputComp;
-						  sumIntensities += inputData[volIndex];
-						  sumAccumulator++;
+    int minX = thisPixel[0] - range;
+    int minY = thisPixel[1] - range;
+    int minZ = thisPixel[2] - range;
+    int maxX = thisPixel[0] + range;
+    int maxY = thisPixel[1] + range;
+    int maxZ = thisPixel[2] + range;
+    for (int x = minX; x <= maxX; x++)
+    {
+      for (int y = minY; y <= maxY; y++)
+      {
+        for (int z = minZ; z <= maxZ; z++)
+        {
+          if (x <= wholeExtent[1] && x >= wholeExtent[0] &&
+            y <= wholeExtent[3] && y >= wholeExtent[2] &&
+            z <= wholeExtent[5] && z >= wholeExtent[4] ) // check bounds
+          {
+            int accIndex =   accOffsets[0]*x+  accOffsets[1]*y+  accOffsets[2]*z;
+            if (accData[accIndex]) { // if the accumulation buffer for the voxel is non-zero
+              int volIndex = inputOffsets[0]*x+inputOffsets[1]*y+inputOffsets[2]*z+inputComp;
+              sumIntensities += inputData[volIndex];
+              sumAccumulator++;
               exit = true;
-					  }
-				  } // end boundary check
-			  } // end z loop
-		  } // end y loop
-	  } // end x loop
+            }
+          } // end boundary check
+        } // end z loop
+      } // end y loop
+    } // end x loop
   } // end range loop
 
   if (sumAccumulator == 0) { // no voxels set in the area
@@ -334,55 +334,55 @@ bool FillHolesInVolumeElement::applyNearestNeighbor(
 
 template <class T>
 bool FillHolesInVolumeElement::applyGaussian(
-											  T* inputData,            // contains the dataset being interpolated between
-											  unsigned short* accData, // contains the weights of each voxel
-											  vtkIdType* inputOffsets, // contains the indexing offsets between adjacent x,y,z
-											  vtkIdType* accOffsets,
-											  const int& inputComp,	   // the component index of interest
-											  int* bounds,             // the boundaries of the thread
+                        T* inputData,            // contains the dataset being interpolated between
+                        unsigned short* accData, // contains the weights of each voxel
+                        vtkIdType* inputOffsets, // contains the indexing offsets between adjacent x,y,z
+                        vtkIdType* accOffsets,
+                        const int& inputComp,     // the component index of interest
+                        int* bounds,             // the boundaries of the thread
                         int* wholeExtent,        // the boundaries of the volume, outputExtent
-											  int* thisPixel,		       // The x,y,z coordinates of the voxel being calculated
-											  T& returnVal)            // The value of the pixel being calculated (unknown)
+                        int* thisPixel,           // The x,y,z coordinates of the voxel being calculated
+                        T& returnVal)            // The value of the pixel being calculated (unknown)
 {
 
-	// set the x, y, and z range
-	int range = (size-1)/2; // so with N = 3, our range is x-1 through x+1, and so on
-	int minX = thisPixel[0] - range;
-	int minY = thisPixel[1] - range;
-	int minZ = thisPixel[2] - range;
-	int maxX = thisPixel[0] + range;
-	int maxY = thisPixel[1] + range;
-	int maxZ = thisPixel[2] + range;
+  // set the x, y, and z range
+  int range = (size-1)/2; // so with N = 3, our range is x-1 through x+1, and so on
+  int minX = thisPixel[0] - range;
+  int minY = thisPixel[1] - range;
+  int minZ = thisPixel[2] - range;
+  int maxX = thisPixel[0] + range;
+  int maxY = thisPixel[1] + range;
+  int maxZ = thisPixel[2] + range;
 
-	double sumIntensities(0); // unsigned long because these rise in value quickly
-	double sumAccumulator(0);
-	unsigned short currentAccumulation(0);
-	int numKnownVoxels(0);
+  double sumIntensities(0); // unsigned long because these rise in value quickly
+  double sumAccumulator(0);
+  unsigned short currentAccumulation(0);
+  int numKnownVoxels(0);
 
-	for (int x = minX; x <= maxX; x++)
-	{
-		for (int y = minY; y <= maxY; y++)
-		{
-			for (int z = minZ; z <= maxZ; z++)
-			{
-				if (x <= wholeExtent[1] && x >= wholeExtent[0] &&
-					y <= wholeExtent[3] && y >= wholeExtent[2] &&
-					z <= wholeExtent[5] && z >= wholeExtent[4] ) // check bounds
-				{
-					int accIndex =   accOffsets[0]*x+  accOffsets[1]*y+  accOffsets[2]*z;
-					currentAccumulation = accData[accIndex];
-					if (currentAccumulation) { // if the accumulation buffer for the voxel is non-zero
-						int volIndex = inputOffsets[0]*x+inputOffsets[1]*y+inputOffsets[2]*z+inputComp;
-						int kerIndex = size*size*(z-minZ)+size*(y-minY)+(x-minX);
-						double weight = kernel[kerIndex];
-						sumIntensities += inputData[volIndex] * weight;
-						sumAccumulator += weight;
-						numKnownVoxels++;
-					}
-				} // end boundary check
-			} // end z loop
-		} // end y loop
-	} // end x loop
+  for (int x = minX; x <= maxX; x++)
+  {
+    for (int y = minY; y <= maxY; y++)
+    {
+      for (int z = minZ; z <= maxZ; z++)
+      {
+        if (x <= wholeExtent[1] && x >= wholeExtent[0] &&
+          y <= wholeExtent[3] && y >= wholeExtent[2] &&
+          z <= wholeExtent[5] && z >= wholeExtent[4] ) // check bounds
+        {
+          int accIndex =   accOffsets[0]*x+  accOffsets[1]*y+  accOffsets[2]*z;
+          currentAccumulation = accData[accIndex];
+          if (currentAccumulation) { // if the accumulation buffer for the voxel is non-zero
+            int volIndex = inputOffsets[0]*x+inputOffsets[1]*y+inputOffsets[2]*z+inputComp;
+            int kerIndex = size*size*(z-minZ)+size*(y-minY)+(x-minX);
+            double weight = kernel[kerIndex];
+            sumIntensities += inputData[volIndex] * weight;
+            sumAccumulator += weight;
+            numKnownVoxels++;
+          }
+        } // end boundary check
+      } // end z loop
+    } // end y loop
+  } // end x loop
 
   if (sumAccumulator == 0) { // no voxels set in the area
     returnVal = (T)0;
@@ -405,55 +405,55 @@ bool FillHolesInVolumeElement::applyGaussian(
 
 template <class T>
 bool FillHolesInVolumeElement::applyGaussianAccumulation(
-											  T* inputData,            // contains the dataset being interpolated between
-											  unsigned short* accData, // contains the weights of each voxel
-											  vtkIdType* inputOffsets, // contains the indexing offsets between adjacent x,y,z
-											  vtkIdType* accOffsets,
-											  const int& inputComp,	   // the component index of interest
-											  int* bounds,             // the boundaries of the thread
+                        T* inputData,            // contains the dataset being interpolated between
+                        unsigned short* accData, // contains the weights of each voxel
+                        vtkIdType* inputOffsets, // contains the indexing offsets between adjacent x,y,z
+                        vtkIdType* accOffsets,
+                        const int& inputComp,     // the component index of interest
+                        int* bounds,             // the boundaries of the thread
                         int* wholeExtent,        // the boundaries of the volume, outputExtent
-											  int* thisPixel,		       // The x,y,z coordinates of the voxel being calculated
-											  T& returnVal)            // The value of the pixel being calculated (unknown)
+                        int* thisPixel,           // The x,y,z coordinates of the voxel being calculated
+                        T& returnVal)            // The value of the pixel being calculated (unknown)
 {
 
-	// set the x, y, and z range
-	int range = (size-1)/2; // so with N = 3, our range is x-1 through x+1, and so on
-	int minX = thisPixel[0] - range;
-	int minY = thisPixel[1] - range;
-	int minZ = thisPixel[2] - range;
-	int maxX = thisPixel[0] + range;
-	int maxY = thisPixel[1] + range;
-	int maxZ = thisPixel[2] + range;
+  // set the x, y, and z range
+  int range = (size-1)/2; // so with N = 3, our range is x-1 through x+1, and so on
+  int minX = thisPixel[0] - range;
+  int minY = thisPixel[1] - range;
+  int minZ = thisPixel[2] - range;
+  int maxX = thisPixel[0] + range;
+  int maxY = thisPixel[1] + range;
+  int maxZ = thisPixel[2] + range;
 
-	double sumIntensities(0); // unsigned long because these rise in value quickly
-	double sumAccumulator(0);
-	unsigned short currentAccumulation(0);
-	int numKnownVoxels(0);
+  double sumIntensities(0); // unsigned long because these rise in value quickly
+  double sumAccumulator(0);
+  unsigned short currentAccumulation(0);
+  int numKnownVoxels(0);
 
-	for (int x = minX; x <= maxX; x++)
-	{
-		for (int y = minY; y <= maxY; y++)
-		{
-			for (int z = minZ; z <= maxZ; z++)
-			{
-				if (x <= wholeExtent[1] && x >= wholeExtent[0] &&
-					y <= wholeExtent[3] && y >= wholeExtent[2] &&
-					z <= wholeExtent[5] && z >= wholeExtent[4] ) // check bounds
-				{
-					int accIndex =   accOffsets[0]*x+  accOffsets[1]*y+  accOffsets[2]*z;
-					currentAccumulation = accData[accIndex];
-					if (currentAccumulation) { // if the accumulation buffer for the voxel is non-zero
-						int volIndex = inputOffsets[0]*x+inputOffsets[1]*y+inputOffsets[2]*z+inputComp;
-						int kerIndex = size*size*(z-minZ)+size*(y-minY)+(x-minX);
-						double weight = currentAccumulation * kernel[kerIndex];
-						sumIntensities += inputData[volIndex] * weight;
-						sumAccumulator += weight;
-						numKnownVoxels++;
-					}
-				} // end boundary check
-			} // end z loop
-		} // end y loop
-	} // end x loop
+  for (int x = minX; x <= maxX; x++)
+  {
+    for (int y = minY; y <= maxY; y++)
+    {
+      for (int z = minZ; z <= maxZ; z++)
+      {
+        if (x <= wholeExtent[1] && x >= wholeExtent[0] &&
+          y <= wholeExtent[3] && y >= wholeExtent[2] &&
+          z <= wholeExtent[5] && z >= wholeExtent[4] ) // check bounds
+        {
+          int accIndex =   accOffsets[0]*x+  accOffsets[1]*y+  accOffsets[2]*z;
+          currentAccumulation = accData[accIndex];
+          if (currentAccumulation) { // if the accumulation buffer for the voxel is non-zero
+            int volIndex = inputOffsets[0]*x+inputOffsets[1]*y+inputOffsets[2]*z+inputComp;
+            int kerIndex = size*size*(z-minZ)+size*(y-minY)+(x-minX);
+            double weight = currentAccumulation * kernel[kerIndex];
+            sumIntensities += inputData[volIndex] * weight;
+            sumAccumulator += weight;
+            numKnownVoxels++;
+          }
+        } // end boundary check
+      } // end z loop
+    } // end y loop
+  } // end x loop
 
   if (sumAccumulator == 0) { // no voxels set in the area
     returnVal = (T)0;
@@ -515,15 +515,15 @@ void FillHolesInVolumeElement::allocateSticks() {
 
 template <class T>
 bool FillHolesInVolumeElement::applySticks(
-											  T* inputData,            // contains the dataset being interpolated between
-											  unsigned short* accData, // contains the weights of each voxel
-											  vtkIdType* inputOffsets, // contains the indexing offsets between adjacent x,y,z
-											  vtkIdType* accOffsets,
-											  const int& inputComp,	   // the component index of interest
-											  int* bounds,             // the boundaries of the thread
+                        T* inputData,            // contains the dataset being interpolated between
+                        unsigned short* accData, // contains the weights of each voxel
+                        vtkIdType* inputOffsets, // contains the indexing offsets between adjacent x,y,z
+                        vtkIdType* accOffsets,
+                        const int& inputComp,     // the component index of interest
+                        int* bounds,             // the boundaries of the thread
                         int* wholeExtent,        // the boundaries of the volume, outputExtent
-											  int* thisPixel,		       // The x,y,z coordinates of the voxel being calculated
-											  T& returnVal)            // The value of the pixel being calculated (unknown)
+                        int* thisPixel,           // The x,y,z coordinates of the voxel being calculated
+                        T& returnVal)            // The value of the pixel being calculated (unknown)
 {
   // extract coordinates
   int x(thisPixel[0]),y(thisPixel[1]),z(thisPixel[2]); // coordinates of the hole voxel
@@ -549,9 +549,9 @@ bool FillHolesInVolumeElement::applySticks(
       ytemp = ytemp + sticksList[baseStickIndex+1];
       ztemp = ztemp + sticksList[baseStickIndex+2];
       // check boundaries
-			if (xtemp > wholeExtent[1] || xtemp < wholeExtent[0] ||
-				  ytemp > wholeExtent[3] || ytemp < wholeExtent[2] ||
-				  ztemp > wholeExtent[5] || ztemp < wholeExtent[4] ) // check bounds
+      if (xtemp > wholeExtent[1] || xtemp < wholeExtent[0] ||
+        ytemp > wholeExtent[3] || ytemp < wholeExtent[2] ||
+        ztemp > wholeExtent[5] || ztemp < wholeExtent[4] ) // check bounds
         break;
       int accIndex =   accOffsets[0]*xtemp+  accOffsets[1]*ytemp+  accOffsets[2]*ztemp;
       if (accData[accIndex] != 0) { // this is a filled voxel
@@ -578,9 +578,9 @@ bool FillHolesInVolumeElement::applySticks(
       ytemp = ytemp - sticksList[baseStickIndex+1];
       ztemp = ztemp - sticksList[baseStickIndex+2];
       // check boundaries
-			if (xtemp > wholeExtent[1] || xtemp < wholeExtent[0] ||
-				  ytemp > wholeExtent[3] || ytemp < wholeExtent[2] ||
-				  ztemp > wholeExtent[5] || ztemp < wholeExtent[4] ) // check bounds
+      if (xtemp > wholeExtent[1] || xtemp < wholeExtent[0] ||
+        ytemp > wholeExtent[3] || ytemp < wholeExtent[2] ||
+        ztemp > wholeExtent[5] || ztemp < wholeExtent[4] ) // check bounds
         break;
       int accIndex =   accOffsets[0]*xtemp+  accOffsets[1]*ytemp+  accOffsets[2]*ztemp;
       if (accData[accIndex] != 0) { // this is a filled voxel
@@ -700,8 +700,8 @@ vtkFillHolesInVolume::vtkFillHolesInVolume()
 //----------------------------------------------------------------------------
 vtkFillHolesInVolume::~vtkFillHolesInVolume()
 {
-	if (HFElements != NULL)
-		delete[] HFElements;
+  if (HFElements != NULL)
+    delete[] HFElements;
 }
 
 //----------------------------------------------------------------------------
@@ -753,13 +753,13 @@ int vtkFillHolesInVolume::RequestUpdateExtent (vtkInformation* vtkNotUsed(reques
 //----------------------------------------------------------------------------
 template <class T>
 void vtkFillHolesInVolume::vtkFillHolesInVolumeExecute(vtkImageData *inVolData,
-													   T *inVolPtr, 
-													   vtkImageData *accData,
-													   unsigned short *accPtr, 
-													   vtkImageData *outData, 
-													   T *outPtr,
-													   int outExt[6], 
-													   int id)
+                             T *inVolPtr, 
+                             vtkImageData *accData,
+                             unsigned short *accPtr, 
+                             vtkImageData *outData, 
+                             T *outPtr,
+                             int outExt[6], 
+                             int id)
 {
 
   if (outData==NULL || outData->GetScalarPointer()==NULL)
@@ -778,75 +778,75 @@ void vtkFillHolesInVolume::vtkFillHolesInVolumeExecute(vtkImageData *inVolData,
     return;
   }
 
-	// get increments for volume and for accumulation buffer
+  // get increments for volume and for accumulation buffer
   vtkIdType byteIncVol[3]={0}; //x,y,z
-	outData->GetIncrements(byteIncVol[0],byteIncVol[1],byteIncVol[2]);
+  outData->GetIncrements(byteIncVol[0],byteIncVol[1],byteIncVol[2]);
   vtkIdType byteIncAcc[3]={0}; //x,y,z
-	accData->GetIncrements(byteIncAcc[0],byteIncAcc[1],byteIncAcc[2]);
+  accData->GetIncrements(byteIncAcc[0],byteIncAcc[1],byteIncAcc[2]);
 
-	// this will store the position of the pixel being looked at currently
-	int currentPos[3]; //x,y,z
+  // this will store the position of the pixel being looked at currently
+  int currentPos[3]; //x,y,z
 
-	int numVolumeComponents = outData->GetNumberOfScalarComponents() - 1; // subtract 1 because of the alpha channel
+  int numVolumeComponents = outData->GetNumberOfScalarComponents() - 1; // subtract 1 because of the alpha channel
 
   int* wholeExtent;
   wholeExtent = outData->GetExtent();
 
-	// iterate through each voxel. When the accumulation buffer is 0, fill that hole, and continue.
-	for (currentPos[2] = outExt[4]; currentPos[2] <= outExt[5]; currentPos[2]++)
-	{
-		for (currentPos[1] = outExt[2]; currentPos[1] <= outExt[3]; currentPos[1]++)
-		{
-			for (currentPos[0] = outExt[0]; currentPos[0] <= outExt[1]; currentPos[0]++)
-			{
-				// accumulator index and volume alpha index should not depend on which individual component is being interpolated
-				int accIndex = (currentPos[0]*byteIncAcc[0])+(currentPos[1]*byteIncAcc[1])+(currentPos[2]*byteIncAcc[2]);
-				int volAlphaIndex = (currentPos[0]*byteIncVol[0])+(currentPos[1]*byteIncVol[1])+(currentPos[2]*byteIncVol[2])+numVolumeComponents;
-				if (accPtr[accIndex] == 0) // if not hit by accumulation during vtkPasteSliceIntoVolume
-				{
+  // iterate through each voxel. When the accumulation buffer is 0, fill that hole, and continue.
+  for (currentPos[2] = outExt[4]; currentPos[2] <= outExt[5]; currentPos[2]++)
+  {
+    for (currentPos[1] = outExt[2]; currentPos[1] <= outExt[3]; currentPos[1]++)
+    {
+      for (currentPos[0] = outExt[0]; currentPos[0] <= outExt[1]; currentPos[0]++)
+      {
+        // accumulator index and volume alpha index should not depend on which individual component is being interpolated
+        int accIndex = (currentPos[0]*byteIncAcc[0])+(currentPos[1]*byteIncAcc[1])+(currentPos[2]*byteIncAcc[2]);
+        int volAlphaIndex = (currentPos[0]*byteIncVol[0])+(currentPos[1]*byteIncVol[1])+(currentPos[2]*byteIncVol[2])+numVolumeComponents;
+        if (accPtr[accIndex] == 0) // if not hit by accumulation during vtkPasteSliceIntoVolume
+        {
           outPtr[volAlphaIndex] = (T)0;
-					for (int c = 0; c < numVolumeComponents; c++)
-					{
+          for (int c = 0; c < numVolumeComponents; c++)
+          {
             bool result(false);
-						int volCompIndex = (currentPos[0]*byteIncVol[0])+(currentPos[1]*byteIncVol[1])+(currentPos[2]*byteIncVol[2])+c;
+            int volCompIndex = (currentPos[0]*byteIncVol[0])+(currentPos[1]*byteIncVol[1])+(currentPos[2]*byteIncVol[2])+c;
             for (int k = 0; k < NumHFElements; k++) // k is the index of the kernel being tried
-						{
+            {
               switch (HFElements[k].type) {
               case FillHolesInVolumeElement::HFTYPE_GAUSSIAN:
                 result = HFElements[k].applyGaussian(inVolPtr,accPtr,byteIncVol,byteIncAcc,c,outExt,wholeExtent,currentPos,outPtr[volCompIndex]);
-							  break;
+                break;
               case FillHolesInVolumeElement::HFTYPE_GAUSSIAN_ACCUMULATION:
                 result = HFElements[k].applyGaussianAccumulation(inVolPtr,accPtr,byteIncVol,byteIncAcc,c,outExt,wholeExtent,currentPos,outPtr[volCompIndex]);
-							  break;
+                break;
               case FillHolesInVolumeElement::HFTYPE_STICK:
                 result = HFElements[k].applySticks(inVolPtr,accPtr,byteIncVol,byteIncAcc,c,outExt,wholeExtent,currentPos,outPtr[volCompIndex]);
-							  break;
+                break;
               case FillHolesInVolumeElement::HFTYPE_NEAREST_NEIGHBOR:
                 result = HFElements[k].applyNearestNeighbor(inVolPtr,accPtr,byteIncVol,byteIncAcc,c,outExt,wholeExtent,currentPos,outPtr[volCompIndex]);
-							  break;
+                break;
               case FillHolesInVolumeElement::HFTYPE_DISTANCE_WEIGHT_INVERSE:
                 result = HFElements[k].applyDistanceWeightInverse(inVolPtr,accPtr,byteIncVol,byteIncAcc,c,outExt,wholeExtent,currentPos,outPtr[volCompIndex]);
-							  break;
+                break;
               }
-							if (result) {
+              if (result) {
                 outPtr[volAlphaIndex] = (T)OPAQUE_ALPHA;
-								break;
-							} // end checking interpolation success
-						}
-					} // end component loop
-				}
-				else // if hit, just use the apparent value
-				{
-					for (int c = 0; c < numVolumeComponents; c++)
-					{
-						int volCompIndex = (currentPos[0]*byteIncVol[0])+(currentPos[1]*byteIncVol[1])+(currentPos[2]*byteIncVol[2])+c;
-						outPtr[volCompIndex] = inVolPtr[volCompIndex];
-					} // end component loop
-					outPtr[volAlphaIndex] = (T)OPAQUE_ALPHA;
-				} // end accumulation check
-			} // end x loop
-		} // end y loop
-	} // end z loop
+                break;
+              } // end checking interpolation success
+            }
+          } // end component loop
+        }
+        else // if hit, just use the apparent value
+        {
+          for (int c = 0; c < numVolumeComponents; c++)
+          {
+            int volCompIndex = (currentPos[0]*byteIncVol[0])+(currentPos[1]*byteIncVol[1])+(currentPos[2]*byteIncVol[2])+c;
+            outPtr[volCompIndex] = inVolPtr[volCompIndex];
+          } // end component loop
+          outPtr[volAlphaIndex] = (T)OPAQUE_ALPHA;
+        } // end accumulation check
+      } // end x loop
+    } // end y loop
+  } // end z loop
 
 }
 
@@ -923,15 +923,15 @@ void vtkFillHolesInVolume::SetHFElement(int index, FillHolesInVolumeElement& ele
 }
 
 void vtkFillHolesInVolume::AllocateHFElements() {
-	if (HFElements != NULL) {
-		delete[] HFElements;
-		HFElements = NULL;
-	}
-	HFElements = new FillHolesInVolumeElement[NumHFElements];
+  if (HFElements != NULL) {
+    delete[] HFElements;
+    HFElements = NULL;
+  }
+  HFElements = new FillHolesInVolumeElement[NumHFElements];
 }
 
 void vtkFillHolesInVolume::SetNumHFElements(int n) {
-	NumHFElements = n;
+  NumHFElements = n;
 }
 //--------------------------------------------------------------------------------------
 

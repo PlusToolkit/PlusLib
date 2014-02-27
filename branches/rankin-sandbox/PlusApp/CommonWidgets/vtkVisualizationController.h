@@ -75,6 +75,11 @@ public:
   PlusStatus HideRenderer();
 
   /*!
+  * Forward the request to the both visualizers
+  */
+  PlusStatus AssignDataCollector(vtkDataCollector* aCollector);
+
+  /*!
   * Forward the request to the 3D visualizer
   * \param aOn Show if true, else hide
   */
@@ -220,7 +225,7 @@ public:
   PlusStatus SetVolumeMapper( vtkPolyDataMapper* aContourMapper );
 
   /*!
-  * Set the volume actor colour
+  * Set the volume actor color
   * \param r red value
   * \param g green value
   * \param b blue value
@@ -236,10 +241,11 @@ public:
   /*! Clear the transform repository */
   PlusStatus ClearTransformRepository();
 
-  /*!
-  * Reset the visualization
-  */
+  /*! Reset the visualization */
   PlusStatus Reset();
+
+  /*! Set the selected channel */
+  void SetSelectedChannel(vtkPlusChannel* aChannel);
 
 protected slots:
   /*!
@@ -321,6 +327,8 @@ protected:
 
   /*! Transform repository to store and handle all transforms */
   vtkSmartPointer<vtkTransformRepository> TransformRepository;
+
+  vtkPlusChannel* SelectedChannel;
 };
 
 #endif  // __vtkVisualizationController_h

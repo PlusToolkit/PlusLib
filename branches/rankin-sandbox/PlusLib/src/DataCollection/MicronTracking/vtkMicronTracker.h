@@ -33,7 +33,7 @@ class MicronTrackerInterface;
 /*!
   \class vtkMicronTracker
   \brief Interface class to Claron MicronTracker optical trackers
-  \ingroup PlusLibTracking
+  \ingroup PlusLibDataCollection
 */
 class VTK_EXPORT vtkMicronTracker : public vtkPlusDevice
 {
@@ -78,6 +78,8 @@ public:
   PlusStatus InternalDisconnect();
 
   MicronTrackerInterface* GetMicronTrackerInterface() { return this->MT; };
+
+  static void LogMessageCallback(int level, const char *message, void *userdata);
 
 protected:
   vtkMicronTracker();

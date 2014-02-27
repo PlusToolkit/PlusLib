@@ -1,0 +1,47 @@
+/*!
+\page Device3dConnexion 3dConnexion 3D mouse devices
+
+\par Supported hardware devices
+
+- All 3dConnexion 3D mouse models are supported
+- Tested with 3dConnexion SpaceNavigator 3D mouse
+- Link to manufacturer's website: http://www.3dconnexion.com/products/spacenavigator.html
+
+\par Installation
+
+- No need to install any driver or software. If the 3DxWare software is installed: when a window is activated then the mouse may interact with that window as well (e.g., by default tilt front/back simulates mouse wheel). To avoid this either A. uninstall 3DxWare, B. activate a window that does not respond to mouse functions, or C. disable mouse functions in the 3DxWare settings.
+- Supported on Windows only
+
+\par Configuration settings
+
+- Device type: \c 3dConnexionTracker
+- Attributes
+  - \c Mode Operation mode of the device
+    - \c MOUSE The transform is the current pose. If the mouse is released then the transforms reverts to identity.
+    - \c JOYSTICK The transform is changing while the mouse is translated or rotated. If the mouse is released then the transform kept unchanged.
+  - \c TranslationScales Sensitivity and direction of the 3 translation axes. Default: <tt>"0.001 0.001 0.001"</tt>. Higher values mean higher sensitivity. Negative values can be used for inverting axes.
+  - \c RotationScales Sensitivity and direction of the 3 rotation axes. Default: <tt>"0.001 0.001 0.001"</tt>. Higher values mean higher sensitivity. Negative values can be used for inverting axes.
+
+\par Usage in 3D Slicer
+
+- Start PlusServer
+- Select the configuration <tt>PlusServer: 3dConnexion SpaceNavigator 3D mouse</tt>
+- Click Connect
+- Start 3D Slicer
+- Go to \c OpenIGTLinkIF module
+- Click "+" to create a new connection, select the new connection, click "Client", click "Active"
+- The \c NavigatorToTracker transform is created in Slicer and it can be edited by moving the 3D mouse
+
+Settings for rotating/translating an image in the axial, sagittal, coronal slice views in 3D Slicer:
+
+    Mode="JOYSTICK" TranslationScales="-0.001 -0.001 -0.001" RotationScales="0.001 0.001 0.001"
+
+Settings for rotating/translating an object in the 3D view in 3D Slicer:
+
+    Mode="JOYSTICK" TranslationScales="-0.001 0.001 -0.001" RotationScales="-0.001 0.001 -0.001"
+
+\par Example configuration file
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_3dConnexion.xml"
+
+*/

@@ -15,7 +15,7 @@ See License.txt for details.
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusIgtlMessageCommon.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusBuffer.h"
 #include "vtksys/SystemTools.hxx"
 
 #include <vector>
@@ -37,13 +37,16 @@ vtkOpenIGTLinkVideoSource::vtkOpenIGTLinkVideoSource()
   this->NumberOfRetryAttempts = 10; 
   this->DelayBetweenRetryAttemptsSec = 0.100; // there is already a delay with a CLIENT_SOCKET_TIMEOUT_MSEC timeout, so we just add a little extra idle delay
 
-  this->RequireDeviceImageOrientationInDeviceSetConfiguration = true;
+  this->RequireImageOrientationInConfiguration = true;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
   this->RequireUsImageOrientationInDeviceSetConfiguration = true;
   this->RequireRfElementInDeviceSetConfiguration = false;
+
+  // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
+  this->StartThreadForInternalUpdates=true;
 }
 
 //----------------------------------------------------------------------------
@@ -118,12 +121,18 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalConnect()
   this->ClientSocket->SetTimeout(CLIENT_SOCKET_TIMEOUT_MSEC); 
 
   // Clear buffer on connect 
-  this->CurrentChannel->Clear();
+  if( this->OutputChannels.empty() )
+  {
+    LOG_ERROR("No output channels defined" );
+    return PLUS_FAIL;
+  }
+  vtkPlusChannel* outputChannel=this->OutputChannels[0];
+  outputChannel->Clear();
 
   // If we specified message type, try to send it to the server
   if ( this->MessageType )
   {
-    // Send clinet info request to the server
+    // Send client info request to the server
     PlusIgtlClientInfo clientInfo; 
     // Set message type
     clientInfo.IgtlMessageTypes.push_back(this->MessageType); 
@@ -185,6 +194,12 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalUpdate()
     (numOfBytesReceived = this->ClientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize()))!=0,
     this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
 
+  if( numOfBytesReceived == -1 )
+  {
+    this->ClientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
+    return PLUS_SUCCESS; 
+  }
+
   if ( numOfBytesReceived == 0 ) 
   {
     // No message received - server disconnected 
@@ -229,8 +244,8 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalUpdate()
   // for simplicity, we increase frame number always by 1.
   this->FrameNumber++;
 
-  vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  vtkPlusDataSource* aSource=NULL;
+  if( this->GetFirstActiveOutputVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source in the OpenIGTLinkVideo device.");
     return PLUS_FAIL;
@@ -245,7 +260,7 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalUpdate()
       LOG_ERROR("Invalid video frame received, cannot use it to initialize the video buffer");
       return PLUS_FAIL;
     }
-    aSource->GetBuffer()->SetPixelType( videoFrame->GetITKScalarPixelType() );  
+    aSource->GetBuffer()->SetPixelType( videoFrame->GetVTKScalarPixelType() );  
     aSource->GetBuffer()->SetFrameSize( trackedFrame.GetFrameSize() );
   }
   TrackedFrame::FieldMapType customFields=trackedFrame.GetCustomFields();
@@ -325,3 +340,21 @@ PlusStatus vtkOpenIGTLinkVideoSource::ReadConfiguration(vtkXMLDataElement* confi
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
+PlusStatus vtkOpenIGTLinkVideoSource::NotifyConfigured()
+{
+  if( this->OutputChannels.size() > 1 )
+  {
+    LOG_WARNING("vtkOpenIGTLinkVideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
+    return PLUS_FAIL;
+  }
+
+  if( this->OutputChannels.empty() )
+  {
+    LOG_ERROR("No output channels defined for vtkOpenIGTLinkVideoSource. Cannot proceed." );
+    this->SetCorrectlyConfigured(false);
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}

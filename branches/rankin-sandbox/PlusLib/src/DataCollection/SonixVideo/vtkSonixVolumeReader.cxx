@@ -130,29 +130,32 @@ PlusStatus vtkSonixVolumeReader::GenerateTrackedFrameFromSonixVolume(const char*
     // Read data from file 
     fread(dataFromFile, frameSizeInBytes, 1, fp);
 
-    PlusCommon::ITKScalarPixelType pixelType=itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;    
+    PlusCommon::VTKScalarPixelType pixelType=VTK_VOID; 
     switch (dataType)
     {
     case udtBPost:
-      pixelType=itk::ImageIOBase::UCHAR;
+      pixelType=VTK_UNSIGNED_CHAR;
       break;
     case udtRF:
-      pixelType=itk::ImageIOBase::SHORT;
+      pixelType=VTK_SHORT;
       break;
     default:
       LOG_ERROR("Uknown pixel type for data type: " << dataType);
       continue; 
     }
 
+    // If in the future sonix generates color images, we can change this to support that
+    int numberOfComponents(1);
+
     PlusVideoFrame videoFrame; 
-    if ( videoFrame.AllocateFrame(frameSize, pixelType) != PLUS_SUCCESS )
+    if ( videoFrame.AllocateFrame(frameSize, pixelType, numberOfComponents) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to allocate image data for frame #" << i); 
       continue; 
     }
 
     // Copy the frame data form file to vtkImageDataSet
-    memcpy(videoFrame.GetBufferPointer(),dataFromFile,frameSizeInBytes);
+    memcpy(videoFrame.GetScalarPointer(),dataFromFile,frameSizeInBytes);
 
     TrackedFrame trackedFrame; 
     trackedFrame.SetImageData(videoFrame); 

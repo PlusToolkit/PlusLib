@@ -32,7 +32,7 @@ This class represents a fake tracking system with tools that have
 predetermined behavior. This allows someone who doesn't have access to
 a tracking system to test code that relies on having one active.
 
-\ingroup PlusLibTracking
+\ingroup PlusLibDataCollection
 */
 class VTK_EXPORT vtkFakeTracker : public vtkPlusDevice
 {
@@ -54,6 +54,8 @@ public:
 
   /*! Set fake mode (tool info for fake tools) */
   void SetMode(FakeTrackerMode);
+
+  virtual bool IsTracker() const { return true; }
 
   /*! Set counter value used for translating landmark points */
   vtkSetMacro(Counter, int);

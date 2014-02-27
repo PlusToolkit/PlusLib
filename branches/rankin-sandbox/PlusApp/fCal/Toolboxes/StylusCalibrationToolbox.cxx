@@ -237,28 +237,34 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
         }
         if (m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->GetTransformError(stylusTipToStylusTransformName, error) == PLUS_SUCCESS)
         {
-          char stylusTipToStylusTransformErrorChars[32];
-          SNPRINTF(stylusTipToStylusTransformErrorChars, 32, "%.3lf", error);
-          errorStr = stylusTipToStylusTransformErrorChars;
+          std::stringstream ss;
+          ss << std::fixed << error;
+          errorStr = ss.str();
         }
         else
         {
           errorStr = "N/A";
         }
 
-        ui.label_State->setPaletteForegroundColor(Qt::black);
+        QPalette palette;
+        palette.setColor(ui.label_State->foregroundRole(), Qt::black);
+        ui.label_State->setPalette(palette);
         ui.label_State->setText( QString("%1 transform present.\nDate: %2, Error: %3").arg(stylusTipToStylusTransformNameStr.c_str()).arg(date.c_str()).arg(errorStr.c_str()) );
       }
       else
       {
-        ui.label_State->setPaletteForegroundColor(QColor::fromRgb(255, 128, 0));
+        QPalette palette;
+        palette.setColor(ui.label_State->foregroundRole(), QColor::fromRgb(255, 128, 0));
+        ui.label_State->setPalette(palette);
         ui.label_State->setText( QString("%1 transform is absent, calibration needs to be performed.").arg(stylusTipToStylusTransformNameStr.c_str()) );
         LOG_INFO(stylusTipToStylusTransformNameStr << " transform is absent, calibration needs to be performed.");
       }
     }
     else
     {
-      ui.label_State->setPaletteForegroundColor(QColor::fromRgb(255, 128, 0));
+      QPalette palette;
+      palette.setColor(ui.label_State->foregroundRole(), QColor::fromRgb(255, 128, 0));
+      ui.label_State->setPalette(palette);
       ui.label_State->setText( QString("Stylus calibration configuration is missing!") );
       LOG_INFO("Stylus calibration configuration is missing");
       m_State = ToolboxState_Error;
@@ -266,7 +272,9 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
   }
   else
   {
-    ui.label_State->setPaletteForegroundColor(QColor::fromRgb(255, 128, 0));
+    QPalette palette;
+    palette.setColor(ui.label_State->foregroundRole(), QColor::fromRgb(255, 128, 0));
+    ui.label_State->setPalette(palette);
     ui.label_State->setText(tr("fCal is not connected to devices. Switch to Configuration toolbox to connect."));
     LOG_INFO("fCal is not connected to devices");
     m_State = ToolboxState_Error;
@@ -388,7 +396,7 @@ void StylusCalibrationToolbox::Start()
   m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->SetPoints(resultPointsPoint);
 
   // Initialize calibration
-  m_PivotCalibration->Initialize();
+  m_PivotCalibration->RemoveAllCalibrationPoints();
 
   // Initialize stylus tool
   vtkDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetStylusModelId());
@@ -424,10 +432,10 @@ void StylusCalibrationToolbox::Stop()
     LOG_INFO("Stylus calibration successful");
 
     // Set result point
-    double stylustipPosition[3];
-    m_PivotCalibration->GetPivotPointPosition(stylustipPosition);
+    double stylustipPosition_Reference[4]={0,0,0,1};
+    m_PivotCalibration->GetPivotPointPosition_Reference(stylustipPosition_Reference);
     vtkPoints* points = m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->GetPoints();
-    points->InsertPoint(0, stylustipPosition);
+    points->InsertPoint(0, stylustipPosition_Reference);
     points->Modified();
 
     // Save result in configuration
@@ -479,10 +487,9 @@ void StylusCalibrationToolbox::AddStylusPositionToCalibration()
   if (valid)
   {
     // Assemble position string for toolbox
-    char stylusPositionChars[32];
-
-    SNPRINTF(stylusPositionChars, 32, "%.1lf X %.1lf X %.1lf", stylusToReferenceTransformMatrix->GetElement(0,3), stylusToReferenceTransformMatrix->GetElement(1,3), stylusToReferenceTransformMatrix->GetElement(2,3));
-    m_StylusPositionString = QString(stylusPositionChars);
+    std::stringstream ss;
+    ss << stylusToReferenceTransformMatrix->GetElement(0, 3) << " " << stylusToReferenceTransformMatrix->GetElement(1,3) << " " << stylusToReferenceTransformMatrix->GetElement(2,3);
+    m_StylusPositionString = QString(ss.str().c_str());
 
     // Add point to the input if fulfills the criteria
     vtkPoints* points = m_ParentMainWindow->GetVisualizationController()->GetInputPolyData()->GetPoints();
@@ -544,4 +551,11 @@ void StylusCalibrationToolbox::AddStylusPositionToCalibration()
       }
     }
   }
+}
+
+//-----------------------------------------------------------------------------
+
+void StylusCalibrationToolbox::OnDeactivated()
+{
+
 }

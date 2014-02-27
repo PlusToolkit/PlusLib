@@ -9,14 +9,23 @@ See License.txt for details.
 
 #include "vtkPlusDevice.h"
 
-class vtkPlusStreamBuffer; 
+class vtkPlusBuffer; 
 
 class VTK_EXPORT vtkSavedDataSource;
 
 /*!
 \class vtkSavedDataSource 
 \brief Class for providing VTK video input interface from sequence metafile
-\ingroup PlusLibImageAcquisition
+\ingroup PlusLibDataCollection
+
+Attributes:
+\li SequenceMetafile: source file to read the image/transform data from
+\li UseData: specifies what data to be use from the source metafile (IMAGE|IMAGE_AND_TRANSFORM|TRANSFORM)
+\li RepeatEnabled: if true then the sequence is played repeateadly (TRUE|FALSE)
+\li UseOriginalTimestamps: if true then the original timestamps (recorded originally in the source file) 
+  will be replayed exactly, otherwise only the timestamp difference will be replayed exactly, 
+  starting from the current time (TRUE|FALSE)
+
 */
 class VTK_EXPORT vtkSavedDataSource : public vtkPlusDevice
 {
@@ -63,7 +72,9 @@ public:
   vtkBooleanMacro(UseOriginalTimestamps, bool);
 
   /*! Get local video buffer */
-  vtkGetObjectMacro(LocalVideoBuffer, vtkPlusStreamBuffer); 
+  vtkGetObjectMacro(LocalVideoBuffer, vtkPlusBuffer); 
+
+  virtual bool IsTracker() const;
 
   /*!
     Perform any completion tasks once configured
@@ -103,16 +114,16 @@ protected:
   BufferItemUidType GetClosestFrameUidWithinTimeRange(double time_Local, double startTime_Local, double stopTime_Local);
 
   /*! Get local tracker buffer */
-  vtkPlusStreamBuffer* GetLocalTrackerBuffer(); 
+  vtkPlusBuffer* GetLocalTrackerBuffer(); 
 
   /*! Get the output buffer (the video buffer or the first active tool buffer of the current stream) */
-  vtkPlusStreamBuffer* GetOutputBuffer();
+  vtkPlusBuffer* GetOutputBuffer();
 
   /*! 
     Get local tracker buffer, it returns tracker buffer if the output is a tracker stream, and 
     returns the video buffer if the output is a video stream 
   */
-  vtkPlusStreamBuffer* GetLocalBuffer();
+  vtkPlusBuffer* GetLocalBuffer();
 
   void DeleteLocalBuffers(); 
 
@@ -137,10 +148,10 @@ protected:
   double LoopStopTime_Local; 
 
   /*! Local video buffer */
-  vtkPlusStreamBuffer* LocalVideoBuffer; 
+  vtkPlusBuffer* LocalVideoBuffer; 
 
   /*! Local buffer for each tracker tool, used for storing data read from sequence metafile */
-  std::map<std::string, vtkPlusStreamBuffer*> LocalTrackerBuffers; 
+  std::map<std::string, vtkPlusBuffer*> LocalTrackerBuffers; 
 
   /*! Read all the frame fields from the file and provide them in the output */
   bool UseAllFrameFields;

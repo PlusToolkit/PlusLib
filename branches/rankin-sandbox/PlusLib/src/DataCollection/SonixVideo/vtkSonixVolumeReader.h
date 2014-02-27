@@ -25,26 +25,26 @@ class vtkTrackedFrameList;
 /*!
   \class vtkSonixVolumeReader 
   \brief Reads a volume from file to tracked frame list
-  \ingroup PlusLibImageAcquisition
+  \ingroup PlusLibDataCollection
 */ 
 class VTK_EXPORT vtkSonixVolumeReader: public vtkImageAlgorithm
 {
 public:
-	vtkTypeRevisionMacro(vtkSonixVolumeReader,vtkImageAlgorithm);
-	static vtkSonixVolumeReader *New();
-	virtual void PrintSelf(ostream& os, vtkIndent indent);
+  vtkTypeRevisionMacro(vtkSonixVolumeReader,vtkImageAlgorithm);
+  static vtkSonixVolumeReader *New();
+  virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Read a volume from Ultrasonix format (.b8, .b32, .bpr, .rf) and convert it to tracked frame */
   static PlusStatus GenerateTrackedFrameFromSonixVolume(const char* volumeFileName, vtkTrackedFrameList* trackedFrameList, double acquisitionFrameRate = 10); 
 
 protected:
-	/*! Constructor */
-	vtkSonixVolumeReader();
-	/*! Destructor */
-	~vtkSonixVolumeReader();
+  /*! Constructor */
+  vtkSonixVolumeReader();
+  /*! Destructor */
+  ~vtkSonixVolumeReader();
 private:
-	vtkSonixVolumeReader(const vtkSonixVolumeReader&);
-	void operator=(const vtkSonixVolumeReader&);
+  vtkSonixVolumeReader(const vtkSonixVolumeReader&);
+  void operator=(const vtkSonixVolumeReader&);
 }; 
 
 #endif 

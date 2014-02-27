@@ -10,7 +10,7 @@ See License.txt for details.
 #include "ToolStateDisplayWidget.h"
 #include "fCalMainWindow.h"
 #include "vtkLineSource.h"
-#include "vtkPhantomRegistrationAlgo.h"
+#include "vtkPhantomLandmarkRegistrationAlgo.h"
 #include "vtkPlusChannel.h"
 #include "vtkVisualizationController.h"
 #include "vtkXMLDataElement.h"
@@ -53,8 +53,6 @@ ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, Qt
 
   // Insert widgets into placeholders
   QGridLayout* gridDeviceSetSelection = new QGridLayout(ui.deviceSetSelectionWidget);
-  gridDeviceSetSelection->setColumnStretch(1, 1);
-  gridDeviceSetSelection->setRowStretch(1, 1);
   gridDeviceSetSelection->setMargin(0);
   gridDeviceSetSelection->setSpacing(4);
   gridDeviceSetSelection->addWidget(m_DeviceSetSelectorWidget);
@@ -62,8 +60,6 @@ ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, Qt
   ui.deviceSetSelectionWidget->setLayout(gridDeviceSetSelection);
 
   QGridLayout* gridToolStateDisplay = new QGridLayout(ui.toolStateDisplayWidget);
-  gridToolStateDisplay->setColumnStretch(1, 1);
-  gridToolStateDisplay->setRowStretch(1, 1);
   gridToolStateDisplay->setMargin(0);
   gridToolStateDisplay->setSpacing(4);
   gridToolStateDisplay->addWidget(m_ToolStateDisplayWidget);
@@ -77,10 +73,10 @@ ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, Qt
   ui.comboBox_LogLevel->blockSignals(false);
 
   ui.lineEdit_EditorApplicationExecutable->setText( QDir::toNativeSeparators(QString(vtkPlusConfig::GetInstance()->GetEditorApplicationExecutable())) );
-  ui.lineEdit_ImageDirectory->setText( QDir::toNativeSeparators(QString(vtkPlusConfig::GetInstance()->GetImageDirectory())) );
+  ui.lineEdit_ImageDirectory->setText( QDir::toNativeSeparators(QString(vtkPlusConfig::GetInstance()->GetImageDirectory().c_str())) );
 
   m_LastEditorLocation = QString("C:");
-  m_LastImageDirectoryLocation = vtkPlusConfig::GetInstance()->GetImageDirectory();
+  m_LastImageDirectoryLocation = vtkPlusConfig::GetInstance()->GetImageDirectory().c_str();
 }
 
 //-----------------------------------------------------------------------------
@@ -175,8 +171,8 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
       // Create dialog
       QDialog* connectDialog = new QDialog(this, Qt::Dialog);
       connectDialog->setMinimumSize(QSize(360,80));
-      connectDialog->setCaption(tr("fCal"));
-      connectDialog->setBackgroundColor(QColor(224, 224, 224));
+      connectDialog->setWindowTitle(tr("fCal"));
+      connectDialog->setStyleSheet("QDialog { background-color: rgb(224, 224, 224); }");
 
       QLabel* connectLabel = new QLabel(QString("Connecting to devices, please wait..."), connectDialog);
       connectLabel->setFont(QFont("SansSerif", 16));
@@ -198,11 +194,22 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
       }
       else
       {
+        DeviceCollection aCollection;
+        if( this->m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetDevices(aCollection) != PLUS_SUCCESS )
+        {
+          LOG_ERROR("Unable to load the list of devices.");
+          return;
+        }
+
         // Read configuration
-        if (ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
+        if (this->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
         {
           LOG_ERROR("Failed to read fCal configuration");
         }
+
+        this->ChannelChanged(*m_ParentMainWindow->GetSelectedChannel());
+
+        m_ParentMainWindow->GetVisualizationController()->AssignDataCollector(m_ParentMainWindow->GetVisualizationController()->GetDataCollector());
 
         // Allow object visualizer to load anything it needs
         m_ParentMainWindow->GetVisualizationController()->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
@@ -211,12 +218,6 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
         m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
 
         vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
-
-        if (m_ToolStateDisplayWidget->InitializeTools(m_ParentMainWindow->GetVisualizationController()->GetDataCollector(), true))
-        {
-          ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
-          ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
-        }
 
         if (ReadAndAddPhantomWiresToVisualization() != PLUS_SUCCESS)
         {
@@ -228,42 +229,30 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
       connectDialog->done(0);
       connectDialog->hide();
       delete connectDialog;
+    }
 
-      vtkPlusChannel* aChannel(NULL);
-      if( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetSelectedChannel(aChannel) != PLUS_SUCCESS )
-      {
-        LOG_ERROR("No selected channel. Unable to determine if it has a tracker.");
-      }
-      else
-      {
-        if( aChannel != NULL && aChannel->GetOwnerDevice()->GetTrackingEnabled() )
-        {
-          m_DeviceSetSelectorWidget->ShowResetTrackerButton(aChannel->GetOwnerDevice()->IsResettable());
-        }
-      }
+    // Rebuild the devices menu to 
+    m_ParentMainWindow->BuildChannelMenu();
 
-      // Rebuild the devices menu to 
-      m_ParentMainWindow->BuildChannelMenu();
+    // Re-enable main window
+    m_ParentMainWindow->setEnabled(true);
 
-      // Re-enable main window
-      m_ParentMainWindow->setEnabled(true);
-
-      // Re-enable manipulation buttons
-      m_ParentMainWindow->Set3DManipulationMenuEnabled(true);
-      if( aChannel != NULL && aChannel->GetOwnerDevice()->GetVideoEnabled() )
-      {
-        m_ParentMainWindow->SetImageManipulationMenuEnabled(true);
-      }
+    // Re-enable manipulation buttons
+    m_ParentMainWindow->Set3DManipulationMenuEnabled(true);
+    if( m_ParentMainWindow->GetSelectedChannel() != NULL && m_ParentMainWindow->GetSelectedChannel()->GetVideoEnabled() )
+    {
+      m_ParentMainWindow->SetImageManipulationMenuEnabled(true);
     }
   }
   else // Disconnect
   {
+    m_ParentMainWindow->SetSelectedChannel(NULL);
     m_ParentMainWindow->Set3DManipulationMenuEnabled(false);
     m_ParentMainWindow->SetImageManipulationMenuEnabled(false);
 
+    m_ParentMainWindow->GetVisualizationController()->StopAndDisconnectDataCollector();
     m_ParentMainWindow->ResetShowDevices();
     m_ParentMainWindow->ResetAllToolboxes();
-    m_ParentMainWindow->GetVisualizationController()->StopAndDisconnectDataCollector();
     m_ParentMainWindow->GetVisualizationController()->Reset();
     m_ParentMainWindow->GetVisualizationController()->ClearTransformRepository();
     m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
@@ -289,8 +278,8 @@ void ConfigurationToolbox::PopOutToggled(bool aOn)
     m_ToolStatePopOutWindow = new QWidget(this, Qt::Tool);
     m_ToolStatePopOutWindow->setMinimumSize(QSize(180, m_ToolStateDisplayWidget->GetDesiredHeight()));
     m_ToolStatePopOutWindow->setMaximumSize(QSize(180, m_ToolStateDisplayWidget->GetDesiredHeight()));
-    m_ToolStatePopOutWindow->setCaption(tr("Tool state display"));
-    m_ToolStatePopOutWindow->setBackgroundColor(QColor::fromRgb(255, 255, 255));
+    m_ToolStatePopOutWindow->setWindowTitle(tr("Tool state display"));
+    m_ToolStatePopOutWindow->setStyleSheet("QWidget { background-color: rgb(255, 255, 255); }");
 
     QGridLayout* gridToolStateDisplay = new QGridLayout(m_ToolStatePopOutWindow);
     gridToolStateDisplay->setColumnStretch(1, 1);
@@ -365,7 +354,7 @@ void ConfigurationToolbox::LogLevelChanged(int aLevel)
 
   vtkPlusLogger::Instance()->SetLogLevel(aLevel+1);
 
-  LOG_INFO("Log level changed to: " << ui.comboBox_LogLevel->currentText().toAscii().data() << " (" << aLevel+1 << ")" );
+  LOG_INFO("Log level changed to: " << ui.comboBox_LogLevel->currentText().toLatin1().constData() << " (" << aLevel+1 << ")" );
 
   vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 }
@@ -385,7 +374,7 @@ void ConfigurationToolbox::SelectEditorApplicationExecutable()
 
   m_LastEditorLocation = fileName.mid(0, fileName.lastIndexOf('/'));
 
-  vtkPlusConfig::GetInstance()->SetEditorApplicationExecutable(fileName.toAscii().data());
+  vtkPlusConfig::GetInstance()->SetEditorApplicationExecutable(fileName.toLatin1().constData());
   vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 
   ui.lineEdit_EditorApplicationExecutable->setText(fileName);
@@ -406,7 +395,7 @@ void ConfigurationToolbox::SelectImageDirectory()
   m_LastImageDirectoryLocation = dirName;
 
   // Save the selected directory to config object
-  vtkPlusConfig::GetInstance()->SetImageDirectory(dirName.toAscii().data());
+  vtkPlusConfig::GetInstance()->SetImageDirectory(dirName.toLatin1().constData());
   vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 
   ui.lineEdit_ImageDirectory->setText(dirName);
@@ -424,12 +413,19 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
     return PLUS_FAIL;
   }
 
-  // Read tracker tool names
   vtkXMLDataElement* fCalElement = aConfig->FindNestedElementWithName("fCal"); 
 
-  if (fCalElement == NULL)
+  vtkPlusChannel* aChannel(NULL);
+  if( this->SelectChannel(aChannel, fCalElement) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Unable to find fCal element in XML tree!"); 
+    LOG_ERROR("Unable to select a channel.");
+    return PLUS_FAIL;
+  }
+  this->m_ParentMainWindow->SetSelectedChannel(aChannel);
+
+  if( fCalElement == NULL)
+  {
+    LOG_ERROR("Failed to find fCal configuration!");
     return PLUS_FAIL;
   }
 
@@ -481,6 +477,21 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
     return PLUS_FAIL;
   }
 
+  // Control the behaviour of the status icon
+  const char* statusIconMaxMessageCount = fCalElement->GetAttribute("MaxLogMessageCount");
+  if (statusIconMaxMessageCount != NULL)
+  {
+    int logMessageCount;
+    fCalElement->GetScalarAttribute("MaxLogMessageCount", logMessageCount);
+    m_ParentMainWindow->SetStatusIconMaxMessageCount(logMessageCount);
+  }
+  else
+  {
+    // By default show only the last few thousand messages - it should be enough, as all the messages
+    // are available in log files anyway
+    m_ParentMainWindow->SetStatusIconMaxMessageCount(3000);
+  }
+
   m_ParentMainWindow->SetTransducerOriginPixelCoordinateFrame(transducerOriginPixelCoordinateFrame);
 
   // phantom model id
@@ -526,14 +537,14 @@ PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
   LOG_TRACE("ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization"); 
 
   // Get phantom coordinate frame name
-  vtkXMLDataElement* phantomRegistrationElement = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName( vtkPhantomRegistrationAlgo::GetConfigurationElementName().c_str() ); 
+  vtkXMLDataElement* phantomRegistrationElement = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName( vtkPhantomLandmarkRegistrationAlgo::GetConfigurationElementName().c_str() ); 
   if (phantomRegistrationElement == NULL)
   {
     LOG_INFO("No phantom registration algorithm configuration are found - no phantom will be shown");
     return PLUS_SUCCESS;
   }
 
-  vtkSmartPointer<vtkPhantomRegistrationAlgo> phantomRegistration = vtkSmartPointer<vtkPhantomRegistrationAlgo>::New();
+  vtkSmartPointer<vtkPhantomLandmarkRegistrationAlgo> phantomRegistration = vtkSmartPointer<vtkPhantomLandmarkRegistrationAlgo>::New();
 
   if (phantomRegistration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
   {
@@ -589,13 +600,12 @@ PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
 }
 
 //-----------------------------------------------------------------------------
-
 void ConfigurationToolbox::ResetTracker()
 {
   if( m_DeviceSetSelectorWidget->GetConnectionSuccessful() )
   {
-    vtkPlusChannel* aChannel = NULL;
-    if( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetSelectedChannel(aChannel) != PLUS_SUCCESS )
+    vtkPlusChannel* aChannel = m_ParentMainWindow->GetSelectedChannel();
+    if( m_ParentMainWindow->GetSelectedChannel() == NULL )
     {
       LOG_ERROR("No selected channel. Unable to reset tracker.");
       return;
@@ -603,7 +613,90 @@ void ConfigurationToolbox::ResetTracker()
 
     if( aChannel != NULL )
     {
-      aChannel->GetOwnerDevice()->Reset();
+      m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->Reset();
     }
   }
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus ConfigurationToolbox::SelectChannel(vtkPlusChannel*& aChannel, vtkXMLDataElement* fCalElement)
+{
+  const char* selectedChannelId(NULL);
+  if( fCalElement != NULL )
+  {
+    // default selected device
+    selectedChannelId = fCalElement->GetAttribute("DefaultSelectedChannelId");
+  }
+
+  DeviceCollection aCollection;
+  if( this->m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetDevices(aCollection) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("No devices to choose from! Cannot update configuration toolbox to match the new channel.");
+    return PLUS_FAIL;
+  }
+
+  if( selectedChannelId == NULL )
+  {
+    for( DeviceCollectionConstIterator it = aCollection.begin(); it != aCollection.end(); ++it )
+    {
+      vtkPlusDevice* aDevice = *it;
+      if( aDevice->OutputChannelCount() > 0 )
+      {
+        aChannel = *(aDevice->GetOutputChannelsStart());
+        LOG_WARNING("No default channel selected, first channel found is now active: "<<aChannel->GetChannelId());
+        return PLUS_SUCCESS;
+      }
+    }
+  }
+  
+  if( aCollection.size() > 0 )
+  {
+    for( DeviceCollectionConstIterator it = aCollection.begin(); it != aCollection.end(); ++it )
+    {
+      vtkPlusDevice* aDevice = *it;
+      if( aDevice->GetOutputChannelByName(aChannel, selectedChannelId) == PLUS_SUCCESS )
+      {
+        return PLUS_SUCCESS;
+      }
+    }
+  }
+  else
+  {
+    LOG_ERROR("No devices in device list! Unable to select channel " << selectedChannelId);
+    return PLUS_FAIL;
+  }
+
+  // If it made it here, they've entered a default channel that doesn't exist... tsk stk
+  LOG_WARNING("DefaultSelectedChannelId: " << selectedChannelId << " is not a valid channel. Selecting first available.");
+  for( DeviceCollectionConstIterator it = aCollection.begin(); it != aCollection.end(); ++it )
+  {
+    vtkPlusDevice* aDevice = *it;
+    if( aDevice->OutputChannelCount() > 0 )
+    {
+      aChannel = *(aDevice->GetOutputChannelsStart());
+      LOG_WARNING("No default channel selected, first channel found is now active.");
+      return PLUS_SUCCESS;
+    }
+  }
+
+  LOG_ERROR("No devices have any output channels. Unable to visualize.");
+  return PLUS_FAIL;
+}
+
+//-----------------------------------------------------------------------------
+void ConfigurationToolbox::ChannelChanged( vtkPlusChannel& aChannel )
+{
+  if (m_ToolStateDisplayWidget->InitializeTools(&aChannel, true))
+  {
+    ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
+    ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
+  }
+
+  m_DeviceSetSelectorWidget->ShowResetTrackerButton(aChannel.GetOwnerDevice()->IsResettable());
+}
+
+//-----------------------------------------------------------------------------
+void ConfigurationToolbox::OnDeactivated()
+{
+
 }

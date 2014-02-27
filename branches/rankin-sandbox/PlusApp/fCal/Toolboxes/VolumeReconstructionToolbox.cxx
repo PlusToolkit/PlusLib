@@ -43,7 +43,7 @@ VolumeReconstructionToolbox::VolumeReconstructionToolbox(fCalMainWindow* aParent
   connect( ui.pushButton_Reconstruct, SIGNAL( clicked() ), this, SLOT( Reconstruct() ) );
   connect( ui.pushButton_Save, SIGNAL( clicked() ), this, SLOT( Save() ) );
 
-  m_LastSaveLocation = vtkPlusConfig::GetInstance()->GetImageDirectory();
+  m_LastSaveLocation = vtkPlusConfig::GetInstance()->GetImageDirectory().c_str();
 }
 
 //-----------------------------------------------------------------------------
@@ -150,21 +150,25 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
       }
       if (m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->GetTransformError(imageToProbeTransformName, error) == PLUS_SUCCESS)
       {
-        char imageToProbeTransformErrorChars[32];
-        SNPRINTF(imageToProbeTransformErrorChars, 32, "%.3lf", error);
-        errorStr = imageToProbeTransformErrorChars;
+        std::stringstream ss;
+        ss << std::fixed << error;
+        errorStr = ss.str();
       }
       else
       {
         errorStr = "N/A";
       }
 
-      ui.label_State->setPaletteForegroundColor(Qt::black);
+      QPalette palette;
+      palette.setColor(ui.label_State->foregroundRole(), Qt::black);
+      ui.label_State->setPalette(palette);
       ui.label_State->setText( QString("%1 transform present, ready for volume reconstruction. \nDate: %2, Error: %3").arg(imageToProbeTransformNameStr.c_str()).arg(date.c_str()).arg(errorStr.c_str()) );
     }
     else
     {
-      ui.label_State->setPaletteForegroundColor(QColor::fromRgb(255, 128, 0));
+      QPalette palette;
+      palette.setColor(ui.label_State->foregroundRole(), QColor::fromRgb(255, 128, 0));
+      ui.label_State->setPalette(palette);
       ui.label_State->setText( QString("%1 transform is absent, spatial calibration needs to be performed or imported.").arg(imageToProbeTransformNameStr.c_str()) );
       LOG_INFO(imageToProbeTransformNameStr << " transform is absent, spatial calibration needs to be performed or imported.");
       m_State = ToolboxState_Uninitialized;
@@ -172,7 +176,9 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
   }
   else
   {
-    ui.label_State->setPaletteForegroundColor(QColor::fromRgb(255, 128, 0));
+    QPalette palette;
+    palette.setColor(ui.label_State->foregroundRole(), QColor::fromRgb(255, 128, 0));
+    ui.label_State->setPalette(palette);
     ui.label_State->setText( QString("fCal configuration element does not contain both ImageCoordinateFrame and ProbeCoordinateFrame attributes!") );
     LOG_INFO("fCal configuration element does not contain both ImageCoordinateFrame and ProbeCoordinateFrame attributes");
     m_State = ToolboxState_Uninitialized;
@@ -255,17 +261,18 @@ void VolumeReconstructionToolbox::OpenVolumeReconstructionConfig()
 
   // File open dialog for selecting phantom definition xml
   QString filter = QString( tr( "XML files ( *.xml );;" ) );
-  QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open volume reconstruction configuration XML" ) ), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory(), filter);
+  QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open volume reconstruction configuration XML" ) ), 
+    vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory().c_str(), filter);
   if (fileName.isNull())
   {
     return;
   }
 
   // Parse XML file
-  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(fileName.toAscii().data()));
+  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(fileName.toLatin1().constData()));
   if (rootElement == NULL)
   {
-    LOG_ERROR("Unable to read the configuration file: " << fileName.toAscii().data()); 
+    LOG_ERROR("Unable to read the configuration file: " << fileName.toLatin1().constData()); 
     return;
   }
 
@@ -274,7 +281,7 @@ void VolumeReconstructionToolbox::OpenVolumeReconstructionConfig()
   {
     m_VolumeReconstructionConfigFileLoaded = false;
 
-    LOG_ERROR("Failed to import volume reconstruction settings from " << fileName.toAscii().data());
+    LOG_ERROR("Failed to import volume reconstruction settings from " << fileName.toLatin1().constData());
     return;
   }
 
@@ -282,7 +289,7 @@ void VolumeReconstructionToolbox::OpenVolumeReconstructionConfig()
 
   SetState(ToolboxState_Idle);
 
-  LOG_INFO("Volume reconstruction configuration imported in volume reconstruction toolbox from file '" << fileName.toAscii().data() << "'");
+  LOG_INFO("Volume reconstruction configuration imported in volume reconstruction toolbox from file '" << fileName.toLatin1().constData() << "'");
 }
 
 //-----------------------------------------------------------------------------
@@ -308,7 +315,7 @@ void VolumeReconstructionToolbox::OpenInputImage()
 
   SetState(ToolboxState_Idle);
 
-  LOG_INFO("Input image '" << fileName.toAscii().data() << "' opened");
+  LOG_INFO("Input image '" << fileName.toLatin1().constData() << "' opened");
 }
 
 //-----------------------------------------------------------------------------
@@ -350,8 +357,8 @@ void VolumeReconstructionToolbox::Save()
 
     QApplication::restoreOverrideCursor();
 
-    LOG_INFO("Reconstructed volume saved into file '" << fileName.toAscii().data() << "'");
-  }  
+    LOG_INFO("Reconstructed volume saved into file '" << fileName.toLatin1().constData() << "'");
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -389,15 +396,15 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
     {
       imageFileNameIndex = ui.comboBox_InputImage->currentIndex();
     }
-
     trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-    if (trackedFrameList->ReadFromSequenceMetafile( m_ImageFileNames.at( imageFileNameIndex ) ) != PLUS_SUCCESS)
+    if (trackedFrameList->ReadFromSequenceMetafile( m_ImageFileNames.at( imageFileNameIndex ).toLatin1().constData() ) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to load input image file!");
       return PLUS_FAIL;
     }
   }
 
+  
   m_ParentMainWindow->SetStatusBarText(QString(" Reconstructing volume ..."));
   m_ParentMainWindow->SetStatusBarProgress(0);
   RefreshContent();
@@ -478,12 +485,12 @@ void VolumeReconstructionToolbox::DisplayReconstructedVolume()
 
 PlusStatus VolumeReconstructionToolbox::SaveVolumeToFile(QString aOutput)
 {
-  LOG_TRACE("VolumeReconstructionToolbox::SaveVolumeToFile(" << aOutput.toAscii().data() << ")"); 
+  LOG_TRACE("VolumeReconstructionToolbox::SaveVolumeToFile(" << aOutput.toLatin1().constData() << ")"); 
 
   // Write out to file
   if (aOutput.right(3).toLower() == QString("vtk"))
   {
-    if (m_VolumeReconstructor->SaveReconstructedVolumeToVtkFile(aOutput.toLatin1()) != PLUS_SUCCESS)
+    if (m_VolumeReconstructor->SaveReconstructedVolumeToVtkFile(aOutput.toLatin1().constData()) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to save reconstructed volume in VTK file!");
       return PLUS_FAIL;
@@ -491,7 +498,7 @@ PlusStatus VolumeReconstructionToolbox::SaveVolumeToFile(QString aOutput)
   }
   else if (aOutput.right(3).toLower() == QString("mha"))
   {
-    if (m_VolumeReconstructor->SaveReconstructedVolumeToMetafile(aOutput.toLatin1()) != PLUS_SUCCESS)
+    if (m_VolumeReconstructor->SaveReconstructedVolumeToMetafile(aOutput.toLatin1().constData()) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to save reconstructed volume in sequence metafile!");
       return PLUS_FAIL;
@@ -512,7 +519,7 @@ PlusStatus VolumeReconstructionToolbox::SaveVolumeToFile(QString aOutput)
 
 void VolumeReconstructionToolbox::AddImageFileName(QString aImageFileName)
 {
-  LOG_TRACE("VolumeReconstructionToolbox::AddImageFileName(" << aImageFileName.toAscii().data() << ")");
+  LOG_TRACE("VolumeReconstructionToolbox::AddImageFileName(" << aImageFileName.toLatin1().constData() << ")");
 
   m_ImageFileNames.append(aImageFileName);
 }
@@ -612,4 +619,11 @@ void VolumeReconstructionToolbox::Reset()
   }
   m_VolumeReconstructor = vtkVolumeReconstructor::New();
   m_ReconstructedVolume = vtkImageData::New();
+}
+
+//-----------------------------------------------------------------------------
+
+void VolumeReconstructionToolbox::OnDeactivated()
+{
+
 }

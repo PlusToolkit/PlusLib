@@ -21,7 +21,7 @@ class TrackedFrame;
 
 This class talks with CMS and CIVCO brachy steppers
 
-\ingroup PlusLibTracking
+\ingroup PlusLibDataCollection
 */
 class VTK_EXPORT vtkBrachyTracker : public vtkPlusDevice
 {
@@ -98,6 +98,8 @@ public:
 
   /*! Get stepper encoder values from the tracked frame */
   static PlusStatus GetStepperEncoderValues( TrackedFrame* trackedFrame, double &probePosition, double &probeRotation, double &templatePosition); 
+
+  virtual bool IsTracker() const { return true; }
 
   /*! Get the a string (perhaps a long one) describing the type and version of the device. */
   vtkGetStringMacro(ModelVersion);
@@ -178,7 +180,7 @@ public:
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
 
   /*! Write BrachyStepper configuration to xml data */
-  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
 protected:
   vtkBrachyTracker();

@@ -16,7 +16,8 @@ See License.txt for details.
 #include "VolumeReconstructionToolbox.h"
 #include "fCalMainWindow.h"
 #include "vtkRenderWindow.h"
-#include "vtkVirtualStreamMixer.h"
+#include "vtkVirtualDiscCapture.h"
+#include "vtkVirtualMixer.h"
 #include "vtkVisualizationController.h"
 #include <QFileDialog>
 #include <QLabel>
@@ -43,6 +44,10 @@ fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WFlags flags)
 , m_ShowPoints(false)
 , m_ForceShowAllDevicesIn3D(false)
 , m_ShowOrientationMarkerAction(NULL)
+, m_ShowROIAction(NULL)
+, m_Show3DObjectsAction(NULL)
+, m_ShowPhantomModelAction(NULL)
+, m_SelectedChannel(NULL)
 {
   // Set up UI
   ui.setupUi(this);
@@ -178,7 +183,7 @@ void fCalMainWindow::CreateToolboxes()
   LOG_TRACE("fCalMainWindow::CreateToolboxes");
 
   // Resize toolbox list to the number of toolboxes
-  m_ToolboxList.resize(7);
+  m_ToolboxList.resize(ToolboxType_Count);
 
   // Configuration widget
   ConfigurationToolbox* configurationToolbox = new ConfigurationToolbox(this);
@@ -255,7 +260,7 @@ void fCalMainWindow::CreateToolboxes()
     grid->setRowStretch(1, 1);
     grid->setMargin(5);
     grid->setSpacing(0);
-    grid->setName("");
+    grid->setObjectName("");
     grid->addWidget(spatialCalibrationToolbox);
     ui.toolbox_SpatialCalibration->setLayout(grid);
   }
@@ -305,6 +310,11 @@ void fCalMainWindow::CurrentToolboxChanged(int aToolboxIndex)
 {
   LOG_TRACE("fCalMainWindow::CurrentToolboxChanged(" << aToolboxIndex << ")");
 
+  if( m_ActiveToolbox >= 0 )
+  {
+    m_ToolboxList[m_ActiveToolbox]->OnDeactivated();
+  }
+
   // Initialize new toolbox
   QString currentToolboxText = ui.toolbox->itemText( aToolboxIndex );
   if (currentToolboxText == QString("Configuration"))
@@ -344,7 +354,7 @@ void fCalMainWindow::CurrentToolboxChanged(int aToolboxIndex)
   m_ToolboxList[m_ActiveToolbox]->OnActivated();
   m_ToolboxList[m_ActiveToolbox]->SetDisplayAccordingToState();
 
-  LOG_INFO("Toolbox changed to " << currentToolboxText.toLatin1().data());
+  LOG_INFO("Toolbox changed to " << currentToolboxText.toLatin1().constData());
 }
 
 //-----------------------------------------------------------------------------
@@ -485,7 +495,7 @@ bool fCalMainWindow::eventFilter(QObject *obj, QEvent *ev)
         {
           menu = new QMenu(tr("Options"), ui.pushButton_Tools);
           menu->addActions(ui.pushButton_Tools->actions());
-          menu->move( QPoint( ui.pushButton_Tools->x(), ui.pushButton_Tools->y() + 23 ) );
+          menu->move( QPoint( ui.pushButton_Tools->x() + 10, ui.pushButton_Tools->y() + 33 ) );
         }
       }
       else if( obj == ui.pushButton_ImageOrientation )
@@ -494,7 +504,7 @@ bool fCalMainWindow::eventFilter(QObject *obj, QEvent *ev)
         {
           return true;
         }
-        menu = new QMenu(tr("Actions"), ui.pushButton_ImageOrientation);
+        menu = new QMenu(tr("Orientations"), ui.pushButton_ImageOrientation);
         for( std::vector<QCustomAction*>::iterator it = m_ImageManipulationActionList.begin(); it != m_ImageManipulationActionList.end(); ++it )
         {
           QCustomAction* action = (*it);
@@ -507,7 +517,7 @@ bool fCalMainWindow::eventFilter(QObject *obj, QEvent *ev)
             menu->addAction(action);
           }
         }
-        menu->move( QPoint( ui.pushButton_ImageOrientation->x(), ui.pushButton_ImageOrientation->y() + 23 ) );
+        menu->move( QPoint( ui.pushButton_ImageOrientation->x() + 10, ui.pushButton_ImageOrientation->y() + 33 ) );
       }
       else
       {
@@ -515,7 +525,7 @@ bool fCalMainWindow::eventFilter(QObject *obj, QEvent *ev)
         {
           return true;
         }
-        menu = new QMenu(tr("Actions"), ui.pushButton_ShowDevices);
+        menu = new QMenu(tr("Devices"), ui.pushButton_ShowDevices);
 
         for( std::vector<QCustomAction*>::iterator it = m_3DActionList.begin(); it != m_3DActionList.end(); ++it )
         {
@@ -529,7 +539,7 @@ bool fCalMainWindow::eventFilter(QObject *obj, QEvent *ev)
             menu->addAction(action);
           }
         }
-        menu->move( QPoint( ui.pushButton_ShowDevices->x(), ui.pushButton_ShowDevices->y() + 23 ) );
+        menu->move( QPoint( ui.pushButton_ShowDevices->x() + 10, ui.pushButton_ShowDevices->y() + 33 ) );
       }
 
       menu->exec();
@@ -552,7 +562,8 @@ void fCalMainWindow::DumpBuffers()
   LOG_TRACE("fCalMainWindow::DumpBuffers");
 
   // Directory open dialog for selecting directory to save the buffers into 
-  QString dirName = QFileDialog::getExistingDirectory(NULL, QString( tr( "Open output directory for buffer dump files" ) ), vtkPlusConfig::GetInstance()->GetOutputDirectory());
+  QString dirName = QFileDialog::getExistingDirectory(NULL, QString( tr( "Open output directory for buffer dump files" ) ), 
+    vtkPlusConfig::GetInstance()->GetOutputDirectory().c_str());
 
   if( dirName == "" )
   {
@@ -560,12 +571,12 @@ void fCalMainWindow::DumpBuffers()
     return;
   }
 
-  if ( (dirName.isNull()) || (m_VisualizationController->DumpBuffersToDirectory(dirName.toAscii().data()) != PLUS_SUCCESS) )
+  if ( (dirName.isNull()) || (m_VisualizationController->DumpBuffersToDirectory(dirName.toLatin1().constData()) != PLUS_SUCCESS) )
   {
-    LOG_ERROR("Writing raw buffers into files failed (output directory: " << dirName.toAscii().data() << ")!");
+    LOG_ERROR("Writing raw buffers into files failed (output directory: " << dirName.toLatin1().constData() << ")!");
   }
 
-  LOG_INFO("Raw buffers dumped into directory '" << dirName.toAscii().data() << "'");
+  LOG_INFO("Raw buffers dumped into directory '" << dirName.toLatin1().constData() << "'");
 }
 
 //-----------------------------------------------------------------------------
@@ -787,9 +798,6 @@ void fCalMainWindow::BuildChannelMenu()
   separator = new QCustomAction("", NULL, true);
   m_3DActionList.push_back(separator);
 
-  // Determine currently selected device (if any)
-  vtkPlusChannel* selectedChannel = NULL;
-  this->GetVisualizationController()->GetDataCollector()->GetSelectedChannel(selectedChannel);
   // Determine total number of output channels
   int numChannels(0);
   for( DeviceCollectionIterator it = aCollection.begin(); it != aCollection.end(); ++it )
@@ -802,18 +810,22 @@ void fCalMainWindow::BuildChannelMenu()
   for( DeviceCollectionIterator it = aCollection.begin(); it != aCollection.end(); ++it )
   {
     vtkPlusDevice* device = *it;
+    if( dynamic_cast<vtkVirtualDiscCapture*>(device) != NULL )
+    {
+      continue;
+    }
     for( ChannelContainerIterator channelIter = device->GetOutputChannelsStart(); channelIter != device->GetOutputChannelsEnd(); ++channelIter )
     {
       vtkPlusChannel* aChannel = *channelIter;
       std::stringstream ss;
       ss << device->GetDeviceId() << " : " << aChannel->GetChannelId();
-      QCustomAction* action = new QCustomAction(QString::fromAscii(ss.str().c_str()), ui.pushButton_ShowDevices, false, device, aChannel);
+      QCustomAction* action = new QCustomAction(QString::fromAscii(ss.str().c_str()), ui.pushButton_ShowDevices, false, aChannel);
       action->setCheckable(true);
       action->setDisabled(numChannels == 1);
       vtkPlusChannel* currentChannel(NULL);
-      action->setChecked(device->GetCurrentChannel(currentChannel) == PLUS_SUCCESS && selectedChannel == currentChannel);
+      action->setChecked(this->GetSelectedChannel() == aChannel);
       connect(action, SIGNAL(triggered()), action, SLOT(activated()));
-      connect(action, SIGNAL(channelSelected(vtkPlusDevice*, vtkPlusChannel*)), this, SLOT(ChannelSelected(vtkPlusDevice*, vtkPlusChannel*)));
+      connect(action, SIGNAL(channelSelected(vtkPlusChannel*)), this, SLOT(ChannelSelected(vtkPlusChannel*)));
       m_3DActionList.push_back(action);
     }
   }
@@ -821,28 +833,68 @@ void fCalMainWindow::BuildChannelMenu()
 
 //-----------------------------------------------------------------------------
 
-void fCalMainWindow::ChannelSelected( vtkPlusDevice* aDevice, vtkPlusChannel* aChannel )
+void fCalMainWindow::ChannelSelected( vtkPlusChannel* aChannel )
 {
-  LOG_TRACE("fCalMainWindow::ChannelSelected(" << aDevice->GetDeviceId() << ", channel: " << aChannel->GetChannelId() << ")");
+  LOG_TRACE("fCalMainWindow::ChannelSelected(channel: " << aChannel->GetChannelId() << ")");
+
+  if( aChannel == this->GetSelectedChannel() )
+  {
+    this->BuildChannelMenu();
+    return;
+  }
 
   if( this->GetVisualizationController() != NULL && this->GetVisualizationController()->GetDataCollector() != NULL )
   {
-    if( this->GetVisualizationController()->GetDataCollector()->SetSelectedChannel(aDevice->GetDeviceId(), aChannel->GetChannelId()) != PLUS_SUCCESS )
-    {
-      this->GetVisualizationController()->DisconnectInput();
-      this->GetVisualizationController()->HideAll();
-      return;
-    }
+    this->SetSelectedChannel(aChannel);
   }
-  if( this->GetVisualizationController()->GetDataCollector()->GetVideoDataAvailable() )
+  if( aChannel->GetVideoDataAvailable() && aChannel->GetBrightnessOutput() != NULL )
   {
-    this->GetVisualizationController()->SetInput(this->GetVisualizationController()->GetDataCollector()->GetBrightnessOutput());
+    this->GetVisualizationController()->SetInput( aChannel->GetBrightnessOutput() );
   }
   else
   {
+    if( !aChannel->GetVideoDataAvailable() )
+    {
+      LOG_ERROR("Unable to visualize video data due to missing data.");
+    }
+    else
+    {
+      LOG_ERROR("Image data is not B-mode format.");
+    }
+
     this->GetVisualizationController()->DisconnectInput();
+    this->GetVisualizationController()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_NONE);
   }
-  this->GetVisualizationController()->Reset();
 
   this->BuildChannelMenu();
+
+  ConfigurationToolbox* aToolbox = dynamic_cast<ConfigurationToolbox*>(this->m_ToolboxList[ToolboxType_Configuration]);
+  if( aToolbox != NULL )
+  {
+    aToolbox->ChannelChanged(*aChannel); 
+  }
+  else
+  {
+    LOG_ERROR("Expecting configuration toolbox at index: " << ToolboxType_Configuration << " but didn't find it.");
+  }
+
+  this->m_ToolboxList[m_ActiveToolbox]->Reset();
+  this->m_ToolboxList[m_ActiveToolbox]->SetDisplayAccordingToState();
+}
+
+//-----------------------------------------------------------------------------
+
+void fCalMainWindow::SetSelectedChannel( vtkPlusChannel* aChannel )
+{
+  m_SelectedChannel = aChannel;
+
+  this->GetVisualizationController()->SetSelectedChannel(aChannel);
+
+  this->m_ToolboxList[m_ActiveToolbox]->SetDisplayAccordingToState();
+}
+
+//-----------------------------------------------------------------------------
+void fCalMainWindow::SetStatusIconMaxMessageCount( int count )
+{
+  this->m_StatusIcon->SetMaxMessageCount(count);
 }

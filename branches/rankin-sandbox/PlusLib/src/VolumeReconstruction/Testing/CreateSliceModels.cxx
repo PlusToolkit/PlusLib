@@ -45,12 +45,12 @@ int main( int argc, char** argv )
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
-  args.AddArgument("--image-to-reference-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &imageToReferenceTransformNameStr, "Transform name used for creating slice models");  
+  args.AddArgument("--image-to-reference-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &imageToReferenceTransformNameStr, "Image to reference transform name used for creating slice models");  
   args.AddArgument("--source-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMetaFilename, "Tracked ultrasound recorded by Plus (e.g., by the TrackedUltrasoundCapturing application) in a sequence metafile (.mha)");
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Config file used for volume reconstrucion. It contains the probe calibration matrix, the ImageToTool transform (.xml) ");
   args.AddArgument("--output-model-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputModelFilename, "A 3D model file that contains rectangles corresponding to each US image slice (.vtk)");
-	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
-  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
 
   if ( !args.Parse() )
   {
@@ -65,7 +65,7 @@ int main( int argc, char** argv )
   {
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_SUCCESS); 
-  }	
+  }  
 
   if ( inputMetaFilename.empty() )
   {
@@ -86,6 +86,20 @@ int main( int argc, char** argv )
   LOG_DEBUG("Reading input done.");
   LOG_DEBUG("Number of frames: " << trackedFrameList->GetNumberOfTrackedFrames());
 
+  // Get the image size from the trackedFrameList header (so that we can create models without having
+  // access to the image data)
+  int clipRectangleOrigin[2]={0,0};
+  std::istringstream issDimSize(trackedFrameList->GetCustomString("DimSize")); // DimSize = 640 480 567
+  int clipRectangleSize[2]={0,0};
+  issDimSize >> clipRectangleSize[0];
+  issDimSize >> clipRectangleSize[1];
+  if (clipRectangleSize[0]<=0 || clipRectangleSize[1]<=0)
+  {
+    LOG_ERROR("Invalid frame size: "<<clipRectangleSize[0]<<"x"<<clipRectangleSize[1]);
+    clipRectangleSize[0]=0;
+    clipRectangleSize[1]=0;
+  }
+
   // Read calibration matrices from the config file
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
   if ( !inputConfigFileName.empty() )
@@ -99,6 +113,18 @@ int main( int argc, char** argv )
     {
       LOG_ERROR("Failed to read transforms for transform repository!"); 
       return EXIT_FAILURE; 
+    }
+    int* clipRectangleOriginInConfig=reconstructor->GetClipRectangleOrigin();
+    if (clipRectangleOriginInConfig!=NULL && clipRectangleOriginInConfig[0]>=0 && clipRectangleOriginInConfig[1]>=0)
+    {
+      clipRectangleOrigin[0]=clipRectangleOriginInConfig[0];
+      clipRectangleOrigin[1]=clipRectangleOriginInConfig[1];
+    }
+    int* clipRectangleSizeInConfig=reconstructor->GetClipRectangleSize();
+    if (clipRectangleSizeInConfig!=NULL && clipRectangleSizeInConfig[0]>=0 && clipRectangleSizeInConfig[1]>=0)
+    {
+      clipRectangleSize[0]=clipRectangleSizeInConfig[0];
+      clipRectangleSize[1]=clipRectangleSizeInConfig[1];
     }
   }
   else
@@ -142,10 +168,9 @@ int main( int argc, char** argv )
     vtkSmartPointer< vtkTransform > imageToReferenceTransform = vtkSmartPointer< vtkTransform >::New();
     imageToReferenceTransform->SetMatrix( imageToReferenceTransformMatrix );    
 
-    int* frameSize = frame->GetFrameSize();
-
     vtkSmartPointer< vtkTransform > tCubeToImage = vtkSmartPointer< vtkTransform >::New();
-    tCubeToImage->Scale( frameSize[ 0 ], frameSize[ 1 ], 1 );
+    tCubeToImage->Translate( clipRectangleOrigin[ 0 ], clipRectangleOrigin[ 1 ], 1 );
+    tCubeToImage->Scale( clipRectangleSize[ 0 ], clipRectangleSize[ 1 ], 1 );
     tCubeToImage->Translate( 0.5, 0.5, 0.5 );  // Moving the corner to the origin.
 
     vtkSmartPointer< vtkTransform > tCubeToTracker = vtkSmartPointer< vtkTransform >::New();

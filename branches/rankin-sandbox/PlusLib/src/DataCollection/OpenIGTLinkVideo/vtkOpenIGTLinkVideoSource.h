@@ -19,7 +19,7 @@ class VTK_EXPORT vtkOpenIGTLinkVideoSource;
 
   vtkOpenIGTLinkVideoSource is a class for providing video input interfaces between VTK and OpenIGTLink ready video device. 
 
-  \ingroup PlusLibImageAcquisition
+  \ingroup PlusLibDataCollection
 */ 
 class VTK_EXPORT vtkOpenIGTLinkVideoSource : public vtkPlusDevice
 {
@@ -54,6 +54,11 @@ public:
   /*! Get IGTL CRC check flag (0: disabled, 1: enabled) */ 
   vtkGetMacro(IgtlMessageCrcCheckEnabled, int);
 
+  /*! Verify the device is correctly configured */
+  virtual PlusStatus NotifyConfigured();
+
+  virtual bool IsTracker() const { return false; }
+
 protected:
   /*! Constructor */
   vtkOpenIGTLinkVideoSource();
@@ -73,7 +78,7 @@ protected:
   virtual PlusStatus InternalStartRecording(); 
 
   /*! The internal function which actually does the grab.  */
-	PlusStatus InternalUpdate();
+  PlusStatus InternalUpdate();
 
   /*! OpenIGTLink message type */
   char* MessageType; 

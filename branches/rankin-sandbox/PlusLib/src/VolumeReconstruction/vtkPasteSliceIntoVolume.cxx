@@ -683,7 +683,7 @@ int vtkPasteSliceIntoVolume::SplitSliceExtent(int splitExt[6], int fullExt[6], i
 
 //****************************************************************************
 
-char* vtkPasteSliceIntoVolume::GetInterpolationModeAsString(InterpolationType type)
+const char* vtkPasteSliceIntoVolume::GetInterpolationModeAsString(InterpolationType type)
 {
   switch (type)
   {
@@ -695,7 +695,7 @@ char* vtkPasteSliceIntoVolume::GetInterpolationModeAsString(InterpolationType ty
   }
 }
 
-char* vtkPasteSliceIntoVolume::GetOutputScalarModeAsString(int type)
+const char* vtkPasteSliceIntoVolume::GetOutputScalarModeAsString(int type)
 {
   switch (type)
   {
@@ -720,7 +720,7 @@ char* vtkPasteSliceIntoVolume::GetOutputScalarModeAsString(int type)
   }
 }
 
-char* vtkPasteSliceIntoVolume::GetCalculationModeAsString(CalculationType type)
+const char* vtkPasteSliceIntoVolume::GetCalculationModeAsString(CalculationType type)
 {
   switch (type)
   {
@@ -732,7 +732,7 @@ char* vtkPasteSliceIntoVolume::GetCalculationModeAsString(CalculationType type)
   }
 }
 
-char* vtkPasteSliceIntoVolume::GetOptimizationModeAsString(OptimizationType type)
+const char* vtkPasteSliceIntoVolume::GetOptimizationModeAsString(OptimizationType type)
 {
   switch (type)
   {

@@ -37,7 +37,7 @@ class vtkWin32VideoSource2Internal;
   if your program leaked, due to exit crashes that was removed.
 
   \sa vtkPlusDevice vtkMILVideoSource2 vtkWin32VideoSource
-  \ingroup PlusLibImageAcquisition
+  \ingroup PlusLibDataCollection
 */ 
 class VTK_EXPORT vtkWin32VideoSource2 : public vtkPlusDevice
 {
@@ -71,7 +71,12 @@ public:
   void OnParentWndDestroy();
 
   /*! Adds a frame to the frame buffer. Called whenever the driver notified a new frame acquisition. Public to allow calling from static function. */
-	PlusStatus AddFrameToBuffer(void *lpVideoHeader);
+  PlusStatus AddFrameToBuffer(void *lpVideoHeader);
+
+  /*! Verify the device is correctly configured */
+  virtual PlusStatus NotifyConfigured();
+
+  virtual bool IsTracker() const { return false; }
 
 protected:
 
@@ -81,16 +86,16 @@ protected:
   ~vtkWin32VideoSource2();
 
   /*! Device-specific connect */
-	virtual PlusStatus InternalConnect();
+  virtual PlusStatus InternalConnect();
 
   /*! Device-specific disconnect */
-	virtual PlusStatus InternalDisconnect();
+  virtual PlusStatus InternalDisconnect();
 
   /*! Device-specific recording start */
-	virtual PlusStatus InternalStartRecording();
+  virtual PlusStatus InternalStartRecording();
 
   /*! Device-specific recording stop */
-	virtual PlusStatus InternalStopRecording();
+  virtual PlusStatus InternalStopRecording();
 
   /*!
     The internal function which actually grabs one frame.
@@ -109,9 +114,6 @@ protected:
   int FrameIndex;
 
   vtkWin32VideoSource2Internal *Internal;
-
-  /*! Update the capture settings to match the buffer format */
-  PlusStatus SetCaptureSettings(int widh, int height);
 
   /*! Update the buffer format to match the capture settings */
   PlusStatus UpdateFrameBuffer();

@@ -10,14 +10,15 @@ See License.txt for details.
 
 //----------------------------------------------------------------------------
 // Virtual devices
-#include "vtkVirtualStreamMixer.h"
-#include "vtkVirtualStreamSwitcher.h"
-#include "vtkVirtualStreamDiscCapture.h"
+#include "vtkVirtualMixer.h"
+#include "vtkVirtualSwitcher.h"
+#include "vtkVirtualDiscCapture.h"
+#include "vtkVirtualVolumeReconstructor.h"
 
 //----------------------------------------------------------------------------
 // Tracker devices
 #include "vtkPlusDataSource.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusBuffer.h"
 #ifdef PLUS_USE_OpenIGTLink
 #include "vtkOpenIGTLinkTracker.h" 
 #endif
@@ -44,7 +45,7 @@ See License.txt for details.
 #endif
 #include "vtkFakeTracker.h"
 #include "vtkChRoboticsTracker.h"
-#ifdef WIN32
+#ifdef PLUS_USE_3dConnexion_TRACKER
   // 3dConnexion tracker is supported on Windows only
   #include "vtk3dConnexionTracker.h"
 #endif
@@ -54,32 +55,35 @@ See License.txt for details.
 #include "vtkSavedDataSource.h"
 #include "vtkUsSimulatorVideoSource.h"
 
-//#ifdef PLUS_USE_MATROX_IMAGING
-//#include "vtkMILVideoSource2.h"
-//#endif
-
-#ifdef WIN32
 #ifdef PLUS_USE_VFW_VIDEO
 #include "vtkWin32VideoSource2.h"
 #endif
-//#else
-//#ifdef USE_LINUX_VIDEO
-//#include "vtkV4L2VideoSource2.h"
-//#endif
 
+#ifdef PLUS_USE_MMF_VIDEO
+#include "vtkMmfVideoSource.h"
 #endif
+
 #ifdef PLUS_USE_ULTRASONIX_VIDEO
 #include "vtkSonixVideoSource.h"
 #include "vtkSonixPortaVideoSource.h"
 #endif
 
 #ifdef PLUS_USE_BKPROFOCUS_VIDEO
-#include "vtkBkProFocusVideoSource.h"
+#include "vtkBkProFocusOemVideoSource.h"
+#ifdef PLUS_USE_BKPROFOCUS_CAMERALINK
+  #include "vtkBkProFocusCameraLinkVideoSource.h"
 #endif
+#endif
+
 
 #ifdef PLUS_USE_ICCAPTURING_VIDEO
 #include "vtkICCapturingSource.h"
 #endif
+
+#ifdef PLUS_USE_INTERSON_VIDEO
+#include "vtkIntersonVideoSource.h"
+#endif
+
 
 #ifdef PLUS_USE_OpenIGTLink
 #include "vtkOpenIGTLinkVideoSource.h"
@@ -100,7 +104,7 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
 {
   DeviceTypes["FakeTracker"]=(PointerToDevice)&vtkFakeTracker::New; 
   DeviceTypes["ChRobotics"]=(PointerToDevice)&vtkChRoboticsTracker::New; 
-#ifdef WIN32
+#ifdef PLUS_USE_3dConnexion_TRACKER
   // 3dConnexion tracker is supported on Windows only
   DeviceTypes["3dConnexion"]=(PointerToDevice)&vtk3dConnexionTracker::New; 
 #endif
@@ -115,8 +119,6 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
 #endif
 #ifdef PLUS_USE_POLARIS
   DeviceTypes["PolarisTracker"]=(PointerToDevice)&vtkNDITracker::New; 
-#endif
-#ifdef PLUS_USE_POLARIS
   DeviceTypes["AuroraTracker"]=(PointerToDevice)&vtkNDITracker::New; 
 #endif
 #ifdef PLUS_USE_MICRONTRACKER  
@@ -143,28 +145,35 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
   DeviceTypes["SonixPortaVideo"]=(PointerToDevice)&vtkSonixPortaVideoSource::New; 
 #endif 
 #ifdef PLUS_USE_BKPROFOCUS_VIDEO
-  DeviceTypes["BkProFocus"]=(PointerToDevice)&vtkBkProFocusVideoSource::New; 
-#endif 
-#ifdef PLUS_USE_MATROX_IMAGING
-  DeviceTypes["MatroxImaging"]=(PointerToDevice)&vtkMILVideoSource2::New; 
+  DeviceTypes["BkProFocusOem"]=(PointerToDevice)&vtkBkProFocusOemVideoSource::New; 
+  #ifdef PLUS_USE_BKPROFOCUS_CAMERALINK
+    DeviceTypes["BkProFocusCameraLink"]=(PointerToDevice)&vtkBkProFocusCameraLinkVideoSource::New; 
+    DeviceTypes["BkProFocus"]=(PointerToDevice)&vtkBkProFocusCameraLinkVideoSource::New;  // for backward compatibility only
+  #endif 
 #endif 
 #ifdef PLUS_USE_VFW_VIDEO
   DeviceTypes["VFWVideo"]=(PointerToDevice)&vtkWin32VideoSource2::New; 
 #endif 
+#ifdef PLUS_USE_MMF_VIDEO
+  DeviceTypes["MmfVideo"]=(PointerToDevice)&vtkMmfVideoSource::New; 
+#endif 
 #ifdef PLUS_USE_ICCAPTURING_VIDEO
   DeviceTypes["ICCapturing"]=(PointerToDevice)&vtkICCapturingSource::New; 
 #endif 
-#ifdef PLUS_USE_LINUX_VIDEO
-  DeviceTypes["LinuxVideo"]=(PointerToDevice)&vtkV4L2LinuxSource2::New; 
+#ifdef PLUS_USE_INTERSON_VIDEO
+  DeviceTypes["IntersonVideo"]=(PointerToDevice)&vtkIntersonVideoSource::New; 
 #endif 
 #ifdef PLUS_USE_EPIPHAN
   DeviceTypes["Epiphan"]=(PointerToDevice)&vtkEpiphanVideoSource::New; 
 #endif 
 
   // Virtual Devices
-  DeviceTypes["VirtualStreamMixer"]=(PointerToDevice)&vtkVirtualStreamMixer::New;
-  DeviceTypes["VirtualStreamSwitcher"]=(PointerToDevice)&vtkVirtualStreamSwitcher::New;
-  DeviceTypes["VirtualStreamCapture"]=(PointerToDevice)&vtkVirtualStreamDiscCapture::New;
+  DeviceTypes["VirtualMixer"]=(PointerToDevice)&vtkVirtualMixer::New;
+  DeviceTypes["VirtualSwitcher"]=(PointerToDevice)&vtkVirtualSwitcher::New;
+  DeviceTypes["VirtualDiscCapture"]=(PointerToDevice)&vtkVirtualDiscCapture::New;
+  DeviceTypes["VirtualBufferedDiscCapture"]=(PointerToDevice)&vtkVirtualDiscCapture::New;
+  DeviceTypes["VirtualVolumeReconstructor"]=(PointerToDevice)&vtkVirtualVolumeReconstructor::New;
+  
 }
 
 //----------------------------------------------------------------------------
@@ -217,21 +226,37 @@ PlusStatus vtkPlusDeviceFactory::CreateInstance( const char* aDeviceType, vtkPlu
 
   if ( DeviceTypes.find(aDeviceType) == DeviceTypes.end() )
   {
-    LOG_ERROR("Unknown tracker type: " << aDeviceType);
+    std::string listOfSupportedDevices;
+    std::map<std::string,PointerToDevice>::iterator it; 
+    for ( it = DeviceTypes.begin(); it != DeviceTypes.end(); ++it)
+    {
+      if ( it->second != NULL )
+      {
+        vtkPlusDevice* device = (*it->second)(); 
+        if (!listOfSupportedDevices.empty())
+        {
+          listOfSupportedDevices.append(", ");
+        }
+        listOfSupportedDevices.append(it->first); 
+        device->Delete();
+        device = NULL;
+      }
+    }
+    LOG_ERROR("Unknown device type: " << aDeviceType<<". Supported devices: "<<listOfSupportedDevices);
     return PLUS_FAIL; 
   }
 
   if ( DeviceTypes[aDeviceType] == NULL )
   { 
-    LOG_ERROR("Invalid factory method for tracker type: " << aDeviceType);
+    LOG_ERROR("Invalid factory method for device type: " << aDeviceType);
     return PLUS_FAIL; 
   }
 
-  // Call tracker New() function
+  // Call device New() function
   aDevice = (*DeviceTypes[aDeviceType])(); 
   if (aDevice==NULL)
   {
-    LOG_ERROR("Invalid video source created for tracker type: " << aDeviceType);
+    LOG_ERROR("Invalid device created for device type: " << aDeviceType);
     return PLUS_FAIL; 
   }
 

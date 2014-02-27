@@ -12,7 +12,7 @@ See License.txt for details.
 /*!
 \class vtkUsScanConvertCurvilinear
 \brief This class performs scan conversion from scan lines for curvilinear probes
-\ingroup RfProcessingAlgo
+\ingroup PlusLibRfProcessingAlgo
 */ 
 class VTK_EXPORT vtkUsScanConvertCurvilinear : public vtkUsScanConvert
 {
@@ -112,7 +112,7 @@ protected:
   double InterpThetaStopDeg;
   int InterpOutputImageExtent[6];
   double InterpOutputImageSpacing[3];
-  double InterpOutputImageStartDepthMm;
+  double InterpTransducerCenterPixel[2];
   double InterpIntensityScaling;
 
   /*! 
@@ -121,7 +121,7 @@ protected:
   */  
   void ComputeInterpolatedPointArray(
     int *inputImageExtent, double radiusStartMm, double radiusStopMm, double thetaStartDeg, double thetaStopDeg,
-    int *outputImageExtent, double *outputImageSpacing, double outputImageStartDepthMm, double intensityScaling
+    int *outputImageExtent, double *outputImageSpacing, double* transducerCenterPixel, double intensityScaling
   );
 
 private:

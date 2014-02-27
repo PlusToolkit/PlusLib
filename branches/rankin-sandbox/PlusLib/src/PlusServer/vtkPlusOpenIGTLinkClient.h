@@ -7,16 +7,14 @@
 #ifndef __VTKPLUSOPENIGTLINKCLIENT_H
 #define __VTKPLUSOPENIGTLINKCLIENT_H
 
+#include "igtlClientSocket.h"
+#include "igtlOSUtil.h"
+#include "vtkDataCollector.h"
+#include "vtkMultiThreader.h"
+#include "vtkObject.h"
+#include "vtkPlusCommand.h"
 #include <string>
 #include <vector>
-
-#include "vtkObject.h"
-
-#include "igtlOSUtil.h"
-#include "igtlClientSocket.h"
-
-#include "vtkDataCollector.h"
-#include "vtkPlusCommand.h"
 
 class vtkMultiThreader; 
 class vtkRecursiveCriticalSection;
@@ -27,12 +25,9 @@ class vtkRecursiveCriticalSection;
 
   It connects to a Plus server, sends requests and receives responses.  
   
-  \ingroup PlusLibDataCollection
+  \ingroup PlusLibPlusServer
 */
-class
-VTK_EXPORT 
-vtkPlusOpenIGTLinkClient
-: public vtkObject
+class VTK_EXPORT vtkPlusOpenIGTLinkClient : public vtkObject
 {
 public:
   
@@ -61,10 +56,9 @@ protected:
 
   /*! Thread for receiveing control data from clients */ 
   static void* DataReceiverThread( vtkMultiThreader::ThreadInfo* data );
-
   
 private:
-	
+  
   vtkPlusOpenIGTLinkClient( const vtkPlusOpenIGTLinkClient& );
   void operator=( const vtkPlusOpenIGTLinkClient& );  
 

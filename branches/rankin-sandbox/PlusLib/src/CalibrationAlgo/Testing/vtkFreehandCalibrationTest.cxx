@@ -48,10 +48,10 @@ int main (int argc, char* argv[])
 
   std::string inputConfigFileName;
   std::string inputBaselineFileName;
-  std::string resultConfigFileName = "";
+  std::string resultConfigFileName;
 
 #ifndef _WIN32
-  double inputTranslationErrorThreshold(LINUXTOLERANCE);
+  double inputTranslationErrorThreshold(LINUXTOLERANCE*2); // *PE* methods on linux can have up to about 0.7mm translation error
   double inputRotationErrorThreshold(LINUXTOLERANCE);
 #else
   double inputTranslationErrorThreshold(0);
@@ -69,12 +69,12 @@ int main (int argc, char* argv[])
   cmdargs.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name)");
   cmdargs.AddArgument("--baseline-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results. Optional.");
 
-  cmdargs.AddArgument("--translation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTranslationErrorThreshold, "Translation error threshold in mm. Used for baseline comparison.");	
-  cmdargs.AddArgument("--rotation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputRotationErrorThreshold, "Rotation error threshold in degrees. Used for baseline comparison.");	
+  cmdargs.AddArgument("--translation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTranslationErrorThreshold, "Translation error threshold in mm. Used for baseline comparison.");  
+  cmdargs.AddArgument("--rotation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputRotationErrorThreshold, "Rotation error threshold in degrees. Used for baseline comparison.");  
 
   cmdargs.AddArgument("--output-config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &resultConfigFileName, "Result configuration file name. Optional.");
 
-  cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
+  cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
 
   if ( !cmdargs.Parse() )
   {
@@ -90,7 +90,7 @@ int main (int argc, char* argv[])
   // Read configuration
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
   if (configRootElement == NULL)
-  {	
+  {  
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
     return EXIT_FAILURE;
   }
@@ -188,7 +188,8 @@ int main (int argc, char* argv[])
   {
     LOG_INFO("Compare with baseline: "<<inputBaselineFileName); 
     // Compare results to baseline
-    std::string currentConfigFileName = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/") + std::string(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()) + ".Calibration.results.xml";
+    std::string currentConfigFileName = vtkPlusConfig::GetInstance()->GetOutputPath( 
+      vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp() + ".Calibration.results.xml" );
     if ( CompareCalibrationResultsWithBaseline( inputBaselineFileName.c_str(), currentConfigFileName.c_str(), inputTranslationErrorThreshold, inputRotationErrorThreshold ) !=0 )
     {
       LOG_ERROR("Comparison of calibration data to baseline failed");
@@ -210,7 +211,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
   int numberOfFailures=0;
 
 #ifndef _WIN32
-  double absoluteErrorTolerance = LINUXTOLERANCE;
+  double absoluteErrorTolerance = LINUXTOLERANCE*2; // *PE* methods on linux can have up to about 0.7mm translation error
 #else
   double absoluteErrorTolerance = 50;
 #endif
@@ -232,7 +233,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
     return ++numberOfFailures;
   }
 
-  {	//<CalibrationResults>
+  {  //<CalibrationResults>
     vtkXMLDataElement* calibrationResultsBaseline = baselineRootElem->FindNestedElementWithName("CalibrationResults"); 
     vtkXMLDataElement* calibrationResults = currentRootElem->FindNestedElementWithName("CalibrationResults"); 
 
@@ -248,7 +249,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
       return ++numberOfFailures;
     }
 
-    {	// <Transform>
+    {  // <Transform>
       vtkXMLDataElement* transformBaseline = calibrationResultsBaseline->FindNestedElementWithName("Transform"); 
       vtkXMLDataElement* transform = calibrationResults->FindNestedElementWithName("Transform");
 
@@ -275,22 +276,22 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
       if (STRCASECMP(blFrom, "Image") != 0 || STRCASECMP(blTo, "Probe"))
       {
         LOG_ERROR("Baseline From and To tags are invalid!");
-        numberOfFailures++;			
+        numberOfFailures++;      
       }
       else if (STRCASECMP(cFrom, "Image") != 0 || STRCASECMP(cTo, "Probe"))
       {
         LOG_ERROR("Current From and To tags are invalid!");
-        numberOfFailures++;			
+        numberOfFailures++;      
       }
       else if (!transformBaseline->GetVectorAttribute("Matrix", 16, blTransformImageToProbe))
       {
         LOG_ERROR("Baseline Matrix tag is missing");
-        numberOfFailures++;			
+        numberOfFailures++;      
       }
       else if (!transform->GetVectorAttribute("Matrix", 16, cTransformImageToProbe))
       {
         LOG_ERROR("Current Matrix tag is missing");
-        numberOfFailures++;			
+        numberOfFailures++;      
       }
       else
       { 
@@ -308,14 +309,14 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
         double translationError = PlusMath::GetPositionDifference(baseTransMatrix, currentTransMatrix); 
         if ( translationError > translationErrorThreshold )
         {
-          LOG_ERROR("TransformImageToProbe translation error is higher than expected: " << translationError << " mm (threshold: " << translationErrorThreshold << " mm). " );
+          LOG_ERROR("TransformImageToProbe translation difference (compared to baseline) is higher than expected: " << translationError << " mm (threshold: " << translationErrorThreshold << " mm). " );
           numberOfFailures++;
         }
 
         double rotationError = PlusMath::GetOrientationDifference(baseTransMatrix, currentTransMatrix); 
         if ( rotationError > rotationErrorThreshold )
         {
-          LOG_ERROR("TransformImageToProbe rotation error is higher than expected: " << rotationError << " degree (threshold: " << rotationErrorThreshold << " degree). " );
+          LOG_ERROR("TransformImageToProbe rotation difference (compared to baseline) is higher than expected: " << rotationError << " degree (threshold: " << rotationErrorThreshold << " degree). " );
           numberOfFailures++;
         }
       }
@@ -323,7 +324,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
   } // </CalibrationResults>
 
 
-  {	// <ErrorReport>
+  {  // <ErrorReport>
     vtkXMLDataElement* errorReportBaseline = baselineRootElem->FindNestedElementWithName("ErrorReport"); 
     vtkXMLDataElement* errorReport = currentRootElem->FindNestedElementWithName("ErrorReport");
 
@@ -523,7 +524,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
       } // </Wire>
     } // </ReprojectionError2DStatistics>
 
-    {	// <ValidationData>
+    {  // <ValidationData>
       vtkXMLDataElement* validationDataBaseline = errorReportBaseline->FindNestedElementWithName("ValidationData"); 
       vtkXMLDataElement* validationData = errorReport->FindNestedElementWithName("ValidationData");
 
@@ -602,7 +603,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
                 double absoluteError = fabs(blPosition[i] - cPosition[i]);
                 if ( (ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD) && (absoluteError > absoluteErrorTolerance) )
                 {
-                  LOG_ERROR("Position component " << i << " mismatch: current=" << cPosition[i] << ", baseline=" << blPosition[i]);
+                  LOG_ERROR("Position component " << i << " mismatch: current=" << cPosition[i] << ", baseline=" << blPosition[i]<<" (point "<<pointIndex<<" in frame "<< frameIndex<<")");
                   ++numberOfFailures;
                   continue;
                 }
@@ -654,7 +655,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
               double absoluteError = fabs(blErrorMm - cErrorMm);
               if ( ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD || absoluteError > absoluteErrorTolerance )
               {
-                LOG_ERROR("ErrorMm mismatch: current=" << cErrorMm << ", baseline=" << blErrorMm);
+                LOG_ERROR("ErrorMm mismatch: current=" << cErrorMm << ", baseline=" << blErrorMm<<" (error index "<<reprojectionError3DIndex<<" in frame "<< frameIndex<<")");
                 ++numberOfFailures;
                 continue;
               }
@@ -707,7 +708,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
                 double absoluteError = fabs(blErrorPx[i] - cErrorPx[i]);
                 if ( (ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD) && (absoluteError > absoluteErrorTolerance) )
                 {
-                  LOG_ERROR("ErrorPx component " << i << " mismatch: current=" << cErrorPx[i] << ", baseline=" << blErrorPx[i]);
+                  LOG_ERROR("ErrorPx component " << i << " mismatch: current=" << cErrorPx[i] << ", baseline=" << blErrorPx[i]<<" (error index "<<reprojectionError2DIndex<<" in frame "<< frameIndex<<")");
                   ++numberOfFailures;
                   continue;
                 }
@@ -718,7 +719,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
       } // </Frame>
     } // </ValidationData>
 
-    {	// <CalibrationData>
+    {  // <CalibrationData>
       vtkXMLDataElement* calibrationDataBaseline = errorReportBaseline->FindNestedElementWithName("CalibrationData"); 
       vtkXMLDataElement* calibrationData = errorReport->FindNestedElementWithName("CalibrationData");
 
@@ -797,7 +798,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
                 double absoluteError = fabs(blPosition[i] - cPosition[i]);
                 if ( (ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD) && (absoluteError > absoluteErrorTolerance) )
                 {
-                  LOG_ERROR("Position component " << i << " mismatch: current=" << cPosition[i] << ", baseline=" << blPosition[i]);
+                  LOG_ERROR("Position component " << i << " mismatch: current=" << cPosition[i] << ", baseline=" << blPosition[i]<<" (point "<<pointIndex<<" in frame "<< frameIndex<<")");
                   ++numberOfFailures;
                   continue;
                 }
@@ -844,7 +845,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
                 double absoluteError = fabs(blPositionInImageFrame[i] - cPositionInImageFrame[i]);
                 if ( (ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD) && (absoluteError > absoluteErrorTolerance) )
                 {
-                  LOG_ERROR("PositionInImageFrame component " << i << " mismatch: current=" << cPositionInImageFrame[i] << ", baseline=" << blPositionInImageFrame[i]);
+                  LOG_ERROR("PositionInImageFrame component " << i << " mismatch: current=" << cPositionInImageFrame[i] << ", baseline=" << blPositionInImageFrame[i]<<" (middleWire "<<middleWireIndex<<" in frame "<< frameIndex<<")");
                   ++numberOfFailures;
                   continue;
                 }
@@ -866,7 +867,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
                 double absoluteError = fabs(blPositionInProbeFrame[i] - cPositionInProbeFrame[i]);
                 if ( (ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD) && (absoluteError > absoluteErrorTolerance) )
                 {
-                  LOG_ERROR("PositionInProbeFrame component " << i << " mismatch: current=" << cPositionInProbeFrame[i] << ", baseline=" << blPositionInProbeFrame[i]);
+                  LOG_ERROR("PositionInProbeFrame component " << i << " mismatch: current=" << cPositionInProbeFrame[i] << ", baseline=" << blPositionInProbeFrame[i]<<" (middleWire "<<middleWireIndex<<" in frame "<< frameIndex<<")");
                   ++numberOfFailures;
                   continue;
                 }
@@ -918,7 +919,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
               double absoluteError = fabs(blErrorMm - cErrorMm);
               if ( (ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD) && (absoluteError > absoluteErrorTolerance) )
               {
-                LOG_ERROR("ErrorMm mismatch: current=" << cErrorMm << ", baseline=" << blErrorMm);
+                LOG_ERROR("ErrorMm mismatch: current=" << cErrorMm << ", baseline=" << blErrorMm<<" (error index "<<reprojectionError3DIndex<<" in frame "<< frameIndex<<")");
                 ++numberOfFailures;
                 continue;
               }
@@ -971,7 +972,7 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
                 double absoluteError = fabs(blErrorPx[i] - cErrorPx[i]);
                 if ( (ratio > 1 + ERROR_THRESHOLD || ratio < 1 - ERROR_THRESHOLD) && (absoluteError > absoluteErrorTolerance) )
                 {
-                  LOG_ERROR("ErrorPx component " << i << " mismatch: current=" << cErrorPx[i] << ", baseline=" << blErrorPx[i]);
+                  LOG_ERROR("ErrorPx component " << i << " mismatch: current=" << cErrorPx[i] << ", baseline=" << blErrorPx[i]<<" (error index "<<reprojectionError2DIndex<<" in frame "<< frameIndex<<")");
                   ++numberOfFailures;
                   continue;
                 }

@@ -81,7 +81,7 @@ protected:
   /*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking, at 9600 Baud. */
   PlusStatus InternalStopRecording();
 
-  vtkPlusStreamBuffer* LocalTrackerBuffer; 
+  vtkPlusBuffer* LocalTrackerBuffer; 
 
 private:  // Definitions.
   enum {TRANSMITTER_OFF = -1};
@@ -92,6 +92,15 @@ private:  // Functions.
 
   /*! Check return status and log in case of error */
   PlusStatus CheckReturnStatus( int status );
+
+  /*!
+    Adds 3 quality values (in the translation component of the transformation matrix) to the buffer.
+    For sensors sensorStartIndex, sensorStartIndex+1, and sensorStartIndex+2.
+  */
+  PlusStatus QualityToolTimeStampedUpdate(const char* qualityToolName, int sensorStartIndex, const std::vector<unsigned short> &qualityValues, double unfilteredTimestamp);
+
+  /*! Returns true if the port name belongs to a virtual tool that stores quality values */
+  bool IsQualityPortName(const char* name);
 
 
 private:  // Variables.

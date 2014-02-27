@@ -29,17 +29,6 @@ class ulterius;
 
 class VTK_EXPORT vtkSonixVideoSource;
 
-/*!
-\class vtkSonixVideoSourceCleanup 
-\brief Class that cleans up (deletes singleton instance of) vtkSonixVideoSource when destroyed
-\ingroup PlusLibImageAcquisition
-*/
-class VTK_EXPORT vtkSonixVideoSourceCleanup
-{
-public:
-  vtkSonixVideoSourceCleanup();
-  ~vtkSonixVideoSourceCleanup();
-};
 //ETX
 
 /*!
@@ -57,51 +46,27 @@ public:
   Usage:
   sonixGrabber->SetSonixIP("130.15.7.212");
   sonixGrabber->SetImagingMode(0);
-  sonixGrabber->SetAcquisitionDataType(0x00000004);
+  sonixGrabber->SetAcquisitionDataType(udtBPost);
   sonixGrabber->Record();  
   imageviewer->SetInput(sonixGrabber->GetOutput());
   See vtkSonixVideoSourceTest1.cxx for more details
 
-  \ingroup PlusLibImageAcquisition
-*/ 
+  \ingroup PlusLibDataCollection
+*/
+
 class VTK_EXPORT vtkSonixVideoSource : public vtkPlusDevice
 {
 public:
+  static vtkSonixVideoSource* New();
   vtkTypeRevisionMacro(vtkSonixVideoSource,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);   
 
   /*! Hardware device SDK version. */
   virtual std::string GetSdkVersion(); 
 
-  /*!
-    This is a singleton pattern New.  There will only be ONE
-    reference to a vtkOutputWindow object per process.  Clients that
-    call this must call Delete on the object so that the reference
-    counting will work.   The single instance will be unreferenced when
-    the program exits.
-  */
-  static vtkSonixVideoSource* New();
-  
-  /*! Return the singleton instance with no reference counting. */
-  static vtkSonixVideoSource* GetInstance();
-
-  /*!
-    Supply a user defined output window. Call ->Delete() on the supplied
-    instance after setting it.
-  */
-  static void SetInstance(vtkSonixVideoSource *instance);
-
-  //BTX
-  /*!
-    Use this as a way of memory management when the
-    program exits the SmartPointer will be deleted which
-    will delete the Instance singleton
-  */
-  static vtkSonixVideoSourceCleanup Cleanup;
-  //ETX
-
   /*! Read main configuration from/to xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+
   /*! Write main configuration from/to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
@@ -229,9 +194,6 @@ public:
   /*! Get the displayed frame rate. */
   PlusStatus GetDisplayedFrameRate(int &aFrameRate);
 
-  /*! Get the displayed frame size. */
-  PlusStatus GetDisplayedFrameSize(int &aFrameWidth, int &aFrameHeight);
-
   /*! Set RF decimation. This requires ultrerius be connected. */
   PlusStatus SetRFDecimation(int decimation);
 
@@ -262,11 +224,13 @@ public:
   /*! Get current RF acquire mode */
   PlusStatus GetRfAcquisitionMode(RfAcquisitionModeType & mode);
 
+  /*! Verify the device is correctly configured */
+  virtual PlusStatus NotifyConfigured();
+
+  virtual bool IsTracker() const { return false; }
 
 protected:
-  /*! Constructor */
   vtkSonixVideoSource();
-  /*! Destructor */
   virtual ~vtkSonixVideoSource();
 
   /*! Connect to device */
@@ -299,8 +263,11 @@ protected:
   /*! For internal use only */
   PlusStatus GetParamValue(char* paramId, int& paramValue, int &validatedParamValue);
 
+  bool HasDataType( uData aValue );
+  bool WantDataType( uData aValue );
+  PlusStatus ConfigureVideoSource( uData aValue );
+
   ulterius Ult;
-  uDataDesc DataDescriptor;
 
   int Frequency;
   int Depth;
@@ -317,6 +284,8 @@ protected:
   int SharedMemoryStatus;
   RfAcquisitionModeType RfAcquisitionMode;
   int SoundVelocity;
+  bool DetectDepthSwitching;
+  bool DetectPlaneSwitching;
 
   char *SonixIP;
 
@@ -329,9 +298,9 @@ protected:
   bool UlteriusConnected;
     
 private:
- 
-  static vtkSonixVideoSource* Instance;
   static bool vtkSonixVideoSourceNewFrameCallback(void * data, int type, int sz, bool cine, int frmnum);
+  static bool vtkSonixVideoSourceParamCallback(void * paramId, int ptX, int ptY);
+  static vtkSonixVideoSource* ActiveSonixDevice;
   vtkSonixVideoSource(const vtkSonixVideoSource&);  // Not implemented.
   void operator=(const vtkSonixVideoSource&);  // Not implemented.
 };

@@ -7,19 +7,17 @@ See License.txt for details.
 #ifndef CAPTURINGTOOLBOX_H
 #define CAPTURINGTOOLBOX_H
 
-#include "ui_CapturingToolbox.h"
-
 #include "AbstractToolbox.h"
 #include "PlusConfigure.h"
+#include "ui_CapturingToolbox.h"
 #include "vtkTimestampedCircularBuffer.h"
-
-#include <QWidget>
 #include <QString>
-
+#include <QWidget>
 #include <deque>
 
-class vtkTrackedFrameList;
+class CaptureControlWidget;
 class QTimer;
+class vtkTrackedFrameList;
 
 //-----------------------------------------------------------------------------
 
@@ -45,10 +43,13 @@ public:
   ~CapturingToolbox();
 
   /*! \brief Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function */
-  void OnActivated();
+  virtual void OnActivated();
+
+  /*! \brief Clear toolbox contents */
+  virtual void OnDeactivated();
 
   /*! Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function */
-  void RefreshContent();
+  virtual void RefreshContent();
 
   /*! \brief Reset toolbox to initial state - */
   virtual void Reset();
@@ -80,10 +81,10 @@ protected:
   /*!
   * Save data to file
   */
-  void WriteToFile(QString& aFilename);
+  void WriteToFile(const QString& aFilename);
 
-  /*! Get the sampling period length in msec */
-  double GetSamplingPeriodMsec();
+  /*! Get the sampling period length (in seconds). Frames are copied from the devices to the data collection buffer once in every sampling period. */
+  double GetSamplingPeriodSec();
   
 protected slots:
   /*!
@@ -107,6 +108,16 @@ protected slots:
   void ClearRecordedFrames();
 
   /*!
+  * Slot handling clear recorded frames button click
+  */
+  void ClearAll();
+
+  /*!
+  * Slot handling start/stop all capture devices
+  */
+  void StartStopAll();
+
+  /*!
   * Slot handling Save button click
   */
   void Save();
@@ -115,6 +126,11 @@ protected slots:
   * Slot handling Save As button click
   */
   void SaveAs();
+
+  /*!
+  * Slot handling Save As button click
+  */
+  void SaveAll();
 
   /*!
   * Slot handling value change of sampling rate slider
@@ -127,6 +143,11 @@ protected slots:
   */
   void Capture();
 
+  /*!
+  * Handle status message from any sub capture widgets
+  */
+  void HandleStatusMessage(const std::string& aMessage);
+
 protected:
   /*! Recorded tracked frame list */
   vtkTrackedFrameList* m_RecordedFrames;
@@ -134,8 +155,11 @@ protected:
   /*! Timer triggering the */
   QTimer* m_RecordingTimer;
 
-  /*! Timestamp of last recorded frame (the tracked frames acquired since this timestamp will be recorded) */
-  double m_LastRecordedFrameTimestamp;
+  /*! Timestamp of last recorded frame (only frames that have more recent timestamp will be added) */
+  double m_RecordingLastAlreadyRecordedFrameTimestamp;
+
+  /*! Desired timestamp of the next frame to be recorded */
+  double m_RecordingNextFrameToBeRecordedTimestamp;
 
   /*! Frame rate of the sampling */
   const int m_SamplingFrameRate;
@@ -152,10 +176,13 @@ protected:
     those that were acquired in a different recording segment) will not be taken into account in the actual
     frame rate computation.
   */
-  int m_FirstRecordedFrameIndexInThisSegment;
+  int m_RecordingFirstFrameIndexInThisSegment;
 
   /*! String to hold the last location of data saved */
-  QString m_LastSaveLocation;
+  std::string m_LastSaveLocation;
+
+  /* Container holding capture widgets */
+  std::vector<CaptureControlWidget*>  m_CaptureWidgets;
 
 protected:
   Ui::CapturingToolbox ui;

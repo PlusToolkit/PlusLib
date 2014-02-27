@@ -35,8 +35,6 @@ vtkStandardNewMacro(vtkNDICertusTracker);
 
 // turn this on to print lots of debug information
 #define VTK_CERTUS_DEBUG_STATEMENTS 0
-// turn this on to turn of multithreading
-#define VTK_CERTUS_NO_THREADING 0
 
 //----------------------------------------------------------------------------
 // map values 0, 1, 2 to the proper Certus VLED state constant 
@@ -56,7 +54,7 @@ vtkNDICertusTracker::vtkNDICertusTracker()
     this->PortEnabled[i] = 0;
   }
 
-  this->RequireDeviceImageOrientationInDeviceSetConfiguration = false;
+  this->RequireImageOrientationInConfiguration = false;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
@@ -64,6 +62,9 @@ vtkNDICertusTracker::vtkNDICertusTracker()
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
   this->RequireUsImageOrientationInDeviceSetConfiguration = false;
   this->RequireRfElementInDeviceSetConfiguration = false;
+
+  // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
+  this->StartThreadForInternalUpdates=true;
 }
 
 //----------------------------------------------------------------------------
@@ -286,20 +287,6 @@ PlusStatus vtkNDICertusTracker::Probe()
 } 
 
 //----------------------------------------------------------------------------
-PlusStatus vtkNDICertusTracker::StartRecording()
-{
-#if VTK_CERTUS_NO_THREADING
-  if (this->InternalStartRecording()!=PLUS_SUCCESS)
-  {
-    return PLUS_FAIL;
-  }
-  return PLUS_SUCCESS;
-#else
-  return this->vtkPlusDevice::StartRecording();
-#endif    
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkNDICertusTracker::InternalStartRecording()
 {
   if (this->Recording)
@@ -326,16 +313,6 @@ PlusStatus vtkNDICertusTracker::InternalStartRecording()
   }
 
   return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkNDICertusTracker::StopRecording()
-{
-#if VTK_CERTUS_NO_THREADING
-  return this->InternalStopRecording();
-#else
-  return this->vtkPlusDevice::StopRecording();
-#endif
 }
 
 //----------------------------------------------------------------------------

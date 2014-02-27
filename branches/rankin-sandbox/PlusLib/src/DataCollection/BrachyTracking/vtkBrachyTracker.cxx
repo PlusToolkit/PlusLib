@@ -16,7 +16,7 @@ See License.txt for details.
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusBuffer.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkTransform.h"
 #include "vtkXMLDataElement.h"
@@ -71,7 +71,7 @@ vtkBrachyTracker::vtkBrachyTracker()
   this->SetProbeRotationAxisOrientation(0,0,1); 
   this->SetProbeRotationEncoderScale(1.0); 
 
-  this->RequireDeviceImageOrientationInDeviceSetConfiguration = false;
+  this->RequireImageOrientationInConfiguration = false;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
@@ -79,6 +79,9 @@ vtkBrachyTracker::vtkBrachyTracker()
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
   this->RequireUsImageOrientationInDeviceSetConfiguration = false;
   this->RequireRfElementInDeviceSetConfiguration = false;
+
+  // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
+  this->StartThreadForInternalUpdates=true;
 }
 
 //----------------------------------------------------------------------------
@@ -523,7 +526,7 @@ PlusStatus vtkBrachyTracker::WriteConfiguration(vtkXMLDataElement* rootConfigEle
 
   calibration->SetAttribute("AlgorithmVersion", this->GetCalibrationAlgorithmVersion() ); 
 
-  calibration->SetVectorAttribute("ProbeRotationAxisOrientation", 3, this->GetProbeRotationAxisOrientation() );		
+  calibration->SetVectorAttribute("ProbeRotationAxisOrientation", 3, this->GetProbeRotationAxisOrientation() );    
 
   calibration->SetDoubleAttribute("ProbeRotationEncoderScale", this->GetProbeRotationEncoderScale() ); 
 
@@ -1025,21 +1028,25 @@ PlusStatus vtkBrachyTracker::GetStepperEncoderValues( TrackedFrame* trackedFrame
 //----------------------------------------------------------------------------
 PlusStatus vtkBrachyTracker::NotifyConfigured()
 {
-  if( this->OutputChannels.size() > 0 )
+  if( this->OutputChannels.size() > 1 )
   {
-    this->OutputChannels[0]->Clear();
-
-    for( DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it )
-    {
-      this->OutputChannels[0]->AddTool(it->second);
-    }
-
-    this->CurrentChannel = this->OutputChannels[0];
-  }
-  else
-  {
-    LOG_ERROR("No output channels in brachy tracker. Need exactly 1.");
+    LOG_WARNING("vtkBrachyTracker is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
     return PLUS_FAIL;
+  }
+
+  if( this->OutputChannels.empty() )
+  {
+    LOG_ERROR("No output channels defined for vtkBrachyTracker. Cannot proceed." );
+    this->SetCorrectlyConfigured(false);
+    return PLUS_FAIL;
+  }
+
+  vtkPlusChannel* outputChannel=this->OutputChannels[0];
+
+  outputChannel->Clear();
+  for( DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it )
+  {
+    outputChannel->AddTool(it->second);
   }
 
   return PLUS_SUCCESS;

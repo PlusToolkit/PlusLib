@@ -34,7 +34,7 @@ class VTK_EXPORT vtkSonixPortaVideoSource;
 /*!
 \class vtkSonixPortaVideoSourceCleanup 
 \brief Class that cleans up (deletes singleton instance of) vtkSonixPortaVideoSource when destroyed
-\ingroup PlusLibImageAcquisition
+\ingroup PlusLibDataCollection
 */
 class VTK_EXPORT vtkSonixPortaVideoSourceCleanup 
 {
@@ -68,7 +68,7 @@ public:
   sonixGrabber->Record();
   imageviewer->SetInput( sonixGrabber->GetOutput() ); 
 
-  \ingroup PlusLibImageAcquisition
+  \ingroup PlusLibDataCollection
 */ 
 class VTK_EXPORT vtkSonixPortaVideoSource : public vtkPlusDevice {
 
@@ -152,8 +152,8 @@ class VTK_EXPORT vtkSonixPortaVideoSource : public vtkPlusDevice {
   PlusStatus SetStepPerFrame(int aStepPerFrame);
   /*! Get the number of frames per volume */
   PlusStatus GetStepPerFrame(int& aStepPerFrame);
-	
-	/*! Set the Timeout (ms) value for network function calls. */
+  
+  /*! Set the Timeout (ms) value for network function calls. */
   PlusStatus SetTimeout(int aTimeout);
 
 
@@ -168,7 +168,7 @@ class VTK_EXPORT vtkSonixPortaVideoSource : public vtkPlusDevice {
   /*! Get the Gain (%) of B-mode ultrasound; valid range: 0-100 */
   PlusStatus GetPortaMotorStartPosition(int& aMotorStartPosition);
 
-	/*! Set the start position */
+  /*! Set the start position */
   void SetPortaMotorStartPosition( double v );
   
   /*! Return the start position */
@@ -189,7 +189,8 @@ class VTK_EXPORT vtkSonixPortaVideoSource : public vtkPlusDevice {
   /*! Return current frame rate as reported by Porta */
   int GetPortaFrameRate();
 
-  
+  /*! Verify the device is correctly configured */
+  virtual PlusStatus NotifyConfigured();
   
 protected:
   vtkSonixPortaVideoSource();
@@ -224,11 +225,11 @@ protected:
   int ImagingMode;
   int Timeout; 
 
-	/*! Porta initialization parameters */
-	int Usm;
-	int Pci;
-	int HighVoltage;
-	int Channels;
+  /*! Porta initialization parameters */
+  int Usm;
+  int Pci;
+  int HighVoltage;
+  int Channels;
   
   /*! for internal use only */
   PlusStatus AddFrameToBuffer( void *param, int id );
@@ -238,7 +239,8 @@ protected:
   /*! For internal use only */
   PlusStatus GetParamValue(char* paramId, int& paramValue, int &validatedParamValue);
 
-			  
+  virtual bool IsTracker() const { return false; }
+        
 private:
  
   // data members
@@ -256,7 +258,7 @@ private:
 #endif
 
   // vtkSonixPortaVideoSource(const vtkSonixPortaVideoSource&);  // Not implemented.
-  // void operator=(const vtkSonixPortaVideoSource&);  // Not implemented.							
+  // void operator=(const vtkSonixPortaVideoSource&);  // Not implemented.              
   
   /*! Update porta parameters */
   PlusStatus vtkSonixPortaVideoSource::UpdateSonixPortaParams();
@@ -308,11 +310,11 @@ private:
   /*!  The number of steps the motor will move while acuqiring a single frame */
   int StepPerFrame;
 
-	/*! Probe information */
-	probeInfo ProbeInformation;
+  /*! Probe information */
+  probeInfo ProbeInformation;
 
-	/*! Motor rotation per step (in degrees) */
-	double MotorRotationPerStepDeg;
+  /*! Motor rotation per step (in degrees) */
+  double MotorRotationPerStepDeg;
 
   
 };

@@ -19,26 +19,26 @@
 int main(int argc, char **argv)
 {
   // Parse command-line arguments
-	bool printHelp(false);
-	int verboseLevel(vtkPlusLogger::LOG_LEVEL_UNDEFINED);
-	vtksys::CommandLineArguments args;
-	args.Initialize(argc, argv);
-	args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
-	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
-	if ( !args.Parse() )
-	{
-		std::cerr << "Problem parsing arguments" << std::endl;
-		std::cout << "Help: " << args.GetHelp() << std::endl;
-		exit(EXIT_FAILURE);
-	}
+  bool printHelp(false);
+  int verboseLevel(vtkPlusLogger::LOG_LEVEL_UNDEFINED);
+  vtksys::CommandLineArguments args;
+  args.Initialize(argc, argv);
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
+  if ( !args.Parse() )
+  {
+    std::cerr << "Problem parsing arguments" << std::endl;
+    std::cout << "Help: " << args.GetHelp() << std::endl;
+    exit(EXIT_FAILURE);
+  }
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
   
-	if ( printHelp ) 
-	{
-		std::cout << "Help: " << args.GetHelp() << std::endl;
-		exit(EXIT_SUCCESS); 
+  if ( printHelp ) 
+  {
+    std::cout << "Help: " << args.GetHelp() << std::endl;
+    exit(EXIT_SUCCESS); 
 
-	}	
+  }  
 
   /////////////////////////////////////////////////////////////////////////////
   // Set up coordinate transforms
@@ -190,6 +190,8 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
+  transformRepository->PrintSelf(std::cout, vtkIndent());
+
   /////////////////////////////////////////////////////////////////////////////
   // Check if invalid transform flag is correctly propagated
   if (transformRepository->GetTransformValid(PlusTransformName("Probe", "Stylus"), isValid)!=PLUS_SUCCESS)
@@ -203,12 +205,48 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
+  if (transformRepository->GetTransformValid(PlusTransformName("Stylus", "Probe"), isValid)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Cannot get StylusToProbe transform valid status");
+    return EXIT_FAILURE;
+  }
+  if ( isValid )
+  {
+    LOG_ERROR("The StylusToProbe transform should be invalid");
+    return EXIT_FAILURE;
+  }
+
+  transformRepository->SetTransform(tnProbeToTracker, mxProbeToTracker, true );
+
+  if (transformRepository->GetTransformValid(PlusTransformName("Probe", "Stylus"), isValid)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Cannot get ProbeToStylus transform valid status");
+    return EXIT_FAILURE;
+  }
+  if ( !isValid )
+  {
+    LOG_ERROR("The ProbeToStylus transform should be valid");
+    return EXIT_FAILURE;
+  }
+
+  if (transformRepository->GetTransformValid(PlusTransformName("Stylus", "Probe"), isValid)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Cannot get StylusToProbe transform valid status");
+    return EXIT_FAILURE;
+  }
+  if ( !isValid )
+  {
+    LOG_ERROR("The StylusToProbe transform should be valid");
+    return EXIT_FAILURE;
+  }
+
+
   /////////////////////////////////////////////////////////////////////////////
   // Check if non-existing transforms are handled properly
   if (transformRepository->GetTransformValid(PlusTransformName("Probe", "StylusNonExisting"), isValid)==PLUS_SUCCESS)
   {
     LOG_ERROR("A non-existing transform has been reported to be found");
-    return EXIT_FAILURE;
+    return EXIT_FAILURE;  
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -308,5 +346,5 @@ int main(int argc, char **argv)
   }
 
   LOG_INFO("Test successfully completed");
-	return EXIT_SUCCESS; 
+  return EXIT_SUCCESS; 
  }

@@ -7,9 +7,9 @@
 // ICCapturingListener.cpp: implementation of the ICCapturingListener class.
 //----------------------------------------------------------------------------
 
-#include <iostream>
-
 #include "ICCapturingListener.h"
+#include <iostream>
+#include <sstream>
 
 using namespace DShowLib;
 
@@ -31,11 +31,11 @@ ICCapturingListener::~ICCapturingListener()
 */
 void ICCapturingListener::overlayCallback( Grabber& caller, smart_ptr<OverlayBitmap> pBitmap, const tsMediaSampleDesc& MediaSampleDesc)
 {
-  char szText[25];
   if( pBitmap->getEnable() == true ) // Draw only, if the overlay bitmap is enabled.
   {
-    sprintf_s( szText, sizeof(DWORD), "%04d ", MediaSampleDesc.FrameNumber);
-    pBitmap->drawText( RGB(255,0,0), 0, 0, szText );
+    std::stringstream ss;
+    ss << MediaSampleDesc.FrameNumber << " ";
+    pBitmap->drawText( RGB(255,0,0), 0, 0, ss.str().c_str() );
   }
 }
 
@@ -69,13 +69,11 @@ void ICCapturingListener::setBufferSize( unsigned long NumBuffers )
 */
 void ICCapturingListener::saveImage( smart_ptr<MemBuffer> pBuffer, DWORD currFrame)
 {
-  char filename[MAX_PATH];
   if( currFrame < m_BufferWritten.size() )
   {
-    sprintf_s( filename, MAX_PATH - 1 , "image%02i.bmp", currFrame );
-
-    saveToFileBMP( *pBuffer, filename );
-
+    std::stringstream ss;
+    ss << "image" << currFrame << ".bmp";
+    saveToFileBMP( *pBuffer, ss.str().c_str() );
     m_BufferWritten.at( currFrame ) = true;
   }
 }

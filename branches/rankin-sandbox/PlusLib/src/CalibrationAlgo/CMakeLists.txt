@@ -2,39 +2,67 @@
 # Sources
 
 SET (CalibrationAlgo_SRCS
-  vtkProbeCalibrationAlgo.cxx 
-  vtkMeanShiftClustering.cxx 
-  vtkPivotCalibrationAlgo.cxx
-  vtkPhantomRegistrationAlgo.cxx
-  vtkSpacingCalibAlgo.cxx 
-  vtkCenterOfRotationCalibAlgo.cxx
-  vtkBrachyStepperPhantomRegistrationAlgo.cxx
-  TemporalCalibrationAlgo.cxx
-  vtkLineSegmentationAlgo.cxx 
-  vtkPrincipalMotionDetectionAlgo.cxx 
-  vtkSpatialCalibrationOptimizer.cxx
-  itkFiducialTransformComputation.cxx
-	)
+  vtkProbeCalibrationAlgo/vtkProbeCalibrationAlgo.cxx 
+  vtkProbeCalibrationAlgo/vtkProbeCalibrationOptimizerAlgo.cxx
+  vtkPivotCalibrationAlgo/vtkPivotCalibrationAlgo.cxx
+  vtkPhantomLandmarkRegistrationAlgo/vtkPhantomLandmarkRegistrationAlgo.cxx
+  vtkPhantomLinearObjectRegistrationAlgo/vtkPhantomLinearObjectRegistrationAlgo.cxx
+  vtkSpacingCalibAlgo/vtkSpacingCalibAlgo.cxx 
+  vtkCenterOfRotationCalibAlgo/vtkCenterOfRotationCalibAlgo.cxx
+  vtkBrachyStepperPhantomRegistrationAlgo/vtkBrachyStepperPhantomRegistrationAlgo.cxx
+  vtkTemporalCalibrationAlgo/vtkTemporalCalibrationAlgo.cxx
+  vtkTemporalCalibrationAlgo/vtkPrincipalMotionDetectionAlgo.cxx 
+  vtkLineSegmentationAlgo/vtkLineSegmentationAlgo.cxx 
+  vtkPhantomLinearObjectRegistrationAlgo/Line.cxx
+  vtkPhantomLinearObjectRegistrationAlgo/LinearObject.cxx
+  vtkPhantomLinearObjectRegistrationAlgo/LinearObjectBuffer.cxx
+  vtkPhantomLinearObjectRegistrationAlgo/Point.cxx
+  vtkPhantomLinearObjectRegistrationAlgo/Plane.cxx
+  vtkPhantomLinearObjectRegistrationAlgo/Planes.cxx
+  vtkPhantomLinearObjectRegistrationAlgo/PointObservation.cxx
+  vtkPhantomLinearObjectRegistrationAlgo/PointObservationBuffer.cxx
+  vtkPhantomLinearObjectRegistrationAlgo/Reference.cxx
+  vtkPhantomLinearObjectRegistrationAlgo/References.cxx
+  )
 
-SET (CalibrationAlgo_HDRS)	
-IF (WIN32)	
+SET (CalibrationAlgo_HDRS)  
+IF (WIN32)  
   SET (CalibrationAlgo_HDRS
-    vtkProbeCalibrationAlgo.h
-    vtkMeanShiftClustering.h
-    vtkPivotCalibrationAlgo.h
-    vtkPhantomRegistrationAlgo.h
-    vtkSpacingCalibAlgo.h 
-    vtkCenterOfRotationCalibAlgo.h
-    vtkBrachyStepperPhantomRegistrationAlgo.h
-    TemporalCalibrationAlgo.h
-    vtkLineSegmentationAlgo.h
-    vtkPrincipalMotionDetectionAlgo.h
-    vtkSpatialCalibrationOptimizer.h
-    itkFiducialTransformComputation.h
+    vtkProbeCalibrationAlgo/vtkProbeCalibrationAlgo.h
+    vtkProbeCalibrationAlgo/vtkProbeCalibrationOptimizerAlgo.h
+    vtkPivotCalibrationAlgo/vtkPivotCalibrationAlgo.h
+    vtkPhantomLandmarkRegistrationAlgo/vtkPhantomLandmarkRegistrationAlgo.h
+    vtkPhantomLinearObjectRegistrationAlgo/vtkPhantomLinearObjectRegistrationAlgo.h
+    vtkSpacingCalibAlgo/vtkSpacingCalibAlgo.h 
+    vtkCenterOfRotationCalibAlgo/vtkCenterOfRotationCalibAlgo.h
+    vtkBrachyStepperPhantomRegistrationAlgo/vtkBrachyStepperPhantomRegistrationAlgo.h
+    vtkTemporalCalibrationAlgo/vtkTemporalCalibrationAlgo.h
+    vtkTemporalCalibrationAlgo/vtkPrincipalMotionDetectionAlgo.h
+    vtkLineSegmentationAlgo/vtkLineSegmentationAlgo.h
+    vtkPhantomLinearObjectRegistrationAlgo/Line.h
+    vtkPhantomLinearObjectRegistrationAlgo/LinearObject.h
+    vtkPhantomLinearObjectRegistrationAlgo/LinearObjectBuffer.h
+    vtkPhantomLinearObjectRegistrationAlgo/Point.cxx
+    vtkPhantomLinearObjectRegistrationAlgo/Plane.h
+    vtkPhantomLinearObjectRegistrationAlgo/Planes.h
+    vtkPhantomLinearObjectRegistrationAlgo/PointObservation.h
+    vtkPhantomLinearObjectRegistrationAlgo/PointObservationBuffer.h
+    vtkPhantomLinearObjectRegistrationAlgo/Reference.h
+    vtkPhantomLinearObjectRegistrationAlgo/References.h
     )
 ENDIF (WIN32)
 
-SET (CalibrationAlgo_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/Ransac CACHE INTERNAL "" FORCE)
+SET (CalibrationAlgo_INCLUDE_DIRS 
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkBrachyStepperPhantomRegistrationAlgo
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkCenterOfRotationCalibAlgo
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkLineSegmentationAlgo
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkPhantomLandmarkRegistrationAlgo
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkPhantomLinearObjectRegistrationAlgo
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkPivotCalibrationAlgo
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkProbeCalibrationAlgo
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkSpacingCalibAlgo
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkTemporalCalibrationAlgo 
+  CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Build the library
@@ -45,6 +73,7 @@ SET (CalibrationAlgo_LIBS
   itkvnl 
   itkvnl_algo 
   PatternLocAlgo 
+  vtkCharts 
   vtkPlusCommon
   vtkDataCollection
   )
@@ -74,5 +103,5 @@ SET(vcProj_vtkCalibrationAlgo vtkCalibrationAlgo;"${PlusLib_BINARY_DIR}/src/Cali
 #
 
 IF (BUILD_TESTING)
-	ADD_SUBDIRECTORY (Testing)
+  ADD_SUBDIRECTORY (Testing)
 ENDIF (BUILD_TESTING)

@@ -261,28 +261,34 @@ void SpatialCalibrationToolbox::SetDisplayAccordingToState()
           }
           if (m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->GetTransformError(imageToProbeTransformName, error) == PLUS_SUCCESS)
           {
-            char imageToProbeTransformErrorChars[32];
-            SNPRINTF(imageToProbeTransformErrorChars, 32, "%.3lf", error);
-            errorStr = imageToProbeTransformErrorChars;
+            std::stringstream ss;
+            ss << std::fixed << error;
+            errorStr = ss.str();
           }
           else
           {
             errorStr = "N/A";
           }
 
-          ui.label_State->setPaletteForegroundColor(Qt::black);
+          QPalette palette;
+          palette.setColor(ui.label_State->foregroundRole(), Qt::black);
+          ui.label_State->setPalette(palette);
           ui.label_State->setText( QString("%1 transform present.\nDate: %2, Error: %3").arg(imageToProbeTransformNameStr.c_str()).arg(date.c_str()).arg(errorStr.c_str()) );
         }
         else
         {
-          ui.label_State->setPaletteForegroundColor(QColor::fromRgb(255, 128, 0));
+          QPalette palette;
+          palette.setColor(ui.label_State->foregroundRole(), QColor::fromRgb(255, 128, 0));
+          ui.label_State->setPalette(palette);
           ui.label_State->setText( QString("%1 transform is absent, spatial calibration needs to be performed.").arg(imageToProbeTransformNameStr.c_str()) );
           LOG_INFO(imageToProbeTransformNameStr << " transform is absent, spatial calibration needs to be performed");
         }
       }
       else
       {
-        ui.label_State->setPaletteForegroundColor(QColor::fromRgb(255, 128, 0));
+        QPalette palette;
+        palette.setColor(ui.label_State->foregroundRole(), QColor::fromRgb(255, 128, 0));
+        ui.label_State->setPalette(palette);
         ui.label_State->setText( tr("Phantom registration is missing. It needs to be performed or imported") );
         LOG_INFO("Phantom registration is missing. It needs to be performed or imported");
         m_State = ToolboxState_Error;
@@ -290,7 +296,9 @@ void SpatialCalibrationToolbox::SetDisplayAccordingToState()
     }
     else
     {
-      ui.label_State->setPaletteForegroundColor(QColor::fromRgb(255, 128, 0));
+      QPalette palette;
+      palette.setColor(ui.label_State->foregroundRole(), QColor::fromRgb(255, 128, 0));
+      ui.label_State->setPalette(palette);
       ui.label_State->setText( QString("Probe calibration configuration is missing!") );
       LOG_INFO("Probe calibration configuration is missing");
       m_State = ToolboxState_Error;
@@ -298,7 +306,9 @@ void SpatialCalibrationToolbox::SetDisplayAccordingToState()
   }
   else
   {
-    ui.label_State->setPaletteForegroundColor(QColor::fromRgb(255, 128, 0));
+    QPalette palette;
+    palette.setColor(ui.label_State->foregroundRole(), QColor::fromRgb(255, 128, 0));
+    ui.label_State->setPalette(palette);
     ui.label_State->setText(tr("fCal is not connected to devices. Switch to Configuration toolbox to connect."));
     LOG_INFO("fCal is not connected to devices");
   }
@@ -358,7 +368,7 @@ void SpatialCalibrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->SetStatusBarText(QString(" Acquiring and adding images to calibrator"));
     m_ParentMainWindow->SetStatusBarProgress(0);
 
-    ui.label_InstructionsSpatial->setText(tr("Scan the phantom in the most degrees of freedom possible until the progress bar is filled.\nIf the segmentation does not work (green dots on wires do not appear) then cancel and edit segmentation parameters"));
+    ui.label_InstructionsSpatial->setText(tr("Scan the phantom until the progress bar is filled. Keep the image plane approximately orthogonal to the wires and translate in all directions.\nIf the segmentation does not work (green dots on wires do not appear) then cancel and edit segmentation parameters"));
     ui.pushButton_StartSpatial->setEnabled(false);
     ui.pushButton_CancelSpatial->setEnabled(true);
     ui.pushButton_CancelSpatial->setFocus();
@@ -373,13 +383,17 @@ void SpatialCalibrationToolbox::SetDisplayAccordingToState()
 
     if (m_Calibration->GetCalibrationReprojectionError3DMean() >= 2.0)
     {
-      ui.label_Warning->setPaletteForegroundColor(QColor::fromRgb(223, 0, 0));
+      QPalette palette;
+      palette.setColor(ui.label_Warning->foregroundRole(), QColor::fromRgb(233, 0, 0));
+      ui.label_Warning->setPalette(palette);
       ui.label_Warning->setVisible(true);
       ui.label_Warning->setText(tr("Calibration error is too high!\n  Please re-calibrate"));
     }
     else if (m_Calibration->GetCalibrationReprojectionError3DMean() >= 1.0)
     {
-      ui.label_Warning->setPaletteForegroundColor(QColor::fromRgb(255, 128, 0));
+      QPalette palette;
+      palette.setColor(ui.label_Warning->foregroundRole(), QColor::fromRgb(255, 128, 0));
+      ui.label_Warning->setPalette(palette);
       ui.label_Warning->setVisible(true);
       ui.label_Warning->setText(tr("Calibration error is relatively high!\n  Consider re-calibrating"));
     }
@@ -424,17 +438,18 @@ void SpatialCalibrationToolbox::OpenPhantomRegistration()
 
   // File open dialog for selecting phantom registration xml
   QString filter = QString( tr( "XML files ( *.xml );;" ) );
-  QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open phantom registration XML" ) ), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory(), filter);
+  QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open phantom registration XML" ) ), 
+    vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory().c_str(), filter);
   if (fileName.isNull())
   {
     return;
   }
 
   // Parse XML file
-  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(fileName.toAscii().data()));
+  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(fileName.toLatin1().constData()));
   if (rootElement == NULL)
   {	
-    LOG_ERROR("Unable to read the configuration file: " << fileName.toAscii().data()); 
+    LOG_ERROR("Unable to read the configuration file: " << fileName.toLatin1().constData()); 
     return;
   }
 
@@ -476,7 +491,7 @@ void SpatialCalibrationToolbox::OpenPhantomRegistration()
 
   SetDisplayAccordingToState();
 
-  LOG_INFO("Phantom registration imported in freehand calibration toolbox from file '" << fileName.toAscii().data() << "'");
+  LOG_INFO("Phantom registration imported in freehand calibration toolbox from file '" << fileName.toLatin1().constData() << "'");
 }
 
 //-----------------------------------------------------------------------------
@@ -487,17 +502,18 @@ void SpatialCalibrationToolbox::OpenSegmentationParameters()
 
   // File open dialog for selecting calibration configuration xml
   QString filter = QString( tr( "XML files ( *.xml );;" ) );
-  QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open calibration configuration XML" ) ), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory(), filter);
+  QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Open calibration configuration XML" ) ), 
+    vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory().c_str(), filter);
   if (fileName.isNull())
   {
     return;
   }
 
   // Parse XML file
-  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(fileName.toAscii().data()));
+  vtkSmartPointer<vtkXMLDataElement> rootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(fileName.toLatin1().constData()));
   if (rootElement == NULL)
   {
-    LOG_ERROR("Unable to read the configuration file: " << fileName.toAscii().data()); 
+    LOG_ERROR("Unable to read the configuration file: " << fileName.toLatin1().constData()); 
     return;
   }
 
@@ -509,11 +525,11 @@ void SpatialCalibrationToolbox::OpenSegmentationParameters()
   }
 
   // Replace USCalibration element with the one in the just read file
-  vtkPlusConfig::ReplaceElementInDeviceSetConfiguration("Segmentation", rootElement);
+  vtkPlusConfig::GetInstance()->ReplaceElementInDeviceSetConfiguration("Segmentation", rootElement);
 
   SetDisplayAccordingToState();
 
-  LOG_INFO("Segmentation parameters imported in freehand calibration toolbox from file '" << fileName.toAscii().data() << "'");
+  LOG_INFO("Segmentation parameters imported in freehand calibration toolbox from file '" << fileName.toLatin1().constData() << "'");
 }
 
 //-----------------------------------------------------------------------------
@@ -523,6 +539,7 @@ void SpatialCalibrationToolbox::EditSegmentationParameters()
   LOG_INFO("Edit segmentation parameters started");
 
   // Disconnect realtime image from main canvas
+  m_ParentMainWindow->GetVisualizationController()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_NONE);
   if( m_ParentMainWindow->GetVisualizationController()->DisconnectInput() != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to disconnect input. Cannot show input in SegmentationParameterDialog.");
@@ -530,7 +547,7 @@ void SpatialCalibrationToolbox::EditSegmentationParameters()
   }
 
   // Show segmentation parameter dialog
-  SegmentationParameterDialog* segmentationParamDialog = new SegmentationParameterDialog(this, m_ParentMainWindow->GetVisualizationController()->GetDataCollector());
+  SegmentationParameterDialog* segmentationParamDialog = new SegmentationParameterDialog(this, m_ParentMainWindow->GetVisualizationController()->GetDataCollector(), m_ParentMainWindow->GetSelectedChannel());
   segmentationParamDialog->exec();
 
   delete segmentationParamDialog;
@@ -547,6 +564,7 @@ void SpatialCalibrationToolbox::EditSegmentationParameters()
   {
     LOG_WARNING("Unable to reconnect input. Image will no longer show in main window.");
   }
+  this->SetDisplayAccordingToState();
 
   // Update segmentation parameters
   if (m_PatternRecognition->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
@@ -570,12 +588,13 @@ void SpatialCalibrationToolbox::StartCalibration()
 
   // Set validation transform names for tracked frame lists
   std::string toolReferenceFrame;
-  if ( (m_ParentMainWindow->GetVisualizationController()->GetDataCollector() == NULL)
-    || (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetTrackerToolReferenceFrame(toolReferenceFrame) != PLUS_SUCCESS) )
+  if ( (m_ParentMainWindow->GetSelectedChannel() == NULL)
+    || (m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->GetToolReferenceFrameName() == NULL) )
   {
     LOG_ERROR("Failed to get tool reference frame name!");
     return;
   }
+  toolReferenceFrame = m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->GetToolReferenceFrameName();
   PlusTransformName transformNameForValidation(m_ParentMainWindow->GetProbeCoordinateFrame(), toolReferenceFrame.c_str());
   m_SpatialCalibrationData->SetFrameTransformNameForValidation(transformNameForValidation);
   m_SpatialValidationData->SetFrameTransformNameForValidation(transformNameForValidation);
@@ -677,11 +696,11 @@ void SpatialCalibrationToolbox::DoCalibration()
   }
   int numberOfFramesToGet = std::max(m_MaxTimeSpentWithProcessingMs / m_LastProcessingTimePerFrameMs, 1);
 
-  if ( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetTrackedFrameList(
+  if ( m_ParentMainWindow->GetSelectedChannel() != NULL && m_ParentMainWindow->GetSelectedChannel()->GetTrackedFrameList(
     m_LastRecordedFrameTimestamp, trackedFrameListToUse, numberOfFramesToGet) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 
-    CancelCalibration();
+    QTimer::singleShot(50, this, SLOT(DoCalibration()));
     return; 
   }
 
@@ -747,7 +766,7 @@ void SpatialCalibrationToolbox::DoCalibration()
   LOG_DEBUG("Computation time: " << computationTimeMs);
   LOG_DEBUG("Waiting time: " << waitTimeMs);
 
-  QTimer::singleShot(waitTimeMs , this, SLOT(DoCalibration())); 
+  QTimer::singleShot(waitTimeMs , this, SLOT(DoCalibration()));
 }
 
 //-----------------------------------------------------------------------------
@@ -758,7 +777,9 @@ PlusStatus SpatialCalibrationToolbox::SetAndSaveResults()
 
   // Set transducer origin related transforms
   vtkSmartPointer<vtkTransform> imageToProbeTransform = vtkSmartPointer<vtkTransform>::New();
-  imageToProbeTransform->SetMatrix(m_Calibration->GetImageToProbeTransformMatrix());
+  vtkSmartPointer<vtkMatrix4x4> imageToProbeTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  m_Calibration->GetImageToProbeTransformMatrix(imageToProbeTransformMatrix);
+  imageToProbeTransform->SetMatrix(imageToProbeTransformMatrix);
   double* imageToProbeScale = imageToProbeTransform->GetScale();
   vtkSmartPointer<vtkTransform> transducerOriginPixelToTransducerOriginTransform = vtkSmartPointer<vtkTransform>::New();
   transducerOriginPixelToTransducerOriginTransform->Identity();
@@ -915,4 +936,11 @@ void SpatialCalibrationToolbox::Reset()
 
   m_SpatialValidationData = vtkTrackedFrameList::New();
   m_SpatialValidationData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK); 
+}
+
+//-----------------------------------------------------------------------------
+
+void SpatialCalibrationToolbox::OnDeactivated()
+{
+
 }

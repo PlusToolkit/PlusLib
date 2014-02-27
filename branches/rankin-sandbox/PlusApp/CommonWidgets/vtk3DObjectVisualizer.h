@@ -14,6 +14,7 @@
 #include "vtkGlyph3D.h"
 #include "vtkImageActor.h"
 #include "vtkObject.h"
+#include "vtkPlusChannel.h"
 #include "vtkPolyData.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
@@ -58,7 +59,7 @@ public:
   PlusStatus SetVolumeMapper( vtkPolyDataMapper* aContourMapper );
 
   /*!
-  * Set the volume actor colour
+  * Set the volume actor color
   * \param r red value
   * \param g green value
   * \param b blue value
@@ -99,11 +100,6 @@ public:
   */
   PlusStatus Update();
 
-  /*!
-  * Reset the visualization
-  */
-  PlusStatus Reset();
-
   // Set/Get macros for member variables
   vtkGetObjectMacro(CanvasRenderer, vtkRenderer);
   vtkGetObjectMacro(DataCollector, vtkDataCollector); 
@@ -113,6 +109,8 @@ public:
   vtkGetStringMacro(WorldCoordinateFrame);
   vtkSetStringMacro(WorldCoordinateFrame);
   vtkGetStringMacro(VolumeID);
+
+  vtkSetObjectMacro(SelectedChannel, vtkPlusChannel);
 
   // These will conflict with vtk macros, figure out new naming convention instead of "Set"
   PlusStatus AssignDataCollector(vtkDataCollector* aCollector);
@@ -184,6 +182,9 @@ protected:
 
   /*! Reference to Transform repository that stores and handles all transforms */
   vtkSmartPointer<vtkTransformRepository> TransformRepository;
+
+  /*! Channel to visualize */
+  vtkPlusChannel* SelectedChannel;
 };
 
 #endif  //__vtk3DObjectVisualizer_h

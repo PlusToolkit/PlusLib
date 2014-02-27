@@ -11,12 +11,20 @@
 #include "vtkOutputWindow.h"
 #include "vtkPlusLogger.h"
 #include "vtkPlusMacro.h"
+#include "vtksys/SystemTools.hxx"
 #include <strstream>
 
 enum PlusStatus
 {   
   PLUS_FAIL=0,
   PLUS_SUCCESS=1
+};
+
+enum PlusImagingMode
+{
+  Plus_UnknownMode,
+  Plus_BMode,
+  Plus_RfMode
 };
 
 #define UNDEFINED_TIMESTAMP DBL_MAX
@@ -32,13 +40,6 @@ enum PlusStatus
 #  define STRCASECMP strcasecmp
 #endif
 
-/* Define string printing for Windows */
-#if defined( _WIN32 ) && !defined(__CYGWIN__)
-#  define SNPRINTF sprintf_s
-#else
-#  define SNPRINTF snprintf
-#endif
-
 /* Define round function */
 #define ROUND(x) (static_cast<int>(floor( x + 0.5 )))
 
@@ -46,45 +47,53 @@ enum PlusStatus
 // Logging
 
 #define LOG_ERROR(msg) \
-	{ \
-	std::ostrstream msgStream; \
+  { \
+  std::ostrstream msgStream; \
   msgStream << " " << msg << std::ends; \
-	vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_ERROR, msgStream.str(), __FILE__, __LINE__); \
-	msgStream.rdbuf()->freeze(0); \
-	}	
+  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_ERROR, msgStream.str(), __FILE__, __LINE__); \
+  msgStream.rdbuf()->freeze(0); \
+  }  
 
 #define LOG_WARNING(msg) \
-	{ \
-	std::ostrstream msgStream; \
-	msgStream << " " << msg << std::ends; \
+  { \
+  std::ostrstream msgStream; \
+  msgStream << " " << msg << std::ends; \
   vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_WARNING, msgStream.str(), __FILE__, __LINE__); \
   msgStream.rdbuf()->freeze(0); \
-	}
-		
+  }
+    
 #define LOG_INFO(msg) \
-	{ \
-	std::ostrstream msgStream; \
-	msgStream << " " << msg << std::ends; \
-	vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_INFO, msgStream.str(), __FILE__, __LINE__); \
-	msgStream.rdbuf()->freeze(0); \
-	}
-	
+  { \
+  std::ostrstream msgStream; \
+  msgStream << " " << msg << std::ends; \
+  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_INFO, msgStream.str(), __FILE__, __LINE__); \
+  msgStream.rdbuf()->freeze(0); \
+  }
+  
 #define LOG_DEBUG(msg) \
-	{ \
-	std::ostrstream msgStream; \
-	msgStream << " " << msg << std::ends; \
-	vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_DEBUG, msgStream.str(), __FILE__, __LINE__); \
-	msgStream.rdbuf()->freeze(0); \
-	}	
-	
+  { \
+  std::ostrstream msgStream; \
+  msgStream << " " << msg << std::ends; \
+  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_DEBUG, msgStream.str(), __FILE__, __LINE__); \
+  msgStream.rdbuf()->freeze(0); \
+  }  
+  
 #define LOG_TRACE(msg) \
-	{ \
-	std::ostrstream msgStream; \
-	msgStream << " " << msg << std::ends; \
-	vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_TRACE, msgStream.str(), __FILE__, __LINE__); \
-	msgStream.rdbuf()->freeze(0); \
-	}	
-	
+  { \
+  std::ostrstream msgStream; \
+  msgStream << " " << msg << std::ends; \
+  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_TRACE, msgStream.str(), __FILE__, __LINE__); \
+  msgStream.rdbuf()->freeze(0); \
+  }
+
+#define LOG_DYNAMIC(msg, logLevel) \
+{ \
+  std::ostrstream msgStream; \
+  msgStream << " " << msg << std::ends; \
+  vtkPlusLogger::Instance()->LogMessage(logLevel, msgStream.str(), __FILE__, __LINE__); \
+  msgStream.rdbuf()->freeze(0); \
+  }
+  
 /////////////////////////////////////////////////////////////////// 
 
 /*!
@@ -145,7 +154,7 @@ namespace PlusCommon
   //----------------------------------------------------------------------------
   /*! Quick and robust string to int conversion */
   template<class T>
-  static PlusStatus StringToInt(const char* strPtr, T &result)
+  VTK_EXPORT PlusStatus StringToInt(const char* strPtr, T &result)
   {
     if (strPtr==NULL || strlen(strPtr) == 0 )
     {
@@ -163,7 +172,7 @@ namespace PlusCommon
   //----------------------------------------------------------------------------
   /*! Quick and robust string to double conversion */
   template<class T>
-  static PlusStatus StringToDouble(const char* strPtr, T &result)
+  VTK_EXPORT PlusStatus StringToDouble(const char* strPtr, T &result)
   {
     if (strPtr==NULL || strlen(strPtr) == 0 )
     {
@@ -181,7 +190,7 @@ namespace PlusCommon
   //----------------------------------------------------------------------------
   /*! Quick and robust string to int conversion */
   template<class T>
-  static PlusStatus StringToLong(const char* strPtr, T &result)
+  VTK_EXPORT PlusStatus StringToLong(const char* strPtr, T &result)
   {
     if (strPtr==NULL || strlen(strPtr) == 0 )
     {
@@ -196,7 +205,10 @@ namespace PlusCommon
     return PLUS_SUCCESS;
   }
 
-  //----------------------------------------------------------------------------
+  VTK_EXPORT void SplitStringIntoTokens(const std::string &s, char delim, std::vector<std::string> &elems);
+
+  VTK_EXPORT PlusStatus CreateTemporaryFilename( std::string& aString, const std::string& anOutputDirectory );
+
   /*! Trim whitespace characters from the left and right */
   VTK_EXPORT void Trim(std::string &str);
   
@@ -217,6 +229,13 @@ namespace PlusCommon
   */
   VTK_EXPORT PlusStatus PrintXML(ostream& os, vtkIndent indent, vtkXMLDataElement* elem);
 
+  /*!
+    Temporary patch for workaround vtkXMLDataElement::RemoveAttribute bug.
+    See details in https://www.assembla.com/spaces/plus/tickets/859
+  */
+  VTK_EXPORT void RemoveAttribute(vtkXMLDataElement* elem, const char *name);
+
+  VTK_EXPORT std::string GetPlusLibVersionString();
 };
 
 /*!
@@ -265,6 +284,7 @@ public:
   PlusTransformName(); 
   ~PlusTransformName(); 
   PlusTransformName(std::string aFrom, std::string aTo ); 
+  PlusTransformName(const std::string& transformName ); 
 
   /*! 
     Set 'From' and 'To' coordinate frame names from a combined transform name with the following format [FrameFrom]To[FrameTo]. 
@@ -275,12 +295,16 @@ public:
 
   /*! Return combined transform name between 'From' and 'To' coordinate frames: [From]To[To] */
   PlusStatus GetTransformName(std::string& aTransformName) const; 
+  std::string GetTransformName() const; 
 
   /*! Return 'From' coordinate frame name, give a warning if it's not capitalized and capitalize it*/ 
   std::string From() const; 
 
   /*! Return 'To' coordinate frame name, give a warning if it's not capitalized and capitalize it */ 
   std::string To() const; 
+
+  /*! Clear the 'From' and 'To' fields */
+  void Clear();
 
   /*! Check if the current transform name is valid */ 
   bool IsValid() const; 
@@ -294,7 +318,6 @@ private:
 
   /*! Check if the input string is capitalized, if not capitalize it */ 
   void Capitalize(std::string& aString ); 
-
   std::string m_From; /*! From coordinate frame name */
   std::string m_To; /*! To coordinate frame name */
 }; 

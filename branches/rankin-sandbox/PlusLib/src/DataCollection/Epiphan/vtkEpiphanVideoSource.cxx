@@ -5,13 +5,13 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "epiphan/frmgrab.h"
+#include "frmgrab.h"
 #include "vtkEpiphanVideoSource.h"
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusBuffer.h"
 #include "vtksys/SystemTools.hxx"
 
 vtkCxxRevisionMacro(vtkEpiphanVideoSource, "$Revision: 1.0$");
@@ -27,13 +27,16 @@ vtkEpiphanVideoSource::vtkEpiphanVideoSource()
   this->ClipRectangleSize[1]=0;
   this->GrabberLocation = NULL;
 
-  this->RequireDeviceImageOrientationInDeviceSetConfiguration = true;
+  this->RequireImageOrientationInConfiguration = true;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
   this->RequireUsImageOrientationInDeviceSetConfiguration = true;
   this->RequireRfElementInDeviceSetConfiguration = false;
+
+  // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
+  this->StartThreadForInternalUpdates=true;
 }
 
 //----------------------------------------------------------------------------
@@ -61,11 +64,7 @@ void vtkEpiphanVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 PlusStatus vtkEpiphanVideoSource::InternalConnect()
 {
-
   LOG_TRACE( "vtkEpiphanVideoSource::InternalConnect" );
-
-  // Clear buffer on connect 
-  this->CurrentChannel->Clear();
 
   // Initialize frmgrab library
   FrmGrabNet_Init();
@@ -130,15 +129,18 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
   }
 
   vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it )
   {
-    LOG_ERROR("Unable to retrieve the video source in the Epiphan device.");
-    return PLUS_FAIL;
-  }
-  else
-  {
-    aSource->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR);
-    aSource->GetBuffer()->SetFrameSize(this->FrameSize);
+    if( (*it)->GetVideoSource(aSource) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to retrieve the video source in the Epiphan device on channel " << (*it)->GetChannelId());
+      return PLUS_FAIL;
+    }
+    else
+    {
+      aSource->GetBuffer()->SetPixelType(VTK_UNSIGNED_CHAR);
+      aSource->GetBuffer()->SetFrameSize(this->FrameSize);
+    }
   }
 
   return PLUS_SUCCESS;
@@ -148,31 +150,34 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkEpiphanVideoSource::InternalDisconnect()
 {
+  LOG_DEBUG( "vtkEpiphanVideoSource::InternalDisconnect" );
 
-  LOG_DEBUG("Disconnect from Epiphan ");
+  if( this->Recording )
+  {
+    if( this->StopRecording() != PLUS_SUCCESS )
+    {
+      LOG_WARNING(this->GetDeviceId() << ": Unable to stop recording.");
+    }
+  }
 
-  //this->Initialized = 0;
   if (this->FrameGrabber != NULL) {
     FrmGrab_Close((FrmGrabber*)this->FrameGrabber);
   }
   this->FrameGrabber = NULL;
 
-  return this->StopRecording();
-
   return PLUS_SUCCESS;
-
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkEpiphanVideoSource::InternalStartRecording()
 {
-  if (!this->Recording)
+  if( !FrmGrab_Start((FrmGrabber*)this->FrameGrabber) )
   {
-    return PLUS_SUCCESS;
+    LOG_ERROR(this->GetDeviceId() << ": Unable to frame grabber.");
+    return PLUS_FAIL;
   }
-  FrmGrab_Start((FrmGrabber*)this->FrameGrabber); 
 
-  return this->Connect();
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -185,7 +190,6 @@ PlusStatus vtkEpiphanVideoSource::InternalStopRecording()
 //----------------------------------------------------------------------------
 PlusStatus vtkEpiphanVideoSource::InternalUpdate()
 {
-
   if (!this->Recording)
   {
     // drop the frame, we are not recording data now
@@ -214,7 +218,7 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
     cropRect->height = this->ClipRectangleSize[1];
   }
 
-  frame= FrmGrab_Frame((FrmGrabber*)this->FrameGrabber, videoFormat, cropRect);
+  frame = FrmGrab_Frame((FrmGrabber*)this->FrameGrabber, videoFormat, cropRect);
 
   delete cropRect;
   cropRect = NULL;
@@ -228,23 +232,28 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
   this->FrameNumber++; 
 
   vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it )
   {
-    LOG_ERROR("Unable to retrieve the video source in the Epiphan device.");
-    return PLUS_FAIL;
+    if( (*it)->GetVideoSource(aSource) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to retrieve the video source in the Epiphan device on channel " << (*it)->GetChannelId());
+      return PLUS_FAIL;
+    }
+    else
+    {
+      if( aSource->GetBuffer()->AddItem(frame->pixbuf , aSource->GetPortImageOrientation(), FrameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Error adding item to video source " << aSource->GetSourceId() << " on channel " << (*it)->GetChannelId() );
+        return PLUS_FAIL;
+      }
+      else
+      {
+        this->Modified();
+      }
+    }
   }
-  // If the buffer is empty, set the pixel type and frame size to the first received properties 
-  if ( aSource->GetBuffer()->GetNumberOfItems() == 0 )
-  {
-    aSource->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR);  
-    aSource->GetBuffer()->SetFrameSize( FrameSize );
-  }
-
-  PlusStatus status = aSource->GetBuffer()->AddItem(frame->pixbuf ,this->GetDeviceImageOrientation(), FrameSize, 
-    itk::ImageIOBase::UCHAR,US_IMG_BRIGHTNESS,0,this->FrameNumber);
-  this->Modified();
   FrmGrab_Release((FrmGrabber*)this->FrameGrabber, frame);
-  return status;
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -359,7 +368,9 @@ PlusStatus vtkEpiphanVideoSource::WriteConfiguration(vtkXMLDataElement* config)
   }
   else
   {
-    imageAcquisitionConfig->RemoveAttribute("GrabberLocation");
+    // TODO: replace the following line by the commented out line after upgrading to VTK 6.x (https://www.assembla.com/spaces/plus/tickets/859)
+    // imageAcquisitionConfig->RemoveAttribute("GrabberLocation");
+    PlusCommon::RemoveAttribute(imageAcquisitionConfig,"GrabberLocation");
   }
 
   // SerialNumber is an obsolete attribute, the information is stored onw in GrabberLocation

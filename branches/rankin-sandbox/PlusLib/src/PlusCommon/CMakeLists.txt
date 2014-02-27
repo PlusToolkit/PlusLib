@@ -19,7 +19,7 @@ SET (PlusCommon_SRCS
   )
 
 SET (PlusCommon_HDRS)
-if (WIN32)	
+if (WIN32)  
   SET (PlusCommon_HDRS
     PlusCommon.h
     vtkAccurateTimer.h
@@ -36,30 +36,31 @@ if (WIN32)
     vtkTrackedFrameList.h
     TrackedFrame.h
     PlusVideoFrame.h
+	PlusVideoFrame.txx
     vtkMetaImageSequenceIO.h
     vtkRecursiveCriticalSection.h
     vtkToolAxesActor.h
     )
-endif (WIN32)	
+endif (WIN32)  
 
 SET (PlusCommon_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Build the library
 
-SET (PlusCommon_LIBS ITKIO ITKBasicFilters vtkCommon vtkHybrid vtkFiltering ${PlusCommon_LIBS} )
+SET (PlusCommon_LIBS ${ITK_LIBRARIES} vtkCommon vtkHybrid vtkFiltering ${PlusCommon_LIBS} )
 
-if (WIN32)	
+if (WIN32)  
   SET (PlusCommon_LIBS ${PlusCommon_LIBS} Winmm )
 endif (WIN32)
 
 IF (PLUS_USE_OpenIGTLink)
-	 SET (PlusCommon_LIBS ${PlusCommon_LIBS} OpenIGTLink )
-ENDIF(PLUS_USE_OpenIGTLink)	 
+   SET (PlusCommon_LIBS ${PlusCommon_LIBS} OpenIGTLink )
+ENDIF(PLUS_USE_OpenIGTLink)   
 
 INCLUDE_DIRECTORIES( ${PlusCommon_INCLUDE_DIRS} )
 ADD_LIBRARY(vtkPlusCommon ${PlusCommon_SRCS} ${PlusCommon_HDRS})
-TARGET_LINK_LIBRARIES(	vtkPlusCommon ${PlusCommon_LIBS} )
+TARGET_LINK_LIBRARIES(  vtkPlusCommon ${PlusCommon_LIBS} )
 
 # --------------------------------------------------------------------------
 # Set external MS project 
@@ -71,7 +72,7 @@ SET(vcProj_vtkPlusCommon vtkPlusCommon;"${PlusLib_BINARY_DIR}/src/PlusCommon/vtk
 # --------------------------------------------------------------------------
 # Install
 #
-	
+  
 INSTALL(TARGETS vtkPlusCommon
   RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   LIBRARY DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries

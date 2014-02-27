@@ -14,8 +14,11 @@ See License.txt for details.
 #include "vtkImageData.h"
 
 //----------------------------------------------------------------------------
-vtkCxxRevisionMacro(vtkRfProcessor, "$Revision: 1.0 $");
-vtkStandardNewMacro(vtkRfProcessor); 
+vtkCxxRevisionMacro(vtkRfProcessor, "$Revision: 1.1 $");
+vtkStandardNewMacro(vtkRfProcessor);
+//----------------------------------------------------------------------------
+const char* vtkRfProcessor::RF_PROCESSOR_TAG_NAME = "RfProcessing";
+//----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------
 vtkRfProcessor::vtkRfProcessor()
@@ -86,18 +89,12 @@ void vtkRfProcessor::SetScanConverter(vtkUsScanConvert* scanConverter)
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkRfProcessor::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkRfProcessor::ReadConfiguration(vtkXMLDataElement* rfProcessingElement)
 {
-  if ( config == NULL )
+  if ( rfProcessingElement == NULL )
   {
     LOG_DEBUG("Unable to configure vtkRfProcessor! (XML data element is NULL)"); 
     return PLUS_FAIL; 
-  }
-  vtkXMLDataElement* rfProcessingElement = config->FindNestedElementWithName("RfProcessing"); 
-  if (rfProcessingElement == NULL)
-  {
-    LOG_DEBUG("Unable to find RfProcessing element in XML tree, will use default values!");    
-    return PLUS_FAIL;
   }
 
   PlusStatus status=PLUS_SUCCESS;
@@ -142,7 +139,7 @@ PlusStatus vtkRfProcessor::ReadConfiguration(vtkXMLDataElement* config)
           status=PLUS_FAIL;
         }
       }
-      if (this->ScanConverter->ReadConfiguration(scanConversionElement)!=PLUS_SUCCESS)
+      if (this->ScanConverter != NULL && this->ScanConverter->ReadConfiguration(scanConversionElement)!=PLUS_SUCCESS)
       {
         status=PLUS_FAIL;
       }
@@ -164,9 +161,9 @@ PlusStatus vtkRfProcessor::ReadConfiguration(vtkXMLDataElement* config)
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkRfProcessor::WriteConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkRfProcessor::WriteConfiguration(vtkXMLDataElement* rfElement)
 {
-  if ( config == NULL )
+  if ( rfElement == NULL )
   {
     LOG_DEBUG("Unable to configure vtkRfProcessor! (XML data element is NULL)"); 
     return PLUS_FAIL; 
@@ -175,42 +172,43 @@ PlusStatus vtkRfProcessor::WriteConfiguration(vtkXMLDataElement* config)
   // RfProcessing
   //  - BrightnessConversion
   //  - ScanConversion
-  vtkXMLDataElement* rfProcessingElement = PlusXmlUtils::GetNestedElementWithName(config, "RfProcessing"); 
-  if (rfProcessingElement == NULL) 
-  {  
-    return PLUS_FAIL;
-  }
-  vtkXMLDataElement* brightnessConversionElement = PlusXmlUtils::GetNestedElementWithName(rfProcessingElement, "RfToBrightnessConversion"); 
+  vtkXMLDataElement* brightnessConversionElement = PlusXmlUtils::GetNestedElementWithName(rfElement, "RfToBrightnessConversion"); 
   if (brightnessConversionElement == NULL) 
   {  
     return PLUS_FAIL;
   }  
-  vtkXMLDataElement* scanConversionElement = PlusXmlUtils::GetNestedElementWithName(rfProcessingElement, "ScanConversion"); 
+  vtkXMLDataElement* scanConversionElement = PlusXmlUtils::GetNestedElementWithName(rfElement, "ScanConversion"); 
   if (scanConversionElement == NULL) 
   {  
     return PLUS_FAIL;
   }  
 
-  PlusStatus status=PLUS_SUCCESS;
+  PlusStatus status(PLUS_SUCCESS);
 
-  if (this->RfToBrightnessConverter->WriteConfiguration(brightnessConversionElement)!=PLUS_SUCCESS)
+  if ( this->RfToBrightnessConverter->WriteConfiguration(brightnessConversionElement) != PLUS_SUCCESS )
   {
-    status=PLUS_FAIL;
+    status = PLUS_FAIL;
   }  
 
-  if (this->ScanConverter!=NULL)
+  if (this->ScanConverter != NULL)
   {
-    if (this->ScanConverter->WriteConfiguration(scanConversionElement)!=PLUS_SUCCESS)
+    if ( this->ScanConverter->WriteConfiguration(scanConversionElement) != PLUS_SUCCESS)
     {
-      status=PLUS_FAIL;
+      status = PLUS_FAIL;
     }
   }
   else
   {
     scanConversionElement->SetAttribute("TransducerGeometry", "UNKNOWN"); 
     LOG_ERROR("Unknown transducer geometry");
-    status=PLUS_FAIL;
+    status = PLUS_FAIL;
   }
 
   return status;
+}
+
+//-----------------------------------------------------------------------------
+const char* vtkRfProcessor::GetRfProcessorTagName()
+{
+  return vtkRfProcessor::RF_PROCESSOR_TAG_NAME;
 }

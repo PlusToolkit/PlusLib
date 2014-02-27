@@ -7,11 +7,21 @@ OPTION (PLUS_USE_BRACHY_TRACKER "Provide support for the brachy stepper tracking
 OPTION (PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" OFF)
 OPTION (PLUS_USE_Ascension3DGm "Provide support for the Ascension 3DGm MedSafe Tracker" OFF)
 OPTION (PLUS_USE_PHIDGET_SPATIAL_TRACKER "Provide support for the Phidget Spatial accelerometer" OFF)
+OPTION (PLUS_USE_3dConnexion_TRACKER "Provide support for the 3dConnexion 3d mouse" OFF)
 OPTION (PLUS_USE_ULTRASONIX_VIDEO "Provide support for Ultrasonix ultrasound scanners" OFF)
-OPTION (PLUS_USE_BKPROFOCUS_VIDEO "Provide support for BK ProFocus ultrasound scanners" OFF)
+OPTION (PLUS_USE_BKPROFOCUS_VIDEO "Provide support for BK ProFocus ultrasound scanners through the OEM (TCP/IP) interface" OFF)
+OPTION (PLUS_USE_BKPROFOCUS_CAMERALINK "Provide support for BK ProFocus ultrasound scanners through CameraLink interface" OFF)
 OPTION (PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber device" OFF)
 OPTION (PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
 OPTION (PLUS_USE_EPIPHAN "Provide support for the Epiphan" OFF)
+OPTION (PLUS_USE_INTERSON_VIDEO "Provide support Interson USB ultrasound probes" OFF)
+OPTION(PLUS_USE_StealthLink2 "Provide support for the Medtronick StealthLink Server" OFF)
+
+OPTION (PLUS_TEST_BKPROFOCUS "Enable testing of acquisition from BK ProFocus ultrasound systems. Enable this only if a BK ProFocus device is connected to this computer." OFF)
+OPTION (PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
+IF (PLUS_TEST_ULTRASONIX)
+  SET (PLUS_TEST_ULTRASONIX_IP_ADDRESS "127.0.0.1" CACHE STRING "IP address of the Ultrasonix scanner that is used during testing")
+ENDIF()
 
 # --------------------------------------------------------------------------
 # Sources
@@ -24,13 +34,14 @@ SET (DataCollection_SRCS
   vtkPlusDataSource.cxx 
   FakeTracking/vtkFakeTracker.cxx   
   SavedDataSource/vtkSavedDataSource.cxx 
-  VirtualDevices/vtkVirtualStreamMixer.cxx
-  VirtualDevices/vtkVirtualStreamSwitcher.cxx
-  VirtualDevices/vtkVirtualStreamDiscCapture.cxx 
+  VirtualDevices/vtkVirtualMixer.cxx
+  VirtualDevices/vtkVirtualSwitcher.cxx
+  VirtualDevices/vtkVirtualDiscCapture.cxx 
+  VirtualDevices/vtkVirtualVolumeReconstructor.cxx
   SerialLine.cxx
   itkFcsvReader.cxx
   itkFcsvWriter.cxx
-  vtkPlusStreamBuffer.cxx 
+  vtkPlusBuffer.cxx 
   UsSimulatorVideo/vtkUsSimulatorVideoSource.cxx
   )
 
@@ -46,13 +57,14 @@ if (WIN32)
     vtkPlusDataSource.h
     FakeTracking/vtkFakeTracker.h
     SavedDataSource/vtkSavedDataSource.h 
-    VirtualDevices/vtkVirtualStreamMixer.h
-    VirtualDevices/vtkVirtualStreamSwitcher.h
-	VirtualDevices/vtkVirtualStreamDiscCapture.h
+    VirtualDevices/vtkVirtualMixer.h
+    VirtualDevices/vtkVirtualSwitcher.h
+    VirtualDevices/vtkVirtualDiscCapture.h
+    VirtualDevices/vtkVirtualVolumeReconstructor.h
     SerialLine.h
     itkFcsvReader.h
     itkFcsvWriter.h
-    vtkPlusStreamBuffer.h 
+    vtkPlusBuffer.h 
     UsSimulatorVideo/vtkUsSimulatorVideoSource.h
     )
 endif (WIN32)  
@@ -67,24 +79,6 @@ SET (DataCollection_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/UsSimulatorVideo 
   ${CMAKE_CURRENT_SOURCE_DIR}/VirtualDevices  
   CACHE INTERNAL "" FORCE)
-
-
-# --------------------------------------------------------------------------
-# NDI common support
-
-IF (PLUS_USE_CERTUS OR PLUS_USE_POLARIS)
-
-  SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
-    ${CMAKE_CURRENT_SOURCE_DIR}/ndicapi
-    CACHE INTERNAL "" FORCE)
-
-  SET (DataCollection_LIBS ${DataCollection_LIBS} 
-    vtkndicapi
-    )
-    
-  ADD_SUBDIRECTORY(ndicapi)
-
-ENDIF (PLUS_USE_CERTUS OR PLUS_USE_POLARIS)
 
 # --------------------------------------------------------------------------
 # NDI Certus support
@@ -130,6 +124,8 @@ IF (PLUS_USE_POLARIS)
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/PolarisTracking
     CACHE INTERNAL "" FORCE)
+
+  SET (DataCollection_LIBS ${DataCollection_LIBS} vtkndicapi )    
               
 ENDIF (PLUS_USE_POLARIS)
 
@@ -155,11 +151,9 @@ IF (PLUS_USE_MICRONTRACKER)
   INCLUDE (${CMAKE_ROOT}/Modules/FindOpenGL.cmake)
   
   SET (DataCollection_LIBS ${DataCollection_LIBS} 
-    MicronTrackerInterface
+    vtkMicronTrackerInterface
     ${MICRONTRACKER_LIBRARY}
-    )
-    
-  ADD_SUBDIRECTORY(MicronTracking/Utils)
+    )   
   
   SET ( External_Libraries_Install ${External_Libraries_Install}
     ${MICRONTRACKER_BINARY_DIR}/MTC${CMAKE_SHARED_LIBRARY_SUFFIX}
@@ -173,12 +167,6 @@ ENDIF (PLUS_USE_MICRONTRACKER)
 #--------------------------------------------------------------------------
 # BrachyTracker support
 IF (PLUS_USE_BRACHY_TRACKER)
-
-  SET(USDIGITAL_SEI_BASE_DIR ${PLUSLIB_TOOLS_DIR}/UsDigital/SEI_5.22)
-
-  SET(USDIGITAL_SEI_INCLUDE_DIR ${USDIGITAL_SEI_BASE_DIR}/inc CACHE PATH "Path to the US Digital SEI include directory (needed for the CIVCO stepper)." FORCE)
-  SET(USDIGITAL_SEI_BINARY_DIR ${USDIGITAL_SEI_BASE_DIR}/bin CACHE PATH "Path to the US Digital SEI binary directory (needed for the CIVCO stepper)." FORCE)
-  SET(USDIGITAL_SEI_LIB_DIR ${USDIGITAL_SEI_BASE_DIR}/lib CACHE PATH "Path to the US Digital SEI library directory (needed for the CIVCO stepper)." FORCE)
 
   SET (DataCollection_SRCS ${DataCollection_SRCS}
     BrachyTracking/vtkBrachyTracker.cxx
@@ -215,13 +203,7 @@ ENDIF (PLUS_USE_BRACHY_TRACKER)
 #--------------------------------------------------------------------------
 # Ascension 3DG support (trakSTAR)
 IF( PLUS_USE_Ascension3DG )
-
-  SET( ATC_TRAKSTAR_BASE_DIR ${PLUSLIB_TOOLS_DIR}/Ascension/trakSTAR_940038_RevD)
-
-  SET( ATC_TRAKSTAR_INCLUDE_DIR ${ATC_TRAKSTAR_BASE_DIR}/inc CACHE PATH "Path to the Ascension trakSTAR 3D Guidance library folder (where the ATC3DG.h file is located)" FORCE )
-  SET( ATC_TRAKSTAR_LIB_DIR ${ATC_TRAKSTAR_BASE_DIR}/lib CACHE PATH "Path to the Ascension trakSTAR 3D Guidance library folder" FORCE )
-  SET( ATC_TRAKSTAR_BINARY_DIR ${ATC_TRAKSTAR_BASE_DIR}/bin CACHE PATH "Path to the Ascension trakSTAR 3D Guidance dll folder" FORCE ) 
-    
+   
   SET (DataCollection_SRCS ${DataCollection_SRCS}
     Ascension3DGTracking/vtkAscension3DGTracker.cxx 
     )
@@ -250,14 +232,7 @@ ENDIF( PLUS_USE_Ascension3DG )
 #--------------------------------------------------------------------------
 # Ascension 3DGm support (medSAFE)
 IF( PLUS_USE_Ascension3DGm )
-  
-  SET(ATC_MEDSAFE_BASE_DIR ${PLUSLIB_TOOLS_DIR}/Ascension/medSAFE_940033_Rev_F)
-
-  SET( ATC_MEDSAFE_INCLUDE_DIR ${ATC_MEDSAFE_BASE_DIR}/inc CACHE PATH "Path to the Ascension medSAFE 3D Guidance library folder (where the ATC3DGm.h file is located)" FORCE )
-  SET( ATC_MEDSAFE_LIB_DIR ${ATC_MEDSAFE_BASE_DIR}/lib CACHE PATH "Path to the Ascension medSAFE 3D Guidance library folder" FORCE )
-  SET( ATC_MEDSAFE_BINARY_DIR ${ATC_MEDSAFE_BASE_DIR}/bin CACHE PATH "Path to the Ascension medSAFE 3D Guidance dll folder" FORCE ) 
-
-      
+        
   SET (DataCollection_SRCS ${DataCollection_SRCS} Ascension3DGTracking/vtkAscension3DGmTracker.cxx )
   if (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS} Ascension3DGTracking/vtkAscension3DGmTracker.h )
@@ -281,24 +256,17 @@ ENDIF( PLUS_USE_Ascension3DGm )
 #--------------------------------------------------------------------------
 # PhidgetSpatial 3/3/3 MARG sensor (magnetometer, accelerometer, gyroscope)
 IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
-  
-  SET(PHIDGET_SPATIAL_BASE_DIR ${PLUSLIB_TOOLS_DIR}/Phidget/PhidgetSpatial-2.1.8)
-  
+
   IF( ${CMAKE_GENERATOR} MATCHES Win64 )
-    SET(PHIDGET_SPATIAL_BIN_SUBDIR x64)
+    SET( PHIDGET_SPATIAL_LIB_DIR ${PHIDGET_SPATIAL_WIN64_LIB_DIR} )
+    SET( PHIDGET_SPATIAL_BINARY_DIR ${PHIDGET_SPATIAL_WIN64_BINARY_DIR} ) 
   ELSE()
-    SET(PHIDGET_SPATIAL_BIN_SUBDIR x86)
+    SET( PHIDGET_SPATIAL_LIB_DIR ${PHIDGET_SPATIAL_WIN32_LIB_DIR} )
+    SET( PHIDGET_SPATIAL_BINARY_DIR ${PHIDGET_SPATIAL_WIN32_BINARY_DIR} ) 
   ENDIF()
-
-
-  SET( PHIDGET_SPATIAL_INCLUDE_DIR ${PHIDGET_SPATIAL_BASE_DIR} CACHE PATH "Path to the Phidget Spatial include folder" FORCE )
-  SET( PHIDGET_SPATIAL_LIB_DIR ${PHIDGET_SPATIAL_BASE_DIR}/${PHIDGET_SPATIAL_BIN_SUBDIR} CACHE PATH "Path to the Phidget Spatial library folder" FORCE )
-  SET( PHIDGET_SPATIAL_BINARY_DIR ${PHIDGET_SPATIAL_BASE_DIR}/${PHIDGET_SPATIAL_BIN_SUBDIR} CACHE PATH "Path to the Phidget Spatial dll folder" FORCE ) 
-      
+  
   SET (DataCollection_SRCS ${DataCollection_SRCS} 
     PhidgetSpatialTracking/vtkPhidgetSpatialTracker.cxx 
-    ${CMAKE_CURRENT_SOURCE_DIR}/PhidgetSpatialTracking/xio/MadgwickAhrsAlgo.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/PhidgetSpatialTracking/xio/MahonyAhrsAlgo.cxx
     )
   if (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS} PhidgetSpatialTracking/vtkPhidgetSpatialTracker.h )
@@ -307,11 +275,11 @@ IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
     ${PHIDGET_SPATIAL_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/PhidgetSpatialTracking
-    ${CMAKE_CURRENT_SOURCE_DIR}/PhidgetSpatialTracking/xio
     CACHE INTERNAL "" FORCE)
 
   SET (DataCollection_LIBS ${DataCollection_LIBS}
     ${PHIDGET_SPATIAL_LIB_DIR}/phidget21${CMAKE_STATIC_LIBRARY_SUFFIX}
+    vtkxio
     )
 
   SET ( External_Libraries_Install ${External_Libraries_Install}
@@ -323,17 +291,21 @@ ENDIF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
 #--------------------------------------------------------------------------
 # 3dConnexion SpaceNavigator and similar 3D mouse devices
 
-if (WIN32)  # the 3D mouse is currently supported on Windows only
-  SET (DataCollection_SRCS ${DataCollection_SRCS} 
-    3dConnexionTracking/vtk3dConnexionTracker.cxx
-    )
-  if (WIN32)  
-    SET (DataCollection_HDRS ${DataCollection_HDRS} 3dConnexionTracking/vtk3dConnexionTracker.h )
-  endif (WIN32)  
-  SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
-    ${CMAKE_CURRENT_SOURCE_DIR}/3dConnexionTracking
-    CACHE INTERNAL "" FORCE)
-endif (WIN32)
+IF( PLUS_USE_3dConnexion_TRACKER )
+
+  if (WIN32)  # the 3D mouse is currently supported on Windows only
+    SET (DataCollection_SRCS ${DataCollection_SRCS} 
+      3dConnexionTracking/vtk3dConnexionTracker.cxx
+      )
+    if (WIN32)  
+      SET (DataCollection_HDRS ${DataCollection_HDRS} 3dConnexionTracking/vtk3dConnexionTracker.h )
+    endif (WIN32)  
+    SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
+      ${CMAKE_CURRENT_SOURCE_DIR}/3dConnexionTracking
+      CACHE INTERNAL "" FORCE)
+  endif (WIN32)
+  
+ENDIF( PLUS_USE_3dConnexion_TRACKER )
 
 #--------------------------------------------------------------------------
 # CH Robotics UM6 MARG sensor (magnetometer, accelerometer, gyroscope)
@@ -351,6 +323,7 @@ endif (WIN32)
 
 #--------------------------------------------------------------------------
 # OpenIGTLink 
+
 IF( PLUS_USE_OpenIGTLink )
   SET (DataCollection_SRCS ${DataCollection_SRCS}
     OpenIGTLinkTracking/vtkOpenIGTLinkTracker.cxx 
@@ -371,7 +344,6 @@ IF( PLUS_USE_OpenIGTLink )
   SET (DataCollection_LIBS ${DataCollection_LIBS} OpenIGTLink vtkPlusOpenIGTLink )
 
 ENDIF( PLUS_USE_OpenIGTLink )
-
 
 # --------------------------------------------------------------------------
 # Ultrasonix support
@@ -532,19 +504,17 @@ ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 
 # --------------------------------------------------------------------------
 # BK ProFocus support
+
+# OEM interface
 IF (PLUS_USE_BKPROFOCUS_VIDEO)  
-  SET (DataCollection_SRCS
-    ${DataCollection_SRCS}
-    BkProFocus/vtkBkProFocusVideoSource.cxx
-    BkProFocus/PlusBkProFocusReceiver.cxx
+  SET (DataCollection_SRCS ${DataCollection_SRCS}
+    BkProFocus/vtkBkProFocusOemVideoSource.cxx 
     )
   if (WIN32)  
-    SET (DataCollection_HDRS
-      ${DataCollection_HDRS}
-      BkProFocus/vtkBkProFocusVideoSource.h
-      BkProFocus/PlusBkProFocusReceiver.h
+    SET (DataCollection_HDRS ${DataCollection_HDRS}
+      BkProFocus/vtkBkProFocusOemVideoSource.h
       )
-  endif (WIN32)  
+  endif (WIN32)
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
     ${GRABBIELIB_SOURCE_DIR}/AcquisitionLibrary
     ${GRABBIELIB_SOURCE_DIR}/BkmDataFileLib
@@ -557,8 +527,26 @@ IF (PLUS_USE_BKPROFOCUS_VIDEO)
     )
   SET (DataCollection_LIBS ${DataCollection_LIBS} 
     GrabbieLib
+    ${VTK_PNG_LIBRARIES}
+    )  
+
+  # CameraLink interface
+  IF (PLUS_USE_BKPROFOCUS_CAMERALINK)  
+  SET (DataCollection_SRCS ${DataCollection_SRCS}
+    BkProFocus/vtkBkProFocusCameraLinkVideoSource.cxx
+    BkProFocus/PlusBkProFocusCameraLinkReceiver.cxx
+    )
+  if (WIN32)  
+    SET (DataCollection_HDRS ${DataCollection_HDRS}
+      BkProFocus/vtkBkProFocusCameraLinkVideoSource.h
+      BkProFocus/PlusBkProFocusCameraLinkReceiver.h
+      )
+  endif (WIN32)  
+  SET (DataCollection_LIBS ${DataCollection_LIBS} 
     ${DALSASAPERA_LIB_DIR}/SapClassBasic${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
+  ENDIF (PLUS_USE_BKPROFOCUS_CAMERALINK)
+
 ENDIF (PLUS_USE_BKPROFOCUS_VIDEO)
 
 # --------------------------------------------------------------------------
@@ -598,6 +586,43 @@ IF (PLUS_USE_ICCAPTURING_VIDEO)
     )
 ENDIF (PLUS_USE_ICCAPTURING_VIDEO)
 
+# --------------------------------------------------------------------------
+# StealthLink2.0 suppport
+
+IF (PLUS_USE_StealthLink2)
+
+  SET (DataCollection_SRCS
+    ${DataCollection_SRCS}
+    StealthLink/StealthLinkQuery.cxx
+    )  
+  # This part will be decommented once the vtkClass is ready for StealthLink
+  #if (WIN32)  
+  #  SET (DataCollection_HDRS
+  #    ${DataCollection_HDRS}
+  #    ICCapturing/vtkICCapturingSource.h
+  #    ICCapturing/ICCapturingListener.h 
+  #    )
+  #endif (WIN32)  
+  # Look for ICCapturing libraries  
+  
+  SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
+    ${Stealthlink2_INCLUDE_DIRS} 
+    ${CMAKE_CURRENT_SOURCE_DIR}/StealthLink
+    )
+  
+  SET (DataCollection_LIBS ${DataCollection_LIBS} 
+    optimized ${Stealthlink2_StealthLink_STATIC_LIBRARY}
+    debug ${Stealthlink2_StealthLinkD_STATIC_LIBRARY}
+    )
+
+  SET ( External_Libraries_Install ${External_Libraries_Install}
+    ${Stealthlink2_StealthLink_SHARED_LIBRARY}
+    )
+  SET ( External_Libraries_Debug ${External_Libraries_Debug} 
+    ${Stealthlink2_StealthLinkD_SHARED_LIBRARY}
+    )
+ENDIF (PLUS_USE_StealthLink2)
+
     
 # --------------------------------------------------------------------------
 # Video-for-Windows video digitizer support
@@ -624,20 +649,40 @@ IF (PLUS_USE_VFW_VIDEO)
 ENDIF (PLUS_USE_VFW_VIDEO)
 
 # --------------------------------------------------------------------------
+# Microsoft Media Foundation video digitizer support
+
+IF (PLUS_USE_MMF_VIDEO)
+
+  SET (DataCollection_SRCS ${DataCollection_SRCS} 
+    MicrosoftMediaFoundation/vtkMmfVideoSource.cxx 
+    )
+  if (WIN32)  
+    SET (DataCollection_HDRS ${DataCollection_HDRS}
+      MicrosoftMediaFoundation/vtkMmfVideoSource.h 
+      )
+  endif (WIN32)
+  SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
+    ${CMAKE_CURRENT_SOURCE_DIR}/MicrosoftMediaFoundation
+    ${CMAKE_CURRENT_SOURCE_DIR}/MicrosoftMediaFoundation/InputCaptureLibrary
+    ${WINDOWSSDK_LATEST_DIR}/Include
+    )
+  SET (DataCollection_LIBS ${DataCollection_LIBS} 
+    MfVideoCaptureLibrary
+    )
+ENDIF (PLUS_USE_MMF_VIDEO)
+
+# --------------------------------------------------------------------------
 # Epiphan support
 
 IF (PLUS_USE_EPIPHAN)
 
   IF( ${CMAKE_GENERATOR} MATCHES Win64 )
-    SET (EPIPHAN_PLATFORM_SUBDIR x64)
+    SET (EPIPHAN_BINARY_DIR ${EPIPHAN_WIN64_BINARY_DIR})
+    SET (EPIPHAN_LIB_DIR ${EPIPHAN_WIN64_LIB_DIR})
   ELSE()
-    SET (EPIPHAN_PLATFORM_SUBDIR Win32)
+    SET (EPIPHAN_BINARY_DIR ${EPIPHAN_WIN32_BINARY_DIR})
+    SET (EPIPHAN_LIB_DIR ${EPIPHAN_WIN32_LIB_DIR})
   ENDIF()
-
-  SET (EPIPHAN_SDK_BASE_DIR ${PLUSLIB_TOOLS_DIR}/epiphan)
-  SET (EPIPHAN_INCLUDE_DIR ${EPIPHAN_SDK_BASE_DIR} CACHE PATH "Path to the Epiphan SDK include (*.h) directory." FORCE)  
-  SET (EPIPHAN_BINARY_DIR ${EPIPHAN_SDK_BASE_DIR}/${EPIPHAN_PLATFORM_SUBDIR} CACHE PATH "Path to the Epiphan SDK binary (*.dll) directory." FORCE)
-  SET (EPIPHAN_LIB_DIR ${EPIPHAN_SDK_BASE_DIR}/${EPIPHAN_PLATFORM_SUBDIR} CACHE PATH "Path to the Epiphan SDK library (*.lib) directory." FORCE)
 
   SET (DataCollection_SRCS ${DataCollection_SRCS} 
     Epiphan/vtkEpiphanVideoSource.cxx
@@ -663,6 +708,47 @@ IF (PLUS_USE_EPIPHAN)
 ENDIF (PLUS_USE_EPIPHAN)
 
 # --------------------------------------------------------------------------
+# Interson support
+
+IF (PLUS_USE_INTERSON_VIDEO)
+  SET (DataCollection_SRCS ${DataCollection_SRCS} 
+    Interson/vtkIntersonVideoSource.cxx
+    )
+  if (WIN32)  
+    SET (DataCollection_HDRS ${DataCollection_HDRS}
+      Interson/vtkIntersonVideoSource.h
+      )
+  endif (WIN32)
+  SET (DataCollection_LIBS ${DataCollection_LIBS} 
+    ${INTERSON_LIBRARY_DIR}/BmodeDLL${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${INTERSON_LIBRARY_DIR}/USBprobeDLL${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
+  SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}     
+    ${INTERSON_INCLUDE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/Interson
+    )          
+  IF( ${CMAKE_GENERATOR} MATCHES Win64 )
+    SET ( External_Libraries_Install ${External_Libraries_Install}
+      ${INTERSON_WIN64_BINARY_DIR}/USBprobe${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${INTERSON_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+    SET ( External_Libraries_Debug ${External_Libraries_Debug}
+      ${INTERSON_WIN64_BINARY_DIR}/USBprobe${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${INTERSON_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+  ELSE()
+      SET ( External_Libraries_Install ${External_Libraries_Install}
+      ${INTERSON_WIN32_BINARY_DIR}/USBprobe${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${INTERSON_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+    SET ( External_Libraries_Debug ${External_Libraries_Debug}
+      ${INTERSON_WIN32_BINARY_DIR}/USBprobe${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${INTERSON_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+  ENDIF()
+ENDIF (PLUS_USE_INTERSON_VIDEO)
+
+# --------------------------------------------------------------------------
 # Build the library
 
 SET (DataCollection_LIBS ${DataCollection_LIBS}
@@ -671,9 +757,9 @@ SET (DataCollection_LIBS ${DataCollection_LIBS}
   vtkFiltering 
   vtkPlusCommon  
   vtkSignaling
-  ITKIO
-  ITKBasicFilters
+  ${ITK_LIBRARIES}
   vtkUsSimulatorAlgo
+  vtkVolumeReconstruction
   vtkRfProcessingAlgo
   ) 
   
@@ -690,7 +776,7 @@ TARGET_LINK_LIBRARIES(vtkDataCollection ${DataCollection_LIBS})
 SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkDataCollection CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkDataCollection vtkDataCollection;"${PlusLib_BINARY_DIR}/src/DataCollection/vtkDataCollection.vcproj";vtkPlusCommon;vtkUsSimulatorAlgo CACHE INTERNAL "" FORCE)
+SET(vcProj_vtkDataCollection vtkDataCollection;"${PlusLib_BINARY_DIR}/src/DataCollection/vtkDataCollection.vcproj";vtkPlusCommon;vtkUsSimulatorAlgo;vtkRfProcessingAlgo CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Copy external libraries to PLUS_EXECUTABLE_OUTPUT_PATH
@@ -701,6 +787,9 @@ IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
     FILE(COPY ${External_Libraries_Install}
         DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Debug
         )                
+    FILE(COPY ${External_Libraries_Debug}
+        DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Debug
+        )        
 ELSE()
     FILE(COPY ${External_Libraries_Install}
         DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}

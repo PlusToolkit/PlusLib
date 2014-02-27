@@ -10,7 +10,7 @@ See License.txt for details.
 #include "vtkInteractorStyleTrackballCamera.h"
 #include "vtkMath.h"
 #include "vtkPlusDevice.h"
-#include "vtkPlusStreamBuffer.h" // Only for dumping buffers
+#include "vtkPlusBuffer.h" // Only for dumping buffers
 #include "vtkProperty.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
@@ -41,6 +41,7 @@ vtkVisualizationController::vtkVisualizationController()
 , CurrentMode(DISPLAY_MODE_NONE)
 , AcquisitionFrameRate(20)
 , TransformRepository(NULL)
+, SelectedChannel(NULL)
 {
   // Create transform repository
   this->ClearTransformRepository();
@@ -219,9 +220,14 @@ PlusStatus vtkVisualizationController::SetVisualizationMode( DISPLAY_MODE aMode 
 
   if (aMode == DISPLAY_MODE_2D)
   {
-    if (this->DataCollector->GetVideoDataAvailable() == false)
+    if (this->SelectedChannel->GetVideoDataAvailable() == false)
     {
       LOG_WARNING("Cannot switch to image mode without enabled video in data collector!");
+      return PLUS_FAIL;
+    }
+    if( this->SelectedChannel->GetBrightnessOutput() == NULL )
+    {
+      LOG_WARNING("No B-mode data available to visualize. Disabling 2D visualization.");
       return PLUS_FAIL;
     }
 
@@ -274,9 +280,9 @@ PlusStatus vtkVisualizationController::SetVisualizationMode( DISPLAY_MODE aMode 
     this->HideRenderer();
   }
 
-  this->ConnectInput();
-
   CurrentMode = aMode;
+
+  this->ConnectInput();
 
   return PLUS_SUCCESS;
 }
@@ -346,9 +352,6 @@ PlusStatus vtkVisualizationController::StartDataCollection()
     return PLUS_FAIL;
   }
 
-  this->ImageVisualizer->AssignDataCollector(this->DataCollector);
-  this->PerspectiveVisualizer->AssignDataCollector(this->DataCollector);
-
   return PLUS_SUCCESS;
 }
 
@@ -408,12 +411,11 @@ PlusStatus vtkVisualizationController::Update()
     this->PerspectiveVisualizer->Update();
   }
 
-  vtkPlusChannel* aChannel(NULL);
-  if( this->DataCollector != NULL && this->DataCollector->GetSelectedChannel(aChannel) == PLUS_SUCCESS )
+  // Force update of the brightness image in the DataCollector,
+  // because it is the image that the image actors show
+  if( this->SelectedChannel != NULL && this->GetImageActor() != NULL )
   {
-    // Force update of the brightness image in the DataCollector,
-    // because it is the image that the image actors show
-    this->GetDataCollector()->GetBrightnessOutput();
+    this->GetImageActor()->SetInput( this->SelectedChannel->GetBrightnessOutput() );
   }
 
   return PLUS_SUCCESS;
@@ -477,10 +479,10 @@ PlusStatus vtkVisualizationController::GetTransformTranslationString(PlusTransfo
     return PLUS_FAIL;
   }
 
-  char positionChars[32];
-  SNPRINTF(positionChars, 32, "%.1lf X %.1lf X %.1lf", transformMatrix->GetElement(0,3), transformMatrix->GetElement(1,3), transformMatrix->GetElement(2,3));
+  std::stringstream ss;
+  ss << std::fixed << transformMatrix->GetElement(0,3) << " " << transformMatrix->GetElement(1,3) << " " << transformMatrix->GetElement(2,3);
 
-  aTransformTranslationString = std::string(positionChars);
+  aTransformTranslationString = ss.str();
 
   return PLUS_SUCCESS;
 }
@@ -499,9 +501,9 @@ PlusStatus vtkVisualizationController::GetTransformMatrix(const char* aTransform
 PlusStatus vtkVisualizationController::GetTransformMatrix(PlusTransformName aTransform, vtkMatrix4x4* aOutputMatrix, bool* aValid/* = NULL*/)
 {
   TrackedFrame trackedFrame;
-  if (this->DataCollector->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
+  if (this->SelectedChannel->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Unable to get tracked frame from data collector!");
+    LOG_ERROR("Unable to get tracked frame from selected channel!");
     return PLUS_FAIL;
   }
   if (this->TransformRepository->SetTransforms(trackedFrame) != PLUS_SUCCESS)
@@ -552,14 +554,14 @@ PlusStatus vtkVisualizationController::IsExistingTransform(const char* aTransfor
 
   if (aUseLatestTrackedFrame)
   {
-    if (this->DataCollector == NULL || this->DataCollector->GetTrackingDataAvailable() == false)
+    if (this->SelectedChannel == NULL || this->SelectedChannel->GetTrackingDataAvailable() == false)
     {
-      LOG_ERROR("Data collector object is invalid or not tracking!");
+      LOG_WARNING("SelectedChannel object is invalid or the selected channel does not contain tracking data!");
       return PLUS_FAIL;
     }
 
     TrackedFrame trackedFrame;
-    if (this->DataCollector->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
+    if (this->SelectedChannel->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to get tracked frame from data collector!");
       return PLUS_FAIL;
@@ -588,10 +590,9 @@ PlusStatus vtkVisualizationController::DisconnectInput()
   if( this->GetImageActor() != NULL )
   {
     this->GetImageActor()->SetInput(NULL);
-    return PLUS_SUCCESS;
   }
 
-  return PLUS_FAIL;
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -599,13 +600,12 @@ PlusStatus vtkVisualizationController::DisconnectInput()
 PlusStatus vtkVisualizationController::ConnectInput()
 {
   vtkPlusChannel* aChannel(NULL);
-  if( this->GetImageActor() != NULL && this->DataCollector != NULL && this->DataCollector->GetSelectedChannel(aChannel) == PLUS_SUCCESS )
+  if( this->GetImageActor() != NULL && this->SelectedChannel != NULL )
   {
-    this->GetImageActor()->SetInput(this->DataCollector->GetBrightnessOutput());
-    return PLUS_SUCCESS;
+    this->GetImageActor()->SetInput( this->SelectedChannel->GetBrightnessOutput() );
   }
 
-  return PLUS_FAIL;
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -616,7 +616,7 @@ vtkImageActor* vtkVisualizationController::GetImageActor()
   {
     return this->ImageVisualizer->GetImageActor();
   }
-  else if( this->PerspectiveVisualizer != NULL )
+  else if( this->CurrentMode == DISPLAY_MODE_3D && this->PerspectiveVisualizer != NULL )
   {
     return this->PerspectiveVisualizer->GetImageActor();
   }
@@ -720,18 +720,18 @@ PlusStatus vtkVisualizationController::ReadConfiguration(vtkXMLDataElement* aXML
 
 PlusStatus vtkVisualizationController::WriteConfiguration(vtkXMLDataElement* aXMLElement)
 {
-  PlusStatus status=PLUS_SUCCESS;
+  PlusStatus status = PLUS_SUCCESS;
 
   if (this->DataCollector->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to save configuration of data collector"); 
-    status=PLUS_FAIL;
+    status = PLUS_FAIL;
   }
 
   if (this->TransformRepository->WriteConfiguration(aXMLElement) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to save configuration of transform repository"); 
-    status=PLUS_FAIL;
+    status = PLUS_FAIL;
   }
 
   // Here we could give a chance to PerspectiveVisualizer and ImageVisualizer
@@ -885,7 +885,7 @@ PlusStatus vtkVisualizationController::Reset()
   PlusStatus perspective, image;
   if( this->PerspectiveVisualizer != NULL )
   {
-    perspective = this->PerspectiveVisualizer->Reset();
+    perspective = this->PerspectiveVisualizer->ClearDisplayableObjects();
   }
   if( this->ImageVisualizer != NULL )
   {
@@ -917,4 +917,38 @@ void vtkVisualizationController::SetInput( vtkImageData * input )
   {
     this->GetImageVisualizer()->SetInput(input);
   }
+}
+
+//-----------------------------------------------------------------------------
+
+void vtkVisualizationController::SetSelectedChannel( vtkPlusChannel* aChannel )
+{
+  this->SelectedChannel = aChannel;
+
+  if( this->ImageVisualizer != NULL )
+  {
+    this->GetImageVisualizer()->SetSelectedChannel(aChannel);
+  }
+
+  if( this->PerspectiveVisualizer != NULL )
+  {
+    this->GetPerspectiveVisualizer()->SetSelectedChannel(aChannel);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkVisualizationController::AssignDataCollector( vtkDataCollector* aCollector )
+{
+  if( this->ImageVisualizer != NULL )
+  {
+    this->GetImageVisualizer()->AssignDataCollector(aCollector);
+  }
+
+  if( this->PerspectiveVisualizer != NULL )
+  {
+    this->GetPerspectiveVisualizer()->AssignDataCollector(aCollector);
+  }
+
+  return PLUS_SUCCESS;
 }

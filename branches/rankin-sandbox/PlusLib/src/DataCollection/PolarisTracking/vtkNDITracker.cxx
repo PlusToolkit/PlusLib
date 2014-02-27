@@ -103,13 +103,16 @@ vtkNDITracker::vtkNDITracker()
     this->ReturnValue[i]=0.0;
   }
 
-  this->RequireDeviceImageOrientationInDeviceSetConfiguration = false;
+  this->RequireImageOrientationInConfiguration = false;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = true;
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
   this->RequireUsImageOrientationInDeviceSetConfiguration = false;
   this->RequireRfElementInDeviceSetConfiguration = false;
+
+  // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
+  this->StartThreadForInternalUpdates=true;
 }
 
 //----------------------------------------------------------------------------
@@ -343,12 +346,20 @@ PlusStatus vtkNDITracker::InternalStartRecording()
   this->Device = ndiOpen(devicename);
   if (this->Device == 0) 
   {
-    LOG_ERROR("Failed to open port: " << devicename << " - " << ndiErrorString(NDI_OPEN_ERROR));
+    LOG_ERROR("Failed to open port: " << (devicename == NULL ? "unknown" : devicename) << " - " << ndiErrorString(NDI_OPEN_ERROR));
     return PLUS_FAIL;
   }
   // initialize Device
-  ndiCommand(this->Device,"INIT:");
-  if (ndiGetError(this->Device))
+  bool resetOccurred=false;
+  const char* initCommandReply=ndiCommand(this->Device,"INIT:");
+  if (initCommandReply!=NULL && strncmp(initCommandReply,"RESET",5)==0)
+  {
+    // The tracker device was left in high-speed mode after exiting debugger. When the INIT was sent at 9600 baud,
+    // the device reset back to default 9600 and returned status RESET.
+    // Re-issue the INIT command to avoid 'command not valid in current mode' errors.
+    resetOccurred=true;
+  }
+  if (ndiGetError(this->Device) || resetOccurred)
   {
     ndiRESET(this->Device);
     errnum = ndiGetError(this->Device);
@@ -399,7 +410,7 @@ PlusStatus vtkNDITracker::InternalStartRecording()
   errnum = ndiGetError(this->Device);
   if (errnum) 
   {
-    LOG_ERROR(ndiErrorString(errnum));
+    LOG_ERROR("Failed TSTART: " << ndiErrorString(errnum) );
     ndiClose(this->Device);
     this->Device = 0;
     return PLUS_FAIL;
@@ -516,7 +527,6 @@ PlusStatus vtkNDITracker::InternalUpdate()
 
   // get the transforms for all tools from the NDI
   ndiCommand(this->Device,"TX:0801");
-  //fprintf(stderr,"TX:0001 %s\n",ndiCommand(this->Device,"TX:0001"));
   errnum = ndiGetError(this->Device);
 
   if (errnum)
@@ -774,7 +784,6 @@ void vtkNDITracker::EnableToolPorts()
     ph = ndiGetPHSRHandle(this->Device,tool);
     port = this->GetToolFromHandle(ph);
     ndiCommand(this->Device,"PHF:%02X",ph);
-    //fprintf(stderr,"PHF:%02X\n",ph);
     errnum = ndiGetError(this->Device);
     if (errnum)
     { 
@@ -791,7 +800,6 @@ void vtkNDITracker::EnableToolPorts()
     {
       ph = ndiGetPHSRHandle(this->Device,tool);
       ndiCommand(this->Device,"PINIT:%02X",ph);
-      //fprintf(stderr,"PINIT:%02X\n",ph);
       errnum = ndiGetError(this->Device);
       if (errnum)
       { 
@@ -823,7 +831,6 @@ void vtkNDITracker::EnableToolPorts()
 
     // enable the tool
     ndiCommand(this->Device,"PENA:%02X%c",ph,mode);
-    //fprintf(stderr,"PENA:%02X%c\n",ph,mode);
     errnum = ndiGetError(this->Device);
     if (errnum)
     {
@@ -903,11 +910,10 @@ void vtkNDITracker::EnableToolPorts()
     {
       if(this->SocketCommunicator->GetIsConnected()>0)
       {
-        char msg[40];
-        int len = 40;
-        sprintf(msg, "SetToolSerialNumber:%d:%s",
-          port, trackerTool->GetToolSerialNumber());
-        len = strlen(msg) +1;
+        std::stringstream ss;
+        ss << "SetToolSerialNumber:" << port << ":" << trackerTool->GetToolSerialNumber();
+        char* msg = (char*)ss.str().c_str();
+        int len = strlen(msg) + 1;
 
         if( this->SocketCommunicator->Send(&len, 1, 1, 11) )
         {
@@ -918,9 +924,9 @@ void vtkNDITracker::EnableToolPorts()
         }
 
         //  ca->Delete();
-
-        sprintf(msg, "SetToolRevision:%d:%s",
-          port, trackerTool->GetToolRevision());
+        ss.clear();
+        ss << "SetToolRevision:" << port << ":" << trackerTool->GetToolRevision();
+        msg = (char*)ss.str().c_str();
         len = strlen(msg) + 1;
 
         if( this->SocketCommunicator->Send(&len, 1, 1, 11) )
@@ -930,12 +936,15 @@ void vtkNDITracker::EnableToolPorts()
             LOG_ERROR("Could not Send SetToolSerialNumber");
           }
         }
-        sprintf(msg, "SetToolManufacturer:%d:%s",
-          port, trackerTool->GetToolManufacturer());
-        len = strlen(msg) +1;
+
+        ss.clear();
+        ss << "SetToolManufacturer:" << port << ":" << trackerTool->GetToolManufacturer();
+        msg = (char*)ss.str().c_str();
+        len = strlen(msg) + 1;
+
         vtkCharArray *ca2 = vtkCharArray::New();
         ca2->SetNumberOfComponents(len);
-        ca2->SetArray(msg, len, 1);
+        ca2->SetArray((char*)msg, len, 1);
         if( this->SocketCommunicator->Send(&len, 1, 1, 11) )
         {
           if( !this->SocketCommunicator->Send(msg, len, 1, 22) )
@@ -944,9 +953,11 @@ void vtkNDITracker::EnableToolPorts()
           }
         }
 
-        sprintf(msg, "SetToolPartNumber:%d:%s",
-          port, trackerTool->GetToolPartNumber());
+        ss.clear();
+        ss << "SetToolPartNumber:" << port << ":" << trackerTool->GetToolPartNumber();
+        msg = (char*)ss.str().c_str();
         len = strlen(msg) + 1;
+
         vtkCharArray *ca4 = vtkCharArray::New();
         ca4->SetNumberOfComponents(len);
         ca4->SetArray(msg,  len, 1);
@@ -984,7 +995,7 @@ void vtkNDITracker::EnableToolPorts()
     errnum = ndiGetError(this->Device);
     if (errnum)
     { 
-      LOG_ERROR(ndiErrorString(errnum));
+      LOG_ERROR("Failed TSTART: " << ndiErrorString(errnum));
     }
   }
 }
@@ -1016,7 +1027,6 @@ void vtkNDITracker::DisableToolPorts()
   {
     ph = ndiGetPHSRHandle(this->Device,tool);
     ndiCommand(this->Device,"PDIS:%02X",ph);
-    //fprintf(stderr,"PDIS:%02X\n",ph);
     errnum = ndiGetError(this->Device);
     if (errnum)
     { 
@@ -1382,9 +1392,9 @@ PlusStatus vtkNDITracker::ReadConfiguration(vtkXMLDataElement* config)
   }
   else
   {
-    for ( int tool = 0; tool < trackerConfig->GetNumberOfNestedElements(); tool++ )
+    for ( int tool = 0; tool < dataSourcesElement->GetNumberOfNestedElements(); tool++ )
     {
-      vtkXMLDataElement* toolDataElement = trackerConfig->GetNestedElement(tool); 
+      vtkXMLDataElement* toolDataElement = dataSourcesElement->GetNestedElement(tool); 
       if ( STRCASECMP(toolDataElement->GetName(), "DataSource") != 0 )
       {
         // if this is not a data source element, skip it
@@ -1423,7 +1433,7 @@ PlusStatus vtkNDITracker::ReadConfiguration(vtkXMLDataElement* config)
           LOG_ERROR("Invalid port number for passive marker! It has to be at least 4!");
           continue;
         }
-        std::string romFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() + std::string("/") + romFileName;
+        std::string romFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(romFileName);
         this->LoadVirtualSROM(portNumber, romFilePath.c_str());
       }
     }

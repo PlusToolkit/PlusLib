@@ -13,11 +13,12 @@
 
 #include "igtlServerSocket.h"
 
-class vtkDataCollector;
-class vtkTransformRepository; 
 class TrackedFrame; 
-class vtkRecursiveCriticalSection; 
+class vtkDataCollector;
+class vtkPlusChannel;
 class vtkPlusCommandProcessor;
+class vtkRecursiveCriticalSection; 
+class vtkTransformRepository; 
 
 /*!
   \class vtkPlusOpenIGTLinkServer 
@@ -26,24 +27,39 @@ class vtkPlusCommandProcessor;
   After the server is started, it waits for a client sending request message of type
   "igtl::PlusClientInfoMessage" with requested message types and transform names.  
 
-  \ingroup PlusLibDataCollection
+  \ingroup PlusLibPlusServer
 */
 class VTK_EXPORT vtkPlusOpenIGTLinkServer: public vtkObject
 {
+  typedef std::map< int, std::vector<std::string> > PreviousCommandIdMap;
+  typedef PreviousCommandIdMap::iterator PreviousCommandIdMapIterator;
+
+  typedef std::map< int, double> LastCommandTimestampMap;
+  typedef LastCommandTimestampMap::iterator LastCommandTimestampMapIterator;
+
 public:
-  
   static vtkPlusOpenIGTLinkServer *New();
   vtkTypeRevisionMacro( vtkPlusOpenIGTLinkServer, vtkObject );
   virtual void PrintSelf( ostream& os, vtkIndent indent );
   
+
+  /*! Configures and starts the server from the provided device set configuration file */
+  PlusStatus Start(const std::string &inputConfigFileName);
+
+  /*! Configures and starts the server from the provided device set configuration file */
+  PlusStatus Stop();
+
+
   /*! Read the configuration file in XML format and set up the devices */
-  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* aDataCollectionConfig ); 
+  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* aDataCollectionConfig, const char* aFilename ); 
 
   /*! Set server listening port */ 
   vtkSetMacro( ListeningPort, int );
   /*! Get server listening port */ 
   vtkGetMacro( ListeningPort, int );
   
+  vtkGetStringMacro(OutputChannelId);
+
   /*! Set data collector instance */
   virtual void SetDataCollector(vtkDataCollector* dataCollector); 
   virtual vtkDataCollector* GetDataCollector();
@@ -56,10 +72,12 @@ public:
   virtual int GetNumberOfConnectedClients(); 
 
   /*! Start server */ 
-  PlusStatus Start();
+  PlusStatus StartOpenIGTLinkService();
   
   /*! Stop server */ 
-  PlusStatus Stop();
+  PlusStatus StopOpenIGTLinkService();
+
+  vtkGetStringMacro(ConfigFilename);
     
   /*! 
     Execute all commands in the queue from the current thread (useful if commands should be executed from the main thread) 
@@ -68,7 +86,6 @@ public:
   int ProcessPendingCommands();  
 
 protected:
-  
   vtkPlusOpenIGTLinkServer();
   virtual ~vtkPlusOpenIGTLinkServer();
 
@@ -99,14 +116,20 @@ protected:
   */ 
   int ExecuteCommand(const char* commandString, std::string& resultString); 
 
+  vtkSetStringMacro(OutputChannelId);
+
+  vtkSetStringMacro(ConfigFilename);
+
+  bool HasGracePeriodExpired();
+
 private:
-	
+  
   /*! Get client socket corresponding to a client ID. Used by the command processor, which identifies clients by ID. */
   igtl::ClientSocket::Pointer GetClientSocket(int clientId);
 
   vtkPlusOpenIGTLinkServer( const vtkPlusOpenIGTLinkServer& );
   void operator=( const vtkPlusOpenIGTLinkServer& );
-  
+
   /*! IGTL server socket */ 
   igtl::ServerSocket::Pointer ServerSocket;
   
@@ -182,6 +205,23 @@ private:
   /*! Factory to generate commands that are invoked remotely */ 
   vtkSmartPointer<vtkPlusCommandProcessor> PlusCommandProcessor;
 
+  /*! Channel ID to request the data from */
+  char* OutputChannelId;
+
+  /*! Channel to use for broadcasting */
+  vtkPlusChannel* BroadcastChannel;
+
+  char* ConfigFilename;
+
+  /* Record the previous IDs received for all clients */
+  PreviousCommandIdMap PreviousCommands;
+
+  /* Record the last received command timestamp */
+  LastCommandTimestampMap LastCommandTimestamp;
+
+  vtkPlusLogger::LogLevelType GracePeriodLogLevel;
+  double MissingInputGracePeriodSec;
+  double BroadcastStartTime;
 };
 
 

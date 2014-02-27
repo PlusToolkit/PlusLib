@@ -12,11 +12,11 @@
 class vtkVolumeReconstructor;
 class vtkTrackedFrameList;
 class vtkTransformRepository;
-
+class vtkVirtualVolumeReconstructor;
 /*!
   \class vtkPlusReconstructVolumeCommand 
   \brief This command reconstructs a volume from an image sequence and saves it to disk or sends it to the client in an IMAGE message. 
-  \ingroup PlusLibDataCollection
+  \ingroup PlusLibPlusServer
  */ 
 class VTK_EXPORT vtkPlusReconstructVolumeCommand : public vtkPlusCommand
 {
@@ -28,7 +28,7 @@ public:
   virtual vtkPlusCommand* Clone() { return New(); }
 
   /*! Executes the command  */
-  virtual PlusStatus Execute();
+  virtual PlusStatus Execute();  
 
   /*! Read command parameters from XML */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
@@ -54,25 +54,33 @@ public:
   vtkSetStringMacro(OutputVolDeviceName);
   vtkGetStringMacro(OutputVolDeviceName);
 
-  /*! Id of the device that provides tracked frames for the reconstruction */
-  vtkSetStringMacro(TrackedVideoDeviceId);
-  vtkGetStringMacro(TrackedVideoDeviceId);  
-
-  /*! Enables capturing frames. It can be used for pausing the live reconstruction. */
-  vtkGetMacro(EnableAddingFrames, bool);
-  vtkSetMacro(EnableAddingFrames, bool);
-
-  /*! If this flag is set then the live reconstruction will stop at the next Execute. */
-  vtkGetMacro(StopReconstructionRequested, bool);
-  vtkSetMacro(StopReconstructionRequested, bool);
-
-  /*! If this flag is set then a snapshot of the live reconstruction will be send/saved at the next Execute */
-  vtkGetMacro(ReconstructionSnapshotRequested, bool);
-  vtkSetMacro(ReconstructionSnapshotRequested, bool);
-
   /*! Id of the live reconstruction command to be stopped, suspended, or resumed at the next Execute */
-  vtkGetMacro(ReferencedCommandId, int);
-  vtkSetMacro(ReferencedCommandId, int);
+  vtkGetStringMacro(VolumeReconstructorDeviceId);
+  vtkSetStringMacro(VolumeReconstructorDeviceId);
+
+  /*!
+    Set spacing of the output data in Reference coordinate system.
+    This is required to be set, otherwise the reconstructed volume will be empty.
+  */
+  vtkSetVector3Macro(OutputSpacing, vtkFloatingPointType);
+  /*! Get spacing of the output data in Reference coordinate system  */
+  vtkGetVector3Macro(OutputSpacing, vtkFloatingPointType);
+
+  /*!
+    Set origin of the output data in Reference coordinate system.
+    This is required to be set, otherwise the reconstructed volume will be empty.
+  */
+  vtkSetVector3Macro(OutputOrigin, vtkFloatingPointType);
+  /*! Get origin of the output data in Reference coordinate system  */
+  vtkGetVector3Macro(OutputOrigin, vtkFloatingPointType);
+
+  /*!
+    Set extent of the output data in Reference coordinate system.
+    This is required to be set, otherwise the reconstructed volume will be empty.
+  */
+  vtkSetVector6Macro(OutputExtent, int);
+  /*! Get extentof the output data in Reference coordinate system  */
+  vtkGetVector6Macro(OutputExtent, int);  
 
   void SetNameToReconstruct();
   void SetNameToStart();
@@ -83,9 +91,10 @@ public:
 
 protected:
 
-  PlusStatus InitializeReconstruction();
-  PlusStatus AddFrames(vtkTrackedFrameList* trackedFrameList);
-  PlusStatus SendReconstructionResults();
+  /*! Saves image to disk (if requested) and prepare sending image as a response (if requested) */
+  PlusStatus ProcessImageReply(vtkImageData* volumeToSend, const std::string& outputVolFilename, const std::string& outputVolDeviceName);
+
+  vtkVirtualVolumeReconstructor* GetVolumeReconstructorDevice();
 
   vtkPlusReconstructVolumeCommand();
   virtual ~vtkPlusReconstructVolumeCommand();  
@@ -95,20 +104,13 @@ private:
   char* InputSeqFilename;
   char* OutputVolFilename;
   char* OutputVolDeviceName;
-  char* TrackedVideoDeviceId;
+  char* VolumeReconstructorDeviceId;
 
-  vtkSmartPointer<vtkVolumeReconstructor> VolumeReconstructor;
-  vtkSmartPointer<vtkTransformRepository> TransformRepository;
-  /*! Timestamp of last added frame (the tracked frames acquired since this timestamp will be added to the volume on the next Execute) */
-  double LastRecordedFrameTimestamp;
-
-  bool LiveReconstructionInProgress;
-  bool EnableAddingFrames;
-  bool StopReconstructionRequested;
-  bool ReconstructionSnapshotRequested;
-
-  int ReferencedCommandId;
-
+  // Output image position and size
+  vtkFloatingPointType OutputOrigin[3];
+  vtkFloatingPointType OutputSpacing[3];
+  int OutputExtent[6];
+  
   vtkPlusReconstructVolumeCommand( const vtkPlusReconstructVolumeCommand& );
   void operator=( const vtkPlusReconstructVolumeCommand& );
   

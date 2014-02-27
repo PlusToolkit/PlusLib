@@ -21,66 +21,66 @@ class vtkTable;
 class VTK_EXPORT vtkHTMLGenerator : public vtkObject
 {
 public: 
-	
+  
   /*! HTML headings  */
-	enum HEADINGS
-	{
-		H1, 
-		H2, 
-		H3, 
-		H4, 
-		H5, 
-		H6
-	}; 
+  enum HEADINGS
+  {
+    H1, 
+    H2, 
+    H3, 
+    H4, 
+    H5, 
+    H6
+  }; 
 
-	static vtkHTMLGenerator* New();
-	vtkTypeRevisionMacro(vtkHTMLGenerator,vtkObject);
-	void PrintSelf(ostream& os, vtkIndent indent); 
+  static vtkHTMLGenerator* New();
+  vtkTypeRevisionMacro(vtkHTMLGenerator,vtkObject);
+  void PrintSelf(ostream& os, vtkIndent indent); 
 
-	/*! Get the html page source */
-	virtual void SaveHtmlPage( const char * fileName); 
+  /*! Get the html page source */
+  virtual void SaveHtmlPage( const char * fileName); 
 
-	/*! Add image to document */
-	virtual void AddImage(const char* imageSource, const char* alt, const int widthPx=0, const int heightPx=0); 
+  /*! Add image to document */
+  virtual void AddImage(const char* imageSource, const char* alt, const int widthPx=0, const int heightPx=0); 
 
-	/*! Add paragraph to document */
-	virtual void AddParagraph( const char* paragraph ); 
-	
-	/*! Add text to document */
-	virtual void AddText( const char* text, HEADINGS h, const char* style=NULL); 
+  /*! Add paragraph to document */
+  virtual void AddParagraph( const char* paragraph ); 
+  
+  /*! Add text to document */
+  virtual void AddText( const char* text, HEADINGS h, const char* style=NULL); 
 
   /*! Add table to document */
   virtual void AddTable( vtkTable* table, int borderPx); 
 
-	/*! Add a link to the document*/
-	virtual void AddLink( const char* linkText, const char* url ); 
+  /*! Add a link to the document*/
+  virtual void AddLink( const char* linkText, const char* url ); 
 
-	/*! Add horizontal line separator to the document */
-	virtual void AddHorizontalLine(); 
+  /*! Add horizontal line separator to the document */
+  virtual void AddHorizontalLine(); 
 
-	/*! Set the page title */
-	vtkSetStringMacro(Title);
+  /*! Set the page title */
+  vtkSetStringMacro(Title);
   /*! Get the page title */
-	vtkGetStringMacro(Title); 
+  vtkGetStringMacro(Title); 
 
 protected:
 
-	/*! Get the body */
-	virtual std::string GetHtmlBody(); 
+  /*! Get the body */
+  virtual std::string GetHtmlBody(); 
 
-	/*! Get the html page source */
-	virtual std::string GetHtmlPage(); 
+  /*! Get the html page source */
+  virtual std::string GetHtmlPage(); 
 
-	vtkHTMLGenerator();
-	virtual ~vtkHTMLGenerator(); 
+  vtkHTMLGenerator();
+  virtual ~vtkHTMLGenerator(); 
 
-	char* Title; 
+  char* Title; 
 
-	std::ostringstream HtmlBody; 
+  std::ostringstream HtmlBody; 
 
 private:
-	vtkHTMLGenerator(const vtkHTMLGenerator&);  // Not implemented.
-	void operator=(const vtkHTMLGenerator&);  // Not implemented.
+  vtkHTMLGenerator(const vtkHTMLGenerator&);  // Not implemented.
+  void operator=(const vtkHTMLGenerator&);  // Not implemented.
 }; 
 
 #endif

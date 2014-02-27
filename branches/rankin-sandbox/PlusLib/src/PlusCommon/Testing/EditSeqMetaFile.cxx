@@ -14,6 +14,7 @@ See License.txt for details.
 
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtksys/RegularExpression.hxx"
+#include "vtkImageData.h"
 #include "vtkSmartPointer.h"
 #include "vtkTransform.h"
 #include "vtkMatrix4x4.h"
@@ -32,6 +33,7 @@ enum OperationType
   TRIM, 
   MERGE,
   FILL_IMAGE_RECTANGLE,
+  CROP,
   NO_OPERATION
 }; 
 
@@ -65,6 +67,7 @@ PlusStatus DeleteFrameField( vtkTrackedFrameList* trackedFrameList, std::string 
 PlusStatus ConvertStringToMatrix( std::string &strMatrix, vtkMatrix4x4* matrix); 
 PlusStatus AddTransform( vtkTrackedFrameList* trackedFrameList, std::string transformNameToAdd, std::string deviceSetConfigurationFileName );
 PlusStatus FillRectangle( vtkTrackedFrameList* trackedFrameList, const std::vector<int> &fillRectOrigin, const std::vector<int> &fillRectSize, int fillGrayLevel);
+PlusStatus CropRectangle( vtkTrackedFrameList* trackedFrameList, const std::vector<int> &cropRectOrigin, const std::vector<int> &cropRectSize);
 
 const char* FIELD_VALUE_FRAME_SCALAR="{frame-scalar}"; 
 const char* FIELD_VALUE_FRAME_TRANSFORM="{frame-transform}"; 
@@ -107,46 +110,46 @@ int main(int argc, char **argv)
   std::string transformNameToAdd;  // Name of the transform to add to each frame
   std::string deviceSetConfigurationFileName; // Used device set configuration file path and name
 
-  std::vector<int> fillRectOriginPix; // Fill rectangle top-left corner position in MF coordinate frame, in pixels
-  std::vector<int> fillRectSizePix; // Fil rectangle size in MF coordinate frame, in pixels
+  std::vector<int> rectOriginPix; // Fill/crop rectangle top-left corner position in MF coordinate frame, in pixels
+  std::vector<int> rectSizePix; // Fill/crop rectangle size in MF coordinate frame, in pixels
   int fillGrayLevel=0; // Rectangle fill color
 
   args.Initialize(argc, argv);
-  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
-  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
 
-  args.AddArgument("--source-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFileName, "Input sequence metafile name with path to edit");	
-  args.AddArgument("--source-seq-files", vtksys::CommandLineArguments::MULTI_ARGUMENT, &inputFileNames, "Input sequence metafile name list with path to edit");	
-  args.AddArgument("--output-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFileName, "Output sequence metafile name with path to save the result");	
+  args.AddArgument("--source-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFileName, "Input sequence metafile name with path to edit");  
+  args.AddArgument("--source-seq-files", vtksys::CommandLineArguments::MULTI_ARGUMENT, &inputFileNames, "Input sequence metafile name list with path to edit");  
+  args.AddArgument("--output-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFileName, "Output sequence metafile name with path to save the result");  
 
-  args.AddArgument("--operation", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strOperation, "Operation to modify sequence file (Available operations: UPDATE_FRAME_FIELD_NAME, UPDATE_FRAME_FIELD_VALUE, DELETE_FRAME_FIELD, UPDATE_FIELD_NAME, UPDATE_FIELD_VALUE, DELETE_FIELD, TRIM, MERGE, FILL_IMAGE_RECTANGLE)." );	
+  args.AddArgument("--operation", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strOperation, "Operation to modify sequence file (Available operations: UPDATE_FRAME_FIELD_NAME, UPDATE_FRAME_FIELD_VALUE, DELETE_FRAME_FIELD, UPDATE_FIELD_NAME, UPDATE_FIELD_VALUE, DELETE_FIELD, TRIM, MERGE, FILL_IMAGE_RECTANGLE, CROP)." );  
 
   // Trimming parameters 
-  args.AddArgument("--first-frame-index", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &firstFrameIndex, "First frame index used for trimming the sequence metafile. Index of the first frame of the sequence is 0.");	
-  args.AddArgument("--last-frame-index", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &lastFrameIndex, "Last frame index used for trimming the sequence metafile.");	
+  args.AddArgument("--first-frame-index", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &firstFrameIndex, "First frame index used for trimming the sequence metafile. Index of the first frame of the sequence is 0.");  
+  args.AddArgument("--last-frame-index", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &lastFrameIndex, "Last frame index used for trimming the sequence metafile.");  
 
-  args.AddArgument("--field-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &fieldName, "Field name to edit");	
-  args.AddArgument("--updated-field-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &updatedFieldName, "Updated field name after edit");	
-  args.AddArgument("--updated-field-value", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &updatedFieldValue, "Updated field value after edit");	
+  args.AddArgument("--field-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &fieldName, "Field name to edit");  
+  args.AddArgument("--updated-field-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &updatedFieldName, "Updated field name after edit");  
+  args.AddArgument("--updated-field-value", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &updatedFieldValue, "Updated field value after edit");  
   
-  args.AddArgument("--frame-scalar-start", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frameScalarStart, "Frame scalar field value starting index (Default: 0.0)");	
-  args.AddArgument("--frame-scalar-increment", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frameScalarIncrement, "Frame scalar field value increment (Default: 1.0)");	
-  args.AddArgument("--frame-scalar-decimal-digits", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frameScalarDecimalDigits, "Number of digits saved for frame scalar field value into sequence metafile (Default: 5)");	
+  args.AddArgument("--frame-scalar-start", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frameScalarStart, "Frame scalar field value starting index (Default: 0.0)");  
+  args.AddArgument("--frame-scalar-increment", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frameScalarIncrement, "Frame scalar field value increment (Default: 1.0)");  
+  args.AddArgument("--frame-scalar-decimal-digits", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frameScalarDecimalDigits, "Number of digits saved for frame scalar field value into sequence metafile (Default: 5)");  
 
-  args.AddArgument("--frame-transform-start", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strFrameTransformStart, "Frame transform field starting 4x4 transform matrix (Default: identity)");	
-  args.AddArgument("--frame-transform-increment", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strFrameTransformIncrement, "Frame transform increment 4x4 transform matrix (Default: identity)");	
+  args.AddArgument("--frame-transform-start", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strFrameTransformStart, "Frame transform field starting 4x4 transform matrix (Default: identity)");  
+  args.AddArgument("--frame-transform-increment", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strFrameTransformIncrement, "Frame transform increment 4x4 transform matrix (Default: identity)");  
  
-  args.AddArgument("--update-reference-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strUpdatedReferenceTransformName, "Set the reference transform name to update old metafiles by changing all ToolToReference transforms to ToolToTracker transform.");	
+  args.AddArgument("--update-reference-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strUpdatedReferenceTransformName, "Set the reference transform name to update old metafiles by changing all ToolToReference transforms to ToolToTracker transform.");  
  
-  args.AddArgument("--use-compression", vtksys::CommandLineArguments::NO_ARGUMENT, &useCompression, "Compress sequence metafile images.");	
-  args.AddArgument("--increment-timestamps", vtksys::CommandLineArguments::NO_ARGUMENT, &incrementTimestamps, "Increment timestamps in the order of the input-file-names");	
+  args.AddArgument("--use-compression", vtksys::CommandLineArguments::NO_ARGUMENT, &useCompression, "Compress sequence metafile images.");  
+  args.AddArgument("--increment-timestamps", vtksys::CommandLineArguments::NO_ARGUMENT, &incrementTimestamps, "Increment timestamps in the order of the input-file-names");  
 
-  args.AddArgument("--add-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformNameToAdd, "Name of the transform to add to each frame (eg. 'StylusTipToTracker')");	
-  args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceSetConfigurationFileName, "Used device set configuration file path and name");	
+  args.AddArgument("--add-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformNameToAdd, "Name of the transform to add to each frame (eg. 'StylusTipToTracker')");  
+  args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceSetConfigurationFileName, "Used device set configuration file path and name");  
 
-  args.AddArgument("--fill-rect-origin", vtksys::CommandLineArguments::MULTI_ARGUMENT, &fillRectOriginPix, "Fill rectangle top-left corner position in MF coordinate frame, in pixels. Required for FILL_IMAGE_RECTANGLE operation.");
-  args.AddArgument("--fill-rect-size", vtksys::CommandLineArguments::MULTI_ARGUMENT, &fillRectSizePix, "Fill rectangle size in MF coordinate frame, in pixels. Required for FILL_IMAGE_RECTANGLE operation.");
-  args.AddArgument("--fill-gray-level", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &fillGrayLevel, "Rectangle fill gray level. 0 = black, 255 = white. (Default: 0)");	
+  args.AddArgument("--rect-origin", vtksys::CommandLineArguments::MULTI_ARGUMENT, &rectOriginPix, "Fill or crop rectangle top-left corner position in MF coordinate frame, in pixels. Required for FILL_IMAGE_RECTANGLE and CROP operations.");
+  args.AddArgument("--rect-size", vtksys::CommandLineArguments::MULTI_ARGUMENT, &rectSizePix, "Fill or crop rectangle size in MF coordinate frame, in pixels. Required for FILL_IMAGE_RECTANGLE and CROP operations.");
+  args.AddArgument("--fill-gray-level", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &fillGrayLevel, "Rectangle fill gray level. 0 = black, 255 = white. (Default: 0)");  
 
   if ( !args.Parse() )
   {
@@ -172,10 +175,11 @@ int main(int argc, char **argv)
     std::cout << "- ADD_TRANSFORM: add specified transform." << std::endl; 
 
     std::cout << "- TRIM: Trim sequence metafile." << std::endl; 
-    std::cout << "- MERGE: Merge multiple sequence metafiles into one." << std::endl; 
+    std::cout << "- MERGE: Merge multiple sequence metafiles into one. Set input files with the --source-seq-files parameter." << std::endl; 
     
     std::cout << "- FILL_IMAGE_RECTANGLE: Fill a rectangle in the image (useful for removing patient data from sequences)." << std::endl;
-    std::cout << "  Requires specification of the rectangle (e.g., --fill-rect-origin 12 34 --fill-rect-size 56 78)" << std::endl;
+    std::cout << "- CROP: Crop a rectangle in the image (useful for cropping b-mode image from the data obtained via frame-grabber)." << std::endl;
+    std::cout << "  FILL_IMAGE_RECTANGLE and CROP require specification of the rectangle (e.g., --rect-origin 12 34 --rect-size 56 78)" << std::endl;
 
     return EXIT_SUCCESS; 
 
@@ -241,6 +245,10 @@ int main(int argc, char **argv)
   {
     operation = FILL_IMAGE_RECTANGLE; 
   }
+  else if ( STRCASECMP(strOperation.c_str(), "CROP" ) == 0 )
+  {
+    operation = CROP; 
+  }
   else
   {
     LOG_ERROR("Invalid operation selected: " << strOperation ); 
@@ -274,16 +282,16 @@ int main(int argc, char **argv)
   double lastTimestamp = 0; 
   for ( unsigned int i = 0; i < inputFileNames.size(); i++ )
   {
-    vtkSmartPointer<vtkMetaImageSequenceIO> reader = vtkSmartPointer<vtkMetaImageSequenceIO>::New();				
+    vtkSmartPointer<vtkMetaImageSequenceIO> reader = vtkSmartPointer<vtkMetaImageSequenceIO>::New();        
     reader->SetFileName(inputFileNames[i].c_str());
 
     LOG_INFO("Read input sequence metafile: " << inputFileNames[i] ); 
 
     if (reader->Read()!=PLUS_SUCCESS)
-    {		
+    {    
       LOG_ERROR("Couldn't read sequence metafile: " <<  inputFileName ); 
       return EXIT_FAILURE;
-    }	
+    }  
 
     if ( incrementTimestamps )
     {
@@ -427,13 +435,24 @@ int main(int argc, char **argv)
   case FILL_IMAGE_RECTANGLE: 
     {
       // Fill a rectangular region in the image with a solid color
-      if (FillRectangle(trackedFrameList,fillRectOriginPix,fillRectSizePix,fillGrayLevel)!=PLUS_SUCCESS)
+      if (FillRectangle(trackedFrameList,rectOriginPix,rectSizePix,fillGrayLevel)!=PLUS_SUCCESS)
       {
         LOG_ERROR("Failed to fill rectangle");
         return EXIT_FAILURE;
       }
     }
     break;     
+  case CROP: 
+    {
+      // Crop a rectangular region from the image
+      if (CropRectangle(trackedFrameList,rectOriginPix,rectSizePix)!=PLUS_SUCCESS)
+      {
+        LOG_ERROR("Failed to fill rectangle");
+        return EXIT_FAILURE;
+      }
+    }
+    break;     
+
   default: 
     {
       LOG_WARNING("Selected operation not yet implemented!"); 
@@ -542,16 +561,16 @@ int main(int argc, char **argv)
   // Save output file to metafile 
 
   LOG_INFO("Save output sequence metafile to: " << outputFileName ); 
-  vtkSmartPointer<vtkMetaImageSequenceIO> writer=vtkSmartPointer<vtkMetaImageSequenceIO>::New();			
+  vtkSmartPointer<vtkMetaImageSequenceIO> writer=vtkSmartPointer<vtkMetaImageSequenceIO>::New();      
   writer->SetFileName(outputFileName.c_str());
   writer->SetTrackedFrameList(trackedFrameList); 
   writer->SetUseCompression(useCompression);
 
   if (writer->Write() != PLUS_SUCCESS)
-  {		
-    LOG_ERROR("Couldn't write sequence metafile: " <<  writer->GetFileName() ); 
+  {    
+    LOG_ERROR("Couldn't write sequence metafile: " <<  outputFileName ); 
     return EXIT_FAILURE;
-  }	
+  }  
 
   LOG_INFO("Sequence metafile editing was successful!"); 
   return EXIT_SUCCESS; 
@@ -675,7 +694,7 @@ PlusStatus UpdateFrameFieldValue( FrameFieldUpdate& fieldUpdate )
         double transformMatrix[16]={0}; 
         vtkMatrix4x4::DeepCopy(transformMatrix, frameTransform->GetMatrix()); 
         std::ostringstream strTransform; 
-        strTransform	<< std::fixed << std::setprecision(fieldUpdate.FrameScalarDecimalDigits) 
+        strTransform  << std::fixed << std::setprecision(fieldUpdate.FrameScalarDecimalDigits) 
           << transformMatrix[0]  << " " << transformMatrix[1]  << " " << transformMatrix[2]  << " " << transformMatrix[3]  << " " 
           << transformMatrix[4]  << " " << transformMatrix[5]  << " " << transformMatrix[6]  << " " << transformMatrix[7]  << " " 
           << transformMatrix[8]  << " " << transformMatrix[9]  << " " << transformMatrix[10] << " " << transformMatrix[11] << " " 
@@ -746,7 +765,7 @@ PlusStatus AddTransform( vtkTrackedFrameList* trackedFrameList, std::string tran
   // Read configuration
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(deviceSetConfigurationFileName.c_str()));
   if (configRootElement == NULL)
-  {	
+  {  
     LOG_ERROR("Unable to read device set configuration from file " << deviceSetConfigurationFileName); 
     return PLUS_FAIL;
   }
@@ -845,8 +864,80 @@ PlusStatus FillRectangle(vtkTrackedFrameList* trackedFrameList, const std::vecto
     }          
     for (int y=0; y<fillRectSize[1]; y++)
     {
-      memset(static_cast<unsigned char*>(videoFrame->GetBufferPointer())+(fillRectOrigin[1]+y)*frameSize[0]+fillRectOrigin[0],fillData,fillRectSize[0]);     
+      memset(static_cast<unsigned char*>(videoFrame->GetScalarPointer())+(fillRectOrigin[1]+y)*frameSize[0]+fillRectOrigin[0],fillData,fillRectSize[0]);     
     }    
   }
+  return PLUS_SUCCESS; 
+}
+
+//-------------------------------------------------------
+PlusStatus CropRectangle(vtkTrackedFrameList* trackedFrameList, const std::vector<int> &cropRectOrigin, const std::vector<int> &cropRectSize)
+{
+  if ( trackedFrameList == NULL )
+  {
+    LOG_ERROR("Tracked frame list is NULL!"); 
+    return PLUS_FAIL; 
+  }
+  if (cropRectOrigin.size()!=2 || cropRectSize.size()!=2)
+  {
+    LOG_ERROR("Fill rectangle origin or size is not specified correctly");
+    return PLUS_FAIL;
+  }
+
+  vtkSmartPointer<vtkMatrix4x4> tfmMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  tfmMatrix->Identity();
+  tfmMatrix->SetElement(0,3,-cropRectOrigin[0]);
+  tfmMatrix->SetElement(1,3,-cropRectOrigin[1]);
+  PlusTransformName imageToCroppedImage("Image","CroppedImage");
+
+  for ( unsigned int i = 0; i < trackedFrameList->GetNumberOfTrackedFrames(); ++i )
+  {
+    TrackedFrame *trackedFrame = trackedFrameList->GetTrackedFrame(i); 
+    PlusVideoFrame* videoFrame = trackedFrame->GetImageData();
+
+    int frameSize[2]={0,0};
+    if (videoFrame == NULL || videoFrame->GetFrameSize(frameSize)!=PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to retrieve pixel data from frame "<<i<<". Crop rectangle failed.");
+      continue;
+    }       
+    if (cropRectOrigin[0]<0 || cropRectOrigin[0]>=frameSize[0] ||
+      cropRectOrigin[1]<0 || cropRectOrigin[1]>=frameSize[1])
+    {
+      LOG_ERROR("Invalid crop rectangle origin is specified ("<<cropRectOrigin[0]<<", "<<cropRectOrigin[1]<<"). The image size is ("
+        <<frameSize[0]<<", "<<frameSize[1]<<").");
+      continue;
+    }
+    if (cropRectSize[0]<=0 || cropRectOrigin[0]+cropRectSize[0]>frameSize[0] ||
+      cropRectSize[1]<=0 || cropRectOrigin[1]+cropRectSize[1]>frameSize[1])
+    {
+      LOG_ERROR("Invalid crop rectangle size is specified ("<<cropRectSize[0]<<", "<<cropRectSize[1]<<"). The specified fill rectangle origin is ("
+        <<cropRectOrigin[0]<<", "<<cropRectOrigin[1]<<") and the image size is ("<<frameSize[0]<<", "<<frameSize[1]<<").");
+      continue;
+    }
+    if (videoFrame->GetVTKScalarPixelType()!=VTK_UNSIGNED_CHAR)
+    {
+      LOG_ERROR("Fill rectangle is supported only for B-mode images (unsigned char type)");
+      continue;
+    }
+
+    int cropImageExtent[6] = {0, cropRectSize[0]-1, 0, cropRectSize[1]-1, 0, 0};
+    vtkSmartPointer<vtkImageData> croppedImage = vtkSmartPointer<vtkImageData>::New();
+    croppedImage->SetExtent(cropImageExtent);
+    croppedImage->SetScalarTypeToUnsignedChar();
+    croppedImage->SetNumberOfScalarComponents(1);
+    croppedImage->AllocateScalars();
+    
+    for(int y=0;y<cropRectSize[1];y++)
+    {
+      memcpy(static_cast<unsigned char*>(croppedImage->GetScalarPointer())+y*cropRectSize[0], 
+        static_cast<unsigned char*>(videoFrame->GetScalarPointer())+(cropRectOrigin[1]+y)*frameSize[0]+cropRectOrigin[0], 
+        cropRectSize[0]);
+    }
+    videoFrame->DeepCopyFrom(croppedImage);
+    trackedFrame->SetCustomFrameTransform(imageToCroppedImage, tfmMatrix);
+    trackedFrame->SetCustomFrameTransformStatus(imageToCroppedImage, FIELD_OK);
+  }
+
   return PLUS_SUCCESS; 
 }

@@ -54,9 +54,9 @@ SET(INCLUDES_OUTPUT_PATH ${PLUS_EXECUTABLE_OUTPUT_PATH} CACHE PATH "Single outpu
 MARK_AS_ADVANCED(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH INCLUDES_OUTPUT_PATH)
 
 IF (WIN32)
-  SET(TEST_EXECUTABLE_OUTPUT_PATH "${PLUS_EXECUTABLE_OUTPUT_PATH}/Release")
+  SET(TEST_OUTPUT_PATH "${PLUS_EXECUTABLE_OUTPUT_PATH}/Release/Output")
 ELSE()
-  SET(TEST_EXECUTABLE_OUTPUT_PATH "${PLUS_EXECUTABLE_OUTPUT_PATH}")
+  SET(TEST_OUTPUT_PATH "${PLUS_EXECUTABLE_OUTPUT_PATH}/Output")
 ENDIF()
 
 # --------------------------------------------------------------------------
@@ -77,6 +77,11 @@ SET(SIKULI_BIN_DIR ${PLUSLIB_TOOLS_DIR}/Sikuli/ CACHE PATH "Path to the Sikuli b
 # --------------------------------------------------------------------------
 # The project library directories.
 SET(PLUSLIB_LIBRARY_DIRS ${LIBRARY_OUTPUT_PATH} CACHE INTERNAL "Path to the Plus library directory" FORCE)
+
+# Library directories should be added automatically by the build system, however GrabbieLib
+# is not found by default (as it does not have a proper USE file), therefore we add
+# the library output directory to the library search path
+LINK_DIRECTORIES(${LIBRARY_OUTPUT_PATH})
 
 # --------------------------------------------------------------------------
 # Configure include file
@@ -120,6 +125,10 @@ SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${BASIC_INCLUDE_DIRS} CACHE INT
 # vcProj_...
 # PLUSLIB_DEPENDENCIES
 
+ADD_SUBDIRECTORY(Utilities)
+INCLUDE_DIRECTORIES( ${Utilities_INCLUDE_DIRS} )
+SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${Utilities_INCLUDE_DIRS} CACHE INTERNAL "" )
+
 ADD_SUBDIRECTORY(PlusCommon)
 INCLUDE_DIRECTORIES( ${PlusCommon_INCLUDE_DIRS} )
 SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${PlusCommon_INCLUDE_DIRS} CACHE INTERNAL "" )
@@ -142,6 +151,10 @@ ADD_SUBDIRECTORY(UsSimulatorAlgo)
 INCLUDE_DIRECTORIES( ${UsSimulatorAlgo_INCLUDE_DIRS} )
 SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${UsSimulatorAlgo_INCLUDE_DIRS} CACHE INTERNAL "" )
 
+ADD_SUBDIRECTORY(VolumeReconstruction)
+INCLUDE_DIRECTORIES( ${VolumeReconstruction_INCLUDE_DIRS} )
+SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${VolumeReconstruction_INCLUDE_DIRS} CACHE INTERNAL "" )
+
 # DataCollection
 ADD_SUBDIRECTORY(DataCollection)
 INCLUDE_DIRECTORIES( ${DataCollection_INCLUDE_DIRS} )
@@ -150,10 +163,6 @@ SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${DataCollection_INCLUDE_DIRS} 
 ADD_SUBDIRECTORY(PatternLocAlgo)
 INCLUDE_DIRECTORIES( ${PatternLocAlgo_INCLUDE_DIRS} )
 SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${PatternLocAlgo_INCLUDE_DIRS} CACHE INTERNAL "" )
-
-ADD_SUBDIRECTORY(VolumeReconstruction)
-INCLUDE_DIRECTORIES( ${VolumeReconstruction_INCLUDE_DIRS} )
-SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${VolumeReconstruction_INCLUDE_DIRS} CACHE INTERNAL "" )
 
 ADD_SUBDIRECTORY(CalibrationAlgo)
 INCLUDE_DIRECTORIES( ${CalibrationAlgo_INCLUDE_DIRS} )
@@ -164,10 +173,6 @@ IF(PLUS_USE_OpenIGTLink)
 	INCLUDE_DIRECTORIES( ${PlusServer_INCLUDE_DIRS} )
 	SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${PlusServer_INCLUDE_DIRS} CACHE INTERNAL "" )
 ENDIF()
-
-ADD_SUBDIRECTORY(SingleWallCalibration)
-INCLUDE_DIRECTORIES( ${SingleWallCalibration_INCLUDE_DIRS} )
-SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${SingleWallCalibration_INCLUDE_DIRS} CACHE INTERNAL "" )
 
 ADD_SUBDIRECTORY(scripts)
 
@@ -193,13 +198,6 @@ configure_file(PlusLibConfig.cmake.in
   "${CMAKE_CURRENT_BINARY_DIR}/PlusLibConfig.cmake" @ONLY)
 configure_file(PlusLibConfigVersion.cmake.in
   "${CMAKE_CURRENT_BINARY_DIR}/PlusLibConfigVersion.cmake" @ONLY)
-
-#-----------------------------------------------------------------------------
-# Generate include file for projects that use this library 
-# 
-configure_file(
-	${CMAKE_CURRENT_SOURCE_DIR}/UsePlusLib.cmake.in 
-	${CMAKE_CURRENT_BINARY_DIR}/UsePlusLib.cmake @ONLY)	
 
 #-----------------------------------------------------------------------------
 # Generate default application configuration files in the non-installed executable directories (Release and Debug too)
@@ -234,9 +232,24 @@ ENDIF()
 option(DOCUMENTATION_TARGET_IN_ALL "Include the custom target for building documentation in 'all'" OFF)
 mark_as_advanced(DOCUMENTATION_TARGET_IN_ALL)
 
-# Attempt to discover Doxygen so that DOXYGEN_EXECUTABLE is set to an appropriate default value
-SET (DOXYGEN_EXECUTABLE ${PLUSLIB_TOOLS_DIR}/Doxygen/doxygen-1.7.5.1/doxygen.exe CACHE PATH "Doxygen executable" FORCE)
-SET (DOXYGEN_DOT_EXECUTABLE ${PLUSLIB_TOOLS_DIR}/Doxygen/doxygen-1.7.5.1/Graphviz-2.28/bin/dot.exe CACHE PATH "Doxygen dot executable" FORCE)
+# Use Doxygen provided with Plus
+SET (DOXYGEN_EXECUTABLE ${PLUSLIB_TOOLS_DIR}/Doxygen/doxygen.exe CACHE PATH "Doxygen executable" FORCE)
+# Try to detect GraphViz path (CMake's Doxygen package finder only tries some obsolete paths on Windows)
+find_program(DOXYGEN_DOT_EXECUTABLE
+    NAMES dot
+    PATHS
+      "$ENV{ProgramFiles}/Graphviz2.34/bin"
+      "$ENV{ProgramFiles(x86)}/Graphviz2.34/bin"
+    DOC "Graphviz Dot tool for using Doxygen"
+  )
 find_package(Doxygen QUIET)
 
-add_subdirectory(Doxygen)
+add_subdirectory(Documentation)
+
+
+#-----------------------------------------------------------------------------
+# Generate include file for projects that use this library 
+# 
+configure_file(
+	${CMAKE_CURRENT_SOURCE_DIR}/UsePlusLib.cmake.in 
+	${CMAKE_CURRENT_BINARY_DIR}/UsePlusLib.cmake @ONLY)	

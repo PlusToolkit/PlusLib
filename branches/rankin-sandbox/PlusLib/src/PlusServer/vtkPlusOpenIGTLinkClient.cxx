@@ -16,7 +16,6 @@ See License.txt for details.
 #include "igtlServerSocket.h"
 
 #include "igtlStringMessage.h"
-#include "igtlStatusMessage.h"
 #include "vtkPlusCommand.h"
 
 static const int CLIENT_SOCKET_TIMEOUT_MSEC = 500; 
@@ -94,14 +93,30 @@ PlusStatus vtkPlusOpenIGTLinkClient::SendCommand( vtkPlusCommand* command )
 {  
   // Convert the command to a string message.
 
+  // Get the XML string
   vtkSmartPointer<vtkXMLDataElement> cmdConfig=vtkSmartPointer<vtkXMLDataElement>::New();
   command->WriteConfiguration(cmdConfig);
   std::ostringstream xmlStr;
   vtkXMLUtilities::FlattenElement(cmdConfig, xmlStr);
   xmlStr << std::ends;
 
+  // Get the device name, generate unique command identifier from timestamp (CMD_2342342)
+  std::string commandUid;
+  if (command->GetId())
+  {
+    commandUid=command->GetId();
+  }
+  else
+  {
+    // command UID is not specified, generate one automatically from the timestamp
+    std::ostringstream commandUidStr;
+    commandUidStr << std::fixed << vtkAccurateTimer::GetUniversalTime() << std::ends;
+    commandUid=commandUidStr.str();
+  }
+  std::string deviceNameString=vtkPlusCommand::GenerateCommandDeviceName(commandUid);
+
   igtl::StringMessage::Pointer stringMessage = igtl::StringMessage::New();
-  stringMessage->SetDeviceName( "GET_REXEC" );
+  stringMessage->SetDeviceName( deviceNameString.c_str() );
   std::string xmlString=xmlStr.str();
   stringMessage->SetString( xmlString.c_str() );
   stringMessage->Pack();
@@ -191,18 +206,19 @@ void* vtkPlusOpenIGTLinkClient::DataReceiverThread( vtkMultiThreader::ThreadInfo
       continue;
     }
 
-    if (strcmp(headerMsg->GetDeviceType(), "STATUS") == 0
-      && strcmp(headerMsg->GetDeviceName(), "RTS_REXEC") == 0)
+    if (strcmp(headerMsg->GetDeviceType(), "STRING") == 0
+      && vtkPlusCommand::IsReplyDeviceName(headerMsg->GetDeviceName(),""))
     {
-      igtl::StatusMessage::Pointer statusMsg = igtl::StatusMessage::New(); 
-      statusMsg->SetMessageHeader(headerMsg); 
-      statusMsg->AllocatePack(); 
+
+      igtl::StringMessage::Pointer replyMsg = igtl::StringMessage::New(); 
+      replyMsg->SetMessageHeader(headerMsg); 
+      replyMsg->AllocatePack(); 
       {
         PlusLockGuard<vtkRecursiveCriticalSection> socketGuard(self->SocketMutex);
-        self->ClientSocket->Receive(statusMsg->GetPackBodyPointer(), statusMsg->GetPackBodySize() ); 
+        self->ClientSocket->Receive(replyMsg->GetPackBodyPointer(), replyMsg->GetPackBodySize() ); 
       }
 
-      int c = statusMsg->Unpack(1);
+      int c = replyMsg->Unpack(1);
       if ( !(c & igtl::MessageHeader::UNPACK_BODY)) 
       {
         LOG_ERROR("Failed to receive reply (invalid body)");
@@ -211,8 +227,8 @@ void* vtkPlusOpenIGTLinkClient::DataReceiverThread( vtkMultiThreader::ThreadInfo
       {
         // save command reply
         PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(self->Mutex);
-        self->Replies.push_back(statusMsg->GetStatusString());
-        //LOG_INFO("Reply received: "<<statusMsg->GetStatusString());
+        self->Replies.push_back(replyMsg->GetString());
+        //LOG_INFO("Reply received: "<<replyMsg->GetStatusString());
       }      
     }
     else

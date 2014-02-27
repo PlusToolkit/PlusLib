@@ -5,10 +5,7 @@
 =========================================================Plus=header=end*/
 
 /**
-* This program creates a vtkPolyData model that represents tracked ultrasound
-* image slices in their tracked positions.
-* It can be used to debug geometry problems in volume reconstruction.
-* 
+* This program creates or adds to a csv file some information about the quality of hole filling in volume reconstruction.
 */
 
 #include "PlusConfigure.h"
@@ -22,15 +19,7 @@
 #include "vtkDataSetWriter.h"
 #include "vtkImageData.h"
 #include "vtkImageClip.h"
-#include "vtkImageFFT.h"
-#include "vtkImageMagnitude.h"
-#include "vtkImageFourierCenter.h"
-#include "vtkImageLogarithmicScale.h"
 #include "vtkMetaImageReader.h"
-//#include "vtkMetaImageWriter.h"
-//#include "vtkImageMathematics.h"
-//#include "vtkImageLogic.h"
-//#include "vtkImageAccumulator.h"
 
 #include "vtkCompareVolumes.h"
 
@@ -50,10 +39,8 @@ int main( int argc, char** argv )
   std::string outputFourierGroundTruthFileName;
   std::string outputCroppedGTFileName;
   std::string outputCroppedTestFileName;
-  std::vector<int> centerV;
-  std::vector<int> sizeV;
-  int center[3];
-  int size[3];
+  std::vector<int> roiOriginV;
+  std::vector<int> roiSizeV;
 
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
@@ -65,21 +52,13 @@ int main( int argc, char** argv )
   args.AddArgument("--testing-image", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTestingFileName, "The testing image to compare to the ground truth");
   args.AddArgument("--testing-alpha", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTestingAlphaFileName, "The testing volume's alpha component");
   args.AddArgument("--slices-alpha", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSliceAlphaFileName, "The alpha component for when the slices are pasted into the volume, without hole filling");
-  args.AddArgument("--output-cropped-ground-truth-image", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputCroppedGTFileName, "The cropped ground truth volume");
-  args.AddArgument("--output-cropped-testing-image", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputCroppedTestFileName, "The cropped testing volume");
+  args.AddArgument("--roi-origin", vtksys::CommandLineArguments::MULTI_ARGUMENT, &roiOriginV, "The three x y z values describing the origin for the region of interest's extent, in volume IJK coordinates");
+  args.AddArgument("--roi-size", vtksys::CommandLineArguments::MULTI_ARGUMENT, &roiSizeV, "The three x y z values describing the size for the region of interest's extent, in volume IJK coordinates");
   args.AddArgument("--output-stats-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputStatsFileName, "The file to dump the statistics for the comparison");
   args.AddArgument("--output-diff-volume-true", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputTrueDiffFileName, "Save the true difference volume to this file");
   args.AddArgument("--output-diff-volume-absolute", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputAbsoluteDiffFileName, "Save the absolute difference volume to this file");
-  args.AddArgument("--output-fourier-test-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFourierTestFileName, "The file to dump the fourier statistics for the testing volume");
-  args.AddArgument("--output-fourier-ground-truth-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFourierGroundTruthFileName, "The file to dump the fourier statistics for the ground truth");
-  args.AddArgument("--roi-center", vtksys::CommandLineArguments::MULTI_ARGUMENT, &centerV, "The point at the center of the region of interest");
-  args.AddArgument("--roi-size", vtksys::CommandLineArguments::MULTI_ARGUMENT, &sizeV, "The size around the center point to consider");
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
-
-  // examples:
-  //--roi-center 5 6 7
-  //--roi-size 4 5 8
 
   if ( !args.Parse() )
   {
@@ -96,7 +75,7 @@ int main( int argc, char** argv )
     exit(EXIT_SUCCESS); 
   }
 
-  /************************************************************/	
+  /************************************************************/    
   
   // record the start time for data recording, see http://www.cplusplus.com/reference/clibrary/ctime/localtime/
   time_t rawtime;
@@ -107,60 +86,11 @@ int main( int argc, char** argv )
   strftime(timeAndDate,60,"%Y %m %d %H:%M",timeInfo);
 
   // Check file names
-  if ( inputGTFileName.empty() || inputGTAlphaFileName.empty() || inputTestingFileName.empty() || inputTestingAlphaFileName.empty() || inputSliceAlphaFileName.empty() || outputCroppedTestFileName.empty() || outputCroppedGTFileName.empty() )
+  if ( inputGTFileName.empty() || inputGTAlphaFileName.empty() || inputTestingFileName.empty() || inputTestingAlphaFileName.empty() || inputSliceAlphaFileName.empty() || outputStatsFileName.empty() )
   {
-    LOG_ERROR("input-ground-truth-image, input-ground-truth-alpha, input-testing-image, input-testing-alpha, input-slices-alpha, output-cropped-ground-truth-image, output-cropped-testing-image, and output-stats-file are required arguments!");
+    LOG_ERROR("input-ground-truth-image, input-ground-truth-alpha, input-testing-image, input-testing-alpha, input-slices-alpha, and output-stats-file are required arguments!");
     LOG_ERROR("Help: " << args.GetHelp());
     exit(EXIT_FAILURE);
-  }
-
-  bool useWholeExtent((centerV.size() == 0)?true:false);
-
-  if (!useWholeExtent)
-  {
-    // parse and check center
-    if (centerV.size() == 3)
-    {
-      center[0] = centerV[0];
-      center[1] = centerV[1];
-      center[2] = centerV[2];
-    }
-    else
-    {
-      LOG_ERROR("Center needs to be at least 3 values (X,Y,Z)");
-      exit(EXIT_FAILURE);
-    }
-
-    if (center[0] < 0 || center[1] < 0 || center[2] < 0) 
-    {
-      LOG_ERROR("Center must consist of positive integers");
-      exit(EXIT_FAILURE);
-    }
-
-    // parse and check size
-    if (sizeV.size() == 3) 
-    {
-      size[0] = sizeV[0];
-      size[1] = sizeV[1];
-      size[2] = sizeV[2];
-    } 
-    else if (sizeV.size() == 1) 
-    {
-      size[0] = size[1] = size[2] = sizeV[0];
-    }
-    else
-    {
-      LOG_ERROR("Size needs to be either 3 values (X,Y,Z), or 1 value for X = Y = Z");
-      exit(EXIT_FAILURE);
-    }
-
-    if (size[0] <= 0 || size[1] <= 0 || size[2] <= 0) 
-    {
-      LOG_ERROR("Size must consist of positive integers");
-      exit(EXIT_FAILURE);
-    }
-  } else {
-    size[0] = size[1] = size[2] = center[0] = center[1] = center[2] = -1;
   }
 
   // read inputs
@@ -227,55 +157,79 @@ int main( int argc, char** argv )
   vtkSmartPointer<vtkImageData> testingImageCropped = vtkSmartPointer<vtkImageData>::New();
   vtkSmartPointer<vtkImageData> testingAlphaCropped = vtkSmartPointer<vtkImageData>::New();
   vtkSmartPointer<vtkImageData> slicesAlphaCropped = vtkSmartPointer<vtkImageData>::New();
-  if (!useWholeExtent) {
-    // calculate and check new extents
-    int updatedExtent[6];
-    updatedExtent[0] = center[0]-size[0];
-    updatedExtent[1] = center[0]+size[0];
-    updatedExtent[2] = center[1]-size[1];
-    updatedExtent[3] = center[1]+size[1];
-    updatedExtent[4] = center[2]-size[2];
-    updatedExtent[5] = center[2]+size[2];
 
-    if (updatedExtent[0] < extentGT[0] || updatedExtent[1] >= extentGT[1] ||
-        updatedExtent[2] < extentGT[2] || updatedExtent[3] >= extentGT[3] ||
-        updatedExtent[4] < extentGT[4] || updatedExtent[5] >= extentGT[5]) {
-          LOG_ERROR("Region of interest contains data outside the original volume! Extents are: " << updatedExtent[0] << " " << updatedExtent[1] << " " << updatedExtent[2] << " " << updatedExtent[3] << " " << updatedExtent[4] << " " << updatedExtent[5] << "\n" << "Original extent is: " << extentGT[0] << " " << extentGT[1] << " " << extentGT[2] << " " << extentGT[3] << " " << extentGT[4] << " " << extentGT[5]);
-          exit(EXIT_FAILURE);
+  bool useWholeExtent;
+
+  if (roiOriginV.size() == 0 && roiSizeV.size() == 0)
+    useWholeExtent = true;
+  else if (roiOriginV.size() == 0) {
+    useWholeExtent = false;
+    LOG_WARNING("The region of interest's origin is defined, but the size is not. No region of interest will be used.");
+  } else if (roiSizeV.size() == 0) {
+    useWholeExtent = false;
+    LOG_WARNING("The region of interest's size is defined, but the origin is not. No region of interest will be used.");
+  } else
+    useWholeExtent = false;
+
+  int roiExtent[6]; // array format of roi extent
+  if (!useWholeExtent) {
+
+    // parse and check size
+    if (roiOriginV.size() == 3 && roiSizeV.size() == 3)
+    {
+      roiExtent[0] = roiOriginV[0];
+      roiExtent[1] = roiOriginV[0] + roiSizeV[0] - 1;
+      roiExtent[2] = roiOriginV[1];
+      roiExtent[3] = roiOriginV[1] + roiSizeV[1] - 1;
+      roiExtent[4] = roiOriginV[2];
+      roiExtent[5] = roiOriginV[2] + roiSizeV[2] - 1;
+    }
+    else
+    {
+      LOG_ERROR("ROI size and origin each need to be 3 values in volume IJK coordinates: X Y Z");
+      exit(EXIT_FAILURE);
+    } 
+
+    // check new extents
+    if (roiExtent[0] < extentGT[0] || roiExtent[1] >= extentGT[1] ||
+      roiExtent[2] < extentGT[2] || roiExtent[3] >= extentGT[3] ||
+      roiExtent[4] < extentGT[4] || roiExtent[5] >= extentGT[5]) {
+        LOG_ERROR("Region of interest contains data outside the original volume's IJK coordinates! Extents are: " << roiExtent[0] << " " << roiExtent[1] << " " << roiExtent[2] << " " << roiExtent[3] << " " << roiExtent[4] << " " << roiExtent[5] << "\n" << "Original extent is: " << extentGT[0] << " " << extentGT[1] << " " << extentGT[2] << " " << extentGT[3] << " " << extentGT[4] << " " << extentGT[5]);
+        exit(EXIT_FAILURE);
     }
 
     vtkSmartPointer<vtkImageClip> clipGT = vtkSmartPointer<vtkImageClip>::New();
     clipGT->SetInput(groundTruth);
     clipGT->SetClipData(1);
-    clipGT->SetOutputWholeExtent(updatedExtent);
+    clipGT->SetOutputWholeExtent(roiExtent);
     clipGT->Update();
     groundTruthCropped = clipGT->GetOutput();
     
     vtkSmartPointer<vtkImageClip> clipGTAlpha = vtkSmartPointer<vtkImageClip>::New();
     clipGTAlpha->SetInput(groundTruthAlpha);
     clipGTAlpha->SetClipData(1);
-    clipGTAlpha->SetOutputWholeExtent(updatedExtent);
+    clipGTAlpha->SetOutputWholeExtent(roiExtent);
     clipGTAlpha->Update();
     groundTruthAlphaCropped = clipGTAlpha->GetOutput();
 
     vtkSmartPointer<vtkImageClip> clipTest = vtkSmartPointer<vtkImageClip>::New();
     clipTest->SetInput(testingImage);
     clipTest->SetClipData(1);
-    clipTest->SetOutputWholeExtent(updatedExtent);
+    clipTest->SetOutputWholeExtent(roiExtent);
     clipTest->Update();
     testingImageCropped = clipTest->GetOutput();
     
     vtkSmartPointer<vtkImageClip> clipTestAlpha = vtkSmartPointer<vtkImageClip>::New();
     clipTestAlpha->SetInput(testingAlpha);
     clipTestAlpha->SetClipData(1);
-    clipTestAlpha->SetOutputWholeExtent(updatedExtent);
+    clipTestAlpha->SetOutputWholeExtent(roiExtent);
     clipTestAlpha->Update();
     testingAlphaCropped = clipTestAlpha->GetOutput();
 
     vtkSmartPointer<vtkImageClip> clipSlicesAlpha = vtkSmartPointer<vtkImageClip>::New();
     clipSlicesAlpha->SetInput(slicesAlpha);
     clipSlicesAlpha->SetClipData(1);
-    clipSlicesAlpha->SetOutputWholeExtent(updatedExtent);
+    clipSlicesAlpha->SetOutputWholeExtent(roiExtent);
     clipSlicesAlpha->Update();
     slicesAlphaCropped = clipSlicesAlpha->GetOutput();
   }
@@ -286,6 +240,8 @@ int main( int argc, char** argv )
     testingImageCropped = testingImage;
     testingAlphaCropped = testingAlpha;
     slicesAlphaCropped = slicesAlpha;
+    for (int extentIndex = 0; extentIndex < 6; extentIndex++)
+        roiExtent[extentIndex] = extentGT[extentIndex];
   }
 
   // calculate the histogram for the difference image
@@ -297,33 +253,6 @@ int main( int argc, char** argv )
   histogramGenerator->SetInputTestAlpha(testingAlphaCropped);
   histogramGenerator->SetInputSliceAlpha(slicesAlphaCropped);
   histogramGenerator->Update();
-
-  // write cropped volumes
-  LOG_INFO("Writing cropped volumes...");
-
-  vtkSmartPointer<vtkDataSetWriter> writerCroppedGT = vtkSmartPointer<vtkDataSetWriter>::New();
-  writerCroppedGT->SetFileTypeToBinary();
-  writerCroppedGT->SetInput(groundTruthCropped);
-  writerCroppedGT->SetFileName(outputCroppedGTFileName.c_str());
-  writerCroppedGT->Update();
-
-  vtkSmartPointer<vtkDataSetWriter> writerCroppedTest = vtkSmartPointer<vtkDataSetWriter>::New();
-  writerCroppedTest->SetFileTypeToBinary();
-  writerCroppedTest->SetInput(testingImageCropped);
-  writerCroppedTest->SetFileName(outputCroppedTestFileName.c_str());
-  writerCroppedTest->Update();
-
-  LOG_INFO("Re-reading cropped volumes...");
-
-  vtkSmartPointer<vtkDataSetReader> readerCropGT = vtkSmartPointer<vtkDataSetReader>::New();
-  readerCropGT->SetFileName(outputCroppedGTFileName.c_str());
-  readerCropGT->Update();
-  groundTruthCropped = vtkImageData::SafeDownCast(readerCropGT->GetOutput());
-
-  vtkSmartPointer<vtkDataSetReader> readerCropTest = vtkSmartPointer<vtkDataSetReader>::New();
-  readerCropTest->SetFileName(outputCroppedTestFileName.c_str());
-  readerCropTest->Update();
-  testingImageCropped = vtkImageData::SafeDownCast(readerCropTest->GetOutput());
 
   // write data to a CSV
   if (!outputStatsFileName.empty()) {
@@ -343,8 +272,7 @@ int main( int argc, char** argv )
                    << inputSliceAlphaFileName << ","
                    << inputTestingFileName << ","
                    << inputTestingAlphaFileName << ","
-                   << center[0] << "_" << center[1] << "_" << center[2] << ","
-                   << size[0] << "_" << size[1] << "_" << size[2] << ","
+                   << roiExtent[0] << "_" << roiExtent[1] << "_" << roiExtent[2] << "_" << roiExtent[3] << "_" << roiExtent[4] << "_" << roiExtent[5] << ","
                    << histogramGenerator->GetNumberOfHoles() << "," 
                    << histogramGenerator->GetNumberOfFilledHoles() << ","
                    << histogramGenerator->GetNumberVoxelsVisible() << ","
@@ -376,7 +304,7 @@ int main( int argc, char** argv )
     { // need to create the file and write to it. First give it a header row.
       testingFile.close(); // no reading, must open for writing now
       outputStatsFile.open(outputStatsFileName.c_str());
-      outputStatsFile << "Time,Dataset - Ground Truth,Dataset - Ground Truth Alpha,Dataset - Slices Alpha,Dataset - Testing Image,Dataset - Testing Alpha,Region of Interest Center,Region of Interest Size,Number of Holes,Number of Filled Holes,Number of Visible Voxels,True Maximum Error,True Minimum Error,True Median Error,True Mean Error,True Standard Deviation,True 5th Percentile,True 95th Percentile,Absolute Maximum Error,Absolute Minimum Error,Absolute Median Error,Absolute Mean Error,Absolute Standard Deviation,Absolute 5th Percentile,Absolute 95th Percentile,RMS,Absolute Mean Error Including Holes";
+      outputStatsFile << "Time,Dataset - Ground Truth,Dataset - Ground Truth Alpha,Dataset - Slices Alpha,Dataset - Testing Image,Dataset - Testing Alpha,Region of Interest Extent,Number of Holes,Number of Filled Holes,Number of Visible Voxels,True Maximum Error,True Minimum Error,True Median Error,True Mean Error,True Standard Deviation,True 5th Percentile,True 95th Percentile,Absolute Maximum Error,Absolute Minimum Error,Absolute Median Error,Absolute Mean Error,Absolute Standard Deviation,Absolute 5th Percentile,Absolute 95th Percentile,RMS,Absolute Mean Error Including Holes";
       for (int i = 0; i < 511; i++) {
         outputStatsFile << "," << (i - 255);
       }
@@ -393,8 +321,7 @@ int main( int argc, char** argv )
                    << inputSliceAlphaFileName << ","
                    << inputTestingFileName << ","
                    << inputTestingAlphaFileName << ","
-                   << center[0] << "_" << center[1] << "_" << center[2] << ","
-                   << size[0] << "_" << size[1] << "_" << size[2] << ","
+                   << roiExtent[0] << "_" << roiExtent[1] << "_" << roiExtent[2] << "_" << roiExtent[3] << "_" << roiExtent[4] << "_" << roiExtent[5] << ","
                    << histogramGenerator->GetNumberOfHoles() << "," 
                    << histogramGenerator->GetNumberOfFilledHoles() << ","
                    << histogramGenerator->GetNumberVoxelsVisible() << ","
@@ -440,56 +367,6 @@ int main( int argc, char** argv )
     writerTru->SetInput(histogramGenerator->GetOutputTrueDifferenceImage());
     writerTru->SetFileName(outputTrueDiffFileName.c_str());
     writerTru->Update();
-  }
-
-  if (!outputFourierGroundTruthFileName.empty()) {
-
-    LOG_INFO("Writing ground truth fourier statistics: " << outputStatsFileName);
-
-    vtkSmartPointer<vtkImageFFT> fourierTransGroundTruth = vtkSmartPointer<vtkImageFFT>::New();
-    fourierTransGroundTruth->SetInput(groundTruthCropped);
-    //fourierTransGroundTruth->ReleaseDataFlagOff();
-
-    vtkSmartPointer<vtkImageMagnitude> fourierTransGroundTruthMag = vtkSmartPointer<vtkImageMagnitude>::New();
-    fourierTransGroundTruthMag->SetInputConnection(fourierTransGroundTruth->GetOutputPort());
-    
-    vtkSmartPointer<vtkImageFourierCenter> fourierTransGroundTruthCen = vtkSmartPointer<vtkImageFourierCenter>::New();
-    fourierTransGroundTruthCen->SetInputConnection(fourierTransGroundTruthMag->GetOutputPort());
-
-    vtkSmartPointer<vtkImageLogarithmicScale> fourierTransGroundTruthLog = vtkSmartPointer<vtkImageLogarithmicScale>::New();
-    fourierTransGroundTruthLog->SetInputConnection(fourierTransGroundTruthCen->GetOutputPort());
-
-    vtkSmartPointer<vtkDataSetWriter> writerGTFFT = vtkSmartPointer<vtkDataSetWriter>::New();
-    writerGTFFT->SetFileTypeToBinary();
-    writerGTFFT->SetInputConnection(fourierTransGroundTruthLog->GetOutputPort());
-    writerGTFFT->SetFileName(outputFourierGroundTruthFileName.c_str());
-    writerGTFFT->Update();
-
-  }
-
-  if (!outputFourierTestFileName.empty()) {
-
-    LOG_INFO("Writing testing image fourier statistics: " << outputStatsFileName);
-
-    vtkSmartPointer<vtkImageFFT> fourierTransTest = vtkSmartPointer<vtkImageFFT>::New();
-    fourierTransTest->SetInput(testingImageCropped);
-    //fourierTransTest->ReleaseDataFlagOff();
-
-    vtkSmartPointer<vtkImageMagnitude> fourierTransTestMag = vtkSmartPointer<vtkImageMagnitude>::New();
-    fourierTransTestMag->SetInputConnection(fourierTransTest->GetOutputPort());
-    
-    vtkSmartPointer<vtkImageFourierCenter> fourierTransTestCen = vtkSmartPointer<vtkImageFourierCenter>::New();
-    fourierTransTestCen->SetInputConnection(fourierTransTestMag->GetOutputPort());
-
-    vtkSmartPointer<vtkImageLogarithmicScale> fourierTransTestLog = vtkSmartPointer<vtkImageLogarithmicScale>::New();
-    fourierTransTestLog->SetInputConnection(fourierTransTestCen->GetOutputPort());
-
-    vtkSmartPointer<vtkDataSetWriter> writerTestFFT = vtkSmartPointer<vtkDataSetWriter>::New();
-    writerTestFFT->SetFileTypeToBinary();
-    writerTestFFT->SetInputConnection(fourierTransTestLog->GetOutputPort());
-    writerTestFFT->SetFileName(outputFourierTestFileName.c_str());
-    writerTestFFT->Update();
-  
   }
 
   return EXIT_SUCCESS;

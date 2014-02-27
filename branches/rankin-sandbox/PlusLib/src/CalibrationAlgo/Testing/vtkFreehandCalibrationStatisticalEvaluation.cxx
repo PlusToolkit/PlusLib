@@ -76,7 +76,7 @@ int main (int argc, char* argv[])
   cmdargs.AddArgument("--save-results-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &saveResultsFilename, "Save results file name");
   cmdargs.AddArgument("--operation", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strOperation, "Type of experiment to perform");
 
-  cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
+  cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
 
   if ( !cmdargs.Parse() )
   {
@@ -92,7 +92,7 @@ int main (int argc, char* argv[])
   // Read configuration
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
   if (configRootElement == NULL)
-  {	
+  {  
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
     return EXIT_FAILURE;
   }
@@ -271,10 +271,9 @@ int main (int argc, char* argv[])
   std::string methods[] = {"NO_OPTIMIZATION","7param2D","7param3D","8param2D","8param3D"};
   int numberOfMethods = sizeof(methods) / sizeof(methods[0]);
   outputFile << "Number of methods = "  << numberOfMethods << "\n";
-  std::vector<double> optimizedResults;
   std::vector<double> calibError;
   std::vector<double> validError;
-  vnl_matrix<double> imageToProbeTransformMatrixVnl(4,4);
+  vnl_matrix_fixed<double,4,4> imageToProbeTransformMatrix;
   int *frameSize = calibrationTrackedFrameList->GetTrackedFrame(0)->GetFrameSize();
   outputFile << "Frame size = "  << frameSize[0] << " " << frameSize[1] << "\n";
   for (int i=0; i<numberOfConfigurations; i++)
@@ -309,16 +308,12 @@ int main (int argc, char* argv[])
           //return EXIT_FAILURE;
         }
 
-        freehandCalibration->GetCalibrationReport( &optimizedResults, &calibError, &validError, &imageToProbeTransformMatrixVnl); 
+        freehandCalibration->GetCalibrationReport(&calibError, &validError, &imageToProbeTransformMatrix); 
+        // TODO: double-check if the reported values matches the expected values
 
         outputFile << "Calibration error = ";
         outputFile << calibError.at(0) << " " << calibError.at(1) << " ";
         outputFile << validError.at(0) << " " << validError.at(1)  << " \n ";
-        outputFile << "Optimization results = ";
-        for (unsigned int param=0; param<optimizedResults.size(); ++param)
-        {
-          outputFile << optimizedResults.at(param) << " ";
-        }
 
         outputFile << "\n ";
         outputFile << "Image to Probe transform matrix = \n ";     
@@ -326,14 +321,13 @@ int main (int argc, char* argv[])
         {
           for (int n=0; n<4;n++)
           {
-            outputFile << imageToProbeTransformMatrixVnl(m,n) << " ";
+            outputFile << imageToProbeTransformMatrix(m,n) << " ";
           }
           outputFile << "\n ";
         }
 
       }
 
-      optimizedResults.clear();
       calibError.clear();
       validError.clear();
 
@@ -381,35 +375,31 @@ PlusStatus SubSequenceMetafile( vtkTrackedFrameList* aTrackedFrameList, std::vec
 //-------------------------------------------------------------------------------------------------
 PlusStatus SetOptimizationMethod( vtkProbeCalibrationAlgo* freehandCalibration, std::string method)
 {
-  vtkSpatialCalibrationOptimizer* optimizer = freehandCalibration->GetSpatialCalibrationOptimizer();
+  vtkProbeCalibrationOptimizerAlgo* optimizer = freehandCalibration->GetOptimizer();
 
   if ( STRCASECMP(method.c_str(), "NO_OPTIMIZATION" ) == 0 )
   {
-    optimizer->CurrentImageToProbeCalibrationOptimizationMethod = vtkSpatialCalibrationOptimizer::NO_OPTIMIZATION; 
+    optimizer->SetOptimizationMethod(vtkProbeCalibrationOptimizerAlgo::MINIMIZE_NONE);
   }
   else if ( STRCASECMP(method.c_str(), "7param2D" ) == 0 )
   {
-    optimizer->CurrentImageToProbeCalibrationOptimizationMethod = vtkSpatialCalibrationOptimizer::ITK_LEVENBERG_MARQUARD; 
-    optimizer->CurrentImageToProbeCalibrationCostFunction = vtkSpatialCalibrationOptimizer::MINIMIZATION_2D;
-    optimizer->NumberOfParameters = 7;
+    optimizer->SetOptimizationMethod(vtkProbeCalibrationOptimizerAlgo::MINIMIZE_DISTANCE_OF_ALL_WIRES_IN_2D);
+    optimizer->SetIsotropicPixelSpacing(true);
   }
   else if ( STRCASECMP(method.c_str(), "7param3D" ) == 0 )
   {
-    optimizer->CurrentImageToProbeCalibrationOptimizationMethod = vtkSpatialCalibrationOptimizer::ITK_LEVENBERG_MARQUARD; 
-    optimizer->CurrentImageToProbeCalibrationCostFunction = vtkSpatialCalibrationOptimizer::MINIMIZATION_3D;
-    optimizer->NumberOfParameters = 7;
+    optimizer->SetOptimizationMethod(vtkProbeCalibrationOptimizerAlgo::MINIMIZE_DISTANCE_OF_MIDDLE_WIRES_IN_3D);
+    optimizer->SetIsotropicPixelSpacing(true);
   }
   else if ( STRCASECMP(method.c_str(), "8param2D" ) == 0 )
   {
-    optimizer->CurrentImageToProbeCalibrationOptimizationMethod = vtkSpatialCalibrationOptimizer::ITK_LEVENBERG_MARQUARD; 
-    optimizer->CurrentImageToProbeCalibrationCostFunction = vtkSpatialCalibrationOptimizer::MINIMIZATION_2D;
-    optimizer->NumberOfParameters = 8;
+    optimizer->SetOptimizationMethod(vtkProbeCalibrationOptimizerAlgo::MINIMIZE_DISTANCE_OF_ALL_WIRES_IN_2D);
+    optimizer->SetIsotropicPixelSpacing(false);
   }
   else if ( STRCASECMP(method.c_str(), "8param3D" ) == 0 )
   {
-    optimizer->CurrentImageToProbeCalibrationOptimizationMethod = vtkSpatialCalibrationOptimizer::ITK_LEVENBERG_MARQUARD; 
-    optimizer->CurrentImageToProbeCalibrationCostFunction = vtkSpatialCalibrationOptimizer::MINIMIZATION_3D;
-    optimizer->NumberOfParameters = 8;
+    optimizer->SetOptimizationMethod(vtkProbeCalibrationOptimizerAlgo::MINIMIZE_DISTANCE_OF_MIDDLE_WIRES_IN_3D);
+    optimizer->SetIsotropicPixelSpacing(false);
   }
   return PLUS_SUCCESS;
 }

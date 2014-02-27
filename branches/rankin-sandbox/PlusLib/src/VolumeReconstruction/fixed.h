@@ -61,7 +61,7 @@ POSSIBILITY OF SUCH DAMAGES.
   f.round()  - convert to int using round-to-nearest, round to the larger
                number in case of a tie
 
-  \ingroup VolumeReconstruction
+  \ingroup PlusLibVolumeReconstruction
 */
 class fixed
 {

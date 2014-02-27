@@ -446,9 +446,13 @@ PlusStatus vtkVolumeReconstructor::WriteConfiguration(vtkXMLDataElement *config)
   }
   else
   {
-    reconConfig->RemoveAttribute("FanAngles");
-    reconConfig->RemoveAttribute("FanOrigin");
-    reconConfig->RemoveAttribute("FanDepth");
+    // TODO: replace the following 3 lines by the commented out lines after upgrading to VTK 6.x (https://www.assembla.com/spaces/plus/tickets/859)
+    // reconConfig->RemoveAttribute("FanAngles");
+    // reconConfig->RemoveAttribute("FanOrigin");
+    // reconConfig->RemoveAttribute("FanDepth");
+    PlusCommon::RemoveAttribute(reconConfig, "FanAngles");
+    PlusCommon::RemoveAttribute(reconConfig, "FanOrigin");
+    PlusCommon::RemoveAttribute(reconConfig, "FanDepth");
   }
 
   // reconstruction options
@@ -462,7 +466,9 @@ PlusStatus vtkVolumeReconstructor::WriteConfiguration(vtkXMLDataElement *config)
   }
   else
   {
-    reconConfig->RemoveAttribute("NumberOfThreads");
+    // TODO: replace the following line by the commented out line after upgrading to VTK 6.x (https://www.assembla.com/spaces/plus/tickets/859)
+    // reconConfig->RemoveAttribute("NumberOfThreads");
+    PlusCommon::RemoveAttribute(reconConfig, "NumberOfThreads");
   }
 
   return PLUS_SUCCESS;
@@ -476,10 +482,22 @@ void vtkVolumeReconstructor::AddImageToExtent( vtkImageData *image, vtkMatrix4x4
   // Prepare the four corner points of the input US image.
   int* frameExtent=image->GetExtent();
   std::vector< double* > corners_ImagePix;
-  double c0[ 4 ] = { frameExtent[ 0 ], frameExtent[ 2 ], 0,  1 };
-  double c1[ 4 ] = { frameExtent[ 0 ], frameExtent[ 3 ], 0,  1 };
-  double c2[ 4 ] = { frameExtent[ 1 ], frameExtent[ 2 ], 0,  1 };
-  double c3[ 4 ] = { frameExtent[ 1 ], frameExtent[ 3 ], 0,  1 };
+  double minX=frameExtent[0];
+  double maxX=frameExtent[1];
+  double minY=frameExtent[2];
+  double maxY=frameExtent[3];
+  if (this->Reconstructor->GetClipRectangleSize()[0]>0 && this->Reconstructor->GetClipRectangleSize()[1]>0)
+  {
+    // Clipping rectangle is specified
+    minX=std::max<double>(minX, this->Reconstructor->GetClipRectangleOrigin()[0]);
+    maxX=std::min<double>(maxX, this->Reconstructor->GetClipRectangleOrigin()[0]+this->Reconstructor->GetClipRectangleSize()[0]);
+    minY=std::max<double>(minY, this->Reconstructor->GetClipRectangleOrigin()[1]);
+    maxY=std::min<double>(maxY, this->Reconstructor->GetClipRectangleOrigin()[1]+this->Reconstructor->GetClipRectangleSize()[1]);
+  }
+  double c0[ 4 ] = { minX, minY, 0,  1 };
+  double c1[ 4 ] = { minX, maxY, 0,  1 };
+  double c2[ 4 ] = { maxX, minY, 0,  1 };
+  double c3[ 4 ] = { maxX, maxY, 0,  1 };
   corners_ImagePix.push_back( c0 );
   corners_ImagePix.push_back( c1 );
   corners_ImagePix.push_back( c2 );
@@ -567,6 +585,7 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
   };
 
   const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames();
+  int numberOfValidFrames = 0;
   for (int frameIndex = 0; frameIndex < numberOfFrames; ++frameIndex )
   {
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
@@ -590,12 +609,23 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
 
     if ( isMatrixValid )
     {
+      numberOfValidFrames++;
+
       // Get image (only the frame extents will be used)
-      vtkImageData* frameImage=trackedFrameList->GetTrackedFrame(frameIndex)->GetImageData()->GetVtkImage();
+      vtkImageData* frameImage=trackedFrameList->GetTrackedFrame(frameIndex)->GetImageData()->GetImage();
 
       // Expand the extent_Ref to include this frame
       AddImageToExtent(frameImage, imageToReferenceTransformMatrix, extent_Ref);
     }
+  }
+
+  LOG_DEBUG("Automatic volume extent computation from frames used "<<numberOfValidFrames<<" out of "<<numberOfFrames<<" (probably wrong image or reference coordinate system was defined or all transforms were invalid)");
+  if (numberOfValidFrames==0)
+  {
+    std::string strImageToReferenceTransformName; 
+    imageToReferenceTransformName.GetTransformName(strImageToReferenceTransformName);
+    LOG_ERROR("Automatic volume extent computation failed, there were no valid "<<strImageToReferenceTransformName<<" transform available in the whole sequence");
+    return PLUS_FAIL;
   }
 
   // Set the output extent from the current min and max values, using the user-defined image resolution.
@@ -605,7 +635,7 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
   outputExtent[ 3 ] = int( ( extent_Ref[3] - extent_Ref[2] ) / outputSpacing[ 1 ] );
   outputExtent[ 5 ] = int( ( extent_Ref[5] - extent_Ref[4] ) / outputSpacing[ 2 ] );
 
-  this->Reconstructor->SetOutputScalarMode(trackedFrameList->GetTrackedFrame(0)->GetImageData()->GetVtkImage()->GetScalarType());
+  this->Reconstructor->SetOutputScalarMode(trackedFrameList->GetTrackedFrame(0)->GetImageData()->GetImage()->GetScalarType());
   this->Reconstructor->SetOutputExtent( outputExtent );
   this->Reconstructor->SetOutputOrigin( extent_Ref[0], extent_Ref[2], extent_Ref[4] ); 
   try
@@ -640,13 +670,13 @@ PlusStatus vtkVolumeReconstructor::AddTrackedFrame(TrackedFrame* frame, vtkTrans
 
   if ( frame == NULL )
   {
-    LOG_ERROR("Failed to add tracked frame to volume - input frame is NULL!"); 
+    LOG_ERROR("Failed to add tracked frame to volume - input frame is NULL"); 
     return PLUS_FAIL; 
   }
 
   if ( transformRepository == NULL )
   {
-    LOG_ERROR("Failed to add tracked frame to volume - input transform repository is NULL!"); 
+    LOG_ERROR("Failed to add tracked frame to volume - input transform repository is NULL"); 
     return PLUS_FAIL; 
   }
 
@@ -656,7 +686,7 @@ PlusStatus vtkVolumeReconstructor::AddTrackedFrame(TrackedFrame* frame, vtkTrans
   {
     std::string strImageToReferenceTransformName; 
     imageToReferenceTransformName.GetTransformName(strImageToReferenceTransformName); 
-    LOG_ERROR("Failed to get transform '"<<strImageToReferenceTransformName<<"' from transform repository!"); 
+    LOG_ERROR("Failed to get transform '"<<strImageToReferenceTransformName<<"' from transform repository"); 
     return PLUS_FAIL; 
   }
 
@@ -667,11 +697,14 @@ PlusStatus vtkVolumeReconstructor::AddTrackedFrame(TrackedFrame* frame, vtkTrans
 
   if ( !isMatrixValid )
   {
-    // Insert only valid frame into volume 
+    // Insert only valid frame into volume
+    std::string strImageToReferenceTransformName; 
+    imageToReferenceTransformName.GetTransformName(strImageToReferenceTransformName); 
+    LOG_DEBUG("Transform '"<<strImageToReferenceTransformName<<"' is invalid for the current frame, therefore this frame is not be inserted into the volume"); 
     return PLUS_SUCCESS; 
   }
 
-  vtkImageData* frameImage=frame->GetImageData()->GetVtkImage();
+  vtkImageData* frameImage=frame->GetImageData()->GetImage();
 
   this->Modified();
 
@@ -725,9 +758,11 @@ PlusStatus vtkVolumeReconstructor::GetReconstructedVolume(vtkImageData* volume)
 //----------------------------------------------------------------------------
 PlusStatus vtkVolumeReconstructor::GenerateHoleFilledVolume()
 {
+  LOG_INFO("Hole Filling has begun");
   this->HoleFiller->SetReconstructedVolume(this->Reconstructor->GetReconstructedVolume());
   this->HoleFiller->SetAccumulationBuffer(this->Reconstructor->GetAccumulationBuffer());
   this->HoleFiller->Update();
+  LOG_INFO("Hole Filling has finished");
 
   this->ReconstructedVolume->DeepCopy(HoleFiller->GetOutput());
 
@@ -780,22 +815,6 @@ PlusStatus vtkVolumeReconstructor::ExtractAlpha(vtkImageData* reconstructedVolum
 PlusStatus vtkVolumeReconstructor::SaveReconstructedVolumeToMetafile(const char* filename, bool alpha/*=false*/, bool useCompression/*=true*/)
 {
   vtkSmartPointer<vtkImageData> volumeToSave = vtkSmartPointer<vtkImageData>::New();
-
-  MET_ValueEnumType scalarType = MET_NONE;
-  if (this->Reconstructor->GetOutputScalarMode() == VTK_UNSIGNED_CHAR)
-  {
-    scalarType = MET_UCHAR;
-  }
-  else if (this->Reconstructor->GetOutputScalarMode() == VTK_FLOAT)
-  {
-    scalarType = MET_FLOAT;
-  }
-  else
-  {
-    LOG_ERROR("Scalar type is not supported!");
-    return PLUS_FAIL;
-  }
-
   if (alpha)
   {
     if (this->ExtractAlpha(volumeToSave) != PLUS_SUCCESS)
@@ -812,12 +831,35 @@ PlusStatus vtkVolumeReconstructor::SaveReconstructedVolumeToMetafile(const char*
       return PLUS_FAIL;
     }
   }
+  return SaveReconstructedVolumeToMetafile(volumeToSave, filename, useCompression);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkVolumeReconstructor::SaveReconstructedVolumeToMetafile(vtkImageData* volumeToSave, const char* filename, bool useCompression/*=true*/)
+{
+  if (volumeToSave==NULL)
+  {
+    LOG_ERROR("vtkVolumeReconstructor::SaveReconstructedVolumeToMetafile: invalid input image");
+    return PLUS_FAIL;
+  }
+
+  MET_ValueEnumType scalarType = MET_NONE;
+  switch (volumeToSave->GetScalarType())
+  {
+  case VTK_UNSIGNED_CHAR: scalarType = MET_UCHAR; break;
+  case VTK_FLOAT: scalarType = MET_FLOAT; break;
+  default:
+    LOG_ERROR("Scalar type is not supported!");
+    return PLUS_FAIL;
+  }
 
   MetaImage metaImage(volumeToSave->GetDimensions()[0], volumeToSave->GetDimensions()[1], volumeToSave->GetDimensions()[2],
                                        volumeToSave->GetSpacing()[0], volumeToSave->GetSpacing()[1], volumeToSave->GetSpacing()[2],
                                        scalarType, 1, volumeToSave->GetScalarPointer());
   metaImage.Origin(volumeToSave->GetOrigin());
-  metaImage.AnatomicalOrientation("LPS");
+  // By definition, LPS orientation in DICOM sense = RAI orientation in MetaIO. See details at:
+  // http://www.itk.org/Wiki/Proposals:Orientation#Some_notes_on_the_DICOM_convention_and_current_ITK_usage
+  metaImage.AnatomicalOrientation("RAI");
   metaImage.BinaryData(true);
   metaImage.CompressedData(useCompression);
   metaImage.ElementDataFileName("LOCAL");
@@ -859,4 +901,40 @@ PlusStatus vtkVolumeReconstructor::SaveReconstructedVolumeToVtkFile(const char* 
   writer->Update();
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+int* vtkVolumeReconstructor::GetClipRectangleOrigin()
+{
+  return this->Reconstructor->GetClipRectangleOrigin();
+}
+
+//----------------------------------------------------------------------------
+int* vtkVolumeReconstructor::GetClipRectangleSize()
+{
+  return this->Reconstructor->GetClipRectangleSize();
+}
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::Reset()
+{
+  this->Reconstructor->ResetOutput();
+}
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::SetOutputOrigin(double* origin)
+{
+  this->Reconstructor->SetOutputOrigin(origin);
+}
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::SetOutputSpacing(double* spacing)
+{
+  this->Reconstructor->SetOutputSpacing(spacing);
+}
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::SetOutputExtent(int* extent)
+{
+  this->Reconstructor->SetOutputExtent(extent);
 }

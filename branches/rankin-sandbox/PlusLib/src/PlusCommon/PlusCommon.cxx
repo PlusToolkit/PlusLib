@@ -1,6 +1,8 @@
+#include "PlusConfigure.h"
 #include "PlusCommon.h"
 #include "vtksys/SystemTools.hxx"
 #include "vtkXMLDataElement.h"
+#include "PlusRevision.h"
 
 //-------------------------------------------------------
 PlusTransformName::PlusTransformName()
@@ -20,6 +22,12 @@ PlusTransformName::PlusTransformName(std::string aFrom, std::string aTo )
 
   this->Capitalize(aTo); 
   this->m_To = aTo; 
+}
+
+//-------------------------------------------------------
+PlusTransformName::PlusTransformName(const std::string& transformName )
+{
+  this->SetTransformName(transformName.c_str());
 }
 
 //-------------------------------------------------------
@@ -124,6 +132,12 @@ PlusStatus PlusTransformName::GetTransformName(std::string& aTransformName) cons
 }
 
 //-------------------------------------------------------
+std::string PlusTransformName::GetTransformName() const
+{
+  return ( this->m_From + std::string("To") + this->m_To); 
+}
+
+//-------------------------------------------------------
 std::string PlusTransformName::From() const
 {
   return this->m_From; 
@@ -144,6 +158,90 @@ void PlusTransformName::Capitalize(std::string& aString )
     return;
   }
   aString[0] = toupper( aString[0] );
+}
+
+//-------------------------------------------------------
+void PlusTransformName::Clear()
+{
+  this->m_From = "";
+  this->m_To = "";
+}
+
+//----------------------------------------------------------------------------
+PlusStatus PlusCommon::CreateTemporaryFilename( std::string& aString, const std::string& anOutputDirectory )
+{
+  aString = "";
+  int maxRetryCount = 50;
+  int tryCount = 0;
+
+#ifdef _WIN32
+  char candidateFilename[MAX_PATH]="";
+#else
+  char candidateFilename[L_tmpnam]="";
+#endif
+
+  while( tryCount < maxRetryCount)
+  {
+    tryCount++;
+
+#ifdef _WIN32
+    UINT uRetVal(0);
+    if( !anOutputDirectory.empty() )
+    {
+      std::string path = vtksys::SystemTools::GetRealPath(anOutputDirectory.c_str()); 
+      uRetVal = GetTempFileName(path.c_str(), "", 0, candidateFilename);  // buffer for name
+    }
+    else
+    {
+      char tempPath[MAX_PATH]="";
+      if( GetTempPath(MAX_PATH, tempPath) == 0 )
+      {
+        LOG_ERROR("Unable to retrieve temp path: " << GetLastError() );
+        return PLUS_FAIL;
+      }
+      uRetVal = GetTempFileName(tempPath, "", 0, candidateFilename);
+    }
+
+
+    if( uRetVal == ERROR_BUFFER_OVERFLOW )
+    {
+      if( vtksys::SystemTools::FileExists(candidateFilename) )
+      {
+        vtksys::SystemTools::RemoveFile(candidateFilename);
+      }
+      LOG_ERROR("Path too long to generate temporary filename. Consider moving output directory to shorter path.");
+      continue;
+    }
+    else if (uRetVal==0)
+    {
+      LOG_ERROR("Failed to generate temporary filename. Error code:" << GetLastError());
+      continue;
+    }
+
+    aString = candidateFilename;
+    return PLUS_SUCCESS;
+#else
+    tmpnam(candidateFilename);
+
+    if( !vtksys::SystemTools::FileExists(candidateFilename) )
+    {
+      ofstream aFile(candidateFilename);
+      if( aFile.is_open() )
+      {
+        aFile.close();
+        vtksys::SystemTools::RemoveFile(candidateFilename);
+        aString = candidateFilename;
+        return PLUS_SUCCESS;
+      }
+      else
+      {
+        LOG_WARNING("Cannot write to temp file " << candidateFilename << " check write permissions of output directory.");
+      }
+    }
+#endif
+  }
+
+  return PLUS_FAIL;
 }
 
 //-------------------------------------------------------
@@ -199,7 +297,7 @@ PlusStatus PlusCommon::PrintXML(ostream& os, vtkIndent indent, vtkXMLDataElement
   for(int i=0;i < elem->GetNumberOfAttributes();++i)
   {
     std::string attName=elem->GetAttributeName(i);
-    
+
     // Find out if it's a matrix element, because we format them somewhat differently
     bool matrixElement=false;
     const int MATRIX_ELEM_COUNT=16;
@@ -221,9 +319,12 @@ PlusStatus PlusCommon::PrintXML(ostream& os, vtkIndent indent, vtkXMLDataElement
       os << matrixIndent << matrixValues[0] << "\t" << matrixValues[1] << "\t" << matrixValues[2] << "\t" << matrixValues[3] << std::endl;
       os << matrixIndent << matrixValues[4] << "\t" << matrixValues[5] << "\t" << matrixValues[6] << "\t" << matrixValues[7] << std::endl;
       os << matrixIndent << matrixValues[8] << "\t" << matrixValues[9] << "\t" << matrixValues[10] << "\t" << matrixValues[11] << std::endl;
-      os << matrixIndent << matrixValues[12] << "\t" << matrixValues[13] << "\t" << matrixValues[14] << "\t" << matrixValues[15];
-      os << "\"";
-      if (!printEachAttributeInNewLine)
+      os << matrixIndent << matrixValues[12] << "\t" << matrixValues[13] << "\t" << matrixValues[14] << "\t" << matrixValues[15] << "\"";
+      // Prevent writing additional attributes right after the last line of the matrix
+      // If this is the last attribute then we don't have to start a new line, just append the closing to the matrix line.
+      // If each attribute is written to a separate line anyway then we don't have to start a new line, it'll be added before adding the next element.
+      bool isLastAttribute = (i+1 == elem->GetNumberOfAttributes());
+      if (!isLastAttribute && !printEachAttributeInNewLine)
       {
         os << std::endl << nextIndent;
       }
@@ -274,7 +375,7 @@ PlusStatus PlusCommon::PrintXML(ostream& os, vtkIndent indent, vtkXMLDataElement
   // We can get away with short format tag.
   else
   {
-    os << "/>\n";
+    os << " />\n";
   }
   return PLUS_SUCCESS;
 }
@@ -290,4 +391,68 @@ PlusStatus PlusCommon::PrintXML(const char* fname, vtkXMLDataElement* elem)
   }
   of.imbue(std::locale::classic());
   return PlusCommon::PrintXML(of, vtkIndent(), elem);
+}
+
+//----------------------------------------------------------------------------
+// A reimplementation of the vtkXMLDataElement::RemoveAttribute method
+// using public APIs. This method works correctly, while the VTK 5.x
+// version causes memory corruption.
+// TODO: remove this method when Plus uses VTK 6.x, see more detail at
+// https://www.assembla.com/spaces/plus/tickets/859
+void PlusCommon::RemoveAttribute(vtkXMLDataElement* elem, const char *name)
+{
+  if (elem==NULL)
+  {
+    LOG_ERROR("PlusCommon::RemoveAttribute elem is invalid");
+    return;
+  }
+  if (name==NULL)
+  {
+    LOG_WARNING("PlusCommon::RemoveAttribute name is invalid");
+    return;
+  }
+  std::vector< std::string > attNames;
+  std::vector< std::string > attValues;
+  int numberOfAttributes=elem->GetNumberOfAttributes();
+  for(int i=0; i<numberOfAttributes; ++i)
+  {
+    attNames.push_back(elem->GetAttributeName(i));
+    attValues.push_back(elem->GetAttributeValue(i));
+  }
+  elem->RemoveAllAttributes();
+  for (int i=0; i<numberOfAttributes; ++i)
+  {
+    if (attNames[i].compare(name)==0)
+    {
+      continue;
+    }
+    elem->SetAttribute(attNames[i].c_str(),attValues[i].c_str());
+  }
+}
+
+//----------------------------------------------------------------------------
+std::string PlusCommon::GetPlusLibVersionString()
+{
+  std::string plusLibVersion = std::string("Plus-") + std::string(PLUSLIB_VERSION) + "." + std::string(PLUSLIB_REVISION); 
+#ifdef _DEBUG
+  plusLibVersion += " (debug build)";
+#endif
+#if defined _WIN64
+  plusLibVersion += " - Win64";
+#elif defined _WIN32
+  plusLibVersion += " - Win32";
+#else
+  plusLibVersion += " - Linux/Mac";
+#endif
+  return plusLibVersion;
+}
+
+//-------------------------------------------------------
+void PlusCommon::SplitStringIntoTokens(const std::string &s, char delim, std::vector<std::string> &elems)
+{
+  std::stringstream ss(s);
+  std::string item;
+  while (std::getline(ss, item, delim)) {
+    elems.push_back(item);
+  }
 }

@@ -7,13 +7,12 @@
 #ifndef TOOLSTATEDISPLAYWIDGET_H
 #define TOOLSTATEDISPLAYWIDGET_H
 
-#include <QWidget>
+#include "PlusConfigure.h"
 #include <QLabel>
 #include <QTextEdit>
+#include <QWidget>
 
-#include "PlusConfigure.h"
-
-class vtkDataCollector;
+class vtkPlusChannel;
 
 //-----------------------------------------------------------------------------
 
@@ -44,7 +43,7 @@ public:
 	* \param aConnectionSuccessful Flag if connection was successful (sets to uninitialized if not and displays default appearance)
 	* \return Success flag
 	*/
-	PlusStatus InitializeTools(vtkDataCollector* aDataCollector, bool aConnectionSuccessful);
+	PlusStatus InitializeTools(vtkPlusChannel* aChannel, bool aConnectionSuccessful);
 
 	/*!
 	* Get tool statuses and display them
@@ -64,8 +63,8 @@ public:
 	int GetDesiredHeight();
 
 protected:
-	/*! Data collector */
-	vtkDataCollector*		m_DataCollector;
+	/*! Data source */
+	vtkPlusChannel*		m_SelectedChannel;
 
 	/*! List of tool name labels */
 	std::vector<QLabel*>	m_ToolNameLabels;

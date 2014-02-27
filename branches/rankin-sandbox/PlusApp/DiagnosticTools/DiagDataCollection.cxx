@@ -12,7 +12,7 @@
 #include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
 #include "vtkPlusDeviceTypes.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusBuffer.h"
 #include "vtkTimerLog.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
@@ -23,7 +23,6 @@ int main(int argc, char **argv)
 	bool printHelp(false);
 	std::string inputConfigFileName;
 	double inputAcqTimeLength(60);
-	std::string outputFolder("./"); 
 	std::string outputTrackerBufferSequenceFileName("TrackerBufferMetafile"); 
 	std::string outputVideoBufferSequenceFileName("VideoBufferMetafile"); 
 	
@@ -37,7 +36,6 @@ int main(int argc, char **argv)
 	args.AddArgument("--acq-time-length", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputAcqTimeLength, "Length of acquisition time in seconds (Default: 60s)");	
 	args.AddArgument("--output-tracker-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputTrackerBufferSequenceFileName, "Filename of the output tracker buffer sequence metafile (Default: TrackerBufferMetafile)");
 	args.AddArgument("--output-video-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVideoBufferSequenceFileName, "Filename of the output video buffer sequence metafile (Default: VideoBufferMetafile)");
-	args.AddArgument("--output-dir", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFolder, "Output folder (Default: ./)");
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
   if ( !args.Parse() )
@@ -122,9 +120,9 @@ int main(int argc, char **argv)
   
   vtkPlusChannel* aChannel(NULL);
   vtkPlusDataSource* aSource(NULL);
-  if( videoDevice->GetCurrentChannel(aChannel) != PLUS_SUCCESS || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( videoDevice->GetOutputChannelByName(aChannel, "VideoOutput") != PLUS_SUCCESS || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Unable to retrieve video source from video device.");
+    LOG_ERROR("Unable to retrieve video source from channel VideoOutput.");
     exit(EXIT_FAILURE);
   }
 
@@ -287,13 +285,13 @@ int main(int argc, char **argv)
   // Generate tracking data acq report
   if ( trackerDevice != NULL )
   {
-    trackerDevice->GenerateDataAcquisitionReport(htmlReport, plotter); 
+    trackerDevice->GenerateDataAcquisitionReport(**(trackerDevice->GetOutputChannelsStart()), htmlReport, plotter); 
   }
 
   // Generate video data acq report
   if ( videoDevice != NULL ) 
   {
-    videoDevice->GenerateDataAcquisitionReport(htmlReport, plotter); 
+    videoDevice->GenerateDataAcquisitionReport(**(videoDevice->GetOutputChannelsStart()), htmlReport, plotter); 
   }
 
   std::string reportFileName = plotter->GetWorkingDirectory() + std::string("/DataCollectionReport.html"); 
@@ -304,13 +302,13 @@ int main(int argc, char **argv)
 	if ( aSource != NULL ) 
 	{
 		LOG_INFO("Write video buffer to " << outputVideoBufferSequenceFileName);
-		aSource->GetBuffer()->WriteToMetafile( outputFolder.c_str(), outputVideoBufferSequenceFileName.c_str(), false); 
+		aSource->GetBuffer()->WriteToMetafile( outputVideoBufferSequenceFileName.c_str(), false); 
 	}
 
 	if ( trackerDevice != NULL )
 	{
 		LOG_INFO("Write tracker buffer to " << outputTrackerBufferSequenceFileName);
-		trackerDevice->WriteToMetafile( outputFolder.c_str(), outputTrackerBufferSequenceFileName.c_str(), false); 
+		trackerDevice->WriteToMetafile( outputTrackerBufferSequenceFileName.c_str(), false); 
 	}
 
 	dataCollector->Disconnect(); 

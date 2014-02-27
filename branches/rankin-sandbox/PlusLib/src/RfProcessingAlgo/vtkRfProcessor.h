@@ -17,7 +17,7 @@ class vtkImageCast;
 /*!
   \class vtkRfProcessor 
   \brief Convenience class to combine multiple algorithms to compute a displayable B-mode frame from RF data
-  \ingroup RfProcessingAlgo
+  \ingroup PlusLibRfProcessingAlgo
 */ 
 class VTK_EXPORT vtkRfProcessor : public vtkObject
 {
@@ -38,16 +38,18 @@ public:
   virtual vtkImageData* GetBrightessScanConvertedImage(); 
 
   /*! Read configuration from xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* rfElement); 
 
   /*! Write configuration to xml data */
-  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* rfElement); 
   
   /*! Set the scan converter object. The class will keep a reference to this object. */
   virtual void SetScanConverter(vtkUsScanConvert* scanConverter);
 
   /*! Get the scan converter object */
   vtkGetMacro(ScanConverter, vtkUsScanConvert*);
+
+  static const char* GetRfProcessorTagName();
 
 protected:
   vtkRfProcessor();
@@ -59,6 +61,8 @@ protected:
   std::vector<vtkUsScanConvert*> AvailableScanConverters;  
 
   vtkImageCast* ImageCaster;
+
+  static const char* RF_PROCESSOR_TAG_NAME;
 }; 
 
 #endif

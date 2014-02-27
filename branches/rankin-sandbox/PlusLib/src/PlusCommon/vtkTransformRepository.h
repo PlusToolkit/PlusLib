@@ -8,15 +8,14 @@ See License.txt for details.
 #define __vtkTransformRepository_h
 
 #include "PlusConfigure.h"
-
-#include <map>
-#include <list>
-
 #include "vtkObject.h"
+#include <list>
+#include <map>
 
-class vtkMatrix4x4;
-class vtkTransform;
 class TrackedFrame; 
+class vtkMatrix4x4;
+class vtkRecursiveCriticalSection;
+class vtkTransform;
 
 /*!
 \class vtkTransformRepository 
@@ -196,6 +195,8 @@ protected:
   PlusStatus FindPath(const PlusTransformName& aTransformName, TransformInfoListType &transformInfoList, const char* skipCoordFrameName=NULL, bool silent=false);
 
   CoordFrameToCoordFrameToTransformMapType CoordinateFrames;
+
+  vtkRecursiveCriticalSection* CriticalSection;
 
 private:
   vtkTransformRepository(const vtkTransformRepository&);

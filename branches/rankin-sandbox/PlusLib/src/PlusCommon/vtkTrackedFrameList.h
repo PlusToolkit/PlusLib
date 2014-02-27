@@ -58,11 +58,11 @@ public:
     SKIP_INVALID_FRAME /*!< Skip invalid frame wihout notification */
   }; 
 
-  /*! Add tracked frame to container. If the frame is invalid then it may not actuallt add it to the list. */
-  virtual PlusStatus AddTrackedFrame(TrackedFrame *trackedFrame, InvalidFrameAction action=ADD_INVALID_FRAME_AND_REPORT_ERROR); 
+  /*! Add tracked frame to container. If the frame is invalid then it may not actually add it to the list. */
+  virtual PlusStatus AddTrackedFrame(TrackedFrame *trackedFrame, InvalidFrameAction action = ADD_INVALID_FRAME_AND_REPORT_ERROR); 
 
   /*! Add all frames from a tracked frame list to the container. It adds all invalid frames as well, but an error is reported. */
-  virtual PlusStatus AddTrackedFrameList(vtkTrackedFrameList* inTrackedFrameList); 
+  virtual PlusStatus AddTrackedFrameList(vtkTrackedFrameList* inTrackedFrameList, InvalidFrameAction action = ADD_INVALID_FRAME_AND_REPORT_ERROR); 
 
   /*! Get tracked frame from container */
   virtual TrackedFrame* GetTrackedFrame(int frameNumber); 
@@ -71,7 +71,7 @@ public:
   virtual unsigned int GetNumberOfTrackedFrames() { return this->TrackedFrameList.size(); } 
 
   /*! Save the tracked data to sequence metafile */
-  PlusStatus SaveToSequenceMetafile(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension = SEQ_METAFILE_MHA, bool useCompression = true);
+  PlusStatus SaveToSequenceMetafile(const char* filename, bool useCompression = true);
 
   /*! Read the tracked data from sequence metafile */
   virtual PlusStatus ReadFromSequenceMetafile(const char* trackedSequenceDataFileName); 
@@ -152,7 +152,10 @@ public:
   virtual int GetNumberOfBitsPerPixel(); 
 
   /*! Get tracked frame pixel type */
-  PlusCommon::ITKScalarPixelType GetPixelType(); 
+  PlusCommon::VTKScalarPixelType GetPixelType(); 
+
+  /*! Get number of components */
+  int GetNumberOfComponents(); 
 
   /*! Get tracked frame image orientation */
   US_IMAGE_ORIENTATION GetImageOrientation(); 
@@ -199,6 +202,9 @@ public:
     It is a static method so that the validity of the pointer can be easily checked as well.
   */
   static PlusStatus VerifyProperties(vtkTrackedFrameList* trackedFrameList, US_IMAGE_ORIENTATION expectedOrientation, US_IMAGE_TYPE expectedType);
+
+  /*! Return true if the list contains at least one valid image frame */
+  bool IsContainingValidImageData();
 
 protected:
   vtkTrackedFrameList();

@@ -4,6 +4,7 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
+#include "CaptureControlWidget.h"
 #include "CapturingToolbox.h"
 #include "TrackedFrame.h"
 #include "VolumeReconstructionToolbox.h"
@@ -16,14 +17,16 @@ See License.txt for details.
 #include <QMessageBox>
 #include <QTimer>
 
-//-----------------------------------------------------------------------------
+static const int MAX_ALLOWED_RECORDING_LAG_SEC = 3.0; // if the recording lags more than this then it'll skip frames to catch up
 
+//-----------------------------------------------------------------------------
 CapturingToolbox::CapturingToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags)
 : AbstractToolbox(aParentMainWindow)
 , QWidget(aParentMainWindow, aFlags)
 , m_RecordedFrames(NULL)
 , m_RecordingTimer(NULL)
-, m_LastRecordedFrameTimestamp(0.0)
+, m_RecordingLastAlreadyRecordedFrameTimestamp(UNDEFINED_TIMESTAMP)
+, m_RecordingNextFrameToBeRecordedTimestamp(0.0)
 , m_SamplingFrameRate(8)
 , m_RequestedFrameRate(0.0)
 , m_ActualFrameRate(0.0)
@@ -40,7 +43,9 @@ CapturingToolbox::CapturingToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags
   connect( ui.pushButton_ClearRecordedFrames, SIGNAL( clicked() ), this, SLOT( ClearRecordedFrames() ) );
   connect( ui.pushButton_Save, SIGNAL( clicked() ), this, SLOT( Save() ) );
   connect( ui.pushButton_SaveAs, SIGNAL( clicked() ), this, SLOT( SaveAs() ) );
-
+  connect( ui.pushButton_SaveAll, SIGNAL( clicked() ), this, SLOT( SaveAll() ) );
+  connect( ui.pushButton_ClearAll, SIGNAL( clicked() ), this, SLOT( ClearAll() ) );
+  connect( ui.pushButton_StartStopAll, SIGNAL( clicked() ), this, SLOT( StartStopAll() ) );
   connect( ui.horizontalSlider_SamplingRate, SIGNAL( valueChanged(int) ), this, SLOT( SamplingRateChanged(int) ) );
 
   // Create and connect recording timer
@@ -50,11 +55,14 @@ CapturingToolbox::CapturingToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags
   ui.pushButton_Save->setEnabled(m_RecordedFrames->GetNumberOfTrackedFrames() > 0);
   ui.pushButton_SaveAs->setEnabled(m_RecordedFrames->GetNumberOfTrackedFrames() > 0);
 
-  m_LastSaveLocation = vtkPlusConfig::GetInstance()->GetImageDirectory();
+  ui.pushButton_StartStopAll->setEnabled(false);
+  ui.pushButton_SaveAll->setEnabled(false);
+  ui.pushButton_ClearAll->setEnabled(false);
+
+  m_LastSaveLocation = vtkPlusConfig::GetInstance()->GetOutputDirectory();
 }
 
 //-----------------------------------------------------------------------------
-
 CapturingToolbox::~CapturingToolbox()
 {
   if (m_RecordedFrames != NULL) {
@@ -64,7 +72,6 @@ CapturingToolbox::~CapturingToolbox()
 }
 
 //-----------------------------------------------------------------------------
-
 void CapturingToolbox::OnActivated()
 {
   LOG_TRACE("CapturingToolbox::OnActivated"); 
@@ -81,6 +88,24 @@ void CapturingToolbox::OnActivated()
     {
       SetDisplayAccordingToState();
     }
+
+    DeviceCollection aCollection;
+    if( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetDevices(aCollection) == PLUS_SUCCESS )
+    {
+      for( DeviceCollectionConstIterator it = aCollection.begin(); it != aCollection.end(); ++it)
+      {
+        vtkPlusDevice* aDevice = *it;
+        if( dynamic_cast<vtkVirtualDiscCapture*>(aDevice) != NULL )
+        {
+          vtkVirtualDiscCapture* capDevice = dynamic_cast<vtkVirtualDiscCapture*>(aDevice);
+          CaptureControlWidget* aWidget = new CaptureControlWidget(NULL);
+          aWidget->SetCaptureDevice(*capDevice);
+          ui.captureWidgetLayout->addWidget(aWidget);
+          m_CaptureWidgets.push_back(aWidget);
+          connect(aWidget, SIGNAL(EmitStatusMessage(const std::string&)), this, SLOT(HandleStatusMessage(const std::string&)) );
+        }
+      }
+    }
   }
   else
   {
@@ -89,7 +114,6 @@ void CapturingToolbox::OnActivated()
 }
 
 //-----------------------------------------------------------------------------
-
 void CapturingToolbox::RefreshContent()
 {
   //LOG_TRACE("CapturingToolbox::RefreshContent");
@@ -99,10 +123,29 @@ void CapturingToolbox::RefreshContent()
     ui.label_ActualRecordingFrameRate->setText(QString::number(m_ActualFrameRate, 'f', 2));
     ui.label_NumberOfRecordedFrames->setText(QString::number(m_RecordedFrames->GetNumberOfTrackedFrames()));
   }
+
+  ui.pushButton_SaveAll->setEnabled(false);
+  for( std::vector<CaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
+  {
+    CaptureControlWidget* widget = *it;
+    if( widget->CanSave() )
+    {
+      ui.pushButton_SaveAll->setEnabled(true);
+      break;
+    }
+  }
+
+  ui.pushButton_ClearAll->setEnabled( m_CaptureWidgets.size() > 0 );
+  ui.pushButton_StartStopAll->setEnabled( m_CaptureWidgets.size() > 0 );
+
+  for( std::vector<CaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
+  {
+    CaptureControlWidget* widget = *it;
+    widget->UpdateBasedOnState();
+  }
 }
 
 //-----------------------------------------------------------------------------
-
 void CapturingToolbox::SetDisplayAccordingToState()
 {
   LOG_TRACE("CapturingToolbox::SetDisplayAccordingToState");
@@ -116,9 +159,8 @@ void CapturingToolbox::SetDisplayAccordingToState()
     {
       if( m_ParentMainWindow->GetVisualizationController()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_2D) != PLUS_SUCCESS )
       {
-        LOG_WARNING("Unable to switch to 2D visualization. Unable to use capturing toolbox.");
+        LOG_WARNING("Unable to switch to 2D visualization. No video feed to capture.");
         m_ParentMainWindow->GetVisualizationController()->HideRenderer();
-        this->m_State = ToolboxState_Error;
       }
       else
       {
@@ -131,7 +173,7 @@ void CapturingToolbox::SetDisplayAccordingToState()
     }
 
     // If tracking
-    if (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetTrackingDataAvailable())
+    if (m_ParentMainWindow->GetSelectedChannel()->GetTrackingDataAvailable())
     {
       // Update state message according to available transforms
       if (!m_ParentMainWindow->GetImageCoordinateFrame().empty() && !m_ParentMainWindow->GetProbeCoordinateFrame().empty())
@@ -152,42 +194,52 @@ void CapturingToolbox::SetDisplayAccordingToState()
           }
           if (m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->GetTransformError(imageToProbeTransformName, error) == PLUS_SUCCESS)
           {
-            char imageToProbeTransformErrorChars[32];
-            SNPRINTF(imageToProbeTransformErrorChars, 32, "%.3lf", error);
-            errorStr = imageToProbeTransformErrorChars;
+            std::stringstream ss;
+            ss << std::fixed << error;
+            errorStr = ss.str();
           }
           else
           {
             errorStr = "N/A";
           }
 
-          ui.label_State->setPaletteForegroundColor(Qt::black);
+          QPalette palette;
+          palette.setColor(ui.label_State->foregroundRole(), Qt::black);
+          ui.label_State->setPalette(palette);
           ui.label_State->setText( QString("%1 transform present, ready for capturing. \nDate: %2, Error: %3").arg(imageToProbeTransformNameStr.c_str()).arg(date.c_str()).arg(errorStr.c_str()) );
         }
         else
         {
-          ui.label_State->setPaletteForegroundColor(QColor::fromRgb(255, 128, 0));
+          QPalette palette;
+          palette.setColor(ui.label_State->foregroundRole(), QColor::fromRgb(255, 128, 0));
+          ui.label_State->setPalette(palette);
           ui.label_State->setText( QString("%1 transform is absent, spatial calibration needs to be performed or imported.").arg(imageToProbeTransformNameStr.c_str()) );
           LOG_INFO(imageToProbeTransformNameStr << " transform is absent, spatial calibration needs to be performed or imported.");
         }
       }
       else
       {
-        ui.label_State->setPaletteForegroundColor(QColor::fromRgb(255, 128, 0));
+        QPalette palette;
+        palette.setColor(ui.label_State->foregroundRole(), QColor::fromRgb(255, 128, 0));
+        ui.label_State->setPalette(palette);
         ui.label_State->setText( QString("fCal configuration element does not contain both ImageCoordinateFrame and ProbeCoordinateFrame attributes!") );
         LOG_INFO("fCal configuration element does not contain both ImageCoordinateFrame and ProbeCoordinateFrame attributes");
       }
     }
     else
     {
-      ui.label_State->setPaletteForegroundColor(Qt::black);
+      QPalette palette;
+      palette.setColor(ui.label_State->foregroundRole(), Qt::black);
+      ui.label_State->setPalette(palette);
       ui.label_State->setText( QString("Tracking is not enabled.") );
       LOG_INFO("Tracking is not enabled.");
     }
   }
   else
   {
-    ui.label_State->setPaletteForegroundColor(QColor::fromRgb(255, 128, 0));
+    QPalette palette;
+    palette.setColor(ui.label_State->foregroundRole(), QColor::fromRgb(255, 128, 0));
+    ui.label_State->setPalette(palette);
     ui.label_State->setText(tr("fCal is not connected to devices. Switch to Configuration toolbox to connect."));
     LOG_INFO("fCal is not connected to devices");
     m_State = ToolboxState_Error;
@@ -218,7 +270,7 @@ void CapturingToolbox::SetDisplayAccordingToState()
 
     SamplingRateChanged(ui.horizontalSlider_SamplingRate->value());
 
-    ui.label_ActualRecordingFrameRate->setText(tr("0.0"));
+    ui.label_ActualRecordingFrameRate->setText(tr("0.00"));
     ui.label_MaximumRecordingFrameRate->setText(QString::number( GetMaximumFrameRate() ));
 
     ui.label_NumberOfRecordedFrames->setText("0");
@@ -251,7 +303,7 @@ void CapturingToolbox::SetDisplayAccordingToState()
     ui.pushButton_SaveAs->setEnabled(true);
     ui.horizontalSlider_SamplingRate->setEnabled(true);
 
-    ui.label_ActualRecordingFrameRate->setText(tr("0.0"));
+    ui.label_ActualRecordingFrameRate->setText("0.00");
     ui.label_MaximumRecordingFrameRate->setText(QString::number( GetMaximumFrameRate() ));
 
     ui.label_NumberOfRecordedFrames->setText(QString::number(m_RecordedFrames->GetNumberOfTrackedFrames()));
@@ -272,14 +324,13 @@ void CapturingToolbox::SetDisplayAccordingToState()
 }
 
 //-----------------------------------------------------------------------------
-
 void CapturingToolbox::TakeSnapshot()
 {
   LOG_TRACE("CapturingToolbox::TakeSnapshot"); 
 
   TrackedFrame trackedFrame;
 
-  if (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
+  if (m_ParentMainWindow->GetSelectedChannel() == NULL || m_ParentMainWindow->GetSelectedChannel()->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to get tracked frame for the snapshot!");
     return;
@@ -328,34 +379,28 @@ void CapturingToolbox::TakeSnapshot()
 }
 
 //-----------------------------------------------------------------------------
-
 void CapturingToolbox::Record()
 {
   LOG_INFO("Capturing started");
 
   m_ParentMainWindow->SetToolboxesEnabled(false);
+  m_ActualFrameRate=0.0; // display 0.00 until a real estimation is available
 
   // Reset accessory members
-  m_FirstRecordedFrameIndexInThisSegment=m_RecordedFrames->GetNumberOfTrackedFrames();
-
-  vtkDataCollector* dataCollector = NULL;
-  if ( (m_ParentMainWindow == NULL) || (m_ParentMainWindow->GetVisualizationController() == NULL) || ((dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector()) == NULL) )
-  {
-    LOG_ERROR("Unable to reach valid data collector object!");
-    return;
-  }
+  m_RecordingFirstFrameIndexInThisSegment=m_RecordedFrames->GetNumberOfTrackedFrames();
 
   ui.plainTextEdit_saveResult->clear();
 
-  dataCollector->GetMostRecentTimestamp(m_LastRecordedFrameTimestamp);
+  m_RecordingNextFrameToBeRecordedTimestamp = vtkAccurateTimer::GetSystemTime();
+  m_RecordingLastAlreadyRecordedFrameTimestamp=UNDEFINED_TIMESTAMP; // none yet
 
   // Start capturing
   SetState(ToolboxState_InProgress);
-  m_RecordingTimer->start(GetSamplingPeriodMsec()); 
+  double samplingPeriodMsec = GetSamplingPeriodSec()*1000.0;
+  m_RecordingTimer->start(samplingPeriodMsec);
 }
 
 //-----------------------------------------------------------------------------
-
 void CapturingToolbox::Capture()
 {
   //LOG_TRACE("CapturingToolbox::Capture");
@@ -368,59 +413,66 @@ void CapturingToolbox::Capture()
     LOG_ERROR("Unable to reach valid data collector object!");
     return;
   }
-  
+
   // Record
-  double maxProcessingTimeSec = (GetSamplingPeriodMsec()*1000.0) * 2; // put a hard limit on the max processing time to make sure the application remains responsive during recording (as a maximum of 2x the update timer period)
-  double requestedFramePeriodSec=0.1;
-  if (m_RequestedFrameRate>0)
+  double maxProcessingTimeSec = GetSamplingPeriodSec() * 2.0; // put a hard limit on the max processing time to make sure the application remains responsive during recording
+  double requestedFramePeriodSec = 0.1;
+  if (m_RequestedFrameRate > 0)
   {
-    requestedFramePeriodSec=1.0 / m_RequestedFrameRate;
+    requestedFramePeriodSec = 1.0 / m_RequestedFrameRate;
   }
   else
   {
     LOG_WARNING("RequestedFrameRate is invalid");
   }
-  if ( dataCollector->GetTrackedFrameListSampled(m_LastRecordedFrameTimestamp, m_RecordedFrames, requestedFramePeriodSec, maxProcessingTimeSec) != PLUS_SUCCESS )
+  int nbFramesBefore = m_RecordedFrames->GetNumberOfTrackedFrames();
+  if ( m_ParentMainWindow->GetSelectedChannel()->GetTrackedFrameListSampled(m_RecordingLastAlreadyRecordedFrameTimestamp, m_RecordingNextFrameToBeRecordedTimestamp, m_RecordedFrames, requestedFramePeriodSec, maxProcessingTimeSec) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Error while gettig tracked frame list from data collector during capturing. Last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 
+    LOG_ERROR("Error while getting tracked frame list from data collector during capturing. Last recorded timestamp: " << std::fixed << m_RecordingNextFrameToBeRecordedTimestamp ); 
   }
+  int nbFramesAfter = m_RecordedFrames->GetNumberOfTrackedFrames();
 
   // Compute the average frame rate from the ratio of recently acquired frames
-  int frame1Index=m_RecordedFrames->GetNumberOfTrackedFrames()-1; // index of the latest frame
-  int frame2Index=frame1Index-m_RequestedFrameRate*2.0-1; // index of an earlier acquired frame (go back by approximately 2 seconds + one frame)
-  if (frame2Index<m_FirstRecordedFrameIndexInThisSegment)
+  int frame1Index = m_RecordedFrames->GetNumberOfTrackedFrames() - 1; // index of the latest frame
+  int frame2Index = frame1Index - m_RequestedFrameRate * 5.0 - 1; // index of an earlier acquired frame (go back by approximately 5 seconds + one frame)
+  if (frame2Index < m_RecordingFirstFrameIndexInThisSegment)
   {
     // make sure we stay in the current recording segment
-    frame2Index=m_FirstRecordedFrameIndexInThisSegment;
+    frame2Index = m_RecordingFirstFrameIndexInThisSegment;
   }
-  if (frame1Index>frame2Index)
+  if (frame1Index > frame2Index)
   {   
-    TrackedFrame *frame1=m_RecordedFrames->GetTrackedFrame(frame1Index);
-    TrackedFrame *frame2=m_RecordedFrames->GetTrackedFrame(frame2Index);
-    if (frame1!=NULL && frame2!=NULL)
+    TrackedFrame* frame1 = m_RecordedFrames->GetTrackedFrame(frame1Index);
+    TrackedFrame* frame2 = m_RecordedFrames->GetTrackedFrame(frame2Index);
+    if (frame1 != NULL && frame2 != NULL)
     {
-      double frameTimeDiff=frame1->GetTimestamp()-frame2->GetTimestamp();
-      if (frameTimeDiff>0)
+      double frameTimeDiff = frame1->GetTimestamp() - frame2->GetTimestamp();
+      if (frameTimeDiff > 0)
       {
-        m_ActualFrameRate = (frame1Index-frame2Index)/frameTimeDiff;
+        m_ActualFrameRate = (frame1Index - frame2Index) / frameTimeDiff;
       }
       else
       {
-        m_ActualFrameRate=0;
+        m_ActualFrameRate = 0;
       }
     }    
   }
 
   // Check whether the recording needed more time than the sampling interval
-  double recordingTimeMs = (vtkAccurateTimer::GetSystemTime() - startTimeSec) * 1000.0;
-  if (recordingTimeMs > GetSamplingPeriodMsec())
+  double recordingTimeSec = vtkAccurateTimer::GetSystemTime() - startTimeSec;
+  if (recordingTimeSec > GetSamplingPeriodSec())
   {
-    LOG_WARNING("Recording of frames takes too long time ("<<recordingTimeMs<<"ms instead of the allocated "<<GetSamplingPeriodMsec()<<"ms). This can cause slow-down of the application and non-uniform sampling. Reduce the acquisition rate or sampling rate to resolve the problem.");
+    LOG_WARNING("Recording of frames takes too long time (" << recordingTimeSec << "sec instead of the allocated " << GetSamplingPeriodSec() << "sec). This can cause slow-down of the application and non-uniform sampling. Reduce the acquisition rate or sampling rate to resolve the problem.");
+  }
+  double recordingLagSec = vtkAccurateTimer::GetSystemTime() - m_RecordingNextFrameToBeRecordedTimestamp;
+  if (recordingLagSec > MAX_ALLOWED_RECORDING_LAG_SEC)
+  {
+    LOG_ERROR("Recording cannot keep up with the acquisition. Skip " << recordingLagSec << " seconds of the data stream to catch up.");
+    m_RecordingNextFrameToBeRecordedTimestamp = vtkAccurateTimer::GetSystemTime();
   }
 }
 
 //-----------------------------------------------------------------------------
-
 void CapturingToolbox::Stop()
 {
   LOG_INFO("Capturing stopped");
@@ -432,96 +484,81 @@ void CapturingToolbox::Stop()
 }
 
 //-----------------------------------------------------------------------------
-
 void CapturingToolbox::Save()
 {
   LOG_TRACE("CapturingToolbox::Save"); 
 
-  QString fileName = QString("%1/TrackedImageSequence_%2").arg(m_LastSaveLocation).arg(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S").c_str());
+  // TODO: just for testing
+  std::string defaultFileName = m_LastSaveLocation + "/TrackedImageSequence_" + vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S")+".mha";  
+  WriteToFile(QString(defaultFileName.c_str()));
 
-  m_LastSaveLocation = fileName.mid(0, fileName.lastIndexOf('/'));
-
-  WriteToFile(fileName);
-
-  LOG_INFO("Captured tracked frame list saved into '" << fileName.toAscii().data() << "'");
+  LOG_INFO("Captured tracked frame list saved into '" << defaultFileName << "'");
 }
 
 //-----------------------------------------------------------------------------
-
 void CapturingToolbox::SaveAs()
 {
   LOG_TRACE("CapturingToolbox::SaveAs"); 
 
+  std::string defaultFileName = m_LastSaveLocation+"/TrackedImageSequence_"+vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S")+".mha";
   QString filter = QString( tr( "SequenceMetaFiles (*.mha *.mhd);;" ) );
-  QString fileName;
+  QString fileNameQt = QFileDialog::getSaveFileName(NULL, tr("Save captured tracked frames"), QString(defaultFileName.c_str()), filter);
+  std::string fileName = fileNameQt.toLatin1().constData();
+  m_LastSaveLocation = vtksys::SystemTools::GetFilenamePath(fileName.c_str());
 
-  fileName = QFileDialog::getSaveFileName(NULL, tr("Save captured tracked frames"),
-    QString("%1/TrackedImageSequence_%2").arg(m_LastSaveLocation).arg(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S").c_str()), filter);
-  m_LastSaveLocation = fileName.mid(0, fileName.lastIndexOf('/'));
+  WriteToFile(QString(fileName.c_str()));
 
-  WriteToFile(fileName);
-
-  LOG_INFO("Captured tracked frame list saved into '" << fileName.toAscii().data() << "'");
+  LOG_INFO("Captured tracked frame list saved into '" << fileName << "'");
 }
 
 //-----------------------------------------------------------------------------
-
-void CapturingToolbox::WriteToFile( QString& aFilename )
+void CapturingToolbox::WriteToFile( const QString& aFilename )
 {
-  if (! aFilename.isNull() )
+  if (aFilename.isEmpty())
   {
-    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+    LOG_ERROR("Writing sequence to metafile failed: output file name is empty");
+    return;
+  }
 
-    // Actual saving
-    std::string filePath = aFilename.toAscii();
-    std::string path = vtksys::SystemTools::GetFilenamePath(filePath); 
-    std::string filename = vtksys::SystemTools::GetFilenameWithoutExtension(filePath); 
-    std::string extension = vtksys::SystemTools::GetFilenameExtension(filePath); 
+  QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-    vtkTrackedFrameList::SEQ_METAFILE_EXTENSION ext(vtkTrackedFrameList::SEQ_METAFILE_MHA); 
-    if ( STRCASECMP(".mhd", extension.c_str() ) == 0 )
-    {
-      ext = vtkTrackedFrameList::SEQ_METAFILE_MHD; 
-    }
-    else
-    {
-      ext = vtkTrackedFrameList::SEQ_METAFILE_MHA; 
-    }
+  // Actual saving
+  if ( m_RecordedFrames->SaveToSequenceMetafile(aFilename.toLatin1().constData(), false) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
+    return;
+  }
 
-    if ( m_RecordedFrames->SaveToSequenceMetafile(path.c_str(), filename.c_str(), ext, false) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
-      return;
-    }
+  QString result = "File saved to\n"+aFilename;
+  ui.plainTextEdit_saveResult->clear();
+  ui.plainTextEdit_saveResult->insertPlainText(result);
 
-    QString result = "File saved to\n";
-    result += aFilename;
-    ui.plainTextEdit_saveResult->insertPlainText(result);
+  // Add file name to image list in Volume reconstruction toolbox
+  VolumeReconstructionToolbox* volumeReconstructionToolbox = dynamic_cast<VolumeReconstructionToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_VolumeReconstruction));
+  if (volumeReconstructionToolbox != NULL)
+  {
+    volumeReconstructionToolbox->AddImageFileName(aFilename);
+  }
 
-    // Add file name to image list in Volume reconstruction toolbox
-    VolumeReconstructionToolbox* volumeReconstructionToolbox = dynamic_cast<VolumeReconstructionToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_VolumeReconstruction));
-    if (volumeReconstructionToolbox != NULL)
-    {
-      volumeReconstructionToolbox->AddImageFileName(aFilename);
-    }
+  // Write the current state into the device set configuration XML
+  m_ParentMainWindow->GetVisualizationController()->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 
-    // Write the current state into the device set configuration XML
-    m_ParentMainWindow->GetVisualizationController()->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+  // Save config file next to the tracked frame list
 
-    // Save config file next to the tracked frame list
-    std::string configFileName = path + "/" + filename + "_config.xml";
-    PlusCommon::PrintXML(configFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+  std::string path = vtksys::SystemTools::GetFilenamePath(aFilename.toLatin1().constData()); 
+  std::string filename = vtksys::SystemTools::GetFilenameWithoutExtension(aFilename.toLatin1().constData());
+  std::string configFileName = path + "/" + filename + "_config.xml";
+  PlusCommon::PrintXML(configFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 
-    m_RecordedFrames->Clear(); 
-    SetState(ToolboxState_Idle);
+  m_RecordedFrames->Clear(); 
+  SetState(ToolboxState_Idle);
 
-    QApplication::restoreOverrideCursor();
-  }	
+  QApplication::restoreOverrideCursor();
+  	
 }
 
 
 //-----------------------------------------------------------------------------
-
 void CapturingToolbox::ClearRecordedFrames()
 {
   LOG_TRACE("CapturingToolbox::ClearRecordedFrames"); 
@@ -537,13 +574,12 @@ void CapturingToolbox::ClearRecordedFrames()
 }
 
 //-----------------------------------------------------------------------------
-
 void CapturingToolbox::SamplingRateChanged(int aValue)
 {
   LOG_TRACE("CapturingToolbox::RecordingFrameRateChanged(" << aValue << ")"); 
 
   double maxFrameRate = GetMaximumFrameRate();
-  int samplingRate = (int)(pow(2.0, ui.horizontalSlider_SamplingRate->maxValue() - aValue));
+  int samplingRate = (int)(pow(2.0, ui.horizontalSlider_SamplingRate->maximum() - aValue));
 
   if (samplingRate>0)
   {
@@ -562,28 +598,20 @@ void CapturingToolbox::SamplingRateChanged(int aValue)
 }
 
 //-----------------------------------------------------------------------------
-
 double CapturingToolbox::GetMaximumFrameRate()
 {
   LOG_TRACE("CapturingToolbox::GetMaximumFrameRate");
 
-  if (m_ParentMainWindow == NULL || m_ParentMainWindow->GetVisualizationController() == NULL || m_ParentMainWindow->GetVisualizationController()->GetDataCollector() == NULL)
+  if (m_ParentMainWindow == NULL || m_ParentMainWindow->GetSelectedChannel() == NULL )
   {
     LOG_ERROR("Unable to reach valid data collector object!");
     return 0.0;
   }
 
-  double frameRate = 0.0;
-  if (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetFrameRate(frameRate) != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Unable to get frame rate from data collector!");
-  }
-
-  return frameRate;
+  return m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->GetAcquisitionRate();
 }
 
 //-----------------------------------------------------------------------------
-
 void CapturingToolbox::Reset()
 {
   AbstractToolbox::Reset();
@@ -592,7 +620,6 @@ void CapturingToolbox::Reset()
 }
 
 //-----------------------------------------------------------------------------
-
 void CapturingToolbox::ClearRecordedFramesInternal()
 {
   m_RecordedFrames->Clear();
@@ -601,17 +628,81 @@ void CapturingToolbox::ClearRecordedFramesInternal()
 }
 
 //-----------------------------------------------------------------------------
-
-double CapturingToolbox::GetSamplingPeriodMsec()
+double CapturingToolbox::GetSamplingPeriodSec()
 {
-  double samplingPeriodMsec=100;
+  double samplingPeriodSec=0.1;
   if (m_SamplingFrameRate>0)
   {
-    samplingPeriodMsec=1000.0/m_SamplingFrameRate;
+    samplingPeriodSec=1.0/m_SamplingFrameRate;
   }
   else
   {
-    LOG_WARNING("m_SamplingFrameRate value is invalid "<<m_SamplingFrameRate);
+    LOG_WARNING("m_SamplingFrameRate value is invalid "<<m_SamplingFrameRate<<". Use default sampling period of "<<samplingPeriodSec<<" sec");
   }
-  return samplingPeriodMsec;
+  return samplingPeriodSec;
+}
+
+//-----------------------------------------------------------------------------
+void CapturingToolbox::HandleStatusMessage( const std::string& aMessage )
+{
+  ui.plainTextEdit_saveResult->clear();
+  QString message(aMessage.c_str());
+  ui.plainTextEdit_saveResult->insertPlainText(message);
+}
+
+//-----------------------------------------------------------------------------
+void CapturingToolbox::StartStopAll()
+{
+  QString text = ui.pushButton_StartStopAll->text();
+  bool enable(true);
+  if( QString::compare(text, QString("Record All")) == 0 )
+  {
+    ui.pushButton_StartStopAll->setText(QString("Stop All"));
+    ui.pushButton_StartStopAll->setIcon( QPixmap( ":/icons/Resources/icon_Stop.png" ) );
+  }
+  else
+  {
+    ui.pushButton_StartStopAll->setText(QString("Record All"));
+    ui.pushButton_StartStopAll->setIcon( QPixmap( ":/icons/Resources/icon_Record.png" ) );
+    enable = false;
+  }
+
+  for( std::vector<CaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
+  {
+    CaptureControlWidget* widget = *it;
+    widget->SetEnableCapturing(enable);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void CapturingToolbox::ClearAll()
+{
+  for( std::vector<CaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
+  {
+    CaptureControlWidget* widget = *it;
+    widget->Clear();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void CapturingToolbox::SaveAll()
+{
+  for( std::vector<CaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
+  {
+    CaptureControlWidget* widget = *it;
+    widget->SaveFile();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void CapturingToolbox::OnDeactivated()
+{
+  for( std::vector<CaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
+  {
+    disconnect((*it), SIGNAL(EmitStatusMessage(const std::string&)), this, SLOT(HandleStatusMessage(const std::string&)) );
+    ui.captureWidgetLayout->removeWidget(*it);
+    delete *it;
+  }
+
+  this->m_CaptureWidgets.clear();
 }

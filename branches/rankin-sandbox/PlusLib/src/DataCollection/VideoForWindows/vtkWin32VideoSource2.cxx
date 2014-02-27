@@ -12,14 +12,14 @@ See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
 Authors include: Danielle Pace
 =========================================================================*/ 
 
+#include "PixelCodec.h"
 #include "PlusConfigure.h"
 #include "vtkObjectFactory.h"
+#include "vtkPlusBuffer.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusStreamBuffer.h"
 #include "vtkUnsignedCharArray.h"
 #include "vtkWin32VideoSource2.h"
-#include "ConvertYuy2ToRgb.h"
 
 #include <ctype.h>
 
@@ -29,8 +29,8 @@ Authors include: Danielle Pace
 #endif
 
 #include "vtkWindows.h"
-#include <winuser.h>
 #include <vfw.h>
+#include <winuser.h>
 
 #ifdef _MSC_VER
 #pragma warning (pop)
@@ -81,7 +81,7 @@ public:
   {
     if (!capSetVideoFormat(CapWnd,BitMapInfoPtr,BitMapInfoSize))
     {
-      LOG_ERROR("Cannot get bitmap info from capture window");
+      LOG_ERROR("Cannot set bitmap video format for capture window");
       return PLUS_FAIL;
     }
     return PLUS_SUCCESS;
@@ -95,10 +95,6 @@ public:
   LPBITMAPINFO BitMapInfoPtr;
   int BitMapInfoSize;
 };
-
-// VFW compressed formats are listed at http://www.webartz.com/fourcc/
-static const long VTK_BI_UYVY=0x59565955;
-static const long VTK_BI_YUY2=0x32595559;
 
 vtkCxxRevisionMacro(vtkWin32VideoSource2, "$Revision: 1.1 $");
 vtkStandardNewMacro(vtkWin32VideoSource2);
@@ -116,86 +112,21 @@ vtkStandardNewMacro(vtkWin32VideoSource2);
 #endif // 
 
 //----------------------------------------------------------------------------
-// codecs
-
-static inline void vtkYUVToRGB(unsigned char *yuv, unsigned char *rgb)
-{ 
-  /* 
-  // floating point math (simpler but slower)
-  int Y = yuv[0] - 16;
-  int U = yuv[1] - 128;
-  int V = yuv[2] - 128;
-
-  int R = 1.164*Y + 1.596*V           + 0.5;
-  int G = 1.164*Y - 0.813*V - 0.391*U + 0.5;
-  int B = 1.164*Y           + 2.018*U + 0.5;
-  */
-
-  // integer math (faster but more complex to read)
-
-  int Y = (yuv[0] - 16)*76284;
-  int U = yuv[1] - 128;
-  int V = yuv[2] - 128;
-
-  int R = Y + 104595*V           ;
-  int G = Y -  53281*V -  25625*U;
-  int B = Y            + 132252*U;
-
-  // round
-  R += 32768;
-  G += 32768;
-  B += 32768;
-
-  // shift
-  R >>= 16;
-  G >>= 16;
-  B >>= 16;
-
-  // clamp
-  if (R < 0) { R = 0; }
-  if (G < 0) { G = 0; }
-  if (B < 0) { B = 0; }
-
-  if (R > 255) { R = 255; };
-  if (G > 255) { G = 255; };
-  if (B > 255) { B = 255; };
-
-  // output
-  rgb[0] = R;
-  rgb[1] = G;
-  rgb[2] = B;
-}
-
-// Note that this method computes the inensity (simple averaging of the RGB components).
-// This is not equivalent with the perceived luminance of color images (e.g., 0.21R + 0.72G + 0.07B or 0.30R + 0.59G + 0.11B)
-static inline void Rgb24ToGray(int width, int height, unsigned char *s,unsigned char *d)
-{
-  int totalLen=width*height;
-  for (int i=0; i<totalLen; i++)
-  {
-    *d=((unsigned short)(s[0])+s[1]+s[2])/3;
-    d++;
-    s+=3;
-  }
-} 
-
-//----------------------------------------------------------------------------
 vtkWin32VideoSource2::vtkWin32VideoSource2()
+: Internal(new vtkWin32VideoSource2Internal)
+, WndClassName(NULL)
+, Preview(0)
+, FrameIndex(0)
 {
-  this->Internal = new vtkWin32VideoSource2Internal;
-
-  this->WndClassName=NULL;
-
-  this->Preview = 0;
-  this->FrameIndex = 0;
-
-  this->RequireDeviceImageOrientationInDeviceSetConfiguration = true;
+  this->RequireImageOrientationInConfiguration = true;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
   this->RequireUsImageOrientationInDeviceSetConfiguration = true;
   this->RequireRfElementInDeviceSetConfiguration = false;
+
+  // No need for StartThreadForInternalUpdates, as we are notified about each new frame through a callback function
 }
 
 //----------------------------------------------------------------------------
@@ -204,7 +135,7 @@ vtkWin32VideoSource2::~vtkWin32VideoSource2()
   this->vtkWin32VideoSource2::ReleaseSystemResources();
 
   delete this->Internal;
-  this->Internal=NULL;
+  this->Internal = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -344,7 +275,7 @@ PlusStatus vtkWin32VideoSource2::InternalConnect()
   // set up the parent window, but don't show it
   int frameSize[2]={0,0};
   vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( this->GetFirstActiveVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source in the Win32Video device.");
     return PLUS_FAIL;
@@ -388,14 +319,52 @@ PlusStatus vtkWin32VideoSource2::InternalConnect()
 
   // set up the video capture format
   this->Internal->GetBitmapInfoFromCaptureDevice();
-  this->Internal->BitMapInfoPtr->bmiHeader.biWidth = frameSize[0];
-  this->Internal->BitMapInfoPtr->bmiHeader.biHeight = frameSize[1];
+  //this->Internal->BitMapInfoPtr->bmiHeader.biWidth = frameSize[0];
+  //this->Internal->BitMapInfoPtr->bmiHeader.biHeight = frameSize[1];
   if (this->Internal->SetBitmapInfoInCaptureDevice()!=PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to set requested frame size in the capture device");
     this->ReleaseSystemResources();
     return PLUS_FAIL;
   }
+
+  int width = this->Internal->BitMapInfoPtr->bmiHeader.biWidth;
+  int height = this->Internal->BitMapInfoPtr->bmiHeader.biHeight;
+  this->ReleaseSystemResources();
+  this->Internal->ParentWnd = CreateWindow(this->WndClassName,"Plus video capture window", style, 0, 0, 
+    width+2*GetSystemMetrics(SM_CXFIXEDFRAME),
+    height+2*GetSystemMetrics(SM_CYFIXEDFRAME)+GetSystemMetrics(SM_CYBORDER)+GetSystemMetrics(SM_CYSIZE),
+    NULL,NULL,hinstance,NULL);
+
+  if (!this->Internal->ParentWnd) 
+  {
+    LOG_ERROR("Initialize: failed to create window (" << GetLastError() << ")");
+    return PLUS_FAIL;
+  }
+
+  // set the user data to 'this'
+  vtkSetWindowLong(this->Internal->ParentWnd,vtkGWL_USERDATA,(LONG)this);
+
+  // Create the capture window
+  this->Internal->CapWnd = capCreateCaptureWindow("Capture", WS_CHILD|WS_VISIBLE, 0, 0, 
+    frameSize[0], frameSize[1], this->Internal->ParentWnd,1);
+
+  if (!this->Internal->CapWnd) 
+  {
+    LOG_ERROR("Initialize: failed to create capture window (" << GetLastError() << ")");
+    this->ReleaseSystemResources();
+    return PLUS_FAIL;
+  }
+
+  // connect to the driver
+  if (!capDriverConnect(this->Internal->CapWnd,0))
+  {
+    LOG_ERROR("Initialize: couldn't connect to driver (" << GetLastError() << ")");
+    this->ReleaseSystemResources();
+    return PLUS_FAIL;
+  }
+
+  capDriverGetCaps(this->Internal->CapWnd,&this->Internal->CapDriverCaps,sizeof(CAPDRIVERCAPS));
 
   // set the capture parameters
   capCaptureGetSetup(this->Internal->CapWnd,&this->Internal->CaptureParms,sizeof(CAPTUREPARMS));
@@ -474,7 +443,7 @@ PlusStatus vtkWin32VideoSource2::InternalConnect()
   }
 
   capOverlay(this->Internal->CapWnd,TRUE);
-  
+
   // update framebuffer again to reflect any changes which
   // might have occurred
   this->UpdateFrameBuffer();
@@ -552,28 +521,9 @@ void vtkWin32VideoSource2::OnParentWndDestroy()
 PlusStatus vtkWin32VideoSource2::AddFrameToBuffer(void* lpVideoHeader)
 {
   int inputCompression = this->Internal->BitMapInfoPtr->bmiHeader.biCompression;
-  switch (inputCompression)
+  if (!PixelCodec::IsConvertToGraySupported(inputCompression))
   {  
-  // supported compression
-  case VTK_BI_YUY2:
-  case BI_RGB:
-    break;
-  // not supported compression
-  case VTK_BI_UYVY:
-  default:
-    char fourcchex[16]={0};
-    char fourcc[8]={0};
-    sprintf(fourcchex,"0x%08x",inputCompression);
-    for (int i = 0; i < 4; i++)
-    {
-      fourcc[i] = (inputCompression >> (8*i)) & 0xff;
-      if (!isprint(fourcc[i]))
-      {
-        fourcc[i] = '?';
-      }
-    }
-    fourcc[4] = '\0';
-    LOG_ERROR("AddFrameToBuffer: video compression mode " << fourcchex << " \"" << fourcc << "\": can't grab");
+    LOG_ERROR("AddFrameToBuffer: video compression mode " << PixelCodec::GetCompressionModeAsString(inputCompression) << ": can't grab");
     return PLUS_FAIL;
   }
 
@@ -592,41 +542,28 @@ PlusStatus vtkWin32VideoSource2::AddFrameToBuffer(void* lpVideoHeader)
   // dwReserved[4]          reserved for driver
 
   unsigned char *inputPixelsPtr = lpVHdr->lpData;
-  
-  unsigned char* outputPixelsPtr=(unsigned char*)this->UncompressedVideoFrame.GetBufferPointer();
+
+  unsigned char* outputPixelsPtr=(unsigned char*)this->UncompressedVideoFrame.GetScalarPointer();
 
   int outputFrameSize[2]={0,0};
   this->UncompressedVideoFrame.GetFrameSize(outputFrameSize);
 
-  switch (inputCompression)
+  if (PixelCodec::ConvertToGray(inputCompression, outputFrameSize[0], outputFrameSize[1], inputPixelsPtr, outputPixelsPtr)!=PLUS_SUCCESS)
   {
-  case BI_RGB:
-    // decode the grabbed image to the requested output image type
-    Rgb24ToGray(outputFrameSize[0], outputFrameSize[1], inputPixelsPtr, outputPixelsPtr);
-    break;
-  case VTK_BI_YUY2:
-    // decode the grabbed image to the requested output image type
-    if (!YUV422P_to_gray(outputFrameSize[0], outputFrameSize[1], inputPixelsPtr, outputPixelsPtr))
-    {
-      LOG_ERROR("Error while decoding the grabbed image");
-      return PLUS_FAIL;
-    }
-    break;
-  default:
-    LOG_ERROR("Unkown compression type: "<<inputCompression);
+    LOG_ERROR("Error while decoding the grabbed image");
     return PLUS_FAIL;
   }
-  
+
   this->FrameIndex++;
   vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( this->GetFirstActiveVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source in the Win32Video device.");
     return PLUS_FAIL;
   }
   double indexTime = aSource->GetBuffer()->GetStartTime() + 0.001 * lpVHdr->dwTimeCaptured;
   //PlusStatus status = this->Buffer->AddItem(&this->UncompressedVideoFrame, this->GetDeviceImageOrientation(), this->FrameIndex, indexTime, indexTime); 
-  PlusStatus status = aSource->GetBuffer()->AddItem(&this->UncompressedVideoFrame, this->GetDeviceImageOrientation(), this->FrameIndex); 
+  PlusStatus status = aSource->GetBuffer()->AddItem(&this->UncompressedVideoFrame, this->FrameIndex); 
 
   this->Modified();
   return status;
@@ -735,7 +672,13 @@ PlusStatus vtkWin32VideoSource2::VideoSourceDialog()
 //----------------------------------------------------------------------------
 PlusStatus vtkWin32VideoSource2::SetFrameSize(int x, int y)
 {
-  if (this->Superclass::SetFrameSize(x,y)!=PLUS_SUCCESS)
+  vtkPlusDataSource* aSource(NULL);
+  if( this->GetFirstActiveVideoSource(aSource) != PLUS_SUCCESS )
+  {
+    LOG_ERROR(this->GetDeviceId() << ": Unable to retrieve video source.");
+    return PLUS_FAIL;
+  }
+  if (this->Superclass::SetFrameSize(*aSource, x, y)!=PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
@@ -743,16 +686,8 @@ PlusStatus vtkWin32VideoSource2::SetFrameSize(int x, int y)
   {
     // set up the video capture format
     this->Internal->GetBitmapInfoFromCaptureDevice();
-    int frameSize[2]={0,0};
-    vtkPlusDataSource* aSource(NULL);
-    if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to retrieve the video source in the Win32Video device.");
-      return PLUS_FAIL;
-    }
-    aSource->GetBuffer()->GetFrameSize(frameSize);
-    this->Internal->BitMapInfoPtr->bmiHeader.biWidth = frameSize[0];
-    this->Internal->BitMapInfoPtr->bmiHeader.biHeight = frameSize[1];
+    this->Internal->BitMapInfoPtr->bmiHeader.biWidth = x;
+    this->Internal->BitMapInfoPtr->bmiHeader.biHeight = y;
     if (this->Internal->SetBitmapInfoInCaptureDevice()!=PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to set requested frame size in the capture device");
@@ -786,7 +721,7 @@ PlusStatus vtkWin32VideoSource2::SetAcquisitionRate(double rate)
     }
     capCaptureSetSetup(this->Internal->CapWnd,&this->Internal->CaptureParms,sizeof(CAPTUREPARMS));
   }
-  
+
   this->Modified();
   return PLUS_SUCCESS;  
 }
@@ -820,12 +755,18 @@ PlusStatus vtkWin32VideoSource2::SetOutputFormat(int format)
   }
 
   vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it )
   {
-    LOG_ERROR("Unable to retrieve the video source in the Win32Video device.");
-    return PLUS_FAIL;
+    if( (*it)->GetVideoSource(aSource) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to retrieve the video source in the win32video device on channel " << (*it)->GetChannelId());
+      return PLUS_FAIL;
+    }
+    else
+    {
+      aSource->GetBuffer()->SetPixelType(VTK_UNSIGNED_CHAR);
+    }
   }
-  aSource->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR);
 
   if (this->GetConnected())
   {
@@ -847,73 +788,43 @@ PlusStatus vtkWin32VideoSource2::UpdateFrameBuffer()
   // get the real video format
   this->Internal->GetBitmapInfoFromCaptureDevice();
 
-  int width = this->Internal->BitMapInfoPtr->bmiHeader.biWidth;
-  int height = this->Internal->BitMapInfoPtr->bmiHeader.biHeight;
-  PlusCommon::ITKScalarPixelType pixelType=itk::ImageIOBase::UCHAR; // always convert output to 8-bit grayscale
-  
+  int width(this->Internal->BitMapInfoPtr->bmiHeader.biWidth);
+  int height(this->Internal->BitMapInfoPtr->bmiHeader.biHeight);
+  PlusCommon::VTKScalarPixelType pixelType(VTK_UNSIGNED_CHAR); // always convert output to 8-bit grayscale
+  int numberOfComponents(1);
+
   vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if( this->GetFirstActiveVideoSource(aSource) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Unable to retrieve the video source in the Win32Video device.");
+    LOG_ERROR("Unable to access video source in vtkWin32VideoSource2. Critical failure.");
     return PLUS_FAIL;
   }
   aSource->GetBuffer()->SetFrameSize(width, height);
-  aSource->GetBuffer()->SetPixelType(pixelType); 
+  aSource->GetBuffer()->SetPixelType(pixelType);
+  aSource->GetBuffer()->SetNumberOfScalarComponents(numberOfComponents);
 
   int frameSize[2]={width, height};
-  this->UncompressedVideoFrame.AllocateFrame(frameSize,pixelType);
+  this->UncompressedVideoFrame.AllocateFrame(frameSize,pixelType,numberOfComponents);
 
-  /*
-  int bpp = inputBitsPerPixel;
-  int compression = this->Internal->BitMapInfoPtr->bmiHeader.biCompression;
-
-  if (bpp==8 && compression==BI_RGB)
-  {
-    this->Buffer->SetPixelType(itk::ImageIOBase::UCHAR);
-  }
-  else
-  {
-    LOG_ERROR("Unsupported video format: bpp="<<bpp<<", compression="<<compression);
-    return PLUS_FAIL;
-  }
-  */
-
-  /*
-  if (bpp != outputBitsPerPixel)
-  {
-    switch (bpp)
-    {
-    case 1:
-    case 4:
-    case 8:
-      this->Buffer->GetFrameFormat()->SetPixelFormat(VTK_LUMINANCE);
-      this->NumberOfScalarComponents = 1;
-      break;
-    case 16: 
-      if (compression != VTK_BI_UYVY)
-      {
-        this->Buffer->GetFrameFormat()->SetPixelFormat(VTK_RGB);
-        this->NumberOfScalarComponents = 3;
-      }
-      break;
-    case 24:
-    case 32:
-      if (this->Buffer->GetFrameFormat()->GetPixelFormat() != VTK_RGBA)
-      {
-        this->Buffer->GetFrameFormat()->SetPixelFormat(VTK_RGB);
-        this->NumberOfScalarComponents = 3;
-      }
-      break;
-    }
-  }
-
-  if (bpp != outputBitsPerPixel ||
-  {
-    this->Buffer->GetFrameFormat()->SetBitsPerPixel(bpp);
-    this->Buffer->GetFrameFormat()->SetFrameSize(width, height, frameSize[2]);    
-
-  }
-  */
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
+
+PlusStatus vtkWin32VideoSource2::NotifyConfigured()
+{
+  if( this->OutputChannels.size() > 1 )
+  {
+    LOG_WARNING("Win32VideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
+    return PLUS_FAIL;
+  }
+
+  if( this->OutputChannels.size() == 0 )
+  {
+    LOG_ERROR("No output channels defined for win32 video source. Cannot proceed." );
+    this->CorrectlyConfigured = false;
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}

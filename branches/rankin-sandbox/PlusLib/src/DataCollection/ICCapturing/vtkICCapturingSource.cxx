@@ -14,7 +14,7 @@ See License.txt for details.
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusBuffer.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtksys/SystemTools.hxx"
 #include <tisudshl.h>
@@ -59,13 +59,15 @@ vtkICCapturingSource::vtkICCapturingSource()
 
   this->Modified();
 
-  this->RequireDeviceImageOrientationInDeviceSetConfiguration = true;
+  this->RequireImageOrientationInConfiguration = true;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
   this->RequireUsImageOrientationInDeviceSetConfiguration = true;
   this->RequireRfElementInDeviceSetConfiguration = false;
+
+  // No need for StartThreadForInternalUpdates, as we are notified about each new frame through a callback function
 }
 
 //----------------------------------------------------------------------------
@@ -178,8 +180,8 @@ PlusStatus vtkICCapturingSource::AddFrameToBuffer(unsigned char * dataPtr, unsig
     return PLUS_SUCCESS;
   }
 
-  vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  vtkPlusDataSource* aSource=NULL;
+  if( this->GetFirstActiveOutputVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source in the ICCapturing device.");
     return PLUS_FAIL;
@@ -212,12 +214,12 @@ PlusStatus vtkICCapturingSource::AddFrameToBuffer(unsigned char * dataPtr, unsig
       clippedFramePixelPtr+=this->ClipRectangleSize[0];
       fullFramePixelPtr+=frameSize[0];
     }
-    status = aSource->GetBuffer()->AddItem(&(this->ClippedImageBuffer[0]), this->GetDeviceImageOrientation(), this->ClipRectangleSize, itk::ImageIOBase::UCHAR, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
+    status = aSource->GetBuffer()->AddItem(&(this->ClippedImageBuffer[0]), aSource->GetPortImageOrientation(), this->ClipRectangleSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
   }
   else
   {
     // No clipping
-    status = aSource->GetBuffer()->AddItem(dataPtr, this->GetDeviceImageOrientation(), frameSize, itk::ImageIOBase::UCHAR, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
+    status = aSource->GetBuffer()->AddItem(dataPtr, aSource->GetPortImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
   }
   this->Modified();
 
@@ -301,13 +303,13 @@ PlusStatus vtkICCapturingSource::InternalConnect()
     return PLUS_FAIL;    
   }
 
-  vtkPlusDataSource* aSource(NULL);
-  if( this->CurrentChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  vtkPlusDataSource* aSource=NULL;
+  if( this->GetFirstActiveOutputVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source in the ICCapturing device.");
     return PLUS_FAIL;
   }
-  aSource->GetBuffer()->SetPixelType(itk::ImageIOBase::UCHAR );  
+  aSource->GetBuffer()->SetPixelType( VTK_UNSIGNED_CHAR );  
 
   int frameSize[2]={0,0};
   frameSize[0]=static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxX();
@@ -491,6 +493,26 @@ PlusStatus vtkICCapturingSource::WriteConfiguration(vtkXMLDataElement* config)
   // clipping parameters
   imageAcquisitionConfig->SetVectorAttribute("ClipRectangleOrigin", 2, this->GetClipRectangleOrigin());
   imageAcquisitionConfig->SetVectorAttribute("ClipRectangleSize", 2, this->GetClipRectangleSize());
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+
+PlusStatus vtkICCapturingSource::NotifyConfigured()
+{
+  if( this->OutputChannels.size() > 1 )
+  {
+    LOG_WARNING("ICCapturingSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
+    return PLUS_FAIL;
+  }
+
+  if( this->OutputChannels.empty() )
+  {
+    LOG_ERROR("No output channels defined for vtkICCapturingSource. Cannot proceed." );
+    this->SetCorrectlyConfigured(false);
+    return PLUS_FAIL;
+  }
 
   return PLUS_SUCCESS;
 }

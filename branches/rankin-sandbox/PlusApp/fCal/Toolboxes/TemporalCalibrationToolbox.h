@@ -7,16 +7,15 @@ See License.txt for details.
 #ifndef TEMPORALCALIBRATIONTOOLBOX_H
 #define TEMPORALCALIBRATIONTOOLBOX_H
 
-#include "ui_TemporalCalibrationToolbox.h"
-
 #include "AbstractToolbox.h"
 #include "PlusConfigure.h"
-
+#include "ui_TemporalCalibrationToolbox.h"
+#include "vtkTemporalCalibrationAlgo.h"
 #include <QWidget>
-
-class vtkTrackedFrameList;
-class vtkTable;
 class vtkContextView;
+class vtkPlusChannel;
+class vtkTable;
+class vtkTrackedFrameList;
 
 //-----------------------------------------------------------------------------
 
@@ -40,7 +39,12 @@ public:
   ~TemporalCalibrationToolbox();
 
   /*! \brief Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function */
-  void OnActivated();
+  virtual void OnActivated();
+
+  /*!
+  * Finalize toolbox
+  */
+  virtual void OnDeactivated();
 
   /*!
   * Read freehand calibration configuration for fCal
@@ -49,7 +53,7 @@ public:
   PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
   /*! Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function */
-  void RefreshContent();
+  virtual void RefreshContent();
 
   /*! Sets display mode (visibility of actors) according to the current state - implementation of a pure virtual function */
   void SetDisplayAccordingToState();
@@ -62,6 +66,9 @@ protected:
 	* \return if you want to filter the event out, i.e. stop it being handled further, return true; otherwise return false
 	*/
 	bool eventFilter(QObject *obj, QEvent *ev);
+
+  /*! Prints a time value in sec as a string in msec */
+  static std::string GetTimeAsString(double timeSec);
 
 protected slots:
   /*! Acquire tracked frames for temporal calibration and calls the algorithm when done */
@@ -79,64 +86,81 @@ protected slots:
   /*! Compute calibration results from the collected data and display the results */
   void ComputeCalibrationResults();
 
+  /*! A signal combo box was changed */
+  void FixedSignalChanged(int newIndex);
+
+  void MovingSignalChanged(int newIndex);
+
+  void FixedSourceChanged(int newIndex);
+
+  void MovingSourceChanged(int newIndex);
+
 protected:
   /*! Tracked frame for tracking data for temporal calibration */
-  vtkTrackedFrameList* m_TemporalCalibrationTrackingData;
+  vtkTrackedFrameList* TemporalCalibrationFixedData;
 
   /*! Tracked frame for video data for temporal calibration */
-  vtkTrackedFrameList* m_TemporalCalibrationVideoData;
+  vtkTrackedFrameList* TemporalCalibrationMovingData;
 
   /*! Flag if cancel is requested */
-  bool m_CancelRequest;
+  bool CancelRequest;
 
   /*! Duration of the temporal calibration process in seconds */
-  int m_TemporalCalibrationDurationSec;
-
-  /*! Clip rectangle origin for the line segmentation (in pixels). Everything outside the rectangle is ignored. */
-  int m_LineSegmentationClipRectangleOrigin[2];
-
-  /*! Clip rectangle origin for the line segmentation (in pixels). Everything outside the rectangle is ignored. */
-  int m_LineSegmentationClipRectangleSize[2]; 
+  int TemporalCalibrationDurationSec;
 
   /*! Timestamp of last recorded video item (items acquired since this timestamp will be recorded) */
-  double m_LastRecordedTrackingItemTimestamp;
+  double LastRecordedFixedItemTimestamp;
 
   /*! Timestamp of last recorded tracker item (items acquired since this timestamp will be recorded) */
-  double m_LastRecordedVideoItemTimestamp;
+  double LastRecordedMovingItemTimestamp;
 
   /*! Time interval between recording (sampling) cycles (in milliseconds) */
-  int m_RecordingIntervalMs;
+  int RecordingIntervalMs;
 
   /*! Time of starting temporal calibration */
-  double m_StartTimeSec;
+  double StartTimeSec;
 
   /*! Saved tracker offset in case the temporal calibration is canceled or unsuccessful */
-  double m_PreviousTrackerOffset;
+  double PreviousFixedOffset;
 
   /*! Saved video offset in case the temporal calibration is canceled or unsuccessful */
-  double m_PreviousVideoOffset;
+  double PreviousMovingOffset;
 
   /*! Metric table of video positions for temporal calibration */
-  vtkTable* m_VideoPositionMetric;
+  vtkTable* FixedPositionMetric;
 
   /*! Metric table of uncalibrated tracker positions for temporal calibration */
-  vtkTable* m_UncalibratedTrackerPositionMetric;
+  vtkTable* UncalibratedMovingPositionMetric;
 
   /*! Metric table of calibrated tracker positions for temporal calibration */
-  vtkTable* m_CalibratedTrackerPositionMetric;
+  vtkTable* CalibratedMovingPositionMetric;
 
 	/*! Window that is created/deleted when Show Plots button is toggled */
-	QWidget* m_TemporalCalibrationPlotsWindow;
+	QWidget* TemporalCalibrationPlotsWindow;
 
   /*! Chart view for the uncalibrated plot */
-  vtkContextView* m_UncalibratedPlotContextView;
+  vtkContextView* UncalibratedPlotContextView;
 
   /*! Chart view for the calibrated plot */
-  vtkContextView* m_CalibratedPlotContextView;
+  vtkContextView* CalibratedPlotContextView;
+
+  vtkPlusChannel* FixedChannel;
+  vtkTemporalCalibrationAlgo::FRAME_TYPE FixedType;
+  vtkPlusChannel* MovingChannel;
+  vtkTemporalCalibrationAlgo::FRAME_TYPE MovingType;
+
+  PlusTransformName FixedValidationTransformName;
+  PlusTransformName MovingValidationTransformName;
+
+  vtkTemporalCalibrationAlgo* TemporalCalibrationAlgo;
+
+  std::string RequestedFixedChannel;
+  std::string RequestedMovingChannel;
+  std::string RequestedFixedSource;
+  std::string RequestedMovingSource;
 
 protected:
   Ui::TemporalCalibrationToolbox ui;
-
 };
 
 #endif

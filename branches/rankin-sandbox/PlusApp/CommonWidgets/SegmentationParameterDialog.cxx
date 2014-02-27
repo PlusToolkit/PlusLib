@@ -21,6 +21,7 @@ See License.txt for details.
 #include "vtkImageVisualizer.h"
 #include "vtkLineSource.h"
 #include "vtkMath.h"
+#include "vtkPlusChannel.h"
 #include "vtkPlusDevice.h"
 #include "vtkPolyData.h"
 #include "vtkPolyDataMapper.h"
@@ -341,11 +342,11 @@ protected:
     // Create actors
     m_ActorCollection = vtkActorCollection::New();
 
-    CreateNewHandleActor(m_TopLeftHandleActor, m_TopLeftHandleSource, vtkImageVisualizer::ROI_COLOUR[0],  vtkImageVisualizer::ROI_COLOUR[1], vtkImageVisualizer:: ROI_COLOUR[2]);
+    CreateNewHandleActor(m_TopLeftHandleActor, m_TopLeftHandleSource, vtkImageVisualizer::ROI_COLOR[0],  vtkImageVisualizer::ROI_COLOR[1], vtkImageVisualizer:: ROI_COLOR[2]);
     m_ActorCollection->AddItem(m_TopLeftHandleActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_TopLeftHandleActor);
 
-    CreateNewHandleActor(m_BottomRightHandleActor, m_BottomRightHandleSource, vtkImageVisualizer::ROI_COLOUR[0],  vtkImageVisualizer::ROI_COLOUR[1],  vtkImageVisualizer::ROI_COLOUR[2]);
+    CreateNewHandleActor(m_BottomRightHandleActor, m_BottomRightHandleSource, vtkImageVisualizer::ROI_COLOR[0],  vtkImageVisualizer::ROI_COLOR[1],  vtkImageVisualizer::ROI_COLOR[2]);
     m_ActorCollection->AddItem(m_BottomRightHandleActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_BottomRightHandleActor);
 
@@ -833,9 +834,10 @@ private:
 
 //-----------------------------------------------------------------------------
 
-SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkDataCollector* aDataCollector)
+SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkDataCollector* aCollector, vtkPlusChannel* aChannel)
 : QDialog(aParent)
-, m_DataCollector(aDataCollector)
+, m_DataCollector(aCollector)
+, m_SelectedChannel(aChannel)
 , m_SegmentedPointsActor(NULL)
 , m_SegmentedPointsPolyData(NULL)
 , m_CandidatesPolyData(NULL)
@@ -858,8 +860,8 @@ SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkDa
   connect( ui.spinBox_YMin, SIGNAL( valueChanged(int) ), this, SLOT( ROIYMinChanged(int) ) );
   connect( ui.spinBox_XMax, SIGNAL( valueChanged(int) ), this, SLOT( ROIXMaxChanged(int) ) );
   connect( ui.spinBox_YMax, SIGNAL( valueChanged(int) ), this, SLOT( ROIYMaxChanged(int) ) );
-  connect( ui.spinBox_ReferenceWidth, SIGNAL( valueChanged(int) ), this, SLOT( ReferenceWidthChanged(int) ) );
-  connect( ui.spinBox_ReferenceHeight, SIGNAL( valueChanged(int) ), this, SLOT( ReferenceHeightChanged(int) ) );
+  connect( ui.doubleSpinBox_ReferenceWidth, SIGNAL( valueChanged(int) ), this, SLOT( ReferenceWidthChanged(int) ) );
+  connect( ui.doubleSpinBox_ReferenceHeight, SIGNAL( valueChanged(int) ), this, SLOT( ReferenceHeightChanged(int) ) );
   connect( ui.doubleSpinBox_OpeningCircleRadius, SIGNAL( valueChanged(double) ), this, SLOT( OpeningCircleRadiusChanged(double) ) );
   connect( ui.doubleSpinBox_OpeningBarSize, SIGNAL( valueChanged(double) ), this, SLOT( OpeningBarSizeChanged(double) ) );
   connect( ui.doubleSpinBox_LinePairDistanceError, SIGNAL( valueChanged(double) ), this, SLOT( LinePairDistanceErrorChanged(double) ) );
@@ -954,14 +956,20 @@ PlusStatus SegmentationParameterDialog::InitializeVisualization()
 {
   LOG_TRACE("SegmentationParameterDialog::InitializeVisualization");
 
-  if (m_DataCollector == NULL || m_DataCollector->GetConnected() == false) {
-    LOG_ERROR("Data collector is not initialized!");
+  if (m_SelectedChannel == NULL || m_SelectedChannel->GetOwnerDevice()->GetConnected() == false) {
+    LOG_ERROR("Data source is not initialized!");
     return PLUS_FAIL;
   }
 
-  if (!m_DataCollector->GetVideoDataAvailable()) 
+  if (!m_SelectedChannel->GetVideoDataAvailable()) 
   {
-    LOG_WARNING("Data collector has no output port, canvas image actor initalization failed.");
+    LOG_WARNING("Data source has no output port, canvas image actor initalization failed.");
+  }
+
+  if( m_SelectedChannel->GetTrackedFrame(&m_Frame) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to retrieve tracked frame.");
+    return PLUS_FAIL;
   }
 
   // Create segmented points actor
@@ -989,10 +997,12 @@ PlusStatus SegmentationParameterDialog::InitializeVisualization()
 
   // Setup canvas
   m_ImageVisualizer = vtkImageVisualizer::New();
+  m_ImageVisualizer->SetSelectedChannel(m_SelectedChannel);
   if( m_ImageVisualizer->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to initialize the image visualizer.");
   }
+  m_ImageVisualizer->SetScreenRightDownAxesOrientation(US_IMG_ORIENT_MF);
   m_ImageVisualizer->AssignResultPolyData(m_CandidatesPolyData);
   m_ImageVisualizer->AssignDataCollector(m_DataCollector);
   m_CanvasRenderer = m_ImageVisualizer->GetCanvasRenderer();
@@ -1000,6 +1010,7 @@ PlusStatus SegmentationParameterDialog::InitializeVisualization()
   m_ImageVisualizer->SetResultColor(0.8, 0.0, 0.0);
   m_ImageVisualizer->SetResultOpacity(0.8);
   ui.canvas->GetRenderWindow()->AddRenderer(m_ImageVisualizer->GetCanvasRenderer());
+  m_ImageVisualizer->SetInput(m_Frame.GetImageData()->GetImage());
 
   // Create default picker
   m_ImageVisualizer->GetCanvasRenderer()->GetRenderWindow()->GetInteractor()->CreateDefaultPicker();
@@ -1011,7 +1022,7 @@ PlusStatus SegmentationParameterDialog::InitializeVisualization()
   SwitchToROIMode();
 
   // Start refresh timer
-  m_CanvasRefreshTimer->start(50);
+  m_CanvasRefreshTimer->start(33);
 
   return PLUS_SUCCESS;
 }
@@ -1055,15 +1066,19 @@ PlusStatus SegmentationParameterDialog::ReadConfiguration()
     LOG_WARNING("Could not read MorphologicalOpeningBarSizeMm from configuration");
   }
 
-  int regionOfInterest[4] = {0}; 
-  if ( segmentationParameters->GetVectorAttribute("RegionOfInterest", 4, regionOfInterest) )
+  int clipOrigin[2] = {0};
+  int clipSize[2] = {0};
+  if ( segmentationParameters->GetVectorAttribute("ClipRectangleOrigin", 2, clipOrigin) && 
+    segmentationParameters->GetVectorAttribute("ClipRectangleSize", 2, clipSize) )
   {
-    ui.spinBox_XMin->setValue(regionOfInterest[0]);
-    ui.spinBox_YMin->setValue(regionOfInterest[1]);
-    ui.spinBox_XMax->setValue(regionOfInterest[2]);
-    ui.spinBox_YMax->setValue(regionOfInterest[3]);
-  } else {
-    LOG_WARNING("Cannot find RegionOfInterest attribute in the configuration");
+    ui.spinBox_XMin->setValue(clipOrigin[0]);
+    ui.spinBox_YMin->setValue(clipOrigin[1]);
+    ui.spinBox_XMax->setValue(clipOrigin[0] + clipSize[0]);
+    ui.spinBox_YMax->setValue(clipOrigin[1] + clipSize[1]);
+  }
+  else
+  {
+    LOG_WARNING("Cannot find ClipRectangleOrigin or ClipRectangleSize attributes in the configuration");
   }
 
   double maxLinePairDistanceErrorPercent(0.0); 
@@ -1213,9 +1228,12 @@ PlusStatus SegmentationParameterDialog::WriteConfiguration()
 
   segmentationParameters->SetDoubleAttribute("MorphologicalOpeningBarSizeMm", ui.doubleSpinBox_OpeningBarSize->value());
 
-  char ROIChars[64];
-  SNPRINTF(ROIChars, 64, "%d %d %d %d", ui.spinBox_XMin->value(), ui.spinBox_YMin->value(), ui.spinBox_XMax->value(), ui.spinBox_YMax->value());
-  segmentationParameters->SetAttribute("RegionOfInterest", ROIChars);
+  std::stringstream originSs;
+  std::stringstream sizeSs;
+  originSs << ui.spinBox_XMin->value() << " " << ui.spinBox_YMin->value();
+  sizeSs << ui.spinBox_XMax->value() - ui.spinBox_XMin->value() << " " << ui.spinBox_YMax->value() - ui.spinBox_YMin->value();
+  segmentationParameters->SetAttribute("ClipRectangleOrigin", originSs.str().c_str());
+  segmentationParameters->SetAttribute("ClipRectangleSize", sizeSs.str().c_str());
 
   segmentationParameters->SetDoubleAttribute("MaxLinePairDistanceErrorPercent", ui.doubleSpinBox_LinePairDistanceError->value());
 
@@ -1237,7 +1255,9 @@ PlusStatus SegmentationParameterDialog::WriteConfiguration()
 
   if( segmentationParameters->GetAttribute("NumberOfMaximumFiducialPointCandidates") != NULL && ui.doubleSpinBox_MaxCandidates->value() == FidSegmentation::DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDATES )
   {
-    segmentationParameters->RemoveAttribute("NumberOfMaximumFiducialPointCandidates");
+    // TODO: replace the following line by the commented out line after upgrading to VTK 6.x (https://www.assembla.com/spaces/plus/tickets/859)
+    // segmentationParameters->RemoveAttribute("NumberOfMaximumFiducialPointCandidates");
+    PlusCommon::RemoveAttribute(segmentationParameters, "NumberOfMaximumFiducialPointCandidates");
   }
   else if( segmentationParameters->GetAttribute("NumberOfMaximumFiducialPointCandidates") != NULL )
   {
@@ -1335,11 +1355,13 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
   // If image is not frozen, then have DataCollector get the latest frame (else it uses the frozen one for segmentation)
   if (!m_ImageFrozen)
   {
-    m_DataCollector->GetTrackedFrame(&m_Frame);
+    if( m_SelectedChannel->GetTrackedFrame(&m_Frame) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to retrieve tracked frame.");
+      return PLUS_FAIL;
+    }
+    m_ImageVisualizer->SetInput(m_Frame.GetImageData()->GetImage());
   }
-
-  // Set image for canvas
-  m_ImageVisualizer->SetInput(m_Frame.GetImageData()->GetVtkImage());
 
   // Segment image
   PatternRecognitionResult segResults;
@@ -1414,17 +1436,16 @@ void SegmentationParameterDialog::FreezeImage(bool aOn)
 void SegmentationParameterDialog::ExportImage()
 {
   LOG_TRACE("SegmentationParameterDialog::ExportImage()");
-
-  std::string metafileName = "SegmentationParameterDialog_ExportedImage_";
-  metafileName.append(vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S"));
-
+  
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
   trackedFrameList->AddTrackedFrame(&m_Frame);
 
-  if (trackedFrameList->SaveToSequenceMetafile(vtkPlusConfig::GetInstance()->GetImageDirectory(), metafileName.c_str(), vtkTrackedFrameList::SEQ_METAFILE_MHA, false) == PLUS_SUCCESS)
+  std::string metafileName = vtkPlusConfig::GetInstance()->GetImagePath(
+    std::string("SegmentationParameterDialog_ExportedImage_")+vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S.mha") );
+  if (trackedFrameList->SaveToSequenceMetafile(metafileName.c_str(), false) == PLUS_SUCCESS)
   {
     QMessageBox::information(this, tr("Image exported"),
-      QString("Image exported as metafile as %1\\%2.mha").arg(vtkPlusConfig::GetInstance()->GetImageDirectory()).arg(metafileName.c_str()));
+      QString("Image exported as metafile as %1").arg(metafileName.c_str()));
 
     // Write the current state into the device set configuration XML
     if (m_DataCollector->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
@@ -1434,14 +1455,14 @@ void SegmentationParameterDialog::ExportImage()
     else
     {
       // Save config file next to the tracked frame list
-      std::string configFileName = (std::string)vtkPlusConfig::GetInstance()->GetImageDirectory() + "\\" + metafileName + "_Config.xml";
+      std::string configFileName = vtkPlusConfig::GetInstance()->GetImagePath(metafileName + "_Config.xml");
       PlusCommon::PrintXML(configFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
     }
   }
   else
   {
     QMessageBox::critical(this, tr("Image export failed"),
-      QString("Image export failed to metafile %1\\%2.mha").arg(vtkPlusConfig::GetInstance()->GetImageDirectory()).arg(metafileName.c_str()));
+      QString("Image export failed to metafile %1").arg(metafileName.c_str()));
   }
 }
 
@@ -1503,7 +1524,7 @@ PlusStatus SegmentationParameterDialog::ComputeSpacingFromMeasuredLengthSum()
 {
   LOG_TRACE("SegmentationParameterDialog::ComputeSpacingFromMeasuredLengthSum");
 
-  double spacing = (ui.spinBox_ReferenceWidth->text().toDouble() + ui.spinBox_ReferenceHeight->text().toDouble()) / m_SpacingModeHandler->GetLineLengthSumImagePixel();
+  double spacing = (ui.doubleSpinBox_ReferenceWidth->text().toDouble() + ui.doubleSpinBox_ReferenceHeight->text().toDouble()) / m_SpacingModeHandler->GetLineLengthSumImagePixel();
   ui.label_SpacingResult->setText(QString("%1").arg(spacing));
 
   m_PatternRecognition->GetFidSegmentation()->SetApproximateSpacingMmPerPixel(spacing);
@@ -1519,7 +1540,7 @@ double SegmentationParameterDialog::GetSpacingReferenceWidth()
 {
   LOG_TRACE("SegmentationParameterDialog::GetSpacingReferenceWidth");
 
-  return ui.spinBox_ReferenceWidth->text().toDouble();
+  return ui.doubleSpinBox_ReferenceWidth->text().toDouble();
 }
 
 //-----------------------------------------------------------------------------
@@ -1528,7 +1549,7 @@ double SegmentationParameterDialog::GetSpacingReferenceHeight()
 {
   LOG_TRACE("SegmentationParameterDialog::GetSpacingReferenceHeight");
 
-  return ui.spinBox_ReferenceHeight->text().toDouble();
+  return ui.doubleSpinBox_ReferenceHeight->text().toDouble();
 }
 
 //-----------------------------------------------------------------------------
@@ -1537,7 +1558,7 @@ PlusStatus SegmentationParameterDialog::GetFrameSize(int aImageDimensions[2])
 {
   LOG_TRACE("SegmentationParameterDialog::GetFrameSize");
 
-  m_DataCollector->GetBrightnessFrameSize(aImageDimensions);
+  m_SelectedChannel->GetBrightnessFrameSize(aImageDimensions);
 
   return PLUS_SUCCESS;
 }

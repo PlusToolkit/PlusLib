@@ -11,7 +11,7 @@ See License.txt for details.
 #include "vtkImageViewer.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusBuffer.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkSmartPointer.h"
 #include "vtkSonixVideoSource.h"
@@ -44,18 +44,18 @@ int main(int argc, char* argv[])
   bool printHelp(false); 
   bool renderingOff(false);
   std::string inputConfigFile;
-  std::string inputSonixIP("137.82.56.185");
+  std::string inputSonixIp;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_INFO;
 
-  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
-  args.AddArgument("--sonix-ip", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSonixIP, "SonixRP ip address (Default: 137.82.56.185)" );
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
+  args.AddArgument("--sonix-ip", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSonixIp, "IP address of the Ultrasonix scanner (overrides the IP address parameter defined in the config file).");
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFile, "Config file containing the device configuration.");
-  args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
-  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (Default: 1; 1=error only, 2=warning, 3=info, 4=debug)");	
+  args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");  
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (Default: 1; 1=error only, 2=warning, 3=info, 4=debug)");  
 
   if ( !args.Parse() )
   {
@@ -79,29 +79,21 @@ int main(int argc, char* argv[])
 
   //Add the video source here
   sonixGrabber = vtkSmartPointer<vtkSonixVideoSource>::New();
-  sonixGrabber->SetSonixIP(inputSonixIP.c_str());
   sonixGrabber->SetImagingMode(0);
   sonixGrabber->SetAcquisitionDataType(0x00000005);
   sonixGrabber->ReadConfiguration(configRead);
-
-  vtkPlusChannel* aChannel(NULL);
-  vtkPlusDataSource* aSource(NULL);
-  if( sonixGrabber->GetCurrentChannel(aChannel) != PLUS_SUCCESS || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if (!inputSonixIp.empty())
   {
-    LOG_ERROR("Unable to retrieve the video source.");
-    return NULL;
-  }
-  if ( aSource->GetBuffer()->SetBufferSize(30) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to set video buffer size!"); 
-    exit(EXIT_FAILURE);
+    sonixGrabber->SetSonixIP(inputSonixIp.c_str());
   }
 
+  sonixGrabber->CreateDefaultOutputChannel();
+  
   sonixGrabber->Connect(); 
 
   if ( sonixGrabber->GetConnected() ) 
   {
-    sonixGrabber->StartRecording();				//start recording frame from the video
+    sonixGrabber->StartRecording();        //start recording frame from the video
   } 
   else 
   {
@@ -121,7 +113,7 @@ int main(int argc, char* argv[])
       iren->Delete();
     }
 
-    LOG_ERROR( "Unable to connect to Sonix RP machine at: " << inputSonixIP ); 
+    LOG_ERROR( "Unable to connect to Sonix RP machine at: " << inputSonixIp ); 
     exit(EXIT_FAILURE); 
   }
 
@@ -159,20 +151,20 @@ int main(int argc, char* argv[])
   iren->SetRenderWindow(viewer->GetRenderWindow());
   viewer->SetupInteractor(iren);
 
-  viewer->Render();	//must be called after iren and viewer are linked
+  viewer->Render();  //must be called after iren and viewer are linked
   //or there will be problems
 
   //establish timer event and create timer
   vtkMyCallback* call = vtkMyCallback::New();
   iren->AddObserver(vtkCommand::TimerEvent, call);
-  iren->CreateTimer(VTKI_TIMER_FIRST);		//VTKI_TIMER_FIRST = 0
+  iren->CreateTimer(VTKI_TIMER_FIRST);    //VTKI_TIMER_FIRST = 0
 
   //iren must be initialized so that it can handle events
   iren->Initialize();
   iren->Start();
 
   //delete all instances and release the hold the win32videosource
-  //has on the pci card	
+  //has on the pci card  
   sonixGrabber->Disconnect();
   sonixGrabber->Delete();
 

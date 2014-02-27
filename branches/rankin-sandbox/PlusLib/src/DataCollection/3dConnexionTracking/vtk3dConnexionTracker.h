@@ -9,15 +9,15 @@ See License.txt for details.
 
 #include "vtkPlusDevice.h"
 
-class vtkPlusStreamBuffer;
+class vtkPlusBuffer;
 class vtkPlusDataSource;
 class vtkMatrix4x4;
 
 /*!
 \class vtk3dConnexionTracker 
-\brief Interface for the CH Robotics CHR-UM6 tracker 
+\brief Interface for 3D Connexion 3D mouse devices
 
-This class talks with CH Robotics CHR-UM6 accelerometer/magnetometer/gyroscope device
+This class reads transforms from 3D mouse devices.
 
 \ingroup PlusLibDataCollection
 */
@@ -64,6 +64,8 @@ public:
     JOYSTICK_MODE
   };
 
+  virtual bool IsTracker() const { return true; }
+  
 protected:
 
   vtk3dConnexionTracker();

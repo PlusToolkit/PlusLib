@@ -31,9 +31,9 @@ class PLUS_EXPORT vtkMetaImageSequenceIO : public vtkObject
 {
 public:
 
-	static vtkMetaImageSequenceIO *New();
-	vtkTypeRevisionMacro(vtkMetaImageSequenceIO, vtkObject);
-	virtual void PrintSelf(ostream& os, vtkIndent indent);
+  static vtkMetaImageSequenceIO *New();
+  vtkTypeRevisionMacro(vtkMetaImageSequenceIO, vtkObject);
+  virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Set the TrackedFrameList where the images are stored */
   virtual void SetTrackedFrameList(vtkTrackedFrameList *trackedFrameList);
@@ -95,16 +95,14 @@ public:
     Set input/output file name. The file contains only the image header in case of
     MHD images and the full image (including pixel data) in case of MHA images.
   */
-  virtual void SetFileName(const char* aFilename);
-  /*! Get input/output file name. */
-	vtkGetStringMacro(FileName); 
+  virtual PlusStatus SetFileName(const char* aFilename);
 
   /*! Flag to enable/disable compression of image data */
-	vtkGetMacro(UseCompression, bool);
+  vtkGetMacro(UseCompression, bool);
   /*! Flag to enable/disable compression of image data */
-	vtkSetMacro(UseCompression, bool);
+  vtkSetMacro(UseCompression, bool);
   /*! Flag to enable/disable compression of image data */
-	vtkBooleanMacro(UseCompression, bool);
+  vtkBooleanMacro(UseCompression, bool);
 
   /*! Return the dimensions of the sequence */
   vtkGetMacro(Dimensions, int*);
@@ -112,7 +110,7 @@ public:
 protected:
   vtkMetaImageSequenceIO();
   virtual ~vtkMetaImageSequenceIO();
-  
+
   /*! Opens a file. Doesn't log error if it fails because it may be expected. */
   PlusStatus FileOpen(FILE **stream, const char* filename, const char* flags);
 
@@ -138,7 +136,7 @@ protected:
   virtual PlusStatus OpenImageHeader();
 
   /*! Write pixel data to the metaimage */
-  virtual PlusStatus WriteImagePixels(char* aFilename, bool forceAppend = false);
+  virtual PlusStatus WriteImagePixels(const std::string& aFilename, bool forceAppend = false);
 
   /*! 
     Convenience function that extends the tracked frame list (if needed) to make sure
@@ -149,23 +147,12 @@ protected:
   /*! Get the largest possible image size in the tracked frame list */
   virtual void GetMaximumImageDimensions(int maxFrameSize[2]); 
 
-  /*! Set file name for storing the pixel data */
-  vtkSetStringMacro(PixelDataFileName); 
-  /*! Get file name for storing the pixel data */
-	vtkGetStringMacro(PixelDataFileName); 
-
-  vtkSetStringMacro(TempHeaderFileName); 
-  vtkGetStringMacro(TempHeaderFileName); 
-
-  vtkSetStringMacro(TempImageFileName); 
-  vtkGetStringMacro(TempImageFileName); 
-
   /*! Get full path to the file for storing the pixel data */
   std::string GetPixelDataFilePath();
   /*! Conversion between ITK and METAIO pixel types */
-  PlusStatus ConvertMetaElementTypeToItkPixelType(const std::string &elementTypeStr, PlusCommon::ITKScalarPixelType &itkPixelType);
+  PlusStatus ConvertMetaElementTypeToVtkPixelType(const std::string &elementTypeStr, PlusCommon::VTKScalarPixelType &vtkPixelType);
   /*! Conversion between ITK and METAIO pixel types */
-  PlusStatus ConvertItkPixelTypeToMetaElementType(PlusCommon::ITKScalarPixelType itkPixelType, std::string &elementTypeStr);
+  PlusStatus ConvertVtkPixelTypeToMetaElementType(PlusCommon::VTKScalarPixelType vtkPixelType, std::string &elementTypeStr);
 
   /*! 
     Writes the compressed pixel data directly into file. 
@@ -176,7 +163,7 @@ protected:
   virtual PlusStatus WriteCompressedImagePixelsToFile(FILE *outputFileStream, int &compressedDataSize);
 
   /*! Copy from file A to B */
-  virtual PlusStatus MoveDataInFiles(const char* sourceFilename, const char* destFilename, bool append);
+  virtual PlusStatus MoveDataInFiles(const std::string& sourceFilename, const std::string& destFilename, bool append);
 private:
 
 #ifdef _WIN32
@@ -191,18 +178,18 @@ private:
   vtkTrackedFrameList* TrackedFrameList;
 
   /*! Name of the file that contains the image header (*.MHA or *.MHD) */
-  char* FileName;
+  std::string FileName;
   /*! Name of the temporary file used to build up the header */
-  char* TempHeaderFileName;
+  std::string TempHeaderFileName;
   /*! Name of the temporary file used to build up the image data */
-  char* TempImageFileName;
+  std::string TempImageFileName;
   /*! Enable/disable zlib compression of pixel data */
   bool UseCompression;
   /*! ASCII or binary */
   itk::ImageIOBase::FileType FileType;
   /*! Integer/float, short/long, signed/unsigned */
-  PlusCommon::ITKScalarPixelType PixelType;
-  /*! Number of components (or channels). Only single-component images are supported. */
+  PlusCommon::VTKScalarPixelType PixelType;
+  /*! Number of components (or channels) */
   int NumberOfComponents;
   /*! Number of image dimensions. Only 2 (single frame) or 3 (sequence of frames) are supported. */
   int NumberOfDimensions;
@@ -232,7 +219,7 @@ private:
   /*! Position of the first pixel of the image data within the pixel data file */
   FilePositionOffsetType PixelDataFileOffset;
   /*! File name where the pixel data is stored */
-  char* PixelDataFileName;
+  std::string PixelDataFileName;
   
   vtkMetaImageSequenceIO(const vtkMetaImageSequenceIO&); //purposely not implemented
   void operator=(const vtkMetaImageSequenceIO&); //purposely not implemented

@@ -9,11 +9,12 @@ See License.txt for details.
 
 class vtkPlusDevice;
 class vtkPlusChannel;
-class vtkPlusStreamBuffer;
+class vtkPlusBuffer;
 class vtkPlusDataSource;
 class vtkPlusDataSource;
-class vtkVirtualStreamMixer;
+class vtkVirtualMixer;
 
+#include "PlusCommon.h"
 #include "PlusVideoFrame.h"
 #include "vtkMatrix4x4.h"
 #include "vtkSmartPointer.h"
@@ -30,7 +31,7 @@ enum {
 /*! Flags for tool statuses */
 enum ToolStatus 
 {
-  TOOL_OK,			      /*!< Tool OK */
+  TOOL_OK,            /*!< Tool OK */
   TOOL_MISSING,       /*!< Tool or tool port is not available */
   TOOL_OUT_OF_VIEW,   /*!< Cannot obtain transform for tool */
   TOOL_OUT_OF_VOLUME, /*!< Tool is not within the sweet spot of system */
@@ -45,11 +46,11 @@ typedef std::vector<vtkPlusChannel*> ChannelContainer;
 typedef ChannelContainer::const_iterator ChannelContainerConstIterator;
 typedef ChannelContainer::iterator ChannelContainerIterator;
 
-typedef std::vector<vtkPlusStreamBuffer*> StreamBufferContainer;
+typedef std::vector<vtkPlusBuffer*> StreamBufferContainer;
 typedef StreamBufferContainer::const_iterator StreamBufferContainerConstIterator;
 typedef StreamBufferContainer::iterator StreamBufferContainerIterator;
 
-typedef std::map<int, vtkPlusStreamBuffer*> StreamBufferMapContainer;
+typedef std::map<int, vtkPlusBuffer*> StreamBufferMapContainer;
 typedef StreamBufferMapContainer::const_iterator StreamBufferMapContainerConstIterator;
 typedef StreamBufferMapContainer::iterator StreamBufferMapContainerIterator;
 

@@ -57,9 +57,9 @@ int main(int argc, char **argv)
 
   args.AddArgument("--serial-number", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serialNumber, "Serial number of the Epiphan device to connect");
   args.AddArgument("--frame-rate", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frameRate, "Requested acquisition frame rate (in FPS, default = 30)");
-  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
-  args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
-  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	  
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
+  args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");  
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");    
 
   if ( !args.Parse() )
   {
@@ -135,7 +135,7 @@ int main(int argc, char **argv)
   call->frameGrabber=frameGrabber;
   call->leftImage=leftImage;
   iren->AddObserver(vtkCommand::TimerEvent, call);
-  iren->CreateTimer(VTKI_TIMER_FIRST);		//VTKI_TIMER_FIRST = 0
+  iren->CreateTimer(VTKI_TIMER_FIRST);    //VTKI_TIMER_FIRST = 0
 
   //iren must be initialized so that it can handle events
   iren->Initialize();

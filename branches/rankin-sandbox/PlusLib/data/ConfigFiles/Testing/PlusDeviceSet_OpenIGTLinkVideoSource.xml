@@ -1,0 +1,25 @@
+<PlusConfiguration version="2.1">
+
+  <DataCollection StartupDelaySec="1.0">
+    <DeviceSet 
+      Name="TEST Data collection uses OpenIGTLink video source on localhost." 
+      Description="Test configuration file for vtkDataCollectorFileTest to use a tracked frame list. The SequenceMetafile names should be defined either from command line argument or from configuration file!" />      
+    <Device
+        Id="OpenIGTLinkVideoSenderDevice"
+        Type="OpenIGTLinkVideo"        
+        MessageType="TrackedFrame"
+        ServerAddress="127.0.0.1"
+        ServerPort="18944"
+        IgtlMessageCrcCheckEnabled="false"
+        AcquisitionRate="30"
+        LocalTimeOffsetSec="0" >
+        <DataSources>
+          <DataSource Type="Video" Id="Video" BufferSize="50" PortUsImageOrientation="MF" ImageType="RGB_COLOUR" AveragedItemsForFiltering="20" />
+        </DataSources>
+        <OutputChannels>
+          <OutputChannel Id="TrackedVideoSenderStream" VideoDataSourceId="Video" />
+        </OutputChannels>
+      </Device>  
+  </DataCollection>
+
+</PlusConfiguration>

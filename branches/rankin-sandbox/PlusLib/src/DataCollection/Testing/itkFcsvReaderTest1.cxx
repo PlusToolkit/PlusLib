@@ -21,72 +21,72 @@
 
 int main(int argc, char *argv[])
 {
-	vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_UNDEFINED);  
+  vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_UNDEFINED);  
 
-	itk::FcsvReader::Pointer reader = itk::FcsvReader::New();
+  itk::FcsvReader::Pointer reader = itk::FcsvReader::New();
 
-	reader->SetFileName(argv[1]);
-	reader->Update();
+  reader->SetFileName(argv[1]);
+  reader->Update();
 
-	LOG_DEBUG("Color information:"<<reader->GetFcsvDataObject()->color[0] 
-	<<"  "<< reader->GetFcsvDataObject()->color[1] 
-	<<"  "<< reader->GetFcsvDataObject()->color[2] );
+  LOG_DEBUG("Color information:"<<reader->GetFcsvDataObject()->color[0] 
+  <<"  "<< reader->GetFcsvDataObject()->color[1] 
+  <<"  "<< reader->GetFcsvDataObject()->color[2] );
 
-	{
-		//Second way of iteration ( good way : access to many data)
-		int fidIndex=0;
-		std::vector<itk::FcsvPoint>::iterator it = reader->GetFcsvDataObject()->points.begin(); 
-		while( it != reader->GetFcsvDataObject()->points.end() )
-		{
-			LOG_DEBUG("Point position: " << (*it).position);
+  {
+    //Second way of iteration ( good way : access to many data)
+    int fidIndex=0;
+    std::vector<itk::FcsvPoint>::iterator it = reader->GetFcsvDataObject()->points.begin(); 
+    while( it != reader->GetFcsvDataObject()->points.end() )
+    {
+      LOG_DEBUG("Point position: " << (*it).position);
 
-			if (fidIndex==1)
-			{
-				if ((*it).position[0]!=-319.5)
-				{
-					LOG_ERROR("Point position mismatch");
-					return EXIT_FAILURE;
-				}
-				if ((*it).position[1]!=-224.608)
-				{
-					LOG_ERROR("Point position mismatch");
-					return EXIT_FAILURE;
-				}
-				if ((*it).position[2]!=77)
-				{
-					LOG_ERROR("Point position mismatch");
-					return EXIT_FAILURE;
-				}
-				if ((*it).selected!=0)
-				{
-					LOG_ERROR("Selected mismatch");
-					return EXIT_FAILURE;
-				}
-				if ((*it).visibility!=1)
-				{
-					LOG_ERROR("Visibility mismatch");
-					return EXIT_FAILURE;
-				}
-			}
-			if (fidIndex==2)
-			{
-				if ((*it).selected!=1)
-				{
-					LOG_ERROR("Selected mismatch");
-					return EXIT_FAILURE;
-				}
-				if ((*it).visibility!=0)
-				{
-					LOG_ERROR("Visibility mismatch");
-					return EXIT_FAILURE;
-				}
-			}
+      if (fidIndex==1)
+      {
+        if ((*it).position[0]!=-319.5)
+        {
+          LOG_ERROR("Point position mismatch");
+          return EXIT_FAILURE;
+        }
+        if ((*it).position[1]!=-224.608)
+        {
+          LOG_ERROR("Point position mismatch");
+          return EXIT_FAILURE;
+        }
+        if ((*it).position[2]!=77)
+        {
+          LOG_ERROR("Point position mismatch");
+          return EXIT_FAILURE;
+        }
+        if ((*it).selected!=0)
+        {
+          LOG_ERROR("Selected mismatch");
+          return EXIT_FAILURE;
+        }
+        if ((*it).visibility!=1)
+        {
+          LOG_ERROR("Visibility mismatch");
+          return EXIT_FAILURE;
+        }
+      }
+      if (fidIndex==2)
+      {
+        if ((*it).selected!=1)
+        {
+          LOG_ERROR("Selected mismatch");
+          return EXIT_FAILURE;
+        }
+        if ((*it).visibility!=0)
+        {
+          LOG_ERROR("Visibility mismatch");
+          return EXIT_FAILURE;
+        }
+      }
 
-			++it;
-			fidIndex++;
+      ++it;
+      fidIndex++;
 
-		}
-	}
+    }
+  }
 
-	return EXIT_SUCCESS;
+  return EXIT_SUCCESS;
 }

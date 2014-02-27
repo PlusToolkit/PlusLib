@@ -205,7 +205,7 @@ public:
   /*! Get the output data type */
   vtkGetMacro(OutputScalarMode,int);
   /*! Get the output data type from an id */
-  char *GetOutputScalarModeAsString(int type);
+  const char *GetOutputScalarModeAsString(int type);
 
   /*!
     Set optimization method (turn off optimization only if it is not stable
@@ -221,7 +221,7 @@ public:
   /*! Get the current optimization method */
   vtkGetMacro(Optimization,OptimizationType);
   /*! Get the name of an optimization method from a type id */
-  char* GetOptimizationModeAsString(OptimizationType type);
+  const char* GetOptimizationModeAsString(OptimizationType type);
 
   /*!
     Set the interpolation mode
@@ -232,7 +232,7 @@ public:
   /*! Get the interpolation mode */
   vtkGetMacro(InterpolationMode,InterpolationType);
   /*! Get the name of an interpolation mode from a type id */
-  char *GetInterpolationModeAsString(InterpolationType interpEnum);
+  const char *GetInterpolationModeAsString(InterpolationType interpEnum);
 
   /*!
     Set the result mode
@@ -243,7 +243,7 @@ public:
   /*! Get the result mode */
   vtkGetMacro(CalculationMode,CalculationType);
   /*! Get the name of a result mode from a type id */
-  char *GetCalculationModeAsString(CalculationType calculationEnum);
+  const char *GetCalculationModeAsString(CalculationType calculationEnum);
 
   /*!
     Turn on or off the compounding (default on, which means

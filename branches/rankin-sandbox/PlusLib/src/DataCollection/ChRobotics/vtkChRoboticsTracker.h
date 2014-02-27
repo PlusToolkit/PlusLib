@@ -10,7 +10,7 @@ See License.txt for details.
 #include "ChrDataItem.h"
 #include "vtkPlusDevice.h"
 
-class vtkPlusStreamBuffer;
+class vtkPlusBuffer;
 class SerialLine;
 class ChrSerialPacket;
 
@@ -20,7 +20,7 @@ class ChrSerialPacket;
 
 This class talks with CH Robotics CHR-UM6 accelerometer/magnetometer/gyroscope device
 
-\ingroup PlusLibTracking
+\ingroup PlusLibDataCollection
 */
 class VTK_EXPORT vtkChRoboticsTracker : public vtkPlusDevice
 {
@@ -53,6 +53,8 @@ public:
 
   /*! Write configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);  
+
+  virtual bool IsTracker() const { return true; }
 
 protected:
 

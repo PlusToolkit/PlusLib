@@ -4,22 +4,20 @@
   See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "vtkTrackedFrameList.h" 
-#include "TrackedFrame.h"
 #include "PlusMath.h"
-
-#include <math.h>
-#include "vtkObjectFactory.h"
-#include "vtksys/SystemTools.hxx"
-#include "vtkXMLUtilities.h"
+#include "TrackedFrame.h"
 #include "vtkMetaImageSequenceIO.h"
-
-
+#include "vtkObjectFactory.h"
+#include "vtkTrackedFrameList.h" 
+#include "vtkTransformRepository.h"
+#include "vtkXMLUtilities.h"
+#include "vtksys/SystemTools.hxx"
+#include <math.h>
 
 //----------------------------------------------------------------------------
 // ************************* vtkTrackedFrameList *****************************
 //----------------------------------------------------------------------------
-vtkCxxRevisionMacro(vtkTrackedFrameList, "$Revision: 1.0 $");
+vtkCxxRevisionMacro(vtkTrackedFrameList, "$Revision: 1.1 $");
 vtkStandardNewMacro(vtkTrackedFrameList); 
 
 //----------------------------------------------------------------------------
@@ -115,12 +113,12 @@ TrackedFrame* vtkTrackedFrameList::GetTrackedFrame(int frameNumber)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTrackedFrameList::AddTrackedFrameList(vtkTrackedFrameList* inTrackedFrameList)
+PlusStatus vtkTrackedFrameList::AddTrackedFrameList(vtkTrackedFrameList* inTrackedFrameList, InvalidFrameAction action /*=ADD_INVALID_FRAME_AND_REPORT_ERROR*/)
 {
   PlusStatus status = PLUS_SUCCESS; 
   for ( unsigned int i = 0; i < inTrackedFrameList->GetNumberOfTrackedFrames(); ++i )
   {
-    if ( this->AddTrackedFrame( inTrackedFrameList->GetTrackedFrame(i) ) != PLUS_SUCCESS )
+    if ( this->AddTrackedFrame( inTrackedFrameList->GetTrackedFrame(i), action ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to add tracked frame to the list!"); 
       status = PLUS_FAIL; 
@@ -132,7 +130,7 @@ PlusStatus vtkTrackedFrameList::AddTrackedFrameList(vtkTrackedFrameList* inTrack
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTrackedFrameList::AddTrackedFrame(TrackedFrame *trackedFrame, InvalidFrameAction action/*=ADD_INVALID_FRAME_AND_REPORT_ERROR*/ )
+PlusStatus vtkTrackedFrameList::AddTrackedFrame(TrackedFrame *trackedFrame, InvalidFrameAction action /*=ADD_INVALID_FRAME_AND_REPORT_ERROR*/ )
 {
   bool isFrameValid = true; 
   if ( action != ADD_INVALID_FRAME )
@@ -263,7 +261,7 @@ bool vtkTrackedFrameList::ValidateEncoderPosition( TrackedFrame* trackedFrame )
     LOG_DEBUG("Tracked frame encoder position validation result: we've already inserted this frame to container!"); 
     return false; 
   }
-  return true; 	
+  return true;
 }
 
 //----------------------------------------------------------------------------
@@ -288,30 +286,22 @@ bool vtkTrackedFrameList::ValidateTransform(TrackedFrame* trackedFrame)
     return false; 
   }
 
-  return true; 	
+  return true;
 }
 
 //----------------------------------------------------------------------------
 bool vtkTrackedFrameList::ValidateStatus(TrackedFrame* trackedFrame)
 {
-  TrackedFrameFieldStatus status = FIELD_INVALID;
-  std::string transformName; 
-  if ( this->FrameTransformNameForValidation.GetTransformName(transformName) != PLUS_SUCCESS )
+  vtkTransformRepository* repo = vtkTransformRepository::New();
+  repo->SetTransforms(*trackedFrame);
+  bool isValid(false);
+  if( repo->GetTransformValid(this->FrameTransformNameForValidation, isValid) != PLUS_SUCCESS )
   {
-    LOG_WARNING("Failed to validate transform status - transform name for validation is incorrect!"); 
-    return false; 
+    LOG_ERROR("Unable to retrieve transform \'" << this->FrameTransformNameForValidation.GetTransformName() << "\'.");
   }
+  repo->Delete();
 
-  std::string toolStatusFrameFieldName = transformName + std::string("TransformStatus");
-  status = TrackedFrame::ConvertFieldStatusFromString( trackedFrame->GetCustomFrameField( toolStatusFrameFieldName.c_str() ) );
-
-  if ( status != FIELD_OK )
-  {
-    LOG_DEBUG("Tracked frame status validation result: tracked frame status invalid for tool " << transformName); 
-    return false;
-  }
-
-  return true;
+  return isValid;
 }
 
 //----------------------------------------------------------------------------
@@ -408,58 +398,69 @@ PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequ
   reader->SetFileName(trackedSequenceDataFileName);
   reader->SetTrackedFrameList(this);
   if (reader->Read()!=PLUS_SUCCESS)
-  {		
+  {
     LOG_ERROR("Couldn't read sequence metafile: " <<  trackedSequenceDataFileName ); 
     return PLUS_FAIL;
-  }	
-  
+  }
+
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTrackedFrameList::SaveToSequenceMetafile(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension /*=SEQ_METAFILE_MHA*/ , bool useCompression /*=true*/)
+PlusStatus vtkTrackedFrameList::SaveToSequenceMetafile(const char* filename, bool useCompression /*=true*/)
 {
   vtkSmartPointer<vtkMetaImageSequenceIO> writer=vtkSmartPointer<vtkMetaImageSequenceIO>::New();
-  std::string trackedSequenceDataFileName=std::string(outputFolder)+std::string("/")+std::string(sequenceDataFileName);
-  if (extension==SEQ_METAFILE_MHA)
-  {
-    trackedSequenceDataFileName+=".mha";
-  }
-  else
-  {
-    trackedSequenceDataFileName+=".mhd";
-  }
-  writer->SetFileName(trackedSequenceDataFileName.c_str());
-  writer->SetTrackedFrameList(this);
   writer->SetUseCompression(useCompression);
+  writer->SetFileName(filename);
+  writer->SetTrackedFrameList(this);
   if (writer->Write()!=PLUS_SUCCESS)
-  {		
-    LOG_ERROR("Couldn't write sequence metafile: " <<  trackedSequenceDataFileName ); 
+  {
+    LOG_ERROR("Couldn't write sequence metafile: " <<  filename); 
     return PLUS_FAIL;
   }
-
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-PlusCommon::ITKScalarPixelType vtkTrackedFrameList::GetPixelType()
+PlusCommon::VTKScalarPixelType vtkTrackedFrameList::GetPixelType()
 {
   if ( this->GetNumberOfTrackedFrames() < 1 )
   {
     LOG_ERROR("Unable to get pixel type size: there is no frame in the tracked frame list!"); 
-    return itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
+    return VTK_VOID;
   }
   
   for ( unsigned int i = 0; i < this->GetNumberOfTrackedFrames(); ++i )
   {
     if ( this->GetTrackedFrame(i)->GetImageData()->IsImageValid() )
     {
-      return this->GetTrackedFrame(i)->GetImageData()->GetITKScalarPixelType();
+      return this->GetTrackedFrame(i)->GetImageData()->GetVTKScalarPixelType();
     }
   }
 
-  LOG_DEBUG("There are no valid images in the tracked frame list."); 
-  return itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
+  LOG_WARNING("There are no valid images in the tracked frame list."); 
+  return VTK_VOID;
+}
+
+//-----------------------------------------------------------------------------
+int vtkTrackedFrameList::GetNumberOfComponents()
+{
+  if ( this->GetNumberOfTrackedFrames() < 1 )
+  {
+    LOG_ERROR("Unable to get number of components: there is no frame in the tracked frame list!"); 
+    return 1;
+  }
+
+  for ( unsigned int i = 0; i < this->GetNumberOfTrackedFrames(); ++i )
+  {
+    if ( this->GetTrackedFrame(i)->GetImageData()->IsImageValid() )
+    {
+      return this->GetTrackedFrame(i)->GetImageData()->GetImage()->GetNumberOfScalarComponents();
+    }
+  }
+
+  LOG_WARNING("There are no valid images in the tracked frame list."); 
+  return 1;
 }
 
 //-----------------------------------------------------------------------------
@@ -479,7 +480,7 @@ US_IMAGE_ORIENTATION vtkTrackedFrameList::GetImageOrientation()
     }
   }
 
-  LOG_DEBUG("There are no valid images in the tracked frame list."); 
+  LOG_WARNING("There are no valid images in the tracked frame list."); 
   return US_IMG_ORIENT_XX;
 }
 
@@ -500,7 +501,7 @@ US_IMAGE_TYPE vtkTrackedFrameList::GetImageType()
     }
   }
 
-  LOG_DEBUG("There are no valid images in the tracked frame list."); 
+  LOG_WARNING("There are no valid images in the tracked frame list."); 
   return US_IMG_TYPE_XX;
 }
 
@@ -572,7 +573,7 @@ void vtkTrackedFrameList::SetCustomTransform( const char* frameTransformName, do
 {
   std::ostringstream transform; 
 
-  transform	<< transformMatrix[0]  << " " << transformMatrix[1]  << " " << transformMatrix[2]  << " " << transformMatrix[3]  << " " 
+  transform  << transformMatrix[0]  << " " << transformMatrix[1]  << " " << transformMatrix[2]  << " " << transformMatrix[3]  << " " 
     << transformMatrix[4]  << " " << transformMatrix[5]  << " " << transformMatrix[6]  << " " << transformMatrix[7]  << " " 
     << transformMatrix[8]  << " " << transformMatrix[9]  << " " << transformMatrix[10] << " " << transformMatrix[11] << " " 
     << transformMatrix[12] << " " << transformMatrix[13] << " " << transformMatrix[14] << " " << transformMatrix[15] << " "; 
@@ -731,4 +732,19 @@ double vtkTrackedFrameList::GetMostRecentTimestamp()
   }
 
   return mostRecentTimestamp;
+}
+
+//-----------------------------------------------------------------------------
+bool vtkTrackedFrameList::IsContainingValidImageData()
+{ 
+  for ( unsigned int i = 0; i < this->GetNumberOfTrackedFrames(); ++i )
+  {
+    if ( this->GetTrackedFrame(i)->GetImageData()->IsImageValid() )
+    {
+      // found a valid image
+      return true;
+    }
+  }
+  // no valid images found
+  return false;
 }

@@ -314,7 +314,7 @@ PlusStatus vtkDataCollectorSynchronizer::DetectVideoMotions(const std::vector<do
     if ( videoBufferIndex < this->VideoBuffer->GetLatestItemUidInBuffer() ) 
     {
       // Set the baseframe of the image compare 
-      vtkImageData* baseframe = videoItem.GetFrame().GetVtkImage(); 
+      vtkImageData* baseframe = videoItem.GetFrame().GetImage(); 
 
       if ( baseframe == NULL )
       {
@@ -349,7 +349,7 @@ PlusStatus vtkDataCollectorSynchronizer::DetectVideoMotions(const std::vector<do
 
       // Find the moved image timestamp 
       double movedFrameTimestamp(0); 
-      if ( this->FindFrameTimestamp( videoBufferIndex, movedFrameTimestamp, nextMovedTimestamp ) )	
+      if ( this->FindFrameTimestamp( videoBufferIndex, movedFrameTimestamp, nextMovedTimestamp ) )  
       {
         // Save the frame and transform timestamp 
         this->FrameTimestamp.push_back(movedFrameTimestamp); 
@@ -382,7 +382,7 @@ void vtkDataCollectorSynchronizer::RemoveOutliers()
 
   int numOfElements = this->FrameTimestamp.size(); 
   for ( int i = numOfElements - 1; i >= 0; --i )
-  {	
+  {  
     double offset = this->TransformTimestamp[i] - this->FrameTimestamp[i]; 
 
     if ( abs(meanVideoOffset - offset) > 2.0 * stdevVideoOffset )
@@ -417,14 +417,14 @@ void vtkDataCollectorSynchronizer::GetOffsetStatistics(double &meanVideoOffset, 
     }
 
     meanVideoOffset += offset / (1.0*this->FrameTimestamp.size()); 
-  }	
+  }  
 
   stdevVideoOffset = 0; 
   for ( unsigned int i = 0; i < this->FrameTimestamp.size(); i++ )
   {
     double offset = this->TransformTimestamp[i] - this->FrameTimestamp[i]; 
     stdevVideoOffset += pow((meanVideoOffset - offset), 2.0) / (1.0*this->FrameTimestamp.size()); 
-  }	
+  }  
   stdevVideoOffset = sqrt(stdevVideoOffset); 
 }
 
@@ -434,7 +434,7 @@ PlusStatus vtkDataCollectorSynchronizer::ComputeTransformThreshold( BufferItemUi
   LOG_TRACE("vtkDataCollectorSynchronizer::ComputeTransformThreshold"); 
   int sizeOfAvgPositons(0); 
   std::vector< vtkSmartPointer<vtkTransform> > avgTransforms; 
-  for ( bufferIndex; bufferIndex <= this->TrackerBuffer->GetLatestItemUidInBuffer() && sizeOfAvgPositons != this->NumberOfAveragedTransforms; bufferIndex++ )
+  for ( ; bufferIndex <= this->TrackerBuffer->GetLatestItemUidInBuffer() && sizeOfAvgPositons != this->NumberOfAveragedTransforms; bufferIndex++ )
   {
     StreamBufferItem bufferItem; 
     if ( this->GetTrackerBuffer()->GetStreamBufferItem(bufferIndex, &bufferItem) != ITEM_OK ) 
@@ -509,12 +509,12 @@ PlusStatus vtkDataCollectorSynchronizer::ComputeTransformThreshold( BufferItemUi
   }
 
   deviationTransform.Rx = sqrt(deviationTransform.Rx); 
-  deviationTransform.Ry =	sqrt(deviationTransform.Ry); 
-  deviationTransform.Rz =	sqrt(deviationTransform.Rz); 
+  deviationTransform.Ry =  sqrt(deviationTransform.Ry); 
+  deviationTransform.Rz =  sqrt(deviationTransform.Rz); 
 
-  deviationTransform.Tx =	sqrt(deviationTransform.Tx); 
-  deviationTransform.Ty =	sqrt(deviationTransform.Ty); 
-  deviationTransform.Tz =	sqrt(deviationTransform.Tz); 
+  deviationTransform.Tx =  sqrt(deviationTransform.Tx); 
+  deviationTransform.Ty =  sqrt(deviationTransform.Ty); 
+  deviationTransform.Tz =  sqrt(deviationTransform.Tz); 
 
 
   // compute the threshold values for rotation and translation axes
@@ -549,7 +549,6 @@ PlusStatus vtkDataCollectorSynchronizer::FindTransformMotionTimestamp( BufferIte
     if ( bufferItem.GetStatus() == TOOL_OK )
     {
       double timestamp = bufferItem.GetTimestamp(localTimeOffset); 
-      unsigned long frameNumber = bufferItem.GetIndex();
 
       vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New(); 
 
@@ -767,7 +766,7 @@ void vtkDataCollectorSynchronizer::FindStillFrame( BufferItemUidType& baseIndex,
         continue; 
       }
 
-      vtkImageData* baseframe = videoItem.GetFrame().GetVtkImage(); 
+      vtkImageData* baseframe = videoItem.GetFrame().GetImage(); 
 
       if ( baseframe == NULL )
       {
@@ -793,7 +792,7 @@ void vtkDataCollectorSynchronizer::FindStillFrame( BufferItemUidType& baseIndex,
       continue; 
     }
 
-    vtkImageData* frame = videoItem.GetFrame().GetVtkImage(); 
+    vtkImageData* frame = videoItem.GetFrame().GetImage(); 
 
     if ( frame == NULL )
     {
@@ -852,7 +851,7 @@ PlusStatus vtkDataCollectorSynchronizer::FindFrameTimestamp( BufferItemUidType& 
     }
 
     if ( this->GetVideoBuffer()->GetStreamBufferItem(bufferIndex, &videoItem) != ITEM_OK )
-    {	
+    {  
       LOG_WARNING("vtkDataCollectorSynchronizer: Unable to get frame from frame UID: " << bufferIndex); 
       bufferIndex++; 
       continue; 
@@ -867,9 +866,7 @@ PlusStatus vtkDataCollectorSynchronizer::FindFrameTimestamp( BufferItemUidType& 
       return PLUS_FAIL; 
     }
 
-    unsigned long frameNumber = videoItem.GetIndex(); 
-
-    vtkImageData* frame = videoItem.GetFrame().GetVtkImage(); 
+    vtkImageData* frame = videoItem.GetFrame().GetImage(); 
 
     if ( frame == NULL )
     {
@@ -936,9 +933,8 @@ PlusStatus vtkDataCollectorSynchronizer::ComputeFrameThreshold( BufferItemUidTyp
   // Compute frame average 
   int sizeOfAvgFrames(0); 
   StreamBufferItem videoItem; 
-  const double localTimeOffset(0); 
   std::vector<double> avgFrames; 
-  for ( bufferIndex; bufferIndex <= this->VideoBuffer->GetLatestItemUidInBuffer() && sizeOfAvgFrames != this->NumberOfAveragedFrames; bufferIndex++ )
+  for ( ; bufferIndex <= this->VideoBuffer->GetLatestItemUidInBuffer() && sizeOfAvgFrames != this->NumberOfAveragedFrames; bufferIndex++ )
   {
     if ( this->VideoBuffer->GetStreamBufferItem(bufferIndex, &videoItem) != ITEM_OK )
     {
@@ -946,9 +942,7 @@ PlusStatus vtkDataCollectorSynchronizer::ComputeFrameThreshold( BufferItemUidTyp
       continue; 
     }
 
-    double frameTimestamp = videoItem.GetTimestamp(localTimeOffset); 
-
-    vtkImageData* frame = videoItem.GetFrame().GetVtkImage(); 
+    vtkImageData* frame = videoItem.GetFrame().GetImage(); 
     if ( frame == NULL )
     {
       LOG_WARNING("vtkDataCollectorSynchronizer: Unable to resize actual frame for frame threshold computation if it's NULL - continue with next frame."); 
@@ -1104,15 +1098,14 @@ PlusStatus vtkDataCollectorSynchronizer::GenerateSynchronizationReport( vtkHTMLG
     return PLUS_FAIL;
   }
 
-  const char* scriptsFolder = vtkPlusConfig::GetInstance()->GetScriptsDirectory();
-  std::string plotSyncResultScript = scriptsFolder + std::string("/gnuplot/PlotSyncResult.gnu"); 
+  std::string plotSyncResultScript = vtkPlusConfig::GetInstance()->GetScriptPath("gnuplot/PlotSyncResult.gnu"); 
   if ( !vtksys::SystemTools::FileExists( plotSyncResultScript.c_str(), true) )
   {
     LOG_ERROR("Unable to find gnuplot script at: " << plotSyncResultScript); 
     return PLUS_FAIL; 
   }
 
-  std::string reportFile = vtkPlusConfig::GetInstance()->GetOutputDirectory() + std::string("/SyncResult.txt"); 
+  std::string reportFile = vtkPlusConfig::GetInstance()->GetOutputPath("SyncResult.txt");
 
   if ( vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat( this->SyncReportTable, reportFile.c_str() ) != PLUS_SUCCESS )
   {
@@ -1171,18 +1164,18 @@ PlusStatus vtkDataCollectorSynchronizer::ReadConfiguration(vtkXMLDataElement* ro
     return PLUS_FAIL; 
   }
 
-	vtkXMLDataElement* dataCollectionConfig = rootElement->FindNestedElementWithName("DataCollection");
-	if (dataCollectionConfig == NULL)
+  vtkXMLDataElement* dataCollectionConfig = rootElement->FindNestedElementWithName("DataCollection");
+  if (dataCollectionConfig == NULL)
   {
     LOG_ERROR("Cannot find DataCollection element in XML tree!");
-		return PLUS_FAIL;
-	}
+    return PLUS_FAIL;
+  }
 
   vtkXMLDataElement* synchronizationConfig = dataCollectionConfig->FindNestedElementWithName("Synchronization"); 
   if (synchronizationConfig == NULL) 
   {
     LOG_ERROR("Cannot find Synchronization element in XML tree!");
-		return PLUS_FAIL;
+    return PLUS_FAIL;
   }
 
   int synchronizationTimeLength = 0; 

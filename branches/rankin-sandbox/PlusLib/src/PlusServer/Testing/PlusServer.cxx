@@ -14,8 +14,10 @@ happens between two threads. In real life, it happens between two programs.
 #include "PlusConfigure.h"
 #include "vtkDataCollector.h"
 #include "vtkOpenIGTLinkVideoSource.h"
+#include "vtkPlusBuffer.h"
+#include "vtkPlusChannel.h"
+#include "vtkPlusDataSource.h"
 #include "vtkPlusOpenIGTLinkServer.h"
-#include "vtkPlusStreamBuffer.h"
 #include "vtkSmartPointer.h"
 #include "vtkTransformRepository.h"
 #include "vtksys/CommandLineArguments.hxx"
@@ -37,9 +39,9 @@ int main( int argc, char** argv )
 {
   // Check command line arguments.
   std::string inputConfigFileName;
+  std::string testingConfigFileName;
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
   double runTime = 0;
-  bool testing = false; 
 
   const int numOfTestClientsToConnect = 5; // only if testing is enabled S
 
@@ -49,7 +51,7 @@ int main( int argc, char** argv )
   args.AddArgument( "--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Name of the input configuration file." );
   args.AddArgument( "--running-time", vtksys::CommandLineArguments::EQUAL_ARGUMENT,&runTime, "Server running time period in seconds. If the parameter is not defined or 0 then the server runs infinitely." );
   args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)" );
-  args.AddArgument( "--testing", vtksys::CommandLineArguments::NO_ARGUMENT, &testing, "Enable testing mode (testing PlusServer functionality)" );
+  args.AddArgument( "--testing-config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &testingConfigFileName, "Enable testing mode (testing PlusServer functionality by running a few OpenIGTLink clients)" );
 
   if ( !args.Parse() )
   {
@@ -67,89 +69,38 @@ int main( int argc, char** argv )
     exit(EXIT_FAILURE); 
   }
 
-  // Read main configuration file
-  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
-    vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
-  if (configRootElement == NULL)
-  {	
-    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
-    exit(EXIT_FAILURE);
-  }
-
-  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
-
-  // Create data collector instance 
-  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New();
-  if ( dataCollector->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Datacollector failed to read configuration!"); 
-    exit(EXIT_FAILURE);
-  }
-
-  // Create transform repository instance 
-  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
-  if ( transformRepository->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Transform repository failed to read configuration!"); 
-    exit(EXIT_FAILURE);
-  }
-
-  LOG_DEBUG( "Initializing data collector... " );
-  if ( dataCollector->Connect() != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Datacollector failed to connect to devices!"); 
-    exit(EXIT_FAILURE);
-  }
-
-  if ( dataCollector->Start() != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Datacollector failed to start!"); 
-    exit(EXIT_FAILURE);
-  }
-
   // Create Plus OpenIGTLink server.
   LOG_DEBUG( "Initializing Plus OpenIGTLink server... " );
   vtkSmartPointer< vtkPlusOpenIGTLinkServer > server = vtkSmartPointer< vtkPlusOpenIGTLinkServer >::New();
-  server->SetDataCollector( dataCollector );
-  if ( server->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to read PlusOpenIGTLinkServer configuration!"); 
-    exit(EXIT_FAILURE);
-  }
-
-  server->SetTransformRepository( transformRepository ); 
-  if ( server->Start() != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to start Plus OpenIGTLink server!"); 
-    exit(EXIT_FAILURE);
-  }
+  PlusStatus status=server->Start(inputConfigFileName);
 
   double startTime = vtkAccurateTimer::GetSystemTime(); 
 
-
   // *************************** Testing **************************
   std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSource> > testClientList; 
-  if ( testing ) 
+  if ( !testingConfigFileName.empty() )
   {
-    // Configuration of test clients are described in the PlusServerTestClientsConfiguration element
-    vtkXMLDataElement* testClientsElement = configRootElement->FindNestedElementWithName("PlusServerTestClientsConfiguration");    
-    if (testClientsElement!=NULL)
-    {
-      // Connect clients to server 
-      if ( ConnectClients( server->GetListeningPort(), testClientList, numOfTestClientsToConnect, testClientsElement ) != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Unable to connect clients to PlusServer!"); 
-        DisconnectClients( testClientList );
-        server->Stop(); 
-        exit(EXIT_FAILURE);
-      }
-      vtkAccurateTimer::Delay( 1.0 ); // make sure the threads have some time to connect regardless of the specified runTime
-      LOG_INFO("Clients are connected");
+    std::string configFilePath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(testingConfigFileName);
+    // Read main configuration file
+    vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
+      vtkXMLUtilities::ReadElementFromFile(configFilePath.c_str()));
+    if (configRootElement == NULL)
+    {  
+      LOG_ERROR("Unable to read tes configuration from file " << configFilePath.c_str()); 
+      DisconnectClients( testClientList );
+      server->Stop(); 
+      exit(EXIT_FAILURE);
     }
-    else
+    // Connect clients to server 
+    if ( ConnectClients( server->GetListeningPort(), testClientList, numOfTestClientsToConnect, configRootElement ) != PLUS_SUCCESS )
     {
-      LOG_ERROR("PlusServerTestClientsConfiguration is missing. Cannot start OpenIGTLink test clients.");
+      LOG_ERROR("Unable to connect clients to PlusServer!"); 
+      DisconnectClients( testClientList );
+      server->Stop(); 
+      exit(EXIT_FAILURE);
     }
+    vtkAccurateTimer::Delay( 1.0 ); // make sure the threads have some time to connect regardless of the specified runTime
+    LOG_INFO("Clients are connected");
   }
   // *************************** End of testing **************************
 
@@ -189,7 +140,7 @@ int main( int argc, char** argv )
   }
 
   // *************************** Testing **************************
-  if ( testing ) 
+  if ( !testingConfigFileName.empty() )
   {
     LOG_INFO("Requested testing time elapsed");
     // make sure all the clients are still connected 
@@ -216,12 +167,9 @@ int main( int argc, char** argv )
   // *************************** End of testing **************************
 
 
-  server->Stop(); 
-  server->SetDataCollector(NULL);
-  dataCollector->Stop();
-  dataCollector->Disconnect();
+  server->Stop();
   
-  if ( testing ) 
+  if ( !testingConfigFileName.empty() )
   {
     LOG_INFO("Test is successfully completed");
   }
@@ -250,9 +198,22 @@ PlusStatus ConnectClients( int listeningPort, std::vector< vtkSmartPointer<vtkOp
     client->ReadConfiguration(configRootElement);
     client->SetServerAddress("localhost");
     client->SetServerPort(listeningPort); 
-    client->SetBufferSize( 10 ); 
+    if( client->OutputChannelCount() == 0 )
+    {
+      LOG_ERROR("No output channels in openIGTLink client.");
+      ++numberOfErrors;
+      continue;
+    }
+    vtkPlusChannel* aChannel = *(client->GetOutputChannelsStart());
+    vtkPlusDataSource* aSource(NULL);
+    if( aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to retrieve the video source.");
+      continue;
+    }
+    client->SetBufferSize( *aChannel, 10 ); 
     client->SetMessageType( "TrackedFrame" ); 
-    client->SetDeviceImageOrientation( US_IMG_ORIENT_MF );
+    aSource->SetPortImageOrientation( US_IMG_ORIENT_MF );
 
     if ( client->Connect() != PLUS_SUCCESS )
     {

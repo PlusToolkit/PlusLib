@@ -10,6 +10,7 @@ See License.txt for details.
 // #define USE_MICRONTRACKER_TIMESTAMPS
 
 #include "MicronTrackerInterface.h"
+#include "MicronTrackerLogger.h"
 #include "PlusConfigure.h"
 #include "PlusVideoFrame.h"
 #include "vtkImageData.h"
@@ -36,17 +37,21 @@ vtkMicronTracker::vtkMicronTracker()
 
   this->IsMicronTrackingInitialized = 0;
   this->MT = new MicronTrackerInterface();
+  MicronTrackerLogger::Instance()->SetLogMessageCallback(LogMessageCallback, this);
 
   // for accurate timing
   this->FrameNumber = 0;
 
-  this->RequireDeviceImageOrientationInDeviceSetConfiguration = false;
+  this->RequireImageOrientationInConfiguration = false;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = true;
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
   this->RequireUsImageOrientationInDeviceSetConfiguration = false;
   this->RequireRfElementInDeviceSetConfiguration = false;
+
+  // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
+  this->StartThreadForInternalUpdates=true;
 }
 
 //----------------------------------------------------------------------------
@@ -79,7 +84,19 @@ PlusStatus vtkMicronTracker::Probe()
     return PLUS_FAIL;
   }
 
-  std::string iniFilePath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() + std::string("/") + this->IniFile;
+  std::string iniFilePath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->IniFile);
+  LOG_DEBUG("Use MicronTracker ini file: "<<iniFilePath);
+  if ( !vtksys::SystemTools::FileExists( iniFilePath.c_str(), true) )
+  {
+    LOG_DEBUG("Unable to find MicronTracker IniFile file at: " << iniFilePath);
+  }
+  std::string templateFullPath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->TemplateDirectory.c_str());
+  LOG_DEBUG("Loading the marker templates from "<<templateFullPath);
+  if ( !vtksys::SystemTools::FileExists( templateFullPath.c_str(), false) )
+  {
+    LOG_DEBUG("Unable to find MicronTracker TemplateDirectory at: " << templateFullPath);
+  }
+
   if (this->MT->mtInit(iniFilePath)!=1)
   {
     LOG_ERROR("Error in initializing Micron Tracker");
@@ -224,8 +241,12 @@ PlusStatus vtkMicronTracker::RefreshMarkerTemplates()
   std::vector<std::string> vTemplatesName;
   std::vector<std::string> vTemplatesError;
 
-  std::string templateFullPath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() + std::string("/") + this->TemplateDirectory;
+  std::string templateFullPath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->TemplateDirectory.c_str());
   LOG_DEBUG("Loading the marker templates from "<<templateFullPath);
+  if ( !vtksys::SystemTools::FileExists( templateFullPath.c_str(), false) )
+  {
+    LOG_WARNING("Unable to find MicronTracker TemplateDirectory at: " << templateFullPath);
+  }
   int callResult = this->MT->mtRefreshTemplates(vTemplatesName, vTemplatesError, templateFullPath);
   for (int i=0; i<vTemplatesName.size(); i++)
   {
@@ -327,18 +348,18 @@ PlusStatus vtkMicronTracker::ReadConfiguration( vtkXMLDataElement* config )
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
     return PLUS_FAIL;
-  }	
+  }  
   
   const char* templateDirectory = trackerConfig->GetAttribute("TemplateDirectory"); 
   if ( templateDirectory != NULL )
   { 
-  	this->TemplateDirectory=templateDirectory;
+    this->TemplateDirectory=templateDirectory;
   }
 
   const char* iniFile = trackerConfig->GetAttribute("IniFile"); 
   if ( iniFile!= NULL )
   { 
-	  this->IniFile=iniFile;
+    this->IniFile=iniFile;
   }
 
   return PLUS_SUCCESS;
@@ -378,8 +399,19 @@ PlusStatus vtkMicronTracker::InternalConnect()
     return PLUS_SUCCESS;
   }
   
-  std::string iniFilePath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() + std::string("/") + this->IniFile;
-  LOG_INFO("Use MicronTracker ini file: "<<iniFilePath);
+  std::string iniFilePath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->IniFile);
+  LOG_DEBUG("Use MicronTracker ini file: "<<iniFilePath);
+  if ( !vtksys::SystemTools::FileExists( iniFilePath.c_str(), true) )
+  {
+    LOG_WARNING("Unable to find MicronTracker IniFile file at: " << iniFilePath);
+  }
+  std::string templateFullPath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->TemplateDirectory.c_str());
+  LOG_DEBUG("Loading the marker templates from "<<templateFullPath);
+  if ( !vtksys::SystemTools::FileExists( templateFullPath.c_str(), false) )
+  {
+    LOG_ERROR("Unable to find MicronTracker TemplateDirectory at: " << templateFullPath);
+  }
+
   if (this->MT->mtInit(iniFilePath)!=1)
   {
     LOG_ERROR("Error in initializing Micron Tracker");
@@ -389,7 +421,7 @@ PlusStatus vtkMicronTracker::InternalConnect()
   // Try to attach the cameras till find the cameras
   if (this->MT->mtSetupCameras()!=1)
   {
-    LOG_ERROR("Error in initializing Micron Tracker: setup cameras failed. Check the camera connections.");
+    LOG_ERROR("Error in initializing Micron Tracker: setup cameras failed. Check the camera connections and INI and Markers file locations.");
     this->MT->mtEnd();
     return PLUS_FAIL;
   }
@@ -397,7 +429,7 @@ PlusStatus vtkMicronTracker::InternalConnect()
   int numOfCameras = this->MT->mtGetNumOfCameras();
   if (numOfCameras==0)
   {
-    LOG_ERROR("Error in initializing Micron Tracker: no cameras attached. Check the camera connections.");
+    LOG_ERROR("Error in initializing Micron Tracker: no cameras attached. Check the camera connections and INI and Markers file locations.");
     this->MT->mtEnd();
     return PLUS_FAIL;
   }
@@ -412,7 +444,7 @@ PlusStatus vtkMicronTracker::InternalConnect()
 
   if (RefreshMarkerTemplates()!=PLUS_SUCCESS)
   {
-    LOG_ERROR("Error in initializing Micron Tracker: Failed to load marker templates. Check if the template directory is correct.");
+    LOG_ERROR("Error in initializing Micron Tracker: Failed to load marker templates. Check if the marker directory is set correctly.");
     this->MT->mtEnd();
     return PLUS_FAIL;
   }
@@ -436,4 +468,25 @@ PlusStatus vtkMicronTracker::InternalDisconnect()
     this->IsMicronTrackingInitialized=false;
   }  
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+void vtkMicronTracker::LogMessageCallback(int level, const char *message, void* /*userdata*/ )
+{ 
+  switch (level)
+  {
+  case MicronTrackerLogger::WARNING_LEVEL:
+    LOG_WARNING("MicronTracker: "<<(message?message:"") );
+    break;
+  case MicronTrackerLogger::DEBUG_LEVEL:
+    if (message)
+    {
+      LOG_DEBUG("MicronTracker: "<<message);
+    }
+    break;
+  case MicronTrackerLogger::ERROR_LEVEL:
+  default:
+    LOG_ERROR("MicronTracker: "<<(message?message:"") );
+    break;
+  }
 }

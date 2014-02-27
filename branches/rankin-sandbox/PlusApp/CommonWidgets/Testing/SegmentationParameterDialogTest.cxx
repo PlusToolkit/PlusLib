@@ -41,8 +41,6 @@ SegmentationParameterDialogTest::SegmentationParameterDialogTest(QWidget *parent
 
   // Insert widgets into placeholders
   QGridLayout* mainGrid = new QGridLayout(this);
-  mainGrid->setColumnStretch(2, 1);
-  mainGrid->setRowStretch(2, 1);
   mainGrid->setMargin(4);
   mainGrid->setSpacing(4);
   mainGrid->setColumnMinimumWidth(0, 296);
@@ -96,8 +94,8 @@ void SegmentationParameterDialogTest::ConnectToDevicesByConfigFile(std::string a
       // Create dialog
       QDialog* connectDialog = new QDialog(this, Qt::Dialog);
       connectDialog->setMinimumSize(QSize(360,80));
-      connectDialog->setCaption(tr("fCal"));
-      connectDialog->setBackgroundColor(QColor(224, 224, 224));
+      connectDialog->setWindowTitle(tr("fCal"));
+      connectDialog->setStyleSheet("QDialog { background-color: rgb(224, 224, 224); }");
 
       QLabel* connectLabel = new QLabel(QString("Connecting to devices, please wait..."), connectDialog);
       connectLabel->setFont(QFont("SansSerif", 16));
@@ -126,8 +124,29 @@ void SegmentationParameterDialogTest::ConnectToDevicesByConfigFile(std::string a
 
         QApplication::restoreOverrideCursor();
 
+        vtkPlusDevice* aDevice(NULL);
+        vtkPlusChannel* aChannel(NULL);
+        DeviceCollection aCollection;
+        if( m_DataCollector->GetDevices(aCollection) == PLUS_SUCCESS && aCollection.size() > 0 )
+        {
+          aDevice = aCollection[0];
+        }
+        else
+        {
+          LOG_ERROR("No devices in tool state display widget test. Nothing to show!");
+          return;
+        }
+
+        if( aDevice->OutputChannelCount() == 0 )
+        {
+          LOG_ERROR("No output channels to acquire data from.");
+          return;
+        }
+
+        aChannel = *(aDevice->GetOutputChannelsStart());
+
         // Show segmentation parameter dialog
-        SegmentationParameterDialog* segmentationParamDialog = new SegmentationParameterDialog(this, m_DataCollector);
+        SegmentationParameterDialog* segmentationParamDialog = new SegmentationParameterDialog(this, m_DataCollector, aChannel);
         segmentationParamDialog->exec();
 
         delete segmentationParamDialog;

@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "vnl/vnl_matrix.h"
+#include "vnl/vnl_matrix_fixed.h"
 #include "vnl/vnl_vector.h"
 #include "vnl/vnl_sparse_matrix.h"   
 #include "vtkMatrix4x4.h"
@@ -33,9 +34,9 @@ public:
     \param mean Pointer to get the resulting mean of the the LSQR fit error
     \param stdev Pointer to get the resulting standard deviation of the the LSQR fit error
     \param resultVector to store the results
-	\param notOutlierIndices Row that were not removed during the outliers rejection process
+  \param notOutlierIndices Row that were not removed during the outliers rejection process
   */
-  static PlusStatus LSQRMinimize(const std::vector< std::vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean = NULL, double* stdev = NULL, vnl_vector<double>* notOutliersIndices=NULL); 
+  static PlusStatus LSQRMinimize(const std::vector< std::vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean = NULL, double* stdev = NULL, vnl_vector<unsigned int>* notOutliersIndices=NULL); 
   /*!
     Solve Ax = b sparse linear equations with robust linear least squares method (vnl_lsqr and outlier removal)
     \param aMatrix The coefficient matrix of size m-by-n.
@@ -43,9 +44,9 @@ public:
     \param mean Pointer to get the resulting mean of the the LSQR fit error
     \param stdev Pointer to get the resulting standard deviation of the the LSQR fit error
     \param resultVector to store the results
-	\param notOutlierIndices Row that were not removed during the outliers rejection process
+  \param notOutlierIndices Row that were not removed during the outliers rejection process
   */
-  static PlusStatus LSQRMinimize(const std::vector<vnl_vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean = NULL, double* stdev = NULL , vnl_vector<double>* notOutliersIndices=NULL); 
+  static PlusStatus LSQRMinimize(const std::vector<vnl_vector<double> > &aMatrix, const std::vector<double> &bVector, vnl_vector<double> &resultVector, double* mean = NULL, double* stdev = NULL , vnl_vector<unsigned int>* notOutliersIndices=NULL); 
   /*!
     Solve Ax = b sparse linear equations with robust linear least squares method (vnl_lsqr and outlier removal)
     \param sparseMatrixLeftSide The coefficient matrix of size m-by-n. (aMatrix)
@@ -54,12 +55,12 @@ public:
     \param stdev Pointer to get the resulting standard deviation of the the LSQR fit error
     \param resultVector to store the results
   */
-  static PlusStatus LSQRMinimize(const vnl_sparse_matrix<double> &sparseMatrixLeftSide, const vnl_vector<double> &vectorRightSide, vnl_vector<double> &resultVector, double* mean = NULL, double* stdev = NULL, vnl_vector<double>* notOutliersIndices=NULL); 
+  static PlusStatus LSQRMinimize(const vnl_sparse_matrix<double> &sparseMatrixLeftSide, const vnl_vector<double> &vectorRightSide, vnl_vector<double> &resultVector, double* mean = NULL, double* stdev = NULL, vnl_vector<unsigned int>* notOutliersIndices=NULL); 
 
   /*! Returns the Euclidean distance between two 4x4 homogeneous transformation matrix */
   static double GetPositionDifference(vtkMatrix4x4* aMatrix, vtkMatrix4x4* bMatrix); 
 
-  /*! Returns the orientation difference in degrees between two 4x4 homogeneous transformation matrix */
+  /*! Returns the orientation difference in degrees between two 4x4 homogeneous transformation matrix, in degrees. */
   static double GetOrientationDifference(vtkMatrix4x4* aMatrix, vtkMatrix4x4* bMatrix); 
 
   /*! Returns the distance between a line, defined by two point (x and y) and a point (z) */
@@ -77,6 +78,18 @@ public:
   */
   static void Slerp(double *result, double t, double *from, double *to, bool adjustSign = true); 
 
+  /*
+    This function constrain an orientation in 3DOF to 2DOF (rotation around two axes)    
+    This function is given a rotation axis vector ("down" vector, in the sensor coordinate system;
+    the down vector equals the acceleration direction if the sensor is not moving).
+    The updated orientation will be rotated along this rotation axis so that the specified (notRotatingAxisIndex-th) axis
+    points to the (0,1,0) orientation in the SouthWestDown coordinate system.
+    The input sensorToSouthWestDownTransform is updated with the constrained transformation matrix.
+    This can be used for setting the West direction explicitly when a compass is not used for getting the rotation around the Down axis.
+    The notRotatingAxisIndex is the index of the sensor axis that will be constrained to always point to the West direction.
+  */
+  static PlusStatus ConstrainRotationToTwoAxes(double downVector_Sensor[3], int notRotatingAxisIndex, vtkMatrix4x4* sensorToSouthWestDownTransform);
+  
   /*! Returns a string containing the parameters (rotation, translation, scaling) from a transformation */
   static std::string GetTransformParametersString(vtkTransform* transform);
 
@@ -84,14 +97,19 @@ public:
   static std::string GetTransformParametersString(vtkMatrix4x4* matrix); 
 
   /*! Convert matrix between VTK and VNL */
-	static void ConvertVnlMatrixToVtkMatrix(vnl_matrix<double>& inVnlMatrix, vtkMatrix4x4* outVtkMatrix); 
-	static void ConvertVtkMatrixToVnlMatrix(vtkMatrix4x4* inVtkMatrix, vnl_matrix<double>& outVnlMatrix ); 
+  static void ConvertVnlMatrixToVtkMatrix(const vnl_matrix_fixed<double,4,4>& inVnlMatrix, vtkMatrix4x4* outVtkMatrix); 
+  static void ConvertVtkMatrixToVnlMatrix(const vtkMatrix4x4* inVtkMatrix, vnl_matrix_fixed<double,4,4>& outVnlMatrix );
+
 
   /*! Print VTK matrix into STL stream */
   static void PrintVtkMatrix(vtkMatrix4x4* matrix, std::ostringstream &stream, int precision = 3);
+  static void PrintMatrix(vnl_matrix_fixed<double,4,4> matrix, std::ostringstream &stream, int precision = 3);
 
   /*! Print VTK matrix into log as info */
   static void LogVtkMatrix(vtkMatrix4x4* matrix, int precision = 3);
+
+  /*! Print VTK matrix into log as info */
+  static void LogMatrix(const vnl_matrix_fixed<double,4,4>& matrix, int precision = 3);
   
   // Fast floor implementation. Adopted from vtkImageReslice.
 
@@ -220,13 +238,27 @@ public:
   \param stdev Computed standard deviation
   */
   static PlusStatus ComputeMeanAndStdev(const std::vector<double> &values, double &mean, double &stdev);
-  
+
+  /*! 
+  Convenience function to compute mean and standard deviation for a vector of doubles
+  \param values Input values
+  \param rms Root mean square
+  */
+  static PlusStatus ComputeRms(const std::vector<double> &values, double &rms);
+
+  /*! 
+  Convenience function to compute a percentile (percentile % of the values are smaller than the computed value)
+  \param values Input values
+  \param percentile Percents of values to keep (between 0.0 and 1.0)
+  */
+  static PlusStatus ComputePercentile(const std::vector<double> &values, double percentileToKeep, double &valueMax, double &valueMean, double &valueStdev);
+
 protected:
   PlusMath(); 
   ~PlusMath();
 
   /*! Remove outliers from Ax = b sparse linear equations after linear least squares method (vnl_lsqr) */
-  static PlusStatus RemoveOutliersFromLSRQ(
+  static PlusStatus RemoveOutliersFromLSQR(
     vnl_sparse_matrix<double> &sparseMatrixLeftSide, 
     vnl_vector<double> &vectorRightSide, 
     vnl_vector<double> &resultVector, 
@@ -234,8 +266,8 @@ protected:
     double thresholdMultiplier = 3.0, 
     double* mean = NULL, 
     double* stdev = NULL,
-    vnl_vector<double>* nonOutlierIndices = NULL
-	); 
+    vnl_vector<unsigned int>* nonOutlierIndices = NULL
+  ); 
 
 private: 
   PlusMath(PlusMath const&);

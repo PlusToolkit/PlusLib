@@ -13,7 +13,7 @@
   If the --rendering-off switch is not defined then the live ultrasound image is displayed
   in a window (useful for quick interactive testing of the image transfer).
   \todo This is a test todo
-  \ingroup PlusLibImageAcquisition
+  \ingroup PlusLibDataCollection
 */
 
 #include "PlusConfigure.h"
@@ -28,9 +28,7 @@
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkPlot.h"
-#include "vtkPlusChannel.h"
-#include "vtkPlusDataSource.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusBuffer.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
@@ -249,6 +247,8 @@ int main(int argc, char* argv[])
   bool renderingOff(false);
   bool printParams(false);
   std::string inputConfigFile;
+  std::string inputSonixIp;
+
   std::string acqMode("B");
 
   vtksys::CommandLineArguments args;
@@ -259,6 +259,7 @@ int main(int argc, char* argv[])
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFile, "Config file containing the device configuration.");
   args.AddArgument("--acq-mode", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &acqMode, "Acquisition mode: B or RF (Default: B).");	
+  args.AddArgument("--sonix-ip", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSonixIp, "IP address of the Ultrasonix scanner (overrides the IP address parameter defined in the config file).");
   args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
   args.AddArgument("--print-params", vtksys::CommandLineArguments::NO_ARGUMENT, &printParams, "Print all the supported imaging parameters (for diagnostic purposes only).");	
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level 1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
@@ -313,17 +314,9 @@ int main(int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
-  vtkPlusChannel* aChannel(NULL);
-  vtkPlusDataSource* aSource(NULL);
-  if( sonixGrabber->GetCurrentChannel(aChannel) != PLUS_SUCCESS || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if (!inputSonixIp.empty())
   {
-    LOG_ERROR("Unable to retrieve the video source.");
-    return NULL;
-  }
-  if ( aSource->GetBuffer()->SetBufferSize(30) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to set video buffer size!"); 
-    exit(EXIT_FAILURE);
+    sonixGrabber->SetSonixIP(inputSonixIp.c_str());
   }
 
   if ( sonixGrabber->Connect()!=PLUS_SUCCESS ) 

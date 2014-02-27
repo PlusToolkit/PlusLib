@@ -10,41 +10,44 @@
 #include "PlusConfigure.h"
 #include "vtkPlusDevice.h"
 #include "igtlClientSocket.h"
+#include "igtlMessageBase.h"
 
 /*!
 \class vtkOpenIGTLinkTracker 
 \brief OpenIGTLink tracker client  
 
-\ingroup PlusLibTracking
+\ingroup PlusLibDataCollection
 */
 class VTK_EXPORT vtkOpenIGTLinkTracker : public vtkPlusDevice
 {
 public:
 
-	static vtkOpenIGTLinkTracker *New();
-	vtkTypeMacro( vtkOpenIGTLinkTracker,vtkPlusDevice );
-	void PrintSelf( ostream& os, vtkIndent indent );
+  static vtkOpenIGTLinkTracker *New();
+  vtkTypeMacro( vtkOpenIGTLinkTracker,vtkPlusDevice );
+  void PrintSelf( ostream& os, vtkIndent indent );
 
   /*! OpenIGTLink version. */
   virtual std::string GetSdkVersion();
 
-	/*! Connect to device */
-	PlusStatus InternalConnect();
+  /*! Connect to device */
+  PlusStatus InternalConnect();
 
-	/*! Disconnect from device */
-	virtual PlusStatus InternalDisconnect();
+  /*! Disconnect from device */
+  virtual PlusStatus InternalDisconnect();
 
-	/*! Probe to see if the tracking system is present on the specified address. */
-	PlusStatus Probe();
+  /*! Probe to see if the tracking system is present on the specified address. */
+  PlusStatus Probe();
 
-	/*! Get an update from the tracking system and push the new transforms to the tools. This function is called by the tracker thread.*/
-	PlusStatus InternalUpdate();
+  /*! Get an update from the tracking system and push the new transforms to the tools. This function is called by the tracker thread.*/
+  PlusStatus InternalUpdate();
 
   /*! Read configuration from xml data */
-	virtual PlusStatus ReadConfiguration( vtkXMLDataElement* config ); 
-	
+  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* config ); 
+  
   /*! Write configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);  
+
+  virtual bool IsTracker() const { return true; }
 
   /*! Set OpenIGTLink message type */ 
   vtkSetStringMacro(MessageType); 
@@ -78,17 +81,40 @@ public:
   vtkGetStringMacro(TrackerInternalCoordinateSystemName); 
 
 protected:
-	vtkOpenIGTLinkTracker();
-	~vtkOpenIGTLinkTracker();
+  vtkOpenIGTLinkTracker();
+  ~vtkOpenIGTLinkTracker();
 
   /*! 
     Start the tracking system.  The tracking system is brought from its ground state into full tracking mode.
     The device will only be reset if communication cannot be established without a reset.
   */
-	PlusStatus InternalStartRecording();
+  PlusStatus InternalStartRecording();
 
-	/*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking */
-	PlusStatus InternalStopRecording();
+  /*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking */
+  PlusStatus InternalStopRecording();
+
+  /*! Reconnect the client socket. Used when the connection is established or there is a socket error. */
+  PlusStatus ClientSocketReconnect();
+
+  /*!
+    Receive an OpenITGLink message header.
+    Returns PLUS_FAIL if there was a socket error.
+    The headerMsg is NULL is no data is received.
+  */
+  PlusStatus ReceiveMessageHeader(igtl::MessageHeader::Pointer &headerMsg);
+
+  /*! Process a TRANSFORM or POSITION message (add the received transform to the buffer) */
+  PlusStatus ProcessTransformMessage(igtl::MessageHeader::Pointer headerMsg);
+
+  /*! Process a TDATA message (add all the received transforms to the buffers) */
+  PlusStatus ProcessTDataMessage(igtl::MessageHeader::Pointer headerMsg);
+
+  /*!
+    Store the latest transforms again in the buffers with the provided timestamp.
+    If no transforms are defined then identity transform will be stored.
+    If there is a transform defined already with the same timestamp then it will not be overwritten.
+  */
+  PlusStatus StoreMostRecentTransformValues(double unfilteredTimestamp);
 
   /*! Set the ReconnectOnNoData flag */
   vtkSetMacro(ReconnectOnReceiveTimeout, bool);
@@ -123,10 +149,19 @@ protected:
   */
   char* TrackerInternalCoordinateSystemName;
 
+  /*! Use the last known transform value if not received a new value. Useful for servers that only notify about changes in the transforms. */
+  bool UseLastTransformsOnReceiveTimeout;
+
+  /*!
+    Use the timestamp embedded in the OpenIGTLink message (the timestamp is converted form the UTC time to system time).
+    If it is false then the time of reception is used as timestamp.
+  */
+  bool UseReceivedTimestamps;
+
 private:  
   
   vtkOpenIGTLinkTracker( const vtkOpenIGTLinkTracker& );
-	void operator=( const vtkOpenIGTLinkTracker& );    
+  void operator=( const vtkOpenIGTLinkTracker& );    
 };
 
 #endif

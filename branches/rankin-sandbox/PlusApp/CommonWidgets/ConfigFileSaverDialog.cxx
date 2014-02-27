@@ -12,7 +12,6 @@
 
 #include "vtkXMLUtilities.h"
 #include "vtkXMLDataElement.h"
-#include "PlusRevision.h"
 
 //-----------------------------------------------------------------------------
 
@@ -48,7 +47,7 @@ void ConfigFileSaverDialog::OpenDestinationDirectoryClicked()
 		return;
 	}
 
-  this->SetDestinationDirectory(dirName.toAscii().data()); 
+  this->SetDestinationDirectory(dirName.toLatin1().constData()); 
 
 	m_DestinationDirectory = dirName;
 
@@ -115,6 +114,7 @@ PlusStatus ConfigFileSaverDialog::ReadConfiguration()
 
 void ConfigFileSaverDialog::SaveClicked()
 {
+
   LOG_TRACE("ConfigFileSaverDialog::SaveClicked");
 
   // Get root element
@@ -124,11 +124,6 @@ void ConfigFileSaverDialog::SaveClicked()
 		LOG_ERROR("No configuration XML found!");
 		return;
 	}
-
-  // Save plus version
-  std::string plusVersionString(PLUSLIB_VERSION);
-  plusVersionString = plusVersionString + "." + PLUSLIB_REVISION;
-  configRootElement->SetAttribute("PlusRevision", plusVersionString.c_str());
 
   // Find Device set element
 	vtkXMLDataElement* dataCollection = configRootElement->FindNestedElementWithName("DataCollection");
@@ -144,20 +139,19 @@ void ConfigFileSaverDialog::SaveClicked()
 		LOG_ERROR("No DeviceSet element is found in the XML tree!");
 		return;
 	}
-
   // Set name and description to XML
-  deviceSet->SetAttribute("Name", ui.lineEdit_DeviceSetName->text());
-  deviceSet->SetAttribute("Description", ui.textEdit_Description->toPlainText());
+	deviceSet->SetAttribute("Name", ui.lineEdit_DeviceSetName->text().toLatin1().constData());
+	deviceSet->SetAttribute("Description", ui.textEdit_Description->toPlainText().toLatin1().constData());
 
   // Display file save dialog and save XML
-	QString filter = QString( tr( "XML files ( *.xml );;" ) );
+  QString filter = QString( tr( "XML files ( *.xml );;" ) );
   QString destinationFile = QString("%1/%2").arg(m_DestinationDirectory).arg(vtkPlusConfig::GetInstance()->GetNewDeviceSetConfigurationFileName().c_str());
   QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save result configuration XML"), destinationFile, filter);
 
 	if (! fileName.isNull() )
   {
-    PlusCommon::PrintXML(fileName.toAscii().data(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
-    LOG_INFO("Device set configuration saved as '" << fileName.toAscii().data() << "'");
+    PlusCommon::PrintXML(fileName.toLatin1().constData(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+    LOG_INFO("Device set configuration saved as '" << fileName.toLatin1().constData() << "'");
 	}
 
   accept();

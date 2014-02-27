@@ -1,0 +1,54 @@
+/*!
+\page DeviceBkProFocus BK ultrasound systems
+
+\par Supported hardware devices
+
+- BK ProFocus and various other BK ultrasound imaging devices
+- Link to manufacturer's website: http://www.bkmed.com/systems_en.htm
+
+\par Installation
+
+- Image acquisition is available through both the OEM interface (TCP/IP) and CameraLink interface (high-speed interface for RF data acquisition)
+- B-mode image acquisition through the OEM interface has some limitations, see <a href="https://www.assembla.com/spaces/plus/tickets/753">#753</a> and <a href="https://www.assembla.com/spaces/plus/tickets/754">#754</a>. The responsiveness of the BK scanner software may be impacted if images are acquired continuously at a frame rate higher than a few frames per second.
+- RF acquisition through TeledyneDalsa CameraLink interface card is supported, using Sapera API.
+  - B-mode acquisition (using the internal RF->B-mode conversion algorithm) is available for the BK 8848 transducer (http://www.bkmed.com/8848_en.htm).
+  - Need to install the DALSA Sapera package, otherwise the applications will not start because of missing the SapClassBasic72.dll. This dll can only be used with 64-bit Plus build on 64-bit OS and 32-bit Plus build on a 32-bit OS. Therefore the bitness of the Plus package shall match the bitness of the operating system.
+- RF acquisition is supported on Windows only
+
+\par Configuration settings
+
+OEM interface
+
+- Device type: \c BkProFocusOem
+- Attributes
+  - \c IniFileName INI file name. If a relative path is specified then it is relative to the device set configuration directory. See an example \ref inifile "INI file" below.
+
+RF acquisition through the CameraLink interface
+
+- Device type: \c BkProFocus
+- Attributes
+  - \c IniFileName INI file name. If a relative path is specified then it is relative to the device set configuration directory. See an example \ref inifile "INI file" below.
+  - \c ImagingMode
+    - \c BMode
+    - \c RfMode Acquire RF mode data. For previewing B-mode images during acquisition, add an \ref RfProcessing "RfProcessing" child element to the \c OutputChannel
+  - \c SubscribeScanPlane Enable support for dynamic scan plane switching on 8848 probes (\c true or \c false)
+
+\par Quality values
+
+The tool ports \c quality1 and \c quality2  provide the quality values for all the tools.
+
+The quality numbers are stored in the translation component of the transformation matrix. If a value is not available then it is set to -1.
+- \c quality1: quality values for sensor port 0-2
+- \c quality2: quality values for sensor port 3-5 (usually there are only 4 ports, so quality values for port 4 and 5 are not available)
+
+\anchor inifile
+\par Example INI file
+
+\include "data/ConfigFiles/BkSettings/IniFile.ini"
+
+\par Example configuration file
+
+\include "data/ConfigFiles/PlusDeviceSet_fCal_BkProFocus_OpenIGTLinkTracker.xml"
+
+
+*/

@@ -7,18 +7,21 @@
 #ifndef __vtkPlusCommandProcessor_h
 #define __vtkPlusCommandProcessor_h
 
+#include "vtkMultiThreader.h"
+#include "vtkObject.h"
+#include "vtkPlusOpenIGTLinkServer.h"
 #include <deque>
 #include <string>
-
-#include "vtkObject.h"
-#include "vtkMultiThreader.h"
-
-#include "vtkPlusOpenIGTLinkServer.h"
 
 class vtkPlusCommand;
 class vtkImageData;
 class vtkMatrix4x4;
 
+/*!
+  \class PlusCommandReply 
+  \brief Structure to store an OpenIGTLink command reply.
+  \ingroup PlusLibPlusServer
+*/
 struct PlusCommandReply
 {
   PlusCommandReply()
@@ -26,7 +29,9 @@ struct PlusCommandReply
   {
   }
   unsigned int ClientId;
-  std::string ReplyString;  
+  PlusStatus Status;
+  std::string DeviceName;
+  std::string CustomAttributes;
   std::string ImageName;
   vtkImageData* ImageData;
   vtkMatrix4x4* ImageToReferenceTransform;
@@ -41,7 +46,7 @@ typedef std::list<PlusCommandReply> PlusCommandReplyList;
   If the commands are to be executed on a separate thread (to allow background processing, but maybe requiring more synchronization) call Start() to start an internal processing thread. 
   Probably one of the processing models would be enough, but at this point it's not clear which one is better.
   TODO: keep only one method and remove the other approach completely once the processing model decision is finalized.
-  \ingroup PlusLibDataCollection
+  \ingroup PlusLibPlusServer
 */
 class
 VTK_EXPORT
@@ -75,19 +80,16 @@ public:
   virtual PlusStatus RegisterPlusCommand(vtkPlusCommand *cmd);
 
   /*! Adds a command to the queue for execution. Can be called from any thread.  */
-  virtual PlusStatus QueueCommand(unsigned int clientId, const std::string &commandString); 
+  virtual PlusStatus QueueCommand(unsigned int clientId, const std::string &commandString, const std::string &deviceName, const std::string& uid); 
 
   /*! Return the queued command replies and removes the items from the queue (so that each item is returned only once). Can be called from any thread. */
   virtual PlusStatus GetCommandReplies(PlusCommandReplyList &replies);
 
   /*! Adds a reply to the queue for sending to a client. Can be called from any thread.  */
-  virtual void QueueReply(int clientId, PlusStatus replyStatus, const std::string& replyString, const char* imageName=NULL, vtkImageData* imageData=NULL, vtkMatrix4x4* imageToReferenceTransform=NULL);
+  virtual void QueueReply(int clientId, PlusStatus replyStatus, const std::string& replyString, const std::string& replyDeviceName, const char* imageName=NULL, vtkImageData* imageData=NULL, vtkMatrix4x4* imageToReferenceTransform=NULL);
 
   vtkGetObjectMacro(PlusServer, vtkPlusOpenIGTLinkServer);
   vtkSetObjectMacro(PlusServer, vtkPlusOpenIGTLinkServer); 
-
-  /*! Get a command in the queue belonging to a specific client, based on its command id. Thread-safe. */
-  vtkPlusCommand* GetQueuedCommand(int clientId, int commandId);
 
 protected:
   vtkPlusCommand* CreatePlusCommand(const std::string &commandStr);
@@ -122,7 +124,7 @@ private:
     After a command's execute method is called it may still remain active (remain in the queue),
     until it signals that it is completed.
   */
-  std::deque<vtkPlusCommand*> ActiveCommands;
+  std::deque<vtkPlusCommand*> CommandQueue;
   PlusCommandReplyList CommandReplies;
 
   vtkPlusCommandProcessor(const vtkPlusCommandProcessor&);  // Not implemented.

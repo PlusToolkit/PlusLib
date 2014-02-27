@@ -1,13 +1,12 @@
 #include "PlusConfigure.h"
-#include "TrackedFrame.h"
 #include "PlusMath.h"
-
+#include "TrackedFrame.h"
+#include "itkCastImageFilter.h"
+#include "itkImageFileWriter.h"
+#include "metaImage.h"
 #include "vtkMatrix4x4.h"
 #include "vtkPoints.h"
 #include "vtkXMLUtilities.h"
-
-#include "itkCastImageFilter.h"
-#include "itkImageFileWriter.h"
 
 //----------------------------------------------------------------------------
 // ************************* TrackedFrame ************************************
@@ -15,6 +14,7 @@
 
 const std::string TrackedFrame::TransformPostfix = "Transform";
 const std::string TrackedFrame::TransformStatusPostfix = "TransformStatus";
+const int FLOATING_POINT_PRECISION=16; // Number of digits used when writing transforms and timestamps
 
 //----------------------------------------------------------------------------
 TrackedFrame::TrackedFrame()
@@ -84,8 +84,8 @@ PlusStatus TrackedFrame::PrintToXML(vtkXMLDataElement* trackedFrame)
     return PLUS_FAIL; 
   }
   
- 	trackedFrame->SetName("TrackedFrame"); 
-	trackedFrame->SetDoubleAttribute("Timestamp", this->Timestamp); 
+  trackedFrame->SetName("TrackedFrame"); 
+  trackedFrame->SetDoubleAttribute("Timestamp", this->Timestamp); 
   trackedFrame->SetAttribute("ImageDataValid", (this->GetImageData()->IsImageValid()?"true":"false")); 
   if ( this->GetImageData()->IsImageValid() )
   {
@@ -120,19 +120,19 @@ PlusStatus TrackedFrame::PrintToXML(vtkXMLDataElement* trackedFrame)
     }
     
     vtkSmartPointer<vtkXMLDataElement> segmentedPoints = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	  segmentedPoints->SetName("SegmentedPoints");
+    segmentedPoints->SetName("SegmentedPoints");
 
     for (int i=0; i<FiducialPointsCoordinatePx->GetNumberOfPoints(); i++)
-	  {
+    {
       double point[3]={0};
       FiducialPointsCoordinatePx->GetPoint(i, point);
 
-	    vtkSmartPointer<vtkXMLDataElement> pointElement = vtkSmartPointer<vtkXMLDataElement>::New(); 
-	    pointElement->SetName("Point");
+      vtkSmartPointer<vtkXMLDataElement> pointElement = vtkSmartPointer<vtkXMLDataElement>::New(); 
+      pointElement->SetName("Point");
       pointElement->SetIntAttribute("ID", i);
       pointElement->SetVectorAttribute("Position", 3, point);
       segmentedPoints->AddNestedElement( pointElement );
-	  }
+    }
     segmentation->AddNestedElement(segmentedPoints); 
     trackedFrame->AddNestedElement(segmentation); 
   }
@@ -240,7 +240,7 @@ void TrackedFrame::SetTimestamp(double value)
 { 
   this->Timestamp = value; 
   std::ostringstream strTimestamp; 
-  strTimestamp << this->Timestamp; 
+  strTimestamp << std::setprecision(FLOATING_POINT_PRECISION) << this->Timestamp; 
   this->CustomFrameFields["Timestamp"]=strTimestamp.str();
 }
 
@@ -476,7 +476,7 @@ PlusStatus TrackedFrame::SetCustomFrameTransform(const PlusTransformName& frameT
   std::ostringstream strTransform; 
   for ( int i = 0; i < 16; ++i )
   {
-    strTransform << transform[ i ] << " ";
+    strTransform << std::setprecision(FLOATING_POINT_PRECISION) << transform[ i ] << " ";
   }
 
   std::string transformName; 
@@ -540,57 +540,43 @@ std::string TrackedFrame::ConvertFieldStatusToString(TrackedFrameFieldStatus sta
 }
 
 //----------------------------------------------------------------------------
-PlusStatus TrackedFrame::WriteToFile(const std::string &filename, vtkMatrix4x4* mImageToTracker)
+PlusStatus TrackedFrame::WriteToFile(const std::string &filename, vtkMatrix4x4* imageToTracker)
 {
-  typedef unsigned char			PixelType; 
-  typedef itk::Image< PixelType, 2 > Image2dType; 
-  typedef itk::Image< PixelType, 3 > Image3dType; 
-
-  typedef itk::CastImageFilter< Image2dType, Image3dType> CastFilterType;
-  CastFilterType::Pointer castFilter = CastFilterType::New(); 
-  try 
-  {      
-    castFilter->SetInput(this->ImageData.GetDisplayableImage());
-    castFilter->Update();
-  }
-  catch(itk::ExceptionObject & err)
+  vtkImageData* volumeToSave = this->GetImageData()->GetImage();
+  MET_ValueEnumType scalarType = MET_NONE;
+  switch (volumeToSave->GetScalarType())
   {
-    LOG_ERROR("Failed to cast image for writing it to file: " << err.GetDescription() ); 
-    return PLUS_FAIL; 
+  case VTK_UNSIGNED_CHAR: scalarType = MET_UCHAR; break;
+  case VTK_FLOAT: scalarType = MET_FLOAT; break;
+  default:
+    LOG_ERROR("Scalar type is not supported!");
+    return PLUS_FAIL;
   }
 
-  Image3dType::Pointer image=castFilter->GetOutput();     
-
-  double origin[3]=
+  MetaImage metaImage(volumeToSave->GetDimensions()[0], volumeToSave->GetDimensions()[1], volumeToSave->GetDimensions()[2],
+    volumeToSave->GetSpacing()[0], volumeToSave->GetSpacing()[1], volumeToSave->GetSpacing()[2],
+    scalarType, volumeToSave->GetNumberOfScalarComponents(), volumeToSave->GetScalarPointer());
+  double origin[3];
+  origin[0] = imageToTracker->Element[0][3];
+  origin[1] = imageToTracker->Element[1][3];
+  origin[2] = imageToTracker->Element[2][3];
+  metaImage.Origin(origin);
+  for(int i = 0; i < 3; ++i )
   {
-    mImageToTracker->Element[0][3],
-    mImageToTracker->Element[1][3],
-    mImageToTracker->Element[2][3],
-  };
-  image->SetOrigin(origin);
-
-  Image3dType::DirectionType dir;
-  for (int r=0; r<3; r++)
-  {
-    for (int c=0; c<3; c++)
+    for(int j = 0; j < 3; ++j )
     {
-      dir.GetVnlMatrix().put(r,c, mImageToTracker->Element[r][c]);
+      metaImage.Orientation(i, j, imageToTracker->Element[i][j]);
     }
   }
-  image->SetDirection(dir);
-
-  typedef itk::ImageFileWriter< Image3dType > WriterType; 
-  WriterType::Pointer writeImage = WriterType::New();  
-
-  writeImage->SetFileName(filename.c_str());  
-  writeImage->SetInput( image );
-  try
+  // By definition, LPS orientation in DICOM sense = RAI orientation in MetaIO. See details at:
+  // http://www.itk.org/Wiki/Proposals:Orientation#Some_notes_on_the_DICOM_convention_and_current_ITK_usage
+  metaImage.AnatomicalOrientation("RAI");
+  metaImage.BinaryData(true);
+  metaImage.CompressedData(true);
+  metaImage.ElementDataFileName("LOCAL");
+  if (metaImage.Write(filename.c_str()) == false)
   {
-    writeImage->Update(); 
-  }
-  catch (itk::ExceptionObject & err) 
-  {		
-    LOG_ERROR(" Exception! writer did not update. Error: "<< err); 
+    LOG_ERROR("Failed to save reconstructed volume in sequence metafile!");
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
@@ -717,7 +703,7 @@ PlusStatus TrackedFrameEncoderPositionFinder::GetStepperEncoderValues( TrackedFr
 }
 
 //----------------------------------------------------------------------------
-bool TrackedFrameEncoderPositionFinder::operator()( TrackedFrame *newFrame )	
+bool TrackedFrameEncoderPositionFinder::operator()( TrackedFrame *newFrame )  
 {
   if (mMinRequiredTranslationDifferenceMm<=0 || mMinRequiredAngleDifferenceDeg<=0)
   {
@@ -750,7 +736,7 @@ bool TrackedFrameEncoderPositionFinder::operator()( TrackedFrame *newFrame )
     return true; 
   }
   return false; 
-}	
+}  
 
 
 

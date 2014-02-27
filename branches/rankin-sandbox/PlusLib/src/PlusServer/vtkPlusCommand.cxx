@@ -8,40 +8,53 @@
 #include "vtkPlusCommand.h"
 #include "vtkPlusCommandProcessor.h"
 #include "vtkVersion.h"
+#include "vtkImageData.h"
+#include "vtkMatrix4x4.h"
+
+static const char* DEVICE_NAME_COMMAND = "CMD";
+static const char* DEVICE_NAME_REPLY = "ACK";
+
+vtkCxxSetObjectMacro(vtkPlusCommand, ResponseImage, vtkImageData);
+vtkCxxSetObjectMacro(vtkPlusCommand, ResponseImageToReferenceTransform, vtkMatrix4x4);
 
 //----------------------------------------------------------------------------
 vtkPlusCommand::vtkPlusCommand()
-: Completed(false)
-, CommandProcessor(NULL)
+: CommandProcessor(NULL)
 , ClientId(0)
-, Id(0)
+, Id(NULL)
 , Name(NULL)
+, DeviceName(NULL)
+, ResponseImage(NULL)
+, ResponseImageToReferenceTransform(NULL)
 {
 }
 
 //----------------------------------------------------------------------------
 vtkPlusCommand::~vtkPlusCommand()
 {  
-  SetName(NULL);
+  this->SetName(NULL);
+  this->SetDeviceName(NULL);
+  this->SetId(NULL);
+  this->SetResponseImage(NULL);
+  this->SetResponseImageToReferenceTransform(NULL);
 }
 
 //----------------------------------------------------------------------------
 void vtkPlusCommand::PrintSelf( ostream& os, vtkIndent indent )
 {
-	this->Superclass::PrintSelf( os, indent );
+  this->Superclass::PrintSelf( os, indent );
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusCommand::ReadConfiguration(vtkXMLDataElement* aConfig)
 {  
-  if (aConfig==NULL)
+  if (aConfig == NULL)
   {
     LOG_ERROR("vtkPlusCommand::ReadConfiguration failed, input is NULL");
     return PLUS_FAIL;
   }
-  aConfig->GetScalarAttribute("Id",this->Id);
   SetName(aConfig->GetAttribute("Name"));
-  if (ValidateName()!=PLUS_SUCCESS)
+  if (ValidateName() != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
@@ -71,10 +84,6 @@ PlusStatus vtkPlusCommand::WriteConfiguration(vtkXMLDataElement* aConfig)
       aConfig->SetAttribute("Name",cmdNames.front().c_str());
     }
   }
-  if (this->Id!=0)
-  {
-    aConfig->SetIntAttribute("Id",this->Id);
-  }
   return PLUS_SUCCESS;
 }
 
@@ -82,28 +91,6 @@ PlusStatus vtkPlusCommand::WriteConfiguration(vtkXMLDataElement* aConfig)
 void vtkPlusCommand::SetCommandProcessor( vtkPlusCommandProcessor *processor )
 {  
   this->CommandProcessor=processor;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusCommand::SetCommandCompleted(PlusStatus replyStatus, const std::string& replyString)
-{
-  if (this->CommandProcessor==NULL)
-  {
-    LOG_ERROR("vtkPlusCommand::SetCommandCompleted failed, command processor is invalid");
-    return PLUS_FAIL;
-  }
-  else
-  {
-    this->CommandProcessor->QueueReply(this->ClientId, replyStatus, replyString);
-  }
-  this->Completed=true;
-  return PLUS_FAIL;
-}
-
-//----------------------------------------------------------------------------
-bool vtkPlusCommand::IsCompleted()
-{  
-  return this->Completed;
 }
 
 //----------------------------------------------------------------------------
@@ -115,24 +102,51 @@ void vtkPlusCommand::SetClientId(int clientId)
 //----------------------------------------------------------------------------
 vtkDataCollector* vtkPlusCommand::GetDataCollector()
 {  
-  if (this->CommandProcessor==NULL)
+  if (this->CommandProcessor == NULL)
   {
     LOG_ERROR("CommandProcessor is invalid");
     return NULL;
   }
-  vtkPlusOpenIGTLinkServer* server=this->CommandProcessor->GetPlusServer();
-  if (server==NULL)
+
+  vtkPlusOpenIGTLinkServer* server = this->CommandProcessor->GetPlusServer();
+  if (server == NULL)
   {
     LOG_ERROR("CommandProcessor::PlusServer is invalid");
     return NULL;
   }
-  vtkDataCollector* dataCollector=server->GetDataCollector();
-  if (dataCollector==NULL)
+
+  vtkDataCollector* dataCollector = server->GetDataCollector();
+  if (dataCollector == NULL)
   {
     LOG_ERROR("CommandProcessor::PlusServer::DataCollector is invalid");
     return NULL;
   }
   return dataCollector;
+}
+
+//----------------------------------------------------------------------------
+vtkTransformRepository* vtkPlusCommand::GetTransformRepository()
+{
+  if (this->CommandProcessor == NULL)
+  {
+    LOG_ERROR("CommandProcessor is invalid");
+    return NULL;
+  }
+
+  vtkPlusOpenIGTLinkServer* server = this->CommandProcessor->GetPlusServer();
+  if (server == NULL)
+  {
+    LOG_ERROR("CommandProcessor::PlusServer is invalid");
+    return NULL;
+  }
+
+  vtkTransformRepository* aRepository = server->GetTransformRepository();
+  if( aRepository == NULL )
+  {
+    LOG_ERROR("CommandProcessor::PlusServer::TransformRepository is invalid");
+    return NULL;
+  }
+  return aRepository;
 }
 
 //----------------------------------------------------------------------------
@@ -155,4 +169,96 @@ PlusStatus vtkPlusCommand::ValidateName()
   }
   LOG_ERROR("Command name "<<this->Name<<" is not recognized");
   return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkPlusCommand::GetReplyDeviceName()
+{
+  std::string uid;
+  if( this->Id != NULL)
+  {
+    uid=this->Id;
+  }
+  return GenerateReplyDeviceName(uid);
+}
+
+//----------------------------------------------------------------------------
+std::string vtkPlusCommand::GenerateCommandDeviceName(const std::string &uid)
+{
+  std::stringstream ss;
+  ss << DEVICE_NAME_COMMAND;
+  if( !uid.empty() )
+  {
+    ss << "_" << uid;
+  }
+  return ss.str();
+}
+
+//----------------------------------------------------------------------------
+std::string vtkPlusCommand::GenerateReplyDeviceName(const std::string &uid)
+{
+  std::stringstream ss;
+  ss << DEVICE_NAME_REPLY;
+  if( !uid.empty() )
+  {
+    ss << "_" << uid;
+  }
+  return ss.str();
+}
+
+//----------------------------------------------------------------------------
+bool vtkPlusCommand::IsReplyDeviceName(const std::string &deviceName, const std::string &uid)
+{
+  std::string prefix=GetPrefixFromCommandDeviceName(deviceName);
+  if (prefix.compare(DEVICE_NAME_REPLY)!=0)
+  {
+    // not ACK_...
+    return false;
+  }
+  if (uid.empty())
+  {
+    // ACK is received and no uid check is needed
+    return true;
+  }
+  std::string uidInDeviceName=GetUidFromCommandDeviceName(deviceName);
+  if (uidInDeviceName.compare(uid)!=0)
+  {
+    // uid mismatch
+    return false;
+  }
+  // this is an ACK_... message and the uid matches
+  return true;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkPlusCommand::GetUidFromCommandDeviceName(const std::string &deviceName)
+{
+  std::string uid("");
+  std::size_t separatorPos=deviceName.find("_");
+  if( separatorPos != std::string::npos )
+  {
+    uid = deviceName.substr(separatorPos+1);
+  }
+  return uid;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkPlusCommand::GetPrefixFromCommandDeviceName(const std::string &deviceName)
+{
+  std::string prefix(deviceName);
+  std::size_t separatorPos=deviceName.find("_");
+  if( separatorPos != std::string::npos )
+  {
+    prefix = deviceName.substr(0, separatorPos);
+  }
+  return prefix;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusCommand::ResetResponse()
+{
+  this->ResponseMessage.clear();
+  this->ResponseImageDeviceName.clear();
+  this->SetResponseImage(NULL);
+  this->SetResponseImageToReferenceTransform(NULL);
 }

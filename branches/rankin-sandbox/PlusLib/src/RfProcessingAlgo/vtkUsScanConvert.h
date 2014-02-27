@@ -12,7 +12,7 @@ See License.txt for details.
 /*!
 \class vtkUsScanConvert
 \brief This is a base class for defining a common scan conversion algorithm interface for all kinds of probes
-\ingroup RfProcessingAlgo
+\ingroup PlusLibRfProcessingAlgo
 */ 
 class VTK_EXPORT vtkUsScanConvert : public vtkThreadedImageAlgorithm
 {
@@ -71,6 +71,18 @@ protected:
 
   /*! Extent of the output image, in pixels. Only the first four values are used. */
   int OutputImageExtent[6];
+
+  /*!
+    Position of the transducer's middle element in the MF coordinate system (in pixels).
+    Usually the first component is the half of the output image size and the second component is close to 0.
+  */
+  double TransducerCenterPixel[2];
+  
+  /*!
+    True if the TransducerCenterPixel is specified.
+    If not specified then the default values are used (defaults are specified in subclasses).
+  */
+  bool TransducerCenterPixelSpecified;
 
   /*! Spacing of the output image, in mm/pixel. Only the first two values are used. */
   double OutputImageSpacing[3];

@@ -11,7 +11,7 @@ See License.txt for details.
 #include "vtkChRoboticsTracker.h"
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
-#include "vtkPlusStreamBuffer.h"
+#include "vtkPlusBuffer.h"
 #include "vtkPlusDataSource.h"
 #include "vtkTransform.h"
 #include "vtkXMLDataElement.h"
@@ -22,7 +22,7 @@ See License.txt for details.
 
 #include <math.h>
 
-#ifdef WIN32
+#ifdef _WIN32
   #include <io.h> // for findnext
 #else
   #include <dirent.h>
@@ -59,13 +59,16 @@ BaudRate(115200)
 
   this->FirmwareDefinition=vtkXMLDataElement::New();
 
-  this->RequireDeviceImageOrientationInDeviceSetConfiguration = false;
+  this->RequireImageOrientationInConfiguration = false;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = true;
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
   this->RequireUsImageOrientationInDeviceSetConfiguration = false;
   this->RequireRfElementInDeviceSetConfiguration = false;
+
+  // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
+  this->StartThreadForInternalUpdates=true;
 }
 
 //-------------------------------------------------------------------------
@@ -119,7 +122,7 @@ PlusStatus vtkChRoboticsTracker::InternalConnect()
   }
 
   if (!this->Serial->IsHandleAlive())  
-  {	
+  {  
     LOG_ERROR("COM port handle is not alive "<<strComPort);
     return PLUS_FAIL; 
   }
@@ -220,7 +223,7 @@ PlusStatus vtkChRoboticsTracker::InternalUpdate()
 //-------------------------------------------------------------------------
 PlusStatus vtkChRoboticsTracker::FindFirmwareDefinition(const std::string& requestedFirmwareId, vtkXMLDataElement* foundDefinition)
 {
-  std::string firmwareFullPath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory() + std::string("/") + this->FirmwareDirectory;
+  std::string firmwareFullPath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->FirmwareDirectory.c_str());
   LOG_DEBUG("Loading the firmware files from "<<firmwareFullPath);
   
   std::vector<std::string> firmwareFileList;
@@ -264,7 +267,7 @@ PlusStatus vtkChRoboticsTracker::FindFirmwareDefinition(const std::string& reque
 //----------------------------------------------------------------------------
 void vtkChRoboticsTracker::GetFileNamesFromDirectory(std::vector<std::string> &fileNames, const std::string &dir)
 {  
-#if(WIN32) // Windows
+#ifdef _WIN32 // Windows
   _finddata_t file; 
   std::string findPath=dir+"\\*.*";
   long currentPosition = _findfirst(findPath.c_str(), &file); //find the first file in directory
@@ -628,7 +631,7 @@ PlusStatus vtkChRoboticsTracker::ReadConfiguration(vtkXMLDataElement* config)
   const char* firmwareDirectory = trackerConfig->GetAttribute("FirmwareDirectory"); 
   if ( firmwareDirectory != NULL )
   { 
-  	this->FirmwareDirectory=firmwareDirectory;
+    this->FirmwareDirectory=firmwareDirectory;
   }
 
   return PLUS_SUCCESS;

@@ -104,6 +104,14 @@ public:
   PlusStatus SaveReconstructedVolumeToMetafile(const char* filename, bool alpha=false, bool useCompression=true);
 
   /*!
+    Save reconstructed volume to metafile
+    \param volumeToSave Reconstructed volume to be saved
+    \param filename Path and filename of the output file
+    \useCompression True if compression is turned on (default), false otherwise
+  */
+  static PlusStatus SaveReconstructedVolumeToMetafile(vtkImageData* volumeToSave, const char* filename, bool useCompression=true);
+
+  /*!
     Save reconstructed volume to VTK file
     \param filename Path and filename of the output file
     \alpha True if alpha channel needs to be saved, false if gray levels (default)
@@ -118,12 +126,32 @@ public:
   vtkGetStringMacro(ReferenceCoordinateFrame);
   vtkSetStringMacro(ReferenceCoordinateFrame);
 
+  /*!
+    Get the clip rectangle origin to apply to the image in pixel coordinates.
+  */
+  int* GetClipRectangleOrigin();
+
+  /*! Get the clip rectangle size in pixels */
+  int* GetClipRectangleSize();
+
+  /*! Clear the reconstructed volume */
+  void Reset();
+
+  /*! Set the output volume's origin in the Reference coordinate system*/
+  void SetOutputOrigin(double* origin);
+
+  /*! Set the output volume's spacing in the Reference coordinate system's unit (usually mm)*/
+  void SetOutputSpacing(double* spacing);
+
+  /*! Set the output volume's extent (xStart, xEnd, yStart, yEnd, zStart, zEnd) in voxels */
+  void SetOutputExtent(int* extent);
+
 protected: 
   vtkVolumeReconstructor();
   virtual ~vtkVolumeReconstructor();
 
   /*! Helper function for computing the extent of the reconstructed volume that encloses all the frames */
-  static void AddImageToExtent( vtkImageData *image, vtkMatrix4x4* imageToReference, double* extent_Ref);
+  void AddImageToExtent( vtkImageData *image, vtkMatrix4x4* imageToReference, double* extent_Ref);
 
   /*! Construct ImageToReference transform name from the image and reference coordinate frame member variables */
   PlusStatus GetImageToReferenceTransformName(PlusTransformName& imageToReferenceTransformName);
