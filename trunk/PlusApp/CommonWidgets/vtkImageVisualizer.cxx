@@ -19,12 +19,12 @@ See License.txt for details.
 vtkStandardNewMacro(vtkImageVisualizer);
 //-----------------------------------------------------------------------------
 
-double vtkImageVisualizer::ROI_COLOUR[3] = {1.0, 0.0, 0.5};
-static double RESULT_SPHERE_COLOUR[3] = {0.0, 0.8, 0.0};
+double vtkImageVisualizer::ROI_COLOR[3] = {1.0, 0.0, 0.5};
+static double RESULT_SPHERE_COLOR[3] = {0.0, 0.8, 0.0};
 static const double MAX_WIDGET_THICKNESS = 10.0;  // maximum thickness of any object in the scene (camera is positioned at -MAX_WIDGET_THICKNESS - 1
 static double HORIZONTAL_TEXT_ORIENTATION_MARKER_OFFSET[3] = {30.0, 17.0, -1.0};
 static double VERTICAL_TEXT_ORIENTATION_MARKER_OFFSET[3] = {4.0, 40.0, -1.0};
-static double ORIENTATION_MARKER_COLOUR[3] = {0.0, 1.0, 0.0};
+static double ORIENTATION_MARKER_COLOR[3] = {0.0, 1.0, 0.0};
 static double ORIENTATION_MARKER_SIZE = 51.0;
 static double ORIENTATION_MARKER_ASSEMBLY_POSITION[3] = {12.0, 12.0, -1.0};
 static const double ORIENTATION_MARKER_CONE_RADIUS = 5.0;
@@ -78,7 +78,7 @@ vtkImageVisualizer::vtkImageVisualizer()
   this->ResultGlyph->SetSourceConnection(resultSphereSource->GetOutputPort());
   resultMapper->SetInputConnection(this->ResultGlyph->GetOutputPort());
   this->ResultActor->SetMapper(resultMapper);
-  this->ResultActor->GetProperty()->SetColor(RESULT_SPHERE_COLOUR);
+  this->ResultActor->GetProperty()->SetColor(RESULT_SPHERE_COLOR);
 
   // Create image actor
   vtkSmartPointer<vtkImageActor> imageActor = vtkSmartPointer<vtkImageActor>::New();
@@ -143,7 +143,7 @@ PlusStatus vtkImageVisualizer::InitializeOrientationMarkers()
 
   // Since the internal orientation is always MF, display the indicators for MF in all cases
   vtkSmartPointer<vtkTextActor3D> horizontalOrientationTextActor = vtkSmartPointer<vtkTextActor3D>::New();
-  horizontalOrientationTextActor->GetTextProperty()->SetColor(ORIENTATION_MARKER_COLOUR);
+  horizontalOrientationTextActor->GetTextProperty()->SetColor(ORIENTATION_MARKER_COLOR);
   horizontalOrientationTextActor->GetTextProperty()->SetFontFamilyToArial();
   horizontalOrientationTextActor->GetTextProperty()->SetFontSize(16);
   horizontalOrientationTextActor->GetTextProperty()->SetJustificationToLeft();
@@ -156,7 +156,7 @@ PlusStatus vtkImageVisualizer::InitializeOrientationMarkers()
   this->OrientationMarkerAssembly->AddPart(horizontalOrientationTextActor);
 
   vtkSmartPointer<vtkTextActor3D> verticalOrientationTextActor = vtkSmartPointer<vtkTextActor3D>::New();
-  verticalOrientationTextActor->GetTextProperty()->SetColor(ORIENTATION_MARKER_COLOUR);
+  verticalOrientationTextActor->GetTextProperty()->SetColor(ORIENTATION_MARKER_COLOR);
   verticalOrientationTextActor->GetTextProperty()->SetFontFamilyToArial();
   verticalOrientationTextActor->GetTextProperty()->SetFontSize(16);
   verticalOrientationTextActor->GetTextProperty()->SetJustificationToLeft();
@@ -176,7 +176,7 @@ PlusStatus vtkImageVisualizer::InitializeOrientationMarkers()
   horizontal[0] *= (ORIENTATION_MARKER_SIZE * 0.9);
   horizontalLineSource->SetPoint2(horizontal);
   horizontalLineMapper->SetInputConnection(horizontalLineSource->GetOutputPort());
-  horizontalLineActor->GetProperty()->SetColor(ORIENTATION_MARKER_COLOUR);
+  horizontalLineActor->GetProperty()->SetColor(ORIENTATION_MARKER_COLOR);
   horizontalLineActor->SetMapper(horizontalLineMapper);
   this->OrientationMarkerAssembly->AddPart(horizontalLineActor);
 
@@ -188,7 +188,7 @@ PlusStatus vtkImageVisualizer::InitializeOrientationMarkers()
   vertical[1] *= (ORIENTATION_MARKER_SIZE * 0.9);
   verticalLineSource->SetPoint2(vertical);
   verticalLineMapper->SetInputConnection(verticalLineSource->GetOutputPort());
-  verticalLineActor->GetProperty()->SetColor(ORIENTATION_MARKER_COLOUR);
+  verticalLineActor->GetProperty()->SetColor(ORIENTATION_MARKER_COLOR);
   verticalLineActor->SetMapper(verticalLineMapper);
   this->OrientationMarkerAssembly->AddPart(verticalLineActor);
 
@@ -198,7 +198,7 @@ PlusStatus vtkImageVisualizer::InitializeOrientationMarkers()
   horizontalConeSource->SetHeight(ORIENTATION_MARKER_CONE_HEIGHT);
   horizontalConeSource->SetRadius(ORIENTATION_MARKER_CONE_RADIUS);
   horizontalConeMapper->SetInputConnection(horizontalConeSource->GetOutputPort());
-  horizontalConeActor->GetProperty()->SetColor(ORIENTATION_MARKER_COLOUR);
+  horizontalConeActor->GetProperty()->SetColor(ORIENTATION_MARKER_COLOR);
   horizontalConeActor->RotateWXYZ(90.0, 1.0, 0.0, 0.0); 
   horizontal[0] = ORIENTATION_MARKER_SIZE;
   horizontalConeActor->SetPosition(horizontal);
@@ -211,7 +211,7 @@ PlusStatus vtkImageVisualizer::InitializeOrientationMarkers()
   verticalConeSource->SetHeight(ORIENTATION_MARKER_CONE_HEIGHT);
   verticalConeSource->SetRadius(ORIENTATION_MARKER_CONE_RADIUS);
   verticalConeMapper->SetInputConnection(verticalConeSource->GetOutputPort());
-  verticalConeActor->GetProperty()->SetColor(ORIENTATION_MARKER_COLOUR);
+  verticalConeActor->GetProperty()->SetColor(ORIENTATION_MARKER_COLOR);
   verticalConeActor->RotateWXYZ(90.0, 1.0, 0.0, 0.0); 
   verticalConeActor->RotateWXYZ(90.0, 0.0, 0.0, 1.0); 
   vertical[1] = ORIENTATION_MARKER_SIZE;
@@ -805,7 +805,7 @@ PlusStatus vtkImageVisualizer::InitializeROIVisualization()
   vtkSmartPointer<vtkActor> leftLineActor = vtkSmartPointer<vtkActor>::New();
   vtkSmartPointer<vtkPolyDataMapper> leftLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   LeftLineSource = vtkLineSource::New();
-  leftLineActor->GetProperty()->SetColor(ROI_COLOUR);
+  leftLineActor->GetProperty()->SetColor(ROI_COLOR);
   leftLineMapper->SetInputConnection(LeftLineSource->GetOutputPort());
   leftLineActor->SetMapper(leftLineMapper);
   this->ROIActorAssembly->AddPart(leftLineActor);
@@ -813,7 +813,7 @@ PlusStatus vtkImageVisualizer::InitializeROIVisualization()
   vtkSmartPointer<vtkActor> topLineActor = vtkSmartPointer<vtkActor>::New();
   vtkSmartPointer<vtkPolyDataMapper> topLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   TopLineSource = vtkLineSource::New();
-  topLineActor->GetProperty()->SetColor(ROI_COLOUR);
+  topLineActor->GetProperty()->SetColor(ROI_COLOR);
   topLineMapper->SetInputConnection(TopLineSource->GetOutputPort());
   topLineActor->SetMapper(topLineMapper);
   this->ROIActorAssembly->AddPart(topLineActor);
@@ -821,7 +821,7 @@ PlusStatus vtkImageVisualizer::InitializeROIVisualization()
   vtkSmartPointer<vtkActor> rightLineActor = vtkSmartPointer<vtkActor>::New();
   vtkSmartPointer<vtkPolyDataMapper> rightLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   RightLineSource = vtkLineSource::New();
-  rightLineActor->GetProperty()->SetColor(ROI_COLOUR);
+  rightLineActor->GetProperty()->SetColor(ROI_COLOR);
   rightLineMapper->SetInputConnection(RightLineSource->GetOutputPort());
   rightLineActor->SetMapper(rightLineMapper);
   this->ROIActorAssembly->AddPart(rightLineActor);
@@ -829,7 +829,7 @@ PlusStatus vtkImageVisualizer::InitializeROIVisualization()
   vtkSmartPointer<vtkActor> bottomLineActor = vtkSmartPointer<vtkActor>::New();
   vtkSmartPointer<vtkPolyDataMapper> bottomLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   BottomLineSource = vtkLineSource::New();
-  bottomLineActor->GetProperty()->SetColor(ROI_COLOUR);
+  bottomLineActor->GetProperty()->SetColor(ROI_COLOR);
   bottomLineMapper->SetInputConnection(BottomLineSource->GetOutputPort());
   bottomLineActor->SetMapper(bottomLineMapper);
   this->ROIActorAssembly->AddPart(bottomLineActor);
@@ -948,7 +948,7 @@ PlusStatus vtkImageVisualizer::InitializeWireLabelVisualization(vtkXMLDataElemen
 
           // Since the internal orientation is always MF, display the indicators for MF in all cases
           vtkSmartPointer<vtkTextActor3D> textActor = vtkSmartPointer<vtkTextActor3D>::New();
-          textActor->GetTextProperty()->SetColor(RESULT_SPHERE_COLOUR);
+          textActor->GetTextProperty()->SetColor(RESULT_SPHERE_COLOR);
           textActor->GetTextProperty()->SetFontFamilyToArial();
           textActor->GetTextProperty()->SetFontSize(16);
           textActor->GetTextProperty()->SetJustificationToLeft();

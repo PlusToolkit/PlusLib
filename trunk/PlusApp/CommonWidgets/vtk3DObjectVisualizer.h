@@ -59,7 +59,7 @@ public:
   PlusStatus SetVolumeMapper( vtkPolyDataMapper* aContourMapper );
 
   /*!
-  * Set the volume actor colour
+  * Set the volume actor color
   * \param r red value
   * \param g green value
   * \param b blue value

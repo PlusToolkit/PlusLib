@@ -324,9 +324,9 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
       {
         this->GetBuffer()->SetImageType(US_IMG_BRIGHTNESS);
       }
-      else if( STRCASECMP(imageType, "RGB_COLOUR") == 0 )
+      else if( STRCASECMP(imageType, "RGB_COLOR") == 0 )
       {
-        this->GetBuffer()->SetImageType(US_IMG_RGB_COLOUR);
+        this->GetBuffer()->SetImageType(US_IMG_RGB_COLOR);
       }
       else if( STRCASECMP(imageType, "RF_I_LINE_Q_LINE") == 0 )
       {

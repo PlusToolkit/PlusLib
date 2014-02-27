@@ -342,11 +342,11 @@ protected:
     // Create actors
     m_ActorCollection = vtkActorCollection::New();
 
-    CreateNewHandleActor(m_TopLeftHandleActor, m_TopLeftHandleSource, vtkImageVisualizer::ROI_COLOUR[0],  vtkImageVisualizer::ROI_COLOUR[1], vtkImageVisualizer:: ROI_COLOUR[2]);
+    CreateNewHandleActor(m_TopLeftHandleActor, m_TopLeftHandleSource, vtkImageVisualizer::ROI_COLOR[0],  vtkImageVisualizer::ROI_COLOR[1], vtkImageVisualizer:: ROI_COLOR[2]);
     m_ActorCollection->AddItem(m_TopLeftHandleActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_TopLeftHandleActor);
 
-    CreateNewHandleActor(m_BottomRightHandleActor, m_BottomRightHandleSource, vtkImageVisualizer::ROI_COLOUR[0],  vtkImageVisualizer::ROI_COLOUR[1],  vtkImageVisualizer::ROI_COLOUR[2]);
+    CreateNewHandleActor(m_BottomRightHandleActor, m_BottomRightHandleSource, vtkImageVisualizer::ROI_COLOR[0],  vtkImageVisualizer::ROI_COLOR[1],  vtkImageVisualizer::ROI_COLOR[2]);
     m_ActorCollection->AddItem(m_BottomRightHandleActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_BottomRightHandleActor);
 

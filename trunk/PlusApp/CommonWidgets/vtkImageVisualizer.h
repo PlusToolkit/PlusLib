@@ -42,8 +42,8 @@ public:
   */
   static vtkImageVisualizer *New();
 
-  /*! Publicly available colour for ROI */
-  static double ROI_COLOUR[3];
+  /*! Publicly available color for ROI */
+  static double ROI_COLOR[3];
 
   /*!
   * Read rendering configuration
