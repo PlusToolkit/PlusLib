@@ -3,6 +3,8 @@ IF(VTK_DIR)
   # VTK has been built already
   FIND_PACKAGE(VTK REQUIRED PATHS ${VTK_DIR} NO_DEFAULT_PATH)
   
+  MESSAGE(STATUS "Using VTK available at: ${VTK_DIR}")
+  
   # Copy libraries to PLUS_EXECUTABLE_OUTPUT_PATH
   # Copy libraries to PLUS_EXECUTABLE_OUTPUT_PATH
   IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
@@ -59,7 +61,7 @@ ELSE(VTK_DIR)
     BINARY_DIR "${PLUS_VTK_DIR}"
     #--Download step--------------
     GIT_REPOSITORY "${GIT_PROTOCOL}://vtk.org/VTK.git"
-    GIT_TAG "v5.10.0"
+    GIT_TAG "v5.10.1"
     #--Configure step-------------
     CMAKE_ARGS 
         -DLIBRARY_OUTPUT_PATH:STRING=${PLUS_EXECUTABLE_OUTPUT_PATH}
@@ -68,7 +70,6 @@ ELSE(VTK_DIR)
         -DBUILD_TESTING:BOOL=OFF 
         -DVTK_USE_PARALLEL:BOOL=ON
         -DBUILD_EXAMPLES:BOOL=OFF
-        -DVTK_USE_QTCHARTS:BOOL=ON
         ${VTK_QT_ARGS}
         -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
         -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
