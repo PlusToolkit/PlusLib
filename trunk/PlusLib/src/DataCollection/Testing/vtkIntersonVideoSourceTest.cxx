@@ -287,8 +287,12 @@ int main(int argc, char* argv[])
   vtkSmartPointer<vtkIntersonVideoSource> intersonDevice = vtkSmartPointer<vtkIntersonVideoSource>::New();
   intersonDevice->SetDeviceId("VideoDevice");
   //intersonDevice->ReadConfiguration(configRead);
-
+  
   intersonDevice->CreateDefaultOutputChannel();
+  //intersonDevice->ImagingParameters->SetDepth(5);
+  //intersonDevice->ImagingParameters->SetGain(6);
+  intersonDevice->ImagingParameters->SetFrequency(2000);
+  //intersonDevice->ImagingParameters->SetDynRange(8);
 
   DisplayMode displayMode=SHOW_IMAGE; 
   

@@ -10,12 +10,11 @@
 #include "vtkPlusDevice.h"
 
 
-class vtkUsImagingParameters : public vtkObject
+class VTK_EXPORT vtkUsImagingParameters : public vtkObject
 {
 public:
-  static vtkUsImagingParameters *New();
-
-  PlusStatus SetImagingDevice(vtkPlusDevice* aImagingDevice);
+  vtkUsImagingParameters(vtkPlusDevice*);
+  virtual ~vtkUsImagingParameters();
 
     /*! Read main configuration from/to xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
@@ -71,9 +70,6 @@ protected:
   int ImagingMode;
   int OutputFormat;
   int SoundVelocity;
-
-  vtkUsImagingParameters();
-  virtual ~vtkUsImagingParameters();
 
 };
 

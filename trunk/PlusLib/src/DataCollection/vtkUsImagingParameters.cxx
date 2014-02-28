@@ -9,10 +9,11 @@ See License.txt for details.
 
 //----------------------------------------------------------------------------
 
-vtkUsImagingParameters::vtkUsImagingParameters()
+vtkUsImagingParameters::vtkUsImagingParameters(vtkPlusDevice* aImagingDevice)
 : vtkObject()
 {
 	//this->ImagingDevice = imagingDevice;
+   this->ImagingDevice = aImagingDevice;
 }
 
 //----------------------------------------------------------------------------
@@ -20,13 +21,6 @@ vtkUsImagingParameters::vtkUsImagingParameters()
 vtkUsImagingParameters::~vtkUsImagingParameters()
 {
   LOG_TRACE("vtkUsImagingParameters::~vtkUsImagingParameters()");
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::SetImagingDevice(vtkPlusDevice* aImagingDevice)
-{
-  this->ImagingDevice = aImagingDevice;
-  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------

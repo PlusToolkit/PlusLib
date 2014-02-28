@@ -39,6 +39,8 @@ public:
 
   virtual std::string GetSdkVersion();
 
+  vtkUsImagingParameters* ImagingParameters;
+
 protected:
   /*! Constructor */
   vtkIntersonVideoSource();
@@ -68,6 +70,18 @@ protected:
 
   PlusStatus WaitForFrame();
 
+  PlusStatus SetDisplayZoom(float zoom);
+
+  PlusStatus GetSampleFrequency(float& aFreq);
+
+  /* Set the desired probe frequency in Hz. The resulting probe speed will be approximately the value specified */
+  PlusStatus SetProbeFrequency(float aFreq);
+
+  PlusStatus GetProbeVelocity(float& aVel);
+
+  /* Represents the depth, in pixels, the display window will be. This defaults to 512 pixels for newly initialized probes.*/
+  PlusStatus SetWindowDepth(int height);
+
   // For internal storage of additional variables (to minimize the number of included headers)
   class vtkInternal;
   vtkInternal* Internal;
@@ -75,7 +89,6 @@ protected:
   bool Interpolate;
   bool BidirectionalScan;
   bool Frozen;
-
 
 private:
   vtkIntersonVideoSource(const vtkIntersonVideoSource&);  // Not implemented.
