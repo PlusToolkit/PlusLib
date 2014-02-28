@@ -9,6 +9,16 @@
 
 #include "vtkPlusDevice.h"
 
+/*!
+\class vtkUSImagingParameters 
+\brief This class is used to configure the imaging parameters of the video devices.
+Ultrasound video devices have an a attribute of this class that is used to set/query 
+the depth, gain, etc.
+This class exists mainly for two reasons:
+	* Be sure that the Us video devices have some methods.
+	* Avoid repeting code.
+\ingroup PlusLibDataCollection
+*/
 
 class VTK_EXPORT vtkUsImagingParameters : public vtkObject
 {
@@ -23,37 +33,37 @@ public:
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
   /*! Set ultrasound transmitter frequency (MHz) */
-  PlusStatus SetFrequency(int aFrequency);
+  PlusStatus SetFrequencyMhz(double aFrequencyMhz);
   /*! Get ultrasound transmitter frequency (MHz) */
-  PlusStatus GetFrequency(int& aFrequency);
+  PlusStatus GetFrequencyMhz(double& aFrequencyMhz);
 
   /*! Set the depth (mm) of B-mode ultrasound */
-  PlusStatus SetDepth(int aDepth);
+  PlusStatus SetDepthMm(double aDepthMm);
   /*! Get the depth (mm) of B-mode ultrasound */
-  PlusStatus GetDepth(int& aDepth);
+  PlusStatus GetDepthMm(double& aDepthMm);
 
   /*! Set the Gain (%) of B-mode ultrasound; valid range: 0-100 */
-  PlusStatus SetGain(int aGain);
+  PlusStatus SetGainPercent(double aGainPercent);
   /*! Get the Gain (%) of B-mode ultrasound; valid range: 0-100 */
-  PlusStatus GetGain(int& aGain);
+  PlusStatus GetGainPercent(double& aGainPercent);
 
   /*! Set the DynRange (dB) of B-mode ultrasound */
-  PlusStatus SetDynRange(int aDynRange);
+  PlusStatus SetDynRangedB(double aDynRangeDb);
   /*! Get the DynRange (dB) of B-mode ultrasound */
-  PlusStatus GetDynRange(int& aDynRange);
+  PlusStatus GetDynRangedB(double& aDynRangeDb);
 
   /*! Set the Zoom (%) of B-mode ultrasound; valid range: 0-100 */
-  PlusStatus SetZoom(int aZoom);
+  PlusStatus SetZoomFactor(double aZoomFactor);
   /*! Get the Zoom (%) of B-mode ultrasound; valid range: 0-100 */
-  PlusStatus GetZoom(int& aZoom);
+  PlusStatus GetZoomFactor(double& aZoomFactor);
 
   /*! Set the Sector (%) of B-mode ultrasound; valid range: 0-100 */
-  PlusStatus SetSector(int aSector);
+  PlusStatus SetSectorPercent(double aSectorPercent);
   /*! Get the Sector (%) of B-mode ultrasound; valid range: 0-100 */
-  PlusStatus GetSector(int& aSector);
+  PlusStatus GetSectorPercent(double& aSectorPercent);
 
   /*! Get the displayed frame rate. */
-  PlusStatus GetDisplayedFrameRate(int &aFrameRate);
+  PlusStatus GetDisplayedFrameRate(double &aFrameRate);
 
   /*! Print the list of supported parameters. For diagnostic purposes only. */
   PlusStatus PrintListOfImagingParameters();
@@ -61,15 +71,15 @@ public:
 protected:
 
   vtkPlusDevice *ImagingDevice; 
-  int Frequency;
-  int Depth;
-  int Sector; 
-  int Gain; 
-  int DynRange; 
-  int Zoom; 
-  int ImagingMode;
-  int OutputFormat;
-  int SoundVelocity;
+  double FrequencyMhz;
+  double DepthMm;
+  double SectorPercent; 
+  double GainPercent; 
+  double DynRangedB; 
+  double ZoomFactor; 
+  enum ImagingMode;
+  enum OutputFormat;
+  double SoundVelocity;
 
 };
 

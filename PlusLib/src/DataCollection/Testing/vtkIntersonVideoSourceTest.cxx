@@ -291,7 +291,7 @@ int main(int argc, char* argv[])
   intersonDevice->CreateDefaultOutputChannel();
   //intersonDevice->ImagingParameters->SetDepth(5);
   //intersonDevice->ImagingParameters->SetGain(6);
-  intersonDevice->ImagingParameters->SetFrequency(2000);
+  intersonDevice->ImagingParameters->SetFrequencyMhz(5);
   //intersonDevice->ImagingParameters->SetDynRange(8);
 
   DisplayMode displayMode=SHOW_IMAGE; 
