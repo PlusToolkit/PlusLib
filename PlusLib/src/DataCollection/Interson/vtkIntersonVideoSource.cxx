@@ -17,6 +17,8 @@ See License.txt for details.
 #include "BmodeDLL.h"
 #include "usbProbeDLL_net.h"
 
+#include "vtkUSImagingParameters.h"
+
 #define XSIZE 800						// Image window size 
 #define YSIZE 512					    //		XSIZE must be divisible by four!
 
@@ -138,6 +140,8 @@ vtkIntersonVideoSource::vtkIntersonVideoSource()
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
   this->RequireUsImageOrientationInDeviceSetConfiguration = true;
   this->RequireRfElementInDeviceSetConfiguration = false;
+
+  this->ImagingParameters = new vtkUsImagingParameters(this);
 
   // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
   this->StartThreadForInternalUpdates=true;
@@ -270,6 +274,8 @@ PlusStatus vtkIntersonVideoSource::InternalConnect()
   // 3: ~15cm @ 30MHz;
   // 4: ~20cm @ 30MHz
   usbSetClockDivider(this->Internal->ProbeHandle, 3);
+
+  //this->SetProbeFrequency(5000);
 
   // Setup the display offsets now that we have the probe and DISPLAY data
   bmSetDisplayOffset(0);
@@ -462,7 +468,13 @@ PlusStatus vtkIntersonVideoSource::InternalUpdate()
     return PLUS_FAIL;
   }
 
+  usbProbeNameString probeName={0};
+  float depthScale = -1;
+  usbProbeName(this->Internal->ProbeHandle, probeName);
+  usbProbeDepthScale(this->Internal->ProbeHandle,&depthScale);
+  
   int frameSizeInPx[2]={XSIZE,YSIZE};
+ 
 
   // If the buffer is empty, set the pixel type and frame size to the first received properties 
   if ( aSource->GetBuffer()->GetNumberOfItems() == 0 )
@@ -475,6 +487,10 @@ PlusStatus vtkIntersonVideoSource::InternalUpdate()
 
     LOG_INFO("Frame size: " << frameSizeInPx[0] << "x" << frameSizeInPx[1]
     << ", pixel type: " << vtkImageScalarTypeNameMacro(aSource->GetBuffer()->GetPixelType())
+	  << ", frequency (Hz): " << usbProbeSampleFrequency(this->Internal->ProbeHandle)
+	  << ", probe name: " << probeName
+	  << ", display zoom: " << bmDisplayZoom()
+	  << ", probe depth scale (mm/sample):" << depthScale
       << ", device image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetPortImageOrientation())
       << ", buffer image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetBuffer()->GetImageOrientation()));
   }
@@ -581,4 +597,38 @@ std::string vtkIntersonVideoSource::GetSdkVersion()
   std::ostrstream versionString;
   versionString << "Interson Bmode DLL v"<<bmDLLVer()<<", USB Probe DLL v"<<usbDLLVer()<< std::ends;
   return versionString.str();
+}
+
+PlusStatus vtkIntersonVideoSource::SetDisplayZoom(float zoom)
+{
+  bmSetDisplayZoom(zoom); 
+  LOG_TRACE("New zoom is %4.2f\n", bmDisplayZoom()); 
+  return PLUS_SUCCESS;
+}
+
+PlusStatus vtkIntersonVideoSource::GetSampleFrequency(float& aFreq)
+{
+  aFreq = usbProbeSampleFrequency(this->Internal->ProbeHandle);
+  LOG_TRACE("Current frequency is" << aFreq); 
+  return PLUS_SUCCESS;
+}
+
+
+PlusStatus vtkIntersonVideoSource::SetProbeFrequency(float freq)
+{
+  usbSetProbeFrequency(freq);
+  return PLUS_SUCCESS;
+}
+
+PlusStatus vtkIntersonVideoSource::GetProbeVelocity(float& aVel)
+{
+  aVel = usbProbeVelocity(this->Internal->ProbeHandle);
+  LOG_TRACE("Current velocity is" << aVel); 
+  return PLUS_SUCCESS;
+}
+
+PlusStatus vtkIntersonVideoSource::SetWindowDepth(int height)
+{
+  usbSetWindowDepth(this->Internal->ProbeHandle,height);
+  return PLUS_SUCCESS;
 }
