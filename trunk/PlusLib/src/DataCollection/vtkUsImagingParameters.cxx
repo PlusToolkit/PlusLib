@@ -24,73 +24,73 @@ vtkUsImagingParameters::~vtkUsImagingParameters()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::SetFrequency(int aFrequency)
+PlusStatus vtkUsImagingParameters::SetFrequencyMhz(double aFrequencyMhz)
 {
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::GetFrequency(int& aFrequency)
+PlusStatus vtkUsImagingParameters::GetFrequencyMhz(double& aFrequencyMhz)
 {
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::SetDepth(int aDepth)
+PlusStatus vtkUsImagingParameters::SetDepthMm(double aDepthMm)
 {
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::GetDepth(int& aDepth)
+PlusStatus vtkUsImagingParameters::GetDepthMm(double& aDepthMm)
 {
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::SetGain(int aGain)
+PlusStatus vtkUsImagingParameters::SetGainPercent(double aGainFactor)
 {
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::GetGain(int& aGain)
+PlusStatus vtkUsImagingParameters::GetGainPercent(double& aGainFactor)
 {
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::SetDynRange(int aDynRange)
+PlusStatus vtkUsImagingParameters::SetDynRangedB(double aDynRangeFactor)
 {
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::GetDynRange(int& aDynRange)
+PlusStatus vtkUsImagingParameters::GetDynRangedB(double& aDynRangeFactor)
 {
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::SetZoom(int aZoom)
+PlusStatus vtkUsImagingParameters::SetZoomFactor(double aZoomFactor)
 {
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::GetZoom(int& aZoom)
+PlusStatus vtkUsImagingParameters::GetZoomFactor(double& aZoomFactor)
 {
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::SetSector(int aSector)
+PlusStatus vtkUsImagingParameters::SetSectorPercent(double aSectorPercent)
 {
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::GetSector(int& aSector)
+PlusStatus vtkUsImagingParameters::GetSectorPercent(double& aSectorPercent)
 {
   return PLUS_SUCCESS;
 }
@@ -103,7 +103,7 @@ PlusStatus vtkUsImagingParameters::PrintListOfImagingParameters()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::GetDisplayedFrameRate(int &aFrameRate)
+PlusStatus vtkUsImagingParameters::GetDisplayedFrameRate(double &aFrameRate)
 {
 
   return PLUS_SUCCESS;
