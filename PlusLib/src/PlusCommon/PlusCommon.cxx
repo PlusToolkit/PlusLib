@@ -441,9 +441,11 @@ std::string PlusCommon::GetPlusLibVersionString()
   plusLibVersion += " - Win64";
 #elif defined _WIN32
   plusLibVersion += " - Win32";
+#elif defined __APPLE__
+  plusLibVersion += " - Mac";
 #else
-  plusLibVersion += " - Linux/Mac";
-#endif
+  plusLibVersion += " - Linux";
+#endif 
   return plusLibVersion;
 }
 
