@@ -62,6 +62,11 @@ public:
   /*! Get the Sector (%) of B-mode ultrasound; valid range: 0-100 */
   PlusStatus GetSectorPercent(double& aSectorPercent);
 
+  /*! Set the Sector (%) of B-mode ultrasound; valid range: 0-100 */
+  PlusStatus SetSoundVelocity(double aSoundVelocity);
+  /*! Get the Sector (%) of B-mode ultrasound; valid range: 0-100 */
+  PlusStatus GetSoundVelocity(double& aSoundVelocity);
+
   /*! Get the displayed frame rate. */
   PlusStatus GetDisplayedFrameRate(double &aFrameRate);
 
@@ -75,10 +80,71 @@ protected:
   double DepthMm;
   double SectorPercent; 
   double GainPercent; 
-  double DynRangedB; 
+  double DynRangeDb; 
   double ZoomFactor; 
-  enum ImagingMode;
-  enum OutputFormat;
+  /*!
+    Request a particular mode of imaging
+    Usable values are described in ImagingModes.h (default: B-mode)  
+    BMode = 0,
+    MMode = 1,
+    ColourMode = 2,
+    PwMode = 3,
+    TriplexMode = 4,
+    PanoMode = 5,
+    DualMode = 6,
+    QuadMode = 7,
+    CompoundMode = 8,
+    DualColourMode = 9,
+    DualCompoundMode = 10,
+    CwMode = 11,
+    RfMode = 12,
+    ColorSplitMode = 13,
+    F4DMode = 14,
+    TriplexCwMode = 15,
+    ColourMMode = 16,
+    ElastoMode = 17,
+    SDUVMode = 18,
+    AnatomicalMMode = 19,
+    ElastoComparativeMode = 20,
+    FusionMode = 21,
+    VecDopMode = 22,
+    BiplaneMode = 23,
+    ClinicalRfMode = 24,
+    RfCompoundMode = 25,
+    SHINEMode = 26,
+    ColourRfMode = 27,
+  */
+  enum ImagingMode
+  { 
+	BMode = 0,
+    MMode = 1,
+    ColourMode = 2,
+    PwMode = 3,
+    TriplexMode = 4,
+    PanoMode = 5,
+    DualMode = 6,
+    QuadMode = 7,
+    CompoundMode = 8,
+    DualColourMode = 9,
+    DualCompoundMode = 10,
+    CwMode = 11,
+    RfMode = 12,
+    ColorSplitMode = 13,
+    F4DMode = 14,
+    TriplexCwMode = 15,
+    ColourMMode = 16,
+    ElastoMode = 17,
+    SDUVMode = 18,
+    AnatomicalMMode = 19,
+    ElastoComparativeMode = 20,
+    FusionMode = 21,
+    VecDopMode = 22,
+    BiplaneMode = 23,
+    ClinicalRfMode = 24,
+    RfCompoundMode = 25,
+    SHINEMode = 26,
+    ColourRfMode = 27
+  };
   double SoundVelocity;
 
 };
