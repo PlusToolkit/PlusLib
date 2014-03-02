@@ -26,15 +26,22 @@
 #include <vector>
 #include <list>
 
+static const int INPUT_GROUND_TRUTH_VOLUME=0;
+static const int INPUT_GROUND_TRUTH_VOLUME_ALPHA=1;
+static const int INPUT_TEST_VOLUME=2;
+static const int INPUT_TEST_VOLUME_ALPHA=3;
+static const int INPUT_SLICES_VOLUME_ALPHA=4;
+
+static const int OUTPUT_TRUE_DIFF_VOLUME=0;
+static const int OUTPUT_ABS_DIFF_VOLUME=1;
 
 vtkStandardNewMacro(vtkCompareVolumes);
-
 
 vtkCompareVolumes::vtkCompareVolumes()
 {
   this->SetNumberOfInputPorts(5);
   this->SetNumberOfOutputPorts(2);
-  this->SetNumberOfThreads(1); // TODO: Remove when testing is done
+  this->SetNumberOfThreads(1); // TODO: Remove when vtkCompareVolumesExecute is made thread-safe (e.g., simultaneous access to member variables are protected by locking)
 }
 
 
@@ -79,11 +86,13 @@ void vtkCompareVolumesExecute(vtkCompareVolumes *self,
   self->resetAbsoluteHistogram();
   std::vector<double> trueDifferences; // store all differences here
   std::vector<double> absoluteDifferences;
-  std::vector<double> absoluteDifferencesInAllHoles; // same as absolute difference, but in hole voxels - 
-                                                  // this can be added to find the absolute error when 
-                                                  // we consider holes to be part of the image (and 
-                                                  // choose to not ignore them in the error computation)
-                                                  // note these are not put into the histogram
+  
+  // same as absolute difference, but in hole voxels - 
+  // this can be added to find the absolute error when 
+  // we consider holes to be part of the image (and 
+  // choose to not ignore them in the error computation)
+  // note these are not put into the histogram
+  std::vector<double> absoluteDifferencesInAllHoles; 
 
   int countVisibleVoxels(0);
   int countFilledHoles(0);
@@ -152,7 +161,8 @@ void vtkCompareVolumesExecute(vtkCompareVolumes *self,
   }
 
   // divide by the number of filled holes
-  if (countFilledHoles != 0) {
+  if (countFilledHoles != 0)
+  {
     trueMean /= countFilledHoles;
     absoluteMean /= countFilledHoles;
     rms = sqrt(rms/countFilledHoles);
@@ -195,7 +205,8 @@ void vtkCompareVolumesExecute(vtkCompareVolumes *self,
   // need to sort, temporarily store in a list, sort, then assign back to vector <== THIS IS SLOW SLOW SLOW, as in about half a minute for this alone, so TODO: Make this faster
   std::list<double> trueDifferencesList;
   std::list<double> absoluteDifferencesList;
-  for (int i = 0; i < countFilledHoles; i++) {
+  for (int i = 0; i < countFilledHoles; i++)
+  {
     trueDifferencesList.push_front(trueDifferences.back());
     trueDifferences.pop_back();
     absoluteDifferencesList.push_front(absoluteDifferences.back());
@@ -203,7 +214,8 @@ void vtkCompareVolumesExecute(vtkCompareVolumes *self,
   }
   trueDifferencesList.sort();
   absoluteDifferencesList.sort();
-  for (int i = 0; i < countFilledHoles; i++) {
+  for (int i = 0; i < countFilledHoles; i++) 
+  {
     trueDifferences.push_back(trueDifferencesList.front());
     trueDifferencesList.pop_front();
     absoluteDifferences.push_back(absoluteDifferencesList.front());
@@ -221,7 +233,8 @@ void vtkCompareVolumesExecute(vtkCompareVolumes *self,
   double absoluteMinimum(0.0);
   double absoluteMaximum(0.0);
 
-  if (countFilledHoles != 0) {
+  if (countFilledHoles != 0)
+  {
     trueMinimum = trueDifferences[0];
     trueMaximum = trueDifferences[countFilledHoles-1];
     absoluteMinimum = absoluteDifferences[0];
@@ -288,47 +301,42 @@ void vtkCompareVolumes::ThreadedRequestData (
   vtkImageData **outData,
   int outExt[6], int threadId)
 {
-  if (inData[0][0] == NULL || inData[1][0] == NULL || inData[2][0] == NULL || inData[3][0] == NULL)
+  if (inData[INPUT_GROUND_TRUTH_VOLUME][0] == NULL
+    || inData[INPUT_GROUND_TRUTH_VOLUME_ALPHA][0] == NULL
+    || inData[INPUT_TEST_VOLUME][0] == NULL 
+    || inData[INPUT_TEST_VOLUME_ALPHA][0] == NULL
+    || inData[INPUT_SLICES_VOLUME_ALPHA][0] == NULL)
   {
     vtkErrorMacro(<< "Input must be specified.");
     return;
   }
 
   // this filter expects that all inputs are the same type as output.
-  if (inData[1][0]->GetScalarType() != inData[0][0]->GetScalarType() ||
-      inData[2][0]->GetScalarType() != inData[0][0]->GetScalarType() ||
-      inData[3][0]->GetScalarType() != inData[0][0]->GetScalarType() )
+  if (inData[INPUT_GROUND_TRUTH_VOLUME_ALPHA][0]->GetScalarType() != inData[INPUT_GROUND_TRUTH_VOLUME][0]->GetScalarType()
+      || inData[INPUT_TEST_VOLUME][0]->GetScalarType() != inData[INPUT_GROUND_TRUTH_VOLUME][0]->GetScalarType()
+      || inData[INPUT_TEST_VOLUME_ALPHA][0]->GetScalarType() != inData[INPUT_GROUND_TRUTH_VOLUME][0]->GetScalarType()
+      || inData[INPUT_SLICES_VOLUME_ALPHA][0]->GetScalarType() != inData[INPUT_GROUND_TRUTH_VOLUME][0]->GetScalarType() )
   {
     vtkErrorMacro(<< "Execute: input ScalarTypes must match ScalarType " 
-                  << inData[0][0]->GetScalarType());
+                  << inData[INPUT_GROUND_TRUTH_VOLUME][0]->GetScalarType());
     return;
   }
-  
-  vtkImageData* inVolData0 = inData[0][0];
-  void* gtPtr = inVolData0->GetScalarPointer();
-  
-  vtkImageData* inVolData1 = inData[1][0];
-  void* gtAlphaPtr = inVolData1->GetScalarPointer();
-  
-  vtkImageData* inVolData2 = inData[2][0];
-  void* testPtr = inVolData2->GetScalarPointer();
-  
-  vtkImageData* inVolData3 = inData[3][0];
-  void* testAlphaPtr = inVolData3->GetScalarPointer();
 
-  vtkImageData* inVolData4 = inData[4][0];
-  void* slicesAlphaPtr = inVolData4->GetScalarPointer();
+  vtkImageData* gtVolData = inData[INPUT_GROUND_TRUTH_VOLUME][0];
+  void* gtPtr = gtVolData->GetScalarPointer();  
+  void* gtAlphaPtr = inData[INPUT_GROUND_TRUTH_VOLUME_ALPHA][0]->GetScalarPointer();
+  void* testPtr = inData[INPUT_TEST_VOLUME][0]->GetScalarPointer();
+  void* testAlphaPtr = inData[INPUT_TEST_VOLUME_ALPHA][0]->GetScalarPointer();
+  void* slicesAlphaPtr = inData[INPUT_SLICES_VOLUME_ALPHA][0]->GetScalarPointer();
+
+  vtkImageData* outVolDataTru = inData[INPUT_GROUND_TRUTH_VOLUME][0];
+  double* outPtrTru = static_cast< double* >(outVolDataTru->GetScalarPointer());  
+  double* outPtrAbs = static_cast< double* >(outData[OUTPUT_ABS_DIFF_VOLUME]->GetScalarPointer());
   
-  vtkImageData* outVolData0 = outData[0];
-  double* outPtrTru = static_cast<double *>(outVolData0->GetScalarPointer());
-  
-  vtkImageData* outVolData1 = outData[1];
-  double* outPtrAbs = static_cast<double *>(outVolData1->GetScalarPointer());
-  
-  switch (inVolData0->GetScalarType())
+  switch (gtVolData->GetScalarType())
   {
     vtkTemplateMacro(
-      vtkCompareVolumesExecute(this, inVolData0, outVolData0,
+      vtkCompareVolumesExecute(this, gtVolData, outVolDataTru,
                                static_cast<VTK_TT *>(gtPtr),   static_cast<VTK_TT *>(gtAlphaPtr), 
                                static_cast<VTK_TT *>(testPtr), static_cast<VTK_TT *>(testAlphaPtr), 
                                static_cast<VTK_TT *>(slicesAlphaPtr), 
@@ -349,5 +357,3 @@ int vtkCompareVolumes::FillInputPortInformation(int port, vtkInformation* info)
   info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkImageData");
   return 1;
 }
-
-

@@ -17,11 +17,87 @@
 
 #include "vtkDataSetReader.h"
 #include "vtkDataSetWriter.h"
-#include "vtkImageData.h"
 #include "vtkImageClip.h"
+#include "vtkImageData.h"
+#include "vtkImageMathematics.h"
+#include "vtkImageHistogramStatistics.h"
 #include "vtkMetaImageReader.h"
 
 #include "vtkCompareVolumes.h"
+
+//-----------------------------------------------------------------------------
+int SimpleCompareVolumes(vtkImageData* testVol, vtkImageData* refVol, double simpleCompareMaxError)
+{
+  if (testVol==NULL)
+  {
+    LOG_ERROR("Test volume is invalid");
+    return EXIT_FAILURE;
+  }
+  if (refVol==NULL)
+  {
+    LOG_ERROR("Reference volume is invalid");
+    return EXIT_FAILURE;
+  }
+
+  int *testExt=testVol->GetExtent();
+  int *refExt=refVol->GetExtent();
+  if (testExt[0]!=refExt[0] || testExt[1]!=refExt[1]
+    || testExt[2]!=refExt[2] || testExt[3]!=refExt[3]
+    || testExt[4]!=refExt[4] || testExt[5]!=refExt[5])
+  {
+    LOG_ERROR("Test volume extents ("<<testExt[0]<<", "<<testExt[1]<<", "<<testExt[2]<<", "<<testExt[3]<<", "<<testExt[4]<<", "<<testExt[5]<<")" \
+      << " do not match reference volume extents ("<<refExt[0]<<", "<<refExt[1]<<", "<<refExt[2]<<", "<<refExt[3]<<", "<<refExt[4]<<", "<<refExt[5]<<")")
+    return EXIT_FAILURE;
+  }
+
+  double *testSpacing=testVol->GetSpacing();
+  double *refSpacing=refVol->GetSpacing();
+  if (testSpacing[0]!=refSpacing[0] || testSpacing[1]!=refSpacing[1] || testSpacing[2]!=refSpacing[2])
+  {
+    LOG_ERROR("Test volume spacing ("<<testSpacing[0]<<", "<<testSpacing[1]<<", "<<testSpacing[2]<<")" \
+      << " does not match reference volume spacing ("<<refSpacing[0]<<", "<<refSpacing[1]<<", "<<refSpacing[2]<<")")
+    return EXIT_FAILURE;
+  }
+
+  double *testOrigin=testVol->GetOrigin();
+  double *refOrigin=refVol->GetOrigin();
+  if (testOrigin[0]!=refOrigin[0] || testOrigin[1]!=refOrigin[1] || testOrigin[2]!=refOrigin[2])
+  {
+    LOG_ERROR("Test volume origin ("<<testOrigin[0]<<", "<<testOrigin[1]<<", "<<testOrigin[2]<<")" \
+      << " does not match reference volume origin ("<<refOrigin[0]<<", "<<refOrigin[1]<<", "<<refOrigin[2]<<")")
+    return EXIT_FAILURE;
+  }
+
+  vtkSmartPointer<vtkImageMathematics> imageDiff = vtkSmartPointer<vtkImageMathematics>::New();
+  imageDiff->SetOperationToSubtract();
+  imageDiff->SetInput( 0, testVol );
+  imageDiff->SetInput( 1, refVol );
+
+  vtkSmartPointer<vtkImageMathematics> imageAbsDiff = vtkSmartPointer<vtkImageMathematics>::New();
+  imageAbsDiff->SetOperationToAbsoluteValue();
+  imageAbsDiff->SetInputConnection(imageDiff->GetOutputPort());
+
+  vtkSmartPointer<vtkImageHistogramStatistics> statistics = vtkSmartPointer<vtkImageHistogramStatistics>::New();
+  statistics->SetInputConnection(imageAbsDiff->GetOutputPort());
+  statistics->GenerateHistogramImageOff();
+  statistics->Update(); 
+
+  double maxVal = statistics->GetMaximum();
+  double meanVal = statistics->GetMean();
+  double stdev = statistics->GetStandardDeviation(); 
+
+  LOG_INFO("Absolute difference between pixels: max="<<maxVal<<", mean="<<meanVal<<", stdev="<<stdev);
+  if (stdev>simpleCompareMaxError)
+  {
+    LOG_ERROR("Standard deviation of the absolute difference between the images ("<<stdev<<") is larger than the maximum allowed image difference ("<<simpleCompareMaxError<<")");
+    return EXIT_FAILURE;
+  }
+
+  LOG_INFO("Standard deviation of the absolute difference between the images ("<<stdev<<") is smaller than the maximum allowed image difference ("<<simpleCompareMaxError<<")");  
+
+  return EXIT_SUCCESS;
+}
+
 
 
 int main( int argc, char** argv )
@@ -35,12 +111,9 @@ int main( int argc, char** argv )
   std::string outputStatsFileName;
   std::string outputTrueDiffFileName;
   std::string outputAbsoluteDiffFileName;
-  std::string outputFourierTestFileName;
-  std::string outputFourierGroundTruthFileName;
-  std::string outputCroppedGTFileName;
-  std::string outputCroppedTestFileName;
   std::vector<int> roiOriginV;
   std::vector<int> roiSizeV;
+  double simpleCompareMaxError=-1;
 
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
@@ -57,6 +130,7 @@ int main( int argc, char** argv )
   args.AddArgument("--output-stats-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputStatsFileName, "The file to dump the statistics for the comparison");
   args.AddArgument("--output-diff-volume-true", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputTrueDiffFileName, "Save the true difference volume to this file");
   args.AddArgument("--output-diff-volume-absolute", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputAbsoluteDiffFileName, "Save the absolute difference volume to this file");
+  args.AddArgument("--simple-compare-max-error", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &simpleCompareMaxError, "If specified, a simple comparison of the volumes is performed (no detailed statistics are computed, only the ground truth and test volumes are used) and if the stdev of pixel values of the absolute difference image is larger than the specified value then the test returns with failure");
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
 
@@ -75,8 +149,43 @@ int main( int argc, char** argv )
     exit(EXIT_SUCCESS); 
   }
 
-  /************************************************************/    
+  /************************************************************/
   
+  // Check file names
+  if ( inputGTFileName.empty() || inputTestingFileName.empty() )
+  {
+    LOG_ERROR("ground-truth-image and testing-image are required arguments");
+    LOG_ERROR("Help: " << args.GetHelp());
+    exit(EXIT_FAILURE);
+  }
+
+  // read in the volumes
+
+  LOG_INFO("Reading input ground truth image: " << inputGTFileName );
+  vtkSmartPointer<vtkMetaImageReader> reader = vtkSmartPointer<vtkMetaImageReader>::New();
+  reader->SetFileName(inputGTFileName.c_str());
+  reader->Update();
+  vtkImageData* groundTruth = vtkImageData::SafeDownCast(reader->GetOutput());
+
+  LOG_INFO("Reading input testing image: " << inputTestingFileName );
+  vtkSmartPointer<vtkMetaImageReader> reader3 = vtkSmartPointer<vtkMetaImageReader>::New();
+  reader3->SetFileName(inputTestingFileName.c_str());
+  reader3->Update();
+  vtkImageData* testingImage = vtkImageData::SafeDownCast(reader3->GetOutput());
+
+  /************************************************************/
+  // Simple volume comparison
+
+  if (simpleCompareMaxError>=0)
+  {
+    LOG_INFO("Perform simple volume comparison");
+    return SimpleCompareVolumes(testingImage, groundTruth, simpleCompareMaxError);
+  }
+
+  /************************************************************/
+  // Full volume comparison, with detailed statistic
+
+
   // record the start time for data recording, see http://www.cplusplus.com/reference/clibrary/ctime/localtime/
   time_t rawtime;
   struct tm* timeInfo;
@@ -86,176 +195,138 @@ int main( int argc, char** argv )
   strftime(timeAndDate,60,"%Y %m %d %H:%M",timeInfo);
 
   // Check file names
-  if ( inputGTFileName.empty() || inputGTAlphaFileName.empty() || inputTestingFileName.empty() || inputTestingAlphaFileName.empty() || inputSliceAlphaFileName.empty() || outputStatsFileName.empty() )
+  if ( inputGTAlphaFileName.empty() || inputTestingAlphaFileName.empty() || inputSliceAlphaFileName.empty() || outputStatsFileName.empty() )
   {
-    LOG_ERROR("input-ground-truth-image, input-ground-truth-alpha, input-testing-image, input-testing-alpha, input-slices-alpha, and output-stats-file are required arguments!");
+    LOG_ERROR("ground-truth-image, ground-truth-alpha, testing-image, testing-alpha, slices-alpha, and output-stats-file are required arguments!");
     LOG_ERROR("Help: " << args.GetHelp());
     exit(EXIT_FAILURE);
   }
 
-  // read inputs
-  vtkSmartPointer<vtkImageData> groundTruth = vtkSmartPointer<vtkImageData>::New();
-  vtkSmartPointer<vtkImageData> groundTruthAlpha = vtkSmartPointer<vtkImageData>::New();
-  vtkSmartPointer<vtkImageData> testingImage = vtkSmartPointer<vtkImageData>::New();
-  vtkSmartPointer<vtkImageData> testingAlpha = vtkSmartPointer<vtkImageData>::New();
-  vtkSmartPointer<vtkImageData> slicesAlpha = vtkSmartPointer<vtkImageData>::New();
-
-  // read in the volumes
-  LOG_INFO("Reading input ground truth image: " << inputGTFileName );
-  vtkSmartPointer<vtkMetaImageReader> reader = vtkSmartPointer<vtkMetaImageReader>::New();
-  reader->SetFileName(inputGTFileName.c_str());
-  reader->Update();
-  groundTruth = vtkImageData::SafeDownCast(reader->GetOutput());
+  // read in the additional volumes
 
   LOG_INFO("Reading input ground truth alpha: " << inputGTAlphaFileName );
   vtkSmartPointer<vtkMetaImageReader> reader2 = vtkSmartPointer<vtkMetaImageReader>::New();
   reader2->SetFileName(inputGTAlphaFileName.c_str());
   reader2->Update();
-  groundTruthAlpha = vtkImageData::SafeDownCast(reader2->GetOutput());
-
-  LOG_INFO("Reading input testing image: " << inputTestingFileName );
-  vtkSmartPointer<vtkMetaImageReader> reader3 = vtkSmartPointer<vtkMetaImageReader>::New();
-  reader3->SetFileName(inputTestingFileName.c_str());
-  reader3->Update();
-  testingImage = vtkImageData::SafeDownCast(reader3->GetOutput());
+  vtkImageData* groundTruthAlpha = vtkImageData::SafeDownCast(reader2->GetOutput());
 
   LOG_INFO("Reading input testing alpha: " << inputTestingAlphaFileName );
   vtkSmartPointer<vtkMetaImageReader> reader4 = vtkSmartPointer<vtkMetaImageReader>::New();
   reader4->SetFileName(inputTestingAlphaFileName.c_str());
   reader4->Update();
-  testingAlpha = vtkImageData::SafeDownCast(reader4->GetOutput());
+  vtkImageData* testingAlpha = vtkImageData::SafeDownCast(reader4->GetOutput());
 
   LOG_INFO("Reading input slices alpha: " << inputSliceAlphaFileName );
   vtkSmartPointer<vtkMetaImageReader> reader5 = vtkSmartPointer<vtkMetaImageReader>::New();
   reader5->SetFileName(inputSliceAlphaFileName.c_str());
   reader5->Update();
-  slicesAlpha = vtkImageData::SafeDownCast(reader5->GetOutput());
+  vtkImageData* slicesAlpha = vtkImageData::SafeDownCast(reader5->GetOutput());
 
   // check to make sure extents match
-  int extentGT[6];
-  groundTruth->GetExtent(extentGT[0],extentGT[1],extentGT[2],extentGT[3],extentGT[4],extentGT[5]);
-  int extentGTAlpha[6];
-  groundTruthAlpha->GetExtent(extentGTAlpha[0],extentGTAlpha[1],extentGTAlpha[2],extentGTAlpha[3],extentGTAlpha[4],extentGTAlpha[5]);
-  int extentTest[6];
-  testingImage->GetExtent(extentTest[0],extentTest[1],extentTest[2],extentTest[3],extentTest[4],extentTest[5]);
-  int extentTestAlpha[6];
-  testingAlpha->GetExtent(extentTestAlpha[0],extentTestAlpha[1],extentTestAlpha[2],extentTestAlpha[3],extentTestAlpha[4],extentTestAlpha[5]);
-  int extentSlicesAlpha[6];
-  slicesAlpha->GetExtent(extentSlicesAlpha[0],extentSlicesAlpha[1],extentSlicesAlpha[2],extentSlicesAlpha[3],extentSlicesAlpha[4],extentSlicesAlpha[5]);
+  int *extentGT=groundTruth->GetExtent();
+  int *extentGTAlpha=groundTruthAlpha->GetExtent();
+  int *extentTest=testingImage->GetExtent();
+  int *extentTestAlpha=testingAlpha->GetExtent();
+  int *extentSlicesAlpha=slicesAlpha->GetExtent();
   bool match(true);
   for (int i = 0; i < 6; i++)
     if (extentGT[i] != extentGTAlpha[i] || extentGT[i] != extentSlicesAlpha[i] || extentGT[i] != extentTestAlpha[i] || extentGT[i] != extentSlicesAlpha[i])
       match = false;
-  if (!match) {
+  if (!match) 
+  {
     LOG_ERROR("Image sizes do not match!");
     exit(EXIT_FAILURE);
   }
 
   // crop the image to the ROI
-  vtkSmartPointer<vtkImageData> groundTruthCropped = vtkSmartPointer<vtkImageData>::New();
-  vtkSmartPointer<vtkImageData> groundTruthAlphaCropped = vtkSmartPointer<vtkImageData>::New();
-  vtkSmartPointer<vtkImageData> testingImageCropped = vtkSmartPointer<vtkImageData>::New();
-  vtkSmartPointer<vtkImageData> testingAlphaCropped = vtkSmartPointer<vtkImageData>::New();
-  vtkSmartPointer<vtkImageData> slicesAlphaCropped = vtkSmartPointer<vtkImageData>::New();
 
-  bool useWholeExtent;
+  vtkImageData* groundTruthRoi = groundTruth;
+  vtkImageData* groundTruthAlphaRoi = groundTruthAlpha;
+  vtkImageData* testingImageRoi = testingImage;
+  vtkImageData* testingAlphaRoi = testingAlpha;
+  vtkImageData* slicesAlphaRoi = slicesAlpha;
+  int roiExtent[6]={0}; // array format of roi extent
+  for (int extentIndex = 0; extentIndex < 6; extentIndex++)
+  {
+    roiExtent[extentIndex] = extentGT[extentIndex];
+  }
 
-  if (roiOriginV.size() == 0 && roiSizeV.size() == 0)
-    useWholeExtent = true;
-  else if (roiOriginV.size() == 0) {
-    useWholeExtent = false;
-    LOG_WARNING("The region of interest's origin is defined, but the size is not. No region of interest will be used.");
-  } else if (roiSizeV.size() == 0) {
-    useWholeExtent = false;
-    LOG_WARNING("The region of interest's size is defined, but the origin is not. No region of interest will be used.");
-  } else
-    useWholeExtent = false;
+  // Create the clippers here to be able use their outputs throughout this method
+  vtkSmartPointer<vtkImageClip> clipGT = vtkSmartPointer<vtkImageClip>::New();
+  vtkSmartPointer<vtkImageClip> clipGTAlpha = vtkSmartPointer<vtkImageClip>::New();
+  vtkSmartPointer<vtkImageClip> clipTest = vtkSmartPointer<vtkImageClip>::New();
+  vtkSmartPointer<vtkImageClip> clipTestAlpha = vtkSmartPointer<vtkImageClip>::New();
+  vtkSmartPointer<vtkImageClip> clipSlicesAlpha = vtkSmartPointer<vtkImageClip>::New();
+        
+  if (roiOriginV.size() == 3 && roiSizeV.size() == 3)
+  {
+    // Clip volumes to a ROI
 
-  int roiExtent[6]; // array format of roi extent
-  if (!useWholeExtent) {
-
-    // parse and check size
-    if (roiOriginV.size() == 3 && roiSizeV.size() == 3)
-    {
-      roiExtent[0] = roiOriginV[0];
-      roiExtent[1] = roiOriginV[0] + roiSizeV[0] - 1;
-      roiExtent[2] = roiOriginV[1];
-      roiExtent[3] = roiOriginV[1] + roiSizeV[1] - 1;
-      roiExtent[4] = roiOriginV[2];
-      roiExtent[5] = roiOriginV[2] + roiSizeV[2] - 1;
-    }
-    else
-    {
-      LOG_ERROR("ROI size and origin each need to be 3 values in volume IJK coordinates: X Y Z");
-      exit(EXIT_FAILURE);
-    } 
+    roiExtent[0] = roiOriginV[0];
+    roiExtent[1] = roiOriginV[0] + roiSizeV[0] - 1;
+    roiExtent[2] = roiOriginV[1];
+    roiExtent[3] = roiOriginV[1] + roiSizeV[1] - 1;
+    roiExtent[4] = roiOriginV[2];
+    roiExtent[5] = roiOriginV[2] + roiSizeV[2] - 1;
 
     // check new extents
     if (roiExtent[0] < extentGT[0] || roiExtent[1] >= extentGT[1] ||
       roiExtent[2] < extentGT[2] || roiExtent[3] >= extentGT[3] ||
-      roiExtent[4] < extentGT[4] || roiExtent[5] >= extentGT[5]) {
+      roiExtent[4] < extentGT[4] || roiExtent[5] >= extentGT[5])
+    {
         LOG_ERROR("Region of interest contains data outside the original volume's IJK coordinates! Extents are: " << roiExtent[0] << " " << roiExtent[1] << " " << roiExtent[2] << " " << roiExtent[3] << " " << roiExtent[4] << " " << roiExtent[5] << "\n" << "Original extent is: " << extentGT[0] << " " << extentGT[1] << " " << extentGT[2] << " " << extentGT[3] << " " << extentGT[4] << " " << extentGT[5]);
         exit(EXIT_FAILURE);
     }
 
-    vtkSmartPointer<vtkImageClip> clipGT = vtkSmartPointer<vtkImageClip>::New();
     clipGT->SetInput(groundTruth);
     clipGT->SetClipData(1);
     clipGT->SetOutputWholeExtent(roiExtent);
     clipGT->Update();
-    groundTruthCropped = clipGT->GetOutput();
-    
-    vtkSmartPointer<vtkImageClip> clipGTAlpha = vtkSmartPointer<vtkImageClip>::New();
+    groundTruthRoi = clipGT->GetOutput();
+        
     clipGTAlpha->SetInput(groundTruthAlpha);
     clipGTAlpha->SetClipData(1);
     clipGTAlpha->SetOutputWholeExtent(roiExtent);
     clipGTAlpha->Update();
-    groundTruthAlphaCropped = clipGTAlpha->GetOutput();
+    groundTruthAlphaRoi = clipGTAlpha->GetOutput();
 
-    vtkSmartPointer<vtkImageClip> clipTest = vtkSmartPointer<vtkImageClip>::New();
     clipTest->SetInput(testingImage);
     clipTest->SetClipData(1);
     clipTest->SetOutputWholeExtent(roiExtent);
     clipTest->Update();
-    testingImageCropped = clipTest->GetOutput();
-    
-    vtkSmartPointer<vtkImageClip> clipTestAlpha = vtkSmartPointer<vtkImageClip>::New();
+    testingImageRoi = clipTest->GetOutput();
+        
     clipTestAlpha->SetInput(testingAlpha);
     clipTestAlpha->SetClipData(1);
     clipTestAlpha->SetOutputWholeExtent(roiExtent);
     clipTestAlpha->Update();
-    testingAlphaCropped = clipTestAlpha->GetOutput();
-
-    vtkSmartPointer<vtkImageClip> clipSlicesAlpha = vtkSmartPointer<vtkImageClip>::New();
+    testingAlphaRoi = clipTestAlpha->GetOutput();
+    
     clipSlicesAlpha->SetInput(slicesAlpha);
     clipSlicesAlpha->SetClipData(1);
     clipSlicesAlpha->SetOutputWholeExtent(roiExtent);
     clipSlicesAlpha->Update();
-    slicesAlphaCropped = clipSlicesAlpha->GetOutput();
+    slicesAlphaRoi = clipSlicesAlpha->GetOutput();
   }
-  else
+  else if (roiOriginV.size() != 0 || roiSizeV.size() != 0)
   {
-    groundTruthCropped = groundTruth;
-    groundTruthAlphaCropped = groundTruthAlpha;
-    testingImageCropped = testingImage;
-    testingAlphaCropped = testingAlpha;
-    slicesAlphaCropped = slicesAlpha;
-    for (int extentIndex = 0; extentIndex < 6; extentIndex++)
-        roiExtent[extentIndex] = extentGT[extentIndex];
-  }
+    LOG_ERROR("ROI size and origin each need to be 3 values in volume IJK coordinates: X Y Z");
+    exit(EXIT_FAILURE);
+  }  
 
   // calculate the histogram for the difference image
   LOG_INFO("Calculating difference images and statistics...");
   vtkSmartPointer<vtkCompareVolumes> histogramGenerator = vtkSmartPointer<vtkCompareVolumes>::New();
-  histogramGenerator->SetInputGT(groundTruthCropped);
-  histogramGenerator->SetInputGTAlpha(groundTruthAlphaCropped);
-  histogramGenerator->SetInputTest(testingImageCropped);
-  histogramGenerator->SetInputTestAlpha(testingAlphaCropped);
-  histogramGenerator->SetInputSliceAlpha(slicesAlphaCropped);
+  histogramGenerator->SetInputGT(groundTruthRoi);
+  histogramGenerator->SetInputGTAlpha(groundTruthAlphaRoi);
+  histogramGenerator->SetInputTest(testingImageRoi);
+  histogramGenerator->SetInputTestAlpha(testingAlphaRoi);
+  histogramGenerator->SetInputSliceAlpha(slicesAlphaRoi);
   histogramGenerator->Update();
 
   // write data to a CSV
-  if (!outputStatsFileName.empty()) {
+  if (!outputStatsFileName.empty())
+  {
     LOG_INFO("Writing output statistics: " << outputStatsFileName);
     int* TruHistogram = histogramGenerator->GetTrueHistogramPtr();
     int* AbsHistogram = histogramGenerator->GetAbsoluteHistogramPtr();
@@ -351,7 +422,8 @@ int main( int argc, char** argv )
     }
   }
 
-  if (!outputAbsoluteDiffFileName.empty()) {
+  if (!outputAbsoluteDiffFileName.empty()) 
+  {
     LOG_INFO("Writing absolute difference image: " << outputAbsoluteDiffFileName);
     vtkSmartPointer<vtkDataSetWriter> writerAbs = vtkSmartPointer<vtkDataSetWriter>::New();
     writerAbs->SetFileTypeToBinary();
@@ -360,7 +432,8 @@ int main( int argc, char** argv )
     writerAbs->Update();
   }
 
-  if (!outputTrueDiffFileName.empty()) {
+  if (!outputTrueDiffFileName.empty()) 
+  {
     LOG_INFO("Writing true difference image: " << outputTrueDiffFileName);
     vtkSmartPointer<vtkDataSetWriter> writerTru = vtkSmartPointer<vtkDataSetWriter>::New();
     writerTru->SetFileTypeToBinary();
