@@ -87,7 +87,7 @@
         ImagingDepthMm="60.0"
         TransducerWidthMm="40.0"
         OutputImageSizePixel="476 689"
-        TransducerCenterPixel="238.0952380952381 0"
+        TransducerCenterPixel="238 0"
         OutputImageSpacingMmPerPixel="0.084 0.087"/>
     </RfProcessing>
   </vtkUsSimulatorAlgo>
