@@ -14,13 +14,12 @@ See License.txt for details.
 #include "vtkPlusDataSource.h"
 #include "vtkPlusBuffer.h"
 
-#include "BmodeDLL.h"
-#include "usbProbeDLL_net.h"
+
 
 #include "vtkUSImagingParameters.h"
 
-#define XSIZE 800						// Image window size 
-#define YSIZE 512					    //		XSIZE must be divisible by four!
+//#define XSIZE 800						// Image window size 
+//#define YSIZE 512					    //		XSIZE must be divisible by four!
 
 // Interson's OEM ID (probes released by Interson have this OEM ID)
 #define OEM_ID_INTERSON 0x00
@@ -40,13 +39,13 @@ public:
   BITMAP Bitmap;
   bmBITMAPINFO	BitmapInfo;
   BYTE *RfDataBuffer;
+  static const int samplesPerLine = 2048;
 
   //----------------------------------------------------------------------------
   vtkIntersonVideoSource::vtkInternal::vtkInternal(vtkIntersonVideoSource* external) 
     : External(external)
     , RfDataBuffer(NULL)
-  {
-
+  {	
   }
 
   //----------------------------------------------------------------------------
@@ -58,10 +57,10 @@ public:
   //----------------------------------------------------------------------------
   void vtkIntersonVideoSource::vtkInternal::CreateLinearTGC(int tgcMin, int tgcMax)
   {
-    int tgc[2048]={0};
+    int tgc[samplesPerLine]={0};
     int b = tgcMin; 
-    float m = (float) (tgcMax - tgcMin) / 2048.0f;
-    for (int x = 0; x < 2048; x++)
+    float m = (float) (tgcMax - tgcMin) / samplesPerLine;
+    for (int x = 0; x < samplesPerLine; x++)
     {
       tgc[x] = (int) (m * (float) x) + b;
     }
@@ -142,6 +141,23 @@ vtkIntersonVideoSource::vtkIntersonVideoSource()
   this->RequireRfElementInDeviceSetConfiguration = false;
 
   this->ImagingParameters = new vtkUsImagingParameters(this);
+  //this->SoundVelocity = 1540.0;
+  this->ClockDivider = 1;
+  this->PulsFrequencyDivider = 2;
+
+  this->LutCenter = 128; //192
+  this->LutWindow = 256; //128
+  this->MinTGC = 0;
+  this->MaxTGC = 150;
+
+  this->InitialGain =0;
+  this->MidGain=0;
+  this->FarGain=0;
+
+  this->ImageSize[0]=800;
+  this->ImageSize[1]=512;
+
+  this->PulseVoltage=30.0f;
 
   // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
   this->StartThreadForInternalUpdates=true;
@@ -181,11 +197,11 @@ int CALLBACK ProbeDetached()
 }
 
 //----------------------------------------------------------------------------
-void InitializeDIB(bmBITMAPINFO *bmi)
+PlusStatus vtkIntersonVideoSource::InitializeDIB(bmBITMAPINFO *bmi)
 {
   bmi->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-  bmi->bmiHeader.biWidth = XSIZE;
-  bmi->bmiHeader.biHeight = -YSIZE;
+  bmi->bmiHeader.biWidth = this->ImageSize[0];
+  bmi->bmiHeader.biHeight = -this->ImageSize[1];
   bmi->bmiHeader.biPlanes = 1;
   bmi->bmiHeader.biBitCount = 8;
   bmi->bmiHeader.biCompression = 0;
@@ -197,7 +213,7 @@ void InitializeDIB(bmBITMAPINFO *bmi)
   // Compute the number of bytes in the array of color  
   // indices and store the result in biSizeImage.  
   // The width must be DWORD aligned unless the bitmap is RLE compressed. 
-  bmi->bmiHeader.biSizeImage = ((XSIZE*8+31)&~31)/8 * YSIZE; 
+  bmi->bmiHeader.biSizeImage = ((this->ImageSize[0]*8+31)&~31)/8 * this->ImageSize[1]; 
 
   for( int i=0; i<256; i++ )
   {
@@ -206,6 +222,8 @@ void InitializeDIB(bmBITMAPINFO *bmi)
     bmi->bmiColors[i].rgbGreen = i;
     bmi->bmiColors[i].rgbReserved = 0;
   }
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -213,7 +231,7 @@ PlusStatus vtkIntersonVideoSource::InternalConnect()
 {
   LOG_TRACE( "vtkIntersonVideoSource::InternalConnect" );
 
-  PVOID display = bmInitializeDisplay(XSIZE*YSIZE);
+  PVOID display = bmInitializeDisplay(this->ImageSize[0]*this->ImageSize[1]);
   if (display == NULL)
   {
     LOG_ERROR("Could not initialize the display");
@@ -264,17 +282,25 @@ PlusStatus vtkIntersonVideoSource::InternalConnect()
   // if there is hardware attached, this enables it
   usbSelectProbe(this->Internal->ProbeHandle);
   // set the display window depth for this probe
-  usbSetWindowDepth(this->Internal->ProbeHandle, YSIZE);
+  usbSetWindowDepth(this->Internal->ProbeHandle, this->ImageSize[1]);
   // set the assumed velocity (m/s)
-  usbSetVelocity(this->Internal->ProbeHandle, 1540.0);
-  // select the 30MHz clock
-  usbSet30MHzClock(this->Internal->ProbeHandle);
-  // set the clock divider for
-  // 1:  ~5cm @ 30MHz and 1540m/s velocity
-  // 3: ~15cm @ 30MHz;
-  // 4: ~20cm @ 30MHz
-  usbSetClockDivider(this->Internal->ProbeHandle, 3);
+  double soundVelocity = -1 ;
+  this->ImagingParameters->GetSoundVelocity(soundVelocity);
+  usbSetVelocity(this->Internal->ProbeHandle, soundVelocity );
+  double depth = -1;
+  this->ImagingParameters->GetDepthMm(depth);
+  this->SetDepthMm(depth);
 
+  /* The following is not useful for us because has no effect in the gain   */
+  double initialGain = usbInitialGain();
+  double midGain = usbMidGain();
+  double farGain = usbFarGain();
+  usbSetInitialGain(this->InitialGain);
+  usbSetMidGain(this->MidGain);
+  usbSetFarGain(this->FarGain);
+  initialGain = usbInitialGain();
+  midGain = usbMidGain();
+  farGain = usbFarGain();
   //this->SetProbeFrequency(5000);
 
   // Setup the display offsets now that we have the probe and DISPLAY data
@@ -288,14 +314,14 @@ PlusStatus vtkIntersonVideoSource::InternalConnect()
   this->Internal->RfDataBuffer = usbCurrentCineFrame();  
 
   usbSetUnidirectionalMode();
-  usbSetPulseVoltage(100.0f);
+  usbSetPulseVoltage(this->PulseVoltage);
 
   POINT ptCenter;		// Points for Zoomed Display
-  ptCenter.x = XSIZE/2;
-  ptCenter.y = YSIZE/2;
+  ptCenter.x = this->ImageSize[0]/2;
+  ptCenter.y = this->ImageSize[1]/2;
   int rotation=0;
 
-  if (bmCalculateDisplay (XSIZE, YSIZE, ptCenter, this->Internal->ProbeHandle, XSIZE, rotation) == ERROR)
+  if (bmCalculateDisplay (this->ImageSize[0], this->ImageSize[1], ptCenter, this->Internal->ProbeHandle, this->ImageSize[0], rotation) == ERROR)
   {
     LOG_ERROR("CalculateDisplay failed");
   }
@@ -314,7 +340,7 @@ PlusStatus vtkIntersonVideoSource::InternalConnect()
   // Clear buffer on connect because the new frames that we will acquire might have a different size 
   aSource->GetBuffer()->Clear();
   aSource->GetBuffer()->SetPixelType( VTK_UNSIGNED_CHAR );  
-  aSource->GetBuffer()->SetFrameSize(XSIZE, YSIZE); 
+  aSource->GetBuffer()->SetFrameSize(this->ImageSize[0], this->ImageSize[1]); 
 
   HINSTANCE hInst = GetModuleHandle(NULL);
 
@@ -335,8 +361,8 @@ PlusStatus vtkIntersonVideoSource::InternalConnect()
 
   this->Internal->ImageWindowHandle = CreateWindow( TEXT("ImageWindow"), TEXT("Ultrasound"), 
     WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU|WS_CLIPCHILDREN|WS_CLIPSIBLINGS, 0, 0,
-    XSIZE+2*GetSystemMetrics(SM_CXFIXEDFRAME),
-    YSIZE+2*GetSystemMetrics(SM_CYFIXEDFRAME)+GetSystemMetrics(SM_CYBORDER)+GetSystemMetrics(SM_CYSIZE),
+    this->ImageSize[0]+2*GetSystemMetrics(SM_CXFIXEDFRAME),
+    this->ImageSize[1]+2*GetSystemMetrics(SM_CYFIXEDFRAME)+GetSystemMetrics(SM_CYBORDER)+GetSystemMetrics(SM_CYSIZE),
     NULL, NULL, hInst, NULL);  
 
   if (this->Internal->ImageWindowHandle==NULL)
@@ -360,11 +386,10 @@ PlusStatus vtkIntersonVideoSource::InternalConnect()
   this->Internal->MemoryBitmapBuffer.resize(toAllocate,0);
 
   BYTE lut[256];
-  this->Internal->CreateLUT(lut, 192, 128);
-	bmCreatebLUT(lut) ;
-
-  this->Internal->CreateLinearTGC(0,150);
-  bmTurnOnTGC();
+  this->Internal->CreateLUT(lut, this->LutCenter, this->LutWindow);
+  bmCreatebLUT(lut) ;
+  //this->Internal->CreateLinearTGC(this->MinTGC,this->MaxTGC );
+  //bmTurnOnTGC();
 
   return PLUS_SUCCESS;
 }
@@ -472,9 +497,8 @@ PlusStatus vtkIntersonVideoSource::InternalUpdate()
   float depthScale = -1;
   usbProbeName(this->Internal->ProbeHandle, probeName);
   usbProbeDepthScale(this->Internal->ProbeHandle,&depthScale);
-  
-  int frameSizeInPx[2]={XSIZE,YSIZE};
- 
+
+  int frameSizeInPx[2]={this->ImageSize[0],this->ImageSize[1]};
 
   // If the buffer is empty, set the pixel type and frame size to the first received properties 
   if ( aSource->GetBuffer()->GetNumberOfItems() == 0 )
@@ -487,7 +511,7 @@ PlusStatus vtkIntersonVideoSource::InternalUpdate()
 
     LOG_INFO("Frame size: " << frameSizeInPx[0] << "x" << frameSizeInPx[1]
     << ", pixel type: " << vtkImageScalarTypeNameMacro(aSource->GetBuffer()->GetPixelType())
-	  << ", frequency (Hz): " << usbProbeSampleFrequency(this->Internal->ProbeHandle)
+	  << ", probe sample frequency (Hz): " << usbProbeSampleFrequency(this->Internal->ProbeHandle)
 	  << ", probe name: " << probeName
 	  << ", display zoom: " << bmDisplayZoom()
 	  << ", probe depth scale (mm/sample):" << depthScale
@@ -512,17 +536,59 @@ PlusStatus vtkIntersonVideoSource::ReadConfiguration(vtkXMLDataElement* config)
   LOG_TRACE("vtkIntersonVideoSource::ReadConfiguration"); 
   if ( config == NULL )
   {
-    LOG_ERROR("Unable to configure Epiphan video source! (XML data element is NULL)"); 
+    LOG_ERROR("Unable to configure Interson video source! (XML data element is NULL)"); 
     return PLUS_FAIL; 
   }
 
   Superclass::ReadConfiguration(config); 
 
-  vtkXMLDataElement* imageAcquisitionConfig = this->FindThisDeviceElement(config);
-  if (imageAcquisitionConfig == NULL) 
+  vtkXMLDataElement* deviceConfig = this->FindThisDeviceElement(config);
+  if (deviceConfig == NULL) 
   {
     LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
     return PLUS_FAIL;
+  }
+
+  int imageSize[2]={0,0};
+  if (deviceConfig->GetVectorAttribute("ImageSize", 2, imageSize))
+  {
+    this->SetImageSize(imageSize);
+  }
+
+  int sector = -1; 
+  if ( deviceConfig->GetScalarAttribute("SectorPercent", sector)) 
+  {
+    this->ImagingParameters->SetSectorPercent(sector); 
+  }
+
+  int gain = -1; 
+  if ( deviceConfig->GetScalarAttribute("GainPercent", gain)) 
+  {
+    this->ImagingParameters->SetGainPercent(gain); 
+  }
+
+  int dynRange = -1; 
+  if ( deviceConfig->GetScalarAttribute("DynRangeDb", dynRange)) 
+  {
+    this->ImagingParameters->SetDynRangeDb(dynRange); 
+  }
+
+  int zoom = -1; 
+  if ( deviceConfig->GetScalarAttribute("ZoomFactor", zoom)) 
+  {
+    this->ImagingParameters->SetZoomFactor(zoom); 
+  }
+
+  int frequency = -1; 
+  if ( deviceConfig->GetScalarAttribute("FrequencyMhz", frequency)) 
+  {
+    this->ImagingParameters->SetFrequencyMhz(frequency); 
+  }
+
+  int soundVelocity = -1; //
+  if ( deviceConfig->GetScalarAttribute("SoundVelocity", soundVelocity)) 
+  {
+    this->ImagingParameters->SetSoundVelocity(soundVelocity); 
   }
 
   return PLUS_SUCCESS;
@@ -599,36 +665,297 @@ std::string vtkIntersonVideoSource::GetSdkVersion()
   return versionString.str();
 }
 
-PlusStatus vtkIntersonVideoSource::SetDisplayZoom(float zoom)
+//----------------------------------------------------------------------------
+PlusStatus vtkIntersonVideoSource::SetDisplayZoom(double zoom)
 {
   bmSetDisplayZoom(zoom); 
-  LOG_TRACE("New zoom is %4.2f\n", bmDisplayZoom()); 
+  LOG_TRACE("New zoom is " << bmDisplayZoom()); 
   return PLUS_SUCCESS;
 }
 
-PlusStatus vtkIntersonVideoSource::GetSampleFrequency(float& aFreq)
+//----------------------------------------------------------------------------
+PlusStatus vtkIntersonVideoSource::GetSampleFrequency(double& aFreq)
 {
   aFreq = usbProbeSampleFrequency(this->Internal->ProbeHandle);
-  LOG_TRACE("Current frequency is" << aFreq); 
+  LOG_TRACE("Current frequency is " << aFreq); 
   return PLUS_SUCCESS;
 }
 
-
-PlusStatus vtkIntersonVideoSource::SetProbeFrequency(float freq)
+//----------------------------------------------------------------------------
+PlusStatus vtkIntersonVideoSource::SetProbeFrequency(double freq)
 {
   usbSetProbeFrequency(freq);
   return PLUS_SUCCESS;
 }
 
-PlusStatus vtkIntersonVideoSource::GetProbeVelocity(float& aVel)
+//----------------------------------------------------------------------------
+PlusStatus vtkIntersonVideoSource::GetProbeVelocity(double& aVel)
 {
   aVel = usbProbeVelocity(this->Internal->ProbeHandle);
-  LOG_TRACE("Current velocity is" << aVel); 
+  LOG_TRACE("Current velocity is " << aVel); 
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 PlusStatus vtkIntersonVideoSource::SetWindowDepth(int height)
 {
   usbSetWindowDepth(this->Internal->ProbeHandle,height);
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkIntersonVideoSource::SetDepthMm(double depthMm)
+{
+  // to be implemented
+  std::vector<pair<double,double>> allowedModes;
+  this->GetProbeAllowedModes(allowedModes);
+  int numberOfAllowedModes = allowedModes.size();
+  std::vector<int> possibleModes;
+  double choosedFrequency = -1;
+  double choosedDepth = -1;
+  for (int i=0;i<numberOfAllowedModes;i++)
+  {
+    if(allowedModes[i].second*100==depthMm)
+	{
+	  possibleModes.push_back(i);	
+	}
+  }
+  if(possibleModes.size()==1)
+  {
+	choosedFrequency = allowedModes[possibleModes[0]].first ;
+	choosedDepth = allowedModes[possibleModes[0]].second ;
+  }
+  else if(possibleModes.size()==0)
+  {
+	choosedFrequency = allowedModes[0].first ;
+	choosedDepth = allowedModes[0].second ;
+	LOG_INFO("The probe does not allow the required depth." << choosedDepth << " cm depth was chosed instead." );
+  }
+
+  if (choosedDepth==5 || choosedDepth==10 || choosedDepth==15 || choosedDepth==20)
+  {
+	// select the 30MHz clock
+    usbSet30MHzClock(this->Internal->ProbeHandle);
+	this->ClockFrequency = 30;
+	this->ClockDivider = choosedDepth/5;
+	// set the clock divider for
+    // 1:  ~5cm @ 30MHz and 1540m/s velocity
+    // 3: ~15cm @ 30MHz;
+    // 4: ~20cm @ 30MHz
+  }
+  else
+  {
+	// select the 48MHz clock
+    usbSet48MHzClock(this->Internal->ProbeHandle);
+	this->ClockFrequency = 48;
+	this->ClockDivider = choosedDepth/3;
+  }
+
+  this->PulsFrequencyDivider = this->ClockFrequency/choosedFrequency;
+  usbSetPulseFrequency(this->PulsFrequencyDivider);
+  usbSetClockDivider(this->Internal->ProbeHandle, this->ClockDivider);
+  this->ImagingParameters->SetDepthMm(choosedDepth*100);
+  this->ImagingParameters->SetFrequencyMhz(choosedFrequency);
+  double clockDivider = usbClockDivider(); 
+  //pulseFrequency = usbPulseFrequency();
+
+
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkIntersonVideoSource::SetImageSize(int imageSize[2])
+{
+  this->ImageSize[0]= imageSize[0];
+  this->ImageSize[1]= imageSize[1];
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkIntersonVideoSource::SetFrequencyMhz(double freq)
+{
+	// to be implemented
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkIntersonVideoSource::SetGainPercent(double gainPercent)
+{
+	// to be implemented
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkIntersonVideoSource::SetZoomFactor(double gainPercent)
+{
+	// to be implemented
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkIntersonVideoSource::GetProbeAllowedModes(std::vector<pair<double,double>>& allowedModes)
+{
+  
+  double clockDivider = usbClockDivider();	
+  double sampleFrequency = usbProbeSampleFrequency(this->Internal->ProbeHandle);
+  double divider = usbPulseFrequency();
+  unsigned is24MHz, is15MHz, is12MHz, is8MHz, is7_5MHz, is6MHz, is5MHz, is3_75MHz; 
+  std::pair<double,double> pair;
+  is24MHz = usbProbeAllowedModes(this->Internal->ProbeHandle) & P24MHZ; 
+  if (is24MHz & CLKDIV1) { 
+	  // now we know the 24 MHz pulse frequency is good and 3 cm mode is good 
+	  LOG_INFO("24 Mhz pulse frequency and 3 cm depth is an allowed mode for this probe");	  
+	  pair.first = 24;
+	  pair.second = 3;
+	  allowedModes.push_back(pair);
+  }
+  if (is24MHz & CLKDIV2) { 
+	  // now we know the 24 MHz pulse frequency is good and 6 cm mode is good 
+	  LOG_INFO("24 Mhz pulse frequency and 6 cm depth is an allwoed mode for this probe");
+  }
+  if (is24MHz & CLKDIV3) { 
+	  // now we know the 24 MHz pulse frequency is good and 9 cm mode is good 
+	  LOG_INFO("24 Mhz pulse frequency and 9 cm depth is an allwoed mode for this probe");
+  }
+  if (is24MHz & CLKDIV4) { 
+	  // now we know the 24 MHz pulse frequency is good and 12 cm mode is good 
+	  LOG_INFO("24 Mhz pulse frequency and 12 cm depth is an allowed mode for this probe");
+  }
+
+  is15MHz = usbProbeAllowedModes(this->Internal->ProbeHandle) & P15MHZ; 
+  if (is15MHz & CLKDIV1) { 
+	  // now we know the 15 MHz pulse frequency is good and 5 cm mode is good 
+	  LOG_INFO("15 Mhz pulse frequency and 5 cm depth is an allowed mode for this probe");
+  }
+  if (is15MHz & CLKDIV2) { 
+	  // now we know the 15 MHz pulse frequency is good and 10 cm mode is good 
+	  LOG_INFO("15 Mhz pulse frequency and 10 cm depth is an allowed mode for this probe");
+  }
+  if (is15MHz & CLKDIV3) { 
+	  // now we know the 15 MHz pulse frequency is good and 15 cm mode is good 
+	  LOG_INFO("15 Mhz pulse frequency and 15 cm depth is an allowed mode for this probe");
+  }
+  if (is15MHz & CLKDIV4) { 
+	  // now we know the 15 MHz pulse frequency is good and 20 cm mode is good 
+	  LOG_INFO("15 Mhz pulse frequency and 20 cm depth is an allowed mode for this probe");
+  }
+
+  is12MHz = usbProbeAllowedModes(this->Internal->ProbeHandle) & P12MHZ; 
+  if (is12MHz & CLKDIV1) { 
+	  // now we know the 12 MHz pulse frequency is good and 5 cm mode is good 
+	  LOG_INFO("12 Mhz pulse frequency and 5 cm depth is an allowed mode for this probe");
+  }
+  if (is12MHz & CLKDIV2) { 
+	  // now we know the 12 MHz pulse frequency is good and 10 cm mode is good 
+	  LOG_INFO("12 Mhz pulse frequency and 10 cm depth is an allowed mode for this probe");
+  }
+  if (is12MHz & CLKDIV3) { 
+	  // now we know the 12 MHz pulse frequency is good and 15 cm mode is good 
+	  LOG_INFO("12 Mhz pulse frequency and 15 cm depth is an allowed mode for this probe");
+  }
+  if (is12MHz & CLKDIV4) { 
+	  // now we know the 12 MHz pulse frequency is good and 20 cm mode is good 
+	  LOG_INFO("12 Mhz pulse frequency and 20 cm depth is an allowed mode for this probe");
+  }
+  is8MHz = usbProbeAllowedModes(this->Internal->ProbeHandle) & P8MHZ; 
+  if (is8MHz & CLKDIV1) { 
+	  // now we know the 8 MHz pulse frequency is good and 3 cm mode is good 
+	  LOG_INFO("8 Mhz pulse frequency and 3 cm depth is an allowed mode for this probe");
+  }
+  if (is8MHz & CLKDIV2) { 
+	  // now we know the 8 MHz pulse frequency is good and 6 cm mode is good 
+	  LOG_INFO("8 Mhz pulse frequency and 6 cm depth is an allowed mode for this probe");
+  }
+  if (is8MHz & CLKDIV3) { 
+	  // now we know the 8 MHz pulse frequency is good and 9 cm mode is good 
+	  LOG_INFO("8 Mhz pulse frequency and 9 cm depth is an allowed mode for this probe");
+  }
+  if (is8MHz & CLKDIV4) { 
+	  // now we know the 8 MHz pulse frequency is good and 12 cm mode is good 
+	  LOG_INFO("8 Mhz pulse frequency and 12 cm depth is an allowed mode for this probe");
+  }
+  is7_5MHz = usbProbeAllowedModes(this->Internal->ProbeHandle) & P7_5MHZ; 
+  if (is7_5MHz & CLKDIV1) { 
+	  // now we know the 7.5 MHz pulse frequency is good and 5 cm mode is good 
+	  LOG_INFO("7.5 Mhz pulse frequency and 5 cm depth is an allowed mode for this probe");
+  }
+  if (is7_5MHz & CLKDIV2) { 
+	  // now we know the 7.5 MHz pulse frequency is good and 10 cm mode is good 
+	  LOG_INFO("7.5 Mhz pulse frequency and 10 cm depth is an allowed mode for this probe");
+  }
+  if (is7_5MHz & CLKDIV3) { 
+	  // now we know the 7.5 MHz pulse frequency is good and 15 cm mode is good 
+	  LOG_INFO("7.5 Mhz pulse frequency and 15 cm depth is an allowed mode for this probe");
+  }
+  if (is7_5MHz & CLKDIV4) { 
+	  // now we know the 7.5 MHz pulse frequency is good and 20 cm mode is good 
+	  LOG_INFO("7.5 Mhz pulse frequency and 20 cm depth is an allowed mode for this probe");
+  }
+  is6MHz = usbProbeAllowedModes(this->Internal->ProbeHandle) & P6MHZ; 
+  if (is6MHz & CLKDIV1) { 
+	  // now we know the 6 MHz pulse frequency is good and 3 cm mode is good 
+	  LOG_INFO("6 Mhz pulse frequency and 3 cm depth is an allowed mode for this probe");
+  }
+  if (is6MHz & CLKDIV2) { 
+	  // now we know the 6 MHz pulse frequency is good and 6 cm mode is good 
+	  LOG_INFO("6 Mhz pulse frequency and 6 cm depth is an allowed mode for this probe");
+  }
+  if (is6MHz & CLKDIV3) { 
+	  // now we know the 6 MHz pulse frequency is good and 9 cm mode is good
+	  LOG_INFO("6 Mhz pulse frequency and 9 cm depth is an allowed mode for this probe");
+  }
+  if (is6MHz & CLKDIV4) { 
+	  // now we know the 6 MHz pulse frequency is good and 12 cm mode is good 
+	  LOG_INFO("6 Mhz pulse frequency and 12 cm depth is an allowed mode for this probe");
+  }
+  is5MHz = usbProbeAllowedModes(this->Internal->ProbeHandle) & P5MHZ; 
+  if (is5MHz & CLKDIV1) { 
+	  // now we know the 5 MHz pulse frequency is good and 5 cm mode is good 
+	  LOG_INFO("5 Mhz pulse frequency and 5 cm depth is an allowed mode for this probe");
+  }
+  if (is5MHz & CLKDIV2) { 
+	  // now we know the 5 MHz pulse frequency is good and 10 cm mode is good 
+	  LOG_INFO("5 Mhz pulse frequency and 10 cm depth is an allowed mode for this probe");
+  }
+  if (is5MHz & CLKDIV3) { 
+	  // now we know the 5 MHz pulse frequency is good and 15 cm mode is good 
+	  LOG_INFO("5 Mhz pulse frequency and 15 cm depth is an allowed mode for this probe");
+  }
+  if (is5MHz & CLKDIV4) { 
+	  // now we know the 5 MHz pulse frequency is good and 20 cm mode is good 
+	  LOG_INFO("5 Mhz pulse frequency and 20 cm depth is an allowed mode for this probe");
+  }
+  is3_75MHz = usbProbeAllowedModes(this->Internal->ProbeHandle) & P3_75MHZ; 
+  if (is3_75MHz & CLKDIV1) { 
+	  // now we know the 3.75 MHz pulse frequency is good and 5 cm mode is good 
+	  LOG_INFO("3.75 Mhz pulse frequency and 5 cm depth is an allowed mode for this probe");
+	  pair.first = 3.75;
+	  pair.second = 5;
+	  allowedModes.push_back(pair);
+  }
+  if (is3_75MHz & CLKDIV2) { 
+	  // now we know the 3.75 MHz pulse frequency is good and 10 cm mode is good 
+	  LOG_INFO("3.75 Mhz pulse frequency and 10 cm depth is an allowed mode for this probe");
+	  pair.first = 3.75;
+	  pair.second = 10;
+	  allowedModes.push_back(pair);
+  }
+  if (is3_75MHz & CLKDIV3) { 
+	  // now we know the 3.75 MHz pulse frequency is good and 15 cm mode is good
+	  pair.first = 3.75;
+	  pair.second = 15;
+	  allowedModes.push_back(pair);
+	  LOG_INFO("3.75 Mhz pulse frequency and 15 cm depth is an allowed mode for this probe");
+  }
+  if (is3_75MHz & CLKDIV4) { 
+	  // now we know the 3.75 MHz pulse frequency is good and 20 cm mode is good
+	  pair.first = 3.75;
+	  pair.second = 20;
+	  allowedModes.push_back(pair);
+	  LOG_INFO("3.75 Mhz pulse frequency and 20 cm depth is an allowed mode for this probe");
+  }
+  //allowedModes = usbProbeAllowedModes(this->Internal->ProbeHandle);
+  //LOG_TRACE("Allowed modes are" << allowedModes); 
   return PLUS_SUCCESS;
 }

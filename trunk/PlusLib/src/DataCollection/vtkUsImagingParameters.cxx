@@ -7,12 +7,20 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkUsImagingParameters.h"
 
+
 //----------------------------------------------------------------------------
 
 vtkUsImagingParameters::vtkUsImagingParameters(vtkPlusDevice* aImagingDevice)
 : vtkObject()
+, FrequencyMhz(-1)
+, DepthMm(-1)
+, SectorPercent(-1)
+, GainPercent(-1)
+, DynRangeDb(-1)
+, ZoomFactor(-1)
+, SoundVelocity(1540)
 {
-	//this->ImagingDevice = imagingDevice;
+   //this->ImagingDevice = imagingDevice;
    this->ImagingDevice = aImagingDevice;
 }
 
@@ -33,6 +41,7 @@ PlusStatus vtkUsImagingParameters::SetFrequencyMhz(double aFrequencyMhz)
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::GetFrequencyMhz(double& aFrequencyMhz)
 {
+	aFrequencyMhz = this->FrequencyMhz;
 	return PLUS_SUCCESS;
 }
 
@@ -46,6 +55,7 @@ PlusStatus vtkUsImagingParameters::SetDepthMm(double aDepthMm)
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::GetDepthMm(double& aDepthMm)
 {
+  aDepthMm = this->DepthMm;
   return PLUS_SUCCESS;
 }
 
@@ -59,20 +69,22 @@ PlusStatus vtkUsImagingParameters::SetGainPercent(double aGainPercent)
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::GetGainPercent(double& aGainPercent)
 {
+	aGainPercent = this->GainPercent;
 	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::SetDynRangedB(double aDynRangeDb)
+PlusStatus vtkUsImagingParameters::SetDynRangeDb(double aDynRangeDb)
 {
     this->DynRangeDb = aDynRangeDb;
 	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::GetDynRangedB(double& aDynRangeDb)
+PlusStatus vtkUsImagingParameters::GetDynRangeDb(double& aDynRangeDb)
 {
-  return PLUS_SUCCESS;
+    aDynRangeDb = this->DynRangeDb ;
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -85,7 +97,7 @@ PlusStatus vtkUsImagingParameters::SetZoomFactor(double aZoomFactor)
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::GetZoomFactor(double& aZoomFactor)
 {
-	
+	aZoomFactor = this->ZoomFactor;
 	return PLUS_SUCCESS;
 }
 
@@ -99,20 +111,22 @@ PlusStatus vtkUsImagingParameters::SetSectorPercent(double aSectorPercent)
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::GetSectorPercent(double& aSectorPercent)
 {
-  return PLUS_SUCCESS;
+    aSectorPercent = this->SectorPercent;
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::SetSoundVelocity(double aSoundVelocity)
 {
-  this->SoundVelocity = aSoundVelocity;
-  return PLUS_SUCCESS;
+    this->SoundVelocity = aSoundVelocity;
+    return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::GetSoundVelocity(double& aSoundVelocity)
 {
-  return PLUS_SUCCESS;
+    aSoundVelocity = this->SoundVelocity;
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
