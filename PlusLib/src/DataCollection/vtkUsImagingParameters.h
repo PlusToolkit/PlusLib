@@ -48,9 +48,9 @@ public:
   PlusStatus GetGainPercent(double& aGainPercent);
 
   /*! Set the DynRange (dB) of B-mode ultrasound */
-  PlusStatus SetDynRangedB(double aDynRangeDb);
+  PlusStatus SetDynRangeDb(double aDynRangeDb);
   /*! Get the DynRange (dB) of B-mode ultrasound */
-  PlusStatus GetDynRangedB(double& aDynRangeDb);
+  PlusStatus GetDynRangeDb(double& aDynRangeDb);
 
   /*! Set the Zoom (%) of B-mode ultrasound; valid range: 0-100 */
   PlusStatus SetZoomFactor(double aZoomFactor);

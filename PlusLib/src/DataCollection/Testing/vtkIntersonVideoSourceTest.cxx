@@ -248,6 +248,11 @@ int main(int argc, char* argv[])
   bool printParams(false);
   std::string inputConfigFile;
   std::string inputSonixIp;
+  double depthCm = -1;
+  double gainPercent = -1;
+  double zoomFactor = -1;
+  double frequencyMhz = -1;
+
 
   std::string acqMode("B");
 
@@ -258,7 +263,10 @@ int main(int argc, char* argv[])
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFile, "Config file containing the device configuration.");
-  args.AddArgument("--acq-mode", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &acqMode, "Acquisition mode: B or RF (Default: B).");	
+  args.AddArgument("--depth", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &depthCm, "Depth in cm.");	
+  args.AddArgument("--frequencyMhz", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frequencyMhz, "Frequency in MHz");	
+  args.AddArgument("--gain", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &gainPercent, "Gain in percentage. 100 corresponds to the maximum gain");
+  args.AddArgument("--zoomFactor", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &zoomFactor, "Zoom used to display de US Image");
   args.AddArgument("--sonix-ip", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSonixIp, "IP address of the Ultrasonix scanner (overrides the IP address parameter defined in the config file).");
   args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
   args.AddArgument("--print-params", vtksys::CommandLineArguments::NO_ARGUMENT, &printParams, "Print all the supported imaging parameters (for diagnostic purposes only).");	
@@ -279,20 +287,22 @@ int main(int argc, char* argv[])
     exit(EXIT_SUCCESS); 
   }
 
-  // Read config file
-  //LOG_DEBUG("Reading config file...");
-  //vtkSmartPointer<vtkXMLDataElement> configRead = vtkSmartPointer<vtkXMLDataElement>::Take(::vtkXMLUtilities::ReadElementFromFile(inputConfigFile.c_str())); 
-  //LOG_DEBUG("Reading config file finished.");
-
   vtkSmartPointer<vtkIntersonVideoSource> intersonDevice = vtkSmartPointer<vtkIntersonVideoSource>::New();
   intersonDevice->SetDeviceId("VideoDevice");
-  //intersonDevice->ReadConfiguration(configRead);
+
+  // Read config file
+  if (STRCASECMP(inputConfigFile.c_str(), "")!=0)
+  {
+    LOG_DEBUG("Reading config file...");
+    vtkSmartPointer<vtkXMLDataElement> configRead = vtkSmartPointer<vtkXMLDataElement>::Take(::vtkXMLUtilities::ReadElementFromFile(inputConfigFile.c_str())); 
+    LOG_DEBUG("Reading config file finished.");
+    if ( configRead != NULL )
+    {
+      intersonDevice->ReadConfiguration(configRead);
+    }
+  }
   
   intersonDevice->CreateDefaultOutputChannel();
-  //intersonDevice->ImagingParameters->SetDepth(5);
-  //intersonDevice->ImagingParameters->SetGain(6);
-  intersonDevice->ImagingParameters->SetFrequencyMhz(5);
-  //intersonDevice->ImagingParameters->SetDynRange(8);
 
   DisplayMode displayMode=SHOW_IMAGE; 
   

@@ -10,6 +10,11 @@
 #include "vtkPlusDevice.h"
 #include "vtkUSImagingParameters.h"
 
+#include "BmodeDLL.h"
+#include "usbProbeDLL_net.h"
+
+using namespace std;
+
 
 /*!
   \class vtkIntersonVideoSource 
@@ -64,23 +69,42 @@ protected:
 
   PlusStatus GetFullIniFilePath(std::string &fullPath);
 
-  PlusStatus DecodePngImage(unsigned char* pngBuffer, unsigned int pngBufferSize, vtkImageData* decodedImage);
-
   PlusStatus Freeze(bool freeze);
 
   PlusStatus WaitForFrame();
 
-  PlusStatus SetDisplayZoom(float zoom);
+  PlusStatus SetDisplayZoom(double zoom);
 
-  PlusStatus GetSampleFrequency(float& aFreq);
+  PlusStatus GetSampleFrequency(double& aFreq);
 
   /* Set the desired probe frequency in Hz. The resulting probe speed will be approximately the value specified */
-  PlusStatus SetProbeFrequency(float aFreq);
+  PlusStatus SetProbeFrequency(double aFreq);
 
-  PlusStatus GetProbeVelocity(float& aVel);
+  PlusStatus GetProbeVelocity(double& aVel);
 
   /* Represents the depth, in pixels, the display window will be. This defaults to 512 pixels for newly initialized probes.*/
   PlusStatus SetWindowDepth(int height);
+
+  /* Set the probe depth in mm */
+  PlusStatus SetDepthMm(double depthMm);
+
+  /* Set the image size */
+  PlusStatus SetImageSize(int imageSize[2]);
+
+  /* Set the frquency in Mhz */
+  PlusStatus SetFrequencyMhz(double freq);
+
+  /* Set the gain in percent */
+  PlusStatus SetGainPercent(double gainPercent);
+
+  /* Set the zom factor. */
+  PlusStatus SetZoomFactor(double gainPercent);
+
+  /* Each probe has a defined set of allowed modes. 
+  These modes are combinations of pulse frequency and sample rate that yield acceptable results
+  with that particular probe. While there is no enforcement to use only these modes, one should 
+  understand the implications on image quality if one of the allowed modes is not selected.*/
+  PlusStatus GetProbeAllowedModes(std::vector<pair<double,double>>& allowedModes);
 
   // For internal storage of additional variables (to minimize the number of included headers)
   class vtkInternal;
@@ -90,9 +114,27 @@ protected:
   bool BidirectionalScan;
   bool Frozen;
 
+  int ClockDivider;
+  double ClockFrequency;
+  double SoundVelocity;
+  int PulsFrequencyDivider;
+
+  double LutCenter;
+  double LutWindow;
+  double MinTGC;
+  double MaxTGC;
+  int ImageSize[2];
+  double PulseVoltage;
+
+  double InitialGain;
+  double MidGain;
+  double FarGain;
+
 private:
   vtkIntersonVideoSource(const vtkIntersonVideoSource&);  // Not implemented.
   void operator=(const vtkIntersonVideoSource&);  // Not implemented.
+
+  PlusStatus InitializeDIB(bmBITMAPINFO *bmi);
 };
 
 #endif
