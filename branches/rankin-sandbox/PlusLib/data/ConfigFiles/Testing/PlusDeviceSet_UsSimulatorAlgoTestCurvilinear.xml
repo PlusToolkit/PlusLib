@@ -89,7 +89,7 @@
         ThetaStartDeg="-60.0"
         ThetaStopDeg="60.0"
         OutputImageSizePixel="1200 800"
-        TransducerCenterPixel="600 34.48275862"
+        TransducerCenterPixel="600 34"
         OutputImageSpacingMmPerPixel="0.084 0.087" />
     </RfProcessing>
   </vtkUsSimulatorAlgo>

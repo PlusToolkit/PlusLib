@@ -15,7 +15,7 @@
               ThetaStartDeg="-75.0"
               ThetaStopDeg="75.0"
               OutputImageSizePixel="820 616"
-              TransducerCenterPixel="410 86.66666667"
+              TransducerCenterPixel="410 87"
               OutputImageSpacingMmPerPixel="0.15 0.15" />
           </RfProcessing>
         </OutputChannel>

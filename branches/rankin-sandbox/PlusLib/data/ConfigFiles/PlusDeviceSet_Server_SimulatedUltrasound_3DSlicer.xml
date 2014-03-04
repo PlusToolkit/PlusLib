@@ -152,8 +152,8 @@ To use with Ascension tracker instead of a simulated tracker: enable the Ascensi
             TransducerGeometry="LINEAR"
             ImagingDepthMm="60.0"
             TransducerWidthMm="40.0"
-            OutputImageSizePixel="476 689"
-            TransducerCenterPixel="238 0"
+            OutputImageSizePixel="820 616"
+            TransducerCenterPixel="410 0"
             OutputImageSpacingMmPerPixel="0.084 0.087"/>
           <!-- Example for a curvilinear transducer: -->
           <xScanConversion
@@ -163,8 +163,8 @@ To use with Ascension tracker instead of a simulated tracker: enable the Ascensi
             RadiusStopMm="60.0"
             ThetaStartDeg="-60.0"
             ThetaStopDeg="60.0"
-            TransducerCenterPixel="600 34.48275862"
-            OutputImageSizePixel="1200 800"
+            TransducerCenterPixel="410 34"
+            OutputImageSizePixel="820 616"
             OutputImageSpacingMmPerPixel="0.084 0.087" />
         </RfProcessing>
       </vtkUsSimulatorAlgo>
@@ -267,21 +267,13 @@ To use with Ascension tracker instead of a simulated tracker: enable the Ascensi
          0 1 0 0
          0 0 1 0
          0 0 0 1" />	
-    <!-- ImageFullFrameToProbe is renamed from the non-simulated ImageToProbe (820x616 image) -->
-    <Transform From="ImageFullFrame" To="Probe"
+    <Transform From="Image" To="Probe"
       Matrix="
         -0.00228039 0.0860508 -0.00121134 52.5973
         -0.0860501 -0.00229763 -0.00122624 35.9178
         -0.00125802 0.0011783 0.0860722 16.3705
         0 0 0 1"
-      Error="0.582721" Date="2012.02.06 17:57:00" />    
-    <!-- Simulated US frame (Image) within the full 820x616 image frame (ImageFullFrame): topleft=(176,0) -->
-    <Transform From="Image" To="ImageFullFrame"
-      Matrix="
-        1 0 0 176
-        0 1 0 0
-        0 0 1 0
-        0 0 0 1" />  
+      Error="0.582721" Date="2012.02.06 17:57:00" />
     <Transform From="Image" To="TransducerOriginPixel"
       Matrix="1 0 0 -410
               0 1 0 5
