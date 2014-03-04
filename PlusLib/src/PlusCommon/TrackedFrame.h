@@ -130,6 +130,8 @@ public:
 
   /*! Deserialize TrackedFrame human readable data from xml data string */
   PlusStatus SetTrackedFrameFromXmlData( const char* strXmlData ); 
+  /*! Deserialize TrackedFrame human readable data from xml data string */
+  PlusStatus SetTrackedFrameFromXmlData( const std::string& xmlData );
 
   /*! Convert from field status string to field status enum */
   static TrackedFrameFieldStatus ConvertFieldStatusFromString(const char* statusStr);
