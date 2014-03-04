@@ -260,7 +260,9 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalUpdate()
       LOG_ERROR("Invalid video frame received, cannot use it to initialize the video buffer");
       return PLUS_FAIL;
     }
-    aSource->GetBuffer()->SetPixelType( videoFrame->GetVTKScalarPixelType() );  
+    aSource->GetBuffer()->SetPixelType( videoFrame->GetVTKScalarPixelType() );
+    aSource->GetBuffer()->SetNumberOfScalarComponents( videoFrame->GetNumberOfComponents() );
+    aSource->GetBuffer()->SetImageType( videoFrame->GetImageType() );
     aSource->GetBuffer()->SetFrameSize( trackedFrame.GetFrameSize() );
   }
   TrackedFrame::FieldMapType customFields=trackedFrame.GetCustomFields();
