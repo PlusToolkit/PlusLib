@@ -42,6 +42,10 @@ namespace igtl
     this->m_MessageHeader.m_XmlDataSizeInBytes = this->m_TrackedFrameXmlData.size(); 
     // Pixel type 
     this->m_MessageHeader.m_ScalarType = PlusVideoFrame::GetIGTLScalarPixelTypeFromVTK( this->m_TrackedFrame.GetImageData()->GetVTKScalarPixelType() ); 
+    // Number of scalar components
+    this->m_MessageHeader.m_NumberOfComponents = m_TrackedFrame.GetImageData()->GetNumberOfComponents();
+    // Image type
+    this->m_MessageHeader.m_ImageType = m_TrackedFrame.GetImageData()->GetImageType();
     // Image data size 
     this->m_MessageHeader.m_ImageDataSizeInBytes = this->m_TrackedFrame.GetImageData()->GetFrameSizeInBytes(); 
 
@@ -58,7 +62,7 @@ namespace igtl
   //----------------------------------------------------------------------------
   int PlusTrackedFrameMessage::GetBodyPackSize()
   {
-    return this->m_MessageHeader.GetMessageHeaderSize() 
+     return this->m_MessageHeader.GetMessageHeaderSize() 
       + this->m_MessageHeader.m_ImageDataSizeInBytes 
       + this->m_MessageHeader.m_XmlDataSizeInBytes; 
   }
@@ -71,15 +75,18 @@ namespace igtl
     // Copy header
     MessageHeader* header = (MessageHeader*)( this->m_Body );
     header->m_Version = this->m_MessageHeader.m_Version; 
+    header->m_ScalarType = this->m_MessageHeader.m_ScalarType;
+    header->m_NumberOfComponents = this->m_MessageHeader.m_NumberOfComponents;
+    header->m_ImageType = this->m_MessageHeader.m_ImageType;
     header->m_FrameSize[0] = this->m_MessageHeader.m_FrameSize[0]; 
     header->m_FrameSize[1] = this->m_MessageHeader.m_FrameSize[1];
-    header->m_ScalarType = this->m_MessageHeader.m_ScalarType; 
-    header->m_XmlDataSizeInBytes = this->m_MessageHeader.m_XmlDataSizeInBytes; 
     header->m_ImageDataSizeInBytes = this->m_MessageHeader.m_ImageDataSizeInBytes; 
+    header->m_XmlDataSizeInBytes = this->m_MessageHeader.m_XmlDataSizeInBytes; 
 
     // Copy xml data 
     char* xmlData = (char*)( this->m_Body + header->GetMessageHeaderSize() );
     strncpy( xmlData, this->m_TrackedFrameXmlData.c_str(), this->m_TrackedFrameXmlData.size() );
+    header->m_XmlDataSizeInBytes = this->m_MessageHeader.m_XmlDataSizeInBytes;
 
     // Copy image data 
     void* imageData = (void*)( this->m_Body + header->GetMessageHeaderSize() + header->m_XmlDataSizeInBytes ); 
@@ -106,16 +113,18 @@ namespace igtl
 
     // Copy header
     this->m_MessageHeader.m_Version = header->m_Version; 
+    this->m_MessageHeader.m_ScalarType = header->m_ScalarType;
+    this->m_MessageHeader.m_NumberOfComponents = header->m_NumberOfComponents;
+    this->m_MessageHeader.m_ImageType = header->m_ImageType;
     this->m_MessageHeader.m_FrameSize[0] = header->m_FrameSize[0]; 
     this->m_MessageHeader.m_FrameSize[1] = header->m_FrameSize[1];
-    this->m_MessageHeader.m_ScalarType = header->m_ScalarType; 
-    this->m_MessageHeader.m_XmlDataSizeInBytes = header->m_XmlDataSizeInBytes; 
     this->m_MessageHeader.m_ImageDataSizeInBytes = header->m_ImageDataSizeInBytes; 
+    this->m_MessageHeader.m_XmlDataSizeInBytes = header->m_XmlDataSizeInBytes; 
 
     // Copy xml data 
     char* xmlData = (char*)( this->m_Body + header->GetMessageHeaderSize() );
     this->m_TrackedFrameXmlData.assign(xmlData, header->m_XmlDataSizeInBytes ); 
-    if ( this->m_TrackedFrame.SetTrackedFrameFromXmlData(xmlData) != PLUS_SUCCESS )
+    if ( this->m_TrackedFrame.SetTrackedFrameFromXmlData(this->m_TrackedFrameXmlData) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to set tracked frame data from xml received in Plus TrackedFrame message"); 
       return 0;
@@ -123,15 +132,18 @@ namespace igtl
 
     // Copy image data 
     void* imageData = (void*)( this->m_Body + header->GetMessageHeaderSize() + header->m_XmlDataSizeInBytes ); 
-    int frameSize[2] = { header->m_FrameSize[0], header->m_FrameSize[1] };
-    // greyscale images only, so set number of components to 1
-    if ( this->m_TrackedFrame.GetImageData()->AllocateFrame( frameSize, PlusVideoFrame::GetVTKScalarPixelTypeFromIGTL(header->m_ScalarType),1 ) != PLUS_SUCCESS )
+    int frameSize[2] = { header->m_FrameSize[0], header->m_FrameSize[1] };    
+    if ( this->m_TrackedFrame.GetImageData()->AllocateFrame( frameSize, PlusVideoFrame::GetVTKScalarPixelTypeFromIGTL(header->m_ScalarType), header->m_NumberOfComponents ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to allocate memory for frame received in Plus TrackedFrame message"); 
       return 0; 
     }
 
+    // Carry the image type forward
+    m_TrackedFrame.GetImageData()->SetImageType( (US_IMAGE_TYPE)header->m_ImageType );
+
     memcpy( this->m_TrackedFrame.GetImageData()->GetScalarPointer(), imageData, header->m_ImageDataSizeInBytes ); 
+    m_TrackedFrame.GetImageData()->GetImage()->Modified();
 
     // Set timestamp 
     igtl::TimeStamp::Pointer timestamp = igtl::TimeStamp::New(); 

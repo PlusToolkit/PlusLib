@@ -140,6 +140,12 @@ PlusStatus TrackedFrame::PrintToXML(vtkXMLDataElement* trackedFrame)
 }
 
 //----------------------------------------------------------------------------
+PlusStatus TrackedFrame::SetTrackedFrameFromXmlData( const std::string& xmlData )
+{
+  return this->SetTrackedFrameFromXmlData(xmlData.c_str());
+}
+
+//----------------------------------------------------------------------------
 PlusStatus TrackedFrame::SetTrackedFrameFromXmlData( const char* strXmlData )
 {
   if ( strXmlData == NULL )
