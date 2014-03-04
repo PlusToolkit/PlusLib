@@ -9,7 +9,6 @@
       Type="MmfVideo" 
       FrameSize="640x480" 
       VideoFormat="YUY2"
-      ColorImageOutput="FALSE"
       CaptureDeviceId="0" >
       <DataSources>
         <DataSource Type="Video" Id="Video" ImageType="RGB_COLOUR" PortUsImageOrientation="MF" BufferSize="100" AveragedItemsForFiltering="20" />
