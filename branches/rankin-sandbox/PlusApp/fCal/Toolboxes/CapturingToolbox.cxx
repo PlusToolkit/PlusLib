@@ -14,6 +14,9 @@ See License.txt for details.
 #include "vtkVisualizationController.h"
 #include "vtksys/SystemTools.hxx"
 #include <QFileDialog>
+#include <QScrollArea>
+#include <QSpacerItem>
+#include <QGridLayout>
 #include <QMessageBox>
 #include <QTimer>
 
@@ -89,6 +92,8 @@ void CapturingToolbox::OnActivated()
       SetDisplayAccordingToState();
     }
 
+    this->InitCaptureDeviceScrollArea();
+
     DeviceCollection aCollection;
     if( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetDevices(aCollection) == PLUS_SUCCESS )
     {
@@ -100,7 +105,8 @@ void CapturingToolbox::OnActivated()
           vtkVirtualDiscCapture* capDevice = dynamic_cast<vtkVirtualDiscCapture*>(aDevice);
           CaptureControlWidget* aWidget = new CaptureControlWidget(NULL);
           aWidget->SetCaptureDevice(*capDevice);
-          ui.captureWidgetLayout->addWidget(aWidget);
+          aWidget->setMinimumHeight(90);
+          m_GridLayout->addWidget(aWidget);
           m_CaptureWidgets.push_back(aWidget);
           connect(aWidget, SIGNAL(EmitStatusMessage(const std::string&)), this, SLOT(HandleStatusMessage(const std::string&)) );
         }
@@ -700,9 +706,47 @@ void CapturingToolbox::OnDeactivated()
   for( std::vector<CaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
   {
     disconnect((*it), SIGNAL(EmitStatusMessage(const std::string&)), this, SLOT(HandleStatusMessage(const std::string&)) );
-    ui.captureWidgetLayout->removeWidget(*it);
+    m_GridLayout->removeWidget(*it);
     delete *it;
   }
 
+  ui.verticalLayout->removeItem(m_VerticalSpacer);
+
+  ui.verticalLayout->removeWidget(m_ScrollArea);
+
+  delete m_GridLayout;
+  delete m_GridWidget;
+  delete m_ScrollArea;
+
   this->m_CaptureWidgets.clear();
+}
+
+//-----------------------------------------------------------------------------
+void CapturingToolbox::InitCaptureDeviceScrollArea()
+{
+  m_GridWidget = new QWidget(this);
+  m_GridWidget->setObjectName(QString::fromUtf8("gridWidget"));
+  m_GridWidget->setEnabled(true);
+  m_GridLayout = new QGridLayout(m_GridWidget);
+  m_GridLayout->setObjectName(QString::fromUtf8("captureWidgetLayout"));
+  m_GridLayout->setHorizontalSpacing(0);
+  m_GridLayout->setContentsMargins(0, -1, 0, -1);
+
+  m_ScrollArea = new QScrollArea(this);
+  m_ScrollArea->setObjectName(QString::fromUtf8("scrollArea_captureDeviceContainer"));
+  m_ScrollArea->setFrameShape(QFrame::NoFrame);
+  m_ScrollArea->setFrameShadow(QFrame::Plain);
+  m_ScrollArea->setLineWidth(0);
+  m_ScrollArea->setMinimumSize(177, 300);
+  m_ScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  m_ScrollArea->setWidgetResizable(true);
+  m_GridWidget->setLayout(m_GridLayout);
+  m_ScrollArea->setWidget(m_GridWidget);
+
+  ui.verticalLayout->addWidget(m_ScrollArea);
+
+  m_VerticalSpacer = new QSpacerItem(177, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
+  ui.verticalLayout->addItem(m_VerticalSpacer);
+
+  int w = qApp->style()->pixelMetric(QStyle::PM_ScrollBarExtent);
 }
