@@ -16,6 +16,9 @@ See License.txt for details.
 #include <deque>
 
 class CaptureControlWidget;
+class QScrollArea;
+class QGridLayout;
+class QSpacerItem;
 class QTimer;
 class vtkTrackedFrameList;
 
@@ -85,6 +88,9 @@ protected:
 
   /*! Get the sampling period length (in seconds). Frames are copied from the devices to the data collection buffer once in every sampling period. */
   double GetSamplingPeriodSec();
+
+  /// Initialize the scroll area and any capture widgets
+  void InitCaptureDeviceScrollArea();
   
 protected slots:
   /*!
@@ -183,6 +189,14 @@ protected:
 
   /* Container holding capture widgets */
   std::vector<CaptureControlWidget*>  m_CaptureWidgets;
+
+  QScrollArea* m_ScrollArea;
+
+  QWidget* m_GridWidget;
+
+  QGridLayout* m_GridLayout;
+
+  QSpacerItem* m_VerticalSpacer;
 
 protected:
   Ui::CapturingToolbox ui;
