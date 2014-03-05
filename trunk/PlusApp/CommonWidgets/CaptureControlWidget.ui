@@ -6,315 +6,307 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>215</width>
+    <width>230</width>
     <height>90</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>215</width>
+    <height>90</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>230</width>
+    <height>90</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QLabel" name="channelIdentifierLabel">
-   <property name="geometry">
-    <rect>
-     <x>5</x>
-     <y>4</y>
-     <width>121</width>
-     <height>17</height>
-    </rect>
+  <layout class="QGridLayout" name="gridLayout_2">
+   <property name="horizontalSpacing">
+    <number>0</number>
    </property>
-   <property name="font">
-    <font>
-     <weight>50</weight>
-     <italic>true</italic>
-     <bold>false</bold>
-    </font>
+   <property name="margin">
+    <number>0</number>
    </property>
-   <property name="text">
-    <string>TextLabel</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="startStopButton">
-   <property name="geometry">
-    <rect>
-     <x>5</x>
-     <y>64</y>
-     <width>61</width>
-     <height>24</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Record</string>
-   </property>
-   <property name="icon">
-    <iconset resource="CommonWidgets.qrc">
-     <normaloff>:/icons/Resources/icon_Record.png</normaloff>:/icons/Resources/icon_Record.png</iconset>
-   </property>
-  </widget>
-  <widget class="QLabel" name="actualFrameRateLabel">
-   <property name="geometry">
-    <rect>
-     <x>120</x>
-     <y>4</y>
-     <width>61</width>
-     <height>17</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Actual FPS:</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="requestedSamplingRate">
-   <property name="geometry">
-    <rect>
-     <x>5</x>
-     <y>40</y>
-     <width>71</width>
-     <height>17</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Sampling Rate:</string>
-   </property>
-  </widget>
-  <widget class="QFrame" name="frame">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>215</width>
-     <height>90</height>
-    </rect>
-   </property>
-   <property name="frameShape">
-    <enum>QFrame::StyledPanel</enum>
-   </property>
-   <property name="frameShadow">
-    <enum>QFrame::Sunken</enum>
-   </property>
-   <widget class="QSlider" name="samplingRateSlider">
-    <property name="geometry">
-     <rect>
-      <x>80</x>
-      <y>40</y>
-      <width>131</width>
-      <height>24</height>
-     </rect>
-    </property>
-    <property name="maximum">
-     <number>10</number>
-    </property>
-    <property name="singleStep">
-     <number>1</number>
-    </property>
-    <property name="value">
-     <number>10</number>
-    </property>
-    <property name="sliderPosition">
-     <number>10</number>
-    </property>
-    <property name="orientation">
-     <enum>Qt::Horizontal</enum>
-    </property>
-    <property name="invertedAppearance">
-     <bool>false</bool>
-    </property>
-    <property name="invertedControls">
-     <bool>false</bool>
-    </property>
-    <property name="tickPosition">
-     <enum>QSlider::TicksBelow</enum>
-    </property>
-    <property name="tickInterval">
-     <number>1</number>
-    </property>
-   </widget>
-   <widget class="QLabel" name="requestedFrameRateLabel">
-    <property name="geometry">
-     <rect>
-      <x>5</x>
-      <y>22</y>
-      <width>81</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="minimumSize">
-     <size>
-      <width>0</width>
-      <height>0</height>
-     </size>
-    </property>
-    <property name="text">
-     <string>Requested FPS:</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="requestedFrameRateValueLabel">
-    <property name="geometry">
-     <rect>
-      <x>80</x>
-      <y>22</y>
-      <width>31</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>0.0</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="clearRecordedFramesButton">
-    <property name="geometry">
-     <rect>
-      <x>170</x>
-      <y>64</y>
-      <width>40</width>
-      <height>24</height>
-     </rect>
-    </property>
-    <property name="sizePolicy">
-     <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-      <horstretch>0</horstretch>
-      <verstretch>0</verstretch>
-     </sizepolicy>
-    </property>
-    <property name="minimumSize">
-     <size>
-      <width>0</width>
-      <height>0</height>
-     </size>
-    </property>
-    <property name="maximumSize">
-     <size>
-      <width>16777215</width>
-      <height>16777215</height>
-     </size>
-    </property>
-    <property name="text">
-     <string>Clear</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="actualFrameRateValueLabel">
-    <property name="geometry">
-     <rect>
-      <x>178</x>
-      <y>4</y>
-      <width>31</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <weight>75</weight>
-      <bold>true</bold>
-     </font>
-    </property>
-    <property name="text">
-     <string>0.0</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-    </property>
-   </widget>
-   <widget class="QLabel" name="numberOfRecordedFramesLabel">
-    <property name="geometry">
-     <rect>
-      <x>120</x>
-      <y>22</y>
-      <width>41</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="minimumSize">
-     <size>
-      <width>0</width>
-      <height>0</height>
-     </size>
-    </property>
-    <property name="text">
-     <string>Frames:</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="numberOfRecordedFramesValueLabel">
-    <property name="geometry">
-     <rect>
-      <x>160</x>
-      <y>22</y>
-      <width>49</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <weight>75</weight>
-      <bold>true</bold>
-     </font>
-    </property>
-    <property name="text">
-     <string>0</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="snapshotButton">
-    <property name="geometry">
-     <rect>
-      <x>70</x>
-      <y>64</y>
-      <width>30</width>
-      <height>24</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="icon">
-     <iconset resource="CommonWidgets.qrc">
-      <normaloff>:/icons/Resources/icon_Snapshot.png</normaloff>:/icons/Resources/icon_Snapshot.png</iconset>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="saveAsButton">
-    <property name="geometry">
-     <rect>
-      <x>124</x>
-      <y>64</y>
-      <width>41</width>
-      <height>24</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>...</string>
-    </property>
-    <property name="icon">
-     <iconset resource="CommonWidgets.qrc">
-      <normaloff>:/icons/Resources/icon_Save.png</normaloff>:/icons/Resources/icon_Save.png</iconset>
-    </property>
-   </widget>
-  </widget>
-  <widget class="QPushButton" name="saveButton">
-   <property name="geometry">
-    <rect>
-     <x>100</x>
-     <y>64</y>
-     <width>24</width>
-     <height>24</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-   <property name="icon">
-    <iconset resource="CommonWidgets.qrc">
-     <normaloff>:/icons/Resources/icon_Save.png</normaloff>:/icons/Resources/icon_Save.png</iconset>
-   </property>
-  </widget>
-  <zorder>frame</zorder>
-  <zorder>channelIdentifierLabel</zorder>
-  <zorder>startStopButton</zorder>
-  <zorder>actualFrameRateLabel</zorder>
-  <zorder>requestedSamplingRate</zorder>
-  <zorder>saveButton</zorder>
+   <item row="0" column="0">
+    <widget class="QFrame" name="frame">
+     <property name="minimumSize">
+      <size>
+       <width>215</width>
+       <height>90</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>230</width>
+       <height>90</height>
+      </size>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Sunken</enum>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <property name="margin">
+       <number>2</number>
+      </property>
+      <property name="spacing">
+       <number>1</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="channelIdentifierLabel">
+        <property name="minimumSize">
+         <size>
+          <width>110</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <italic>true</italic>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="requestedFrameRateLabel">
+        <property name="minimumSize">
+         <size>
+          <width>75</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Requested FPS:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="5">
+       <widget class="QLabel" name="numberOfRecordedFramesValueLabel">
+        <property name="font">
+         <font>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>0</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="5">
+       <widget class="QLabel" name="actualFrameRateValueLabel">
+        <property name="font">
+         <font>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>0.0</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="4">
+       <widget class="QLabel" name="numberOfRecordedFramesLabel">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Frames:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="4">
+       <widget class="QLabel" name="actualFrameRateLabel">
+        <property name="minimumSize">
+         <size>
+          <width>55</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Actual FPS:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="requestedSamplingRate">
+        <property name="minimumSize">
+         <size>
+          <width>75</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Sampling Rate:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="3" colspan="3">
+       <widget class="QSlider" name="samplingRateSlider">
+        <property name="maximum">
+         <number>10</number>
+        </property>
+        <property name="singleStep">
+         <number>1</number>
+        </property>
+        <property name="value">
+         <number>10</number>
+        </property>
+        <property name="sliderPosition">
+         <number>10</number>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="invertedAppearance">
+         <bool>false</bool>
+        </property>
+        <property name="invertedControls">
+         <bool>false</bool>
+        </property>
+        <property name="tickPosition">
+         <enum>QSlider::TicksBelow</enum>
+        </property>
+        <property name="tickInterval">
+         <number>1</number>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QPushButton" name="startStopButton">
+        <property name="minimumSize">
+         <size>
+          <width>40</width>
+          <height>21</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Record</string>
+        </property>
+        <property name="icon">
+         <iconset resource="CommonWidgets.qrc">
+          <normaloff>:/icons/Resources/icon_Record.png</normaloff>:/icons/Resources/icon_Record.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="5">
+       <widget class="QPushButton" name="clearRecordedFramesButton">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>21</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>40</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Clear</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="4">
+       <widget class="QPushButton" name="saveAsButton">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>21</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>40</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>...</string>
+        </property>
+        <property name="icon">
+         <iconset resource="CommonWidgets.qrc">
+          <normaloff>:/icons/Resources/icon_Save.png</normaloff>:/icons/Resources/icon_Save.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="3">
+       <widget class="QPushButton" name="saveButton">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>21</height>
+         </size>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="CommonWidgets.qrc">
+          <normaloff>:/icons/Resources/icon_Save.png</normaloff>:/icons/Resources/icon_Save.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="QPushButton" name="snapshotButton">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>21</height>
+         </size>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="CommonWidgets.qrc">
+          <normaloff>:/icons/Resources/icon_Snapshot.png</normaloff>:/icons/Resources/icon_Snapshot.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="3">
+       <widget class="QLabel" name="requestedFrameRateValueLabel">
+        <property name="text">
+         <string>0.0</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <resources>
   <include location="CommonWidgets.qrc"/>
