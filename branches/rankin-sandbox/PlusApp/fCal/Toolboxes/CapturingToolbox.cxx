@@ -93,25 +93,6 @@ void CapturingToolbox::OnActivated()
     }
 
     this->InitCaptureDeviceScrollArea();
-
-    DeviceCollection aCollection;
-    if( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetDevices(aCollection) == PLUS_SUCCESS )
-    {
-      for( DeviceCollectionConstIterator it = aCollection.begin(); it != aCollection.end(); ++it)
-      {
-        vtkPlusDevice* aDevice = *it;
-        if( dynamic_cast<vtkVirtualDiscCapture*>(aDevice) != NULL )
-        {
-          vtkVirtualDiscCapture* capDevice = dynamic_cast<vtkVirtualDiscCapture*>(aDevice);
-          CaptureControlWidget* aWidget = new CaptureControlWidget(NULL);
-          aWidget->SetCaptureDevice(*capDevice);
-          aWidget->setMinimumHeight(90);
-          m_GridLayout->addWidget(aWidget);
-          m_CaptureWidgets.push_back(aWidget);
-          connect(aWidget, SIGNAL(EmitStatusMessage(const std::string&)), this, SLOT(HandleStatusMessage(const std::string&)) );
-        }
-      }
-    }
   }
   else
   {
@@ -748,5 +729,21 @@ void CapturingToolbox::InitCaptureDeviceScrollArea()
   m_VerticalSpacer = new QSpacerItem(177, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
   ui.verticalLayout->addItem(m_VerticalSpacer);
 
-  int w = qApp->style()->pixelMetric(QStyle::PM_ScrollBarExtent);
+  DeviceCollection aCollection;
+  if( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetDevices(aCollection) == PLUS_SUCCESS )
+  {
+    for( DeviceCollectionConstIterator it = aCollection.begin(); it != aCollection.end(); ++it)
+    {
+      vtkPlusDevice* aDevice = *it;
+      if( dynamic_cast<vtkVirtualDiscCapture*>(aDevice) != NULL )
+      {
+        vtkVirtualDiscCapture* capDevice = dynamic_cast<vtkVirtualDiscCapture*>(aDevice);
+        CaptureControlWidget* aWidget = new CaptureControlWidget(NULL);
+        aWidget->SetCaptureDevice(*capDevice);
+        m_GridLayout->addWidget(aWidget);
+        m_CaptureWidgets.push_back(aWidget);
+        connect(aWidget, SIGNAL(EmitStatusMessage(const std::string&)), this, SLOT(HandleStatusMessage(const std::string&)) );
+      }
+    }
+  }
 }
