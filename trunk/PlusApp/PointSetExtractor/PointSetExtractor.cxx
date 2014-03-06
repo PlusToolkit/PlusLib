@@ -30,6 +30,7 @@
 #include "vtkActor.h"
 #include "vtkCamera.h"
 #include "vtkPLYWriter.h" 
+#include "vtkXMLUtilities.h"
 
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
@@ -59,9 +60,9 @@ int main(int argc, char **argv)
 	args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Name of the input configuration file");
 	args.AddArgument("--source-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSequenceFileName, "Name of the input sequence metafile that contains the tracking data");	
 	args.AddArgument("--stylus-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &stylusName, "Name of the stylus tool (Default: Stylus)");
-  args.AddArgument("--reference-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &referenceName, "Name of the reference tool (Default: Reference)");
-  args.AddArgument("--output-pointset-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputSurfaceFileName, "Filename of the output pointset file in PLY format (optional)");
-  args.AddArgument("--display-points", vtksys::CommandLineArguments::NO_ARGUMENT, &displayPoints, "Show the points on the screen (optional)");	
+    args.AddArgument("--reference-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &referenceName, "Name of the reference tool (Default: Reference)");
+    args.AddArgument("--output-pointset-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputSurfaceFileName, "Filename of the output pointset file in PLY format (optional)");
+    args.AddArgument("--display-points", vtksys::CommandLineArguments::NO_ARGUMENT, &displayPoints, "Show the points on the screen (optional)");	
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
 	if ( !args.Parse() )
@@ -98,7 +99,18 @@ int main(int argc, char **argv)
     LOG_ERROR("Failed to read tracked pose sequence metafile: " << inputSequenceFileName);
     return EXIT_FAILURE;
   }
+
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
+
+  // Read config file
+  if (!inputConfigFileName.empty())
+  {
+    LOG_DEBUG("Reading config file...")
+    vtkSmartPointer<vtkXMLDataElement> configRead = vtkSmartPointer<vtkXMLDataElement>::Take(::vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str())); 
+    transformRepository->ReadConfiguration(configRead);
+    LOG_DEBUG("Reading config file finished.");
+  }
+
   PlusTransformName stylusToReferenceTransformName(stylusName, referenceName);
   if (!stylusToReferenceTransformName.IsValid())
   {
