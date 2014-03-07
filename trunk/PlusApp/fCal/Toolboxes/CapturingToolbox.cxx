@@ -691,13 +691,17 @@ void CapturingToolbox::OnDeactivated()
     delete *it;
   }
 
-  ui.verticalLayout->removeItem(m_VerticalSpacer);
+  if ((m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL)
+    && (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetConnected()))
+  {
+    ui.verticalLayout->removeItem(m_VerticalSpacer);
 
-  ui.verticalLayout->removeWidget(m_ScrollArea);
+    ui.verticalLayout->removeWidget(m_ScrollArea);
 
-  delete m_GridLayout;
-  delete m_GridWidget;
-  delete m_ScrollArea;
+    delete m_GridLayout;
+    delete m_GridWidget;
+    delete m_ScrollArea;
+  }
 
   this->m_CaptureWidgets.clear();
 }
