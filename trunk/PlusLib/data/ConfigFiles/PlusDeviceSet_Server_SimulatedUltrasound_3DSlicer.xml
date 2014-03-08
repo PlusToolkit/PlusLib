@@ -73,7 +73,7 @@ To use with Ascension tracker instead of a simulated tracker: enable the Ascensi
       AveragedItemsForFiltering="20"
       AcquisitionRate="15" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="500" />  
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="100" />  
       </DataSources>      
       <InputChannels>
         <InputChannel Id="TrackerStream" />
@@ -87,7 +87,7 @@ To use with Ascension tracker instead of a simulated tracker: enable the Ascensi
         IncomingIntensityMwPerCm2="300"
         BrightnessConversionGamma="0.2"
         BrighntessConversionOffset="30"
-        NumberOfScanlines="256"
+        NumberOfScanlines="128"
         NumberOfSamplesPerScanline="1000"
         NoiseAmplitude="5.0"
         NoiseFrequency="2.5 3.5 1"
@@ -157,13 +157,13 @@ To use with Ascension tracker instead of a simulated tracker: enable the Ascensi
             OutputImageSpacingMmPerPixel="0.084 0.087"/>
           <!-- Example for a curvilinear transducer: -->
           <xScanConversion
-            TransducerName="BK_8848-axial"
+            TransducerName="Ultrasonix_C5-2/60"
             TransducerGeometry="CURVILINEAR"
-            RadiusStartMm="5.0"
-            RadiusStopMm="60.0"
-            ThetaStartDeg="-60.0"
-            ThetaStopDeg="60.0"
-            TransducerCenterPixel="410 34"
+            RadiusStartMm="60.0"
+            RadiusStopMm="120.0"
+            ThetaStartDeg="-28.0"
+            ThetaStopDeg="28.0"
+            TransducerCenterPixel="410 100"
             OutputImageSizePixel="820 616"
             OutputImageSpacingMmPerPixel="0.084 0.087" />
         </RfProcessing>
