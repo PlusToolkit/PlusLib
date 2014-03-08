@@ -153,19 +153,19 @@ PlusStatus vtkUsScanConvertLinear::GetScanLineEndPoints(int scanLineIndex, doubl
     this->OutputImageExtent[1]-this->OutputImageExtent[0]+1,
     this->OutputImageExtent[3]-this->OutputImageExtent[2]+1
   };
-
-  // Default transducer center is horizontally centered, with 0 offset along y axis
-  double inputWidthSpacing=this->TransducerWidthMm/static_cast<double>(numberOfScanLines);
-  double halfImageWidthPixel=numberOfScanLines/2*inputWidthSpacing/this->OutputImageSpacing[0];
-  double transducerCenterPixel[2] = { halfImageWidthPixel, 0};
+  
+  // Default transducer center is horizontally centered in the frame, with 0 offset along y axis
+  double transducerCenterPixel[2] = { 0.5*outputImageSizePixel[0], 0 };
   if (this->TransducerCenterPixelSpecified)
   {
     transducerCenterPixel[0]=this->TransducerCenterPixel[0];
     transducerCenterPixel[1]=this->TransducerCenterPixel[1];
   }
-  double transducerCornerPixel[2] = { transducerCenterPixel[0]-halfImageWidthPixel, transducerCenterPixel[1] };
 
-  scanlineStartPoint_OutputImage[0] = double(scanLineIndex)/numberOfScanLines*(outputImageSizePixel[0]-1) + transducerCornerPixel[0];
+  double imageWidthPixel=this->TransducerWidthMm/this->OutputImageSpacing[0];
+  double transducerCornerPixel[2] = { transducerCenterPixel[0]-0.5*imageWidthPixel, transducerCenterPixel[1] };
+  double scanlineSpacingXPixel=imageWidthPixel/double(numberOfScanLines);
+  scanlineStartPoint_OutputImage[0] = transducerCornerPixel[0]+double(scanLineIndex)*scanlineSpacingXPixel;
   scanlineStartPoint_OutputImage[1] = transducerCornerPixel[1];
   scanlineStartPoint_OutputImage[2] = 0;
   scanlineStartPoint_OutputImage[3] = 1;
