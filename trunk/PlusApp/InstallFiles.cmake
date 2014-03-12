@@ -42,6 +42,7 @@ ENDIF(PLUS_USE_Ascension3DG)
 IF(PLUS_USE_BKPROFOCUS_VIDEO)
   SET ( PLUSLIB_CONFIG_FILES ${PLUSLIB_CONFIG_FILES}
     ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_BkProFocus_OpenIGTLinkTracker.xml
+    ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_Server_BkProFocusOem.xml 
     )  
   SET (BK_SETTINGS
     ${PLUSLIB_DATA_DIR}/ConfigFiles/BkSettings/IniFile.ccf
