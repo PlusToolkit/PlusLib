@@ -1,0 +1,58 @@
+ <PlusConfiguration version="2.1">
+
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="PlusServer: BK ultrasound imaging device using OEM interface"
+      Description="Broadcasting ultrasound images acquired from the BK system through OEM (TCP/IP) interface. Make sure the correct IP address is set in BkSettings/IniFile.ini."
+    />
+    <!-- Setting AcquisitionRate to higher value may decrease the responsiveness of the BK software on the scanner. Thoroughly test the performance of the BK scanner when acquiring images through the OEM interface. -->
+    <Device 
+      Id="VideoDevice"
+      Type="BkProFocusOem"
+      IniFileName="BkSettings/IniFile.ini"
+      AcquisitionRate="1.5"
+      LocalTimeOffsetSec="0" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="100" AveragedItemsForFiltering="20" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video"  />
+      </OutputChannels>
+    </Device>
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="RecordingTest.mha"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="VideoStream" />
+      </InputChannels>
+    </Device>
+  </DataCollection>
+
+  <CoordinateDefinitions>
+    <Transform From="Image" To="Reference"
+      Matrix="
+        0.2 0.0 0.0 0.0
+        0.0 0.2 0.0 0.0
+        0.0 0.0 0.2 0.0        
+        0 0 0 1" />
+  </CoordinateDefinitions>
+  
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="VideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+      </MessageTypes>
+      <ImageNames>
+        <Image Name="Image" EmbeddedTransformToFrame="Reference" />
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+</PlusConfiguration>
