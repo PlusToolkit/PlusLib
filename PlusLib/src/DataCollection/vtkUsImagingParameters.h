@@ -43,9 +43,19 @@ public:
   PlusStatus GetDepthMm(double& aDepthMm);
 
   /*! Set the Gain (%) of B-mode ultrasound; valid range: 0-100 */
-  PlusStatus SetGainPercent(double aGainPercent);
+  PlusStatus SetGainPercent(double aGainPercent[3]);
   /*! Get the Gain (%) of B-mode ultrasound; valid range: 0-100 */
-  PlusStatus GetGainPercent(double& aGainPercent);
+  PlusStatus GetGainPercent(double aGainPercent[3]);
+
+  /*! Set the intensity of B-mode ultrasound */
+  PlusStatus SetIntensity(double aIntensity);
+  /*! Get the Intensity of B-mode ultrasound */
+  PlusStatus GetIntensity(double& aIntensity);
+
+  /*! Set the contrast of B-mode ultrasound */
+  PlusStatus SetContrast(double aContrast);
+  /*! Get the contrast of B-mode ultrasound */
+  PlusStatus GetContrast(double& aContrast);
 
   /*! Set the DynRange (dB) of B-mode ultrasound */
   PlusStatus SetDynRangeDb(double aDynRangeDb);
@@ -79,7 +89,9 @@ protected:
   double FrequencyMhz;
   double DepthMm;
   double SectorPercent; 
-  double GainPercent; 
+  double GainPercent[3]; 
+  int Intensity;
+  int Contrast;
   double DynRangeDb; 
   double ZoomFactor; 
   /*!

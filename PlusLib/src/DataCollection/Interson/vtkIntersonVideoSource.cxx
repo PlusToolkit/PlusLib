@@ -67,6 +67,21 @@ public:
     bmSetTGC(tgc);
   }
 
+
+  //----------------------------------------------------------------------------
+  void vtkIntersonVideoSource::vtkInternal::CreateLinearTGC(int initialTGC, int midTGC, int farTGC)
+  {
+    int tgc[samplesPerLine]={0};
+    double firstSlope = (double) (midTGC-initialTGC ) / (samplesPerLine/2);
+	double secondSlope = (double) (farTGC-midTGC ) / (samplesPerLine/2);
+    for (int x = 0; x < samplesPerLine/2; x++)
+    {
+      tgc[x] = (int) (firstSlope * (double) x) + initialTGC;
+	  tgc[samplesPerLine/2 +x] = (int) (secondSlope * (double) x) + midTGC;
+    }
+    bmSetTGC(tgc);
+  }
+
   //----------------------------------------------------------------------------
   static LRESULT CALLBACK vtkIntersonVideoSource::vtkInternal::ImageWindowProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
   {
@@ -75,7 +90,7 @@ public:
   }
 
   //----------------------------------------------------------------------------
-  void CreateLUT(BYTE lut[], int Level, int Window)
+  void CreateLinearLUT(BYTE lut[], int Level, int Window)
   {
     int center = Window / 2;				// center of window
     int left = Level - center;				// left of window
@@ -121,8 +136,28 @@ public:
     }
   }
 
-};
+//----------------------------------------------------------------------------
+  void CreateLUT(BYTE lut[], int Brightness, int Contrast, int Level, int Window)
+  {
 
+	int center = Window / 2;				// center of window
+    int left = Level - center;				// left of window
+    int right = Level + center;				// right of window
+   for (int x=0; x <= 255; x++) 
+   {
+     int y = (int) ((float)Contrast/256.0f * (float)(x-128) + Brightness - 64);
+     if (y<left)
+     {
+       y=0;
+     }
+     else if (y>right)
+     {
+       y=255;
+     }
+     lut[x] = y;
+   }
+  }
+};
 
 //----------------------------------------------------------------------------
 vtkIntersonVideoSource::vtkIntersonVideoSource()
@@ -145,6 +180,8 @@ vtkIntersonVideoSource::vtkIntersonVideoSource()
   this->ClockDivider = 1;
   this->PulsFrequencyDivider = 2;
 
+  this->Brightness = 128; //192
+  this->Contrast = 256; //128
   this->LutCenter = 128; //192
   this->LutWindow = 256; //128
   this->MinTGC = 0;
@@ -290,17 +327,6 @@ PlusStatus vtkIntersonVideoSource::InternalConnect()
   double depth = -1;
   this->ImagingParameters->GetDepthMm(depth);
   this->SetDepthMm(depth);
-
-  /* The following is not useful for us because has no effect in the gain   */
-  double initialGain = usbInitialGain();
-  double midGain = usbMidGain();
-  double farGain = usbFarGain();
-  usbSetInitialGain(this->InitialGain);
-  usbSetMidGain(this->MidGain);
-  usbSetFarGain(this->FarGain);
-  initialGain = usbInitialGain();
-  midGain = usbMidGain();
-  farGain = usbFarGain();
   //this->SetProbeFrequency(5000);
 
   // Setup the display offsets now that we have the probe and DISPLAY data
@@ -385,12 +411,26 @@ PlusStatus vtkIntersonVideoSource::InternalConnect()
   size_t toAllocate=(this->Internal->Bitmap.bmWidth+16) * (this->Internal->Bitmap.bmHeight+4);
   this->Internal->MemoryBitmapBuffer.resize(toAllocate,0);
 
+  double gain[3]={-1,-1,-1};
+  this->ImagingParameters->GetGainPercent(gain);
+  this->SetGainPercent(gain);
+
   BYTE lut[256];
-  this->Internal->CreateLUT(lut, this->LutCenter, this->LutWindow);
-  bmCreatebLUT(lut) ;
+  double intensity=-1; double contrast = -1;
+  this->ImagingParameters->GetIntensity(intensity);
+  this->ImagingParameters->GetContrast(contrast);
+  if (intensity >=0)
+  {
+	  this->Brightness = (int)intensity;
+  }
+  if (contrast >=0)
+  {
+	  this->Contrast = (int)contrast;
+  }
+  this->Internal->CreateLUT(lut, this->Brightness, this->Contrast, this->LutCenter, this->LutWindow);
+  bmCreatebLUT(lut);
   //this->Internal->CreateLinearTGC(this->MinTGC,this->MaxTGC );
   //bmTurnOnTGC();
-
   return PLUS_SUCCESS;
 }
 
@@ -555,37 +595,55 @@ PlusStatus vtkIntersonVideoSource::ReadConfiguration(vtkXMLDataElement* config)
     this->SetImageSize(imageSize);
   }
 
-  int sector = -1; 
+  double sector = -1; 
   if ( deviceConfig->GetScalarAttribute("SectorPercent", sector)) 
   {
     this->ImagingParameters->SetSectorPercent(sector); 
   }
 
-  int gain = -1; 
-  if ( deviceConfig->GetScalarAttribute("GainPercent", gain)) 
+  double gainPercent[3] = {0,0,0}; //-1; 
+  if ( deviceConfig->GetVectorAttribute("GainPercent", 3, gainPercent)) 
   {
-    this->ImagingParameters->SetGainPercent(gain); 
+    this->ImagingParameters->SetGainPercent(gainPercent); 
   }
 
-  int dynRange = -1; 
+  int intensity = -1; 
+  if ( deviceConfig->GetScalarAttribute("Intensity", intensity)) 
+  {
+    this->ImagingParameters->SetIntensity(intensity); 
+  }
+
+  int contrast = -1; 
+  if ( deviceConfig->GetScalarAttribute("Contrast", contrast)) 
+  {
+    this->ImagingParameters->SetContrast(contrast); 
+  }
+
+  double dynRange = -1; 
   if ( deviceConfig->GetScalarAttribute("DynRangeDb", dynRange)) 
   {
     this->ImagingParameters->SetDynRangeDb(dynRange); 
   }
 
-  int zoom = -1; 
+  double zoom = -1; 
   if ( deviceConfig->GetScalarAttribute("ZoomFactor", zoom)) 
   {
     this->ImagingParameters->SetZoomFactor(zoom); 
   }
 
-  int frequency = -1; 
+  double frequency = -1; 
   if ( deviceConfig->GetScalarAttribute("FrequencyMhz", frequency)) 
   {
     this->ImagingParameters->SetFrequencyMhz(frequency); 
   }
 
-  int soundVelocity = -1; //
+  double depthMm = -1; 
+  if ( deviceConfig->GetScalarAttribute("DepthMm", depthMm)) 
+  {
+    this->ImagingParameters->SetDepthMm(depthMm); 
+  }
+
+  double soundVelocity = -1; 
   if ( deviceConfig->GetScalarAttribute("SoundVelocity", soundVelocity)) 
   {
     this->ImagingParameters->SetSoundVelocity(soundVelocity); 
@@ -715,7 +773,7 @@ PlusStatus vtkIntersonVideoSource::SetDepthMm(double depthMm)
   double choosedDepth = -1;
   for (int i=0;i<numberOfAllowedModes;i++)
   {
-    if(allowedModes[i].second*100==depthMm)
+    if(allowedModes[i].second==depthMm/10)
 	{
 	  possibleModes.push_back(i);	
 	}
@@ -780,9 +838,34 @@ PlusStatus vtkIntersonVideoSource::SetFrequencyMhz(double freq)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkIntersonVideoSource::SetGainPercent(double gainPercent)
+PlusStatus vtkIntersonVideoSource::SetGainPercent(double gainPercent[3])
 {
-	// to be implemented
+  
+	
+  double maximumGain=200; 
+  double initialGain = usbInitialGain();
+  double midGain = usbMidGain();
+  double farGain = usbFarGain();
+  if (gainPercent[0]>=0 && gainPercent[1]>=0 && gainPercent[2]>=0)
+  {
+    this->InitialGain = gainPercent[0] * maximumGain /100 ;
+    this->MidGain = gainPercent[1] * maximumGain /100 ;
+    this->FarGain = gainPercent[2] * maximumGain /100 ;
+  }
+  this->Internal->CreateLinearTGC(this->InitialGain,this->MidGain,this->FarGain); 
+	
+
+  /* The following is not useful for us because has no effect in the gain   */
+	  /*
+  usbSetInitialGain(this->InitialGain);
+  usbSetMidGain(this->MidGain);
+  usbSetFarGain(this->FarGain);
+  initialGain = usbInitialGain();
+  midGain = usbMidGain();
+  farGain = usbFarGain();
+   */
+
+  bmTurnOnTGC();
   return PLUS_SUCCESS;
 }
 

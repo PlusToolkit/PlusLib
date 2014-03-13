@@ -247,7 +247,6 @@ int main(int argc, char* argv[])
   bool renderingOff(false);
   bool printParams(false);
   std::string inputConfigFile;
-  std::string inputSonixIp;
   double depthCm = -1;
   double gainPercent = -1;
   double zoomFactor = -1;
@@ -267,7 +266,6 @@ int main(int argc, char* argv[])
   args.AddArgument("--frequencyMhz", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frequencyMhz, "Frequency in MHz");	
   args.AddArgument("--gain", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &gainPercent, "Gain in percentage. 100 corresponds to the maximum gain");
   args.AddArgument("--zoomFactor", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &zoomFactor, "Zoom used to display de US Image");
-  args.AddArgument("--sonix-ip", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSonixIp, "IP address of the Ultrasonix scanner (overrides the IP address parameter defined in the config file).");
   args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
   args.AddArgument("--print-params", vtksys::CommandLineArguments::NO_ARGUMENT, &printParams, "Print all the supported imaging parameters (for diagnostic purposes only).");	
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level 1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
@@ -327,11 +325,6 @@ int main(int argc, char* argv[])
   }
 
 //DisplayMode displayMode=SHOW_PLOT;
-
-  if (!inputSonixIp.empty())
-  {
-    //intersonDevice->SetSonixIP(inputSonixIp.c_str());
-  }
 
   if ( intersonDevice->Connect()!=PLUS_SUCCESS ) 
   {

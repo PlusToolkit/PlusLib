@@ -15,8 +15,9 @@ vtkUsImagingParameters::vtkUsImagingParameters(vtkPlusDevice* aImagingDevice)
 , FrequencyMhz(-1)
 , DepthMm(-1)
 , SectorPercent(-1)
-, GainPercent(-1)
 , DynRangeDb(-1)
+, Intensity(-1)
+, Contrast(-1)
 , ZoomFactor(-1)
 , SoundVelocity(1540)
 {
@@ -60,16 +61,48 @@ PlusStatus vtkUsImagingParameters::GetDepthMm(double& aDepthMm)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::SetGainPercent(double aGainPercent)
+PlusStatus vtkUsImagingParameters::SetGainPercent(double aGainPercent[3])
 {
-    this->GainPercent = aGainPercent;
+    this->GainPercent[0] = aGainPercent[0];
+	this->GainPercent[1] = aGainPercent[1];
+	this->GainPercent[2] = aGainPercent[2];
 	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::GetGainPercent(double& aGainPercent)
+PlusStatus vtkUsImagingParameters::GetGainPercent(double aGainPercent[3])
 {
-	aGainPercent = this->GainPercent;
+	aGainPercent[0] = this->GainPercent[0];
+	aGainPercent[1] = this->GainPercent[1];
+	aGainPercent[2] = this->GainPercent[2];
+	return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::SetIntensity(double aIntensity)
+{
+    this->Intensity = aIntensity;
+	return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::GetIntensity(double& aIntensity)
+{
+    aIntensity = this->Intensity ;
+	return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::SetContrast(double aContrast)
+{
+    this->Contrast = aContrast;
+	return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::GetContrast(double& aContrast)
+{
+    aContrast = this->Contrast ;
 	return PLUS_SUCCESS;
 }
 
