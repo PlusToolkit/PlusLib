@@ -149,7 +149,7 @@ public:
     int right = Level + center;				// right of window
    for (int x=0; x <= 255; x++) 
    {
-     int y = (int) ((float)Contrast/256.0f * (float)(x-128) + Brightness - 64);
+     int y = (int) ((float)Contrast/256.0f * (float)(x-128) + Brightness);
      if (y<left)
      {
        y=0;
@@ -862,12 +862,12 @@ PlusStatus vtkIntersonVideoSource::SetGainPercent(double gainPercent[3])
   does not have analog TGC control.
   The code below sets a linear TGC curve based on three values (initial, middle and end) of the curve.*/
 
-  double maximumGain=255; 
+  double maximumTGC=50; 
   if (gainPercent[0]>=0 && gainPercent[1]>=0 && gainPercent[2]>=0)
   {
-    this->InitialGain = gainPercent[0] * maximumGain /100 ;
-    this->MidGain = gainPercent[1] * maximumGain /100 ;
-    this->FarGain = gainPercent[2] * maximumGain /100 ;
+    this->InitialGain = gainPercent[0] * maximumTGC /100 ;
+    this->MidGain = gainPercent[1] * maximumTGC /100 ;
+    this->FarGain = gainPercent[2] * maximumTGC /100 ;
   }
 
   this->Internal->CreateLinearTGC(this->InitialGain,this->MidGain,this->FarGain); 
