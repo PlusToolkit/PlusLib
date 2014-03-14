@@ -71,6 +71,10 @@ public:
   //----------------------------------------------------------------------------
   void vtkIntersonVideoSource::vtkInternal::CreateLinearTGC(int initialTGC, int midTGC, int farTGC)
   {
+
+    /*  A linear TGC function is created. The initial point is initialTGC, then is linear until the
+	middle point (midTGC) and then linear until the maximum depth where the compensationis equal to farTGC*/
+
     int tgc[samplesPerLine]={0};
     double firstSlope = (double) (midTGC-initialTGC ) / (samplesPerLine/2);
 	double secondSlope = (double) (farTGC-midTGC ) / (samplesPerLine/2);
@@ -841,29 +845,32 @@ PlusStatus vtkIntersonVideoSource::SetFrequencyMhz(double freq)
 PlusStatus vtkIntersonVideoSource::SetGainPercent(double gainPercent[3])
 {
   
-	
-  double maximumGain=200; 
-  double initialGain = usbInitialGain();
-  double midGain = usbMidGain();
-  double farGain = usbFarGain();
+  /* The following commented code is useful when using an RF probe with an analog TGC control.
+  It sets the value, in dB, for the gain at the  last sample taken.   */
+	/*
+	  initialGain = usbInitialGain();
+      midGain = usbMidGain();
+      farGain = usbFarGain();
+      usbSetInitialGain(this->InitialGain);
+      usbSetMidGain(this->MidGain);
+      usbSetFarGain(this->FarGain);
+      initialGain = usbInitialGain();
+      midGain = usbMidGain();
+      farGain = usbFarGain();
+     */
+  /* If the above code is executed the gain values are changed but it has no effect on the image. Probably it is beacause the probe
+  does not have analog TGC control.
+  The code below sets a linear TGC curve based on three values (initial, middle and end) of the curve.*/
+
+  double maximumGain=255; 
   if (gainPercent[0]>=0 && gainPercent[1]>=0 && gainPercent[2]>=0)
   {
     this->InitialGain = gainPercent[0] * maximumGain /100 ;
     this->MidGain = gainPercent[1] * maximumGain /100 ;
     this->FarGain = gainPercent[2] * maximumGain /100 ;
   }
-  this->Internal->CreateLinearTGC(this->InitialGain,this->MidGain,this->FarGain); 
-	
 
-  /* The following is not useful for us because has no effect in the gain   */
-	  /*
-  usbSetInitialGain(this->InitialGain);
-  usbSetMidGain(this->MidGain);
-  usbSetFarGain(this->FarGain);
-  initialGain = usbInitialGain();
-  midGain = usbMidGain();
-  farGain = usbFarGain();
-   */
+  this->Internal->CreateLinearTGC(this->InitialGain,this->MidGain,this->FarGain); 
 
   bmTurnOnTGC();
   return PLUS_SUCCESS;
