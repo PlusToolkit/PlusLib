@@ -103,6 +103,7 @@ ENDIF(PLUS_USE_MICRONTRACKER)
 IF(PLUS_USE_MMF_VIDEO)
   SET ( PLUSLIB_CONFIG_FILES ${PLUSLIB_CONFIG_FILES}
     ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_Server_MmfVideoCapture.xml
+    ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_Server_MmfColorVideoCapture.xml
     )  
 ENDIF(PLUS_USE_MMF_VIDEO)
 
