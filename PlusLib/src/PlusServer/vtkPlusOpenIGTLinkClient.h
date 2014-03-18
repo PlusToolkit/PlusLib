@@ -8,6 +8,7 @@
 #define __VTKPLUSOPENIGTLINKCLIENT_H
 
 #include "igtlClientSocket.h"
+#include "igtlMessageHeader.h"
 #include "igtlOSUtil.h"
 #include "vtkDataCollector.h"
 #include "vtkMultiThreader.h"
@@ -47,18 +48,33 @@ public:
   
   void Lock();
   void Unlock();
-  
+
+  /*!
+    This method can be overridden in child classes to process received messages.
+    Note that this method is executed from the data receiver thread and not the
+    main thread.
+    If the message body is read then this method should return true.
+    If the meessage is not read then this method should return false (and the
+    message body will be skipped).
+  */
+  virtual bool OnMessageReceived(igtl::MessageHeader::Pointer messageHeader)
+  {
+    return false;
+  }  
   
 protected:
   
   vtkPlusOpenIGTLinkClient();
   virtual ~vtkPlusOpenIGTLinkClient();
 
-  /*! Thread for receiveing control data from clients */ 
-  static void* DataReceiverThread( vtkMultiThreader::ThreadInfo* data );
+  /*! Thread-safe method that allows child classes to read data from the socket */ 
+  int SocketReceive(void* data, int length);
   
 private:
-  
+
+  /*! Thread for receiveing control data from clients */ 
+  static void* DataReceiverThread( vtkMultiThreader::ThreadInfo* data );
+
   vtkPlusOpenIGTLinkClient( const vtkPlusOpenIGTLinkClient& );
   void operator=( const vtkPlusOpenIGTLinkClient& );  
 
