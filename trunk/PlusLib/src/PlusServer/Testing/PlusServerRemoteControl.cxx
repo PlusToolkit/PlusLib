@@ -19,10 +19,73 @@ See License.txt for details.
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkXMLUtilities.h"
 
+#include "igtlTransformMessage.h"
+
+// For catching Ctrl-C
+#include <csignal>
+#include <cstdlib>
+#include <cstdio>
+
 // Normally a client should generate unique command IDs for each executed command
 // for sake of simplicity, in this sample app we don't generate new IDs, just use
 // this single hardcoded value.
 static const char* COMMAND_ID="101";
+
+// Forward declare signal handler
+void SignalInterruptHandler(int s);
+static bool StopClient=false;
+
+// A customized vtkPlusOpenIGTLinkClient that can display the received transformation matrices
+class vtkPlusOpenIGTLinkClientWithTransformLogging : public vtkPlusOpenIGTLinkClient
+{
+public:
+
+  static vtkPlusOpenIGTLinkClientWithTransformLogging *New();
+  vtkTypeRevisionMacro( vtkPlusOpenIGTLinkClientWithTransformLogging, vtkPlusOpenIGTLinkClient );
+
+  bool OnMessageReceived(igtl::MessageHeader::Pointer messageHeader)
+  {
+    bool messageBodyReceived=false;
+    if (strcmp(messageHeader->GetDeviceType(), "TRANSFORM") != 0)
+    {
+      // not a transform message
+      return messageBodyReceived;
+    }
+
+    igtl::TransformMessage::Pointer transformMsg = igtl::TransformMessage::New(); 
+    transformMsg->SetMessageHeader(messageHeader); 
+    transformMsg->AllocatePack();    
+    SocketReceive(transformMsg->GetPackBodyPointer(), transformMsg->GetPackBodySize());
+    messageBodyReceived=true;
+
+    int c = transformMsg->Unpack(1);
+    if ( !(c & igtl::MessageHeader::UNPACK_BODY)) 
+    {
+      LOG_ERROR("Failed to receive TRANSFORM reply (invalid body)");
+      return messageBodyReceived;
+    }
+
+    //store the transform data into a matrix
+    igtl::Matrix4x4 mx;
+    transformMsg->GetMatrix(mx);
+    LOG_INFO("Matrix for "<<transformMsg->GetDeviceName()<<" TRANSFORM received: ");
+    igtl::PrintMatrix(mx);
+    
+    return messageBodyReceived;
+  }
+
+protected:
+  vtkPlusOpenIGTLinkClientWithTransformLogging() {};
+  virtual ~vtkPlusOpenIGTLinkClientWithTransformLogging() {};
+private:
+  vtkPlusOpenIGTLinkClientWithTransformLogging( const vtkPlusOpenIGTLinkClientWithTransformLogging& );
+  void operator=( const vtkPlusOpenIGTLinkClientWithTransformLogging& );
+};
+
+vtkStandardNewMacro( vtkPlusOpenIGTLinkClientWithTransformLogging ); 
+vtkCxxRevisionMacro( vtkPlusOpenIGTLinkClientWithTransformLogging, "$Revision: 1.0 $" );
+
+// Utility functions for sending commands
 
 //----------------------------------------------------------------------------
 void ExecuteStartAcquisition(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId)
@@ -295,6 +358,7 @@ int main( int argc, char** argv )
   std::string transformPersistent;
   std::string transformValue;
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  bool keepConnected=true;
 
   vtksys::CommandLineArguments args;
   args.Initialize( argc, argv );
@@ -313,6 +377,7 @@ int main( int argc, char** argv )
   args.AddArgument( "--transform-error", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformError, "The error of the transform to update." );
   args.AddArgument( "--transform-persistent", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformPersistent, "The persistence of the transform to update." );
   args.AddArgument( "--transform-value", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformValue, "The actual transformation matrix to update." );
+  args.AddArgument( "--keep-connected", vtksys::CommandLineArguments::NO_ARGUMENT, &keepConnected, "Keep the connection to the server after command completion (exits on CTRL-C).");  
   args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)" );
 
   if ( !args.Parse() )
@@ -322,16 +387,17 @@ int main( int argc, char** argv )
     exit(EXIT_FAILURE); 
   }
   
-  vtkPlusLogger::Instance()->SetLogLevel( verboseLevel );
-
-  if ( command.empty() )
+  if ( command.empty() && !keepConnected)
   {
-    LOG_ERROR("--command argument is required!"); 
+    LOG_ERROR("The program has nothing to do, as neither --command nor --keep-connected is specifed"); 
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE); 
   }
-  
-  vtkSmartPointer<vtkPlusOpenIGTLinkClient> client = vtkSmartPointer<vtkPlusOpenIGTLinkClient>::New();
+
+  vtkPlusLogger::Instance()->SetLogLevel( verboseLevel );
+ 
+  // We use vtkPlusOpenIGTLinkClientWithTransformLogging instead of vtkPlusOpenIGTLinkClient to log the received transforms
+  vtkSmartPointer<vtkPlusOpenIGTLinkClientWithTransformLogging> client = vtkSmartPointer<vtkPlusOpenIGTLinkClientWithTransformLogging>::New();
 
   // Connect to server
   client->SetServerHost(serverHost.c_str());
@@ -342,31 +408,57 @@ int main( int argc, char** argv )
     exit(EXIT_FAILURE);
   }    
 
-  // Execute command
-  if (STRCASECMP(command.c_str(),"START_ACQUISITION")==0) { ExecuteStartAcquisition(client, deviceId); }
-  else if (STRCASECMP(command.c_str(),"STOP_ACQUISITION")==0) { ExecuteStopAcquisition(client, deviceId, outputFilename); }
-  else if (STRCASECMP(command.c_str(),"SUSPEND_ACQUISITION")==0) { ExecuteSuspendAcquisition(client, deviceId); }
-  else if (STRCASECMP(command.c_str(),"RESUME_ACQUISITION")==0) { ExecuteResumeAcquisition(client, deviceId); }
-  else if (STRCASECMP(command.c_str(),"START_RECONSTRUCTION")==0) { ExecuteStartReconstruction(client, deviceId); }
-  else if (STRCASECMP(command.c_str(),"SUSPEND_RECONSTRUCTION")==0) { ExecuteSuspendReconstruction(client, deviceId); }
-  else if (STRCASECMP(command.c_str(),"RESUME_RECONSTRUCTION")==0) { ExecuteResumeReconstruction(client, deviceId); }
-  else if (STRCASECMP(command.c_str(),"GET_RECONSTRUCTION_SNAPSHOT")==0) { ExecuteGetSnapshotReconstruction(client, deviceId, outputFilename, outputImageName); }
-  else if (STRCASECMP(command.c_str(),"STOP_RECONSTRUCTION")==0) { ExecuteStopReconstruction(client, deviceId, outputFilename, outputImageName); }
-  else if (STRCASECMP(command.c_str(),"RECONSTRUCT")==0) { ExecuteReconstructFromFile(client, deviceId, inputFilename, outputFilename, outputImageName); }
-  else if (STRCASECMP(command.c_str(),"GET_CHANNEL_IDS")==0) { ExecuteGetChannelIds(client); }
-  else if (STRCASECMP(command.c_str(),"GET_DEVICE_IDS")==0) { ExecuteGetDeviceIds(client, deviceId /* actually a device type */); }
-  else if (STRCASECMP(command.c_str(), "UPDATE_TRANSFORM")==0) { ExecuteUpdateTransform(client, transformName, transformValue, transformError, transformDate, transformPersistent); }
-  else if (STRCASECMP(command.c_str(), "SAVE_CONFIG")==0) { ExecuteSaveConfig(client, outputFilename); }
-  else
+  if ( !command.empty() )
   {
-    LOG_ERROR("Unknown command: "<<command);
-    client->Disconnect();
-    exit(EXIT_FAILURE);
+    // Execute command
+    if (STRCASECMP(command.c_str(),"START_ACQUISITION")==0) { ExecuteStartAcquisition(client, deviceId); }
+    else if (STRCASECMP(command.c_str(),"STOP_ACQUISITION")==0) { ExecuteStopAcquisition(client, deviceId, outputFilename); }
+    else if (STRCASECMP(command.c_str(),"SUSPEND_ACQUISITION")==0) { ExecuteSuspendAcquisition(client, deviceId); }
+    else if (STRCASECMP(command.c_str(),"RESUME_ACQUISITION")==0) { ExecuteResumeAcquisition(client, deviceId); }
+    else if (STRCASECMP(command.c_str(),"START_RECONSTRUCTION")==0) { ExecuteStartReconstruction(client, deviceId); }
+    else if (STRCASECMP(command.c_str(),"SUSPEND_RECONSTRUCTION")==0) { ExecuteSuspendReconstruction(client, deviceId); }
+    else if (STRCASECMP(command.c_str(),"RESUME_RECONSTRUCTION")==0) { ExecuteResumeReconstruction(client, deviceId); }
+    else if (STRCASECMP(command.c_str(),"GET_RECONSTRUCTION_SNAPSHOT")==0) { ExecuteGetSnapshotReconstruction(client, deviceId, outputFilename, outputImageName); }
+    else if (STRCASECMP(command.c_str(),"STOP_RECONSTRUCTION")==0) { ExecuteStopReconstruction(client, deviceId, outputFilename, outputImageName); }
+    else if (STRCASECMP(command.c_str(),"RECONSTRUCT")==0) { ExecuteReconstructFromFile(client, deviceId, inputFilename, outputFilename, outputImageName); }
+    else if (STRCASECMP(command.c_str(),"GET_CHANNEL_IDS")==0) { ExecuteGetChannelIds(client); }
+    else if (STRCASECMP(command.c_str(),"GET_DEVICE_IDS")==0) { ExecuteGetDeviceIds(client, deviceId /* actually a device type */); }
+    else if (STRCASECMP(command.c_str(), "UPDATE_TRANSFORM")==0) { ExecuteUpdateTransform(client, transformName, transformValue, transformError, transformDate, transformPersistent); }
+    else if (STRCASECMP(command.c_str(), "SAVE_CONFIG")==0) { ExecuteSaveConfig(client, outputFilename); }
+    else
+    {
+      LOG_ERROR("Unknown command: "<<command);
+      client->Disconnect();
+      exit(EXIT_FAILURE);
+    }
+    PlusStatus status=PrintReply(client);
+    if (!keepConnected)
+    {
+      // we don't need to remain connected, just exit now
+      client->Disconnect();
+      return status;
+    }
   }
 
-  PlusStatus status=PrintReply(client);
+  std::cout << "Press Ctrl-C to quit:" << std::endl;
+
+  // Set up signal catching
+  signal(SIGINT, SignalInterruptHandler);
+
+  // Run client until requested 
+  const double commandQueuePollIntervalSec=0.010;
+  while (!StopClient)
+  {
+    Sleep(commandQueuePollIntervalSec*1000); // give a chance to other threads to get CPU time now
+    // the customized client logs the transformation matrices in the data receiver thread
+  }
 
   client->Disconnect();
+  return EXIT_SUCCESS;
+}
 
-  return status;
+// -------------------------------------------------
+void SignalInterruptHandler(int s)
+{
+  StopClient = true;
 }
