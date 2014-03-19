@@ -111,7 +111,7 @@ public:
   void GetFrameSize(int dim[2]);
 
   /*! Get tracked frame pixel size in bits */
-  int GetNumberOfBitsPerPixel();
+  int GetNumberOfBitsPerScalar();
 
   /*! Set Segmented fiducial point pixel coordinates */
   void SetFiducialPointsCoordinatePx(vtkPoints* fiducialPoints); 

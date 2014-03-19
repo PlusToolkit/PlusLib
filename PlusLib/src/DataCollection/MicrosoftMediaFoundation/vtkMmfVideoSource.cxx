@@ -416,6 +416,7 @@ PlusStatus vtkMmfVideoSource::UpdateFrameSize()
       videoSource->GetBuffer()->SetPixelType(pixelType);
       videoSource->GetBuffer()->SetNumberOfScalarComponents(numberOfComponents);
       this->UncompressedVideoFrame.SetImageType(videoSource->GetBuffer()->GetImageType());
+      this->UncompressedVideoFrame.SetImageOrientation(videoSource->GetPortImageOrientation());
       this->UncompressedVideoFrame.AllocateFrame(currentFrameSize, pixelType, numberOfComponents);
     }
   }

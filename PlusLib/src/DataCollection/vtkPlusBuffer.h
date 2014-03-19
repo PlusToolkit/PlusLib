@@ -211,7 +211,7 @@ public:
   vtkGetMacro(ImageOrientation, US_IMAGE_ORIENTATION); 
 
   /*! Get the number of bytes per pixel */
-  int GetNumberOfBytesPerPixel();
+  int GetNumberOfBytesPerScalar();
 
   /*! Copy images from a tracked frame buffer. It is useful when data is stored in a metafile and the data is needed as a vtkPlusDataBuffer. */
   PlusStatus CopyImagesFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering, bool copyCustomFrameFields);
