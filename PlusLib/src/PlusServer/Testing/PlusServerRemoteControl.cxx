@@ -358,7 +358,7 @@ int main( int argc, char** argv )
   std::string transformPersistent;
   std::string transformValue;
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
-  bool keepConnected=true;
+  bool keepConnected=false;
 
   vtksys::CommandLineArguments args;
   args.Initialize( argc, argv );
