@@ -449,8 +449,12 @@ int main( int argc, char** argv )
   const double commandQueuePollIntervalSec=0.010;
   while (!StopClient)
   {
-    Sleep(commandQueuePollIntervalSec*1000); // give a chance to other threads to get CPU time now
     // the customized client logs the transformation matrices in the data receiver thread
+#ifdef _WIN32
+    Sleep(commandQueuePollIntervalSec*1000);
+#else
+    usleep(commandQueuePollIntervalSec * 1000000);
+#endif
   }
 
   client->Disconnect();
