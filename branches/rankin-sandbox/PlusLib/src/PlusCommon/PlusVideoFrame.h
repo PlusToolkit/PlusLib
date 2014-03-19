@@ -130,10 +130,10 @@ public:
   void SetImageType(US_IMAGE_TYPE imgType);
 
   /*! Get the size of the pixel in bytes (e.g., returns 1 for 8-bit images) */
-  int GetNumberOfBytesPerPixel() const;
+  int GetNumberOfBytesPerScalar() const;
 
   /*! Get the size of a scalar pixel in bytes */
-  static int GetNumberOfBytesPerPixel(PlusCommon::VTKScalarPixelType pixelType);
+  static int GetNumberOfBytesPerScalar(PlusCommon::VTKScalarPixelType pixelType);
 
   /*! Get the dimensions of the frame in pixels */
   PlusStatus GetFrameSize(int frameSize[2]) const;
@@ -195,7 +195,7 @@ public:
   PlusStatus FillBlank();
 
   /*! Convert vtkImageData to itkImage */
-  template<typename PixelType> static PlusStatus DeepCopyVtkImageToItkImage(vtkImageData* inFrame, typename itk::Image< PixelType, 2 >::Pointer outFrame);
+  template<typename ScalarType> static PlusStatus DeepCopyVtkImageToItkImage(vtkImageData* inFrame, typename itk::Image< ScalarType, 2 >::Pointer outFrame);
 
 protected:
   
