@@ -19,9 +19,9 @@ template<typename PixelType> PlusStatus PlusVideoFrame::DeepCopyVtkImageToItkIma
     return PLUS_FAIL; 
   }
 
-  if( PlusVideoFrame::GetNumberOfBytesPerPixel(inFrame->GetScalarType()) != sizeof(PixelType) )
+  if( PlusVideoFrame::GetNumberOfBytesPerScalar(inFrame->GetScalarType()) != sizeof(PixelType) )
   {
-    LOG_ERROR("Mismatch between input and output pixel types. In: " << PlusVideoFrame::GetStringFromVTKPixelType(inFrame->GetScalarType()));
+    LOG_ERROR("Mismatch between input and output scalar types. In: " << PlusVideoFrame::GetStringFromVTKPixelType(inFrame->GetScalarType()));
     return PLUS_FAIL;
   }
 

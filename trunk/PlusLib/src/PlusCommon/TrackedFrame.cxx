@@ -89,7 +89,7 @@ PlusStatus TrackedFrame::PrintToXML(vtkXMLDataElement* trackedFrame)
   trackedFrame->SetAttribute("ImageDataValid", (this->GetImageData()->IsImageValid()?"true":"false")); 
   if ( this->GetImageData()->IsImageValid() )
   {
-    trackedFrame->SetIntAttribute("NumberOfBits", this->GetNumberOfBitsPerPixel() ); 
+    trackedFrame->SetIntAttribute("NumberOfBits", this->GetNumberOfBitsPerScalar() ); 
     trackedFrame->SetVectorAttribute("FrameSize", 2, this->GetFrameSize()); 
   }
   for ( FieldMapType::const_iterator it = this->CustomFrameFields.begin(); it != this->CustomFrameFields.end(); it++) 
@@ -251,11 +251,11 @@ void TrackedFrame::SetTimestamp(double value)
 }
 
 //----------------------------------------------------------------------------
-int TrackedFrame::GetNumberOfBitsPerPixel()
+int TrackedFrame::GetNumberOfBitsPerScalar()
 {
-  int numberOfBitsPerPixel(0); 
-  numberOfBitsPerPixel = this->ImageData.GetNumberOfBytesPerPixel()*8;
-  return numberOfBitsPerPixel; 
+  int numberOfBitsPerScalar(0); 
+  numberOfBitsPerScalar = this->ImageData.GetNumberOfBytesPerScalar()*8;
+  return numberOfBitsPerScalar; 
 }
 
 //----------------------------------------------------------------------------

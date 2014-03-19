@@ -747,9 +747,9 @@ PlusStatus vtkPlusBuffer::SetImageOrientation(US_IMAGE_ORIENTATION imgOrientatio
 }
 
 //----------------------------------------------------------------------------
-int vtkPlusBuffer::GetNumberOfBytesPerPixel()
+int vtkPlusBuffer::GetNumberOfBytesPerScalar()
 {
-  return PlusVideoFrame::GetNumberOfBytesPerPixel(GetPixelType());
+  return PlusVideoFrame::GetNumberOfBytesPerScalar(GetPixelType());
 }
 
 //----------------------------------------------------------------------------

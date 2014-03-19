@@ -19,6 +19,138 @@ See License.txt for details.
 #endif
 
 //----------------------------------------------------------------------------
+
+namespace
+{
+  //----------------------------------------------------------------------------
+  template<class ScalarType>
+  PlusStatus FlipImageGeneric(void* inBuff, int numberOfComponents, int width, int height, const PlusVideoFrame::FlipInfoType& flipInfo, void* outBuff)
+  {
+    if (flipInfo.doubleRow)
+    {
+      if (height%2 != 0)
+      {
+        LOG_ERROR("Cannot flip image with pairs of rows kept together, as number of rows is odd ("<<height<<")");
+        return PLUS_FAIL;
+      }
+      width*=2;
+      height/=2;
+    }
+    if (flipInfo.doubleColumn)
+    {
+      if (width%2 != 0)
+      {
+        LOG_ERROR("Cannot flip image with pairs of columns kept together, as number of columns is odd ("<<width<<")");
+        return PLUS_FAIL;
+      }
+    }
+
+    if (!flipInfo.hFlip && flipInfo.vFlip)
+    {
+      // flip Y    
+      ScalarType* inputPixel = (ScalarType*)inBuff;
+      // Set the target position pointer to the first pixel of the last row
+      ScalarType* outputPixel = (ScalarType*)outBuff + width*numberOfComponents*(height-1);
+      // Copy the image row-by-row, reversing the row order
+      for (int y=height; y>0; y--)
+      {
+        memcpy(outputPixel, inputPixel, width * sizeof(ScalarType) * numberOfComponents);
+        inputPixel += (width * numberOfComponents);
+        outputPixel -= (width * numberOfComponents);
+      }
+    }
+    else if (flipInfo.hFlip && !flipInfo.vFlip)
+    {
+      // flip X    
+      if (flipInfo.doubleColumn)
+      {
+        ScalarType* inputPixel = (ScalarType*)inBuff;
+        // Set the target position pointer to the last pixel of the first row
+        ScalarType* outputPixel = (ScalarType*)outBuff + width*numberOfComponents - 2*numberOfComponents;
+        // Copy the image row-by-row, reversing the pixel order in each row
+        for (int y = height; y > 0; y--)
+        {
+          for (int x = width/2; x > 0; x--)
+          {
+            // For each scalar, copy it
+            for( int s = 0; s < numberOfComponents; ++s)
+            {
+              *(outputPixel - 1*numberOfComponents + s) = *(inputPixel + s);
+              *(outputPixel + s) = *(inputPixel + 1*numberOfComponents + s);
+            }
+            inputPixel += 2*numberOfComponents;
+            outputPixel -= 2*numberOfComponents;
+          }
+          outputPixel += 2*width*numberOfComponents;
+        }
+      }
+      else
+      {
+        ScalarType* inputPixel = (ScalarType*)inBuff;
+        // Set the target position pointer to the last pixel of the first row
+        ScalarType* outputPixel = (ScalarType*)outBuff + width*numberOfComponents - 1*numberOfComponents;
+        // Copy the image row-by-row, reversing the pixel order in each row
+        for (int y = height; y > 0; y--)
+        {
+          for (int x = width; x > 0; x--)
+          {
+            // For each scalar, copy it
+            for( int s = 0; s < numberOfComponents; ++s)
+            {
+              *(outputPixel+s) = *(inputPixel+s);
+            }
+            inputPixel += numberOfComponents;
+            outputPixel -= numberOfComponents;
+          }
+          outputPixel += 2*width*numberOfComponents;
+        }
+      }
+    }
+    else if (flipInfo.hFlip && flipInfo.vFlip)
+    {
+      // flip X and Y
+      if (flipInfo.doubleColumn)
+      {
+        ScalarType* inputPixel = (ScalarType*)inBuff;
+        // Set the target position pointer to the last pixel
+        ScalarType* outputPixel = (ScalarType*)outBuff + height*width*numberOfComponents - 1*numberOfComponents;
+        // Copy the image pixelpair-by-pixelpair, reversing the pixel order
+        for (int p = width*height/2; p > 0; p--)
+        {
+          // For each scalar, copy it
+          for( int s = 0; s < numberOfComponents; ++s)
+          {
+            *(outputPixel - 1*numberOfComponents + s) = *(inputPixel + s);
+            *(outputPixel + s) = *(inputPixel + 1*numberOfComponents + s);
+          }
+          inputPixel += 2*numberOfComponents;
+          outputPixel -= 2*numberOfComponents;
+        }
+      }
+      else
+      {
+        ScalarType* inputPixel = (ScalarType*)inBuff;
+        // Set the target position pointer to the last pixel
+        ScalarType* outputPixel = (ScalarType*)outBuff + height*width*numberOfComponents - 1*numberOfComponents;
+        // Copy the image pixel-by-pixel, reversing the pixel order
+        for (int p = width*height; p > 0; p--)
+        {
+          // For each scalar, copy it
+          for( int s = 0; s < numberOfComponents; ++s)
+          {
+            *(outputPixel+s) = *(inputPixel+s);
+          }
+          inputPixel += numberOfComponents;
+          outputPixel -= numberOfComponents;
+        }
+      }
+    }
+
+    return PLUS_SUCCESS;
+  }
+}
+
+//----------------------------------------------------------------------------
 PlusVideoFrame::PlusVideoFrame()
 : Image(NULL)
 , ImageType(US_IMG_BRIGHTNESS)
@@ -152,7 +284,7 @@ unsigned long PlusVideoFrame::GetFrameSizeInBytes() const
     return 0;
   }
 
-  int bytesPerPixel = GetNumberOfBytesPerPixel(); 
+  int bytesPerPixel = GetNumberOfBytesPerScalar(); 
   if (bytesPerPixel != 1 && bytesPerPixel != 2 && bytesPerPixel != 4)
   {
     LOG_ERROR("Unsupported pixel size: " << bytesPerPixel << " bytes/pixel");
@@ -185,9 +317,9 @@ PlusStatus PlusVideoFrame::DeepCopyFrom(vtkImageData* frame)
 }
 
 //----------------------------------------------------------------------------
-int PlusVideoFrame::GetNumberOfBytesPerPixel() const
+int PlusVideoFrame::GetNumberOfBytesPerScalar() const
 {
-  return PlusVideoFrame::GetNumberOfBytesPerPixel(GetVTKScalarPixelType());
+  return PlusVideoFrame::GetNumberOfBytesPerScalar(GetVTKScalarPixelType());
 }
 
 //----------------------------------------------------------------------------
@@ -481,117 +613,6 @@ PlusStatus PlusVideoFrame::GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1,
 }
 
 //----------------------------------------------------------------------------
-template<class PixelType>
-PlusStatus FlipImageGeneric(void* inBuff, int width, int height, const PlusVideoFrame::FlipInfoType& flipInfo, void* outBuff)
-{
-  if (flipInfo.doubleRow)
-  {
-    if (height%2 != 0)
-    {
-      LOG_ERROR("Cannot flip image with pairs of rows kept together, as number of rows is odd ("<<height<<")");
-      return PLUS_FAIL;
-    }
-    width*=2;
-    height/=2;
-  }
-  if (flipInfo.doubleColumn)
-  {
-    if (width%2 != 0)
-    {
-      LOG_ERROR("Cannot flip image with pairs of columns kept together, as number of columns is odd ("<<width<<")");
-      return PLUS_FAIL;
-    }
-  }
-
-  if (!flipInfo.hFlip && flipInfo.vFlip)
-  {
-    // flip Y    
-    PixelType* inputPixel=(PixelType*)inBuff;
-    // Set the target position pointer to the first pixel of the last row
-    PixelType* outputPixel=((PixelType*)outBuff)+width*(height-1);
-    // Copy the image row-by-row, reversing the row order
-    for (int y=height; y>0; y--)
-    {
-      memcpy(outputPixel, inputPixel, width*sizeof(PixelType));
-      inputPixel+=width;
-      outputPixel-=width;
-    }
-  }
-  else if (flipInfo.hFlip && !flipInfo.vFlip)
-  {
-    // flip X    
-    if (flipInfo.doubleColumn)
-    {
-      PixelType* inputPixel=(PixelType*)inBuff;
-      // Set the target position pointer to the last pixel of the first row
-      PixelType* outputPixel=((PixelType*)outBuff)+width-2;
-      // Copy the image row-by-row, reversing the pixel order in each row
-      for (int y=height; y>0; y--)
-      {
-        for (int x=width/2; x>0; x--)
-        {
-          *(outputPixel-1)=*inputPixel;
-          *outputPixel=*(inputPixel+1);
-          inputPixel+=2;
-          outputPixel-=2;
-        }
-        outputPixel+=2*width;
-      }
-    }
-    else
-    {
-      PixelType* inputPixel=(PixelType*)inBuff;
-      // Set the target position pointer to the last pixel of the first row
-      PixelType* outputPixel=((PixelType*)outBuff)+width-1;
-      // Copy the image row-by-row, reversing the pixel order in each row
-      for (int y=height; y>0; y--)
-      {
-        for (int x=width; x>0; x--)
-        {
-          *outputPixel=*inputPixel;
-          inputPixel++;
-          outputPixel--;
-        }
-        outputPixel+=2*width;
-      }
-    }
-  }
-  else if (flipInfo.hFlip && flipInfo.vFlip)
-  {
-    // flip X and Y
-    if (flipInfo.doubleColumn)
-    {
-      PixelType* inputPixel=(PixelType*)inBuff;
-      // Set the target position pointer to the last pixel
-      PixelType* outputPixel=((PixelType*)outBuff)+height*width-1;
-      // Copy the image pixelpair-by-pixelpair, reversing the pixel order
-      for (int p=width*height/2; p>0; p--)
-      {
-        *(outputPixel-1)=*inputPixel;
-        *outputPixel=*(inputPixel+1);
-        inputPixel+=2;
-        outputPixel-=2;
-      }
-    }
-    else
-    {
-      PixelType* inputPixel=(PixelType*)inBuff;
-      // Set the target position pointer to the last pixel
-      PixelType* outputPixel=((PixelType*)outBuff)+height*width-1;
-      // Copy the image pixel-by-pixel, reversing the pixel order
-      for (int p=width*height; p>0; p--)
-      {
-        *outputPixel=*inputPixel;
-        inputPixel++;
-        outputPixel--;
-      }
-    }
-  }
-
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
 PlusStatus PlusVideoFrame::GetOrientedImage( vtkImageData* inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_TYPE inUsImageType, US_IMAGE_ORIENTATION outUsImageOrientation, vtkImageData* outUsOrientedImage )
 {
   if ( inUsImage == NULL )
@@ -633,7 +654,7 @@ PlusStatus PlusVideoFrame::GetOrientedImage( vtkImageData* inUsImage, US_IMAGE_O
     outUsOrientedImage->AllocateScalars(); 
   }
 
-  int numberOfBytesPerPixel = PlusVideoFrame::GetNumberOfBytesPerPixel(inUsImage->GetScalarType())*inUsImage->GetNumberOfScalarComponents();
+  int numberOfBytesPerScalar = PlusVideoFrame::GetNumberOfBytesPerScalar(inUsImage->GetScalarType());
 
   int extent[6]={0,0,0,0,0,0}; 
   inUsImage->GetExtent(extent); 
@@ -641,19 +662,19 @@ PlusStatus PlusVideoFrame::GetOrientedImage( vtkImageData* inUsImage, US_IMAGE_O
   double height = extent[3] - extent[2] + 1; 
 
   PlusStatus status=PLUS_FAIL;
-  switch (numberOfBytesPerPixel)
+  switch (numberOfBytesPerScalar)
   {
   case 1:
-    status=FlipImageGeneric<vtkTypeUInt8>(inUsImage->GetScalarPointer(), width, height, flipInfo, outUsOrientedImage->GetScalarPointer());
+    status=FlipImageGeneric<vtkTypeUInt8>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, flipInfo, outUsOrientedImage->GetScalarPointer());
     break;
   case 2:
-    status=FlipImageGeneric<vtkTypeUInt16>(inUsImage->GetScalarPointer(), width, height, flipInfo, outUsOrientedImage->GetScalarPointer());
+    status=FlipImageGeneric<vtkTypeUInt16>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, flipInfo, outUsOrientedImage->GetScalarPointer());
     break;
   case 4:
-    status=FlipImageGeneric<vtkTypeUInt32>(inUsImage->GetScalarPointer(), width, height, flipInfo, outUsOrientedImage->GetScalarPointer());
+    status=FlipImageGeneric<vtkTypeUInt32>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, flipInfo, outUsOrientedImage->GetScalarPointer());
     break;
   default:
-    LOG_ERROR("Unsupported bit depth: "<<numberOfBytesPerPixel<<" bytes per pixel");
+    LOG_ERROR("Unsupported bit depth: "<<numberOfBytesPerScalar<<" bytes per scalar");
   }
   return status;
 }
@@ -696,7 +717,7 @@ PlusStatus PlusVideoFrame::GetOrientedImage(  unsigned char* imageDataPtr,
   vtkImageData* inUsImage = vtkImageData::New();
   PlusVideoFrame::AllocateFrame(inUsImage, frameSizeInPx, outUsOrientedImage->GetScalarType(), outUsOrientedImage->GetNumberOfScalarComponents());
   
-  memcpy(inUsImage->GetScalarPointer(), imageDataPtr, frameSizeInPx[0]*frameSizeInPx[1]*PlusVideoFrame::GetNumberOfBytesPerPixel(pixType)*numberOfScalarComponents);
+  memcpy(inUsImage->GetScalarPointer(), imageDataPtr, frameSizeInPx[0]*frameSizeInPx[1]*PlusVideoFrame::GetNumberOfBytesPerScalar(pixType)*numberOfScalarComponents);
 
   FlipInfoType flipInfo;
   if (GetFlipAxes(inUsImageOrientation, inUsImageType, outUsImageOrientation, flipInfo) != PLUS_SUCCESS)
@@ -744,16 +765,16 @@ PlusStatus PlusVideoFrame::FlipImage(vtkImageData* inUsImage, const PlusVideoFra
   int height = extents[3] - extents[2];
   switch(outUsOrientedImage->GetScalarType())
   {
-  case VTK_UNSIGNED_CHAR: return FlipImageGeneric<vtkTypeUInt8>(inUsImage->GetScalarPointer(), width, height, flipInfo, outUsOrientedImage->GetScalarPointer());
-  case VTK_CHAR: return FlipImageGeneric<vtkTypeInt8>(inUsImage->GetScalarPointer(), width, height, flipInfo, outUsOrientedImage->GetScalarPointer());
-  case VTK_UNSIGNED_SHORT: return FlipImageGeneric<vtkTypeUInt16>(inUsImage->GetScalarPointer(), width, height, flipInfo, outUsOrientedImage->GetScalarPointer());
-  case VTK_SHORT: return FlipImageGeneric<vtkTypeInt16>(inUsImage->GetScalarPointer(), width, height, flipInfo, outUsOrientedImage->GetScalarPointer());
-  case VTK_UNSIGNED_INT: return FlipImageGeneric<vtkTypeUInt32>(inUsImage->GetScalarPointer(), width, height, flipInfo, outUsOrientedImage->GetScalarPointer());
-  case VTK_INT: return FlipImageGeneric<vtkTypeInt32>(inUsImage->GetScalarPointer(), width, height, flipInfo, outUsOrientedImage->GetScalarPointer());
-  case VTK_UNSIGNED_LONG: return FlipImageGeneric<unsigned long>(inUsImage->GetScalarPointer(), width, height, flipInfo, outUsOrientedImage->GetScalarPointer());
-  case VTK_LONG: return FlipImageGeneric<long>(inUsImage->GetScalarPointer(), width, height, flipInfo, outUsOrientedImage->GetScalarPointer());
-  case VTK_FLOAT: return FlipImageGeneric<vtkTypeFloat32>(inUsImage->GetScalarPointer(), width, height, flipInfo, outUsOrientedImage->GetScalarPointer());
-  case VTK_DOUBLE: return FlipImageGeneric<vtkTypeFloat64>(inUsImage->GetScalarPointer(), width, height, flipInfo, outUsOrientedImage->GetScalarPointer());
+  case VTK_UNSIGNED_CHAR: return FlipImageGeneric<vtkTypeUInt8>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, flipInfo, outUsOrientedImage->GetScalarPointer());
+  case VTK_CHAR: return FlipImageGeneric<vtkTypeInt8>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, flipInfo, outUsOrientedImage->GetScalarPointer());
+  case VTK_UNSIGNED_SHORT: return FlipImageGeneric<vtkTypeUInt16>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, flipInfo, outUsOrientedImage->GetScalarPointer());
+  case VTK_SHORT: return FlipImageGeneric<vtkTypeInt16>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, flipInfo, outUsOrientedImage->GetScalarPointer());
+  case VTK_UNSIGNED_INT: return FlipImageGeneric<vtkTypeUInt32>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, flipInfo, outUsOrientedImage->GetScalarPointer());
+  case VTK_INT: return FlipImageGeneric<vtkTypeInt32>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, flipInfo, outUsOrientedImage->GetScalarPointer());
+  case VTK_UNSIGNED_LONG: return FlipImageGeneric<unsigned long>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, flipInfo, outUsOrientedImage->GetScalarPointer());
+  case VTK_LONG: return FlipImageGeneric<long>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, flipInfo, outUsOrientedImage->GetScalarPointer());
+  case VTK_FLOAT: return FlipImageGeneric<vtkTypeFloat32>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, flipInfo, outUsOrientedImage->GetScalarPointer());
+  case VTK_DOUBLE: return FlipImageGeneric<vtkTypeFloat64>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, flipInfo, outUsOrientedImage->GetScalarPointer());
   default:
     LOG_ERROR("Unknown pixel type. Cannot re-orient image.");
     return PLUS_FAIL;
@@ -813,7 +834,7 @@ PlusStatus PlusVideoFrame::ReadImageFromFile( PlusVideoFrame& frame, const char*
 
 
 //----------------------------------------------------------------------------
-int PlusVideoFrame::GetNumberOfBytesPerPixel(PlusCommon::VTKScalarPixelType pixelType)
+int PlusVideoFrame::GetNumberOfBytesPerScalar(PlusCommon::VTKScalarPixelType pixelType)
 {
   switch (pixelType)
   {

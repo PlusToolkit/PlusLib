@@ -239,7 +239,7 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
 
   int frameSize[2] = {0,0};
   aSource->GetBuffer()->GetFrameSize(frameSize);
-  int frameBufferBytesPerPixel = aSource->GetBuffer()->GetNumberOfBytesPerPixel(); 
+  int frameBufferBytesPerPixel = aSource->GetBuffer()->GetNumberOfBytesPerScalar(); 
   const int frameSizeInBytes = frameSize[0] * frameSize[1] * frameBufferBytesPerPixel; 
 
   // for frame containing FC (frame count) in the beginning for data coming from cine, jump 2 bytes
