@@ -118,10 +118,10 @@ public:
   void SetImageOrientation(US_IMAGE_ORIENTATION imgOrientation);
 
   /*! Return the number of components */
-  int GetNumberOfComponents() const;
+  int GetNumberOfScalarComponents() const;
 
   /*! Set the number of components */
-  void SetNumberOfComponents(int numberOfComponents);
+  void SetNumberOfScalarComponents(int numberOfScalarComponents);
 
   /*! Return the image type */
   US_IMAGE_TYPE GetImageType() const;

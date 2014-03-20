@@ -117,7 +117,7 @@ public:
   int GetNumberOfBitsPerPixel();
 
   /*! Get number of scalar components in a pixel */
-  int GetNumberOfComponents();
+  int GetNumberOfScalarComponents();
 
   /*! Set Segmented fiducial point pixel coordinates */
   void SetFiducialPointsCoordinatePx(vtkPoints* fiducialPoints); 

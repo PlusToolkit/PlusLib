@@ -664,6 +664,7 @@ void vtkPlusBuffer::DeepCopy(vtkPlusBuffer* buffer)
   }
   this->SetPixelType(buffer->GetPixelType());
   this->SetImageType(buffer->GetImageType());
+  this->SetNumberOfScalarComponents(buffer->GetNumberOfScalarComponents());
   this->SetImageOrientation(buffer->GetImageOrientation());
   this->SetBufferSize(buffer->GetBufferSize());
 }
@@ -770,6 +771,7 @@ PlusStatus vtkPlusBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *so
   sourceTrackedFrameList->GetTrackedFrame(0)->GetImageData()->GetFrameSize(frameSize);
   this->SetFrameSize(frameSize); 
   this->SetPixelType(sourceTrackedFrameList->GetTrackedFrame(0)->GetImageData()->GetVTKScalarPixelType());
+  this->SetNumberOfScalarComponents(sourceTrackedFrameList->GetTrackedFrame(0)->GetImageData()->GetNumberOfScalarComponents());
 
   if ( this->SetBufferSize(numberOfVideoFrames) != PLUS_SUCCESS )
   {

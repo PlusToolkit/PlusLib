@@ -200,7 +200,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
   int imageSizePixels[3]={0}, subSizePixels[3]={0}, subOffset[3]={0};
   double imageSpacingMm[3]={0};
   int scalarType = PlusVideoFrame::GetIGTLScalarPixelTypeFromVTK( trackedFrame.GetImageData()->GetVTKScalarPixelType() ); 
-  int numComponents = trackedFrame.GetImageData()->GetNumberOfComponents();
+  int numScalarComponents = trackedFrame.GetImageData()->GetNumberOfScalarComponents();
 
   frameImage->GetDimensions( imageSizePixels );
   frameImage->GetSpacing( imageSpacingMm );
@@ -211,7 +211,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
 
   imageMessage->SetDimensions( imageSizePixels );
   imageMessage->SetSpacing( spacingFloat );
-  imageMessage->SetNumComponents( numComponents );
+  imageMessage->SetNumComponents( numScalarComponents );
   imageMessage->SetScalarType( scalarType );
   imageMessage->SetSubVolume( subSizePixels, subOffset );
   imageMessage->AllocateScalars();

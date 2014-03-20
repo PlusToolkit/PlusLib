@@ -24,7 +24,7 @@ namespace
 {
   //----------------------------------------------------------------------------
   template<class ScalarType>
-  PlusStatus FlipImageGeneric(void* inBuff, int numberOfComponents, int width, int height, const PlusVideoFrame::FlipInfoType& flipInfo, void* outBuff)
+  PlusStatus FlipImageGeneric(void* inBuff, int numberOfScalarComponents, int width, int height, const PlusVideoFrame::FlipInfoType& flipInfo, void* outBuff)
   {
     if (flipInfo.doubleRow)
     {
@@ -50,13 +50,13 @@ namespace
       // flip Y    
       ScalarType* inputPixel = (ScalarType*)inBuff;
       // Set the target position pointer to the first pixel of the last row
-      ScalarType* outputPixel = (ScalarType*)outBuff + width*numberOfComponents*(height-1);
+      ScalarType* outputPixel = (ScalarType*)outBuff + width*numberOfScalarComponents*(height-1);
       // Copy the image row-by-row, reversing the row order
       for (int y=height; y>0; y--)
       {
-        memcpy(outputPixel, inputPixel, width * sizeof(ScalarType) * numberOfComponents);
-        inputPixel += (width * numberOfComponents);
-        outputPixel -= (width * numberOfComponents);
+        memcpy(outputPixel, inputPixel, width * sizeof(ScalarType) * numberOfScalarComponents);
+        inputPixel += (width * numberOfScalarComponents);
+        outputPixel -= (width * numberOfScalarComponents);
       }
     }
     else if (flipInfo.hFlip && !flipInfo.vFlip)
@@ -66,43 +66,43 @@ namespace
       {
         ScalarType* inputPixel = (ScalarType*)inBuff;
         // Set the target position pointer to the last pixel of the first row
-        ScalarType* outputPixel = (ScalarType*)outBuff + width*numberOfComponents - 2*numberOfComponents;
+        ScalarType* outputPixel = (ScalarType*)outBuff + width*numberOfScalarComponents - 2*numberOfScalarComponents;
         // Copy the image row-by-row, reversing the pixel order in each row
         for (int y = height; y > 0; y--)
         {
           for (int x = width/2; x > 0; x--)
           {
             // For each scalar, copy it
-            for( int s = 0; s < numberOfComponents; ++s)
+            for( int s = 0; s < numberOfScalarComponents; ++s)
             {
-              *(outputPixel - 1*numberOfComponents + s) = *(inputPixel + s);
-              *(outputPixel + s) = *(inputPixel + 1*numberOfComponents + s);
+              *(outputPixel - 1*numberOfScalarComponents + s) = *(inputPixel + s);
+              *(outputPixel + s) = *(inputPixel + 1*numberOfScalarComponents + s);
             }
-            inputPixel += 2*numberOfComponents;
-            outputPixel -= 2*numberOfComponents;
+            inputPixel += 2*numberOfScalarComponents;
+            outputPixel -= 2*numberOfScalarComponents;
           }
-          outputPixel += 2*width*numberOfComponents;
+          outputPixel += 2*width*numberOfScalarComponents;
         }
       }
       else
       {
         ScalarType* inputPixel = (ScalarType*)inBuff;
         // Set the target position pointer to the last pixel of the first row
-        ScalarType* outputPixel = (ScalarType*)outBuff + width*numberOfComponents - 1*numberOfComponents;
+        ScalarType* outputPixel = (ScalarType*)outBuff + width*numberOfScalarComponents - 1*numberOfScalarComponents;
         // Copy the image row-by-row, reversing the pixel order in each row
         for (int y = height; y > 0; y--)
         {
           for (int x = width; x > 0; x--)
           {
             // For each scalar, copy it
-            for( int s = 0; s < numberOfComponents; ++s)
+            for( int s = 0; s < numberOfScalarComponents; ++s)
             {
               *(outputPixel+s) = *(inputPixel+s);
             }
-            inputPixel += numberOfComponents;
-            outputPixel -= numberOfComponents;
+            inputPixel += numberOfScalarComponents;
+            outputPixel -= numberOfScalarComponents;
           }
-          outputPixel += 2*width*numberOfComponents;
+          outputPixel += 2*width*numberOfScalarComponents;
         }
       }
     }
@@ -113,35 +113,35 @@ namespace
       {
         ScalarType* inputPixel = (ScalarType*)inBuff;
         // Set the target position pointer to the last pixel
-        ScalarType* outputPixel = (ScalarType*)outBuff + height*width*numberOfComponents - 1*numberOfComponents;
+        ScalarType* outputPixel = (ScalarType*)outBuff + height*width*numberOfScalarComponents - 1*numberOfScalarComponents;
         // Copy the image pixelpair-by-pixelpair, reversing the pixel order
         for (int p = width*height/2; p > 0; p--)
         {
           // For each scalar, copy it
-          for( int s = 0; s < numberOfComponents; ++s)
+          for( int s = 0; s < numberOfScalarComponents; ++s)
           {
-            *(outputPixel - 1*numberOfComponents + s) = *(inputPixel + s);
-            *(outputPixel + s) = *(inputPixel + 1*numberOfComponents + s);
+            *(outputPixel - 1*numberOfScalarComponents + s) = *(inputPixel + s);
+            *(outputPixel + s) = *(inputPixel + 1*numberOfScalarComponents + s);
           }
-          inputPixel += 2*numberOfComponents;
-          outputPixel -= 2*numberOfComponents;
+          inputPixel += 2*numberOfScalarComponents;
+          outputPixel -= 2*numberOfScalarComponents;
         }
       }
       else
       {
         ScalarType* inputPixel = (ScalarType*)inBuff;
         // Set the target position pointer to the last pixel
-        ScalarType* outputPixel = (ScalarType*)outBuff + height*width*numberOfComponents - 1*numberOfComponents;
+        ScalarType* outputPixel = (ScalarType*)outBuff + height*width*numberOfScalarComponents - 1*numberOfScalarComponents;
         // Copy the image pixel-by-pixel, reversing the pixel order
         for (int p = width*height; p > 0; p--)
         {
           // For each scalar, copy it
-          for( int s = 0; s < numberOfComponents; ++s)
+          for( int s = 0; s < numberOfScalarComponents; ++s)
           {
             *(outputPixel+s) = *(inputPixel+s);
           }
-          inputPixel += numberOfComponents;
-          outputPixel -= numberOfComponents;
+          inputPixel += numberOfScalarComponents;
+          outputPixel -= numberOfScalarComponents;
         }
       }
     }
@@ -191,7 +191,7 @@ PlusVideoFrame& PlusVideoFrame::operator=(PlusVideoFrame const&videoItem)
     int frameSize[2] = {0,0};
     videoItem.GetFrameSize(frameSize);
 
-    if ( this->AllocateFrame(frameSize, videoItem.GetVTKScalarPixelType(), videoItem.GetNumberOfComponents()) != PLUS_SUCCESS )
+    if ( this->AllocateFrame(frameSize, videoItem.GetVTKScalarPixelType(), videoItem.GetNumberOfScalarComponents()) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to allocate memory for the new frame in the buffer!"); 
     }
@@ -289,7 +289,7 @@ unsigned long PlusVideoFrame::GetFrameSizeInBytes() const
   {
     LOG_ERROR("Unsupported scalar size: " << bytesPerScalar << " bytes/scalar component");
   }
-  unsigned long frameSizeInBytes = frameSize[0] * frameSize[1] * bytesPerScalar * this->GetNumberOfComponents();
+  unsigned long frameSizeInBytes = frameSize[0] * frameSize[1] * bytesPerScalar * this->GetNumberOfScalarComponents();
   return frameSizeInBytes; 
 }
 
@@ -325,7 +325,7 @@ int PlusVideoFrame::GetNumberOfBytesPerScalar() const
 //----------------------------------------------------------------------------
 int PlusVideoFrame::GetNumberOfBytesPerPixel() const
 {
-  return this->GetNumberOfBytesPerScalar()*this->GetNumberOfComponents();
+  return this->GetNumberOfBytesPerScalar()*this->GetNumberOfScalarComponents();
 }
 
 //----------------------------------------------------------------------------
@@ -341,7 +341,7 @@ void PlusVideoFrame::SetImageOrientation(US_IMAGE_ORIENTATION imgOrientation)
 }
 
 //----------------------------------------------------------------------------
-int PlusVideoFrame::GetNumberOfComponents() const
+int PlusVideoFrame::GetNumberOfScalarComponents() const
 {
   if( IsImageValid() )
   {
@@ -352,11 +352,11 @@ int PlusVideoFrame::GetNumberOfComponents() const
 }
 
 //----------------------------------------------------------------------------
-void PlusVideoFrame::SetNumberOfComponents( int numberOfComponents )
+void PlusVideoFrame::SetNumberOfScalarComponents( int numberOfScalarComponents )
 {
   if( IsImageValid() )
   {
-    return this->Image->SetNumberOfScalarComponents(numberOfComponents);
+    return this->Image->SetNumberOfScalarComponents(numberOfScalarComponents);
   }
 }
 
@@ -497,6 +497,10 @@ US_IMAGE_TYPE PlusVideoFrame::GetUsImageTypeFromString( const char* imgTypeStr )
   {
     imgType = US_IMG_RF_I_LINE_Q_LINE; 
   }
+  else if ( STRCASECMP(imgTypeStr, "RGB_COLOR" ) == 0 )
+  {
+    imgType = US_IMG_RGB_COLOR; 
+  }
   return imgType; 
 }
 
@@ -509,6 +513,7 @@ const char* PlusVideoFrame::GetStringFromUsImageType(US_IMAGE_TYPE imgType)
   case US_IMG_RF_REAL: return "RF_REAL";
   case US_IMG_RF_IQ_LINE: return "RF_IQ_LINE";
   case US_IMG_RF_I_LINE_Q_LINE: return "RF_I_LINE_Q_LINE";
+  case US_IMG_RGB_COLOR: return "RGB_COLOR";
   default:
     return "XX";
   }

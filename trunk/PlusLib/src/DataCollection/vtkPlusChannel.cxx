@@ -1346,7 +1346,7 @@ vtkImageData* vtkPlusChannel::GetBrightnessOutput()
   }
   else if(this->BrightnessOutputTrackedFrame.GetFrame().GetImageType()==US_IMG_RGB_COLOR)
   {
-    // B-mode color, just return as is
+    // Color image (Doppler, etc.), just return as is
     resultImage = this->BrightnessOutputTrackedFrame.GetFrame().GetImage();
   }
   else if (this->RfProcessor != NULL )

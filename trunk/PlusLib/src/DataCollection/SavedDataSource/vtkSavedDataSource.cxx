@@ -469,7 +469,7 @@ PlusStatus vtkSavedDataSource::InternalConnectVideo(vtkTrackedFrameList* savedDa
     LOG_ERROR("Failed to set video buffer image type"); 
     return PLUS_FAIL; 
   }
-  if (savedDataBuffer->GetImageType()==US_IMG_BRIGHTNESS)
+  if (savedDataBuffer->GetImageType()==US_IMG_BRIGHTNESS || savedDataBuffer->GetImageType()==US_IMG_RGB_COLOR)
   {
     // Brightness images will be imported into MF orientation
     this->GetOutputBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
@@ -499,6 +499,8 @@ PlusStatus vtkSavedDataSource::InternalConnectVideo(vtkTrackedFrameList* savedDa
   }
 
   this->GetOutputBuffer()->SetFrameSize(savedDataBuffer->GetTrackedFrame(0)->GetFrameSize());
+
+  this->GetOutputBuffer()->SetNumberOfScalarComponents(savedDataBuffer->GetTrackedFrame(0)->GetNumberOfScalarComponents());
 
   // Set up a new local buffer
   DeleteLocalBuffers();

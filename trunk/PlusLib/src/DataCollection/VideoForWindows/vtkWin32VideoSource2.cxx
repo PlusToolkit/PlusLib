@@ -730,27 +730,27 @@ PlusStatus vtkWin32VideoSource2::SetAcquisitionRate(double rate)
 PlusStatus vtkWin32VideoSource2::SetOutputFormat(int format)
 {
   // convert color format to number of scalar components
-  int numComponents=0;
+  int numberOfScalarComponents=0;
   switch (format)
   {
   case VTK_RGBA:
-    numComponents = 4;
+    numberOfScalarComponents = 4;
     break;
   case VTK_RGB:
-    numComponents = 3;
+    numberOfScalarComponents = 3;
     break;
   case VTK_LUMINANCE:
-    numComponents = 1;
+    numberOfScalarComponents = 1;
     break;
   default:
-    numComponents = 0;
+    numberOfScalarComponents = 0;
     LOG_ERROR("SetOutputFormat: Unrecognized color format.");
     return PLUS_FAIL;
   }
 
-  if (numComponents!=1)
+  if (numberOfScalarComponents!=1)
   {
-    LOG_ERROR("Currently only 1 component image output is supported. Requested "<<numComponents<<" components");
+    LOG_ERROR("Currently only 1 component image output is supported. Requested "<<numberOfScalarComponents<<" components");
     return PLUS_FAIL;
   }
 
@@ -791,7 +791,7 @@ PlusStatus vtkWin32VideoSource2::UpdateFrameBuffer()
   int width(this->Internal->BitMapInfoPtr->bmiHeader.biWidth);
   int height(this->Internal->BitMapInfoPtr->bmiHeader.biHeight);
   PlusCommon::VTKScalarPixelType pixelType(VTK_UNSIGNED_CHAR); // always convert output to 8-bit grayscale
-  int numberOfComponents(1);
+  int numberOfScalarComponents=1;
 
   vtkPlusDataSource* aSource(NULL);
   if( this->GetFirstActiveVideoSource(aSource) != PLUS_SUCCESS )
@@ -801,10 +801,10 @@ PlusStatus vtkWin32VideoSource2::UpdateFrameBuffer()
   }
   aSource->GetBuffer()->SetFrameSize(width, height);
   aSource->GetBuffer()->SetPixelType(pixelType);
-  aSource->GetBuffer()->SetNumberOfScalarComponents(numberOfComponents);
+  aSource->GetBuffer()->SetNumberOfScalarComponents(numberOfScalarComponents);
 
   int frameSize[2]={width, height};
-  this->UncompressedVideoFrame.AllocateFrame(frameSize,pixelType,numberOfComponents);
+  this->UncompressedVideoFrame.AllocateFrame(frameSize,pixelType,numberOfScalarComponents);
 
   return PLUS_SUCCESS;
 }
