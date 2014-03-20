@@ -459,11 +459,11 @@ PlusCommon::VTKScalarPixelType vtkTrackedFrameList::GetPixelType()
 }
 
 //-----------------------------------------------------------------------------
-int vtkTrackedFrameList::GetNumberOfComponents()
+int vtkTrackedFrameList::GetNumberOfScalarComponents()
 {
   if ( this->GetNumberOfTrackedFrames() < 1 )
   {
-    LOG_ERROR("Unable to get number of components: there is no frame in the tracked frame list!"); 
+    LOG_ERROR("Unable to get number of scalar components: there is no frame in the tracked frame list!"); 
     return 1;
   }
 

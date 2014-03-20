@@ -158,7 +158,7 @@ public:
   PlusCommon::VTKScalarPixelType GetPixelType(); 
 
   /*! Get number of components */
-  int GetNumberOfComponents(); 
+  int GetNumberOfScalarComponents(); 
 
   /*! Get tracked frame image orientation */
   US_IMAGE_ORIENTATION GetImageOrientation(); 

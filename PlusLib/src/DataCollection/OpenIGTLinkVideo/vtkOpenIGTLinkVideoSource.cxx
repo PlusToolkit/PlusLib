@@ -261,7 +261,7 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalUpdate()
       return PLUS_FAIL;
     }
     aSource->GetBuffer()->SetPixelType( videoFrame->GetVTKScalarPixelType() );
-    aSource->GetBuffer()->SetNumberOfScalarComponents( videoFrame->GetNumberOfComponents() );
+    aSource->GetBuffer()->SetNumberOfScalarComponents( videoFrame->GetNumberOfScalarComponents() );
     aSource->GetBuffer()->SetImageType( videoFrame->GetImageType() );
     aSource->GetBuffer()->SetFrameSize( trackedFrame.GetFrameSize() );
   }
