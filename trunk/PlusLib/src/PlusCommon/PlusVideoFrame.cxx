@@ -284,12 +284,12 @@ unsigned long PlusVideoFrame::GetFrameSizeInBytes() const
     return 0;
   }
 
-  int bytesPerPixel = GetNumberOfBytesPerScalar(); 
-  if (bytesPerPixel != 1 && bytesPerPixel != 2 && bytesPerPixel != 4)
+  int bytesPerScalar = GetNumberOfBytesPerScalar(); 
+  if (bytesPerScalar != 1 && bytesPerScalar != 2 && bytesPerScalar != 4)
   {
-    LOG_ERROR("Unsupported pixel size: " << bytesPerPixel << " bytes/pixel");
+    LOG_ERROR("Unsupported scalar size: " << bytesPerScalar << " bytes/scalar component");
   }
-  unsigned long frameSizeInBytes = frameSize[0] * frameSize[1] * bytesPerPixel * this->GetNumberOfComponents();
+  unsigned long frameSizeInBytes = frameSize[0] * frameSize[1] * bytesPerScalar * this->GetNumberOfComponents();
   return frameSizeInBytes; 
 }
 
@@ -320,6 +320,12 @@ PlusStatus PlusVideoFrame::DeepCopyFrom(vtkImageData* frame)
 int PlusVideoFrame::GetNumberOfBytesPerScalar() const
 {
   return PlusVideoFrame::GetNumberOfBytesPerScalar(GetVTKScalarPixelType());
+}
+
+//----------------------------------------------------------------------------
+int PlusVideoFrame::GetNumberOfBytesPerPixel() const
+{
+  return this->GetNumberOfBytesPerScalar()*this->GetNumberOfComponents();
 }
 
 //----------------------------------------------------------------------------

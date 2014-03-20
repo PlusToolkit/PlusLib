@@ -129,8 +129,19 @@ public:
   /*! Set the image orientation. Does not do any conversion. */
   void SetImageType(US_IMAGE_TYPE imgType);
 
-  /*! Get the size of the pixel in bytes (e.g., returns 1 for 8-bit images) */
+  /*!
+    Get the size of scalar component in bytes.
+    Returns 1 for 8-bit images.
+    Returns 1 for 24-bit RGB images, as it is stored in three 1-byte scalar components.
+  */
   int GetNumberOfBytesPerScalar() const;
+
+  /*!
+    Get the size of the pixel in bytes.
+    Returns 1 for 8-bit images.
+    Returns 3 for 24-bit RGB images.
+  */
+  int GetNumberOfBytesPerPixel() const;
 
   /*! Get the size of a scalar pixel in bytes */
   static int GetNumberOfBytesPerScalar(PlusCommon::VTKScalarPixelType pixelType);

@@ -363,7 +363,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
   unsigned int frameSizeInBytes=0;
   if (this->Dimensions[0]>0 && this->Dimensions[1]>0)
   {
-    frameSizeInBytes=this->Dimensions[0]*this->Dimensions[1]*PlusVideoFrame::GetNumberOfBytesPerScalar(this->PixelType);
+    frameSizeInBytes=this->Dimensions[0]*this->Dimensions[1]*PlusVideoFrame::GetNumberOfBytesPerScalar(this->PixelType)*this->NumberOfComponents;
   }
 
   if (frameSizeInBytes==0)
