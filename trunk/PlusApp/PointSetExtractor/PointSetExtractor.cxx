@@ -18,18 +18,27 @@
 #include "PlusConfigure.h"
 
 #include <vtksys/CommandLineArguments.hxx>
+
+#include "vtkActor.h"
+#include "vtkAppendPolyData.h"
+#include "vtkCamera.h"
+#include "vtkCellArray.h"
+#include "vtkGlyph3D.h"
+#include "vtkLineSource.h"
 #include "vtkMatrix4x4.h"
+#include "vtkPLYWriter.h" 
 #include "vtkPoints.h"
 #include "vtkPolyData.h"
-#include "vtkCellArray.h"
-#include "vtkRenderer.h"
-#include "vtkRenderWindowInteractor.h"
-#include "vtkRenderWindow.h"
 #include "vtkPolyDataMapper.h"
+#include "vtkPolyDataNormals.h"
 #include "vtkProperty.h"
-#include "vtkActor.h"
-#include "vtkCamera.h"
-#include "vtkPLYWriter.h" 
+#include "vtkRenderer.h"
+#include "vtkRenderWindow.h"
+#include "vtkRenderWindowInteractor.h"
+#include "vtkSphereSource.h"
+#include "vtkSTLWriter.h"
+#include "vtkTriangleFilter.h"
+#include "vtkTubeFilter.h"
 #include "vtkXMLUtilities.h"
 
 #include "vtkTrackedFrameList.h"
@@ -45,8 +54,12 @@ int main(int argc, char **argv)
 	bool printHelp=false;
 	std::string inputConfigFileName;
   std::string inputSequenceFileName; 
-	std::string outputSurfaceFileName; 
-  bool displayPoints=false;
+	std::string outputPointsFileName;
+  std::string outputSurfaceFileName;
+  bool display=false;
+  bool addTube=false;
+  bool addSpheres=false;
+  double radius=1;
 	
   std::string stylusName("Stylus");
   std::string referenceName("Reference");
@@ -60,10 +73,14 @@ int main(int argc, char **argv)
 	args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Name of the input configuration file");
 	args.AddArgument("--source-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSequenceFileName, "Name of the input sequence metafile that contains the tracking data");	
 	args.AddArgument("--stylus-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &stylusName, "Name of the stylus tool (Default: Stylus)");
-    args.AddArgument("--reference-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &referenceName, "Name of the reference tool (Default: Reference)");
-    args.AddArgument("--output-pointset-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputSurfaceFileName, "Filename of the output pointset file in PLY format (optional)");
-    args.AddArgument("--display-points", vtksys::CommandLineArguments::NO_ARGUMENT, &displayPoints, "Show the points on the screen (optional)");	
+  args.AddArgument("--reference-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &referenceName, "Name of the reference tool (Default: Reference)");
+  args.AddArgument("--output-pointset-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputPointsFileName, "Filename of the output pointset file in PLY format (optional)");
+  args.AddArgument("--display", vtksys::CommandLineArguments::NO_ARGUMENT, &display, "Show the points on the screen (optional)");	
 	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
+  args.AddArgument("--output-surface-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputSurfaceFileName, "Filename of the output sruface file in STL format (required if spheres or tube added)");
+  args.AddArgument("--add-spheres", vtksys::CommandLineArguments::NO_ARGUMENT, &addSpheres, "Add a sphere at each point position (optional)");	
+  args.AddArgument("--add-tube", vtksys::CommandLineArguments::NO_ARGUMENT, &addTube, "Add a tube connecting the point positions (optional)");	
+  args.AddArgument("--radius", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &radius, "Radius of the tube or speheres (default: 5)");  
 
 	if ( !args.Parse() )
 	{
@@ -153,22 +170,62 @@ int main(int argc, char **argv)
   {
     polyDataCells->InsertNextCell(vtkIdType(1),&ptIndex);
   }
-  vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
-	polyData->SetPoints(surfacePoints);
-  polyData->SetVerts(polyDataCells);
+  vtkSmartPointer<vtkPolyData> pointsPolyData = vtkSmartPointer<vtkPolyData>::New();
+	pointsPolyData->SetPoints(surfacePoints);
+  pointsPolyData->SetVerts(polyDataCells);
+
+  vtkSmartPointer<vtkAppendPolyData> polyDataAppend = vtkSmartPointer<vtkAppendPolyData>::New();
+
+  polyDataAppend->AddInput(pointsPolyData);
+  if (addSpheres)
+  {
+    vtkSmartPointer<vtkSphereSource> sphere=vtkSmartPointer<vtkSphereSource>::New();
+    sphere->SetThetaResolution(16);
+    sphere->SetPhiResolution(16);
+    sphere->SetRadius(radius);
+    sphere->Update();
+    vtkSmartPointer<vtkGlyph3D> glyph=vtkSmartPointer<vtkGlyph3D>::New();
+    glyph->SetInput(pointsPolyData);
+    glyph->SetSource(sphere->GetOutput());
+    polyDataAppend->AddInputConnection(glyph->GetOutputPort());
+  }
+
+  if (addTube)
+  {
+    vtkSmartPointer<vtkLineSource> line=vtkSmartPointer<vtkLineSource>::New();
+    line->SetPoints(surfacePoints);
+    vtkSmartPointer<vtkTubeFilter> tube=vtkSmartPointer<vtkTubeFilter>::New();
+    tube->SetInputConnection(line->GetOutputPort());
+    tube->SetNumberOfSides(32);
+    tube->SetRadius(radius);
+    tube->CappingOn();
+    vtkSmartPointer<vtkTriangleFilter> triangulator=vtkSmartPointer<vtkTriangleFilter>::New();
+    triangulator->SetInputConnection(tube->GetOutputPort())    ;
+    polyDataAppend->AddInputConnection(triangulator->GetOutputPort());
+  }
+  
+  polyDataAppend->Update();
 
   // Write to output file
+  if (!outputPointsFileName.empty())
+  {
+    LOG_INFO("Write points to "<<outputPointsFileName);   
+    vtkSmartPointer<vtkPLYWriter> polyWriter=vtkSmartPointer<vtkPLYWriter>::New();
+    polyWriter->SetInput(pointsPolyData);
+    polyWriter->SetFileName(outputPointsFileName.c_str());
+    polyWriter->Update();
+  }
   if (!outputSurfaceFileName.empty())
   {
-    LOG_INFO("Write to "<<outputSurfaceFileName);   
-    vtkSmartPointer<vtkPLYWriter> polyWriter=vtkSmartPointer<vtkPLYWriter>::New();
-    polyWriter->SetInput(polyData);
+    LOG_INFO("Write surface to "<<outputSurfaceFileName);   
+    vtkSmartPointer<vtkSTLWriter> polyWriter=vtkSmartPointer<vtkSTLWriter>::New();
+    polyWriter->SetInput(polyDataAppend->GetOutput());
     polyWriter->SetFileName(outputSurfaceFileName.c_str());
     polyWriter->Update();
   }
 
   // Display points in 3D renderer
-  if (displayPoints)
+  if (display)
   {
     LOG_INFO("Visualize...");
 
@@ -176,8 +233,11 @@ int main(int argc, char **argv)
     vtkSmartPointer<vtkRenderWindow> renWin = vtkSmartPointer<vtkRenderWindow>::New();
     renWin->AddRenderer(renderer);
 
+    vtkSmartPointer<vtkPolyDataNormals> polyDataWithNormals=vtkSmartPointer<vtkPolyDataNormals>::New();
+    polyDataWithNormals->SetInputConnection(polyDataAppend->GetOutputPort());
+
     vtkSmartPointer<vtkPolyDataMapper> pointsMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    pointsMapper->SetInput(polyData);
+    pointsMapper->SetInputConnection(polyDataWithNormals->GetOutputPort());
     vtkSmartPointer<vtkActor> pointsActor = vtkSmartPointer<vtkActor>::New();
     pointsActor->SetMapper(pointsMapper);
     renderer->AddActor(pointsActor);
