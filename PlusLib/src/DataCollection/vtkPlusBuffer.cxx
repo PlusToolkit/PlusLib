@@ -753,6 +753,12 @@ int vtkPlusBuffer::GetNumberOfBytesPerScalar()
 }
 
 //----------------------------------------------------------------------------
+int vtkPlusBuffer::GetNumberOfBytesPerPixel()
+{
+  return this->GetNumberOfScalarComponents()*PlusVideoFrame::GetNumberOfBytesPerScalar(GetPixelType());
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering, bool copyCustomFrameFields)
 {
   int numberOfErrors=0;

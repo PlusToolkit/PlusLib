@@ -376,16 +376,32 @@ bool vtkTrackedFrameList::ValidateSpeed(TrackedFrame* trackedFrame)
 }
 
 //----------------------------------------------------------------------------
+int vtkTrackedFrameList::GetNumberOfBitsPerScalar()
+{
+  int numberOfBitsPerScalar = 0; 
+  if ( this->GetNumberOfTrackedFrames() > 0 )
+  {
+    numberOfBitsPerScalar = this->GetTrackedFrame(0)->GetNumberOfBitsPerScalar(); 
+  }
+  else
+  {
+    LOG_WARNING("Unable to get bits per scalar: there is no frame in the tracked frame list!"); 
+  }
+
+  return numberOfBitsPerScalar; 
+}
+
+//----------------------------------------------------------------------------
 int vtkTrackedFrameList::GetNumberOfBitsPerPixel()
 {
   int numberOfBitsPerPixel = 0; 
   if ( this->GetNumberOfTrackedFrames() > 0 )
   {
-    numberOfBitsPerPixel = this->GetTrackedFrame(0)->GetNumberOfBitsPerScalar(); 
+    numberOfBitsPerPixel = this->GetTrackedFrame(0)->GetNumberOfBitsPerPixel(); 
   }
   else
   {
-    LOG_WARNING("Unable to get frame size: there is no frame in the tracked frame list!"); 
+    LOG_WARNING("Unable to get bits per pixel: there is no frame in the tracked frame list!"); 
   }
 
   return numberOfBitsPerPixel; 

@@ -148,7 +148,10 @@ public:
     return this->FrameTransformNameForValidation; 
   }
   
-  /*! Get tracked frame pixel size in bits */
+  /*! Get tracked frame scalar size in bits */
+  virtual int GetNumberOfBitsPerScalar(); 
+
+  /*! Get tracked frame pixel size in bits (scalar size * number of scalar components) */
   virtual int GetNumberOfBitsPerPixel(); 
 
   /*! Get tracked frame pixel type */

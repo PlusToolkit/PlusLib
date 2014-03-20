@@ -110,8 +110,14 @@ public:
   /*! Get tracked frame size in pixels */
   void GetFrameSize(int dim[2]);
 
-  /*! Get tracked frame pixel size in bits */
+  /*! Get tracked frame scalar size in bits */
   int GetNumberOfBitsPerScalar();
+
+  /*! Get tracked frame pixel size in bits (scalar size * number of scalar components) */
+  int GetNumberOfBitsPerPixel();
+
+  /*! Get number of scalar components in a pixel */
+  int GetNumberOfComponents();
 
   /*! Set Segmented fiducial point pixel coordinates */
   void SetFiducialPointsCoordinatePx(vtkPoints* fiducialPoints); 
