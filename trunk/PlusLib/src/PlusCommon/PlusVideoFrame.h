@@ -141,7 +141,7 @@ public:
     Returns 1 for 8-bit images.
     Returns 3 for 24-bit RGB images.
   */
-  int GetNumberOfBytesPerScalar() const;
+  int GetNumberOfBytesPerPixel() const;
 
   /*! Get the size of a scalar pixel in bytes */
   static int GetNumberOfBytesPerScalar(PlusCommon::VTKScalarPixelType pixelType);
