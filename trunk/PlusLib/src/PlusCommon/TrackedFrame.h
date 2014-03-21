@@ -114,7 +114,7 @@ public:
   int GetNumberOfBitsPerScalar();
 
   /*! Get tracked frame pixel size in bits (scalar size * number of scalar components) */
-  int GetNumberOfBitsPerPixel();
+  int GetNumberOfBitsPerScalar();
 
   /*! Get number of scalar components in a pixel */
   int GetNumberOfScalarComponents();

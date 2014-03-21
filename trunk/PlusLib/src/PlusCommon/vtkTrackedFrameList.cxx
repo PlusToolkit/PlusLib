@@ -397,7 +397,7 @@ int vtkTrackedFrameList::GetNumberOfBitsPerPixel()
   int numberOfBitsPerPixel = 0; 
   if ( this->GetNumberOfTrackedFrames() > 0 )
   {
-    numberOfBitsPerPixel = this->GetTrackedFrame(0)->GetNumberOfBitsPerPixel(); 
+    numberOfBitsPerPixel = this->GetTrackedFrame(0)->GetNumberOfBitsPerScalar(); 
   }
   else
   {
