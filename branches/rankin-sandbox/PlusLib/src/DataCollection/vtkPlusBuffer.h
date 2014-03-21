@@ -217,7 +217,7 @@ public:
     Get the number of bytes per pixel
     It is the number of bytes per scalar multiplied by the number of scalar components.
   */
-  int GetNumberOfBytesPerScalar();
+  int GetNumberOfBytesPerPixel();
 
   /*! Copy images from a tracked frame buffer. It is useful when data is stored in a metafile and the data is needed as a vtkPlusDataBuffer. */
   PlusStatus CopyImagesFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering, bool copyCustomFrameFields);
