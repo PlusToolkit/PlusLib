@@ -95,7 +95,7 @@ protected:
   PlusStatus SetFrequencyMhz(double freq);
 
   /* Set the gain in percent */
-  PlusStatus SetGainPercent(double gainPercent);
+  PlusStatus SetGainPercent(double gainPercent[3]);
 
   /* Set the zom factor. */
   PlusStatus SetZoomFactor(double gainPercent);
@@ -119,6 +119,8 @@ protected:
   double SoundVelocity;
   int PulsFrequencyDivider;
 
+  int Brightness;
+  int Contrast;
   double LutCenter;
   double LutWindow;
   double MinTGC;

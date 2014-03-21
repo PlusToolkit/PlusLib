@@ -376,6 +376,22 @@ bool vtkTrackedFrameList::ValidateSpeed(TrackedFrame* trackedFrame)
 }
 
 //----------------------------------------------------------------------------
+int vtkTrackedFrameList::GetNumberOfBitsPerScalar()
+{
+  int numberOfBitsPerScalar = 0; 
+  if ( this->GetNumberOfTrackedFrames() > 0 )
+  {
+    numberOfBitsPerScalar = this->GetTrackedFrame(0)->GetNumberOfBitsPerScalar(); 
+  }
+  else
+  {
+    LOG_WARNING("Unable to get bits per scalar: there is no frame in the tracked frame list!"); 
+  }
+
+  return numberOfBitsPerScalar; 
+}
+
+//----------------------------------------------------------------------------
 int vtkTrackedFrameList::GetNumberOfBitsPerPixel()
 {
   int numberOfBitsPerPixel = 0; 
@@ -385,7 +401,7 @@ int vtkTrackedFrameList::GetNumberOfBitsPerPixel()
   }
   else
   {
-    LOG_WARNING("Unable to get frame size: there is no frame in the tracked frame list!"); 
+    LOG_WARNING("Unable to get bits per pixel: there is no frame in the tracked frame list!"); 
   }
 
   return numberOfBitsPerPixel; 
@@ -443,11 +459,11 @@ PlusCommon::VTKScalarPixelType vtkTrackedFrameList::GetPixelType()
 }
 
 //-----------------------------------------------------------------------------
-int vtkTrackedFrameList::GetNumberOfComponents()
+int vtkTrackedFrameList::GetNumberOfScalarComponents()
 {
   if ( this->GetNumberOfTrackedFrames() < 1 )
   {
-    LOG_ERROR("Unable to get number of components: there is no frame in the tracked frame list!"); 
+    LOG_ERROR("Unable to get number of scalar components: there is no frame in the tracked frame list!"); 
     return 1;
   }
 

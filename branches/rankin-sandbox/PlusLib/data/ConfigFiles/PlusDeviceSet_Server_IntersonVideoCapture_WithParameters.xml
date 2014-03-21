@@ -1,17 +1,26 @@
-<PlusConfiguration version="2.0">
+ <PlusConfiguration version="2.1">
 
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
-      Name="PlusServer: Media Foundation video capture device"
-      Description="Broadcasting acquired video through OpenIGTLink" />
+      Name="PlusServer: Interson USB ultrasound device. Some parameters are set here."
+      Description="Broadcasting acquired video through OpenIGTLink"
+    />
     <Device
       Id="VideoDevice" 
-      Type="MmfVideo" 
-      FrameSize="640x480" 
-      VideoFormat="YUY2"
-      CaptureDeviceId="0" >
+      Type="IntersonVideo"
+      AcquisitionRate="30"
+      SoundVelocity="1541"
+      DepthMm="100" 
+	  Intensity="128"
+	  Contrast="256"
+      GainPercent="0 0 60" 
+	  ImageSize="800 512"
+	  SectorPercent="-1" 
+      DynRangeDb="-1" 
+      ZoomFactor="-1" 
+      FrequencyMhz="-1">
       <DataSources>
-        <DataSource Type="Video" Id="Video" ImageType="RGB_COLOR" PortUsImageOrientation="MF" BufferSize="100" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="500" AveragedItemsForFiltering="20" />
       </DataSources>      
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />

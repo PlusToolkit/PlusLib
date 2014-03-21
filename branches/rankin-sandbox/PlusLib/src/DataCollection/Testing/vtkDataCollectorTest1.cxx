@@ -52,7 +52,7 @@ public:
     if ( trackedFrame.GetImageData()->IsImageValid() )
     {
       // Display image if it's valid
-      if (trackedFrame.GetImageData()->GetImageType()==US_IMG_BRIGHTNESS)
+      if (trackedFrame.GetImageData()->GetImageType()==US_IMG_BRIGHTNESS || trackedFrame.GetImageData()->GetImageType()==US_IMG_RGB_COLOR)
       {
         // B mode
         this->ImageData->DeepCopy(trackedFrame.GetImageData()->GetImage());        

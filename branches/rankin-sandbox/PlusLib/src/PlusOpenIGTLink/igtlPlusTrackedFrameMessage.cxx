@@ -43,7 +43,7 @@ namespace igtl
     // Pixel type 
     this->m_MessageHeader.m_ScalarType = PlusVideoFrame::GetIGTLScalarPixelTypeFromVTK( this->m_TrackedFrame.GetImageData()->GetVTKScalarPixelType() ); 
     // Number of scalar components
-    this->m_MessageHeader.m_NumberOfComponents = m_TrackedFrame.GetImageData()->GetNumberOfComponents();
+    this->m_MessageHeader.m_NumberOfComponents = m_TrackedFrame.GetImageData()->GetNumberOfScalarComponents();
     // Image type
     this->m_MessageHeader.m_ImageType = m_TrackedFrame.GetImageData()->GetImageType();
     // Image data size 

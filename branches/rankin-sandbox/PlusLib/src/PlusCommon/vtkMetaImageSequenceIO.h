@@ -190,7 +190,7 @@ private:
   /*! Integer/float, short/long, signed/unsigned */
   PlusCommon::VTKScalarPixelType PixelType;
   /*! Number of components (or channels) */
-  int NumberOfComponents;
+  int NumberOfScalarComponents;
   /*! Number of image dimensions. Only 2 (single frame) or 3 (sequence of frames) are supported. */
   int NumberOfDimensions;
   /*! Frame size (first two elements) and number of frames (last element) */

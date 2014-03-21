@@ -412,12 +412,12 @@ PlusStatus vtkMmfVideoSource::UpdateFrameSize()
       currentFrameSize[1] = this->ActiveVideoFormat.FrameSize[1];
       videoSource->GetBuffer()->SetFrameSize(currentFrameSize);
       PlusCommon::VTKScalarPixelType pixelType = VTK_UNSIGNED_CHAR; // each scalar component is always 8 bit
-      int numberOfComponents = (videoSource->GetBuffer()->GetImageType() == US_IMG_RGB_COLOR ? 3 : 1);
+      int numberOfScalarComponents = (videoSource->GetBuffer()->GetImageType() == US_IMG_RGB_COLOR ? 3 : 1);
       videoSource->GetBuffer()->SetPixelType(pixelType);
-      videoSource->GetBuffer()->SetNumberOfScalarComponents(numberOfComponents);
+      videoSource->GetBuffer()->SetNumberOfScalarComponents(numberOfScalarComponents);
       this->UncompressedVideoFrame.SetImageType(videoSource->GetBuffer()->GetImageType());
       this->UncompressedVideoFrame.SetImageOrientation(videoSource->GetPortImageOrientation());
-      this->UncompressedVideoFrame.AllocateFrame(currentFrameSize, pixelType, numberOfComponents);
+      this->UncompressedVideoFrame.AllocateFrame(currentFrameSize, pixelType, numberOfScalarComponents);
     }
   }
 

@@ -206,6 +206,12 @@ void* vtkPlusOpenIGTLinkClient::DataReceiverThread( vtkMultiThreader::ThreadInfo
       continue;
     }
 
+    if (self->OnMessageReceived(headerMsg.GetPointer()))
+    {
+      // The message body is read and processed
+      continue;
+    }
+
     if (strcmp(headerMsg->GetDeviceType(), "STRING") == 0
       && vtkPlusCommand::IsReplyDeviceName(headerMsg->GetDeviceName(),""))
     {
@@ -234,7 +240,7 @@ void* vtkPlusOpenIGTLinkClient::DataReceiverThread( vtkMultiThreader::ThreadInfo
     else
     {
       // if the device type is unknown, skip reading. 
-      LOG_TRACE("Received message: "<<headerMsg->GetDeviceType());      
+      LOG_TRACE("Received message: "<<headerMsg->GetDeviceType()<<" (not processed)");
       {
         PlusLockGuard<vtkRecursiveCriticalSection> socketGuard(self->SocketMutex);
         self->ClientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
@@ -246,4 +252,11 @@ void* vtkPlusOpenIGTLinkClient::DataReceiverThread( vtkMultiThreader::ThreadInfo
   self->DataReceiverThreadId = -1;
   self->DataReceiverActive.second = false; 
   return NULL;
+}
+
+//----------------------------------------------------------------------------
+int vtkPlusOpenIGTLinkClient::SocketReceive(void* data, int length)
+{
+  PlusLockGuard<vtkRecursiveCriticalSection> socketGuard(this->SocketMutex);
+  return ClientSocket->Receive(data, length);
 }

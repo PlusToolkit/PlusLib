@@ -2,7 +2,7 @@
 
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
-      Name="PlusServer: Media Foundation video capture device"
+      Name="PlusServer: Media Foundation video capture device - color"
       Description="Broadcasting acquired video through OpenIGTLink" />
     <Device
       Id="VideoDevice" 
@@ -11,7 +11,7 @@
       VideoFormat="YUY2"
       CaptureDeviceId="0" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" ImageType="RGB_COLOR" PortUsImageOrientation="MF" BufferSize="100" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="100" ImageType="RGB_COLOR" AveragedItemsForFiltering="20" />
       </DataSources>      
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
