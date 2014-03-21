@@ -2,7 +2,7 @@ include(InstallRequiredSystemLibraries)
 
 SET(CPACK_GENERATOR "NSIS;ZIP")
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Plus (Public software Library for UltraSound)")
-SET(CPACK_PACKAGE_VENDOR "Laboratory for Percutaneous Surgery, Queen's University")
+SET(CPACK_PACKAGE_VENDOR "PerkLab, Queen's University")
 # SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ReadMe.txt")
 SET(CPACK_RESOURCE_FILE_LICENSE "${PLUSLIB_SOURCE_DIR}/src/License.txt")
 SET(CPACK_PACKAGE_VERSION_MAJOR ${PLUSAPP_VERSION_MAJOR})
