@@ -696,7 +696,6 @@ void CapturingToolbox::OnDeactivated()
   if ((m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL)
     && (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetConnected()))
   {
-    ui.verticalLayout->removeItem(m_VerticalSpacer);
 
     ui.verticalLayout->removeWidget(m_ScrollArea);
 
@@ -718,6 +717,7 @@ void CapturingToolbox::InitCaptureDeviceScrollArea()
   m_GridLayout->setObjectName(QString::fromUtf8("captureWidgetLayout"));
   m_GridLayout->setHorizontalSpacing(0);
   m_GridLayout->setContentsMargins(0, -1, 0, -1);
+  m_GridLayout->setAlignment(Qt::AlignTop);
 
   m_ScrollArea = new QScrollArea(this);
   m_ScrollArea->setObjectName(QString::fromUtf8("scrollArea_captureDeviceContainer"));
@@ -730,10 +730,9 @@ void CapturingToolbox::InitCaptureDeviceScrollArea()
   m_GridWidget->setLayout(m_GridLayout);
   m_ScrollArea->setWidget(m_GridWidget);
 
+  ui.verticalLayout->removeItem(ui.collapsingVerticalSpacer);
   ui.verticalLayout->addWidget(m_ScrollArea);
-
-  m_VerticalSpacer = new QSpacerItem(177, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
-  ui.verticalLayout->addItem(m_VerticalSpacer);
+  ui.verticalLayout->addItem(ui.collapsingVerticalSpacer);
 
   DeviceCollection aCollection;
   if( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetDevices(aCollection) == PLUS_SUCCESS )
