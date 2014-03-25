@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1022</width>
+    <width>1037</width>
     <height>720</height>
    </rect>
   </property>
@@ -37,13 +37,13 @@
        <widget class="QFrame" name="frame_Toolbar">
         <property name="minimumSize">
          <size>
-          <width>0</width>
+          <width>260</width>
           <height>27</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>250</width>
+          <width>260</width>
           <height>16777215</height>
          </size>
         </property>
@@ -214,13 +214,13 @@
        <widget class="QToolBox" name="toolbox">
         <property name="minimumSize">
          <size>
-          <width>250</width>
+          <width>260</width>
           <height>660</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>250</width>
+          <width>260</width>
           <height>16777215</height>
          </size>
         </property>
@@ -238,8 +238,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>248</width>
-           <height>451</height>
+           <width>258</width>
+           <height>478</height>
           </rect>
          </property>
          <attribute name="label">
@@ -251,7 +251,7 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>248</width>
+           <width>258</width>
            <height>478</height>
           </rect>
          </property>
@@ -264,7 +264,7 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>248</width>
+           <width>258</width>
            <height>478</height>
           </rect>
          </property>
@@ -277,7 +277,7 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>248</width>
+           <width>258</width>
            <height>478</height>
           </rect>
          </property>
@@ -290,7 +290,7 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>248</width>
+           <width>258</width>
            <height>478</height>
           </rect>
          </property>
@@ -303,8 +303,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>248</width>
-           <height>451</height>
+           <width>258</width>
+           <height>478</height>
           </rect>
          </property>
          <attribute name="label">
@@ -316,7 +316,7 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>248</width>
+           <width>258</width>
            <height>478</height>
           </rect>
          </property>
