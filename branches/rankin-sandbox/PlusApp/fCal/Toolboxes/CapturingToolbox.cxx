@@ -98,6 +98,8 @@ void CapturingToolbox::OnActivated()
   {
     SetState(ToolboxState_Uninitialized);
   }
+
+  LOG_INFO("width: " << this->width() ); 
 }
 
 //-----------------------------------------------------------------------------

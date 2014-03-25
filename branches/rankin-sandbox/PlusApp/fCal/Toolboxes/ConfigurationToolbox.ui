@@ -2,20 +2,6 @@
 <ui version="4.0">
  <class>ConfigurationToolbox</class>
  <widget class="QWidget" name="ConfigurationToolbox">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>230</width>
-    <height>320</height>
-   </rect>
-  </property>
-  <property name="sizePolicy">
-   <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-    <horstretch>0</horstretch>
-    <verstretch>0</verstretch>
-   </sizepolicy>
-  </property>
   <property name="minimumSize">
    <size>
     <width>230</width>
