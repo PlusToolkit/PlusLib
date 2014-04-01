@@ -27,7 +27,6 @@ public:
     VIDEO_FORMAT_RGB8,
     VIDEO_FORMAT_Y8,
     VIDEO_FORMAT_RGB24,
-    VIDEO_FORMAT_YUY2
   };
 
   virtual bool IsTracker() const { return false; }
@@ -99,9 +98,6 @@ protected:
 
   /*! Video format (e.g. Y8) */
   VideoFormatType VideoFormat;
-
-  /*! The uncompressed video frame */
-  PlusVideoFrame UncompressedVideoFrame;
 
   /*! Crop rectangle origin for the grabber (in pixels) */
   int ClipRectangleOrigin[2];

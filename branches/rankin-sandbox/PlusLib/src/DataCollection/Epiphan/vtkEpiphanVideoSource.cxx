@@ -129,8 +129,8 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
     this->FrameSize[1] = this->ClipRectangleSize[1];
   }
 
-  int numberOfScalarComponents;
-  if( this->GetVideoFormat() == VIDEO_FORMAT_RGB24 || this->GetVideoFormat() == VIDEO_FORMAT_YUY2 )
+  int numberOfScalarComponents(1);
+  if( this->GetVideoFormat() == VIDEO_FORMAT_RGB24 )
   {
     numberOfScalarComponents = 3;
   }
@@ -148,9 +148,6 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
       aSource->GetBuffer()->SetPixelType(VTK_UNSIGNED_CHAR);
       aSource->GetBuffer()->SetNumberOfScalarComponents(numberOfScalarComponents);
       aSource->GetBuffer()->SetFrameSize(this->FrameSize);
-      this->UncompressedVideoFrame.SetImageType(aSource->GetBuffer()->GetImageType());
-      this->UncompressedVideoFrame.SetImageOrientation(aSource->GetPortImageOrientation());
-      this->UncompressedVideoFrame.AllocateFrame(this->FrameSize, VTK_UNSIGNED_CHAR, numberOfScalarComponents);
     }
   }
 
@@ -213,7 +210,6 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
   switch (this->GetVideoFormat())
   {
   case VIDEO_FORMAT_RGB24: videoFormat=V2U_GRABFRAME_FORMAT_RGB24; break;
-  case VIDEO_FORMAT_YUY2: videoFormat=V2U_GRABFRAME_FORMAT_YUY2; break;
   case VIDEO_FORMAT_Y8: videoFormat=V2U_GRABFRAME_FORMAT_Y8; break;
   case VIDEO_FORMAT_RGB8: videoFormat=V2U_GRABFRAME_FORMAT_RGB8; break;
   default:
@@ -244,24 +240,6 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
 
   this->FrameNumber++;
 
-  PlusStatus decodingStatus(PLUS_SUCCESS);
-  if (this->GetVideoFormat() == VIDEO_FORMAT_YUY2)
-  {
-    decodingStatus = PixelCodec::ConvertToBmp24(PixelCodec::ComponentOrder_RGB, PixelCodec::PixelEncoding_YUY2, this->FrameSize[0], this->FrameSize[1], (unsigned char*)frame->pixbuf, (unsigned char*)this->UncompressedVideoFrame.GetScalarPointer());
-  }
-  else
-  {
-    // Copy through into the local frame
-    memcpy(frame->pixbuf, this->UncompressedVideoFrame.GetImage()->GetScalarPointer(), this->UncompressedVideoFrame.GetFrameSizeInBytes() );
-    this->UncompressedVideoFrame.GetImage()->Modified();
-  }
-
-  if( decodingStatus == PLUS_FAIL )
-  {
-    LOG_ERROR("Unable to decode image frame.");
-    return PLUS_FAIL;
-  }
-
   vtkPlusDataSource* aSource(NULL);
   for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it )
   {
@@ -273,11 +251,11 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
     else
     {
       int numberOfScalarComponents(1);
-      if( this->GetVideoFormat() == VIDEO_FORMAT_YUY2 || this->GetVideoFormat() == VIDEO_FORMAT_RGB24 )
+      if( this->GetVideoFormat() == VIDEO_FORMAT_RGB24 )
       {
         numberOfScalarComponents = 3;
       }
-      if( aSource->GetBuffer()->AddItem(&this->UncompressedVideoFrame, aSource->GetPortImageOrientation(), FrameSize, VTK_UNSIGNED_CHAR, numberOfScalarComponents, US_IMG_BRIGHTNESS, 0, this->FrameNumber) != PLUS_SUCCESS )
+      if( aSource->GetBuffer()->AddItem(frame->pixbuf, aSource->GetPortImageOrientation(), FrameSize, VTK_UNSIGNED_CHAR, numberOfScalarComponents, (numberOfScalarComponents==3?US_IMG_RGB_COLOR:US_IMG_BRIGHTNESS), 0, this->FrameNumber) != PLUS_SUCCESS )
       {
         LOG_ERROR("Error adding item to video source " << aSource->GetSourceId() << " on channel " << (*it)->GetChannelId() );
         return PLUS_FAIL;
@@ -319,11 +297,7 @@ PlusStatus vtkEpiphanVideoSource::ReadConfiguration(vtkXMLDataElement* config)
     {
       this->SetVideoFormat( VIDEO_FORMAT_RGB24 );
     }
-    else if ( !strcmp(videoFormat,"YUY2") )
-    {
-      this->SetVideoFormat( VIDEO_FORMAT_YUY2 );
-    }
-    if( !strcmp(videoFormat,"RGB8") )
+    else if( !strcmp(videoFormat,"RGB8") )
     {
       this->SetVideoFormat( VIDEO_FORMAT_RGB8 );
     }
