@@ -51,29 +51,41 @@ FIND_FILE (Stealthlink2_StealthLinkD_SHARED_LIBRARY
 		   PATH_SUFFIXES /windows/${PLATFORM_SUFFIX}/Debug
 		   PATHS ${Stealthlink2_PATH_HINTS}
 		   )				  
+get_filename_component(FileName
+                         ${Stealthlink2_StealthLink_STATIC_LIBRARY}
+                         NAME)
+						 
+# SET ( External_Libraries_Install
+#	${Stealthlink2_StealthLink_SHARED_LIBRARY}
+#	"C:/devel/PLTools/ImagingControl/ImagingControl-3.2/win32/release/TIS_DShowLib09.dll"
+#	"C:/devel/PLTools/ImagingControl/ImagingControl-3.2/win32/release/TIS_UDSHL09_vc10.dll"
+#	)
+#SET(External_Libraries_Debug
+#    ${Stealthlink2_StealthLinkD_STATIC_LIBRARY}
+#	${Stealthlink2_StealthLinkD_SHARED_LIBRARY}
+#	"C:/devel/PLTools/ImagingControl/ImagingControl-3.2/win32/debug/TIS_DShowLib09d.dll"
+#	"C:/devel/PLTools/ImagingControl/ImagingControl-3.2/win32/debug/TIS_UDSHL09_vc10d.dll"
+#	)
+#SET(External_Libraries_Debug_FileName)
+#FOREACH (DEBUG ${External_Libraries_Debug})
+#	get_filename_component(FileName ${DEBUG} NAME)
+#	SET(External_Libraries_Debug_FileName ${External_Libraries_Debug_FileName} ${FileName})
+#ENDFOREACH(DEBUG)	
 
-# make sure we have everything we need
-set (Stealthlink2_FOUND FALSE)
-
-
-if (Stealthlink2_STATIC_LIBRARY)
-    set (Stealthlink2_LIBRARIES ${Stealthlink2_STATIC_LIBRARY})
-endif (Stealthlink2_STATIC_LIBRARY)
-
-# set to true if one library found along with include directory
-if (Stealthlink2_INCLUDE_DIRS AND Stealthlink2_StealthLink_STATIC_LIBRARY)
-   set (Stealthlink2_FOUND TRUE)
-   #if (WIN32)
-   #    message (SEND_ERROR "Windows is not currently supported")
-   #endif (WIN32)
-   mark_as_advanced (Stealthlink2_INCLUDE_DIRS
-		     Stealthlink2_STATIC_LIBRARY
-                     Stealthlink2_StealthLink_STATIC_LIBRARY)
-endif (Stealthlink2_INCLUDE_DIRS AND Stealthlink2_StealthLink_STATIC_LIBRARY)
-
+#FOREACH (RELEASE ${External_Libraries_Install})
+#	get_filename_component(FileName ${RELEASE} NAME)
+#	list(FIND External_Libraries_Debug_FileName ${FileName} HasTheFileName)
+#	IF(HasTheFileName EQUAL -1)
+#		SET(External_Libraries_Install_Minus_Debug ${External_Libraries_Install_Minus_Debug} ${RELEASE})
+#	ENDIF()
+#ENDFOREACH(RELEASE)
+MESSAGE ("Stealthlink2_StealthLink_STATIC_LIBRARY " ${Stealthlink2_StealthLink_STATIC_LIBRARY})
+MESSAGE ("Stealthlink2_StealthLink_SHARED_LIBRARY " ${Stealthlink2_StealthLink_SHARED_LIBRARY})
+MESSAGE ("Stealthlink2_StealthLinkD_STATIC_LIBRARY " ${Stealthlink2_StealthLinkD_STATIC_LIBRARY})
+MESSAGE ("Stealthlink2_StealthLinkD_SHARED_LIBRARY " ${Stealthlink2_StealthLinkD_SHARED_LIBRARY})
 
 INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(StealthLink2 DEFAULT_MSG  
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(Stealthlink2 DEFAULT_MSG  
   Stealthlink2_INCLUDE_DIRS  
   Stealthlink2_StealthLink_STATIC_LIBRARY
   Stealthlink2_StealthLink_SHARED_LIBRARY

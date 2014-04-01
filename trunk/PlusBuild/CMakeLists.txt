@@ -299,7 +299,7 @@ ENDIF()
 
 IF ( PLUS_USE_StealthLink2 )
  FIND_PACKAGE (Stealthlink2)
-  IF ( NOT Stealthlink2_FOUND)
+  IF ( NOT STEALTHLINK2_FOUND)
     MESSAGE( FATAL_ERROR "This project requires Staelthlink2 SDK for supporting communication with Medtronic StealthStation. Please verify configuration or turn off PLUS_USE_StealthLink2.")
   ENDIF()
 ENDIF()
