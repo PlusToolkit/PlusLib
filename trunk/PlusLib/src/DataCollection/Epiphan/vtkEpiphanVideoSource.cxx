@@ -11,6 +11,7 @@ See License.txt for details.
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
+#include "PixelCodec.h"
 #include "vtkPlusBuffer.h"
 #include "vtksys/SystemTools.hxx"
 
@@ -128,6 +129,12 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
     this->FrameSize[1] = this->ClipRectangleSize[1];
   }
 
+  int numberOfScalarComponents(1);
+  if( this->GetVideoFormat() == VIDEO_FORMAT_RGB24 )
+  {
+    numberOfScalarComponents = 3;
+  }
+
   vtkPlusDataSource* aSource(NULL);
   for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it )
   {
@@ -139,6 +146,7 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
     else
     {
       aSource->GetBuffer()->SetPixelType(VTK_UNSIGNED_CHAR);
+      aSource->GetBuffer()->SetNumberOfScalarComponents(numberOfScalarComponents);
       aSource->GetBuffer()->SetFrameSize(this->FrameSize);
     }
   }
@@ -198,13 +206,14 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
 
   V2U_GrabFrame2 * frame = NULL;
 
-  V2U_UINT32 videoFormat=V2U_GRABFRAME_FORMAT_Y8;
-  switch (this->VideoFormat)
+  V2U_UINT32 videoFormat(V2U_GRABFRAME_FORMAT_Y8);
+  switch (this->GetVideoFormat())
   {
+  case VIDEO_FORMAT_RGB24: videoFormat=V2U_GRABFRAME_FORMAT_RGB24; break;
   case VIDEO_FORMAT_Y8: videoFormat=V2U_GRABFRAME_FORMAT_Y8; break;
   case VIDEO_FORMAT_RGB8: videoFormat=V2U_GRABFRAME_FORMAT_RGB8; break;
   default:
-    LOG_ERROR("Unknown video format: "<<this->VideoFormat);
+    LOG_ERROR("Unknown video format: " << this->GetVideoFormat() );
     return PLUS_FAIL;
   }
 
@@ -229,7 +238,7 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
     return PLUS_FAIL;
   }
 
-  this->FrameNumber++; 
+  this->FrameNumber++;
 
   vtkPlusDataSource* aSource(NULL);
   for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it )
@@ -241,7 +250,12 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
     }
     else
     {
-      if( aSource->GetBuffer()->AddItem(frame->pixbuf , aSource->GetPortImageOrientation(), FrameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber) != PLUS_SUCCESS )
+      int numberOfScalarComponents(1);
+      if( this->GetVideoFormat() == VIDEO_FORMAT_RGB24 )
+      {
+        numberOfScalarComponents = 3;
+      }
+      if( aSource->GetBuffer()->AddItem(frame->pixbuf, aSource->GetPortImageOrientation(), FrameSize, VTK_UNSIGNED_CHAR, numberOfScalarComponents, (numberOfScalarComponents==3?US_IMG_RGB_COLOR:US_IMG_BRIGHTNESS), 0, this->FrameNumber) != PLUS_SUCCESS )
       {
         LOG_ERROR("Error adding item to video source " << aSource->GetSourceId() << " on channel " << (*it)->GetChannelId() );
         return PLUS_FAIL;
@@ -279,7 +293,11 @@ PlusStatus vtkEpiphanVideoSource::ReadConfiguration(vtkXMLDataElement* config)
   const char* videoFormat = imageAcquisitionConfig->GetAttribute("VideoFormat"); 
   if ( videoFormat != NULL) 
   {
-    if( !strcmp(videoFormat,"RGB8") )
+    if( !strcmp(videoFormat,"RGB24") )
+    {
+      this->SetVideoFormat( VIDEO_FORMAT_RGB24 );
+    }
+    else if( !strcmp(videoFormat,"RGB8") )
     {
       this->SetVideoFormat( VIDEO_FORMAT_RGB8 );
     }

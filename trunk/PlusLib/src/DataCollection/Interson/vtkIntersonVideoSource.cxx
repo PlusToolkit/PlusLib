@@ -89,7 +89,7 @@ public:
   //----------------------------------------------------------------------------
   static LRESULT CALLBACK vtkIntersonVideoSource::vtkInternal::ImageWindowProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
   {
-    vtkIntersonVideoSource::vtkInternal* self=(vtkIntersonVideoSource::vtkInternal*)GetWindowLongPtr(hwnd, GWL_USERDATA);
+    vtkIntersonVideoSource::vtkInternal* self = (vtkIntersonVideoSource::vtkInternal*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
     return DefWindowProc (hwnd, iMsg, wParam, lParam) ;
   }
 
@@ -401,7 +401,7 @@ PlusStatus vtkIntersonVideoSource::InternalConnect()
     return PLUS_FAIL;
   }
 
-  SetWindowLongPtr(this->Internal->ImageWindowHandle, GWL_USERDATA, (LONG)this->Internal);
+  SetWindowLongPtr(this->Internal->ImageWindowHandle, GWLP_USERDATA, (LONG)this->Internal);
 
   // Create a bitmap for use in our DIB
   HDC hdc = GetDC(this->Internal->ImageWindowHandle) ;
