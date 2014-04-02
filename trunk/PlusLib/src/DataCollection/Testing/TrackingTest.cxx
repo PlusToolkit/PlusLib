@@ -137,7 +137,7 @@ public:
       PlusTransformName transformName = *it; 
 
       vtkPlusDataSource* tool=NULL;
-      if ( aDevice->GetTool(transformName.From().c_str(), tool) != PLUS_SUCCESS )
+	  if ( aDevice->GetTool(transformName.GetTransformName().c_str(), tool) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get tool: " << transformName.From() ); 
         continue; 
