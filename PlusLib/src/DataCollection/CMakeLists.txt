@@ -72,7 +72,9 @@ if (WIN32)
 endif (WIN32)  
 
 SET (External_Libraries_Install)
+SET (External_Libraries_Install_Minus_Debug)
 SET (External_Libraries_Debug)
+SET (External_Libraries_Debug_FileName)
 SET (DataCollection_INCLUDE_DIRS 
   ${DataCollection_INCLUDE_DIRS}
   ${CMAKE_CURRENT_SOURCE_DIR} 
@@ -588,24 +590,21 @@ IF (PLUS_USE_ICCAPTURING_VIDEO)
     )
 ENDIF (PLUS_USE_ICCAPTURING_VIDEO)
 
+MESSAGE ("STEALTHLINK: " ${PLUS_USE_StealthLink2})
 # --------------------------------------------------------------------------
 # StealthLink2.0 suppport
-
 IF (PLUS_USE_StealthLink2)
-
+  MESSAGE ( " STEALTHLINK USED FIRST CMAKE")
   SET (DataCollection_SRCS
     ${DataCollection_SRCS}
-    StealthLink/StealthLinkQuery.cxx
+    StealthLink/vtkStealthLinkTracker.cxx
     )  
-  # This part will be decommented once the vtkClass is ready for StealthLink
-  #if (WIN32)  
-  #  SET (DataCollection_HDRS
-  #    ${DataCollection_HDRS}
-  #    ICCapturing/vtkICCapturingSource.h
-  #    ICCapturing/ICCapturingListener.h 
-  #    )
-  #endif (WIN32)  
-  # Look for ICCapturing libraries  
+  if (WIN32)  
+    SET (DataCollection_HDRS
+      ${DataCollection_HDRS}
+      StealthLink/vtkStealthLinkTracker.h
+      )
+  endif (WIN32)  
   
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
     ${Stealthlink2_INCLUDE_DIRS} 
@@ -786,7 +785,21 @@ IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
     FILE(COPY ${External_Libraries_Install}
         DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release
         )
-    FILE(COPY ${External_Libraries_Install}
+	#Find the file names of the debug shared libraries
+	FOREACH (DEBUG ${External_Libraries_Debug})
+		get_filename_component(FileName ${DEBUG} NAME)
+		SET(External_Libraries_Debug_FileName ${External_Libraries_Debug_FileName} ${FileName})
+	ENDFOREACH(DEBUG)	
+	#Extract the release shared libraries that have the same name as debug shared libraries
+	FOREACH (RELEASE ${External_Libraries_Install})
+		get_filename_component(FileName ${RELEASE} NAME)
+		list(FIND External_Libraries_Debug_FileName ${FileName} HasTheFileName)
+	IF(HasTheFileName EQUAL -1)
+		SET(External_Libraries_Install_Minus_Debug ${External_Libraries_Install_Minus_Debug} ${RELEASE})
+	ENDIF()
+	ENDFOREACH(RELEASE)
+	MESSAGE("External_Libraries_Install_Minus_Debug: " ${External_Libraries_Install_Minus_Debug})
+    FILE(COPY ${External_Libraries_Install_Minus_Debug}
         DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Debug
         )                
     FILE(COPY ${External_Libraries_Debug}
