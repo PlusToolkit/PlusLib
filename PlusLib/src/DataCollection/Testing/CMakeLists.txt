@@ -189,17 +189,6 @@ ADD_EXECUTABLE(vtkICCapturingSourceTest1 vtkICCapturingSourceTest1.cxx )
   #SET_TESTS_PROPERTIES( vtkICCapturingSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF (PLUS_USE_ICCAPTURING_VIDEO)
 
-#***************************  vtkIntersonVideoSourceTest.cxx ***************************
-IF (PLUS_USE_INTERSON_VIDEO)
-ADD_EXECUTABLE(vtkIntersonVideoSourceTest vtkIntersonVideoSourceTest.cxx )
-  TARGET_LINK_LIBRARIES(vtkIntersonVideoSourceTest vtkDataCollection vtkCharts )
-  # ADD_TEST(vtkIntersonVideoSourceTest 
-  # ${EXECUTABLE_OUTPUT_PATH}/vtkIntersonVideoSourceTest
-   # --rendering-off
-  # )
-  #SET_TESTS_PROPERTIES( vtkIntersonVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-ENDIF (PLUS_USE_INTERSON_VIDEO)
-
 #***************************  vtkSonixVolumeReaderTest1.cxx ***************************
 IF (PLUS_USE_ULTRASONIX_VIDEO)
   ADD_EXECUTABLE(vtkSonixVolumeReaderTest1 vtkSonixVolumeReaderTest1.cxx )
@@ -265,6 +254,14 @@ IF (PLUS_USE_MICRONTRACKER)
     ADD_EXECUTABLE(vtkMicronTrackerTest vtkMicronTrackerTest.cxx)
     TARGET_LINK_LIBRARIES(vtkMicronTrackerTest vtkDataCollection vtkPlusCommon)    
 ENDIF (PLUS_USE_MICRONTRACKER) 
+
+MESSAGE ("STEALTHLINK: " ${PLUS_USE_StealthLink2})
+#*************************** StealthLink ***************************
+IF (PLUS_USE_StealthLink2)
+	MESSAGE ( " STEALTHLINK USED SECOND CMAKE")
+    ADD_EXECUTABLE(vtkStealthLinkTrackerTest vtkStealthLinkTrackerTest.cxx)
+    TARGET_LINK_LIBRARIES(vtkStealthLinkTrackerTest vtkDataCollection vtkPlusCommon)    
+ENDIF (PLUS_USE_StealthLink2) 
 
 #*************************** vtkPlusDeviceFactoryTest ***************************
 ADD_EXECUTABLE(vtkPlusDeviceFactoryTest vtkPlusDeviceFactoryTest.cxx)

@@ -31,6 +31,9 @@ See License.txt for details.
 #ifdef PLUS_USE_MICRONTRACKER
 #include "vtkMicronTracker.h"
 #endif
+#ifdef PLUS_USE_StealthLink2
+#include "vtkStealthLinkTracker.h"
+#endif
 #ifdef PLUS_USE_BRACHY_TRACKER
 #include "vtkBrachyTracker.h"
 #endif
@@ -104,6 +107,7 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
 {
   DeviceTypes["FakeTracker"]=(PointerToDevice)&vtkFakeTracker::New; 
   DeviceTypes["ChRobotics"]=(PointerToDevice)&vtkChRoboticsTracker::New; 
+  DeviceTypes["StealthLinkTracker"]=(PointerToDevice)&vtkStealthLinkTracker::New;
 #ifdef PLUS_USE_3dConnexion_TRACKER
   // 3dConnexion tracker is supported on Windows only
   DeviceTypes["3dConnexion"]=(PointerToDevice)&vtk3dConnexionTracker::New; 
@@ -123,6 +127,9 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
 #endif
 #ifdef PLUS_USE_MICRONTRACKER  
   DeviceTypes["MicronTracker"]=(PointerToDevice)&vtkMicronTracker::New; 
+#endif
+#ifdef PLUS_USE_StealthLink2
+  //DeviceTypes["StealthLinkTracker"]=(PointerToDevice)&vtkStealthLinkTracker::New;
 #endif
 #ifdef PLUS_USE_Ascension3DG  
   DeviceTypes["Ascension3DG"]=(PointerToDevice)&vtkAscension3DGTracker::New; 
