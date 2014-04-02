@@ -1,0 +1,54 @@
+<PlusConfiguration version="2.3">
+
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="PlusServer: Medtronic StealthLink tracker"
+      Description="Broadcasting tool tracking data through OpenIGTLink
+Tools: Probe (1b), Reference (TTBlock)" 
+    />
+    <Device
+      Id="TrackerDevice"
+      Type="StealthLinkTracker"
+      ServerAddress="130.15.7.88"
+      AcquisitionRate="30"
+      LocalTimeOffset="0.0"
+      ToolReferenceFrame="Tracker" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Tool1"  PortName="Passive Planar, Blunt" BufferSize="500" AveragedItemsForFiltering="20"/>
+		<DataSource Type="Tool" Id="Reference" 	   PortName="Frame" BufferSize="500" AveragedItemsForFiltering="20"/>
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream">
+          <DataSource  Id="Tool1" />
+		  <DataSource  Id="Reference" />
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="RecordingTest.mha"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+      </InputChannels>
+    </Device>
+  </DataCollection>
+
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    OutputChannelId="TrackerStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="Tool1ToTracker" />
+		<Transform Name="ReferenceToTracker" />
+      </TransformNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+</PlusConfiguration>
