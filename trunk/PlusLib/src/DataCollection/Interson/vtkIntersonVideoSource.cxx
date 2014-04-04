@@ -166,7 +166,7 @@ public:
 //----------------------------------------------------------------------------
 vtkIntersonVideoSource::vtkIntersonVideoSource()
 : Interpolate(true)
-, BidirectionalScan(false)
+, BidirectionalScan(true)
 , Frozen(true)
 {
   this->Internal = new vtkInternal(this);
@@ -191,9 +191,9 @@ vtkIntersonVideoSource::vtkIntersonVideoSource()
   this->MinTGC = 0;
   this->MaxTGC = 150;
 
-  this->InitialGain =0;
-  this->MidGain=0;
-  this->FarGain=0;
+  this->InitialGain =-128;
+  this->MidGain=-128;
+  this->FarGain=-128;
 
   this->ImageSize[0]=800;
   this->ImageSize[1]=512;
@@ -862,12 +862,12 @@ PlusStatus vtkIntersonVideoSource::SetGainPercent(double gainPercent[3])
   does not have analog TGC control.
   The code below sets a linear TGC curve based on three values (initial, middle and end) of the curve.*/
 
-  double maximumTGC=50; 
+  double maximumTGC=512; 
   if (gainPercent[0]>=0 && gainPercent[1]>=0 && gainPercent[2]>=0)
   {
-    this->InitialGain = gainPercent[0] * maximumTGC /100 ;
-    this->MidGain = gainPercent[1] * maximumTGC /100 ;
-    this->FarGain = gainPercent[2] * maximumTGC /100 ;
+	this->InitialGain = -255 + gainPercent[0] * maximumTGC /100 ;
+	this->MidGain = -255 + gainPercent[1] * maximumTGC /100 ;
+    this->FarGain = -255 + gainPercent[2] * maximumTGC /100 ;
   }
 
   this->Internal->CreateLinearTGC(this->InitialGain,this->MidGain,this->FarGain); 
