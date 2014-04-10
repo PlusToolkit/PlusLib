@@ -255,14 +255,6 @@ IF (PLUS_USE_MICRONTRACKER)
     TARGET_LINK_LIBRARIES(vtkMicronTrackerTest vtkDataCollection vtkPlusCommon)    
 ENDIF (PLUS_USE_MICRONTRACKER) 
 
-MESSAGE ("STEALTHLINK: " ${PLUS_USE_StealthLink2})
-#*************************** StealthLink ***************************
-IF (PLUS_USE_StealthLink2)
-	MESSAGE ( " STEALTHLINK USED SECOND CMAKE")
-    ADD_EXECUTABLE(vtkStealthLinkTrackerTest vtkStealthLinkTrackerTest.cxx)
-    TARGET_LINK_LIBRARIES(vtkStealthLinkTrackerTest vtkDataCollection vtkPlusCommon)    
-ENDIF (PLUS_USE_StealthLink2) 
-
 #*************************** vtkPlusDeviceFactoryTest ***************************
 ADD_EXECUTABLE(vtkPlusDeviceFactoryTest vtkPlusDeviceFactoryTest.cxx)
 TARGET_LINK_LIBRARIES(vtkPlusDeviceFactoryTest vtkDataCollection vtkPlusCommon)

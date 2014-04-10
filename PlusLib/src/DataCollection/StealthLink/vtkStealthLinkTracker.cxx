@@ -36,23 +36,50 @@ public:
 	friend class vtkStealthLinkTracker;
 	
 private:
+
+
+
 	vtkStealthLinkTracker *External;
 
 	MNavStealthLink::StealthServer		*SteahLinkServer;
-	MNavStealthLink::Frame				currentFrame;
-	MNavStealthLink::Instrument			currentInstrument;
+	//MNavStealthLink::Frame				currentFrame;  // We are retrieving the transform matrix by using navData - if needed, this part could be decommented
+	//MNavStealthLink::Instrument			currentInstrument;  // We are retrieving the transform matrix by using navData - if needed, this part could be decommented
+	std::string currentFrameName;
+	std::string currentInstrumentName;
 	MNavStealthLink::Exam 				currentExam;
 	MNavStealthLink::InstrumentNameList instrumentList;
 	MNavStealthLink::NavData			navData;
+	
+	vtkSmartPointer<vtkMatrix4x4> instrumentTransformMatrix;
+	vtkSmartPointer<vtkMatrix4x4> frameTransformMatrix;
 
 	char const* HOST; // Host IP Address
 	char const* PORT; // Host open Port 
 	char const* dicomOutputFile; // Where the dicom file will be saved after having been acquired from the StealthLink Server
+
 	std::ostringstream examImageName;
 
 	double serverInitialTimeInMicroSeconds;
 	vtkImageData* dicomImage; // The dicom image
-	vtkMatrix4x4* transformInsToTracker; // The transform matrix from Instrument Space to Localizer space
+
+	struct VisibilityStatus
+	{
+		enum Type
+		{
+			TRACKABLE, NOTTRACKABLE
+		};
+		Type t_;
+		VisibilityStatus(Type t) : t_(t) {}
+		operator Type () const {return t_;}
+	private:
+		//prevent automatic conversion for any other built-in types such as bool, int, etc
+		template<typename T>
+		operator T () const;
+	};
+
+	VisibilityStatus instrumentVisibility;
+	VisibilityStatus frameVisibility;
+
 
 	/*~ Constructor ~*/
 	vtkInternal(vtkStealthLinkTracker* external) 
@@ -62,9 +89,14 @@ private:
     , PORT("6996")
     , dicomOutputFile("C:/StealthLinkDicomOutput")
 	, examImageName("")
+	,instrumentVisibility(VisibilityStatus::TRACKABLE)
+	,frameVisibility(VisibilityStatus::TRACKABLE)
 	{
-		this->dicomImage=vtkImageData::New();
-		this->transformInsToTracker = vtkMatrix4x4::New();
+		this->dicomImage				= vtkImageData::New();
+		this->instrumentTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+		this->frameTransformMatrix		= vtkSmartPointer<vtkMatrix4x4>::New();
+		this->frameTransformMatrix->Identity();
+		this->instrumentTransformMatrix->Identity();
 	}
 
 	/*! Destructor !*/
@@ -80,64 +112,91 @@ private:
 
 		this->dicomImage->Delete();
 		this->dicomImage=NULL;
-		this->transformInsToTracker->Delete();
-		this->transformInsToTracker = NULL;
 	}
 
 	/*! Check if the Instruments Are Verified !*/
-	PlusStatus IsInstrumentVerified(MNavStealthLink::Instrument instrument)
+	PlusStatus IsInstrumentVerified()
 	{
-		if (instrument.isVerified)
+		MNavStealthLink::Instrument instrument;
+		MNavStealthLink::Error		error;
+		try
+		{
+			this->SteahLinkServer->get(this->currentInstrumentName,instrument,this->SteahLinkServer->getServerTime(),error);
+		}
+		catch (MNavStealthLink::Error error)
+		{
+			LOG_ERROR("Error retrieveing the current instrument from the StealthLink Server " << error.what() << "\n");
+		}
+		if(instrument.isVerified)
 		{
 			return PLUS_SUCCESS;
 		}
 		return PLUS_FAIL;
 	}
-	/*! Get the transformation maxtrix of each instrument !*/
-	void GetInstrumentTransformMatrix(vtkMatrix4x4* transformMatrix)
+
+	/*! Get the transformation maxtrix of the current instrument !*/
+	void GetInstrumentTransformMatrix()
 	{
-		if(this->navData.instrumentName.empty())
+		if( this->navData.instVisibility == MNavStealthLink::Instrument::VISIBLE || this->navData.instVisibility == MNavStealthLink::Instrument::ALMOST_BLOCKED)
 		{
-			LOG_ERROR("Error retrieveing the current instrument from the StealthLink Server\n");
-		}
-		if(this->navData.instVisibility != MNavStealthLink::Frame::VISIBLE) // checks if the reference frame is visible
-		{
-			LOG_ERROR("The instrument is not visible. Please check the current setting of the tools.\n");
-		}
-		transformMatrix->Identity();
-		for(int col=0; col < 4; col++)
-		{
-			for (int row=0; row < 4; row++)
+			if(this->instrumentVisibility != VisibilityStatus::TRACKABLE)
 			{
-				transformMatrix->SetElement(row, col, this->navData.localizer_T_instrument [row][col]); // from Instrument Space to Localizer space
+				LOG_TRACE("The instrument is trackable now\n");
+				this->instrumentVisibility = VisibilityStatus::TRACKABLE;
+		}	
+			for(int col=0; col < 4; col++)
+			{
+				for (int row=0; row < 4; row++)
+				{
+					this->instrumentTransformMatrix->SetElement(row, col, this->navData.localizer_T_instrument [row][col]);
+				}
+			}
+		}
+		else
+		{
+			if(this->instrumentVisibility != VisibilityStatus::NOTTRACKABLE)
+			{
+				LOG_TRACE("The instrument is not trackable. Please check the current positions of the instrument\n");
+				this->instrumentVisibility = VisibilityStatus::NOTTRACKABLE;
 			}
 		}
 	}
-	void GetCurrentFrameTransformMatrix(vtkMatrix4x4* transformMatrix)
+	/*! Get the transformation maxtrix of the current frame !*/
+	void GetFrameTransformMatrix()
 	{
-		if(this->navData.frameName.empty())
+		if( this->navData.frameVisibility == MNavStealthLink::Frame::VISIBLE || this->navData.frameVisibility == MNavStealthLink::Frame::ALMOST_BLOCKED)
 		{
-			LOG_ERROR("Error retrieveing the current frame from the StealthLink Server\n");
-		}
-		if(this->navData.frameVisibility != MNavStealthLink::Frame::VISIBLE) // checks if the reference frame is visible
-		{
-			LOG_ERROR("The reference frame is not visible. Please check the current setting of the tools.\n");
-		}
-		transformMatrix->Identity();
-		for(int col=0; col < 4; col++)
-		{
-			for (int row=0; row < 4; row++)
+			if(this->frameVisibility != VisibilityStatus::TRACKABLE)
 			{
-				transformMatrix->SetElement(row, col, this->navData.frame_T_localizer [row][col]); // from Instrument Space to Localizer space
+				LOG_TRACE("The frame is now trackable.\n");
+				this->frameVisibility = VisibilityStatus::TRACKABLE;
+			}
+			vtkSmartPointer<vtkMatrix4x4> transformFrameTLocalizer;
+			transformFrameTLocalizer = vtkSmartPointer<vtkMatrix4x4>::New();
+			for(int col=0; col < 4; col++)
+			{
+				for (int row=0; row < 4; row++)
+				{
+					transformFrameTLocalizer->SetElement(row, col, this->navData.frame_T_localizer [row][col]); // from localizer Space to frame space
+				}
+			}
+			//the transformation matrix given by navData is from Localizer(Tracker) space to frame space and we need the inverse of it
+			vtkSmartPointer<vtkTransform> transform  = vtkSmartPointer<vtkTransform>::New();
+			transform->SetMatrix(transformFrameTLocalizer);
+			transform->Inverse(); 
+			transform->GetMatrix(this->frameTransformMatrix);   
+		}
+		else
+		{
+			if(this->frameVisibility != VisibilityStatus::NOTTRACKABLE)
+			{
+				LOG_TRACE("The frame is not trackable. Please check the current positions of the tools.\n");
+				this->frameVisibility = VisibilityStatus::NOTTRACKABLE;
 			}
 		}
 	}
 };
-// Note that "MTC.h" is not included directly, as it causes compilation warnings
-// and unnecessary coupling to lower-level MTC functions.
-// All MTC internal functions shall be accessed through MicronTrackerInterface.
-
-/****************************************************************************/
+/****************************************************************************/ 
 
 vtkStandardNewMacro(vtkStealthLinkTracker);
 
@@ -189,59 +248,32 @@ std::string vtkStealthLinkTracker::GetSdkVersion()
 	return oStr.str();
 }
 
+//-----------------------------------------------------------------------------
+void vtkStealthLinkTracker::checkInstrumentVerification()
+{
+	this->instrumentVerification = (this->Internal->IsInstrumentVerified()) ? "VERIFIED" : "NOT VERIFIED. PLEASE VERIFY THE INSTRUMENT TO HAVE AN ACCURATE TRANSFORMATION MATRIX";
+	LOG_TRACE (" The current instrument: " << this->Internal->currentInstrumentName << " is " << this->instrumentVerification << "." << std::endl);
+}
+
+//-----------------------------------------------------------------------------
+void vtkStealthLinkTracker::getFirstToolVisibilityStatus()
+{
+	/*! Instrument Visibility Status - No need for Visible since the default value is TRACKABLE !*/
+	if(!(this->Internal->navData.instVisibility == MNavStealthLink::Instrument::VISIBLE || this->Internal->navData.instVisibility == MNavStealthLink::Instrument::ALMOST_BLOCKED))
+	{
+		this->Internal->instrumentVisibility = vtkInternal::VisibilityStatus::NOTTRACKABLE;		
+		LOG_TRACE("The Instrument is not trackable\n");
+	}
+
+	/*! Frame Visibility Status - No need for Visible since the default value is TRACKABLE !*/
+	if(!(this->Internal->navData.frameVisibility != MNavStealthLink::Frame::VISIBLE || this->Internal->navData.frameVisibility != MNavStealthLink::Frame::ALMOST_BLOCKED))
+	{
+		this->Internal->frameVisibility = vtkInternal::VisibilityStatus::NOTTRACKABLE;	
+		LOG_TRACE("The Frame is not trackable\n");
+	}
+}
+
 //----------------------------------------------------------------------------
-/*
-PlusStatus vtkStealthLinkTracker::Probe()
-{  
-  if (this->IsMicronTrackingInitialized)
-  {
-    LOG_ERROR("vtkMicronTracker::Probe should not be called while the device is already initialized");
-    return PLUS_FAIL;
-  }
-
-  std::string iniFilePath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->IniFile);
-  LOG_DEBUG("Use MicronTracker ini file: "<<iniFilePath);
-  if ( !vtksys::SystemTools::FileExists( iniFilePath.c_str(), true) )
-  {
-    LOG_DEBUG("Unable to find MicronTracker IniFile file at: " << iniFilePath);
-  }
-  std::string templateFullPath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->TemplateDirectory.c_str());
-  LOG_DEBUG("Loading the marker templates from "<<templateFullPath);
-  if ( !vtksys::SystemTools::FileExists( templateFullPath.c_str(), false) )
-  {
-    LOG_DEBUG("Unable to find MicronTracker TemplateDirectory at: " << templateFullPath);
-  }
-
-  if (this->MT->mtInit(iniFilePath)!=1)
-  {
-    LOG_ERROR("Error in initializing Micron Tracker");
-    return PLUS_FAIL;
-  }
-
-  // Try to attach the cameras till find the cameras
-  if (this->MT->mtSetupCameras()!=1)
-  {
-    LOG_ERROR("Error in initializing Micron Tracker: setup cameras failed. Check the camera connections.");
-    return PLUS_FAIL;
-  }
-
-  int numOfCameras = this->MT->mtGetNumOfCameras();
-  if (numOfCameras==0)
-  {
-    LOG_ERROR("Error in initializing Micron Tracker: no cameras attached. Check the camera connections.");
-    return PLUS_FAIL;
-  }
-
-  LOG_DEBUG("Number of attached cameras: " << numOfCameras );
-
-  this->MT->mtEnd();
-  this->IsMicronTrackingInitialized=false;
-
-  return PLUS_SUCCESS;
-} 
-*/
-//----------------------------------------------------------------------------
-
 PlusStatus vtkStealthLinkTracker::InternalStartRecording()
 {
   if (!this->IsStealthServerInitialized)
@@ -258,38 +290,7 @@ PlusStatus vtkStealthLinkTracker::InternalStopRecording()
   // No need to do anything here, as the StealthLinkServer only performs grabbing on request
   return PLUS_SUCCESS;
 }
-//----------------------------------------------------------------------------
 
-
-//----------------------------------------------------------------------------
-/*PlusStatus vtkMicronTracker::RefreshMarkerTemplates()
-{
-  std::vector<std::string> vTemplatesName;
-  std::vector<std::string> vTemplatesError;
-
-  std::string templateFullPath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->TemplateDirectory.c_str());
-  LOG_DEBUG("Loading the marker templates from "<<templateFullPath);
-  if ( !vtksys::SystemTools::FileExists( templateFullPath.c_str(), false) )
-  {
-    LOG_WARNING("Unable to find MicronTracker TemplateDirectory at: " << templateFullPath);
-  }
-  int callResult = this->MT->mtRefreshTemplates(vTemplatesName, vTemplatesError, templateFullPath);
-  for (int i=0; i<vTemplatesName.size(); i++)
-  {
-    LOG_DEBUG("Loaded " << vTemplatesName[i]);
-  }
-  if (callResult != 0)
-  {
-    LOG_ERROR("Failed to load marker templates from "<<templateFullPath);
-    for (int i=0; i<vTemplatesError.size(); i++)
-    {
-      LOG_ERROR("Error loading template: " << vTemplatesError[i]);
-    }
-    return PLUS_FAIL;
-  }
-  return PLUS_SUCCESS;
-}
-*/
 //----------------------------------------------------------------------------
 PlusStatus vtkStealthLinkTracker::GetDicomImage(vtkImageData* dicomImage)
 {
@@ -314,7 +315,6 @@ PlusStatus vtkStealthLinkTracker::GetDicomImage(vtkImageData* dicomImage)
 			LOG_ERROR("Error getting images from StealthLink: " << error.what() << "\n");
 			return PLUS_FAIL;
 		}
-		std::cout << " EMPTY \n " << std::endl;
 	}
   
 	int sizeX = this->Internal->currentExam.size[0];
@@ -395,7 +395,7 @@ PlusStatus vtkStealthLinkTracker::InternalConnect()
 		LOG_ERROR("Cannot connect: HOST or PORT Address are not assigned\n");
 		return PLUS_FAIL;
 	}
-	LOG_DEBUG("HOST Address: " << this->Internal->HOST << " " << "PORT Address: " << this->Internal->PORT << "\n");
+	LOG_TRACE("HOST Address: " << this->Internal->HOST << " " << "PORT Address: " << this->Internal->PORT << "\n");
 	
 	delete this->Internal->SteahLinkServer;
 	this->Internal->SteahLinkServer = NULL;
@@ -406,7 +406,6 @@ PlusStatus vtkStealthLinkTracker::InternalConnect()
 		LOG_ERROR(" Failed to connect to Stealth server application on host: " << error.reason() << "\n");
 		return PLUS_FAIL;
 	}
-	std::cout << " Server info: " << this->Internal->SteahLinkServer->getCurrentTask().name << std::endl;
 	this->IsStealthServerInitialized=true;
 	this->Internal->serverInitialTimeInMicroSeconds = (double) this->Internal->SteahLinkServer->getServerTime();
 	return PLUS_SUCCESS;
@@ -421,14 +420,11 @@ PlusStatus vtkStealthLinkTracker::InternalDisconnect()
 	this->Internal->SteahLinkServer = NULL;
     this->IsStealthServerInitialized=false;
   }  
-  std::cout << "Disconnected" << std::endl;
   return PLUS_SUCCESS;
 }
 //-----------------------------------------------------------------------------
 PlusStatus vtkStealthLinkTracker::InternalUpdate()
 {
-	double unfilteredTimestampBefore = vtkAccurateTimer::GetSystemTime();
-	int checkIndex = 0;
 	if (!this->IsStealthServerInitialized)
 	{
 		LOG_ERROR("InternalUpdate failed: StealthLinkServer has not been initialized");
@@ -436,12 +432,30 @@ PlusStatus vtkStealthLinkTracker::InternalUpdate()
 	}	
 	if(!this->TrackerTimeToSystemTimeComputed)
 	{
-		this->TrackerTimeToSystemTimeSec =  vtkAccurateTimer::GetSystemTime()- ((double) this->Internal->SteahLinkServer->getServerTime() - this->Internal->serverInitialTimeInMicroSeconds); 
+		try
+		{
+			MNavStealthLink::Error err;
+			this->TrackerTimeToSystemTimeSec =  vtkAccurateTimer::GetSystemTime()- ((double) this->Internal->SteahLinkServer->getServerTime(err) - this->Internal->serverInitialTimeInMicroSeconds);
+		}
+		catch(MNavStealthLink::Error err)
+		{
+			LOG_ERROR (" Could not retrieve the server time: " << err.reason() << std::endl);
+			return PLUS_FAIL;
+		}
 		this->TrackerTimeToSystemTimeComputed = true;
 	}
 
-	const double timeSystemSec = (double) this->Internal->SteahLinkServer->getServerTime() - this->Internal->serverInitialTimeInMicroSeconds + this->TrackerTimeToSystemTimeSec;
-	
+	double timeSystemSec;
+	try
+	{
+		MNavStealthLink::Error err;
+		timeSystemSec = (double) this->Internal->SteahLinkServer->getServerTime(err) - this->Internal->serverInitialTimeInMicroSeconds + this->TrackerTimeToSystemTimeSec;
+	}
+	catch(MNavStealthLink::Error err)
+	{
+		LOG_ERROR (" Could not retrieve the server time: " << err.reason() << std::endl);
+		return PLUS_FAIL;
+	}
 	if(this->stealthFrameNumber == 0)
 	{
 		MNavStealthLink::Error err;
@@ -449,17 +463,18 @@ PlusStatus vtkStealthLinkTracker::InternalUpdate()
 		if(!this->Internal->SteahLinkServer->get(this->Internal->instrumentList,err))
 		{
 			LOG_ERROR (" Could not retrieve the instument name list: " << err.reason() << std::endl);
-			 return PLUS_FAIL;
+			return PLUS_FAIL;
 		}
 		// If Localizer (Tracker) is not connected, then send an error message
 		if(!this->IsLocalizerConencted())
 		{
 			LOG_ERROR("Localizer(Tracker) is not connected. Please check the StealthLink Server\n")
+			return PLUS_FAIL;
 		}
 	}
-	/*! Check if the port names in the .xml file are valid !*/
 	
-
+	
+	/*! Check if the port names in the .xml file are valid !*/
 	bool foundInTheNameList = false;
 	bool referenceFrameTransformNeeded = false;
 	for ( DataSourceContainerConstIterator toolIterator = this->GetToolIteratorBegin(); toolIterator != this->GetToolIteratorEnd(); ++toolIterator)
@@ -497,42 +512,42 @@ PlusStatus vtkStealthLinkTracker::InternalUpdate()
 			foundInTheNameList = false;
 		}
 	}
-	//----------------------------------------------------------
-	// Set status and transform for tools with detected markers
-	vtkSmartPointer<vtkMatrix4x4> toolTransformMatrix      =vtkSmartPointer<vtkMatrix4x4>::New(); // From instrument space to localizer space
-	toolTransformMatrix->Identity();
-	int index = 0;
-	std::string verified;
 
-	this->GetCurrentInstrumentAndFrame();
+	//----------------------------------------------------------
+	this->GetCurrentNavigationData();
+
 	for ( DataSourceContainerConstIterator toolIterator = this->GetToolIteratorBegin(); toolIterator != this->GetToolIteratorEnd(); ++toolIterator)
 	{
-		
 		if(!strcmp(toolIterator->second->GetPortName(),"Frame") && referenceFrameTransformNeeded)
 		{
-			this->Internal->GetCurrentFrameTransformMatrix(toolTransformMatrix);
+			this->Internal->GetFrameTransformMatrix();
+			if(this->Internal->frameVisibility == vtkInternal::VisibilityStatus::TRACKABLE)
+			{
+				this->ToolTimeStampedUpdateWithoutFiltering( toolIterator->second->GetSourceId(), this->Internal->frameTransformMatrix, TOOL_OK, timeSystemSec, timeSystemSec);
+			}
+			else if(this->Internal->frameVisibility == vtkInternal::VisibilityStatus::NOTTRACKABLE)
+			{
+				this->ToolTimeStampedUpdateWithoutFiltering( toolIterator->second->GetSourceId(), this->Internal->frameTransformMatrix, TOOL_OUT_OF_VIEW, timeSystemSec, timeSystemSec);
+			}
 		}
 		else
 		{
-			//verified = (this->Internal->IsInstrumentVerified(instrument)) ? "VERIFIED" : "NOT VERIFIED. PLEASE VERIFY THE INSTRUMENT TO HAVE AN ACCURATE TRANSFORMATION MATRIX";
-			LOG_DEBUG (" The instrument number: " << index++ << " is " << toolIterator->second->GetPortName() << "." << "The instrument is " << verified << "." << std::endl);
-			this->Internal->GetInstrumentTransformMatrix(toolTransformMatrix);
-		//	if(std::strcmp(verified.c_str(),"VERIFIED"))
-		//	{
-		//		toolTransformMatrix->Identity();
-		//	}
+			this->Internal->GetInstrumentTransformMatrix();
+			if(this->Internal->instrumentVisibility == vtkInternal::VisibilityStatus::TRACKABLE)
+			{
+				this->ToolTimeStampedUpdateWithoutFiltering( toolIterator->second->GetSourceId(), this->Internal->instrumentTransformMatrix, TOOL_OK, timeSystemSec, timeSystemSec);
+			}
+			else if(this->Internal->instrumentVisibility == vtkInternal::VisibilityStatus::NOTTRACKABLE)
+			{
+				this->ToolTimeStampedUpdateWithoutFiltering( toolIterator->second->GetSourceId(), this->Internal->instrumentTransformMatrix, TOOL_OUT_OF_VIEW, timeSystemSec, timeSystemSec);
+			}
 		}
-		//this->ToolTimeStampedUpdate(toolIterator->second->GetSourceId(), toolTransformMatrix, TOOL_OK, this->stealthFrameNumber, unfilteredTimestamp);
-		this->ToolTimeStampedUpdateWithoutFiltering( toolIterator->second->GetSourceId(), toolTransformMatrix, TOOL_OK, timeSystemSec, timeSystemSec);
-		toolTransformMatrix->Identity();
 	}
 	this->stealthFrameNumber++;
-	double unfilteredTimestampAfter = vtkAccurateTimer::GetSystemTime();
-	LOG_INFO("Calling the toolTImeStampedUpdate with Frame number: " << this->stealthFrameNumber << "index = " << checkIndex++ << " time difference= " << unfilteredTimestampAfter - unfilteredTimestampBefore);
 	return PLUS_SUCCESS;
 }
 //------------------------------------------------------------------------------
-PlusStatus vtkStealthLinkTracker::GetCurrentInstrumentAndFrame()
+PlusStatus vtkStealthLinkTracker::GetCurrentNavigationData()
 {
 	MNavStealthLink::Error error;
 	try
@@ -543,6 +558,24 @@ PlusStatus vtkStealthLinkTracker::GetCurrentInstrumentAndFrame()
 	{
 		LOG_ERROR(" Failed to acquire the navigation data from StealthLink Server: " <<  error.reason() << "\n");
 		return PLUS_FAIL;
+	}
+	if(this->stealthFrameNumber == 0)
+	{
+		this->Internal->currentFrameName = this->Internal->navData.frameName;
+		this->Internal->currentInstrumentName = this->Internal->navData.instrumentName;
+		this->checkInstrumentVerification();
+		this->getFirstToolVisibilityStatus();
+	}
+	if(this->Internal->navData.frameName != this->Internal->currentFrameName && !this->Internal->navData.frameName.empty())
+	{
+		LOG_TRACE (" The current frame has been change from: " << this->Internal->currentFrameName << " to: " << this->Internal->navData.frameName << "\n");
+		this->Internal->currentFrameName = this->Internal->navData.frameName;
+	}
+	if(this->Internal->navData.instrumentName != this->Internal->currentInstrumentName && !this->Internal->navData.instrumentName.empty())
+	{
+		LOG_TRACE (" The current frame has been change from: " << this->Internal->currentInstrumentName << " to: " << this->Internal->navData.instrumentName << "\n");
+		this->Internal->currentInstrumentName = this->Internal->navData.instrumentName;
+		this->checkInstrumentVerification();
 	}
 	return PLUS_SUCCESS;
 }
@@ -582,12 +615,9 @@ void vtkStealthLinkTracker::ModifyPatientName(std::string& patientName)
 	int placement = 0;
 	for(std::vector<int>::iterator it = spacePlaces.begin(); it!=spacePlaces.end(); it++)
 	{
-		cout << "it = " << *it << endl;
 		second=patientName.substr(*it+1-placement);
-		cout << "second = " << second << endl;
 		patientName=patientName.substr(0,*it-placement);
 		patientName = patientName + second;
-		cout << " PName = " << patientName << endl;
 		placement++;
 	}
 }
@@ -598,7 +628,6 @@ PlusStatus vtkStealthLinkTracker::GetCurrentExam()
 	MNavStealthLink::Exam ex;
 	MNavStealthLink::DateTime time;// = this->Internal->SteahLinkServer->getServerTime();
 	this->Internal->SteahLinkServer->get(ex,time,err);
-	std::cout << "exam name: " << ex.patientName << std::endl;
 	try 
 	{
 		this->Internal->SteahLinkServer->get(this->Internal->currentExam,time,err);

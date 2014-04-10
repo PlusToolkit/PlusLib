@@ -49,11 +49,12 @@ protected:
 	/*! Acquire the current exam from the server !*/
 	PlusStatus GetCurrentExam();
 	/*! Acquire the current Instrument and Frame from the server !*/
-	PlusStatus GetCurrentInstrumentAndFrame();
+	PlusStatus GetCurrentNavigationData();
 	// For internal storage of additional variables (to minimize the number of included headers)
 	class vtkInternal;
 	vtkInternal* Internal; 
 
+	std::string instrumentVerification;
 	bool IsStealthServerInitialized;
 	bool TrackerTimeToSystemTimeComputed;
 	double TrackerTimeToSystemTimeSec;
@@ -64,6 +65,9 @@ protected:
 	PlusStatus IsLocalizerConencted();
 
 	static void ModifyPatientName(std::string& patientName);
+
+	void checkInstrumentVerification();
+	void getFirstToolVisibilityStatus();
 
   /*!
     Probe to see if the tracking system is present.
