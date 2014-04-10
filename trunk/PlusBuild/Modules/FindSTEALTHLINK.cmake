@@ -7,7 +7,6 @@
 # STEALTHLINK2_STEALTHLINKD_SHARED_LIBRARY - STEALTHLINK shared library with debug info
 #
 
-message("HELLO")
 SET( STEALTHLINK_PATH_HINTS 
     ../StealthLink-2.0.1
     ../PLTools/StealthLink-2.0.1
