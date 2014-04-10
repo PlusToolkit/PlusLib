@@ -31,7 +31,7 @@ See License.txt for details.
 #ifdef PLUS_USE_MICRONTRACKER
 #include "vtkMicronTracker.h"
 #endif
-#ifdef PLUS_USE_StealthLink2
+#ifdef PLUS_USE_STEALTHLINK
 #include "vtkStealthLinkTracker.h"
 #endif
 #ifdef PLUS_USE_BRACHY_TRACKER
@@ -127,7 +127,7 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
 #ifdef PLUS_USE_MICRONTRACKER  
   DeviceTypes["MicronTracker"]=(PointerToDevice)&vtkMicronTracker::New; 
 #endif
-#ifdef PLUS_USE_StealthLink2
+#ifdef PLUS_USE_STEALTHLINK
   DeviceTypes["StealthLinkTracker"]=(PointerToDevice)&vtkStealthLinkTracker::New;
 #endif
 #ifdef PLUS_USE_Ascension3DG  
