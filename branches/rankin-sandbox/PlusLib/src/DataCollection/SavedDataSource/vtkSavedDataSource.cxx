@@ -296,8 +296,13 @@ PlusStatus vtkSavedDataSource::InternalUpdateCurrentTimestamp(BufferItemUidType 
       for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
       {
         vtkPlusDataSource* tool=it->second;
-        StreamBufferItem bufferItem;  
-        ItemStatus itemStatus = this->LocalTrackerBuffers[tool->GetSourceId()]->GetStreamBufferItemFromTime(nextFrameTimestamp, &bufferItem, vtkPlusBuffer::INTERPOLATED); 
+        StreamBufferItem bufferItem;
+        vtkPlusBuffer* localTrackerBuffer=this->LocalTrackerBuffers[tool->GetSourceId()];
+        ItemStatus itemStatus = ITEM_UNKNOWN_ERROR;
+        if (localTrackerBuffer)
+        {
+          itemStatus = localTrackerBuffer->GetStreamBufferItemFromTime(nextFrameTimestamp, &bufferItem, vtkPlusBuffer::INTERPOLATED); 
+        }
         if ( itemStatus != ITEM_OK )
         {
           if ( itemStatus == ITEM_NOT_AVAILABLE_YET )

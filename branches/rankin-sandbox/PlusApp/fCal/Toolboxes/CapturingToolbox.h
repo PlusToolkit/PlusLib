@@ -196,8 +196,6 @@ protected:
 
   QGridLayout* m_GridLayout;
 
-  QSpacerItem* m_VerticalSpacer;
-
 protected:
   Ui::CapturingToolbox ui;
 };

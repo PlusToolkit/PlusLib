@@ -1095,10 +1095,16 @@ PlusStatus vtkPlusChannel::GetMostRecentTimestamp(double &ts)
   // If the video timestamp is newer than the tracker timestamp, then use the latest video timestamp that comes before the first tracker timestamp
   if ( latestVideoTimestamp > latestTrackerTimestamp )
   {
+    // Get the timestamp of the video item that is closest to the latest tracker item
     BufferItemUidType videoUid(0); 
     if ( this->VideoSource->GetBuffer()->GetItemUidFromTime(latestTrackerTimestamp, videoUid) != ITEM_OK )
     {
       LOG_ERROR("Failed to get video buffer item UID from time: " << std::fixed << latestVideoTimestamp ); 
+      return PLUS_FAIL; 
+    }
+    if ( this->VideoSource->GetBuffer()->GetTimeStamp(videoUid, latestVideoTimestamp ) != ITEM_OK )
+    {
+      LOG_ERROR("Failed to get video buffer timestamp from UID: " << videoUid);
       return PLUS_FAIL; 
     }
     if ( latestVideoTimestamp > latestTrackerTimestamp )

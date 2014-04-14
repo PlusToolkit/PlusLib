@@ -12,6 +12,16 @@ SET(PLUSLIB_VERSION_MINOR "1")
 SET(PLUSLIB_VERSION_PATCH "1")
 SET(PLUSLIB_VERSION ${PLUSLIB_VERSION_MAJOR}.${PLUSLIB_VERSION_MINOR}.${PLUSLIB_VERSION_PATCH})
 
+IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" ) 
+  IF( ${CMAKE_GENERATOR} MATCHES Win64 )
+    SET(PLUSLIB_PLATFORM "Win64" CACHE STRING "Name of the platform this instance of PlusLib is built on")
+  ELSE()
+    SET(PLUSLIB_PLATFORM "Win32" CACHE STRING "Name of the platform this instance of PlusLib is built on")
+  ENDIF()
+ELSE()
+  SET (PLUSLIB_PLATFORM "Linux/Mac" CACHE STRING "Name of the platform this instance of PlusLib is built on")
+ENDIF()
+
 # --------------------------------------------------------------------------
 # System Settings
 IF(${WIN32})

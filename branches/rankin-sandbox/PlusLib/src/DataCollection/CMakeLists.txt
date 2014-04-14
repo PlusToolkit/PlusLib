@@ -15,7 +15,7 @@ OPTION (PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber devi
 OPTION (PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
 OPTION (PLUS_USE_EPIPHAN "Provide support for the Epiphan" OFF)
 OPTION (PLUS_USE_INTERSON_VIDEO "Provide support Interson USB ultrasound probes" OFF)
-OPTION(PLUS_USE_StealthLink2 "Provide support for the Medtronick StealthLink Server" OFF)
+OPTION(PLUS_USE_STEALTHLINK "Provide support for the Medtronick StealthLink Server" OFF)
 
 OPTION (PLUS_TEST_BKPROFOCUS "Enable testing of acquisition from BK ProFocus ultrasound systems. Enable this only if a BK ProFocus device is connected to this computer." OFF)
 OPTION (PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
@@ -72,7 +72,9 @@ if (WIN32)
 endif (WIN32)  
 
 SET (External_Libraries_Install)
+SET (External_Libraries_Install_Minus_Debug)
 SET (External_Libraries_Debug)
+SET (External_Libraries_Debug_FileName)
 SET (DataCollection_INCLUDE_DIRS 
   ${DataCollection_INCLUDE_DIRS}
   ${CMAKE_CURRENT_SOURCE_DIR} 
@@ -590,40 +592,35 @@ ENDIF (PLUS_USE_ICCAPTURING_VIDEO)
 
 # --------------------------------------------------------------------------
 # StealthLink2.0 suppport
-
-IF (PLUS_USE_StealthLink2)
-
+IF (PLUS_USE_STEALTHLINK)
   SET (DataCollection_SRCS
     ${DataCollection_SRCS}
-    StealthLink/StealthLinkQuery.cxx
+    StealthLink/vtkStealthLinkTracker.cxx
     )  
-  # This part will be decommented once the vtkClass is ready for StealthLink
-  #if (WIN32)  
-  #  SET (DataCollection_HDRS
-  #    ${DataCollection_HDRS}
-  #    ICCapturing/vtkICCapturingSource.h
-  #    ICCapturing/ICCapturingListener.h 
-  #    )
-  #endif (WIN32)  
-  # Look for ICCapturing libraries  
+  if (WIN32)  
+    SET (DataCollection_HDRS
+      ${DataCollection_HDRS}
+      StealthLink/vtkStealthLinkTracker.h
+      )
+  endif (WIN32)  
   
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
-    ${Stealthlink2_INCLUDE_DIRS} 
+    ${STEALTHLINK2_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/StealthLink
     )
   
   SET (DataCollection_LIBS ${DataCollection_LIBS} 
-    optimized ${Stealthlink2_StealthLink_STATIC_LIBRARY}
-    debug ${Stealthlink2_StealthLinkD_STATIC_LIBRARY}
+    optimized ${STEALTHLINK2_STEALTHLINK_STATIC_LIBRARY}
+    debug ${STEALTHLINK2_STEALTHLINKD_STATIC_LIBRARY}
     )
 
   SET ( External_Libraries_Install ${External_Libraries_Install}
-    ${Stealthlink2_StealthLink_SHARED_LIBRARY}
+    ${STEALTHLINK2_STEALTHLINK_SHARED_LIBRARY}
     )
   SET ( External_Libraries_Debug ${External_Libraries_Debug} 
-    ${Stealthlink2_StealthLinkD_SHARED_LIBRARY}
+    ${STEALTHLINK2_STEALTHLINKD_SHARED_LIBRARY}
     )
-ENDIF (PLUS_USE_StealthLink2)
+ENDIF (PLUS_USE_STEALTHLINK)
 
     
 # --------------------------------------------------------------------------
@@ -783,10 +780,24 @@ SET(vcProj_vtkDataCollection vtkDataCollection;"${PlusLib_BINARY_DIR}/src/DataCo
 # --------------------------------------------------------------------------
 # Copy external libraries to PLUS_EXECUTABLE_OUTPUT_PATH
 IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
+	MESSAGE( " External_Libraries_Install " ${External_Libraries_Install})
     FILE(COPY ${External_Libraries_Install}
         DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release
         )
-    FILE(COPY ${External_Libraries_Install}
+	#Find the file names of the debug shared libraries
+	FOREACH (DEBUG ${External_Libraries_Debug})
+		get_filename_component(FileName ${DEBUG} NAME)
+		SET(External_Libraries_Debug_FileName ${External_Libraries_Debug_FileName} ${FileName})
+	ENDFOREACH(DEBUG)	
+	#Extract the release shared libraries that have the same name as debug shared libraries
+	FOREACH (RELEASE ${External_Libraries_Install})
+		get_filename_component(FileName ${RELEASE} NAME)
+		list(FIND External_Libraries_Debug_FileName ${FileName} HasTheFileName)
+	IF(HasTheFileName EQUAL -1)
+		SET(External_Libraries_Install_Minus_Debug ${External_Libraries_Install_Minus_Debug} ${RELEASE})
+	ENDIF()
+	ENDFOREACH(RELEASE)
+    FILE(COPY ${External_Libraries_Install_Minus_Debug}
         DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Debug
         )                
     FILE(COPY ${External_Libraries_Debug}
