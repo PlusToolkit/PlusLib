@@ -194,16 +194,16 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
   }
   else
   { // If disconnect button has been pushed
-    if (! m_ConnectionSuccessful)
+    if ( !m_ConnectionSuccessful )
     {
       ui.pushButton_Connect->setText(tr("Connect"));
       ui.comboBox_DeviceSet->setEnabled(true);
 
       ui.textEdit_Description->setTextColor(QColor(Qt::black));
-      ui.textEdit_Description->setText(
-        ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(1)
-        //+ "\n\n(" + ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0) + ")"
-        );
+      if( ui.comboBox_DeviceSet->currentIndex() >= 0 )
+      {
+        ui.textEdit_Description->setText( ui.comboBox_DeviceSet->itemData( ui.comboBox_DeviceSet->currentIndex()).toStringList().at(1) );
+      }
 
       // Change the function to be invoked on clicking on the now Connect button to InvokeConnect
       disconnect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeDisconnect() ) );
