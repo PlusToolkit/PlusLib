@@ -411,6 +411,25 @@ PlusStatus vtkICCapturingSource::ReadConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL; 
   }
 
+  // This is a singleton class, so some input channels, output channels, or tools might have been already
+  // defined. Clean them up before creating the new ones from XML.
+  for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it)
+  {
+    (*it)->UnRegister(this);
+  }
+  this->InputChannels.clear();
+  this->OutputChannels.clear();
+  for( DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
+  {
+    it->second->UnRegister(this);
+  }
+  this->Tools.clear();
+  for( DataSourceContainerIterator it = this->VideoSources.begin(); it != this->VideoSources.end(); ++it)
+  {
+    it->second->UnRegister(this);
+  }
+  this->VideoSources.clear();
+
   Superclass::ReadConfiguration(config); 
 
   vtkXMLDataElement* imageAcquisitionConfig = this->FindThisDeviceElement(config);
