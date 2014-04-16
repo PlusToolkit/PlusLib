@@ -288,6 +288,12 @@ PlusStatus vtkImageVisualizer::UpdateCameraPose()
     return PLUS_SUCCESS;
   }
 
+  if( UpdateOrientationMarkerLabelling() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to update orientation labelling.");
+    return PLUS_FAIL;
+  }
+
   // Calculate image center
   double imageCenterX = 0;
   double imageCenterY = 0;
@@ -382,7 +388,7 @@ PlusStatus vtkImageVisualizer::UpdateCameraPose()
 
   this->SetROIBounds(this->RegionOfInterest[0], this->RegionOfInterest[1], this->RegionOfInterest[2], this->RegionOfInterest[3]);
 
-  return UpdateOrientationMarkerLabelling();
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -394,13 +400,17 @@ PlusStatus vtkImageVisualizer::SetScreenRightDownAxesOrientation( US_IMAGE_ORIEN
   CurrentMarkerOrientation = aOrientation;
 
   vtkXMLDataElement* renderingParameters = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("Rendering");
-  if (renderingParameters == NULL) {
+  if (renderingParameters == NULL) 
+  {
+    UpdateCameraPose();
     LOG_ERROR("No Rendering element is found in the XML tree!");
     return PLUS_FAIL;
   }
-
-  const char * orientationValue = PlusVideoFrame::GetStringFromUsImageOrientation(aOrientation);
-  renderingParameters->SetAttribute("DisplayedImageOrientation", orientationValue);
+  else
+  {
+    const char * orientationValue = PlusVideoFrame::GetStringFromUsImageOrientation(aOrientation);
+    renderingParameters->SetAttribute("DisplayedImageOrientation", orientationValue);
+  }
 
   return UpdateCameraPose();
 }
