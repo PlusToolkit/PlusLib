@@ -288,12 +288,6 @@ PlusStatus vtkImageVisualizer::UpdateCameraPose()
     return PLUS_SUCCESS;
   }
 
-  if( UpdateOrientationMarkerLabelling() != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Unable to update orientation labelling.");
-    return PLUS_FAIL;
-  }
-
   // Calculate image center
   double imageCenterX = 0;
   double imageCenterY = 0;
@@ -388,7 +382,7 @@ PlusStatus vtkImageVisualizer::UpdateCameraPose()
 
   this->SetROIBounds(this->RegionOfInterest[0], this->RegionOfInterest[1], this->RegionOfInterest[2], this->RegionOfInterest[3]);
 
-  return PLUS_SUCCESS;
+  return UpdateOrientationMarkerLabelling();
 }
 
 //-----------------------------------------------------------------------------
