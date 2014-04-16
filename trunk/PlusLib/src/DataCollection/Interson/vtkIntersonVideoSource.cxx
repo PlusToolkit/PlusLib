@@ -272,23 +272,16 @@ PlusStatus vtkIntersonVideoSource::InternalConnect()
 {
   LOG_TRACE( "vtkIntersonVideoSource::InternalConnect" );
 
-  PVOID display = bmInitializeDisplay(this->ImageSize[0]*this->ImageSize[1]);
-  if (display == NULL)
-  {
-    LOG_ERROR("Could not initialize the display");
-    return PLUS_FAIL;
-  }
-
-  // Turn on USB data synchronization checking
-  usbTurnOnSync();
-
-  InitializeDIB(&this->Internal->BitmapInfo);
-
   LOG_DEBUG("Interson Bmode DLL version "<<bmDLLVer()<<", USB probe DLL version "<<usbDLLVer());
 
   usbSetProbeAttachCallback(&ProbeAttached);
   usbSetProbeDetachCallback(&ProbeDetached);
 
+
+  /* Before any probe can be initialized with usbInitializeProbes, they must be detected. usbFindProbes() 
+   will detect all attached probes and initialize the driver. After a successful call to usbFindProbes, 
+   other probe-related functions may be called. These include: usbInitializeProbes, usbProbeHandle, 
+   usbSelectProbe.  */
   TCHAR errorStatus[256]={0};
   ULONG status = usbFindProbes(errorStatus);
   LOG_DEBUG("Find USB probes: status="<<status<<", details: "<<errorStatus);
@@ -299,6 +292,9 @@ PlusStatus vtkIntersonVideoSource::InternalConnect()
   }
 
   usbInitializeProbes();
+
+  // Turn on USB data synchronization checking
+  usbTurnOnSync();
 
   int numberOfAttachedProbes=usbNumberAttachedProbes();
   LOG_DEBUG("Number of attached probes: "<<numberOfAttachedProbes);
@@ -311,6 +307,16 @@ PlusStatus vtkIntersonVideoSource::InternalConnect()
   {
     LOG_WARNING("Multiple Interson probes are attached, using the first one");
   }
+
+
+  PVOID display = bmInitializeDisplay(this->ImageSize[0]*this->ImageSize[1]);
+  if (display == NULL)
+  {
+    LOG_ERROR("Could not initialize the display");
+    return PLUS_FAIL;
+  }
+
+  InitializeDIB(&this->Internal->BitmapInfo);
 
   BYTE currentOemId=usbProbeOEMID();
   if (currentOemId != OEM_ID_INTERSON)
@@ -449,11 +455,14 @@ PlusStatus vtkIntersonVideoSource::InternalDisconnect()
   usbProbe (STOP) ;
   Sleep(250); // allow time for the imaging to stop
 
-  usbStopHardware();
+  // usbStopHardware() should be called here but the issue is that if the method is called, no probe is detected after connecting again. 
+  //usbStopHardware();
   bmCloseDisplay();
 
   DeleteObject(this->Internal->ProbeHandle);
   DeleteObject(this->Internal->DataHandle);
+  DeleteObject(this->Internal->ImageWindowHandle);
+
 
   return PLUS_SUCCESS;
 }
