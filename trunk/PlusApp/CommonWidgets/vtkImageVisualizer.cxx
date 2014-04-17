@@ -141,6 +141,8 @@ PlusStatus vtkImageVisualizer::InitializeOrientationMarkers()
   vtkSmartPointer<vtkAssembly> assembly = vtkSmartPointer<vtkAssembly>::New();
   this->SetOrientationMarkerAssembly(assembly);
 
+
+
   // Since the internal orientation is always MF, display the indicators for MF in all cases
   vtkSmartPointer<vtkTextActor3D> horizontalOrientationTextActor = vtkSmartPointer<vtkTextActor3D>::New();
   horizontalOrientationTextActor->GetTextProperty()->SetColor(ORIENTATION_MARKER_COLOR);
@@ -167,6 +169,8 @@ PlusStatus vtkImageVisualizer::InitializeOrientationMarkers()
   verticalOrientationTextActor->SetPosition(VERTICAL_TEXT_ORIENTATION_MARKER_OFFSET);
   this->SetVerticalOrientationTextActor(verticalOrientationTextActor);
   this->OrientationMarkerAssembly->AddPart(verticalOrientationTextActor);
+
+
 
   vtkSmartPointer<vtkActor> horizontalLineActor = vtkSmartPointer<vtkActor>::New();
   vtkSmartPointer<vtkPolyDataMapper> horizontalLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -230,6 +234,13 @@ PlusStatus vtkImageVisualizer::InitializeOrientationMarkers()
 
 PlusStatus vtkImageVisualizer::UpdateOrientationMarkerLabelling()
 {
+  // Force redraw of vtkTextActor3D (it's necessary probably
+  // due to a bug in VTK)
+  this->GetHorizontalOrientationTextActor()->SetInput("AA");
+  this->GetHorizontalOrientationTextActor()->GetBounds();
+  this->GetVerticalOrientationTextActor()->SetInput("AA");
+  this->GetVerticalOrientationTextActor()->GetBounds();
+
   // Change the letters on the display to indicate the new orientation
   switch(CurrentMarkerOrientation)
   {
@@ -237,15 +248,15 @@ PlusStatus vtkImageVisualizer::UpdateOrientationMarkerLabelling()
     this->GetHorizontalOrientationTextActor()->SetInput("M");
     this->GetVerticalOrientationTextActor()->SetInput("F");
     break;
-  case US_IMG_ORIENT_MN:
+  case US_IMG_ORIENT_MN: 
     this->GetHorizontalOrientationTextActor()->SetInput("M");
     this->GetVerticalOrientationTextActor()->SetInput("N");
     break;
-  case US_IMG_ORIENT_UN:
+  case US_IMG_ORIENT_UN:    
     this->GetHorizontalOrientationTextActor()->SetInput("U");
     this->GetVerticalOrientationTextActor()->SetInput("N");
     break;
-  case US_IMG_ORIENT_UF:
+  case US_IMG_ORIENT_UF:    
     this->GetHorizontalOrientationTextActor()->SetInput("U");
     this->GetVerticalOrientationTextActor()->SetInput("F");
     break;
