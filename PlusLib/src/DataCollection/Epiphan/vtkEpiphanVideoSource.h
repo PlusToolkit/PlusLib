@@ -21,24 +21,12 @@ public:
   vtkTypeRevisionMacro(vtkEpiphanVideoSource,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);   
 
-  enum VideoFormatType
-  {
-    VIDEO_FORMAT_UNKNOWN,
-    VIDEO_FORMAT_RGB8,
-    VIDEO_FORMAT_Y8,
-    VIDEO_FORMAT_RGB24,
-  };
-
   virtual bool IsTracker() const { return false; }
 
   /*! Read configuration from xml data */  
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
   /*! Write configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
-  /*! Set the Epiphan device video format (e.g. "VIDEO_FORMAT_Y8" ) */
-  vtkSetMacro(VideoFormat,VideoFormatType); 
-  /*! Get the Epiphan device video format (e.g. "VIDEO_FORMAT_Y8" ) */
-  vtkGetMacro(VideoFormat,VideoFormatType);  
 
   /*!
     Set the Epiphan device location. If no location parameter is specified then the device is attempted to be detected automatically.
@@ -95,9 +83,6 @@ protected:
 
   /*! The internal function which actually does the grab.  */
   PlusStatus InternalUpdate();
-
-  /*! Video format (e.g. Y8) */
-  VideoFormatType VideoFormat;
 
   /*! Crop rectangle origin for the grabber (in pixels) */
   int ClipRectangleOrigin[2];

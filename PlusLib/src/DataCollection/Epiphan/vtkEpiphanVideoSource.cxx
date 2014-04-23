@@ -20,13 +20,12 @@ vtkStandardNewMacro(vtkEpiphanVideoSource);
 
 //----------------------------------------------------------------------------
 vtkEpiphanVideoSource::vtkEpiphanVideoSource()
+: GrabberLocation(NULL)
 {
-  this->VideoFormat = VIDEO_FORMAT_Y8; 
   this->ClipRectangleOrigin[0]=0;
   this->ClipRectangleOrigin[1]=0;
   this->ClipRectangleSize[0]=0;
   this->ClipRectangleSize[1]=0;
-  this->GrabberLocation = NULL;
 
   this->RequireImageOrientationInConfiguration = true;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
@@ -129,15 +128,9 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
     this->FrameSize[1] = this->ClipRectangleSize[1];
   }
 
-  int numberOfScalarComponents(1);
-  if( this->GetVideoFormat() == VIDEO_FORMAT_RGB24 )
-  {
-    numberOfScalarComponents = 3;
-  }
-
-  vtkPlusDataSource* aSource(NULL);
   for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it )
   {
+    vtkPlusDataSource* aSource(NULL);
     if( (*it)->GetVideoSource(aSource) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to retrieve the video source in the Epiphan device on channel " << (*it)->GetChannelId());
@@ -145,8 +138,9 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
     }
     else
     {
+      US_IMAGE_TYPE imageType = aSource->GetBuffer()->GetImageType();
       aSource->GetBuffer()->SetPixelType(VTK_UNSIGNED_CHAR);
-      aSource->GetBuffer()->SetNumberOfScalarComponents(numberOfScalarComponents);
+      aSource->GetBuffer()->SetNumberOfScalarComponents(imageType == US_IMG_RGB_COLOR ? 3 : 1);
       aSource->GetBuffer()->SetFrameSize(this->FrameSize);
     }
   }
@@ -206,17 +200,6 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
 
   V2U_GrabFrame2 * frame = NULL;
 
-  V2U_UINT32 videoFormat(V2U_GRABFRAME_FORMAT_Y8);
-  switch (this->GetVideoFormat())
-  {
-  case VIDEO_FORMAT_RGB24: videoFormat=V2U_GRABFRAME_FORMAT_RGB24; break;
-  case VIDEO_FORMAT_Y8: videoFormat=V2U_GRABFRAME_FORMAT_Y8; break;
-  case VIDEO_FORMAT_RGB8: videoFormat=V2U_GRABFRAME_FORMAT_RGB8; break;
-  default:
-    LOG_ERROR("Unknown video format: " << this->GetVideoFormat() );
-    return PLUS_FAIL;
-  }
-
   V2URect *cropRect=NULL;
   if (this->ClipRectangleSize[0]>0 && this->ClipRectangleSize[1]>0)
   {
@@ -226,19 +209,6 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
     cropRect->width = this->ClipRectangleSize[0];
     cropRect->height = this->ClipRectangleSize[1];
   }
-
-  frame = FrmGrab_Frame((FrmGrabber*)this->FrameGrabber, videoFormat, cropRect);
-
-  delete cropRect;
-  cropRect = NULL;
-
-  if (frame == NULL)
-  {
-    LOG_WARNING("Frame not captured");
-    return PLUS_FAIL;
-  }
-
-  this->FrameNumber++;
 
   vtkPlusDataSource* aSource(NULL);
   for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it )
@@ -250,12 +220,25 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
     }
     else
     {
+      // If someone ever wants RGB8 or YUY2 (etc...) this line will have to be changed
+      // to support any future video format choices
+      // ReadConfiguration will probably need a new flag to tell this line what to do
+      V2U_UINT32 videoFormat = (aSource->GetBuffer()->GetImageType() == US_IMG_RGB_COLOR ? V2U_GRABFRAME_FORMAT_RGB24 : V2U_GRABFRAME_FORMAT_Y8);
+
+      frame = FrmGrab_Frame((FrmGrabber*)this->FrameGrabber, videoFormat, cropRect);
+
+      if (frame == NULL)
+      {
+        LOG_WARNING("Frame not captured for video format: " << videoFormat);
+        continue;
+      }
+
       int numberOfScalarComponents(1);
-      if( this->GetVideoFormat() == VIDEO_FORMAT_RGB24 )
+      if( aSource->GetBuffer()->GetImageType() == US_IMG_RGB_COLOR )
       {
         numberOfScalarComponents = 3;
       }
-      if( aSource->GetBuffer()->AddItem(frame->pixbuf, aSource->GetPortImageOrientation(), FrameSize, VTK_UNSIGNED_CHAR, numberOfScalarComponents, (numberOfScalarComponents==3?US_IMG_RGB_COLOR:US_IMG_BRIGHTNESS), 0, this->FrameNumber) != PLUS_SUCCESS )
+      if( aSource->GetBuffer()->AddItem(frame->pixbuf, aSource->GetPortImageOrientation(), FrameSize, VTK_UNSIGNED_CHAR, numberOfScalarComponents, aSource->GetBuffer()->GetImageType(), 0, this->FrameNumber) != PLUS_SUCCESS )
       {
         LOG_ERROR("Error adding item to video source " << aSource->GetSourceId() << " on channel " << (*it)->GetChannelId() );
         return PLUS_FAIL;
@@ -264,9 +247,16 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
       {
         this->Modified();
       }
+
+      FrmGrab_Release((FrmGrabber*)this->FrameGrabber, frame);
     }
   }
-  FrmGrab_Release((FrmGrabber*)this->FrameGrabber, frame);
+
+  delete cropRect;
+  cropRect = NULL;
+
+  this->FrameNumber++;
+
   return PLUS_SUCCESS;
 }
 
@@ -288,28 +278,6 @@ PlusStatus vtkEpiphanVideoSource::ReadConfiguration(vtkXMLDataElement* config)
   {
     LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
     return PLUS_FAIL;
-  }
-
-  const char* videoFormat = imageAcquisitionConfig->GetAttribute("VideoFormat"); 
-  if ( videoFormat != NULL) 
-  {
-    if( !strcmp(videoFormat,"RGB24") )
-    {
-      this->SetVideoFormat( VIDEO_FORMAT_RGB24 );
-    }
-    else if( !strcmp(videoFormat,"RGB8") )
-    {
-      this->SetVideoFormat( VIDEO_FORMAT_RGB8 );
-    }
-    else if ( !strcmp(videoFormat,"Y8") )
-    {
-      this->SetVideoFormat( VIDEO_FORMAT_Y8 );
-    }
-    else 
-    {
-      LOG_WARNING("Video Format unspecified/not supported. Using Y8"); 
-      this->SetVideoFormat( VIDEO_FORMAT_Y8 );
-    }
   }
 
   // SerialNumber is kept for backward compatibility only. Serial number or other address should be specified in the
@@ -364,20 +332,6 @@ PlusStatus vtkEpiphanVideoSource::WriteConfiguration(vtkXMLDataElement* config)
   {
     LOG_ERROR("Cannot find ImageAcquisition element in XML tree!");
     return PLUS_FAIL;
-  }
-
-  if ( this->VideoFormat == VIDEO_FORMAT_RGB8 )
-  {
-    imageAcquisitionConfig->SetAttribute("VideoFormat", "RGB8");
-  }
-  else if ( this->VideoFormat == VIDEO_FORMAT_Y8 )
-  {
-    imageAcquisitionConfig->SetAttribute("VideoFormat", "Y8");
-  }
-  else
-  {
-    LOG_ERROR("Attempted to write invalid video format into the config file: "<<this->VideoFormat<<". Written Y8 instead.");
-    imageAcquisitionConfig->SetAttribute("VideoFormat", "Y8");
   }
 
   if (this->GrabberLocation!=NULL)
