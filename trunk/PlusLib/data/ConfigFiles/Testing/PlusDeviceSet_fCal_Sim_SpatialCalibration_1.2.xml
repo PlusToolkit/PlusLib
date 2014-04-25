@@ -12,7 +12,7 @@
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE">
       <DataSources>
-        <DataSource Type="Video" Id="Video" BufferSize="200" />
+        <DataSource Type="Video" Id="Video" BufferSize="100" />
       </DataSources>      
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />

@@ -14,7 +14,7 @@
         AcquisitionRate="30"
         LocalTimeOffsetSec="0" >
         <DataSources>
-          <DataSource Type="Video" Id="Video" BufferSize="50" PortUsImageOrientation="MF" AveragedItemsForFiltering="20" />
+          <DataSource Type="Video" Id="Video" BufferSize="100" PortUsImageOrientation="MF" AveragedItemsForFiltering="20" />
         </DataSources>
         <OutputChannels>
           <OutputChannel Id="TrackedVideoSenderStream" VideoDataSourceId="Video" />

@@ -38,7 +38,7 @@
       UseOriginalTimestamps="FALSE"
       RepeatEnabled="TRUE">
       <DataSources>
-        <DataSource Type="Video" Id="Video" BufferSize="200" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="Video" BufferSize="100" AveragedItemsForFiltering="20" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
