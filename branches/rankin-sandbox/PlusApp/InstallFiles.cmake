@@ -61,6 +61,7 @@ ENDIF(PLUS_USE_CERTUS)
 IF(PLUS_USE_EPIPHAN)
   SET ( PLUSLIB_CONFIG_FILES ${PLUSLIB_CONFIG_FILES}
     ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_Server_EpiphanVideoCapture.xml
+    ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_Server_EpiphanColorVideoCapture.xml
     )
   IF(PLUS_USE_POLARIS)
     SET ( PLUSLIB_CONFIG_FILES ${PLUSLIB_CONFIG_FILES}
