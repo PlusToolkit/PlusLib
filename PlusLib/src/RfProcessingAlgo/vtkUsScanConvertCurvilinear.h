@@ -76,7 +76,11 @@ protected:
 
   virtual int RequestUpdateExtent (vtkInformation*, vtkInformationVector**, vtkInformationVector*);
   
+#if (VTK_VERSION_MAJOR < 6)
   virtual void AllocateOutputData(vtkImageData *output, int *uExtent);
+#else
+  virtual void AllocateOutputData(vtkImageData *output, vtkInformation* outInfo, int *uExtent);
+#endif
 
   virtual void ThreadedRequestData(vtkInformation *request,
                            vtkInformationVector **inputVector,

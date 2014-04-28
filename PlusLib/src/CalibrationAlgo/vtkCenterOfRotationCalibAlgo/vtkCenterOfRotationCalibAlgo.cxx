@@ -69,7 +69,7 @@ void vtkCenterOfRotationCalibAlgo::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkCenterOfRotationCalibAlgo::SetInputs(vtkTrackedFrameList* trackedFrameList, std::vector<int> &indices, double spacing[2])
 {
-  LOG_TRACE("vtkCenterOfRotationCalibAlgo::SetInput"); 
+  LOG_TRACE("vtkCenterOfRotationCalibAlgo::SetInputs"); 
   this->SetTrackedFrameList(trackedFrameList); 
   this->SetSpacing(spacing);
   this->SetTrackedFrameListIndices(indices); 

@@ -48,7 +48,7 @@ SET (PlusCommon_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE
 # --------------------------------------------------------------------------
 # Build the library
 
-SET (PlusCommon_LIBS ${ITK_LIBRARIES} vtkCommon vtkHybrid vtkFiltering ${PlusCommon_LIBS} )
+SET (PlusCommon_LIBS ${ITK_LIBRARIES} ${VTK_LIBRARIES} ${PlusCommon_LIBS} )
 
 if (WIN32)  
   SET (PlusCommon_LIBS ${PlusCommon_LIBS} Winmm )

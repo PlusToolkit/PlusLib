@@ -716,28 +716,25 @@ void vtkDataCollectorSynchronizer::ConvertFrameToRGB( vtkImageData* pFrame, vtkI
 
   // Make the image smaller
   vtkSmartPointer<vtkImageResample> resample = vtkSmartPointer<vtkImageResample>::New();
-  resample->SetInput(pFrame); 
+  resample->SetInputData_vtk5compatible(pFrame); 
   resample->SetAxisMagnificationFactor(0, resampleFactor); 
   resample->SetAxisMagnificationFactor(1, resampleFactor); 
   resample->SetAxisMagnificationFactor(2, resampleFactor);
 
-  vtkImageData* resampledImage = resample->GetOutput(); 
-
-  if ( resampledImage->GetNumberOfScalarComponents() != 3 )
+  if ( pFrame->GetNumberOfScalarComponents() != 3 )
   {
     vtkSmartPointer<vtkImageExtractComponents> imageExtractor =  vtkSmartPointer<vtkImageExtractComponents>::New(); 
-    imageExtractor->SetInput(resampledImage); 
+    imageExtractor->SetInputConnection(resample->GetOutputPort()); 
     // we are using only the 0th component
     imageExtractor->SetComponents(0,0,0);
     imageExtractor->Update(); 
 
-    pFrameRGB->DeepCopy(imageExtractor->GetOutput()); 
-    pFrameRGB->Update();
+    pFrameRGB->DeepCopy(imageExtractor->GetOutput());
   }
   else 
   {
-    pFrameRGB->DeepCopy(resampledImage); 
-    pFrameRGB->Update(); 
+    resample->Update();
+    pFrameRGB->DeepCopy(resample->GetOutput());
   }
 }
 
@@ -1074,8 +1071,13 @@ double vtkDataCollectorSynchronizer::GetFrameDifference(vtkImageData* frame)
   imgDiff->AveragingOn(); 
   imgDiff->AllowShiftOn(); 
   imgDiff->SetThreshold(10); 
+
+#if (VTK_VERSION_MAJOR < 6)
   imgDiff->SetImage( this->GetBaseFrame() ); 
-  imgDiff->SetInput( frame ); 
+#else
+  imgDiff->SetImageData( this->GetBaseFrame() ); 
+#endif
+  imgDiff->SetInputData_vtk5compatible( frame ); 
   imgDiff->Update(); 
 
   LOG_TRACE("FrameDifference: " << imgDiff->GetThresholdedError()); 

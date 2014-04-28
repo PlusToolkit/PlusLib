@@ -89,7 +89,7 @@ int main (int argc, char* argv[])
   }
 
   vtkSmartPointer<vtkImageExtractComponents> imageExtractorBase =  vtkSmartPointer<vtkImageExtractComponents>::New(); 
-  imageExtractorBase->SetInput(baselineVideoFrame.GetImage()); 
+  imageExtractorBase->SetInputData_vtk5compatible(baselineVideoFrame.GetImage()); 
   imageExtractorBase->SetComponents(0,0,0); // we are using only the 0th component
   imageExtractorBase->Update(); 
 
@@ -114,7 +114,7 @@ int main (int argc, char* argv[])
 
 
   vtkSmartPointer<vtkImageExtractComponents> imageExtractorInput =  vtkSmartPointer<vtkImageExtractComponents>::New(); 
-  imageExtractorInput->SetInput(videoFrame->GetImage() ); 
+  imageExtractorInput->SetInputData_vtk5compatible(videoFrame->GetImage() ); 
   imageExtractorInput->SetComponents(0,0,0); // we are using only the 0th component
   imageExtractorInput->Update(); 
   vtkSmartPointer<vtkImageData> frameRGB = vtkSmartPointer<vtkImageData>::New(); 
@@ -122,7 +122,7 @@ int main (int argc, char* argv[])
   frameRGB->Update(); 
 
   imgDiff->SetImage( baselineRGB ); 
-  imgDiff->SetInput( frameRGB ); 
+  imgDiff->SetInputData_vtk5compatible( frameRGB ); 
   imgDiff->Update(); 
 
   double error = imgDiff->GetError(); 

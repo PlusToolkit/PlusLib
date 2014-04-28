@@ -82,7 +82,7 @@ void vtkBrachyStepperPhantomRegistrationAlgo::PrintSelf(ostream& os, vtkIndent i
 //----------------------------------------------------------------------------
 void vtkBrachyStepperPhantomRegistrationAlgo::SetInputs(vtkTrackedFrameList* trackedFrameList, double spacing[2], double centerOfRotationPx[2], vtkTransformRepository* transformRepository, const std::vector<NWire>& nWires)
 {
-  LOG_TRACE("vtkBrachyStepperPhantomRegistrationAlgo::SetInput"); 
+  LOG_TRACE("vtkBrachyStepperPhantomRegistrationAlgo::SetInputs"); 
   this->SetTrackedFrameList(trackedFrameList); 
   this->SetSpacing(spacing); 
   this->SetCenterOfRotationPx(centerOfRotationPx); 

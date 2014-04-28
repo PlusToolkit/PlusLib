@@ -61,7 +61,7 @@ public:
   /*!
     Get image from the camera into VTK images. If an input arguments is NULL then that image is not retrieved.
   */
-  PlusStatus GetVideoSource(vtkImageData* leftImage, vtkImageData* rightImage);
+  PlusStatus GetImage(vtkImageData* leftImage, vtkImageData* rightImage);
   
   /*! Get the status of the MicronTracker (Tracking or not) */
   vtkGetMacro(IsMicronTrackingInitialized, int);

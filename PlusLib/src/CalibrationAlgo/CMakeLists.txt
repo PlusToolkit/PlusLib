@@ -68,12 +68,10 @@ SET (CalibrationAlgo_INCLUDE_DIRS
 # Build the library
 
 SET (CalibrationAlgo_LIBS 
-  vtkCommon 
-  vtkInfovis 
+  ${VTK_LIBRARIES}
   itkvnl 
   itkvnl_algo 
   PatternLocAlgo 
-  vtkCharts 
   vtkPlusCommon
   vtkDataCollection
   )

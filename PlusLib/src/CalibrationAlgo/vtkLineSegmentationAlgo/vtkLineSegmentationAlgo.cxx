@@ -747,11 +747,7 @@ void vtkLineSegmentationAlgo::PlotIntArray(const std::deque<int> &intensityValue
   view->GetScene()->AddItem(chart);
   vtkPlot *line = chart->AddPlot(vtkChart::LINE);
 
-#if VTK_MAJOR_VERSION <= 5
-  line->SetInput(table, 0, 1);
-#else
-  line->SetInputData(table, 0, 1);
-#endif
+  line->SetInputData_vtk5compatible(table, 0, 1);
 
   line->SetColor(0, 255, 0, 255);
   line->SetWidth(1.0);
@@ -795,11 +791,7 @@ void vtkLineSegmentationAlgo::PlotDoubleArray(const std::deque<double> &intensit
   view->GetScene()->AddItem(chart);
   vtkPlot *line = chart->AddPlot(vtkChart::LINE);
 
-#if VTK_MAJOR_VERSION <= 5
-  line->SetInput(table, 0, 1);
-#else
-  line->SetInputData(table, 0, 1);
-#endif
+  line->SetInputData_vtk5compatible(table, 0, 1);
 
   line->SetColor(0, 255, 0, 255);
   line->SetWidth(1.0);

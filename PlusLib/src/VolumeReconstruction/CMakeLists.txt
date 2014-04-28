@@ -28,9 +28,7 @@ SET (VolumeReconstruction_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNA
 # Build the library
 
 SET (VolumeReconstruction_LIBS 
-  vtkCommon 
-  vtkHybrid 
-  vtkFiltering 
+  ${VTK_LIBRARIES}  
   vtkPlusCommon 
   vtkSignaling  
   )

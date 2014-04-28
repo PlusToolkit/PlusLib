@@ -123,7 +123,7 @@ int main(int argc, char **argv)
   viewer->SetColorLevel(100.5);
   viewer->SetSize(1024,768); 
 
-  viewer->SetInput(vtkImageData::SafeDownCast(frameGrabber->GetOutputDataObject(0))); 
+  viewer->SetInputCompatible(frameGrabber->GetOutputPort()));
 
   //Create the interactor that handles the event loop
   vtkSmartPointer<vtkRenderWindowInteractor> iren = vtkSmartPointer<vtkRenderWindowInteractor>::New();

@@ -75,7 +75,7 @@ TARGET_LINK_LIBRARIES(vtkDataCollectorVideoAcqTest vtkDataCollection )
 ADD_EXECUTABLE( ReplayRecordedDataTest
   ReplayRecordedDataTest.cxx
   )
-TARGET_LINK_LIBRARIES( ReplayRecordedDataTest vtkDataCollection vtkCommon )
+TARGET_LINK_LIBRARIES( ReplayRecordedDataTest vtkDataCollection ${VTK_LIBRARIES} )
 ADD_TEST( ReplayRecordedDataTest
   ${EXECUTABLE_OUTPUT_PATH}/ReplayRecordedDataTest
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_OpenIGTLinkTestServer.xml
@@ -272,13 +272,13 @@ ENDIF (PLUS_USE_CERTUS)
 #*************************** CmsBrachyStepperTest ***************************
 IF (PLUS_USE_BRACHY_TRACKER)
     ADD_EXECUTABLE(CmsBrachyStepperTest CmsBrachyStepperTest.cxx)
-    TARGET_LINK_LIBRARIES(CmsBrachyStepperTest vtkDataCollection vtkCommon vtkPlusCommon)
+    TARGET_LINK_LIBRARIES(CmsBrachyStepperTest vtkDataCollection ${VTK_LIBRARIES} vtkPlusCommon)
 ENDIF (PLUS_USE_BRACHY_TRACKER) 
 
 #*************************** CivcoBrachyStepperTest ***************************
 IF (PLUS_USE_BRACHY_TRACKER)
     ADD_EXECUTABLE(CivcoBrachyStepperTest CivcoBrachyStepperTest.cxx)
-    TARGET_LINK_LIBRARIES(CivcoBrachyStepperTest vtkDataCollection vtkCommon vtkPlusCommon)
+    TARGET_LINK_LIBRARIES(CivcoBrachyStepperTest vtkDataCollection ${VTK_LIBRARIES} vtkPlusCommon)
 ENDIF (PLUS_USE_BRACHY_TRACKER) 
   
 #*************************** TransformInterpolationTest ***************************

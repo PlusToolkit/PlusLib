@@ -236,9 +236,14 @@ PlusStatus vtkPasteSliceIntoVolume::ResetOutput()
     accData->SetExtent(accExtent);
     accData->SetOrigin(this->OutputOrigin);
     accData->SetSpacing(this->OutputSpacing);
+#if (VTK_VERSION_MAJOR < 6)
     accData->SetScalarType(VTK_UNSIGNED_SHORT); // changed from unsigned int, since the hole filler assumes unsigned short
     accData->SetNumberOfScalarComponents(1);
     accData->AllocateScalars();
+#else
+    accData->AllocateScalars(VTK_UNSIGNED_SHORT, 1);
+#endif
+
     void *accPtr = accData->GetScalarPointerForExtent(accExtent);
     if (accPtr==NULL)
     {
@@ -265,9 +270,13 @@ PlusStatus vtkPasteSliceIntoVolume::ResetOutput()
   outData->SetExtent(outExtent);
   outData->SetOrigin(this->OutputOrigin);
   outData->SetSpacing(this->OutputSpacing);
+#if (VTK_VERSION_MAJOR < 6)
   outData->SetScalarType(this->OutputScalarMode);
   outData->SetNumberOfScalarComponents(2); // first component: image intensity; second component: if the pixel was set (0 = not set (hole), 1 = set)
   outData->AllocateScalars();
+#else
+  outData->AllocateScalars(this->OutputScalarMode, 2);
+#endif
   void *outPtr = outData->GetScalarPointerForExtent(outExtent);
   if (outPtr==NULL)
   {

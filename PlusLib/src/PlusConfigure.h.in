@@ -45,10 +45,22 @@
 #define PLUSLIB_VERSION_MAJOR @PLUSLIB_VERSION_MAJOR@
 #define PLUSLIB_VERSION_MINOR @PLUSLIB_VERSION_MINOR@
 #define DATA_PATH "${DATA_PATH}"
-#define PLUS_OPENIGTLINK_VERSION_MAJOR @OpenIGTLink_VERSION_MAJOR@
-#define PLUS_OPENIGTLINK_VERSION_MINOR @OpenIGTLink_VERSION_MINOR@
-#define PLUS_OPENIGTLINK_VERSION_PATCH @OpenIGTLink_VERSION_PATCH@
-#define PLUS_OPENIGTLINK_VERSION "@OpenIGTLink_VERSION_MAJOR@.@OpenIGTLink_VERSION_MINOR@.@OpenIGTLink_VERSION_PATCH@"
+
+// OpenIGTLink does not define version in header file
+// therefore we need to add the version information in Plus
+#define OPENIGTLINK_VERSION_MAJOR @OpenIGTLink_VERSION_MAJOR@
+#define OPENIGTLINK_VERSION_MINOR @OpenIGTLink_VERSION_MINOR@
+#define OPENIGTLINK_VERSION_PATCH @OpenIGTLink_VERSION_PATCH@
+#define OPENIGTLINK_VERSION "@OpenIGTLink_VERSION_MAJOR@.@OpenIGTLink_VERSION_MINOR@.@OpenIGTLink_VERSION_PATCH@"
+
+// filter->SetInput was renamed to filter->SetInputData in VTK6
+// The SetInputData_vtk5compatible macro can be used with both VTK5 and VTK6.
+// When VTK5 support will be dropped this macro should be removed.
+#if (VTK_VERSION_MAJOR < 6)
+  #define SetInputData_vtk5compatible SetInput
+#else
+  #define SetInputData_vtk5compatible SetInputData
+#endif
 
 #cmakedefine PLUS_USE_3dConnexion_TRACKER
 #cmakedefine PLUS_USE_Ascension3DG

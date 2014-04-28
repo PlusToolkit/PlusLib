@@ -31,7 +31,8 @@ SET(PatternLocAlgo_LIBS
   itkvnl_algo
   ${ITK_LIBRARIES}
   vtkPlusCommon 
-  vtkCommon )
+  ${VTK_LIBRARIES}
+  )
   
 INCLUDE_DIRECTORIES( ${PatternLocAlgo_INCLUDE_DIRS} )
 ADD_LIBRARY( PatternLocAlgo STATIC ${PatternLocAlgo_SRCS} ${PatternLocAlgo_HDRS} )

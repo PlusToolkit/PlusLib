@@ -133,9 +133,7 @@ int main( int argc, char** argv )
   }
 
   // Prepare the output polydata.
-  vtkSmartPointer< vtkPolyData > outputPolyData = vtkSmartPointer< vtkPolyData >::New();
   vtkSmartPointer< vtkAppendPolyData > appender = vtkSmartPointer< vtkAppendPolyData >::New();
-  appender->SetInput( outputPolyData );
 
   PlusTransformName imageToReferenceTransformName; 
   if ( imageToReferenceTransformName.SetTransformName(imageToReferenceTransformNameStr.c_str())!= PLUS_SUCCESS )
@@ -178,13 +176,14 @@ int main( int argc, char** argv )
     tCubeToTracker->Concatenate( imageToReferenceTransform );
     tCubeToTracker->Concatenate( tCubeToImage );
 
-    vtkSmartPointer< vtkTransformPolyDataFilter > CubeToTracker = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
-    CubeToTracker->SetTransform( tCubeToTracker );
+    vtkSmartPointer< vtkTransformPolyDataFilter > cubeToTracker = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
+    cubeToTracker->SetTransform( tCubeToTracker );
     vtkSmartPointer< vtkCubeSource > source = vtkSmartPointer< vtkCubeSource >::New();
-    CubeToTracker->SetInput( source->GetOutput() );
-    CubeToTracker->Update();
+    source->Update();
+    cubeToTracker->SetInputConnection( source->GetOutputPort() );
+    cubeToTracker->Update();
 
-    appender->AddInputConnection( CubeToTracker->GetOutputPort() );
+    appender->AddInputConnection( cubeToTracker->GetOutputPort() );
 
   }  
 
@@ -192,7 +191,7 @@ int main( int argc, char** argv )
   LOG_DEBUG("Writing output model file ("<<outputModelFilename<<")...");
   vtkSmartPointer< vtkPolyDataWriter > writer = vtkSmartPointer< vtkPolyDataWriter >::New();
   writer->SetFileName( outputModelFilename.c_str() );
-  writer->SetInput( appender->GetOutput() );
+  writer->SetInputConnection( appender->GetOutputPort() );
   writer->Update();
   LOG_DEBUG("Writing model file done.");
   LOG_INFO("Model file created: "<<outputModelFilename);

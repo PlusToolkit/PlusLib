@@ -48,7 +48,7 @@ class VTK_EXPORT vtkSonixVideoSource;
   sonixGrabber->SetImagingMode(0);
   sonixGrabber->SetAcquisitionDataType(udtBPost);
   sonixGrabber->Record();  
-  imageviewer->SetInput(sonixGrabber->GetOutput());
+  imageviewer->SetInputData_vtk5compatible(sonixGrabber->GetOutput());
   See vtkSonixVideoSourceTest1.cxx for more details
 
   \ingroup PlusLibDataCollection

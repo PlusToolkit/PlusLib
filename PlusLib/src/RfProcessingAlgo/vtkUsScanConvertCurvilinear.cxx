@@ -12,6 +12,7 @@ With permission from the author: "You are allowed to include the source code on
 non-commercial terms in your toolbox and distribute it."
 */
 
+#include "PlusConfigure.h"
 #include "PlusCommon.h"
 
 #include "vtkUsScanConvertCurvilinear.h"
@@ -239,13 +240,21 @@ int vtkUsScanConvertCurvilinear::RequestUpdateExtent (vtkInformation* vtkNotUsed
 }
 
 //----------------------------------------------------------------------------
+#if (VTK_VERSION_MAJOR < 6)
 void vtkUsScanConvertCurvilinear::AllocateOutputData(vtkImageData *output, int *uExtent)
+#else
+void vtkUsScanConvertCurvilinear::AllocateOutputData(vtkImageData *output, vtkInformation* outInfo, int *uExtent)
+#endif
 { 
   // The multithreaded algorithm sets only the non-zero voxels.
   // We need to initialize the rest of the voxels to zero.
 
   // Make sure the output is allocated
+#if (VTK_VERSION_MAJOR < 6)
   Superclass::AllocateOutputData(output, uExtent);
+#else
+  Superclass::AllocateOutputData(output, outInfo, uExtent);
+#endif
   
   // Initialize voxels to zero now.
 
@@ -288,7 +297,12 @@ void vtkUsScanConvertExecute(vtkUsScanConvertCurvilinear *self,
                              int interpolationTableExt[6], int id)
 {
   T *envelope_data=inPtr; // The envelope detected and log-compressed data
+#if (VTK_VERSION_MAJOR < 6)
   int numberOfSamples=inData->GetWholeExtent()[1]-inData->GetWholeExtent()[0]+1; // Number of samples in one envelope line
+#else
+  int numberOfSamples=inData->GetExtent()[1]-inData->GetExtent()[0]+1; // Number of samples in one envelope line
+#endif
+
   T *image=outPtr; // The resulting image
 
   std::vector<vtkUsScanConvertCurvilinear::InterpolatedPoint>::const_iterator firstPoint=self->GetInterpolatedPointArray().begin()+interpolationTableExt[0];
