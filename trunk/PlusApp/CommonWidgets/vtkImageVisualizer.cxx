@@ -33,10 +33,9 @@ static const double ORIENTATION_MARKER_CONE_HEIGHT = 15.0;
 //-----------------------------------------------------------------------------
 
 vtkImageVisualizer::vtkImageVisualizer()
-: DataCollector(NULL)
-, CanvasRenderer(NULL)
+: CanvasRenderer(NULL)
 , ImageActor(NULL)
-, ResultPolyData(NULL)
+//, ResultPolyData(NULL)
 , ResultActor(NULL)
 , ResultGlyph(NULL)
 , ImageCamera(NULL)
@@ -105,7 +104,7 @@ vtkImageVisualizer::~vtkImageVisualizer()
   }
 
   this->SetResultActor(NULL);
-  this->SetResultPolyData(NULL);
+  //this->SetResultPolyData(NULL);
   this->SetCanvasRenderer(NULL);
   this->SetImageActor(NULL);
   this->SetImageCamera(NULL);
@@ -287,14 +286,8 @@ PlusStatus vtkImageVisualizer::UpdateCameraPose()
 {
   LOG_TRACE("vtkImageVisualizer::UpdateCameraPose");
 
-  if( this->DataCollector == NULL )
-  {
-    LOG_DEBUG("Trying to update vtkImageVisualizer camera pose while not connected.");
-    return PLUS_FAIL;
-  }
-
   // Only set new camera if image actor is visible and data collector is connected
-  if ((this->ImageActor == NULL) || (this->ImageActor->GetVisibility() == 0) || (this->DataCollector->GetConnected() == false))
+  if ((this->ImageActor == NULL) || (this->ImageActor->GetVisibility() == 0))
   {
     return PLUS_SUCCESS;
   }
@@ -474,59 +467,18 @@ PlusStatus vtkImageVisualizer::SetResultOpacity(double aOpacity)
 
 //-----------------------------------------------------------------------------
 
-void vtkImageVisualizer::SetInput(vtkImageData* aImage )
+void vtkImageVisualizer::SetInputData(vtkImageData* aImage )
 {
-  LOG_TRACE("vtkImageVisualizer::SetInput");
+  LOG_TRACE("vtkImageVisualizer::SetInputData");
 
-  this->GetImageActor()->SetInput(aImage);
+  this->GetImageActor()->SetInputData_vtk5compatible(aImage);
 }
 
 //-----------------------------------------------------------------------------
-
-PlusStatus vtkImageVisualizer::AssignDataCollector(vtkDataCollector* aCollector )
+void vtkImageVisualizer::SetResultPolyData(vtkPolyData* aResultPolyData )
 {
-  LOG_TRACE("vtkImageVisualizer::AssignDataCollector");
-
-  this->SetDataCollector(aCollector);
-
-  if( aCollector != NULL )
-  {
-    // Store a reference to the data collector
-    if (this->DataCollector->GetConnected() == false)
-    {
-      LOG_ERROR("Data collection not initialized or device visualization cannot be initialized unless they are connected");
-      return PLUS_FAIL;
-    }
-
-    if( this->SelectedChannel != NULL && this->SelectedChannel->GetBrightnessOutput() != NULL )
-    {
-      this->ImageActor->SetInput( this->SelectedChannel->GetBrightnessOutput() );
-    }
-    else
-    {
-      LOG_WARNING("No video output defined. Hiding image visualization.");
-      this->ImageActor->VisibilityOff();
-    }
-  }
-
-  return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus vtkImageVisualizer::AssignResultPolyData(vtkPolyData* aResultPolyData )
-{
-  LOG_TRACE("vtkImageVisualizer::AssignResultPolyData");
-
-  if( aResultPolyData != NULL )
-  {
-    // Result points poly data
-    this->SetResultPolyData(aResultPolyData);
-
-    this->ResultGlyph->SetInputConnection(this->ResultPolyData->GetProducerPort());
-  }
-
-  return PLUS_SUCCESS;
+  LOG_TRACE("vtkImageVisualizer::SetResultPolyData");
+  this->ResultGlyph->SetInputData_vtk5compatible(aResultPolyData);
 }
 
 //-----------------------------------------------------------------------------
@@ -613,11 +565,6 @@ PlusStatus vtkImageVisualizer::UpdateScreenAlignedActors()
   LOG_TRACE("vtkImageVisualizer::UpdateScreenAlignedActors");
 
   int dimensions[2];
-  if( this->DataCollector == NULL )
-  {
-    LOG_WARNING("Trying to modify vtkImageVisualizer screen-aligned actors while not connected.");
-    return PLUS_FAIL;
-  }
 
   this->SelectedChannel->GetBrightnessFrameSize(dimensions);
   double newPosition[3];
@@ -1054,4 +1001,21 @@ PlusStatus vtkImageVisualizer::ClearWireLabelVisualization()
   WireActors.clear();
 
   return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+void vtkImageVisualizer::SetChannel(vtkPlusChannel *channel)
+{
+  SetSelectedChannel(channel);
+
+  if( this->SelectedChannel != NULL && this->SelectedChannel->GetBrightnessOutput() != NULL )
+  {
+    this->ImageActor->SetInputData_vtk5compatible( this->SelectedChannel->GetBrightnessOutput() );
+    this->ImageActor->VisibilityOn();
+  }
+  else
+  {
+    LOG_DEBUG("No video in the selected channel. Hiding image visualization.");
+    this->ImageActor->VisibilityOff();
+  }
 }

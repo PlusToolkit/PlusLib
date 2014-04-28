@@ -256,8 +256,8 @@ vtkStandardNewMacro(vtkDisplayablePolyData);
 
 vtkDisplayablePolyData::vtkDisplayablePolyData()
 : vtkDisplayableObject()
+, PolyData(NULL)
 {
-  this->PolyData = NULL; 
   vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
   this->SetPolyData(polyData);
 }
@@ -306,7 +306,7 @@ void vtkDisplayablePolyData::SetPolyData(vtkPolyData* aPolyData)
   if ( actor )
   {
     vtkSmartPointer<vtkPolyDataMapper> polyMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    polyMapper->SetInput(this->PolyData);
+    polyMapper->SetInputData_vtk5compatible(this->PolyData);
     actor->SetMapper(polyMapper); 
   }
 }
@@ -491,7 +491,7 @@ PlusStatus vtkDisplayableModel::ReadConfiguration(vtkXMLDataElement* aConfig)
     stlReader->SetFileName(this->STLModelFileName);
     stlReader->Update();
     SetPolyData(stlReader->GetOutput());
-    mapper->SetInputConnection(this->PolyData->GetProducerPort());
+    mapper->SetInputData_vtk5compatible(this->PolyData);
   }
 
   vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
@@ -570,9 +570,15 @@ PlusStatus vtkDisplayableModel::AppendPolyData(vtkPolyData* aPolyData)
   LOG_TRACE("vtkDisplayableModel::AppendPolyData");
 
   vtkSmartPointer<vtkAppendPolyData> appendFilter = vtkSmartPointer<vtkAppendPolyData>::New();
+#if (VTK_VERSION_MAJOR < 6)
   appendFilter->AddInput(this->PolyData);
   appendFilter->AddInput(aPolyData);
+#else
+  appendFilter->AddInputData(this->PolyData);
+  appendFilter->AddInputData(aPolyData);
+#endif  
 
+  appendFilter->Update();
   SetPolyData(appendFilter->GetOutput());
 
   return PLUS_SUCCESS;

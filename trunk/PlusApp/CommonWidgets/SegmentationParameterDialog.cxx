@@ -983,7 +983,7 @@ PlusStatus SegmentationParameterDialog::InitializeVisualization()
   vtkSmartPointer<vtkSphereSource> segmentedPointSphereSource = vtkSmartPointer<vtkSphereSource>::New();
   segmentedPointSphereSource->SetRadius(4.0);
 
-  segmentedPointGlyph->SetInputConnection(m_SegmentedPointsPolyData->GetProducerPort());
+  segmentedPointGlyph->SetInputData_vtk5compatible(m_SegmentedPointsPolyData);
   segmentedPointGlyph->SetSourceConnection(segmentedPointSphereSource->GetOutputPort());
   segmentedPointMapper->SetInputConnection(segmentedPointGlyph->GetOutputPort());
 
@@ -997,20 +997,19 @@ PlusStatus SegmentationParameterDialog::InitializeVisualization()
 
   // Setup canvas
   m_ImageVisualizer = vtkImageVisualizer::New();
-  m_ImageVisualizer->SetSelectedChannel(m_SelectedChannel);
+  m_ImageVisualizer->SetChannel(m_SelectedChannel);
   if( m_ImageVisualizer->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to initialize the image visualizer.");
   }
   m_ImageVisualizer->SetScreenRightDownAxesOrientation(US_IMG_ORIENT_MF);
-  m_ImageVisualizer->AssignResultPolyData(m_CandidatesPolyData);
-  m_ImageVisualizer->AssignDataCollector(m_DataCollector);
+  m_ImageVisualizer->SetResultPolyData(m_CandidatesPolyData);
   m_CanvasRenderer = m_ImageVisualizer->GetCanvasRenderer();
   m_ImageVisualizer->GetCanvasRenderer()->SetBackground(0.1, 0.1, 0.1);
   m_ImageVisualizer->SetResultColor(0.8, 0.0, 0.0);
   m_ImageVisualizer->SetResultOpacity(0.8);
   ui.canvas->GetRenderWindow()->AddRenderer(m_ImageVisualizer->GetCanvasRenderer());
-  m_ImageVisualizer->SetInput(m_Frame.GetImageData()->GetImage());
+  m_ImageVisualizer->SetInputData(m_Frame.GetImageData()->GetImage());
 
   // Create default picker
   m_ImageVisualizer->GetCanvasRenderer()->GetRenderWindow()->GetInteractor()->CreateDefaultPicker();
@@ -1255,9 +1254,12 @@ PlusStatus SegmentationParameterDialog::WriteConfiguration()
 
   if( segmentationParameters->GetAttribute("NumberOfMaximumFiducialPointCandidates") != NULL && ui.doubleSpinBox_MaxCandidates->value() == FidSegmentation::DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDATES )
   {
-    // TODO: replace the following line by the commented out line after upgrading to VTK 6.x (https://www.assembla.com/spaces/plus/tickets/859)
-    // segmentationParameters->RemoveAttribute("NumberOfMaximumFiducialPointCandidates");
+#if (VTK_VERSION_MAJOR < 6)
+    // Workaround for RemoveAttribute bug in VTK5 (https://www.assembla.com/spaces/plus/tickets/859)
     PlusCommon::RemoveAttribute(segmentationParameters, "NumberOfMaximumFiducialPointCandidates");
+#else
+    segmentationParameters->RemoveAttribute("NumberOfMaximumFiducialPointCandidates");
+#endif
   }
   else if( segmentationParameters->GetAttribute("NumberOfMaximumFiducialPointCandidates") != NULL )
   {
@@ -1360,7 +1362,7 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
       LOG_ERROR("Unable to retrieve tracked frame.");
       return PLUS_FAIL;
     }
-    m_ImageVisualizer->SetInput(m_Frame.GetImageData()->GetImage());
+    m_ImageVisualizer->SetInputData(m_Frame.GetImageData()->GetImage());
   }
 
   // Segment image

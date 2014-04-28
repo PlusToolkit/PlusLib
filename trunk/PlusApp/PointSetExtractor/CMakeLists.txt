@@ -1,8 +1,4 @@
 SET (PSEXT_LIBS
-#     vtkCommon
-#     vtkFiltering
-#     vtkHybrid
-#     vtkDataCollection 
      vtkPlusCommon
     )
 

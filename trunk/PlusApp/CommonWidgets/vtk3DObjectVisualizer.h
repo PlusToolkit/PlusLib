@@ -9,7 +9,6 @@
 
 #include "vtkActor.h"
 #include "vtkCamera.h"
-#include "vtkDataCollector.h"
 #include "vtkDisplayableObject.h"
 #include "vtkGlyph3D.h"
 #include "vtkImageActor.h"
@@ -58,6 +57,8 @@ public:
   */
   PlusStatus SetVolumeMapper( vtkPolyDataMapper* aContourMapper );
 
+  PlusStatus SetDataCollector();
+
   /*!
   * Set the volume actor color
   * \param r red value
@@ -102,35 +103,29 @@ public:
 
   // Set/Get macros for member variables
   vtkGetObjectMacro(CanvasRenderer, vtkRenderer);
-  vtkGetObjectMacro(DataCollector, vtkDataCollector); 
   vtkGetObjectMacro(ImageActor, vtkImageActor);
-  virtual vtkSmartPointer<vtkTransformRepository> GetTransformRepository();
   vtkSetObjectMacro(CanvasRenderer, vtkRenderer);
   vtkGetStringMacro(WorldCoordinateFrame);
   vtkSetStringMacro(WorldCoordinateFrame);
-  vtkGetStringMacro(VolumeID);
+  vtkGetStringMacro(VolumeID);  
 
-  vtkSetObjectMacro(SelectedChannel, vtkPlusChannel);
+  void SetInputPolyData(vtkPolyData* aPolyData);
+  void SetResultPolyData(vtkPolyData* aPolyData);
 
-  // These will conflict with vtk macros, figure out new naming convention instead of "Set"
-  PlusStatus AssignDataCollector(vtkDataCollector* aCollector);
-  PlusStatus AssignInputPolyData(vtkPolyData* aInputPolyData);
-  PlusStatus AssignResultPolyData(vtkPolyData* aResultPolyData);
-  PlusStatus AssignTransformRepository(vtkSmartPointer<vtkTransformRepository> aTransformRepository);
+  PlusStatus SetChannel(vtkPlusChannel* channel);
+
+  vtkSetObjectMacro(TransformRepository, vtkTransformRepository);
 
 protected:
   vtkSetObjectMacro(ImageActor, vtkImageActor);
   vtkSetObjectMacro(InputActor, vtkActor);
   vtkSetObjectMacro(ResultActor, vtkActor);
-  vtkSetObjectMacro(InputPolyData, vtkPolyData);
-  vtkSetObjectMacro(ResultPolyData, vtkPolyData);
-  virtual void SetTransformRepository(vtkSmartPointer<vtkTransformRepository> aRepository);
-  vtkSetObjectMacro(DataCollector, vtkDataCollector);
   vtkSetObjectMacro(ResultGlyph, vtkGlyph3D);
   vtkSetObjectMacro(InputGlyph, vtkGlyph3D);
   vtkGetObjectMacro(ResultGlyph, vtkGlyph3D);
   vtkGetObjectMacro(InputGlyph, vtkGlyph3D);
   vtkSetStringMacro(VolumeID);
+  vtkSetObjectMacro(SelectedChannel, vtkPlusChannel);
 
 protected:
   /*!
@@ -144,8 +139,6 @@ protected:
   virtual ~vtk3DObjectVisualizer();
 
 protected:
-  /*! Data collector object */
-  vtkDataCollector*	DataCollector;
 
   /*! List of displayable objects */
   std::vector<vtkDisplayableObject*> DisplayableObjects;
@@ -156,17 +149,11 @@ protected:
   /*! Canvas image actor */
   vtkImageActor* ImageActor;
 
-  /*! Polydata holding the input points */
-  vtkPolyData* InputPolyData;
-
   /*! Actor for displaying the input points in 3D */
   vtkActor* InputActor;
 
   /*! Glyph producer for result */
   vtkGlyph3D* InputGlyph;
-
-  /*! Polydata holding the result points (eg. stylus tip, segmented points) */
-  vtkPolyData* ResultPolyData;
 
   /*! Actor for displaying the result points (eg. stylus tip, segmented points) */
   vtkActor* ResultActor;
@@ -181,7 +168,7 @@ protected:
   char* VolumeID;
 
   /*! Reference to Transform repository that stores and handles all transforms */
-  vtkSmartPointer<vtkTransformRepository> TransformRepository;
+  vtkTransformRepository* TransformRepository;
 
   /*! Channel to visualize */
   vtkPlusChannel* SelectedChannel;

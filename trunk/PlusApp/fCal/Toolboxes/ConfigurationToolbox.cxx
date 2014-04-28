@@ -211,7 +211,8 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 
         this->ChannelChanged(*m_ParentMainWindow->GetSelectedChannel());
 
-        m_ParentMainWindow->GetVisualizationController()->AssignDataCollector(m_ParentMainWindow->GetVisualizationController()->GetDataCollector());
+        // TODO: check if setchannel is called by the previous line
+        //m_ParentMainWindow->GetVisualizationController()->SetDataCollectorX(m_ParentMainWindow->GetVisualizationController()->GetDataCollector());
 
         // Allow object visualizer to load anything it needs
         m_ParentMainWindow->GetVisualizationController()->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
@@ -593,6 +594,7 @@ PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
       vtkSmartPointer<vtkLineSource> wireLineSource = vtkSmartPointer<vtkLineSource>::New();
       wireLineSource->SetPoint1(endPointFrontInPhantomModelFrame);
       wireLineSource->SetPoint2(endPointBackInPhantomModelFrame);
+      wireLineSource->Update();
 
       phantomDisplayableModel->AppendPolyData(wireLineSource->GetOutput());
     }

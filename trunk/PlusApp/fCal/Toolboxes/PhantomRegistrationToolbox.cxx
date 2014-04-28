@@ -78,7 +78,7 @@ PhantomRegistrationToolbox::PhantomRegistrationToolbox(fCalMainWindow* aParentMa
   vtkSmartPointer<vtkSphereSource> requestedLandmarksSphereSource = vtkSmartPointer<vtkSphereSource>::New();
   requestedLandmarksSphereSource->SetRadius(1.5); // mm
 
-  requestedLandmarksGlyph->SetInputConnection(m_RequestedLandmarkPolyData->GetProducerPort());
+  requestedLandmarksGlyph->SetInputData_vtk5compatible(m_RequestedLandmarkPolyData);
   requestedLandmarksGlyph->SetSourceConnection(requestedLandmarksSphereSource->GetOutputPort());
   requestedLandmarksMapper->SetInputConnection(requestedLandmarksGlyph->GetOutputPort());
   m_RequestedLandmarkActor->SetMapper(requestedLandmarksMapper);
@@ -235,15 +235,14 @@ PlusStatus PhantomRegistrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
 PlusStatus PhantomRegistrationToolbox::LoadPhantomModel()
 {
   LOG_TRACE("PhantomRegistrationToolbox::InitializeVisualization");   
-
-  vtkDisplayableModel* phantomDisplayableModel = NULL;
+  
   if( m_ParentMainWindow->GetPhantomModelId() == NULL )
   {
     LOG_ERROR("Unable to retreive phantom model by ID. Is the phantom model ID well defined?");
     return PLUS_FAIL;
   }
   vtkDisplayableObject* phantom = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetPhantomModelId());
-  phantomDisplayableModel = dynamic_cast<vtkDisplayableModel*>(phantom);
+  vtkDisplayableModel* phantomDisplayableModel = dynamic_cast<vtkDisplayableModel*>(phantom);
   if( phantomDisplayableModel == NULL )
   {
     LOG_ERROR("Unable to retreive phantom model by ID. Is the phantom model ID well defined?");
@@ -251,7 +250,7 @@ PlusStatus PhantomRegistrationToolbox::LoadPhantomModel()
   }  
   
   vtkSmartPointer<vtkPolyDataMapper> stlMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  stlMapper->SetInput(phantomDisplayableModel->GetPolyData());
+  stlMapper->SetInputData_vtk5compatible(phantomDisplayableModel->GetPolyData());
   m_PhantomActor->SetMapper(stlMapper);
   m_PhantomActor->GetProperty()->SetOpacity( phantomDisplayableModel->GetLastOpacity() );
   

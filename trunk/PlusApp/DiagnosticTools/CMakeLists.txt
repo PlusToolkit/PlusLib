@@ -1,8 +1,6 @@
 
 SET (DIAGDATA_LIBS
-     vtkCommon
-     vtkFiltering
-     vtkHybrid
+     ${VTK_LIBRARIES}
      vtkDataCollection 
      vtkPlusCommon
     )

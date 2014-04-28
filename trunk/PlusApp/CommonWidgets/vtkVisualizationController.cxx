@@ -34,7 +34,6 @@ vtkVisualizationController::vtkVisualizationController()
 : ImageVisualizer(NULL)
 , PerspectiveVisualizer(NULL)
 , Canvas(NULL)
-, DataCollector(NULL)
 , AcquisitionTimer(NULL)
 , ResultPolyData(NULL)
 , InputPolyData(NULL)
@@ -42,6 +41,7 @@ vtkVisualizationController::vtkVisualizationController()
 , AcquisitionFrameRate(20)
 , TransformRepository(NULL)
 , SelectedChannel(NULL)
+, DataCollector(NULL)
 {
   // Create transform repository
   this->ClearTransformRepository();
@@ -56,7 +56,6 @@ vtkVisualizationController::vtkVisualizationController()
 
   // Result points poly data
   vtkSmartPointer<vtkPolyData> resultPolyData = vtkSmartPointer<vtkPolyData>::New();
-  resultPolyData = vtkPolyData::New();
   resultPolyData->Initialize();
   vtkSmartPointer<vtkPoints> resultPoint = vtkSmartPointer<vtkPoints>::New();
   resultPolyData->SetPoints(resultPoint);
@@ -68,14 +67,14 @@ vtkVisualizationController::vtkVisualizationController()
 
   // Create 2D visualizer
   vtkSmartPointer<vtkImageVisualizer> imageVisualizer = vtkSmartPointer<vtkImageVisualizer>::New();
-  imageVisualizer->AssignResultPolyData(this->ResultPolyData);
+  imageVisualizer->SetResultPolyData(this->ResultPolyData);
   imageVisualizer->EnableROI(false);
   this->SetImageVisualizer(imageVisualizer);
 
   // Create 3D visualizer
   vtkSmartPointer<vtk3DObjectVisualizer> perspectiveVisualizer = vtkSmartPointer<vtk3DObjectVisualizer>::New();
-  perspectiveVisualizer->AssignResultPolyData(this->ResultPolyData);
-  perspectiveVisualizer->AssignInputPolyData(this->InputPolyData);
+  perspectiveVisualizer->SetResultPolyData(this->ResultPolyData);
+  perspectiveVisualizer->SetInputPolyData(this->InputPolyData);
   this->SetPerspectiveVisualizer(perspectiveVisualizer);
 
   connect( this->AcquisitionTimer, SIGNAL( timeout() ), this, SLOT( Update() ) );
@@ -93,10 +92,10 @@ vtkVisualizationController::~vtkVisualizationController()
     this->AcquisitionTimer = NULL;
   } 
 
-  if (this->DataCollector != NULL)
+  if (this->GetDataCollector() != NULL)
   {
-    this->DataCollector->Stop();
-    this->DataCollector->Disconnect();
+    this->GetDataCollector()->Stop();
+    this->GetDataCollector()->Disconnect();
   }
   this->SetDataCollector(NULL);
 
@@ -204,7 +203,7 @@ PlusStatus vtkVisualizationController::SetVisualizationMode( DISPLAY_MODE aMode 
 {
   LOG_TRACE("vtkVisualizationController::SetVisualizationMode( DISPLAY_MODE " << (aMode?"true":"false") << ")");
 
-  if (this->DataCollector == NULL)
+  if (this->GetDataCollector() == NULL)
   {
     LOG_DEBUG("Data collector has not been initialized when visualization mode was changed.");
     return PLUS_FAIL;
@@ -313,40 +312,36 @@ PlusStatus vtkVisualizationController::StartDataCollection()
   LOG_TRACE("vtkVisualizationController::StartDataCollection"); 
 
   // Delete data collection if already exists
-  if (this->DataCollector != NULL)
+  vtkDataCollector* dataCollector=this->GetDataCollector();
+  if (dataCollector != NULL)
   {
-    this->DataCollector->Stop();
-    this->DataCollector->Disconnect();
-
+    dataCollector->Stop();
+    dataCollector->Disconnect();
     this->SetDataCollector(NULL);
   }
 
   // Create the proper data collector variant
-  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
-  if (dataCollector.GetPointer()==NULL)
-  {
-    LOG_ERROR("Failed to create DataCollector");
-    return PLUS_FAIL;
-  }
+  dataCollector = vtkDataCollector::New();
   this->SetDataCollector(dataCollector);
+  dataCollector->Delete();
 
   // Read configuration
-  if (this->DataCollector->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
+  if (dataCollector->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
 
-  if (this->DataCollector->Connect() != PLUS_SUCCESS)
+  if (dataCollector->Connect() != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
 
-  if (this->DataCollector->Start() != PLUS_SUCCESS)
+  if (dataCollector->Start() != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
 
-  if (! this->DataCollector->GetConnected())
+  if (!dataCollector->GetConnected())
   {
     LOG_ERROR("Unable to initialize DataCollector!"); 
     return PLUS_FAIL;
@@ -361,13 +356,14 @@ PlusStatus vtkVisualizationController::DumpBuffersToDirectory(const char* aDirec
 {
   LOG_TRACE("vtkVisualizationController::DumpBuffersToDirectory");
 
-  if ((this->DataCollector == NULL) || (! this->DataCollector->GetConnected()))
+  vtkDataCollector* dataCollector=this->GetDataCollector();
+  if (dataCollector==NULL || !dataCollector->GetConnected())
   {
     LOG_INFO("Data collector is not connected, buffers cannot be saved");
     return PLUS_FAIL;
   }
 
-  if( this->DataCollector->DumpBuffersToDirectory(aDirectory) != PLUS_SUCCESS )
+  if(dataCollector->DumpBuffersToDirectory(aDirectory) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to dump data buffers to file.");
     return PLUS_FAIL;
@@ -415,7 +411,7 @@ PlusStatus vtkVisualizationController::Update()
   // because it is the image that the image actors show
   if( this->SelectedChannel != NULL && this->GetImageActor() != NULL )
   {
-    this->GetImageActor()->SetInput( this->SelectedChannel->GetBrightnessOutput() );
+    this->GetImageActor()->SetInputData_vtk5compatible( this->SelectedChannel->GetBrightnessOutput() );
   }
 
   return PLUS_SUCCESS;
@@ -589,7 +585,7 @@ PlusStatus vtkVisualizationController::DisconnectInput()
 {
   if( this->GetImageActor() != NULL )
   {
-    this->GetImageActor()->SetInput(NULL);
+    this->GetImageActor()->SetInputData_vtk5compatible(NULL);
   }
 
   return PLUS_SUCCESS;
@@ -602,7 +598,7 @@ PlusStatus vtkVisualizationController::ConnectInput()
   vtkPlusChannel* aChannel(NULL);
   if( this->GetImageActor() != NULL && this->SelectedChannel != NULL )
   {
-    this->GetImageActor()->SetInput( this->SelectedChannel->GetBrightnessOutput() );
+    this->GetImageActor()->SetInputData_vtk5compatible( this->SelectedChannel->GetBrightnessOutput() );
   }
 
   return PLUS_SUCCESS;
@@ -696,7 +692,7 @@ PlusStatus vtkVisualizationController::ReadConfiguration(vtkXMLDataElement* aXML
   // Pass on any configuration steps to children
   if( this->PerspectiveVisualizer != NULL )
   {
-    this->PerspectiveVisualizer->AssignTransformRepository(this->TransformRepository);
+    this->PerspectiveVisualizer->SetTransformRepository(this->TransformRepository);
     if( this->PerspectiveVisualizer->ReadConfiguration(aXMLElement) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to configure perspective visualizer.");
@@ -722,7 +718,7 @@ PlusStatus vtkVisualizationController::WriteConfiguration(vtkXMLDataElement* aXM
 {
   PlusStatus status = PLUS_SUCCESS;
 
-  if (this->DataCollector->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
+  if (this->GetDataCollector()->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to save configuration of data collector"); 
     status = PLUS_FAIL;
@@ -744,25 +740,18 @@ PlusStatus vtkVisualizationController::WriteConfiguration(vtkXMLDataElement* aXM
 
 PlusStatus vtkVisualizationController::StopAndDisconnectDataCollector()
 {
-  if( this->DataCollector == NULL )
+  vtkDataCollector* dataCollector=this->GetDataCollector();
+  if( dataCollector == NULL )
   {
     LOG_WARNING("Trying to disconnect from non-connected data collector.");
     return PLUS_FAIL;
   }
 
   this->DisconnectInput();
-  if( this->PerspectiveVisualizer != NULL )
-  {
-    this->PerspectiveVisualizer->AssignDataCollector(NULL);
-  }
+  SetDataCollector(NULL);
 
-  if( this->ImageVisualizer != NULL )
-  {
-    this->ImageVisualizer->AssignDataCollector(NULL);
-  }
-
-  this->DataCollector->Stop();
-  this->DataCollector->Disconnect();
+  dataCollector->Stop();
+  dataCollector->Disconnect();
 
   return PLUS_SUCCESS;
 }
@@ -897,25 +886,11 @@ PlusStatus vtkVisualizationController::Reset()
 
 //-----------------------------------------------------------------------------
 
-vtkSmartPointer<vtkTransformRepository> vtkVisualizationController::GetTransformRepository()
-{
-  return this->TransformRepository;
-}
-
-//-----------------------------------------------------------------------------
-
-void vtkVisualizationController::SetTransformRepository( vtkSmartPointer<vtkTransformRepository> aRepo )
-{
-  this->TransformRepository = aRepo;
-}
-
-//-----------------------------------------------------------------------------
-
-void vtkVisualizationController::SetInput( vtkImageData * input )
+void vtkVisualizationController::SetInputData( vtkImageData * input )
 {
   if( this->ImageVisualizer != NULL )
   {
-    this->GetImageVisualizer()->SetInput(input);
+    this->GetImageVisualizer()->SetInputData(input);
   }
 }
 
@@ -927,28 +902,11 @@ void vtkVisualizationController::SetSelectedChannel( vtkPlusChannel* aChannel )
 
   if( this->ImageVisualizer != NULL )
   {
-    this->GetImageVisualizer()->SetSelectedChannel(aChannel);
+    this->GetImageVisualizer()->SetChannel(aChannel);
   }
 
   if( this->PerspectiveVisualizer != NULL )
   {
-    this->GetPerspectiveVisualizer()->SetSelectedChannel(aChannel);
+    this->GetPerspectiveVisualizer()->SetChannel(aChannel);
   }
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus vtkVisualizationController::AssignDataCollector( vtkDataCollector* aCollector )
-{
-  if( this->ImageVisualizer != NULL )
-  {
-    this->GetImageVisualizer()->AssignDataCollector(aCollector);
-  }
-
-  if( this->PerspectiveVisualizer != NULL )
-  {
-    this->GetPerspectiveVisualizer()->AssignDataCollector(aCollector);
-  }
-
-  return PLUS_SUCCESS;
 }
