@@ -236,7 +236,7 @@ PlusStatus vtkPasteSliceIntoVolume::ResetOutput()
     accData->SetExtent(accExtent);
     accData->SetOrigin(this->OutputOrigin);
     accData->SetSpacing(this->OutputSpacing);
-#if (VTK_VERSION_MAJOR < 6)
+#if (VTK_MAJOR_VERSION < 6)
     accData->SetScalarType(VTK_UNSIGNED_SHORT); // changed from unsigned int, since the hole filler assumes unsigned short
     accData->SetNumberOfScalarComponents(1);
     accData->AllocateScalars();
@@ -270,7 +270,7 @@ PlusStatus vtkPasteSliceIntoVolume::ResetOutput()
   outData->SetExtent(outExtent);
   outData->SetOrigin(this->OutputOrigin);
   outData->SetSpacing(this->OutputSpacing);
-#if (VTK_VERSION_MAJOR < 6)
+#if (VTK_MAJOR_VERSION < 6)
   outData->SetScalarType(this->OutputScalarMode);
   outData->SetNumberOfScalarComponents(2); // first component: image intensity; second component: if the pixel was set (0 = not set (hole), 1 = set)
   outData->AllocateScalars();

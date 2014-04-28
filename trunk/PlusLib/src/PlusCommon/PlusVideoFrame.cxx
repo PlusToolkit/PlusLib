@@ -252,7 +252,7 @@ PlusStatus PlusVideoFrame::AllocateFrame(vtkImageData* image, const int imageSiz
 
   image->SetExtent(0, imageSize[0]-1, 0, imageSize[1]-1, 0, 0);
 
-#if (VTK_VERSION_MAJOR < 6)
+#if (VTK_MAJOR_VERSION < 6)
   image->SetScalarType(pixType);
   image->SetNumberOfScalarComponents(numberOfScalarComponents);
   image->AllocateScalars();
@@ -656,7 +656,7 @@ PlusStatus PlusVideoFrame::GetOrientedImage( vtkImageData* inUsImage, US_IMAGE_O
   {
     // Allocate the output image
     outUsOrientedImage->SetExtent(inUsImage->GetExtent());
-#if (VTK_VERSION_MAJOR < 6)
+#if (VTK_MAJOR_VERSION < 6)
     outUsOrientedImage->SetScalarType(inUsImage->GetScalarType());
     outUsOrientedImage->SetNumberOfScalarComponents(inUsImage->GetNumberOfScalarComponents());
     outUsOrientedImage->AllocateScalars(); 

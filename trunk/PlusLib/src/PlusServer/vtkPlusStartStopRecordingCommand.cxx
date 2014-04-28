@@ -112,7 +112,7 @@ PlusStatus vtkPlusStartStopRecordingCommand::WriteConfiguration(vtkXMLDataElemen
   }
   else
   {
-#if (VTK_VERSION_MAJOR < 6)
+#if (VTK_MAJOR_VERSION < 6)
     // Workaround for RemoveAttribute bug in VTK5 (https://www.assembla.com/spaces/plus/tickets/859)
     PlusCommon::RemoveAttribute(aConfig, "CaptureDeviceId");
 #else
@@ -127,7 +127,7 @@ PlusStatus vtkPlusStartStopRecordingCommand::WriteConfiguration(vtkXMLDataElemen
   }
   else
   {
-#if (VTK_VERSION_MAJOR < 6)
+#if (VTK_MAJOR_VERSION < 6)
     // Workaround for RemoveAttribute bug in VTK5 (https://www.assembla.com/spaces/plus/tickets/859)
     PlusCommon::RemoveAttribute(aConfig, "OutputFilename");
 #else

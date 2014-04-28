@@ -189,7 +189,7 @@ void TestLinePlot(vtkSonixPortaVideoSource *portaGrabber)
 
   // Add multiple line plots, setting the colors etc
   vtkPlot *line = chart->AddPlot(vtkChart::LINE);
-  line->SetInput(imageToTableAdaptor->GetOutput(), 0, 1);
+  line->SetInputData_vtk5compatible(imageToTableAdaptor->GetOutput(), 0, 1);
   line->SetColor(0, 255, 0, 255);
   line->SetWidth(1.0);
 
