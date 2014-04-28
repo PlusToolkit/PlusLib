@@ -303,9 +303,9 @@ IF ( PLUS_USE_ICCAPTURING_VIDEO )
 ENDIF()
 
 IF ( PLUS_USE_STEALTHLINK )
- FIND_PACKAGE (STEALTHLINK)
+  FIND_PACKAGE (STEALTHLINK)
   IF ( NOT STEALTHLINK_FOUND)
-    MESSAGE( FATAL_ERROR "This project requires Staelthlink2 SDK for supporting communication with Medtronic StealthStation. Please verify configuration or turn off PLUS_USE_STEALTHLINK.")
+    MESSAGE( FATAL_ERROR "This project requires Stealthlink2 SDK for supporting communication with Medtronic StealthStation. Please verify configuration or turn off PLUS_USE_STEALTHLINK.")
   ENDIF()
 ENDIF()
 
