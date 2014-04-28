@@ -176,7 +176,7 @@ int main(int argc, char **argv)
 
   vtkSmartPointer<vtkAppendPolyData> polyDataAppend = vtkSmartPointer<vtkAppendPolyData>::New();
 
-#if (VTK_VERSION_MAJOR < 6)
+#if (VTK_MAJOR_VERSION < 6)
   polyDataAppend->AddInput(pointsPolyData);
 #else
   polyDataAppend->AddInputData(pointsPolyData);
@@ -191,7 +191,7 @@ int main(int argc, char **argv)
     sphere->Update();
     vtkSmartPointer<vtkGlyph3D> glyph=vtkSmartPointer<vtkGlyph3D>::New();
     glyph->SetInputData_vtk5compatible(pointsPolyData);
-#if (VTK_VERSION_MAJOR < 6)
+#if (VTK_MAJOR_VERSION < 6)
     glyph->SetSource(sphere->GetOutput());
 #else
     glyph->SetSourceData(sphere->GetOutput());

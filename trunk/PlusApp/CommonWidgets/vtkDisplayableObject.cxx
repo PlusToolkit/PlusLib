@@ -570,7 +570,7 @@ PlusStatus vtkDisplayableModel::AppendPolyData(vtkPolyData* aPolyData)
   LOG_TRACE("vtkDisplayableModel::AppendPolyData");
 
   vtkSmartPointer<vtkAppendPolyData> appendFilter = vtkSmartPointer<vtkAppendPolyData>::New();
-#if (VTK_VERSION_MAJOR < 6)
+#if (VTK_MAJOR_VERSION < 6)
   appendFilter->AddInput(this->PolyData);
   appendFilter->AddInput(aPolyData);
 #else

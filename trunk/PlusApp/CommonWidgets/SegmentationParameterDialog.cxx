@@ -1254,7 +1254,7 @@ PlusStatus SegmentationParameterDialog::WriteConfiguration()
 
   if( segmentationParameters->GetAttribute("NumberOfMaximumFiducialPointCandidates") != NULL && ui.doubleSpinBox_MaxCandidates->value() == FidSegmentation::DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDATES )
   {
-#if (VTK_VERSION_MAJOR < 6)
+#if (VTK_MAJOR_VERSION < 6)
     // Workaround for RemoveAttribute bug in VTK5 (https://www.assembla.com/spaces/plus/tickets/859)
     PlusCommon::RemoveAttribute(segmentationParameters, "NumberOfMaximumFiducialPointCandidates");
 #else
