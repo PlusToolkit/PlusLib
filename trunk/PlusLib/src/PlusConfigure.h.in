@@ -54,9 +54,11 @@
 #define OPENIGTLINK_VERSION_PATCH @OpenIGTLink_VERSION_PATCH@
 #define OPENIGTLINK_VERSION "@OpenIGTLink_VERSION_MAJOR@.@OpenIGTLink_VERSION_MINOR@.@OpenIGTLink_VERSION_PATCH@"
 
-#if (VTK_MAJOR_VERSION < 6)
-  // VTK version information is included in vtkConfigure.h
-#else
+// For VTK 6 and later include the header file that defines
+// VTK version (VTK_MAJOR_VERSION, VTK_MINOR_VERSION, etc.)
+// In earlier VTK releases, the version information was included
+// in vtkConfigure.h, therefore no additional include was needed.
+#if (@VTK_MAJOR_VERSION@ >= 6)  
   #include "vtkVersionMacros.h"
 #endif
 
