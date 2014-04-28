@@ -129,8 +129,13 @@ OPTION(PLUS_USE_STEALTHLINK "Provide support for the Medtronick StealthLink Serv
 
 # Other
 
-OPTION(PLUS_USE_HEARTSIGNALBOX "Enable Heart Signal Box" OFF)
-OPTION(PLUS_USE_USBECGBOX "Enable USB ECG Signal Box" OFF) 
+# Disable this option, as it is currently not tested or supported
+#OPTION(PLUS_USE_HEARTSIGNALBOX "Enable Heart Signal Box" OFF)
+SET (PLUS_USE_HEARTSIGNALBOX OFF)
+
+# Disable this option, as it is currently not tested or supported
+#OPTION(PLUS_USE_USBECGBOX "Enable USB ECG Signal Box" OFF) 
+SET (PLUS_USE_USBECGBOX OFF)
 
 OPTION (PLUSAPP_TEST_GUI "Enable Sikuli GUI tests" ON)
 
