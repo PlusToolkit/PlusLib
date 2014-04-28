@@ -16,6 +16,7 @@ See License.txt for details.
 #include "vtkPlusSaveConfigCommand.h"
 #include "vtkPlusStartStopRecordingCommand.h"
 #include "vtkPlusUpdateTransformCommand.h"
+#include "vtkPlusStealthLinkCommand.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkXMLUtilities.h"
 
@@ -236,7 +237,20 @@ void ExecuteStopReconstruction(vtkPlusOpenIGTLinkClient* client, const std::stri
   }
   client->SendCommand(cmd);
 }
-
+void ExecuteGetExamData(vtkPlusOpenIGTLinkClient* client,const std::string &deviceId, const std::string &dicomOutputDirectory)
+{
+	vtkSmartPointer<vtkPlusStealthLinkCommand> cmd=vtkSmartPointer<vtkPlusStealthLinkCommand>::New();
+	cmd->SetNameToGetExam();
+	if (!deviceId.empty())
+	{
+		cmd->SetStealthLinkDeviceId(deviceId.c_str());
+	}
+	if (!dicomOutputDirectory.empty())
+	{
+		cmd->SetDicomImagesOutputDirectory(dicomOutputDirectory.c_str());
+	}
+	client->SendCommand(cmd);
+}
 //----------------------------------------------------------------------------
 void ExecuteGetChannelIds(vtkPlusOpenIGTLinkClient* client)
 {
@@ -305,7 +319,7 @@ void ExecuteSaveConfig(vtkPlusOpenIGTLinkClient* client, const std::string &outp
 PlusStatus PrintReply(vtkPlusOpenIGTLinkClient* client)
 {
   std::string reply;
-  const double replyTimeoutSec=10;
+  const double replyTimeoutSec=20;
   if (client->ReceiveReply(reply, replyTimeoutSec)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to receive reply to the command");
@@ -357,6 +371,7 @@ int main( int argc, char** argv )
   std::string transformDate;
   std::string transformPersistent;
   std::string transformValue;
+  std::string dicomOutputDirectory;
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
   bool keepConnected=false;
 
@@ -367,7 +382,7 @@ int main( int argc, char** argv )
   args.AddArgument( "--port", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverPort, "Port address of the OpenIGTLink server (default: 18944)" );
   args.AddArgument( "--command", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &command, 
     "Command name to be executed on the server (START_ACQUISITION, STOP_ACQUISITION, SUSPEND_ACQUISITION, RESUME_ACQUISITION, \
-    RECONSTRUCT, START_RECONSTRUCTION, SUSPEND_RECONSTRUCTION, RESUME_RECONSTRUCTION, STOP_RECONSTRUCTION, GET_RECONSTRUCTION_SNAPSHOT, GET_CHANNEL_IDS, GET_DEVICE_IDS)" );
+    RECONSTRUCT, START_RECONSTRUCTION, SUSPEND_RECONSTRUCTION, RESUME_RECONSTRUCTION, STOP_RECONSTRUCTION, GET_RECONSTRUCTION_SNAPSHOT, GET_CHANNEL_IDS, GET_DEVICE_IDS, GET_EXAM_DATA)" );
   args.AddArgument( "--device", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceId, "ID of the controlled device (optional, default: first VirtualStreamCapture or VirtualVolumeReconstructor device). In case of GET_DEVICE_IDS it is not an ID but a device type." );
   args.AddArgument( "--input-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFilename, "File name of the input, used for RECONSTRUCT command" );
   args.AddArgument( "--output-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFilename, "File name of the output, used for START command (optional, default: 'PlusServerRecording.mha' for acquisition, no output for volume reconstruction)" );
@@ -379,7 +394,8 @@ int main( int argc, char** argv )
   args.AddArgument( "--transform-value", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformValue, "The actual transformation matrix to update." );
   args.AddArgument( "--keep-connected", vtksys::CommandLineArguments::NO_ARGUMENT, &keepConnected, "Keep the connection to the server after command completion (exits on CTRL-C).");  
   args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)" );
-
+  args.AddArgument( "--dicom-directory", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &dicomOutputDirectory, "The folder directory for the dicom images acquired from the StealthLink Server");
+   
   if ( !args.Parse() )
   {
     std::cerr << "Problem parsing arguments." << std::endl;
@@ -425,6 +441,7 @@ int main( int argc, char** argv )
     else if (STRCASECMP(command.c_str(),"GET_DEVICE_IDS")==0) { ExecuteGetDeviceIds(client, deviceId /* actually a device type */); }
     else if (STRCASECMP(command.c_str(), "UPDATE_TRANSFORM")==0) { ExecuteUpdateTransform(client, transformName, transformValue, transformError, transformDate, transformPersistent); }
     else if (STRCASECMP(command.c_str(), "SAVE_CONFIG")==0) { ExecuteSaveConfig(client, outputFilename); }
+	else if (STRCASECMP(command.c_str(), "GET_EXAM_DATA")==0) { ExecuteGetExamData(client, deviceId,dicomOutputDirectory); }
     else
     {
       LOG_ERROR("Unknown command: "<<command);

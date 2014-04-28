@@ -11,6 +11,7 @@ See License.txt for details.
 #include "vtkPlusCommand.h"
 #include "vtkPlusCommandProcessor.h"
 #include "vtkPlusReconstructVolumeCommand.h"
+#include "vtkPlusStealthLinkCommand.h"
 #include "vtkPlusRequestIdsCommand.h"
 #include "vtkPlusSaveConfigCommand.h"
 #include "vtkPlusStartStopRecordingCommand.h"
@@ -51,6 +52,11 @@ vtkPlusCommandProcessor::vtkPlusCommandProcessor()
   }
   {
     vtkPlusCommand* cmd = vtkPlusSaveConfigCommand::New();
+    RegisterPlusCommand(cmd);
+    cmd->Delete();
+  }
+  {
+    vtkPlusCommand* cmd = vtkPlusStealthLinkCommand::New();
     RegisterPlusCommand(cmd);
     cmd->Delete();
   }

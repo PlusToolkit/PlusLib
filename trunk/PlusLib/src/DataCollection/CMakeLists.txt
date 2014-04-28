@@ -67,7 +67,7 @@ if (WIN32)
     itkFcsvWriter.h
     vtkPlusBuffer.h 
     UsSimulatorVideo/vtkUsSimulatorVideoSource.h
-	vtkUsImagingParameters.h
+    vtkUsImagingParameters.h
     )
 endif (WIN32)  
 
@@ -605,20 +605,20 @@ IF (PLUS_USE_STEALTHLINK)
   endif (WIN32)  
   
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
-    ${STEALTHLINK2_INCLUDE_DIRS} 
+    ${STEALTHLINK_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/StealthLink
     )
   
   SET (DataCollection_LIBS ${DataCollection_LIBS} 
-    optimized ${STEALTHLINK2_STEALTHLINK_STATIC_LIBRARY}
-    debug ${STEALTHLINK2_STEALTHLINKD_STATIC_LIBRARY}
+    optimized ${STEALTHLINK_STEALTHLINK_STATIC_LIBRARY}
+    debug ${STEALTHLINK_STEALTHLINKD_STATIC_LIBRARY}
     )
 
   SET ( External_Libraries_Install ${External_Libraries_Install}
-    ${STEALTHLINK2_STEALTHLINK_SHARED_LIBRARY}
+    ${STEALTHLINK_STEALTHLINK_SHARED_LIBRARY}
     )
   SET ( External_Libraries_Debug ${External_Libraries_Debug} 
-    ${STEALTHLINK2_STEALTHLINKD_SHARED_LIBRARY}
+    ${STEALTHLINK_STEALTHLINKD_SHARED_LIBRARY}
     )
 ENDIF (PLUS_USE_STEALTHLINK)
 
@@ -778,23 +778,27 @@ SET(vcProj_vtkDataCollection vtkDataCollection;"${PlusLib_BINARY_DIR}/src/DataCo
 # --------------------------------------------------------------------------
 # Copy external libraries to PLUS_EXECUTABLE_OUTPUT_PATH
 IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
-	MESSAGE( " External_Libraries_Install " ${External_Libraries_Install})
+    MESSAGE( " External_Libraries_Install " ${External_Libraries_Install})
     FILE(COPY ${External_Libraries_Install}
         DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release
         )
-	#Find the file names of the debug shared libraries
-	FOREACH (DEBUG ${External_Libraries_Debug})
-		get_filename_component(FileName ${DEBUG} NAME)
-		SET(External_Libraries_Debug_FileName ${External_Libraries_Debug_FileName} ${FileName})
-	ENDFOREACH(DEBUG)	
-	#Extract the release shared libraries that have the same name as debug shared libraries
-	FOREACH (RELEASE ${External_Libraries_Install})
-		get_filename_component(FileName ${RELEASE} NAME)
-		list(FIND External_Libraries_Debug_FileName ${FileName} HasTheFileName)
-	IF(HasTheFileName EQUAL -1)
-		SET(External_Libraries_Install_Minus_Debug ${External_Libraries_Install_Minus_Debug} ${RELEASE})
-	ENDIF()
-	ENDFOREACH(RELEASE)
+    # If debug and release dll has the same name then the debug dll would be
+    # overwritten by the file copy. To prevent this, copy only those release dlls
+    # that has no corresponding debug dll with the same filename.
+
+    #Find the file names of the debug shared libraries
+    FOREACH (DEBUG ${External_Libraries_Debug})
+        get_filename_component(FileName ${DEBUG} NAME)
+        SET(External_Libraries_Debug_FileName ${External_Libraries_Debug_FileName} ${FileName})
+    ENDFOREACH(DEBUG)    
+    #Extract the release shared libraries that have the same name as debug shared libraries
+    FOREACH (RELEASE ${External_Libraries_Install})
+        get_filename_component(FileName ${RELEASE} NAME)
+        list(FIND External_Libraries_Debug_FileName ${FileName} HasTheFileName)
+    IF(HasTheFileName EQUAL -1)
+        SET(External_Libraries_Install_Minus_Debug ${External_Libraries_Install_Minus_Debug} ${RELEASE})
+    ENDIF()
+    ENDFOREACH(RELEASE)
     FILE(COPY ${External_Libraries_Install_Minus_Debug}
         DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Debug
         )                

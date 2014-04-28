@@ -37,6 +37,39 @@ struct PlusCommandReply
   vtkMatrix4x4* ImageToReferenceTransform;
 };
 
+/*
+struct PlusCommandReply
+{
+  PlusCommandReply()
+  : ClientId(0), ImageData(NULL), ImageToReferenceTransform(NULL)
+  {
+  }
+  unsigned int ClientId;
+  std::string DeviceName;
+};
+
+struct PlusCommandStringReply : public PlusCommandReply
+{
+  PlusCommandReply()
+  : ClientId(0), ImageData(NULL), ImageToReferenceTransform(NULL)
+  {
+  }
+  std::string Message;
+};
+
+
+struct PlusCommandImageReply : public PlusCommandReply
+{
+  PlusCommandReply()
+  : ClientId(0), ImageData(NULL), ImageToReferenceTransform(NULL)
+  {
+  }
+  std::string ImageName;
+  vtkImageData* ImageData;
+  vtkMatrix4x4* ImageToReferenceTransform;
+};
+
+*/
 typedef std::list<PlusCommandReply> PlusCommandReplyList;
 
 /*!
