@@ -6,7 +6,6 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "vtkDataCollector.h"
-#include "StealthLink\StealthLink.h"
 #include "StealthLink\vtkStealthLinkTracker.h"
 
 #include "vtkImageData.h"
