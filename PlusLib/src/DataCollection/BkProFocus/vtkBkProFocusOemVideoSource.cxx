@@ -590,9 +590,16 @@ PlusStatus vtkBkProFocusOemVideoSource::DecodePngImage(unsigned char* pngBuffer,
   {
     LOG_WARNING("There is padding at the end of PNG lines, image may be skewed");
   }
+  
   decodedImage->SetExtent(0,width-1,0,height-1,0,0);
+
+#if (VTK_MAJOR_VERSION < 6)
   decodedImage->SetScalarTypeToUnsignedChar();
+  decodedImage->SetNumberOfScalarComponents(1);
   decodedImage->AllocateScalars();
+#else
+  decodedImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+#endif
 
   PlusStatus status=PixelCodec::ConvertToGray(BI_RGB, width, height, &(this->Internal->DecodingBuffer[0]), (unsigned char*)decodedImage->GetScalarPointer());
   

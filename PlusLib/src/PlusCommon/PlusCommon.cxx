@@ -393,7 +393,7 @@ PlusStatus PlusCommon::PrintXML(const char* fname, vtkXMLDataElement* elem)
   return PlusCommon::PrintXML(of, vtkIndent(), elem);
 }
 
-#if (VTK_VERSION_MAJOR < 6)
+#if (VTK_MAJOR_VERSION < 6)
 //----------------------------------------------------------------------------
 // A reimplementation of the vtkXMLDataElement::RemoveAttribute method
 // using public APIs. This method works correctly, while the VTK 5.x

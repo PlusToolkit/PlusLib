@@ -446,7 +446,7 @@ PlusStatus vtkVolumeReconstructor::WriteConfiguration(vtkXMLDataElement *config)
   }
   else
   {
-#if (VTK_VERSION_MAJOR < 6)
+#if (VTK_MAJOR_VERSION < 6)
     // Workaround for RemoveAttribute bug in VTK5 (https://www.assembla.com/spaces/plus/tickets/859)
     PlusCommon::RemoveAttribute(reconConfig, "FanAngles");
     PlusCommon::RemoveAttribute(reconConfig, "FanOrigin");
@@ -469,7 +469,7 @@ PlusStatus vtkVolumeReconstructor::WriteConfiguration(vtkXMLDataElement *config)
   }
   else
   {
-#if (VTK_VERSION_MAJOR < 6)
+#if (VTK_MAJOR_VERSION < 6)
     // Workaround for RemoveAttribute bug in VTK5 (https://www.assembla.com/spaces/plus/tickets/859)
     PlusCommon::RemoveAttribute(reconConfig, "NumberOfThreads");
 #else

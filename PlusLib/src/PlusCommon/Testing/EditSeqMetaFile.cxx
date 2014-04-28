@@ -924,7 +924,7 @@ PlusStatus CropRectangle(vtkTrackedFrameList* trackedFrameList, const std::vecto
     int cropImageExtent[6] = {0, cropRectSize[0]-1, 0, cropRectSize[1]-1, 0, 0};
     vtkSmartPointer<vtkImageData> croppedImage = vtkSmartPointer<vtkImageData>::New();
     croppedImage->SetExtent(cropImageExtent);
-#if (VTK_VERSION_MAJOR < 6)
+#if (VTK_MAJOR_VERSION < 6)
     croppedImage->SetScalarTypeToUnsignedChar();
     croppedImage->SetNumberOfScalarComponents(1);
     croppedImage->AllocateScalars();

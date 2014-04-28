@@ -1072,7 +1072,7 @@ double vtkDataCollectorSynchronizer::GetFrameDifference(vtkImageData* frame)
   imgDiff->AllowShiftOn(); 
   imgDiff->SetThreshold(10); 
 
-#if (VTK_VERSION_MAJOR < 6)
+#if (VTK_MAJOR_VERSION < 6)
   imgDiff->SetImage( this->GetBaseFrame() ); 
 #else
   imgDiff->SetImageData( this->GetBaseFrame() ); 

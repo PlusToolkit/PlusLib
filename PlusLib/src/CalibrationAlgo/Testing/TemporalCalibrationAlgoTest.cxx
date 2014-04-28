@@ -85,7 +85,7 @@ void SaveMetricPlot(const char* filename, vtkTable* videoPositionMetric, vtkTabl
   renderWindow->OffScreenRenderingOn(); 
 
   vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter = vtkSmartPointer<vtkWindowToImageFilter>::New();
-  windowToImageFilter->SetInputData_vtk5compatible(renderWindow);
+  windowToImageFilter->SetInput(renderWindow);
   windowToImageFilter->Update();
 
   vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter>::New();

@@ -248,7 +248,7 @@ void* vtkPlusOpenIGTLinkServer::ConnectionReceiverThread( vtkMultiThreader::Thre
 
       int port = -1; 
       std::string address; 
-#if (PLUS_OPENIGTLINK_VERSION_MAJOR > 1) || ( PLUS_OPENIGTLINK_VERSION_MAJOR == 1 && PLUS_OPENIGTLINK_VERSION_MINOR > 9 ) || ( PLUS_OPENIGTLINK_VERSION_MAJOR == 1 && PLUS_OPENIGTLINK_VERSION_MINOR == 9 && PLUS_OPENIGTLINK_VERSION_PATCH > 4 )
+#if (OPENIGTLINK_VERSION_MAJOR > 1) || ( OPENIGTLINK_VERSION_MAJOR == 1 && OPENIGTLINK_VERSION_MINOR > 9 ) || ( OPENIGTLINK_VERSION_MAJOR == 1 && OPENIGTLINK_VERSION_MINOR == 9 && OPENIGTLINK_VERSION_PATCH > 4 )
       client.ClientSocket->GetSocketAddressAndPort(address, port);
 #endif
       LOG_INFO( "Server received new client connection (" << address << ":" << port << ")." );
@@ -552,7 +552,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
         {
           int port = -1; 
           std::string clientAddress; 
-#if (PLUS_OPENIGTLINK_VERSION_MAJOR > 1) || ( PLUS_OPENIGTLINK_VERSION_MAJOR == 1 && PLUS_OPENIGTLINK_VERSION_MINOR > 9 ) || ( PLUS_OPENIGTLINK_VERSION_MAJOR == 1 && PLUS_OPENIGTLINK_VERSION_MINOR == 9 && PLUS_OPENIGTLINK_VERSION_PATCH > 4 )
+#if (OPENIGTLINK_VERSION_MAJOR > 1) || ( OPENIGTLINK_VERSION_MAJOR == 1 && OPENIGTLINK_VERSION_MINOR > 9 ) || ( OPENIGTLINK_VERSION_MAJOR == 1 && OPENIGTLINK_VERSION_MINOR == 9 && OPENIGTLINK_VERSION_PATCH > 4 )
           client.ClientSocket->GetSocketAddressAndPort(clientAddress, port);
 #endif
           // Message received from client, need to lock to modify client info
@@ -739,7 +739,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
     {
       int port = -1; 
       std::string address; 
-#if (PLUS_OPENIGTLINK_VERSION_MAJOR > 1) || ( PLUS_OPENIGTLINK_VERSION_MAJOR == 1 && PLUS_OPENIGTLINK_VERSION_MINOR > 9 ) || ( PLUS_OPENIGTLINK_VERSION_MAJOR == 1 && PLUS_OPENIGTLINK_VERSION_MINOR == 9 && PLUS_OPENIGTLINK_VERSION_PATCH > 4 )
+#if (OPENIGTLINK_VERSION_MAJOR > 1) || ( OPENIGTLINK_VERSION_MAJOR == 1 && OPENIGTLINK_VERSION_MINOR > 9 ) || ( OPENIGTLINK_VERSION_MAJOR == 1 && OPENIGTLINK_VERSION_MINOR == 9 && OPENIGTLINK_VERSION_PATCH > 4 )
       client.ClientSocket->GetSocketAddressAndPort(address, port); 
 #endif
       LOG_INFO( "Client disconnected (" <<  address << ":" << port << ")."); 
@@ -797,7 +797,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::KeepAlive()
     {
       int port = -1; 
       std::string address; 
-#if (PLUS_OPENIGTLINK_VERSION_MAJOR > 1) || ( PLUS_OPENIGTLINK_VERSION_MAJOR == 1 && PLUS_OPENIGTLINK_VERSION_MINOR > 9 ) || ( PLUS_OPENIGTLINK_VERSION_MAJOR == 1 && PLUS_OPENIGTLINK_VERSION_MINOR == 9 && PLUS_OPENIGTLINK_VERSION_PATCH > 4 )
+#if (OPENIGTLINK_VERSION_MAJOR > 1) || ( OPENIGTLINK_VERSION_MAJOR == 1 && OPENIGTLINK_VERSION_MINOR > 9 ) || ( OPENIGTLINK_VERSION_MAJOR == 1 && OPENIGTLINK_VERSION_MINOR == 9 && OPENIGTLINK_VERSION_PATCH > 4 )
       client.ClientSocket->GetSocketAddressAndPort(address, port); 
 #endif
       LOG_INFO( "Client disconnected (" <<  address << ":" << port << ")."); 

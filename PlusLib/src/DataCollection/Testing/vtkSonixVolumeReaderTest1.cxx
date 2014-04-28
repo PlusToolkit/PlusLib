@@ -92,10 +92,7 @@ int main (int argc, char* argv[])
   imageExtractorBase->SetInputData_vtk5compatible(baselineVideoFrame.GetImage()); 
   imageExtractorBase->SetComponents(0,0,0); // we are using only the 0th component
   imageExtractorBase->Update(); 
-
-  vtkSmartPointer<vtkImageData> baselineRGB = vtkSmartPointer<vtkImageData>::New(); 
-  baselineRGB->DeepCopy(imageExtractorBase->GetOutput()); 
-  baselineRGB->Update();
+  vtkImageData* baselineRGB=imageExtractorBase->GetOutput();
 
   if ( sonixVolumeData->GetNumberOfTrackedFrames() < inputFrameNumber )
   {
@@ -116,13 +113,14 @@ int main (int argc, char* argv[])
   vtkSmartPointer<vtkImageExtractComponents> imageExtractorInput =  vtkSmartPointer<vtkImageExtractComponents>::New(); 
   imageExtractorInput->SetInputData_vtk5compatible(videoFrame->GetImage() ); 
   imageExtractorInput->SetComponents(0,0,0); // we are using only the 0th component
-  imageExtractorInput->Update(); 
-  vtkSmartPointer<vtkImageData> frameRGB = vtkSmartPointer<vtkImageData>::New(); 
-  frameRGB->DeepCopy(imageExtractorInput->GetOutput()); 
-  frameRGB->Update(); 
 
+#if (VTK_MAJOR_VERSION < 6)
   imgDiff->SetImage( baselineRGB ); 
-  imgDiff->SetInputData_vtk5compatible( frameRGB ); 
+#else
+  imgDiff->SetImageData( baselineRGB );
+#endif
+
+  imgDiff->SetInputConnection( imageExtractorInput->GetOutputPort() ); 
   imgDiff->Update(); 
 
   double error = imgDiff->GetError(); 

@@ -240,7 +240,7 @@ int vtkUsScanConvertCurvilinear::RequestUpdateExtent (vtkInformation* vtkNotUsed
 }
 
 //----------------------------------------------------------------------------
-#if (VTK_VERSION_MAJOR < 6)
+#if (VTK_MAJOR_VERSION < 6)
 void vtkUsScanConvertCurvilinear::AllocateOutputData(vtkImageData *output, int *uExtent)
 #else
 void vtkUsScanConvertCurvilinear::AllocateOutputData(vtkImageData *output, vtkInformation* outInfo, int *uExtent)
@@ -250,7 +250,7 @@ void vtkUsScanConvertCurvilinear::AllocateOutputData(vtkImageData *output, vtkIn
   // We need to initialize the rest of the voxels to zero.
 
   // Make sure the output is allocated
-#if (VTK_VERSION_MAJOR < 6)
+#if (VTK_MAJOR_VERSION < 6)
   Superclass::AllocateOutputData(output, uExtent);
 #else
   Superclass::AllocateOutputData(output, outInfo, uExtent);
@@ -297,7 +297,7 @@ void vtkUsScanConvertExecute(vtkUsScanConvertCurvilinear *self,
                              int interpolationTableExt[6], int id)
 {
   T *envelope_data=inPtr; // The envelope detected and log-compressed data
-#if (VTK_VERSION_MAJOR < 6)
+#if (VTK_MAJOR_VERSION < 6)
   int numberOfSamples=inData->GetWholeExtent()[1]-inData->GetWholeExtent()[0]+1; // Number of samples in one envelope line
 #else
   int numberOfSamples=inData->GetExtent()[1]-inData->GetExtent()[0]+1; // Number of samples in one envelope line
