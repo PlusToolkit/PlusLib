@@ -132,8 +132,14 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
 
   vtkSmartPointer<vtkImageData> scanLines = vtkSmartPointer<vtkImageData>::New(); // image data containing the scanlines in rows (FM orientation)
   scanLines->SetExtent(0,this->NumberOfSamplesPerScanline-1,0,this->NumberOfScanlines-1,0,0);
+
+#if (VTK_VERSION_MAJOR < 6)
   scanLines->SetScalarTypeToUnsignedChar();
+  scanLines->SetNumberOfScalarComponents(1);
   scanLines->AllocateScalars();
+#else
+  scanLines->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+#endif
 
   // Create BSPTree for fast scanline-model intersection computation
   vtkSmartPointer<vtkPoints> scanLineIntersectionWithModel = vtkSmartPointer<vtkPoints>::New(); 

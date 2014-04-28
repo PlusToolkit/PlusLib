@@ -751,9 +751,7 @@ ENDIF (PLUS_USE_INTERSON_VIDEO)
 # Build the library
 
 SET (DataCollection_LIBS ${DataCollection_LIBS}
-  vtkCommon 
-  vtkHybrid 
-  vtkFiltering 
+  ${VTK_LIBRARIES}
   vtkPlusCommon  
   vtkSignaling
   ${ITK_LIBRARIES}

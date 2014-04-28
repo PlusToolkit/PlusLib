@@ -393,6 +393,7 @@ PlusStatus PlusCommon::PrintXML(const char* fname, vtkXMLDataElement* elem)
   return PlusCommon::PrintXML(of, vtkIndent(), elem);
 }
 
+#if (VTK_VERSION_MAJOR < 6)
 //----------------------------------------------------------------------------
 // A reimplementation of the vtkXMLDataElement::RemoveAttribute method
 // using public APIs. This method works correctly, while the VTK 5.x
@@ -429,6 +430,7 @@ void PlusCommon::RemoveAttribute(vtkXMLDataElement* elem, const char *name)
     elem->SetAttribute(attNames[i].c_str(),attValues[i].c_str());
   }
 }
+#endif
 
 //----------------------------------------------------------------------------
 std::string PlusCommon::GetPlusLibVersionString()

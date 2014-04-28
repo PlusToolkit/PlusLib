@@ -1557,7 +1557,15 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
     vtkImageData *data = vtkImageData::SafeDownCast(this->GetOutputDataObject(0));
     int frameSize[2]={aSource->GetBuffer()->GetFrameSize()[0],aSource->GetBuffer()->GetFrameSize()[1] };
     data->SetExtent(0,frameSize[0]-1,0,frameSize[1]-1,0,0);
+
+#if (VTK_VERSION_MAJOR < 6)
+    data->SetScalarTypeToUnsignedChar();
+    data->SetNumberOfScalarComponents(1); 
     data->AllocateScalars();
+#else
+    data->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+#endif
+
     return 1;
   }
 
@@ -1593,7 +1601,13 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
   int frameSize[2]={0,0};
   this->CurrentStreamBufferItem->GetFrame().GetFrameSize(frameSize);
   data->SetExtent(0,frameSize[0]-1,0,frameSize[1]-1,0,0);
-  data->AllocateScalars();
+#if (VTK_VERSION_MAJOR < 6)
+    data->SetScalarTypeToUnsignedChar();
+    data->SetNumberOfScalarComponents(1); 
+    data->AllocateScalars();
+#else
+    data->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+#endif
   unsigned char *outPtr = (unsigned char *)data->GetScalarPointer();
   memcpy( outPtr, sourcePtr, bytesToCopy);
 

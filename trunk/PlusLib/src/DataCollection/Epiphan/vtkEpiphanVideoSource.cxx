@@ -340,13 +340,21 @@ PlusStatus vtkEpiphanVideoSource::WriteConfiguration(vtkXMLDataElement* config)
   }
   else
   {
-    // TODO: replace the following line by the commented out line after upgrading to VTK 6.x (https://www.assembla.com/spaces/plus/tickets/859)
-    // imageAcquisitionConfig->RemoveAttribute("GrabberLocation");
+#if (VTK_VERSION_MAJOR < 6)
+    // Workaround for RemoveAttribute bug in VTK5 (https://www.assembla.com/spaces/plus/tickets/859)
     PlusCommon::RemoveAttribute(imageAcquisitionConfig,"GrabberLocation");
+#else
+    imageAcquisitionConfig->RemoveAttribute("GrabberLocation");
+#endif
   }
 
-  // SerialNumber is an obsolete attribute, the information is stored onw in GrabberLocation
+  // SerialNumber is an obsolete attribute, the information is stored now in GrabberLocation
+#if (VTK_VERSION_MAJOR < 6)
+  // Workaround for RemoveAttribute bug in VTK5 (https://www.assembla.com/spaces/plus/tickets/859)
+  PlusCommon::RemoveAttribute(imageAcquisitionConfig, "SerialNumber");
+#else
   imageAcquisitionConfig->RemoveAttribute("SerialNumber");
+#endif
 
   // clipping parameters
   imageAcquisitionConfig->SetVectorAttribute("ClipRectangleOrigin", 2, this->GetClipRectangleOrigin());

@@ -27,7 +27,7 @@ template<typename PixelType> PlusStatus PlusVideoFrame::DeepCopyVtkImageToItkIma
 
   // convert vtkImageData to itkImage 
   vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New(); 
-  imageExport->SetInput(inFrame); 
+  imageExport->SetInputData_vtk5compatible(inFrame); 
   imageExport->Update(); 
 
   int extent[6]={0,0,0,0,0,0}; 

@@ -3,7 +3,7 @@
 # --------------------------------------------------------------------------
 # Try to find VTK and include its settings (otherwise complain)
 # 
-FIND_PACKAGE(VTK REQUIRED PATHS ${VTK_DIR} NO_DEFAULT_PATH)
+FIND_PACKAGE(VTK NO_MODULE REQUIRED PATHS ${VTK_DIR} NO_DEFAULT_PATH)
 IF ( VTK_FOUND )
 INCLUDE(${VTK_USE_FILE})
 ELSE ( VTK_FOUND )

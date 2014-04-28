@@ -120,9 +120,6 @@ public:
   /*! Return the number of components */
   int GetNumberOfScalarComponents() const;
 
-  /*! Set the number of components */
-  void SetNumberOfScalarComponents(int numberOfScalarComponents);
-
   /*! Return the image type */
   US_IMAGE_TYPE GetImageType() const;
 

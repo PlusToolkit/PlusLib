@@ -63,7 +63,7 @@ void vtkSpacingCalibAlgo::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkSpacingCalibAlgo::SetInputs(vtkTrackedFrameList* trackedFrameList, const std::vector<NWire>& nWires)
 {
-  LOG_TRACE("vtkSpacingCalibAlgo::SetInput"); 
+  LOG_TRACE("vtkSpacingCalibAlgo::SetInputs"); 
   this->SetTrackedFrameList(trackedFrameList); 
   this->NWires = nWires; 
   this->Modified(); 

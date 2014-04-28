@@ -30,9 +30,7 @@ SET (PlusOpenIGTLink_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" 
 # Build the library
 
 SET (PlusOpenIGTLink_LIBS 
-  vtkCommon 
-  vtkHybrid 
-  vtkFiltering 
+  ${VTK_LIBRARIES} 
   vtkPlusCommon 
   OpenIGTLink
   )

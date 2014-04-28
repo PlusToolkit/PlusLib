@@ -251,9 +251,14 @@ PlusStatus PlusVideoFrame::AllocateFrame(vtkImageData* image, const int imageSiz
   }
 
   image->SetExtent(0, imageSize[0]-1, 0, imageSize[1]-1, 0, 0);
+
+#if (VTK_VERSION_MAJOR < 6)
   image->SetScalarType(pixType);
   image->SetNumberOfScalarComponents(numberOfScalarComponents);
   image->AllocateScalars();
+#else
+  image->AllocateScalars(pixType, numberOfScalarComponents);
+#endif
 
   return PLUS_SUCCESS; 
 }
@@ -349,15 +354,6 @@ int PlusVideoFrame::GetNumberOfScalarComponents() const
   }
 
   return -1;
-}
-
-//----------------------------------------------------------------------------
-void PlusVideoFrame::SetNumberOfScalarComponents( int numberOfScalarComponents )
-{
-  if( IsImageValid() )
-  {
-    return this->Image->SetNumberOfScalarComponents(numberOfScalarComponents);
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -660,9 +656,13 @@ PlusStatus PlusVideoFrame::GetOrientedImage( vtkImageData* inUsImage, US_IMAGE_O
   {
     // Allocate the output image
     outUsOrientedImage->SetExtent(inUsImage->GetExtent());
+#if (VTK_VERSION_MAJOR < 6)
     outUsOrientedImage->SetScalarType(inUsImage->GetScalarType());
     outUsOrientedImage->SetNumberOfScalarComponents(inUsImage->GetNumberOfScalarComponents());
     outUsOrientedImage->AllocateScalars(); 
+#else
+    outUsOrientedImage->AllocateScalars(inUsImage->GetScalarType(), inUsImage->GetNumberOfScalarComponents());
+#endif
   }
 
   int numberOfBytesPerScalar = PlusVideoFrame::GetNumberOfBytesPerScalar(inUsImage->GetScalarType());

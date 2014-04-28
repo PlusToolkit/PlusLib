@@ -352,7 +352,7 @@ int main(int argc, char* argv[])
       // Show the live ultrasound image in a VTK renderer window
 
       vtkSmartPointer<vtkImageViewer> viewer = vtkSmartPointer<vtkImageViewer>::New();
-      viewer->SetInput(vtkImageData::SafeDownCast(sonixGrabber->GetOutputDataObject(0)));   //set image to the render and window
+      viewer->SetInputConnection(sonixGrabber->GetOutputPort());   //set image to the render and window
       viewer->SetColorWindow(255);
       viewer->SetColorLevel(127.5);
       viewer->SetZSlice(0);

@@ -70,8 +70,8 @@ int SimpleCompareVolumes(vtkImageData* testVol, vtkImageData* refVol, double sim
 
   vtkSmartPointer<vtkImageMathematics> imageDiff = vtkSmartPointer<vtkImageMathematics>::New();
   imageDiff->SetOperationToSubtract();
-  imageDiff->SetInput( 0, testVol );
-  imageDiff->SetInput( 1, refVol );
+  imageDiff->SetInputData_vtk5compatible( 0, testVol );
+  imageDiff->SetInputData_vtk5compatible( 1, refVol );
 
   vtkSmartPointer<vtkImageMathematics> imageAbsDiff = vtkSmartPointer<vtkImageMathematics>::New();
   imageAbsDiff->SetOperationToAbsoluteValue();
@@ -278,31 +278,31 @@ int main( int argc, char** argv )
         exit(EXIT_FAILURE);
     }
 
-    clipGT->SetInput(groundTruth);
+    clipGT->SetInputData_vtk5compatible(groundTruth);
     clipGT->SetClipData(1);
     clipGT->SetOutputWholeExtent(roiExtent);
     clipGT->Update();
     groundTruthRoi = clipGT->GetOutput();
         
-    clipGTAlpha->SetInput(groundTruthAlpha);
+    clipGTAlpha->SetInputData_vtk5compatible(groundTruthAlpha);
     clipGTAlpha->SetClipData(1);
     clipGTAlpha->SetOutputWholeExtent(roiExtent);
     clipGTAlpha->Update();
     groundTruthAlphaRoi = clipGTAlpha->GetOutput();
 
-    clipTest->SetInput(testingImage);
+    clipTest->SetInputData_vtk5compatible(testingImage);
     clipTest->SetClipData(1);
     clipTest->SetOutputWholeExtent(roiExtent);
     clipTest->Update();
     testingImageRoi = clipTest->GetOutput();
         
-    clipTestAlpha->SetInput(testingAlpha);
+    clipTestAlpha->SetInputData_vtk5compatible(testingAlpha);
     clipTestAlpha->SetClipData(1);
     clipTestAlpha->SetOutputWholeExtent(roiExtent);
     clipTestAlpha->Update();
     testingAlphaRoi = clipTestAlpha->GetOutput();
     
-    clipSlicesAlpha->SetInput(slicesAlpha);
+    clipSlicesAlpha->SetInputData_vtk5compatible(slicesAlpha);
     clipSlicesAlpha->SetClipData(1);
     clipSlicesAlpha->SetOutputWholeExtent(roiExtent);
     clipSlicesAlpha->Update();
@@ -427,7 +427,7 @@ int main( int argc, char** argv )
     LOG_INFO("Writing absolute difference image: " << outputAbsoluteDiffFileName);
     vtkSmartPointer<vtkDataSetWriter> writerAbs = vtkSmartPointer<vtkDataSetWriter>::New();
     writerAbs->SetFileTypeToBinary();
-    writerAbs->SetInput(histogramGenerator->GetOutputAbsoluteDifferenceImage());
+    writerAbs->SetInputData_vtk5compatible(histogramGenerator->GetOutputAbsoluteDifferenceImage());
     writerAbs->SetFileName(outputAbsoluteDiffFileName.c_str());
     writerAbs->Update();
   }
@@ -437,7 +437,7 @@ int main( int argc, char** argv )
     LOG_INFO("Writing true difference image: " << outputTrueDiffFileName);
     vtkSmartPointer<vtkDataSetWriter> writerTru = vtkSmartPointer<vtkDataSetWriter>::New();
     writerTru->SetFileTypeToBinary();
-    writerTru->SetInput(histogramGenerator->GetOutputTrueDifferenceImage());
+    writerTru->SetInputData_vtk5compatible(histogramGenerator->GetOutputTrueDifferenceImage());
     writerTru->SetFileName(outputTrueDiffFileName.c_str());
     writerTru->Update();
   }

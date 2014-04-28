@@ -2,7 +2,7 @@ SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 ADD_EXECUTABLE(RfProcessor RfProcessor.cxx )
-TARGET_LINK_LIBRARIES(RfProcessor vtkRfProcessingAlgo vtkCommon )
+TARGET_LINK_LIBRARIES(RfProcessor vtkRfProcessingAlgo ${VTK_LIBRARIES} )
 
 # --------------------------------------------------------------------------
 ADD_TEST(vtkRfToBrightnessConvertRunTest
