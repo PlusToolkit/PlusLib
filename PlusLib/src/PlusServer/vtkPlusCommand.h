@@ -133,10 +133,17 @@ protected:
 
   char* Name;
 
+  // STRING message
   std::string ResponseMessage;
+
+  // IMAGE message
   vtkImageData* ResponseImage;
   std::string ResponseImageDeviceName;
   vtkMatrix4x4* ResponseImageToReferenceTransform;
+
+  // TRANSFORM message
+  //std::string ResponseTransformDeviceName;
+  //vtkMatrix4x4* ResponseTransformMatrix;
       
 private:  
   vtkPlusCommand( const vtkPlusCommand& );

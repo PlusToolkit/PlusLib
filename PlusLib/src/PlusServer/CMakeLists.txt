@@ -10,6 +10,7 @@ SET (PlusServer_SRCS
   vtkPlusRequestIdsCommand.cxx 
   vtkPlusUpdateTransformCommand.cxx 
   vtkPlusSaveConfigCommand.cxx 
+  vtkPlusStealthLinkCommand.cxx
   )
   
 IF (WIN32)  
@@ -23,6 +24,7 @@ IF (WIN32)
     vtkPlusRequestIdsCommand.h 
     vtkPlusUpdateTransformCommand.h 
     vtkPlusSaveConfigCommand.h 
+	vtkPlusStealthLinkCommand.h
     )
 ENDIF (WIN32)  
 
