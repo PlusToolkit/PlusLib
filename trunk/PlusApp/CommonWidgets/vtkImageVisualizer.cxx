@@ -35,7 +35,6 @@ static const double ORIENTATION_MARKER_CONE_HEIGHT = 15.0;
 vtkImageVisualizer::vtkImageVisualizer()
 : CanvasRenderer(NULL)
 , ImageActor(NULL)
-//, ResultPolyData(NULL)
 , ResultActor(NULL)
 , ResultGlyph(NULL)
 , ImageCamera(NULL)
@@ -98,13 +97,9 @@ vtkImageVisualizer::~vtkImageVisualizer()
 {
   ClearScreenAlignedActorList();
 
-  if (this->ScreenAlignedProps!= NULL) {
-    this->ScreenAlignedProps->Delete();
-    this->ScreenAlignedProps=NULL;
-  }
+  this->SetScreenAlignedProps(NULL);
 
   this->SetResultActor(NULL);
-  //this->SetResultPolyData(NULL);
   this->SetCanvasRenderer(NULL);
   this->SetImageActor(NULL);
   this->SetImageCamera(NULL);
@@ -140,9 +135,6 @@ PlusStatus vtkImageVisualizer::InitializeOrientationMarkers()
   vtkSmartPointer<vtkAssembly> assembly = vtkSmartPointer<vtkAssembly>::New();
   this->SetOrientationMarkerAssembly(assembly);
 
-
-
-  // Since the internal orientation is always MF, display the indicators for MF in all cases
   vtkSmartPointer<vtkTextActor3D> horizontalOrientationTextActor = vtkSmartPointer<vtkTextActor3D>::New();
   horizontalOrientationTextActor->GetTextProperty()->SetColor(ORIENTATION_MARKER_COLOR);
   horizontalOrientationTextActor->GetTextProperty()->SetFontFamilyToArial();
@@ -168,8 +160,6 @@ PlusStatus vtkImageVisualizer::InitializeOrientationMarkers()
   verticalOrientationTextActor->SetPosition(VERTICAL_TEXT_ORIENTATION_MARKER_OFFSET);
   this->SetVerticalOrientationTextActor(verticalOrientationTextActor);
   this->OrientationMarkerAssembly->AddPart(verticalOrientationTextActor);
-
-
 
   vtkSmartPointer<vtkActor> horizontalLineActor = vtkSmartPointer<vtkActor>::New();
   vtkSmartPointer<vtkPolyDataMapper> horizontalLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -241,7 +231,7 @@ PlusStatus vtkImageVisualizer::UpdateOrientationMarkerLabelling()
   this->GetVerticalOrientationTextActor()->GetBounds();
 
   // Change the letters on the display to indicate the new orientation
-  switch(CurrentMarkerOrientation)
+  switch(this->CurrentMarkerOrientation)
   {
   case US_IMG_ORIENT_MF:
     this->GetHorizontalOrientationTextActor()->SetInput("M");
@@ -287,18 +277,16 @@ PlusStatus vtkImageVisualizer::UpdateCameraPose()
   LOG_TRACE("vtkImageVisualizer::UpdateCameraPose");
 
   // Only set new camera if image actor is visible and data collector is connected
-  if ((this->ImageActor == NULL) || (this->ImageActor->GetVisibility() == 0))
+  if ((this->ImageActor == NULL) || (this->ImageActor->GetVisibility() == 0) || (this->SelectedChannel==NULL) )
   {
     return PLUS_SUCCESS;
   }
 
   // Calculate image center
-  double imageCenterX = 0;
-  double imageCenterY = 0;
-  int dimensions[2];
+  int dimensions[2]={0,0};
   this->SelectedChannel->GetBrightnessFrameSize(dimensions);
-  imageCenterX = dimensions[0] / 2.0;
-  imageCenterY = dimensions[1] / 2.0;
+  double imageCenterX = dimensions[0] / 2.0;
+  double imageCenterY = dimensions[1] / 2.0;
 
   // Set up camera
   vtkSmartPointer<vtkCamera> imageCamera = vtkSmartPointer<vtkCamera>::New(); 
@@ -334,7 +322,7 @@ PlusStatus vtkImageVisualizer::UpdateCameraPose()
   // and/or position the camera on the +z or -z side of the image plane.
   // This depends on having back face culling disabled.
   double cameraPos[3] = {imageCenterX, imageCenterY, -MAX_WIDGET_THICKNESS - 1};
-  switch(CurrentMarkerOrientation)
+  switch(this->CurrentMarkerOrientation)
   {
   case US_IMG_ORIENT_UN:
     {
@@ -395,7 +383,7 @@ PlusStatus vtkImageVisualizer::SetScreenRightDownAxesOrientation( US_IMAGE_ORIEN
 {
   LOG_TRACE("vtkImageVisualizer::SetScreenRightDownAxesOrientation(" << aOrientation << ")");
 
-  CurrentMarkerOrientation = aOrientation;
+  this->CurrentMarkerOrientation = aOrientation;
 
   vtkXMLDataElement* renderingParameters = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("Rendering");
   if (renderingParameters == NULL) {
@@ -564,82 +552,84 @@ PlusStatus vtkImageVisualizer::UpdateScreenAlignedActors()
 {
   LOG_TRACE("vtkImageVisualizer::UpdateScreenAlignedActors");
 
-  int dimensions[2];
+  // Only set new camera if image actor is visible and data collector is connected
+  if (this->SelectedChannel==NULL)
+  {
+    return PLUS_SUCCESS;
+  }
 
-  this->SelectedChannel->GetBrightnessFrameSize(dimensions);
-  double newPosition[3];
-  double originalPosition[3];
+  int dimensions[2]={0};
+  this->SelectedChannel->GetBrightnessFrameSize(dimensions);    
 
-  // Declare a local scope
-  {      
-    vtkCollectionSimpleIterator pit;
-    vtkProp3D *prop=NULL;
-    int i = 0;
-    for ( this->ScreenAlignedProps->InitTraversal(pit); prop = this->ScreenAlignedProps->GetNextProp3D(pit); ++i)
+  vtkCollectionSimpleIterator pit;
+  vtkProp3D *prop=NULL;
+  int i = 0;
+  for ( this->ScreenAlignedProps->InitTraversal(pit); prop = this->ScreenAlignedProps->GetNextProp3D(pit); ++i)
+  {
+    // Undo any existing rotations to the prop, so that all subsequent rotations are from a base orientation
+    // Base orientation is MF_SCREEN_RIGHT_DOWN
+    prop->RotateX(-this->ScreenAlignedCurrentXRotation);
+    prop->RotateY(-this->ScreenAlignedCurrentYRotation);
+
+    // Future work: instead of saving the original position of a prop (which will prevent any clients from changing the position of the prop after adding it)
+    // determine a method to back calculate the original position
+    // Possible solution is to pass in the previous orientation, then reverse the following calculations
+    double originalPosition[3]={0};
+    originalPosition[0] = this->ScreenAlignedPropOriginalPosition.at(i).at(0);
+    originalPosition[1] = this->ScreenAlignedPropOriginalPosition.at(i).at(1);
+    originalPosition[2] = this->ScreenAlignedPropOriginalPosition.at(i).at(2);      
+
+    // Apply any necessary rotations and repositioning
+    double newPosition[3]={0};
+    switch(this->CurrentMarkerOrientation)
     {
-      // Undo any existing rotations to the prop, so that all subsequent rotations are from a base orientation
-      // Base orientation is MF_SCREEN_RIGHT_DOWN
-      prop->RotateX(-ScreenAlignedCurrentXRotation);
-      prop->RotateY(-ScreenAlignedCurrentYRotation);
-
-      // Future work: instead of saving the original position of a prop (which will prevent any clients from changing the position of the prop after adding it)
-      // determine a method to back calculate the original position
-      // Possible solution is to pass in the previous orientation, then reverse the following calculations
-      originalPosition[0] = ScreenAlignedPropOriginalPosition.at(i).at(0);
-      originalPosition[1] = ScreenAlignedPropOriginalPosition.at(i).at(1);
-      originalPosition[2] = ScreenAlignedPropOriginalPosition.at(i).at(2);
-
-      // Apply any necessary rotations and repositioning
-      switch(CurrentMarkerOrientation)
-      {
-      case US_IMG_ORIENT_MF:
-        newPosition[0] = originalPosition[0];
-        newPosition[1] = originalPosition[1];
-        newPosition[2] = originalPosition[2];
-        break;
-      case US_IMG_ORIENT_MN:
-        prop->RotateX(180);
-        newPosition[0] = originalPosition[0];
-        newPosition[1] = dimensions[1] - originalPosition[1];
-        newPosition[2] = -originalPosition[2];
-        break;
-      case US_IMG_ORIENT_UN:
-        prop->RotateX(180);
-        prop->RotateY(180);
-        newPosition[0] = dimensions[0] - originalPosition[0];
-        newPosition[1] = dimensions[1] - originalPosition[1];
-        newPosition[2] = originalPosition[2];
-        break;
-      case US_IMG_ORIENT_UF:
-        prop->RotateY(180);
-        newPosition[0] = dimensions[0] - originalPosition[0];
-        newPosition[1] = originalPosition[1];
-        newPosition[2] = -originalPosition[2];
-        break;
-      }
-
-      prop->SetPosition(newPosition[0], newPosition[1], newPosition[2]);
+    case US_IMG_ORIENT_MF:
+      newPosition[0] = originalPosition[0];
+      newPosition[1] = originalPosition[1];
+      newPosition[2] = originalPosition[2];
+      break;
+    case US_IMG_ORIENT_MN:
+      prop->RotateX(180);
+      newPosition[0] = originalPosition[0];
+      newPosition[1] = dimensions[1] - originalPosition[1];
+      newPosition[2] = -originalPosition[2];
+      break;
+    case US_IMG_ORIENT_UN:
+      prop->RotateX(180);
+      prop->RotateY(180);
+      newPosition[0] = dimensions[0] - originalPosition[0];
+      newPosition[1] = dimensions[1] - originalPosition[1];
+      newPosition[2] = originalPosition[2];
+      break;
+    case US_IMG_ORIENT_UF:
+      prop->RotateY(180);
+      newPosition[0] = dimensions[0] - originalPosition[0];
+      newPosition[1] = originalPosition[1];
+      newPosition[2] = -originalPosition[2];
+      break;
     }
+
+    prop->SetPosition(newPosition);
   }
 
   // Now update the member variables so that future rotations correctly undo the current rotations
-  switch(CurrentMarkerOrientation)
+  switch(this->CurrentMarkerOrientation)
   {
   case US_IMG_ORIENT_MF:
-    ScreenAlignedCurrentXRotation = 0;
-    ScreenAlignedCurrentYRotation = 0;
+    this->ScreenAlignedCurrentXRotation = 0;
+    this->ScreenAlignedCurrentYRotation = 0;
     break;
   case US_IMG_ORIENT_MN:
-    ScreenAlignedCurrentYRotation = 0;
-    ScreenAlignedCurrentXRotation = 180;
+    this->ScreenAlignedCurrentYRotation = 0;
+    this->ScreenAlignedCurrentXRotation = 180;
     break;
   case US_IMG_ORIENT_UN:
-    ScreenAlignedCurrentXRotation = 180.0;
-    ScreenAlignedCurrentYRotation = 180.0;
+    this->ScreenAlignedCurrentXRotation = 180.0;
+    this->ScreenAlignedCurrentYRotation = 180.0;
     break;
   case US_IMG_ORIENT_UF:
-    ScreenAlignedCurrentYRotation = 180.0;
-    ScreenAlignedCurrentXRotation = 0;
+    this->ScreenAlignedCurrentYRotation = 180.0;
+    this->ScreenAlignedCurrentXRotation = 0;
     break;
   }
 
@@ -733,7 +723,7 @@ PlusStatus vtkImageVisualizer::SetROIBounds( int xMin, int xMax, int yMin, int y
   }
 
   double zPos = -1.0;
-  if( CurrentMarkerOrientation == US_IMG_ORIENT_MN || CurrentMarkerOrientation == US_IMG_ORIENT_UF )
+  if( this->CurrentMarkerOrientation == US_IMG_ORIENT_MN || this->CurrentMarkerOrientation == US_IMG_ORIENT_UF )
   {
     zPos = 1.0;
   }
@@ -762,33 +752,33 @@ PlusStatus vtkImageVisualizer::InitializeROIVisualization()
 
   vtkSmartPointer<vtkActor> leftLineActor = vtkSmartPointer<vtkActor>::New();
   vtkSmartPointer<vtkPolyDataMapper> leftLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  LeftLineSource = vtkLineSource::New();
+  this->LeftLineSource = vtkLineSource::New();
   leftLineActor->GetProperty()->SetColor(ROI_COLOR);
-  leftLineMapper->SetInputConnection(LeftLineSource->GetOutputPort());
+  leftLineMapper->SetInputConnection(this->LeftLineSource->GetOutputPort());
   leftLineActor->SetMapper(leftLineMapper);
   this->ROIActorAssembly->AddPart(leftLineActor);
 
   vtkSmartPointer<vtkActor> topLineActor = vtkSmartPointer<vtkActor>::New();
   vtkSmartPointer<vtkPolyDataMapper> topLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  TopLineSource = vtkLineSource::New();
+  this->TopLineSource = vtkLineSource::New();
   topLineActor->GetProperty()->SetColor(ROI_COLOR);
-  topLineMapper->SetInputConnection(TopLineSource->GetOutputPort());
+  topLineMapper->SetInputConnection(this->TopLineSource->GetOutputPort());
   topLineActor->SetMapper(topLineMapper);
   this->ROIActorAssembly->AddPart(topLineActor);
 
   vtkSmartPointer<vtkActor> rightLineActor = vtkSmartPointer<vtkActor>::New();
   vtkSmartPointer<vtkPolyDataMapper> rightLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  RightLineSource = vtkLineSource::New();
+  this->RightLineSource = vtkLineSource::New();
   rightLineActor->GetProperty()->SetColor(ROI_COLOR);
-  rightLineMapper->SetInputConnection(RightLineSource->GetOutputPort());
+  rightLineMapper->SetInputConnection(this->RightLineSource->GetOutputPort());
   rightLineActor->SetMapper(rightLineMapper);
   this->ROIActorAssembly->AddPart(rightLineActor);
 
   vtkSmartPointer<vtkActor> bottomLineActor = vtkSmartPointer<vtkActor>::New();
   vtkSmartPointer<vtkPolyDataMapper> bottomLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  BottomLineSource = vtkLineSource::New();
+  this->BottomLineSource = vtkLineSource::New();
   bottomLineActor->GetProperty()->SetColor(ROI_COLOR);
-  bottomLineMapper->SetInputConnection(BottomLineSource->GetOutputPort());
+  bottomLineMapper->SetInputConnection(this->BottomLineSource->GetOutputPort());
   bottomLineActor->SetMapper(bottomLineMapper);
   this->ROIActorAssembly->AddPart(bottomLineActor);
 
@@ -812,11 +802,11 @@ PlusStatus vtkImageVisualizer::EnableROI( bool aEnable )
       LOG_WARNING("Valid ROI is not defined. Check configuration or define valid ROI (Segmentation element, ClipRectangleOrigin and ClipRectangleSize attributes)");
       return PLUS_FAIL;
     }
-    ROIActorAssembly->VisibilityOn();
+    this->ROIActorAssembly->VisibilityOn();
   } 
   else 
   {
-    ROIActorAssembly->VisibilityOff();
+    this->ROIActorAssembly->VisibilityOff();
   }
 
   return PLUS_SUCCESS;
@@ -828,7 +818,7 @@ PlusStatus vtkImageVisualizer::EnableWireLabels( bool aEnable )
 {
   LOG_TRACE("vtkImageVisualizer::EnableWireLabels");
 
-  for( std::vector<vtkTextActor3D*>::iterator it = WireActors.begin(); it != WireActors.end(); ++it )
+  for( std::vector<vtkTextActor3D*>::iterator it = this->WireActors.begin(); it != this->WireActors.end(); ++it )
   {
     if (aEnable) 
     {
@@ -914,7 +904,7 @@ PlusStatus vtkImageVisualizer::InitializeWireLabelVisualization(vtkXMLDataElemen
           textActor->GetTextProperty()->BoldOn(); 
           textActor->SetInput(wireName);
           textActor->RotateWXYZ(180.0, 1.0, 0.0, 0.0);
-          WireActors.push_back(textActor);
+          this->WireActors.push_back(textActor);
           textActor->SetPosition(0.0, 0.0, -1.0);
           this->AddScreenAlignedProp(textActor);
         }
@@ -946,7 +936,7 @@ PlusStatus vtkImageVisualizer::SetWireLabelPositions( vtkPoints* aPointList )
     return PLUS_SUCCESS;
   }
 
-  if( aPointList->GetNumberOfPoints() != WireActors.size() )
+  if( aPointList->GetNumberOfPoints() != this->WireActors.size() )
   {
     this->EnableWireLabels(false);
     LOG_ERROR("Number of candidates does not match the number of wire labels.");
@@ -956,7 +946,7 @@ PlusStatus vtkImageVisualizer::SetWireLabelPositions( vtkPoints* aPointList )
   for( int i = 0; i < aPointList->GetNumberOfPoints(); ++i )
   {
     double* coords = aPointList->GetPoint(i);
-    vtkTextActor3D* actor = WireActors.at(i);
+    vtkTextActor3D* actor = this->WireActors.at(i);
     actor->SetPosition(coords[0] - 10.0, coords[1] - 10.0, actor->GetPosition()[2]);
 
     // Since we would like the screen aligned prop system to manage the orientation of these for us,
@@ -994,11 +984,11 @@ PlusStatus vtkImageVisualizer::Reset()
 
 PlusStatus vtkImageVisualizer::ClearWireLabelVisualization()
 {
-  for( std::vector<vtkTextActor3D*>::iterator it = WireActors.begin(); it != WireActors.end(); ++it )
+  for( std::vector<vtkTextActor3D*>::iterator it = this->WireActors.begin(); it != this->WireActors.end(); ++it )
   {
     this->RemoveScreenAlignedProp(*it);
   }
-  WireActors.clear();
+  this->WireActors.clear();
 
   return PLUS_SUCCESS;
 }
