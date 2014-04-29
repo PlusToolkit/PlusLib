@@ -16,7 +16,9 @@ See License.txt for details.
 #include "vtkPlusSaveConfigCommand.h"
 #include "vtkPlusStartStopRecordingCommand.h"
 #include "vtkPlusUpdateTransformCommand.h"
-#include "vtkPlusStealthLinkCommand.h"
+#ifdef PLUS_USE_STEALTHLINK
+  #include "vtkPlusStealthLinkCommand.h"
+#endif
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkXMLUtilities.h"
 
@@ -237,6 +239,8 @@ void ExecuteStopReconstruction(vtkPlusOpenIGTLinkClient* client, const std::stri
   }
   client->SendCommand(cmd);
 }
+//----------------------------------------------------------------------------
+#ifdef PLUS_USE_STEALTHLINK
 void ExecuteGetExamData(vtkPlusOpenIGTLinkClient* client,const std::string &deviceId, const std::string &dicomOutputDirectory)
 {
 	vtkSmartPointer<vtkPlusStealthLinkCommand> cmd=vtkSmartPointer<vtkPlusStealthLinkCommand>::New();
@@ -251,6 +255,7 @@ void ExecuteGetExamData(vtkPlusOpenIGTLinkClient* client,const std::string &devi
 	}
 	client->SendCommand(cmd);
 }
+#endif
 //----------------------------------------------------------------------------
 void ExecuteGetChannelIds(vtkPlusOpenIGTLinkClient* client)
 {
@@ -441,7 +446,15 @@ int main( int argc, char** argv )
     else if (STRCASECMP(command.c_str(),"GET_DEVICE_IDS")==0) { ExecuteGetDeviceIds(client, deviceId /* actually a device type */); }
     else if (STRCASECMP(command.c_str(), "UPDATE_TRANSFORM")==0) { ExecuteUpdateTransform(client, transformName, transformValue, transformError, transformDate, transformPersistent); }
     else if (STRCASECMP(command.c_str(), "SAVE_CONFIG")==0) { ExecuteSaveConfig(client, outputFilename); }
-	else if (STRCASECMP(command.c_str(), "GET_EXAM_DATA")==0) { ExecuteGetExamData(client, deviceId,dicomOutputDirectory); }
+	  else if (STRCASECMP(command.c_str(), "GET_EXAM_DATA")==0)
+    {
+#ifdef PLUS_USE_STEALTHLINK
+      ExecuteGetExamData(client, deviceId,dicomOutputDirectory);
+#else
+      LOG_ERROR("Plus is not built with StealthLink support");
+      exit(EXIT_FAILURE);
+#endif      
+    }
     else
     {
       LOG_ERROR("Unknown command: "<<command);
