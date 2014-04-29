@@ -220,9 +220,7 @@ PlusStatus vtkPlusStealthLinkCommand::Execute()
   else if (STRCASECMP(this->Name, GET_STEALTHLINK_REGISTRATION_DATA_CMD)==0)
   {    
     LOG_INFO("Acquiring the registration data from StealthLink Server: Device ID: "<<GetStealthLinkDeviceId());
-    
-	MNavStealthLink::Registration registration;
-	MNavStealthLink::Error Err;
+	
 	//if(stealthLinkDevice->UpdateCurrentRegistration()) TODO - Update is protected now so change the name of the function used here
 	//{	
 	//	return PLUS_FAIL;
