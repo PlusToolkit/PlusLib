@@ -1,0 +1,79 @@
+<PlusConfiguration version="2.1">
+
+  <DataCollection StartupDelaySec="1.0">
+    <DeviceSet 
+      Name="PlusServer: NDI Aurora and Polaris tracker"
+      Description="Broadcasting tool tracking data through OpenIGTLink
+      Tracking a single EM pointer and an optical pointer and reference." />
+
+    <Device
+      Id="EmTracker" 
+      Type="AuroraTracker"
+      SerialPort="5"
+      BaudRate="115200"
+      AcquisitionRate="20"
+      LocalTimeOffsetSec="0.0"
+      ToolReferenceFrame="EmTracker" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Pointer" PortName="0" BufferSize="500"/>
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="EmTrackerStream">
+          <DataSource Id="Pointer" />
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+    
+    <Device
+      Id="OpticalTracker"
+      Type="PolarisTracker"
+      SerialPort="6"
+      BaudRate="115200"
+      AcquisitionRate="20"
+      LocalTimeOffsetSec="0.0"
+      ToolReferenceFrame="OpticalTracker" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Stylus" PortName="5" RomFile="8700340.rom" BufferSize="500"/>
+        <DataSource Type="Tool" Id="Reference" PortName="6" RomFile="8700449.rom" BufferSize="500"/>
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="OpticalTrackerStream" >
+          <DataSource Id="Stylus"/>
+          <DataSource Id="Reference"/>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+
+    <Device 
+      Id="CombinedTracker" 
+      Type="VirtualMixer" >
+      <InputChannels>
+        <InputChannel Id="EmTrackerStream" />
+        <InputChannel Id="OpticalTrackerStream" />
+      </InputChannels>
+      <OutputChannels>
+        <OutputChannel Id="CombinedTrackerStream"/>
+      </OutputChannels>
+    </Device>
+    
+  </DataCollection>
+
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="1110" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="CombinedTrackerStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="ReferenceToOpticalTracker" />
+        <Transform Name="StylusToOpticalTracker" />
+        <Transform Name="PointerToEmTracker" />        
+      </TransformNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+  
+</PlusConfiguration>
