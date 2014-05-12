@@ -83,10 +83,7 @@ SET (fCal_LIBS
     ${ITK_LIBRARIES}
     itkvnl 
     itkvnl_algo 
-    vtkCommon 
-    vtkRendering 
-    vtkHybrid 
-    vtkCharts
+    ${VTK_LIBRARIES}
     vtkCalibrationAlgo 
     vtkDataCollection 
     vtkVolumeReconstruction
@@ -98,7 +95,7 @@ ENDIF(PLUS_USE_OpenIGTLink)
 
 ADD_EXECUTABLE( fCal MACOSX_BUNDLE ${fCal_SRCS} ${fCal_UI_HDRS} ${fCal_QT_UI_Headers} ${fCal_QT_UI_Headers} ${fCal_QT_MOC_Files} ${fCal_QT_MOC_UI_Files} ${fCal_QT_RCC_Files})
 
-TARGET_LINK_LIBRARIES( fCal QVTK ${fCal_LIBS} )
+TARGET_LINK_LIBRARIES( fCal  ${VTK_LIBRARIES} ${fCal_LIBS} )
 
 # --------------------------------------------------------------------------
 # Install

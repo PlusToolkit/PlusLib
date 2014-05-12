@@ -12,7 +12,6 @@ See License.txt for details.
 #include "vtkActor.h"
 #include "vtkAssembly.h"
 #include "vtkCamera.h"
-#include "vtkDataCollector.h"
 #include "vtkGlyph3D.h"
 #include "vtkImageActor.h"
 #include "vtkImageData.h"
@@ -72,7 +71,9 @@ public:
   * Set the input source
   * \param aImage pointer to the image data to show
   */
-  void SetInput( vtkImageData* aImage );
+  void SetInputData( vtkImageData* aImage );
+
+  void SetResultPolyData(vtkPolyData* aResultPolyData );
 
   /*!
   * Show or hide result points
@@ -137,20 +138,16 @@ public:
 
   // Set/Get macros for member variables
   vtkGetObjectMacro(CanvasRenderer, vtkRenderer);
-  vtkGetObjectMacro(DataCollector, vtkDataCollector);
   vtkGetObjectMacro(HorizontalOrientationTextActor, vtkTextActor3D);
   vtkGetObjectMacro(ImageActor, vtkImageActor);
   vtkGetObjectMacro(ImageCamera, vtkCamera);
   vtkGetObjectMacro(OrientationMarkerAssembly, vtkAssembly);
-  vtkGetObjectMacro(ResultPolyData, vtkPolyData);
+  //vtkGetObjectMacro(ResultPolyData, vtkPolyData);
   vtkGetObjectMacro(ScreenAlignedProps, vtkProp3DCollection);
   vtkGetObjectMacro(VerticalOrientationTextActor, vtkTextActor3D);
   vtkSetObjectMacro(CanvasRenderer, vtkRenderer);
-  vtkSetObjectMacro(SelectedChannel, vtkPlusChannel);
 
-  // These will conflict with vtk macros, figure out new naming convention instead of "Set"
-  PlusStatus AssignDataCollector(vtkDataCollector* aCollector);
-  PlusStatus AssignResultPolyData(vtkPolyData* aResultPolyData);
+  void SetChannel(vtkPlusChannel *channel);
 
   // Utility functions
   PlusStatus SetResultColor(double r, double g, double b);
@@ -167,7 +164,7 @@ protected:
   */
   ~vtkImageVisualizer();
 
-  vtkSetObjectMacro(DataCollector, vtkDataCollector);
+  vtkSetObjectMacro(SelectedChannel, vtkPlusChannel);
   vtkSetObjectMacro(HorizontalOrientationTextActor, vtkTextActor3D);
   vtkSetObjectMacro(ImageActor, vtkImageActor);
   vtkSetObjectMacro(ImageCamera, vtkCamera);
@@ -175,7 +172,7 @@ protected:
   vtkSetObjectMacro(ROIActorAssembly, vtkAssembly);
   vtkSetObjectMacro(ResultActor, vtkActor);
   vtkSetObjectMacro(ScreenAlignedProps, vtkProp3DCollection);
-  vtkSetObjectMacro(ResultPolyData, vtkPolyData);
+//  vtkSetObjectMacro(ResultPolyData, vtkPolyData);
   vtkSetObjectMacro(ResultGlyph, vtkGlyph3D);
   vtkSetObjectMacro(VerticalOrientationTextActor, vtkTextActor3D);
   vtkGetObjectMacro(ResultGlyph, vtkGlyph3D);
@@ -216,9 +213,6 @@ protected:
   */
   PlusStatus ClearWireLabelVisualization();
 
-  /*! Data Collector link */
-  vtkDataCollector* DataCollector;
-
   /*! Renderer for the canvas */
   vtkRenderer* CanvasRenderer; 
 
@@ -226,7 +220,7 @@ protected:
   vtkImageActor* ImageActor;
 
   /*! Polydata holding the result points (eg. stylus tip, segmented points) */
-  vtkPolyData* ResultPolyData;
+//  vtkPolyData* ResultPolyData;
 
   /*! Actor for displaying the result points (eg. stylus tip, segmented points) */
   vtkActor* ResultActor;

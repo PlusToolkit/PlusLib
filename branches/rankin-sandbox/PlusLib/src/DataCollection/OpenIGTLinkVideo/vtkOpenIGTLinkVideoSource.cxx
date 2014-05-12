@@ -4,6 +4,7 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+#include "PlusConfigure.h"
 #include "PlusVideoFrame.h"
 #include "TrackedFrame.h"
 #include "igtlImageMessage.h"
@@ -77,7 +78,7 @@ void vtkOpenIGTLinkVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 std::string vtkOpenIGTLinkVideoSource::GetSdkVersion()
 {
   std::ostringstream version; 
-  version << "OpenIGTLink v" << PLUS_OPENIGTLINK_VERSION; 
+  version << "OpenIGTLink v" << OPENIGTLINK_VERSION; 
   return version.str(); 
 }
 

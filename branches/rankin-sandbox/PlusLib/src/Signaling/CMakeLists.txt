@@ -64,9 +64,7 @@ ENDIF (PLUS_USE_USBECGBOX)
 # Build the library
 
 SET (Signaling_LIBS ${Signaling_LIBS}
-  vtkCommon 
-  vtkHybrid 
-  vtkFiltering 
+  ${VTK_LIBRARIES}
   vtkPlusCommon
   )
 

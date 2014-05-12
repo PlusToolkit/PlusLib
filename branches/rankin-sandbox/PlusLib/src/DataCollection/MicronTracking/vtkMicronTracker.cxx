@@ -288,7 +288,7 @@ void vtkMicronTracker::GetTransformMatrix(int markerIndex, vtkMatrix4x4* transfo
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMicronTracker::GetVideoSource(vtkImageData* leftImage, vtkImageData* rightImage)
+PlusStatus vtkMicronTracker::GetImage(vtkImageData* leftImage, vtkImageData* rightImage)
 {
   PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
 

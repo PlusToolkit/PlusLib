@@ -14,9 +14,7 @@ ADD_EXECUTABLE( ConvertFcsvToXml
 TARGET_LINK_LIBRARIES( ConvertFcsvToXml
   PatternLocAlgo
   ${ITK_LIBRARIES}
-  vtksys
-  vtkCommon
-  vtkIO
+  ${VTK_LIBRARIES}
   vtkDataCollection
   ) 
   
@@ -43,9 +41,7 @@ ADD_EXECUTABLE( ConvertXmlToFcsv
 TARGET_LINK_LIBRARIES( ConvertXmlToFcsv
   PatternLocAlgo
   ${ITK_LIBRARIES}
-  vtksys
-  vtkCommon
-  vtkIO
+  ${VTK_LIBRARIES}
   vtkDataCollection
   ) 
   
@@ -71,9 +67,7 @@ SET(ITK_LIBRARIES
 TARGET_LINK_LIBRARIES( PatternLocTest
   PatternLocAlgo
   ${ITK_LIBRARIES}
-  vtksys
-  vtkCommon
-  vtkIO
+  ${VTK_LIBRARIES}
   vtkDataCollection
   vtkCalibrationAlgo  
   vtkDataCollection
@@ -260,8 +254,6 @@ ADD_EXECUTABLE( vtkSegmentedWiresPositionsTest
 TARGET_LINK_LIBRARIES( vtkSegmentedWiresPositionsTest
   PatternLocAlgo
   ${ITK_LIBRARIES}
-  vtksys
-  vtkCommon
-  vtkIO
+  ${VTK_LIBRARIES}
   vtkDataCollection
   ) 

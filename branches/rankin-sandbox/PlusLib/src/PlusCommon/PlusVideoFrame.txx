@@ -3,6 +3,9 @@ Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
+
+#include "PlusConfigure.h"
+
 template<typename PixelType> PlusStatus PlusVideoFrame::DeepCopyVtkImageToItkImage( vtkImageData* inFrame, typename itk::Image< PixelType, 2 >::Pointer outFrame )
 {
   LOG_TRACE("PlusVideoFrame::ConvertVtkImageToItkImage"); 
@@ -27,7 +30,7 @@ template<typename PixelType> PlusStatus PlusVideoFrame::DeepCopyVtkImageToItkIma
 
   // convert vtkImageData to itkImage 
   vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New(); 
-  imageExport->SetInput(inFrame); 
+  imageExport->SetInputData_vtk5compatible(inFrame); 
   imageExport->Update(); 
 
   int extent[6]={0,0,0,0,0,0}; 

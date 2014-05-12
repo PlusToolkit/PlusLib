@@ -9,7 +9,25 @@
 
 #include "vtkPlusDevice.h"
 
-//class StealthServer;
+/*!
+\\class StealthServer 
+\brief Interface for the Medtronic StealthLink Server 
+
+This class talks with StealthLink Server and acquires the transformation matrix data for both the current frame and the instrument
+nomenclature: Localizer(tracker), frame(reference),instrument(tool).
+Only one active instrument and a frame at a time.
+The reference and instruments are defined by the words "Frame" and the instrument names respectively. Specify the instrument names as the PortName in the configuration file
+
+\\ingroup PlusLibDataCollection
+
+<!--- Before creating the connection between Plus and StealthLink Server, please follow the steps below in the configuration file:
+      ->Change the ServerAddress to the IP address of the Stealth Server 
+      ->Change the PortAddress to the Port Address of the Stealth Server
+      ->The PortName of the Reference must stay "Frame" regardless of what frame is in use 
+      ->Make sure that the PortNames of the instruments to be tracked are   
+      the instrument names in the Stealth Server and that they are defined in the Server
+---!>
+!*/
 
 class VTK_EXPORT vtkStealthLinkTracker : public vtkPlusDevice
 {
@@ -20,13 +38,26 @@ public:
   void PrintSelf( ostream& os, vtkIndent indent );
 
   /*! Hardware device SDK version. */
-  virtual std::string GetSdkVersion(); 
+  virtual PlusStatus GetSdkVersion(std::string&); 
  
-  /*! Get image from the camera into VTK images. If an input arguments is NULL then that image is not retrieved. !*/
-  PlusStatus vtkStealthLinkTracker::GetDicomImage(vtkImageData*);
+  /*! Get image from the StealthLink into VTK images. The Dicom images will be saved in the directory spesified by "ExamImageDirectory". !*/
+  PlusStatus vtkStealthLinkTracker::GetDicomImage(std::string dicomImagesOutputDirectory, std::string& examImageDirectory);
 
   virtual bool IsTracker() const { return true; }
 
+  /*! Acquire the current exam from the server !*/
+  PlusStatus UpdateCurrentExam();
+  
+  /*! Get the Patient Name. The UpdateCurrentExam functions needs calling before GetPatientName!*/
+  PlusStatus GetPatientName(std::string& patientName);
+
+  /*! Get the Patient Name. The UpdateCurrentExam functions needs calling before GetPatientName!*/
+  PlusStatus GetPatientId(std::string& patientId);
+
+  /*! Get application start timestamp */
+  std::string GetApplicationStartTimestamp();
+
+  void SetImageToLpsTransformationMatrix(vtkMatrix4x4*);
 
 protected:
 	/*! Constructor !*/
@@ -46,42 +77,32 @@ protected:
 	/*! The internal function that does the grab !*/
 	PlusStatus InternalUpdate(); 
 
-	/*! Acquire the current exam from the server !*/
-	PlusStatus GetCurrentExam();
 	/*! Acquire the current Instrument and Frame from the server !*/
-	PlusStatus GetCurrentNavigationData();
-	// For internal storage of additional variables (to minimize the number of included headers)
-	class vtkInternal;
-	vtkInternal* Internal; 
+	PlusStatus UpdateCurrentNavigationData();
 
-	std::string instrumentVerification;
-	bool IsStealthServerInitialized;
+	 /*! Acquire the current registration from the server !*/
+     PlusStatus UpdateCurrentRegistration();
+	
+	 // For internal storage of additional variables (to minimize the number of included headers)
+	 class vtkInternal;
+	 vtkInternal* Internal; 
+
 	bool TrackerTimeToSystemTimeComputed;
 	double TrackerTimeToSystemTimeSec;
-	unsigned long stealthFrameNumber;
-
-
+	
 	/*! Is Tracker Connected? !*/
-	PlusStatus IsLocalizerConencted();
+	PlusStatus IsLocalizerConnected(bool&);
 
-	static void ModifyPatientName(std::string& patientName);
+	/*! Make sure the PortNames defined in the config file are also defined in the server!*/
+	PlusStatus AreInstrumentPortNamesValid(bool& valid);
 
-	void checkInstrumentVerification();
-	void getFirstToolVisibilityStatus();
-
-  /*!
-    Probe to see if the tracking system is present.
-  */
- // PlusStatus Probe();
-
-  /*!
-    Get an update from the tracking system and push the new transforms
-    to the tools.  This should only be used within vtkTracker.cxx.
-  */
-
-  
-  /*! Get the status of the MicronTracker (Tracking or not) */
- // vtkGetMacro(IsStealthLinkInitialized, int);
+	/*! Remove the characters that cannot be used in folder name !*/
+	static void RemoveForbiddenCharactersFromPatientsName(std::string& patientName);
+	
+	/*! Getting the initial Visibility Status of all the tools !*/
+	void AcquireInitialToolsVisibilityStatus();
+	/*! Update the current tool names if they change!*/
+	void UpdateCurrentToolsNames();
  
   /*! Read MicronTracker configuration and update the tracker settings accordingly */
   virtual PlusStatus ReadConfiguration( vtkXMLDataElement* config );
@@ -89,44 +110,11 @@ protected:
   /*! Write current MicronTracker configuration settings to XML */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* rootConfigElement);
 
- 
+  std::string ApplicationStartTimestamp;
 
- // StealthServer* GetStealthLinkServer() { return this->SLS; };
-
- // static void LogMessageCallback(int level, const char *message, void *userdata);
-
-
-
-
-  
-  /*!
-    Start the tracking system.  The tracking system is brought from
-    its ground state into full tracking mode.  The POLARIS will
-    only be reset if communication cannot be established without
-    a reset.
-  */
- 
-
-  /*! Refresh the loaded markers by loading them from the Markers directory */
-  //PlusStatus RefreshMarkerTemplates();
-
-  /*! Returns the transformation matrix of the index_th marker */
- 
-
-  /*! Pointer to the StealthLinkServer class instance */
-
-  /*! Non-zero if the tracker has been initialized */
-  /*! Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
-  //double LastFrameNumber;
-  
-  //unsigned int FrameNumber;
-  //std::string TemplateDirectory;
-  //std::string IniFile;
-
-
-//private:
- // vtkStealthLinkTracker(const vtkStealthLinkTracker&);
-  //void operator=(const vtkStealthLinkTracker&);  
+private:
+  vtkStealthLinkTracker(const vtkStealthLinkTracker&);
+  void operator=(const vtkStealthLinkTracker&);  
 };
 
 #endif

@@ -23,18 +23,15 @@ vtkStandardNewMacro(vtk3DObjectVisualizer);
 //-----------------------------------------------------------------------------
 
 vtk3DObjectVisualizer::vtk3DObjectVisualizer()
-: DataCollector(NULL)
-, CanvasRenderer(NULL)
+: CanvasRenderer(NULL)
 , ImageActor(NULL)
-, InputPolyData(NULL)
 , InputActor(NULL)
 , InputGlyph(NULL)
-, ResultPolyData(NULL)
 , ResultActor(NULL)
 , ResultGlyph(NULL)
+, TransformRepository(NULL)
 , WorldCoordinateFrame(NULL)
 , VolumeID(NULL)
-, TransformRepository(vtkSmartPointer<vtkTransformRepository>::New())
 , SelectedChannel(NULL)
 {
   // Set up canvas renderer
@@ -89,10 +86,8 @@ vtk3DObjectVisualizer::~vtk3DObjectVisualizer()
   ClearDisplayableObjects();
 
   this->SetResultActor(NULL);
-  this->SetResultPolyData(NULL);
   this->SetCanvasRenderer(NULL);
   this->SetImageActor(NULL);
-  this->SetInputPolyData(NULL);
   this->SetInputActor(NULL);
   this->SetWorldCoordinateFrame(NULL);
   this->SetTransformRepository(NULL);
@@ -117,13 +112,6 @@ PlusStatus vtk3DObjectVisualizer::Update()
   if (noObjectsToDisplay)
   {
     return PLUS_SUCCESS;
-  }
-
-  if( this->DataCollector == NULL )
-  {
-    // With new member initialization flexibility, this is an acceptable fail... return PLUS_SUCCESS?
-    //LOG_WARNING("Update called with no data collector.");
-    return PLUS_FAIL;
   }
 
   // Get tracked frame and set the transforms
@@ -298,82 +286,25 @@ PlusStatus vtk3DObjectVisualizer::HideAll()
 }
 
 //-----------------------------------------------------------------------------
-
-PlusStatus vtk3DObjectVisualizer::AssignInputPolyData(vtkPolyData* aInputPolyData )
+void vtk3DObjectVisualizer::SetInputPolyData(vtkPolyData* aPolyData)
 {
-  if( aInputPolyData != NULL )
-  {
-    this->SetInputPolyData(aInputPolyData);
-
-    this->InputGlyph->SetInputConnection(this->InputPolyData->GetProducerPort());
-  }
-
-  return PLUS_SUCCESS;
+  this->InputGlyph->SetInputData_vtk5compatible(aPolyData);
 }
 
 //-----------------------------------------------------------------------------
-
-PlusStatus vtk3DObjectVisualizer::AssignResultPolyData(vtkPolyData* aResultPolyData )
+void vtk3DObjectVisualizer::SetResultPolyData(vtkPolyData* aPolyData)
 {
-  if( aResultPolyData != NULL )
-  {
-    this->SetResultPolyData(aResultPolyData);
-
-    this->ResultGlyph->SetInputConnection(this->ResultPolyData->GetProducerPort());
-  }
-
-  return PLUS_SUCCESS;
+  this->ResultGlyph->SetInputData_vtk5compatible(aPolyData);
 }
 
-//-----------------------------------------------------------------------------
-
-PlusStatus vtk3DObjectVisualizer::AssignTransformRepository(vtkSmartPointer<vtkTransformRepository> aTransformRepository )
-{
-  LOG_TRACE("vtk3DObjectVisualizer::SetTransformRepository");
-
-  if( aTransformRepository != NULL )
-  {
-    this->SetTransformRepository(aTransformRepository);
-
-    if( this->DataCollector == NULL )
-    {
-      LOG_ERROR("Data collector not initialized. Data collection must be present before transform repository is set.");
-      return PLUS_FAIL;
-    }
-
-    if (this->DataCollector->GetConnected() == false)
-    {
-      LOG_ERROR("Device visualization cannot be initialized unless they are connected");
-      return PLUS_FAIL;
-    }
-
-    TrackedFrame trackedFrame;
-    if (this->SelectedChannel->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Unable to get tracked frame from data collector");
-      return PLUS_FAIL;
-    }
-
-    if (this->SelectedChannel->GetTrackingDataAvailable() == false)
-    {
-      LOG_WARNING("No tracking data is available");
-    }
-
-    this->TransformRepository->SetTransforms(trackedFrame);
-  }
-
-  return PLUS_SUCCESS;
-}
 
 //-----------------------------------------------------------------------------
-
-PlusStatus vtk3DObjectVisualizer::AssignDataCollector(vtkDataCollector* aCollector )
+PlusStatus vtk3DObjectVisualizer::SetChannel(vtkPlusChannel* channel)
 {
-  LOG_TRACE("vtk3DObjectVisualizer::AssignDataCollector");
+  LOG_TRACE("vtk3DObjectVisualizer::SetChannel");
+  SetSelectedChannel(channel);
 
-  this->SetDataCollector(aCollector);
-
-  if( aCollector != NULL && this->SelectedChannel != NULL )
+  if( this->SelectedChannel != NULL )
   {
     if (this->SelectedChannel->GetOwnerDevice()->GetConnected() == false)
     {
@@ -385,11 +316,12 @@ PlusStatus vtk3DObjectVisualizer::AssignDataCollector(vtkDataCollector* aCollect
     if (this->SelectedChannel->GetVideoDataAvailable())
     {
       this->ImageActor->VisibilityOn();
-      this->ImageActor->SetInput( this->SelectedChannel->GetBrightnessOutput() );
+      this->ImageActor->SetInputData_vtk5compatible( this->SelectedChannel->GetBrightnessOutput() );
     }
     else
     {
-      LOG_INFO("Data collector has no video output, cannot initialize image actor");
+      LOG_DEBUG("No video in the selected channel. Hiding image visualization.");
+      this->ImageActor->VisibilityOff();
     }
   }
 
@@ -615,18 +547,4 @@ vtkActor* vtk3DObjectVisualizer::GetVolumeActor()
   }
 
   return NULL;
-}
-
-//-----------------------------------------------------------------------------
-
-void vtk3DObjectVisualizer::SetTransformRepository( vtkSmartPointer<vtkTransformRepository> aRepository )
-{
-  this->TransformRepository = aRepository;
-}
-
-//-----------------------------------------------------------------------------
-
-vtkSmartPointer<vtkTransformRepository> vtk3DObjectVisualizer::GetTransformRepository()
-{
-  return this->TransformRepository;
 }

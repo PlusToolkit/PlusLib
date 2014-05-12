@@ -58,7 +58,7 @@ SET (PlusServerLauncher_LIBS
 
 ADD_EXECUTABLE( PlusServerLauncher ${PlusServerLauncher_SRCS} ${PlusServerLauncher_UI_HDRS} ${PlusServerLauncher_QT_UI_Headers} ${PlusServerLauncher_QT_UI_Headers} ${PlusServerLauncher_QT_MOC_Files} ${PlusServerLauncher_QT_MOC_UI_Files} ${PlusServerLauncher_QT_RCC_Files})
 
-TARGET_LINK_LIBRARIES( PlusServerLauncher QVTK ${PlusServerLauncher_LIBS} )
+TARGET_LINK_LIBRARIES( PlusServerLauncher ${VTK_LIBRARIES} ${PlusServerLauncher_LIBS} )
 
 # --------------------------------------------------------------------------
 # Install

@@ -471,7 +471,7 @@ void VolumeReconstructionToolbox::DisplayReconstructedVolume()
   RefreshContent();
 
   vtkSmartPointer<vtkMarchingContourFilter> contourFilter = vtkSmartPointer<vtkMarchingContourFilter>::New();
-  contourFilter->SetInput(m_ReconstructedVolume);
+  contourFilter->SetInputData_vtk5compatible(m_ReconstructedVolume);
   contourFilter->SetValue(0, m_ContouringThreshold);
 
   vtkSmartPointer<vtkPolyDataMapper> contourMapper = vtkSmartPointer<vtkPolyDataMapper>::New();

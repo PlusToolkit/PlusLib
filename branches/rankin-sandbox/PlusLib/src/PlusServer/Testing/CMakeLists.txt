@@ -6,7 +6,7 @@ SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 IF (PLUS_USE_OpenIGTLink )
 
   ADD_EXECUTABLE( PlusServer PlusServer.cxx )
-  TARGET_LINK_LIBRARIES( PlusServer vtkPlusServer vtkDataCollection vtkCommon )
+  TARGET_LINK_LIBRARIES( PlusServer vtkPlusServer vtkDataCollection ${VTK_LIBRARIES} )
   
   ADD_TEST( PlusServer
     ${EXECUTABLE_OUTPUT_PATH}/PlusServer
@@ -17,7 +17,7 @@ IF (PLUS_USE_OpenIGTLink )
   SET_TESTS_PROPERTIES( PlusServer PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
   
   ADD_EXECUTABLE( PlusServerRemoteControl PlusServerRemoteControl.cxx )
-  TARGET_LINK_LIBRARIES( PlusServerRemoteControl vtkDataCollection vtkCommon vtkPlusServer )
+  TARGET_LINK_LIBRARIES( PlusServerRemoteControl vtkDataCollection ${VTK_LIBRARIES} vtkPlusServer )
   
 ENDIF (PLUS_USE_OpenIGTLink )
  

@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
   }
 
   viewer = vtkImageViewer::New();
-  viewer->SetInput(sonixGrabber->GetOutput());
+  viewer->SetInputConnection(sonixGrabber->GetOutputPort());
   viewer->SetColorWindow(255);
   viewer->SetColorLevel(127.5);
   viewer->SetZSlice(0);

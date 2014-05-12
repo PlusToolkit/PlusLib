@@ -75,7 +75,7 @@ TARGET_LINK_LIBRARIES(vtkDataCollectorVideoAcqTest vtkDataCollection )
 ADD_EXECUTABLE( ReplayRecordedDataTest
   ReplayRecordedDataTest.cxx
   )
-TARGET_LINK_LIBRARIES( ReplayRecordedDataTest vtkDataCollection vtkCommon )
+TARGET_LINK_LIBRARIES( ReplayRecordedDataTest vtkDataCollection ${VTK_LIBRARIES} )
 ADD_TEST( ReplayRecordedDataTest
   ${EXECUTABLE_OUTPUT_PATH}/ReplayRecordedDataTest
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_OpenIGTLinkTestServer.xml
@@ -139,7 +139,7 @@ SET_TESTS_PROPERTIES( itkFcsvWriterTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERR
 #***************************  vtkSonixVideoSourceTest1.cxx ***************************
 IF (PLUS_USE_ULTRASONIX_VIDEO AND PLUS_TEST_ULTRASONIX)
   ADD_EXECUTABLE(vtkSonixVideoSourceTest1 vtkSonixVideoSourceTest1.cxx )
-  TARGET_LINK_LIBRARIES(vtkSonixVideoSourceTest1 vtkDataCollection vtkCharts)
+  TARGET_LINK_LIBRARIES(vtkSonixVideoSourceTest1 vtkDataCollection vtkPlusCommon)
   ADD_TEST(vtkSonixVideoSourceTest1 
   ${EXECUTABLE_OUTPUT_PATH}/vtkSonixVideoSourceTest1
     --rendering-off 
@@ -154,7 +154,7 @@ IF (PLUS_USE_BKPROFOCUS_VIDEO)
 
   #***************************  vtkBkProFocusOemVideoSourceTest.cxx ***************************
   ADD_EXECUTABLE(vtkBkProFocusOemVideoSourceTest vtkBkProFocusOemVideoSourceTest.cxx )
-  TARGET_LINK_LIBRARIES(vtkBkProFocusOemVideoSourceTest vtkDataCollection vtkCharts)
+  TARGET_LINK_LIBRARIES(vtkBkProFocusOemVideoSourceTest vtkDataCollection vtkPlusCommon)
   IF (PLUS_TEST_BKPROFOCUS)
     ADD_TEST(vtkBkProFocusOemVideoSourceTest 
       ${EXECUTABLE_OUTPUT_PATH}/vtkBkProFocusOemVideoSourceTest
@@ -166,7 +166,7 @@ IF (PLUS_USE_BKPROFOCUS_VIDEO)
   #***************************  vtkBkProFocusCameraLinkVideoSourceTest.cxx ***************************
   IF (PLUS_USE_BKPROFOCUS_CAMERALINK)
     ADD_EXECUTABLE(vtkBkProFocusCameraLinkVideoSourceTest vtkBkProFocusCameraLinkVideoSourceTest.cxx )
-    TARGET_LINK_LIBRARIES(vtkBkProFocusCameraLinkVideoSourceTest vtkDataCollection vtkCharts)
+    TARGET_LINK_LIBRARIES(vtkBkProFocusCameraLinkVideoSourceTest vtkDataCollection vtkPlusCommon)
     IF (PLUS_TEST_BKPROFOCUS)
       ADD_TEST(vtkBkProFocusCameraLinkVideoSourceTest 
         ${EXECUTABLE_OUTPUT_PATH}/vtkBkProFocusCameraLinkVideoSourceTest
@@ -205,7 +205,7 @@ ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 #************************  vtkSonixPortaVideoSourceTest.cxx ************************
 IF (PLUS_USE_ULTRASONIX_VIDEO)
   ADD_EXECUTABLE(vtkSonixPortaVideoSourceTest vtkSonixPortaVideoSourceTest.cxx )
-  TARGET_LINK_LIBRARIES(vtkSonixPortaVideoSourceTest vtkDataCollection vtkCharts)
+  TARGET_LINK_LIBRARIES(vtkSonixPortaVideoSourceTest vtkDataCollection vtkPlusCommon)
   # ADD_TEST(vtkSonixPortaVideoSourceTest 
   # ${EXECUTABLE_OUTPUT_PATH}/vtkSonixPortaVideoSourceTest
   # To be added if the 3D probe is attached to the machine
@@ -272,13 +272,13 @@ ENDIF (PLUS_USE_CERTUS)
 #*************************** CmsBrachyStepperTest ***************************
 IF (PLUS_USE_BRACHY_TRACKER)
     ADD_EXECUTABLE(CmsBrachyStepperTest CmsBrachyStepperTest.cxx)
-    TARGET_LINK_LIBRARIES(CmsBrachyStepperTest vtkDataCollection vtkCommon vtkPlusCommon)
+    TARGET_LINK_LIBRARIES(CmsBrachyStepperTest vtkDataCollection ${VTK_LIBRARIES} vtkPlusCommon)
 ENDIF (PLUS_USE_BRACHY_TRACKER) 
 
 #*************************** CivcoBrachyStepperTest ***************************
 IF (PLUS_USE_BRACHY_TRACKER)
     ADD_EXECUTABLE(CivcoBrachyStepperTest CivcoBrachyStepperTest.cxx)
-    TARGET_LINK_LIBRARIES(CivcoBrachyStepperTest vtkDataCollection vtkCommon vtkPlusCommon)
+    TARGET_LINK_LIBRARIES(CivcoBrachyStepperTest vtkDataCollection ${VTK_LIBRARIES} vtkPlusCommon)
 ENDIF (PLUS_USE_BRACHY_TRACKER) 
   
 #*************************** TransformInterpolationTest ***************************

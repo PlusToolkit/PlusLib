@@ -23,6 +23,7 @@
 #ifndef __vtkCompareVolumes_h
 #define __vtkCompareVolumes_h
 
+#include "PlusConfigure.h"
 #include "vtkThreadedImageAlgorithm.h"
 #include <vector>
 
@@ -34,23 +35,23 @@ public:
 
   // Description:
   // Set the Input1 of this filter. 
-  virtual void SetInputGT(vtkDataObject *input) { this->SetInput(0,input);};
+  virtual void SetInputGT(vtkDataObject *input) { this->SetInputData_vtk5compatible(0,input);};
   
   // Description:
   // Set the Input2 of this filter.
-  virtual void SetInputGTAlpha(vtkDataObject *input) { this->SetInput(1,input);};
+  virtual void SetInputGTAlpha(vtkDataObject *input) { this->SetInputData_vtk5compatible(1,input);};
 
   // Description:
   // Set the Input3 of this filter. 
-  virtual void SetInputTest(vtkDataObject *input) { this->SetInput(2,input);};
+  virtual void SetInputTest(vtkDataObject *input) { this->SetInputData_vtk5compatible(2,input);};
   
   // Description:
   // Set the Input4 of this filter.
-  virtual void SetInputTestAlpha(vtkDataObject *input) { this->SetInput(3,input);};
+  virtual void SetInputTestAlpha(vtkDataObject *input) { this->SetInputData_vtk5compatible(3,input);};
   
   // Description:
   // Set the Input5 of this filter.
-  virtual void SetInputSliceAlpha(vtkDataObject *input) { this->SetInput(4,input);};
+  virtual void SetInputSliceAlpha(vtkDataObject *input) { this->SetInputData_vtk5compatible(4,input);};
 
   // Description:
   // Output the images resulting from this filter

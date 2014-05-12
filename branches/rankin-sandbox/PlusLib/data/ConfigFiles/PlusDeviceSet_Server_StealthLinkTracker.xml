@@ -1,26 +1,31 @@
-<PlusConfiguration version="2.3">
-
+<PlusConfiguration version="2.3"> 
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
       Name="PlusServer: Medtronic StealthLink tracker"
       Description="Broadcasting tool tracking data through OpenIGTLink
-Tools: Probe (1b), Reference (TTBlock)" 
+Tools: Stylus (Passive Planar, Blunt) , Reference (Frame)" 
     />
     <Device
-      Id="TrackerDevice"
+      Id="StealthLinkDevice"
       Type="StealthLinkTracker"
       ServerAddress="130.15.7.88"
+      PortAddress="6996"
       AcquisitionRate="30"
+	  RegistrationUpdatePeriod="0.0"
       LocalTimeOffset="0.0"
       ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="Tool1"  PortName="Passive Planar, Blunt" BufferSize="500" AveragedItemsForFiltering="20"/>
-		<DataSource Type="Tool" Id="Reference" 	   PortName="Frame" BufferSize="500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Stylus"     PortName="Passive Planar, Blunt" BufferSize="500" />
+        <DataSource Type="Tool" Id="Probe" 	    PortName="Navigus Probe" BufferSize="500" />
+        <DataSource Type="Tool" Id="Reference"  PortName="Frame" BufferSize="500" />
+		<DataSource Type="Tool" Id="Image" 	    PortName="ImageToFrameRegistration" BufferSize="500" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
-          <DataSource  Id="Tool1" />
-		  <DataSource  Id="Reference" />
+          <DataSource  Id="Stylus" />
+          <DataSource  Id="Probe" />
+          <DataSource  Id="Reference" />
+		  <DataSource  Id="Image" />
         </OutputChannel>
       </OutputChannels>
     </Device>
@@ -35,6 +40,17 @@ Tools: Probe (1b), Reference (TTBlock)"
     </Device>
   </DataCollection>
 
+  
+  <CoordinateDefinitions>
+    <Transform From="Ras" To="Lps"
+      Matrix="
+        -1  0  0  0
+         0 -1  0  0
+         0  0  1  0        
+         0  0  0  1" />
+  </CoordinateDefinitions>
+  
+  
   <PlusOpenIGTLinkServer 
     MaxNumberOfIgtlMessagesToSend="1" 
     MaxTimeSpentWithProcessingMs="50" 
@@ -45,8 +61,13 @@ Tools: Probe (1b), Reference (TTBlock)"
         <Message Type="TRANSFORM" />
       </MessageTypes>
       <TransformNames> 
-        <Transform Name="Tool1ToTracker" />
-		<Transform Name="ReferenceToTracker" />
+        <Transform Name="StylusToTracker" />
+        <Transform Name="ReferenceToTracker" />
+        <Transform Name="ProbeToTracker" />
+		<Transform Name="ImageToTracker"  />
+		<Transform Name="ImageToReference"  />
+		<Transform Name="StylusToReference"  />
+		<xTransform Name="TrackerToRas" />
       </TransformNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>

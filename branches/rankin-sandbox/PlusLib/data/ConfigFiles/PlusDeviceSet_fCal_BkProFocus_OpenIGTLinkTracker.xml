@@ -14,7 +14,7 @@
       LocalTimeOffsetSec="0"
       ImagingMode="RfMode" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortUsImageOrientation="FM" BufferSize="500" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="FM" BufferSize="100" AveragedItemsForFiltering="20" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" >

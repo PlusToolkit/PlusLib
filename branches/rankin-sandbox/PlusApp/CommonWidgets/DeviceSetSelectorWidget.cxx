@@ -106,6 +106,7 @@ void DeviceSetSelectorWidget::InvokeConnect()
   }
 
   ui.pushButton_Connect->setEnabled(false);
+  QCoreApplication::processEvents();
 
   emit ConnectToDevicesByConfigFileInvoked(ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0).toLatin1().constData());
 }
@@ -128,6 +129,7 @@ void DeviceSetSelectorWidget::InvokeDisconnect()
   RefreshFolder();
 
   ui.pushButton_Connect->setEnabled(false);
+  QCoreApplication::processEvents();
 
   emit ConnectToDevicesByConfigFileInvoked("");
 }

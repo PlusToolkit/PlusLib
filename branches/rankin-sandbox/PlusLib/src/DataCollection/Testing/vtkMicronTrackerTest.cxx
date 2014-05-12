@@ -24,8 +24,8 @@ public:
   {return new vtkMyCallback;}
   virtual void Execute(vtkObject *caller, unsigned long, void*)
   {
-    frameGrabber->GetVideoSource(leftImage,NULL);
-    viewer->SetInput(leftImage);
+    frameGrabber->GetImage(leftImage,NULL);
+    viewer->SetInputData_vtk5compatible(leftImage);
     viewer->Render();
 
     //update the timer so it will trigger again
@@ -118,8 +118,8 @@ int main(int argc, char **argv)
   viewer->SetSize(1024,768); 
 
   vtkSmartPointer<vtkImageData> leftImage=vtkSmartPointer<vtkImageData>::New();
-  frameGrabber->GetVideoSource(leftImage,NULL);
-  viewer->SetInput(leftImage); 
+  frameGrabber->GetImage(leftImage,NULL);
+  viewer->SetInputData_vtk5compatible(leftImage); 
 
   //Create the interactor that handles the event loop
   vtkSmartPointer<vtkRenderWindowInteractor> iren = vtkSmartPointer<vtkRenderWindowInteractor>::New();

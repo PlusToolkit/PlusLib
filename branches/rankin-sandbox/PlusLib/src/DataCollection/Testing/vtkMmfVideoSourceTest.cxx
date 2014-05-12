@@ -149,8 +149,7 @@ int main(int argc, char **argv)
   }
   viewer->SetSize(videoSource->GetBuffer()->GetFrameSize()[0], videoSource->GetBuffer()->GetFrameSize()[1]); 
 
-  vtkImageData* output = vtkImageData::SafeDownCast(frameGrabber->GetOutput());
-  viewer->SetInput(vtkImageData::SafeDownCast(frameGrabber->GetOutput())); 
+  viewer->SetInputConnection(frameGrabber->GetOutputPort());
 
   //Create the interactor that handles the event loop
   vtkSmartPointer<vtkRenderWindowInteractor> iren = vtkSmartPointer<vtkRenderWindowInteractor>::New();

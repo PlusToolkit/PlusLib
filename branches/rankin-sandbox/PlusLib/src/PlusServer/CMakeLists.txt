@@ -11,8 +11,8 @@ SET (PlusServer_SRCS
   vtkPlusUpdateTransformCommand.cxx 
   vtkPlusSaveConfigCommand.cxx 
   )
-  
-IF (WIN32)  
+
+IF (WIN32)
   SET (PlusServer_HDRS 
     vtkPlusOpenIGTLinkServer.h
     vtkPlusOpenIGTLinkClient.h
@@ -24,7 +24,14 @@ IF (WIN32)
     vtkPlusUpdateTransformCommand.h 
     vtkPlusSaveConfigCommand.h 
     )
-ENDIF (WIN32)  
+ENDIF (WIN32)
+
+IF (PLUS_USE_STEALTHLINK)
+  SET (PlusServer_SRCS  ${PlusServer_SRCS} vtkPlusStealthLinkCommand.cxx)
+  IF (WIN32)
+    SET (PlusServer_HDRS ${PlusServer_HDRS} vtkPlusStealthLinkCommand.h)
+  ENDIF (WIN32)
+ENDIF(PLUS_USE_STEALTHLINK)
 
 SET (PlusServer_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
 

@@ -827,7 +827,7 @@ void fCalMainWindow::ChannelSelected( vtkPlusChannel* aChannel )
   }
   if( aChannel->GetVideoDataAvailable() && aChannel->GetBrightnessOutput() != NULL )
   {
-    this->GetVisualizationController()->SetInput( aChannel->GetBrightnessOutput() );
+    this->GetVisualizationController()->SetInputData( aChannel->GetBrightnessOutput() );
   }
   else
   {

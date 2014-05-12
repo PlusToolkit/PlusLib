@@ -75,11 +75,6 @@ public:
   PlusStatus HideRenderer();
 
   /*!
-  * Forward the request to the both visualizers
-  */
-  PlusStatus AssignDataCollector(vtkDataCollector* aCollector);
-
-  /*!
   * Forward the request to the 3D visualizer
   * \param aOn Show if true, else hide
   */
@@ -257,12 +252,10 @@ public:
   // Set/Get macros for member variables
   PlusStatus SetAcquisitionFrameRate(int aFrameRate); 
   vtkGetMacro(AcquisitionFrameRate, int); 
-  vtkGetObjectMacro(DataCollector, vtkDataCollector);
   vtkGetObjectMacro(InputPolyData, vtkPolyData);
   vtkGetObjectMacro(ResultPolyData, vtkPolyData);
-  virtual vtkSmartPointer<vtkTransformRepository> GetTransformRepository();
-
-  vtkSetObjectMacro(DataCollector, vtkDataCollector);   
+  vtkGetObjectMacro(TransformRepository, vtkTransformRepository);
+  vtkGetObjectMacro(DataCollector, vtkDataCollector);
 
   vtkRenderer* GetCanvasRenderer();
 
@@ -271,7 +264,7 @@ public:
 
   void SetCanvas(QVTKWidget* aCanvas);
 
-  void SetInput( vtkImageData * input );
+  void SetInputData( vtkImageData * input );
 
 protected:
   vtkGetObjectMacro(ImageVisualizer, vtkImageVisualizer);
@@ -280,7 +273,8 @@ protected:
   vtkSetObjectMacro(PerspectiveVisualizer, vtk3DObjectVisualizer);
   vtkSetObjectMacro(InputPolyData, vtkPolyData);
   vtkSetObjectMacro(ResultPolyData, vtkPolyData);
-  virtual void SetTransformRepository(vtkSmartPointer<vtkTransformRepository> aRepo);
+  vtkSetObjectMacro(TransformRepository, vtkTransformRepository);
+  vtkSetObjectMacro(DataCollector, vtkDataCollector);
 
   vtkImageActor* GetImageActor();
 
@@ -307,9 +301,6 @@ protected:
   /*! Reference to the canvas */
   QVTKWidget* Canvas;
 
-  /*! Data collector object */
-  vtkDataCollector*	DataCollector;
-
   /*! Timer for acquisition */
   QTimer*	AcquisitionTimer;
 
@@ -326,9 +317,10 @@ protected:
   int AcquisitionFrameRate;
 
   /*! Transform repository to store and handle all transforms */
-  vtkSmartPointer<vtkTransformRepository> TransformRepository;
+  vtkTransformRepository* TransformRepository;
 
   vtkPlusChannel* SelectedChannel;
+  vtkDataCollector* DataCollector;
 };
 
 #endif  // __vtkVisualizationController_h

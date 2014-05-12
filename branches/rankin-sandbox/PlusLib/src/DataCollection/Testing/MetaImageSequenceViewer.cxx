@@ -249,7 +249,7 @@ int main(int argc, char **argv)
     frameImageData->DeepCopy(frame->GetImageData()->GetImage()); 
 
     vtkSmartPointer<vtkImageActor> imageActor = vtkSmartPointer<vtkImageActor>::New();
-    imageActor->SetInput(frameImageData); 
+    imageActor->SetInputData_vtk5compatible(frameImageData); 
 
     vtkSmartPointer< vtkTransform > imageToReferenceTransform = vtkSmartPointer< vtkTransform >::New();
     if (imageToReferenceTransformName.IsValid())

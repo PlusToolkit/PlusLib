@@ -80,13 +80,13 @@ void CreateSliceModels(vtkTrackedFrameList *trackedFrameList, vtkTransformReposi
     tCubeToTracker->Concatenate( tUserDefinedTransform );
     tCubeToTracker->Concatenate( tCubeToImage );
 
-    vtkSmartPointer< vtkTransformPolyDataFilter > CubeToTracker = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
-    CubeToTracker->SetTransform( tCubeToTracker );
+    vtkSmartPointer< vtkTransformPolyDataFilter > cubeToTracker = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
+    cubeToTracker->SetTransform( tCubeToTracker );
     vtkSmartPointer< vtkCubeSource > source = vtkSmartPointer< vtkCubeSource >::New();
-    CubeToTracker->SetInput( source->GetOutput() );
-    CubeToTracker->Update();
+    cubeToTracker->SetInputConnection( source->GetOutputPort() );
+    cubeToTracker->Update();
 
-    appender->AddInputConnection( CubeToTracker->GetOutputPort() );
+    appender->AddInputConnection( cubeToTracker->GetOutputPort() );
   }  
 
   appender->Update();
@@ -110,7 +110,7 @@ void ShowResults(vtkTrackedFrameList* trackedFrameList, vtkTransformRepository* 
   /*
   TODO: add surface model of each SpatialModel in the simulator
   vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  mapper->SetInput((vtkPolyData*)usSimulator->GetInput());  
+  mapper->SetInputData((vtkPolyData*)usSimulator->GetInput());  
   vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
   actor->SetMapper(mapper);
   rendererPoly->AddActor(actor);
@@ -124,12 +124,12 @@ void ShowResults(vtkTrackedFrameList* trackedFrameList, vtkTransformRepository* 
   {
     vtkSmartPointer<vtkSTLWriter> surfaceModelWriter = vtkSmartPointer<vtkSTLWriter>::New(); 
     surfaceModelWriter->SetFileName(intersectionFile.c_str()); 
-    surfaceModelWriter->SetInput(slicesPolyData);
+    surfaceModelWriter->SetInputData_vtk5compatible(slicesPolyData);
     surfaceModelWriter->Write(); 
   }
 
   vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  mapper->SetInput(slicesPolyData);  
+  mapper->SetInputData_vtk5compatible(slicesPolyData);  
   vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
   actor->SetMapper(mapper);
   rendererPoly->AddActor(actor);
@@ -146,7 +146,7 @@ void ShowImage(vtkImageData* simOutput)
 
   // Display output of filter
   vtkSmartPointer<vtkImageActor> redImageActor = vtkSmartPointer<vtkImageActor>::New();
-  redImageActor->SetInput(simOutput);
+  redImageActor->SetInputData_vtk5compatible(simOutput);
 
   // Visualize
   vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
@@ -258,7 +258,7 @@ int main(int argc, char **argv)
     CreateSliceModels(trackedFrameList, transformRepository, imageToReferenceTransformName, slicesPolyData);
     vtkSmartPointer<vtkSTLWriter> surfaceModelWriter = vtkSmartPointer<vtkSTLWriter>::New(); 
     surfaceModelWriter->SetFileName(intersectionFile.c_str()); 
-    surfaceModelWriter->SetInput(slicesPolyData);
+    surfaceModelWriter->SetInputData_vtk5compatible(slicesPolyData);
     surfaceModelWriter->Write(); 
   }
 

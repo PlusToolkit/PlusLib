@@ -129,8 +129,13 @@ OPTION(PLUS_USE_STEALTHLINK "Provide support for the Medtronick StealthLink Serv
 
 # Other
 
-OPTION(PLUS_USE_HEARTSIGNALBOX "Enable Heart Signal Box" OFF)
-OPTION(PLUS_USE_USBECGBOX "Enable USB ECG Signal Box" OFF) 
+# Disable this option, as it is currently not tested or supported
+#OPTION(PLUS_USE_HEARTSIGNALBOX "Enable Heart Signal Box" OFF)
+SET (PLUS_USE_HEARTSIGNALBOX OFF)
+
+# Disable this option, as it is currently not tested or supported
+#OPTION(PLUS_USE_USBECGBOX "Enable USB ECG Signal Box" OFF) 
+SET (PLUS_USE_USBECGBOX OFF)
 
 OPTION (PLUSAPP_TEST_GUI "Enable Sikuli GUI tests" ON)
 
@@ -298,9 +303,9 @@ IF ( PLUS_USE_ICCAPTURING_VIDEO )
 ENDIF()
 
 IF ( PLUS_USE_STEALTHLINK )
- FIND_PACKAGE (STEALTHLINK)
+  FIND_PACKAGE (STEALTHLINK)
   IF ( NOT STEALTHLINK_FOUND)
-    MESSAGE( FATAL_ERROR "This project requires Staelthlink2 SDK for supporting communication with Medtronic StealthStation. Please verify configuration or turn off PLUS_USE_STEALTHLINK.")
+    MESSAGE( FATAL_ERROR "This project requires Stealthlink2 SDK for supporting communication with Medtronic StealthStation. Please verify configuration or turn off PLUS_USE_STEALTHLINK.")
   ENDIF()
 ENDIF()
 
