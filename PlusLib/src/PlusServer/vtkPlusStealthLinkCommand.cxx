@@ -6,6 +6,7 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "vtkDataCollector.h"
+#include "vtkPlusStealthLinkCommand.h"
 #include "StealthLink\vtkStealthLinkTracker.h"
 
 #include "vtkImageData.h"
@@ -13,13 +14,13 @@ See License.txt for details.
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusCommandProcessor.h"
-#include "vtkPlusStealthLinkCommand.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkTransformRepository.h"
 #include "vtkVolumeReconstructor.h"
 #include "vtkVirtualVolumeReconstructor.h"
-
-
+#include <vtkImageFlip.h>
+#include <vtkPointData.h>
+ 
 #define UNDEFINED_VALUE DBL_MAX
 
 static const int MAX_NUMBER_OF_FRAMES_ADDED_PER_EXECUTE=50;
@@ -193,11 +194,15 @@ PlusStatus vtkPlusStealthLinkCommand::Execute()
 
 	vtkSmartPointer<vtkDICOMImageReader> reader = vtkSmartPointer<vtkDICOMImageReader>::New();
 	reader->SetDirectoryName(examImageDirectory.c_str()); 
+	reader->SetFileLowerLeft(1);
 	reader->Update();
 	float*  iDirectionVector_LPS = reader->GetImageOrientationPatient();  // TODO change ijkToImage
 	float*  jDirectionVector_LPS = reader->GetImageOrientationPatient()+3;
 	float*  ijkOrigin_LPS = reader->GetImagePositionPatient();
+	int*    ijkSize = reader->GetOutput()->GetDimensions();
 	double* ijkVectorMagnitude_LPS = reader->GetPixelSpacing();
+	int xMin,xMax,yMin,yMax,zMin,zMax;
+	reader->GetDataExtent(xMin,xMax,yMin,yMax,zMin,zMax);
 
 	float   kDirectionVector_LPS[3]={0};
 	vtkMath::Cross(iDirectionVector_LPS,jDirectionVector_LPS,kDirectionVector_LPS);
@@ -205,17 +210,45 @@ PlusStatus vtkPlusStealthLinkCommand::Execute()
 	vtkSmartPointer<vtkMatrix4x4> ijkToLPSTransformationMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); // image to lps
 	for(int i=0;i<3;i++)
 	{
-		ijkToLPSTransformationMatrix->SetElement(0,i,ijkVectorMagnitude_LPS[i] * iDirectionVector_LPS[i]);
-		ijkToLPSTransformationMatrix->SetElement(1,i,ijkVectorMagnitude_LPS[i] * jDirectionVector_LPS[i]);
-		ijkToLPSTransformationMatrix->SetElement(2,i,ijkVectorMagnitude_LPS[i] * kDirectionVector_LPS[i]);
-		ijkToLPSTransformationMatrix->SetElement(i,3,ijkOrigin_LPS[i]);
+		if(i<2)
+		{
+			ijkToLPSTransformationMatrix->SetElement(i,0,-iDirectionVector_LPS[i]); // * ijkVectorMagnitude_LPS[i]);
+		  ijkToLPSTransformationMatrix->SetElement(i,1,-jDirectionVector_LPS[i]);//ijkVectorMagnitude_LPS[i] * jDirectionVector_LPS[i]);
+		  ijkToLPSTransformationMatrix->SetElement(i,2,-kDirectionVector_LPS[i]);//ijkVectorMagnitude_LPS[i] * kDirectionVector_LPS[i]);
+		}
+		else
+		{
+			ijkToLPSTransformationMatrix->SetElement(i,0,iDirectionVector_LPS[i]); // * ijkVectorMagnitude_LPS[i]);
+		  ijkToLPSTransformationMatrix->SetElement(i,1,jDirectionVector_LPS[i]);//ijkVectorMagnitude_LPS[i] * jDirectionVector_LPS[i]);
+		  ijkToLPSTransformationMatrix->SetElement(i,2,kDirectionVector_LPS[i]);//ijkVectorMagnitude_LPS[i] * kDirectionVector_LPS[i]);
+		}
+		
+		//ijkToLPSTransformationMatrix->SetElement(i,3,ijkOrigin_LPS[i]);
 	}
 
+
+
 	stealthLinkDevice->SetImageToLpsTransformationMatrix(ijkToLPSTransformationMatrix);
-	vtkImageData* volumeToSend = reader->GetOutput();
-	volumeToSend->SetSpacing(1,1,1);
-	volumeToSend->SetOrigin(0,0,0);
-	return ProcessImageReply(volumeToSend,ijkToLPSTransformationMatrix); 
+	
+
+	vtkSmartPointer<vtkImageFlip> flipYFilter =
+    vtkSmartPointer<vtkImageFlip>::New();
+  flipYFilter->SetFilteredAxis(1); // flip z axis
+	flipYFilter->SetInputConnection(reader->GetOutputPort());
+  flipYFilter->Update();
+
+	vtkSmartPointer<vtkImageFlip> flipZFilter =
+    vtkSmartPointer<vtkImageFlip>::New();
+  flipZFilter->SetFilteredAxis(2); // flip z axis
+	flipZFilter->SetInputConnection(flipYFilter->GetOutputPort());
+  flipZFilter->Update();
+
+
+	
+	ijkToLPSTransformationMatrix->SetElement(0,3,-(ijkOrigin_LPS[0]));
+	ijkToLPSTransformationMatrix->SetElement(1,3,-(ijkOrigin_LPS[1]));
+	ijkToLPSTransformationMatrix->SetElement(2,3,ijkOrigin_LPS[2]);
+	return ProcessImageReply(flipZFilter->GetOutput(),ijkToLPSTransformationMatrix);//flipZFilter->GetOutput(),ijkToLPSTransformationMatrix); 
   }
   else if (STRCASECMP(this->Name, GET_STEALTHLINK_REGISTRATION_DATA_CMD)==0)
   {    
@@ -232,12 +265,12 @@ PlusStatus vtkPlusStealthLinkCommand::Execute()
   return PLUS_FAIL;
 } 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStealthLinkCommand::ProcessImageReply(vtkImageData* volumeToSend,vtkMatrix4x4* imageToReferenceOrientationMatrixWithSpacing)
+PlusStatus vtkPlusStealthLinkCommand::ProcessImageReply(vtkImageData* volumeToSend,vtkMatrix4x4* imageToReferenceOrientationMatrix)
 {
   LOG_DEBUG("Send image to client through OpenIGTLink");
   this->ResponseImageDeviceName=std::string("Stealth_") + GetPatientName();
   SetResponseImage(volumeToSend);
-  //SetResponseImageToReferenceTransform(imageToReferenceOrientationMatrixWithSpacing);
+  SetResponseImageToReferenceTransform(imageToReferenceOrientationMatrix);
   LOG_INFO("Send reconstructed volume to client through OpenIGTLink");
   this->ResponseMessage+=std::string(", image sent as: ")+this->ResponseImageDeviceName;
   return PLUS_SUCCESS;

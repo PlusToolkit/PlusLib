@@ -324,7 +324,7 @@ void ExecuteSaveConfig(vtkPlusOpenIGTLinkClient* client, const std::string &outp
 PlusStatus PrintReply(vtkPlusOpenIGTLinkClient* client)
 {
   std::string reply;
-  const double replyTimeoutSec=20;
+  const double replyTimeoutSec=30;
   if (client->ReceiveReply(reply, replyTimeoutSec)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to receive reply to the command");
