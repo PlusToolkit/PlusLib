@@ -100,6 +100,9 @@ protected:
 
   /*! OpenIGTLink client socket */ 
   igtl::ClientSocket::Pointer ClientSocket;
+  
+  /*! Mutex instance to serialize access to the ClientSocket from different threads */ 
+  vtkSmartPointer<vtkRecursiveCriticalSection> ClientSocketMutex;
 
   /*! Name of the transform that is supplied with the IMAGE OpenIGTLink message */ 
   PlusTransformName ImageMessageEmbeddedTransformName;
