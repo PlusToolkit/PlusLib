@@ -39,7 +39,6 @@ vtkOpenIGTLinkTracker::vtkOpenIGTLinkTracker()
 , DelayBetweenRetryAttemptsSec(0.100) // there is already a delay with a CLIENT_SOCKET_TIMEOUT_MSEC timeout, so we just add a little extra idle delay
 , IgtlMessageCrcCheckEnabled(0)
 , ClientSocket(igtl::ClientSocket::New())
-, ClientSocketMutex(vtkSmartPointer<vtkRecursiveCriticalSection>::New())
 , ReconnectOnReceiveTimeout(true)
 , TrackerInternalCoordinateSystemName(NULL)
 , UseLastTransformsOnReceiveTimeout(false)
@@ -93,12 +92,9 @@ PlusStatus vtkOpenIGTLinkTracker::InternalConnect()
   // Clear buffers on connect
   this->ClearAllBuffers();   
 
+  if ( this->ClientSocket->GetConnected() )
   {
-    PlusLockGuard<vtkRecursiveCriticalSection> socketGuard(this->ClientSocketMutex);
-    if ( this->ClientSocket->GetConnected() )
-    {
-      return PLUS_SUCCESS; 
-    }
+    return PLUS_SUCCESS; 
   }
 
   return ClientSocketReconnect();  
@@ -109,31 +105,26 @@ PlusStatus vtkOpenIGTLinkTracker::InternalDisconnect()
 {
   LOG_TRACE( "vtkOpenIGTLinkTracker::Disconnect" ); 
 
+  // If we need TDATA, request server to stop streaming.
+  if ( std::string( this->MessageType ).compare( "TDATA" ) == 0 )
   {
-    PlusLockGuard<vtkRecursiveCriticalSection> socketGuard(this->ClientSocketMutex);
+    igtl::StopTrackingDataMessage::Pointer stpMsg = igtl::StopTrackingDataMessage::New();
+    stpMsg->SetDeviceName("");
+    stpMsg->Pack();
 
-    // If we need TDATA, request server to stop streaming.
-    if ( std::string( this->MessageType ).compare( "TDATA" ) == 0 )
+    int retValue = 0;
+    RETRY_UNTIL_TRUE( 
+      (retValue = this->ClientSocket->Send( stpMsg->GetPackPointer(), stpMsg->GetPackSize() ))!=0,
+      this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
+
+    if ( retValue == 0 )
     {
-      igtl::StopTrackingDataMessage::Pointer stpMsg = igtl::StopTrackingDataMessage::New();
-      stpMsg->SetDeviceName("");
-      stpMsg->Pack();
-
-      int retValue = 0;
-      RETRY_UNTIL_TRUE( 
-        (retValue = this->ClientSocket->Send( stpMsg->GetPackPointer(), stpMsg->GetPackSize() ))!=0,
-        this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
-
-      if ( retValue == 0 )
-      {
-        LOG_ERROR("Failed to send STP_TDATA message to server!"); 
-        return PLUS_FAIL; 
-      } 
-    }
-
-    this->ClientSocket->CloseSocket(); 
+      LOG_ERROR("Failed to send STP_TDATA message to server!"); 
+      return PLUS_FAIL; 
+    } 
   }
 
+  this->ClientSocket->CloseSocket(); 
   return this->StopRecording(); 
 }
 
@@ -240,8 +231,6 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdate()
 //----------------------------------------------------------------------------
 PlusStatus vtkOpenIGTLinkTracker::ClientSocketReconnect()
 { 
-  PlusLockGuard<vtkRecursiveCriticalSection> socketGuard(this->ClientSocketMutex);
-
   LOG_DEBUG("Attempt to connect to client socket in device "<<this->GetDeviceId());
   
   if ( this->ClientSocket->GetConnected() )
@@ -338,8 +327,6 @@ PlusStatus vtkOpenIGTLinkTracker::ClientSocketReconnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkOpenIGTLinkTracker::ReceiveMessageHeader(igtl::MessageHeader::Pointer &headerMsg)
 {
-  PlusLockGuard<vtkRecursiveCriticalSection> socketGuard(this->ClientSocketMutex);
-
   headerMsg = igtl::MessageHeader::New();
   headerMsg->InitPack();
 
@@ -445,8 +432,6 @@ PlusStatus vtkOpenIGTLinkTracker::StoreMostRecentTransformValues(double unfilter
 //----------------------------------------------------------------------------
 PlusStatus vtkOpenIGTLinkTracker::ProcessTDataMessage(igtl::MessageHeader::Pointer headerMsg)
 {
-  PlusLockGuard<vtkRecursiveCriticalSection> socketGuard(this->ClientSocketMutex);
-
   igtl::TrackingDataMessage::Pointer tdataMsg = igtl::TrackingDataMessage::New();
   tdataMsg->SetMessageHeader( headerMsg );
   tdataMsg->AllocatePack();
@@ -522,8 +507,6 @@ PlusStatus vtkOpenIGTLinkTracker::ProcessTDataMessage(igtl::MessageHeader::Point
 //----------------------------------------------------------------------------
 PlusStatus vtkOpenIGTLinkTracker::ProcessTransformMessage(igtl::MessageHeader::Pointer headerMsg)
 {
-  PlusLockGuard<vtkRecursiveCriticalSection> socketGuard(this->ClientSocketMutex);
-
   double unfilteredTimestampUtc = 0; 
   vtkSmartPointer<vtkMatrix4x4> toolMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
   std::string igtlTransformName; 

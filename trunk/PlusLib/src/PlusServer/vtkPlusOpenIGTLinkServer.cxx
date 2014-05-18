@@ -562,7 +562,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
           {
             // Copy client info
             (*it).ShallowCopy(clientInfoMsg->GetClientInfo()); 
-            LOG_INFO("Message received from client (" << clientAddress << ":" << port << ")."); 
+            LOG_INFO("Client info message received from client (" << clientAddress << ":" << port << ")."); 
           }
         }
       }

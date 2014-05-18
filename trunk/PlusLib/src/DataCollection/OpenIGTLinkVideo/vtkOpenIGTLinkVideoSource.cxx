@@ -29,7 +29,6 @@ vtkStandardNewMacro(vtkOpenIGTLinkVideoSource);
 
 //----------------------------------------------------------------------------
 vtkOpenIGTLinkVideoSource::vtkOpenIGTLinkVideoSource()
-: ClientSocketMutex(vtkSmartPointer<vtkRecursiveCriticalSection>::New())
 {
   this->MessageType = NULL; 
   this->ServerAddress = NULL; 
@@ -87,10 +86,8 @@ std::string vtkOpenIGTLinkVideoSource::GetSdkVersion()
 //----------------------------------------------------------------------------
 PlusStatus vtkOpenIGTLinkVideoSource::InternalConnect()
 {
-  LOG_TRACE( "vtkOpenIGTLinkVideoSource::InternalConnect" ); 
+  LOG_TRACE( "vtkOpenIGTLinkVideoSource::InternalConnect" );
 
-  PlusLockGuard<vtkRecursiveCriticalSection> socketGuard(this->ClientSocketMutex);
-  
   if ( this->ClientSocket->GetConnected() )
   {
     return PLUS_SUCCESS; 
@@ -165,10 +162,7 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalConnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkOpenIGTLinkVideoSource::InternalDisconnect()
 {
-  {
-    PlusLockGuard<vtkRecursiveCriticalSection> socketGuard(this->ClientSocketMutex);
-    this->ClientSocket->CloseSocket();
-  }
+  this->ClientSocket->CloseSocket();
   return this->StopRecording();
 }
 
@@ -193,59 +187,55 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalUpdate()
     return PLUS_SUCCESS;
   }
 
+  igtl::MessageHeader::Pointer headerMsg;
+  headerMsg = igtl::MessageHeader::New();
+  headerMsg->InitPack();
+
+  int numOfBytesReceived = 0;
+  RETRY_UNTIL_TRUE( 
+    (numOfBytesReceived = this->ClientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize()))!=0,
+    this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
+
+  if( numOfBytesReceived == -1 )
+  {
+    this->ClientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
+    return PLUS_SUCCESS; 
+  }
+
+  if ( numOfBytesReceived == 0 ) 
+  {
+    // No message received - server disconnected 
+    LOG_ERROR("OpenIGTLink video source connection lost with server - try to reconnect!");
+    this->Connected = 0; 
+    this->ClientSocket->CloseSocket(); 
+    return this->Connect();
+  }
+  
+  headerMsg->Unpack(this->IgtlMessageCrcCheckEnabled);
+
   TrackedFrame trackedFrame;
 
+  if (strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0)
+  {      
+    if (vtkPlusIgtlMessageCommon::UnpackImageMessage( headerMsg, this->ClientSocket, trackedFrame, this->ImageMessageEmbeddedTransformName, this->IgtlMessageCrcCheckEnabled)!=PLUS_SUCCESS)
+    {
+      LOG_ERROR("Couldn't get image from OpenIGTLink server!"); 
+      return PLUS_FAIL;
+    }
+  }
+  else if (strcmp(headerMsg->GetDeviceType(), "TRACKEDFRAME") == 0)
   {
-    PlusLockGuard<vtkRecursiveCriticalSection> socketGuard(this->ClientSocketMutex);
-
-    igtl::MessageHeader::Pointer headerMsg;
-    headerMsg = igtl::MessageHeader::New();
-    headerMsg->InitPack();
-
-    int numOfBytesReceived = 0;
-    RETRY_UNTIL_TRUE( 
-      (numOfBytesReceived = this->ClientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize()))!=0,
-      this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
-
-    if( numOfBytesReceived == -1 )
+    if ( vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( headerMsg, this->ClientSocket, trackedFrame, this->IgtlMessageCrcCheckEnabled ) != PLUS_SUCCESS )
     {
-      this->ClientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
-      return PLUS_SUCCESS; 
+      LOG_ERROR("Couldn't get tracked frame from OpenIGTLink server!"); 
+      return PLUS_FAIL; 
     }
-
-    if ( numOfBytesReceived == 0 ) 
-    {
-      // No message received - server disconnected 
-      LOG_ERROR("OpenIGTLink video source connection lost with server - try to reconnect!");
-      this->Connected = 0; 
-      this->ClientSocket->CloseSocket(); 
-      return this->Connect();
-    }
-    
-    headerMsg->Unpack(this->IgtlMessageCrcCheckEnabled);
-
-    if (strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0)
-    {      
-      if (vtkPlusIgtlMessageCommon::UnpackImageMessage( headerMsg, this->ClientSocket, trackedFrame, this->ImageMessageEmbeddedTransformName, this->IgtlMessageCrcCheckEnabled)!=PLUS_SUCCESS)
-      {
-        LOG_ERROR("Couldn't get image from OpenIGTLink server!"); 
-        return PLUS_FAIL;
-      }
-    }
-    else if (strcmp(headerMsg->GetDeviceType(), "TRACKEDFRAME") == 0)
-    {
-      if ( vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( headerMsg, this->ClientSocket, trackedFrame, this->IgtlMessageCrcCheckEnabled ) != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Couldn't get tracked frame from OpenIGTLink server!"); 
-        return PLUS_FAIL; 
-      }
-    }
-    else
-    {
-      // if the data type is unknown, skip reading. 
-      this->ClientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
-      return PLUS_SUCCESS; 
-    }
+  }
+  else
+  {
+    // if the data type is unknown, skip reading. 
+    this->ClientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
+    return PLUS_SUCCESS; 
   }
 
   // Set unfiltered and filtered timestamp by converting UTC to system timestamp
