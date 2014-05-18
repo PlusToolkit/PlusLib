@@ -140,6 +140,9 @@ protected:
   /*! OpenIGTLink client socket */ 
   igtl::ClientSocket::Pointer ClientSocket;
 
+  /*! Mutex instance to serialize access to the ClientSocket from different threads */ 
+  vtkSmartPointer<vtkRecursiveCriticalSection> ClientSocketMutex;
+
   /*! Attempt a reconnection if no data is received */
   bool ReconnectOnReceiveTimeout;
 
