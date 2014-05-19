@@ -392,9 +392,9 @@ template<class floatType> int TestFloor(const char* floatName)
     <<"using vtkMath::Floor: "<<timestampDiffVtkFloor<<"sec, "    
     <<"using floor:"<<timestampDiffFloor<<"sec");
 
-  if (timestampDiffPlusFloor>timestampDiffFloor)
+  if (timestampDiffPlusFloor>timestampDiffFloor*1.10)
   {
-    LOG_ERROR("The optimized floor implementation is slower than the unoptimized version.");
+    LOG_ERROR("The optimized floor implementation is more than 10% slower than the unoptimized version.");
     numberOfErrors++;
   }
 
