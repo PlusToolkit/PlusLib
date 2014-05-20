@@ -59,6 +59,8 @@ public:
 
   void SetImageToLpsTransformationMatrix(vtkMatrix4x4*);
 
+	void GetLpsToFrameTransformationMatrix(vtkMatrix4x4*);
+
 protected:
 	/*! Constructor !*/
 	vtkStealthLinkTracker();
