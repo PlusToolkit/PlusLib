@@ -160,18 +160,14 @@ private:
 			LOG_TRACE("The instrument returned to field of view\n");
 			this->InstrumentOutOfView = FALSE;
 		}	
-		vtkSmartPointer<vtkMatrix4x4> lpsToRas = vtkSmartPointer<vtkMatrix4x4>::New();
-		lpsToRas->SetElement(0,0,-1);
-		lpsToRas->SetElement(1,1,-1);
 		vtkSmartPointer<vtkMatrix4x4> insToTracker_Lps = vtkSmartPointer<vtkMatrix4x4>::New();
 		for(int col=0; col < 4; col++)
 		{
 			for (int row=0; row < 4; row++)
 			{
-				insToTracker_Lps->SetElement(row, col, this->NavData.localizer_T_instrument [row][col]);
+				this->InsToTrackerTransMatrix->SetElement(row, col, this->NavData.localizer_T_instrument [row][col]);
 			}
 		}
-		vtkMatrix4x4::Multiply4x4(lpsToRas,insToTracker_Lps,this->InsToTrackerTransMatrix);
 	}
 	/*! Update the transformation maxtrix of the current frame !*/
 	void UpdateFrameToTrackerTransMatrix()
@@ -190,20 +186,16 @@ private:
 			LOG_TRACE("The frame is now trackable.\n");
 			this->FrameOutOfView = FALSE;
 		}
-		vtkSmartPointer<vtkMatrix4x4> lpsToRas = vtkSmartPointer<vtkMatrix4x4>::New();
-		lpsToRas->SetElement(0,0,-1);
-		lpsToRas->SetElement(1,1,-1);
-		vtkSmartPointer<vtkMatrix4x4> frameToTracker_Lps = vtkSmartPointer<vtkMatrix4x4>::New();
+		vtkSmartPointer<vtkMatrix4x4> localizerToFrame = vtkSmartPointer<vtkMatrix4x4>::New();
 		for(int col=0; col < 4; col++)
 		{
 			for (int row=0; row < 4; row++)
 			{
-				frameToTracker_Lps->SetElement(row, col, this->NavData.frame_T_localizer [row][col]); // from localizer Space to frame space
+				localizerToFrame->SetElement(row, col, this->NavData.frame_T_localizer [row][col]); // from localizer Space to frame space
 			}
 		}
 		//the transformation matrix given by NavData is from Localizer(Tracker) space to frame space and we need the inverse of it
-		frameToTracker_Lps->Invert();   
-		vtkMatrix4x4::Multiply4x4(lpsToRas,frameToTracker_Lps,this->FrameToTrackerTransMatrix);
+		vtkMatrix4x4::Invert(localizerToFrame,this->FrameToTrackerTransMatrix);   
 	}
 	/* Update the transformation maxtrix of the current registration !*/
 	void UpdateImageToTrackerTransMatrix()
@@ -221,24 +213,31 @@ private:
 				frameToLpsTransMatrix->SetElement(row, col, this->Registration.regExamMM_T_frame [row][col]); // from Frame coordinates to lps coordinates
 			}
 		}
+		if(this->ImageToLpsTransformationMatrix->GetElement(0,3)!=0)
+		{
+			MNavStealthLink::Instrument ins;
+			this->StealthLinkServer->get(ins,this->StealthLinkServer->getServerTime());
+			MNavStealthLink::SurgicalPlan sPlan;
+			this->StealthLinkServer->get(sPlan,this->StealthLinkServer->getServerTime());
+		}
+		MNavStealthLink::Instrument ins;
+			this->StealthLinkServer->get(ins,this->StealthLinkServer->getServerTime());
+		vtkSmartPointer<vtkMatrix4x4> lpsRasTransform = vtkSmartPointer<vtkMatrix4x4>::New();
+		lpsRasTransform->SetElement(0,0,-1);
+		lpsRasTransform->SetElement(1,1,-1);
 
-		vtkSmartPointer<vtkMatrix4x4> lpsToFrameTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+
+  	vtkSmartPointer<vtkMatrix4x4> lpsToFrameTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 		vtkMatrix4x4::Invert(frameToLpsTransMatrix,lpsToFrameTransMatrix);
 	//	ImageToTrackerTransMatrix = trackerFromImage = trackerFromFrame*FrameFromImage = trackerFromFrame*FrameFromLps * LpsFromImage 
 	//																				   = FrameToTrakcer * LpsToFrame * ImageToLps
 	//																				   = FrameToTrakcer * inv(frameToLps) * ImageToLps
-       vtkSmartPointer<vtkMatrix4x4> lpsToTrackerTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-		vtkMatrix4x4::Multiply4x4(this->FrameToTrackerTransMatrix,lpsToFrameTransMatrix,lpsToTrackerTransMatrix);
-		vtkSmartPointer<vtkMatrix4x4> lpsToRas = vtkSmartPointer<vtkMatrix4x4>::New();
-		lpsToRas->SetElement(0,0,-1);
-		lpsToRas->SetElement(1,1,-1);
+    vtkSmartPointer<vtkMatrix4x4> lpsToTrackerTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+		vtkMatrix4x4::Multiply4x4(this->FrameToTrackerTransMatrix,lpsToFrameTransMatrix,this->ImageToTrackerTransMatrix);
 		//vtkSmartPointer<vtkMatrix4x4> imageToTracker_Lps = vtkSmartPointer<vtkMatrix4x4>::New();
 		//vtkMatrix4x4::Multiply4x4(lpsToTrackerTransMatrix,this->ImageToLpsTransformationMatrix,imageToTracker_Lps);
-	  vtkSmartPointer<vtkMatrix4x4> trackerToLps = vtkSmartPointer<vtkMatrix4x4>::New();
-		vtkMatrix4x4::Invert(lpsToTrackerTransMatrix,trackerToLps);
-		vtkSmartPointer<vtkMatrix4x4> trackerToRas = vtkSmartPointer<vtkMatrix4x4>::New();
-		vtkMatrix4x4::Multiply4x4(lpsToRas,trackerToLps,trackerToRas);
-		vtkMatrix4x4::Invert(trackerToRas,this->ImageToTrackerTransMatrix);
+		//vtkMatrix4x4::Multiply4x4(lpsToTrackerTransMatrix,this->ImageToLpsTransformationMatrix,this->ImageToTrackerTransMatrix);
+		//vtkMatrix4x4::Invert(trackerToRas,this->ImageToTrackerTransMatrix);
 	}
 };
 
@@ -757,6 +756,18 @@ PlusStatus vtkStealthLinkTracker::GetPatientId(std::string& patientId)
 std::string vtkStealthLinkTracker::GetApplicationStartTimestamp()
 {
 	return this->ApplicationStartTimestamp;
+}
+void vtkStealthLinkTracker::GetLpsToFrameTransformationMatrix(vtkMatrix4x4* lpsToFrameTransMatrix)
+{
+	vtkSmartPointer<vtkMatrix4x4> frameToLpsTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+	for(int col=0; col < 4; col++)
+		{
+			for (int row=0; row < 4; row++)
+			{
+				frameToLpsTransMatrix->SetElement(row, col, this->Internal->Registration.regExamMM_T_frame [row][col]); // from Frame coordinates to lps coordinates
+			}
+		}
+  vtkMatrix4x4::Invert(frameToLpsTransMatrix,lpsToFrameTransMatrix);
 }
 void vtkStealthLinkTracker::SetImageToLpsTransformationMatrix(vtkMatrix4x4* imageToLpsTransformationMatrix)
 {

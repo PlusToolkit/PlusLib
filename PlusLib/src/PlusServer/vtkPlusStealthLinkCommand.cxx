@@ -169,86 +169,85 @@ PlusStatus vtkPlusStealthLinkCommand::Execute()
   if (STRCASECMP(this->Name, GET_STEALTHLINK_EXAM_DATA_CMD)==0)
   {
     LOG_INFO("Acquiring the exam data from StealthLink Server: Device ID: "<<GetStealthLinkDeviceId());
-	if(!(stealthLinkDevice->UpdateCurrentExam()))
-	{
-       return PLUS_FAIL;
+	  if(!(stealthLinkDevice->UpdateCurrentExam()))
+	  {
+      return PLUS_FAIL;
     }
-	std::string examImageDirectory;
-	if(!stealthLinkDevice->GetDicomImage(this->GetDicomImagesOutputDirectory(),examImageDirectory))
-	{
-		return PLUS_FAIL;
-	}
+	  std::string examImageDirectory;
+	  if(!stealthLinkDevice->GetDicomImage(this->GetDicomImagesOutputDirectory(),examImageDirectory))
+	  {
+		  return PLUS_FAIL;
+	  }
 
-	std::string patientName;
-	std::string patientId;
-	if(!stealthLinkDevice->GetPatientName(patientName))
-	{
-		return PLUS_FAIL;
-	}
-	if(!stealthLinkDevice->GetPatientId(patientId))
-	{
-		return PLUS_FAIL;
-	}
-	SetPatientName(patientName.c_str());
-	SetPatientId(patientId.c_str());
+	  std::string patientName;
+	  std::string patientId;
+	  if(!stealthLinkDevice->GetPatientName(patientName))
+	  {
+		  return PLUS_FAIL;
+ 	  }
+ 	  if(!stealthLinkDevice->GetPatientId(patientId))
+	  {
+		  return PLUS_FAIL;
+	  }
+	  SetPatientName(patientName.c_str());
+	  SetPatientId(patientId.c_str());
+	  vtkSmartPointer<vtkDICOMImageReader> reader = vtkSmartPointer<vtkDICOMImageReader>::New();
+	  reader->SetDirectoryName(examImageDirectory.c_str()); 
+	  reader->Update();
 
-	vtkSmartPointer<vtkDICOMImageReader> reader = vtkSmartPointer<vtkDICOMImageReader>::New();
-	reader->SetDirectoryName(examImageDirectory.c_str()); 
-	reader->SetFileLowerLeft(1);
-	reader->Update();
-	float*  iDirectionVector_LPS = reader->GetImageOrientationPatient();  // TODO change ijkToImage
-	float*  jDirectionVector_LPS = reader->GetImageOrientationPatient()+3;
-	float*  ijkOrigin_LPS = reader->GetImagePositionPatient();
-	int*    ijkSize = reader->GetOutput()->GetDimensions();
-	double* ijkVectorMagnitude_LPS = reader->GetPixelSpacing();
-	int xMin,xMax,yMin,yMax,zMin,zMax;
-	reader->GetDataExtent(xMin,xMax,yMin,yMax,zMin,zMax);
+	  float*  ijkOrigin_LPS = reader->GetImagePositionPatient();
+	  double* ijkVectorMagnitude_LPS = reader->GetPixelSpacing();
+	  int xMin,xMax,yMin,yMax,zMin,zMax;
+	  reader->GetDataExtent(xMin,xMax,yMin,yMax,zMin,zMax);
 
-	float   kDirectionVector_LPS[3]={0};
-	vtkMath::Cross(iDirectionVector_LPS,jDirectionVector_LPS,kDirectionVector_LPS);
+	  float*  iDirectionVector_LPS = reader->GetImageOrientationPatient();  // TODO change ijkToImage
+	  float*  jDirectionVector_LPS = reader->GetImageOrientationPatient()+3;
+	  float   kDirectionVector_LPS[3]={0};
+	  vtkMath::Cross(iDirectionVector_LPS,jDirectionVector_LPS,kDirectionVector_LPS);
 
-	vtkSmartPointer<vtkMatrix4x4> ijkToLPSTransformationMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); // image to lps
-	for(int i=0;i<3;i++)
-	{
-		if(i<2)
-		{
-			ijkToLPSTransformationMatrix->SetElement(i,0,-iDirectionVector_LPS[i]); // * ijkVectorMagnitude_LPS[i]);
-		  ijkToLPSTransformationMatrix->SetElement(i,1,-jDirectionVector_LPS[i]);//ijkVectorMagnitude_LPS[i] * jDirectionVector_LPS[i]);
-		  ijkToLPSTransformationMatrix->SetElement(i,2,-kDirectionVector_LPS[i]);//ijkVectorMagnitude_LPS[i] * kDirectionVector_LPS[i]);
-		}
-		else
-		{
-			ijkToLPSTransformationMatrix->SetElement(i,0,iDirectionVector_LPS[i]); // * ijkVectorMagnitude_LPS[i]);
-		  ijkToLPSTransformationMatrix->SetElement(i,1,jDirectionVector_LPS[i]);//ijkVectorMagnitude_LPS[i] * jDirectionVector_LPS[i]);
-		  ijkToLPSTransformationMatrix->SetElement(i,2,kDirectionVector_LPS[i]);//ijkVectorMagnitude_LPS[i] * kDirectionVector_LPS[i]);
-		}
-		
-		//ijkToLPSTransformationMatrix->SetElement(i,3,ijkOrigin_LPS[i]);
-	}
+	  vtkSmartPointer<vtkMatrix4x4> ijkToRpiTransformationMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); // image to lps
+	  for(int i=0;i<3;i++)
+	  {	
+		  //the difference between lps and rpi is that x and z are "flipped" aka multipled by -1
+	    if(i==0 || i==2)
+		  {
+		    ijkToRpiTransformationMatrix->SetElement(i,0,-iDirectionVector_LPS[i]);
+		    ijkToRpiTransformationMatrix->SetElement(i,1,-jDirectionVector_LPS[i]);
+		    ijkToRpiTransformationMatrix->SetElement(i,2,-kDirectionVector_LPS[i]);
+		  }
+		  else
+		  {
+			  ijkToRpiTransformationMatrix->SetElement(i,0,iDirectionVector_LPS[i]);
+		    ijkToRpiTransformationMatrix->SetElement(i,1,jDirectionVector_LPS[i]);
+		    ijkToRpiTransformationMatrix->SetElement(i,2,kDirectionVector_LPS[i]);
+		  }
+	  }
 
-
-
-	stealthLinkDevice->SetImageToLpsTransformationMatrix(ijkToLPSTransformationMatrix);
+	  //the origin is also shifter from lps to rpi aka shifted along x and z axes
+	  double newOrigin_RPI[3];
+	  newOrigin_RPI[0] = iDirectionVector_LPS[0]*(xMax-xMin+1)*ijkVectorMagnitude_LPS[0] + kDirectionVector_LPS[0]*(zMax-zMin+1)*ijkVectorMagnitude_LPS[2];
+	  newOrigin_RPI[1] = iDirectionVector_LPS[1]*(xMax-xMin+1)*ijkVectorMagnitude_LPS[0] + kDirectionVector_LPS[1]*(zMax-zMin+1)*ijkVectorMagnitude_LPS[2];
+    newOrigin_RPI[2] = iDirectionVector_LPS[2]*(xMax-xMin+1)*ijkVectorMagnitude_LPS[0] + kDirectionVector_LPS[2]*(zMax-zMin+1)*ijkVectorMagnitude_LPS[2];
 	
-
-	vtkSmartPointer<vtkImageFlip> flipYFilter =
-    vtkSmartPointer<vtkImageFlip>::New();
-  flipYFilter->SetFilteredAxis(1); // flip z axis
-	flipYFilter->SetInputConnection(reader->GetOutputPort());
-  flipYFilter->Update();
-
-	vtkSmartPointer<vtkImageFlip> flipZFilter =
-    vtkSmartPointer<vtkImageFlip>::New();
-  flipZFilter->SetFilteredAxis(2); // flip z axis
-	flipZFilter->SetInputConnection(flipYFilter->GetOutputPort());
-  flipZFilter->Update();
+	  //Set the elements of the transformation matrix
+    ijkToRpiTransformationMatrix->SetElement(0,3,newOrigin_RPI[0]);
+	  ijkToRpiTransformationMatrix->SetElement(1,3,newOrigin_RPI[1]);
+	  ijkToRpiTransformationMatrix->SetElement(2,3,newOrigin_RPI[2]);
 
 
-	
-	ijkToLPSTransformationMatrix->SetElement(0,3,-(ijkOrigin_LPS[0]));
-	ijkToLPSTransformationMatrix->SetElement(1,3,-(ijkOrigin_LPS[1]));
-	ijkToLPSTransformationMatrix->SetElement(2,3,ijkOrigin_LPS[2]);
-	return ProcessImageReply(flipZFilter->GetOutput(),ijkToLPSTransformationMatrix);//flipZFilter->GetOutput(),ijkToLPSTransformationMatrix); 
+	  //to go from the vtk orientation to lps orientation, the vtk image has to be flipped around y and z axis
+	  vtkSmartPointer<vtkImageFlip> flipYFilter = vtkSmartPointer<vtkImageFlip>::New();
+    flipYFilter->SetFilteredAxis(1); // flip y axis
+	  flipYFilter->SetInputConnection(reader->GetOutputPort());
+    flipYFilter->Update();
+
+	  vtkSmartPointer<vtkImageFlip> flipZFilter = vtkSmartPointer<vtkImageFlip>::New();
+    flipZFilter->SetFilteredAxis(2); // flip z axis
+	  flipZFilter->SetInputConnection(flipYFilter->GetOutputPort());
+    flipZFilter->Update();
+	  stealthLinkDevice->SetImageToLpsTransformationMatrix(ijkToRpiTransformationMatrix);
+
+		return ProcessImageReply(flipZFilter->GetOutput(),ijkToRpiTransformationMatrix);//flipZFilter->GetOutput(),ijkToLPSTransformationMatrix); 
   }
   else if (STRCASECMP(this->Name, GET_STEALTHLINK_REGISTRATION_DATA_CMD)==0)
   {    
