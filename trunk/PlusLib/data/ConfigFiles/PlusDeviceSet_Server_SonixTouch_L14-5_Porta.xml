@@ -3,27 +3,25 @@
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
       Name="PlusServer: Ultrasonix ultrasound imaging device using Porta."
-      Description="Broadcasting ultrasound images acquired from the Ultrasonix system through OpenIGTLink. If PlusServer does not run on the Ultrasonix PC then update the IP attribute in the Device element with the Ultrasonix PC's IP address."
+      Description="Broadcasting ultrasound images acquired from the Ultrasonix system through OpenIGTLink. Update PortaFirmwarePath, PortaSettingPath, PortaLicensePath, PortaLUTPath attributes in the device set configuration file. PlusServer has to run on the Ultrasonix PC."
     />
     <Device
       Id="VideoDevice"
       Type="SonixPortaVideo" 
       AcquisitionRate="30" 
       LocalTimeOffsetSec="0"
-      IP="127.0.0.1" 
       Depth="70" 
       Gain="50" 
       Frequency="3.3" 
-      CompressionStatus="0" 
-	  PortaFirmwarePath="path-to/sdk574/porta/fw/"
-	  PortaSettingPath="path-to/sdk574/porta/dat/"
-	  PortaLicensePath="D:/Ultrasonix Settings/"
-	  PortaLUTPath="D:/Ultrasonix Settings/LUTS/"
-	  USM="4"
-	  PCI="3"
-	  HighVoltage="0"
-	  Channels="64"
-	  >
+      PortaFirmwarePath="path-to/sdk574/porta/fw/"
+      PortaSettingPath="path-to/sdk574/porta/dat/"
+      PortaLicensePath="D:/Ultrasonix Settings/"
+      PortaLUTPath="D:/Ultrasonix Settings/LUTS/"
+      USM="4"
+      PCI="3"
+      HighVoltage="0"
+      Channels="64"
+      >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="100" AveragedItemsForFiltering="20" />
       </DataSources>
@@ -34,7 +32,7 @@
     <Device
       Id="CaptureDevice"
       Type="VirtualDiscCapture"
-      BaseFilename="D:/RecordingTest.mha"
+      BaseFilename="RecordingTest.mha"
       EnableCapturing="TRUE" >
       <InputChannels>
         <InputChannel Id="VideoStream" />
