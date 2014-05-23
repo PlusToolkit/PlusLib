@@ -116,7 +116,7 @@ vtkSonixPortaVideoSource::vtkSonixPortaVideoSource()
     this->PortaBModeHeight * 4 ];
   if ( !this->ImageBuffer ) 
   {
-    LOG_ERROR("vtkSonixPortaVideoSource constructor: not enough emory for ImageBuffer" );
+    LOG_ERROR("vtkSonixPortaVideoSource constructor: not enough memory for ImageBuffer" );
   }
 
   this->ImagingMode = (int)BMode;
@@ -278,7 +278,7 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
     return PLUS_FAIL;
   }
   vtkPlusChannel* outputChannel=this->OutputChannels[0];
-
+	
   this->FrameNumber++;
   int frameSize[2] = {0,0};
   this->GetFrameSize(*outputChannel, frameSize);
@@ -313,6 +313,7 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
 
   TrackedFrame::FieldMapType customFields; 
   customFields["MotorAngle"] = motorAngle.str(); 
+  //customFields["ImageToProbeHeadTransform"] = "0.2 0.6 0.4 150 ..."; 
 
   PlusStatus status = aSource->GetBuffer()->AddItem(deviceDataPtr, aSource->GetPortImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, numberOfBytesToSkip, this->FrameNumber, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields); 
   this->Modified();
@@ -417,6 +418,9 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
   // successfully set to bmode
   this->PortaModeSelected = 1;
 
+  int test;
+  GetFramePerVolume(test);
+  GetStepPerFrame(test);
   SetFrequency(this->Frequency);
   SetDepth(this->Depth);
   SetGain(this->Gain);
@@ -593,7 +597,7 @@ PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* config
   }
   else
   {
-    LOG_ERROR("Porta LUT path is not defined: "<<portaLUTpath);
+    LOG_ERROR("Porta LUT path is not defined");
   }
 
   const char* portaSettingPath = imageAcquisitionConfig->GetAttribute("PortaSettingPath"); 
@@ -603,7 +607,7 @@ PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* config
   }
   else
   {
-    LOG_ERROR("Porta Setting path is not defined: "<<portaSettingPath);
+    LOG_ERROR("Porta Setting path is not defined");
   }
 
   const char* portaLicensePath = imageAcquisitionConfig->GetAttribute("PortaLicensePath"); 
@@ -613,7 +617,7 @@ PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* config
   }
   else
   {
-    LOG_ERROR("Porta License path is not defined: "<<portaLicensePath);
+    LOG_ERROR("Porta License path is not defined");
   }
 
   const char* portaFirmwarePath = imageAcquisitionConfig->GetAttribute("PortaFirmwarePath"); 
@@ -623,7 +627,7 @@ PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* config
   }
   else
   {
-    LOG_ERROR("Porta Firmware path is not defined: "<<portaFirmwarePath);
+    LOG_ERROR("Porta Firmware path is not defined");
   }
 
   LOG_DEBUG("Porta read the XML configuration");
