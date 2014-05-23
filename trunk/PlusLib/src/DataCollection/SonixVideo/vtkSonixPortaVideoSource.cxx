@@ -379,7 +379,6 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
       return PLUS_FAIL;
     }
 
-    std::string preset = "D:/t/devel/PLTools/Ultrasonix/sdk-5.6.4/Porta/dat/presets/imaging/GEN-General (4DC7-3 40mm).xml";
     if ( !this->Porta.loadPreset( name ) )
     {
       LOG_ERROR("Initialize: master preset could not be loaded" );
