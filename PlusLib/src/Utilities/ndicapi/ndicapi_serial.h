@@ -72,16 +72,6 @@ extern "C" {
 typedef HANDLE NDIFileHandle;
 #define NDI_INVALID_HANDLE INVALID_HANDLE_VALUE
 
-#define NDI_NUMBER_OF_DEVICES 7
-#define NDI_DEVICE0    "COM1:"
-#define NDI_DEVICE1    "COM2:"
-#define NDI_DEVICE2    "COM3:"
-#define NDI_DEVICE3    "COM4:"
-#define NDI_DEVICE4    "COM5:"
-#define NDI_DEVICE5    "COM6:"
-#define NDI_DEVICE6    "COM7:"
-#define NDI_DEVICE7    "COM8:"
-
 #elif defined(unix) || defined(__unix__) || defined(__APPLE__)
 
 typedef int NDIFileHandle;
