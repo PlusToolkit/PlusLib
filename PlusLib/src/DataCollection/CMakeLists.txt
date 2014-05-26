@@ -72,9 +72,7 @@ if (WIN32)
 endif (WIN32)  
 
 SET (External_Libraries_Install)
-SET (External_Libraries_Install_Minus_Debug)
 SET (External_Libraries_Debug)
-SET (External_Libraries_Debug_FileName)
 SET (DataCollection_INCLUDE_DIRS 
   ${DataCollection_INCLUDE_DIRS}
   ${CMAKE_CURRENT_SOURCE_DIR} 
@@ -778,14 +776,14 @@ SET(vcProj_vtkDataCollection vtkDataCollection;"${PlusLib_BINARY_DIR}/src/DataCo
 # --------------------------------------------------------------------------
 # Copy external libraries to PLUS_EXECUTABLE_OUTPUT_PATH
 IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
-    MESSAGE( " External_Libraries_Install " ${External_Libraries_Install})
     FILE(COPY ${External_Libraries_Install}
         DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release
         )
     # If debug and release dll has the same name then the debug dll would be
     # overwritten by the file copy. To prevent this, copy only those release dlls
     # that has no corresponding debug dll with the same filename.
-
+    SET (External_Libraries_Install_Minus_Debug)
+    SET (External_Libraries_Debug_FileName)
     #Find the file names of the debug shared libraries
     FOREACH (DEBUG ${External_Libraries_Debug})
         get_filename_component(FileName ${DEBUG} NAME)
