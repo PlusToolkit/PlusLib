@@ -149,6 +149,17 @@ IF (PLUS_USE_ULTRASONIX_VIDEO AND PLUS_TEST_ULTRASONIX)
   SET_TESTS_PROPERTIES( vtkSonixVideoSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF (PLUS_USE_ULTRASONIX_VIDEO AND PLUS_TEST_ULTRASONIX)
 
+#***************************  vtkIntersonSDKCxxVideoSourceTest.cxx ***************************
+IF (PLUS_USE_INTERSONSDKCXX_VIDEO)
+  ADD_EXECUTABLE(vtkIntersonSDKCxxVideoSourceTest vtkintersonSDKCxxVideoSourceTest.cxx)
+  TARGET_LINK_LIBRARIES(vtkIntersonSDKCxxVideoSourceTest vtkDataCollection vtkPlusCommon)
+  ADD_TEST(NAME vtkIntersonSDKCxxVideoSourceTest 
+    COMMAND $<TARGET_FILE:vtkIntersonSDKCxxVideoSourceTest>
+    --rendering-off 
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonSDKCxxVideoSourceTest.xml
+  )
+  SET_TESTS_PROPERTIES( vtkIntersonSDKCxxVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+ENDIF ()
 
 IF (PLUS_USE_BKPROFOCUS_VIDEO)
 

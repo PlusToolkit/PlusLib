@@ -10,7 +10,12 @@ SET(PLUSLIB_DATA_DIR "@PLUSLIB_DATA_DIR@")
 
 # Tell the user project where to find Plus use file
 SET(PlusLib_USE_FILE "@CMAKE_CURRENT_BINARY_DIR@/UsePlusLib.cmake" )
+
+# Get the location for IntersonCxx
+SET(PLUS_USE_INTERSONSDKCXX_VIDEO "@PLUS_USE_INTERSONSDKCXX_VIDEO@")
+IF(PLUS_USE_INTERSONSDKCXX_VIDEO)
+  find_package(IntersonSDKCxx REQUIRED)
+ENDIF()
  
 # Our library dependencies (contains definitions for IMPORTED targets)
 include("@CMAKE_CURRENT_BINARY_DIR@/PlusLibLibraryDepends.cmake")
- 
