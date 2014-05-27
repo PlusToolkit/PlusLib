@@ -197,9 +197,13 @@ SET(ep_base "${CMAKE_BINARY_DIR}")
 
 SET(ep_common_args
   #-DCMAKE_INSTALL_PREFIX:PATH=${ep_install_dir}
-  -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
-  -DBUILD_TESTING:BOOL=OFF
   )
+IF(NOT ${CMAKE_GENERATOR} MATCHES "Visual Studio")
+  SET(ep_common_args
+    ${ep_common_args}
+    -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
+    )
+ENDIF()
 
 SET(ep_common_c_flags "${CMAKE_C_FLAGS_INIT} ${ADDITIONAL_C_FLAGS}")
 SET(ep_common_cxx_flags "${CMAKE_CXX_FLAGS_INIT} ${ADDITIONAL_CXX_FLAGS}")

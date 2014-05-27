@@ -116,6 +116,7 @@ ExternalProject_Add(PlusLib
   ${PLUSBUILD_SVN_REVISION_ARGS}
   #--Configure step-------------
   CMAKE_ARGS 
+    ${ep_common_args}
     -DVTK_DIR:PATH=${PLUS_VTK_DIR}
     -DITK_DIR:PATH=${PLUS_ITK_DIR}
     -DSubversion_SVN_EXECUTABLE:FILEPATH=${Subversion_SVN_EXECUTABLE}
