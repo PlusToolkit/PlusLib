@@ -60,8 +60,8 @@ ADD_EXECUTABLE(EditSeqMetaFile EditSeqMetaFile.cxx )
 TARGET_LINK_LIBRARIES(EditSeqMetaFile vtkPlusCommon )
 
 #--------------------------------------------------------------------------------------------
-ADD_TEST(EditSeqMetaFileTrim
-  ${EXECUTABLE_OUTPUT_PATH}/EditSeqMetaFile
+ADD_TEST(NAME EditSeqMetaFileTrim
+  COMMAND $<TARGET_FILE:EditSeqMetaFile>
   --operation=TRIM
   --first-frame-index=0
   --last-frame-index=5
@@ -80,8 +80,8 @@ ADD_TEST(EditSeqMetaFileTrimCompareToBaselineTest
 SET_TESTS_PROPERTIES( EditSeqMetaFileTrimCompareToBaselineTest PROPERTIES DEPENDS EditSeqMetaFileTrim )
 
 #--------------------------------------------------------------------------------------------
-ADD_TEST(EditSeqMetaFileFillImageRectangle
-  ${EXECUTABLE_OUTPUT_PATH}/EditSeqMetaFile
+ADD_TEST(NAME EditSeqMetaFileFillImageRectangle
+  COMMAND $<TARGET_FILE:EditSeqMetaFile>
   --operation=FILL_IMAGE_RECTANGLE
   --rect-origin 52 25
   --rect-size 260 25
@@ -102,8 +102,8 @@ ADD_TEST(EditSeqMetaFileFillImageRectangleCompareToBaselineTest
 SET_TESTS_PROPERTIES( EditSeqMetaFileFillImageRectangleCompareToBaselineTest PROPERTIES DEPENDS EditSeqMetaFileFillImageRectangle )
 
 #--------------------------------------------------------------------------------------------
-ADD_TEST(EditSeqMetaFileCropImageRectangle
-  ${EXECUTABLE_OUTPUT_PATH}/EditSeqMetaFile
+ADD_TEST(NAME EditSeqMetaFileCropImageRectangle
+  COMMAND $<TARGET_FILE:EditSeqMetaFile>
   --operation=CROP
   --rect-origin 52 25
   --rect-size 260 25
