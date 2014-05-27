@@ -15,6 +15,7 @@ OPTION (PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber devi
 OPTION (PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
 OPTION (PLUS_USE_EPIPHAN "Provide support for the Epiphan" OFF)
 OPTION (PLUS_USE_INTERSON_VIDEO "Provide support Interson USB ultrasound probes" OFF)
+OPTION (PLUS_USE_INTERSONSDKCXX_VIDEO "Provide support Interson SDK 1.X with C++ Wrapper USB ultrasound probes" OFF)
 OPTION(PLUS_USE_STEALTHLINK "Provide support for the Medtronick StealthLink Server" OFF)
 
 OPTION (PLUS_TEST_BKPROFOCUS "Enable testing of acquisition from BK ProFocus ultrasound systems. Enable this only if a BK ProFocus device is connected to this computer." OFF)
@@ -744,6 +745,36 @@ IF (PLUS_USE_INTERSON_VIDEO)
       )
   ENDIF()
 ENDIF (PLUS_USE_INTERSON_VIDEO)
+
+# --------------------------------------------------------------------------
+# Interson SDK C++ support
+
+IF (PLUS_USE_INTERSONSDKCXX_VIDEO)
+  FIND_PACKAGE( IntersonSDKCxx REQUIRED )
+  SET (DataCollection_SRCS ${DataCollection_SRCS} 
+    IntersonSDKCxx/vtkIntersonSDKCxxVideoSource.cxx
+    )
+  if (WIN32)  
+    SET (DataCollection_HDRS ${DataCollection_HDRS}
+      IntersonSDKCxx/vtkIntersonSDKCxxVideoSource.h
+      )
+  endif (WIN32)
+  SET (DataCollection_LIBS ${DataCollection_LIBS} 
+    ${IntersonSDKCxx_LIBRARIES}
+    )
+  SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}     
+    ${IntersonSDKCxx_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/IntersonSDKCxx
+    )          
+  SET ( External_Libraries_Install ${External_Libraries_Install}
+    ${IntersonSDK_DIR}/Libraries/Interson${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${IntersonSDK_DIR}/Libraries/IntersonTools${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+  SET ( External_Libraries_Debug ${External_Libraries_Debug}
+    ${IntersonSDK_DIR}/Libraries/Interson${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${IntersonSDK_DIR}/Libraries/IntersonTools${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+ENDIF (PLUS_USE_INTERSONSDKCXX_VIDEO)
 
 # --------------------------------------------------------------------------
 # Build the library
