@@ -263,6 +263,8 @@ private:
   /*! Update porta parameters */
   PlusStatus vtkSonixPortaVideoSource::UpdateSonixPortaParams();
 
+  /*! Get probe head to transducer center transform */
+  std::string GetProbeHeadToTransducerCenterTransform( double MotorAngle );
 
   // Porta parameters
   /*! The starting position of the motor */
@@ -316,7 +318,8 @@ private:
   /*! Motor rotation per step (in degrees) */
   double MotorRotationPerStepDeg;
 
-  
+  /*! Set to false after first call to AddFramToBuffer */
+  bool FirstCallToAddFrameToBuffer;
 };
 
 

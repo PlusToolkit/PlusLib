@@ -28,6 +28,8 @@ and The University of Western Ontario)
 #include "vtkTimerLog.h"
 #include "vtkUnsignedCharArray.h"
 #include "vtksys/SystemTools.hxx"
+#include "vtkMatrix4x4.h"
+#include "vtkTransform.h"
 
 #include <ctype.h>
 
@@ -109,8 +111,8 @@ vtkSonixPortaVideoSourceCleanup::~vtkSonixPortaVideoSourceCleanup()
 vtkSonixPortaVideoSource::vtkSonixPortaVideoSource() 
 {
   // porta instantiation
-  this->PortaBModeWidth = 640;       // defaults to BMode, 640x480
-  this->PortaBModeHeight = 480;
+  this->PortaBModeWidth = 320;       // defaults to BMode, 640x480
+  this->PortaBModeHeight = 240;
   this->ImageBuffer = 0;
   this->ImageBuffer = new unsigned char [ this->PortaBModeWidth *
     this->PortaBModeHeight * 4 ];
@@ -130,9 +132,7 @@ vtkSonixPortaVideoSource::vtkSonixPortaVideoSource()
   this->PortaFirmwarePath = 0;
   this->PortaLUTPath = 0;
   this->PortaCineSize = 256 * 1024 * 1024; // defaults to 245MB of Cine
-
-  //initialize the frame number
-  this->FrameNumber = 0;
+  this->FirstCallToAddFrameToBuffer = true;
 
   this->RequireImageOrientationInConfiguration = true;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
@@ -278,8 +278,7 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
     return PLUS_FAIL;
   }
   vtkPlusChannel* outputChannel=this->OutputChannels[0];
-	
-  this->FrameNumber++;
+
   int frameSize[2] = {0,0};
   this->GetFrameSize(*outputChannel, frameSize);
   vtkPlusDataSource* aSource(NULL);
@@ -294,30 +293,76 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
   // for frame containing FC (frame count) in the beginning for data coming from cine, jump 2 bytes
   int numberOfBytesToSkip = 4; 
 
+  // Aligns the motor for correct acqusition of its angle
+  if ( this->FirstCallToAddFrameToBuffer )
+  {
+    this->Porta.setParam( prmMotorStatus, 0 );
+    double angle = this->Porta.goToPosition(0);
+    this->Porta.setParam( prmMotorStatus, 1 );
+    this->FirstCallToAddFrameToBuffer = false;
+  }
+
   this->Porta.getBwImage( 0, this->ImageBuffer, false );
 
   // get the pointer to the actual incoming data onto a local pointer
   unsigned char *deviceDataPtr = static_cast<unsigned char*>( this->ImageBuffer );
 
   // Compute the angle of the motor. 
-  // since the motor is sweeping back and forth, the frame index is found for size of two volumes
-  double frameIndexInTwoVolumes = (FrameNumber % (this->FramePerVolume * 2));
+  // since the motor is sweeping back and forth, the frame index is found for size of two volumes.
+  // Angle is positive starting at zero when probe moves clockwise and negative starting a minus zero
+  // when probe moves in counter clockwise direction.
+  double frameIndexInTwoVolumes = ( (id-1) % (this->FramePerVolume * 2));
   double currentMotorAngle;
-  if (frameIndexInTwoVolumes <= FramePerVolume) {
-    currentMotorAngle = (frameIndexInTwoVolumes - this->FramePerVolume / 2) * this->MotorRotationPerStepDeg * this->StepPerFrame;
+  if (frameIndexInTwoVolumes < FramePerVolume) {
+    currentMotorAngle = frameIndexInTwoVolumes  * this->MotorRotationPerStepDeg * this->StepPerFrame;
   } else {
-    currentMotorAngle = - (frameIndexInTwoVolumes - this->FramePerVolume *3 / 2) * this->MotorRotationPerStepDeg * this->StepPerFrame;
+    currentMotorAngle = - (frameIndexInTwoVolumes - this->FramePerVolume ) * this->MotorRotationPerStepDeg * this->StepPerFrame;
   }
+
   std::ostringstream motorAngle;
   motorAngle << currentMotorAngle;
 
-  TrackedFrame::FieldMapType customFields; 
-  customFields["MotorAngle"] = motorAngle.str(); 
-  //customFields["ImageToProbeHeadTransform"] = "0.2 0.6 0.4 150 ..."; 
+  std::ostringstream frameNumber;
+  frameNumber << id;
 
-  PlusStatus status = aSource->GetBuffer()->AddItem(deviceDataPtr, aSource->GetPortImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, numberOfBytesToSkip, this->FrameNumber, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields); 
+  TrackedFrame::FieldMapType customFields; 
+  customFields["MotorAngle"] = motorAngle.str();
+  customFields["FrameNumber"] = frameNumber.str(); 
+  customFields["ProbeHeadToTransducerCenter"] = this->GetProbeHeadToTransducerCenterTransform( currentMotorAngle );
+
+  PlusStatus status = aSource->GetBuffer()->AddItem(deviceDataPtr, aSource->GetPortImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, numberOfBytesToSkip, id, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields); 
+
   this->Modified();
   return status;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkSonixPortaVideoSource::GetProbeHeadToTransducerCenterTransform( double angle )
+{
+	double spacing[2] = {0.2482, 0.2482}; // Add correct spacing
+	double origin[2] = {242, -51.7857}; // Add correct origin
+
+	vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
+	matrix->SetElement(0, 0, spacing[0]);
+	matrix->SetElement(1, 1, spacing[1]);
+	matrix->SetElement(0, 3, origin[0]);
+	matrix->SetElement(1, 3, origin[1]);
+
+	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+	transform->SetMatrix( matrix );
+	transform->RotateX( angle ); 
+	transform->GetMatrix(matrix);
+	
+	std::ostringstream matrixToString;
+	matrixToString << matrix->GetElement(0,0) <<" "<< matrix->GetElement(0,1) <<" "<< matrix->GetElement(0,2) <<" "<< matrix->GetElement(0,3) 
+	  << " " <<
+	     matrix->GetElement(1,0) <<" "<< matrix->GetElement(1,1) <<" "<< matrix->GetElement(1,2) <<" "<< matrix->GetElement(1,3) 
+	  << " " <<
+	     matrix->GetElement(2,0) <<" "<< matrix->GetElement(2,1) <<" "<< matrix->GetElement(2,2) <<" "<< matrix->GetElement(2,3) 
+	  << " " <<
+	     matrix->GetElement(3,0) <<" "<< matrix->GetElement(3,1) <<" "<< matrix->GetElement(3,2) <<" "<< matrix->GetElement(3,3);
+
+	return matrixToString.str();
 }
 
 //----------------------------------------------------------------------------
@@ -372,8 +417,7 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
 
     // store the probe name
     SetPortaProbeName(name);
-
-    if ( !this->Porta.findMasterPreset( name, MAX_NAME_LENGTH, code ) ) 
+	if ( !this->Porta.findMasterPreset( name, MAX_NAME_LENGTH, code ) ) 
     {
       LOG_ERROR("Initialize: master preset cannot be found" );
       return PLUS_FAIL;
@@ -417,9 +461,6 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
   // successfully set to bmode
   this->PortaModeSelected = 1;
 
-  int test;
-  GetFramePerVolume(test);
-  GetStepPerFrame(test);
   SetFrequency(this->Frequency);
   SetDepth(this->Depth);
   SetGain(this->Gain);
@@ -432,7 +473,6 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
 
   // Turn on the motor
   this->Porta.setParam( prmMotorStatus, 1 );
-
 
   // finally, update all the parameters
   if ( !this->UpdateSonixPortaParams() ) 
