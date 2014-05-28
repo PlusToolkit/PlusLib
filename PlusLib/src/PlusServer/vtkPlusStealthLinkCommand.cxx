@@ -191,9 +191,22 @@ PlusStatus vtkPlusStealthLinkCommand::Execute()
 	  }
 	  SetPatientName(patientName.c_str());
 	  SetPatientId(patientId.c_str());
+
 	  vtkSmartPointer<vtkDICOMImageReader> reader = vtkSmartPointer<vtkDICOMImageReader>::New();
 	  reader->SetDirectoryName(examImageDirectory.c_str()); 
 	  reader->Update();
+
+		//to go from the vtk orientation to lps orientation, the vtk image has to be flipped around y and z axis
+	  vtkSmartPointer<vtkImageFlip> flipYFilter = vtkSmartPointer<vtkImageFlip>::New();
+    flipYFilter->SetFilteredAxis(1); // flip y axis
+	  flipYFilter->SetInputConnection(reader->GetOutputPort());
+    flipYFilter->Update();
+
+	  vtkSmartPointer<vtkImageFlip> flipZFilter = vtkSmartPointer<vtkImageFlip>::New();
+    flipZFilter->SetFilteredAxis(2); // flip z axis
+	  flipZFilter->SetInputConnection(flipYFilter->GetOutputPort());
+    flipZFilter->Update();
+		vtkImageData* volumeToSend = flipZFilter->GetOutput();
 
 	  float*  ijkOrigin_LPS = reader->GetImagePositionPatient();
 	  double* ijkVectorMagnitude_LPS = reader->GetPixelSpacing();
@@ -205,49 +218,47 @@ PlusStatus vtkPlusStealthLinkCommand::Execute()
 	  float   kDirectionVector_LPS[3]={0};
 	  vtkMath::Cross(iDirectionVector_LPS,jDirectionVector_LPS,kDirectionVector_LPS);
 
-	  vtkSmartPointer<vtkMatrix4x4> ijkToRpiTransformationMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); // image to lps
+	 
+		vtkSmartPointer<vtkMatrix4x4> ijkToMedtronicRpiTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); // image to medtronicRpi, medtronic exludes orientation
+		ijkToMedtronicRpiTransMatrix->SetElement(0,0,-1);
+		ijkToMedtronicRpiTransMatrix->SetElement(2,2,-1);
+		//the origin is shifted from lps to rpi aka shifted along x and z axes
+		double newOrigin_MedtronicRpi[3]; // medtronic uses rpi and considers the dicom origin to be zero and also the orientation to be idendity
+		newOrigin_MedtronicRpi[0] = (xMax-xMin+1)*ijkVectorMagnitude_LPS[0];
+    newOrigin_MedtronicRpi[1] = 0;
+		newOrigin_MedtronicRpi[2] = (zMax-zMin+1)*ijkVectorMagnitude_LPS[2];
+		ijkToMedtronicRpiTransMatrix->SetElement(0,3,newOrigin_MedtronicRpi[0]);
+		ijkToMedtronicRpiTransMatrix->SetElement(1,3,newOrigin_MedtronicRpi[1]);
+    ijkToMedtronicRpiTransMatrix->SetElement(2,3,newOrigin_MedtronicRpi[2]);
+
+
+		vtkSmartPointer<vtkMatrix4x4> ijkToRasTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); // image to lps
 	  for(int i=0;i<3;i++)
 	  {	
-		  //the difference between lps and rpi is that x and z are "flipped" aka multipled by -1
-	    if(i==0 || i==2)
+		  //the difference between lps and ras is that x and y are "flipped" aka multipled by -1
+	    if(i==0 || i==1)
 		  {
-		    ijkToRpiTransformationMatrix->SetElement(i,0,-iDirectionVector_LPS[i]);
-		    ijkToRpiTransformationMatrix->SetElement(i,1,-jDirectionVector_LPS[i]);
-		    ijkToRpiTransformationMatrix->SetElement(i,2,-kDirectionVector_LPS[i]);
+		    ijkToRasTransMatrix->SetElement(i,0,-iDirectionVector_LPS[i]);
+		    ijkToRasTransMatrix->SetElement(i,1,-jDirectionVector_LPS[i]);
+		    ijkToRasTransMatrix->SetElement(i,2,-kDirectionVector_LPS[i]);
 		  }
 		  else
 		  {
-			  ijkToRpiTransformationMatrix->SetElement(i,0,iDirectionVector_LPS[i]);
-		    ijkToRpiTransformationMatrix->SetElement(i,1,jDirectionVector_LPS[i]);
-		    ijkToRpiTransformationMatrix->SetElement(i,2,kDirectionVector_LPS[i]);
+			  ijkToRasTransMatrix->SetElement(i,0,iDirectionVector_LPS[i]);
+		    ijkToRasTransMatrix->SetElement(i,1,jDirectionVector_LPS[i]);
+		    ijkToRasTransMatrix->SetElement(i,2,kDirectionVector_LPS[i]);
 		  }
 	  }
-
-	  //the origin is also shifter from lps to rpi aka shifted along x and z axes
-	  double newOrigin_RPI[3];
-	  newOrigin_RPI[0] = iDirectionVector_LPS[0]*(xMax-xMin+1)*ijkVectorMagnitude_LPS[0] + kDirectionVector_LPS[0]*(zMax-zMin+1)*ijkVectorMagnitude_LPS[2];
-	  newOrigin_RPI[1] = iDirectionVector_LPS[1]*(xMax-xMin+1)*ijkVectorMagnitude_LPS[0] + kDirectionVector_LPS[1]*(zMax-zMin+1)*ijkVectorMagnitude_LPS[2];
-    newOrigin_RPI[2] = iDirectionVector_LPS[2]*(xMax-xMin+1)*ijkVectorMagnitude_LPS[0] + kDirectionVector_LPS[2]*(zMax-zMin+1)*ijkVectorMagnitude_LPS[2];
-	
 	  //Set the elements of the transformation matrix
-    ijkToRpiTransformationMatrix->SetElement(0,3,newOrigin_RPI[0]);
-	  ijkToRpiTransformationMatrix->SetElement(1,3,newOrigin_RPI[1]);
-	  ijkToRpiTransformationMatrix->SetElement(2,3,newOrigin_RPI[2]);
+    ijkToRasTransMatrix->SetElement(0,3,-ijkOrigin_LPS[0]);
+	  ijkToRasTransMatrix->SetElement(1,3,-ijkOrigin_LPS[1]);
+	  ijkToRasTransMatrix->SetElement(2,3,ijkOrigin_LPS[2]);
 
-
-	  //to go from the vtk orientation to lps orientation, the vtk image has to be flipped around y and z axis
-	  vtkSmartPointer<vtkImageFlip> flipYFilter = vtkSmartPointer<vtkImageFlip>::New();
-    flipYFilter->SetFilteredAxis(1); // flip y axis
-	  flipYFilter->SetInputConnection(reader->GetOutputPort());
-    flipYFilter->Update();
-
-	  vtkSmartPointer<vtkImageFlip> flipZFilter = vtkSmartPointer<vtkImageFlip>::New();
-    flipZFilter->SetFilteredAxis(2); // flip z axis
-	  flipZFilter->SetInputConnection(flipYFilter->GetOutputPort());
-    flipZFilter->Update();
-	  stealthLinkDevice->SetImageToLpsTransformationMatrix(ijkToRpiTransformationMatrix);
-
-		return ProcessImageReply(flipZFilter->GetOutput(),ijkToRpiTransformationMatrix);//flipZFilter->GetOutput(),ijkToLPSTransformationMatrix); 
+	  //stealthLinkDevice->SetImageToLpsTransformationMatrix(ijkToRpiTransformationMatrix);
+		stealthLinkDevice->SetIjkToMedtronicRpiTransformationMatrix(ijkToMedtronicRpiTransMatrix);
+		stealthLinkDevice->SetIjkToRasTransformationMatrix(ijkToRasTransMatrix);
+		
+		return ProcessImageReply(volumeToSend,ijkToRasTransMatrix);//flipZFilter->GetOutput(),ijkToLPSTransformationMatrix); 
   }
   else if (STRCASECMP(this->Name, GET_STEALTHLINK_REGISTRATION_DATA_CMD)==0)
   {    
