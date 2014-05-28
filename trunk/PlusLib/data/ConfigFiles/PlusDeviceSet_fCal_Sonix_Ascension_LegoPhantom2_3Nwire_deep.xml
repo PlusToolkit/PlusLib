@@ -102,7 +102,7 @@
 	
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
       Opacity="0.6"
-      File="LegoPhantom2.0.stl"
+      File="LegoPhantom3.0.stl"
       ModelToObjectTransform="
         1 0 0 0
         0 1 0 0
@@ -163,15 +163,15 @@
 	  
 
       <Landmarks>
-        <Landmark Name="#1" Position="7.98 -15.96 41.48" />
-        <Landmark Name="#2" Position="71.82 -15.96 41.48" />
-        <Landmark Name="#3" Position="71.82 -15.96 -38.47" />
-        <Landmark Name="#4" Position="-7.98 -15.96 -38.47" />
+        <Landmark Name="#1" Position="23.94 56.06 0.0" />
+        <Landmark Name="#2" Position="87.78 56.06 0.0" />
+        <Landmark Name="#3" Position="87.78 56.06 -79.95" />
+        <Landmark Name="#4" Position="7.98 56.06 -79.95" />
         
-        <Landmark Name="#5" Position="55.86 56.06 41.48" />
-        <Landmark Name="#6" Position="7.98 56.06 41.48" />
-        <Landmark Name="#7" Position="-7.98 56.06 -38.47" />
-        <Landmark Name="#8" Position="71.82 56.06 -38.47" />
+        <Landmark Name="#5" Position="71.82 -15.96 -19.31" />
+        <Landmark Name="#6" Position="23.94 -15.96 -19.31" />
+        <Landmark Name="#7" Position="7.98 -15.96 -99.0" />
+        <Landmark Name="#8" Position="87.78 -15.96 -99.0" />
       </Landmarks>
       
     </Geometry>
