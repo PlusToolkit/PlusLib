@@ -57,7 +57,9 @@ public:
   /*! Get application start timestamp */
   std::string GetApplicationStartTimestamp();
 
-  void SetImageToLpsTransformationMatrix(vtkMatrix4x4*);
+  void SetIjkToRasTransformationMatrix(vtkMatrix4x4*);
+
+	void SetIjkToMedtronicRpiTransformationMatrix(vtkMatrix4x4*);
 
 	void GetLpsToFrameTransformationMatrix(vtkMatrix4x4*);
 
