@@ -137,7 +137,7 @@
       <Pattern Type="NWire">
         <Wire Name="1:F14_f14" EndPointFront="50.0 0.0 -80.0" EndPointBack="50.0 40.0 -80.0" />
         <Wire Name="2:H14_k14" EndPointFront="70.0 0.0 -80.0" EndPointBack="100.0 40.0 -80.0" />
-        <Wire Name="3:M14_m14" EndPointFront="129.0 0.0 -80.0" EndPointBack="120.0 40.0 -80.0" />
+        <Wire Name="3:M14_m14" EndPointFront="120.0 0.0 -80.0" EndPointBack="120.0 40.0 -80.0" />
       </Pattern>
       <Landmarks>
         <Landmark Name="#1" Position="186 -5.0 35.5"/>
