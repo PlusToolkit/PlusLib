@@ -213,6 +213,13 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
   SET_TESTS_PROPERTIES( vtkSonixVolumeReaderTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 
+#***************************  vtkIntersonVideoSourceTest.cxx ***************************
+IF (PLUS_USE_INTERSON_VIDEO)
+  ADD_EXECUTABLE(vtkIntersonVideoSourceTest vtkIntersonVideoSourceTest.cxx )
+  TARGET_LINK_LIBRARIES(vtkIntersonVideoSourceTest vtkDataCollection ) 
+ENDIF (PLUS_USE_INTERSON_VIDEO)
+
+
 #************************  vtkSonixPortaVideoSourceTest.cxx ************************
 IF (PLUS_USE_ULTRASONIX_VIDEO)
   ADD_EXECUTABLE(vtkSonixPortaVideoSourceTest vtkSonixPortaVideoSourceTest.cxx )

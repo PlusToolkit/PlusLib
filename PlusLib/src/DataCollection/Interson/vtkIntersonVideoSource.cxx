@@ -798,8 +798,12 @@ PlusStatus vtkIntersonVideoSource::SetDepthMm(double depthMm)
   }
   else if(possibleModes.size()==0)
   {
-	choosedFrequency = allowedModes[0].first ;
-	choosedDepth = allowedModes[0].second ;
+	choosedDepth = 5 ;
+	double clockDivider = usbClockDivider();	
+    double sampleFrequency = usbProbeSampleFrequency(this->Internal->ProbeHandle);
+    double divider = usbPulseFrequency();
+	choosedFrequency = sampleFrequency / divider ;
+	this->PulsFrequencyDivider = sampleFrequency/choosedFrequency;
 	LOG_INFO("The probe does not allow the required depth." << choosedDepth << " cm depth was chosed instead." );
   }
 
@@ -814,7 +818,7 @@ PlusStatus vtkIntersonVideoSource::SetDepthMm(double depthMm)
     // 3: ~15cm @ 30MHz;
     // 4: ~20cm @ 30MHz
   }
-  else
+  if (choosedDepth==3 || choosedDepth==6 || choosedDepth==9 || choosedDepth==12)
   {
 	// select the 48MHz clock
     usbSet48MHzClock(this->Internal->ProbeHandle);
