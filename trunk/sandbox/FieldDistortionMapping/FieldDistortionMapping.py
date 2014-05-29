@@ -252,9 +252,9 @@ class FieldDistortionMappingLogic:
     self.rasToIjk = vtk.vtkMatrix4x4()
     vtk.vtkMatrix4x4.Invert(ijkToRas, self.rasToIjk)
 
-	alwaysClearOutputTransformOnStart = True
+    alwaysClearOutputTransformOnStart = True
     outputTransform=self.outputTransformNode.GetTransformToParentAs('vtkThinPlateSplineTransform', False)
-    if alwaysClearOutputTransformOnStart not outputTransform:
+    if alwaysClearOutputTransformOnStart or not outputTransform:
       outputTransform=vtk.vtkThinPlateSplineTransform()
       outputTransform.SetBasisToR()
       groundTruthPoints=vtk.vtkPoints()
