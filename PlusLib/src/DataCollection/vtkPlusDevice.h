@@ -120,9 +120,9 @@ public:
   Set size of the internal frame buffer, i.e. the number of most recent frames that
   are stored in the video source class internally.
   */
-  virtual PlusStatus SetBufferSize(vtkPlusChannel& aChannel, int FrameBufferSize, const char* toolName = NULL);
+  virtual PlusStatus SetBufferSize(vtkPlusChannel& aChannel, int FrameBufferSize, const char* toolSourceId = NULL);
   /*! Get size of the internal frame buffer. */
-  virtual PlusStatus GetBufferSize(vtkPlusChannel& aChannel, int& outVal, const char * toolName = NULL);
+  virtual PlusStatus GetBufferSize(vtkPlusChannel& aChannel, int& outVal, const char * toolSourceId = NULL);
 
   /*! Set recording start time */
   virtual void SetStartTime( double startTime );
@@ -155,10 +155,10 @@ public:
   PlusStatus GetDataSource(const char* aSourceId, vtkPlusDataSource*& aSource);
 
   /*! Get the tool object for the specified tool name */
-  PlusStatus GetTool(const char* aToolName, vtkPlusDataSource*& aTool);
-  PlusStatus GetTool(const std::string& aToolName, vtkPlusDataSource*& aTool);
+  PlusStatus GetTool(const char* aToolSourceId, vtkPlusDataSource*& aTool);
+  PlusStatus GetTool(const std::string& aToolSourceId, vtkPlusDataSource*& aTool);
 
-  /*! Get the first active tool object */
+  /*! Get the first active tool among all the source tools */
   PlusStatus GetFirstActiveTool(vtkPlusDataSource*& aTool) const; 
 
   /*! Get the tool object for the specified tool port name */
@@ -173,7 +173,7 @@ public:
   DataSourceContainerConstIterator GetToolIteratorEnd() const;
 
   /*! Add tool to the device */
-  PlusStatus AddTool(vtkPlusDataSource* tool, bool requireUniquePortName = true ); 
+  PlusStatus AddTool(vtkPlusDataSource* tool, bool requireUniquePortName=true);
 
   /*! Get number of images */
   int GetNumberOfTools() const;
@@ -444,7 +444,7 @@ protected:
   can communicate information back to the vtkTracker base class, which
   will in turn relay the information to the appropriate vtkPlusDataSource.
   */
-  PlusStatus ToolTimeStampedUpdate(const char* aToolName, vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredtimestamp);
+  PlusStatus ToolTimeStampedUpdate(const char* aToolSourceId, vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredtimestamp);
 
   /*! 
   This function is called by InternalUpdate() so that the subclasses
@@ -452,7 +452,7 @@ protected:
   will in turn relay the information to the appropriate vtkPlusDataSource.
   This function is for devices has no frame numbering, just auto increment tool frame number if new frame received
   */
-  PlusStatus ToolTimeStampedUpdateWithoutFiltering(const char* aToolName, vtkMatrix4x4 *matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp);
+  PlusStatus ToolTimeStampedUpdateWithoutFiltering(const char* aToolSourceId, vtkMatrix4x4 *matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp);
 
   /*!
   Helper function used during configuration to locate the correct XML element for a device
@@ -572,7 +572,7 @@ protected:
   bool RequireFrameBufferSizeInDeviceSetConfiguration;
   bool RequireAcquisitionRateInDeviceSetConfiguration;
   bool RequireAveragedItemsForFilteringInDeviceSetConfiguration;
-  bool RequireToolAveragedItemsForFilteringInDeviceSetConfiguration;
+  bool RequirePortNameInDeviceSetConfiguration;
   bool RequireLocalTimeOffsetSecInDeviceSetConfiguration;
   bool RequireUsImageOrientationInDeviceSetConfiguration;
   bool RequireRfElementInDeviceSetConfiguration;

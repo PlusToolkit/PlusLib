@@ -35,7 +35,7 @@ vtkSavedDataSource::vtkSavedDataSource()
   this->SimulatedStream=VIDEO_STREAM;
 
   this->RequireFrameBufferSizeInDeviceSetConfiguration = false; // was true for tracker
-  this->RequireToolAveragedItemsForFilteringInDeviceSetConfiguration = false; // was true for tracker
+  this->RequirePortNameInDeviceSetConfiguration = false; // was true for tracker
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;

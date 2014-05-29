@@ -111,16 +111,18 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData( const char* strXmlData 
         continue; 
       }
       const char* name = transformNames->GetNestedElement(i)->GetAttribute("Name"); 
-      if ( name != NULL )
+      if (name==NULL)
       {
-        PlusTransformName tName; 
-        if ( tName.SetTransformName(name) != PLUS_SUCCESS )
-        {
-          LOG_WARNING( "Invalid transform name: " << name ); 
-          continue; 
-        }
-        clientInfo.TransformNames.push_back(tName); 
+        LOG_WARNING("In TransformNames child Transform #"<<i<<" definition is incomplete: required Name attribute is missing");
+        continue;
       }
+      PlusTransformName tName; 
+      if ( tName.SetTransformName(name) != PLUS_SUCCESS )
+      {
+        LOG_WARNING( "Invalid transform name: " << name ); 
+        continue; 
+      }
+      clientInfo.TransformNames.push_back(tName); 
     } // transformNames
   }
 

@@ -442,7 +442,7 @@ PlusStatus vtkDataCollector::GetTrackingData(vtkPlusChannel* aRequestedChannel, 
     return PLUS_FAIL; 
   }
 
-  // Get the first tool
+  // Get the first tool, transforms will be returned at the timestamps of this first tool
   vtkPlusDataSource* firstActiveTool = NULL; 
   if( aRequestedChannel->GetOwnerDevice()->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
   {

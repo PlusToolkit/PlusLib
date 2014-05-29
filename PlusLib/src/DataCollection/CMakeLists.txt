@@ -103,8 +103,10 @@ IF (PLUS_USE_CERTUS)
       ${CMAKE_CURRENT_SOURCE_DIR}/NDICertusTracking 
       CACHE INTERNAL "" FORCE)
             
-    SET (DataCollection_LIBS ${DataCollection_LIBS} ${NDIOAPI_LIBRARY} )
-    
+    SET (DataCollection_LIBS ${DataCollection_LIBS}
+      ${NDIOAPI_LIBRARY}
+      vtkndicapi # uses ndicapi's math functions
+      )
     SET ( External_Libraries_Install ${External_Libraries_Install}
       ${NDIOAPI_BINARY_DIR}/oapi${CMAKE_SHARED_LIBRARY_SUFFIX}
       )

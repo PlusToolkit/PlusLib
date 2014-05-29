@@ -21,7 +21,7 @@ See License.txt for details.
 #include "ndpack.h"
 #include "ndopto.h"
 
-// requires Atamai ndicapi
+// uses ndicapi for quaternion conversion
 #include "ndicapi_math.h"
 
 #include "vtkTimerLog.h"

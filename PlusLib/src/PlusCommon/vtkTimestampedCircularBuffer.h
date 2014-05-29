@@ -215,8 +215,23 @@ public:
   virtual ItemStatus GetFrameStatus(const BufferItemUidType uid ); 
 
   /*! Get timestamp by frame UID associated with the buffer item  */
-  virtual ItemStatus GetLatestTimeStamp(double &timestamp) { return this->GetTimeStamp(this->GetLatestItemUidInBuffer(), timestamp); } ; 
-  virtual ItemStatus GetOldestTimeStamp(double &timestamp) { return this->GetTimeStamp(this->GetOldestItemUidInBuffer(), timestamp); } ; 
+  virtual ItemStatus GetLatestTimeStamp(double &timestamp)
+  {
+    return this->GetTimeStamp(this->GetLatestItemUidInBuffer(), timestamp);
+  }
+
+  virtual ItemStatus GetOldestTimeStamp(double &timestamp)
+  {
+    // The oldest item may be removed from the buffer at any moment
+    // therefore we need to retrieve its UID and timestamp within a single lock
+    this->Lock(); 
+    // LatestItemUid - ( NumberOfItems - 1 ) is the oldest element in the buffer
+    BufferItemUidType uid = ( this->LatestItemUid - (this->NumberOfItems - 1) );
+    ItemStatus status = this->GetTimeStamp(this->GetOldestItemUidInBuffer(), timestamp);
+    this->Unlock();
+    return status;
+  }
+
   virtual ItemStatus GetTimeStamp(const BufferItemUidType uid, double &timestamp) { return this->GetFilteredTimeStamp(uid, timestamp); }
   virtual ItemStatus GetFilteredTimeStamp(const BufferItemUidType uid, double &filteredTimestamp); 
   virtual ItemStatus GetUnfilteredTimeStamp(const BufferItemUidType uid, double &unfilteredTimestamp); 
@@ -388,6 +403,12 @@ protected:
     It generates quite a lot of output in the logs, so it is recommended to use only for diagnostic purposes.
   */
   bool TimeStampLogging;
+
+  /*!
+    Due to numerical inaccuracies (e.g, saving a timestamp to a string and reading from it results in a slightly different value)
+    it's better to use a tolerance value when making comparisons.
+  */
+  double NegligibleTimeDifferenceSec;
 
 private:
   vtkTimestampedCircularBuffer(const vtkTimestampedCircularBuffer&);
