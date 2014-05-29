@@ -114,7 +114,7 @@ class FieldDistortionMappingWidget:
     self.outputTransformSelectorLabel = qt.QLabel()
     self.outputTransformSelectorLabel.setText( "Output grid transform: " )
     self.outputTransformSelector = slicer.qMRMLNodeComboBox()
-    self.outputTransformSelector.nodeTypes = ( "vtkMRMLGridTransformNode", "" )
+    self.outputTransformSelector.nodeTypes = ( "vtkMRMLTransformNode", "" )
     self.outputTransformSelector.noneEnabled = False
     self.outputTransformSelector.addEnabled = True
     self.outputTransformSelector.removeEnabled = True
@@ -218,13 +218,12 @@ class FieldDistortionMappingLogic:
     self.mappedTransformNode = None
     self.mappedTransformNodeObserverTag = None    
     self.outputVolumeNode = None
+    self.previousMappedPosition = [0,0,0]
 
   def addObservers(self):
     transformModifiedEvent = 15000
     self.groundTruthTransformNodeObserverTag = self.groundTruthTransformNode.AddObserver(transformModifiedEvent, self.onGroundTruthTransformNodeModified)
-    self.mappedTransformNodeObserverTag = self.mappedTransformNode.AddObserver(transformModifiedEvent, self.onMappedTransformNodeModified)
-    #self.groundTruthTransformNodeObserverTag = self.groundTruthTransformNode.AddObserver(vtk.vtkCommand.ModifiedEvent, self.onGroundTruthTransformNodeModified)
-    #self.mappedTransformNodeObserverTag = self.mappedTransformNode.AddObserver(vtk.vtkCommand.ModifiedEvent, self.onMappedTransformNodeModified)
+
 
   def removeObservers(self):
     if self.groundTruthTransformNode and self.groundTruthTransformNodeObserverTag:
@@ -253,67 +252,61 @@ class FieldDistortionMappingLogic:
     self.rasToIjk = vtk.vtkMatrix4x4()
     vtk.vtkMatrix4x4.Invert(ijkToRas, self.rasToIjk)
 
-    # Set up the output transform node to match the extent of the output volume node
-    outputVolume=self.outputVolumeNode.GetImageData()
-    outputTransform=self.outputTransformNode.GetTransformToParent()
-    # Make sure the ToParent transform is stored (and not computed)
-    outputTransform.Update()
-    if outputTransform.GetInverseFlag():
-      self.outputTransformNode.Inverse()
-      outputTransform=self.outputTransformNode.GetTransformToParent()
-      outputTransform.Update()
-    # Set grid transform extent
-    gridDirectionMatrix=vtk.vtkMatrix4x4()
-    self.outputVolumeNode.GetIJKToRASDirectionMatrix(gridDirectionMatrix)
-    outputTransform.SetGridDirectionMatrix(gridDirectionMatrix)
-    outputTransformGrid=outputTransform.GetDisplacementGrid()
-    outputTransformGrid.SetDimensions(outputVolume.GetDimensions())
-    outputTransformGrid.SetNumberOfScalarComponents(3)
-    outputTransformGrid.AllocateScalars()
-    outputTransformGrid.SetOrigin(self.outputVolumeNode.GetOrigin())
-    outputTransformGrid.SetSpacing(self.outputVolumeNode.GetSpacing())  
-    
+	alwaysClearOutputTransformOnStart = True
+    outputTransform=self.outputTransformNode.GetTransformToParentAs('vtkThinPlateSplineTransform', False)
+    if alwaysClearOutputTransformOnStart not outputTransform:
+      outputTransform=vtk.vtkThinPlateSplineTransform()
+      outputTransform.SetBasisToR()
+      groundTruthPoints=vtk.vtkPoints()
+      mappedPoints=vtk.vtkPoints()
+      outputTransform.SetSourceLandmarks(groundTruthPoints)
+      outputTransform.SetTargetLandmarks(mappedPoints)
+      self.outputTransformNode.SetAndObserveTransformToParent(outputTransform)
+      
+        
     # Start the updates
-    self.addObservers()    
+    self.addObservers()
     self.onGroundTruthTransformNodeModified(0,0)
     
   def stopTransformMapping(self):
     self.removeObservers()
     
   def onGroundTruthTransformNodeModified(self, observer, eventid):
-    # Compute distortion vector
-    groundTruthTransformMatrix = vtk.vtkMatrix4x4()
-    self.groundTruthTransformNode.GetMatrixTransformToParent(groundTruthTransformMatrix)
+
     mappedTransformMatrix = vtk.vtkMatrix4x4()
     self.mappedTransformNode.GetMatrixTransformToParent(mappedTransformMatrix)    
-    distortionVectorR = groundTruthTransformMatrix.GetElement(0,3) - mappedTransformMatrix.GetElement(0,3);
-    distortionVectorA = groundTruthTransformMatrix.GetElement(1,3) - mappedTransformMatrix.GetElement(1,3);
-    distortionVectorS = groundTruthTransformMatrix.GetElement(2,3) - mappedTransformMatrix.GetElement(2,3);
+    mappedPos = [mappedTransformMatrix.GetElement(0,3), mappedTransformMatrix.GetElement(1,3), mappedTransformMatrix.GetElement(2,3)]
+      
+    # return if did not move enough compared to the previous sampling position
+    minimumSamplingDistance = 15
+    if vtk.vtkMath.Distance2BetweenPoints(self.previousMappedPosition,mappedPos) < minimumSamplingDistance*minimumSamplingDistance:
+      return
+    
+    self.previousMappedPosition = mappedPos
+
+    # Compute distortion vector   
+    groundTruthTransformMatrix = vtk.vtkMatrix4x4()
+    self.groundTruthTransformNode.GetMatrixTransformToParent(groundTruthTransformMatrix)
+    gtPos = [groundTruthTransformMatrix.GetElement(0,3), groundTruthTransformMatrix.GetElement(1,3), groundTruthTransformMatrix.GetElement(2,3)]
+    distortionVectorR = mappedPos[0]-gtPos[0]
+    distortionVectorA = mappedPos[1]-gtPos[1]
+    distortionVectorS = mappedPos[2]-gtPos[2]
 
     # Compute voxel position
-    distortionVectorPosition_Ras = [groundTruthTransformMatrix.GetElement(0,3), groundTruthTransformMatrix.GetElement(1,3), groundTruthTransformMatrix.GetElement(2,3), 1]
-    #print distortionVectorPosition_Ras
-    #print self.rasToIjk
+    distortionVectorPosition_Ras = [gtPos[0], gtPos[1], gtPos[2], 1]
     distortionVectorPosition_Ijk=self.rasToIjk.MultiplyPoint(distortionVectorPosition_Ras)
     #distortionVectorPosition_Ijk = [0,1,2,3]
 
-    # Set voxel value
+    # Paint voxel value
     outputVolumeImageData=self.outputVolumeNode.GetImageData()
-    #outputVolumeImageData.SetScalarComponentFromFloat(distortionVectorPosition_Ijk[0], distortionVectorPosition_Ijk[1], distortionVectorPosition_Ijk[2], 0, distortionVectorR)
-    #outputVolumeImageData.SetScalarComponentFromFloat(distortionVectorPosition_Ijk[0], distortionVectorPosition_Ijk[1], distortionVectorPosition_Ijk[2], 1, distortionVectorA)
-    #outputVolumeImageData.SetScalarComponentFromFloat(distortionVectorPosition_Ijk[0], distortionVectorPosition_Ijk[1], distortionVectorPosition_Ijk[2], 2, distortionVectorS)
-    outputVolumeImageData.SetScalarComponentFromFloat(distortionVectorPosition_Ijk[0], distortionVectorPosition_Ijk[1], distortionVectorPosition_Ijk[2], 0, 1000)
+    fillValue=1000
+    outputVolumeImageData.SetScalarComponentFromFloat(distortionVectorPosition_Ijk[0], distortionVectorPosition_Ijk[1], distortionVectorPosition_Ijk[2], 0, fillValue)
     outputVolumeImageData.Modified()
     
-    # Set voxel value
-    outputTransformImageData=self.outputTransformNode.GetTransformToParent().GetDisplacementGrid()
-    outputTransformImageData.SetScalarComponentFromFloat(distortionVectorPosition_Ijk[0], distortionVectorPosition_Ijk[1], distortionVectorPosition_Ijk[2], 0, distortionVectorR)
-    outputTransformImageData.SetScalarComponentFromFloat(distortionVectorPosition_Ijk[0], distortionVectorPosition_Ijk[1], distortionVectorPosition_Ijk[2], 1, distortionVectorA)
-    outputTransformImageData.SetScalarComponentFromFloat(distortionVectorPosition_Ijk[0], distortionVectorPosition_Ijk[1], distortionVectorPosition_Ijk[2], 2, distortionVectorS)
-    outputTransformImageData.Modified()
+    # Update transform
+    outputTransform=self.outputTransformNode.GetTransformToParent()
+    outputTransform.GetSourceLandmarks().InsertNextPoint(gtPos[0], gtPos[1], gtPos[2])
+    outputTransform.GetTargetLandmarks().InsertNextPoint(mappedPos[0],mappedPos[1],mappedPos[2])
     self.outputTransformNode.GetTransformToParent().Modified()
-    self.outputTransformNode.GetTransformToParent().Update()
 
-  def onMappedTransformNodeModified(self, observer, eventid):
-    self.onGroundTruthTransformNodeModified(observer,eventid)
-    
+
