@@ -16,9 +16,9 @@
       RepeatEnabled="TRUE"
       ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="Probe" PortName="0" Model="L14-5_38" BufferSize="500" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="Reference" PortName="1" BufferSize="500" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="Stylus" PortName="2" Model="Example" BufferSize="500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Probe" Model="L14-5_38" BufferSize="500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Reference" BufferSize="500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Stylus" Model="Example" BufferSize="500" AveragedItemsForFiltering="20"/>
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >

@@ -48,8 +48,8 @@ public:
 
   int ToolCount() const { return this->Tools.size(); }
   PlusStatus AddTool(vtkPlusDataSource* aTool );
-  PlusStatus RemoveTool(const char* toolName);
-  PlusStatus GetTool(vtkPlusDataSource*& aTool, const char* toolName);
+  PlusStatus RemoveTool(const char* toolSourceId);
+  PlusStatus GetTool(vtkPlusDataSource*& aTool, const char* toolSourceId);
   PlusStatus RemoveTools();
   DataSourceContainerIterator GetToolsStartIterator();
   DataSourceContainerIterator GetToolsEndIterator();
@@ -66,9 +66,13 @@ public:
 
   /*! Return the dimensions of the brightness frame size */
   PlusStatus GetBrightnessFrameSize(int aDim[2]);
-
-  /*! Get the first active tool object */
-  PlusStatus GetFirstActiveTool(vtkPlusDataSource*& aTool); 
+  
+  /*!
+    Get the timestamp master tool. The timestamp master tool determines the sampling times
+    for all the other tools in the output channel if no video data is available.
+    Currently the tool that is first added to the channel is used as master tool.
+  */
+  PlusStatus GetTimestampMasterTool(vtkPlusDataSource*& aTool); 
 
   /*!
     Get tracked frame containing the transform(s) or the
@@ -141,6 +145,13 @@ protected:
   /*! If true then RF processing parameters will be saved into the config file */
   bool SaveRfProcessingParameters;
 
+  /*!
+    This tool will be used to provide timestamps if no video data is present
+    All the other tools will use the same timestamps and the transforms will be
+    interpolated if needed.
+  */
+  vtkPlusDataSource* TimestampMasterTool;
+  
   CustomAttributeMap CustomAttributes;
 
   vtkPlusChannel(void);

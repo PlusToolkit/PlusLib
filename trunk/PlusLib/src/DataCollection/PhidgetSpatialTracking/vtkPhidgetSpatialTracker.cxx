@@ -62,7 +62,7 @@ vtkPhidgetSpatialTracker::vtkPhidgetSpatialTracker()
   this->RequireImageOrientationInConfiguration = false;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
-  this->RequireToolAveragedItemsForFilteringInDeviceSetConfiguration = true;
+  this->RequirePortNameInDeviceSetConfiguration = true;
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
   this->RequireUsImageOrientationInDeviceSetConfiguration = false;

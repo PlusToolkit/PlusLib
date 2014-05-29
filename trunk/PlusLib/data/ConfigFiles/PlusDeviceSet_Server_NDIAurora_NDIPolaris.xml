@@ -33,8 +33,8 @@
       LocalTimeOffsetSec="0.0"
       ToolReferenceFrame="OpticalTracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="Stylus" PortName="5" RomFile="8700340.rom" BufferSize="500"/>
-        <DataSource Type="Tool" Id="Reference" PortName="6" RomFile="8700449.rom" BufferSize="500"/>
+        <DataSource Type="Tool" Id="Stylus" RomFile="NdiToolDefinitions/8700340.rom" BufferSize="500"/>
+        <DataSource Type="Tool" Id="Reference" RomFile="NdiToolDefinitions/8700449.rom" BufferSize="500"/>
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="OpticalTrackerStream" >
@@ -61,7 +61,7 @@
   <PlusOpenIGTLinkServer 
     MaxNumberOfIgtlMessagesToSend="1" 
     MaxTimeSpentWithProcessingMs="50" 
-    ListeningPort="1110" 
+    ListeningPort="18944" 
     SendValidTransformsOnly="true" 
     OutputChannelId="CombinedTrackerStream" > 
     <DefaultClientInfo> 

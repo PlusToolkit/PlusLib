@@ -44,7 +44,7 @@ vtkAscension3DGTrackerBase::vtkAscension3DGTrackerBase()
   this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
   this->RequireAcquisitionRateInDeviceSetConfiguration = true;
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
-  this->RequireToolAveragedItemsForFilteringInDeviceSetConfiguration = true;
+  this->RequirePortNameInDeviceSetConfiguration = true;
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = true;
   this->RequireUsImageOrientationInDeviceSetConfiguration = false;
   this->RequireRfElementInDeviceSetConfiguration = false;
@@ -638,17 +638,17 @@ bool vtkAscension3DGTrackerBase::IsQualityPortName(const char* name)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkAscension3DGTrackerBase::QualityToolTimeStampedUpdate(const char* qualityToolName, int sensorStartIndex, const std::vector<unsigned short> &qualityValues, double unfilteredTimestamp)
+PlusStatus vtkAscension3DGTrackerBase::QualityToolTimeStampedUpdate(const char* qualityToolPortName, int sensorStartIndex, const std::vector<unsigned short> &qualityValues, double unfilteredTimestamp)
 {
   vtkPlusDataSource* qualityTool = NULL;
-  if ( this->GetToolByPortName(qualityToolName, qualityTool) != PLUS_SUCCESS )
+  if ( this->GetToolByPortName(qualityToolPortName, qualityTool) != PLUS_SUCCESS )
   {
     // the tool is not defined, no need to store the quality values in them
     return PLUS_SUCCESS;
   }
   if (qualityTool==NULL)
   {
-    LOG_ERROR("Quality tool "<<qualityToolName<<" is invalid");
+    LOG_ERROR("Quality tool port name "<<qualityToolPortName<<" is invalid");
     return PLUS_FAIL;
   }
   vtkSmartPointer< vtkMatrix4x4 > qualityStorageMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();    

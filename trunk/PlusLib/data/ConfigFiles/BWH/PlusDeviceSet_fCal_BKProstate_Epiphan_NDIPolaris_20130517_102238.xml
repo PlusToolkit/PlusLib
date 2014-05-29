@@ -16,21 +16,18 @@
         <DataSource
           Type="Tool"
           Id="Probe"
-          PortName="4"
           RomFile="C:\isaiah\polaris\bwh_tooldefs\BL-US-blue\BL-us-blue.rom"
           AveragedItemsForFiltering="20"
           BufferSize="500"/>
         <DataSource
           Type="Tool"
           Id="Stylus"
-          PortName="5"
           RomFile="C:\isaiah\polaris\bwh_tooldefs\HL-Stylus2\HL-Stylus2.rom"
           AveragedItemsForFiltering="20"
           BufferSize="500"/>
         <DataSource
           Type="Tool"
           Id="Reference"
-          PortName="6"
           RomFile="C:\isaiah\polaris\bwh_tooldefs\BL-Demo-Star\BL-demo-star.rom"
           AveragedItemsForFiltering="20"
           BufferSize="500"/>
