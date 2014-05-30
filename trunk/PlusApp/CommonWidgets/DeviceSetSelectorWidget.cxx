@@ -253,6 +253,8 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
   ui.comboBox_DeviceSet->clear();
 
   QStringListIterator filesIterator(fileList);
+  QHash<QString, int> deviceSetVersion;
+
   while (filesIterator.hasNext())
   {
     QString fileName(configDir.absoluteFilePath(filesIterator.next()));
@@ -320,8 +322,19 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
       int foundIndex = ui.comboBox_DeviceSet->findText(name, Qt::MatchExactly);
       if (foundIndex > -1)
       {
-        LOG_WARNING("Device set with name '" << name.toLatin1().constData() << "' already found, configuration file '" << fileName.toLatin1().constData() << "' is not added to the list");
-        continue;
+        QHash<QString, int>::iterator deviceIt = deviceSetVersion.find(name);
+        if(deviceIt == deviceSetVersion.end())
+        {
+          deviceSetVersion.insert(name,0);
+          name.append(" [0]");
+        }
+        else
+        {
+          deviceIt.value()+=1;
+          name.append(" [" + QString::number(deviceIt.value())+"]");
+        }
+
+        LOG_WARNING("Device set already found, configuration file '" << fileName.toLatin1().constData() << "' is added to the list as '"<< name.toLatin1().constData() << "'");
       }
 
       ui.comboBox_DeviceSet->addItem(name, userData);
