@@ -15,6 +15,7 @@ See License.txt for details.
 #include "vtkPlusDeviceTypes.h"
 #include "vtkTrackedFrameList.h"
 #include <string>
+#include <deque>
 
 class vtkGnuplotExecuter;
 class vtkHTMLGenerator;
@@ -49,6 +50,18 @@ public:
     PlusImagingMode Mode;
   };
 
+	struct ImageMetaDataItem
+	{
+		std::string Id;  /* device name to query the IMAGE and COLORT */
+		std::string Description;        /* name / description (< 64 bytes)*/
+		std::string Modality;    /* modality name (< 32 bytes) */
+		std::string PatientName; /* patient name (< 64 bytes) */ 
+		std::string PatientId;   /* patient ID (MRN etc.) (< 64 bytes) */  
+		double TimeStampUtc;   /* scan time in UTC*/
+		unsigned int Size[3];     /* entire image volume size */ 
+		unsigned char ScalarType;  /* scalar type. see scalar_type in IMAGE message */
+	};
+	  
 public:
   static vtkPlusDevice* New();
   vtkTypeRevisionMacro(vtkPlusDevice, vtkImageAlgorithm);
@@ -406,6 +419,12 @@ public:
 
   /*! Convenience function for getting the first available video source in the output channels */
   PlusStatus GetFirstActiveOutputVideoSource(vtkPlusDataSource*& aVideoSource);
+
+	/*! Return a list of items that desrcibe what image volumes this device can provide */
+	virtual PlusStatus GetImageMetaData(std::deque<ImageMetaDataItem> &imageMetaData);
+
+	/*! Return a list of items that desrcibe what image volumes this device can provide */
+	virtual PlusStatus GetImage(const std::string& imageId, const std::string& imageReferencFrameName, vtkImageData* imageData, vtkMatrix4x4* ijkToReferenceTransform);
 
 protected:
   static void *vtkDataCaptureThread(vtkMultiThreader::ThreadInfo *data);

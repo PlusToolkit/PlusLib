@@ -2168,3 +2168,17 @@ PlusStatus vtkPlusDevice::GetFirstActiveOutputVideoSource(vtkPlusDataSource*& aV
   LOG_ERROR("There is no active video sources in the output channel(s)");
   return PLUS_FAIL;
 }
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::GetImageMetaData(std::deque<ImageMetaDataItem> &imageMetaData)
+{
+	LOCAL_LOG_ERROR("vtkPlusDevice::GetImageMetaData is not implemented");
+  return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::GetImage(const std::string& imageId, const std::string& imageReferencFrameName, vtkImageData* imageData, vtkMatrix4x4* ijkToReferenceTransform)
+{
+	LOCAL_LOG_ERROR("vtkPlusDevice::GetImage is not implemented");
+  return PLUS_FAIL;
+}
