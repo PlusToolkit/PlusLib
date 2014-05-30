@@ -152,7 +152,7 @@ void DeviceSetSelectorWidget::DeviceSetSelected(int aIndex)
     //+ "\n\n(" + ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(0) + ")"
     );
 
-  ui.comboBox_DeviceSet->setToolTip(ui.comboBox_DeviceSet->currentText() + " (" + ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(0) + ")");
+  ui.comboBox_DeviceSet->setToolTip(ui.comboBox_DeviceSet->currentText() + "\n" + ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(0));
 
   QString configurationFilePath = ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0); 
 
@@ -265,6 +265,7 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
     }
 
     QFile file(fileName);
+    QFileInfo fileInfo(fileName);
     QDomDocument doc;
 
     // If file is not readable then skip
@@ -318,7 +319,7 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
         continue;
       }
 
-      // Check if the same name already exists
+      // Check if the same name already exists, add a version number if it does.
       int foundIndex = ui.comboBox_DeviceSet->findText(name, Qt::MatchExactly);
       if (foundIndex > -1)
       {
@@ -333,15 +334,14 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
           deviceIt.value()+=1;
           name.append(" [" + QString::number(deviceIt.value())+"]");
         }
-
-        LOG_WARNING("Device set already found, configuration file '" << fileName.toLatin1().constData() << "' is added to the list as '"<< name.toLatin1().constData() << "'");
       }
 
       ui.comboBox_DeviceSet->addItem(name, userData);
       int currentIndex = ui.comboBox_DeviceSet->findText(name, Qt::MatchExactly);
 
       // Add tooltip
-      ui.comboBox_DeviceSet->setItemData(currentIndex, name, Qt::ToolTipRole); 
+      //name.append("\n"+fileInfo.fileName().toLatin1());
+      ui.comboBox_DeviceSet->setItemData(currentIndex, fileInfo.fileName().toLatin1(), Qt::ToolTipRole); 
 
       // If this item is the same as in the config file, select it by default
       if ( QDir::toNativeSeparators(QString(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName().c_str())) == QDir::toNativeSeparators(fileName) )
