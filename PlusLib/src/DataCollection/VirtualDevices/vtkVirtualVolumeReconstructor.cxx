@@ -321,23 +321,23 @@ void vtkVirtualVolumeReconstructor::InternalWriteOutputChannels( vtkXMLDataEleme
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkVirtualVolumeReconstructor::GetReconstructedVolumeFromFile(const char* inputSeqFilename, vtkImageData* reconstructedVolume, std::string& message)
+PlusStatus vtkVirtualVolumeReconstructor::GetReconstructedVolumeFromFile(const char* inputSeqFilename, vtkImageData* reconstructedVolume, std::string& errorMessage)
 {
-  message.clear();
+  errorMessage.clear();
 
   // Read image sequence
   if (inputSeqFilename==NULL)
   {    
-    message="Volume reconstruction failed, InputSeqFilename has not been defined";
-    LOG_INFO(message);
+    errorMessage="Volume reconstruction failed, InputSeqFilename has not been defined";
+    LOG_INFO(errorMessage);
     return PLUS_FAIL;
   }
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
   std::string inputImageSeqFileFullPath=vtkPlusConfig::GetInstance()->GetOutputPath(inputSeqFilename);
   if (trackedFrameList->ReadFromSequenceMetafile(inputImageSeqFileFullPath.c_str())==PLUS_FAIL)
   {    
-    message="Volume reconstruction failed, unable to open input file specified in InputSeqFilename"+inputImageSeqFileFullPath;
-    LOG_INFO(message);
+    errorMessage="Volume reconstruction failed, unable to open input file specified in InputSeqFilename"+inputImageSeqFileFullPath;
+    LOG_INFO(errorMessage);
     return PLUS_FAIL;
   } 
 
@@ -346,35 +346,35 @@ PlusStatus vtkVirtualVolumeReconstructor::GetReconstructedVolumeFromFile(const c
   // Determine volume extents automatically
   if ( this->VolumeReconstructor->SetOutputExtentFromFrameList(trackedFrameList, this->TransformRepository) != PLUS_SUCCESS )
   {
-    message="vtkPlusReconstructVolumeCommand::Execute: failed, image or reference coordinate frame name is invalid";
-    LOG_INFO(message);    
+    errorMessage="vtkPlusReconstructVolumeCommand::Execute: failed, image or reference coordinate frame name is invalid";
+    LOG_INFO(errorMessage);
     return PLUS_FAIL;
   }
   // Paste slices  
   if (AddFrames(trackedFrameList)!=PLUS_SUCCESS)
   {
-    message="vtkPlusReconstructVolumeCommand::Execute: failed, add frames failed";
-    LOG_INFO(message);    
+    errorMessage="vtkPlusReconstructVolumeCommand::Execute: failed, add frames failed";
+    LOG_INFO(errorMessage);
     return PLUS_FAIL;
   }
   // Get output
-  if (GetReconstructedVolume(reconstructedVolume, message)!=PLUS_SUCCESS)
+  if (GetReconstructedVolume(reconstructedVolume, errorMessage)!=PLUS_SUCCESS)
   {
-    LOG_INFO(message);    
+    LOG_INFO(errorMessage);
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkVirtualVolumeReconstructor::GetReconstructedVolume(vtkImageData* reconstructedVolume, std::string& message)
+PlusStatus vtkVirtualVolumeReconstructor::GetReconstructedVolume(vtkImageData* reconstructedVolume, std::string& errorMessage)
 {
-  message.clear();
+  errorMessage.clear();
   PlusLockGuard<vtkRecursiveCriticalSection> writerLock(this->VolumeReconstructorAccessMutex);
   if (this->VolumeReconstructor->ExtractGrayLevels(reconstructedVolume) != PLUS_SUCCESS)
   {
-    message="Extracting gray levels failed";
-    LOG_ERROR(message);
+    errorMessage="Extracting gray levels failed";
+    LOG_ERROR(errorMessage);
     return PLUS_FAIL;
   }  
   return PLUS_SUCCESS;

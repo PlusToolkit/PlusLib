@@ -7,6 +7,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkDataCollector.h"
 #include "vtkPlusChannel.h"
+#include "vtkPlusCommandResponse.h"
 #include "vtkPlusRequestIdsCommand.h"
 
 vtkStandardNewMacro( vtkPlusRequestIdsCommand );
@@ -88,25 +89,23 @@ PlusStatus vtkPlusRequestIdsCommand::WriteConfiguration(vtkXMLDataElement* aConf
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusRequestIdsCommand::Execute()
 {
-  ResetResponse();
-
   if (this->Name == NULL)
   {
-    this->ResponseMessage="Command failed, no command name specified";
+    this->QueueStringResponse("Command failed, no command name specified",PLUS_FAIL);
     return PLUS_FAIL;
   }
 
   vtkDataCollector* dataCollector = this->GetDataCollector();
   if (dataCollector == NULL)
   {
-    this->ResponseMessage="Command failed, no data collector";
+    this->QueueStringResponse("Command failed, no data collector",PLUS_FAIL);
     return PLUS_FAIL;
   }
 
   DeviceCollection aCollection;
   if( dataCollector->GetDevices(aCollection) != PLUS_SUCCESS )
   {
-    this->ResponseMessage="Command failed, unable to retrieve devices.";
+    this->QueueStringResponse("Command failed, unable to retrieve devices",PLUS_FAIL);
     return PLUS_FAIL;
   }
 
@@ -114,6 +113,7 @@ PlusStatus vtkPlusRequestIdsCommand::Execute()
   
   if (STRCASECMP(this->Name, REQUEST_CHANNEL_ID_CMD) == 0)
   {
+    std::string responseMessage;
     bool addSeparator=false;
     for( DeviceCollectionConstIterator deviceIt = aCollection.begin(); deviceIt != aCollection.end(); ++deviceIt)
     {
@@ -125,17 +125,19 @@ PlusStatus vtkPlusRequestIdsCommand::Execute()
           vtkPlusChannel* aChannel = *it;
           if (addSeparator)
           {
-            this->ResponseMessage += ",";
+            responseMessage += ",";
           }
-          this->ResponseMessage += aChannel->GetChannelId();
+          responseMessage += aChannel->GetChannelId();
           addSeparator=true;
         }
       }
     }
+    this->QueueStringResponse(responseMessage,PLUS_SUCCESS);
     return PLUS_SUCCESS;
   }
   else if (STRCASECMP(this->Name, REQUEST_DEVICE_ID_CMD) == 0)
   {
+    std::string responseMessage;
     bool addSeparator=false;
     for( DeviceCollectionConstIterator deviceIt = aCollection.begin(); deviceIt != aCollection.end(); ++deviceIt)
     {
@@ -153,15 +155,16 @@ PlusStatus vtkPlusRequestIdsCommand::Execute()
       {
         if (addSeparator)
           {
-            this->ResponseMessage += ",";
+            responseMessage += ",";
           }
-        this->ResponseMessage += aDevice->GetDeviceId();
+        responseMessage += aDevice->GetDeviceId();
         addSeparator=true;
       }
     }
+    this->QueueStringResponse(responseMessage,PLUS_SUCCESS);
     return PLUS_SUCCESS;
   }
 
-  this->ResponseMessage="Unknown command, failed";
+  this->QueueStringResponse("Unknown command, failed",PLUS_FAIL);
   return PLUS_FAIL;    
 }

@@ -92,7 +92,7 @@ public:
 protected:
 
   /*! Saves image to disk (if requested) and prepare sending image as a response (if requested) */
-  PlusStatus ProcessImageReply(vtkImageData* volumeToSend, const std::string& outputVolFilename, const std::string& outputVolDeviceName);
+  PlusStatus ProcessImageReply(vtkImageData* volumeToSend, const std::string& outputVolFilename, const std::string& outputVolDeviceName, std::string &resultMessage);
 
   vtkVirtualVolumeReconstructor* GetVolumeReconstructorDevice();
 
