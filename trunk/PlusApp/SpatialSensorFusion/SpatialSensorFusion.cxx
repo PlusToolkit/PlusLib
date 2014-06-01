@@ -30,13 +30,9 @@ See License.txt for details.
 #include "MahonyAhrsAlgo.h"
 #include "PlusMath.h"
 
-// define tolerance used for comparing double numbers
-#ifndef _WIN32
-  const double DOUBLE_DIFF = 0.001;
-#else
-  const double DOUBLE_DIFF = 0.0001;
-#endif
-
+// Define tolerance used for comparing double numbers.
+// There are relatively large differences between results computed by different compiler versions.
+const double DOUBLE_DIFF = 0.001;
 
 void Update(AhrsAlgo* ahrsAlgo, TrackedFrame *frame, const std::string &trackerReferenceFrame, int westAxisIndex, bool useTimestamps, vtkMatrix4x4* filteredTiltSensorToTrackerTransformReturn=NULL);
 
