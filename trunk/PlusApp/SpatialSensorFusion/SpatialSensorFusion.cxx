@@ -34,7 +34,7 @@ See License.txt for details.
 #ifndef _WIN32
   const double DOUBLE_DIFF = 0.001;
 #else
-  const double DOUBLE_DIFF = 0.00001;
+  const double DOUBLE_DIFF = 0.0001;
 #endif
 
 
