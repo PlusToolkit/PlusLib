@@ -61,6 +61,8 @@ public:
 		unsigned int Size[3];     /* entire image volume size */ 
 		unsigned char ScalarType;  /* scalar type. see scalar_type in IMAGE message */
 	};
+
+  typedef std::deque<ImageMetaDataItem> ImageMetaDataList;
 	  
 public:
   static vtkPlusDevice* New();
@@ -421,7 +423,7 @@ public:
   PlusStatus GetFirstActiveOutputVideoSource(vtkPlusDataSource*& aVideoSource);
 
 	/*! Return a list of items that desrcibe what image volumes this device can provide */
-	virtual PlusStatus GetImageMetaData(std::deque<ImageMetaDataItem> &imageMetaData);
+	virtual PlusStatus GetImageMetaData(ImageMetaDataList &imageMetaDataItems);
 
 	/*! Return a list of items that desrcibe what image volumes this device can provide */
 	virtual PlusStatus GetImage(const std::string& imageId, const std::string& imageReferencFrameName, vtkImageData* imageData, vtkMatrix4x4* ijkToReferenceTransform);

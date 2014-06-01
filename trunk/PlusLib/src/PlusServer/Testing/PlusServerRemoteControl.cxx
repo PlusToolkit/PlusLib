@@ -417,8 +417,13 @@ int main( int argc, char** argv )
 
   vtkPlusLogger::Instance()->SetLogLevel( verboseLevel );
  
-  // We use vtkPlusOpenIGTLinkClientWithTransformLogging instead of vtkPlusOpenIGTLinkClient to log the received transforms
-  vtkSmartPointer<vtkPlusOpenIGTLinkClientWithTransformLogging> client = vtkSmartPointer<vtkPlusOpenIGTLinkClientWithTransformLogging>::New();
+
+  vtkSmartPointer<vtkPlusOpenIGTLinkClient> client = vtkSmartPointer<vtkPlusOpenIGTLinkClient>::New();
+  if (keepConnected)
+  {
+    // We use vtkPlusOpenIGTLinkClientWithTransformLogging instead of vtkPlusOpenIGTLinkClient to log the received transforms
+    client = vtkSmartPointer<vtkPlusOpenIGTLinkClientWithTransformLogging>::New();
+  }
 
   // Connect to server
   client->SetServerHost(serverHost.c_str());

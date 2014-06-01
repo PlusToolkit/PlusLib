@@ -175,30 +175,15 @@ int vtkPlusCommandProcessor::ExecuteCommands()
     LOG_DEBUG("Executing command");
     std::string messageToSend;
     vtkImageData* imageToSend=NULL;
-    PlusStatus status=cmd->Execute();
-    if (status==PLUS_SUCCESS)
+    if (cmd->Execute()!=PLUS_SUCCESS)
     {
-      if (cmd->GetResponseImage()!=NULL)
-      {
-        if (cmd->GetResponseImageDeviceName().empty() || cmd->GetResponseImageToReferenceTransform()==NULL)
-        {
-          LOG_WARNING("Response image device name or ImageToReferenceTransform is undefined");
-        }
-        // send message+image as a response
-        QueueReply(cmd->GetClientId(), PLUS_SUCCESS, cmd->GetResponseMessage(), cmd->GetReplyDeviceName(),
-          cmd->GetResponseImageDeviceName().c_str(), cmd->GetResponseImage(), cmd->GetResponseImageToReferenceTransform());
-      }
-      else
-      {
-        // send only message as a response
-        QueueReply(cmd->GetClientId(), PLUS_SUCCESS, cmd->GetResponseMessage(), cmd->GetReplyDeviceName());
-      }
+      LOG_ERROR("Command execution failed");
     }
-    else
+
+    // move the response objects from the command to the processor's queue
     {
-      // send error message as response
-      LOG_ERROR(cmd->GetResponseMessage());
-      QueueReply(cmd->GetClientId(), status, cmd->GetResponseMessage(), cmd->GetReplyDeviceName());
+      PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);  
+      cmd->PopCommandResponses(this->CommandResponseQueue);
     }
 
     // the command execution is completed, so remove it from the queue of active commands
@@ -280,12 +265,20 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(unsigned int clientId, const st
   }
   vtkPlusCommand* cmd = CreatePlusCommand(commandString);
   if (cmd == NULL)
-  {
-    std::string reply("Failed to create command from string: ");
-    reply += commandString;
-    std::string replyDeviceName=vtkPlusCommand::GenerateReplyDeviceName(uid);
-    this->QueueReply( clientId, PLUS_FAIL, reply, replyDeviceName );
-    LOG_ERROR(reply);
+  {    
+    std::string errorMessage=std::string("Failed to create command from string: ")+commandString;
+    LOG_ERROR(errorMessage);
+    // Let the client know that we failed to create a command
+    vtkSmartPointer<vtkPlusCommandStringResponse> response=vtkSmartPointer<vtkPlusCommandStringResponse>::New();
+    response->SetClientId(clientId);
+    response->SetDeviceName(vtkPlusCommand::GenerateReplyDeviceName(uid));
+    response->SetMessage(errorMessage);
+    response->SetStatus(PLUS_FAIL);
+    {
+      // Add response to the command response queue
+      PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+      this->CommandResponseQueue.push_back(response);
+    }
     return PLUS_FAIL;
   }
   cmd->SetCommandProcessor(this);
@@ -302,44 +295,13 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(unsigned int clientId, const st
 }
 
 //------------------------------------------------------------------------------
-void vtkPlusCommandProcessor::QueueReply(int clientId, PlusStatus replyStatus, const std::string& replyString, const std::string& replyDeviceName, const char* imageName/*=NULL*/, vtkImageData* imageData/*=NULL*/, vtkMatrix4x4* imageToReferenceTransform/*=NULL*/)
+void vtkPlusCommandProcessor::PopCommandResponses(PlusCommandResponseList &responses)
 {
-  PlusCommandReply reply;
-  reply.ClientId=clientId;
-  reply.DeviceName=replyDeviceName;
-  reply.CustomAttributes="Message=\""+replyString+"\"";
-  reply.Status=replyStatus;
-  if (imageName!=NULL)
-  {
-    reply.ImageName=imageName;
-  }
-  if (imageData!=NULL)
-  {
-    reply.ImageData=imageData;
-    reply.ImageData->Register(NULL);
-  }
-  if (imageToReferenceTransform!=NULL)
-  {
-    reply.ImageToReferenceTransform=imageToReferenceTransform;
-    reply.ImageToReferenceTransform->Register(NULL);
-  }
-  {
-    // Add reply to the sending queue
-    PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
-    this->CommandReplies.push_back(reply);
-  }
-}
-
-//------------------------------------------------------------------------------
-PlusStatus vtkPlusCommandProcessor::GetCommandReplies(PlusCommandReplyList &replies)
-{
-  {
-    // Add reply to the sending queue
-    PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
-    replies=this->CommandReplies;
-    this->CommandReplies.clear();
-  }
-  return PLUS_SUCCESS;
+  PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+  // Add reply to the sending queue
+  // Append this->CommandResponses to 'responses'.
+  // Elements appended to 'responses' are removed from this->CommandResponses.
+  responses.splice(responses.end(),this->CommandResponseQueue,this->CommandResponseQueue.begin(),this->CommandResponseQueue.end());
 }
 
 //------------------------------------------------------------------------------
@@ -347,3 +309,4 @@ bool vtkPlusCommandProcessor::IsRunning()
 {
   return this->CommandExecutionActive.second;
 }
+
