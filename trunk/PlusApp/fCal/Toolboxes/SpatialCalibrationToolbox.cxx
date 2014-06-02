@@ -288,9 +288,12 @@ void SpatialCalibrationToolbox::SetDisplayAccordingToState()
       {
         QPalette palette;
         palette.setColor(ui.label_State->foregroundRole(), QColor::fromRgb(255, 128, 0));
-        ui.label_State->setPalette(palette);
-        ui.label_State->setText( tr("Phantom registration is missing. It needs to be performed or imported") );
-        LOG_INFO("Phantom registration is missing. It needs to be performed or imported");
+        ui.label_State->setPalette(palette);       
+        ui.label_State->setText( tr("Phantom registration is not available. If phantom registration has been already performed successfully"
+          " then verify the coordinate frames in the device set configuration file (see the log for details)."));
+        LOG_INFO("Phantom registration is not available: transform between "<<m_Calibration->GetProbeCoordinateFrame()
+          <<" and "<<m_Calibration->GetReferenceCoordinateFrame()<<" coordinate frames is missing. Either phantom registration has not performed yet"
+          " or the ProbeCoordinateFrame, ReferenceCoordinateFrame, or PhantomCoordinateFrame attributes in the device set configuration file are not set correctly.");
         m_State = ToolboxState_Error;
       }
     }
