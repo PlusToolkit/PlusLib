@@ -340,8 +340,8 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
       int currentIndex = ui.comboBox_DeviceSet->findText(name, Qt::MatchExactly);
 
       // Add tooltip
-      //name.append("\n"+fileInfo.fileName().toLatin1());
-      ui.comboBox_DeviceSet->setItemData(currentIndex, fileInfo.fileName().toLatin1(), Qt::ToolTipRole); 
+      name.append("\n"+fileInfo.fileName().toLatin1());
+      ui.comboBox_DeviceSet->setItemData(currentIndex, name, Qt::ToolTipRole); 
 
       // If this item is the same as in the config file, select it by default
       if ( QDir::toNativeSeparators(QString(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName().c_str())) == QDir::toNativeSeparators(fileName) )
