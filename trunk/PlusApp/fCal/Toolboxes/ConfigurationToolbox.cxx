@@ -92,8 +92,6 @@ void ConfigurationToolbox::OnActivated()
   LOG_TRACE("ConfigurationToolbox::OnActivated"); 
 
   SetDisplayAccordingToState();
-
-  LOG_INFO("width: " << this->width());
 }
 
 //-----------------------------------------------------------------------------

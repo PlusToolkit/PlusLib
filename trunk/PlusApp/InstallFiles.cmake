@@ -169,6 +169,16 @@ INSTALL(FILES
   COMPONENT RuntimeLibraries
 )
 
+IF (WIN32)
+  # Install Plus command prompt starting script
+  INSTALL(FILES 
+    ${PLUSLIB_SOURCE_DIR}/src/scripts/StartPlusCommandPrompt.bat
+    ${PLUSLIB_SOURCE_DIR}/src/scripts/StartPlusCommandPrompt.ico
+    DESTINATION ${PLUSAPP_INSTALL_BIN_DIR}
+    COMPONENT RuntimeLibraries
+  )
+ENDIF (WIN32)
+
 IF(PLUSAPP_INSTALL_GNUPLOT_DIR)
   INSTALL(
     DIRECTORY ${GNUPLOT_BIN_DIR}/
