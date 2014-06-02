@@ -111,8 +111,8 @@ vtkSonixPortaVideoSourceCleanup::~vtkSonixPortaVideoSourceCleanup()
 vtkSonixPortaVideoSource::vtkSonixPortaVideoSource() 
 {
   // porta instantiation
-  this->PortaBModeWidth = 320;       // defaults to BMode, 640x480
-  this->PortaBModeHeight = 240;
+  this->PortaBModeWidth = 484;       // defaults to BMode, 640x480
+  this->PortaBModeHeight = 364;
   this->ImageBuffer = 0;
   this->ImageBuffer = new unsigned char [ this->PortaBModeWidth *
     this->PortaBModeHeight * 4 ];
@@ -133,6 +133,9 @@ vtkSonixPortaVideoSource::vtkSonixPortaVideoSource()
   this->PortaLUTPath = 0;
   this->PortaCineSize = 256 * 1024 * 1024; // defaults to 245MB of Cine
   this->FirstCallToAddFrameToBuffer = true;
+  this->CurrentMotorAngle = 0;
+  this->StartMotorAngle = 0;
+  this->VolumeIndex = 1;
 
   this->RequireImageOrientationInConfiguration = true;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
@@ -296,8 +299,7 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
   // Aligns the motor for correct acqusition of its angle
   if ( this->FirstCallToAddFrameToBuffer )
   {
-    this->Porta.setParam( prmMotorStatus, 0 );
-    double angle = this->Porta.goToPosition(0);
+	this->Porta.setParam( prmMotorStatus, 0 );
     this->Porta.setParam( prmMotorStatus, 1 );
     this->FirstCallToAddFrameToBuffer = false;
   }
@@ -308,27 +310,44 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
   unsigned char *deviceDataPtr = static_cast<unsigned char*>( this->ImageBuffer );
 
   // Compute the angle of the motor. 
-  // since the motor is sweeping back and forth, the frame index is found for size of two volumes.
-  // Angle is positive starting at zero when probe moves clockwise and negative starting a minus zero
-  // when probe moves in counter clockwise direction.
-  double frameIndexInTwoVolumes = ( (id-1) % (this->FramePerVolume * 2));
-  double currentMotorAngle;
-  if (frameIndexInTwoVolumes < FramePerVolume) {
-    currentMotorAngle = frameIndexInTwoVolumes  * this->MotorRotationPerStepDeg * this->StepPerFrame;
-  } else {
-    currentMotorAngle = - (frameIndexInTwoVolumes - this->FramePerVolume ) * this->MotorRotationPerStepDeg * this->StepPerFrame;
+  double frameIndexOneVolume =  id % this->FramePerVolume;
+  double frameIndexTwoVolumes =  id % (2*this->FramePerVolume);
+  if ( frameIndexOneVolume == 0 )
+  {
+	frameIndexOneVolume = this->FramePerVolume;
+  }
+  if ( frameIndexTwoVolumes == 0 )
+  {
+	frameIndexTwoVolumes = 2 * this->FramePerVolume;
+  }
+  if ( frameIndexTwoVolumes <=  this->FramePerVolume )
+  {
+	this->CurrentMotorAngle = this->StartMotorAngle - (frameIndexOneVolume - 1) * this->MotorRotationPerStepDeg * (double)this->StepPerFrame;
+  }
+  else
+  {
+	this->CurrentMotorAngle = - this->StartMotorAngle + (frameIndexOneVolume - 1) * this->MotorRotationPerStepDeg * (double)this->StepPerFrame;
   }
 
   std::ostringstream motorAngle;
-  motorAngle << currentMotorAngle;
+  motorAngle << this->CurrentMotorAngle;
 
   std::ostringstream frameNumber;
   frameNumber << id;
+  
+  std::ostringstream volumeIndex;
+  volumeIndex << this->VolumeIndex;
 
   TrackedFrame::FieldMapType customFields; 
   customFields["MotorAngle"] = motorAngle.str();
   customFields["FrameNumber"] = frameNumber.str(); 
-  customFields["ProbeHeadToTransducerCenter"] = this->GetProbeHeadToTransducerCenterTransform( currentMotorAngle );
+  customFields["VolumeIndex"] = volumeIndex.str(); 
+  customFields["ProbeHeadToTransducerCenter"] = this->GetProbeHeadToTransducerCenterTransform( this->CurrentMotorAngle );
+
+  if ( frameIndexOneVolume == this->FramePerVolume )
+  {
+	++this->VolumeIndex;
+  }
 
   PlusStatus status = aSource->GetBuffer()->AddItem(deviceDataPtr, aSource->GetPortImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, numberOfBytesToSkip, id, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields); 
 
@@ -470,6 +489,7 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
 
   // Compute the angle per step
   this->MotorRotationPerStepDeg = (double)this->ProbeInformation.motorFov / (double)this->ProbeInformation.motorSteps / 1000;
+  this->StartMotorAngle = ((double)(this->FramePerVolume-1) * this->MotorRotationPerStepDeg * (double)this->StepPerFrame) / 2;
 
   // Turn on the motor
   this->Porta.setParam( prmMotorStatus, 1 );

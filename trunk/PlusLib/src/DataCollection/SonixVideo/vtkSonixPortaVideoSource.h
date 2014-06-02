@@ -56,6 +56,10 @@ public:
 
   the 3D/4D probe should always be connected to port-0
 
+  In order to reduce the number of missing frames the motor speed can be 
+  decreased by changing the b frame rate id in the imaging.set.xml file of the
+  Porta SDK.
+
   Usage:
   sonixGrabber = vtkSonixPortaVideoSource::New();
   sonixGrabber->SetPortaSettingPath( "../../dat/" );
@@ -320,6 +324,15 @@ private:
 
   /*! Set to false after first call to AddFramToBuffer */
   bool FirstCallToAddFrameToBuffer;
+
+  /*! Initial angle of the motor where it is positioned at the edge of the user defined field of view */
+  double StartMotorAngle;
+
+  /*! Current angle of the motor */
+  double CurrentMotorAngle;
+
+  /*! Index keeping track of what frame belongs to what volume */
+  int VolumeIndex;
 };
 
 
