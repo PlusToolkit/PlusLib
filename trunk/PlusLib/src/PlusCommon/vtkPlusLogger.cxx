@@ -173,7 +173,7 @@ vtkPlusLogger* vtkPlusLogger::Instance()
 
     m_pInstance = new vtkPlusLogger; 
     vtkPlusConfig::GetInstance(); // set the log file name from the XML config
-    std::string strPlusLibVersion = std::string(" Software version: ") + 
+    std::string strPlusLibVersion = std::string("Software version: ") + 
       PlusCommon::GetPlusLibVersionString(); 
 
 #ifdef _DEBUG
@@ -247,6 +247,9 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* 
     return;
   }
 
+  // If log level is not debug then only print messages for INFO logs (skip the INFO prefix, line numbers, etc.)
+  bool onlyShowMessage = (level == LOG_LEVEL_INFO && m_LogLevel <= LOG_LEVEL_INFO);
+
   std::string timestamp = vtkAccurateTimer::GetInstance()->GetDateAndTimeMSecString();
 
   std::ostringstream log; 
@@ -274,14 +277,9 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* 
 
   // Add timestamp to the log message
   double currentTime = vtkAccurateTimer::GetSystemTime(); 
-  log << "|" << std::fixed << std::setw(10) << std::right << std::setfill('0') << currentTime; 
-
-  log << "|" << msg;
-  bool displayLineNumberAndFile = (m_LogLevel > LOG_LEVEL_INFO || level != LOG_LEVEL_INFO);
-  if ( displayLineNumberAndFile )
-  {
-    log << "|in " << fileName << "(" << lineNumber << ")"; // add filename and line number
-  }
+  log << "|" << std::fixed << std::setw(10) << std::right << std::setfill('0') << currentTime
+    << "| " << msg
+    << "|in " << fileName << "(" << lineNumber << ")"; // add filename and line number
 
   {
     PlusLockGuard<vtkRecursiveCriticalSection> critSectionGuard(this->m_CriticalSection);
@@ -317,11 +315,25 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* 
 
       if (level>LOG_LEVEL_WARNING)
       {
-        std::cout << log.str() << std::endl; 
+        if (onlyShowMessage)
+        {
+          std::cout << msg << std::endl;
+        }
+        else
+        {
+          std::cout << log.str() << std::endl;
+        }
       }
       else
       {
-        std::cerr << log.str() << std::endl; 
+        if (onlyShowMessage)
+        {
+          std::cerr << msg << std::endl;
+        }
+        else
+        {
+          std::cerr << log.str() << std::endl;
+        }
       }
 
 #ifdef _WIN32
@@ -344,11 +356,6 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* 
 
       // Add to log stream (file)
       this->m_LogStream << std::setw(17) << std::left << timestamp << log.str();
-      if ( !displayLineNumberAndFile )
-      {
-        // filename and line number was skipped from displayed message, so add it to the log
-        this->m_LogStream << "|in " << fileName << "(" << lineNumber << ")";
-      }
       this->m_LogStream << std::endl; 
     }
   }

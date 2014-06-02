@@ -49,7 +49,7 @@ enum PlusImagingMode
 #define LOG_ERROR(msg) \
   { \
   std::ostrstream msgStream; \
-  msgStream << " " << msg << std::ends; \
+  msgStream << msg << std::ends; \
   vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_ERROR, msgStream.str(), __FILE__, __LINE__); \
   msgStream.rdbuf()->freeze(0); \
   }  
@@ -57,7 +57,7 @@ enum PlusImagingMode
 #define LOG_WARNING(msg) \
   { \
   std::ostrstream msgStream; \
-  msgStream << " " << msg << std::ends; \
+  msgStream << msg << std::ends; \
   vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_WARNING, msgStream.str(), __FILE__, __LINE__); \
   msgStream.rdbuf()->freeze(0); \
   }
@@ -65,7 +65,7 @@ enum PlusImagingMode
 #define LOG_INFO(msg) \
   { \
   std::ostrstream msgStream; \
-  msgStream << " " << msg << std::ends; \
+  msgStream << msg << std::ends; \
   vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_INFO, msgStream.str(), __FILE__, __LINE__); \
   msgStream.rdbuf()->freeze(0); \
   }
@@ -73,7 +73,7 @@ enum PlusImagingMode
 #define LOG_DEBUG(msg) \
   { \
   std::ostrstream msgStream; \
-  msgStream << " " << msg << std::ends; \
+  msgStream << msg << std::ends; \
   vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_DEBUG, msgStream.str(), __FILE__, __LINE__); \
   msgStream.rdbuf()->freeze(0); \
   }  
@@ -81,7 +81,7 @@ enum PlusImagingMode
 #define LOG_TRACE(msg) \
   { \
   std::ostrstream msgStream; \
-  msgStream << " " << msg << std::ends; \
+  msgStream << msg << std::ends; \
   vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_TRACE, msgStream.str(), __FILE__, __LINE__); \
   msgStream.rdbuf()->freeze(0); \
   }
@@ -89,7 +89,7 @@ enum PlusImagingMode
 #define LOG_DYNAMIC(msg, logLevel) \
 { \
   std::ostrstream msgStream; \
-  msgStream << " " << msg << std::ends; \
+  msgStream << msg << std::ends; \
   vtkPlusLogger::Instance()->LogMessage(logLevel, msgStream.str(), __FILE__, __LINE__); \
   msgStream.rdbuf()->freeze(0); \
   }
