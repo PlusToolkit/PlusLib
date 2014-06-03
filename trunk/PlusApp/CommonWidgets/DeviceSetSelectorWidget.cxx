@@ -313,6 +313,7 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
       QVariant userData(datas);
 
       QString name(elem.attribute("Name"));
+      QString description(elem.attribute("Description"));
       if (name.isEmpty())
       {
         LOG_WARNING("Name field is empty in device set configuration file '" << fileName.toLatin1().constData() << "', it is not added to the list");
@@ -339,8 +340,10 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
       ui.comboBox_DeviceSet->addItem(name, userData);
       int currentIndex = ui.comboBox_DeviceSet->findText(name, Qt::MatchExactly);
 
-      // Add tooltip
-      name.append("\n"+fileInfo.fileName().toLatin1());
+      // Add tooltip word wrapped rich text  
+      name.prepend("<p>");
+      name.append("</p> <p>"+fileInfo.fileName().toLatin1()+"</p> <p>"+description.toLatin1()+"</p>");
+
       ui.comboBox_DeviceSet->setItemData(currentIndex, name, Qt::ToolTipRole); 
 
       // If this item is the same as in the config file, select it by default
