@@ -2,8 +2,8 @@
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
-      Name="fCal: SonixTouch US (L14-5 probe) + Ascension3DG tracker (Probe, Reference, Stylus) - Lego Phantom" 
-      Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." />
+      Name="fCal: SonixTouch US (L14-5 probe) + Ascension3DG tracker (Probe, Reference, Stylus) - fCal Phantom L1.4" 
+      Description="Ultrasound spatial calibration with phantom made of Lego bricks. Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." />
       
     <Device 
       Id="TrackerDevice" 
@@ -125,7 +125,7 @@
 
   <PhantomDefinition>
     <Description
-      Name="Lego"
+      Name="fCal-L"
       Type="Triple-N"
       Version="1.4"
       WiringVersion="1.0"

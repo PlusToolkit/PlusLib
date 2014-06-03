@@ -21,6 +21,7 @@ SET ( PLUSLIB_CONFIG_FILES
   ${PLUSLIB_DATA_DIR}/CADModels/fCalPhantom/fCal_1.2.stl
   ${PLUSLIB_DATA_DIR}/CADModels/fCalPhantom/fCal_2.0.stl
   ${PLUSLIB_DATA_DIR}/CADModels/fCalPhantom/fCal_3.1.stl
+  ${PLUSLIB_DATA_DIR}/CADModels/fCalPhantom/fCal_L1.4.stl
   ${PLUSLIB_DATA_DIR}/CADModels/LinearProbe/Probe_L14-5_38.stl
   ${PLUSLIB_DATA_DIR}/CADModels/EndocavityProbe/Probe_EC9-5_10.stl
   ${PLUSLIB_DATA_DIR}/CADModels/CurvilinearProbe/Probe_C5-2_60.stl 
@@ -135,7 +136,7 @@ IF(PLUS_USE_ULTRASONIX_VIDEO)
     SET ( PLUSLIB_CONFIG_FILES ${PLUSLIB_CONFIG_FILES}
       ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_2.0.xml
       ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_3.0.xml
-      ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_LegoPhantom.xml
+      ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_L1.4.xml
       )
   ENDIF(PLUS_USE_Ascension3DG)
 ENDIF(PLUS_USE_ULTRASONIX_VIDEO)
