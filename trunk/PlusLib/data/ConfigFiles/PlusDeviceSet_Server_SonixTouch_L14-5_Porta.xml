@@ -13,8 +13,10 @@
       Depth="70" 
       Gain="50" 
       Frequency="3.3" 
-      PortaFirmwarePath="path-to/sdk574/porta/fw/"
-      PortaSettingPath="path-to/sdk574/porta/dat/"
+	  FramePerVolume="83"
+	  StepPerFrame="4"
+      PortaFirmwarePath="D:/Users/Mikael/sdk574/porta/fw/"
+      PortaSettingPath="D:/Users/Mikael/sdk574/porta/dat/"
       PortaLicensePath="D:/Ultrasonix Settings/"
       PortaLUTPath="D:/Ultrasonix Settings/LUTS/"
       USM="4"
@@ -33,7 +35,7 @@
       Id="CaptureDevice"
       Type="VirtualDiscCapture"
       BaseFilename="RecordingTest.mha"
-      EnableCapturing="TRUE" >
+      EnableCapturing="FALSE" >
       <InputChannels>
         <InputChannel Id="VideoStream" />
       </InputChannels>
@@ -58,7 +60,11 @@
     <DefaultClientInfo> 
       <MessageTypes> 
         <Message Type="IMAGE" />
+		<Message Type="TRANSFORM" />
       </MessageTypes>
+	  <TransformNames> 
+		<Transform Name="ImageToProbeHead" />
+      </TransformNames>
       <ImageNames>
         <Image Name="Image" EmbeddedTransformToFrame="Reference" />
       </ImageNames>
