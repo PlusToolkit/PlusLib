@@ -129,14 +129,6 @@ OPTION(PLUS_USE_STEALTHLINK "Provide support for the Medtronick StealthLink Serv
 
 # Other
 
-# Disable this option, as it is currently not tested or supported
-#OPTION(PLUS_USE_HEARTSIGNALBOX "Enable Heart Signal Box" OFF)
-SET (PLUS_USE_HEARTSIGNALBOX OFF)
-
-# Disable this option, as it is currently not tested or supported
-#OPTION(PLUS_USE_USBECGBOX "Enable USB ECG Signal Box" OFF) 
-SET (PLUS_USE_USBECGBOX OFF)
-
 OPTION (PLUSAPP_TEST_GUI "Enable Sikuli GUI tests" ON)
 
 #-----------------------------------------------------------------------------
@@ -144,17 +136,6 @@ OPTION (PLUSAPP_TEST_GUI "Enable Sikuli GUI tests" ON)
 #-----------------------------------------------------------------------------
 IF (PLUS_USE_Ascension3DG AND PLUS_USE_Ascension3DGm)
   MESSAGE(FATAL_ERROR "PLUS_USE_Ascension3DGm and PLUS_USE_Ascension3DGm options cannot be enabled at the same time. See more details at https://www.assembla.com/spaces/plus/tickets/851")
-ENDIF()
-
-#-----------------------------------------------------------------------------
-# Warnings for work in progress features
-#-----------------------------------------------------------------------------
-IF (PLUS_USE_USBECGBOX)
-  MESSAGE(WARNING "PLUS_USE_USBECGBOX option is enabled, which may cause build errors if the necessary Universal Library is not installed. This is an experimental feature for supporting ECG signal acquisition through an USB digitizer, see more details at https://www.assembla.com/spaces/plus/tickets/396")
-ENDIF()
-
-IF (PLUS_USE_HEARTSIGNALBOX)
-  MESSAGE(WARNING "PLUS_USE_HEARTSIGNALBOX option is enabled, which may cause build errors if the necessary library from http://www.logix4u.net/ is not installed. This is an experimental feature, see more details at https://www.assembla.com/spaces/plus/tickets/396")
 ENDIF()
 
 #-----------------------------------------------------------------------------

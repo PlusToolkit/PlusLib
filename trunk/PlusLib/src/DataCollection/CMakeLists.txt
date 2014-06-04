@@ -784,7 +784,6 @@ ENDIF (PLUS_USE_INTERSONSDKCXX_VIDEO)
 SET (DataCollection_LIBS ${DataCollection_LIBS}
   ${VTK_LIBRARIES}
   vtkPlusCommon  
-  vtkSignaling
   ${ITK_LIBRARIES}
   vtkUsSimulatorAlgo
   vtkVolumeReconstruction

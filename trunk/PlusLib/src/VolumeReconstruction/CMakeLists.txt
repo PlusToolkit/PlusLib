@@ -29,8 +29,7 @@ SET (VolumeReconstruction_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNA
 
 SET (VolumeReconstruction_LIBS 
   ${VTK_LIBRARIES}  
-  vtkPlusCommon 
-  vtkSignaling  
+  vtkPlusCommon
   )
 
 INCLUDE_DIRECTORIES( ${VolumeReconstruction_INCLUDE_DIRS} )
@@ -42,7 +41,7 @@ TARGET_LINK_LIBRARIES(  vtkVolumeReconstruction  ${VolumeReconstruction_LIBS} )
 SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkVolumeReconstruction CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkVolumeReconstruction vtkVolumeReconstruction;"${PlusLib_BINARY_DIR}/src/VolumeReconstruction/vtkVolumeReconstruction.vcproj";vtkPlusCommon;vtkSignaling;vtkDataCollection CACHE INTERNAL "" FORCE)
+SET(vcProj_vtkVolumeReconstruction vtkVolumeReconstruction;"${PlusLib_BINARY_DIR}/src/VolumeReconstruction/vtkVolumeReconstruction.vcproj";vtkPlusCommon;vtkDataCollection CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Install
