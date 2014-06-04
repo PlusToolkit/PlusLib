@@ -1,23 +1,32 @@
 /*!
-\page DeviceChRobotics
+\page DeviceChRobotics CHRobotics CHR-UM6 magnetic, angular rate, and gravity (MARG) sensor
 
 \par Supported hardware devices
 
-- Link to manufacturer's website:
+- Link to manufacturer's website: http://www.chrobotics.com/shop/orientation-sensor-um6
 
 \par Installation
 
-- Supported on
+- Contains accelerometer, gyroscope, and magnetometer sensors, each with 3 DOF.
+- Small (few centimeters by few centimeters), low-cost (about $200) device.
+- Sensor fusion algorithm is integrated into the device.
+- Need to enable the following options in the firmware: "Broadcast" and "Euler Output".
+- Gyroscope bias correction may (depending on settings in the Firmware) be performed automatically when powering up the device. Therefore after the powering the device it shall be kept stationary for a few seconds.
+- Supported on Windows only.
 
 \par Configuration settings
 
-- Device type: \c
-- Attributes
+- Device type: \c ChRobotics.
+- Attributes:
+  - \c SerialPort Used COM port number for serial communication (ComPort: 1 => Port name: "COM1").
+  - \c BaudRate Baud rate for serial communication.
+  - \c FirmwareDirectory Directory path containing the XML files that describes the device firmware (available registers, calibration, etc.). The path can be relative to the configuration directory.
 
 \par Quality values
 
+ 
 \par Example configuration file
 
-\include 
+\include "data/ConfigFiles/PlusDeviceSet_Server_ChRobotics.xml"
 
 */

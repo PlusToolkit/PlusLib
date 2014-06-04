@@ -11,13 +11,13 @@
 
 \par Configuration settings
 
-- Device type: \c
-- Attributes
+- Device type: \c Brachy.
+- Attributes:
 
 \par Quality values
 
 \par Example configuration file
 
-\include 
+\include "data/ConfigFiles/PlusDeviceSet_Server_Brachy.xml"
 
 */

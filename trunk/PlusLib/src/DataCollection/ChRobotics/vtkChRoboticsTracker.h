@@ -113,12 +113,12 @@ private:  // Variables.
   /*! Used COM port number for serial communication (ComPort: 1 => Port name: "COM1")*/
   long ComPort; 
 
-  /*! Baud rate for serial communication */
+  /*! Baud rate for serial communication. */
   long BaudRate; 
 
   /*! 
     Directory path containing the XML files that describes the device firmware (available registers, calibration, etc.).
-    The path can be relative to the confiuration directory.
+    The path can be relative to the configuration directory.
   */
   std::string FirmwareDirectory;
 
