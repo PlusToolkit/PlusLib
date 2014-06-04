@@ -5,8 +5,27 @@
 Tracking devices
 - \subpage Device3dConnexion
 - \subpage DeviceAscension3DG
+- \subpage DeviceBrachy
+- \subpage DeviceFake
+- \subpage DeviceMicron
+- \subpage DeviceNDICertus
+- \subpage DeviceOpenIGTLink
+- \subpage DevicePhidgetSpatial
+- \subpage DevicePolaris
+- \subpage DeviceChRobotics
+- \subpage DeviceSavedDataSource
 
 Imaging devices
 - \subpage DeviceBkProFocus
+- \subpage DeviceEpiphan
+- \subpage DeviceICCapturing
+- \subpage DeviceInterson
+- \subpage DeviceMicrosoftMediaFoundation
+- \subpage DeviceOpenIGTLinkVideo
+- \subpage DeviceSonixVideo
+- \subpage DeviceStealthLink
+- \subpage DeviceUsSimulatorVideo
+- \subpage DeviceVideoForWindows
+- \subpage DeviceVirtualDevices
 
 */
