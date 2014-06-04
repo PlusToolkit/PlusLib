@@ -97,7 +97,7 @@
         0 0 0 1" />	
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
       Opacity="0.6"
-      File="LegoPhantom.stl"
+      File="fCal_L1.4.stl"
       ModelToObjectTransform="
         1 0 0 0
         0 1 0 0
