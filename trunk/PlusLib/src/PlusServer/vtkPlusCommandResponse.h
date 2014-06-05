@@ -103,11 +103,11 @@ public:
   static vtkPlusCommandImageMetaDataResponse *New();
   vtkTypeMacro(vtkPlusCommandImageMetaDataResponse, vtkPlusCommandResponse);
 
-  void GetImageMetaDataItems(vtkPlusDevice::ImageMetaDataList &list)
+  void GetImageMetaDataItems(PlusCommon::ImageMetaDataList &list)
   {
     list=this->ImageMetaDataItems;
   }  
-  void SetImageMetaDataItems(const vtkPlusDevice::ImageMetaDataList &list)
+  void SetImageMetaDataItems(const PlusCommon::ImageMetaDataList &list)
   {
     this->ImageMetaDataItems=list;
   }
@@ -115,7 +115,7 @@ protected:
   vtkPlusCommandImageMetaDataResponse()
   {
   }
-  vtkPlusDevice::ImageMetaDataList ImageMetaDataItems;
+  PlusCommon::ImageMetaDataList ImageMetaDataItems;
 private:
   vtkPlusCommandImageMetaDataResponse( const vtkPlusCommandImageMetaDataResponse& );
   void operator=( const vtkPlusCommandImageMetaDataResponse& );  

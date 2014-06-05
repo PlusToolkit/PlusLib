@@ -8,13 +8,13 @@ See License.txt for details.
 #define __vtkPlusIgtlMessageCommon_h
 
 #include "PlusConfigure.h"
-#include "vtkObject.h" 
+#include "vtkObject.h"
 #include "igtlMessageBase.h"
 #include "igtlSocket.h"
-
 //----------------------------------------------------------------------------
 // IGT message types
 #include "igtlImageMessage.h"
+#include "igtlImageMetaMessage.h"
 #include "igtlTransformMessage.h"
 #include "igtlPositionMessage.h"
 #include "igtlPlusTrackedFrameMessage.h"
@@ -59,7 +59,10 @@ public:
   static PlusStatus UnpackImageMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, TrackedFrame& trackedFrame, const PlusTransformName &embeddedTransformName, int crccheck); 
 
   /*! Pack image message from vtkImageData volume */ 
-  static PlusStatus PackImageMessage( igtl::ImageMessage::Pointer imageMessage, vtkImageData* volume, vtkMatrix4x4* volumeToReferenceTransform, double timestamp ); 
+  static PlusStatus PackImageMessage( igtl::ImageMessage::Pointer imageMessage, vtkImageData* volume, vtkMatrix4x4* volumeToReferenceTransform, double timestamp );
+
+	/*! Pack image meta deta message from vtkPlusServer::ImageMetaDataList  */ 
+  static PlusStatus PackImageMetaMessage( igtl::ImageMetaMessage::Pointer imageMetaMessage, PlusCommon::ImageMetaDataList& imageMetaDataList);
 
   /*! Pack transform message from tracked frame */ 
   static PlusStatus PackTransformMessage(igtl::TransformMessage::Pointer transformMessage, PlusTransformName& transformName, 

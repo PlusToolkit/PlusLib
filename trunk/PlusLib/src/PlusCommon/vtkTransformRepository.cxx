@@ -591,13 +591,30 @@ PlusStatus vtkTransformRepository::ReadConfiguration(vtkXMLDataElement* configRo
       continue; 
     }
 
-    if ( this->SetTransformPersistent(transformName, true) != PLUS_SUCCESS )
+		bool isPersistent = true;
+		if(nestedElement->GetAttribute("Persistent"))
+		{
+			std::string strPersistent(nestedElement->GetAttribute("Persistent"));
+			isPersistent = (strPersistent.compare("true"))?false:true;
+		}
+    if ( this->SetTransformPersistent(transformName, isPersistent) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Unable to set transform to persistent: '" << fromAttribute << "' to '" << toAttribute << "' transform"); 
+      LOG_ERROR("Unable to set transform to " << isPersistent << ": " << fromAttribute << "' to '" << toAttribute << "' transform"); 
       numberOfErrors++; 
       continue; 
     }
-
+		bool isValid = true;
+		if(nestedElement->GetAttribute("Valid"))
+		{
+			std::string strValid(nestedElement->GetAttribute("Valid"));
+			isValid = (strValid.compare("true"))?false:true;
+		}
+		if ( this->SetTransformValid(transformName, isValid) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to set transform to " <<  isValid << " : " << fromAttribute << "' to '" << toAttribute << "' transform"); 
+      numberOfErrors++; 
+      continue; 
+    }
     double error(0); 
     if ( nestedElement->GetScalarAttribute("Error", error) )
     {
@@ -623,7 +640,85 @@ PlusStatus vtkTransformRepository::ReadConfiguration(vtkXMLDataElement* configRo
 
   return (numberOfErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL ); 
 }
+// copyAllTransforms: include non-persistent and invalid transforms
+// Attributes: Persistent="TRUE/FALSE" Valid="TRUE/FALSE" => add it to ReadConfiguration, too
+PlusStatus vtkTransformRepository::WriteConfigurationGeneric(vtkXMLDataElement* configRootElement, bool copyAllTransforms)
+{
+	if ( configRootElement == NULL )
+  {
+    LOG_ERROR("Failed to write transforms to CoordinateDefinitions - config root element is NULL"); 
+    return PLUS_FAIL; 
+  }
 
+  vtkSmartPointer<vtkXMLDataElement> coordinateDefinitions = configRootElement->FindNestedElementWithName("CoordinateDefinitions");
+  if ( coordinateDefinitions != NULL )
+  {
+    coordinateDefinitions->RemoveAllNestedElements(); 
+  }
+  else
+  {
+    coordinateDefinitions = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    coordinateDefinitions->SetName("CoordinateDefinitions"); 
+    configRootElement->AddNestedElement(coordinateDefinitions); 
+  }
+
+  int numberOfErrors(0); 
+  for (CoordFrameToCoordFrameToTransformMapType::iterator coordFrame=this->CoordinateFrames.begin(); coordFrame!=this->CoordinateFrames.end(); ++coordFrame)
+  {
+    for (CoordFrameToTransformMapType::iterator transformInfo=coordFrame->second.begin(); transformInfo!=coordFrame->second.end(); ++transformInfo)
+    {
+			// if copyAllTransforms is true => copy non persistent and persistent. if false => copy only persistent
+      if ( (transformInfo->second.m_IsPersistent || copyAllTransforms) && !transformInfo->second.m_IsComputed )
+      {
+        std::string fromCoordinateFrame = coordFrame->first; 
+        std::string toCoordinateFrame = transformInfo->first;
+				std::string persistent = transformInfo->second.m_IsPersistent?"true":"false";
+				std::string valid = transformInfo->second.m_IsValid?"true":"false";
+
+        if ( transformInfo->second.m_Transform == NULL )
+        {
+          LOG_ERROR("Transformation matrix is NULL between '" << fromCoordinateFrame << "' to '" << toCoordinateFrame << "' coordinate frames."); 
+          numberOfErrors++; 
+          continue; 
+        }
+
+        if ( !transformInfo->second.m_IsValid )
+        {
+          LOG_WARNING("Invalid transform saved to CoordinateDefinitions from  '" << fromCoordinateFrame << "' to '" << toCoordinateFrame << "' coordinate frame." ); 
+        }
+      
+        double vectorMatrix[16]={0}; 
+        vtkMatrix4x4::DeepCopy(vectorMatrix,transformInfo->second.m_Transform->GetMatrix() ); 
+
+        vtkSmartPointer<vtkXMLDataElement> newTransformElement = vtkSmartPointer<vtkXMLDataElement>::New();
+        newTransformElement->SetName("Transform"); 
+        newTransformElement->SetAttribute("From", fromCoordinateFrame.c_str()); 
+        newTransformElement->SetAttribute("To", toCoordinateFrame.c_str()); 
+				newTransformElement->SetAttribute("Persistent",persistent.c_str());
+				newTransformElement->SetAttribute("Valid",valid.c_str());
+        newTransformElement->SetVectorAttribute("Matrix", 16, vectorMatrix); 
+
+        if ( transformInfo->second.m_Error > 0 ) 
+        {
+          newTransformElement->SetDoubleAttribute("Error", transformInfo->second.m_Error); 
+        }
+
+        if ( !transformInfo->second.m_Date.empty() )
+        {
+          newTransformElement->SetAttribute("Date", transformInfo->second.m_Date.c_str() ); 
+        }
+        else // Add current date if it was not explicitly specified
+        {
+          newTransformElement->SetAttribute("Date", vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str() );
+        }
+
+        coordinateDefinitions->AddNestedElement(newTransformElement); 
+
+      }
+    }
+  }
+  return (numberOfErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL ); 
+}
 //----------------------------------------------------------------------------
 PlusStatus vtkTransformRepository::WriteConfiguration(vtkXMLDataElement* configRootElement)
 {
@@ -700,10 +795,10 @@ PlusStatus vtkTransformRepository::WriteConfiguration(vtkXMLDataElement* configR
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTransformRepository::DeepCopy(vtkTransformRepository* sourceRepositoryName)
+PlusStatus vtkTransformRepository::DeepCopy(vtkTransformRepository* sourceRepositoryName,bool copyAllTransforms)
 {
   PlusLockGuard<vtkRecursiveCriticalSection> accessGuard(this->CriticalSection);
   vtkSmartPointer<vtkXMLDataElement> configRootElement=vtkSmartPointer<vtkXMLDataElement>::New();
-  sourceRepositoryName->WriteConfiguration(configRootElement);
+  sourceRepositoryName->WriteConfigurationGeneric(configRootElement,copyAllTransforms);
   return ReadConfiguration(configRootElement);
 }

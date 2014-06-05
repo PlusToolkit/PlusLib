@@ -11,6 +11,7 @@ See License.txt for details.
 #include "vtkPlusCommand.h"
 #include "vtkPlusCommandProcessor.h"
 #include "vtkPlusReconstructVolumeCommand.h"
+#include "vtkPlusGetImageCommand.h"
 #ifdef PLUS_USE_STEALTHLINK
   #include "vtkPlusStealthLinkCommand.h"
 #endif
@@ -32,50 +33,19 @@ vtkPlusCommandProcessor::vtkPlusCommandProcessor()
 , CommandExecutionThreadId(-1)
 {
   // Register default commands
-  {
-    vtkPlusCommand* cmd = vtkPlusStartStopRecordingCommand::New();
-    RegisterPlusCommand(cmd);
-    cmd->Delete();
-  }
-  {
-    vtkPlusCommand* cmd = vtkPlusReconstructVolumeCommand::New();
-    RegisterPlusCommand(cmd);
-    cmd->Delete();
-  }
-  {
-    vtkPlusCommand* cmd = vtkPlusRequestIdsCommand::New();
-    RegisterPlusCommand(cmd);
-    cmd->Delete();
-  }
-  {
-    vtkPlusCommand* cmd = vtkPlusUpdateTransformCommand::New();
-    RegisterPlusCommand(cmd);
-    cmd->Delete();
-  }
-  {
-    vtkPlusCommand* cmd = vtkPlusSaveConfigCommand::New();
-    RegisterPlusCommand(cmd);
-    cmd->Delete();
-  }
+  RegisterPlusCommand(vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New());
+	RegisterPlusCommand(vtkSmartPointer<vtkPlusReconstructVolumeCommand>::New());
+	RegisterPlusCommand(vtkSmartPointer<vtkPlusRequestIdsCommand>::New());
+	RegisterPlusCommand(vtkSmartPointer<vtkPlusUpdateTransformCommand>::New());
+	RegisterPlusCommand(vtkSmartPointer<vtkPlusSaveConfigCommand>::New());
 #ifdef PLUS_USE_STEALTHLINK
-  {
-    vtkPlusCommand* cmd = vtkPlusStealthLinkCommand::New();
-    RegisterPlusCommand(cmd);
-    cmd->Delete();
-  }
+	RegisterPlusCommand(vtkSmartPointer<vtkPlusStealthLinkCommand>::New());
 #endif
 }
 
 //----------------------------------------------------------------------------
 vtkPlusCommandProcessor::~vtkPlusCommandProcessor()
 {
-  for (std::map<std::string,vtkPlusCommand*>::iterator it=this->RegisteredCommands.begin(); it!=this->RegisteredCommands.end(); ++it)
-  {
-    (it->second)->UnRegister(this); 
-    (it->second)=NULL; 
-  } 
-  this->RegisteredCommands.clear();
-
   SetPlusServer(NULL);
 }
 
@@ -161,7 +131,7 @@ int vtkPlusCommandProcessor::ExecuteCommands()
   int numberOfExecutedCommands=0;
   while (1)
   {
-    vtkPlusCommand* cmd=NULL; // next command to be processed  
+    vtkSmartPointer<vtkPlusCommand> cmd; // next command to be processed  
     {
       PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
       if (this->CommandQueue.empty())
@@ -185,9 +155,7 @@ int vtkPlusCommandProcessor::ExecuteCommands()
       PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);  
       cmd->PopCommandResponses(this->CommandResponseQueue);
     }
-
-    // the command execution is completed, so remove it from the queue of active commands
-    cmd->UnRegister(this); // delete command
+    
     numberOfExecutedCommands++;
   }
 
@@ -263,8 +231,9 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(unsigned int clientId, const st
     LOG_ERROR("Command string is undefined");
     return PLUS_FAIL;
   }
-  vtkPlusCommand* cmd = CreatePlusCommand(commandString);
-  if (cmd == NULL)
+
+	vtkSmartPointer<vtkPlusCommand> cmd = vtkSmartPointer<vtkPlusCommand>::Take(CreatePlusCommand(commandString));
+	if (cmd.GetPointer()==NULL)
   {    
     std::string errorMessage=std::string("Failed to create command from string: ")+commandString;
     LOG_ERROR(errorMessage);
@@ -293,7 +262,46 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(unsigned int clientId, const st
   }
   return PLUS_SUCCESS;
 }
-
+//------------------------------------------------------------------------------
+PlusStatus vtkPlusCommandProcessor::QueueGetImageMetaData(unsigned int clientId, const std::string &deviceName)
+{
+	//std::string cmdName = "GET_IMGMETA";
+	//vtkPlusCommand* cmd = (this->RegisteredCommands[cmdName])->Clone();
+	vtkSmartPointer<vtkPlusGetImageCommand> cmdGetImage = vtkSmartPointer<vtkPlusGetImageCommand>::New();
+	cmdGetImage->SetCommandProcessor(this);
+  cmdGetImage->SetClientId(clientId);
+	cmdGetImage->SetDeviceName(deviceName.c_str());
+	//vtkPlusGetImageCommand* getImageCommand=vtkPlusGetImageCommand::SafeDownCast(cmd);
+	//vtkSmartPointer<vtkPlusGetImageCommand> getImageCommand = vtkSmartPointer<vtkPlusGetImageCommand>::New();
+	cmdGetImage->SetNameToGetImageMeta();
+	//getImageCommand->SetClientId(clientId);
+	//getImageCommand->SetCommandProcessor(this);
+	//getImageCommand->SetDeviceId(deviceName.c_str());
+	//getImageCommand->SetDeviceName(deviceName.c_str());
+	{
+    // Add command to the execution queue
+    PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+		this->CommandQueue.push_back(cmdGetImage);
+  }
+  return PLUS_SUCCESS;
+}
+//------------------------------------------------------------------------------
+PlusStatus vtkPlusCommandProcessor::QueueGetImage(unsigned int clientId, const std::string &deviceName)
+{
+	vtkSmartPointer<vtkPlusGetImageCommand> cmdGetImage = vtkSmartPointer<vtkPlusGetImageCommand>::New();
+	cmdGetImage->SetCommandProcessor(this);
+  cmdGetImage->SetClientId(clientId);
+	cmdGetImage->SetDeviceName(deviceName.c_str());
+	//vtkSmartPointer<vtkPlusGetImageCommand> getImageCommand = vtkSmartPointer<vtkPlusGetImageCommand>::New();
+	cmdGetImage->SetNameToGetImage();
+	cmdGetImage->SetDeviceId(deviceName.c_str());
+	{
+    // Add command to the execution queue
+    PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+		this->CommandQueue.push_back(cmdGetImage);
+  }
+  return PLUS_SUCCESS;
+}
 //------------------------------------------------------------------------------
 void vtkPlusCommandProcessor::PopCommandResponses(PlusCommandResponseList &responses)
 {

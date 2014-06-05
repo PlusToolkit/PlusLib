@@ -6,7 +6,7 @@
 Tools: Stylus (Passive Planar, Blunt) , Reference (Frame)" 
     />
     <Device
-      Id="StealthLinkDevice"
+      Id="SLD"
       Type="StealthLinkTracker"
       ServerAddress="130.15.7.88"
       PortAddress="6996"
@@ -17,13 +17,13 @@ Tools: Stylus (Passive Planar, Blunt) , Reference (Frame)"
       <DataSources>
         <DataSource Type="Tool" Id="Stylus"     PortName="Passive Planar, Blunt" BufferSize="500" />
         <DataSource Type="Tool" Id="Reference"  PortName="Frame" BufferSize="500" />
-		<DataSource Type="Tool" Id="Image" 	    PortName="ImageToFrameRegistration" BufferSize="500" />
+		<DataSource Type="Tool" Id="Ras" 	    PortName="RasToFrameRegistration" BufferSize="500" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
           <DataSource  Id="Stylus" />
           <DataSource  Id="Reference" />
-		  <DataSource  Id="Image" />
+		  <DataSource  Id="Ras" />
         </OutputChannel>
       </OutputChannels>
     </Device>
@@ -61,8 +61,8 @@ Tools: Stylus (Passive Planar, Blunt) , Reference (Frame)"
       <TransformNames> 
         <Transform Name="StylusToTracker" />
         <Transform Name="ReferenceToTracker" />
-		<Transform Name="ImageToTracker"  />
-		<Transform Name="ImageToReference"  />
+		<xTransform Name="RasToTracker"  />
+		<Transform Name="RasToReference"  />
 		<Transform Name="StylusToReference"  />
 		<xTransform Name="TrackerToRas" />
       </TransformNames>

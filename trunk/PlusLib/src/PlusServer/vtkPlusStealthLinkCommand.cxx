@@ -15,16 +15,11 @@ See License.txt for details.
 #include "vtkPlusChannel.h"
 #include "vtkPlusCommandProcessor.h"
 #include "vtkTrackedFrameList.h"
-#include "vtkTransformRepository.h"
 #include "vtkVolumeReconstructor.h"
 #include "vtkVirtualVolumeReconstructor.h"
 #include <vtkImageFlip.h>
 #include <vtkPointData.h>
- 
-#define UNDEFINED_VALUE DBL_MAX
-
-static const int MAX_NUMBER_OF_FRAMES_ADDED_PER_EXECUTE=50;
-static const double SKIPPED_PERIOD_REPORTING_THRESHOLD_SEC=0.2; // log a warning if volume reconstruction cannot keep up with the acquisition and skips more than this time period of acquired frames
+#include <vtkDirectory.h>
 
 static const char GET_STEALTHLINK_EXAM_DATA_CMD[]="ExamData";
 static const char GET_STEALTHLINK_REGISTRATION_DATA_CMD[]="RegistrationData";
@@ -36,7 +31,9 @@ vtkPlusStealthLinkCommand::vtkPlusStealthLinkCommand()
 : PatientName(NULL)
 , PatientId(NULL)
 , StealthLinkDeviceId(NULL)
-,DicomImagesOutputDirectory(NULL)
+, DicomImagesOutputDirectory(NULL)
+, VolumeEmbeddedTransformToFrame(NULL)
+, KeepReceivedDicomFiles(false)
 {
 	this->FrameToExamTransform = vtkSmartPointer<vtkMatrix4x4>::New();
 }
@@ -47,7 +44,9 @@ vtkPlusStealthLinkCommand::~vtkPlusStealthLinkCommand()
   SetPatientName(NULL);
   SetStealthLinkDeviceId(NULL);
   SetPatientId(NULL);
-  SetDicomImagesOutputDirectory(NULL);
+	SetDicomImagesOutputDirectory(NULL);
+	SetVolumeEmbeddedTransformToFrame(NULL);
+	SetKeepReceivedDicomFiles(false);
   FrameToExamTransform->Identity();
 }
 
@@ -86,6 +85,10 @@ void vtkPlusStealthLinkCommand::SetNameToGetExam() { SetName(GET_STEALTHLINK_EXA
 //----------------------------------------------------------------------------
 void vtkPlusStealthLinkCommand::SetNameToGetRegistration() { SetName(GET_STEALTHLINK_REGISTRATION_DATA_CMD); }
 //----------------------------------------------------------------------------
+void vtkPlusStealthLinkCommand::SetKeepReceivedDicomFiles(bool keepReceivedDicomFiles) { this->KeepReceivedDicomFiles = keepReceivedDicomFiles; }
+//----------------------------------------------------------------------------
+bool vtkPlusStealthLinkCommand::GetKeepReceivedDicomFiles() { return this->KeepReceivedDicomFiles; }
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusStealthLinkCommand::ReadConfiguration(vtkXMLDataElement* aConfig)
 {  
 	
@@ -93,36 +96,70 @@ PlusStatus vtkPlusStealthLinkCommand::ReadConfiguration(vtkXMLDataElement* aConf
   {
     return PLUS_FAIL;
   }
-  if(!aConfig->GetAttribute("DicomImagesOutputDirectory"))
+  if(aConfig->GetAttribute("DicomImagesOutputDirectory"))
   {
-    LOG_TRACE("Output file directory for the dicom images is not specified. Default value C:/StealthLinkDicomOutput will be used");
-	SetDicomImagesOutputDirectory("C:/StealthLinkDicomOutput");
+    this->SetDicomImagesOutputDirectory(aConfig->GetAttribute("DicomImagesOutputDirectory"));
   }
-  else
-  {
-    SetDicomImagesOutputDirectory(aConfig->GetAttribute("DicomImagesOutputDirectory"));
-  }
+	else
+	{
+		LOG_INFO("The dicom images from stealthlink will be saved into the: " << vtkPlusConfig::GetInstance()->GetOutputDirectory() << "/StealthLinkDicomOutput");
+		std::string dicomImagesDefaultOutputDirectory = vtkPlusConfig::GetInstance()->GetOutputDirectory() +  std::string("/StealthLinkDicomOutput");
+	  this->SetDicomImagesOutputDirectory(dicomImagesDefaultOutputDirectory.c_str());
+	}
   if(aConfig->GetAttribute("StealthLinkDeviceId"))
   {
-	  SetStealthLinkDeviceId(aConfig->GetAttribute("StealthLinkDeviceId"));
+	  this->SetStealthLinkDeviceId(aConfig->GetAttribute("StealthLinkDeviceId"));
   }
+	if(aConfig->GetAttribute("VolumeEmbeddedTransformToFrame"))
+	{
+		this->SetVolumeEmbeddedTransformToFrame(aConfig->GetAttribute("VolumeEmbeddedTransformToFrame"));
+	}
+	else
+	{
+		LOG_INFO("The dicom images from stealthlink will be saved represented in Ras coordinate system");
+	  this->SetVolumeEmbeddedTransformToFrame("Ras");
+	}
+	if(aConfig->GetAttribute("KeepReceivedDicomFiles"))
+	{
+		std::string stringTrue("true");
+		if(!stringTrue.compare(aConfig->GetAttribute("KeepReceivedDicomFiles")))
+		{
+			this->SetKeepReceivedDicomFiles(true);
+		}
+		else
+		{
+			this->SetKeepReceivedDicomFiles(false);
+		}
+	}
   return PLUS_SUCCESS;
 }
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusStealthLinkCommand::WriteConfiguration(vtkXMLDataElement* aConfig)
 {  
-  if (vtkPlusCommand::WriteConfiguration(aConfig)!=PLUS_SUCCESS)
+  if(vtkPlusCommand::WriteConfiguration(aConfig)!=PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
-  if (this->StealthLinkDeviceId!=NULL)
+  if(this->GetStealthLinkDeviceId()!=NULL)
   {
-    aConfig->SetAttribute("StealthLinkDeviceId",this->StealthLinkDeviceId);     
+    aConfig->SetAttribute("StealthLinkDeviceId",this->GetStealthLinkDeviceId());     
   }
-   if (this->DicomImagesOutputDirectory!=NULL)
+  if(this->GetDicomImagesOutputDirectory()!=NULL)
   {
-    aConfig->SetAttribute("DicomImagesOutputDirectory",this->DicomImagesOutputDirectory);     
+    aConfig->SetAttribute("DicomImagesOutputDirectory",this->GetDicomImagesOutputDirectory());     
   }
+	if(this->GetVolumeEmbeddedTransformToFrame()!=NULL)
+	{
+		aConfig->SetAttribute("VolumeEmbeddedTransformToFrame",this->GetVolumeEmbeddedTransformToFrame());
+	}
+	if(this->GetKeepReceivedDicomFiles()==true)
+	{
+		aConfig->SetAttribute("KeepReceivedDicomFiles","true");
+	}
+	else
+	{
+		aConfig->SetAttribute("KeepReceivedDicomFiles","false");
+	}
   return PLUS_SUCCESS;
 }
 //----------------------------------------------------------------------------
@@ -147,6 +184,41 @@ bool IsMatrixIdentityMatrix(vtkMatrix4x4* matrix)
 	return true;
 }
 //----------------------------------------------------------------------------
+PlusStatus vtkPlusStealthLinkCommand::DeleteDicomImageOutputDirectory(std::string examImageDirectory)
+{
+	vtkDirectory::DeleteDirectory(examImageDirectory.c_str());
+  vtkSmartPointer<vtkDirectory> dicomDirectory = vtkSmartPointer<vtkDirectory>::New();
+	if(dicomDirectory->Open(examImageDirectory.c_str()))
+	{
+	  vtkDirectory::DeleteDirectory(examImageDirectory.c_str());
+		examImageDirectory.clear();
+		if(dicomDirectory->Open(this->GetDicomImagesOutputDirectory()))
+		{
+		  if(dicomDirectory->GetNumberOfFiles() == 2)
+			{
+			  std::string file1(".");
+				std::string file2("..");
+				if(file1.compare(dicomDirectory->GetFile(0)) == 0 && file2.compare(dicomDirectory->GetFile(1)) ==0)
+				{
+				  vtkDirectory::DeleteDirectory(this->GetDicomImagesOutputDirectory());
+					this->SetDicomImagesOutputDirectory(NULL);
+				}
+			}
+		}
+		else
+		{
+			LOG_ERROR("Cannot open the folder: " << this->GetDicomImagesOutputDirectory());
+			return PLUS_FAIL;
+		}
+	}
+	else
+	{
+		LOG_ERROR("Cannot open the folder: " << examImageDirectory);
+		return PLUS_FAIL;
+	}
+	return PLUS_SUCCESS;
+}
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusStealthLinkCommand::Execute()
 {  
   LOG_DEBUG("vtkPlusStealthLinkCommand::Execute: "<<(this->Name?this->Name:"(undefined)")
@@ -154,34 +226,29 @@ PlusStatus vtkPlusStealthLinkCommand::Execute()
   //std::cout << "ID= " << this->StealthLinkDeviceId << "\n";
   if (this->Name==NULL)
   {
-    this->ResponseMessage="StealthLink command failed, no command name specified";
+		this->QueueStringResponse("StealthLink command failed, no command name specified",PLUS_FAIL);
     return PLUS_FAIL;
   }
 
   vtkStealthLinkTracker* stealthLinkDevice = GetStealthLinkDevice();
   if (stealthLinkDevice==NULL)
   {
-    this->ResponseMessage=std::string("StealthLink command failed: device ")
-      +(this->StealthLinkDeviceId==NULL?"(undefined)":this->StealthLinkDeviceId)+" is not found";
+		this->QueueStringResponse(std::string("StealthLink command failed: device ")
+      +(this->StealthLinkDeviceId==NULL?"(undefined)":this->StealthLinkDeviceId)+" is not found",PLUS_FAIL);
     return PLUS_FAIL;
   }
 
   if (STRCASECMP(this->Name, GET_STEALTHLINK_EXAM_DATA_CMD)==0)
   {
     LOG_INFO("Acquiring the exam data from StealthLink Server: Device ID: "<<GetStealthLinkDeviceId());
-	  if(!(stealthLinkDevice->UpdateCurrentExam()))
-	  {
-      return PLUS_FAIL;
-    }
-	  std::string examImageDirectory;
-	  if(!stealthLinkDevice->GetDicomImage(this->GetDicomImagesOutputDirectory(),examImageDirectory))
-	  {
-		  return PLUS_FAIL;
-	  }
-
-	  std::string patientName;
-	  std::string patientId;
-	  if(!stealthLinkDevice->GetPatientName(patientName))
+		
+		if(!stealthLinkDevice->UpdateCurrentExam())
+		{
+			return PLUS_FAIL;
+		}
+		std::string patientName;
+		std::string patientId;
+		if(!stealthLinkDevice->GetPatientName(patientName))
 	  {
 		  return PLUS_FAIL;
  	  }
@@ -189,76 +256,26 @@ PlusStatus vtkPlusStealthLinkCommand::Execute()
 	  {
 		  return PLUS_FAIL;
 	  }
-	  SetPatientName(patientName.c_str());
+		stealthLinkDevice->SetDicomImagesOutputDirectory(this->GetDicomImagesOutputDirectory());
+
+		SetPatientName(patientName.c_str());
 	  SetPatientId(patientId.c_str());
+		std::string imageId(std::string(this->GetStealthLinkDeviceId())+std::string("_")+this->GetPatientName());
+		stealthLinkDevice->UpdateTransformRepository(this->CommandProcessor->GetPlusServer()->GetTransformRepository());
+		vtkSmartPointer<vtkImageData> imageData = vtkSmartPointer<vtkImageData>::New();
+		vtkSmartPointer<vtkMatrix4x4> ijkToReferenceTransform = vtkSmartPointer<vtkMatrix4x4>::New();
+		stealthLinkDevice->GetImage(imageId, std::string(this->GetVolumeEmbeddedTransformToFrame()),imageData,ijkToReferenceTransform);
 
-	  vtkSmartPointer<vtkDICOMImageReader> reader = vtkSmartPointer<vtkDICOMImageReader>::New();
-	  reader->SetDirectoryName(examImageDirectory.c_str()); 
-	  reader->Update();
-
-		//to go from the vtk orientation to lps orientation, the vtk image has to be flipped around y and z axis
-	  vtkSmartPointer<vtkImageFlip> flipYFilter = vtkSmartPointer<vtkImageFlip>::New();
-    flipYFilter->SetFilteredAxis(1); // flip y axis
-	  flipYFilter->SetInputConnection(reader->GetOutputPort());
-    flipYFilter->Update();
-
-	  vtkSmartPointer<vtkImageFlip> flipZFilter = vtkSmartPointer<vtkImageFlip>::New();
-    flipZFilter->SetFilteredAxis(2); // flip z axis
-	  flipZFilter->SetInputConnection(flipYFilter->GetOutputPort());
-    flipZFilter->Update();
-		vtkImageData* volumeToSend = flipZFilter->GetOutput();
-
-	  float*  ijkOrigin_LPS = reader->GetImagePositionPatient();
-	  double* ijkVectorMagnitude_LPS = reader->GetPixelSpacing();
-	  int xMin,xMax,yMin,yMax,zMin,zMax;
-	  reader->GetDataExtent(xMin,xMax,yMin,yMax,zMin,zMax);
-
-	  float*  iDirectionVector_LPS = reader->GetImageOrientationPatient();  // TODO change ijkToImage
-	  float*  jDirectionVector_LPS = reader->GetImageOrientationPatient()+3;
-	  float   kDirectionVector_LPS[3]={0};
-	  vtkMath::Cross(iDirectionVector_LPS,jDirectionVector_LPS,kDirectionVector_LPS);
-
-	 
-		vtkSmartPointer<vtkMatrix4x4> ijkToMedtronicRpiTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); // image to medtronicRpi, medtronic exludes orientation
-		ijkToMedtronicRpiTransMatrix->SetElement(0,0,-1);
-		ijkToMedtronicRpiTransMatrix->SetElement(2,2,-1);
-		//the origin is shifted from lps to rpi aka shifted along x and z axes
-		double newOrigin_MedtronicRpi[3]; // medtronic uses rpi and considers the dicom origin to be zero and also the orientation to be idendity
-		newOrigin_MedtronicRpi[0] = (xMax-xMin+1)*ijkVectorMagnitude_LPS[0];
-    newOrigin_MedtronicRpi[1] = 0;
-		newOrigin_MedtronicRpi[2] = (zMax-zMin+1)*ijkVectorMagnitude_LPS[2];
-		ijkToMedtronicRpiTransMatrix->SetElement(0,3,newOrigin_MedtronicRpi[0]);
-		ijkToMedtronicRpiTransMatrix->SetElement(1,3,newOrigin_MedtronicRpi[1]);
-    ijkToMedtronicRpiTransMatrix->SetElement(2,3,newOrigin_MedtronicRpi[2]);
-
-
-		vtkSmartPointer<vtkMatrix4x4> ijkToRasTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); // image to lps
-	  for(int i=0;i<3;i++)
-	  {	
-		  //the difference between lps and ras is that x and y are "flipped" aka multipled by -1
-	    if(i==0 || i==1)
-		  {
-		    ijkToRasTransMatrix->SetElement(i,0,-iDirectionVector_LPS[i]);
-		    ijkToRasTransMatrix->SetElement(i,1,-jDirectionVector_LPS[i]);
-		    ijkToRasTransMatrix->SetElement(i,2,-kDirectionVector_LPS[i]);
-		  }
-		  else
-		  {
-			  ijkToRasTransMatrix->SetElement(i,0,iDirectionVector_LPS[i]);
-		    ijkToRasTransMatrix->SetElement(i,1,jDirectionVector_LPS[i]);
-		    ijkToRasTransMatrix->SetElement(i,2,kDirectionVector_LPS[i]);
-		  }
-	  }
-	  //Set the elements of the transformation matrix
-    ijkToRasTransMatrix->SetElement(0,3,-ijkOrigin_LPS[0]);
-	  ijkToRasTransMatrix->SetElement(1,3,-ijkOrigin_LPS[1]);
-	  ijkToRasTransMatrix->SetElement(2,3,ijkOrigin_LPS[2]);
-
-	  //stealthLinkDevice->SetImageToLpsTransformationMatrix(ijkToRpiTransformationMatrix);
-		stealthLinkDevice->SetIjkToMedtronicRpiTransformationMatrix(ijkToMedtronicRpiTransMatrix);
-		stealthLinkDevice->SetIjkToRasTransformationMatrix(ijkToRasTransMatrix);
 		
-		return ProcessImageReply(volumeToSend,ijkToRasTransMatrix);//flipZFilter->GetOutput(),ijkToLPSTransformationMatrix); 
+	 
+		//if(this->GetKeepReceivedDicomFiles() == false)
+		//{
+			//this->DeleteDicomImageOutputDirectory(examImageDirectory);
+		//}
+		std::string resultMessage;
+		PlusStatus status = ProcessImageReply(imageId,imageData,ijkToReferenceTransform,resultMessage);
+		this->QueueStringResponse("Volume sending completed succesfully: "+resultMessage,status);
+    return PLUS_SUCCESS;
   }
   else if (STRCASECMP(this->Name, GET_STEALTHLINK_REGISTRATION_DATA_CMD)==0)
   {    
@@ -268,21 +285,25 @@ PlusStatus vtkPlusStealthLinkCommand::Execute()
 	//{	
 	//	return PLUS_FAIL;
 	//}
-    this->ResponseMessage="Acquiring the registration data from StealthLink Server completed";
+    this->QueueStringResponse("Registration data fromn StealthLink, device: "+std::string(GetStealthLinkDeviceId()),PLUS_SUCCESS);
     return PLUS_SUCCESS;
   }
-  this->ResponseMessage=std::string("vtkPlusStealthLinkCommand::Execute: failed, unknown command name ")+this->Name;
+	this->QueueStringResponse("vtkPlusStealthLinkCommand::Execute: failed, unknown command name: "+std::string(this->Name),PLUS_SUCCESS);
   return PLUS_FAIL;
 } 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStealthLinkCommand::ProcessImageReply(vtkImageData* volumeToSend,vtkMatrix4x4* imageToReferenceOrientationMatrix)
+PlusStatus vtkPlusStealthLinkCommand::ProcessImageReply(const std::string& imageId, vtkImageData* volumeToSend,vtkMatrix4x4* imageToReferenceOrientationMatrix,std::string& resultMessage)
 {
   LOG_DEBUG("Send image to client through OpenIGTLink");
-  this->ResponseImageDeviceName=std::string("Stealth_") + GetPatientName();
-  SetResponseImage(volumeToSend);
-  SetResponseImageToReferenceTransform(imageToReferenceOrientationMatrix);
+	vtkSmartPointer<vtkPlusCommandImageResponse> imageResponse=vtkSmartPointer<vtkPlusCommandImageResponse>::New();
+	this->CommandResponseQueue.push_back(imageResponse);
+	imageResponse->SetClientId(this->ClientId);
+	imageResponse->SetImageName(imageId);
+  imageResponse->SetImageData(volumeToSend);
+	imageResponse->SetImageToReferenceTransform(imageToReferenceOrientationMatrix);
   LOG_INFO("Send reconstructed volume to client through OpenIGTLink");
-  this->ResponseMessage+=std::string(", image sent as: ")+this->ResponseImageDeviceName;
+	resultMessage.clear();
+  resultMessage=std::string(", volume sent as: ")+imageResponse->GetImageName();
   return PLUS_SUCCESS;
 }
 //----------------------------------------------------------------------------
@@ -318,12 +339,11 @@ vtkStealthLinkTracker* vtkPlusStealthLinkCommand::GetStealthLinkDevice()
     // No volume reconstruction device id is specified, auto-detect the first one and use that
     for( DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it )
     {
-	  stealthLinkDevice = vtkStealthLinkTracker::SafeDownCast(*it);
-	 // StealthLinkDevice = static_cast<vtkStealthLinkTracker*>(*it);
+	    stealthLinkDevice = vtkStealthLinkTracker::SafeDownCast(*it);
       if (stealthLinkDevice!=NULL)
       {      
         // found a recording device
-		SetStealthLinkDeviceId(stealthLinkDevice->GetDeviceId());
+		    SetStealthLinkDeviceId(stealthLinkDevice->GetDeviceId());
         break;
       }
     }

@@ -8,6 +8,7 @@
 #define __vtkPlusStealthLinkCommand_h
 
 #include "vtkPlusCommand.h"
+#include "vtkTransformRepository.h"
 
 class vtkStealthLinkTracker;
 
@@ -44,21 +45,28 @@ public:
   /*! Gets the transformation matrix f.... TODO !*/
    vtkSmartPointer<vtkMatrix4x4> GetFrameToExamTransform();
   
-  /*! If specified, the reconstructed volume will sent to the client through OpenIGTLink, using this device name */
+  /*! The name of the patient as in dicom image */
   vtkSetStringMacro(PatientName);
   vtkGetStringMacro(PatientName);
 
-  /*! Id of the live reconstruction command to be stopped, suspended, or resumed at the next Execute */
+  /*! Id of the stealthlink device */
   vtkGetStringMacro(StealthLinkDeviceId);
   vtkSetStringMacro(StealthLinkDeviceId);
   
-  /*! Id of the live reconstruction command to be stopped, suspended, or resumed at the next Execute */
+  /*! The id of the patient as in stealthlink device */
   vtkGetStringMacro(PatientId);
   vtkSetStringMacro(PatientId);
   
-  /*! If specified, the reconstructed volume will sent to the client through OpenIGTLink, using this device name */
+  /*! The folder in which the dicom images will be stored. The default value is: vtkOutputDirectory\StealthLinkDicomOutput  */
   vtkSetStringMacro(DicomImagesOutputDirectory);
   vtkGetStringMacro(DicomImagesOutputDirectory);
+
+	 /*! The frame reference in  which the image will be represented. Example if this is RAS then image will be in RAS, if Reference, the image will be in reference coordinate system */
+  vtkSetStringMacro(VolumeEmbeddedTransformToFrame);
+  vtkGetStringMacro(VolumeEmbeddedTransformToFrame);
+
+	void SetKeepReceivedDicomFiles(bool keepReceivedDicomFiles);
+	bool GetKeepReceivedDicomFiles();
 
   void SetNameToGetExam(); // TODO patientName, patientID , description do similiar for patientId and description
   void SetNameToGetRegistration();
@@ -68,13 +76,16 @@ public:
 protected:
 
   /*! Saves image to disk (if requested) and prepare sending image as a response (if requested) */
-  PlusStatus ProcessImageReply(vtkImageData* volumeToSend, vtkMatrix4x4* imageToReferenceOrientationMatrixWithSpacing);
+  PlusStatus ProcessImageReply(const std::string& imageId,vtkImageData* volumeToSend, vtkMatrix4x4* imageToReferenceOrientationMatrixWithSpacing,std::string& resultMessage);
+
+	/*! Deletes the dicom output directory to which the dicom images from stealthlink are acquired. !*/
+	PlusStatus DeleteDicomImageOutputDirectory(std::string examImageDirectory);
 
   vtkStealthLinkTracker* GetStealthLinkDevice(); //TODO replace the name with vtkStealthLink
 
   vtkPlusStealthLinkCommand();
   virtual ~vtkPlusStealthLinkCommand();  
-  
+
 private:
 
   vtkSmartPointer<vtkMatrix4x4> FrameToExamTransform;
@@ -82,6 +93,8 @@ private:
   char* PatientId;
   char* StealthLinkDeviceId;
   char* DicomImagesOutputDirectory;
+	char* VolumeEmbeddedTransformToFrame;
+	bool KeepReceivedDicomFiles;
 
   vtkPlusStealthLinkCommand( const vtkPlusStealthLinkCommand& );
   void operator=( const vtkPlusStealthLinkCommand& );

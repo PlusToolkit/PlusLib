@@ -450,6 +450,34 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage( igtl::ImageMessage::Point
 }
 
 //----------------------------------------------------------------------------
+//statoc
+//--------------------------------------------------------------------------
+PlusStatus vtkPlusIgtlMessageCommon::PackImageMetaMessage( igtl::ImageMetaMessage::Pointer imageMetaMessage, PlusCommon::ImageMetaDataList& imageMetaDataList)
+{
+	if ( imageMetaMessage.IsNull() )
+  {
+    LOG_ERROR("Failed to pack image message - input image message is NULL"); ;
+    return PLUS_FAIL; 
+  }
+	igtl::ImageMetaElement::Pointer imageMetaElement = igtl::ImageMetaElement::New();
+	igtl::TimeStamp::Pointer timeStamp =  igtl::TimeStamp::New();
+	for(int i=0;i<imageMetaDataList.size(); i++)
+	{
+		imageMetaElement->SetName(imageMetaDataList[i].Description.c_str());
+		imageMetaElement->SetDeviceName(imageMetaDataList[i].Id.c_str());
+		imageMetaElement->SetModality(imageMetaDataList[i].Modality.c_str());
+		imageMetaElement->SetPatientName(imageMetaDataList[i].PatientName.c_str());
+		imageMetaElement->SetPatientID(imageMetaDataList[i].PatientId.c_str());
+		timeStamp->SetTime(imageMetaDataList[i].TimeStampUtc);
+		imageMetaElement->SetTimeStamp(timeStamp);
+		imageMetaElement->SetSize(imageMetaDataList[i].Size[0],imageMetaDataList[i].Size[1],imageMetaDataList[i].Size[2]);
+	  imageMetaElement->SetScalarType(imageMetaDataList[i].ScalarType);
+		imageMetaMessage->AddImageMetaElement(imageMetaElement);
+	}
+	imageMetaMessage->Pack();
+	return PLUS_SUCCESS;
+}
+//-------------------------------------------------------------------------------
 // static 
 PlusStatus vtkPlusIgtlMessageCommon::PackTransformMessage(igtl::TransformMessage::Pointer transformMessage, PlusTransformName& transformName, 
                                                            igtl::Matrix4x4& igtlMatrix, double timestamp )

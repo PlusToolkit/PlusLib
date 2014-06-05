@@ -260,7 +260,15 @@ void vtkPlusCommand::QueueStringResponse(const std::string& message, PlusStatus 
 {
   vtkSmartPointer<vtkPlusCommandStringResponse> stringResponse=vtkSmartPointer<vtkPlusCommandStringResponse>::New();  
   stringResponse->SetClientId(this->ClientId);
-  stringResponse->SetDeviceName(GenerateReplyDeviceName(this->Id));
+	if (this->Id)
+	{
+		stringResponse->SetDeviceName(GenerateReplyDeviceName(this->Id));
+	}
+	else
+	{
+		LOG_DEBUG("No command ID was defined");
+		stringResponse->SetDeviceName(GenerateReplyDeviceName(""));
+	}
   stringResponse->SetStatus(status);
   stringResponse->SetMessage(message);
   this->CommandResponseQueue.push_back(stringResponse);
