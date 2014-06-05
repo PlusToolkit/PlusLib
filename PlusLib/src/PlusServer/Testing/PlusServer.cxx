@@ -126,23 +126,14 @@ int main( int argc, char** argv )
   while ( (vtkAccurateTimer::GetSystemTime() < startTime + runTime) || (neverStop) )
   {
     server->ProcessPendingCommands();
+    // Need to process messages while waiting because some devices (such as the vtkWin32VideoSource2) require event processing
+    vtkAccurateTimer::DelayWithEventProcessing(commandQueuePollIntervalSec);
 #ifdef _WIN32
-    // Need to process messages because some devices (such as the vtkWin32VideoSource2) require event processing
-    MSG Msg;
-    while (PeekMessage(&Msg, NULL, 0, 0, PM_REMOVE))
-    {
-      TranslateMessage(&Msg);
-      DispatchMessage(&Msg);
-    }
-
     if( GetAsyncKeyState('Q') || GetAsyncKeyState('q') )
     {
       runTime = 0.0;
       neverStop = false;
     }
-    Sleep(commandQueuePollIntervalSec*1000); // give a chance to other threads to get CPU time now
-#else
-    usleep(commandQueuePollIntervalSec * 1000000);
 #endif
   }
 
