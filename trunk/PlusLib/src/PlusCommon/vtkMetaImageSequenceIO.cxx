@@ -69,7 +69,7 @@ vtkCxxSetObjectMacro(vtkMetaImageSequenceIO, TrackedFrameList, vtkTrackedFrameLi
 vtkMetaImageSequenceIO::vtkMetaImageSequenceIO()
 : TrackedFrameList(vtkTrackedFrameList::New())
 , UseCompression(false)
-, FileType(itk::ImageIOBase::Binary)
+, IsPixelDataBinary(true)
 , PixelType(VTK_VOID)
 , NumberOfScalarComponents(1)
 , NumberOfDimensions(3)
@@ -252,17 +252,22 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
   {
     if(STRCASECMP(binaryDataFieldValue,"true")==0)
     {
-      this->FileType=itk::ImageIOBase::Binary;
+      this->IsPixelDataBinary=true;
     }
     else
     {
-      this->FileType=itk::ImageIOBase::ASCII;
+      this->IsPixelDataBinary=false;
     }
   }
   else
   {
     LOG_WARNING("BinaryData field has not been found in "<<this->FileName<<". Assume binary data.");
-    this->FileType=itk::ImageIOBase::Binary;
+    this->IsPixelDataBinary=true;
+  }
+  if (!this->IsPixelDataBinary)
+  {
+    LOG_ERROR("Failed to read "<<this->FileName<<". Only binary pixel data (BinaryData=true) reading is supported.");
+    return PLUS_FAIL;
   }
   
   if(this->TrackedFrameList->GetCustomString("CompressedData")!=NULL

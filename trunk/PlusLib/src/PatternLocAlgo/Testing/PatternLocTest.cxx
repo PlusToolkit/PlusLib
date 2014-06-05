@@ -369,8 +369,6 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
 
 int main(int argc, char **argv)
 {
-  //TODO: Add to project itkUlteriusImageIOFactory
-  //itk::UlteriusImageIOFactory::RegisterOneFactory();
 
   std::string inputImageSequenceFileName;
   std::string inputBaselineFileName;

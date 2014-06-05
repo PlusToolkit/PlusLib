@@ -17,17 +17,8 @@
 
 #include "FidPatternRecognition.h"
 
-#include "itkImage.h"
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
-
 #include <stdlib.h>
 #include <iostream>
-
-typedef unsigned char PixelType;
-typedef itk::Image< PixelType, 2 > ImageType;
-typedef itk::Image< PixelType, 3 > ImageSequenceType;
-typedef itk::ImageFileReader< ImageSequenceType > ImageSequenceReaderType;
 
 ///////////////////////////////////////////////////////////////////
 
@@ -36,7 +27,6 @@ int main (int argc, char* argv[])
   std::string inputSequenceMetafile;
   std::string inputTransformName; 
   std::string outputWirePositionFile("./SegmentedWirePositions.txt");
-  int inputImageType(1); 
 
   std::string inputBaselineFileName;
   double inputTranslationErrorThreshold(0); 
@@ -49,7 +39,6 @@ int main (int argc, char* argv[])
 
   cmdargs.AddArgument("--image-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSequenceMetafile, "Image sequence metafile");
   cmdargs.AddArgument("--image-position-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformName, "Transform name used for image position display");
-  cmdargs.AddArgument("--image-type", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImageType, "Image type (1=SonixVideo, 2=FrameGrabber - Default: SonixVideo");  
   cmdargs.AddArgument("--output-wire-position-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputWirePositionFile, "Result wire position file name (Default: ./SegmentedWirePositions.txt)");
 
   cmdargs.AddArgument("--baseline", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
