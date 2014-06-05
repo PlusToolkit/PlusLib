@@ -66,6 +66,12 @@ public:
   vtkGetMacro(ActualFrameRate, double);
   vtkGetMacro(TotalFramesRecorded, long int);
 
+  vtkGetMacro(BaseFilename, std::string);
+  vtkSetMacro(BaseFilename, std::string);
+
+  vtkGetMacro(EnableFileCompression, bool);
+  vtkSetMacro(EnableFileCompression, bool);
+
   virtual vtkDataCollector* GetDataCollector() { return this->DataCollector; }
 
   virtual bool IsTracker() const { return false; }
@@ -134,13 +140,13 @@ protected:
 
   /*! File to write */
   std::string m_CurrentFilename;
-  std::string m_BaseFilename;
+  std::string BaseFilename;
 
   /*! Meta sequence to write to */
   vtkMetaImageSequenceIO* m_Writer;
 
   /*! When closing the file, re-read the data from file, and write it compressed */
-  bool m_EnableFileCompression;
+  bool EnableFileCompression;
 
   /*! Preparing the header requires image data already collected, this flag makes the header preparation wait until valid data is collected */
   bool m_HeaderPrepared;

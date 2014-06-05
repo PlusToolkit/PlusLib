@@ -4,6 +4,9 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
+#include "PlusConfigure.h"
+#include "PlusXmlUtils.h"
+
 #include "vtkProbeCalibrationOptimizerAlgo.h"
 #include "vtkProbeCalibrationAlgo.h"
 #include "vtkTransformRepository.h"
@@ -408,23 +411,7 @@ PlusStatus vtkProbeCalibrationOptimizerAlgo::ReadConfiguration( vtkXMLDataElemen
     this->OptimizationMethod=MINIMIZE_DISTANCE_OF_ALL_WIRES_IN_2D;
   }
 
-  const char* isotropicPixelSpacing = aConfig->GetAttribute("IsotropicPixelSpacing"); 
-  if ( isotropicPixelSpacing != NULL ) 
-  {
-    if ( STRCASECMP("TRUE", isotropicPixelSpacing ) == 0 )
-    {
-      this->IsotropicPixelSpacing = true; 
-    }
-    else if ( STRCASECMP("FALSE", isotropicPixelSpacing ) == 0 )
-    {
-      this->IsotropicPixelSpacing = false; 
-    }
-    else
-    {
-      LOG_WARNING("Unable to recognize IsotropicPixelSpacing attribute: " << isotropicPixelSpacing << " - changed to true by default!"); 
-      this->IsotropicPixelSpacing = true; 
-    }
-  }
+  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(IsotropicPixelSpacing, aConfig);
 
   return PLUS_SUCCESS;
 }

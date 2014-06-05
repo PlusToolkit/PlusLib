@@ -32,9 +32,9 @@ vtkVirtualDiscCapture::vtkVirtualDiscCapture()
 , m_FirstFrameIndexInThisSegment(0)
 , m_TimeWaited(0.0)
 , m_LastUpdateTime(0.0)
-, m_BaseFilename("TrackedImageSequence.mha")
+, BaseFilename("TrackedImageSequence.mha")
 , m_Writer(vtkMetaImageSequenceIO::New())
-, m_EnableFileCompression(false)
+, EnableFileCompression(false)
 , m_HeaderPrepared(false)
 , TotalFramesRecorded(0)
 , EnableCapturing(false)
@@ -76,54 +76,18 @@ void vtkVirtualDiscCapture::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualDiscCapture::ReadConfiguration( vtkXMLDataElement* rootConfig)
+PlusStatus vtkVirtualDiscCapture::ReadConfiguration( vtkXMLDataElement* rootConfigElement)
 {
-  if( Superclass::ReadConfiguration(rootConfig) == PLUS_FAIL )
-  {
-    return PLUS_FAIL;
-  }
+  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
-  vtkXMLDataElement* deviceElement = this->FindThisDeviceElement(rootConfig);
-  if (deviceElement == NULL) 
-  {
-    LOG_ERROR("Cannot find the virtual disc capture device element in XML tree");
-    return PLUS_FAIL;
-  }
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(BaseFilename, deviceConfig);
+  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableFileCompression, deviceConfig);
+  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableCapturing, deviceConfig);
 
-  const char * filename = deviceElement->GetAttribute("BaseFilename");
-  if( filename != NULL && strlen(filename) > 0 )
-  {
-    m_BaseFilename = std::string(filename);
-  }
+  this->SetRequestedFrameRate(15.0); // default
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, RequestedFrameRate, deviceConfig);
 
-  const char* comp = deviceElement->GetAttribute("EnableFileCompression");
-  if( comp != NULL )
-  {
-    m_EnableFileCompression = STRCASECMP(comp, "true") == 0 ? true : false;
-  }
-
-  const char* enableCapturing = deviceElement->GetAttribute("EnableCapturing");
-  if( enableCapturing != NULL )
-  {
-    this->EnableCapturing = STRCASECMP(enableCapturing, "true") == 0 ? true : false;
-  }
-
-  double requestedFrameRate=15.0;
-  if( deviceElement->GetScalarAttribute("RequestedFrameRate", requestedFrameRate) )
-  {
-    this->SetRequestedFrameRate(requestedFrameRate);
-  }
-  else
-  {
-    this->SetRequestedFrameRate(15.0);
-  }
-
-  int frameBufferSize=0;
-  if( deviceElement->GetScalarAttribute("FrameBufferSize", frameBufferSize) && frameBufferSize > 0 )
-  {
-    // This is a buffered disc capture device
-    this->SetFrameBufferSize(frameBufferSize);
-  }
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FrameBufferSize, deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -221,8 +185,8 @@ PlusStatus vtkVirtualDiscCapture::OpenFile(const char* aFilename)
 
   if( aFilename == NULL || strlen(aFilename) == 0 )
   {
-    std::string filenameRoot = vtksys::SystemTools::GetFilenameWithoutExtension(m_BaseFilename);
-    std::string ext = vtksys::SystemTools::GetFilenameExtension(m_BaseFilename);
+    std::string filenameRoot = vtksys::SystemTools::GetFilenameWithoutExtension(BaseFilename);
+    std::string ext = vtksys::SystemTools::GetFilenameExtension(BaseFilename);
     if( ext.empty() )
     {
       ext = ".mha";
@@ -284,7 +248,7 @@ PlusStatus vtkVirtualDiscCapture::CloseFile(const char* aFilename)
   std::string configFileName = path + "/" + filename + "_config.xml";
   PlusCommon::PrintXML(configFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 
-  if( m_EnableFileCompression )
+  if( EnableFileCompression )
   {
     if( this->CompressFile() != PLUS_SUCCESS )
     {
@@ -403,7 +367,7 @@ PlusStatus vtkVirtualDiscCapture::InternalUpdate()
 PlusStatus vtkVirtualDiscCapture::CompressFile()
 {
   vtkSmartPointer<vtkMetaImageSequenceIO> reader = vtkSmartPointer<vtkMetaImageSequenceIO>::New();
-  std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(m_BaseFilename);
+  std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(BaseFilename);
   reader->SetFileName(fullPath.c_str());
 
   LOG_DEBUG("Read input sequence metafile: " << fullPath ); 

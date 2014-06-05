@@ -331,37 +331,11 @@ PlusStatus vtkMicronTracker::GetImage(vtkImageData* leftImage, vtkImageData* rig
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMicronTracker::ReadConfiguration( vtkXMLDataElement* config )
+PlusStatus vtkMicronTracker::ReadConfiguration( vtkXMLDataElement* rootConfigElement )
 {
-  // Read superclass configuration first
-  Superclass::ReadConfiguration(config); 
-
-  LOG_TRACE( "vtkMicronTrackerTracker::ReadConfiguration" ); 
-  if ( config == NULL ) 
-  {
-    LOG_ERROR("Unable to find vtkMicronTrackerTracker XML data element");
-    return PLUS_FAIL; 
-  }
-
-  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(config);
-  if (trackerConfig == NULL) 
-  {
-    LOG_ERROR("Cannot find Tracker element in XML tree!");
-    return PLUS_FAIL;
-  }  
-  
-  const char* templateDirectory = trackerConfig->GetAttribute("TemplateDirectory"); 
-  if ( templateDirectory != NULL )
-  { 
-    this->TemplateDirectory=templateDirectory;
-  }
-
-  const char* iniFile = trackerConfig->GetAttribute("IniFile"); 
-  if ( iniFile!= NULL )
-  { 
-    this->IniFile=iniFile;
-  }
-
+  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(TemplateDirectory, deviceConfig);
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(IniFile, deviceConfig);
   return PLUS_SUCCESS;
 }
 

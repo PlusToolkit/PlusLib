@@ -4,8 +4,10 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "PlaneParametersEstimator.h"
 #include "PlusConfigure.h"
+
+#include "PlaneParametersEstimator.h"
+#include "PlusXmlUtils.h"
 #include "RANSAC.h"
 #include "TrackedFrame.h"
 #include "itkBinaryThresholdImageFilter.h"
@@ -61,7 +63,7 @@ void vtkLineSegmentationAlgo::PrintSelf(ostream& os, vtkIndent indent)
 vtkLineSegmentationAlgo::vtkLineSegmentationAlgo() 
 : m_TrackedFrameList(NULL)
 , m_SaveIntermediateImages(false)
-, m_IntermediateFilesOutputDirectory("")
+, IntermediateFilesOutputDirectory("")
 , m_SignalTimeRangeMin(0.0)
 , m_SignalTimeRangeMax(-1.0)
 {  
@@ -98,7 +100,7 @@ void vtkLineSegmentationAlgo::SetSaveIntermediateImages(bool saveIntermediateIma
 //-----------------------------------------------------------------------------
 void vtkLineSegmentationAlgo::SetIntermediateFilesOutputDirectory(const std::string &outputDirectory)
 {
-  m_IntermediateFilesOutputDirectory = outputDirectory;
+  IntermediateFilesOutputDirectory = outputDirectory;
 }
 
 //-----------------------------------------------------------------------------
@@ -686,9 +688,9 @@ void vtkLineSegmentationAlgo::SaveIntermediateImage(int frameNumber, CharImageTy
   }
 
   std::ostrstream rgbImageFilename;
-  if (!m_IntermediateFilesOutputDirectory.empty())
+  if (!IntermediateFilesOutputDirectory.empty())
   {
-    rgbImageFilename << m_IntermediateFilesOutputDirectory << "/";
+    rgbImageFilename << IntermediateFilesOutputDirectory << "/";
   }
   rgbImageFilename << "LineSegmentationResult_" << std::setw(3) << std::setfill('0') << frameNumber << ".png" << std::ends;
 
@@ -884,18 +886,12 @@ void vtkLineSegmentationAlgo::LimitToClipRegion(CharImageType::RegionType& regio
 //----------------------------------------------------------------------------
 PlusStatus vtkLineSegmentationAlgo::ReadConfiguration( vtkXMLDataElement* aConfig )
 {
-  if( aConfig == NULL )
-  {
-    LOG_ERROR("Null configuration sent to vtkLineSegmentationAlgo::ReadConfiguration.");
-    return PLUS_FAIL;
-  }
+  DSC_FIND_NESTED_ELEMENT_REQUIRED(lineSegmentationElement, aConfig, "vtkLineSegmentationAlgo");
 
-  vtkXMLDataElement* lineSegmentationElement = aConfig->FindNestedElementWithName("vtkLineSegmentationAlgo");
-  if( lineSegmentationElement == NULL )
-  {
-    LOG_ERROR("Unable to find \'vtkLineSegmentationAlgo\' element. Cannot proceed with segmentation.");
-    return PLUS_FAIL;
-  }
+  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(SaveIntermediateImages, lineSegmentationElement);
+
+  this->IntermediateFilesOutputDirectory = vtkPlusConfig::GetInstance()->GetOutputDirectory();
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(IntermediateFilesOutputDirectory, lineSegmentationElement);
 
   if ( !lineSegmentationElement->GetVectorAttribute("ClipRectangleOrigin", 2, m_ClipRectangleOrigin) || 
     !lineSegmentationElement->GetVectorAttribute("ClipRectangleSize", 2, m_ClipRectangleSize) )
@@ -907,27 +903,11 @@ PlusStatus vtkLineSegmentationAlgo::ReadConfiguration( vtkXMLDataElement* aConfi
     m_ClipRectangleSize[1] = -1;
   }
 
-  const char* saveIntermediateImages = lineSegmentationElement->GetAttribute("SaveIntermediateImages");
-  if( saveIntermediateImages != NULL && STRCASECMP(saveIntermediateImages, "TRUE") == 0 )
-  {
-    m_SaveIntermediateImages = true;
-  }
-
   double signalTimeRange[2] = {0};
   if( lineSegmentationElement->GetVectorAttribute("SignalTimeRange", 2, signalTimeRange) )
   {
     m_SignalTimeRangeMin = signalTimeRange[0];
     m_SignalTimeRangeMax = signalTimeRange[1];
-  }
-
-  const char* intermediateOutputDirectory = lineSegmentationElement->GetAttribute("IntermediateFilesOutputDirectory");
-  if( intermediateOutputDirectory != NULL )
-  {
-    m_IntermediateFilesOutputDirectory = std::string(intermediateOutputDirectory);
-  }
-  else
-  {
-    m_IntermediateFilesOutputDirectory = vtkPlusConfig::GetInstance()->GetOutputDirectory();
   }
 
   return PLUS_SUCCESS;

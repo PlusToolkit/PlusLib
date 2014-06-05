@@ -50,12 +50,9 @@ void vtkVirtualMixer::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualMixer::ReadConfiguration( vtkXMLDataElement* element)
+PlusStatus vtkVirtualMixer::ReadConfiguration( vtkXMLDataElement* rootConfigElement)
 {
-  if( Superclass::ReadConfiguration(element) == PLUS_FAIL )
-  {
-    return PLUS_FAIL;
-  }
+  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   if (this->OutputChannels.empty())
   {

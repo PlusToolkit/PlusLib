@@ -276,71 +276,14 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalUpdate()
 
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkOpenIGTLinkVideoSource::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkOpenIGTLinkVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  LOG_TRACE("vtkOpenIGTLinkVideoSource::ReadConfiguration"); 
-  if ( config == NULL )
-  {
-    LOG_ERROR("Unable to configure OpenIGTLink video source! (XML data element is NULL)"); 
-    return PLUS_FAIL; 
-  }
-
-  Superclass::ReadConfiguration(config); 
-
-  vtkXMLDataElement* imageAcquisitionConfig = this->FindThisDeviceElement(config);
-  if (imageAcquisitionConfig == NULL) 
-  {
-    LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
-    return PLUS_FAIL;
-  }
-
-  const char* messageType = imageAcquisitionConfig->GetAttribute("MessageType"); 
-  if ( messageType != NULL )
-  {
-    this->SetMessageType(messageType); 
-  }
-
-  const char* serverAddress = imageAcquisitionConfig->GetAttribute("ServerAddress"); 
-  if ( serverAddress != NULL )
-  {
-    this->SetServerAddress(serverAddress); 
-  }
-  else
-  {
-    LOG_ERROR("Unable to find ServerAddress attribute!"); 
-    return PLUS_FAIL; 
-  }
-
-  int serverPort = -1; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("ServerPort", serverPort ) )
-  {
-    this->SetServerPort(serverPort); 
-  }
-  else
-  {
-    LOG_ERROR("Unable to find ServerPort attribute!"); 
-    return PLUS_FAIL; 
-  } 
-
-  const char* igtlMessageCrcCheckEnabled = imageAcquisitionConfig->GetAttribute("IgtlMessageCrcCheckEnabled"); 
-  if ( igtlMessageCrcCheckEnabled != NULL )
-  {
-    if ( STRCASECMP(igtlMessageCrcCheckEnabled, "true") == 0 )
-    {
-      this->SetIgtlMessageCrcCheckEnabled(1);
-    }
-    else
-    {
-      this->SetIgtlMessageCrcCheckEnabled(0);
-    }
-  }
-
-  const char* imageMessageEmbeddedTransformName = imageAcquisitionConfig->GetAttribute("ImageMessageEmbeddedTransformName"); 
-  if ( imageMessageEmbeddedTransformName != NULL )
-  {
-    this->ImageMessageEmbeddedTransformName.SetTransformName(imageMessageEmbeddedTransformName);
-  }  
-
+  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  DSC_READ_STRING_ATTRIBUTE_REQUIRED(ServerAddress, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_REQUIRED(int, ServerPort, deviceConfig);
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(MessageType, deviceConfig);
+  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(IgtlMessageCrcCheckEnabled, deviceConfig);  
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(ImageMessageEmbeddedTransformName, deviceConfig);
   return PLUS_SUCCESS;
 }
 
@@ -361,4 +304,10 @@ PlusStatus vtkOpenIGTLinkVideoSource::NotifyConfigured()
   }
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkOpenIGTLinkVideoSource::SetImageMessageEmbeddedTransformName(const char* nameString)
+{
+  return this->ImageMessageEmbeddedTransformName.SetTransformName(nameString);
 }

@@ -317,111 +317,65 @@ PlusStatus vtkBrachyTracker::InitBrachyTracker()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  // Read superclass configuration first
-  Superclass::ReadConfiguration(config); 
+  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);  
 
-  if ( config == NULL ) 
-  {
-    LOG_WARNING("Unable to find BrachyTracker XML data element");
-    return PLUS_FAIL; 
-  }
-
-  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(config);
-  if (trackerConfig == NULL) 
-  {
-    LOG_ERROR("Cannot find Tracker element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  unsigned long serialPort(0); 
-  if ( trackerConfig->GetScalarAttribute("SerialPort", serialPort) ) 
-  {
-    if ( !this->IsRecording() )
-    {
-      this->SetSerialPort(serialPort); 
-    }
-  }
-
-  unsigned long baudRate = 0; 
-  if ( trackerConfig->GetScalarAttribute("BaudRate", baudRate) ) 
-  {
-    if ( !this->IsRecording() )
-    {
-      this->SetBaudRate(baudRate); 
-    }
-  }
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, SerialPort, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, BaudRate, deviceConfig);
 
   if ( !this->IsRecording() )
   {
-    const char* brachyStepperType = trackerConfig->GetAttribute("BrachyStepperType"); 
-    if ( brachyStepperType != NULL )
+    const char* brachyStepperType = deviceConfig->GetAttribute("BrachyStepperType"); 
+    if ( brachyStepperType == NULL )
     {
-      // Delete device before we change it 
-      if (this->Device != NULL)
-      {
-        delete this->Device; 
-      }
-
-      if ( STRCASECMP(BrachyStepper::GetBrachyStepperTypeInString(BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER).c_str(), brachyStepperType) == 0 )
-      {
-        this->Device = new CmsBrachyStepper(this->GetSerialPort(), this->GetBaudRate() ) ; 
-        this->Device->SetBrachyStepperType(BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER); 
-        this->BrachyStepperType = BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER; 
-
-      }
-      else if ( STRCASECMP(BrachyStepper::GetBrachyStepperTypeInString(BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER).c_str(), brachyStepperType) == 0 )
-      {
-        this->Device = new CmsBrachyStepper(this->GetSerialPort(), this->GetBaudRate() ) ; 
-        this->Device->SetBrachyStepperType(BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER); 
-        this->BrachyStepperType = BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER; 
-      }
-      else if ( STRCASECMP(BrachyStepper::GetBrachyStepperTypeInString(BrachyStepper::CMS_ACCUSEED_DS300).c_str(), brachyStepperType) == 0 )
-      {
-        this->Device = new CmsBrachyStepper(this->GetSerialPort(), this->GetBaudRate() ) ; 
-        this->Device->SetBrachyStepperType(BrachyStepper::CMS_ACCUSEED_DS300); 
-        this->BrachyStepperType = BrachyStepper::CMS_ACCUSEED_DS300; 
-      }
-      else if ( STRCASECMP(BrachyStepper::GetBrachyStepperTypeInString(BrachyStepper::CIVCO_STEPPER).c_str(), brachyStepperType) == 0 )
-      {
-        this->Device = new CivcoBrachyStepper(this->GetSerialPort(), this->GetBaudRate()); 
-        this->Device->SetBrachyStepperType(BrachyStepper::CIVCO_STEPPER); 
-        this->BrachyStepperType = BrachyStepper::CIVCO_STEPPER; 
-      }
-      else
-      {
-        LOG_ERROR("Unable to recognize brachy stepper type: " << brachyStepperType);
-        return PLUS_FAIL; 
-      }
-    }
-    else
-    {
-      LOG_ERROR("Unable to find BrachyStepperType attribute in configuration file!"); 
+      LOG_ERROR("Unable to find BrachyStepperType attribute in configuration file");
       return PLUS_FAIL; 
     }
 
-    const char* modelNumber =  trackerConfig->GetAttribute("ModelNumber"); 
-    if ( modelNumber != NULL ) 
+    // Delete device before we change it 
+    if (this->Device != NULL)
     {
-      this->SetModelNumber(modelNumber); 
+      delete this->Device; 
     }
 
-    const char* modelVersion =  trackerConfig->GetAttribute("ModelVersion"); 
-    if ( modelVersion != NULL ) 
+    if ( STRCASECMP(BrachyStepper::GetBrachyStepperTypeInString(BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER).c_str(), brachyStepperType) == 0 )
     {
-      this->SetModelVersion(modelVersion); 
+      this->Device = new CmsBrachyStepper(this->GetSerialPort(), this->GetBaudRate() ) ; 
+      this->Device->SetBrachyStepperType(BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER); 
+      this->BrachyStepperType = BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER; 
+
+    }
+    else if ( STRCASECMP(BrachyStepper::GetBrachyStepperTypeInString(BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER).c_str(), brachyStepperType) == 0 )
+    {
+      this->Device = new CmsBrachyStepper(this->GetSerialPort(), this->GetBaudRate() ) ; 
+      this->Device->SetBrachyStepperType(BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER); 
+      this->BrachyStepperType = BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER; 
+    }
+    else if ( STRCASECMP(BrachyStepper::GetBrachyStepperTypeInString(BrachyStepper::CMS_ACCUSEED_DS300).c_str(), brachyStepperType) == 0 )
+    {
+      this->Device = new CmsBrachyStepper(this->GetSerialPort(), this->GetBaudRate() ) ; 
+      this->Device->SetBrachyStepperType(BrachyStepper::CMS_ACCUSEED_DS300); 
+      this->BrachyStepperType = BrachyStepper::CMS_ACCUSEED_DS300; 
+    }
+    else if ( STRCASECMP(BrachyStepper::GetBrachyStepperTypeInString(BrachyStepper::CIVCO_STEPPER).c_str(), brachyStepperType) == 0 )
+    {
+      this->Device = new CivcoBrachyStepper(this->GetSerialPort(), this->GetBaudRate()); 
+      this->Device->SetBrachyStepperType(BrachyStepper::CIVCO_STEPPER); 
+      this->BrachyStepperType = BrachyStepper::CIVCO_STEPPER; 
+    }
+    else
+    {
+      LOG_ERROR("Unable to recognize brachy stepper type: " << brachyStepperType);
+      return PLUS_FAIL; 
     }
 
-    const char* modelSerialNumber = trackerConfig->GetAttribute("ModelSerialNumber");
-    if ( modelSerialNumber != NULL ) 
-    {
-      this->SetModelSerialNumber(modelSerialNumber); 
-    }
-
+    DSC_READ_STRING_ATTRIBUTE_OPTIONAL(ModelNumber, deviceConfig);
+    DSC_READ_STRING_ATTRIBUTE_OPTIONAL(ModelVersion, deviceConfig);
+    DSC_READ_STRING_ATTRIBUTE_OPTIONAL(ModelSerialNumber, deviceConfig);
   }
 
-  vtkXMLDataElement* calibration = trackerConfig->FindNestedElementWithName("StepperCalibrationResult"); 
+  vtkXMLDataElement* calibration = deviceConfig->FindNestedElementWithName("StepperCalibrationResult"); 
   if ( calibration != NULL ) 
   {
     const char* calibrationAlgorithmVersion = calibration->GetAttribute("AlgorithmVersion"); 
@@ -446,29 +400,11 @@ PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* config)
       this->SetCalibrationDate("Unknown"); 
     }
 
-    double probeTranslationAxisOrientation[3] = {0,0,1}; 
-    if ( calibration->GetVectorAttribute("ProbeTranslationAxisOrientation", 3, probeTranslationAxisOrientation) ) 
-    {
-      this->SetProbeTranslationAxisOrientation(probeTranslationAxisOrientation); 
-    }
+    DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, ProbeTranslationAxisOrientation, calibration);
+    DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, TemplateTranslationAxisOrientation, calibration);
+    DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, ProbeRotationAxisOrientation, calibration);
+    DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ProbeRotationEncoderScale, calibration);
 
-    double templateTranslationAxisOrientation[3] = {0,0,1}; 
-    if ( calibration->GetVectorAttribute("TemplateTranslationAxisOrientation", 3, templateTranslationAxisOrientation) ) 
-    {
-      this->SetTemplateTranslationAxisOrientation(templateTranslationAxisOrientation); 
-    }
-
-    double probeRotationAxisOrientation[3] = {0,0,1}; 
-    if ( calibration->GetVectorAttribute("ProbeRotationAxisOrientation", 3, probeRotationAxisOrientation) ) 
-    {
-      this->SetProbeRotationAxisOrientation(probeRotationAxisOrientation); 
-    }
-
-    double probeRotationEncoderScale = 1; 
-    if ( calibration->GetScalarAttribute("ProbeRotationEncoderScale", probeRotationEncoderScale) ) 
-    {
-      this->ProbeRotationEncoderScale = probeRotationEncoderScale; 
-    }
   }
 
   return PLUS_SUCCESS;

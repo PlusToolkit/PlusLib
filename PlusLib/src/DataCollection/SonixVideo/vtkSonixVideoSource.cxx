@@ -80,6 +80,7 @@ vtkSonixVideoSource::vtkSonixVideoSource()
 , DynRange(-1)
 , Zoom(-1)
 , Timeout(-1)
+, SoundVelocity(-1)
 , ConnectionSetupDelayMs(3000)
 , CompressionStatus(0)
 , AcquisitionDataType(udtBPost)
@@ -403,7 +404,7 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
     if (this->DynRange >= 0 && SetDynRange(this->DynRange) != PLUS_SUCCESS) { continue; }
     if (this->Zoom >= 0 && SetZoom(this->Zoom) != PLUS_SUCCESS) { continue; }
     if (this->CompressionStatus >= 0 && SetCompressionStatus(this->CompressionStatus) != PLUS_SUCCESS) { continue; }    
-    if ( this->SoundVelocity > 0 && this->SetParamValue( "soundvelocity", this->SoundVelocity, this->SoundVelocity ) != PLUS_SUCCESS )
+    if (this->SoundVelocity > 0 && this->SetParamValue( "soundvelocity", this->SoundVelocity, this->SoundVelocity ) != PLUS_SUCCESS )
     {
       continue;
     }
@@ -471,23 +472,10 @@ PlusStatus vtkSonixVideoSource::InternalStopRecording()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   LOG_TRACE("vtkSonixVideoSource::ReadConfiguration"); 
-  if ( config == NULL )
-  {
-    LOG_ERROR("Unable to configure Sonix video source! (XML data element is NULL)"); 
-    return PLUS_FAIL; 
-  }
-
-  Superclass::ReadConfiguration(config); 
-
-  vtkXMLDataElement* deviceConfig = this->FindThisDeviceElement(config);
-  if (deviceConfig == NULL) 
-  {
-    LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
-    return PLUS_FAIL;
-  }
+  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   const char* ipAddress = deviceConfig->GetAttribute("IP"); 
   if ( ipAddress != NULL) 
@@ -546,89 +534,33 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* config)
     return PLUS_FAIL;
   }
 
-  if( deviceConfig->GetAttribute("DetectDepthSwitching") != NULL && STRCASECMP(deviceConfig->GetAttribute("DetectDepthSwitching"), "TRUE") == 0 )
+  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(DetectDepthSwitching, deviceConfig);
+  if (this->DetectDepthSwitching)
   {
-    this->DetectDepthSwitching = true;
     // TODO : read the config for each output channel, check for Depth="x" attribute
     // with that attribute, build a lookup table depth->channel
   }
   else
   {
-    int depth = -1; 
-    if ( deviceConfig->GetScalarAttribute("Depth", depth)) 
-    {
-      this->Depth=depth; 
-    }
+    DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Depth, deviceConfig);
   }
 
-  if( deviceConfig->GetAttribute("DetectPlaneSwitching") != NULL && STRCASECMP(deviceConfig->GetAttribute("DetectPlaneSwitching"), "TRUE") == 0 )
-  {
-    this->DetectPlaneSwitching = true;
-  }
+  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(DetectPlaneSwitching, deviceConfig);
 
   // TODO : if depth or plane switching, build lookup table
   // if both attributes, build [plane, depth]->channel lookup table
   // if one, build [attr]->channel lookup table
 
-  int sector = -1; 
-  if ( deviceConfig->GetScalarAttribute("Sector", sector)) 
-  {
-    this->Sector=sector; 
-  }
-
-  int gain = -1; 
-  if ( deviceConfig->GetScalarAttribute("Gain", gain)) 
-  {
-    this->Gain=gain; 
-  }
-
-  int dynRange = -1; 
-  if ( deviceConfig->GetScalarAttribute("DynRange", dynRange)) 
-  {
-    this->DynRange=dynRange; 
-  }
-
-  int zoom = -1; 
-  if ( deviceConfig->GetScalarAttribute("Zoom", zoom)) 
-  {
-    this->Zoom=zoom; 
-  }
-
-  int frequency = -1; 
-  if ( deviceConfig->GetScalarAttribute("Frequency", frequency)) 
-  {
-    this->Frequency=frequency; 
-  }
-
-  int compressionStatus = 0; 
-  if ( deviceConfig->GetScalarAttribute("CompressionStatus", compressionStatus)) 
-  {
-    this->CompressionStatus=compressionStatus; 
-  }
-
-  int sharedMemoryStatus = 0; 
-  if ( deviceConfig->GetScalarAttribute("SharedMemoryStatus", sharedMemoryStatus)) 
-  {
-    this->SharedMemoryStatus=sharedMemoryStatus; 
-  }
-
-  int timeout = 0; 
-  if ( deviceConfig->GetScalarAttribute("Timeout", timeout)) 
-  {
-    this->Timeout=timeout; 
-  }
-
-  int soundVelocity = 1540; // Default value.
-  if ( deviceConfig->GetScalarAttribute("SoundVelocity", soundVelocity ) ) 
-  {
-    this->SoundVelocity = soundVelocity; 
-  }
-
-  double connectionSetupDelayMs=3.0; 
-  if ( deviceConfig->GetScalarAttribute("ConnectionSetupDelayMs", connectionSetupDelayMs)) 
-  {
-    this->ConnectionSetupDelayMs=connectionSetupDelayMs; 
-  }
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Sector, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Gain, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, DynRange, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Zoom, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Frequency, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, CompressionStatus, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, SharedMemoryStatus, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Timeout, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, SoundVelocity, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ConnectionSetupDelayMs, deviceConfig);
 
   return PLUS_SUCCESS;
 }

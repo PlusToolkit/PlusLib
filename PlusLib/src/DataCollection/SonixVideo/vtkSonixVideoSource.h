@@ -267,6 +267,10 @@ protected:
   bool WantDataType( uData aValue );
   PlusStatus ConfigureVideoSource( uData aValue );
 
+  vtkSetMacro(DetectDepthSwitching, bool);
+  vtkSetMacro(DetectPlaneSwitching, bool);  
+  vtkSetMacro(SoundVelocity, int);
+
   ulterius Ult;
 
   int Frequency;

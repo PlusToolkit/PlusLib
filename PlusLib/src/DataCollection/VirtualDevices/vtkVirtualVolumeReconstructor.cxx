@@ -63,31 +63,16 @@ void vtkVirtualVolumeReconstructor::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualVolumeReconstructor::ReadConfiguration( vtkXMLDataElement* rootConfig)
+PlusStatus vtkVirtualVolumeReconstructor::ReadConfiguration( vtkXMLDataElement* rootConfigElement)
 {
-  if( Superclass::ReadConfiguration(rootConfig) == PLUS_FAIL )
-  {
-    return PLUS_FAIL;
-  }
+  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
-  vtkXMLDataElement* deviceElement = this->FindThisDeviceElement(rootConfig);
-  if (deviceElement == NULL) 
-  {
-    LOG_ERROR("Cannot find 3dConnexion element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  const char* EnableReconstruction = deviceElement->GetAttribute("EnableReconstruction");
-  if( EnableReconstruction != NULL )
-  {
-    this->EnableReconstruction = STRCASECMP(EnableReconstruction, "true") == 0 ? true : false;
-  }
-
-  this->SetOutputVolFilename(deviceElement->GetAttribute("OutputVolFilename"));
-  this->SetOutputVolDeviceName(deviceElement->GetAttribute("OutputVolDeviceName"));
+  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableReconstruction, deviceConfig);
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(OutputVolFilename, deviceConfig);
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(OutputVolDeviceName, deviceConfig);
 
   PlusLockGuard<vtkRecursiveCriticalSection> writerLock(this->VolumeReconstructorAccessMutex);
-  this->VolumeReconstructor->ReadConfiguration(deviceElement);
+  this->VolumeReconstructor->ReadConfiguration(deviceConfig);
 
   return PLUS_SUCCESS;
 }

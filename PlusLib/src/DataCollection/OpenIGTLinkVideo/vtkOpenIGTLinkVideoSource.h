@@ -59,6 +59,8 @@ public:
 
   virtual bool IsTracker() const { return false; }
 
+  PlusStatus SetImageMessageEmbeddedTransformName(const char* nameString);
+
 protected:
   /*! Constructor */
   vtkOpenIGTLinkVideoSource();

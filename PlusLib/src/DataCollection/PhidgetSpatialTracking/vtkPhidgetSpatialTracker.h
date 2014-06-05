@@ -91,6 +91,8 @@ public:
   */
   virtual PlusStatus Reset();
 
+  vtkSetMacro(ZeroGyroscopeOnConnect, bool);
+
 protected:
 
   vtkPhidgetSpatialTracker();
@@ -112,6 +114,9 @@ protected:
     The offset may slightly change as the temperature of the sensor changes.
   */  
   void ZeroGyroscope();
+
+  vtkSetVector2Macro(AhrsAlgorithmGain, double);
+  vtkSetVector2Macro(FilteredTiltSensorAhrsAlgorithmGain, double);
 
 private:  // Functions.
 

@@ -647,55 +647,19 @@ void vtkBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr, co
 
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkBkProFocusCameraLinkVideoSource::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkBkProFocusCameraLinkVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  LOG_TRACE("vtkBkProFocusCameraLinkVideoSource::ReadConfiguration"); 
-  if ( config == NULL )
-  {
-    LOG_ERROR("Unable to configure BK ProFocus video source! (XML data element is NULL)"); 
-    return PLUS_FAIL; 
-  }
-
-  Superclass::ReadConfiguration(config); 
-
   this->ChannelConfiguredMap.clear();
 
-  vtkXMLDataElement* deviceElement = this->FindThisDeviceElement(config);
-  if (deviceElement == NULL) 
-  {
-    LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
-    return PLUS_FAIL;
-  }
+  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);  
 
-  const char* iniFileName = deviceElement->GetAttribute("IniFileName"); 
-  if ( iniFileName != NULL) 
-  {
-    this->SetIniFileName(iniFileName); 
-  }
-
-  const char* imagingMode = deviceElement->GetAttribute("ImagingMode"); 
-  if ( imagingMode != NULL) 
-  {
-    if (STRCASECMP(imagingMode, "BMode")==0)
-    {
-      LOG_DEBUG("Imaging mode set: BMode"); 
-      SetImagingMode(BMode); 
-    }
-    else if (STRCASECMP(imagingMode, "RfMode")==0)
-    {
-      LOG_DEBUG("Imaging mode set: RfMode"); 
-      SetImagingMode(RfMode); 
-    }
-    else
-    {
-      LOG_ERROR("Unsupported ImagingMode requested: "<<imagingMode);
-    }
-  }
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(IniFileName, deviceConfig);
+  DSC_READ_ENUM2_ATTRIBUTE_OPTIONAL(ImagingMode, deviceConfig, "BMode", BMode, "RfMode", RfMode);
 
   const char* subscribe = deviceElement->GetAttribute("SubscribeScanPlane"); 
   if ( subscribe != NULL ) 
   {
-    this->Internal->SubscribeScanPlane = (STRCASECMP(subscribe, "true") == 0);
+    this->Internal->SubscribeScanPlane = (STRCASECMP(subscribe, "TRUE") == 0);
   }
 
   if( this->Internal->SubscribeScanPlane && this->OutputChannels.size() != 2 )

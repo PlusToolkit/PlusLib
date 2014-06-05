@@ -5,6 +5,7 @@
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
+#include "PlusXmlUtils.h"
 #include "TrackedFrame.h"
 #include "vtkObjectFactory.h"
 #include "vtkDoubleArray.h"
@@ -881,13 +882,8 @@ PlusStatus vtkTemporalCalibrationAlgo::ConstructTableSignal(std::deque<double> &
 //-----------------------------------------------------------------------------
 PlusStatus vtkTemporalCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* aConfig )
 {
-  if( aConfig == NULL )
-  {
-    LOG_ERROR("Null configuration sent to vtkTemporalCalibrationAlgo::ReadConfiguration.");
-    return PLUS_FAIL;
-  }
+  DSC_FIND_NESTED_ELEMENT_OPTIONAL(calibrationParameters, aConfig, "vtkTemporalCalibrationAlgo");
 
-  vtkXMLDataElement* calibrationParameters = aConfig->FindNestedElementWithName("vtkTemporalCalibrationAlgo");
   if (calibrationParameters != NULL)
   {
     int clipOrigin[2] = {0};

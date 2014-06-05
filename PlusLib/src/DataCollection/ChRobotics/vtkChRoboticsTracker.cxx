@@ -6,7 +6,6 @@ See License.txt for details.
 
 #include "ChrSerialPacket.h"
 #include "PlusConfigure.h"
-#include "PlusConfigure.h"
 #include "SerialLine.h"
 #include "vtkChRoboticsTracker.h"
 #include "vtkMatrix4x4.h"
@@ -50,7 +49,7 @@ static const int MAX_COMMAND_REPLY_WAIT=3000; // number of maximum replies to wa
 
 //-------------------------------------------------------------------------
 vtkChRoboticsTracker::vtkChRoboticsTracker() :
-ComPort(5),
+SerialPort(5),
 BaudRate(115200)
 { 
   this->Serial = new SerialLine(); 
@@ -108,7 +107,7 @@ PlusStatus vtkChRoboticsTracker::InternalConnect()
   }
 
   std::ostringstream strComPort; 
-  strComPort << "COM" << this->ComPort; 
+  strComPort << "COM" << this->SerialPort; 
   this->Serial->SetPortName(strComPort.str()); 
 
   this->Serial->SetSerialPortSpeed(this->BaudRate); 
@@ -598,42 +597,12 @@ PlusStatus vtkChRoboticsTracker::ProcessPacket( ChrSerialPacket& packet )
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkChRoboticsTracker::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkChRoboticsTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  // Read superclass configuration first
-  Superclass::ReadConfiguration(config); 
-
-  if ( config == NULL ) 
-  {
-    LOG_WARNING("Unable to find BrachyTracker XML data element");
-    return PLUS_FAIL; 
-  }
-
-  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(config);
-  if (trackerConfig == NULL) 
-  {
-    LOG_ERROR("Cannot find Tracker element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  unsigned long serialPort(0); 
-  if ( trackerConfig->GetScalarAttribute("SerialPort", serialPort) ) 
-  {
-    this->ComPort=serialPort; 
-  }
-
-  unsigned long baudRate = 0; 
-  if ( trackerConfig->GetScalarAttribute("BaudRate", baudRate) ) 
-  {
-    this->BaudRate=baudRate; 
-  }
-
-  const char* firmwareDirectory = trackerConfig->GetAttribute("FirmwareDirectory"); 
-  if ( firmwareDirectory != NULL )
-  { 
-    this->FirmwareDirectory=firmwareDirectory;
-  }
-
+  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, SerialPort, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, BaudRate, deviceConfig);
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(FirmwareDirectory, deviceConfig);
   return PLUS_SUCCESS;
 }
 
@@ -656,8 +625,8 @@ PlusStatus vtkChRoboticsTracker::WriteConfiguration(vtkXMLDataElement* rootConfi
     return PLUS_FAIL;
   }
 
-  trackerConfig->SetUnsignedLongAttribute( "SerialPort", this->ComPort ); 
-  trackerConfig->SetDoubleAttribute( "BaudRate", this->BaudRate ); 
+  trackerConfig->SetUnsignedLongAttribute( "SerialPort", this->SerialPort ); 
+  trackerConfig->SetUnsignedLongAttribute( "BaudRate", this->BaudRate ); 
 
   return PLUS_SUCCESS;
 }

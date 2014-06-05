@@ -579,90 +579,17 @@ PlusStatus vtkOpenIGTLinkTracker::ProcessTransformMessage(igtl::MessageHeader::P
   }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkOpenIGTLinkTracker::ReadConfiguration( vtkXMLDataElement* config )
+PlusStatus vtkOpenIGTLinkTracker::ReadConfiguration( vtkXMLDataElement* rootConfigElement )
 {
-  // Read superclass configuration first
-  Superclass::ReadConfiguration( config ); 
-
-  LOG_TRACE( "vtkOpenIGTLinkTracker::ReadConfiguration" ); 
-  if ( config == NULL ) 
-  {
-    LOG_ERROR("Unable to find OpenIGTLinkTracker XML data element");
-    return PLUS_FAIL; 
-  }
-
-  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(config);
-  if (trackerConfig == NULL) 
-  {
-    LOG_ERROR("Cannot find Tracker element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  const char* messageType = trackerConfig->GetAttribute("MessageType"); 
-  if ( messageType != NULL )
-  {
-    this->SetMessageType(messageType); 
-  }
-
-  const char* serverAddress = trackerConfig->GetAttribute("ServerAddress"); 
-  if ( serverAddress != NULL )
-  {
-    this->SetServerAddress(serverAddress); 
-  }
-  else
-  {
-    LOG_ERROR("Unable to find ServerAddress attribute!"); 
-    return PLUS_FAIL; 
-  }
-
-  int serverPort = -1; 
-  if ( trackerConfig->GetScalarAttribute("ServerPort", serverPort ) )
-  {
-    this->SetServerPort(serverPort); 
-  }
-  else
-  {
-    LOG_ERROR("Unable to find ServerPort attribute!"); 
-    return PLUS_FAIL; 
-  }
-
-  const char* trackerInternalCoordinateSystemName = trackerConfig->GetAttribute("TrackerInternalCoordinateSystemName"); 
-  if ( trackerInternalCoordinateSystemName != NULL )
-  {
-    this->SetTrackerInternalCoordinateSystemName(trackerInternalCoordinateSystemName); 
-  }
-
-  const char* reconnect = trackerConfig->GetAttribute("ReconnectOnReceiveTimeout"); 
-  if ( reconnect != NULL )
-  {
-    this->SetReconnectOnReceiveTimeout(STRCASECMP(reconnect, "true") == 0 ? true : false);
-  }
-
-  const char* useLastTransformsOnReceiveTimeout = trackerConfig->GetAttribute("UseLastTransformsOnReceiveTimeout"); 
-  if ( useLastTransformsOnReceiveTimeout != NULL )
-  {
-    this->UseLastTransformsOnReceiveTimeout = (STRCASECMP(useLastTransformsOnReceiveTimeout, "true") == 0 ? true : false);
-  }
-
-  const char* useReceivedTimestamps = trackerConfig->GetAttribute("UseReceivedTimestamps"); 
-  if ( useReceivedTimestamps != NULL )
-  {
-    this->UseReceivedTimestamps = (STRCASECMP(useReceivedTimestamps, "true") == 0 ? true : false);
-  }  
-
-  const char* igtlMessageCrcCheckEnabled = trackerConfig->GetAttribute("IgtlMessageCrcCheckEnabled"); 
-  if ( igtlMessageCrcCheckEnabled != NULL )
-  {
-    if ( STRCASECMP(igtlMessageCrcCheckEnabled, "true") == 0 )
-    {
-      this->SetIgtlMessageCrcCheckEnabled(1);
-    }
-    else
-    {
-      this->SetIgtlMessageCrcCheckEnabled(0);
-    }
-  }
-  
+  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  DSC_READ_STRING_ATTRIBUTE_REQUIRED(ServerAddress, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_REQUIRED(int, ServerPort, deviceConfig);
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(MessageType, deviceConfig);
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(TrackerInternalCoordinateSystemName, deviceConfig);
+  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(ReconnectOnReceiveTimeout, deviceConfig);
+  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(UseLastTransformsOnReceiveTimeout, deviceConfig);
+  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(UseReceivedTimestamps, deviceConfig);
+  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(IgtlMessageCrcCheckEnabled, deviceConfig);  
   return PLUS_SUCCESS;
 }
 

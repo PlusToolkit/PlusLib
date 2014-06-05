@@ -8,6 +8,7 @@ See License.txt for details.
 #define __vtkPlusDevice_h
 
 #include "PlusConfigure.h"
+#include "PlusXmlUtils.h"
 #include "TrackedFrame.h"
 #include "vtkDataCollector.h"
 #include "vtkImageAlgorithm.h"
@@ -602,5 +603,19 @@ private:
   vtkPlusDevice(const vtkPlusDevice&);  // Not implemented.
   void operator=(const vtkPlusDevice&);  // Not implemented. 
 };
+
+#define DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement) \
+  if( Superclass::ReadConfiguration(rootConfigElement) != PLUS_SUCCESS )  \
+  { \
+    LOG_ERROR("Unable to continue configuration of "<<this->GetClassName()<<". Generic device configuration failed.");  \
+    return PLUS_FAIL; \
+  } \
+  vtkXMLDataElement* deviceConfig = this->FindThisDeviceElement(rootConfigElement);  \
+  if (deviceConfig == NULL)  \
+  { \
+    LOG_ERROR("Unable to continue configuration of "<<this->GetClassName()<<". Could not find corresponding element.");  \
+    return PLUS_FAIL; \
+  }
+
 
 #endif

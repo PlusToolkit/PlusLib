@@ -198,24 +198,10 @@ PlusStatus vtkUsSimulatorVideoSource::InternalDisconnect()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkUsSimulatorVideoSource::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkUsSimulatorVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   LOG_TRACE("vtkUsSimulatorVideoSource::ReadConfiguration"); 
-  if ( config == NULL )
-  {
-    LOG_ERROR("Unable to configure Saved Data video source! (XML data element is NULL)"); 
-    return PLUS_FAIL; 
-  }
-
-  // Read superclass configuration
-  Superclass::ReadConfiguration(config); 
-
-  vtkXMLDataElement* deviceConfig = this->FindThisDeviceElement(config);
-  if (deviceConfig == NULL) 
-  {
-    LOG_ERROR("Unable to find US simulator device element in configuration XML structure!");
-    return PLUS_FAIL;
-  }
+  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   // Read US simulator configuration
   if ( !this->UsSimulator
@@ -227,7 +213,7 @@ PlusStatus vtkUsSimulatorVideoSource::ReadConfiguration(vtkXMLDataElement* confi
 
   // Read transform repository configuration
   if ( !this->UsSimulator->GetTransformRepository()
-    || this->UsSimulator->GetTransformRepository()->ReadConfiguration(config) != PLUS_SUCCESS )
+    || this->UsSimulator->GetTransformRepository()->ReadConfiguration(rootConfigElement) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read transform repository configuration!"); 
     return PLUS_FAIL;

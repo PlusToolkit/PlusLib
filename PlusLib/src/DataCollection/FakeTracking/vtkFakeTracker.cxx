@@ -556,27 +556,17 @@ PlusStatus vtkFakeTracker::InternalUpdate()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkFakeTracker::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkFakeTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   LOG_TRACE("vtkFakeTracker::ReadConfiguration");
 
-  if ( config == NULL ) 
-  {
-    LOG_WARNING("Unable to find FakeTracker XML data element");
-    return PLUS_FAIL; 
-  }
+  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   if ( !this->Recording )
   {
     // Read mode
-    vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(config);
-    if (trackerConfig == NULL) 
-    {
-      LOG_ERROR("Cannot find Tracker element in XML tree!");
-      return PLUS_FAIL;
-    }
 
-    const char* mode = trackerConfig->GetAttribute("Mode"); 
+    const char* mode = deviceConfig->GetAttribute("Mode"); 
     if ( mode != NULL ) 
     {
       if (STRCASECMP(mode, "Default") == 0)
@@ -608,7 +598,7 @@ PlusStatus vtkFakeTracker::ReadConfiguration(vtkXMLDataElement* config)
     // Read landmarks for RecordPhantomLandmarks mode
     bool phantomLandmarksFound = true;
     vtkXMLDataElement* landmarks = NULL;
-    vtkXMLDataElement* phantomDefinition = config->FindNestedElementWithName("PhantomDefinition");
+    vtkXMLDataElement* phantomDefinition = rootConfigElement->FindNestedElementWithName("PhantomDefinition");
     if (phantomDefinition == NULL)
     {
       phantomLandmarksFound = false;
@@ -668,5 +658,5 @@ PlusStatus vtkFakeTracker::ReadConfiguration(vtkXMLDataElement* config)
     }
   }
 
-  return Superclass::ReadConfiguration(config); 
+  return PLUS_SUCCESS;
 }

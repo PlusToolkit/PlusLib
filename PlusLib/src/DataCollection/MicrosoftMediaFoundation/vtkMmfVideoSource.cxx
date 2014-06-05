@@ -425,23 +425,9 @@ PlusStatus vtkMmfVideoSource::UpdateFrameSize()
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkMmfVideoSource::ReadConfiguration( vtkXMLDataElement* rootXmlElement )
+PlusStatus vtkMmfVideoSource::ReadConfiguration( vtkXMLDataElement* rootConfigElement )
 {
-  // Read superclass configuration
-  Superclass::ReadConfiguration(rootXmlElement); 
-
-  if ( rootXmlElement == NULL ) 
-  {
-    LOG_WARNING("Unable to find MmfVideoSource XML data element");
-    return PLUS_FAIL; 
-  }
-
-  vtkXMLDataElement* deviceConfig = this->FindThisDeviceElement(rootXmlElement);
-  if (deviceConfig == NULL) 
-  {
-    LOG_ERROR("Cannot find MmfVideoSource element in XML tree!");
-    return PLUS_FAIL;
-  }
+  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   int deviceId=0;
   if (deviceConfig->GetScalarAttribute("CaptureDeviceId", deviceId))

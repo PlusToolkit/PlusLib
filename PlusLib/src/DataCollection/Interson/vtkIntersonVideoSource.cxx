@@ -584,83 +584,22 @@ PlusStatus vtkIntersonVideoSource::InternalUpdate()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkIntersonVideoSource::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkIntersonVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   LOG_TRACE("vtkIntersonVideoSource::ReadConfiguration"); 
-  if ( config == NULL )
-  {
-    LOG_ERROR("Unable to configure Interson video source! (XML data element is NULL)"); 
-    return PLUS_FAIL; 
-  }
+  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
-  Superclass::ReadConfiguration(config); 
+  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ImageSize, deviceConfig);
 
-  vtkXMLDataElement* deviceConfig = this->FindThisDeviceElement(config);
-  if (deviceConfig == NULL) 
-  {
-    LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
-    return PLUS_FAIL;
-  }
-
-  int imageSize[2]={0,0};
-  if (deviceConfig->GetVectorAttribute("ImageSize", 2, imageSize))
-  {
-    this->SetImageSize(imageSize);
-  }
-
-  double sector = -1; 
-  if ( deviceConfig->GetScalarAttribute("SectorPercent", sector)) 
-  {
-    this->ImagingParameters->SetSectorPercent(sector); 
-  }
-
-  double gainPercent[3] = {0,0,0}; //-1; 
-  if ( deviceConfig->GetVectorAttribute("GainPercent", 3, gainPercent)) 
-  {
-    this->ImagingParameters->SetGainPercent(gainPercent); 
-  }
-
-  int intensity = -1; 
-  if ( deviceConfig->GetScalarAttribute("Intensity", intensity)) 
-  {
-    this->ImagingParameters->SetIntensity(intensity); 
-  }
-
-  int contrast = -1; 
-  if ( deviceConfig->GetScalarAttribute("Contrast", contrast)) 
-  {
-    this->ImagingParameters->SetContrast(contrast); 
-  }
-
-  double dynRange = -1; 
-  if ( deviceConfig->GetScalarAttribute("DynRangeDb", dynRange)) 
-  {
-    this->ImagingParameters->SetDynRangeDb(dynRange); 
-  }
-
-  double zoom = -1; 
-  if ( deviceConfig->GetScalarAttribute("ZoomFactor", zoom)) 
-  {
-    this->ImagingParameters->SetZoomFactor(zoom); 
-  }
-
-  double frequency = -1; 
-  if ( deviceConfig->GetScalarAttribute("FrequencyMhz", frequency)) 
-  {
-    this->ImagingParameters->SetFrequencyMhz(frequency); 
-  }
-
-  double depthMm = -1; 
-  if ( deviceConfig->GetScalarAttribute("DepthMm", depthMm)) 
-  {
-    this->ImagingParameters->SetDepthMm(depthMm); 
-  }
-
-  double soundVelocity = -1; 
-  if ( deviceConfig->GetScalarAttribute("SoundVelocity", soundVelocity)) 
-  {
-    this->ImagingParameters->SetSoundVelocity(soundVelocity); 
-  }
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SectorPercent, deviceConfig);
+  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, GainPercent, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Intensity, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Contrast, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DynRangeDb, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ZoomFactor, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FrequencyMhz, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DepthMm, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SoundVelocity, deviceConfig);
 
   return PLUS_SUCCESS;
 }
