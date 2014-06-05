@@ -94,6 +94,12 @@ public:
   PlusStatus ShowObjectById(const char* aModelId, bool aOn);
 
   /*!
+  * Forward the AddObject request to the 3D visualizer
+  * \param aObject the object to be added. Must have a valid actor.
+  */
+  PlusStatus AddObject(vtkDisplayableObject* aObject);
+
+  /*!
   * Forward the GetObjectById request to the 3D visualizer
   * \param aModelId Model ID to operate on
   */

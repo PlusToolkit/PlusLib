@@ -35,18 +35,13 @@ fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WFlags flags)
 , m_ActiveToolbox(ToolboxType_Undefined)
 , m_VisualizationController(NULL)
 , m_StatusIcon(NULL)
-, m_ImageCoordinateFrame("")
-, m_ProbeCoordinateFrame("")
-, m_ReferenceCoordinateFrame("")
-, m_TransducerOriginCoordinateFrame("")
-, m_TransducerOriginPixelCoordinateFrame("")
-, m_PhantomModelId(NULL)
 , m_ShowPoints(false)
 , m_ForceShowAllDevicesIn3D(false)
 , m_ShowOrientationMarkerAction(NULL)
 , m_ShowROIAction(NULL)
 , m_Show3DObjectsAction(NULL)
 , m_ShowPhantomModelAction(NULL)
+, m_ShowPhantomWiresModelAction(NULL)
 , m_SelectedChannel(NULL)
 {
   // Set up UI
@@ -87,11 +82,6 @@ fCalMainWindow::~fCalMainWindow()
     delete m_ShowOrientationMarkerAction;
     m_ShowOrientationMarkerAction = NULL;
   }
-
-  this->SetPhantomModelId(NULL);
-  this->SetStylusModelId(NULL);
-  this->SetTransducerModelId(NULL);
-  this->SetImageObjectId(NULL);
 
   m_ToolboxList.clear();
 }
@@ -674,6 +664,16 @@ void fCalMainWindow::ShowDevicesToggled()
     m_VisualizationController->ShowInput(m_ShowPoints);
     m_VisualizationController->ShowResult(m_ShowPoints);
 
+    // If the show phantom or wires menu items are unchecked then check them now (as they are shown now)
+    if (!m_ShowPhantomModelAction->isChecked())
+    {
+      m_ShowPhantomModelAction->setChecked(true);
+    }
+    if (!m_ShowPhantomWiresModelAction->isChecked())
+    {
+      m_ShowPhantomWiresModelAction->setChecked(true);
+    }
+
     SetImageManipulationMenuEnabled(!aOn);
   }
   else
@@ -688,20 +688,38 @@ void fCalMainWindow::ShowDevicesToggled()
 
 //-----------------------------------------------------------------------------
 
-void fCalMainWindow::ShowPhantomToggled()
+void fCalMainWindow::ShowPhantomModelToggled()
 {
   bool aOn = m_ShowPhantomModelAction->isChecked();
 
-  LOG_TRACE("fCalMainWindow::ShowPhantomToggled(" << (aOn?"true":"false") << ")"); 
+  LOG_TRACE("fCalMainWindow::ShowPhantomModelToggled(" << (aOn?"true":"false") << ")"); 
 
-  if( m_PhantomModelId != NULL )
+  if(!m_PhantomModelId.empty())
   {
-    if( m_VisualizationController->ShowObjectById(m_PhantomModelId, aOn) != PLUS_SUCCESS )
+    if( m_VisualizationController->ShowObjectById(m_PhantomModelId.c_str(), aOn) != PLUS_SUCCESS )
     {
-      LOG_WARNING("Unable to hide/show the object: " << m_PhantomModelId);
+      LOG_WARNING("Unable to hide/show the phantom model: " << m_PhantomModelId);
     }
   }
 }
+
+//-----------------------------------------------------------------------------
+
+void fCalMainWindow::ShowPhantomWiresModelToggled()
+{
+  bool aOn = m_ShowPhantomWiresModelAction->isChecked();
+
+  LOG_TRACE("fCalMainWindow::ShowPhantomWiresModelToggled(" << (aOn?"true":"false") << ")"); 
+
+  if(!m_PhantomWiresModelId.empty())
+  {
+    if( m_VisualizationController->ShowObjectById(m_PhantomWiresModelId.c_str(), aOn) != PLUS_SUCCESS )
+    {
+      LOG_WARNING("Unable to hide/show the phantom wires object: " << m_PhantomWiresModelId);
+    }
+  }
+}
+
 
 //-----------------------------------------------------------------------------
 
@@ -726,9 +744,16 @@ void fCalMainWindow::ResetShowDevices()
 
 //-----------------------------------------------------------------------------
 
-void fCalMainWindow::EnablePhantomToggle( bool aEnable )
+void fCalMainWindow::EnableShowPhantomModelToggle( bool aEnable )
 {
   m_ShowPhantomModelAction->setDisabled(!aEnable);
+}
+
+//-----------------------------------------------------------------------------
+
+void fCalMainWindow::EnableShowPhantomWiresModelToggle( bool aEnable )
+{
+  m_ShowPhantomWiresModelAction->setDisabled(!aEnable);
 }
 
 //-----------------------------------------------------------------------------
@@ -756,14 +781,22 @@ void fCalMainWindow::BuildChannelMenu()
   m_Show3DObjectsAction = new QCustomAction("Show all devices / Show content for current toolbox", ui.pushButton_ShowDevices);
   connect(m_Show3DObjectsAction, SIGNAL(triggered()), this, SLOT(ShowDevicesToggled()));
   m_Show3DObjectsAction->setCheckable(true);
-  m_ShowPhantomModelAction = new QCustomAction("Show phantom model", ui.pushButton_ShowDevices);
-  connect(m_ShowPhantomModelAction, SIGNAL(triggered()), this, SLOT(ShowPhantomToggled()));
-  m_ShowPhantomModelAction->setCheckable(true);
-  m_ShowPhantomModelAction->setChecked(true);
   m_3DActionList.push_back(m_Show3DObjectsAction);
+
   QCustomAction* separator = new QCustomAction("", NULL, true);
   m_3DActionList.push_back(separator);
-  m_3DActionList.push_back(m_ShowPhantomModelAction);
+
+  m_ShowPhantomModelAction = new QCustomAction("Show phantom box", ui.pushButton_ShowDevices);
+  connect(m_ShowPhantomModelAction, SIGNAL(triggered()), this, SLOT(ShowPhantomModelToggled()));
+  m_ShowPhantomModelAction->setCheckable(true);
+  m_ShowPhantomModelAction->setChecked(true);
+  m_3DActionList.push_back(m_ShowPhantomModelAction);  
+
+  m_ShowPhantomWiresModelAction = new QCustomAction("Show phantom wires", ui.pushButton_ShowDevices);
+  connect(m_ShowPhantomWiresModelAction, SIGNAL(triggered()), this, SLOT(ShowPhantomWiresModelToggled()));
+  m_ShowPhantomWiresModelAction->setCheckable(true);
+  m_ShowPhantomWiresModelAction->setChecked(true);
+  m_3DActionList.push_back(m_ShowPhantomWiresModelAction);
 
   DeviceCollection aCollection;
   if( this->GetVisualizationController() == NULL || this->GetVisualizationController()->GetDataCollector() == NULL || 

@@ -20,6 +20,8 @@ See License.txt for details.
 #include <QFile>
 #include <QFileDialog>
 
+const char PHANTOM_WIRES_MODEL_ID[]="PhantomWiresModel";
+
 //-----------------------------------------------------------------------------
 
 ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags)
@@ -502,7 +504,7 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
     LOG_WARNING("Phantom model ID not specified in the fCal section of the configuration. Can't hide/show the phantom model.");
   }
   m_ParentMainWindow->SetPhantomModelId(phantomModelId);
-  m_ParentMainWindow->EnablePhantomToggle(phantomModelId != NULL);
+  m_ParentMainWindow->EnableShowPhantomModelToggle(phantomModelId != NULL);
 
   // stylus model id
   const char* stylusModelId = fCalElement->GetAttribute("StylusModelId");
@@ -536,6 +538,8 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
 PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
 {
   LOG_TRACE("ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization"); 
+  m_ParentMainWindow->EnableShowPhantomWiresModelToggle(false);
+  m_ParentMainWindow->SetPhantomWiresModelId("");
 
   // Get phantom coordinate frame name
   vtkXMLDataElement* phantomRegistrationElement = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName( vtkPhantomLandmarkRegistrationAlgo::GetConfigurationElementName().c_str() ); 
@@ -546,7 +550,6 @@ PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
   }
 
   vtkSmartPointer<vtkPhantomLandmarkRegistrationAlgo> phantomRegistration = vtkSmartPointer<vtkPhantomLandmarkRegistrationAlgo>::New();
-
   if (phantomRegistration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
   {
     LOG_WARNING("Reading phantom registration algorithm configuration failed!");
@@ -554,12 +557,21 @@ PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
   }
 
   // Get phantom displayable model object
-  vtkDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetPhantomModelId());
-  vtkDisplayableModel* phantomDisplayableModel = dynamic_cast<vtkDisplayableModel*>(object);
-  if( phantomDisplayableModel == NULL)
+  
+  vtkDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(PHANTOM_WIRES_MODEL_ID);
+  vtkDisplayablePolyData* phantomWiresDisplayablePolyData = dynamic_cast<vtkDisplayablePolyData*>(object);
+  if (phantomWiresDisplayablePolyData==NULL)
   {
-    LOG_ERROR("Unable to retreive phantom model by ID. Is the phantom model ID well defined?");
-    return PLUS_FAIL;
+    // Create new displayable object for the wires
+    vtkSmartPointer<vtkDisplayablePolyData> newPhantomWiresDisplayablePolyData = vtkSmartPointer<vtkDisplayablePolyData>::New();
+    newPhantomWiresDisplayablePolyData->SetObjectId(PHANTOM_WIRES_MODEL_ID);
+    newPhantomWiresDisplayablePolyData->SetObjectCoordinateFrame(phantomRegistration->GetPhantomCoordinateFrame());
+    // Create an actor
+    vtkSmartPointer<vtkPolyData> newPolyData=vtkSmartPointer<vtkPolyData>::New();
+    newPhantomWiresDisplayablePolyData->SetPolyData(newPolyData);
+    // Add to the visualization controller
+    m_ParentMainWindow->GetVisualizationController()->AddObject(newPhantomWiresDisplayablePolyData);
+    phantomWiresDisplayablePolyData=newPhantomWiresDisplayablePolyData;
   }
 
   // Get wire pattern
@@ -571,11 +583,9 @@ PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
   }
 
   std::vector<Pattern*> patterns( patternRecognition.GetFidLineFinder()->GetPatterns() );
-
-  vtkSmartPointer<vtkMatrix4x4> phantomModelToPhantomTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  phantomModelToPhantomTransformMatrix->DeepCopy(phantomDisplayableModel->GetModelToObjectTransform()->GetMatrix());
-  vtkSmartPointer<vtkMatrix4x4> phantomToPhantomModelTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  vtkMatrix4x4::Invert(phantomModelToPhantomTransformMatrix, phantomToPhantomModelTransformMatrix);
+  
+  // Set an empty polydata to initialize
+  phantomWiresDisplayablePolyData->SetPolyData(vtkSmartPointer<vtkPolyData>::New());
 
   // Construct wires poly data
   for (std::vector<Pattern*>::iterator patternIt = patterns.begin(); patternIt != patterns.end(); ++patternIt)
@@ -584,20 +594,19 @@ PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
     {
       double endPointFrontInPhantomFrame[4] = { wireIt->EndPointFront[0], wireIt->EndPointFront[1], wireIt->EndPointFront[2], 1.0 };
       double endPointBackInPhantomFrame[4] = { wireIt->EndPointBack[0], wireIt->EndPointBack[1], wireIt->EndPointBack[2], 1.0 };
-      double endPointFrontInPhantomModelFrame[4];
-      double endPointBackInPhantomModelFrame[4];
-      phantomToPhantomModelTransformMatrix->MultiplyPoint(endPointFrontInPhantomFrame, endPointFrontInPhantomModelFrame);
-      phantomToPhantomModelTransformMatrix->MultiplyPoint(endPointBackInPhantomFrame, endPointBackInPhantomModelFrame);
 
       vtkSmartPointer<vtkLineSource> wireLineSource = vtkSmartPointer<vtkLineSource>::New();
-      wireLineSource->SetPoint1(endPointFrontInPhantomModelFrame);
-      wireLineSource->SetPoint2(endPointBackInPhantomModelFrame);
+      wireLineSource->SetPoint1(endPointFrontInPhantomFrame);
+      wireLineSource->SetPoint2(endPointBackInPhantomFrame);
       wireLineSource->Update();
 
-      phantomDisplayableModel->AppendPolyData(wireLineSource->GetOutput());
+      phantomWiresDisplayablePolyData->AppendPolyData(wireLineSource->GetOutput());
+
     }
   }
 
+  m_ParentMainWindow->SetPhantomWiresModelId(PHANTOM_WIRES_MODEL_ID);
+  m_ParentMainWindow->EnableShowPhantomWiresModelToggle(true);
   return PLUS_SUCCESS;
 }
 

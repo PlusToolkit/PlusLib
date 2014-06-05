@@ -849,6 +849,27 @@ PlusStatus vtkVisualizationController::ShowObjectById( const char* aModelId, boo
 
 //-----------------------------------------------------------------------------
 
+PlusStatus vtkVisualizationController::AddObject(vtkDisplayableObject* aObject)
+{
+  LOG_TRACE("vtkVisualizationController::AddObject");
+
+  if( aObject == NULL )
+  {
+    return PLUS_FAIL;
+  }
+
+  if( this->PerspectiveVisualizer != NULL )
+  {
+    this->PerspectiveVisualizer->AddObject(aObject);
+    return PLUS_SUCCESS;
+  }
+
+  LOG_ERROR("3D visualizer not created when attempting to add an object");
+  return PLUS_FAIL;
+}
+
+//-----------------------------------------------------------------------------
+
 vtkDisplayableObject* vtkVisualizationController::GetObjectById( const char* aId )
 {
   LOG_TRACE("vtkVisualizationController::ShowObjectById");
