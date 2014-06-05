@@ -28,7 +28,6 @@ ENDIF()
 # Sources
 SET (DataCollection_SRCS
   vtkDataCollector.cxx 
-  vtkDataCollectorSynchronizer.cxx
   vtkPlusDevice.cxx
   vtkPlusChannel.cxx
   vtkPlusDeviceFactory.cxx
@@ -51,7 +50,6 @@ SET (DataCollection_HDRS)
 if (WIN32)  
   SET (DataCollection_HDRS
     vtkDataCollector.h 
-    vtkDataCollectorSynchronizer.h
     vtkPlusDevice.h
     vtkPlusDeviceTypes.h 
     vtkPlusChannel.h
