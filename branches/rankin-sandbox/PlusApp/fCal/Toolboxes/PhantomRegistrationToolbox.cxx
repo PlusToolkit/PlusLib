@@ -505,6 +505,7 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
     if (m_CurrentLandmarkIndex >= 3)
     {
       m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId(), true);
+      m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomWiresModelId(), true);
     }
 
     ui.pushButton_RecordPoint->setFocus();
@@ -526,6 +527,7 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
 
     m_ParentMainWindow->GetVisualizationController()->ShowInput(true);
     m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId(), true);
+    m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomWiresModelId(), true);
     m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetStylusModelId(), true);
   }
   else if (m_State == ToolboxState_Error)
@@ -727,6 +729,7 @@ void PhantomRegistrationToolbox::RecordPoint()
     if (m_PhantomLandmarkRegistration->Register( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository() ) == PLUS_SUCCESS)
     {
       m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId(), true);
+      m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomWiresModelId(), true);
     }
     else
     {
@@ -799,6 +802,7 @@ void PhantomRegistrationToolbox::Undo()
 
     // Hide phantom from main canvas
     m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId(), false);
+    m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomWiresModelId(), false);
   }
 
   // If tracker is FakeTracker then set counter
@@ -851,6 +855,7 @@ void PhantomRegistrationToolbox::Reset()
   if (m_PhantomLandmarkRegistration->GetReferenceCoordinateFrame())
   {
     m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId(), false);
+    m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomWiresModelId(), false);
   }
 
   // If tracker is FakeTracker then reset counter

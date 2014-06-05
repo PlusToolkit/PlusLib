@@ -21,10 +21,21 @@ SET(CPACK_NSIS_INSTALL_ROOT "$PROFILE")
 SET(CPACK_NSIS_DEFINES ${CPACK_NSIS_DEFINES} "RequestExecutionLevel user")
 
 SET(CPACK_PACKAGE_EXECUTABLES 
-  "PlusServerLauncher" "Plus Server"
+  "PlusServerLauncher" "Plus server"
   "fCal" "Free-hand calibration (fCal)"
   )
- 
+
+# Windows users may not be familiar how to open a command prompt, so create a shortcut for that
+IF(WIN32)
+  SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
+    CreateShortCut \\\"$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Plus command prompt.lnk\\\" \\\"$INSTDIR\\\\bin\\\\StartPlusCommandPrompt.bat\\\" \\\"$INSTDIR\\\\bin\\\\StartPlusCommandPrompt.bat\\\" \\\"$INSTDIR\\\\bin\\\\StartPlusCommandPrompt.ico\\\"
+    ")
+  SET(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
+    !insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
+    Delete \\\"$SMPROGRAMS\\\\$MUI_TEMP\\\\Plus command prompt.lnk\\\"
+    ")
+ENDIF(WIN32)
+
 IF(EXISTS "${PLUSLIB_DIR}/CMakeCache.txt")
   SET(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${PLUSLIB_DIR};PlusLib;RuntimeExecutables;/")
   SET(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${PLUSLIB_DIR};PlusLib;RuntimeLibraries;/")

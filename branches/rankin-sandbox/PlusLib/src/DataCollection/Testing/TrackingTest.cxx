@@ -89,25 +89,25 @@ public:
     this->TimerId=this->Iren->CreateOneShotTimer(100);
   }
 
-  void AddNewToolActor(const char * aToolName)
+  void AddNewToolActor(const char * aToolId)
   {
     vtkToolAxesActor* actor=vtkToolAxesActor::New();
     this->Renderer->AddActor(actor);
     actor->SetVisibility(false);
-    this->ToolActors[aToolName]=actor;
-    actor->SetName(aToolName); 
+    this->ToolActors[aToolId]=actor;
+    actor->SetName(aToolId); 
   }
 
-  void SetToolVisible(const char * aToolName, bool visible)
+  void SetToolVisible(const char * aToolId, bool visible)
   {
-    this->ToolActors[aToolName]->SetVisibility(visible);
+    this->ToolActors[aToolId]->SetVisibility(visible);
   }
 
-  void SetToolToTrackerTransform(const char * aToolName, vtkMatrix4x4*  toolToTrackerTransform)
+  void SetToolToTrackerTransform(const char * aToolId, vtkMatrix4x4*  toolToTrackerTransform)
   {
     vtkSmartPointer<vtkTransform> normalizedTransform=vtkSmartPointer<vtkTransform>::New();
     normalizedTransform->SetMatrix(toolToTrackerTransform);  
-    this->ToolActors[aToolName]->SetUserTransform(normalizedTransform);
+    this->ToolActors[aToolId]->SetUserTransform(normalizedTransform);
   }
 
 
@@ -205,7 +205,7 @@ public:
 int main(int argc, char **argv)
 {
   std::string inputConfigFileName;
-  std::string inputToolName; 
+  std::string inputToolSourceId; 
   double inputAcqTimeLength(60);
   std::string outputTrackerBufferSequenceFileName; 
   bool renderingOff(false);
@@ -216,7 +216,7 @@ int main(int argc, char **argv)
   args.Initialize(argc, argv);
 
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Name of the input configuration file.");
-  args.AddArgument("--tool-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputToolName, "Will print the actual transform of this tool (names were defined in the config file, default is the first active tool)");  
+  args.AddArgument("--tool-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputToolSourceId, "Will print the actual transform of this tool (names were defined in the config file, default is the first active tool)");  
   args.AddArgument("--acq-time-length", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputAcqTimeLength, "Length of acquisition time in seconds (Default: 60s)");  
   args.AddArgument("--output-tracker-buffer-seq-file-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputTrackerBufferSequenceFileName, "Filename of the output tracker bufffer sequence metafile (Default: TrackerBufferMetafile)");
   args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");  
@@ -287,11 +287,11 @@ int main(int argc, char **argv)
   }
 
   vtkPlusDataSource* tool=NULL;
-  if ( !inputToolName.empty() )
+  if ( !inputToolSourceId.empty() )
   {
-    if ( aChannel->GetTool(tool, inputToolName.c_str()) != PLUS_SUCCESS )
+    if ( aChannel->GetTool(tool, inputToolSourceId.c_str()) != PLUS_SUCCESS )
     { 
-      LOG_ERROR("Failed to get tool with name: " << inputToolName ); 
+      LOG_ERROR("Failed to get tool with name: " << inputToolSourceId ); 
       return EXIT_FAILURE; 
     }
   }

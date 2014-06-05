@@ -8,6 +8,7 @@ See License.txt for details.
 #define __vtkPlusDevice_h
 
 #include "PlusConfigure.h"
+#include "PlusXmlUtils.h"
 #include "TrackedFrame.h"
 #include "vtkDataCollector.h"
 #include "vtkImageAlgorithm.h"
@@ -15,6 +16,7 @@ See License.txt for details.
 #include "vtkPlusDeviceTypes.h"
 #include "vtkTrackedFrameList.h"
 #include <string>
+#include <deque>
 
 class vtkGnuplotExecuter;
 class vtkHTMLGenerator;
@@ -49,6 +51,20 @@ public:
     PlusImagingMode Mode;
   };
 
+	struct ImageMetaDataItem
+	{
+		std::string Id;  /* device name to query the IMAGE and COLORT */
+		std::string Description;        /* name / description (< 64 bytes)*/
+		std::string Modality;    /* modality name (< 32 bytes) */
+		std::string PatientName; /* patient name (< 64 bytes) */ 
+		std::string PatientId;   /* patient ID (MRN etc.) (< 64 bytes) */  
+		double TimeStampUtc;   /* scan time in UTC*/
+		unsigned int Size[3];     /* entire image volume size */ 
+		unsigned char ScalarType;  /* scalar type. see scalar_type in IMAGE message */
+	};
+
+  typedef std::deque<ImageMetaDataItem> ImageMetaDataList;
+	  
 public:
   static vtkPlusDevice* New();
   vtkTypeRevisionMacro(vtkPlusDevice, vtkImageAlgorithm);
@@ -120,9 +136,9 @@ public:
   Set size of the internal frame buffer, i.e. the number of most recent frames that
   are stored in the video source class internally.
   */
-  virtual PlusStatus SetBufferSize(vtkPlusChannel& aChannel, int FrameBufferSize, const char* toolName = NULL);
+  virtual PlusStatus SetBufferSize(vtkPlusChannel& aChannel, int FrameBufferSize, const char* toolSourceId = NULL);
   /*! Get size of the internal frame buffer. */
-  virtual PlusStatus GetBufferSize(vtkPlusChannel& aChannel, int& outVal, const char * toolName = NULL);
+  virtual PlusStatus GetBufferSize(vtkPlusChannel& aChannel, int& outVal, const char * toolSourceId = NULL);
 
   /*! Set recording start time */
   virtual void SetStartTime( double startTime );
@@ -155,10 +171,10 @@ public:
   PlusStatus GetDataSource(const char* aSourceId, vtkPlusDataSource*& aSource);
 
   /*! Get the tool object for the specified tool name */
-  PlusStatus GetTool(const char* aToolName, vtkPlusDataSource*& aTool);
-  PlusStatus GetTool(const std::string& aToolName, vtkPlusDataSource*& aTool);
+  PlusStatus GetTool(const char* aToolSourceId, vtkPlusDataSource*& aTool);
+  PlusStatus GetTool(const std::string& aToolSourceId, vtkPlusDataSource*& aTool);
 
-  /*! Get the first active tool object */
+  /*! Get the first active tool among all the source tools */
   PlusStatus GetFirstActiveTool(vtkPlusDataSource*& aTool) const; 
 
   /*! Get the tool object for the specified tool port name */
@@ -173,7 +189,7 @@ public:
   DataSourceContainerConstIterator GetToolIteratorEnd() const;
 
   /*! Add tool to the device */
-  PlusStatus AddTool(vtkPlusDataSource* tool, bool requireUniquePortName = true ); 
+  PlusStatus AddTool(vtkPlusDataSource* tool, bool requireUniquePortName=true);
 
   /*! Get number of images */
   int GetNumberOfTools() const;
@@ -407,6 +423,12 @@ public:
   /*! Convenience function for getting the first available video source in the output channels */
   PlusStatus GetFirstActiveOutputVideoSource(vtkPlusDataSource*& aVideoSource);
 
+	/*! Return a list of items that desrcibe what image volumes this device can provide */
+	virtual PlusStatus GetImageMetaData(ImageMetaDataList &imageMetaDataItems);
+
+	/*! Return a list of items that desrcibe what image volumes this device can provide */
+	virtual PlusStatus GetImage(const std::string& imageId, const std::string& imageReferencFrameName, vtkImageData* imageData, vtkMatrix4x4* ijkToReferenceTransform);
+
 protected:
   static void *vtkDataCaptureThread(vtkMultiThreader::ThreadInfo *data);
 
@@ -444,7 +466,7 @@ protected:
   can communicate information back to the vtkTracker base class, which
   will in turn relay the information to the appropriate vtkPlusDataSource.
   */
-  PlusStatus ToolTimeStampedUpdate(const char* aToolName, vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredtimestamp);
+  PlusStatus ToolTimeStampedUpdate(const char* aToolSourceId, vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredtimestamp);
 
   /*! 
   This function is called by InternalUpdate() so that the subclasses
@@ -452,7 +474,7 @@ protected:
   will in turn relay the information to the appropriate vtkPlusDataSource.
   This function is for devices has no frame numbering, just auto increment tool frame number if new frame received
   */
-  PlusStatus ToolTimeStampedUpdateWithoutFiltering(const char* aToolName, vtkMatrix4x4 *matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp);
+  PlusStatus ToolTimeStampedUpdateWithoutFiltering(const char* aToolSourceId, vtkMatrix4x4 *matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp);
 
   /*!
   Helper function used during configuration to locate the correct XML element for a device
@@ -572,7 +594,7 @@ protected:
   bool RequireFrameBufferSizeInDeviceSetConfiguration;
   bool RequireAcquisitionRateInDeviceSetConfiguration;
   bool RequireAveragedItemsForFilteringInDeviceSetConfiguration;
-  bool RequireToolAveragedItemsForFilteringInDeviceSetConfiguration;
+  bool RequirePortNameInDeviceSetConfiguration;
   bool RequireLocalTimeOffsetSecInDeviceSetConfiguration;
   bool RequireUsImageOrientationInDeviceSetConfiguration;
   bool RequireRfElementInDeviceSetConfiguration;
@@ -581,5 +603,19 @@ private:
   vtkPlusDevice(const vtkPlusDevice&);  // Not implemented.
   void operator=(const vtkPlusDevice&);  // Not implemented. 
 };
+
+#define DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement) \
+  if( Superclass::ReadConfiguration(rootConfigElement) != PLUS_SUCCESS )  \
+  { \
+    LOG_ERROR("Unable to continue configuration of "<<this->GetClassName()<<". Generic device configuration failed.");  \
+    return PLUS_FAIL; \
+  } \
+  vtkXMLDataElement* deviceConfig = this->FindThisDeviceElement(rootConfigElement);  \
+  if (deviceConfig == NULL)  \
+  { \
+    LOG_ERROR("Unable to continue configuration of "<<this->GetClassName()<<". Could not find corresponding element.");  \
+    return PLUS_FAIL; \
+  }
+
 
 #endif

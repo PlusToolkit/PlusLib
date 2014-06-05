@@ -42,9 +42,9 @@
       AveragedItemsForFiltering="20"
       LocalTimeOffsetSec="0">
       <DataSources>
-        <DataSource Type="Tool" Id="Probe" PortName="5" RomFile="NdiToolDefinitions\8700339.rom"/>
-        <DataSource Type="Tool" Id="Stylus" PortName="6" RomFile="NdiToolDefinitions\8700340.rom"/>
-        <DataSource Type="Tool" Id="Reference" PortName="7" RomFile="NdiToolDefinitions\8700449.rom"/>
+        <DataSource Type="Tool" Id="Probe" RomFile="NdiToolDefinitions/8700339.rom"/>
+        <DataSource Type="Tool" Id="Stylus" RomFile="NdiToolDefinitions/8700340.rom"/>
+        <DataSource Type="Tool" Id="Reference" RomFile="NdiToolDefinitions/8700449.rom"/>
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="VideoOutput" />

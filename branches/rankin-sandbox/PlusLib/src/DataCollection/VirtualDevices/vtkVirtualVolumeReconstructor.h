@@ -31,12 +31,12 @@ public:
   /*!
     This method is safe to be called from any thread.
   */
-  virtual PlusStatus GetReconstructedVolumeFromFile(const char* inputSeqFilename, vtkImageData* reconstructedVolume, std::string& message);
+  virtual PlusStatus GetReconstructedVolumeFromFile(const char* inputSeqFilename, vtkImageData* reconstructedVolume, std::string& errorMessage);
 
   /*!
     This method is safe to be called from any thread.
   */
-  PlusStatus GetReconstructedVolume(vtkImageData* reconstructedVolume, std::string& message);
+  PlusStatus GetReconstructedVolume(vtkImageData* reconstructedVolume, std::string& errorMessage);
 
   /*!
     Updated the transform repository contents within the volume reconstructor.

@@ -4,7 +4,10 @@
   See License.txt for details.
 =========================================================Plus=header=end*/ 
 
+#include "PlusConfigure.h"
+
 #include "PlusMath.h"
+#include "PlusXmlUtils.h"
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
 #include "vtkBrachyStepperPhantomRegistrationAlgo.h"
@@ -258,38 +261,10 @@ PlusStatus vtkBrachyStepperPhantomRegistrationAlgo::ReadConfiguration(vtkXMLData
 {
   LOG_TRACE("vtkBrachyStepperPhantomRegistrationAlgo::ReadConfiguration");
 
-  if (aConfig == NULL)
-  {
-    LOG_ERROR("Invalid configuration! Problably device set is not connected.");
-    return PLUS_FAIL;
-  }
+  DSC_FIND_NESTED_ELEMENT_REQUIRED(phantomRegistrationElement, aConfig, "vtkBrachyStepperPhantomRegistrationAlgo");
 
-  // vtkPhantomRegistrationAlgo section
-  vtkXMLDataElement* phantomRegistrationElement = aConfig->FindNestedElementWithName("vtkBrachyStepperPhantomRegistrationAlgo"); 
-
-  if (phantomRegistrationElement == NULL)
-  {
-    LOG_ERROR("Unable to find vtkBrachyStepperPhantomRegistrationAlgo element in XML tree!"); 
-    return PLUS_FAIL;     
-  }
-
-  // Phantom coordinate frame name
-  const char* phantomCoordinateFrame = phantomRegistrationElement->GetAttribute("PhantomCoordinateFrame");
-  if (phantomCoordinateFrame == NULL)
-  {
-    LOG_ERROR("PhantomCoordinateFrame is not specified in vtkPhantomRegistrationAlgo element of the configuration!");
-    return PLUS_FAIL;     
-  }
-  this->SetPhantomCoordinateFrame(phantomCoordinateFrame);
-
-  // Reference coordinate frame name
-  const char* referenceCoordinateFrame = phantomRegistrationElement->GetAttribute("ReferenceCoordinateFrame");
-  if (referenceCoordinateFrame == NULL)
-  {
-    LOG_ERROR("ReferenceCoordinateFrame is not specified in vtkPhantomRegistrationAlgo element of the configuration!");
-    return PLUS_FAIL;     
-  }
-  this->SetReferenceCoordinateFrame(referenceCoordinateFrame);
+  DSC_READ_STRING_ATTRIBUTE_REQUIRED(PhantomCoordinateFrame, phantomRegistrationElement);
+  DSC_READ_STRING_ATTRIBUTE_REQUIRED(ReferenceCoordinateFrame, phantomRegistrationElement);
 
   return PLUS_SUCCESS;
 }

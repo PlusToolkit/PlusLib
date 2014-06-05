@@ -31,7 +31,7 @@ vtkFakeTracker::vtkFakeTracker()
   this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
-  this->RequireToolAveragedItemsForFilteringInDeviceSetConfiguration = true;
+  this->RequirePortNameInDeviceSetConfiguration = true;
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
   this->RequireUsImageOrientationInDeviceSetConfiguration = false;
   this->RequireRfElementInDeviceSetConfiguration = false;
@@ -72,8 +72,8 @@ PlusStatus vtkFakeTracker::InternalConnect()
     {
       //*************************************************************
       // Check Reference
-      PlusTransformName toolName("Reference", this->GetToolReferenceFrameName());
-      if ( this->GetTool(toolName.GetTransformName(), tool) != PLUS_SUCCESS )
+      PlusTransformName sourceId("Reference", this->GetToolReferenceFrameName());
+      if ( this->GetTool(sourceId.GetTransformName(), tool) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get tool: Reference in FakeTracker Default mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()); 
         return PLUS_FAIL; 
@@ -86,8 +86,8 @@ PlusStatus vtkFakeTracker::InternalConnect()
     {
       //*************************************************************
       // Check Stylus
-      PlusTransformName toolName("Stylus", this->GetToolReferenceFrameName());
-      if ( this->GetTool(toolName.GetTransformName(), tool) != PLUS_SUCCESS )
+      PlusTransformName sourceId("Stylus", this->GetToolReferenceFrameName());
+      if ( this->GetTool(sourceId.GetTransformName(), tool) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get tool: Stylus in FakeTracker Default mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()); 
         return PLUS_FAIL; 
@@ -100,8 +100,8 @@ PlusStatus vtkFakeTracker::InternalConnect()
     {
       //*************************************************************
       // Check Stlyus-2
-      PlusTransformName toolName("Stylus-2", this->GetToolReferenceFrameName());
-      if ( this->GetTool(toolName.GetTransformName(), tool) != PLUS_SUCCESS )
+      PlusTransformName sourceId("Stylus-2", this->GetToolReferenceFrameName());
+      if ( this->GetTool(sourceId.GetTransformName(), tool) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get tool: Stylus-2 in FakeTracker Default mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()); 
         return PLUS_FAIL; 
@@ -114,8 +114,8 @@ PlusStatus vtkFakeTracker::InternalConnect()
     {
       //*************************************************************
       // Check Stlyus-3
-      PlusTransformName toolName("Stylus-3", this->GetToolReferenceFrameName());
-      if ( this->GetTool(toolName.GetTransformName(), tool) != PLUS_SUCCESS )
+      PlusTransformName sourceId("Stylus-3", this->GetToolReferenceFrameName());
+      if ( this->GetTool(sourceId.GetTransformName(), tool) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get tool: Stylus-3 in FakeTracker Default mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()); 
         return PLUS_FAIL; 
@@ -131,8 +131,8 @@ PlusStatus vtkFakeTracker::InternalConnect()
     {
       //*************************************************************
       // Check Probe
-      PlusTransformName toolName("Probe", this->GetToolReferenceFrameName());
-      if ( this->GetTool(toolName.GetTransformName(), tool) != PLUS_SUCCESS )
+      PlusTransformName sourceId("Probe", this->GetToolReferenceFrameName());
+      if ( this->GetTool(sourceId.GetTransformName(), tool) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get tool: Probe in FakeTracker SmoothMove mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()); 
         return PLUS_FAIL; 
@@ -141,8 +141,8 @@ PlusStatus vtkFakeTracker::InternalConnect()
     {
       //*************************************************************
       // Check Reference
-      PlusTransformName toolName("Reference", this->GetToolReferenceFrameName());
-      if ( this->GetTool(toolName.GetTransformName(), tool) != PLUS_SUCCESS )
+      PlusTransformName sourceId("Reference", this->GetToolReferenceFrameName());
+      if ( this->GetTool(sourceId.GetTransformName(), tool) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get tool: Reference in FakeTracker SmoothMove mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()); 
         return PLUS_FAIL; 
@@ -151,8 +151,8 @@ PlusStatus vtkFakeTracker::InternalConnect()
     {
       //*************************************************************
       // Check MissingTool
-      PlusTransformName toolName("MissingTool", this->GetToolReferenceFrameName());
-      if ( this->GetTool(toolName.GetTransformName(), tool) != PLUS_SUCCESS )
+      PlusTransformName sourceId("MissingTool", this->GetToolReferenceFrameName());
+      if ( this->GetTool(sourceId.GetTransformName(), tool) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get tool: MissingTool in FakeTracker SmoothMove mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
         return PLUS_FAIL; 
@@ -163,8 +163,8 @@ PlusStatus vtkFakeTracker::InternalConnect()
     {
       //*************************************************************
       // Check Reference
-      PlusTransformName toolName("Reference", this->GetToolReferenceFrameName());
-      if ( this->GetTool(toolName.GetTransformName(), tool) != PLUS_SUCCESS )
+      PlusTransformName sourceId("Reference", this->GetToolReferenceFrameName());
+      if ( this->GetTool(sourceId.GetTransformName(), tool) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get tool: Reference in FakeTracker PivotCalibration mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
         return PLUS_FAIL; 
@@ -178,8 +178,8 @@ PlusStatus vtkFakeTracker::InternalConnect()
     {
       //*************************************************************
       // Check Stylus
-      PlusTransformName toolName("Stylus", this->GetToolReferenceFrameName());
-      if ( this->GetTool(toolName.GetTransformName(), tool) != PLUS_SUCCESS )
+      PlusTransformName sourceId("Stylus", this->GetToolReferenceFrameName());
+      if ( this->GetTool(sourceId.GetTransformName(), tool) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get tool: Stylus in FakeTracker PivotCalibration mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
         return PLUS_FAIL; 
@@ -196,8 +196,8 @@ PlusStatus vtkFakeTracker::InternalConnect()
     {
       //*************************************************************
       // Check Reference
-      PlusTransformName toolName("Reference", this->GetToolReferenceFrameName());
-      if ( this->GetTool(toolName.GetTransformName(), tool) != PLUS_SUCCESS )
+      PlusTransformName sourceId("Reference", this->GetToolReferenceFrameName());
+      if ( this->GetTool(sourceId.GetTransformName(), tool) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get tool: Reference in FakeTracker RecordPhantomLandmarks mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
         return PLUS_FAIL; 
@@ -211,8 +211,8 @@ PlusStatus vtkFakeTracker::InternalConnect()
     {
       //*************************************************************
       // Check Stylus
-      PlusTransformName toolName("Stylus", this->GetToolReferenceFrameName());
-      if ( this->GetTool(toolName.GetTransformName(), tool) != PLUS_SUCCESS )
+      PlusTransformName sourceId("Stylus", this->GetToolReferenceFrameName());
+      if ( this->GetTool(sourceId.GetTransformName(), tool) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get tool: Stylus in FakeTracker RecordPhantomLandmarks mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
         return PLUS_FAIL; 
@@ -231,8 +231,8 @@ PlusStatus vtkFakeTracker::InternalConnect()
     {
       //*************************************************************
       // Check Test
-      PlusTransformName toolName("Test", this->GetToolReferenceFrameName());
-      if ( this->GetTool(toolName.GetTransformName(), tool) != PLUS_SUCCESS )
+      PlusTransformName sourceId("Test", this->GetToolReferenceFrameName());
+      if ( this->GetTool(sourceId.GetTransformName(), tool) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get tool: Test in FakeTracker ToolState mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
         return PLUS_FAIL; 
@@ -556,27 +556,17 @@ PlusStatus vtkFakeTracker::InternalUpdate()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkFakeTracker::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkFakeTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   LOG_TRACE("vtkFakeTracker::ReadConfiguration");
 
-  if ( config == NULL ) 
-  {
-    LOG_WARNING("Unable to find FakeTracker XML data element");
-    return PLUS_FAIL; 
-  }
+  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   if ( !this->Recording )
   {
     // Read mode
-    vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(config);
-    if (trackerConfig == NULL) 
-    {
-      LOG_ERROR("Cannot find Tracker element in XML tree!");
-      return PLUS_FAIL;
-    }
 
-    const char* mode = trackerConfig->GetAttribute("Mode"); 
+    const char* mode = deviceConfig->GetAttribute("Mode"); 
     if ( mode != NULL ) 
     {
       if (STRCASECMP(mode, "Default") == 0)
@@ -608,7 +598,7 @@ PlusStatus vtkFakeTracker::ReadConfiguration(vtkXMLDataElement* config)
     // Read landmarks for RecordPhantomLandmarks mode
     bool phantomLandmarksFound = true;
     vtkXMLDataElement* landmarks = NULL;
-    vtkXMLDataElement* phantomDefinition = config->FindNestedElementWithName("PhantomDefinition");
+    vtkXMLDataElement* phantomDefinition = rootConfigElement->FindNestedElementWithName("PhantomDefinition");
     if (phantomDefinition == NULL)
     {
       phantomLandmarksFound = false;
@@ -668,5 +658,5 @@ PlusStatus vtkFakeTracker::ReadConfiguration(vtkXMLDataElement* config)
     }
   }
 
-  return Superclass::ReadConfiguration(config); 
+  return PLUS_SUCCESS;
 }

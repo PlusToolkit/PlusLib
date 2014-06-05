@@ -159,7 +159,7 @@ vtkPlusDevice::vtkPlusDevice()
 , RequireFrameBufferSizeInDeviceSetConfiguration(false)
 , RequireAcquisitionRateInDeviceSetConfiguration(false)
 , RequireAveragedItemsForFilteringInDeviceSetConfiguration(false)
-, RequireToolAveragedItemsForFilteringInDeviceSetConfiguration(false)
+, RequirePortNameInDeviceSetConfiguration(false)
 , RequireLocalTimeOffsetSecInDeviceSetConfiguration(false)
 , RequireUsImageOrientationInDeviceSetConfiguration(false)
 , RequireRfElementInDeviceSetConfiguration(false)
@@ -299,7 +299,7 @@ int vtkPlusDevice::GetNumberOfTools() const
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::AddTool( vtkPlusDataSource* tool, bool requireUniquePortName )
+PlusStatus vtkPlusDevice::AddTool( vtkPlusDataSource* tool, bool requireUniquePortName)
 {
   if ( tool == NULL )
   {
@@ -307,37 +307,39 @@ PlusStatus vtkPlusDevice::AddTool( vtkPlusDataSource* tool, bool requireUniquePo
     return PLUS_FAIL; 
   }
 
-  if ( tool->GetSourceId() == NULL || tool->GetPortName() == NULL )
+  if ( tool->GetSourceId() == NULL)
   {
-    LOCAL_LOG_ERROR("Failed to add tool to tracker, tool Name and PortName must be defined!"); 
+    LOCAL_LOG_ERROR("Failed to add tool to tracker, tool source ID must be defined!"); 
     return PLUS_FAIL; 
   }
 
-  if ( this->Tools.find( tool->GetSourceId() ) == this->GetToolIteratorEnd() )
+  if ( this->Tools.find( tool->GetSourceId() ) != this->GetToolIteratorEnd() )
   {
-    if( requireUniquePortName )
+    LOCAL_LOG_ERROR("Tool with ID '" << tool->GetSourceId() << "' is already in the tool container!"); 
+    return PLUS_FAIL; 
+  }
+
+  if( requireUniquePortName && tool->GetPortName() != NULL )
+  {
+    // Check tool port names, it should be unique too
+    for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
     {
-      // Check tool port names, it should be unique too
-      for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+      if (it->second->GetPortName()==NULL)
       {
-        if ( STRCASECMP( tool->GetPortName(), it->second->GetPortName() ) == 0 )
-        {
-          LOCAL_LOG_ERROR("Failed to add '" << tool->GetSourceId() << "' tool to container: tool with name '" << it->second->GetSourceId() 
-            << "' is already defined on port '" << tool->GetPortName() << "'!"); 
-          return PLUS_FAIL; 
-        }
+        continue;
+      }
+      if ( STRCASECMP( tool->GetPortName(), it->second->GetPortName() ) == 0 )
+      {
+        LOCAL_LOG_ERROR("Failed to add '" << tool->GetSourceId() << "' tool to container: tool with name '" << it->second->GetSourceId() 
+          << "' is already defined on port '" << tool->GetPortName() << "'!"); 
+        return PLUS_FAIL; 
       }
     }
+  }
 
-    tool->Register(this); 
-    tool->SetDevice(this); 
-    this->Tools[tool->GetSourceId()] = tool; 
-  }
-  else
-  {
-    LOCAL_LOG_ERROR("Tool with name '" << tool->GetSourceId() << "' is already in the tool conatainer!"); 
-    return PLUS_FAIL; 
-  }
+  tool->Register(this); 
+  tool->SetDevice(this); 
+  this->Tools[tool->GetSourceId()] = tool; 
 
   return PLUS_SUCCESS; 
 }
@@ -358,17 +360,17 @@ PlusStatus vtkPlusDevice::GetFirstActiveTool(vtkPlusDataSource*& aTool) const
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetTool(const char* aToolName, vtkPlusDataSource*& aTool)
+PlusStatus vtkPlusDevice::GetTool(const char* aToolSourceId, vtkPlusDataSource*& aTool)
 {
-  if ( aToolName == NULL )
+  if ( aToolSourceId == NULL )
   {
-    LOCAL_LOG_ERROR("Failed to get tool, tool name is NULL"); 
+    LOCAL_LOG_ERROR("vtkPlusDevice::GetTool failed: aToolSourceId is invalid"); 
     return PLUS_FAIL; 
   }
 
-  if( this->Tools.find(aToolName) != this->Tools.end() )
+  if( this->Tools.find(aToolSourceId) != this->Tools.end() )
   {
-    aTool = this->Tools.find(aToolName)->second;
+    aTool = this->Tools.find(aToolSourceId)->second;
     return PLUS_SUCCESS;
   }
 
@@ -376,9 +378,9 @@ PlusStatus vtkPlusDevice::GetTool(const char* aToolName, vtkPlusDataSource*& aTo
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetTool(const std::string& aToolName, vtkPlusDataSource*& aTool)
+PlusStatus vtkPlusDevice::GetTool(const std::string& aToolSourceId, vtkPlusDataSource*& aTool)
 {
-  return this->GetTool(aToolName.c_str(), aTool);
+  return this->GetTool(aToolSourceId.c_str(), aTool);
 }
 
 //-----------------------------------------------------------------------------
@@ -468,7 +470,7 @@ void vtkPlusDevice::DeepCopy(vtkPlusDevice* device)
   for ( DataSourceContainerConstIterator it = device->Tools.begin(); it != device->Tools.end(); ++it )
   {
     LOCAL_LOG_DEBUG("Copy the buffer of tracker tool: " << it->first ); 
-    if ( this->AddTool(it->second) != PLUS_SUCCESS )
+    if ( this->AddTool(it->second, false) != PLUS_SUCCESS )
     {
       LOCAL_LOG_ERROR("Copy of tool '" << it->first << "' failed - unabale to add tool to the container!"); 
       continue; 
@@ -827,7 +829,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
       {
         aDataSource->SetReferenceName(this->ToolReferenceFrameName);
 
-        if ( aDataSource->ReadConfiguration(dataSourceElement, this->RequireToolAveragedItemsForFilteringInDeviceSetConfiguration, this->RequireImageOrientationInConfiguration, this->GetDeviceId() ) != PLUS_SUCCESS )
+        if ( aDataSource->ReadConfiguration(dataSourceElement, this->RequirePortNameInDeviceSetConfiguration, this->RequireImageOrientationInConfiguration, this->GetDeviceId() ) != PLUS_SUCCESS )
         {
           LOCAL_LOG_ERROR("Unable to add tool to tracker - failed to read tool configuration"); 
           continue; 
@@ -835,7 +837,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
 
         if ( this->AddTool(aDataSource) != PLUS_SUCCESS )
         {
-          LOCAL_LOG_ERROR("Failed to add tool '" << aDataSource->GetSourceId() << "' to device on port " << aDataSource->GetPortName() );
+          LOCAL_LOG_ERROR("Failed to add tool '" << (aDataSource->GetSourceId()?aDataSource->GetSourceId():"(unspecified)") << "' to device on port " << (aDataSource->GetPortName()?aDataSource->GetPortName():"(unspecified)") );
         }
       }
       else if( dataSourceElement->GetAttribute("Type") != NULL && STRCASECMP(dataSourceElement->GetAttribute("Type"), "Video") == 0 )
@@ -844,7 +846,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
 
         if ( this->AddVideo(aDataSource) != PLUS_SUCCESS )
         {
-          LOCAL_LOG_ERROR("Failed to add video source '" << aDataSource->GetSourceId() << "' to device.");
+          LOCAL_LOG_ERROR("Failed to add video source '" << (aDataSource->GetSourceId()?aDataSource->GetSourceId():"(unspecified)") << "' to device.");
         }
       }
     }
@@ -1153,11 +1155,11 @@ void* vtkPlusDevice::vtkDataCaptureThread(vtkMultiThreader::ThreadInfo *data)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetBufferSize( vtkPlusChannel& aChannel, int& outVal, const char * toolName /*= NULL*/ )
+PlusStatus vtkPlusDevice::GetBufferSize( vtkPlusChannel& aChannel, int& outVal, const char * toolSourceId /*= NULL*/ )
 {
   LOCAL_LOG_TRACE("vtkPlusDeviceg::GetBufferSize");
 
-  if( toolName == NULL )
+  if( toolSourceId == NULL )
   {
     vtkPlusDataSource* aSource(NULL);
     if( aChannel.GetVideoSource(aSource) != PLUS_SUCCESS )
@@ -1172,14 +1174,14 @@ PlusStatus vtkPlusDevice::GetBufferSize( vtkPlusChannel& aChannel, int& outVal, 
 
   for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
-    if( STRCASECMP(it->second->GetSourceId(), toolName) == 0 )
+    if( STRCASECMP(it->second->GetSourceId(), toolSourceId) == 0 )
     {
       outVal = it->second->GetBuffer()->GetBufferSize();
       return PLUS_SUCCESS;
     }
   }
 
-  LOCAL_LOG_ERROR("Unable to find tool " << toolName << " when requesting its buffer size.");
+  LOCAL_LOG_ERROR("Unable to find tool " << toolSourceId << " when requesting its buffer size.");
   return PLUS_FAIL;
 }
 
@@ -1187,7 +1189,7 @@ PlusStatus vtkPlusDevice::GetBufferSize( vtkPlusChannel& aChannel, int& outVal, 
 // set or change the circular buffer size
 // you will have to override this if you want the buffers
 // to be device-specific (i.e. something other than vtkDataArray)
-PlusStatus vtkPlusDevice::SetBufferSize( vtkPlusChannel& aChannel, int FrameBufferSize, const char* toolName /*= NULL*/ )
+PlusStatus vtkPlusDevice::SetBufferSize( vtkPlusChannel& aChannel, int FrameBufferSize, const char* toolSourceId /*= NULL*/ )
 {
   LOCAL_LOG_TRACE("vtkPlusDevice::SetBufferSize(" << FrameBufferSize << ")");
 
@@ -1197,7 +1199,7 @@ PlusStatus vtkPlusDevice::SetBufferSize( vtkPlusChannel& aChannel, int FrameBuff
     return PLUS_FAIL;
   }
 
-  if( toolName == NULL )
+  if( toolSourceId == NULL )
   {
     vtkPlusDataSource* aSource(NULL);
     if( aChannel.GetVideoSource(aSource) != PLUS_SUCCESS )
@@ -1217,7 +1219,7 @@ PlusStatus vtkPlusDevice::SetBufferSize( vtkPlusChannel& aChannel, int FrameBuff
 
   for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
-    if( STRCASECMP(it->second->GetSourceId(), toolName) == 0 )
+    if( STRCASECMP(it->second->GetSourceId(), toolSourceId) == 0 )
     {
       it->second->GetBuffer()->SetBufferSize(FrameBufferSize);
     }
@@ -1314,28 +1316,28 @@ PlusStatus vtkPlusDevice::ForceUpdate()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::ToolTimeStampedUpdateWithoutFiltering(const char* aToolName, vtkMatrix4x4 *matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp) 
+PlusStatus vtkPlusDevice::ToolTimeStampedUpdateWithoutFiltering(const char* aToolSourceId, vtkMatrix4x4 *matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp) 
 {
-  if ( aToolName == NULL )
+  if ( aToolSourceId == NULL )
   {
-    LOCAL_LOG_ERROR("Failed to update tool - tool name is NULL!"); 
+    LOCAL_LOG_ERROR("Failed to update tool - tool source ID is NULL!"); 
     return PLUS_FAIL; 
   }
 
   vtkPlusDataSource* tool = NULL; 
-  if ( this->GetTool(aToolName, tool) != PLUS_SUCCESS )
+  if ( this->GetTool(aToolSourceId, tool) != PLUS_SUCCESS )
   {
     if( this->ReportUnknownToolsOnce )
     {
-      if( std::find(this->ReportedUnknownTools.begin(), this->ReportedUnknownTools.end(), std::string(aToolName)) == this->ReportedUnknownTools.end() )
+      if( std::find(this->ReportedUnknownTools.begin(), this->ReportedUnknownTools.end(), std::string(aToolSourceId)) == this->ReportedUnknownTools.end() )
       {
-        LOCAL_LOG_ERROR(this->GetDeviceId() << "::Failed to update tool - unable to find tool: " << aToolName);
-        this->ReportedUnknownTools.push_back(std::string(aToolName));
+        LOCAL_LOG_ERROR(this->GetDeviceId() << "::Failed to update tool - unable to find tool: " << aToolSourceId);
+        this->ReportedUnknownTools.push_back(std::string(aToolSourceId));
       }
     }
     else
     {
-      LOCAL_LOG_ERROR(this->GetDeviceId() << "::Failed to update tool - unable to find tool: " << aToolName);
+      LOCAL_LOG_ERROR(this->GetDeviceId() << "::Failed to update tool - unable to find tool: " << aToolSourceId);
     }
     return PLUS_FAIL; 
   }
@@ -1350,28 +1352,28 @@ PlusStatus vtkPlusDevice::ToolTimeStampedUpdateWithoutFiltering(const char* aToo
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::ToolTimeStampedUpdate(const char* aToolName, vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredtimestamp) 
+PlusStatus vtkPlusDevice::ToolTimeStampedUpdate(const char* aToolSourceId, vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredtimestamp) 
 {
-  if ( aToolName == NULL )
+  if ( aToolSourceId == NULL )
   {
-    LOCAL_LOG_ERROR("Failed to update tool - tool name is NULL!"); 
+    LOCAL_LOG_ERROR("Failed to update tool - tool source ID is NULL!"); 
     return PLUS_FAIL; 
   }
 
   vtkPlusDataSource* tool = NULL; 
-  if ( this->GetTool(aToolName, tool) != PLUS_SUCCESS )
+  if ( this->GetTool(aToolSourceId, tool) != PLUS_SUCCESS )
   {
     if( this->ReportUnknownToolsOnce )
     {
-      if( std::find(this->ReportedUnknownTools.begin(), this->ReportedUnknownTools.end(), std::string(aToolName)) == this->ReportedUnknownTools.end() )
+      if( std::find(this->ReportedUnknownTools.begin(), this->ReportedUnknownTools.end(), std::string(aToolSourceId)) == this->ReportedUnknownTools.end() )
       {
-        LOCAL_LOG_ERROR(this->GetDeviceId() << "::Failed to update tool - unable to find tool: " << aToolName);
-        this->ReportedUnknownTools.push_back(std::string(aToolName));
+        LOCAL_LOG_ERROR(this->GetDeviceId() << "::Failed to update tool - unable to find tool: " << aToolSourceId);
+        this->ReportedUnknownTools.push_back(std::string(aToolSourceId));
       }
     }
     else
     {
-      LOCAL_LOG_ERROR(this->GetDeviceId() << "::Failed to update tool - unable to find tool: " << aToolName);
+      LOCAL_LOG_ERROR(this->GetDeviceId() << "::Failed to update tool - unable to find tool: " << aToolSourceId);
     }
     return PLUS_FAIL; 
   }
@@ -2164,5 +2166,19 @@ PlusStatus vtkPlusDevice::GetFirstActiveOutputVideoSource(vtkPlusDataSource*& aV
   }
 
   LOG_ERROR("There is no active video sources in the output channel(s)");
+  return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::GetImageMetaData(std::deque<ImageMetaDataItem> &imageMetaData)
+{
+	LOCAL_LOG_ERROR("vtkPlusDevice::GetImageMetaData is not implemented");
+  return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::GetImage(const std::string& imageId, const std::string& imageReferencFrameName, vtkImageData* imageData, vtkMatrix4x4* ijkToReferenceTransform)
+{
+	LOCAL_LOG_ERROR("vtkPlusDevice::GetImage is not implemented");
   return PLUS_FAIL;
 }

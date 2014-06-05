@@ -81,6 +81,12 @@ public:
 
   static void LogMessageCallback(int level, const char *message, void *userdata);
 
+  vtkSetMacro(TemplateDirectory, std::string);
+  vtkGetMacro(TemplateDirectory, std::string);
+
+  vtkSetMacro(IniFile, std::string);
+  vtkGetMacro(IniFile, std::string);
+
 protected:
   vtkMicronTracker();
   ~vtkMicronTracker();

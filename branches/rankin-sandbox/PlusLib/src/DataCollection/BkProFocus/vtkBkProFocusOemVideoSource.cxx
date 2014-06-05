@@ -340,33 +340,11 @@ PlusStatus vtkBkProFocusOemVideoSource::InternalUpdate()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkBkProFocusOemVideoSource::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkBkProFocusOemVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-
-  LOG_TRACE("vtkBkProFocusOemVideoSource::ReadConfiguration"); 
-  if ( config == NULL )
-  {
-    LOG_ERROR("Unable to configure Epiphan video source! (XML data element is NULL)"); 
-    return PLUS_FAIL; 
-  }
-
-  Superclass::ReadConfiguration(config); 
-
-  vtkXMLDataElement* imageAcquisitionConfig = this->FindThisDeviceElement(config);
-  if (imageAcquisitionConfig == NULL) 
-  {
-    LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
-    return PLUS_FAIL;
-  }
-
-  const char* iniFileName = imageAcquisitionConfig->GetAttribute("IniFileName"); 
-  if ( iniFileName != NULL) 
-  {
-    this->SetIniFileName(iniFileName); 
-  }
-
+  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);  
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(IniFileName, deviceConfig);
   return PLUS_SUCCESS;
-
 }
 
 //-----------------------------------------------------------------------------

@@ -261,29 +261,14 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkEpiphanVideoSource::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkEpiphanVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-
-  LOG_TRACE("vtkEpiphanVideoSource::ReadConfiguration"); 
-  if ( config == NULL )
-  {
-    LOG_ERROR("Unable to configure Epiphan video source! (XML data element is NULL)"); 
-    return PLUS_FAIL; 
-  }
-
-  Superclass::ReadConfiguration(config); 
-
-  vtkXMLDataElement* imageAcquisitionConfig = this->FindThisDeviceElement(config);
-  if (imageAcquisitionConfig == NULL) 
-  {
-    LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
-    return PLUS_FAIL;
-  }
+  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   // SerialNumber is kept for backward compatibility only. Serial number or other address should be specified in the
   // GrabberLocation attribute.
-  const char* grabberLocation = imageAcquisitionConfig->GetAttribute("GrabberLocation");
-  const char* serialNumber = imageAcquisitionConfig->GetAttribute("SerialNumber");
+  const char* grabberLocation = deviceConfig->GetAttribute("GrabberLocation");
+  const char* serialNumber = deviceConfig->GetAttribute("SerialNumber");
   if (grabberLocation!=NULL)
   {
     SetGrabberLocation(grabberLocation);
@@ -300,16 +285,8 @@ PlusStatus vtkEpiphanVideoSource::ReadConfiguration(vtkXMLDataElement* config)
   }
 
   // clipping parameters
-  int clipRectangleOrigin[2]={0,0};
-  if (imageAcquisitionConfig->GetVectorAttribute("ClipRectangleOrigin", 2, clipRectangleOrigin))
-  {
-    this->SetClipRectangleOrigin(clipRectangleOrigin);
-  }
-  int clipRectangleSize[2]={0,0};
-  if (imageAcquisitionConfig->GetVectorAttribute("ClipRectangleSize", 2, clipRectangleSize))
-  {
-    this->SetClipRectangleSize(clipRectangleSize);
-  }
+  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleOrigin, deviceConfig);
+  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleSize, deviceConfig);
 
   return PLUS_SUCCESS;
 

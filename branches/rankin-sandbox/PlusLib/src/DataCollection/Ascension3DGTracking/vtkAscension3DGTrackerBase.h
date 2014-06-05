@@ -97,7 +97,7 @@ private:  // Functions.
     Adds 3 quality values (in the translation component of the transformation matrix) to the buffer.
     For sensors sensorStartIndex, sensorStartIndex+1, and sensorStartIndex+2.
   */
-  PlusStatus QualityToolTimeStampedUpdate(const char* qualityToolName, int sensorStartIndex, const std::vector<unsigned short> &qualityValues, double unfilteredTimestamp);
+  PlusStatus QualityToolTimeStampedUpdate(const char* qualityToolPortName, int sensorStartIndex, const std::vector<unsigned short> &qualityValues, double unfilteredTimestamp);
 
   /*! Returns true if the port name belongs to a virtual tool that stores quality values */
   bool IsQualityPortName(const char* name);

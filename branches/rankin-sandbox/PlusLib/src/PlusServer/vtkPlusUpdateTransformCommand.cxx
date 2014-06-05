@@ -143,11 +143,12 @@ PlusStatus vtkPlusUpdateTransformCommand::Execute()
 {
   LOG_INFO("vtkPlusUpdateTransformCommand::Execute:");
 
-  this->ResponseMessage=std::string("UpdateTransform (") + TransformName + ")";
+  std::string baseMessageString = std::string("UpdateTransform (") + (this->GetTransformName()?this->GetTransformName():"undefined") + ")";
+  std::string warningString;
 
   if( this->GetTransformRepository() == NULL )
   {
-    this->ResponseMessage += " failed: invalid transform repository";
+    this->QueueStringResponse(baseMessageString + " failed: invalid transform repository",PLUS_FAIL);
     return PLUS_FAIL;
   }
 
@@ -160,7 +161,7 @@ PlusStatus vtkPlusUpdateTransformCommand::Execute()
     this->GetTransformRepository()->GetTransformPersistent(aName, persistent);
     if ( !persistent && this->GetTransformPersistent() )
     {
-      this->ResponseMessage += " WARNING: replacing non-persistent transform with a persistent transform.";
+      warningString += " WARNING: replacing non-persistent transform with a persistent transform.";
     }
   }
 
@@ -170,7 +171,7 @@ PlusStatus vtkPlusUpdateTransformCommand::Execute()
   }
   else
   {
-    this->ResponseMessage += " WARNING: transform is not specified.";
+    warningString += " WARNING: transform is not specified.";
   }
 
   this->GetTransformRepository()->SetTransformPersistent(aName, this->GetTransformPersistent());
@@ -184,6 +185,6 @@ PlusStatus vtkPlusUpdateTransformCommand::Execute()
     this->GetTransformRepository()->SetTransformError(aName, this->GetTransformError());
   }
 
-  this->ResponseMessage += " completed successfully";
+  this->QueueStringResponse(baseMessageString + " completed successfully" + warningString,PLUS_SUCCESS);
   return PLUS_SUCCESS;
 }

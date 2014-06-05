@@ -8,7 +8,6 @@
 #define __vtkNDICertusTracker_h
 
 #include "vtkPlusDevice.h"
-#include "ndicapi.h"
 #include <map>
 
 /*! the number of tools this class can handle */

@@ -30,8 +30,8 @@ TARGET_LINK_LIBRARIES(vtkDataCollectorTest1 vtkDataCollection )
 ADD_TEST(vtkDataCollectorTest1 
   ${EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorTest1
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_SavedDataset.xml 
-  --video-buffer-seq-file=${TestDataDir}/DataCollectorSyncVideoBuffer.mha 
-  --tracker-buffer-seq-file=${TestDataDir}/DataCollectorSyncTrackerBuffer.mha 
+  --video-buffer-seq-file=${TestDataDir}/WaterTankBottomTranslationVideoBuffer.mha
+  --tracker-buffer-seq-file=${TestDataDir}/WaterTankBottomTranslationTrackerBuffer-trimmed.mha
   --rendering-off
   )
 SET_TESTS_PROPERTIES( vtkDataCollectorTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -51,8 +51,8 @@ ADD_EXECUTABLE(vtkDataCollectorTest2 vtkDataCollectorTest2.cxx)
 TARGET_LINK_LIBRARIES(vtkDataCollectorTest2 vtkDataCollection )
 ADD_TEST(vtkDataCollectorTest2 
   ${EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorTest2
-  --video-buffer-seq-file=${TestDataDir}/DataCollectorSyncVideoBuffer.mha 
-  --tracker-buffer-seq-file=${TestDataDir}/DataCollectorSyncTrackerBuffer.mha 
+  --video-buffer-seq-file=${TestDataDir}/WaterTankBottomTranslationVideoBuffer.mha
+  --tracker-buffer-seq-file=${TestDataDir}/WaterTankBottomTranslationTrackerBuffer-trimmed.mha
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_SavedDataset.xml 
   --acq-time-length=5
   --verbose=3
@@ -149,6 +149,17 @@ IF (PLUS_USE_ULTRASONIX_VIDEO AND PLUS_TEST_ULTRASONIX)
   SET_TESTS_PROPERTIES( vtkSonixVideoSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF (PLUS_USE_ULTRASONIX_VIDEO AND PLUS_TEST_ULTRASONIX)
 
+#***************************  vtkIntersonSDKCxxVideoSourceTest.cxx ***************************
+IF (PLUS_USE_INTERSONSDKCXX_VIDEO)
+  ADD_EXECUTABLE(vtkIntersonSDKCxxVideoSourceTest vtkintersonSDKCxxVideoSourceTest.cxx)
+  TARGET_LINK_LIBRARIES(vtkIntersonSDKCxxVideoSourceTest vtkDataCollection vtkPlusCommon)
+  ADD_TEST(NAME vtkIntersonSDKCxxVideoSourceTest 
+    COMMAND $<TARGET_FILE:vtkIntersonSDKCxxVideoSourceTest>
+    --rendering-off 
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonSDKCxxVideoSourceTest.xml
+  )
+  SET_TESTS_PROPERTIES( vtkIntersonSDKCxxVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+ENDIF ()
 
 IF (PLUS_USE_BKPROFOCUS_VIDEO)
 
@@ -201,6 +212,13 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
   )
   SET_TESTS_PROPERTIES( vtkSonixVolumeReaderTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
+
+#***************************  vtkIntersonVideoSourceTest.cxx ***************************
+IF (PLUS_USE_INTERSON_VIDEO)
+  ADD_EXECUTABLE(vtkIntersonVideoSourceTest vtkIntersonVideoSourceTest.cxx )
+  TARGET_LINK_LIBRARIES(vtkIntersonVideoSourceTest vtkDataCollection ) 
+ENDIF (PLUS_USE_INTERSON_VIDEO)
+
 
 #************************  vtkSonixPortaVideoSourceTest.cxx ************************
 IF (PLUS_USE_ULTRASONIX_VIDEO)

@@ -48,7 +48,7 @@ vtkOpenIGTLinkTracker::vtkOpenIGTLinkTracker()
   this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
-  this->RequireToolAveragedItemsForFilteringInDeviceSetConfiguration = true;
+  this->RequirePortNameInDeviceSetConfiguration = false;
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
   this->RequireUsImageOrientationInDeviceSetConfiguration = false;
   this->RequireRfElementInDeviceSetConfiguration = false;
@@ -67,6 +67,7 @@ vtkOpenIGTLinkTracker::~vtkOpenIGTLinkTracker()
     this->StopRecording();
   }
   SetTrackerInternalCoordinateSystemName(NULL);
+  this->ClientSocket = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -325,7 +326,7 @@ PlusStatus vtkOpenIGTLinkTracker::ClientSocketReconnect()
 
 //----------------------------------------------------------------------------
 PlusStatus vtkOpenIGTLinkTracker::ReceiveMessageHeader(igtl::MessageHeader::Pointer &headerMsg)
-{  
+{
   headerMsg = igtl::MessageHeader::New();
   headerMsg->InitPack();
 
@@ -448,7 +449,7 @@ PlusStatus vtkOpenIGTLinkTracker::ProcessTDataMessage(igtl::MessageHeader::Point
   double filteredTimestamp = unfilteredTimestamp; // No need to filter already filtered timestamped items received over OpenIGTLink 
   // We store the list of identified tools (tools we get information about from the tracker).
   // The tools that are missing from the tracker message are assumed to be out of view. 
-  std::set<std::string> identifiedToolNames;
+  std::set<std::string> identifiedToolSourceIds;
   for ( int i = 0; i < tdataMsg->GetNumberOfTrackingDataElements(); ++ i )
   {
     igtl::TrackingDataElement::Pointer tdataElem = igtl::TrackingDataElement::New();
@@ -478,7 +479,7 @@ PlusStatus vtkOpenIGTLinkTracker::ProcessTDataMessage(igtl::MessageHeader::Point
     PlusTransformName transformName(igtlTransformName.c_str(), this->TrackerInternalCoordinateSystemName);
     if ( this->ToolTimeStampedUpdateWithoutFiltering(transformName.GetTransformName().c_str(), toolMatrix, TOOL_OK, unfilteredTimestamp, filteredTimestamp) == PLUS_SUCCESS )
     {
-      identifiedToolNames.insert(transformName.GetTransformName());
+      identifiedToolSourceIds.insert(transformName.GetTransformName());
     }
     else
     {
@@ -491,7 +492,7 @@ PlusStatus vtkOpenIGTLinkTracker::ProcessTDataMessage(igtl::MessageHeader::Point
   toolMatrix->Identity();
   for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {    
-    if (identifiedToolNames.find(it->second->GetSourceId())!=identifiedToolNames.end())
+    if (identifiedToolSourceIds.find(it->second->GetSourceId())!=identifiedToolSourceIds.end())
     {
       // this tool has been found and update has been already called with the correct transform
       LOG_TRACE("Tool "<<it->second->GetSourceId()<<": found");
@@ -578,90 +579,17 @@ PlusStatus vtkOpenIGTLinkTracker::ProcessTransformMessage(igtl::MessageHeader::P
   }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkOpenIGTLinkTracker::ReadConfiguration( vtkXMLDataElement* config )
+PlusStatus vtkOpenIGTLinkTracker::ReadConfiguration( vtkXMLDataElement* rootConfigElement )
 {
-  // Read superclass configuration first
-  Superclass::ReadConfiguration( config ); 
-
-  LOG_TRACE( "vtkOpenIGTLinkTracker::ReadConfiguration" ); 
-  if ( config == NULL ) 
-  {
-    LOG_ERROR("Unable to find OpenIGTLinkTracker XML data element");
-    return PLUS_FAIL; 
-  }
-
-  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(config);
-  if (trackerConfig == NULL) 
-  {
-    LOG_ERROR("Cannot find Tracker element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  const char* messageType = trackerConfig->GetAttribute("MessageType"); 
-  if ( messageType != NULL )
-  {
-    this->SetMessageType(messageType); 
-  }
-
-  const char* serverAddress = trackerConfig->GetAttribute("ServerAddress"); 
-  if ( serverAddress != NULL )
-  {
-    this->SetServerAddress(serverAddress); 
-  }
-  else
-  {
-    LOG_ERROR("Unable to find ServerAddress attribute!"); 
-    return PLUS_FAIL; 
-  }
-
-  int serverPort = -1; 
-  if ( trackerConfig->GetScalarAttribute("ServerPort", serverPort ) )
-  {
-    this->SetServerPort(serverPort); 
-  }
-  else
-  {
-    LOG_ERROR("Unable to find ServerPort attribute!"); 
-    return PLUS_FAIL; 
-  }
-
-  const char* trackerInternalCoordinateSystemName = trackerConfig->GetAttribute("TrackerInternalCoordinateSystemName"); 
-  if ( trackerInternalCoordinateSystemName != NULL )
-  {
-    this->SetTrackerInternalCoordinateSystemName(trackerInternalCoordinateSystemName); 
-  }
-
-  const char* reconnect = trackerConfig->GetAttribute("ReconnectOnReceiveTimeout"); 
-  if ( reconnect != NULL )
-  {
-    this->SetReconnectOnReceiveTimeout(STRCASECMP(reconnect, "true") == 0 ? true : false);
-  }
-
-  const char* useLastTransformsOnReceiveTimeout = trackerConfig->GetAttribute("UseLastTransformsOnReceiveTimeout"); 
-  if ( useLastTransformsOnReceiveTimeout != NULL )
-  {
-    this->UseLastTransformsOnReceiveTimeout = (STRCASECMP(useLastTransformsOnReceiveTimeout, "true") == 0 ? true : false);
-  }
-
-  const char* useReceivedTimestamps = trackerConfig->GetAttribute("UseReceivedTimestamps"); 
-  if ( useReceivedTimestamps != NULL )
-  {
-    this->UseReceivedTimestamps = (STRCASECMP(useReceivedTimestamps, "true") == 0 ? true : false);
-  }  
-
-  const char* igtlMessageCrcCheckEnabled = trackerConfig->GetAttribute("IgtlMessageCrcCheckEnabled"); 
-  if ( igtlMessageCrcCheckEnabled != NULL )
-  {
-    if ( STRCASECMP(igtlMessageCrcCheckEnabled, "true") == 0 )
-    {
-      this->SetIgtlMessageCrcCheckEnabled(1);
-    }
-    else
-    {
-      this->SetIgtlMessageCrcCheckEnabled(0);
-    }
-  }
-  
+  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  DSC_READ_STRING_ATTRIBUTE_REQUIRED(ServerAddress, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_REQUIRED(int, ServerPort, deviceConfig);
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(MessageType, deviceConfig);
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(TrackerInternalCoordinateSystemName, deviceConfig);
+  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(ReconnectOnReceiveTimeout, deviceConfig);
+  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(UseLastTransformsOnReceiveTimeout, deviceConfig);
+  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(UseReceivedTimestamps, deviceConfig);
+  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(IgtlMessageCrcCheckEnabled, deviceConfig);  
   return PLUS_SUCCESS;
 }
 

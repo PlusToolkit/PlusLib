@@ -47,7 +47,7 @@ public:
 
   /*! Set source Id. SourceId is used to identify the data source among all the data sources provided by the device 
   therefore it must be unique */
-  PlusStatus SetSourceId(const char* toolName);
+  PlusStatus SetSourceId(const char* toolSourceId);
 
   /*! Set reference name. Reference name is used to convey context about the coordinate frame that the tool is based */
   PlusStatus SetReferenceName(const char* referenceName);

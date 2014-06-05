@@ -1,0 +1,23 @@
+/*!
+\page DevicePolaris
+
+\par Supported hardware devices
+
+- Link to manufacturer's website:
+
+\par Installation
+
+- Supported on
+
+\par Configuration settings
+
+- Device type: \c Polaris.
+- Attributes:
+
+\par Quality values
+
+\par Example configuration file
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_Polaris.xml"
+
+*/

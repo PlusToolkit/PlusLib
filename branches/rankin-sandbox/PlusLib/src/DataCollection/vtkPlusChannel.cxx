@@ -34,6 +34,8 @@ vtkPlusChannel::vtkPlusChannel(void)
   this->BrightnessFrameSize[0] = 640;
   this->BrightnessFrameSize[1] = 480;
 
+  this->TimestampMasterTool=NULL;
+  
   // Create a blank image, it will be used as output if frames are not available
   this->BlankImage->SetExtent( 0, this->BrightnessFrameSize[0] -1, 0, this->BrightnessFrameSize[1] - 1, 0, 0);
 #if (VTK_MAJOR_VERSION < 6)
@@ -223,17 +225,17 @@ PlusStatus vtkPlusChannel::GetVideoSource( vtkPlusDataSource*& aVideoSource ) co
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::GetTool(vtkPlusDataSource*& aTool, const char* toolName )
+PlusStatus vtkPlusChannel::GetTool(vtkPlusDataSource*& aTool, const char* toolSourceId )
 {
-  if( toolName == NULL )
+  if( toolSourceId == NULL )
   {
-    LOG_ERROR("Null toolname sent to stream tool request.");
+    LOG_ERROR("vtkPlusChannel::GetTool failed: toolSourceId is invalid");
     return PLUS_FAIL;
   }
 
   for( DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
   {
-    if( STRCASECMP(toolName, it->second->GetSourceId()) == 0 )
+    if( STRCASECMP(toolSourceId, it->second->GetSourceId()) == 0 )
     {
       aTool = it->second;
       return PLUS_SUCCESS;
@@ -280,31 +282,43 @@ PlusStatus vtkPlusChannel::AddTool(vtkPlusDataSource* aTool )
   {
     if( it->second == aTool )
     {
-      // Yes, compare pointers
+      // tool has been already added
       return PLUS_SUCCESS;
     }
   }
 
   this->Tools[aTool->GetSourceId()] = aTool;
   this->Tools[aTool->GetSourceId()]->Register(this);
+  
+  if (this->TimestampMasterTool==NULL)
+  {
+    // the first added tool will be used as master tool
+    // (the first item in the std::map is not the first added tool but depends on the source ID)
+    this->TimestampMasterTool=aTool;
+  }
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::RemoveTool( const char* toolName )
+PlusStatus vtkPlusChannel::RemoveTool( const char* toolSourceId )
 {
-  if( toolName == NULL )
+  if( toolSourceId == NULL )
   {
-    LOG_ERROR("Trying to remove null toolname from stream.");
+    LOG_ERROR("vtkPlusChannel::RemoveTool failed: toolSourceId is invalid");
     return PLUS_FAIL;
   }
 
   for( DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
   {
-    if( STRCASECMP(it->second->GetSourceId(), toolName) == 0 )
+    if( STRCASECMP(it->second->GetSourceId(), toolSourceId) == 0 )
     {
       this->Tools.erase(it);
+      if (this->TimestampMasterTool==it->second)
+      {
+        // the master tool has been deleted
+        this->TimestampMasterTool=NULL;
+      }
       return PLUS_SUCCESS;
     }
   }
@@ -315,7 +329,7 @@ PlusStatus vtkPlusChannel::RemoveTool( const char* toolName )
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusChannel::RemoveTools()
 {
-  this->Tools.clear();
+  this->Tools.clear();  
 
   return PLUS_SUCCESS;
 }
@@ -327,6 +341,7 @@ PlusStatus vtkPlusChannel::Clear()
   {
     (it->second)->GetBuffer()->Clear();
   }
+  this->TimestampMasterTool=NULL;
   if( this->VideoSource != NULL )
   {
     this->VideoSource->GetBuffer()->Clear();
@@ -404,6 +419,11 @@ PlusStatus vtkPlusChannel::GetTrackedFrame( double timestamp, TrackedFrame& aTra
   // Get frame UID
   if( this->HasVideoSource() && enableImageData )
   {
+    if (this->VideoSource->GetBuffer()->GetNumberOfItems()<1)
+    {
+      LOG_ERROR("Couldn't get tracked frame from video source, frames are not available yet");
+      return PLUS_FAIL;
+    }
     BufferItemUidType frameUID = 0; 
     ItemStatus status = this->VideoSource->GetBuffer()->GetItemUidFromTime(timestamp, frameUID); 
     if ( status != ITEM_OK )
@@ -575,14 +595,13 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList( double& aTimestampFrom, vtkTrack
 
   if ( this->GetTrackingEnabled() )
   {
-    // Get the first tool
-    vtkPlusDataSource* firstActiveTool = NULL; 
-    if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
+    vtkPlusDataSource* masterTool = NULL; 
+    if ( this->GetTimestampMasterTool(masterTool) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to get first active tool"); 
+      LOG_ERROR("Failed to get timestamp master tool"); 
       return PLUS_FAIL; 
     }
-    if ( firstActiveTool->GetBuffer()->GetNumberOfItems() == 0 )
+    if ( masterTool->GetBuffer()->GetNumberOfItems() == 0 )
     {
       LOG_DEBUG("vtkDataCollector::GetTrackedFrameList: the tracker buffer is empty, no items will be returned"); 
       return PLUS_SUCCESS;
@@ -653,17 +672,16 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList( double& aTimestampFrom, vtkTrack
     }
     else if ( this->GetTrackingEnabled() )
     {
-      // Get the first tool
-      vtkPlusDataSource* firstActiveTool = NULL; 
-      if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
+      vtkPlusDataSource* masterTool = NULL; 
+      if ( this->GetTimestampMasterTool(masterTool) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get tracked frame list - there is no active tool!"); 
         return PLUS_FAIL; 
       }
-      vtkPlusBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
+      vtkPlusBuffer* trackerBuffer = masterTool->GetBuffer(); 
       if ( trackerBuffer == NULL )
       {
-        LOG_ERROR("Failed to get first active tool!"); 
+        LOG_ERROR("Failed to get the timestamp master tool!"); 
         return PLUS_FAIL; 
       }
 
@@ -787,18 +805,17 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList( double& aTimestampFrom, vtkTrack
     }
     else if ( this->GetTrackingEnabled() && i < numberOfFramesToAdd - 1 )
     {
-      // Get the first tool
-      vtkPlusDataSource* firstActiveTool = NULL; 
-      if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
+      vtkPlusDataSource* masterTool = NULL; 
+      if ( this->GetTimestampMasterTool(masterTool) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get tracked frame list - there is no active tool!"); 
         return PLUS_FAIL; 
       }
 
-      vtkPlusBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
+      vtkPlusBuffer* trackerBuffer = masterTool->GetBuffer(); 
       if ( trackerBuffer == NULL )
       {
-        LOG_ERROR("Failed to get first active tool!"); 
+        LOG_ERROR("Failed to get the timestamp master tool!"); 
         return PLUS_FAIL;
       }
 
@@ -928,26 +945,24 @@ PlusStatus vtkPlusChannel::GetOldestTimestamp(double &ts)
   double oldestTrackerTimestamp(0);   
   if ( this->GetTrackingEnabled() )
   {    
-    // Get the first tool
-    vtkPlusDataSource* firstActiveTool = NULL; 
-    if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
+    vtkPlusDataSource* masterTool = NULL; 
+    if ( this->GetTimestampMasterTool(masterTool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get oldest timestamp from tracker buffer - there is no active tool!"); 
       return PLUS_FAIL; 
     }
-    vtkPlusBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
+    vtkPlusBuffer* trackerBuffer = masterTool->GetBuffer(); 
 
     if ( trackerBuffer == NULL )
     {
-      LOG_ERROR("Failed to get first active tool!"); 
+      LOG_ERROR("Failed to get the timestamp master tool!"); 
       return PLUS_FAIL; 
     }
 
-    BufferItemUidType uid = trackerBuffer->GetOldestItemUidInBuffer(); 
     // Get the oldest valid timestamp from the tracker buffer
-    if ( trackerBuffer->GetTimeStamp(uid, oldestTrackerTimestamp ) != ITEM_OK )
+    if ( trackerBuffer->GetOldestTimeStamp(oldestTrackerTimestamp) != ITEM_OK )
     {
-      LOG_WARNING("Unable to get timestamp from default tool tracker buffer with UID: " << uid); 
+      LOG_WARNING("Unable to get timestamp from default tool tracker buffer"); 
       return PLUS_FAIL;
     }
   }
@@ -1017,9 +1032,10 @@ PlusStatus vtkPlusChannel::GetMostRecentTimestamp(double &ts)
     }
   }
 
-  double latestTrackerTimestamp(0); // the latest tracker timestamp that is available for all tools
+  double latestTrackerTimestamp=0; // the latest tracker timestamp that is available for all tools
   if ( this->GetTrackingEnabled() )
-  {      
+  {
+    double latestCommonTrackerTimestamp=0;
     bool mostRecentTrackerTimestampRetrieved=false;
     for( DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
     {
@@ -1035,23 +1051,22 @@ PlusStatus vtkPlusChannel::GetMostRecentTimestamp(double &ts)
         LOG_ERROR("Failed to get buffer of tool "<<it->first); 
         continue;
       }
-      BufferItemUidType uid = trackerBuffer->GetLatestItemUidInBuffer(); 
       // Get the most recent valid timestamp from the tracker buffer
       double latestTrackerTimestampForCurrentTool=0;
-      if ( trackerBuffer->GetTimeStamp(uid, latestTrackerTimestampForCurrentTool ) != ITEM_OK )
+      if ( trackerBuffer->GetLatestTimeStamp(latestTrackerTimestampForCurrentTool) != ITEM_OK )
       {
-        LOG_WARNING("Unable to get timestamp from default tool tracker buffer with UID: " << uid); 
+        LOG_WARNING("Unable to get timestamp from tool tracker buffer for time: " << latestTrackerTimestampForCurrentTool); 
         continue;
       }
       if (!mostRecentTrackerTimestampRetrieved)
       {
-        // first tool
-        latestTrackerTimestamp=latestTrackerTimestampForCurrentTool;
+        // initialize with the first tool
+        latestCommonTrackerTimestamp=latestTrackerTimestampForCurrentTool;
         mostRecentTrackerTimestampRetrieved=true;
       }
-      else if (latestTrackerTimestampForCurrentTool<latestTrackerTimestamp)
+      else if (latestTrackerTimestampForCurrentTool<latestCommonTrackerTimestamp)
       {
-        latestTrackerTimestamp=latestTrackerTimestampForCurrentTool;
+        latestCommonTrackerTimestamp=latestTrackerTimestampForCurrentTool;
       }
     }
 
@@ -1061,30 +1076,53 @@ PlusStatus vtkPlusChannel::GetMostRecentTimestamp(double &ts)
       return PLUS_FAIL; 
     }
 
-    // Get the first tool. The first tool determines the sampling times, the other tools are interpolated.
-    vtkPlusDataSource* firstActiveTool = NULL; 
-    if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
+    // The master tool determines the sampling times, the other tools are interpolated.
+    vtkPlusDataSource* masterTool = NULL; 
+    if ( this->GetTimestampMasterTool(masterTool) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to get most recent timestamp from tracker buffer - there is no active tool!"); 
+      LOG_ERROR("Failed to get most recent timestamp from tracker buffer - there is no active tool");
       return PLUS_FAIL; 
     }
 
-    vtkPlusBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
+    vtkPlusBuffer* trackerBuffer = masterTool->GetBuffer(); 
     BufferItemUidType uid = 0;
-    if (trackerBuffer->GetItemUidFromTime(latestTrackerTimestamp, uid) != ITEM_OK )
+    if (trackerBuffer->GetItemUidFromTime(latestCommonTrackerTimestamp, uid) != ITEM_OK )
     {
-      LOG_ERROR("Failed to get video buffer item UID from time: " << std::fixed << latestTrackerTimestamp ); 
+      LOG_ERROR("Failed to get tracker buffer item UID from time: " << std::fixed << latestCommonTrackerTimestamp ); 
       return PLUS_FAIL; 
     }
- 
-    double latestTrackerTimestampForFirstActiveTool=0;
+    
+    double latestTrackerTimestampForMasterTool=0;
     // Get the most recent valid timestamp from the tracker buffer
-    if ( trackerBuffer->GetTimeStamp(uid, latestTrackerTimestampForFirstActiveTool ) != ITEM_OK )
+    if ( trackerBuffer->GetTimeStamp(uid, latestTrackerTimestampForMasterTool ) != ITEM_OK )
     {
       LOG_WARNING("Unable to get timestamp from default tool tracker buffer with UID: " << uid); 
       return PLUS_FAIL;
     }
-    latestTrackerTimestamp=latestTrackerTimestampForFirstActiveTool;
+    
+    if ( latestTrackerTimestampForMasterTool > latestCommonTrackerTimestamp )
+    {
+      // the closest master tracking timestamp is larger than the last common tracking data timestamp,
+      // so we need the previous master tracker timestamp (that should have a timestamp that is smaller than the latest common timestamp)
+      if ( uid-1 < trackerBuffer->GetOldestItemUidInBuffer() ) 
+      {
+        // the tracker buffer item does not exist, so there is no overlap between the tracking tools
+        LOG_ERROR("Failed to get most recent timestamp: no time overlap between tracking tools"); 
+        return PLUS_FAIL; 
+      }
+      if ( trackerBuffer->GetTimeStamp(uid-1, latestTrackerTimestampForMasterTool) != ITEM_OK )
+      {
+        LOG_ERROR("Failed to get tracker buffer timestamp from UID: " << uid-1); 
+        return PLUS_FAIL; 
+      }
+      if ( latestTrackerTimestampForMasterTool > latestCommonTrackerTimestamp )
+      {
+        LOG_ERROR("Failed to get most recent timestamp: no time overlap between tracking tools data"); 
+        return PLUS_FAIL; 
+      }
+    }
+    
+    latestTrackerTimestamp=latestTrackerTimestampForMasterTool;
   }
 
   if ( !this->GetVideoDataAvailable() )
@@ -1146,6 +1184,10 @@ bool vtkPlusChannel::GetTrackingDataAvailable()
   vtkPlusDataSource* aSource = NULL;
   if( this->HasVideoSource() && this->GetVideoSource(aSource) == PLUS_SUCCESS )
   {
+    if (aSource->GetBuffer()->GetNumberOfItems()<1)
+    {
+      return false;
+    }
     StreamBufferItem item;
     if( aSource->GetBuffer()->GetLatestStreamBufferItem(&item) == ITEM_OK && item.HasValidTransformData() )
     {
@@ -1158,6 +1200,10 @@ bool vtkPlusChannel::GetTrackingDataAvailable()
   {
     vtkPlusDataSource* tool = toolIt->second;
     StreamBufferItem item;
+    if (tool->GetBuffer()->GetNumberOfItems()<1)
+    {
+      continue;
+    }
     if( tool->GetBuffer()->GetLatestStreamBufferItem(&item) != ITEM_OK )
     {
       continue;
@@ -1204,18 +1250,27 @@ bool vtkPlusChannel::GetVideoEnabled() const
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::GetFirstActiveTool(vtkPlusDataSource*& aTool)
+PlusStatus vtkPlusChannel::GetTimestampMasterTool(vtkPlusDataSource*& aTool)
 {
-  if ( this->GetToolsStartConstIterator() == this->GetToolsEndConstIterator() )
+  if (this->TimestampMasterTool==NULL)
   {
-    LOG_ERROR("Failed to get first active tool - there is no active tool!"); 
-    return PLUS_FAIL; 
+    // the timestamp master tool has not been set, either no tools have been added
+    // or the timestamp master tool has been deleted
+    DataSourceContainerConstIterator dataSourceIt = this->GetToolsStartConstIterator();
+    if ( dataSourceIt == this->GetToolsEndConstIterator() )
+    {
+      LOG_ERROR("Failed to get the timestamp master tool - there is no active tool");
+      return PLUS_FAIL;
+    }
+    this->TimestampMasterTool=dataSourceIt->second;
+    if (this->TimestampMasterTool==NULL)
+    {
+      LOG_ERROR("Failed to get the timestamp master tool - the first active tool is invalid"); 
+      return PLUS_FAIL;    
+    }
   }
-
-  // Get the first tool
-  aTool = this->GetToolsStartIterator()->second; 
-
-  return PLUS_SUCCESS; 
+  aTool=this->TimestampMasterTool;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -1243,18 +1298,17 @@ int vtkPlusChannel::GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, do
   }
   else if ( this->GetTrackingEnabled() )
   {
-    // Get the first tool
-    vtkPlusDataSource* firstActiveTool = NULL; 
-    if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
+    vtkPlusDataSource* masterTool = NULL; 
+    if ( this->GetTimestampMasterTool(masterTool) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get number of frames between timestamps - there is no active tool!"); 
       return PLUS_FAIL; 
     }
 
-    vtkPlusBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
+    vtkPlusBuffer* trackerBuffer = masterTool->GetBuffer(); 
     if ( trackerBuffer == NULL )
     {
-      LOG_ERROR("Failed to get first active tool!"); 
+      LOG_ERROR("Failed to get timestamp master tool"); 
       return 0; 
     }
 
@@ -1298,14 +1352,13 @@ double vtkPlusChannel::GetClosestTrackedFrameTimestampByTime(double time)
 
   if ( this->GetTrackingEnabled() )
   {
-    // Get the first tool
-    vtkPlusDataSource* firstActiveTool = NULL; 
-    if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
+    vtkPlusDataSource* masterTool = NULL; 
+    if ( this->GetTimestampMasterTool(masterTool) != PLUS_SUCCESS )
     {
       // there is no active tool
       return UNDEFINED_TIMESTAMP; 
     }
-    vtkPlusBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
+    vtkPlusBuffer* trackerBuffer = masterTool->GetBuffer(); 
     if ( trackerBuffer == NULL )
     {
       // there is no buffer

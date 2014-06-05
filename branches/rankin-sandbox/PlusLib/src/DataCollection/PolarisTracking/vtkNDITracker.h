@@ -50,7 +50,6 @@ class vtkSocketCommunicator;
 // the number of tools the polaris can handle
 #define VTK_NDI_NTOOLS 12
 #define VTK_NDI_REPLY_LEN 2048
-#define RETURN_VALUE_LEN 9
 
 /*!
   \class vtkNDITracker
@@ -59,12 +58,39 @@ class vtkSocketCommunicator;
   The vtkNDITracker class provides an  interface to the AURORA and POLARIS
   (Northern Digital Inc., Waterloo, Canada) using the new "combined API" and
   should also support all newer NDI tracking devices.  Any POLARIS systems
-  purchased before 2002 will not support the combined API, and should be
-  used with vtkPOLARISTracker instead.
+  purchased before 2002 will not support the combined API.
 
-  This class refers to ports 1,2,3,A,B,C as ports 0,1,2,3,4,5
+  For active (wired) tools specify PortName attribute. For example,
+  PortName="0" is the first port, PortName="1" is the second, etc.
 
-  \sa vtkPOLARISTracker
+  For passive (wireless) tools specify RomFile attribute. For example,
+  RomFile="NdiToolDefinitions/8700339.rom".
+
+  Important notes on the data collection rate of the Polaris:
+
+  The camera frame rate is 60Hz, and therefore the maximum data
+  collection rate is also 60Hz.  The maximum data transfer rate
+  to the computer is also 60Hz.
+
+  Depending on the number of enabled tools, the data collection
+  rate might be reduced.  Each of the active tools requires one
+  camera frame, and all the passive tools (if any are enabled)
+  collectively require one camera frame.
+
+  Therefore if there are two enabled active tools, the data rate
+  is reduced to 30Hz.  Ditto for an active tool and a passive tool.
+  If all tools are passive, the data rate is 60Hz.  With 3 active
+  tools and one or more passive tools, the data rate is 15Hz.
+  With 3 active tools, or 2 active and one or more passive tools,
+  the data rate is 20Hz.
+
+  The data transfer rate to the computer is independent of the data
+  collection rate, and there might be duplicated records.  The
+  data tranfer rate is limited by the speed of the serial port
+  and by the number of characters sent per data record.  If tools
+  are marked as 'missing' then the number of characters that
+  are sent will be reduced.
+
   \ingroup PlusLibDataCollection
 */
 class VTK_EXPORT vtkNDITracker : public vtkPlusDevice
@@ -106,24 +132,9 @@ public:
   vtkSetMacro(SerialPort, int);
   vtkGetMacro(SerialPort, int);
 
-  /*!
-    Set which serial device to use.  If present, this overrides
-    the SerialPort number.
-  */
-  vtkSetStringMacro(SerialDevice);
-  vtkGetStringMacro(SerialDevice);
-
   /*! Set the desired baud rate.  Default: 9600. */
   vtkSetMacro(BaudRate, int);
   vtkGetMacro(BaudRate, int);
-
-  /*!
-    Enable a passive tool by uploading a virtual SROM for that
-    tool, where 'tool' is a number between 0 and 5.
-  */
-  PlusStatus LoadVirtualSROM(int tool, const char *filename);
-  /*! Disable a passive tool, where 'tool' is a number between 0 and 5 */
-  void ClearVirtualSROM(int tool);
 
   /*!
     Get an update from the tracking system and push the new transforms
@@ -131,14 +142,6 @@ public:
   */
   PlusStatus InternalUpdate();
   
-  /*! Internal use only */
-  virtual PlusStatus InternalInterpretCommand( char * c);
-
-  /*! Get the full TX reply for a tool */
-  int GetFullTX(int tool, double transform[9]);
-  /*! Get the full TX reply for a tool */
-  double *GetFullTX(int tool) { this->ReturnValue[0] = (double) this->GetFullTX(tool, &this->ReturnValue[1]); return this->ReturnValue; };
-
   /*! Read NDI tracker configuration from xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
 
@@ -149,8 +152,21 @@ protected:
   vtkNDITracker();
   ~vtkNDITracker();
 
+  struct NdiToolDescriptor
+  {
+    int WiredPortNumber; // >=0 for wired tools
+    unsigned char *VirtualSROM; // nonzero for wireless tools
+    bool PortEnabled; // true if the tool is successfully enabled in the tracker
+    int PortHandle; // this number identifies the tool in the tracker
+  };
+
   /*! Set the version information */
   vtkSetStringMacro(Version);
+
+  /*! Connect to the tracker hardware */
+  PlusStatus InternalConnect();
+  /*! Disconnect from the tracker hardware */
+  PlusStatus InternalDisconnect();
 
   /*!
     Start the tracking system.  The tracking system is brought from
@@ -170,34 +186,42 @@ protected:
   PlusStatus InternalBeep(int n);
 
   /*! Set the specified tool LED to the specified state */
-  PlusStatus InternalSetToolLED(int tool, int led, int state);
+  PlusStatus InternalSetToolLED(const char* portName, int led, int state);
+
+  /*! Read a virtual SROM from file and store it in the tool descriptor */
+  PlusStatus ReadSromFromFile(NdiToolDescriptor& toolDescriptor, const char *filename);
+
+  /*!
+    Sets the port handle in the descriptor. For wired tools it
+    iterates through the existing connections, for wireless tools
+    it requests a new handle.
+  */
+  PlusStatus UpdatePortHandle(NdiToolDescriptor& toolDescriptor);
 
   /*!
     This is a low-level method for loading a virtual SROM.
     You must halt the tracking thread and take the device
     out of tracking mode before you use it.
+    This call also sets the port handle in the descriptor.
   */
-  PlusStatus InternalLoadVirtualSROM(int tool, const unsigned char data[1024]);
+  PlusStatus SendSromToTracker(const NdiToolDescriptor& toolDescriptor);
   /*!
     This is a low-level method for loading a virtual SROM.
     You must halt the tracking thread and take the device
     out of tracking mode before you use it.
   */
-  PlusStatus InternalClearVirtualSROM(int tool);
+  PlusStatus ClearVirtualSromInTracker(NdiToolDescriptor& toolDescriptor);
 
   /*!
     Methods for detecting which ports have tools in them, and
     auto-enabling those tools.
   */
-  void EnableToolPorts();
+  PlusStatus EnableToolPorts();
   /*!
     Methods for detecting which ports have tools in them, and
     auto-enabling those tools.
   */
   void DisableToolPorts();
-
-  /*! Find the tool for a specific port handle (-1 if not found) */
-  int GetToolFromHandle(int handle);
 
   /*! Requested frequency of position updates in Hz (1/sec) */
   double UpdateNominalFrequency;
@@ -209,22 +233,15 @@ protected:
   char *Version;
   char *SerialDevice;
 
-  vtkMatrix4x4 *SendMatrix;
   int SerialPort; 
   int BaudRate;
   int IsDeviceTracking;
 
-  int PortEnabled[VTK_NDI_NTOOLS];
-  int PortHandle[VTK_NDI_NTOOLS];
-  unsigned char *VirtualSROM[VTK_NDI_NTOOLS];
+  typedef std::map<std::string, NdiToolDescriptor> NdiToolDescriptorsType;
+  /*! Maps Plus tool source IDs to NDI tool descriptors */
+  NdiToolDescriptorsType NdiToolDescriptors;
 
   char CommandReply[VTK_NDI_REPLY_LEN];
-
-  double ReturnValue[RETURN_VALUE_LEN];
-
-  int ServerMode;
-  char* RemoteAddress;
-  vtkSocketCommunicator* SocketCommunicator;
 
 private:
   vtkNDITracker(const vtkNDITracker&);

@@ -37,6 +37,13 @@ static bool neverStop;
 
 int main( int argc, char** argv )
 {
+#ifndef _WIN32
+  // Prevent crash on linux when a client is disconnected
+  // (socket->Send to a disconnected client generates a SIGPIPE signal that crashes the application if not handled
+  // or explicitly ignored)
+  signal(SIGPIPE, SIG_IGN);
+#endif
+
   // Check command line arguments.
   std::string inputConfigFileName;
   std::string testingConfigFileName;
@@ -119,23 +126,14 @@ int main( int argc, char** argv )
   while ( (vtkAccurateTimer::GetSystemTime() < startTime + runTime) || (neverStop) )
   {
     server->ProcessPendingCommands();
+    // Need to process messages while waiting because some devices (such as the vtkWin32VideoSource2) require event processing
+    vtkAccurateTimer::DelayWithEventProcessing(commandQueuePollIntervalSec);
 #ifdef _WIN32
-    // Need to process messages because some devices (such as the vtkWin32VideoSource2) require event processing
-    MSG Msg;
-    while (PeekMessage(&Msg, NULL, 0, 0, PM_REMOVE))
-    {
-      TranslateMessage(&Msg);
-      DispatchMessage(&Msg);
-    }
-
     if( GetAsyncKeyState('Q') || GetAsyncKeyState('q') )
     {
       runTime = 0.0;
       neverStop = false;
     }
-    Sleep(commandQueuePollIntervalSec*1000); // give a chance to other threads to get CPU time now
-#else
-    usleep(commandQueuePollIntervalSec * 1000000);
 #endif
   }
 

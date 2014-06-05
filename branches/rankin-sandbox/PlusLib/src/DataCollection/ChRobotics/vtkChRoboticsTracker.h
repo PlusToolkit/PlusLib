@@ -56,6 +56,10 @@ public:
 
   virtual bool IsTracker() const { return true; }
 
+  vtkSetMacro(SerialPort, unsigned long);
+  vtkSetMacro(BaudRate, unsigned long);
+  vtkSetMacro(FirmwareDirectory, std::string);
+
 protected:
 
   vtkChRoboticsTracker();
@@ -111,14 +115,14 @@ private:  // Variables.
   SerialLine* Serial;
 
   /*! Used COM port number for serial communication (ComPort: 1 => Port name: "COM1")*/
-  long ComPort; 
+  unsigned long SerialPort; 
 
-  /*! Baud rate for serial communication */
-  long BaudRate; 
+  /*! Baud rate for serial communication. */
+  unsigned long BaudRate; 
 
   /*! 
     Directory path containing the XML files that describes the device firmware (available registers, calibration, etc.).
-    The path can be relative to the confiuration directory.
+    The path can be relative to the configuration directory.
   */
   std::string FirmwareDirectory;
 

@@ -119,6 +119,9 @@ protected:
   /*! Set the ReconnectOnNoData flag */
   vtkSetMacro(ReconnectOnReceiveTimeout, bool);
 
+  vtkSetMacro(UseLastTransformsOnReceiveTimeout, bool);
+  vtkSetMacro(UseReceivedTimestamps, bool);
+
   /*! OpenIGTLink message type */
   char* MessageType; 
 

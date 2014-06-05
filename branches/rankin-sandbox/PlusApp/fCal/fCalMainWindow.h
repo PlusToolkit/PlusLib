@@ -144,24 +144,30 @@ public:
   void SetTransducerOriginPixelCoordinateFrame(const char* aTransducerOriginPixelCoordinateFrame) { m_TransducerOriginPixelCoordinateFrame = aTransducerOriginPixelCoordinateFrame; };
 
   /*! Get phantom model id */
-  const char * GetPhantomModelId() { return m_PhantomModelId; };
+  const char * GetPhantomModelId() { return m_PhantomModelId.c_str(); };
   /*! Set phantom model id */
-  void SetPhantomModelId(const char* aObjectId) { m_PhantomModelId = aObjectId; };
-  /*! Enable/disable the phantom action */
-  void EnablePhantomToggle(bool aEnable);
+  void SetPhantomModelId(const char* aObjectId) { m_PhantomModelId = aObjectId?aObjectId:""; };
+  /*! Enable/disable the show phantom model action */
+  void EnableShowPhantomModelToggle(bool aEnable);
+  /*! Get phantom wires model id */
+  const char * GetPhantomWiresModelId() { return m_PhantomModelId.c_str(); };
+  /*! Set phantom wires model id */
+  void SetPhantomWiresModelId(const char* aObjectId) { m_PhantomWiresModelId = aObjectId?aObjectId:""; };
+  /*! Enable/disable the show phantom wires action */
+  void EnableShowPhantomWiresModelToggle( bool aEnable );
 
   /*! Get stylus model id */
-  const char * GetStylusModelId() { return m_StylusModelId; };
+  const char * GetStylusModelId() { return m_StylusModelId.c_str(); };
   /*! Set stylus model id */
   void SetStylusModelId(const char* aObjectId) { m_StylusModelId = aObjectId; };
 
   /*! Get probe object id */
-  const char * GetTransducerModelId() { return m_TransducerModelId; };
+  const char * GetTransducerModelId() { return m_TransducerModelId.c_str(); };
   /*! Set probe object id */
   void SetTransducerModelId(const char* aObjectId) { m_TransducerModelId = aObjectId; };
 
   /*! Get image object id */
-  const char * GetImageObjectId() { return m_ImageObjectId; };
+  const char * GetImageObjectId() { return m_ImageObjectId.c_str(); };
   /*! Set image object id */
   void SetImageObjectId(const char* aObjectId) { m_ImageObjectId = aObjectId; };
 
@@ -226,7 +232,12 @@ protected:
     /*!
     * Slot handling show phantom
     */
-    void ShowPhantomToggled();
+    void ShowPhantomModelToggled();
+
+    /*!
+    * Slot handling show phantom wires
+    */
+    void ShowPhantomWiresModelToggled();
 
     /*!
     * Activate a certain device
@@ -293,17 +304,20 @@ protected:
   /*! Transducer origin (pixel) coordinate frame name for Rendering */
   std::string m_TransducerOriginPixelCoordinateFrame;
 
-  /*! phantom object ID for Rendering */
-  const char * m_PhantomModelId;
+  /*! phantom frame object ID for Rendering */
+  std::string m_PhantomModelId;
+
+  /*! phantom wires object ID for Rendering */
+  std::string m_PhantomWiresModelId;
 
   /*! stylus object ID for Rendering */
-  const char * m_StylusModelId;
+  std::string m_StylusModelId;
 
   /*! transducer object ID for Rendering */
-  const char * m_TransducerModelId;
+  std::string m_TransducerModelId;
 
   /*! image object ID for Rendering */
-  const char * m_ImageObjectId;
+  std::string m_ImageObjectId;
 
   /*! Turn on/off showing input and result points in 3D canvas when show devices is on */
   bool m_ShowPoints;
@@ -325,6 +339,9 @@ protected:
 
   /*! Reference to the show phantom action */
   QCustomAction* m_ShowPhantomModelAction;
+
+  /*! Reference to the show phantom wires action */
+  QCustomAction* m_ShowPhantomWiresModelAction;
 
   /*! Reference to all actions that will show up in ROI list */
   std::vector<QCustomAction*> m_3DActionList;

@@ -170,12 +170,9 @@ double vtkVirtualSwitcher::GetAcquisitionRate() const
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualSwitcher::ReadConfiguration( vtkXMLDataElement* element)
+PlusStatus vtkVirtualSwitcher::ReadConfiguration( vtkXMLDataElement* rootConfigElement)
 {
-  if( Superclass::ReadConfiguration(element) == PLUS_FAIL )
-  {
-    return PLUS_FAIL;
-  }
+  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   if( this->OutputChannels.empty() )
   {

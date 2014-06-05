@@ -17,9 +17,9 @@
       ReconnectOnReceiveTimeout="false"
       LocalTimeOffset="0.0" >
       <DataSources>
-        <DataSource Type="Tool" Id="ReferenceStar" PortName="0" BufferSize="500" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="Pointer" PortName="1" BufferSize="500" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="Ultrasound" PortName="2" BufferSize="500" AveragedItemsForFiltering="20"/>      
+        <DataSource Type="Tool" Id="ReferenceStar" BufferSize="500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Pointer" BufferSize="500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Ultrasound" BufferSize="500" AveragedItemsForFiltering="20"/>      
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">

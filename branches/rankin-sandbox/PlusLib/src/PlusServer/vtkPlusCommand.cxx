@@ -14,9 +14,6 @@
 static const char* DEVICE_NAME_COMMAND = "CMD";
 static const char* DEVICE_NAME_REPLY = "ACK";
 
-vtkCxxSetObjectMacro(vtkPlusCommand, ResponseImage, vtkImageData);
-vtkCxxSetObjectMacro(vtkPlusCommand, ResponseImageToReferenceTransform, vtkMatrix4x4);
-
 //----------------------------------------------------------------------------
 vtkPlusCommand::vtkPlusCommand()
 : CommandProcessor(NULL)
@@ -24,8 +21,6 @@ vtkPlusCommand::vtkPlusCommand()
 , Id(NULL)
 , Name(NULL)
 , DeviceName(NULL)
-, ResponseImage(NULL)
-, ResponseImageToReferenceTransform(NULL)
 {
 }
 
@@ -35,8 +30,6 @@ vtkPlusCommand::~vtkPlusCommand()
   this->SetName(NULL);
   this->SetDeviceName(NULL);
   this->SetId(NULL);
-  this->SetResponseImage(NULL);
-  this->SetResponseImageToReferenceTransform(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -254,11 +247,21 @@ std::string vtkPlusCommand::GetPrefixFromCommandDeviceName(const std::string &de
   return prefix;
 }
 
-//----------------------------------------------------------------------------
-void vtkPlusCommand::ResetResponse()
+//------------------------------------------------------------------------------
+void vtkPlusCommand::PopCommandResponses(PlusCommandResponseList &responses)
 {
-  this->ResponseMessage.clear();
-  this->ResponseImageDeviceName.clear();
-  this->SetResponseImage(NULL);
-  this->SetResponseImageToReferenceTransform(NULL);
+  // Append this->CommandResponses to 'responses'.
+  // Elements appended to 'responses' are removed from this->CommandResponseQueue.
+  responses.splice(responses.end(),this->CommandResponseQueue,this->CommandResponseQueue.begin(),this->CommandResponseQueue.end());
+}
+
+//------------------------------------------------------------------------------
+void vtkPlusCommand::QueueStringResponse(const std::string& message, PlusStatus status)
+{
+  vtkSmartPointer<vtkPlusCommandStringResponse> stringResponse=vtkSmartPointer<vtkPlusCommandStringResponse>::New();  
+  stringResponse->SetClientId(this->ClientId);
+  stringResponse->SetDeviceName(GenerateReplyDeviceName(this->Id));
+  stringResponse->SetStatus(status);
+  stringResponse->SetMessage(message);
+  this->CommandResponseQueue.push_back(stringResponse);
 }

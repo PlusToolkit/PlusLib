@@ -1,4 +1,3 @@
-
 template<class BufferItemType>
 vtkTimestampedCircularBuffer<BufferItemType>* vtkTimestampedCircularBuffer<BufferItemType>::New()
 {
@@ -37,6 +36,8 @@ vtkTimestampedCircularBuffer<BufferItemType>::vtkTimestampedCircularBuffer()
   this->TimeStampLogging = false;
   
   this->StartTime = 0; 
+  
+  this->NegligibleTimeDifferenceSec=1e-5;
 
 }
 
@@ -437,11 +438,13 @@ ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetItemUidFromTime(cons
     return hiStatus; 
   } 
 
-  if (time < tlo)
+  // If the timestamp is slightly out of range then still accept it
+  // (due to errors in conversions there could be slight differences)
+  if (time < tlo-this->NegligibleTimeDifferenceSec)
   {
     return ITEM_NOT_AVAILABLE_ANYMORE; 
   }
-  else if (time > thi)
+  else if (time > thi+this->NegligibleTimeDifferenceSec)
   {
     return ITEM_NOT_AVAILABLE_YET;
   }

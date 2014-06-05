@@ -7,6 +7,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkDataCollector.h"
 #include "vtkPlusCommandProcessor.h"
+#include "vtkPlusCommandResponse.h"
 #include "vtkPlusSaveConfigCommand.h"
 #include "vtkTransformRepository.h"
 #include "vtkVirtualDiscCapture.h"
@@ -90,25 +91,26 @@ PlusStatus vtkPlusSaveConfigCommand::Execute()
 {
   LOG_INFO("vtkPlusSaveConfigCommand::Execute");
 
-  this->ResetResponse();
   if (GetFilename()==NULL)
   {
     this->SetFilename(this->CommandProcessor->GetPlusServer()->GetConfigFilename());
   }
-  this->ResponseMessage = std::string("SaveConfig (") + (this->Filename?this->Filename:"undefined") + ")";
+
+  std::string baseMessageString = std::string("SaveConfig (") + (this->Filename?this->Filename:"undefined") + ")";
 
   if( this->GetDataCollector() == NULL)
   {
-    this->ResponseMessage += " can't access data collector, ";
+    this->QueueStringResponse(baseMessageString + " can't access data collector",PLUS_FAIL);
     return PLUS_FAIL;
   }
   if( this->GetDataCollector()->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS
     || this->GetTransformRepository()->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS )
   {
-    this->ResponseMessage += " unable to write configuration";
+    this->QueueStringResponse(baseMessageString + " unable to write configuration",PLUS_FAIL);
     return PLUS_FAIL;
   }
+
   PlusCommon::PrintXML(this->GetFilename(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
-  this->ResponseMessage += " completed successfully";
+  this->QueueStringResponse(baseMessageString + " completed successfully",PLUS_SUCCESS);
   return PLUS_SUCCESS;
 }

@@ -116,6 +116,27 @@ void vtkAccurateTimer::Delay(double sec)
 #endif
 }
 
+void vtkAccurateTimer::DelayWithEventProcessing(double waitTimeSec)
+{
+#ifdef _WIN32
+  double waitStartTime=vtkAccurateTimer::GetSystemTime();
+  const double commandQueuePollIntervalSec=0.010;
+  do
+  {
+    // Need to process messages because some devices (such as the vtkWin32VideoSource2) require event processing
+    MSG Msg;
+    while (PeekMessage(&Msg, NULL, 0, 0, PM_REMOVE))
+    {
+      TranslateMessage(&Msg);
+      DispatchMessage(&Msg);
+    }
+    Sleep(commandQueuePollIntervalSec*1000); // give a chance to other threads to get CPU time now
+  } while (vtkAccurateTimer::GetSystemTime()-waitStartTime<waitTimeSec);
+#else
+    usleep(waitTimeSec * 1000000);
+#endif
+}
+
 //----------------------------------------------------------------------------
 double vtkAccurateTimer::GetInternalSystemTime()
 {

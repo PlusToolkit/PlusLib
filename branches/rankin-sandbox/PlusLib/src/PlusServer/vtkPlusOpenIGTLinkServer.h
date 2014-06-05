@@ -11,12 +11,14 @@
 #include "vtkMultiThreader.h"
 #include "PlusIgtlClientInfo.h" 
 
+#include "igtlMessageBase.h"
 #include "igtlServerSocket.h"
 
 class TrackedFrame; 
 class vtkDataCollector;
 class vtkPlusChannel;
 class vtkPlusCommandProcessor;
+class vtkPlusCommandResponse;
 class vtkRecursiveCriticalSection; 
 class vtkTransformRepository; 
 
@@ -101,6 +103,9 @@ protected:
   /*! Tracked frame interface, sends the selected message type and data to all clients */ 
   virtual PlusStatus SendTrackedFrame( TrackedFrame& trackedFrame ); 
   
+  /*! Converts a command response to an OpenIGTLink message that can be sent to the client */
+  igtl::MessageBase::Pointer CreateIgtlMessageFromCommandResponse(vtkPlusCommandResponse* response);
+
   /*! Send status message to clients to keep alive the connection */ 
   virtual PlusStatus KeepAlive(); 
 

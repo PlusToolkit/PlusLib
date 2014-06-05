@@ -470,7 +470,36 @@ char *ndiErrorString(int errnum)
 /*---------------------------------------------------------------------*/
 char *ndiDeviceName(int i)
 {
-#if defined(__APPLE__)
+#if defined(_WIN32)
+
+  // Windows
+  const size_t MAX_BUF_LEN=100;
+  static char deviceName[100+1];
+  char deviceNumber[100+1];
+  int comPortNumber;
+  comPortNumber=i+1;
+  deviceName[MAX_BUF_LEN]=0;
+  deviceNumber[MAX_BUF_LEN]=0;  
+  if (comPortNumber<1)
+  {
+    return NULL;
+  }  
+  // COM port name format is different for port number under/over 10 (see Microsoft KB115831)
+  if (comPortNumber<10)
+  {
+    strcpy_s(deviceName, MAX_BUF_LEN, "COM");
+  }
+  else
+  {
+    strcpy_s(deviceName, MAX_BUF_LEN, "\\\\.\\COM");
+  }
+  _itoa_s(comPortNumber, deviceNumber, MAX_BUF_LEN, 10);
+  strcat_s(deviceName, MAX_BUF_LEN, deviceNumber);
+  return deviceName;
+
+#elif defined (__APPLE__)
+  
+  // Apple
   static char devicenames[4][255+6];
   DIR *dirp;
   struct dirent *ep;
@@ -496,8 +525,11 @@ char *ndiDeviceName(int i)
     }
   }
   closedir(dirp);
-  return NULL;  
-#endif /* __APPLE__ */
+  return NULL; 
+
+#else
+
+  // Linux/unix variants
 
 #ifdef NDI_DEVICE0
   if (i == 0) { return NDI_DEVICE0; }
@@ -525,6 +557,8 @@ char *ndiDeviceName(int i)
 #endif
 
   return NULL;
+
+#endif
 }
 
 /*---------------------------------------------------------------------*/

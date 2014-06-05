@@ -66,6 +66,8 @@ public:
 
   /*! Get displayable model id */
   vtkGetStringMacro(ObjectId);
+  /*! Set displayable model id */
+  vtkSetStringMacro(ObjectId);
 
   /*! Set opacity */
   virtual void SetOpacity(double aOpacity) = 0;
@@ -78,9 +80,6 @@ protected:
 
   /*! Destructor */
   virtual ~vtkDisplayableObject();
-
-  /*! Set displayable model id */
-  vtkSetStringMacro(ObjectId);
 
 protected:
   /* Object coordinate frame name */
@@ -190,6 +189,9 @@ public:
   /* Set poly data mapper */
   virtual void SetPolyDataMapper(vtkPolyDataMapper* aPolyDataMapper);
 
+  /*! Appends a polydata to the already existing one */
+  PlusStatus AppendPolyData(vtkPolyData* aPolyData);
+
 public:
   /*! Set opacity */
   void SetOpacity(double aOpacity);
@@ -226,9 +228,6 @@ public:
   * \param aConfig DisplayableObject element from the input device set configuration (not the root as usually!)
   */
   PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
-
-  /*! Appends a polydata to the already existing one */
-  PlusStatus AppendPolyData(vtkPolyData* aPolyData);
 
 public:
   /*! Set STL modle file name */

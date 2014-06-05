@@ -152,7 +152,7 @@ void DeviceSetSelectorWidget::DeviceSetSelected(int aIndex)
     //+ "\n\n(" + ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(0) + ")"
     );
 
-  ui.comboBox_DeviceSet->setToolTip(ui.comboBox_DeviceSet->currentText() + " (" + ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(0) + ")");
+  ui.comboBox_DeviceSet->setToolTip(ui.comboBox_DeviceSet->currentText() + "\n" + ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(0));
 
   QString configurationFilePath = ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0); 
 
@@ -253,6 +253,8 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
   ui.comboBox_DeviceSet->clear();
 
   QStringListIterator filesIterator(fileList);
+  QHash<QString, int> deviceSetVersion;
+
   while (filesIterator.hasNext())
   {
     QString fileName(configDir.absoluteFilePath(filesIterator.next()));
@@ -263,6 +265,7 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
     }
 
     QFile file(fileName);
+    QFileInfo fileInfo(fileName);
     QDomDocument doc;
 
     // If file is not readable then skip
@@ -310,24 +313,37 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
       QVariant userData(datas);
 
       QString name(elem.attribute("Name"));
+      QString description(elem.attribute("Description"));
       if (name.isEmpty())
       {
         LOG_WARNING("Name field is empty in device set configuration file '" << fileName.toLatin1().constData() << "', it is not added to the list");
         continue;
       }
 
-      // Check if the same name already exists
+      // Check if the same name already exists, add a version number if it does.
       int foundIndex = ui.comboBox_DeviceSet->findText(name, Qt::MatchExactly);
       if (foundIndex > -1)
       {
-        LOG_WARNING("Device set with name '" << name.toLatin1().constData() << "' already found, configuration file '" << fileName.toLatin1().constData() << "' is not added to the list");
-        continue;
+        QHash<QString, int>::iterator deviceIt = deviceSetVersion.find(name);
+        if(deviceIt == deviceSetVersion.end())
+        {
+          deviceSetVersion.insert(name,0);
+          name.append(" [0]");
+        }
+        else
+        {
+          deviceIt.value()+=1;
+          name.append(" [" + QString::number(deviceIt.value())+"]");
+        }
       }
 
       ui.comboBox_DeviceSet->addItem(name, userData);
       int currentIndex = ui.comboBox_DeviceSet->findText(name, Qt::MatchExactly);
 
-      // Add tooltip
+      // Add tooltip word wrapped rich text  
+      name.prepend("<p>");
+      name.append("</p> <p>"+fileInfo.fileName().toLatin1()+"</p> <p>"+description.toLatin1()+"</p>");
+
       ui.comboBox_DeviceSet->setItemData(currentIndex, name, Qt::ToolTipRole); 
 
       // If this item is the same as in the config file, select it by default

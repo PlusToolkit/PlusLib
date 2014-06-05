@@ -3,6 +3,7 @@
 SET (PlusServer_SRCS 
   vtkPlusOpenIGTLinkServer.cxx
   vtkPlusOpenIGTLinkClient.cxx
+  vtkPlusCommandResponse.cxx
   vtkPlusCommand.cxx 
   vtkPlusCommandProcessor.cxx 
   vtkPlusReconstructVolumeCommand.cxx 
@@ -17,6 +18,7 @@ IF (WIN32)
     vtkPlusOpenIGTLinkServer.h
     vtkPlusOpenIGTLinkClient.h
     vtkPlusCommand.h
+    vtkPlusCommandResponse.h
     vtkPlusCommandProcessor.h
     vtkPlusReconstructVolumeCommand.h
     vtkPlusStartStopRecordingCommand.h

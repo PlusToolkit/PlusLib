@@ -12,6 +12,8 @@ class vtkPlusCommandProcessor;
 class vtkTransformRepository;
 class vtkImageData;
 
+#include "vtkPlusCommandResponse.h"
+
 /*!
   \class vtkPlusCommand 
   \brief This is an abstract superclass for commands in the OpenIGTLink network interface for Plus.
@@ -67,10 +69,12 @@ public:
   vtkGetStringMacro(Id);
   vtkSetStringMacro(Id);
 
-  std::string GetResponseMessage() { return this->ResponseMessage; };
-  vtkGetMacro(ResponseImage, vtkImageData*);
-  std::string GetResponseImageDeviceName() { return this->ResponseImageDeviceName; };
-  vtkGetMacro(ResponseImageToReferenceTransform, vtkMatrix4x4*);
+  /*!
+    Get command responses from the device, append them to the provided list, and then remove them from the command.
+    The ownership of the command responses are transferred to the caller, it is responsible
+    for deleting them.
+  */
+  void PopCommandResponses(PlusCommandResponseList &responses);
 
   /*!
     Generates a command device name from a specified unique identifier (UID).
@@ -113,37 +117,31 @@ protected:
   /*! Check if the command name is in the list of command names */
   PlusStatus ValidateName();
 
-  /*! Clears all the execute response member variables */
-  void ResetResponse();
+  /*! Helper method to add a string response to the response queue */
+  void QueueStringResponse(const std::string& message, PlusStatus status);
 
-  void SetResponseImage(vtkImageData *imageData);
-  void SetResponseImageToReferenceTransform(vtkMatrix4x4 *matrix);
-  
   vtkPlusCommand();
   virtual ~vtkPlusCommand();
     
   vtkPlusCommandProcessor* CommandProcessor;
+
+  /*! Unique identifier of the Client that the response(s) will be sent to */
   int ClientId;
   
-  // Device name of the received command. Reply device name is DeviceNameReply by default.
+  /*! Device name of the received command. Reply device name is DeviceNameReply by default. */
   char* DeviceName;
   
-  // Unique identifier of the command. It can be used to match commands and replies.
+  /*! Unique identifier of the command. It can be used to match commands and replies. */
   char* Id;
 
+  /*!
+    Name of the command. One command class may handle multiple commands, this Name member defines
+    which of the supported command should be executed.
+  */
   char* Name;
 
-  // STRING message
-  std::string ResponseMessage;
-
-  // IMAGE message
-  vtkImageData* ResponseImage;
-  std::string ResponseImageDeviceName;
-  vtkMatrix4x4* ResponseImageToReferenceTransform;
-
-  // TRANSFORM message
-  //std::string ResponseTransformDeviceName;
-  //vtkMatrix4x4* ResponseTransformMatrix;
+  // Contains a list of command responses that should be forwarded to the caller
+  PlusCommandResponseList CommandResponseQueue;
       
 private:  
   vtkPlusCommand( const vtkPlusCommand& );

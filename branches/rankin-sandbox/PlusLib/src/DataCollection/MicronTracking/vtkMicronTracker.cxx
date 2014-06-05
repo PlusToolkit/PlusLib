@@ -191,7 +191,7 @@ PlusStatus vtkMicronTracker::InternalUpdate()
 
   // Set status and transform for tools with detected markers
   vtkSmartPointer<vtkMatrix4x4> transformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-  std::set<std::string> identifiedToolNames;
+  std::set<std::string> identifiedToolSourceIds;
   vtkSmartPointer< vtkMatrix4x4 > mToolToTracker = vtkSmartPointer< vtkMatrix4x4 >::New();
   mToolToTracker->Identity();
   for (int identifedMarkerIndex=0; identifedMarkerIndex<this->MT->mtGetIdentifiedMarkersCount(); identifedMarkerIndex++)
@@ -206,19 +206,19 @@ PlusStatus vtkMicronTracker::InternalUpdate()
 
     GetTransformMatrix(identifedMarkerIndex, mToolToTracker);
 #ifdef USE_MICRONTRACKER_TIMESTAMPS
-    this->ToolTimeStampedUpdateWithoutFiltering( tool->GetToolName(), mToolToTracker, TOOL_OK, timeSystemSec, timeSystemSec);
+    this->ToolTimeStampedUpdateWithoutFiltering( tool->GetSourceId(), mToolToTracker, TOOL_OK, timeSystemSec, timeSystemSec);
 #else
     this->ToolTimeStampedUpdate( tool->GetSourceId(), mToolToTracker, TOOL_OK, this->FrameNumber, unfilteredTimestamp);
 #endif
 
-    identifiedToolNames.insert(tool->GetSourceId());
+    identifiedToolSourceIds.insert(tool->GetSourceId());
   }
 
   // Set status for tools with non-detected markers
   transformMatrix->Identity();
   for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {    
-    if (identifiedToolNames.find(it->second->GetSourceId())!=identifiedToolNames.end())
+    if (identifiedToolSourceIds.find(it->second->GetSourceId())!=identifiedToolSourceIds.end())
     {
       // this tool has been found and update has been already called with the correct transform
       LOG_TRACE("Tool "<<it->second->GetSourceId()<<": found");
@@ -226,7 +226,7 @@ PlusStatus vtkMicronTracker::InternalUpdate()
     }
     LOG_TRACE("Tool "<<it->second->GetSourceId()<<": not found");
 #ifdef USE_MICRONTRACKER_TIMESTAMPS
-    ToolTimeStampedUpdateWithoutFiltering(it->second->GetToolName(), transformMatrix, TOOL_OUT_OF_VIEW, timeSystemSec, timeSystemSec);   
+    ToolTimeStampedUpdateWithoutFiltering(it->second->GetSourceId(), transformMatrix, TOOL_OUT_OF_VIEW, timeSystemSec, timeSystemSec);   
 #else
     ToolTimeStampedUpdate(it->second->GetSourceId(), transformMatrix, TOOL_OUT_OF_VIEW, this->FrameNumber, unfilteredTimestamp);   
 #endif
@@ -331,37 +331,11 @@ PlusStatus vtkMicronTracker::GetImage(vtkImageData* leftImage, vtkImageData* rig
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMicronTracker::ReadConfiguration( vtkXMLDataElement* config )
+PlusStatus vtkMicronTracker::ReadConfiguration( vtkXMLDataElement* rootConfigElement )
 {
-  // Read superclass configuration first
-  Superclass::ReadConfiguration(config); 
-
-  LOG_TRACE( "vtkMicronTrackerTracker::ReadConfiguration" ); 
-  if ( config == NULL ) 
-  {
-    LOG_ERROR("Unable to find vtkMicronTrackerTracker XML data element");
-    return PLUS_FAIL; 
-  }
-
-  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(config);
-  if (trackerConfig == NULL) 
-  {
-    LOG_ERROR("Cannot find Tracker element in XML tree!");
-    return PLUS_FAIL;
-  }  
-  
-  const char* templateDirectory = trackerConfig->GetAttribute("TemplateDirectory"); 
-  if ( templateDirectory != NULL )
-  { 
-    this->TemplateDirectory=templateDirectory;
-  }
-
-  const char* iniFile = trackerConfig->GetAttribute("IniFile"); 
-  if ( iniFile!= NULL )
-  { 
-    this->IniFile=iniFile;
-  }
-
+  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(TemplateDirectory, deviceConfig);
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(IniFile, deviceConfig);
   return PLUS_SUCCESS;
 }
 

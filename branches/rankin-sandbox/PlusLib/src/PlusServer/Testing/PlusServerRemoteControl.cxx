@@ -324,7 +324,7 @@ void ExecuteSaveConfig(vtkPlusOpenIGTLinkClient* client, const std::string &outp
 PlusStatus PrintReply(vtkPlusOpenIGTLinkClient* client)
 {
   std::string reply;
-  const double replyTimeoutSec=20;
+  const double replyTimeoutSec=30;
   if (client->ReceiveReply(reply, replyTimeoutSec)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to receive reply to the command");
@@ -417,8 +417,13 @@ int main( int argc, char** argv )
 
   vtkPlusLogger::Instance()->SetLogLevel( verboseLevel );
  
-  // We use vtkPlusOpenIGTLinkClientWithTransformLogging instead of vtkPlusOpenIGTLinkClient to log the received transforms
-  vtkSmartPointer<vtkPlusOpenIGTLinkClientWithTransformLogging> client = vtkSmartPointer<vtkPlusOpenIGTLinkClientWithTransformLogging>::New();
+
+  vtkSmartPointer<vtkPlusOpenIGTLinkClient> client = vtkSmartPointer<vtkPlusOpenIGTLinkClient>::New();
+  if (keepConnected)
+  {
+    // We use vtkPlusOpenIGTLinkClientWithTransformLogging instead of vtkPlusOpenIGTLinkClient to log the received transforms
+    client = vtkSmartPointer<vtkPlusOpenIGTLinkClientWithTransformLogging>::New();
+  }
 
   // Connect to server
   client->SetServerHost(serverHost.c_str());

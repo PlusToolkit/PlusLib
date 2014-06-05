@@ -9,68 +9,13 @@
 
 #include "vtkMultiThreader.h"
 #include "vtkObject.h"
+#include "vtkPlusCommand.h"
+#include "vtkPlusCommandResponse.h"
 #include "vtkPlusOpenIGTLinkServer.h"
-#include <deque>
 #include <string>
 
-class vtkPlusCommand;
 class vtkImageData;
 class vtkMatrix4x4;
-
-/*!
-  \class PlusCommandReply 
-  \brief Structure to store an OpenIGTLink command reply.
-  \ingroup PlusLibPlusServer
-*/
-struct PlusCommandReply
-{
-  PlusCommandReply()
-  : ClientId(0), ImageData(NULL), ImageToReferenceTransform(NULL)
-  {
-  }
-  unsigned int ClientId;
-  PlusStatus Status;
-  std::string DeviceName;
-  std::string CustomAttributes;
-  std::string ImageName;
-  vtkImageData* ImageData;
-  vtkMatrix4x4* ImageToReferenceTransform;
-};
-
-/*
-struct PlusCommandReply
-{
-  PlusCommandReply()
-  : ClientId(0), ImageData(NULL), ImageToReferenceTransform(NULL)
-  {
-  }
-  unsigned int ClientId;
-  std::string DeviceName;
-};
-
-struct PlusCommandStringReply : public PlusCommandReply
-{
-  PlusCommandReply()
-  : ClientId(0), ImageData(NULL), ImageToReferenceTransform(NULL)
-  {
-  }
-  std::string Message;
-};
-
-
-struct PlusCommandImageReply : public PlusCommandReply
-{
-  PlusCommandReply()
-  : ClientId(0), ImageData(NULL), ImageToReferenceTransform(NULL)
-  {
-  }
-  std::string ImageName;
-  vtkImageData* ImageData;
-  vtkMatrix4x4* ImageToReferenceTransform;
-};
-
-*/
-typedef std::list<PlusCommandReply> PlusCommandReplyList;
 
 /*!
   \class vtkPlusCommandProcessor 
@@ -115,11 +60,12 @@ public:
   /*! Adds a command to the queue for execution. Can be called from any thread.  */
   virtual PlusStatus QueueCommand(unsigned int clientId, const std::string &commandString, const std::string &deviceName, const std::string& uid); 
 
-  /*! Return the queued command replies and removes the items from the queue (so that each item is returned only once). Can be called from any thread. */
-  virtual PlusStatus GetCommandReplies(PlusCommandReplyList &replies);
-
-  /*! Adds a reply to the queue for sending to a client. Can be called from any thread.  */
-  virtual void QueueReply(int clientId, PlusStatus replyStatus, const std::string& replyString, const std::string& replyDeviceName, const char* imageName=NULL, vtkImageData* imageData=NULL, vtkMatrix4x4* imageToReferenceTransform=NULL);
+  /*!
+    Return the queued command responses and removes the items from the queue (so that each item is returned only once) and clears the response queue.
+    The caller is responsible for deleting the returned response objects.
+    Can be called from any thread.
+  */
+  virtual void PopCommandResponses(PlusCommandResponseList &responses);
 
   vtkGetObjectMacro(PlusServer, vtkPlusOpenIGTLinkServer);
   vtkSetObjectMacro(PlusServer, vtkPlusOpenIGTLinkServer); 
@@ -157,8 +103,8 @@ private:
     After a command's execute method is called it may still remain active (remain in the queue),
     until it signals that it is completed.
   */
-  std::deque<vtkPlusCommand*> CommandQueue;
-  PlusCommandReplyList CommandReplies;
+  std::list<vtkPlusCommand*> CommandQueue;
+  PlusCommandResponseList CommandResponseQueue;
 
   vtkPlusCommandProcessor(const vtkPlusCommandProcessor&);  // Not implemented.
   void operator=(const vtkPlusCommandProcessor&);  // Not implemented.

@@ -39,6 +39,13 @@ public:
   */
   vtkDisplayableObject* GetObjectById( const char* aModelId );
 
+  /*!
+  * Return a displayable object
+  * \param aModelId Model ID of the object to return
+  */
+  PlusStatus AddObject( vtkDisplayableObject* displayableObject );
+
+
   /*! Clear displayable object vector */
   PlusStatus ClearDisplayableObjects();
 

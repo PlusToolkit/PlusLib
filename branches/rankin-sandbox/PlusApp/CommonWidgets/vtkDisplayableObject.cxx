@@ -390,6 +390,26 @@ double vtkDisplayablePolyData::GetOpacity()
   return -1.0;
 }
 
+//-----------------------------------------------------------------------------
+
+PlusStatus vtkDisplayablePolyData::AppendPolyData(vtkPolyData* aPolyData)
+{
+  LOG_TRACE("vtkDisplayablePolyData::AppendPolyData");
+
+  vtkSmartPointer<vtkAppendPolyData> appendFilter = vtkSmartPointer<vtkAppendPolyData>::New();
+#if (VTK_MAJOR_VERSION < 6)
+  appendFilter->AddInput(this->PolyData);
+  appendFilter->AddInput(aPolyData);
+#else
+  appendFilter->AddInputData(this->PolyData);
+  appendFilter->AddInputData(aPolyData);
+#endif  
+
+  appendFilter->Update();
+  SetPolyData(appendFilter->GetOutput());
+
+  return PLUS_SUCCESS;
+}
 
 
 
@@ -559,27 +579,6 @@ PlusStatus vtkDisplayableModel::SetDefaultStylusModel()
   actor->SetMapper(stylusMapper);
   actor->GetProperty()->SetColor(0.2, 0.2, 0.2);
   actor->SetVisibility(false);
-
-  return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus vtkDisplayableModel::AppendPolyData(vtkPolyData* aPolyData)
-{
-  LOG_TRACE("vtkDisplayableModel::AppendPolyData");
-
-  vtkSmartPointer<vtkAppendPolyData> appendFilter = vtkSmartPointer<vtkAppendPolyData>::New();
-#if (VTK_MAJOR_VERSION < 6)
-  appendFilter->AddInput(this->PolyData);
-  appendFilter->AddInput(aPolyData);
-#else
-  appendFilter->AddInputData(this->PolyData);
-  appendFilter->AddInputData(aPolyData);
-#endif  
-
-  appendFilter->Update();
-  SetPolyData(appendFilter->GetOutput());
 
   return PLUS_SUCCESS;
 }

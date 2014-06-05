@@ -16,14 +16,12 @@ Tools: Stylus (Passive Planar, Blunt) , Reference (Frame)"
       ToolReferenceFrame="Tracker" >
       <DataSources>
         <DataSource Type="Tool" Id="Stylus"     PortName="Passive Planar, Blunt" BufferSize="500" />
-        <DataSource Type="Tool" Id="Probe" 	    PortName="Navigus Probe" BufferSize="500" />
         <DataSource Type="Tool" Id="Reference"  PortName="Frame" BufferSize="500" />
 		<DataSource Type="Tool" Id="Image" 	    PortName="ImageToFrameRegistration" BufferSize="500" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
           <DataSource  Id="Stylus" />
-          <DataSource  Id="Probe" />
           <DataSource  Id="Reference" />
 		  <DataSource  Id="Image" />
         </OutputChannel>
@@ -63,7 +61,6 @@ Tools: Stylus (Passive Planar, Blunt) , Reference (Frame)"
       <TransformNames> 
         <Transform Name="StylusToTracker" />
         <Transform Name="ReferenceToTracker" />
-        <Transform Name="ProbeToTracker" />
 		<Transform Name="ImageToTracker"  />
 		<Transform Name="ImageToReference"  />
 		<Transform Name="StylusToReference"  />

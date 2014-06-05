@@ -186,7 +186,7 @@ private:
   /*! Enable/disable zlib compression of pixel data */
   bool UseCompression;
   /*! ASCII or binary */
-  itk::ImageIOBase::FileType FileType;
+  bool IsPixelDataBinary;
   /*! Integer/float, short/long, signed/unsigned */
   PlusCommon::VTKScalarPixelType PixelType;
   /*! Number of components (or channels) */

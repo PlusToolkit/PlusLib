@@ -220,19 +220,19 @@ PlusStatus vtkPlusDataSource::SetPortName(const char* portName)
 //----------------------------------------------------------------------------
 void vtkPlusDataSource::SetLED1(int state)
 {
-  this->Device->SetToolLED(this->PortName,1,state);
+  this->Device->SetToolLED(this->GetSourceId(),1,state);
 }
 
 //----------------------------------------------------------------------------
 void vtkPlusDataSource::SetLED2(int state)
 {
-  this->Device->SetToolLED(this->PortName,2,state);
+  this->Device->SetToolLED(this->GetSourceId(),2,state);
 }
 
 //----------------------------------------------------------------------------
 void vtkPlusDataSource::SetLED3(int state)
 {
-  this->Device->SetToolLED(this->PortName,3,state);
+  this->Device->SetToolLED(this->GetSourceId(),3,state);
 }
 
 //----------------------------------------------------------------------------
@@ -261,7 +261,7 @@ void vtkPlusDataSource::DeepCopy(vtkPlusDataSource *aSource)
 
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement, bool RequireAveragedItemsForFilteringInDeviceSetConfiguration, bool RequireImageOrientationInSourceConfiguration, const char* aDescriptiveNameForBuffer)
+PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement, bool requirePortNameInSourceConfiguration, bool requireImageOrientationInSourceConfiguration, const char* aDescriptiveNameForBuffer)
 {
   LOG_TRACE("vtkPlusDataSource::ReadConfiguration"); 
 
@@ -291,7 +291,7 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
     this->SetSourceId(idName.GetTransformName().c_str());
     this->SetType(DATA_SOURCE_TYPE_TOOL);
     
-    if( portName == NULL )
+    if (requirePortNameInSourceConfiguration && portName == NULL )
     {
       LOG_ERROR("Unable to find PortName! This attribute is mandatory in tool definition."); 
       return PLUS_FAIL; 
@@ -312,7 +312,7 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
         LOG_ERROR("Video image orientation is undefined - please set PortUsImageOrientation in the source configuration");
       }
     }
-    else if (RequireImageOrientationInSourceConfiguration)
+    else if (requireImageOrientationInSourceConfiguration)
     {
       LOG_ERROR("Video image orientation is not defined in the source \'" << this->GetSourceId() << "\' element - please set PortUsImageOrientation in the source configuration");
     }
@@ -363,11 +363,6 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
   if ( sourceElement->GetScalarAttribute("AveragedItemsForFiltering", averagedItemsForFiltering) )
   {
     this->GetBuffer()->SetAveragedItemsForFiltering(averagedItemsForFiltering);
-  }
-  else if ( RequireAveragedItemsForFilteringInDeviceSetConfiguration )
-  {
-    LOG_ERROR("Unable to find averaged items for filtering in source configuration when it is required.");
-    return PLUS_FAIL;
   }
   else
   {

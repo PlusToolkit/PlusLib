@@ -245,7 +245,8 @@ PlusStatus vtkDataCollector::Start()
   }
 
   LOG_DEBUG("vtkDataCollector::Start -- wait " << std::fixed << this->StartupDelaySec << " sec for buffer init..."); 
-  vtkAccurateTimer::Delay(this->StartupDelaySec);
+
+  vtkAccurateTimer::DelayWithEventProcessing(this->StartupDelaySec);
 
   this->Started = true;
 
@@ -442,7 +443,7 @@ PlusStatus vtkDataCollector::GetTrackingData(vtkPlusChannel* aRequestedChannel, 
     return PLUS_FAIL; 
   }
 
-  // Get the first tool
+  // Get the first tool, transforms will be returned at the timestamps of this first tool
   vtkPlusDataSource* firstActiveTool = NULL; 
   if( aRequestedChannel->GetOwnerDevice()->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
   {

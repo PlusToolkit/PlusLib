@@ -87,6 +87,9 @@ See License.txt for details.
 #include "vtkIntersonVideoSource.h"
 #endif
 
+#ifdef PLUS_USE_INTERSONSDKCXX_VIDEO
+#include "vtkIntersonSDKCxxVideoSource.h"
+#endif
 
 #ifdef PLUS_USE_OpenIGTLink
 #include "vtkOpenIGTLinkVideoSource.h"
@@ -168,6 +171,9 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
 #endif 
 #ifdef PLUS_USE_INTERSON_VIDEO
   DeviceTypes["IntersonVideo"]=(PointerToDevice)&vtkIntersonVideoSource::New; 
+#endif 
+#ifdef PLUS_USE_INTERSONSDKCXX_VIDEO
+  DeviceTypes["IntersonSDKCxxVideo"]=(PointerToDevice)&vtkIntersonSDKCxxVideoSource::New; 
 #endif 
 #ifdef PLUS_USE_EPIPHAN
   DeviceTypes["Epiphan"]=(PointerToDevice)&vtkEpiphanVideoSource::New; 

@@ -373,28 +373,18 @@ PlusStatus vtk3DObjectVisualizer::ReadConfiguration(vtkXMLDataElement* aXMLEleme
     // Create displayable tool
     vtkDisplayableObject* displayableObject = vtkDisplayableObject::New(type);
 
-    // Check if image
+    // Image has a special actor, set it now in the displayable object
     if (STRCASECMP(type, "Image") == 0)
     {
-      const char* objectCoordinateFrame = displayableObjectElement->GetAttribute("ObjectCoordinateFrame");
-      if (objectCoordinateFrame == NULL)
-      {
-        LOG_ERROR("No ObjectCoordinateFrame defined for image!");
-      }
-
-      displayableObject->SetObjectCoordinateFrame(objectCoordinateFrame);
       displayableObject->SetActor(this->ImageActor);
-
       imageFound = true;
     }
-    else
+
+    // Read configuration
+    if (displayableObject->ReadConfiguration(displayableObjectElement) != PLUS_SUCCESS)
     {
-      // Read configuration if not image
-      if (displayableObject->ReadConfiguration(displayableObjectElement) != PLUS_SUCCESS)
-      {
-        LOG_ERROR("Unable to read displayable tool configuration!");
-        continue;
-      }
+      LOG_ERROR("Unable to read displayable tool configuration!");
+      continue;
     }
 
     this->DisplayableObjects.push_back(displayableObject);
@@ -467,6 +457,11 @@ PlusStatus vtk3DObjectVisualizer::ShowObjectById( const char* aModelId, bool aOn
 
 vtkDisplayableObject* vtk3DObjectVisualizer::GetObjectById( const char* aModelId )
 {
+  if (aModelId==NULL)
+  {
+    return NULL;
+  }
+
   LOG_TRACE("vtk3DObjectVisualizer::GetObjectById(" << aModelId << ")");
 
   for (std::vector<vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
@@ -480,6 +475,35 @@ vtkDisplayableObject* vtk3DObjectVisualizer::GetObjectById( const char* aModelId
   }
 
   return NULL;
+}
+
+//-----------------------------------------------------------------------------
+
+PlusStatus vtk3DObjectVisualizer::AddObject( vtkDisplayableObject* displayableObject )
+{
+  LOG_TRACE("vtk3DObjectVisualizer::AddObject");
+
+  if (displayableObject==NULL || displayableObject->GetObjectId()==NULL)
+  {
+    LOG_ERROR("vtk3DObjectVisualizer::AddObject failed: invalid input object")
+    return PLUS_FAIL;
+  }
+  if (GetObjectById(displayableObject->GetObjectId())!=NULL)
+  {
+    LOG_ERROR("vtk3DObjectVisualizer::AddObject failed: object with name "<<displayableObject->GetObjectId()<<" already exists")
+    return PLUS_FAIL;
+  }
+  if (displayableObject->GetActor()==NULL)
+  {
+    LOG_ERROR("vtk3DObjectVisualizer::AddObject failed: object with name "<<displayableObject->GetObjectId()<<" does not have a valid actor")
+    return PLUS_FAIL;
+  }
+
+  this->DisplayableObjects.push_back(displayableObject);
+  displayableObject->Register(this);
+  this->CanvasRenderer->AddActor(displayableObject->GetActor());
+
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------

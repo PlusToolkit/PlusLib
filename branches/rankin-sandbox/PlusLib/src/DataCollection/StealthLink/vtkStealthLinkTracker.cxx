@@ -42,7 +42,8 @@ private:
 	MNavStealthLink::NavData		NavData;
 	MNavStealthLink::Registration   Registration;
 	
-	vtkSmartPointer<vtkMatrix4x4> ImageToLpsTransformationMatrix;
+	vtkSmartPointer<vtkMatrix4x4> IjkToMedtronicRpiTransMatrix; // Medtronic excludes the orientation, this is the ijkToRpi without taking orientation into accout
+	vtkSmartPointer<vtkMatrix4x4> IjkToRasTransMatrix; // ijkToRpi with orientation taken into account
 	vtkSmartPointer<vtkMatrix4x4> InsToTrackerTransMatrix;   // Instrument to Tracker transformation matrix
 	vtkSmartPointer<vtkMatrix4x4> FrameToTrackerTransMatrix; // Frame to Tracker transformation matrix
 	vtkSmartPointer<vtkMatrix4x4> ImageToTrackerTransMatrix;   /* RAS to Tracker transformation matrix. This matrix is 
@@ -71,10 +72,11 @@ private:
 	, InstrumentOutOfView(FALSE)
 	, FrameOutOfView(FALSE)
 	{
-		this->InsToTrackerTransMatrix      = vtkSmartPointer<vtkMatrix4x4>::New();
-		this->FrameToTrackerTransMatrix    = vtkSmartPointer<vtkMatrix4x4>::New();
+		this->InsToTrackerTransMatrix        = vtkSmartPointer<vtkMatrix4x4>::New();
+		this->FrameToTrackerTransMatrix      = vtkSmartPointer<vtkMatrix4x4>::New();
 		this->ImageToTrackerTransMatrix      = vtkSmartPointer<vtkMatrix4x4>::New();
-		this->ImageToLpsTransformationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+		this->IjkToMedtronicRpiTransMatrix   = vtkSmartPointer<vtkMatrix4x4>::New();
+		this->IjkToRasTransMatrix			       = vtkSmartPointer<vtkMatrix4x4>::New();
 		this->ServerAddress.clear();
 		this->PortAddress.clear();
 	}
@@ -160,6 +162,7 @@ private:
 			LOG_TRACE("The instrument returned to field of view\n");
 			this->InstrumentOutOfView = FALSE;
 		}	
+		vtkSmartPointer<vtkMatrix4x4> insToTracker_Lps = vtkSmartPointer<vtkMatrix4x4>::New();
 		for(int col=0; col < 4; col++)
 		{
 			for (int row=0; row < 4; row++)
@@ -185,15 +188,18 @@ private:
 			LOG_TRACE("The frame is now trackable.\n");
 			this->FrameOutOfView = FALSE;
 		}
+		MNavStealthLink::Instrument ins;
+		this->StealthLinkServer->get(ins,this->StealthLinkServer->getServerTime());
+		vtkSmartPointer<vtkMatrix4x4> localizerToFrame = vtkSmartPointer<vtkMatrix4x4>::New();
 		for(int col=0; col < 4; col++)
 		{
 			for (int row=0; row < 4; row++)
 			{
-				this->FrameToTrackerTransMatrix->SetElement(row, col, this->NavData.frame_T_localizer [row][col]); // from localizer Space to frame space
+				localizerToFrame->SetElement(row, col, this->NavData.frame_T_localizer [row][col]); // from localizer Space to frame space
 			}
 		}
 		//the transformation matrix given by NavData is from Localizer(Tracker) space to frame space and we need the inverse of it
-		this->FrameToTrackerTransMatrix->Invert();   
+		vtkMatrix4x4::Invert(localizerToFrame,this->FrameToTrackerTransMatrix);   
 	}
 	/* Update the transformation maxtrix of the current registration !*/
 	void UpdateImageToTrackerTransMatrix()
@@ -203,22 +209,44 @@ private:
 		{
 			return;
 		}
-		vtkMatrix4x4* frameToLpsTransMatrix = vtkMatrix4x4::New();
+		//medtronic stores the image in rpi and does not include orientation.  so we need to do some extra math to include the orientation
+		vtkMatrix4x4* frameToMedtronicRpiTransMatrix = vtkMatrix4x4::New();
 		for(int col=0; col < 4; col++)
 		{
 			for (int row=0; row < 4; row++)
 			{
-				frameToLpsTransMatrix->SetElement(row, col, this->Registration.regExamMM_T_frame [row][col]); // from Frame coordinates to lps coordinates
+				frameToMedtronicRpiTransMatrix->SetElement(row, col, this->Registration.regExamMM_T_frame [row][col]); // from Frame coordinates to medtronicRpi coordinates
 			}
 		}
-		vtkSmartPointer<vtkMatrix4x4> lpsToFrameTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-		vtkMatrix4x4::Invert(frameToLpsTransMatrix,lpsToFrameTransMatrix);
-	//	ImageToTrackerTransMatrix = trackerFromImage = trackerFromFrame*FrameFromImage = trackerFromFrame*FrameFromLps * LpsFromImage 
-	//																				   = FrameToTrakcer * LpsToFrame * ImageToLps
-	//																				   = FrameToTrakcer * inv(frameToLps) * ImageToLps
-       vtkSmartPointer<vtkMatrix4x4> lpsToTrackerTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-		vtkMatrix4x4::Multiply4x4(this->FrameToTrackerTransMatrix,lpsToFrameTransMatrix,lpsToTrackerTransMatrix);
-		vtkMatrix4x4::Multiply4x4(lpsToTrackerTransMatrix,this->ImageToLpsTransformationMatrix,this->ImageToTrackerTransMatrix);
+
+		// We need to get to RasToFrame. We have frameToMedtronicRpi, ijkToRas and ijkToMedtronicRpi transformation matrices.
+		// RasToFrame = FrameFromRas = FrameFromMedtronicRpi * MedtronicRpiFromRas
+		//													 = FrameFromMedtronicRpi * MedtronicRpiFromIjk * IjkFromRas
+		//													 = MedtronicRpiToFrame * IjkToMedtronicRpi * RasToIjk
+		// we have frameToMedtronicRpi so we need to invert it
+  	vtkSmartPointer<vtkMatrix4x4> medtronicRpiToFrameTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+		vtkMatrix4x4::Invert(frameToMedtronicRpiTransMatrix,medtronicRpiToFrameTransMatrix);
+
+		// we have ijkToRas so we need to invert it to have rasToIjk
+		vtkSmartPointer<vtkMatrix4x4> rasToIjkTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+		vtkMatrix4x4::Invert(this->IjkToRasTransMatrix,rasToIjkTransMatrix);
+
+		//Now we just need to multiply the matrices
+		//First, let's multiplly MedtronicRpiToFrame  and IjkToMedtronicRpi: this will give us ijkToFrame
+		vtkSmartPointer<vtkMatrix4x4> ijkToFrameTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+		vtkMatrix4x4::Multiply4x4(medtronicRpiToFrameTransMatrix,this->IjkToMedtronicRpiTransMatrix,ijkToFrameTransMatrix);
+
+		// we now multiply ijkToFrameTransMatrix and RasToIjk which will give rasToFrame
+		vtkSmartPointer<vtkMatrix4x4> rasToFrameTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+		vtkMatrix4x4::Multiply4x4(ijkToFrameTransMatrix,rasToIjkTransMatrix,rasToFrameTransMatrix);
+
+		//Final step is to get rasToTracker which is done by frameToTracker * rasToFrame 
+    vtkSmartPointer<vtkMatrix4x4> lpsToTrackerTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+		vtkMatrix4x4::Multiply4x4(this->FrameToTrackerTransMatrix,rasToFrameTransMatrix,this->ImageToTrackerTransMatrix);
+		//vtkSmartPointer<vtkMatrix4x4> imageToTracker_Lps = vtkSmartPointer<vtkMatrix4x4>::New();
+		//vtkMatrix4x4::Multiply4x4(lpsToTrackerTransMatrix,this->ImageToLpsTransformationMatrix,imageToTracker_Lps);
+		//vtkMatrix4x4::Multiply4x4(lpsToTrackerTransMatrix,this->ImageToLpsTransformationMatrix,this->ImageToTrackerTransMatrix);
+		//vtkMatrix4x4::Invert(trackerToRas,this->ImageToTrackerTransMatrix);
 	}
 };
 
@@ -738,7 +766,24 @@ std::string vtkStealthLinkTracker::GetApplicationStartTimestamp()
 {
 	return this->ApplicationStartTimestamp;
 }
-void vtkStealthLinkTracker::SetImageToLpsTransformationMatrix(vtkMatrix4x4* imageToLpsTransformationMatrix)
+void vtkStealthLinkTracker::GetLpsToFrameTransformationMatrix(vtkMatrix4x4* lpsToFrameTransMatrix)
 {
-	this->Internal->ImageToLpsTransformationMatrix->DeepCopy(imageToLpsTransformationMatrix);
+	vtkSmartPointer<vtkMatrix4x4> frameToLpsTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+	for(int col=0; col < 4; col++)
+		{
+			for (int row=0; row < 4; row++)
+			{
+				frameToLpsTransMatrix->SetElement(row, col, this->Internal->Registration.regExamMM_T_frame [row][col]); // from Frame coordinates to lps coordinates
+			}
+		}
+  vtkMatrix4x4::Invert(frameToLpsTransMatrix,lpsToFrameTransMatrix);
 }
+void vtkStealthLinkTracker::SetIjkToRasTransformationMatrix(vtkMatrix4x4* ijkToRpiTransMatrix)
+{
+  this->Internal->IjkToRasTransMatrix->DeepCopy(ijkToRpiTransMatrix);
+}
+void vtkStealthLinkTracker::SetIjkToMedtronicRpiTransformationMatrix(vtkMatrix4x4* ijkToMedtronicRpiTransMatrix)
+{
+  this->Internal->IjkToMedtronicRpiTransMatrix->DeepCopy(ijkToMedtronicRpiTransMatrix);
+}
+	

@@ -28,6 +28,8 @@ and The University of Western Ontario)
 #include "vtkTimerLog.h"
 #include "vtkUnsignedCharArray.h"
 #include "vtksys/SystemTools.hxx"
+#include "vtkMatrix4x4.h"
+#include "vtkTransform.h"
 
 #include <ctype.h>
 
@@ -109,19 +111,17 @@ vtkSonixPortaVideoSourceCleanup::~vtkSonixPortaVideoSourceCleanup()
 vtkSonixPortaVideoSource::vtkSonixPortaVideoSource() 
 {
   // porta instantiation
-  this->PortaBModeWidth = 640;       // defaults to BMode, 640x480
-  this->PortaBModeHeight = 480;
+  this->PortaBModeWidth = 484;       // defaults to BMode, 640x480
+  this->PortaBModeHeight = 364;
   this->ImageBuffer = 0;
   this->ImageBuffer = new unsigned char [ this->PortaBModeWidth *
     this->PortaBModeHeight * 4 ];
   if ( !this->ImageBuffer ) 
   {
-    LOG_ERROR("vtkSonixPortaVideoSource constructor: not enough emory for ImageBuffer" );
+    LOG_ERROR("vtkSonixPortaVideoSource constructor: not enough memory for ImageBuffer" );
   }
 
   this->ImagingMode = (int)BMode;
-  this->PortaMotorStartPosition = 0;
-  this->PortaMotorPosition = 0;
   this->PortaProbeSelected = 0;
   this->PortaModeSelected = 0;
   this->PortaProbeName = 0;
@@ -130,9 +130,12 @@ vtkSonixPortaVideoSource::vtkSonixPortaVideoSource()
   this->PortaFirmwarePath = 0;
   this->PortaLUTPath = 0;
   this->PortaCineSize = 256 * 1024 * 1024; // defaults to 245MB of Cine
-
-  //initialize the frame number
-  this->FrameNumber = 0;
+  this->FirstCallToAddFrameToBuffer = true;
+  this->CurrentMotorAngle = 0;
+  this->StartMotorAngle = 0;
+  this->VolumeIndex = 0;
+	this->IncrementVolumeIndexClockwise = false;
+	this->IncrementVolumeIndexCounterClockwise = true;
 
   this->RequireImageOrientationInConfiguration = true;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
@@ -234,7 +237,6 @@ void vtkSonixPortaVideoSource::PrintSelf(ostream& os, vtkIndent indent) {
   this->Superclass::PrintSelf(os,indent);
   os << indent << "Imaging mode: " << this->ImagingMode << "\n";
   os << indent << "Frequency: " << this->Frequency << "MHz\n";
-  os << indent << "Motor position: " << this->PortaMotorPosition << "MHz\n";
 }
 
 //----------------------------------------------------------------------------
@@ -279,7 +281,6 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
   }
   vtkPlusChannel* outputChannel=this->OutputChannels[0];
 
-  this->FrameNumber++;
   int frameSize[2] = {0,0};
   this->GetFrameSize(*outputChannel, frameSize);
   vtkPlusDataSource* aSource(NULL);
@@ -294,29 +295,105 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
   // for frame containing FC (frame count) in the beginning for data coming from cine, jump 2 bytes
   int numberOfBytesToSkip = 4; 
 
+  // Aligns the motor for correct acqusition of its angle
+  if ( this->FirstCallToAddFrameToBuffer )
+  {
+	this->Porta.setParam( prmMotorStatus, 0 );
+    this->Porta.setParam( prmMotorStatus, 1 );
+    this->FirstCallToAddFrameToBuffer = false;
+  }
+
   this->Porta.getBwImage( 0, this->ImageBuffer, false );
 
   // get the pointer to the actual incoming data onto a local pointer
   unsigned char *deviceDataPtr = static_cast<unsigned char*>( this->ImageBuffer );
 
   // Compute the angle of the motor. 
-  // since the motor is sweeping back and forth, the frame index is found for size of two volumes
-  double frameIndexInTwoVolumes = (FrameNumber % (this->FramePerVolume * 2));
-  double currentMotorAngle;
-  if (frameIndexInTwoVolumes <= FramePerVolume) {
-    currentMotorAngle = (frameIndexInTwoVolumes - this->FramePerVolume / 2) * this->MotorRotationPerStepDeg * this->StepPerFrame;
-  } else {
-    currentMotorAngle = - (frameIndexInTwoVolumes - this->FramePerVolume *3 / 2) * this->MotorRotationPerStepDeg * this->StepPerFrame;
+  double frameIndexOneVolume =  id % this->FramePerVolume;
+  double frameIndexTwoVolumes =  id % (2*this->FramePerVolume);
+  if ( frameIndexOneVolume == 0 )
+  {
+		frameIndexOneVolume = this->FramePerVolume;
   }
-  std::ostringstream motorAngle;
-  motorAngle << currentMotorAngle;
+  if ( frameIndexTwoVolumes == 0 )
+  {
+		frameIndexTwoVolumes = 2 * this->FramePerVolume;
+  }
+  if ( frameIndexTwoVolumes <=  this->FramePerVolume )
+  {
+		if ( this->IncrementVolumeIndexCounterClockwise )
+		{
+			++this->VolumeIndex;
+			this->IncrementVolumeIndexCounterClockwise = false;
+			this->IncrementVolumeIndexClockwise = true;
+		}
+		this->CurrentMotorAngle = this->StartMotorAngle - (frameIndexOneVolume - 1) * this->MotorRotationPerStepDeg * (double)this->StepPerFrame;
+	}
+  else
+  {
+		if ( this->IncrementVolumeIndexClockwise )
+		{
+			++this->VolumeIndex;
+			this->IncrementVolumeIndexCounterClockwise = true;
+			this->IncrementVolumeIndexClockwise = false;
+		}
+		this->CurrentMotorAngle = - this->StartMotorAngle + (frameIndexOneVolume - 1) * this->MotorRotationPerStepDeg * (double)this->StepPerFrame;
+  }
+
+  //std::ostringstream motorAngle;
+  //motorAngle << this->CurrentMotorAngle;
+
+  //std::ostringstream frameNumber;
+  //frameNumber << id;
+  
+  std::ostringstream volumeIndex;
+  volumeIndex << this->VolumeIndex;
 
   TrackedFrame::FieldMapType customFields; 
-  customFields["MotorAngle"] = motorAngle.str(); 
+  //customFields["MotorAngle"] = motorAngle.str();
+  //customFields["FrameNumber"] = frameNumber.str(); 
+  //customFields["VolumeIndex"] = volumeIndex.str(); 
+  customFields["ImageToProbeHeadTransform"] = this->GetProbeHeadToTransducerCenterTransform( this->CurrentMotorAngle, volumeIndex.str() );
+  customFields["ImageToProbeHeadTransformStatus"] = "OK";
 
-  PlusStatus status = aSource->GetBuffer()->AddItem(deviceDataPtr, aSource->GetPortImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, numberOfBytesToSkip, this->FrameNumber, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields); 
+ // if ( frameIndexOneVolume == this->FramePerVolume )
+ // {
+	//++this->VolumeIndex;
+ // }
+
+  PlusStatus status = aSource->GetBuffer()->AddItem(deviceDataPtr, aSource->GetPortImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, numberOfBytesToSkip, id, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields); 
+
   this->Modified();
   return status;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkSonixPortaVideoSource::GetProbeHeadToTransducerCenterTransform( double angle, std::string volumeIndex )
+{
+	double spacing[2] = {0.2482, 0.2482}; // Add correct spacing
+	double origin[2] = {242, -51.7857}; // Add correct origin
+
+	vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
+	matrix->SetElement(0, 0, spacing[0]);
+	matrix->SetElement(1, 1, spacing[1]);
+	matrix->SetElement(0, 3, origin[0]);
+	matrix->SetElement(1, 3, origin[1]);
+
+	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+	transform->SetMatrix( matrix );
+	transform->RotateX( angle ); 
+	transform->GetMatrix(matrix);
+	
+	std::ostringstream matrixToString;
+	matrixToString << matrix->GetElement(0,0) <<" "<< matrix->GetElement(0,1) <<" "<< matrix->GetElement(0,2) <<" "<< matrix->GetElement(0,3) 
+	  << " " <<
+	     matrix->GetElement(1,0) <<" "<< matrix->GetElement(1,1) <<" "<< matrix->GetElement(1,2) <<" "<< matrix->GetElement(1,3) 
+	  << " " <<
+	     matrix->GetElement(2,0) <<" "<< matrix->GetElement(2,1) <<" "<< matrix->GetElement(2,2) <<" "<< volumeIndex // matrix->GetElement(2,3) 
+	  << " " <<
+	     matrix->GetElement(3,0) <<" "<< matrix->GetElement(3,1) <<" "<< matrix->GetElement(3,2) <<" "<< matrix->GetElement(3,3);
+
+	return matrixToString.str();
 }
 
 //----------------------------------------------------------------------------
@@ -371,14 +448,12 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
 
     // store the probe name
     SetPortaProbeName(name);
-
-    if ( !this->Porta.findMasterPreset( name, MAX_NAME_LENGTH, code ) ) 
+	if ( !this->Porta.findMasterPreset( name, MAX_NAME_LENGTH, code ) ) 
     {
       LOG_ERROR("Initialize: master preset cannot be found" );
       return PLUS_FAIL;
     }
 
-    std::string preset = "D:/t/devel/PLTools/Ultrasonix/sdk-5.6.4/Porta/dat/presets/imaging/GEN-General (4DC7-3 40mm).xml";
     if ( !this->Porta.loadPreset( name ) )
     {
       LOG_ERROR("Initialize: master preset could not be loaded" );
@@ -426,10 +501,10 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
 
   // Compute the angle per step
   this->MotorRotationPerStepDeg = (double)this->ProbeInformation.motorFov / (double)this->ProbeInformation.motorSteps / 1000;
+  this->StartMotorAngle = ((double)(this->FramePerVolume-1) * this->MotorRotationPerStepDeg * (double)this->StepPerFrame) / 2;
 
   // Turn on the motor
   this->Porta.setParam( prmMotorStatus, 1 );
-
 
   // finally, update all the parameters
   if ( !this->UpdateSonixPortaParams() ) 
@@ -593,7 +668,7 @@ PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* config
   }
   else
   {
-    LOG_ERROR("Porta LUT path is not defined: "<<portaLUTpath);
+    LOG_ERROR("Porta LUT path is not defined");
   }
 
   const char* portaSettingPath = imageAcquisitionConfig->GetAttribute("PortaSettingPath"); 
@@ -603,7 +678,7 @@ PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* config
   }
   else
   {
-    LOG_ERROR("Porta Setting path is not defined: "<<portaSettingPath);
+    LOG_ERROR("Porta Setting path is not defined");
   }
 
   const char* portaLicensePath = imageAcquisitionConfig->GetAttribute("PortaLicensePath"); 
@@ -613,7 +688,7 @@ PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* config
   }
   else
   {
-    LOG_ERROR("Porta License path is not defined: "<<portaLicensePath);
+    LOG_ERROR("Porta License path is not defined");
   }
 
   const char* portaFirmwarePath = imageAcquisitionConfig->GetAttribute("PortaFirmwarePath"); 
@@ -623,7 +698,7 @@ PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* config
   }
   else
   {
-    LOG_ERROR("Porta Firmware path is not defined: "<<portaFirmwarePath);
+    LOG_ERROR("Porta Firmware path is not defined");
   }
 
   LOG_DEBUG("Porta read the XML configuration");
