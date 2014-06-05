@@ -155,7 +155,7 @@ PlusStatus vtkPhantomLandmarkRegistrationAlgo::ReadConfiguration(vtkXMLDataEleme
   this->DefinedLandmarkNames.clear();
 
   // Load geometry
-  DSC_FIND_NESTED_ELEMENT_REQUIRED(geometry, aConfig, "Geometry");
+  DSC_FIND_NESTED_ELEMENT_REQUIRED(geometry, phantomDefinition, "Geometry");
 
   // Read landmarks (NWires are not interesting at this point, it is only parsed if segmentation is needed)
   vtkXMLDataElement* landmarks = geometry->FindNestedElementWithName("Landmarks"); 

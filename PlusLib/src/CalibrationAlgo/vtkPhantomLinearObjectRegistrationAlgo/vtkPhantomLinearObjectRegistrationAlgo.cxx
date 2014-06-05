@@ -166,7 +166,7 @@ PlusStatus vtkPhantomLinearObjectRegistrationAlgo::ReadConfiguration(vtkXMLDataE
   this->DefinedPlaneNames.clear();
 
   // Load geometry
-  DSC_FIND_NESTED_ELEMENT_REQUIRED(geometry, aConfig, "Geometry");
+  DSC_FIND_NESTED_ELEMENT_REQUIRED(geometry, phantomDefinition, "Geometry");
 
 // Read references (NWires are not interesting at this point, it is only parsed if segmentation is needed)
   vtkXMLDataElement* references = geometry->FindNestedElementWithName("References"); 
