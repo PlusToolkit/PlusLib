@@ -6,6 +6,7 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "TrackedFrame.h"
+#include "igtlImageMetaMessage.h"
 #include "igtlImageMessage.h"
 #include "igtlMessageHeader.h"
 #include "igtlPlusClientInfoMessage.h"
@@ -569,7 +570,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
         commandMsg->SetMessageHeader(headerMsg); 
         commandMsg->AllocatePack(); 
         client.ClientSocket->Receive(commandMsg->GetPackBodyPointer(), commandMsg->GetPackBodySize() ); 
-
+				
         int c = commandMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
         if (c & igtl::MessageHeader::UNPACK_BODY) 
         {          
@@ -598,7 +599,6 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
               self->PreviousCommands[client.ClientId].push_back(uid);
             }
           }
-
           std::stringstream ss;
           ss << "Received command from device " << deviceNameStr;
           if( !uid.empty() )
@@ -615,6 +615,37 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
           LOG_ERROR("STRING message unpacking failed");
         }        
       }
+			else if ( (strcmp(headerMsg->GetDeviceType(), "GET_IMGMETA") == 0) )
+      {
+				const char* deviceName = "";
+        if (headerMsg->GetDeviceName() != NULL)
+        {
+          deviceName = headerMsg->GetDeviceName();
+        }
+        else
+        {
+          LOG_INFO("The image meta data information will be acquired from all of the connected devices");
+        }
+				
+				std::string deviceNameStr=vtkPlusCommand::GetPrefixFromCommandDeviceName(deviceName);
+				self->PlusCommandProcessor->QueueGetImageMetaData(client.ClientId, deviceNameStr);
+			}
+			else if(strcmp(headerMsg->GetDeviceType(), "GET_IMAGE") == 0)
+			{
+				const char* deviceName = "";
+        if (headerMsg->GetDeviceName() != NULL)
+        {
+          deviceName = headerMsg->GetDeviceName();
+        }
+        else
+        {
+          LOG_ERROR("Please select the image you want to acquire");
+					return NULL;
+        }
+				
+				std::string deviceNameStr=vtkPlusCommand::GetPrefixFromCommandDeviceName(deviceName);
+				self->PlusCommandProcessor->QueueGetImage(client.ClientId, deviceNameStr);
+			}
       else
       {
         // if the device type is unknown, skip reading. 
@@ -1117,7 +1148,8 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
     std::string replyStr;
     replyStr += std::string("<CommandReply")
       +" Status=\"" + (stringResponse->GetStatus() == PLUS_SUCCESS ? "SUCCESS" : "FAIL") + "\""
-      +" Message=\"" + stringResponse->GetMessage() + "\""   
+      +" Message=\"" + stringResponse->GetMessage() + "\"" 
+			//+ stringResponse->GetCustomAttributes() TODO Add custom attributes
       += " />";
     igtlMessage->SetString(replyStr.c_str());
     return igtlMessage.GetPointer();
@@ -1146,25 +1178,37 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
     }
 
     igtl::ImageMessage::Pointer igtlMessage = igtl::ImageMessage::New();
-    igtlMessage->SetDeviceName(imageName.c_str());                  
+    igtlMessage->SetDeviceName(imageName.c_str());  
+		
     if ( vtkPlusIgtlMessageCommon::PackImageMessage(igtlMessage, imageData, 
       imageToReferenceTransform, vtkAccurateTimer::GetSystemTime()) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to create image mesage from command response");
       return NULL;
     }
+	  return igtlMessage.GetPointer();
+	}
+	vtkPlusCommandImageMetaDataResponse* imageMetaDataResponse=vtkPlusCommandImageMetaDataResponse::SafeDownCast(response);
+	if (imageMetaDataResponse)
+	{
+		std::string imageMetaDataName="PlusServerImageMetaData";
+		PlusCommon::ImageMetaDataList imageMetaDataList;
+		imageMetaDataResponse->GetImageMetaDataItems(imageMetaDataList);
+		if(imageMetaDataList.size()==0)
+		{
+			LOG_ERROR("There is no image meta data on the connected devices");
+			return NULL;
+		}
+		igtl::ImageMetaMessage::Pointer igtlMessage = igtl::ImageMetaMessage::New();
+		igtlMessage->SetDeviceName(imageMetaDataName.c_str());                  
+		if ( vtkPlusIgtlMessageCommon::PackImageMetaMessage(igtlMessage,imageMetaDataList) != PLUS_SUCCESS )
+		{
+			LOG_ERROR("Failed to create image mesage from command response");
+			return NULL;
+		}
+		return igtlMessage.GetPointer();
+	}  
 
-    return igtlMessage.GetPointer();
-  }  
-
-  vtkPlusCommandImageMetaDataResponse* imageMetaDataResponse=vtkPlusCommandImageMetaDataResponse::SafeDownCast(response);
-  if (imageMetaDataResponse)
-  {
-    //TODO: implement OpenIGTLink message creation from vtkPlusCommandImageMetaDataResponse
-    LOG_ERROR("Creating an OpenIGTLink message from vtkPlusCommandImageMetaDataResponse has not been implemented yet");
-    return NULL;
-  }
-
-  LOG_ERROR("vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromCommandResponse failed: invalid command response");
-  return NULL;
+	LOG_ERROR("vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromCommandResponse failed: invalid command response");
+	return NULL;
 }

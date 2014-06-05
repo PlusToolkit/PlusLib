@@ -13,6 +13,7 @@
 #include "vtkPlusMacro.h"
 #include "vtksys/SystemTools.hxx"
 #include <strstream>
+#include <deque>
 
 enum PlusStatus
 {   
@@ -186,7 +187,20 @@ namespace PlusCommon
     }
     return PLUS_SUCCESS;
   }
+	//---------------------------------------------------------------------------
+  struct ImageMetaDataItem
+	{
+		std::string Id;  /* device name to query the IMAGE and COLORT */
+		std::string Description;        /* name / description (< 64 bytes)*/
+		std::string Modality;    /* modality name (< 32 bytes) */
+		std::string PatientName; /* patient name (< 64 bytes) */ 
+		std::string PatientId;   /* patient ID (MRN etc.) (< 64 bytes) */  
+		double TimeStampUtc;   /* scan time in UTC*/
+		unsigned int Size[3];     /* entire image volume size */ 
+		unsigned char ScalarType;  /* scalar type. see scalar_type in IMAGE message */
+	};
 
+	typedef std::deque<ImageMetaDataItem> ImageMetaDataList;
   //----------------------------------------------------------------------------
   /*! Quick and robust string to int conversion */
   template<class T>

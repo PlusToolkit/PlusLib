@@ -104,6 +104,13 @@ public:
     into the xml data CoordinateDefinitions element. The function will give a warning message in case of any non valid persistent transform. 
   */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* configRootElement); 
+
+	/*! 
+    Delete all transforms from XML data CoordinateDefinitions element then write all transform matrices that are persistent and non-persistent if boolean 
+		is true, only persistent if the boolean is false into the xml data CoordinateDefinitions element. The function will give a warning message 
+		in case of any non valid persistent transform. 
+  */
+  virtual PlusStatus WriteConfigurationGeneric(vtkXMLDataElement* configRootElement, bool copyAllTransforms); 
   
   /*! 
     Get a transform matrix between two coordinate frames. The method fails if the transform
@@ -132,8 +139,8 @@ public:
   /*! Checks if a transform exist */
   virtual PlusStatus IsExistingTransform(const PlusTransformName aTransformName, bool aSilent = true);
 
-  /*! Copies the persistent contents of the repository */
-  virtual PlusStatus DeepCopy(vtkTransformRepository* sourceRepositoryName);
+  /*! Copies the persistent and non-persistent contents if boolean is true, only persistent contents if fase */
+  virtual PlusStatus DeepCopy(vtkTransformRepository* sourceRepositoryName, bool copyAllTransforms);
 
 protected:
   vtkTransformRepository();

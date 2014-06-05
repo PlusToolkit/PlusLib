@@ -7,7 +7,10 @@
 #ifndef __vtkStealthLinkTracker_h
 #define __vtkStealthLinkTracker_h
 
+#include "vtkTransformRepository.h"
 #include "vtkPlusDevice.h"
+#include <string>
+#include <deque>
 
 /*!
 \\class StealthServer 
@@ -39,11 +42,14 @@ public:
 
   /*! Hardware device SDK version. */
   virtual PlusStatus GetSdkVersion(std::string&); 
- 
-  /*! Get image from the StealthLink into VTK images. The Dicom images will be saved in the directory spesified by "ExamImageDirectory". !*/
-  PlusStatus vtkStealthLinkTracker::GetDicomImage(std::string dicomImagesOutputDirectory, std::string& examImageDirectory);
 
   virtual bool IsTracker() const { return true; }
+
+	/*! Return a list of items that desrcibe what image volumes stealthlink device can provide */
+	virtual PlusStatus GetImageMetaData(PlusCommon::ImageMetaDataList &imageMetaData);
+
+	/*! Return the volume  with the given id that this device can provide */
+	virtual PlusStatus GetImage(const std::string& imageId, const std::string& imageReferencFrameName, vtkImageData* imageData, vtkMatrix4x4* ijkToReferenceTransform);
 
   /*! Acquire the current exam from the server !*/
   PlusStatus UpdateCurrentExam();
@@ -54,14 +60,14 @@ public:
   /*! Get the Patient Name. The UpdateCurrentExam functions needs calling before GetPatientName!*/
   PlusStatus GetPatientId(std::string& patientId);
 
-  /*! Get application start timestamp */
-  std::string GetApplicationStartTimestamp();
+	/*! Get the dicom directory where the dicom images will be saved when acquired from the server !*/
+	std::string GetDicomImagesOutputDirectory();
 
-  void SetIjkToRasTransformationMatrix(vtkMatrix4x4*);
+	/*! Set the dicom directory where the dicom images will be saved when acquired from the server !*/
+	void SetDicomImagesOutputDirectory(std::string dicomImagesOutputDirectory);
 
-	void SetIjkToMedtronicRpiTransformationMatrix(vtkMatrix4x4*);
-
-	void GetLpsToFrameTransformationMatrix(vtkMatrix4x4*);
+	/*! Deep copies the transform repository from the server into the TransformRepository attribute !*/
+	PlusStatus UpdateTransformRepository(vtkTransformRepository* sharedTransformRepository);
 
 protected:
 	/*! Constructor !*/
@@ -72,7 +78,7 @@ protected:
 	/*! Connect to the tracker hardware */
 	virtual PlusStatus InternalConnect();
 	/*! Disconnect from the tracker hardware */
-    virtual PlusStatus InternalDisconnect();
+  virtual PlusStatus InternalDisconnect();
 
 	/*! Start recording !*/
 	virtual PlusStatus InternalStartRecording();
@@ -84,16 +90,25 @@ protected:
 	/*! Acquire the current Instrument and Frame from the server !*/
 	PlusStatus UpdateCurrentNavigationData();
 
-	 /*! Acquire the current registration from the server !*/
-     PlusStatus UpdateCurrentRegistration();
-	
-	 // For internal storage of additional variables (to minimize the number of included headers)
-	 class vtkInternal;
-	 vtkInternal* Internal; 
+	/*! Acquire the current registration from the server !*/
+  PlusStatus UpdateCurrentRegistration();
+
+	/*! Acquire the requested exam from the server with the imageId !*/
+  PlusStatus UpdateRequestedExam(const std::string& imageId);
+
+	/*! Get image from the StealthLink into VTK images. The Dicom images will be saved in the directory spesified by "ExamImageDirectory". !*/
+  PlusStatus vtkStealthLinkTracker::AcquireDicomImage(std::string dicomImagesOutputDirectory, std::string& examImageDirectory);
+
+	// For internal storage of additional variables (to minimize the number of included headers)
+	class vtkInternal;
+	vtkInternal* Internal; 
 
 	bool TrackerTimeToSystemTimeComputed;
 	double TrackerTimeToSystemTimeSec;
-	
+
+	/* Generates string of the number of exams requested from the server before*/
+	std::string GetExamCountInString();
+
 	/*! Is Tracker Connected? !*/
 	PlusStatus IsLocalizerConnected(bool&);
 
@@ -105,16 +120,23 @@ protected:
 	
 	/*! Getting the initial Visibility Status of all the tools !*/
 	void AcquireInitialToolsVisibilityStatus();
+
 	/*! Update the current tool names if they change!*/
 	void UpdateCurrentToolsNames();
  
+	/*! Get application start timestamp */
+  void UpdateDateAndTimeString();
+
+	/*! Find the requested transformation matrix from the transform repository !*/
+	void GetIjkToEmbeddedReferenceFrameTransform(vtkMatrix4x4* ijkToEmbeddedReferenceFrameTransform, const PlusTransformName transformName);
+
   /*! Read MicronTracker configuration and update the tracker settings accordingly */
   virtual PlusStatus ReadConfiguration( vtkXMLDataElement* config );
 
   /*! Write current MicronTracker configuration settings to XML */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* rootConfigElement);
 
-  std::string ApplicationStartTimestamp;
+  std::string DateAndTimeString;
 
 private:
   vtkStealthLinkTracker(const vtkStealthLinkTracker&);

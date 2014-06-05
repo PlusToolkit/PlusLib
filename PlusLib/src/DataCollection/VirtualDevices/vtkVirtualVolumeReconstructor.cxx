@@ -428,7 +428,8 @@ PlusStatus vtkVirtualVolumeReconstructor::UpdateTransformRepository(vtkTransform
   }
   // Create a copy of the transform repository to allow using it for volume reconstruction while being also used in other threads
   // TODO: protect transform repository with a mutex
-  this->TransformRepository->DeepCopy(sharedTransformRepository);
+	// TODO: write a genereic updatetransform to copy non persistent contents as well by changing the boolean to true
+  this->TransformRepository->DeepCopy(sharedTransformRepository,false);
   return PLUS_SUCCESS;
 }
 

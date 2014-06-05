@@ -241,7 +241,8 @@ void ExecuteStopReconstruction(vtkPlusOpenIGTLinkClient* client, const std::stri
 }
 //----------------------------------------------------------------------------
 #ifdef PLUS_USE_STEALTHLINK
-void ExecuteGetExamData(vtkPlusOpenIGTLinkClient* client,const std::string &deviceId, const std::string &dicomOutputDirectory)
+void ExecuteGetExamData(vtkPlusOpenIGTLinkClient* client,const std::string &deviceId, const std::string &dicomOutputDirectory, const std::string& volumeEmbeddedTransformToFrame,
+																																											const bool& keepReceivedDicomFiles)
 {
 	vtkSmartPointer<vtkPlusStealthLinkCommand> cmd=vtkSmartPointer<vtkPlusStealthLinkCommand>::New();
 	cmd->SetNameToGetExam();
@@ -253,6 +254,11 @@ void ExecuteGetExamData(vtkPlusOpenIGTLinkClient* client,const std::string &devi
 	{
 		cmd->SetDicomImagesOutputDirectory(dicomOutputDirectory.c_str());
 	}
+	if (!volumeEmbeddedTransformToFrame.empty())
+	{
+		cmd->SetVolumeEmbeddedTransformToFrame(volumeEmbeddedTransformToFrame.c_str());
+	}
+	cmd->SetKeepReceivedDicomFiles(keepReceivedDicomFiles);
 	client->SendCommand(cmd);
 }
 #endif
@@ -377,6 +383,8 @@ int main( int argc, char** argv )
   std::string transformPersistent;
   std::string transformValue;
   std::string dicomOutputDirectory;
+	std::string volumeEmbeddedTransformToFrame;
+	bool keepReceivedDicomFiles = false;
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
   bool keepConnected=false;
 
@@ -400,8 +408,9 @@ int main( int argc, char** argv )
   args.AddArgument( "--keep-connected", vtksys::CommandLineArguments::NO_ARGUMENT, &keepConnected, "Keep the connection to the server after command completion (exits on CTRL-C).");  
   args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)" );
   args.AddArgument( "--dicom-directory", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &dicomOutputDirectory, "The folder directory for the dicom images acquired from the StealthLink Server");
-   
-  if ( !args.Parse() )
+	args.AddArgument( "--volumeEmbeddedTransformToFrame", vtksys::CommandLineArguments::EQUAL_ARGUMENT,&volumeEmbeddedTransformToFrame, "The reference frame in which the dicom image will be represented. Ex: RAS,LPS,Reference,Tracker etc");
+	args.AddArgument( "--keepReceivedDicomFiles", vtksys::CommandLineArguments::NO_ARGUMENT, &keepReceivedDicomFiles, "Keep the dicom files in the designated folder after having acquired them from the server");
+	if ( !args.Parse() )
   {
     std::cerr << "Problem parsing arguments." << std::endl;
     std::cout << "Help: " << args.GetHelp() << std::endl;
@@ -454,7 +463,7 @@ int main( int argc, char** argv )
 	  else if (STRCASECMP(command.c_str(), "GET_EXAM_DATA")==0)
     {
 #ifdef PLUS_USE_STEALTHLINK
-      ExecuteGetExamData(client, deviceId,dicomOutputDirectory);
+      ExecuteGetExamData(client, deviceId,dicomOutputDirectory,volumeEmbeddedTransformToFrame,keepReceivedDicomFiles);
 #else
       LOG_ERROR("Plus is not built with StealthLink support");
       exit(EXIT_FAILURE);
