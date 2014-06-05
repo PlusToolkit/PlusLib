@@ -385,7 +385,7 @@ PlusStatus vtkImageVisualizer::SetScreenRightDownAxesOrientation( US_IMAGE_ORIEN
 
   this->CurrentMarkerOrientation = aOrientation;
 
-  vtkXMLDataElement* renderingParameters = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("Rendering");
+  vtkXMLDataElement* renderingParameters = PlusXmlUtils::GetNestedElementWithName(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData(), "Rendering");
   if (renderingParameters == NULL) {
     LOG_ERROR("No Rendering element is found in the XML tree!");
     return PLUS_FAIL;
