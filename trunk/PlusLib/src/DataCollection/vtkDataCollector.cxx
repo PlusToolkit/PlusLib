@@ -245,7 +245,8 @@ PlusStatus vtkDataCollector::Start()
   }
 
   LOG_DEBUG("vtkDataCollector::Start -- wait " << std::fixed << this->StartupDelaySec << " sec for buffer init..."); 
-  vtkAccurateTimer::Delay(this->StartupDelaySec);
+
+  vtkAccurateTimer::DelayWithEventProcessing(this->StartupDelaySec);
 
   this->Started = true;
 

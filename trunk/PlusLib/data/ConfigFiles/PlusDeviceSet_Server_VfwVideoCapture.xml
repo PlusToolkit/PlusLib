@@ -1,6 +1,6 @@
 <PlusConfiguration version="2.0">
 
-  <DataCollection StartupDelaySec="1.0" >
+  <DataCollection StartupDelaySec="2.0" >
     <DeviceSet 
       Name="PlusServer: Video for Windows video capture device"
       Description="Broadcasting acquired video through OpenIGTLink" />

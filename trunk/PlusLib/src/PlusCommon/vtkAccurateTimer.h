@@ -61,6 +61,13 @@ public:
   static void Delay(double sec); 
 
   /*!
+    Wait until specified time in seconds. Pending events are processed while waiting.
+    Certain devices (e.g., VideoForWindows video source) may be blocked on other threads if events are not processed.
+    This method delays the execution by at least the specified amount but is not guaranteed to be accurate (uses sleep).
+  */
+  static void DelayWithEventProcessing(double sec);
+
+  /*!
     Get system time (elapsed time since last reboot)
     \return Internal system time in seconds
   */
