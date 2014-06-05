@@ -150,7 +150,7 @@ public:
   /*! Enable/disable the show phantom model action */
   void EnableShowPhantomModelToggle(bool aEnable);
   /*! Get phantom wires model id */
-  const char * GetPhantomWiresModelId() { return m_PhantomModelId.c_str(); };
+  const char * GetPhantomWiresModelId() { return m_PhantomWiresModelId.c_str(); };
   /*! Set phantom wires model id */
   void SetPhantomWiresModelId(const char* aObjectId) { m_PhantomWiresModelId = aObjectId?aObjectId:""; };
   /*! Enable/disable the show phantom wires action */
