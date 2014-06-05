@@ -268,15 +268,9 @@ private:
   PlusStatus vtkSonixPortaVideoSource::UpdateSonixPortaParams();
 
   /*! Get probe head to transducer center transform */
-  std::string GetProbeHeadToTransducerCenterTransform( double MotorAngle );
+  std::string GetProbeHeadToTransducerCenterTransform( double MotorAngle, std::string volumeIndex );
 
   // Porta parameters
-  /*! The starting position of the motor */
-  double PortaMotorStartPosition;
-
-  /*! The current/actual position of the motor */
-  double PortaMotorPosition;
-
   /*! The B-mode image width */
   int PortaBModeWidth;
 
@@ -333,6 +327,10 @@ private:
 
   /*! Index keeping track of what frame belongs to what volume */
   int VolumeIndex;
+
+	bool IncrementVolumeIndexClockwise;
+
+	bool IncrementVolumeIndexCounterClockwise;
 };
 
 

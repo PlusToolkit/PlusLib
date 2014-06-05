@@ -122,8 +122,6 @@ vtkSonixPortaVideoSource::vtkSonixPortaVideoSource()
   }
 
   this->ImagingMode = (int)BMode;
-  this->PortaMotorStartPosition = 0;
-  this->PortaMotorPosition = 0;
   this->PortaProbeSelected = 0;
   this->PortaModeSelected = 0;
   this->PortaProbeName = 0;
@@ -135,7 +133,9 @@ vtkSonixPortaVideoSource::vtkSonixPortaVideoSource()
   this->FirstCallToAddFrameToBuffer = true;
   this->CurrentMotorAngle = 0;
   this->StartMotorAngle = 0;
-  this->VolumeIndex = 1;
+  this->VolumeIndex = 0;
+	this->IncrementVolumeIndexClockwise = false;
+	this->IncrementVolumeIndexCounterClockwise = true;
 
   this->RequireImageOrientationInConfiguration = true;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
@@ -237,7 +237,6 @@ void vtkSonixPortaVideoSource::PrintSelf(ostream& os, vtkIndent indent) {
   this->Superclass::PrintSelf(os,indent);
   os << indent << "Imaging mode: " << this->ImagingMode << "\n";
   os << indent << "Frequency: " << this->Frequency << "MHz\n";
-  os << indent << "Motor position: " << this->PortaMotorPosition << "MHz\n";
 }
 
 //----------------------------------------------------------------------------
@@ -314,40 +313,53 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
   double frameIndexTwoVolumes =  id % (2*this->FramePerVolume);
   if ( frameIndexOneVolume == 0 )
   {
-	frameIndexOneVolume = this->FramePerVolume;
+		frameIndexOneVolume = this->FramePerVolume;
   }
   if ( frameIndexTwoVolumes == 0 )
   {
-	frameIndexTwoVolumes = 2 * this->FramePerVolume;
+		frameIndexTwoVolumes = 2 * this->FramePerVolume;
   }
   if ( frameIndexTwoVolumes <=  this->FramePerVolume )
   {
-	this->CurrentMotorAngle = this->StartMotorAngle - (frameIndexOneVolume - 1) * this->MotorRotationPerStepDeg * (double)this->StepPerFrame;
-  }
+		if ( this->IncrementVolumeIndexCounterClockwise )
+		{
+			++this->VolumeIndex;
+			this->IncrementVolumeIndexCounterClockwise = false;
+			this->IncrementVolumeIndexClockwise = true;
+		}
+		this->CurrentMotorAngle = this->StartMotorAngle - (frameIndexOneVolume - 1) * this->MotorRotationPerStepDeg * (double)this->StepPerFrame;
+	}
   else
   {
-	this->CurrentMotorAngle = - this->StartMotorAngle + (frameIndexOneVolume - 1) * this->MotorRotationPerStepDeg * (double)this->StepPerFrame;
+		if ( this->IncrementVolumeIndexClockwise )
+		{
+			++this->VolumeIndex;
+			this->IncrementVolumeIndexCounterClockwise = true;
+			this->IncrementVolumeIndexClockwise = false;
+		}
+		this->CurrentMotorAngle = - this->StartMotorAngle + (frameIndexOneVolume - 1) * this->MotorRotationPerStepDeg * (double)this->StepPerFrame;
   }
 
-  std::ostringstream motorAngle;
-  motorAngle << this->CurrentMotorAngle;
+  //std::ostringstream motorAngle;
+  //motorAngle << this->CurrentMotorAngle;
 
-  std::ostringstream frameNumber;
-  frameNumber << id;
+  //std::ostringstream frameNumber;
+  //frameNumber << id;
   
   std::ostringstream volumeIndex;
   volumeIndex << this->VolumeIndex;
 
   TrackedFrame::FieldMapType customFields; 
-  customFields["MotorAngle"] = motorAngle.str();
-  customFields["FrameNumber"] = frameNumber.str(); 
-  customFields["VolumeIndex"] = volumeIndex.str(); 
-  customFields["ProbeHeadToTransducerCenter"] = this->GetProbeHeadToTransducerCenterTransform( this->CurrentMotorAngle );
+  //customFields["MotorAngle"] = motorAngle.str();
+  //customFields["FrameNumber"] = frameNumber.str(); 
+  //customFields["VolumeIndex"] = volumeIndex.str(); 
+  customFields["ImageToProbeHeadTransform"] = this->GetProbeHeadToTransducerCenterTransform( this->CurrentMotorAngle, volumeIndex.str() );
+  customFields["ImageToProbeHeadTransformStatus"] = "OK";
 
-  if ( frameIndexOneVolume == this->FramePerVolume )
-  {
-	++this->VolumeIndex;
-  }
+ // if ( frameIndexOneVolume == this->FramePerVolume )
+ // {
+	//++this->VolumeIndex;
+ // }
 
   PlusStatus status = aSource->GetBuffer()->AddItem(deviceDataPtr, aSource->GetPortImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, numberOfBytesToSkip, id, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields); 
 
@@ -356,7 +368,7 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
 }
 
 //----------------------------------------------------------------------------
-std::string vtkSonixPortaVideoSource::GetProbeHeadToTransducerCenterTransform( double angle )
+std::string vtkSonixPortaVideoSource::GetProbeHeadToTransducerCenterTransform( double angle, std::string volumeIndex )
 {
 	double spacing[2] = {0.2482, 0.2482}; // Add correct spacing
 	double origin[2] = {242, -51.7857}; // Add correct origin
@@ -377,7 +389,7 @@ std::string vtkSonixPortaVideoSource::GetProbeHeadToTransducerCenterTransform( d
 	  << " " <<
 	     matrix->GetElement(1,0) <<" "<< matrix->GetElement(1,1) <<" "<< matrix->GetElement(1,2) <<" "<< matrix->GetElement(1,3) 
 	  << " " <<
-	     matrix->GetElement(2,0) <<" "<< matrix->GetElement(2,1) <<" "<< matrix->GetElement(2,2) <<" "<< matrix->GetElement(2,3) 
+	     matrix->GetElement(2,0) <<" "<< matrix->GetElement(2,1) <<" "<< matrix->GetElement(2,2) <<" "<< volumeIndex // matrix->GetElement(2,3) 
 	  << " " <<
 	     matrix->GetElement(3,0) <<" "<< matrix->GetElement(3,1) <<" "<< matrix->GetElement(3,2) <<" "<< matrix->GetElement(3,3);
 
