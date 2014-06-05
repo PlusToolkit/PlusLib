@@ -46,6 +46,12 @@ public:
 
   vtkUsImagingParameters* ImagingParameters;
 
+  void SetSectorPercent(double value) { this->ImagingParameters->SetSectorPercent(value); }
+  void SetIntensity(int value) { this->ImagingParameters->SetIntensity(value); }
+  void SetContrast(int value) { this->ImagingParameters->SetContrast(value); }
+  void SetDynRangeDb(double value) { this->ImagingParameters->SetDynRangeDb(value); }
+  void SetSoundVelocity(double value) { this->ImagingParameters->SetSoundVelocity(value); }
+
 protected:
   /*! Constructor */
   vtkIntersonVideoSource();

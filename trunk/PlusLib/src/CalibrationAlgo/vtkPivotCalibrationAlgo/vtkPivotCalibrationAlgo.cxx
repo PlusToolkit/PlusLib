@@ -4,6 +4,9 @@
   See License.txt for details.
 =========================================================Plus=header=end*/ 
 
+#include "PlusConfigure.h"
+#include "PlusXmlUtils.h"
+
 #include "vtkPivotCalibrationAlgo.h"
 #include "vtkTransformRepository.h"
 #include "PlusMath.h"
@@ -277,48 +280,10 @@ std::string vtkPivotCalibrationAlgo::GetPivotPointToMarkerTranslationString( dou
 //-----------------------------------------------------------------------------
 PlusStatus vtkPivotCalibrationAlgo::ReadConfiguration(vtkXMLDataElement* aConfig)
 {
-  if (aConfig == NULL)
-  {
-    LOG_ERROR("Unable to read configuration"); 
-    return PLUS_FAIL; 
-  }
-
-  // vtkPivotCalibrationAlgo section
-  vtkXMLDataElement* pivotCalibrationElement = aConfig->FindNestedElementWithName("vtkPivotCalibrationAlgo"); 
-
-  if (pivotCalibrationElement == NULL)
-  {
-    LOG_ERROR("Unable to find vtkPivotCalibrationAlgo element in XML tree!"); 
-    return PLUS_FAIL;     
-  }
-
-  // Object marker coordinate frame name
-  const char* objectMarkerCoordinateFrame = pivotCalibrationElement->GetAttribute("ObjectMarkerCoordinateFrame");
-  if (objectMarkerCoordinateFrame == NULL)
-  {
-    LOG_ERROR("ObjectMarkerCoordinateFrame is not specified in vtkPivotCalibrationAlgo element of the configuration!");
-    return PLUS_FAIL;     
-  }
-  this->SetObjectMarkerCoordinateFrame(objectMarkerCoordinateFrame);
-
-  // Reference coordinate frame name
-  const char* referenceCoordinateFrame = pivotCalibrationElement->GetAttribute("ReferenceCoordinateFrame");
-  if (referenceCoordinateFrame == NULL)
-  {
-    LOG_ERROR("ReferenceCoordinateFrame is not specified in vtkPivotCalibrationAlgo element of the configuration!");
-    return PLUS_FAIL;     
-  }
-  this->SetReferenceCoordinateFrame(referenceCoordinateFrame);
-
-  // Object pivot point coordinate frame name
-  const char* objectPivotPointCoordinateFrame = pivotCalibrationElement->GetAttribute("ObjectPivotPointCoordinateFrame");
-  if (objectPivotPointCoordinateFrame == NULL)
-  {
-    LOG_ERROR("ObjectPivotPointCoordinateFrame is not specified in vtkPivotCalibrationAlgo element of the configuration!");
-    return PLUS_FAIL;     
-  }
-  this->SetObjectPivotPointCoordinateFrame(objectPivotPointCoordinateFrame);
-
+  DSC_FIND_NESTED_ELEMENT_REQUIRED(pivotCalibrationElement, aConfig, "vtkPivotCalibrationAlgo");
+  DSC_READ_STRING_ATTRIBUTE_REQUIRED(ObjectMarkerCoordinateFrame, pivotCalibrationElement);
+  DSC_READ_STRING_ATTRIBUTE_REQUIRED(ReferenceCoordinateFrame, pivotCalibrationElement);
+  DSC_READ_STRING_ATTRIBUTE_REQUIRED(ObjectPivotPointCoordinateFrame, pivotCalibrationElement);
   return PLUS_SUCCESS;
 }
 

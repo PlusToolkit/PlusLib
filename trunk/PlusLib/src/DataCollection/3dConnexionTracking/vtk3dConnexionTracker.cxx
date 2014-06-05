@@ -481,42 +481,28 @@ PlusStatus vtk3dConnexionTracker::InternalUpdate()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtk3dConnexionTracker::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtk3dConnexionTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  // Read superclass configuration first
-  Superclass::ReadConfiguration(config); 
+  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
-  if ( config == NULL ) 
+  if (deviceConfig->GetAttribute("Mode"))
   {
-    LOG_WARNING("Null XML element passed to vtk3dConnexionTracker::ReadConfiguration");
-    return PLUS_FAIL; 
-  }
-
-  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(config);
-  if (trackerConfig == NULL) 
-  {
-    LOG_ERROR("Cannot find 3dConnexion element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  if (trackerConfig->GetAttribute("Mode"))
-  {
-    if (STRCASECMP(trackerConfig->GetAttribute("Mode"), "MOUSE") == 0)
+    if (STRCASECMP(deviceConfig->GetAttribute("Mode"), "MOUSE") == 0)
     {
       this->OperatingMode = MOUSE_MODE;
     }
-    else if (STRCASECMP(trackerConfig->GetAttribute("Mode"), "JOYSTICK") == 0)
+    else if (STRCASECMP(deviceConfig->GetAttribute("Mode"), "JOYSTICK") == 0)
     {
       this->OperatingMode = JOYSTICK_MODE;
     }        
     else
     {
-      LOG_ERROR("Unknown Mode: "<<trackerConfig->GetAttribute("Mode")<<". Valid options: MOUSE, JOYSTICK.");
+      LOG_ERROR("Unknown Mode: "<<deviceConfig->GetAttribute("Mode")<<". Valid options: MOUSE, JOYSTICK.");
     }
   }
 
   double translationScales[3]={0.001, 0.001, 0.001};
-  int translationScalesComponentRead=trackerConfig->GetVectorAttribute("TranslationScales", 3, translationScales);
+  int translationScalesComponentRead=deviceConfig->GetVectorAttribute("TranslationScales", 3, translationScales);
   if (translationScalesComponentRead==1)
   {
     this->TranslationScales[0]=translationScales[0];
@@ -535,7 +521,7 @@ PlusStatus vtk3dConnexionTracker::ReadConfiguration(vtkXMLDataElement* config)
   }
 
   double rotationScales[3]={0.001, 0.001, 0.001};
-  int rotationScalesComponentRead=trackerConfig->GetVectorAttribute("RotationScales", 3, rotationScales);
+  int rotationScalesComponentRead=deviceConfig->GetVectorAttribute("RotationScales", 3, rotationScales);
   if (rotationScalesComponentRead==1)
   {
     this->RotationScales[0]=rotationScales[0];

@@ -478,63 +478,15 @@ PlusStatus vtkAscension3DGTrackerBase::CheckReturnStatus( int status )
 //----------------------------------------------------------------------------
 PlusStatus vtkAscension3DGTrackerBase::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  if ( rootConfigElement == NULL ) 
-  {
-    LOG_WARNING("Unable to find BrachyTracker XML data element");
-    return PLUS_FAIL; 
-  }
+  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
-  // Read superclass configuration first
-  if( Superclass::ReadConfiguration(rootConfigElement) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Unable to continue configuration of Ascension tracker. Generic device configuration failed.");
-    return PLUS_FAIL;
-  }
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FilterAcWideNotch, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FilterAcNarrowNotch, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FilterDcAdaptive, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FilterLargeChange, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FilterAlpha, deviceConfig);
 
-  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(rootConfigElement);
-  if (trackerConfig == NULL) 
-  {
-    LOG_ERROR("Cannot find Tracker element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  int filterAcWideNotch = 0; 
-  if ( trackerConfig->GetScalarAttribute("FilterAcWideNotch", filterAcWideNotch) ) 
-  {
-    this->SetFilterAcWideNotch(filterAcWideNotch); 
-  }
-
-  int filterAcNarrowNotch = 0; 
-  if ( trackerConfig->GetScalarAttribute("FilterAcNarrowNotch", filterAcNarrowNotch) ) 
-  {
-    this->SetFilterAcNarrowNotch(filterAcNarrowNotch); 
-  }
-
-  double filterDcAdaptive = 0.0; 
-  if ( trackerConfig->GetScalarAttribute("FilterDcAdaptive", filterDcAdaptive) ) 
-  {
-    this->SetFilterDcAdaptive(filterDcAdaptive); 
-  }
-
-  int filterLargeChange = 0; 
-  if ( trackerConfig->GetScalarAttribute("FilterLargeChange", filterLargeChange) ) 
-  {
-    this->SetFilterLargeChange(filterLargeChange); 
-  }
-
-  int filterAlpha = 0;
-  if ( trackerConfig->GetScalarAttribute("FilterAlpha", filterAlpha) ) 
-  {
-    this->SetFilterAlpha(filterAlpha>0?true:false); 
-  }
-
-  // Read ROM files for tools
-  vtkXMLDataElement* dataSourcesElement = trackerConfig->FindNestedElementWithName("DataSources");
-  if( dataSourcesElement == NULL )
-  {
-    LOG_ERROR("Unable to find any data sources in the NDI tracker. No transforms will be outputted.");
-    return PLUS_FAIL;
-  }
+  DSC_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
 
   for ( int toolIndex = 0; toolIndex < dataSourcesElement->GetNumberOfNestedElements(); toolIndex++ )
   {

@@ -885,7 +885,7 @@ PlusStatus vtkNDITracker::ClearVirtualSromInTracker(NdiToolDescriptor& toolDescr
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkNDITracker::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkNDITracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   // Clean up any previously read config data
   for (NdiToolDescriptorsType::iterator toolDescriptorIt=this->NdiToolDescriptors.begin(); toolDescriptorIt!=this->NdiToolDescriptors.end(); ++toolDescriptorIt)
@@ -895,45 +895,13 @@ PlusStatus vtkNDITracker::ReadConfiguration(vtkXMLDataElement* config)
   }
   this->NdiToolDescriptors.clear();
 
-  // Read superclass configuration
-  Superclass::ReadConfiguration(config); 
+  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
-  if ( config == NULL ) 
-  {
-    LOG_WARNING("Unable to find NDITracker XML data element");
-    return PLUS_FAIL; 
-  }
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, SerialPort, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, BaudRate, deviceConfig);
 
-  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(config);
-  if (trackerConfig == NULL) 
-  {
-    LOG_ERROR("Cannot find Tracker element in XML tree!");
-    return PLUS_FAIL;
-  }
+  DSC_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
 
-  unsigned long serialPort(0); 
-  if ( trackerConfig->GetScalarAttribute("SerialPort", serialPort) ) 
-  {
-    if (serialPort<1)
-    {
-      LOG_ERROR("Serial port must be >0");
-      return PLUS_FAIL;
-    }
-    this->SetSerialPort(serialPort);
-  }
-
-  int baudRate=0;
-  if ( trackerConfig->GetScalarAttribute("BaudRate", baudRate) ) 
-  {
-    this->BaudRate=baudRate; 
-  } 
-
-  vtkXMLDataElement* dataSourcesElement = trackerConfig->FindNestedElementWithName("DataSources");
-  if( dataSourcesElement == NULL )
-  {
-    LOG_ERROR("Unable to find any data sources in the NDI tracker. No transforms will be outputted.");
-    return PLUS_FAIL;
-  }
   for ( int nestedElementIndex = 0; nestedElementIndex < dataSourcesElement->GetNumberOfNestedElements(); nestedElementIndex++ )
   {
     vtkXMLDataElement* toolDataElement = dataSourcesElement->GetNestedElement(nestedElementIndex); 

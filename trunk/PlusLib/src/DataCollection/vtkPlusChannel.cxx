@@ -419,6 +419,11 @@ PlusStatus vtkPlusChannel::GetTrackedFrame( double timestamp, TrackedFrame& aTra
   // Get frame UID
   if( this->HasVideoSource() && enableImageData )
   {
+    if (this->VideoSource->GetBuffer()->GetNumberOfItems()<1)
+    {
+      LOG_ERROR("Couldn't get tracked frame from video source, frames are not available yet");
+      return PLUS_FAIL;
+    }
     BufferItemUidType frameUID = 0; 
     ItemStatus status = this->VideoSource->GetBuffer()->GetItemUidFromTime(timestamp, frameUID); 
     if ( status != ITEM_OK )
@@ -1179,6 +1184,10 @@ bool vtkPlusChannel::GetTrackingDataAvailable()
   vtkPlusDataSource* aSource = NULL;
   if( this->HasVideoSource() && this->GetVideoSource(aSource) == PLUS_SUCCESS )
   {
+    if (aSource->GetBuffer()->GetNumberOfItems()<1)
+    {
+      return false;
+    }
     StreamBufferItem item;
     if( aSource->GetBuffer()->GetLatestStreamBufferItem(&item) == ITEM_OK && item.HasValidTransformData() )
     {
@@ -1191,6 +1200,10 @@ bool vtkPlusChannel::GetTrackingDataAvailable()
   {
     vtkPlusDataSource* tool = toolIt->second;
     StreamBufferItem item;
+    if (tool->GetBuffer()->GetNumberOfItems()<1)
+    {
+      continue;
+    }
     if( tool->GetBuffer()->GetLatestStreamBufferItem(&item) != ITEM_OK )
     {
       continue;

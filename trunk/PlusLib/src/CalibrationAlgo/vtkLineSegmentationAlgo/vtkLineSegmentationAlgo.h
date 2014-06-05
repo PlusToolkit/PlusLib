@@ -110,7 +110,7 @@ protected:
   bool m_SaveIntermediateImages;
 
   /*! Directory where the intermediate files are written to */
-  std::string m_IntermediateFilesOutputDirectory;
+  std::string IntermediateFilesOutputDirectory;
 
   double m_SignalTimeRangeMin;
   double m_SignalTimeRangeMax;

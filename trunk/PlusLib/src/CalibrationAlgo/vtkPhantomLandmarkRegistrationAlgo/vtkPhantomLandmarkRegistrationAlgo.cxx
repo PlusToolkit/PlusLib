@@ -4,6 +4,9 @@
   See License.txt for details.
 =========================================================Plus=header=end*/ 
 
+#include "PlusConfigure.h"
+#include "PlusXmlUtils.h"
+
 #include "itkImage.h"
 #include "itkLandmarkBasedTransformInitializer.h"
 #include "itkSimilarity3DTransform.h"
@@ -145,31 +148,14 @@ PlusStatus vtkPhantomLandmarkRegistrationAlgo::ReadConfiguration(vtkXMLDataEleme
 {
   LOG_TRACE("vtkPhantomLandmarkRegistrationAlgo::ReadConfiguration");
 
-  if (aConfig == NULL)
-  {
-    LOG_ERROR("Invalid configuration! Problably device set is not connected.");
-    return PLUS_FAIL;
-  }
-
-  // Find phantom definition element
-  vtkXMLDataElement* phantomDefinition = aConfig->FindNestedElementWithName("PhantomDefinition");
-  if (phantomDefinition == NULL)
-  {
-    LOG_ERROR("No phantom definition is found in the XML tree!");
-    return PLUS_FAIL;
-  }
+  DSC_FIND_NESTED_ELEMENT_REQUIRED(phantomDefinition, aConfig, "PhantomDefinition");
 
   this->DefinedLandmarks->Reset();
   this->RecordedLandmarks->Reset();
   this->DefinedLandmarkNames.clear();
 
   // Load geometry
-  vtkXMLDataElement* geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
-  if (geometry == NULL)
-  {
-    LOG_ERROR("Phantom geometry information not found!");
-    return PLUS_FAIL;
-  }
+  DSC_FIND_NESTED_ELEMENT_REQUIRED(geometry, aConfig, "Geometry");
 
   // Read landmarks (NWires are not interesting at this point, it is only parsed if segmentation is needed)
   vtkXMLDataElement* landmarks = geometry->FindNestedElementWithName("Landmarks"); 
@@ -194,25 +180,28 @@ PlusStatus vtkPhantomLandmarkRegistrationAlgo::ReadConfiguration(vtkXMLDataEleme
     for (int i=0; i<numberOfLandmarks; ++i)
     {
       vtkXMLDataElement* landmark = landmarks->GetNestedElement(i);
-
       if ((landmark == NULL) || (STRCASECMP("Landmark", landmark->GetName())))
       {
-        LOG_WARNING("Invalid landmark definition found!");
+        LOG_WARNING("Invalid landmark definition found");
         continue;
       }
 
       const char* landmarkName = landmark->GetAttribute("Name");
-      std::string landmarkNameString(landmarkName);
-      double landmarkPosition[3];
+      if (landmarkName==NULL)
+      {
+        LOG_WARNING("Invalid landmark name (landmark #"<<i+1<<")");
+        continue;
+      }
 
+      double landmarkPosition[3];
       if (! landmark->GetVectorAttribute("Position", 3, landmarkPosition))
       {
-        LOG_WARNING("Invalid landmark position!");
+        LOG_WARNING("Invalid landmark position (landmark #"<<i+1<<")");
         continue;
       }
 
       this->DefinedLandmarks->InsertPoint(i, landmarkPosition);
-      this->DefinedLandmarkNames[i] = landmarkNameString;
+      this->DefinedLandmarkNames[i] = landmarkName;
     }
   }
 
@@ -223,40 +212,10 @@ PlusStatus vtkPhantomLandmarkRegistrationAlgo::ReadConfiguration(vtkXMLDataEleme
   }
 
   // vtkPhantomLandmarkRegistrationAlgo section
-  vtkXMLDataElement* phantomRegistrationElement = aConfig->FindNestedElementWithName(vtkPhantomLandmarkRegistrationAlgo::ConfigurationElementName.c_str()); 
-
-  if (phantomRegistrationElement == NULL)
-  {
-    LOG_ERROR("Unable to find " << vtkPhantomLandmarkRegistrationAlgo::ConfigurationElementName << " element in XML tree!"); 
-    return PLUS_FAIL;     
-  }
-
-  // Phantom coordinate frame name
-  const char* phantomCoordinateFrame = phantomRegistrationElement->GetAttribute("PhantomCoordinateFrame");
-  if (phantomCoordinateFrame == NULL)
-  {
-    LOG_ERROR("PhantomCoordinateFrame is not specified in " << vtkPhantomLandmarkRegistrationAlgo::ConfigurationElementName << " element of the configuration!");
-    return PLUS_FAIL;     
-  }
-  this->SetPhantomCoordinateFrame(phantomCoordinateFrame);
-
-  // Reference coordinate frame name
-  const char* referenceCoordinateFrame = phantomRegistrationElement->GetAttribute("ReferenceCoordinateFrame");
-  if (referenceCoordinateFrame == NULL)
-  {
-    LOG_ERROR("ReferenceCoordinateFrame is not specified in " << vtkPhantomLandmarkRegistrationAlgo::ConfigurationElementName << " element of the configuration!");
-    return PLUS_FAIL;     
-  }
-  this->SetReferenceCoordinateFrame(referenceCoordinateFrame);
-
-  // Object pivot point coordinate frame name
-  const char* stylusTipCoordinateFrame = phantomRegistrationElement->GetAttribute("StylusTipCoordinateFrame");
-  if (stylusTipCoordinateFrame == NULL)
-  {
-    LOG_ERROR("StylusTipCoordinateFrame is not specified in " << vtkPhantomLandmarkRegistrationAlgo::ConfigurationElementName << " element of the configuration!");
-    return PLUS_FAIL;     
-  }
-  this->SetStylusTipCoordinateFrame(stylusTipCoordinateFrame);
+  DSC_FIND_NESTED_ELEMENT_REQUIRED(phantomRegistrationElement, aConfig, vtkPhantomLandmarkRegistrationAlgo::ConfigurationElementName.c_str());
+  DSC_READ_STRING_ATTRIBUTE_REQUIRED(PhantomCoordinateFrame, phantomRegistrationElement);
+  DSC_READ_STRING_ATTRIBUTE_REQUIRED(ReferenceCoordinateFrame, phantomRegistrationElement);
+  DSC_READ_STRING_ATTRIBUTE_REQUIRED(StylusTipCoordinateFrame, phantomRegistrationElement);
 
   return PLUS_SUCCESS;
 }

@@ -4,6 +4,9 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
+#include "PlusConfigure.h"
+#include "PlusXmlUtils.h"
+
 #include "vtkPhantomLinearObjectRegistrationAlgo.h"
 #include "vtkTransformRepository.h"
 
@@ -156,31 +159,14 @@ PlusStatus vtkPhantomLinearObjectRegistrationAlgo::ReadConfiguration(vtkXMLDataE
 {
   LOG_TRACE("vtkPhantomLinearObjectRegistrationAlgo::ReadConfiguration");
 
-  if (aConfig == NULL)
-  {
-    LOG_ERROR("Invalid configuration! Problably device set is not connected.");
-    return PLUS_FAIL;
-  }
-
-  // Find phantom definition element
-  vtkXMLDataElement* phantomDefinition = aConfig->FindNestedElementWithName("PhantomDefinition");
-  if (phantomDefinition == NULL)
-  {
-    LOG_ERROR("No phantom definition is found in the XML tree!");
-    return PLUS_FAIL;
-  }
+  DSC_FIND_NESTED_ELEMENT_REQUIRED(phantomDefinition, aConfig, "PhantomDefinition");
 
   this->DefinedPlanes.Reset();
   this->RecordedPlanes.Reset();
   this->DefinedPlaneNames.clear();
 
   // Load geometry
-  vtkXMLDataElement* geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
-  if (geometry == NULL)
-  {
-    LOG_ERROR("Phantom geometry information not found!");
-    return PLUS_FAIL;
-  }
+  DSC_FIND_NESTED_ELEMENT_REQUIRED(geometry, aConfig, "Geometry");
 
 // Read references (NWires are not interesting at this point, it is only parsed if segmentation is needed)
   vtkXMLDataElement* references = geometry->FindNestedElementWithName("References"); 
@@ -208,33 +194,35 @@ PlusStatus vtkPhantomLinearObjectRegistrationAlgo::ReadConfiguration(vtkXMLDataE
     {
       //define a reference variable
       vtkXMLDataElement* reference = references->GetNestedElement(i);
-
       if ((reference == NULL) || (STRCASECMP("Reference", reference->GetName())))
       {
-        LOG_WARNING("Invalid reference definition found!");
+        LOG_WARNING("Invalid reference definition found");
         continue;
       }
 
       //define a varaible to store the name of the reference
       const char* referenceName = reference->GetAttribute("Name");
-      std::string referenceNameString(referenceName);
+      if (referenceName==NULL)
+      {
+        LOG_WARNING("Invalid reference name (reference #"<<i+1<<")");
+        continue;
+      }
 
       double referencePosition[3];
-      std::vector<double> referencePositionVector;
-
       if (! reference->GetVectorAttribute("Position", 3, referencePosition))
       {
-        LOG_WARNING("Invalid reference position!");
+        LOG_WARNING("Invalid reference position (reference #"<<i+1<<")");
         continue;
       }
       
+      std::vector<double> referencePositionVector;
       for(int j=0; j<3;j++)
       {
         referencePositionVector.push_back(referencePosition[j]);
       }
       
       this->DefinedReferences.InsertReference(Reference(referencePositionVector));
-      this->DefinedReferenceNames[i] = referenceNameString;
+      this->DefinedReferenceNames[i] = referenceName;
     }
   }
 
@@ -279,20 +267,22 @@ PlusStatus vtkPhantomLinearObjectRegistrationAlgo::ReadConfiguration(vtkXMLDataE
 
       //define a varaible to store the name of the plane
       const char* planeName = plane->GetAttribute("Name");
-      std::string planeNameString(planeName);
+      if (planeName==NULL)
+      {
+        LOG_WARNING("Invalid plane name (plane #"<<i+1<<")");
+        continue;
+      }
 
       //define an array of length 3 of 3-tuples (each plane has 3 points that define it each with 3 rectangular coordinates in the phantom coordinate system)
-      double pointOnPlane[3];
       std::vector<double> pointsOnPlane[3];
 
-      //test the validity of each point on the plane then add the plane to the DefinedPlanes-----------------------------------------------------
-      
+      double pointOnPlane[3];
+      //test the validity of each point on the plane then add the plane to the DefinedPlanes
       if (! plane->GetVectorAttribute("BasePoint", 3, pointOnPlane))
       {
         LOG_WARNING("Invalid base point position!");
         continue;
       }
-      
       for(int j=0; j<3; j++)
       {
         pointsOnPlane[0].push_back(pointOnPlane[j]);
@@ -303,26 +293,23 @@ PlusStatus vtkPhantomLinearObjectRegistrationAlgo::ReadConfiguration(vtkXMLDataE
         LOG_WARNING("Invalid end point 1 position!");
         continue;
       }
-      
       for(int j=0; j<3; j++)
       {
         pointsOnPlane[1].push_back(pointOnPlane[j]);
       }
-
-
+      
       if (! plane->GetVectorAttribute("EndPoint2", 3, pointOnPlane))
       {
         LOG_WARNING("Invalid end point 2 position!");
         continue;
       }
-      
       for(int j=0; j<3; j++)
       {
         pointsOnPlane[2].push_back(pointOnPlane[j]);
       }
       
       this->DefinedPlanes.InsertPlane(Plane(pointsOnPlane[0], pointsOnPlane[1], pointsOnPlane[2]));
-      this->DefinedPlaneNames[i] = planeNameString;
+      this->DefinedPlaneNames[i] = planeName;
       //---------------------------------------------------------------------------------------------------------------------------------------------
     }
   }
@@ -333,41 +320,10 @@ PlusStatus vtkPhantomLinearObjectRegistrationAlgo::ReadConfiguration(vtkXMLDataE
     return PLUS_FAIL;
   }
 
-  // vtkPhantomLinearObjectRegistrationAlgo section
-  vtkXMLDataElement* phantomRegistrationElement = aConfig->FindNestedElementWithName(vtkPhantomLinearObjectRegistrationAlgo::ConfigurationElementName.c_str()); 
-
-  if (phantomRegistrationElement == NULL)
-  {
-    LOG_ERROR("Unable to find " << vtkPhantomLinearObjectRegistrationAlgo::ConfigurationElementName << " element in XML tree!"); 
-    return PLUS_FAIL;
-  }
-
-  //Phantom Coordinate Frame
-  const char* phantomCoordinateFrame = phantomRegistrationElement->GetAttribute("PhantomCoordinateFrame");
-  if (phantomCoordinateFrame == NULL)
-  {
-    LOG_ERROR("PhantomCoordinateFrame is not specified in " << vtkPhantomLinearObjectRegistrationAlgo::ConfigurationElementName << " element of the configuration!");
-    return PLUS_FAIL;     
-  }
-  this->SetPhantomCoordinateFrame(phantomCoordinateFrame);
-
-  //Reference Coordinate Frame
-  const char* referenceCoordinateFrame = phantomRegistrationElement->GetAttribute("ReferenceCoordinateFrame");
-  if(referenceCoordinateFrame == NULL)
-  {
-    LOG_ERROR("ReferenceCoordinateFrame is not specified in " << vtkPhantomLinearObjectRegistrationAlgo::ConfigurationElementName << " element of the configuration!");
-    return PLUS_FAIL;
-  }
-  this->SetReferenceCoordinateFrame(referenceCoordinateFrame);
-
-  //Stylus Tip Coordinate Frame
-  const char* stylusTipCoordinateFrame = phantomRegistrationElement->GetAttribute("StylusTipCoordinateFrame");
-  if(stylusTipCoordinateFrame == NULL)
-  {
-    LOG_ERROR("StylusTipCoordinateFrame is not specified in " << vtkPhantomLinearObjectRegistrationAlgo::ConfigurationElementName << " element of the configuration!");
-    return PLUS_FAIL;
-  }
-  this->SetStylusTipCoordinateFrame(stylusTipCoordinateFrame);
+  DSC_FIND_NESTED_ELEMENT_REQUIRED(phantomRegistrationElement, aConfig, vtkPhantomLinearObjectRegistrationAlgo::ConfigurationElementName.c_str());
+  DSC_READ_STRING_ATTRIBUTE_REQUIRED(PhantomCoordinateFrame, phantomRegistrationElement);
+  DSC_READ_STRING_ATTRIBUTE_REQUIRED(ReferenceCoordinateFrame, phantomRegistrationElement);
+  DSC_READ_STRING_ATTRIBUTE_REQUIRED(StylusTipCoordinateFrame, phantomRegistrationElement);
 
   return PLUS_SUCCESS;
 }

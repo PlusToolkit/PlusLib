@@ -5,6 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
+#include "PlusXmlUtils.h"
 #include "float.h"
 #include "vtkProbeCalibrationAlgo.h"
 #include "vtkTrackedFrameList.h"
@@ -66,56 +67,12 @@ vtkProbeCalibrationAlgo::~vtkProbeCalibrationAlgo()
 PlusStatus vtkProbeCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* aConfig )
 {
   LOG_TRACE("vtkProbeCalibrationAlgo::ReadConfiguration"); 
-  if ( aConfig == NULL )
-  {
-    LOG_ERROR("Unable to read configuration"); 
-    return PLUS_FAIL; 
-  }
+  DSC_FIND_NESTED_ELEMENT_REQUIRED(probeCalibrationElement, aConfig, "vtkProbeCalibrationAlgo");
 
-  // vtkPivotCalibrationAlgo section
-  vtkXMLDataElement* probeCalibrationElement = aConfig->FindNestedElementWithName("vtkProbeCalibrationAlgo"); 
-
-  if (probeCalibrationElement == NULL)
-  {
-    LOG_ERROR("Unable to find vtkProbeCalibrationAlgo element in XML tree!"); 
-    return PLUS_FAIL;     
-  }
-
-  // Image coordinate frame name
-  const char* imageCoordinateFrame = probeCalibrationElement->GetAttribute("ImageCoordinateFrame");
-  if (imageCoordinateFrame == NULL)
-  {
-    LOG_ERROR("ImageCoordinateFrame is not specified in vtkProbeCalibrationAlgo element of the configuration!");
-    return PLUS_FAIL;     
-  }
-  this->SetImageCoordinateFrame(imageCoordinateFrame);
-
-  // Probe coordinate frame name
-  const char* probeCoordinateFrame = probeCalibrationElement->GetAttribute("ProbeCoordinateFrame");
-  if (probeCoordinateFrame == NULL)
-  {
-    LOG_ERROR("ProbeCoordinateFrame is not specified in vtkProbeCalibrationAlgo element of the configuration!");
-    return PLUS_FAIL;     
-  }
-  this->SetProbeCoordinateFrame(probeCoordinateFrame);
-
-  // Phantom coordinate frame name
-  const char* phantomCoordinateFrame = probeCalibrationElement->GetAttribute("PhantomCoordinateFrame");
-  if (phantomCoordinateFrame == NULL)
-  {
-    LOG_ERROR("PhantomCoordinateFrame is not specified in vtkProbeCalibrationAlgo element of the configuration!");
-    return PLUS_FAIL;     
-  }
-  this->SetPhantomCoordinateFrame(phantomCoordinateFrame);
-
-  // Reference coordinate frame name
-  const char* referenceCoordinateFrame = probeCalibrationElement->GetAttribute("ReferenceCoordinateFrame");
-  if (referenceCoordinateFrame == NULL)
-  {
-    LOG_ERROR("ReferenceCoordinateFrame is not specified in vtkProbeCalibrationAlgo element of the configuration!");
-    return PLUS_FAIL;     
-  }
-  this->SetReferenceCoordinateFrame(referenceCoordinateFrame);
+  DSC_READ_STRING_ATTRIBUTE_REQUIRED(ImageCoordinateFrame, probeCalibrationElement);
+  DSC_READ_STRING_ATTRIBUTE_REQUIRED(ProbeCoordinateFrame, probeCalibrationElement);
+  DSC_READ_STRING_ATTRIBUTE_REQUIRED(PhantomCoordinateFrame, probeCalibrationElement);
+  DSC_READ_STRING_ATTRIBUTE_REQUIRED(ReferenceCoordinateFrame, probeCalibrationElement);
 
   // Optimization options
   if (this->Optimizer->ReadConfiguration(probeCalibrationElement) != PLUS_SUCCESS)

@@ -597,75 +597,37 @@ PlusStatus vtkSavedDataSource::InternalDisconnect()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkSavedDataSource::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkSavedDataSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   LOG_TRACE("vtkSavedDataSource::ReadConfiguration"); 
-  if ( config == NULL )
+  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(SequenceMetafile, deviceConfig);
+  std::string foundAbsoluteImagePath;
+  if (vtkPlusConfig::GetInstance()->FindImagePath(this->SequenceMetafile, foundAbsoluteImagePath) == PLUS_SUCCESS)
   {
-    LOG_ERROR("Unable to configure Saved Data video source! (XML data element is NULL)"); 
-    return PLUS_FAIL; 
-  }
-
-  // Read superclass configuration
-  Superclass::ReadConfiguration(config); 
-
-  vtkXMLDataElement* imageAcquisitionConfig = this->FindThisDeviceElement(config);
-  if (imageAcquisitionConfig == NULL) 
-  {
-    LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
-    return PLUS_FAIL;
-  }
-
-  const char* sequenceMetafile = imageAcquisitionConfig->GetAttribute("SequenceMetafile"); 
-  if ( sequenceMetafile != NULL ) 
-  {
-    std::string foundAbsoluteImagePath;
-    if (vtkPlusConfig::GetInstance()->FindImagePath(sequenceMetafile, foundAbsoluteImagePath) == PLUS_SUCCESS)
-    {
-      this->SetSequenceMetafile(foundAbsoluteImagePath.c_str());
-    }
-    else
-    {
-      std::string seqMetaFileTrim = PlusCommon::Trim(sequenceMetafile);
-      std::string foundAbsoluteImagePath;
-      if (vtkPlusConfig::GetInstance()->FindImagePath(seqMetaFileTrim, foundAbsoluteImagePath) == PLUS_SUCCESS)
-      {
-        this->SetSequenceMetafile(foundAbsoluteImagePath.c_str());
-        LOG_WARNING("Filename contains unexpected characters at beginning or end of string. Please correct. Filename: " << sequenceMetafile);
-      }
-      else
-      {
-        LOG_ERROR("Unable to locate file: " << sequenceMetafile << ". Please verify location on disk.");
-        return PLUS_FAIL;
-      }
-    }
-
+    this->SetSequenceMetafile(foundAbsoluteImagePath.c_str());
   }
   else
   {
-    LOG_ERROR("Unable to find SequenceMetafile element in configuration XML structure!");
-    return PLUS_FAIL;
-  }
-
-  const char* repeatEnabled = imageAcquisitionConfig->GetAttribute("RepeatEnabled"); 
-  if ( repeatEnabled != NULL ) 
-  {
-    if ( STRCASECMP("TRUE", repeatEnabled ) == 0 )
+    std::string seqMetaFileTrim = PlusCommon::Trim(this->SequenceMetafile);
+    std::string foundAbsoluteImagePath;
+    if (vtkPlusConfig::GetInstance()->FindImagePath(seqMetaFileTrim, foundAbsoluteImagePath) == PLUS_SUCCESS)
     {
-      this->RepeatEnabled = true; 
-    }
-    else if ( STRCASECMP("FALSE", repeatEnabled ) == 0 )
-    {
-      this->RepeatEnabled = false; 
+      this->SetSequenceMetafile(foundAbsoluteImagePath.c_str());
+      LOG_WARNING("Filename contains unexpected characters at beginning or end of string. Please correct. Filename: " << this->SequenceMetafile);
     }
     else
     {
-      LOG_WARNING("Unable to recognize RepeatEnabled attribute: " << repeatEnabled << " - changed to false by default!"); 
-      this->RepeatEnabled = false; 
+      LOG_ERROR("Unable to locate file: " << this->SequenceMetafile << ". Please verify location on disk.");
+      return PLUS_FAIL;
     }
   }
 
-  const char* useData = imageAcquisitionConfig->GetAttribute("UseData"); 
+  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(RepeatEnabled, deviceConfig);
+  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(UseOriginalTimestamps, deviceConfig);
+
+  const char* useData = deviceConfig->GetAttribute("UseData"); 
   if ( useData != NULL ) 
   {
     if ( STRCASECMP("IMAGE", useData ) == 0 )
@@ -687,24 +649,6 @@ PlusStatus vtkSavedDataSource::ReadConfiguration(vtkXMLDataElement* config)
     {
       LOG_WARNING("Unable to recognize UseData attribute: " << useData << " - changed to IMAGE by default!"); 
       this->UseAllFrameFields = false; 
-    }
-  }
-
-  const char* useOriginalTimestamps = imageAcquisitionConfig->GetAttribute("UseOriginalTimestamps"); 
-  if ( useOriginalTimestamps != NULL ) 
-  {
-    if ( STRCASECMP("TRUE", useOriginalTimestamps ) == 0 )
-    {
-      this->UseOriginalTimestamps = true; 
-    }
-    else if ( STRCASECMP("FALSE", useOriginalTimestamps ) == 0 )
-    {
-      this->UseOriginalTimestamps = false; 
-    }
-    else
-    {
-      LOG_WARNING("Unable to recognize UseOriginalTimestamps attribute: " << useOriginalTimestamps << " - changed to false by default!"); 
-      this->UseOriginalTimestamps = false; 
     }
   }
 

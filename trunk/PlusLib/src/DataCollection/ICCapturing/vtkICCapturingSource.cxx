@@ -402,14 +402,9 @@ PlusStatus vtkICCapturingSource::InternalStopRecording()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkICCapturingSource::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkICCapturingSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   LOG_TRACE("vtkICCapturingSource::ReadConfiguration"); 
-  if ( config == NULL )
-  {
-    LOG_ERROR("Unable to configure IC Capturing video source! (XML data element is NULL)"); 
-    return PLUS_FAIL; 
-  }
 
   // This is a singleton class, so some input channels, output channels, or tools might have been already
   // defined. Clean them up before creating the new ones from XML.
@@ -430,56 +425,17 @@ PlusStatus vtkICCapturingSource::ReadConfiguration(vtkXMLDataElement* config)
   }
   this->VideoSources.clear();
 
-  Superclass::ReadConfiguration(config); 
-
-  vtkXMLDataElement* imageAcquisitionConfig = this->FindThisDeviceElement(config);
-  if (imageAcquisitionConfig == NULL) 
-  {
-    LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
-    return PLUS_FAIL;
-  }
-
-  const char* deviceName = imageAcquisitionConfig->GetAttribute("DeviceName"); 
-  if ( deviceName != NULL) 
-  {
-    this->SetDeviceName(deviceName); 
-  }
-
-  const char* videoNorm = imageAcquisitionConfig->GetAttribute("VideoNorm"); 
-  if ( videoNorm != NULL) 
-  {
-    this->SetVideoNorm(videoNorm); 
-  }
-
-  const char* videoFormat = imageAcquisitionConfig->GetAttribute("VideoFormat"); 
-  if ( videoFormat != NULL) 
-  {
-    this->SetVideoFormat(videoFormat); 
-  }
-
-  const char* inputChannel = imageAcquisitionConfig->GetAttribute("InputChannel"); 
-  if ( inputChannel != NULL) 
-  {
-    this->SetInputChannel(inputChannel); 
-  }
-
-  int icBufferSize = 0; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("ICBufferSize", icBufferSize) ) 
-  {
-    this->SetICBufferSize(icBufferSize); 
-  }
+  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(DeviceName, deviceConfig);
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(VideoNorm, deviceConfig);
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(VideoFormat, deviceConfig);
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(InputChannel, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, ICBufferSize, deviceConfig);
 
   // clipping parameters
-  int clipRectangleOrigin[2]={0,0};
-  if (imageAcquisitionConfig->GetVectorAttribute("ClipRectangleOrigin", 2, clipRectangleOrigin))
-  {
-    this->SetClipRectangleOrigin(clipRectangleOrigin);
-  }
-  int clipRectangleSize[2]={0,0};
-  if (imageAcquisitionConfig->GetVectorAttribute("ClipRectangleSize", 2, clipRectangleSize))
-  {
-    this->SetClipRectangleSize(clipRectangleSize);
-  }
+  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleOrigin, deviceConfig);
+  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleSize, deviceConfig);
 
   return PLUS_SUCCESS;
 }

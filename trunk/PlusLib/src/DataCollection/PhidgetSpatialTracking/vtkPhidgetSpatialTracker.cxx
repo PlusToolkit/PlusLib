@@ -451,39 +451,14 @@ PlusStatus vtkPhidgetSpatialTracker::InternalStopRecording()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPhidgetSpatialTracker::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkPhidgetSpatialTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  // Read superclass configuration first
-  Superclass::ReadConfiguration(config); 
+  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
-  if ( config == NULL ) 
-  {
-    LOG_WARNING("Unable to find BrachyTracker XML data element");
-    return PLUS_FAIL; 
-  }
-
-  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(config);
-  if (trackerConfig == NULL) 
-  {
-    LOG_ERROR("Cannot find Tracker element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  const char* zeroGyroscopeOnConnect = trackerConfig->GetAttribute("ZeroGyroscopeOnConnect"); 
-  if ( zeroGyroscopeOnConnect != NULL )
-  {
-    if ( STRCASECMP(zeroGyroscopeOnConnect, "true") == 0 )
-    {
-      this->ZeroGyroscopeOnConnect=true;
-    }
-    else
-    {
-      this->ZeroGyroscopeOnConnect=false;
-    }
-  } 
+  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(ZeroGyroscopeOnConnect, deviceConfig);  
 
   int tiltSensorWestAxisIndex=0; 
-  if ( trackerConfig->GetScalarAttribute("TiltSensorWestAxisIndex", tiltSensorWestAxisIndex ) ) 
+  if ( deviceConfig->GetScalarAttribute("TiltSensorWestAxisIndex", tiltSensorWestAxisIndex ) ) 
   {
     if (tiltSensorWestAxisIndex<0 || tiltSensorWestAxisIndex>2)
     {
@@ -495,9 +470,9 @@ PlusStatus vtkPhidgetSpatialTracker::ReadConfiguration(vtkXMLDataElement* config
       this->TiltSensorWestAxisIndex=tiltSensorWestAxisIndex;
     }
   }
-
+  
   int FilteredTiltSensorWestAxisIndex=0; 
-  if ( trackerConfig->GetScalarAttribute("FilteredTiltSensorWestAxisIndex", FilteredTiltSensorWestAxisIndex ) ) 
+  if ( deviceConfig->GetScalarAttribute("FilteredTiltSensorWestAxisIndex", FilteredTiltSensorWestAxisIndex ) ) 
   {
     if (FilteredTiltSensorWestAxisIndex<0 || FilteredTiltSensorWestAxisIndex>2)
     {
@@ -510,22 +485,10 @@ PlusStatus vtkPhidgetSpatialTracker::ReadConfiguration(vtkXMLDataElement* config
     }
   }
 
-  double ahrsAlgorithmGain[2]={0}; 
-  if ( trackerConfig->GetVectorAttribute("AhrsAlgorithmGain", 2, ahrsAlgorithmGain ) ) 
-  {
-    this->AhrsAlgorithmGain[0]=ahrsAlgorithmGain[0]; 
-    this->AhrsAlgorithmGain[1]=ahrsAlgorithmGain[1]; 
-  }
+  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 2, AhrsAlgorithmGain, deviceConfig);
+  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 2, FilteredTiltSensorAhrsAlgorithmGain, deviceConfig);
 
-  double FilteredTiltSensorAhrsAlgorithmGain[2]={0}; 
-  if ( trackerConfig->GetVectorAttribute("FitleredTiltAhrsAlgorithmGain", 2, FilteredTiltSensorAhrsAlgorithmGain ) ) 
-  {
-    this->FilteredTiltSensorAhrsAlgorithmGain[0]=FilteredTiltSensorAhrsAlgorithmGain[0]; 
-    this->FilteredTiltSensorAhrsAlgorithmGain[1]=FilteredTiltSensorAhrsAlgorithmGain[1]; 
-  }
-
-
-  const char* ahrsAlgoName = trackerConfig->GetAttribute("AhrsAlgorithm"); 
+  const char* ahrsAlgoName = deviceConfig->GetAttribute("AhrsAlgorithm"); 
   if ( ahrsAlgoName != NULL )
   {
     if ( STRCASECMP("MADGWICK_MARG", ahrsAlgoName)==0 || STRCASECMP("MADGWICK_IMU", ahrsAlgoName)==0)
@@ -570,7 +533,7 @@ PlusStatus vtkPhidgetSpatialTracker::ReadConfiguration(vtkXMLDataElement* config
       return PLUS_FAIL; 
     }
   }
-  const char* FilteredTiltSensorAhrsAlgoName = trackerConfig->GetAttribute("FilteredTiltSensorAhrsAlgorithm"); 
+  const char* FilteredTiltSensorAhrsAlgoName = deviceConfig->GetAttribute("FilteredTiltSensorAhrsAlgorithm"); 
   if ( FilteredTiltSensorAhrsAlgoName != NULL )
   {
     if (STRCASECMP("MADGWICK_IMU", FilteredTiltSensorAhrsAlgoName)==0)
@@ -600,8 +563,6 @@ PlusStatus vtkPhidgetSpatialTracker::ReadConfiguration(vtkXMLDataElement* config
     }
   }
 
-
-
   return PLUS_SUCCESS;
 }
 
@@ -617,8 +578,8 @@ PlusStatus vtkPhidgetSpatialTracker::WriteConfiguration(vtkXMLDataElement* rootC
   // Write configuration 
   Superclass::WriteConfiguration(rootConfigElement); 
 
-  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(rootConfigElement);
-  if ( trackerConfig == NULL) 
+  vtkXMLDataElement* deviceConfig = this->FindThisDeviceElement(rootConfigElement);
+  if ( deviceConfig == NULL) 
   {
     LOG_ERROR("Cannot find Tracker element in XML tree!");
     return PLUS_FAIL;
@@ -626,34 +587,34 @@ PlusStatus vtkPhidgetSpatialTracker::WriteConfiguration(vtkXMLDataElement* rootC
 
   if (this->ZeroGyroscopeOnConnect)
   {
-    trackerConfig->SetAttribute("ZeroGyroscopeOnConnect","TRUE");
+    deviceConfig->SetAttribute("ZeroGyroscopeOnConnect","TRUE");
   }
 
   if (this->TiltSensorTool)
   {
-    trackerConfig->SetIntAttribute("TiltSensorWestAxisIndex", this->TiltSensorWestAxisIndex);  
+    deviceConfig->SetIntAttribute("TiltSensorWestAxisIndex", this->TiltSensorWestAxisIndex);  
   }
 
   if (this->FilteredTiltSensorTool)
   {
-    trackerConfig->SetIntAttribute("FilteredTiltSensorWestAxisIndex", this->FilteredTiltSensorWestAxisIndex); 
+    deviceConfig->SetIntAttribute("FilteredTiltSensorWestAxisIndex", this->FilteredTiltSensorWestAxisIndex); 
     if (this->FilteredTiltSensorAhrsAlgorithmGain[1]==0.0)
     {
       // if the second gain parameter is zero then just write the first value
-      trackerConfig->SetDoubleAttribute( "FilteredTiltSensorAhrsAlgorithmGain", this->FilteredTiltSensorAhrsAlgorithmGain[0] ); 
+      deviceConfig->SetDoubleAttribute( "FilteredTiltSensorAhrsAlgorithmGain", this->FilteredTiltSensorAhrsAlgorithmGain[0] ); 
     }
     else
     {
-      trackerConfig->SetVectorAttribute( "FilteredTiltSensorAhrsAlgorithmGain", 2, this->FilteredTiltSensorAhrsAlgorithmGain );
+      deviceConfig->SetVectorAttribute( "FilteredTiltSensorAhrsAlgorithmGain", 2, this->FilteredTiltSensorAhrsAlgorithmGain );
     }
 
     if ( dynamic_cast<MadgwickAhrsAlgo*>(this->FilteredTiltSensorAhrsAlgo)!=0)
     {
-      trackerConfig->SetAttribute( "FilteredTiltSensorAhrsAlgorithm", "MADGWICK_IMU" );
+      deviceConfig->SetAttribute( "FilteredTiltSensorAhrsAlgorithm", "MADGWICK_IMU" );
     }
     else if (dynamic_cast<MahonyAhrsAlgo*>(this->FilteredTiltSensorAhrsAlgo)!=0)
     {
-      trackerConfig->SetAttribute( "FilteredTiltSensorAhrsAlgorithm", "MAHONY_IMU" );
+      deviceConfig->SetAttribute( "FilteredTiltSensorAhrsAlgorithm", "MAHONY_IMU" );
     }
     else
     {
@@ -666,33 +627,33 @@ PlusStatus vtkPhidgetSpatialTracker::WriteConfiguration(vtkXMLDataElement* rootC
     if (this->AhrsAlgorithmGain[1]==0.0)
     {
       // if the second gain parameter is zero then just write the first value
-      trackerConfig->SetDoubleAttribute( "AhrsAlgorithmGain", this->AhrsAlgorithmGain[0] ); 
+      deviceConfig->SetDoubleAttribute( "AhrsAlgorithmGain", this->AhrsAlgorithmGain[0] ); 
     }
     else
     {
-      trackerConfig->SetVectorAttribute( "AhrsAlgorithmGain", 2, this->AhrsAlgorithmGain );
+      deviceConfig->SetVectorAttribute( "AhrsAlgorithmGain", 2, this->AhrsAlgorithmGain );
     }
 
     if ( dynamic_cast<MadgwickAhrsAlgo*>(this->AhrsAlgo)!=0)
     {
       if (this->AhrsUseMagnetometer)
       {
-        trackerConfig->SetAttribute( "AhrsAlgorithm", "MADGWICK_MARG" ); 
+        deviceConfig->SetAttribute( "AhrsAlgorithm", "MADGWICK_MARG" ); 
       }
       else
       {
-        trackerConfig->SetAttribute( "AhrsAlgorithm", "MADGWICK_IMU" ); 
+        deviceConfig->SetAttribute( "AhrsAlgorithm", "MADGWICK_IMU" ); 
       }
     }
     else if (dynamic_cast<MahonyAhrsAlgo*>(this->AhrsAlgo)!=0)
     {
       if (this->AhrsUseMagnetometer)
       {
-        trackerConfig->SetAttribute( "AhrsAlgorithm", "MAHONY_MARG" ); 
+        deviceConfig->SetAttribute( "AhrsAlgorithm", "MAHONY_MARG" ); 
       }
       else
       {
-        trackerConfig->SetAttribute( "AhrsAlgorithm", "MAHONY_IMU" ); 
+        deviceConfig->SetAttribute( "AhrsAlgorithm", "MAHONY_IMU" ); 
       }
     }
     else
