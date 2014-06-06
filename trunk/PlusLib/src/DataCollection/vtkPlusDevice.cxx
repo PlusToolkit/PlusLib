@@ -2177,7 +2177,7 @@ PlusStatus vtkPlusDevice::GetImageMetaData(std::deque<PlusCommon::ImageMetaDataI
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetImage(const std::string& imageId, const std::string& imageReferencFrameName, vtkImageData* imageData, vtkMatrix4x4* ijkToReferenceTransform)
+PlusStatus vtkPlusDevice::GetImage(const std::string& requestedImageId, std::string& assignedImageId, const std::string& imageReferencFrameName, vtkImageData* imageData, vtkMatrix4x4* ijkToReferenceTransform)
 {
 	LOCAL_LOG_ERROR("vtkPlusDevice::GetImage is not implemented");
   return PLUS_FAIL;

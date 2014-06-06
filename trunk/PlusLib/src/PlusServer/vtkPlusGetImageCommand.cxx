@@ -95,8 +95,8 @@ PlusStatus vtkPlusGetImageCommand::ProcessImageReply(vtkDataCollector* dataColle
 	for( DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it )
 	{
 		plusDevice = (*it);
-		LOG_INFO("Acquiring the image meta data from the device with DeviceId: "<<plusDevice->GetDeviceId());
-		if(plusDevice->GetImage(std::string(this->GetDeviceId()), std::string("Ras"),imageData,ijkToRasTransform))
+		LOG_INFO("Acquiring the image data from the device with DeviceId: "<<plusDevice->GetDeviceId());
+		if(plusDevice->GetImage(std::string(this->GetDeviceId()), std::string(""),std::string("Ras"),imageData,ijkToRasTransform))
 		{
 			LOG_DEBUG("Send image to client through OpenIGTLink");
 			vtkSmartPointer<vtkPlusCommandImageResponse> imageResponse=vtkSmartPointer<vtkPlusCommandImageResponse>::New();
@@ -120,7 +120,6 @@ PlusStatus vtkPlusGetImageCommand::ProcessImageMetaReply(vtkDataCollector* dataC
 	for( DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it )
 	{
 		plusDevice = (*it);
-		LOG_INFO("Acquiring the image meta data from the device with DeviceId: "<<plusDevice->GetDeviceId());
 		plusDevice->GetImageMetaData(imageMetaDataList);
 	}
   if(imageMetaDataList.size() == 0)

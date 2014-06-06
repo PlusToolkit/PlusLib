@@ -413,7 +413,7 @@ public:
 	virtual PlusStatus GetImageMetaData(PlusCommon::ImageMetaDataList& imageMetaDataItems);
 
 	/*! Return a list of items that desrcibe what image volumes this device can provide */
-	virtual PlusStatus GetImage(const std::string& imageId, const std::string& imageReferencFrameName, vtkImageData* imageData, vtkMatrix4x4* ijkToReferenceTransform);
+	virtual PlusStatus GetImage(const std::string& requestedImageId, std::string& assignedImageId,const std::string& imageReferencFrameName, vtkImageData* imageData, vtkMatrix4x4* ijkToReferenceTransform);
 
 protected:
   static void *vtkDataCaptureThread(vtkMultiThreader::ThreadInfo *data);

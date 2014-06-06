@@ -36,22 +36,13 @@ private:
 	vtkStealthLinkTracker *External;
 
 	MNavStealthLink::StealthServer *StealthLinkServer;
-	MNavStealthLink::Exam CurrentExam;
-	MNavStealthLink::NavData NavData;
-	MNavStealthLink::Registration Registration;
+	MNavStealthLink::Registration CurrentRegistration;
+	MNavStealthLink::Exam         CurrentExam;
 
 	vtkSmartPointer<vtkTransformRepository> TransformRepository; //this is used to calculate the transformation of the image in the demanded reference frame
 	vtkSmartPointer<vtkMatrix4x4> IjkToExamRpiTransMatrix; // Medtronic excludes the orientation, this is the ijkToRpi without taking orientation into accout and thinking the origin is at 0 0 0
 	vtkSmartPointer<vtkMatrix4x4> IjkToRasTransMatrix; // ijkToRpi with orientation taken into account
-	vtkSmartPointer<vtkMatrix4x4> InsToTrackerTransMatrix;   // Instrument to Tracker transformation matrix
-	vtkSmartPointer<vtkMatrix4x4> FrameToTrackerTransMatrix; // Frame to Tracker transformation matrix
-	vtkSmartPointer<vtkMatrix4x4> RasToTrackerTransMatrix;   /* RastoTracker transformation matrix. This matrix is 
-																													 calculated by multiplying FramToTracker * RasToFrame
-																													 transformation matrices. Thus, if frame is out of view,
-																													 this transformation matrix will be invalid as well.*/
 
-	std::string CurrentFrameName;
-	std::string CurrentInstrumentName;
 	std::pair<std::string,std::string> ExamIdImageIdPair; // imageId as created for slicer and unique exam name for stealthlink 
 	std::string ServerAddress; // Host IP Address
 	std::string PortAddress; // Host Port Address
@@ -67,30 +58,39 @@ private:
 
 	int ExamCounter; 
 
-	bool InstrumentOutOfView;
-	bool FrameOutOfView;
 	bool GetImageCommandRequested;
-	bool TransformRepositoryUpdated;
+	bool KeepReceivedDicomFiles;
+
+	// Necessary mutex variables
+	vtkSmartPointer<vtkRecursiveCriticalSection> StealthLinkServerMutex;
+	vtkSmartPointer<vtkRecursiveCriticalSection> IjkToExamRpiMutex;
+	vtkSmartPointer<vtkRecursiveCriticalSection> IjkToRasMutex;
+	vtkSmartPointer<vtkRecursiveCriticalSection> GetImageCommandMutex;
+	vtkSmartPointer<vtkRecursiveCriticalSection> CurrentExamMutex;
+	vtkSmartPointer<vtkRecursiveCriticalSection> CurrentRegistrationMutex;
 
 	/*~ Constructor ~*/
 	vtkInternal(vtkStealthLinkTracker* external) 
 		: External(external)
 		, StealthLinkServer(NULL)
-		, InstrumentOutOfView(FALSE)
-		, FrameOutOfView(FALSE)
 		, GetImageCommandRequested(FALSE)
-		, TransformRepositoryUpdated(FALSE)
 	{
-		this->InsToTrackerTransMatrix   = vtkSmartPointer<vtkMatrix4x4>::New();
-		this->FrameToTrackerTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-		this->RasToTrackerTransMatrix   = vtkSmartPointer<vtkMatrix4x4>::New();
 		this->IjkToExamRpiTransMatrix   = vtkSmartPointer<vtkMatrix4x4>::New();
 		this->IjkToRasTransMatrix			  = vtkSmartPointer<vtkMatrix4x4>::New();
 		this->TransformRepository       = vtkSmartPointer<vtkTransformRepository>::New();
+		
 		this->ServerAddress.clear();
 		this->PortAddress.clear();
 		this->DicomImagesOutputDirectory.clear();
 		this->DeviceId.clear();
+	
+		this->StealthLinkServerMutex = vtkSmartPointer<vtkRecursiveCriticalSection>::New();
+		this->IjkToExamRpiMutex = vtkSmartPointer<vtkRecursiveCriticalSection>::New();
+	  this->IjkToRasMutex = vtkSmartPointer<vtkRecursiveCriticalSection>::New();
+	  this->GetImageCommandMutex = vtkSmartPointer<vtkRecursiveCriticalSection>::New();
+	  this->CurrentExamMutex = vtkSmartPointer<vtkRecursiveCriticalSection>::New();
+	  this->CurrentRegistrationMutex = vtkSmartPointer<vtkRecursiveCriticalSection>::New();
+
 	}
 
 	/*! Destructor !*/
@@ -108,75 +108,94 @@ private:
 
 	bool IsStealthServerInitialized()
 	{
+		PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
 		if(this->StealthLinkServer == NULL)
 		{
 			return false;
 		}
 		return true;
 	}
-	/*! Check if the Instruments Are Verified !*/
-	PlusStatus IsInstrumentVerified(bool &verified)
-	{
-		MNavStealthLink::Instrument instrument;
-		MNavStealthLink::Error err;
-		if(!this->StealthLinkServer->get(this->CurrentInstrumentName,instrument,this->StealthLinkServer->getServerTime(err)))
-		{
-			LOG_ERROR("Error retrieveing the current instrument from the StealthLink Server " << err.what() << "\n");
-			return PLUS_FAIL;
-		}
-		if(instrument.isVerified)
-		{
-			verified = true;
-			return PLUS_SUCCESS;
-		}
-		verified = false;
-		return PLUS_SUCCESS;
-	}
+	// Begin - Thread Safe Set and Get Functions
+	// IjkToExamRpi Set and Get
 	void SetIjkToExamRpiTransformationMatrix(vtkMatrix4x4* ijkToExamRpiTransformationMatrix)
 	{
+		PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->IjkToExamRpiMutex);
 		this->IjkToExamRpiTransMatrix = ijkToExamRpiTransformationMatrix;
 	}
+	void GetIjkToExamRpiTransformationMatrix(vtkMatrix4x4* ijkToExamRpiTransformationMatrix)
+	{
+		PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->IjkToExamRpiMutex);
+		ijkToExamRpiTransformationMatrix->DeepCopy(this->IjkToExamRpiTransMatrix);
+	}
+	//-------------------------------------------------------------------------------
+	// IjkToRas Set and Get
 	void SetIjkToRasTransformationMatrix(vtkMatrix4x4* ijkToRasTransformationMatrix)
 	{
+		PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->IjkToRasMutex);
 		this->IjkToRasTransMatrix = ijkToRasTransformationMatrix;
 	}
-	vtkSmartPointer<vtkMatrix4x4> GetInsToTrackerTransMatrix()
+	void GetIjkToRasTransformationMatrix(vtkMatrix4x4* ijkToRasTransformationMatrix)
 	{
-		return this->InsToTrackerTransMatrix;
+		PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->IjkToRasMutex);
+		ijkToRasTransformationMatrix->DeepCopy(this->IjkToRasTransMatrix);
 	}
-	vtkSmartPointer<vtkMatrix4x4> GetFrameToTrackerTransMatrix()
-	{
-		return this->FrameToTrackerTransMatrix;
-	}
-	vtkSmartPointer<vtkMatrix4x4> GetRasToTrackerTransMatrix()
-	{
-		return this->RasToTrackerTransMatrix;
-	}
+	//-------------------------------------------------------------------------------
+	// GetImageCommandRequest Set and Get
 	void SetGetImageCommandRequested(bool getImageCommandRequested)
 	{
+		PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->GetImageCommandMutex);
 		this->GetImageCommandRequested = getImageCommandRequested;
 	}
 	bool GetGetImageCommandRequested()
 	{
+		PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->GetImageCommandMutex);
 		return this->GetImageCommandRequested;
 	}
-	void SetTransformRepositoryUpdated(bool transformRepositoryUpdated)
+	//------------------------------------------------------------------------------
+	// Get for Navigation Data. It is updated each time internalupdate is called
+	PlusStatus GetCurrentNavigationData(MNavStealthLink::NavData& navData)
 	{
-		this->TransformRepositoryUpdated = transformRepositoryUpdated;
+		MNavStealthLink::Error err;
+		{
+			PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
+		  if(!this->StealthLinkServer->get(navData,this->StealthLinkServer->getServerTime(),err))
+		  {	
+			  LOG_ERROR(" Failed to acquire the navigation data from StealthLink Server: " <<  err.reason() << " " << err.what() << "\n");
+			  return PLUS_FAIL;
+		  }
+		}
+		return PLUS_SUCCESS;
 	}
-	bool GetTransformRepositoryUpdated()
+	//----------------------------------------------------------------------------
+	// Get for current exam. The exam is only acquired from the server when GET_IMGMETA, GET_IMAGE or GET_EXAM_DATA commands are requested. This function will make sure that different threads
+	// do not modify the exam at the same time. Use GetCurrentExam function everytime the current exam is used. 
+	void GetCurrentExam(MNavStealthLink::Exam& exam) 
 	{
-		return this->TransformRepositoryUpdated;
+		PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->CurrentExamMutex);
+		exam = this->CurrentExam;
 	}
+	//----------------------------------------------------------------------------
+	// Get for current registration. The registration is only acquired from the server when GET_IMAGE or GET_EXAM_DATA commands are requested. This function will make sure that different threads
+	// do not modify the registration at the same time. Use GetCurrentRegistration function everytime the current registration is used. 
+	void GetCurrentRegistration(MNavStealthLink::Registration& registration) // TODO make it thread safe
+	{
+		PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->CurrentRegistrationMutex);
+		registration = this->CurrentRegistration;
+	}
+	// End - Thread Safe Set and Get Functions
+
 	PlusStatus GetValidToolPortNames(std::map<std::string,bool>& validToolPortNames)
 	{
 		MNavStealthLink::Error err;
 		MNavStealthLink::InstrumentNameList instrumentNameList;
 		// Get the instrument list
-		if(!this->StealthLinkServer->get(instrumentNameList,err))
 		{
-			LOG_ERROR (" Could not retrieve the instument name list: " << err.reason() << std::endl);
-			return PLUS_FAIL;
+			PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
+		  if(!this->StealthLinkServer->get(instrumentNameList,err))
+		  {
+			  LOG_ERROR (" Could not retrieve the instument name list: " << err.reason() << std::endl);
+			  return PLUS_FAIL;
+		  }
 		}
 		for (MNavStealthLink::InstrumentNameList::iterator instrumentNameIterator = instrumentNameList.begin(); instrumentNameIterator!=instrumentNameList.end(); instrumentNameIterator++)
 		{
@@ -187,75 +206,64 @@ private:
 		return PLUS_SUCCESS;
 	}
 	/*! Update the transformation maxtrix of the current instrument !*/
-	void UpdateInsToTrackerTransMatrix()
+	void GetInstrumentInformation(MNavStealthLink::NavData navData,bool& instrumentOutOfView,vtkMatrix4x4* insToTrackerTransformation)
 	{
-		if( !(this->NavData.instVisibility == MNavStealthLink::Instrument::VISIBLE) && !(this->NavData.instVisibility == MNavStealthLink::Instrument::ALMOST_BLOCKED))
+		if( !(navData.instVisibility == MNavStealthLink::Instrument::VISIBLE) && !(navData.instVisibility == MNavStealthLink::Instrument::ALMOST_BLOCKED))
 		{
-			if(!this->InstrumentOutOfView)
-			{
-				LOG_TRACE("The instrument is out of the view. Please check the current positions of the instrument\n");
-				this->InstrumentOutOfView = TRUE;
-			}
+			instrumentOutOfView = TRUE;
 			return;
 		}
-		if(this->InstrumentOutOfView)
+		else
 		{
-			LOG_TRACE("The instrument returned to field of view\n");
-			this->InstrumentOutOfView = FALSE;
-		}	
-		vtkSmartPointer<vtkMatrix4x4> insToTracker_Lps = vtkSmartPointer<vtkMatrix4x4>::New();
+			instrumentOutOfView = FALSE;
+		}
 		for(int col=0; col < 4; col++)
 		{
 			for (int row=0; row < 4; row++)
 			{
-				this->InsToTrackerTransMatrix->SetElement(row, col, this->NavData.localizer_T_instrument [row][col]);
+				insToTrackerTransformation->SetElement(row, col, navData.localizer_T_instrument [row][col]);
 			}
 		}
 	}
 	/*! Update the transformation maxtrix of the current frame !*/
-	void UpdateFrameToTrackerTransMatrix()
+	void GetFrameInformation(MNavStealthLink::NavData navData,bool& frameOutOfView,vtkMatrix4x4* frameToTrackerTransformation)
 	{
-		if( !(this->NavData.frameVisibility == MNavStealthLink::Frame::VISIBLE) && !(this->NavData.frameVisibility == MNavStealthLink::Frame::ALMOST_BLOCKED))
+		if( !(navData.frameVisibility == MNavStealthLink::Frame::VISIBLE) && !(navData.frameVisibility == MNavStealthLink::Frame::ALMOST_BLOCKED))
 		{
-			if(!this->FrameOutOfView)
-			{
-				LOG_TRACE("The frame is not trackable. Please check the current positions of the tools.\n");
-				this->FrameOutOfView = TRUE;
-			}
+			frameOutOfView = TRUE;
 			return;
 		}
-		if(this->FrameOutOfView)
+		else
 		{
-			LOG_TRACE("The frame is now trackable.\n");
-			this->FrameOutOfView = FALSE;
+			frameOutOfView = FALSE;
 		}
 		vtkSmartPointer<vtkMatrix4x4> trackerToFrame = vtkSmartPointer<vtkMatrix4x4>::New();
 		for(int col=0; col < 4; col++)
 		{
 			for (int row=0; row < 4; row++)
 			{
-				trackerToFrame->SetElement(row, col, this->NavData.frame_T_localizer [row][col]); // from localizer Space to frame space
+				trackerToFrame->SetElement(row, col, navData.frame_T_localizer [row][col]); // from localizer Space to frame space
 			}
 		}
 		//the transformation matrix given by NavData is from Localizer(Tracker) space to frame space and we need the inverse of it
-		vtkMatrix4x4::Invert(trackerToFrame,this->FrameToTrackerTransMatrix);   
+		vtkMatrix4x4::Invert(trackerToFrame,frameToTrackerTransformation);   
 	}
 	/* Update the transformation maxtrix of the current image !*/
-	void UpdateRasToTrackerTransMatrix()
+	void GetRasToTrackerTransMatrix(vtkMatrix4x4* frameToTrackerTransform,vtkMatrix4x4* rasToTrackerTransformation)
 	{
-		//The matrix is calculated by ImageToFrameTransMatrix*FrameToTrackerTransMatrix. So if frame is out of view, no need to do the math. 
-		if(this->FrameOutOfView)
-		{
-			return;
-		}
+
 		vtkSmartPointer<vtkMatrix4x4> frameToRegExamTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); // this is from frame to image used in the registration 
 		vtkSmartPointer<vtkMatrix4x4> regExamToExamRpiTransMatrix  = vtkSmartPointer<vtkMatrix4x4>::New();  // from the exam image to registration image, if they are the same then the matrix is idendity
+		MNavStealthLink::Registration registration;
+		MNavStealthLink::Exam exam;
+		this->GetCurrentRegistration(registration); //this function is thread safe. If registration is  being updated, GetCurrentRegistration function will wait
+		this->GetCurrentExam(exam);                 //this function is thread safe. If exam is being updated, GetCurrentExam function will wait
 		for(int col=0; col < 4; col++)
 		{
 			for (int row=0; row < 4; row++)
 			{
-				frameToRegExamTransMatrix->SetElement(row, col, this->Registration.regExamMM_T_frame [row][col]);
-				regExamToExamRpiTransMatrix->SetElement(row,col,this->CurrentExam.examMM_T_regExamMM[row][col]);
+				frameToRegExamTransMatrix->SetElement(row, col, registration.regExamMM_T_frame [row][col]);
+				regExamToExamRpiTransMatrix->SetElement(row,col,exam.examMM_T_regExamMM[row][col]);
 			}
 		}
 		//examRpiToFrame = regExamToFrame * examRpiToRegExam so we need the inverse of the two matrices
@@ -276,12 +284,16 @@ private:
 
 		// we have ijkToRas so we need to invert it to have rasToIjk
 		vtkSmartPointer<vtkMatrix4x4> rasToIjkTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-		vtkMatrix4x4::Invert(this->IjkToRasTransMatrix,rasToIjkTransMatrix);
+		vtkSmartPointer<vtkMatrix4x4> ijkToRasTransformation = vtkSmartPointer<vtkMatrix4x4>::New();
+		this->GetIjkToRasTransformationMatrix(ijkToRasTransformation); //thread safe. If ijkToRas is being updated, GetIjkToRasTransformationMatrix will wait
+		vtkMatrix4x4::Invert(ijkToRasTransformation,rasToIjkTransMatrix);
 
 		//Now we just need to multiply the matrices
 		//First, let's multiplly examRpiToFrame and IjkToExamRpi: this will give us ijkToFrame
 		vtkSmartPointer<vtkMatrix4x4> ijkToFrameTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-		vtkMatrix4x4::Multiply4x4(examRpiToFrameTransMatrix,this->IjkToExamRpiTransMatrix,ijkToFrameTransMatrix);
+		vtkSmartPointer<vtkMatrix4x4> ijkToExamRpiTransformation = vtkSmartPointer<vtkMatrix4x4>::New();
+		this->GetIjkToExamRpiTransformationMatrix(ijkToExamRpiTransformation); //thread safe. If ijkToExamRpi is being updated, GetIjkToExamRpiTransformationMatrix will wait
+		vtkMatrix4x4::Multiply4x4(examRpiToFrameTransMatrix,ijkToExamRpiTransformation,ijkToFrameTransMatrix);
 
 		// we now multiply ijkToFrameTransMatrix and RasToIjk which will give rasToFrame
 		vtkSmartPointer<vtkMatrix4x4> rasToFrameTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -289,7 +301,7 @@ private:
 
 		//Final step is to get rasToTracker which is done by frameToTracker * rasToFrame 
 		vtkSmartPointer<vtkMatrix4x4> lpsToTrackerTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-		vtkMatrix4x4::Multiply4x4(this->FrameToTrackerTransMatrix,rasToFrameTransMatrix,this->RasToTrackerTransMatrix);
+		vtkMatrix4x4::Multiply4x4(frameToTrackerTransform,rasToFrameTransMatrix,rasToTrackerTransformation);
 	}
 };
 
@@ -301,8 +313,6 @@ vtkStandardNewMacro(vtkStealthLinkTracker);
 vtkStealthLinkTracker::vtkStealthLinkTracker()
 {
 	this->Internal = new vtkInternal(this);
-	this->TrackerTimeToSystemTimeComputed = false;
-	this->DateAndTimeString = vtkAccurateTimer::GetInstance()->GetDateAndTimeString();
 
 	this->RequireImageOrientationInConfiguration = false;
 	this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
@@ -316,6 +326,7 @@ vtkStealthLinkTracker::vtkStealthLinkTracker()
 	this->StartThreadForInternalUpdates=true;
 }
 
+// Public Functions
 //----------------------------------------------------------------------------
 vtkStealthLinkTracker::~vtkStealthLinkTracker() 
 {
@@ -336,81 +347,20 @@ PlusStatus vtkStealthLinkTracker::GetSdkVersion(std::string& version)
 {
 	MNavStealthLink::Version serverVersion;
 	MNavStealthLink::Error err;
-	if(!this->Internal->StealthLinkServer->get(serverVersion,this->Internal->StealthLinkServer->getServerTime(),err))
 	{
-		LOG_ERROR("Failed to acquire the version of the StealthLinkServer " << err.reason() << "\n");
-		return PLUS_FAIL;
+		PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Internal->StealthLinkServerMutex);
+	  if(!this->Internal->StealthLinkServer->get(serverVersion,this->Internal->StealthLinkServer->getServerTime(),err))
+	  {
+		  LOG_ERROR("Failed to acquire the version of the StealthLinkServer " << err.reason() << "\n");
+		  return PLUS_FAIL;
+	  }
 	}
 	version = (unsigned) serverVersion.major + (unsigned) serverVersion.minor;
 	return PLUS_SUCCESS;
 }
-PlusStatus vtkStealthLinkTracker::AreInstrumentPortNamesValid(bool& valid)
-{
-	std::map<std::string,bool> validToolPortNames;
-	if(!this->Internal->GetValidToolPortNames(validToolPortNames))
-	{
-		valid = false;
-		return PLUS_FAIL;
-	}
-	for ( DataSourceContainerConstIterator toolIterator = this->GetToolIteratorBegin(); toolIterator != this->GetToolIteratorEnd(); ++toolIterator)
-	{
-		if(validToolPortNames.find(std::string(toolIterator->second->GetPortName())) == validToolPortNames.end()) // means that the tool is not found in the map
-		{
-			LOG_ERROR( toolIterator->second->GetPortName() << " has not been found in the .xml file. Please make sure to use correct port names for the tools\n");
-			valid = false;
-			return PLUS_FAIL;
-		}
-		if(validToolPortNames.find(std::string(toolIterator->second->GetPortName()))->second == true)
-		{
-			LOG_ERROR( toolIterator->second->GetPortName() << " has been defined in the .xml file. Please make sure to define every tool once\n");
-			valid = false;
-			return PLUS_FAIL;
-		}
-		validToolPortNames.find(std::string(toolIterator->second->GetPortName()))->second = true;
-	}
-	valid = true;
-	return PLUS_SUCCESS;
-}
-//-----------------------------------------------------------------------------
-void vtkStealthLinkTracker::AcquireInitialToolsVisibilityStatus()
-{
-	/*! Instrument Visibility Status - No need for Visible since the default value is TRACKABLE !*/
-	if(!(this->Internal->NavData.instVisibility == MNavStealthLink::Instrument::VISIBLE || this->Internal->NavData.instVisibility == MNavStealthLink::Instrument::ALMOST_BLOCKED))
-	{
-		this->Internal->InstrumentOutOfView = TRUE;		
-		LOG_TRACE("The Instrument is not trackable\n");
-	}
-	/*! Frame Visibility Status - No need for Visible since the default value is TRACKABLE !*/
-	if(!(this->Internal->NavData.frameVisibility != MNavStealthLink::Frame::VISIBLE || this->Internal->NavData.frameVisibility != MNavStealthLink::Frame::ALMOST_BLOCKED))
-	{
-		this->Internal->FrameOutOfView = TRUE;	
-		LOG_TRACE("The Frame is not trackable\n");
-	}
-}
-//------------------------------------------------------------------------------
-void vtkStealthLinkTracker::UpdateCurrentToolsNames()
-{
-	if(this->Internal->NavData.frameName != this->Internal->CurrentFrameName && !this->Internal->NavData.frameName.empty())
-	{
-		LOG_TRACE (" The current frame has changed from: " << this->Internal->CurrentFrameName << " to: " << this->Internal->NavData.frameName << "\n");
-		this->Internal->CurrentFrameName = this->Internal->NavData.frameName;
-	}
-	if(this->Internal->NavData.instrumentName != this->Internal->CurrentInstrumentName && !this->Internal->NavData.instrumentName.empty())
-	{
-		LOG_TRACE (" The current frame has been change from: " << this->Internal->CurrentInstrumentName << " to: " << this->Internal->NavData.instrumentName << "\n");
-		this->Internal->CurrentInstrumentName = this->Internal->NavData.instrumentName;
-		bool verified;
-		this->Internal->IsInstrumentVerified(verified);
-		if(!verified)
-		{
-			LOG_INFO("The instrument: " << this->Internal->CurrentInstrumentName << " is not verified\n");
-		}
-	}
-}
 //----------------------------------------------------------------------------
 PlusStatus vtkStealthLinkTracker::UpdateTransformRepository(vtkTransformRepository* sharedTransformRepository)
 {
-	//PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
 	if (sharedTransformRepository==NULL)
 	{
 		LOG_ERROR("vtkVirtualVolumeReconstructor::UpdateTransformRepository: shared transform repository is invalid");
@@ -418,7 +368,192 @@ PlusStatus vtkStealthLinkTracker::UpdateTransformRepository(vtkTransformReposito
 	}
 	// Create a copy of the transform repository to allow using it for volume reconstruction while being also used in other threads
 	this->Internal->TransformRepository->DeepCopy(sharedTransformRepository,true);
-	this->Internal->SetTransformRepositoryUpdated(TRUE);
+	return PLUS_SUCCESS;
+}
+
+//--------------------------------------------------------------------
+PlusStatus vtkStealthLinkTracker::GetImageMetaData(PlusCommon::ImageMetaDataList &imageMetaData)
+{
+	if(!this->UpdateCurrentExam()) //this function is thread safe
+	{
+		return PLUS_FAIL;
+	}
+	LOG_INFO("Acquiring the image meta data from the device with DeviceId: "<<this->GetDeviceId());
+	PlusCommon::ImageMetaDataItem imageMetaDataItem;
+	std::string strDeviceId(this->DeviceId);
+	MNavStealthLink::Exam exam;
+	this->Internal->GetCurrentExam(exam); // thread safe
+	imageMetaDataItem.Id = strDeviceId + std::string("-") + this->GetExamCountInString();
+	imageMetaDataItem.Description = exam.description;
+	imageMetaDataItem.Modality = exam.modality;
+	imageMetaDataItem.PatientId= exam.patientId;
+	imageMetaDataItem.PatientName = exam.patientName ;
+	imageMetaDataItem.ScalarType = 3; //TODO check this and correct this
+	imageMetaDataItem.Size[0] = exam.size[0];
+	imageMetaDataItem.Size[1] = exam.size[1];
+	imageMetaDataItem.Size[2] = exam.size[2];
+	imageMetaDataItem.TimeStampUtc = vtkAccurateTimer::GetUniversalTime();
+	imageMetaData.push_back(imageMetaDataItem);
+	this->Internal->ExamIdImageIdPair.first = imageMetaDataItem.Id;
+	this->Internal->ExamIdImageIdPair.second = exam.name;
+	return PLUS_SUCCESS;
+}
+//-------------------------------------------------------------------
+PlusStatus vtkStealthLinkTracker::GetImage(const std::string& requestedImageId, std::string& assignedImageId, const std::string& imageReferencFrameName, vtkImageData* imageData, vtkMatrix4x4* ijkToReferenceTransform)
+{
+	std::string examImageDirectoryToDelete;
+	{
+		if(!requestedImageId.empty()) // The command is GET_IMAGE
+		{
+			if(this->Internal->ExamIdImageIdPair.first.compare(requestedImageId) !=0) //check if the image meta data belongs to stealthlink
+			{
+				return PLUS_FAIL;
+			}
+			{
+				MNavStealthLink::ExamNameList examNameList;
+				MNavStealthLink::Error err;
+				PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Internal->StealthLinkServerMutex);
+				if(!this->Internal->StealthLinkServer->get(examNameList,this->Internal->StealthLinkServer->getServerTime(),err))
+				{
+					LOG_ERROR("Failed to acquire the version of the StealthLinkServer " << err.reason() << "\n");
+					return PLUS_FAIL;
+				}
+				std::vector<std::string>::iterator examNameListIterator = examNameList.begin();
+				if((*examNameListIterator).compare(this->Internal->ExamIdImageIdPair.second) != 0)
+				{
+					LOG_ERROR("The image you requested has been changed on the Stealthlink Server. Please click on Update on slicer to get the current exam");
+					return PLUS_FAIL;
+				}
+			}
+		}
+		else //we need to update the current exam
+		{
+			if(!this->UpdateCurrentExam())
+			{
+				return PLUS_FAIL;
+			}
+		}
+		if(!this->UpdateCurrentRegistration())
+		{
+			return PLUS_FAIL;
+		}
+
+		std::string examImageDirectory;
+		if(!this->AcquireDicomImage(this->GetDicomImagesOutputDirectory(),examImageDirectory))
+		{
+			return PLUS_FAIL;
+		}
+		examImageDirectoryToDelete = examImageDirectory;
+		vtkSmartPointer<vtkDICOMImageReader> reader = vtkSmartPointer<vtkDICOMImageReader>::New();
+		reader->SetDirectoryName(examImageDirectory.c_str()); 
+		reader->Update();
+
+		//to go from the vtk orientation to lps orientation, the vtk image has to be flipped around y and z axis
+		vtkSmartPointer<vtkImageFlip> flipYFilter = vtkSmartPointer<vtkImageFlip>::New();
+		flipYFilter->SetFilteredAxis(1); // flip y axis
+		flipYFilter->SetInputConnection(reader->GetOutputPort());
+		flipYFilter->Update();
+
+		vtkSmartPointer<vtkImageFlip> flipZFilter = vtkSmartPointer<vtkImageFlip>::New();
+		flipZFilter->SetFilteredAxis(2); // flip z axis
+		flipZFilter->SetInputConnection(flipYFilter->GetOutputPort());
+		flipZFilter->Update();
+		imageData->DeepCopy(flipZFilter->GetOutput());
+		imageData->Update();
+
+		float*  ijkOrigin_LPS = reader->GetImagePositionPatient(); //(0020,0032) ImagePositionPatient
+		double* ijkVectorMagnitude_LPS = reader->GetPixelSpacing(); //(0020,0037) ImageOrientationPatient
+
+		float*  iDirectionVector_LPS = reader->GetImageOrientationPatient(); 
+		float*  jDirectionVector_LPS = reader->GetImageOrientationPatient()+3;
+		float   kDirectionVector_LPS[3]={0}; // the third cosine direction is the cross product of the other two vectors
+		vtkMath::Cross(iDirectionVector_LPS,jDirectionVector_LPS,kDirectionVector_LPS);
+
+		vtkSmartPointer<vtkMatrix4x4> ijkToExamRpiTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); // image to ExamRpi, medtronic exludes orientation
+		ijkToExamRpiTransMatrix->SetElement(0,0,-1);
+		ijkToExamRpiTransMatrix->SetElement(2,2,-1);
+		int xMin,xMax,yMin,yMax,zMin,zMax; //Dimensions, necessary to calculate the new origin in exam rpi
+		reader->GetDataExtent(xMin,xMax,yMin,yMax,zMin,zMax);
+		//the origin is shifted from lps to rpi aka shifted along x and z axes
+		double newOrigin_ExamRpi[3]; // medtronic uses rpi and considers the dicom origin to be zero and also the orientation to be idendity
+		newOrigin_ExamRpi[0] = (xMax-xMin+1)*ijkVectorMagnitude_LPS[0];
+		newOrigin_ExamRpi[1] = 0;
+		newOrigin_ExamRpi[2] = (zMax-zMin+1)*ijkVectorMagnitude_LPS[2];
+		ijkToExamRpiTransMatrix->SetElement(0,3,newOrigin_ExamRpi[0]);
+		ijkToExamRpiTransMatrix->SetElement(1,3,newOrigin_ExamRpi[1]);
+		ijkToExamRpiTransMatrix->SetElement(2,3,newOrigin_ExamRpi[2]);
+
+		vtkSmartPointer<vtkMatrix4x4> ijkToRasTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); // ijkToRas: 3x3 direction cosines + origin 1X3
+		for(int i=0;i<3;i++)
+		{	
+			//the dicom image is in lps. To translate it to ras, x and y are "flipped" aka multipled by -1
+			if(i==0 || i==1)
+			{
+				ijkToRasTransMatrix->SetElement(i,0,-iDirectionVector_LPS[i]);
+				ijkToRasTransMatrix->SetElement(i,1,-jDirectionVector_LPS[i]);
+				ijkToRasTransMatrix->SetElement(i,2,-kDirectionVector_LPS[i]);
+			}
+			else
+			{
+				ijkToRasTransMatrix->SetElement(i,0,iDirectionVector_LPS[i]);
+				ijkToRasTransMatrix->SetElement(i,1,jDirectionVector_LPS[i]);
+				ijkToRasTransMatrix->SetElement(i,2,kDirectionVector_LPS[i]);
+			}	
+		}
+		//Set the elements of the transformation matrix, x and y are flipped here as well, multiplied by 1
+		ijkToRasTransMatrix->SetElement(0,3,-ijkOrigin_LPS[0]);
+		ijkToRasTransMatrix->SetElement(1,3,-ijkOrigin_LPS[1]);
+		ijkToRasTransMatrix->SetElement(2,3,ijkOrigin_LPS[2]);
+
+		//These matrices are needed to calculate rasToTracker
+		this->Internal->SetIjkToExamRpiTransformationMatrix(ijkToExamRpiTransMatrix); //thread safe with get function
+		this->Internal->SetIjkToRasTransformationMatrix(ijkToRasTransMatrix);         //thread safe with get function
+		this->Internal->SetGetImageCommandRequested(TRUE);                            // thread safe with get function
+
+		if(requestedImageId.empty()) // the command is vtkPlusStealthLinkCommand
+		{
+			assignedImageId = this->GetDeviceId() + std::string("-") + this->GetExamCountInString();
+			vtkAccurateTimer::Delay(1);  // Delay 1 second to make sure that this->Internal->RasToTracker is calculated correctly based on the new matrices, ijkToExamRpiTransMatrix and ijkToRasTransMatrix
+			const PlusTransformName rasToTrackerTransformName("Ras","Tracker");
+
+			MNavStealthLink::NavData navData;
+			this->Internal->GetCurrentNavigationData(navData);
+
+			vtkSmartPointer<vtkMatrix4x4> frameToTrackerTransformation = vtkSmartPointer<vtkMatrix4x4>::New();
+			bool frameOutOfView;
+			this->Internal->GetFrameInformation(navData,frameOutOfView,frameToTrackerTransformation);
+
+			vtkSmartPointer<vtkMatrix4x4> rasToTrackerTransformation = vtkSmartPointer<vtkMatrix4x4>::New();
+			if(frameOutOfView == TRUE)
+			{
+				LOG_WARNING("The frame is out of view. If you requested the image in Stylus, Frame or Tracker coordinate system, this will give wrong results. Please make sure that the frame is visible");
+			}
+			else
+			{
+				this->Internal->GetRasToTrackerTransMatrix(frameToTrackerTransformation,rasToTrackerTransformation);
+			}
+			this->Internal->TransformRepository->SetTransform(rasToTrackerTransformName,rasToTrackerTransformation);
+			vtkSmartPointer<vtkMatrix4x4> rasToReferenceTransform = vtkSmartPointer<vtkMatrix4x4>::New();
+			const PlusTransformName rasToReferenceTransformName("Ras",imageReferencFrameName.c_str());
+			this->Internal->TransformRepository->GetTransform(rasToReferenceTransformName,rasToReferenceTransform);
+			vtkMatrix4x4::Multiply4x4(rasToReferenceTransform,ijkToRasTransMatrix,ijkToReferenceTransform);
+		}
+		else //GET_IMAGE command, the image is represented in the Ras coordinate frame
+		{
+			for(int i=0; i<4; i++)
+			{
+				for(int j=0;j<4;j++)
+				{	
+					ijkToReferenceTransform->SetElement(i,j,ijkToRasTransMatrix->GetElement(i,j));
+				}
+			}
+		}
+	}
+	if(!this->Internal->KeepReceivedDicomFiles)
+	{
+		this->DeleteDicomImageOutputDirectory(examImageDirectoryToDelete);
+	}
+	this->SetKeepReceivedDicomFiles(FALSE);
 	return PLUS_SUCCESS;
 }
 
@@ -474,10 +609,6 @@ PlusStatus vtkStealthLinkTracker::ReadConfiguration( vtkXMLDataElement* config )
 		{
 			LOG_ERROR("The device id is too long for message sending purposes. Please choose a shorter device Id. Example: SLD1");
 			return PLUS_FAIL;
-		}
-		else if(deviceId.size() > 10)
-		{
-			LOG_WARNING("The id is too long for message sending purposes. If you want to receive images from the server, the image name may not contain the desciption of the image. Please choose a shorter device Id. Example: SLD1");
 		}
 	}
 	if(!trackerConfig->GetAttribute("RegistrationUpdatePeriod"))
@@ -567,14 +698,7 @@ PlusStatus vtkStealthLinkTracker::InternalConnect()
 		LOG_ERROR("Localizer(Tracker) is not connected. Please check the StealthLink Server\n")
 			return PLUS_FAIL;
 	}
-	//Update current navigation data information in order to acquire initial the current instrument and frame name 
-	this->UpdateCurrentNavigationData();
-
-	this->Internal->CurrentFrameName = this->Internal->NavData.frameName;
-	this->Internal->CurrentInstrumentName = this->Internal->NavData.instrumentName;
 	this->Internal->AcquiringRegistrationInformationTimeStamp = 0.0;
-
-	this->AcquireInitialToolsVisibilityStatus();
 
 	//Get the time difference between the StealthServer and the vtkTimer
 	try
@@ -586,11 +710,9 @@ PlusStatus vtkStealthLinkTracker::InternalConnect()
 		LOG_ERROR (" Could not retrieve the server time: " << err.reason() << std::endl);
 		return PLUS_FAIL;
 	}
-	this->TrackerTimeToSystemTimeComputed = true;
 	this->Internal->DicomImagesOutputDirectory = vtkPlusConfig::GetInstance()->GetOutputDirectory() +  std::string("/StealthLinkDicomOutput");
 	this->Internal->ExamCounter = 1;
-	//PlusCommon::ImageMetaDataList imageMetaData;
-	//this->GetImageMetaData(imageMetaData);
+	this->Internal->KeepReceivedDicomFiles = FALSE;
 	return PLUS_SUCCESS;
 }
 //----------------------------------------------------------------------------
@@ -601,9 +723,7 @@ PlusStatus vtkStealthLinkTracker::InternalDisconnect()
 		this->Internal->StealthLinkServer->disconnect(); 
 		delete this->Internal->StealthLinkServer;
 		this->Internal->StealthLinkServer = NULL;
-		this->TrackerTimeToSystemTimeComputed = false;
 		this->Internal->GetImageCommandRequested = FALSE;
-		this->Internal->TransformRepositoryUpdated = FALSE;
 		this->Internal->AcquiringRegistrationInformationTimeStamp = 0.0;
 		this->Internal->RegistrationUpdatePeriodInSec = 0.0;
 		this->FrameNumber = 0;
@@ -615,21 +735,16 @@ PlusStatus vtkStealthLinkTracker::InternalDisconnect()
 //-----------------------------------------------------------------------------
 PlusStatus vtkStealthLinkTracker::InternalUpdate()
 {
-	PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
-
-	if (!this->Internal->IsStealthServerInitialized())
+	if (!this->Internal->IsStealthServerInitialized()) //thread safe for stealthlink
 	{
 		LOG_ERROR("InternalUpdate failed: StealthLinkServer has not been initialized");
 		return PLUS_FAIL;
 	}	
-	if(!this->TrackerTimeToSystemTimeComputed)
-	{
-		LOG_ERROR (" Tracker time to system time difference is not calculated\n");
-	}
 
 	double timeSystemSec=0.0;
 	try
 	{
+		PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Internal->StealthLinkServerMutex);
 		timeSystemSec = (double) this->Internal->StealthLinkServer->getServerTime() - this->Internal->ServerInitialTimeInMicroSeconds + this->TrackerTimeToSystemTimeSec;
 	}
 	catch(MNavStealthLink::Error err)
@@ -638,22 +753,29 @@ PlusStatus vtkStealthLinkTracker::InternalUpdate()
 		return PLUS_FAIL;
 	}	
 	//----------------------------------------------------------
-	if(!this->UpdateCurrentNavigationData())
-	{
-		return PLUS_FAIL;
-	}
+	MNavStealthLink::NavData navData;
+	this->Internal->GetCurrentNavigationData(navData); //thread safe
+
+	vtkSmartPointer<vtkMatrix4x4> instrumentToTrackerTransformation = vtkSmartPointer<vtkMatrix4x4>::New();
+	bool instrumentOutOfView;
+	this->Internal->GetInstrumentInformation(navData,instrumentOutOfView,instrumentToTrackerTransformation);
+
+	vtkSmartPointer<vtkMatrix4x4> frameToTrackerTransformation = vtkSmartPointer<vtkMatrix4x4>::New();
+	bool frameOutOfView;
+	this->Internal->GetFrameInformation(navData,frameOutOfView,frameToTrackerTransformation);
+
 	for ( DataSourceContainerConstIterator toolIterator = this->GetToolIteratorBegin(); toolIterator != this->GetToolIteratorEnd(); ++toolIterator)
 	{
 		//if the wanted transformation is the frameToTracker
 		if(!strcmp(toolIterator->second->GetPortName(),this->Internal->Frame()))
 		{
-			if(this->Internal->FrameOutOfView == FALSE)
+			if(frameOutOfView == FALSE)
 			{
-				this->ToolTimeStampedUpdateWithoutFiltering( toolIterator->second->GetSourceId(), this->Internal->GetFrameToTrackerTransMatrix(), TOOL_OK, timeSystemSec, timeSystemSec);
+				this->ToolTimeStampedUpdateWithoutFiltering( toolIterator->second->GetSourceId(), frameToTrackerTransformation, TOOL_OK, timeSystemSec, timeSystemSec);
 			}
-			else if(this->Internal->FrameOutOfView == TRUE)
+			else if(frameOutOfView == TRUE)
 			{
-				this->ToolTimeStampedUpdateWithoutFiltering( toolIterator->second->GetSourceId(), this->Internal->GetFrameToTrackerTransMatrix(), TOOL_OUT_OF_VIEW, timeSystemSec, timeSystemSec);
+				this->ToolTimeStampedUpdateWithoutFiltering( toolIterator->second->GetSourceId(), frameToTrackerTransformation, TOOL_OUT_OF_VIEW, timeSystemSec, timeSystemSec);
 			}
 		}
 		// if the wanted transformation is rasToTracker
@@ -667,30 +789,33 @@ PlusStatus vtkStealthLinkTracker::InternalUpdate()
 				{
 					return PLUS_FAIL;
 				}
-			}
+			} // TODO there is no need to update registration
 			// If frame is not out of view, the RasToTrackerTransMatrix is valid
-			this->Internal->UpdateRasToTrackerTransMatrix();
-			if(this->Internal->FrameOutOfView == FALSE && this->Internal->GetImageCommandRequested == TRUE)
+			bool getImageCommandRequested =	this->Internal->GetGetImageCommandRequested(); //thread safe with the set function
+			if(frameOutOfView == FALSE && getImageCommandRequested == TRUE)
 			{
-				this->ToolTimeStampedUpdateWithoutFiltering( toolIterator->second->GetSourceId(), this->Internal->GetRasToTrackerTransMatrix(), TOOL_OK, timeSystemSec, timeSystemSec);
+				vtkSmartPointer<vtkMatrix4x4> rasToTrackerTransformation = vtkSmartPointer<vtkMatrix4x4>::New();
+				this->Internal->GetRasToTrackerTransMatrix(frameToTrackerTransformation,rasToTrackerTransformation);
+				this->ToolTimeStampedUpdateWithoutFiltering( toolIterator->second->GetSourceId(), rasToTrackerTransformation, TOOL_OK, timeSystemSec, timeSystemSec);
 			}
-			else if(this->Internal->FrameOutOfView == TRUE || this->Internal->GetImageCommandRequested == FALSE)
+			else if(frameOutOfView == TRUE || getImageCommandRequested == FALSE)
 			{
-				this->ToolTimeStampedUpdateWithoutFiltering( toolIterator->second->GetSourceId(), this->Internal->GetRasToTrackerTransMatrix(), TOOL_OUT_OF_VIEW, timeSystemSec, timeSystemSec);
+				vtkSmartPointer<vtkMatrix4x4> rasToTrackerTransformation = vtkSmartPointer<vtkMatrix4x4>::New();
+				this->ToolTimeStampedUpdateWithoutFiltering( toolIterator->second->GetSourceId(), rasToTrackerTransformation, TOOL_OUT_OF_VIEW, timeSystemSec, timeSystemSec);
 			}
 		}
 		// if the wanted transformation is any tool to Tracker example sytlusToTracker, probeToTracker etc
 		else
 		{
-			if(!strcmp(toolIterator->second->GetPortName(),this->Internal->CurrentInstrumentName.c_str()))
+			if(!strcmp(toolIterator->second->GetPortName(),navData.instrumentName.c_str()))
 			{
-				if(this->Internal->InstrumentOutOfView == FALSE)
+				if(instrumentOutOfView == FALSE)
 				{
-					this->ToolTimeStampedUpdateWithoutFiltering( toolIterator->second->GetSourceId(), this->Internal->GetInsToTrackerTransMatrix(), TOOL_OK, timeSystemSec, timeSystemSec);
+					this->ToolTimeStampedUpdateWithoutFiltering( toolIterator->second->GetSourceId(), instrumentToTrackerTransformation, TOOL_OK, timeSystemSec, timeSystemSec);
 				}
-				else if(this->Internal->InstrumentOutOfView == TRUE)
+				else if(instrumentOutOfView == TRUE)
 				{
-					this->ToolTimeStampedUpdateWithoutFiltering( toolIterator->second->GetSourceId(), this->Internal->GetInsToTrackerTransMatrix(), TOOL_OUT_OF_VIEW, timeSystemSec, timeSystemSec);
+					this->ToolTimeStampedUpdateWithoutFiltering( toolIterator->second->GetSourceId(), instrumentToTrackerTransformation, TOOL_OUT_OF_VIEW, timeSystemSec, timeSystemSec);
 				}
 			}
 			else
@@ -706,20 +831,6 @@ PlusStatus vtkStealthLinkTracker::InternalUpdate()
 }
 
 //------------------------------------------------------------------------------
-PlusStatus vtkStealthLinkTracker::UpdateCurrentNavigationData()
-{
-	MNavStealthLink::Error err;
-	if(!this->Internal->StealthLinkServer->get(this->Internal->NavData,this->Internal->StealthLinkServer->getServerTime(),err))
-	{	
-		LOG_ERROR(" Failed to acquire the navigation data from StealthLink Server: " <<  err.reason() << " " << err.what() << "\n");
-		return PLUS_FAIL;
-	}
-	this->UpdateCurrentToolsNames();
-	this->Internal->UpdateFrameToTrackerTransMatrix();
-	this->Internal->UpdateInsToTrackerTransMatrix();
-	return PLUS_SUCCESS;
-}
-
 PlusStatus vtkStealthLinkTracker::IsLocalizerConnected(bool& connected)
 {
 	MNavStealthLink::LocalizerInfo localizerInfo;
@@ -738,6 +849,7 @@ PlusStatus vtkStealthLinkTracker::IsLocalizerConnected(bool& connected)
 	connected = false;
 	return PLUS_SUCCESS;
 }
+//--
 void vtkStealthLinkTracker::RemoveForbiddenCharactersFromPatientsName(std::string& patientName)
 {
 	std::vector<int> spacePlaces;
@@ -768,23 +880,6 @@ void vtkStealthLinkTracker::RemoveForbiddenCharactersFromPatientsName(std::strin
 		placement++;
 	}
 }
-//-----------------------------------------------------
-PlusStatus vtkStealthLinkTracker::UpdateCurrentExam()
-{
-	PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
-	MNavStealthLink::Error err;
-	if(!this->Internal->StealthLinkServer->get(this->Internal->CurrentExam,this->Internal->StealthLinkServer->getServerTime(),err))
-	{
-		LOG_ERROR(" Failed to acquire the current exam. Please make sure to select an exam: " <<  err.what() << "\n");
-		return PLUS_FAIL;
-	}
-	return PLUS_SUCCESS;
-}
-//---------------------------------------------------------------------------
-void vtkStealthLinkTracker::GetIjkToEmbeddedReferenceFrameTransform(vtkMatrix4x4* ijkToEmbeddedReferenceFrameTransform, const PlusTransformName transformName)
-{
-	this->Internal->TransformRepository->GetTransform(transformName,ijkToEmbeddedReferenceFrameTransform);
-}
 //---------------------------------------------------------------------------
 std::string vtkStealthLinkTracker::GetDicomImagesOutputDirectory()
 {
@@ -794,23 +889,30 @@ void vtkStealthLinkTracker::SetDicomImagesOutputDirectory(std::string dicomImage
 {
 	this->Internal->DicomImagesOutputDirectory = dicomImagesOutputDirectory;
 }
+//---------------------------------------------------------------------------
+void vtkStealthLinkTracker::SetKeepReceivedDicomFiles(bool keepReceivedDicomFiles)
+{
+	this->Internal->KeepReceivedDicomFiles = keepReceivedDicomFiles;
+}
 //----------------------------------------------------------------------------
 PlusStatus vtkStealthLinkTracker::AcquireDicomImage(std::string dicomImagesOutputDirectory, std::string& examImageDirectory)
 {
-	PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
 
 	vtkDirectory::MakeDirectory(dicomImagesOutputDirectory.c_str());
 	std::string patientName;
-	if(!this->GetPatientName(patientName))
+	MNavStealthLink::Exam exam;
+	this->Internal->GetCurrentExam(exam);
+	patientName = exam.patientName;
+	if(patientName.empty())
 	{
 		return PLUS_FAIL;
 	}
 	this->RemoveForbiddenCharactersFromPatientsName(patientName);
-	this->UpdateDateAndTimeString();
-	examImageDirectory = std::string(dicomImagesOutputDirectory) + std::string("/") + std::string(patientName) + std::string("_") + std::string(this->DateAndTimeString);
+	examImageDirectory = std::string(dicomImagesOutputDirectory) + std::string("/") + std::string(patientName) + std::string("_") + vtkAccurateTimer::GetInstance()->GetDateAndTimeString();
 	try 
 	{
-		this->Internal->CurrentExam.getExamData(*(this->Internal->StealthLinkServer),examImageDirectory);
+		PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Internal->StealthLinkServerMutex);
+		exam.getExamData(*(this->Internal->StealthLinkServer),examImageDirectory);
 	}
 	catch (MNavStealthLink::Error error) 
 	{
@@ -819,198 +921,73 @@ PlusStatus vtkStealthLinkTracker::AcquireDicomImage(std::string dicomImagesOutpu
 	}
 	return PLUS_SUCCESS;
 }
-
-//--------------------------------------------------------------------
-PlusStatus vtkStealthLinkTracker::GetImageMetaData(PlusCommon::ImageMetaDataList &imageMetaData)
+//--
+PlusStatus vtkStealthLinkTracker::AreInstrumentPortNamesValid(bool& valid)
 {
-	PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
-	if(!this->UpdateCurrentExam())
+	std::map<std::string,bool> validToolPortNames;
+	if(!this->Internal->GetValidToolPortNames(validToolPortNames))
 	{
+		valid = false;
 		return PLUS_FAIL;
 	}
-	PlusCommon::ImageMetaDataItem imageMetaDataItem;
-	std::string strDeviceId(this->DeviceId);
-	int totalSize = strDeviceId.size() + this->Internal->CurrentExam.description.size() + 1; // the name will look like DeviceID_examDescription 
-		                                                              // total size cannot exceed 20. so deviceId+description+1 should be inferiour to 20
-																																  // 1 for the under score
-	if(totalSize > 20)
+	for ( DataSourceContainerConstIterator toolIterator = this->GetToolIteratorBegin(); toolIterator != this->GetToolIteratorEnd(); ++toolIterator)
 	{
-		imageMetaDataItem.Id = strDeviceId + std::string("-") + GetExamCountInString();
-	}
-	else
-	{
-		imageMetaDataItem.Id = strDeviceId + std::string("-") + this->Internal->CurrentExam.description;
-	}
-	imageMetaDataItem.Description = this->Internal->CurrentExam.description;
-	imageMetaDataItem.Modality = this->Internal->CurrentExam.modality;
-	imageMetaDataItem.PatientId= this->Internal->CurrentExam.patientId;
-	imageMetaDataItem.PatientName = this->Internal->CurrentExam.patientName ;
-	imageMetaDataItem.ScalarType = 3; //TODO check this and correct this
-	imageMetaDataItem.Size[0] = this->Internal->CurrentExam.size[0];
-	imageMetaDataItem.Size[1] = this->Internal->CurrentExam.size[1];
-	imageMetaDataItem.Size[2] = this->Internal->CurrentExam.size[2];
-	imageMetaDataItem.TimeStampUtc = vtkAccurateTimer::GetUniversalTime();
-	imageMetaData.push_back(imageMetaDataItem);
-	this->Internal->ExamIdImageIdPair.first = imageMetaDataItem.Id;
-	this->Internal->ExamIdImageIdPair.second = this->Internal->CurrentExam.name;
-	return PLUS_SUCCESS;
-}
-//-------------------------------------------------------------------
-PlusStatus vtkStealthLinkTracker::GetImage(const std::string& imageId, const std::string& imageReferencFrameName, vtkImageData* imageData, vtkMatrix4x4* ijkToReferenceTransform)
-{
-	if(!this->Internal->GetTransformRepositoryUpdated())
-	{
-		if(this->Internal->ExamIdImageIdPair.first.compare(imageId) !=0)
+		if(validToolPortNames.find(std::string(toolIterator->second->GetPortName())) == validToolPortNames.end()) // means that the tool is not found in the map
 		{
+			LOG_ERROR( toolIterator->second->GetPortName() << " has not been found in the .xml file. Please make sure to use correct port names for the tools\n");
+			valid = false;
 			return PLUS_FAIL;
 		}
-	}
-	if(!this->UpdateCurrentRegistration())
-	{
-		return PLUS_FAIL;
-	}
-
-	std::string examImageDirectory;
-	if(!this->AcquireDicomImage(this->GetDicomImagesOutputDirectory(),examImageDirectory))
-	{
-		return PLUS_FAIL;
-	}
-	vtkSmartPointer<vtkDICOMImageReader> reader = vtkSmartPointer<vtkDICOMImageReader>::New();
-	reader->SetDirectoryName(examImageDirectory.c_str()); 
-	reader->Update();
-
-	//to go from the vtk orientation to lps orientation, the vtk image has to be flipped around y and z axis
-	vtkSmartPointer<vtkImageFlip> flipYFilter = vtkSmartPointer<vtkImageFlip>::New();
-	flipYFilter->SetFilteredAxis(1); // flip y axis
-	flipYFilter->SetInputConnection(reader->GetOutputPort());
-	flipYFilter->Update();
-
-	vtkSmartPointer<vtkImageFlip> flipZFilter = vtkSmartPointer<vtkImageFlip>::New();
-	flipZFilter->SetFilteredAxis(2); // flip z axis
-	flipZFilter->SetInputConnection(flipYFilter->GetOutputPort());
-	flipZFilter->Update();
-	imageData->DeepCopy(flipZFilter->GetOutput());
-	imageData->Update();
-
-	float*  ijkOrigin_LPS = reader->GetImagePositionPatient(); //(0020,0032) ImagePositionPatient
-	double* ijkVectorMagnitude_LPS = reader->GetPixelSpacing(); //(0020,0037) ImageOrientationPatient
-
-	float*  iDirectionVector_LPS = reader->GetImageOrientationPatient(); 
-	float*  jDirectionVector_LPS = reader->GetImageOrientationPatient()+3;
-	float   kDirectionVector_LPS[3]={0}; // the third cosine direction is the cross product of the other two vectors
-	vtkMath::Cross(iDirectionVector_LPS,jDirectionVector_LPS,kDirectionVector_LPS);
-
-	vtkSmartPointer<vtkMatrix4x4> ijkToExamRpiTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); // image to ExamRpi, medtronic exludes orientation
-	ijkToExamRpiTransMatrix->SetElement(0,0,-1);
-	ijkToExamRpiTransMatrix->SetElement(2,2,-1);
-	int xMin,xMax,yMin,yMax,zMin,zMax; //Dimensions, necessary to calculate the new origin in exam rpi
-	reader->GetDataExtent(xMin,xMax,yMin,yMax,zMin,zMax);
-	//the origin is shifted from lps to rpi aka shifted along x and z axes
-	double newOrigin_ExamRpi[3]; // medtronic uses rpi and considers the dicom origin to be zero and also the orientation to be idendity
-	newOrigin_ExamRpi[0] = (xMax-xMin+1)*ijkVectorMagnitude_LPS[0];
-	newOrigin_ExamRpi[1] = 0;
-	newOrigin_ExamRpi[2] = (zMax-zMin+1)*ijkVectorMagnitude_LPS[2];
-	ijkToExamRpiTransMatrix->SetElement(0,3,newOrigin_ExamRpi[0]);
-	ijkToExamRpiTransMatrix->SetElement(1,3,newOrigin_ExamRpi[1]);
-	ijkToExamRpiTransMatrix->SetElement(2,3,newOrigin_ExamRpi[2]);
-
-	vtkSmartPointer<vtkMatrix4x4> ijkToRasTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); // ijkToRas: 3x3 direction cosines + origin 1X3
-	for(int i=0;i<3;i++)
-	{	
-		//the dicom image is in lps. To translate it to ras, x and y are "flipped" aka multipled by -1
-		if(i==0 || i==1)
+		if(validToolPortNames.find(std::string(toolIterator->second->GetPortName()))->second == true)
 		{
-			ijkToRasTransMatrix->SetElement(i,0,-iDirectionVector_LPS[i]);
-			ijkToRasTransMatrix->SetElement(i,1,-jDirectionVector_LPS[i]);
-			ijkToRasTransMatrix->SetElement(i,2,-kDirectionVector_LPS[i]);
+			LOG_ERROR( toolIterator->second->GetPortName() << " has been defined in the .xml file. Please make sure to define every tool once\n");
+			valid = false;
+			return PLUS_FAIL;
 		}
-		else
-		{
-			ijkToRasTransMatrix->SetElement(i,0,iDirectionVector_LPS[i]);
-			ijkToRasTransMatrix->SetElement(i,1,jDirectionVector_LPS[i]);
-			ijkToRasTransMatrix->SetElement(i,2,kDirectionVector_LPS[i]);
-		}	
+		validToolPortNames.find(std::string(toolIterator->second->GetPortName()))->second = true;
 	}
-	//Set the elements of the transformation matrix, x and y are flipped here as well, multiplied by 1
-	ijkToRasTransMatrix->SetElement(0,3,-ijkOrigin_LPS[0]);
-	ijkToRasTransMatrix->SetElement(1,3,-ijkOrigin_LPS[1]);
-	ijkToRasTransMatrix->SetElement(2,3,ijkOrigin_LPS[2]);
-
-	//These matrices are needed to calculate rasToTracker
-	{ //TODO Ask if this is a correct use
-		PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
-	  this->Internal->SetIjkToExamRpiTransformationMatrix(ijkToExamRpiTransMatrix);
-	  this->Internal->SetIjkToRasTransformationMatrix(ijkToRasTransMatrix);
-	  this->Internal->SetGetImageCommandRequested(TRUE);
-	}
-	if(this->Internal->GetTransformRepositoryUpdated()) //vtkPlusStealthLinkCommand requested
-	{
-		vtkAccurateTimer::Delay(1);  // Delay 1 second to make sure that this->Internal->RasToTracker is calculated correctly based on the new matrices, ijkToExamRpiTransMatrix and ijkToRasTransMatrix
-		const PlusTransformName rasToTrackerTransformName("Ras","Tracker");
-	  this->Internal->TransformRepository->SetTransform(rasToTrackerTransformName,this->Internal->RasToTrackerTransMatrix);
-	  vtkSmartPointer<vtkMatrix4x4> rasToReferenceTransform = vtkSmartPointer<vtkMatrix4x4>::New();
-	  const PlusTransformName rasToReferenceTransformName("Ras",imageReferencFrameName.c_str());
-	  this->Internal->TransformRepository->GetTransform(rasToReferenceTransformName,rasToReferenceTransform);
-		vtkMatrix4x4::Multiply4x4(rasToReferenceTransform,ijkToRasTransMatrix,ijkToReferenceTransform);
-	}
-	else //GET_IMAGE command, the image is represented in the Ras coordinate frame
-	{
-		for(int i=0; i<4; i++)
-		{
-			for(int j=0;j<4;j++)
-			{	
-				ijkToReferenceTransform->SetElement(i,j,ijkToRasTransMatrix->GetElement(i,j));
-			}
-		}
-	}
-	this->Internal->SetTransformRepositoryUpdated(FALSE);
+	valid = true;
 	return PLUS_SUCCESS;
 }
 //--------------------------------------------------------------------
+// Thread safe
 PlusStatus vtkStealthLinkTracker::UpdateCurrentRegistration()
 {
-	PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
+	PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Internal->CurrentRegistrationMutex);
 	MNavStealthLink::Error err;
-	if(!this->Internal->StealthLinkServer->get(this->Internal->Registration,this->Internal->StealthLinkServer->getServerTime(),err))
 	{
-		LOG_ERROR(" Failed to acquire the current registraion: " <<  err.what() << "\n");
-		return PLUS_FAIL;
+		PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Internal->StealthLinkServerMutex);
+	  if(!this->Internal->StealthLinkServer->get(this->Internal->CurrentRegistration,this->Internal->StealthLinkServer->getServerTime(),err))
+	  {
+		  LOG_ERROR(" Failed to acquire the current registraion: " <<  err.what() << "\n");
+		  return PLUS_FAIL;
+	  }
 	}
-	this->Internal->UpdateRasToTrackerTransMatrix();
 	this->Internal->AcquiringRegistrationInformationTimeStamp = vtkAccurateTimer::GetSystemTime(); 
 	return PLUS_SUCCESS;
 }
-//------
-PlusStatus vtkStealthLinkTracker::GetPatientName(std::string& patientName)
+//--------------------------------------------------------------------
+// Thread Safe
+PlusStatus vtkStealthLinkTracker::UpdateCurrentExam()
 {
-	if(this->Internal->CurrentExam.patientName.empty())
+	PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Internal->CurrentExamMutex);
+	MNavStealthLink::Error err;
 	{
-		LOG_INFO("Please make sure that the exam is requested from the server before calling GetPatientName function");
-		return PLUS_FAIL;
+		PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Internal->StealthLinkServerMutex);
+	  if(!this->Internal->StealthLinkServer->get(this->Internal->CurrentExam,this->Internal->StealthLinkServer->getServerTime(),err))
+	  {
+		  LOG_ERROR(" Failed to acquire the current registraion: " <<  err.what() << "\n");
+		  return PLUS_FAIL;
+	  }
 	}
-	patientName = this->Internal->CurrentExam.patientName;
 	return PLUS_SUCCESS;
-}
-PlusStatus vtkStealthLinkTracker::GetPatientId(std::string& patientId)
-{
-	if(this->Internal->CurrentExam.patientId.empty())
-	{
-		LOG_INFO("Please make sure that the exam is requested from the server before calling GetPatientId function");
-		return PLUS_FAIL;
-	}
-	patientId = this->Internal->CurrentExam.patientId;
-	return PLUS_SUCCESS;
-}
-//-----------------------------------------------
-void vtkStealthLinkTracker::UpdateDateAndTimeString()
-{
-	this->DateAndTimeString = vtkAccurateTimer::GetInstance()->GetDateAndTimeString();
 }
 //---------------------------------------------------------------------------
 std::string vtkStealthLinkTracker::GetExamCountInString()
 {
 	char digits[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
 	std::string examCountInStr;
+	examCountInStr.push_back(digits[0]);
 	if(this->Internal->ExamCounter > 9)
 	{
 		this->Internal->ExamCounter= (this->Internal->ExamCounter>99)?1:(this->Internal->ExamCounter);
@@ -1022,5 +999,40 @@ std::string vtkStealthLinkTracker::GetExamCountInString()
 		examCountInStr.push_back(digits[0]);
 		examCountInStr.push_back(digits[this->Internal->ExamCounter%10]);
 	}
+	this->Internal->ExamCounter++;
 	return examCountInStr;
+}
+//----------------------------------------------------------------------------
+PlusStatus vtkStealthLinkTracker::DeleteDicomImageOutputDirectory(std::string examImageDirectory)
+{
+  vtkSmartPointer<vtkDirectory> dicomDirectory = vtkSmartPointer<vtkDirectory>::New();
+	if(dicomDirectory->Open(examImageDirectory.c_str()))
+	{
+	  vtkDirectory::DeleteDirectory(examImageDirectory.c_str());
+		examImageDirectory.clear();
+		if(dicomDirectory->Open(this->GetDicomImagesOutputDirectory().c_str()))
+		{
+		  if(dicomDirectory->GetNumberOfFiles() == 2)
+			{
+			  std::string file1(".");
+				std::string file2("..");
+				if(file1.compare(dicomDirectory->GetFile(0)) == 0 && file2.compare(dicomDirectory->GetFile(1)) ==0)
+				{
+				  vtkDirectory::DeleteDirectory(this->GetDicomImagesOutputDirectory().c_str());
+					this->SetDicomImagesOutputDirectory("");
+				}
+			}
+		}
+		else
+		{
+			LOG_ERROR("Cannot open the folder: " << this->GetDicomImagesOutputDirectory());
+			return PLUS_FAIL;
+		}
+	}
+	else
+	{
+		LOG_ERROR("Cannot open the folder: " << examImageDirectory);
+		return PLUS_FAIL;
+	}
+	return PLUS_SUCCESS;
 }

@@ -49,11 +49,8 @@ public:
 	virtual PlusStatus GetImageMetaData(PlusCommon::ImageMetaDataList &imageMetaData);
 
 	/*! Return the volume  with the given id that this device can provide */
-	virtual PlusStatus GetImage(const std::string& imageId, const std::string& imageReferencFrameName, vtkImageData* imageData, vtkMatrix4x4* ijkToReferenceTransform);
+	virtual PlusStatus GetImage(const std::string& requestedImageId,std::string& assignedImageId, const std::string& imageReferencFrameName, vtkImageData* imageData, vtkMatrix4x4* ijkToReferenceTransform);
 
-  /*! Acquire the current exam from the server !*/
-  PlusStatus UpdateCurrentExam();
-  
   /*! Get the Patient Name. The UpdateCurrentExam functions needs calling before GetPatientName!*/
   PlusStatus GetPatientName(std::string& patientName);
 
@@ -65,6 +62,9 @@ public:
 
 	/*! Set the dicom directory where the dicom images will be saved when acquired from the server !*/
 	void SetDicomImagesOutputDirectory(std::string dicomImagesOutputDirectory);
+
+	/*! Set the boolean for keeping the received dicom images !*/
+	void SetKeepReceivedDicomFiles(bool keepReceivedDicomFiles);
 
 	/*! Deep copies the transform repository from the server into the TransformRepository attribute !*/
 	PlusStatus UpdateTransformRepository(vtkTransformRepository* sharedTransformRepository);
@@ -93,6 +93,9 @@ protected:
 	/*! Acquire the current registration from the server !*/
   PlusStatus UpdateCurrentRegistration();
 
+	/*! Acquire the current exam from the server !*/
+  PlusStatus UpdateCurrentExam();
+  
 	/*! Acquire the requested exam from the server with the imageId !*/
   PlusStatus UpdateRequestedExam(const std::string& imageId);
 
@@ -103,7 +106,6 @@ protected:
 	class vtkInternal;
 	vtkInternal* Internal; 
 
-	bool TrackerTimeToSystemTimeComputed;
 	double TrackerTimeToSystemTimeSec;
 
 	/* Generates string of the number of exams requested from the server before*/
@@ -117,26 +119,15 @@ protected:
 
 	/*! Remove the characters that cannot be used in folder name !*/
 	static void RemoveForbiddenCharactersFromPatientsName(std::string& patientName);
-	
-	/*! Getting the initial Visibility Status of all the tools !*/
-	void AcquireInitialToolsVisibilityStatus();
-
-	/*! Update the current tool names if they change!*/
-	void UpdateCurrentToolsNames();
  
-	/*! Get application start timestamp */
-  void UpdateDateAndTimeString();
-
-	/*! Find the requested transformation matrix from the transform repository !*/
-	void GetIjkToEmbeddedReferenceFrameTransform(vtkMatrix4x4* ijkToEmbeddedReferenceFrameTransform, const PlusTransformName transformName);
+	/*! Remove the folder after having read the dicom files !*/
+	PlusStatus DeleteDicomImageOutputDirectory(std::string examImageDirectory);
 
   /*! Read MicronTracker configuration and update the tracker settings accordingly */
   virtual PlusStatus ReadConfiguration( vtkXMLDataElement* config );
 
   /*! Write current MicronTracker configuration settings to XML */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* rootConfigElement);
-
-  std::string DateAndTimeString;
 
 private:
   vtkStealthLinkTracker(const vtkStealthLinkTracker&);
