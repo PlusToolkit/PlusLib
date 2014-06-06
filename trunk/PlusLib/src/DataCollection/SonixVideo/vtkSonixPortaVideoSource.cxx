@@ -352,14 +352,8 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
   TrackedFrame::FieldMapType customFields; 
   //customFields["MotorAngle"] = motorAngle.str();
   //customFields["FrameNumber"] = frameNumber.str(); 
-  //customFields["VolumeIndex"] = volumeIndex.str(); 
-  customFields["ImageToProbeHeadTransform"] = this->GetProbeHeadToTransducerCenterTransform( this->CurrentMotorAngle, volumeIndex.str() );
-  customFields["ImageToProbeHeadTransformStatus"] = "OK";
-
- // if ( frameIndexOneVolume == this->FramePerVolume )
- // {
-	//++this->VolumeIndex;
- // }
+  customFields["ProbeHeadToTransducerCenterTransform"] = this->GetProbeHeadToTransducerCenterTransform( this->CurrentMotorAngle, volumeIndex.str() );
+  customFields["ProbeHeadToTransducerCenterTransformStatus"] = "OK";
 
   PlusStatus status = aSource->GetBuffer()->AddItem(deviceDataPtr, aSource->GetPortImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, numberOfBytesToSkip, id, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields); 
 
@@ -370,14 +364,7 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
 //----------------------------------------------------------------------------
 std::string vtkSonixPortaVideoSource::GetProbeHeadToTransducerCenterTransform( double angle, std::string volumeIndex )
 {
-	double spacing[2] = {0.2482, 0.2482}; // Add correct spacing
-	double origin[2] = {242, -51.7857}; // Add correct origin
-
 	vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
-	matrix->SetElement(0, 0, spacing[0]);
-	matrix->SetElement(1, 1, spacing[1]);
-	matrix->SetElement(0, 3, origin[0]);
-	matrix->SetElement(1, 3, origin[1]);
 
 	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
 	transform->SetMatrix( matrix );
@@ -389,9 +376,9 @@ std::string vtkSonixPortaVideoSource::GetProbeHeadToTransducerCenterTransform( d
 	  << " " <<
 	     matrix->GetElement(1,0) <<" "<< matrix->GetElement(1,1) <<" "<< matrix->GetElement(1,2) <<" "<< matrix->GetElement(1,3) 
 	  << " " <<
-	     matrix->GetElement(2,0) <<" "<< matrix->GetElement(2,1) <<" "<< matrix->GetElement(2,2) <<" "<< volumeIndex // matrix->GetElement(2,3) 
+	     matrix->GetElement(2,0) <<" "<< matrix->GetElement(2,1) <<" "<< matrix->GetElement(2,2) <<" "<< matrix->GetElement(2,3) 
 	  << " " <<
-	     matrix->GetElement(3,0) <<" "<< matrix->GetElement(3,1) <<" "<< matrix->GetElement(3,2) <<" "<< matrix->GetElement(3,3);
+	     matrix->GetElement(3,0) <<" "<< matrix->GetElement(3,1) <<" "<< matrix->GetElement(3,2) <<" "<< volumeIndex;
 
 	return matrixToString.str();
 }

@@ -325,13 +325,12 @@ private:
   /*! Current angle of the motor */
   double CurrentMotorAngle;
 
-  /*! Index keeping track of what frame belongs to what volume */
+  /*! Index keeping track of which frame belongs to which volume */
   int VolumeIndex;
 
+	/*! Keeping track in which direction the probe moves */
 	bool IncrementVolumeIndexClockwise;
-
 	bool IncrementVolumeIndexCounterClockwise;
 };
-
 
 #endif // of __VTKSONIXPORTAVIDEOSOURCE_H__
