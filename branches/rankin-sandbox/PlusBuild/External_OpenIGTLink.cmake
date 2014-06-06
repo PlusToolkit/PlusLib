@@ -39,10 +39,11 @@ ELSE(OpenIGTLink_DIR)
     GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/openigtlink/OpenIGTLink.git"
     #--Configure step-------------
     CMAKE_ARGS 
+        ${ep_common_args}
         -DLIBRARY_OUTPUT_PATH:STRING=${PLUS_EXECUTABLE_OUTPUT_PATH}
         -DBUILD_SHARED_LIBS:BOOL=${PLUSBUILD_BUILD_SHARED_LIBS}
-        -DBUILD_TESTING:BOOL=OFF 
         -DBUILD_EXAMPLES:BOOL=OFF
+        -DBUILD_TESTING:BOOL=OFF
         -DOpenIGTLink_PROTOCOL_VERSION_2:BOOL=ON
         -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
         -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}

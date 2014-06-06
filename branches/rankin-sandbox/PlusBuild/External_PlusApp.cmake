@@ -18,6 +18,7 @@ ExternalProject_Add(PlusApp
             ${PLUSBUILD_SVN_REVISION_ARGS}
             #--Configure step-------------
             CMAKE_ARGS 
+                ${ep_common_args}
                 -DPLUS_EXECUTABLE_OUTPUT_PATH:STRING=${PLUS_EXECUTABLE_OUTPUT_PATH}
                 -DPLUSLIB_DIR:PATH=${PLUSLIB_DIR}
                 -DSubversion_SVN_EXECUTABLE:FILEPATH=${Subversion_SVN_EXECUTABLE}

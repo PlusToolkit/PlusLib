@@ -78,6 +78,7 @@ ELSE(VTK_DIR)
     GIT_TAG ${VTK_GIT_TAG}
     #--Configure step-------------
     CMAKE_ARGS 
+        ${ep_common_args}
         ${VTK_VERSION_SPECIFIC_ARGS}
         -DBUILD_SHARED_LIBS:BOOL=${PLUSBUILD_BUILD_SHARED_LIBS} 
         -DBUILD_TESTING:BOOL=OFF 
