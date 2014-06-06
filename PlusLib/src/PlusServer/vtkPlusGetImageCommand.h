@@ -27,14 +27,13 @@ public:
   /*! Executes the command  */
   virtual PlusStatus Execute();  
 
-
   /*! Get all the command names that this class can execute */
   virtual void GetCommandNames(std::list<std::string> &cmdNames);
 
   /*! Gets the description for the specified command name. */
   virtual std::string GetDescription(const char* commandName);
 
-  void SetNameToGetImageMeta(); // TODO patientName, patientID , description do similiar for patientId and description
+  void SetNameToGetImageMeta();
   void SetNameToGetImage();
 
 	/*! Id of the device */
@@ -43,9 +42,10 @@ public:
 
 protected:
 
-  /*! Saves image to disk (if requested) and prepare sending image as a response (if requested) */
+  /*! Prepare sending image as a response */
   PlusStatus ProcessImageReply(vtkDataCollector*);
 
+	/*! Send the image meta datasets from all the connectede devices to slicer through openigtlink !*/
 	PlusStatus ProcessImageMetaReply(vtkDataCollector*);
 
   vtkPlusGetImageCommand();

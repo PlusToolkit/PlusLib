@@ -22,32 +22,25 @@ See License.txt for details.
 #include <vtkDirectory.h>
 
 static const char GET_STEALTHLINK_EXAM_DATA_CMD[]="ExamData";
-static const char GET_STEALTHLINK_REGISTRATION_DATA_CMD[]="RegistrationData";
 
 vtkStandardNewMacro( vtkPlusStealthLinkCommand );
 
 //----------------------------------------------------------------------------
 vtkPlusStealthLinkCommand::vtkPlusStealthLinkCommand()
-: PatientName(NULL)
-, PatientId(NULL)
-, StealthLinkDeviceId(NULL)
+: StealthLinkDeviceId(NULL)
 , DicomImagesOutputDirectory(NULL)
 , VolumeEmbeddedTransformToFrame(NULL)
 , KeepReceivedDicomFiles(false)
 {
-	this->FrameToExamTransform = vtkSmartPointer<vtkMatrix4x4>::New();
 }
 
 //----------------------------------------------------------------------------
 vtkPlusStealthLinkCommand::~vtkPlusStealthLinkCommand()
 {
-  SetPatientName(NULL);
   SetStealthLinkDeviceId(NULL);
-  SetPatientId(NULL);
 	SetDicomImagesOutputDirectory(NULL);
 	SetVolumeEmbeddedTransformToFrame(NULL);
 	SetKeepReceivedDicomFiles(false);
-  FrameToExamTransform->Identity();
 }
 
 //----------------------------------------------------------------------------
@@ -61,7 +54,6 @@ void vtkPlusStealthLinkCommand::GetCommandNames(std::list<std::string> &cmdNames
 { 
   cmdNames.clear(); 
   cmdNames.push_back(GET_STEALTHLINK_EXAM_DATA_CMD);
-  cmdNames.push_back(GET_STEALTHLINK_REGISTRATION_DATA_CMD);
 }
 
 //----------------------------------------------------------------------------
@@ -73,17 +65,10 @@ std::string vtkPlusStealthLinkCommand::GetDescription(const char* commandName)
     desc+=GET_STEALTHLINK_EXAM_DATA_CMD;
     desc+=": Acquire the exam data from the StealthLink Server. The exam data contains the image being displayed on the StealthLink Server. The 3D volume will be constructed using these images";
   }
-  if (commandName==NULL || STRCASECMP(commandName, GET_STEALTHLINK_REGISTRATION_DATA_CMD))
-  {
-    desc+=GET_STEALTHLINK_REGISTRATION_DATA_CMD;
-    desc+="Acquire the registration data from the StealthLink Server. The data contains the transformation matrix between the image being displayed and the reference frame.";
-  }
   return desc;
 }
 //----------------------------------------------------------------------------
 void vtkPlusStealthLinkCommand::SetNameToGetExam() { SetName(GET_STEALTHLINK_EXAM_DATA_CMD); }
-//----------------------------------------------------------------------------
-void vtkPlusStealthLinkCommand::SetNameToGetRegistration() { SetName(GET_STEALTHLINK_REGISTRATION_DATA_CMD); }
 //----------------------------------------------------------------------------
 void vtkPlusStealthLinkCommand::SetKeepReceivedDicomFiles(bool keepReceivedDicomFiles) { this->KeepReceivedDicomFiles = keepReceivedDicomFiles; }
 //----------------------------------------------------------------------------
@@ -163,32 +148,11 @@ PlusStatus vtkPlusStealthLinkCommand::WriteConfiguration(vtkXMLDataElement* aCon
   return PLUS_SUCCESS;
 }
 //----------------------------------------------------------------------------
-bool IsMatrixIdentityMatrix(vtkMatrix4x4* matrix)
-{
-	for(int i=0;i<4;i++)
-	{
-		for(int j=0;j<4;j++)
-		{
-			if(i==j)
-			{
-				if(matrix->GetElement(i,j)!=1)
-					return false;
-			}
-			else
-			{
-				if(matrix->GetElement(i,j)!=0)
-					return false;
-			}
-		}
-	}
-	return true;
-}
-//----------------------------------------------------------------------------
 PlusStatus vtkPlusStealthLinkCommand::Execute()
 {  
   LOG_DEBUG("vtkPlusStealthLinkCommand::Execute: "<<(this->Name?this->Name:"(undefined)")
     <<", device: "<<(this->StealthLinkDeviceId==NULL?"(undefined)":this->StealthLinkDeviceId) );
-  //std::cout << "ID= " << this->StealthLinkDeviceId << "\n";
+
   if (this->Name==NULL)
   {
 		this->QueueStringResponse("StealthLink command failed, no command name specified",PLUS_FAIL);
@@ -216,26 +180,9 @@ PlusStatus vtkPlusStealthLinkCommand::Execute()
 		vtkSmartPointer<vtkMatrix4x4> ijkToReferenceTransform = vtkSmartPointer<vtkMatrix4x4>::New();
 		stealthLinkDevice->GetImage(requestedImageId, assignedImageId, std::string(this->GetVolumeEmbeddedTransformToFrame()),imageData,ijkToReferenceTransform);
 
-		
-	 
-		//if(this->GetKeepReceivedDicomFiles() == false)
-		//{
-			//this->DeleteDicomImageOutputDirectory(examImageDirectory);
-		//} 
 		std::string resultMessage;
 		PlusStatus status = ProcessImageReply(assignedImageId,imageData,ijkToReferenceTransform,resultMessage);
 		this->QueueStringResponse("Volume sending completed succesfully: "+resultMessage,status);
-    return PLUS_SUCCESS;
-  }
-  else if (STRCASECMP(this->Name, GET_STEALTHLINK_REGISTRATION_DATA_CMD)==0)
-  {    
-    LOG_INFO("Acquiring the registration data from StealthLink Server: Device ID: "<<GetStealthLinkDeviceId());
-	
-	//if(stealthLinkDevice->UpdateCurrentRegistration()) TODO - Update is protected now so change the name of the function used here
-	//{	
-	//	return PLUS_FAIL;
-	//}
-    this->QueueStringResponse("Registration data fromn StealthLink, device: "+std::string(GetStealthLinkDeviceId()),PLUS_SUCCESS);
     return PLUS_SUCCESS;
   }
 	this->QueueStringResponse("vtkPlusStealthLinkCommand::Execute: failed, unknown command name: "+std::string(this->Name),PLUS_SUCCESS);
@@ -286,7 +233,7 @@ vtkStealthLinkTracker* vtkPlusStealthLinkCommand::GetStealthLinkDevice()
   }
   else
   {
-    // No volume reconstruction device id is specified, auto-detect the first one and use that
+    // No stealthlink device id is specified, auto-detect the first one and use that
     for( DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it )
     {
 	    stealthLinkDevice = vtkStealthLinkTracker::SafeDownCast(*it);
