@@ -25,6 +25,7 @@ vtkPlusGetImageCommand::vtkPlusGetImageCommand()
 //----------------------------------------------------------------------------
 vtkPlusGetImageCommand::~vtkPlusGetImageCommand()
 {
+	SetDeviceId(NULL);
 }
 
 //----------------------------------------------------------------------------

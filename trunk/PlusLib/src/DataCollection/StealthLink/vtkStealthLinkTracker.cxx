@@ -16,14 +16,10 @@ See License.txt for details.
 
 #include "vtkImageData.h"
 #include "vtkSmartPointer.h"
-#include <vtkMatrix3x3.h>
 #include "vtkDICOMImageReader.h"
 #include <vtkImageFlip.h>
 
-#include <fstream>
 #include <iostream>
-#include <sstream>
-#include <map>
 
 class vtkStealthLinkTracker::vtkInternal
 {
@@ -50,13 +46,12 @@ private:
 	std::string DeviceId;
 
 	static const char* Frame() { return "Frame"; }
-	static const char* RasToFrame() { return "RasToFrameRegistration"; }
+	static const char* RasRegistration() { return "RasRegistration"; }
 
 	double ServerInitialTimeInMicroSeconds;
-	double AcquiringRegistrationInformationTimeStamp; // Time stamp for when registration is updated
-	double RegistrationUpdatePeriodInSec;             // Registration will be updated based on this frequency. If 5, every 5 seconds
+	double TrackerTimeToSystemTimeSec;
 
-	int ExamCounter; 
+	int ReceivedExamCounter; 
 
 	bool GetImageCommandRequested;
 	bool KeepReceivedDicomFiles;
@@ -99,13 +94,43 @@ private:
 		delete this->StealthLinkServer;
 		this->StealthLinkServer=NULL;
 		this->External = NULL;
-		this->ServerAddress.clear();
-		this->PortAddress.clear();
-		this->DicomImagesOutputDirectory.clear();
-		this->DeviceId.clear();
-		this->ExamCounter = 1;
-	}
 
+	}
+	PlusStatus SetInitialVariables()
+	{
+		this->ServerInitialTimeInMicroSeconds = (double) this->StealthLinkServer->getServerTime();
+	  this->External->FrameNumber = 0;
+		this->ReceivedExamCounter = 1;
+		//Get the time difference between the StealthServer and the vtkTimer
+		 try
+	  {
+		  this->TrackerTimeToSystemTimeSec =  vtkAccurateTimer::GetSystemTime()- ((double) this->StealthLinkServer->getServerTime() - this->ServerInitialTimeInMicroSeconds);
+	  }
+	  catch(MNavStealthLink::Error err)
+	  {
+		  LOG_ERROR (" Could not retrieve the server time: " << err.reason() << std::endl);
+		  return PLUS_FAIL;
+ 	  }
+	  this->DicomImagesOutputDirectory = vtkPlusConfig::GetInstance()->GetOutputDirectory() +  std::string("/StealthLinkDicomOutput");
+	  this->KeepReceivedDicomFiles = FALSE;
+
+		return PLUS_SUCCESS;
+	}
+	void ResetInitialVariables()
+	{
+		this->ServerInitialTimeInMicroSeconds = 0;
+		this->TrackerTimeToSystemTimeSec = 0;
+		this->External->FrameNumber = 0;
+		this->ReceivedExamCounter = 1;
+
+		this->GetImageCommandRequested = FALSE;
+		this->KeepReceivedDicomFiles = FALSE;
+
+		this->TransformRepository->Clear();
+		this->IjkToExamRpiTransMatrix->Identity();
+		this->IjkToRasTransMatrix->Identity();
+		
+	}
 	bool IsStealthServerInitialized()
 	{
 		PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
@@ -183,7 +208,7 @@ private:
 		registration = this->CurrentRegistration;
 	}
 	// End - Thread Safe Set and Get Functions
-
+	// Checks if the ports names in the xml file match the instrument names in the server
 	PlusStatus GetValidToolPortNames(std::map<std::string,bool>& validToolPortNames)
 	{
 		MNavStealthLink::Error err;
@@ -202,7 +227,7 @@ private:
 			validToolPortNames[*instrumentNameIterator] = false;
 		}
 		validToolPortNames[this->Frame()] = false;
-		validToolPortNames[this->RasToFrame()] = false;
+		validToolPortNames[this->RasRegistration()] = false;
 		return PLUS_SUCCESS;
 	}
 	/*! Update the transformation maxtrix of the current instrument !*/
@@ -366,7 +391,7 @@ PlusStatus vtkStealthLinkTracker::UpdateTransformRepository(vtkTransformReposito
 		LOG_ERROR("vtkVirtualVolumeReconstructor::UpdateTransformRepository: shared transform repository is invalid");
 		return PLUS_FAIL;
 	}
-	// Create a copy of the transform repository to allow using it for volume reconstruction while being also used in other threads
+	// Create a copy of the transform repository to allow using it for stealthlink while being also used in other threads
 	this->Internal->TransformRepository->DeepCopy(sharedTransformRepository,true);
 	return PLUS_SUCCESS;
 }
@@ -419,20 +444,22 @@ PlusStatus vtkStealthLinkTracker::GetImage(const std::string& requestedImageId, 
 					return PLUS_FAIL;
 				}
 				std::vector<std::string>::iterator examNameListIterator = examNameList.begin();
-				if((*examNameListIterator).compare(this->Internal->ExamIdImageIdPair.second) != 0)
+				if((*examNameListIterator).compare(this->Internal->ExamIdImageIdPair.second) != 0) //This will be true if the image name corresponding to the image id on slicer does not correspond to the image
+					                                                                                 // name on the server
 				{
 					LOG_ERROR("The image you requested has been changed on the Stealthlink Server. Please click on Update on slicer to get the current exam");
 					return PLUS_FAIL;
 				}
 			}
 		}
-		else //we need to update the current exam
+		else //we need to update the current exam since the command is vtkPlusStealtLinkCommand and the current has not been requested from the server yet
 		{
 			if(!this->UpdateCurrentExam())
 			{
 				return PLUS_FAIL;
 			}
 		}
+		// Update the current registration
 		if(!this->UpdateCurrentRegistration())
 		{
 			return PLUS_FAIL;
@@ -444,6 +471,7 @@ PlusStatus vtkStealthLinkTracker::GetImage(const std::string& requestedImageId, 
 			return PLUS_FAIL;
 		}
 		examImageDirectoryToDelete = examImageDirectory;
+
 		vtkSmartPointer<vtkDICOMImageReader> reader = vtkSmartPointer<vtkDICOMImageReader>::New();
 		reader->SetDirectoryName(examImageDirectory.c_str()); 
 		reader->Update();
@@ -540,6 +568,8 @@ PlusStatus vtkStealthLinkTracker::GetImage(const std::string& requestedImageId, 
 		}
 		else //GET_IMAGE command, the image is represented in the Ras coordinate frame
 		{
+			this->Internal->ExamIdImageIdPair.first.clear();
+			this->Internal->ExamIdImageIdPair.second.clear();
 			for(int i=0; i<4; i++)
 			{
 				for(int j=0;j<4;j++)
@@ -554,6 +584,7 @@ PlusStatus vtkStealthLinkTracker::GetImage(const std::string& requestedImageId, 
 		this->DeleteDicomImageOutputDirectory(examImageDirectoryToDelete);
 	}
 	this->SetKeepReceivedDicomFiles(FALSE);
+  this->Internal->DicomImagesOutputDirectory = vtkPlusConfig::GetInstance()->GetOutputDirectory() +  std::string("/StealthLinkDicomOutput");
 	return PLUS_SUCCESS;
 }
 
@@ -611,23 +642,6 @@ PlusStatus vtkStealthLinkTracker::ReadConfiguration( vtkXMLDataElement* config )
 			return PLUS_FAIL;
 		}
 	}
-	if(!trackerConfig->GetAttribute("RegistrationUpdatePeriod"))
-	{
-		LOG_INFO("RegistrationUpdatePeriod not found in the xml file. The registration will be acquired only when connected to the Stealth Server\n");
-		this->Internal->RegistrationUpdatePeriodInSec = 0;
-	}
-	else
-	{
-		this->Internal->RegistrationUpdatePeriodInSec = std::atof(trackerConfig->GetAttribute("RegistrationUpdatePeriod"));
-		if(this->Internal->RegistrationUpdatePeriodInSec <=0)
-		{
-			LOG_INFO("RegistrationUpdatePeriod is found. It is equal to 0, thus the registration will be acquired only when connected to the Stealth Server");
-		}
-		else
-		{
-			LOG_INFO("RegistrationUpdatePeriod found. Registration will be updated every " << trackerConfig->GetAttribute("RegistrationUpdatePeriod") << " second\n");
-		}
-	}
 	this->Internal->ServerAddress = trackerConfig->GetAttribute("ServerAddress");
 	this->Internal->PortAddress   = trackerConfig->GetAttribute("PortAddress");
 	return PLUS_SUCCESS;
@@ -682,9 +696,6 @@ PlusStatus vtkStealthLinkTracker::InternalConnect()
 		LOG_ERROR(" Failed to connect to Stealth server application on host: " << error.what() << "\n");
 		return PLUS_FAIL;
 	}
-
-	this->Internal->ServerInitialTimeInMicroSeconds = (double) this->Internal->StealthLinkServer->getServerTime();
-	this->FrameNumber = 0;
 	//Check if the instrument port names in the config file are valid
 	bool valid;
 	this->AreInstrumentPortNamesValid(valid);
@@ -698,21 +709,10 @@ PlusStatus vtkStealthLinkTracker::InternalConnect()
 		LOG_ERROR("Localizer(Tracker) is not connected. Please check the StealthLink Server\n")
 			return PLUS_FAIL;
 	}
-	this->Internal->AcquiringRegistrationInformationTimeStamp = 0.0;
-
-	//Get the time difference between the StealthServer and the vtkTimer
-	try
+	if(!this->Internal->SetInitialVariables())
 	{
-		this->TrackerTimeToSystemTimeSec =  vtkAccurateTimer::GetSystemTime()- ((double) this->Internal->StealthLinkServer->getServerTime() - this->Internal->ServerInitialTimeInMicroSeconds);
-	}
-	catch(MNavStealthLink::Error err)
-	{
-		LOG_ERROR (" Could not retrieve the server time: " << err.reason() << std::endl);
 		return PLUS_FAIL;
 	}
-	this->Internal->DicomImagesOutputDirectory = vtkPlusConfig::GetInstance()->GetOutputDirectory() +  std::string("/StealthLinkDicomOutput");
-	this->Internal->ExamCounter = 1;
-	this->Internal->KeepReceivedDicomFiles = FALSE;
 	return PLUS_SUCCESS;
 }
 //----------------------------------------------------------------------------
@@ -723,12 +723,7 @@ PlusStatus vtkStealthLinkTracker::InternalDisconnect()
 		this->Internal->StealthLinkServer->disconnect(); 
 		delete this->Internal->StealthLinkServer;
 		this->Internal->StealthLinkServer = NULL;
-		this->Internal->GetImageCommandRequested = FALSE;
-		this->Internal->AcquiringRegistrationInformationTimeStamp = 0.0;
-		this->Internal->RegistrationUpdatePeriodInSec = 0.0;
-		this->FrameNumber = 0;
-		this->Internal->ExamCounter = 1;
-		//TODO  ask if we need to delete the matrices and other elements
+		this->Internal->ResetInitialVariables();
 	}
 	return PLUS_SUCCESS;
 }
@@ -745,7 +740,7 @@ PlusStatus vtkStealthLinkTracker::InternalUpdate()
 	try
 	{
 		PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Internal->StealthLinkServerMutex);
-		timeSystemSec = (double) this->Internal->StealthLinkServer->getServerTime() - this->Internal->ServerInitialTimeInMicroSeconds + this->TrackerTimeToSystemTimeSec;
+		timeSystemSec = (double) this->Internal->StealthLinkServer->getServerTime() - this->Internal->ServerInitialTimeInMicroSeconds + this->Internal->TrackerTimeToSystemTimeSec;
 	}
 	catch(MNavStealthLink::Error err)
 	{
@@ -779,18 +774,9 @@ PlusStatus vtkStealthLinkTracker::InternalUpdate()
 			}
 		}
 		// if the wanted transformation is rasToTracker
-		else if(!strcmp(toolIterator->second->GetPortName(),this->Internal->RasToFrame()))
+		else if(!strcmp(toolIterator->second->GetPortName(),this->Internal->RasRegistration()))
 		{
-			//Acquire the registration information with a frequency 1/RegistrationUpdatePeriodInSec as defined in the config file
-			static double timePassed = vtkAccurateTimer::GetSystemTime() - this->Internal->AcquiringRegistrationInformationTimeStamp;
-			if(this->Internal->RegistrationUpdatePeriodInSec> 0 && timePassed >= this->Internal->RegistrationUpdatePeriodInSec && this->Internal->GetImageCommandRequested == TRUE)
-			{
-				if(!this->UpdateCurrentRegistration())
-				{
-					return PLUS_FAIL;
-				}
-			} // TODO there is no need to update registration
-			// If frame is not out of view, the RasToTrackerTransMatrix is valid
+			// If frame is not out of view, the RasToTrackerTransMatrix is invalid
 			bool getImageCommandRequested =	this->Internal->GetGetImageCommandRequested(); //thread safe with the set function
 			if(frameOutOfView == FALSE && getImageCommandRequested == TRUE)
 			{
@@ -921,7 +907,7 @@ PlusStatus vtkStealthLinkTracker::AcquireDicomImage(std::string dicomImagesOutpu
 	}
 	return PLUS_SUCCESS;
 }
-//--
+//----------------------------------------------------------------------
 PlusStatus vtkStealthLinkTracker::AreInstrumentPortNamesValid(bool& valid)
 {
 	std::map<std::string,bool> validToolPortNames;
@@ -963,7 +949,6 @@ PlusStatus vtkStealthLinkTracker::UpdateCurrentRegistration()
 		  return PLUS_FAIL;
 	  }
 	}
-	this->Internal->AcquiringRegistrationInformationTimeStamp = vtkAccurateTimer::GetSystemTime(); 
 	return PLUS_SUCCESS;
 }
 //--------------------------------------------------------------------
@@ -988,18 +973,18 @@ std::string vtkStealthLinkTracker::GetExamCountInString()
 	char digits[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
 	std::string examCountInStr;
 	examCountInStr.push_back(digits[0]);
-	if(this->Internal->ExamCounter > 9)
+	if(this->Internal->ReceivedExamCounter > 9)
 	{
-		this->Internal->ExamCounter= (this->Internal->ExamCounter>99)?1:(this->Internal->ExamCounter);
-		examCountInStr.push_back(digits[this->Internal->ExamCounter/10]);
-		examCountInStr.push_back(digits[this->Internal->ExamCounter%10]);	
+		this->Internal->ReceivedExamCounter= (this->Internal->ReceivedExamCounter>99)?1:(this->Internal->ReceivedExamCounter);
+		examCountInStr.push_back(digits[this->Internal->ReceivedExamCounter/10]);
+		examCountInStr.push_back(digits[this->Internal->ReceivedExamCounter%10]);	
 	}
 	else
 	{
 		examCountInStr.push_back(digits[0]);
-		examCountInStr.push_back(digits[this->Internal->ExamCounter%10]);
+		examCountInStr.push_back(digits[this->Internal->ReceivedExamCounter%10]);
 	}
-	this->Internal->ExamCounter++;
+	this->Internal->ReceivedExamCounter++;
 	return examCountInStr;
 }
 //----------------------------------------------------------------------------

@@ -51,23 +51,18 @@ public:
 	/*! Return the volume  with the given id that this device can provide */
 	virtual PlusStatus GetImage(const std::string& requestedImageId,std::string& assignedImageId, const std::string& imageReferencFrameName, vtkImageData* imageData, vtkMatrix4x4* ijkToReferenceTransform);
 
-  /*! Get the Patient Name. The UpdateCurrentExam functions needs calling before GetPatientName!*/
-  PlusStatus GetPatientName(std::string& patientName);
-
-  /*! Get the Patient Name. The UpdateCurrentExam functions needs calling before GetPatientName!*/
-  PlusStatus GetPatientId(std::string& patientId);
-
 	/*! Get the dicom directory where the dicom images will be saved when acquired from the server !*/
 	std::string GetDicomImagesOutputDirectory();
 
+	/*! Deep copies the transform repository from the server into the TransformRepository attribute !*/
+	PlusStatus UpdateTransformRepository(vtkTransformRepository* sharedTransformRepository);
+	
 	/*! Set the dicom directory where the dicom images will be saved when acquired from the server !*/
 	void SetDicomImagesOutputDirectory(std::string dicomImagesOutputDirectory);
 
 	/*! Set the boolean for keeping the received dicom images !*/
 	void SetKeepReceivedDicomFiles(bool keepReceivedDicomFiles);
 
-	/*! Deep copies the transform repository from the server into the TransformRepository attribute !*/
-	PlusStatus UpdateTransformRepository(vtkTransformRepository* sharedTransformRepository);
 
 protected:
 	/*! Constructor !*/
@@ -84,31 +79,29 @@ protected:
 	virtual PlusStatus InternalStartRecording();
 	/*! Stop the tracking system and bring it back to its initial state. */
 	virtual PlusStatus InternalStopRecording();
+
+	/*! Read StealthLinkDevice configuration and update the tracker settings accordingly */
+  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* config );
+  /*! Write current StealthLinkDevice configuration settings to XML */
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* rootConfigElement);
+
 	/*! The internal function that does the grab !*/
 	PlusStatus InternalUpdate(); 
-
-	/*! Acquire the current Instrument and Frame from the server !*/
-	PlusStatus UpdateCurrentNavigationData();
 
 	/*! Acquire the current registration from the server !*/
   PlusStatus UpdateCurrentRegistration();
 
 	/*! Acquire the current exam from the server !*/
   PlusStatus UpdateCurrentExam();
-  
-	/*! Acquire the requested exam from the server with the imageId !*/
-  PlusStatus UpdateRequestedExam(const std::string& imageId);
 
-	/*! Get image from the StealthLink into VTK images. The Dicom images will be saved in the directory spesified by "ExamImageDirectory". !*/
+	/*! Get image from the StealthLink into the specified folder. The Dicom images will be saved in the directory spesified by "ExamImageDirectory". !*/
   PlusStatus vtkStealthLinkTracker::AcquireDicomImage(std::string dicomImagesOutputDirectory, std::string& examImageDirectory);
 
 	// For internal storage of additional variables (to minimize the number of included headers)
 	class vtkInternal;
 	vtkInternal* Internal; 
 
-	double TrackerTimeToSystemTimeSec;
-
-	/* Generates string of the number of exams requested from the server before*/
+	/* Generates string of the number of exams requested from the server */
 	std::string GetExamCountInString();
 
 	/*! Is Tracker Connected? !*/
@@ -122,12 +115,6 @@ protected:
  
 	/*! Remove the folder after having read the dicom files !*/
 	PlusStatus DeleteDicomImageOutputDirectory(std::string examImageDirectory);
-
-  /*! Read MicronTracker configuration and update the tracker settings accordingly */
-  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* config );
-
-  /*! Write current MicronTracker configuration settings to XML */
-  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* rootConfigElement);
 
 private:
   vtkStealthLinkTracker(const vtkStealthLinkTracker&);

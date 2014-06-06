@@ -17,7 +17,7 @@ Tools: Stylus (Passive Planar, Blunt) , Reference (Frame)"
       <DataSources>
         <DataSource Type="Tool" Id="Stylus"     PortName="Passive Planar, Blunt" BufferSize="500" />
         <DataSource Type="Tool" Id="Reference"  PortName="Frame" BufferSize="500" />
-		<DataSource Type="Tool" Id="Ras" 	    PortName="RasToFrameRegistration" BufferSize="500" />
+		<DataSource Type="Tool" Id="Ras" 	    PortName="RasRegistration" BufferSize="500" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
