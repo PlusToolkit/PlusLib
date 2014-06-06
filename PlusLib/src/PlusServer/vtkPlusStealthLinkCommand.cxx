@@ -184,41 +184,6 @@ bool IsMatrixIdentityMatrix(vtkMatrix4x4* matrix)
 	return true;
 }
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStealthLinkCommand::DeleteDicomImageOutputDirectory(std::string examImageDirectory)
-{
-	vtkDirectory::DeleteDirectory(examImageDirectory.c_str());
-  vtkSmartPointer<vtkDirectory> dicomDirectory = vtkSmartPointer<vtkDirectory>::New();
-	if(dicomDirectory->Open(examImageDirectory.c_str()))
-	{
-	  vtkDirectory::DeleteDirectory(examImageDirectory.c_str());
-		examImageDirectory.clear();
-		if(dicomDirectory->Open(this->GetDicomImagesOutputDirectory()))
-		{
-		  if(dicomDirectory->GetNumberOfFiles() == 2)
-			{
-			  std::string file1(".");
-				std::string file2("..");
-				if(file1.compare(dicomDirectory->GetFile(0)) == 0 && file2.compare(dicomDirectory->GetFile(1)) ==0)
-				{
-				  vtkDirectory::DeleteDirectory(this->GetDicomImagesOutputDirectory());
-					this->SetDicomImagesOutputDirectory(NULL);
-				}
-			}
-		}
-		else
-		{
-			LOG_ERROR("Cannot open the folder: " << this->GetDicomImagesOutputDirectory());
-			return PLUS_FAIL;
-		}
-	}
-	else
-	{
-		LOG_ERROR("Cannot open the folder: " << examImageDirectory);
-		return PLUS_FAIL;
-	}
-	return PLUS_SUCCESS;
-}
-//----------------------------------------------------------------------------
 PlusStatus vtkPlusStealthLinkCommand::Execute()
 {  
   LOG_DEBUG("vtkPlusStealthLinkCommand::Execute: "<<(this->Name?this->Name:"(undefined)")
@@ -242,38 +207,23 @@ PlusStatus vtkPlusStealthLinkCommand::Execute()
   {
     LOG_INFO("Acquiring the exam data from StealthLink Server: Device ID: "<<GetStealthLinkDeviceId());
 		
-		if(!stealthLinkDevice->UpdateCurrentExam())
-		{
-			return PLUS_FAIL;
-		}
-		std::string patientName;
-		std::string patientId;
-		if(!stealthLinkDevice->GetPatientName(patientName))
-	  {
-		  return PLUS_FAIL;
- 	  }
- 	  if(!stealthLinkDevice->GetPatientId(patientId))
-	  {
-		  return PLUS_FAIL;
-	  }
 		stealthLinkDevice->SetDicomImagesOutputDirectory(this->GetDicomImagesOutputDirectory());
-
-		SetPatientName(patientName.c_str());
-	  SetPatientId(patientId.c_str());
-		std::string imageId(std::string(this->GetStealthLinkDeviceId())+std::string("_")+this->GetPatientName());
+		stealthLinkDevice->SetKeepReceivedDicomFiles(this->GetKeepReceivedDicomFiles());
+		std::string requestedImageId("");
+		std::string assignedImageId("");
 		stealthLinkDevice->UpdateTransformRepository(this->CommandProcessor->GetPlusServer()->GetTransformRepository());
 		vtkSmartPointer<vtkImageData> imageData = vtkSmartPointer<vtkImageData>::New();
 		vtkSmartPointer<vtkMatrix4x4> ijkToReferenceTransform = vtkSmartPointer<vtkMatrix4x4>::New();
-		stealthLinkDevice->GetImage(imageId, std::string(this->GetVolumeEmbeddedTransformToFrame()),imageData,ijkToReferenceTransform);
+		stealthLinkDevice->GetImage(requestedImageId, assignedImageId, std::string(this->GetVolumeEmbeddedTransformToFrame()),imageData,ijkToReferenceTransform);
 
 		
 	 
 		//if(this->GetKeepReceivedDicomFiles() == false)
 		//{
 			//this->DeleteDicomImageOutputDirectory(examImageDirectory);
-		//}
+		//} 
 		std::string resultMessage;
-		PlusStatus status = ProcessImageReply(imageId,imageData,ijkToReferenceTransform,resultMessage);
+		PlusStatus status = ProcessImageReply(assignedImageId,imageData,ijkToReferenceTransform,resultMessage);
 		this->QueueStringResponse("Volume sending completed succesfully: "+resultMessage,status);
     return PLUS_SUCCESS;
   }
