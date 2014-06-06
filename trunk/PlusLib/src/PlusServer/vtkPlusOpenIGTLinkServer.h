@@ -26,8 +26,14 @@ class vtkTransformRepository;
   \class vtkPlusOpenIGTLinkServer 
   \brief This class provides a network interface for data acquired by Plus as an OpenIGTLink server.
 
-  After the server is started, it waits for a client sending request message of type
-  "igtl::PlusClientInfoMessage" with requested message types and transform names.  
+  As soon as a client connects to the server, the server start streaming those image and tracking information
+  that are defined in the server's default client information (DefaultClientInfo element in the device set configuration file).
+  
+  A connected client any time can change what information the server sends to it by sending a CLIENTINFO message. The CLIENTINFO
+  message is encoded the same way as an OpenIGTLink STRING message, the only difference is that the message type is
+  CLIENTINFO (implemented in igtl::PlusClientInfoMessage). The contents of the message is an XML string, describing the
+  requested image and tracking information in the same format as in the DefaultClientInfo element in the device set
+  configuration file.
 
   \ingroup PlusLibPlusServer
 */
