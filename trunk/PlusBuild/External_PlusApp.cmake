@@ -25,6 +25,8 @@ ExternalProject_Add(PlusApp
                 -DPLUSAPP_BUILD_DiagnosticTools:BOOL=ON
                 -DPLUSAPP_BUILD_fCal:BOOL=ON
                 -DPLUSAPP_TEST_GUI:BOOL=${PLUSAPP_TEST_GUI}
+                -DBUILD_DOCUMENTATION:BOOL=${PLUSBUILD_DOCUMENTATION_PLUSAPP}
+                -DDOCUMENTATION_TARGET_IN_ALL:BOOL=${PLUSDOCUMENTATION_TARGET_IN_ALL}
                 -DQT_QMAKE_EXECUTABLE:FILEPATH=${QT_QMAKE_EXECUTABLE}
                 -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
                 -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}

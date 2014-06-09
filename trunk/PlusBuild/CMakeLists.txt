@@ -74,6 +74,17 @@ OPTION(PLUSBUILD_USE_OpenIGTLink "Use OpenIGTLink" ON)
 OPTION(PLUSBUILD_BUILD_SHARED_LIBS "Build shared libs" ON)
 OPTION(PLUSBUILD_BUILD_PLUSAPP "Build PlusApp applications" ON)
 
+# Documentation
+option(PLUSBUILD_DOCUMENTATION "Build Plus documentation (Doxygen)." OFF)
+if(PLUSBUILD_DOCUMENTATION)
+  if(PLUSBUILD_BUILD_PLUSAPP)
+    option(PLUSBUILD_DOCUMENTATION_PLUSAPP "Build PlusApp documentation of (Doxygen)." ON)
+    mark_as_advanced(BUILD_DOCUMENTATION_PLUSAPP)
+  endif(PLUSBUILD_BUILD_PLUSAPP)
+  option(PLUSDOCUMENTATION_TARGET_IN_ALL "Include the custom target for building documentation in 'all'" OFF)
+  mark_as_advanced(PLUSDOCUMENTATION_TARGET_IN_ALL)
+endif(PLUSBUILD_DOCUMENTATION)
+
 # Imaging hardware
 
 # determine current OS
