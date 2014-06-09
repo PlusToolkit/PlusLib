@@ -15,7 +15,7 @@ ENDIF ( VTK_FOUND )
 # 
 FIND_PACKAGE (ITK REQUIRED PATHS ${ITK_DIR} NO_DEFAULT_PATH)
 IF ( ITK_FOUND )
-	INCLUDE( ${ITK_USE_FILE} )
+  INCLUDE( ${ITK_USE_FILE} )
 ELSE ( ITK_FOUND )
     MESSAGE( FATAL_ERROR "This application requires ITK. One of these components is missing. Please verify configuration")
 ENDIF( ITK_FOUND )
@@ -87,13 +87,13 @@ LINK_DIRECTORIES(${LIBRARY_OUTPUT_PATH})
 # Configure include file
 # 
 configure_file(
-	${CMAKE_CURRENT_SOURCE_DIR}/PlusConfigure.h.in 
-	${CMAKE_CURRENT_BINARY_DIR}/PlusConfigure.h
-	)
+  ${CMAKE_CURRENT_SOURCE_DIR}/PlusConfigure.h.in 
+  ${CMAKE_CURRENT_BINARY_DIR}/PlusConfigure.h
+  )
 configure_file(
-	${CMAKE_CURRENT_SOURCE_DIR}/PlusRevision.h.in 
-	${CMAKE_CURRENT_BINARY_DIR}/PlusRevision.h
-	)  
+  ${CMAKE_CURRENT_SOURCE_DIR}/PlusRevision.h.in 
+  ${CMAKE_CURRENT_BINARY_DIR}/PlusRevision.h
+  )  
 
 # --------------------------------------------------------------------------
 # Initialize variables that will be filled by makefiles in subdirectories
@@ -111,9 +111,9 @@ SET(PLUSLIB_INCLUDE_DIRS "" CACHE INTERNAL "" )
 # Current directory
 
 SET (BASIC_INCLUDE_DIRS 	
-	"${CMAKE_CURRENT_SOURCE_DIR}"
-	"${CMAKE_CURRENT_BINARY_DIR}"
-	)
+  "${CMAKE_CURRENT_SOURCE_DIR}"
+  "${CMAKE_CURRENT_BINARY_DIR}"
+  )
 INCLUDE_DIRECTORIES( ${BASIC_INCLUDE_DIRS} )
 SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${BASIC_INCLUDE_DIRS} CACHE INTERNAL "" )
 
@@ -134,9 +134,9 @@ INCLUDE_DIRECTORIES( ${PlusCommon_INCLUDE_DIRS} )
 SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${PlusCommon_INCLUDE_DIRS} CACHE INTERNAL "" )
 
 IF(PLUS_USE_OpenIGTLink)
-	ADD_SUBDIRECTORY(PlusOpenIGTLink)
-	INCLUDE_DIRECTORIES( ${PlusOpenIGTLink_INCLUDE_DIRS} )
-	SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${PlusOpenIGTLink_INCLUDE_DIRS} CACHE INTERNAL "" )
+  ADD_SUBDIRECTORY(PlusOpenIGTLink)
+  INCLUDE_DIRECTORIES( ${PlusOpenIGTLink_INCLUDE_DIRS} )
+  SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${PlusOpenIGTLink_INCLUDE_DIRS} CACHE INTERNAL "" )
 ENDIF()
 
 ADD_SUBDIRECTORY(RfProcessingAlgo)
@@ -165,16 +165,16 @@ INCLUDE_DIRECTORIES( ${CalibrationAlgo_INCLUDE_DIRS} )
 SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${CalibrationAlgo_INCLUDE_DIRS} CACHE INTERNAL "" )
 
 IF(PLUS_USE_OpenIGTLink)
-	ADD_SUBDIRECTORY(PlusServer)
-	INCLUDE_DIRECTORIES( ${PlusServer_INCLUDE_DIRS} )
-	SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${PlusServer_INCLUDE_DIRS} CACHE INTERNAL "" )
+  ADD_SUBDIRECTORY(PlusServer)
+  INCLUDE_DIRECTORIES( ${PlusServer_INCLUDE_DIRS} )
+  SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${PlusServer_INCLUDE_DIRS} CACHE INTERNAL "" )
 ENDIF()
 
 ADD_SUBDIRECTORY(scripts)
 
 file(GLOB headers 
-	"${CMAKE_CURRENT_SOURCE_DIR}/*.h"
-	)
+  "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
+  )
 
 # --------------------------------------------------------------------------
 # Create Plus target list 
@@ -225,27 +225,31 @@ ENDIF()
 #-----------------------------------------------------------------------------
 # Documentation
 #
-option(DOCUMENTATION_TARGET_IN_ALL "Include the custom target for building documentation in 'all'" OFF)
-mark_as_advanced(DOCUMENTATION_TARGET_IN_ALL)
+option(BUILD_DOCUMENTATION "Build the documentation (Doxygen)." OFF)
+mark_as_advanced(BUILD_DOCUMENTATION)
+ 
+if(BUILD_DOCUMENTATION)
+  option(DOCUMENTATION_TARGET_IN_ALL "Include the custom target for building documentation in 'all'" OFF)
+  mark_as_advanced(DOCUMENTATION_TARGET_IN_ALL)
 
-# Use Doxygen provided with Plus
-SET (DOXYGEN_EXECUTABLE ${PLUSLIB_TOOLS_DIR}/Doxygen/doxygen.exe CACHE PATH "Doxygen executable" FORCE)
-# Try to detect GraphViz path (CMake's Doxygen package finder only tries some obsolete paths on Windows)
-find_program(DOXYGEN_DOT_EXECUTABLE
+  # Use Doxygen provided with Plus
+  SET (DOXYGEN_EXECUTABLE ${PLUSLIB_TOOLS_DIR}/Doxygen/doxygen.exe CACHE PATH "Doxygen executable" FORCE)
+  # Try to detect GraphViz path (CMake's Doxygen package finder only tries some obsolete paths on Windows)
+  find_program(DOXYGEN_DOT_EXECUTABLE
     NAMES dot
     PATHS
       "$ENV{ProgramFiles}/Graphviz2.34/bin"
       "$ENV{ProgramFiles(x86)}/Graphviz2.34/bin"
     DOC "Graphviz Dot tool for using Doxygen"
+    NO_SYSTEM_ENVIRONMENT_PATH
   )
-find_package(Doxygen QUIET)
 
-add_subdirectory(Documentation)
-
+  add_subdirectory(Documentation)
+endif(BUILD_DOCUMENTATION)
 
 #-----------------------------------------------------------------------------
 # Generate include file for projects that use this library 
 # 
 configure_file(
-	${CMAKE_CURRENT_SOURCE_DIR}/UsePlusLib.cmake.in 
-	${CMAKE_CURRENT_BINARY_DIR}/UsePlusLib.cmake @ONLY)	
+  ${CMAKE_CURRENT_SOURCE_DIR}/UsePlusLib.cmake.in 
+  ${CMAKE_CURRENT_BINARY_DIR}/UsePlusLib.cmake @ONLY)	
