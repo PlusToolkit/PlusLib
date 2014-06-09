@@ -97,7 +97,8 @@ PlusStatus vtkPlusGetImageCommand::ProcessImageReply(vtkDataCollector* dataColle
 	{
 		plusDevice = (*it);
 		LOG_INFO("Acquiring the image data from the device with DeviceId: "<<plusDevice->GetDeviceId());
-		if(plusDevice->GetImage(std::string(this->GetDeviceId()), std::string(""),std::string("Ras"),imageData,ijkToRasTransform))
+		std::string assignedImageId;
+		if(plusDevice->GetImage(this->GetDeviceId(), assignedImageId, "Ras", imageData, ijkToRasTransform))
 		{
 			LOG_DEBUG("Send image to client through OpenIGTLink");
 			vtkSmartPointer<vtkPlusCommandImageResponse> imageResponse=vtkSmartPointer<vtkPlusCommandImageResponse>::New();
