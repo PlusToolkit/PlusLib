@@ -261,6 +261,7 @@ int main(int argc, char* argv[])
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFile, "Config file containing the device configuration.");
+  args.AddArgument("--acq-mode", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &acqMode, "Acquisition mode: B or RF (Default: B).");	
   args.AddArgument("--depth", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &depthCm, "Depth in cm.");	
   args.AddArgument("--frequencyMhz", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frequencyMhz, "Frequency in MHz");	
   args.AddArgument("--dynRangeDb", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &dynRangeDb, "BMode Dynamic Range. 1 corresponds to the maximum dynamic range.");
@@ -286,9 +287,8 @@ int main(int argc, char* argv[])
   vtkSmartPointer<vtkIntersonSDKCxxVideoSource> intersonDevice = vtkSmartPointer<vtkIntersonSDKCxxVideoSource>::New();
   intersonDevice->SetDeviceId("VideoDevice");
 
-/*
   // Read config file
-  if (STRCASECMP(inputConfigFile.c_str(), "")!=0)
+  if( STRCASECMP(inputConfigFile.c_str(), "") != 0 )
   {
     LOG_DEBUG("Reading config file...");
     vtkSmartPointer<vtkXMLDataElement> configRead = vtkSmartPointer<vtkXMLDataElement>::Take(::vtkXMLUtilities::ReadElementFromFile(inputConfigFile.c_str())); 
@@ -299,64 +299,50 @@ int main(int argc, char* argv[])
     }
   }
   
-  intersonDevice->CreateDefaultOutputChannel();
+  //intersonDevice->CreateDefaultOutputChannel();
 
-  DisplayMode displayMode=SHOW_IMAGE; 
+  DisplayMode displayMode = SHOW_IMAGE; 
   
   if (STRCASECMP(acqMode.c_str(), "B")==0)
   {
     LOG_DEBUG("Acquisition mode: B");
-    //intersonDevice->SetImagingMode(BMode);
-    //intersonDevice->SetAcquisitionDataType(udtBPost);
-    displayMode=SHOW_IMAGE;
+    displayMode = SHOW_IMAGE;
   }
   else if (STRCASECMP(acqMode.c_str(), "RF")==0)
   {
     LOG_DEBUG("Acquisition mode: RF");
-    //intersonDevice->SetImagingMode(RfMode);
-    //intersonDevice->SetAcquisitionDataType(udtRF);
     displayMode=SHOW_PLOT;
   }
   else
   {
-    LOG_ERROR("Unsupported AcquisitionDataType requested: "<<acqMode);
+    LOG_ERROR("Unsupported Acquisition mode requested: "<<acqMode);
     exit(EXIT_FAILURE);
   }
 
-//DisplayMode displayMode=SHOW_PLOT;
-
-  if ( intersonDevice->Connect()!=PLUS_SUCCESS ) 
+  if ( intersonDevice->Connect() != PLUS_SUCCESS ) 
   {
-    //LOG_ERROR( "Unable to connect to Sonix RP machine at: " << intersonDevice->GetSonixIP() ); 
+    LOG_ERROR( "Unable to connect to Interson Probe" ); 
     exit(EXIT_FAILURE); 
-  }
-
-  if (printParams)
-  {
-    LOG_INFO("List of supported imaging parameters:");
-    //intersonDevice->PrintListOfImagingParameters();
   }
 
   intersonDevice->StartRecording();				//start recording frame from the video
 
-  if (renderingOff)
-  {
+  if( renderingOff )
+    {
     // just run the recording for  a few seconds then exit
     LOG_DEBUG("Rendering disabled. Wait for just a few seconds to acquire data before exiting");
-    Sleep(5000); // no need to use accurate timer, it's just an approximate delay
+    Sleep(3000); // no need to use accurate timer, it's just an approximate delay
     intersonDevice->StopRecording(); 
-    intersonDevice->Disconnect();
-  }
-  else
-  {
-    if (displayMode==SHOW_PLOT)
-    {
-      TestLinePlot(intersonDevice);
     }
-    else
+  else
     {
+    if( displayMode == SHOW_PLOT )
+      {
+      TestLinePlot(intersonDevice);
+      }
+    else
+      {
       // Show the live ultrasound image in a VTK renderer window
-
       vtkSmartPointer<vtkImageViewer> viewer = vtkSmartPointer<vtkImageViewer>::New();
       viewer->SetInputConnection(intersonDevice->GetOutputPort());   //set image to the render and window
       viewer->SetColorWindow(255);
@@ -380,9 +366,8 @@ int main(int argc, char* argv[])
       //iren must be initialized so that it can handle events
       iren->Initialize();
       iren->Start();
+      }
     }
-  }
-  */
 
   intersonDevice->Disconnect();
   return EXIT_SUCCESS;

@@ -22,38 +22,42 @@ See License.txt for details.
 
 #include "itkImage.h"
 
+//----------------------------------------------------------------------------
 typedef IntersonCxx::Imaging::Scan2DClass Scan2DClassType;
 typedef IntersonCxx::Controls::HWControls HWControlsType;
 typedef IntersonCxx::IntersonClass        IntersonClassType;
 
+//----------------------------------------------------------------------------
 vtkCxxRevisionMacro(vtkIntersonSDKCxxVideoSource, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkIntersonSDKCxxVideoSource);
 
-const unsigned int Dimension = 3;
-typedef Scan2DClassType::BmodePixelType         BmodePixelType;
-typedef itk::Image< BmodePixelType, Dimension > BmodeImageType;
-
+//----------------------------------------------------------------------------
 struct BmodeCallbackClientData
 {
-  BmodeImageType *   Image;
+  vtkIntersonSDKCxxVideoSource *  ActiveIntersonDevice;
 };
 
-
 //----------------------------------------------------------------------------
-void __stdcall pasteIntoBmodeImage( BmodePixelType * buffer, void * clientData )
+void vtkIntersonSDKCxxVideoSource::NewBmodeImageCallback( BmodePixelType * buffer, void * clientData )
 {
+  if( buffer == NULL )
+    {
+    LOG_ERROR("No actual frame data received");
+    return;
+    }
+
   BmodeCallbackClientData * callbackClientData = static_cast< BmodeCallbackClientData * >( clientData );
-  BmodeImageType * image = callbackClientData->Image;
+  vtkIntersonSDKCxxVideoSource * activeIntersonDevice = callbackClientData->ActiveIntersonDevice;
 
-  const BmodeImageType::RegionType & largestRegion = image->GetLargestPossibleRegion();
-  const BmodeImageType::SizeType imageSize = largestRegion.GetSize();
-
-  const int maxVectors = Scan2DClassType::MAX_VECTORS;
-  const int maxSamples = Scan2DClassType::MAX_SAMPLES;
-  const int framePixels = maxVectors * maxSamples;
-
-  BmodePixelType * imageBuffer = image->GetPixelContainer()->GetBufferPointer();
-  std::memcpy( imageBuffer, buffer, framePixels * sizeof( BmodePixelType ) );
+  if( activeIntersonDevice != NULL )
+    {
+    activeIntersonDevice->AddBmodeFrameToBuffer( buffer, clientData );
+    }
+  else
+    {
+    LOG_ERROR("vtkIntersonSDKCxxVideoSource B-mode callback but the ActiveIntersonDevice is NULL.  Disconnect between the device and SDK.");
+    return;
+    }
 }
 
 
@@ -70,24 +74,8 @@ public:
     this->Scan2DClass = new Scan2DClassType();
     this->IntersonClass = new IntersonClassType();
 
-    const int maxVectors = Scan2DClassType::MAX_VECTORS;
-    const int maxSamples = Scan2DClassType::MAX_SAMPLES;
-
-    this->BmodeImage = BmodeImageType::New();
-    typedef BmodeImageType::RegionType BmodeRegionType;
-    BmodeRegionType bmodeRegion;
-    BmodeRegionType::IndexType bmodeIndex;
-    bmodeIndex.Fill( 0 );
-    bmodeRegion.SetIndex( bmodeIndex );
-    BmodeRegionType::SizeType bmodeSize;
-    bmodeSize[0] = maxSamples;
-    bmodeSize[1] = maxVectors;
-    bmodeRegion.SetSize( bmodeSize );
-    this->BmodeImage->SetRegions( bmodeRegion );
-    this->BmodeImage->Allocate();
-
-    this->BmodeClientData.Image = this->BmodeImage.GetPointer();
-    this->Scan2DClass->SetNewBmodeImageCallback( &pasteIntoBmodeImage,
+    this->BmodeClientData.ActiveIntersonDevice = this->External;
+    this->Scan2DClass->SetNewBmodeImageCallback( &vtkIntersonSDKCxxVideoSource::NewBmodeImageCallback,
       &(this->BmodeClientData) );
   }
 
@@ -115,17 +103,11 @@ public:
     return this->Scan2DClass;
   }
 
-  void * GetBmodeBuffer()
-  {
-    return this->BmodeImage->GetPixelContainer()->GetBufferPointer();
-  }
-
 private:
   HWControlsType *    HWControls;
   Scan2DClassType *   Scan2DClass;
   IntersonClassType * IntersonClass;
 
-  BmodeImageType::Pointer BmodeImage;
   BmodeCallbackClientData BmodeClientData;
 };
 
@@ -134,6 +116,8 @@ private:
 vtkIntersonSDKCxxVideoSource::vtkIntersonSDKCxxVideoSource()
 {
   this->Internal = new vtkInternal(this);
+
+  this->StartThreadForInternalUpdates = false;
 
   this->RequireImageOrientationInConfiguration = true;
   this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
@@ -164,6 +148,8 @@ vtkIntersonSDKCxxVideoSource::~vtkIntersonSDKCxxVideoSource()
 void vtkIntersonSDKCxxVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
+
+  os << indent << "Pulse voltage: " << this->PulseVoltage << "\n";
 }
 
 //----------------------------------------------------------------------------
@@ -199,7 +185,8 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
   this->SetDepthMm( depth );
 
   double frequency = -1;
-  if( this->SetProbeFrequency( frequency ) == PLUS_FAIL )
+  this->ImagingParameters->GetFrequencyMhz( frequency );
+  if( this->SetProbeFrequencyMhz( frequency ) == PLUS_FAIL )
     {
     return PLUS_FAIL;
     }
@@ -214,19 +201,6 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
     LOG_ERROR( "Could not enable high voltage." );
     return PLUS_FAIL;
     }
-
-  vtkPlusDataSource* source = NULL;
-  if( this->GetFirstActiveOutputVideoSource( source ) != PLUS_SUCCESS )
-    {
-    LOG_ERROR("Unable to retrieve the video source in the IntersonVideo device.");
-    return PLUS_FAIL;
-    }
-  
-  // Clear buffer on connect because the new frames that we will acquire might have a different size 
-  vtkPlusBuffer * plusBuffer = source->GetBuffer();
-  plusBuffer->Clear();
-  plusBuffer->SetPixelType( VTK_UNSIGNED_CHAR );  
-  plusBuffer->SetFrameSize( Scan2DClassType::MAX_SAMPLES, Scan2DClassType::MAX_VECTORS ); 
 
   double dynamicRangeDb = -1;
   this->ImagingParameters->GetDynRangeDb( dynamicRangeDb );
@@ -243,6 +217,31 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
 
   LOG_DEBUG( "Interson SDK version " << this->Internal->GetSdkVersion() <<
              ", USB probe FPGA version " << hwControls->ReadFPGAVersion() );
+
+  std::vector<vtkPlusDataSource *> sources;
+  vtkPlusDataSource * source = sources[0];
+  this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, sources);
+  if( !sources.empty() )
+    {
+    source = sources[0];
+    vtkPlusBuffer * plusBuffer = source->GetBuffer();
+  
+    // Clear buffer on connect because the new frames that we will acquire might have a different size 
+    plusBuffer->Clear();
+    plusBuffer->SetPixelType( VTK_UNSIGNED_CHAR );  
+    plusBuffer->SetFrameSize( Scan2DClassType::MAX_SAMPLES, Scan2DClassType::MAX_VECTORS ); 
+    plusBuffer->SetImageOrientation( US_IMG_ORIENT_FU );
+    LOG_INFO("Pixel type: " << vtkImageScalarTypeNameMacro( plusBuffer->GetPixelType() )
+          << ", device image orientation: "
+            << PlusVideoFrame::GetStringFromUsImageOrientation( source->GetPortImageOrientation() )
+          << ", buffer image orientation: "
+            << PlusVideoFrame::GetStringFromUsImageOrientation( plusBuffer->GetImageOrientation() ));
+    }
+  else
+    {
+    LOG_ERROR( "Expected Bmode port not found" );
+    return PLUS_FAIL;
+    }
 
   return PLUS_SUCCESS;
 }
@@ -281,6 +280,7 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalStartRecording()
     LOG_ERROR( "Could not start B-mode collection." );
     return PLUS_FAIL;
     };
+  Sleep( 750 ); // "time to start"
 
   return PLUS_SUCCESS;
 }
@@ -311,62 +311,12 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalStopRecording()
 //----------------------------------------------------------------------------
 PlusStatus vtkIntersonSDKCxxVideoSource::InternalUpdate()
 {
-  if( !this->Recording )
-    {
-    // drop the frame, we are not recording data now
-    return PLUS_SUCCESS;
-    }
-
-  HWControlsType * hwControls = this->Internal->GetHWControls();
-  if( hwControls->ReadHardButton() )
-    {
-    // TODO: add support for sending the button press info through OpenIGTLink
-    }
-
-  this->FrameNumber++; 
-
-  vtkPlusDataSource* source = NULL;
-  if( this->GetFirstActiveOutputVideoSource( source ) != PLUS_SUCCESS )
-    {
-    LOG_ERROR("Unable to retrieve the video source in the ICCapturing device.");
+  if( Superclass::InternalUpdate() != PLUS_SUCCESS )
+  {
     return PLUS_FAIL;
-    }
+  }
 
-  int frameSizeInPx[2] = { Scan2DClassType::MAX_SAMPLES,
-                                 Scan2DClassType::MAX_VECTORS };
-
-  vtkPlusBuffer * plusBuffer = source->GetBuffer();
-  // If the buffer is empty, set the pixel type and frame size to the first received properties 
-  if ( plusBuffer->GetNumberOfItems() == 0 )
-    {
-    LOG_DEBUG("Set up Plus image buffer");
-    plusBuffer->SetPixelType( VTK_UNSIGNED_CHAR );
-    plusBuffer->SetImageType( US_IMG_BRIGHTNESS );
-    plusBuffer->SetFrameSize( frameSizeInPx );
-    plusBuffer->SetImageOrientation( US_IMG_ORIENT_FU );
-
-    LOG_INFO("Frame size: " << frameSizeInPx[0] << "x" << frameSizeInPx[1]
-          << ", pixel type: " << vtkImageScalarTypeNameMacro( plusBuffer->GetPixelType() )
-          << ", device image orientation: "
-            << PlusVideoFrame::GetStringFromUsImageOrientation( source->GetPortImageOrientation() )
-          << ", buffer image orientation: "
-            << PlusVideoFrame::GetStringFromUsImageOrientation( plusBuffer->GetImageOrientation() ));
-    }
   
-  if( plusBuffer->AddItem(  this->Internal->GetBmodeBuffer(),
-                            source->GetPortImageOrientation(),
-                            frameSizeInPx,
-                            VTK_UNSIGNED_CHAR,
-                            1,
-                            US_IMG_BRIGHTNESS,
-                            0,
-                            this->FrameNumber ) != PLUS_SUCCESS )
-    {
-    LOG_ERROR( "Error adding item to video source " << source->GetSourceId() );
-    return PLUS_FAIL;
-    }
-
-  this->Modified();
   return PLUS_SUCCESS;
 }
 
@@ -458,7 +408,7 @@ std::string vtkIntersonSDKCxxVideoSource::GetSdkVersion()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkIntersonSDKCxxVideoSource::SetProbeFrequency(double freq)
+PlusStatus vtkIntersonSDKCxxVideoSource::SetProbeFrequencyMhz(double freq)
 {
   int frequency = static_cast< int >( freq * 1e6 );
 
@@ -524,23 +474,67 @@ PlusStatus vtkIntersonSDKCxxVideoSource::SetDepthMm(double depthMm)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkIntersonSDKCxxVideoSource::SetFrequencyMhz(double freq)
+PlusStatus vtkIntersonSDKCxxVideoSource::SetDynRangeDb(double dynRangeDb)
 {
-  return this->SetProbeFrequency( freq );
+  unsigned char usedGain = 100;
+  if( dynRangeDb > 0.0 )
+    {
+    usedGain = static_cast< unsigned char >( 255 * dynRangeDb );
+    }
+  HWControlsType * hwControls = this->Internal->GetHWControls();
+  if( !hwControls->SendDynamic( usedGain ) )
+    {
+    LOG_ERROR( "Could not set dynamic gain." );
+    return PLUS_FAIL;
+    }
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkIntersonSDKCxxVideoSource::SetDynRangeDb(double dynRangeDb)
+PlusStatus vtkIntersonSDKCxxVideoSource::AddBmodeFrameToBuffer( BmodePixelType * buffer, void * clientData )
 {
-  if( dynRangeDb > 0.0 )
+  if( !this->Recording )
     {
-    const unsigned char usedGain = static_cast< unsigned char >( 255 * dynRangeDb );
-    HWControlsType * hwControls = this->Internal->GetHWControls();
-    if( !hwControls->SendDynamic( usedGain ) )
-      {
-      LOG_ERROR( "Could not set dynamic gain." );
-      return PLUS_FAIL;
-      }
+    // drop the frame, we are not recording data now
+    return PLUS_SUCCESS;
     }
-  return PLUS_SUCCESS;
+
+  HWControlsType * hwControls = this->Internal->GetHWControls();
+  if( hwControls->ReadHardButton() )
+    {
+    // TODO: add support for sending the button press info through OpenIGTLink
+    }
+
+  std::vector<vtkPlusDataSource *> sources;
+  vtkPlusDataSource * source = sources[0];
+  this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, sources);
+  if( !sources.empty() )
+    {
+    source = sources[0];
+    }
+  else
+    {
+    LOG_ERROR( "Expected Bmode port not found" );
+    return PLUS_FAIL;
+    }
+
+  ++this->FrameNumber;
+
+  int frameSizeInPx[2] = { Scan2DClassType::MAX_SAMPLES,
+                           Scan2DClassType::MAX_VECTORS };
+
+  vtkPlusBuffer * plusBuffer = source->GetBuffer();
+
+  const PlusStatus status = plusBuffer->AddItem( buffer,
+    source->GetPortImageOrientation(),
+    frameSizeInPx,
+    VTK_UNSIGNED_CHAR,
+    1,
+    US_IMG_BRIGHTNESS,
+    0,
+    this->FrameNumber );
+
+  this->Modified();
+
+  return status;
 }
