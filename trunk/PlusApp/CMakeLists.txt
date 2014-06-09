@@ -59,10 +59,10 @@ SET( PLUSAPP_SVN_EXECUTABLE ${Subversion_SVN_EXECUTABLE} )
 
 # Standard CMake option for building libraries shared or static by default.
 OPTION(BUILD_SHARED_LIBS
-    "Build with shared libraries."
-    ${VTK_BUILD_SHARED_LIBS}
-    ${ITK_BUILD_SHARED_LIBS}
-    )    
+  "Build with shared libraries."
+  ${VTK_BUILD_SHARED_LIBS}
+  ${ITK_BUILD_SHARED_LIBS}
+  )    
 
 # --------------------------------------------------------------------------
 # Configure output paths for libraries and executables.
@@ -102,8 +102,8 @@ ADD_SUBDIRECTORY(PlusServerLauncher)
 # --------------------------------------------------------------------------
 # Build the DiagnosticTools 
 IF (PLUSAPP_BUILD_DiagnosticTools)
-    ADD_SUBDIRECTORY(DiagnosticTools)
-    ADD_DEPENDENCIES( DiagDataCollection ${PLUSLIB_DEPENDENCIES} )
+  ADD_SUBDIRECTORY(DiagnosticTools)
+  ADD_DEPENDENCIES( DiagDataCollection ${PLUSLIB_DEPENDENCIES} )
 ENDIF (PLUSAPP_BUILD_DiagnosticTools)
 
 # --------------------------------------------------------------------------
@@ -115,8 +115,29 @@ ENDIF (PLUSAPP_BUILD_fCal)
 
 #-----------------------------------------------------------------------------
 # Generate documentation
-# 
-ADD_SUBDIRECTORY(Documentation)
+#
+option(BUILD_DOCUMENTATION "Build the documentation (Doxygen)." ${PLUSLIB_BUILD_DOCUMENTATION})
+mark_as_advanced(BUILD_DOCUMENTATION)
+
+IF (BUILD_DOCUMENTATION) 
+  option(DOCUMENTATION_TARGET_IN_ALL "Include the custom target for building documentation in 'all'" ${PLUSLIB_DOCUMENTATION_TARGET_IN_ALL})
+  mark_as_advanced(DOCUMENTATION_TARGET_IN_ALL)
+ 
+  IF(NOT PLUSLIB_BUILD_DOCUMENTATION)
+    # Try to detect GraphViz path (CMake's Doxygen package finder only tries some obsolete paths on Windows)
+    find_program(DOXYGEN_DOT_EXECUTABLE
+        NAMES dot
+        PATHS
+          "$ENV{ProgramFiles}/Graphviz2.34/bin"
+          "$ENV{ProgramFiles(x86)}/Graphviz2.34/bin"
+        DOC "Graphviz Dot tool for using Doxygen"
+        NO_SYSTEM_ENVIRONMENT_PATH
+      )
+    # Use Doxygen provided with Plus
+    SET (DOXYGEN_EXECUTABLE ${PLUSLIB_SOURCE_DIR}/tools/Doxygen/doxygen.exe CACHE PATH "Doxygen executable" FORCE)
+  ENDIF(NOT PLUSLIB_BUILD_DOCUMENTATION)
+  ADD_SUBDIRECTORY(Documentation)
+ENDIF (BUILD_DOCUMENTATION)
 
 #-----------------------------------------------------------------------------
 # Include PlusLib MS projects 
