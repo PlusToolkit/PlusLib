@@ -121,7 +121,7 @@ protected:
   bool Frozen;
 
   int ClockDivider;
-  double ClockFrequency;
+  double ClockFrequencyMHz;
   double SoundVelocity;
   int PulsFrequencyDivider;
 
@@ -129,8 +129,6 @@ protected:
   int Contrast;
   double LutCenter;
   double LutWindow;
-  double MinTGC;
-  double MaxTGC;
   int ImageSize[2];
   double PulseVoltage;
 
