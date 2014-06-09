@@ -10,8 +10,7 @@
 #include "vtkPlusDevice.h"
 #include "vtkUSImagingParameters.h"
 
-using namespace std;
-
+class VTK_EXPORT vtkIntersonSDKCxxVideoSource;
 
 /*!
   \class vtkIntersonSDKCxxVideoSource 
@@ -43,7 +42,16 @@ public:
 
   virtual std::string GetSdkVersion();
 
-  enum AcquisitionMode { BMODE_ACQUISITION, RF_ACQUISITION };
+  /* Set the desired probe frequency in MHz. */
+  PlusStatus SetProbeFrequencyMhz(double aFreq);
+
+  /* Set the probe depth in mm */
+  PlusStatus SetDepthMm(double depthMm);
+
+  /* Set the gain in percent */
+  PlusStatus SetDynRangeDb(double dynRangeDb);
+
+  typedef unsigned char  BmodePixelType;
 
 protected:
   /*! Constructor */
@@ -66,22 +74,6 @@ protected:
   /*! The internal function which actually does the grab.  */
   virtual PlusStatus InternalUpdate();
 
-  PlusStatus GetFullIniFilePath(std::string &fullPath);
-
-  /* Set the desired probe frequency in MHz. The resulting probe speed will be approximately the value specified */
-  PlusStatus SetProbeFrequency(double aFreq);
-
-  PlusStatus GetProbeVelocity(double& aVel);
-
-  /* Set the probe depth in mm */
-  PlusStatus SetDepthMm(double depthMm);
-
-  /* Set the frquency in Mhz */
-  PlusStatus SetFrequencyMhz(double freq);
-
-  /* Set the gain in percent */
-  PlusStatus SetDynRangeDb(double dynRangeDb);
-
   // For internal storage of additional variables (to minimize the number of included headers)
   class vtkInternal;
   vtkInternal* Internal;
@@ -93,6 +85,9 @@ private:
   void operator=(const vtkIntersonSDKCxxVideoSource&);  // Not implemented.
 
   unsigned char PulseVoltage;
+
+  static void __stdcall vtkIntersonSDKCxxVideoSource::NewBmodeImageCallback( BmodePixelType * buffer, void * clientData );
+  PlusStatus AddBmodeFrameToBuffer( BmodePixelType * buffer, void * clientData );
 };
 
 #endif
