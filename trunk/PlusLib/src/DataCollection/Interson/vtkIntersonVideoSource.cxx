@@ -23,6 +23,7 @@ See License.txt for details.
 
 // Interson's OEM ID (probes released by Interson have this OEM ID)
 #define OEM_ID_INTERSON 0x00
+#define TOLERANCE 0.001
 
 vtkCxxRevisionMacro(vtkIntersonVideoSource, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkIntersonVideoSource);
@@ -77,11 +78,11 @@ public:
 
     int tgc[samplesPerLine]={0};
     double firstSlope = (double) (midTGC-initialTGC ) / (samplesPerLine/2);
-	double secondSlope = (double) (farTGC-midTGC ) / (samplesPerLine/2);
+	  double secondSlope = (double) (farTGC-midTGC ) / (samplesPerLine/2);
     for (int x = 0; x < samplesPerLine/2; x++)
     {
       tgc[x] = (int) (firstSlope * (double) x) + initialTGC;
-	  tgc[samplesPerLine/2 +x] = (int) (secondSlope * (double) x) + midTGC;
+	    tgc[samplesPerLine/2 +x] = (int) (secondSlope * (double) x) + midTGC;
     }
     bmSetTGC(tgc);
   }
@@ -188,8 +189,6 @@ vtkIntersonVideoSource::vtkIntersonVideoSource()
   this->Contrast = 256; //128
   this->LutCenter = 128; //192
   this->LutWindow = 256; //128
-  this->MinTGC = 0;
-  this->MaxTGC = 150;
 
   this->InitialGain =-128;
   this->MidGain=-128;
@@ -721,8 +720,8 @@ PlusStatus vtkIntersonVideoSource::SetDepthMm(double depthMm)
   this->GetProbeAllowedModes(allowedModes);
   int numberOfAllowedModes = allowedModes.size();
   std::vector<int> possibleModes;
-  double choosedFrequency = -1;
-  double choosedDepth = -1;
+  double chosenFrequencyMhz = -1;
+  double chosenDepthCm = -1;
   for (int i=0;i<numberOfAllowedModes;i++)
   {
     if(allowedModes[i].second==depthMm/10)
@@ -732,44 +731,44 @@ PlusStatus vtkIntersonVideoSource::SetDepthMm(double depthMm)
   }
   if(possibleModes.size()==1)
   {
-	choosedFrequency = allowedModes[possibleModes[0]].first ;
-	choosedDepth = allowedModes[possibleModes[0]].second ;
+	chosenFrequencyMhz = allowedModes[possibleModes[0]].first ;
+	chosenDepthCm = allowedModes[possibleModes[0]].second ;
   }
   else if(possibleModes.size()==0)
   {
-	choosedDepth = 5 ;
+	chosenDepthCm = 5 ;
 	double clockDivider = usbClockDivider();	
-    double sampleFrequency = usbProbeSampleFrequency(this->Internal->ProbeHandle);
-    double divider = usbPulseFrequency();
-	choosedFrequency = sampleFrequency / divider ;
-	this->PulsFrequencyDivider = sampleFrequency/choosedFrequency;
-	LOG_INFO("The probe does not allow the required depth." << choosedDepth << " cm depth was chosed instead." );
+  double sampleFrequency = usbProbeSampleFrequency(this->Internal->ProbeHandle);
+  double divider = usbPulseFrequency();
+	chosenFrequencyMhz = sampleFrequency / divider ;
+	this->PulsFrequencyDivider = sampleFrequency/chosenFrequencyMhz;
+	LOG_INFO("The probe does not allow the required depth." << chosenDepthCm << " cm depth was chosed instead." );
   }
 
-  if (choosedDepth==5 || choosedDepth==10 || choosedDepth==15 || choosedDepth==20)
+  if ((fabs(chosenDepthCm-5)<TOLERANCE) || fabs(chosenDepthCm-10)<TOLERANCE || fabs(chosenDepthCm-15)<TOLERANCE || fabs(chosenDepthCm-20)<TOLERANCE)
   {
 	// select the 30MHz clock
-    usbSet30MHzClock(this->Internal->ProbeHandle);
-	this->ClockFrequency = 30;
-	this->ClockDivider = choosedDepth/5;
+  usbSet30MHzClock(this->Internal->ProbeHandle);
+	this->ClockFrequencyMHz = 30;
+	this->ClockDivider = chosenDepthCm/5;
 	// set the clock divider for
     // 1:  ~5cm @ 30MHz and 1540m/s velocity
     // 3: ~15cm @ 30MHz;
     // 4: ~20cm @ 30MHz
   }
-  if (choosedDepth==3 || choosedDepth==6 || choosedDepth==9 || choosedDepth==12)
+  if (fabs(chosenDepthCm-3)<TOLERANCE || fabs(chosenDepthCm-6)<TOLERANCE || fabs(chosenDepthCm-9)<TOLERANCE || fabs(chosenDepthCm-12)<TOLERANCE)
   {
 	// select the 48MHz clock
-    usbSet48MHzClock(this->Internal->ProbeHandle);
-	this->ClockFrequency = 48;
-	this->ClockDivider = choosedDepth/3;
+  usbSet48MHzClock(this->Internal->ProbeHandle);
+	this->ClockFrequencyMHz = 48;
+	this->ClockDivider = chosenDepthCm/3;
   }
 
-  this->PulsFrequencyDivider = this->ClockFrequency/choosedFrequency;
+  this->PulsFrequencyDivider = this->ClockFrequencyMHz/chosenFrequencyMhz;
   usbSetPulseFrequency(this->PulsFrequencyDivider);
   usbSetClockDivider(this->Internal->ProbeHandle, this->ClockDivider);
-  this->ImagingParameters->SetDepthMm(choosedDepth*100);
-  this->ImagingParameters->SetFrequencyMhz(choosedFrequency);
+  this->ImagingParameters->SetDepthMm(chosenDepthCm*10);
+  this->ImagingParameters->SetFrequencyMhz(chosenFrequencyMhz);
   double clockDivider = usbClockDivider(); 
   //pulseFrequency = usbPulseFrequency();
 
@@ -817,8 +816,8 @@ PlusStatus vtkIntersonVideoSource::SetGainPercent(double gainPercent[3])
   double maximumTGC=512; 
   if (gainPercent[0]>=0 && gainPercent[1]>=0 && gainPercent[2]>=0)
   {
-	this->InitialGain = -255 + gainPercent[0] * maximumTGC /100 ;
-	this->MidGain = -255 + gainPercent[1] * maximumTGC /100 ;
+	  this->InitialGain = -255 + gainPercent[0] * maximumTGC /100 ;
+	  this->MidGain = -255 + gainPercent[1] * maximumTGC /100 ;
     this->FarGain = -255 + gainPercent[2] * maximumTGC /100 ;
   }
 
