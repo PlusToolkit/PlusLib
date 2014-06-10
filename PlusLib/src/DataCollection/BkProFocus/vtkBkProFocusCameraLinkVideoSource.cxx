@@ -656,7 +656,7 @@ PlusStatus vtkBkProFocusCameraLinkVideoSource::ReadConfiguration(vtkXMLDataEleme
   DSC_READ_STRING_ATTRIBUTE_OPTIONAL(IniFileName, deviceConfig);
   DSC_READ_ENUM2_ATTRIBUTE_OPTIONAL(ImagingMode, deviceConfig, "BMode", BMode, "RfMode", RfMode);
 
-  const char* subscribe = deviceElement->GetAttribute("SubscribeScanPlane"); 
+  const char* subscribe = deviceConfig->GetAttribute("SubscribeScanPlane"); 
   if ( subscribe != NULL ) 
   {
     this->Internal->SubscribeScanPlane = (STRCASECMP(subscribe, "TRUE") == 0);
