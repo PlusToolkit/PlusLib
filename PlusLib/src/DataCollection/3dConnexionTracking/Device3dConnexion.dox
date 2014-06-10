@@ -10,7 +10,10 @@
 \par Installation
 
 - No need to install any driver or software. If the 3DxWare software is installed: when a window is activated then the mouse may interact with that window as well (e.g., by default tilt front/back simulates mouse wheel). To avoid this either A. uninstall 3DxWare, B. activate a window that does not respond to mouse functions, or C. disable mouse functions in the 3DxWare settings.
-- Supported on Windows only
+
+\par Supported platforms 
+
+- Windows only
 
 \par Configuration settings
 

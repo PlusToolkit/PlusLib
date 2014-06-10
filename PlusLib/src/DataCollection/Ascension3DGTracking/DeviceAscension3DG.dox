@@ -13,7 +13,10 @@
 - If pose measurement seems to be incorrect (somewhat translated/rotated) then unplug the sensor and plug it in again.
 - Tracking a Stylus: It is recommended to place the EM sensor as close to the needle tip as possible. The best accuracy is expected from a thick needle with a sensor near the needle tip. 
 - If you are using the tracker of an Ultrasonix SonixGPS system and the Exam software is running (e.g., because images are acquired using the Ulterius interface), then you need to disable the SonixGPS license to prevent the Exam software from using the tracker. This is done because only one application can communicate with the tracker at a time (either your application or the Exam software). To disable SonixGPS press menu on the touchscreen. Go to Administrator, Licenses and unselect SonixGPS from the licenses menu.
-- Supported on Windows only.
+
+\par Supported platforms 
+
+- Windows only.
 
 \par Configuration settings
 
