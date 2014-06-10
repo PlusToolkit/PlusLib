@@ -1,23 +1,26 @@
 /*!
-\page DeviceEpiphan
+\page DeviceEpiphan Epiphan frame grabber
 
 \par Supported hardware devices
 
-- Link to manufacturer's website:
+- Recommended model for analog capture: <a href="http://www.epiphan.com/products/frame-grabbers/vga2usb-lr/">VGA2USB-LR</a> . The basic VGA2USB model is not suitable for most applications, because it provides interlaced output at a very low frame rate.
+- Color image acquisition is supported.
+- Link to manufacturer's website: http://www.epiphan.com/.
 
 \par Installation
 
-- Supported on
+\par Supported platforms
 
 \par Configuration settings
 
 - Device type: \c Epiphan.
 - Attributes:
-
-\par Quality values
+  - \c SerialNumber It is an optional parameter to set the ID of the preferred a framegrabber device (if multiple devices are connected).
+  - \c GrabberLocation It is used to choose a specific Epiphan device (in the format: local:[SERIAL], net:[ADDRESS[:PORT]], sn:SERIAL, id:INDEX). If nothing is specified then the auto-detection is attempted.
+  - \c ClipRectangleOrigin and \c ClipRectangleSize define a screen region to capture information from, the clip rectangle width has to be typically a mulitple of 4 (e.g., ClipRectangleOrigin="20 40" ClipRectangleSize="512 512").
 
 \par Example configuration file
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_Epiphan.xml"
+\include "data/ConfigFiles/PlusDeviceSet_Server_EpiphanVideoCapture.xml"
 
 */
