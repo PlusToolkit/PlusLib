@@ -63,7 +63,7 @@ ENDIF()
 SET (ENABLED_BY_DEFAULT_ON_WINDOWS_ONLY OFF)
 SET (ENABLED_BY_DEFAULT_ON_WINDOWS32_ONLY OFF)
 if (CMAKE_HOST_WIN32)	
-	SET (ENABLED_BY_DEFAULT_ON_WINDOWS_ONLY ON)
+  SET (ENABLED_BY_DEFAULT_ON_WINDOWS_ONLY ON)
   if (NOT CMAKE_CL_64)
     SET (ENABLED_BY_DEFAULT_ON_WINDOWS32_ONLY ON)
   endif ()
@@ -77,12 +77,38 @@ OPTION(PLUSBUILD_BUILD_PLUSAPP "Build PlusApp applications" ON)
 # Documentation
 option(PLUSBUILD_DOCUMENTATION "Build Plus documentation (Doxygen)." OFF)
 if(PLUSBUILD_DOCUMENTATION)
-  if(PLUSBUILD_BUILD_PLUSAPP)
-    option(PLUSBUILD_DOCUMENTATION_PLUSAPP "Build PlusApp documentation of (Doxygen)." ON)
-    mark_as_advanced(BUILD_DOCUMENTATION_PLUSAPP)
-  endif(PLUSBUILD_BUILD_PLUSAPP)
-  option(PLUSDOCUMENTATION_TARGET_IN_ALL "Include the custom target for building documentation in 'all'" OFF)
-  mark_as_advanced(PLUSDOCUMENTATION_TARGET_IN_ALL)
+  # Use Doxygen provided with Plus
+  SET (DOXYGEN_EXECUTABLE ${PLUS_PLUSLIB_DIR}/tools/Doxygen/doxygen.exe CACHE FILEPATH "Doxygen executable" FORCE)
+  # Try to detect GraphViz path (CMake's Doxygen package finder only tries some obsolete paths on Windows)
+  find_program(DOXYGEN_DOT_EXECUTABLE
+    NAMES dot
+    PATHS
+      "$ENV{ProgramFiles}/Graphviz2.34/bin"
+      "$ENV{ProgramFiles(x86)}/Graphviz2.34/bin"
+    DOC "Graphviz Dot tool for using Doxygen"
+    NO_SYSTEM_ENVIRONMENT_PATH
+  )
+  find_package( Doxygen QUIET)
+
+  if( DOXYGEN_FOUND )
+    if( DOXYGEN_DOT_FOUND )
+      if(PLUSBUILD_BUILD_PLUSAPP)
+        option(PLUSBUILD_DOCUMENTATION_PLUSAPP "Build PlusApp documentation of (Doxygen)." ON)
+        mark_as_advanced(BUILD_DOCUMENTATION_PLUSAPP)
+      endif(PLUSBUILD_BUILD_PLUSAPP)
+      option(PLUSDOCUMENTATION_TARGET_IN_ALL "Include the custom target for building documentation in 'all'" OFF)
+      mark_as_advanced(PLUSDOCUMENTATION_TARGET_IN_ALL)
+    else( DOXYGEN_DOT_FOUND )
+    message( STATUS
+      "Documentation: Graphviz dot tool not found (http://www.graphviz.org/Download.php, required by Doxygen for diagram generation)- Documentation will not be created"
+      )
+    endif( DOXYGEN_DOT_FOUND )
+  else( DOXYGEN_FOUND )
+    message( STATUS
+      "Documentation: Doxygen not found Documentation will not be created"
+      )
+  endif( DOXYGEN_FOUND )
+
 endif(PLUSBUILD_DOCUMENTATION)
 
 # Imaging hardware
@@ -358,9 +384,9 @@ ENDIF(PLUSBUILD_BUILD_PLUSAPP)
 # Generate convenience files for automatic update build and test
 # 
 configure_file(
-	${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.bat.in 
-	${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.bat
-	)
+  ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.bat.in 
+  ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.bat
+  )
 configure_file(
         ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.sh.in 
         ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.sh
@@ -368,9 +394,9 @@ configure_file(
 
 STRING(REPLACE "/" "\\" PLUSBUILD_BIN_DIR_WIN "${CMAKE_BINARY_DIR}") 
 configure_file(
-	${CMAKE_CURRENT_SOURCE_DIR}/PlusBuildAndTest.bat.in 
-	${CMAKE_CURRENT_BINARY_DIR}/PlusBuildAndTest.bat
-	)
+  ${CMAKE_CURRENT_SOURCE_DIR}/PlusBuildAndTest.bat.in 
+  ${CMAKE_CURRENT_BINARY_DIR}/PlusBuildAndTest.bat
+  )
 configure_file(
         ${CMAKE_CURRENT_SOURCE_DIR}/PlusBuildAndTest.sh.in 
         ${CMAKE_CURRENT_BINARY_DIR}/PlusBuildAndTest.sh
