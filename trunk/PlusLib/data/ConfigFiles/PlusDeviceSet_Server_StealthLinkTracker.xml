@@ -3,27 +3,31 @@
     <DeviceSet 
       Name="PlusServer: Medtronic StealthLink tracker"
       Description="Broadcasting tool tracking data through OpenIGTLink
-Tools: Stylus (Passive Planar, Blunt) , Reference (Frame)" 
+Tools: Stylus (Passive Planar, Blunt) , Reference (Small Passive Cranial Frame)" 
     />
     <Device
       Id="SLD"
       Type="StealthLinkTracker"
       ServerAddress="130.15.7.88"
-      PortAddress="6996"
+      ServerPort="6996"
       AcquisitionRate="30"
-	  RegistrationUpdatePeriod="0.0"
+    RegistrationUpdatePeriod="0.0"
       LocalTimeOffset="0.0"
       ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="Stylus"     PortName="Passive Planar, Blunt" BufferSize="500" />
-        <DataSource Type="Tool" Id="Reference"  PortName="Frame" BufferSize="500" />
-		<DataSource Type="Tool" Id="Ras" 	    PortName="RasRegistration" BufferSize="500" />
+        <DataSource Type="Tool" Id="Stylus" PortName="Passive Planar, Blunt" BufferSize="500" />
+        <DataSource Type="Tool" Id="NProbe" 	 PortName="Navigus Probe" BufferSize="500" />
+        <DataSource Type="Tool" Id="TProbe" 	 PortName="Touch-n-Go Probe" BufferSize="500" />
+        <DataSource Type="Tool" Id="Reference" PortName="Small Passive Cranial Frame" BufferSize="500" />
+        <DataSource Type="Tool" Id="Ras" 	    PortName="RasRegistration" BufferSize="500" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
+          <DataSource  Id="NProbe" />
+          <DataSource  Id="TProbe" />
           <DataSource  Id="Stylus" />
           <DataSource  Id="Reference" />
-		  <DataSource  Id="Ras" />
+          <DataSource  Id="Ras" />
         </OutputChannel>
       </OutputChannels>
     </Device>
@@ -61,10 +65,10 @@ Tools: Stylus (Passive Planar, Blunt) , Reference (Frame)"
       <TransformNames> 
         <Transform Name="StylusToTracker" />
         <Transform Name="ReferenceToTracker" />
-		<xTransform Name="RasToTracker"  />
-		<Transform Name="RasToReference"  />
-		<Transform Name="StylusToReference"  />
-		<xTransform Name="TrackerToRas" />
+        <Transform Name="RasToReference"  />
+        <Transform Name="StylusToReference"  />
+        <Transform Name="NProbeToReference"  />
+        <Transform Name="TProbeToReference"  />
       </TransformNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>

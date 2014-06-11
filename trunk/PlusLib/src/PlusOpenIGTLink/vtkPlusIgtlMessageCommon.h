@@ -61,7 +61,7 @@ public:
   /*! Pack image message from vtkImageData volume */ 
   static PlusStatus PackImageMessage( igtl::ImageMessage::Pointer imageMessage, vtkImageData* volume, vtkMatrix4x4* volumeToReferenceTransform, double timestamp );
 
-	/*! Pack image meta deta message from vtkPlusServer::ImageMetaDataList  */ 
+  /*! Pack image meta deta message from vtkPlusServer::ImageMetaDataList  */ 
   static PlusStatus PackImageMetaMessage( igtl::ImageMetaMessage::Pointer imageMetaMessage, PlusCommon::ImageMetaDataList& imageMetaDataList);
 
   /*! Pack transform message from tracked frame */ 

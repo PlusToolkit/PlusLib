@@ -1055,7 +1055,7 @@ PlusStatus vtkPlusChannel::GetMostRecentTimestamp(double &ts)
       double latestTrackerTimestampForCurrentTool=0;
       if ( trackerBuffer->GetLatestTimeStamp(latestTrackerTimestampForCurrentTool) != ITEM_OK )
       {
-        LOG_WARNING("Unable to get timestamp from tool tracker buffer for time: " << latestTrackerTimestampForCurrentTool); 
+        LOG_WARNING("Unable to get timestamp from "<<it->first<<" tool tracker buffer for time: " << latestTrackerTimestampForCurrentTool); 
         continue;
       }
       if (!mostRecentTrackerTimestampRetrieved)

@@ -50,7 +50,7 @@ public:
     std::string ProbeId;
     PlusImagingMode Mode;
   };
-	  
+    
 public:
   static vtkPlusDevice* New();
   vtkTypeRevisionMacro(vtkPlusDevice, vtkImageAlgorithm);
@@ -409,11 +409,15 @@ public:
   /*! Convenience function for getting the first available video source in the output channels */
   PlusStatus GetFirstActiveOutputVideoSource(vtkPlusDataSource*& aVideoSource);
 
-	/*! Return a list of items that desrcibe what image volumes this device can provide */
-	virtual PlusStatus GetImageMetaData(PlusCommon::ImageMetaDataList& imageMetaDataItems);
+  /*! Return a list of items that desrcibe what image volumes this device can provide */
+  virtual PlusStatus GetImageMetaData(PlusCommon::ImageMetaDataList& imageMetaDataItems);
 
-	/*! Return a list of items that desrcibe what image volumes this device can provide */
-	virtual PlusStatus GetImage(const std::string& requestedImageId, std::string& assignedImageId,const std::string& imageReferencFrameName, vtkImageData* imageData, vtkMatrix4x4* ijkToReferenceTransform);
+  /*!
+    Return the specified volume from the corresponding device. The assignedImageId and requestedImageId should be the same
+    If requestedImageId is empty then GetImage will return the default image and set assignedImageId to the ID of this default image.
+    If requestedImageId is not empty then assignedImageId is the same as the requestedImageId.
+  */
+  virtual PlusStatus GetImage(const std::string& requestedImageId, std::string& assignedImageId,const std::string& imageReferencFrameName, vtkImageData* imageData, vtkMatrix4x4* ijkToReferenceTransform);
 
 protected:
   static void *vtkDataCaptureThread(vtkMultiThreader::ThreadInfo *data);
