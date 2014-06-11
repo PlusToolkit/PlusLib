@@ -1,7 +1,6 @@
 PROJECT(fCal)
 
-FIND_PACKAGE(Qt4 REQUIRED)
-SET(QT_USE_QT3SUPPORT TRUE) 
+FIND_PACKAGE(Qt4 REQUIRED) 
 INCLUDE(${QT_USE_FILE})
 
 # --------------------------------------------------------------------------
