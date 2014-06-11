@@ -111,16 +111,18 @@ vtkSonixPortaVideoSourceCleanup::~vtkSonixPortaVideoSourceCleanup()
 vtkSonixPortaVideoSource::vtkSonixPortaVideoSource() 
 {
   // porta instantiation
-  this->PortaBModeWidth = 484;       // defaults to BMode, 640x480
-  this->PortaBModeHeight = 364;
-  this->ImageBuffer = 0;
-  this->ImageBuffer = new unsigned char [ this->PortaBModeWidth *
-    this->PortaBModeHeight * 4 ];
-  if ( !this->ImageBuffer ) 
-  {
-    LOG_ERROR("vtkSonixPortaVideoSource constructor: not enough memory for ImageBuffer" );
-  }
-
+	 // this->PortaBModeWidth = 480;       // defaults to BMode, 640x480
+  //this->PortaBModeHeight = 436;
+  //this->ImageBuffer = 0;
+  //this->ImageBuffer = new unsigned char [ this->PortaBModeWidth *
+  //  this->PortaBModeHeight * 4 ];
+  //if ( !this->ImageBuffer ) 
+  //{
+  //  LOG_ERROR("vtkSonixPortaVideoSource constructor: not enough memory for ImageBuffer" );
+  //}
+	this->PortaBModeWidth = 480;
+	this->PortaBModeHeight = 436;
+	this->ImageBuffer = 0;
   this->ImagingMode = (int)BMode;
   this->PortaProbeSelected = 0;
   this->PortaModeSelected = 0;
@@ -352,8 +354,10 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
   TrackedFrame::FieldMapType customFields; 
   //customFields["MotorAngle"] = motorAngle.str();
   //customFields["FrameNumber"] = frameNumber.str(); 
-  customFields["ProbeHeadToTransducerCenterTransform"] = this->GetProbeHeadToTransducerCenterTransform( this->CurrentMotorAngle, volumeIndex.str() );
-  customFields["ProbeHeadToTransducerCenterTransformStatus"] = "OK";
+  customFields["MotorToMotorRotatedTransform"] = this->GetMotorToMotorRotatedTransformTransform( this->CurrentMotorAngle );
+  customFields["MotorToMotorRotatedTransformStatus"] = "OK";
+	customFields["DummyToVolumeIndexTransform"] =  volumeIndex.str() + " 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+  customFields["DummyToVolumeIndexTransformStatus"] = "OK";
 
   PlusStatus status = aSource->GetBuffer()->AddItem(deviceDataPtr, aSource->GetPortImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, numberOfBytesToSkip, id, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields); 
 
@@ -362,7 +366,7 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
 }
 
 //----------------------------------------------------------------------------
-std::string vtkSonixPortaVideoSource::GetProbeHeadToTransducerCenterTransform( double angle, std::string volumeIndex )
+std::string vtkSonixPortaVideoSource::GetMotorToMotorRotatedTransformTransform( double angle )
 {
 	vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
@@ -378,7 +382,7 @@ std::string vtkSonixPortaVideoSource::GetProbeHeadToTransducerCenterTransform( d
 	  << " " <<
 	     matrix->GetElement(2,0) <<" "<< matrix->GetElement(2,1) <<" "<< matrix->GetElement(2,2) <<" "<< matrix->GetElement(2,3) 
 	  << " " <<
-	     matrix->GetElement(3,0) <<" "<< matrix->GetElement(3,1) <<" "<< matrix->GetElement(3,2) <<" "<< volumeIndex;
+	     matrix->GetElement(3,0) <<" "<< matrix->GetElement(3,1) <<" "<< matrix->GetElement(3,2) <<" "<< matrix->GetElement(3,3) ;//volumeIndex;
 
 	return matrixToString.str();
 }
@@ -453,6 +457,13 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
       LOG_ERROR(this->GetDeviceId() << ": Unable to retrieve video source.");
       return PLUS_FAIL;
     }
+
+		// Set B-mode image size
+		this->ImageBuffer = new unsigned char [ this->PortaBModeWidth * this->PortaBModeHeight * 4 ];
+		if ( !this->ImageBuffer ) 
+		{
+			LOG_ERROR("vtkSonixPortaVideoSource constructor: not enough memory for ImageBuffer" );
+		}
 
     if( !this->SetFrameSize( *aSource, this->PortaBModeWidth, this->PortaBModeHeight )  )
     {
@@ -618,7 +629,19 @@ PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* config
     this->FramePerVolume = framePerVolume;
   }  
 
-  int stepPerFrame = 0; 
+  int portaBModeWidth = 0; 
+  if ( imageAcquisitionConfig->GetScalarAttribute("PortaBModeWidth", portaBModeWidth)) 
+  {
+    this->PortaBModeWidth = portaBModeWidth; 
+  } 
+
+	int portaBModeHeight = 0; 
+  if ( imageAcquisitionConfig->GetScalarAttribute("PortaBModeHeight", portaBModeHeight)) 
+  {
+    this->PortaBModeHeight = portaBModeHeight; 
+  }  
+
+	int stepPerFrame = 0; 
   if ( imageAcquisitionConfig->GetScalarAttribute("StepPerFrame", stepPerFrame)) 
   {
     this->StepPerFrame = stepPerFrame; 
