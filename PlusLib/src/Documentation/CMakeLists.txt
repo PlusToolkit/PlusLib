@@ -15,7 +15,7 @@ if( DOXYGEN_FOUND )
     if(WIN32)
       set(GENERATE_HTMLHELP "YES")
       set(COMPRESSED_HELP_TARGET_FILE_EXT ".chm")
-      set(DOXYGEN_HHC_EXECUTABLE "${PLUSLIB_TOOLS_DIR}/HtmlHelp/hhc.exe" CACHE PATH "Path to the Windows HTML Help Compiler tool." FORCE)
+      set(DOXYGEN_HHC_EXECUTABLE "${PLUSLIB_TOOLS_DIR}/HtmlHelp/hhc.exe" CACHE FILEPATH "Path to the Windows HTML Help Compiler tool." FORCE)
     endif(WIN32) 
    
     MACRO(GENERATE_DOC TARGET_NAME)

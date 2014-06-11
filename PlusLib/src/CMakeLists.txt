@@ -233,7 +233,7 @@ if(BUILD_DOCUMENTATION)
   mark_as_advanced(DOCUMENTATION_TARGET_IN_ALL)
 
   # Use Doxygen provided with Plus
-  SET (DOXYGEN_EXECUTABLE ${PLUSLIB_TOOLS_DIR}/Doxygen/doxygen.exe CACHE PATH "Doxygen executable" FORCE)
+  SET (DOXYGEN_EXECUTABLE ${PLUSLIB_TOOLS_DIR}/Doxygen/doxygen.exe CACHE FILEPATH "Doxygen executable" FORCE)
   # Try to detect GraphViz path (CMake's Doxygen package finder only tries some obsolete paths on Windows)
   find_program(DOXYGEN_DOT_EXECUTABLE
     NAMES dot
