@@ -60,11 +60,11 @@ public:
   /*! Adds a command to the queue for execution. Can be called from any thread.  */
   virtual PlusStatus QueueCommand(unsigned int clientId, const std::string &commandString, const std::string &deviceName, const std::string& uid); 
 
-	/*! Adds a command to the queue for execution of the vtkGetImageCommand with the name GET_IMGMETA!*/
-	PlusStatus QueueGetImageMetaData(unsigned int clientId, const std::string &deviceName);
+  /*! Adds a command to the queue for execution of the vtkGetImageCommand with the name GET_IMGMETA!*/
+  PlusStatus QueueGetImageMetaData(unsigned int clientId, const std::string &deviceName);
 
-	/*! Adds a command to the queue for execution of the vtkGetImageCommand with the name GET_IMAGE !*/
-	PlusStatus QueueGetImage(unsigned int clientId, const std::string &deviceName);
+  /*! Adds a command to the queue for execution of the vtkGetImageCommand with the name GET_IMAGE !*/
+  PlusStatus QueueGetImage(unsigned int clientId, const std::string &deviceName);
 
   /*!
     Return the queued command responses and removes the items from the queue (so that each item is returned only once) and clears the response queue.
@@ -110,8 +110,8 @@ private:
     until it signals that it is completed.
   */	
   //std::list<vtkPlusCommand*> CommandQueue;
-	typedef std::list< vtkSmartPointer<vtkPlusCommand> > PlusCommandList;
-	PlusCommandList CommandQueue;
+  typedef std::list< vtkSmartPointer<vtkPlusCommand> > PlusCommandList;
+  PlusCommandList CommandQueue;
   PlusCommandResponseList CommandResponseQueue;
 
   vtkPlusCommandProcessor(const vtkPlusCommandProcessor&);  // Not implemented.

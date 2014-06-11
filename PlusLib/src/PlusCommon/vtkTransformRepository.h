@@ -105,10 +105,10 @@ public:
   */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* configRootElement); 
 
-	/*! 
+  /*! 
     Delete all transforms from XML data CoordinateDefinitions element then write all transform matrices that are persistent and non-persistent if boolean 
-		is true, only persistent if the boolean is false into the xml data CoordinateDefinitions element. The function will give a warning message 
-		in case of any non valid persistent transform. 
+    is true, only persistent if the boolean is false into the xml data CoordinateDefinitions element. The function will give a warning message 
+    in case of any non valid persistent transform. 
   */
   virtual PlusStatus WriteConfigurationGeneric(vtkXMLDataElement* configRootElement, bool copyAllTransforms); 
   

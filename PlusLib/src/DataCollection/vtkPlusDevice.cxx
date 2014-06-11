@@ -2170,15 +2170,15 @@ PlusStatus vtkPlusDevice::GetFirstActiveOutputVideoSource(vtkPlusDataSource*& aV
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetImageMetaData(std::deque<PlusCommon::ImageMetaDataItem> &imageMetaData)
+PlusStatus vtkPlusDevice::GetImageMetaData(PlusCommon::ImageMetaDataList& imageMetaDataItems)
 {
-	LOCAL_LOG_DEBUG("No ImageMetaData is available");
+  LOCAL_LOG_DEBUG("No ImageMetaData is available");
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::GetImage(const std::string& requestedImageId, std::string& assignedImageId, const std::string& imageReferencFrameName, vtkImageData* imageData, vtkMatrix4x4* ijkToReferenceTransform)
 {
-	LOCAL_LOG_ERROR("vtkPlusDevice::GetImage is not implemented");
+  LOCAL_LOG_ERROR("vtkPlusDevice::GetImage is not implemented");
   return PLUS_FAIL;
 }

@@ -242,24 +242,24 @@ void ExecuteStopReconstruction(vtkPlusOpenIGTLinkClient* client, const std::stri
 //----------------------------------------------------------------------------
 #ifdef PLUS_USE_STEALTHLINK
 void ExecuteGetExamData(vtkPlusOpenIGTLinkClient* client,const std::string &deviceId, const std::string &dicomOutputDirectory, const std::string& volumeEmbeddedTransformToFrame,
-																																											const bool& keepReceivedDicomFiles)
+                                                                                      const bool& keepReceivedDicomFiles)
 {
-	vtkSmartPointer<vtkPlusStealthLinkCommand> cmd=vtkSmartPointer<vtkPlusStealthLinkCommand>::New();
-	cmd->SetNameToGetExam();
-	if (!deviceId.empty())
-	{
-		cmd->SetStealthLinkDeviceId(deviceId.c_str());
-	}
-	if (!dicomOutputDirectory.empty())
-	{
-		cmd->SetDicomImagesOutputDirectory(dicomOutputDirectory.c_str());
-	}
-	if (!volumeEmbeddedTransformToFrame.empty())
-	{
-		cmd->SetVolumeEmbeddedTransformToFrame(volumeEmbeddedTransformToFrame.c_str());
-	}
-	cmd->SetKeepReceivedDicomFiles(keepReceivedDicomFiles);
-	client->SendCommand(cmd);
+  vtkSmartPointer<vtkPlusStealthLinkCommand> cmd=vtkSmartPointer<vtkPlusStealthLinkCommand>::New();
+  cmd->SetNameToGetExam();
+  if (!deviceId.empty())
+  {
+    cmd->SetStealthLinkDeviceId(deviceId.c_str());
+  }
+  if (!dicomOutputDirectory.empty())
+  {
+    cmd->SetDicomImagesOutputDirectory(dicomOutputDirectory.c_str());
+  }
+  if (!volumeEmbeddedTransformToFrame.empty())
+  {
+    cmd->SetVolumeEmbeddedTransformToFrame(volumeEmbeddedTransformToFrame.c_str());
+  }
+  cmd->SetKeepReceivedDicomFiles(keepReceivedDicomFiles);
+  client->SendCommand(cmd);
 }
 #endif
 //----------------------------------------------------------------------------
@@ -383,8 +383,8 @@ int main( int argc, char** argv )
   std::string transformPersistent;
   std::string transformValue;
   std::string dicomOutputDirectory;
-	std::string volumeEmbeddedTransformToFrame;
-	bool keepReceivedDicomFiles = false;
+  std::string volumeEmbeddedTransformToFrame;
+  bool keepReceivedDicomFiles = false;
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
   bool keepConnected=false;
 
@@ -408,9 +408,9 @@ int main( int argc, char** argv )
   args.AddArgument( "--keep-connected", vtksys::CommandLineArguments::NO_ARGUMENT, &keepConnected, "Keep the connection to the server after command completion (exits on CTRL-C).");  
   args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)" );
   args.AddArgument( "--dicom-directory", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &dicomOutputDirectory, "The folder directory for the dicom images acquired from the StealthLink Server");
-	args.AddArgument( "--volumeEmbeddedTransformToFrame", vtksys::CommandLineArguments::EQUAL_ARGUMENT,&volumeEmbeddedTransformToFrame, "The reference frame in which the dicom image will be represented. Ex: RAS,LPS,Reference,Tracker etc");
-	args.AddArgument( "--keepReceivedDicomFiles", vtksys::CommandLineArguments::NO_ARGUMENT, &keepReceivedDicomFiles, "Keep the dicom files in the designated folder after having acquired them from the server");
-	if ( !args.Parse() )
+  args.AddArgument( "--volumeEmbeddedTransformToFrame", vtksys::CommandLineArguments::EQUAL_ARGUMENT,&volumeEmbeddedTransformToFrame, "The reference frame in which the dicom image will be represented. Ex: RAS,LPS,Reference,Tracker etc");
+  args.AddArgument( "--keepReceivedDicomFiles", vtksys::CommandLineArguments::NO_ARGUMENT, &keepReceivedDicomFiles, "Keep the dicom files in the designated folder after having acquired them from the server");
+  if ( !args.Parse() )
   {
     std::cerr << "Problem parsing arguments." << std::endl;
     std::cout << "Help: " << args.GetHelp() << std::endl;
@@ -460,7 +460,7 @@ int main( int argc, char** argv )
     else if (STRCASECMP(command.c_str(),"GET_DEVICE_IDS")==0) { ExecuteGetDeviceIds(client, deviceId /* actually a device type */); }
     else if (STRCASECMP(command.c_str(), "UPDATE_TRANSFORM")==0) { ExecuteUpdateTransform(client, transformName, transformValue, transformError, transformDate, transformPersistent); }
     else if (STRCASECMP(command.c_str(), "SAVE_CONFIG")==0) { ExecuteSaveConfig(client, outputFilename); }
-	  else if (STRCASECMP(command.c_str(), "GET_EXAM_DATA")==0)
+    else if (STRCASECMP(command.c_str(), "GET_EXAM_DATA")==0)
     {
 #ifdef PLUS_USE_STEALTHLINK
       ExecuteGetExamData(client, deviceId,dicomOutputDirectory,volumeEmbeddedTransformToFrame,keepReceivedDicomFiles);
