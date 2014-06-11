@@ -15,7 +15,7 @@ if( DOXYGEN_FOUND )
     if(WIN32)
       set(GENERATE_HTMLHELP "YES")
       set(COMPRESSED_HELP_TARGET_FILE_EXT ".chm")
-      set(HHC_LOCATION "${PLUSLIB_TOOLS_DIR}/HtmlHelp/hhc.exe")
+      set(HHC_LOCATION "${PLUSLIB_TOOLS_DIR}/HtmlHelp/hhc.exe" CACHE FILEPATH "Path to the Windows HTML Help Compiler tool." FORCE)
     endif(WIN32) 
        
     # Parameters for generate_doc.cmake

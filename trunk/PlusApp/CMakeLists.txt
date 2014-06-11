@@ -134,7 +134,7 @@ IF (BUILD_DOCUMENTATION)
         NO_SYSTEM_ENVIRONMENT_PATH
       )
     # Use Doxygen provided with Plus
-    SET (DOXYGEN_EXECUTABLE ${PLUSLIB_SOURCE_DIR}/tools/Doxygen/doxygen.exe CACHE PATH "Doxygen executable" FORCE)
+    SET (DOXYGEN_EXECUTABLE ${PLUSLIB_SOURCE_DIR}/tools/Doxygen/doxygen.exe CACHE FILEPATH "Doxygen executable" FORCE)
   ENDIF(NOT PLUSLIB_BUILD_DOCUMENTATION)
   ADD_SUBDIRECTORY(Documentation)
 ENDIF (BUILD_DOCUMENTATION)
