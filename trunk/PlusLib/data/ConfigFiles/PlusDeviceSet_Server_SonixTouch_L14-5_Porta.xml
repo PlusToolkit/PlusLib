@@ -10,6 +10,8 @@
       Type="SonixPortaVideo" 
       AcquisitionRate="30" 
       LocalTimeOffsetSec="0"
+	  PortaBModeWidth="480"
+	  PortaBModeHeight="436"
       Depth="70" 
       Gain="50" 
       Frequency="3.3" 
@@ -40,15 +42,47 @@
         <InputChannel Id="VideoStream" />
       </InputChannels>
     </Device>
+	
+	<Device
+      Id="VolumeReconstructorDevice"
+      Type="VirtualVolumeReconstructor"
+      OutputVolDeviceName="MostRecentVolume">
+      <InputChannels>
+        <InputChannel Id="VideoStream" />
+      </InputChannels>
+      <VolumeReconstruction
+        ImageCoordinateFrame="Image" ReferenceCoordinateFrame="RAS"
+        Interpolation="LINEAR" Optimization="FULL" Compounding="On" NumberOfThreads="2"
+        ClipRectangleOrigin="0 0" ClipRectangleSize="480 436"
+		OutputOrigin="-50 -100 -56" OutputExtent="0 200 0 160 0 224" OutputSpacing="0.5 0.5 0.5" 
+		FillHoles="On" >
+		<HoleFilling>
+			<HoleFillingElement Type="GAUSSIAN" Size="5" Stdev="0.6667" MinimumKnownVoxelsRatio="0.50001" />
+			<HoleFillingElement Type="STICK" StickLengthLimit="9" NumberOfSticksToUse="1" />
+		</HoleFilling>
+	  </VolumeReconstruction>
+    </Device>
   </DataCollection>
 
   <CoordinateDefinitions>
-    <Transform From="Image" To="Reference"
+	<Transform From="Transducer" To="Image"
       Matrix="
-        0.2 0.0 0.0 0.0
-        0.0 0.2 0.0 0.0
-        0.0 0.0 0.2 0.0        
-        0 0 0 1" />
+        4.344	0		0		240
+        0		5.051	0		44
+        0		0		1		0
+        0		0		0		1" />
+	<Transform From="MotorRotated" To="Transducer"
+      Matrix="
+        1	0	0	0
+        0	1	0	-27.25
+        0	0	1	0
+        0	0	0	1" />	
+	<Transform From="RAS" To="Motor"
+		Matrix="
+		0	0	1	0
+		0	-1	0	0
+		1	0	0	0
+		0	0	0	1" />		
   </CoordinateDefinitions>
   
   <PlusOpenIGTLinkServer 
@@ -63,10 +97,11 @@
 		<Message Type="TRANSFORM" />
       </MessageTypes>
 	  <TransformNames> 
-		<Transform Name="ImageToProbeHead" />
+		<Transform Name="MotorToRAS" />
+		<Transform Name="DummyToVolumeIndex" />
       </TransformNames>
       <ImageNames>
-        <Image Name="Image" EmbeddedTransformToFrame="Reference" />
+        <Image Name="Image" EmbeddedTransformToFrame="RAS" />
       </ImageNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>
