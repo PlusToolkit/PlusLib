@@ -94,7 +94,16 @@ public:
   */
   virtual PlusStatus GetTrackedFrameListSampled(double &aTimestampOfLastFrameAlreadyGot, double& aTimestampOfNextFrameToBeAdded, vtkTrackedFrameList* aTrackedFrameList, double aSamplingPeriodSec, double maxTimeLimitSec=-1); 
 
-  PlusStatus GetTrackedFrameList( double& aTimestampFrom, vtkTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd );
+  /*!
+    Get all the tracked frame list from devices since time specified
+    \param aTimestampOfLastFrameAlreadyGot Used for preventing returning the same frame multiple times.
+      In: the timestamp of the timestamp that has been already returned in previous GetTrackedFrameList calls.
+      If no frames have got yet then set it to UNDEFINED_TIMESTAMP, the frames will be retrieved from the latest timestamp.
+      Out: the timestamp of the most recent frame that is returned.
+    \param aTrackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
+    \param aMaxNumberOfFramesToAdd Maximum this number of frames will be added (can be used for limiting the time spent in this method)
+  */
+  PlusStatus GetTrackedFrameList( double& aTimestampOfLastFrameAlreadyGot, vtkTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd );
 
   /*! Get the closest tracked frame timestamp to the specified time */
   virtual double GetClosestTrackedFrameTimestampByTime(double time);
