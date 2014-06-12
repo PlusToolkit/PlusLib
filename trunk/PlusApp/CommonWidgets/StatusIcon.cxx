@@ -5,12 +5,13 @@
 =========================================================Plus=header=end*/ 
 
 #include "StatusIcon.h"
-#include <QEvent>
+#include <QCoreApplication>
 #include <QGridLayout>
 #include <QMenu>
-#include <QSizePolicy>
+#include <QMouseEvent>
 #include <QScrollBar>
-#include <QCoreApplication>
+#include <QSizePolicy>
+
 //-----------------------------------------------------------------------------
 namespace
 {

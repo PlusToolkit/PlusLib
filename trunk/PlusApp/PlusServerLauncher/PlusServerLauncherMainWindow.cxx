@@ -10,6 +10,7 @@
 #include "vtkPlusDeviceFactory.h"
 #include "vtkPlusOpenIGTLinkServer.h"
 #include <QIcon>
+#include <QKeyEvent>
 #include <QTimer>
 
 //-----------------------------------------------------------------------------
