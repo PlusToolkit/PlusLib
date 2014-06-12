@@ -19,6 +19,7 @@ See License.txt for details.
 #include "IntersonCxxImagingScan2DClass.h"
 #include "IntersonCxxControlsHWControls.h"
 #include "IntersonCxxIntersonClass.h"
+#include "IntersonCxxImagingScanConverter.h"
 
 #include "itkImage.h"
 
@@ -217,6 +218,22 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
 
   LOG_DEBUG( "Interson SDK version " << this->Internal->GetSdkVersion() <<
              ", USB probe FPGA version " << hwControls->ReadFPGAVersion() );
+
+  // Even if we do not use their SDK scan converter, we have to initialize the
+  // scan converter to get the probe fully initialized.
+  const bool upDown = false;
+  const bool leftRight = false;
+  const int width = 1000;
+  const int height = 650;
+  const int scanConvertDepth = 10;
+  typedef IntersonCxx::Imaging::ScanConverter ScanConverterType;
+  ScanConverterType scanConverter;
+  ScanConverterType::ScanConverterError converterError =
+    scanConverter.HardInitScanConverter( scanConvertDepth,
+                                         upDown,
+                                         leftRight,
+                                         width,
+                                         height );
 
   std::vector<vtkPlusDataSource *> sources;
   vtkPlusDataSource * source = sources[0];
