@@ -36,7 +36,7 @@ TemporalCalibrationToolbox::TemporalCalibrationToolbox(fCalMainWindow* aParentMa
 : AbstractToolbox(aParentMainWindow)
 , QWidget(aParentMainWindow, aFlags)
 , CancelRequest(false)
-, LastRecordedFixedItemTimestamp(0.0)
+, LastRecordedFixedItemTimestamp(UNDEFINED_TIMESTAMP)
 , LastRecordedMovingItemTimestamp(0.0)
 , RecordingIntervalMs(200)
 , TemporalCalibrationDurationSec(10)
@@ -482,7 +482,12 @@ void TemporalCalibrationToolbox::StartCalibration()
     this->TemporalCalibrationFixedData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK );
     this->FixedValidationTransformName.SetTransformName(std::string(ui.comboBox_FixedSourceValue->currentText().toLatin1()).c_str());
     this->TemporalCalibrationFixedData->SetFrameTransformNameForValidation(this->FixedValidationTransformName);
-  }    
+    LOG_DEBUG("Temporal calibration fixed signal: "<<this->FixedValidationTransformName.GetTransformName()<<" transform in channel "<<(this->FixedChannel->GetChannelId()?this->FixedChannel->GetChannelId():"(undefined)"));
+  }
+  else
+  {
+    LOG_DEBUG("Temporal calibration fixed signal: Video in channel "<<(this->FixedChannel->GetChannelId()?this->FixedChannel->GetChannelId():"(undefined)"));
+  }
   this->PreviousFixedOffset = this->FixedChannel->GetOwnerDevice()->GetLocalTimeOffsetSec();
 
   QString curMovingType = ui.comboBox_MovingSourceValue->itemData(ui.comboBox_MovingSourceValue->currentIndex()).toString();
@@ -494,6 +499,11 @@ void TemporalCalibrationToolbox::StartCalibration()
     this->TemporalCalibrationMovingData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK );
     this->MovingValidationTransformName.SetTransformName(std::string(ui.comboBox_MovingSourceValue->currentText().toLatin1()).c_str());
     this->TemporalCalibrationMovingData->SetFrameTransformNameForValidation(this->MovingValidationTransformName);
+    LOG_DEBUG("Temporal calibration moving signal: "<<this->MovingValidationTransformName.GetTransformName()<<" transform in channel "<<(this->MovingChannel->GetChannelId()?this->MovingChannel->GetChannelId():"(undefined)"));
+  }
+  else
+  {
+    LOG_DEBUG("Temporal calibration moving signal: Video in channel "<<(this->MovingChannel->GetChannelId()?this->MovingChannel->GetChannelId():"(undefined)"));
   }
   this->PreviousMovingOffset = this->MovingChannel->GetOwnerDevice()->GetLocalTimeOffsetSec();
 
@@ -501,8 +511,8 @@ void TemporalCalibrationToolbox::StartCalibration()
   TemporalCalibrationMovingData->Clear();
 
   double currentTimeSec = vtkAccurateTimer::GetSystemTime();
-  LastRecordedFixedItemTimestamp = -1; // <=0 means start from latest
-  LastRecordedMovingItemTimestamp = -1; // <=0 means start from latest
+  LastRecordedFixedItemTimestamp = UNDEFINED_TIMESTAMP; // means start from latest
+  LastRecordedMovingItemTimestamp = UNDEFINED_TIMESTAMP; // means start from latest
 
   StartTimeSec = vtkAccurateTimer::GetSystemTime();
   CancelRequest = false;
@@ -548,7 +558,6 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
   }
 
   this->TemporalCalibrationAlgo->SetSamplingResolutionSec(0.001);
-  this->TemporalCalibrationAlgo->SetSaveIntermediateImages(false);
 
   //  Calculate the time-offset
   vtkTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR error = vtkTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NONE;
@@ -687,12 +696,12 @@ void TemporalCalibrationToolbox::DoCalibration()
     return;
   }
 
-  int numberOfTrackingFramesBeforeRecording = TemporalCalibrationFixedData->GetNumberOfTrackedFrames();
-  int numberOfVideoFramesBeforeRecording = TemporalCalibrationMovingData->GetNumberOfTrackedFrames();
+  int numberOfFixedFramesBeforeRecording = TemporalCalibrationFixedData->GetNumberOfTrackedFrames();
+  int numberOfMovingFramesBeforeRecording = TemporalCalibrationMovingData->GetNumberOfTrackedFrames();
 
   if( this->FixedChannel != NULL )
   {
-    if( this->FixedChannel->GetTrackedFrameList(LastRecordedFixedItemTimestamp, TemporalCalibrationFixedData, 50) != PLUS_SUCCESS )
+    if( this->FixedChannel->GetTrackedFrameList(this->LastRecordedFixedItemTimestamp, this->TemporalCalibrationFixedData, 50) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to add data to fixed frame list.");
     }
@@ -705,7 +714,7 @@ void TemporalCalibrationToolbox::DoCalibration()
   }
   if( this->MovingChannel != NULL )
   {
-    if( this->MovingChannel->GetTrackedFrameList(LastRecordedMovingItemTimestamp, TemporalCalibrationMovingData, 50) != PLUS_SUCCESS )
+    if( this->MovingChannel->GetTrackedFrameList(this->LastRecordedMovingItemTimestamp, this->TemporalCalibrationMovingData, 50) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to add data to moving frame list.");
     }
@@ -720,7 +729,7 @@ void TemporalCalibrationToolbox::DoCalibration()
   // Update progress
   int progressPercent = (int)((currentTimeSec - StartTimeSec) / TemporalCalibrationDurationSec * 100.0);
   m_ParentMainWindow->SetStatusBarProgress(progressPercent);
-  LOG_DEBUG("Number of tracked frames in the calibration dataset: Tracking: " << std::setw(3) << numberOfTrackingFramesBeforeRecording << " => " << TemporalCalibrationFixedData->GetNumberOfTrackedFrames() << "; Video: " << numberOfVideoFramesBeforeRecording << " => " << TemporalCalibrationMovingData->GetNumberOfTrackedFrames());
+  LOG_DEBUG("Number of tracked frames in the calibration dataset: Fixed: " << std::setw(3) << numberOfFixedFramesBeforeRecording << " => " << TemporalCalibrationFixedData->GetNumberOfTrackedFrames() << "; Moving: " << numberOfMovingFramesBeforeRecording << " => " << TemporalCalibrationMovingData->GetNumberOfTrackedFrames());
 
   QTimer::singleShot(RecordingIntervalMs, this, SLOT(DoCalibration())); 
 }

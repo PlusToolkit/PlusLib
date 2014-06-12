@@ -26,7 +26,7 @@ SpatialCalibrationToolbox::SpatialCalibrationToolbox(fCalMainWindow* aParentMain
   : AbstractToolbox(aParentMainWindow)
   , QWidget(aParentMainWindow, aFlags)
   , m_CancelRequest(false)
-  , m_LastRecordedFrameTimestamp(0.0)
+  , m_LastRecordedFrameTimestamp(UNDEFINED_TIMESTAMP)
   , m_NumberOfCalibrationImagesToAcquire(200)
   , m_NumberOfValidationImagesToAcquire(100)
   , m_NumberOfSegmentedCalibrationImages(0)
@@ -615,7 +615,7 @@ void SpatialCalibrationToolbox::StartCalibration()
 
   m_NumberOfSegmentedCalibrationImages = 0;
   m_NumberOfSegmentedValidationImages = 0;
-  m_LastRecordedFrameTimestamp = 0.0;
+  m_LastRecordedFrameTimestamp = UNDEFINED_TIMESTAMP;
 
   m_CancelRequest = false;
 
