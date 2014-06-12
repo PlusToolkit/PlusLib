@@ -143,16 +143,16 @@ PlusStatus vtkTrackedFrameList::AddTrackedFrame(TrackedFrame *trackedFrame, Inva
     switch(action)
     {
     case ADD_INVALID_FRAME_AND_REPORT_ERROR: 
-      LOG_ERROR("A similar frame is already found in the tracked frame list, but invalid frame added to the list."); 
+      LOG_ERROR("Validation failed on frame, the frame is added to the list anyway");
       break; 
     case ADD_INVALID_FRAME: 
-      LOG_DEBUG("A similar frame is already found in the tracked frame list, but invalid frame added to the list.");
-      break; 
+      LOG_DEBUG("Validation failed on frame, the frame is added to the list anyway");
+      break;
     case SKIP_INVALID_FRAME_AND_REPORT_ERROR: 
-      LOG_ERROR("A similar frame is already found in the tracked frame list, invalid frame skipped."); 
+      LOG_ERROR("Validation failed on frame, the frame is ignored");
       return PLUS_FAIL;
     case SKIP_INVALID_FRAME: 
-      LOG_DEBUG("A similar frame is already found in the tracked frame list, invalid frame skipped.");
+      LOG_DEBUG("Validation failed on frame, the frame is ignored");
       return PLUS_SUCCESS; 
     }
   }
@@ -176,7 +176,7 @@ bool vtkTrackedFrameList::ValidateData(TrackedFrame* trackedFrame )
   {
     if (! this->ValidateTimestamp(trackedFrame))
     {
-      LOG_DEBUG("Validation failed - timestamp is not unique!"); 
+      LOG_DEBUG("Validation failed - timestamp is not unique: "<<trackedFrame->GetTimestamp()); 
       return false;
     }
   }
@@ -185,7 +185,7 @@ bool vtkTrackedFrameList::ValidateData(TrackedFrame* trackedFrame )
   {
     if (! this->ValidateStatus(trackedFrame))
     {
-      LOG_DEBUG("Validation failed - tracking status in not OK!"); 
+      LOG_DEBUG("Validation failed - tracking status in not OK"); 
       return false;
     }
   }
@@ -194,7 +194,7 @@ bool vtkTrackedFrameList::ValidateData(TrackedFrame* trackedFrame )
   {
     if (! this->ValidateTransform(trackedFrame))
     {
-      LOG_DEBUG("Validation failed - transform is not changed!"); 
+      LOG_DEBUG("Validation failed - transform is not changed"); 
       return false;
     }
   }
@@ -203,7 +203,7 @@ bool vtkTrackedFrameList::ValidateData(TrackedFrame* trackedFrame )
   {
     if (! this->ValidateEncoderPosition(trackedFrame))
     {
-      LOG_DEBUG("Validation failed - encoder position is not changed!"); 
+      LOG_DEBUG("Validation failed - encoder position is not changed");
       return false;
     }
   }
@@ -213,7 +213,7 @@ bool vtkTrackedFrameList::ValidateData(TrackedFrame* trackedFrame )
   {
     if (! this->ValidateSpeed(trackedFrame))
     {
-      LOG_DEBUG("Validation failed - speed is higher than threshold!"); 
+      LOG_DEBUG("Validation failed - speed is higher than threshold");
       return false;
     }
   }
@@ -224,20 +224,14 @@ bool vtkTrackedFrameList::ValidateData(TrackedFrame* trackedFrame )
 //----------------------------------------------------------------------------
 bool vtkTrackedFrameList::ValidateTimestamp(TrackedFrame* trackedFrame)
 {
-  if ( this->TrackedFrameList.size() > 0 )
+  if ( this->TrackedFrameList.size() == 0 )
   {
-    const bool isTimestampUnique = std::find_if(this->TrackedFrameList.begin(), this->TrackedFrameList.end(), TrackedFrameTimestampFinder(trackedFrame) ) == this->TrackedFrameList.end(); 
-
-    if ( !isTimestampUnique )
-    {
-      LOG_DEBUG("Tracked frame timestamp validation result: we've already inserted this frame to container!"); 
-      return false; 
-    }
-
-    return true; 
+    // the existing list is empty, so any frame has unique timestamp and therefore valid
+    return true;
   }
-
-  return true; 
+  const bool isTimestampUnique = std::find_if(this->TrackedFrameList.begin(), this->TrackedFrameList.end(), TrackedFrameTimestampFinder(trackedFrame) ) == this->TrackedFrameList.end(); 
+  // validation passed if the timestamp is unique
+  return isTimestampUnique;
 }
 
 //----------------------------------------------------------------------------
