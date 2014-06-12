@@ -64,6 +64,7 @@ vtkLineSegmentationAlgo::vtkLineSegmentationAlgo()
 : m_TrackedFrameList(NULL)
 , m_SaveIntermediateImages(false)
 , IntermediateFilesOutputDirectory("")
+, PlotIntensityProfile(false)
 , m_SignalTimeRangeMin(0.0)
 , m_SignalTimeRangeMax(-1.0)
 {  
@@ -283,8 +284,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
         itScanlineImage = NULL;
       }
 
-      bool plotIntensityProfile = vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE;
-      if(plotIntensityProfile)
+      if (this->PlotIntensityProfile)
       {
         // Plot the intensity profile
         PlotIntArray(intensityProfile);
@@ -700,6 +700,8 @@ void vtkLineSegmentationAlgo::SaveIntermediateImage(int frameNumber, CharImageTy
   rgbImageWriter->SetFileName(rgbImageFilename.str());
   rgbImageWriter->SetInput(rgbImageCopy);
   rgbImageWriter->Update();
+
+  LOG_DEBUG("Line segmentation intermediate image is saved to: "<<rgbImageFilename.str());
 }
 
 //----------------------------------------------------------------------------
@@ -889,6 +891,7 @@ PlusStatus vtkLineSegmentationAlgo::ReadConfiguration( vtkXMLDataElement* aConfi
   DSC_FIND_NESTED_ELEMENT_REQUIRED(lineSegmentationElement, aConfig, "vtkLineSegmentationAlgo");
 
   DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(SaveIntermediateImages, lineSegmentationElement);
+  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(PlotIntensityProfile, lineSegmentationElement);
 
   this->IntermediateFilesOutputDirectory = vtkPlusConfig::GetInstance()->GetOutputDirectory();
   DSC_READ_STRING_ATTRIBUTE_OPTIONAL(IntermediateFilesOutputDirectory, lineSegmentationElement);

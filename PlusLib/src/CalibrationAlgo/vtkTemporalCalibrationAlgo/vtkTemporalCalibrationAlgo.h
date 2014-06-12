@@ -47,6 +47,10 @@ class vtkTrackedFrameList;
     max tracker lag           max tracker lag
   </PRE>
 
+  Configuration options:
+  * ClipRectangleOrigin and ClipRectangleSize define an optional region of interest rectangle
+  * SaveIntermediateImages if set to TRUE then line segmentation results will be written to an image file for each frame
+
   \ingroup PlusLibCalibrationAlgorithm
 */
 

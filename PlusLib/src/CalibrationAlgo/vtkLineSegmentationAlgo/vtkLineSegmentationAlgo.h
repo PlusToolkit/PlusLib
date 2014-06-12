@@ -74,6 +74,10 @@ public:
 
   PlusStatus Reset();
 
+  /*! Plot intensity profile for each scanline. Enable for debugging. */  
+  vtkGetMacro(PlotIntensityProfile, bool);
+  vtkSetMacro(PlotIntensityProfile, bool);
+
 protected:
   vtkLineSegmentationAlgo();
   virtual ~vtkLineSegmentationAlgo();
@@ -111,6 +115,9 @@ protected:
 
   /*! Directory where the intermediate files are written to */
   std::string IntermediateFilesOutputDirectory;
+  
+  /*! Plot intensity profile for each scanline. Enable for debugging. */
+  bool PlotIntensityProfile;
 
   double m_SignalTimeRangeMin;
   double m_SignalTimeRangeMax;

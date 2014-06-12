@@ -79,6 +79,7 @@ vtkTemporalCalibrationAlgo::vtkTemporalCalibrationAlgo() :
   this->LineSegmentationClipRectangleOrigin[1] = 0;
   this->LineSegmentationClipRectangleSize[0] = 0;
   this->LineSegmentationClipRectangleSize[1] = 0;
+  this->IntermediateFilesOutputDirectory = vtkPlusConfig::GetInstance()->GetOutputDirectory();
 }
 
 //-----------------------------------------------------------------------------
@@ -883,6 +884,8 @@ PlusStatus vtkTemporalCalibrationAlgo::ConstructTableSignal(std::deque<double> &
 PlusStatus vtkTemporalCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* aConfig )
 {
   DSC_FIND_NESTED_ELEMENT_OPTIONAL(calibrationParameters, aConfig, "vtkTemporalCalibrationAlgo");
+
+  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(SaveIntermediateImages, calibrationParameters);
 
   if (calibrationParameters != NULL)
   {
