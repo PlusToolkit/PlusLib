@@ -1,7 +1,6 @@
 PROJECT(PlusServerLauncher)
 
 FIND_PACKAGE(Qt4 REQUIRED)
-SET(QT_USE_QT3SUPPORT TRUE) 
 INCLUDE(${QT_USE_FILE})
 
 # --------------------------------------------------------------------------
