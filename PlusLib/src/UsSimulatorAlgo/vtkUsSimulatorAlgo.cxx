@@ -5,6 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
+#include "PlusXmlUtils.h"
 
 #include <algorithm>
 #include <list>
@@ -55,7 +56,7 @@ vtkUsSimulatorAlgo::vtkUsSimulatorAlgo()
   this->NumberOfScanlines=256;
   this->NumberOfSamplesPerScanline=1000;
   this->IncomingIntensityMwPerCm2 = 100;
-  this->ImagingFrequencyMhz = 2.5;
+  this->FrequencyMhz = 2.5;
   this->BrightnessConversionGamma = 0.333;
   this->BrightnessConversionOffset = 30;
   this->BrightnessConversionScale = 30;
@@ -126,9 +127,9 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
 
   for (std::vector<SpatialModel>::iterator spatialModelIt=this->SpatialModels.begin(); spatialModelIt!=this->SpatialModels.end(); ++spatialModelIt)
   {
-    spatialModelIt->SetImagingFrequencyMhz(this->ImagingFrequencyMhz);
+    spatialModelIt->SetImagingFrequencyMhz(this->FrequencyMhz);
   }
-  this->TransducerSpatialModel.SetImagingFrequencyMhz(this->ImagingFrequencyMhz);
+  this->TransducerSpatialModel.SetImagingFrequencyMhz(this->FrequencyMhz);
 
   vtkSmartPointer<vtkImageData> scanLines = vtkSmartPointer<vtkImageData>::New(); // image data containing the scanlines in rows (FM orientation)
   scanLines->SetExtent(0,this->NumberOfSamplesPerScanline-1,0,this->NumberOfScanlines-1,0,0);
@@ -387,89 +388,25 @@ void vtkUsSimulatorAlgo::ConvertLineModelIntersectionsToSegmentDescriptor(std::d
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
-{
+{  
   LOG_TRACE("vtkUsSimulatorVideoSource::ReadConfiguration"); 
-  if ( config == NULL )
-  {
-    LOG_ERROR("Unable to configure Saved Data video source! (XML data element is NULL)"); 
-    return PLUS_FAIL; 
-  }
 
-  // vtkUsSimulatorAlgo section  
-  vtkXMLDataElement* usSimulatorAlgoElement = config->LookupElementWithName("vtkUsSimulatorAlgo"); 
-  if (usSimulatorAlgoElement == NULL)
-  {
-    LOG_ERROR("Unable to find vtkUsSimulatorAlgo element in XML tree!"); 
-    return PLUS_FAIL;     
-  }
+  DSC_FIND_NESTED_ELEMENT_REQUIRED(usSimulatorAlgoElement, config, "vtkUsSimulatorAlgo");
 
-  int numberOfScanlines = -1;
-  if ( usSimulatorAlgoElement->GetScalarAttribute("NumberOfScanlines", numberOfScanlines )) 
-  {
-    this->SetNumberOfScanlines(numberOfScanlines); 
-  }
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, NumberOfScanlines, usSimulatorAlgoElement);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, NumberOfSamplesPerScanline, usSimulatorAlgoElement);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FrequencyMhz, usSimulatorAlgoElement);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, BrightnessConversionGamma, usSimulatorAlgoElement);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, BrightnessConversionOffset, usSimulatorAlgoElement);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, BrightnessConversionScale, usSimulatorAlgoElement);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, IncomingIntensityMwPerCm2, usSimulatorAlgoElement);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, NoiseAmplitude, usSimulatorAlgoElement);
+  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, NoiseFrequency, usSimulatorAlgoElement);
+  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, NoisePhase, usSimulatorAlgoElement);
+  DSC_READ_STRING_ATTRIBUTE_REQUIRED(ImageCoordinateFrame, usSimulatorAlgoElement);
+  DSC_READ_STRING_ATTRIBUTE_REQUIRED(ReferenceCoordinateFrame, usSimulatorAlgoElement);
 
-  int numberOfSamplesPerScanline = -1;
-  if ( usSimulatorAlgoElement->GetScalarAttribute("NumberOfSamplesPerScanline", numberOfSamplesPerScanline )) 
-  {
-    this->SetNumberOfSamplesPerScanline(numberOfSamplesPerScanline); 
-  }
-
-  double usFrequencyMhz = -1;
-  if ( usSimulatorAlgoElement->GetScalarAttribute("FrequencyMhz", usFrequencyMhz )) 
-  {
-    this->SetImagingFrequencyMhz(usFrequencyMhz); 
-  }
-
-  double brightnessConversionGamma = -1;
-  if ( usSimulatorAlgoElement->GetScalarAttribute("BrightnessConversionGamma", brightnessConversionGamma )) 
-  {
-    this->SetBrightnessConversionGamma(brightnessConversionGamma);
-  }
-  double brightnessConversionOffset = -1;
-  if ( usSimulatorAlgoElement->GetScalarAttribute("BrightnessConversionOffset", brightnessConversionOffset )) 
-  {
-    this->SetBrightnessConversionOffset(brightnessConversionOffset);
-  }
-  double brightnessConversionScale = -1;
-  if ( usSimulatorAlgoElement->GetScalarAttribute("BrightnessConversionScale", brightnessConversionScale )) 
-  {
-    this->SetBrightnessConversionScale(brightnessConversionScale);
-  }
-  
-  double incomingIntensityMwPerCm2 = -1;
-  if ( usSimulatorAlgoElement->GetScalarAttribute("IncomingIntensityMwPerCm2", incomingIntensityMwPerCm2 )) 
-  {
-    this->SetIncomingIntensityMwPerCm2(incomingIntensityMwPerCm2);
-  }
-
-  usSimulatorAlgoElement->GetScalarAttribute("NoiseAmplitude", this->NoiseAmplitude);
-  usSimulatorAlgoElement->GetVectorAttribute("NoiseFrequency", 3, this->NoiseFrequency);
-  usSimulatorAlgoElement->GetVectorAttribute("NoisePhase", 3, this->NoisePhase);
-
-  const char* imageCoordinateFrame = usSimulatorAlgoElement->GetAttribute("ImageCoordinateFrame");
-  if (imageCoordinateFrame == NULL)
-  {
-    LOG_ERROR("ImageCoordinateFrame is not specified in vtkUsSimulatorAlgo element of the configuration");
-    return PLUS_FAIL;     
-  }
-  this->SetImageCoordinateFrame(imageCoordinateFrame);
-
-  const char* referenceCoordinateFrame = usSimulatorAlgoElement->GetAttribute("ReferenceCoordinateFrame");
-  if (referenceCoordinateFrame == NULL)
-  {
-    LOG_ERROR("ReferenceCoordinateFrame is not specified in vtkUsSimulatorAlgo element of the configuration");
-    return PLUS_FAIL;     
-  }
-  this->SetReferenceCoordinateFrame(referenceCoordinateFrame);
-
-  vtkXMLDataElement* rfProcesingElement = usSimulatorAlgoElement->FindNestedElementWithName("RfProcessing");
-  if (rfProcesingElement == NULL)
-  {
-    LOG_ERROR("Cannot find RfProcessing element in channel tag!");
-    return PLUS_FAIL;
-  }
-
+  DSC_FIND_NESTED_ELEMENT_REQUIRED(rfProcesingElement, usSimulatorAlgoElement, "RfProcessing");
   this->RfProcessor->ReadConfiguration(rfProcesingElement);
 
   this->SpatialModels.clear();

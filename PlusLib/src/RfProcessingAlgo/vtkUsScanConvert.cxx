@@ -4,12 +4,13 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "PlusCommon.h"
+#include "PlusConfigure.h"
+#include "PlusXmlUtils.h"
 
 #include "vtkUsScanConvert.h"
 
 #include "vtkObjectFactory.h"
-#include "vtkXMLDataElement.h"
+
 
 //----------------------------------------------------------------------------
 vtkUsScanConvert::vtkUsScanConvert()
@@ -55,16 +56,7 @@ void vtkUsScanConvert::PrintSelf(ostream& os, vtkIndent indent)
 PlusStatus vtkUsScanConvert::ReadConfiguration(vtkXMLDataElement* scanConversionElement)
 {
   LOG_TRACE("vtkUsScanConvert::ReadConfiguration"); 
-  if ( scanConversionElement == NULL )
-  {
-    LOG_ERROR("Unable to configure vtkUsScanConvert! (XML data element is NULL)"); 
-    return PLUS_FAIL; 
-  }
-  if ( STRCASECMP(scanConversionElement->GetName(), "ScanConversion") != 0)
-  {
-    LOG_ERROR("Cannot read vtkUsScanConvert configuration: ScanConversion element is expected"); 
-    return PLUS_FAIL;
-  }
+  DSC_VERIFY_ELEMENT(scanConversionElement, "ScanConversion");
 
   const char* transducerGeometry = scanConversionElement->GetAttribute("TransducerGeometry"); 
   if ( transducerGeometry == NULL) 
@@ -79,11 +71,7 @@ PlusStatus vtkUsScanConvert::ReadConfiguration(vtkXMLDataElement* scanConversion
     return PLUS_FAIL;
   }
 
-  const char* transducerNameStr = scanConversionElement->GetAttribute("TransducerName"); 
-  if ( transducerNameStr != NULL) 
-  {
-    this->SetTransducerName(transducerNameStr);
-  }
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(TransducerName, scanConversionElement);
   
   double outputImageSpacing[2]={0};
   if ( scanConversionElement->GetVectorAttribute("OutputImageSpacingMmPerPixel", 2, outputImageSpacing)) 

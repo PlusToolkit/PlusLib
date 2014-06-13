@@ -75,11 +75,11 @@ bool vtkPlusStealthLinkCommand::GetKeepReceivedDicomFiles() { return this->KeepR
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusStealthLinkCommand::ReadConfiguration(vtkXMLDataElement* aConfig)
 {  
-  
   if (vtkPlusCommand::ReadConfiguration(aConfig)!=PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
+
   if(aConfig->GetAttribute("DicomImagesOutputDirectory"))
   {
     this->SetDicomImagesOutputDirectory(aConfig->GetAttribute("DicomImagesOutputDirectory"));
@@ -90,10 +90,9 @@ PlusStatus vtkPlusStealthLinkCommand::ReadConfiguration(vtkXMLDataElement* aConf
     std::string dicomImagesDefaultOutputDirectory = vtkPlusConfig::GetInstance()->GetOutputDirectory() +  std::string("/StealthLinkDicomOutput");
     this->SetDicomImagesOutputDirectory(dicomImagesDefaultOutputDirectory.c_str());
   }
-  if(aConfig->GetAttribute("StealthLinkDeviceId"))
-  {
-    this->SetStealthLinkDeviceId(aConfig->GetAttribute("StealthLinkDeviceId"));
-  }
+
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(StealthLinkDeviceId, aConfig);
+
   if(aConfig->GetAttribute("VolumeEmbeddedTransformToFrame"))
   {
     this->SetVolumeEmbeddedTransformToFrame(aConfig->GetAttribute("VolumeEmbeddedTransformToFrame"));
@@ -103,7 +102,9 @@ PlusStatus vtkPlusStealthLinkCommand::ReadConfiguration(vtkXMLDataElement* aConf
     LOG_INFO("The dicom images from stealthlink will be represented in Ras coordinate system");
     this->SetVolumeEmbeddedTransformToFrame("Ras");
   }
+
   DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(KeepReceivedDicomFiles, aConfig);
+
   return PLUS_SUCCESS;
 }
 //----------------------------------------------------------------------------

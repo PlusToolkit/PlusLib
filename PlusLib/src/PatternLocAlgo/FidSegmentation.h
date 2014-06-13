@@ -56,6 +56,8 @@ class FidSegmentation
     /*! Set the Frame Size of the image */
     void SetFrameSize( int frameSize[2] );
 
+    void SetFiducialGeometry( FiducialGeometryType geometryType );
+
     /*! Update the parameters, espcially the circle need for morphological operations */
     void UpdateParameters();
 

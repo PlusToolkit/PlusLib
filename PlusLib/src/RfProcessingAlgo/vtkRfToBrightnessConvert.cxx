@@ -5,6 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
+#include "PlusXmlUtils.h"
 
 #include "vtkRfToBrightnessConvert.h"
 
@@ -314,29 +315,9 @@ void vtkRfToBrightnessConvert::PrintSelf(ostream& os, vtkIndent indent)
 PlusStatus vtkRfToBrightnessConvert::ReadConfiguration(vtkXMLDataElement* rfToBrightnessElement)
 {
   LOG_TRACE("vtkRfToBrightnessConvert::ReadConfiguration"); 
-  if ( rfToBrightnessElement == NULL )
-  {
-    LOG_DEBUG("Unable to configure vtkRfToBrightnessConvert! (XML data element is NULL)"); 
-    return PLUS_FAIL; 
-  }
-  if (STRCASECMP(rfToBrightnessElement->GetName(), "RfToBrightnessConversion") != 0)
-  {
-    LOG_ERROR("Cannot read vtkRfToBrightnessConvert configuration: RfToBrightnessConversion element is expected"); 
-    return PLUS_FAIL;
-  }  
-
-  int numberOfHilbertFilterCoeffs=0;
-  if ( rfToBrightnessElement->GetScalarAttribute("NumberOfHilbertFilterCoeffs", numberOfHilbertFilterCoeffs)) 
-  {
-    this->NumberOfHilbertFilterCoeffs=numberOfHilbertFilterCoeffs; 
-  }
-
-  double brightnessScale=0;
-  if ( rfToBrightnessElement->GetScalarAttribute("BrightnessScale", brightnessScale)) 
-  {
-    this->BrightnessScale=brightnessScale; 
-  }
-
+  DSC_VERIFY_ELEMENT(rfToBrightnessElement, "RfToBrightnessConversion");
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, NumberOfHilbertFilterCoeffs, rfToBrightnessElement);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, BrightnessScale, rfToBrightnessElement);
   return PLUS_SUCCESS;
 }
 

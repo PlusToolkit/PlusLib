@@ -42,10 +42,10 @@ public:
   void SetApproximateSpacingMmPerPixel(double value) { m_ApproximateSpacingMmPerPixel = value; };
 
   /*! Set the minimum angle allowed for a line, in degrees */
-  void SetMinThetaDeg(double angleDeg);
+  void SetMinThetaDegrees(double angleDeg);
 
   /*! Set the maximum angle allowed for a line, in degrees */
-  void SetMaxThetaDeg(double angleDeg);
+  void SetMaxThetaDegrees(double angleDeg);
 
   /*! Set the maximum distance from a point to a line when the point is tested to be a point of the line */
   void SetCollinearPointsMaxDistanceFromLineMm(double value) { m_CollinearPointsMaxDistanceFromLineMm = value; };
@@ -70,6 +70,8 @@ public:
 
   /*! Get the NWires vector, these NWires are extracted from the pattern vector */
   std::vector<NWire> GetNWires();
+
+  void SetImageToPhantomTransform(double* matrixElements);
 
   /*! Clear the member attributes when not needed anymore */
   void Clear();
@@ -109,12 +111,13 @@ protected:
   /*! Get the maximum rotation vector, this maximum rotation represents the physical limitation of the probe, 
   used for automatic parameters computation */
   double * GetImageNormalVectorInPhantomFrameMaximumRotationAngleDeg() { return m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg; };
+  void SetImageNormalVectorInPhantomFrameMaximumRotationAngleDeg(double* anglesDeg);
 
   /*! Get the image to phantom transform matrix */
   double * GetImageToPhantomTransform() { return m_ImageToPhantomTransform; };
 
 protected:
-  int          m_FrameSize[2];
+  int         m_FrameSize[2];
   double      m_ApproximateSpacingMmPerPixel;
   double      m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[6];
   double      m_ImageToPhantomTransform[16];

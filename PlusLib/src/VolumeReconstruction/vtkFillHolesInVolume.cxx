@@ -76,7 +76,6 @@ struct FillHoleThreadFunctionInfoStruct
 };
 
 //----------------------------------------------------------------------------
-
 void FillHolesInVolumeElement::setupAsDistanceWeightInverse(int size, float minRatio)
 {
   this->type = FillHolesInVolumeElement ::HFTYPE_DISTANCE_WEIGHT_INVERSE;
@@ -86,7 +85,6 @@ void FillHolesInVolumeElement::setupAsDistanceWeightInverse(int size, float minR
 }
 
 //----------------------------------------------------------------------------
-
 void FillHolesInVolumeElement::setupAsNearestNeighbor(int size, float minRatio)
 {
   this->type = FillHolesInVolumeElement ::HFTYPE_NEAREST_NEIGHBOR;
@@ -95,7 +93,6 @@ void FillHolesInVolumeElement::setupAsNearestNeighbor(int size, float minRatio)
 }
 
 //----------------------------------------------------------------------------
-
 void FillHolesInVolumeElement::setupAsGaussian(int size, float stdev, float minRatio)
 {
   this->type = FillHolesInVolumeElement ::HFTYPE_GAUSSIAN;
@@ -107,7 +104,6 @@ void FillHolesInVolumeElement::setupAsGaussian(int size, float stdev, float minR
 }
 
 //----------------------------------------------------------------------------
-
 void FillHolesInVolumeElement::setupAsGaussianAccumulation(int size, float stdev, float minRatio)
 {
   this->type = FillHolesInVolumeElement ::HFTYPE_GAUSSIAN_ACCUMULATION;
@@ -119,7 +115,6 @@ void FillHolesInVolumeElement::setupAsGaussianAccumulation(int size, float stdev
 }
 
 //----------------------------------------------------------------------------
-
 void FillHolesInVolumeElement::allocateGaussianMatrix()
 {
 
@@ -158,7 +153,6 @@ void FillHolesInVolumeElement::allocateGaussianMatrix()
 }
 
 //----------------------------------------------------------------------------
-
 void FillHolesInVolumeElement::allocateDistanceWeightInverse()
 {
 
@@ -193,7 +187,6 @@ void FillHolesInVolumeElement::allocateDistanceWeightInverse()
 }
 
 //----------------------------------------------------------------------------
-
 template <class T>
 bool FillHolesInVolumeElement::applyDistanceWeightInverse(
                         T* inputData,            // contains the dataset being interpolated between
@@ -264,7 +257,6 @@ bool FillHolesInVolumeElement::applyDistanceWeightInverse(
 }
 
 //----------------------------------------------------------------------------
-
 template <class T>
 bool FillHolesInVolumeElement::applyNearestNeighbor(
                         T* inputData,            // contains the dataset being interpolated between
@@ -331,7 +323,6 @@ bool FillHolesInVolumeElement::applyNearestNeighbor(
 }
 
 //----------------------------------------------------------------------------
-
 template <class T>
 bool FillHolesInVolumeElement::applyGaussian(
                         T* inputData,            // contains the dataset being interpolated between
@@ -402,7 +393,6 @@ bool FillHolesInVolumeElement::applyGaussian(
 }
 
 //----------------------------------------------------------------------------
-
 template <class T>
 bool FillHolesInVolumeElement::applyGaussianAccumulation(
                         T* inputData,            // contains the dataset being interpolated between
@@ -473,7 +463,6 @@ bool FillHolesInVolumeElement::applyGaussianAccumulation(
 }
 
 //----------------------------------------------------------------------------
-
 void FillHolesInVolumeElement::setupAsStick(int stickLengthLimit, int numberOfSticksToUse) {
   this->type = FillHolesInVolumeElement::HFTYPE_STICK;
   this->stickLengthLimit = stickLengthLimit;
@@ -483,7 +472,6 @@ void FillHolesInVolumeElement::setupAsStick(int stickLengthLimit, int numberOfSt
 }
 
 //----------------------------------------------------------------------------
-
 void FillHolesInVolumeElement::allocateSticks() {
   numSticksInList = 13;
   sticksList = new int[39];
@@ -512,7 +500,6 @@ void FillHolesInVolumeElement::allocateSticks() {
 }
 
 //----------------------------------------------------------------------------
-
 template <class T>
 bool FillHolesInVolumeElement::applySticks(
                         T* inputData,            // contains the dataset being interpolated between
@@ -656,7 +643,6 @@ bool FillHolesInVolumeElement::applySticks(
 }
 
 //----------------------------------------------------------------------------
-
 /*double FillHolesInVolumeElement::computeAngle(int* vec1, int* vec2) {
 
   int v1[3];
@@ -750,6 +736,7 @@ int vtkFillHolesInVolume::RequestUpdateExtent (vtkInformation* vtkNotUsed(reques
 
   return 1;
 }
+
 //----------------------------------------------------------------------------
 template <class T>
 void vtkFillHolesInVolume::vtkFillHolesInVolumeExecute(vtkImageData *inVolData,
@@ -922,6 +909,7 @@ void vtkFillHolesInVolume::SetHFElement(int index, FillHolesInVolumeElement& ele
   }
 }
 
+//--------------------------------------------------------------------------------------
 void vtkFillHolesInVolume::AllocateHFElements() {
   if (HFElements != NULL) {
     delete[] HFElements;
@@ -930,17 +918,169 @@ void vtkFillHolesInVolume::AllocateHFElements() {
   HFElements = new FillHolesInVolumeElement[NumHFElements];
 }
 
+//--------------------------------------------------------------------------------------
 void vtkFillHolesInVolume::SetNumHFElements(int n) {
   NumHFElements = n;
 }
-//--------------------------------------------------------------------------------------
 
+//--------------------------------------------------------------------------------------
 void vtkFillHolesInVolume::SetReconstructedVolume(vtkImageData *reconstructedVolume)
 {
   SetInputData_vtk5compatible(INPUT_PORT_RECONSTRUCTED_VOLUME, reconstructedVolume);
 }
 
+//--------------------------------------------------------------------------------------
 void vtkFillHolesInVolume::SetAccumulationBuffer(vtkImageData *accumulationBuffer)
 {
   SetInputData_vtk5compatible(INPUT_PORT_ACCUMULATION_BUFFER, accumulationBuffer);
+}
+
+//--------------------------------------------------------------------------------------
+PlusStatus vtkFillHolesInVolume::ReadConfiguration( vtkXMLDataElement* holeFillingConfig)
+{
+  // find the number of kernels
+  int numHFElements(0);
+  for ( int nestedElementIndex = 0; nestedElementIndex < holeFillingConfig->GetNumberOfNestedElements(); ++nestedElementIndex )
+  {
+    vtkXMLDataElement* nestedElement = holeFillingConfig->GetNestedElement(nestedElementIndex);
+    if ( STRCASECMP(nestedElement->GetName(), "HoleFillingElement" ) != 0 )
+    {
+      // Not a kernel element, skip it
+      continue; 
+    }
+    numHFElements++;
+  } 
+
+  // read each kernel into memory
+  this->SetNumHFElements(numHFElements);
+  this->AllocateHFElements();
+  int numberOfErrors(0);
+  int currentElementIndex(0);
+
+  for ( int nestedElementIndex = 0; nestedElementIndex < holeFillingConfig->GetNumberOfNestedElements(); ++nestedElementIndex )
+  {
+    vtkXMLDataElement* nestedElement = holeFillingConfig->GetNestedElement(nestedElementIndex);
+    if ( STRCASECMP(nestedElement->GetName(), "HoleFillingElement" ) != 0 )
+    {
+      // Not a hole filling element, skip it
+      continue; 
+    }
+
+    FillHolesInVolumeElement tempElement;
+
+    if (nestedElement->GetAttribute("Type"))
+    {
+      if (STRCASECMP(nestedElement->GetAttribute("Type"), "GAUSSIAN") == 0)
+      {
+        tempElement.type = FillHolesInVolumeElement::HFTYPE_GAUSSIAN;
+      }
+      else if (STRCASECMP(nestedElement->GetAttribute("Type"), "GAUSSIAN_ACCUMULATION") == 0)
+      {
+        tempElement.type = FillHolesInVolumeElement::HFTYPE_GAUSSIAN_ACCUMULATION;
+      }
+      else if (STRCASECMP(nestedElement->GetAttribute("Type"), "STICK") == 0)
+      {
+        tempElement.type = FillHolesInVolumeElement::HFTYPE_STICK;
+      }
+      else if (STRCASECMP(nestedElement->GetAttribute("Type"), "NEAREST_NEIGHBOR") == 0)
+      {
+        tempElement.type = FillHolesInVolumeElement::HFTYPE_NEAREST_NEIGHBOR;
+      }
+      else if (STRCASECMP(nestedElement->GetAttribute("Type"), "DISTANCE_WEIGHT_INVERSE") == 0)
+      {
+        tempElement.type = FillHolesInVolumeElement::HFTYPE_DISTANCE_WEIGHT_INVERSE;
+      }
+      else
+      {
+        LOG_ERROR("Unknown hole filling element option: "<<nestedElement->GetAttribute("Type")<<". Valid options: GAUSSIAN, STICK.");
+      }
+    }
+    else
+    {
+      LOG_ERROR("Couldn't identify the hole filling element \"Type\"! Valid options: GAUSSIAN, STICK.");
+      return PLUS_FAIL;
+    }
+
+    int size=0; 
+    float stdev=0; 
+    float minRatio = 0.; 
+    int stickLengthLimit = 0;
+    int numberOfSticksToUse = 1;
+
+    switch (tempElement.type)
+    {
+    case FillHolesInVolumeElement::HFTYPE_GAUSSIAN:
+    case FillHolesInVolumeElement::HFTYPE_GAUSSIAN_ACCUMULATION:
+      // read stdev
+      if ( nestedElement->GetScalarAttribute("Stdev", stdev) )
+      {
+        tempElement.stdev = stdev;
+      }
+      else
+      {
+        LOG_ERROR("Unable to find \"Stdev\" attribute of kernel[" << nestedElementIndex <<"]"); 
+        numberOfErrors++; 
+        continue; 
+      }
+      // note that at this point, GAUSSIAN and GAUSSIAN_ACCUMULATION will also read what is below (there is no break). This is intended.
+    case FillHolesInVolumeElement::HFTYPE_DISTANCE_WEIGHT_INVERSE:
+    case FillHolesInVolumeElement::HFTYPE_NEAREST_NEIGHBOR:
+      // read size
+      if ( nestedElement->GetScalarAttribute("Size", size) )
+      {
+        tempElement.size = size;
+      }
+      else
+      {
+        LOG_ERROR("Unable to find \"Size\" attribute of kernel[" << nestedElementIndex <<"]"); 
+        numberOfErrors++; 
+        continue; 
+      }
+      // read minRatio
+      if ( nestedElement->GetScalarAttribute("MinimumKnownVoxelsRatio", minRatio) )
+      {
+        tempElement.minRatio = minRatio; 
+      }
+      else
+      {
+        LOG_ERROR("Unable to find \"MinimumKnownVoxelsRatio\" attribute of kernel[" << nestedElementIndex <<"]"); 
+        numberOfErrors++; 
+        continue; 
+      }
+      break;
+    case FillHolesInVolumeElement::HFTYPE_STICK:
+      // read stick
+      if ( nestedElement->GetScalarAttribute("StickLengthLimit", stickLengthLimit) )
+      {
+        tempElement.stickLengthLimit = stickLengthLimit; 
+      }
+      else
+      {
+        LOG_ERROR("Unable to find \"StickLengthLimit\" attribute of hole filling element[" << nestedElementIndex <<"]"); 
+        numberOfErrors++; 
+        continue; 
+      }
+      if ( nestedElement->GetScalarAttribute("NumberOfSticksToUse", numberOfSticksToUse) )
+      {
+        tempElement.numSticksToUse = numberOfSticksToUse; 
+      }
+      else
+      {
+        LOG_ERROR("Unable to find \"NumberOfSticksToUse\" attribute of hole filling element[" << nestedElementIndex <<"]"); 
+        numberOfErrors++; 
+        continue; 
+      }
+      break;
+    }
+
+    this->SetHFElement(currentElementIndex,tempElement);
+    currentElementIndex++;
+  }
+
+  if (numberOfErrors != 0)
+  {
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
 }

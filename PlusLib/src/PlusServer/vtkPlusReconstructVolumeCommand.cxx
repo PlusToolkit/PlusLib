@@ -138,21 +138,9 @@ PlusStatus vtkPlusReconstructVolumeCommand::ReadConfiguration(vtkXMLDataElement*
 
   // output volume parameters
   // origin and spacing is defined in the reference coordinate system
-  double outputSpacing[3]={UNDEFINED_VALUE,UNDEFINED_VALUE,UNDEFINED_VALUE};
-  if (aConfig->GetVectorAttribute("OutputSpacing", 3, outputSpacing))
-  {
-    SetOutputSpacing(outputSpacing);
-  }
-  double outputOrigin[3]={UNDEFINED_VALUE,UNDEFINED_VALUE,UNDEFINED_VALUE};
-  if (aConfig->GetVectorAttribute("OutputOrigin", 3, outputOrigin))
-  {
-    SetOutputOrigin(outputOrigin);
-  }
-  int outputExtent[6]={0,-1,0,-1,0,-1};
-  if (aConfig->GetVectorAttribute("OutputExtent", 6, outputExtent))
-  {
-    SetOutputExtent(outputExtent);
-  }
+  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, OutputSpacing, aConfig);
+  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, OutputOrigin, aConfig);
+  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 6, OutputExtent, aConfig);
 
   return PLUS_SUCCESS;
 }

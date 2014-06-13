@@ -50,6 +50,12 @@ public:
   vtkSetMacro(ImageType, US_IMAGE_TYPE);
   vtkGetMacro(ImageType, US_IMAGE_TYPE);
 
+  vtkSetMacro(NumberOfHilbertFilterCoeffs, int);
+  vtkGetMacro(NumberOfHilbertFilterCoeffs, int);
+
+  vtkSetMacro(BrightnessScale, double);
+  vtkGetMacro(BrightnessScale, double);
+
 protected:
   vtkRfToBrightnessConvert();
   ~vtkRfToBrightnessConvert();

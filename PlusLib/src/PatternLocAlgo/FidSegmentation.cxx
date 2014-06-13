@@ -4,6 +4,9 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
+#include "PlusConfigure.h"
+#include "PlusXmlUtils.h"
+
 #include "FidSegmentation.h"
 #include "vtkMath.h"
 
@@ -32,7 +35,7 @@ FidSegmentation::FidSegmentation() :
     m_ApproximateSpacingMmPerPixel(-1.0), 
     m_FiducialGeometry(CALIBRATION_PHANTOM_6_POINT),
     m_UseOriginalImageIntensityForDotIntensityScore(false),
-    m_NumberOfMaximumFiducialPointCandidates(20)
+    m_NumberOfMaximumFiducialPointCandidates(DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDATES)
 {
   //Initialization of member variables
   m_FrameSize[0] = -1;
@@ -115,84 +118,16 @@ void FidSegmentation::UpdateParameters()
 
 PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
 {
-  LOG_TRACE("FidSegmentation::ReadConfiguration");
+  LOG_TRACE("FidSegmentation::ReadConfiguration");  
 
-  if ( configData == NULL) 
-  {
-    LOG_WARNING("Unable to read the configData XML data element!"); 
-    return PLUS_FAIL; 
-  }
+  DSC_FIND_NESTED_ELEMENT_REQUIRED(phantomDefinition, configData, "PhantomDefinition");
+  DSC_FIND_NESTED_ELEMENT_REQUIRED(description, phantomDefinition, "Description");
+  DSC_READ_ENUM2_ATTRIBUTE_OPTIONAL(FiducialGeometry, description, "Double-N", CALIBRATION_PHANTOM_6_POINT, "CIRS", CIRS_PHANTOM_13_POINT);
 
-  vtkXMLDataElement* segmentationParameters = configData->FindNestedElementWithName("Segmentation");
-  if (segmentationParameters == NULL)
-  {
-    LOG_ERROR("Cannot find Segmentation element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* phantomDefinition = configData->FindNestedElementWithName("PhantomDefinition");
-  if (phantomDefinition == NULL)
-  {
-    LOG_ERROR("No phantom definition is found in the XML tree!");
-    return PLUS_FAIL;
-  }
-
-  // Load type
-  vtkXMLDataElement* description = phantomDefinition->FindNestedElementWithName("Description"); 
-  if (description == NULL) 
-  {
-    LOG_ERROR("Phantom description not found!");
-    return PLUS_FAIL;
-  } 
-  else 
-  {
-    const char* type =  description->GetAttribute("Type"); 
-    if ( type != NULL ) 
-    {
-      if (STRCASECMP("Double-N", type) == 0) 
-      {
-        m_FiducialGeometry = CALIBRATION_PHANTOM_6_POINT;
-      } 
-      else if(STRCASECMP("CIRS", type) == 0) 
-      {
-        m_FiducialGeometry = CIRS_PHANTOM_13_POINT;
-      } 
-    } 
-    else 
-    {
-      LOG_ERROR("Phantom type not found!");
-    }
-  }
-
-  double approximateSpacingMmPerPixel(0.0); 
-  if ( segmentationParameters->GetScalarAttribute("ApproximateSpacingMmPerPixel", approximateSpacingMmPerPixel) )
-  {
-    m_ApproximateSpacingMmPerPixel = approximateSpacingMmPerPixel; 
-  }
-  else
-  {
-    LOG_WARNING("Could not read ApproximateSpacingMmPerPixel from configuration file.");
-  }
-
-  double morphologicalOpeningCircleRadiusMm(0.0); 
-  if ( segmentationParameters->GetScalarAttribute("MorphologicalOpeningCircleRadiusMm", morphologicalOpeningCircleRadiusMm) )
-  {
-    m_MorphologicalOpeningCircleRadiusMm = morphologicalOpeningCircleRadiusMm; 
-  }
-  else
-  {
-    LOG_WARNING("Could not read morphologicalOpeningCircleRadiusMm from configuration file.");
-  }
-
-  double morphologicalOpeningBarSizeMm(0.0); 
-  if ( segmentationParameters->GetScalarAttribute("MorphologicalOpeningBarSizeMm", morphologicalOpeningBarSizeMm) )
-  {
-    m_MorphologicalOpeningBarSizeMm = morphologicalOpeningBarSizeMm; 
-  }
-  else
-  {
-    LOG_WARNING("Could not read morphologicalOpeningBarSizeMm from configuration file.");
-  }
+  DSC_FIND_NESTED_ELEMENT_REQUIRED(segmentationParameters, configData, "Segmentation");
+  DSC_READ_SCALAR_ATTRIBUTE_WARNING(double, ApproximateSpacingMmPerPixel, segmentationParameters);
+  DSC_READ_SCALAR_ATTRIBUTE_WARNING(double, MorphologicalOpeningCircleRadiusMm, segmentationParameters);
+  DSC_READ_SCALAR_ATTRIBUTE_WARNING(double, MorphologicalOpeningBarSizeMm, segmentationParameters);
 
   // Segmentation search region Y direction
   int clipOrigin[2] = {0};
@@ -210,24 +145,17 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
     LOG_INFO("Cannot find ClipRectangleOrigin or ClipRectangleSize attribute in the SegmentationParameters configuration file; Using the largest ROI possible.");
   }
 
-  double thresholdImagePercent(0.0); 
-  if ( segmentationParameters->GetScalarAttribute("ThresholdImagePercent", thresholdImagePercent) )
-  {
-    m_ThresholdImagePercent = thresholdImagePercent; 
-  }
-  else
-  {
-    LOG_WARNING("Cannot find ThresholdImagePercent attribute in the SegmentationParameters configuration file.");
-  }
+  DSC_READ_SCALAR_ATTRIBUTE_WARNING(double, ThresholdImagePercent, segmentationParameters);
 
-  int useOriginalImageIntensityForDotIntensityScore(0); 
-  if ( segmentationParameters->GetScalarAttribute("UseOriginalImageIntensityForDotIntensityScore", useOriginalImageIntensityForDotIntensityScore) )
+  int intUseOriginalImageIntensityForDotIntensityScore=0;
+  if (segmentationParameters->GetScalarAttribute("UseOriginalImageIntensityForDotIntensityScore", intUseOriginalImageIntensityForDotIntensityScore))
   {
-    m_UseOriginalImageIntensityForDotIntensityScore = (useOriginalImageIntensityForDotIntensityScore?true:false); 
+    LOG_WARNING("UseOriginalImageIntensityForDotIntensityScore attribute expected to have 'TRUE' or 'FALSE' value. Numerical values ('1' or '0') are deprecated.");
+    SetUseOriginalImageIntensityForDotIntensityScore(intUseOriginalImageIntensityForDotIntensityScore!=0);
   }
   else
   {
-    LOG_WARNING("Cannot find UseOriginalImageIntensityForDotIntensityScore attribute in the SegmentationParameters configuration file.");
+    DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(UseOriginalImageIntensityForDotIntensityScore, segmentationParameters);
   }
 
 
@@ -236,7 +164,7 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
   if(segmentationParameters->GetScalarAttribute("ComputeSegmentationParametersFromPhantomDefinition", computeSegmentationParametersFromPhantomDefinition)
     && computeSegmentationParametersFromPhantomDefinition!=0 )
   {
-    double* imageScalingTolerancePercent = new double[4];
+    double imageScalingTolerancePercent[4]={0};
     if ( segmentationParameters->GetVectorAttribute("ImageScalingTolerancePercent", 4, imageScalingTolerancePercent) )
     {
       for( int i = 0; i<4 ; i++)
@@ -248,9 +176,8 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
     {
       LOG_WARNING("Could not read imageScalingTolerancePercent from configuration file.");
     }
-    delete [] imageScalingTolerancePercent;
 
-    double* imageNormalVectorInPhantomFrameEstimation = new double[3];
+    double imageNormalVectorInPhantomFrameEstimation[3]={0};
     if ( segmentationParameters->GetVectorAttribute("ImageNormalVectorInPhantomFrameEstimation", 3, imageNormalVectorInPhantomFrameEstimation) )
     {
       m_ImageNormalVectorInPhantomFrameEstimation[0] = imageNormalVectorInPhantomFrameEstimation[0];
@@ -261,15 +188,9 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
     {
       LOG_WARNING("Could not read imageNormalVectorInPhantomFrameEstimation from configuration file.");
     }
-    delete [] imageNormalVectorInPhantomFrameEstimation;
   }
 
-  int maxCandidates(DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDATES); 
-  if ( !segmentationParameters->GetScalarAttribute("NumberOfMaximumFiducialPointCandidates", maxCandidates) )
-  {
-    LOG_INFO("Could not read NumberOfMaximumFiducialPointCandidates from segmentation tag. Default of " << DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDATES << " selected.");
-  }
-  m_NumberOfMaximumFiducialPointCandidates = maxCandidates;
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, NumberOfMaximumFiducialPointCandidates, segmentationParameters);
 
   UpdateParameters();
 
@@ -1563,8 +1484,13 @@ void FidSegmentation::ValidateRegionOfInterest()
 }
 
 //-----------------------------------------------------------------------------
-
 void FidSegmentation::SetNumberOfMaximumFiducialPointCandidates( int aValue )
 {
   m_NumberOfMaximumFiducialPointCandidates = aValue;
+}
+
+//-----------------------------------------------------------------------------
+void FidSegmentation::SetFiducialGeometry( FiducialGeometryType geometryType )
+{
+  m_FiducialGeometry = geometryType;
 }

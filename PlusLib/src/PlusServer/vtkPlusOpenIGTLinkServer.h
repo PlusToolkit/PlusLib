@@ -68,6 +68,15 @@ public:
   
   vtkGetStringMacro(OutputChannelId);
 
+  vtkSetMacro(MissingInputGracePeriodSec, double);
+  vtkGetMacro(MissingInputGracePeriodSec, double);
+
+  vtkSetMacro(MaxTimeSpentWithProcessingMs, double);
+  vtkGetMacro(MaxTimeSpentWithProcessingMs, double);
+
+  vtkSetMacro(SendValidTransformsOnly, bool); 
+  vtkGetMacro(SendValidTransformsOnly, bool); 
+
   /*! Set data collector instance */
   virtual void SetDataCollector(vtkDataCollector* dataCollector); 
   virtual vtkDataCollector* GetDataCollector();
@@ -116,9 +125,12 @@ protected:
   virtual PlusStatus KeepAlive(); 
 
   /*! Set IGTL CRC check flag (0: disabled, 1: enabled) */ 
-  vtkSetMacro(IgtlMessageCrcCheckEnabled, int); 
+  vtkSetMacro(IgtlMessageCrcCheckEnabled, bool); 
   /*! Get IGTL CRC check flag (0: disabled, 1: enabled) */ 
-  vtkGetMacro(IgtlMessageCrcCheckEnabled, int); 
+  vtkGetMacro(IgtlMessageCrcCheckEnabled, bool); 
+
+  vtkSetMacro(MaxNumberOfIgtlMessagesToSend, int); 
+  vtkGetMacro(MaxNumberOfIgtlMessagesToSend, int); 
 
   /*! 
     Execute a remotely invocated string command
@@ -210,8 +222,8 @@ private:
   */
   std::vector<PlusIgtlClientInfo::ImageStream> DefaultImageStreams; 
 
-  /*! Flag for IGTL CRC check (0: disabled, 1: enabled) */ 
-  int IgtlMessageCrcCheckEnabled; 
+  /*! Flag for IGTL CRC check */ 
+  bool IgtlMessageCrcCheckEnabled; 
 
   /*! Factory to generate commands that are invoked remotely */ 
   vtkSmartPointer<vtkPlusCommandProcessor> PlusCommandProcessor;

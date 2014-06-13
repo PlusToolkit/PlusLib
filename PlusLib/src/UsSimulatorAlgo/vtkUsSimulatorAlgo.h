@@ -53,10 +53,10 @@ public:
   /*! Get reference frame name */
   vtkGetStringMacro(ReferenceCoordinateFrame);
 
-   /*! Set US frequency*/
-  vtkSetMacro(ImagingFrequencyMhz, double); 
-  /*! Get US frequency */
-  vtkGetMacro(ImagingFrequencyMhz, double);
+   /*! Set US imaging frequency*/
+  vtkSetMacro(FrequencyMhz, double); 
+  /*! Get US imaging frequency */
+  vtkGetMacro(FrequencyMhz, double);
 
   /*! Set max intensity in mW/cm2 */
   vtkSetMacro(IncomingIntensityMwPerCm2, double); 
@@ -85,6 +85,10 @@ public:
   vtkSetMacro(NumberOfSamplesPerScanline, int); 
 
   PlusStatus GetFrameSize(int frameSize[2]);
+
+  vtkSetMacro(NoiseAmplitude, double);
+  vtkSetVector3Macro(NoiseFrequency, double);
+  vtkSetVector3Macro(NoisePhase, double);
 
 protected:
   virtual int FillOutputPortInformation(int port, vtkInformation* info);
@@ -118,7 +122,7 @@ private:
   vtkRfProcessor *RfProcessor;
 
   /*! Frequency of the ultrasound image to be generated*/
-  double ImagingFrequencyMhz; 
+  double FrequencyMhz; 
 
   /*! A non-linear function is used for mapping intensities to pixel values: pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma */
   double BrightnessConversionGamma;

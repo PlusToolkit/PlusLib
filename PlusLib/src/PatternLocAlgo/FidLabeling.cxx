@@ -4,6 +4,9 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+#include "PlusConfigure.h"
+#include "PlusXmlUtils.h"
+
 #include "FidLabeling.h"
 
 #include "float.h"
@@ -127,28 +130,10 @@ PlusStatus FidLabeling::ReadConfiguration( vtkXMLDataElement* configData, double
 {
   LOG_TRACE("FidLabeling::ReadConfiguration");
 
-  if ( configData == NULL) 
-  {
-    LOG_WARNING("Unable to read the SegmentationParameters XML data element!"); 
-    return PLUS_FAIL; 
-  }
+  DSC_FIND_NESTED_ELEMENT_REQUIRED(segmentationParameters, configData, "Segmentation");
 
-  vtkXMLDataElement* segmentationParameters = configData->FindNestedElementWithName("Segmentation");
-  if (segmentationParameters == NULL)
-  {
-    LOG_ERROR("Cannot find Segmentation element in XML tree!");
-    return PLUS_FAIL;
-  }
+  DSC_READ_SCALAR_ATTRIBUTE_WARNING(double, ApproximateSpacingMmPerPixel, segmentationParameters);
 
-  double approximateSpacingMmPerPixel(0.0); 
-  if ( segmentationParameters->GetScalarAttribute("ApproximateSpacingMmPerPixel", approximateSpacingMmPerPixel) )
-  {
-    m_ApproximateSpacingMmPerPixel = approximateSpacingMmPerPixel; 
-  }
-  else
-  {
-    LOG_WARNING("Could not read ApproximateSpacingMmPerPixel from configuration file.");
-  }
 
   //if the tolerance parameters are computed automatically
   int computeSegmentationParametersFromPhantomDefinition(0);
@@ -158,55 +143,12 @@ PlusStatus FidLabeling::ReadConfiguration( vtkXMLDataElement* configData, double
     LOG_WARNING("Automatic computation of the MaxLinePairDistanceErrorPercent and MaxAngleDifferenceDegrees parameters are not yet supported, use the values that are in the config file");
   }
 
-  double maxLinePairDistanceErrorPercent(0.0); 
-  if ( segmentationParameters->GetScalarAttribute("MaxLinePairDistanceErrorPercent", maxLinePairDistanceErrorPercent) )
-  {
-    m_MaxLinePairDistanceErrorPercent = maxLinePairDistanceErrorPercent; 
-  }
-  else
-  {
-    LOG_WARNING("Could not read maxLinePairDistanceErrorPercent from configuration file.");
-  }
+  DSC_READ_SCALAR_ATTRIBUTE_WARNING(double, MaxLinePairDistanceErrorPercent, segmentationParameters);
+  DSC_READ_SCALAR_ATTRIBUTE_WARNING(double, MaxAngleDifferenceDegrees, segmentationParameters);
+  DSC_READ_SCALAR_ATTRIBUTE_WARNING(double, AngleToleranceDegrees, segmentationParameters);
+  DSC_READ_SCALAR_ATTRIBUTE_WARNING(double, MaxLineShiftMm, segmentationParameters);
 
-  double maxAngleDifferenceDegrees(0.0); 
-  if ( segmentationParameters->GetScalarAttribute("MaxAngleDifferenceDegrees", maxAngleDifferenceDegrees) )
-  {
-    m_MaxAngleDiff = vtkMath::RadiansFromDegrees(maxAngleDifferenceDegrees); 
-  }
-  else
-  {
-    LOG_WARNING("Could not read maxAngleDifferenceDegrees from configuration file.");
-  }
-
-  double angleToleranceDegrees(0.0); 
-  if ( segmentationParameters->GetScalarAttribute("AngleToleranceDegrees", angleToleranceDegrees) )
-  {
-    m_AngleToleranceRad = vtkMath::RadiansFromDegrees(angleToleranceDegrees); 
-  }
-  else
-  {
-    LOG_WARNING("Could not read AngleToleranceDegrees from configuration file.");
-  }
-
-  double maxLineShiftMm(10.0);
-  if( segmentationParameters->GetScalarAttribute("MaxLineShiftMm", maxLineShiftMm) )
-  {
-    m_MaxLineShiftMm = maxLineShiftMm;
-  }
-  else
-  {
-    LOG_WARNING("Could not read MaxLineShiftMm from configuration file.");
-  }
-
-  double inclinedLineAngleDegrees(0.0); 
-  if ( segmentationParameters->GetScalarAttribute("InclinedLineAngleDegrees", inclinedLineAngleDegrees) )
-  {
-    m_InclinedLineAngleRad = vtkMath::RadiansFromDegrees(inclinedLineAngleDegrees); 
-  }
-  else
-  {
-    LOG_DEBUG("Could not read InclinedLineAngleDegrees from configuration file.");
-  }
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, InclinedLineAngleDegrees, segmentationParameters); // only for CIRS
 
   UpdateParameters();
 
@@ -786,21 +728,32 @@ void FidLabeling::SetMinThetaDeg(double value)
   m_MinThetaRad = vtkMath::RadiansFromDegrees(value); 
 }
 
+//-----------------------------------------------------------------------------
 void FidLabeling::SetMaxThetaDeg(double value) 
 { 
   m_MaxThetaRad = vtkMath::RadiansFromDegrees(value); 
 }
 
 //-----------------------------------------------------------------------------
-
 void FidLabeling::SetMaxLineShiftMm( double aValue )
 {
   m_MaxLineShiftMm = aValue;
 }
 
 //-----------------------------------------------------------------------------
-
 double FidLabeling::GetMaxLineShiftMm()
 {
   return m_MaxLineShiftMm;
+}
+
+//-----------------------------------------------------------------------------
+void FidLabeling::SetAngleToleranceDegrees(double angleToleranceDegrees)
+{
+  m_AngleToleranceRad = vtkMath::RadiansFromDegrees(angleToleranceDegrees); 
+}
+
+//-----------------------------------------------------------------------------
+void FidLabeling::SetInclinedLineAngleDegrees(double inclinedLineAngleDegrees)
+{
+  m_InclinedLineAngleRad = vtkMath::RadiansFromDegrees(inclinedLineAngleDegrees); 
 }

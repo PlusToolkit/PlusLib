@@ -5,6 +5,7 @@
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
+#include "PlusXmlUtils.h"
 
 #include "vtkVolumeReconstructor.h"
 
@@ -39,7 +40,7 @@ vtkVolumeReconstructor::vtkVolumeReconstructor()
   this->ReconstructedVolume = vtkSmartPointer<vtkImageData>::New();
   this->Reconstructor = vtkPasteSliceIntoVolume::New();  
   this->HoleFiller = vtkFillHolesInVolume::New();  
-  this->FillHoles = 0;
+  this->FillHoles = false;
   this->SkipInterval = 1;
   this->ReconstructedVolumeUpdatedTime = 0;
 }
@@ -71,326 +72,55 @@ void vtkVolumeReconstructor::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
 {
-  if (config==NULL)
-  {
-    LOG_ERROR("vtkVolumeReconstructor::ReadConfiguration failed: config root element is NULL");
-    return PLUS_FAIL;
-  }
-  vtkXMLDataElement* reconConfig = config->FindNestedElementWithName("VolumeReconstruction");
-  if (reconConfig == NULL)
-  {
-    LOG_ERROR("vtkVolumeReconstructor::ReadConfiguration failed: No volume reconstruction is found in the XML tree!");
-    return PLUS_FAIL;
-  }
+  DSC_FIND_NESTED_ELEMENT_REQUIRED(reconConfig, config, "VolumeReconstruction");
 
-  // Reference coordinate system: where the volume will be reconstructed in
-  const char* referenceCoordinateFrame=reconConfig->GetAttribute("ReferenceCoordinateFrame");
-  if (referenceCoordinateFrame!=NULL)
-  {
-    SetReferenceCoordinateFrame(referenceCoordinateFrame);
-  }
-  // Image coordinate system: name of the 2D image frame coordinate system
-  const char* imageCoordinateFrame=reconConfig->GetAttribute("ImageCoordinateFrame");
-  if (imageCoordinateFrame!=NULL)
-  {
-    SetImageCoordinateFrame(imageCoordinateFrame);
-  }
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(ReferenceCoordinateFrame, reconConfig);
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(ImageCoordinateFrame, reconConfig);
 
-  // output volume parameters
-  // origin and spacing is defined in the reference coordinate system
-  double outputSpacing[3]={0,0,0};
-  if (reconConfig->GetVectorAttribute("OutputSpacing", 3, outputSpacing))
-  {
-    this->Reconstructor->SetOutputSpacing(outputSpacing);
-  }
-  else
-  {
-    LOG_ERROR("OutputSpacing parameter is not found!");
-    return PLUS_FAIL;
-  }
-  double outputOrigin[3]={0,0,0};
-  if (reconConfig->GetVectorAttribute("OutputOrigin", 3, outputOrigin))
-  {
-    this->Reconstructor->SetOutputOrigin(outputOrigin);
-  }
-  int outputExtent[6]={0,0,0,0,0,0};
-  if (reconConfig->GetVectorAttribute("OutputExtent", 6, outputExtent))
-  {
-    this->Reconstructor->SetOutputExtent(outputExtent);
-  }
+  DSC_READ_VECTOR_ATTRIBUTE_REQUIRED(double, 3, OutputSpacing, reconConfig);
+  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, OutputOrigin, reconConfig);
+  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 6, OutputExtent, reconConfig);
 
-  // clipping parameters
-  int clipRectangleOrigin[2]={0,0};
-  if (reconConfig->GetVectorAttribute("ClipRectangleOrigin", 2, clipRectangleOrigin))
-  {
-    this->Reconstructor->SetClipRectangleOrigin(clipRectangleOrigin);
-  }
-  int clipRectangleSize[2]={0,0};
-  if (reconConfig->GetVectorAttribute("ClipRectangleSize", 2, clipRectangleSize))
-  {
-    this->Reconstructor->SetClipRectangleSize(clipRectangleSize);
-  }
+  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleOrigin, reconConfig);
+  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleSize, reconConfig);
 
-  // fan parameters
-  double fanAngles[2]={0,0};
-  if (reconConfig->GetVectorAttribute("FanAngles", 2, fanAngles))
-  {
-    this->Reconstructor->SetFanAngles(fanAngles);
-  }
-  double fanOrigin[2]={0,0};
-  if (reconConfig->GetVectorAttribute("FanOrigin", 2, fanOrigin))
-  {
-    this->Reconstructor->SetFanOrigin(fanOrigin);
-  }
-  double fanDepth=0;
-  if (reconConfig->GetScalarAttribute("FanDepth", fanDepth))
-  {
-    this->Reconstructor->SetFanDepth(fanDepth);
-  }
+  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 2, FanAngles, reconConfig);
+  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 2, FanOrigin, reconConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FanDepth, reconConfig);
 
-  if (reconConfig->GetScalarAttribute("SkipInterval",SkipInterval))
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, SkipInterval, reconConfig);
+  if (this->SkipInterval < 1)
   {
-    if (SkipInterval < 1)
-    {
-      LOG_WARNING("SkipInterval in the config file must be greater or equal to 1. Resetting to 1");
-      SkipInterval = 1;
-    }
+    LOG_WARNING("SkipInterval in the config file must be greater or equal to 1. Resetting to 1");
+    SkipInterval = 1;
   }
 
   // reconstruction options
-  if (reconConfig->GetAttribute("Interpolation"))
-  {
-    if (STRCASECMP(reconConfig->GetAttribute("Interpolation"),
-      this->Reconstructor->GetInterpolationModeAsString(vtkPasteSliceIntoVolume::LINEAR_INTERPOLATION)) == 0)
-    {
-      this->Reconstructor->SetInterpolationMode(vtkPasteSliceIntoVolume::LINEAR_INTERPOLATION);
-    }
-    else if (STRCASECMP(reconConfig->GetAttribute("Interpolation"), 
-      this->Reconstructor->GetInterpolationModeAsString(vtkPasteSliceIntoVolume::NEAREST_NEIGHBOR_INTERPOLATION)) == 0)
-    {
-      this->Reconstructor->SetInterpolationMode(vtkPasteSliceIntoVolume::NEAREST_NEIGHBOR_INTERPOLATION);
-    }
-    else
-    {
-      LOG_ERROR("Unknown interpolation option: "<<reconConfig->GetAttribute("Interpolation")<<". Valid options: LINEAR, NEAREST_NEIGHBOR.");
-    }
-  }
-  if (reconConfig->GetAttribute("Calculation"))
-  {
-    if (STRCASECMP(reconConfig->GetAttribute("Calculation"),
-      this->Reconstructor->GetCalculationModeAsString(vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE)) == 0)
-    {
-      this->Reconstructor->SetCalculationMode(vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE);
-    }
-    else if (STRCASECMP(reconConfig->GetAttribute("Calculation"), 
-      this->Reconstructor->GetCalculationModeAsString(vtkPasteSliceIntoVolume::MAXIMUM)) == 0)
-    {
-      this->Reconstructor->SetCalculationMode(vtkPasteSliceIntoVolume::MAXIMUM);
-    }
-    else
-    {
-      LOG_ERROR("Unknown calculation option: "<<reconConfig->GetAttribute("Calculation")<<". Valid options: WEIGHTED_AVERAGE, MAXIMUM.");
-    }
-  }
-  if (reconConfig->GetAttribute("Optimization"))
-  {
-    if (STRCASECMP(reconConfig->GetAttribute("Optimization"), 
-      this->Reconstructor->GetOptimizationModeAsString(vtkPasteSliceIntoVolume::FULL_OPTIMIZATION)) == 0)
-    {
-      this->Reconstructor->SetOptimization(vtkPasteSliceIntoVolume::FULL_OPTIMIZATION);
-    }
-    else if (STRCASECMP(reconConfig->GetAttribute("Optimization"), 
-      this->Reconstructor->GetOptimizationModeAsString(vtkPasteSliceIntoVolume::PARTIAL_OPTIMIZATION)) == 0)
-    {
-      this->Reconstructor->SetOptimization(vtkPasteSliceIntoVolume::PARTIAL_OPTIMIZATION);
-    }
-    else if (STRCASECMP(reconConfig->GetAttribute("Optimization"), 
-      this->Reconstructor->GetOptimizationModeAsString(vtkPasteSliceIntoVolume::NO_OPTIMIZATION)) == 0)
-    {
-      this->Reconstructor->SetOptimization(vtkPasteSliceIntoVolume::NO_OPTIMIZATION);
-    }
-    else
-    {
-      LOG_ERROR("Unknown optimization option: "<<reconConfig->GetAttribute("Optimization")<<". Valid options: FULL, PARTIAL, NONE.");
-    }
-  }
-  if (reconConfig->GetAttribute("Compounding"))
-  {
-    ((STRCASECMP(reconConfig->GetAttribute("Compounding"), "On") == 0) ? 
-      this->Reconstructor->SetCompounding(1) : this->Reconstructor->SetCompounding(0));
-  }
+  DSC_READ_ENUM2_ATTRIBUTE_OPTIONAL(Interpolation, reconConfig, \
+    this->Reconstructor->GetInterpolationModeAsString(vtkPasteSliceIntoVolume::LINEAR_INTERPOLATION), vtkPasteSliceIntoVolume::LINEAR_INTERPOLATION, \
+    this->Reconstructor->GetInterpolationModeAsString(vtkPasteSliceIntoVolume::NEAREST_NEIGHBOR_INTERPOLATION), vtkPasteSliceIntoVolume::NEAREST_NEIGHBOR_INTERPOLATION);
 
-  int numberOfThreads=0;
-  if (reconConfig->GetScalarAttribute("NumberOfThreads", numberOfThreads))
-  {
-    this->Reconstructor->SetNumberOfThreads(numberOfThreads);
-    this->HoleFiller->SetNumberOfThreads(numberOfThreads);
-  }
+  DSC_READ_ENUM2_ATTRIBUTE_OPTIONAL(Calculation, reconConfig, \
+    this->Reconstructor->GetCalculationModeAsString(vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE), vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE, \
+    this->Reconstructor->GetCalculationModeAsString(vtkPasteSliceIntoVolume::MAXIMUM), vtkPasteSliceIntoVolume::MAXIMUM);
 
-  int fillHoles=0;
-  if (reconConfig->GetAttribute("FillHoles"))
-  {
-    if (STRCASECMP(reconConfig->GetAttribute("FillHoles"), "On") == 0) 
-    {
-      this->FillHoles=1;
-    }
-    else
-    {
-      this->FillHoles=0;
-    }
-  }
+  DSC_READ_ENUM3_ATTRIBUTE_OPTIONAL(Optimization, reconConfig, \
+    this->Reconstructor->GetOptimizationModeAsString(vtkPasteSliceIntoVolume::FULL_OPTIMIZATION), vtkPasteSliceIntoVolume::FULL_OPTIMIZATION, \
+    this->Reconstructor->GetOptimizationModeAsString(vtkPasteSliceIntoVolume::PARTIAL_OPTIMIZATION), vtkPasteSliceIntoVolume::PARTIAL_OPTIMIZATION, \
+    this->Reconstructor->GetOptimizationModeAsString(vtkPasteSliceIntoVolume::NO_OPTIMIZATION), vtkPasteSliceIntoVolume::NO_OPTIMIZATION);
+
+  DSC_READ_ENUM2_ATTRIBUTE_OPTIONAL(Compounding, reconConfig, "ON", true, "OFF", false);
+
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, NumberOfThreads, reconConfig);
+
+  DSC_READ_ENUM2_ATTRIBUTE_OPTIONAL(FillHoles, reconConfig, "ON", true, "OFF", false);
 
   // Find and read kernels. First for loop counts the number of kernels to allocate, second for loop stores them
   if (this->FillHoles) 
   {
     // load input for kernel size, stdev, etc...
-    vtkXMLDataElement* holeFilling = reconConfig->FindNestedElementWithName("HoleFilling");
-    if ( this->FillHoles == 1 && holeFilling == NULL )
-    {
-      LOG_ERROR("Couldn't locate hole filling parameters for hole filling!");
-      return PLUS_FAIL;
-    }
-
-    // find the number of kernels
-    int numHFElements(0);
-    for ( int nestedElementIndex = 0; nestedElementIndex < holeFilling->GetNumberOfNestedElements(); ++nestedElementIndex )
-    {
-      vtkXMLDataElement* nestedElement = holeFilling->GetNestedElement(nestedElementIndex);
-      if ( STRCASECMP(nestedElement->GetName(), "HoleFillingElement" ) != 0 )
-      {
-        // Not a kernel element, skip it
-        continue; 
-      }
-      numHFElements++;
-    } 
-
-    // read each kernel into memory
-    HoleFiller->SetNumHFElements(numHFElements);
-    HoleFiller->AllocateHFElements();
-    int numberOfErrors(0);
-    int currentElementIndex(0);
-
-    for ( int nestedElementIndex = 0; nestedElementIndex < holeFilling->GetNumberOfNestedElements(); ++nestedElementIndex )
-    {
-      vtkXMLDataElement* nestedElement = holeFilling->GetNestedElement(nestedElementIndex);
-      if ( STRCASECMP(nestedElement->GetName(), "HoleFillingElement" ) != 0 )
-      {
-        // Not a hole filling element, skip it
-        continue; 
-      }
-
-      FillHolesInVolumeElement tempElement;
-
-      if (nestedElement->GetAttribute("Type"))
-      {
-        if (STRCASECMP(nestedElement->GetAttribute("Type"), "GAUSSIAN") == 0)
-        {
-          tempElement.type = FillHolesInVolumeElement::HFTYPE_GAUSSIAN;
-        }
-        else if (STRCASECMP(nestedElement->GetAttribute("Type"), "GAUSSIAN_ACCUMULATION") == 0)
-        {
-          tempElement.type = FillHolesInVolumeElement::HFTYPE_GAUSSIAN_ACCUMULATION;
-        }
-        else if (STRCASECMP(nestedElement->GetAttribute("Type"), "STICK") == 0)
-        {
-          tempElement.type = FillHolesInVolumeElement::HFTYPE_STICK;
-        }
-        else if (STRCASECMP(nestedElement->GetAttribute("Type"), "NEAREST_NEIGHBOR") == 0)
-        {
-          tempElement.type = FillHolesInVolumeElement::HFTYPE_NEAREST_NEIGHBOR;
-        }
-        else if (STRCASECMP(nestedElement->GetAttribute("Type"), "DISTANCE_WEIGHT_INVERSE") == 0)
-        {
-          tempElement.type = FillHolesInVolumeElement::HFTYPE_DISTANCE_WEIGHT_INVERSE;
-        }
-        else
-        {
-          LOG_ERROR("Unknown hole filling element option: "<<nestedElement->GetAttribute("Type")<<". Valid options: GAUSSIAN, STICK.");
-        }
-      }
-      else
-      {
-        LOG_ERROR("Couldn't identify the hole filling element \"Type\"! Valid options: GAUSSIAN, STICK.");
-        return PLUS_FAIL;
-      }
-
-      int size=0; 
-      float stdev=0; 
-      float minRatio = 0.; 
-      int stickLengthLimit = 0;
-      int numberOfSticksToUse = 1;
-
-      switch (tempElement.type)
-      {
-      case FillHolesInVolumeElement::HFTYPE_GAUSSIAN:
-      case FillHolesInVolumeElement::HFTYPE_GAUSSIAN_ACCUMULATION:
-        // read stdev
-        if ( nestedElement->GetScalarAttribute("Stdev", stdev) )
-        {
-          tempElement.stdev = stdev;
-        }
-        else
-        {
-          LOG_ERROR("Unable to find \"Stdev\" attribute of kernel[" << nestedElementIndex <<"]"); 
-          numberOfErrors++; 
-          continue; 
-        }
-      // note that at this point, GAUSSIAN and GAUSSIAN_ACCUMULATION will also read what is below (there is no break). This is intended.
-      case FillHolesInVolumeElement::HFTYPE_DISTANCE_WEIGHT_INVERSE:
-      case FillHolesInVolumeElement::HFTYPE_NEAREST_NEIGHBOR:
-        // read size
-        if ( nestedElement->GetScalarAttribute("Size", size) )
-        {
-          tempElement.size = size;
-        }
-        else
-        {
-          LOG_ERROR("Unable to find \"Size\" attribute of kernel[" << nestedElementIndex <<"]"); 
-          numberOfErrors++; 
-          continue; 
-        }
-        // read minRatio
-        if ( nestedElement->GetScalarAttribute("MinimumKnownVoxelsRatio", minRatio) )
-        {
-          tempElement.minRatio = minRatio; 
-        }
-        else
-        {
-          LOG_ERROR("Unable to find \"MinimumKnownVoxelsRatio\" attribute of kernel[" << nestedElementIndex <<"]"); 
-          numberOfErrors++; 
-          continue; 
-        }
-        break;
-      case FillHolesInVolumeElement::HFTYPE_STICK:
-        // read stick
-        if ( nestedElement->GetScalarAttribute("StickLengthLimit", stickLengthLimit) )
-        {
-          tempElement.stickLengthLimit = stickLengthLimit; 
-        }
-        else
-        {
-          LOG_ERROR("Unable to find \"StickLengthLimit\" attribute of hole filling element[" << nestedElementIndex <<"]"); 
-          numberOfErrors++; 
-          continue; 
-        }
-        if ( nestedElement->GetScalarAttribute("NumberOfSticksToUse", numberOfSticksToUse) )
-        {
-          tempElement.numSticksToUse = numberOfSticksToUse; 
-        }
-        else
-        {
-          LOG_ERROR("Unable to find \"NumberOfSticksToUse\" attribute of hole filling element[" << nestedElementIndex <<"]"); 
-          numberOfErrors++; 
-          continue; 
-        }
-        break;
-      }
-
-      HoleFiller->SetHFElement(currentElementIndex,tempElement);
-      currentElementIndex++;
-    }
-
-    if (numberOfErrors != 0)
+    DSC_FIND_NESTED_ELEMENT_REQUIRED(holeFilling, reconConfig, "HoleFilling");
+    if (this->HoleFiller->ReadConfiguration(holeFilling)!=PLUS_SUCCESS)
     {
       return PLUS_FAIL;
     }
@@ -943,4 +673,65 @@ void vtkVolumeReconstructor::SetOutputSpacing(double* spacing)
 void vtkVolumeReconstructor::SetOutputExtent(int* extent)
 {
   this->Reconstructor->SetOutputExtent(extent);
+}
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::SetNumberOfThreads(int numberOfThreads)
+{
+  this->Reconstructor->SetNumberOfThreads(numberOfThreads);
+  this->HoleFiller->SetNumberOfThreads(numberOfThreads);
+}
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::SetClipRectangleOrigin(int* origin)
+{
+  this->Reconstructor->SetClipRectangleOrigin(origin);
+}
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::SetClipRectangleSize(int* size)
+{
+  this->Reconstructor->SetClipRectangleSize(size);
+}
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::SetFanAngles(double* angles)
+{
+  this->Reconstructor->SetFanAngles(angles);
+}
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::SetFanOrigin(double* origin)
+{
+  this->Reconstructor->SetFanOrigin(origin);
+}
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::SetFanDepth(double depth)
+{
+  this->Reconstructor->SetFanDepth(depth);
+}
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::SetInterpolation(vtkPasteSliceIntoVolume::InterpolationType interpolation)
+{
+  this->Reconstructor->SetInterpolationMode(interpolation);
+}
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::SetCalculation(vtkPasteSliceIntoVolume::CalculationType calculation)
+{
+  this->Reconstructor->SetCalculationMode(calculation);
+}
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::SetOptimization(vtkPasteSliceIntoVolume::OptimizationType optimization)
+{
+  this->Reconstructor->SetOptimization(optimization);
+}
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::SetCompounding(bool enable)
+{
+  this->Reconstructor->SetCompounding(enable?1:0);
 }

@@ -836,80 +836,24 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfi
 {
   LOG_TRACE("vtkPlusOpenIGTLinkServer::ReadConfiguration");
 
-  if ( aConfigurationData == NULL )
-  {
-    LOG_ERROR("Unable to configure Plus server! (XML data element is NULL)"); 
-    return PLUS_FAIL; 
-  }
+  DSC_FIND_NESTED_ELEMENT_REQUIRED(plusOpenIGTLinkServerConfig, aConfigurationData, "PlusOpenIGTLinkServer");
 
   if( aFilename == NULL )
   {
     LOG_ERROR("Unable to configure PlusServer without an acceptable config file submitted.");
     return PLUS_FAIL;
   }
-
   this->SetConfigFilename(aFilename);
 
-  vtkXMLDataElement* plusOpenIGTLinkServerConfig = aConfigurationData->FindNestedElementWithName("PlusOpenIGTLinkServer");
-  if (plusOpenIGTLinkServerConfig == NULL)
-  {
-    LOG_ERROR("Cannot find PlusOpenIGTLinkServer element in XML tree");
-    return PLUS_FAIL;
-  }
-
-  if( plusOpenIGTLinkServerConfig->GetAttribute("MissingInputGracePeriodSec") != NULL )
-  {
-    plusOpenIGTLinkServerConfig->GetScalarAttribute("MissingInputGracePeriodSec", this->MissingInputGracePeriodSec);
-  }
-
-  const char* outputChannelId = plusOpenIGTLinkServerConfig->GetAttribute("OutputChannelId");
-  this->SetOutputChannelId(outputChannelId);
-
-  int maxTimeSpentWithProcessingMs = 0;
-  if ( plusOpenIGTLinkServerConfig->GetScalarAttribute("MaxTimeSpentWithProcessingMs", maxTimeSpentWithProcessingMs) ) 
-  {
-    this->MaxTimeSpentWithProcessingMs = maxTimeSpentWithProcessingMs; 
-  }
-
-  int maxNumberOfIgtlMessagesToSend = 0; 
-  if ( plusOpenIGTLinkServerConfig->GetScalarAttribute("MaxNumberOfIgtlMessagesToSend", maxNumberOfIgtlMessagesToSend) ) 
-  {
-    this->MaxNumberOfIgtlMessagesToSend = maxNumberOfIgtlMessagesToSend; 
-  }
-
-  int listeningPort = -1; 
-  if ( plusOpenIGTLinkServerConfig->GetScalarAttribute("ListeningPort", listeningPort) ) 
-  {
-    this->SetListeningPort(listeningPort); 
-  }
-  else
-  {
-    LOG_ERROR("Unable to find listening port for PlusOpenIGTLinkServer"); 
-    return PLUS_FAIL; 
-  }
-
-  // Query configuration to determine transform sending behaviour
-  const char * sendAttribute = plusOpenIGTLinkServerConfig->GetAttribute("SendValidTransformsOnly");
-  if( sendAttribute != NULL )
-  {
-    this->SendValidTransformsOnly = STRCASECMP(sendAttribute, "true") == 0;
-  }
-
-  const char* igtlMessageCrcCheckEnabled = plusOpenIGTLinkServerConfig->GetAttribute("IgtlMessageCrcCheckEnabled"); 
-  if ( igtlMessageCrcCheckEnabled != NULL )
-  {
-    if ( STRCASECMP(igtlMessageCrcCheckEnabled, "true") == 0 )
-    {
-      this->SetIgtlMessageCrcCheckEnabled(1);
-    }
-    else
-    {
-      this->SetIgtlMessageCrcCheckEnabled(0);
-    }
-  }
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, MissingInputGracePeriodSec, plusOpenIGTLinkServerConfig);
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(OutputChannelId, plusOpenIGTLinkServerConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, MaxTimeSpentWithProcessingMs, plusOpenIGTLinkServerConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, MaxNumberOfIgtlMessagesToSend, plusOpenIGTLinkServerConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_REQUIRED(int, ListeningPort, plusOpenIGTLinkServerConfig);
+  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(SendValidTransformsOnly, plusOpenIGTLinkServerConfig);
+  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(IgtlMessageCrcCheckEnabled, plusOpenIGTLinkServerConfig);
 
   vtkXMLDataElement* defaultClientInfo = plusOpenIGTLinkServerConfig->FindNestedElementWithName("DefaultClientInfo"); 
-
   if ( defaultClientInfo != NULL )
   {
     // Get message types

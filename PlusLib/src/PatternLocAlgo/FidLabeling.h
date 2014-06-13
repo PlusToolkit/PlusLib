@@ -139,6 +139,10 @@ public:
   /*! Get the maximum line shift, in mm */
   double GetMaxLineShiftMm();
 
+  void SetAngleToleranceDegrees(double angleToleranceDegrees);
+
+  void SetInclinedLineAngleDegrees(double inclinedLineAngleDegrees);
+
 protected:
   int      m_FrameSize[2];
 
