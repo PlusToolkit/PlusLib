@@ -1765,7 +1765,7 @@ void SegmentationParameterDialog::MinThetaChanged(double aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::MinThetaChanged(" << aValue << ")");
 
-  m_PatternRecognition->GetFidLineFinder()->SetMinThetaDeg(aValue);
+  m_PatternRecognition->GetFidLineFinder()->SetMinThetaDegrees(aValue);
   m_PatternRecognition->GetFidLabeling()->SetMinThetaDeg(aValue);
 }
 
@@ -1775,7 +1775,7 @@ void SegmentationParameterDialog::MaxThetaChanged(double aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::MaxThetaChanged(" << aValue << ")");
 
-  m_PatternRecognition->GetFidLineFinder()->SetMaxThetaDeg(aValue);
+  m_PatternRecognition->GetFidLineFinder()->SetMaxThetaDegrees(aValue);
   m_PatternRecognition->GetFidLabeling()->SetMaxThetaDeg(aValue);
 }
 
