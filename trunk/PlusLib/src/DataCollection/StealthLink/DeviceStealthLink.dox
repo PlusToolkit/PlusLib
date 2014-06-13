@@ -1,21 +1,70 @@
 /*!
-\page DeviceStealthLink
+\page DeviceStealthLink Medtronic Stealth Station
 
 \par Supported hardware devices
 
-- Link to manufacturer's website:
+- Medtronic StealthStation that has StealthLink licence.
+- Link to manufacturer's website: http://www.medtronic.com/for-healthcare-professionals/products-therapies/spinal/surgical-navigation-imaging/surgical-navigation-systems/systems-software-instruments/
+
+\par Supported platforms
+
+- Windows only.
 
 \par Installation
 
-\par Supported platforms
+No need to install any extra software. The StealthStation needs to be connected through LAN and the connection is set via IP and Port.
 
 \par Configuration settings
 
 - Device type: \c StealthLink.
 - Attributes:
+  - \subpage CommonAttributesDevices
+  - \subpage CommonAttributesImagingDevices
+  - \c ServerAddress. The IP address of the stealthstation.
+  - \c ServerPort. The port of the stealthstation.
+  - \c *Instruments' names defined in StealthStation must match tools' port names defined in the configuration file (example: Passive Planar, Blunt).
+  - \c *Frames' names defined in StealthStation must match tools' port names defined in the configuration file (example: Frame Name: Small Passive Cranial Frame).
+  - \c *Ras. The port name must remain RasRegistration. This virtual tool will only "exist" when an image is required from the server. 
+
+Both optical and Em tracker can be used.
+
+  \par Usage from PlusServerRemoteControl
+
+Start plus server with the configuration file as the input. 
+
+    PlusServer.exe --config-file="<Plus-bin>\PlusLib\data\ConfigFiles\PlusDeviceSet_Server_StealthLinkTracker.xml"
+
+With this you can track the tools that are inside the view of the tracker.
+
+Stealth can receive DICOM image files from the stealth server and send them as volume through openIGTLink, there are two possible ways:
+
+    PlusServerRemoteControl.exe --command=GET_EXAM_DATA --device=SLD --dicom-directory="C:\StealthLinkDicomOutput\" --volumeEmbeddedTransformToFrame="Ras" --keepReceivedDicomFiles
+
+It will get the current exam information and the registration information and send volume and its pose in Ras coordiante system. Ras is calculated after having read the information from the received dicom files ((0020,0032) ImagePositionPatient and (0020,0037) ImageOrientationPatient).
+
+ - \c dicom-directory you can specifiy a folder and this folder will be where the DICOM files are stored. Default is plus output directory.
+ - \c volumeEmbeddedTransformToFrame. you can define in what coordinate system you want the image to be in \c "Reference" or \c "Ras".
+ - \c keepReceivedDicomFiles. If this exists then the DICOM files will be stored if not deleted. The default is delete.
+
+\par Usage in 3D Slicer
+
+Start plus server with the configuration file as the input.
+
+    PlusServer.exe --config-file="<Plus-bin>\PlusLib\data\ConfigFiles\PlusDeviceSet_Server_StealthLinkTracker.xml"
+
+ - Start 3D Slicer
+ - Go to \c OpenIGTLinkIF module
+ - Click "+" to create a new connection, select the new connection, click "Client", click "Active"
+ - The \c StylusToTracker transform is created in Slicer and it is updated by the stylus tracking. The \c ReferenceToTracker and other transforms are available too.
 
 \par Example configuration file
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_StealthLink.xml"
+\include "data/ConfigFiles/PlusDeviceSet_Server_StealthLinkTracker.xml"
 
 */
+
+
+Using OpenIGTLink messages \c GET_IMGMETA and \c GET_IMAGE(from a slicer client for example)
+
+- \c GET_IMGMETA plus will receive all the image meta data information from all of the connected devices and send it through openigtlink
+- \c GET_IMAGE will send the volume and the orientation and position in Ras coordianate system.This system should be defined in the configuration file.

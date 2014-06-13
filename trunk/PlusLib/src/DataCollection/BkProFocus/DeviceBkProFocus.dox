@@ -6,6 +6,10 @@
 - BK ProFocus and various other BK ultrasound imaging devices.
 - Link to manufacturer's website: http://www.bkmed.com/systems_en.htm
 
+\par Supported platforms
+
+- RF acquisition is supported on Windows only.
+
 \par Installation
 
 - Image acquisition is available through both the OEM interface (TCP/IP) and CameraLink interface (high-speed interface for RF data acquisition).
@@ -14,22 +18,22 @@
   - B-mode acquisition (using the internal RF->B-mode conversion algorithm) is available for the BK 8848 transducer (http://www.bkmed.com/8848_en.htm).
   - Need to install the DALSA Sapera package, otherwise the applications will not start because of missing the SapClassBasic72.dll. This dll can only be used with 64-bit Plus build on 64-bit OS and 32-bit Plus build on a 32-bit OS. Therefore the bitness of the Plus package shall match the bitness of the operating system.
 
-\par Supported platforms
-
-- RF acquisition is supported on Windows only.
-
 \par Configuration settings
 
 OEM interface
 
 - Device type: \c BkProFocusOem
 - Attributes
+  - \subpage CommonAttributesDevices
+  - \subpage CommonAttributesImagingDevices
   - \c IniFileName INI file name. If a relative path is specified then it is relative to the device set configuration directory. See an example \ref inifile "INI file" below.
 
 RF acquisition through the CameraLink interface
 
 - Device type: \c BkProFocus
 - Attributes
+  - \subpage CommonAttributesDevices
+  - \subpage CommonAttributesImagingDevices
   - \c IniFileName INI file name. If a relative path is specified then it is relative to the device set configuration directory. See an example \ref inifile "INI file" below.
   - \c ImagingMode
     - \c BMode

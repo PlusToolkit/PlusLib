@@ -1,0 +1,27 @@
+/*!
+
+\page CommonAttributesDevices Common attributes of the devices
+
+- \c AcquisitionRate. 
+
+- \c ToolReferenceFrame. Reference frame name of the tools.
+
+- \c MissingInputGracePeriodSec. The grace period is used to adjust the device reporting behaviour.
+
+- \c ReportUnknownToolsOnce. When data comes in for an unknown tool, these values affect how the device responds.
+
+- \c LocalTimeOffsetSec. Value to use when mixing data with another temporally calibrated device.
+
+- \c DefaultOutputChannelId. The channel to output by default at connection.
+
+Data Source
+
+- \c BufferSize. Size of the internal frame buffer.
+
+- \c AveragedItemsForFiltering. Number of items used for averaged timestamp filtering.
+
+- \c PortName. Port name is used to identify the tool among all the tools provided by the tracker device.
+
+- \c PortNumber. The port into which this tool is plugged
+
+*/
