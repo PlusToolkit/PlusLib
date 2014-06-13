@@ -67,12 +67,12 @@ vtkProbeCalibrationAlgo::~vtkProbeCalibrationAlgo()
 PlusStatus vtkProbeCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* aConfig )
 {
   LOG_TRACE("vtkProbeCalibrationAlgo::ReadConfiguration"); 
-  DSC_FIND_NESTED_ELEMENT_REQUIRED(probeCalibrationElement, aConfig, "vtkProbeCalibrationAlgo");
+  XML_FIND_NESTED_ELEMENT_REQUIRED(probeCalibrationElement, aConfig, "vtkProbeCalibrationAlgo");
 
-  DSC_READ_STRING_ATTRIBUTE_REQUIRED(ImageCoordinateFrame, probeCalibrationElement);
-  DSC_READ_STRING_ATTRIBUTE_REQUIRED(ProbeCoordinateFrame, probeCalibrationElement);
-  DSC_READ_STRING_ATTRIBUTE_REQUIRED(PhantomCoordinateFrame, probeCalibrationElement);
-  DSC_READ_STRING_ATTRIBUTE_REQUIRED(ReferenceCoordinateFrame, probeCalibrationElement);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(ImageCoordinateFrame, probeCalibrationElement);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(ProbeCoordinateFrame, probeCalibrationElement);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(PhantomCoordinateFrame, probeCalibrationElement);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(ReferenceCoordinateFrame, probeCalibrationElement);
 
   // Optimization options
   if (this->Optimizer->ReadConfiguration(probeCalibrationElement) != PLUS_SUCCESS)

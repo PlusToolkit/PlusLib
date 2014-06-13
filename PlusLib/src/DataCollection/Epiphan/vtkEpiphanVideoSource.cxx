@@ -263,7 +263,7 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
 //-----------------------------------------------------------------------------
 PlusStatus vtkEpiphanVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   // SerialNumber is kept for backward compatibility only. Serial number or other address should be specified in the
   // GrabberLocation attribute.
@@ -285,8 +285,8 @@ PlusStatus vtkEpiphanVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfi
   }
 
   // clipping parameters
-  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleOrigin, deviceConfig);
-  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleSize, deviceConfig);
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleOrigin, deviceConfig);
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleSize, deviceConfig);
 
   return PLUS_SUCCESS;
 

@@ -315,9 +315,9 @@ void vtkRfToBrightnessConvert::PrintSelf(ostream& os, vtkIndent indent)
 PlusStatus vtkRfToBrightnessConvert::ReadConfiguration(vtkXMLDataElement* rfToBrightnessElement)
 {
   LOG_TRACE("vtkRfToBrightnessConvert::ReadConfiguration"); 
-  DSC_VERIFY_ELEMENT(rfToBrightnessElement, "RfToBrightnessConversion");
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, NumberOfHilbertFilterCoeffs, rfToBrightnessElement);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, BrightnessScale, rfToBrightnessElement);
+  XML_VERIFY_ELEMENT(rfToBrightnessElement, "RfToBrightnessConversion");
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, NumberOfHilbertFilterCoeffs, rfToBrightnessElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, BrightnessScale, rfToBrightnessElement);
   return PLUS_SUCCESS;
 }
 

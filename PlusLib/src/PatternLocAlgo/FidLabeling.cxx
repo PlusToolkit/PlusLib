@@ -130,9 +130,9 @@ PlusStatus FidLabeling::ReadConfiguration( vtkXMLDataElement* configData, double
 {
   LOG_TRACE("FidLabeling::ReadConfiguration");
 
-  DSC_FIND_NESTED_ELEMENT_REQUIRED(segmentationParameters, configData, "Segmentation");
+  XML_FIND_NESTED_ELEMENT_REQUIRED(segmentationParameters, configData, "Segmentation");
 
-  DSC_READ_SCALAR_ATTRIBUTE_WARNING(double, ApproximateSpacingMmPerPixel, segmentationParameters);
+  XML_READ_SCALAR_ATTRIBUTE_WARNING(double, ApproximateSpacingMmPerPixel, segmentationParameters);
 
 
   //if the tolerance parameters are computed automatically
@@ -143,12 +143,12 @@ PlusStatus FidLabeling::ReadConfiguration( vtkXMLDataElement* configData, double
     LOG_WARNING("Automatic computation of the MaxLinePairDistanceErrorPercent and MaxAngleDifferenceDegrees parameters are not yet supported, use the values that are in the config file");
   }
 
-  DSC_READ_SCALAR_ATTRIBUTE_WARNING(double, MaxLinePairDistanceErrorPercent, segmentationParameters);
-  DSC_READ_SCALAR_ATTRIBUTE_WARNING(double, MaxAngleDifferenceDegrees, segmentationParameters);
-  DSC_READ_SCALAR_ATTRIBUTE_WARNING(double, AngleToleranceDegrees, segmentationParameters);
-  DSC_READ_SCALAR_ATTRIBUTE_WARNING(double, MaxLineShiftMm, segmentationParameters);
+  XML_READ_SCALAR_ATTRIBUTE_WARNING(double, MaxLinePairDistanceErrorPercent, segmentationParameters);
+  XML_READ_SCALAR_ATTRIBUTE_WARNING(double, MaxAngleDifferenceDegrees, segmentationParameters);
+  XML_READ_SCALAR_ATTRIBUTE_WARNING(double, AngleToleranceDegrees, segmentationParameters);
+  XML_READ_SCALAR_ATTRIBUTE_WARNING(double, MaxLineShiftMm, segmentationParameters);
 
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, InclinedLineAngleDegrees, segmentationParameters); // only for CIRS
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, InclinedLineAngleDegrees, segmentationParameters); // only for CIRS
 
   UpdateParameters();
 

@@ -478,15 +478,15 @@ PlusStatus vtkAscension3DGTrackerBase::CheckReturnStatus( int status )
 //----------------------------------------------------------------------------
 PlusStatus vtkAscension3DGTrackerBase::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FilterAcWideNotch, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FilterAcNarrowNotch, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FilterDcAdaptive, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FilterLargeChange, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FilterAlpha, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FilterAcWideNotch, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FilterAcNarrowNotch, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FilterDcAdaptive, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FilterLargeChange, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FilterAlpha, deviceConfig);
 
-  DSC_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
+  XML_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
 
   for ( int toolIndex = 0; toolIndex < dataSourcesElement->GetNumberOfNestedElements(); toolIndex++ )
   {

@@ -600,9 +600,9 @@ PlusStatus vtkSavedDataSource::InternalDisconnect()
 PlusStatus vtkSavedDataSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   LOG_TRACE("vtkSavedDataSource::ReadConfiguration"); 
-  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
-  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(SequenceMetafile, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(SequenceMetafile, deviceConfig);
   std::string foundAbsoluteImagePath;
   if (vtkPlusConfig::GetInstance()->FindImagePath(this->SequenceMetafile, foundAbsoluteImagePath) == PLUS_SUCCESS)
   {
@@ -624,8 +624,8 @@ PlusStatus vtkSavedDataSource::ReadConfiguration(vtkXMLDataElement* rootConfigEl
     }
   }
 
-  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(RepeatEnabled, deviceConfig);
-  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(UseOriginalTimestamps, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(RepeatEnabled, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(UseOriginalTimestamps, deviceConfig);
 
   const char* useData = deviceConfig->GetAttribute("UseData"); 
   if ( useData != NULL ) 

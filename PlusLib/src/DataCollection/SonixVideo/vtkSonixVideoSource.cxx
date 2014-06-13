@@ -475,7 +475,7 @@ PlusStatus vtkSonixVideoSource::InternalStopRecording()
 PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   LOG_TRACE("vtkSonixVideoSource::ReadConfiguration"); 
-  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   const char* ipAddress = deviceConfig->GetAttribute("IP"); 
   if ( ipAddress != NULL) 
@@ -534,7 +534,7 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigE
     return PLUS_FAIL;
   }
 
-  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(DetectDepthSwitching, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(DetectDepthSwitching, deviceConfig);
   if (this->DetectDepthSwitching)
   {
     // TODO : read the config for each output channel, check for Depth="x" attribute
@@ -542,25 +542,25 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigE
   }
   else
   {
-    DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Depth, deviceConfig);
+    XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Depth, deviceConfig);
   }
 
-  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(DetectPlaneSwitching, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(DetectPlaneSwitching, deviceConfig);
 
   // TODO : if depth or plane switching, build lookup table
   // if both attributes, build [plane, depth]->channel lookup table
   // if one, build [attr]->channel lookup table
 
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Sector, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Gain, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, DynRange, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Zoom, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Frequency, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, CompressionStatus, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, SharedMemoryStatus, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Timeout, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, SoundVelocity, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ConnectionSetupDelayMs, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Sector, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Gain, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, DynRange, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Zoom, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Frequency, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, CompressionStatus, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, SharedMemoryStatus, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Timeout, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, SoundVelocity, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ConnectionSetupDelayMs, deviceConfig);
 
   return PLUS_SUCCESS;
 }

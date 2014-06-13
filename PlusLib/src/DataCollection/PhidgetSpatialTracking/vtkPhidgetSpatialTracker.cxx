@@ -453,9 +453,9 @@ PlusStatus vtkPhidgetSpatialTracker::InternalStopRecording()
 //----------------------------------------------------------------------------
 PlusStatus vtkPhidgetSpatialTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
-  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(ZeroGyroscopeOnConnect, deviceConfig);  
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ZeroGyroscopeOnConnect, deviceConfig);  
 
   int tiltSensorWestAxisIndex=0; 
   if ( deviceConfig->GetScalarAttribute("TiltSensorWestAxisIndex", tiltSensorWestAxisIndex ) ) 
@@ -485,8 +485,8 @@ PlusStatus vtkPhidgetSpatialTracker::ReadConfiguration(vtkXMLDataElement* rootCo
     }
   }
 
-  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 2, AhrsAlgorithmGain, deviceConfig);
-  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 2, FilteredTiltSensorAhrsAlgorithmGain, deviceConfig);
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 2, AhrsAlgorithmGain, deviceConfig);
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 2, FilteredTiltSensorAhrsAlgorithmGain, deviceConfig);
 
   const char* ahrsAlgoName = deviceConfig->GetAttribute("AhrsAlgorithm"); 
   if ( ahrsAlgoName != NULL )

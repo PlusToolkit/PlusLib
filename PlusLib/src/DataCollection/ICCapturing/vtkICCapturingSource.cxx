@@ -425,17 +425,17 @@ PlusStatus vtkICCapturingSource::ReadConfiguration(vtkXMLDataElement* rootConfig
   }
   this->VideoSources.clear();
 
-  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
   
-  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(DeviceName, deviceConfig);
-  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(VideoNorm, deviceConfig);
-  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(VideoFormat, deviceConfig);
-  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(InputChannel, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, ICBufferSize, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(DeviceName, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(VideoNorm, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(VideoFormat, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(InputChannel, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, ICBufferSize, deviceConfig);
 
   // clipping parameters
-  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleOrigin, deviceConfig);
-  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleSize, deviceConfig);
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleOrigin, deviceConfig);
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleSize, deviceConfig);
 
   return PLUS_SUCCESS;
 }

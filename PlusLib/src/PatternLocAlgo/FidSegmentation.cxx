@@ -120,14 +120,14 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
 {
   LOG_TRACE("FidSegmentation::ReadConfiguration");  
 
-  DSC_FIND_NESTED_ELEMENT_REQUIRED(phantomDefinition, configData, "PhantomDefinition");
-  DSC_FIND_NESTED_ELEMENT_REQUIRED(description, phantomDefinition, "Description");
-  DSC_READ_ENUM2_ATTRIBUTE_OPTIONAL(FiducialGeometry, description, "Double-N", CALIBRATION_PHANTOM_6_POINT, "CIRS", CIRS_PHANTOM_13_POINT);
+  XML_FIND_NESTED_ELEMENT_REQUIRED(phantomDefinition, configData, "PhantomDefinition");
+  XML_FIND_NESTED_ELEMENT_REQUIRED(description, phantomDefinition, "Description");
+  XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(FiducialGeometry, description, "Double-N", CALIBRATION_PHANTOM_6_POINT, "CIRS", CIRS_PHANTOM_13_POINT);
 
-  DSC_FIND_NESTED_ELEMENT_REQUIRED(segmentationParameters, configData, "Segmentation");
-  DSC_READ_SCALAR_ATTRIBUTE_WARNING(double, ApproximateSpacingMmPerPixel, segmentationParameters);
-  DSC_READ_SCALAR_ATTRIBUTE_WARNING(double, MorphologicalOpeningCircleRadiusMm, segmentationParameters);
-  DSC_READ_SCALAR_ATTRIBUTE_WARNING(double, MorphologicalOpeningBarSizeMm, segmentationParameters);
+  XML_FIND_NESTED_ELEMENT_REQUIRED(segmentationParameters, configData, "Segmentation");
+  XML_READ_SCALAR_ATTRIBUTE_WARNING(double, ApproximateSpacingMmPerPixel, segmentationParameters);
+  XML_READ_SCALAR_ATTRIBUTE_WARNING(double, MorphologicalOpeningCircleRadiusMm, segmentationParameters);
+  XML_READ_SCALAR_ATTRIBUTE_WARNING(double, MorphologicalOpeningBarSizeMm, segmentationParameters);
 
   // Segmentation search region Y direction
   int clipOrigin[2] = {0};
@@ -145,7 +145,7 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
     LOG_INFO("Cannot find ClipRectangleOrigin or ClipRectangleSize attribute in the SegmentationParameters configuration file; Using the largest ROI possible.");
   }
 
-  DSC_READ_SCALAR_ATTRIBUTE_WARNING(double, ThresholdImagePercent, segmentationParameters);
+  XML_READ_SCALAR_ATTRIBUTE_WARNING(double, ThresholdImagePercent, segmentationParameters);
 
   int intUseOriginalImageIntensityForDotIntensityScore=0;
   if (segmentationParameters->GetScalarAttribute("UseOriginalImageIntensityForDotIntensityScore", intUseOriginalImageIntensityForDotIntensityScore))
@@ -155,7 +155,7 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
   }
   else
   {
-    DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(UseOriginalImageIntensityForDotIntensityScore, segmentationParameters);
+    XML_READ_BOOL_ATTRIBUTE_OPTIONAL(UseOriginalImageIntensityForDotIntensityScore, segmentationParameters);
   }
 
 
@@ -190,7 +190,7 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
     }
   }
 
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, NumberOfMaximumFiducialPointCandidates, segmentationParameters);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, NumberOfMaximumFiducialPointCandidates, segmentationParameters);
 
   UpdateParameters();
 

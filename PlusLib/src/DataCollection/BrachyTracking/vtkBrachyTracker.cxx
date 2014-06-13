@@ -319,10 +319,10 @@ PlusStatus vtkBrachyTracker::InitBrachyTracker()
 //----------------------------------------------------------------------------
 PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);  
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);  
 
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, SerialPort, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, BaudRate, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, SerialPort, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, BaudRate, deviceConfig);
 
   if ( !this->IsRecording() )
   {
@@ -370,9 +370,9 @@ PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElem
       return PLUS_FAIL; 
     }
 
-    DSC_READ_STRING_ATTRIBUTE_OPTIONAL(ModelNumber, deviceConfig);
-    DSC_READ_STRING_ATTRIBUTE_OPTIONAL(ModelVersion, deviceConfig);
-    DSC_READ_STRING_ATTRIBUTE_OPTIONAL(ModelSerialNumber, deviceConfig);
+    XML_READ_STRING_ATTRIBUTE_OPTIONAL(ModelNumber, deviceConfig);
+    XML_READ_STRING_ATTRIBUTE_OPTIONAL(ModelVersion, deviceConfig);
+    XML_READ_STRING_ATTRIBUTE_OPTIONAL(ModelSerialNumber, deviceConfig);
   }
 
   vtkXMLDataElement* calibration = deviceConfig->FindNestedElementWithName("StepperCalibrationResult"); 
@@ -400,10 +400,10 @@ PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElem
       this->SetCalibrationDate("Unknown"); 
     }
 
-    DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, ProbeTranslationAxisOrientation, calibration);
-    DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, TemplateTranslationAxisOrientation, calibration);
-    DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, ProbeRotationAxisOrientation, calibration);
-    DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ProbeRotationEncoderScale, calibration);
+    XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, ProbeTranslationAxisOrientation, calibration);
+    XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, TemplateTranslationAxisOrientation, calibration);
+    XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, ProbeRotationAxisOrientation, calibration);
+    XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ProbeRotationEncoderScale, calibration);
 
   }
 

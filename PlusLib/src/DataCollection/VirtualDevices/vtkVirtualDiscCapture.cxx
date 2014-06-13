@@ -78,16 +78,16 @@ void vtkVirtualDiscCapture::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 PlusStatus vtkVirtualDiscCapture::ReadConfiguration( vtkXMLDataElement* rootConfigElement)
 {
-  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
-  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(BaseFilename, deviceConfig);
-  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableFileCompression, deviceConfig);
-  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableCapturing, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(BaseFilename, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableFileCompression, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableCapturing, deviceConfig);
 
   this->SetRequestedFrameRate(15.0); // default
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, RequestedFrameRate, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, RequestedFrameRate, deviceConfig);
 
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FrameBufferSize, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FrameBufferSize, deviceConfig);
 
   return PLUS_SUCCESS;
 }

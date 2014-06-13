@@ -586,19 +586,19 @@ PlusStatus vtkIntersonVideoSource::InternalUpdate()
 PlusStatus vtkIntersonVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   LOG_TRACE("vtkIntersonVideoSource::ReadConfiguration"); 
-  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
-  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ImageSize, deviceConfig);
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ImageSize, deviceConfig);
 
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SectorPercent, deviceConfig);
-  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, GainPercent, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Intensity, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Contrast, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DynRangeDb, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ZoomFactor, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FrequencyMhz, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DepthMm, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SoundVelocity, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SectorPercent, deviceConfig);
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, GainPercent, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Intensity, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Contrast, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DynRangeDb, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ZoomFactor, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FrequencyMhz, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DepthMm, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SoundVelocity, deviceConfig);
 
   return PLUS_SUCCESS;
 }

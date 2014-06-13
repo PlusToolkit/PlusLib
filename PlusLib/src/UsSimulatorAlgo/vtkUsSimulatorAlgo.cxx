@@ -391,22 +391,22 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
 {  
   LOG_TRACE("vtkUsSimulatorVideoSource::ReadConfiguration"); 
 
-  DSC_FIND_NESTED_ELEMENT_REQUIRED(usSimulatorAlgoElement, config, "vtkUsSimulatorAlgo");
+  XML_FIND_NESTED_ELEMENT_REQUIRED(usSimulatorAlgoElement, config, "vtkUsSimulatorAlgo");
 
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, NumberOfScanlines, usSimulatorAlgoElement);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, NumberOfSamplesPerScanline, usSimulatorAlgoElement);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FrequencyMhz, usSimulatorAlgoElement);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, BrightnessConversionGamma, usSimulatorAlgoElement);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, BrightnessConversionOffset, usSimulatorAlgoElement);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, BrightnessConversionScale, usSimulatorAlgoElement);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, IncomingIntensityMwPerCm2, usSimulatorAlgoElement);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, NoiseAmplitude, usSimulatorAlgoElement);
-  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, NoiseFrequency, usSimulatorAlgoElement);
-  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, NoisePhase, usSimulatorAlgoElement);
-  DSC_READ_STRING_ATTRIBUTE_REQUIRED(ImageCoordinateFrame, usSimulatorAlgoElement);
-  DSC_READ_STRING_ATTRIBUTE_REQUIRED(ReferenceCoordinateFrame, usSimulatorAlgoElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, NumberOfScanlines, usSimulatorAlgoElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, NumberOfSamplesPerScanline, usSimulatorAlgoElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FrequencyMhz, usSimulatorAlgoElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, BrightnessConversionGamma, usSimulatorAlgoElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, BrightnessConversionOffset, usSimulatorAlgoElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, BrightnessConversionScale, usSimulatorAlgoElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, IncomingIntensityMwPerCm2, usSimulatorAlgoElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, NoiseAmplitude, usSimulatorAlgoElement);
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, NoiseFrequency, usSimulatorAlgoElement);
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, NoisePhase, usSimulatorAlgoElement);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(ImageCoordinateFrame, usSimulatorAlgoElement);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(ReferenceCoordinateFrame, usSimulatorAlgoElement);
 
-  DSC_FIND_NESTED_ELEMENT_REQUIRED(rfProcesingElement, usSimulatorAlgoElement, "RfProcessing");
+  XML_FIND_NESTED_ELEMENT_REQUIRED(rfProcesingElement, usSimulatorAlgoElement, "RfProcessing");
   this->RfProcessor->ReadConfiguration(rfProcesingElement);
 
   this->SpatialModels.clear();

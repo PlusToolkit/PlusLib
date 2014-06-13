@@ -888,13 +888,13 @@ void vtkLineSegmentationAlgo::LimitToClipRegion(CharImageType::RegionType& regio
 //----------------------------------------------------------------------------
 PlusStatus vtkLineSegmentationAlgo::ReadConfiguration( vtkXMLDataElement* aConfig )
 {
-  DSC_FIND_NESTED_ELEMENT_REQUIRED(lineSegmentationElement, aConfig, "vtkLineSegmentationAlgo");
+  XML_FIND_NESTED_ELEMENT_REQUIRED(lineSegmentationElement, aConfig, "vtkLineSegmentationAlgo");
 
-  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(SaveIntermediateImages, lineSegmentationElement);
-  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(PlotIntensityProfile, lineSegmentationElement);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(SaveIntermediateImages, lineSegmentationElement);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(PlotIntensityProfile, lineSegmentationElement);
 
   this->IntermediateFilesOutputDirectory = vtkPlusConfig::GetInstance()->GetOutputDirectory();
-  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(IntermediateFilesOutputDirectory, lineSegmentationElement);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(IntermediateFilesOutputDirectory, lineSegmentationElement);
 
   if ( !lineSegmentationElement->GetVectorAttribute("ClipRectangleOrigin", 2, m_ClipRectangleOrigin) || 
     !lineSegmentationElement->GetVectorAttribute("ClipRectangleSize", 2, m_ClipRectangleSize) )

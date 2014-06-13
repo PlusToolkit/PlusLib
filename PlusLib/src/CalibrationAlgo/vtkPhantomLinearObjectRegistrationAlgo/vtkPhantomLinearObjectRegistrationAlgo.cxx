@@ -159,14 +159,14 @@ PlusStatus vtkPhantomLinearObjectRegistrationAlgo::ReadConfiguration(vtkXMLDataE
 {
   LOG_TRACE("vtkPhantomLinearObjectRegistrationAlgo::ReadConfiguration");
 
-  DSC_FIND_NESTED_ELEMENT_REQUIRED(phantomDefinition, aConfig, "PhantomDefinition");
+  XML_FIND_NESTED_ELEMENT_REQUIRED(phantomDefinition, aConfig, "PhantomDefinition");
 
   this->DefinedPlanes.Reset();
   this->RecordedPlanes.Reset();
   this->DefinedPlaneNames.clear();
 
   // Load geometry
-  DSC_FIND_NESTED_ELEMENT_REQUIRED(geometry, phantomDefinition, "Geometry");
+  XML_FIND_NESTED_ELEMENT_REQUIRED(geometry, phantomDefinition, "Geometry");
 
 // Read references (NWires are not interesting at this point, it is only parsed if segmentation is needed)
   vtkXMLDataElement* references = geometry->FindNestedElementWithName("References"); 
@@ -320,10 +320,10 @@ PlusStatus vtkPhantomLinearObjectRegistrationAlgo::ReadConfiguration(vtkXMLDataE
     return PLUS_FAIL;
   }
 
-  DSC_FIND_NESTED_ELEMENT_REQUIRED(phantomRegistrationElement, aConfig, vtkPhantomLinearObjectRegistrationAlgo::ConfigurationElementName.c_str());
-  DSC_READ_STRING_ATTRIBUTE_REQUIRED(PhantomCoordinateFrame, phantomRegistrationElement);
-  DSC_READ_STRING_ATTRIBUTE_REQUIRED(ReferenceCoordinateFrame, phantomRegistrationElement);
-  DSC_READ_STRING_ATTRIBUTE_REQUIRED(StylusTipCoordinateFrame, phantomRegistrationElement);
+  XML_FIND_NESTED_ELEMENT_REQUIRED(phantomRegistrationElement, aConfig, vtkPhantomLinearObjectRegistrationAlgo::ConfigurationElementName.c_str());
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(PhantomCoordinateFrame, phantomRegistrationElement);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(ReferenceCoordinateFrame, phantomRegistrationElement);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(StylusTipCoordinateFrame, phantomRegistrationElement);
 
   return PLUS_SUCCESS;
 }

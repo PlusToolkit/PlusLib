@@ -483,7 +483,7 @@ PlusStatus vtk3dConnexionTracker::InternalUpdate()
 //----------------------------------------------------------------------------
 PlusStatus vtk3dConnexionTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   if (deviceConfig->GetAttribute("Mode"))
   {

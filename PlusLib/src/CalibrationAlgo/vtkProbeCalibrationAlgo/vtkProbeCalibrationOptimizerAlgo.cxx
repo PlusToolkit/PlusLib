@@ -411,7 +411,7 @@ PlusStatus vtkProbeCalibrationOptimizerAlgo::ReadConfiguration( vtkXMLDataElemen
     this->OptimizationMethod=MINIMIZE_DISTANCE_OF_ALL_WIRES_IN_2D;
   }
 
-  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(IsotropicPixelSpacing, aConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(IsotropicPixelSpacing, aConfig);
 
   return PLUS_SUCCESS;
 }

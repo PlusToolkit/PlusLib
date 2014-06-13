@@ -427,7 +427,7 @@ PlusStatus vtkMmfVideoSource::UpdateFrameSize()
 
 PlusStatus vtkMmfVideoSource::ReadConfiguration( vtkXMLDataElement* rootConfigElement )
 {
-  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   int deviceId=0;
   if (deviceConfig->GetScalarAttribute("CaptureDeviceId", deviceId))

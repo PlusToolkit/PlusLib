@@ -138,9 +138,9 @@ PlusStatus vtkPlusReconstructVolumeCommand::ReadConfiguration(vtkXMLDataElement*
 
   // output volume parameters
   // origin and spacing is defined in the reference coordinate system
-  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, OutputSpacing, aConfig);
-  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, OutputOrigin, aConfig);
-  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 6, OutputExtent, aConfig);
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, OutputSpacing, aConfig);
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, OutputOrigin, aConfig);
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 6, OutputExtent, aConfig);
 
   return PLUS_SUCCESS;
 }
