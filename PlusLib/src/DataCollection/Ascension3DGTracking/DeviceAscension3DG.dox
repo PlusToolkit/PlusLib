@@ -7,6 +7,10 @@
 - Ultrasonix SonixGPS (it is an Ascension driveBAY).
 - Link to manufacturer's website: http://www.ascension-tech.com/medical/index.php
 
+\par Supported platforms
+
+- Windows only.
+
 \par Installation
 
 - Sensors must be all located in front of the frontplate of the field generator (the side with large the Ascension motif on it): tools are still tracked behind the frontplate, but their orientation may be inverted.
@@ -14,14 +18,11 @@
 - Tracking a Stylus: It is recommended to place the EM sensor as close to the needle tip as possible. The best accuracy is expected from a thick needle with a sensor near the needle tip. 
 - If you are using the tracker of an Ultrasonix SonixGPS system and the Exam software is running (e.g., because images are acquired using the Ulterius interface), then you need to disable the SonixGPS license to prevent the Exam software from using the tracker. This is done because only one application can communicate with the tracker at a time (either your application or the Exam software). To disable SonixGPS press menu on the touchscreen. Go to Administrator, Licenses and unselect SonixGPS from the licenses menu.
 
-\par Supported platforms 
-
-- Windows only.
-
 \par Configuration settings
 
 - Device type: \c Ascension3DG (for medSafe: \c Ascension3DGm).
 - Attributes:
+  - \subpage CommonAttributesDevices
   - \c FilterAcWideNotch 
   - \c FilterAcNarrowNotch
   - \c FilterDcAdaptive
