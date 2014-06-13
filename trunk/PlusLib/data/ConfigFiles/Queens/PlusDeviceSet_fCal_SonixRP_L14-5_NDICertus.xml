@@ -113,7 +113,7 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
     AngleToleranceDegrees="10"
     ThresholdImagePercent="10.0"
     CollinearPointsMaxDistanceFromLineMm="0.52"
-    UseOriginalImageIntensityForDotIntensityScore="0"
+    UseOriginalImageIntensityForDotIntensityScore="FALSE"
     NumberOfMaximumFiducialPointCandidates="20" />
 
   <PhantomDefinition>
@@ -149,7 +149,7 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
 
   <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
     ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
-    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off" />
+    Interpolation="LINEAR" Optimization="FULL" Compounding="ON" FillHoles="OFF" />
 
   <fCal
     PhantomModelId="PhantomModel"

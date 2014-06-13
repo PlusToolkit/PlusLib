@@ -14,7 +14,7 @@
     AngleToleranceDegrees="11"
     ThresholdImagePercent="10.0"
     CollinearPointsMaxDistanceFromLineMm="1.0"
-    UseOriginalImageIntensityForDotIntensityScore="0"
+    UseOriginalImageIntensityForDotIntensityScore="FALSE"
     NumberOfMaximumFiducialPointCandidates="30" />
 
   <CoordinateDefinitions>

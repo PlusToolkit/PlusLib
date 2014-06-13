@@ -29,7 +29,7 @@
     MaxLineShiftMm="10.0"
     ThresholdImagePercent="10"
     CollinearPointsMaxDistanceFromLineMm="0.6"
-    UseOriginalImageIntensityForDotIntensityScore="0"
+    UseOriginalImageIntensityForDotIntensityScore="FALSE"
     NumberOfMaximumFiducialPointCandidates="50" />
 
   <PhantomDefinition>

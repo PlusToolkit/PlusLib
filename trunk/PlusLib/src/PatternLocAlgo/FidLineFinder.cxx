@@ -4,6 +4,9 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+#include "PlusConfigure.h"
+#include "PlusXmlUtils.h"
+
 #include "FidLineFinder.h"
 #include "vtkMath.h"
 
@@ -185,119 +188,29 @@ PlusStatus FidLineFinder::ReadConfiguration( vtkXMLDataElement* configData )
 {
   LOG_TRACE("FidLineFinder::ReadConfiguration");
 
-  if ( configData == NULL) 
-  {
-    LOG_WARNING("Unable to read the SegmentationParameters XML data element!"); 
-    return PLUS_FAIL; 
-  }
+  DSC_FIND_NESTED_ELEMENT_REQUIRED(segmentationParameters, configData, "Segmentation");
 
-  vtkXMLDataElement* segmentationParameters = configData->FindNestedElementWithName("Segmentation");
-  if (segmentationParameters == NULL)
-  {
-    LOG_ERROR("Cannot find Segmentation element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  double approximateSpacingMmPerPixel(0.0); 
-  if ( segmentationParameters->GetScalarAttribute("ApproximateSpacingMmPerPixel", approximateSpacingMmPerPixel) )
-  {
-    m_ApproximateSpacingMmPerPixel = approximateSpacingMmPerPixel; 
-  }
-  else
-  {
-    LOG_WARNING("Could not read ApproximateSpacingMmPerPixel from configuration file.");
-  }
-
+  DSC_READ_SCALAR_ATTRIBUTE_WARNING(double, ApproximateSpacingMmPerPixel, segmentationParameters);
+  
   //if the tolerance parameters are computed automatically
   int computeSegmentationParametersFromPhantomDefinition(0);
   if(segmentationParameters->GetScalarAttribute("ComputeSegmentationParametersFromPhantomDefinition", computeSegmentationParametersFromPhantomDefinition)
     && computeSegmentationParametersFromPhantomDefinition!=0 )
   {
-    vtkXMLDataElement* phantomDefinition = segmentationParameters->GetRoot()->FindNestedElementWithName("PhantomDefinition");
-    if (phantomDefinition == NULL)
-    {
-      LOG_ERROR("No phantom definition is found in the XML tree!");
-    }
-    vtkXMLDataElement* customTransforms = phantomDefinition->FindNestedElementWithName("CustomTransforms"); 
-    if (customTransforms == NULL) 
-    {
-      LOG_ERROR("Custom transforms are not found in phantom model");
-    }
-    else
-    {
-      LOG_ERROR("Unable to read image to phantom transform!"); 
-    }
+    DSC_FIND_NESTED_ELEMENT_REQUIRED(phantomDefinition, segmentationParameters, "PhantomDefinition");
+    DSC_FIND_NESTED_ELEMENT_REQUIRED(customTransforms, segmentationParameters, "CustomTransforms"); 
+    DSC_READ_VECTOR_ATTRIBUTE_WARNING(double, 16, ImageToPhantomTransform, customTransforms);
 
-    double* imageNormalVectorInPhantomFrameMaximumRotationAngleDeg = new double[6];
-    if ( segmentationParameters->GetVectorAttribute("ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg", 6, imageNormalVectorInPhantomFrameMaximumRotationAngleDeg) )
-    {
-      for( int i = 0; i<6 ; i++)
-      {
-        m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[i] = imageNormalVectorInPhantomFrameMaximumRotationAngleDeg[i];
-      }
-    }
-    else
-    {
-      LOG_WARNING("Could not read ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg from configuration file.");
-    }
-    delete [] imageNormalVectorInPhantomFrameMaximumRotationAngleDeg;
-
-    double imageToPhantomTransformVector[16]={0}; 
-    if (customTransforms->GetVectorAttribute("ImageToPhantomTransform", 16, imageToPhantomTransformVector)) 
-    {
-      for( int i = 0; i<16 ; i++)
-      {
-        m_ImageToPhantomTransform[i] = imageToPhantomTransformVector[i];
-      }
-    }
-    else
-    {
-      LOG_WARNING("Could not read ImageToPhantomTranform from configuration file.");
-    }
-
-    double collinearPointsMaxDistanceFromLineMm(0.0); 
-    if ( segmentationParameters->GetScalarAttribute("CollinearPointsMaxDistanceFromLineMm", collinearPointsMaxDistanceFromLineMm) )
-    {
-      m_CollinearPointsMaxDistanceFromLineMm = collinearPointsMaxDistanceFromLineMm; 
-    }
-    else
-    {
-      LOG_WARNING("Could not read CollinearPointsMaxDistanceFromLineMm from configuration file.");
-    }
+    DSC_READ_VECTOR_ATTRIBUTE_WARNING(double, 6, ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg, segmentationParameters);   
+    DSC_READ_SCALAR_ATTRIBUTE_WARNING(double, CollinearPointsMaxDistanceFromLineMm, segmentationParameters);
 
     ComputeParameters();
   }
   else
   {
-    double minThetaDegrees(0.0); 
-    if ( segmentationParameters->GetScalarAttribute("MinThetaDegrees", minThetaDegrees) )
-    {
-      m_MinThetaRad = vtkMath::RadiansFromDegrees(minThetaDegrees);
-    }
-    else
-    {
-      LOG_WARNING("Could not read minThetaDegrees from configuration file.");
-    }
-
-    double maxThetaDegrees(0.0); 
-    if ( segmentationParameters->GetScalarAttribute("MaxThetaDegrees", maxThetaDegrees) )
-    {
-      m_MaxThetaRad = vtkMath::RadiansFromDegrees(maxThetaDegrees); 
-    }
-    else
-    {
-      LOG_WARNING("Could not read maxThetaDegrees from configuration file.");
-    }
-
-    double collinearPointsMaxDistanceFromLineMm(0.0); 
-    if ( segmentationParameters->GetScalarAttribute("CollinearPointsMaxDistanceFromLineMm", collinearPointsMaxDistanceFromLineMm) )
-    {
-      m_CollinearPointsMaxDistanceFromLineMm = collinearPointsMaxDistanceFromLineMm; 
-    }
-    else
-    {
-      LOG_WARNING("Could not read CollinearPointsMaxDistanceFromLineMm from configuration file.");
-    }
+    DSC_READ_SCALAR_ATTRIBUTE_WARNING(double, MinThetaDegrees, segmentationParameters);
+    DSC_READ_SCALAR_ATTRIBUTE_WARNING(double, MaxThetaDegrees, segmentationParameters);
+    DSC_READ_SCALAR_ATTRIBUTE_WARNING(double, CollinearPointsMaxDistanceFromLineMm, segmentationParameters);
   }
 
   return PLUS_SUCCESS; 
@@ -778,13 +691,31 @@ void FidLineFinder::FindLines( )
 }
 
 //-----------------------------------------------------------------------------
-void FidLineFinder::SetMinThetaDeg(double angleDeg)
+void FidLineFinder::SetMinThetaDegrees(double angleDeg)
 {
   m_MinThetaRad=vtkMath::RadiansFromDegrees(angleDeg);
 }
 
 //-----------------------------------------------------------------------------
-void FidLineFinder::SetMaxThetaDeg(double angleDeg)
+void FidLineFinder::SetMaxThetaDegrees(double angleDeg)
 {
   m_MaxThetaRad=vtkMath::RadiansFromDegrees(angleDeg);
+}
+
+//-----------------------------------------------------------------------------
+void FidLineFinder::SetImageToPhantomTransform(double* matrixElements)
+{
+  for (int i=0; i<16; i++)
+  {
+    m_ImageToPhantomTransform[i] = matrixElements[i];
+  }
+}
+
+//-----------------------------------------------------------------------------
+void FidLineFinder::SetImageNormalVectorInPhantomFrameMaximumRotationAngleDeg(double* anglesDeg)
+{
+  for (int i=0; i<6; i++)
+  {
+    m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[i]=anglesDeg[i];
+  }
 }

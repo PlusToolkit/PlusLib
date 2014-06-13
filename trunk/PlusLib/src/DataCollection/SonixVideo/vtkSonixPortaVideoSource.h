@@ -123,6 +123,27 @@ class VTK_EXPORT vtkSonixPortaVideoSource : public vtkPlusDevice {
   vtkSetStringMacro(PortaLUTPath); 
   vtkGetStringMacro(PortaLUTPath); 
 
+  /*! Set USM initialization parameter */
+  vtkSetMacro(Usm, int);
+  /*! Get USM initialization parameter */
+  vtkGetMacro(Usm, int);
+
+  /*! Set PCI initialization parameter */
+  vtkSetMacro(Pci, int);
+  /*! Get PCI initialization parameter */
+  vtkGetMacro(Pci, int);
+
+  /*! Set HighVoltage initialization parameter */
+  vtkSetMacro(HighVoltage, int);
+  /*! Get HighVoltage initialization parameter */
+  vtkGetMacro(HighVoltage, int);
+
+  /*! Set Channels initialization parameter */
+  vtkSetMacro(Channels, int);
+  /*! Get Channels initialization parameter */
+  vtkGetMacro(Channels, int);
+
+
   /*! Get/Set the look-up table path name */
   vtkSetStringMacro(PortaLicensePath); 
   vtkGetStringMacro(PortaLicensePath); 
@@ -160,6 +181,8 @@ class VTK_EXPORT vtkSonixPortaVideoSource : public vtkPlusDevice {
   /*! Set the Timeout (ms) value for network function calls. */
   PlusStatus SetTimeout(int aTimeout);
 
+  /*! Set the BMode frame size in pixels. */
+  vtkSetVector2Macro(BModeFrameSize,int);
 
   void SetImagingMode(int mode){ImagingMode = mode;};
   void GetImagingMode(int & mode){mode = ImagingMode;};
@@ -224,7 +247,7 @@ protected:
   int Depth;
   int Frequency;
   int Gain; 
-  int Zoom; 
+  int Zoom;   
 
   int ImagingMode;
   int Timeout; 
@@ -301,8 +324,11 @@ private:
   /*! Size of the Cine buffer */
   int PortaCineSize;
     
+  /*! Size of the BMode frame buffer in pixels */
+  int BModeFrameSize[2];
+
   /*! storage for sonix frame buffer */
-  unsigned char *ImageBuffer; 
+  unsigned char *BModeFrameBuffer; 
 
   /*! the number of frames that will acquired in one sweep of the motor */
   int FramePerVolume;

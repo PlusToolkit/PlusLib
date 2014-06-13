@@ -225,7 +225,7 @@ To use with Ascension tracker instead of a simulated tracker: enable the Ascensi
       </InputChannels>
       <VolumeReconstruction
         ImageCoordinateFrame="Image" ReferenceCoordinateFrame="Reference"
-        Interpolation="LINEAR" Optimization="NONE" Compounding="On" FillHoles="On" NumberOfThreads="2"
+        Interpolation="LINEAR" Optimization="NONE" Compounding="ON" FillHoles="ON" NumberOfThreads="2"
         ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
         OutputOrigin="60 -10 -15" OutputExtent="0 334 0 396 0 542" OutputSpacing="0.15 0.15 0.15" >
         <HoleFilling>

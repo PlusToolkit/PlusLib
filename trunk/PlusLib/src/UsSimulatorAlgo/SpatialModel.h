@@ -55,7 +55,11 @@ public:
   void SetImagingFrequencyMhz(double frequencyMhz);
 
   const std::string& GetName() { return this->Name; };
+  void SetName(const std::string& name) { this->Name=name; };
+
   const std::string& GetObjectCoordinateFrame() { return this->ObjectCoordinateFrame; };
+  void SetObjectCoordinateFrame(const std::string& objectCoordinateFrame) { this->ObjectCoordinateFrame=objectCoordinateFrame; };
+
   vtkMatrix4x4* GetModelToObjectTransform() { return this->ModelToObjectTransform; };
 
   void SetReferenceToObjectTransform(vtkMatrix4x4* referenceToObjectTransform);
@@ -79,11 +83,21 @@ public:
   void CalculateIntensity(std::vector<double>& reflectedIntensity, int numberOfFilledPixels, double distanceBetweenScanlineSamplePointsMm,
     double previousModelAcousticImpedanceMegarayls, double incidentIntensity, double &transmittedIntensity, double incidenceAngleRad);
 
+  void SetDensityKgPerM3(double d) { this->DensityKgPerM3=d; };
+  void SetSoundVelocityMPerSec(double d) { this->SoundVelocityMPerSec=d; };
+  void SetAttenuationCoefficientDbPerCmMhz(double d) { this->AttenuationCoefficientDbPerCmMhz=d; };
+  void SetSurfaceReflectionIntensityDecayDbPerMm(double d) { this->SurfaceReflectionIntensityDecayDbPerMm=d; };
+  void SetBackscatterDiffuseReflectionCoefficient(double d) { this->BackscatterDiffuseReflectionCoefficient=d; };
+  void SetSurfaceDiffuseReflectionCoefficient(double d) { this->SurfaceDiffuseReflectionCoefficient=d; };
+  void SetSurfaceSpecularReflectionCoefficient(double d) { this->SurfaceSpecularReflectionCoefficient=d; };
+  void SetTransducerSpatialModelMaxOverlapMm(double d) { this->TransducerSpatialModelMaxOverlapMm=d; };
+
 protected:
 
   void SetPolyData(vtkPolyData* polyData);
   void SetModelLocalizer(vtkModifiedBSPTree* modelLocalizer);
   void SetModelToObjectTransform(vtkMatrix4x4* modelToObjectTransform);
+  void SetModelToObjectTransform(double* matrixElements);
 
   PlusStatus UpdateModelFile();
   void UpdatePrecomputedAttenuations(double intensityTransmittedFractionPerPixelTwoWay, int numberOfElements);

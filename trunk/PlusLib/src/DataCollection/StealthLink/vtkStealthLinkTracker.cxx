@@ -21,8 +21,7 @@ See License.txt for details.
 
 #include <iostream>
 
-#define MAX_DEVICE_ID_LENGTH 15 //for OpenIGTLink message sending purposes, the image id will be created off of device id. It is better for it to be short
-#define SECONDS_TO_MICRO_SECONDS 1000000
+static const int MAX_DEVICE_ID_LENGTH=15; //for OpenIGTLink message sending purposes, the image id will be created off of device id. It is better for it to be short
 
 // Class for variables that are shared between the main thread and InternalUpdate thread
 class vtkStealthLinkTracker::vtkInternalShared
@@ -733,72 +732,32 @@ PlusStatus vtkStealthLinkTracker::InternalStopRecording()
   return PLUS_SUCCESS;
 }
 //----------------------------------------------------------------------------
-PlusStatus vtkStealthLinkTracker::ReadConfiguration( vtkXMLDataElement* config )
+PlusStatus vtkStealthLinkTracker::ReadConfiguration( vtkXMLDataElement* rootConfigElement )
 {
-  // Read superclass configuration first
-  Superclass::ReadConfiguration(config); 
+  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
-  LOG_TRACE( "vtkStealthLinkTracker::ReadConfiguration" ); 
-  if ( config == NULL ) 
-  {
-    LOG_ERROR("Unable to find vtkStealthLinkTracker XML data element");
-    return PLUS_FAIL; 
-  }
+  DSC_READ_STRING_ATTRIBUTE_REQUIRED(ServerAddress, deviceConfig);
+  DSC_READ_STRING_ATTRIBUTE_REQUIRED(ServerPort, deviceConfig);
+  
 
-  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(config);
-  if (trackerConfig == NULL) 
+  std::string deviceIdStr(this->GetDeviceId()?this->GetDeviceId():"");
+  if(deviceIdStr.size() > MAX_DEVICE_ID_LENGTH)
   {
-    LOG_ERROR("Cannot find Tracker element in XML tree!");
-    return PLUS_FAIL;
-  }  
-  if(!trackerConfig->GetAttribute("ServerAddress"))
-  {
-    LOG_ERROR("Cannot find the ServerAddress information. Please make sure that the xml file contains the information\n");
-    return PLUS_FAIL;
+    LOG_WARNING("The device id "<<deviceIdStr<<" might be too long, as it may be used for generating identifiers for images that will be sent through OpenIGTLink. Consider choosing a shorter device Id. Example: SLD1");
   }
-  if(!trackerConfig->GetAttribute("ServerPort"))
-  {
-    LOG_ERROR("Cannot find the ServerPort information. Please make sure that the xml file contains the information\n");
-    return PLUS_FAIL;
-  }
-  if(trackerConfig->GetAttribute("Id"))
-  {
-    std::string deviceId(this->DeviceId);
-    if(deviceId.size() > MAX_DEVICE_ID_LENGTH)
-    {
-      LOG_WARNING("The device id might be too long for message sending purposes. Please choose a shorter device Id. Example: SLD1");
-    }
-  }
-  this->Internal->ServerAddress = trackerConfig->GetAttribute("ServerAddress");
-  this->Internal->ServerPort   = trackerConfig->GetAttribute("ServerPort");
+  
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkStealthLinkTracker::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  if ( rootConfigElement == NULL )
-  {
-    LOG_ERROR("Configuration is invalid");
-    return PLUS_FAIL;
-  }
-
   // Write configuration 
-  Superclass::WriteConfiguration(rootConfigElement); 
-
-  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(rootConfigElement);
-  if ( trackerConfig == NULL) 
-  {
-    LOG_ERROR("Cannot find Tracker element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  return PLUS_SUCCESS;
+  return Superclass::WriteConfiguration(rootConfigElement);
 } 
 //----------------------------------------------------------------------------
 PlusStatus vtkStealthLinkTracker::InternalConnect()
 { 
-
   LOG_TRACE( "vtkStealthLinkTracker::InternalConnect" );
   if (this->InternalShared->IsStealthServerConnected())
   {
@@ -878,7 +837,7 @@ PlusStatus vtkStealthLinkTracker::InternalUpdate()
     return PLUS_FAIL;
   }
   double timeSystemSec=0.0;
-  timeSystemSec = (serverTimeInMicroSec - this->InternalUpdatePrivate->ServerInitialTimeInMicroSeconds)/SECONDS_TO_MICRO_SECONDS + this->InternalUpdatePrivate->TrackerTimeToSystemTimeSec;
+  timeSystemSec = (serverTimeInMicroSec - this->InternalUpdatePrivate->ServerInitialTimeInMicroSeconds)/(1e6) + this->InternalUpdatePrivate->TrackerTimeToSystemTimeSec;
   double unfilteredTime = vtkAccurateTimer::GetSystemTime();
   //----------------------------------------------------------
   MNavStealthLink::NavData navData;

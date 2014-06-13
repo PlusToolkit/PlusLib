@@ -5,6 +5,7 @@
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
+#include "PlusXmlUtils.h"
 #include "TrackedFrame.h"
 #include "vtkObjectFactory.h"
 #include "vtkRecursiveCriticalSection.h"
@@ -525,18 +526,7 @@ void vtkTransformRepository::Clear()
 //----------------------------------------------------------------------------
 PlusStatus vtkTransformRepository::ReadConfiguration(vtkXMLDataElement* configRootElement)
 {
-  if ( configRootElement == NULL )
-  {
-    LOG_ERROR("Failed read transform from CoordinateDefinitions - config root element is NULL"); 
-    return PLUS_FAIL; 
-  }
-
-  vtkXMLDataElement* coordinateDefinitions = configRootElement->FindNestedElementWithName("CoordinateDefinitions");
-  if ( coordinateDefinitions == NULL )
-  {
-    LOG_DEBUG("Couldn't read transform from CoordinateDefinitions - CoordinateDefinitions element not found"); 
-    return PLUS_SUCCESS;  
-  }
+  DSC_FIND_NESTED_ELEMENT_REQUIRED(coordinateDefinitions, configRootElement, "CoordinateDefinitions");
 
   PlusLockGuard<vtkRecursiveCriticalSection> accessGuard(this->CriticalSection);
 
@@ -594,7 +584,10 @@ PlusStatus vtkTransformRepository::ReadConfiguration(vtkXMLDataElement* configRo
     bool isPersistent = true;
     if(nestedElement->GetAttribute("Persistent")) // if it exists, then it is non-persistent
     {
-      isPersistent = false;
+      if (STRCASECMP(nestedElement->GetAttribute("Persistent"),"FALSE")==0)
+      {
+        isPersistent = false;
+      }
     }
     if ( this->SetTransformPersistent(transformName, isPersistent) != PLUS_SUCCESS )
     {
@@ -605,7 +598,10 @@ PlusStatus vtkTransformRepository::ReadConfiguration(vtkXMLDataElement* configRo
     bool isValid = true;
     if(nestedElement->GetAttribute("Valid")) // if exists, then invalid
     {
-      isValid = false;
+      if (STRCASECMP(nestedElement->GetAttribute("Valid"),"FALSE")==0)
+      {
+        isValid = false;
+      }
     }
     if ( this->SetTransformValid(transformName, isValid) != PLUS_SUCCESS )
     {

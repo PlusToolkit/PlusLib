@@ -91,11 +91,7 @@ void vtkRfProcessor::SetScanConverter(vtkUsScanConvert* scanConverter)
 //-----------------------------------------------------------------------------
 PlusStatus vtkRfProcessor::ReadConfiguration(vtkXMLDataElement* rfProcessingElement)
 {
-  if ( rfProcessingElement == NULL )
-  {
-    LOG_DEBUG("Unable to configure vtkRfProcessor! (XML data element is NULL)"); 
-    return PLUS_FAIL; 
-  }
+  DSC_VERIFY_ELEMENT(rfProcessingElement, "RfProcessing");
 
   PlusStatus status=PLUS_SUCCESS;
 

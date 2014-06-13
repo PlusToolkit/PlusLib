@@ -13,6 +13,7 @@ non-commercial terms in your toolbox and distribute it."
 */
 
 #include "PlusConfigure.h"
+#include "PlusXmlUtils.h"
 #include "PlusCommon.h"
 
 #include "vtkUsScanConvertCurvilinear.h"
@@ -428,16 +429,8 @@ PlusStatus vtkUsScanConvertCurvilinear::ReadConfiguration(vtkXMLDataElement* sca
     return PLUS_FAIL;
   }
 
-  double radiusStartMm=0;
-  if ( scanConversionElement->GetScalarAttribute("RadiusStartMm", radiusStartMm)) 
-  {
-    this->RadiusStartMm=radiusStartMm; 
-  }
-  double radiusStopMm=0;
-  if ( scanConversionElement->GetScalarAttribute("RadiusStopMm", radiusStopMm)) 
-  {
-    this->RadiusStopMm=radiusStopMm; 
-  }
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, RadiusStartMm, scanConversionElement);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, RadiusStopMm, scanConversionElement);
 
   // this->TransducerCenterPixel values will be used in this file, so set them to meaningful default values if the user has not specified them
   if (!this->TransducerCenterPixelSpecified)
@@ -464,16 +457,8 @@ PlusStatus vtkUsScanConvertCurvilinear::ReadConfiguration(vtkXMLDataElement* sca
     }    
   }
 
-  double thetaStartDeg=0;
-  if ( scanConversionElement->GetScalarAttribute("ThetaStartDeg", thetaStartDeg)) 
-  {
-    this->ThetaStartDeg=thetaStartDeg; 
-  }
-  double thetaStopDeg=0;
-  if ( scanConversionElement->GetScalarAttribute("ThetaStopDeg", thetaStopDeg)) 
-  {
-    this->ThetaStopDeg=thetaStopDeg; 
-  }
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ThetaStartDeg, scanConversionElement);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ThetaStopDeg, scanConversionElement);
 
   return PLUS_SUCCESS;
 }

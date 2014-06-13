@@ -5,6 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
+#include "PlusXmlUtils.h"
 
 #include "SpatialModel.h"
 
@@ -46,7 +47,7 @@ SpatialModel::SpatialModel()
 //-----------------------------------------------------------------------------
 SpatialModel::~SpatialModel()
 {
-  SetModelToObjectTransform(NULL);
+  SetModelToObjectTransform(static_cast<vtkMatrix4x4*>(NULL));
   SetReferenceToObjectTransform(NULL);
   SetModelLocalizer(NULL);
   SetPolyData(NULL);
@@ -177,85 +178,22 @@ void SpatialModel::SetModelLocalizer(vtkModifiedBSPTree* modelLocalizer)
 //-----------------------------------------------------------------------------
 PlusStatus SpatialModel::ReadConfiguration(vtkXMLDataElement* spatialModelElement)
 { 
-  if ( spatialModelElement == NULL )
-  {
-    LOG_ERROR("Unable to configure SpatialModel (XML data element is NULL)"); 
-    return PLUS_FAIL; 
-  }
+  DSC_VERIFY_ELEMENT(spatialModelElement, "SpatialModel");
 
-  if ( spatialModelElement->GetName() == NULL || STRCASECMP(spatialModelElement->GetName(),"SpatialModel")!=0)
-  {
-    LOG_ERROR("Unable to read SpatialModel element: unexpected name: "<<(spatialModelElement->GetName()?spatialModelElement->GetName():"(unspecified)")); 
-    return PLUS_FAIL; 
-  }
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(Name, spatialModelElement);
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(ObjectCoordinateFrame, spatialModelElement);
+  SetModelFile(spatialModelElement->GetAttribute("ModelFile")); // if ModelFile is not set then we set it to NULL (it is not optional)
+  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 16, ModelToObjectTransform, spatialModelElement);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DensityKgPerM3, spatialModelElement);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SoundVelocityMPerSec, spatialModelElement);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, AttenuationCoefficientDbPerCmMhz, spatialModelElement);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SurfaceReflectionIntensityDecayDbPerMm, spatialModelElement);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, BackscatterDiffuseReflectionCoefficient, spatialModelElement);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SurfaceDiffuseReflectionCoefficient, spatialModelElement);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SurfaceSpecularReflectionCoefficient, spatialModelElement);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, TransducerSpatialModelMaxOverlapMm, spatialModelElement);
 
-  PlusStatus status=PLUS_SUCCESS;
-
-  //Set data elements
-
-  const char* name=spatialModelElement->GetAttribute("Name");
-  this->Name = name?name:"";
-
-  const char* objectCoordinateFrame=spatialModelElement->GetAttribute("ObjectCoordinateFrame");
-  this->ObjectCoordinateFrame = objectCoordinateFrame?objectCoordinateFrame:"";
-
-  SetModelFile(spatialModelElement->GetAttribute("ModelFile"));
-
-  double vectorModelFileToSpatialModelTransform[16]={0}; 
-  if ( spatialModelElement->GetVectorAttribute("ModelToObjectTransform", 16, vectorModelFileToSpatialModelTransform) )
-  {
-    this->ModelToObjectTransform->DeepCopy(vectorModelFileToSpatialModelTransform); 
-  }
-
-  double densityKGPerM3 = 0; 
-  if(spatialModelElement->GetScalarAttribute("DensityKgPerM3",densityKGPerM3))
-  {
-    this->DensityKgPerM3 = densityKGPerM3;  
-  }
-
-  double soundVelocityMperSec = 0;
-  if(spatialModelElement->GetScalarAttribute("SoundVelocityMPerSec",soundVelocityMperSec)) 
-  {
-    this->SoundVelocityMPerSec = soundVelocityMperSec;
-  }
-
-  double attenuationCoefficientDbPerCmMhz = 0;
-  if(spatialModelElement->GetScalarAttribute("AttenuationCoefficientDbPerCmMhz",attenuationCoefficientDbPerCmMhz)) 
-  {
-    this->AttenuationCoefficientDbPerCmMhz = attenuationCoefficientDbPerCmMhz;
-  }
-
-  double surfaceReflectionIntensityDecayDbPerMm = 0;
-  if(spatialModelElement->GetScalarAttribute("SurfaceReflectionIntensityDecayDbPerMm",surfaceReflectionIntensityDecayDbPerMm)) 
-  {
-    this->SurfaceReflectionIntensityDecayDbPerMm = surfaceReflectionIntensityDecayDbPerMm;
-  }
-
-  double diffuseReflectionCoefficient = 0;
-  if(spatialModelElement->GetScalarAttribute("BackscatterDiffuseReflectionCoefficient", diffuseReflectionCoefficient)) 
-  {
-    this->BackscatterDiffuseReflectionCoefficient = diffuseReflectionCoefficient;
-  }
-
-  double surfaceDiffuseReflectionCoefficient = 0;
-  if(spatialModelElement->GetScalarAttribute("SurfaceDiffuseReflectionCoefficient",surfaceDiffuseReflectionCoefficient)) 
-  {
-    this->SurfaceDiffuseReflectionCoefficient = surfaceDiffuseReflectionCoefficient;
-  }
-
-  double surfaceSpecularReflectionCoefficient = 0;
-  if(spatialModelElement->GetScalarAttribute("SurfaceSpecularReflectionCoefficient",surfaceSpecularReflectionCoefficient)) 
-  {
-    this->SurfaceSpecularReflectionCoefficient = surfaceSpecularReflectionCoefficient;
-  }
-
-  double transducerSpatialModelMaxOverlapMm = 0;
-  if(spatialModelElement->GetScalarAttribute("TransducerSpatialModelMaxOverlapMm",transducerSpatialModelMaxOverlapMm)) 
-  {
-    this->TransducerSpatialModelMaxOverlapMm = transducerSpatialModelMaxOverlapMm;
-  }
-
-  return status;
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -603,4 +541,10 @@ void SpatialModel::UpdatePrecomputedAttenuations(double intensityTransmittedFrac
     this->PrecomputedAttenuations[i]=attenuation;
     attenuation*=intensityTransmittedFractionPerPixelTwoWay;
   }
+}
+
+//-----------------------------------------------------------------------------
+void SpatialModel::SetModelToObjectTransform(double* matrixElements)
+{
+  this->ModelToObjectTransform->DeepCopy(matrixElements); 
 }

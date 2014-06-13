@@ -4,7 +4,8 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "PlusCommon.h"
+#include "PlusConfigure.h"
+#include "PlusXmlUtils.h"
 
 #include "vtkUsScanConvertLinear.h"
 
@@ -107,17 +108,8 @@ PlusStatus vtkUsScanConvertLinear::ReadConfiguration(vtkXMLDataElement* scanConv
     return PLUS_FAIL;
   }
 
-  double imagingDepthMm=0;
-  if ( scanConversionElement->GetScalarAttribute("ImagingDepthMm", imagingDepthMm)) 
-  {
-    this->ImagingDepthMm=imagingDepthMm; 
-  }
-
-  double transducerWidthMm=0;
-  if ( scanConversionElement->GetScalarAttribute("TransducerWidthMm", transducerWidthMm)) 
-  {
-    this->TransducerWidthMm=transducerWidthMm; 
-  }
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ImagingDepthMm, scanConversionElement);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, TransducerWidthMm, scanConversionElement);
  
   return PLUS_SUCCESS;
 }

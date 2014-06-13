@@ -14,7 +14,7 @@
     ImageNormalVectorInPhantomFrameEstimation="0 0 1"
     ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg="-30 30 -30 30 -50 50"
     CollinearPointsMaxDistanceFromLineMm="1.0"
-    UseOriginalImageIntensityForDotIntensityScore="0"
+    UseOriginalImageIntensityForDotIntensityScore="FALSE"
     NumberOfMaximumFiducialPointCandidates="20" />
 
   <CoordinateDefinitions>

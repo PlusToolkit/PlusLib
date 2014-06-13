@@ -111,7 +111,7 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
     MaxLineShiftMm="10.0"
     ThresholdImagePercent="10"
     CollinearPointsMaxDistanceFromLineMm="0.6"
-    UseOriginalImageIntensityForDotIntensityScore="0"
+    UseOriginalImageIntensityForDotIntensityScore="FALSE"
     NumberOfMaximumFiducialPointCandidates="20" />
 
   <PhantomDefinition>
@@ -151,8 +151,8 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
     ClipRectangleSize="820 616"
     Interpolation="LINEAR" 
     Optimization="FULL" 
-    Compounding="On" 
-    FillHoles="Off" />
+    Compounding="ON" 
+    FillHoles="OFF" />
     
   <fCal
     PhantomModelId="PhantomModel"

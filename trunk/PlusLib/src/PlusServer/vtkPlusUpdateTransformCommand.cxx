@@ -29,7 +29,7 @@ vtkPlusUpdateTransformCommand::vtkPlusUpdateTransformCommand()
 vtkPlusUpdateTransformCommand::~vtkPlusUpdateTransformCommand()
 {
   this->SetTransformName(NULL);
-  this->SetTransformValue(NULL);
+  this->SetTransformValue(static_cast<vtkMatrix4x4*>(NULL));
   this->SetTransformDate(NULL);
 }
 
@@ -71,38 +71,11 @@ PlusStatus vtkPlusUpdateTransformCommand::ReadConfiguration(vtkXMLDataElement* a
   {
     return PLUS_FAIL;
   }
-
-  this->SetTransformName(aConfig->GetAttribute("TransformName"));
-
-  double transformMatrix[16]={0}; 
-  if ( aConfig->GetVectorAttribute("TransformValue", 16, transformMatrix) )
-  {
-    vtkSmartPointer<vtkMatrix4x4> transform=vtkSmartPointer<vtkMatrix4x4>::New();
-    transform->DeepCopy(transformMatrix);
-    SetTransformValue(transform);
-  }
-  else
-  {
-    SetTransformValue(NULL);
-  }
-
-  if( aConfig->GetAttribute("TransformPersistent") != NULL )
-  {
-    this->SetTransformPersistent(STRCASECMP(aConfig->GetAttribute("TransformPersistent"), "TRUE") == 0);
-  }
-
-  double error=0.0;
-  if( aConfig->GetScalarAttribute("TransformError", error) )
-  {
-    this->SetTransformError(error);
-  }
-  else
-  {
-    this->SetTransformError(-1.0);
-  }
-
-  this->SetTransformDate(aConfig->GetAttribute("TransformDate"));
-
+  DSC_READ_STRING_ATTRIBUTE_REQUIRED(TransformName, aConfig);
+  DSC_READ_VECTOR_ATTRIBUTE_REQUIRED(double, 16, TransformValue, aConfig);
+  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(TransformPersistent, aConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, TransformError, aConfig);
+  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(TransformDate, aConfig);
   return PLUS_SUCCESS;
 }
 
@@ -187,4 +160,10 @@ PlusStatus vtkPlusUpdateTransformCommand::Execute()
 
   this->QueueStringResponse(baseMessageString + " completed successfully" + warningString,PLUS_SUCCESS);
   return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+void vtkPlusUpdateTransformCommand::SetTransformValue(double* matrixElements)
+{
+  this->TransformValue->DeepCopy(matrixElements); 
 }

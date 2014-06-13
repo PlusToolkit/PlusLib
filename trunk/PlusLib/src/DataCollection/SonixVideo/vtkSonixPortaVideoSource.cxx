@@ -45,6 +45,8 @@ and The University of Western Ontario)
 #pragma warning (pop)
 #endif
 
+const int MAX_BYTES_PER_BMODE_PIXEL=4;
+
 vtkCxxRevisionMacro(vtkSonixPortaVideoSource, "$Revision: 1.0$");
 //vtkStandardNewMacro(vtkWin32VideoSource);
 //----------------------------------------------------------------------------
@@ -110,19 +112,9 @@ vtkSonixPortaVideoSourceCleanup::~vtkSonixPortaVideoSourceCleanup()
 //----------------------------------------------------------------------------
 vtkSonixPortaVideoSource::vtkSonixPortaVideoSource() 
 {
-  // porta instantiation
-	 // this->PortaBModeWidth = 480;       // defaults to BMode, 640x480
-  //this->PortaBModeHeight = 436;
-  //this->ImageBuffer = 0;
-  //this->ImageBuffer = new unsigned char [ this->PortaBModeWidth *
-  //  this->PortaBModeHeight * 4 ];
-  //if ( !this->ImageBuffer ) 
-  //{
-  //  LOG_ERROR("vtkSonixPortaVideoSource constructor: not enough memory for ImageBuffer" );
-  //}
-	this->PortaBModeWidth = 480;
-	this->PortaBModeHeight = 436;
-	this->ImageBuffer = 0;
+	this->BModeFrameSize[0] = 480;
+	this->BModeFrameSize[1] = 436;
+	this->BModeFrameBuffer = 0;
   this->ImagingMode = (int)BMode;
   this->PortaProbeSelected = 0;
   this->PortaModeSelected = 0;
@@ -162,9 +154,8 @@ vtkSonixPortaVideoSource::~vtkSonixPortaVideoSource()
   SetPortaFirmwarePath(NULL);
   SetPortaLUTPath(NULL);
 
-  delete [] this->ImageBuffer;
-  this->ImageBuffer = 0;
-
+  delete [] this->BModeFrameBuffer;
+  this->BModeFrameBuffer = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -305,10 +296,7 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
     this->FirstCallToAddFrameToBuffer = false;
   }
 
-  this->Porta.getBwImage( 0, this->ImageBuffer, false );
-
-  // get the pointer to the actual incoming data onto a local pointer
-  unsigned char *deviceDataPtr = static_cast<unsigned char*>( this->ImageBuffer );
+  this->Porta.getBwImage( 0, this->BModeFrameBuffer, false );
 
   // Compute the angle of the motor. 
   double frameIndexOneVolume =  id % this->FramePerVolume;
@@ -359,7 +347,7 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
 	customFields["DummyToVolumeIndexTransform"] =  volumeIndex.str() + " 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
   customFields["DummyToVolumeIndexTransformStatus"] = "OK";
 
-  PlusStatus status = aSource->GetBuffer()->AddItem(deviceDataPtr, aSource->GetPortImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, numberOfBytesToSkip, id, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields); 
+  PlusStatus status = aSource->GetBuffer()->AddItem(this->BModeFrameBuffer, aSource->GetPortImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, numberOfBytesToSkip, id, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields); 
 
   this->Modified();
   return status;
@@ -459,10 +447,11 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
     }
 
 		// Set B-mode image size
-		this->ImageBuffer = new unsigned char [ this->PortaBModeWidth * this->PortaBModeHeight * 4 ];
-		if ( !this->ImageBuffer ) 
+    delete [] this->BModeFrameBuffer;
+		this->BModeFrameBuffer = new unsigned char [ this->BModeFrameSize[0] * this->BModeFrameSize[1] * MAX_BYTES_PER_BMODE_PIXEL ];
+		if ( !this->BModeFrameBuffer ) 
 		{
-			LOG_ERROR("vtkSonixPortaVideoSource constructor: not enough memory for ImageBuffer" );
+			LOG_ERROR("vtkSonixPortaVideoSource constructor: not enough memory for BModeFrameBuffer" );
 		}
 
     if( !this->SetFrameSize( *aSource, this->PortaBModeWidth, this->PortaBModeHeight )  )
@@ -560,158 +549,30 @@ PlusStatus vtkSonixPortaVideoSource::InternalStopRecording()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  LOG_TRACE("vtkSonixPortaVideoSource::ReadConfiguration"); 
-  if ( config == NULL )
-  {
-    LOG_ERROR("Unable to configure Sonix Porta video source! (XML data element is NULL)"); 
-    return PLUS_FAIL; 
-  }
+  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
-  Superclass::ReadConfiguration(config); 
+  DSC_READ_ENUM1_ATTRIBUTE_OPTIONAL(ImagingMode, deviceConfig, "BMode", BMode);
 
-  vtkXMLDataElement* imageAcquisitionConfig = this->FindThisDeviceElement(config);
-  if (imageAcquisitionConfig == NULL) 
-  {
-    LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
-    return PLUS_FAIL;
-  }
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Depth, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Gain, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Zoom, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Frequency, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Timeout, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FramePerVolume, deviceConfig);
+  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, BModeFrameSize, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, StepPerFrame, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Usm, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Pci, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, HighVoltage, deviceConfig);
+  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Channels, deviceConfig);
 
-  const char* imagingMode = imageAcquisitionConfig->GetAttribute("ImagingMode"); 
-  if ( imagingMode != NULL) 
-  {
-    if (STRCASECMP(imagingMode, "BMode")==0)
-    {
-      LOG_DEBUG("Imaging mode set: BMode"); 
-      this->SetImagingMode(BMode); 
-    }
-    else
-    {
-      LOG_ERROR("Unsupported ImagingMode requested: "<<imagingMode);
-    }
-  }  
-  const char* acquisitionDataType = imageAcquisitionConfig->GetAttribute("AcquisitionDataType"); 
+  DSC_READ_STRING_ATTRIBUTE_REQUIRED(PortaLUTPath, deviceConfig);
+  DSC_READ_STRING_ATTRIBUTE_REQUIRED(PortaSettingPath, deviceConfig);
+  DSC_READ_STRING_ATTRIBUTE_REQUIRED(PortaLicensePath, deviceConfig);
+  DSC_READ_STRING_ATTRIBUTE_REQUIRED(PortaFirmwarePath, deviceConfig);
 
-  int depth = -1; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("Depth", depth)) 
-  {
-    this->Depth = depth; 
-  }
-
-  int gain = -1; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("Gain", gain)) 
-  {
-    this->Gain = gain; 
-  }
-
-  int zoom = -1; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("Zoom", zoom)) 
-  {
-    this->Zoom = zoom; 
-  }
-
-  int frequency = -1; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("Frequency", frequency)) 
-  {
-    this->Frequency = frequency;
-  }
-
-  int timeout = 0; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("Timeout", timeout)) 
-  {
-    this->Timeout = timeout; 
-  }
-
-  int framePerVolume = 0; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("FramePerVolume", framePerVolume)) 
-  {
-    this->FramePerVolume = framePerVolume;
-  }  
-
-  int portaBModeWidth = 0; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("PortaBModeWidth", portaBModeWidth)) 
-  {
-    this->PortaBModeWidth = portaBModeWidth; 
-  } 
-
-	int portaBModeHeight = 0; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("PortaBModeHeight", portaBModeHeight)) 
-  {
-    this->PortaBModeHeight = portaBModeHeight; 
-  }  
-
-	int stepPerFrame = 0; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("StepPerFrame", stepPerFrame)) 
-  {
-    this->StepPerFrame = stepPerFrame; 
-  }  
-
-  int usm = 0; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("USM", usm)) 
-  {
-    this->Usm = usm; 
-  }  
-
-  int pci = 0; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("PCI", pci)) 
-  {
-    this->Pci = pci; 
-  }  
-
-  int highVoltage = 0; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("HighVoltage", highVoltage)) 
-  {
-    this->HighVoltage = highVoltage; 
-  } 
-
-  int channels = 0; 
-  if ( imageAcquisitionConfig->GetScalarAttribute("Channels", channels)) 
-  {
-    this->Channels = channels; 
-  } 
-
-  const char* portaLUTpath = imageAcquisitionConfig->GetAttribute("PortaLUTPath"); 
-  if ( portaLUTpath != NULL) 
-  {
-    this->SetPortaLUTPath(portaLUTpath); 
-  }
-  else
-  {
-    LOG_ERROR("Porta LUT path is not defined");
-  }
-
-  const char* portaSettingPath = imageAcquisitionConfig->GetAttribute("PortaSettingPath"); 
-  if ( portaSettingPath != NULL) 
-  {
-    this->SetPortaSettingPath(portaSettingPath); 
-  }
-  else
-  {
-    LOG_ERROR("Porta Setting path is not defined");
-  }
-
-  const char* portaLicensePath = imageAcquisitionConfig->GetAttribute("PortaLicensePath"); 
-  if ( portaLicensePath != NULL) 
-  {
-    this->SetPortaLicensePath(portaLicensePath); 
-  }
-  else
-  {
-    LOG_ERROR("Porta License path is not defined");
-  }
-
-  const char* portaFirmwarePath = imageAcquisitionConfig->GetAttribute("PortaFirmwarePath"); 
-  if ( portaFirmwarePath != NULL) 
-  {
-    this->SetPortaFirmwarePath(portaFirmwarePath); 
-  }
-  else
-  {
-    LOG_ERROR("Porta Firmware path is not defined");
-  }
-
-  LOG_DEBUG("Porta read the XML configuration");
   return PLUS_SUCCESS;
 }
 

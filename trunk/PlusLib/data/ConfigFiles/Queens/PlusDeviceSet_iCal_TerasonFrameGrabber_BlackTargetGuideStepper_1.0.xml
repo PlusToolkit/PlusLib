@@ -126,7 +126,7 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
     AngleToleranceDegrees="10"
     ThresholdImagePercent="10.0"
     CollinearPointsMaxDistanceFromLineMm="1.75"
-    UseOriginalImageIntensityForDotIntensityScore="0"
+    UseOriginalImageIntensityForDotIntensityScore="FALSE"
     NumberOfMaximumFiducialPointCandidates="20" />
 
   <PhantomDefinition>
@@ -156,7 +156,7 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
 
   <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
     ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
-    Interpolation="LINEAR" Optimization="FULL" Compounding="On" FillHoles="Off" />
+    Interpolation="LINEAR" Optimization="FULL" Compounding="ON" FillHoles="OFF" />
 
   <TemplateModel version="1.0">
     <TemplateHole Representation="Sphere" Radius="0.2"/>

@@ -47,7 +47,7 @@
     AngleToleranceDegrees="11"
     ThresholdImagePercent="10.0"
     CollinearPointsMaxDistanceFromLineMm="1.38"
-    UseOriginalImageIntensityForDotIntensityScore="0"
+    UseOriginalImageIntensityForDotIntensityScore="FALSE"
     NumberOfMaximumFiducialPointCandidates="55" />
 
   <iCal version="1.0" 

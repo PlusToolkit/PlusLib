@@ -20,7 +20,7 @@
   <VolumeReconstruction OutputSpacing="0.5 0.5 0.5" 
     ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
     Interpolation="LINEAR" Optimization="FULL"
-    Compounding="On" FillHoles="On" NumberOfThreads="1">
+    Compounding="ON" FillHoles="ON" NumberOfThreads="1">
     <HoleFilling>
       <HoleFillingElement
         Type="STICK"     

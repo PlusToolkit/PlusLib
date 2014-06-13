@@ -53,6 +53,7 @@ public:
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   vtkGetMacro(SkipInterval,int);
+  vtkSetMacro(SkipInterval,int);
 
   /*! Read configuration data (volume reconstruction options and calibration matrix) */
   virtual PlusStatus ReadConfiguration( vtkXMLDataElement* config); 
@@ -130,9 +131,11 @@ public:
     Get the clip rectangle origin to apply to the image in pixel coordinates.
   */
   int* GetClipRectangleOrigin();
+  void SetClipRectangleOrigin(int* origin);
 
   /*! Get the clip rectangle size in pixels */
   int* GetClipRectangleSize();
+  void SetClipRectangleSize(int* size);
 
   /*! Clear the reconstructed volume */
   void Reset();
@@ -145,6 +148,20 @@ public:
 
   /*! Set the output volume's extent (xStart, xEnd, yStart, yEnd, zStart, zEnd) in voxels */
   void SetOutputExtent(int* extent);
+
+  /*! Set the number of threads used for volume reconstruction and hole filling */
+  void SetNumberOfThreads(int numberOfThreads);
+  
+  void SetFanAngles(double* fanAngles);
+  void SetFanOrigin(double* fanOrigin);
+  void SetFanDepth(double fanDepth);
+
+  void SetInterpolation(vtkPasteSliceIntoVolume::InterpolationType interpolation);
+  void SetCalculation(vtkPasteSliceIntoVolume::CalculationType calculation);
+  void SetOptimization(vtkPasteSliceIntoVolume::OptimizationType optimization);
+  void SetCompounding(bool enable);
+  
+  vtkSetMacro(FillHoles, bool);
 
 protected: 
   vtkVolumeReconstructor();
@@ -161,7 +178,7 @@ protected:
  
   vtkSmartPointer<vtkImageData> ReconstructedVolume;
 
-  /*! Defines the image coordinate system name: it corresponds to the image data in the tracked frame */
+  /*! Defines the image coordinate system name: it corresponds to the 2D frame of the image data in the tracked frame */
   char* ImageCoordinateFrame;
 
   /*! 
@@ -172,7 +189,7 @@ protected:
   char* ReferenceCoordinateFrame;
 
   /*! If enabled then the hole filling will be applied on output reconstructed volume */
-  int FillHoles;
+  bool FillHoles;
 
   /*! only every [SkipInterval] images from the input will be used in the reconstruction (Ie this is the number of frames that are skipped when the index is increased) */
   int SkipInterval;

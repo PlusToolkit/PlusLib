@@ -135,7 +135,7 @@
     MaxThetaDegrees="70"
     ThresholdImagePercent="10"
     CollinearPointsMaxDistanceFromLineMm="0.6"
-    UseOriginalImageIntensityForDotIntensityScore="0"
+    UseOriginalImageIntensityForDotIntensityScore="FALSE"
     MaxLineShiftMm="10"
     NumberOfMaximumFiducialPointCandidates="20" />
 
@@ -176,8 +176,8 @@
     ClipRectangleSize="820 616"
     Interpolation="LINEAR"
     Optimization="FULL"
-    Compounding="On"
-    FillHoles="Off"/>
+    Compounding="ON"
+    FillHoles="OFF"/>
 
   <fCal
     PhantomModelId="PhantomModel"

@@ -249,6 +249,8 @@ public:
 
   unsigned int* calculateGaussianMatrix(const int& kernelIndex);
 
+  /*! Read hole filling parameter form a HoleFilling XML element */
+  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* holeFillingConfig); 
 
 protected:
   vtkFillHolesInVolume();

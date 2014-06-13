@@ -10,7 +10,7 @@
     MaxAngleDifferenceDegrees="11"
     ThresholdImagePercent="10.0"
     CollinearPointsMaxDistanceFromLineMm="1.11"
-    UseOriginalImageIntensityForDotIntensityScore="0"
+    UseOriginalImageIntensityForDotIntensityScore="FALSE"
     ApproximateSpacingMmPerPixel="0.21"
     ImageScalingTolerancePercent="-10 10 -10 10"                                
     ImageNormalVectorInPhantomFrameEstimation="0 0 1"

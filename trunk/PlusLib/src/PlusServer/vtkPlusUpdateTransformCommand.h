@@ -45,6 +45,7 @@ public:
 
   vtkGetObjectMacro(TransformValue, vtkMatrix4x4);
   vtkSetObjectMacro(TransformValue, vtkMatrix4x4);
+  void SetTransformValue(double* matrixElements);
 
   vtkGetStringMacro(TransformDate);
   vtkSetStringMacro(TransformDate);
