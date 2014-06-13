@@ -36,7 +36,7 @@ namespace
   // The maximum resolution that the user can request
   const double MINIMUM_SAMPLING_RESOLUTION_SEC = 0.00001; 
   const double DEFAULT_SAMPLING_RESOLUTION_SEC = 0.001; 
-  const double DEFAULT_MAX_TRACKER_LAG_SEC = 0.5;
+  const double DEFAULT_MAX_MOVING_LAG_SEC = 0.5;
 
   enum SignalAlignmentMetricType
   {
@@ -64,7 +64,7 @@ namespace
 //-----------------------------------------------------------------------------
 vtkTemporalCalibrationAlgo::vtkTemporalCalibrationAlgo() : 
   SamplingResolutionSec(DEFAULT_SAMPLING_RESOLUTION_SEC),
-  MaxMovingLagSec(DEFAULT_MAX_TRACKER_LAG_SEC),
+  MaxMovingLagSec(DEFAULT_MAX_MOVING_LAG_SEC),
   NeverUpdated(true),
   SaveIntermediateImages(false),
   MovingLagSec(0.0),
@@ -886,6 +886,7 @@ PlusStatus vtkTemporalCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* aCo
   XML_FIND_NESTED_ELEMENT_OPTIONAL(calibrationParameters, aConfig, "vtkTemporalCalibrationAlgo");
 
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(SaveIntermediateImages, calibrationParameters);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, MaximumMovingLagSec, calibrationParameters);
 
   if (calibrationParameters != NULL)
   {

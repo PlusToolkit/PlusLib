@@ -1,0 +1,35 @@
+/*!
+\page AlgorithmTemporalCalibration Temporal calibration
+
+The temporal calibration algorithm can estimate the time offset between two data streams: either two tracker streams
+or a tracker stream and an ultrasound image stream. Data has to be acquired while moving a tracked object with a
+periodic motion along a line by freehand. The inputted data is assumed to contain at least five full periods
+(although the algorithm may work for fewer periods it has not been tested under these conditions).
+  
+When an image stream is used the data assumed to be collected by an ultrsound probe imaging a planar object.
+Furthermore, it is assumed that the probe is undergoing periodic motion in the direction perpendicular to the
+plane's face (e.g., moving the probe in a repeating up-and-down fashion while imaging the bottom of a water bath).   
+
+The time offset is determined by computing the time offset where the correlation between the fixed signal and the moving
+signal is maximized. For the correlation computation the moving signal is linearly interpolated at the time positions
+where the fixed signal is known. As the acquisition rate of imaging data is typically lower than the acquisition rate
+of tracking data, it is preferable to use video as fixed signal and tracker as moving signal.
+
+The fixed and moving signal is cropped to the common time range. The moving signal is further cropped to the common range
+with \c SetMaximumMovingLagSec margin.
+  
+\par Configuration settings
+
+- Element name: \c vtkTemporalCalibrationAlgo
+- Attributes
+  - \c ClipRectangleOrigin and \c ClipRectangleSize define a region to take into account when line detection is performed on images. Optional attribute, if not specified then the whole image is used.
+  - \c SaveIntermediateImages controls if diagnostic information of line detection in images is written to files. Optional attribute, default value is \c FALSE.
+    - \c FALSE No debug information will be written.
+    - \c TRUE Image files are written to the output directory that show the lines along image intensity is sampled and the detected line.
+  - \c SetMaximumMovingLagSec defines the maximum time lag that will be considered by the algorithm, in seconds. Optional attribute, default value is 0.5 sec.
+
+\par Example configuration file
+
+\include "data/ConfigFiles/PlusDeviceSet_fCal_Sim_TemporalCalibration.xml"
+
+*/
