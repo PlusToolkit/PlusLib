@@ -108,8 +108,8 @@ PlusStatus vtkUsScanConvertLinear::ReadConfiguration(vtkXMLDataElement* scanConv
     return PLUS_FAIL;
   }
 
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ImagingDepthMm, scanConversionElement);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, TransducerWidthMm, scanConversionElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ImagingDepthMm, scanConversionElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, TransducerWidthMm, scanConversionElement);
  
   return PLUS_SUCCESS;
 }

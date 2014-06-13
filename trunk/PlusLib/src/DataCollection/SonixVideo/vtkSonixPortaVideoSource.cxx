@@ -551,27 +551,27 @@ PlusStatus vtkSonixPortaVideoSource::InternalStopRecording()
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
-  DSC_READ_ENUM1_ATTRIBUTE_OPTIONAL(ImagingMode, deviceConfig, "BMode", BMode);
+  XML_READ_ENUM1_ATTRIBUTE_OPTIONAL(ImagingMode, deviceConfig, "BMode", BMode);
 
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Depth, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Gain, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Zoom, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Frequency, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Timeout, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FramePerVolume, deviceConfig);
-  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, BModeFrameSize, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, StepPerFrame, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Usm, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Pci, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, HighVoltage, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Channels, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Depth, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Gain, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Zoom, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Frequency, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Timeout, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FramePerVolume, deviceConfig);
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, BModeFrameSize, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, StepPerFrame, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Usm, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Pci, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, HighVoltage, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Channels, deviceConfig);
 
-  DSC_READ_STRING_ATTRIBUTE_REQUIRED(PortaLUTPath, deviceConfig);
-  DSC_READ_STRING_ATTRIBUTE_REQUIRED(PortaSettingPath, deviceConfig);
-  DSC_READ_STRING_ATTRIBUTE_REQUIRED(PortaLicensePath, deviceConfig);
-  DSC_READ_STRING_ATTRIBUTE_REQUIRED(PortaFirmwarePath, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(PortaLUTPath, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(PortaSettingPath, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(PortaLicensePath, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(PortaFirmwarePath, deviceConfig);
 
   return PLUS_SUCCESS;
 }

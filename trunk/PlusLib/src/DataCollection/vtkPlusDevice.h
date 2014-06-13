@@ -594,7 +594,7 @@ private:
   void operator=(const vtkPlusDevice&);  // Not implemented. 
 };
 
-#define DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement) \
+#define XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement) \
   if( Superclass::ReadConfiguration(rootConfigElement) != PLUS_SUCCESS )  \
   { \
     LOG_ERROR("Unable to continue configuration of "<<this->GetClassName()<<". Generic device configuration failed.");  \

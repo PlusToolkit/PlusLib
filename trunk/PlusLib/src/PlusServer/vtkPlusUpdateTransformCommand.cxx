@@ -71,11 +71,11 @@ PlusStatus vtkPlusUpdateTransformCommand::ReadConfiguration(vtkXMLDataElement* a
   {
     return PLUS_FAIL;
   }
-  DSC_READ_STRING_ATTRIBUTE_REQUIRED(TransformName, aConfig);
-  DSC_READ_VECTOR_ATTRIBUTE_REQUIRED(double, 16, TransformValue, aConfig);
-  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(TransformPersistent, aConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, TransformError, aConfig);
-  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(TransformDate, aConfig);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(TransformName, aConfig);
+  XML_READ_VECTOR_ATTRIBUTE_REQUIRED(double, 16, TransformValue, aConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(TransformPersistent, aConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, TransformError, aConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(TransformDate, aConfig);
   return PLUS_SUCCESS;
 }
 

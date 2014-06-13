@@ -342,8 +342,8 @@ PlusStatus vtkBkProFocusOemVideoSource::InternalUpdate()
 //-----------------------------------------------------------------------------
 PlusStatus vtkBkProFocusOemVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);  
-  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(IniFileName, deviceConfig);
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);  
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(IniFileName, deviceConfig);
   return PLUS_SUCCESS;
 }
 

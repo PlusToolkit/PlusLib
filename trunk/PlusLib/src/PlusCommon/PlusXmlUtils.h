@@ -51,7 +51,7 @@ public:
   }
 };
 
-#define DSC_FIND_NESTED_ELEMENT_OPTIONAL(destinationXmlElementVar, rootXmlElementVar, nestedXmlElementName) \
+#define XML_FIND_NESTED_ELEMENT_OPTIONAL(destinationXmlElementVar, rootXmlElementVar, nestedXmlElementName) \
   if (rootXmlElementVar == NULL) \
   { \
     LOG_ERROR("Invalid device set configuration found while looking for optional "<<nestedXmlElementName<<" element"); \
@@ -59,7 +59,7 @@ public:
   } \
   vtkXMLDataElement* destinationXmlElementVar = rootXmlElementVar->FindNestedElementWithName(nestedXmlElementName);
 
-#define DSC_FIND_NESTED_ELEMENT_REQUIRED(destinationXmlElementVar, rootXmlElementVar, nestedXmlElementName) \
+#define XML_FIND_NESTED_ELEMENT_REQUIRED(destinationXmlElementVar, rootXmlElementVar, nestedXmlElementName) \
   if (rootXmlElementVar == NULL) \
   { \
     LOG_ERROR("Invalid device set configuration: unable to find required "<<nestedXmlElementName<<" element"); \
@@ -72,7 +72,7 @@ public:
     return PLUS_FAIL; \
   }
 
-#define DSC_VERIFY_ELEMENT(xmlElementVar, expectedXmlElementName) \
+#define XML_VERIFY_ELEMENT(xmlElementVar, expectedXmlElementName) \
   if (xmlElementVar == NULL) \
   { \
     LOG_ERROR("Missing or invalid "<<expectedXmlElementName<<" element"); \
@@ -85,7 +85,7 @@ public:
   }
   
 /*
-#define DSC_GET_ATTRIBUTE_REQUIRED(destinationXmlElementVar, xmlElementVar, attributeName)  \
+#define XML_GET_ATTRIBUTE_REQUIRED(destinationXmlElementVar, xmlElementVar, attributeName)  \
   const char* destinationXmlElementVar = xmlElementVar->GetAttribute(attributeName);  \
   if (destinationXmlElementVar == NULL)  \
   { \
@@ -95,7 +95,7 @@ public:
 */
 
 // Read a string attribute and save it to a class member variable. If not found return with fail.
-#define DSC_READ_STRING_ATTRIBUTE_REQUIRED(memberVar, xmlElementVar)  \
+#define XML_READ_STRING_ATTRIBUTE_REQUIRED(memberVar, xmlElementVar)  \
   { \
     const char* attributeName = #memberVar; \
     const char* destinationXmlElementVar = xmlElementVar->GetAttribute(attributeName);  \
@@ -108,7 +108,7 @@ public:
   }
 
 // Read a numeric attribute and save it to a class member variable. If not found then no change.
-#define DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(memberVarType, memberVar, xmlElementVar)  \
+#define XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(memberVarType, memberVar, xmlElementVar)  \
   { \
     const char* attributeName = #memberVar; \
     memberVarType tmpValue = 0; \
@@ -119,7 +119,7 @@ public:
   }
 
 // Read a numeric attribute and save it to a class member variable. If not found then log warning and make no change.
-#define DSC_READ_SCALAR_ATTRIBUTE_WARNING(memberVarType, memberVar, xmlElementVar)  \
+#define XML_READ_SCALAR_ATTRIBUTE_WARNING(memberVarType, memberVar, xmlElementVar)  \
   { \
     const char* attributeName = #memberVar; \
     memberVarType tmpValue = 0; \
@@ -134,7 +134,7 @@ public:
   }
 
 // Read a numeric attribute and save it to a class member variable. If not found then return with error.
-#define DSC_READ_SCALAR_ATTRIBUTE_REQUIRED(memberVarType, memberVar, xmlElementVar)  \
+#define XML_READ_SCALAR_ATTRIBUTE_REQUIRED(memberVarType, memberVar, xmlElementVar)  \
   { \
     const char* attributeName = #memberVar; \
     memberVarType tmpValue = 0; \
@@ -150,7 +150,7 @@ public:
   }
 
 // Read a vector of numeric attributes and save it to a class member variable. If not found then no change.
-#define DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(memberVarType, vectorSize, memberVar, xmlElementVar)  \
+#define XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(memberVarType, vectorSize, memberVar, xmlElementVar)  \
   { \
     const char* attributeName = #memberVar; \
     memberVarType tmpValue[vectorSize] = {0}; \
@@ -161,7 +161,7 @@ public:
   }
 
 // Read a vector of numeric attributes and save it to a class member variable. If not found then do not change the value and log warning.
-#define DSC_READ_VECTOR_ATTRIBUTE_WARNING(memberVarType, vectorSize, memberVar, xmlElementVar)  \
+#define XML_READ_VECTOR_ATTRIBUTE_WARNING(memberVarType, vectorSize, memberVar, xmlElementVar)  \
   { \
     const char* attributeName = #memberVar; \
     memberVarType tmpValue[vectorSize] = {0}; \
@@ -176,7 +176,7 @@ public:
   }
 
 // Read a vector of numeric attributes and save it to a class member variable. If not found then return with failure.
-#define DSC_READ_VECTOR_ATTRIBUTE_REQUIRED(memberVarType, vectorSize, memberVar, xmlElementVar)  \
+#define XML_READ_VECTOR_ATTRIBUTE_REQUIRED(memberVarType, vectorSize, memberVar, xmlElementVar)  \
   { \
     const char* attributeName = #memberVar; \
     memberVarType tmpValue[vectorSize] = {0}; \
@@ -194,7 +194,7 @@ public:
   
 // Read a string attribute (with the same name as the class member variable) and save it to a class member variable.
 // If attribute not found then the member is not modified but a warning is logged.
-#define DSC_READ_STRING_ATTRIBUTE_WARNING(memberVar, xmlElementVar)  \
+#define XML_READ_STRING_ATTRIBUTE_WARNING(memberVar, xmlElementVar)  \
   { \
     const char* attributeName = #memberVar; \
     const char* destinationXmlElementVar = xmlElementVar->GetAttribute(attributeName);  \
@@ -210,7 +210,7 @@ public:
 
 // Read a string attribute (with the same name as the class member variable) and save it to a class member variable.
 // If attribute not found then the member is not modified.
-#define DSC_READ_STRING_ATTRIBUTE_OPTIONAL(memberVar, xmlElementVar)  \
+#define XML_READ_STRING_ATTRIBUTE_OPTIONAL(memberVar, xmlElementVar)  \
   { \
     const char* attributeName = #memberVar; \
     const char* destinationXmlElementVar = xmlElementVar->GetAttribute(attributeName);  \
@@ -221,7 +221,7 @@ public:
   }
 
 // Read a bool attribute (TRUE/FALSE) and save it to a class member variable. If not found do not change it.
-#define DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(memberVar, xmlElementVar)  \
+#define XML_READ_BOOL_ATTRIBUTE_OPTIONAL(memberVar, xmlElementVar)  \
   { \
     const char* attributeName = #memberVar; \
     const char* strValue = xmlElementVar->GetAttribute(attributeName); \
@@ -244,7 +244,7 @@ public:
     } \
   }
 
-#define DSC_READ_ENUM1_ATTRIBUTE_OPTIONAL(memberVar, xmlElementVar, enumString1, enumValue1)  \
+#define XML_READ_ENUM1_ATTRIBUTE_OPTIONAL(memberVar, xmlElementVar, enumString1, enumValue1)  \
   { \
     const char* attributeName = #memberVar; \
     const char* strValue = xmlElementVar->GetAttribute(attributeName); \
@@ -263,7 +263,7 @@ public:
     } \
   }
 
-#define DSC_READ_ENUM2_ATTRIBUTE_OPTIONAL(memberVar, xmlElementVar, enumString1, enumValue1, enumString2, enumValue2)  \
+#define XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(memberVar, xmlElementVar, enumString1, enumValue1, enumString2, enumValue2)  \
   { \
     const char* attributeName = #memberVar; \
     const char* strValue = xmlElementVar->GetAttribute(attributeName); \
@@ -286,7 +286,7 @@ public:
     } \
   }
 
-#define DSC_READ_ENUM3_ATTRIBUTE_OPTIONAL(memberVar, xmlElementVar, enumString1, enumValue1, enumString2, enumValue2, enumString3, enumValue3)  \
+#define XML_READ_ENUM3_ATTRIBUTE_OPTIONAL(memberVar, xmlElementVar, enumString1, enumValue1, enumString2, enumValue2, enumString3, enumValue3)  \
   { \
     const char* attributeName = #memberVar; \
     const char* strValue = xmlElementVar->GetAttribute(attributeName); \

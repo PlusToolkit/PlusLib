@@ -836,7 +836,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfi
 {
   LOG_TRACE("vtkPlusOpenIGTLinkServer::ReadConfiguration");
 
-  DSC_FIND_NESTED_ELEMENT_REQUIRED(plusOpenIGTLinkServerConfig, aConfigurationData, "PlusOpenIGTLinkServer");
+  XML_FIND_NESTED_ELEMENT_REQUIRED(plusOpenIGTLinkServerConfig, aConfigurationData, "PlusOpenIGTLinkServer");
 
   if( aFilename == NULL )
   {
@@ -845,13 +845,13 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfi
   }
   this->SetConfigFilename(aFilename);
 
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, MissingInputGracePeriodSec, plusOpenIGTLinkServerConfig);
-  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(OutputChannelId, plusOpenIGTLinkServerConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, MaxTimeSpentWithProcessingMs, plusOpenIGTLinkServerConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, MaxNumberOfIgtlMessagesToSend, plusOpenIGTLinkServerConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_REQUIRED(int, ListeningPort, plusOpenIGTLinkServerConfig);
-  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(SendValidTransformsOnly, plusOpenIGTLinkServerConfig);
-  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(IgtlMessageCrcCheckEnabled, plusOpenIGTLinkServerConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, MissingInputGracePeriodSec, plusOpenIGTLinkServerConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(OutputChannelId, plusOpenIGTLinkServerConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, MaxTimeSpentWithProcessingMs, plusOpenIGTLinkServerConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, MaxNumberOfIgtlMessagesToSend, plusOpenIGTLinkServerConfig);
+  XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, ListeningPort, plusOpenIGTLinkServerConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(SendValidTransformsOnly, plusOpenIGTLinkServerConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(IgtlMessageCrcCheckEnabled, plusOpenIGTLinkServerConfig);
 
   vtkXMLDataElement* defaultClientInfo = plusOpenIGTLinkServerConfig->FindNestedElementWithName("DefaultClientInfo"); 
   if ( defaultClientInfo != NULL )

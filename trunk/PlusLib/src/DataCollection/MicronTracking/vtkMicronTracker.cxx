@@ -333,9 +333,9 @@ PlusStatus vtkMicronTracker::GetImage(vtkImageData* leftImage, vtkImageData* rig
 //----------------------------------------------------------------------------
 PlusStatus vtkMicronTracker::ReadConfiguration( vtkXMLDataElement* rootConfigElement )
 {
-  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
-  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(TemplateDirectory, deviceConfig);
-  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(IniFile, deviceConfig);
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(TemplateDirectory, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(IniFile, deviceConfig);
   return PLUS_SUCCESS;
 }
 

@@ -188,29 +188,29 @@ PlusStatus FidLineFinder::ReadConfiguration( vtkXMLDataElement* configData )
 {
   LOG_TRACE("FidLineFinder::ReadConfiguration");
 
-  DSC_FIND_NESTED_ELEMENT_REQUIRED(segmentationParameters, configData, "Segmentation");
+  XML_FIND_NESTED_ELEMENT_REQUIRED(segmentationParameters, configData, "Segmentation");
 
-  DSC_READ_SCALAR_ATTRIBUTE_WARNING(double, ApproximateSpacingMmPerPixel, segmentationParameters);
+  XML_READ_SCALAR_ATTRIBUTE_WARNING(double, ApproximateSpacingMmPerPixel, segmentationParameters);
   
   //if the tolerance parameters are computed automatically
   int computeSegmentationParametersFromPhantomDefinition(0);
   if(segmentationParameters->GetScalarAttribute("ComputeSegmentationParametersFromPhantomDefinition", computeSegmentationParametersFromPhantomDefinition)
     && computeSegmentationParametersFromPhantomDefinition!=0 )
   {
-    DSC_FIND_NESTED_ELEMENT_REQUIRED(phantomDefinition, segmentationParameters, "PhantomDefinition");
-    DSC_FIND_NESTED_ELEMENT_REQUIRED(customTransforms, segmentationParameters, "CustomTransforms"); 
-    DSC_READ_VECTOR_ATTRIBUTE_WARNING(double, 16, ImageToPhantomTransform, customTransforms);
+    XML_FIND_NESTED_ELEMENT_REQUIRED(phantomDefinition, segmentationParameters, "PhantomDefinition");
+    XML_FIND_NESTED_ELEMENT_REQUIRED(customTransforms, segmentationParameters, "CustomTransforms"); 
+    XML_READ_VECTOR_ATTRIBUTE_WARNING(double, 16, ImageToPhantomTransform, customTransforms);
 
-    DSC_READ_VECTOR_ATTRIBUTE_WARNING(double, 6, ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg, segmentationParameters);   
-    DSC_READ_SCALAR_ATTRIBUTE_WARNING(double, CollinearPointsMaxDistanceFromLineMm, segmentationParameters);
+    XML_READ_VECTOR_ATTRIBUTE_WARNING(double, 6, ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg, segmentationParameters);   
+    XML_READ_SCALAR_ATTRIBUTE_WARNING(double, CollinearPointsMaxDistanceFromLineMm, segmentationParameters);
 
     ComputeParameters();
   }
   else
   {
-    DSC_READ_SCALAR_ATTRIBUTE_WARNING(double, MinThetaDegrees, segmentationParameters);
-    DSC_READ_SCALAR_ATTRIBUTE_WARNING(double, MaxThetaDegrees, segmentationParameters);
-    DSC_READ_SCALAR_ATTRIBUTE_WARNING(double, CollinearPointsMaxDistanceFromLineMm, segmentationParameters);
+    XML_READ_SCALAR_ATTRIBUTE_WARNING(double, MinThetaDegrees, segmentationParameters);
+    XML_READ_SCALAR_ATTRIBUTE_WARNING(double, MaxThetaDegrees, segmentationParameters);
+    XML_READ_SCALAR_ATTRIBUTE_WARNING(double, CollinearPointsMaxDistanceFromLineMm, segmentationParameters);
   }
 
   return PLUS_SUCCESS; 

@@ -599,10 +599,10 @@ PlusStatus vtkChRoboticsTracker::ProcessPacket( ChrSerialPacket& packet )
 //----------------------------------------------------------------------------
 PlusStatus vtkChRoboticsTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, SerialPort, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, BaudRate, deviceConfig);
-  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(FirmwareDirectory, deviceConfig);
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, SerialPort, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, BaudRate, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(FirmwareDirectory, deviceConfig);
   return PLUS_SUCCESS;
 }
 

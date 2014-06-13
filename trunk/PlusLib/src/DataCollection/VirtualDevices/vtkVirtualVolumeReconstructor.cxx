@@ -65,11 +65,11 @@ void vtkVirtualVolumeReconstructor::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 PlusStatus vtkVirtualVolumeReconstructor::ReadConfiguration( vtkXMLDataElement* rootConfigElement)
 {
-  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
-  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableReconstruction, deviceConfig);
-  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(OutputVolFilename, deviceConfig);
-  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(OutputVolDeviceName, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableReconstruction, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(OutputVolFilename, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(OutputVolDeviceName, deviceConfig);
 
   PlusLockGuard<vtkRecursiveCriticalSection> writerLock(this->VolumeReconstructorAccessMutex);
   this->VolumeReconstructor->ReadConfiguration(deviceConfig);

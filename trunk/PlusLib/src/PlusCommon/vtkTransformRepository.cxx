@@ -526,7 +526,7 @@ void vtkTransformRepository::Clear()
 //----------------------------------------------------------------------------
 PlusStatus vtkTransformRepository::ReadConfiguration(vtkXMLDataElement* configRootElement)
 {
-  DSC_FIND_NESTED_ELEMENT_REQUIRED(coordinateDefinitions, configRootElement, "CoordinateDefinitions");
+  XML_FIND_NESTED_ELEMENT_REQUIRED(coordinateDefinitions, configRootElement, "CoordinateDefinitions");
 
   PlusLockGuard<vtkRecursiveCriticalSection> accessGuard(this->CriticalSection);
 

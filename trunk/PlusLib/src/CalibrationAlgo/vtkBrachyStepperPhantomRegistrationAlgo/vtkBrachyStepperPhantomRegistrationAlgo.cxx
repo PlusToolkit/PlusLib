@@ -261,10 +261,10 @@ PlusStatus vtkBrachyStepperPhantomRegistrationAlgo::ReadConfiguration(vtkXMLData
 {
   LOG_TRACE("vtkBrachyStepperPhantomRegistrationAlgo::ReadConfiguration");
 
-  DSC_FIND_NESTED_ELEMENT_REQUIRED(phantomRegistrationElement, aConfig, "vtkBrachyStepperPhantomRegistrationAlgo");
+  XML_FIND_NESTED_ELEMENT_REQUIRED(phantomRegistrationElement, aConfig, "vtkBrachyStepperPhantomRegistrationAlgo");
 
-  DSC_READ_STRING_ATTRIBUTE_REQUIRED(PhantomCoordinateFrame, phantomRegistrationElement);
-  DSC_READ_STRING_ATTRIBUTE_REQUIRED(ReferenceCoordinateFrame, phantomRegistrationElement);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(PhantomCoordinateFrame, phantomRegistrationElement);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(ReferenceCoordinateFrame, phantomRegistrationElement);
 
   return PLUS_SUCCESS;
 }

@@ -560,7 +560,7 @@ PlusStatus vtkFakeTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElemen
 {
   LOG_TRACE("vtkFakeTracker::ReadConfiguration");
 
-  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   if ( !this->Recording )
   {

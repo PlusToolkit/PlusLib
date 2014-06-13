@@ -278,12 +278,12 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalUpdate()
 //-----------------------------------------------------------------------------
 PlusStatus vtkOpenIGTLinkVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
-  DSC_READ_STRING_ATTRIBUTE_REQUIRED(ServerAddress, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_REQUIRED(int, ServerPort, deviceConfig);
-  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(MessageType, deviceConfig);
-  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(IgtlMessageCrcCheckEnabled, deviceConfig);  
-  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(ImageMessageEmbeddedTransformName, deviceConfig);
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(ServerAddress, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, ServerPort, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(MessageType, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(IgtlMessageCrcCheckEnabled, deviceConfig);  
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(ImageMessageEmbeddedTransformName, deviceConfig);
   return PLUS_SUCCESS;
 }
 

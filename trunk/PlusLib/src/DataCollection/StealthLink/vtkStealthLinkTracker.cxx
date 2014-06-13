@@ -734,10 +734,10 @@ PlusStatus vtkStealthLinkTracker::InternalStopRecording()
 //----------------------------------------------------------------------------
 PlusStatus vtkStealthLinkTracker::ReadConfiguration( vtkXMLDataElement* rootConfigElement )
 {
-  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
-  DSC_READ_STRING_ATTRIBUTE_REQUIRED(ServerAddress, deviceConfig);
-  DSC_READ_STRING_ATTRIBUTE_REQUIRED(ServerPort, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(ServerAddress, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(ServerPort, deviceConfig);
   
 
   std::string deviceIdStr(this->GetDeviceId()?this->GetDeviceId():"");

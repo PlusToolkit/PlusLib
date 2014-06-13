@@ -581,15 +581,15 @@ PlusStatus vtkOpenIGTLinkTracker::ProcessTransformMessage(igtl::MessageHeader::P
 //----------------------------------------------------------------------------
 PlusStatus vtkOpenIGTLinkTracker::ReadConfiguration( vtkXMLDataElement* rootConfigElement )
 {
-  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
-  DSC_READ_STRING_ATTRIBUTE_REQUIRED(ServerAddress, deviceConfig);
-  DSC_READ_SCALAR_ATTRIBUTE_REQUIRED(int, ServerPort, deviceConfig);
-  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(MessageType, deviceConfig);
-  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(TrackerInternalCoordinateSystemName, deviceConfig);
-  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(ReconnectOnReceiveTimeout, deviceConfig);
-  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(UseLastTransformsOnReceiveTimeout, deviceConfig);
-  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(UseReceivedTimestamps, deviceConfig);
-  DSC_READ_BOOL_ATTRIBUTE_OPTIONAL(IgtlMessageCrcCheckEnabled, deviceConfig);  
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(ServerAddress, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, ServerPort, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(MessageType, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(TrackerInternalCoordinateSystemName, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ReconnectOnReceiveTimeout, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(UseLastTransformsOnReceiveTimeout, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(UseReceivedTimestamps, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(IgtlMessageCrcCheckEnabled, deviceConfig);  
   return PLUS_SUCCESS;
 }
 

@@ -178,20 +178,20 @@ void SpatialModel::SetModelLocalizer(vtkModifiedBSPTree* modelLocalizer)
 //-----------------------------------------------------------------------------
 PlusStatus SpatialModel::ReadConfiguration(vtkXMLDataElement* spatialModelElement)
 { 
-  DSC_VERIFY_ELEMENT(spatialModelElement, "SpatialModel");
+  XML_VERIFY_ELEMENT(spatialModelElement, "SpatialModel");
 
-  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(Name, spatialModelElement);
-  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(ObjectCoordinateFrame, spatialModelElement);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(Name, spatialModelElement);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(ObjectCoordinateFrame, spatialModelElement);
   SetModelFile(spatialModelElement->GetAttribute("ModelFile")); // if ModelFile is not set then we set it to NULL (it is not optional)
-  DSC_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 16, ModelToObjectTransform, spatialModelElement);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DensityKgPerM3, spatialModelElement);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SoundVelocityMPerSec, spatialModelElement);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, AttenuationCoefficientDbPerCmMhz, spatialModelElement);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SurfaceReflectionIntensityDecayDbPerMm, spatialModelElement);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, BackscatterDiffuseReflectionCoefficient, spatialModelElement);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SurfaceDiffuseReflectionCoefficient, spatialModelElement);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SurfaceSpecularReflectionCoefficient, spatialModelElement);
-  DSC_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, TransducerSpatialModelMaxOverlapMm, spatialModelElement);
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 16, ModelToObjectTransform, spatialModelElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DensityKgPerM3, spatialModelElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SoundVelocityMPerSec, spatialModelElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, AttenuationCoefficientDbPerCmMhz, spatialModelElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SurfaceReflectionIntensityDecayDbPerMm, spatialModelElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, BackscatterDiffuseReflectionCoefficient, spatialModelElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SurfaceDiffuseReflectionCoefficient, spatialModelElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SurfaceSpecularReflectionCoefficient, spatialModelElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, TransducerSpatialModelMaxOverlapMm, spatialModelElement);
 
   return PLUS_SUCCESS;
 }

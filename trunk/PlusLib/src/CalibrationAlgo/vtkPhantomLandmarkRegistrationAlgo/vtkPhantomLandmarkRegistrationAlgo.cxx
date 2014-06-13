@@ -148,14 +148,14 @@ PlusStatus vtkPhantomLandmarkRegistrationAlgo::ReadConfiguration(vtkXMLDataEleme
 {
   LOG_TRACE("vtkPhantomLandmarkRegistrationAlgo::ReadConfiguration");
 
-  DSC_FIND_NESTED_ELEMENT_REQUIRED(phantomDefinition, aConfig, "PhantomDefinition");
+  XML_FIND_NESTED_ELEMENT_REQUIRED(phantomDefinition, aConfig, "PhantomDefinition");
 
   this->DefinedLandmarks->Reset();
   this->RecordedLandmarks->Reset();
   this->DefinedLandmarkNames.clear();
 
   // Load geometry
-  DSC_FIND_NESTED_ELEMENT_REQUIRED(geometry, phantomDefinition, "Geometry");
+  XML_FIND_NESTED_ELEMENT_REQUIRED(geometry, phantomDefinition, "Geometry");
 
   // Read landmarks (NWires are not interesting at this point, it is only parsed if segmentation is needed)
   vtkXMLDataElement* landmarks = geometry->FindNestedElementWithName("Landmarks"); 
@@ -212,10 +212,10 @@ PlusStatus vtkPhantomLandmarkRegistrationAlgo::ReadConfiguration(vtkXMLDataEleme
   }
 
   // vtkPhantomLandmarkRegistrationAlgo section
-  DSC_FIND_NESTED_ELEMENT_REQUIRED(phantomRegistrationElement, aConfig, vtkPhantomLandmarkRegistrationAlgo::ConfigurationElementName.c_str());
-  DSC_READ_STRING_ATTRIBUTE_REQUIRED(PhantomCoordinateFrame, phantomRegistrationElement);
-  DSC_READ_STRING_ATTRIBUTE_REQUIRED(ReferenceCoordinateFrame, phantomRegistrationElement);
-  DSC_READ_STRING_ATTRIBUTE_REQUIRED(StylusTipCoordinateFrame, phantomRegistrationElement);
+  XML_FIND_NESTED_ELEMENT_REQUIRED(phantomRegistrationElement, aConfig, vtkPhantomLandmarkRegistrationAlgo::ConfigurationElementName.c_str());
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(PhantomCoordinateFrame, phantomRegistrationElement);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(ReferenceCoordinateFrame, phantomRegistrationElement);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(StylusTipCoordinateFrame, phantomRegistrationElement);
 
   return PLUS_SUCCESS;
 }

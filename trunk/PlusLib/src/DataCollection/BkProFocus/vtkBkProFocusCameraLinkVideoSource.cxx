@@ -651,10 +651,10 @@ PlusStatus vtkBkProFocusCameraLinkVideoSource::ReadConfiguration(vtkXMLDataEleme
 {
   this->ChannelConfiguredMap.clear();
 
-  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);  
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);  
 
-  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(IniFileName, deviceConfig);
-  DSC_READ_ENUM2_ATTRIBUTE_OPTIONAL(ImagingMode, deviceConfig, "BMode", BMode, "RfMode", RfMode);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(IniFileName, deviceConfig);
+  XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(ImagingMode, deviceConfig, "BMode", BMode, "RfMode", RfMode);
 
   const char* subscribe = deviceConfig->GetAttribute("SubscribeScanPlane"); 
   if ( subscribe != NULL ) 

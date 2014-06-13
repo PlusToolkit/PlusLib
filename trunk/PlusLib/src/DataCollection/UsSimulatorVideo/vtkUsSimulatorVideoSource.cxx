@@ -201,7 +201,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalDisconnect()
 PlusStatus vtkUsSimulatorVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   LOG_TRACE("vtkUsSimulatorVideoSource::ReadConfiguration"); 
-  DSC_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   // Read US simulator configuration
   if ( !this->UsSimulator

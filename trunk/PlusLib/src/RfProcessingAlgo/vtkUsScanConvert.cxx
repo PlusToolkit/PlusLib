@@ -56,7 +56,7 @@ void vtkUsScanConvert::PrintSelf(ostream& os, vtkIndent indent)
 PlusStatus vtkUsScanConvert::ReadConfiguration(vtkXMLDataElement* scanConversionElement)
 {
   LOG_TRACE("vtkUsScanConvert::ReadConfiguration"); 
-  DSC_VERIFY_ELEMENT(scanConversionElement, "ScanConversion");
+  XML_VERIFY_ELEMENT(scanConversionElement, "ScanConversion");
 
   const char* transducerGeometry = scanConversionElement->GetAttribute("TransducerGeometry"); 
   if ( transducerGeometry == NULL) 
@@ -71,7 +71,7 @@ PlusStatus vtkUsScanConvert::ReadConfiguration(vtkXMLDataElement* scanConversion
     return PLUS_FAIL;
   }
 
-  DSC_READ_STRING_ATTRIBUTE_OPTIONAL(TransducerName, scanConversionElement);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(TransducerName, scanConversionElement);
   
   double outputImageSpacing[2]={0};
   if ( scanConversionElement->GetVectorAttribute("OutputImageSpacingMmPerPixel", 2, outputImageSpacing)) 
