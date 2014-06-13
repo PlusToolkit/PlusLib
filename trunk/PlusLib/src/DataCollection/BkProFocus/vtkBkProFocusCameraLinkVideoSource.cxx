@@ -672,26 +672,10 @@ PlusStatus vtkBkProFocusCameraLinkVideoSource::ReadConfiguration(vtkXMLDataEleme
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkBkProFocusCameraLinkVideoSource::WriteConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkBkProFocusCameraLinkVideoSource::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  // Write superclass configuration
-  Superclass::WriteConfiguration(config); 
-
-  if ( config == NULL )
-  {
-    LOG_ERROR("Config is invalid");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* deviceElement = this->FindThisDeviceElement(config);
-  if (deviceElement == NULL)
-  {
-    LOG_ERROR("Cannot find device element in XML tree for device with ID: " << this->GetDeviceId() );
-    return PLUS_FAIL;
-  }
-
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceElement, rootConfigElement);
   deviceElement->SetAttribute("IniFileName", this->IniFileName);
-
   return PLUS_SUCCESS;
 }
 

@@ -107,21 +107,11 @@ PlusStatus vtkUsScanConvert::ReadConfiguration(vtkXMLDataElement* scanConversion
 PlusStatus vtkUsScanConvert::WriteConfiguration(vtkXMLDataElement* scanConversionElement)
 {
   LOG_TRACE("vtkUsScanConvert::WriteConfiguration"); 
-  if ( scanConversionElement == NULL )
-  {
-    LOG_DEBUG("Unable to write vtkUsScanConvert: XML data element is NULL"); 
-    return PLUS_FAIL; 
-  }
-  if (STRCASECMP(scanConversionElement->GetName(), "ScanConversion") != 0)
-  {
-    LOG_ERROR("Cannot write vtkUsScanConvert configuration: ScanConversion element is expected"); 
-    return PLUS_FAIL;
-  }  
 
-  scanConversionElement->SetAttribute("TransducerGeometry", GetTransducerGeometry()); 
-  
+  XML_VERIFY_ELEMENT(scanConversionElement, "ScanConversion");
+
+  scanConversionElement->SetAttribute("TransducerGeometry", GetTransducerGeometry());   
   scanConversionElement->SetAttribute("TransducerName", this->TransducerName); 
-
   scanConversionElement->SetVectorAttribute("OutputImageSpacingMmPerPixel", 2, this->OutputImageSpacing);
 
   double outputImageSize[2]=

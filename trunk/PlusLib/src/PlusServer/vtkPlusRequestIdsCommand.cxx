@@ -79,10 +79,7 @@ PlusStatus vtkPlusRequestIdsCommand::WriteConfiguration(vtkXMLDataElement* aConf
   {
     return PLUS_FAIL;
   }
-  if (this->DeviceType!=NULL)
-  {
-    aConfig->SetAttribute("DeviceType",this->DeviceType);
-  }
+  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_NULL(DeviceType, aConfig);
   return PLUS_SUCCESS;
 }
 

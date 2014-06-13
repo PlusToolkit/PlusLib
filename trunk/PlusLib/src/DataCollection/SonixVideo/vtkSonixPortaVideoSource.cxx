@@ -577,23 +577,9 @@ PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* rootCo
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkSonixPortaVideoSource::WriteConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkSonixPortaVideoSource::WriteConfiguration(vtkXMLDataElement* rootConfig)
 {
-  // Write superclass configuration
-  Superclass::WriteConfiguration(config); 
-
-  if ( config == NULL )
-  {
-    LOG_ERROR("Config is invalid");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* imageAcquisitionConfig = this->FindThisDeviceElement(config);
-  if (imageAcquisitionConfig == NULL) 
-  {
-    LOG_ERROR("Cannot find ImageAcquisition element in XML tree!");
-    return PLUS_FAIL;
-  }
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(imageAcquisitionConfig, rootConfig);
 
   if (this->ImagingMode == BMode)
   {

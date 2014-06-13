@@ -453,23 +453,9 @@ PlusStatus vtkMmfVideoSource::ReadConfiguration( vtkXMLDataElement* rootConfigEl
 
 //----------------------------------------------------------------------------
 
-PlusStatus vtkMmfVideoSource::WriteConfiguration( vtkXMLDataElement* rootXmlElement )
+PlusStatus vtkMmfVideoSource::WriteConfiguration( vtkXMLDataElement* rootConfigElement )
 {
-  // Write superclass configuration
-  Superclass::WriteConfiguration(rootXmlElement); 
-
-  if ( rootXmlElement == NULL ) 
-  {
-    LOG_WARNING("Unable to find MmfVideoSource XML data element");
-    return PLUS_FAIL; 
-  }
-
-  vtkXMLDataElement* deviceConfig = this->FindThisDeviceElement(rootXmlElement);
-  if (deviceConfig == NULL) 
-  {
-    LOG_ERROR("Cannot find MmfVideoSource element in XML tree!");
-    return PLUS_FAIL;
-  }
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
 
   deviceConfig->SetIntAttribute("CaptureDeviceId", this->RequestedVideoFormat.DeviceId);
   deviceConfig->SetVectorAttribute("FrameSize", 2, this->RequestedVideoFormat.FrameSize);

@@ -159,25 +159,13 @@ PlusStatus vtkRfProcessor::ReadConfiguration(vtkXMLDataElement* rfProcessingElem
 //-----------------------------------------------------------------------------
 PlusStatus vtkRfProcessor::WriteConfiguration(vtkXMLDataElement* rfElement)
 {
-  if ( rfElement == NULL )
-  {
-    LOG_DEBUG("Unable to configure vtkRfProcessor! (XML data element is NULL)"); 
-    return PLUS_FAIL; 
-  }
-
-  // RfProcessing
+  // RfProcessing = rfElement
   //  - BrightnessConversion
   //  - ScanConversion
-  vtkXMLDataElement* brightnessConversionElement = PlusXmlUtils::GetNestedElementWithName(rfElement, "RfToBrightnessConversion"); 
-  if (brightnessConversionElement == NULL) 
-  {  
-    return PLUS_FAIL;
-  }  
-  vtkXMLDataElement* scanConversionElement = PlusXmlUtils::GetNestedElementWithName(rfElement, "ScanConversion"); 
-  if (scanConversionElement == NULL) 
-  {  
-    return PLUS_FAIL;
-  }  
+
+  XML_VERIFY_ELEMENT(rfElement, "RfProcessing");
+  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(brightnessConversionElement, rfElement, "RfToBrightnessConversion");
+  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(scanConversionElement, rfElement, "ScanConversion");
 
   PlusStatus status(PLUS_SUCCESS);
 

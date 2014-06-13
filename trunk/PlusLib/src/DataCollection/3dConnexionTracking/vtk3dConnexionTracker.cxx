@@ -545,21 +545,7 @@ PlusStatus vtk3dConnexionTracker::ReadConfiguration(vtkXMLDataElement* rootConfi
 //----------------------------------------------------------------------------
 PlusStatus vtk3dConnexionTracker::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  if ( rootConfigElement == NULL )
-  {
-    LOG_ERROR("Configuration is invalid");
-    return PLUS_FAIL;
-  }
-
-  // Write configuration 
-  Superclass::WriteConfiguration(rootConfigElement); 
-
-  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(rootConfigElement);
-  if ( trackerConfig == NULL) 
-  {
-    LOG_ERROR("Cannot find Tracker element in XML tree!");
-    return PLUS_FAIL;
-  }
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(trackerConfig, rootConfigElement);
 
   switch (this->OperatingMode)
   {

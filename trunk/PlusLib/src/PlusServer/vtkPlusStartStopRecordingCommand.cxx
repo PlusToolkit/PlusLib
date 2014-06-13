@@ -105,35 +105,8 @@ PlusStatus vtkPlusStartStopRecordingCommand::WriteConfiguration(vtkXMLDataElemen
     return PLUS_FAIL;
   }  
   
-  // Common parameters
-  if (this->CaptureDeviceId!=NULL)
-  {
-    aConfig->SetAttribute("CaptureDeviceId",this->CaptureDeviceId);
-  }
-  else
-  {
-#if (VTK_MAJOR_VERSION < 6)
-    // Workaround for RemoveAttribute bug in VTK5 (https://www.assembla.com/spaces/plus/tickets/859)
-    PlusCommon::RemoveAttribute(aConfig, "CaptureDeviceId");
-#else
-    aConfig->RemoveAttribute("CaptureDeviceId");
-#endif
-  }
-
-  // Start parameters
-  if (this->OutputFilename != NULL)
-  {
-    aConfig->SetAttribute("OutputFilename",this->OutputFilename);
-  }
-  else
-  {
-#if (VTK_MAJOR_VERSION < 6)
-    // Workaround for RemoveAttribute bug in VTK5 (https://www.assembla.com/spaces/plus/tickets/859)
-    PlusCommon::RemoveAttribute(aConfig, "OutputFilename");
-#else
-    aConfig->RemoveAttribute("OutputFilename");
-#endif
-  }
+  XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_NULL(CaptureDeviceId, aConfig);
+  XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_NULL(OutputFilename, aConfig);
 
   return PLUS_SUCCESS;
 }

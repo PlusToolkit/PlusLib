@@ -656,36 +656,14 @@ PlusStatus vtkSavedDataSource::ReadConfiguration(vtkXMLDataElement* rootConfigEl
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkSavedDataSource::WriteConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkSavedDataSource::WriteConfiguration(vtkXMLDataElement* rootConfig)
 {
-  LOG_TRACE("vtkSavedDataSource::WriteConfiguration"); 
-
-  // Write superclass configuration
-  Superclass::WriteConfiguration(config); 
-
-  if ( config == NULL )
-  {
-    LOG_ERROR("Config is invalid");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* imageAcquisitionConfig = this->FindThisDeviceElement(config);
-  if (imageAcquisitionConfig == NULL) 
-  {
-    LOG_ERROR("Cannot find ImageAcquisition element in XML tree!");
-    return PLUS_FAIL;
-  }
-
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(imageAcquisitionConfig, rootConfig);
+  
   imageAcquisitionConfig->SetAttribute("SequenceMetafile", this->SequenceMetafile);
 
-  if (this->RepeatEnabled)
-  {
-    imageAcquisitionConfig->SetAttribute("RepeatEnabled", "TRUE");
-  }
-  else
-  {
-    imageAcquisitionConfig->SetAttribute("RepeatEnabled", "FALSE");
-  }
+  XML_WRITE_BOOL_ATTRIBUTE(RepeatEnabled, imageAcquisitionConfig);
+  XML_WRITE_BOOL_ATTRIBUTE(UseOriginalTimestamps, imageAcquisitionConfig);
 
   if (this->UseAllFrameFields)
   {
@@ -701,15 +679,6 @@ PlusStatus vtkSavedDataSource::WriteConfiguration(vtkXMLDataElement* config)
   else
   {
     imageAcquisitionConfig->SetAttribute("UseData", "IMAGE");
-  }
-
-  if (this->UseOriginalTimestamps)
-  {
-    imageAcquisitionConfig->SetAttribute("UseOriginalTimestamps", "TRUE");
-  }
-  else
-  {
-    imageAcquisitionConfig->SetAttribute("UseOriginalTimestamps", "FALSE");
   }
 
   return PLUS_SUCCESS;

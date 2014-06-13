@@ -973,27 +973,10 @@ PlusStatus vtkNDITracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkNDITracker::WriteConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkNDITracker::WriteConfiguration(vtkXMLDataElement* rootConfig)
 {
-  // Write superclass configuration
-  Superclass::WriteConfiguration(config); 
-
-  if ( config == NULL ) 
-  {
-    LOG_WARNING("Unable to find NDITracker XML data element");
-    return PLUS_FAIL; 
-  }
-
-  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(config);
-  if (trackerConfig == NULL) 
-  {
-    LOG_ERROR("Cannot find Tracker element in XML tree!");
-    return PLUS_FAIL;
-  }
-
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(trackerConfig, rootConfig);
   trackerConfig->SetIntAttribute("SerialPort", this->SerialPort);
-
   trackerConfig->SetIntAttribute("BaudRate", this->BaudRate );
-
   return PLUS_SUCCESS;
 }

@@ -135,25 +135,7 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
 // Get the XML element describing the freehand object
 PlusStatus vtkVolumeReconstructor::WriteConfiguration(vtkXMLDataElement *config)
 {
-  if ( config == NULL )
-  {
-    LOG_ERROR("Unable to write configuration from volume reconstructor! (XML data element is NULL)"); 
-    return PLUS_FAIL; 
-  }
-
-  vtkXMLDataElement* reconConfig = config->FindNestedElementWithName("VolumeReconstruction");
-  if (reconConfig == NULL)
-  {
-    vtkSmartPointer<vtkXMLDataElement> newReconConfig = vtkSmartPointer<vtkXMLDataElement>::New();
-    newReconConfig->SetName("VolumeReconstruction");
-    config->AddNestedElement(newReconConfig);
-    reconConfig = config->FindNestedElementWithName("VolumeReconstruction");
-    if (reconConfig == NULL)
-    {
-      LOG_ERROR("Failed to add VolumeReconstruction element");
-      return PLUS_FAIL;
-    }
-  }
+  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(reconConfig, config, "VolumeReconstruction");
 
   reconConfig->SetAttribute("ImageCoordinateFrame", this->ImageCoordinateFrame);
   reconConfig->SetAttribute("ReferenceCoordinateFrame", this->ReferenceCoordinateFrame);
@@ -176,16 +158,9 @@ PlusStatus vtkVolumeReconstructor::WriteConfiguration(vtkXMLDataElement *config)
   }
   else
   {
-#if (VTK_MAJOR_VERSION < 6)
-    // Workaround for RemoveAttribute bug in VTK5 (https://www.assembla.com/spaces/plus/tickets/859)
-    PlusCommon::RemoveAttribute(reconConfig, "FanAngles");
-    PlusCommon::RemoveAttribute(reconConfig, "FanOrigin");
-    PlusCommon::RemoveAttribute(reconConfig, "FanDepth");
-#else
-    reconConfig->RemoveAttribute("FanAngles");
-    reconConfig->RemoveAttribute("FanOrigin");
-    reconConfig->RemoveAttribute("FanDepth");
-#endif
+    XML_REMOVE_ATTRIBUTE(reconConfig, "FanAngles");
+    XML_REMOVE_ATTRIBUTE(reconConfig, "FanOrigin");
+    XML_REMOVE_ATTRIBUTE(reconConfig, "FanDepth");
   }
 
   // reconstruction options
@@ -199,12 +174,7 @@ PlusStatus vtkVolumeReconstructor::WriteConfiguration(vtkXMLDataElement *config)
   }
   else
   {
-#if (VTK_MAJOR_VERSION < 6)
-    // Workaround for RemoveAttribute bug in VTK5 (https://www.assembla.com/spaces/plus/tickets/859)
-    PlusCommon::RemoveAttribute(reconConfig, "NumberOfThreads");
-#else
-    reconConfig->RemoveAttribute("NumberOfThreads");
-#endif
+    XML_REMOVE_ATTRIBUTE(reconConfig, "NumberOfThreads");
   }
 
   return PLUS_SUCCESS;
