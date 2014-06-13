@@ -152,22 +152,11 @@ PlusStatus vtkPlusReconstructVolumeCommand::WriteConfiguration(vtkXMLDataElement
   {
     return PLUS_FAIL;
   }
-  if (this->VolumeReconstructorDeviceId!=NULL)
-  {
-    aConfig->SetAttribute("VolumeReconstructorDeviceId",this->VolumeReconstructorDeviceId);     
-  }
-  if (this->InputSeqFilename!=NULL)
-  {
-    aConfig->SetAttribute("InputSeqFilename",this->InputSeqFilename);
-  }
-  if (this->OutputVolFilename!=NULL)
-  {
-    aConfig->SetAttribute("OutputVolFilename",this->OutputVolFilename);
-  }
-  if (this->OutputVolDeviceName!=NULL)
-  {
-    aConfig->SetAttribute("OutputVolDeviceName",this->OutputVolDeviceName);
-  }
+
+  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_NULL(VolumeReconstructorDeviceId, aConfig);
+  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_NULL(InputSeqFilename, aConfig);
+  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_NULL(OutputVolFilename, aConfig);
+  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_NULL(OutputVolDeviceName, aConfig);
 
   if (this->OutputOrigin[0]!=UNDEFINED_VALUE
     && this->OutputOrigin[1]!=UNDEFINED_VALUE

@@ -80,17 +80,7 @@ PlusStatus vtkVirtualVolumeReconstructor::ReadConfiguration( vtkXMLDataElement* 
 //----------------------------------------------------------------------------
 PlusStatus vtkVirtualVolumeReconstructor::WriteConfiguration( vtkXMLDataElement* rootConfig)
 {
-  if( Superclass::WriteConfiguration(rootConfig) == PLUS_FAIL )
-  {
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* deviceElement = this->FindThisDeviceElement(rootConfig);
-  if (deviceElement == NULL) 
-  {
-    LOG_ERROR("Cannot find VirtualDiscCapture element in XML tree!");
-    return PLUS_FAIL;
-  }
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceElement, rootConfig);
 
   deviceElement->SetAttribute("EnableReconstruction", this->EnableReconstruction ? "TRUE" : "FALSE" );
 

@@ -413,21 +413,7 @@ PlusStatus vtkBrachyTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElem
 //----------------------------------------------------------------------------
 PlusStatus vtkBrachyTracker::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  if ( rootConfigElement == NULL )
-  {
-    LOG_ERROR("Configuration is invalid");
-    return PLUS_FAIL;
-  }
-
-  // Write configuration 
-  Superclass::WriteConfiguration(rootConfigElement); 
-
-  vtkXMLDataElement* trackerConfig = this->FindThisDeviceElement(rootConfigElement);
-  if ( trackerConfig == NULL) 
-  {
-    LOG_ERROR("Cannot find Tracker element in XML tree!");
-    return PLUS_FAIL;
-  }
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(trackerConfig, rootConfigElement);
 
   if ( this->Device != NULL )
   {
@@ -455,15 +441,10 @@ PlusStatus vtkBrachyTracker::WriteConfiguration(vtkXMLDataElement* rootConfigEle
   } 
 
   calibration->SetAttribute("Date", this->GetCalibrationDate());
-
   calibration->SetAttribute("AlgorithmVersion", this->GetCalibrationAlgorithmVersion() ); 
-
   calibration->SetVectorAttribute("ProbeRotationAxisOrientation", 3, this->GetProbeRotationAxisOrientation() );    
-
   calibration->SetDoubleAttribute("ProbeRotationEncoderScale", this->GetProbeRotationEncoderScale() ); 
-
   calibration->SetVectorAttribute("ProbeTranslationAxisOrientation", 3, this->GetProbeTranslationAxisOrientation() ); 
-
   calibration->SetVectorAttribute("TemplateTranslationAxisOrientation", 3, this->GetTemplateTranslationAxisOrientation() ); 
 
   return PLUS_SUCCESS;

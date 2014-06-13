@@ -569,21 +569,7 @@ PlusStatus vtkPhidgetSpatialTracker::ReadConfiguration(vtkXMLDataElement* rootCo
 //----------------------------------------------------------------------------
 PlusStatus vtkPhidgetSpatialTracker::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  if ( rootConfigElement == NULL )
-  {
-    LOG_ERROR("Configuration is invalid");
-    return PLUS_FAIL;
-  }
-
-  // Write configuration 
-  Superclass::WriteConfiguration(rootConfigElement); 
-
-  vtkXMLDataElement* deviceConfig = this->FindThisDeviceElement(rootConfigElement);
-  if ( deviceConfig == NULL) 
-  {
-    LOG_ERROR("Cannot find Tracker element in XML tree!");
-    return PLUS_FAIL;
-  }
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
 
   if (this->ZeroGyroscopeOnConnect)
   {

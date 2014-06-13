@@ -72,6 +72,19 @@ public:
     return PLUS_FAIL; \
   }
 
+#define XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(destinationXmlElementVar, rootXmlElementVar, nestedXmlElementName) \
+  if (rootXmlElementVar == NULL) \
+  { \
+    LOG_ERROR("Invalid device set configuration: unable to find required "<<nestedXmlElementName<<" element"); \
+    return PLUS_FAIL; \
+  } \
+  vtkXMLDataElement* destinationXmlElementVar = PlusXmlUtils::GetNestedElementWithName(rootXmlElementVar,nestedXmlElementName);  \
+  if (destinationXmlElementVar == NULL)  \
+  { \
+    LOG_ERROR("Unable to find or create "<<nestedXmlElementName<<" element in device set configuration");  \
+    return PLUS_FAIL; \
+  }
+  
 #define XML_VERIFY_ELEMENT(xmlElementVar, expectedXmlElementName) \
   if (xmlElementVar == NULL) \
   { \
@@ -312,5 +325,45 @@ public:
       } \
     } \
   }
+
+#if (VTK_MAJOR_VERSION < 6)
+    // Workaround for RemoveAttribute bug in VTK5 (https://www.assembla.com/spaces/plus/tickets/859)
+  #define XML_REMOVE_ATTRIBUTE(xmlElementVar, attributeName)  PlusCommon::RemoveAttribute(xmlElementVar, attributeName);
+#else
+  #define XML_REMOVE_ATTRIBUTE(xmlElementVar, attributeName)  xmlElementVar->RemoveAttribute(attributeName);
+#endif
+
+#define XML_WRITE_STRING_ATTRIBUTE_IF_NOT_NULL(memberVar, xmlElementVar)  \
+  if (this->Get##memberVar()) \
+  { \
+    const char* attributeName = #memberVar; \
+    xmlElementVar->SetAttribute(attributeName, this->Get##memberVar()); \
+  }
+
+#define XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_NULL(memberVar, xmlElementVar)  \
+  if (this->Get##memberVar()) \
+  { \
+    const char* attributeName = #memberVar; \
+    xmlElementVar->SetAttribute(attributeName, this->Get##memberVar()); \
+  } \
+  else \
+  { \
+    XML_REMOVE_ATTRIBUTE(xmlElementVar, #memberVar); \
+  }
+
+  
+#define XML_WRITE_BOOL_ATTRIBUTE(memberVar, xmlElementVar)  \
+  { \
+  const char* attributeName = #memberVar; \
+    if (this->Get##memberVar()) \
+    { \
+      xmlElementVar->SetAttribute(attributeName, "TRUE"); \
+    } \
+    else \
+    { \
+      xmlElementVar->SetAttribute(attributeName, "FALSE"); \
+    } \
+  }
+
   
 #endif //__PlusXmlUtils_h

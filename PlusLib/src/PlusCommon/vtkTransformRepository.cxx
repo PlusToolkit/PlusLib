@@ -722,7 +722,6 @@ PlusStatus vtkTransformRepository::WriteConfigurationGeneric(vtkXMLDataElement* 
 //----------------------------------------------------------------------------
 PlusStatus vtkTransformRepository::WriteConfiguration(vtkXMLDataElement* configRootElement)
 {
-  
   return this->WriteConfigurationGeneric(configRootElement,false);
 }
 

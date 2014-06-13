@@ -597,7 +597,7 @@ private:
 #define XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement) \
   if( Superclass::ReadConfiguration(rootConfigElement) != PLUS_SUCCESS )  \
   { \
-    LOG_ERROR("Unable to continue configuration of "<<this->GetClassName()<<". Generic device configuration failed.");  \
+    LOG_ERROR("Unable to continue reading configuration of "<<this->GetClassName()<<". Generic device configuration reading failed.");  \
     return PLUS_FAIL; \
   } \
   vtkXMLDataElement* deviceConfig = this->FindThisDeviceElement(rootConfigElement);  \
@@ -607,5 +607,17 @@ private:
     return PLUS_FAIL; \
   }
 
+#define XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement) \
+  if( Superclass::WriteConfiguration(rootConfigElement) == PLUS_FAIL ) \
+  { \
+    LOG_ERROR("Unable to continue writing configuration of "<<this->GetClassName()<<". Generic device configuration writing failed.");  \
+    return PLUS_FAIL; \
+  } \
+  vtkXMLDataElement* deviceConfig = this->FindThisDeviceElement(rootConfigElement); \
+  if (deviceConfig == NULL) \
+  { \
+    LOG_ERROR("Cannot find or add "<<this->GetClassName()<<" device in XML tree"); \
+    return PLUS_FAIL; \
+  }
 
 #endif

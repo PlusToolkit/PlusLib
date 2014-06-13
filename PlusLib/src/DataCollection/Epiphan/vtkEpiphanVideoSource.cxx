@@ -293,45 +293,14 @@ PlusStatus vtkEpiphanVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfi
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkEpiphanVideoSource::WriteConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkEpiphanVideoSource::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  // Write superclass configuration
-  Superclass::WriteConfiguration(config); 
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(imageAcquisitionConfig, rootConfigElement);
 
-  if ( config == NULL )
-  {
-    LOG_ERROR("Config is invalid");
-    return PLUS_FAIL;
-  }
-
-  vtkXMLDataElement* imageAcquisitionConfig = this->FindThisDeviceElement(config);
-  if (imageAcquisitionConfig == NULL) 
-  {
-    LOG_ERROR("Cannot find ImageAcquisition element in XML tree!");
-    return PLUS_FAIL;
-  }
-
-  if (this->GrabberLocation!=NULL)
-  {
-    imageAcquisitionConfig->SetAttribute("GrabberLocation", this->GrabberLocation);
-  }
-  else
-  {
-#if (VTK_MAJOR_VERSION < 6)
-    // Workaround for RemoveAttribute bug in VTK5 (https://www.assembla.com/spaces/plus/tickets/859)
-    PlusCommon::RemoveAttribute(imageAcquisitionConfig,"GrabberLocation");
-#else
-    imageAcquisitionConfig->RemoveAttribute("GrabberLocation");
-#endif
-  }
-
+  XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_NULL(GrabberLocation, imageAcquisitionConfig);
+  
   // SerialNumber is an obsolete attribute, the information is stored now in GrabberLocation
-#if (VTK_MAJOR_VERSION < 6)
-  // Workaround for RemoveAttribute bug in VTK5 (https://www.assembla.com/spaces/plus/tickets/859)
-  PlusCommon::RemoveAttribute(imageAcquisitionConfig, "SerialNumber");
-#else
-  imageAcquisitionConfig->RemoveAttribute("SerialNumber");
-#endif
+  XML_REMOVE_ATTRIBUTE(imageAcquisitionConfig, "SerialNumber");
 
   // clipping parameters
   imageAcquisitionConfig->SetVectorAttribute("ClipRectangleOrigin", 2, this->GetClipRectangleOrigin());

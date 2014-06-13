@@ -325,16 +325,8 @@ PlusStatus vtkRfToBrightnessConvert::ReadConfiguration(vtkXMLDataElement* rfToBr
 PlusStatus vtkRfToBrightnessConvert::WriteConfiguration(vtkXMLDataElement* rfToBrightnessElement)
 {
   LOG_TRACE("vtkRfToBrightnessConvert::WriteConfiguration"); 
-  if ( rfToBrightnessElement == NULL )
-  {
-    LOG_DEBUG("Unable to write vtkRfToBrightnessConvert: XML data element is NULL"); 
-    return PLUS_FAIL; 
-  }
-  if (STRCASECMP(rfToBrightnessElement->GetName(), "RfToBrightnessConversion") != 0)
-  {
-    LOG_ERROR("Cannot write vtkRfToBrightnessConvert configuration: RfToBrightnessConversion element is expected"); 
-    return PLUS_FAIL;
-  }  
+
+  XML_VERIFY_ELEMENT(rfToBrightnessElement, "RfToBrightnessConversion");
 
   rfToBrightnessElement->SetDoubleAttribute("NumberOfHilbertFilterCoeffs", this->NumberOfHilbertFilterCoeffs);
   rfToBrightnessElement->SetDoubleAttribute("BrightnessScale", this->BrightnessScale);

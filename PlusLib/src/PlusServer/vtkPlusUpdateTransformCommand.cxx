@@ -96,17 +96,14 @@ PlusStatus vtkPlusUpdateTransformCommand::WriteConfiguration(vtkXMLDataElement* 
     aConfig->SetVectorAttribute("TransformValue", 16, vectorMatrix);
   }
 
-  if (this->GetTransformDate())
-  {
-    aConfig->SetAttribute("TransformDate", this->GetTransformDate());
-  }
+  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_NULL(TransformDate, aConfig);
 
   if (this->GetTransformError()>=0)
   {
     aConfig->SetDoubleAttribute("TransformError", this->GetTransformError());
   }
-  
-  aConfig->SetAttribute("TransformPersistent", this->GetTransformPersistent() ? "TRUE" : "FALSE");
+
+  XML_WRITE_BOOL_ATTRIBUTE(TransformPersistent, aConfig);
   
   return PLUS_SUCCESS;
 }
