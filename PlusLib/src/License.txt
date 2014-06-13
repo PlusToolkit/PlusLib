@@ -7,22 +7,19 @@ ______________________________________________________________
 
 How to cite Plus:
 
-Lasso, A., T. Heffter, C. Pinter, T. Ungi, and G. Fichtinger,
-"Implementation of the PLUS open-source toolkit for
-translational research of ultrasound-guided intervention
-systems", Medical Image Computing and Computer-Assisted
-Intervention (MICCAI 2012) - Systems and Architectures
-for Computer Assisted Interventions, pp. 1-12, 2012
+Andras Lasso, Tamas Heffter, Adam Rankin, Csaba Pinter, Tamas Ungi, and Gabor Fichtinger, "PLUS: open-source toolkit for ultrasound-guided intervention systems", IEEE Trans Biomed Eng, 2014 May 9. [Epub ahead of print]
 
-@INPROCEEDINGS{Lasso2012d,
-  author = {Andras Lasso and Tamas Heffter and Csaba Pinter and Ungi, Tamas and	Gabor Fichtinger},
-  title = {Implementation of the PLUS open-source toolkit for translational research of ultrasound-guided intervention systems},
-  booktitle = { Medical Image Computing and Computer-Assisted Intervention (MICCAI 2012) - Systems and Architectures for Computer Assisted Interventions },
-  year = {2012},
-  pages = {1-12},
-  address = {Nice, France},
-  month = {10/2012},
-  url = {http://hdl.handle.net/10380/3367}
+@ARTICLE{Lasso2014a,
+  author = {Lasso, Andras and Heffter, Tamas and Rankin, Adam and Pinter, Csaba
+  and Ungi, Tamas and Fichtinger, Gabor},
+  title = {PLUS: open-source toolkit for ultrasound-guided intervention systems.},
+  journal = {IEEE Trans Biomed Eng},
+  year = {2014},
+  month = {May},
+  doi = {10.1109/TBME.2014.2322864},
+  medline-pst = {aheadofprint},
+  pmid = {24833412},
+  url = {http://dx.doi.org/10.1109/TBME.2014.2322864}
 }
 ______________________________________________________________
 
