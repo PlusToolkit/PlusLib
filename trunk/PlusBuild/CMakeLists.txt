@@ -77,18 +77,18 @@ OPTION(PLUSBUILD_BUILD_PLUSAPP "Build PlusApp applications" ON)
 # Documentation
 option(PLUSBUILD_DOCUMENTATION "Build Plus documentation (Doxygen)." OFF)
 if(PLUSBUILD_DOCUMENTATION)
-  # Use Doxygen provided with Plus
-  SET (DOXYGEN_EXECUTABLE ${PLUS_PLUSLIB_DIR}/tools/Doxygen/doxygen.exe CACHE FILEPATH "Doxygen executable" FORCE)
   # Try to detect GraphViz path (CMake's Doxygen package finder only tries some obsolete paths on Windows)
   find_program(DOXYGEN_DOT_EXECUTABLE
     NAMES dot
     PATHS
+      "$ENV{ProgramFiles}/Graphviz2.38/bin"
+      "$ENV{ProgramFiles(x86)}/Graphviz2.38/bin"
       "$ENV{ProgramFiles}/Graphviz2.34/bin"
       "$ENV{ProgramFiles(x86)}/Graphviz2.34/bin"
     DOC "Graphviz Dot tool for using Doxygen"
     NO_SYSTEM_ENVIRONMENT_PATH
   )
-  find_package( Doxygen QUIET)
+  find_package( Doxygen REQUIRED)
 
   if( DOXYGEN_FOUND )
     if( DOXYGEN_DOT_FOUND )
