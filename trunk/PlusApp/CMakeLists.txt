@@ -128,13 +128,14 @@ IF (BUILD_DOCUMENTATION)
     find_program(DOXYGEN_DOT_EXECUTABLE
         NAMES dot
         PATHS
+          "$ENV{ProgramFiles}/Graphviz2.38/bin"
+          "$ENV{ProgramFiles(x86)}/Graphviz2.38/bin"
           "$ENV{ProgramFiles}/Graphviz2.34/bin"
           "$ENV{ProgramFiles(x86)}/Graphviz2.34/bin"
         DOC "Graphviz Dot tool for using Doxygen"
         NO_SYSTEM_ENVIRONMENT_PATH
       )
-    # Use Doxygen provided with Plus
-    SET (DOXYGEN_EXECUTABLE ${PLUSLIB_SOURCE_DIR}/tools/Doxygen/doxygen.exe CACHE FILEPATH "Doxygen executable" FORCE)
+
   ENDIF(NOT PLUSLIB_BUILD_DOCUMENTATION)
   ADD_SUBDIRECTORY(Documentation)
 ENDIF (BUILD_DOCUMENTATION)
