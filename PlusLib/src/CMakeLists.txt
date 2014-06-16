@@ -232,12 +232,12 @@ if(BUILD_DOCUMENTATION)
   option(DOCUMENTATION_TARGET_IN_ALL "Include the custom target for building documentation in 'all'" OFF)
   mark_as_advanced(DOCUMENTATION_TARGET_IN_ALL)
 
-  # Use Doxygen provided with Plus
-  SET (DOXYGEN_EXECUTABLE ${PLUSLIB_TOOLS_DIR}/Doxygen/doxygen.exe CACHE FILEPATH "Doxygen executable" FORCE)
   # Try to detect GraphViz path (CMake's Doxygen package finder only tries some obsolete paths on Windows)
   find_program(DOXYGEN_DOT_EXECUTABLE
     NAMES dot
     PATHS
+      "$ENV{ProgramFiles}/Graphviz2.38/bin"
+      "$ENV{ProgramFiles(x86)}/Graphviz2.38/bin"
       "$ENV{ProgramFiles}/Graphviz2.34/bin"
       "$ENV{ProgramFiles(x86)}/Graphviz2.34/bin"
     DOC "Graphviz Dot tool for using Doxygen"
