@@ -103,11 +103,10 @@ vtkBkProFocusOemVideoSource::vtkBkProFocusOemVideoSource()
   this->IniFileName=NULL;
 
   this->RequireImageOrientationInConfiguration = true;
-  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
-  this->RequireRfElementInDeviceSetConfiguration = false;
 
   // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
   this->StartThreadForInternalUpdates=true;
+  this->AcquisitionRate = 1; // image retrieval may slow down the exam software, so keep the frame rate low by default
 }
 
 //----------------------------------------------------------------------------

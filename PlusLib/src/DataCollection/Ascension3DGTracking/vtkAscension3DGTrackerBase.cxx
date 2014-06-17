@@ -39,14 +39,12 @@ vtkAscension3DGTrackerBase::vtkAscension3DGTrackerBase()
   this->FilterDcAdaptive = 0.0;
   this->FilterLargeChange = 0;
   this->FilterAlpha = false;
-
-  this->RequireImageOrientationInConfiguration = false;
-  this->RequireAcquisitionRateInDeviceSetConfiguration = true;
+  
   this->RequirePortNameInDeviceSetConfiguration = true;
-  this->RequireRfElementInDeviceSetConfiguration = false;
 
   // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
   this->StartThreadForInternalUpdates=true; 
+  this->AcquisitionRate = 50;
 }
 
 //-------------------------------------------------------------------------

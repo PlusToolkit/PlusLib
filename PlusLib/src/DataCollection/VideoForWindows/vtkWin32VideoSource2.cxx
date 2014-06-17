@@ -119,8 +119,6 @@ vtkWin32VideoSource2::vtkWin32VideoSource2()
 , FrameIndex(0)
 {
   this->RequireImageOrientationInConfiguration = true;
-  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
-  this->RequireRfElementInDeviceSetConfiguration = false;
 
   // No need for StartThreadForInternalUpdates, as we are notified about each new frame through a callback function
 }

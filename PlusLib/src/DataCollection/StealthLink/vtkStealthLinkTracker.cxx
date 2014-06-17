@@ -483,12 +483,11 @@ vtkStealthLinkTracker::vtkStealthLinkTracker()
   this->InternalShared = new vtkInternalShared(this);
   this->InternalUpdatePrivate = new vtkInternalUpdatePrivate(this);
 
-  this->RequireImageOrientationInConfiguration = false;
-  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
-  this->RequireRfElementInDeviceSetConfiguration = false;
-
+  this->RequirePortNameInDeviceSetConfiguration = true;
+  
   // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
   this->StartThreadForInternalUpdates=true;
+  this->AcquisitionRate = 30;
 }
 
 // Public Functions

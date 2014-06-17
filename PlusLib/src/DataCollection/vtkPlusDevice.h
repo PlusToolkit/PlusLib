@@ -275,15 +275,6 @@ public:
   // Set the device Id
   vtkSetStringMacro(DeviceId);
 
-  /*! 
-  Set the number of frames to copy to the output on each execute.
-  The frames will be concatenated along the Z dimension, with the 
-  most recent frame first.  The default is 1.
-  */
-  vtkSetMacro(NumberOfOutputFrames,int);
-  /*! Get the number of frames to copy to the output on each execute. */
-  vtkGetMacro(NumberOfOutputFrames,int);
-
   /*!
   Get the frame number (some devices has frame numbering, otherwise 
   just increment if new frame received)
@@ -548,8 +539,6 @@ protected:
   unsigned long FrameNumber; 
   double FrameTimeStamp;
 
-  int NumberOfOutputFrames;
-
   /*! Set if output needs to be cleared to be cleared before being written */
   int OutputNeedsInitialization;
 
@@ -580,12 +569,10 @@ protected:
 protected:
   /*
   When defining a device, it may be a tracker or imaging device
-  These variables allow a device to define which section of the configuration it is expecting
+  These variables allow a device to define which commonly used attributes it is expecting
   */
   bool RequireImageOrientationInConfiguration;
-  bool RequireAcquisitionRateInDeviceSetConfiguration;
   bool RequirePortNameInDeviceSetConfiguration;
-  bool RequireRfElementInDeviceSetConfiguration;
 
 private:
   vtkPlusDevice(const vtkPlusDevice&);  // Not implemented.

@@ -318,6 +318,8 @@ vtkBkProFocusCameraLinkVideoSource::vtkBkProFocusCameraLinkVideoSource()
   SetLogFunc(LogInfoMessageCallback);
   SetDbgFunc(LogDebugMessageCallback);
 
+  this->RequireImageOrientationInConfiguration = true;
+  
   // No need for StartThreadForInternalUpdates, as we are notified about each new frame through a callback function
 }
 

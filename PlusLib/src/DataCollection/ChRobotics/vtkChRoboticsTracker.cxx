@@ -58,12 +58,11 @@ BaudRate(115200)
 
   this->FirmwareDefinition=vtkXMLDataElement::New();
 
-  this->RequireImageOrientationInConfiguration = false;
-  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
-  this->RequireRfElementInDeviceSetConfiguration = false;
-
+  this->RequirePortNameInDeviceSetConfiguration = true;
+  
   // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
   this->StartThreadForInternalUpdates=true;
+  this->AcquisitionRate = 20;
 }
 
 //-------------------------------------------------------------------------

@@ -94,11 +94,8 @@ vtkSonixVideoSource::vtkSonixVideoSource()
   this->SetSonixIP("127.0.0.1");
   this->StartThreadForInternalUpdates = false;
 
-  this->NumberOfOutputFrames = 1;
   this->RequireImageOrientationInConfiguration = true;
-  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
-  this->RequireRfElementInDeviceSetConfiguration = false;
-
+  
   // This effectively forces only one sonixvideosource at a time, but it paves the way
   // for a non-singleton architecture when the SDK supports it
   if( vtkSonixVideoSource::ActiveSonixDevice != NULL )
