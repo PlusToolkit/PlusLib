@@ -158,7 +158,6 @@ vtkPlusDevice::vtkPlusDevice()
 , RequireImageOrientationInConfiguration(false)
 , RequireAcquisitionRateInDeviceSetConfiguration(false)
 , RequirePortNameInDeviceSetConfiguration(false)
-, RequireUsImageOrientationInDeviceSetConfiguration(false)
 , RequireRfElementInDeviceSetConfiguration(false)
 {
   this->SetNumberOfInputPorts(0);

@@ -62,7 +62,6 @@ vtkPhidgetSpatialTracker::vtkPhidgetSpatialTracker()
   this->RequireImageOrientationInConfiguration = false;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequirePortNameInDeviceSetConfiguration = true;
-  this->RequireUsImageOrientationInDeviceSetConfiguration = false;
   this->RequireRfElementInDeviceSetConfiguration = false;
 
   // No need for StartThreadForInternalUpdates, as we are notified about each new frame through a callback function

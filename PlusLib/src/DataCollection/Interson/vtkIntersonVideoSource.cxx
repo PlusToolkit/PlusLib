@@ -174,7 +174,6 @@ vtkIntersonVideoSource::vtkIntersonVideoSource()
 
   this->RequireImageOrientationInConfiguration = true;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
-  this->RequireUsImageOrientationInDeviceSetConfiguration = true;
   this->RequireRfElementInDeviceSetConfiguration = false;
 
   this->ImagingParameters = new vtkUsImagingParameters(this);

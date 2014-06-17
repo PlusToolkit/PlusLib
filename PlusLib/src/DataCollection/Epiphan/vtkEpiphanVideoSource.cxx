@@ -29,7 +29,6 @@ vtkEpiphanVideoSource::vtkEpiphanVideoSource()
 
   this->RequireImageOrientationInConfiguration = true;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
-  this->RequireUsImageOrientationInDeviceSetConfiguration = true;
   this->RequireRfElementInDeviceSetConfiguration = false;
 
   // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer

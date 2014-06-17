@@ -71,7 +71,6 @@ vtkMmfVideoSource::vtkMmfVideoSource()
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequireImageOrientationInConfiguration = true;
   this->RequireRfElementInDeviceSetConfiguration = false;
-  this->RequireUsImageOrientationInDeviceSetConfiguration = true;
 
   this->AcquisitionRate = vtkPlusDevice::VIRTUAL_DEVICE_FRAME_RATE;
 

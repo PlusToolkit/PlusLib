@@ -97,7 +97,6 @@ vtkSonixVideoSource::vtkSonixVideoSource()
   this->NumberOfOutputFrames = 1;
   this->RequireImageOrientationInConfiguration = true;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
-  this->RequireUsImageOrientationInDeviceSetConfiguration = true;
   this->RequireRfElementInDeviceSetConfiguration = false;
 
   // This effectively forces only one sonixvideosource at a time, but it paves the way
