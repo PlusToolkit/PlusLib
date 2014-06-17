@@ -163,7 +163,6 @@ vtkPlusDevice::vtkPlusDevice()
 , RequireLocalTimeOffsetSecInDeviceSetConfiguration(false)
 , RequireUsImageOrientationInDeviceSetConfiguration(false)
 , RequireRfElementInDeviceSetConfiguration(false)
-, ReportUnknownToolsOnce(false)
 {
   this->SetNumberOfInputPorts(0);
 
@@ -265,11 +264,7 @@ bool vtkPlusDevice::IsResettable()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::Reset()
 {
-  this->MissingInputGracePeriodSec = 0.0;
-  this->RecordingStartTime = 0.0;
-  this->ReportedUnknownTools.clear();
-  this->ReportUnknownToolsOnce = false;
-
+  // By default, Reset has no effect.
   return PLUS_SUCCESS;
 }
 
@@ -417,8 +412,7 @@ PlusStatus vtkPlusDevice::GetVideoSourcesByPortName( const char* aPortName, std:
   {
     if (it->second->GetPortName()==NULL)
     {
-      LOCAL_LOG_DEBUG("Port name is not defined for video source "<<(it->second->GetSourceId()!=NULL?it->second->GetSourceId():"unknown")
-        <<" in device "<<it->second->GetDevice()->GetDeviceId());
+      LOCAL_LOG_DEBUG("Port name is not defined for video source "<<(it->second->GetSourceId()!=NULL?it->second->GetSourceId():"unknown"));
       continue;
     }
     if ( STRCASECMP( aPortName, it->second->GetPortName() ) == 0 )
@@ -783,7 +777,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
 
   if( deviceXMLElement == NULL )
   {
-    LOCAL_LOG_ERROR("Unable to find device XML element for device " << this->GetDeviceId() );
+    LOCAL_LOG_ERROR("Unable to find device XML element for device");
     return PLUS_FAIL;
   }
 
@@ -795,19 +789,13 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
   }
   else if( this->IsTracker() )
   {
-    LOCAL_LOG_WARNING("ToolReferenceFrame is undefined. Default of \"" << this->GetDeviceId() << "\" will be used.");
     this->SetToolReferenceFrameName(this->GetDeviceId());
+    LOCAL_LOG_WARNING("ToolReferenceFrame is undefined. Default \"" << (this->GetToolReferenceFrameName()?this->GetToolReferenceFrameName():"(undefined)") << "\" will be used.");    
   }
 
   if( deviceXMLElement->GetAttribute("MissingInputGracePeriodSec") != NULL )
   {
     deviceXMLElement->GetScalarAttribute("MissingInputGracePeriodSec", this->MissingInputGracePeriodSec);
-  }
-
-  const char* reportUnknownToolsOnce = deviceXMLElement->GetAttribute("ReportUnknownToolsOnce");
-  if( reportUnknownToolsOnce != NULL )
-  {
-    this->ReportUnknownToolsOnce = STRCASECMP(reportUnknownToolsOnce, "TRUE") == 0;
   }
 
   vtkXMLDataElement* dataSourcesElement = deviceXMLElement->FindNestedElementWithName("DataSources");
@@ -990,6 +978,9 @@ PlusStatus vtkPlusDevice::Connect()
     LOCAL_LOG_DEBUG("Already connected to the data source");
     return PLUS_SUCCESS;
   }
+
+  // We will report unknown tools after each Connect
+  this->ReportedUnknownTools.clear();
 
   if (this->InternalConnect()!=PLUS_SUCCESS)
   {
@@ -1327,17 +1318,11 @@ PlusStatus vtkPlusDevice::ToolTimeStampedUpdateWithoutFiltering(const char* aToo
   vtkPlusDataSource* tool = NULL; 
   if ( this->GetTool(aToolSourceId, tool) != PLUS_SUCCESS )
   {
-    if( this->ReportUnknownToolsOnce )
+    if (this->ReportedUnknownTools.find(aToolSourceId)==this->ReportedUnknownTools.end())
     {
-      if( std::find(this->ReportedUnknownTools.begin(), this->ReportedUnknownTools.end(), std::string(aToolSourceId)) == this->ReportedUnknownTools.end() )
-      {
-        LOCAL_LOG_ERROR(this->GetDeviceId() << "::Failed to update tool - unable to find tool: " << aToolSourceId);
-        this->ReportedUnknownTools.push_back(std::string(aToolSourceId));
-      }
-    }
-    else
-    {
-      LOCAL_LOG_ERROR(this->GetDeviceId() << "::Failed to update tool - unable to find tool: " << aToolSourceId);
+      // We have not reported yet that this tool is unknown
+      LOCAL_LOG_ERROR("Failed to update tool - unable to find tool: " << aToolSourceId);
+      this->ReportedUnknownTools.insert(std::string(aToolSourceId));
     }
     return PLUS_FAIL; 
   }
@@ -1363,17 +1348,11 @@ PlusStatus vtkPlusDevice::ToolTimeStampedUpdate(const char* aToolSourceId, vtkMa
   vtkPlusDataSource* tool = NULL; 
   if ( this->GetTool(aToolSourceId, tool) != PLUS_SUCCESS )
   {
-    if( this->ReportUnknownToolsOnce )
+    if (this->ReportedUnknownTools.find(aToolSourceId)==this->ReportedUnknownTools.end())
     {
-      if( std::find(this->ReportedUnknownTools.begin(), this->ReportedUnknownTools.end(), std::string(aToolSourceId)) == this->ReportedUnknownTools.end() )
-      {
-        LOCAL_LOG_ERROR(this->GetDeviceId() << "::Failed to update tool - unable to find tool: " << aToolSourceId);
-        this->ReportedUnknownTools.push_back(std::string(aToolSourceId));
-      }
-    }
-    else
-    {
-      LOCAL_LOG_ERROR(this->GetDeviceId() << "::Failed to update tool - unable to find tool: " << aToolSourceId);
+      // We have not reported yet that this tool is unknown
+      LOCAL_LOG_ERROR("Failed to update tool - unable to find tool: " << aToolSourceId);
+      this->ReportedUnknownTools.insert(std::string(aToolSourceId));
     }
     return PLUS_FAIL; 
   }
