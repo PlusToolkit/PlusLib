@@ -14,10 +14,9 @@
     <Device
       Id="TrackerDevice"
       Type="CertusTracker"
-      AcquisitionRate="50"
-      LocalTimeOffsetSec="0.0" >
+      AcquisitionRate="50" >
       <DataSources>
-        <DataSource Type="Tool" Id="Probe" PortName="0" BufferSize="500" Model="L14-5_38" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Probe" PortName="0" BufferSize="500" Model="L14-5_38" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >

@@ -61,8 +61,6 @@ vtkICCapturingSource::vtkICCapturingSource()
 
   this->RequireImageOrientationInConfiguration = true;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
-  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
-  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
   this->RequireUsImageOrientationInDeviceSetConfiguration = true;
   this->RequireRfElementInDeviceSetConfiguration = false;
 

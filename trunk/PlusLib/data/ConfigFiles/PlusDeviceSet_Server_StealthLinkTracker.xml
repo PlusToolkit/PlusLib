@@ -11,8 +11,7 @@ Tools: Stylus (Passive Planar, Blunt) , Reference (Small Passive Cranial Frame)"
       ServerAddress="130.15.7.88"
       ServerPort="6996"
       AcquisitionRate="30"
-    RegistrationUpdatePeriod="0.0"
-      LocalTimeOffset="0.0"
+      RegistrationUpdatePeriod="0.0"
       ToolReferenceFrame="Tracker" >
       <DataSources>
         <DataSource Type="Tool" Id="Stylus" PortName="Passive Planar, Blunt" BufferSize="500" />
@@ -41,7 +40,6 @@ Tools: Stylus (Passive Planar, Blunt) , Reference (Small Passive Cranial Frame)"
       </InputChannels>
     </Device>
   </DataCollection>
-
   
   <CoordinateDefinitions>
     <Transform From="Ras" To="Lps"
@@ -50,8 +48,7 @@ Tools: Stylus (Passive Planar, Blunt) , Reference (Small Passive Cranial Frame)"
          0 -1  0  0
          0  0  1  0        
          0  0  0  1" />
-  </CoordinateDefinitions>
-  
+  </CoordinateDefinitions>  
   
   <PlusOpenIGTLinkServer 
     MaxNumberOfIgtlMessagesToSend="1" 

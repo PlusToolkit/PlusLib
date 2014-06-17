@@ -5,7 +5,6 @@
       Id="TrackerDevice"
       Type="BrachyTracker"
       AcquisitionRate="20"
-      LocalTimeOffsetSec="0.0"
       SerialPort="3"
       BaudRate="19200"
       BrachyStepperType="Burdette Medical Systems Digital Stepper"

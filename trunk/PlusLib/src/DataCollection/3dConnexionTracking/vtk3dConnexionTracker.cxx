@@ -45,9 +45,7 @@ vtk3dConnexionTracker::vtk3dConnexionTracker() :
   
   this->RequireImageOrientationInConfiguration = false;
   this->RequireAcquisitionRateInDeviceSetConfiguration = true;
-  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
   this->RequirePortNameInDeviceSetConfiguration = true;
-  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = true;
   this->RequireUsImageOrientationInDeviceSetConfiguration = false;
   this->RequireRfElementInDeviceSetConfiguration = false;
 

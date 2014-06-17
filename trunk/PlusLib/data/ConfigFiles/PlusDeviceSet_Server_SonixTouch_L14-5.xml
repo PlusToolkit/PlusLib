@@ -9,7 +9,6 @@
       Id="VideoDevice"
       Type="SonixVideo" 
       AcquisitionRate="30" 
-      LocalTimeOffsetSec="0"
       IP="127.0.0.1" 
       Depth="-1" 
       Sector="-1" 
@@ -20,7 +19,7 @@
       Timeout="-1" 
       CompressionStatus="0" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="100" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="100"  />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />

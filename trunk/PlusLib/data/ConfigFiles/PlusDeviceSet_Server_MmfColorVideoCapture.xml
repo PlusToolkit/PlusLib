@@ -11,7 +11,7 @@
       VideoFormat="YUY2"
       CaptureDeviceId="0" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="100" ImageType="RGB_COLOR" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="100" ImageType="RGB_COLOR"  />
       </DataSources>      
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />

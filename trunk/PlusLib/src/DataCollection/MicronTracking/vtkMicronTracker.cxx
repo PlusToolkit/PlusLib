@@ -44,8 +44,6 @@ vtkMicronTracker::vtkMicronTracker()
 
   this->RequireImageOrientationInConfiguration = false;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
-  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = true;
-  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
   this->RequireUsImageOrientationInDeviceSetConfiguration = false;
   this->RequireRfElementInDeviceSetConfiguration = false;
 

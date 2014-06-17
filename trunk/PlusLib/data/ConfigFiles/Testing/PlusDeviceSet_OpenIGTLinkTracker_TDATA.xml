@@ -14,12 +14,11 @@
       ServerPort="22222"
       IgtlMessageCrcCheckEnabled="true"
       AcquisitionRate="20"
-      ReconnectOnReceiveTimeout="false"
-      LocalTimeOffset="0.0" >
+      ReconnectOnReceiveTimeout="false" >
       <DataSources>
-        <DataSource Type="Tool" Id="ReferenceStar" BufferSize="500" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="Pointer" BufferSize="500" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="Ultrasound" BufferSize="500" AveragedItemsForFiltering="20"/>      
+        <DataSource Type="Tool" Id="ReferenceStar" BufferSize="500" />
+        <DataSource Type="Tool" Id="Pointer" BufferSize="500" />
+        <DataSource Type="Tool" Id="Ultrasound" BufferSize="500" />      
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
@@ -38,7 +37,7 @@
       UseOriginalTimestamps="FALSE"
       RepeatEnabled="TRUE">
       <DataSources>
-        <DataSource Type="Video" Id="Video" BufferSize="100" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="Video" BufferSize="100"  />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />

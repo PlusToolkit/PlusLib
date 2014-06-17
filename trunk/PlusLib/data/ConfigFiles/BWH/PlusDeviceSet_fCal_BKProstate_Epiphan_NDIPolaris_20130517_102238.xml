@@ -17,19 +17,19 @@
           Type="Tool"
           Id="Probe"
           RomFile="C:\isaiah\polaris\bwh_tooldefs\BL-US-blue\BL-us-blue.rom"
-          AveragedItemsForFiltering="20"
+          
           BufferSize="500"/>
         <DataSource
           Type="Tool"
           Id="Stylus"
           RomFile="C:\isaiah\polaris\bwh_tooldefs\HL-Stylus2\HL-Stylus2.rom"
-          AveragedItemsForFiltering="20"
+          
           BufferSize="500"/>
         <DataSource
           Type="Tool"
           Id="Reference"
           RomFile="C:\isaiah\polaris\bwh_tooldefs\BL-Demo-Star\BL-demo-star.rom"
-          AveragedItemsForFiltering="20"
+          
           BufferSize="500"/>
       </DataSources>
       <OutputChannels>
@@ -50,7 +50,7 @@
       ClipRectangleOrigin="0 0"
       ClipRectangleSize="0 0">
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="100" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="100" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video"/>

@@ -16,9 +16,9 @@
       RepeatEnabled="TRUE"
       ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="Probe" Model="L14-5_38" BufferSize="500" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="Reference" BufferSize="500" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="Stylus" Model="Example" BufferSize="500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Probe" Model="L14-5_38" BufferSize="500" />
+        <DataSource Type="Tool" Id="Reference" BufferSize="500" />
+        <DataSource Type="Tool" Id="Stylus" Model="Example" BufferSize="500" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
@@ -39,7 +39,7 @@
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="100" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="100"  />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />

@@ -56,9 +56,7 @@ vtkNDICertusTracker::vtkNDICertusTracker()
 
   this->RequireImageOrientationInConfiguration = false;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
-  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
   this->RequirePortNameInDeviceSetConfiguration = true;
-  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
   this->RequireUsImageOrientationInDeviceSetConfiguration = false;
   this->RequireRfElementInDeviceSetConfiguration = false;
 

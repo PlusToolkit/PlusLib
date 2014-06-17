@@ -10,10 +10,9 @@
       Id="VideoDevice"
       Type="BkProFocusOem"
       IniFileName="BkSettings/IniFile.ini"
-      AcquisitionRate="1.5"
-      LocalTimeOffsetSec="0" >
+      AcquisitionRate="1.5" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="100" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="100"  />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video"  />

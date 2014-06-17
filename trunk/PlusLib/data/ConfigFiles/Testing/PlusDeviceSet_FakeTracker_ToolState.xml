@@ -8,10 +8,9 @@
       Id="TrackerDevice"
       Type="FakeTracker"
       AcquisitionRate="50"
-      LocalTimeOffsetSec="0.0"
       Mode="ToolState" >
       <DataSources>
-        <DataSource Type="Tool" Id="Test" PortName="0" BufferSize="500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Test" PortName="0" BufferSize="500" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >

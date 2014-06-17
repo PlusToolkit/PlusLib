@@ -14,8 +14,8 @@
       Mode="PivotCalibration"
       ReferenceToolName="Reference" >
       <DataSources>
-        <DataSource Type="Tool" Id="Reference" PortName="0" BufferSize="500" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="Stylus" PortName="1" BufferSize="500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Reference" PortName="0" BufferSize="500" />
+        <DataSource Type="Tool" Id="Stylus" PortName="1" BufferSize="500" />
       </DataSources>  
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
@@ -39,7 +39,7 @@
       Timeout="-1" 
       CompressionStatus="0" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="MF" BufferSize="100" AveragedItemsForFiltering="20" />
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="MF" BufferSize="100"  />
       </DataSources>      
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />

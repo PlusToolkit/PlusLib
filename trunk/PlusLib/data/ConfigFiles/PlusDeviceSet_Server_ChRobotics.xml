@@ -12,10 +12,9 @@
       BaudRate="115200"
       FirmwareDirectory="ChRoboticsFirmware"
       AcquisitionRate="20"
-      LocalTimeOffsetSec="0.0"
       ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="OrientationSensor" PortName="OrientationSensor" BufferSize="500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="OrientationSensor" PortName="OrientationSensor" BufferSize="500" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">

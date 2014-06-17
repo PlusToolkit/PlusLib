@@ -10,14 +10,13 @@ Tools: Probe (1b), Reference (TTBlock), Stylus (2b) tools"
       Id="TrackerDevice"
       Type="MicronTracker"
       AcquisitionRate="20"
-      LocalTimeOffsetSec="0.0"
       TemplateDirectory="Markers"
       IniFile="MicronTracker.ini"
       ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="Probe" PortName="1b" BufferSize="500" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="Reference"  PortName="TTblock" BufferSize="500" AveragedItemsForFiltering="20"/>
-        <DataSource Type="Tool" Id="Stylus" PortName="2b" BufferSize="500" AveragedItemsForFiltering="20"/>
+        <DataSource Type="Tool" Id="Probe" PortName="1b" BufferSize="500" />
+        <DataSource Type="Tool" Id="Reference"  PortName="TTblock" BufferSize="500" />
+        <DataSource Type="Tool" Id="Stylus" PortName="2b" BufferSize="500" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >

@@ -157,9 +157,7 @@ vtkPlusDevice::vtkPlusDevice()
 , MissingInputGracePeriodSec(0.0)
 , RequireImageOrientationInConfiguration(false)
 , RequireAcquisitionRateInDeviceSetConfiguration(false)
-, RequireAveragedItemsForFilteringInDeviceSetConfiguration(false)
 , RequirePortNameInDeviceSetConfiguration(false)
-, RequireLocalTimeOffsetSecInDeviceSetConfiguration(false)
 , RequireUsImageOrientationInDeviceSetConfiguration(false)
 , RequireRfElementInDeviceSetConfiguration(false)
 {
@@ -829,7 +827,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
       }
       else if( dataSourceElement->GetAttribute("Type") != NULL && STRCASECMP(dataSourceElement->GetAttribute("Type"), "Video") == 0 )
       {
-        aDataSource->ReadConfiguration(dataSourceElement, this->RequireAveragedItemsForFilteringInDeviceSetConfiguration, this->RequireImageOrientationInConfiguration, this->GetDeviceId() );
+        aDataSource->ReadConfiguration(dataSourceElement, this->RequirePortNameInDeviceSetConfiguration, this->RequireImageOrientationInConfiguration, this->GetDeviceId() );
 
         if ( this->AddVideo(aDataSource) != PLUS_SUCCESS )
         {
@@ -895,9 +893,9 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
     LOCAL_LOG_INFO("Local time offset: " << 1000*localTimeOffsetSec << "ms" );
     this->SetLocalTimeOffsetSec(localTimeOffsetSec);
   }
-  else if ( this->RequireLocalTimeOffsetSecInDeviceSetConfiguration )
+  else
   {
-    LOCAL_LOG_ERROR("Unable to find local time offset in device configuration when it is required.");
+    LOCAL_LOG_DEBUG("Local time offset was not defined in device configuration");
   }
 
   return PLUS_SUCCESS;
