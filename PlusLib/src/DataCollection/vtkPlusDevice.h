@@ -583,7 +583,6 @@ protected:
   These variables allow a device to define which section of the configuration it is expecting
   */
   bool RequireImageOrientationInConfiguration;
-  bool RequireFrameBufferSizeInDeviceSetConfiguration;
   bool RequireAcquisitionRateInDeviceSetConfiguration;
   bool RequireAveragedItemsForFilteringInDeviceSetConfiguration;
   bool RequirePortNameInDeviceSetConfiguration;

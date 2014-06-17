@@ -44,7 +44,6 @@ vtk3dConnexionTracker::vtk3dConnexionTracker() :
   this->LatestMouseTransform=vtkMatrix4x4::New();
   
   this->RequireImageOrientationInConfiguration = false;
-  this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
   this->RequireAcquisitionRateInDeviceSetConfiguration = true;
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
   this->RequirePortNameInDeviceSetConfiguration = true;

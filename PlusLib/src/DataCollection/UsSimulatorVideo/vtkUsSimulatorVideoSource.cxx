@@ -33,7 +33,6 @@ vtkUsSimulatorVideoSource::vtkUsSimulatorVideoSource()
   this->GetUsSimulator()->SetTransformRepository(transformRepository);
 
   this->RequireImageOrientationInConfiguration = true;
-  this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
