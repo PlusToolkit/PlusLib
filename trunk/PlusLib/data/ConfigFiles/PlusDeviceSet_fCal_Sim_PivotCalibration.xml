@@ -12,8 +12,8 @@ vtkStylusCalibrationTest uses this configuration" />
       ToolReferenceFrame="Tracker"
       Mode="PivotCalibration"  >
       <DataSources>
-        <DataSource Type="Tool" Id="Reference" BufferSize="500"  PortName="0" />
-        <DataSource Type="Tool" Id="Stylus" BufferSize="500"  PortName="1" Model="Example" />     
+        <DataSource Type="Tool" Id="Reference"  PortName="0" />
+        <DataSource Type="Tool" Id="Stylus"  PortName="1" Model="Example" />     
       </DataSources> 
       <OutputChannels>
         <OutputChannel Id="TrackerStream">

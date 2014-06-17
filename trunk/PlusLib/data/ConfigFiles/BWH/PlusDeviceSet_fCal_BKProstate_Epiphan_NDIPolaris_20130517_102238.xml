@@ -16,21 +16,15 @@
         <DataSource
           Type="Tool"
           Id="Probe"
-          RomFile="C:\isaiah\polaris\bwh_tooldefs\BL-US-blue\BL-us-blue.rom"
-          
-          BufferSize="500"/>
+          RomFile="C:\isaiah\polaris\bwh_tooldefs\BL-US-blue\BL-us-blue.rom" />
         <DataSource
           Type="Tool"
           Id="Stylus"
-          RomFile="C:\isaiah\polaris\bwh_tooldefs\HL-Stylus2\HL-Stylus2.rom"
-          
-          BufferSize="500"/>
+          RomFile="C:\isaiah\polaris\bwh_tooldefs\HL-Stylus2\HL-Stylus2.rom" />
         <DataSource
           Type="Tool"
           Id="Reference"
-          RomFile="C:\isaiah\polaris\bwh_tooldefs\BL-Demo-Star\BL-demo-star.rom"
-          
-          BufferSize="500"/>
+          RomFile="C:\isaiah\polaris\bwh_tooldefs\BL-Demo-Star\BL-demo-star.rom" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
@@ -50,7 +44,7 @@
       ClipRectangleOrigin="0 0"
       ClipRectangleSize="0 0">
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="100" />
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video"/>

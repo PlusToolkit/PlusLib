@@ -187,7 +187,10 @@ vtkPlusBuffer::vtkPlusBuffer()
 {
   this->FrameSize[0] = this->FrameSize[1] = 0;
 
-  this->SetBufferSize(100); 
+  // 150 is a reasonable default value, it means that we keep the last 5 secods of acquired data @30fps
+  // (and last 2.5 seconds @60fps). It should be enough to have all the needed data available and
+  // it does not consume too much memory, even for images.
+  this->SetBufferSize(150);
 }
 
 //----------------------------------------------------------------------------

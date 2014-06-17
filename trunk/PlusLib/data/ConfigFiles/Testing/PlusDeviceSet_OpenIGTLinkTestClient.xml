@@ -10,7 +10,7 @@
         ImageMessageEmbeddedTransformName="Image2ToTracker"
         AcquisitionRate="30" >
         <DataSources>
-          <DataSource Type="Video" Id="Video" BufferSize="50" PortUsImageOrientation="MF"  />
+          <DataSource Type="Video" Id="Video" BufferSize="50" PortUsImageOrientation="MF" />
         </DataSources>
         <OutputChannels>
           <OutputChannel Id="TrackedVideoSenderStream" VideoDataSourceId="Video" />

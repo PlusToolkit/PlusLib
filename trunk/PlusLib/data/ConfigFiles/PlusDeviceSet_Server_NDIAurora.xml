@@ -14,7 +14,7 @@ The computer needs to be on the same local network as Aurora SCU unit. The needl
       AcquisitionRate="50"
       ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="Needle" PortName="0" BufferSize="500" />
+        <DataSource Type="Tool" Id="Needle" PortName="0" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">

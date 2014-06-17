@@ -14,11 +14,11 @@ Tools: Stylus (Passive Planar, Blunt) , Reference (Small Passive Cranial Frame)"
       RegistrationUpdatePeriod="0.0"
       ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="Stylus" PortName="Passive Planar, Blunt" BufferSize="500" />
-        <DataSource Type="Tool" Id="NProbe" 	 PortName="Navigus Probe" BufferSize="500" />
-        <DataSource Type="Tool" Id="TProbe" 	 PortName="Touch-n-Go Probe" BufferSize="500" />
-        <DataSource Type="Tool" Id="Reference" PortName="Small Passive Cranial Frame" BufferSize="500" />
-        <DataSource Type="Tool" Id="Ras" 	    PortName="RasRegistration" BufferSize="500" />
+        <DataSource Type="Tool" Id="Stylus" PortName="Passive Planar, Blunt" />
+        <DataSource Type="Tool" Id="NProbe" 	 PortName="Navigus Probe" />
+        <DataSource Type="Tool" Id="TProbe" 	 PortName="Touch-n-Go Probe" />
+        <DataSource Type="Tool" Id="Reference" PortName="Small Passive Cranial Frame" />
+        <DataSource Type="Tool" Id="Ras" 	    PortName="RasRegistration" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">

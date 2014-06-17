@@ -13,7 +13,7 @@
       LocalTimeOffsetSec="0.0"
       SequenceMetafile="NwirePhantomFreehand.mha" >
       <DataSources>
-        <DataSource Type="Tool" Id="Probe" BufferSize="200"  />
+        <DataSource Type="Tool" Id="Probe"  />
       </DataSources>      
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
@@ -30,7 +30,7 @@
       LocalTimeOffsetSec="0.0" 
       SequenceMetafile="UltrasonixCurvilinearRfData.mha" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" BufferSize="100"  />
+        <DataSource Type="Video" Id="Video"  />
       </DataSources>      
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />

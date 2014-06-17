@@ -13,7 +13,7 @@
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE">
       <DataSources>
-        <DataSource Type="Video" Id="Video" BufferSize="100" />
+        <DataSource Type="Video" Id="Video" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
@@ -37,7 +37,7 @@
       Type="PolarisTracker"
       SerialPort="4"
       BaudRate="115200"
-      BufferSize="500"
+      
       AcquisitionRate="50"
       
       LocalTimeOffsetSec="0">
@@ -70,7 +70,7 @@
       Timeout="-1" 
       CompressionStatus="0" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="100"  />
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF"  />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />

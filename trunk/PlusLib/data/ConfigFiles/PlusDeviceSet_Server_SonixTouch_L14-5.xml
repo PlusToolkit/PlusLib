@@ -19,7 +19,7 @@
       Timeout="-1" 
       CompressionStatus="0" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="100"  />
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF"  />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />

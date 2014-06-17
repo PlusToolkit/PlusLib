@@ -25,7 +25,7 @@
       Channels="64"
       >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="100"  />
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF"  />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />

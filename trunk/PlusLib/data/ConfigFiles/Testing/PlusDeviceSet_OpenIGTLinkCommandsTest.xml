@@ -13,7 +13,7 @@
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE">
       <DataSources>
-        <DataSource Type="Video" Id="Video" BufferSize="100"  />
+        <DataSource Type="Video" Id="Video"  />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
@@ -24,8 +24,7 @@
       Id="CaptureDevice"
       Type="VirtualDiscCapture"
       BaseFilename="OpenIGTTrackedVideoRecordingTest.mha"
-      EnableCapturing="FALSE"
-      FrameBufferSize="100">
+      EnableCapturing="FALSE" >
       <InputChannels>
         <InputChannel Id="TrackedVideoStream" />
       </InputChannels>

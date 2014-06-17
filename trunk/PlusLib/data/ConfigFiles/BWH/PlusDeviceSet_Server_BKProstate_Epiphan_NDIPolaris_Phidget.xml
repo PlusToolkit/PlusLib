@@ -18,19 +18,19 @@
           Id="Probe"
           RomFile="C:\isaiah\polaris\bwh_tooldefs\HologicStar_6balls_B\HologicStar_6balls_B.rom"
           
-          BufferSize="500"/>
+          />
         <DataSource
           Type="Tool"
           Id="Stylus"
           RomFile="C:\isaiah\polaris\bwh_tooldefs\HologicStylus\HologicStylus.rom"
           
-          BufferSize="500"/>
+          />
         <DataSource
           Type="Tool"
           Id="Reference"
           RomFile="C:\isaiah\polaris\bwh_tooldefs\HologicTStar_3balls_1\HologicTStar_3balls_1.rom"
           
-          BufferSize="500"/>
+          />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="PolarisTrackerStream">
@@ -52,11 +52,11 @@
       LocalTimeOffsetSec="0.0"
       ToolReferenceFrame="PhidgetTracker" >   
      <DataSources>
-      <DataSource Type="Tool" Id="Accelerometer" PortName="Accelerometer" BufferSize="500" />
-      <DataSource Type="Tool" Id="Gyroscope" PortName="Gyroscope" BufferSize="500" />
-      <DataSource Type="Tool" Id="Magnetometer" PortName="Magnetometer" BufferSize="500" />
-      <DataSource Type="Tool" Id="TiltSensor" PortName="TiltSensor" BufferSize="500" />
-      <DataSource Type="Tool" Id="OrientationSensor" PortName="OrientationSensor" BufferSize="500" />                           
+      <DataSource Type="Tool" Id="Accelerometer" PortName="Accelerometer" />
+      <DataSource Type="Tool" Id="Gyroscope" PortName="Gyroscope" />
+      <DataSource Type="Tool" Id="Magnetometer" PortName="Magnetometer" />
+      <DataSource Type="Tool" Id="TiltSensor" PortName="TiltSensor" />
+      <DataSource Type="Tool" Id="OrientationSensor" PortName="OrientationSensor" />                           
      </DataSources>   
      <OutputChannels>
       <OutputChannel Id="PhidgetTrackerStream" >
@@ -78,7 +78,7 @@
       ClipRectangleOrigin="0 0"
       ClipRectangleSize="0 0">
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="100" />
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video"/>

@@ -15,9 +15,9 @@
       LocalTimeOffsetSec="0.0"
       ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="Probe" RomFile="NdiToolDefinitions/8700339.rom"  BufferSize="500"/>
-        <DataSource Type="Tool" Id="Stylus" RomFile="NdiToolDefinitions/8700340.rom"  BufferSize="500"/>
-        <DataSource Type="Tool" Id="Reference" RomFile="NdiToolDefinitions/8700449.rom"  BufferSize="500"/>
+        <DataSource Type="Tool" Id="Probe" RomFile="NdiToolDefinitions/8700339.rom" />
+        <DataSource Type="Tool" Id="Stylus" RomFile="NdiToolDefinitions/8700340.rom" />
+        <DataSource Type="Tool" Id="Reference" RomFile="NdiToolDefinitions/8700449.rom" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
@@ -43,7 +43,7 @@
       Timeout="-1" 
       CompressionStatus="0" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="100"  />
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF"  />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />

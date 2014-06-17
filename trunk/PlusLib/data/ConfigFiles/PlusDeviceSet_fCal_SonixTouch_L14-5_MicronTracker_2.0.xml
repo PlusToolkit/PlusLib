@@ -14,9 +14,9 @@
       IniFile="MicronTracker.ini"
       ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="Probe" PortName="1b" BufferSize="500" />
-        <DataSource Type="Tool" Id="Reference"  PortName="TTblock" BufferSize="500" />
-        <DataSource Type="Tool" Id="Stylus" PortName="2b" BufferSize="500" />
+        <DataSource Type="Tool" Id="Probe" PortName="1b" />
+        <DataSource Type="Tool" Id="Reference"  PortName="TTblock" />
+        <DataSource Type="Tool" Id="Stylus" PortName="2b" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
@@ -42,7 +42,7 @@
       Timeout="-1" 
       CompressionStatus="0" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="100"  />
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF"  />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video"/>

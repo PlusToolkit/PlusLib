@@ -14,7 +14,7 @@
       AcquisitionRate="20"
       ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="OrientationSensor" PortName="OrientationSensor" BufferSize="500" />
+        <DataSource Type="Tool" Id="OrientationSensor" PortName="OrientationSensor" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">

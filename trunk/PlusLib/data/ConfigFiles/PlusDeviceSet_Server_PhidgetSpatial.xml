@@ -18,12 +18,12 @@ Keep the device stationary for 2 seconds after connect for accurate gyroscope in
       AcquisitionRate="125"
       ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="OrientationSensor" PortName="OrientationSensor" BufferSize="500" />    
-        <DataSource Type="Tool" Id="TiltSensor" PortName="TiltSensor" BufferSize="500" />
-        <DataSource Type="Tool" Id="FilteredTiltSensor" PortName="FilteredTiltSensor" BufferSize="500" />
-        <DataSource Type="Tool" Id="Accelerometer" PortName="Accelerometer" BufferSize="500" />
-        <DataSource Type="Tool" Id="Gyroscope" PortName="Gyroscope" BufferSize="500" />
-        <DataSource Type="Tool" Id="Magnetometer" PortName="Magnetometer" BufferSize="500" />
+        <DataSource Type="Tool" Id="OrientationSensor" PortName="OrientationSensor" />    
+        <DataSource Type="Tool" Id="TiltSensor" PortName="TiltSensor" />
+        <DataSource Type="Tool" Id="FilteredTiltSensor" PortName="FilteredTiltSensor" />
+        <DataSource Type="Tool" Id="Accelerometer" PortName="Accelerometer" />
+        <DataSource Type="Tool" Id="Gyroscope" PortName="Gyroscope" />
+        <DataSource Type="Tool" Id="Magnetometer" PortName="Magnetometer" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >

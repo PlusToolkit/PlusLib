@@ -10,7 +10,7 @@
       Type="Epiphan"
       AcquisitionRate="30" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="100"  ImageType="RGB_COLOR" />
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  ImageType="RGB_COLOR" />
       </DataSources>      
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />

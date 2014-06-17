@@ -14,7 +14,7 @@
       LocalTimeOffsetSec="0"
       ImagingMode="RfMode" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortUsImageOrientation="FM" BufferSize="100"  />
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="FM"  />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" >
@@ -48,8 +48,8 @@
       LocalTimeOffset="0.0"
       ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="Probe" BufferSize="500" />
-        <DataSource Type="Tool" Id="Reference" BufferSize="500" />
+        <DataSource Type="Tool" Id="Probe" />
+        <DataSource Type="Tool" Id="Reference" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">

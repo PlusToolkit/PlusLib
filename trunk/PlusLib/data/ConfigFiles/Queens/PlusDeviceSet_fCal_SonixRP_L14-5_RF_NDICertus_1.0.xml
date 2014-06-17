@@ -12,10 +12,10 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
       AcquisitionRate="50"
       LocalTimeOffsetSec="0.0" >
       <DataSources>
-        <DataSource Type="Tool" Id="Probe" PortName="0" Model="L14-5_38" BufferSize="500" />
-        <DataSource Type="Tool" Id="Reference" PortName="1" BufferSize="500" />
-        <DataSource Type="Tool" Id="Stylus" PortName="2" Model="Example" BufferSize="500" />
-        <DataSource Type="Tool" Id="Needle" PortName="3" Model="Example" BufferSize="500" />
+        <DataSource Type="Tool" Id="Probe" PortName="0" Model="L14-5_38" />
+        <DataSource Type="Tool" Id="Reference" PortName="1" />
+        <DataSource Type="Tool" Id="Stylus" PortName="2" Model="Example" />
+        <DataSource Type="Tool" Id="Needle" PortName="3" Model="Example" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
@@ -42,7 +42,7 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
       Timeout="-1" 
       CompressionStatus="0" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortName="Rf" PortUsImageOrientation="FM" BufferSize="100"  />
+        <DataSource Type="Video" Id="Video" PortName="Rf" PortUsImageOrientation="FM"  />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" >

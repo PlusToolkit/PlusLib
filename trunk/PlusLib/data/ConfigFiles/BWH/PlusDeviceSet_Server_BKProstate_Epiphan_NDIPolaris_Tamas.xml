@@ -16,19 +16,19 @@
           Id="Probe"
           RomFile="C:\isaiah\polaris\bwh_tooldefs\HologicStar_6balls_B\HologicStar_6balls_B.rom"
           
-          BufferSize="500"/>
+          />
         <DataSource
           Type="Tool"
           Id="Stylus"
           RomFile="C:\isaiah\polaris\bwh_tooldefs\HologicStylus\HologicStylus.rom"
           
-          BufferSize="500"/>
+          />
         <DataSource
           Type="Tool"
           Id="Reference"
           RomFile="C:\isaiah\polaris\bwh_tooldefs\HologicTStar_3balls_1\HologicTStar_3balls_1.rom"
           
-          BufferSize="500"/>
+          />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
@@ -47,7 +47,7 @@
       ClipRectangleOrigin="0 0"
       ClipRectangleSize="0 0">
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="100" />
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video"/>

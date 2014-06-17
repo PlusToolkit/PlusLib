@@ -14,8 +14,8 @@
       ToolReferenceFrame="Tracker" 
       ReferenceToolName="Reference" >
       <DataSources>
-        <DataSource Type="Tool" Id="Reference" BufferSize="200"  PortName="0"/> 
-        <DataSource Type="Tool" Id="Stylus" BufferSize="200"  PortName="1" />
+        <DataSource Type="Tool" Id="Reference"  PortName="0"/> 
+        <DataSource Type="Tool" Id="Stylus"  PortName="1" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
@@ -39,7 +39,7 @@
       Timeout="-1" 
       CompressionStatus="0" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" BufferSize="100" PortName="B" PortUsImageOrientation="MF" />
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="MF" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="BModeVideoStream" VideoDataSourceId="Video" />

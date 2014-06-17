@@ -13,7 +13,7 @@
       LocalTimeOffsetSec="0.0" 
       FilterAcWideNotch="1" >
       <DataSources>
-        <DataSource Type="Tool" Id="Probe" BufferSize="500" PortName="0"  />
+        <DataSource Type="Tool" Id="Probe" PortName="0"  />
       </DataSources> 
 
       <OutputChannels>
@@ -38,7 +38,7 @@
       Timeout="-1" 
       CompressionStatus="0" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="100"  />
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF"  />
       </DataSources>
       
       <OutputChannels>

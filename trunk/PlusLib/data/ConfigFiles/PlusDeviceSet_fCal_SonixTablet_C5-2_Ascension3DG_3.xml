@@ -13,9 +13,9 @@
       FilterAcWideNotch="1"
       ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="Probe" BufferSize="500" PortName="0"  />
-        <DataSource Type="Tool" Id="Reference" BufferSize="500" PortName="1"  />
-        <DataSource Type="Tool" Id="Stylus" BufferSize="500" PortName="2"  />
+        <DataSource Type="Tool" Id="Probe" PortName="0"  />
+        <DataSource Type="Tool" Id="Reference" PortName="1"  />
+        <DataSource Type="Tool" Id="Stylus" PortName="2"  />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
@@ -41,7 +41,7 @@
       Timeout="-1" 
       CompressionStatus="0" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="100"  />
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF"  />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video"/>

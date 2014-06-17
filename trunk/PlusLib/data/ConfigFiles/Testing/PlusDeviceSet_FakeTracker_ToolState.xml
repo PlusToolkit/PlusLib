@@ -10,7 +10,7 @@
       AcquisitionRate="50"
       Mode="ToolState" >
       <DataSources>
-        <DataSource Type="Tool" Id="Test" PortName="0" BufferSize="500" />
+        <DataSource Type="Tool" Id="Test" PortName="0" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >

@@ -13,7 +13,7 @@
         IgtlMessageCrcCheckEnabled="false"
         AcquisitionRate="30" >
         <DataSources>
-          <DataSource Type="Video" Id="Video" BufferSize="100" PortUsImageOrientation="MF"  />
+          <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />
         </DataSources>
         <OutputChannels>
           <OutputChannel Id="TrackedVideoSenderStream" VideoDataSourceId="Video" />

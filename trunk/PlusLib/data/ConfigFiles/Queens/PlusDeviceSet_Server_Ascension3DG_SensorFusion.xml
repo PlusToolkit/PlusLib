@@ -11,16 +11,16 @@
       FilterAcWideNotch="1"
       ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="Tool1" BufferSize="500" PortName="0" 
+        <DataSource Type="Tool" Id="Tool1" PortName="0" 
           QualityErrorSlope="0" QualityErrorOffset="0" QualityErrorSensitivity="2" QualityFilterAlpha="12" />
-        <DataSource Type="Tool" Id="Tool2" BufferSize="500" PortName="1" 
+        <DataSource Type="Tool" Id="Tool2" PortName="1" 
           QualityErrorSlope="0" QualityErrorOffset="0" QualityErrorSensitivity="2" QualityFilterAlpha="12" />
-        <DataSource Type="Tool" Id="Tool3" BufferSize="500" PortName="2" 
+        <DataSource Type="Tool" Id="Tool3" PortName="2" 
           QualityErrorSlope="0" QualityErrorOffset="0" QualityErrorSensitivity="2" QualityFilterAlpha="12" />
-        <DataSource Type="Tool" Id="Tool4" BufferSize="500" PortName="3" 
+        <DataSource Type="Tool" Id="Tool4" PortName="3" 
           QualityErrorSlope="0" QualityErrorOffset="0" QualityErrorSensitivity="2" QualityFilterAlpha="12" />
-        <DataSource Type="Tool" Id="Quality1" BufferSize="500" PortName="quality1"  />
-        <DataSource Type="Tool" Id="Quality2" BufferSize="500" PortName="quality2"  />
+        <DataSource Type="Tool" Id="Quality1" PortName="quality1"  />
+        <DataSource Type="Tool" Id="Quality2" PortName="quality2"  />
       </DataSources> 
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >

@@ -11,8 +11,8 @@
       Mode="RecordPhantomLandmarks"
       ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="Reference" BufferSize="500"  PortName="0" />
-        <DataSource Type="Tool" Id="Stylus" BufferSize="500"  PortName="1" />
+        <DataSource Type="Tool" Id="Reference"  PortName="0" />
+        <DataSource Type="Tool" Id="Stylus"  PortName="1" />
       </DataSources> 
       <OutputChannels>
         <OutputChannel Id="TrackerStream">

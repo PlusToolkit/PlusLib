@@ -16,9 +16,9 @@
       AcquisitionRate="20"
       ReconnectOnReceiveTimeout="false" >
       <DataSources>
-        <DataSource Type="Tool" Id="ReferenceStar" BufferSize="500" />
-        <DataSource Type="Tool" Id="Pointer" BufferSize="500" />
-        <DataSource Type="Tool" Id="Ultrasound" BufferSize="500" />      
+        <DataSource Type="Tool" Id="ReferenceStar" />
+        <DataSource Type="Tool" Id="Pointer" />
+        <DataSource Type="Tool" Id="Ultrasound" />      
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
@@ -37,7 +37,7 @@
       UseOriginalTimestamps="FALSE"
       RepeatEnabled="TRUE">
       <DataSources>
-        <DataSource Type="Video" Id="Video" BufferSize="100"  />
+        <DataSource Type="Video" Id="Video"  />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />

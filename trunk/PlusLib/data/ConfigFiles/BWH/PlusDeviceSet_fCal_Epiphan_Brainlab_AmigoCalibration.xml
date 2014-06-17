@@ -15,9 +15,9 @@
       LocalTimeOffset="0.0" 
       ToolReferenceFrame="Tracker" >      
       <DataSources>
-        <DataSource Type="Tool" Id="ReferenceStar" BufferSize="500" />
-        <DataSource Type="Tool" Id="Pointer" BufferSize="500" />
-        <DataSource Type="Tool" Id="Ultrasound" BufferSize="500" />
+        <DataSource Type="Tool" Id="ReferenceStar" />
+        <DataSource Type="Tool" Id="Pointer" />
+        <DataSource Type="Tool" Id="Ultrasound" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
@@ -35,7 +35,7 @@
       xClipRectangleOrigin="253 108" 
       xClipRectangleSize="720 667">
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="100"  />
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />
       </DataSources>      
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />

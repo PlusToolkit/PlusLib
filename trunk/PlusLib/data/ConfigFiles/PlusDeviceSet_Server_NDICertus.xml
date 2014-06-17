@@ -13,10 +13,10 @@ The computer needs to be on the same local network as Certus SCU unit. The needl
       AcquisitionRate="50"
       ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="Probe" PortName="0" Model="L14-5_38" BufferSize="500" />
-        <DataSource Type="Tool" Id="Reference" PortName="1" BufferSize="500" />
-        <DataSource Type="Tool" Id="Stylus" PortName="2" Model="Example" BufferSize="500" />
-        <DataSource Type="Tool" Id="Needle" PortName="3" Model="Example" BufferSize="500" />
+        <DataSource Type="Tool" Id="Probe" PortName="0" Model="L14-5_38" />
+        <DataSource Type="Tool" Id="Reference" PortName="1" />
+        <DataSource Type="Tool" Id="Stylus" PortName="2" Model="Example" />
+        <DataSource Type="Tool" Id="Needle" PortName="3" Model="Example" />
       </DataSources>
       <OutputChannels>
       <OutputChannel Id="TrackerStream" >

@@ -12,10 +12,9 @@
       DeviceName="DFG/USB2-lt"
       VideoNorm="NTSC_M"
       VideoFormat="Y800 (640x480)"
-      InputChannel="01 Video: SVideo"
-      ICBufferSize="50">
+      InputChannel="01 Video: SVideo" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="100"  />
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />

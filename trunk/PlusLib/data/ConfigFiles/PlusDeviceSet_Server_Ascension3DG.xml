@@ -13,9 +13,9 @@ Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted o
       FilterAcWideNotch="1"
       ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="Probe" BufferSize="500" PortName="0"  />
-        <DataSource Type="Tool" Id="Reference" BufferSize="500" PortName="1"  />
-        <DataSource Type="Tool" Id="Stylus" BufferSize="500" PortName="2"  />
+        <DataSource Type="Tool" Id="Probe" PortName="0"  />
+        <DataSource Type="Tool" Id="Reference" PortName="1"  />
+        <DataSource Type="Tool" Id="Stylus" PortName="2"  />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >

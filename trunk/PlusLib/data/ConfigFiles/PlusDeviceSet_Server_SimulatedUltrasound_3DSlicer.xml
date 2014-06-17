@@ -29,9 +29,9 @@ To use with Ascension tracker instead of a simulated tracker: enable the Ascensi
       LocalTimeOffset="0.0"
       ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="Probe" BufferSize="500"  />
-        <DataSource Type="Tool" Id="Reference" BufferSize="500"  />
-        <DataSource Type="Tool" Id="Needle" BufferSize="500"  />
+        <DataSource Type="Tool" Id="Probe"  />
+        <DataSource Type="Tool" Id="Reference"  />
+        <DataSource Type="Tool" Id="Needle"  />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
@@ -51,9 +51,9 @@ To use with Ascension tracker instead of a simulated tracker: enable the Ascensi
       FilterAcWideNotch="1"
       ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="Probe" BufferSize="500" PortName="0"  />
-        <DataSource Type="Tool" Id="Reference" BufferSize="500" PortName="1"  />
-        <DataSource Type="Tool" Id="Needle" BufferSize="500" PortName="2"  />
+        <DataSource Type="Tool" Id="Probe" PortName="0"  />
+        <DataSource Type="Tool" Id="Reference" PortName="1"  />
+        <DataSource Type="Tool" Id="Needle" PortName="2"  />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
@@ -73,7 +73,7 @@ To use with Ascension tracker instead of a simulated tracker: enable the Ascensi
       
       AcquisitionRate="15" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" BufferSize="100" />  
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" />  
       </DataSources>      
       <InputChannels>
         <InputChannel Id="TrackerStream" />
@@ -184,7 +184,7 @@ To use with Ascension tracker instead of a simulated tracker: enable the Ascensi
       SoundVelocity="1500">
       <DataSources>
         <DataSource
-          Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="500" 
+          Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" 
           />
       </DataSources>
       <OutputChannels>

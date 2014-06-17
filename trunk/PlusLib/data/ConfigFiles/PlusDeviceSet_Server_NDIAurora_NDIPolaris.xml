@@ -15,7 +15,7 @@
       LocalTimeOffsetSec="0.0"
       ToolReferenceFrame="EmTracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="Pointer" PortName="0" BufferSize="500"/>
+        <DataSource Type="Tool" Id="Pointer" PortName="0" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="EmTrackerStream">
@@ -33,8 +33,8 @@
       LocalTimeOffsetSec="0.0"
       ToolReferenceFrame="OpticalTracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="Stylus" RomFile="NdiToolDefinitions/8700340.rom" BufferSize="500"/>
-        <DataSource Type="Tool" Id="Reference" RomFile="NdiToolDefinitions/8700449.rom" BufferSize="500"/>
+        <DataSource Type="Tool" Id="Stylus" RomFile="NdiToolDefinitions/8700340.rom" />
+        <DataSource Type="Tool" Id="Reference" RomFile="NdiToolDefinitions/8700449.rom" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="OpticalTrackerStream" >
