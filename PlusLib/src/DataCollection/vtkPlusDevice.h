@@ -584,9 +584,7 @@ protected:
   */
   bool RequireImageOrientationInConfiguration;
   bool RequireAcquisitionRateInDeviceSetConfiguration;
-  bool RequireAveragedItemsForFilteringInDeviceSetConfiguration;
   bool RequirePortNameInDeviceSetConfiguration;
-  bool RequireLocalTimeOffsetSecInDeviceSetConfiguration;
   bool RequireUsImageOrientationInDeviceSetConfiguration;
   bool RequireRfElementInDeviceSetConfiguration;
 

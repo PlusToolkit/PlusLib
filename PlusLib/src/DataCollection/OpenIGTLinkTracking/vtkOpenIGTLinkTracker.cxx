@@ -46,9 +46,7 @@ vtkOpenIGTLinkTracker::vtkOpenIGTLinkTracker()
 {
   this->RequireImageOrientationInConfiguration = false;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
-  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
   this->RequirePortNameInDeviceSetConfiguration = false;
-  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
   this->RequireUsImageOrientationInDeviceSetConfiguration = false;
   this->RequireRfElementInDeviceSetConfiguration = false;
   this->TrackerInternalCoordinateSystemName=NULL;
