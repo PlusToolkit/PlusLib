@@ -122,7 +122,7 @@ PlusStatus FidSegmentation::ReadConfiguration( vtkXMLDataElement* configData )
 
   XML_FIND_NESTED_ELEMENT_REQUIRED(phantomDefinition, configData, "PhantomDefinition");
   XML_FIND_NESTED_ELEMENT_REQUIRED(description, phantomDefinition, "Description");
-  XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(FiducialGeometry, description, "Double-N", CALIBRATION_PHANTOM_6_POINT, "CIRS", CIRS_PHANTOM_13_POINT);
+  XML_READ_ENUM3_ATTRIBUTE_OPTIONAL(FiducialGeometry, description, "Multi-N", CALIBRATION_PHANTOM_MULTI_NWIRE, "CIRS", CIRS_PHANTOM_13_POINT, "Double-N", CALIBRATION_PHANTOM_6_POINT);
 
   XML_FIND_NESTED_ELEMENT_REQUIRED(segmentationParameters, configData, "Segmentation");
   XML_READ_SCALAR_ATTRIBUTE_WARNING(double, ApproximateSpacingMmPerPixel, segmentationParameters);

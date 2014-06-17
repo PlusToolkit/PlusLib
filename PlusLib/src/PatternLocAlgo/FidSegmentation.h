@@ -43,8 +43,9 @@ class FidSegmentation
     /*! The different types of phantom the algorithm covers */
     enum FiducialGeometryType
     {
-      CALIBRATION_PHANTOM_6_POINT, //PerkLab Double-N phantom
-      CIRS_PHANTOM_13_POINT //CIRS phantom model 45
+      CALIBRATION_PHANTOM_MULTI_NWIRE, //PerkLab Multi-Nwire phantom      
+      CIRS_PHANTOM_13_POINT, //CIRS phantom model 45
+      CALIBRATION_PHANTOM_6_POINT //PerkLab Double-N phantom, deprecated (superceded by CALIBRATION_PHANTOM_MULTI_NWIRE)
     };
 
     FidSegmentation();
