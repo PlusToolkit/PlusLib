@@ -570,10 +570,12 @@ protected:
   /*! Adjust the device reporting behaviour depending on whether or not a grace period has expired */
   double RecordingStartTime;
 
-  /*! When data comes in for an unknown tool, these values affect how the device responds */
-  bool ReportUnknownToolsOnce;
-  /*! When data comes in for an unknown tool, these values affect how the device responds */
-  std::vector< std::string > ReportedUnknownTools;
+  /*!
+    The list contains the IDs of the tools that have been already reported to be unknown.
+    This list is used to only report an unknown tool once (after the connection has been establiushed), not at each
+    attempt to access it.
+  */
+  std::set< std::string > ReportedUnknownTools;
 
 protected:
   /*

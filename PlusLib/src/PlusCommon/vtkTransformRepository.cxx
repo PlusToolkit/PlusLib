@@ -526,12 +526,18 @@ void vtkTransformRepository::Clear()
 //----------------------------------------------------------------------------
 PlusStatus vtkTransformRepository::ReadConfiguration(vtkXMLDataElement* configRootElement)
 {
-  XML_FIND_NESTED_ELEMENT_REQUIRED(coordinateDefinitions, configRootElement, "CoordinateDefinitions");
+  XML_FIND_NESTED_ELEMENT_OPTIONAL(coordinateDefinitions, configRootElement, "CoordinateDefinitions");
 
   PlusLockGuard<vtkRecursiveCriticalSection> accessGuard(this->CriticalSection);
 
   // Clear the transforms
-  this->Clear(); 
+  this->Clear();
+
+  if (coordinateDefinitions==NULL)
+  {
+    LOG_DEBUG("vtkTransformRepository::ReadConfiguration: no CoordinateDefinitions element was found");
+    return PLUS_SUCCESS;
+  }
 
   int numberOfErrors(0); 
   for ( int nestedElementIndex = 0; nestedElementIndex < coordinateDefinitions->GetNumberOfNestedElements(); ++nestedElementIndex )
