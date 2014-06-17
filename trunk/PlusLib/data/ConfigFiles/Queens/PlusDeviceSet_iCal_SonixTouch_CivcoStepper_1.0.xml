@@ -9,7 +9,6 @@ Plug in the US Digital ED2 digital display through Serial2USB converter cable in
     <Device
       Id="TrackerDevice"
       Type="BrachyTracker"
-      AcquisitionRate="20"
       LocalTimeOffsetSec="0.0"
       SerialPort="0"
       BaudRate="19200"

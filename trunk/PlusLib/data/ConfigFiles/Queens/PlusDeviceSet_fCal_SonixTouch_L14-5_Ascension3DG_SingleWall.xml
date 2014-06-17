@@ -8,7 +8,6 @@
     <Device
       Id="TrackerDevice" 
       Type="Ascension3DG" 
-      AcquisitionRate="50" 
       LocalTimeOffsetSec="0.0" 
       FilterAcWideNotch="1" >
       <DataSources>

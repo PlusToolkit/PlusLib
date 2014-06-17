@@ -9,7 +9,7 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
     <Device
       Id="TrackerDevice"
       Type="CertusTracker"
-      AcquisitionRate="50"
+      ToolReferenceFrame="Tracker"
       LocalTimeOffsetSec="0.0" >
       <DataSources>
         <DataSource Type="Tool" Id="Probe" PortName="0" Model="L14-5_38" />

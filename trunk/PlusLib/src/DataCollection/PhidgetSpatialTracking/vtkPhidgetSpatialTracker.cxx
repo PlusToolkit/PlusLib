@@ -58,12 +58,10 @@ vtkPhidgetSpatialTracker::vtkPhidgetSpatialTracker()
   this->FilteredTiltSensorAhrsAlgorithmGain[1]=0.0; // integral
   this->FilteredTiltSensorAhrsLastUpdateTime=-1;  
 
-
-  this->RequireImageOrientationInConfiguration = false;
-  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequirePortNameInDeviceSetConfiguration = true;
-  this->RequireRfElementInDeviceSetConfiguration = false;
 
+  this->AcquisitionRate = 125; // set to the maximum speed by default
+  
   // No need for StartThreadForInternalUpdates, as we are notified about each new frame through a callback function
 }
 

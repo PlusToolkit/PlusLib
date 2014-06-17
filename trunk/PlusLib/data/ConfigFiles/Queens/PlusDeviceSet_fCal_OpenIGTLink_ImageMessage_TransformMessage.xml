@@ -12,7 +12,6 @@
       ServerAddress="127.0.0.1"
       ServerPort="18944"
       IgtlMessageCrcCheckEnabled="true"
-      AcquisitionRate="30"
       LocalTimeOffset="0.0" >
       <DataSources>
         <DataSource Type="Tool" Id="Probe" />
@@ -34,7 +33,6 @@
       ServerPort="18944"
       IgtlMessageCrcCheckEnabled="false"
       ImageMessageEmbeddedTransformName="Image2ToTracker"
-      AcquisitionRate="30"
       LocalTimeOffsetSec="0" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />

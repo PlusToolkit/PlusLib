@@ -8,14 +8,13 @@
     <Device
       Id="VideoDevice" 
       Type="IntersonVideo"
-      AcquisitionRate="30"
       SoundVelocity="1541"
       DepthMm="100" 
-	  Intensity="128"
-	  Contrast="256"
+      Intensity="128"
+      Contrast="256"
       GainPercent="0 0 60" 
-	  ImageSize="800 512"
-	  SectorPercent="-1" 
+      ImageSize="800 512"
+      SectorPercent="-1" 
       DynRangeDb="-1" 
       ZoomFactor="-1" 
       FrequencyMhz="-1">

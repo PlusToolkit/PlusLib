@@ -9,7 +9,6 @@
       Type="PolarisTracker"
       SerialPort="5"
       BaudRate="115200"
-      AcquisitionRate="50"
       LocalTimeOffsetSec="0"
       ToolReferenceFrame="Tracker" >
       <DataSources>
@@ -38,7 +37,6 @@
     <Device
       Id="VideoDevice"
       Type="Epiphan"
-      AcquisitionRate="30"
       LocalTimeOffsetSec="-0.152969"
       VideoFormat="Y8"
       ClipRectangleOrigin="0 0"

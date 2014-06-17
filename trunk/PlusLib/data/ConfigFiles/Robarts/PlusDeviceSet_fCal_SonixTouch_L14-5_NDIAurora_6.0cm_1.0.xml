@@ -10,7 +10,6 @@
       Type="AuroraTracker"
       SerialPort="7"
       BaudRate="115200"
-      AcquisitionRate="50"
       LocalTimeOffsetSec="0.0">
       <DataSources>
         <DataSource Type="Tool" Id="Probe" PortName="0" Model="L14-5_38" />

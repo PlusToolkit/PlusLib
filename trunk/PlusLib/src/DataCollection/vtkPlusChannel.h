@@ -35,7 +35,7 @@ public:
   /*!
     Parse the XML, read the details about the stream
   */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* aChannelElement, bool RequireRfElementInDeviceSetConfiguration, bool RequireImageOrientationInChannelConfiguration );
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* aChannelElement, bool RequireImageOrientationInChannelConfiguration );
   /*!
     Write the details about the stream to XML
   */

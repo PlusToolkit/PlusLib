@@ -9,7 +9,6 @@ Tools: Probe (1b), Reference (TTBlock), Stylus (2b) tools"
     <Device
       Id="TrackerDevice"
       Type="MicronTracker"
-      AcquisitionRate="20"
       TemplateDirectory="Markers"
       IniFile="MicronTracker.ini"
       ToolReferenceFrame="Tracker" >

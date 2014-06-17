@@ -173,8 +173,6 @@ vtkIntersonVideoSource::vtkIntersonVideoSource()
   this->Internal = new vtkInternal(this);
 
   this->RequireImageOrientationInConfiguration = true;
-  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
-  this->RequireRfElementInDeviceSetConfiguration = false;
 
   this->ImagingParameters = new vtkUsImagingParameters(this);
   //this->SoundVelocity = 1540.0;
@@ -197,6 +195,7 @@ vtkIntersonVideoSource::vtkIntersonVideoSource()
 
   // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
   this->StartThreadForInternalUpdates=true;
+  this->AcquisitionRate = 30;
 }
 
 //----------------------------------------------------------------------------

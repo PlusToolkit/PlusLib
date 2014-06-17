@@ -7,8 +7,7 @@
     />
     <Device
       Id="VideoDevice" 
-      Type="Epiphan"
-      AcquisitionRate="30" >
+      Type="Epiphan" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  ImageType="RGB_COLOR" />
       </DataSources>      

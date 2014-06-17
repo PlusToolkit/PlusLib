@@ -121,8 +121,6 @@ vtkIntersonSDKCxxVideoSource::vtkIntersonSDKCxxVideoSource()
   this->StartThreadForInternalUpdates = false;
 
   this->RequireImageOrientationInConfiguration = true;
-  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
-  this->RequireRfElementInDeviceSetConfiguration = false;
 
   this->ImagingParameters = new vtkUsImagingParameters(this);
 

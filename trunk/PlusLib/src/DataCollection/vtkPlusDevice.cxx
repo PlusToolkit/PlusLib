@@ -149,16 +149,13 @@ vtkPlusDevice::vtkPlusDevice()
 , TimestampClosestToDesired(-1)
 , FrameNumber(0)
 , FrameTimeStamp(0)
-, NumberOfOutputFrames(1)
 , OutputNeedsInitialization(1)
 , CorrectlyConfigured(true)
 , StartThreadForInternalUpdates(false)
 , LocalTimeOffsetSec(0.0)
 , MissingInputGracePeriodSec(0.0)
 , RequireImageOrientationInConfiguration(false)
-, RequireAcquisitionRateInDeviceSetConfiguration(false)
 , RequirePortNameInDeviceSetConfiguration(false)
-, RequireRfElementInDeviceSetConfiguration(false)
 {
   this->SetNumberOfInputPorts(0);
 
@@ -216,7 +213,6 @@ void vtkPlusDevice::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "SDK version: " << this->GetSdkVersion() << "\n";
   os << indent << "AcquisitionRate: " << this->AcquisitionRate << "\n";
   os << indent << "Recording: " << (this->Recording ? "On\n" : "Off\n");
-  os << indent << "NumberOfOutputFrames: " << this->NumberOfOutputFrames << "\n";
 
   for( ChannelContainerConstIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it )
   {
@@ -842,9 +838,9 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
   {
     this->SetAcquisitionRate(acquisitionRate);
   }
-  else if( RequireAcquisitionRateInDeviceSetConfiguration )
+  else
   {
-    LOCAL_LOG_ERROR("Unable to find acquisition rate in device element when it is required.");
+    LOCAL_LOG_DEBUG("Unable to find acquisition rate in device element when it is required, using default "<<this->GetAcquisitionRate());
   }
 
   vtkXMLDataElement* outputChannelsElement = deviceXMLElement->FindNestedElementWithName("OutputChannels");
@@ -880,7 +876,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
 
       vtkSmartPointer<vtkPlusChannel> aChannel = vtkSmartPointer<vtkPlusChannel>::New();
       aChannel->SetOwnerDevice(this);
-      aChannel->ReadConfiguration(channelElement, this->RequireRfElementInDeviceSetConfiguration, this->RequireImageOrientationInConfiguration);
+      aChannel->ReadConfiguration(channelElement, this->RequireImageOrientationInConfiguration);
       AddOutputChannel(aChannel);
     }
   }

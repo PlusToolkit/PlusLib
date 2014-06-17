@@ -71,17 +71,15 @@ vtkNDITracker::vtkNDITracker()
   this->SerialPort = -1; // default is to probe
   this->BaudRate = 9600;
 
-  this->UpdateNominalFrequency=60.0;
   this->LastFrameNumber=0;
 
   memset(this->CommandReply,0,VTK_NDI_REPLY_LEN);
 
-  this->RequireImageOrientationInConfiguration = false;
-  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
-  this->RequireRfElementInDeviceSetConfiguration = false;
-
+  // PortName for data source is not required if RomFile is specified, so we don't need to enable this->RequirePortNameInDeviceSetConfiguration
+  
   // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
   this->StartThreadForInternalUpdates=true;
+  this->AcquisitionRate=50;
 }
 
 //----------------------------------------------------------------------------

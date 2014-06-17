@@ -11,7 +11,6 @@ The computer needs to be on the same local network as Aurora SCU unit. The needl
       Id="TrackerDevice" 
       Type="AuroraTracker"
       SerialPort="4"
-      AcquisitionRate="50"
       ToolReferenceFrame="Tracker" >
       <DataSources>
         <DataSource Type="Tool" Id="Needle" PortName="0" />

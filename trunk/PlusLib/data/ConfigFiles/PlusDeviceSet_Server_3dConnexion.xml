@@ -7,7 +7,6 @@
     <Device
       Id="TrackerDevice"
       Type="3dConnexion"
-      AcquisitionRate="125"
       OperatingMode="JOYSTICK"
       TranslationScales="0.001 -0.001 -0.001"
       RotationScales="0.001 -0.001 -0.001"

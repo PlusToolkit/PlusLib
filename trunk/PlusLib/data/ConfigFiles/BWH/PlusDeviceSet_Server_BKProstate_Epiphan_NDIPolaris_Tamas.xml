@@ -7,7 +7,6 @@
       Type="PolarisTracker"
       SerialPort="5"
       BaudRate="115200"
-      AcquisitionRate="50"
       LocalTimeOffsetSec="0"
       ToolReferenceFrame="Tracker">
       <DataSources>

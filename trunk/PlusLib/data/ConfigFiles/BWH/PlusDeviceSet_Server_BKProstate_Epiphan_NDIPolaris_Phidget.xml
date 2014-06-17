@@ -9,7 +9,6 @@
       Type="PolarisTracker"
       SerialPort="5"
       BaudRate="115200"
-      AcquisitionRate="50"
       LocalTimeOffsetSec="0"
       ToolReferenceFrame="PolarisTracker">
       <DataSources>
@@ -48,7 +47,6 @@
       AhrsAlgorithm="MADGWICK_MARG" 
       AhrsAlgorithmGain="1.5" 
       TiltSensorWestAxisIndex="1"   
-      AcquisitionRate="125" 
       LocalTimeOffsetSec="0.0"
       ToolReferenceFrame="PhidgetTracker" >   
      <DataSources>
@@ -72,7 +70,6 @@
     <Device
       Id="VideoDevice"
       Type="Epiphan"
-      AcquisitionRate="30"
       LocalTimeOffsetSec="0"
       VideoFormat="Y8"
       ClipRectangleOrigin="0 0"

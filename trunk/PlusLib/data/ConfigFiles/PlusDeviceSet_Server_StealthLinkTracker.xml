@@ -10,7 +10,6 @@ Tools: Stylus (Passive Planar, Blunt) , Reference (Small Passive Cranial Frame)"
       Type="StealthLinkTracker"
       ServerAddress="130.15.7.88"
       ServerPort="6996"
-      AcquisitionRate="30"
       RegistrationUpdatePeriod="0.0"
       ToolReferenceFrame="Tracker" >
       <DataSources>

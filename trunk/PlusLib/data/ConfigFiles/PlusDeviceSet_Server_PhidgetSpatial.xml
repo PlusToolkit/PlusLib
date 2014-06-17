@@ -15,7 +15,6 @@ Keep the device stationary for 2 seconds after connect for accurate gyroscope in
       FilteredTiltSensorAhrsAlgorithm="MADGWICK_IMU"
       FilteredTiltSensorAhrsAlgorithmGain="0.01"
       FilteredTiltSensorWestAxisIndex="1"      
-      AcquisitionRate="125"
       ToolReferenceFrame="Tracker" >
       <DataSources>
         <DataSource Type="Tool" Id="OrientationSensor" PortName="OrientationSensor" />    

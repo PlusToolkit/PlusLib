@@ -14,7 +14,7 @@
     <Device
       Id="TrackerDevice"
       Type="CertusTracker"
-      AcquisitionRate="50" >
+      ToolReferenceFrame="Tracker" >
       <DataSources>
         <DataSource Type="Tool" Id="Probe" PortName="0" Model="L14-5_38" />
       </DataSources>

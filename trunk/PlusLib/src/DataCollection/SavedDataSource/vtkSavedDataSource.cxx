@@ -34,13 +34,9 @@ vtkSavedDataSource::vtkSavedDataSource()
   this->LoopLastFrameUid=0;
   this->SimulatedStream=VIDEO_STREAM;
 
-  this->RequirePortNameInDeviceSetConfiguration = false; // was true for tracker
-  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
-  this->RequireRfElementInDeviceSetConfiguration = false;
-  this->RequireImageOrientationInConfiguration=false; // device image orientation is not used, we'll use MF for B-mode and FM for RF-mode
-
   // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
   this->StartThreadForInternalUpdates=true;
+  this->AcquisitionRate = 10;
 }
 
 //----------------------------------------------------------------------------

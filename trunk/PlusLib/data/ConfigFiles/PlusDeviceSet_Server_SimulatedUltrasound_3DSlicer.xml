@@ -25,7 +25,6 @@ To use with Ascension tracker instead of a simulated tracker: enable the Ascensi
       IgtlMessageCrcCheckEnabled="true"
       UseReceivedTimestamps="false"
       UseLastTransformsOnReceiveTimeout="true"
-      AcquisitionRate="30"
       LocalTimeOffset="0.0"
       ToolReferenceFrame="Tracker" >
       <DataSources>
@@ -46,7 +45,6 @@ To use with Ascension tracker instead of a simulated tracker: enable the Ascensi
     <Device
       Id="TrackerDevice" 
       Type="Ascension3DG" 
-      AcquisitionRate="50" 
       LocalTimeOffsetSec="0.0" 
       FilterAcWideNotch="1"
       ToolReferenceFrame="Tracker" >
@@ -70,7 +68,6 @@ To use with Ascension tracker instead of a simulated tracker: enable the Ascensi
       Id="VideoDevice"
       Type="UsSimulator"
       LocalTimeOffsetSec="0.0"
-      
       AcquisitionRate="15" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" />  

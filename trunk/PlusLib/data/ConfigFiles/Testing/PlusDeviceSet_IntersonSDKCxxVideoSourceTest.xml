@@ -3,7 +3,6 @@
     <Device
       Id="VideoDevice"
       Type="IntersonSDKCxxVideo" 
-      AcquisitionRate="30" 
       DepthMm="-1" 
       DynRangeDb="-1" 
       FrequencyMhz="-1" >

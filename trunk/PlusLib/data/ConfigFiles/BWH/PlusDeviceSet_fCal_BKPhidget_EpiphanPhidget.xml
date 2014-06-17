@@ -53,7 +53,6 @@
       AhrsAlgorithm="MADGWICK_MARG" 
       AhrsAlgorithmGain="1.5" 
       TiltSensorWestAxisIndex="1"   
-      AcquisitionRate="125" 
       LocalTimeOffsetSec="0.0"
       ToolReferenceFrame="Tracker" >   
       <DataSources>

@@ -8,7 +8,6 @@
     <Device
       Id="TrackerDevice"
       Type="MicronTracker"
-      AcquisitionRate="20"
       LocalTimeOffsetSec="0.0"
       TemplateDirectory="Markers"
       IniFile="MicronTracker.ini" >

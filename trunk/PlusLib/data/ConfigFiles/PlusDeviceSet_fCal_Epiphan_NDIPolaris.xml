@@ -10,7 +10,6 @@
       Type="PolarisTracker"
       SerialPort="3"
       BaudRate="115200"
-      AcquisitionRate="50"
       LocalTimeOffsetSec="0.0" >
       <DataSources>
         <DataSource Type="Tool" Id="Tool" RomFile="NdiToolDefinitions/8700339.rom"  />
@@ -28,8 +27,7 @@
 
     <Device
       Id="VideoDevice" 
-      Type="Epiphan"
-      AcquisitionRate="30" >
+      Type="Epiphan" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />
       </DataSources>

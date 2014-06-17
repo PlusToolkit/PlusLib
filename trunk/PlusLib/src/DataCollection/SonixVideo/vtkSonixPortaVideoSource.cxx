@@ -132,8 +132,6 @@ vtkSonixPortaVideoSource::vtkSonixPortaVideoSource()
 	this->IncrementVolumeIndexCounterClockwise = true;
 
   this->RequireImageOrientationInConfiguration = true;
-  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
-  this->RequireRfElementInDeviceSetConfiguration = false;
 
   // No need for StartThreadForInternalUpdates, as we are notified about each new frame through a callback function
 }

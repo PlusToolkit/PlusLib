@@ -41,12 +41,9 @@ vtk3dConnexionTracker::vtk3dConnexionTracker() :
   this->CaptureWindowHandle=0;
   this->SpaceNavigatorTool=NULL;
   this->DeviceToTrackerTransform=vtkMatrix4x4::New();
-  this->LatestMouseTransform=vtkMatrix4x4::New();
-  
-  this->RequireImageOrientationInConfiguration = false;
-  this->RequireAcquisitionRateInDeviceSetConfiguration = true;
+  this->LatestMouseTransform=vtkMatrix4x4::New();  
+
   this->RequirePortNameInDeviceSetConfiguration = true;
-  this->RequireRfElementInDeviceSetConfiguration = false;
 
   this->TranslationScales[0]=0.001;
   this->TranslationScales[1]=0.001;
@@ -60,7 +57,8 @@ vtk3dConnexionTracker::vtk3dConnexionTracker() :
   // Although there is a callback function, it is not called regularly (when the joystick is moved 
   // then it is called too frequently, other times it's not called at all), so we use the capture 
   // thread to provide regular transform updates
-  this->StartThreadForInternalUpdates=true; 
+  this->StartThreadForInternalUpdates=true;
+  this->AcquisitionRate=125;
 }
 
 //-------------------------------------------------------------------------

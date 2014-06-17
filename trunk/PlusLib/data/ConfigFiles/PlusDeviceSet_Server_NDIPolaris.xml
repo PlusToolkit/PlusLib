@@ -10,7 +10,6 @@ For NDI Polaris passive marker starting kit: Tool (8700339), Stylus (8700340), R
       Type="PolarisTracker"
       SerialPort="3"
       BaudRate="115200"
-      AcquisitionRate="50"
       ToolReferenceFrame="Tracker" >
       <DataSources>
         <DataSource Type="Tool" Id="Tool" RomFile="NdiToolDefinitions/8700339.rom"  />

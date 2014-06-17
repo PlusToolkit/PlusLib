@@ -37,9 +37,6 @@
       Type="PolarisTracker"
       SerialPort="4"
       BaudRate="115200"
-      
-      AcquisitionRate="50"
-      
       LocalTimeOffsetSec="0">
       <DataSources>
         <DataSource Type="Tool" Id="Probe" RomFile="NdiToolDefinitions/8700339.rom"/>

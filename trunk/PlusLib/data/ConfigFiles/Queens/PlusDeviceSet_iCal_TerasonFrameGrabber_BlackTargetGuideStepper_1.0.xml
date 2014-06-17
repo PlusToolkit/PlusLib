@@ -9,7 +9,6 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
     <Device
       Id="TrackerDevice"
       Type="BrachyTracker"
-      AcquisitionRate="20"
       LocalTimeOffsetSec="0.0"
       SerialPort="3"
       BaudRate="19200"
@@ -34,8 +33,7 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
 
     <Device
       Id="VideoDevice" 
-      Type="ICCapturing"      
-      AcquisitionRate="30" 
+      Type="ICCapturing"
       LocalTimeOffsetSec="-0.13"
       DeviceName="DFG/USB2-lt"
       VideoNorm="NTSC_M"

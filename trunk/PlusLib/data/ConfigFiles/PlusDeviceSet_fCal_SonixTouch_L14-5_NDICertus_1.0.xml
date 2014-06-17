@@ -9,7 +9,6 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
     <Device
       Id="TrackerDevice"
       Type="CertusTracker"      
-      AcquisitionRate="50"
       LocalTimeOffsetSec="0.0"
       ToolReferenceFrame="Tracker" >
       <DataSources>

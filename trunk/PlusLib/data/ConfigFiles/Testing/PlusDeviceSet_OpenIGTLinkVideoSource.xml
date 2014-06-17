@@ -10,8 +10,7 @@
         MessageType="TrackedFrame"
         ServerAddress="127.0.0.1"
         ServerPort="18944"
-        IgtlMessageCrcCheckEnabled="false"
-        AcquisitionRate="30" >
+        IgtlMessageCrcCheckEnabled="false" >
         <DataSources>
           <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />
         </DataSources>

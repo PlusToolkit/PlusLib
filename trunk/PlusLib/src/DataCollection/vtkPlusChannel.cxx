@@ -64,7 +64,7 @@ vtkPlusChannel::~vtkPlusChannel(void)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::ReadConfiguration( vtkXMLDataElement* aChannelElement, bool RequireRfElementInDeviceSetConfiguration, bool RequireImageOrientationInChannelConfiguration )
+PlusStatus vtkPlusChannel::ReadConfiguration( vtkXMLDataElement* aChannelElement, bool RequireImageOrientationInChannelConfiguration )
 {
   // Read the stream element, build the stream
   // If there are references to tools, request them from the owner device and keep a reference to them here
@@ -127,10 +127,13 @@ PlusStatus vtkPlusChannel::ReadConfiguration( vtkXMLDataElement* aChannelElement
     this->RfProcessor->ReadConfiguration(rfElement);
     this->SaveRfProcessingParameters = true;
   }
-  else if( RequireRfElementInDeviceSetConfiguration )
+  else
   {
-    LOG_ERROR("Unable to find RF processing sub-element in channel \'" << this->GetChannelId() << "\' configuration when it is required.");
-    return PLUS_FAIL;
+    if (this->RfProcessor)
+    {
+      this->RfProcessor->Delete();
+      this->RfProcessor=NULL;
+    }
   }
 
   this->CustomAttributes.clear();

@@ -9,7 +9,6 @@ Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted o
     <Device
       Id="TrackerDevice" 
       Type="Ascension3DG" 
-      AcquisitionRate="50"
       FilterAcWideNotch="1"
       ToolReferenceFrame="Tracker" >
       <DataSources>

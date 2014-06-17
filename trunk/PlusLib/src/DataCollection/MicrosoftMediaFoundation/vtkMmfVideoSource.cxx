@@ -68,9 +68,7 @@ vtkMmfVideoSource::vtkMmfVideoSource()
 , Mutex(vtkSmartPointer<vtkRecursiveCriticalSection>::New())
 , RefCount(0)
 {
-  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequireImageOrientationInConfiguration = true;
-  this->RequireRfElementInDeviceSetConfiguration = false;
 
   this->AcquisitionRate = vtkPlusDevice::VIRTUAL_DEVICE_FRAME_RATE;
 
