@@ -355,8 +355,7 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
   }
   else
   {
-    LOG_ERROR("Unable to find source \"" << this->GetSourceId() << "\" buffer size in source element when it is required.");
-    return PLUS_FAIL;
+    LOG_DEBUG("Unable to find source \"" << this->GetSourceId() << "\" buffer size in source element. Using default buffer size: "<<this->GetBuffer()->GetBufferSize());
   }
 
   int averagedItemsForFiltering = 0;
