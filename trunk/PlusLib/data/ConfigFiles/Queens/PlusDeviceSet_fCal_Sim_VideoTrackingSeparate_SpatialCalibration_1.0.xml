@@ -125,7 +125,7 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
   <PhantomDefinition>
     <Description
       Name="fCAL"
-      Type="Double-N"
+      Type="Multi-N"
       Version="1.0"
       WiringVersion="1.0"
       Institution="Queen's University PerkLab" />

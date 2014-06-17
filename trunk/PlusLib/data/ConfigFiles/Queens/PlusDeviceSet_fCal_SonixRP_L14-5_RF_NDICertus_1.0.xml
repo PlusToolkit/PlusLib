@@ -132,7 +132,7 @@ The computer needs to be on the same local network as SonixRP and the Certus SCU
   <PhantomDefinition>
     <Description
       Name="fCAL"
-      Type="Double-N"
+      Type="Multi-N"
       Version="1.0"
       WiringVersion="1.0"
       Institution="Queen's University PerkLab" />

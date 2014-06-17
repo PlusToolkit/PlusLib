@@ -99,7 +99,7 @@
   <PhantomDefinition>
     <Description
       Name="fCAL"
-      Type="Double-N"
+      Type="Multi-N"
       Version="2.0"
       WiringVersion="2.0"
       Institution="Queen's University PerkLab" />

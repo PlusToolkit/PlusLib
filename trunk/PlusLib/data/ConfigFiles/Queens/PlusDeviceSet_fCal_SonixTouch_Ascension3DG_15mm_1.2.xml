@@ -152,7 +152,7 @@
     NumberOfMaximumFiducialPointCandidates="20" />
     
   <PhantomDefinition>
-    <Description Name="fCAL" Type="Double-N" Version="1.2" WiringVersion="1.1" Institution="Queen&apos;s University PerkLab" />    
+    <Description Name="fCAL" Type="Multi-N" Version="1.2" WiringVersion="1.1" Institution="Queen&apos;s University PerkLab" />    
     <Geometry>
       <Pattern Type="NWire">
         <Wire Name="1:E1_e1" EndPointFront="20.0 0.0 15.0" EndPointBack="20.0 40.0 15.0" />

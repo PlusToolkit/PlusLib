@@ -138,7 +138,7 @@ Plug in the stepper through Serial2USB converter cable into USB slot. Look for t
   <PhantomDefinition>
     <Description
       Name="iCAL"
-      Type="Double-N"
+      Type="Multi-N"
       Version="1.0"
       WiringVersion="1.1"
       Institution="Queen's University PerkLab" />

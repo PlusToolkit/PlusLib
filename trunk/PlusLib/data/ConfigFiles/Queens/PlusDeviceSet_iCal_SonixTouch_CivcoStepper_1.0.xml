@@ -135,7 +135,7 @@ Plug in the US Digital ED2 digital display through Serial2USB converter cable in
   <PhantomDefinition>
     <Description
       Name="iCAL"
-      Type="Double-N"
+      Type="Multi-N"
       Version="1.0"
       WiringVersion="1.0"
       Institution="Queen's University PerkLab" />

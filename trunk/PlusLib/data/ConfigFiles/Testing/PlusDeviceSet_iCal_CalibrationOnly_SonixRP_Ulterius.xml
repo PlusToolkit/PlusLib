@@ -25,7 +25,7 @@
   <PhantomDefinition>
     <Description
       Name="iCAL"
-      Type="Double-N"
+      Type="Multi-N"
       Version="1.0"
       WiringVersion="1.0"
       Institution="Queen's University PerkLab" />

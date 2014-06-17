@@ -131,7 +131,7 @@
   
 
   <PhantomDefinition>
-    <!-- Supported types are: Double-N, U-Shaped-N -->
+    <!-- Supported types are: Multi-N, U-Shaped-N -->
     <Description
       Name="Lego"
       Type="Triple-N"
