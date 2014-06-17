@@ -36,7 +36,6 @@ vtkSavedDataSource::vtkSavedDataSource()
 
   this->RequirePortNameInDeviceSetConfiguration = false; // was true for tracker
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
-  this->RequireUsImageOrientationInDeviceSetConfiguration = false; // was true for video
   this->RequireRfElementInDeviceSetConfiguration = false;
   this->RequireImageOrientationInConfiguration=false; // device image orientation is not used, we'll use MF for B-mode and FM for RF-mode
 

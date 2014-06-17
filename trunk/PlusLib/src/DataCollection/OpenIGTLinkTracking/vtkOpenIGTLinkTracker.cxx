@@ -47,7 +47,6 @@ vtkOpenIGTLinkTracker::vtkOpenIGTLinkTracker()
   this->RequireImageOrientationInConfiguration = false;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequirePortNameInDeviceSetConfiguration = false;
-  this->RequireUsImageOrientationInDeviceSetConfiguration = false;
   this->RequireRfElementInDeviceSetConfiguration = false;
   this->TrackerInternalCoordinateSystemName=NULL;
   SetTrackerInternalCoordinateSystemName("Reference");

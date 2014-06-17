@@ -585,7 +585,6 @@ protected:
   bool RequireImageOrientationInConfiguration;
   bool RequireAcquisitionRateInDeviceSetConfiguration;
   bool RequirePortNameInDeviceSetConfiguration;
-  bool RequireUsImageOrientationInDeviceSetConfiguration;
   bool RequireRfElementInDeviceSetConfiguration;
 
 private:
