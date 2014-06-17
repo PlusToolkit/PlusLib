@@ -43,7 +43,6 @@ vtkMicronTracker::vtkMicronTracker()
   this->FrameNumber = 0;
 
   this->RequireImageOrientationInConfiguration = false;
-  this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = true;
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;

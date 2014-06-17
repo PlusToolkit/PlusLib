@@ -70,7 +70,6 @@ vtkMmfVideoSource::vtkMmfVideoSource()
 {
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
-  this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
   this->RequireImageOrientationInConfiguration = true;
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
   this->RequireRfElementInDeviceSetConfiguration = false;

@@ -77,7 +77,6 @@ vtkNDITracker::vtkNDITracker()
   memset(this->CommandReply,0,VTK_NDI_REPLY_LEN);
 
   this->RequireImageOrientationInConfiguration = false;
-  this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = true;
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;

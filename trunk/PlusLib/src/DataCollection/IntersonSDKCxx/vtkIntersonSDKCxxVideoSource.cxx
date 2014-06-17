@@ -121,7 +121,6 @@ vtkIntersonSDKCxxVideoSource::vtkIntersonSDKCxxVideoSource()
   this->StartThreadForInternalUpdates = false;
 
   this->RequireImageOrientationInConfiguration = true;
-  this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;

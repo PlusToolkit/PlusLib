@@ -484,7 +484,6 @@ vtkStealthLinkTracker::vtkStealthLinkTracker()
   this->InternalUpdatePrivate = new vtkInternalUpdatePrivate(this);
 
   this->RequireImageOrientationInConfiguration = false;
-  this->RequireFrameBufferSizeInDeviceSetConfiguration = false;
   this->RequireAcquisitionRateInDeviceSetConfiguration = false;
   this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = true;
   this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
