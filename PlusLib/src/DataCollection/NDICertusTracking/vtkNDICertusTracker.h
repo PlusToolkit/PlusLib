@@ -26,6 +26,13 @@ class VTK_EXPORT vtkNDICertusTracker : public vtkPlusDevice
 {
 public:
 
+  enum LedState
+  {
+    TR_LED_OFF   = 0,
+    TR_LED_ON    = 1,
+    TR_LED_FLASH = 2
+  };
+
   static vtkNDICertusTracker *New();
   vtkTypeMacro(vtkNDICertusTracker,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
@@ -54,6 +61,9 @@ public:
 
   virtual bool IsTracker() const { return true; }
 
+  /*! Set the specified tool LED to the specified state. */
+  PlusStatus SetToolLED(int portNumber, int led, LedState state);
+  
 protected:
   vtkNDICertusTracker();
   ~vtkNDICertusTracker();
@@ -70,16 +80,7 @@ protected:
   PlusStatus InternalStartRecording();
 
   /*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking, at 9600 Baud. */
-  PlusStatus InternalStopRecording();
-
-  /*! Cause the device to beep the specified number of times. */
-  PlusStatus InternalBeep(int n);
-
-  /*! Set the specified tool LED to the specified state. */
-  PlusStatus InternalSetToolLED(const char* portName, int led, int state);
-
-  /*! Set the specified tool LED to the specified state. */
-  PlusStatus InternalSetToolLED(int portNumber, int led, int state);
+  PlusStatus InternalStopRecording();  
 
   /*! Initialize communication with the Certus system. */
   PlusStatus InitializeCertusSystem();

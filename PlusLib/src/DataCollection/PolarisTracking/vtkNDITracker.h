@@ -100,6 +100,14 @@ public:
   static vtkNDITracker *New();
   vtkTypeMacro(vtkNDITracker,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
+  
+  /*! Flags for tool LEDs */
+  enum LedState
+  {
+    TR_LED_OFF   = 0,
+    TR_LED_ON    = 1,
+    TR_LED_FLASH = 2
+  };
  
   virtual bool IsTracker() const { return true; }
 
@@ -147,6 +155,9 @@ public:
 
   /*! Read NDI tracker configuration from xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
+  
+  /*! Set the specified tool LED to the specified state */
+  PlusStatus SetToolLED(const char* portName, int led, LedState state);
 
 protected:
   vtkNDITracker();
@@ -183,10 +194,7 @@ protected:
   PlusStatus InternalStopRecording();
 
   /*! Cause the device to beep the specified number of times */
-  PlusStatus InternalBeep(int n);
-
-  /*! Set the specified tool LED to the specified state */
-  PlusStatus InternalSetToolLED(const char* portName, int led, int state);
+  PlusStatus Beep(int n);
 
   /*! Read a virtual SROM from file and store it in the tool descriptor */
   PlusStatus ReadSromFromFile(NdiToolDescriptor& toolDescriptor, const char *filename);

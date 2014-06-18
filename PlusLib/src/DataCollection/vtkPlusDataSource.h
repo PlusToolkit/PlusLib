@@ -80,26 +80,6 @@ public:
   vtkGetMacro(FrameNumber, unsigned long);
   vtkSetMacro(FrameNumber, unsigned long);
 
-  /*! 
-  Set the states of the LEDs on the tool.  If the tracking system is not in tracking mode, the state will not be realized until
-  the system enters tracking mode.  The states are 0 (off), 1 (on), and 2 (flashing).  Not all tracking systems support LEDs.
-  */
-  void SetLED1(int state);
-  void SetLED2(int state);
-  void SetLED3(int state);
-  void LED2Off() { this->SetLED2(TR_LED_OFF); };
-  void LED3Off() { this->SetLED3(TR_LED_OFF); };
-  void LED1Off() { this->SetLED1(TR_LED_OFF); };
-  void LED1On() { this->SetLED1(TR_LED_ON); };
-  void LED2On() { this->SetLED2(TR_LED_ON); };
-  void LED3On() { this->SetLED3(TR_LED_ON); };
-  void LED1Flash() { this->SetLED1(TR_LED_FLASH); };
-  void LED2Flash() { this->SetLED2(TR_LED_FLASH); };
-  void LED3Flash() { this->SetLED3(TR_LED_FLASH); };
-  vtkGetMacro(LED1,int);
-  vtkGetMacro(LED2,int);
-  vtkGetMacro(LED3,int);
-
   /*! Get tool revision */
   vtkGetStringMacro(ToolRevision);
   /*! Get tool manufacturer */
@@ -151,10 +131,6 @@ protected:
   DataSourceType Type;
 
   unsigned long FrameNumber; 
-
-  int LED1;
-  int LED2;
-  int LED3;
 
   char *ToolRevision;
   char *ToolSerialNumber;

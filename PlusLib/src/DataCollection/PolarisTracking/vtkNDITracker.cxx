@@ -631,19 +631,6 @@ PlusStatus vtkNDITracker::EnableToolPorts()
       LOG_ERROR("Failed to enable NDI tool "<<toolDescriptorIt->first);
       status=PLUS_FAIL;
     }
-
-    if (trackerTool->GetLED1())
-    {
-      this->InternalSetToolLED(toolDescriptorIt->first.c_str(),1,trackerTool->GetLED1());
-    }
-    if (trackerTool->GetLED2())
-    {
-      this->InternalSetToolLED(toolDescriptorIt->first.c_str(),2,trackerTool->GetLED2());
-    }
-    if (trackerTool->GetLED3())
-    {
-      this->InternalSetToolLED(toolDescriptorIt->first.c_str(),3,trackerTool->GetLED3());
-    }
   }
 
   // re-start the tracking
@@ -709,10 +696,13 @@ void vtkNDITracker::DisableToolPorts()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkNDITracker::InternalBeep(int n)
+PlusStatus vtkNDITracker::Beep(int n)
 {
-  int errnum; 
-
+  if (this->Recording)
+  {
+    LOG_ERROR("vtkNDITracker::Beep failed: not connected to the device");
+    return PLUS_FAIL;
+  }
   if (n > 9)
   {
     n = 9;
@@ -721,25 +711,20 @@ PlusStatus vtkNDITracker::InternalBeep(int n)
   {
     n = 0;
   }
-
-  if (this->Recording)
+  ndiCommand(this->Device,"BEEP:%i",n);
+  int errnum = ndiGetError(this->Device);
+  /*
+  if (errnum && errnum != NDI_NO_TOOL)
   {
-    ndiCommand(this->Device,"BEEP:%i",n);
-    errnum = ndiGetError(this->Device);
-    /*
-    if (errnum && errnum != NDI_NO_TOOL)
-    {
     LOG_ERROR(ndiErrorString(errnum));
     return PLUS_FAIL;
-    }
-    */
   }
-
+  */
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus  vtkNDITracker::InternalSetToolLED(const char* sourceId, int led, int state)
+PlusStatus  vtkNDITracker::SetToolLED(const char* sourceId, int led, LedState state)
 {
   if (!this->Recording)
   {
@@ -762,9 +747,9 @@ PlusStatus  vtkNDITracker::InternalSetToolLED(const char* sourceId, int led, int
   int plstate = NDI_BLANK;
   switch (state)
   {
-  case 0: plstate = NDI_BLANK; break;
-  case 1: plstate = NDI_SOLID; break;
-  case 2: plstate = NDI_FLASH; break;
+  case TR_LED_OFF: plstate = NDI_BLANK; break;
+  case TR_LED_ON: plstate = NDI_SOLID; break;
+  case TR_LED_FLASH: plstate = NDI_FLASH; break;
   default:
     LOG_ERROR("vtkNDITracker::InternalSetToolLED failed: unsupported LED state: "<<state);
     return PLUS_FAIL;

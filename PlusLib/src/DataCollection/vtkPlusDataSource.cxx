@@ -19,9 +19,6 @@ vtkPlusDataSource::vtkPlusDataSource()
 , PortImageOrientation(US_IMG_ORIENT_XX)
 , Type(DATA_SOURCE_TYPE_NONE)
 , FrameNumber(0)
-, LED1(0)
-, LED2(0)
-, LED3(0)
 , ToolRevision(NULL)
 , ToolSerialNumber(NULL)
 , ToolPartNumber(NULL)
@@ -89,9 +86,6 @@ void vtkPlusDataSource::PrintSelf(ostream& os, vtkIndent indent)
   {
     os << indent << "PortName: " << this->GetPortName() << "\n";
   }
-  os << indent << "LED1: " << this->GetLED1() << "\n"; 
-  os << indent << "LED2: " << this->GetLED2() << "\n"; 
-  os << indent << "LED3: " << this->GetLED3() << "\n";
 
   if ( this->ToolRevision )
   {
@@ -218,31 +212,9 @@ PlusStatus vtkPlusDataSource::SetPortName(const char* portName)
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusDataSource::SetLED1(int state)
-{
-  this->Device->SetToolLED(this->GetSourceId(),1,state);
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusDataSource::SetLED2(int state)
-{
-  this->Device->SetToolLED(this->GetSourceId(),2,state);
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusDataSource::SetLED3(int state)
-{
-  this->Device->SetToolLED(this->GetSourceId(),3,state);
-}
-
-//----------------------------------------------------------------------------
 void vtkPlusDataSource::DeepCopy(vtkPlusDataSource *aSource)
 {
   LOG_TRACE("vtkPlusDataSource::DeepCopy"); 
-
-  this->SetLED1( aSource->GetLED1() );
-  this->SetLED2( aSource->GetLED2() );
-  this->SetLED3( aSource->GetLED3() );
 
   this->SetToolRevision( aSource->GetToolRevision() );
   this->SetToolSerialNumber( aSource->GetToolSerialNumber() );
