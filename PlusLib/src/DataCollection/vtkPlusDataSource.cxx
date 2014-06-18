@@ -19,10 +19,6 @@ vtkPlusDataSource::vtkPlusDataSource()
 , PortImageOrientation(US_IMG_ORIENT_XX)
 , Type(DATA_SOURCE_TYPE_NONE)
 , FrameNumber(0)
-, ToolRevision(NULL)
-, ToolSerialNumber(NULL)
-, ToolPartNumber(NULL)
-, ToolManufacturer(NULL)
 , SourceId(NULL)
 , ReferenceCoordinateFrameName(NULL)
 , Buffer(vtkPlusBuffer::New())
@@ -49,10 +45,6 @@ vtkPlusDataSource::~vtkPlusDataSource()
     delete [] this->PortName; 
     this->PortName=NULL; 
   }
-
-  this->SetToolRevision(NULL); 
-  this->SetToolSerialNumber(NULL); 
-  this->SetToolManufacturer(NULL); 
 
   if ( this->Buffer != NULL )
   {
@@ -87,22 +79,6 @@ void vtkPlusDataSource::PrintSelf(ostream& os, vtkIndent indent)
     os << indent << "PortName: " << this->GetPortName() << "\n";
   }
 
-  if ( this->ToolRevision )
-  {
-    os << indent << "ToolRevision: " << this->GetToolRevision() << "\n";
-  }
-  if ( this->ToolManufacturer )
-  {
-    os << indent << "ToolManufacturer: " << this->GetToolManufacturer() << "\n";
-  }
-  if ( this->ToolPartNumber )
-  {
-    os << indent << "ToolPartNumber: " << this->GetToolPartNumber() << "\n";
-  }
-  if ( this->ToolSerialNumber )
-  {
-    os << indent << "ToolSerialNumber: " << this->GetToolSerialNumber() << "\n";
-  }
   if ( this->Buffer )
   {
     os << indent << "Buffer: " << this->Buffer << "\n";
@@ -216,10 +192,6 @@ void vtkPlusDataSource::DeepCopy(vtkPlusDataSource *aSource)
 {
   LOG_TRACE("vtkPlusDataSource::DeepCopy"); 
 
-  this->SetToolRevision( aSource->GetToolRevision() );
-  this->SetToolSerialNumber( aSource->GetToolSerialNumber() );
-  this->SetToolPartNumber( aSource->GetToolPartNumber() );
-  this->SetToolManufacturer( aSource->GetToolManufacturer() );
   this->SetSourceId( aSource->GetSourceId() ); 
   this->SetType( aSource->GetType() );
   this->SetReferenceName( aSource->GetReferenceCoordinateFrameName() );

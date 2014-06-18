@@ -606,15 +606,15 @@ PlusStatus vtkNDITracker::EnableToolPorts()
     identity[31] = '\0';
     std::string serialNumber(&identity[23]);
     PlusCommon::Trim(serialNumber);
-    trackerTool->SetToolSerialNumber(serialNumber.c_str());
+    trackerTool->SetCustomProperty("SerialNumber", serialNumber);
     identity[23] = '\0';
     std::string toolRevision(&identity[20]);
     PlusCommon::Trim(toolRevision);
-    trackerTool->SetToolRevision(toolRevision.c_str());
+    trackerTool->SetCustomProperty("Revision", toolRevision);
     identity[20] = '\0';
     std::string toolManufacturer(&identity[8]);
     PlusCommon::Trim(toolManufacturer);
-    trackerTool->SetToolManufacturer(toolManufacturer.c_str());
+    trackerTool->SetCustomProperty("Manufacturer", toolManufacturer);
     identity[8] = '\0';
     trackerTool->SetCustomProperty("NdiIdentity",PlusCommon::Trim(&identity[0]));
     char partNumber[24];
@@ -622,7 +622,7 @@ PlusStatus vtkNDITracker::EnableToolPorts()
     partNumber[20] = '\0';
     std::string toolPartNumber(&partNumber[0]);
     PlusCommon::Trim(toolPartNumber);
-    trackerTool->SetToolPartNumber(toolPartNumber.c_str());
+    trackerTool->SetCustomProperty("PartNumber", toolPartNumber);
     int status = ndiGetPHINFPortStatus(this->Device);
 
     toolDescriptorIt->second.PortEnabled = ((status & NDI_ENABLED) != 0);

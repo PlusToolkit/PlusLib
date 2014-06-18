@@ -80,28 +80,11 @@ public:
   vtkGetMacro(FrameNumber, unsigned long);
   vtkSetMacro(FrameNumber, unsigned long);
 
-  /*! Get tool revision */
-  vtkGetStringMacro(ToolRevision);
-  /*! Get tool manufacturer */
-  vtkGetStringMacro(ToolManufacturer);
-  /*! Get tool part number */
-  vtkGetStringMacro(ToolPartNumber);
-  /*! Get tool serial number */
-  vtkGetStringMacro(ToolSerialNumber);
   /*! Get source id */
   vtkGetStringMacro(SourceId); 
   /*! Get the reference coordinate frame name */
   vtkGetStringMacro(ReferenceCoordinateFrameName);
-  
-  /*! Set tool revision */
-  vtkSetStringMacro(ToolRevision);
-  /*! Set tool manufacturer */
-  vtkSetStringMacro(ToolManufacturer);
-  /*! Set tool part number */
-  vtkSetStringMacro(ToolPartNumber);
-  /*! Set tool serial number */
-  vtkSetStringMacro(ToolSerialNumber);
-  
+    
   /*!
     Get a custom property string.
     If the property is not defined then an empty string is returned.
@@ -132,10 +115,6 @@ protected:
 
   unsigned long FrameNumber; 
 
-  char *ToolRevision;
-  char *ToolSerialNumber;
-  char *ToolPartNumber;
-  char *ToolManufacturer;
   char *SourceId; 
   char *ReferenceCoordinateFrameName;
 

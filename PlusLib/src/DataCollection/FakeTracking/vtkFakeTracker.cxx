@@ -72,10 +72,7 @@ PlusStatus vtkFakeTracker::InternalConnect()
         LOG_ERROR("Failed to get tool: Reference in FakeTracker Default mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()); 
         return PLUS_FAIL; 
       }
-      tool->SetToolRevision("1.3");
-      tool->SetToolManufacturer("ACME Inc.");
-      tool->SetToolPartNumber("Stationary");
-      tool->SetToolSerialNumber("A34643");
+      tool->SetCustomProperty("PartNumber", "Stationary");
     }
     {
       //*************************************************************
@@ -86,10 +83,7 @@ PlusStatus vtkFakeTracker::InternalConnect()
         LOG_ERROR("Failed to get tool: Stylus in FakeTracker Default mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()); 
         return PLUS_FAIL; 
       }
-      tool->SetToolRevision("1.1");
-      tool->SetToolManufacturer("ACME Inc.");
-      tool->SetToolPartNumber("Rotate");
-      tool->SetToolSerialNumber("B3464C");
+      tool->SetCustomProperty("PartNumber", "Rotate");
     }
     {
       //*************************************************************
@@ -100,10 +94,7 @@ PlusStatus vtkFakeTracker::InternalConnect()
         LOG_ERROR("Failed to get tool: Stylus-2 in FakeTracker Default mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()); 
         return PLUS_FAIL; 
       }
-      tool->SetToolRevision("1.1");
-      tool->SetToolManufacturer("ACME Inc.");
-      tool->SetToolPartNumber("Rotate");
-      tool->SetToolSerialNumber("Q45P5");
+      tool->SetCustomProperty("PartNumber", "Rotate");
     }
     {
       //*************************************************************
@@ -114,10 +105,7 @@ PlusStatus vtkFakeTracker::InternalConnect()
         LOG_ERROR("Failed to get tool: Stylus-3 in FakeTracker Default mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()); 
         return PLUS_FAIL; 
       }
-      tool->SetToolRevision("2.0");
-      tool->SetToolManufacturer("ACME Inc.");
-      tool->SetToolPartNumber("Spin");
-      tool->SetToolSerialNumber("Q34653");
+      tool->SetCustomProperty("PartNumber", "Spin");
     }
     break;
 
@@ -164,10 +152,7 @@ PlusStatus vtkFakeTracker::InternalConnect()
         return PLUS_FAIL; 
       }
 
-      tool->SetToolRevision("1.3");
-      tool->SetToolManufacturer("ACME Inc.");
-      tool->SetToolPartNumber("Stationary");
-      tool->SetToolSerialNumber("A11111");
+      tool->SetCustomProperty("PartNumber", "Stationary");
     }
     {
       //*************************************************************
@@ -179,10 +164,7 @@ PlusStatus vtkFakeTracker::InternalConnect()
         return PLUS_FAIL; 
       }
 
-      tool->SetToolRevision("1.1");
-      tool->SetToolManufacturer("ACME Inc.");
-      tool->SetToolPartNumber("Stylus");
-      tool->SetToolSerialNumber("B22222");
+      tool->SetCustomProperty("PartNumber", "Stylus");
     }
     break;
 
@@ -197,10 +179,7 @@ PlusStatus vtkFakeTracker::InternalConnect()
         return PLUS_FAIL; 
       }
 
-      tool->SetToolRevision("1.3");
-      tool->SetToolManufacturer("ACME Inc.");
-      tool->SetToolPartNumber("Stationary");
-      tool->SetToolSerialNumber("A11111");
+      tool->SetCustomProperty("PartNumber", "Stationary");
     }
     {
       //*************************************************************
@@ -212,10 +191,7 @@ PlusStatus vtkFakeTracker::InternalConnect()
         return PLUS_FAIL; 
       }
 
-      tool->SetToolRevision("1.1");
-      tool->SetToolManufacturer("ACME Inc.");
-      tool->SetToolPartNumber("Stylus");
-      tool->SetToolSerialNumber("B22222");
+      tool->SetCustomProperty("PartNumber", "Stylus");
     }
 
     this->Counter = -1;
@@ -232,10 +208,7 @@ PlusStatus vtkFakeTracker::InternalConnect()
         return PLUS_FAIL; 
       }
 
-      tool->SetToolRevision("1.3");
-      tool->SetToolManufacturer("ACME Inc.");
-      tool->SetToolPartNumber("Stationary");
-      tool->SetToolSerialNumber("A11111");
+      tool->SetCustomProperty("PartNumber", "Stationary");
     }
 
     this->Counter = 0;
