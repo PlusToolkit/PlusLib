@@ -1,34 +1,43 @@
 /*!
 \page DeviceStealthLink Medtronic Stealth Station
 
-\par Supported hardware devices
+\section SupportedHwDevices Supported hardware devices
 
 - Medtronic StealthStation that has StealthLink licence.
 - Link to manufacturer's website: http://www.medtronic.com/for-healthcare-professionals/products-therapies/spinal/surgical-navigation-imaging/surgical-navigation-systems/systems-software-instruments/
 
-\par Supported platforms
+\section SupportedPlatforms Supported platforms
 
 - Windows only.
 
-\par Installation
+\section Installation Installation
 
 No need to install any extra software. The StealthStation needs to be connected through LAN and the connection is set via IP and Port.
 
-\par Configuration settings
+\section ConfigSettings Configuration settings
 
-- Device type: \c StealthLink.
+Device Type: \c StealthLink.
 - Attributes:
-  - \subpage CommonAttributesDevices
-  - \subpage CommonAttributesImagingDevices
+  - \ref AcquisitionRate
+  - \ref LocalTimeOffsetSec
+  - \ref ToolReferenceFrame
   - \c ServerAddress. The IP address of the stealthstation.
   - \c ServerPort. The port of the stealthstation.
-  - \c *Instruments' names defined in StealthStation must match tools' port names defined in the configuration file (example: Passive Planar, Blunt).
-  - \c *Frames' names defined in StealthStation must match tools' port names defined in the configuration file (example: Frame Name: Small Passive Cranial Frame).
-  - \c *Ras. The port name must remain RasRegistration. This virtual tool will only "exist" when an image is required from the server. 
+
+- Child elements \c DataSource attributes:
+  - \ref BufferSize
+  - \ref PortName 
+    - \c *Instruments' names defined in StealthStation must match tools' port names defined in the configuration file (example: Passive Planar, Blunt).
+    - \c *Frames' names defined in StealthStation must match tools' port names defined in the configuration file (example: Frame Name: Small Passive Cranial Frame).
+    - \c *Ras. The port name must remain \c RasRegistration. This virtual tool will only "exist" when an image is required from the server. 
+
+
+
+\section UseCases Use cases
 
 Both optical and Em tracker can be used.
 
-  \par Usage from PlusServerRemoteControl
+\subsection UsagePlusServerRC Usage from PlusServerRemoteControl
 
 Start plus server with the configuration file as the input. 
 
@@ -46,7 +55,7 @@ It will get the current exam information and the registration information and se
  - \c volumeEmbeddedTransformToFrame. you can define in what coordinate system you want the image to be in \c "Reference" or \c "Ras".
  - \c keepReceivedDicomFiles. If this exists then the DICOM files will be stored if not deleted. The default is delete.
 
-\par Usage in 3D Slicer
+\subsection UsageSlicer Usage in 3D Slicer
 
 Start plus server with the configuration file as the input.
 
@@ -57,7 +66,7 @@ Start plus server with the configuration file as the input.
  - Click "+" to create a new connection, select the new connection, click "Client", click "Active"
  - The \c StylusToTracker transform is created in Slicer and it is updated by the stylus tracking. The \c ReferenceToTracker and other transforms are available too.
 
-\par Example configuration file
+\section ExampleConfigFile Example configuration file
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_StealthLinkTracker.xml"
 

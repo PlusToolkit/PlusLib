@@ -1,21 +1,34 @@
 /*!
-\page DeviceMicron
+\page DeviceMicron Claron MicronTracker optical pose tracker
 
-\par Supported hardware devices
+\section SupportedHwDevices Supported hardware devices
 
-- Link to manufacturer's website:
+- Link to manufacturer's website: http://www.clarontech.com/microntracker.php
 
-\par Supported platforms
+\section SupportedPlatforms Supported platforms
 
-\par Installation
+\section Installation Installation
+The 1394 interface that your computer already has may not work with the camera. If the MicronTracker demo programs don't work then use the interface card that came with your MicronTracker package. <a href="https://www.assembla.com/spaces/plus/tickets/870#/activity/ticket:">Install issue</a>.
 
-\par Configuration settings
+\section ConfigSettings Configuration settings
 
-- Device type: \c Micron.
+Device Type: \c MicronTracker.
 - Attributes:
+  - \ref AcquisitionRate
+  - \ref LocalTimeOffsetSec
+  - \ref ToolReferenceFrame
+  - \c TemplateDirectory = "Markers". Path to the directory that contains the marker files.
+  - \c IniFile = "MicronTracker.ini". Path to the initialization file.
 
-\par Example configuration file
+  The paths shall be specified in the configuration file and are relative to the DeviceSetConfigurationDirectory (defined in PlusConfig.xml):
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_Micron.xml"
+- Child elements \c DataSource attributes:
+  - \ref BufferSize
+  - \ref AveragedItemsForFiltering
+  - \ref PortName
+
+\section ExampleConfigFile Example configuration file
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_MicronTracker.xml"
 
 */
