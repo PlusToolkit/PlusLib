@@ -99,29 +99,27 @@ class FieldDistortionMappingWidget:
     
     # output volume selector
     self.outputVolumeSelectorLabel = qt.QLabel()
-    self.outputVolumeSelectorLabel.setText( "Output vector volume: " )
+    self.outputVolumeSelectorLabel.setText( "Output volume: " )
     self.outputVolumeSelector = slicer.qMRMLNodeComboBox()
-    #self.outputVolumeSelector.nodeTypes = ( "vtkMRMLVectorVolumeNode", "" )
     self.outputVolumeSelector.nodeTypes = ( "vtkMRMLScalarVolumeNode", "" )
     self.outputVolumeSelector.noneEnabled = False
-    self.outputVolumeSelector.addEnabled = True
+    self.outputVolumeSelector.addEnabled = False
     self.outputVolumeSelector.removeEnabled = True
     self.outputVolumeSelector.setMRMLScene( slicer.mrmlScene )
-    self.outputVolumeSelector.setToolTip( "Pick the vector volume to fill" )
+    self.outputVolumeSelector.setToolTip( "Each voxel of the volume will be filled with a constant value (1000) at the position where a measurement point is obtained. Optional." )
     parametersFormLayout.addRow(self.outputVolumeSelectorLabel, self.outputVolumeSelector)
 
     # output grid transform selector
     self.outputTransformSelectorLabel = qt.QLabel()
-    self.outputTransformSelectorLabel.setText( "Output grid transform: " )
+    self.outputTransformSelectorLabel.setText( "Output transform: " )
     self.outputTransformSelector = slicer.qMRMLNodeComboBox()
     self.outputTransformSelector.nodeTypes = ( "vtkMRMLTransformNode", "" )
     self.outputTransformSelector.noneEnabled = False
     self.outputTransformSelector.addEnabled = True
     self.outputTransformSelector.removeEnabled = True
     self.outputTransformSelector.setMRMLScene( slicer.mrmlScene )
-    self.outputTransformSelector.setToolTip( "Pick the grid transform node to fill. The extents, origin, and spacing will be copied from the output volume." )
+    self.outputTransformSelector.setToolTip( "The transform node will store and interpolate the measurement points to generate a vector field of the position error of the mapped transform compared to the ground truth transform. Optional." )
     parametersFormLayout.addRow(self.outputTransformSelectorLabel, self.outputTransformSelector)
-
     
     #
     # Check box to enable creating output transforms automatically.
@@ -240,29 +238,30 @@ class FieldDistortionMappingLogic:
 
     # Get the output volume's RAS to IJK matrix
     ijkToRas = vtk.vtkMatrix4x4()
-    outputVolumeNode.GetIJKToRASMatrix(ijkToRas)
-    transformNode = self.outputVolumeNode.GetParentTransformNode()
-    if transformNode:
-      if transformNode.IsTransformToWorldLinear():
-        rasToRAS = vtk.vtkMatrix4x4()
-        transformNode.GetMatrixTransformToWorld(rasToRAS)
-        rasToRAS.Multiply4x4(rasToRAS, ijkToRas, ijkToRas)
-      else:
-        print ("Cannot handle non-linear transforms - skipping")
-    self.rasToIjk = vtk.vtkMatrix4x4()
-    vtk.vtkMatrix4x4.Invert(ijkToRas, self.rasToIjk)
+    if outputVolumeNode:
+      outputVolumeNode.GetIJKToRASMatrix(ijkToRas)
+      transformNode = self.outputVolumeNode.GetParentTransformNode()
+      if transformNode:
+        if transformNode.IsTransformToWorldLinear():
+          rasToRAS = vtk.vtkMatrix4x4()
+          transformNode.GetMatrixTransformToWorld(rasToRAS)
+          rasToRAS.Multiply4x4(rasToRAS, ijkToRas, ijkToRas)
+        else:
+          print ("Cannot handle non-linear transforms - skipping")
+      self.rasToIjk = vtk.vtkMatrix4x4()
+      vtk.vtkMatrix4x4.Invert(ijkToRas, self.rasToIjk)
 
-    alwaysClearOutputTransformOnStart = True
-    outputTransform=self.outputTransformNode.GetTransformToParentAs('vtkThinPlateSplineTransform', False)
-    if alwaysClearOutputTransformOnStart or not outputTransform:
-      outputTransform=vtk.vtkThinPlateSplineTransform()
-      outputTransform.SetBasisToR()
-      groundTruthPoints=vtk.vtkPoints()
-      mappedPoints=vtk.vtkPoints()
-      outputTransform.SetSourceLandmarks(groundTruthPoints)
-      outputTransform.SetTargetLandmarks(mappedPoints)
-      self.outputTransformNode.SetAndObserveTransformToParent(outputTransform)
-      
+    if self.outputTransformNode:
+      alwaysClearOutputTransformOnStart = True
+      outputTransform=self.outputTransformNode.GetTransformToParentAs('vtkThinPlateSplineTransform', False)
+      if alwaysClearOutputTransformOnStart or not outputTransform:
+        outputTransform=vtk.vtkThinPlateSplineTransform()
+        outputTransform.SetBasisToR()
+        groundTruthPoints=vtk.vtkPoints()
+        mappedPoints=vtk.vtkPoints()
+        outputTransform.SetSourceLandmarks(groundTruthPoints)
+        outputTransform.SetTargetLandmarks(mappedPoints)
+        self.outputTransformNode.SetAndObserveTransformToParent(outputTransform)      
         
     # Start the updates
     self.addObservers()
@@ -295,18 +294,20 @@ class FieldDistortionMappingLogic:
     # Compute voxel position
     distortionVectorPosition_Ras = [gtPos[0], gtPos[1], gtPos[2], 1]
     distortionVectorPosition_Ijk=self.rasToIjk.MultiplyPoint(distortionVectorPosition_Ras)
-    #distortionVectorPosition_Ijk = [0,1,2,3]
 
     # Paint voxel value
-    outputVolumeImageData=self.outputVolumeNode.GetImageData()
-    fillValue=1000
-    outputVolumeImageData.SetScalarComponentFromFloat(distortionVectorPosition_Ijk[0], distortionVectorPosition_Ijk[1], distortionVectorPosition_Ijk[2], 0, fillValue)
-    outputVolumeImageData.Modified()
+    if self.outputVolumeNode:
+      outputVolumeImageData=self.outputVolumeNode.GetImageData()
+      # We just use a constant fill value to be able to visualize that a sample has been obtained at this point (can be shown in a slice view or in 3D using volume rendering)
+      fillValue=1000
+      outputVolumeImageData.SetScalarComponentFromFloat(distortionVectorPosition_Ijk[0], distortionVectorPosition_Ijk[1], distortionVectorPosition_Ijk[2], 0, fillValue)
+      outputVolumeImageData.Modified()
     
     # Update transform
-    outputTransform=self.outputTransformNode.GetTransformToParent()
-    outputTransform.GetSourceLandmarks().InsertNextPoint(gtPos[0], gtPos[1], gtPos[2])
-    outputTransform.GetTargetLandmarks().InsertNextPoint(mappedPos[0],mappedPos[1],mappedPos[2])
-    self.outputTransformNode.GetTransformToParent().Modified()
+    if self.outputTransformNode:
+      outputTransform=self.outputTransformNode.GetTransformToParent()
+      outputTransform.GetSourceLandmarks().InsertNextPoint(gtPos[0], gtPos[1], gtPos[2])
+      outputTransform.GetTargetLandmarks().InsertNextPoint(mappedPos[0],mappedPos[1],mappedPos[2])
+      self.outputTransformNode.GetTransformToParent().Modified()
 
 
