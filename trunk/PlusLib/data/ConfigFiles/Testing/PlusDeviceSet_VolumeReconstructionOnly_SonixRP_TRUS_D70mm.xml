@@ -16,7 +16,7 @@
       Type="CertusTracker"
       ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="Probe" PortName="0" Model="L14-5_38" />
+        <DataSource Type="Tool" Id="Probe" PortName="0" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >

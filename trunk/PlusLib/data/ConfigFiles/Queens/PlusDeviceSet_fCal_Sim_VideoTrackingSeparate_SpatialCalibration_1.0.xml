@@ -15,9 +15,9 @@ It loads an fCal test image, but it can be changed by modifying the SequenceMeta
       SequenceMetafile="fCal_Test_Calibration.mha"
       RepeatEnabled="TRUE" >
       <DataSources>
-        <DataSource Type="Tool" Id="Probe" Model="L14-5_38" />
+        <DataSource Type="Tool" Id="Probe" />
         <DataSource Type="Tool" Id="Reference" />
-        <DataSource Type="Tool" Id="Stylus" Model="Example" />
+        <DataSource Type="Tool" Id="Stylus" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >

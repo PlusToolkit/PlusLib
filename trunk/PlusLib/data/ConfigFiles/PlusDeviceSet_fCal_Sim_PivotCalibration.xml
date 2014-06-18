@@ -13,7 +13,7 @@ vtkStylusCalibrationTest uses this configuration" />
       Mode="PivotCalibration"  >
       <DataSources>
         <DataSource Type="Tool" Id="Reference"  PortName="0" />
-        <DataSource Type="Tool" Id="Stylus"  PortName="1" Model="Example" />     
+        <DataSource Type="Tool" Id="Stylus"  PortName="1" />
       </DataSources> 
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
