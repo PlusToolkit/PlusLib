@@ -2,24 +2,24 @@
 
 \page CommonAttributesDevices Common attributes of devices
 
-Device element attributes
+- Device element attributes
 
-- \c AcquisitionRate Defines how many frames the device should acquire in a second. Depending on capabilities of the device the actual frame rate may differ from this requested frame rate. Optional, default is specified by the device.
+  - \c AcquisitionRate. \anchor AcquisitionRate Defines how many frames the device should acquire in a second. Depending on capabilities of the device the actual frame rate may differ from this requested frame rate. Optional, default is specified by the device.
 
-- \c LocalTimeOffsetSec. This value allows for compensating time lag of the data acquisition of the device. The value is typically determined by temporal calibration. Global time (common for all devices in the process) is computed from the device's local time (timestamps provided by the device) as: GlobalTime = LocalTime + LocalTimeOffset. Therefore, if local time is the time when the process receives the data from a device and it takes 0.5sec for the device to acquire data and send to the process then the LocalTimeOffsetSec value will be -0.5. Optional. Default value is 0 sec.
+  - \c LocalTimeOffsetSec. \anchor LocalTimeOffsetSec This value allows for compensating time lag of the data acquisition of the device. The value is typically determined by temporal calibration. Global time (common for all devices in the process) is computed from the device's local time (timestamps provided by the device) as: GlobalTime = LocalTime + LocalTimeOffset. Therefore, if local time is the time when the process receives the data from a device and it takes 0.5 sec for the device to acquire data and send to the process then the LocalTimeOffsetSec value will be -0.5. Optional. Default value is 0 sec.
 
-- \c MissingInputGracePeriodSec This value defines for how long after initiating connection a device should not report missing inputs as error. After the grace period expires, the device will report missing inputs as errors or warnings. The value is typically used by devices that uses the output of other devices, such as disc capture or ultrasound simulator. Optional. Default is specified by the device.
+  - \c MissingInputGracePeriodSec. \anchor MissingInputGracePeriodSec This value defines for how long after initiating connection a device should not report missing inputs as error. After the grace period expires, the device will report missing inputs as errors or warnings. The value is typically used by devices that uses the output of other devices, such as disc capture or ultrasound simulator. Optional. Default is specified by the device.
 
-- \c ToolReferenceFrame Reference frame name of the tools. Required for tracking devices.
+  - \c ToolReferenceFrame. \anchor ToolReferenceFrame Reference frame name of the tools. Required for tracking devices.
 
-- \c ReportUnknownToolsOnce. When data recording is attempted for an unknown tool it will be reported as an error on each attempt if this flag is FALSE. Othwerwise it is reported only once after each Connect.
+  - \c ReportUnknownToolsOnce. \anchor ReportUnknownToolsOnce When data recording is attempted for an unknown tool it will be reported as an error on each attempt if this flag is FALSE. Othwerwise it is reported only once after each Connect.
 
-DataSource element attributes
+- DataSource element attributes
 
-- \c BufferSize Specifies how many most recent data items the device should keep in memory. It is advisable to keep in memory at least the data that is acquired in the last couple of seconds, to allow synchronized retrieving of data from various devices with slightly different time offsets at the same time. The buffer also helps avoiding data loss when temporarily the process is busy with computations or input/output operations. Too high value results in large memory areas allocated to these buffers, thus reducing available memory for other operations, such as volume reconstruct. Required. Minimum recommended value is 5 times AcquisitionRate (last 5 sec data is kept in memory).
+  - \c BufferSize. \anchor BufferSize Specifies how many most recent data items the device should keep in memory. It is advisable to keep in memory at least the data that is acquired in the last couple of seconds, to allow synchronized retrieving of data from various devices with slightly different time offsets at the same time. The buffer also helps avoiding data loss when temporarily the process is busy with computations or input/output operations. Too high value results in large memory areas allocated to these buffers, thus reducing available memory for other operations, such as volume reconstruct. Required. Minimum recommended value is 5 times AcquisitionRate (last 5 sec data is kept in memory).
 
-- \c AveragedItemsForFiltering. Number of items used for timestamp jitter reduction filtering. Timestamp jitter filtering isOnly used if the device does not provide timestamps and so the data collector applies timestamps when it receives the data.
+  - \c AveragedItemsForFiltering. \anchor AveragedItemsForFiltering Number of items used for timestamp jitter reduction filtering. Timestamp jitter filtering is only used if the device does not provide timestamps and so the data collector applies timestamps when it receives the data.
 
-- \c PortName. Port name is used to identify the tool among all the tools provided by the device.
+  - \c PortName. \anchor PortName Port name is used to identify the tool among all the tools provided by the device.
 
 */

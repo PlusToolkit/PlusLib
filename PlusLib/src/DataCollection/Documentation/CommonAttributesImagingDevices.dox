@@ -1,25 +1,25 @@
 /*!
 
 \page CommonAttributesImagingDevices Common attributes of the imaging devices
+- DataSource element attributes
+  - \c PortUsImageOrientation. \anchor PortUsImageOrientation The orientation of the image outputted by the device
 
-- \c PortUsImageOrientation. The orientation of the image outputted by the device
-
- - \c US_IMG_ORIENT_UF image \c x axis = unmarked transducer axis, image \c y axis = far transducer axis.
- - \c US_IMG_ORIENT_UN image \c x axis = unmarked transducer axis, image \c y axis = near transducer axis.
- - \c US_IMG_ORIENT_MF image \c x axis = marked transducer axis, image \c y axis = far transducer axis.
- - \c US_IMG_ORIENT_MN image \c x axis = marked transducer axis, image \c y axis = near transducer axis.
- - \c US_IMG_ORIENT_FU image \c x axis = far transducer axis, image \c y axis = unmarked transducer axis (usually for RF frames).
- - \c US_IMG_ORIENT_NU image \c x axis = near transducer axis, image \c y axis = unmarked transducer axis (usually for RF frames).
- - \c US_IMG_ORIENT_FM image \c x axis = far transducer axis, image \c y axis = marked transducer axis (usually for RF frames).
- - \c US_IMG_ORIENT_NM image \c x axis = near transducer axis, image \c y axis = marked transducer axis (usually for RF frames).
+   - \c US_IMG_ORIENT_UF image \c x axis = unmarked transducer axis, image \c y axis = far transducer axis.
+   - \c US_IMG_ORIENT_UN image \c x axis = unmarked transducer axis, image \c y axis = near transducer axis.
+   - \c US_IMG_ORIENT_MF image \c x axis = marked transducer axis, image \c y axis = far transducer axis.
+   - \c US_IMG_ORIENT_MN image \c x axis = marked transducer axis, image \c y axis = near transducer axis.
+   - \c US_IMG_ORIENT_FU image \c x axis = far transducer axis, image \c y axis = unmarked transducer axis (usually for RF frames).
+   - \c US_IMG_ORIENT_NU image \c x axis = near transducer axis, image \c y axis = unmarked transducer axis (usually for RF frames).
+   - \c US_IMG_ORIENT_FM image \c x axis = far transducer axis, image \c y axis = marked transducer axis (usually for RF frames).
+   - \c US_IMG_ORIENT_NM image \c x axis = near transducer axis, image \c y axis = marked transducer axis (usually for RF frames).
  
-- \c ImageType. The image type(B-mode, RF, ...) provided by the video source.
+  - \c ImageType. \anchor ImageType The image type(B-mode, RF, ...) provided by the video source.
  
- - \c BRIGHTNESS B-mode image.
- - \c RF_REAL RF-mode image, signal is stored as a series of real values.
- - \c RF_IQ_LINE RF-mode image, signal is stored as a series of I and Q samples in a line(I1, Q1, I2, Q2, ...).
- - \c RF_I_LINE_Q_LINE RF-mode image, signal is stored as a series of I samples in a line, then Q samples in the next line(I1, I2, ..., Q1, Q2, ...).
- - \c RGB_COLOR RGB24 color image.
+   - \c BRIGHTNESS B-mode image.
+   - \c RF_REAL RF-mode image, signal is stored as a series of real values.
+   - \c RF_IQ_LINE RF-mode image, signal is stored as a series of I and Q samples in a line(I1, Q1, I2, Q2, ...).
+   - \c RF_I_LINE_Q_LINE RF-mode image, signal is stored as a series of I samples in a line, then Q samples in the next line(I1, I2, ..., Q1, Q2, ...).
+   - \c RGB_COLOR RGB24 color image.
 
 
 
