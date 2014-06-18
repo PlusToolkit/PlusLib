@@ -261,13 +261,6 @@ PlusStatus vtkPlusDevice::Reset()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusDevice::SetToolLED(const char* portName, int led, int state)
-{
-  PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
-  this->InternalSetToolLED(portName, led, state);
-}
-
-//----------------------------------------------------------------------------
 DataSourceContainerConstIterator vtkPlusDevice::GetToolIteratorBegin() const
 {
   return this->Tools.begin(); 
@@ -496,13 +489,6 @@ PlusStatus vtkPlusDevice::SetAcquisitionRate( double aRate )
   this->Modified();
 
   return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusDevice::Beep(int n)
-{
-  PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
-  this->InternalBeep(n);
 }
 
 //----------------------------------------------------------------------------

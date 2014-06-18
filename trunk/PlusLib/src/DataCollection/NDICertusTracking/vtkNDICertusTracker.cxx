@@ -420,11 +420,11 @@ PlusStatus vtkNDICertusTracker::InternalUpdate()
 
     // convert status flags from Optotrak format to vtkTracker format
     ToolStatus status = TOOL_OK;
-    this->InternalSetToolLED(tool, 0, VLEDST_ON);
+    this->SetToolLED(tool, 0, TR_LED_ON);
     if ((statusFlags[tool] & OPTOTRAK_UNDETERMINED_FLAG) != 0)
     {
       status = TOOL_MISSING;
-      this->InternalSetToolLED(tool, 0, VLEDST_BLINK); 
+      this->SetToolLED(tool, 0, TR_LED_FLASH); 
     }
 
     ndiTransformToMatrixd(transform[tool],*this->SendMatrix->Element);
@@ -719,27 +719,6 @@ PlusStatus vtkNDICertusTracker::EnableToolPorts()
           LOG_ERROR("Failed to get tool by port name: " << toolPortName.str() ); 
           continue;
         }
-
-        // turn on the LEDs if set in TrackerTool
-        int val;
-        val = trackerTool->GetLED1();
-        if (val > 0 && val < 3)
-        {
-          OptotrakDeviceHandleSetVisibleLED(ph, 1,
-            vtkNDICertusMapVLEDState[val]);
-        }
-        val = trackerTool->GetLED2();
-        if (val > 0 && val < 3)
-        {
-          OptotrakDeviceHandleSetVisibleLED(ph, 2,
-            vtkNDICertusMapVLEDState[val]);
-        }
-        val = trackerTool->GetLED3();
-        if (val > 0 && val < 3)
-        {
-          OptotrakDeviceHandleSetVisibleLED(ph, 3,
-            vtkNDICertusMapVLEDState[val]);
-        }
       }
     }
   }
@@ -813,31 +792,8 @@ int vtkNDICertusTracker::GetToolFromHandle(int handle)
 }
 
 //----------------------------------------------------------------------------
-// cause the system to beep
-PlusStatus vtkNDICertusTracker::InternalBeep(int n)
-{
-  // beep is not implemented yet
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
 // change the state of an LED on the tool
-PlusStatus vtkNDICertusTracker::InternalSetToolLED(const char* portName, int led, int state)
-{
-  int tool(-1); 
-  std::stringstream convert(portName);
-  if ( ! (convert >> tool ) )
-  {
-    LOG_ERROR("Failed to convert port name '" << portName << "' to integer, please check config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
-    return PLUS_FAIL; 
-  } 
-
-  return this->InternalSetToolLED(tool, led, state);
-}
-
-//----------------------------------------------------------------------------
-// change the state of an LED on the tool
-PlusStatus vtkNDICertusTracker::InternalSetToolLED(int portNumber, int led, int state)
+PlusStatus vtkNDICertusTracker::SetToolLED(int portNumber, int led, vtkNDICertusTracker::LedState state)
 {
   if (this->Recording &&
     portNumber >= 0 && portNumber < VTK_CERTUS_NTOOLS &&

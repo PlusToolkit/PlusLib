@@ -21,13 +21,6 @@ class vtkVirtualMixer;
 #include "vtkTimestampedCircularBuffer.h"
 #include <vector>
 
-/*! Flags for tool LEDs (specifically for the POLARIS) */
-enum {
-  TR_LED_OFF   = 0,
-  TR_LED_ON    = 1,
-  TR_LED_FLASH = 2
-};
-
 /*! Flags for tool statuses */
 enum ToolStatus 
 {

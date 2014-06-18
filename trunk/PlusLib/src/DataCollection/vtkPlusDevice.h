@@ -226,14 +226,6 @@ public:
   virtual void SetLocalTimeOffsetSec( double aTimeOffsetSec );
   virtual double GetLocalTimeOffsetSec();
 
-  /*! Make the unit emit a string of audible beeps.  This is supported by the POLARIS. */
-  void Beep(int n);
-
-  /*!
-  Turn one of the LEDs on the specified tool on or off.  This is supported by the POLARIS.
-  */
-  void SetToolLED(const char* portName, int led, int state);
-
   /*! 
   Add generated html report from data acquisition to the existing html report. 
   htmlReport and plotter arguments has to be defined by the caller function 
@@ -415,14 +407,6 @@ protected:
 
   /* Construct a lookup table for indexing channels by depth, mode and probe */
   PlusStatus BuildParameterIndexList(const ChannelContainer& channels, bool& depthSwitchingEnabled, bool& modeSwitchingEnabled, bool& probeSwitchingEnabled, std::vector<ParamIndexKey*>& output );
-
-  /*! 
-  This method should be overridden for devices that have one or more LEDs on the tracked tools. 
-  */
-  virtual PlusStatus InternalSetToolLED(const char* portName, int led, int state) { return PLUS_SUCCESS; };
-
-  /*! This method should be overridden in derived classes that can make an audible beep. */
-  virtual PlusStatus InternalBeep(int n) { return PLUS_SUCCESS; };
 
   /*! Should be overridden to connect to the hardware */
   virtual PlusStatus InternalConnect() { return PLUS_SUCCESS; }
