@@ -151,6 +151,7 @@ OPTION(PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digit
 OPTION(PLUS_USE_MMF_VIDEO "Provide support for the Microsoft Media Foundation video digitizers (requires installation of Windows Platform SDK 7.1 or later)" OFF)
 OPTION(PLUS_USE_EPIPHAN "Provide support for the Epiphan framegrabber device" OFF)
 OPTION(PLUS_USE_INTERSON_VIDEO "Provide support for the Interson USB ultrasound probes" OFF)
+OPTION(PLUS_USE_INTERSONSDKCXX_VIDEO "Provide support for the Interson SDK 1.X with C++ Wrapper USB ultrasound probes" OFF)
 
 # Tracking hardware
 
@@ -367,6 +368,12 @@ IF ( PLUS_USE_BKPROFOCUS_VIDEO )
   SET(GrabbieLib_DEPENDENCIES)
   LIST(APPEND PlusLib_DEPENDENCIES GrabbieLib)
 ENDIF() 
+
+IF( PLUS_USE_INTERSONSDKCXX_VIDEO AND NOT IntersonSDKCxx_DIR )
+  SET(IntersonSDKCxx_DEPENDENCIES)
+  LIST(APPEND PlusLib_DEPENDENCIES IntersonSDKCxx)
+  INCLUDE(External_IntersonSDKCxx.cmake)
+ENDIF()
 
 SET(PlusApp_DEPENDENCIES PlusLib)
 
