@@ -4,6 +4,11 @@ SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 ADD_EXECUTABLE(RfProcessor RfProcessor.cxx )
 TARGET_LINK_LIBRARIES(RfProcessor vtkRfProcessingAlgo ${VTK_LIBRARIES} )
 
+#---------------------------------------------------------------------------
+ADD_EXECUTABLE(DrawScanLines DrawScanLines.cxx )
+TARGET_LINK_LIBRARIES(DrawScanLines vtkRfProcessingAlgo )
+
+
 # --------------------------------------------------------------------------
 ADD_TEST(vtkRfToBrightnessConvertRunTest
   ${EXECUTABLE_OUTPUT_PATH}/RfProcessor
