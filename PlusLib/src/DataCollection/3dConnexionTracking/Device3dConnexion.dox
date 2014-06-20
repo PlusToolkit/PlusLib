@@ -1,39 +1,45 @@
 /*!
 \page Device3dConnexion 3dConnexion 3D mouse devices
 
-\section SupportedHwDevices Supported hardware devices
+\section D3dConnexionSupportedHwDevices Supported hardware devices
 
 - All 3dConnexion 3D mouse models are supported.
 - Tested with 3dConnexion SpaceNavigator 3D mouse.
 - Link to manufacturer's website: http://www.3dconnexion.com/products/spacenavigator.html.
 
-\section SupportedPlatforms Supported platforms
+\section D3dConnexionSupportedPlatforms Supported platforms
 
-- Windows only
+- Windows 8 (32-bit and 64-bit), Windows 7 (32-bit and 64-bit), Vista (32-bit and 64-bit), Windows XP embedded (32-bit and 64-bit).
+- Apple OS X 10.6-10.8 (32-bit and 64-bit).
+- Linux Red Hat Enterprise Linux Workstation 4, 5 (32-bit and 64-bit). Linux Novell SUSE Linux 9.3, 10, 11 (32-bit and 64-bit).
 
-\section Installation Installation
+\section D3dConnexionInstallation Installation
 
 - No need to install any driver or software. If the 3DxWare software is installed: when a window is activated then the mouse may interact with that window as well (e.g., by default tilt front/back simulates mouse wheel). To avoid this either A. uninstall 3DxWare, B. activate a window that does not respond to mouse functions, or C. disable mouse functions in the 3DxWare settings.
 
-\section ConfigSettings Configuration settings
+\section D3dConnexionSupportedAppPlatform Suported application platform architecture
 
-Device Type: \c 3dConnexion
-- Attributes
-  - \ref AcquisitionRate
+\section D3dConnexionConfigSettings Configuration settings
+
+Device \c 3dConnexion
+- Attributes:
+  - \ref DeviceType "Type" = \c "3dConnexion"
+  - \ref DeviceAcquisitionRate "AcquisitionRate" 
   - \ref LocalTimeOffsetSec
   - \ref ToolReferenceFrame
-  - \c Mode Operation mode of the device
+  - \b Mode Operation mode of the device
     - \c MOUSE The transform is the current pose. If the mouse is released then the transforms reverts to identity.
     - \c JOYSTICK The transform is changing while the mouse is translated or rotated. If the mouse is released then the transform kept unchanged.
-  - \c TranslationScales Sensitivity and direction of the 3 translation axes. Default: <tt>"0.001 0.001 0.001"</tt>. Higher values mean higher sensitivity. Negative values can be used for inverting axes.
-  - \c RotationScales Sensitivity and direction of the 3 rotation axes. Default: <tt>"0.001 0.001 0.001"</tt>. Higher values mean higher sensitivity. Negative values can be used for inverting axes.
+  - \b TranslationScales Sensitivity and direction of the 3 translation axes. Higher values mean higher sensitivity. Negative values can be used for inverting axes. \OptionalAtt{0.001 0.001 0.001}.
+  - \b RotationScales Sensitivity and direction of the 3 rotation axes. Higher values mean higher sensitivity. Negative values can be used for inverting axes. \OptionalAtt{0.001 0.001 0.001}.
 
-- Child elements \c DataSource attributes:
-  - \ref BufferSize
-  - \ref AveragedItemsForFiltering
-  - \ref PortName
+- Child elements:
+  - \c DataSource attributes:
+    - \ref BufferSize
+    - \ref AveragedItemsForFiltering
+    - \ref PortName
 
-\section UseCases Use cases
+\section D3dConnexionUseCases Use cases
 
 \subsection UsageSlicer Usage in 3D Slicer
 
@@ -53,7 +59,7 @@ Settings for rotating/translating an object in the 3D view in 3D Slicer:
 
     Mode="JOYSTICK" TranslationScales="-0.001 0.001 -0.001" RotationScales="-0.001 0.001 -0.001"
 
-\section ExampleConfigFile Example configuration file
+\section D3dConnexionExampleConfigFile Example configuration file
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_3dConnexion.xml"
 

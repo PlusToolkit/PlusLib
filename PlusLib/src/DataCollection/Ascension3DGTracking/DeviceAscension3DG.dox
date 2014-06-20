@@ -1,47 +1,50 @@
 /*!
 \page DeviceAscension3DG Ascension electromagnetic tracking devices (and Ultrasonix SonixGPS)
 
-\section SupportedHwDevices Supported hardware devices
+\section Ascension3DGSupportedHwDevices Supported hardware devices
 
 - Ascension trakSTAR, driveBAY, medSAFE models.
 - Ultrasonix SonixGPS (it is an Ascension driveBAY).
 - Link to manufacturer's website: http://www.ascension-tech.com/medical/index.php
 
-\section SupportedPlatforms Supported platforms
+\section Ascension3DGSupportedPlatforms Supported platforms
 
-- Windows only.
+- Windows 7 (32-bit), Vista (32-bit), Windows XP embedded (32-bit).
 
-\section Installation Installation
+\section Ascension3DGInstallation Installation
 
 - Sensors must be all located in front of the frontplate of the field generator (the side with large the Ascension motif on it): tools are still tracked behind the frontplate, but their orientation may be inverted.
 - If pose measurement seems to be incorrect (somewhat translated/rotated) then unplug the sensor and plug it in again.
 - Tracking a Stylus: It is recommended to place the EM sensor as close to the needle tip as possible. The best accuracy is expected from a thick needle with a sensor near the needle tip. 
 - If you are using the tracker of an Ultrasonix SonixGPS system and the Exam software is running (e.g., because images are acquired using the Ulterius interface), then you need to disable the SonixGPS license to prevent the Exam software from using the tracker. This is done because only one application can communicate with the tracker at a time (either your application or the Exam software). To disable SonixGPS press menu on the touchscreen. Go to Administrator, Licenses and unselect SonixGPS from the licenses menu.
 
-\section ConfigSettings Configuration settings
+\section Ascension3DGSupportedAppPlatform Suported application platform architecture
 
-Device Type: \c Ascension3DG (for medSafe: \c Ascension3DGm).
+\section Ascension3DGConfigSettings Configuration settings
+
+Device \c  Ascension3DG
 - Attributes:
-
-  - \ref AcquisitionRate
+  - \ref DeviceType "Type" = \c "Ascension3DG"
+  - \ref DeviceAcquisitionRate "AcquisitionRate"
   - \ref LocalTimeOffsetSec
   - \ref ToolReferenceFrame
 
-  - \c FilterAcWideNotch 
-  - \c FilterAcNarrowNotch
-  - \c FilterDcAdaptive
-  - \c FilterLargeChange
-  - \c FilterAlpha
+  - \b FilterAcWideNotch AC wide notch filter status flag. \OptionalAtt{0}.
+  - \b FilterAcNarrowNotch AC narrow notch filter status flag.  \OptionalAtt{0}.
+  - \b FilterDcAdaptive  DC adaptive filter parameter (0.0 for no filtering, 1.0 for maximum filtering). \OptionalAtt{0}.
+  - \b FilterLargeChange Large change filter status flag. \OptionalAtt{0}.
+  - \b FilterAlpha  Alpha filter status flag. \OptionalAtt{0}.
 
-- Child elements \c DataSource attributes (Required):
-  - \c Type Must be \c Tool.
-  - \c PortName Identifies the connector (0, 1, 2, or 3) or a virtual tool that contains the quality values (\c quality1 for tool ports 0, 1, and 2; \c quality2 for tool port 3).
-  - \c QualityErrorSlope The slope should have a value between -127 and +127. (Default is 0).
-  - \c QualityErrorOffset default: The offset should have a value between -127 and +127. (The default is 0).
-  - \c QualityErrorSensitivity: The sensitivity should have a value between 0 and 127 (Default is 2).
-  - \c QualityFilterAlpha: The alpha should have a value between 0 and 127. (The default is 12).
-  - \ref BufferSize
-  - \ref AveragedItemsForFiltering
+- Child elements:
+  - \c DataSource attributes \RequiredAtt:
+    - \b Type = \c "Tool"
+    - \b PortName Identifies the connector (0, 1, 2, or 3) or a virtual tool that contains the quality values (\c quality1 for tool ports 0, 1, and 2; \c quality2 for tool port 3).
+    - \b QualityErrorSlope The slope should have a value between -127 and +127. \OptionalAtt{0}.
+    - \b QualityErrorOffset default: The offset should have a value between -127 and +127. \OptionalAtt{0}.
+    - \b QualityErrorSensitivity: The sensitivity should have a value between 0 and 127 \OptionalAtt{2}.
+    - \b QualityFilterAlpha: The alpha should have a value between 0 and 127. \OptionalAtt{12}.
+    - \ref BufferSize
+    - \ref AveragedItemsForFiltering
 
 \section QualityValues Quality values
 
@@ -51,7 +54,7 @@ The quality numbers are stored in the translation component of the transformatio
 - \c quality1: quality values for sensor port 0-2.
 - \c quality2: quality values for sensor port 3-5 (usually there are only 4 ports, so quality values for port 4 and 5 are not available).
 
-\section ExampleConfigFile Example configuration file
+\section Ascension3DGExampleConfigFile Example configuration file
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_Ascension3DG.xml"
     

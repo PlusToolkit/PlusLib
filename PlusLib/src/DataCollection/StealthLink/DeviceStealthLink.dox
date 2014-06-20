@@ -1,35 +1,41 @@
 /*!
 \page DeviceStealthLink Medtronic Stealth Station
 
-\section SupportedHwDevices Supported hardware devices
+\section StealthLinkSupportedHwDevices Supported hardware devices
 
 - Medtronic StealthStation that has StealthLink licence.
 - Link to manufacturer's website: http://www.medtronic.com/for-healthcare-professionals/products-therapies/spinal/surgical-navigation-imaging/surgical-navigation-systems/systems-software-instruments/
 
-\section SupportedPlatforms Supported platforms
+\section StealthLinkSupportedPlatforms Supported platforms
 
-- Windows only.
+- Windows 8 (32-bit and 64-bit), Windows 7 (32-bit and 64-bit), Vista (32-bit and 64-bit), Windows XP embedded (32-bit and 64-bit).
+- Linux (32 & 64 bit).
+- Mac OSX (32 & 64 bit).
 
-\section Installation Installation
+\section StealthLinkInstallation Installation
 
 No need to install any extra software. The StealthStation needs to be connected through LAN and the connection is set via IP and Port.
 
-\section ConfigSettings Configuration settings
+\section StealthLinkSupportedAppPlatform Suported application platform architecture
 
-Device Type: \c StealthLink.
+\section StealthLinkConfigSettings Configuration settings
+
+Device \c StealthLink.
 - Attributes:
-  - \ref AcquisitionRate
+  - \ref DeviceType "Type" = \c "StealthLink"
+  - \ref DeviceAcquisitionRate "AcquisitionRate" 
   - \ref LocalTimeOffsetSec
   - \ref ToolReferenceFrame
-  - \c ServerAddress. The IP address of the stealthstation.
-  - \c ServerPort. The port of the stealthstation.
+  - \b ServerAddress. The IP address of the stealthstation.
+  - \b ServerPort. The port of the stealthstation.
 
-- Child elements \c DataSource attributes:
-  - \ref BufferSize
-  - \ref PortName 
-    - \c *Instruments' names defined in StealthStation must match tools' port names defined in the configuration file (example: Passive Planar, Blunt).
-    - \c *Frames' names defined in StealthStation must match tools' port names defined in the configuration file (example: Frame Name: Small Passive Cranial Frame).
-    - \c *Ras. The port name must remain \c RasRegistration. This virtual tool will only "exist" when an image is required from the server. 
+- Child elements:
+  - \c DataSource attributes:
+    - \ref BufferSize
+    - \ref PortName 
+      - \c *Instruments' names defined in StealthStation must match tools' port names defined in the configuration file (example: Passive Planar, Blunt).
+      - \c *Frames' names defined in StealthStation must match tools' port names defined in the configuration file (example: Frame Name: Small Passive Cranial Frame).
+      - \c *Ras. The port name must remain \c RasRegistration. This virtual tool will only "exist" when an image is required from the server. 
 
 
 
@@ -51,8 +57,8 @@ Stealth can receive DICOM image files from the stealth server and send them as v
 
 It will get the current exam information and the registration information and send volume and its pose in Ras coordiante system. Ras is calculated after having read the information from the received dicom files ((0020,0032) ImagePositionPatient and (0020,0037) ImageOrientationPatient).
 
- - \c dicom-directory you can specifiy a folder and this folder will be where the DICOM files are stored. Default is plus output directory.
- - \c volumeEmbeddedTransformToFrame. you can define in what coordinate system you want the image to be in \c "Reference" or \c "Ras".
+ - \c dicom-directory you can specifiy a folder and this folder will be where the DICOM files are stored. \OptionalAtt{plus output directory}.
+ - \c volumeEmbeddedTransformToFrame. you can define in what coordinate system you want the image to be in \c "Reference" or \c "Ras". \OptionalAtt{Ras}
  - \c keepReceivedDicomFiles. If this exists then the DICOM files will be stored if not deleted. The default is delete.
 
 \subsection UsageSlicer Usage in 3D Slicer
@@ -66,7 +72,7 @@ Start plus server with the configuration file as the input.
  - Click "+" to create a new connection, select the new connection, click "Client", click "Active"
  - The \c StylusToTracker transform is created in Slicer and it is updated by the stylus tracking. The \c ReferenceToTracker and other transforms are available too.
 
-\section ExampleConfigFile Example configuration file
+\section StealthLinkExampleConfigFile Example configuration file
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_StealthLinkTracker.xml"
 

@@ -1,33 +1,40 @@
 /*!
 \page DeviceMicron Claron MicronTracker optical pose tracker
 
-\section SupportedHwDevices Supported hardware devices
+\section MicronSupportedHwDevices Supported hardware devices
 
 - Link to manufacturer's website: http://www.clarontech.com/microntracker.php
 
-\section SupportedPlatforms Supported platforms
+\section MicronSupportedPlatforms Supported platforms
+- Windows 7 (32-bit), Vista (32-bit), Windows 2000 (32-bit).
+- Linux (32 & 64 bit).
+- Mac OSX (32 & 64 bit).
 
-\section Installation Installation
+\section MicronInstallation Installation
 The 1394 interface that your computer already has may not work with the camera. If the MicronTracker demo programs don't work then use the interface card that came with your MicronTracker package. <a href="https://www.assembla.com/spaces/plus/tickets/870#/activity/ticket:">Install issue</a>.
 
-\section ConfigSettings Configuration settings
+\section MicronSupportedAppPlatform Suported application platform architecture
 
-Device Type: \c MicronTracker.
+\section MicronConfigSettings Configuration settings
+
+Device \c MicronTracker.
 - Attributes:
-  - \ref AcquisitionRate
+  - \ref DeviceType "Type" = \c "MicronTracker"
+  - \ref DeviceAcquisitionRate "AcquisitionRate" 
   - \ref LocalTimeOffsetSec
   - \ref ToolReferenceFrame
-  - \c TemplateDirectory = "Markers". Path to the directory that contains the marker files.
-  - \c IniFile = "MicronTracker.ini". Path to the initialization file.
+  - \b TemplateDirectory = "Markers". Path to the directory that contains the marker files.
+  - \b IniFile = "MicronTracker.ini". Path to the initialization file.
 
   The paths shall be specified in the configuration file and are relative to the DeviceSetConfigurationDirectory (defined in PlusConfig.xml):
 
-- Child elements \c DataSource attributes:
-  - \ref BufferSize
-  - \ref AveragedItemsForFiltering
-  - \ref PortName
+- Child elements:
+  - \c DataSource attributes:
+    - \ref BufferSize
+    - \ref AveragedItemsForFiltering
+    - \ref PortName
 
-\section ExampleConfigFile Example configuration file
+\section MicronExampleConfigFile Example configuration file
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_MicronTracker.xml"
 
