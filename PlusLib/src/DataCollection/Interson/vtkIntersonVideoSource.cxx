@@ -14,12 +14,7 @@ See License.txt for details.
 #include "vtkPlusDataSource.h"
 #include "vtkPlusBuffer.h"
 
-
-
 #include "vtkUSImagingParameters.h"
-
-//#define XSIZE 800						// Image window size 
-//#define YSIZE 512					    //		XSIZE must be divisible by four!
 
 // Interson's OEM ID (probes released by Interson have this OEM ID)
 #define OEM_ID_INTERSON 0x00
@@ -46,6 +41,7 @@ public:
   vtkIntersonVideoSource::vtkInternal::vtkInternal(vtkIntersonVideoSource* external) 
     : External(external)
     , RfDataBuffer(NULL)
+    , ProbeHandle(NULL)
   {	
   }
 
@@ -175,9 +171,8 @@ vtkIntersonVideoSource::vtkIntersonVideoSource()
   this->RequireImageOrientationInConfiguration = true;
 
   this->ImagingParameters = new vtkUsImagingParameters(this);
-  //this->SoundVelocity = 1540.0;
   this->ClockDivider = 1;
-  this->PulsFrequencyDivider = 2;
+  this->PulseFrequencyDivider = 2;
 
   this->Brightness = 128; //192
   this->Contrast = 256; //128
@@ -272,11 +267,11 @@ PlusStatus vtkIntersonVideoSource::InternalConnect()
   usbSetProbeDetachCallback(&ProbeDetached);
 
 
-  /* Before any probe can be initialized with usbInitializeProbes, they must be detected. usbFindProbes() 
-   will detect all attached probes and initialize the driver. After a successful call to usbFindProbes, 
-   other probe-related functions may be called. These include: usbInitializeProbes, usbProbeHandle, 
-   usbSelectProbe.  */
-  TCHAR errorStatus[256]={0};
+  // Before any probe can be initialized with usbInitializeProbes, they must be detected. usbFindProbes() 
+  // will detect all attached probes and initialize the driver. After a successful call to usbFindProbes, 
+  // other probe-related functions may be called. These include: usbInitializeProbes, usbProbeHandle, 
+  // usbSelectProbe.
+  usbErrorString errorStatus={0};
   ULONG status = usbFindProbes(errorStatus);
   LOG_DEBUG("Find USB probes: status="<<status<<", details: "<<errorStatus);
   if (status != ERROR_SUCCESS)
@@ -327,10 +322,16 @@ PlusStatus vtkIntersonVideoSource::InternalConnect()
   // set the assumed velocity (m/s)
   double soundVelocity = -1 ;
   this->ImagingParameters->GetSoundVelocity(soundVelocity);
-  usbSetVelocity(this->Internal->ProbeHandle, soundVelocity );
+  if (soundVelocity>0)
+  {
+    usbSetVelocity(this->Internal->ProbeHandle, soundVelocity );
+  }
   double depth = -1;
   this->ImagingParameters->GetDepthMm(depth);
-  this->SetDepthMm(depth);
+  if (depth>0)
+  {
+    this->SetDepthMmDevice(depth);
+  }
   //this->SetProbeFrequency(5000);
 
   // Setup the display offsets now that we have the probe and DISPLAY data
@@ -356,8 +357,8 @@ PlusStatus vtkIntersonVideoSource::InternalConnect()
     LOG_ERROR("CalculateDisplay failed");
   }
 
-  usbProbeNameString probeName={0};
-  usbProbeName(this->Internal->ProbeHandle, probeName);
+  std::string probeName;
+  GetProbeNameDevice(probeName);
   LOG_DEBUG("Interson probe name: "<<probeName<<", ID: "<<usbProbeID(this->Internal->ProbeHandle));
 
   vtkPlusDataSource* aSource=NULL;
@@ -417,10 +418,14 @@ PlusStatus vtkIntersonVideoSource::InternalConnect()
 
   double gain[3]={-1,-1,-1};
   this->ImagingParameters->GetGainPercent(gain);
-  this->SetGainPercent(gain);
+  if (gain[0]>=0 && gain[1]>=0 && gain[2]>=0)
+  {
+    this->SetGainPercentDevice(gain);
+  }
 
   BYTE lut[256];
-  double intensity=-1; double contrast = -1;
+  double intensity=-1;
+  double contrast = -1;
   this->ImagingParameters->GetIntensity(intensity);
   this->ImagingParameters->GetContrast(contrast);
   if (intensity >=0)
@@ -450,13 +455,12 @@ PlusStatus vtkIntersonVideoSource::InternalDisconnect()
   Sleep(250); // allow time for the imaging to stop
 
   // usbStopHardware() should be called here but the issue is that if the method is called, no probe is detected after connecting again. 
-  //usbStopHardware();
+
   bmCloseDisplay();
 
   DeleteObject(this->Internal->ProbeHandle);
   DeleteObject(this->Internal->DataHandle);
   DeleteObject(this->Internal->ImageWindowHandle);
-
 
   return PLUS_SUCCESS;
 }
@@ -464,14 +468,14 @@ PlusStatus vtkIntersonVideoSource::InternalDisconnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkIntersonVideoSource::InternalStartRecording()
 {
-  Freeze(false);
+  FreezeDevice(false);
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkIntersonVideoSource::InternalStopRecording()
 { 
-  Freeze(true);
+  FreezeDevice(true);
   return PLUS_SUCCESS;
 }
 
@@ -540,28 +544,29 @@ PlusStatus vtkIntersonVideoSource::InternalUpdate()
     return PLUS_FAIL;
   }
 
-  usbProbeNameString probeName={0};
-  float depthScale = -1;
-  usbProbeName(this->Internal->ProbeHandle, probeName);
-  usbProbeDepthScale(this->Internal->ProbeHandle,&depthScale);
-
   int frameSizeInPx[2]={this->ImageSize[0],this->ImageSize[1]};
 
   // If the buffer is empty, set the pixel type and frame size to the first received properties 
   if ( aSource->GetBuffer()->GetNumberOfItems() == 0 )
   {
-    LOG_DEBUG("Set up BK ProFocus image buffer");
+    LOG_DEBUG("Set up image buffer for Interson");
     aSource->GetBuffer()->SetPixelType(VTK_UNSIGNED_CHAR);
     aSource->GetBuffer()->SetImageType(US_IMG_BRIGHTNESS);
     aSource->GetBuffer()->SetFrameSize( frameSizeInPx );
     aSource->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
 
+    float depthScale = -1;
+    usbProbeDepthScale(this->Internal->ProbeHandle,&depthScale);
+
+    std::string probeName;
+    GetProbeNameDevice(probeName);
+
     LOG_INFO("Frame size: " << frameSizeInPx[0] << "x" << frameSizeInPx[1]
-    << ", pixel type: " << vtkImageScalarTypeNameMacro(aSource->GetBuffer()->GetPixelType())
-	  << ", probe sample frequency (Hz): " << usbProbeSampleFrequency(this->Internal->ProbeHandle)
-	  << ", probe name: " << probeName
-	  << ", display zoom: " << bmDisplayZoom()
-	  << ", probe depth scale (mm/sample):" << depthScale
+      << ", pixel type: " << vtkImageScalarTypeNameMacro(aSource->GetBuffer()->GetPixelType())
+	    << ", probe sample frequency (Hz): " << usbProbeSampleFrequency(this->Internal->ProbeHandle)
+	    << ", probe name: " << probeName
+	    << ", display zoom: " << bmDisplayZoom()
+	    << ", probe depth scale (mm/sample):" << depthScale
       << ", device image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetPortImageOrientation())
       << ", buffer image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetBuffer()->GetImageOrientation()));
   }
@@ -585,13 +590,9 @@ PlusStatus vtkIntersonVideoSource::ReadConfiguration(vtkXMLDataElement* rootConf
 
   XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ImageSize, deviceConfig);
 
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SectorPercent, deviceConfig);
   XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, GainPercent, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Intensity, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Contrast, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DynRangeDb, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ZoomFactor, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FrequencyMhz, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DepthMm, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SoundVelocity, deviceConfig);
 
@@ -626,8 +627,13 @@ PlusStatus vtkIntersonVideoSource::NotifyConfigured()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkIntersonVideoSource::Freeze(bool freeze)
+PlusStatus vtkIntersonVideoSource::FreezeDevice(bool freeze)
 {
+  if (this->Internal->ProbeHandle==NULL)
+  {
+    LOG_ERROR("vtkIntersonVideoSource::FreezeDevice failed: device not connected");
+    return PLUS_FAIL;
+  }
   if (!usbHardwareDetected())
   {
     LOG_ERROR("Freeze failed, no hardware is detected");
@@ -656,39 +662,65 @@ std::string vtkIntersonVideoSource::GetSdkVersion()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkIntersonVideoSource::SetDisplayZoom(double zoom)
+PlusStatus vtkIntersonVideoSource::SetDisplayZoomDevice(double zoom)
 {
+  if (this->Internal->ProbeHandle==NULL)
+  {
+    LOG_ERROR("vtkIntersonVideoSource::SetDisplayZoomDevice failed: device not connected");
+    return PLUS_FAIL;
+  }
   bmSetDisplayZoom(zoom); 
   LOG_TRACE("New zoom is " << bmDisplayZoom()); 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkIntersonVideoSource::GetSampleFrequency(double& aFreq)
+PlusStatus vtkIntersonVideoSource::GetSampleFrequencyDevice(double& aFreq)
 {
+  if (this->Internal->ProbeHandle==NULL)
+  {
+    LOG_ERROR("vtkIntersonVideoSource::GetSampleFrequencyDevice failed: device not connected");
+    return PLUS_FAIL;
+  }
   aFreq = usbProbeSampleFrequency(this->Internal->ProbeHandle);
   LOG_TRACE("Current frequency is " << aFreq); 
   return PLUS_SUCCESS;
 }
 
+
 //----------------------------------------------------------------------------
-PlusStatus vtkIntersonVideoSource::SetProbeFrequency(double freq)
+PlusStatus vtkIntersonVideoSource::SetProbeFrequencyDevice(double freq)
 {
+  if (this->Internal->ProbeHandle==NULL)
+  {
+    LOG_ERROR("vtkIntersonVideoSource::SetProbeFrequencyDevice failed: device not connected");
+    return PLUS_FAIL;
+  }
   usbSetProbeFrequency(freq);
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkIntersonVideoSource::GetProbeVelocity(double& aVel)
+PlusStatus vtkIntersonVideoSource::GetProbeVelocityDevice(double& aVel)
 {
+  if (this->Internal->ProbeHandle==NULL)
+  {
+    LOG_ERROR("vtkIntersonVideoSource::GetProbeVelocityDevice failed: device not connected");
+    return PLUS_FAIL;
+  }
   aVel = usbProbeVelocity(this->Internal->ProbeHandle);
   LOG_TRACE("Current velocity is " << aVel); 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkIntersonVideoSource::SetWindowDepth(int height)
+PlusStatus vtkIntersonVideoSource::SetWindowDepthDevice(int height)
 {
+  if (this->Internal->ProbeHandle==NULL)
+  {
+    LOG_ERROR("vtkIntersonVideoSource::SetWindowDepthDevice failed: device not connected");
+    return PLUS_FAIL;
+  }
   usbSetWindowDepth(this->Internal->ProbeHandle,height);
   return PLUS_SUCCESS;
 }
@@ -696,6 +728,19 @@ PlusStatus vtkIntersonVideoSource::SetWindowDepth(int height)
 //----------------------------------------------------------------------------
 PlusStatus vtkIntersonVideoSource::SetDepthMm(double depthMm)
 {
+  this->ImagingParameters->SetDepthMm(depthMm);
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkIntersonVideoSource::SetDepthMmDevice(double depthMm)
+{
+  if (this->Internal->ProbeHandle==NULL)
+  {
+    LOG_ERROR("vtkIntersonVideoSource::SetDepthMmDevice failed: device not connected");
+    return PLUS_FAIL;
+  }
+
   // to be implemented
   std::vector<pair<double,double>> allowedModes;
   this->GetProbeAllowedModes(allowedModes);
@@ -706,54 +751,52 @@ PlusStatus vtkIntersonVideoSource::SetDepthMm(double depthMm)
   for (int i=0;i<numberOfAllowedModes;i++)
   {
     if(allowedModes[i].second==depthMm/10)
-	{
-	  possibleModes.push_back(i);	
-	}
+    {
+      possibleModes.push_back(i);	
+    }
   }
   if(possibleModes.size()==1)
   {
-	chosenFrequencyMhz = allowedModes[possibleModes[0]].first ;
-	chosenDepthCm = allowedModes[possibleModes[0]].second ;
+    chosenFrequencyMhz = allowedModes[possibleModes[0]].first ;
+    chosenDepthCm = allowedModes[possibleModes[0]].second ;
   }
   else if(possibleModes.size()==0)
   {
-	chosenDepthCm = 5 ;
-	double clockDivider = usbClockDivider();	
-  double sampleFrequency = usbProbeSampleFrequency(this->Internal->ProbeHandle);
-  double divider = usbPulseFrequency();
-	chosenFrequencyMhz = sampleFrequency / divider ;
-	this->PulsFrequencyDivider = sampleFrequency/chosenFrequencyMhz;
-	LOG_INFO("The probe does not allow the required depth." << chosenDepthCm << " cm depth was chosed instead." );
+    chosenDepthCm = 5 ;
+    double clockDivider = usbClockDivider();	
+    double sampleFrequency = usbProbeSampleFrequency(this->Internal->ProbeHandle);
+    double divider = usbPulseFrequency();
+    chosenFrequencyMhz = sampleFrequency / divider ;
+    this->PulseFrequencyDivider = sampleFrequency/chosenFrequencyMhz;
+    LOG_INFO("The probe does not allow the required depth." << chosenDepthCm << " cm depth was chosed instead." );
   }
 
   if ((fabs(chosenDepthCm-5)<TOLERANCE) || fabs(chosenDepthCm-10)<TOLERANCE || fabs(chosenDepthCm-15)<TOLERANCE || fabs(chosenDepthCm-20)<TOLERANCE)
   {
-	// select the 30MHz clock
-  usbSet30MHzClock(this->Internal->ProbeHandle);
-	this->ClockFrequencyMHz = 30;
-	this->ClockDivider = chosenDepthCm/5;
-	// set the clock divider for
+    // select the 30MHz clock
+    usbSet30MHzClock(this->Internal->ProbeHandle);
+    this->ClockFrequencyMHz = 30;
+    this->ClockDivider = chosenDepthCm/5;
+    // set the clock divider for
     // 1:  ~5cm @ 30MHz and 1540m/s velocity
     // 3: ~15cm @ 30MHz;
     // 4: ~20cm @ 30MHz
   }
   if (fabs(chosenDepthCm-3)<TOLERANCE || fabs(chosenDepthCm-6)<TOLERANCE || fabs(chosenDepthCm-9)<TOLERANCE || fabs(chosenDepthCm-12)<TOLERANCE)
   {
-	// select the 48MHz clock
-  usbSet48MHzClock(this->Internal->ProbeHandle);
-	this->ClockFrequencyMHz = 48;
-	this->ClockDivider = chosenDepthCm/3;
+    // select the 48MHz clock
+    usbSet48MHzClock(this->Internal->ProbeHandle);
+    this->ClockFrequencyMHz = 48;
+    this->ClockDivider = chosenDepthCm/3;
   }
 
-  this->PulsFrequencyDivider = this->ClockFrequencyMHz/chosenFrequencyMhz;
-  usbSetPulseFrequency(this->PulsFrequencyDivider);
+  this->PulseFrequencyDivider = this->ClockFrequencyMHz/chosenFrequencyMhz;
+  usbSetPulseFrequency(this->PulseFrequencyDivider);
   usbSetClockDivider(this->Internal->ProbeHandle, this->ClockDivider);
-  this->ImagingParameters->SetDepthMm(chosenDepthCm*10);
-  this->ImagingParameters->SetFrequencyMhz(chosenFrequencyMhz);
+  this->SetDepthMm(depthMm);
+  this->SetFrequencyMhz(chosenFrequencyMhz);
   double clockDivider = usbClockDivider(); 
   //pulseFrequency = usbPulseFrequency();
-
-
 
   return PLUS_SUCCESS;
 }
@@ -769,14 +812,26 @@ PlusStatus vtkIntersonVideoSource::SetImageSize(int imageSize[2])
 //----------------------------------------------------------------------------
 PlusStatus vtkIntersonVideoSource::SetFrequencyMhz(double freq)
 {
-	// to be implemented
+  this->ImagingParameters->SetFrequencyMhz(freq);
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkIntersonVideoSource::SetGainPercent(double gainPercent[3])
-{
-  
+{  
+  this->ImagingParameters->SetGainPercent(gainPercent);
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkIntersonVideoSource::SetGainPercentDevice(double gainPercent[3])
+{  
+  if (this->Internal->ProbeHandle==NULL)
+  {
+    LOG_ERROR("vtkIntersonVideoSource::SetGainPercentDevice failed: device not connected");
+    return PLUS_FAIL;
+  }
+  SetGainPercent(gainPercent);
   /* The following commented code is useful when using an RF probe with an analog TGC control.
   It sets the value, in dB, for the gain at the  last sample taken.   */
 	/*
@@ -979,5 +1034,32 @@ PlusStatus vtkIntersonVideoSource::GetProbeAllowedModes(std::vector<pair<double,
   }
   //allowedModes = usbProbeAllowedModes(this->Internal->ProbeHandle);
   //LOG_TRACE("Allowed modes are" << allowedModes); 
+  return PLUS_SUCCESS;
+}
+
+
+//----------------------------------------------------------------------------
+PlusStatus vtkIntersonVideoSource::GetProbeNameDevice(std::string& probeName)
+{
+  if (this->Internal->ProbeHandle==NULL)
+  {
+    LOG_ERROR("vtkIntersonVideoSource::SetGainPercentDevice failed: device not connected");
+    return PLUS_FAIL;
+  }
+
+  // usbProbeNameString supposed to be able to store the USB probe name
+  // but if we use that buffer then it leads to stack corruption,
+  // so we use a much larger buffer (the usbProbeNameString buffer size is 20)
+  typedef TCHAR usbProbeNameStringSafe[1000];
+
+  usbProbeNameStringSafe probeNameWideStringPtr={0};
+  usbProbeName(this->Internal->ProbeHandle, probeNameWideStringPtr);
+
+  // Probe name is stored in a wide-character string, convert it to a multi-byte character string
+  char probeNamePrintable[usbProbeNameMaxLength+1]={0};
+  wcstombs(probeNamePrintable, (wchar_t*)probeNameWideStringPtr, usbProbeNameMaxLength);
+
+  probeName=probeNamePrintable;
+
   return PLUS_SUCCESS;
 }
