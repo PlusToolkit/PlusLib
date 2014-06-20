@@ -137,7 +137,8 @@ public:
 
   virtual bool IsVirtual() const { return false; }
   /*!
-  Reset the device
+  Reset the device. The actual reset action is defined in subclasses. A reset is typically performed on the users request
+  while the device is connected. A reset can be used for zeroing sensors, cancelling an operation in progress, etc.
   */
   virtual PlusStatus Reset();
 

@@ -23,6 +23,9 @@ vtkUsImagingParameters::vtkUsImagingParameters(vtkPlusDevice* aImagingDevice)
 {
    //this->ImagingDevice = imagingDevice;
    this->ImagingDevice = aImagingDevice;
+   this->GainPercent[0]=-1;
+   this->GainPercent[1]=-1;
+   this->GainPercent[2]=-1;
 }
 
 //----------------------------------------------------------------------------

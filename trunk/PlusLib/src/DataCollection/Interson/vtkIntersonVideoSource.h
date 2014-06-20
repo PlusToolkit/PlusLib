@@ -75,24 +75,27 @@ protected:
 
   PlusStatus GetFullIniFilePath(std::string &fullPath);
 
-  PlusStatus Freeze(bool freeze);
+  PlusStatus FreezeDevice(bool freeze);
 
   PlusStatus WaitForFrame();
 
-  PlusStatus SetDisplayZoom(double zoom);
+  PlusStatus SetDisplayZoomDevice(double zoom);
 
-  PlusStatus GetSampleFrequency(double& aFreq);
+  PlusStatus GetSampleFrequencyDevice(double& aFreq);
 
   /* Set the desired probe frequency in Hz. The resulting probe speed will be approximately the value specified */
-  PlusStatus SetProbeFrequency(double aFreq);
+  PlusStatus SetProbeFrequencyDevice(double aFreq);
 
-  PlusStatus GetProbeVelocity(double& aVel);
+  PlusStatus GetProbeVelocityDevice(double& aVel);
 
   /* Represents the depth, in pixels, the display window will be. This defaults to 512 pixels for newly initialized probes.*/
-  PlusStatus SetWindowDepth(int height);
+  PlusStatus SetWindowDepthDevice(int height);
 
   /* Set the probe depth in mm */
   PlusStatus SetDepthMm(double depthMm);
+
+  /* Set the probe depth in mm */
+  PlusStatus SetDepthMmDevice(double depthMm);
 
   /* Set the image size */
   PlusStatus SetImageSize(int imageSize[2]);
@@ -102,6 +105,8 @@ protected:
 
   /* Set the gain in percent */
   PlusStatus SetGainPercent(double gainPercent[3]);
+  /* Set the gain in percent in the device */
+  PlusStatus SetGainPercentDevice(double gainPercent[3]);
 
   /* Set the zom factor. */
   PlusStatus SetZoomFactor(double gainPercent);
@@ -111,6 +116,9 @@ protected:
   with that particular probe. While there is no enforcement to use only these modes, one should 
   understand the implications on image quality if one of the allowed modes is not selected.*/
   PlusStatus GetProbeAllowedModes(std::vector<pair<double,double>>& allowedModes);
+
+  /*! Get probe name from the device */
+  PlusStatus GetProbeNameDevice(std::string& probeName);
 
   // For internal storage of additional variables (to minimize the number of included headers)
   class vtkInternal;
@@ -123,7 +131,7 @@ protected:
   int ClockDivider;
   double ClockFrequencyMHz;
   double SoundVelocity;
-  int PulsFrequencyDivider;
+  int PulseFrequencyDivider;
 
   int Brightness;
   int Contrast;
