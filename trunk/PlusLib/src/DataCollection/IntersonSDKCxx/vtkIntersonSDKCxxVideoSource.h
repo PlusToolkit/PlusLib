@@ -17,7 +17,7 @@ class VTK_EXPORT vtkIntersonSDKCxxVideoSource;
   \brief Class for acquiring ultrasound images from Interson USB ultrasound systems
   with C++ Wrapped SDK.
 
-  Requires the PLUS_USE_INTERSONSDKCXX option in CMake.
+  Requires the PLUS_USE_INTERSONSDKCXX_VIDEO option in CMake.
   Requires Interson SDK 1.X and the C++ Wrappers (SDK provided by Interson,
   Wrappers provided by Kitware).
 

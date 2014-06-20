@@ -158,7 +158,14 @@ IF (PLUS_USE_INTERSONSDKCXX_VIDEO)
     --rendering-off 
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonSDKCxxVideoSourceTest.xml
   )
-  SET_TESTS_PROPERTIES( vtkIntersonSDKCxxVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  ADD_TEST(NAME vtkIntersonSDKCxxVideoSourceScanConvertTest 
+    COMMAND $<TARGET_FILE:vtkIntersonSDKCxxVideoSourceTest>
+    --rendering-off 
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonSDKCxxVideoSourceScanConvertTest.xml
+  )
+  SET_TESTS_PROPERTIES( vtkIntersonSDKCxxVideoSourceTest
+    vtkIntersonSDKCxxVideoSourceScanConvertTest
+  PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF ()
 
 IF (PLUS_USE_BKPROFOCUS_VIDEO)

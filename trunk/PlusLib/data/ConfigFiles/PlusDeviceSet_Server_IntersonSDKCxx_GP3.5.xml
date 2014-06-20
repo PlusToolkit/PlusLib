@@ -2,20 +2,33 @@
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
-      Name="PlusServer: Interson USB ultrasound device with Interson SDK. ."
+      Name="PlusServer: Interson USB ultrasound device with Interson SDK."
       Description="Broadcasting acquired video through OpenIGTLink"
     />
     <Device
       Id="VideoDevice"
       Type="IntersonSDKCxxVideo" 
       DepthMm="-1" 
-      DynRangeDb="-1" 
-      FrequencyMhz="-1" >
+      DynRangeDb="0.4" 
+      FrequencyMhz="3.75" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="FU" />
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" />
       </DataSources>
       <OutputChannels>
-        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" >
+          <RfProcessing>
+            <ScanConversion 
+              TransducerName="GP3.5"
+              TransducerGeometry="CURVILINEAR"
+              RadiusStartMm="12.4"
+              RadiusStopMm="222.7"
+              ThetaStartDeg="-45.0"
+              ThetaStopDeg="45.0"
+              OutputImageSizePixel="800 600"
+              TransducerCenterPixel="400 50"
+              OutputImageSpacingMmPerPixel="0.40 0.40" /> 
+          </RfProcessing>
+        </OutputChannel>
       </OutputChannels>
     </Device>
 
