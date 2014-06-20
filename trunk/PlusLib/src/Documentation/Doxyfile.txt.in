@@ -230,7 +230,9 @@ TAB_SIZE               = 2
 # "Side Effects:". You can put \n's in the value part of an alias to insert
 # newlines.
 
-ALIASES                =
+ALIASES                += OptionalAtt{1}="<B><em><c>[Optional, Default = \"\1\"]</c></em></B>"
+ALIASES                += RequiredAtt="<B><c>[Required]</c></B>"
+ALIASES                += TodoAndras="<B>TodoAndras</B>"
 
 # This tag can be used to specify a number of word-keyword mappings (TCL only).
 # A mapping has the form "name=value". For example adding "class=itcl::class"

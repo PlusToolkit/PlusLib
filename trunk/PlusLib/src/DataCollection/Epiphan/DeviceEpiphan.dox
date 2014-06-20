@@ -1,40 +1,44 @@
 /*!
 \page DeviceEpiphan Epiphan frame grabber
 
-\section SupportedHwDevices Supported hardware devices
+\section EpiphanSupportedHwDevices Supported hardware devices
 
 - Recommended model for analog capture: <a href="http://www.epiphan.com/products/frame-grabbers/vga2usb-lr/">VGA2USB-LR</a>. The basic VGA2USB model is not suitable for most applications, because it provides interlaced output at a very low frame rate.
 
 - Link to manufacturer's website: http://www.epiphan.com/.
 
-\section SupportedPlatforms Supported platforms
+\section EpiphanSupportedPlatforms Supported platforms
 
-- Windows 2000, XP, Vista, Windows 7 and Windows 8.
-- Major Linux distributions (Fedora, RedHat, CentOS, Ubuntu, Debian, SUSE). 
-- Mac OS X 10.3 - 10.9.
+- Windows 8 (32-bit and 64-bit), Windows 7 (32-bit and 64-bit), Vista (32-bit and 64-bit), Windows XP embedded (32-bit and 64-bit), Windows 2000 (32-bit and 64-bit).
+- Major Linux distributions (Fedora, RedHat, CentOS, Ubuntu, Debian, SUSE). (32 & 64 bit).
+- Mac OS X 10.3 - 10.9. (32 & 64 bit).
 
-\section Installation Installation
+\section EpiphanInstallation Installation
 
 Need to install the drivers and software from <a href="http://www.epiphan.com/products/frame-grabbers/vga2usb-lr/download/"> VGA2USB-LR download</a>.
  
-\section ConfigSettings Configuration settings
+\section EpiphanSupportedAppPlatform Suported application platform architecture
 
-Device Type: \c Epiphan.
+\section EpiphanConfigSettings Configuration settings
+
+Device \c Epiphan.
 - Attributes:
-  - \ref AcquisitionRate
-  - \c SerialNumber it is an optional parameter to set the \c ID of the preferred a framegrabber device (if multiple devices are connected).
-  - \c ClipRectangleOrigin and \c cClipRectangleSize define a screen region to capture information from, the clip rectangle width has to be typically a mulitple of 4 (e.g., \c ClipRectangleOrigin="20 40" \c ClipRectangleSize="512 512" ).
-  - \c GrabberLocation it is used to choose a specific epiphan device (in the format local:[SERIAL], net:[ADDRESS[:PORT]], sn:SERIAL, id:INDEX). If nothing is specified then the auto-detection is attempted.
+  - \ref DeviceType "Type" = \c "Epiphan"
+  - \ref DeviceAcquisitionRate "AcquisitionRate" 
+  - \b SerialNumber it is an optional parameter to set the \c ID of the preferred a framegrabber device (if multiple devices are connected).
+  - \b ClipRectangleOrigin and \b cClipRectangleSize define a screen region to capture information from, the clip rectangle width has to be typically a mulitple of 4 (e.g., \b ClipRectangleOrigin \c ="20 40" \b ClipRectangleSize \c ="512 512" ).
+  - \b GrabberLocation it is used to choose a specific epiphan device (in the format local:[SERIAL], net:[ADDRESS[:PORT]], sn:SERIAL, id:INDEX). If nothing is specified then the auto-detection is attempted.
 
-- Child elements \c DataSource attributes:
-  - \ref PortUsImageOrientation
-  - \ref ImageType. Color image acquisition is supported by setting the imaging device's common attribute \c ImageType="RGB_COLOR" as shown in the Epiphan Color Video Capture example.
-  - \ref BufferSize
-  - \ref AveragedItemsForFiltering
-  - \ref PortName
+- Child elements:
+  - \c DataSource attributes:
+    - \ref PortUsImageOrientation
+    - \ref ImageType. Color image acquisition is supported by setting the imaging device's common attribute \c ImageType="RGB_COLOR" as shown in the Epiphan Color Video Capture example.
+    - \ref BufferSize
+    - \ref AveragedItemsForFiltering
+    - \ref PortName
 
 
-\section ExampleConfigFile Example configuration file
+\section EpiphanExampleConfigFile Example configuration file
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_EpiphanVideoCapture.xml"
 

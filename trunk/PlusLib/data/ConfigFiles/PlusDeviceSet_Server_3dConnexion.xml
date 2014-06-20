@@ -7,7 +7,7 @@
     <Device
       Id="TrackerDevice"
       Type="3dConnexion"
-      OperatingMode="JOYSTICK"
+      Mode="JOYSTICK"
       TranslationScales="0.001 -0.001 -0.001"
       RotationScales="0.001 -0.001 -0.001"
       ToolReferenceFrame="Tracker" >
