@@ -9,6 +9,7 @@ See License.txt for details.
 
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
+#include "vtkImageImport.h"
 
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
@@ -16,12 +17,13 @@ See License.txt for details.
 
 #include "vtkUSImagingParameters.h"
 
+#include "vtkRfProcessor.h"
+#include "vtkUsScanConvertCurvilinear.h"
+
 #include "IntersonCxxImagingScan2DClass.h"
 #include "IntersonCxxControlsHWControls.h"
 #include "IntersonCxxIntersonClass.h"
 #include "IntersonCxxImagingScanConverter.h"
-
-#include "itkImage.h"
 
 //----------------------------------------------------------------------------
 typedef IntersonCxx::Imaging::Scan2DClass Scan2DClassType;
@@ -78,6 +80,11 @@ public:
     this->BmodeClientData.ActiveIntersonDevice = this->External;
     this->Scan2DClass->SetNewBmodeImageCallback( &vtkIntersonSDKCxxVideoSource::NewBmodeImageCallback,
       &(this->BmodeClientData) );
+
+    this->BModeBufferToVtkImage = vtkImageImport::New();
+    this->BModeBufferToVtkImage->SetDataScalarType( VTK_UNSIGNED_CHAR );
+    this->BModeBufferToVtkImage->SetDataExtent( 0, Scan2DClassType::MAX_SAMPLES - 1, 0, Scan2DClassType::MAX_VECTORS - 1, 0, 0 );
+    this->BModeBufferToVtkImage->SetWholeExtent( 0, Scan2DClassType::MAX_SAMPLES - 1, 0, Scan2DClassType::MAX_VECTORS - 1, 0, 0 );
   }
 
   //----------------------------------------------------------------------------
@@ -87,6 +94,8 @@ public:
     delete HWControls;
     delete Scan2DClass;
     delete IntersonClass;
+
+    this->BModeBufferToVtkImage->Delete();
   }  
 
   std::string GetSdkVersion()
@@ -104,12 +113,45 @@ public:
     return this->Scan2DClass;
   }
 
+  vtkImageData * ConvertBModeBufferToVtkImage( unsigned char * pixelData )
+  {
+    this->BModeBufferToVtkImage->SetImportVoidPointer( pixelData );
+    this->BModeBufferToVtkImage->Update();
+    return this->BModeBufferToVtkImage->GetOutput();
+  }
+
+  // Find the channel that outputs the source.
+  vtkPlusChannel * GetSourceChannel( vtkPlusDataSource * source )
+  {
+    vtkPlusChannel * channel = NULL;
+    for( ChannelContainerConstIterator channelIt = this->External->OutputChannels.begin();
+         channelIt != this->External->OutputChannels.end();
+         ++channelIt )
+      {
+      if( !(*channelIt)->HasVideoSource() )
+        {
+        LOG_ERROR( "Output channel does not have VideoSource" );
+        return channel;
+        }
+      vtkPlusDataSource * channelSource = NULL;
+      (*channelIt)->GetVideoSource( channelSource );
+      if( channelSource == source )
+        {
+        channel = *channelIt;
+        break;
+        }
+      }
+    return channel;
+  }
+
 private:
   HWControlsType *    HWControls;
   Scan2DClassType *   Scan2DClass;
   IntersonClassType * IntersonClass;
 
   BmodeCallbackClientData BmodeClientData;
+
+  vtkImageImport * BModeBufferToVtkImage;
 };
 
 
@@ -124,7 +166,7 @@ vtkIntersonSDKCxxVideoSource::vtkIntersonSDKCxxVideoSource()
 
   this->ImagingParameters = new vtkUsImagingParameters(this);
 
-  this->PulseVoltage = 50;
+  this->PulseVoltage = 40;
 }
 
 //----------------------------------------------------------------------------
@@ -230,18 +272,51 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
                                          height );
 
   std::vector<vtkPlusDataSource *> sources;
-  vtkPlusDataSource * source = sources[0];
+  vtkPlusDataSource * source = NULL;
   this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, sources);
   if( !sources.empty() )
     {
     source = sources[0];
     vtkPlusBuffer * plusBuffer = source->GetBuffer();
-  
     // Clear buffer on connect because the new frames that we will acquire might have a different size 
     plusBuffer->Clear();
     plusBuffer->SetPixelType( VTK_UNSIGNED_CHAR );  
-    plusBuffer->SetFrameSize( Scan2DClassType::MAX_SAMPLES, Scan2DClassType::MAX_VECTORS ); 
-    plusBuffer->SetImageOrientation( US_IMG_ORIENT_FU );
+
+    vtkPlusChannel * channel = this->Internal->GetSourceChannel( source );
+    if( channel == NULL )
+      {
+      LOG_ERROR( "Could not find channel for source" );
+      return PLUS_FAIL;
+      }
+    else
+      {
+      vtkRfProcessor * rfProcessor = channel->GetRfProcessor();
+      if( rfProcessor != NULL )
+        {
+        vtkUsScanConvertCurvilinear * scanConverter =
+          vtkUsScanConvertCurvilinear::SafeDownCast( rfProcessor->GetScanConverter() );
+        if( scanConverter != NULL )
+          {
+          channel->SetSaveRfProcessingParameters(true); // RF processing parameters were used, make sure they will be saved into the config file
+          plusBuffer->SetImageOrientation( US_IMG_ORIENT_UF );
+          int outputExtent[6];
+          scanConverter->GetOutputImageExtent( outputExtent );
+          plusBuffer->SetFrameSize( outputExtent[1] - outputExtent[0] + 1,
+                                    outputExtent[3] - outputExtent[2] + 1 );
+          }
+        else
+          {
+          LOG_ERROR( "Did not find expected scan converter parameters." );
+          return PLUS_FAIL;
+          }
+        }
+      else
+        {
+        plusBuffer->SetFrameSize( Scan2DClassType::MAX_SAMPLES, Scan2DClassType::MAX_VECTORS ); 
+        plusBuffer->SetImageOrientation( US_IMG_ORIENT_FU );
+        }
+      }
+  
     LOG_INFO("Pixel type: " << vtkImageScalarTypeNameMacro( plusBuffer->GetPixelType() )
           << ", device image orientation: "
             << PlusVideoFrame::GetStringFromUsImageOrientation( source->GetPortImageOrientation() )
@@ -383,9 +458,9 @@ PlusStatus vtkIntersonSDKCxxVideoSource::WriteConfiguration(vtkXMLDataElement* r
 //----------------------------------------------------------------------------
 PlusStatus vtkIntersonSDKCxxVideoSource::NotifyConfigured()
 {
-  if( this->OutputChannels.size() > 1 )
+  if( this->OutputChannels.size() > 2 )
   {
-    LOG_WARNING("vtkIntersonSDKCxxVideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
+    LOG_WARNING("vtkIntersonSDKCxxVideoSource is expecting at most two output channels and there are " << this->OutputChannels.size() << " channels.");
   }
 
   if( this->OutputChannels.empty() )
@@ -442,7 +517,7 @@ PlusStatus vtkIntersonSDKCxxVideoSource::SetProbeFrequencyMhz(double freq)
     frequencyIndex = ii + 1;
     }
   frequency = supportedFrequencies[frequencyIndex];
-  LOG_TRACE( "Current frequency is " << frequency / 1.0e6 ); 
+  LOG_DEBUG( "Current frequency is " << frequency / 1.0e6 ); 
 
   if( !hwControls->SetFrequency( frequency ) )
     {
@@ -502,8 +577,11 @@ PlusStatus vtkIntersonSDKCxxVideoSource::AddBmodeFrameToBuffer( BmodePixelType *
     // TODO: add support for sending the button press info through OpenIGTLink
     }
 
+  vtkImageData * bufferVtkImageData = NULL;
+  ++this->FrameNumber;
+
   std::vector<vtkPlusDataSource *> sources;
-  vtkPlusDataSource * source = sources[0];
+  vtkPlusDataSource * source = NULL;
   this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, sources);
   if( !sources.empty() )
     {
@@ -515,20 +593,31 @@ PlusStatus vtkIntersonSDKCxxVideoSource::AddBmodeFrameToBuffer( BmodePixelType *
     return PLUS_FAIL;
     }
 
-  ++this->FrameNumber;
-
-  int frameSizeInPx[2] = { Scan2DClassType::MAX_SAMPLES,
-                           Scan2DClassType::MAX_VECTORS };
-
   vtkPlusBuffer * plusBuffer = source->GetBuffer();
 
-  const PlusStatus status = plusBuffer->AddItem( buffer,
+  vtkPlusChannel * channel = this->Internal->GetSourceChannel( source );
+
+  vtkRfProcessor * rfProcessor = channel->GetRfProcessor();
+  if( rfProcessor != NULL )
+    {
+    vtkUsScanConvertCurvilinear * scanConverter =
+      vtkUsScanConvertCurvilinear::SafeDownCast( rfProcessor->GetScanConverter() );
+    if( scanConverter != NULL )
+      {
+      scanConverter->SetInputData_vtk5compatible( this->Internal->ConvertBModeBufferToVtkImage( buffer ) );
+      scanConverter->Modified();
+      scanConverter->Update();
+      bufferVtkImageData = scanConverter->GetOutput();
+      }
+    }
+  else
+    {
+    bufferVtkImageData = this->Internal->ConvertBModeBufferToVtkImage( buffer );
+    }
+
+  const PlusStatus status = plusBuffer->AddItem( bufferVtkImageData,
     source->GetPortImageOrientation(),
-    frameSizeInPx,
-    VTK_UNSIGNED_CHAR,
-    1,
     US_IMG_BRIGHTNESS,
-    0,
     this->FrameNumber );
 
   this->Modified();
