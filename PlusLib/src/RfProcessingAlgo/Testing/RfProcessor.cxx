@@ -131,7 +131,7 @@ int main(int argc, char **argv)
       if (STRCASECMP(operation.c_str(),"BRIGHTNESS_CONVERT")==0)
       {
         // do brightness conversion only
-        vtkImageData* brightnessImage = rfProcessor->GetBrightessConvertedImage();
+        vtkImageData* brightnessImage = rfProcessor->GetBrightnessConvertedImage();
         // Update the pixel data in the frame
         rfFrame->GetImageData()->DeepCopyFrom(brightnessImage);  
         rfFrame->GetImageData()->SetImageType(US_IMG_BRIGHTNESS);
@@ -139,7 +139,7 @@ int main(int argc, char **argv)
       else if (STRCASECMP(operation.c_str(),"BRIGHTNESS_SCAN_CONVERT")==0)
       {
         // do brightness and scan conversion
-        vtkImageData* brightnessImage = rfProcessor->GetBrightessScanConvertedImage();
+        vtkImageData* brightnessImage = rfProcessor->GetBrightnessScanConvertedImage();
         // Update the pixel data in the frame
         rfFrame->GetImageData()->DeepCopyFrom(brightnessImage);    
         rfFrame->GetImageData()->SetImageOrientation(US_IMG_ORIENT_MF); 

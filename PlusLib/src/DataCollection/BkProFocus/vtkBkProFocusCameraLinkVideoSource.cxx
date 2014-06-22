@@ -592,7 +592,7 @@ void vtkBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr, co
         channel->SetSaveRfProcessingParameters(true); // RF processing parameters were used, make sure they will be saved into the config file
 
         // Overwrite the input parameters with the converted image; it will look as if we received a B-mode image
-        vtkImageData* convertedBmodeImage = channel->GetRfProcessor()->GetBrightessScanConvertedImage();
+        vtkImageData* convertedBmodeImage = channel->GetRfProcessor()->GetBrightnessScanConvertedImage();
         pixelDataPtr = convertedBmodeImage->GetScalarPointer();        
         int *resultExtent = convertedBmodeImage->GetExtent();        
         frameSizeInPix[0] = resultExtent[1] - resultExtent[0] + 1;

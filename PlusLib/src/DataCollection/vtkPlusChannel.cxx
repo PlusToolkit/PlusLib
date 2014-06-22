@@ -1426,7 +1426,7 @@ vtkImageData* vtkPlusChannel::GetBrightnessOutput()
   {
     // RF frame, convert to B-mode frame
     this->RfProcessor->SetRfFrame(this->BrightnessOutputTrackedFrame.GetFrame().GetImage(), this->BrightnessOutputTrackedFrame.GetFrame().GetImageType());
-    resultImage = this->RfProcessor->GetBrightessScanConvertedImage();
+    resultImage = this->RfProcessor->GetBrightnessScanConvertedImage();
 
     // RF processing parameters were used, so save them into the config file
     this->SaveRfProcessingParameters=true;

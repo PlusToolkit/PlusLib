@@ -61,7 +61,7 @@ public:
       {
         // RF mode        
         RfProcessor->SetRfFrame(trackedFrame.GetImageData()->GetImage(), trackedFrame.GetImageData()->GetImageType());
-        this->ImageData->ShallowCopy(RfProcessor->GetBrightessScanConvertedImage());
+        this->ImageData->ShallowCopy(RfProcessor->GetBrightnessScanConvertedImage());
       }
       this->Viewer->SetInputData_vtk5compatible(this->ImageData); 
       this->Viewer->Modified(); 
