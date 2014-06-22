@@ -293,8 +293,7 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
       vtkRfProcessor * rfProcessor = channel->GetRfProcessor();
       if( rfProcessor != NULL )
         {
-        vtkUsScanConvertCurvilinear * scanConverter =
-          vtkUsScanConvertCurvilinear::SafeDownCast( rfProcessor->GetScanConverter() );
+        vtkUsScanConvert * scanConverter = rfProcessor->GetScanConverter();
         if( scanConverter != NULL )
           {
           channel->SetSaveRfProcessingParameters(true); // RF processing parameters were used, make sure they will be saved into the config file
