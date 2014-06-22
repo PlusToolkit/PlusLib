@@ -599,8 +599,13 @@ PlusStatus vtkIntersonSDKCxxVideoSource::AddBmodeFrameToBuffer( BmodePixelType *
   vtkRfProcessor * rfProcessor = channel->GetRfProcessor();
   if( rfProcessor != NULL )
     {
-    vtkUsScanConvertCurvilinear * scanConverter =
-      vtkUsScanConvertCurvilinear::SafeDownCast( rfProcessor->GetScanConverter() );
+    /*
+    // currently does not work.
+    rfProcessor->SetRfFrame( this->Internal->ConvertBModeBufferToVtkImage( buffer),
+                             US_IMG_BRIGHTNESS );
+    bufferVtkImageData = rfProcessor->GetBrightnessScanConvertedImage();
+    */
+    vtkUsScanConvert * scanConverter = rfProcessor->GetScanConverter();
     if( scanConverter != NULL )
       {
       scanConverter->SetInputData_vtk5compatible( this->Internal->ConvertBModeBufferToVtkImage( buffer ) );
