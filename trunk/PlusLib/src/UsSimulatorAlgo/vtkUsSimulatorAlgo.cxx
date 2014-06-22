@@ -318,7 +318,7 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
     return 0; 
   }
   this->RfProcessor->SetRfFrame(scanLines, US_IMG_BRIGHTNESS);
-  simulatedUsImage->DeepCopy(this->RfProcessor->GetBrightessScanConvertedImage());
+  simulatedUsImage->DeepCopy(this->RfProcessor->GetBrightnessScanConvertedImage());
   return 1; 
 }
 

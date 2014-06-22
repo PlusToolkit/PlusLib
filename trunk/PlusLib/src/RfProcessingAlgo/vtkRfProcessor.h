@@ -32,10 +32,10 @@ public:
   virtual PlusStatus SetRfFrame(vtkImageData* rfFrame, US_IMAGE_TYPE imageType); 
 
   /*! Get the B-mode image after brightness conversion, before scan conversion */
-  virtual vtkImageData* GetBrightessConvertedImage(); 
+  virtual vtkImageData* GetBrightnessConvertedImage(); 
 
   /*! Get the B-mode image after brightness and scan conversion */
-  virtual vtkImageData* GetBrightessScanConvertedImage(); 
+  virtual vtkImageData* GetBrightnessScanConvertedImage(); 
 
   /*! Read configuration from xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* rfElement); 

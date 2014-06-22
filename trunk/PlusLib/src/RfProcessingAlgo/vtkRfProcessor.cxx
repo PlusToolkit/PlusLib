@@ -50,19 +50,19 @@ PlusStatus vtkRfProcessor::SetRfFrame(vtkImageData* rfFrame, US_IMAGE_TYPE image
 }
 
 //-----------------------------------------------------------------------------
-vtkImageData* vtkRfProcessor::GetBrightessConvertedImage()
+vtkImageData* vtkRfProcessor::GetBrightnessConvertedImage()
 {
   this->RfToBrightnessConverter->Update();
   return this->RfToBrightnessConverter->GetOutput();
 }
 
 //-----------------------------------------------------------------------------
-vtkImageData* vtkRfProcessor::GetBrightessScanConvertedImage()
+vtkImageData* vtkRfProcessor::GetBrightnessScanConvertedImage()
 {
   if (this->ScanConverter==NULL)
   {
     LOG_ERROR("Scan converter is not defined, skipping scan conversion");
-    return GetBrightessConvertedImage();
+    return GetBrightnessConvertedImage();
   }
   this->ScanConverter->Update();
   return this->ScanConverter->GetOutput();
