@@ -163,8 +163,15 @@ IF (PLUS_USE_INTERSONSDKCXX_VIDEO)
     --rendering-off 
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonSDKCxxVideoSourceScanConvertTest.xml
   )
+  ADD_TEST(NAME vtkIntersonSDKCxxVideoSourceRfTest 
+    COMMAND $<TARGET_FILE:vtkIntersonSDKCxxVideoSourceTest>
+    --rendering-off 
+    --acq-mode RF
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonSDKCxxVideoSourceRfTest.xml
+  )
   SET_TESTS_PROPERTIES( vtkIntersonSDKCxxVideoSourceTest
     vtkIntersonSDKCxxVideoSourceScanConvertTest
+    vtkIntersonSDKCxxVideoSourceRfTest
   PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF ()
 
