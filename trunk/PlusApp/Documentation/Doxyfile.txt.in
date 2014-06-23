@@ -230,9 +230,11 @@ TAB_SIZE               = 2
 # "Side Effects:". You can put \n's in the value part of an alias to insert
 # newlines.
 
-ALIASES                += OptionalAtt{1}="<B><em><c>[Optional, Default = \"\1\"]</c></em></B>"
-ALIASES                += RequiredAtt="<B><c>[Required]</c></B>"
+ALIASES                += OptionalAtt{1}=" \image html icons\optional.png Default = \c \"\1\" "
+ALIASES                += RequiredAtt=" \image html icons\required.png \" \" "
 ALIASES                += TodoAndras="<B>TodoAndras</B>"
+ALIASES                += xmlAtt=" \image html icons\attribute.png \" \" "
+ALIASES                += xmlElem=" \image html icons\element.png \" \" "
 
 # This tag can be used to specify a number of word-keyword mappings (TCL only).
 # A mapping has the form "name=value". For example adding "class=itcl::class"
@@ -855,7 +857,7 @@ EXAMPLE_RECURSIVE      = YES
 # that contain images that are to be included in the documentation (see the
 # \image command).
 
-IMAGE_PATH             =
+IMAGE_PATH             = "@PLUSLIB_SOURCE_DIR@/src/Documentation/images/"
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should
 # invoke to filter for each input file. Doxygen will invoke the filter program
