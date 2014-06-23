@@ -1446,7 +1446,7 @@ int vtkPlusDevice::RequestInformation(vtkInformation * vtkNotUsed(request),
 
   if (!this->Connected)
   {
-    Connect();
+    this->Connect();
   }
 
   // get the info objects
@@ -1510,19 +1510,20 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
     return 1;
   }
 
-  if ( aSource->GetBuffer() == NULL || aSource->GetBuffer()->GetNumberOfItems() < 1 )
+  vtkPlusBuffer * plusBuffer = aSource->GetBuffer();
+  if ( plusBuffer == NULL || plusBuffer->GetNumberOfItems() < 1 )
   {
     LOCAL_LOG_DEBUG("Cannot request data from video source, the video buffer is empty or does not exist!");
     vtkImageData *data = vtkImageData::SafeDownCast(this->GetOutputDataObject(0));
-    int frameSize[2]={aSource->GetBuffer()->GetFrameSize()[0],aSource->GetBuffer()->GetFrameSize()[1] };
+    int frameSize[2]={plusBuffer->GetFrameSize()[0], plusBuffer->GetFrameSize()[1] };
     data->SetExtent(0,frameSize[0]-1,0,frameSize[1]-1,0,0);
 
 #if (VTK_MAJOR_VERSION < 6)
-    data->SetScalarTypeToUnsignedChar();
-    data->SetNumberOfScalarComponents(1); 
+    data->SetScalarType(plusBuffer->GetPixelType());
+    data->SetNumberOfScalarComponents(plusBuffer->GetNumberOfScalarComponents()); 
     data->AllocateScalars();
 #else
-    data->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+    data->AllocateScalars(plusBuffer->GetPixelType(), plusBuffer->GetNumberOfScalarComponents());
 #endif
 
     return 1;
@@ -1530,7 +1531,7 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
 
   if (this->UpdateWithDesiredTimestamp && this->DesiredTimestamp != -1)
   {
-    ItemStatus itemStatus = aSource->GetBuffer()->GetStreamBufferItemFromTime(this->DesiredTimestamp, this->CurrentStreamBufferItem, vtkPlusBuffer::EXACT_TIME);
+    ItemStatus itemStatus = plusBuffer->GetStreamBufferItemFromTime(this->DesiredTimestamp, this->CurrentStreamBufferItem, vtkPlusBuffer::EXACT_TIME);
     if ( itemStatus != ITEM_OK )
     {
       LOCAL_LOG_ERROR("Unable to copy video data to the requested output!");
@@ -1540,7 +1541,7 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
   else
   {
     // get the most recent frame if we are not updating with the desired timestamp
-    ItemStatus itemStatus = aSource->GetBuffer()->GetLatestStreamBufferItem(this->CurrentStreamBufferItem);
+    ItemStatus itemStatus = plusBuffer->GetLatestStreamBufferItem(this->CurrentStreamBufferItem);
     if ( itemStatus != ITEM_OK )
     {
       LOCAL_LOG_ERROR("Unable to copy video data to the requested output!");
@@ -1548,8 +1549,8 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
     }
   }
 
-  this->FrameTimeStamp = this->CurrentStreamBufferItem->GetTimestamp( aSource->GetBuffer()->GetLocalTimeOffsetSec() );
-  this->TimestampClosestToDesired = this->CurrentStreamBufferItem->GetTimestamp( aSource->GetBuffer()->GetLocalTimeOffsetSec() );
+  this->FrameTimeStamp = this->CurrentStreamBufferItem->GetTimestamp( plusBuffer->GetLocalTimeOffsetSec() );
+  this->TimestampClosestToDesired = this->CurrentStreamBufferItem->GetTimestamp( plusBuffer->GetLocalTimeOffsetSec() );
 
   void* sourcePtr=this->CurrentStreamBufferItem->GetFrame().GetScalarPointer();
   int bytesToCopy=this->CurrentStreamBufferItem->GetFrame().GetFrameSizeInBytes();
@@ -1561,11 +1562,11 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
   this->CurrentStreamBufferItem->GetFrame().GetFrameSize(frameSize);
   data->SetExtent(0,frameSize[0]-1,0,frameSize[1]-1,0,0);
 #if (VTK_MAJOR_VERSION < 6)
-    data->SetScalarTypeToUnsignedChar();
-    data->SetNumberOfScalarComponents(1); 
+    data->SetScalarType(plusBuffer->GetPixelType());
+    data->SetNumberOfScalarComponents(plusBuffer->GetNumberOfScalarComponents()); 
     data->AllocateScalars();
 #else
-    data->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+    data->AllocateScalars(plusBuffer->GetPixelType(), plusBuffer->GetNumberOfScalarComponents());
 #endif
   unsigned char *outPtr = (unsigned char *)data->GetScalarPointer();
   memcpy( outPtr, sourcePtr, bytesToCopy);

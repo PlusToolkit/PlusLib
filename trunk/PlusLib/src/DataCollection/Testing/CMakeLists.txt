@@ -166,7 +166,7 @@ IF (PLUS_USE_INTERSONSDKCXX_VIDEO)
   ADD_TEST(NAME vtkIntersonSDKCxxVideoSourceRfTest 
     COMMAND $<TARGET_FILE:vtkIntersonSDKCxxVideoSourceTest>
     --rendering-off 
-    --acq-mode RF
+    --acq-mode=RF
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonSDKCxxVideoSourceRfTest.xml
   )
   SET_TESTS_PROPERTIES( vtkIntersonSDKCxxVideoSourceTest
