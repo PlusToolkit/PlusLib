@@ -1,0 +1,17 @@
+/*!
+
+\page SupportedPlatforms Supported platforms
+\TodoAndras
+\section PlatformWin32 Supprted platforms Windows 32 bits
+Windows 8, Windows 7, Vista 32 and 64 bit platforms can execute this package
+\section PlatformWin64 Supprted platforms Windows 64 bits
+Windows 8, Windows 7, Vista 64 bit platforms can execute this package
+\section PlatformWin32Embedded Supprted platforms Windows 32 bits embedded
+Only Windows XP embedded platforms can execute this package
+\section PlatformMacOs Supprted platforms Mac Os
+\section PlatformLinux Supprted platforms Linux
+
+
+
+
+*/

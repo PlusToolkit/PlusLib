@@ -1,20 +1,20 @@
 /*!
 \page DeviceBrachy
 
-\par Supported hardware devices
+\section BrachySupportedHwDevices Supported hardware devices
 
 - Link to manufacturer's website:
 
-\par Supported platforms
+\section BrachySupportedPlatforms Supported platforms
 
-\par Installation
+\section BrachyInstallation Installation
 
-\par Configuration settings
 
-- Device type: \c Brachy.
+\section BrachyConfigSettings Device configuration settings
+
 - Attributes:
-
-\par Example configuration file
+  - \xmlAtt \ref DeviceType "Type" = \c "Brachy" \RequiredAtt
+\section BrachyExampleConfigFile Example configuration file
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_Brachy.xml"
 

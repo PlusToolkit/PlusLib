@@ -6,36 +6,37 @@
 - Link to manufacturer's website: http://www.clarontech.com/microntracker.php
 
 \section MicronSupportedPlatforms Supported platforms
-- Windows 7 (32-bit), Vista (32-bit), Windows 2000 (32-bit).
-- Linux (32 & 64 bit).
-- Mac OSX (32 & 64 bit).
+- \ref PlatformWin32
+- \ref PlatformWin32Embedded
+- \ref PlatformMacOs
+- \ref PlatformLinux
+
 
 \section MicronInstallation Installation
 The 1394 interface that your computer already has may not work with the camera. If the MicronTracker demo programs don't work then use the interface card that came with your MicronTracker package. <a href="https://www.assembla.com/spaces/plus/tickets/870#/activity/ticket:">Install issue</a>.
 
-\section MicronSupportedAppPlatform Suported application platform architecture
 
-\section MicronConfigSettings Configuration settings
-
-Device \c MicronTracker.
-- Attributes:
-  - \ref DeviceType "Type" = \c "MicronTracker"
-  - \ref DeviceAcquisitionRate "AcquisitionRate" 
-  - \ref LocalTimeOffsetSec
-  - \ref ToolReferenceFrame
-  - \b TemplateDirectory = "Markers". Path to the directory that contains the marker files.
-  - \b IniFile = "MicronTracker.ini". Path to the initialization file.
-
+\section MicronConfigSettings Device configuration settings
+<p>
+- \xmlAtt \ref DeviceType "Type" = \c "MicronTracker" </p>
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125} 
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
+- \xmlAtt \b TemplateDirectory = "Markers". Path to the directory that contains the marker files.
+- \xmlAtt \b IniFile = "MicronTracker.ini". Path to the initialization file.
   The paths shall be specified in the configuration file and are relative to the DeviceSetConfigurationDirectory (defined in PlusConfig.xml):
 
-- Child elements:
-  - \c DataSource attributes:
-    - \ref BufferSize
-    - \ref AveragedItemsForFiltering
-    - \ref PortName
+- \xmlElem \ref DataSources:
+  - \xmlElem \ref DataSource: there must be one child element
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+    - \xmlAtt \ref PortName \RequiredAtt   
 
 \section MicronExampleConfigFile Example configuration file
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_MicronTracker.xml"
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_MicronTracker.xml" 
+
+
 
 */

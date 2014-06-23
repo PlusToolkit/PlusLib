@@ -22,3 +22,18 @@ H2 {
 H3 {
       font-size: 100%;
 }
+
+div.image{ 
+/*width:16px;*/ 
+/*position:inherit;*/
+/*top:0px;*/
+/*left:5px;*/
+text-align: left;
+display:inline
+}
+
+div.caption{ 
+text-align: left;
+display:inline;
+font-weight:normal
+}
