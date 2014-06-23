@@ -52,6 +52,7 @@ public:
   PlusStatus SetDynRangeDb(double dynRangeDb);
 
   typedef unsigned char  BmodePixelType;
+  typedef short          RfPixelType;
 
 protected:
   /*! Constructor */
@@ -87,7 +88,11 @@ private:
   unsigned char PulseVoltage;
 
   static void __stdcall vtkIntersonSDKCxxVideoSource::NewBmodeImageCallback( BmodePixelType * buffer, void * clientData );
+  static void __stdcall vtkIntersonSDKCxxVideoSource::NewRfImageCallback( RfPixelType * buffer, void * clientData );
   PlusStatus AddBmodeFrameToBuffer( BmodePixelType * buffer, void * clientData );
+  PlusStatus AddRfFrameToBuffer( RfPixelType * buffer, void * clientData );
+
+  unsigned long RfFrameNumber;
 };
 
 #endif

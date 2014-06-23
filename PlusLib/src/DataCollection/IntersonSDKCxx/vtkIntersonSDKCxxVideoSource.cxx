@@ -39,6 +39,10 @@ struct BmodeCallbackClientData
 {
   vtkIntersonSDKCxxVideoSource *  ActiveIntersonDevice;
 };
+struct RfCallbackClientData
+{
+  vtkIntersonSDKCxxVideoSource *  ActiveIntersonDevice;
+};
 
 //----------------------------------------------------------------------------
 void vtkIntersonSDKCxxVideoSource::NewBmodeImageCallback( BmodePixelType * buffer, void * clientData )
@@ -63,6 +67,28 @@ void vtkIntersonSDKCxxVideoSource::NewBmodeImageCallback( BmodePixelType * buffe
     }
 }
 
+//----------------------------------------------------------------------------
+void vtkIntersonSDKCxxVideoSource::NewRfImageCallback( RfPixelType * buffer, void * clientData )
+{
+  if( buffer == NULL )
+    {
+    LOG_ERROR("No actual frame data received");
+    return;
+    }
+
+  RfCallbackClientData * callbackClientData = static_cast< RfCallbackClientData * >( clientData );
+  vtkIntersonSDKCxxVideoSource * activeIntersonDevice = callbackClientData->ActiveIntersonDevice;
+
+  if( activeIntersonDevice != NULL )
+    {
+    activeIntersonDevice->AddRfFrameToBuffer( buffer, clientData );
+    }
+  else
+    {
+    LOG_ERROR("vtkIntersonSDKCxxVideoSource B-mode callback but the ActiveIntersonDevice is NULL.  Disconnect between the device and SDK.");
+    return;
+    }
+}
 
 class vtkIntersonSDKCxxVideoSource::vtkInternal
 {
@@ -78,13 +104,17 @@ public:
     this->IntersonClass = new IntersonClassType();
 
     this->BmodeClientData.ActiveIntersonDevice = this->External;
-    this->Scan2DClass->SetNewBmodeImageCallback( &vtkIntersonSDKCxxVideoSource::NewBmodeImageCallback,
-      &(this->BmodeClientData) );
+    this->RfClientData.ActiveIntersonDevice = this->External;
 
     this->BModeBufferToVtkImage = vtkImageImport::New();
     this->BModeBufferToVtkImage->SetDataScalarType( VTK_UNSIGNED_CHAR );
     this->BModeBufferToVtkImage->SetDataExtent( 0, Scan2DClassType::MAX_SAMPLES - 1, 0, Scan2DClassType::MAX_VECTORS - 1, 0, 0 );
     this->BModeBufferToVtkImage->SetWholeExtent( 0, Scan2DClassType::MAX_SAMPLES - 1, 0, Scan2DClassType::MAX_VECTORS - 1, 0, 0 );
+
+    this->RfBufferToVtkImage = vtkImageImport::New();
+    this->RfBufferToVtkImage->SetDataScalarType( VTK_SHORT );
+    this->RfBufferToVtkImage->SetDataExtent( 0, Scan2DClassType::MAX_RFSAMPLES - 1, 0, Scan2DClassType::MAX_VECTORS - 1, 0, 0 );
+    this->RfBufferToVtkImage->SetWholeExtent( 0, Scan2DClassType::MAX_RFSAMPLES - 1, 0, Scan2DClassType::MAX_VECTORS - 1, 0, 0 );
   }
 
   //----------------------------------------------------------------------------
@@ -96,6 +126,7 @@ public:
     delete IntersonClass;
 
     this->BModeBufferToVtkImage->Delete();
+    this->RfBufferToVtkImage->Delete();
   }  
 
   std::string GetSdkVersion()
@@ -119,6 +150,36 @@ public:
     this->BModeBufferToVtkImage->Update();
     return this->BModeBufferToVtkImage->GetOutput();
   }
+
+  vtkImageData * ConvertRfBufferToVtkImage( short * pixelData )
+  {
+    this->RfBufferToVtkImage->SetImportVoidPointer( pixelData );
+    this->RfBufferToVtkImage->Update();
+    return this->RfBufferToVtkImage->GetOutput();
+  }
+
+  void EnableBModeCallback()
+  {
+    this->Scan2DClass->SetNewBmodeImageCallback( &vtkIntersonSDKCxxVideoSource::NewBmodeImageCallback,
+      &(this->BmodeClientData) );
+  }
+
+  void DisableBModeCallback()
+  {
+    this->Scan2DClass->SetNewBmodeImageCallback( NULL, NULL );
+  }
+
+  void EnableRfCallback()
+  {
+    this->Scan2DClass->SetNewRFImageCallback( &vtkIntersonSDKCxxVideoSource::NewRfImageCallback,
+      &(this->RfClientData) );
+  }
+
+  void DisableRfCallback()
+  {
+    this->Scan2DClass->SetNewRFImageCallback( NULL, NULL );
+  }
+
 
   // Find the channel that outputs the source.
   vtkPlusChannel * GetSourceChannel( vtkPlusDataSource * source )
@@ -150,13 +211,16 @@ private:
   IntersonClassType * IntersonClass;
 
   BmodeCallbackClientData BmodeClientData;
+  RfCallbackClientData RfClientData;
 
   vtkImageImport * BModeBufferToVtkImage;
+  vtkImageImport * RfBufferToVtkImage;
 };
 
 
 //----------------------------------------------------------------------------
-vtkIntersonSDKCxxVideoSource::vtkIntersonSDKCxxVideoSource()
+vtkIntersonSDKCxxVideoSource::vtkIntersonSDKCxxVideoSource():
+  RfFrameNumber( 0 )
 {
   this->Internal = new vtkInternal(this);
 
@@ -178,7 +242,7 @@ vtkIntersonSDKCxxVideoSource::~vtkIntersonSDKCxxVideoSource()
   }
 
   delete this->Internal;
-  this->Internal=NULL;
+  this->Internal = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -250,7 +314,18 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
   hwControls->DisableHardButton();
 
   Scan2DClassType * scan2D = this->Internal->GetScan2DClass();
-  scan2D->SetRFData( false );
+  std::vector<vtkPlusDataSource *> rfSources;
+  vtkPlusDataSource * source = NULL;
+
+  this->GetVideoSourcesByPortName(vtkPlusDevice::RFMODE_PORT_NAME, rfSources);
+  if( !rfSources.empty() )
+    {
+    scan2D->SetRFData( true );
+    }
+  else
+    {
+    scan2D->SetRFData( false );
+    }
 
   LOG_DEBUG( "Interson SDK version " << this->Internal->GetSdkVersion() <<
              ", USB probe FPGA version " << hwControls->ReadFPGAVersion() );
@@ -271,12 +346,13 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
                                          width,
                                          height );
 
-  std::vector<vtkPlusDataSource *> sources;
-  vtkPlusDataSource * source = NULL;
-  this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, sources);
-  if( !sources.empty() )
+  std::vector<vtkPlusDataSource *> bmodeSources;
+  this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, bmodeSources);
+  if( !bmodeSources.empty() )
     {
-    source = sources[0];
+    this->Internal->EnableBModeCallback();
+
+    source = bmodeSources[0];
     vtkPlusBuffer * plusBuffer = source->GetBuffer();
     // Clear buffer on connect because the new frames that we will acquire might have a different size 
     plusBuffer->Clear();
@@ -324,7 +400,66 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
     }
   else
     {
-    LOG_ERROR( "Expected Bmode port not found" );
+    this->Internal->DisableBModeCallback();
+    }
+
+  if( !rfSources.empty() )
+    {
+    this->Internal->EnableRfCallback();
+
+    // TODO:  Add configuration option for RFDecimator.
+    hwControls->DisableRFDecimator();
+
+    source = rfSources[0];
+    vtkPlusBuffer * plusBuffer = source->GetBuffer();
+    // Clear buffer on connect because the new frames that we will acquire might have a different size 
+    plusBuffer->Clear();
+    plusBuffer->SetPixelType( VTK_SHORT );  
+
+    vtkPlusChannel * channel = this->Internal->GetSourceChannel( source );
+    if( channel == NULL )
+      {
+      LOG_ERROR( "Could not find channel for source" );
+      return PLUS_FAIL;
+      }
+    else
+      {
+      vtkRfProcessor * rfProcessor = channel->GetRfProcessor();
+      if( rfProcessor != NULL )
+        {
+        plusBuffer->SetPixelType( VTK_UNSIGNED_CHAR );  
+        vtkUsScanConvert * scanConverter = rfProcessor->GetScanConverter();
+        if( scanConverter != NULL )
+          {
+          channel->SetSaveRfProcessingParameters(true); // RF processing parameters were used, make sure they will be saved into the config file
+          plusBuffer->SetImageOrientation( US_IMG_ORIENT_UF );
+          int outputExtent[6];
+          scanConverter->GetOutputImageExtent( outputExtent );
+          plusBuffer->SetFrameSize( outputExtent[1] - outputExtent[0] + 1,
+                                    outputExtent[3] - outputExtent[2] + 1 );
+          }
+        }
+      else
+        {
+        plusBuffer->SetFrameSize( Scan2DClassType::MAX_RFSAMPLES, Scan2DClassType::MAX_VECTORS ); 
+        plusBuffer->SetImageOrientation( US_IMG_ORIENT_FU );
+        }
+      }
+  
+    LOG_INFO("Pixel type: " << vtkImageScalarTypeNameMacro( plusBuffer->GetPixelType() )
+          << ", device image orientation: "
+            << PlusVideoFrame::GetStringFromUsImageOrientation( source->GetPortImageOrientation() )
+          << ", buffer image orientation: "
+            << PlusVideoFrame::GetStringFromUsImageOrientation( plusBuffer->GetImageOrientation() ));
+    }
+  else
+    {
+    this->Internal->DisableRfCallback();
+    }
+
+  if( rfSources.empty() && bmodeSources.empty() )
+    {
+    LOG_ERROR( "Expected an RF or BMode port not found" );
     return PLUS_FAIL;
     }
 
@@ -336,6 +471,9 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
 PlusStatus vtkIntersonSDKCxxVideoSource::InternalDisconnect()
 {
   LOG_DEBUG("Disconnect from Interson");
+
+  HWControlsType * hwControls = this->Internal->GetHWControls();
+  hwControls->DisableHighVoltage();
 
   this->StopRecording();
   Scan2DClassType * scan2D = this->Internal->GetScan2DClass();
@@ -357,12 +495,29 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalStartRecording()
     return PLUS_FAIL;
     }
 
-  scan2D->StartReadScan();
+  std::vector<vtkPlusDataSource *> bmodeSources;
+  std::vector<vtkPlusDataSource *> rfSources;
+  this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, bmodeSources);
+  this->GetVideoSourcesByPortName(vtkPlusDevice::RFMODE_PORT_NAME, rfSources);
+
+  if( !bmodeSources.empty() )
+    {
+    scan2D->StartReadScan();
+    }
+  if( !rfSources.empty() )
+    {
+    scan2D->StartRFReadScan();
+    }
   Sleep( 100 ); // "time to start"
 
-  if( !hwControls->StartBmode() )
+  if( !bmodeSources.empty() && !hwControls->StartBmode() )
     {
     LOG_ERROR( "Could not start B-mode collection." );
+    return PLUS_FAIL;
+    };
+  if( !rfSources.empty() && !hwControls->StartRFmode() )
+    {
+    LOG_ERROR( "Could not start RF collection." );
     return PLUS_FAIL;
     };
   Sleep( 750 ); // "time to start"
@@ -400,7 +555,6 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalUpdate()
   {
     return PLUS_FAIL;
   }
-
   
   return PLUS_SUCCESS;
 }
@@ -623,6 +777,80 @@ PlusStatus vtkIntersonSDKCxxVideoSource::AddBmodeFrameToBuffer( BmodePixelType *
     source->GetPortImageOrientation(),
     US_IMG_BRIGHTNESS,
     this->FrameNumber );
+
+  this->Modified();
+
+  return status;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkIntersonSDKCxxVideoSource::AddRfFrameToBuffer( RfPixelType * buffer, void * clientData )
+{
+  if( !this->Recording )
+    {
+    // drop the frame, we are not recording data now
+    return PLUS_SUCCESS;
+    }
+
+  HWControlsType * hwControls = this->Internal->GetHWControls();
+  if( hwControls->ReadHardButton() )
+    {
+    // TODO: add support for sending the button press info through OpenIGTLink
+    }
+
+  vtkImageData * bufferVtkImageData = NULL;
+  ++this->FrameNumber;
+  //++this->RfFrameNumber;
+
+  std::vector<vtkPlusDataSource *> sources;
+  vtkPlusDataSource * source = NULL;
+  this->GetVideoSourcesByPortName(vtkPlusDevice::RFMODE_PORT_NAME, sources);
+  if( !sources.empty() )
+    {
+    source = sources[0];
+    }
+  else
+    {
+    LOG_ERROR( "Expected RF port not found" );
+    return PLUS_FAIL;
+    }
+
+  vtkPlusBuffer * plusBuffer = source->GetBuffer();
+
+  vtkPlusChannel * channel = this->Internal->GetSourceChannel( source );
+
+  PlusStatus status = PLUS_FAIL;
+
+  vtkRfProcessor * rfProcessor = channel->GetRfProcessor();
+  if( rfProcessor != NULL )
+    {
+    rfProcessor->SetRfFrame( this->Internal->ConvertRfBufferToVtkImage( buffer ),
+                             US_IMG_RF_REAL );
+    rfProcessor->Modified();
+    vtkUsScanConvert * scanConverter = rfProcessor->GetScanConverter();
+    if( scanConverter != NULL )
+      {
+      bufferVtkImageData = rfProcessor->GetBrightnessScanConvertedImage();
+      }
+    else
+      {
+      bufferVtkImageData = rfProcessor->GetBrightnessConvertedImage();
+      }
+    status = plusBuffer->AddItem( bufferVtkImageData,
+                                  source->GetPortImageOrientation(),
+                                  US_IMG_BRIGHTNESS,
+                                  this->FrameNumber );
+                                  //this->RfFrameNumber );
+    }
+  else
+    {
+    bufferVtkImageData = this->Internal->ConvertRfBufferToVtkImage( buffer );
+    status = plusBuffer->AddItem( bufferVtkImageData,
+                                  source->GetPortImageOrientation(),
+                                  US_IMG_RF_REAL,
+                                  this->FrameNumber );
+                                  //this->RfFrameNumber );
+    }
 
   this->Modified();
 
