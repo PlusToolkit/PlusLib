@@ -357,6 +357,7 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
     // Clear buffer on connect because the new frames that we will acquire might have a different size 
     plusBuffer->Clear();
     plusBuffer->SetPixelType( VTK_UNSIGNED_CHAR );  
+    plusBuffer->SetImageType( US_IMG_BRIGHTNESS );
 
     vtkPlusChannel * channel = this->Internal->GetSourceChannel( source );
     if( channel == NULL )
@@ -415,6 +416,7 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
     // Clear buffer on connect because the new frames that we will acquire might have a different size 
     plusBuffer->Clear();
     plusBuffer->SetPixelType( VTK_SHORT );  
+    plusBuffer->SetImageType( US_IMG_RF_REAL );
 
     vtkPlusChannel * channel = this->Internal->GetSourceChannel( source );
     if( channel == NULL )
@@ -428,10 +430,11 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
       if( rfProcessor != NULL )
         {
         plusBuffer->SetPixelType( VTK_UNSIGNED_CHAR );  
+        plusBuffer->SetImageType( US_IMG_BRIGHTNESS );
+        channel->SetSaveRfProcessingParameters(true); // RF processing parameters were used, make sure they will be saved into the config file
         vtkUsScanConvert * scanConverter = rfProcessor->GetScanConverter();
         if( scanConverter != NULL )
           {
-          channel->SetSaveRfProcessingParameters(true); // RF processing parameters were used, make sure they will be saved into the config file
           plusBuffer->SetImageOrientation( US_IMG_ORIENT_UF );
           int outputExtent[6];
           scanConverter->GetOutputImageExtent( outputExtent );

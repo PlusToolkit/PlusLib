@@ -107,7 +107,7 @@ protected:
       outputTable->AddColumn(arrRfValNew);
     }
 
-    if (inputImage->GetScalarType()!=VTK_SHORT)
+    if (inputImage->GetScalarType() != VTK_SHORT)
     {
       LOG_ERROR("Plotting is only supported for signed short data");
       return 0;
