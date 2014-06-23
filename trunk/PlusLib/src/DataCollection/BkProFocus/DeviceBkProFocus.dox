@@ -9,6 +9,9 @@
 \section BkProFocusSupportedPlatforms Supported platforms
 
 - RF acquisition is supported on Windows only. \TodoAndras
+- \ref PlatformWin32
+- \ref PlatformWin64
+- \ref PlatformWin32Embedded
 
 \section BkProFocusInstallation Installation
 
@@ -18,40 +21,37 @@
   - B-mode acquisition (using the internal RF->B-mode conversion algorithm) is available for the BK 8848 transducer (http://www.bkmed.com/8848_en.htm).
   - Need to install the DALSA Sapera package, otherwise the applications will not start because of missing the SapClassBasic72.dll. This dll can only be used with 64-bit Plus build on 64-bit OS and 32-bit Plus build on a 32-bit OS. Therefore the bitness of the Plus package shall match the bitness of the operating system.
 
-\section BkProFocusSupportedAppPlatform Suported application platform architecture
 
-\section BkProFocusConfigSettings Configuration settings
+\section BkProFocusConfigSettings Device configuration settings
 
-OEM interface
-Device \c BkProFocusOem
-- Attributes:
-  - \ref DeviceType "Type" = \c "BkProFocusOem"
-  - \ref DeviceAcquisitionRate "AcquisitionRate"
-  - \ref LocalTimeOffsetSec
-  - \b IniFileName. INI file name. If a relative path is specified then it is relative to the device set configuration directory. See an example \ref inifile "INI file" below.
-- Child elements:
-  - \c DataSource attributes:
-    - \ref PortUsImageOrientation
-    - \ref BufferSize
-    - \ref AveragedItemsForFiltering
+OEM interfaceOem
+- \xmlAtt \ref DeviceType "Type" = \c "BkProFocusOem"
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125}
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \b IniFileName. INI file name. If a relative path is specified then it is relative to the device set configuration directory. See an example \ref inifile "INI file" below.
+
+- \xmlElem \ref DataSources:
+  - \xmlElem \ref DataSource: there must be one child element
+    - \xmlAtt \ref PortUsImageOrientation
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 
 
 RF acquisition through the CameraLink interface
-Device \c BkProFocus
-- Attributes:
-  - \ref DeviceType "Type" = \c "BkProFocus" 
-  - \ref DeviceAcquisitionRate "AcquisitionRate"
-  - \ref LocalTimeOffsetSec
-  - \b IniFileName INI file name. If a relative path is specified then it is relative to the device set configuration directory. See an example \ref inifile "INI file" below.
-  - \b ImagingMode
-    - \c BMode
-    - \c RfMode Acquire RF mode data. For previewing B-mode images during acquisition, add an \ref RfProcessing "RfProcessing" child element to the \c OutputChannel
-  - \b SubscribeScanPlane Enable support for dynamic scan plane switching on 8848 probes (\c true or \c false)
-- Child elements:
-  - \c DataSource attributes:
-    - \ref PortUsImageOrientation
-    - \ref BufferSize
-    - \ref AveragedItemsForFiltering
+- \xmlAtt \ref DeviceType "Type" = \c "BkProFocus" \RequiredAtt 
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125}
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \b IniFileName INI file name. If a relative path is specified then it is relative to the device set configuration directory. See an example \ref inifile "INI file" below.
+- \xmlAtt \b ImagingMode
+  - \c BMode
+  - \c RfMode Acquire RF mode data. For previewing B-mode images during acquisition, add an \ref RfProcessing "RfProcessing" child element to the \c OutputChannel
+- \xmlAtt \b SubscribeScanPlane Enable support for dynamic scan plane switching on 8848 probes (\c true or \c false)
+
+- \xmlElem \ref DataSources:
+  - \xmlElem \ref DataSource: there must be one child element
+    - \xmlAtt \ref PortUsImageOrientation
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 
 \section BkProFocusQualityValues Quality values
 

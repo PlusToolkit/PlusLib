@@ -9,9 +9,11 @@
 
 \section D3dConnexionSupportedPlatforms Supported platforms
 
-- Windows 8 (32-bit and 64-bit), Windows 7 (32-bit and 64-bit), Vista (32-bit and 64-bit), Windows XP embedded (32-bit and 64-bit).
-- Apple OS X 10.6-10.8 (32-bit and 64-bit).
-- Linux Red Hat Enterprise Linux Workstation 4, 5 (32-bit and 64-bit). Linux Novell SUSE Linux 9.3, 10, 11 (32-bit and 64-bit).
+- \ref PlatformWin32
+- \ref PlatformWin64
+- \ref PlatformWin32Embedded
+- \ref PlatformMacOs
+- \ref PlatformLinux
 
 \section D3dConnexionInstallation Installation
 
@@ -19,25 +21,28 @@
 
 \section D3dConnexionSupportedAppPlatform Suported application platform architecture
 
-\section D3dConnexionConfigSettings Configuration settings
+\section D3dConnexionConfigSettings Device configuration settings
 
-Device \c 3dConnexion
-- Attributes:
-  - \ref DeviceType "Type" = \c "3dConnexion"
-  - \ref DeviceAcquisitionRate "AcquisitionRate" 
-  - \ref LocalTimeOffsetSec
-  - \ref ToolReferenceFrame
-  - \b Mode Operation mode of the device
-    - \c MOUSE The transform is the current pose. If the mouse is released then the transforms reverts to identity.
-    - \c JOYSTICK The transform is changing while the mouse is translated or rotated. If the mouse is released then the transform kept unchanged.
-  - \b TranslationScales Sensitivity and direction of the 3 translation axes. Higher values mean higher sensitivity. Negative values can be used for inverting axes. \OptionalAtt{0.001 0.001 0.001}.
-  - \b RotationScales Sensitivity and direction of the 3 rotation axes. Higher values mean higher sensitivity. Negative values can be used for inverting axes. \OptionalAtt{0.001 0.001 0.001}.
+- \xmlAtt \ref DeviceType "Type" = \c "3dConnexion" \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125}
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
+- \xmlAtt \b Mode Operation mode of the device \OptionalAtt{JOYSTICK}
+  - \c MOUSE The transform is the current pose. If the mouse is released then the transforms reverts to identity.
+  - \c JOYSTICK The transform is changing while the mouse is translated or rotated. If the mouse is released then the transform kept unchanged.
+- \xmlAtt \b TranslationScales Sensitivity and direction of the 3 translation axes. Higher values mean higher sensitivity. Negative values can be used for inverting axes. \OptionalAtt{0.001 0.001 0.001}.
+- \xmlAtt \b RotationScales Sensitivity and direction of the 3 rotation axes. Higher values mean higher sensitivity. Negative values can be used for inverting axes. \OptionalAtt{0.001 0.001 0.001}.
 
-- Child elements:
-  - \c DataSource attributes:
-    - \ref BufferSize
-    - \ref AveragedItemsForFiltering
-    - \ref PortName
+- \xmlElem \ref DataSources:
+  - \xmlElem \ref DataSource: there must be one child element
+    - \xmlAtt \ref PortName = \c "SpaceNavigator" \RequiredAtt
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+- \xmlElem\ref OutputChannels:
+  - \xmlElem \ref OutputChannel: there must be one child element
+    - \xmlAtt \ref PortName = \c "SpaceNavigator" \RequiredAtt
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 
 \section D3dConnexionUseCases Use cases
 
