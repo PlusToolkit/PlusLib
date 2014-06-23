@@ -11,10 +11,10 @@
       LocalTimeOffsetSec="0.0" 
       FilterAcWideNotch="1"
       ToolReferenceFrame="Tracker" >
-      <DataSources>
-        <DataSource Type="Tool" Id="Probe" PortName="0"  />
-        <DataSource Type="Tool" Id="Reference" PortName="1"  />
-        <DataSource Type="Tool" Id="Stylus" PortName="2"  />
+     <DataSources>
+        <DataSource Type="Tool" BufferSize="500" Id="Probe" PortName="0" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" BufferSize="500" Id="Reference" PortName="1" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" BufferSize="500" Id="Stylus" PortName="2" AveragedItemsForFiltering="20" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
@@ -139,18 +139,18 @@
         <Wire Name="3:M14_m14" EndPointFront="120.0 0.0 -80.0" EndPointBack="120.0 40.0 -80.0" />
       </Pattern>
       <Landmarks>
-        <Landmark Name="#1" Position="187.5 -5.0 35.0"/>
-        <Landmark Name="#2" Position="187.5 -5.0 -20.0"/>
-        <Landmark Name="#3" Position="187.5 -5.0 -95.0"/>
-        <Landmark Name="#4" Position="187.5 45.0 40"/>
-        <Landmark Name="#5" Position="187.5 45.0 910.0"/>
-        <Landmark Name="#6" Position="187.5 45.0 -95.0"/>
-        <Landmark Name="#7" Position="-30.5 45.0 40"/>
-        <Landmark Name="#8" Position="-30.5 45.0 10.0"/>
-        <Landmark Name="#9" Position="-30.5 45.0 -95.0"/>
-        <Landmark Name="#10" Position="-30.5 -5.0 40.0"/>
-        <Landmark Name="#11" Position="-30.5 -5.0 -20.0"/>
-        <Landmark Name="#12" Position="-30.5 -5.0 -85.0"/>
+        <Landmark Name="#1" Position="184.0 -5.0 35.0"/>
+        <Landmark Name="#2" Position="184.0 -5.0 -20.0"/>
+        <Landmark Name="#3" Position="184.0 -5.0 -95.0"/>
+        <Landmark Name="#4" Position="184.0 45.0 40"/>
+        <Landmark Name="#5" Position="184.0 45.0 10.0"/>
+        <Landmark Name="#6" Position="184.0 45.0 -95.0"/>
+        <Landmark Name="#7" Position="-34.0 45.0 40"/>
+        <Landmark Name="#8" Position="-34.0 45.0 10.0"/>
+        <Landmark Name="#9" Position="-34.0 45.0 -95.0"/>
+        <Landmark Name="#10" Position="-34.0 -5.0 40.0"/>
+        <Landmark Name="#11" Position="-34.0 -5.0 -20.0"/>
+        <Landmark Name="#12" Position="-34.0 -5.0 -85.0"/>
       </Landmarks>
     </Geometry>
   </PhantomDefinition>

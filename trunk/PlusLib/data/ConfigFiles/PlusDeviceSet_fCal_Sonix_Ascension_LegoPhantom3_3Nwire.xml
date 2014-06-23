@@ -7,13 +7,14 @@
     />
     <Device 
       Id="TrackerDevice" 
-      Type="Ascension3DG" 
+      Type="Ascension3DG"
+	  AcquisitionRate="50"
       LocalTimeOffsetSec="0.0" 
       FilterAcWideNotch="1" >
       <DataSources>
-        <DataSource Type="Tool" Id="Probe" PortName="0"  />
-        <DataSource Type="Tool" Id="Reference" PortName="1"  />
-        <DataSource Type="Tool" Id="Stylus" PortName="2"  />
+        <DataSource Type="Tool" BufferSize="500" Id="Probe" PortName="0" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" BufferSize="500" Id="Reference" PortName="1" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" BufferSize="500" Id="Stylus" PortName="2" AveragedItemsForFiltering="20" />
       </DataSources>
 
       <OutputChannels>
@@ -40,7 +41,7 @@
       Timeout="-1" 
       CompressionStatus="0" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF"  />
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="100" AveragedItemsForFiltering="20" />
       </DataSources>
       
       <OutputChannels>
