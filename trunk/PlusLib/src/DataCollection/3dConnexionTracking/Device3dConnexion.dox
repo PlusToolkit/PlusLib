@@ -24,9 +24,11 @@
 \section D3dConnexionConfigSettings Device configuration settings
 
 - \xmlAtt \ref DeviceType "Type" = \c "3dConnexion" \RequiredAtt
+
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125}
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
+
 - \xmlAtt \b Mode Operation mode of the device \OptionalAtt{JOYSTICK}
   - \c MOUSE The transform is the current pose. If the mouse is released then the transforms reverts to identity.
   - \c JOYSTICK The transform is changing while the mouse is translated or rotated. If the mouse is released then the transform kept unchanged.
@@ -35,12 +37,20 @@
 
 - \xmlElem \ref DataSources:
   - \xmlElem \ref DataSource: there must be one child element
-    - \xmlAtt \ref PortName = \c "SpaceNavigator" \RequiredAtt
+    - \xmlAtt \ref PortName = \c "SpaceNavigator  \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125} 
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0} \OptionalAtt{0}
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker} \OptionalAtt{Tracker}
+
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 - \xmlElem\ref OutputChannels:
   - \xmlElem \ref OutputChannel: there must be one child element
-    - \xmlAtt \ref PortName = \c "SpaceNavigator" \RequiredAtt
+    - \xmlAtt \ref PortName = \c "SpaceNavigator  \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125} 
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0} \OptionalAtt{0}
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker} \OptionalAtt{Tracker}
+
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 

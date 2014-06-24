@@ -24,6 +24,7 @@
 \section Ascension3DGConfigSettings Device configuration settings
 
 - \xmlAtt \ref DeviceType "Type" = \c "Ascension3DG" \RequiredAtt
+
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125}
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}

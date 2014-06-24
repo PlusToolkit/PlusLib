@@ -25,11 +25,12 @@
 \section BkProFocusConfigSettings Device configuration settings
 
 OEM interfaceOem
-- \xmlAtt \ref DeviceType "Type" = \c "BkProFocusOem"
+- \xmlAtt \ref DeviceType "Type" = \c "BkProFocusOem" \RequiredAtt
+
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125}
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
-- \xmlAtt \b IniFileName. INI file name. If a relative path is specified then it is relative to the device set configuration directory. See an example \ref inifile "INI file" below.
 
+- \xmlAtt \b IniFileName. INI file name. If a relative path is specified then it is relative to the device set configuration directory. See an example \ref inifile "INI file" below.
 - \xmlElem \ref DataSources:
   - \xmlElem \ref DataSource: there must be one child element
     - \xmlAtt \ref PortUsImageOrientation
@@ -38,9 +39,11 @@ OEM interfaceOem
 
 
 RF acquisition through the CameraLink interface
-- \xmlAtt \ref DeviceType "Type" = \c "BkProFocus" \RequiredAtt 
+- \xmlAtt \ref DeviceType "Type" = \c "BkProFocus" \RequiredAtt
+ 
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125}
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+
 - \xmlAtt \b IniFileName INI file name. If a relative path is specified then it is relative to the device set configuration directory. See an example \ref inifile "INI file" below.
 - \xmlAtt \b ImagingMode
   - \c BMode

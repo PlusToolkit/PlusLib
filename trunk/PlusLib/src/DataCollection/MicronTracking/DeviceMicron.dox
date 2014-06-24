@@ -17,11 +17,13 @@ The 1394 interface that your computer already has may not work with the camera. 
 
 
 \section MicronConfigSettings Device configuration settings
-<p>
-- \xmlAtt \ref DeviceType "Type" = \c "MicronTracker" </p>
-- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125} 
+
+- \xmlAtt \ref DeviceType "Type" = \c "MicronTracker" \RequiredAtt
+
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125}
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
+
 - \xmlAtt \b TemplateDirectory = "Markers". Path to the directory that contains the marker files.
 - \xmlAtt \b IniFile = "MicronTracker.ini". Path to the initialization file.
   The paths shall be specified in the configuration file and are relative to the DeviceSetConfigurationDirectory (defined in PlusConfig.xml):
