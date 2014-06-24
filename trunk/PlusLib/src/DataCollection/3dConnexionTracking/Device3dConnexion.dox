@@ -19,8 +19,6 @@
 
 - No need to install any driver or software. If the 3DxWare software is installed: when a window is activated then the mouse may interact with that window as well (e.g., by default tilt front/back simulates mouse wheel). To avoid this either A. uninstall 3DxWare, B. activate a window that does not respond to mouse functions, or C. disable mouse functions in the 3DxWare settings.
 
-\section D3dConnexionSupportedAppPlatform Suported application platform architecture
-
 \section D3dConnexionConfigSettings Device configuration settings
 
 - \xmlAtt \ref DeviceType "Type" = \c "3dConnexion" \RequiredAtt
@@ -32,25 +30,17 @@
 - \xmlAtt \b Mode Operation mode of the device \OptionalAtt{JOYSTICK}
   - \c MOUSE The transform is the current pose. If the mouse is released then the transforms reverts to identity.
   - \c JOYSTICK The transform is changing while the mouse is translated or rotated. If the mouse is released then the transform kept unchanged.
-- \xmlAtt \b TranslationScales Sensitivity and direction of the 3 translation axes. Higher values mean higher sensitivity. Negative values can be used for inverting axes. \OptionalAtt{0.001 0.001 0.001}.
-- \xmlAtt \b RotationScales Sensitivity and direction of the 3 rotation axes. Higher values mean higher sensitivity. Negative values can be used for inverting axes. \OptionalAtt{0.001 0.001 0.001}.
+- \xmlAtt \b TranslationScales Sensitivity and direction of the 3 translation axes. Higher values mean higher sensitivity. Negative values can be used for inverting axes. \OptionalAtt{0.001 0.001 0.001}
+- \xmlAtt \b RotationScales Sensitivity and direction of the 3 rotation axes. Higher values mean higher sensitivity. Negative values can be used for inverting axes. \OptionalAtt{0.001 0.001 0.001}
 
 - \xmlElem \ref DataSources:
   - \xmlElem \ref DataSource: there must be one child element
-    - \xmlAtt \ref PortName = \c "SpaceNavigator  \RequiredAtt
-- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125} 
-- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0} \OptionalAtt{0}
-- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker} \OptionalAtt{Tracker}
-
+    - \xmlAtt \ref PortName = \c "SpaceNavigator" \RequiredAtt
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 - \xmlElem\ref OutputChannels:
   - \xmlElem \ref OutputChannel: there must be one child element
-    - \xmlAtt \ref PortName = \c "SpaceNavigator  \RequiredAtt
-- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125} 
-- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0} \OptionalAtt{0}
-- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker} \OptionalAtt{Tracker}
-
+    - \xmlAtt \ref PortName = \c "SpaceNavigator" \RequiredAtt
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 

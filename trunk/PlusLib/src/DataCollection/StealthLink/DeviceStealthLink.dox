@@ -25,16 +25,16 @@ No need to install any extra software. The StealthStation needs to be connected 
 - \xmlAtt \ref DeviceType "Type" = \c "StealthLink" \RequiredAtt
 
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125} 
-- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0} \OptionalAtt{0}
-- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker} \OptionalAtt{Tracker}
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
 
 - \xmlAtt \b ServerAddress. The IP address of the stealthstation.
 - \xmlAtt \b ServerPort. The port of the stealthstation.
 
 - \xmlElem \ref DataSources:
   - \xmlElem \ref DataSource: there must be one child element
-    - \xmlAtt \ref BufferSize \OptionalAtt{150} \OptionalAtt{150}
-    - \xmlAtt \ref PortName \RequiredAtt \RequiredAtt 
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref PortName \RequiredAtt
       - \c *Instruments' names defined in StealthStation must match tools' port names defined in the configuration file (example: Passive Planar, Blunt).
       - \c *Frames' names defined in StealthStation must match tools' port names defined in the configuration file (example: Frame Name: Small Passive Cranial Frame).
       - \c *Ras. The port name must remain \c RasRegistration. This virtual tool will only "exist" when an image is required from the server. 

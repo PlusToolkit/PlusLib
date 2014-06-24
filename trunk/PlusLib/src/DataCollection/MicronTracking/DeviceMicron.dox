@@ -32,7 +32,7 @@ The 1394 interface that your computer already has may not work with the camera. 
   - \xmlElem \ref DataSource: there must be one child element
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
-    - \xmlAtt \ref PortName \RequiredAtt   
+    - \xmlAtt \ref PortName \RequiredAtt
 
 \section MicronExampleConfigFile Example configuration file
 
