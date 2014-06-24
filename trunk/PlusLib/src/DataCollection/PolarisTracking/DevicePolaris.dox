@@ -17,8 +17,8 @@
 
 \section PolarisConfigSettings Device configuration settings
 
-- \xmlAtt \ref DeviceType "Type" = \c "Polaris  \RequiredAtt
-- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125} 
+- \xmlAtt \ref DeviceType "Type" = \c "PolarisTracker" \RequiredAtt OR "Type" = \c "AuroraTracker" \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{50} 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
 

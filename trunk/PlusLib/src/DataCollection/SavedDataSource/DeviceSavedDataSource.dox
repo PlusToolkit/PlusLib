@@ -17,8 +17,8 @@
 
 \section SavedDataSourceConfigSettings Device configuration settings
 
-- \xmlAtt \ref DeviceType "Type" = \c "SavedDataSource  \RequiredAtt
-- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125} 
+- \xmlAtt \ref DeviceType "Type" = \c "SavedDataSource" \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{10} 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
 
