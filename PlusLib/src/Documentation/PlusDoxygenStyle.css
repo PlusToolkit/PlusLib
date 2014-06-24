@@ -1,10 +1,6 @@
 BODY,H1,H2,H3,H4,H5,H6,P,CENTER,TD,TH,UL,DL,DIV {
   font-family: Geneva, Arial, Helvetica, sans-serif;
 }
-
-BODY,H1,H2,H3,H4,H5,H6,P,CENTER,TD,TH,UL,DL,DIV {
-  font-family: Geneva, Arial, Helvetica, sans-serif;
-}
 BODY,TD {
   font-size: 110%;
   font-weight: bold
@@ -32,10 +28,9 @@ div.image
   display:inline
 }
 div.image img[src="required.png"]{ 
-  position:relative;
-  width:8px; 
-  height: 8px;
-  bottom:4px;
+  /*position:relative;*/
+  width:14px; 
+  height: 14px;
 }
 div.image img[src="optional.png"]{ 
   position:relative;

@@ -24,7 +24,7 @@ No need to install any extra software. The StealthStation needs to be connected 
 
 - \xmlAtt \ref DeviceType "Type" = \c "StealthLink" \RequiredAtt
 
-- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125} 
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
 

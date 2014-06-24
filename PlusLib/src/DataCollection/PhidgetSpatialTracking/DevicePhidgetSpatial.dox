@@ -17,7 +17,7 @@
 
 \section PhidgetSpatialConfigSettings Device configuration settings
 
-- \xmlAtt \ref DeviceType "Type" = \c "PhidgetSpatial  \RequiredAtt
+- \xmlAtt \ref DeviceType "Type" = \c "PhidgetSpatial" \RequiredAtt
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125} 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}

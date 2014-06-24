@@ -27,7 +27,7 @@
 OEM interfaceOem
 - \xmlAtt \ref DeviceType "Type" = \c "BkProFocusOem" \RequiredAtt
 
-- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125}
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate". Image retrieval may slow down the exam software, so keep the frame rate low by default \OptionalAtt{1}
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 
 - \xmlAtt \b IniFileName. INI file name. If a relative path is specified then it is relative to the device set configuration directory. See an example \ref inifile "INI file" below.
