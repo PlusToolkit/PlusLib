@@ -21,15 +21,26 @@ H3 {
       font-size: 100%;
 }
 
-div.image{ 
-/*width:16px;*/ 
+div.image
+{ 
 /*position:inherit;*/
 /*top:0px;*/
 /*left:5px;*/
 text-align: left;
 display:inline
 }
-
+div.image img[src="required.png"]{ 
+  position:relative;
+  width:8px; 
+  height: 8px;
+  bottom:4px;
+}
+div.image img[src="optional.png"]{ 
+  position:relative;
+  width:8px; 
+  height: 8px;
+  bottom:4px;
+}
 div.caption{ 
 text-align: left;
 display:inline;
