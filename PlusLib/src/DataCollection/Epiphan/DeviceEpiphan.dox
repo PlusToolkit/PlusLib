@@ -23,6 +23,7 @@ Need to install the drivers and software from <a href="http://www.epiphan.com/pr
 \section EpiphanConfigSettings Device configuration settings
 
 - \xmlAtt \ref DeviceType "Type" = \c "Epiphan" \RequiredAtt
+
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125} 
 - \xmlAtt \b SerialNumber it is an optional parameter to set the \c ID of the preferred a framegrabber device (if multiple devices are connected).
 - \xmlAtt \b ClipRectangleOrigin and \b cClipRectangleSize define a screen region to capture information from, the clip rectangle width has to be typically a mulitple of 4 (e.g., \b ClipRectangleOrigin \c ="20 40" \b ClipRectangleSize \c ="512 512" ).

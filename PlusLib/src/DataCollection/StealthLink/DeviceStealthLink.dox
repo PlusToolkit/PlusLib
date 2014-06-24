@@ -23,9 +23,11 @@ No need to install any extra software. The StealthStation needs to be connected 
 \section StealthLinkConfigSettings Device configuration settings
 
 - \xmlAtt \ref DeviceType "Type" = \c "StealthLink" \RequiredAtt
+
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125} 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0} \OptionalAtt{0}
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker} \OptionalAtt{Tracker}
+
 - \xmlAtt \b ServerAddress. The IP address of the stealthstation.
 - \xmlAtt \b ServerPort. The port of the stealthstation.
 

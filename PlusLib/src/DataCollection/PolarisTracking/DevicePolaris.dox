@@ -1,20 +1,28 @@
 /*!
 \page DevicePolaris
 
-\par Supported hardware devices
+\section PolarisSupportedHwDevices Supported hardware devices
 
 - Link to manufacturer's website:
 
-\par Supported platforms
+\section PolarisSupportedPlatforms Supported platforms
+- \ref PlatformWin32
+- \ref PlatformWin64
+- \ref PlatformWin32Embedded
+- \ref PlatformMacOs
+- \ref PlatformLinux
 
-\par Installation
+\section PolarisInstallation Installation
 
-\par Configuration settings
 
-- Device type: \c Polaris.
-- Attributes:
+\section PolarisConfigSettings Device configuration settings
 
-\par Example configuration file
+- \xmlAtt \ref DeviceType "Type" = \c "Polaris  \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125} 
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0} \OptionalAtt{0}
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker} \OptionalAtt{Tracker}
+
+\section PolarisExampleConfigFile Example configuration file
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_Polaris.xml"
 

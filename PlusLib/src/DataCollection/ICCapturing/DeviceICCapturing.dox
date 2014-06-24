@@ -1,20 +1,28 @@
 /*!
 \page DeviceICCapturing
 
-\par Supported hardware devices
+\section ICCapturingSupportedHwDevices Supported hardware devices
 
 - Link to manufacturer's website:
 
-\par Supported platforms
+\section ICCapturingSupportedPlatforms Supported platforms
+- \ref PlatformWin32
+- \ref PlatformWin64
+- \ref PlatformWin32Embedded
+- \ref PlatformMacOs
+- \ref PlatformLinux
 
-\par Installation
+\section ICCapturingInstallation Installation
 
-\par Configuration settings
 
-- Device type: \c ICCapturing.
-- Attributes:
+\section ICCapturingConfigSettings Device configuration settings
 
-\par Example configuration file
+- \xmlAtt \ref DeviceType "Type" = \c "ICCapturing" \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125} 
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0} \OptionalAtt{0}
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker} \OptionalAtt{Tracker}
+
+\section ICCapturingExampleConfigFile Example configuration file
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_ICCapturing.xml"
 
