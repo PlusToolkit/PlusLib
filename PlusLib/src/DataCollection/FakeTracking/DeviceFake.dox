@@ -19,8 +19,8 @@
 
 - \xmlAtt \ref DeviceType "Type" = \c "Fake" \RequiredAtt
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125} 
-- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0} \OptionalAtt{0}
-- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker} \OptionalAtt{Tracker}
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
 
 \section FakeExampleConfigFile Example configuration file
 
