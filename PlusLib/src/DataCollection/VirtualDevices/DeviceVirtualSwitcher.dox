@@ -20,7 +20,6 @@
 - \xmlAtt \ref DeviceType "Type" = \c "VirtualSwitcher" \RequiredAtt
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{50} 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
-- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
 
 \section VirtualSwitcherExampleConfigFile Example configuration file
 

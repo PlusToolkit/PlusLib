@@ -38,7 +38,7 @@
 - \xmlElem \ref DataSources:
   - \xmlElem \ref DataSource: there must be one child element
     - \xmlAtt \b Type = \c "Tool"
-    - \xmlAtt \b PortName Identifies the connector (0, 1, 2, or 3) or a virtual tool that contains the quality values (\c quality1 for tool ports 0, 1, and 2; \c quality2 for tool port 3).
+    - \xmlAtt \b PortName Identifies the connector (0, 1, 2, or 3) or a virtual tool that contains the quality values (\c quality1 for tool ports 0, 1, and 2; \c quality2 for tool port 3). \RequiredAtt
     - \xmlAtt \b QualityErrorSlope The slope should have a value between -127 and +127. \OptionalAtt{0}
     - \xmlAtt \b QualityErrorOffset default: The offset should have a value between -127 and +127. \OptionalAtt{0}
     - \xmlAtt \b QualityErrorSensitivity: The sensitivity should have a value between 0 and 127 \OptionalAtt{2}
