@@ -33,7 +33,8 @@ OEM interfaceOem
 - \xmlAtt \b IniFileName. INI file name. If a relative path is specified then it is relative to the device set configuration directory. See an example \ref inifile "INI file" below.
 - \xmlElem \ref DataSources:
   - \xmlElem \ref DataSource: there must be one child element
-    - \xmlAtt \ref PortUsImageOrientation
+    - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
+    - \xmlAtt \ref ImageType \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 
@@ -52,7 +53,8 @@ RF acquisition through the CameraLink interface
 
 - \xmlElem \ref DataSources:
   - \xmlElem \ref DataSource: there must be one child element
-    - \xmlAtt \ref PortUsImageOrientation
+    - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
+    - \xmlAtt \ref ImageType \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 

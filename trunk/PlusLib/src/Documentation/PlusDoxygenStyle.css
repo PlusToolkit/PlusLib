@@ -10,6 +10,31 @@ H1 {
   font-size: 105%;
   font-weight: bold
 }
+
+
+H1, H2, H3, H4, H5, H6 {
+  -webkit-transition: text-shadow 2s linear;
+  -moz-transition: text-shadow 2s linear;
+  -ms-transition: text-shadow 2s linear;
+  -o-transition: text-shadow 2s linear;
+  transition: text-shadow 2s linear;
+  margin-right: 15px;
+}
+
+H1.glow, H2.glow, H3.glow, H4.glow, H5.glow, H6.glow {
+         text-shadow: 0 0 15px cyan;
+}
+
+div.anchor{
+  -webkit-transition: text-shadow 2s linear;
+  -moz-transition: text-shadow 2s linear;
+  -ms-transition: text-shadow 2s linear;
+  -o-transition: text-shadow 2s linear;
+  transition: text-shadow 2s linear;
+  margin-right: 15px;
+}
+
+
 H2 {
   font-size: 103%;
   font-weight: bold;

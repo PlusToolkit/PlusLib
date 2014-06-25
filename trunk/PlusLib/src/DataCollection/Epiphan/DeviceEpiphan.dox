@@ -31,8 +31,8 @@ Need to install the drivers and software from <a href="http://www.epiphan.com/pr
 
 - \xmlElem \ref DataSources:
   - \xmlElem \ref DataSource: there must be one child element
-    - \xmlAtt \ref PortUsImageOrientation
-    - \xmlAtt \ref ImageType. Color image acquisition is supported by setting the imaging device's common attribute \c ImageType="RGB_COLOR" as shown in the Epiphan Color Video Capture example.
+    - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
+    - \xmlAtt \ref ImageType. Color image acquisition is supported by setting the imaging device's common attribute \c ImageType="RGB_COLOR" as shown in the Epiphan Color Video Capture example. \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 

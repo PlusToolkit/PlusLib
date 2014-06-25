@@ -22,6 +22,12 @@
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
 
+- \xmlElem \ref DataSources:
+  - \xmlElem \ref DataSource: there must be one child element
+    - \xmlAtt \ref RomFile \RequiredAtt
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+
 \section PolarisExampleConfigFile Example configuration file
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_Polaris.xml"
