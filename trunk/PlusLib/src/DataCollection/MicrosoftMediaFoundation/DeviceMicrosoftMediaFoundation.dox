@@ -1,8 +1,8 @@
 /*!
-\page DeviceMicrosoftMediaFoundation
+\page DeviceMicrosoftMediaFoundation Microsoft Media Foundation compatible imaging device
 
 \section MicrosoftMediaFoundationSupportedHwDevices Supported hardware devices
-
+Any compatible framegrabbers and webcams through Microsoft Media Foundation interface.
 - Link to manufacturer's website:
 
 \section MicrosoftMediaFoundationSupportedPlatforms Supported platforms
@@ -17,7 +17,7 @@
 
 \section MicrosoftMediaFoundationConfigSettings Device configuration settings
 
-- \xmlAtt \ref DeviceType "Type" = \c "MicrosoftMediaFoundation" \RequiredAtt
+- \xmlAtt \ref DeviceType "Type" = \c "MmfVideo" \RequiredAtt
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125} 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 

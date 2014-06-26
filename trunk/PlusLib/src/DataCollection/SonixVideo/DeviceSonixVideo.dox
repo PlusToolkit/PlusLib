@@ -1,25 +1,37 @@
 /*!
-\page DeviceSonixVideo
+\page DeviceSonixVideo Ultrasonix ultrasound scanner
 
 \section SonixVideoSupportedHwDevices Supported hardware devices
 
-- Link to manufacturer's website:
+Ultrasonix SonixRP, SonixMDP, SonixTouch, SonixTablet etc. 
+- Supported interfaces: Ulterius and Porta (Porta is not used widely and may not be stable, see <a href="https://www.assembla.com/spaces/plus/tickets/751">#751</a>). As all models use the same research interface, there is no difference in using Plus with any of the Ultrasonix scanner models (e.g., a sample config file for SonixRP works well for a SonixMDP scanner)
+
+- Link to manufacturer's website: http://www.analogicultrasound.com/ultrasonix
+
+The Ultrasonix L14-5 linear probe does not work well with the NDI Aurora electromagnetic tracker. If the L14 probe is stationary, we can get consistent readings, but if the probe is moving, the tracking is not stable at all.  We know there is a big piece of aluminium inside L14-5. Thus I would advise not to use Aurora with Ultrasonix probe at this time. (Reported by Elvis Chen, Feb 29, 2012) Note that Ascension electromagnetic trackers work just fine even if they are very close to the transducer.
 
 \section SonixVideoSupportedPlatforms Supported platforms
 - \ref PlatformWin32
-- \ref PlatformWin64
 - \ref PlatformWin32Embedded
 - \ref PlatformMacOs
 - \ref PlatformLinux
 
 \section SonixVideoInstallation Installation
 
+If tracking does not work then try to copy the Ascension tracker DLL file (ATC3DG.dll) from the Ultrasonix exam software directory to the Plus directory (as the DLL version that is shipped with Plus may not match the installed tracker hardware/software version)
+
 
 \section SonixVideoConfigSettings Device configuration settings
 
-- \xmlAtt \ref DeviceType "Type" = \c "SonixVideo" \RequiredAtt OR "Type" = \c "SonixVideoPorta" \RequiredAtt
+When using Ulterius interface the B-mode image processing (scan conversion, de-speckle filtering, etc.) is performed in the CPU. If higher frame rates are needed and speckle is tolerable then it is advisable to turn off de-speckle filtering.
+
+If there is horizontal striping/repetition of image contents (typically occurs in water tank), then set the number of focal points to 1. It usually removes the artifact. (Reported by Andras Lasso, Nov 15, 2012; Exam software version 5.7)
+
+- \xmlAtt \ref DeviceType "Type" = \c "SonixVideo" \RequiredAtt OR "Type" = \c "SonixPortaVideo" \RequiredAtt
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+
+- \b CompressionStatus When imaging with the EC59 probe, if compression is disabled (CompressionStatus ="0"), then a lot of BMode frames are lost. The reason for this is the fact that scan-conversion is performed on the CPU. Set to 1 to prevent frame loss.
 
 - \xmlElem \ref DataSources:
   - \xmlElem \ref DataSource: there must be one child element

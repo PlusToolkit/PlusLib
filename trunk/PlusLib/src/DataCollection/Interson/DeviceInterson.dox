@@ -1,9 +1,11 @@
 /*!
-\page DeviceInterson
+\page DeviceInterson Interson USB ultrasound probes
 
 \section IntersonSupportedHwDevices Supported hardware devices
+SeeMore probes
 
-- Link to manufacturer's website:
+
+- Link to manufacturer's website: http://www.interson.com/products/seemore-153-usb-probes
 
 \section IntersonSupportedPlatforms Supported platforms
 - \ref PlatformWin32
@@ -14,17 +16,20 @@
 
 \section IntersonInstallation Installation
 
+Limitations: imaging parameters are hardcoded, makeing them configurable is a work in progress, see details in #864
+Requires SDK provided by Interson for compilation and USB drivers provided by Interson for running (otherwise Plus application will not start due to missing WDAPI1010.dll).
+
 
 \section IntersonConfigSettings Device configuration settings
 
-- \xmlAtt \ref DeviceType "Type" = \c "Interson" \RequiredAtt
+- \xmlAtt \ref DeviceType "Type" = \c "IntersonVideo" \RequiredAtt
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125} 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 
 - \xmlElem \ref DataSources:
   - \xmlElem \ref DataSource: there must be one child element
     - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
-    - \xmlAtt \ref ImageType \OptionalAtt{BRIGHTNESS}
+    - \xmlAtt \ref ImageType Supported imaging modes: B-mode \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 

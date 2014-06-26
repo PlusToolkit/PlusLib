@@ -1,23 +1,114 @@
 /*!
-\page DeviceNDICertus
+\page DeviceNDICertus NDI Optotrak Certus optical pose tracker
 
 \section NDICertusSupportedHwDevices Supported hardware devices
 
-- Link to manufacturer's website:
+- Link to manufacturer's website: http://www.ndigital.com/msci/products/optotrak-certus/
 
 \section NDICertusSupportedPlatforms Supported platforms
 - \ref PlatformWin32
-- \ref PlatformWin64
 - \ref PlatformWin32Embedded
 - \ref PlatformMacOs
 - \ref PlatformLinux
 
 \section NDICertusInstallation Installation
 
+\subsection  NDICertusInstallCommon Install common software
+
+Before setting up anything about the device or the connection, some software has to be installed.
+- Device drivers (\\image\shared\data\lab.hardware\NDITrackers\NDICertus\OptotrakDeviceDrivers_v3.5.2\OptotrakDeviceDrivers_v3.5.2\setup.exe)
+- NDI First Principles software (\\image\shared\data\lab.hardware\NDITrackers\NDICertus\FirstPrinciples_v1.2.2\setup.exe)
+
+\subsection  NDICertusComumnicationPCI Communicating Certus tracker by PCI card
+PCI card installation. To install an NDI PCI drivers card you will need:
+- This guide: [[Media:Optotrak_PCI_Interface_Card_Installation_Guide(IL-1070037).pdf |Optotrak PCI Interface Card Installation Guide, Rev. 3.0]]
+- an NDI PCI interface card
+- the NDI PCI drivers CD (NDIDeviceDrivers_v3.00.66) *
+  - Goodwin 757, NDI tools cabinet 
+  - Copy at the image server (\\image\shared\data\lab.hardware\NDITrackers\NDIDeviceDrivers_v3.00.66)
+
+Ultrasound machines equipped with NDI PCI card:
+- [http://media.cs.queensu.ca/media/wiki/index.php/Using_and_programming_the_Ultrasonix_machine#SonixRP-1 SonixRP-1]
+- [http://media.cs.queensu.ca/media/wiki/index.php/Using_and_programming_the_Ultrasonix_machine#SonixRP-2 SonixRP-2]
+
+\subsection NDICertusComumnicationEthernet Communicating Certus tracker by via ethernet
+
+\subsubsection  NDICertusSetUpPC How to set up your PC
+
+Install the following packages from the image server:
+- OptotrakDeviceDrivers (<code>\\image\shared_data\data\lab.hardware\NDITrackers\NDICertus\0_OptotrakDeviceDrivers_v3.5.2</code>):
+  - Install '''Optotrak Link Drivers (Required)''' - you may need to reboot your computer.
+[[Image:OptotrakDeviceDriversInstall.jpg|center]]
+- OptoUpdate (<code>\\image\shared_data\data\lab.hardware\NDITrackers\NDICertus\1_OptoUpdate_3.5.2</code>):
+  - Click on the '''Update the system to v3.01''' button and select the '''Do Not Search for Hardware Components (Update Software Only)''' choice.
+[[Image:OptotrakOptoUpdateInstall.jpg|center]]
+- FirstPrinciples (<code>\\image\shared_data\data\lab.hardware\NDITrackers\NDICertus\2_FirstPrinciples_v1.2.2</code>):
+  - Install First Principles with the default values.
+- 6DA_Optotrak (<code>\\image\shared_data\data\lab.hardware\NDITrackers\NDICertus\3_6DA_Optotrak_1.3.3</code>):
+  - Install 6DA_Optotrak with the default values.
+- NDI DataView (<code>\\image\shared_data\data\lab.hardware\NDITrackers\NDICertus\4_NDI_DataView_Version_1.00.03</code>):
+  - Install NDI DataView with the default values.
+- Copy the '''standard.cam''' and '''system.nif''' files to "c:\ndigital\realtime" folder (<code>\\image\shared_data\data\lab.hardware\NDITrackers\NDICertus\5_Copy_To_ndigital_realtime</code>)
+
+Change NDI settings file (by default <code>optotrak.ini</code> file is located in the <code> "C:\ndigital\settings" </code> folder)
+
+- Set ''Driver'' to ''etherlink.dll''
+  - Copy ''etherlink.dll'' to the <code>"c:\ndigital\programs"</code> folder from <code>"c:\ndigital\drivers"</code>
+- Set ''ResetTimeout''' to 500 and ''PropagationTimeout''' to 5000 (recommended in the manual but maybe not vital)
+- Set ''Server Address'' to the NDI SCU IP (130.15.7.98)
+- ''Control Port'' should be 9999, ''Data Port'' should be 10000
+- ''Data Timeout'' should be 10000 and ''Reset Delay'' should be between 5000 and 10000 (also recommended in the manual)
+
+If you made these changes, the NDI will work via ethernet. If you want to use the PCI card again, you have to undo these changes (the most important thing is to set ''Driver'' to ''pcilink.dll''
+
+
+\subsubsection  NDICertusSetUpSCU How to set up the System Control Unit (SCU)
+Change ethernet settings in NDI SCU ''(Note: this has to be done only when SCU, gateway or DNS IP address is changed)''
+- Connect Serial cable to the SCU and a Serial-to-USB adaptor cable, then the USB into a computer
+- Connect to SCU using MTTTY (COM port can be read from Device Manager)
+- Commands (Read: <code>[Read command name]<Space><Enter> </code>, Write: <code>[Write command name]<Space>[Value]<Enter></code>)
+  - ENDHRD Reads the DHCP status
+  - ENDHWR Sets the DHCP status
+  - ENGWRD Reads the gateway address
+  - ENGWWR Sets the gateway address
+  - ENIPRD Reads the IP address
+  - ENIPWR Sets the IP address
+  - ENNMRD Reads the Ethernet host name
+  - ENNMWR Sets the Ethernet host name
+  - ENSMRD Reads the subnet mask
+  - ENSMWR Sets the subnet mask
+- Current settings
+  - IP: 130.15.7.98
+  - Gateway: 130.15.7.1
+  - (DNS: 130.15.1.101)
+  - (DNS alternate: 130.15.1.11)
+  - Subnet mask: 255.255.255.0
+  - Name: CERTUS061
+
+\subsection  NDICertusUsage How to use the NDI Certus optical tracker
+
+User guide: [[Media:Optotrak_Certus_User_Guide.pdf | Optotrak Certus User Guide rev. 2.0]]
+
+
+\subsection  NDICertusCoordinateSystems Coordinate systems
+
+Tracker \c (Left-handed)
+- X+: up (against gravity)
+- Y+: to the right (if we face the camera)
+- Z+: away from the camera
+
+Reference DRB \c (Right-handed). The orientation of the DRB is the following: the side with the writing on it is on the far side from the camera and the screw points to the ground.
+  - X+: to the left (if we face the camera)
+  - Y+: up (against gravity)
+  - Z+: towards the camera
+
+No "beeps" when attempting to connect to a Certus tracker => Power off the OptoTrak Certus camera and communication unit for a few seconds and try to connect again
+If no Certus device is attached to the system then the application crashes (due to the TransputerDetermineSystemCfg call in NDI's toolkit, which determines the system configuration causes the application to crash)
+
 
 \section NDICertusConfigSettings Device configuration settings
 
-- \xmlAtt \ref DeviceType "Type" = \c "NDICertus" \RequiredAtt
+- \xmlAtt \ref DeviceType "Type" = \c "CertusTracker" \RequiredAtt
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{50} 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}

@@ -1,23 +1,44 @@
 /*!
-\page DeviceUsSimulatorVideo
+\page DeviceUsSimulator Ultrasound simulation
 
-\section UsSimulatorVideoSupportedHwDevices Supported hardware devices
+\section UsSimulatorOverview Overvivew
 
-- Link to manufacturer's website:
+Any number of moving, intersecting objects can be simulated
+Each object is defined by a surface mesh and its acoustic material properties
+Position and orientation of objects can be obtained in real-time from a tracking device, from pre-recorded files, or tracker simulator
+Inidividual scanlines are computed using a simple ultrasound physics based model, which includes attenuation, absorption, surface reflection (depending on incidence angle), speckle (using Perlin noise). Refraction, speed of sound, and beamwidth are not modeled.
+Both linear and curvilinear transducer geometry is supported.
+With minor modification in the device set configuration file image acquisition can be switched to use a real ultrasound device.
 
-\section UsSimulatorVideoSupportedPlatforms Supported platforms
+\section UsSimulatorSupportedPlatforms Supported platforms
 - \ref PlatformWin32
 - \ref PlatformWin64
 - \ref PlatformWin32Embedded
 - \ref PlatformMacOs
 - \ref PlatformLinux
 
-\section UsSimulatorVideoInstallation Installation
+\section UsSimulatorExample Example
 
+- Download the following files from https://subversion.assembla.com/svn/plus/trunk/PlusLib/data/ConfigFiles/
+  - PlusDeviceSet_Server_SimulatedUltrasound_3DSlicer.xml 
+  - GelBlockModel_Reference.stl
+  - NeedleModel_NeedleTip.stl
+  - VesselModel_Reference.stl 
+  - Test_PlusConfiguration_SimulatedUS.mrb
+- Download and install the latest nightly build of 3D Slicer and the SlicerIGT extension
+- Load the Test_PlusConfiguration_SimulatedUS.mrb file into 3D Slicer
+- Open a command prompt in the directory where you have the downloaded files
+Run: <your-path-to-Plus-bin>\PlusServer.exe --config-file=Test_PlusConfiguration_SimulatedUS.xml
+- In Slicer go to the Transforms module and modify the ProbeToTracker and NeedleToTracker transforms
 
-\section UsSimulatorVideoConfigSettings Device configuration settings
+<a href="http://www.youtube.com/watch?v=2Oc_tCu_uzs"> Watch on Youtube</a>.
 
-- \xmlAtt \ref DeviceType "Type" = \c "UsSimulatorVideo" \RequiredAtt
+Related publications
+http://perk.cs.queensu.ca/contents/opensource-surface-meshbased-ultrasoundguided-spinal-intervention-simulator
+
+\section UsSimulatorConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "UsSimulator" \RequiredAtt
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 
@@ -28,8 +49,9 @@
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 
-\section UsSimulatorVideoExampleConfigFile Example configuration file
+\section UsSimulatorExampleConfigFile Example configuration file
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_UsSimulatorVideo.xml"
+\include "data/ConfigFiles/PlusDeviceSet_Server_SimulatedUltrasound_3DSlicer.xml"
+
 
 */

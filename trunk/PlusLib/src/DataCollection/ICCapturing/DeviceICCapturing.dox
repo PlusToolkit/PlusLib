@@ -1,9 +1,10 @@
 /*!
-\page DeviceICCapturing
+\page DeviceICCapturing Imaging controls analog USB framegrabber
 
 \section ICCapturingSupportedHwDevices Supported hardware devices
+Supported model: DFG/USB2pro analog framegrabbers with USB interface
 
-- Link to manufacturer's website:
+- Link to manufacturer's website: http://www.theimagingsource.com/en_US/products/converters/
 
 \section ICCapturingSupportedPlatforms Supported platforms
 - \ref PlatformWin32
@@ -24,7 +25,7 @@
 - \xmlElem \ref DataSources:
   - \xmlElem \ref DataSource: there must be one child element
     - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
-    - \xmlAtt \ref ImageType \OptionalAtt{BRIGHTNESS}
+    - \xmlAtt \ref ImageType. Color image acquisition is supported. \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 
