@@ -17,6 +17,7 @@
 */
 
 #include "PlusConfigure.h"
+#include "vtkAxis.h"
 #include "vtkCallbackCommand.h"
 #include "vtkChartXY.h"
 #include "vtkCommand.h"
@@ -182,7 +183,7 @@ void TestLinePlot(vtkIntersonSDKCxxVideoSource *intersonDevice)
   // Set up a 2D scene, add an XY chart to it
   vtkSmartPointer<vtkContextView> view = vtkSmartPointer<vtkContextView>::New();
   view->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
-  view->GetRenderWindow()->SetSize(400, 300);
+  view->GetRenderWindow()->SetSize(1200, 400);
   vtkSmartPointer<vtkChartXY> chart = vtkSmartPointer<vtkChartXY>::New();
   view->GetScene()->AddItem(chart);
 
@@ -195,6 +196,13 @@ void TestLinePlot(vtkIntersonSDKCxxVideoSource *intersonDevice)
   line->SetInput(imageToTableAdaptor->GetOutput(), 0, 1);
   line->SetColor(0, 255, 0, 255);
   line->SetWidth(1.0);
+
+  vtkAxis * yAxis = line->GetYAxis();
+  yAxis->SetBehavior(vtkAxis::FIXED);
+  yAxis->SetMinimumLimit( -32768 );
+  yAxis->SetMaximumLimit( 32767 );
+  yAxis->SetMinimum( -32768 );
+  yAxis->SetMaximum( 32767 );
 
   vtkSmartPointer<vtkMyPlotCallback> call = vtkSmartPointer<vtkMyPlotCallback>::New();
   call->m_Interactor=view->GetInteractor();
