@@ -1,16 +1,18 @@
 /*!
-\page DevicePhidgetSpatial
+\page DevicePhidgetSpatial Phidgets Spatial 3/3/3 magnetic, angular rate, and gravity (MARG) sensor
 
 \section PhidgetSpatialSupportedHwDevices Supported hardware devices
 
-- Link to manufacturer's website:
+Contains accelerometer, gyroscope, and magnetometer sensors, each with 3 DOF
+Small (few centimeters by few centimeters), low-cost (about $150) device
+Gyroscope bias correction is performed at connection, therefore after the connection is initialized in Plus the device shall be kept stationary for 2 seconds.
+
+- Link to manufacturer's website: http://www.phidgets.com/products.php?product_id=1044_0
 
 \section PhidgetSpatialSupportedPlatforms Supported platforms
 - \ref PlatformWin32
 - \ref PlatformWin64
 - \ref PlatformWin32Embedded
-- \ref PlatformMacOs
-- \ref PlatformLinux
 
 \section PhidgetSpatialInstallation Installation
 

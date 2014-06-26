@@ -1,9 +1,10 @@
 /*!
-\page DeviceOpenIGTLinkVideo
+\page DeviceOpenIGTLinkVideo Any OpenIGTLink compatible imaging device
 
 \section OpenIGTLinkVideoSupportedHwDevices Supported hardware devices
+Any compatible video device through <a href="http://openigtlink.org/"> OpenIGTLink interface</a>. 
+There are commercial systems that provide tracking video and image data through OpenIGTLink, such as BrainLab, Siemens MRI scanners
 
-- Link to manufacturer's website:
 
 \section OpenIGTLinkVideoSupportedPlatforms Supported platforms
 - \ref PlatformWin32
