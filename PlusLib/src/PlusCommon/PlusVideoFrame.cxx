@@ -613,6 +613,7 @@ PlusStatus PlusVideoFrame::GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1,
     flipInfo.vFlip=true;
     return PLUS_SUCCESS;
   }
+  assert(0);
   LOG_ERROR("Image orientation conversion between orientations "<<GetStringFromUsImageOrientation(usImageOrientation1)
     <<" and "<<GetStringFromUsImageOrientation(usImageOrientation2)
     <<" is not supported (image transpose is not allowed, only reordering of rows and/or columns");

@@ -307,8 +307,6 @@ int main(int argc, char* argv[])
     }
   }
   
-  //intersonDevice->CreateDefaultOutputChannel();
-
   DisplayMode displayMode = SHOW_IMAGE; 
   
   if (STRCASECMP(acqMode.c_str(), "B")==0)
@@ -333,14 +331,13 @@ int main(int argc, char* argv[])
     exit(EXIT_FAILURE); 
   }
 
-  intersonDevice->StartRecording();				//start recording frame from the video
+  intersonDevice->StartRecording(); // start recording frames for the video
 
   if( renderingOff )
     {
     // just run the recording for  a few seconds then exit
     LOG_DEBUG("Rendering disabled. Wait for just a few seconds to acquire data before exiting");
     Sleep(3000); // no need to use accurate timer, it's just an approximate delay
-    intersonDevice->StopRecording(); 
     }
   else
     {
@@ -377,6 +374,7 @@ int main(int argc, char* argv[])
       }
     }
 
+  intersonDevice->StopRecording(); 
   intersonDevice->Disconnect();
   return EXIT_SUCCESS;
 }
