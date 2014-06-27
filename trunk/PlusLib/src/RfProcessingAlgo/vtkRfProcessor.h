@@ -49,6 +49,9 @@ public:
   /*! Get the scan converter object */
   vtkGetMacro(ScanConverter, vtkUsScanConvert*);
 
+  /*! Get the rf to brightness converter object */
+  vtkGetMacro(RfToBrightnessConverter, vtkRfToBrightnessConvert*);
+
   static const char* GetRfProcessorTagName();
 
 protected:

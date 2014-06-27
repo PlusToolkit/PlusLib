@@ -1472,10 +1472,12 @@ int vtkPlusDevice::RequestInformation(vtkInformation * vtkNotUsed(request),
     // no frame is available yet
     return 0;
   }
+
   int extent[6] = {0, frameSize[0] - 1, 0, frameSize[1] - 1, 0, 0 };
   outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),extent,6);
 
-  // Set the origin and spacing. The video source provides raw pixel output, therefore the spacing is (1,1,1) and the origin is (0,0)
+  // Set the origin and spacing. The video source provides raw pixel output,
+  // therefore the spacing is (1,1,1) and the origin is (0,0,0)
   double spacing[3]={1,1,1};
   outInfo->Set(vtkDataObject::SPACING(),spacing,3);
   double origin[3]={0,0,0};

@@ -21,6 +21,14 @@ class VTK_EXPORT vtkIntersonSDKCxxVideoSource;
   Requires Interson SDK 1.X and the C++ Wrappers (SDK provided by Interson,
   Wrappers provided by Kitware).
 
+  Both RF and B-Mode output is supported. If there is a single B-Mode output
+  channel configured, then the native B-Mode generated on the transducer is
+  output utilizing Plus scan conversion.  If an RF channel is configured, then
+  RF is output on the RF channel, and, if a B-Mode channel is also configured,
+  the B-Mode derived from the RF using Plus envelope detection, amplitude
+  compression, and scan conversion derived directly from the RF will be output
+  on the B-Mode channel.
+
   \ingroup PlusLibDataCollection
 */
 class VTK_EXPORT vtkIntersonSDKCxxVideoSource : public vtkPlusDevice
