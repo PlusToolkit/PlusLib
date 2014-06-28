@@ -281,10 +281,6 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
     return PLUS_FAIL;
     }
 
-  double depth = -1;
-  this->ImagingParameters->GetDepthMm( depth );
-  this->SetDepthMm( depth );
-
   double frequency = -1;
   this->ImagingParameters->GetFrequencyMhz( frequency );
   if( this->SetProbeFrequencyMhz( frequency ) == PLUS_FAIL )
@@ -608,12 +604,6 @@ PlusStatus vtkIntersonSDKCxxVideoSource::ReadConfiguration(vtkXMLDataElement* co
     this->ImagingParameters->SetFrequencyMhz(frequency); 
   }
 
-  double depthMm = -1; 
-  if ( deviceConfig->GetScalarAttribute("DepthMm", depthMm)) 
-  {
-    this->ImagingParameters->SetDepthMm(depthMm); 
-  }
-
   return PLUS_SUCCESS;
 }
 
@@ -697,21 +687,6 @@ PlusStatus vtkIntersonSDKCxxVideoSource::SetProbeFrequencyMhz(double freq)
     }
 
   this->ImagingParameters->SetFrequencyMhz( static_cast< double >( frequency / 1.0e6 ) );
-
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkIntersonSDKCxxVideoSource::SetDepthMm(double depthMm)
-{
-  int depth = static_cast< int >( depthMm );
-
-  HWControlsType * hwControls = this->Internal->GetHWControls();
-  // Since we are not using their scan converter, this does not have much effect
-  // other than limiting to the maximum valid depth.
-  depth = hwControls->ValidDepth( depth );
-
-  this->ImagingParameters->SetDepthMm( static_cast< double >( depth ) );
 
   return PLUS_SUCCESS;
 }
