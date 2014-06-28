@@ -53,10 +53,7 @@ public:
   /* Set the desired probe frequency in MHz. */
   PlusStatus SetProbeFrequencyMhz(double aFreq);
 
-  /* Set the probe depth in mm */
-  PlusStatus SetDepthMm(double depthMm);
-
-  /* Set the gain in percent */
+  /* Set the gain in percent. Used for on board B-mode generation. */
   PlusStatus SetDynRangeDb(double dynRangeDb);
 
   typedef unsigned char  BmodePixelType;

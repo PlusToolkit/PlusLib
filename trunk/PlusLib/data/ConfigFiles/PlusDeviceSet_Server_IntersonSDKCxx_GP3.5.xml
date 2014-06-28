@@ -8,7 +8,7 @@
     <Device
       Id="VideoDevice"
       Type="IntersonSDKCxxVideo" 
-      DepthMm="-1" 
+      AcquisitionRate="12"
       DynRangeDb="0.4" 
       FrequencyMhz="3.75" >
       <DataSources>
