@@ -8,6 +8,7 @@
     <Device
       Id="VideoDevice"
       Type="IntersonSDKCxxVideo" 
+      PulseVoltage="20"
       AcquisitionRate="12"
       DynRangeDb="0.4" 
       FrequencyMhz="3.75" >

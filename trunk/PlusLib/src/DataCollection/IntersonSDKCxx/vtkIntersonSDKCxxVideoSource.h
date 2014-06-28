@@ -56,6 +56,10 @@ public:
   /* Set the gain in percent. Used for on board B-mode generation. */
   PlusStatus SetDynRangeDb(double dynRangeDb);
 
+  /* Set the excitation pulse voltage in volts. */
+  PlusStatus SetPulseVoltage(unsigned char voltage);
+  vtkGetMacro(PulseVoltage, unsigned char);
+
   typedef unsigned char  BmodePixelType;
   typedef short          RfPixelType;
 

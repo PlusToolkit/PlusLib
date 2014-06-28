@@ -290,7 +290,7 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
 
   if( !hwControls->SendHighVoltage( this->PulseVoltage ) )
     {
-    LOG_ERROR( "Could not set the high voltage." );
+    LOG_ERROR( "Could not set the pulse voltage." );
     return PLUS_FAIL;
     }
   if( !hwControls->EnableHighVoltage() )
@@ -604,13 +604,16 @@ PlusStatus vtkIntersonSDKCxxVideoSource::ReadConfiguration(vtkXMLDataElement* co
     this->ImagingParameters->SetFrequencyMhz(frequency); 
   }
 
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, PulseVoltage, deviceConfig);
+
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkIntersonSDKCxxVideoSource::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(imageAcquisitionConfig, rootConfigElement);
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
+  deviceConfig->SetIntAttribute("PulseVoltage", this->GetPulseVoltage());
 
   return PLUS_SUCCESS;
 }
@@ -638,6 +641,18 @@ PlusStatus vtkIntersonSDKCxxVideoSource::NotifyConfigured()
 std::string vtkIntersonSDKCxxVideoSource::GetSdkVersion()
 {
   return this->Internal->GetSdkVersion();
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkIntersonSDKCxxVideoSource::SetPulseVoltage(unsigned char voltage)
+{
+  if( voltage != this->PulseVoltage )
+    {
+    this->PulseVoltage = voltage;
+    this->Modified();
+    }
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
