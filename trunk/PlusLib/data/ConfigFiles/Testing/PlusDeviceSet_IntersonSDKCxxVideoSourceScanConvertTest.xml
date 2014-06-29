@@ -15,12 +15,12 @@
               TransducerName="GP 3.5MHz"
               TransducerGeometry="CURVILINEAR"
               RadiusStartMm="12.4"
-              RadiusStopMm="222.7"
+              RadiusStopMm="117.5"
               ThetaStartDeg="-45.0"
               ThetaStopDeg="45.0"
               OutputImageSizePixel="800 600"
               TransducerCenterPixel="400 50"
-              OutputImageSpacingMmPerPixel="0.40 0.40" /> 
+              OutputImageSpacingMmPerPixel="0.20 0.20" /> 
           </RfProcessing>
         </OutputChannel>
       </OutputChannels>

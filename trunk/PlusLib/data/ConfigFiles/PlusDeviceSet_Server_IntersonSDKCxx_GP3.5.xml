@@ -8,9 +8,10 @@
     <Device
       Id="VideoDevice"
       Type="IntersonSDKCxxVideo" 
+      PulseVoltage="20"
       AcquisitionRate="12"
       DynRangeDb="0.4" 
-      FrequencyMhz="3.75" >
+      FrequencyMhz="5.0" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" />
       </DataSources>
@@ -21,12 +22,12 @@
               TransducerName="GP3.5"
               TransducerGeometry="CURVILINEAR"
               RadiusStartMm="12.4"
-              RadiusStopMm="222.7"
+              RadiusStopMm="117.5"
               ThetaStartDeg="-45.0"
               ThetaStopDeg="45.0"
               OutputImageSizePixel="800 600"
               TransducerCenterPixel="400 50"
-              OutputImageSpacingMmPerPixel="0.40 0.40" /> 
+              OutputImageSpacingMmPerPixel="0.20 0.20" /> 
           </RfProcessing>
         </OutputChannel>
       </OutputChannels>
