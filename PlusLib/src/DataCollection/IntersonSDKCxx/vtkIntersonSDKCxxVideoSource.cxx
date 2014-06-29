@@ -541,7 +541,7 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalStartRecording()
     LOG_ERROR( "Could not start B-mode collection." );
     return PLUS_FAIL;
     }
-  Sleep( 1250 ); // "time to start"
+  Sleep( 750 ); // "time to start"
 
   return PLUS_SUCCESS;
 }
