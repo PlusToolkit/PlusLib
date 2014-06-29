@@ -220,7 +220,9 @@ private:
 
 
 //----------------------------------------------------------------------------
-vtkIntersonSDKCxxVideoSource::vtkIntersonSDKCxxVideoSource()
+vtkIntersonSDKCxxVideoSource::vtkIntersonSDKCxxVideoSource():
+  PulseVoltage( 30 ),
+  RfDecimation( 0 )
 {
   this->Internal = new vtkInternal(this);
 
@@ -229,8 +231,6 @@ vtkIntersonSDKCxxVideoSource::vtkIntersonSDKCxxVideoSource()
   this->RequireImageOrientationInConfiguration = true;
 
   this->ImagingParameters = new vtkUsImagingParameters(this);
-
-  this->PulseVoltage = 40;
 }
 
 //----------------------------------------------------------------------------
@@ -251,6 +251,7 @@ void vtkIntersonSDKCxxVideoSource::PrintSelf(ostream& os, vtkIndent indent)
   this->Superclass::PrintSelf(os,indent);
 
   os << indent << "Pulse voltage: " << this->PulseVoltage << "\n";
+  os << indent << "RF decimation: " << this->RfDecimation << "\n";
 }
 
 //----------------------------------------------------------------------------
@@ -350,8 +351,14 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
     this->Internal->EnableRfCallback();
     this->Internal->DisableBModeCallback();
 
-    // TODO:  Add configuration option for RFDecimator.
-    hwControls->DisableRFDecimator();
+    if( this->RfDecimation )
+      {
+      hwControls->EnableRFDecimator();
+      }
+    else
+      {
+      hwControls->DisableRFDecimator();
+      }
 
     source = rfSources[0];
     vtkPlusBuffer * plusBuffer = source->GetBuffer();
@@ -605,6 +612,7 @@ PlusStatus vtkIntersonSDKCxxVideoSource::ReadConfiguration(vtkXMLDataElement* co
   }
 
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, PulseVoltage, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, RfDecimation, deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -614,6 +622,7 @@ PlusStatus vtkIntersonSDKCxxVideoSource::WriteConfiguration(vtkXMLDataElement* r
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
   deviceConfig->SetIntAttribute("PulseVoltage", this->GetPulseVoltage());
+  deviceConfig->SetIntAttribute("RfDecimation", this->RfDecimation);
 
   return PLUS_SUCCESS;
 }
@@ -649,6 +658,18 @@ PlusStatus vtkIntersonSDKCxxVideoSource::SetPulseVoltage(unsigned char voltage)
   if( voltage != this->PulseVoltage )
     {
     this->PulseVoltage = voltage;
+    this->Modified();
+    }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkIntersonSDKCxxVideoSource::SetRfDecimation(int enableDecimation)
+{
+  if( enableDecimation != this->RfDecimation )
+    {
+    this->RfDecimation = enableDecimation;
     this->Modified();
     }
 
