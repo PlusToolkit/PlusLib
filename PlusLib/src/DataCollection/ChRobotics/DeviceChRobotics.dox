@@ -27,9 +27,9 @@
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
 
-- \xmlAtt \b SerialPort Used COM port number for serial communication (ComPort: 1 => Port name: "COM1").
-- \xmlAtt \b BaudRate Baud rate for serial communication.
-- \xmlAtt \b FirmwareDirectory Directory path containing the XML files that describes the device firmware (available registers, calibration, etc.). The path can be relative to the configuration directory.
+- \xmlAtt \b SerialPort Used COM port number for serial communication (ComPort: 1 => Port name: "COM1"). \OptionalAtt{5}
+- \xmlAtt \b BaudRate Baud rate for serial communication. \OptionalAtt{115200}
+- \xmlAtt \b FirmwareDirectory Directory path containing the XML files that describes the device firmware (available registers, calibration, etc.). The path can be relative to the configuration directory. \OptionalAtt{Absolute path of the executable}
 
 - \xmlElem \ref DataSources:
   - \xmlElem \ref DataSource: there must be one child element
