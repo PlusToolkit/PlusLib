@@ -29,8 +29,20 @@ There are commercial systems that provide tracking video and image data through 
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 
-\section OpenIGTLinkVideoExampleConfigFile Example configuration file
+\section OpenIGTLinkVideoExampleConfigFile Example configuration files
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_OpenIGTLinkVideo.xml"
+
+This device can be used for transferring tracked video data to another computer for processing, recording, and broadcasting. This is useful in the following cases:
+- the computer where the data is acquired is not fast enough (for example, if frames are skipped during volume reconstruction: "Volume reconstruction cannot keep up with the acquisition. Skip ... seconds of the data stream to catch up.")
+- 32-bit devices are used or a 32-bit computer is used for data acquisition, but high-resolution volume reconstruction requires 64-bit memory space
+
+Example configuration file for data acquisition and sending (it acquires data from a file and forwards it through OpenIGTLink TRACKEDFRAME message to the processing server):
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_Sim_NwirePhantomTrackedFrameAcquisition.xml"
+
+Example configuration file for data receiving and processing (it acquires data from the acquisition server and allows recording, volume reconstruction, and broadcasting of IMAGE and TRANSFORM messages):
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_Sim_NwirePhantomTrackedFrameProcessing.xml"
 
 */
