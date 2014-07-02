@@ -205,6 +205,8 @@ protected:
 
   vtkRecursiveCriticalSection* CriticalSection;
 
+  TransformInfo TransformToSelf;
+
 private:
   vtkTransformRepository(const vtkTransformRepository&);
   void operator=(const vtkTransformRepository&);  

@@ -145,7 +145,13 @@ PlusStatus vtkTransformRepository::SetTransforms(TrackedFrame& trackedFrame)
   for ( std::vector<PlusTransformName>::iterator it = transformNames.begin(); it != transformNames.end(); ++it)
   {
     std::string trName; 
-    it->GetTransformName(trName); 
+    it->GetTransformName(trName);
+
+    if (it->From() == it->To())
+    {
+      LOG_ERROR("Setting a transform to itself is not allowed: "<<trName);
+      continue;
+    }
 
     vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
     if ( trackedFrame.GetCustomFrameTransform( *it, matrix) != PLUS_SUCCESS )
@@ -180,6 +186,12 @@ PlusStatus vtkTransformRepository::SetTransform(const PlusTransformName& aTransf
   if ( !aTransformName.IsValid() )
   {
     LOG_ERROR("Transform name is invalid");
+    return PLUS_FAIL;
+  }
+
+  if (aTransformName.From() == aTransformName.To())
+  {
+    LOG_ERROR("Setting a transform to itself is not allowed: "<<aTransformName.GetTransformName());
     return PLUS_FAIL;
   }
 
@@ -254,6 +266,11 @@ PlusStatus vtkTransformRepository::SetTransform(const PlusTransformName& aTransf
 //----------------------------------------------------------------------------
 PlusStatus vtkTransformRepository::SetTransformValid(const PlusTransformName& aTransformName, bool isValid)
 {
+  if (aTransformName.From() == aTransformName.To())
+  {
+    LOG_ERROR("Setting a transform to itself is not allowed: "<<aTransformName.GetTransformName());
+    return PLUS_FAIL;
+  }
   return SetTransform(aTransformName, NULL, isValid);
 }
   
@@ -264,6 +281,19 @@ PlusStatus vtkTransformRepository::GetTransform(const PlusTransformName& aTransf
   {
     LOG_ERROR("Transform name is invalid");
     return PLUS_FAIL;
+  }
+
+  if (aTransformName.From() == aTransformName.To())
+  {
+    if (matrix!=NULL)
+    {
+      matrix->Identity();
+    }
+    if (isValid!=NULL)
+    {
+      (*isValid) = true; 
+    }
+    return PLUS_SUCCESS;
   }
 
   PlusLockGuard<vtkRecursiveCriticalSection> accessGuard(this->CriticalSection);
@@ -313,6 +343,12 @@ PlusStatus vtkTransformRepository::SetTransformPersistent(const PlusTransformNam
 {
   PlusLockGuard<vtkRecursiveCriticalSection> accessGuard(this->CriticalSection);
 
+  if (aTransformName.From() == aTransformName.To())
+  {
+    LOG_ERROR("Setting a transform to itself is not allowed: "<<aTransformName.GetTransformName());
+    return PLUS_FAIL;
+  }
+
   TransformInfo* fromToTransformInfo = GetOriginalTransform(aTransformName);
   if (fromToTransformInfo != NULL)
   {
@@ -328,6 +364,12 @@ PlusStatus vtkTransformRepository::SetTransformPersistent(const PlusTransformNam
 PlusStatus vtkTransformRepository::GetTransformPersistent(const PlusTransformName& aTransformName, bool &isPersistent)
 {
   PlusLockGuard<vtkRecursiveCriticalSection> accessGuard(this->CriticalSection);
+
+  if (aTransformName.From() == aTransformName.To())
+  {
+    isPersistent=false;
+    return PLUS_SUCCESS;
+  }
 
   TransformInfo* fromToTransformInfo = GetOriginalTransform(aTransformName);
   if (fromToTransformInfo != NULL)
@@ -345,6 +387,12 @@ PlusStatus vtkTransformRepository::SetTransformError(const PlusTransformName& aT
 {
   PlusLockGuard<vtkRecursiveCriticalSection> accessGuard(this->CriticalSection);
 
+  if (aTransformName.From() == aTransformName.To())
+  {
+    LOG_ERROR("Setting a transform to itself is not allowed: "<<aTransformName.GetTransformName());
+    return PLUS_FAIL;
+  }
+
   TransformInfo* fromToTransformInfo = GetOriginalTransform(aTransformName);
   if (fromToTransformInfo!=NULL)
   {
@@ -358,6 +406,12 @@ PlusStatus vtkTransformRepository::SetTransformError(const PlusTransformName& aT
 //----------------------------------------------------------------------------
 PlusStatus vtkTransformRepository::GetTransformError(const PlusTransformName& aTransformName, double &aError)
 {
+  if (aTransformName.From() == aTransformName.To())
+  {
+    aError=0.0;
+    return PLUS_FAIL;
+  }
+
   PlusLockGuard<vtkRecursiveCriticalSection> accessGuard(this->CriticalSection);
   TransformInfo* fromToTransformInfo = GetOriginalTransform(aTransformName);
   if (fromToTransformInfo != NULL)
@@ -372,6 +426,12 @@ PlusStatus vtkTransformRepository::GetTransformError(const PlusTransformName& aT
 //----------------------------------------------------------------------------
 PlusStatus vtkTransformRepository::SetTransformDate(const PlusTransformName& aTransformName, const char* aDate)
 {
+  if (aTransformName.From() == aTransformName.To())
+  {
+    LOG_ERROR("Setting a transform to itself is not allowed: "<<aTransformName.GetTransformName());
+    return PLUS_FAIL;
+  }
+
   if ( aDate == NULL )
   {
     LOG_ERROR("Cannot set computation date if it's NULL.");
@@ -393,6 +453,12 @@ PlusStatus vtkTransformRepository::SetTransformDate(const PlusTransformName& aTr
 //----------------------------------------------------------------------------
 PlusStatus vtkTransformRepository::GetTransformDate(const PlusTransformName& aTransformName, std::string& aDate)
 {
+  if (aTransformName.From() == aTransformName.To())
+  {
+    aDate.clear();
+    return PLUS_SUCCESS;
+  }
+
   PlusLockGuard<vtkRecursiveCriticalSection> accessGuard(this->CriticalSection);
 
   TransformInfo* fromToTransformInfo=GetOriginalTransform(aTransformName);
@@ -408,6 +474,12 @@ PlusStatus vtkTransformRepository::GetTransformDate(const PlusTransformName& aTr
 //----------------------------------------------------------------------------
 PlusStatus vtkTransformRepository::FindPath(const PlusTransformName& aTransformName, TransformInfoListType &transformInfoList, const char* skipCoordFrameName /*=NULL*/, bool silent /*=false*/)
 {
+  if (aTransformName.From() == aTransformName.To())
+  {
+    LOG_ERROR("vtkTransformRepository::FindPath failed: from and to transform names are the same - "<<aTransformName.GetTransformName());
+    return PLUS_FAIL;
+  }
+
   TransformInfo* fromToTransformInfo=GetOriginalTransform(aTransformName);
   if (fromToTransformInfo!=NULL)
   {
@@ -469,6 +541,10 @@ PlusStatus vtkTransformRepository::FindPath(const PlusTransformName& aTransformN
 //----------------------------------------------------------------------------
 PlusStatus vtkTransformRepository::IsExistingTransform(PlusTransformName aTransformName, bool aSilent/* = true*/)
 {
+  if (aTransformName.From() == aTransformName.To())
+  {
+    return PLUS_SUCCESS;
+  }
   PlusLockGuard<vtkRecursiveCriticalSection> accessGuard(this->CriticalSection);
   TransformInfoListType transformInfoList;
   return FindPath(aTransformName, transformInfoList, NULL, aSilent);
@@ -477,6 +553,12 @@ PlusStatus vtkTransformRepository::IsExistingTransform(PlusTransformName aTransf
 //----------------------------------------------------------------------------
 PlusStatus vtkTransformRepository::DeleteTransform(const PlusTransformName& aTransformName)
 {
+  if (aTransformName.From() == aTransformName.To())
+  {
+    LOG_ERROR("Setting a transform to itself cannot be deleted: "<<aTransformName.GetTransformName());
+    return PLUS_FAIL;
+  }
+
   PlusLockGuard<vtkRecursiveCriticalSection> accessGuard(this->CriticalSection);
 
   CoordFrameToTransformMapType& fromCoordFrame = this->CoordinateFrames[aTransformName.From()];
