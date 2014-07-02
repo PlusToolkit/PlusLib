@@ -577,6 +577,7 @@ PlusStatus vtkOpenIGTLinkTracker::WriteConfiguration(vtkXMLDataElement* rootConf
   trackerConfig->SetAttribute("ServerAddress", this->ServerAddress);
   trackerConfig->SetIntAttribute("ServerPort", this->ServerPort);
   trackerConfig->SetAttribute("TrackerInternalCoordinateSystemName", this->TrackerInternalCoordinateSystemName);
+  deviceConfig->SetAttribute("UseReceivedTimestamps", this->UseReceivedTimestamps?"true":"false");
   trackerConfig->SetAttribute("ReconnectOnReceiveTimeout", this->ReconnectOnReceiveTimeout?"true":"false");
   trackerConfig->SetAttribute("IgtlMessageCrcCheckEnabled", this->IgtlMessageCrcCheckEnabled?"true":"false");
   
