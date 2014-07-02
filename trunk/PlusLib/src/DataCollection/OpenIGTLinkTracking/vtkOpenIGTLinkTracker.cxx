@@ -571,15 +571,15 @@ PlusStatus vtkOpenIGTLinkTracker::ReadConfiguration( vtkXMLDataElement* rootConf
 //----------------------------------------------------------------------------
 PlusStatus vtkOpenIGTLinkTracker::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(trackerConfig, rootConfigElement);
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
 
-  trackerConfig->SetAttribute("MessageType", this->MessageType);
-  trackerConfig->SetAttribute("ServerAddress", this->ServerAddress);
-  trackerConfig->SetIntAttribute("ServerPort", this->ServerPort);
-  trackerConfig->SetAttribute("TrackerInternalCoordinateSystemName", this->TrackerInternalCoordinateSystemName);
+  deviceConfig->SetAttribute("MessageType", this->MessageType);
+  deviceConfig->SetAttribute("ServerAddress", this->ServerAddress);
+  deviceConfig->SetIntAttribute("ServerPort", this->ServerPort);
+  deviceConfig->SetAttribute("TrackerInternalCoordinateSystemName", this->TrackerInternalCoordinateSystemName);
   deviceConfig->SetAttribute("UseReceivedTimestamps", this->UseReceivedTimestamps?"true":"false");
-  trackerConfig->SetAttribute("ReconnectOnReceiveTimeout", this->ReconnectOnReceiveTimeout?"true":"false");
-  trackerConfig->SetAttribute("IgtlMessageCrcCheckEnabled", this->IgtlMessageCrcCheckEnabled?"true":"false");
+  deviceConfig->SetAttribute("ReconnectOnReceiveTimeout", this->ReconnectOnReceiveTimeout?"true":"false");
+  deviceConfig->SetAttribute("IgtlMessageCrcCheckEnabled", this->IgtlMessageCrcCheckEnabled?"true":"false");
   
   return PLUS_SUCCESS;
 }
