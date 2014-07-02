@@ -90,10 +90,37 @@ int main(int argc, char **argv)
   transformRepository->PrintSelf(std::cout, vtkIndent() ); 
 
   /////////////////////////////////////////////////////////////////////////////
+  // Test computation of transform to self
+  // Compute with transform Repository 
+  vtkSmartPointer<vtkMatrix4x4> mxProbeToProbe=vtkSmartPointer<vtkMatrix4x4>::New();    
+  bool isValid(false);
+  transformRepository->GetTransform(PlusTransformName("Probe", "Probe"), mxProbeToProbe, &isValid);
+  LOG_INFO("ProbeToProbe (computed by transformRepository):");
+  mxProbeToProbe->PrintSelf(std::cout, vtkIndent());
+  // Compute manually
+  vtkSmartPointer<vtkMatrix4x4> mxProbeToProbeManual=vtkSmartPointer<vtkMatrix4x4>::New();
+  LOG_INFO("PropbeToProbe (computed manually):");
+  mxProbeToProbeManual->PrintSelf(std::cout, vtkIndent());
+  // Compare
+  double posDiff=PlusMath::GetPositionDifference(mxProbeToProbe, mxProbeToProbeManual); 
+  double orientDiff=PlusMath::GetOrientationDifference(mxProbeToProbe, mxProbeToProbeManual); 
+  LOG_INFO("Position difference: "<< posDiff);
+  LOG_INFO("Orientation difference: "<< orientDiff);
+  if (fabs(posDiff)>0.001 || fabs(orientDiff)>0.001)
+  {
+    LOG_ERROR("Mismatch between transforms computed by transformRepository and manually");
+    return EXIT_FAILURE;
+  }
+  if ( !isValid )
+  {
+    LOG_ERROR("ProbeToProbe should be valid");
+    return EXIT_FAILURE;
+  }
+
   // Test StylusTipToTracker computation
   // Compute with transform Repository 
   vtkSmartPointer<vtkMatrix4x4> mxStylusTipToTracker=vtkSmartPointer<vtkMatrix4x4>::New();    
-  bool isValid(false);
+  isValid=false;
   transformRepository->GetTransform(PlusTransformName("StylusTip", "Tracker"), mxStylusTipToTracker, &isValid);
   LOG_INFO("StylusTipToTracker (computed by transformRepository):");
   mxStylusTipToTracker->PrintSelf(std::cout, vtkIndent());
@@ -105,8 +132,8 @@ int main(int argc, char **argv)
   LOG_INFO("StylusTipToTracker (computed manually):");
   mxStylusTipToTrackerManual->PrintSelf(std::cout, vtkIndent());
   // Compare
-  double posDiff=PlusMath::GetPositionDifference(mxStylusTipToTracker, mxStylusTipToTrackerManual); 
-  double orientDiff=PlusMath::GetOrientationDifference(mxStylusTipToTracker, mxStylusTipToTrackerManual); 
+  posDiff=PlusMath::GetPositionDifference(mxStylusTipToTracker, mxStylusTipToTrackerManual); 
+  orientDiff=PlusMath::GetOrientationDifference(mxStylusTipToTracker, mxStylusTipToTrackerManual); 
   LOG_INFO("Position difference: "<< posDiff);
   LOG_INFO("Orientation difference: "<< orientDiff);
   if (fabs(posDiff)>0.001 || fabs(orientDiff)>0.001)
@@ -119,6 +146,7 @@ int main(int argc, char **argv)
     LOG_ERROR("StylusTipToTracker should be valid");
     return EXIT_FAILURE;
   }
+
 
   /////////////////////////////////////////////////////////////////////////////
   // Test PhantomToStylusTip computation
@@ -257,6 +285,13 @@ int main(int argc, char **argv)
     LOG_ERROR("Circular reference between transforms is not detected");
     return EXIT_FAILURE;
   }
+
+  if (transformRepository->SetTransform(PlusTransformName("Probe", "Probe"), mxProbeToProbe)==PLUS_SUCCESS)
+  {
+    LOG_ERROR("Circular reference between transforms (transform to self) is not detected");
+    return EXIT_FAILURE;
+  }
+
 
   /////////////////////////////////////////////////////////////////////////////
   // Check write configuration 

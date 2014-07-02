@@ -1087,6 +1087,7 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
       +" Message=\"" + stringResponse->GetMessage() + "\"" 
       += " />";
     igtlMessage->SetString(replyStr.c_str());
+    LOG_DEBUG("Command response: "<<replyStr);
     return igtlMessage.GetPointer();
   }
 
