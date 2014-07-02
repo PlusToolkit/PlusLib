@@ -10,8 +10,7 @@
 #include "PlusConfigure.h"
 #include "vtkPlusDevice.h"
 #include "igtlClientSocket.h"
-
-class VTK_EXPORT vtkOpenIGTLinkVideoSource;
+#include "igtlMessageBase.h"
 
 /*!
   \class vtkOpenIGTLinkVideoSource 
@@ -24,15 +23,35 @@ class VTK_EXPORT vtkOpenIGTLinkVideoSource;
 class VTK_EXPORT vtkOpenIGTLinkVideoSource : public vtkPlusDevice
 {
 public:
+
   static vtkOpenIGTLinkVideoSource *New();
-  vtkTypeRevisionMacro(vtkOpenIGTLinkVideoSource,vtkPlusDevice);
+  vtkTypeMacro(vtkOpenIGTLinkVideoSource,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);   
 
-  /*! Hardware device SDK version. */
+  /*! OpenIGTLink version. */
   virtual std::string GetSdkVersion(); 
 
-  /*! Read/write main configuration from/to xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  /*! Connect to device */
+  PlusStatus InternalConnect();
+
+  /*! Disconnect from device */
+  virtual PlusStatus InternalDisconnect();
+
+  /*! Probe to see if the tracking system is present on the specified address. */
+  PlusStatus Probe();
+
+  /*! Get an update from the tracking system and push the new transforms to the tools. This function is called by the tracker thread.*/
+  PlusStatus InternalUpdate();
+
+  /*! Read configuration from xml data */
+  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* config ); 
+  
+  /*! Write configuration to xml data */
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);  
+
+  virtual bool IsTracker() const { return false; }
+
+  PlusStatus SetImageMessageEmbeddedTransformName(const char* nameString);
 
   /*! Set OpenIGTLink message type */ 
   vtkSetStringMacro(MessageType); 
@@ -54,33 +73,30 @@ public:
   /*! Get IGTL CRC check flag (0: disabled, 1: enabled) */ 
   vtkGetMacro(IgtlMessageCrcCheckEnabled, int);
 
+  /*! Get the ReconnectOnNoData flag */
+  vtkGetMacro(ReconnectOnReceiveTimeout, bool);
+
   /*! Verify the device is correctly configured */
   virtual PlusStatus NotifyConfigured();
 
-  virtual bool IsTracker() const { return false; }
-
-  PlusStatus SetImageMessageEmbeddedTransformName(const char* nameString);
-
 protected:
-  /*! Constructor */
   vtkOpenIGTLinkVideoSource();
-  /*! Destructor */
   virtual ~vtkOpenIGTLinkVideoSource();
 
-  /*! Connect to device */
-  virtual PlusStatus InternalConnect();
-
-  /*! Disconnect from device */
-  virtual PlusStatus InternalDisconnect();
+  /*! Reconnect the client socket. Used when the connection is established or there is a socket error. */
+  PlusStatus ClientSocketReconnect();
 
   /*!
-    Called at the end of StartRecording to allow hardware-specific
-    actions for starting the recording
+    Receive an OpenITGLink message header.
+    Returns PLUS_FAIL if there was a socket error.
+    The headerMsg is NULL is no data is received.
   */
-  virtual PlusStatus InternalStartRecording(); 
+  PlusStatus ReceiveMessageHeader(igtl::MessageHeader::Pointer &headerMsg);
 
-  /*! The internal function which actually does the grab.  */
-  PlusStatus InternalUpdate();
+  /*! Set the ReconnectOnNoData flag */
+  vtkSetMacro(ReconnectOnReceiveTimeout, bool);
+
+  vtkSetMacro(UseReceivedTimestamps, bool);
 
   /*! OpenIGTLink message type */
   char* MessageType; 
@@ -98,15 +114,24 @@ protected:
   int NumberOfRetryAttempts; 
 
   /*! Delay between retry attempts */ 
-  int DelayBetweenRetryAttemptsSec; 
+  double DelayBetweenRetryAttemptsSec; 
 
   /*! OpenIGTLink client socket */ 
   igtl::ClientSocket::Pointer ClientSocket;
 
+  /*! Attempt a reconnection if no data is received */
+  bool ReconnectOnReceiveTimeout;
+
+  /*!
+    Use the timestamp embedded in the OpenIGTLink message (the timestamp is converted form the UTC time to system time).
+    If it is false then the time of reception is used as timestamp.
+  */
+  bool UseReceivedTimestamps;
+    
   /*! Name of the transform that is supplied with the IMAGE OpenIGTLink message */ 
   PlusTransformName ImageMessageEmbeddedTransformName;
-    
 private:
+
   vtkOpenIGTLinkVideoSource(const vtkOpenIGTLinkVideoSource&);  // Not implemented.
   void operator=(const vtkOpenIGTLinkVideoSource&);  // Not implemented.
 };
