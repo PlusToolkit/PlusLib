@@ -384,6 +384,7 @@ PlusStatus vtkOpenIGTLinkVideoSource::ReadConfiguration(vtkXMLDataElement* rootC
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(MessageType, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(IgtlMessageCrcCheckEnabled, deviceConfig);  
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(ImageMessageEmbeddedTransformName, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(UseReceivedTimestamps, deviceConfig);
   return PLUS_SUCCESS;
 }
 
@@ -396,6 +397,7 @@ PlusStatus vtkOpenIGTLinkVideoSource::WriteConfiguration(vtkXMLDataElement* root
   deviceConfig->SetAttribute("ServerAddress", this->ServerAddress);
   deviceConfig->SetIntAttribute("ServerPort", this->ServerPort);
   deviceConfig->SetAttribute("ImageMessageEmbeddedTransformName", this->ImageMessageEmbeddedTransformName.GetTransformName().c_str());
+  deviceConfig->SetAttribute("UseReceivedTimestamps", this->UseReceivedTimestamps?"true":"false");
   deviceConfig->SetAttribute("ReconnectOnReceiveTimeout", this->ReconnectOnReceiveTimeout?"true":"false");
   deviceConfig->SetAttribute("IgtlMessageCrcCheckEnabled", this->IgtlMessageCrcCheckEnabled?"true":"false");
   
