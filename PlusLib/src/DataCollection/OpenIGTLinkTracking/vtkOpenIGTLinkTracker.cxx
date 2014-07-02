@@ -1,10 +1,12 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
+#include "vtkOpenIGTLinkTracker.h"
+
 #include "igtlMessageHeader.h"
 #include "igtlPlusClientInfoMessage.h"
 #include "igtlPositionMessage.h"
@@ -12,7 +14,7 @@
 #include "igtlTransformMessage.h"
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
-#include "vtkOpenIGTLinkTracker.h"
+
 #include "vtkPlusIgtlMessageCommon.h"
 #include "vtkPlusBuffer.h"
 #include "vtkPlusDataSource.h"
@@ -118,7 +120,7 @@ PlusStatus vtkOpenIGTLinkTracker::InternalDisconnect()
   }
 
   this->ClientSocket->CloseSocket(); 
-  return this->StopRecording(); 
+  return this->StopRecording();
 }
 
 //----------------------------------------------------------------------------
@@ -126,40 +128,20 @@ PlusStatus vtkOpenIGTLinkTracker::Probe()
 {
   LOG_TRACE( "vtkOpenIGTLinkTracker::Probe" ); 
 
-  PlusStatus trackerStatus = PLUS_FAIL; 
+  PlusStatus status = PLUS_FAIL; 
   if ( this->Connect() == PLUS_SUCCESS )
   {
-    trackerStatus = PLUS_SUCCESS; 
+    status = PLUS_SUCCESS; 
     this->Disconnect(); 
   }
   
-  return trackerStatus; 
+  return status; 
 } 
-
-//----------------------------------------------------------------------------
-PlusStatus vtkOpenIGTLinkTracker::InternalStartRecording()
-{
-  LOG_TRACE( "vtkOpenIGTLinkTracker::InternalStopRecording" ); 
-  if ( this->Recording )
-  {
-    return PLUS_SUCCESS;
-  }
-
-  return this->Connect(); 
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkOpenIGTLinkTracker::InternalStopRecording()
-{
-  LOG_TRACE( "vtkOpenIGTLinkTracker::InternalStopRecording" ); 
-  
-  return PLUS_SUCCESS;
-}
 
 //----------------------------------------------------------------------------
 PlusStatus vtkOpenIGTLinkTracker::InternalUpdate()
 {
-  LOG_TRACE( "vtkOpenIGTLinkTracker::InternalUpdate" ); 
+  LOG_TRACE( "vtkOpenIGTLinkTracker::InternalUpdate" );
 
   if ( ! this->Recording )
   {
@@ -258,7 +240,7 @@ PlusStatus vtkOpenIGTLinkTracker::ClientSocketReconnect()
     LOG_DEBUG( "Client successfully connected to server (" << this->ServerAddress << ":" << this->ServerPort << ")."  );
   }
 
-  this->ClientSocket->SetTimeout(CLIENT_SOCKET_TIMEOUT_MSEC); 
+  this->ClientSocket->SetTimeout(CLIENT_SOCKET_TIMEOUT_MSEC);
 
   // If we need TDATA, request server to start streaming.
   if ( std::string( this->MessageType ).compare( "TDATA" ) == 0 )

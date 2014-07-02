@@ -49,6 +49,14 @@ public:
 
   virtual bool IsTracker() const { return true; }
 
+  /*! 
+    Set the internal tracker coordinate system name that is send to the tracker
+    when tracking start is requested using an STT_TDATA message.
+  */ 
+  vtkSetStringMacro(TrackerInternalCoordinateSystemName); 
+  /*! Get the internal tracker coordinate system name */ 
+  vtkGetStringMacro(TrackerInternalCoordinateSystemName); 
+
   /*! Set OpenIGTLink message type */ 
   vtkSetStringMacro(MessageType); 
   /*! Get OpenIGTLink message type */ 
@@ -72,26 +80,13 @@ public:
   /*! Get the ReconnectOnNoData flag */
   vtkGetMacro(ReconnectOnReceiveTimeout, bool);
 
-  /*! 
-    Set the internal tracker coordinate system name that is send to the tracker
-    when tracking start is requested using an STT_TDATA message.
-  */ 
-  vtkSetStringMacro(TrackerInternalCoordinateSystemName); 
-  /*! Get the internal tracker coordinate system name */ 
-  vtkGetStringMacro(TrackerInternalCoordinateSystemName); 
+
 
 protected:
   vtkOpenIGTLinkTracker();
-  ~vtkOpenIGTLinkTracker();
+  virtual ~vtkOpenIGTLinkTracker();
 
-  /*! 
-    Start the tracking system.  The tracking system is brought from its ground state into full tracking mode.
-    The device will only be reset if communication cannot be established without a reset.
-  */
-  PlusStatus InternalStartRecording();
 
-  /*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking */
-  PlusStatus InternalStopRecording();
 
   /*! Reconnect the client socket. Used when the connection is established or there is a socket error. */
   PlusStatus ClientSocketReconnect();
@@ -131,20 +126,26 @@ protected:
   /*! OpenIGTLink server port */ 
   int ServerPort; 
 
+  /*! Flag for IGTL CRC check (0: disabled, 1: enabled) */ 
+  int IgtlMessageCrcCheckEnabled; 
+
   /*! Number of retry attempts for message sending to and receiving from the server */ 
   int NumberOfRetryAttempts; 
 
   /*! Delay between retry attempts */ 
-  int DelayBetweenRetryAttemptsSec; 
-
-  /*! Flag for IGTL CRC check (0: disabled, 1: enabled) */ 
-  int IgtlMessageCrcCheckEnabled; 
+  double DelayBetweenRetryAttemptsSec; 
 
   /*! OpenIGTLink client socket */ 
   igtl::ClientSocket::Pointer ClientSocket;
 
   /*! Attempt a reconnection if no data is received */
   bool ReconnectOnReceiveTimeout;
+
+  /*!
+    Use the timestamp embedded in the OpenIGTLink message (the timestamp is converted form the UTC time to system time).
+    If it is false then the time of reception is used as timestamp.
+  */
+  bool UseReceivedTimestamps;
 
   /*!
     Internal tracker coordinate system name that is send to the tracker when tracking start is requested
@@ -155,11 +156,6 @@ protected:
   /*! Use the last known transform value if not received a new value. Useful for servers that only notify about changes in the transforms. */
   bool UseLastTransformsOnReceiveTimeout;
 
-  /*!
-    Use the timestamp embedded in the OpenIGTLink message (the timestamp is converted form the UTC time to system time).
-    If it is false then the time of reception is used as timestamp.
-  */
-  bool UseReceivedTimestamps;
 
 private:  
   
