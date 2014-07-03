@@ -329,12 +329,14 @@ ENDIF( PLUS_USE_3dConnexion_TRACKER )
 
 IF( PLUS_USE_OpenIGTLink )
   SET (DataCollection_SRCS ${DataCollection_SRCS}
+    OpenIGTLink/vtkOpenIGTLinkDevice.cxx 
     OpenIGTLink/vtkOpenIGTLinkTracker.cxx 
     OpenIGTLink/vtkOpenIGTLinkVideoSource.cxx
     )
     
   IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
+      OpenIGTLink/vtkOpenIGTLinkDevice.h
       OpenIGTLink/vtkOpenIGTLinkTracker.h 
       OpenIGTLink/vtkOpenIGTLinkVideoSource.h
       )
