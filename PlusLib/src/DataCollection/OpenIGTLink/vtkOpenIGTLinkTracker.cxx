@@ -23,7 +23,6 @@ vtkOpenIGTLinkTracker::vtkOpenIGTLinkTracker()
 : TrackerInternalCoordinateSystemName(NULL)
 , UseLastTransformsOnReceiveTimeout(false)
 {
-  this->TrackerInternalCoordinateSystemName=NULL;
   SetTrackerInternalCoordinateSystemName("Reference");
 }
 
