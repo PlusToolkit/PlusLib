@@ -329,19 +329,18 @@ ENDIF( PLUS_USE_3dConnexion_TRACKER )
 
 IF( PLUS_USE_OpenIGTLink )
   SET (DataCollection_SRCS ${DataCollection_SRCS}
-    OpenIGTLinkTracking/vtkOpenIGTLinkTracker.cxx 
-    OpenIGTLinkVideo/vtkOpenIGTLinkVideoSource.cxx
+    OpenIGTLink/vtkOpenIGTLinkTracker.cxx 
+    OpenIGTLink/vtkOpenIGTLinkVideoSource.cxx
     )
     
   IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
-      OpenIGTLinkTracking/vtkOpenIGTLinkTracker.h 
-      OpenIGTLinkVideo/vtkOpenIGTLinkVideoSource.h
+      OpenIGTLink/vtkOpenIGTLinkTracker.h 
+      OpenIGTLink/vtkOpenIGTLinkVideoSource.h
       )
   ENDIF (WIN32)
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
-    ${CMAKE_CURRENT_SOURCE_DIR}/OpenIGTLinkTracking 
-    ${CMAKE_CURRENT_SOURCE_DIR}/OpenIGTLinkVideo
+    ${CMAKE_CURRENT_SOURCE_DIR}/OpenIGTLink
     CACHE INTERNAL "" FORCE)  
   
   SET (DataCollection_LIBS ${DataCollection_LIBS} OpenIGTLink vtkPlusOpenIGTLink )
