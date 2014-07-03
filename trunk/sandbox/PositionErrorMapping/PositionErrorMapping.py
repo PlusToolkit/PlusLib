@@ -210,22 +210,22 @@ class PositionErrorMappingLogic:
   
   def __init__(self):  
     self.groundTruthTransformNode = None
-    self.groundTruthTransformNodeObserverTag = None
+    self.transformNodeObserverTags = []
     self.mappedTransformNode = None
-    self.mappedTransformNodeObserverTag = None    
     self.outputVolumeNode = None
     self.previousMappedPosition = [0,0,0]
 
   def addObservers(self):
     transformModifiedEvent = 15000
-    self.groundTruthTransformNodeObserverTag = self.groundTruthTransformNode.AddObserver(transformModifiedEvent, self.onGroundTruthTransformNodeModified)
-
+    transformNode = self.groundTruthTransformNode
+    while transformNode:
+      print "Add observer to {0}".format(transformNode.GetName())
+      self.transformNodeObserverTags.append([transformNode, transformNode.AddObserver(transformModifiedEvent, self.onGroundTruthTransformNodeModified)])
+      transformNode = transformNode.GetParentTransformNode()
 
   def removeObservers(self):
-    if self.groundTruthTransformNode and self.groundTruthTransformNodeObserverTag:
-      self.groundTruthTransformNode.RemoveObserver(self.groundTruthTransformNodeObserverTag)
-    if self.mappedTransformNode and self.mappedTransformNodeObserverTag:
-      self.mappedTransformNode.RemoveObserver(self.mappedTransformNodeObserverTag)
+    for nodeTagPair in self.transformNodeObserverTags:
+      nodeTagPair[0].RemoveObserver(nodeTagPair[1])
       
   def startTransformMapping(self, groundTruthTransformNode, mappedTransformNode, outputVolumeNode, outputTransformNode):
     self.removeObservers()
@@ -271,7 +271,7 @@ class PositionErrorMappingLogic:
   def onGroundTruthTransformNodeModified(self, observer, eventid):
 
     mappedTransformMatrix = vtk.vtkMatrix4x4()
-    self.mappedTransformNode.GetMatrixTransformToParent(mappedTransformMatrix)    
+    self.mappedTransformNode.GetMatrixTransformToWorld(mappedTransformMatrix)    
     mappedPos = [mappedTransformMatrix.GetElement(0,3), mappedTransformMatrix.GetElement(1,3), mappedTransformMatrix.GetElement(2,3)]
       
     # return if did not move enough compared to the previous sampling position
@@ -283,7 +283,7 @@ class PositionErrorMappingLogic:
 
     # Compute distortion vector   
     groundTruthTransformMatrix = vtk.vtkMatrix4x4()
-    self.groundTruthTransformNode.GetMatrixTransformToParent(groundTruthTransformMatrix)
+    self.groundTruthTransformNode.GetMatrixTransformToWorld(groundTruthTransformMatrix)
     gtPos = [groundTruthTransformMatrix.GetElement(0,3), groundTruthTransformMatrix.GetElement(1,3), groundTruthTransformMatrix.GetElement(2,3)]
     distortionVectorR = mappedPos[0]-gtPos[0]
     distortionVectorA = mappedPos[1]-gtPos[1]
@@ -291,10 +291,10 @@ class PositionErrorMappingLogic:
 
     # Compute voxel position
     distortionVectorPosition_Ras = [gtPos[0], gtPos[1], gtPos[2], 1]
-    distortionVectorPosition_Ijk=self.rasToIjk.MultiplyPoint(distortionVectorPosition_Ras)
 
     # Paint voxel value
     if self.outputVolumeNode:
+      distortionVectorPosition_Ijk=self.rasToIjk.MultiplyPoint(distortionVectorPosition_Ras)    
       outputVolumeImageData=self.outputVolumeNode.GetImageData()
       # We just use a constant fill value to be able to visualize that a sample has been obtained at this point (can be shown in a slice view or in 3D using volume rendering)
       fillValue=1000
