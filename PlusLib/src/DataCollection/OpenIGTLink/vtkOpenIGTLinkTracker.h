@@ -8,7 +8,7 @@
 #define __vtkOpenIGTLinkTracker_h
 
 #include "PlusConfigure.h"
-#include "vtkPlusDevice.h"
+#include "vtkOpenIGTLinkDevice.h"
 #include "igtlClientSocket.h"
 #include "igtlMessageBase.h"
 
@@ -18,25 +18,16 @@
 
 \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkOpenIGTLinkTracker : public vtkPlusDevice
+class VTK_EXPORT vtkOpenIGTLinkTracker : public vtkOpenIGTLinkDevice
 {
 public:
 
   static vtkOpenIGTLinkTracker *New();
-  vtkTypeMacro( vtkOpenIGTLinkTracker,vtkPlusDevice );
-  void PrintSelf( ostream& os, vtkIndent indent );
-
-  /*! OpenIGTLink version. */
-  virtual std::string GetSdkVersion();
-
-  /*! Connect to device */
-  PlusStatus InternalConnect();
+  vtkTypeMacro( vtkOpenIGTLinkTracker,vtkOpenIGTLinkDevice );
+  virtual void PrintSelf( ostream& os, vtkIndent indent );
 
   /*! Disconnect from device */
   virtual PlusStatus InternalDisconnect();
-
-  /*! Probe to see if the tracking system is present on the specified address. */
-  PlusStatus Probe();
 
   /*! Get an update from the tracking system and push the new transforms to the tools. This function is called by the tracker thread.*/
   PlusStatus InternalUpdate();
@@ -57,46 +48,11 @@ public:
   /*! Get the internal tracker coordinate system name */ 
   vtkGetStringMacro(TrackerInternalCoordinateSystemName); 
 
-  /*! Set OpenIGTLink message type */ 
-  vtkSetStringMacro(MessageType); 
-  /*! Get OpenIGTLink message type */ 
-  vtkGetStringMacro(MessageType); 
-
-  /*! Set OpenIGTLink server address */ 
-  vtkSetStringMacro(ServerAddress); 
-  /*! Get OpenIGTLink server address */ 
-  vtkGetStringMacro(ServerAddress); 
-
-  /*! Set OpenIGTLink server port */ 
-  vtkSetMacro(ServerPort, int); 
-  /*! Get OpenIGTLink server port */ 
-  vtkGetMacro(ServerPort, int); 
-
-  /*! Set IGTL CRC check flag (0: disabled, 1: enabled) */ 
-  vtkSetMacro(IgtlMessageCrcCheckEnabled, int); 
-  /*! Get IGTL CRC check flag (0: disabled, 1: enabled) */ 
-  vtkGetMacro(IgtlMessageCrcCheckEnabled, int); 
-
-  /*! Get the ReconnectOnNoData flag */
-  vtkGetMacro(ReconnectOnReceiveTimeout, bool);
-
-
-
 protected:
   vtkOpenIGTLinkTracker();
   virtual ~vtkOpenIGTLinkTracker();
 
-
-
-  /*! Reconnect the client socket. Used when the connection is established or there is a socket error. */
-  PlusStatus ClientSocketReconnect();
-
-  /*!
-    Receive an OpenITGLink message header.
-    Returns PLUS_FAIL if there was a socket error.
-    The headerMsg is NULL is no data is received.
-  */
-  PlusStatus ReceiveMessageHeader(igtl::MessageHeader::Pointer &headerMsg);
+  virtual PlusStatus SendRequestedMessageTypes();
 
   /*! Process a TRANSFORM or POSITION message (add the received transform to the buffer) */
   PlusStatus ProcessTransformMessage(igtl::MessageHeader::Pointer headerMsg);
@@ -111,41 +67,7 @@ protected:
   */
   PlusStatus StoreMostRecentTransformValues(double unfilteredTimestamp);
 
-  /*! Set the ReconnectOnNoData flag */
-  vtkSetMacro(ReconnectOnReceiveTimeout, bool);
-
   vtkSetMacro(UseLastTransformsOnReceiveTimeout, bool);
-  vtkSetMacro(UseReceivedTimestamps, bool);
-
-  /*! OpenIGTLink message type */
-  char* MessageType; 
-
-  /*! OpenIGTLink server address */ 
-  char* ServerAddress; 
-
-  /*! OpenIGTLink server port */ 
-  int ServerPort; 
-
-  /*! Flag for IGTL CRC check (0: disabled, 1: enabled) */ 
-  int IgtlMessageCrcCheckEnabled; 
-
-  /*! Number of retry attempts for message sending to and receiving from the server */ 
-  int NumberOfRetryAttempts; 
-
-  /*! Delay between retry attempts */ 
-  double DelayBetweenRetryAttemptsSec; 
-
-  /*! OpenIGTLink client socket */ 
-  igtl::ClientSocket::Pointer ClientSocket;
-
-  /*! Attempt a reconnection if no data is received */
-  bool ReconnectOnReceiveTimeout;
-
-  /*!
-    Use the timestamp embedded in the OpenIGTLink message (the timestamp is converted form the UTC time to system time).
-    If it is false then the time of reception is used as timestamp.
-  */
-  bool UseReceivedTimestamps;
 
   /*!
     Internal tracker coordinate system name that is send to the tracker when tracking start is requested
@@ -155,7 +77,6 @@ protected:
 
   /*! Use the last known transform value if not received a new value. Useful for servers that only notify about changes in the transforms. */
   bool UseLastTransformsOnReceiveTimeout;
-
 
 private:  
   
