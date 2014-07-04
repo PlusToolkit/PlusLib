@@ -24,8 +24,11 @@ Imaging devices
 - \subpage DeviceOpenIGTLinkVideo
 - \subpage DeviceSonixVideo
 - \subpage DeviceStealthLink
-- \subpage DeviceUsSimulatorVideo
+- \subpage DeviceUsSimulator
 - \subpage DeviceVideoForWindows
-- \subpage DeviceVirtualDevices
+- \subpage DeviceVirtualDiscCapture
+- \subpage DeviceVirtualMixer
+- \subpage DeviceVirtualSwitcher
+- \subpage DeviceVirtualVolumeReconstructor
 
 */

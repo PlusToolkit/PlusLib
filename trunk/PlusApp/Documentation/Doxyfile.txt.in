@@ -232,7 +232,7 @@ TAB_SIZE               = 2
 
 ALIASES                += OptionalAtt{1}=" \image html icons\optional.png Default = \c \"\1\" "
 ALIASES                += RequiredAtt=" \image html icons\required.png \" \" "
-ALIASES                += TodoAndras="<B>TodoAndras</B>"
+ALIASES                += TodoAndras{1}=" \e \b TodoAndras \1 "
 ALIASES                += xmlAtt=" \image html icons\attribute.png \" \" "
 ALIASES                += xmlElem=" \image html icons\element.png \" \" "
 
@@ -1170,7 +1170,7 @@ HTML_TIMESTAMP         = YES
 # The default value is: NO.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_DYNAMIC_SECTIONS  = NO
+HTML_DYNAMIC_SECTIONS  = YES
 
 # With HTML_INDEX_NUM_ENTRIES one can control the preferred number of entries
 # shown in the various tree structured indices initially; the user can expand
