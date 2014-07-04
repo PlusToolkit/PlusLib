@@ -3,8 +3,6 @@
 
 \section VirtualSwitcherSupportedHwDevices Supported hardware devices
 
-- Link to manufacturer's website:
-
 \section VirtualSwitcherSupportedPlatforms Supported platforms
 - \ref PlatformWin32
 - \ref PlatformWin64

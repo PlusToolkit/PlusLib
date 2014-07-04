@@ -8,7 +8,7 @@
 
 \section BkProFocusSupportedPlatforms Supported platforms
 
-- RF acquisition is supported on Windows only. \TodoAndras
+- RF acquisition is supported on Windows only. \TodoAndras{Do not really know which devices will compile in every platform}
 - \ref PlatformWin32
 - \ref PlatformWin64
 - \ref PlatformWin32Embedded
@@ -30,7 +30,7 @@ OEM interfaceOem
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate". Image retrieval may slow down the exam software, so keep the frame rate low by default \OptionalAtt{1}
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 
-- \xmlAtt \b IniFileName. INI file name. If a relative path is specified then it is relative to the device set configuration directory. See an example \ref inifile "INI file" below. \RequiredAtt \TodoAndras Though it uses an optional macro it is a required attribute, right?
+- \xmlAtt \b IniFileName. INI file name. Is the name of the BK ini file that stores connection and acquisition settings. If a relative path is specified then it is relative to the device set configuration directory. See an example \ref inifile "INI file" below. \RequiredAtt \TodoAndras{Though it uses an optional macro it is a required attribute, right?}
 
 - \xmlElem \ref DataSources:
   - \xmlElem \ref DataSource: there must be one child element
@@ -46,7 +46,7 @@ RF acquisition through the CameraLink interface
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125}
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 
-- \xmlAtt \b IniFileName INI file name. If a relative path is specified then it is relative to the device set configuration directory. See an example \ref inifile "INI file" below. \RequiredAtt 
+- \xmlAtt \b IniFileName INI file name of the BK ini file that stores connection and acquisition settings. If a relative path is specified then it is relative to the device set configuration directory. See an example \ref inifile "INI file" below. \RequiredAtt 
 - \xmlAtt \b ImagingMode Set what kind of images are sent to the video source. The default is RF mode, when the raw RF data is recorded. Applications (e.g., fCal) may still be able to show a B-mode image for monitoring the acquisition by performing the brightness conversion and scan conversion internally. Other imaging modes are not yet supported. \OptionalAtt{RfMode}
   - \c BMode
   - \c RfMode Acquire RF mode data. For previewing B-mode images during acquisition, add an \ref RfProcessing "RfProcessing" child element to the \c OutputChannel.

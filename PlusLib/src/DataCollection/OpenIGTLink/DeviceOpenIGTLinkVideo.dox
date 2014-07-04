@@ -21,8 +21,8 @@ There are commercial systems that provide tracking video and image data through 
 - \xmlAtt \ref DeviceType "Type" = \c "OpenIGTLinkVideo" \RequiredAtt
 - \xmlAtt \b ServerAddress Host name or IP address of the OpenIGTLink server that sends the data to this device. \RequiredAtt
 - \xmlAtt \b ServerPort Port of the OpenIGTLink server that sends the data to this device. \RequiredAtt
-- \xmlAtt \b ImageMessageEmbeddedTransformName If IMAGE message is received and this attribute is defined then the transform embedded in the message will be recorded as a transform, with the specified name (e.g., "ImageToReference"). If the attribute is not defined then the embedded transform is not recorded. If the message type is not IMAGE then the attribute is ignored. \OptionalAtt{ }
-- \xmlAtt \b MessageType The device will request this message type from the remote server. If the MessageType is not specified then the default message type will be used (specified in the remote server) \OptionalAtt{ }
+- \xmlAtt \b ImageMessageEmbeddedTransformName If IMAGE message is received and this attribute is defined then the transform embedded in the message will be recorded as a transform, with the specified name (e.g., "ImageToReference"). If the attribute is not defined then the embedded transform is not recorded. If the message type is not IMAGE then the attribute is ignored. \OptionalAtt{XX}
+- \xmlAtt \b MessageType The device will request this message type from the remote server. If the MessageType is not specified then the default message type will be used (specified in the remote server) \OptionalAtt{XX}
   - \c IMAGE Request sending only image data in IMAGE OpenIGTLink messages.
   - \c TRACKEDFRAME Request sending image+tracking data in TRACKEDFRAME OpenIGTLink messages.
 - \xmlAtt \b IgtlMessageCrcCheckEnabled Enable CRC check on the received OpenIGTLink messages (\c true or \c false). \OptionalAtt{false}
