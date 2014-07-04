@@ -1,7 +1,7 @@
 /*!
 
 \page SupportedPlatforms Supported platforms
-\TodoAndras
+\TodoAndras{Do not really know which devices will compile in every platform}
 \section PlatformWin32 Supprted platforms Windows 32 bits
 Windows 8, Windows 7, Vista 32 and 64 bit platforms can execute this package
 \section PlatformWin64 Supprted platforms Windows 64 bits

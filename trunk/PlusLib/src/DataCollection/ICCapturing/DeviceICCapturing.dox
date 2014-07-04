@@ -22,6 +22,14 @@ Supported model: DFG/USB2pro analog framegrabbers with USB interface
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125} 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 
+- \xmlAtt \b DeviceName Is a string with the name of the device used (e.g. \c "DFG/USB2-lt"). \RequiredAtt
+- \xmlAtt \b VideoNorm Is a string with the name of Video norm (e.g. \c "PAL_B" or \c "NTSC_M") \RequiredAtt
+- \xmlAtt \b VideoFormat Is a string with the name of teh video format. (e.g. The \c "Y800 (640x480)" color format is an 8 bit monochrome format).\RequiredAtt
+- \xmlAtt \b InputChannel Is a string with the name of the IC capturing device input channel (e.g. \c "01 Video: SVideo"). \RequiredAtt
+- \xmlAtt \b ICBufferSize Is the IC capturing device buffer size. \OptionalAtt{50}
+- \xmlAtt \b ClipRectangleOrigin Crop rectangle origin for the grabber (in pixels). \OptionalAtt{0 0}
+- \xmlAtt \b ClipRectangleSize Crop rectangle size for the grabber (in pixels). If it is \c "0 0" then the whole frame will be captured. \OptionalAtt{0 0}
+
 - \xmlElem \ref DataSources:
   - \xmlElem \ref DataSource: there must be one child element
     - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
@@ -31,6 +39,7 @@ Supported model: DFG/USB2pro analog framegrabbers with USB interface
 
 \section ICCapturingExampleConfigFile Example configuration file
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_ICCapturing.xml"
+\include "data/ConfigFiles/PlusDeviceSet_Server_ImagingControlsVideoCapture.xml"
+
 
 */

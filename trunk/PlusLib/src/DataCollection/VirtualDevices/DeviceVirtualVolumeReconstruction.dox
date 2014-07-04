@@ -3,8 +3,6 @@
 
 \section VirtualVolumeReconstructorSupportedHwDevices Supported hardware devices
 
-- Link to manufacturer's website:
-
 \section VirtualVolumeReconstructorSupportedPlatforms Supported platforms
 - \ref PlatformWin32
 - \ref PlatformWin64
@@ -21,9 +19,13 @@
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 
+- \xmlAtt \b EnableReconstruction Flag that enables adding frames to the volume. It can be used for pausing the recording. \OptionalAtt{false}
+- \xmlAtt \b OutputVolFilename If specified, the reconstructed volume will be saved into this filename \OptionalAtt{NULL}
+- \xmlAtt \b OutputVolDeviceName If specified, the reconstructed volume will sent to the client through OpenIGTLink, using this device name. \OptionalAtt{NULL}
+
 \section VirtualVolumeReconstructorExampleConfigFile Example configuration file
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_VirtualVolumeReconstructor.xml"
+\include "data/ConfigFiles/PlusDeviceSet_Server_Sim_NwirePhantom.xml"
 \ref UsSimulatorVideoSupportedHwDevices
 
 */

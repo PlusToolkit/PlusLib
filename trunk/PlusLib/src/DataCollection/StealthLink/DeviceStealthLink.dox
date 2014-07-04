@@ -28,11 +28,11 @@ No need to install any extra software. The StealthStation needs to be connected 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
 
-- \xmlAtt \b ServerAddress. The IP address of the stealthstation.
-- \xmlAtt \b ServerPort. The port of the stealthstation.
+- \xmlAtt \b ServerAddress. The IP address of the stealthstation. \RequiredAtt
+- \xmlAtt \b ServerPort. The port of the stealthstation. \RequiredAtt
 
 - \xmlElem \ref DataSources:
-  - \xmlElem \ref DataSource: there must be one child element
+  - \xmlElem \ref DataSource: there must be one child element \RequiredAtt
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref PortName \RequiredAtt
       - \c *Instruments' names defined in StealthStation must match tools' port names defined in the configuration file (example: Passive Planar, Blunt).

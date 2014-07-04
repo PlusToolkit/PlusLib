@@ -12,22 +12,27 @@ For hardware-free testing and simulation purposes, any previous recording (saved
 - \ref PlatformMacOs
 - \ref PlatformLinux
 
-\section SavedDataSourceInstallation Installation
-
-
 \section SavedDataSourceConfigSettings Device configuration settings
 
 - \xmlAtt \ref DeviceType "Type" = \c "SavedDataSet" \RequiredAtt
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{10} 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
-- \b UseData \cTRANSFORM or \cIMAGE_AND_TRANSFORM
+
+- \xmlAtt \b SequenceMetafile Name of input sequence metafile with path to tracking buffer data. \RequiredAtt
+- \xmlAtt \b RepeatEnabled  Flag to enable saved dataset looping. If it's enabled, the video source will continuously play saved data (starts playing from the beginning when the end is reached). \OptionalAtt{false}
+- \xmlAtt \b UseOriginalTimestamps  Flag to read the timestamps from the file and use them in the output (instead of the current time). \OptionalAtt{false}
+- \xmlAtt \b UseData Three types of data that can be used: \OptionalAtt{IMAGE}
+  - \c "IMAGE" The device provides a video stream 
+  - \c "TRANSFORM" The device provides a tracker stream
+  - \c "IMAGE_AND_TRANSFORM"  The device provides a video stream with tracking data added as fields
 
 
-- \xmlAtt \ref ImageType Color image acquisition is supported by setting the imaging device's common attribute \c ImageType="RGB_COLOR". \OptionalAtt{BRIGHTNESS}
 
-\section SavedDataSourceExampleConfigFile Example configuration file
+\section SavedDataSourceExampleConfigFile Example configuration file. 
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_SavedDataSource.xml"
+ \TodoAndras{Is the attribute DefaultToolName not used anymore?}
+
+\include "data/ConfigFiles/Testing/PlusDeviceSet_DataCollectionOnly_SavedDataset.xml"
 
 */

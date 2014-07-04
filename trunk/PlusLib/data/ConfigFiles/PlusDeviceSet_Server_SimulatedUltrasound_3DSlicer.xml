@@ -260,7 +260,7 @@ To use with Ascension tracker instead of a simulated tracker: enable the Ascensi
   <CoordinateDefinitions>
     <Transform From="NeedleTip" To="Needle"
       Matrix="
-	       1 0 0 0
+         1 0 0 0
          0 1 0 0
          0 0 1 0
          0 0 0 1" />	

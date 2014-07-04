@@ -232,7 +232,7 @@ TAB_SIZE               = 2
 
 ALIASES                += OptionalAtt{1}=" \image html icons\optional.png Default = \c \"\1\" "
 ALIASES                += RequiredAtt=" \image html icons\required.png \" \" "
-ALIASES                += TodoAndras="<B>TodoAndras</B>"
+ALIASES                += TodoAndras{1}=" \e \b TodoAndras \1 "
 ALIASES                += xmlAtt=" \image html icons\attribute.png \" \" "
 ALIASES                += xmlElem=" \image html icons\element.png \" \" "
 

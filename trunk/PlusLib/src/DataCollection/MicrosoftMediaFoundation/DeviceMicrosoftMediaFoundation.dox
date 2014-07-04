@@ -3,7 +3,6 @@
 
 \section MicrosoftMediaFoundationSupportedHwDevices Supported hardware devices
 Any compatible framegrabbers and webcams through Microsoft Media Foundation interface.
-- Link to manufacturer's website:
 
 \section MicrosoftMediaFoundationSupportedPlatforms Supported platforms
 - \ref PlatformWin32
@@ -14,12 +13,17 @@ Any compatible framegrabbers and webcams through Microsoft Media Foundation inte
 
 \section MicrosoftMediaFoundationInstallation Installation
 
+Media foundation require Microsoft Windows SDK 7.1 or later. Download <a href="http://www.microsoft.com/en-us/download/details.aspx?id=8279">here</a>
 
 \section MicrosoftMediaFoundationConfigSettings Device configuration settings
 
 - \xmlAtt \ref DeviceType "Type" = \c "MmfVideo" \RequiredAtt
-- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125} 
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+
+- \xmlAtt \b FrameSize Size of the video frame. \OptionalAtt{640 480}
+- \xmlAtt \b VideoFormat It specifies the video subtype format. All the available formats are described <a href="http://msdn.microsoft.com/en-us/library/windows/desktop/aa370819(v=vs.85).aspx">here.</a> \OptionalAtt{YUY2}
+- \xmlAtt \b CaptureDeviceId \OptionalAtt{0}
 
 - \xmlElem \ref DataSources:
   - \xmlElem \ref DataSource: there must be one child element
@@ -30,6 +34,8 @@ Any compatible framegrabbers and webcams through Microsoft Media Foundation inte
 
 \section MicrosoftMediaFoundationExampleConfigFile Example configuration file
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_MicrosoftMediaFoundation.xml"
+\include "data/ConfigFiles/PlusDeviceSet_Server_MmfColorVideoCapture.xml"
+
+
 
 */

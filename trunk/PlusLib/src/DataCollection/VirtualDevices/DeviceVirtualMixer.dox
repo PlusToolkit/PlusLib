@@ -3,8 +3,6 @@
 
 \section VirtualMixerSupportedHwDevices Supported hardware devices
 
-- Link to manufacturer's website:
-
 \section VirtualMixerSupportedPlatforms Supported platforms
 - \ref PlatformWin32
 - \ref PlatformWin64
