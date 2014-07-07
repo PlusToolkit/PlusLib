@@ -79,7 +79,11 @@ int main( int argc, char** argv )
   // Create Plus OpenIGTLink server.
   LOG_DEBUG( "Initializing Plus OpenIGTLink server... " );
   vtkSmartPointer< vtkPlusOpenIGTLinkServer > server = vtkSmartPointer< vtkPlusOpenIGTLinkServer >::New();
-  PlusStatus status=server->Start(inputConfigFileName);
+  if (server->Start(inputConfigFileName)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to start OpenIGTLink server");
+    exit(EXIT_FAILURE);
+  }
 
   double startTime = vtkAccurateTimer::GetSystemTime(); 
 
