@@ -31,7 +31,7 @@ Recommended values:
   - If sensor axis 1 points down (the sensor plane is about vertical) => \b TiltSensorDownAxisIndex \c ="0".
   - If sensor axis 2 points down (the sensor plane is about horizontal) => \b TiltSensorDownAxisIndex \c ="1".
 - \xmlAtt \b FilteredTiltSensorWestAxisIndex Same as \b TiltSensorWestAxisIndex but for the filtered tool. \OptionalAtt{1}
-- \xmlAtt \b AhrsAlgorithm It is a combined parameter. The first part specifies the AHRS algorithm method \c MADGWICK (only one parameter) or \c MAHONY (two parameters proportional and integral). The second part determines whether the magnetometer is used (\c MARG where heading estimated using magnetometer data,  it is less noisy but sensitive to magnetic filed disortions) or not (\c IMU where heading estimated using gyroscope data only, it is more noisy but not sensitive to magnetic filed disortions). Supported types:
+- \xmlAtt \b AhrsAlgorithm It is a combined parameter. The first part specifies the AHRS algorithm method \c MADGWICK (only one parameter) or \c MAHONY (two parameters proportional and integral). The second part determines whether the magnetometer is used ( \c MARG where heading estimated using magnetometer data,  it is less noisy but sensitive to magnetic filed disortions) or not ( \c IMU where heading estimated using gyroscope data only, it is more noisy but not sensitive to magnetic filed disortions). Supported types:
 <tt> "MADGWICK_MARG", "MADGWICK_IMU", "MAHONY_MARG" or "MAHONY_IMU"</tt> \OptionalAtt{MADGWICK_MARG}
 - \xmlAtt \b FilteredTiltSensorAhrsAlgorithm  It is a combined parameter that specifies the AHRS algorithm type for Filtered Tilt. The first part specifies the AHRS algorithm method \c MADGWICK (only one parameter) or \c MAHONY (two parameters proportional and integral). It is a tilt sensor and does not uses the magnetometer so the second part has to be \c IMU. Supported types: <tt> "MADGWICK_IMU", "MAHONY_IMU" </tt> \OptionalAtt{MADGWICK_IMU}
 
@@ -39,12 +39,12 @@ Recommended values:
 - \xmlAtt \b FilteredTiltSensorAhrsAlgorithmGain  Same as \b AhrsAlgorithmGain but for the filtered tool. \OptionalAtt{1.5 0.0}
 
 - \xmlElem \ref DataSources:
-  - \xmlElem \ref DataSource: there must be one child element
+   - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
     - \xmlAtt \ref PortName \RequiredAtt
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 
-\section PhidgetSpatialExampleConfigFile Example configuration file
+\section PhidgetSpatialExampleConfigFile Example configuration file PlusDeviceSet_Server_PhidgetSpatial.xml
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_PhidgetSpatial.xml"
 

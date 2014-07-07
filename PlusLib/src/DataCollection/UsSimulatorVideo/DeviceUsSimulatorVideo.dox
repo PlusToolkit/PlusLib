@@ -43,13 +43,13 @@ http://perk.cs.queensu.ca/contents/opensource-surface-meshbased-ultrasoundguided
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 
 - \xmlElem \ref DataSources:
-  - \xmlElem \ref DataSource: there must be one child element
+   - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
     - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
     - \xmlAtt \ref ImageType \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 
-\section UsSimulatorExampleConfigFile Example configuration file
+\section UsSimulatorExampleConfigFile Example configuration file PlusDeviceSet_Server_SimulatedUltrasound_3DSlicer.xml
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_SimulatedUltrasound_3DSlicer.xml"
 

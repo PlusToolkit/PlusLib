@@ -38,13 +38,13 @@ Requires SDK provided by Interson for compilation and USB drivers provided by In
 - \xmlAtt \b FrequencyMhz ultrasound transmitter frequency \c [MHz].\OptionalAtt{-1}
 
 - \xmlElem \ref DataSources:
-  - \xmlElem \ref DataSource: there must be one child element
+   - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
     - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
     - \xmlAtt \ref ImageType Supported imaging modes: B-mode \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 
-\section IntersonExampleConfigFile Example configuration file
+\section IntersonExampleConfigFile Example configuration file PlusDeviceSet_Server_IntersonVideoCapture_WithParameters.xml
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_IntersonVideoCapture_WithParameters.xml"
 

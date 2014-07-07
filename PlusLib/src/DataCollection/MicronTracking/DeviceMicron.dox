@@ -24,17 +24,17 @@ The 1394 interface that your computer already has may not work with the camera. 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
 
-- \xmlAtt \b TemplateDirectory = "Markers". Path to the directory that contains the marker files. Relative to the \c DeviceSetConfigurationDirectory (defined in PlusConfig.xml). \OptionalAtt{DeviceSetConfigurationDirectory}
-- \xmlAtt \b IniFile = "MicronTracker.ini". Path to the initialization file. Relative to the \c DeviceSetConfigurationDirectory (defined in PlusConfig.xml). \RequiredAtt
+- \xmlAtt \b TemplateDirectory \c ="Markers" Path to the directory that contains the marker files. Relative to the \c DeviceSetConfigurationDirectory (defined in PlusConfig.xml). \OptionalAtt{DeviceSetConfigurationDirectory}
+- \xmlAtt \b IniFile \c ="MicronTracker.ini" Path to the initialization file. Relative to the \c DeviceSetConfigurationDirectory (defined in PlusConfig.xml). \RequiredAtt
 
 - \xmlElem \ref DataSources:
-  - \xmlElem \ref DataSource: there must be one child element
+   - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
     - \xmlAtt \ref PortName \RequiredAtt
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 
 
-\section MicronExampleConfigFile Example configuration file
+\section MicronExampleConfigFile Example configuration file PlusDeviceSet_Server_MicronTracker.xml
 
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_MicronTracker.xml" 

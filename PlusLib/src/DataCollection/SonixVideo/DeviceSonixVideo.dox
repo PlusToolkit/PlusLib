@@ -88,18 +88,18 @@ Porta initialization parameters \TodoAndras{Did not find anything about these 4}
 \par
 
 - \xmlElem \ref DataSources:
-  - \xmlElem \ref DataSource: there must be one child element \RequiredAtt
+   - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
     - \xmlAtt \ref PortName \RequiredAtt
     - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
     - \xmlAtt \ref ImageType \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 
-\section SonixVideoExampleConfigFile Example configuration file Sonix Video Touch_L14-5
+\section SonixVideoExampleConfigFile Example configuration file Sonix Video Touch_L14-5 PlusDeviceSet_Server_SonixTouch_L14-5_Porta.xml
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_SonixTouch_L14-5.xml"
 
-\section SonixVideoExampleConfigFileB Example configuration file Sonix Porta Touch_L14-5
+\section SonixVideoExampleConfigFileB Example configuration file Sonix Porta Touch_L14-5 PlusDeviceSet_Server_SonixTouch_L14-5_Porta.xml
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_SonixTouch_L14-5_Porta.xml"
 

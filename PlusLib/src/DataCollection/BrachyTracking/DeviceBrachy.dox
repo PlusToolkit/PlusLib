@@ -2,8 +2,11 @@
 \page DeviceBrachy CMS and CIVCO brachy steppers
 
 \section BrachySupportedHwDevices Supported hardware devices
+Civco brachy steppers
+
 
 - Link to manufacturer's website:
+http://www.civco.com/mmi/products/brachytherapy/Steppers.htm
 
 \section BrachySupportedPlatforms Supported platforms
 - \ref PlatformWin32
@@ -42,15 +45,14 @@
   - \xmlAtt \b ProbeRotationAxisOrientation VECTOR [Trx, Try, 1] \OptionalAtt{0 0 1}
   - \xmlAtt \b ProbeRotationEncoderScale SCALAR \OptionalAtt{1}
 
-
-- \xmlElem \ref DataSources:
-  - \xmlElem \ref DataSource: there must be one child element
+- \xmlElem \ref DataSources: \TodoAndras{From the code I thought there would be needed a datasource but it is not defined in the config file}
+   - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
     - \xmlAtt \ref PortName \RequiredAtt
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 
 
-\section BrachyExampleConfigFile Example configuration file
+\section BrachyExampleConfigFile Example configuration file PlusDeviceSet_iCal_SonixTouch_CivcoStepper_1.0.xml
 
 \include "data/ConfigFiles/Queens/PlusDeviceSet_iCal_SonixTouch_CivcoStepper_1.0.xml"
 
