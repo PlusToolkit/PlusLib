@@ -9,7 +9,7 @@ Tracking devices
 - \subpage DeviceFake
 - \subpage DeviceMicron
 - \subpage DeviceNDICertus
-- \subpage DeviceOpenIGTLink
+- \subpage DeviceOpenIGTLinkTracker
 - \subpage DevicePhidgetSpatial
 - \subpage DevicePolaris
 - \subpage DeviceChRobotics
