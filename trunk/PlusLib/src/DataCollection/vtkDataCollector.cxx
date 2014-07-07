@@ -85,39 +85,40 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
 
   vtkSmartPointer<vtkPlusDeviceFactory> factory = vtkSmartPointer<vtkPlusDeviceFactory>::New();
 
+  std::set<std::string> existingDeviceIds;
+
   for ( int i = 0; i < dataCollectionElement->GetNumberOfNestedElements(); ++i )
   {
     vtkXMLDataElement* deviceElement = dataCollectionElement->GetNestedElement(i); 
-
-    if (STRCASECMP(deviceElement->GetName(), "Device") == 0 )
+    if (deviceElement==NULL || STRCASECMP(deviceElement->GetName(), "Device") != 0 )
     {
-      vtkPlusDevice* device = NULL;
-      if( deviceElement->GetAttribute("Id") == NULL )
-      {
-        LOG_ERROR("Device of type " << ( deviceElement->GetAttribute("Type") == NULL ? "UNDEFINED" : deviceElement->GetAttribute("Type")) << " with no ID. Skipping device configuration.");
-        continue;
-      }
-      bool skip(false);
-      for( DeviceCollectionIterator it = this->Devices.begin(); it != this->Devices.end(); ++it )
-      {
-        if( STRCASECMP((*it)->GetDeviceId(), deviceElement->GetAttribute("Id")) == 0 )
-        {
-          LOG_ERROR("Device already exists with Id:\'" << (*it)->GetDeviceId() << "\'. Skipping configuration of second device.");
-          skip = true;
-          break;
-        }
-      }
-      if( skip ) continue;
-
-      if( factory->CreateInstance(deviceElement->GetAttribute("Type"), device, deviceElement->GetAttribute("Id")) == PLUS_FAIL )
-      {    
-        LOG_ERROR("Unable to create device: " << deviceElement->GetAttribute("Type"));
-        continue;
-      }
-      device->SetDataCollector(this);
-      device->ReadConfiguration(aConfig);
-      Devices.push_back(device);
+      // only process valid Device elements
+      continue;
     }
+
+    vtkPlusDevice* device = NULL;
+    const char* deviceId = deviceElement->GetAttribute("Id");
+    if (deviceId==NULL)
+    {
+      LOG_ERROR("Device of type " << ( deviceElement->GetAttribute("Type") == NULL ? "UNDEFINED" : deviceElement->GetAttribute("Type")) << " has no Id attribute");
+      return PLUS_FAIL;
+    }
+
+    if (existingDeviceIds.count(deviceId)>0)
+    {
+      LOG_ERROR("Multiple devices exist with the same Id: \'" << deviceId << "\'");
+      return PLUS_FAIL;
+    }
+    existingDeviceIds.insert(deviceId);
+
+    if( factory->CreateInstance(deviceElement->GetAttribute("Type"), device, deviceElement->GetAttribute("Id")) == PLUS_FAIL )
+    {    
+      LOG_ERROR("Unable to create device: " << deviceElement->GetAttribute("Type"));
+      continue;
+    }
+    device->SetDataCollector(this);
+    device->ReadConfiguration(aConfig);
+    Devices.push_back(device);
   }
 
   if( Devices.size() == 0 )
@@ -126,17 +127,27 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
     return PLUS_FAIL;
   }
 
-  bool channelFound = false;
-  for( DeviceCollectionIterator it = this->Devices.begin(); it != this->Devices.end(); ++it)
+  // Check output channels (at least one should exist and each id must be unique)
+  std::set<std::string> existingOutputChannelNames;
+  bool outputChannelFound = false;
+  for( DeviceCollectionIterator deviceIt = this->Devices.begin(); deviceIt != this->Devices.end(); ++deviceIt)
   {
-    if( (*it)->OutputChannelCount() > 0 )
+    for( ChannelContainerConstIterator outputChannelIt = (*deviceIt)->GetOutputChannelsStart(); outputChannelIt != (*deviceIt)->GetOutputChannelsEnd(); ++outputChannelIt )
     {
-      channelFound = true;
-      break;
+      outputChannelFound = true;
+      const char* outputChannelId=(*outputChannelIt)->GetChannelId();
+      if (outputChannelId)
+      {
+        if (existingOutputChannelNames.count(outputChannelId)>0)
+        {
+          LOG_ERROR("Same output channel Id is defined at multiple locations: "<<outputChannelId);
+          return PLUS_FAIL;
+        }
+        existingOutputChannelNames.insert(outputChannelId);
+      }
     }
   }
-
-  if( !channelFound )
+  if( !outputChannelFound )
   {
     LOG_ERROR("No output channels defined. Unable to locate any for data collection.");
     return PLUS_FAIL;
@@ -146,37 +157,38 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
   for ( int i = 0; i < dataCollectionElement->GetNumberOfNestedElements(); ++i )
   {
     vtkXMLDataElement* deviceElement = dataCollectionElement->GetNestedElement(i); 
-
-    if (STRCASECMP(deviceElement->GetName(), "Device") == 0 )
+    if (deviceElement==NULL || STRCASECMP(deviceElement->GetName(), "Device") != 0 )
     {
-      vtkPlusDevice* thisDevice = NULL;
-      if( this->GetDevice(thisDevice, deviceElement->GetAttribute("Id")) != PLUS_SUCCESS )
+      // not a valid Device element
+      continue;
+    }
+    vtkPlusDevice* thisDevice = NULL;
+    if( this->GetDevice(thisDevice, deviceElement->GetAttribute("Id")) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Device " << deviceElement->GetAttribute("Id") << " doesn't exist.");
+      return PLUS_FAIL;
+    }
+    vtkXMLDataElement* inputChannelsElement = deviceElement->FindNestedElementWithName("InputChannels");
+    if (inputChannelsElement == NULL)
+    {
+      // no input channels, nothing to connect
+      continue;
+    }
+    for ( int i = 0; i < inputChannelsElement->GetNumberOfNestedElements(); ++i )
+    {
+      vtkXMLDataElement* inputChannelElement = inputChannelsElement->GetNestedElement(i); 
+      if( STRCASECMP(inputChannelElement->GetName(), "InputChannel") == 0 )
       {
-        LOG_ERROR("Device " << deviceElement->GetAttribute("Id") << " doesn't exist.");
-        return PLUS_FAIL;
-      }
-
-      vtkXMLDataElement* inputChannelsElement = deviceElement->FindNestedElementWithName("InputChannels");
-
-      if (inputChannelsElement != NULL)
-      {
-        for ( int i = 0; i < inputChannelsElement->GetNumberOfNestedElements(); ++i )
+        // We have an input channel, lets find it
+        for( DeviceCollectionIterator it = Devices.begin(); it != Devices.end(); ++it )
         {
-          vtkXMLDataElement* inputChannelElement = inputChannelsElement->GetNestedElement(i); 
-          if( STRCASECMP(inputChannelElement->GetName(), "InputChannel") == 0 )
+          vtkPlusDevice* device = (*it);
+          vtkPlusChannel* aChannel = NULL;
+          if( device->GetOutputChannelByName(aChannel, inputChannelElement->GetAttribute("Id")) == PLUS_SUCCESS )
           {
-            // We have an input channel, lets find it
-            for( DeviceCollectionIterator it = Devices.begin(); it != Devices.end(); ++it )
-            {
-              vtkPlusDevice* device = (*it);
-              vtkPlusChannel* aChannel = NULL;
-              if( device->GetOutputChannelByName(aChannel, inputChannelElement->GetAttribute("Id")) == PLUS_SUCCESS )
-              {
-                // Found it!
-                thisDevice->AddInputChannel(aChannel);
-                break;
-              }
-            }
+            // Found it!
+            thisDevice->AddInputChannel(aChannel);
+            break;
           }
         }
       }
