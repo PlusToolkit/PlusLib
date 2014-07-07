@@ -1,12 +1,12 @@
 /*!
 \page DeviceVirtualMixer Virtual Mixer
 
-\section VirtualMixerSupportedPlatforms Supported platforms
-- \ref PlatformWin32
-- \ref PlatformWin64
-- \ref PlatformWin32Embedded
-- \ref PlatformMacOs
-- \ref PlatformLinux
+\section VirtualMixerSupportedPlatforms Included in packages
+- \ref PackageWin32
+- \ref PackageWin64
+- \ref PackageWin32Embedded
+- \ref PackageMacOs
+- \ref PackageLinux
 
 \section VirtualMixerInstallation Installation
 

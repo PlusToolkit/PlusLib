@@ -4,11 +4,11 @@
 \section PolarisSupportedHwDevices Supported hardware devices
 <a href="http://www.ndigital.com/medical/products/polaris-family/"> Polaris </a> optical and <a href="http://www.ndigital.com/medical/products/aurora/"> Aurora </a> electromagnetic pose trackers.
 
-\section PolarisSupportedPlatforms Supported platforms
-- \ref PlatformWin32
-- \ref PlatformWin32Embedded
-- \ref PlatformMacOs
-- \ref PlatformLinux
+\section PolarisSupportedPlatforms Included in packages
+- \ref PackageWin32
+- \ref PackageWin32Embedded
+- \ref PackageMacOs
+- \ref PackageLinux
 
 \section PolarisInstallation Installation
 Uses the NDI Combined API C Interface Library (ndicapi).

@@ -2,12 +2,12 @@
 \page DeviceFake Fake tracking system as a simulator
 Simulates a fake tracking system with tools that have predetermined behavior. This allows someone who doesn't have access to a tracking system to test code that relies on having one active.
 
-\section FakeSupportedPlatforms Supported platforms
-- \ref PlatformWin32
-- \ref PlatformWin64
-- \ref PlatformWin32Embedded
-- \ref PlatformMacOs
-- \ref PlatformLinux
+\section FakeSupportedPlatforms Included in packages
+- \ref PackageWin32
+- \ref PackageWin64
+- \ref PackageWin32Embedded
+- \ref PackageMacOs
+- \ref PackageLinux
 
 \section FakeConfigSettings Device configuration settings
 

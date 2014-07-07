@@ -7,13 +7,13 @@
 
 - Link to manufacturer's website: http://www.epiphan.com/.
 
-\section EpiphanSupportedPlatforms Supported platforms
+\section EpiphanSupportedPlatforms Included in packages
 
-- \ref PlatformWin32
-- \ref PlatformWin64
-- \ref PlatformWin32Embedded
-- \ref PlatformMacOs
-- \ref PlatformLinux
+- \ref PackageWin32
+- \ref PackageWin64
+- \ref PackageWin32Embedded
+
+The device manufacturer supports additional platforms. On request, Plus toolkit will be extended to support this device on other platforms, too.
 
 \section EpiphanInstallation Installation
 

@@ -1,12 +1,12 @@
 /*!
 \page DeviceVirtualSwitcher Virtual Switcher
 
-\section VirtualSwitcherSupportedPlatforms Supported platforms
-- \ref PlatformWin32
-- \ref PlatformWin64
-- \ref PlatformWin32Embedded
-- \ref PlatformMacOs
-- \ref PlatformLinux
+\section VirtualSwitcherSupportedPlatforms Included in packages
+- \ref PackageWin32
+- \ref PackageWin64
+- \ref PackageWin32Embedded
+- \ref PackageMacOs
+- \ref PackageLinux
 
 \section VirtualSwitcherConfigSettings Device configuration settings
 

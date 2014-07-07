@@ -10,12 +10,12 @@ Inidividual scanlines are computed using a simple ultrasound physics based model
 Both linear and curvilinear transducer geometry is supported.
 With minor modification in the device set configuration file image acquisition can be switched to use a real ultrasound device.
 
-\section UsSimulatorSupportedPlatforms Supported platforms
-- \ref PlatformWin32
-- \ref PlatformWin64
-- \ref PlatformWin32Embedded
-- \ref PlatformMacOs
-- \ref PlatformLinux
+\section UsSimulatorSupportedPlatforms Included in packages
+- \ref PackageWin32
+- \ref PackageWin64
+- \ref PackageWin32Embedded
+- \ref PackageMacOs
+- \ref PackageLinux
 
 \section UsSimulatorExample Example
 

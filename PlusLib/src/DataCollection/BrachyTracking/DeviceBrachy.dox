@@ -8,12 +8,10 @@ Civco brachy steppers
 - Link to manufacturer's website:
 http://www.civco.com/mmi/products/brachytherapy/Steppers.htm
 
-\section BrachySupportedPlatforms Supported platforms
-- \ref PlatformWin32
-- \ref PlatformWin64
-- \ref PlatformWin32Embedded
-- \ref PlatformMacOs
-- \ref PlatformLinux
+\section BrachySupportedPlatforms Included in packages
+- \ref PackageWin32
+- \ref PackageWin64
+- \ref PackageWin32Embedded
 
 \section BrachyInstallation Installation
 

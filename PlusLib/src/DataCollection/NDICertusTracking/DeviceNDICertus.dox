@@ -5,11 +5,9 @@
 
 - Link to manufacturer's website: http://www.ndigital.com/msci/products/optotrak-certus/
 
-\section NDICertusSupportedPlatforms Supported platforms
-- \ref PlatformWin32
-- \ref PlatformWin32Embedded
-- \ref PlatformMacOs
-- \ref PlatformLinux
+\section NDICertusSupportedPlatforms Included in packages
+- \ref PackageWin32
+- \ref PackageWin32Embedded
 
 \section NDICertusInstallation Installation
 

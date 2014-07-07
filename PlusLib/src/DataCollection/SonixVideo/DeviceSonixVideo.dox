@@ -10,11 +10,9 @@ Ultrasonix SonixRP, SonixMDP, SonixTouch, SonixTablet etc.
 
 The Ultrasonix L14-5 linear probe does not work well with the NDI Aurora electromagnetic tracker. If the L14 probe is stationary, we can get consistent readings, but if the probe is moving, the tracking is not stable at all.  We know there is a big piece of aluminium inside L14-5. Thus I would advise not to use Aurora with Ultrasonix probe at this time. (Reported by Elvis Chen, Feb 29, 2012) Note that Ascension electromagnetic trackers work just fine even if they are very close to the transducer.
 
-\section SonixVideoSupportedPlatforms Supported platforms
-- \ref PlatformWin32
-- \ref PlatformWin32Embedded
-- \ref PlatformMacOs
-- \ref PlatformLinux
+\section SonixVideoSupportedPlatforms Included in packages
+- \ref PackageWin32
+- \ref PackageWin32Embedded
 
 \section SonixVideoInstallation Installation
 

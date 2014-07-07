@@ -9,12 +9,10 @@ Compatible framegrabbers and webcams through Video for Windows interface.
 
 Limitations: currently only certain color modes are supported, minor additional conversion routines may be needed for some devices.
 
-\section VideoForWindowsSupportedPlatforms Supported platforms
-- \ref PlatformWin32
-- \ref PlatformWin64
-- \ref PlatformWin32Embedded
-- \ref PlatformMacOs
-- \ref PlatformLinux
+\section VideoForWindowsSupportedPlatforms Included in packages
+- \ref PackageWin32
+- \ref PackageWin64
+- \ref PackageWin32Embedded
 
 \section VideoForWindowsInstallation Installation
 

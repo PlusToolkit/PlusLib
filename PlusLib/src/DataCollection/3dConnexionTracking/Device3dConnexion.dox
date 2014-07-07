@@ -7,11 +7,11 @@
 - Tested with 3dConnexion SpaceNavigator 3D mouse.
 - Link to manufacturer's website: http://www.3dconnexion.com/products/spacenavigator.html.
 
-\section D3dConnexionSupportedPlatforms Supported platforms
+\section D3dConnexionSupportedPlatforms Included in packages
 
-- \ref PlatformWin32
-- \ref PlatformWin64
-- \ref PlatformWin32Embedded
+- \ref PackageWin32
+- \ref PackageWin64
+- \ref PackageWin32Embedded
 
 \section D3dConnexionInstallation Installation
 
