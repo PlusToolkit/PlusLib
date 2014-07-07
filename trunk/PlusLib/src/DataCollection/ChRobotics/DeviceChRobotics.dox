@@ -5,11 +5,11 @@
 
 - Link to manufacturer's website: http://www.chrobotics.com/shop/orientation-sensor-um6
 
-\section ChRoboticsSupportedPlatforms Supported platforms
+\section ChRoboticsSupportedPlatforms Included in packages
 
-- \ref PlatformWin32
-- \ref PlatformWin64
-- \ref PlatformWin32Embedded
+- \ref PackageWin32
+- \ref PackageWin64
+- \ref PackageWin32Embedded
 
 \section ChRoboticsInstallation Installation
 

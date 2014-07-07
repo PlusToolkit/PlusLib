@@ -4,12 +4,9 @@
 \section MicrosoftMediaFoundationSupportedHwDevices Supported hardware devices
 Any compatible framegrabbers and webcams through Microsoft Media Foundation interface.
 
-\section MicrosoftMediaFoundationSupportedPlatforms Supported platforms
-- \ref PlatformWin32
-- \ref PlatformWin64
-- \ref PlatformWin32Embedded
-- \ref PlatformMacOs
-- \ref PlatformLinux
+\section MicrosoftMediaFoundationSupportedPlatforms Included in packages
+- \ref PackageWin32
+- \ref PackageWin64
 
 \section MicrosoftMediaFoundationInstallation Installation
 

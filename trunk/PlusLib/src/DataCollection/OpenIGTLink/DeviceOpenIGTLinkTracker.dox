@@ -13,12 +13,12 @@ Any tracker device that are supported by the  <a href="http://public.kitware.com
     - See ConfigFiles/BWH directory for example configurations using BrainLab tracking.
   - Receiving live data from 3D Slicer: set \b UseReceivedTimestamps \c ="false" and \b UseLastTransformsOnReceiveTimeout \c ="true" (as Slicer only sends transforms when they change)
 
-\section OpenIGTLinkSupportedPlatforms Supported platforms
-- \ref PlatformWin32
-- \ref PlatformWin64
-- \ref PlatformWin32Embedded
-- \ref PlatformMacOs
-- \ref PlatformLinux
+\section OpenIGTLinkSupportedPlatforms Included in packages
+- \ref PackageWin32
+- \ref PackageWin64
+- \ref PackageWin32Embedded
+- \ref PackageMacOs
+- \ref PackageLinux
 
 \section OpenIGTLinkInstallation Installation
 

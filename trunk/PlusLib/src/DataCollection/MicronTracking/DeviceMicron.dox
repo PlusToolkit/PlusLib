@@ -5,12 +5,11 @@
 
 - Link to manufacturer's website: http://www.clarontech.com/microntracker.php
 
-\section MicronSupportedPlatforms Supported platforms
-- \ref PlatformWin32
-- \ref PlatformWin32Embedded
-- \ref PlatformMacOs
-- \ref PlatformLinux
+\section MicronSupportedPlatforms Included in packages
+- \ref PackageWin32
+- \ref PackageWin32Embedded
 
+The device manufacturer supports additional platforms. On request, Plus toolkit will be extended to support this device on other platforms, too.
 
 \section MicronInstallation Installation
 The 1394 interface that your computer already has may not work with the camera. If the MicronTracker demo programs don't work then use the interface card that came with your MicronTracker package. <a href="https://www.assembla.com/spaces/plus/tickets/870#/activity/ticket:">Install issue</a>.

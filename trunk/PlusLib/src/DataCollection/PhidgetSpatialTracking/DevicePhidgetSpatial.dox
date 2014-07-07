@@ -9,10 +9,12 @@ Gyroscope bias correction is performed at connection, therefore after the connec
 
 - Link to manufacturer's website: http://www.phidgets.com/products.php?product_id=1044_0
 
-\section PhidgetSpatialSupportedPlatforms Supported platforms
-- \ref PlatformWin32
-- \ref PlatformWin64
-- \ref PlatformWin32Embedded
+\section PhidgetSpatialSupportedPlatforms Included in packages
+- \ref PackageWin32
+- \ref PackageWin64
+- \ref PackageWin32Embedded
+
+The device manufacturer supports additional platforms. On request, Plus toolkit will be extended to support this device on other platforms, too.
 
 \section PhidgetSpatialInstallation Installation
 

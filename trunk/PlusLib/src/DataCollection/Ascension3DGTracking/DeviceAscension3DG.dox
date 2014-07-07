@@ -7,12 +7,14 @@
 - Ultrasonix SonixGPS (it is an Ascension driveBAY).
 - Link to manufacturer's website: http://www.ascension-tech.com/medical/index.php
 
-\section Ascension3DGSupportedPlatforms Supported platforms
+\section Ascension3DGSupportedPlatforms Included in packages
 
-- \ref PlatformWin32
-- \ref PlatformWin32Embedded
-- \ref PlatformMacOs
-- \ref PlatformLinux
+- \ref PackageWin32
+- \ref PackageWin32Embedded
+
+Support for medSAFE models is not included in any of the standard packages, as they use different versions of the same DLLs as non-medSAFE trackers.
+
+To support medSAFE models Plus have to be built with PLUS_USE_Ascension3DGm configuration option enabled as described at https://www.assembla.com/spaces/plus/wiki/Windows_Build_Instructions.
 
 \section Ascension3DGInstallation Installation
 

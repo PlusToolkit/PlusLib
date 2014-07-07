@@ -5,15 +5,10 @@
 
 Acquiring ultrasound images from Interson USB ultrasound systems supports the \c SeeMore probes
 
-
 - Link to manufacturer's website: http://www.interson.com/products/seemore-153-usb-probes
 
-\section IntersonSupportedPlatforms Supported platforms
-- \ref PlatformWin32
-- \ref PlatformWin64
-- \ref PlatformWin32Embedded
-- \ref PlatformMacOs
-- \ref PlatformLinux
+\section IntersonSupportedPlatforms Included in packages
+- \ref PackageWin32PocUs
 
 \section IntersonInstallation Installation
 
