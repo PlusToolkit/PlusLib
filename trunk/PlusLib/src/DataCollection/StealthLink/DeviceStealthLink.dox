@@ -32,7 +32,7 @@ No need to install any extra software. The StealthStation needs to be connected 
 - \xmlAtt \b ServerPort. The port of the stealthstation. \RequiredAtt
 
 - \xmlElem \ref DataSources:
-  - \xmlElem \ref DataSource: there must be one child element \RequiredAtt
+   - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref PortName \RequiredAtt
       - \c *Instruments' names defined in StealthStation must match tools' port names defined in the configuration file (example: Passive Planar, Blunt).
@@ -72,7 +72,7 @@ Start plus server with the configuration file as the input.
  - Click "+" to create a new connection, select the new connection, click "Client", click "Active"
  - The \c StylusToTracker transform is created in Slicer and it is updated by the stylus tracking. The \c ReferenceToTracker and other transforms are available too.
 
-\section StealthLinkExampleConfigFile Example configuration file
+\section StealthLinkExampleConfigFile Example configuration file PlusDeviceSet_Server_SonixTouch_L14-5_Porta.xml PlusDeviceSet_Server_StealthLinkTracker.xml
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_StealthLinkTracker.xml"
 

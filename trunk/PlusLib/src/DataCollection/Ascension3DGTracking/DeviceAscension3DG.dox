@@ -36,9 +36,9 @@
 - \xmlAtt \b FilterAlpha  Alpha filter status flag. \OptionalAtt{0}
 
 - \xmlElem \ref DataSources:
-  - \xmlElem \ref DataSource: there must be one child element
-    - \xmlAtt \b Type = \c "Tool"
-    - \xmlAtt \b PortName Identifies the connector (0, 1, 2, or 3) or a virtual tool that contains the quality values (\c quality1 for tool ports 0, 1, and 2; \c quality2 for tool port 3). \RequiredAtt
+   - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
+    - \xmlAtt \b Type = \c "Tool" \RequiredAtt
+    - \xmlAtt \b PortName Identifies the connector (0, 1, 2, or 3) or a virtual tool that contains the quality values ( \c quality1 for tool ports 0, 1, and 2; \c quality2 for tool port 3). \RequiredAtt
     - \xmlAtt \b QualityErrorSlope The slope should have a value between -127 and +127. \OptionalAtt{0}
     - \xmlAtt \b QualityErrorOffset default: The offset should have a value between -127 and +127. \OptionalAtt{0}
     - \xmlAtt \b QualityErrorSensitivity: The sensitivity should have a value between 0 and 127 \OptionalAtt{2}
@@ -54,7 +54,7 @@ The quality numbers are stored in the translation component of the transformatio
 - \c quality1: quality values for sensor port 0-2.
 - \c quality2: quality values for sensor port 3-5 (usually there are only 4 ports, so quality values for port 4 and 5 are not available).
 
-\section Ascension3DGExampleConfigFile Example configuration file
+\section Ascension3DGExampleConfigFile Example configuration file PlusDeviceSet_Server_Ascension3DG.xml
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_Ascension3DG.xml"
     

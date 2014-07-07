@@ -2,8 +2,7 @@
 \page DevicePolaris NDI pose trackers
 
 \section PolarisSupportedHwDevices Supported hardware devices
-<a href="http://www.ndigital.com/medical/products/polaris-family/"> Polaris </a> optical and <a href="http://www.ndigital.com/medical/products/aurora/"> Aurora </a> electromagnetic pose trackers
-
+<a href="http://www.ndigital.com/medical/products/polaris-family/"> Polaris </a> optical and <a href="http://www.ndigital.com/medical/products/aurora/"> Aurora </a> electromagnetic pose trackers.
 
 \section PolarisSupportedPlatforms Supported platforms
 - \ref PlatformWin32
@@ -18,7 +17,7 @@ If you have just turned on the tracker and attempt to use it right away, you may
 Active (wired) tools does not seem to work with Polaris Spectra. The issue is tracked in <a href="https://www.assembla.com/spaces/plus/tickets/510">#510</a>.
 \section PolarisConfigSettings Device configuration settings
 
-- \xmlAtt \ref DeviceType "Type" = \c "PolarisTracker" \RequiredAtt OR \ref DeviceType "Type" = \c "AuroraTracker" \RequiredAtt
+- \xmlAtt \ref DeviceType "Type" = \c "PolarisTracker" \RequiredAtt or \ref DeviceType "Type" = \c "AuroraTracker" \RequiredAtt
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{50} 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
@@ -36,11 +35,12 @@ Active (wired) tools does not seem to work with Polaris Spectra. The issue is tr
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 
-\section PolarisExampleConfigFile Example configuration file Polaris
+\section PolarisExampleConfigFile Example configuration file Polaris PlusDeviceSet_Server_NDIAurora_NDIPolaris.xml 
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_NDIPolaris.xml"
 
-\section PolarisExampleConfigFileB Example configuration file Aurora
+\section PolarisExampleConfigFileB Example configuration file Aurora PlusDeviceSet_Server_NDIAurora_NDIPolaris.xml
+
 \include "data/ConfigFiles/PlusDeviceSet_Server_NDIAurora_NDIPolaris.xml"
 
 

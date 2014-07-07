@@ -26,13 +26,13 @@ Media foundation require Microsoft Windows SDK 7.1 or later. Download <a href="h
 - \xmlAtt \b CaptureDeviceId \OptionalAtt{0}
 
 - \xmlElem \ref DataSources:
-  - \xmlElem \ref DataSource: there must be one child element
+   - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
     - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
     - \xmlAtt \ref ImageType Color image acquisition is supported by setting the imaging device's common attribute \c ImageType="RGB_COLOR". \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 
-\section MicrosoftMediaFoundationExampleConfigFile Example configuration file
+\section MicrosoftMediaFoundationExampleConfigFile Example configuration file PlusDeviceSet_Server_MmfColorVideoCapture.xml
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_MmfColorVideoCapture.xml"
 

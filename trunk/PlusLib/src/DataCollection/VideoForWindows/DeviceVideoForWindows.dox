@@ -26,14 +26,14 @@ Limitations: currently only certain color modes are supported, minor additional 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 
 - \xmlElem \ref DataSources:
-  - \xmlElem \ref DataSource: there must be one child element
+   - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
     - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
     - \xmlAtt \ref ImageType \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 
-\section VideoForWindowsExampleConfigFile Example configuration file
+\section VideoForWindowsExampleConfigFile Example configuration file PlusDeviceSet_Server_VfwVideoCapture.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_VideoForWindows.xml"
+\include "data/ConfigFiles/PlusDeviceSet_Server_VfwVideoCapture.xml"
 
 */

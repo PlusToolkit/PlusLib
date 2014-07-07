@@ -24,7 +24,7 @@
 
 \section BkProFocusConfigSettings Device configuration settings
 
-OEM interfaceOem
+\subsection BkProFocusOem OEM interface
 - \xmlAtt \ref DeviceType "Type" = \c "BkProFocusOem" \RequiredAtt
 
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate". Image retrieval may slow down the exam software, so keep the frame rate low by default \OptionalAtt{1}
@@ -33,14 +33,14 @@ OEM interfaceOem
 - \xmlAtt \b IniFileName. INI file name. Is the name of the BK ini file that stores connection and acquisition settings. If a relative path is specified then it is relative to the device set configuration directory. See an example \ref inifile "INI file" below. \RequiredAtt \TodoAndras{Though it uses an optional macro it is a required attribute, right?}
 
 - \xmlElem \ref DataSources:
-  - \xmlElem \ref DataSource: there must be one child element
+   - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
     - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
     - \xmlAtt \ref ImageType \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 
 
-RF acquisition through the CameraLink interface
+    \subsection BkProFocusOemCam RF acquisition through the CameraLink interface
 - \xmlAtt \ref DeviceType "Type" = \c "BkProFocus" \RequiredAtt
  
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125}
@@ -50,10 +50,10 @@ RF acquisition through the CameraLink interface
 - \xmlAtt \b ImagingMode Set what kind of images are sent to the video source. The default is RF mode, when the raw RF data is recorded. Applications (e.g., fCal) may still be able to show a B-mode image for monitoring the acquisition by performing the brightness conversion and scan conversion internally. Other imaging modes are not yet supported. \OptionalAtt{RfMode}
   - \c BMode
   - \c RfMode Acquire RF mode data. For previewing B-mode images during acquisition, add an \ref RfProcessing "RfProcessing" child element to the \c OutputChannel.
-- \xmlAtt \b SubscribeScanPlane Enable support for dynamic scan plane switching on 8848 probes (\c true or \c false). \OptionalAtt{false}
+- \xmlAtt \b SubscribeScanPlane Enable support for dynamic scan plane switching on 8848 probes ( \c true or \c false). \OptionalAtt{false}
 
 - \xmlElem \ref DataSources:
-  - \xmlElem \ref DataSource: there must be one child element
+   - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
     - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
     - \xmlAtt \ref ImageType \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
@@ -72,7 +72,7 @@ The quality numbers are stored in the translation component of the transformatio
 
 \include "data/ConfigFiles/BkSettings/IniFile.ini"
 
-\section BkProFocusExampleConfigFile Example configuration file
+\section BkProFocusExampleConfigFile Example configuration file PlusDeviceSet_fCal_BkProFocus_OpenIGTLinkTracker.xml
 
 \include "data/ConfigFiles/PlusDeviceSet_fCal_BkProFocus_OpenIGTLinkTracker.xml"
 

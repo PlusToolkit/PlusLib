@@ -26,16 +26,16 @@ SmoothMove.
 
 - \xmlElem \b PhantomDefinition: \RequiredAtt if \b Mode \c="RecordPhantomLandmarks".
   - \xmlElem \b Geometry or \b Landmarks
-    - \xmlAtt \b Position Landamark 3D position specified as a vector\c "0.0,0.0,0.0"
+    - \xmlAtt \b Position Landamark 3D position specified as a vector \c "0.0,0.0,0.0"
 
 - \xmlElem \ref DataSources:
-  - \xmlElem \ref DataSource: there must be one child element
+   - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
     - \xmlAtt \ref PortName \RequiredAtt
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 
-\section FakeExampleConfigFile Example configuration file
+\section FakeExampleConfigFile Example configuration file PlusDeviceSet_FakeTracker_ToolState.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_FakeTracker_ToolState.xml"
+\include "data/ConfigFiles/Testing/PlusDeviceSet_FakeTracker_ToolState.xml"
 
 */

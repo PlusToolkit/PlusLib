@@ -1,7 +1,5 @@
 /*!
-\page DeviceVirtualSwitcher
-
-\section VirtualSwitcherSupportedHwDevices Supported hardware devices
+\page DeviceVirtualSwitcher Virtual Switcher
 
 \section VirtualSwitcherSupportedPlatforms Supported platforms
 - \ref PlatformWin32
@@ -10,16 +8,13 @@
 - \ref PlatformMacOs
 - \ref PlatformLinux
 
-\section VirtualSwitcherInstallation Installation
-
-
 \section VirtualSwitcherConfigSettings Device configuration settings
 
 - \xmlAtt \ref DeviceType "Type" = \c "VirtualSwitcher" \RequiredAtt
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{50} 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 
-\section VirtualSwitcherExampleConfigFile Example configuration file
+\section VirtualSwitcherExampleConfigFile Example configuration file PlusDeviceSet_Server_VirtualSwitcher.xml
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_VirtualSwitcher.xml"
 

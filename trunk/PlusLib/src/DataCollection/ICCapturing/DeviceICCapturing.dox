@@ -31,13 +31,13 @@ Supported model: DFG/USB2pro analog framegrabbers with USB interface
 - \xmlAtt \b ClipRectangleSize Crop rectangle size for the grabber (in pixels). If it is \c "0 0" then the whole frame will be captured. \OptionalAtt{0 0}
 
 - \xmlElem \ref DataSources:
-  - \xmlElem \ref DataSource: there must be one child element
+   - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
     - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
     - \xmlAtt \ref ImageType. Color image acquisition is supported. \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 
-\section ICCapturingExampleConfigFile Example configuration file
+\section ICCapturingExampleConfigFile Example configuration file PlusDeviceSet_Server_ImagingControlsVideoCapture.xml
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_ImagingControlsVideoCapture.xml"
 

@@ -114,12 +114,12 @@ If no Certus device is attached to the system then the application crashes (due 
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
 
 - \xmlElem \ref DataSources:
-  - \xmlElem \ref DataSource: there must be one child element
+   - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
     - \xmlAtt \ref PortName \RequiredAtt
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 
-\section NDICertusExampleConfigFile Example configuration file
+\section NDICertusExampleConfigFile Example configuration file PlusDeviceSet_Server_NDICertus.xml
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_NDICertus.xml"
 

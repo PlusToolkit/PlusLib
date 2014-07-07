@@ -32,7 +32,7 @@
 - \xmlAtt \b FirmwareDirectory Directory path containing the XML files that describes the device firmware (available registers, calibration, etc.). The path can be relative to the configuration directory. \OptionalAtt{Absolute path of the executable}
 
 - \xmlElem \ref DataSources:
-  - \xmlElem \ref DataSource: there must be one child element
+   - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
     - \xmlAtt \ref PortName \RequiredAtt
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
@@ -40,7 +40,7 @@
 
 
 
-\section ChRoboticsExampleConfigFile Example configuration file
+\section ChRoboticsExampleConfigFile Example configuration file PlusDeviceSet_Server_ChRobotics.xml
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_ChRobotics.xml"
 
