@@ -88,11 +88,21 @@ protected slots:
   void AddStylusPositionToCalibration();
 
 protected:
+  /*! Before calibration timer*/
+  void BeforeCalibration();
+
   /*! Pivot calibration algorithm */
-  vtkPivotCalibrationAlgo*  m_PivotCalibration;
+  vtkPivotCalibrationAlgo*   m_PivotCalibration;
 
   /*! Number of points to acquire */
   int                        m_NumberOfPoints;
+
+  /*! Time before start acquisition [s] */
+  int                        m_BeforeCalibrationTime;
+
+    /*! Timer before start acquisition*/
+  QTimer*                    m_BeforeCalibrationTimer;
+  QEventLoop*                m_BeforeCalibrationEventLoop;
 
   /*! Number of points acquired so far */
   int                        m_CurrentPointNumber;

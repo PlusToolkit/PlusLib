@@ -14,6 +14,7 @@ See License.txt for details.
 
 #include <QFileDialog>
 #include <QTimer>
+#include <QEventLoop>
 
 #include "vtkMatrix4x4.h"
 
@@ -23,6 +24,9 @@ StylusCalibrationToolbox::StylusCalibrationToolbox(fCalMainWindow* aParentMainWi
 : AbstractToolbox(aParentMainWindow)
 , QWidget(aParentMainWindow, aFlags)
 , m_NumberOfPoints(200)
+, m_BeforeCalibrationTime(5)
+, m_BeforeCalibrationTimer(NULL)
+, m_BeforeCalibrationEventLoop(NULL)
 , m_CurrentPointNumber(0)
 , m_StylusPositionString("")
 , m_PreviousStylusToReferenceTransformMatrix(NULL)
@@ -46,6 +50,10 @@ StylusCalibrationToolbox::StylusCalibrationToolbox(fCalMainWindow* aParentMainWi
   connect( ui.pushButton_Start, SIGNAL( clicked() ), this, SLOT( Start() ) );
   connect( ui.pushButton_Stop, SIGNAL( clicked() ), this, SLOT( Stop() ) );
   connect( ui.spinBox_NumberOfStylusCalibrationPoints, SIGNAL( valueChanged(int) ), this, SLOT( NumberOfStylusCalibrationPointsChanged(int) ) );
+
+  // Set up timer to wait before acquisition
+  m_BeforeCalibrationTimer = new QTimer(this);
+  m_BeforeCalibrationEventLoop = new QEventLoop(this);
 }
 
 //-----------------------------------------------------------------------------
@@ -63,6 +71,20 @@ StylusCalibrationToolbox::~StylusCalibrationToolbox()
     m_PreviousStylusToReferenceTransformMatrix->Delete();
     m_PreviousStylusToReferenceTransformMatrix = NULL;
   } 
+
+  if (m_BeforeCalibrationTimer != NULL)
+  {
+    if(m_BeforeCalibrationTimer->isActive())
+      m_BeforeCalibrationTimer->stop();
+    delete m_BeforeCalibrationTimer;
+    m_BeforeCalibrationTimer = NULL;
+  }
+
+  if (m_BeforeCalibrationEventLoop != NULL)
+  {
+    delete m_BeforeCalibrationEventLoop;
+    m_BeforeCalibrationEventLoop = NULL;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -154,6 +176,17 @@ PlusStatus StylusCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aConfi
     LOG_WARNING("Unable to read NumberOfStylusCalibrationPointsToAcquire attribute from fCal element of the device set configuration, default value '" << m_NumberOfPoints << "' will be used");
   }
 
+  // Number of stylus calibration points to acquire
+  int FreeHandBeforeCalibrationTime = 0;
+  if ( fCalElement->GetScalarAttribute("FreeHandBeforeCalibrationTime", FreeHandBeforeCalibrationTime ) )
+  {
+    m_BeforeCalibrationTime = FreeHandBeforeCalibrationTime;
+  }
+  else
+  {
+    LOG_WARNING("Unable to read FreeHandBeforeCalibrationTime attribute from fCal element of the device set configuration, default value '" << m_BeforeCalibrationTime << "' will be used");
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -164,6 +197,11 @@ void StylusCalibrationToolbox::RefreshContent()
   //LOG_TRACE("StylusCalibrationToolbox: Refresh stylus calibration toolbox content"); 
 
   if (m_State == ToolboxState_Idle)
+  {
+    ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(0).arg(m_NumberOfPoints));
+    ui.label_CurrentPosition->setText(m_StylusPositionString);
+  }
+  else if (m_State == ToolboxState_BeforeCalibration)
   {
     ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(0).arg(m_NumberOfPoints));
     ui.label_CurrentPosition->setText(m_StylusPositionString);
@@ -313,6 +351,22 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->SetStatusBarText(QString(""));
     m_ParentMainWindow->SetStatusBarProgress(-1);
   }
+  else if (m_State == ToolboxState_BeforeCalibration)
+  {
+    ui.label_CalibrationError->setText(tr("N/A"));
+    ui.label_CurrentPositionText->setText(tr("Current stylus position (mm):"));
+    ui.label_CurrentPosition->setText(tr("N/A"));
+    ui.label_StylusTipTransform->setText(tr("N/A"));
+
+    ui.pushButton_Start->setEnabled(false);
+    ui.pushButton_Stop->setEnabled(true);
+    ui.spinBox_NumberOfStylusCalibrationPoints->setEnabled(true);
+
+    ui.pushButton_Stop->setFocus();
+
+    m_ParentMainWindow->SetStatusBarText(QString("Get ready to record stylus positions"));
+    m_ParentMainWindow->SetStatusBarProgress(-1);
+  }
   else if (m_State == ToolboxState_InProgress)
   {
     ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(m_CurrentPointNumber).arg(m_NumberOfPoints));
@@ -382,37 +436,47 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
 void StylusCalibrationToolbox::Start()
 {
   LOG_TRACE("StylusCalibrationToolbox::Start"); 
+  BeforeCalibration();
 
-  m_ParentMainWindow->SetToolboxesEnabled(false);
-  QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-
-  m_CurrentPointNumber = 0;
-
-  // Clear input points and result point
-  vtkSmartPointer<vtkPoints> inputPoints = vtkSmartPointer<vtkPoints>::New();
-  m_ParentMainWindow->GetVisualizationController()->GetInputPolyData()->SetPoints(inputPoints);
-
-  vtkSmartPointer<vtkPoints> resultPointsPoint = vtkSmartPointer<vtkPoints>::New();
-  m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->SetPoints(resultPointsPoint);
-
-  // Initialize calibration
-  m_PivotCalibration->RemoveAllCalibrationPoints();
-
-  // Initialize stylus tool
-  vtkDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetStylusModelId());
-  if (object == NULL)
+  if(m_State==ToolboxState_BeforeCalibration)
   {
-    LOG_ERROR("No stylus tip displayable objects could be found!");
-    return;
+    m_ParentMainWindow->SetToolboxesEnabled(false);
+    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+
+    m_CurrentPointNumber = 0;
+
+    // Clear input points and result point
+    vtkSmartPointer<vtkPoints> inputPoints = vtkSmartPointer<vtkPoints>::New();
+    m_ParentMainWindow->GetVisualizationController()->GetInputPolyData()->SetPoints(inputPoints);
+
+    vtkSmartPointer<vtkPoints> resultPointsPoint = vtkSmartPointer<vtkPoints>::New();
+    m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->SetPoints(resultPointsPoint);
+
+    // Initialize calibration
+    m_PivotCalibration->RemoveAllCalibrationPoints();
+
+    // Initialize stylus tool
+    vtkDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetStylusModelId());
+    if (object == NULL)
+    {
+      LOG_ERROR("No stylus tip displayable objects could be found!");
+      return;
+    }
+
+    // Set state to in progress
+    SetState(ToolboxState_InProgress);
+
+    // Connect acquisition function to timer
+    connect( m_ParentMainWindow->GetVisualizationController()->GetAcquisitionTimer(), SIGNAL( timeout() ), this, SLOT( AddStylusPositionToCalibration() ) );
+
+    LOG_INFO("Stylus calibration started");
+  }
+  else
+  {
+   LOG_INFO("Stylus calibration started and stopped before timer");
   }
 
-  // Set state to in progress
-  SetState(ToolboxState_InProgress);
 
-  // Connect acquisition function to timer
-  connect( m_ParentMainWindow->GetVisualizationController()->GetAcquisitionTimer(), SIGNAL( timeout() ), this, SLOT( AddStylusPositionToCalibration() ) );
-
-  LOG_INFO("Stylus calibration started");
 }
 
 //-----------------------------------------------------------------------------
@@ -420,43 +484,49 @@ void StylusCalibrationToolbox::Start()
 void StylusCalibrationToolbox::Stop()
 {
   LOG_TRACE("StylusCalibrationToolbox::Stop"); 
-
-  // Disonnect acquisition function to timer
-  disconnect( m_ParentMainWindow->GetVisualizationController()->GetAcquisitionTimer(), SIGNAL( timeout() ), this, SLOT( AddStylusPositionToCalibration() ) );
-
-  // Calibrate
-  PlusStatus success = m_PivotCalibration->DoPivotCalibration( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository() );
-
-  if (success == PLUS_SUCCESS)
+  if(m_State==ToolboxState_BeforeCalibration)
   {
-    LOG_INFO("Stylus calibration successful");
+    LOG_TRACE("StylusCalibrationToolbox::Stop before calibration timer"); 
+    SetState(ToolboxState_Idle);
+  }
+  else if(m_State==ToolboxState_InProgress)
+  {
+    // Disonnect acquisition function to timer
+    disconnect( m_ParentMainWindow->GetVisualizationController()->GetAcquisitionTimer(), SIGNAL( timeout() ), this, SLOT( AddStylusPositionToCalibration() ) );
 
-    // Set result point
-    double stylustipPosition_Reference[4]={0,0,0,1};
-    m_PivotCalibration->GetPivotPointPosition_Reference(stylustipPosition_Reference);
-    vtkPoints* points = m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->GetPoints();
-    points->InsertPoint(0, stylustipPosition_Reference);
-    points->Modified();
+    // Calibrate
+    PlusStatus success = m_PivotCalibration->DoPivotCalibration( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository() );
 
-    // Save result in configuration
-    if ( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->WriteConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ) != PLUS_SUCCESS )
+    if (success == PLUS_SUCCESS)
     {
-      LOG_ERROR("Unable to save stylus calibration result in configuration XML tree!");
-      SetState(ToolboxState_Error);
-      return;
+      LOG_INFO("Stylus calibration successful");
+
+      // Set result point
+      double stylustipPosition_Reference[4]={0,0,0,1};
+      m_PivotCalibration->GetPivotPointPosition_Reference(stylustipPosition_Reference);
+      vtkPoints* points = m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->GetPoints();
+      points->InsertPoint(0, stylustipPosition_Reference);
+      points->Modified();
+
+      // Save result in configuration
+      if ( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->WriteConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Unable to save stylus calibration result in configuration XML tree!");
+        SetState(ToolboxState_Error);
+        return;
+      }
+
+      SetState(ToolboxState_Done);
     }
+    else
+    {
+      LOG_ERROR("Stylus calibration failed!");
 
-    SetState(ToolboxState_Done);
+      m_CurrentPointNumber = 0;
+      SetState(ToolboxState_Error);
+    }
+    m_ParentMainWindow->SetToolboxesEnabled(true);
   }
-  else
-  {
-    LOG_ERROR("Stylus calibration failed!");
-
-    m_CurrentPointNumber = 0;
-    SetState(ToolboxState_Error);
-  }
-
-  m_ParentMainWindow->SetToolboxesEnabled(true);
 }
 
 //-----------------------------------------------------------------------------
@@ -551,6 +621,30 @@ void StylusCalibrationToolbox::AddStylusPositionToCalibration()
       }
     }
   }
+}
+//-----------------------------------------------------------------------------
+
+void StylusCalibrationToolbox::BeforeCalibration()
+{
+  SetState(ToolboxState_BeforeCalibration);
+  connect(m_BeforeCalibrationTimer, SIGNAL(timeout()),m_BeforeCalibrationEventLoop , SLOT(quit()));
+  connect(ui.pushButton_Stop, SIGNAL( clicked()),m_BeforeCalibrationEventLoop , SLOT(quit()));
+
+  int currentTime= m_BeforeCalibrationTime;
+  while(currentTime>=0 && m_State==ToolboxState_BeforeCalibration)
+  {
+    m_BeforeCalibrationTimer->start(1000);
+    ui.label_Instructions->setText(QString("Stylus positions recording will start in %1").arg(currentTime--));
+    m_BeforeCalibrationEventLoop->exec();
+  }
+  disconnect(ui.pushButton_Stop, SIGNAL( clicked()),m_BeforeCalibrationEventLoop , SLOT(quit()));
+
+  if(m_BeforeCalibrationTimer->isActive())
+  {
+    m_BeforeCalibrationTimer->stop();
+  }
+  disconnect(m_BeforeCalibrationTimer, SIGNAL(timeout()),m_BeforeCalibrationEventLoop , SLOT(quit()));
+
 }
 
 //-----------------------------------------------------------------------------
