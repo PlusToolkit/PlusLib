@@ -14,7 +14,6 @@ See License.txt for details.
 
 #include <QFileDialog>
 #include <QTimer>
-#include <QEventLoop>
 
 #include "vtkMatrix4x4.h"
 
@@ -24,9 +23,9 @@ StylusCalibrationToolbox::StylusCalibrationToolbox(fCalMainWindow* aParentMainWi
 : AbstractToolbox(aParentMainWindow)
 , QWidget(aParentMainWindow, aFlags)
 , m_NumberOfPoints(200)
-, m_BeforeCalibrationTime(5)
-, m_BeforeCalibrationTimer(NULL)
-, m_BeforeCalibrationEventLoop(NULL)
+, m_StartupDelaySec(5)
+, m_CurrentTimeSec(0)
+, m_StartupDelayTimer(NULL)
 , m_CurrentPointNumber(0)
 , m_StylusPositionString("")
 , m_PreviousStylusToReferenceTransformMatrix(NULL)
@@ -47,13 +46,12 @@ StylusCalibrationToolbox::StylusCalibrationToolbox(fCalMainWindow* aParentMainWi
   ui.spinBox_NumberOfStylusCalibrationPoints->setValue(m_NumberOfPoints);
 
   // Connect events
-  connect( ui.pushButton_Start, SIGNAL( clicked() ), this, SLOT( Start() ) );
+  connect( ui.pushButton_Start, SIGNAL( clicked() ), this, SLOT( DelayStartup() ) );
   connect( ui.pushButton_Stop, SIGNAL( clicked() ), this, SLOT( Stop() ) );
   connect( ui.spinBox_NumberOfStylusCalibrationPoints, SIGNAL( valueChanged(int) ), this, SLOT( NumberOfStylusCalibrationPointsChanged(int) ) );
 
   // Set up timer to wait before acquisition
-  m_BeforeCalibrationTimer = new QTimer(this);
-  m_BeforeCalibrationEventLoop = new QEventLoop(this);
+  m_StartupDelayTimer = new QTimer(this);
 }
 
 //-----------------------------------------------------------------------------
@@ -72,18 +70,15 @@ StylusCalibrationToolbox::~StylusCalibrationToolbox()
     m_PreviousStylusToReferenceTransformMatrix = NULL;
   } 
 
-  if (m_BeforeCalibrationTimer != NULL)
+  if (m_StartupDelayTimer != NULL)
   {
-    if(m_BeforeCalibrationTimer->isActive())
-      m_BeforeCalibrationTimer->stop();
-    delete m_BeforeCalibrationTimer;
-    m_BeforeCalibrationTimer = NULL;
-  }
+    if(m_StartupDelayTimer->isActive())
+    {
+      m_StartupDelayTimer->stop();
+    }
 
-  if (m_BeforeCalibrationEventLoop != NULL)
-  {
-    delete m_BeforeCalibrationEventLoop;
-    m_BeforeCalibrationEventLoop = NULL;
+    delete m_StartupDelayTimer;
+    m_StartupDelayTimer = NULL;
   }
 }
 
@@ -177,14 +172,14 @@ PlusStatus StylusCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aConfi
   }
 
   // Number of stylus calibration points to acquire
-  int FreeHandBeforeCalibrationTime = 0;
-  if ( fCalElement->GetScalarAttribute("FreeHandBeforeCalibrationTime", FreeHandBeforeCalibrationTime ) )
+  int FreeHandStartupDelaySec = 0;
+  if ( fCalElement->GetScalarAttribute("FreeHandStartupDelaySec", FreeHandStartupDelaySec ) )
   {
-    m_BeforeCalibrationTime = FreeHandBeforeCalibrationTime;
+    m_StartupDelaySec = FreeHandStartupDelaySec;
   }
   else
   {
-    LOG_WARNING("Unable to read FreeHandBeforeCalibrationTime attribute from fCal element of the device set configuration, default value '" << m_BeforeCalibrationTime << "' will be used");
+    LOG_WARNING("Unable to read FreeHandStartupDelayTime attribute from fCal element of the device set configuration, default value '" << m_StartupDelaySec << "' will be used");
   }
 
   return PLUS_SUCCESS;
@@ -201,7 +196,7 @@ void StylusCalibrationToolbox::RefreshContent()
     ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(0).arg(m_NumberOfPoints));
     ui.label_CurrentPosition->setText(m_StylusPositionString);
   }
-  else if (m_State == ToolboxState_BeforeCalibration)
+  else if (m_State == ToolboxState_StartupDelay)
   {
     ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(0).arg(m_NumberOfPoints));
     ui.label_CurrentPosition->setText(m_StylusPositionString);
@@ -351,7 +346,7 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->SetStatusBarText(QString(""));
     m_ParentMainWindow->SetStatusBarProgress(-1);
   }
-  else if (m_State == ToolboxState_BeforeCalibration)
+  else if (m_State == ToolboxState_StartupDelay)
   {
     ui.label_CalibrationError->setText(tr("N/A"));
     ui.label_CurrentPositionText->setText(tr("Current stylus position (mm):"));
@@ -433,50 +428,74 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
 
 //-----------------------------------------------------------------------------
 
+void StylusCalibrationToolbox::DelayStartup()
+{
+  LOG_INFO("Delay start up "<< m_CurrentTimeSec << "m_state" << m_State);
+
+  if(m_State==ToolboxState_StartupDelay)
+  {
+    if(m_CurrentTimeSec>0)
+    {
+      ui.label_Instructions->setText(QString("Stylus positions recording will start in %1").arg(m_CurrentTimeSec--));
+    }
+    else
+    {
+      if(m_StartupDelayTimer->isActive())
+      {
+        m_StartupDelayTimer->stop();
+      }
+      disconnect(m_StartupDelayTimer, SIGNAL(timeout()),this , SLOT(DelayStartup()));
+      Start();
+    }
+  }
+  else if( m_State != ToolboxState_InProgress)
+  {
+    LOG_INFO("set current Delay start up"<<m_StartupDelaySec);
+    m_CurrentTimeSec=m_StartupDelaySec;
+    SetState(ToolboxState_StartupDelay);
+    connect(m_StartupDelayTimer, SIGNAL(timeout()),this , SLOT(DelayStartup()));
+    // Start timer every 1000 ms
+    m_StartupDelayTimer->start(1000);
+    ui.label_Instructions->setText(QString("Stylus positions recording will start in %1").arg(m_CurrentTimeSec--));
+  }
+}
+
+//-----------------------------------------------------------------------------
+
 void StylusCalibrationToolbox::Start()
 {
-  LOG_TRACE("StylusCalibrationToolbox::Start"); 
-  BeforeCalibration();
+  LOG_TRACE("StylusCalibrationToolbox::Start");
 
-  if(m_State==ToolboxState_BeforeCalibration)
+  m_ParentMainWindow->SetToolboxesEnabled(false);
+  QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+
+  m_CurrentPointNumber = 0;
+
+  // Clear input points and result point
+  vtkSmartPointer<vtkPoints> inputPoints = vtkSmartPointer<vtkPoints>::New();
+  m_ParentMainWindow->GetVisualizationController()->GetInputPolyData()->SetPoints(inputPoints);
+
+  vtkSmartPointer<vtkPoints> resultPointsPoint = vtkSmartPointer<vtkPoints>::New();
+  m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->SetPoints(resultPointsPoint);
+
+  // Initialize calibration
+  m_PivotCalibration->RemoveAllCalibrationPoints();
+
+  // Initialize stylus tool
+  vtkDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetStylusModelId());
+  if (object == NULL)
   {
-    m_ParentMainWindow->SetToolboxesEnabled(false);
-    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-
-    m_CurrentPointNumber = 0;
-
-    // Clear input points and result point
-    vtkSmartPointer<vtkPoints> inputPoints = vtkSmartPointer<vtkPoints>::New();
-    m_ParentMainWindow->GetVisualizationController()->GetInputPolyData()->SetPoints(inputPoints);
-
-    vtkSmartPointer<vtkPoints> resultPointsPoint = vtkSmartPointer<vtkPoints>::New();
-    m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->SetPoints(resultPointsPoint);
-
-    // Initialize calibration
-    m_PivotCalibration->RemoveAllCalibrationPoints();
-
-    // Initialize stylus tool
-    vtkDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetStylusModelId());
-    if (object == NULL)
-    {
-      LOG_ERROR("No stylus tip displayable objects could be found!");
-      return;
-    }
-
-    // Set state to in progress
-    SetState(ToolboxState_InProgress);
-
-    // Connect acquisition function to timer
-    connect( m_ParentMainWindow->GetVisualizationController()->GetAcquisitionTimer(), SIGNAL( timeout() ), this, SLOT( AddStylusPositionToCalibration() ) );
-
-    LOG_INFO("Stylus calibration started");
-  }
-  else
-  {
-   LOG_INFO("Stylus calibration started and stopped before timer");
+    LOG_ERROR("No stylus tip displayable objects could be found!");
+    return;
   }
 
+  // Set state to in progress
+  SetState(ToolboxState_InProgress);
 
+  // Connect acquisition function to timer
+  connect( m_ParentMainWindow->GetVisualizationController()->GetAcquisitionTimer(), SIGNAL( timeout() ), this, SLOT( AddStylusPositionToCalibration() ) );
+
+  LOG_INFO("Stylus calibration started");
 }
 
 //-----------------------------------------------------------------------------
@@ -484,12 +503,17 @@ void StylusCalibrationToolbox::Start()
 void StylusCalibrationToolbox::Stop()
 {
   LOG_TRACE("StylusCalibrationToolbox::Stop"); 
-  if(m_State==ToolboxState_BeforeCalibration)
+  if(m_State==ToolboxState_StartupDelay)
   {
-    LOG_TRACE("StylusCalibrationToolbox::Stop before calibration timer"); 
+    if(m_StartupDelayTimer->isActive())
+    {
+      m_StartupDelayTimer->stop();
+      disconnect(m_StartupDelayTimer, SIGNAL(timeout()),this , SLOT(DelayStartup()));
+    }
+    LOG_TRACE("StylusCalibrationToolbox::Stop before calibration delay timer finished"); 
     SetState(ToolboxState_Idle);
   }
-  else if(m_State==ToolboxState_InProgress)
+  else
   {
     // Disonnect acquisition function to timer
     disconnect( m_ParentMainWindow->GetVisualizationController()->GetAcquisitionTimer(), SIGNAL( timeout() ), this, SLOT( AddStylusPositionToCalibration() ) );
@@ -622,30 +646,7 @@ void StylusCalibrationToolbox::AddStylusPositionToCalibration()
     }
   }
 }
-//-----------------------------------------------------------------------------
 
-void StylusCalibrationToolbox::BeforeCalibration()
-{
-  SetState(ToolboxState_BeforeCalibration);
-  connect(m_BeforeCalibrationTimer, SIGNAL(timeout()),m_BeforeCalibrationEventLoop , SLOT(quit()));
-  connect(ui.pushButton_Stop, SIGNAL( clicked()),m_BeforeCalibrationEventLoop , SLOT(quit()));
-
-  int currentTime= m_BeforeCalibrationTime;
-  while(currentTime>=0 && m_State==ToolboxState_BeforeCalibration)
-  {
-    m_BeforeCalibrationTimer->start(1000);
-    ui.label_Instructions->setText(QString("Stylus positions recording will start in %1").arg(currentTime--));
-    m_BeforeCalibrationEventLoop->exec();
-  }
-  disconnect(ui.pushButton_Stop, SIGNAL( clicked()),m_BeforeCalibrationEventLoop , SLOT(quit()));
-
-  if(m_BeforeCalibrationTimer->isActive())
-  {
-    m_BeforeCalibrationTimer->stop();
-  }
-  disconnect(m_BeforeCalibrationTimer, SIGNAL(timeout()),m_BeforeCalibrationEventLoop , SLOT(quit()));
-
-}
 
 //-----------------------------------------------------------------------------
 

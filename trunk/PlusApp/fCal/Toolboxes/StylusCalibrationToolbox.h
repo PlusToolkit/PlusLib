@@ -70,8 +70,8 @@ public:
   vtkPivotCalibrationAlgo* GetPivotCalibrationAlgo() { return m_PivotCalibration; };
 
 protected slots:
-  /*! Start calibration */
-  void Start();
+  /*! Delay before startup calibration*/
+  void DelayStartup();
 
   /*! Stop calibration */
   void Stop();
@@ -88,8 +88,9 @@ protected slots:
   void AddStylusPositionToCalibration();
 
 protected:
-  /*! Before calibration timer*/
-  void BeforeCalibration();
+
+  /*! Start calibration */
+  void Start();
 
   /*! Pivot calibration algorithm */
   vtkPivotCalibrationAlgo*   m_PivotCalibration;
@@ -97,12 +98,14 @@ protected:
   /*! Number of points to acquire */
   int                        m_NumberOfPoints;
 
-  /*! Time before start acquisition [s] */
-  int                        m_BeforeCalibrationTime;
+  /*! Delay time before start acquisition [s] */
+  int                        m_StartupDelaySec;
 
-    /*! Timer before start acquisition*/
-  QTimer*                    m_BeforeCalibrationTimer;
-  QEventLoop*                m_BeforeCalibrationEventLoop;
+  /*! Current time dlayed before the acquisition [s] */
+  int                        m_CurrentTimeSec;
+
+  /*! Timer before start acquisition*/
+  QTimer*                    m_StartupDelayTimer;
 
   /*! Number of points acquired so far */
   int                        m_CurrentPointNumber;

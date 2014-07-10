@@ -16,7 +16,7 @@ enum ToolboxState
   ToolboxState_Uninitialized = 0,
   ToolboxState_Idle,
   ToolboxState_InProgress,
-  ToolboxState_BeforeCalibration,
+  ToolboxState_StartupDelay,
   ToolboxState_Done,
   ToolboxState_Error
 };
