@@ -1,4 +1,4 @@
-import os
+import os, math
 from __main__ import vtk, qt, ctk, slicer
 
 #
@@ -118,7 +118,7 @@ class PositionErrorMappingWidget:
     self.outputTransformSelector.setMRMLScene( slicer.mrmlScene )
     self.outputTransformSelector.setToolTip( "The transform node will store and interpolate the measurement points to generate a vector field of the position error of the mapped transform compared to the ground truth transform. Optional." )
     parametersFormLayout.addRow(self.outputTransformSelectorLabel, self.outputTransformSelector)
-    
+
     #
     # Check box to enable creating output transforms automatically.
     # The function is useful for testing and initial creation of the transforms but not recommended when the
@@ -129,6 +129,33 @@ class PositionErrorMappingWidget:
     self.enableTransformMappingCheckBox.setToolTip("If checked, then the mapped transform difference compared to the ground truth is written into the volume.")
     parametersFormLayout.addRow("Enable mapping", self.enableTransformMappingCheckBox)
     self.enableTransformMappingCheckBox.connect('stateChanged(int)', self.setEnableTransformMapping)
+
+    #
+    # Export Area
+    #
+    exportCollapsibleButton = ctk.ctkCollapsibleButton()
+    exportCollapsibleButton.text = "Export"
+    self.layout.addWidget(exportCollapsibleButton)
+    exportFormLayout = qt.QFormLayout(exportCollapsibleButton)
+
+    # ROI selector
+    self.exportRoiSelectorLabel = qt.QLabel()
+    self.exportRoiSelectorLabel.setText( "Region of interest: " )
+    self.exportRoiSelector = slicer.qMRMLNodeComboBox()
+    self.exportRoiSelector.nodeTypes = ( "vtkMRMLAnnotationROINode", "" )
+    self.exportRoiSelector.noneEnabled = False
+    self.exportRoiSelector.addEnabled = False
+    self.exportRoiSelector.removeEnabled = True
+    self.exportRoiSelector.setMRMLScene( slicer.mrmlScene )
+    self.exportRoiSelector.setToolTip( "Pick the input region of interest for export" )
+    exportFormLayout.addRow(self.exportRoiSelectorLabel, self.exportRoiSelector)     
+
+    # Export button
+    self.exportButton = qt.QPushButton("Export")
+    self.exportButton.toolTip = "Export the transform in the selected region of interest to a vector volume"
+    self.exportButton.enabled = True
+    exportFormLayout.addRow(self.exportButton)
+    self.exportButton.connect('clicked(bool)', self.onExport)
 
     # Add vertical spacer
     self.layout.addStretch(1)
@@ -141,6 +168,9 @@ class PositionErrorMappingWidget:
       self.logic.startTransformMapping(self.groundTruthTransformSelector.currentNode(), self.mappedTransformSelector.currentNode(), self.outputVolumeSelector.currentNode(), self.outputTransformSelector.currentNode())
     else:
       self.logic.stopTransformMapping()
+
+  def onExport(self, clicked):
+    self.logic.exportTransformToVectorVolume(self.outputTransformSelector.currentNode(), self.exportRoiSelector.currentNode())    
   
   def onReload(self,moduleName="PositionErrorMapping"):
     """Generic reload method for any scripted module.
@@ -307,3 +337,27 @@ class PositionErrorMappingLogic:
       outputTransform.GetSourceLandmarks().InsertNextPoint(gtPos[0], gtPos[1], gtPos[2])
       outputTransform.GetTargetLandmarks().InsertNextPoint(mappedPos[0],mappedPos[1],mappedPos[2])
       self.outputTransformNode.GetTransformToParent().Modified()
+
+  def exportTransformToVectorVolume(self, outputTransform, exportRoi):
+    exportVolumeSpacingMm = 3.0
+
+    roiBounds_Ras = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    exportRoi.GetRASBounds(roiBounds_Ras)
+    exportVolumeSize = [(roiBounds_Ras[1]-roiBounds_Ras[0]+1)/exportVolumeSpacingMm, (roiBounds_Ras[3]-roiBounds_Ras[2]+1)/exportVolumeSpacingMm, (roiBounds_Ras[5]-roiBounds_Ras[4]+1)/exportVolumeSpacingMm]
+    exportVolumeSize = [int(math.ceil(x)) for x in exportVolumeSize]
+
+    exportImageData = vtk.vtkImageData()
+    exportImageData.SetExtent(0, exportVolumeSize[0]-1, 0, exportVolumeSize[1]-1, 0, exportVolumeSize[2]-1)
+    if vtk.VTK_MAJOR_VERSION <= 5:
+      exportImageData.SetScalarType(vtk.VTK_DOUBLE)
+      exportImageData.SetNumberOfScalarComponents(3)
+      exportImageData.AllocateScalars()
+    else:
+      exportImageData.AllocateScalars(vtk.VTK_DOUBLE, 3)
+
+    exportVolume = slicer.vtkMRMLVectorVolumeNode()
+    exportVolume.SetAndObserveImageData(exportImageData)
+    exportVolume.SetSpacing(exportVolumeSpacingMm, exportVolumeSpacingMm, exportVolumeSpacingMm)
+    exportVolume.SetOrigin(roiBounds_Ras[0], roiBounds_Ras[2], roiBounds_Ras[4])
+
+    slicer.modules.transforms.logic().CreateDisplacementVolumeFromTransform(outputTransform, exportVolume, False)
