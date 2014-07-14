@@ -23,8 +23,8 @@ StylusCalibrationToolbox::StylusCalibrationToolbox(fCalMainWindow* aParentMainWi
 : AbstractToolbox(aParentMainWindow)
 , QWidget(aParentMainWindow, aFlags)
 , m_NumberOfPoints(200)
-, m_StartupDelaySec(5)
-, m_CurrentTimeSec(0)
+, m_FreeHandStartupDelaySec(5)
+, m_StartupDelayRemainingTimeSec(0)
 , m_StartupDelayTimer(NULL)
 , m_CurrentPointNumber(0)
 , m_StylusPositionString("")
@@ -45,13 +45,14 @@ StylusCalibrationToolbox::StylusCalibrationToolbox(fCalMainWindow* aParentMainWi
   // Feed number of points from controller
   ui.spinBox_NumberOfStylusCalibrationPoints->setValue(m_NumberOfPoints);
 
-  // Connect events
-  connect( ui.pushButton_Start, SIGNAL( clicked() ), this, SLOT( DelayStartup() ) );
-  connect( ui.pushButton_Stop, SIGNAL( clicked() ), this, SLOT( Stop() ) );
-  connect( ui.spinBox_NumberOfStylusCalibrationPoints, SIGNAL( valueChanged(int) ), this, SLOT( NumberOfStylusCalibrationPointsChanged(int) ) );
-
   // Set up timer to wait before acquisition
   m_StartupDelayTimer = new QTimer(this);
+
+  // Connect events
+  connect( ui.pushButton_Start, SIGNAL( clicked() ), this, SLOT( StartDelayTimer() ) );
+  connect( m_StartupDelayTimer, SIGNAL(timeout()),this , SLOT(DelayStartup()));
+  connect( ui.pushButton_Stop, SIGNAL( clicked() ), this, SLOT( Stop() ) );
+  connect( ui.spinBox_NumberOfStylusCalibrationPoints, SIGNAL( valueChanged(int) ), this, SLOT( NumberOfStylusCalibrationPointsChanged(int) ) );
 }
 
 //-----------------------------------------------------------------------------
@@ -171,16 +172,7 @@ PlusStatus StylusCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aConfi
     LOG_WARNING("Unable to read NumberOfStylusCalibrationPointsToAcquire attribute from fCal element of the device set configuration, default value '" << m_NumberOfPoints << "' will be used");
   }
 
-  // Number of stylus calibration points to acquire
-  int FreeHandStartupDelaySec = 0;
-  if ( fCalElement->GetScalarAttribute("FreeHandStartupDelaySec", FreeHandStartupDelaySec ) )
-  {
-    m_StartupDelaySec = FreeHandStartupDelaySec;
-  }
-  else
-  {
-    LOG_WARNING("Unable to read FreeHandStartupDelayTime attribute from fCal element of the device set configuration, default value '" << m_StartupDelaySec << "' will be used");
-  }
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FreeHandStartupDelaySec , fCalElement);
 
   return PLUS_SUCCESS;
 }
@@ -426,37 +418,38 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
   }
 }
 
+
+//-----------------------------------------------------------------------------
+
+void StylusCalibrationToolbox::StartDelayTimer()
+{
+  LOG_INFO("Delay start up "<< m_StartupDelayRemainingTimeSec );
+  if( m_State != ToolboxState_InProgress)
+  {
+    LOG_INFO("set current Delay start up"<<m_FreeHandStartupDelaySec);
+    m_StartupDelayRemainingTimeSec=m_FreeHandStartupDelaySec;
+    ui.label_Instructions->setText(QString("Stylus positions recording will start in %1").arg(m_StartupDelayRemainingTimeSec--));
+    SetState(ToolboxState_StartupDelay);
+    // Start timer every 1000 ms
+    m_StartupDelayTimer->start(1000);
+  }
+}
+
 //-----------------------------------------------------------------------------
 
 void StylusCalibrationToolbox::DelayStartup()
 {
-  LOG_INFO("Delay start up "<< m_CurrentTimeSec << "m_state" << m_State);
-
-  if(m_State==ToolboxState_StartupDelay)
+  if(m_StartupDelayRemainingTimeSec>0)
   {
-    if(m_CurrentTimeSec>0)
-    {
-      ui.label_Instructions->setText(QString("Stylus positions recording will start in %1").arg(m_CurrentTimeSec--));
-    }
-    else
-    {
-      if(m_StartupDelayTimer->isActive())
-      {
-        m_StartupDelayTimer->stop();
-      }
-      disconnect(m_StartupDelayTimer, SIGNAL(timeout()),this , SLOT(DelayStartup()));
-      Start();
-    }
+    ui.label_Instructions->setText(QString("Stylus positions recording will start in %1").arg(m_StartupDelayRemainingTimeSec--));
   }
-  else if( m_State != ToolboxState_InProgress)
+  else
   {
-    LOG_INFO("set current Delay start up"<<m_StartupDelaySec);
-    m_CurrentTimeSec=m_StartupDelaySec;
-    SetState(ToolboxState_StartupDelay);
-    connect(m_StartupDelayTimer, SIGNAL(timeout()),this , SLOT(DelayStartup()));
-    // Start timer every 1000 ms
-    m_StartupDelayTimer->start(1000);
-    ui.label_Instructions->setText(QString("Stylus positions recording will start in %1").arg(m_CurrentTimeSec--));
+    if(m_StartupDelayTimer->isActive())
+    {
+      m_StartupDelayTimer->stop();
+    }
+    Start();
   }
 }
 
@@ -508,7 +501,6 @@ void StylusCalibrationToolbox::Stop()
     if(m_StartupDelayTimer->isActive())
     {
       m_StartupDelayTimer->stop();
-      disconnect(m_StartupDelayTimer, SIGNAL(timeout()),this , SLOT(DelayStartup()));
     }
     LOG_TRACE("StylusCalibrationToolbox::Stop before calibration delay timer finished"); 
     SetState(ToolboxState_Idle);

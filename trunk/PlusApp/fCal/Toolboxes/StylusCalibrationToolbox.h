@@ -70,6 +70,10 @@ public:
   vtkPivotCalibrationAlgo* GetPivotCalibrationAlgo() { return m_PivotCalibration; };
 
 protected slots:
+
+  /*! Start the delay startup timer*/
+  void StartDelayTimer();
+
   /*! Delay before startup calibration*/
   void DelayStartup();
 
@@ -92,6 +96,8 @@ protected:
   /*! Start calibration */
   void Start();
 
+  void SetFreeHandStartupDelaySec(int freeHandStartupDelaySec){m_FreeHandStartupDelaySec=freeHandStartupDelaySec;};
+
   /*! Pivot calibration algorithm */
   vtkPivotCalibrationAlgo*   m_PivotCalibration;
 
@@ -99,10 +105,10 @@ protected:
   int                        m_NumberOfPoints;
 
   /*! Delay time before start acquisition [s] */
-  int                        m_StartupDelaySec;
+  int                        m_FreeHandStartupDelaySec;
 
-  /*! Current time dlayed before the acquisition [s] */
-  int                        m_CurrentTimeSec;
+  /*! Current time delayed before the acquisition [s] */
+  int                        m_StartupDelayRemainingTimeSec;
 
   /*! Timer before start acquisition*/
   QTimer*                    m_StartupDelayTimer;
