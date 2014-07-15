@@ -58,7 +58,7 @@ Sonix video Imaging parameters: by default these parameters are unchanged
 - \xmlAtt \b CompressionStatus When imaging with the EC59 probe, if compression is disabled (\b CompressionStatus \c ="0"), then a lot of BMode frames are lost. The reason for this is the fact that scan-conversion is performed on the CPU. Set \b CompressionStatus \c ="1" to prevent frame loss. \OptionalAtt{0}
 -\xmlAtt \b SharedMemoryStatus When this flag is enabled and local access is used the TCP is bypasssed.\OptionalAtt{0}
 -\xmlAtt \b SoundVelocity The speed of sound \c [m/s]. \OptionalAtt{-1}
--\xmlAtt \b ConnectionSetupDelayMs Time required for setting up the connection. The value depends on the probe type, typical values are between 2000-3000 \c [ms]. SCALAR \OptionalAtt{3000}
+-\xmlAtt \b ConnectionSetupDelayMs Time required for setting up the connection. The value depends on the probe type, typical values are between 2000-3000 \c [ms]. \OptionalAtt{3000}
 
 \par
 <b> Sonix Porta specific: </b>
@@ -93,6 +93,16 @@ Porta initialization parameters \TodoAndras{Did not find anything about these 4}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 
+\par Depth switching (experimental)
+
+Plus allows using different spatial calibration parameters when the imaging depth and/or imaging probe is changed. To enable mode switching, plane switching and/or depth switching, for each output channel you must define one or more of:
+- ProbeId: BPC, L14-5, more to come
+- PortName: B, Rf
+- Depth: supported by your device, ex: 4, 4.5, etc. (in cm)
+
+If you change to a parameter that is not supported by your configuration (ie.: a depth you didn't specify) the data collection will stop!
+If you did not specify the global parameters above, Plus will attempt to configure the Sonix hardware with the parameters from the first output channel.
+    
 \section SonixVideoExampleConfigFile Example configuration file Sonix Video Touch_L14-5 PlusDeviceSet_Server_SonixTouch_L14-5_Porta.xml
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_SonixTouch_L14-5.xml"

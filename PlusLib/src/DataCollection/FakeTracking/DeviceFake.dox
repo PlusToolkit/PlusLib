@@ -18,11 +18,11 @@ Simulates a fake tracking system with tools that have predetermined behavior. Th
 
 - \xmlAtt \b Mode The possible modes have different simulation behaviour: \OptionalAtt{Undefined}
 
-  - \c Default. Spins the tools around different axis to fake movement
-SmoothMove.
-  - \c PivotCalibration. Moves around a stylus with the tip fixed to a position
-  - \c RecordPhantomLandmarks. Touches some positions with 1 sec difference
-  - \c ToolState. Changes the state of the tool from time to time
+  - \c Default Spins the tools around different axis to fake movement
+  - \c SmoothMove 
+  - \c PivotCalibration Moves around a stylus with the tip fixed to a position
+  - \c RecordPhantomLandmarks Touches some positions with 1 sec difference
+  - \c ToolState Changes the state of the tool from time to time
 
 - \xmlElem \b PhantomDefinition: \RequiredAtt if \b Mode \c="RecordPhantomLandmarks".
   - \xmlElem \b Geometry or \b Landmarks

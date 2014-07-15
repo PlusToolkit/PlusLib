@@ -1,5 +1,5 @@
 /*!
-\page DevicePolaris NDI pose trackers
+\page DevicePolaris NDI Polaris and Aurora pose trackers
 
 \section PolarisSupportedHwDevices Supported hardware devices
 <a href="http://www.ndigital.com/medical/products/polaris-family/"> Polaris </a> optical and <a href="http://www.ndigital.com/medical/products/aurora/"> Aurora </a> electromagnetic pose trackers.
