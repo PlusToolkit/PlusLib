@@ -14,8 +14,8 @@ For hardware-free testing and simulation purposes, any previous recording (saved
 
 \section SavedDataSourceConfigSettings Device configuration settings
 
-- \xmlAtt \ref DeviceType "Type" = \c "SavedDataSet" \RequiredAtt
-- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{10} 
+- \xmlAtt \ref DeviceType "Type" = \c "SavedDataSource" \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{10}
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
 
@@ -23,15 +23,15 @@ For hardware-free testing and simulation purposes, any previous recording (saved
 - \xmlAtt \b RepeatEnabled  Flag to enable saved dataset looping. If it's enabled, the video source will continuously play saved data (starts playing from the beginning when the end is reached). \OptionalAtt{false}
 - \xmlAtt \b UseOriginalTimestamps  Flag to read the timestamps from the file and use them in the output (instead of the current time). \OptionalAtt{false}
 - \xmlAtt \b UseData Three types of data that can be used: \OptionalAtt{IMAGE}
-  - \c "IMAGE" The device provides a video stream 
-  - \c "TRANSFORM" The device provides a tracker stream
-  - \c "IMAGE_AND_TRANSFORM"  The device provides a video stream with tracking data added as fields
+- \c "IMAGE" The device provides a video stream
+- \c "TRANSFORM" The device provides a tracker stream
+- \c "IMAGE_AND_TRANSFORM"  The device provides a video stream with tracking data added as fields
 
 
 
 \section SavedDataSourceExampleConfigFile Example configuration file PlusDeviceSet_DataCollectionOnly_SavedDataset.xml
 
- \TodoAndras{Is the attribute DefaultToolName not used anymore?}
+\TodoAndras{Is the attribute DefaultToolName not used anymore?}
 
 \include "data/ConfigFiles/Testing/PlusDeviceSet_DataCollectionOnly_SavedDataset.xml"
 
