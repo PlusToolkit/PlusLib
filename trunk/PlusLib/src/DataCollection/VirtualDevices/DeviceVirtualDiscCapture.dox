@@ -14,9 +14,11 @@
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 
-- \xmlAtt \b BaseFilename File to write, path relative to output directory. \OptionalAtt{"TrackedImageSequence.mha"}
+- \xmlAtt \b BaseFilename File to write, path relative to output directory. \OptionalAtt{TrackedImageSequence.mha}
 - \xmlAtt \b EnableFileCompression Flag to re-read the data from file and write it compressed, when closing the file. \OptionalAtt{false}
-- \xmlAtt \b EnableCapturing Flag that enables capturing frames. It can be used for pausing the recording. \OptionalAtt{false}
+ - Warning! capturing is done uncompressed, beware file limits on old FAT32 disks (4GB maximum file size)
+ - Compression is performed after capturing uncompressed data: at the end of capturing the device will close the uncompressed streamed file, then re-save it compressed when the recording is completed. This saving may take long time if the uncompressed data is several gigabytes then the compression may take minutes. If long sequences are acquired then it is advisable to disable compression during data collection and instead compress the data later with the EditSeqMetaFile utility.
+- \xmlAtt \b EnableCapturing Enable capturing when device is connected (without a request to start capturing) \OptionalAtt{false}
 - \xmlAtt \b RequestedFrameRate Requested frame rate [frames/second]. \OptionalAtt{15.0}
 - \xmlAtt \b FrameBufferSize Size of the frame buffer, by default is disabled. \OptionalAtt{-1}
 

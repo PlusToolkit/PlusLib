@@ -1,5 +1,5 @@
 /*!
-\page DeviceOpenIGTLink Any OpenIGTLink compatible tracker
+\page DeviceOpenIGTLinkTracker Any OpenIGTLink compatible tracker
 
 \section OpenIGTLinkSupportedHwDevices Supported hardware devices
 Any compatible tracker device through <a href="http://openigtlink.org/"> OpenIGTLink interface</a>.
