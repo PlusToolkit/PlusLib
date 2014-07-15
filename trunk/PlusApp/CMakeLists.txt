@@ -46,6 +46,12 @@ CONFIGURE_FILE(
   @ONLY
   )
 
+# Setup file for setting custom ctest vars (for ignoring certain warnings, etc.)
+CONFIGURE_FILE(
+  CreateUserDoc.bat.in
+  ${CMAKE_CURRENT_BINARY_DIR}/CreateUserDoc.bat
+  )
+  
 # --------------------------------------------------------------------------
 # Find SVN for revision information status and automatic update of the repository
 #
