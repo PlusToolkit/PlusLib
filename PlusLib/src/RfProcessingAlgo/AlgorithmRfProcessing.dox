@@ -1,0 +1,26 @@
+/**
+
+\page AlgorithmRfProcessing RF processing algorithm
+
+This algorithm can create a ultrasound brightness values from RF-data and perform scan conversion to create a rectangular B-mode image.
+
+\section AlgorithmRfProcessingConfigSettings Configuration settings
+
+- \xmlElem \b RfProcessing
+  - \xmlElem \b RfToBrightnessConversion
+    - \xmlAtt NumberOfHilbertFilterCoeffs
+    - \xmlAtt BrightnessScale
+  - \xmlElem \b ScanConversion
+    - \xmlAtt TransducerName
+    - \xmlAtt TransducerGeometry
+    - \xmlAtt RadiusStartMm
+    - \xmlAtt RadiusStopMm
+    - \xmlAtt ThetaStartDeg
+    - \xmlAtt ThetaStopDeg
+    - \xmlAtt OutputImageStartDepthMm
+    - \xmlAtt ImagingDepthMm
+    - \xmlAtt TransducerWidthMm
+    - \xmlAtt OutputImageSizePixel
+    - \xmlAtt OutputImageSpacingMmPerPixel
+  
+*/

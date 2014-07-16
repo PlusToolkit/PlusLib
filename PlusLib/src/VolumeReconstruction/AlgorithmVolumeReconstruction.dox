@@ -1,0 +1,17 @@
+/**
+
+\page AlgorithmVolumeReconstruction Volume reconstruction from image slices
+
+This algorithm reconstructs a 3D volume from a set of 2D image slices.
+
+\section VolumeReconstructionConfigSettings Configuration settings
+
+- \xmlElem \b VolumeReconstruction
+  - \xmlAtt OutputSpacing
+  - \xmlAtt ClipRectangleOrigin
+  - \xmlAtt ClipRectangleSize
+  - \xmlAtt Interpolation
+  - \xmlAtt Optimization
+  - \xmlAtt Compounding
+  - \xmlAtt FillHoles  
+*/
