@@ -12,11 +12,11 @@ if( DOXYGEN_FOUND )
     # Build html help (chm) file on Windows
     set(GENERATE_HTMLHELP "NO")
     set(COMPRESSED_HELP_TARGET_FILE_EXT ".tar.gz")
-    if(WIN32)
-      set(GENERATE_HTMLHELP "YES")
-      set(COMPRESSED_HELP_TARGET_FILE_EXT ".chm")
-      set(HHC_LOCATION "${PLUSLIB_TOOLS_DIR}/HtmlHelp/hhc.exe" CACHE FILEPATH "Path to the Windows HTML Help Compiler tool." FORCE)
-    endif(WIN32) 
+    #if(WIN32)
+      #set(GENERATE_HTMLHELP "YES")
+      #set(COMPRESSED_HELP_TARGET_FILE_EXT ".chm")
+      #set(HHC_LOCATION "${PLUSLIB_TOOLS_DIR}/HtmlHelp/hhc.exe" CACHE FILEPATH "Path to the Windows HTML Help Compiler tool." FORCE)
+    #endif(WIN32) 
        
     # Parameters for generate_doc.cmake
     set(TARGET_NAME "Documentation")
