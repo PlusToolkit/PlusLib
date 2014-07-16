@@ -8,10 +8,10 @@ Tracking devices
 - \subpage DeviceBrachy
 - \subpage DeviceFake
 - \subpage DeviceMicron
+- \subpage DevicePolaris
 - \subpage DeviceNDICertus
 - \subpage DeviceOpenIGTLinkTracker
 - \subpage DevicePhidgetSpatial
-- \subpage DevicePolaris
 - \subpage DeviceChRobotics
 - \subpage DeviceSavedDataSource
 
