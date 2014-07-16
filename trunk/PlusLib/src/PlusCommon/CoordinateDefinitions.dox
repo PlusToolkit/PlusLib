@@ -1,0 +1,17 @@
+/**
+
+\page CoordinateDefinitions Definition of coordinate systems
+
+Repository of transforms between pairs of coordinate systems.
+
+\section CoordinateDefinitionsConfigSettings Configuration settings
+
+- \xmlElem \b CoordinateDefinitions
+  - \xmlElem \b Transform
+    - \xmlAtt From 'From' coordinate frame of the transform
+    - \xmlAtt To 'To' coordinate frame of the transform
+    - \xmlAtt Matrix
+    - \xmlAtt Date
+    - \xmlAtt Error
+
+*/

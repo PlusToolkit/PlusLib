@@ -1,0 +1,18 @@
+/**
+
+\page AlgorithmPhantomLinearObjectRegistration Phantom registration using linear object features
+
+This is an \b experimental algorithm that can use linear features (points, lines, and surfaces) to register a phantom to an attached tracker marker.
+
+\section PhantomLinearObjectRegistrationConfigSettings Configuration settings
+
+- \xmlElem \b vtkPhantomLinearObjectRegistrationAlgo
+  - \xmlAtt PhantomCoordinateFrame \RequiredAtt
+  - \xmlAtt ReferenceCoordinateFrame \RequiredAtt
+  - \xmlAtt StylusTipCoordinateFrame \RequiredAtt
+- \xmlElem \b PhantomDefinition
+  - \xmlElem \b Geometry
+    - \xmlElem \b Planes \RequiredAtt
+    - \xmlElem \b References \RequiredAtt
+
+*/
