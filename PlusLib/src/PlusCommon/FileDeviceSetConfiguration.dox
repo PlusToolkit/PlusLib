@@ -7,7 +7,6 @@ This configuration file describes all inputs that are needed by any Plus applica
 The device set configuration file is an XML file with the following root element:
 - \xmlElem \b PlusConfiguration
   - \xmlAtt Version  
-  - \xmlElem \ref DataCollection
 
 Child elements:
 - Data collection

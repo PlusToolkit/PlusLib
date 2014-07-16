@@ -2,16 +2,17 @@
 \page DeviceOpenIGTLinkTracker Any OpenIGTLink compatible tracker
 
 \section OpenIGTLinkSupportedHwDevices Supported hardware devices
-Any compatible tracker device through <a href="http://openigtlink.org/"> OpenIGTLink interface</a>.
-Any tracker device that are supported by the  <a href="http://public.kitware.com/IGSTKWIKI/index.php/Main_Page">IGSTK toolkit</a> can be used in Plus by using this OpenIGTLink interface.
 
-- There are commercial systems that provide tracking coordinates and image data through OpenIGTLink, e.g., BrainLab
-  -BrainLab OpenIGTLink interface may be purchased as a license option with VectorVision Cranial 2.1.
-    - Contact BrainLab for information about licensing and for supported OpenIGTLink options.
-    - For tracking data, the BrainLab OpenIGTLink interface uses the <a href="http://www.na-mic.org/Wiki/index.php/OpenIGTLink/ProtocolV2/Type/TrackingData">TDATA</a> message type, which is supported by PLUS 2.0 as of <a href="https://www.assembla.com/code/plus/subversion/changesets/2337">r2337</a>
-    - In the configuration section for OpenIGTLinkTracker Device, set \b MessageType \c ="TDATA" and \b ReconnectOnReceiveTimeout \c ="false" (to avoid reconnects, as BrainLab asks for manual confirmation on each connect request)
-    - See ConfigFiles/BWH directory for example configurations using BrainLab tracking.
-  - Receiving live data from 3D Slicer: set \b UseReceivedTimestamps \c ="false" and \b UseLastTransformsOnReceiveTimeout \c ="true" (as Slicer only sends transforms when they change)
+- Any compatible tracker device through <a href="http://openigtlink.org/"> OpenIGTLink interface</a>.
+- Any tracker device that are supported by the  <a href="http://public.kitware.com/IGSTKWIKI/index.php/Main_Page">IGSTK toolkit</a>, using IGSTK's OpenIGTLinkTrackingBroadcaster application.
+- Receiving values of transforms from 3D Slicer application
+  - Use these settings: \b UseReceivedTimestamps \c ="false" and \b UseLastTransformsOnReceiveTimeout \c ="true" (as Slicer only sends transforms when they change)
+- BrainLab surgical navigation system
+  - BrainLab OpenIGTLink interface may be purchased as a license option with VectorVision Cranial 2.1.
+  - Contact BrainLab for information about licensing and for supported OpenIGTLink options.
+  - For tracking data, the BrainLab OpenIGTLink interface uses the <a href="http://www.na-mic.org/Wiki/index.php/OpenIGTLink/ProtocolV2/Type/TrackingData">TDATA</a> message type, which is supported by PLUS 2.0 as of <a href="https://www.assembla.com/code/plus/subversion/changesets/2337">r2337</a>
+  - In the configuration section for OpenIGTLinkTracker Device, set \b MessageType \c ="TDATA" and \b ReconnectOnReceiveTimeout \c ="false" (to avoid reconnects, as BrainLab asks for manual confirmation on each connect request)
+  - See ConfigFiles/BWH directory for example configurations using BrainLab tracking.
 
 \section OpenIGTLinkSupportedPlatforms Included in packages
 - \ref PackageWin32
