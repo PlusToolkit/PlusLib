@@ -13,43 +13,27 @@
 
 \subsection  NDICertusInstallCommon Install common software
 
-Before setting up anything about the device or the connection, some software has to be installed.
-- Device drivers (\\image\shared\data\lab.hardware\NDITrackers\NDICertus\OptotrakDeviceDrivers_v3.5.2\OptotrakDeviceDrivers_v3.5.2\setup.exe)
-- NDI First Principles software (\\image\shared\data\lab.hardware\NDITrackers\NDICertus\FirstPrinciples_v1.2.2\setup.exe)
+Before setting up the device or the connection make sure the followings are installed on the computer where Plus will be used:
+- Optotrak device drivers (OptotrakDeviceDrivers_v3.5.2) with updates (OptoUpdate_3.5.2 is needed for ethernet connection)
+  - When installing OptoUpdate click on the '''Update the system to v3.01''' button and select the '''Do Not Search for Hardware Components (Update Software Only)''' choice.
+- NDI First Principles software (FirstPrinciples_v1.2.2)
 
 \subsection  NDICertusComumnicationPCI Communicating Certus tracker by PCI card
-PCI card installation. To install an NDI PCI drivers card you will need:
-- This guide: [[Media:Optotrak_PCI_Interface_Card_Installation_Guide(IL-1070037).pdf |Optotrak PCI Interface Card Installation Guide, Rev. 3.0]]
-- an NDI PCI interface card
-- the NDI PCI drivers CD (NDIDeviceDrivers_v3.00.66) *
-  - Goodwin 757, NDI tools cabinet 
-  - Copy at the image server (\\image\shared\data\lab.hardware\NDITrackers\NDIDeviceDrivers_v3.00.66)
 
-Ultrasound machines equipped with NDI PCI card:
-- [http://media.cs.queensu.ca/media/wiki/index.php/Using_and_programming_the_Ultrasonix_machine#SonixRP-1 SonixRP-1]
-- [http://media.cs.queensu.ca/media/wiki/index.php/Using_and_programming_the_Ultrasonix_machine#SonixRP-2 SonixRP-2]
+PCI card installation. To install an NDI PCI drivers card you will need:
+- Optotrak PCI Interface Card Installation Guide
+- NDI PCI interface card
+- NDI PCI drivers CD (NDIDeviceDrivers_v3.00.66)
 
 \subsection NDICertusComumnicationEthernet Communicating Certus tracker by via ethernet
 
 \subsubsection  NDICertusSetUpPC How to set up your PC
 
-Install the following packages from the image server:
-- OptotrakDeviceDrivers (<code>\\image\shared_data\data\lab.hardware\NDITrackers\NDICertus\0_OptotrakDeviceDrivers_v3.5.2</code>):
-  - Install '''Optotrak Link Drivers (Required)''' - you may need to reboot your computer.
-[[Image:OptotrakDeviceDriversInstall.jpg|center]]
-- OptoUpdate (<code>\\image\shared_data\data\lab.hardware\NDITrackers\NDICertus\1_OptoUpdate_3.5.2</code>):
-  - Click on the '''Update the system to v3.01''' button and select the '''Do Not Search for Hardware Components (Update Software Only)''' choice.
-[[Image:OptotrakOptoUpdateInstall.jpg|center]]
-- FirstPrinciples (<code>\\image\shared_data\data\lab.hardware\NDITrackers\NDICertus\2_FirstPrinciples_v1.2.2</code>):
-  - Install First Principles with the default values.
-- 6DA_Optotrak (<code>\\image\shared_data\data\lab.hardware\NDITrackers\NDICertus\3_6DA_Optotrak_1.3.3</code>):
-  - Install 6DA_Optotrak with the default values.
-- NDI DataView (<code>\\image\shared_data\data\lab.hardware\NDITrackers\NDICertus\4_NDI_DataView_Version_1.00.03</code>):
-  - Install NDI DataView with the default values.
-- Copy the '''standard.cam''' and '''system.nif''' files to "c:\ndigital\realtime" folder (<code>\\image\shared_data\data\lab.hardware\NDITrackers\NDICertus\5_Copy_To_ndigital_realtime</code>)
-
-Change NDI settings file (by default <code>optotrak.ini</code> file is located in the <code> "C:\ndigital\settings" </code> folder)
-
+Install the following software:
+- 6DA_Optotrak (6DA_Optotrak_1.3.3) needed for ethernet connection
+- NDI DataView (NDI_DataView_Version_1.00.03):
+- Update standard.cam and system.nif
+- Change NDI settings file (by default optotrak.ini file is located in the "C:\ndigital\settings" folder)
 - Set ''Driver'' to ''etherlink.dll''
   - Copy ''etherlink.dll'' to the <code>"c:\ndigital\programs"</code> folder from <code>"c:\ndigital\drivers"</code>
 - Set ''ResetTimeout''' to 500 and ''PropagationTimeout''' to 5000 (recommended in the manual but maybe not vital)
@@ -58,7 +42,6 @@ Change NDI settings file (by default <code>optotrak.ini</code> file is located i
 - ''Data Timeout'' should be 10000 and ''Reset Delay'' should be between 5000 and 10000 (also recommended in the manual)
 
 If you made these changes, the NDI will work via ethernet. If you want to use the PCI card again, you have to undo these changes (the most important thing is to set ''Driver'' to ''pcilink.dll''
-
 
 \subsubsection  NDICertusSetUpSCU How to set up the System Control Unit (SCU)
 Change ethernet settings in NDI SCU ''(Note: this has to be done only when SCU, gateway or DNS IP address is changed)''
@@ -75,18 +58,6 @@ Change ethernet settings in NDI SCU ''(Note: this has to be done only when SCU, 
   - ENNMWR Sets the Ethernet host name
   - ENSMRD Reads the subnet mask
   - ENSMWR Sets the subnet mask
-- Current settings
-  - IP: 130.15.7.98
-  - Gateway: 130.15.7.1
-  - (DNS: 130.15.1.101)
-  - (DNS alternate: 130.15.1.11)
-  - Subnet mask: 255.255.255.0
-  - Name: CERTUS061
-
-\subsection  NDICertusUsage How to use the NDI Certus optical tracker
-
-User guide: [[Media:Optotrak_Certus_User_Guide.pdf | Optotrak Certus User Guide rev. 2.0]]
-
 
 \subsection  NDICertusCoordinateSystems Coordinate systems
 
@@ -102,7 +73,6 @@ Reference DRB \c (Right-handed). The orientation of the DRB is the following: th
 
 No "beeps" when attempting to connect to a Certus tracker => Power off the OptoTrak Certus camera and communication unit for a few seconds and try to connect again
 If no Certus device is attached to the system then the application crashes (due to the TransputerDetermineSystemCfg call in NDI's toolkit, which determines the system configuration causes the application to crash)
-
 
 \section NDICertusConfigSettings Device configuration settings
 

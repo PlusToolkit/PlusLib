@@ -4,14 +4,14 @@
 
 The data collector component acquires data from several physical or software devices simultaneously and processes and combines the acquired data.
 
-\section DataCollectionConfigSettings
+\section DataCollectionConfigSettings Configuration settings
 
 - \xmlElem \b DataCollection
   - \xmlAtt \b StartupDelaySec
   - \xmlElem \b DeviceSet
     - \xmlAtt \b Name Device set name as it appears in the menu where the user can select it.
     - \xmlAtt \b Description More detailed description about the device set.
-  - \xmlElem \b Device There can be multiple elements, each describes a physical or software device.
+  - \xmlElem \b Device There can be multiple elements, each describes a physical or software device. See list of available devices in the \ref HardwareSetup page.
     - \xmlAtt \b Type \anchor DeviceType . Defines the name of device type used.
     - \xmlAtt \b AcquisitionRate \anchor DeviceAcquisitionRate . Defines how many frames the device should acquire in a second. Depending on capabilities of the device the actual frame rate may differ from this requested frame rate. Optional, default is specified by the device.
     - \xmlAtt \b LocalTimeOffsetSec \anchor LocalTimeOffsetSec . This value allows for compensating time lag of the data acquisition of the device. The value is typically determined by temporal calibration. Global time (common for all devices in the process) is computed from the device's local time (timestamps provided by the device) as: GlobalTime = LocalTime + LocalTimeOffset. Therefore, if local time is the time when the process receives the data from a device and it takes 0.5 sec for the device to acquire data and send to the process then the LocalTimeOffsetSec value will be -0.5. Optional. Default value is 0 sec.
