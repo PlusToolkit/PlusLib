@@ -1,10 +1,9 @@
 /*!
-\page DeviceInterson Interson USB ultrasound probes
+\page DeviceInterson Interson USB ultrasound probes (old SDK)
 
 \section IntersonSupportedHwDevices Supported hardware devices
 
-Acquiring ultrasound images from Interson USB ultrasound systems supports the \c SeeMore probes
-
+- This device is used for image acquisition from Interson USB ultrasound systems with \c SeeMore probes with the C++ (old) interface. Probes with .NET interface should be used with \ref DeviceIntersonSDKCxx.
 - Link to manufacturer's website: http://www.interson.com/products/seemore-153-usb-probes
 
 \section IntersonSupportedPlatforms Included in packages
@@ -12,9 +11,8 @@ Acquiring ultrasound images from Interson USB ultrasound systems supports the \c
 
 \section IntersonInstallation Installation
 
-Limitations: imaging parameters are hardcoded, makeing them configurable is a work in progress, see details in <a href="https://www.assembla.com/spaces/plus/tickets/866">#866 </a>, <a href="https://www.assembla.com/spaces/plus/tickets/867">#867 </a> and <a href="https://www.assembla.com/spaces/plus/tickets/868">#868 </a>
-Requires SDK provided by Interson for compilation and USB drivers provided by Interson for running (otherwise Plus application will not start due to missing WDAPI1010.dll).
-
+- Requires SDK provided by Interson for compilation and USB drivers provided by Interson for running (otherwise Plus application will not start due to missing WDAPI1010.dll).
+- Limitations: imaging parameters are hardcoded, makeing them configurable is a work in progress, see details in <a href="https://www.assembla.com/spaces/plus/tickets/866">#866 </a>, <a href="https://www.assembla.com/spaces/plus/tickets/867">#867 </a> and <a href="https://www.assembla.com/spaces/plus/tickets/868">#868 </a>
 
 \section IntersonConfigSettings Device configuration settings
 
@@ -42,6 +40,5 @@ Requires SDK provided by Interson for compilation and USB drivers provided by In
 \section IntersonExampleConfigFile Example configuration file PlusDeviceSet_Server_IntersonVideoCapture_WithParameters.xml
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_IntersonVideoCapture_WithParameters.xml"
-
 
 */

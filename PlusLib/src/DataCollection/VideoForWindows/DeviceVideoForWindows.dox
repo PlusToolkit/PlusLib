@@ -5,7 +5,7 @@
 
 This device is deprecated, use MmfVideo device instead.
 
-Compatible framegrabbers and webcams through Video for Windows interface.
+Compatible frame grabbers and webcams through Video for Windows interface.
 
 Limitations: currently only certain color modes are supported, minor additional conversion routines may be needed for some devices.
 
