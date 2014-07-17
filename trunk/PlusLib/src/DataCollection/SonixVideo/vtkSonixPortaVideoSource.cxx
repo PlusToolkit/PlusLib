@@ -127,6 +127,8 @@ vtkSonixPortaVideoSource::vtkSonixPortaVideoSource()
   this->FirstCallToAddFrameToBuffer = true;
   this->CurrentMotorAngle = 0;
   this->StartMotorAngle = 0;
+  this->StepPerFrame = 4;
+  this->FramePerVolume = 80;
   this->VolumeIndex = 0;
 	this->IncrementVolumeIndexClockwise = false;
 	this->IncrementVolumeIndexCounterClockwise = true;
@@ -557,10 +559,10 @@ PlusStatus vtkSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* rootCo
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FramePerVolume, deviceConfig);
   XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, BModeFrameSize, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, StepPerFrame, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Usm, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Pci, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, HighVoltage, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Channels, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, Usm, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, Pci, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, HighVoltage, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, Channels, deviceConfig);
 
   XML_READ_STRING_ATTRIBUTE_REQUIRED(PortaLUTPath, deviceConfig);
   XML_READ_STRING_ATTRIBUTE_REQUIRED(PortaSettingPath, deviceConfig);

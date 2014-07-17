@@ -1,8 +1,8 @@
 /*!
-\page DeviceICCapturing Imaging controls analog USB framegrabber
+\page DeviceICCapturing Imaging controls analog USB frame grabber
 
 \section ICCapturingSupportedHwDevices Supported hardware devices
-Supported model: DFG/USB2pro analog framegrabbers with USB interface
+Supported model: DFG/USB2pro analog frame grabbers with USB interface
 
 - Link to manufacturer's website: http://www.theimagingsource.com/en_US/products/converters/
 

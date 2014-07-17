@@ -1,6 +1,6 @@
 /**
 
-\page AlgorithmVolumeReconstruction Volume reconstruction from image slices
+\page AlgorithmVolumeReconstruction Volume reconstruction
 
 This algorithm reconstructs a 3D volume from a set of 2D image slices.
 

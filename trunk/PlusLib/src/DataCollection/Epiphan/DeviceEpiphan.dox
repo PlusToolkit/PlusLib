@@ -25,7 +25,7 @@ Need to install the drivers and software from <a href="http://www.epiphan.com/pr
 - \xmlAtt \ref DeviceType "Type" = \c "Epiphan" \RequiredAtt
 
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
-- \xmlAtt \b SerialNumber it is an optional parameter to set the \c ID of the preferred a framegrabber device (if multiple devices are connected). SerialNumber is kept for backward compatibility only. Serial number or other address should be specified in the GrabberLocation attribute.
+- \xmlAtt \b SerialNumber it is an optional parameter to set the \c ID of the preferred a frame grabber device (if multiple devices are connected). SerialNumber is kept for backward compatibility only. Serial number or other address should be specified in the GrabberLocation attribute.
 - \xmlAtt \b ClipRectangleOrigin and \b ClipRectangleSize define a screen region to capture information from, the clip rectangle width has to be typically a mulitple of 4 (e.g., \b ClipRectangleOrigin \c ="20 40" \b ClipRectangleSize \c ="512 512" ). If the \b ClipRectangleSize \c ="0 0" then the values are ignored and the whole frame is captured. \OptionalAtt{0 0}
 - \xmlAtt \b GrabberLocation it is used to choose a specific epiphan device (in the format local:[SERIAL], net:[ADDRESS[:PORT]], sn:SERIAL, id:INDEX). If nothing is specified then the auto-detection is attempted. \OptionalAtt{NULL}
 
