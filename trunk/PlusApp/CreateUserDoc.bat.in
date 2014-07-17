@@ -8,5 +8,3 @@ ECHO   Generating user documentation
 "${CMAKE_MAKE_PROGRAM}" PlusApp.sln /build Release /project Documentation 1>> CreateDoc.log 2>&1 
 
 ECHO Documentation available at: ${PLUS_EXECUTABLE_OUTPUT_PATH}/Doc
-
-timeout /t 5 
