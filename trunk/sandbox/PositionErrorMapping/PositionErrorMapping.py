@@ -273,15 +273,13 @@ class PositionErrorMappingLogic:
     self.outputTransformNode=outputTransformNode
     
     if self.outputVisitedPointsModelNode:
-    
+      # Create model display node if does not exist yet
       if not self.outputVisitedPointsModelNode.GetDisplayNode():
         modelDisplay = slicer.vtkMRMLModelDisplayNode()
-        #modelDisplay.SetSliceIntersectionVisibility(False) # Show in slice view
-        #modelDisplay.SetEdgeVisibility(True) # Hide in 3D view
         modelDisplay.SetEdgeVisibility(True)
         slicer.mrmlScene.AddNode(modelDisplay)
         self.outputVisitedPointsModelNode.SetAndObserveDisplayNodeID(modelDisplay.GetID())
-    
+      # Set up glyph filter
       self.visitedPoints = vtk.vtkPoints()
       self.visitedPointsPolydata = vtk.vtkPolyData()
       self.visitedPointsPolydata.SetPoints(self.visitedPoints)      
@@ -296,8 +294,7 @@ class PositionErrorMappingLogic:
       self.visitedPointsGlyph3d.Update()
       self.outputVisitedPointsModelNode.SetPolyDataConnection(self.visitedPointsGlyph3d.GetOutputPort())
 
-    # Get the output volume's RAS to IJK matrix
-
+    # Initialize the output transform
     if self.outputTransformNode:
       alwaysClearOutputTransformOnStart = True
       outputTransform=self.outputTransformNode.GetTransformToParentAs('vtkThinPlateSplineTransform', False)
