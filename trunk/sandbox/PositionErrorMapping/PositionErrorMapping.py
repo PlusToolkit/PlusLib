@@ -96,16 +96,16 @@ class PositionErrorMappingWidget:
     parametersFormLayout.addRow(self.mappedTransformSelectorLabel, self.mappedTransformSelector)     
     
     # output volume selector
-    self.outputVolumeSelectorLabel = qt.QLabel()
-    self.outputVolumeSelectorLabel.setText( "Output volume: " )
-    self.outputVolumeSelector = slicer.qMRMLNodeComboBox()
-    self.outputVolumeSelector.nodeTypes = ( "vtkMRMLScalarVolumeNode", "" )
-    self.outputVolumeSelector.noneEnabled = False
-    self.outputVolumeSelector.addEnabled = False
-    self.outputVolumeSelector.removeEnabled = True
-    self.outputVolumeSelector.setMRMLScene( slicer.mrmlScene )
-    self.outputVolumeSelector.setToolTip( "Each voxel of the volume will be filled with a constant value (1000) at the position where a measurement point is obtained. Optional." )
-    parametersFormLayout.addRow(self.outputVolumeSelectorLabel, self.outputVolumeSelector)
+    self.outputVisitedPointsModelSelectorLabel = qt.QLabel()
+    self.outputVisitedPointsModelSelectorLabel.setText( "Output visited points model: " )
+    self.outputVisitedPointsModelSelector = slicer.qMRMLNodeComboBox()
+    self.outputVisitedPointsModelSelector.nodeTypes = ( "vtkMRMLModelNode", "" )
+    self.outputVisitedPointsModelSelector.noneEnabled = True
+    self.outputVisitedPointsModelSelector.addEnabled = True
+    self.outputVisitedPointsModelSelector.removeEnabled = True
+    self.outputVisitedPointsModelSelector.setMRMLScene( slicer.mrmlScene )
+    self.outputVisitedPointsModelSelector.setToolTip( "A glyph is added to the model at each measurement point. Optional." )
+    parametersFormLayout.addRow(self.outputVisitedPointsModelSelectorLabel, self.outputVisitedPointsModelSelector)
 
     # output grid transform selector
     self.outputTransformSelectorLabel = qt.QLabel()
@@ -165,7 +165,7 @@ class PositionErrorMappingWidget:
 
   def setEnableTransformMapping(self, enable):
     if enable:
-      self.logic.startTransformMapping(self.groundTruthTransformSelector.currentNode(), self.mappedTransformSelector.currentNode(), self.outputVolumeSelector.currentNode(), self.outputTransformSelector.currentNode())
+      self.logic.startTransformMapping(self.groundTruthTransformSelector.currentNode(), self.mappedTransformSelector.currentNode(), self.outputVisitedPointsModelSelector.currentNode(), self.outputTransformSelector.currentNode())
     else:
       self.logic.stopTransformMapping()
 
@@ -242,8 +242,15 @@ class PositionErrorMappingLogic:
     self.groundTruthTransformNode = None
     self.transformNodeObserverTags = []
     self.mappedTransformNode = None
-    self.outputVolumeNode = None
+    self.outputVisitedPointsModelNode = None
     self.previousMappedPosition = [0,0,0]
+    
+    # no sample is collected if the pointer moves less than this distance
+    # from the previous sample
+    self.minimumSamplingDistance = 10
+    
+    # spacing of the exported volume
+    self.exportVolumeSpacingMm = 3.0
 
   def addObservers(self):
     transformModifiedEvent = 15000
@@ -254,30 +261,42 @@ class PositionErrorMappingLogic:
       transformNode = transformNode.GetParentTransformNode()
 
   def removeObservers(self):
+    print "Remove observers"
     for nodeTagPair in self.transformNodeObserverTags:
       nodeTagPair[0].RemoveObserver(nodeTagPair[1])
       
-  def startTransformMapping(self, groundTruthTransformNode, mappedTransformNode, outputVolumeNode, outputTransformNode):
+  def startTransformMapping(self, groundTruthTransformNode, mappedTransformNode, outputVisitedPointsModelNode, outputTransformNode):
     self.removeObservers()
     self.groundTruthTransformNode=groundTruthTransformNode
-    self.mappedTransformNode=mappedTransformNode
-    self.outputVolumeNode=outputVolumeNode
+    self.mappedTransformNode=mappedTransformNode    
+    self.outputVisitedPointsModelNode=outputVisitedPointsModelNode
     self.outputTransformNode=outputTransformNode
+    
+    if self.outputVisitedPointsModelNode:
+    
+      if not self.outputVisitedPointsModelNode.GetDisplayNode():
+        modelDisplay = slicer.vtkMRMLModelDisplayNode()
+        #modelDisplay.SetSliceIntersectionVisibility(False) # Show in slice view
+        #modelDisplay.SetEdgeVisibility(True) # Hide in 3D view
+        modelDisplay.SetEdgeVisibility(True)
+        slicer.mrmlScene.AddNode(modelDisplay)
+        self.outputVisitedPointsModelNode.SetAndObserveDisplayNodeID(modelDisplay.GetID())
+    
+      self.visitedPoints = vtk.vtkPoints()
+      self.visitedPointsPolydata = vtk.vtkPolyData()
+      self.visitedPointsPolydata.SetPoints(self.visitedPoints)      
+      glyph = vtk.vtkPolyData()
+      cubeSource = vtk.vtkCubeSource()
+      cubeSource.SetXLength(self.minimumSamplingDistance)
+      cubeSource.SetYLength(self.minimumSamplingDistance)
+      cubeSource.SetZLength(self.minimumSamplingDistance)
+      self.visitedPointsGlyph3d = vtk.vtkGlyph3D()
+      self.visitedPointsGlyph3d.SetSourceConnection(cubeSource.GetOutputPort())
+      self.visitedPointsGlyph3d.SetInputData(self.visitedPointsPolydata)
+      self.visitedPointsGlyph3d.Update()
+      self.outputVisitedPointsModelNode.SetPolyDataConnection(self.visitedPointsGlyph3d.GetOutputPort())
 
     # Get the output volume's RAS to IJK matrix
-    ijkToRas = vtk.vtkMatrix4x4()
-    if outputVolumeNode:
-      outputVolumeNode.GetIJKToRASMatrix(ijkToRas)
-      transformNode = self.outputVolumeNode.GetParentTransformNode()
-      if transformNode:
-        if transformNode.IsTransformToWorldLinear():
-          rasToRAS = vtk.vtkMatrix4x4()
-          transformNode.GetMatrixTransformToWorld(rasToRAS)
-          rasToRAS.Multiply4x4(rasToRAS, ijkToRas, ijkToRas)
-        else:
-          print ("Cannot handle non-linear transforms - skipping")
-      self.rasToIjk = vtk.vtkMatrix4x4()
-      vtk.vtkMatrix4x4.Invert(ijkToRas, self.rasToIjk)
 
     if self.outputTransformNode:
       alwaysClearOutputTransformOnStart = True
@@ -304,9 +323,8 @@ class PositionErrorMappingLogic:
     self.mappedTransformNode.GetMatrixTransformToWorld(mappedTransformMatrix)    
     mappedPos = [mappedTransformMatrix.GetElement(0,3), mappedTransformMatrix.GetElement(1,3), mappedTransformMatrix.GetElement(2,3)]
       
-    # return if did not move enough compared to the previous sampling position
-    minimumSamplingDistance = 15
-    if vtk.vtkMath.Distance2BetweenPoints(self.previousMappedPosition,mappedPos) < minimumSamplingDistance*minimumSamplingDistance:
+    # return if did not move enough compared to the previous sampling position    
+    if vtk.vtkMath.Distance2BetweenPoints(self.previousMappedPosition,mappedPos) < self.minimumSamplingDistance*self.minimumSamplingDistance:
       return
     
     self.previousMappedPosition = mappedPos
@@ -322,14 +340,10 @@ class PositionErrorMappingLogic:
     # Compute voxel position
     distortionVectorPosition_Ras = [gtPos[0], gtPos[1], gtPos[2], 1]
 
-    # Paint voxel value
-    if self.outputVolumeNode:
-      distortionVectorPosition_Ijk=self.rasToIjk.MultiplyPoint(distortionVectorPosition_Ras)    
-      outputVolumeImageData=self.outputVolumeNode.GetImageData()
-      # We just use a constant fill value to be able to visualize that a sample has been obtained at this point (can be shown in a slice view or in 3D using volume rendering)
-      fillValue=1000
-      outputVolumeImageData.SetScalarComponentFromFloat(distortionVectorPosition_Ijk[0], distortionVectorPosition_Ijk[1], distortionVectorPosition_Ijk[2], 0, fillValue)
-      outputVolumeImageData.Modified()
+    # Paint voxel value   
+    if self.outputVisitedPointsModelNode:
+      self.visitedPoints.InsertNextPoint(distortionVectorPosition_Ras[0:3])
+      self.visitedPoints.Modified()
     
     # Update transform
     if self.outputTransformNode:
@@ -339,11 +353,9 @@ class PositionErrorMappingLogic:
       self.outputTransformNode.GetTransformToParent().Modified()
 
   def exportTransformToVectorVolume(self, outputTransform, exportRoi):
-    exportVolumeSpacingMm = 3.0
-
     roiBounds_Ras = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     exportRoi.GetRASBounds(roiBounds_Ras)
-    exportVolumeSize = [(roiBounds_Ras[1]-roiBounds_Ras[0]+1)/exportVolumeSpacingMm, (roiBounds_Ras[3]-roiBounds_Ras[2]+1)/exportVolumeSpacingMm, (roiBounds_Ras[5]-roiBounds_Ras[4]+1)/exportVolumeSpacingMm]
+    exportVolumeSize = [(roiBounds_Ras[1]-roiBounds_Ras[0]+1)/self.exportVolumeSpacingMm, (roiBounds_Ras[3]-roiBounds_Ras[2]+1)/self.exportVolumeSpacingMm, (roiBounds_Ras[5]-roiBounds_Ras[4]+1)/self.exportVolumeSpacingMm]
     exportVolumeSize = [int(math.ceil(x)) for x in exportVolumeSize]
 
     exportImageData = vtk.vtkImageData()
@@ -357,7 +369,7 @@ class PositionErrorMappingLogic:
 
     exportVolume = slicer.vtkMRMLVectorVolumeNode()
     exportVolume.SetAndObserveImageData(exportImageData)
-    exportVolume.SetSpacing(exportVolumeSpacingMm, exportVolumeSpacingMm, exportVolumeSpacingMm)
+    exportVolume.SetSpacing(self.exportVolumeSpacingMm, self.exportVolumeSpacingMm, self.exportVolumeSpacingMm)
     exportVolume.SetOrigin(roiBounds_Ras[0], roiBounds_Ras[2], roiBounds_Ras[4])
 
     slicer.modules.transforms.logic().CreateDisplacementVolumeFromTransform(outputTransform, exportVolume, False)
