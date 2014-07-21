@@ -14,4 +14,9 @@ This algorithm reconstructs a 3D volume from a set of 2D image slices.
   - \xmlAtt Optimization
   - \xmlAtt Compounding
   - \xmlAtt FillHoles  
+
+\image html AlgorithmVolumeReconstructionLinearRoi.png 
+
+\image html AlgorithmVolumeReconstructionCurvilinearRoi.png
+  
 */
