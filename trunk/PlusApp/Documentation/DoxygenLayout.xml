@@ -4,8 +4,7 @@
     <tab type="mainpage" visible="no" title=""/>
     <tab type="usergroup" url="@ref HardwareSetup" title="Hardware setup"/>
     <tab type="usergroup" url="@ref SystemCalibration" title="System calibration"/>
-    <tab type="usergroup" url="@ref BasicProcedures" title="Basic procedures"/>
-    <tab type="usergroup" url="@ref AdvancedProcedures" title="Advanced procedures"/>
+    <tab type="usergroup" url="@ref DataAcquisitionProcessing" title="Data acquisition and processing"/>
     <tab type="usergroup" url="@ref Tools" title="Tools"/>
     <tab type="usergroup" url="@ref Specifications" title="Specifications"/>
     <tab type="usergroup" url="@ref Faq" title="FAQ"/>

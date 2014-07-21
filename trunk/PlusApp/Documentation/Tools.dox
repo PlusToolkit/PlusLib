@@ -2,8 +2,38 @@
 
 \page Tools Tools
 
-\par Utilities
-- \subpage ApplicationEditSeqMetaFile
+The following command-line tools can be executed by starting the Plus command prompt and entering the name of the tool executable file and parameters.
+
+Tool                                         | Description
+---------------------------------------------|--------------
+\subpage ApplicationPlusServer               | Acquire data from devices and broadcast through OpenIGTLink
+\subpage ApplicationEditSeqMetaFile          | Edit sequence metafiles (trim, merge, compress/uncompress, etc.)
+\subpage ApplicationViewSeqMetaFile          | View sequence metafile frames in 3D
+\subpage ApplicationVolumeReconstructor      | Reconstruct 3D ultrasound volume from 2D slices
+\subpage ApplicationCreateSliceModels        | Create 3D surface model showing 2D slice positions (for volume reconstruction troubleshooting)
+\subpage PoinSetExtractor                    | Create 3D surface model (points or tube) from tool trajectory
+\subpage ApplicationRfProcessor              | Convert RF data to displayable B-mode images
+\subpage ApplicationSpatialSensorFusion      | TODO
+\subpage ApplicationFreehandCalibration      | TODO
+\subpage EditSegmentationParameters          | TODO
+\subpage ApplicationTemporalCalibration      | TODO
+\subpage ApplicationAccurateTimerTest        | TODO
+\subpage ApplicationDiagDataCollection       | TODO
+\subpage ApplicationTrackingTest             | View tracker tool positions in 3D
+\subpage ApplicationPlusVersion              | Print the version of Plus and all hardware SDKs
+
+\par Debugging tools (only for developers, not included in regular packages)
+
+vtkICCapturingSourceTest1
+vtkSonixPortaVideoSourceTest
+vtkSonixVideoSourceTest1
+vtkWin32VideoSourceTest
+...
+
+vtkDataCollectorTest1
+vtkDataCollectorTest2
+vtkDataCollectorVideoAcqTest
+...
 
 
 */

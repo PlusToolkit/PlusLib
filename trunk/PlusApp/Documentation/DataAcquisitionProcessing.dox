@@ -1,0 +1,9 @@
+/**
+
+\page DataAcquisitionProcessing Data acquisition and processing
+
+- \subpage ProcedureVolumeReconstruction
+- \subpage ProcedureStreamingToSlicer
+- \subpage ProcedureUltrasoundSimulation
+
+*/
