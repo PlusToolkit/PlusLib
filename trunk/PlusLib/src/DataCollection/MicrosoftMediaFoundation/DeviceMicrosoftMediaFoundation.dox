@@ -22,8 +22,8 @@ Media foundation require Microsoft Windows SDK 7.1 or later. Download <a href="h
 - \xmlAtt \b VideoFormat It specifies the video subtype format. All the available formats are described <a href="http://msdn.microsoft.com/en-us/library/windows/desktop/aa370819(v=vs.85).aspx">here.</a> \OptionalAtt{YUY2}
 - \xmlAtt \b CaptureDeviceId \OptionalAtt{0}
 
-- \xmlElem \ref DataSources:
-   - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
+- \xmlElem \ref DataSources
+   - \xmlElem \ref DataSource There must be one child element. \RequiredAtt
     - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
     - \xmlAtt \ref ImageType Color image acquisition is supported by setting the imaging device's common attribute \c ImageType="RGB_COLOR". \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}

@@ -30,8 +30,8 @@
 
 - \xmlAtt \b IniFileName. INI file name. Is the name of the BK ini file that stores connection and acquisition settings. If a relative path is specified then it is relative to the device set configuration directory. See an example \ref inifile "INI file" below. \RequiredAtt \TodoAndras{Though it uses an optional macro it is a required attribute, right?}
 
-- \xmlElem \ref DataSources:
-  - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
+- \xmlElem \ref DataSources
+  - \xmlElem \ref DataSource There must be one child element. \RequiredAtt
     - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
     - \xmlAtt \ref ImageType \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
@@ -47,8 +47,8 @@
   - \c BMode
   - \c RfMode Acquire RF mode data. For previewing B-mode images during acquisition, add an \ref AlgorithmRfProcessing "RfProcessing" child element to the \c OutputChannel.
 - \xmlAtt \b SubscribeScanPlane Enable support for dynamic scan plane switching on 8848 probes ( \c true or \c false). \OptionalAtt{false}
-- \xmlElem \ref DataSources:
-  - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
+- \xmlElem \ref DataSources
+  - \xmlElem \ref DataSource There must be one child element. \RequiredAtt
     - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
     - \xmlAtt \ref ImageType \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}

@@ -14,8 +14,4 @@
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{50} 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 
-\section VirtualSwitcherExampleConfigFile Example configuration file PlusDeviceSet_Server_VirtualSwitcher.xml
-
-\include "data/ConfigFiles/PlusDeviceSet_Server_VirtualSwitcher.xml"
-
 */

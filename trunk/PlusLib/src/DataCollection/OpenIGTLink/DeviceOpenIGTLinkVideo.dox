@@ -33,8 +33,8 @@ There are commercial systems that provide tracking video and image data through 
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" The device checks for new available messages on the remove server at this rate.\OptionalAtt{30} 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 
-- \xmlElem \ref DataSources:
-   - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
+- \xmlElem \ref DataSources
+   - \xmlElem \ref DataSource There must be one child element. \RequiredAtt
     - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
     - \xmlAtt \ref ImageType \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}

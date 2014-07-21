@@ -29,8 +29,8 @@ Need to install the drivers and software from <a href="http://www.epiphan.com/pr
 - \xmlAtt \b ClipRectangleOrigin and \b ClipRectangleSize define a screen region to capture information from, the clip rectangle width has to be typically a mulitple of 4 (e.g., \b ClipRectangleOrigin \c ="20 40" \b ClipRectangleSize \c ="512 512" ). If the \b ClipRectangleSize \c ="0 0" then the values are ignored and the whole frame is captured. \OptionalAtt{0 0}
 - \xmlAtt \b GrabberLocation it is used to choose a specific epiphan device (in the format local:[SERIAL], net:[ADDRESS[:PORT]], sn:SERIAL, id:INDEX). If nothing is specified then the auto-detection is attempted. \OptionalAtt{NULL}
 
-- \xmlElem \ref DataSources:
-   - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
+- \xmlElem \ref DataSources
+   - \xmlElem \ref DataSource There must be one child element. \RequiredAtt
     - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
     - \xmlAtt \ref ImageType. Color image acquisition is supported by setting the imaging device's common attribute \c ImageType="RGB_COLOR" as shown in the Epiphan Color Video Capture example. \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}

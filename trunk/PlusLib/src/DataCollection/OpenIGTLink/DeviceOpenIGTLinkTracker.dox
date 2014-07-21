@@ -30,7 +30,7 @@
 - \xmlAtt \b ServerAddress Host name or IP address of the OpenIGTLink server that sends the data to this device. \RequiredAtt
 - \xmlAtt \b ServerPort Port of the OpenIGTLink server that sends the data to this device. \RequiredAtt
 - \xmlAtt \b MessageType The device will request this message type from the remote server ( \c TRANSFORM, \c POSITION, or \c TDATA). If the MessageType is not specified then the default message type will be used (specified in the remote server) \OptionalAtt{XX} \TodoAndras{there are afew optional attruibutes XX that I could not find}
-- \xmlAtt \ref TrackerInternalCoordinateSystemName Used for TDATA messages to specify what coordinate systems should be the common "To" coordinate system. \OptionalAtt{Reference}
+- \xmlAtt \b TrackerInternalCoordinateSystemName Used for TDATA messages to specify what coordinate systems should be the common "To" coordinate system. \OptionalAtt{Reference}
 - \xmlAtt \b UseLastTransformsOnReceiveTimeout Use the latest known value for a transform if new value for a transform is not received. \OptionalAtt{false}
   - \c true If there is no new value received for a transform then the last known value is used. It is useful for software that only sends a transform when it is changed, such when sending transforms from 3D Slicer.
   - \c false If there is no new value received for a transform then it is treated as an error.
