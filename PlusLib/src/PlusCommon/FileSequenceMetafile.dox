@@ -24,7 +24,7 @@ There are two variants of the file format:
 - CenterOfRotation: Used by the MetaIO image file format to store the point around the image is rotated. This field is not used by Plus and kept only for compatibility with other software, as the orientation is defined per frame. Typical value is 0 0 0.
 - AnatomicalOrientation: Used by the MetaIO image file format to store anatomical orientation of the image. This field is not used by Plus and kept only for compatibility with other software. Typical value is \c RAI (which corresponds to \c LPS orientation in DICOM).
 - ElementSpacing: Used by the MetaIO image file format to store the point around the image is rotated. This field is not used by Plus and kept only for compatibility with other software, as the spacing is defined per frame. Typical value is 1 1 1.
-- UltrasoundImageOrientation: orientation of the image data as defined on the <a href="https://www.assembla.com/wiki/show/plus/Ultrasound_image_orientation">Ultrasound image orientation page</a>.
+- UltrasoundImageOrientation: orientation of the image data as defined on the \ref UltrasoundImageOrientation page.
 - UltrasoundImageType: encoding of the pixel data.
   - \c BRIGHTNESS is the default value, which means that it is a B-mode image. RF waveform can be stored in multiple ways.
   - \c RF_I_LINE_Q_LINE means RF data is IQ encoded and all the I values of a scanline stored in one row, then the Q values of the same scanline stored in the next row (IIIIIII..., QQQQQQ...., IIIIIII..., QQQQQQ....).
@@ -45,8 +45,7 @@ https://subversion.assembla.com/svn/plus/trunk/sandbox/MatlabUtils/
 
 \section FileSequenceMetafileCompression Compression
 
-Image data can be stored in a compressed way. To compress saved data in .mha format, you can use the \ref ApplicationEditSeqMetaFile tool like this:
-
-    EditSeqMetafile.exe --input-file-name=[inputFilePath] --output-file-name=[outputFilePath] --use-compression
+Image data can be stored in a compressed way to conserve disk space, without any image quality degradation.
+Use the \ref ApplicationEditSeqMetaFile tool to compress/uncompress image data.
 
 */

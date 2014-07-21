@@ -10,11 +10,13 @@ See License.txt for details.
 
 int main(int argc, char **argv)
 {
+  bool printHelp(false);
   bool printShortVersionInfo=false;
 
   vtksys::CommandLineArguments args;
   args.Initialize( argc, argv );
-  args.AddArgument( "--short", vtksys::CommandLineArguments::NO_ARGUMENT, &printShortVersionInfo, "Print short version information (by default pring detailed information)" );
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
+  args.AddArgument( "--short", vtksys::CommandLineArguments::NO_ARGUMENT, &printShortVersionInfo, "Print short version information, without list of supported devices (by default print detailed information)" );
 
   if ( !args.Parse() )
   {
@@ -23,6 +25,12 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE); 
   }
 
+  if ( printHelp )
+  {
+    std::cout << args.GetHelp() << std::endl;
+    exit(EXIT_SUCCESS);
+  }
+  
   // don't print |INFO|
   vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_ERROR);
 

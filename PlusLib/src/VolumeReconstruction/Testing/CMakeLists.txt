@@ -4,6 +4,7 @@ SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 #***************************  VolumeReconstructor  ***************************
 ADD_EXECUTABLE(VolumeReconstructor VolumeReconstructor.cxx )
 TARGET_LINK_LIBRARIES(VolumeReconstructor vtkVolumeReconstruction )
+GENERATE_HELP_DOC(VolumeReconstructor)
 
 # Reconstruct a volume from brachy stepper acquisition
 ADD_TEST(vtkVolumeReconstructorTest1
@@ -91,6 +92,8 @@ SET_TESTS_PROPERTIES(vtkVolumeReconstructorFloatType2 PROPERTIES DEPENDS vtkVolu
 # This program helps debugging geometry problems in volume reconstruction.
 ADD_EXECUTABLE( CreateSliceModels CreateSliceModels.cxx )
 TARGET_LINK_LIBRARIES( CreateSliceModels vtkPlusCommon vtkVolumeReconstruction )
+GENERATE_HELP_DOC(CreateSliceModels)
+
 ADD_TEST(CreateSliceModelsTest 
   ${EXECUTABLE_OUTPUT_PATH}/CreateSliceModels
   --source-seq-file=${TestDataDir}/NwirePhantomFreehand.mha

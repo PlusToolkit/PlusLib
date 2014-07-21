@@ -132,6 +132,7 @@ int main(int argc, char** argv)
   bool printHelp(false);
   std::string ultrasoundImageFile;
   std::string ultrasoundConfigFile;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -142,7 +143,8 @@ int main(int argc, char** argv)
     &ultrasoundConfigFile, "The ultrasound sequence config file.");
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp,
     "Print this help.");
-
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
+  
   // Fail if arguements can't be parsed
   if (!args.Parse())
   {
@@ -153,9 +155,12 @@ int main(int argc, char** argv)
   // Print help if requested
   if (printHelp)
   {
-    std::cout << "Help: " << args.GetHelp() << std::endl;
+    std::cout << args.GetHelp() << std::endl;
     exit(EXIT_SUCCESS);
   }
+  
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  
   // Fail if no ultrasound image file specified
   if (ultrasoundImageFile.empty())
   {

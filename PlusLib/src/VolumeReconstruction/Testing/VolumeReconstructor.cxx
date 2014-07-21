@@ -37,10 +37,10 @@ int main (int argc, char* argv[])
   vtksys::CommandLineArguments cmdargs;
   cmdargs.Initialize(argc, argv);
 
-  cmdargs.AddArgument("--image-to-reference-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImageToReferenceTransformName, "Image to reference transform name used for the reconstruction");
+  cmdargs.AddArgument("--image-to-reference-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImageToReferenceTransformName, "Name of the transform to define the image slice pose relative to the reference coordinate system (e.g., ImageToReference). Note that this parameter is optional, if it is defined then it overrides the ImageCoordinateFrame and ReferenceCoordinateFrame attribute values in the configuration file.");
   cmdargs.AddArgument("--source-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImgSeqFileName, "Input sequence metafile filename (.mha)" );
   cmdargs.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Input configuration file name (.xml)" );
-  cmdargs.AddArgument("--output-volume-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVolumeFileName, "Output file name of the reconstructed volume (.mha)" );
+  cmdargs.AddArgument("--output-volume-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVolumeFileName, "Output file name of the reconstructed volume (must have .mha or .mhd extension)" );
   cmdargs.AddArgument("--output-volume-alpha-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVolumeAlphaFileName, "Output file name of the alpha channel of the reconstructed volume (.mha)" );
   cmdargs.AddArgument("--output-frame-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFrameFileName, "A filename that will be used for storing the tracked image frames. Each frame will be exported individually, with the proper position and orientation in the reference coordinate system");
   cmdargs.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
@@ -57,14 +57,14 @@ int main (int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
-  // Set the log level
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
-  
   if ( printHelp ) 
   {
-    std::cout << "Help: " << cmdargs.GetHelp() << std::endl;
+    std::cout << cmdargs.GetHelp() << std::endl;
     exit(EXIT_SUCCESS); 
   }
+  
+  // Set the log level
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);  
 
   // Deprecated arguments (2013-07-29, #800)
   if (!inputImageToReferenceTransformNameDeprecated.empty())
