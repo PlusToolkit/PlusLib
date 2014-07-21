@@ -1,0 +1,57 @@
+/*!
+\page DeviceBrachy Prostate brachytherapy steppers
+
+\section BrachySupportedHwDevices Supported hardware devices
+Civco brachy steppers
+
+
+- Link to manufacturer's website:
+http://www.civco.com/mmi/products/brachytherapy/Steppers.htm
+
+\section BrachySupportedPlatforms Included in packages
+- \ref PackageWin32
+- \ref PackageWin64
+- \ref PackageWin32Embedded
+
+\section BrachyInstallation Installation
+
+
+\section BrachyConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "Brachy" \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{20} 
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
+
+- \xmlAtt \b BrachyStepperType It could be any of the brachy stepper types: \RequiredAtt
+  - \c BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER
+  - \c BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER
+  - \c CMS_ACCUSEED_DS300
+  - \c CIVCO_STEPPER
+- \xmlAtt \b SerialPort Scalar value that defines the serial port to use, COM1 through COM4. \OptionalAtt{0}
+- \xmlAtt \b BaudRate Baud rate for communication with the stepper \OptionalAtt{19200}
+- \xmlAtt \b ModelNumber Stepper model number STRING \OptionalAtt{NULL}
+- \xmlAtt \b ModelVersion A string (perhaps a long one) describing the type and version of the device.  \OptionalAtt{NULL}
+- \xmlAtt \b ModelSerialNumber STRING stepper serial number. \OptionalAtt{NULL}
+
+- \xmlElem StepperCalibration
+  - \xmlAtt \b AlgorithmVersion. \OptionalAtt{NULL}
+  - \xmlAtt \b Date. \OptionalAtt{NULL}
+
+  - \xmlAtt \b ProbeTranslationAxisOrientation VECTOR [Tx, Ty, 1] \OptionalAtt{0 0 1}
+  - \xmlAtt \b TemplateTranslationAxisOrientation VECTOR [Tx, Ty, 1] \OptionalAtt{0 0 1}
+  - \xmlAtt \b ProbeRotationAxisOrientation VECTOR [Trx, Try, 1] \OptionalAtt{0 0 1}
+  - \xmlAtt \b ProbeRotationEncoderScale SCALAR \OptionalAtt{1}
+
+- \xmlElem \ref DataSources \TodoAndras{From the code I thought there would be needed a datasource but it is not defined in the config file}
+   - \xmlElem \ref DataSource There must be one child element. \RequiredAtt
+    - \xmlAtt \ref PortName \RequiredAtt
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+
+
+\section BrachyExampleConfigFile Example configuration file PlusDeviceSet_iCal_SonixTouch_CivcoStepper_1.0.xml
+
+\include "data/ConfigFiles/Queens/PlusDeviceSet_iCal_SonixTouch_CivcoStepper_1.0.xml"
+
+*/

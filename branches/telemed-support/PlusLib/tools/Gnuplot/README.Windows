@@ -1,0 +1,129 @@
+This is gnuplot version 4.4.2 -- binary distribution for MS-Windows 32bit
+=========================================================================
+
+
+News: the default terminal is set to 'wxt' terminal instead of the traditional
+'windows' terminal. The default terminal can be controlled by setting the
+'GNUTERM' environmental variable or by putting 'set term windows|wxt' into
+gnuplot.ini.
+
+
+Binaries included:
+------------------
+
+* wgnuplot.exe: The default gnuplot executable.
+
+* wgnuplot_pipes.exe: Like above, with the advantage of support for unixish
+  features like
+	plot `<awk -f change.awk data.dat`
+  and the disadvantage of having attached a console window.
+
+* gnuplot.exe: Text (console) mode version of the gnuplot executable with all
+  the associated pipe functionality as it is usual on all other platforms.
+  This means that this program can also accept commands on stdin (standard
+  input) and print messages on stdout (standard output). This program replaces
+  pgnuplot.exe and it is recommended to use it for 3rd party applications
+  using gnuplot as graph engine, for example Octave (www.octave.org).
+
+* pgnuplot.exe: This program will accept commands on stdin (standard input),
+  and pipe them to an active (or newly created) wgnuplot.exe text window.
+  Command line options are passed on to wgnuplot.
+  Effectively, this means `pgnuplot' is an almost complete substitute for
+  `wgnuplot', on the command line, with the added benefit that it does accept
+  commands from redirected stdin. (Being a Windows GUI application, `wgnuplot'
+  itself cannot read stdin at all.)
+
+* lua.exe, luac.exe : These are used for the lua/tikz terminals.
+
+* fc-list-gp.exe : This program is the renamed fontconfig utlity which 
+  outputs a list of fonts managed by the fontconfig library used in this 
+  gnuplot distribution.
+
+* runtime library files
+  Runtime library files (e.g. freetype6.dll) that are required for gnuplot 
+  excution are attached.  For the license of eadh runtime libraries, see the 
+  documents in the license directory.
+
+
+Installation
+------------
+
+* Unzip this package in an appropriate directory, e.g.
+  C:\Gnuplot, C:\Apps\gnuplot, C:\Program Files\gnuplot etc.
+  If you want install gnuplot in C:\Program Files on windows Vista and 7,
+  you need do it after logged on as an administrator.
+
+* Run wgnuplot.exe
+
+* If you want a shortcut icon, go to the directory where wgnuplot.exe is 
+  installed.  Right-click the program (wgnuplot.exe, gnuplot.exe, or 
+  wgnuplot_pipes.exe) you want to create the shortcut.
+  progman window is usually sufficient).  You may also want to assign filename
+  extensions like *.gp or *.gpl to be executed by gnuplot.  Set file 
+  associations in Windows 7 or Vista, "Control Panel" "Control Panel Home"
+  "Default Programs" "Set Associations". Select a file type in the list
+  and click Change Program.
+
+
+Help on Windows Vista and 7
+---------------------------
+
+* For Windows Vista and windows 7, help file 'wgnuplot.hlp' cannot be used due to
+  lack of WinHlp32.exe in default setting.  Please download WinHlp32.exe from 
+  Microsoft website (You can find it easily by search engines using keywords 
+  "winhlp32.exe Windows Vista" or "winhlp32.exe Windows 7")
+  Before using help, you may need once to log on your PC as an administrator 
+  and remove the "access forbidden" flag on the help file by right-click the icon
+  of wgnuplot.hlp.
+
+
+Environmental variables
+-----------------------
+
+For the complete list, type 'help environment' in gnuplot.
+
+You can set them:
+  - by SET commands in file AUTOEXEC.BAT in MS Windows 95/98/ME et al,
+  - by icons and menus "Control panel", "System", ("Advanced"), 
+    "Environmental variables" in MS Windows NT/2K/XP/Vista et al,
+    by Right click on the Computer icon on your Desktop and choose
+    Properties option, "System", "Advanced system settings",
+    "Advanced", "Environmental variables" in MS Windows 7
+
+* Add gnuplot binary directory to PATH, e.g. in AUTOEXEC.BAT:
+	SET PATH=%PATH%;C:\Apps\gnuplot\bin
+  It has the advantage for you or any 3rd party program to call gnuplot.exe, 
+  wgnuplot.exe, wgnuplot_pipes.exe and pgnuplot.exe directly from the 
+  command line.
+
+* Variable HOME is examined as a directory where a gnuplot.ini startup file
+  might be found. See "help start-up". If HOME is not set, then USERPROFILE
+  is used instead (this is usually set on newer MSW for logged-in user).
+
+* Variable GNUPLOT_LIB may be used to define additional search directories for
+  data and command files. The variable may contain a single directory name, or
+  a list of directories separated by a platform-specific path separator, i.e.
+  ':' on Unix, or ';' on DOS/Windows/OS/2/Amiga platforms. The contents of
+  GNUPLOT_LIB are appended to the `loadpath` variable, but not saved with the
+  `save` and `save set` commands. See 'help loadpath' for more details.
+
+* Variable GDFONTPATH is the directory where png terminal searches TrueType
+  fonts. You should set it to directory where files like arial.ttf exist.
+  Usually, it is
+	SET GDFONTPATH=C:/WINDOWS/FONTS
+  If you wish to set a default font for png, then set it like set via the
+  environmental variable GNUPLOT_DEFAULT_GDFONT; however, it is always
+  better to use command "set terminal png font arial".
+
+* Variable GNUPLOT_FONTPATH is used by the postscript driver as search path
+ for TrueType fonts. Set it to
+	SET GNUPLOT_FONTPATH=C:/WINDOWS/FONTS
+
+* Variable GNUFITLOG holds the name of a file that saves fit results. The
+  default it is fit.log. If the name ends with a "/" or "\", it is treated as a
+  directory name, and "fit.log" will be created as a file in that directory.
+
+
+--------------------------------------------------------------------------------
+
+The gnuplot team, September 2010

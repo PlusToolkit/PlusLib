@@ -1,0 +1,9 @@
+Licensing Terms
+
+Each of the various packages, which is distributed by MinGW.org, is governed by its own individual copyright and licensing terms. In summary, for the most commonly deployed packages:
+MinGW runtime: The MinGW base runtime package has been placed in the public domain, and is not governed by copyright. This basically means that you can do what you like with the code.
+w32api: You are free to use, modify and copy this package. No restrictions are imposed on programs or object files linked with this library. You may not restrict the the usage of this library. You may distribute this library as part of another package or as a modified package if, and only if, you do not restrict the usage of the portions consisting of this (optionally modified) library. If distributed as a modified package, then a copy of this notice must be included.
+
+This library is distributed in the hope that it will be useful, but WITHOUT WARRANTY OF ANY KIND; without even the implied warranties of MERCHANTABILITY or of FITNESS FOR A PARTICULAR PURPOSE.
+MinGW profiling code: MinGW profiling code is distributed under the terms of the GNU General Public License.
+Binutils, GCC, GDB, GNU Make: All of the GNU development tools, such as GNU binutils, GCC, GDB and GNU Make, are governed by the terms of the GNU General Public License.

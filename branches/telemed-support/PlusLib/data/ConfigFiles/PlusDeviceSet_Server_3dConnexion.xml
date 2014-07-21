@@ -1,0 +1,49 @@
+<PlusConfiguration version="2.1">
+
+  <DataCollection StartupDelaySec="1.0">
+    <DeviceSet 
+      Name="PlusServer: 3dConnexion SpaceNavigator 3D mouse" 
+      Description="Broadcasting tool tracking data through OpenIGTLink" />
+    <Device
+      Id="TrackerDevice"
+      Type="3dConnexion"
+      Mode="JOYSTICK"
+      TranslationScales="0.001 -0.001 -0.001"
+      RotationScales="0.001 -0.001 -0.001"
+      ToolReferenceFrame="Tracker" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Navigator" PortName="SpaceNavigator" />    
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream" >
+          <DataSource Id="Navigator" />
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="RecordingTest.mha"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+      </InputChannels>
+    </Device>
+  </DataCollection>
+  
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    OutputChannelId="TrackerStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="NavigatorToTracker" /> 
+      </TransformNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+  
+</PlusConfiguration>

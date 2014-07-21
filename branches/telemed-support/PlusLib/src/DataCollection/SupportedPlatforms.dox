@@ -1,0 +1,20 @@
+/*!
+
+\page SupportedPlatforms Included in packages
+\section PackageWin32 Windows 32 bits
+Package can be used on Windows 8 32/64-bit, Windows 7 32/64-bit, Windows XP embedded 32/64-bit platforms.
+Executables are 32-bit applications.
+\section PackageWin64 Windows 64 bits
+Package can be used on Windows 8 64-bit, Windows 7 64-bit platforms.
+Executables are 64-bit applications.
+\section PackageWin32Embedded Windows 32 bits embedded
+Package can be used on Windows 8 32/64-bit, Windows 7 32/64-bit, Windows XP embedded 32/64-bit platforms.
+Executables are 32-bit applications.
+Only Windows XP embedded platforms can execute this package
+\section PackageWin32PocUs Windows 32 bits with Point-of-care ultrasound
+Package can be used on Windows 8 32/64-bit, Windows 7 32/64-bit platforms with Interson USB probe drivers installed.
+Executables are 32-bit applications.
+\section PackageMacOs Mac Os
+\section PackageLinux Linux
+
+*/

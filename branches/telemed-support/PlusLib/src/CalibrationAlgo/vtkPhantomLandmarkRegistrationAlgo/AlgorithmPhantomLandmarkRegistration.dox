@@ -1,0 +1,17 @@
+/**
+
+\page AlgorithmPhantomLandmarkRegistration Phantom registration using landmarks
+
+This algorithm computes transformation between a phantom object coordinate system (Phantom) and the coordinate system of tracking marker attached to the object (Reference) by point matching. Point coordinates are defined in the Phantom coordinate system and coordinates of the same points are also acquired in the Reference coordinate system by using a tracked stylus (StylusTip).
+
+\section PhantomLandmarkRegistrationConfigSettings Configuration settings
+
+- \xmlElem \b vtkPhantomLandmarkRegistrationAlgo
+  - \xmlAtt PhantomCoordinateFrame \RequiredAtt
+  - \xmlAtt ReferenceCoordinateFrame \RequiredAtt
+  - \xmlAtt StylusTipCoordinateFrame \RequiredAtt
+- \xmlElem \b PhantomDefinition
+  - \xmlElem \b Geometry
+    - \xmlElem \b Landmarks \RequiredAtt
+
+*/

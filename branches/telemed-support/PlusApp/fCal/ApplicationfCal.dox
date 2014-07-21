@@ -1,0 +1,36 @@
+/**
+
+\page ApplicationfCal Freehand tracked ultrasound calibration application (fCal)
+
+This algorithm computes transformation between a phantom object coordinate system (Phantom) and the coordinate system of tracking marker attached to the object (Reference) by point matching. Point coordinates are defined in the Phantom coordinate system and coordinates of the same points are also acquired in the Reference coordinate system by using a tracked stylus (StylusTip).
+
+\section ApplicationfCalConfigSettings Configuration settings
+
+- \xmlElem \b fCal
+  - \xmlAtt PhantomModelId
+  - \xmlAtt ReconstructedVolumeId
+  - \xmlAtt TransducerModelId
+  - \xmlAtt StylusModelId
+  - \xmlAtt ImageDisplayableObjectId
+  - \xmlAtt NumberOfCalibrationImagesToAcquire
+  - \xmlAtt NumberOfValidationImagesToAcquire
+  - \xmlAtt NumberOfStylusCalibrationPointsToAcquire
+  - \xmlAtt RecordingIntervalMs
+  - \xmlAtt MaxTimeSpentWithProcessingMs
+  - \xmlAtt ImageCoordinateFrame
+  - \xmlAtt ProbeCoordinateFrame
+  - \xmlAtt ReferenceCoordinateFrame
+  - \xmlAtt TransducerOriginCoordinateFrame
+  - \xmlAtt TransducerOriginPixelCoordinateFrame
+  - \xmlAtt TemporalCalibrationDurationSec
+  - \xmlAtt DefaultSelectedChannelId
+- \xmlElem \b Rendering Objects for the visualizer common widget to render (used in fCal)
+  - \xmlAtt WorldCoordinateFrame Name  of the rendering world coordinate frame (e.g. "Reference")
+  - \xmlElem \b DisplayableObject 
+    - \xmlAtt Id: Unique name to identify this displayable object, used in other configuration sections
+    - \xmlAtt Type Type of the displayable object. Can be Model, Image, Axes, and PolyData.
+    - \xmlAtt ObjectCoordinateFrame: Name of the object coordinate frame (e.g. "StylusTip")
+    - \xmlAtt File: STL model file name (only for the 'Model' type)    
+    - \xmlAtt ModelToObjectTransform: Matrix transforming the model to the proper position (where we want its origin to appear) (only for the 'Model' type)
+
+*/

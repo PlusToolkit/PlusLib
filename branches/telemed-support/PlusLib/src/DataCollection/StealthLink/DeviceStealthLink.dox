@@ -1,0 +1,82 @@
+/*!
+\page DeviceStealthLink Medtronic Stealth Station
+
+\section StealthLinkSupportedHwDevices Supported hardware devices
+
+- Medtronic StealthStation that has StealthLink licence.
+- Link to manufacturer's website: http://www.medtronic.com/for-healthcare-professionals/products-therapies/spinal/surgical-navigation-imaging/surgical-navigation-systems/systems-software-instruments/
+
+\section StealthLinkSupportedPlatforms Included in packages
+
+This device is not included in any of the standard packages, as it requires StealthLink library from Medtronic.
+If the StealthLink library is obtained from Medtronic then Plus have to be built with the StealthLink option enabled as described at https://www.assembla.com/spaces/plus/wiki/Windows_Build_Instructions.
+The device is tested on Windows, but should also work on other platforms.
+
+\section StealthLinkInstallation Installation
+
+No need to install any extra software. The StealthStation needs to be connected through LAN and the connection is set via IP and Port.
+
+
+\section StealthLinkConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "StealthLink" \RequiredAtt
+
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
+
+- \xmlAtt \b ServerAddress. The IP address of the stealthstation. \RequiredAtt
+- \xmlAtt \b ServerPort. The port of the stealthstation. \RequiredAtt
+
+- \xmlElem \ref DataSources
+   - \xmlElem \ref DataSource There must be one child element. \RequiredAtt
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref PortName \RequiredAtt
+      - \c *Instruments' names defined in StealthStation must match tools' port names defined in the configuration file (example: Passive Planar, Blunt).
+      - \c *Frames' names defined in StealthStation must match tools' port names defined in the configuration file (example: Frame Name: Small Passive Cranial Frame).
+      - \c *Ras. The port name must remain \c RasRegistration. This virtual tool will only "exist" when an image is required from the server. 
+
+\section UseCases Use cases
+
+Both optical and Em tracker can be used.
+
+\subsection StealthLinkUsagePlusServerRemoteControl Usage from PlusServerRemoteControl
+
+Start plus server with the configuration file as the input. 
+
+    PlusServer.exe --config-file="<Plus-bin>\PlusLib\data\ConfigFiles\PlusDeviceSet_Server_StealthLinkTracker.xml"
+
+With this you can track the tools that are inside the view of the tracker.
+
+Stealth can receive DICOM image files from the stealth server and send them as volume through openIGTLink, there are two possible ways:
+
+    PlusServerRemoteControl.exe --command=GET_EXAM_DATA --device=SLD --dicom-directory="C:\StealthLinkDicomOutput\" --volumeEmbeddedTransformToFrame="Ras" --keepReceivedDicomFiles
+
+It will get the current exam information and the registration information and send volume and its pose in Ras coordiante system. Ras is calculated after having read the information from the received dicom files ((0020,0032) ImagePositionPatient and (0020,0037) ImageOrientationPatient).
+
+ - \c dicom-directory you can specifiy a folder and this folder will be where the DICOM files are stored. \OptionalAtt{plus output directory}.
+ - \c volumeEmbeddedTransformToFrame. you can define in what coordinate system you want the image to be in \c "Reference" or \c "Ras". \OptionalAtt{Ras}
+ - \c keepReceivedDicomFiles. If this exists then the DICOM files will be stored if not deleted. The default is delete.
+
+\subsection StealthLinkUsageSlicer Usage in 3D Slicer
+
+Start plus server with the configuration file as the input.
+
+    PlusServer.exe --config-file="<Plus-bin>\PlusLib\data\ConfigFiles\PlusDeviceSet_Server_StealthLinkTracker.xml"
+
+ - Start 3D Slicer
+ - Go to \c OpenIGTLinkIF module
+ - Click "+" to create a new connection, select the new connection, click "Client", click "Active"
+ - The \c StylusToTracker transform is created in Slicer and it is updated by the stylus tracking. The \c ReferenceToTracker and other transforms are available too.
+
+\section StealthLinkExampleConfigFile Example configuration file PlusDeviceSet_Server_SonixTouch_L14-5_Porta.xml PlusDeviceSet_Server_StealthLinkTracker.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_StealthLinkTracker.xml"
+
+*/
+
+
+Using OpenIGTLink messages \c GET_IMGMETA and \c GET_IMAGE(from a slicer client for example)
+
+- \c GET_IMGMETA plus will receive all the image meta data information from all of the connected devices and send it through openigtlink
+- \c GET_IMAGE will send the volume and the orientation and position in Ras coordianate system.This system should be defined in the configuration file.

@@ -1,0 +1,37 @@
+<PlusConfiguration version="2.3">
+  <DataCollection StartupDelaySec="1.0">
+    <Device
+      Id="VideoDevice"
+      Type="IntersonSDKCxxVideo" 
+      PulseVoltage="20"
+      DynRangeDb="-1" 
+      FrequencyMhz="5.0" >
+      <DataSources>
+        <!-- Note: the order of sources/channels matters - use BMode first to
+        get it on the OutputPort of the vtkPlusDevice.  -->
+        <DataSource Type="Video" Id="BmodeVideo" PortName="B" PortUsImageOrientation="UN" />
+        <DataSource Type="Video" Id="RfVideo" PortName="Rf" PortUsImageOrientation="FU" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="BmodeVideoStream" VideoDataSourceId="BmodeVideo">
+          <RfProcessing>
+            <RfToBrightnessConversion 
+              NumberOfHilbertFilterCoeffs="32.0" 
+              BrightnessScale="20.0" />
+            <ScanConversion 
+              TransducerName="GP 3.5MHz"
+              TransducerGeometry="CURVILINEAR"
+              RadiusStartMm="12.4"
+              RadiusStopMm="117.5"
+              ThetaStartDeg="-45.0"
+              ThetaStopDeg="45.0"
+              OutputImageSizePixel="800 600"
+              TransducerCenterPixel="400 50"
+              OutputImageSpacingMmPerPixel="0.20 0.20" /> 
+          </RfProcessing>
+        </OutputChannel>
+        <OutputChannel Id="RfVideoStream" VideoDataSourceId="RfVideo" />
+      </OutputChannels>
+    </Device>
+  </DataCollection>
+</PlusConfiguration>

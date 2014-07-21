@@ -1,0 +1,14 @@
+/**
+
+\page AlgorithmPivotCalibration Pivot calibration
+
+This algorithm computes transformation between the tip of a tracked pointer (StylusTip) and the coordinate system of tracking marker attached to the object (Stylus).
+
+\section PivotCalibrationConfigSettings Configuration settings
+
+- \xmlElem \b vtkPivotCalibrationAlgo
+  - \xmlAtt ObjectMarkerCoordinateFrame \RequiredAtt
+  - \xmlAtt ReferenceCoordinateFrame \RequiredAtt
+  - \xmlAtt ObjectPivotPointCoordinateFrame \RequiredAtt
+
+*/

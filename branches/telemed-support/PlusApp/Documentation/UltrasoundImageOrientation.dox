@@ -1,0 +1,71 @@
+/**
+
+\page UltrasoundImageOrientation Ultrasound image orientation
+
+\section UltrasoundImageOrientationMotivation Motivation
+The acquired ultrasound image orientation (which direction is left/right, which direction is towards the probe)
+depends on a number of factors, such as settings on the ultrasound device (horizontal, verical flip), transducer type,
+and image acquisition hardware/software settings. When a transducer is calibrated (the image to probe transform
+is determined) it is valid for one particular image orientation, therefore it is important to be able to exactly
+identify the current image orientation.
+
+The image axes are always aligned to the transducer axes, therefore first the physical transducer axes has to be defined.
+The ultrasound image orientation then can be defined by describing which transducer axes correspond to the image's x and y axes.
+
+\section UltrasoundImageOrientationTransducerAxes Transducer axes definition
+- Marked direction: towards the marker (from the center of the crystal array)
+- Unmarked direction: opposite of marked direction
+- Far direction: towards the far field (from the near field), the signal propagation direction
+- Near direction: opposite of far direction, the echo propagation direction
+
+\image html UltrasoundImageOrientationTransducerAxes.png
+
+\section UltrasoundImageOrientationPlus Image orientation in Plus
+<em>Plus uses the MF image orientation internally for B-mode images and the FM orientation for RF-mode images.</em>
+Plus performs any required flipping operations between M<->U and F<->N when import images from the imaging device.
+However, transposing operation (conversion between M<->N, F<->U, etc.) is not performed automatically, because
+this conversion typically requires scan conversion instead of a simple reordering of the pixels. The image orientation
+provided by the imaging device shall be set in the configuration XML file in the \ref PortUsImageOrientation attribute.
+
+How to check that the UsImageOrientation attribute is set correctly:
+- Start fCal application
+- Go to the "Freehand calibration" tab
+- Click on the "Show segmentation parameter editing dialog" button (icon)
+
+\image html UltrasoundImageOrientationsSegParamWindow.png 
+
+- In the window the M and F directions are shown with arrows (M points to the right, F points downwards)
+- If the UsImageOrientation is set correctly, then
+  - The transducer surface shall appear at the top of the image
+  - If you touch the marked side of the transducer surface then the finger shall appear on the right side of the image
+
+\section UltrasoundImageOrientationDefinition Definition of ultrasound image orientation
+The ultrasound image axes are defined as follows:
+- x axis: points towards the x coordinate increase direction
+- y axis: points towards the y coordinate increase direction
+
+The image orientation can be defined by specifying which transducer axis corresponds to the x and y image axes, respectively.
+
+There are four possible orientations for <em>B-mode</em> images:
+- MF: image x axis = marked transducer axis, image y axis = far transducer axis
+- MN: image x axis = marked transducer axis, image y axis = near transducer axis
+- UF: image x axis = unmarked transducer axis, image y axis = far transducer axis
+- UN: image x axis = unmarked transducer axis, image y axis = near transducer axis
+
+There are four possible orientations for <em>RF-mode</em> images:
+- FM: image x axis = far transducer axis, image y axis = marked transducer axis
+- NM: image x axis = near transducer axis, image y axis = marked transducer axis
+- FU: image x axis = far transducer axis, image y axis = unmarked transducer axis
+- NU: image x axis = near transducer axis, image y axis = unmarked transducer axis
+
+\section UltrasoundImageOrientationUltrasonix Image orientation in the Ultrasonix software
+The Ultrasonix software shows an image orientation marker (blue "U" symbol) at the marked / near corner of the image.
+
+\image html UltrasoundImageOrientationUltrasonixSw.png
+
+\section UltrasoundImageOrientationExample Example
+The image \c x axis points towards the same direction as the \c U (unmarked) transducer axis. The image \c y axis points towards the same direction as the \c F (far) transducer axis. Therefore, the ultrasound image orientation is: \c UF.
+
+\image html UltrasoundImageOrientationExample.png
+
+*/
