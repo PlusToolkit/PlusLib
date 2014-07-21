@@ -6,8 +6,11 @@ File formats
 - \subpage FileDeviceSetConfiguration
 - \subpage FileApplicationConfiguration
 - \subpage FileSequenceMetafile
+- \subpage FileLog
 
 Other specifications
 - \subpage TransformationMatrix
+- \subpage UltrasoundImageOrientation
+- \subpage CoordinateSystemDefinitions
 
 */

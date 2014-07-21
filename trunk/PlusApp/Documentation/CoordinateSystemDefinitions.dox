@@ -1,0 +1,21 @@
+/**
+
+\page CoordinateSystemDefinitions Coordinate system definitions
+
+In Plus the following coordinate systems are used commonly:
+
+Reference frame name	|	Origin	|	Unit	|	Axes directions
+----------------------|---------|-------|-----------------
+Tracker	|	origin of the tracking system (e.g., position of the field generator, camera, ...)	|	mm	|	as defined by the tracking system manufacturer
+Stylus	|	origin of the marker that is attached to the stylus	|	mm	|	as defined by the tracking system / marker manufacturer
+Probe	|	origin of the marker that is attached to the probe (transducer)	|	mm	|	as defined by the tracking system / marker manufacturer
+Reference	|	A marker attached to the studied object (phantom, cadaver, patient, ...). <br/> In fCal: origin of the marker that is attached to the calibration phantom. |	mm	|	as defined by the tracking system / marker manufacturer
+StylusTip	|	tip of the stylus	|	mm	|	X axis: the axis that points towards the Stylus reference frame origin. <br/> Y axis: aligned with the Stylus coordinate system's Y axis (unless StylusTip X axis is parallel with the StylusTip Y axis - in this case the StylusTip Y axis is aligned with the Stylus Z axis). <br/> Z axis: chosen to be the cross product of the X and Y axes.
+Phantom	|	For the fCal-2.x phantoms: inside end of the A5 hole on the front (see picture). <br/> For the fCal-1.x phantoms: inside end of the A4 hole on the front (see picture) |	mm	|	X axis: from column A to B direction <br/> Y axis: towards the back side of the phantom <br/> Z axis: from row 4 to row 1 direction
+Image	|	Position of the pixel that is in the origin of the MF oriented image	|	pixel	|	X axis: towards the marked side of the transducer <br/> Y axis: towards the direction that points away (far) from the transducer <br/> Z axis: cross product of X and Y
+TransducerOrigin	|	Position of the pixel that is in the middle of the first line of the MF oriented image. In PLUS it's only used for approximate visualization of the transducer 3D model.	|	mm	|	Same as Image
+TransducerOriginPixel	|	Same as TransducerOrigin	|	pixel	|	Same as TransdrucerOrigin
+
+\image html CoordinateSystemDefinitionsfCal.png
+
+*/
