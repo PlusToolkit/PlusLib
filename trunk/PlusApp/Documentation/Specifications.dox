@@ -5,5 +5,9 @@
 File formats
 - \subpage FileDeviceSetConfiguration
 - \subpage FileApplicationConfiguration
+- \subpage FileSequenceMetafile
+
+Other specifications
+- \subpage TransformationMatrix
 
 */
