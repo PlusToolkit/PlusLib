@@ -283,7 +283,7 @@ PlusStatus vtkPlusConfig::LoadApplicationConfiguration()
   }
   else
   {
-    LOG_INFO("Editor application executable is not set - default 'notepad.exe' will be used");
+    LOG_DEBUG("Editor application executable is not set - default 'notepad.exe' will be used");
     this->SetEditorApplicationExecutable("notepad.exe");
     saveNeeded = true;
   }
@@ -296,7 +296,7 @@ PlusStatus vtkPlusConfig::LoadApplicationConfiguration()
   }
   else
   {
-    LOG_INFO("Output directory is not set - default './Output' will be used");
+    LOG_DEBUG("Output directory is not set - default './Output' will be used");
     this->SetOutputDirectory("./Output");
     saveNeeded = true;
   }

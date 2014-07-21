@@ -1,0 +1,31 @@
+/*!
+\page ApplicationEditSeqMetaFile Sequence metafile editor (EditSeqMetaFile)
+
+\tableofcontents
+
+This is a command-line tool for editing sequence metafiles. Operations include deleting frames from a file (TRIM command), merging sequence metafiles (MERGE command), adding/deleting/changing data fields (..._FIELD_... commands), compress/uncompress the image data (--use-compression switch).
+
+\section ApplicationEditSeqMetaFileExamples Examples
+
+## Trim a long sequence
+
+Create a small test data file from the first 24 frames of a tracked ultrasound metafile:
+
+    EditSeqMetaFile --operation=TRIM --first-frame-index=0 --last-frame-index=23 --source-seq-file=e:\data\AdultScoliosis-T2.mha --output-seq-file=e:\data\AdultScoliosis-T2-24frames.mha
+
+## Use fill image rectangle for anonymization
+
+Anonymization of sequences that contain patient information burnt into the pixels is enabled by the FILL_IMAGE_RECTANGLE operation, e.g.,
+
+    EditSeqMetaFile --operation=FILL_IMAGE_RECTANGLE --fill-rect-origin 52 25 --fill-rect-size 260 25 --fill-gray-level=20 --source-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.mha --output-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Anonymized.mha
+
+Input image:
+\image html ApplicationEditSeqMetaFileNonAnonymized.png
+Image after fill rectangle operation:
+\image html ApplicationEditSeqMetaFileAnonymized.png
+
+\section ApplicationEditSeqMetaFileHelp Command-line parameters reference
+
+\verbinclude "EditSeqMetaFileHelp.txt"
+
+*/

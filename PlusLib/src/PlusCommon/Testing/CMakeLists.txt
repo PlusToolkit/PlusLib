@@ -56,10 +56,6 @@ ADD_TEST(vtkTransformRepositoryTest
 # checked for the presence of ERROR or WARNING string
 
 #--------------------------------------------------------------------------------------------
-ADD_EXECUTABLE(EditSeqMetaFile EditSeqMetaFile.cxx )
-TARGET_LINK_LIBRARIES(EditSeqMetaFile vtkPlusCommon )
-
-#--------------------------------------------------------------------------------------------
 ADD_TEST(NAME EditSeqMetaFileTrim
   COMMAND $<TARGET_FILE:EditSeqMetaFile>
   --operation=TRIM
@@ -121,12 +117,3 @@ ADD_TEST(EditSeqMetaFileCropImageRectangleCompareToBaselineTest
    ${TestDataDir}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_PatientCropped.mha
   )
 SET_TESTS_PROPERTIES( EditSeqMetaFileCropImageRectangleCompareToBaselineTest PROPERTIES DEPENDS EditSeqMetaFileCropImageRectangle )
-
-# --------------------------------------------------------------------------
-# Install
-#
-
-INSTALL(TARGETS EditSeqMetaFile
-  DESTINATION bin
-  COMPONENT RuntimeExecutables
-  )

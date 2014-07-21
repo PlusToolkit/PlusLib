@@ -1,5 +1,5 @@
 /*!
-\page DeviceIntersonSDKCxx Interson USB ultrasound probes (new SDK)
+\page DeviceIntersonSDKCxx Interson USB ultrasound systems (new SDK)
 
 \section IntersonSDKCxxSupportedHwDevices Supported hardware devices
 - This device is used for image acquisition from Interson USB ultrasound systems with \c SeeMore probes with the .NET (new) interface. Probes with old C++ interface should be used with \ref DeviceInterson.
