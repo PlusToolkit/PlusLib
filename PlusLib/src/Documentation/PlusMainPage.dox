@@ -2,7 +2,7 @@
 
 \mainpage
 
-\section intro_sec Introduction
+\section PlusLibIntro Introduction
 
 Plus (Public software Library for UltraSound) is an open-source software package for tracked ultrasound image acquisition, calibration, and processing. PlusLib contains the basic framework and algorithm classes.
 

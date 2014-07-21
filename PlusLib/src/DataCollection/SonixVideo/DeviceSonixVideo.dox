@@ -32,8 +32,8 @@ Common attributes:
   - \xmlAtt \b Zoom Zoom \c [%] of B-mode ultrasound; valid range: 0-100. If not specified then the current setting is used. \OptionalAtt{-1}
   - \xmlAtt \b Frequency Ultrasound transmitter frequency \c [MHz] If not specified then the current setting is used.\OptionalAtt{-1}
   - \xmlAtt \b Timeout Timeout \c [ms] for receiving new frames by network function calls. If not specified then the current setting is used. \OptionalAtt{-1}
-  - \xmlElem \ref DataSources:
-    - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
+  - \xmlElem \ref DataSources
+    - \xmlElem \ref DataSource There must be one child element. \RequiredAtt
       - \xmlAtt \ref PortName \RequiredAtt
       - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
       - \xmlAtt \ref ImageType \OptionalAtt{BRIGHTNESS}

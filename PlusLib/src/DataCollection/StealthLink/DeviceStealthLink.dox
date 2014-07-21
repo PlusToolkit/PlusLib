@@ -28,8 +28,8 @@ No need to install any extra software. The StealthStation needs to be connected 
 - \xmlAtt \b ServerAddress. The IP address of the stealthstation. \RequiredAtt
 - \xmlAtt \b ServerPort. The port of the stealthstation. \RequiredAtt
 
-- \xmlElem \ref DataSources:
-   - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
+- \xmlElem \ref DataSources
+   - \xmlElem \ref DataSource There must be one child element. \RequiredAtt
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref PortName \RequiredAtt
       - \c *Instruments' names defined in StealthStation must match tools' port names defined in the configuration file (example: Passive Planar, Blunt).
@@ -40,7 +40,7 @@ No need to install any extra software. The StealthStation needs to be connected 
 
 Both optical and Em tracker can be used.
 
-\subsection UsagePlusServerRC Usage from PlusServerRemoteControl
+\subsection StealthLinkUsagePlusServerRemoteControl Usage from PlusServerRemoteControl
 
 Start plus server with the configuration file as the input. 
 
@@ -58,7 +58,7 @@ It will get the current exam information and the registration information and se
  - \c volumeEmbeddedTransformToFrame. you can define in what coordinate system you want the image to be in \c "Reference" or \c "Ras". \OptionalAtt{Ras}
  - \c keepReceivedDicomFiles. If this exists then the DICOM files will be stored if not deleted. The default is delete.
 
-\subsection UsageSlicer Usage in 3D Slicer
+\subsection StealthLinkUsageSlicer Usage in 3D Slicer
 
 Start plus server with the configuration file as the input.
 

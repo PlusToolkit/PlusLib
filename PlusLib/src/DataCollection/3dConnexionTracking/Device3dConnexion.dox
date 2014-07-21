@@ -31,8 +31,8 @@
 - \xmlAtt \b TranslationScales Sensitivity and direction of the 3 translation axes. Higher values mean higher sensitivity. Negative values can be used for inverting axes. \OptionalAtt{0.001 0.001 0.001}
 - \xmlAtt \b RotationScales Sensitivity and direction of the 3 rotation axes. Higher values mean higher sensitivity. Negative values can be used for inverting axes. \OptionalAtt{0.001 0.001 0.001}
 
-- \xmlElem \ref DataSources:
-  - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
+- \xmlElem \ref DataSources
+  - \xmlElem \ref DataSource There must be one child element. \RequiredAtt
     - \xmlAtt \ref PortName \RequiredAtt
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
@@ -40,7 +40,7 @@
 
 \section D3dConnexionUseCases Use cases
 
-\subsection UsageSlicer Usage in 3D Slicer
+\subsection D3dConnexionUsageSlicer Usage in 3D Slicer
 
 - Start PlusServer
 - Select the configuration <tt>PlusServer: 3dConnexion SpaceNavigator 3D mouse</tt>

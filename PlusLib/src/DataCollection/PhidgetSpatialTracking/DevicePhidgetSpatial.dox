@@ -42,8 +42,8 @@ Recommended values:
 - \xmlAtt \b AhrsAlgorithmGain Gain values used by the AHRS algorithm (Mahony: first parameter is proportional, second is integral gain; Madgwick: only the first parAhrsAlgorithmGain but for the filtered tool. \OptionalAtt{1.5 0.0}
 - \xmlAtt \b FilteredTiltSensorAhrsAlgorithmGain  Same as \b AhrsAlgorithmGain but for the filtered tool. \OptionalAtt{1.5 0.0}
 
-- \xmlElem \ref DataSources:
-   - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
+- \xmlElem \ref DataSources
+   - \xmlElem \ref DataSource There must be one child element. \RequiredAtt
     - \xmlAtt \ref PortName \RequiredAtt
      - \c Accelerometer Raw sensor measurement. The values are stored in the translation part of the transformation matrix. The rotation part is identity.
      - \c Gyroscope Raw sensor measurement. The values are stored in the translation part of the transformation matrix. The rotation part is identity.

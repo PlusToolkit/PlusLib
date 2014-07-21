@@ -1,0 +1,22 @@
+/**
+
+\page TransformationMatrix Transformation matrix
+
+All transforms are defined in Plus by the names of the two coordinate systems that it transforms between:
+
+[FromCoordinateSystem]To[ToCoordinateSystem]Transform = [Rxx] [Rxy] [Rxz] [Tx] [Ryx] [Ryy] [Ryz] [Ty] [Rzx] [Rzy] [Rzz] [Tz] 0 0 0 1
+
+where
+
+    [ Position_in_ToCoordinateSystem_x ] = [ Rxx Rxy Rxz Tx ] * [Position_in_FromCoordinateSystem_x ]
+    [ Position_in_ToCoordinateSystem_y ]   [ Ryx Ryy Ryz Ty ]   [Position_in_FromCoordinateSystem_y ]
+    [ Position_in_ToCoordinateSystem_z ]   [ Rzx Rzy Rzz Tz ]   [Position_in_FromCoordinateSystem_z ]
+    [               1                  ]   [  0   0   0  1  ]   [               1                   ]
+
+Thus, if you have coordinates of a point in the From coordinate system and you would like to compute the coordinates of the same point in the To coordinate system: multiply the coordinates by the FromToToTransform from the left.
+
+Unit of Ti values is the same as the unit of the To coordinate system (as the Tx, Ty, and Tz values are multiplied by 1 and the result is a position in the To coordinate system).
+
+Unit of Rij values are the ratio of unit of the To coordinate system divided by the unit of the From coordinate system (as a position value in the From coordinate system's unit multiplied by Rij results in a position value in the To coordinate system's unit).
+
+*/

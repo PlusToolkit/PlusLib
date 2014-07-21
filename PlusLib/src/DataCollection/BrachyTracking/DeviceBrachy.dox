@@ -43,8 +43,8 @@ http://www.civco.com/mmi/products/brachytherapy/Steppers.htm
   - \xmlAtt \b ProbeRotationAxisOrientation VECTOR [Trx, Try, 1] \OptionalAtt{0 0 1}
   - \xmlAtt \b ProbeRotationEncoderScale SCALAR \OptionalAtt{1}
 
-- \xmlElem \ref DataSources: \TodoAndras{From the code I thought there would be needed a datasource but it is not defined in the config file}
-   - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
+- \xmlElem \ref DataSources \TodoAndras{From the code I thought there would be needed a datasource but it is not defined in the config file}
+   - \xmlElem \ref DataSource There must be one child element. \RequiredAtt
     - \xmlAtt \ref PortName \RequiredAtt
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}

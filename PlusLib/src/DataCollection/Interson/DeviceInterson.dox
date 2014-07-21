@@ -30,8 +30,8 @@
 - \xmlAtt \b DynRangeDb Dynamic Range \c [dB] of B-mode ultrasound. \OptionalAtt{-1}
 - \xmlAtt \b FrequencyMhz ultrasound transmitter frequency \c [MHz].\OptionalAtt{-1}
 
-- \xmlElem \ref DataSources:
-   - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
+- \xmlElem \ref DataSources
+   - \xmlElem \ref DataSource There must be one child element. \RequiredAtt
     - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
     - \xmlAtt \ref ImageType Supported imaging modes: B-mode \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}

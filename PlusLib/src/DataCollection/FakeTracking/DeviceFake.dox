@@ -24,12 +24,12 @@ Simulates a fake tracking system with tools that have predetermined behavior. Th
   - \c RecordPhantomLandmarks Touches some positions with 1 sec difference
   - \c ToolState Changes the state of the tool from time to time
 
-- \xmlElem \b PhantomDefinition: \RequiredAtt if \b Mode \c="RecordPhantomLandmarks".
+- \xmlElem \b PhantomDefinition: \RequiredAtt if \b Mode = \c "RecordPhantomLandmarks".
   - \xmlElem \b Geometry or \b Landmarks
     - \xmlAtt \b Position Landamark 3D position specified as a vector \c "0.0,0.0,0.0"
 
-- \xmlElem \ref DataSources:
-   - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
+- \xmlElem \ref DataSources
+   - \xmlElem \ref DataSource There must be one child element. \RequiredAtt
     - \xmlAtt \ref PortName \RequiredAtt
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}

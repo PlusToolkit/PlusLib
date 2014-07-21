@@ -47,7 +47,7 @@ If you made these changes, the NDI will work via ethernet. If you want to use th
 Change ethernet settings in NDI SCU ''(Note: this has to be done only when SCU, gateway or DNS IP address is changed)''
 - Connect Serial cable to the SCU and a Serial-to-USB adaptor cable, then the USB into a computer
 - Connect to SCU using MTTTY (COM port can be read from Device Manager)
-- Commands (Read: <code>[Read command name]<Space><Enter> </code>, Write: <code>[Write command name]<Space>[Value]<Enter></code>)
+- Commands (Read: <code>[Read command name][Space][Enter] </code>, Write: <code>[Write command name][Space][Value][Enter]</code>)
   - ENDHRD Reads the DHCP status
   - ENDHWR Sets the DHCP status
   - ENGWRD Reads the gateway address
@@ -81,8 +81,8 @@ If no Certus device is attached to the system then the application crashes (due 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
 
-- \xmlElem \ref DataSources:
-   - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
+- \xmlElem \ref DataSources
+   - \xmlElem \ref DataSource There must be one child element. \RequiredAtt
     - \xmlAtt \ref PortName \RequiredAtt
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}

@@ -27,8 +27,8 @@
   - Test_PlusConfiguration_SimulatedUS.mrb
 - Download and install the latest nightly build of 3D Slicer and the SlicerIGT extension
 - Load the Test_PlusConfiguration_SimulatedUS.mrb file into 3D Slicer
-- Open a command prompt in the directory where you have the downloaded files
-Run: <your-path-to-Plus-bin>\PlusServer.exe --config-file=Test_PlusConfiguration_SimulatedUS.xml
+- Open a Plus applications command prompt
+Run: PlusServer.exe --config-file=Test_PlusConfiguration_SimulatedUS.xml
 - In Slicer go to the Transforms module and modify the ProbeToTracker and NeedleToTracker transforms
 
 <a href="http://www.youtube.com/watch?v=2Oc_tCu_uzs"> Watch on Youtube</a>.
@@ -42,8 +42,8 @@ http://perk.cs.queensu.ca/contents/opensource-surface-meshbased-ultrasoundguided
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 
-- \xmlElem \ref DataSources:
-   - \xmlElem \ref DataSource: There must be one child element. \RequiredAtt
+- \xmlElem \ref DataSources
+   - \xmlElem \ref DataSource There must be one child element. \RequiredAtt
     - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
     - \xmlAtt \ref ImageType \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
