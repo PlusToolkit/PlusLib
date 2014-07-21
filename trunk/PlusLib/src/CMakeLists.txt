@@ -96,6 +96,21 @@ configure_file(
   )  
 
 # --------------------------------------------------------------------------
+# Create macros
+#
+  
+MACRO(GENERATE_HELP_DOC TARGET_NAME)
+  if(BUILD_DOCUMENTATION)
+    ADD_CUSTOM_COMMAND(
+      TARGET ${TARGET_NAME}
+      POST_BUILD
+      COMMAND $<TARGET_FILE:${TARGET_NAME}> --help > ${TARGET_NAME}Help.txt
+      WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}/Doc/Help
+      )
+  endif(BUILD_DOCUMENTATION)
+ENDMACRO(GENERATE_HELP_DOC) 
+  
+# --------------------------------------------------------------------------
 # Initialize variables that will be filled by makefiles in subdirectories
 #
 
@@ -228,10 +243,10 @@ ENDIF()
 option(BUILD_DOCUMENTATION "Build the documentation (Doxygen)." OFF)
 mark_as_advanced(BUILD_DOCUMENTATION)
  
-if(BUILD_DOCUMENTATION)
+if(BUILD_DOCUMENTATION)  
   option(DOCUMENTATION_TARGET_IN_ALL "Include the custom target for building documentation in 'all'" OFF)
   mark_as_advanced(DOCUMENTATION_TARGET_IN_ALL)
-
+  
   # Try to detect GraphViz path (CMake's Doxygen package finder only tries some obsolete paths on Windows)
   find_program(DOXYGEN_DOT_EXECUTABLE
     NAMES dot
