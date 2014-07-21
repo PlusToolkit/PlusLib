@@ -204,6 +204,7 @@ public:
 
 int main(int argc, char **argv)
 {
+  bool printHelp(false);
   std::string inputConfigFileName;
   std::string inputToolSourceId; 
   double inputAcqTimeLength(60);
@@ -215,6 +216,7 @@ int main(int argc, char **argv)
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Name of the input configuration file.");
   args.AddArgument("--tool-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputToolSourceId, "Will print the actual transform of this tool (names were defined in the config file, default is the first active tool)");  
   args.AddArgument("--acq-time-length", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputAcqTimeLength, "Length of acquisition time in seconds (Default: 60s)");  
@@ -227,6 +229,12 @@ int main(int argc, char **argv)
     std::cerr << "Problem parsing arguments" << std::endl;
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
+  }
+  
+  if ( printHelp ) 
+  {
+    std::cout << args.GetHelp() << std::endl;
+    exit(EXIT_SUCCESS); 
   }
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);

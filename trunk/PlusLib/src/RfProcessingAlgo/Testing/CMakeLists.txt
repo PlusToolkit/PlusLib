@@ -3,6 +3,7 @@ SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 ADD_EXECUTABLE(RfProcessor RfProcessor.cxx )
 TARGET_LINK_LIBRARIES(RfProcessor vtkRfProcessingAlgo ${VTK_LIBRARIES} )
+GENERATE_HELP_DOC(RfProcessor)
 
 #---------------------------------------------------------------------------
 ADD_EXECUTABLE(DrawScanLines DrawScanLines.cxx )

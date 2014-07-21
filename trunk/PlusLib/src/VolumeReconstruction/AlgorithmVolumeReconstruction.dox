@@ -1,22 +1,113 @@
 /**
 
-\page AlgorithmVolumeReconstruction Volume reconstruction
+\page AlgorithmVolumeReconstruction Volume reconstruction algorithm
 
 This algorithm reconstructs a 3D volume from a set of 2D image slices.
 
+The reconstructor takes as input a set of tracked ultrasound slices. In the first step (the "distribution step"),
+the images are inserted into a volume. A voxel grid is constructed, whose resolution is defined by the config file
+and whose boundaries are defined by the 3D coordinates of the image pixels. At this point, each pixel value is inserted
+into the spatially nearest single voxel or set of voxels according to options specified in the config file. In the
+optional second step (the "hole filling step"), an algorithm is used to attempt to fill each voxel that has not been
+assigned any intensity value in the distribution step. Hole filling algorithm runs after all the slices are pasted into the volume.
+
+\section AlgorithmVolumeReconstructionTroubleshooting Troubleshooting volume reconstruction
+- I got an error: Path not found from Image to Reference ... / Failed to get transform ... from transform repository
+  - You have to specify the transform that is applied to each frame to insert them into the volume. It is typically a transform from the image coordinate system to a reference coordinate system (such as a reference sensor or the tracker). Usually the sequence metafiles contain transforms between the tracker and the probe coordinate frame, which is not directly usable for the reconstruction, because the coordinate frame of the image and the probe is not the same. Therefore the configuration file should contain the image to probe transform (typically computed by free-hand probe calibration).
+  - You can get the Path not found error if there is no transforms defined between the specified image and reference coordinate frames. Either the image or the reference coordinate frame name does not match the coordinate frame names described in the input sequence meta file. Or, no image to probe transform matrix is defined in the configuration file.
+- Check the slice positions using the CrateSliceModels tool
+  - Image orientation (MF/MN/UF/UN) does not influence the slice locations, only the image contents within the slice. Therefore if the slice locations are not correct (do not seem to correspond to the actual motion of the transducer) then most likely the ImageToProbe matrix is not correct.
+- Check the ImageToProbe matrix
+  - You can use fcal to display your image plane, models, coordinate system axes in real-time which can help you to understand why/how the transform is not correct. See the Frequently asked questions page for more details.
+- Check the image orientation
+  - First make sure that the slice positions are correct. You cannot verify the slice orientations if their position is incorrect.
+  - Acquire a 3D volume single sweep of a pencil. Move the probe along a straight line with one abrupt shift (left/right or up/down).
+  - Reconstruct the volume. If the image orientation is correct then the reconstructed volume should show a smooth surface (there should not be a break in the surface).
+
 \section VolumeReconstructionConfigSettings Configuration settings
 
-- \xmlElem \b VolumeReconstruction
-  - \xmlAtt OutputSpacing
-  - \xmlAtt ClipRectangleOrigin
-  - \xmlAtt ClipRectangleSize
-  - \xmlAtt Interpolation
-  - \xmlAtt Optimization
-  - \xmlAtt Compounding
-  - \xmlAtt FillHoles  
+- \xmlElem \b VolumeReconstruction  
+  - \xmlAtt \b ReferenceCoordinateFrame Defines the Reference coordinate system name: the volume will be reconstructed in this coordinate system (the volume axes are parallel to the Reference coordinate system axes and the volume origin position is defined in the Reference coordinate system). \OptionalAtt{XX}
+  - \xmlAtt \b ImageCoordinateFrame Defines the image coordinate system name: it corresponds to the 2D frame of the image data in the tracked frame. \OptionalAtt{XX}
+  - \xmlAtt \b OutputSpacing Is output image resolution vector for each dimesion of the reconstructed volume. \RequiredAtt
+  - \xmlAtt \b OutputOrigin VECTOR  Is output image origin position vector for each dimesion of the reconstructed volume \OptionalAtt{0 0 0}
+  - \xmlAtt \b OutputExtent Two position vectors that determine the reconstructed volume extent. \OptionalAtt{0 0 0}
+  - \xmlAtt \b ClipRectangleOrigin Crop rectangle origin of the frame (in pixels). See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{0 0}
+  - \xmlAtt \b ClipRectangleSize Crop rectangle size of the frame (in pixels). If it is \c "0 0" then the whole frame will be captured. See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{0 0}
+  - \xmlAtt \b FanAngles Fan angles is a vector containing the angles of the two straight edge of the fan, in degrees. If both angles are 0 then no fan-shaped clipping is performed. See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{0 0}
+  - \xmlAtt \b FanOrigin The origin of the fan is defined in the image coordinate system, in mm. See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{0 0}
+  - \xmlAtt \b FanDepth Fan depth is the radius of the fan [mm]. See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{1.0}
+  - \xmlAtt \b SkipInterval only every [SkipInterval] images from the input will be used in the reconstruction (Ie this is the number of frames that are skipped when the index is increased) \OptionalAtt{1}
+  - \xmlAtt \b Interpolation Set the interpolation mode\OptionalAtt{NEAREST_NEIGHBOR}
+      - \c LINEAR Better image quality, slower.
+      - \c NEAREST_NEIGHBOR Lower image quality, faster. 
+  - \xmlAtt \b Calculation Set the result mode \OptionalAtt{WEIGHTED_AVERAGE}
+      - \c WEIGHTED_AVERAGE Used on single sweeps when slices are not expected to intersect.
+      - \c MAXIMUM used when multiple slices are expected to intersect. 
+  - \xmlAtt \b Optimization Set optimization method (turn off optimization only if it is not stable
+      on your architecture). \OptionalAtt{FULL_OPTIMIZATION}
+      - \c NO_OPTIMIZATION Means no optimization (almost never used). 
+      - \c PARTIAL_OPTIMIZATION Break transformation into x, y and z components, and don't do bounds checking for nearest-neighbor interpolation.
+      - \c FULL_OPTIMIZATION Fixed-point (i.e. integer) math is used instead of float math, it is only useful with NEAREST_NEIGHBOR interpolation (when used with LINEAR interpolation then it is slower than NO_OPTIMIZATION). 
+  - \xmlAtt \b Compounding When it is \c ON the scans will be averaged where they overlap and saved in the accumulation buffer. If set to \c OFF then the voxel will be determined only by the last slice that intersected it. \OptionalAtt{ ON }
+  - \xmlAtt \b NumberOfThreads Set number of threads used for processing the data. The reconstruction result is slightly different if more than one thread is used because due to interpolation and rounding errors is influenced by the order the pixels are processed. Choose 0 (this is the default) for maximum speed, in this case the default number of used threads equals the number of processors. Choose 1 for reproducible results. \OptionalAtt{0}
+  - \xmlAtt \b FillHoles If enabled then the hole filling will be applied on output reconstructed volume. \c ON or  \c OFF. \OptionalAtt{OFF}
 
+  - \xmlElem \b HoleFilling: \RequiredAtt If \b FillHoles \c ="ON"
+    - \xmlElem \b HoleFillingElement The user can specify one or more hole filling "elements" which are tried one by one until either one succeeds or they all fail. If the hole is not filled (all methods fail), then the hole remains a black voxel with value 0.
+      - \xmlAtt \b Type There are currently five types of hole filling elements, each with several parameters that can be set, one Type and its respective attributes is required: \RequiredAtt
+        - \c GAUSSIAN The hole is filled using a gaussian-weighted average over a surrounding cubic neighborhood.
+        - \c GAUSSIAN_ACCUMULATION Same as \c GAUSSIAN but it uses the accumulation buffers as a weighting factor.
+        - \c STICK The hole is filled by looking along several directions through the hole and interpolating between pairs of opposite voxels:
+        - \c NEAREST_NEIGHBOR A small 3 x 3 x 3 cube-shaped kernel is placed over the hole. If there are any filled voxels in the region, then a simple mean of filled voxels is used to fill the hole voxel. If not, then a slightly larger kernel size (eg, 5 x 5 x 5) is used, until a maximum kernel size (as defined by the user) is reached. 
+        - \c DISTANCE_WEIGHT_INVERSE It is weigthed inversly proportional to the euclidian distance of each pixels.
+
+      - \xmlAtt \b Size An odd integer representing the diameter of the largest possible kernel for hole filling. A larger region will be more likely to encompass more information for the interpolation, but it will increase the running time. \RequiredAtt If \b Type \c ="GAUSSIAN", \b Type \c ="GAUSSIAN_ACCUMULATION", \b Type \c ="GAUSSIANNEAREST_NEIGHBOR", or \b Type \c = "DISTANCE_WEIGHT_INVERSE"
+      - \xmlAtt \b MinimumKnownVoxelsRatio A floating point number between 0 and 1 indicating the ratio of voxels in the neighborhood that must be known in order to fill the hole (ie, 0.5 means that 50% of voxels in the cubic region must be known, or the hole will not be filled). \RequiredAtt If \b Type \c ="GAUSSIAN", \b Type \c ="GAUSSIAN_ACCUMULATION", \b Type \c ="GAUSSIANNEAREST_NEIGHBOR", or \b Type \c = "DISTANCE_WEIGHT_INVERSE"
+      - \xmlAtt \b Stdev a floating point number representing the standard deviation of the Gaussian weight. \RequiredAtt If \b Type \c ="GAUSSIAN" or \b Type \c ="GAUSSIAN_ACCUMULATION"
+      
+      - \xmlAtt \b StickLengthLimit An integer representing the maximum length of the stick used to fill the hole. A smaller value means that the algorithm will take longer, but that suitable values are more likely to be found. \RequiredAtt If \b Type \c ="STICK"
+      - \xmlAtt \b NumberOfSticksToUse An integer representing the number of sticks that should be used in calculating the final voxel value. The voxel will be calculated as a weighted average of individual stick results. The results of these sticks will be weighted according to their length. \RequiredAtt If \b Type \c ="STICK"
+
+
+\subsection VolumeReconstructionConfigSettingsClipping
+
+Images slices often contain irrelevant parts for volume reconstruction, e.g., dark or black regions at the image boundary
+or out of the image fan. To remove these image regions a rectangular and fan-shaped clipping areas can be defined.
+
+- Clipping rectangle is defined by ClipRectangleOrigin and ClipRectangleSize attributes, for example:
+    <VolumeReconstruction ... ClipRectangleOrigin="120 20" ClipRectangleSize="400 500" ... />
+- See file:UltrasoundImageOrientation.pptx  for instructions for setting up the image fan for curvilinear probes, for example:
+    <VolumeReconstruction ... FanAngles="-30 30" FanOrigin="234 -50" FanDepth="350" ... />
+  
 \image html AlgorithmVolumeReconstructionLinearRoi.png 
 
 \image html AlgorithmVolumeReconstructionCurvilinearRoi.png
-  
+
+\subsection VolumeReconstructionConfigSettingsCompounding
+
+- When voxels are distributed into the volume, there are many different ways that conflicting values can be treated. The exact behaviour will depend on what is provided in the "Calculation", "Interpolation", and "Compounding" fields of the _config XML file.
+- It is important to understand how the Accumulation Buffer works for when Compounding is turned on. The Accumulation Buffer stores the number of pixels that intersect any given voxel. For a voxel that was hit twice using nearest neighbor interpolation, it will be 2. For a voxel that was hit twice using reverse tri-linear interpolation, however, the value may be different since each pixel could contribute a different weight bounded between 0 and 1 depending on how close the pixels were to the voxel.
+- Below is a brief description of how each combination works:
+  - WEIGHTED_AVERAGE + NEAREST_NEIGHBOR + Compounding On: Distribute pixels into their nearest neighbor voxels, and increase the accumulation buffer for that voxel by one. In the case of a conflict, perform a weighted average using the accumulation buffer as a weight for the existing value.
+  - WEIGHTED_AVERAGE + NEAREST_NEIGHBOR + Compounding Off: Distribute pixels into their nearest neighbor voxels. When there is a conflict, overwrite the existing value using the new incoming value.
+  - WEIGHTED_AVERAGE + LINEAR + Compounding On: This is reverse tri-linear interpolation as described by Gobbi et al (2002). Each pixel contributes a value to a voxel with a weight proportional to its distance. The final value is calculated as a weighted average of all intersecting pixels.
+  - WEIGHTED_AVERAGE + LINEAR + Compounding Off: Similar to above with compounding on, except the weighted average is performed on each intersection, each time weighting the existing pixel as (1 - weight of incoming pixel).
+  - MAXIMUM + NEAREST_NEIGHBOR + Compounding On: Distribute pixels into their nearest neighbor voxels. When there is a conflict, use the maximum value. Store 1 inside the accumulation buffer.
+  - MAXIMUM + NEAREST_NEIGHBOR + Compounding Off: Distribute pixels into their nearest neighbor voxels. When there is a conflict, use the maximum value. Do not store any accumulation buffer.
+  - MAXIMUM + LINEAR + Compounding On: Use reverse tri-linear interpolation, but ignore the weights for distribution. Instead only use the highest pixel intensity encountered, and store its weight inside the accumulation buffer (which could be used in hole-filling).
+  - MAXIMUM + LINEAR + Compounding Off: Use reverse tri-linear interpolation, as above, except do not store the weights in the accumulation buffer.
+
+\section VirtualVolumeReconstructorExampleConfigFile Example configuration file PlusDeviceSet_Server_Sim_NwirePhantom.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_Sim_NwirePhantom.xml"
+
+Example configuration file PlusDeviceSet_SpinePhantomFreehandReconstructionOnly.xml
+
+\include "data/ConfigFiles/Testing/PlusDeviceSet_SpinePhantomFreehandReconstructionOnly.xml"
+
+Example configuration file PlusDeviceSet_SpinePhantomFreehandReconstructionOnlyMaximum.xml
+
+\include "data/ConfigFiles/Testing/PlusDeviceSet_SpinePhantomFreehandReconstructionOnlyMaximum.xml"
+
 */

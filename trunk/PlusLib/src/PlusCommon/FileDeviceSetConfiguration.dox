@@ -19,5 +19,6 @@ The device set configuration file is an XML file with the following content:
     - \subpage AlgorithmPhantomLandmarkRegistration
     - \subpage AlgorithmPivotCalibration
     - \subpage AlgorithmVolumeReconstruction
+    - \subpage AlgorithmRfProcessing
 
 */

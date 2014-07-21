@@ -217,7 +217,7 @@ PlusStatus vtkPlusConfig::LoadApplicationConfiguration()
   }
   if (applicationConfigurationRoot == NULL)
   {
-    LOG_INFO("Application configuration file is not found at '" << applicationConfigurationFilePath << "' - file will be created with default values"); 
+    LOG_DEBUG("Application configuration file is not found at '" << applicationConfigurationFilePath << "' - file will be created with default values"); 
     applicationConfigurationRoot = vtkSmartPointer<vtkXMLDataElement>::New();
     applicationConfigurationRoot->SetName("PlusConfig");
     saveNeeded = true;

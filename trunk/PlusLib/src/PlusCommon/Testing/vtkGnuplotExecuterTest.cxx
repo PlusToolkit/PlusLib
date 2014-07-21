@@ -40,15 +40,14 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
   
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
-
   if ( printHelp ) 
   {
-    std::cout << "Help: " << args.GetHelp() << std::endl;
-    exit(EXIT_SUCCESS); 
-
+    std::cout << args.GetHelp() << std::endl;
+    exit(EXIT_SUCCESS);
   }
 
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  
   if ( inputGnuplotCommand.empty() )
   {
     std::cerr << "gnuplot-command argument is required!" << std::endl;

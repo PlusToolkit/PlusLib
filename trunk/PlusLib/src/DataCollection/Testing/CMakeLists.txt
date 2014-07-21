@@ -9,6 +9,7 @@ SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 #***************************  TrackingTest ***************************
 ADD_EXECUTABLE(TrackingTest TrackingTest.cxx )
 TARGET_LINK_LIBRARIES(TrackingTest vtkDataCollection vtkPlusCommon )
+GENERATE_HELP_DOC(TrackingTest)
 
 #***************************  TimestampFilteringTest ***************************
 ADD_EXECUTABLE(TimestampFilteringTest TimestampFilteringTest.cxx )
@@ -94,6 +95,8 @@ SET_TESTS_PROPERTIES( vtkDataCollectorFileTest PROPERTIES FAIL_REGULAR_EXPRESSIO
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(PlusVersion PlusVersion.cxx )
 TARGET_LINK_LIBRARIES(PlusVersion vtkPlusCommon vtkDataCollection)
+GENERATE_HELP_DOC(PlusVersion)
+
 ADD_TEST(PlusVersion 
   ${EXECUTABLE_OUTPUT_PATH}/PlusVersion
   )
@@ -108,17 +111,19 @@ ADD_TEST(vtkMetaImageSequenceIOTest
   )
 SET_TESTS_PROPERTIES( vtkMetaImageSequenceIOTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
  
-#***************************  MetaImageSequenceViewer  ***************************
-ADD_EXECUTABLE(MetaImageSequenceViewer MetaImageSequenceViewer.cxx )
-TARGET_LINK_LIBRARIES(MetaImageSequenceViewer vtkDataCollection )
-ADD_TEST(MetaImageSequenceViewerTest
-  ${EXECUTABLE_OUTPUT_PATH}/MetaImageSequenceViewer
+#***************************  ViewSeqMetaFile  ***************************
+ADD_EXECUTABLE(ViewSeqMetaFile ViewSeqMetaFile.cxx )
+TARGET_LINK_LIBRARIES(ViewSeqMetaFile vtkDataCollection )
+GENERATE_HELP_DOC(ViewSeqMetaFile)
+
+ADD_TEST(ViewSeqMetaFileTest
+  ${EXECUTABLE_OUTPUT_PATH}/ViewSeqMetaFile
   --source-seq-file=${TestDataDir}/SpinePhantomFreehand.mha
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_SpinePhantomFreehandReconstructionOnly.xml
   --image-to-reference-transform=ImageToTracker
   --rendering-off
   )
-SET_TESTS_PROPERTIES( MetaImageSequenceViewerTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES( ViewSeqMetaFileTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #***************************  itkFcsvReaderTest1.cxx ***************************
 ADD_EXECUTABLE(itkFcsvReaderTest1 itkFcsvReaderTest1.cxx )
@@ -353,7 +358,7 @@ ENDIF( PLUS_USE_OpenIGTLink )
 INSTALL(
   TARGETS 
     PlusVersion 
-    MetaImageSequenceViewer
+    ViewSeqMetaFile
     TrackingTest
   DESTINATION bin
   COMPONENT RuntimeExecutables

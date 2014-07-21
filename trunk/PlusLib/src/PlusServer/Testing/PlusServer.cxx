@@ -45,6 +45,7 @@ int main( int argc, char** argv )
 #endif
 
   // Check command line arguments.
+  bool printHelp(false);
   std::string inputConfigFileName;
   std::string testingConfigFileName;
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
@@ -55,6 +56,7 @@ int main( int argc, char** argv )
   vtksys::CommandLineArguments args;
   args.Initialize( argc, argv );
 
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
   args.AddArgument( "--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Name of the input configuration file." );
   args.AddArgument( "--running-time", vtksys::CommandLineArguments::EQUAL_ARGUMENT,&runTime, "Server running time period in seconds. If the parameter is not defined or 0 then the server runs infinitely." );
   args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)" );
@@ -65,6 +67,12 @@ int main( int argc, char** argv )
     std::cerr << "Problem parsing arguments." << std::endl;
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE); 
+  }
+  
+  if ( printHelp )
+  {
+    std::cout << args.GetHelp() << std::endl;
+    exit(EXIT_SUCCESS);
   }
   
   vtkPlusLogger::Instance()->SetLogLevel( verboseLevel );

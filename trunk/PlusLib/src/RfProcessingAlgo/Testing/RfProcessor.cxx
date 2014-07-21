@@ -22,6 +22,7 @@ See License.txt for details.
 //-----------------------------------------------------------------------------
 int main(int argc, char **argv)
 {
+  bool printHelp=false;
   std::string inputRfFile;
   std::string inputConfigFile;
   std::string outputImgFile;
@@ -32,6 +33,7 @@ int main(int argc, char **argv)
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
   args.AddArgument("--rf-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputRfFile, "File name of input RF image data");
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFile, "Config file containing processing parameters");
   args.AddArgument("--output-img-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputImgFile, "File name of the generated output brightness image");
@@ -45,6 +47,12 @@ int main(int argc, char **argv)
     std::cerr << "Problem parsing arguments" << std::endl;
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
+  }
+
+  if ( printHelp )
+  {
+    std::cout << args.GetHelp() << std::endl;
+    exit(EXIT_SUCCESS);
   }
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);

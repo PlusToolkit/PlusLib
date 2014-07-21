@@ -43,6 +43,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
 
 int main (int argc, char* argv[])
 {
+
+  bool printHelp(false);
   std::string inputCalibrationSeqMetafile;
   std::string inputValidationSeqMetafile;
 
@@ -60,27 +62,35 @@ int main (int argc, char* argv[])
 
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
-  vtksys::CommandLineArguments cmdargs;
-  cmdargs.Initialize(argc, argv);
+  vtksys::CommandLineArguments args;
+  args.Initialize(argc, argv);
 
-  cmdargs.AddArgument("--calibration-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputCalibrationSeqMetafile, "Sequence metafile name of input calibration dataset.");
-  cmdargs.AddArgument("--validation-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputValidationSeqMetafile, "Sequence metafile name of input validation dataset. Optional, if not specified then the calibration error will be computed from the calibration dataset.");
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
+  
+  args.AddArgument("--calibration-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputCalibrationSeqMetafile, "Sequence metafile name of input calibration dataset.");
+  args.AddArgument("--validation-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputValidationSeqMetafile, "Sequence metafile name of input validation dataset. Optional, if not specified then the calibration error will be computed from the calibration dataset.");
 
-  cmdargs.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name)");
-  cmdargs.AddArgument("--baseline-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results. Optional.");
+  args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name)");
+  args.AddArgument("--baseline-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results. Optional.");
 
-  cmdargs.AddArgument("--translation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTranslationErrorThreshold, "Translation error threshold in mm. Used for baseline comparison.");  
-  cmdargs.AddArgument("--rotation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputRotationErrorThreshold, "Rotation error threshold in degrees. Used for baseline comparison.");  
+  args.AddArgument("--translation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTranslationErrorThreshold, "Translation error threshold in mm. Used for baseline comparison.");  
+  args.AddArgument("--rotation-error-threshold", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputRotationErrorThreshold, "Rotation error threshold in degrees. Used for baseline comparison.");  
 
-  cmdargs.AddArgument("--output-config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &resultConfigFileName, "Result configuration file name. Optional.");
+  args.AddArgument("--output-config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &resultConfigFileName, "Result configuration file name. Optional.");
 
-  cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
 
-  if ( !cmdargs.Parse() )
+  if ( !args.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
-    std::cout << "Help: " << cmdargs.GetHelp() << std::endl;
+    std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
+  }
+  
+  if ( printHelp )
+  {
+    std::cout << args.GetHelp() << std::endl;
+    exit(EXIT_SUCCESS);
   }
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);

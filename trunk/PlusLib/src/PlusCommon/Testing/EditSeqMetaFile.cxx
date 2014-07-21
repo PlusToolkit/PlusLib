@@ -158,11 +158,9 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
   
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
-  
   if ( printHelp ) 
   {
-    std::cout << "Help: " << args.GetHelp() << std::endl;
+    std::cout << args.GetHelp() << std::endl;
     std::cout << std::endl << "Operations: " << std::endl << std::endl; 
 
     std::cout << "- UPDATE_FRAME_FIELD_NAME: update field names for each frame, if not exists add it." << std::endl; 
@@ -182,8 +180,9 @@ int main(int argc, char **argv)
     std::cout << "  FILL_IMAGE_RECTANGLE and CROP require specification of the rectangle (e.g., --rect-origin 12 34 --rect-size 56 78)" << std::endl;
 
     return EXIT_SUCCESS; 
+  }
 
-  }  
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);  
 
   ///////////////////////////////////////////////////////////////////
   // Check command line arguments 

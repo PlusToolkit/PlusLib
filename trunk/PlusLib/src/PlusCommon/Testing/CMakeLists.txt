@@ -32,17 +32,17 @@ ADD_TEST(PlusMathTest
   )
   
 #--------------------------------------------------------------------------------------------
-ADD_EXECUTABLE(vtkAccurateTimerTest vtkAccurateTimerTest.cxx )
-TARGET_LINK_LIBRARIES(vtkAccurateTimerTest vtkPlusCommon )
+ADD_EXECUTABLE(AccurateTimerTest AccurateTimerTest.cxx )
+TARGET_LINK_LIBRARIES(AccurateTimerTest vtkPlusCommon )
 
-ADD_TEST(vtkAccurateTimerTest 
-  ${EXECUTABLE_OUTPUT_PATH}/vtkAccurateTimerTest
+ADD_TEST(AccurateTimerTest 
+  ${EXECUTABLE_OUTPUT_PATH}/AccurateTimerTest
   --testTimeSec=10
   --averageIntendedDelaySec=0.005
   --numberOfThreads=3
   --verbose=3
   )
-SET_TESTS_PROPERTIES( vtkAccurateTimerTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES( AccurateTimerTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkTransformRepositoryTest vtkTransformRepositoryTest.cxx )
@@ -127,7 +127,10 @@ SET_TESTS_PROPERTIES( EditSeqMetaFileCropImageRectangleCompareToBaselineTest PRO
 # Install
 #
 
-INSTALL(TARGETS EditSeqMetaFile
+INSTALL(
+  TARGETS
+    EditSeqMetaFile
+    AccurateTimerTest
   DESTINATION bin
   COMPONENT RuntimeExecutables
   )
