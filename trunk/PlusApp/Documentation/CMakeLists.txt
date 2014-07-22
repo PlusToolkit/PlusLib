@@ -9,15 +9,32 @@ if( DOXYGEN_FOUND )
       set(all_arg "ALL")
     endif()
 
-    # Build html help (chm) file on Windows
+    # Set up help file format
+    set(PLUSAPP_DOCUMENTATION_FORMAT "PLAIN_HTML" CACHE STRING "User manual format. PLAIN_HTML: HTML files with limited search. SERVER_INDEXED_HTML: HTML files with server-based full-text search (requires PHP). WINDOWS_HELP: single compressed html (.chm) help file.")
+    set_property(CACHE PLUSAPP_DOCUMENTATION_FORMAT PROPERTY STRINGS PLAIN_HTML SERVER_INDEXED_HTML WINDOWS_HELP)
+ 
+    # Default format (plain HTML)
     set(GENERATE_HTMLHELP "NO")
     set(COMPRESSED_HELP_TARGET_FILE_EXT ".tar.gz")
-    #if(WIN32)
-      #set(GENERATE_HTMLHELP "YES")
-      #set(COMPRESSED_HELP_TARGET_FILE_EXT ".chm")
-      #set(HHC_LOCATION "${PLUSLIB_TOOLS_DIR}/HtmlHelp/hhc.exe" CACHE FILEPATH "Path to the Windows HTML Help Compiler tool." FORCE)
-    #endif(WIN32) 
-       
+    set(SEARCHENGINE "YES")
+    set(SERVER_BASED_SEARCH "NO")    
+    IF (PLUSAPP_DOCUMENTATION_FORMAT STREQUAL "WINDOWS_HELP")
+      IF(WIN32)
+        set(GENERATE_HTMLHELP "YES")
+        set(SEARCHENGINE "NO")
+        set(COMPRESSED_HELP_TARGET_FILE_EXT ".chm")
+        set(HHC_LOCATION "${PLUSLIB_TOOLS_DIR}/HtmlHelp/hhc.exe" CACHE FILEPATH "Path to the Windows HTML Help Compiler tool." FORCE)
+      ELSE(WIN32)
+        MESSAGE(WARNING "Build html help (chm) file is only supported on Windows")
+      ENDIF(WIN32)
+    ELSEIF (PLUSAPP_DOCUMENTATION_FORMAT STREQUAL "SERVER_INDEXED_HTML")
+      set(SERVER_BASED_SEARCH "YES")
+    ELSEIF (PLUSAPP_DOCUMENTATION_FORMAT STREQUAL "PLAIN_HTML")
+      # it's the default, no changes are needed
+    ELSE()
+      MESSAGE(WARNING "Invalid PLUSAPP_DOCUMENTATION_FORMAT: ${PLUSAPP_DOCUMENTATION_FORMAT}")
+    ENDIF()  
+  
     # Parameters for generate_doc.cmake
     set(TARGET_NAME "Documentation")
     set(UNCOMPRESSED_HELP_TARGET_DIR ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME})
