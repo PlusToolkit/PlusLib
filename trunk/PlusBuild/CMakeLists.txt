@@ -108,6 +108,9 @@ if(PLUSBUILD_DOCUMENTATION)
       "Documentation: Doxygen not found Documentation will not be created"
       )
   endif( DOXYGEN_FOUND )
+ 
+  set(PLUSBUILD_DOCUMENTATION_FORMAT "PLAIN_HTML" CACHE STRING "User manual format. PLAIN_HTML: HTML files with limited search. SERVER_INDEXED_HTML: HTML files with server-based full-text search (requires PHP). WINDOWS_HELP: single compressed html (.chm) help file.")
+  set_property(CACHE PLUSBUILD_DOCUMENTATION_FORMAT PROPERTY STRINGS PLAIN_HTML SERVER_INDEXED_HTML WINDOWS_HELP)
 
 endif(PLUSBUILD_DOCUMENTATION)
 
