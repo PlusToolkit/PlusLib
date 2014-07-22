@@ -36,7 +36,7 @@ if( DOXYGEN_FOUND )
     ENDIF()  
   
     # Parameters for generate_doc.cmake
-    set(TARGET_NAME "Documentation")
+    set(TARGET_NAME "UserManual")
     set(UNCOMPRESSED_HELP_TARGET_DIR ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME})
     set(DOXYGEN_CONFIG_FILE ${UNCOMPRESSED_HELP_TARGET_DIR}/Doxyfile.txt)      
     set(CREATE_COMPRESSED_HELP "YES")
@@ -61,8 +61,8 @@ if( DOXYGEN_FOUND )
       DEPENDS "${DOC_GENERATION_CMAKE_FILE}"
               "${DOXYGEN_CONFIG_FILE}"
       )
-    add_custom_target(${TARGET_NAME} ${all_arg} DEPENDS ${DOC_OUTPUT_FILE})
-    set_target_properties(${TARGET_NAME} PROPERTIES LABELS Documentation)
+    add_custom_target(Documentation-PlusApp-${TARGET_NAME} ${all_arg} DEPENDS ${DOC_OUTPUT_FILE})
+    set_target_properties(Documentation-PlusApp-${TARGET_NAME} PROPERTIES LABELS Documentation)
 
   else( DOXYGEN_DOT_FOUND )
     message( WARNING

@@ -47,10 +47,16 @@ CONFIGURE_FILE(
   @ONLY
   )
 
-# Setup file for setting custom ctest vars (for ignoring certain warnings, etc.)
+# Documentation generator
+STRING(TOUPPER ${CMAKE_MAKE_PROGRAM} MAKE_PROGRAM_UPPERCASE)
+IF (${MAKE_PROGRAM_UPPERCASE} MATCHES "MSBUILD")
+  SET(IS_MAKE_PROGRAM_MSBUILD TRUE)
+ELSE()
+  SET(IS_MAKE_PROGRAM_MSBUILD FALSE)
+ENDIF()
 CONFIGURE_FILE(
-  CreateUserDoc.bat.in
-  ${CMAKE_CURRENT_BINARY_DIR}/CreateUserDoc.bat
+  CreateUserManual.bat.in
+  ${CMAKE_CURRENT_BINARY_DIR}/CreateUserManual.bat
   )
   
 # --------------------------------------------------------------------------
