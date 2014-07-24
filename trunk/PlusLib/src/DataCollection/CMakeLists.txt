@@ -17,6 +17,7 @@ OPTION (PLUS_USE_EPIPHAN "Provide support for the Epiphan" OFF)
 OPTION (PLUS_USE_INTERSON_VIDEO "Provide support Interson USB ultrasound probes" OFF)
 OPTION (PLUS_USE_INTERSONSDKCXX_VIDEO "Provide support Interson SDK 1.X with C++ Wrapper USB ultrasound probes" OFF)
 OPTION(PLUS_USE_STEALTHLINK "Provide support for the Medtronick StealthLink Server" OFF)
+OPTION(PLUS_USE_DAVINCI "Enable the tracking of the da Vinci Surgical System. Enable this only if you have a da Vinci that is accessible from this computer." OFF)
 
 OPTION (PLUS_TEST_BKPROFOCUS "Enable testing of acquisition from BK ProFocus ultrasound systems. Enable this only if a BK ProFocus device is connected to this computer." OFF)
 OPTION (PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
@@ -80,6 +81,7 @@ SET (DataCollection_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/UsSimulatorVideo 
   ${CMAKE_CURRENT_SOURCE_DIR}/VirtualDevices  
   CACHE INTERNAL "" FORCE)
+
 
 # --------------------------------------------------------------------------
 # NDI Certus support
@@ -622,7 +624,35 @@ IF (PLUS_USE_STEALTHLINK)
     )
 ENDIF (PLUS_USE_STEALTHLINK)
 
-    
+#--------------------------------------------------------------------------
+# da Vinci Surgical System support
+IF(PLUS_USE_DAVINCI)
+
+  MESSAGE(STATUS "DataCollection - setting da Vinci srcs + headers")
+  SET (DataCollection_SRCS ${DataCollection_SRCS}
+    daVinci/vtkDaVinciTracker.cxx
+    daVinci/daVinci.cpp)
+    MESSAGE(STATUS ${DataCollection_SRCS})
+
+  SET (DataCollection_HDRS ${DataCollection_HDRS}
+    daVinci/vtkDaVinciTracker.h 
+    daVinci/daVinci.h)
+  )
+  MESSAGE(STATUS ${DataCollection_HDRS})
+
+  SET(DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
+    ${DAVINCI_INCLUDE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/daVinci
+    CACHE INTERNAL "" FORCE)
+  MESSAGE(STATUS ${DAVINCI_INCLUDE_DIR})
+  MESSAGE(STATUS ${DataCollection_INCLUDE_DIRS})
+  SET(DataCollection_LIBS ${DataCollection_LIBS}
+    ${DAVINCI_LIB_DIR}/isi_api${CMAKE_STATIC_LIBRARY_SUFFIX})
+  MESSAGE(STATUS ${DAVINCI_LIB_DIR}
+  MESSAGE(STATUS ${DataCollection_INCLUDE_DIRS}
+
+ENDIF(PLUS_USE_DAVINCI)
+
 # --------------------------------------------------------------------------
 # Video-for-Windows video digitizer support
 

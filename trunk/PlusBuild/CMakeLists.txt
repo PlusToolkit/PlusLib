@@ -166,6 +166,7 @@ OPTION(PLUS_USE_Ascension3DGm "Provide support for the Ascension MedSafe Tracker
 OPTION(PLUS_USE_PHIDGET_SPATIAL_TRACKER "Provide support for the Phidget Spatial accelerometer" OFF)
 OPTION(PLUS_USE_3dConnexion_TRACKER "Provide support for the 3dConnexion 3d mouse" OFF)
 OPTION(PLUS_USE_STEALTHLINK "Provide support for the Medtronick StealthLink Server" OFF)
+OPTION(PLUS_USE_DAVINCI "Provide support for the da Vinci Surgical System" OFF)
 
 # Other
 
@@ -339,6 +340,13 @@ IF ( PLUS_USE_INTERSON_VIDEO )
  FIND_PACKAGE (INTERSON)
   IF ( NOT INTERSON_FOUND)
     MESSAGE( FATAL_ERROR "This project requires Interson iSDK for supporting the Interson USB ultrasound probes. One of the components is missing. Please verify configuration or turn off PLUS_USE_INTERSON_VIDEO.")
+  ENDIF()
+ENDIF()
+
+IF( PLUS_USE_DAVINCI)
+  FIND_PACKAGE (DAVINCI)
+  IF( NOT DAVINCI_FOUND )
+    MESSAGE( FATAL_ERROR "This project requires headers and library provided by Intuitive. One of the components is missing. Please verify configuration or turn off PLUS_USE_DAVINCI.")
   ENDIF()
 ENDIF()
 
