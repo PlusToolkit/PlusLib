@@ -631,25 +631,30 @@ IF(PLUS_USE_DAVINCI)
   MESSAGE(STATUS "DataCollection - setting da Vinci srcs + headers")
   SET (DataCollection_SRCS ${DataCollection_SRCS}
     daVinci/vtkDaVinciTracker.cxx
-    daVinci/daVinci.cpp)
-    MESSAGE(STATUS ${DataCollection_SRCS})
+    daVinci/daVinci.cxx
+    )
+  MESSAGE(STATUS ${DataCollection_SRCS})
 
   SET (DataCollection_HDRS ${DataCollection_HDRS}
     daVinci/vtkDaVinciTracker.h 
-    daVinci/daVinci.h)
-  )
+    daVinci/daVinci.h
+    )
   MESSAGE(STATUS ${DataCollection_HDRS})
 
   SET(DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
     ${DAVINCI_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/daVinci
     CACHE INTERNAL "" FORCE)
+    
   MESSAGE(STATUS ${DAVINCI_INCLUDE_DIR})
   MESSAGE(STATUS ${DataCollection_INCLUDE_DIRS})
+  
   SET(DataCollection_LIBS ${DataCollection_LIBS}
-    ${DAVINCI_LIB_DIR}/isi_api${CMAKE_STATIC_LIBRARY_SUFFIX})
-  MESSAGE(STATUS ${DAVINCI_LIB_DIR}
-  MESSAGE(STATUS ${DataCollection_INCLUDE_DIRS}
+    ${DAVINCI_LIB_DIR}/isi_api${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
+  
+  MESSAGE(STATUS ${DAVINCI_LIB_DIR})
+  MESSAGE(STATUS ${DataCollection_INCLUDE_DIRS})
 
 ENDIF(PLUS_USE_DAVINCI)
 
