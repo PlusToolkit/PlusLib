@@ -6,7 +6,7 @@
     />
     <Device
       Id="TrackerDevice"
-      Type="DaVinci" 
+      Type="IntuitiveDaVinci" 
       ToolReferenceFrame="Tracker">
       <DataSources>
         <DataSource Type="Tool" Id="ISI_PSM1_TIP" PortName="ISI_PSM1_TIP"/>

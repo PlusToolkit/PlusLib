@@ -2,17 +2,17 @@
 #include "PlusConfigure.h"
 #include "PlusVideoFrame.h"
 #include "vtkImageData.h"
-#include "vtkDaVinciTracker.h"
+#include "vtkIntuitiveDaVinciTracker.h"
 #include <fstream>
 #include <iostream>
 #include <set>
 
 /****************************************************************************/
 
-vtkStandardNewMacro(vtkDaVinciTracker);
+vtkStandardNewMacro(vtkIntuitiveDaVinciTracker);
 
 //----------------------------------------------------------------------------
-vtkDaVinciTracker::vtkDaVinciTracker()
+vtkIntuitiveDaVinciTracker::vtkIntuitiveDaVinciTracker()
 {
 #ifdef USE_DAVINCI_TIMESTAMPS
   this->TrackerTimeToSystemTimeSec = 0;
@@ -31,7 +31,7 @@ vtkDaVinciTracker::vtkDaVinciTracker()
 }
 
 //----------------------------------------------------------------------------
-vtkDaVinciTracker::~vtkDaVinciTracker() 
+vtkIntuitiveDaVinciTracker::~vtkIntuitiveDaVinciTracker() 
 {
   if(this->Recording)
   {
@@ -49,24 +49,24 @@ vtkDaVinciTracker::~vtkDaVinciTracker()
 }
 
 //----------------------------------------------------------------------------
-std::string vtkDaVinciTracker::GetSdkVersion()
+std::string vtkIntuitiveDaVinciTracker::GetSdkVersion()
 {
   return this->mDaVinci->get_library_version(); 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDaVinciTracker::Probe()
+PlusStatus vtkIntuitiveDaVinciTracker::Probe()
 {  
 
   if (this->IsDaVinciTrackingInitialized)
   {
-    LOG_ERROR("vtkDaVinciTracker::Probe should not be called while the device is already initialized");
+    LOG_ERROR("vtkIntuitiveDaVinciTracker::Probe should not be called while the device is already initialized");
     return PLUS_FAIL;
   }
 
   if(this->mDaVinci->Connect() != ISI_SUCCESS)
   {
-    LOG_ERROR("vtkDaVinciTracker::Probe could not connect to the da Vinci!");
+    LOG_ERROR("vtkIntuitiveDaVinciTracker::Probe could not connect to the da Vinci!");
     return PLUS_FAIL;
   }
 
@@ -95,7 +95,7 @@ PlusStatus vtkDaVinciTracker::Probe()
 } 
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDaVinciTracker::InternalStartRecording()
+PlusStatus vtkIntuitiveDaVinciTracker::InternalStartRecording()
 {
   if (!this->IsDaVinciTrackingInitialized)
   {
@@ -113,7 +113,7 @@ PlusStatus vtkDaVinciTracker::InternalStartRecording()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDaVinciTracker::InternalStopRecording()
+PlusStatus vtkIntuitiveDaVinciTracker::InternalStopRecording()
 {
   // Stop the stream and disconnect from the da Vinci.
   this->mDaVinci->Stop();
@@ -121,7 +121,7 @@ PlusStatus vtkDaVinciTracker::InternalStopRecording()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDaVinciTracker::InternalUpdate()
+PlusStatus vtkIntuitiveDaVinciTracker::InternalUpdate()
 {
 
   /* We don't (shouldn't) come here, as all the data we
@@ -136,9 +136,9 @@ PlusStatus vtkDaVinciTracker::InternalUpdate()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDaVinciTracker::ReadConfiguration( vtkXMLDataElement* rootConfigElement )
+PlusStatus vtkIntuitiveDaVinciTracker::ReadConfiguration( vtkXMLDataElement* rootConfigElement )
 {
-  LOG_TRACE("vtkDaVinciTracker::ReadConfiguration");
+  LOG_TRACE("vtkIntuitiveDaVinciTracker::ReadConfiguration");
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   // Determine which manipulators we're interested in.
@@ -160,7 +160,7 @@ PlusStatus vtkDaVinciTracker::ReadConfiguration( vtkXMLDataElement* rootConfigEl
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDaVinciTracker::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
+PlusStatus vtkIntuitiveDaVinciTracker::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(trackerConfig, rootConfigElement);
 
@@ -168,12 +168,12 @@ PlusStatus vtkDaVinciTracker::WriteConfiguration(vtkXMLDataElement* rootConfigEl
 } 
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDaVinciTracker::InternalConnect()
+PlusStatus vtkIntuitiveDaVinciTracker::InternalConnect()
 { 
   // Before trying to get to the da Vinci, let's see what was read in our XML config file.
   // That is, what manipulators did we say we were interested in?
 
-  LOG_TRACE("vtkDaVinciTracker::InternalConnect");
+  LOG_TRACE("vtkIntuitiveDaVinciTracker::InternalConnect");
 
   LOG_DEBUG("Connecting to da Vinci");
 
@@ -227,7 +227,7 @@ PlusStatus vtkDaVinciTracker::InternalConnect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkDaVinciTracker::InternalDisconnect()
+PlusStatus vtkIntuitiveDaVinciTracker::InternalDisconnect()
 { 
   if (this->IsDaVinciTrackingInitialized)
   {
@@ -237,7 +237,7 @@ PlusStatus vtkDaVinciTracker::InternalDisconnect()
   return PLUS_SUCCESS;
 }
 
-void ISICALLBACK vtkDaVinciTracker::eventCB(ISI_MANIP_INDEX mid, ISI_EVENT_ID event_id, 
+void ISICALLBACK vtkIntuitiveDaVinciTracker::eventCB(ISI_MANIP_INDEX mid, ISI_EVENT_ID event_id, 
   ISI_INT args[ISI_NUM_EVENT_ARGS], void *userdata)
 {
   printf("(%.3f) mid: %s, \tevent: %s, args: (%d %d %d %d)\n", 
@@ -249,7 +249,7 @@ void ISICALLBACK vtkDaVinciTracker::eventCB(ISI_MANIP_INDEX mid, ISI_EVENT_ID ev
   // for now, let's not actually do anything when an event occurs.
 }
 
-void ISICALLBACK vtkDaVinciTracker::streamCB(void *userdata)
+void ISICALLBACK vtkIntuitiveDaVinciTracker::streamCB(void *userdata)
 {
   if (!this->IsDaVinciTrackingInitialized)
   {
@@ -329,7 +329,7 @@ void ISICALLBACK vtkDaVinciTracker::streamCB(void *userdata)
   }
 }
 
-int vtkDaVinciTracker::getManipIndexFromName(std::string& toolName)
+int vtkIntuitiveDaVinciTracker::getManipIndexFromName(std::string& toolName)
 {
   int manipIndex == -1;
 
@@ -391,7 +391,7 @@ int vtkDaVinciTracker::getManipIndexFromName(std::string& toolName)
   return manipIndex;
 }
 
-void vtkDaVinciTracker::setVtkMatrixFromISITransform(vtkMtarix4x4* vtkMatrix, ISI_TRANSFORM* isiMatrix)
+void vtkIntuitiveDaVinciTracker::setVtkMatrixFromISITransform(vtkMtarix4x4* vtkMatrix, ISI_TRANSFORM* isiMatrix)
 {
   transformMatrix->Identity();
 
