@@ -99,6 +99,10 @@ See License.txt for details.
 #include "vtkEpiphanVideoSource.h"
 #endif
 
+#ifdef PLUS_USE_DAVINCI
+#include "vtkDaVinciTracker.h"
+#endif
+
 //----------------------------------------------------------------------------
 
 vtkCxxRevisionMacro(vtkPlusDeviceFactory, "$Revision: 1.0$");
@@ -178,6 +182,10 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
 #ifdef PLUS_USE_EPIPHAN
   DeviceTypes["Epiphan"]=(PointerToDevice)&vtkEpiphanVideoSource::New; 
 #endif 
+
+#ifdef PLUS_USE_DAVINCI
+  DeviceTypes["daVinci"]=(PointerToDevice)&vtkDaVinciTracker::New;
+#endif
 
   // Virtual Devices
   DeviceTypes["VirtualMixer"]=(PointerToDevice)&vtkVirtualMixer::New;
