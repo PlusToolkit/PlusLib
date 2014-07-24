@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "daVinci.h"
 
 daVinci::daVinci()

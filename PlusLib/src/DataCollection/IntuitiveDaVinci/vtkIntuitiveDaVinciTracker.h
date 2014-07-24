@@ -1,5 +1,5 @@
-#ifndef __vtkDaVinciTracker_h
-#define __vtkDaVinciTracker_h
+#ifndef __vtkIntuitiveDaVinciTracker_h
+#define __vtkIntuitiveDaVinciTracker_h
 
 #include "time.h"
 #include "vtkDoubleArray.h"
@@ -22,23 +22,23 @@
 #include <limits.h>
 #include <math.h>
 
-#include "daVinci.h"
+#include "IntuitiveDaVinci.h"
 #include "isi_api.h"
 
-class daVinci;
+class IntuitiveDaVinci;
 
 /* 
 This class talks with the da Vinci Surgical System.
 
 */
 
-class VTK_EXPORT vtkDaVinciTracker : public vtkPlusDevice
+class VTK_EXPORT vtkIntuitiveDaVinciTracker : public vtkPlusDevice
 {
 public:
 
-  static vtkDaVinciTracker *New();
+  static vtkIntuitiveDaVinciTracker *New();
 
-  vtkTypeMacro(vtkDaVinciTracker,vtkPlusDevice);
+  vtkTypeMacro(vtkIntuitiveDaVinciTracker,vtkPlusDevice);
 
   /*! Hardware device SDK version. */
   virtual std::string GetSdkVersion(); 
@@ -74,8 +74,8 @@ public:
   daVinci* GetDaVinci() { return this->mDaVinci; };
 
 protected:
-  vtkDaVinciTracker();
-  ~vtkDaVinciTracker();
+  vtkIntuitiveDaVinciTracker();
+  ~vtkIntuitiveDaVinciTracker();
 
   /*!
   Start the tracking system. 
@@ -105,8 +105,8 @@ protected:
 #endif
 
 private:
-  vtkDaVinciTracker(const vtkDaVinciTracker&);
-  void operator=(const vtkDaVinciTracker&);  
+  vtkIntuitiveDaVinciTracker(const vtkIntuitiveDaVinciTracker&);
+  void operator=(const vtkIntuitiveDaVinciTracker&);  
 
   void ISICALLBACK streamCB(void *userdata);
   void ISICALLBACK eventCB(ISI_MANIP_INDEX mid, 
