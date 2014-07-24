@@ -14,6 +14,7 @@
 
 =========================================================================*/
 
+#include "PlusConfigure.h"
 
 #include <iostream>
 #include <math.h>
@@ -26,6 +27,7 @@
 #include "igtlServerSocket.h"
 #include "igtlTrackingDataMessage.h"
 #include "igtlMultiThreader.h"
+#include "vtksys/SystemTools.hxx"
 
 
 void* ThreadFunction(void* ptr);
@@ -40,13 +42,43 @@ typedef struct {
   int   stop;
 } ThreadData;
 
-
 int main(int argc, char* argv[])
 {
+	bool printHelp(false);	
+	int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int port = 18944;
 
+	vtksys::CommandLineArguments args;
+	args.Initialize(argc, argv);
+
+	args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
+	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
+	args.AddArgument("--port", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &port, "Server port number");	
+
+  if ( !args.Parse() )
+	{
+		std::cerr << "Problem parsing arguments" << std::endl;
+		std::cout << "Help: " << args.GetHelp() << std::endl;
+		exit(EXIT_FAILURE);
+	}
+  
+	if ( printHelp ) 
+	{
+		std::cout << args.GetHelp() << std::endl;
+		exit(EXIT_SUCCESS); 
+	}
+  
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  
   //------------------------------------------------------------
   // Parse Arguments
 
+  if (argc==2 && strcmp(argv[0],'--help'))
+  {
+		std::cout << getHelp(argc, argv) << std::endl;
+		exit(EXIT_SUCCESS);    
+  }
+  
   if (argc != 2) // check number of arguments
     {
     // If not correct, print usage
@@ -55,8 +87,7 @@ int main(int argc, char* argv[])
     exit(0);
     }
 
-  int    port     = atoi(argv[1]);
-
+  
   igtl::ServerSocket::Pointer serverSocket;
   serverSocket = igtl::ServerSocket::New();
   int r = serverSocket->CreateServer(port);

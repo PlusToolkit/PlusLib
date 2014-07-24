@@ -7,6 +7,7 @@ SET (LIBS
 #
 ADD_EXECUTABLE(SpatialSensorFusion SpatialSensorFusion.cxx)
 TARGET_LINK_LIBRARIES(SpatialSensorFusion ${LIBS} )
+GENERATE_HELP_DOC(SpatialSensorFusion)
 
 # Testing
 SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )

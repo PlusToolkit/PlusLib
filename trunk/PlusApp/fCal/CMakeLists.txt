@@ -93,7 +93,6 @@ IF (PLUS_USE_OpenIGTLink)
 ENDIF(PLUS_USE_OpenIGTLink)
 
 ADD_EXECUTABLE( fCal MACOSX_BUNDLE ${fCal_SRCS} ${fCal_UI_HDRS} ${fCal_QT_UI_Headers} ${fCal_QT_UI_Headers} ${fCal_QT_MOC_Files} ${fCal_QT_MOC_UI_Files} ${fCal_QT_RCC_Files})
-
 TARGET_LINK_LIBRARIES( fCal  ${VTK_LIBRARIES} ${fCal_LIBS} )
 
 # --------------------------------------------------------------------------
