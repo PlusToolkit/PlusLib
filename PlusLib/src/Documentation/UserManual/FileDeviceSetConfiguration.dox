@@ -12,7 +12,8 @@ The device set configuration file is an XML file with the following content:
     - \subpage CoordinateDefinitions
     - \subpage PhantomDefinition
   - \xmlElem Application elements
-    - \subpage ApplicationfCal
+    - \ref ApplicationfCalConfigSettings "Freehand calibration (fCal)
+    - \ref ApplicationPlusServerConfigSettings "Plus server"
   - \xmlElem Algorithm elements
     - \subpage AlgorithmProbeCalibration
     - \subpage AlgorithmPhantomLinearObjectRegistration

@@ -21,6 +21,9 @@
 - Ulterius interface (SonixVideo device): Requires the Ultrasonix Exam software to be running. Plus may run either on the Ultrasonix system or on a different computer (with network connection to the Ultrasonix system).
 - Porta interface (SonixPortaVideo device): Plus must run on the Ultrasonix system and the Exam software must not be running. Controlling of the motorized probe is supported. 3D/4D probe has to be connected to port-0
 
+Notes:
+- When the "Current exam has not been assigned to a patient. would you like to assign the exam to a patient record?" dialog box is displayed then the freeze button is unable to unfreeze the image acquisition on the ultrasound machine. Close the dialog box and press the freeze button to enable image acquisition.
+
 \section SonixVideoConfigSettings Device configuration settings
 
 Common attributes:

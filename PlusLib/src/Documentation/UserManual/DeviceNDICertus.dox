@@ -71,6 +71,8 @@ Reference DRB \c (Right-handed). The orientation of the DRB is the following: th
   - Y+: up (against gravity)
   - Z+: towards the camera
 
+Tracking with NDI Certus: To achieve stable tracking, the NDI Certus camera must be at least 2 meters away from the tracked DRBs. For more information, please see the following link: http://www.ndigital.com/medical/certus-techspecs-fullvolume.php.
+  
 No "beeps" when attempting to connect to a Certus tracker => Power off the OptoTrak Certus camera and communication unit for a few seconds and try to connect again
 If no Certus device is attached to the system then the application crashes (due to the TransputerDetermineSystemCfg call in NDI's toolkit, which determines the system configuration causes the application to crash)
 
