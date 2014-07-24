@@ -1,0 +1,88 @@
+/*!
+\page ApplicationPlusServer PlusServer application
+
+PlusServer is an application that runs Plus functions and sends acquired data to remote
+clients through <a hfref="http://openigtlink.org/">OpenIGTLink</a> connection. Typical example is to use Plus for acquiring tracked
+ultrasound image slices and send them for real-time visualization to 3D Slicer.
+
+The server supports continuous data acquisition and sending and also on-request starting/stopping
+of recording, volume reconstruction, updating of transforms, saving of the modified device set
+configuration file, etc. Requests are received through OpenIGTLink commands. See more details at \ref PlusServerCommands .
+
+\section ApplicationPlusServerUsage Usage
+
+The most convenient way to launch PlusServer is to install Plus Applications package and run
+the Plus Server from the start menu. Then select a configuration file (e.g.,
+"PlusServer: Replay fCal phantom scan ...") and click Connect.
+
+\image html ApplicationPlusServerLauncher.png
+
+\subsection ApplicationPlusServerUsageVisualization Visualization of acquired data
+
+To visualize the images and transforms broadcasted by the PlusServer use an application such as 3D Slicer:
+
+- Install and start 3D Slicer
+- Create a new connection in the OpenIGTLinkIF module: client, default port name (18944), and set it Active
+- Go to the Transforms module to see the transforms
+- Choose an input image in the slice viewer window to see the live image
+
+\subsection ApplicationPlusServerUsageCommandLine Command-line usage
+
+PlusServer can be also started from the command-line. The list of available command-line parameters are printed if the --help parameter is specified.
+
+Launch the server with the last used device set and connect:
+
+    PlusServerLauncher --connect
+
+Launch the server with a specified device set and connect:
+
+    PlusServerLauncher --connect --config-file=PlusDeviceSet_Server_Sim_NwirePhantom.xml
+
+Launch the command-line-only version of PlusServer (no graphical user interface):
+
+    PlusServer --config-file=PlusServer.xml
+
+\section ApplicationPlusServerConfigSettings Configuration settings
+
+- \xmlElem \b PlusOpenIGTLinkServer
+  - \xmlAtt MaxNumberOfIgtlMessagesToSend
+  - \xmlAtt MaxTimeSpentWithProcessingMs
+  - \xmlAtt ListeningPort
+  - \xmlAtt MissingInputGracePeriodSec
+  - \xmlAtt SendInvalidTransform
+  - \xmlAtt OutputChannelId
+  - \xmlElem \b DefaultClientInfo
+    - \xmlElem \b MessageTypes
+      - \xmlElem \b Message
+        - \xmlAtt Type
+          - \c IMAGE: standard OpenIGTLink message type, stores 3D image data (can be a single slice, includes position and orientation)
+          - \c TRANSFORM:  standard OpenIGTLink message type, stores 3D pose (position and orientation) data
+          - \c POSITION:  standard OpenIGTLink message type, stores 3D position data
+          - \c TRACKEDFRAME: Plus tracked ultrasound frame, stores all frame fields (tool transforms, statuses, etc.)
+          - \c USMESSAGE: <a href="https://musiic.lcsr.jhu.edu/Main_Page">MUSiiC</a> tracked ultrasound frame, stores additional imaging information, such as transmit and sampling frequency, line density, steering angle
+    - \xmlElem \b TransformNames
+      - \xmlElem \b Transform
+          - \xmlAtt Name
+
+This is an example element that needs to be added to the PLUS configuration xml file to use PlusServer:
+
+    <PlusOpenIGTLinkServer 
+      MaxNumberOfIgtlMessagesToSend="10" 
+      MaxTimeSpentWithProcessingMs="50" 
+      ListeningPort="18944" 
+      MissingInputGracePeriodSec="5.0"
+      SendInvalidTransform="false" 
+      OutputChannelId="SomeValidChannel" > 
+      <DefaultClientInfo> 
+        <MessageTypes> 
+          <Message Type="IMAGE" />
+          <Message Type="TRANSFORM" />
+        </MessageTypes>
+        <TransformNames> 
+          <Transform Name="StylusTipToReference" /> 
+          <Transform Name="ProbeToReference" /> 
+        </TransformNames>
+      </DefaultClientInfo>
+    </PlusOpenIGTLinkServer>
+
+*/

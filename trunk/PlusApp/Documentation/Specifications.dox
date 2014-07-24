@@ -12,5 +12,6 @@ Other specifications
 - \subpage TransformationMatrix
 - \subpage UltrasoundImageOrientation
 - \subpage CoordinateSystemDefinitions
+- \subpage PlusServerCommands
 
 */
