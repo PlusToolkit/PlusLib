@@ -27,7 +27,8 @@
 #include "igtlServerSocket.h"
 #include "igtlTrackingDataMessage.h"
 #include "igtlMultiThreader.h"
-#include "vtksys/SystemTools.hxx"
+#include "vtksys/CommandLineArguments.hxx"
+//#include "vtksys/SystemTools.hxx"
 
 
 void* ThreadFunction(void* ptr);
@@ -69,24 +70,6 @@ int main(int argc, char* argv[])
 	}
   
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
-  
-  //------------------------------------------------------------
-  // Parse Arguments
-
-  if (argc==2 && strcmp(argv[0],'--help'))
-  {
-		std::cout << getHelp(argc, argv) << std::endl;
-		exit(EXIT_SUCCESS);    
-  }
-  
-  if (argc != 2) // check number of arguments
-    {
-    // If not correct, print usage
-    std::cerr << "Usage: " << argv[0] << " <port>"    << std::endl;
-    std::cerr << "    <port>     : Port # (18944 in Slicer default)"   << std::endl;
-    exit(0);
-    }
-
   
   igtl::ServerSocket::Pointer serverSocket;
   serverSocket = igtl::ServerSocket::New();
