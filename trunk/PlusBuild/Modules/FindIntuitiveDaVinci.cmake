@@ -27,7 +27,8 @@ FIND_LIBRARY(IntuitiveDaVinci_LIBRARY
 INCLUDE(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(IntuitiveDaVinci DEFAULT_MSG  IntuitiveDaVinci_LIBRARY  IntuitiveDaVinci_INCLUDE_DIR  )
 
-IF(ISIAPI_FOUND)
+SET(IntuitiveDaVinci_FOUND ${INTUITIVEDAVINCI_FOUND}) 
+IF(IntuitiveDaVinci_FOUND)
   SET( IntuitiveDaVinci_LIBRARY ${IntuitiveDaVinci_LIBRARY} )
   SET( IntuitiveDaVinci_INCLUDE_DIR ${IntuitiveDaVinci_INCLUDE_DIR} )
 ENDIF()
