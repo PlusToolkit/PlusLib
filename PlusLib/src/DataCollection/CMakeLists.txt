@@ -639,12 +639,12 @@ IF(PLUS_USE_IntuitiveDaVinci)
     )
 
   SET(DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
-    ${DAVINCI_INCLUDE_DIR}
+    ${IntuitiveDaVinci_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/daVinci
     CACHE INTERNAL "" FORCE)
       
   SET(DataCollection_LIBS ${DataCollection_LIBS}
-    ${DAVINCI_LIBRARY}
+    ${IntuitiveDaVinci_LIBRARY}
     )
 
 ENDIF(PLUS_USE_IntuitiveDaVinci)
