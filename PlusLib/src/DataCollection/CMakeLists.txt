@@ -645,6 +645,8 @@ IF(PLUS_USE_IntuitiveDaVinci)
       
   SET(DataCollection_LIBS ${DataCollection_LIBS}
     ${IntuitiveDaVinci_LIBRARY}
+    ws2_32
+    iphlpapi
     )
 
 ENDIF(PLUS_USE_IntuitiveDaVinci)
