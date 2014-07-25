@@ -45,7 +45,7 @@ typedef struct {
 
 int main(int argc, char* argv[])
 {
-	bool printHelp(false);	
+	bool printHelp(false);
 	int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
   int port = 18944;
 

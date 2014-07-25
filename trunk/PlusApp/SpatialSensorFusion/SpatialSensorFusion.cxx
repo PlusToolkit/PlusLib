@@ -39,6 +39,7 @@ void Update(AhrsAlgo* ahrsAlgo, TrackedFrame *frame, const std::string &trackerR
 //-----------------------------------------------------------------------------
 int main(int argc, char **argv)
 {
+  bool printHelp(false);
   std::string inputImgFile;
   std::string outputImgFile;
   std::string trackerReferenceFrame="Tracker";
@@ -54,6 +55,7 @@ int main(int argc, char **argv)
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
   args.AddArgument("--input-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImgFile, "File name of input image");
   args.AddArgument("--output-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputImgFile, "File name of the image with the transform added");
   args.AddArgument("--tracker-reference-frame", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &trackerReferenceFrame, "Name of the tracker's reference frame (by default: Tracker)");
@@ -70,6 +72,12 @@ int main(int argc, char **argv)
     std::cerr << "Problem parsing arguments" << std::endl;
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
+  }
+
+  if ( printHelp ) 
+  {
+    std::cout << args.GetHelp() << std::endl;
+    exit(EXIT_SUCCESS); 
   }
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);

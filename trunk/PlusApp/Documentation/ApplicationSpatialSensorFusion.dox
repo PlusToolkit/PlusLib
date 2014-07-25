@@ -1,0 +1,16 @@
+/*!
+\page ApplicationSpatialSensorFusion Spatial sensor fusion (SpatialSensorFusion)
+
+This is a tool to post-process accelerometer-gyroscope-magnetometer data to implement and test sensor fusion algorithms.
+
+\section ApplicationSpatialSensorFusionExamples Examples
+
+~~~
+SpatialSensorFusion --ahrs-algo=MADGWICK_IMU --ahrs-algo-gain 1.5 --initial-gain 1 --initial-repeated-frame-number=1000 --input-seq-file=C:/devel/_Nightly/PlusBuild-bin-vs9/PlusLib/data/TestImages/SpatialSensorFusionTestInput.mha" "--output-seq-file=C:/devel/_Nightly/PlusBuild-bin-vs9/PlusLib/data/TestImages/SpatialSensorFusionTestOutput.mha --baseline-seq-file=SpatialSensorFusionTestBaseline.mha --west-axis-index=1
+~~~
+
+\section ApplicationSpatialSensorFusionHelp Command-line parameters reference
+
+\verbinclude "SpatialSensorFusionHelp.txt"
+
+*/

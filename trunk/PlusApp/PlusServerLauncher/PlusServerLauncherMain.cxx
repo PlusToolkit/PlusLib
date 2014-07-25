@@ -22,6 +22,7 @@ int main(int argc, char *argv[])
   signal(SIGPIPE, SIG_IGN);
 #endif
 
+  bool printHelp(false);
   std::string deviceSetConfigurationDirectoryPath;
   std::string inputConfigFileName;
   bool autoConnect=false;
@@ -36,6 +37,9 @@ int main(int argc, char *argv[])
 	  vtksys::CommandLineArguments cmdargs;
 	  cmdargs.Initialize(argc, argv);
 
+	  bool printHelp(false);
+
+    cmdargs.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
 	  cmdargs.AddArgument("--device-set-configuration-dir", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceSetConfigurationDirectoryPath, "Device set configuration directory path");
 	  cmdargs.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
     cmdargs.AddBooleanArgument("--connect", &autoConnect, "Automatically connect after the application is started");
@@ -50,6 +54,12 @@ int main(int argc, char *argv[])
 		  std::cout << "Help: " << cmdargs.GetHelp() << std::endl;
 		  exit(EXIT_FAILURE);
 	  }
+
+    if ( printHelp ) 
+    {
+      std::cout << cmdargs.GetHelp() << std::endl;
+      exit(EXIT_SUCCESS); 
+    }
 
     if (!deviceSetConfigurationDirectoryPath.empty())
     {
