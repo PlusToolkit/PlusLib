@@ -1,3 +1,6 @@
+#ifndef _INTUITIVE_DAVINCI_H_
+#define _INTUITIVE_DAVINCI_H_
+
 #ifdef WIN32
 #define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
@@ -10,76 +13,88 @@
 #include <ctype.h>
 #include <assert.h>
 
+#include <vector>
+
+#include <isi_api_types.h>
+#include <isi_api.h>
+
 #define ISI_API_RATE        60 // Hz
 
-class daVinci
+class IntuitiveDaVinci
 {
 
 public: 
-  // RS: Constructor
-  daVinci();
+	// RS: Constructor
+	IntuitiveDaVinci();
 
-  // RS: Destructor
-  ~daVinci();
+	// RS: Destructor
+	~IntuitiveDaVinci();
 
-  // RS: Disconnect from the da Vinci
-  void Stop();
+	// RS: Disconnect from the da Vinci
+	void Stop();
 
-  // RS: Make a request to connect to the da Vinci
-  ISI_STATUS Connect();
+	// RS: Make a request to connect to the da Vinci
+	ISI_STATUS connect();
 
-  // RS: Subscribe to all events and fields, and set up the given callbacks.
-  //     If the stream fails, disconnect from the da Vinci.
-  ISI_STATUS Subscribe(ISI_EVENT_CALLBACK eCB, ISI_STREAM_CALLBACK sCB);
+	// RS: Subscribe to all events and fields, and set up the given callbacks.
+	//     If the stream fails, disconnect from the da Vinci.
+	ISI_STATUS subscribe(ISI_EVENT_CALLBACK eCB, ISI_STREAM_CALLBACK sCB, void* eventUserData, void* streamUserData);
 
-  // RS: Request all manipulators indices and names. Prompt the user for 
-  //     a selection, and if its valid, set the manipIndex to the prompted value. 
-  void get_manip_id(ISI_MANIP_INDEX *manipIndex);
+	// RS: Subscribe the given stream callback
+	ISI_STATUS setStreamCallback(ISI_STREAM_CALLBACK sCB, void* userData);
 
-  // RS: Added. Return a vector of the manipulator names.
-  std::vector<std::string> get_manip_names_list();
+	// RS: Subscribe the given event callback
+	ISI_STATUS setEventCallback(ISI_EVENT_CALLBACK eCB, void* userData);
 
-  // RS: From the previously set manipIndex, get the TIP TRANSFORM.
-  void daVinci::get_position(ISI_TRANSFORM* T);
+	// RS: Request all manipulators indices and names. Prompt the user for 
+	//	   a selection, and if its valid, set the manipIndex to the prompted value. 
+	void getManipulatorId(ISI_MANIP_INDEX *manipIndex);
 
-  // RS: Print out the 6DOF from the given transform.
-  void print_transform(const ISI_TRANSFORM *T);
+	// RS: Added. Return a vector of the manipulator names.
+	std::vector<std::string> getManipulatorNames();
 
-  // RS: Print out help.
-  void print_help();
+	// RS: From the previously set manipIndex, get the TIP TRANSFORM.
+	void getPosition(ISI_TRANSFORM* T);
 
-  // RS: Added. Accessor for library version.
-  std::string get_library_version();
+	// RS: Print out the 6DOF from the given transform.
+	void printTransform(const ISI_TRANSFORM *T);
 
-  // RS: Added. Accessor for connected state.
-  bool IsConnected();
-  
+	// RS: Print out help.
+	void printHelp();
+
+	// RS: Added. Accessor for library version.
+	std::string getLibraryVersion();
+
+	// RS: Added. Accessor for connected state.
+	bool isConnected();
+
+	// RS: Added. Mutator for connection arguments.
+	void setHostInfo(const std::string ip, const unsigned int port, const unsigned int pass);
+	
 private:
-  
-  // RS: Moved. Connect with hardcoded arguments for our custom config. 
-  ISI_STATUS connect_with_args();
+	
+	// RS: Moved. Connect with hardcoded arguments for our custom config. 
+	ISI_STATUS connectWithArgs();
 
-  void transform_copy(ISI_TRANSFORM* in, ISI_TRANSFORM* out);
+	void copyTransform(ISI_TRANSFORM* in, ISI_TRANSFORM* out);
 
-  void print_stream_state(ISI_MANIP_INDEX manipIndex);
+	void printStreamState(ISI_MANIP_INDEX manipIndex);
 
-  void save_stream_state(ISI_MANIP_INDEX manipIndex);
+	void saveStreamState(ISI_MANIP_INDEX manipIndex);
 
-  void print_version();
+	void printVersion();
 
-  //ISI_EVENT_CALLBACK eventCB;
-  //ISI_STREAM_CALLBACK streamCB;
+	ISI_BOOLEAN mPrintStream;
+	ISI_STATUS mStatus;
+	ISI_BOOLEAN mQuit;
+	ISI_MANIP_INDEX mManipIndex;
 
-  ISI_BOOLEAN g_print_stream;
-  ISI_STATUS status;
-  ISI_BOOLEAN quit;
-  ISI_MANIP_INDEX manipIndex;
+	// RS: Moved this to be private.
+	bool mConnected;
 
-  // RS: Moved this to be private.
-  bool connected;
+	ISI_CHAR* mIpAddr;
+	ISI_UINT mPort;
+	ISI_CHAR* mPassword;
+	};
 
-  const ISI_CHAR* mIpAddr = "10.0.0.5";
-  const ISI_UINT mPort = 5002;
-  const ISI_CHAR* mPassword = "";
-};
-
+#endif
