@@ -1,0 +1,25 @@
+/*!
+\page ApplicationAccurateTimerTest Test timing accuracy (AccurateTimerTest)
+
+Tests the accuracy of the high-precision timer that is used by Plus.
+
+\section ApplicationAccurateTimerTestExamples Examples
+
+Example output:
+~~~
+Testing the accurate timer: numberOfThreads=2, averageIntendedDelaySec=0.003, maxDelayErrorSec=0.01
+Thread started: 0
+Thread started: 1
+Testing delay timing accuracy... (test duration time = 10sec)
+Testing completed, stop threads
+Thread completed: 0
+Thread completed: 1
+Delay error statistics: mean=-0.391604ms, stdev=0.42726ms, number of samples = 7660
+Number of completed threads: 2
+~~~
+
+\section ApplicationAccurateTimerTestHelp Command-line parameters reference
+
+\verbinclude "AccurateTimerTestHelp.txt"
+
+*/
