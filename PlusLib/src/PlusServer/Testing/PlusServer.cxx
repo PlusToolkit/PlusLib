@@ -99,17 +99,15 @@ int main( int argc, char** argv )
   std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSource> > testClientList; 
   if ( !testingConfigFileName.empty() )
   {
-    std::string configFilePath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(testingConfigFileName);
-    // Read main configuration file
-    vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
-      vtkXMLUtilities::ReadElementFromFile(configFilePath.c_str()));
-    if (configRootElement == NULL)
+    vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
+    if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, testingConfigFileName.c_str())==PLUS_FAIL)
     {  
-      LOG_ERROR("Unable to read tes configuration from file " << configFilePath.c_str()); 
+      LOG_ERROR("Unable to read test configuration from file " << testingConfigFileName.c_str()); 
       DisconnectClients( testClientList );
       server->Stop(); 
-      exit(EXIT_FAILURE);
+      exit(EXIT_FAILURE);      
     }
+
     // Connect clients to server 
     if ( ConnectClients( server->GetListeningPort(), testClientList, numOfTestClientsToConnect, configRootElement ) != PLUS_SUCCESS )
     {

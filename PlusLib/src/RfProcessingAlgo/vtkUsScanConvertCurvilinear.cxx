@@ -13,7 +13,6 @@ non-commercial terms in your toolbox and distribute it."
 */
 
 #include "PlusConfigure.h"
-#include "PlusXmlUtils.h"
 #include "PlusCommon.h"
 
 #include "vtkUsScanConvertCurvilinear.h"

@@ -7,7 +7,6 @@
 #include "PlusConfigure.h"
 #include "vtkDirectory.h"
 #include "vtkMatrix4x4.h"
-#include "vtkPlusConfig.h"
 #include "vtkRecursiveCriticalSection.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/SystemTools.hxx" 

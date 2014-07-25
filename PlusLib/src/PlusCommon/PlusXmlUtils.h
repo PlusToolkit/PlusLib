@@ -10,6 +10,7 @@
 #include "vtkOutputWindow.h"
 #include "vtkPlusLogger.h"
 #include "itkImageIOBase.h"
+#include "vtkXMLUtilities.h"
 
 /*!
   \class PlusXmlUtils
@@ -20,6 +21,42 @@
 class PlusXmlUtils
 {
 public:
+
+  /*! Attempt to read an XML file file from the current directory or the device set configuration file directory */
+  static PlusStatus ReadDeviceSetConfigurationFromFile(vtkXMLDataElement* config, const char* filename)
+  {
+    if (config==NULL)
+    {
+      LOG_ERROR("Reading device set configuration file failed: invalid config input");
+      return PLUS_FAIL;
+    }
+    if (filename==NULL)
+    {
+      LOG_ERROR("Reading device set configuration file failed: filename is not specified");
+      return PLUS_FAIL;
+    }
+
+    std::string filePath=filename;
+    if (!vtksys::SystemTools::FileExists(filePath.c_str(), true))
+    {
+      filePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(filename);
+      if (!vtksys::SystemTools::FileExists(filePath.c_str(), true))
+      {
+        LOG_ERROR("Reading device set configuration file failed: "<<filename<<" does not exist in the current directory or in "<<vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory());
+        return PLUS_FAIL;      
+      }
+    }
+
+    vtkSmartPointer<vtkXMLDataElement> rootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(filePath.c_str()));
+    if (rootElement == NULL)
+    {
+      LOG_ERROR("Reading device set configuration file failed: syntax error in "<<filename);
+      return PLUS_FAIL;
+    }
+    config->DeepCopy(rootElement);
+    return PLUS_SUCCESS;
+  }
+
   /*! Get a nested XML element with the specified name. If the element does not exist then create one. */
   static vtkXMLDataElement* GetNestedElementWithName(vtkXMLDataElement* config, const char* elementName)
   {

@@ -982,19 +982,26 @@ bool vtkPlusOpenIGTLinkServer::HasGracePeriodExpired()
 //------------------------------------------------------------------------------
 PlusStatus vtkPlusOpenIGTLinkServer::Start(const std::string &inputConfigFileName)
 {
-  std::string configFilePath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(inputConfigFileName);
-
   // Read main configuration file
-  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
-    vtkXMLUtilities::ReadElementFromFile(configFilePath.c_str()));
+  std::string configFilePath=inputConfigFileName;
+  if (!vtksys::SystemTools::FileExists(configFilePath.c_str(), true))
+  {
+    configFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(inputConfigFileName);
+    if (!vtksys::SystemTools::FileExists(configFilePath.c_str(), true))
+    {
+      LOG_ERROR("Reading device set configuration file failed: "<<inputConfigFileName<<" does not exist in the current directory or in "<<vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory());
+      return PLUS_FAIL;      
+    }
+  }
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(configFilePath.c_str()));
   if (configRootElement == NULL)
-  {  
-    LOG_ERROR("Unable to read configuration from file " << configFilePath.c_str()); 
+  {
+    LOG_ERROR("Reading device set configuration file failed: syntax error in "<<inputConfigFileName);
     return PLUS_FAIL;
   }
 
   // Print configuration file contents for debugging purposes
-  LOG_DEBUG("Device set configuration is read from file: " << configFilePath);
+  LOG_DEBUG("Device set configuration is read from file: " << inputConfigFileName);
   std::ostringstream xmlFileContents; 
   PlusCommon::PrintXML(xmlFileContents, vtkIndent(1), configRootElement);
   LOG_DEBUG("Device set configuration file contents: " << std::endl << xmlFileContents.str());

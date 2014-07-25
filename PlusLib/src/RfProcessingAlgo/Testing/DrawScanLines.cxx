@@ -175,14 +175,11 @@ int main(int argc, char** argv)
   }
 
   // For reading the configuration file
-  vtkSmartPointer<vtkXMLDataElement> configRootElement =
-    vtkSmartPointer<vtkXMLDataElement>::Take(
-    vtkXMLUtilities::ReadElementFromFile(ultrasoundConfigFile.c_str()));
-
-  if (configRootElement == NULL)
-  {
-    std::cerr << "Unable to read root element from config file" << std::endl;
-    exit(EXIT_FAILURE);
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
+  if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, ultrasoundConfigFile.c_str())==PLUS_FAIL)
+  {  
+    LOG_ERROR("Unable to read configuration from file " << ultrasoundConfigFile.c_str()); 
+    return EXIT_FAILURE;
   }
 
   // Get the scan conversion XML Element

@@ -7,7 +7,6 @@
 #include "PlusConfigure.h"
 
 #include "PlusMath.h"
-#include "PlusXmlUtils.h"
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
 #include "vtkBrachyStepperPhantomRegistrationAlgo.h"

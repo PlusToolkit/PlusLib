@@ -5,7 +5,6 @@
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "PlusXmlUtils.h"
 
 #include "FidSegmentation.h"
 #include "vtkMath.h"

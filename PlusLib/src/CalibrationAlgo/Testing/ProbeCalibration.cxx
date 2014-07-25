@@ -11,7 +11,6 @@ compares the results to a baseline
 */ 
 
 #include "PlusConfigure.h"
-#include "vtkPlusConfig.h"
 #include "PlusMath.h"
 #include "vtkProbeCalibrationAlgo.h"
 #include "vtkTransformRepository.h"
@@ -98,8 +97,8 @@ int main (int argc, char* argv[])
   LOG_INFO("Read configuration file..."); 
 
   // Read configuration
-  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
-  if (configRootElement == NULL)
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
+  if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, inputConfigFileName.c_str())==PLUS_FAIL)
   {  
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
     return EXIT_FAILURE;
