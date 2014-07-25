@@ -9,7 +9,6 @@
 #include "vtkLongArray.h"
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
-#include "vtkMicronTracker.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusDevice.h"
 #include "vtkTimerLog.h"
@@ -22,15 +21,20 @@
 #include <limits.h>
 #include <math.h>
 
-#include "IntuitiveDaVinci.h"
+#include "daVinci.h"
 #include "isi_api.h"
 
 class IntuitiveDaVinci;
-
+class vtkIntuitiveDaVinciTracker;
 /* 
 This class talks with the da Vinci Surgical System.
 
 */
+
+namespace vtkIntuitiveDaVinciTrackerUtilities{
+ void ISICALLBACK streamCB(void *userdata);
+ void ISICALLBACK eventCB(ISI_MANIP_INDEX mid, ISI_EVENT_ID event_id, ISI_INT args[ISI_NUM_EVENT_ARGS],  void *userdata);
+};
 
 class VTK_EXPORT vtkIntuitiveDaVinciTracker : public vtkPlusDevice
 {
@@ -71,7 +75,7 @@ public:
   /*! Disconnect from the tracker hardware */
   PlusStatus InternalDisconnect();
 
-  daVinci* GetDaVinci() { return this->mDaVinci; };
+  IntuitiveDaVinci* GetDaVinci() { return this->mDaVinci; };
 
 protected:
   vtkIntuitiveDaVinciTracker();
@@ -89,7 +93,7 @@ protected:
   //PlusStatus RefreshMarkerTemplates();
 
   /*! Pointer to the MicronTrackerInterface class instance */
-  daVinci* mDaVinci;
+  IntuitiveDaVinci* mDaVinci;
 
   /*! Non-zero if the tracker has been initialized */
   bool IsDaVinciTrackingInitialized;
@@ -108,18 +112,18 @@ private:
   vtkIntuitiveDaVinciTracker(const vtkIntuitiveDaVinciTracker&);
   void operator=(const vtkIntuitiveDaVinciTracker&);  
 
-  void ISICALLBACK streamCB(void *userdata);
-  void ISICALLBACK eventCB(ISI_MANIP_INDEX mid, 
-    ISI_EVENT_ID event_id, 
-    ISI_INT args[ISI_NUM_EVENT_ARGS], 
-    void *userdata);
+  void StreamCallback(void);
 
-  int getManipIndexFromName(std::string& toolName);
+  friend void vtkIntuitiveDaVinciTrackerUtilities::streamCB(void* userData);
+  friend void vtkIntuitiveDaVinciTrackerUtilities::eventCB(ISI_MANIP_INDEX mid, ISI_EVENT_ID event_id, ISI_INT args[ISI_NUM_EVENT_ARGS],  void *userdata);
 
-  void setVtkMatrixFromISITransform(vtkMtarix4x4* vtkMatrix, ISI_TRANSFORM* isiMatrix);
+  ISI_MANIP_INDEX getManipIndexFromName(std::string& toolName);
+  void setVtkMatrixFromISITransform(vtkMatrix4x4* vtkMatrix, ISI_TRANSFORM* isiMatrix);
 
-  private const int CONNECT_RETRY_DELAY_SEC = 1.0;
-  private const int MAX_ATTEMPTS = 5;
+  static const int CONNECT_RETRY_DELAY_SEC = 1.0;
+  static const int MAX_ATTEMPTS = 5;
 };
+
+
 
 #endif
