@@ -171,7 +171,7 @@ int main(int argc, char **argv)
 {  
   bool printHelp=false;
   std::string inputTransformsFile;
-  std::string inputConfigFile;
+  std::string inputConfigFileName;
   std::string outputUsImageFile;
   std::string intersectionFile;
   bool showResults=false;
@@ -183,7 +183,7 @@ int main(int argc, char **argv)
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
-  args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFile, "Config file containing the image to probe and phantom to reference transformations");
+  args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Config file containing the image to probe and phantom to reference transformations");
   args.AddArgument("--transforms-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformsFile, "Input file containing coordinate frames and the associated model to image transformations");
   args.AddArgument("--output-us-img-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputUsImageFile, "File name of the generated output ultrasound image");
   args.AddArgument("--output-slice-model-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &intersectionFile, "Name of STL output file containing the model of all the frames (optional)");
@@ -205,7 +205,7 @@ int main(int argc, char **argv)
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-  if (inputConfigFile.empty())
+  if (inputConfigFileName.empty())
   {
     std::cerr << "--config-file required " << std::endl;
     exit(EXIT_FAILURE);
@@ -232,12 +232,17 @@ int main(int argc, char **argv)
 
   // Read config file
   LOG_DEBUG("Reading config file...")
-    vtkSmartPointer<vtkXMLDataElement> configRead = vtkSmartPointer<vtkXMLDataElement>::Take(::vtkXMLUtilities::ReadElementFromFile(inputConfigFile.c_str())); 
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
+  if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, inputConfigFileName.c_str())==PLUS_FAIL)
+  {  
+    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
+    return EXIT_FAILURE;
+  }
   LOG_DEBUG("Reading config file finished.");
 
   // Create transform repository
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
-  if ( transformRepository->ReadConfiguration(configRead) != PLUS_SUCCESS )
+  if ( transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read transforms for transform repository!"); 
     exit(EXIT_FAILURE); 
@@ -245,7 +250,7 @@ int main(int argc, char **argv)
 
   // Create simulator
   vtkSmartPointer<vtkUsSimulatorAlgo> usSimulator = vtkSmartPointer<vtkUsSimulatorAlgo>::New(); 
-  if ( usSimulator->ReadConfiguration(configRead) != PLUS_SUCCESS )
+  if ( usSimulator->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read US simulator configuration!"); 
     exit(EXIT_FAILURE); 

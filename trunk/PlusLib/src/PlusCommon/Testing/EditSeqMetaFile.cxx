@@ -762,12 +762,12 @@ PlusStatus AddTransform( vtkTrackedFrameList* trackedFrameList, std::string tran
   }
 
   // Read configuration
-  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(deviceSetConfigurationFileName.c_str()));
-  if (configRootElement == NULL)
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
+  if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, deviceSetConfigurationFileName.c_str())==PLUS_FAIL)
   {  
-    LOG_ERROR("Unable to read device set configuration from file " << deviceSetConfigurationFileName); 
+    LOG_ERROR("Unable to read configuration from file " << deviceSetConfigurationFileName.c_str()); 
     return PLUS_FAIL;
-  }
+  }  
 
   // Create transform name
   PlusTransformName transformName;

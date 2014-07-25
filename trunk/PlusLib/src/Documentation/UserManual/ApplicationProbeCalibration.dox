@@ -1,0 +1,16 @@
+/*!
+\page ApplicationProbeCalibration Ultrasound probe calibration (ProbeCalibration)
+
+Computes transform between the ultrasound image (Image coordinate system) and a tracker marker attached
+on the ultrasound probe at a fixed but unknown position (Probe coordinate system).
+
+\section ApplicationProbeCalibrationExamples Examples
+~~~
+ProbeCalibration --config-file=PlusDeviceSet_fCal_Sim_SpatialCalibration_2.0.xml --calibration-seq-file=fCal_Test_Calibration_3NWires_fCal2.0.mha
+~~~
+
+\section ApplicationProbeCalibrationHelp Command-line parameters reference
+
+\verbinclude "ProbeCalibrationHelp.txt"
+
+*/

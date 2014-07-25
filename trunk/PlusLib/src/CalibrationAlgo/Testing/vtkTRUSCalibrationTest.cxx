@@ -26,7 +26,6 @@
 #include "vtkMatrix4x4.h"
 #include "vtkTransformRepository.h"
 #include "vtkMath.h"
-#include "vtkPlusConfig.h"
 
 ///////////////////////////////////////////////////////////////////
 const double ERROR_THRESHOLD = 0.05; // error threshold is 5% 
@@ -72,13 +71,12 @@ int main (int argc, char* argv[])
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   // Read configuration
-  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
-    vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
-  if (configRootElement == NULL)
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
+  if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, inputConfigFileName.c_str())==PLUS_FAIL)
   {  
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
-    exit(EXIT_FAILURE);
-  }
+    return EXIT_FAILURE;
+  }  
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
 
   FidPatternRecognition patternRecognition;

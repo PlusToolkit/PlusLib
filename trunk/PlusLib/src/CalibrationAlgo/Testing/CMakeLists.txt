@@ -63,14 +63,15 @@ ADD_TEST(vtkPhantomRegistrationTest
 SET_TESTS_PROPERTIES( vtkPhantomRegistrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #--------------------------------------------------------------------------------------------
-ADD_EXECUTABLE(FreehandCalibration FreehandCalibration.cxx)
-TARGET_LINK_LIBRARIES(FreehandCalibration itkvnl itkvnl_algo ${VTK_LIBRARIES} vtkCalibrationAlgo vtkDataCollection )
+ADD_EXECUTABLE(ProbeCalibration ProbeCalibration.cxx)
+TARGET_LINK_LIBRARIES(ProbeCalibration itkvnl itkvnl_algo ${VTK_LIBRARIES} vtkCalibrationAlgo vtkDataCollection )
+GENERATE_HELP_DOC(ProbeCalibration)
 
 ADD_EXECUTABLE(vtkFreehandCalibrationStatisticalEvaluation vtkFreehandCalibrationStatisticalEvaluation.cxx)
 TARGET_LINK_LIBRARIES(vtkFreehandCalibrationStatisticalEvaluation itkvnl itkvnl_algo ${VTK_LIBRARIES} vtkCalibrationAlgo vtkDataCollection )
 
 ADD_TEST(vtkFreehandCalibration2NWiresTest
-  ${EXECUTABLE_OUTPUT_PATH}/FreehandCalibration
+  ${EXECUTABLE_OUTPUT_PATH}/ProbeCalibration
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_fCal_CalibrationOnly_SonixTouch_Ulterius.xml
   --calibration-seq-file=${TestDataDir}/fCal_Test_Calibration.mha 
   --validation-seq-file=${TestDataDir}/fCal_Test_Validation.mha 
@@ -79,7 +80,7 @@ ADD_TEST(vtkFreehandCalibration2NWiresTest
 SET_TESTS_PROPERTIES( vtkFreehandCalibration2NWiresTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 ADD_TEST(vtkFreehandCalibration3NWiresTest
-  ${EXECUTABLE_OUTPUT_PATH}/FreehandCalibration
+  ${EXECUTABLE_OUTPUT_PATH}/ProbeCalibration
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_fCal_Sim_SpatialCalibration_1.2.xml
   --calibration-seq-file=${TestDataDir}/fCal_Test_Calibration_3NWires.mha 
   --validation-seq-file=${TestDataDir}/fCal_Test_Validation_3NWires.mha 
@@ -88,7 +89,7 @@ ADD_TEST(vtkFreehandCalibration3NWiresTest
 SET_TESTS_PROPERTIES( vtkFreehandCalibration3NWiresTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 ADD_TEST(vtkFreehandCalibration3NWiresfCal20Test
-  ${EXECUTABLE_OUTPUT_PATH}/FreehandCalibration
+  ${EXECUTABLE_OUTPUT_PATH}/ProbeCalibration
   --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_Sim_SpatialCalibration_2.0.xml
   --calibration-seq-file=${TestDataDir}/fCal_Test_Calibration_3NWires_fCal2.0.mha 
   --validation-seq-file=${TestDataDir}/fCal_Test_Validation_3NWires_fCal2.0.mha 
@@ -97,7 +98,7 @@ ADD_TEST(vtkFreehandCalibration3NWiresfCal20Test
 SET_TESTS_PROPERTIES( vtkFreehandCalibration3NWiresTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 ADD_TEST(vtkFreehandCalibrationIPEIOptimizationMethodTest
-  ${EXECUTABLE_OUTPUT_PATH}/FreehandCalibration
+  ${EXECUTABLE_OUTPUT_PATH}/ProbeCalibration
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IPEI_OptimizationMethod.xml
   --calibration-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_1.mha 
   --validation-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_2.mha 
@@ -106,7 +107,7 @@ ADD_TEST(vtkFreehandCalibrationIPEIOptimizationMethodTest
 SET_TESTS_PROPERTIES( vtkFreehandCalibrationIPEIOptimizationMethodTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 ADD_TEST(vtkFreehandCalibrationIPEAOptimizationMethodTest
-  ${EXECUTABLE_OUTPUT_PATH}/FreehandCalibration
+  ${EXECUTABLE_OUTPUT_PATH}/ProbeCalibration
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IPEA_OptimizationMethod.xml
   --calibration-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_1.mha 
   --validation-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_2.mha 
@@ -115,7 +116,7 @@ ADD_TEST(vtkFreehandCalibrationIPEAOptimizationMethodTest
 SET_TESTS_PROPERTIES( vtkFreehandCalibrationIPEAOptimizationMethodTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 ADD_TEST(vtkFreehandCalibrationOPEIOptimizationMethodTest
-  ${EXECUTABLE_OUTPUT_PATH}/FreehandCalibration
+  ${EXECUTABLE_OUTPUT_PATH}/ProbeCalibration
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_OPEI_OptimizationMethod.xml
   --calibration-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_1.mha 
   --validation-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_2.mha 
@@ -124,7 +125,7 @@ ADD_TEST(vtkFreehandCalibrationOPEIOptimizationMethodTest
 SET_TESTS_PROPERTIES( vtkFreehandCalibrationOPEIOptimizationMethodTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 ADD_TEST(vtkFreehandCalibrationOPEAOptimizationMethodTest
-  ${EXECUTABLE_OUTPUT_PATH}/FreehandCalibration
+  ${EXECUTABLE_OUTPUT_PATH}/ProbeCalibration
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_OPEA_OptimizationMethod.xml
   --calibration-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_1.mha 
   --validation-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_2.mha 
@@ -222,7 +223,7 @@ SET_TESTS_PROPERTIES( vtkLineSegmentationAlgoTest1 PROPERTIES FAIL_REGULAR_EXPRE
 INSTALL(
   TARGETS
     TemporalCalibration
-    FreehandCalibration
+    ProbeCalibration
   DESTINATION bin
   COMPONENT RuntimeExecutables
   )

@@ -308,13 +308,14 @@ int main(int argc, char **argv)
 
   /////////////////////////////////////////////////////////////////////////////
   // Check read configuration 
-  vtkSmartPointer<vtkXMLDataElement> xmlReadData = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile("CoordinateDefinitions.xml") );
-  if (xmlReadData == NULL)
+  std::string inputConfigFileName = "CoordinateDefinitions.xml";
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();  
+  if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, inputConfigFileName.c_str())==PLUS_FAIL)
   {  
-    LOG_ERROR("Unable to read configuration file!"); 
+    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
     return EXIT_FAILURE;
   }
-  if (transformRepository->ReadConfiguration(xmlReadData)!=PLUS_SUCCESS)
+  if (transformRepository->ReadConfiguration(configRootElement)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to read persistent transforms from CoordinateDefinitions");
     return EXIT_FAILURE;

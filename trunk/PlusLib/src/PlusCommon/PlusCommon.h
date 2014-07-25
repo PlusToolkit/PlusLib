@@ -356,5 +356,7 @@ private:
     } \
   }
 
+#include "vtkPlusConfig.h"
+#include "PlusXmlUtils.h"
 
 #endif //__PlusCommon_h

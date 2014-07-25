@@ -404,8 +404,20 @@ int vtkTrackedFrameList::GetNumberOfBitsPerPixel()
 //----------------------------------------------------------------------------
 PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequenceDataFileName)
 {
+  std::string trackedSequenceDataFilePath=trackedSequenceDataFileName;
+
+  // If file is not found in the current directory then try to find it in the image directory, too
+  if (!vtksys::SystemTools::FileExists(trackedSequenceDataFilePath.c_str(), true))
+  {
+    if (vtkPlusConfig::GetInstance()->FindImagePath(trackedSequenceDataFileName, trackedSequenceDataFilePath)==PLUS_FAIL)
+    {
+      LOG_ERROR("Cannot find sequence metafile: "<<trackedSequenceDataFileName);
+      return PLUS_FAIL;      
+    }
+  }
+
   vtkSmartPointer<vtkMetaImageSequenceIO> reader=vtkSmartPointer<vtkMetaImageSequenceIO>::New();
-  reader->SetFileName(trackedSequenceDataFileName);
+  reader->SetFileName(trackedSequenceDataFilePath.c_str());
   reader->SetTrackedFrameList(this);
   if (reader->Read()!=PLUS_SUCCESS)
   {

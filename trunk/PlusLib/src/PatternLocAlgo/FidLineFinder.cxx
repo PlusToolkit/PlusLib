@@ -5,7 +5,6 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "PlusXmlUtils.h"
 
 #include "FidLineFinder.h"
 #include "vtkMath.h"

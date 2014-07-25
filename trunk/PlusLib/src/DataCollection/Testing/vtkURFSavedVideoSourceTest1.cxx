@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
 
   bool printHelp(false); 
   bool renderingOff(false);
-  std::string inputConfigFile;
+  std::string inputConfigFileName;
   std::string inputSonixIp;
 
   vtksys::CommandLineArguments args;
@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
   args.AddArgument("--sonix-ip", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSonixIp, "IP address of the Ultrasonix scanner (overrides the IP address parameter defined in the config file).");
-  args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFile, "Config file containing the device configuration.");
+  args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Config file containing the device configuration.");
   args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");  
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (Default: 1; 1=error only, 2=warning, 3=info, 4=debug)");  
 
@@ -74,14 +74,19 @@ int main(int argc, char* argv[])
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   LOG_DEBUG("Reading config file...");
-  vtkSmartPointer<vtkXMLDataElement> configRead = vtkSmartPointer<vtkXMLDataElement>::Take(::vtkXMLUtilities::ReadElementFromFile(inputConfigFile.c_str())); 
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
+  if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, inputConfigFileName.c_str())==PLUS_FAIL)
+  {  
+    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
+    return EXIT_FAILURE;
+  }  
   LOG_DEBUG("Reading config file finished.");
 
   //Add the video source here
   sonixGrabber = vtkSmartPointer<vtkSonixVideoSource>::New();
   sonixGrabber->SetImagingMode(0);
   sonixGrabber->SetAcquisitionDataType(0x00000005);
-  sonixGrabber->ReadConfiguration(configRead);
+  sonixGrabber->ReadConfiguration(configRootElement);
   if (!inputSonixIp.empty())
   {
     sonixGrabber->SetSonixIP(inputSonixIp.c_str());

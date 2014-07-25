@@ -81,11 +81,11 @@ int main( int argc, char** argv )
   vtkPlusLogger::Instance()->SetLogLevel( verboseLevel );
 
   // Prepare and start data collection
-  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
-  if (configRootElement == NULL)
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
+  if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, inputConfigFileName.c_str())==PLUS_FAIL)
   {  
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
-    return 1;
+    return EXIT_FAILURE;
   }
 
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);

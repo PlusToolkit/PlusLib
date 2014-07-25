@@ -5,7 +5,6 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
-#include "PlusXmlUtils.h"
 #include "float.h"
 #include "vtkProbeCalibrationAlgo.h"
 #include "vtkTrackedFrameList.h"

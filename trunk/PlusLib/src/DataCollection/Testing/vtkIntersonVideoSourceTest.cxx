@@ -246,7 +246,7 @@ int main(int argc, char* argv[])
   bool printHelp(false); 
   bool renderingOff(false);
   bool printParams(false);
-  std::string inputConfigFile;
+  std::string inputConfigFileName;
   double depthCm = -1;
   double gainPercent = -1;
   double zoomFactor = -1;
@@ -261,7 +261,7 @@ int main(int argc, char* argv[])
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
-  args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFile, "Config file containing the device configuration.");
+  args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Config file containing the device configuration.");
   args.AddArgument("--depth", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &depthCm, "Depth in cm.");	
   args.AddArgument("--frequencyMhz", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frequencyMhz, "Frequency in MHz");	
   args.AddArgument("--gain", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &gainPercent, "Gain in percentage. 100 corresponds to the maximum gain");
@@ -289,15 +289,16 @@ int main(int argc, char* argv[])
   intersonDevice->SetDeviceId("VideoDevice");
 
   // Read config file
-  if (STRCASECMP(inputConfigFile.c_str(), "")!=0)
+  if (STRCASECMP(inputConfigFileName.c_str(), "")!=0)
   {
     LOG_DEBUG("Reading config file...");
-    vtkSmartPointer<vtkXMLDataElement> configRead = vtkSmartPointer<vtkXMLDataElement>::Take(::vtkXMLUtilities::ReadElementFromFile(inputConfigFile.c_str())); 
-    LOG_DEBUG("Reading config file finished.");
-    if ( configRead != NULL )
-    {
-      intersonDevice->ReadConfiguration(configRead);
+    vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
+    if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, inputConfigFileName.c_str())==PLUS_FAIL)
+    {  
+      LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
+      return EXIT_FAILURE;
     }
+    intersonDevice->ReadConfiguration(configRootElement);
   }
   
   intersonDevice->CreateDefaultOutputChannel();

@@ -94,9 +94,13 @@ int main (int argc, char* argv[])
   vtkSmartPointer<vtkVolumeReconstructor> reconstructor = vtkSmartPointer<vtkVolumeReconstructor>::New(); 
 
   LOG_INFO( "Reading configuration file:" << inputConfigFileName );
-  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
-    vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
-  
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
+  if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, inputConfigFileName.c_str())==PLUS_FAIL)
+  {  
+    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
+    return EXIT_FAILURE;
+  }
+    
   if ( reconstructor->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read configuration from "<<inputConfigFileName.c_str()); 

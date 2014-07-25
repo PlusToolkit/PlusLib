@@ -24,7 +24,7 @@ int main(int argc, char **argv)
 {
   bool printHelp=false;
   std::string inputRfFile;
-  std::string inputConfigFile;
+  std::string inputConfigFileName;
   std::string outputImgFile;
   std::string operation="BRIGHTNESS_SCAN_CONVERT";
 
@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
   args.AddArgument("--rf-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputRfFile, "File name of input RF image data");
-  args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFile, "Config file containing processing parameters");
+  args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Config file containing processing parameters");
   args.AddArgument("--output-img-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputImgFile, "File name of the generated output brightness image");
   args.AddArgument("--operation", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &operation, "Processing operation to be applied on the input file (BRIGHTNESS_CONVERT, BRIGHTNESS_SCAN_CONVERT, default: BRIGHTNESS_SCAN_CONVERT");
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-  if (inputConfigFile.empty())
+  if (inputConfigFileName.empty())
   {
     std::cerr << "--config-file required " << std::endl;
     exit(EXIT_FAILURE);
@@ -82,10 +82,15 @@ int main(int argc, char **argv)
 
   // Read config file
   LOG_DEBUG("Reading config file...")
-  vtkSmartPointer<vtkXMLDataElement> configRead = vtkSmartPointer<vtkXMLDataElement>::Take(::vtkXMLUtilities::ReadElementFromFile(inputConfigFile.c_str())); 
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
+  if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, inputConfigFileName.c_str())==PLUS_FAIL)
+  {  
+    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
+    return EXIT_FAILURE;
+  }
   LOG_DEBUG("Reading config file finished.");
 
-  vtkXMLDataElement* dataCollectionConfig = configRead->FindNestedElementWithName("DataCollection");
+  vtkXMLDataElement* dataCollectionConfig = configRootElement->FindNestedElementWithName("DataCollection");
   if (dataCollectionConfig == NULL)
   {
     LOG_ERROR("Cannot find DataCollection element in XML tree!");

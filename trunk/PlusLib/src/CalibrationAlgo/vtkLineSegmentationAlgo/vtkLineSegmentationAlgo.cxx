@@ -7,7 +7,6 @@ See License.txt for details.
 #include "PlusConfigure.h"
 
 #include "PlaneParametersEstimator.h"
-#include "PlusXmlUtils.h"
 #include "RANSAC.h"
 #include "TrackedFrame.h"
 #include "itkBinaryThresholdImageFilter.h"

@@ -204,9 +204,13 @@ int main(int argc, char **argv)
   if ( !inputConfigFileName.empty() )
   {
     LOG_DEBUG("Reading config file...");
-    vtkSmartPointer<vtkXMLDataElement> configRead = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
-    LOG_DEBUG("Reading config file done.");
-    if ( transformRepository->ReadConfiguration(configRead) != PLUS_SUCCESS )
+    vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
+    if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, inputConfigFileName.c_str())==PLUS_FAIL)
+    {  
+      LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
+      return EXIT_FAILURE;
+    }
+    if ( transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to read transforms for transform repository!"); 
       return EXIT_FAILURE; 

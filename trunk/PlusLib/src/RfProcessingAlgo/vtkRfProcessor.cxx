@@ -4,8 +4,8 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
+#include "PlusConfigure.h"
 #include "PlusMath.h"
-#include "PlusXmlUtils.h"
 #include "vtkRfProcessor.h"
 #include "vtkObjectFactory.h"
 #include "vtkRfToBrightnessConvert.h"

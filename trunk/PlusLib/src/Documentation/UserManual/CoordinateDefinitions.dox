@@ -2,7 +2,9 @@
 
 \page CoordinateDefinitions Definition of coordinate systems
 
-Repository of transforms between pairs of coordinate systems.
+Coordinate systems are defined by specifying transforms between pair of coordinate systems.
+Static transforms (that are not changing in time) can be specified in the \c CoordinateDefinitions element
+in the device set configuration file. Typically static transforms are determined by calibration algorithms.
 
 \section CoordinateDefinitionsConfigSettings Configuration settings
 

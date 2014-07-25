@@ -5,7 +5,6 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
-#include "PlusXmlUtils.h"
 
 #include "vtkPhantomLinearObjectRegistrationAlgo.h"
 #include "vtkTransformRepository.h"

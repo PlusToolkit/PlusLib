@@ -541,7 +541,10 @@ void PlusMath::PrintVtkMatrix(vtkMatrix4x4* matrix, std::ostringstream &stream, 
 
   for ( int i = 0; i < 4; i++ )
   {
-    stream << std::endl;
+    if (i>0)
+    {
+      stream << std::endl;
+    }
     for ( int j = 0; j < 4; j++ )
     {
       stream << std::fixed << std::setprecision(precision) << std::setw(precision+3) << std::right << matrix->GetElement(i,j) << " ";
