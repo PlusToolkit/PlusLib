@@ -5,7 +5,6 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "PlusXmlUtils.h"
 
 #include <algorithm>
 #include <list>
@@ -254,16 +253,16 @@ int vtkUsSimulatorAlgo::RequestData(vtkInformation* request,vtkInformationVector
       {
         distanceOfIntersectionPointFromScanLineStartPointMm=lineIntersectionsWithModels[intersectionIndex+1].IntersectionDistanceFromStartPointMm;
         endOfSegmentPixelIndex=distanceOfIntersectionPointFromScanLineStartPointMm/distanceBetweenScanlineSamplePointsMm;
-        if (endOfSegmentPixelIndex>this->NumberOfSamplesPerScanline-1)
+        if (endOfSegmentPixelIndex>this->NumberOfSamplesPerScanline)
         {
           // the next intersection point is out of the image
-          endOfSegmentPixelIndex=this->NumberOfSamplesPerScanline-1;
+          endOfSegmentPixelIndex=this->NumberOfSamplesPerScanline;
         }
       }
       else
       {
         // last segment, after all the intersection points
-        endOfSegmentPixelIndex=this->NumberOfSamplesPerScanline-1;
+        endOfSegmentPixelIndex=this->NumberOfSamplesPerScanline;
       }
 
       int numberOfFilledPixels=endOfSegmentPixelIndex-currentPixelIndex;
