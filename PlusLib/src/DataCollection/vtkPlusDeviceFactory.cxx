@@ -100,7 +100,7 @@ See License.txt for details.
 #endif
 
 #ifdef PLUS_USE_IntuitiveDaVinci
-#include "vtkIntuitiveDaVinciTracker.h"
+#include "..\IntuitiveDaVinci\vtkIntuitiveDaVinciTracker.h"
 #endif
 
 //----------------------------------------------------------------------------
