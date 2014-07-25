@@ -24,63 +24,57 @@ class IntuitiveDaVinci
 {
 
 public: 
-	// RS: Constructor
+	// Constructor
 	IntuitiveDaVinci();
 
-	// RS: Destructor
+	// Destructor
 	~IntuitiveDaVinci();
 
-	// RS: Disconnect from the da Vinci
+	// Disconnect from the da Vinci
 	void Stop();
 
-	// RS: Make a request to connect to the da Vinci
+	// Make a request to connect to the da Vinci
 	ISI_STATUS connect();
 
-	// RS: Subscribe to all events and fields, and set up the given callbacks.
+	// Subscribe to all events and fields, and set up the given callbacks.
 	//     If the stream fails, disconnect from the da Vinci.
 	ISI_STATUS subscribe(ISI_EVENT_CALLBACK eCB, ISI_STREAM_CALLBACK sCB, void* eventUserData, void* streamUserData);
 
-	// RS: Subscribe the given stream callback
+	//  Subscribe the given stream callback
 	ISI_STATUS setStreamCallback(ISI_STREAM_CALLBACK sCB, void* userData);
 
-	// RS: Subscribe the given event callback
+	// Subscribe the given event callback
 	ISI_STATUS setEventCallback(ISI_EVENT_CALLBACK eCB, void* userData);
 
-	// RS: Request all manipulators indices and names. Prompt the user for 
-	//	   a selection, and if its valid, set the manipIndex to the prompted value. 
-	void getManipulatorId(ISI_MANIP_INDEX *manipIndex);
-
-	// RS: Added. Return a vector of the manipulator names.
+	// Added. Return a vector of the manipulator names.
 	std::vector<std::string> getManipulatorNames();
 
-	// RS: From the previously set manipIndex, get the TIP TRANSFORM.
+	// From the previously set manipIndex, get the TIP TRANSFORM.
 	void getPosition(ISI_TRANSFORM* T);
 
-	// RS: Print out the 6DOF from the given transform.
+	// Print out the 6DOF from the given transform.
 	void printTransform(const ISI_TRANSFORM *T);
 
-	// RS: Print out help.
+	// Print out help.
 	void printHelp();
 
-	// RS: Added. Accessor for library version.
+	// Added. Accessor for library version.
 	std::string getLibraryVersion();
 
-	// RS: Added. Accessor for connected state.
+	// Added. Accessor for connected state.
 	bool isConnected();
 
-	// RS: Added. Mutator for connection arguments.
+	// Added. Mutator for connection arguments.
 	void setHostInfo(const std::string ip, const unsigned int port, const unsigned int pass);
 	
 private:
 	
-	// RS: Moved. Connect with hardcoded arguments for our custom config. 
+	// Moved. Connect with hardcoded arguments for our custom config. 
 	ISI_STATUS connectWithArgs();
 
 	void copyTransform(ISI_TRANSFORM* in, ISI_TRANSFORM* out);
 
 	void printStreamState(ISI_MANIP_INDEX manipIndex);
-
-	void saveStreamState(ISI_MANIP_INDEX manipIndex);
 
 	void printVersion();
 

@@ -1,3 +1,4 @@
+#include "PlusConfigure.h"
 #include "daVinci.h"
 
 IntuitiveDaVinci::IntuitiveDaVinci() : mPrintStream(ISI_FALSE), mQuit(ISI_FALSE), mManipIndex(ISI_PSM2), mStatus(ISI_SUCCESS)
@@ -27,7 +28,7 @@ ISI_STATUS IntuitiveDaVinci::connect()
 	mStatus = connectWithArgs();
 	if (mStatus != ISI_SUCCESS)
 	{
-		printf("Failed to Connect to the robot\n");
+	    LOG_WARNING("IntuitiveDaVinci::connect failed to connect with arguments");
 		isi_stop_stream();
 		isi_disconnect();
 	}
@@ -51,8 +52,7 @@ ISI_STATUS IntuitiveDaVinci::subscribe(ISI_EVENT_CALLBACK eCB, ISI_STREAM_CALLBA
 
 	if (mStatus != ISI_SUCCESS)
 	{
-		printf("Failed to start stream\n");
-		printf("Disconnecting from da Vinci\n");
+		LOG_WARNING("IntuitiveDaVinci::subscribe failed to start stream. Disconnecting from da Vinci");
 		Stop();
 	}
 	return mStatus;
@@ -83,34 +83,6 @@ ISI_STATUS IntuitiveDaVinci::setEventCallback(ISI_EVENT_CALLBACK eCB, void* user
 	Sleep(500);
 
 	return mStatus;
-}
-
-void IntuitiveDaVinci::getManipulatorId(ISI_MANIP_INDEX *manipIndex)
-{   
-	int i;
-	int tmp = -1;
-
-	printf("\nSet manip\n");
-	printf("\nList of manip indices and names\n");
-	for (i = 0; i != ISI_NUM_MANIPS; i++)
-	{
-		ISI_MANIP_INDEX manipIndex = (ISI_MANIP_INDEX) i;
-		printf("%d: %s\n", i, isi_get_manip_name(manipIndex));
-	}
-
-	printf("Enter manipulator id [0,%d]: ", ISI_NUM_MANIPS);
-
-	scanf("%d", &tmp);
-
-	if (IS_VALID_MANIP_INDEX(tmp))
-	{
-		*manipIndex = (ISI_MANIP_INDEX) tmp;
-		printf("Manipulator has been set\n\n");
-	}
-	else
-	{
-		printf("Invalid manipulator id\n");
-	}
 }
 
 std::vector<std::string> IntuitiveDaVinci::getManipulatorNames()
@@ -155,17 +127,13 @@ void IntuitiveDaVinci::copyTransform(ISI_TRANSFORM* in, ISI_TRANSFORM* out)
 
 void IntuitiveDaVinci::printTransform(const ISI_TRANSFORM *T)
 {
-	printf("Pos   : %f %f %f\n", 
-		T->pos.x, T->pos.y, T->pos.z);
+  LOG_INFO("Position: " << T->pos.x << " " << T->pos.y << " "  << T->pos.z);
 
-	printf("X axis: %f %f %f\n", 
-		T->rot.row0.x, T->rot.row1.x, T->rot.row2.x);
+  LOG_INFO("X Axis Rotation: " << T->rot.row0.x << " " << T->rot.row1.x << " "  << T->rot.row2.x);
 
-	printf("Y axis: %f %f %f\n", 
-		T->rot.row0.y, T->rot.row1.y, T->rot.row2.y);
+  LOG_INFO("Y Axis Rotation: " << T->rot.row0.y << " " << T->rot.row1.y << " "  << T->rot.row2.y);
 
-	printf("Z axis: %f %f %f\n", 
-		T->rot.row0.z, T->rot.row1.z, T->rot.row2.z);
+  LOG_INFO("Z Axis Rotation: " << T->rot.row0.z << " " << T->rot.row1.z << " " << T->rot.row2.z);
 }
 
 void IntuitiveDaVinci::printHelp()
@@ -181,7 +149,7 @@ void IntuitiveDaVinci::printHelp()
 								R: Record file   \n\
 								"};
 
-	printf("%s\n", help);    
+	LOG_INFO(help);    
 }
 
 std::string IntuitiveDaVinci::getLibraryVersion()
@@ -209,59 +177,21 @@ void IntuitiveDaVinci::printStreamState(ISI_MANIP_INDEX manipIndex)
 	ISI_STREAM_FIELD stream_data;
 	int i;
 
-	printf("---\n");
-
-	printf("manipIndex: %s\n", isi_get_manip_name(manipIndex));
-
-	printf("\nISI_TIP_TRANSFORM\n");
+	LOG_INFO("Retrieving stream state for manipulator: " << isi_get_manip_name(manipIndex));
+	
+	LOG_INFO("\nISI_TIP_TRANSFORM: \n");
 	isi_get_stream_field(manipIndex, ISI_TIP_TRANSFORM, &stream_data);    
 	printTransform((ISI_TRANSFORM *) stream_data.data);
-	printf("\n");
-
-	printf("ISI_JOINT_VALUES\n");
+	
+	LOG_INFO("\nISI_JOINT_VALUES: \n");
+	
 	isi_get_stream_field(manipIndex, ISI_JOINT_VALUES, &stream_data);    
 	for (i = 0; i != stream_data.count; i++)
 	{
-		printf("%.3f ", stream_data.data[i]);
+	    LOG_INFO(" " << stream_data.data[i]);
 	}
-	printf("\n");
 
-	printf("\ntimestamp: %.3f (sec)\n", stream_data.timestamp);
-
-	printf("\n\n");    
-}
-
-void IntuitiveDaVinci::saveStreamState(ISI_MANIP_INDEX manipIndex)
-{
-	FILE * pFile;			// The file we will write to
-	ISI_STREAM_FIELD stream_data;	// Datastreams
-	ISI_TRANSFORM *T; 	// Manip and Cam transformations
-	// The difference between the tip frame and the physical tip
-
-	// Get manipulator transformation from stream
-	isi_get_stream_field(manipIndex, ISI_TIP_TRANSFORM, &stream_data);
-	T = (ISI_TRANSFORM *) stream_data.data;
-
-	std::string filename = "";
-	std::cout << "file name?" <<std::endl;
-	getline(std::cin, filename);
-	// Open file for writing, and write the x,y,z data from the transformed point
-	pFile = fopen(filename.c_str(),"w");
-
-	fprintf(pFile,"Pos   : %f %f %f\n", 
-		T->pos.x, T->pos.y, T->pos.z);
-
-	fprintf(pFile,"X axis: %f %f %f\n", 
-		T->rot.row0.x, T->rot.row1.x, T->rot.row2.x);
-
-	fprintf(pFile,"Y axis: %f %f %f\n", 
-		T->rot.row0.y, T->rot.row1.y, T->rot.row2.y);
-
-	fprintf(pFile,"Z axis: %f %f %f\n", 
-		T->rot.row0.z, T->rot.row1.z, T->rot.row2.z);
-
-	fclose(pFile);
-
+	LOG_INFO("\n ISI Timestamp (seconds): " <<  stream_data.timestamp);
 }
 
 void IntuitiveDaVinci::printVersion()
@@ -271,19 +201,15 @@ void IntuitiveDaVinci::printVersion()
 
 	status = isi_get_system_config(&config);
 
-	printf("\n");
-
 	if (status == ISI_SUCCESS)
 	{
-		printf("System Name: %s\n", config.system_name);
-		printf("System Version: %s\n", config.system_version);
-		printf("Library Version: %s\n", config.library_version);
+       LOG_INFO("System Name: " << config.system_name);
+	   LOG_INFO("System Version: " << config.system_version);
+	   LOG_INFO("Library Version: " << config.library_version);
 	}
 	else
 	{
-		printf("Failed to get system config\n");
+		LOG_WARNING("Failed to get IntuitiveDaVinci system configuration");
 	}
-
-	printf("\n");
 }
 
