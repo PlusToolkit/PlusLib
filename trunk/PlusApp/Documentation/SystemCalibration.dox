@@ -10,8 +10,7 @@ How to build an fCal calibration phantom using 3D printer</a>
 - <a href="https://subversion.assembla.com/svn/plus/trunk/doc/tutorials/PlusTutorialBuildingfCalLegoPhantom.pdf">
 How to build an fCal calibration phantom from Lego bricks</a>
 
-Coordinate systems overview
-\image html CoordinateSystemDefinitionsfCal.png
+\ref ApplicationfCalCoordinateSystemDefinitions
 
 \section SystemCalibrationConfiguration Configuration
 1. Select the Device set from the Ultrasound display and then select fcal from the options that appear.

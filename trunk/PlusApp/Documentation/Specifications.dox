@@ -11,7 +11,7 @@ File formats
 Other specifications
 - \subpage TransformationMatrix
 - \subpage UltrasoundImageOrientation
-- \subpage CoordinateSystemDefinitions
+- \subpage CommonCoordinateSystems
 - \subpage PlusServerCommands
 
 */

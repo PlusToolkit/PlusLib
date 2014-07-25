@@ -7,7 +7,7 @@ The following command-line tools can be executed by starting the Plus command pr
 Tool                                         | Description
 ---------------------------------------------|--------------
 \subpage ApplicationPlusServer               | Acquire data from devices and broadcast through OpenIGTLink
-\subpage ApplicationFreehandCalibration      | Free-hand ultrasound calibration
+\subpage ApplicationfCal                     | Calibrate tracked ultrasound probe and tracked tools spatially and temporally
 \subpage ApplicationEditSeqMetaFile          | Edit sequence metafiles (trim, merge, compress/uncompress, etc.)
 \subpage ApplicationViewSeqMetaFile          | View sequence metafile frames in 3D
 \subpage ApplicationVolumeReconstructor      | Reconstruct 3D ultrasound volume from 2D slices
@@ -15,6 +15,7 @@ Tool                                         | Description
 \subpage ApplicationPointSetExtractor        | Create 3D surface model (points or tube) from tool trajectory
 \subpage ApplicationRfProcessor              | Convert RF data to displayable B-mode images
 \subpage ApplicationSpatialSensorFusion      | Compute orientation from accelerometer, gyroscope, and magnetometer measurements
+\subpage ApplicationProbeCalibration         | Calibrate the ultrasound probe from pre-recorded data (compute ImageToProbe transform)
 \subpage ApplicationTemporalCalibration      | Compute time offset between two streams
 \subpage ApplicationAccurateTimerTest        | Compute the accuracy of time measurements
 \subpage ApplicationDiagDataCollection       | Diagnose data collection from devices
