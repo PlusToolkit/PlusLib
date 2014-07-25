@@ -1,0 +1,14 @@
+/*!
+\page ApplicationFreehandCalibration Tracking device test (FreehandCalibration)
+
+This is a simple test application to visualize all the tracker tools and the numerical values of the acquired transforms. The visualized data can be optionally saved into file.
+
+\image html ApplicationFreehandCalibration.png
+
+\section ApplicationFreehandCalibrationExamples Examples
+
+\section ApplicationFreehandCalibrationHelp Command-line parameters reference
+
+\verbinclude "FreehandCalibrationHelp.txt"
+
+*/
