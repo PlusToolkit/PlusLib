@@ -296,7 +296,7 @@ int main(int argc, char* argv[])
   intersonDevice->SetDeviceId("VideoDevice");
 
   // Read config file
-  if( STRCASECMP(inputConfigFile.c_str(), "") != 0 )
+  if( STRCASECMP(inputConfigFileName.c_str(), "") != 0 )
   {
     LOG_DEBUG("Reading config file...");
     vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();

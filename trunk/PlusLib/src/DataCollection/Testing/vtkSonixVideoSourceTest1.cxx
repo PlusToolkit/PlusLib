@@ -246,7 +246,7 @@ int main(int argc, char* argv[])
   bool printHelp(false); 
   bool renderingOff(false);
   bool printParams(false);
-  std::string inputConfigFile;
+  std::string inputConfigFileName;
   std::string inputSonixIp;
 
   std::string acqMode("B");
@@ -257,7 +257,7 @@ int main(int argc, char* argv[])
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
-  args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFile, "Config file containing the device configuration.");
+  args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Config file containing the device configuration.");
   args.AddArgument("--acq-mode", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &acqMode, "Acquisition mode: B or RF (Default: B).");	
   args.AddArgument("--sonix-ip", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSonixIp, "IP address of the Ultrasonix scanner (overrides the IP address parameter defined in the config file).");
   args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
