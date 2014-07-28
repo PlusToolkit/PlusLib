@@ -510,23 +510,23 @@ PlusStatus vtkNDITracker::EnableToolPorts()
   }
 
   // Set wireless port handles and send SROM files to tracker
-  // We need to do this before initializing and enabeling
-  // the ports waiting to be initialized 
+  // We need to do this before initializing and enabling
+  // the ports waiting to be initialized.
   for (NdiToolDescriptorsType::iterator toolDescriptorIt=this->NdiToolDescriptors.begin(); toolDescriptorIt!=this->NdiToolDescriptors.end(); ++toolDescriptorIt)
   {
     if (toolDescriptorIt->second.WiredPortNumber == -1) //wireless tool
-	{  
-	  if (this->UpdatePortHandle(toolDescriptorIt->second)!=PLUS_SUCCESS)
-	  {
-	    LOG_ERROR("Failed to determine NDI port handle for tool "<<toolDescriptorIt->first);
-	    return PLUS_FAIL;
-	  }
-	  if (this->SendSromToTracker(toolDescriptorIt->second)!=PLUS_SUCCESS)
-	  {
-	    LOG_ERROR("Failed send SROM to NDI tool "<<toolDescriptorIt->first);
-	    return PLUS_FAIL;
-	  }
-	}
+    {  
+      if (this->UpdatePortHandle(toolDescriptorIt->second)!=PLUS_SUCCESS)
+      {
+        LOG_ERROR("Failed to determine NDI port handle for tool "<<toolDescriptorIt->first);
+        return PLUS_FAIL;
+      }
+      if (this->SendSromToTracker(toolDescriptorIt->second)!=PLUS_SUCCESS)
+      {
+        LOG_ERROR("Failed send SROM to NDI tool "<<toolDescriptorIt->first);
+        return PLUS_FAIL;
+      }
+    }
   }
 
   // initialize ports waiting to be initialized
@@ -584,12 +584,12 @@ PlusStatus vtkNDITracker::EnableToolPorts()
 
   // Set wired port handles and send SROM files to tracker
   // We need to do this after enabling all the tools because tools on
-  // splitters only appear after the tool is enabled.
+  // splitters (two 5-DOF tools with one connector) only appear after the tool is enabled.
   for (NdiToolDescriptorsType::iterator toolDescriptorIt=this->NdiToolDescriptors.begin(); toolDescriptorIt!=this->NdiToolDescriptors.end(); ++toolDescriptorIt)
   {
     if (toolDescriptorIt->second.WiredPortNumber >= 0) //wired tool
-	{
-	  if (this->UpdatePortHandle(toolDescriptorIt->second)!=PLUS_SUCCESS)
+    {
+      if (this->UpdatePortHandle(toolDescriptorIt->second)!=PLUS_SUCCESS)
       {
         LOG_ERROR("Failed to determine NDI port handle for tool "<<toolDescriptorIt->first);
         return PLUS_FAIL;
@@ -599,7 +599,7 @@ PlusStatus vtkNDITracker::EnableToolPorts()
         LOG_ERROR("Failed send SROM to NDI tool "<<toolDescriptorIt->first);
         return PLUS_FAIL;
       }
-	}
+    }
   }
 
   // Update tool info
