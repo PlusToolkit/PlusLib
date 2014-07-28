@@ -25,14 +25,22 @@ SET(CPACK_PACKAGE_EXECUTABLES
   "fCal" "Free-hand calibration (fCal)"
   )
 
-# Windows users may not be familiar how to open a command prompt, so create a shortcut for that
 IF(WIN32)
+  # Windows users may not be familiar how to open a command prompt, so create a shortcut for that
   SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
     CreateShortCut \\\"$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Plus command prompt.lnk\\\" \\\"$INSTDIR\\\\bin\\\\StartPlusCommandPrompt.bat\\\" \\\"$INSTDIR\\\\bin\\\\StartPlusCommandPrompt.bat\\\" \\\"$INSTDIR\\\\bin\\\\StartPlusCommandPrompt.ico\\\"
     ")
   SET(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
     !insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
     Delete \\\"$SMPROGRAMS\\\\$MUI_TEMP\\\\Plus command prompt.lnk\\\"
+    ")
+  # Create a shortcut to documentation as well
+  SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
+    CreateShortCut \\\"$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Plus user manual.lnk\\\" \\\"$INSTDIR\\\\doc\\\\PlusApp-UserManual.chm\\\"
+    ")
+  SET(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
+    !insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
+    Delete \\\"$SMPROGRAMS\\\\$MUI_TEMP\\\\User manual.lnk\\\"
     ")
 ENDIF(WIN32)
 
@@ -109,6 +117,10 @@ ENDIF(NOT PLUSAPP_INSTALL_SCRIPTS_DIR)
 IF(NOT PLUSAPP_INSTALL_INCLUDE_DIR)
   SET(PLUSAPP_INSTALL_INCLUDE_DIR "include")
 ENDIF(NOT PLUSAPP_INSTALL_INCLUDE_DIR)
+
+IF(NOT PLUSAPP_INSTALL_DOCUMENTATION_DIR)
+  SET(PLUSAPP_INSTALL_DOCUMENTATION_DIR "doc")
+ENDIF(NOT PLUSAPP_INSTALL_DOCUMENTATION_DIR)
 
 IF(NOT PLUSAPP_INSTALL_NO_DOCUMENTATION)
   SET(PLUSAPP_INSTALL_NO_DOCUMENTATION 0)

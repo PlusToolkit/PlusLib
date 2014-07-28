@@ -155,8 +155,6 @@ option(BUILD_DOCUMENTATION "Build the documentation (Doxygen)." ${PLUSLIB_BUILD_
 mark_as_advanced(BUILD_DOCUMENTATION)
 
 IF (BUILD_DOCUMENTATION) 
-  option(DOCUMENTATION_TARGET_IN_ALL "Include the custom target for building documentation in 'all'" ${PLUSLIB_DOCUMENTATION_TARGET_IN_ALL})
-  mark_as_advanced(DOCUMENTATION_TARGET_IN_ALL)
  
   IF(NOT PLUSLIB_BUILD_DOCUMENTATION)
     # Try to detect GraphViz path (CMake's Doxygen package finder only tries some obsolete paths on Windows)
@@ -170,8 +168,8 @@ IF (BUILD_DOCUMENTATION)
         DOC "Graphviz Dot tool for using Doxygen"
         NO_SYSTEM_ENVIRONMENT_PATH
       )
-
   ENDIF(NOT PLUSLIB_BUILD_DOCUMENTATION)
+  
   ADD_SUBDIRECTORY(Documentation)
 ENDIF (BUILD_DOCUMENTATION)
 

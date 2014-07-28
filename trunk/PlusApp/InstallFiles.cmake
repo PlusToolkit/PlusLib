@@ -1,6 +1,20 @@
 # --------------------------------------------------------------------------
 # Install
 # 
+
+IF(BUILD_DOCUMENTATION)  
+  IF(WIN32)
+    SET(COMPRESSED_HELP_TARGET_FILE_EXT ".chm")
+  ELSE()
+    SET(COMPRESSED_HELP_TARGET_FILE_EXT ".tar.gz")
+  ENDIF()
+  INSTALL(FILES 
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/Doc/PlusApp-UserManual${COMPRESSED_HELP_TARGET_FILE_EXT}
+    DESTINATION ${PLUSAPP_INSTALL_DOCUMENTATION_DIR}
+    COMPONENT Documentation
+    )
+ENDIF(BUILD_DOCUMENTATION)
+
 SET ( PLUSLIB_CONFIG_FILES
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_Sim_PivotCalibration.xml
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_Sim_RecordPhantomLandmarks.xml

@@ -34,10 +34,8 @@ rem ---------------------------------------
 
 :success
 ECHO Documentation available at: ${PLUS_EXECUTABLE_OUTPUT_PATH}/Doc
-goto end
+exit /b 0
 
 :fail
 ECHO Failed to generate documentation
-goto end
-
-:end
+exit /b 1
