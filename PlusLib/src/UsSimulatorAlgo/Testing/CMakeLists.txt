@@ -10,7 +10,7 @@ ADD_TEST(vtkUsSimulatorAlgoRunTestLinear
   --transforms-seq-file=${TestDataDir}/SpinePhantom2Freehand.mha
   --output-us-img-file=simulatorOutputLinear.mha 
   )
-  SET_TESTS_PROPERTIES( vtkUsSimulatorAlgoRunTestLinear PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES( vtkUsSimulatorAlgoRunTestLinear PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 ADD_TEST(vtkUsSimulatorAlgoCompareToBaselineTestLinear
   ${CMAKE_COMMAND} -E compare_files 
@@ -25,23 +25,13 @@ ADD_TEST(vtkUsSimulatorAlgoRunTestCurvilinear
   --transforms-seq-file=${TestDataDir}/SpinePhantom2Freehand.mha
   --output-us-img-file=simulatorOutputCurvilinear.mha 
   )
-  SET_TESTS_PROPERTIES( vtkUsSimulatorAlgoRunTestCurvilinear PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES( vtkUsSimulatorAlgoRunTestCurvilinear PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-IF (CMAKE_HOST_WIN32)	  
-  ADD_TEST(vtkUsSimulatorAlgoCompareToBaselineTestCurvilinear  
-    ${CMAKE_COMMAND} -E compare_files 
-    ${TEST_OUTPUT_PATH}/simulatorOutputCurvilinear.mha
-    ${TestDataDir}/UsSimulatorOutputSpinePhantom2CurvilinearBaseline.mha
-    )
-ELSE (CMAKE_HOST_WIN32)
-  # Instead of an exact file match, just check if the difference between the volumes are small enough
-  # TODO: investigate why there are differences
-  ADD_TEST(vtkUsSimulatorAlgoCompareToBaselineTestCurvilinear    
-    ${EXECUTABLE_OUTPUT_PATH}/CompareVolumes --simple-compare-max-error=2.0
-    --testing-image=${TEST_OUTPUT_PATH}/simulatorOutputCurvilinear.mha
-    --ground-truth-image=${TestDataDir}/UsSimulatorOutputSpinePhantom2CurvilinearBaseline.mha
-    )
-endif (CMAKE_HOST_WIN32)
+ADD_TEST(vtkUsSimulatorAlgoCompareToBaselineTestCurvilinear  
+  ${CMAKE_COMMAND} -E compare_files 
+  ${TEST_OUTPUT_PATH}/simulatorOutputCurvilinear.mha
+  ${TestDataDir}/UsSimulatorOutputSpinePhantom2CurvilinearBaseline.mha
+  )
 SET_TESTS_PROPERTIES(vtkUsSimulatorAlgoCompareToBaselineTestCurvilinear PROPERTIES DEPENDS vtkUsSimulatorAlgoRunTestCurvilinear)
 
 
