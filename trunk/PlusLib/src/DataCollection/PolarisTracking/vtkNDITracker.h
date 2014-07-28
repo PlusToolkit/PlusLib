@@ -63,6 +63,11 @@ class vtkSocketCommunicator;
   For active (wired) tools specify PortName attribute. For example,
   PortName="0" is the first port, PortName="1" is the second, etc.
 
+  If multi-channel tools are used then the PortName is <ChannelNumber><PortNumber>,
+  for example for two 5-DOF sensors plugged into the first connector:
+  PortName="0" and PortName="100", for two 5-DOF sensors plugged into the second connector:
+  PortName="1" and PortName="101".
+
   For passive (wireless) tools specify RomFile attribute. For example,
   RomFile="NdiToolDefinitions/8700339.rom".
 

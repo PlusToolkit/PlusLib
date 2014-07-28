@@ -268,21 +268,6 @@ PlusStatus vtkNDITracker::InternalConnect()
   // get information about the device
   this->SetVersion(ndiVER(this->Device,0));
 
-  // Set port handles and send SROM files to tracker
-  for (NdiToolDescriptorsType::iterator toolDescriptorIt=this->NdiToolDescriptors.begin(); toolDescriptorIt!=this->NdiToolDescriptors.end(); ++toolDescriptorIt)
-  {
-    if (this->UpdatePortHandle(toolDescriptorIt->second)!=PLUS_SUCCESS)
-    {
-      LOG_ERROR("Failed to determine NDI port handle for tool "<<toolDescriptorIt->first);
-      return PLUS_FAIL;
-    }
-    if (this->SendSromToTracker(toolDescriptorIt->second)!=PLUS_SUCCESS)
-    {
-      LOG_ERROR("Failed send SROM to NDI tool "<<toolDescriptorIt->first);
-      return PLUS_FAIL;
-    }
-  }
-
   if (this->EnableToolPorts()!=PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to enable tool ports");
@@ -524,6 +509,26 @@ PlusStatus vtkNDITracker::EnableToolPorts()
     }
   }
 
+  // Set wireless port handles and send SROM files to tracker
+  // We need to do this before initializing and enabeling
+  // the ports waiting to be initialized 
+  for (NdiToolDescriptorsType::iterator toolDescriptorIt=this->NdiToolDescriptors.begin(); toolDescriptorIt!=this->NdiToolDescriptors.end(); ++toolDescriptorIt)
+  {
+    if (toolDescriptorIt->second.WiredPortNumber == -1) //wireless tool
+	{  
+	  if (this->UpdatePortHandle(toolDescriptorIt->second)!=PLUS_SUCCESS)
+	  {
+	    LOG_ERROR("Failed to determine NDI port handle for tool "<<toolDescriptorIt->first);
+	    return PLUS_FAIL;
+	  }
+	  if (this->SendSromToTracker(toolDescriptorIt->second)!=PLUS_SUCCESS)
+	  {
+	    LOG_ERROR("Failed send SROM to NDI tool "<<toolDescriptorIt->first);
+	    return PLUS_FAIL;
+	  }
+	}
+  }
+
   // initialize ports waiting to be initialized
   {
     int errnum=0;
@@ -575,6 +580,26 @@ PlusStatus vtkNDITracker::EnableToolPorts()
         status=PLUS_FAIL;
       }
     }
+  }
+
+  // Set wired port handles and send SROM files to tracker
+  // We need to do this after enabling all the tools because tools on
+  // splitters only appear after the tool is enabled.
+  for (NdiToolDescriptorsType::iterator toolDescriptorIt=this->NdiToolDescriptors.begin(); toolDescriptorIt!=this->NdiToolDescriptors.end(); ++toolDescriptorIt)
+  {
+    if (toolDescriptorIt->second.WiredPortNumber >= 0) //wired tool
+	{
+	  if (this->UpdatePortHandle(toolDescriptorIt->second)!=PLUS_SUCCESS)
+      {
+        LOG_ERROR("Failed to determine NDI port handle for tool "<<toolDescriptorIt->first);
+        return PLUS_FAIL;
+      }
+      if (this->SendSromToTracker(toolDescriptorIt->second)!=PLUS_SUCCESS)
+      {
+        LOG_ERROR("Failed send SROM to NDI tool "<<toolDescriptorIt->first);
+        return PLUS_FAIL;
+      }
+	}
   }
 
   // Update tool info
@@ -785,7 +810,9 @@ PlusStatus vtkNDITracker::UpdatePortHandle(NdiToolDescriptor& toolDescriptor)
         char location[14];
         ndiGetPHINFPortLocation(this->Device,location);
         int foundWiredPortNumber = (location[10]-'0')*10 + (location[11]-'0') - 1;
-        if (toolDescriptor.WiredPortNumber == foundWiredPortNumber)
+        int foundWiredPortChannel = (location[12]-'0')*10 + (location[13]-'0'); // this is nonzero if 5-DOF tools with splitter
+        int combinedPortAndChannelNumber = foundWiredPortChannel*100 + foundWiredPortNumber;
+        if (toolDescriptor.WiredPortNumber == combinedPortAndChannelNumber)
         {
           // found the portHandle
           toolDescriptor.PortHandle = portHandle;
