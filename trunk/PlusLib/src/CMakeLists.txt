@@ -252,8 +252,6 @@ option(BUILD_DOCUMENTATION "Build the documentation (Doxygen)." OFF)
 mark_as_advanced(BUILD_DOCUMENTATION)
  
 if(BUILD_DOCUMENTATION)
-  option(DOCUMENTATION_TARGET_IN_ALL "Include the custom target for building documentation in 'all'" OFF)
-  mark_as_advanced(DOCUMENTATION_TARGET_IN_ALL)
 
   # Try to detect GraphViz path (CMake's Doxygen package finder only tries some obsolete paths on Windows)
   find_program(DOXYGEN_DOT_EXECUTABLE
