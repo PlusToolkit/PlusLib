@@ -35,8 +35,14 @@ int GenerateScanLines(vtkSmartPointer<T> scanConverter,
   scanConverter->ReadConfiguration(scanConversionElement);
 
   scanLines->SetExtent(0,numOfSamplesPerScanline-1,0,numOfScanlines-1,0,0);
+#if (VTK_MAJOR_VERSION < 6)
   scanLines->SetScalarTypeToUnsignedChar();
+  scanLines->SetNumberOfScalarComponents(1); 
   scanLines->AllocateScalars();
+#else
+  scanLines->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+#endif
+  
   scanConverter->SetInputImageExtent(scanLines->GetExtent());
 
   // Start/end points of scanline
