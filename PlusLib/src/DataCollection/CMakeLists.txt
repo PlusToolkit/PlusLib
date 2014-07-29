@@ -630,17 +630,17 @@ IF(PLUS_USE_IntuitiveDaVinci)
 
   SET (DataCollection_SRCS ${DataCollection_SRCS}
     IntuitiveDaVinci/vtkIntuitiveDaVinciTracker.cxx
-    IntuitiveDaVinci/daVinci.cxx
+    IntuitiveDaVinci/IntuitiveDaVinci.cxx
     )
 
   SET (DataCollection_HDRS ${DataCollection_HDRS}
     IntuitiveDaVinci/vtkIntuitiveDaVinciTracker.h 
-    IntuitiveDaVinci/daVinci.h
+    IntuitiveDaVinci/IntuitiveDaVinci.h
     )
 
   SET(DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
     ${IntuitiveDaVinci_INCLUDE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/daVinci
+    ${CMAKE_CURRENT_SOURCE_DIR}/IntuitiveDaVinci
     CACHE INTERNAL "" FORCE)
       
   SET(DataCollection_LIBS ${DataCollection_LIBS}

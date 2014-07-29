@@ -21,7 +21,7 @@
 #include <limits.h>
 #include <math.h>
 
-#include "daVinci.h"
+#include "IntuitiveDaVinci.h"
 #include "isi_api.h"
 
 class IntuitiveDaVinci;
@@ -77,6 +77,14 @@ public:
 
   IntuitiveDaVinci* GetDaVinci() { return this->mDaVinci; };
 
+  vtkGetMacro(IpAddr, std::string);
+  vtkGetMacro(Port, unsigned int);
+  vtkGetMacro(Password, std::string);
+
+  vtkSetMacro(IpAddr, std::string);
+  vtkSetMacro(Port, unsigned int);
+  vtkSetMacro(Password, std::string);
+
 protected:
   vtkIntuitiveDaVinciTracker();
   ~vtkIntuitiveDaVinciTracker();
@@ -107,6 +115,10 @@ protected:
   double TrackerTimeToSystemTimeSec; // time_System = time_Tracker + TrackerTimeToSystemTimeSec
   bool TrackerTimeToSystemTimeComputed; // the time offset is always computed when the first frame is received after start tracking
 #endif
+
+  std::string IpAddr;
+  unsigned int Port;
+  std::string Password;
 
 private:
   vtkIntuitiveDaVinciTracker(const vtkIntuitiveDaVinciTracker&);

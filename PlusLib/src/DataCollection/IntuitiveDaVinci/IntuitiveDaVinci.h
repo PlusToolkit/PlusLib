@@ -31,7 +31,7 @@ public:
 	~IntuitiveDaVinci();
 
 	// Disconnect from the da Vinci
-	void Stop();
+	void stop();
 
 	// Make a request to connect to the da Vinci
 	ISI_STATUS connect();
@@ -65,7 +65,13 @@ public:
 	bool isConnected();
 
 	// Added. Mutator for connection arguments.
-	void setHostInfo(const std::string ip, const unsigned int port, const unsigned int pass);
+	void setHostInfo(const std::string ip, const unsigned int port, const std::string pass);
+	
+	void setIpAddr(const std::string ip);
+	
+	void setPort(const unsigned int port);
+	
+	void setPassword(const std::string password);
 	
 private:
 	
@@ -86,9 +92,9 @@ private:
 	// RS: Moved this to be private.
 	bool mConnected;
 
-	ISI_CHAR* mIpAddr;
-	ISI_UINT mPort;
-	ISI_CHAR* mPassword;
+	std::string mIpAddr;
+	unsigned int  mPort;
+	std::string mPassword;
 	};
 
 #endif

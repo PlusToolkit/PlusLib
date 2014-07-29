@@ -1,5 +1,5 @@
 #include "PlusConfigure.h"
-#include "daVinci.h"
+#include "IntuitiveDaVinci.h"
 
 IntuitiveDaVinci::IntuitiveDaVinci() : mPrintStream(ISI_FALSE), mQuit(ISI_FALSE), mManipIndex(ISI_PSM2), mStatus(ISI_SUCCESS)
 {
@@ -10,10 +10,10 @@ IntuitiveDaVinci::IntuitiveDaVinci() : mPrintStream(ISI_FALSE), mQuit(ISI_FALSE)
 
 IntuitiveDaVinci::~IntuitiveDaVinci()
 {
-	Stop();
+	stop();
 }
 
-void IntuitiveDaVinci::Stop()
+void IntuitiveDaVinci::stop()
 {
 	if(isConnected())
 	{
@@ -25,7 +25,9 @@ void IntuitiveDaVinci::Stop()
 
 ISI_STATUS IntuitiveDaVinci::connect()
 {
-	mStatus = connectWithArgs();
+	ISI_UINT password = strtol(mPassword.c_str(), 0, 16);
+	mStatus = isi_connect_ex(mIpAddr.c_str(), mPort, password);
+	
 	if (mStatus != ISI_SUCCESS)
 	{
 	    LOG_WARNING("IntuitiveDaVinci::connect failed to connect with arguments");
@@ -34,12 +36,6 @@ ISI_STATUS IntuitiveDaVinci::connect()
 	}
 	mConnected = true;
 	return mStatus;
-}
-
-ISI_STATUS IntuitiveDaVinci::connectWithArgs()
-{
-	ISI_UINT password = strtol(mPassword, 0, 16);
-	return isi_connect_ex(mIpAddr, mPort, password);
 }
 
 ISI_STATUS IntuitiveDaVinci::subscribe(ISI_EVENT_CALLBACK eCB, ISI_STREAM_CALLBACK sCB, void* eventUserData, void* streamUserData)
@@ -53,11 +49,10 @@ ISI_STATUS IntuitiveDaVinci::subscribe(ISI_EVENT_CALLBACK eCB, ISI_STREAM_CALLBA
 	if (mStatus != ISI_SUCCESS)
 	{
 		LOG_WARNING("IntuitiveDaVinci::subscribe failed to start stream. Disconnecting from da Vinci");
-		Stop();
+		stop();
 	}
 	return mStatus;
 }
-
 
 ISI_STATUS IntuitiveDaVinci::setStreamCallback(ISI_STREAM_CALLBACK sCB, void* userData)
 {
@@ -213,3 +208,24 @@ void IntuitiveDaVinci::printVersion()
 	}
 }
 
+void IntuitiveDaVinci::setHostInfo(const std::string ip, const unsigned int port, const std::string pass)
+{
+  mIpAddr = ip;
+  mPort = port;
+  mPassword = pass;
+}
+
+void IntuitiveDaVinci::setIpAddr(const std::string ip)
+{
+  mIpAddr = ip;
+}
+	
+void IntuitiveDaVinci::setPort(const unsigned int port)
+{
+  mPort = port;
+}
+	
+void IntuitiveDaVinci::setPassword(const std::string password)
+{
+  mPassword = password;
+}
