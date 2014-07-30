@@ -1,0 +1,73 @@
+/**
+
+\page CoordinateSystemDefinitions Coordinate systems definitions
+
+The pose of the acquired image slices, tools, and other objects are defined by specifying a 3D Cartesian coordinate system
+(a.k.a. reference frame) for each object and transformations between them. The transformation is assumed to be rigid and each
+transformation is represented by 4x4 homogeneous transformation matrix. Each coordinate system is defined by its name, origin
+position, axis directions, and unit. These definitions must be completed for all coordinate systems and archived along with
+the corresponding configuration files to avoid any chance of misunderstandings.
+
+One of the most frequently needed operations in image-guided intervention systems is to compute transformation between two
+arbitrary reference frames. Although this operation is very simple in theory -- just a multiplication and inversion of selected
+matrices in a certain order -- the implementation can be quite complex and error-prone in practice, when there are a large number
+of transformations. Hard-coded implementation of the computations also greatly reduces the flexibility of the software. The
+number of potentially needed transformations is high even for a simple case: a tracker with 3 tracked objects typically uses
+7 coordinate systems (3 markers, 3 objects that the markers are attached to, 1 tracker), which leads to 42 different transformations.
+
+Therefore, in Plus a common repository is used for storing all transformations as edges of a graph, where each vertex of
+the graph corresponds to a coordinate system (identified by its unique name). Plus can then compute transformations between any
+coordinate systems automatically: first the path (list of transformations) between the two coordinate systems (vertices) is searched in the graph,
+then the corresponding transformations are chained in the correct order and inverted as needed.
+
+\section CoordinateSystemsNamingConvention Coordinate systems naming convention
+
+Plus uses a standardized naming convention for constructing transformation names. The name is constructed from the name of the coordinate system
+that it transforms from (e.g., 'FrameA'), the 'To' word, and the reference frame name it transforms to (e.g., 'FrameB'):
+FrameAToFrameB. To ensure unambigous interpretation of the transformation name, the reference frame names must not contain
+the 'To' word.
+
+\section TransformationMatrix Transformation matrix definition
+
+If coordinate values of a point are known in the 'FrameA' coordinate system and coordinates of the same point
+are needed in the 'FrameB' coordinate system: multiply the coordinates by the FrameAToToFrameB matrix from the left.
+
+The transformation that computes coordinates of point P in FrameB ('To' coordinate system) from its coordinates in FrameA
+('From' coordinate system):
+
+    FrameAToFrameBTransform = [Rxx] [Rxy] [Rxz] [Tx] [Ryx] [Ryy] [Ryz] [Ty] [Rzx] [Rzy] [Rzz] [Tz] 0 0 0 1
+
+where
+
+    [ Position_in_FrameB_x ] = [ Rxx Rxy Rxz Tx ] * [Position_in_FrameA_x ]
+    [ Position_in_FrameB_y ]   [ Ryx Ryy Ryz Ty ]   [Position_in_FrameA_y ]
+    [ Position_in_FrameB_z ]   [ Rzx Rzy Rzz Tz ]   [Position_in_FrameA_z ]
+    [          1           ]   [  0   0   0  1  ]   [         1           ]
+
+Unit of T... values is the same as the unit of the 'FrameB' coordinate system (as the Tx, Ty, and Tz values are multiplied by 1
+and the result is a position in the To coordinate system).
+
+Unit of R... values are the ratio of unit of the To coordinate system divided by the unit of the From coordinate system
+(as a position value in the From coordinate system's unit multiplied by Rij results in a position value in the To coordinate system's unit).
+
+Note that the standardized naming convention is better than the some commonly used generic transformation names such as "CalibrationMatrix"
+or "ReferenceTransform", because when using such ad-hoc names the associated reference frames and transformation direction must be documented separately.
+This separate documentation may be missing, incomplete, or incorrect. The transformation names generated with the above described scheme
+are inherently correct and fully specify the transformation. Using a simple string as transformation name is also beneficial when the
+transformations are saved into file or transmitted to another system.
+
+\section CoordinateSystemExamples
+- \subpage CommonCoordinateSystems
+- \ref ApplicationfCalCoordinateSystemDefinitions
+
+\section CoordinateDefinitionsConfigSettings Configuration settings
+
+- \xmlElem \anchor CoordinateDefinitions \b CoordinateDefinitions
+  - \xmlElem \b Transform
+    - \xmlAtt From 'From' coordinate frame of the transform
+    - \xmlAtt To 'To' coordinate frame of the transform
+    - \xmlAtt Matrix
+    - \xmlAtt Date
+    - \xmlAtt Error
+
+*/

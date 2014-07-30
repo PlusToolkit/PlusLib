@@ -1,6 +1,6 @@
 /**
 
-\page AlgorithmProbeCalibration Probe calibration
+\page AlgorithmProbeCalibration Probe calibration algorithm
 
 This algorithm determines the transformation between the ultrasound image and a tracker marker rigidly attached to somewhere on the ultrasound probe.
 
@@ -30,5 +30,23 @@ This algorithm determines the transformation between the ultrasound image and a 
   - \xmlAtt ThresholdImagePercent
   - \xmlAtt CollinearPointsMaxDistanceFromLineMm
   - \xmlAtt UseOriginalImageIntensityForDotIntensityScore
+
+- \xmlElem \b PhantomDefinition
+  - \xmlElem \b Description
+    - \xmlAtt Name
+    - \xmlAtt Type
+    - \xmlAtt Version
+    - \xmlAtt WiringVersion
+    - \xmlAtt Institution
+  - \xmlElem \b Geometry
+    - \xmlElem \b Pattern
+      - \xmlElem \b Wire
+        - \xmlAtt Name
+        - \xmlAtt EndPointFront
+        - \xmlAtt EndPointBack
+    - \xmlElem \b Landmarks
+      - \xmlElem \b Landmark
+        - \xmlAtt Name
+        - \xmlAtt Position
   
 */

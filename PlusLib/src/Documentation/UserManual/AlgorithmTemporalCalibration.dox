@@ -1,22 +1,55 @@
 /*!
 \page AlgorithmTemporalCalibration Temporal calibration
 
-The temporal calibration algorithm can estimate the time offset between two data streams: either two tracker streams
-or a tracker stream and an ultrasound image stream. Data has to be acquired while moving a tracked object with a
-periodic motion along a line by freehand. The inputted data is assumed to contain at least five full periods
-(although the algorithm may work for fewer periods it has not been tested under these conditions).
-  
-When an image stream is used the data assumed to be collected by an ultrsound probe imaging a planar object.
+Temporal calibration algorithms estimate time offset between data streams acquired by different devices.
+
+Hardware devices usually generate timestamps by using their own hardware clock, which are
+not synchronized to the clocks of other devices. Some devices do not even
+provide a timestamp: in this case the data collector component assigns a timestamp to each item
+upon reception.
+
+# Time offset estimation
+
+Temporal calibration method in Plus assumes that devices attach timestamps on the acquired
+data with an accurate clock that has constant time offset compared to other clocks.
+
+Time offset can be computed between two devices at a time (using either tracking of imaging data). If there are more
+devices then each device has to be included in at least one temporal calibration.
+
+The calibration algorithm requires data acquired while performing continuous linear quasi-periodic motion for at least
+about 5 full periods (typically about 10-15 seconds). Although the algorithm may work for fewer periods it has not been tested
+under these conditions. When an image stream is used the data assumed to be collected by an ultrasound probe imaging a planar object.
 Furthermore, it is assumed that the probe is undergoing periodic motion in the direction perpendicular to the
 plane's face (e.g., moving the probe in a repeating up-and-down fashion while imaging the bottom of a water bath).   
+The first step of the algorithm is the computation of a normalized position signal from each data stream.
 
-The time offset is determined by computing the time offset where the correlation between the fixed signal and the moving
-signal is maximized. For the correlation computation the moving signal is linearly interpolated at the time positions
-where the fixed signal is known. As the acquisition rate of imaging data is typically lower than the acquisition rate
-of tracking data, it is preferable to use video as fixed signal and tracker as moving signal.
+Notes:
+- The time offset is then determined by computing the time offset that leads to the highest correlation between the two signals.
+  For the correlation computation the moving signal is linearly interpolated at the time positions
+  where the fixed signal is known. As the acquisition rate of imaging data is typically lower than the acquisition rate
+  of tracking data, it is preferable to use video as fixed signal and tracker as moving signal.
+- The fixed and moving signal is cropped to the common time range. The moving signal is further cropped to the common range
+  with \c SetMaximumMovingLagSec margin.
+- The visual inspection of the aligned signals provides useful diagnostic information
+  about the root cause of temporal misalignments, such as large occasional delays or varying acquisition rate.
 
-The fixed and moving signal is cropped to the common time range. The moving signal is further cropped to the common range
-with \c SetMaximumMovingLagSec margin.
+# Timestamp jitter filtering
+
+Timestamping on a personal computer with a non-real-time operating system is generally feasible with about
+1ms precision when using multimedia timers. However, due to the non-real-time nature of general-purpose operating
+systems, slight variations in the timing may occur due to hardware interrupts and varying processor load. Also,
+some hardware devices transfer the data through Ethernet network, in which case there may be an additional
+unpredictable delay before the data collector receives the data.
+
+If the acquisition hardware device acquires data items at regular time intervals and reports missing data items
+(e.g., by providing a monotonously increasing index for each frame), then it is possible to apply a timestamp
+jitter filtering method that ensures regular time intervals between the generated timestamps. The filtering method
+can also detect items with unreliable timestamps (items that are received with unusually long delay). In order to
+prevent data corruption, a data item is discarded if the difference between the measured and filtered timestamp
+is larger than a predefined threshold.
+
+A line is fitted to the last N pairs of item indexes (independent variable) and unfiltered timestamps (measured variable)
+using simple linear regression. The filtered timestamp is the time corresponding to the frame index according to the fitted line.
   
 \par Configuration settings
 

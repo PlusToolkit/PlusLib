@@ -193,6 +193,7 @@ SET_TESTS_PROPERTIES( SpacingCalibAlgoTest-3NWires PROPERTIES FAIL_REGULAR_EXPRE
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(TemporalCalibration TemporalCalibration.cxx)
 TARGET_LINK_LIBRARIES( TemporalCalibration vtkPlusCommon vtkCalibrationAlgo ${VTK_LIBRARIES} vtkDataCollection)
+GENERATE_HELP_DOC(TemporalCalibration)
 
 ADD_TEST(TemporalCalibrationAlgoTest1 
   ${EXECUTABLE_OUTPUT_PATH}/TemporalCalibration

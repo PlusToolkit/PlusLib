@@ -1,0 +1,34 @@
+/**
+
+\page AlgorithmPhantomRegistration Phantom registration algorithm
+
+\section AlgorithmPhantomLandmarkRegistration Phantom registration using landmarks
+
+This algorithm computes transformation between a phantom object coordinate system (Phantom) and the coordinate system of tracking marker attached to the object (Reference) by point matching. Point coordinates are defined in the Phantom coordinate system and coordinates of the same points are also acquired in the Reference coordinate system by using a tracked stylus (StylusTip).
+
+\subsection PhantomLandmarkRegistrationConfigSettings Configuration settings
+
+- \xmlElem \b vtkPhantomLandmarkRegistrationAlgo
+  - \xmlAtt PhantomCoordinateFrame \RequiredAtt
+  - \xmlAtt ReferenceCoordinateFrame \RequiredAtt
+  - \xmlAtt StylusTipCoordinateFrame \RequiredAtt
+- \xmlElem \b PhantomDefinition
+  - \xmlElem \b Geometry
+    - \xmlElem \b Landmarks \RequiredAtt
+
+\section AlgorithmPhantomLinearObjectRegistration Phantom registration using linear object features
+
+This is an \b experimental algorithm that can use linear features (points, lines, and surfaces) to register a phantom to an attached tracker marker.
+
+\subsection PhantomLinearObjectRegistrationConfigSettings Configuration settings
+
+- \xmlElem \b vtkPhantomLinearObjectRegistrationAlgo
+  - \xmlAtt PhantomCoordinateFrame \RequiredAtt
+  - \xmlAtt ReferenceCoordinateFrame \RequiredAtt
+  - \xmlAtt StylusTipCoordinateFrame \RequiredAtt
+- \xmlElem \b PhantomDefinition
+  - \xmlElem \b Geometry
+    - \xmlElem \b Planes \RequiredAtt
+    - \xmlElem \b References \RequiredAtt
+    
+*/
