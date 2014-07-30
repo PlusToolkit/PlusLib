@@ -1,17 +1,27 @@
 /*!
 
-\page DataCollection
+\page DataCollection Data collection
 
 The data collector component acquires data from several physical or software devices simultaneously and processes and combines the acquired data.
+
+\subpage Devices page lists all the supported hardware and software devices. Configuration settings section below describes common device attributes.
+
+\section DataCollectionDefinitions Definitions
+
+- Device: An independent data acquisition or processing element. Each device has its own processing thread that runs in parallel with other devices and responsible for reading data from its inputs and providing data on its outputs.
+- Data source: Provides a single stream of data items, a stream can either consists of a sequence of transforms (tracker stream) or a sequence of two-dimensional images (video stream). The stream also contain metadata for each item: a timestamp and status (if the item is valid or not).
+- Channel: Bundles the output of multiple data sources. One channel can contain up to one video stream and any number of tracker streams.
+- Output channel: Devices usually provide data to other devices or to algorithms through an output channel. An output channel contains a circular buffer that stores the last N data items of all associated streams, which typically allows algorithms to access the data acquired in the last few seconds.
+- Input channel: A device may receive data from another device. This is specified by listing the data provider device's output channel(s) as input channel(s) in the data receiver device. One device can receive data from multiple other devices and one output channel can be connected to multiple device's input channel.
 
 \section DataCollectionConfigSettings Configuration settings
 
 - \xmlElem \b DataCollection
-  - \xmlAtt \b StartupDelaySec
+  - \xmlAtt \b StartupDelaySec The data collector waits for this amount of time before reporting that connection is established. This delay makes sure that all devices are fully initialized before the application starts to use them.
   - \xmlElem \b DeviceSet
     - \xmlAtt \b Name Device set name as it appears in the menu where the user can select it.
     - \xmlAtt \b Description More detailed description about the device set.
-  - \xmlElem \b Device \anchor Device There can be multiple elements, each describes a physical or software device. See list of available devices in the \ref HardwareSetup page.
+  - \xmlElem \anchor Device \b Device See \subpage Devices page for a list of available devices. There can be multiple elements, each describes a physical or software device.
     - \xmlAtt \b Type \anchor DeviceType . Defines the name of device type used.
     - \xmlAtt \b AcquisitionRate \anchor DeviceAcquisitionRate . Defines how many frames the device should acquire in a second. Depending on capabilities of the device the actual frame rate may differ from this requested frame rate. Optional, default is specified by the device.
     - \xmlAtt \b LocalTimeOffsetSec \anchor LocalTimeOffsetSec . This value allows for compensating time lag of the data acquisition of the device. The value is typically determined by temporal calibration. Global time (common for all devices in the process) is computed from the device's local time (timestamps provided by the device) as: GlobalTime = LocalTime + LocalTimeOffset. Therefore, if local time is the time when the process receives the data from a device and it takes 0.5 sec for the device to acquire data and send to the process then the LocalTimeOffsetSec value will be -0.5. Optional. Default value is 0 sec.
@@ -28,7 +38,7 @@ The data collector component acquires data from several physical or software dev
         - \xmlAtt \b BufferSize \anchor BufferSize . Specifies how many most recent data items the device should keep in memory. It is advisable to keep in memory at least the data that is acquired in the last couple of seconds, to allow synchronized retrieving of data from various devices with slightly different time offsets at the same time. The buffer also helps avoiding data loss when temporarily the process is busy with computations or input/output operations. Too high value results in large memory areas allocated to these buffers, thus reducing available memory for other operations, such as volume reconstruct. Required. Minimum recommended value is 5 times AcquisitionRate (last 5 sec data is kept in memory).
         - \xmlAtt \b AveragedItemsForFiltering \anchor AveragedItemsForFiltering . Number of items used for timestamp jitter reduction filtering. Timestamp jitter filtering is only used if the device does not provide timestamps and so the data collector applies timestamps when it receives the data.
         - \xmlAtt \b PortName \anchor PortName . Port name is used to identify the tool among all the tools provided by the device.
-        - \xmlAtt \b PortUsImageOrientation \anchor PortUsImageOrientation . The orientation of the image outputted by the device
+        - \xmlAtt \b PortUsImageOrientation \anchor PortUsImageOrientation . The orientation of the image outputted by the device. See detailed description at \subpage UltrasoundImageOrientation.
           - \c US_IMG_ORIENT_UF image \c x axis = unmarked transducer axis, image \c y axis = far transducer axis.
           - \c US_IMG_ORIENT_UN image \c x axis = unmarked transducer axis, image \c y axis = near transducer axis.
           - \c US_IMG_ORIENT_MF image \c x axis = marked transducer axis, image \c y axis = far transducer axis.

@@ -34,6 +34,7 @@ ADD_TEST(PlusMathTest
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(AccurateTimerTest AccurateTimerTest.cxx )
 TARGET_LINK_LIBRARIES(AccurateTimerTest vtkPlusCommon )
+GENERATE_HELP_DOC(AccurateTimerTest)
 
 ADD_TEST(AccurateTimerTest 
   ${EXECUTABLE_OUTPUT_PATH}/AccurateTimerTest
