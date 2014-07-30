@@ -3,11 +3,9 @@
 \page ProcedureVolumeReconstruction Volume reconstruction
 
 Volume reconstruction is the process of creating a 3D volume from many 2D image slices.
-The functionality is available in  several tools, as described below.
-
 Parameters of the volume reconstruction algorithm are described on the \ref AlgorithmVolumeReconstruction page.
 
-\section ProcedureVolumeReconstructionCommandLine Volume reconstruction using the command-line application
+\section ProcedureVolumeReconstructionCommandLine Volume reconstruction using command-line application
 
 Use the \ref ApplicationVolumeReconstructor application.
 
@@ -21,6 +19,5 @@ Use the <a href="http://wiki.slicer.org/slicerWiki/index.php/Documentation/Night
 and perform volume reconstruction. Currently fCal offers only very limited, simplified
 visualization (shows an isosurface corresponding to a single, hardcoded threshold value),
 so it is recommended to save the volume into a (.mha) file and visualize it in 3DSlicer.
-For more volume reconstruction options the command-line interface shall be used.
 
 */

@@ -2,16 +2,18 @@
 
 \page Specifications Specifications
 
-File formats
-- \subpage FileDeviceSetConfiguration
-- \subpage FileApplicationConfiguration
-- \subpage FileSequenceMetafile
-- \subpage FileLog
+Commonly used specifications:
+- \ref Devices
+- \ref UltrasoundImageOrientation
+- \ref CommonCoordinateSystems
+- \ref ApplicationfCalCoordinateSystemDefinitions
+- \ref TransformationMatrix
+- \ref PlusServerCommands
 
-Other specifications
-- \subpage TransformationMatrix
-- \subpage UltrasoundImageOrientation
-- \subpage CommonCoordinateSystems
-- \subpage PlusServerCommands
+File formats:
+- \ref FileDeviceSetConfiguration
+- \ref FileApplicationConfiguration
+- \subpage FileSequenceMetafile
+- \ref FileLog
 
 */

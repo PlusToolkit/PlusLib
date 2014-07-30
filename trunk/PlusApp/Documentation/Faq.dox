@@ -75,19 +75,21 @@ Example:
 - The input image is displayed as an Image in the Image coordinate frame
 - The Probe coordinate frame is displayed with its three axes
 
-    <Rendering WorldCoordinateFrame="Reference">
-      <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" File="L14-5_38_ProbeModel.stl"
-        ModelToObjectTransform="1 0 0 34.5        0 -1 0 1.5        0 0 -1 14        0 0 0 1"
-      />
-      <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" File="Stylus_Example.stl"
-        ModelToObjectTransform="1 0 0 -210.0        0 1 0 0        0 0 1 0        0 0 0 1"
-      />
-      <DisplayableObject Type="Model" ObjectCoordinateFrame="Phantom" Opacity="0.6" File="FCal_1.0.stl"
-        ModelToObjectTransform="1 0 0 -15.0        0 1 0 10.0        0 0 1 -5.0        0 0 0 1"
-        />
-      <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" />
-      <DisplayableObject Type="Axes" ObjectCoordinateFrame="Probe" />
-    </Rendering>
+~~~
+<Rendering WorldCoordinateFrame="Reference">
+  <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" File="L14-5_38_ProbeModel.stl"
+    ModelToObjectTransform="1 0 0 34.5        0 -1 0 1.5        0 0 -1 14        0 0 0 1"
+  />
+  <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" File="Stylus_Example.stl"
+    ModelToObjectTransform="1 0 0 -210.0        0 1 0 0        0 0 1 0        0 0 0 1"
+  />
+  <DisplayableObject Type="Model" ObjectCoordinateFrame="Phantom" Opacity="0.6" File="FCal_1.0.stl"
+    ModelToObjectTransform="1 0 0 -15.0        0 1 0 10.0        0 0 1 -5.0        0 0 0 1"
+    />
+  <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" />
+  <DisplayableObject Type="Axes" ObjectCoordinateFrame="Probe" />
+</Rendering>
+~~~
 
 # How to determine the what hardware SDK versions are actually used by Plus
 
@@ -96,5 +98,13 @@ The pre-built Plus binaries usually contain the latest hardware SDK. Run PlusVer
 # How to generate sequence metafile that contains ImageToReference transforms
 
 Use \ref ApplicationEditSeqMetaFile - see the examples.
+
+\section Questions Any questions?
+
+To ask any questions, register at <a href="http://www.assembla.com">www.assembla.com</a> and
+<a href="https://www.assembla.com/spaces/watch/plus">join the Plus space as watcher</a>. Then
+<a href="https://www.assembla.com/spaces/plus/messages/new"> post a new message</a> to the message board.
+
+To ask question from a specific person, click the <em>Email specific members</em> option.
 
 */

@@ -1,8 +1,6 @@
 /**
 
-\page HardwareSetup Hardware setup
-
-The toolkit can be used with a wide range of hardware and software devices by defining the appropriate \ref DataCollection parameters in the \ref FileDeviceSetConfiguration.
+\page Devices List of devices
 
 \par Ultrasound systems
 - \subpage DeviceSonixVideo

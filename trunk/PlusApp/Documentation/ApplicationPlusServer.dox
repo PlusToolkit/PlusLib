@@ -7,7 +7,7 @@ ultrasound image slices and send them for real-time visualization to 3D Slicer.
 
 The server supports continuous data acquisition and sending and also on-request starting/stopping
 of recording, volume reconstruction, updating of transforms, saving of the modified device set
-configuration file, etc. Requests are received through OpenIGTLink commands. See more details at \ref PlusServerCommands .
+configuration file, etc. Requests are received through OpenIGTLink commands. See more details at \subpage PlusServerCommands .
 
 \section ApplicationPlusServerUsage Usage
 

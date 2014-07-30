@@ -2,8 +2,8 @@
   <!-- Navigation index tabs for HTML output -->
   <navindex>
     <tab type="mainpage" visible="no" title=""/>
-    <tab type="usergroup" url="@ref HardwareSetup" title="Hardware setup"/>
-    <tab type="usergroup" url="@ref SystemCalibration" title="System calibration"/>
+    <tab type="usergroup" url="@ref Configuration" title="Configuration"/>
+    <tab type="usergroup" url="@ref Calibration" title="Calibration"/>
     <tab type="usergroup" url="@ref DataAcquisitionProcessing" title="Data acquisition and processing"/>
     <tab type="usergroup" url="@ref Tools" title="Tools"/>
     <tab type="usergroup" url="@ref Specifications" title="Specifications"/>
