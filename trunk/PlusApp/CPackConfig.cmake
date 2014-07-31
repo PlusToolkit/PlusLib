@@ -34,14 +34,16 @@ IF(WIN32)
     !insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
     Delete \\\"$SMPROGRAMS\\\\$MUI_TEMP\\\\Plus command prompt.lnk\\\"
     ")
-  # Create a shortcut to documentation as well
-  SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
-    CreateShortCut \\\"$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Plus user manual.lnk\\\" \\\"$INSTDIR\\\\doc\\\\PlusApp-UserManual.chm\\\"
-    ")
-  SET(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
-    !insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
-    Delete \\\"$SMPROGRAMS\\\\$MUI_TEMP\\\\User manual.lnk\\\"
-    ")
+  IF(BUILD_DOCUMENTATION)
+    # Create a shortcut to documentation as well
+    SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
+      CreateShortCut \\\"$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Plus user manual.lnk\\\" \\\"$INSTDIR\\\\doc\\\\PlusApp-UserManual.chm\\\"
+      ")
+    SET(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
+      !insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
+      Delete \\\"$SMPROGRAMS\\\\$MUI_TEMP\\\\User manual.lnk\\\"
+      ")
+  ENDIF(BUILD_DOCUMENTATION)
 ENDIF(WIN32)
 
 IF(EXISTS "${PLUSLIB_DIR}/CMakeCache.txt")
