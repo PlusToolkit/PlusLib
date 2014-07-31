@@ -17,7 +17,6 @@ if( DOXYGEN_FOUND )
     if(WIN32)
       set(GENERATE_HTMLHELP "YES")      
       set(COMPRESSED_HELP_TARGET_FILE_EXT ".chm")
-      set(HHC_LOCATION "${PLUSLIB_TOOLS_DIR}/HtmlHelp/hhc.exe" CACHE FILEPATH "Path to the Windows HTML Help Compiler tool." FORCE)
       if (PLUS_DOCUMENTATION_SEARCH_SERVER_INDEXED)
         # search indexing is turned off if HTMLHELP generation is enabled, so we have to disable it
         set(GENERATE_HTMLHELP "NO")

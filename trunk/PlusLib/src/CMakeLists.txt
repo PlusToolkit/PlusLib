@@ -265,6 +265,10 @@ if(BUILD_DOCUMENTATION)
     NO_SYSTEM_ENVIRONMENT_PATH
   )
 
+  if(WIN32)
+    set(DOXYGEN_HHC_EXECUTABLE "${PLUSLIB_TOOLS_DIR}/HtmlHelp/hhc.exe" CACHE FILEPATH "Path to the Windows HTML Help Compiler tool." FORCE)
+  endif(WIN32)
+  
   add_subdirectory(Documentation)
 endif(BUILD_DOCUMENTATION)
 
