@@ -23,6 +23,7 @@ SET (CalibrationAlgo_SRCS
   vtkPhantomLinearObjectRegistrationAlgo/PointObservationBuffer.cxx
   vtkPhantomLinearObjectRegistrationAlgo/Reference.cxx
   vtkPhantomLinearObjectRegistrationAlgo/References.cxx
+  vtkPivotDetectionAlgo/vtkPivotDetectionAlgo.cxx
   )
 
 SET (CalibrationAlgo_HDRS)  
@@ -49,6 +50,7 @@ IF (WIN32)
     vtkPhantomLinearObjectRegistrationAlgo/PointObservationBuffer.h
     vtkPhantomLinearObjectRegistrationAlgo/Reference.h
     vtkPhantomLinearObjectRegistrationAlgo/References.h
+    vtkPivotDetectionAlgo/vtkPivotDetectionAlgo.h
     )
 ENDIF (WIN32)
 
@@ -61,7 +63,8 @@ SET (CalibrationAlgo_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkPivotCalibrationAlgo
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkProbeCalibrationAlgo
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkSpacingCalibAlgo
-  ${CMAKE_CURRENT_SOURCE_DIR}/vtkTemporalCalibrationAlgo 
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkTemporalCalibrationAlgo
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkPivotDetectionAlgo
   CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
