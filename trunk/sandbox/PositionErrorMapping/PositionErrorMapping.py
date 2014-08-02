@@ -349,12 +349,21 @@ class PositionErrorMappingLogic:
       outputTransform.GetTargetLandmarks().InsertNextPoint(mappedPos[0],mappedPos[1],mappedPos[2])
       self.outputTransformNode.GetTransformToParent().Modified()
 
-  def exportTransformToVectorVolume(self, outputTransform, exportRoi):
-    roiBounds_Ras = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-    exportRoi.GetRASBounds(roiBounds_Ras)
-    exportVolumeSize = [(roiBounds_Ras[1]-roiBounds_Ras[0]+1)/self.exportVolumeSpacingMm, (roiBounds_Ras[3]-roiBounds_Ras[2]+1)/self.exportVolumeSpacingMm, (roiBounds_Ras[5]-roiBounds_Ras[4]+1)/self.exportVolumeSpacingMm]
+  def createVectorVolumeFromRoi(self, exportRoi, spacingMm):
+    roiCenter = [0, 0, 0]
+    exportRoi.GetXYZ( roiCenter )
+    roiRadius = [0, 0, 0]
+    exportRoi.GetRadiusXYZ( roiRadius )
+    roiOrigin_Roi = [roiCenter[0] - roiRadius[0], roiCenter[1] - roiRadius[1], roiCenter[2] - roiRadius[2], 1 ]
+    
+    roiToRas = vtk.vtkMatrix4x4()
+    if exportRoi.GetTransformNodeID() != None:
+      roiBoxTransformNode = slicer.mrmlScene.GetNodeByID(exportRoi.GetTransformNodeID())
+      roiBoxTransformNode.GetMatrixTransformToWorld(roiToRas)
+        
+    exportVolumeSize = [roiRadius[0]*2/spacingMm, roiRadius[1]*2/spacingMm, roiRadius[2]*2/spacingMm]
     exportVolumeSize = [int(math.ceil(x)) for x in exportVolumeSize]
-
+    
     exportImageData = vtk.vtkImageData()
     exportImageData.SetExtent(0, exportVolumeSize[0]-1, 0, exportVolumeSize[1]-1, 0, exportVolumeSize[2]-1)
     if vtk.VTK_MAJOR_VERSION <= 5:
@@ -366,7 +375,15 @@ class PositionErrorMappingLogic:
 
     exportVolume = slicer.vtkMRMLVectorVolumeNode()
     exportVolume.SetAndObserveImageData(exportImageData)
-    exportVolume.SetSpacing(self.exportVolumeSpacingMm, self.exportVolumeSpacingMm, self.exportVolumeSpacingMm)
-    exportVolume.SetOrigin(roiBounds_Ras[0], roiBounds_Ras[2], roiBounds_Ras[4])
-
+    exportVolume.SetIJKToRASDirections( roiToRas.GetElement(0,0), roiToRas.GetElement(0,1), roiToRas.GetElement(0,2), roiToRas.GetElement(1,0), roiToRas.GetElement(1,1), roiToRas.GetElement(1,2), roiToRas.GetElement(2,0), roiToRas.GetElement(2,1), roiToRas.GetElement(2,2))
+    exportVolume.SetSpacing(spacingMm, spacingMm, spacingMm)
+    roiOrigin_Ras = roiToRas.MultiplyPoint(roiOrigin_Roi)
+    exportVolume.SetOrigin(roiOrigin_Ras[0:3])
+    
+    return exportVolume
+      
+  def exportTransformToVectorVolume(self, outputTransform, exportRoi):
+  
+    exportVolume = self.createVectorVolumeFromRoi(exportRoi, self.exportVolumeSpacingMm)
+    
     slicer.modules.transforms.logic().CreateDisplacementVolumeFromTransform(outputTransform, exportVolume, False)
