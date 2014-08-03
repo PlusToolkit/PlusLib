@@ -128,23 +128,25 @@ class CompareDisplacementFieldsWidget:
     self.averageOutputFieldSelector.addEnabled = True
     self.averageOutputFieldSelector.removeEnabled = True
     self.averageOutputFieldSelector.renameEnabled = True
+    self.averageOutputFieldSelector.baseName = 'Mean'
     self.averageOutputFieldSelector.setMRMLScene( slicer.mrmlScene )
     self.averageOutputFieldSelector.setToolTip( "Computed mean of the displacement fields" )
     averageFormLayout.addRow(self.averageOutputFieldLabel, self.averageOutputFieldSelector)
 
     self.varianceOutputFieldLabel = qt.QLabel()
-    self.varianceOutputFieldLabel.setText( 'Output field variance:')
+    self.varianceOutputFieldLabel.setText( 'Output field mean error:')
     self.varianceOutputFieldSelector = slicer.qMRMLNodeComboBox()
     self.varianceOutputFieldSelector.nodeTypes = ( "vtkMRMLScalarVolumeNode", "" )
     self.varianceOutputFieldSelector.noneEnabled = True
     self.varianceOutputFieldSelector.addEnabled = True
     self.varianceOutputFieldSelector.removeEnabled = True
     self.varianceOutputFieldSelector.renameEnabled = True
+    self.varianceOutputFieldSelector.showChildNodeTypes = False
+    self.varianceOutputFieldSelector.baseName = 'MeanError'
     self.varianceOutputFieldSelector.setMRMLScene( slicer.mrmlScene )
     self.varianceOutputFieldSelector.setToolTip( "Computed variance of the displacement fields" )
     averageFormLayout.addRow(self.varianceOutputFieldLabel, self.varianceOutputFieldSelector)
 
-      
     # Compute button
     self.averageComputeButton = qt.QPushButton("Compute")
     self.averageComputeButton.toolTip = "Compute average and standard deviation"
@@ -182,6 +184,19 @@ class CompareDisplacementFieldsWidget:
     self.differenceInputFieldBSelector.setMRMLScene( slicer.mrmlScene )
     self.differenceInputFieldBSelector.setToolTip( "Pick the field to subtract from the other" )
     differenceFormLayout.addRow(self.differenceInputFieldBLabel, self.differenceInputFieldBSelector)
+
+    self.differenceOutputFieldLabel = qt.QLabel()
+    self.differenceOutputFieldLabel.setText( 'Output difference:')
+    self.differenceOutputFieldSelector = slicer.qMRMLNodeComboBox()
+    self.differenceOutputFieldSelector.nodeTypes = ( "vtkMRMLVectorVolumeNode", "" )
+    self.differenceOutputFieldSelector.noneEnabled = True
+    self.differenceOutputFieldSelector.addEnabled = True
+    self.differenceOutputFieldSelector.removeEnabled = True
+    self.differenceOutputFieldSelector.renameEnabled = True
+    self.differenceOutputFieldSelector.baseName = 'Difference'
+    self.differenceOutputFieldSelector.setMRMLScene( slicer.mrmlScene )
+    self.differenceOutputFieldSelector.setToolTip( "Computed difference of the displacement fields" )
+    differenceFormLayout.addRow(self.differenceOutputFieldLabel, self.differenceOutputFieldSelector)
     
     # Compute button
     self.differenceComputeButton = qt.QPushButton("Compute")
@@ -209,7 +224,7 @@ class CompareDisplacementFieldsWidget:
   
   def computeDifference(self, clicked):
     self.logic.ReferenceVolumeSpacingMm = self.compareVolumeSpacing.value
-    self.logic.computeDifference(self.differenceInputFieldASelector.currentNode(), self.differenceInputFieldBSelector.currentNode(), self.exportRoiSelector.currentNode())
+    self.logic.computeDifference(self.differenceInputFieldASelector.currentNode(), self.differenceInputFieldBSelector.currentNode(), self.exportRoiSelector.currentNode(), self.differenceOutputFieldSelector.currentNode())
   
   def onReload(self,moduleName="CompareDisplacementFields"):
     """Generic reload method for any scripted module.
@@ -321,7 +336,6 @@ class CompareDisplacementFieldsLogic:
 
     
   def resampleVolume(self, inputVolume, referenceVolume):
-#    import slicer.util
     parameters = {}
     parameters["inputVolume"] = inputVolume.GetID()    
     parameters["referenceVolume"] = referenceVolume.GetID()
@@ -329,16 +343,17 @@ class CompareDisplacementFieldsLogic:
     outputVolume.SetName('ResampledVolume')
     slicer.mrmlScene.AddNode( outputVolume )
     parameters["outputVolume"] = outputVolume.GetID()
+#   Instead of
 #    slicer.cli.run(slicer.modules.resamplescalarvectordwivolume, None, parameters, wait_for_completion=True)
+#   apply using custom code to allow disabling DisplayData in ApplyAndWait
     module = slicer.modules.resamplescalarvectordwivolume
     node = slicer.cli.createNode(module, parameters)
     logic = module.logic()
-#    logic.SetDeleteTemporaryFiles(1)
     logic.ApplyAndWait(node, False)
 
     return outputVolume
 
-  def computeDifference(self, fieldA, fieldB, roi):
+  def computeDifference(self, fieldA, fieldB, roi, differenceVolume):
     referenceVolume = self.createVectorVolumeFromRoi(roi, self.ReferenceVolumeSpacingMm)
     referenceVolume.SetName('ReferenceVolume')
     slicer.mrmlScene.AddNode( referenceVolume )
@@ -348,13 +363,10 @@ class CompareDisplacementFieldsLogic:
     subtractor.SetOperationToSubtract()
     subtractor.SetInput1Data(resampledFieldA.GetImageData())
     subtractor.SetInput2Data(resampledFieldB.GetImageData())
-    differenceVolume = slicer.vtkMRMLVectorVolumeNode()
     differenceVolume.SetImageDataConnection(subtractor.GetOutputPort())
     ijkToRasMatrix = vtk.vtkMatrix4x4()
     referenceVolume.GetIJKToRASMatrix(ijkToRasMatrix)
     differenceVolume.SetIJKToRASMatrix(ijkToRasMatrix)
-    differenceVolume.SetName('Difference_{0}-{1}'.format(fieldA.GetName(), fieldB.GetName()))
-    slicer.mrmlScene.AddNode( differenceVolume )
     
     differenceVolumeDisplayNode = slicer.vtkMRMLVectorVolumeDisplayNode()
     slicer.mrmlScene.AddNode( differenceVolumeDisplayNode )
@@ -365,73 +377,29 @@ class CompareDisplacementFieldsLogic:
     slicer.mrmlScene.RemoveNode( resampledFieldB )
     slicer.mrmlScene.RemoveNode( referenceVolume )
 
-  def getNumpyArray(self, n):
-    vectorTypes = ('vtkMRMLVectorVolumeNode', 'vtkMRMLMultiVolumeNode')
-    tensorTypes = ('vtkMRMLDiffusionTensorVolumeNode',)
-    import vtk.util.numpy_support
-    if n.GetClassName() == 'vtkMRMLScalarVolumeNode':
-      i = n.GetImageData()
-      shape = list(n.GetImageData().GetDimensions())
-      shape.reverse()
-      a = vtk.util.numpy_support.vtk_to_numpy(i.GetPointData().GetScalars()).reshape(shape)
-      return a
-    elif n.GetClassName() in vectorTypes:
-      i = n.GetImageData()
-      shape = list(n.GetImageData().GetDimensions())
-      shape.reverse()
-      components = i.GetNumberOfScalarComponents()
-      if components > 1:
-        shape.append(components)
-      a = vtk.util.numpy_support.vtk_to_numpy(i.GetPointData().GetScalars()).reshape(shape)
-      return a
-    elif n.GetClassName() in tensorTypes:
-      i = n.GetImageData()
-      shape = list(n.GetImageData().GetDimensions())
-      shape.reverse()
-      a = vtk.util.numpy_support.vtk_to_numpy(i.GetPointData().GetTensors()).reshape(shape+[3,3])
-      return a
-    # TODO: accessors for other node types: polydata (verts, polys...), colors 
-      
   def computeAverage(self, inputFieldNodes, roi, outputAverageVolume, outputVarianceVolume):
-
-    global meanArray
   
     referenceVolume = self.createVectorVolumeFromRoi(roi, self.ReferenceVolumeSpacingMm)
     referenceVolume.SetName('ReferenceVolume')
     slicer.mrmlScene.AddNode( referenceVolume )
-
-    refArray = self.getNumpyArray(referenceVolume)
     
     fieldNodes=[]
-    # allFieldArray indices: [field, z, y, x, components]
-    allFieldArray = numpy.zeros((len(inputFieldNodes),) + refArray.shape)
-    fieldIndex = 0
+    fieldImageData=[]
     for fieldNode in inputFieldNodes:
       resampledFieldNode = self.resampleVolume(fieldNode, referenceVolume)
       fieldNodes.append(resampledFieldNode)
-      allFieldArray[fieldIndex] = self.getNumpyArray(resampledFieldNode)
-      fieldIndex = fieldIndex + 1
-
+      fieldImageData.append(resampledFieldNode.GetImageData())
+ 
     ijkToRasMatrix = vtk.vtkMatrix4x4()
       
     # Average volume
-    
     averageImageData = vtk.vtkImageData()
     averageImageData.DeepCopy(referenceVolume.GetImageData())
     outputAverageVolume.SetAndObserveImageData(averageImageData)
     referenceVolume.GetIJKToRASMatrix(ijkToRasMatrix)
     outputAverageVolume.SetIJKToRASMatrix(ijkToRasMatrix)
-
-    if not outputAverageVolume.GetNthDisplayNode(0):
-      outputAverageVolumeDisplayNode = slicer.vtkMRMLVectorVolumeDisplayNode()
-      slicer.mrmlScene.AddNode( outputAverageVolumeDisplayNode )
-      outputAverageVolumeDisplayNode.SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
-      outputAverageVolume.SetAndObserveNthDisplayNodeID(0, outputAverageVolumeDisplayNode.GetID()); 
     
     # Variance volume
-    
-    outputVarianceVolume = self.createVectorVolumeFromRoi(roi, self.ReferenceVolumeSpacingMm, 1)
-
     varianceImageData = vtk.vtkImageData()    
     varianceImageData.SetExtent(averageImageData.GetExtent())
     if vtk.VTK_MAJOR_VERSION <= 5:
@@ -441,23 +409,50 @@ class CompareDisplacementFieldsLogic:
     else:
       varianceImageData.AllocateScalars(vtk.VTK_DOUBLE, 1)
     outputVarianceVolume.SetIJKToRASMatrix(ijkToRasMatrix)
+    outputVarianceVolume.SetAndObserveImageData(varianceImageData)
 
-    outputVarianceVolumeDisplayNode = slicer.vtkMRMLScalarVolumeDisplayNode()
-    slicer.mrmlScene.AddNode( outputVarianceVolumeDisplayNode )
-    outputVarianceVolumeDisplayNode.SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
-    outputVarianceVolume.SetAndObserveNthDisplayNodeID(0, outputVarianceVolumeDisplayNode.GetID()); 
-
-    ################
-    # averageImageDataTmp = vtk.vtkImageData()
-    # averageImageDataTmp.DeepCopy(referenceVolume.GetImageData())
-    averageNodeTmp = self.createVectorVolumeFromRoi(roi, self.ReferenceVolumeSpacingMm)
-    averageNodeTmpArray = self.getNumpyArray(averageNodeTmp)
+    # Compute
     
-    #meanArray = self.getNumpyArray(outputAverageVolume)
-    #meanArray = numpy.mean(allFieldArray, axis = 0)
-    averageNodeTmpArray = numpy.mean(allFieldArray, axis = 0)
-    outputAverageVolume.GetImageData().DeepCopy(averageNodeTmp.GetImageData())
+    dims = averageImageData.GetDimensions()
+    # [field, component]
+    voxelValues = numpy.zeros([len(fieldImageData), 3])
+    for z in xrange(dims[2]):
+      for y in xrange(dims[1]):
+        for x in xrange(dims[0]):
+          fieldIndex = 0
+          for imageData in fieldImageData:
+            voxelValues[fieldIndex,0] = imageData.GetScalarComponentAsDouble(x, y, z, 0)
+            voxelValues[fieldIndex,1] = imageData.GetScalarComponentAsDouble(x, y, z, 1)
+            voxelValues[fieldIndex,2] = imageData.GetScalarComponentAsDouble(x, y, z, 2)
+            fieldIndex = fieldIndex+1
+          meanVoxelValues = numpy.mean(voxelValues, axis = 0)
+          averageImageData.SetScalarComponentFromDouble(x, y, z, 0, meanVoxelValues[0])
+          averageImageData.SetScalarComponentFromDouble(x, y, z, 1, meanVoxelValues[1])
+          averageImageData.SetScalarComponentFromDouble(x, y, z, 2, meanVoxelValues[2])
+          # Compute the mean of the magnitude of the error vectors
+          errorValues = voxelValues-meanVoxelValues
+          errorVectorMagnitudes = numpy.sqrt(numpy.sum(errorValues*errorValues, axis=1))
+          varianceImageData.SetScalarComponentFromDouble(x, y, z, 0, numpy.mean(errorVectorMagnitudes))
 
+    averageImageData.Modified()
+    varianceImageData.Modified()
+    
+    # Create display node if they have not created yet
+    
+    if not outputAverageVolume.GetNthDisplayNode(0):
+      outputAverageVolumeDisplayNode = slicer.vtkMRMLVectorVolumeDisplayNode()
+      slicer.mrmlScene.AddNode( outputAverageVolumeDisplayNode )
+      outputAverageVolumeDisplayNode.SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
+      outputAverageVolume.SetAndObserveNthDisplayNodeID(0, outputAverageVolumeDisplayNode.GetID()); 
+    
+    if not outputVarianceVolume.GetNthDisplayNode(0):
+      outputVarianceVolumeDisplayNode = slicer.vtkMRMLScalarVolumeDisplayNode()
+      slicer.mrmlScene.AddNode( outputVarianceVolumeDisplayNode )
+      outputVarianceVolumeDisplayNode.SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
+      outputVarianceVolume.SetAndObserveNthDisplayNodeID(0, outputVarianceVolumeDisplayNode.GetID()); 
+
+    # Clean up temporary nodes
+    
     for fieldNode in fieldNodes:
       slicer.mrmlScene.RemoveNode( fieldNode )
 
