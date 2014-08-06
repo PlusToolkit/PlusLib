@@ -10,7 +10,7 @@ GENERATE_HELP_DOC(VolumeReconstructor)
 ADD_TEST(vtkVolumeReconstructorTest1
   ${EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_VolumeReconstructionOnly_SonixRP_TRUS_D70mm.xml 
-  --source-seq-file=${TestDataDir}/USTC_Ulterius_ProbeTranslationData.mha
+  --source-seq-file=${TestDataDir}/SpinePhantomFreehand.mha
   --output-volume-file=vtkVolumeReconstructorTest1Output.mha
   --image-to-reference-transform=ImageToReference
   )

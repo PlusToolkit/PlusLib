@@ -205,9 +205,10 @@ static void vtkUnoptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* 
   // parameters for clipping
   double* clipRectangleOrigin = insertionParams->clipRectangleOrigin; // array size 2
   double* clipRectangleSize = insertionParams->clipRectangleSize; // array size 2
-  double* fanAngles = insertionParams->fanAngles; // array size 2, for transrectal/curvilinear transducers
+  double* fanAnglesDeg = insertionParams->fanAnglesDeg; // array size 2, for transrectal/curvilinear transducers
   double* fanOrigin = insertionParams->fanOrigin; // array size 2
-  double fanDepth = insertionParams->fanDepth;
+  double fanRadiusStart = insertionParams->fanRadiusStart;
+  double fanRadiusStop = insertionParams->fanRadiusStop;
 
   // slice spacing and origin
   vtkFloatingPointType inSpacing[3];  
@@ -222,7 +223,8 @@ static void vtkUnoptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* 
     (fanOrigin[1]-inOrigin[1])/inSpacing[1]
   };
   // fan depth squared 
-  double fanDepthSquaredMm = fanDepth*fanDepth;
+  double squaredFanRadiusStart = fanRadiusStart*fanRadiusStart;
+  double squaredFanRadiusStop = fanRadiusStop*fanRadiusStop;
 
   // absolute value of slice spacing
   double inSpacingSquare[2]=
@@ -233,8 +235,8 @@ static void vtkUnoptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* 
 
   double pixelAspectRatio=fabs(inSpacing[1]/inSpacing[0]);
   // tan of the left and right fan angles
-  double fanLinePixelRatioLeft = tan(vtkMath::RadiansFromDegrees(fanAngles[0]))*pixelAspectRatio;
-  double fanLinePixelRatioRight = tan(vtkMath::RadiansFromDegrees(fanAngles[1]))*pixelAspectRatio;
+  double fanLinePixelRatioLeft = tan(vtkMath::RadiansFromDegrees(fanAnglesDeg[0]))*pixelAspectRatio;
+  double fanLinePixelRatioRight = tan(vtkMath::RadiansFromDegrees(fanAnglesDeg[1]))*pixelAspectRatio;
   // the tan of the right fan angle is always greater than the left one
   if (fanLinePixelRatioLeft > fanLinePixelRatioRight)
   {
@@ -280,55 +282,63 @@ static void vtkUnoptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* 
   double outPoint[4];
   double inPoint[4]; 
   inPoint[3] = 1;
-  for (int idZ = inExt[4]; idZ <= inExt[5]; idZ++)
+  bool fanClippingEnabled = (fanLinePixelRatioLeft != 0 || fanLinePixelRatioRight != 0);
+  for (int idZ = inExt[4]; idZ <= inExt[5]; idZ++, inPtr += inIncZ)
   {
-    for (int idY = inExt[2]; idY <= inExt[3]; idY++)
+    for (int idY = inExt[2]; idY <= inExt[3]; idY++, inPtr += inIncY)
     {
-      for (int idX = inExt[0]; idX <= inExt[1]; idX++)
+      for (int idX = inExt[0]; idX <= inExt[1]; idX++, inPtr += numscalars)
       {
+        // check if we are within the current clip extent
+        if (idX < clipExt[0] || idX > clipExt[1] || idY < clipExt[2] || idY > clipExt[3])
+        {
+          // outside the clipping rectangle
+          continue;
+        }
 
-        // if we are within the current clip extent
-        if (idX >= clipExt[0] && idX <= clipExt[1] && 
-          idY >= clipExt[2] && idY <= clipExt[3])
+        // check if we are within the clipping fan
+        if ( fanClippingEnabled )
         {
           // x and y are the current pixel coordinates in fan coordinate system (in pixels)
           double x = (idX-fanOriginInPixels[0]);
           double y = (idY-fanOriginInPixels[1]);
-
-          // if we are within the fan
-          if ( (fanLinePixelRatioLeft == 0 && fanLinePixelRatioRight == 0) /* rectangular clipping region */ ||
-            (y>0) && (x*x*inSpacingSquare[0]+y*y*inSpacingSquare[1]<fanDepthSquaredMm) && (x/y>=fanLinePixelRatioLeft) && (x/y<=fanLinePixelRatioRight) /* fan clipping region */ )
-          {  
-            inPoint[0] = idX;
-            inPoint[1] = idY;
-            inPoint[2] = idZ;
-
-            // matrix multiplication - input -> output
-            for (int i = 0; i < 4; i++)
-            {
-              int rowindex = i << 2;
-              outPoint[i] =  matrix[rowindex  ] * inPoint[0] + 
-                             matrix[rowindex+1] * inPoint[1] + 
-                             matrix[rowindex+2] * inPoint[2] + 
-                             matrix[rowindex+3] * inPoint[3] ;
-            }
-
-            // deal with w (homogeneous transform) if the transform was a perspective transform
-            outPoint[0] /= outPoint[3]; 
-            outPoint[1] /= outPoint[3]; 
-            outPoint[2] /= outPoint[3];
-            outPoint[3] = 1;
-
-            // interpolation functions return 1 if the interpolation was successful, 0 otherwise
-            int hit = interpolate(outPoint, inPtr, outPtr, accPtr, numscalars, calculationMode, outExt, outInc, accOverflowCount);
+          if (y<0 || (x/y<fanLinePixelRatioLeft) || (x/y>fanLinePixelRatioRight))
+          {
+            // outside the fan triangle
+            continue;
+          }
+          double squaredDistanceFromFanOrigin = x*x*inSpacingSquare[0]+y*y*inSpacingSquare[1];
+          if (squaredDistanceFromFanOrigin<squaredFanRadiusStart || squaredDistanceFromFanOrigin>squaredFanRadiusStop)
+          {
+            // too close or too far from the fan origin
+            continue;
           }
         }
 
-        inPtr += numscalars; 
+        inPoint[0] = idX;
+        inPoint[1] = idY;
+        inPoint[2] = idZ;
+
+        // matrix multiplication - input -> output
+        for (int i = 0; i < 4; i++)
+        {
+          int rowindex = i << 2;
+          outPoint[i] = matrix[rowindex  ] * inPoint[0] + 
+                        matrix[rowindex+1] * inPoint[1] + 
+                        matrix[rowindex+2] * inPoint[2] + 
+                        matrix[rowindex+3] * inPoint[3] ;
+        }
+
+        // deal with w (homogeneous transform) if the transform was a perspective transform
+        outPoint[0] /= outPoint[3]; 
+        outPoint[1] /= outPoint[3]; 
+        outPoint[2] /= outPoint[3];
+        outPoint[3] = 1;
+
+        // interpolation functions return 1 if the interpolation was successful, 0 otherwise
+        int hit = interpolate(outPoint, inPtr, outPtr, accPtr, numscalars, calculationMode, outExt, outInc, accOverflowCount);
       }
-      inPtr += inIncY;
     }
-    inPtr += inIncZ;
   }
 }
 

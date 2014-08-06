@@ -99,18 +99,19 @@ ADD_SUBDIRECTORY(src)
 # Generate convenience files for automatic build, test, and packaging
 #
 
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.bat.in 
-  ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.bat
-  )
-  
-# Documentation generator
 STRING(TOUPPER ${CMAKE_MAKE_PROGRAM} MAKE_PROGRAM_UPPERCASE)
 IF (${MAKE_PROGRAM_UPPERCASE} MATCHES "MSBUILD")
   SET(IS_MAKE_PROGRAM_MSBUILD TRUE)
 ELSE()
   SET(IS_MAKE_PROGRAM_MSBUILD FALSE)
 ENDIF()
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.bat.in 
+  ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.bat
+  )
+  
+# Documentation generator
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/CreateApiReference.bat.in 
   ${CMAKE_CURRENT_BINARY_DIR}/CreateApiReference.bat

@@ -126,9 +126,11 @@ struct vtkPasteSliceIntoVolumeInsertSliceParams
   // parameters for clipping
   double* clipRectangleOrigin; // array size 2
   double* clipRectangleSize; // array size 2
-  double* fanAngles; // array size 2, for transrectal/curvilinear transducers
-  double* fanOrigin; // array size 2
-  double fanDepth;
+  // parameters for cliipping for curvilinear transducers
+  double* fanAnglesDeg; // array size 2
+  double* fanOrigin; // array size 2, in the input image physical coordinate system
+  double fanRadiusStart; // in the input image physical coordinate system
+  double fanRadiusStop; // in the input image physical coordinate system
 };
 
 

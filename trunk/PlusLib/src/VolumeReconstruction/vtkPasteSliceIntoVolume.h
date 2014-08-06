@@ -161,7 +161,7 @@ public:
 
   /*!
     Set fan-shaped clipping region for curvilinear probes.
-    The origin of the fan is defined in the image coordinate system, in mm.
+    The origin of the fan is defined in the image coordinate system, in the input image physical coordinate system.
   */
   vtkSetVector2Macro(FanOrigin,double);
   /*! Get fan-shaped clipping region for curvilinear probes */
@@ -172,17 +172,31 @@ public:
     Fan angles is a vector containing the angles of the two straight edge of the fan, in degrees.
     If both angles are 0 then no fan-shaped clipping is performed.
   */
-  vtkSetVector2Macro(FanAngles,double);
+  vtkSetVector2Macro(FanAnglesDeg,double);
   /*! Set the fan-shaped clipping region for curvilinear probes */
-  vtkGetVector2Macro(FanAngles,double);
+  vtkGetVector2Macro(FanAnglesDeg,double);
   
   /*!
     Set the fan-shaped clipping region for curvilinear probes.
-    Fan depth is the radius of the fan, in mm.
+    Fan radius start is the minimum depth, in the input image physical coordinate system.
   */
-  vtkSetMacro(FanDepth,double);
-  /*! Get the fan-shaped clipping region for curvilinear probes */
-  vtkGetMacro(FanDepth,double);
+  vtkSetMacro(FanRadiusStart,double);
+  /*!
+    Get the fan-shaped clipping region for curvilinear probes.
+    Fan radius start is the minimum depth, in the input image physical coordinate system.
+  */
+  vtkGetMacro(FanRadiusStart,double);
+
+  /*!
+    Set the fan-shaped clipping region for curvilinear probes.
+    Fan radius stopt is the maximum depth, in the input image physical coordinate system.
+  */
+  vtkSetMacro(FanRadiusStop,double);
+  /*!
+    Get the fan-shaped clipping region for curvilinear probes.
+    Fan radius start is the maximum depth, in the input image physical coordinate system.
+  */
+  vtkGetMacro(FanRadiusStop,double);
 
   /*! 
     Returns true if fan-shaped clipping is applied (true, if any of the
@@ -291,9 +305,10 @@ protected:
   // Clipping parameters
   int ClipRectangleOrigin[2];
   int ClipRectangleSize[2];
-  double FanAngles[2];
-  double FanOrigin[2];
-  double FanDepth;
+  double FanAnglesDeg[2];
+  double FanOrigin[2]; // in the input image coordinate system (in physical coordinates; but Plus always uses 1.0 spacing, so these are effectively in pixels)
+  double FanRadiusStart; // in the input image coordinate system (in physical coordinates; but Plus always uses 1.0 spacing, so the value is effectively in pixels)
+  double FanRadiusStop; // in the input image coordinate system (in physical coordinates; but Plus always uses 1.0 spacing, so the value effectively in pixels)
 
   // Reconstruction options
   InterpolationType InterpolationMode;

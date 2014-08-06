@@ -34,9 +34,10 @@ assigned any intensity value in the distribution step. Hole filling algorithm ru
   - \xmlAtt \b OutputExtent Two position vectors that determine the reconstructed volume extent. \OptionalAtt{0 0 0}
   - \xmlAtt \b ClipRectangleOrigin Crop rectangle origin of the frame (in pixels). See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{0 0}
   - \xmlAtt \b ClipRectangleSize Crop rectangle size of the frame (in pixels). If it is \c "0 0" then the whole frame will be captured. See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{0 0}
-  - \xmlAtt \b FanAngles Fan angles is a vector containing the angles of the two straight edge of the fan, in degrees. If both angles are 0 then no fan-shaped clipping is performed. See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{0 0}
-  - \xmlAtt \b FanOrigin The origin of the fan is defined in the image coordinate system, in mm. See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{0 0}
-  - \xmlAtt \b FanDepth Fan depth is the radius of the fan [mm]. See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{1.0}
+  - \xmlAtt \b FanAnglesDeg Two-element vector containing the angles of the two straight edge of the fan, in degrees. If both angles are 0 then no fan clipping is performed. See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{0 0}
+  - \xmlAtt \b FanOriginPixel Two-element vector containing the origin of the clipping fan, in the image coordinate system (in pixels). See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{0 0}
+  - \xmlAtt \b FanRadiusStartPixel Maximum depth of the clipping fan in the image coordinate system (in pixels). See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{0}
+  - \xmlAtt \b FanRadiusStopPixel Maximum depth of the clipping fan in the image coordinate system (in pixels). See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{500}
   - \xmlAtt \b SkipInterval only every [SkipInterval] images from the input will be used in the reconstruction (Ie this is the number of frames that are skipped when the index is increased) \OptionalAtt{1}
   - \xmlAtt \b Interpolation Set the interpolation mode\OptionalAtt{NEAREST_NEIGHBOR}
       - \c LINEAR Better image quality, slower.
@@ -46,9 +47,9 @@ assigned any intensity value in the distribution step. Hole filling algorithm ru
       - \c MAXIMUM used when multiple slices are expected to intersect. 
   - \xmlAtt \b Optimization Set optimization method (turn off optimization only if it is not stable
       on your architecture). \OptionalAtt{FULL_OPTIMIZATION}
-      - \c NO_OPTIMIZATION Means no optimization (almost never used). 
-      - \c PARTIAL_OPTIMIZATION Break transformation into x, y and z components, and don't do bounds checking for nearest-neighbor interpolation.
-      - \c FULL_OPTIMIZATION Fixed-point (i.e. integer) math is used instead of float math, it is only useful with NEAREST_NEIGHBOR interpolation (when used with LINEAR interpolation then it is slower than NO_OPTIMIZATION). 
+      - \c NONE Means no optimization (almost never used). 
+      - \c PARTIAL Break transformation into x, y and z components, and don't do bounds checking for nearest-neighbor interpolation.
+      - \c FULL Fixed-point (i.e. integer) math is used instead of float math, it is only useful with NEAREST_NEIGHBOR interpolation (when used with LINEAR interpolation then it is slower than NO_OPTIMIZATION). 
   - \xmlAtt \b Compounding When it is \c ON the scans will be averaged where they overlap and saved in the accumulation buffer. If set to \c OFF then the voxel will be determined only by the last slice that intersected it. \OptionalAtt{ ON }
   - \xmlAtt \b NumberOfThreads Set number of threads used for processing the data. The reconstruction result is slightly different if more than one thread is used because due to interpolation and rounding errors is influenced by the order the pixels are processed. Choose 0 (this is the default) for maximum speed, in this case the default number of used threads equals the number of processors. Choose 1 for reproducible results. \OptionalAtt{0}
   - \xmlAtt \b FillHoles If enabled then the hole filling will be applied on output reconstructed volume. \c ON or  \c OFF. \OptionalAtt{OFF}
@@ -75,14 +76,18 @@ assigned any intensity value in the distribution step. Hole filling algorithm ru
 Images slices often contain irrelevant parts for volume reconstruction, e.g., dark or black regions at the image boundary
 or out of the image fan. To remove these image regions a rectangular and fan-shaped clipping areas can be defined.
 
-- Clipping rectangle is defined by ClipRectangleOrigin and ClipRectangleSize attributes, for example:
-    <VolumeReconstruction ... ClipRectangleOrigin="120 20" ClipRectangleSize="400 500" ... />
-- See file:UltrasoundImageOrientation.pptx  for instructions for setting up the image fan for curvilinear probes, for example:
-    <VolumeReconstruction ... FanAngles="-30 30" FanOrigin="234 -50" FanDepth="350" ... />
-  
-\image html AlgorithmVolumeReconstructionLinearRoi.png 
+Clipping rectangle must be always defined. Clipping fan is optional and it is applied in addition to the clipping rectangle:
+all pixels that are outside the clipping rectangle <em>or</em> outisde the clipping fan will be ignored in volume reconstruction.
 
-\image html AlgorithmVolumeReconstructionCurvilinearRoi.png
+Clipping rectangle and clipping fan are always defined in the MF coordinate system. If the UltrasoundImageOrientation field
+in the stored sequence metafile is not MF and the file is loaded into a generic software that ignores the UltrasoundImageOrientation field
+(such as ImageJ, 3D Slicer, Paraview) then the XY positions and orientations shown in the generic software has to be transformed.
+For example, if the image size is 640x480 pixels and UltrasoundImageOrientation=MN and the FanOrigin appears in the (320,440) position in ImageJ
+then the FanOriginPixel in the XML config file shall be (320,40).
+
+\image html AlgorithmVolumeReconstructionLinearRoi.png <!-- Source: doc\specifications\UltrasoundImageOrientation.pptx -->
+
+\image html AlgorithmVolumeReconstructionCurvilinearRoi.png <!-- Source: doc\specifications\UltrasoundImageOrientation.pptx -->
 
 \subsection VolumeReconstructionConfigSettingsCompounding
 
@@ -109,5 +114,9 @@ Example configuration file PlusDeviceSet_SpinePhantomFreehandReconstructionOnly.
 Example configuration file PlusDeviceSet_SpinePhantomFreehandReconstructionOnlyMaximum.xml
 
 \include "data/ConfigFiles/Testing/PlusDeviceSet_SpinePhantomFreehandReconstructionOnlyMaximum.xml"
+
+Example configuration file PlusDeviceSet_VolumeReconstructionOnly_SonixRP_TRUS_D70mm.xml
+
+\include "data/ConfigFiles/Testing/PlusDeviceSet_VolumeReconstructionOnly_SonixRP_TRUS_D70mm.xml"
 
 */
