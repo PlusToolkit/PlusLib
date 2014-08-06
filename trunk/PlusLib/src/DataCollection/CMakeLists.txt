@@ -16,8 +16,8 @@ OPTION (PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digi
 OPTION (PLUS_USE_EPIPHAN "Provide support for the Epiphan" OFF)
 OPTION (PLUS_USE_INTERSON_VIDEO "Provide support Interson USB ultrasound probes" OFF)
 OPTION (PLUS_USE_INTERSONSDKCXX_VIDEO "Provide support Interson SDK 1.X with C++ Wrapper USB ultrasound probes" OFF)
-OPTION(PLUS_USE_STEALTHLINK "Provide support for the Medtronick StealthLink Server" OFF)
-OPTION(PLUS_USE_IntuitiveDaVinci "Enable the tracking of the da Vinci Surgical System. Enable this only if you have a da Vinci that is accessible from this computer." OFF)
+OPTION (PLUS_USE_STEALTHLINK "Provide support for the Medtronic StealthLink Server" OFF)
+OPTION (PLUS_USE_IntuitiveDaVinci "Enable the tracking of the da Vinci Surgical System. Enable this only if you have a da Vinci that is accessible from this computer." OFF)
 
 OPTION (PLUS_TEST_BKPROFOCUS "Enable testing of acquisition from BK ProFocus ultrasound systems. Enable this only if a BK ProFocus device is connected to this computer." OFF)
 OPTION (PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
@@ -611,17 +611,24 @@ IF (PLUS_USE_STEALTHLINK)
     ${CMAKE_CURRENT_SOURCE_DIR}/StealthLink
     )
   
-  SET (DataCollection_LIBS ${DataCollection_LIBS} 
-    optimized ${STEALTHLINK_STEALTHLINK_STATIC_LIBRARY}
-    debug ${STEALTHLINK_STEALTHLINKD_STATIC_LIBRARY}
-    )
-
+  IF (WIN32)
+    SET (DataCollection_LIBS ${DataCollection_LIBS} 
+      optimized ${STEALTHLINK_STEALTHLINK_STATIC_LIBRARY}
+      debug ${STEALTHLINK_STEALTHLINKD_STATIC_LIBRARY}
+      )
+    SET ( External_Libraries_Debug ${External_Libraries_Debug} 
+      ${STEALTHLINK_STEALTHLINKD_SHARED_LIBRARY}
+      )
+  ELSE()
+    SET (DataCollection_LIBS ${DataCollection_LIBS} 
+      ${STEALTHLINK_STEALTHLINK_STATIC_LIBRARY}
+      )
+  ENDIF()
+  
   SET ( External_Libraries_Install ${External_Libraries_Install}
     ${STEALTHLINK_STEALTHLINK_SHARED_LIBRARY}
     )
-  SET ( External_Libraries_Debug ${External_Libraries_Debug} 
-    ${STEALTHLINK_STEALTHLINKD_SHARED_LIBRARY}
-    )
+
 ENDIF (PLUS_USE_STEALTHLINK)
 
 #--------------------------------------------------------------------------
