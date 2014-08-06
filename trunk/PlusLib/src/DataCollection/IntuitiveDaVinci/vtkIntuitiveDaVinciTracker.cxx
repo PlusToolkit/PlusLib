@@ -215,7 +215,7 @@ PlusStatus vtkIntuitiveDaVinciTracker::InternalConnect()
   }
 
   // For now, let's NOT use an event callback. 
-  if(!this->mDaVinci->subscribe(NULL, vtkIntuitiveDaVinciTrackerUtilities::streamCB, NULL, this))
+  if(this->mDaVinci->subscribe(NULL, vtkIntuitiveDaVinciTrackerUtilities::streamCB, NULL, this) != ISI_SUCCESS)
   {
     LOG_ERROR("Error in subscribing to events and stream! Stream not started!");
     return PLUS_FAIL;
@@ -282,9 +282,7 @@ void vtkIntuitiveDaVinciTracker::StreamCallback(void)
   for( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
     ISI_STREAM_FIELD stream_data;
-    ISI_TRANSFORM *transform;
-
-    LOG_TRACE("All subscribed fields from da Vinci have been updated");
+    ISI_TRANSFORM *transform = new ISI_TRANSFORM();
 
     std::string toolName = it->second->GetPortName();
 
@@ -292,17 +290,20 @@ void vtkIntuitiveDaVinciTracker::StreamCallback(void)
 
     if(manipIndex == -1) continue;
 
+	bool inverseTransform = false; 
     if(toolName.find("_TIP") != std::string::npos)
     {
       // Get the tip transform for this manipulator
       isi_get_stream_field( manipIndex , ISI_TIP_TRANSFORM, &stream_data);
       transform = (ISI_TRANSFORM*) stream_data.data;
     }
-    else
+	else if(toolName.find("_EYE_FRAME") != std::string::npos)
     {
-      // For this manipulator get the eye_frame (current coordinate frame w.r.t to world coordinates) 
-      isi_get_reference_frame(manipIndex , ISI_EYE_FRAME, transform);
-
+      // Get the eye_frame (current camera frame w.r.t to world coordinates) 
+	  // It doesn't matter what the manipulator index is, the EYE FRAME will be the same fo
+      // all manipulators.
+      isi_get_reference_frame(ISI_PSM2 , ISI_EYE_FRAME, transform);
+      inverseTransform = true;  // This transform is the camera to world coordinates. We want our reference to be the inverse.
     }
 
     // If we really don't have data, keep on keeping on.
@@ -310,8 +311,14 @@ void vtkIntuitiveDaVinciTracker::StreamCallback(void)
 
     setVtkMatrixFromISITransform(transformMatrix, transform);
 
-    delete transform;
-    transform = NULL;
+	if(inverseTransform)
+	{
+		vtkMatrix4x4::Invert(transformMatrix, transformMatrix);
+	}
+
+	std::ostrstream transformStream;
+	transformMatrix->Print(transformStream);
+	LOG_TRACE("Updating toolname: " << toolName << " with transform:\n\t" << transformStream << "\n");
 
 #ifdef USE_DAVINCI_TIMESTAMPS
     this->ToolTimeStampedUpdateWithoutFiltering( it->second->GetSourceId(), transformMatrix, TOOL_OK, timeSystemSec, timeSystemSec);
@@ -319,10 +326,13 @@ void vtkIntuitiveDaVinciTracker::StreamCallback(void)
     this->ToolTimeStampedUpdate( it->second->GetSourceId(), transformMatrix, TOOL_OK, this->FrameNumber, unfilteredTimestamp);
 #endif
   }
+
+  LOG_TRACE("All subscribed fields from da Vinci have been updated");
+
 }
 
 
-ISI_MANIP_INDEX vtkIntuitiveDaVinciTracker::getManipIndexFromName(std::string& toolName)
+ISI_MANIP_INDEX vtkIntuitiveDaVinciTracker::getManipIndexFromName(std::string toolName)
 {
   ISI_MANIP_INDEX manipIndex = ISI_PSM1;
 

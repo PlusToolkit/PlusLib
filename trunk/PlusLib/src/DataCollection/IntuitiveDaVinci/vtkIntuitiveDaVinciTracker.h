@@ -129,7 +129,7 @@ private:
   friend void vtkIntuitiveDaVinciTrackerUtilities::streamCB(void* userData);
   friend void vtkIntuitiveDaVinciTrackerUtilities::eventCB(ISI_MANIP_INDEX mid, ISI_EVENT_ID event_id, ISI_INT args[ISI_NUM_EVENT_ARGS],  void *userdata);
 
-  ISI_MANIP_INDEX getManipIndexFromName(std::string& toolName);
+  ISI_MANIP_INDEX getManipIndexFromName(std::string toolName);
   void setVtkMatrixFromISITransform(vtkMatrix4x4* vtkMatrix, ISI_TRANSFORM* isiMatrix);
 
   static const int CONNECT_RETRY_DELAY_SEC = 1.0;
