@@ -71,9 +71,10 @@ struct InsertSliceThreadFunctionInfoStruct
 
   double ClipRectangleOrigin[2];
   double ClipRectangleSize[2];
-  double FanAngles[2];
+  double FanAnglesDeg[2];
   double FanOrigin[2];
-  double FanDepth;
+  double FanRadiusStart;
+  double FanRadiusStop;
   std::vector<unsigned int> AccumulationBufferSaturationErrors;
 };
 
@@ -106,11 +107,12 @@ vtkPasteSliceIntoVolume::vtkPasteSliceIntoVolume()
   this->ClipRectangleSize[0] = 0;
   this->ClipRectangleSize[1] = 0;
 
-  this->FanAngles[0] = 0.0;
-  this->FanAngles[1] = 0.0;
+  this->FanAnglesDeg[0] = 0.0;
+  this->FanAnglesDeg[1] = 0.0;
   this->FanOrigin[0] = 0.0;
   this->FanOrigin[1] = 0.0;
-  this->FanDepth = 1.0;
+  this->FanRadiusStart = 0.0;
+  this->FanRadiusStop = 500.0;
 
   // scalar type for input and output
   this->OutputScalarMode = VTK_UNSIGNED_CHAR;
@@ -172,11 +174,12 @@ void vtkPasteSliceIntoVolume::PrintSelf(ostream& os, vtkIndent indent)
     this->ClipRectangleOrigin[1] << "\n";
   os << indent << "ClipRectangleSize: " << this->ClipRectangleSize[0] << " " <<
     this->ClipRectangleSize[1] << "\n";
-  os << indent << "FanAngles: " << this->FanAngles[0] << " " <<
-    this->FanAngles[1] << "\n";
+  os << indent << "FanAnglesDeg: " << this->FanAnglesDeg[0] << " " <<
+    this->FanAnglesDeg[1] << "\n";
   os << indent << "FanOrigin: " << this->FanOrigin[0] << " " <<
     this->FanOrigin[1] << "\n";
-  os << indent << "FanDepth: " << this->FanDepth << "\n";
+  os << indent << "FanRadiusStart: " << this->FanRadiusStart << "\n";
+  os << indent << "FanRadiusStop: " << this->FanRadiusStop << "\n";
   os << indent << "InterpolationMode: " << this->GetInterpolationModeAsString(this->InterpolationMode) << "\n";
   os << indent << "CalculationMode: " << this->GetCalculationModeAsString(this->CalculationMode) << "\n";
   os << indent << "Optimization: " << this->GetOptimizationModeAsString(this->Optimization) << "\n";
@@ -346,11 +349,12 @@ PlusStatus vtkPasteSliceIntoVolume::InsertSlice(vtkImageData *image, vtkMatrix4x
     str.ClipRectangleSize[0]=image->GetExtent()[1];
     str.ClipRectangleSize[1]=image->GetExtent()[3];
   }
-  str.FanAngles[0]=this->FanAngles[0];
-  str.FanAngles[1]=this->FanAngles[1];
+  str.FanAnglesDeg[0]=this->FanAnglesDeg[0];
+  str.FanAnglesDeg[1]=this->FanAnglesDeg[1];
   str.FanOrigin[0]=this->FanOrigin[0];
   str.FanOrigin[1]=this->FanOrigin[1];
-  str.FanDepth=this->FanDepth;
+  str.FanRadiusStart=this->FanRadiusStart;
+  str.FanRadiusStop=this->FanRadiusStop;
 
   if (this->NumberOfThreads>0)
   {
@@ -463,8 +467,9 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
   insertionParams.calculationMode = str->CalculationMode;
   insertionParams.clipRectangleOrigin = str->ClipRectangleOrigin;
   insertionParams.clipRectangleSize = str->ClipRectangleSize;
-  insertionParams.fanAngles = str->FanAngles;
-  insertionParams.fanDepth = str->FanDepth;
+  insertionParams.fanAnglesDeg = str->FanAnglesDeg;
+  insertionParams.fanRadiusStart = str->FanRadiusStart;
+  insertionParams.fanRadiusStop = str->FanRadiusStop;
   insertionParams.fanOrigin = str->FanOrigin;
   insertionParams.inData = str->InputFrameImage;
   insertionParams.inExt = inputFrameExtentForCurrentThread;
@@ -757,5 +762,5 @@ const char* vtkPasteSliceIntoVolume::GetOptimizationModeAsString(OptimizationTyp
 //----------------------------------------------------------------------------
 bool vtkPasteSliceIntoVolume::FanClippingApplied()
 {
-  return this->FanAngles[0] != 0.0 || this->FanAngles[1] != 0.0;
+  return this->FanAnglesDeg[0] != 0.0 || this->FanAnglesDeg[1] != 0.0;
 }

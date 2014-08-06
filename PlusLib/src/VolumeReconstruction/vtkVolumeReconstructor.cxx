@@ -83,9 +83,15 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
   XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleOrigin, reconConfig);
   XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleSize, reconConfig);
 
-  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 2, FanAngles, reconConfig);
-  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 2, FanOrigin, reconConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FanDepth, reconConfig);
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 2, FanAngles, reconConfig);  // DEPRECATED (replaced by FanAnglesDeg)
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 2, FanAnglesDeg, reconConfig);
+  
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 2, FanOrigin, reconConfig);  // DEPRECATED (replaced by FanOriginPixel)
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 2, FanOriginPixel, reconConfig);
+
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FanDepth, reconConfig);   // DEPRECATED (replaced by FanRadiusStopPixel)
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FanRadiusStartPixel, reconConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FanRadiusStopPixel, reconConfig);
 
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, SkipInterval, reconConfig);
   if (this->SkipInterval < 1)
@@ -148,18 +154,25 @@ PlusStatus vtkVolumeReconstructor::WriteConfiguration(vtkXMLDataElement *config)
   reconConfig->SetVectorAttribute("ClipRectangleOrigin", 2, this->Reconstructor->GetClipRectangleOrigin());
   reconConfig->SetVectorAttribute("ClipRectangleSize", 2, this->Reconstructor->GetClipRectangleSize());
 
-  // fan parameters
+  // Fan parameters
+  // remove deprecated attributes
+  XML_REMOVE_ATTRIBUTE(reconConfig, "FanDepth");
+  XML_REMOVE_ATTRIBUTE(reconConfig, "FanOrigin");
+  XML_REMOVE_ATTRIBUTE(reconConfig, "FanAngles");
   if (this->Reconstructor->FanClippingApplied())
   {
-    reconConfig->SetVectorAttribute("FanAngles", 2, this->Reconstructor->GetFanAngles());
-    reconConfig->SetVectorAttribute("FanOrigin", 2, this->Reconstructor->GetFanOrigin());
-    reconConfig->SetDoubleAttribute("FanDepth", this->Reconstructor->GetFanDepth());
+    reconConfig->SetVectorAttribute("FanAnglesDeg", 2, this->Reconstructor->GetFanAnglesDeg());
+    // Image spacing is 1.0, so reconstructor's fan origin and radius values are in pixels
+    reconConfig->SetVectorAttribute("FanOriginPixel", 2, this->Reconstructor->GetFanOrigin());
+    reconConfig->SetDoubleAttribute("FanRadiusStartPixel", this->Reconstructor->GetFanRadiusStart());
+    reconConfig->SetDoubleAttribute("FanRadiusStopPixel", this->Reconstructor->GetFanRadiusStop());
   }
   else
   {
-    XML_REMOVE_ATTRIBUTE(reconConfig, "FanAngles");
-    XML_REMOVE_ATTRIBUTE(reconConfig, "FanOrigin");
-    XML_REMOVE_ATTRIBUTE(reconConfig, "FanDepth");
+    XML_REMOVE_ATTRIBUTE(reconConfig, "FanAnglesDeg");
+    XML_REMOVE_ATTRIBUTE(reconConfig, "FanOriginPixel");
+    XML_REMOVE_ATTRIBUTE(reconConfig, "FanRadiusStartPixel");
+    XML_REMOVE_ATTRIBUTE(reconConfig, "FanRadiusStopPixel");
   }
 
   // reconstruction options
@@ -664,21 +677,51 @@ void vtkVolumeReconstructor::SetClipRectangleSize(int* size)
 }
 
 //----------------------------------------------------------------------------
-void vtkVolumeReconstructor::SetFanAngles(double* angles)
+void vtkVolumeReconstructor::SetFanAnglesDeg(double* anglesDeg)
 {
-  this->Reconstructor->SetFanAngles(angles);
+  this->Reconstructor->SetFanAnglesDeg(anglesDeg);
 }
 
 //----------------------------------------------------------------------------
-void vtkVolumeReconstructor::SetFanOrigin(double* origin)
+void vtkVolumeReconstructor::SetFanAngles(double* anglesDeg)
 {
-  this->Reconstructor->SetFanOrigin(origin);
+  LOG_WARNING("FanAngles volume reconstructor parameter is deprecated. Use FanAnglesDeg instead (with the same value).");
+  this->Reconstructor->SetFanAnglesDeg(anglesDeg);
 }
 
 //----------------------------------------------------------------------------
-void vtkVolumeReconstructor::SetFanDepth(double depth)
+void vtkVolumeReconstructor::SetFanOriginPixel(double* originPixel)
 {
-  this->Reconstructor->SetFanDepth(depth);
+  // Image coordinate system has unit spacing, so we can set the pixel values directly
+  this->Reconstructor->SetFanOrigin(originPixel);
+}
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::SetFanOrigin(double* originPixel)
+{
+  LOG_WARNING("FanOrigin volume reconstructor parameter is deprecated. Use FanOriginPixels instead (with the same value).");
+  SetFanOriginPixel(originPixel);
+}
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::SetFanRadiusStartPixel(double radiusPixel)
+{
+  // Image coordinate system has unit spacing, so we can set the pixel values directly
+  this->Reconstructor->SetFanRadiusStart(radiusPixel);
+}
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::SetFanRadiusStopPixel(double radiusPixel)
+{
+  // Image coordinate system has unit spacing, so we can set the pixel values directly
+  this->Reconstructor->SetFanRadiusStop(radiusPixel);
+}
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::SetFanDepth(double fanDepthPixel)
+{
+  LOG_WARNING("FanDepth volume reconstructor parameter is deprecated. Use FanRadiusStopPixels instead (with the same value).");
+  SetFanRadiusStopPixel(fanDepthPixel);
 }
 
 //----------------------------------------------------------------------------

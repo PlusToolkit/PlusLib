@@ -151,11 +151,23 @@ public:
 
   /*! Set the number of threads used for volume reconstruction and hole filling */
   void SetNumberOfThreads(int numberOfThreads);
-  
-  void SetFanAngles(double* fanAngles);
-  void SetFanOrigin(double* fanOrigin);
-  void SetFanDepth(double fanDepth);
 
+  /*! Set the fan-shaped clipping region for curvilinear probes. */  
+  void SetFanAnglesDeg(double* fanAngles);
+  /*! Set the fan-shaped clipping region for curvilinear probes. */  
+  void SetFanOriginPixel(double* fanOriginPixel);
+  /*! Set the fan-shaped clipping region for curvilinear probes. */  
+  void SetFanRadiusStartPixel(double fanRadiusPixel);
+  /*! Set the fan-shaped clipping region for curvilinear probes. */  
+  void SetFanRadiusStopPixel(double fanRadiusPixel);
+
+  /*! DEPRECATED: use SetFanAnglesDeg instead. */
+  void SetFanAngles(double* fanAnglesDeg);
+  /*! DEPRECATED: use SetFanOriginPixel instead. */
+  void SetFanOrigin(double* fanOriginPixel);
+  /*! DEPRECATED: use SetFanRadiusStopPixel instead. */
+  void SetFanDepth(double fanDepthPixel);
+  
   void SetInterpolation(vtkPasteSliceIntoVolume::InterpolationType interpolation);
   void SetCalculation(vtkPasteSliceIntoVolume::CalculationType calculation);
   void SetOptimization(vtkPasteSliceIntoVolume::OptimizationType optimization);

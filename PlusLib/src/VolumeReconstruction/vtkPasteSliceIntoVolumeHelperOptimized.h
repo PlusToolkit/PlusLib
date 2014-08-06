@@ -912,9 +912,10 @@ static void vtkOptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* in
   // parameters for clipping
   double* clipRectangleOrigin = insertionParams->clipRectangleOrigin; // array size 2
   double* clipRectangleSize = insertionParams->clipRectangleSize; // array size 2
-  double* fanAngles = insertionParams->fanAngles; // array size 2, for transrectal/curvilinear transducers
+  double* fanAnglesDeg = insertionParams->fanAnglesDeg; // array size 2
   double* fanOrigin = insertionParams->fanOrigin; // array size 2
-  double fanDepth = insertionParams->fanDepth;
+  double fanRadiusStart = insertionParams->fanRadiusStart;
+  double fanRadiusStop = insertionParams->fanRadiusStop;
 
   // slice spacing and origin
   vtkFloatingPointType inSpacing[3];  
@@ -929,7 +930,8 @@ static void vtkOptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* in
     (fanOrigin[1]-inOrigin[1])/inSpacing[1]
   };
   // fan depth squared 
-  double fanDepthSquaredMm = fanDepth*fanDepth;
+  double squaredFanRadiusStart = fanRadiusStart*fanRadiusStart;
+  double squaredFanRadiusStop = fanRadiusStop*fanRadiusStop;
 
   // absolute value of slice spacing
   double inSpacingSquare[2]=
@@ -940,8 +942,8 @@ static void vtkOptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* in
 
   double pixelAspectRatio=fabs(inSpacing[1]/inSpacing[0]);
   // tan of the left and right fan angles
-  double fanLinePixelRatioLeft = tan(vtkMath::RadiansFromDegrees(fanAngles[0]))*pixelAspectRatio;
-  double fanLinePixelRatioRight = tan(vtkMath::RadiansFromDegrees(fanAngles[1]))*pixelAspectRatio;
+  double fanLinePixelRatioLeft = tan(vtkMath::RadiansFromDegrees(fanAnglesDeg[0]))*pixelAspectRatio;
+  double fanLinePixelRatioRight = tan(vtkMath::RadiansFromDegrees(fanAnglesDeg[1]))*pixelAspectRatio;
   // the tan of the right fan angle is always greater than the left one
   if (fanLinePixelRatioLeft > fanLinePixelRatioRight)
   {
@@ -997,6 +999,8 @@ static void vtkOptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* in
     origin[i] = matrix[rowindex+3];
   }
 
+  bool fanClippingEnabled = (fanLinePixelRatioLeft != 0 || fanLinePixelRatioRight != 0);
+
   int xIntersectionPixStart,xIntersectionPixEnd;
 
   // Loop through INPUT pixels - remember this is a 3D cube represented by the input extent
@@ -1023,7 +1027,10 @@ static void vtkOptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* in
       // first, check the angle range of the fan - choose xIntersectionPixStart and xIntersectionPixEnd based
       // on the triangle that the fan makes from the fan origin to the bottom
       // line of the video image
-      if (!(fanLinePixelRatioLeft == 0 && fanLinePixelRatioRight == 0))
+      bool skipMiddleSegment = false;
+      int xSkipMiddleSegmentPixStart; // first pixel that should be skipped in the middle
+      int xSkipMiddleSegmentPixEnd; // last pixel that should be skipped in the middle
+      if (fanClippingEnabled)
       {
         // equivalent to: xIntersectionPixStart < PlusMath::Ceil(fanLinePixelRatioLeft*y + fanOriginInPixels[0] + 1)
         // this is what the radius would be based on tan(fanAngle)
@@ -1036,32 +1043,43 @@ static void vtkOptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* in
           xIntersectionPixEnd = PlusMath::Floor(fanLinePixelRatioRight*y + fanOriginInPixels[0] - 1);
         }
 
-        // next, check the radius of the fan - crop the triangle to the fan
-        // depth
-        double dx = (fanDepthSquaredMm - (y*y)*inSpacingSquare[1])/inSpacingSquare[0];
-
-        // if we are outside the fan's radius, ex at the bottom lines
-        if (dx < 0)
+        // check if we are not too close or too far from the fan origin
+        double squaredDepth = (y*y)*inSpacingSquare[1];
+        double dxRadiusStop = (squaredFanRadiusStop - squaredDepth);
+        if (dxRadiusStop < 0)
         {
+          // we are outside the fan's stop radius, ex at the bottom lines
+          // we should not paste any pixels into this line
           xIntersectionPixStart = inExt[0];
           xIntersectionPixEnd = inExt[0]-1;
         }
-        // if we are within the fan's radius, we have to adjust if we are in
-        // the "ellipsoidal" (bottom) part of the fan instead of the top
-        // "triangular" part
         else
         {
-          dx = sqrt(dx);
+          // if we are within the fan's radius, we have to adjust if we are in
+          // the "ellipsoidal" (bottom) part of the fan instead of the top
+          // "triangular" part
+          dxRadiusStop = sqrt(dxRadiusStop/inSpacingSquare[0]);
           // this is what xIntersectionPixStart would be if we calculated it based on the
           // pythagorean theorem
-          if (xIntersectionPixStart < -PlusMath::Floor(-(fanOriginInPixels[0] - dx + 1)))
+          if (xIntersectionPixStart < -PlusMath::Floor(-(fanOriginInPixels[0] - dxRadiusStop + 1)))
           {
-            xIntersectionPixStart = -PlusMath::Floor(-(fanOriginInPixels[0] - dx + 1));
+            xIntersectionPixStart = -PlusMath::Floor(-(fanOriginInPixels[0] - dxRadiusStop + 1));
           }
-          if (xIntersectionPixEnd > PlusMath::Floor(fanOriginInPixels[0] + dx - 1))
+          if (xIntersectionPixEnd > PlusMath::Floor(fanOriginInPixels[0] + dxRadiusStop - 1))
           {
-            xIntersectionPixEnd = PlusMath::Floor(fanOriginInPixels[0] + dx - 1);
+            xIntersectionPixEnd = PlusMath::Floor(fanOriginInPixels[0] + dxRadiusStop - 1);
           }
+          double dxRadiusStart = (squaredFanRadiusStart - squaredDepth);
+          if (dxRadiusStart > 0)
+          {
+            // we are inside the fan't start radius (near the transducer surface)
+            // we have to skip some center pixels
+            dxRadiusStart = sqrt(dxRadiusStart/inSpacingSquare[0]);
+            xSkipMiddleSegmentPixStart = -PlusMath::Floor(-(fanOriginInPixels[0] - dxRadiusStart + 1));
+            xSkipMiddleSegmentPixEnd = PlusMath::Floor(fanOriginInPixels[0] + dxRadiusStart - 1);
+            skipMiddleSegment = true;
+          }
+
         }
       }
 
@@ -1081,6 +1099,38 @@ static void vtkOptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* in
         xIntersectionPixEnd = inExt[0]-1;
       }
 
+      // If the middle segment is on either side then we don't have to remove the middle segment
+      // we can just reduce the intersection on one side
+      if (skipMiddleSegment)
+      {
+        if (xSkipMiddleSegmentPixStart<xIntersectionPixStart)
+        {
+          if (xIntersectionPixStart < xSkipMiddleSegmentPixEnd+1)
+          {
+            xIntersectionPixStart = xSkipMiddleSegmentPixEnd+1; // without this it's OK
+            if (xIntersectionPixEnd<xIntersectionPixStart)
+            {
+              // there is no section to fill
+              xIntersectionPixEnd=xIntersectionPixStart-1;
+            }
+          }
+          skipMiddleSegment = false;
+        }
+        else if (xSkipMiddleSegmentPixEnd>xIntersectionPixEnd)
+        {
+          if (xIntersectionPixEnd > xSkipMiddleSegmentPixStart-1)
+          {
+            xIntersectionPixEnd = xSkipMiddleSegmentPixStart-1;
+            if (xIntersectionPixEnd<xIntersectionPixStart)
+            {
+              // there is no section to fill
+              xIntersectionPixEnd=xIntersectionPixStart-1;
+            }
+          }
+          skipMiddleSegment = false;
+        }
+      }
+
       // skip the portion of the slice to the left of the fan
       for (int idX = inExt[0]; idX < xIntersectionPixStart; idX++)
       {
@@ -1091,25 +1141,57 @@ static void vtkOptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* in
       
       if (interpolationMode == vtkPasteSliceIntoVolume::LINEAR_INTERPOLATION)
       { 
-        // interpolating linearly (code 1)
-        for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++) // for all of the x pixels within the fan
+        if (skipMiddleSegment)
         {
-          outPoint[0] = outPoint1[0] + idX*xAxis[0];
-          outPoint[1] = outPoint1[1] + idX*xAxis[1];
-          outPoint[2] = outPoint1[2] + idX*xAxis[2];
-
-          int hit = vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, numscalars, calculationMode, outExt, outInc, accOverflowCount); // hit is either 1 or 0
-
-          inPtr += numscalars; // go to the next x pixel
+          for (int idX = xIntersectionPixStart; idX < xSkipMiddleSegmentPixStart; idX++) // for all of the x pixels within the fan before the skipped middle section
+          {
+            outPoint[0] = outPoint1[0] + idX*xAxis[0];
+            outPoint[1] = outPoint1[1] + idX*xAxis[1];
+            outPoint[2] = outPoint1[2] + idX*xAxis[2];
+            int hit = vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, numscalars, calculationMode, outExt, outInc, accOverflowCount); // hit is either 1 or 0
+            inPtr += numscalars; // go to the next x pixel
+          }
+          inPtr += numscalars * (xSkipMiddleSegmentPixEnd-xSkipMiddleSegmentPixStart+1);
+          for (int idX = xSkipMiddleSegmentPixEnd+1; idX <= xIntersectionPixEnd; idX++) // for all of the x pixels within the fan after the skipped middle section
+          {
+            outPoint[0] = outPoint1[0] + idX*xAxis[0];
+            outPoint[1] = outPoint1[1] + idX*xAxis[1];
+            outPoint[2] = outPoint1[2] + idX*xAxis[2];
+            int hit = vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, numscalars, calculationMode, outExt, outInc, accOverflowCount); // hit is either 1 or 0
+            inPtr += numscalars; // go to the next x pixel
+          }
+        }
+        else
+        {
+          for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++) // for all of the x pixels within the fan
+          {
+            outPoint[0] = outPoint1[0] + idX*xAxis[0];
+            outPoint[1] = outPoint1[1] + idX*xAxis[1];
+            outPoint[2] = outPoint1[2] + idX*xAxis[2];
+            int hit = vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, numscalars, calculationMode, outExt, outInc, accOverflowCount); // hit is either 1 or 0
+            inPtr += numscalars; // go to the next x pixel
+          }
         }
       }      
       else 
       {
         // interpolating with nearest neighbor
-        vtkFreehand2OptimizedNNHelper(xIntersectionPixStart, xIntersectionPixEnd, outPoint, outPoint1, xAxis, 
-          inPtr, outPtr, outExt, outInc,
-          numscalars, calculationMode, accPtr, accOverflowCount);
-        // we added all the pixels between xIntersectionPixStart and xIntersectionPixEnd, so increment our count of the number of pixels added
+        if (skipMiddleSegment)
+        {
+          vtkFreehand2OptimizedNNHelper(xIntersectionPixStart, xSkipMiddleSegmentPixStart-1, outPoint, outPoint1, xAxis, 
+            inPtr, outPtr, outExt, outInc,
+            numscalars, calculationMode, accPtr, accOverflowCount);
+          inPtr += numscalars * (xSkipMiddleSegmentPixEnd-xSkipMiddleSegmentPixStart+1);
+          vtkFreehand2OptimizedNNHelper(xSkipMiddleSegmentPixEnd+1, xIntersectionPixEnd, outPoint, outPoint1, xAxis, 
+            inPtr, outPtr, outExt, outInc,
+            numscalars, calculationMode, accPtr, accOverflowCount);
+        }
+        else
+        {
+          vtkFreehand2OptimizedNNHelper(xIntersectionPixStart, xIntersectionPixEnd, outPoint, outPoint1, xAxis, 
+            inPtr, outPtr, outExt, outInc,
+            numscalars, calculationMode, accPtr, accOverflowCount);
+        }
       }
 
       // skip the portion of the slice to the right of the fan
