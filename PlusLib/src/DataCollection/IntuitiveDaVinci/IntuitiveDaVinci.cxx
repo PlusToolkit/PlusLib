@@ -44,7 +44,7 @@ ISI_STATUS IntuitiveDaVinci::subscribe(ISI_EVENT_CALLBACK eCB, ISI_STREAM_CALLBA
 	setEventCallback(eCB, eventUserData);
 
 	// Start streaming information at 60 Hz
-	mStatus = mStatus && isi_start_stream(ISI_API_RATE);
+	mStatus = isi_start_stream(ISI_API_RATE);
 
 	if (mStatus != ISI_SUCCESS)
 	{
@@ -57,10 +57,16 @@ ISI_STATUS IntuitiveDaVinci::subscribe(ISI_EVENT_CALLBACK eCB, ISI_STREAM_CALLBA
 ISI_STATUS IntuitiveDaVinci::setStreamCallback(ISI_STREAM_CALLBACK sCB, void* userData)
 {
 	// Subscribe to all fields
-	mStatus = mStatus && isi_subscribe_all_stream_fields();
+	mStatus = isi_subscribe_all_stream_fields();
+	if(mStatus != ISI_SUCCESS)
+	{
+		// Propagate error message to caller
+		return mStatus;
+	}
+
 	if(sCB != NULL)
 	{
-		isi_set_stream_callback(sCB, userData);
+		mStatus = isi_set_stream_callback(sCB, userData);
 	}
 	Sleep(500);
 
@@ -70,10 +76,17 @@ ISI_STATUS IntuitiveDaVinci::setStreamCallback(ISI_STREAM_CALLBACK sCB, void* us
 ISI_STATUS IntuitiveDaVinci::setEventCallback(ISI_EVENT_CALLBACK eCB, void* userData)
 {
 	// Subscribe to all events
-	mStatus = mStatus && isi_subscribe_all_events();
+	mStatus = isi_subscribe_all_events();
+
+    if(mStatus != ISI_SUCCESS)
+	{
+		// Propagate error message to caller
+		return mStatus;
+	}
+
 	if(eCB != NULL)
 	{
-		isi_set_event_callback(eCB, userData);  
+		mStatus = isi_set_event_callback(eCB, userData);  
 	}
 	Sleep(500);
 
