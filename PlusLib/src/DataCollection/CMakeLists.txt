@@ -619,15 +619,14 @@ IF (PLUS_USE_STEALTHLINK)
     SET ( External_Libraries_Debug ${External_Libraries_Debug} 
       ${STEALTHLINK_STEALTHLINKD_SHARED_LIBRARY}
       )
+    SET ( External_Libraries_Install ${External_Libraries_Install}
+      ${STEALTHLINK_STEALTHLINK_SHARED_LIBRARY}
+      )
   ELSE()
     SET (DataCollection_LIBS ${DataCollection_LIBS} 
       ${STEALTHLINK_STEALTHLINK_STATIC_LIBRARY}
       )
-  ENDIF()
-  
-  SET ( External_Libraries_Install ${External_Libraries_Install}
-    ${STEALTHLINK_STEALTHLINK_SHARED_LIBRARY}
-    )
+  ENDIF()  
 
 ENDIF (PLUS_USE_STEALTHLINK)
 
