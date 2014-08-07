@@ -25,21 +25,23 @@ SET(CPACK_PACKAGE_EXECUTABLES
   "fCal" "Free-hand calibration (fCal)"
   )
 
+SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS)
+SET(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS)
 IF(WIN32)
   # Windows users may not be familiar how to open a command prompt, so create a shortcut for that
-  SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
+  SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS ${CPACK_NSIS_EXTRA_INSTALL_COMMANDS} "
     CreateShortCut \\\"$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Plus command prompt.lnk\\\" \\\"$INSTDIR\\\\bin\\\\StartPlusCommandPrompt.bat\\\" \\\"$INSTDIR\\\\bin\\\\StartPlusCommandPrompt.bat\\\" \\\"$INSTDIR\\\\bin\\\\StartPlusCommandPrompt.ico\\\"
     ")
-  SET(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
+  SET(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS ${CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS} "
     !insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
     Delete \\\"$SMPROGRAMS\\\\$MUI_TEMP\\\\Plus command prompt.lnk\\\"
     ")
   IF(BUILD_DOCUMENTATION)
     # Create a shortcut to documentation as well
-    SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
+    SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS ${CPACK_NSIS_EXTRA_INSTALL_COMMANDS} "
       CreateShortCut \\\"$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Plus user manual.lnk\\\" \\\"$INSTDIR\\\\doc\\\\PlusApp-UserManual.chm\\\"
       ")
-    SET(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
+    SET(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS ${CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS} "
       !insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
       Delete \\\"$SMPROGRAMS\\\\$MUI_TEMP\\\\User manual.lnk\\\"
       ")
