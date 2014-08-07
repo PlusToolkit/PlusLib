@@ -1,23 +1,29 @@
 @ECHO off 
 REM Hide all your directories from users
 
-REM RETURN_CODE is 0 on success and >0 if something failed
+REM Return code is 0 on success and >0 if something failed
 SET RETURN_CODE=0
 
-SET ORIGPATH=%PATH%
-SET DIRCMD=0 
-
 REM First we need to build a Release version 
-"${CMAKE_MAKE_PROGRAM}" PlusApp.sln /build Release /project ALL_BUILD
-IF ERRORLEVEL 1 GOTO BUILDFAILED
-ECHO Release build DONE
 
+rem IS_MAKE_PROGRAM_MSBUILD?
+if ${IS_MAKE_PROGRAM_MSBUILD}==TRUE goto MakeUsingMsBuild
+rem ---------------- msdev build -----------------------
+"${CMAKE_MAKE_PROGRAM}" PlusApp.sln /build Release /project ALL_BUILD
+IF ERRORLEVEL 1 GOTO buildfail
+goto BUILDDOCUMENTATION
+rem ---------------- msbuild build -----------------------
+:MakeUsingMsBuild
+"${CMAKE_MAKE_PROGRAM}" ALL_BUILD.vcxproj /p:Configuration=Release /target:build
+IF ERRORLEVEL 1 GOTO BUILDFAILED
+goto BUILDDOCUMENTATION 
+
+:BUILDDOCUMENTATION
 REM Build documentation
-IF ${BUILD_DOCUMENTATION}==OFF GOTO SKIP_USER_MANUAL
+IF ${BUILD_DOCUMENTATION}==OFF GOTO PACKAGE
 call CreateUserManual.bat
 IF ERRORLEVEL 1 GOTO BUILDFAILED
 ECHO User manual generation DONE
-:SKIP_USER_MANUAL
 
 :PACKAGE
 REM Build the package 
@@ -27,18 +33,12 @@ ECHO Packaging DONE
 
 :SUCCESS
 ECHO Package generation is successfully completed.
-GOTO END
+exit /b 0
 
 :BUILDFAILED
 ECHO ERROR: Build failed...
-SET RETURN_CODE=1
-GOTO END 
+exit /b 1
 
 :PACKAGINGFAILED
 ECHO ERROR: Package generation failed...
-SET RETURN_CODE=2
-GOTO END
-
-:END
-SET PATH=%ORIGPATH%
-exit /b %RETURN_CODE%
+exit /b 2
