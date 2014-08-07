@@ -16,20 +16,6 @@
 \class StealthServer 
 \brief Interface for the Medtronic StealthLink Server 
 
-This class talks with StealthLink Server and acquires the transformation matrix data for both the current frame and the instrument
-nomenclature: localizer (Medtronic) = tracker (Plus), frame (Medtronic) = reference marker (Plus), instrument (Medtronic) = tool marker (Plus).
-Only one active instrument and a frame at a time.
-
-To connect to StealthLink Server, please follow the steps below in the configuration file:
-* Set ServerAddress to the IP address of the Stealth Server 
-* Set ServerPort to the Port Address of the Stealth Server
-* Use the following port names:
-** (reference): Refers to the Medtronic Reference frame name. Make sure that the PortNames of the frames to be tracked are   
-      the frame names in the Stealth Server and that they are defined in the Server.
-** (instrument): Name of a tool. Make sure that the PortNames of the instruments to be tracked are   
-      the instrument names in the Stealth Server and that they are defined in the Server.
-** RasRegistration: Refers to the RAS to Tracker transformation. Only available after Exam data is acquired from the server (GetImage or GetExamData)
-
 \ingroup PlusLibDataCollection
 
 */
@@ -71,6 +57,11 @@ public:
   /*! Set the boolean for keeping the received dicom images */
   void SetKeepReceivedDicomFiles(bool keepReceivedDicomFiles);
 
+  /*! Set StealthStation IP address */
+  void SetServerAddress(const char* serverAddress);
+
+  /*! Set StealthStation IP port number */
+  void SetServerPort(const char* serverPort);
 
 protected:
   /*! Constructor */
