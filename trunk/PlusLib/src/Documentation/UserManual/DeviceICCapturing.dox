@@ -28,8 +28,8 @@ Supported model: DFG/USB2pro analog frame grabbers with USB interface
 - \xmlAtt \b ClipRectangleOrigin Crop rectangle origin for the grabber (in pixels). \OptionalAtt{0 0}
 - \xmlAtt \b ClipRectangleSize Crop rectangle size for the grabber (in pixels). If it is \c "0 0" then the whole frame will be captured. \OptionalAtt{0 0}
 
-- \xmlElem \ref DataSources
-   - \xmlElem \ref DataSource There must be one child element. \RequiredAtt
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
     - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
     - \xmlAtt \ref ImageType. Color image acquisition is supported. \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}

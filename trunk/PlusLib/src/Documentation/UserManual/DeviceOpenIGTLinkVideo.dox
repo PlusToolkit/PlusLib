@@ -21,8 +21,11 @@ There are commercial systems that provide tracking video and image data through 
 - \xmlAtt \ref DeviceType "Type" = \c "OpenIGTLinkVideo" \RequiredAtt
 - \xmlAtt \b ServerAddress Host name or IP address of the OpenIGTLink server that sends the data to this device. \RequiredAtt
 - \xmlAtt \b ServerPort Port of the OpenIGTLink server that sends the data to this device. \RequiredAtt
-- \xmlAtt \b ImageMessageEmbeddedTransformName If IMAGE message is received and this attribute is defined then the transform embedded in the message will be recorded as a transform, with the specified name (e.g., "ImageToReference"). If the attribute is not defined then the embedded transform is not recorded. If the message type is not IMAGE then the attribute is ignored. \OptionalAtt{XX}
-- \xmlAtt \b MessageType The device will request this message type from the remote server. If the MessageType is not specified then the default message type will be used (specified in the remote server) \OptionalAtt{XX}
+- \xmlAtt \b ImageMessageEmbeddedTransformName If IMAGE message is received and this attribute is defined then
+  the transform embedded in the message will be recorded as a transform, with the specified name
+  (e.g., "ImageToReference"). If the attribute is not defined then the embedded transform is ignored.
+  If the message type is not IMAGE then the attribute is ignored. \OptionalAtt{" "}
+- \xmlAtt \b MessageType The device will request this message type from the remote server. If the MessageType is not specified then the default message type will be used (specified in the remote server) \OptionalAtt{" "}
   - \c IMAGE Request sending only image data in IMAGE OpenIGTLink messages.
   - \c TRACKEDFRAME Request sending image+tracking data in TRACKEDFRAME OpenIGTLink messages.
 - \xmlAtt \b IgtlMessageCrcCheckEnabled Enable CRC check on the received OpenIGTLink messages ( \c true or \c false). \OptionalAtt{false}
@@ -33,8 +36,8 @@ There are commercial systems that provide tracking video and image data through 
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" The device checks for new available messages on the remove server at this rate.\OptionalAtt{30} 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 
-- \xmlElem \ref DataSources
-   - \xmlElem \ref DataSource There must be one child element. \RequiredAtt
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
     - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
     - \xmlAtt \ref ImageType \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}

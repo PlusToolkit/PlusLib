@@ -31,8 +31,6 @@ For hardware-free testing and simulation purposes, any previous recording (saved
 
 \section SavedDataSourceExampleConfigFile Example configuration file PlusDeviceSet_DataCollectionOnly_SavedDataset.xml
 
-\TodoAndras{Is the attribute DefaultToolName not used anymore?}
-
 \include "data/ConfigFiles/Testing/PlusDeviceSet_DataCollectionOnly_SavedDataset.xml"
 
 */

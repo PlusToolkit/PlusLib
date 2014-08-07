@@ -31,14 +31,11 @@
 - \xmlAtt \b BaudRate Baud rate for serial communication. \OptionalAtt{115200}
 - \xmlAtt \b FirmwareDirectory Directory path containing the XML files that describes the device firmware (available registers, calibration, etc.). The path can be relative to the configuration directory. \OptionalAtt{Absolute path of the executable}
 
-- \xmlElem \ref DataSources
-   - \xmlElem \ref DataSource There must be one child element. \RequiredAtt
-    - \xmlAtt \ref PortName \RequiredAtt
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortName = \c "OrientationSensor" \RequiredAtt
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
-
-
-
 
 \section ChRoboticsExampleConfigFile Example configuration file PlusDeviceSet_Server_ChRobotics.xml
 

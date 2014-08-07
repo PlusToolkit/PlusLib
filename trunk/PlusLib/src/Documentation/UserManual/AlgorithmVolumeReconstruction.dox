@@ -27,8 +27,11 @@ assigned any intensity value in the distribution step. Hole filling algorithm ru
 \section VolumeReconstructionConfigSettings Configuration settings
 
 - \xmlElem \anchor ElementVolumeReconstruction \b VolumeReconstruction  
-  - \xmlAtt \b ReferenceCoordinateFrame Defines the Reference coordinate system name: the volume will be reconstructed in this coordinate system (the volume axes are parallel to the Reference coordinate system axes and the volume origin position is defined in the Reference coordinate system). \OptionalAtt{XX}
-  - \xmlAtt \b ImageCoordinateFrame Defines the image coordinate system name: it corresponds to the 2D frame of the image data in the tracked frame. \OptionalAtt{XX}
+  - \xmlAtt \b ReferenceCoordinateFrame Defines the Reference coordinate system name: the volume will be reconstructed in this coordinate system
+    (the volume axes are parallel to the Reference coordinate system axes and the volume origin position is defined in the Reference coordinate system).
+    If not defined then the coordinate system name has to be specified by other means before starting a reconstruction. \OptionalAtt{" "}
+  - \xmlAtt \b ImageCoordinateFrame Defines the image coordinate system name: it corresponds to the 2D frame of the image data in the tracked frame.
+    If not defined then the coordinate system name has to be specified by other means before starting a reconstruction. \OptionalAtt{" "} \OptionalAtt{" "}
   - \xmlAtt \b OutputSpacing Is output image resolution vector for each dimesion of the reconstructed volume. \RequiredAtt
   - \xmlAtt \b OutputOrigin VECTOR  Is output image origin position vector for each dimesion of the reconstructed volume \OptionalAtt{0 0 0}
   - \xmlAtt \b OutputExtent Two position vectors that determine the reconstructed volume extent. \OptionalAtt{0 0 0}

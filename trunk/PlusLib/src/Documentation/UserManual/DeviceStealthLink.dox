@@ -35,8 +35,8 @@ No need to install any extra software. The StealthStation needs to be connected 
 - \xmlAtt \b ServerAddress. IP address of the StealthStation. \RequiredAtt
 - \xmlAtt \b ServerPort. Port number of the StealthStation. \RequiredAtt
 
-- \xmlElem \ref DataSources
-   - \xmlElem \ref DataSource There must be one child element. \RequiredAtt
+- \xmlElem \ref DataSources One \c DataSource child element is required for each tool or reference marker \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref PortName \RequiredAtt
       - Any instrument name. Instrument names defined in StealthStation must match tools' port names defined in the configuration file (example: `Passive Planar, Blunt`, `Navigus Probe`).

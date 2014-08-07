@@ -9,7 +9,6 @@
       Id="TrackerDevice"
       Type="FakeTracker"
       AcquisitionRate="30"
-      DefaultToolName="Stylus"
       Mode="PivotCalibration"
       ReferenceToolName="Reference" >
       <DataSources>
