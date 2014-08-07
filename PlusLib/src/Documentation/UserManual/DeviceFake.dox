@@ -26,11 +26,13 @@ Simulates a fake tracking system with tools that have predetermined behavior. Th
 
 - \xmlElem \b PhantomDefinition: \RequiredAtt if \b Mode = \c "RecordPhantomLandmarks".
   - \xmlElem \b Geometry or \b Landmarks
-    - \xmlAtt \b Position Landamark 3D position specified as a vector \c "0.0,0.0,0.0"
+    - \xmlAtt \b Position Landmark 3D position specified as a vector \c "0.0,0.0,0.0"
 
-- \xmlElem \ref DataSources
-   - \xmlElem \ref DataSource There must be one child element. \RequiredAtt
+- \xmlElem \ref DataSources One \c DataSource child element for each tool. \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
     - \xmlAtt \ref PortName \RequiredAtt
+      - \c 0 Reference
+      - \c 1 Stylus
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 

@@ -28,10 +28,12 @@
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate". Image retrieval may slow down the exam software, so keep the frame rate low by default \OptionalAtt{1}
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 
-- \xmlAtt \b IniFileName. INI file name. Is the name of the BK ini file that stores connection and acquisition settings. If a relative path is specified then it is relative to the device set configuration directory. See an example \ref inifile "INI file" below. \RequiredAtt \TodoAndras{Though it uses an optional macro it is a required attribute, right?}
+- \xmlAtt \b IniFileName. INI file name. Is the name of the BK ini file that stores connection and acquisition settings.
+  If a relative path is specified then it is relative to the device set configuration directory.
+  See an example \ref inifile "INI file" below. \RequiredAtt
 
-- \xmlElem \ref DataSources
-  - \xmlElem \ref DataSource There must be one child element. \RequiredAtt
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
+  - \xmlElem \ref DataSource \RequiredAtt
     - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
     - \xmlAtt \ref ImageType \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}

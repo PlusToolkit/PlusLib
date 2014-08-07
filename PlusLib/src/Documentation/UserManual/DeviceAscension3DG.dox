@@ -37,8 +37,8 @@ To support medSAFE models Plus have to be built with PLUS_USE_Ascension3DGm conf
 - \xmlAtt \b FilterLargeChange Large change filter status flag. \OptionalAtt{0}
 - \xmlAtt \b FilterAlpha  Alpha filter status flag. \OptionalAtt{0}
 
-- \xmlElem \ref DataSources
-   - \xmlElem \ref DataSource There must be one child element. \RequiredAtt
+- \xmlElem \ref DataSources One \c DataSource child element for each tool. \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
     - \xmlAtt \b Type = \c "Tool" \RequiredAtt
     - \xmlAtt \b PortName Identifies the connector (0, 1, 2, or 3) or a virtual tool that contains the quality values ( \c quality1 for tool ports 0, 1, and 2; \c quality2 for tool port 3). \RequiredAtt
     - \xmlAtt \b QualityErrorSlope The slope should have a value between -127 and +127. \OptionalAtt{0}

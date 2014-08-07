@@ -83,8 +83,8 @@ If no Certus device is attached to the system then the application crashes (due 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
 
-- \xmlElem \ref DataSources
-   - \xmlElem \ref DataSource There must be one child element. \RequiredAtt
+- \xmlElem \ref DataSources One \c DataSource child element for each marker. \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
     - \xmlAtt \ref PortName \RequiredAtt
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}

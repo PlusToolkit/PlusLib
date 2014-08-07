@@ -31,9 +31,9 @@
 - \xmlAtt \b TranslationScales Sensitivity and direction of the 3 translation axes. Higher values mean higher sensitivity. Negative values can be used for inverting axes. \OptionalAtt{0.001 0.001 0.001}
 - \xmlAtt \b RotationScales Sensitivity and direction of the 3 rotation axes. Higher values mean higher sensitivity. Negative values can be used for inverting axes. \OptionalAtt{0.001 0.001 0.001}
 
-- \xmlElem \ref DataSources
-  - \xmlElem \ref DataSource There must be one child element. \RequiredAtt
-    - \xmlAtt \ref PortName \RequiredAtt
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
+  - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortName = \c "SpaceNavigator" \RequiredAtt
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 

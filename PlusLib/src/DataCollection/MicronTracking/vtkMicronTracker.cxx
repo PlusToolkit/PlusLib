@@ -47,6 +47,8 @@ vtkMicronTracker::vtkMicronTracker()
   // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
   this->StartThreadForInternalUpdates=true;
   this->AcquisitionRate = 20;
+  
+  this->IniFile="MicronTracker.ini";
 }
 
 //----------------------------------------------------------------------------

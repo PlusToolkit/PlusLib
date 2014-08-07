@@ -20,8 +20,8 @@
 - \xmlAtt \b FrequencyMhz Ultrasound transmitter frequency \c [MHz].\OptionalAtt{-1}
 - \xmlAtt \b PulseVoltage Set the excitation pulse voltage in volts. \c [MHz].\OptionalAtt{30}
 - \xmlAtt \b RfDecimation Set whether the RF decimator is used. If value is "1" then the sampling rate is halved, but the imaged depth is doubled.\OptionalAtt{0}
-- \xmlElem \ref DataSources
-  - \xmlElem \ref DataSource There must be one child element. \RequiredAtt
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
+  - \xmlElem \ref DataSource \RequiredAtt
     - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
     - \xmlAtt \ref ImageType Supported imaging modes: B-mode \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
