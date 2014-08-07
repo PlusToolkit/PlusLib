@@ -744,11 +744,12 @@ PlusStatus vtkStealthLinkTracker::ReadConfiguration( vtkXMLDataElement* rootConf
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkStealthLinkTracker::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
+PlusStatus vtkStealthLinkTracker::WriteConfiguration(vtkXMLDataElement* rootConfig)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceElement, rootConfig);
   return PLUS_SUCCESS;
-} 
+}
+
 //----------------------------------------------------------------------------
 PlusStatus vtkStealthLinkTracker::InternalConnect()
 { 
@@ -1039,6 +1040,8 @@ PlusStatus vtkStealthLinkTracker::DeleteDicomImageOutputDirectory(std::string ex
   
   return PLUS_SUCCESS;
 }
+
+//----------------------------------------------------------------------------
 std::string vtkStealthLinkTracker::GetImageMetaDatasetsCountAsString()
 {
   const char digits[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
@@ -1063,4 +1066,16 @@ std::string vtkStealthLinkTracker::GetImageMetaDatasetsCountAsString()
   }
   this->Internal->ImageMetaDatasetsCount++;
   return ImageMetaDatasetsCountAsStr;
+}
+
+//----------------------------------------------------------------------------
+void vtkStealthLinkTracker::SetServerAddress(const char* serverAddress)
+{
+  this->Internal->ServerAddress = serverAddress?serverAddress:"";
+}
+
+//----------------------------------------------------------------------------
+void vtkStealthLinkTracker::SetServerPort(const char* serverPort)
+{
+  this->Internal->ServerPort = serverPort?serverPort:"";
 }
