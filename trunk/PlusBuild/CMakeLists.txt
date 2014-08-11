@@ -142,6 +142,7 @@ OPTION(PLUS_USE_MMF_VIDEO "Provide support for the Microsoft Media Foundation vi
 OPTION(PLUS_USE_EPIPHAN "Provide support for the Epiphan framegrabber device" OFF)
 OPTION(PLUS_USE_INTERSON_VIDEO "Provide support for the Interson USB ultrasound probes" OFF)
 OPTION(PLUS_USE_INTERSONSDKCXX_VIDEO "Provide support for the Interson SDK 1.X with C++ Wrapper USB ultrasound probes" OFF)
+OPTION(PLUS_USE_TELEMED_VIDEO "Provide support for the Telemed ultrasound probes" OFF)
 
 # Tracking hardware
 
@@ -323,13 +324,13 @@ IF ( PLUS_USE_STEALTHLINK )
   ENDIF()
 ENDIF()
 
-
 IF ( PLUS_USE_INTERSON_VIDEO )
  FIND_PACKAGE (INTERSON)
   IF ( NOT INTERSON_FOUND)
     MESSAGE( FATAL_ERROR "This project requires Interson iSDK for supporting the Interson USB ultrasound probes. One of the components is missing. Please verify configuration or turn off PLUS_USE_INTERSON_VIDEO.")
   ENDIF()
 ENDIF()
+
 
 IF( PLUS_USE_IntuitiveDaVinci)
   FIND_PACKAGE (IntuitiveDaVinci)
@@ -338,10 +339,17 @@ IF( PLUS_USE_IntuitiveDaVinci)
   ENDIF()
 ENDIF()
 
+IF ( PLUS_USE_TELEMED_VIDEO )
+  FIND_PACKAGE (Telemed)
+  IF ( NOT TELEMED_FOUND )
+    MESSAGE( FATAL_ERROR "This project requires Telemed SDK for supporting the Telemed ultrasound probes. One of the components is missing. Please verify configuration or turn off PLUS_USE_TELEMED_VIDEO.")
+  ENDIF()
+ENDIF()
+
+
 #------------------------------------------------------------------------------
 # Specify target dependencies
 #------------------------------------------------------------------------------
-
 SET(PlusLib_DEPENDENCIES)
 
 IF ( NOT VTK_DIR )

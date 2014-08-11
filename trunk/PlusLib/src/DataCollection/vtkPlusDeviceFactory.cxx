@@ -91,6 +91,11 @@ See License.txt for details.
 #include "vtkIntersonSDKCxxVideoSource.h"
 #endif
 
+
+#ifdef PLUS_USE_TELEMED_VIDEO
+#include "Telemed\vtkTelemedVideoSource.h"
+#endif
+
 #ifdef PLUS_USE_OpenIGTLink
 #include "vtkOpenIGTLinkVideoSource.h"
 #endif
@@ -179,6 +184,9 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
 #ifdef PLUS_USE_INTERSONSDKCXX_VIDEO
   DeviceTypes["IntersonSDKCxxVideo"]=(PointerToDevice)&vtkIntersonSDKCxxVideoSource::New; 
 #endif 
+#ifdef PLUS_USE_TELEMED_VIDEO
+  DeviceTypes["TelemedVideo"]=(PointerToDevice)&vtkTelemedVideoSource::New;
+#endif
 #ifdef PLUS_USE_EPIPHAN
   DeviceTypes["Epiphan"]=(PointerToDevice)&vtkEpiphanVideoSource::New; 
 #endif 
