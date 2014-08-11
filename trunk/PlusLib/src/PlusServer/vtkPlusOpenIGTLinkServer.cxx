@@ -845,11 +845,11 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfi
   }
   this->SetConfigFilename(aFilename);
 
+  XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, ListeningPort, plusOpenIGTLinkServerConfig);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(OutputChannelId, plusOpenIGTLinkServerConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, MissingInputGracePeriodSec, plusOpenIGTLinkServerConfig);
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(OutputChannelId, plusOpenIGTLinkServerConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, MaxTimeSpentWithProcessingMs, plusOpenIGTLinkServerConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, MaxNumberOfIgtlMessagesToSend, plusOpenIGTLinkServerConfig);
-  XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, ListeningPort, plusOpenIGTLinkServerConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(SendValidTransformsOnly, plusOpenIGTLinkServerConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(IgtlMessageCrcCheckEnabled, plusOpenIGTLinkServerConfig);
 
