@@ -3,7 +3,7 @@
 OPTION (PLUS_USE_POLARIS "Provide support for the NDI Polaris and Aurora" OFF)
 OPTION (PLUS_USE_CERTUS "Provide support for the NDI Certus" OFF)
 OPTION (PLUS_USE_MICRONTRACKER "Provide support for the Claron MicronTracker" OFF)
-OPTION (PLUS_USE_BRACHY_TRACKER "Provide support for the brachy stepper tracking device" ON)
+OPTION (PLUS_USE_BRACHY_TRACKER "Provide support for the brachy stepper tracking device" OFF)
 OPTION (PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" OFF)
 OPTION (PLUS_USE_Ascension3DGm "Provide support for the Ascension 3DGm MedSafe Tracker" OFF)
 OPTION (PLUS_USE_PHIDGET_SPATIAL_TRACKER "Provide support for the Phidget Spatial accelerometer" OFF)
@@ -16,9 +16,9 @@ OPTION (PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digi
 OPTION (PLUS_USE_EPIPHAN "Provide support for the Epiphan" OFF)
 OPTION (PLUS_USE_INTERSON_VIDEO "Provide support Interson USB ultrasound probes" OFF)
 OPTION (PLUS_USE_INTERSONSDKCXX_VIDEO "Provide support Interson SDK 1.X with C++ Wrapper USB ultrasound probes" OFF)
-OPTION (PLUS_USE_STEALTHLINK "Provide support for the Medtronic StealthLink Server" OFF)
-OPTION (PLUS_USE_IntuitiveDaVinci "Enable the tracking of the da Vinci Surgical System. Enable this only if you have a da Vinci that is accessible from this computer." OFF)
-
+OPTION (PLUS_USE_TELEMED_VIDEO "Provide support for the Telemed ultrasound probes" OFF)
+OPTION(PLUS_USE_STEALTHLINK "Provide support for the Medtronick StealthLink Server" OFF)
+OPTION(PLUS_USE_IntuitiveDaVinci "Enable the tracking of the da Vinci Surgical System. Enable this only if you have a da Vinci that is accessible from this computer." OFF)
 OPTION (PLUS_TEST_BKPROFOCUS "Enable testing of acquisition from BK ProFocus ultrasound systems. Enable this only if a BK ProFocus device is connected to this computer." OFF)
 OPTION (PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
 IF (PLUS_TEST_ULTRASONIX)
@@ -781,6 +781,7 @@ IF (PLUS_USE_INTERSON_VIDEO)
   ENDIF()
 ENDIF (PLUS_USE_INTERSON_VIDEO)
 
+
 # --------------------------------------------------------------------------
 # Interson SDK C++ support
 
@@ -810,6 +811,42 @@ IF (PLUS_USE_INTERSONSDKCXX_VIDEO)
     ${IntersonSDK_DIR}/Libraries/IntersonTools${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
 ENDIF (PLUS_USE_INTERSONSDKCXX_VIDEO)
+
+# --------------------------------------------------------------------------
+# Telemed support
+
+IF (PLUS_USE_TELEMED_VIDEO)
+
+  SET (DataCollection_SRCS ${DataCollection_SRCS}
+    Telemed/vtkTelemedVideoSource.cxx
+    Telemed/TelemedUltrasound.cxx
+    Telemed/DeviceFilter.cxx
+    )
+  IF (WIN32)
+    SET (DataCollection_HDRS ${DataCollection_HDRS}
+      Telemed/vtkTelemedVideoSource.h
+      Telemed/TelemedUltrasound.h
+      Telemed/DeviceFilter.h
+      )
+  ENDIF (WIN32)
+
+  # Find Telemed SDK include directory
+  FIND_PATH( ECHOBLASTER_INCLUDE_DIR usgfw.h HINTS "${TELEMED_SDK_DIR}/include/USGFWSDK/include")
+  IF(NOT ECHOBLASTER_INCLUDE_DIR)
+    MESSAGE( SEND_ERROR "Please specify the Telemed SDK include directory in the variable ECHOBLASTER_INCLUDE_DIR, or turn off PLUS_USE_TELEMED_VIDEO. \nFYI, this directory should contain among others files : usgfw.h and multfreq.h")
+  ENDIF()
+
+  SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
+    ${ECHOBLASTER_INCLUDE_DIR}
+    ${WINDOWSSDK_LATEST_DIR}/Include
+    )
+  SET (DataCollection_LIBS ${DataCollection_LIBS}
+    strmiids
+    comsuppw
+    )
+
+ENDIF (PLUS_USE_TELEMED_VIDEO)
+
 
 # --------------------------------------------------------------------------
 # Build the library

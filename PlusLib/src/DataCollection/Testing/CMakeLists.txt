@@ -250,6 +250,16 @@ IF (PLUS_USE_INTERSON_VIDEO)
   TARGET_LINK_LIBRARIES(vtkIntersonVideoSourceTest vtkDataCollection ) 
 ENDIF (PLUS_USE_INTERSON_VIDEO)
 
+#***************************  vtkTelemedVideoSourceTest.cxx ***************************
+IF (PLUS_USE_TELEMED_VIDEO)
+  ADD_EXECUTABLE(vtkTelemedVideoSourceTest vtkTelemedVideoSourceTest.cxx )
+  TARGET_LINK_LIBRARIES(vtkTelemedVideoSourceTest vtkDataCollection )
+  ADD_TEST(vtkTelemedVideoSourceTest
+    ${EXECUTABLE_OUTPUT_PATH}/vtkTelemedVideoSourceTest
+    #--rendering-off
+    )
+  SET_TESTS_PROPERTIES( vtkTelemedVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+ENDIF (PLUS_USE_TELEMED_VIDEO)
 
 #************************  vtkSonixPortaVideoSourceTest.cxx ************************
 IF (PLUS_USE_ULTRASONIX_VIDEO)
