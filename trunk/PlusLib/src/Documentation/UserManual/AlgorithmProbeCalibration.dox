@@ -48,5 +48,9 @@ This algorithm determines the transformation between the ultrasound image and a 
       - \xmlElem \b Landmark
         - \xmlAtt Name
         - \xmlAtt Position
-  
+
+\section AlgorithmProbeCalibrationExampleConfigFile Example configuration file PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_2.0.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_2.0.xml"
+        
 */

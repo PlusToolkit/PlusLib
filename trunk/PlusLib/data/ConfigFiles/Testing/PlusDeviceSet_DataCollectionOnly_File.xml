@@ -10,7 +10,6 @@
       SequenceMetafile="fCal_Test_Calibration.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"
-      ToolReferenceFrame="Tracker" 
       RepeatEnabled="TRUE" >
       <DataSources>
         <DataSource Type="Video" Id="Video" />
