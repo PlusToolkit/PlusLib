@@ -83,10 +83,11 @@ public:
     FULL_OPTIMIZATION
   };
 
-  enum CalculationType
+  enum CompoundingType
   {
-    WEIGHTED_AVERAGE,
-    MAXIMUM
+    LATEST,
+    MAXIMUM,
+    MEAN
   };
 
   static vtkPasteSliceIntoVolume *New();
@@ -136,7 +137,6 @@ public:
     Get the accumulation buffer
     accumulation buffer is for compounding, there is a voxel in
     the accumulation buffer for each voxel in the output.
-    Will be NULL if we are not compounding.
   */
   virtual vtkImageData *GetAccumulationBuffer();
 
@@ -249,24 +249,19 @@ public:
   const char *GetInterpolationModeAsString(InterpolationType interpEnum);
 
   /*!
-    Set the result mode
-    WEIGHTED_AVERAGE: Used on single sweeps when slices are not expected to intersect
-    MAXIMUM: used when multiple slices are expected to intersect
+    Set the compounding mode
+    LATEST:  For each voxel, use only the latest pixel. Used on single or multiple 
+             sweeps from the same angle (regardless of intersection)
+    MEAN:    For each voxel, take an average of all pixels. Used on single or multiple
+             sweeps from the same angle (regardless of intersection)
+    MAXIMUM: For each voxel, take the pixel value with the highest intensity. Used when
+             multiple slices from different angles are expected to intersect
   */
-  vtkSetMacro(CalculationMode,CalculationType);
+  vtkSetMacro(CompoundingMode,CompoundingType);
   /*! Get the result mode */
-  vtkGetMacro(CalculationMode,CalculationType);
+  vtkGetMacro(CompoundingMode,CompoundingType);
   /*! Get the name of a result mode from a type id */
-  const char *GetCalculationModeAsString(CalculationType calculationEnum);
-
-  /*!
-    Turn on or off the compounding (default on, which means
-    that scans will be averaged where they overlap instead of just considering
-    the last acquired slice).
-  */
-  virtual void SetCompounding(int c);
-  /*! Get current compounding setting */
-  vtkGetMacro(Compounding,int);
+  const char *GetCompoundingModeAsString(CompoundingType compoundingEnum);
   
   /*!
     Set number of threads used for processing the data.
@@ -313,9 +308,8 @@ protected:
   // Reconstruction options
   InterpolationType InterpolationMode;
   OptimizationType Optimization;
-  CalculationType CalculationMode;
+  CompoundingType CompoundingMode;
   int OutputScalarMode;
-  int Compounding;
 
   // Multithreading
   vtkMultiThreader *Threader;

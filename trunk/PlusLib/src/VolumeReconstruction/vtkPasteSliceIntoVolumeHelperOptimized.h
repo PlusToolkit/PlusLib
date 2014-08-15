@@ -505,12 +505,12 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
                                                  int *outExt,
                                                  vtkIdType *outInc,
                                                  int numscalars,
-                                                 vtkPasteSliceIntoVolume::CalculationType calculationMode, 
+                                                 vtkPasteSliceIntoVolume::CompoundingType compoundingMode, 
                                                  unsigned short *accPtr,
                                                  unsigned int *accOverflowCount)
 {
-  switch (calculationMode) {
-  case  vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE :
+  switch (compoundingMode) {
+  case  vtkPasteSliceIntoVolume::MEAN :
     for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++)
     {
       outPoint[0] = outPoint1[0] + idX*xAxis[0]; 
@@ -586,6 +586,36 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
       *accPtr1 = (unsigned short)ACCUMULATION_MULTIPLIER;
     }
     break;
+  case  vtkPasteSliceIntoVolume::LATEST :
+    for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++)
+    {
+      outPoint[0] = outPoint1[0] + idX*xAxis[0]; 
+      outPoint[1] = outPoint1[1] + idX*xAxis[1];
+      outPoint[2] = outPoint1[2] + idX*xAxis[2];
+
+      int outIdX = PlusMath::Round(outPoint[0]) - outExt[0];
+      int outIdY = PlusMath::Round(outPoint[1]) - outExt[2];
+      int outIdZ = PlusMath::Round(outPoint[2]) - outExt[4];
+
+      int inc = outIdX*outInc[0] + outIdY*outInc[1] + outIdZ*outInc[2];
+      T *outPtr1 = outPtr + inc;
+      // divide by outInc[0] to accomodate for the difference
+      // in the number of scalar pointers between the output
+      // and the accumulation buffer
+      unsigned short *accPtr1 = accPtr + (inc/outInc[0]); // removed cast to unsigned short because it might cause loss in larger numbers
+      int i = numscalars;
+      do 
+      {
+        i--;
+        *outPtr1 = *inPtr;
+        outPtr1++;
+        inPtr++;
+      }
+      while (i);
+
+      *accPtr1 = (unsigned short)ACCUMULATION_MULTIPLIER;
+    }
+    break;
   }
 }
 
@@ -605,7 +635,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
                                                  int *outExt,
                                                  vtkIdType *outInc,
                                                  int numscalars,
-                                                 vtkPasteSliceIntoVolume::CalculationType calculationMode,
+                                                 vtkPasteSliceIntoVolume::CompoundingType compoundingMode,
                                                  unsigned short *accPtr,
                                                  unsigned int *accOverflowCount)
 {
@@ -614,8 +644,8 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
   outPoint[1] = outPoint1[1] + xIntersectionPixStart*xAxis[1] - outExt[2];
   outPoint[2] = outPoint1[2] + xIntersectionPixStart*xAxis[2] - outExt[4];
 
-  switch (calculationMode) {
-  case  vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE :
+  switch (compoundingMode) {
+  case  vtkPasteSliceIntoVolume::MEAN :
     // Nearest-Neighbor, no extent checks, with accumulation
     for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++)
     {
@@ -692,6 +722,36 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
       outPoint[2] += xAxis[2];
     }
     break;
+  case  vtkPasteSliceIntoVolume::LATEST :
+    for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++)
+    {
+      int outIdX = PlusMath::Round(outPoint[0]);
+      int outIdY = PlusMath::Round(outPoint[1]);
+      int outIdZ = PlusMath::Round(outPoint[2]);
+
+      int inc = outIdX*outInc[0] + outIdY*outInc[1] + outIdZ*outInc[2];
+      T *outPtr1 = outPtr + inc;
+      // divide by outInc[0] to accomodate for the difference
+      // in the number of scalar pointers between the output
+      // and the accumulation buffer
+      unsigned short *accPtr1 = accPtr + (inc/outInc[0]);
+      int i = numscalars;
+      do 
+      {
+        i--;
+        *outPtr1 = *inPtr;
+        outPtr1++;
+        inPtr++;
+      }
+      while (i);
+
+      *accPtr1 = (unsigned short)ACCUMULATION_MULTIPLIER;
+
+      outPoint[0] += xAxis[0];
+      outPoint[1] += xAxis[1];
+      outPoint[2] += xAxis[2];
+    }
+    break;
   }
 }
 
@@ -719,7 +779,7 @@ static void vtkOptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* in
 
   // details specified by the user RE: how the voxels should be computed
   vtkPasteSliceIntoVolume::InterpolationType interpolationMode = insertionParams->interpolationMode;   // linear or nearest neighbor
-  vtkPasteSliceIntoVolume::CalculationType calculationMode = insertionParams->calculationMode;         // weighted average or maximum
+  vtkPasteSliceIntoVolume::CompoundingType compoundingMode = insertionParams->compoundingMode;         // weighted average or maximum
 
   // parameters for clipping
   double* clipRectangleOrigin = insertionParams->clipRectangleOrigin; // array size 2
@@ -960,7 +1020,7 @@ static void vtkOptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* in
             outPoint[0] = outPoint1[0] + idX*xAxis[0];
             outPoint[1] = outPoint1[1] + idX*xAxis[1];
             outPoint[2] = outPoint1[2] + idX*xAxis[2];
-            int hit = vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, numscalars, calculationMode, outExt, outInc, accOverflowCount); // hit is either 1 or 0
+            int hit = vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, numscalars, compoundingMode, outExt, outInc, accOverflowCount); // hit is either 1 or 0
             inPtr += numscalars; // go to the next x pixel
           }
           inPtr += numscalars * (xSkipMiddleSegmentPixEnd-xSkipMiddleSegmentPixStart+1);
@@ -969,7 +1029,7 @@ static void vtkOptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* in
             outPoint[0] = outPoint1[0] + idX*xAxis[0];
             outPoint[1] = outPoint1[1] + idX*xAxis[1];
             outPoint[2] = outPoint1[2] + idX*xAxis[2];
-            int hit = vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, numscalars, calculationMode, outExt, outInc, accOverflowCount); // hit is either 1 or 0
+            int hit = vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, numscalars, compoundingMode, outExt, outInc, accOverflowCount); // hit is either 1 or 0
             inPtr += numscalars; // go to the next x pixel
           }
         }
@@ -980,7 +1040,7 @@ static void vtkOptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* in
             outPoint[0] = outPoint1[0] + idX*xAxis[0];
             outPoint[1] = outPoint1[1] + idX*xAxis[1];
             outPoint[2] = outPoint1[2] + idX*xAxis[2];
-            int hit = vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, numscalars, calculationMode, outExt, outInc, accOverflowCount); // hit is either 1 or 0
+            int hit = vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, numscalars, compoundingMode, outExt, outInc, accOverflowCount); // hit is either 1 or 0
             inPtr += numscalars; // go to the next x pixel
           }
         }
@@ -992,17 +1052,17 @@ static void vtkOptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* in
         {
           vtkFreehand2OptimizedNNHelper(xIntersectionPixStart, xSkipMiddleSegmentPixStart-1, outPoint, outPoint1, xAxis, 
             inPtr, outPtr, outExt, outInc,
-            numscalars, calculationMode, accPtr, accOverflowCount);
+            numscalars, compoundingMode, accPtr, accOverflowCount);
           inPtr += numscalars * (xSkipMiddleSegmentPixEnd-xSkipMiddleSegmentPixStart+1);
           vtkFreehand2OptimizedNNHelper(xSkipMiddleSegmentPixEnd+1, xIntersectionPixEnd, outPoint, outPoint1, xAxis, 
             inPtr, outPtr, outExt, outInc,
-            numscalars, calculationMode, accPtr, accOverflowCount);
+            numscalars, compoundingMode, accPtr, accOverflowCount);
         }
         else
         {
           vtkFreehand2OptimizedNNHelper(xIntersectionPixStart, xIntersectionPixEnd, outPoint, outPoint1, xAxis, 
             inPtr, outPtr, outExt, outInc,
-            numscalars, calculationMode, accPtr, accOverflowCount);
+            numscalars, compoundingMode, accPtr, accOverflowCount);
         }
       }
 

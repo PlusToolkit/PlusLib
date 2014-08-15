@@ -19,8 +19,8 @@
 
   <VolumeReconstruction OutputSpacing="0.5 0.5 0.5" 
     ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
-    Interpolation="NEAREST_NEIGHBOR" Optimization="FULL" Calculation="MAXIMUM"
-    Compounding="ON" FillHoles="ON" NumberOfThreads="1">
+    Interpolation="NEAREST_NEIGHBOR" Optimization="FULL"
+    CompoundingMode="MAXIMUM" FillHoles="ON" NumberOfThreads="1">
     <HoleFilling  >
       <HoleFillingElement NumberOfSticksToUse="1"
         Type="STICK"     

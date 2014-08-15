@@ -162,9 +162,8 @@ public:
   void SetFanDepth(double fanDepthPixel);
   
   void SetInterpolation(vtkPasteSliceIntoVolume::InterpolationType interpolation);
-  void SetCalculation(vtkPasteSliceIntoVolume::CalculationType calculation);
+  void SetCompoundingMode(vtkPasteSliceIntoVolume::CompoundingType compoundingMode);
   void SetOptimization(vtkPasteSliceIntoVolume::OptimizationType optimization);
-  void SetCompounding(bool enable);
   
   vtkSetMacro(FillHoles, bool);
 

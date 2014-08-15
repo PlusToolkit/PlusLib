@@ -402,5 +402,16 @@ public:
     } \
   }
 
+#define XML_READ_WARNING_DEPRECATED_STRING_REPLACED(memberVar, xmlElementVar, newMemberVar)  \
+  { \
+    const char* attributeName = #memberVar; \
+    const char* newAttributeName = #newMemberVar; \
+    const char* strValue = xmlElementVar->GetAttribute(attributeName); \
+    if (strValue != NULL) \
+    { \
+      LOG_WARNING("Use of "<<attributeName \
+        <<" is deprecated. Use "<<newAttributeName<<" instead."); \
+    } \
+  }
   
 #endif //__PlusXmlUtils_h

@@ -27,7 +27,7 @@
     ClipRectangleOrigin="192 16" ClipRectangleSize="420 580"
     FanAnglesDeg="-45 45" FanOriginPixel="380 20" FanRadiusStartPixel="120" FanRadiusStopPixel="360" 
     Interpolation="LINEAR" Optimization="FULL"
-    Compounding="ON" FillHoles="ON" NumberOfThreads="1">
+    CompoundingMode="MEAN" FillHoles="ON" NumberOfThreads="1">
     <HoleFilling>
       <HoleFillingElement
         Type="STICK"     
