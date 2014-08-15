@@ -94,15 +94,15 @@ public:
     If a voxel is filled in the reconstructed volume, then the corresponding voxel 
     in the alpha channel is non-zero.
   */
-  virtual PlusStatus ExtractAlpha(vtkImageData* volume);
+  virtual PlusStatus ExtractAccumulation(vtkImageData* volume);
 
   /*!
     Save reconstructed volume to metafile
     \param filename Path and filename of the output file
-    \alpha True if alpha channel needs to be saved, false if gray levels (default)
+    \accumulation True if accumulation buffer needs to be saved, false if gray levels (default)
     \useCompression True if compression is turned on (default), false otherwise
   */
-  PlusStatus SaveReconstructedVolumeToMetafile(const char* filename, bool alpha=false, bool useCompression=true);
+  PlusStatus SaveReconstructedVolumeToMetafile(const char* filename, bool accumulation=false, bool useCompression=true);
 
   /*!
     Save reconstructed volume to metafile
@@ -111,13 +111,6 @@ public:
     \useCompression True if compression is turned on (default), false otherwise
   */
   static PlusStatus SaveReconstructedVolumeToMetafile(vtkImageData* volumeToSave, const char* filename, bool useCompression=true);
-
-  /*!
-    Save reconstructed volume to VTK file
-    \param filename Path and filename of the output file
-    \alpha True if alpha channel needs to be saved, false if gray levels (default)
-  */
-  PlusStatus SaveReconstructedVolumeToVtkFile(const char* filename, bool alpha=false);
 
   /*! Get/set the Image coordinate system name. It overrides the value read from the config file. */
   vtkGetStringMacro(ImageCoordinateFrame);

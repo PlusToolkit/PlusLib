@@ -498,7 +498,6 @@ PlusStatus vtkVolumeReconstructor::ExtractGrayLevels(vtkImageData* reconstructed
 
   vtkSmartPointer<vtkImageExtractComponents> extract = vtkSmartPointer<vtkImageExtractComponents>::New();          
 
-  // Keep only first component (the other component is the alpha channel)
   extract->SetComponents(0);
   extract->SetInputData_vtk5compatible(this->ReconstructedVolume);
   extract->Update();
@@ -509,7 +508,7 @@ PlusStatus vtkVolumeReconstructor::ExtractGrayLevels(vtkImageData* reconstructed
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVolumeReconstructor::ExtractAlpha(vtkImageData* reconstructedVolume)
+PlusStatus vtkVolumeReconstructor::ExtractAccumulation(vtkImageData* accumulationBuffer)
 {
   if (this->UpdateReconstructedVolume() != PLUS_SUCCESS)
   {
@@ -519,25 +518,24 @@ PlusStatus vtkVolumeReconstructor::ExtractAlpha(vtkImageData* reconstructedVolum
 
   vtkSmartPointer<vtkImageExtractComponents> extract = vtkSmartPointer<vtkImageExtractComponents>::New();          
 
-  // Extract the second component (the alpha channel)
-  extract->SetComponents(1);
-  extract->SetInputData_vtk5compatible(this->ReconstructedVolume);
+  extract->SetComponents(0);
+  extract->SetInputData_vtk5compatible(this->Reconstructor->GetAccumulationBuffer());
   extract->Update();
 
-  reconstructedVolume->DeepCopy(extract->GetOutput());
+  accumulationBuffer->DeepCopy(extract->GetOutput());
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVolumeReconstructor::SaveReconstructedVolumeToMetafile(const char* filename, bool alpha/*=false*/, bool useCompression/*=true*/)
+PlusStatus vtkVolumeReconstructor::SaveReconstructedVolumeToMetafile(const char* filename, bool accumulation/*=false*/, bool useCompression/*=true*/)
 {
   vtkSmartPointer<vtkImageData> volumeToSave = vtkSmartPointer<vtkImageData>::New();
-  if (alpha)
+  if (accumulation)
   {
-    if (this->ExtractAlpha(volumeToSave) != PLUS_SUCCESS)
+    if (this->ExtractAccumulation(volumeToSave) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Extracting alpha channel failed!");
+      LOG_ERROR("Extracting accumulation buffer failed!");
       return PLUS_FAIL;
     }
   }
@@ -545,7 +543,7 @@ PlusStatus vtkVolumeReconstructor::SaveReconstructedVolumeToMetafile(const char*
   {
     if (this->ExtractGrayLevels(volumeToSave) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Extracting alpha channel failed!");
+      LOG_ERROR("Extracting gray channel failed!");
       return PLUS_FAIL;
     }
   }
@@ -565,6 +563,7 @@ PlusStatus vtkVolumeReconstructor::SaveReconstructedVolumeToMetafile(vtkImageDat
   switch (volumeToSave->GetScalarType())
   {
   case VTK_UNSIGNED_CHAR: scalarType = MET_UCHAR; break;
+  case VTK_UNSIGNED_SHORT: scalarType = MET_USHORT; break;
   case VTK_FLOAT: scalarType = MET_FLOAT; break;
   default:
     LOG_ERROR("Scalar type is not supported!");
@@ -586,37 +585,6 @@ PlusStatus vtkVolumeReconstructor::SaveReconstructedVolumeToMetafile(vtkImageDat
     LOG_ERROR("Failed to save reconstructed volume in sequence metafile!");
     return PLUS_FAIL;
   }
-
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkVolumeReconstructor::SaveReconstructedVolumeToVtkFile(const char* filename, bool alpha/*=false*/)
-{
-  vtkSmartPointer<vtkImageData> volumeToSave = vtkSmartPointer<vtkImageData>::New();
-
-  if (alpha)
-  {
-    if (this->ExtractAlpha(volumeToSave) != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Extracting alpha channel failed!");
-      return PLUS_FAIL;
-    }
-  }
-  else
-  {
-    if (this->ExtractGrayLevels(volumeToSave) != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Extracting alpha channel failed!");
-      return PLUS_FAIL;
-    }
-  }
-
-  vtkSmartPointer<vtkDataSetWriter> writer = vtkSmartPointer<vtkDataSetWriter>::New();
-  writer->SetFileTypeToBinary();
-  writer->SetInputData_vtk5compatible(volumeToSave);
-  writer->SetFileName(filename);
-  writer->Update();
 
   return PLUS_SUCCESS;
 }

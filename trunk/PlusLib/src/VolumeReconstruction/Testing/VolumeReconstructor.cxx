@@ -24,7 +24,8 @@ int main (int argc, char* argv[])
   std::string inputImgSeqFileName;
   std::string inputConfigFileName;
   std::string outputVolumeFileName;
-  std::string outputVolumeAlphaFileName;
+  std::string outputVolumeAlphaFileNameDeprecated;
+  std::string outputVolumeAccumulationFileName;
   std::string outputFrameFileName; 
   std::string inputImageToReferenceTransformName; 
   
@@ -41,7 +42,7 @@ int main (int argc, char* argv[])
   cmdargs.AddArgument("--source-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImgSeqFileName, "Input sequence metafile filename (.mha)" );
   cmdargs.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Input configuration file name (.xml)" );
   cmdargs.AddArgument("--output-volume-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVolumeFileName, "Output file name of the reconstructed volume (must have .mha or .mhd extension)" );
-  cmdargs.AddArgument("--output-volume-alpha-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVolumeAlphaFileName, "Output file name of the alpha channel of the reconstructed volume (.mha)" );
+  cmdargs.AddArgument("--output-volume-accumulation-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVolumeAccumulationFileName, "Output file name of the accumulation of the reconstructed volume (.mha)" );
   cmdargs.AddArgument("--output-frame-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFrameFileName, "A filename that will be used for storing the tracked image frames. Each frame will be exported individually, with the proper position and orientation in the reference coordinate system");
   cmdargs.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
   cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
@@ -49,6 +50,8 @@ int main (int argc, char* argv[])
   // Deprecated arguments (2013-07-29, #800)
   cmdargs.AddArgument("--transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImageToReferenceTransformNameDeprecated, "Image to reference transform name used for the reconstruction. DEPRECATED, use --image-to-reference-transform argument instead");
   cmdargs.AddArgument("--img-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImgSeqFileNameDeprecated, "Input sequence metafile filename (.mha). DEPRECATED: use --source-seq-file argument instead" );
+  // Deprecated argument (2014-08-15, #923)
+  cmdargs.AddArgument("--output-volume-alpha-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVolumeAlphaFileNameDeprecated, "Output file name of the alpha channel of the reconstructed volume (.mha). DEPRECATED: use --output-volume-accumulation-file argument instead" );
 
   if ( !cmdargs.Parse())
   {
@@ -81,6 +84,15 @@ int main (int argc, char* argv[])
     if (inputImgSeqFileName.empty())
     {
       inputImgSeqFileName=inputImgSeqFileNameDeprecated;
+    }
+  }
+  // Deprecated argument (2014-08-15, #923)
+  if (!outputVolumeAlphaFileNameDeprecated.empty())
+  {
+    LOG_WARNING("The --output-volume-alpha-file argument is deprecated. Use --output-volume-accumulation-file instead.");
+    if (outputVolumeAccumulationFileName.empty())
+    {
+      outputVolumeAccumulationFileName=outputVolumeAlphaFileNameDeprecated;
     }
   }
 
@@ -222,9 +234,9 @@ int main (int argc, char* argv[])
   LOG_INFO("Saving volume to file...");
   reconstructor->SaveReconstructedVolumeToMetafile(outputVolumeFileName.c_str());
   
-  if (!outputVolumeAlphaFileName.empty())
+  if (!outputVolumeAccumulationFileName.empty())
   {
-    reconstructor->SaveReconstructedVolumeToMetafile(outputVolumeAlphaFileName.c_str(), true);
+    reconstructor->SaveReconstructedVolumeToMetafile(outputVolumeAccumulationFileName.c_str(), true);
   }
 
   return EXIT_SUCCESS; 

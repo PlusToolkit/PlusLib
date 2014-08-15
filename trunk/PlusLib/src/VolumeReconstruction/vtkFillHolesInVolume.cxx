@@ -60,10 +60,6 @@ POSSIBILITY OF SUCH DAMAGES.
 static const int INPUT_PORT_RECONSTRUCTED_VOLUME=0;
 static const int INPUT_PORT_ACCUMULATION_BUFFER=1;
 
-#ifndef OPAQUE_ALPHA
-static const unsigned char OPAQUE_ALPHA=255;
-#endif
-
 ///////////
 
 vtkStandardNewMacro(vtkFillHolesInVolume);
@@ -774,7 +770,7 @@ void vtkFillHolesInVolume::vtkFillHolesInVolumeExecute(vtkImageData *inVolData,
   // this will store the position of the pixel being looked at currently
   int currentPos[3]; //x,y,z
 
-  int numVolumeComponents = outData->GetNumberOfScalarComponents() - 1; // subtract 1 because of the alpha channel
+  int numVolumeComponents = outData->GetNumberOfScalarComponents();
 
   int* wholeExtent;
   wholeExtent = outData->GetExtent();
@@ -786,12 +782,10 @@ void vtkFillHolesInVolume::vtkFillHolesInVolumeExecute(vtkImageData *inVolData,
     {
       for (currentPos[0] = outExt[0]; currentPos[0] <= outExt[1]; currentPos[0]++)
       {
-        // accumulator index and volume alpha index should not depend on which individual component is being interpolated
+        // accumulator index should not depend on which individual component is being interpolated
         int accIndex = (currentPos[0]*byteIncAcc[0])+(currentPos[1]*byteIncAcc[1])+(currentPos[2]*byteIncAcc[2]);
-        int volAlphaIndex = (currentPos[0]*byteIncVol[0])+(currentPos[1]*byteIncVol[1])+(currentPos[2]*byteIncVol[2])+numVolumeComponents;
         if (accPtr[accIndex] == 0) // if not hit by accumulation during vtkPasteSliceIntoVolume
         {
-          outPtr[volAlphaIndex] = (T)0;
           for (int c = 0; c < numVolumeComponents; c++)
           {
             bool result(false);
@@ -816,7 +810,6 @@ void vtkFillHolesInVolume::vtkFillHolesInVolumeExecute(vtkImageData *inVolData,
                 break;
               }
               if (result) {
-                outPtr[volAlphaIndex] = (T)OPAQUE_ALPHA;
                 break;
               } // end checking interpolation success
             }
@@ -829,7 +822,6 @@ void vtkFillHolesInVolume::vtkFillHolesInVolumeExecute(vtkImageData *inVolData,
             int volCompIndex = (currentPos[0]*byteIncVol[0])+(currentPos[1]*byteIncVol[1])+(currentPos[2]*byteIncVol[2])+c;
             outPtr[volCompIndex] = inVolPtr[volCompIndex];
           } // end component loop
-          outPtr[volAlphaIndex] = (T)OPAQUE_ALPHA;
         } // end accumulation check
       } // end x loop
     } // end y loop

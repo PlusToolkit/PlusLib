@@ -92,9 +92,6 @@ afterward. This resulted in unwanted and clearly-wrong artifacts.
 
 #include "PlusMath.h"
 
-
-#define OPAQUE_ALPHA 255
-
 // regarding these values, see comments at the top of this file by Thomas Vaughan
 #define ACCUMULATION_MULTIPLIER 256
 #define ACCUMULATION_MAXIMUM 65535
@@ -293,7 +290,6 @@ static int vtkTrilinearInterpolation(F *point,
 
       // don't allow accumulation buffer overflow
       *accPtrTmp = ACCUMULATION_MAXIMUM;
-      *outPtrTmp = (T)OPAQUE_ALPHA;
       if (newa < ACCUMULATION_MAXIMUM)
       {
         // round the fixed point to the nearest whole unit, and save the result as an unsigned short into the accumulation buffer
