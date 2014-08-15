@@ -81,10 +81,15 @@ POSSIBILITY OF SUCH DAMAGES.
   The number of scalar components in the data is 'numscalars'
 */
 template <class F, class T>
-static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
+static int vtkNearestNeighborInterpolation(F *point,
+                                           T *inPtr,
+                                           T *outPtr,
                                            unsigned short *accPtr, 
-                                           int numscalars, vtkPasteSliceIntoVolume::CalculationType calculationMode,
-                                           int outExt[6], vtkIdType outInc[3], unsigned int* accOverflowCount)
+                                           int numscalars,
+                                           vtkPasteSliceIntoVolume::CalculationType calculationMode,
+                                           int outExt[6],
+                                           vtkIdType outInc[3],
+                                           unsigned int* accOverflowCount)
 {
   int i;
   // The nearest neighbor interpolation occurs here
@@ -96,17 +101,19 @@ static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
 
   // fancy way of checking bounds
   if ((outIdX | (outExt[1]-outExt[0] - outIdX) |
-    outIdY | (outExt[3]-outExt[2] - outIdY) |
-    outIdZ | (outExt[5]-outExt[4] - outIdZ)) >= 0)
+       outIdY | (outExt[3]-outExt[2] - outIdY) |
+       outIdZ | (outExt[5]-outExt[4] - outIdZ)) >= 0)
   {
     int inc = outIdX*outInc[0]+outIdY*outInc[1]+outIdZ*outInc[2];
     outPtr += inc;
-    if (calculationMode == vtkPasteSliceIntoVolume::MAXIMUM)
+    switch (calculationMode)
     {
-      if (accPtr) // accumulation buffer: do compounding
+    case (vtkPasteSliceIntoVolume::MAXIMUM):
       {
         accPtr += inc/outInc[0];
         int newa = *accPtr + ACCUMULATION_MULTIPLIER;
+        if (newa > ACCUMULATION_THRESHOLD)
+          (*accOverflowCount) += 1;
         for (i = 0; i < numscalars; i++)
         {
           if (*inPtr > *outPtr)
@@ -114,27 +121,15 @@ static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
           inPtr++;
           outPtr++;
         }
-        *outPtr = (T)OPAQUE_ALPHA; // set the alpha value to opaque
+        *outPtr = (T)OPAQUE_ALPHA;
         *accPtr = ACCUMULATION_MAXIMUM; // set to 0xFFFF by default for overflow protection
         if (newa < ACCUMULATION_MAXIMUM)
         {
           *accPtr = newa;
         }
+        break;
       }
-      else
-      {
-        for (i = 0; i < numscalars; i++)
-        {
-          if (*inPtr > *outPtr)
-            *outPtr = *inPtr;
-          outPtr++;
-          inPtr++;
-        }
-        *outPtr = (T)OPAQUE_ALPHA;
-      }
-    }
-    else {
-      if (accPtr) // accumulation buffer: do compounding
+    case (vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE):
       {
         accPtr += inc/outInc[0];
         if (*accPtr <= ACCUMULATION_THRESHOLD) { // no overflow, act normally
@@ -146,7 +141,8 @@ static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
             *outPtr = ((*inPtr++)*ACCUMULATION_MULTIPLIER + (*outPtr)*(*accPtr))/newa;
             outPtr++;
           }
-          *outPtr = (T)OPAQUE_ALPHA; // set the alpha value to opaque
+
+          *outPtr = (T)OPAQUE_ALPHA;
           *accPtr = ACCUMULATION_MAXIMUM; // set to 0xFFFF by default for overflow protection
           if (newa < ACCUMULATION_MAXIMUM)
           {
@@ -155,15 +151,7 @@ static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
         } else { // overflow, use recursive filtering with 255/256 and 1/256 as the weights, since 255 voxels have been inserted so far
           *outPtr = (T)(0.99609375 * (*inPtr++) + 0.00390625 * (*outPtr));
         }
-      }
-      // no accumulation buffer, replace what was there before
-      else
-      {
-        for (i = 0; i < numscalars; i++)
-        {
-          *outPtr++ = *inPtr++;
-        }
-        *outPtr = (T)OPAQUE_ALPHA;
+        break;
       }
     }
     return 1;

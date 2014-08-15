@@ -205,10 +205,6 @@ vtkImageData *vtkPasteSliceIntoVolume::GetReconstructedVolume()
 //----------------------------------------------------------------------------
 vtkImageData *vtkPasteSliceIntoVolume::GetAccumulationBuffer()
 {
-  if (!this->Compounding)
-  {
-    return NULL;
-  }
   return this->AccumulationBuffer;
 }
 
@@ -220,25 +216,21 @@ PlusStatus vtkPasteSliceIntoVolume::ResetOutput()
   // Start with this buffer because if no compunding is needed then we release memory before allocating memory for the reconstructed image.
 
   vtkImageData* accData = this->GetAccumulationBuffer();
-  if (this->Compounding)
+  if (accData==NULL)
   {
-    if (accData==NULL)
-    {
-      LOG_ERROR("Accumulation buffer object is not created");
-      return PLUS_FAIL;
-    }
-    int accExtent[6]={0}; // by default set the accumulation buffer to 0 size
-    if (this->Compounding)
-    {
-      // we do compunding, so we need to have an accumulation buffer with the same size as the output image
-      for (int i=0; i<6; i++)
-      {
-        accExtent[i]=this->OutputExtent[i];
-      }
-    }
-    accData->SetExtent(accExtent);
-    accData->SetOrigin(this->OutputOrigin);
-    accData->SetSpacing(this->OutputSpacing);
+    LOG_ERROR("Accumulation buffer object is not created");
+    return PLUS_FAIL;
+  }
+  int accExtent[6];
+  // we do compunding, so we need to have an accumulation buffer with the same size as the output image
+  for (int i=0; i<6; i++)
+  {
+    accExtent[i]=this->OutputExtent[i];
+  }
+
+  accData->SetExtent(accExtent);
+  accData->SetOrigin(this->OutputOrigin);
+  accData->SetSpacing(this->OutputSpacing);
 #if (VTK_MAJOR_VERSION < 6)
     accData->SetScalarType(VTK_UNSIGNED_SHORT); // changed from unsigned int, since the hole filler assumes unsigned short
     accData->SetNumberOfScalarComponents(1);
@@ -247,18 +239,17 @@ PlusStatus vtkPasteSliceIntoVolume::ResetOutput()
     accData->AllocateScalars(VTK_UNSIGNED_SHORT, 1);
 #endif
 
-    void *accPtr = accData->GetScalarPointerForExtent(accExtent);
-    if (accPtr==NULL)
-    {
-      LOG_ERROR("Cannot allocate memory for accumulation image extent: "<< accExtent[1]-accExtent[0] <<"x"<< accExtent[3]-accExtent[2] <<" x "<< accExtent[5]-accExtent[4]);
-    }
-    else
-    {
-      memset(accPtr,0,((accExtent[1]-accExtent[0]+1)*
-        (accExtent[3]-accExtent[2]+1)*
-        (accExtent[5]-accExtent[4]+1)*
-        accData->GetScalarSize()*accData->GetNumberOfScalarComponents()));
-    }
+  void *accPtr = accData->GetScalarPointerForExtent(accExtent);
+  if (accPtr==NULL)
+  {
+    LOG_ERROR("Cannot allocate memory for accumulation image extent: "<< accExtent[1]-accExtent[0] <<"x"<< accExtent[3]-accExtent[2] <<" x "<< accExtent[5]-accExtent[4]);
+  }
+  else
+  {
+    memset(accPtr,0,((accExtent[1]-accExtent[0]+1)*
+      (accExtent[3]-accExtent[2]+1)*
+      (accExtent[5]-accExtent[4]+1)*
+      accData->GetScalarSize()*accData->GetNumberOfScalarComponents()));
   }
   // Allocate memory for the reconstructed image and set all pixels to 0
 
@@ -275,7 +266,7 @@ PlusStatus vtkPasteSliceIntoVolume::ResetOutput()
   outData->SetSpacing(this->OutputSpacing);
 #if (VTK_MAJOR_VERSION < 6)
   outData->SetScalarType(this->OutputScalarMode);
-  outData->SetNumberOfScalarComponents(2); // first component: image intensity; second component: if the pixel was set (0 = not set (hole), 1 = set)
+  outData->SetNumberOfScalarComponents(2);
   outData->AllocateScalars();
 #else
   outData->AllocateScalars(this->OutputScalarMode, 2);
