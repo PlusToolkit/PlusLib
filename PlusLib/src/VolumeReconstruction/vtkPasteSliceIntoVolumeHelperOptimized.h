@@ -544,7 +544,6 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
         }
         while (i);
 
-        *outPtr1 = (T)OPAQUE_ALPHA;
         *accPtr1 = ACCUMULATION_MAXIMUM;
         if (newa < ACCUMULATION_MAXIMUM)
         {
@@ -584,7 +583,6 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
       }
       while (i);
 
-      *outPtr1 = (T)OPAQUE_ALPHA;
       *accPtr1 = (unsigned short)ACCUMULATION_MULTIPLIER;
     }
     break;
@@ -648,7 +646,6 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
         }
         while (i);
 
-        *outPtr1 = (T)OPAQUE_ALPHA;
         *accPtr1 = ACCUMULATION_MAXIMUM;
         if (newa < ACCUMULATION_MAXIMUM)
         {
@@ -688,7 +685,6 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
       }
       while (i);
 
-      *outPtr1 = (T)OPAQUE_ALPHA;
       *accPtr1 = (unsigned short)ACCUMULATION_MULTIPLIER;
 
       outPoint[0] += xAxis[0];

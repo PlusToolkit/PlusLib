@@ -266,10 +266,10 @@ PlusStatus vtkPasteSliceIntoVolume::ResetOutput()
   outData->SetSpacing(this->OutputSpacing);
 #if (VTK_MAJOR_VERSION < 6)
   outData->SetScalarType(this->OutputScalarMode);
-  outData->SetNumberOfScalarComponents(2);
+  outData->SetNumberOfScalarComponents(1);
   outData->AllocateScalars();
 #else
-  outData->AllocateScalars(this->OutputScalarMode, 2);
+  outData->AllocateScalars(this->OutputScalarMode, 1);
 #endif
   void *outPtr = outData->GetScalarPointerForExtent(outExtent);
   if (outPtr==NULL)

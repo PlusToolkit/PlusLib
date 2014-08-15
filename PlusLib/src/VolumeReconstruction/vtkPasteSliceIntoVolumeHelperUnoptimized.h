@@ -111,9 +111,11 @@ static int vtkNearestNeighborInterpolation(F *point,
     case (vtkPasteSliceIntoVolume::MAXIMUM):
       {
         accPtr += inc/outInc[0];
+
         int newa = *accPtr + ACCUMULATION_MULTIPLIER;
         if (newa > ACCUMULATION_THRESHOLD)
           (*accOverflowCount) += 1;
+
         for (i = 0; i < numscalars; i++)
         {
           if (*inPtr > *outPtr)
@@ -121,34 +123,37 @@ static int vtkNearestNeighborInterpolation(F *point,
           inPtr++;
           outPtr++;
         }
-        *outPtr = (T)OPAQUE_ALPHA;
+
         *accPtr = ACCUMULATION_MAXIMUM; // set to 0xFFFF by default for overflow protection
         if (newa < ACCUMULATION_MAXIMUM)
         {
           *accPtr = newa;
         }
+
         break;
       }
     case (vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE):
       {
         accPtr += inc/outInc[0];
         if (*accPtr <= ACCUMULATION_THRESHOLD) { // no overflow, act normally
+
           int newa = *accPtr + ACCUMULATION_MULTIPLIER;
           if (newa > ACCUMULATION_THRESHOLD)
             (*accOverflowCount) += 1;
+
           for (i = 0; i < numscalars; i++)
           {
             *outPtr = ((*inPtr++)*ACCUMULATION_MULTIPLIER + (*outPtr)*(*accPtr))/newa;
             outPtr++;
           }
 
-          *outPtr = (T)OPAQUE_ALPHA;
           *accPtr = ACCUMULATION_MAXIMUM; // set to 0xFFFF by default for overflow protection
           if (newa < ACCUMULATION_MAXIMUM)
           {
             *accPtr = newa;
           }
         } else { // overflow, use recursive filtering with 255/256 and 1/256 as the weights, since 255 voxels have been inserted so far
+          // TODO: Should do this for all the scalars, and accumulation?
           *outPtr = (T)(0.99609375 * (*inPtr++) + 0.00390625 * (*outPtr));
         }
         break;
