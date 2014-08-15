@@ -149,12 +149,16 @@ struct vtkPasteSliceIntoVolumeInsertSliceParams
   The number of scalar components in the data is 'numscalars'
 */
 template <class F, class T>
-static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
-                                     unsigned short *accPtr, int numscalars, 
+static int vtkTrilinearInterpolation(F *point,
+                                     T *inPtr,
+                                     T *outPtr,
+                                     unsigned short *accPtr,
+                                     int numscalars, 
                                      vtkPasteSliceIntoVolume::CalculationType calculationMode,
-                                     int outExt[6], vtkIdType  outInc[3], unsigned int* accOverflowCount)
+                                     int outExt[6],
+                                     vtkIdType outInc[3],
+                                     unsigned int* accOverflowCount)
 {
-
   // Determine if the output is a floating point or integer type. If floating point type then we don't round
   // the interpolated value.
   bool roundOutput=true; // assume integer output by default
@@ -182,8 +186,8 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
 
   // bounds check
   if ((outIdX0 | (outExt[1]-outExt[0] - outIdX1) |
-    outIdY0 | (outExt[3]-outExt[2] - outIdY1) |
-    outIdZ0 | (outExt[5]-outExt[4] - outIdZ1)) >= 0)
+       outIdY0 | (outExt[3]-outExt[2] - outIdY1) |
+       outIdZ0 | (outExt[5]-outExt[4] - outIdZ1)) >= 0)
   {
     // do reverse trilinear interpolation
     int factX0 = outIdX0*outInc[0];
@@ -233,139 +237,69 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
     T *inPtrTmp, *outPtrTmp;
 
     // do compounding
-    if (accPtr)
-    {
-      unsigned short *accPtrTmp;
+    unsigned short *accPtrTmp;
 
-      // loop over the eight voxels
-      int j = 8;
-      do 
+    // loop over the eight voxels
+    int j = 8;
+    do 
+    {
+      j--;
+      if (fdx[j] == 0)
       {
-        j--;
-        if (fdx[j] == 0)
-        {
-          continue;
-        }
-        inPtrTmp = inPtr;
-        outPtrTmp = outPtr+idx[j];
-        accPtrTmp = accPtr+ ((idx[j]/outInc[0])); // removed cast to unsigned short - prevented larger increments in Z direction
-        a = *accPtrTmp;
-
-        int i = numscalars;
-        do
-        {
-          i--;
-          switch (calculationMode)
-          {
-            case vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE:
-              f = fdx[j];
-              r = F((*accPtrTmp)/(double)ACCUMULATION_MULTIPLIER);  // added division by double, since this always returned 0 otherwise
-              a = f + r;
-              if (roundOutput)
-              {
-                PlusMath::Round((f*(*inPtrTmp) + r*(*outPtrTmp))/a, *outPtrTmp);
-              }
-              else
-              {
-                *outPtrTmp = (f*(*inPtrTmp) + r*(*outPtrTmp))/a;
-              }
-              break;
-            case vtkPasteSliceIntoVolume::MAXIMUM:
-              if (*inPtrTmp > *outPtrTmp)
-              {
-                *outPtrTmp = *inPtrTmp;
-                f = fdx[j];
-                a = f;
-              }
-              break;
-          }
-          inPtrTmp++;
-          outPtrTmp++;
-        }
-        while (i);
-
-        F newa = a * ACCUMULATION_MULTIPLIER; // needs to be done for proper conversion to unsigned short for accumulation buffer
-        if (newa > ACCUMULATION_THRESHOLD && *accPtrTmp <= ACCUMULATION_THRESHOLD)
-          (*accOverflowCount) += 1;
-        *accPtrTmp = ACCUMULATION_MAXIMUM;
-        *outPtrTmp = (T)OPAQUE_ALPHA; //alpha set to opaque
-        // don't allow accumulation buffer overflow
-        if (newa < ACCUMULATION_MAXIMUM)
-        {
-          // round the fixed point to the nearest whole unit, and save the result as an unsigned short into the accumulation buffer
-          PlusMath::Round(newa, *accPtrTmp);
-        }
+        continue;
       }
-      while (j);
-    }
+      inPtrTmp = inPtr;
+      outPtrTmp = outPtr+idx[j];
+      accPtrTmp = accPtr+ ((idx[j]/outInc[0])); // removed cast to unsigned short - prevented larger increments in Z direction
+      a = *accPtrTmp;
 
-    // no compounding
-    else
-    {
-      // loop over the eight voxels
-      int j = 8;
+      int i = numscalars;
       do
       {
-        j--;
-        if (fdx[j] == 0)
+        i--;
+        switch (calculationMode)
         {
-          continue;
-        }
-        inPtrTmp = inPtr;
-        outPtrTmp = outPtr+idx[j];
-        if (outPtrTmp[numscalars])
-        {
-          int i = numscalars;
-          switch (calculationMode) {
-            case vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE:
-              // if alpha is nonzero then the pixel was hit before, so
-              //  average with previous value
-              f = fdx[j];
-              r = 1 - f; // removed redeclaration of r, since already declared as type <F>
-              do
-              {
-                i--;
-                if (roundOutput)
-                {
-                  PlusMath::Round(f*(*inPtrTmp) + r*(*outPtrTmp), *outPtrTmp);
-                }
-                else
-                {
-                  *outPtrTmp = f*(*inPtrTmp) + r*(*outPtrTmp);
-                }
-                inPtrTmp++;
-                outPtrTmp++;
-              }
-              while (i);
-              break;
-            case vtkPasteSliceIntoVolume::MAXIMUM:
-              do
-              {
-                i--;
-                if (*inPtrTmp > *outPtrTmp)
-                  *outPtrTmp = *inPtrTmp;
-                inPtrTmp++;
-                outPtrTmp++;
-              }
-              while (i);
-              break;
-          }
-        }
-        // alpha is zero, so just insert the new value
-        else
-        {
-          int i = numscalars;
-          do
+        case vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE:
+          f = fdx[j];
+          r = F((*accPtrTmp)/(double)ACCUMULATION_MULTIPLIER);  // added division by double, since this always returned 0 otherwise
+          a = f + r;
+          if (roundOutput)
           {
-            i--;
-            *outPtrTmp++ = *inPtrTmp++;
+            PlusMath::Round((f*(*inPtrTmp) + r*(*outPtrTmp))/a, *outPtrTmp);
           }
-          while (i);
-        }          
-        *outPtrTmp = (T)OPAQUE_ALPHA;
+          else
+          {
+            *outPtrTmp = (f*(*inPtrTmp) + r*(*outPtrTmp))/a;
+          }
+          break;
+        case vtkPasteSliceIntoVolume::MAXIMUM:
+          if (*inPtrTmp > *outPtrTmp)
+          {
+            *outPtrTmp = *inPtrTmp;
+            f = fdx[j];
+            a = f;
+          }
+          break;
+        }
+        inPtrTmp++;
+        outPtrTmp++;
       }
-      while (j);
+      while (i);
+
+      F newa = a * ACCUMULATION_MULTIPLIER; // needs to be done for proper conversion to unsigned short for accumulation buffer
+      if (newa > ACCUMULATION_THRESHOLD && *accPtrTmp <= ACCUMULATION_THRESHOLD)
+        (*accOverflowCount) += 1;
+
+      // don't allow accumulation buffer overflow
+      *accPtrTmp = ACCUMULATION_MAXIMUM;
+      *outPtrTmp = (T)OPAQUE_ALPHA;
+      if (newa < ACCUMULATION_MAXIMUM)
+      {
+        // round the fixed point to the nearest whole unit, and save the result as an unsigned short into the accumulation buffer
+        PlusMath::Round(newa, *accPtrTmp);
+      }
     }
+    while (j);
     return 1;
   }
   // if bounds check fails
