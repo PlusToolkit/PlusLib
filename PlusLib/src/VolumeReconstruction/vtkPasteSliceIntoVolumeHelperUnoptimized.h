@@ -86,7 +86,7 @@ static int vtkNearestNeighborInterpolation(F *point,
                                            T *outPtr,
                                            unsigned short *accPtr, 
                                            int numscalars,
-                                           vtkPasteSliceIntoVolume::CalculationType calculationMode,
+                                           vtkPasteSliceIntoVolume::CompoundingType compoundingMode,
                                            int outExt[6],
                                            vtkIdType outInc[3],
                                            unsigned int* accOverflowCount)
@@ -106,7 +106,7 @@ static int vtkNearestNeighborInterpolation(F *point,
   {
     int inc = outIdX*outInc[0]+outIdY*outInc[1]+outIdZ*outInc[2];
     outPtr += inc;
-    switch (calculationMode)
+    switch (compoundingMode)
     {
     case (vtkPasteSliceIntoVolume::MAXIMUM):
       {
@@ -132,7 +132,7 @@ static int vtkNearestNeighborInterpolation(F *point,
 
         break;
       }
-    case (vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE):
+    case (vtkPasteSliceIntoVolume::MEAN):
       {
         accPtr += inc/outInc[0];
         if (*accPtr <= ACCUMULATION_THRESHOLD) { // no overflow, act normally
@@ -156,6 +156,29 @@ static int vtkNearestNeighborInterpolation(F *point,
           // TODO: Should do this for all the scalars, and accumulation?
           *outPtr = (T)(0.99609375 * (*inPtr++) + 0.00390625 * (*outPtr));
         }
+        break;
+      }
+    case (vtkPasteSliceIntoVolume::LATEST):
+      {
+        accPtr += inc/outInc[0];
+
+        int newa = *accPtr + ACCUMULATION_MULTIPLIER;
+        if (newa > ACCUMULATION_THRESHOLD)
+          (*accOverflowCount) += 1;
+
+        for (i = 0; i < numscalars; i++)
+        {
+          *outPtr = *inPtr;
+          inPtr++;
+          outPtr++;
+        }
+
+        *accPtr = ACCUMULATION_MAXIMUM; // set to 0xFFFF by default for overflow protection
+        if (newa < ACCUMULATION_MAXIMUM)
+        {
+          *accPtr = newa;
+        }
+
         break;
       }
     }
@@ -193,7 +216,7 @@ static void vtkUnoptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* 
 
   // details specified by the user RE: how the voxels should be computed
   vtkPasteSliceIntoVolume::InterpolationType interpolationMode = insertionParams->interpolationMode;   // linear or nearest neighbor
-  vtkPasteSliceIntoVolume::CalculationType calculationMode = insertionParams->calculationMode;         // weighted average or maximum
+  vtkPasteSliceIntoVolume::CompoundingType compoundingMode = insertionParams->compoundingMode;         // weighted average or maximum
 
   // parameters for clipping
   double* clipRectangleOrigin = insertionParams->clipRectangleOrigin; // array size 2
@@ -255,7 +278,7 @@ static void vtkUnoptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* 
   int numscalars = inData->GetNumberOfScalarComponents();
 
   // Set interpolation method - nearest neighbor or trilinear  
-  int (*interpolate)(double *, T *, T *, unsigned short *, int, vtkPasteSliceIntoVolume::CalculationType, int a[6], vtkIdType b[3], unsigned int *)=NULL; // pointer to the nearest neighbor or trilinear interpolation function  
+  int (*interpolate)(double *, T *, T *, unsigned short *, int, vtkPasteSliceIntoVolume::CompoundingType, int a[6], vtkIdType b[3], unsigned int *)=NULL; // pointer to the nearest neighbor or trilinear interpolation function  
   switch (interpolationMode)
   {
   case vtkPasteSliceIntoVolume::NEAREST_NEIGHBOR_INTERPOLATION:
@@ -329,7 +352,7 @@ static void vtkUnoptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* 
         outPoint[3] = 1;
 
         // interpolation functions return 1 if the interpolation was successful, 0 otherwise
-        int hit = interpolate(outPoint, inPtr, outPtr, accPtr, numscalars, calculationMode, outExt, outInc, accOverflowCount);
+        int hit = interpolate(outPoint, inPtr, outPtr, accPtr, numscalars, compoundingMode, outExt, outInc, accOverflowCount);
       }
     }
   }

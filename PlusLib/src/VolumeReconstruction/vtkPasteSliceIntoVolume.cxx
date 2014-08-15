@@ -65,9 +65,8 @@ struct InsertSliceThreadFunctionInfoStruct
   vtkImageData* OutputVolume;
   vtkImageData* Accumulator;
   vtkPasteSliceIntoVolume::OptimizationType Optimization;
-  int Compounding;
   vtkPasteSliceIntoVolume::InterpolationType InterpolationMode;
-  vtkPasteSliceIntoVolume::CalculationType CalculationMode;
+  vtkPasteSliceIntoVolume::CompoundingType CompoundingMode;
 
   double ClipRectangleOrigin[2];
   double ClipRectangleSize[2];
@@ -120,8 +119,7 @@ vtkPasteSliceIntoVolume::vtkPasteSliceIntoVolume()
   // reconstruction options
   this->InterpolationMode = NEAREST_NEIGHBOR_INTERPOLATION;
   this->Optimization = FULL_OPTIMIZATION;
-  this->CalculationMode = WEIGHTED_AVERAGE;
-  this->Compounding = 0;
+  this->CompoundingMode = MEAN;
 
   this->NumberOfThreads=0; // 0 means not set, the default number of threads will be used
 
@@ -181,9 +179,8 @@ void vtkPasteSliceIntoVolume::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "FanRadiusStart: " << this->FanRadiusStart << "\n";
   os << indent << "FanRadiusStop: " << this->FanRadiusStop << "\n";
   os << indent << "InterpolationMode: " << this->GetInterpolationModeAsString(this->InterpolationMode) << "\n";
-  os << indent << "CalculationMode: " << this->GetCalculationModeAsString(this->CalculationMode) << "\n";
+  os << indent << "CompoundingMode: " << this->GetCompoundingModeAsString(this->CompoundingMode) << "\n";
   os << indent << "Optimization: " << this->GetOptimizationModeAsString(this->Optimization) << "\n";
-  os << indent << "Compounding: " << (this->Compounding ? "On\n":"Off\n");
   os << indent << "NumberOfThreads: ";
   if (this->NumberOfThreads>0)
   {
@@ -288,14 +285,6 @@ PlusStatus vtkPasteSliceIntoVolume::ResetOutput()
   return PLUS_SUCCESS;
 }
 
-//----------------------------------------------------------------------------
-// Set compounding setting
-void vtkPasteSliceIntoVolume::SetCompounding(int compound)
-{
-  this->Compounding = compound;
-  ResetOutput();
-}
-
 //****************************************************************************
 // RECONSTRUCTION - OPTIMIZED
 //****************************************************************************
@@ -320,9 +309,8 @@ PlusStatus vtkPasteSliceIntoVolume::InsertSlice(vtkImageData *image, vtkMatrix4x
   str.TransformImageToReference = transformImageToReference;
   str.OutputVolume = this->ReconstructedVolume;
   str.Accumulator = this->AccumulationBuffer;
-  str.Compounding = this->Compounding;
   str.InterpolationMode = this->InterpolationMode;
-  str.CalculationMode = this->CalculationMode;
+  str.CompoundingMode = this->CompoundingMode;
   str.Optimization = this->Optimization;
   if (this->ClipRectangleSize[0]>0 && this->ClipRectangleSize[1]>0)
   {
@@ -418,10 +406,7 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
   void *outPtr = outData->GetScalarPointerForExtent(outExt);
 
   void *accPtr = NULL; 
-  if (str->Compounding)
-  {
-    accPtr = str->Accumulator->GetScalarPointerForExtent(outExt);
-  }
+  accPtr = str->Accumulator->GetScalarPointerForExtent(outExt);
 
   // count the number of accumulation buffer overflow instances in the memory address here:
   unsigned int* accumulationBufferSaturationErrorsThread = &(str->AccumulationBufferSaturationErrors[threadId]);
@@ -455,7 +440,7 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
   vtkPasteSliceIntoVolumeInsertSliceParams insertionParams;
   insertionParams.accOverflowCount = accumulationBufferSaturationErrorsThread;
   insertionParams.accPtr = (unsigned short *)accPtr;
-  insertionParams.calculationMode = str->CalculationMode;
+  insertionParams.compoundingMode = str->CompoundingMode;
   insertionParams.clipRectangleOrigin = str->ClipRectangleOrigin;
   insertionParams.clipRectangleSize = str->ClipRectangleSize;
   insertionParams.fanAnglesDeg = str->FanAnglesDeg;
@@ -725,14 +710,15 @@ const char* vtkPasteSliceIntoVolume::GetOutputScalarModeAsString(int type)
   }
 }
 
-const char* vtkPasteSliceIntoVolume::GetCalculationModeAsString(CalculationType type)
+const char* vtkPasteSliceIntoVolume::GetCompoundingModeAsString(CompoundingType type)
 {
   switch (type)
   {
-  case WEIGHTED_AVERAGE: return "WEIGHTED_AVERAGE";
+  case LATEST: return "LATEST";
+  case MEAN: return "MEAN";
   case MAXIMUM: return "MAXIMUM";
   default:
-    LOG_ERROR("Unknown calculation option: "<<type);
+    LOG_ERROR("Unknown compounding option: "<<type);
     return "unknown";
   }
 }

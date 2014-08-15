@@ -70,7 +70,7 @@ ACCUMULATION_THRESHOLD = (ACCUMULATION_MAXIMUM - ACCUMULATION_MULTIPLIER)
 
 Note that, in order to deal with overflow, the code previously would take in 
 the additional pixel value and  calculate a weighted average, as normally done 
-in compounding, but then reset the  accumulation value for the voxel to 65535 
+in compounding (MEAN), but then reset the  accumulation value for the voxel to 65535 
 afterward. This resulted in unwanted and clearly-wrong artifacts.
 */
 
@@ -118,7 +118,7 @@ struct vtkPasteSliceIntoVolumeInsertSliceParams
 
   // details specified by the user RE: how the voxels should be computed
   vtkPasteSliceIntoVolume::InterpolationType interpolationMode;   // linear or nearest neighbor
-  vtkPasteSliceIntoVolume::CalculationType calculationMode;       // weighted average or maximum
+  vtkPasteSliceIntoVolume::CompoundingType compoundingMode;
 
   // parameters for clipping
   double* clipRectangleOrigin; // array size 2
@@ -151,7 +151,7 @@ static int vtkTrilinearInterpolation(F *point,
                                      T *outPtr,
                                      unsigned short *accPtr,
                                      int numscalars, 
-                                     vtkPasteSliceIntoVolume::CalculationType calculationMode,
+                                     vtkPasteSliceIntoVolume::CompoundingType compoundingMode,
                                      int outExt[6],
                                      vtkIdType outInc[3],
                                      unsigned int* accOverflowCount)
@@ -233,7 +233,6 @@ static int vtkTrilinearInterpolation(F *point,
     F f, r, a;
     T *inPtrTmp, *outPtrTmp;
 
-    // do compounding
     unsigned short *accPtrTmp;
 
     // loop over the eight voxels
@@ -254,9 +253,9 @@ static int vtkTrilinearInterpolation(F *point,
       do
       {
         i--;
-        switch (calculationMode)
+        switch (compoundingMode)
         {
-        case vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE:
+        case vtkPasteSliceIntoVolume::MEAN:
           f = fdx[j];
           r = F((*accPtrTmp)/(double)ACCUMULATION_MULTIPLIER);  // added division by double, since this always returned 0 otherwise
           a = f + r;
@@ -277,6 +276,11 @@ static int vtkTrilinearInterpolation(F *point,
             f = fdx[j];
             a = f * ACCUMULATION_MULTIPLIER;;
           }
+          break;
+        case vtkPasteSliceIntoVolume::LATEST:
+          *outPtrTmp = *inPtrTmp;
+          f = fdx[j];
+          a = f * ACCUMULATION_MULTIPLIER;;
           break;
         }
         inPtrTmp++;

@@ -105,16 +105,15 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
     this->Reconstructor->GetInterpolationModeAsString(vtkPasteSliceIntoVolume::LINEAR_INTERPOLATION), vtkPasteSliceIntoVolume::LINEAR_INTERPOLATION, \
     this->Reconstructor->GetInterpolationModeAsString(vtkPasteSliceIntoVolume::NEAREST_NEIGHBOR_INTERPOLATION), vtkPasteSliceIntoVolume::NEAREST_NEIGHBOR_INTERPOLATION);
 
-  XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(Calculation, reconConfig, \
-    this->Reconstructor->GetCalculationModeAsString(vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE), vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE, \
-    this->Reconstructor->GetCalculationModeAsString(vtkPasteSliceIntoVolume::MAXIMUM), vtkPasteSliceIntoVolume::MAXIMUM);
-
   XML_READ_ENUM3_ATTRIBUTE_OPTIONAL(Optimization, reconConfig, \
     this->Reconstructor->GetOptimizationModeAsString(vtkPasteSliceIntoVolume::FULL_OPTIMIZATION), vtkPasteSliceIntoVolume::FULL_OPTIMIZATION, \
     this->Reconstructor->GetOptimizationModeAsString(vtkPasteSliceIntoVolume::PARTIAL_OPTIMIZATION), vtkPasteSliceIntoVolume::PARTIAL_OPTIMIZATION, \
     this->Reconstructor->GetOptimizationModeAsString(vtkPasteSliceIntoVolume::NO_OPTIMIZATION), vtkPasteSliceIntoVolume::NO_OPTIMIZATION);
 
-  XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(Compounding, reconConfig, "ON", true, "OFF", false);
+  XML_READ_ENUM3_ATTRIBUTE_OPTIONAL(CompoundingMode, reconConfig, \
+    this->Reconstructor->GetCompoundingModeAsString(vtkPasteSliceIntoVolume::LATEST), vtkPasteSliceIntoVolume::LATEST, \
+    this->Reconstructor->GetCompoundingModeAsString(vtkPasteSliceIntoVolume::MEAN), vtkPasteSliceIntoVolume::MEAN, \
+    this->Reconstructor->GetCompoundingModeAsString(vtkPasteSliceIntoVolume::MAXIMUM), vtkPasteSliceIntoVolume::MAXIMUM);
 
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, NumberOfThreads, reconConfig);
 
@@ -130,6 +129,10 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
       return PLUS_FAIL;
     }
   }
+
+  // ==== Warn if using DEPRECATED XML tags (2014-08-15, #923) ====
+  XML_READ_WARNING_DEPRECATED_STRING_REPLACED(Compounding,reconConfig,CompoundingMode);
+  XML_READ_WARNING_DEPRECATED_STRING_REPLACED(Calculation,reconConfig,CompoundingMode);
 
   this->Modified();
 
@@ -178,7 +181,7 @@ PlusStatus vtkVolumeReconstructor::WriteConfiguration(vtkXMLDataElement *config)
   // reconstruction options
   reconConfig->SetAttribute("Interpolation", this->Reconstructor->GetInterpolationModeAsString(this->Reconstructor->GetInterpolationMode()));
   reconConfig->SetAttribute("Optimization", this->Reconstructor->GetOptimizationModeAsString(this->Reconstructor->GetOptimization()));
-  reconConfig->SetAttribute("Compounding", this->Reconstructor->GetCompounding()?"On":"Off");
+  reconConfig->SetAttribute("CompoundingMode", this->Reconstructor->GetCompoundingModeAsString(this->Reconstructor->GetCompoundingMode()));
 
   if (this->Reconstructor->GetNumberOfThreads()>0)
   {
@@ -699,19 +702,13 @@ void vtkVolumeReconstructor::SetInterpolation(vtkPasteSliceIntoVolume::Interpola
 }
 
 //----------------------------------------------------------------------------
-void vtkVolumeReconstructor::SetCalculation(vtkPasteSliceIntoVolume::CalculationType calculation)
+void vtkVolumeReconstructor::SetCompoundingMode(vtkPasteSliceIntoVolume::CompoundingType compoundingMode)
 {
-  this->Reconstructor->SetCalculationMode(calculation);
+  this->Reconstructor->SetCompoundingMode(compoundingMode);
 }
 
 //----------------------------------------------------------------------------
 void vtkVolumeReconstructor::SetOptimization(vtkPasteSliceIntoVolume::OptimizationType optimization)
 {
   this->Reconstructor->SetOptimization(optimization);
-}
-
-//----------------------------------------------------------------------------
-void vtkVolumeReconstructor::SetCompounding(bool enable)
-{
-  this->Reconstructor->SetCompounding(enable?1:0);
 }
