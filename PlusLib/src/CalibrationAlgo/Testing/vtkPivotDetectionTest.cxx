@@ -6,7 +6,7 @@ See License.txt for details.
 
 /*!
 \file vtkPivotDetectionTest.cxx 
-\brief This test runs a stylus (pivot) calibration on a recorded data set 
+\brief This test runs a stylus (pivot) detection on a recorded data set 
 and compares the results to a baseline
 */ 
 
@@ -29,22 +29,20 @@ and compares the results to a baseline
 #include <iostream>
 #include <stdlib.h>
 
-///////////////////////////////////////////////////////////////////
-const double TRANSLATION_ERROR_THRESHOLD = 0.5; // error threshold is 0.5mm
-const double ROTATION_ERROR_THRESHOLD = 0.5; // error threshold is 0.5deg
+#include "vtkPhantomLandmarkRegistrationAlgo.h"
 
-int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, const char* stylusCoordinateFrame, const char* stylusTipCoordinateFrame);
+///////////////////////////////////////////////////////////////////
+const double ERROR_THRESHOLD_MM=0.001;
+const double NUMBER_PIVOTS =8;
 
 int main (int argc, char* argv[])
 { 
   std::string inputConfigFileName;
   std::string inputBaselineFileName;
 
-  std::string inputTrackedStylusTipSequenceMetafile("");
-  std::string stylusTipToStylusTransformNameStr("");
-  std::string intermediateFileOutputDirectory;
+  std::string inputTrackedStylusTipSequenceMetafile;
+  std::string stylusTipToStylusTransformNameStr;
 
-  int numberOfPointsToAcquire=100;
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments cmdargs;
@@ -52,13 +50,11 @@ int main (int argc, char* argv[])
 
   cmdargs.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
   cmdargs.AddArgument("--baseline-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
-  cmdargs.AddArgument("--number-of-points-to-acquire", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &numberOfPointsToAcquire, "Number of acquired points during the pivot calibration (default: 100)");
-  cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
+  //cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
 
   cmdargs.AddArgument("--tracker-input-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTrackedStylusTipSequenceMetafile, "Input tracker sequence metafile name with path");
   cmdargs.AddArgument("--stylus-tip-to-stylus-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &stylusTipToStylusTransformNameStr, 
-                      "Transform name that describes the probe pose relative to a static reference (default: StylusTipToReference)"); 
-  cmdargs.AddArgument("--intermediate-file-output-dir", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &intermediateFileOutputDirectory, "Directory into which the intermediate files are written");
+    "Transform name that describes the probe pose relative to a static reference (default: StylusTipToReference)"); 
 
   if ( !cmdargs.Parse() )
   {
@@ -77,7 +73,7 @@ int main (int argc, char* argv[])
     return EXIT_FAILURE;
   }
 
-  // Initialize stylus calibration
+  // Initialize stylus detection
   vtkSmartPointer<vtkPivotDetectionAlgo> PivotDetection = vtkSmartPointer<vtkPivotDetectionAlgo>::New();
   if (PivotDetection == NULL)
   {
@@ -106,7 +102,6 @@ int main (int argc, char* argv[])
   }
 
   vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
-  transformRepository->SetTransforms(*(trackedStylusTipFrames->GetTrackedFrame(0)));
 
   // Check stylus tool
   PlusTransformName stylusToReferenceTransformName(PivotDetection->GetObjectMarkerCoordinateFrame(), PivotDetection->GetReferenceCoordinateFrame());
@@ -120,130 +115,115 @@ int main (int argc, char* argv[])
   vtkSmartPointer<vtkMatrix4x4> stylusTipToStylusTransform = vtkSmartPointer<vtkMatrix4x4>::New();
   bool valid = false;
   transformRepositoryCalibration->GetTransform(stylusTipToStylusTransformNameStr, stylusTipToStylusTransform, &valid);
-  PivotDetection->SetStylusTipToStylusTransformMatrix(stylusTipToStylusTransform);
   double pivotFound[3] = {0,0,0};
-  // Acquire positions for pivot calibration
-  for (int i=0; i < trackedStylusTipFrames->GetNumberOfTrackedFrames(); ++i)
+  double pivotLandmark[3] = {0,0,0};
+  if (valid)
   {
-    vtksys::SystemTools::Delay(50);
-    //vtkPlusLogger::PrintProgressbar((100.0 * i) /  trackedStylusTipFrames->GetNumberOfTrackedFrames()); 
-    vtkSmartPointer<vtkMatrix4x4> stylusToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
-    if ( transformRepository->SetTransforms(*(trackedStylusTipFrames->GetTrackedFrame(i))) != PLUS_SUCCESS )
+    // Acquire positions for pivot calibration
+    for (int i=0; i < trackedStylusTipFrames->GetNumberOfTrackedFrames(); ++i)
     {
-      LOG_ERROR("Failed to update transforms in repository with tracked frame!");
-      exit(EXIT_FAILURE);
+      vtksys::SystemTools::Delay(50);
+      //vtkPlusLogger::PrintProgressbar((100.0 * i) /  trackedStylusTipFrames->GetNumberOfTrackedFrames()); 
+      vtkSmartPointer<vtkMatrix4x4> stylusToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+
+      if ( transformRepository->SetTransforms(*(trackedStylusTipFrames->GetTrackedFrame(i))) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to update transforms in repository with tracked frame!");
+        exit(EXIT_FAILURE);
+      }
+
+      valid = false;
+      if ( (transformRepository->GetTransform(stylusToReferenceTransformName, stylusToReferenceMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
+      {
+        LOG_ERROR("No valid transform found between stylus to reference!");
+        exit(EXIT_FAILURE);
+      }
+      vtkMatrix4x4* stylusTipToReferenceTransformMatrix = vtkMatrix4x4::New();
+      vtkMatrix4x4::Multiply4x4(stylusToReferenceMatrix,stylusTipToStylusTransform,stylusTipToReferenceTransformMatrix);
+      PivotDetection->InsertNextDetectionPoint(stylusTipToReferenceTransformMatrix);
+
+      if(PivotDetection->PivotFound()==PLUS_SUCCESS)
+      {
+        PivotDetection->GetPivotPointsReference()->GetPoint(PivotDetection->GetPivotPointsReference()->GetNumberOfPoints()-1, pivotFound);
+        LOG_INFO("\nPivot found (" << pivotFound[0]<<", " << pivotFound[1]<<", " << pivotFound[2]<<") at "<<trackedStylusTipFrames->GetTrackedFrame(i)->GetTimestamp()<<"[ms]");
+      }
+
+      if(PivotDetection->GetPivotPointsReference()->GetNumberOfPoints()==NUMBER_PIVOTS)
+      {
+        break;
+      }
     }
-
-    bool valid = false;
-    if ( (transformRepository->GetTransform(stylusToReferenceTransformName, stylusToReferenceMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
-    {
-      LOG_ERROR("No valid transform found between stylus to reference!");
-      exit(EXIT_FAILURE);
-    }
-    PivotDetection->InsertNextCalibrationPoint(stylusToReferenceMatrix);
-    if(PivotDetection->GetPivot(pivotFound)==PLUS_SUCCESS)
-    {
-      LOG_INFO("\nPivot found (" << pivotFound[0]<<", " << pivotFound[1]<<", " << pivotFound[2]<<") at "<<trackedStylusTipFrames->GetTrackedFrame(i)->GetTimestamp()<<"[ms]");
-      break;
-    }
-  }
-  //vtkPlusLogger::PrintProgressbar(100.0); 
-
-  // Save result
-  if (transformRepository->WriteConfiguration(configRootElement) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to write pivot calibration result to configuration element!");
-    exit(EXIT_FAILURE);
-  }  
-
-  std::string calibrationResultFileName = "StylusCalibrationTest.xml";
-  LOG_INFO("Writing calibration result ("<<PivotDetection->GetObjectPivotPointCoordinateFrame()<<" to "<<PivotDetection->GetObjectMarkerCoordinateFrame()<<" transform) to "<<calibrationResultFileName);
-  vtksys::SystemTools::RemoveFile(calibrationResultFileName.c_str());
-  PlusCommon::PrintXML(calibrationResultFileName.c_str(), configRootElement); 
-
-  if (!inputBaselineFileName.empty())
-  {
-    //// Compare to baseline
-    //if ( CompareCalibrationResultsWithBaseline( inputBaselineFileName.c_str(), calibrationResultFileName.c_str(), PivotDetection->GetObjectMarkerCoordinateFrame(), PivotDetection->GetObjectPivotPointCoordinateFrame() ) !=0 )
-    //{
-    //  LOG_ERROR("Comparison of calibration data to baseline failed");
-    //  std::cout << "Exit failure!!!" << std::endl;
-    //  return EXIT_FAILURE;
-    //}
   }
   else
   {
-    LOG_DEBUG("Baseline file is not specified. Computed results are not compared to baseline results.");
+    LOG_ERROR("No valid transform found between stylus to stylus tip!");
+  }
+
+  if (!inputBaselineFileName.empty())
+  {
+    // Load baseline stylus detection
+    vtkSmartPointer<vtkXMLDataElement> baselineRootElem = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(inputBaselineFileName.c_str()));
+    if (baselineRootElem == NULL) 
+    {  
+      LOG_ERROR("Unable to read the baseline configuration file: " << inputBaselineFileName); 
+    }
+    // Phantom registration to read landmarks but there could b done in a nicer way
+    vtkSmartPointer<vtkPhantomLandmarkRegistrationAlgo> pivotDetectionBaselineLandmarks = vtkSmartPointer<vtkPhantomLandmarkRegistrationAlgo>::New();
+    if (pivotDetectionBaselineLandmarks == NULL)
+    {
+      LOG_ERROR("Unable to instantiate phantom registration algorithm class!");
+      exit(EXIT_FAILURE);
+    }
+    if (pivotDetectionBaselineLandmarks->ReadConfiguration(baselineRootElem) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Unable to read pivot Detection Baseline Landmarks!");
+      exit(EXIT_FAILURE);
+    }
+
+    int numberOfLandmarks = pivotDetectionBaselineLandmarks->GetDefinedLandmarks()->GetNumberOfPoints();
+    if (numberOfLandmarks != NUMBER_PIVOTS)
+    {
+      LOG_ERROR("Number of defined landmarks should be "<<NUMBER_PIVOTS<< " instead of " << numberOfLandmarks << "!");
+      exit(EXIT_FAILURE);
+    }
+    //if (PivotDetection->GetPivotPointsReference()->GetNumberOfPoints()==numberOfLandmarks)
+    //{
+    for (int id =0; id<PivotDetection->GetPivotPointsReference()->GetNumberOfPoints();id++)
+    {
+      // Compare to baseline
+      pivotDetectionBaselineLandmarks->GetDefinedLandmarks()->GetPoint(id, pivotLandmark);
+      PivotDetection->GetPivotPointsReference()->GetPoint(id, pivotFound);
+      pivotLandmark[0]=pivotFound[0]-pivotLandmark[0];
+      pivotLandmark[1]=pivotFound[1]-pivotLandmark[1];
+      pivotLandmark[2]=pivotFound[2]-pivotLandmark[2];
+      if (vtkMath::Norm(pivotLandmark)>ERROR_THRESHOLD_MM)
+      {
+        LOG_ERROR("Comparison of calibration data to baseline failed");
+        std::cout << "Exit failure!!!" << std::endl;
+        return EXIT_FAILURE;
+      }
+      else
+      {
+        LOG_INFO("\nPivot "<< id << " found (" << pivotFound[0]<<", " << pivotFound[1]<<", " << pivotFound[2]);
+      }
+    }
+    //}
+    //else
+    //{
+    //  LOG_ERROR("Comparison of calibration data to baseline failed, not the same number of detected landmarks");
+    //  std::cout << "Exit failure!!!" << std::endl;
+    //  return EXIT_FAILURE;
+    //}
+
+  }
+  else
+  {
+    LOG_ERROR("Baseline file is not specified. Computed results are not compared to baseline results.");
   }
 
   std::cout << "Exit success!!!" << std::endl; 
   return EXIT_SUCCESS; 
 }
 
-//-----------------------------------------------------------------------------
 
-// return the number of differences
-//int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, const char* stylusCoordinateFrame, const char* stylusTipCoordinateFrame )
-//{
-//  int numberOfFailures=0;
-//
-//  // Load current stylus calibration
-//  vtkSmartPointer<vtkXMLDataElement> currentRootElem = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(currentResultFileName));
-//  if (currentRootElem == NULL) 
-//  {  
-//    LOG_ERROR("Unable to read the current configuration file: " << currentResultFileName); 
-//    return ++numberOfFailures;
-//  }
-//  
-//  vtkSmartPointer<vtkMatrix4x4> transformCurrent = vtkSmartPointer<vtkMatrix4x4>::New(); 
-//  double currentError(0); 
-//  if ( vtkPlusConfig::GetInstance()->ReadTransformToCoordinateDefinition(currentRootElem, stylusTipCoordinateFrame, stylusCoordinateFrame, transformCurrent, &currentError) != PLUS_SUCCESS )
-//  {
-//    LOG_ERROR("Failed to read current pivot calibration result from configuration file!"); 
-//    return ++numberOfFailures;
-//  }
-//
-//  // Load baseline stylus calibration
-//  vtkSmartPointer<vtkXMLDataElement> baselineRootElem = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(baselineFileName));
-//  if (baselineRootElem == NULL) 
-//  {  
-//    LOG_ERROR("Unable to read the baseline configuration file: " << baselineFileName); 
-//    return ++numberOfFailures;
-//  }
-//
-//  vtkSmartPointer<vtkMatrix4x4> transformBaseline = vtkSmartPointer<vtkMatrix4x4>::New(); 
-//  double baselineError(0); 
-//  if ( vtkPlusConfig::GetInstance()->ReadTransformToCoordinateDefinition(baselineRootElem, stylusTipCoordinateFrame, stylusCoordinateFrame, transformBaseline, &baselineError) != PLUS_SUCCESS )
-//  {
-//    LOG_ERROR("Failed to read current stylus calibration result from configuration file!"); 
-//    return ++numberOfFailures;
-//  }
-//
-//  // Compare the transforms
-//  double posDiff = PlusMath::GetPositionDifference(transformCurrent, transformBaseline); 
-//  double rotDiff = PlusMath::GetOrientationDifference(transformCurrent, transformBaseline); 
-//
-//  std::ostringstream currentTransform; 
-//  transformCurrent->PrintSelf(currentTransform, vtkIndent(0));
-//  std::ostringstream baselineTransform; 
-//  transformBaseline->PrintSelf(baselineTransform, vtkIndent(0));
-//
-//  if ( posDiff > TRANSLATION_ERROR_THRESHOLD)
-//  {
-//    LOG_ERROR("Transform mismatch: translation difference is " <<posDiff<< ", maximum allowed is "<<TRANSLATION_ERROR_THRESHOLD);
-//    LOG_INFO("Current transform: " << currentTransform.str());
-//    LOG_INFO("Baseline transform: " << baselineTransform.str());
-//    numberOfFailures++;
-//  }
-//
-//  if (rotDiff > ROTATION_ERROR_THRESHOLD )
-//  {
-//    LOG_ERROR("Transform mismatch: rotation difference is " <<rotDiff<< ", maximum allowed is "<<TRANSLATION_ERROR_THRESHOLD);
-//    LOG_INFO("Current transform: " << currentTransform.str());
-//    LOG_INFO("Baseline transform: " << baselineTransform.str());
-//    numberOfFailures++;
-//  }
-//
-//  return numberOfFailures;
-//}

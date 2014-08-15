@@ -23,8 +23,8 @@ class vtkXMLDataElement;
 
 /*!
 \class vtkPivotDetectionAlgo 
-\brief Pivot detection algorithm to detect when a calibrated stylus is pivoting. 
-The stylus pivoting point is computed assuming that the stylus is calibrated, which is often a good approximation.
+\brief Pivot detection algorithm to detect when a calibrated stylus is pivoting.
+The stylus pivoting point is computed assuming that the stylus is calibrated. The algorithm lo
 
 \ingroup PlusLibCalibrationAlgorithm
 */
@@ -42,44 +42,44 @@ public:
 
   /*!
   Remove all previously inserted points.
-  Call this method to get rid of previously added points
-  before starting a new detection.
+  Call this method to get rid of previously added points before starting a new detection.
   */
-  void RemoveAllCalibrationPoints();
+  void RemoveAllDetectionPoints();
 
   /*!
-  Insert acquired point to detection point list
-  \param StylusToReferenceTransform New calibration point (tool to reference transform)
+  Insert acquired point to the detection point list
+  \param stylusTipToReferenceTransform New detection point (stylus tip to reference transform)
   */
-  PlusStatus InsertNextCalibrationPoint(vtkMatrix4x4* StylusToReferenceTransform);
+  PlusStatus InsertNextDetectionPoint(vtkMatrix4x4* stylusTipToReferenceTransform);
 
-  PlusStatus GetPivot(double* pivotPointReference);
-
-  /*!
-  Get calibration result string to display
+  /*! Get detected pivot(s) string to display
   \param aPrecision Number of decimals shown
-  \return Calibration result (e.g. stylus tip to stylus translation) string
+  \return detection result (e.g. pivot(s) position in reference coordinates system) string
   */
-  std::string GetStylusTipToStylusTranslationString(double aPrecision=3);
+  std::string GetDetectedPivotsString(double aPrecision=3);
 
-  /*!
-  Get the number of outlier points. It is recommended to display a warning to the user
-  if the percentage of outliers vs total number of points is larger than a few percent.
-  */
-  //int GetNumberOfDetectedOutliers();
+  /*! Set Device acquisition rate. This is required.*/
+  void SetAcquisitionRate(double aquisitionRate); 
+  /*! Set WindowTime (default 1/3 [s])*/
+  void SetWindowTimeSec(double windowTime);
+  /*! Set total DetectionTime (default 2 [s])*/
+  void SetDetectionTimeSec(double detectionTime);
+  /*! Set the above the pivot threshold. It is used to detect that stylus is pivoting and not static. When a point 10 cm above the stylus tip magnitude change is bigger than AbovePivotThresholdMM, the stylus is pivoting.*/
+  void SetAbovePivotThresholdMM(double abovePivotThreshold);
+  /*! Set the pivot threshold. A pivot position will be consider when the stylus tip position magnitude change is below SamePivotThresholdMM.  */
+  void SetPivotThresholdMM(double samePivotThreshold);
+
+  //detected when the difference of two windows 
+  //Set the above the pivot threshold. It is used to detect that stylus is pivoting, not static. When the difference of two windows point 10 cm above the stylus tip average is bigger than this AbovePivotThresholdMM.
+  //  stylus tip position average is below this threshold.
 
 public:
-
-  vtkGetMacro(CalibrationError, double);
-
-  vtkGetObjectMacro(StylusTipToStylusTransformMatrix, vtkMatrix4x4); 
-
-  //vtkGetVector3Macro(PivotPointPosition_Reference, double);
 
   vtkGetStringMacro(ObjectMarkerCoordinateFrame);
   vtkGetStringMacro(ReferenceCoordinateFrame);
   vtkGetStringMacro(ObjectPivotPointCoordinateFrame);
-  vtkSetObjectMacro(StylusTipToStylusTransformMatrix, vtkMatrix4x4);
+  vtkGetObjectMacro(PivotPointsReference, vtkPoints);
+  PlusStatus PivotFound();
 
 protected:
 
@@ -87,59 +87,58 @@ protected:
   vtkSetStringMacro(ReferenceCoordinateFrame);
   vtkSetStringMacro(ObjectPivotPointCoordinateFrame);
   vtkSetObjectMacro(PivotPointsReference, vtkPoints);
-
-protected:
   vtkPivotDetectionAlgo();
   virtual  ~vtkPivotDetectionAlgo();
-
-protected:
-  /*! Compute the mean position error of the pivot point (in mm) */
-  void ComputeCalibrationError();
+  /* Estimate pivot point position from the stylus tip points. The average of NumberOfWindows*WindowSize consecutive points that remain in the same position within the PivotThresholdMM.*/
   PlusStatus EstimatePivotPointPosition();
-
+  /*! Once the pivot is detected (after DetectionTime) the stylus could still be pivoting in the same place, this function determines if it is a new pivot position if it is not the pivot position will be averaged with the existing one.*/
+  bool IsNewPivotPointPosition(double* stylusPosition);
+  /*! The change in pivot positions is measured in windows of points. If the current window is not considered the same pivoting point as the one before. The points acquired that belong to the first window will be erased by this function.*/
   void EraseLastPoints();
-
-  PlusStatus GetPartialStylusPositionAverage(double* pivotPoint_Reference);
-  //PlusStatus GetPivotPointPosition(double* pivotPoint_Marker, double* pivotPoint_Reference);
+/* Computes the average of the stylus tip positions in the latest acquired window */
+  PlusStatus GetStylusTipPositionWindowAverage(double* pivotPoint_Reference);
 
 protected:
-  /*! Pivot point to marker transform (eg. stylus tip to stylus) - the result of the calibration */
-  vtkMatrix4x4*        StylusTipToStylusTransformMatrix;
-   vtkSmartPointer<vtkPoints> PivotPointsReference;
+  /*! The detected pivot point position(s)(defined in the reference coordinate system) */
+  vtkPoints* PivotPointsReference;
+  /*! The flag is true when a pivot is detected it is false when PivotFound() is called.*/
+  bool PivotDetected;
+  bool Verbose;
+  //The number of windows to be detected as pivot in DetectionTime (DetectionTime/WindowTime)
+  int NumberOfWindows;
+  //The number of acquisitions in WindowTime (AcquisitonRate/WindowTime)
+  int WindowSize;
 
-  /*! Mean error of the calibration result in mm */
-  double              CalibrationError;
-
-  /*! Array of the input points */
-  std::list< vtkMatrix4x4* > StylusTipToReferenceTransformsList;
-
-  /*! Iterators to track marker transformations in the list*/
-  std::list< vtkMatrix4x4* >::iterator CurrentStylusTipIterator;
-  std::list< vtkMatrix4x4* >::iterator LastStylusTipIterator;
-
-  /*! The number of partial inserted points*/
-  int PartialInsertedPoints;
-
+  /*! Device acquisition rate */
+  double AcquisitionRate;
+  /*! WindowTime (1/3 [s])*/
+  double WindowTimeSec;
+  /*! DetectionTime (2 [s])*/
+  double DetectionTimeSec;
+ /*! Above the pivot threshold is used to detect stylus pivoting and not static. When a point 10 cm above the stylus tip magnitude change is bigger than AbovePivotThresholdMM, the stylus is pivoting.*/
+  double AbovePivotThresholdMM;
+  /*! A pivot position will be consider when the stylus tip position magnitude change is below PivotThresholdMM.*/
+  double PivotThresholdMM;
   /*! Name of the object marker coordinate frame (eg. Stylus) */
   char*               ObjectMarkerCoordinateFrame;
-
   /*! Name of the reference coordinate frame (eg. Reference) */
   char*               ReferenceCoordinateFrame;
-
   /*! Name of the object pivot point coordinate frame (eg. StylusTip) */
   char*               ObjectPivotPointCoordinateFrame;
 
+  /*! Array of the input point transformations*/
+  std::list< vtkMatrix4x4* > StylusTipToReferenceTransformsList;
+  /*! Iterators to track stylus tip transformations in the list*/
+  std::list< vtkMatrix4x4* >::iterator CurrentStylusTipIterator;
+  std::list< vtkMatrix4x4* >::iterator LastStylusTipIterator;
+  /*! The number of partial inserted points*/
+  int PartialInsertedPoints;
   /*! Pivot point position in the Reference coordinate system */
-  //double              PivotPointPosition_Reference[4];
-
+  double              AboveStylusTipAverage[4];
   /*! Pivot point position in the Reference coordinate system */
-  double              StylusTipAverage_Reference[4];
-
-  /*! Chunk pivot point position in the Reference coordinate system list*/
-  std::list< std::vector<double> > PivotPointPosition_Reference_List;
-
-  /*! List of outlier sample indices */
-  std::set<unsigned int> OutlierIndices;
+  double              LastAboveStylusTipAverage[4];
+  /*! Pivot point position average per window list (defined in the reference coordinate system)*/
+  std::list< std::vector<double> > StylusTipWindowAverage_Reference_List;
 };
 
 #endif

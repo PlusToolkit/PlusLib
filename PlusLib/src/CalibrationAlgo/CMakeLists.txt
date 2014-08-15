@@ -24,6 +24,7 @@ SET (CalibrationAlgo_SRCS
   vtkPhantomLinearObjectRegistrationAlgo/Reference.cxx
   vtkPhantomLinearObjectRegistrationAlgo/References.cxx
   vtkPivotDetectionAlgo/vtkPivotDetectionAlgo.cxx
+  vtkPivotDetectionAlgo/vtkReadTrackedSignals.cxx
   )
 
 SET (CalibrationAlgo_HDRS)  
@@ -51,6 +52,7 @@ IF (WIN32)
     vtkPhantomLinearObjectRegistrationAlgo/Reference.h
     vtkPhantomLinearObjectRegistrationAlgo/References.h
     vtkPivotDetectionAlgo/vtkPivotDetectionAlgo.h
+    vtkPivotDetectionAlgo/vtkReadTrackedSignals.h
     )
 ENDIF (WIN32)
 
