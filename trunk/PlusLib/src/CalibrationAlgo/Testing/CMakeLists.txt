@@ -52,6 +52,19 @@ ADD_TEST(vtkStylusCalibrationTest
 SET_TESTS_PROPERTIES( vtkStylusCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #--------------------------------------------------------------------------------------------
+ADD_EXECUTABLE(vtkPivotDetectionTest vtkPivotDetectionTest.cxx)
+TARGET_LINK_LIBRARIES(vtkPivotDetectionTest itkvnl itkvnl_algo ${VTK_LIBRARIES} vtkCalibrationAlgo vtkDataCollection )
+
+ADD_TEST(vtkPivotDetectionTest
+  ${EXECUTABLE_OUTPUT_PATH}/vtkPivotDetectionTest
+  --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_Sim_PivotCalibration.xml
+  --tracker-input-seq-file=${TestDataDir}/WaterTankBottomTranslationTrackerBuffer.mha
+  --baseline-file=${TestDataDir}/PivotDetection.results.xml 
+  --outlier-generation-probability=0.05
+  )
+SET_TESTS_PROPERTIES( vtkPivotDetectionTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+#--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkPhantomRegistrationTest vtkPhantomRegistrationTest.cxx)
 TARGET_LINK_LIBRARIES(vtkPhantomRegistrationTest itkvnl itkvnl_algo ${VTK_LIBRARIES} vtkCalibrationAlgo vtkDataCollection )
 
@@ -63,6 +76,20 @@ ADD_TEST(vtkPhantomRegistrationTest
 SET_TESTS_PROPERTIES( vtkPhantomRegistrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #--------------------------------------------------------------------------------------------
+ADD_EXECUTABLE(vtkPhantomRegistrationAutoDetectPivotingTest vtkPhantomRegistrationAutoDetectPivotingTest.cxx)
+TARGET_LINK_LIBRARIES(vtkPhantomRegistrationAutoDetectPivotingTest itkvnl itkvnl_algo ${VTK_LIBRARIES} vtkCalibrationAlgo vtkDataCollection )
+
+ADD_TEST(vtkPhantomRegistrationAutoDetectPivotingTest
+  ${EXECUTABLE_OUTPUT_PATH}/vtkPhantomRegistrationAutoDetectPivotingTest
+  --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_Sim_RecordPhantomLandmarks.xml
+  --tracker-input-seq-file=${TestDataDir}/WaterTankBottomTranslationTrackerBuffer.mha
+  --baseline-file=${TestDataDir}/PhantomRegistration.results.xml
+  )
+SET_TESTS_PROPERTIES( vtkPhantomRegistrationAutoDetectPivotingTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+#--------------------------------------------------------------------------------------------
+
+
 ADD_EXECUTABLE(ProbeCalibration ProbeCalibration.cxx)
 TARGET_LINK_LIBRARIES(ProbeCalibration itkvnl itkvnl_algo ${VTK_LIBRARIES} vtkCalibrationAlgo vtkDataCollection )
 GENERATE_HELP_DOC(ProbeCalibration)
