@@ -343,7 +343,7 @@ void VolumeReconstructionToolbox::Save()
 {
   LOG_TRACE("VolumeReconstructionToolbox::Save"); 
 
-  QString filter = QString( tr( "Sequence metafiles ( *.mha );;VTK files ( *.vtk );;" ) );
+  QString filter = QString( tr( "Sequence metafiles ( *.mha );;" ) );
   QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save reconstructed volume"), m_LastSaveLocation, filter);
 
   if (! fileName.isNull() )
@@ -487,16 +487,7 @@ PlusStatus VolumeReconstructionToolbox::SaveVolumeToFile(QString aOutput)
 {
   LOG_TRACE("VolumeReconstructionToolbox::SaveVolumeToFile(" << aOutput.toLatin1().constData() << ")"); 
 
-  // Write out to file
-  if (aOutput.right(3).toLower() == QString("vtk"))
-  {
-    if (m_VolumeReconstructor->SaveReconstructedVolumeToVtkFile(aOutput.toLatin1().constData()) != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Failed to save reconstructed volume in VTK file!");
-      return PLUS_FAIL;
-    }
-  }
-  else if (aOutput.right(3).toLower() == QString("mha"))
+  if (aOutput.right(3).toLower() == QString("mha"))
   {
     if (m_VolumeReconstructor->SaveReconstructedVolumeToMetafile(aOutput.toLatin1().constData()) != PLUS_SUCCESS)
     {
@@ -506,7 +497,7 @@ PlusStatus VolumeReconstructionToolbox::SaveVolumeToFile(QString aOutput)
   }
   else
   {
-    LOG_ERROR("Invalid file extension (.vtk or .mha expected)!");
+    LOG_ERROR("Invalid file extension (.mha expected)!");
     return PLUS_FAIL;
   }
 
