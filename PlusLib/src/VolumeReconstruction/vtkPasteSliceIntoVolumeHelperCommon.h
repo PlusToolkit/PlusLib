@@ -270,18 +270,25 @@ static int vtkTrilinearInterpolation(F *point,
           a *= ACCUMULATION_MULTIPLIER; // needs to be done for proper conversion to unsigned short for accumulation buffer
           break;
         case vtkPasteSliceIntoVolume::MAXIMUM:
-          if (*inPtrTmp > *outPtrTmp)
           {
-            *outPtrTmp = *inPtrTmp;
-            f = fdx[j];
-            a = f * ACCUMULATION_MULTIPLIER;;
+            if (fdx[j] >= 0.125 && *inPtrTmp > *outPtrTmp)
+            {
+              *outPtrTmp = (*inPtrTmp);
+              f = fdx[j];
+              a = f * ACCUMULATION_MULTIPLIER;;
+            }
+            break;
           }
-          break;
         case vtkPasteSliceIntoVolume::LATEST:
-          *outPtrTmp = *inPtrTmp;
-          f = fdx[j];
-          a = f * ACCUMULATION_MULTIPLIER;;
-          break;
+          {
+            if (fdx[j] >= 0.125)
+            {
+              *outPtrTmp = (*inPtrTmp);
+              f = fdx[j];
+              a = f * ACCUMULATION_MULTIPLIER;;
+            }
+            break;
+          }
         }
         inPtrTmp++;
         outPtrTmp++;
