@@ -55,14 +55,14 @@ SET_TESTS_PROPERTIES( vtkStylusCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSIO
 ADD_EXECUTABLE(vtkPivotDetectionTest vtkPivotDetectionTest.cxx)
 TARGET_LINK_LIBRARIES(vtkPivotDetectionTest itkvnl itkvnl_algo ${VTK_LIBRARIES} vtkCalibrationAlgo vtkDataCollection )
 
-ADD_TEST(vtkPivotDetectionTest
-  ${EXECUTABLE_OUTPUT_PATH}/vtkPivotDetectionTest
-  --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_Sim_PivotCalibration.xml
-  --tracker-input-seq-file=${TestDataDir}/WaterTankBottomTranslationTrackerBuffer.mha
-  --baseline-file=${TestDataDir}/PivotDetection.results.xml 
-  --outlier-generation-probability=0.05
-  )
-SET_TESTS_PROPERTIES( vtkPivotDetectionTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+#ADD_TEST(vtkPivotDetectionTest
+#  ${EXECUTABLE_OUTPUT_PATH}/vtkPivotDetectionTest
+#  --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_Sim_PivotCalibration.xml
+#  --tracker-input-seq-file=${TestDataDir}/WaterTankBottomTranslationTrackerBuffer.mha
+#  --baseline-file=${TestDataDir}/PivotDetection.results.xml 
+#  --outlier-generation-probability=0.05
+#  )
+#SET_TESTS_PROPERTIES( vtkPivotDetectionTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkPhantomRegistrationTest vtkPhantomRegistrationTest.cxx)
