@@ -46,9 +46,9 @@ slices are pasted into the volume.
   - \xmlAtt \b Interpolation Set the interpolation mode\OptionalAtt{NEAREST_NEIGHBOR}
       - \c NEAREST_NEIGHBOR Each pixel is inserted only into the spatially nereast voxel. Faster, susceptible to noise.
       - \c LINEAR Each pixel is distributed into the surrounding eight voxels using trilinear interpolation weights. Slower, resists noise, may introduce blurring.
-  - \xmlAtt \b CompoundingMode Set the method for compounding overlapping input pixels \OptionalAtt{MEAN}
+  - \xmlAtt \b CompoundingMode Set the method for compounding overlapping input pixels. See examples of the effect of compounding mode in \ref VolumeReconstructionConfigSettingsCompoundingMode section. \OptionalAtt{MEAN}
       - \c MEAN For each voxel, use an average of all inserted pixel values. Used on single or multiple sweeps from the same angle (regardless of intersection).
-	  - \c LATEST For each voxel, use only the latest inserted pixel value. Used on single or multiple sweeps from the same angle (regardless of intersection).
+      - \c LATEST For each voxel, use only the latest inserted pixel value. Used on single or multiple sweeps from the same angle (regardless of intersection).
       - \c MAXIMUM For each voxel, use only the pixel value with the highest intensity. Used when multiple slices from different angles are expected to intersect.
   - \xmlAtt \b Optimization Set optimization method (turn off optimization only if it is not stable
       on your architecture). \OptionalAtt{FULL_OPTIMIZATION}
@@ -75,7 +75,7 @@ slices are pasted into the volume.
       - \xmlAtt \b NumberOfSticksToUse An integer representing the number of sticks that should be used in calculating the final voxel value. The voxel will be calculated as a weighted average of individual stick results. The results of these sticks will be weighted according to their length. \RequiredAtt If \b Type \c ="STICK"
 
 
-\subsection VolumeReconstructionConfigSettingsClipping
+\subsection VolumeReconstructionConfigSettingsClipping Clipping
 
 Images slices often contain irrelevant parts for volume reconstruction, e.g., dark or black regions at the image boundary
 or out of the image fan. To remove these image regions a rectangular and fan-shaped clipping areas can be defined.
@@ -92,6 +92,9 @@ then the FanOriginPixel in the XML config file shall be (320,40).
 \image html AlgorithmVolumeReconstructionLinearRoi.png <!-- Source: doc\specifications\UltrasoundImageOrientation.pptx -->
 
 \image html AlgorithmVolumeReconstructionCurvilinearRoi.png <!-- Source: doc\specifications\UltrasoundImageOrientation.pptx -->
+
+
+\subsection VolumeReconstructionConfigSettingsCompoundingMode Compounding mode
 
 \image html VolumeReconCompoundingMean.png <!-- Source: doc\specifications\VolumeReconstruction.pptx -->
 
