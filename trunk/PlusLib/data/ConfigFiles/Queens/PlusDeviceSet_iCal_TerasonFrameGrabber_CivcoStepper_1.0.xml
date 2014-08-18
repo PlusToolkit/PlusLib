@@ -155,7 +155,7 @@ Connect the framegrabber via USB. Plug in the US Digital ED2 digital display thr
   
   <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
     ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
-    Interpolation="LINEAR" Optimization="FULL" Compounding="ON" FillHoles="OFF" />
+    Interpolation="LINEAR" Optimization="FULL" CompoundingMode="MEAN" FillHoles="OFF" />
 
   <TemplateModel version="1.0" >
     <TemplateHole Representation="Sphere" Radius="0.2"/>

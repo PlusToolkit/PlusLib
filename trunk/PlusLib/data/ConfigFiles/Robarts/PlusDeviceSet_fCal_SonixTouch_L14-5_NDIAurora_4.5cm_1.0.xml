@@ -173,7 +173,7 @@
     ClipRectangleSize="820 616"
     Interpolation="LINEAR"
     Optimization="FULL"
-    Compounding="ON"
+    CompoundingMode="MEAN"
     FillHoles="OFF"/>
     
   <fCal

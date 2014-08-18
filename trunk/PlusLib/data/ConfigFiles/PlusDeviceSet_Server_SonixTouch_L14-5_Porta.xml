@@ -50,7 +50,7 @@
       </InputChannels>
       <VolumeReconstruction
         ImageCoordinateFrame="Image" ReferenceCoordinateFrame="Ras"
-        Interpolation="LINEAR" Optimization="FULL" Compounding="ON" NumberOfThreads="2"
+        Interpolation="LINEAR" Optimization="FULL" CompoundingMode="MEAN" NumberOfThreads="2"
         ClipRectangleOrigin="0 0" ClipRectangleSize="480 436"
         OutputOrigin="-50 -100 -56" OutputExtent="0 200 0 160 0 224" OutputSpacing="0.5 0.5 0.5" 
         FillHoles="ON" >
