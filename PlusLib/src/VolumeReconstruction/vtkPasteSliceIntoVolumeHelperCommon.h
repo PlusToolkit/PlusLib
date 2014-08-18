@@ -271,7 +271,11 @@ static int vtkTrilinearInterpolation(F *point,
           break;
         case vtkPasteSliceIntoVolume::MAXIMUM:
           {
-            if (fdx[j] >= 0.125 && *inPtrTmp > *outPtrTmp)
+            const F minWeight(0.125); // If a pixel is right in the middle of the eight surrounding voxels
+                                      // (trilinear weight = 0.125 for each), then it the compounding operator
+                                      // should be applied for each. Else, it should only be considered
+                                      // for the other nearest voxels.
+            if (fdx[j] >= minWeight && *inPtrTmp > *outPtrTmp)
             {
               *outPtrTmp = (*inPtrTmp);
               f = fdx[j];
@@ -281,7 +285,11 @@ static int vtkTrilinearInterpolation(F *point,
           }
         case vtkPasteSliceIntoVolume::LATEST:
           {
-            if (fdx[j] >= 0.125)
+            const F minWeight(0.125); // If a pixel is right in the middle of the eight surrounding voxels
+                                      // (trilinear weight = 0.125 for each), then it the compounding operator
+                                      // should be applied for each. Else, it should only be considered
+                                      // for the other nearest voxels.
+            if (fdx[j] >= minWeight)
             {
               *outPtrTmp = (*inPtrTmp);
               f = fdx[j];
