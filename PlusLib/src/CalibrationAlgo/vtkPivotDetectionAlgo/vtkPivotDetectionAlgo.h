@@ -50,7 +50,7 @@ public:
   Insert acquired point to the detection point list
   \param stylusTipToReferenceTransform New detection point (stylus tip to reference transform)
   */
-  PlusStatus InsertNextDetectionPoint(vtkMatrix4x4* stylusTipToReferenceTransform);
+  PlusStatus InsertNextStylusTipToReferenceTransform(vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceTransform);
 
   /*! Get detected pivot(s) string to display
   \param aPrecision Number of decimals shown
@@ -68,6 +68,10 @@ public:
   void SetAbovePivotThresholdMM(double abovePivotThreshold);
   /*! Set the pivot threshold. A pivot position will be consider when the stylus tip position magnitude change is below SamePivotThresholdMM.  */
   void SetPivotThresholdMM(double samePivotThreshold);
+  /*! Set the number of expected pivots to be found.*/
+  void SetExpectedPivotsNumber(int expectedPivotsNumber);
+  /* The flag completed will be true when the number of pivot points detected is equal to the expected number of pivot points */
+  PlusStatus IsPivotDetectionCompleted(bool &completed);
 
   //detected when the difference of two windows 
   //Set the above the pivot threshold. It is used to detect that stylus is pivoting, not static. When the difference of two windows point 10 cm above the stylus tip average is bigger than this AbovePivotThresholdMM.
@@ -77,15 +81,16 @@ public:
 
   vtkGetStringMacro(ObjectMarkerCoordinateFrame);
   vtkGetStringMacro(ReferenceCoordinateFrame);
-  vtkGetStringMacro(ObjectPivotPointCoordinateFrame);
+  //vtkGetStringMacro(ObjectPivotPointCoordinateFrame);
   vtkGetObjectMacro(PivotPointsReference, vtkPoints);
-  PlusStatus PivotFound();
+  vtkGetMacro(ExpectedPivotsNumber, int);
+  PlusStatus IsNewPivotPointFound(bool &found);
 
 protected:
 
   vtkSetStringMacro(ObjectMarkerCoordinateFrame);
   vtkSetStringMacro(ReferenceCoordinateFrame);
-  vtkSetStringMacro(ObjectPivotPointCoordinateFrame);
+  //vtkSetStringMacro(ObjectPivotPointCoordinateFrame);
   vtkSetObjectMacro(PivotPointsReference, vtkPoints);
   vtkPivotDetectionAlgo();
   virtual  ~vtkPivotDetectionAlgo();
@@ -103,12 +108,13 @@ protected:
   vtkPoints* PivotPointsReference;
   /*! The flag is true when a pivot is detected it is false when PivotFound() is called.*/
   bool PivotDetected;
-  bool Verbose;
   //The number of windows to be detected as pivot in DetectionTime (DetectionTime/WindowTime)
   int NumberOfWindows;
   //The number of acquisitions in WindowTime (AcquisitonRate/WindowTime)
   int WindowSize;
 
+  /*! The expected number of pivots to be detected */
+  int ExpectedPivotsNumber;
   /*! Device acquisition rate */
   double AcquisitionRate;
   /*! WindowTime (1/3 [s])*/
@@ -124,13 +130,13 @@ protected:
   /*! Name of the reference coordinate frame (eg. Reference) */
   char*               ReferenceCoordinateFrame;
   /*! Name of the object pivot point coordinate frame (eg. StylusTip) */
-  char*               ObjectPivotPointCoordinateFrame;
+  //char*               ObjectPivotPointCoordinateFrame;
 
   /*! Array of the input point transformations*/
-  std::list< vtkMatrix4x4* > StylusTipToReferenceTransformsList;
+  std::list< vtkSmartPointer<vtkMatrix4x4>> StylusTipToReferenceTransformsList;
   /*! Iterators to track stylus tip transformations in the list*/
-  std::list< vtkMatrix4x4* >::iterator CurrentStylusTipIterator;
-  std::list< vtkMatrix4x4* >::iterator LastStylusTipIterator;
+  std::list< vtkSmartPointer<vtkMatrix4x4> >::iterator CurrentStylusTipIterator;
+  std::list< vtkSmartPointer<vtkMatrix4x4> >::iterator LastStylusTipIterator;
   /*! The number of partial inserted points*/
   int PartialInsertedPoints;
   /*! Pivot point position in the Reference coordinate system */

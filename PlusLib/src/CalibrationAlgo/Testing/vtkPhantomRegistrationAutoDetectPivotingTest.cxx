@@ -46,7 +46,6 @@ See License.txt for details.
 
 ///////////////////////////////////////////////////////////////////
 const double ERROR_THRESHOLD_MM = 0.001; // error threshold
-const double NUMBER_PIVOTS =8;
 
 PlusStatus CompareRegistrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, const char* phantomCoordinateFrame, const char* referenceCoordinateFrame);
 
@@ -323,7 +322,7 @@ int main (int argc, char* argv[])
     LOG_ERROR("Unable to read pivot calibration configuration!");
     exit(EXIT_FAILURE);
   }
-
+  PivotDetection->SetExpectedPivotsNumber(phantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints());
   // Check stylus tool
   PlusTransformName stylusToReferenceTransformName(PivotDetection->GetObjectMarkerCoordinateFrame(), PivotDetection->GetReferenceCoordinateFrame());
   PlusTransformName stylusTipToStylusTransformName(phantomRegistration->GetStylusTipCoordinateFrame(), PivotDetection->GetObjectMarkerCoordinateFrame());
@@ -345,7 +344,7 @@ int main (int argc, char* argv[])
     for (int i=0; i < trackedStylusTipFrames->GetNumberOfTrackedFrames(); ++i)
     {
       fakeTracker->SetCounter(i);
-      vtkAccurateTimer::Delay(2.1 / fakeTracker->GetAcquisitionRate());
+      //vtkAccurateTimer::Delay(2.1 / fakeTracker->GetAcquisitionRate());
       //aChannel->GetTrackedFrame((trackedStylusTipFrames->GetTrackedFrame(i)));
 
       vtkSmartPointer<vtkMatrix4x4> stylusToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -361,21 +360,21 @@ int main (int argc, char* argv[])
         LOG_ERROR("No valid transform found between stylus to reference!");
         exit(EXIT_FAILURE);
       }
-      vtkMatrix4x4* stylusTipToReferenceTransformMatrix = vtkMatrix4x4::New();
+      vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceTransformMatrix = vtkMatrix4x4::New();
       vtkMatrix4x4::Multiply4x4(stylusToReferenceMatrix,stylusTipToStylusTransform,stylusTipToReferenceTransformMatrix);
-      PivotDetection->InsertNextDetectionPoint(stylusTipToReferenceTransformMatrix);
-
-      if(PivotDetection->PivotFound()==PLUS_SUCCESS)
+      PivotDetection->InsertNextStylusTipToReferenceTransform(stylusTipToReferenceTransformMatrix);
+      PivotDetection->IsNewPivotPointFound(valid);
+      if(valid)
       {
-        vtkPlusLogger::PrintProgressbar((100.0 * PivotDetection->GetPivotPointsReference()->GetNumberOfPoints()-1) / NUMBER_PIVOTS); 
+        vtkPlusLogger::PrintProgressbar((100.0 * PivotDetection->GetPivotPointsReference()->GetNumberOfPoints()-1) / phantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints()); 
         PivotDetection->GetPivotPointsReference()->GetPoint(PivotDetection->GetPivotPointsReference()->GetNumberOfPoints()-1, pivotFound);
         // Add recorded point to algorithm
         phantomRegistration->GetRecordedLandmarks()->InsertPoint(PivotDetection->GetPivotPointsReference()->GetNumberOfPoints()-1, pivotFound);
         phantomRegistration->GetRecordedLandmarks()->Modified();
         LOG_INFO("\nPivot found (" << pivotFound[0]<<", " << pivotFound[1]<<", " << pivotFound[2]<<") at "<<trackedStylusTipFrames->GetTrackedFrame(i)->GetTimestamp()<<"[ms]"<< "\nNumber of pivots in phantonReg "<<phantomRegistration->GetRecordedLandmarks()->GetNumberOfPoints());
       }
-
-      if(PivotDetection->GetPivotPointsReference()->GetNumberOfPoints()==NUMBER_PIVOTS)
+      PivotDetection->IsPivotDetectionCompleted(valid);
+      if(valid)
       {
         break;
       }
