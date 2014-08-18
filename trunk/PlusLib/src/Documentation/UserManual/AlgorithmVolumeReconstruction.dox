@@ -44,12 +44,12 @@ slices are pasted into the volume.
   - \xmlAtt \b FanRadiusStopPixel Maximum depth of the clipping fan in the image coordinate system (in pixels). See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{500}
   - \xmlAtt \b SkipInterval only every [SkipInterval] images from the input will be used in the reconstruction (Ie this is the number of frames that are skipped when the index is increased) \OptionalAtt{1}
   - \xmlAtt \b Interpolation Set the interpolation mode\OptionalAtt{NEAREST_NEIGHBOR}
-      - \c NEAREST_NEIGHBOR Each pixel is inserted only into the spatially nereast voxel. Faster, susceptible to noise.
-      - \c LINEAR Each pixel is distributed into the surrounding eight voxels using trilinear interpolation weights. Slower, resists noise, may introduce blurring.
+      - \c NEAREST_NEIGHBOR Each pixel is inserted only into the spatially nereast voxel. Faster, but is susceptible to noise. (default)
+      - \c LINEAR Each pixel is distributed into the surrounding eight voxels using trilinear interpolation weights. Resists noise, but is slower and may introduce blurring.
   - \xmlAtt \b CompoundingMode Set the method for compounding overlapping input pixels. See examples of the effect of compounding mode in \ref VolumeReconstructionConfigSettingsCompoundingMode section. \OptionalAtt{MEAN}
-      - \c MEAN For each voxel, use an average of all inserted pixel values. Used on single or multiple sweeps from the same angle (regardless of intersection).
-      - \c LATEST For each voxel, use only the latest inserted pixel value. Used on single or multiple sweeps from the same angle (regardless of intersection).
-      - \c MAXIMUM For each voxel, use only the pixel value with the highest intensity. Used when multiple slices from different angles are expected to intersect.
+      - \c MEAN For each voxel, use an average of all inserted pixel values. Used on single or multiple sweeps from the same angle (regardless of intersection). Resistant to noise, but slower than other compounding methods.
+      - \c LATEST For each voxel, use only the latest inserted pixel value. Used on single or multiple sweeps from the same angle (regardless of intersection). Fast, but susceptible to noise.
+      - \c MAXIMUM For each voxel, use only the pixel value with the highest intensity. Used when multiple slices from different angles are expected to intersect. Fast, but susceptible to noise.
   - \xmlAtt \b Optimization Set optimization method (turn off optimization only if it is not stable
       on your architecture). \OptionalAtt{FULL_OPTIMIZATION}
       - \c NONE Means no optimization (almost never used). 
@@ -106,16 +106,12 @@ then the FanOriginPixel in the XML config file shall be (320,40).
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_Sim_NwirePhantom.xml"
 
-Example configuration file PlusDeviceSet_SpinePhantomFreehandReconstructionOnly.xml
+Example configuration file PlusDeviceSet_VolumeReconstructionOnly_SonixRP_TRUS_D70mm_NN_LATE.xml
 
-\include "data/ConfigFiles/Testing/PlusDeviceSet_SpinePhantomFreehandReconstructionOnly.xml"
+\include "data/ConfigFiles/Testing/PlusDeviceSet_VolumeReconstructionOnly_SonixRP_TRUS_D70mm_NN_LATE.xml"
 
-Example configuration file PlusDeviceSet_SpinePhantomFreehandReconstructionOnlyMaximum.xml
+Example configuration file PlusDeviceSet_VolumeReconstructionOnly_SpinePhantom_NN_MAXI.xml
 
-\include "data/ConfigFiles/Testing/PlusDeviceSet_SpinePhantomFreehandReconstructionOnlyMaximum.xml"
-
-Example configuration file PlusDeviceSet_VolumeReconstructionOnly_SonixRP_TRUS_D70mm.xml
-
-\include "data/ConfigFiles/Testing/PlusDeviceSet_VolumeReconstructionOnly_SonixRP_TRUS_D70mm.xml"
+\include "data/ConfigFiles/Testing/PlusDeviceSet_VolumeReconstructionOnly_SpinePhantom_NN_MAXI.xml"
 
 */

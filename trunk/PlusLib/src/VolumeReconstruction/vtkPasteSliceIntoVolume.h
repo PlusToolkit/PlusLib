@@ -247,8 +247,10 @@ public:
 
   /*!
     Set the interpolation mode
-    LINEAR: better image quality, slower
-    NEAREST_NEIGHBOR: lower image quality, faster (default)
+    LINEAR:           Each pixel is distributed into the surrounding eight voxels using trilinear interpolation weights.
+                      Resists noise, but is slower and may introduce blurring.
+    NEAREST_NEIGHBOR: Each pixel is inserted only into the spatially nereast voxel.
+                      Faster, but is susceptible to noise. (default)
   */
   vtkSetMacro(InterpolationMode,InterpolationType);
   /*! Get the interpolation mode */
@@ -258,12 +260,13 @@ public:
 
   /*!
     Set the compounding mode
-    LATEST:  For each voxel, use only the latest pixel. Used on single or multiple 
-             sweeps from the same angle (regardless of intersection)
-    MEAN:    For each voxel, take an average of all pixels. Used on single or multiple
-             sweeps from the same angle (regardless of intersection)
-    MAXIMUM: For each voxel, take the pixel value with the highest intensity. Used when
-             multiple slices from different angles are expected to intersect
+    MEAN:     For each voxel, use an average of all inserted pixel values. Used on single or multiple sweeps 
+              from the same angle (regardless of intersection). Resistant to noise, but slower than other 
+              compounding methods.
+    LATEST:   For each voxel, use only the latest inserted pixel value. Used on single or multiple sweeps 
+              from the same angle (regardless of intersection). Fast, but susceptible to noise.
+    MAXIMUM:  For each voxel, use only the pixel value with the highest intensity. Used when multiple slices 
+              from different angles are expected to intersect. Fast, but susceptible to noise.
   */
   vtkSetMacro(CompoundingMode,CompoundingType);
   /*! Get the result mode */
