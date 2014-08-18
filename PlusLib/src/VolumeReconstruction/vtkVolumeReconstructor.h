@@ -160,6 +160,10 @@ public:
   void SetFanOrigin(double* fanOriginPixel);
   /*! DEPRECATED: use SetFanRadiusStopPixel instead. */
   void SetFanDepth(double fanDepthPixel);
+  /*! DEPRECATED: use SetCompoundingMode instead. */
+  void SetCompounding(int Compounding);
+  /*! DEPRECATED: use SetCompoundingMode instead. */
+  void SetCalculation(vtkPasteSliceIntoVolume::CalculationTypeDeprecated type);
   
   void SetInterpolation(vtkPasteSliceIntoVolume::InterpolationType interpolation);
   void SetCompoundingMode(vtkPasteSliceIntoVolume::CompoundingType compoundingMode);

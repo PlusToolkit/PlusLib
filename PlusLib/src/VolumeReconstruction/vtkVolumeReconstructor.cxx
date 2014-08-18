@@ -111,9 +111,9 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
     this->Reconstructor->GetOptimizationModeAsString(vtkPasteSliceIntoVolume::NO_OPTIMIZATION), vtkPasteSliceIntoVolume::NO_OPTIMIZATION);
 
   XML_READ_ENUM3_ATTRIBUTE_OPTIONAL(CompoundingMode, reconConfig, \
-    this->Reconstructor->GetCompoundingModeAsString(vtkPasteSliceIntoVolume::LATEST), vtkPasteSliceIntoVolume::LATEST, \
-    this->Reconstructor->GetCompoundingModeAsString(vtkPasteSliceIntoVolume::MEAN), vtkPasteSliceIntoVolume::MEAN, \
-    this->Reconstructor->GetCompoundingModeAsString(vtkPasteSliceIntoVolume::MAXIMUM), vtkPasteSliceIntoVolume::MAXIMUM);
+    this->Reconstructor->GetCompoundingModeAsString(vtkPasteSliceIntoVolume::LATEST_COMPOUNDING_MODE), vtkPasteSliceIntoVolume::LATEST_COMPOUNDING_MODE, \
+    this->Reconstructor->GetCompoundingModeAsString(vtkPasteSliceIntoVolume::MEAN_COMPOUNDING_MODE), vtkPasteSliceIntoVolume::MEAN_COMPOUNDING_MODE, \
+    this->Reconstructor->GetCompoundingModeAsString(vtkPasteSliceIntoVolume::MAXIMUM_COMPOUNDING_MODE), vtkPasteSliceIntoVolume::MAXIMUM_COMPOUNDING_MODE);
 
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, NumberOfThreads, reconConfig);
 
@@ -132,7 +132,24 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
 
   // ==== Warn if using DEPRECATED XML tags (2014-08-15, #923) ====
   XML_READ_WARNING_DEPRECATED_STRING_REPLACED(Compounding,reconConfig,CompoundingMode);
+  XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(Compounding, reconConfig, "ON", 1, "OFF", 0);
+
   XML_READ_WARNING_DEPRECATED_STRING_REPLACED(Calculation,reconConfig,CompoundingMode);
+  XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(Calculation, reconConfig, \
+    this->Reconstructor->GetCalculationAsString(vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE_CALCULATION), vtkPasteSliceIntoVolume::WEIGHTED_AVERAGE_CALCULATION, \
+    this->Reconstructor->GetCalculationAsString(vtkPasteSliceIntoVolume::MAXIMUM_CALCULATION), vtkPasteSliceIntoVolume::MAXIMUM_CALCULATION);
+
+  if (this->Reconstructor->GetCompoundingMode() == vtkPasteSliceIntoVolume::UNDEFINED_COMPOUNDING_MODE)
+  {
+    if (this->Reconstructor->GetCalculation() == vtkPasteSliceIntoVolume::MAXIMUM_CALCULATION)
+      SetCompoundingMode(vtkPasteSliceIntoVolume::MAXIMUM_COMPOUNDING_MODE);
+    else if (this->Reconstructor->GetCompounding()==0)
+      SetCompoundingMode(vtkPasteSliceIntoVolume::LATEST_COMPOUNDING_MODE);
+    else
+      SetCompoundingMode(vtkPasteSliceIntoVolume::MEAN_COMPOUNDING_MODE);
+    LOG_WARNING("CompoundingMode has not been set. Will assume " <<
+                this->Reconstructor->GetCompoundingModeAsString(this->Reconstructor->GetCompoundingMode()) << ".");
+  }
 
   this->Modified();
 
@@ -711,4 +728,16 @@ void vtkVolumeReconstructor::SetCompoundingMode(vtkPasteSliceIntoVolume::Compoun
 void vtkVolumeReconstructor::SetOptimization(vtkPasteSliceIntoVolume::OptimizationType optimization)
 {
   this->Reconstructor->SetOptimization(optimization);
+}
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::SetCalculation(vtkPasteSliceIntoVolume::CalculationTypeDeprecated type)
+{
+  this->Reconstructor->SetCalculation(type);
+}
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::SetCompounding(int comp)
+{
+  this->Reconstructor->SetCompounding(comp);
 }
