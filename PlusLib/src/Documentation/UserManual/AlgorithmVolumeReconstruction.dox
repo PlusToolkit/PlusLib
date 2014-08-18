@@ -6,10 +6,11 @@ This algorithm reconstructs a 3D volume from a set of 2D image slices.
 
 The reconstructor takes as input a set of tracked ultrasound slices. In the first step (the "distribution step"),
 the images are inserted into a volume. A voxel grid is constructed, whose resolution is defined by the config file
-and whose boundaries are defined by the 3D coordinates of the image pixels. At this point, each pixel value is inserted
-into the spatially nearest single voxel or set of voxels according to options specified in the config file. In the
-optional second step (the "hole filling step"), an algorithm is used to attempt to fill each voxel that has not been
-assigned any intensity value in the distribution step. Hole filling algorithm runs after all the slices are pasted into the volume.
+and whose boundaries are defined by the 3D coordinates of the image pixels. Each pixel value is inserted either
+into the spatially nearest single voxel or into the spatially nearest *set* of voxels according to options specified 
+in the config file. In the optional second step (the "hole filling step"), an algorithm is used to attempt to fill each
+voxel that has not been assigned any intensity value in the distribution step. Hole filling algorithm runs after all the 
+slices are pasted into the volume.
 
 \section AlgorithmVolumeReconstructionTroubleshooting Troubleshooting volume reconstruction
 - I got an error: Path not found from Image to Reference ... / Failed to get transform ... from transform repository
@@ -43,17 +44,17 @@ assigned any intensity value in the distribution step. Hole filling algorithm ru
   - \xmlAtt \b FanRadiusStopPixel Maximum depth of the clipping fan in the image coordinate system (in pixels). See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{500}
   - \xmlAtt \b SkipInterval only every [SkipInterval] images from the input will be used in the reconstruction (Ie this is the number of frames that are skipped when the index is increased) \OptionalAtt{1}
   - \xmlAtt \b Interpolation Set the interpolation mode\OptionalAtt{NEAREST_NEIGHBOR}
-      - \c LINEAR Better image quality, slower.
-      - \c NEAREST_NEIGHBOR Lower image quality, faster. 
-  - \xmlAtt \b Calculation Set the result mode \OptionalAtt{WEIGHTED_AVERAGE}
-      - \c WEIGHTED_AVERAGE Used on single sweeps when slices are not expected to intersect.
-      - \c MAXIMUM used when multiple slices are expected to intersect. 
+      - \c NEAREST_NEIGHBOR Each pixel is inserted only into the spatially nereast voxel. Faster, susceptible to noise.
+      - \c LINEAR Each pixel is distributed into the surrounding eight voxels using trilinear interpolation weights. Slower, resists noise, may introduce blurring.
+  - \xmlAtt \b CompoundingMode Set the method for compounding overlapping input pixels \OptionalAtt{MEAN}
+      - \c MEAN For each voxel, use an average of all inserted pixel values. Used on single or multiple sweeps from the same angle (regardless of intersection).
+	  - \c LATEST For each voxel, use only the latest inserted pixel value. Used on single or multiple sweeps from the same angle (regardless of intersection).
+      - \c MAXIMUM For each voxel, use only the pixel value with the highest intensity. Used when multiple slices from different angles are expected to intersect.
   - \xmlAtt \b Optimization Set optimization method (turn off optimization only if it is not stable
       on your architecture). \OptionalAtt{FULL_OPTIMIZATION}
       - \c NONE Means no optimization (almost never used). 
       - \c PARTIAL Break transformation into x, y and z components, and don't do bounds checking for nearest-neighbor interpolation.
       - \c FULL Fixed-point (i.e. integer) math is used instead of float math, it is only useful with NEAREST_NEIGHBOR interpolation (when used with LINEAR interpolation then it is slower than NO_OPTIMIZATION). 
-  - \xmlAtt \b Compounding When it is \c ON the scans will be averaged where they overlap and saved in the accumulation buffer. If set to \c OFF then the voxel will be determined only by the last slice that intersected it. \OptionalAtt{ ON }
   - \xmlAtt \b NumberOfThreads Set number of threads used for processing the data. The reconstruction result is slightly different if more than one thread is used because due to interpolation and rounding errors is influenced by the order the pixels are processed. Choose 0 (this is the default) for maximum speed, in this case the default number of used threads equals the number of processors. Choose 1 for reproducible results. \OptionalAtt{0}
   - \xmlAtt \b FillHoles If enabled then the hole filling will be applied on output reconstructed volume. \c ON or  \c OFF. \OptionalAtt{OFF}
 
@@ -91,20 +92,6 @@ then the FanOriginPixel in the XML config file shall be (320,40).
 \image html AlgorithmVolumeReconstructionLinearRoi.png <!-- Source: doc\specifications\UltrasoundImageOrientation.pptx -->
 
 \image html AlgorithmVolumeReconstructionCurvilinearRoi.png <!-- Source: doc\specifications\UltrasoundImageOrientation.pptx -->
-
-\subsection VolumeReconstructionConfigSettingsCompounding
-
-- When voxels are distributed into the volume, there are many different ways that conflicting values can be treated. The exact behaviour will depend on what is provided in the "Calculation", "Interpolation", and "Compounding" fields of the _config XML file.
-- It is important to understand how the Accumulation Buffer works for when Compounding is turned on. The Accumulation Buffer stores the number of pixels that intersect any given voxel. For a voxel that was hit twice using nearest neighbor interpolation, it will be 2. For a voxel that was hit twice using reverse tri-linear interpolation, however, the value may be different since each pixel could contribute a different weight bounded between 0 and 1 depending on how close the pixels were to the voxel.
-- Below is a brief description of how each combination works:
-  - WEIGHTED_AVERAGE + NEAREST_NEIGHBOR + Compounding On: Distribute pixels into their nearest neighbor voxels, and increase the accumulation buffer for that voxel by one. In the case of a conflict, perform a weighted average using the accumulation buffer as a weight for the existing value.
-  - WEIGHTED_AVERAGE + NEAREST_NEIGHBOR + Compounding Off: Distribute pixels into their nearest neighbor voxels. When there is a conflict, overwrite the existing value using the new incoming value.
-  - WEIGHTED_AVERAGE + LINEAR + Compounding On: This is reverse tri-linear interpolation as described by Gobbi et al (2002). Each pixel contributes a value to a voxel with a weight proportional to its distance. The final value is calculated as a weighted average of all intersecting pixels.
-  - WEIGHTED_AVERAGE + LINEAR + Compounding Off: Similar to above with compounding on, except the weighted average is performed on each intersection, each time weighting the existing pixel as (1 - weight of incoming pixel).
-  - MAXIMUM + NEAREST_NEIGHBOR + Compounding On: Distribute pixels into their nearest neighbor voxels. When there is a conflict, use the maximum value. Store 1 inside the accumulation buffer.
-  - MAXIMUM + NEAREST_NEIGHBOR + Compounding Off: Distribute pixels into their nearest neighbor voxels. When there is a conflict, use the maximum value. Do not store any accumulation buffer.
-  - MAXIMUM + LINEAR + Compounding On: Use reverse tri-linear interpolation, but ignore the weights for distribution. Instead only use the highest pixel intensity encountered, and store its weight inside the accumulation buffer (which could be used in hole-filling).
-  - MAXIMUM + LINEAR + Compounding Off: Use reverse tri-linear interpolation, as above, except do not store the weights in the accumulation buffer.
 
 \image html VolumeReconCompoundingMean.png <!-- Source: doc\specifications\VolumeReconstruction.pptx -->
 
