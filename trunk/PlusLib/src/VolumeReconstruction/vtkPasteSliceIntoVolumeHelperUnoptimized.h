@@ -108,7 +108,7 @@ static int vtkNearestNeighborInterpolation(F *point,
     outPtr += inc;
     switch (compoundingMode)
     {
-    case (vtkPasteSliceIntoVolume::MAXIMUM):
+    case (vtkPasteSliceIntoVolume::MAXIMUM_COMPOUNDING_MODE):
       {
         accPtr += inc/outInc[0];
 
@@ -132,7 +132,7 @@ static int vtkNearestNeighborInterpolation(F *point,
 
         break;
       }
-    case (vtkPasteSliceIntoVolume::MEAN):
+    case (vtkPasteSliceIntoVolume::MEAN_COMPOUNDING_MODE):
       {
         accPtr += inc/outInc[0];
         if (*accPtr <= ACCUMULATION_THRESHOLD) { // no overflow, act normally
@@ -158,7 +158,7 @@ static int vtkNearestNeighborInterpolation(F *point,
         }
         break;
       }
-    case (vtkPasteSliceIntoVolume::LATEST):
+    case (vtkPasteSliceIntoVolume::LATEST_COMPOUNDING_MODE):
       {
         accPtr += inc/outInc[0];
 
@@ -181,6 +181,9 @@ static int vtkNearestNeighborInterpolation(F *point,
 
         break;
       }
+    default:
+      LOG_ERROR("Unknown Compounding operator detected, value " << compoundingMode << ". Leaving value as-is.");
+      break;
     }
     return 1;
   }

@@ -119,11 +119,15 @@ vtkPasteSliceIntoVolume::vtkPasteSliceIntoVolume()
   // reconstruction options
   this->InterpolationMode = NEAREST_NEIGHBOR_INTERPOLATION;
   this->Optimization = FULL_OPTIMIZATION;
-  this->CompoundingMode = MEAN;
+  this->CompoundingMode = UNDEFINED_COMPOUNDING_MODE;
 
   this->NumberOfThreads=0; // 0 means not set, the default number of threads will be used
 
   this->EnableAccumulationBufferOverflowWarning = true;
+
+  // deprecated reconstruction options
+  this->Compounding = -1;
+  this->Calculation = UNDEFINED_CALCULATION;
 }
 
 //----------------------------------------------------------------------------
@@ -714,9 +718,23 @@ const char* vtkPasteSliceIntoVolume::GetCompoundingModeAsString(CompoundingType 
 {
   switch (type)
   {
-  case LATEST: return "LATEST";
-  case MEAN: return "MEAN";
-  case MAXIMUM: return "MAXIMUM";
+  case UNDEFINED_COMPOUNDING_MODE: return "UNDEFINED";
+  case LATEST_COMPOUNDING_MODE: return "LATEST";
+  case MEAN_COMPOUNDING_MODE: return "MEAN";
+  case MAXIMUM_COMPOUNDING_MODE: return "MAXIMUM";
+  default:
+    LOG_ERROR("Unknown compounding option: "<<type);
+    return "unknown";
+  }
+}
+
+const char* vtkPasteSliceIntoVolume::GetCalculationAsString(CalculationTypeDeprecated type)
+{
+  switch (type)
+  {
+  case UNDEFINED_CALCULATION: return "UNDEFINED";
+  case WEIGHTED_AVERAGE_CALCULATION: return "WEIGHTED_AVERAGE";
+  case MAXIMUM_CALCULATION: return "MAXIMUM";
   default:
     LOG_ERROR("Unknown compounding option: "<<type);
     return "unknown";

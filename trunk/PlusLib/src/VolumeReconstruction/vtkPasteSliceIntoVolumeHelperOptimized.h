@@ -510,7 +510,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
                                                  unsigned int *accOverflowCount)
 {
   switch (compoundingMode) {
-  case  vtkPasteSliceIntoVolume::MEAN :
+  case  vtkPasteSliceIntoVolume::MEAN_COMPOUNDING_MODE :
     for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++)
     {
       outPoint[0] = outPoint1[0] + idX*xAxis[0]; 
@@ -555,7 +555,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
       }
     }
     break;
-  case  vtkPasteSliceIntoVolume::MAXIMUM :
+  case  vtkPasteSliceIntoVolume::MAXIMUM_COMPOUNDING_MODE :
     for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++)
     {
       outPoint[0] = outPoint1[0] + idX*xAxis[0]; 
@@ -586,7 +586,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
       *accPtr1 = (unsigned short)ACCUMULATION_MULTIPLIER;
     }
     break;
-  case  vtkPasteSliceIntoVolume::LATEST :
+  case  vtkPasteSliceIntoVolume::LATEST_COMPOUNDING_MODE :
     for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++)
     {
       outPoint[0] = outPoint1[0] + idX*xAxis[0]; 
@@ -615,6 +615,9 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
 
       *accPtr1 = (unsigned short)ACCUMULATION_MULTIPLIER;
     }
+    break;
+  default:
+    LOG_ERROR("Unknown Compounding operator detected, value " << compoundingMode << ". Leaving value as-is.");
     break;
   }
 }
@@ -645,7 +648,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
   outPoint[2] = outPoint1[2] + xIntersectionPixStart*xAxis[2] - outExt[4];
 
   switch (compoundingMode) {
-  case  vtkPasteSliceIntoVolume::MEAN :
+  case  vtkPasteSliceIntoVolume::MEAN_COMPOUNDING_MODE :
     // Nearest-Neighbor, no extent checks, with accumulation
     for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++)
     {
@@ -691,7 +694,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
       outPoint[2] += xAxis[2];
     }
     break;
-  case  vtkPasteSliceIntoVolume::MAXIMUM :
+  case  vtkPasteSliceIntoVolume::MAXIMUM_COMPOUNDING_MODE :
     for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++)
     {
       int outIdX = PlusMath::Round(outPoint[0]);
@@ -722,7 +725,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
       outPoint[2] += xAxis[2];
     }
     break;
-  case  vtkPasteSliceIntoVolume::LATEST :
+  case  vtkPasteSliceIntoVolume::LATEST_COMPOUNDING_MODE :
     for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++)
     {
       int outIdX = PlusMath::Round(outPoint[0]);
@@ -751,6 +754,9 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
       outPoint[1] += xAxis[1];
       outPoint[2] += xAxis[2];
     }
+    break;
+  default:
+    LOG_ERROR("Unknown Compounding operator detected, value " << compoundingMode << ". Leaving value as-is.");
     break;
   }
 }

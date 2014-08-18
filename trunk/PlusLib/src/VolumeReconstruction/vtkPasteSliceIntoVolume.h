@@ -85,9 +85,17 @@ public:
 
   enum CompoundingType
   {
-    LATEST,
-    MAXIMUM,
-    MEAN
+    UNDEFINED_COMPOUNDING_MODE,
+    LATEST_COMPOUNDING_MODE,
+    MAXIMUM_COMPOUNDING_MODE,
+    MEAN_COMPOUNDING_MODE
+  };
+
+  enum CalculationTypeDeprecated
+  {
+    UNDEFINED_CALCULATION,
+    WEIGHTED_AVERAGE_CALCULATION,
+    MAXIMUM_CALCULATION
   };
 
   static vtkPasteSliceIntoVolume *New();
@@ -275,6 +283,18 @@ public:
   /*! Get number of threads used for processing the data */
   vtkGetMacro(NumberOfThreads,int);
 
+  /*! DEPRECATED - use CompoundingMode instead! */
+  vtkSetMacro(Compounding,int);
+  /*! DEPRECATED - use CompoundingMode instead! */
+  vtkGetMacro(Compounding,int);
+
+  /*! DEPRECATED - use CompoundingMode instead! */
+  vtkSetMacro(Calculation,CalculationTypeDeprecated);
+  /*! DEPRECATED - use CompoundingMode instead! */
+  vtkGetMacro(Calculation,CalculationTypeDeprecated);
+  /*! DEPRECATED - use CompoundingMode instead! */
+  const char *GetCalculationAsString(CalculationTypeDeprecated calcEnum);
+
 protected:
   vtkPasteSliceIntoVolume();
   ~vtkPasteSliceIntoVolume();
@@ -310,6 +330,9 @@ protected:
   OptimizationType Optimization;
   CompoundingType CompoundingMode;
   int OutputScalarMode;
+  // deprecated
+  int Compounding;
+  CalculationTypeDeprecated Calculation;
 
   // Multithreading
   vtkMultiThreader *Threader;

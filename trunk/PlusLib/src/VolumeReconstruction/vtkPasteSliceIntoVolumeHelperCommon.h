@@ -255,21 +255,7 @@ static int vtkTrilinearInterpolation(F *point,
         i--;
         switch (compoundingMode)
         {
-        case vtkPasteSliceIntoVolume::MEAN:
-          f = fdx[j];
-          r = F((*accPtrTmp)/(double)ACCUMULATION_MULTIPLIER);  // added division by double, since this always returned 0 otherwise
-          a = f + r;
-          if (roundOutput)
-          {
-            PlusMath::Round((f*(*inPtrTmp) + r*(*outPtrTmp))/a, *outPtrTmp);
-          }
-          else
-          {
-            *outPtrTmp = (f*(*inPtrTmp) + r*(*outPtrTmp))/a;
-          }
-          a *= ACCUMULATION_MULTIPLIER; // needs to be done for proper conversion to unsigned short for accumulation buffer
-          break;
-        case vtkPasteSliceIntoVolume::MAXIMUM:
+        case vtkPasteSliceIntoVolume::MAXIMUM_COMPOUNDING_MODE:
           {
             const F minWeight(0.125); // If a pixel is right in the middle of the eight surrounding voxels
                                       // (trilinear weight = 0.125 for each), then it the compounding operator
@@ -283,7 +269,7 @@ static int vtkTrilinearInterpolation(F *point,
             }
             break;
           }
-        case vtkPasteSliceIntoVolume::LATEST:
+        case vtkPasteSliceIntoVolume::LATEST_COMPOUNDING_MODE:
           {
             const F minWeight(0.125); // If a pixel is right in the middle of the eight surrounding voxels
                                       // (trilinear weight = 0.125 for each), then it the compounding operator
@@ -297,6 +283,23 @@ static int vtkTrilinearInterpolation(F *point,
             }
             break;
           }
+        case vtkPasteSliceIntoVolume::MEAN_COMPOUNDING_MODE:
+          f = fdx[j];
+          r = F((*accPtrTmp)/(double)ACCUMULATION_MULTIPLIER);  // added division by double, since this always returned 0 otherwise
+          a = f + r;
+          if (roundOutput)
+          {
+            PlusMath::Round((f*(*inPtrTmp) + r*(*outPtrTmp))/a, *outPtrTmp);
+          }
+          else
+          {
+            *outPtrTmp = (f*(*inPtrTmp) + r*(*outPtrTmp))/a;
+          }
+          a *= ACCUMULATION_MULTIPLIER; // needs to be done for proper conversion to unsigned short for accumulation buffer
+          break;
+        default:
+          LOG_ERROR("Unknown Compounding operator detected, value " << compoundingMode << ". Leaving value as-is.");
+          break;
         }
         inPtrTmp++;
         outPtrTmp++;
