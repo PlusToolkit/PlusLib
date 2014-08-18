@@ -106,6 +106,12 @@ then the FanOriginPixel in the XML config file shall be (320,40).
   - MAXIMUM + LINEAR + Compounding On: Use reverse tri-linear interpolation, but ignore the weights for distribution. Instead only use the highest pixel intensity encountered, and store its weight inside the accumulation buffer (which could be used in hole-filling).
   - MAXIMUM + LINEAR + Compounding Off: Use reverse tri-linear interpolation, as above, except do not store the weights in the accumulation buffer.
 
+\image html VolumeReconCompoundingMean.png <!-- Source: doc\specifications\VolumeReconstruction.pptx -->
+
+\image html VolumeReconCompoundingMax.png <!-- Source: doc\specifications\VolumeReconstruction.pptx -->
+
+\image html VolumeReconCompoundingLatest.png <!-- Source: doc\specifications\VolumeReconstruction.pptx -->
+  
 \section VirtualVolumeReconstructorExampleConfigFile Example configuration file PlusDeviceSet_Server_Sim_NwirePhantom.xml
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_Sim_NwirePhantom.xml"
