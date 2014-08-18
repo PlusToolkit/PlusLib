@@ -33,7 +33,6 @@ and compares the results to a baseline
 
 ///////////////////////////////////////////////////////////////////
 const double ERROR_THRESHOLD_MM=0.001;
-const double NUMBER_PIVOTS =8;
 
 int main (int argc, char* argv[])
 { 
@@ -50,7 +49,7 @@ int main (int argc, char* argv[])
 
   cmdargs.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
   cmdargs.AddArgument("--baseline-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
-  //cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
+  cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
 
   cmdargs.AddArgument("--tracker-input-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTrackedStylusTipSequenceMetafile, "Input tracker sequence metafile name with path");
   cmdargs.AddArgument("--stylus-tip-to-stylus-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &stylusTipToStylusTransformNameStr, 
@@ -119,11 +118,9 @@ int main (int argc, char* argv[])
   double pivotLandmark[3] = {0,0,0};
   if (valid)
   {
-
     // Acquire positions for pivot calibration
     for (int i=0; i < trackedStylusTipFrames->GetNumberOfTrackedFrames(); ++i)
     {
-      vtksys::SystemTools::Delay(50);
       //vtkPlusLogger::PrintProgressbar((100.0 * i) /  trackedStylusTipFrames->GetNumberOfTrackedFrames()); 
       vtkSmartPointer<vtkMatrix4x4> stylusToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
@@ -139,17 +136,17 @@ int main (int argc, char* argv[])
         LOG_ERROR("No valid transform found between stylus to reference!");
         exit(EXIT_FAILURE);
       }
-      vtkMatrix4x4* stylusTipToReferenceTransformMatrix = vtkMatrix4x4::New();
+      vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceTransformMatrix = vtkMatrix4x4::New();
       vtkMatrix4x4::Multiply4x4(stylusToReferenceMatrix,stylusTipToStylusTransform,stylusTipToReferenceTransformMatrix);
-      PivotDetection->InsertNextDetectionPoint(stylusTipToReferenceTransformMatrix);
-
-      if(PivotDetection->PivotFound()==PLUS_SUCCESS)
+      PivotDetection->InsertNextStylusTipToReferenceTransform(stylusTipToReferenceTransformMatrix);
+      PivotDetection->IsNewPivotPointFound(valid);
+      if(valid)
       {
         PivotDetection->GetPivotPointsReference()->GetPoint(PivotDetection->GetPivotPointsReference()->GetNumberOfPoints()-1, pivotFound);
         LOG_INFO("\nPivot found (" << pivotFound[0]<<", " << pivotFound[1]<<", " << pivotFound[2]<<") at "<<trackedStylusTipFrames->GetTrackedFrame(i)->GetTimestamp()<<"[ms]");
       }
-
-      if(PivotDetection->GetPivotPointsReference()->GetNumberOfPoints()==NUMBER_PIVOTS)
+      PivotDetection->IsPivotDetectionCompleted(valid);
+      if(valid)
       {
         break;
       }
@@ -182,9 +179,9 @@ int main (int argc, char* argv[])
     }
 
     int numberOfLandmarks = pivotDetectionBaselineLandmarks->GetDefinedLandmarks()->GetNumberOfPoints();
-    if (numberOfLandmarks != NUMBER_PIVOTS)
+    if (numberOfLandmarks != PivotDetection->GetExpectedPivotsNumber())
     {
-      LOG_ERROR("Number of defined landmarks should be "<<NUMBER_PIVOTS<< " instead of " << numberOfLandmarks << "!");
+      LOG_ERROR("Number of defined landmarks should be "<<PivotDetection->GetExpectedPivotsNumber()<< " instead of " << numberOfLandmarks << "!");
       exit(EXIT_FAILURE);
     }
     //if (PivotDetection->GetPivotPointsReference()->GetNumberOfPoints()==numberOfLandmarks)
@@ -219,7 +216,7 @@ int main (int argc, char* argv[])
   }
   else
   {
-    LOG_ERROR("Baseline file is not specified. Computed results are not compared to baseline results.");
+    LOG_DEBUG("Baseline file is not specified. Computed results are not compared to baseline results.");
   }
 
   std::cout << "Exit success!!!" << std::endl; 

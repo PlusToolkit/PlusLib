@@ -33,44 +33,50 @@ public:
   /*! Sets the name of the transform to be used for tracking data. Default is "ProbeToReference" */  
   void SetProbeToReferenceTransformName(const std::string& probeToReferenceTransformName);
 
-  void SetCalibrationConfigName(const std::string& calibrationConfigName);
-
   /*!
     Run the line detection algorithm on the input video frames
     \param errorDetail if the algorithm fails then the details of the problem are returned in this string
   */
   PlusStatus Update(); 
 
-  /*! Get the timestamps of the frames where a line was successfully detected*/
-  void GetDetectedTimestamps(std::deque<double> &timestamps);
+  /*! Get the timestamps of the frames where a line was successfully */
+  void GetTimestamps(std::deque<double> &timestamps);
 
+  void GetSignalStylusRef(std::deque<double> &signalComponent);
+  void GetSignalStylusTipRef(std::deque<double> &signalComponent);
+  void GetSignalZ(std::deque<double> &signalComponent);
+  void GetSignalStylusTipSpeed(std::deque<double> &signalComponent);
 
-  void GetDetectedSignalStylusRef(std::deque<double> &signalComponent);
-  void GetDetectedSignalStylusTipRef(std::deque<double> &signalComponent);
-  void GetDetectedSignalZ(std::deque<double> &signalComponent);
-  void GetDetectedSignalStylusTipFromPivot(std::deque<double> &signalComponent);
-
-  /*! Get the line positions on the frames where a line was successfully detected*/
-  void GetDetectedPositions(std::deque<double> &positions); 
-
-  void ComputePrincipalAxis(std::deque<itk::Point<double, 3> > &trackerPositions, itk::Point<double,3> &principalAxisOfMotion, int numValidFrames);
+  PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
+  vtkGetStringMacro(ObjectMarkerCoordinateFrame);
+  vtkGetStringMacro(ReferenceCoordinateFrame);
+  vtkGetStringMacro(ObjectPivotPointCoordinateFrame);
 
 protected:
   vtkReadTrackedSignals();
   virtual ~vtkReadTrackedSignals();
 
+  vtkSetStringMacro(ObjectMarkerCoordinateFrame);
+  vtkSetStringMacro(ReferenceCoordinateFrame);
+  vtkSetStringMacro(ObjectPivotPointCoordinateFrame);
+
   PlusStatus VerifyInputFrames();
   PlusStatus ComputeTrackerPositionMetric();
 
   vtkTrackedFrameList* m_TrackerFrames;
-  std::string m_ProbeToReferenceTransformName;
-  std::string m_CalibrationConfigName;
 
-  std::deque<double> m_SignalValues; 
+  /*! Name of the object marker coordinate frame (eg. Stylus) */
+  char*               ObjectMarkerCoordinateFrame;
+  /*! Name of the reference coordinate frame (eg. Reference) */
+  char*               ReferenceCoordinateFrame;
+  /*! Name of the object pivot point coordinate frame (eg. StylusTip) */
+  char*               ObjectPivotPointCoordinateFrame;
+
+  vtkSmartPointer<vtkMatrix4x4> StylusTipToStylusTransform;
+
   std::deque<double> m_SignalTimestamps;
   std::deque<double> m_SignalStylusRef;
   std::deque<double> m_SignalStylusTipRef;
-  std::deque<double> m_SignalZ;
   std::deque<double> m_SignalStylusTipSpeed;
 
   double m_SignalTimeRangeMin;

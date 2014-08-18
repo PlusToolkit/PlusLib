@@ -29,6 +29,7 @@ namespace
   const double ABOVE_PIVOT_THRESHOLD_MM=3.0;//Above the pivot threshold is used to detect stylus pivoting and not static. When a point 10 cm above the stylus tip magnitude change is bigger than AbovePivotThresholdMM, the stylus is pivoting.
   const double PIVOT_THRESHOLD_MM=1.8;// A pivot position will be consider when the stylus tip position magnitude change is below PivotThresholdMM.
   const double MAXIMUM_WINDOW_TIME_SEC=3.0;
+  const int EXPECTED_PIVOTS_NUMBER=3;// The default expected number of pivots to be detected 
 }
 
 void vtkPivotDetectionAlgo::SetAcquisitionRate(double aquisitionRate)
@@ -96,12 +97,25 @@ void vtkPivotDetectionAlgo::SetPivotThresholdMM(double samePivotThreshold)
   }
 }
 
+void vtkPivotDetectionAlgo::SetExpectedPivotsNumber(int expectedPivotsNumber)
+{
+  if(expectedPivotsNumber>0)
+  {
+    this->ExpectedPivotsNumber=expectedPivotsNumber;
+  }
+  else
+  {
+    LOG_WARNING("Specified expected number of pivots (" << expectedPivotsNumber << " is not correct, default "<<this->ExpectedPivotsNumber<<" is used instead");
+  }
+}
+
+
 //-----------------------------------------------------------------------------
 vtkPivotDetectionAlgo::vtkPivotDetectionAlgo()
 {
   this->ObjectMarkerCoordinateFrame = NULL;
   this->ReferenceCoordinateFrame = NULL;
-  this->ObjectPivotPointCoordinateFrame = NULL;
+  //this->ObjectPivotPointCoordinateFrame = NULL;
 
   this->PivotPointsReference = NULL;
   vtkSmartPointer<vtkPoints> pivotPointsReference = vtkSmartPointer<vtkPoints>::New();
@@ -126,8 +140,7 @@ vtkPivotDetectionAlgo::vtkPivotDetectionAlgo()
   this->DetectionTimeSec=2.0;
   this->AbovePivotThresholdMM = ABOVE_PIVOT_THRESHOLD_MM;
   this->PivotThresholdMM = PIVOT_THRESHOLD_MM;
-
-  this->Verbose = false;
+  this->ExpectedPivotsNumber=EXPECTED_PIVOTS_NUMBER;
 }
 
 //-----------------------------------------------------------------------------
@@ -139,11 +152,11 @@ vtkPivotDetectionAlgo::~vtkPivotDetectionAlgo()
 //-----------------------------------------------------------------------------
 void vtkPivotDetectionAlgo::RemoveAllDetectionPoints()
 {
-  for (std::list< vtkMatrix4x4* >::iterator it=this->StylusTipToReferenceTransformsList.begin();
-    it!=this->StylusTipToReferenceTransformsList.end(); ++it)
-  {
-    (*it)->Delete();
-  }
+  //for (std::list< vtkSmartPointer<vtkMatrix4x4> >::iterator it=this->StylusTipToReferenceTransformsList.begin();
+  //  it!=this->StylusTipToReferenceTransformsList.end(); ++it)
+  //{
+  //  (*it)->Delete();
+  //}
   this->StylusTipToReferenceTransformsList.clear();
 }
 
@@ -151,7 +164,7 @@ void vtkPivotDetectionAlgo::RemoveAllDetectionPoints()
 PlusStatus vtkPivotDetectionAlgo::GetStylusTipPositionWindowAverage(double* pivotPoint_Reference)
 {
   double stylusPositionSum [3] ={0,0,0};
-  std::list< vtkMatrix4x4* >::iterator stylusTipToReferenceTransformIt=this->StylusTipToReferenceTransformsList.end();
+  std::list< vtkSmartPointer<vtkMatrix4x4> >::iterator stylusTipToReferenceTransformIt=this->StylusTipToReferenceTransformsList.end();
   int i=0;
   do
   {
@@ -179,21 +192,20 @@ PlusStatus vtkPivotDetectionAlgo::GetStylusTipPositionWindowAverage(double* pivo
 void vtkPivotDetectionAlgo::EraseLastPoints()
 {
   int i=0;
-  if(this->Verbose==true)
+  for (std::list<vtkSmartPointer<vtkMatrix4x4>>::iterator markerToReferenceTransformIt=this->StylusTipToReferenceTransformsList.begin();
+    markerToReferenceTransformIt!=this->StylusTipToReferenceTransformsList.end(); ++markerToReferenceTransformIt)
   {
-    for (std::list< vtkMatrix4x4* >::iterator markerToReferenceTransformIt=this->StylusTipToReferenceTransformsList.begin();
-      markerToReferenceTransformIt!=this->StylusTipToReferenceTransformsList.end(); ++markerToReferenceTransformIt)
+    if(i==this->WindowSize)
     {
-      if(i==this->WindowSize)
-        std::cout << "\n";
-      std::cout << "\n P( " << -(*markerToReferenceTransformIt)->Element[0][3]<<", " << -(*markerToReferenceTransformIt)->Element[1][3]<<", " << -(*markerToReferenceTransformIt)->Element[2][3]<<") ";
-      i++;
+      LOG_DEBUG( "\n");
     }
-    std::cout << "\n Erase before P( " << -(*this->CurrentStylusTipIterator)->Element[0][3]<<", "<< -(*this->CurrentStylusTipIterator)->Element[1][3]<<", "<< -(*this->CurrentStylusTipIterator)->Element[2][3]<<") \n";
+    LOG_DEBUG("\n P( " << -(*markerToReferenceTransformIt)->Element[0][3]<<", " << -(*markerToReferenceTransformIt)->Element[1][3]<<", " << -(*markerToReferenceTransformIt)->Element[2][3]<<") ");
+    i++;
   }
+  LOG_DEBUG("\n Erase before P( " << -(*this->CurrentStylusTipIterator)->Element[0][3]<<", "<< -(*this->CurrentStylusTipIterator)->Element[1][3]<<", "<< -(*this->CurrentStylusTipIterator)->Element[2][3]<<") \n");
 
   this->CurrentStylusTipIterator++;
-  std::list< vtkMatrix4x4* >::iterator markerToReferenceTransformIt=this->StylusTipToReferenceTransformsList.begin();
+  std::list< vtkSmartPointer<vtkMatrix4x4> >::iterator markerToReferenceTransformIt=this->StylusTipToReferenceTransformsList.begin();
   this->CurrentStylusTipIterator--;
   while ( markerToReferenceTransformIt!=this->CurrentStylusTipIterator)
   {
@@ -202,20 +214,17 @@ void vtkPivotDetectionAlgo::EraseLastPoints()
     markerToReferenceTransformIt=this->StylusTipToReferenceTransformsList.begin();
   }
 
-  if (this->Verbose==true)
+  for (std::list< vtkSmartPointer<vtkMatrix4x4> >::iterator markerToReferenceTransformIt=this->StylusTipToReferenceTransformsList.begin();
+    markerToReferenceTransformIt!=this->StylusTipToReferenceTransformsList.end(); ++markerToReferenceTransformIt)
   {
-    for (std::list< vtkMatrix4x4* >::iterator markerToReferenceTransformIt=this->StylusTipToReferenceTransformsList.begin();
-      markerToReferenceTransformIt!=this->StylusTipToReferenceTransformsList.end(); ++markerToReferenceTransformIt)
-    {
-      std::cout << "\n P( " << -(*markerToReferenceTransformIt)->Element[0][3]<<", "<< -(*markerToReferenceTransformIt)->Element[1][3]<<", "<< -(*markerToReferenceTransformIt)->Element[2][3]<<") ";
-    }
+    LOG_DEBUG( "\n P( " << -(*markerToReferenceTransformIt)->Element[0][3]<<", "<< -(*markerToReferenceTransformIt)->Element[1][3]<<", "<< -(*markerToReferenceTransformIt)->Element[2][3]<<") ");
   }
 
   StylusTipWindowAverage_Reference_List.pop_front();
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPivotDetectionAlgo::InsertNextDetectionPoint(vtkMatrix4x4* stylusTipToReferenceTransform)
+PlusStatus vtkPivotDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceTransform)
 {
   //Point 10 cm above the stylus tip, if it moves(window change bigger than AbovePivotThresholdMM) while the tip is static (window change smaller than PivotThresholdMM then it is pivot point.
   float pointAboveStylusTip_Reference[4]={100,0,0,1};
@@ -266,27 +275,23 @@ PlusStatus vtkPivotDetectionAlgo::InsertNextDetectionPoint(vtkMatrix4x4* stylusT
 
       if(vtkMath::Norm(stylusTipChange)<this->PivotThresholdMM && vtkMath::Norm(aboveStylusTipChange)>this->AbovePivotThresholdMM)
       {
-        if (this->Verbose==true)
+        LOG_DEBUG("\nDif last points (" <<abs(lastStylusTipWindowAverage[0]-stylusTipWindowAverage[0])<< ", "<<abs(lastStylusTipWindowAverage[1]-stylusTipWindowAverage[1])<< ", "<<abs(lastStylusTipWindowAverage[2]-stylusTipWindowAverage[2])<< ")\n");
+        LOG_INFO("Window Pivot ("<< lastStylusTipWindowAverage[0]<< ", "<< lastStylusTipWindowAverage[1]<< ", "<< lastStylusTipWindowAverage[2]<< ") found keep going!!");
+        int i =0;
+        for (std::list< vtkSmartPointer<vtkMatrix4x4> >::iterator markerToReferenceTransformIt=this->StylusTipToReferenceTransformsList.begin();
+          markerToReferenceTransformIt!=this->StylusTipToReferenceTransformsList.end(); ++markerToReferenceTransformIt)
         {
-          std::cout << "\nDif last points (" <<abs(lastStylusTipWindowAverage[0]-stylusTipWindowAverage[0])<< ", "<<abs(lastStylusTipWindowAverage[1]-stylusTipWindowAverage[1])<< ", "<<abs(lastStylusTipWindowAverage[2]-stylusTipWindowAverage[2])<< ")\n";
-          LOG_INFO("Pivot found keep going!!");
-          int i =0;
-          for (std::list< vtkMatrix4x4* >::iterator markerToReferenceTransformIt=this->StylusTipToReferenceTransformsList.begin();
-            markerToReferenceTransformIt!=this->StylusTipToReferenceTransformsList.end(); ++markerToReferenceTransformIt)
+          if(i%this->WindowSize==0)
           {
-            if(i%this->WindowSize==0)
-              std::cout << "\n";
-            std::cout << "\n P( " << -(*markerToReferenceTransformIt)->Element[0][3]<<", " << -(*markerToReferenceTransformIt)->Element[1][3]<<", " << -(*markerToReferenceTransformIt)->Element[2][3]<<") ";
-            i++;
+            LOG_DEBUG( "\n");
           }
+          LOG_DEBUG("\n P( " << -(*markerToReferenceTransformIt)->Element[0][3]<<", " << -(*markerToReferenceTransformIt)->Element[1][3]<<", " << -(*markerToReferenceTransformIt)->Element[2][3]<<")");
+          i++;
         }
       }
       else
       {
-        if (this->Verbose==true)
-        {
-          std::cout << "\nDif last points (" <<abs(lastStylusTipWindowAverage[0]-stylusTipWindowAverage[0])<< ", "<<abs(lastStylusTipWindowAverage[1]-stylusTipWindowAverage[1])<< ", "<<abs(lastStylusTipWindowAverage[2]-stylusTipWindowAverage[2])<< ")\n";
-        }
+        LOG_DEBUG("\nDif last points (" <<abs(lastStylusTipWindowAverage[0]-stylusTipWindowAverage[0])<< ", "<<abs(lastStylusTipWindowAverage[1]-stylusTipWindowAverage[1])<< ", "<<abs(lastStylusTipWindowAverage[2]-stylusTipWindowAverage[2])<< ")\n");
         EraseLastPoints();
       }
     }
@@ -342,7 +347,7 @@ bool vtkPivotDetectionAlgo::IsNewPivotPointPosition(double* stylusTipPosition)
 PlusStatus vtkPivotDetectionAlgo::EstimatePivotPointPosition()
 {
   double stylusPositionSum[3] ={0,0,0};int i=0; int j=0;
-  for (std::list< vtkMatrix4x4* >::iterator stylusTipToReferenceTransformIt=this->StylusTipToReferenceTransformsList.begin();
+  for (std::list< vtkSmartPointer<vtkMatrix4x4> >::iterator stylusTipToReferenceTransformIt=this->StylusTipToReferenceTransformsList.begin();
     stylusTipToReferenceTransformIt!=this->StylusTipToReferenceTransformsList.end(); ++stylusTipToReferenceTransformIt)
   {
     //Only the middle windows
@@ -372,18 +377,28 @@ PlusStatus vtkPivotDetectionAlgo::EstimatePivotPointPosition()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPivotDetectionAlgo::PivotFound()
+PlusStatus vtkPivotDetectionAlgo::IsNewPivotPointFound(bool &found)
 {
+  found=this->PivotDetected;
   if (this->PivotDetected==true)
   {
     this->PivotDetected=false;
-    return PLUS_SUCCESS;
+  }
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkPivotDetectionAlgo::IsPivotDetectionCompleted(bool &completed)
+{
+  if(this->PivotPointsReference->GetNumberOfPoints()>=this->ExpectedPivotsNumber)
+  {
+    completed=true;
   }
   else
   {
-    return PLUS_FAIL;
+    completed=false;
   }
-
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -414,9 +429,10 @@ PlusStatus vtkPivotDetectionAlgo::ReadConfiguration(vtkXMLDataElement* aConfig)
   XML_FIND_NESTED_ELEMENT_REQUIRED(pivotDetectionElement, aConfig, "vtkPivotDetectionAlgo");
   XML_READ_STRING_ATTRIBUTE_REQUIRED(ObjectMarkerCoordinateFrame, pivotDetectionElement);
   XML_READ_STRING_ATTRIBUTE_REQUIRED(ReferenceCoordinateFrame, pivotDetectionElement);
-  XML_READ_STRING_ATTRIBUTE_REQUIRED(ObjectPivotPointCoordinateFrame, pivotDetectionElement);
+  //XML_READ_STRING_ATTRIBUTE_REQUIRED(ObjectPivotPointCoordinateFrame, pivotDetectionElement);
   XML_READ_SCALAR_ATTRIBUTE_REQUIRED(double, AcquisitionRate, pivotDetectionElement);
 
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, ExpectedPivotsNumber, pivotDetectionElement);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DetectionTimeSec, pivotDetectionElement);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, WindowTimeSec, pivotDetectionElement);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, AbovePivotThresholdMM, pivotDetectionElement);
