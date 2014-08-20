@@ -13,6 +13,21 @@ voxel that has not been assigned any intensity value in the distribution step. H
 slices are pasted into the volume.
 
 \section AlgorithmVolumeReconstructionTroubleshooting Troubleshooting volume reconstruction
+- I got an error from PlusServer when trying to reconstruct a volume: StartReconstruction failed due to out of memory. Try to reduce the size or increase spacing of the output
+  - This means that you run out of memory space. If you use a 32-bit application then the practically available memory space for image data is
+    approximately 1GB (regardless of how much physical or virtual memory is available), including all inputs, temporary buffers, and output.
+    If 64-bit release is used then the available memory space is practically unlimited (if there is not enough physical memory in the system
+    then the operating system can be configured to use more virtual memory, at the cost of some performance decrease). What can be done:
+  - Use a 64-bit release. If some devices are only supported in 32-bit releases then run two instances of PlusServer. 1. Acquisition server: 32-bit PlusServer, connects to hardwareacquires
+    devices acquires data, and makes it available through OpenIGTLink (see Acquisition server config file sample at the bottom of the page). 2. Processing server: 64-bit PlusServer, connects to the
+    Acquisition server to receive tracked image data, performs volume reconstruction and other processing, and broadcasts the results to all connected clients (see Processing server configuration
+    file example at the bottom).
+  - Decrease the resolution of the output by increasing the output volume spacing (\c OutputSpacing)
+  - Perform a low-resolution "scout scan" reconstruction from file (e.g., with 3mm spacing), define the region of interest, and
+    then do high-resolution live reconstruction. During live reconstruction the input frames do not have to be kept in memory, which allows
+    reconstruction of higher-resolution volumes. This workflow is implemented in PlusRemote with a nice graphical user interface (available as a 3D Slicer module
+    in the SlicerIGT extension)
+  - Reduce the region of interest size (change \c OutputExtent, \c OutputSpacing, and \c OutputOrigin)
 - I got an error: Path not found from Image to Reference ... / Failed to get transform ... from transform repository
   - You have to specify the transform that is applied to each frame to insert them into the volume. It is typically a transform from the image coordinate system to a reference coordinate system (such as a reference sensor or the tracker). Usually the sequence metafiles contain transforms between the tracker and the probe coordinate frame, which is not directly usable for the reconstruction, because the coordinate frame of the image and the probe is not the same. Therefore the configuration file should contain the image to probe transform (typically computed by free-hand probe calibration).
   - You can get the Path not found error if there is no transforms defined between the specified image and reference coordinate frames. Either the image or the reference coordinate frame name does not match the coordinate frame names described in the input sequence meta file. Or, no image to probe transform matrix is defined in the configuration file.
@@ -102,7 +117,9 @@ then the FanOriginPixel in the XML config file shall be (320,40).
 
 \image html VolumeReconCompoundingLatest.png <!-- Source: doc\specifications\VolumeReconstruction.pptx -->
   
-\section VirtualVolumeReconstructorExampleConfigFile Example configuration file PlusDeviceSet_Server_Sim_NwirePhantom.xml
+\section VirtualVolumeReconstructorExampleConfigFile Examples
+
+Example configuration file PlusDeviceSet_Server_Sim_NwirePhantom.xml
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_Sim_NwirePhantom.xml"
 
@@ -113,5 +130,13 @@ Example configuration file PlusDeviceSet_VolumeReconstructionOnly_SonixRP_TRUS_D
 Example configuration file PlusDeviceSet_VolumeReconstructionOnly_SpinePhantom_NN_MAXI.xml
 
 \include "data/ConfigFiles/Testing/PlusDeviceSet_VolumeReconstructionOnly_SpinePhantom_NN_MAXI.xml"
+
+Example configuration file for Acquisition server (PlusDeviceSet_Server_Sim_NwirePhantomTrackedFrameAcquisition.xml) 
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_Sim_NwirePhantomTrackedFrameAcquisition.xml"
+
+Example configuration file for Processing server (PlusDeviceSet_Server_Sim_NwirePhantomTrackedFrameProcessing.xml) 
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_Sim_NwirePhantomTrackedFrameProcessing.xml "
 
 */
