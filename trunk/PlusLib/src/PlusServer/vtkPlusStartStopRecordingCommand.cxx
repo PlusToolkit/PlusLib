@@ -183,6 +183,11 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
   LOG_INFO("vtkPlusStartStopRecordingCommand::Execute: "<<this->Name);
   if (STRCASECMP(this->Name, START_CMD)==0)
   {
+    if (captureDevice->GetEnableCapturing())
+    {
+      this->QueueStringResponse(std::string("Start recording failed: recording to file ") + (this->OutputFilename?this->OutputFilename:"(undefined)") + " is already in progress, device: " + captureDevice->GetDeviceId(),PLUS_FAIL);
+      return PLUS_FAIL;
+    }
     if (captureDevice->OpenFile(this->OutputFilename)!=PLUS_SUCCESS)
     {
       this->QueueStringResponse(responseMessageBase + " failed to open file "+(this->OutputFilename?this->OutputFilename:"(undefined)"),PLUS_FAIL);
@@ -193,13 +198,23 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
     return PLUS_SUCCESS;
   }
   else if (STRCASECMP(this->Name, SUSPEND_CMD)==0)
-  {    
+  {
+    if (!captureDevice->GetEnableCapturing())
+    {
+      this->QueueStringResponse(std::string("Suspend recording failed: recording to file is not in progress, device: ") + captureDevice->GetDeviceId(),PLUS_FAIL);
+      return PLUS_FAIL;
+    }
     captureDevice->SetEnableCapturing(false);
     this->QueueStringResponse(responseMessageBase + " successful",PLUS_SUCCESS);
     return PLUS_SUCCESS;
   }
   else if (STRCASECMP(this->Name, RESUME_CMD)==0)
   {    
+    if (captureDevice->GetEnableCapturing())
+    {
+      this->QueueStringResponse(std::string("Resume recording failed: recording to file ") + (this->OutputFilename?this->OutputFilename:"(undefined)") + " is already in progress, device: "+captureDevice->GetDeviceId(),PLUS_FAIL);
+      return PLUS_FAIL;
+    }
     captureDevice->SetEnableCapturing(true);
     this->QueueStringResponse(responseMessageBase + " successful",PLUS_SUCCESS);
     return PLUS_SUCCESS;

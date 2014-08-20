@@ -251,15 +251,27 @@ PlusStatus vtkVirtualVolumeReconstructor::NotifyConfigured()
 //-----------------------------------------------------------------------------
 void vtkVirtualVolumeReconstructor::SetEnableReconstruction( bool aValue )
 {
-  this->EnableReconstruction = aValue;
-
+  if (this->EnableReconstruction==aValue)
+  {
+    // Reconstruction is already started/stopped, no change needed
+    return;
+  }
+  
   if( aValue )
   {
+    // starting/resuming...
+    // set the recording start time to add frames from now on
     m_LastUpdateTime = 0.0;
     m_TimeWaited = 0.0;
     m_LastAlreadyRecordedFrameTimestamp = UNDEFINED_TIMESTAMP;
     m_NextFrameToBeRecordedTimestamp = 0.0;
     m_FirstFrameIndexInThisSegment = 0.0;
+    this->EnableReconstruction = true;
+  }
+  else
+  {
+    // stopping/suspending...
+    this->EnableReconstruction = aValue;
   }
 }
 
@@ -321,7 +333,7 @@ PlusStatus vtkVirtualVolumeReconstructor::GetReconstructedVolumeFromFile(const c
   // Determine volume extents automatically
   if ( this->VolumeReconstructor->SetOutputExtentFromFrameList(trackedFrameList, this->TransformRepository) != PLUS_SUCCESS )
   {
-    errorMessage="vtkPlusReconstructVolumeCommand::Execute: failed, image or reference coordinate frame name is invalid";
+    errorMessage="vtkPlusReconstructVolumeCommand::Execute: failed, could not set up output volume (computing extent or allocating memory failed)";
     LOG_INFO(errorMessage);
     return PLUS_FAIL;
   }
