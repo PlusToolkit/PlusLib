@@ -73,6 +73,9 @@ public:
   /*! Save the tracked data to sequence metafile */
   PlusStatus SaveToSequenceMetafile(const char* filename, bool useCompression = true);
 
+  /*! Save the tracked data to sequence metafile */
+  PlusStatus SaveTrackerDataOnlyToSequenceMetafile(const char* filename, bool useCompression = true);
+
   /*! Read the tracked data from sequence metafile */
   virtual PlusStatus ReadFromSequenceMetafile(const char* trackedSequenceDataFileName); 
 

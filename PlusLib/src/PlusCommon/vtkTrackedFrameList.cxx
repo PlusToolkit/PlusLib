@@ -443,6 +443,21 @@ PlusStatus vtkTrackedFrameList::SaveToSequenceMetafile(const char* filename, boo
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
+PlusStatus vtkTrackedFrameList::SaveTrackerDataOnlyToSequenceMetafile(const char* filename, bool useCompression /*=true*/)
+{
+  vtkSmartPointer<vtkMetaImageSequenceIO> writer=vtkSmartPointer<vtkMetaImageSequenceIO>::New();
+  writer->SetUseCompression(useCompression);
+  writer->SetFileName(filename);
+  writer->SetTrackedFrameList(this);
+  if (writer->WriteOnlyTrackerData()!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Couldn't write tracking data to the sequence metafile: " <<  filename); 
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
 //-----------------------------------------------------------------------------
 PlusCommon::VTKScalarPixelType vtkTrackedFrameList::GetPixelType()
 {
