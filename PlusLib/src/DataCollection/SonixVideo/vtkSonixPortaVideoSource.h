@@ -291,7 +291,7 @@ private:
   PlusStatus vtkSonixPortaVideoSource::UpdateSonixPortaParams();
 
   /*! Get probe head to transducer center transform */
-  std::string GetMotorToMotorRotatedTransformTransform( double MotorAngle );
+  std::string GetMotorToMotorRotatedTransform( double MotorAngle );
 
   // Porta parameters
   /*! The B-mode image width */
