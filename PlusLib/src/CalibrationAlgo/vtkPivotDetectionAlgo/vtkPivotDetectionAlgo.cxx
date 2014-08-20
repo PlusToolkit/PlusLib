@@ -192,7 +192,7 @@ PlusStatus vtkPivotDetectionAlgo::GetStylusTipPositionWindowAverage(double* pivo
 void vtkPivotDetectionAlgo::EraseLastPoints()
 {
   int i=0;
-  for (std::list<vtkSmartPointer<vtkMatrix4x4>>::iterator markerToReferenceTransformIt=this->StylusTipToReferenceTransformsList.begin();
+  for (std::list<vtkSmartPointer<vtkMatrix4x4> >::iterator markerToReferenceTransformIt=this->StylusTipToReferenceTransformsList.begin();
     markerToReferenceTransformIt!=this->StylusTipToReferenceTransformsList.end(); ++markerToReferenceTransformIt)
   {
     if(i==this->WindowSize)

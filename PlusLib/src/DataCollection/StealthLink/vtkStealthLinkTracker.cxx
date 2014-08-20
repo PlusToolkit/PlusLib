@@ -7,7 +7,7 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "vtkStealthLinkTracker.h"
-#include "StealthLink\StealthLink.h"
+#include "StealthLink/StealthLink.h"
 
 #include <vtkDirectory.h>
 #include "vtkPlusChannel.h"
@@ -88,7 +88,8 @@ public:
     MNavStealthLink::Error err;
     {
       PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
-      if(!this->StealthLinkServer->get(navData,this->StealthLinkServer->getServerTime(),err))
+      MNavStealthLink::DateTime myDateTime=this->StealthLinkServer->getServerTime();
+      if(!this->StealthLinkServer->get(navData,myDateTime,err))
       {	
         LOG_ERROR(" Failed to acquire the navigation data from StealthLink Server: " <<  err.reason() << " " << err.what() << "\n");
         return PLUS_FAIL;
@@ -147,7 +148,8 @@ public:
     MNavStealthLink::Error err;
     {
       PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
-      if(!this->StealthLinkServer->get(this->CurrentExam,this->StealthLinkServer->getServerTime(),err))
+      MNavStealthLink::DateTime myDateTime=this->StealthLinkServer->getServerTime();
+      if(!this->StealthLinkServer->get(this->CurrentExam,myDateTime,err))
       {
         LOG_ERROR(" Failed to acquire the current registraion: " <<  err.what() << "\n");
         return PLUS_FAIL;
@@ -163,7 +165,8 @@ public:
     MNavStealthLink::Error err;
     {
       PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
-      if(!this->StealthLinkServer->get(this->CurrentRegistration,this->StealthLinkServer->getServerTime(),err))
+      MNavStealthLink::DateTime myDateTime=this->StealthLinkServer->getServerTime();
+      if(!this->StealthLinkServer->get(this->CurrentRegistration,myDateTime,err))
       {
         LOG_ERROR(" Failed to acquire the current registraion: " <<  err.what() << "\n");
         return PLUS_FAIL;
@@ -188,7 +191,8 @@ public:
     MNavStealthLink::Version serverVersion;
     MNavStealthLink::Error err;
     {
-      if(!this->StealthLinkServer->get(serverVersion,this->StealthLinkServer->getServerTime(),err))
+      MNavStealthLink::DateTime myDateTime=this->StealthLinkServer->getServerTime();
+      if(!this->StealthLinkServer->get(serverVersion, myDateTime,err))
       {
         LOG_ERROR("Failed to acquire the version of the StealthLinkServer " << err.reason() << "\n");
         return PLUS_FAIL;
@@ -201,7 +205,8 @@ public:
   {
     PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
     MNavStealthLink::Error err;
-    if(!this->StealthLinkServer->get(examNameList,this->StealthLinkServer->getServerTime(),err))
+    MNavStealthLink::DateTime myDateTime=this->StealthLinkServer->getServerTime();
+    if(!this->StealthLinkServer->get(examNameList, myDateTime,err))
     {
       LOG_ERROR("Failed to acquire the version of the StealthLinkServer " << err.reason() << "\n");
       return PLUS_FAIL;
@@ -377,12 +382,12 @@ private:
   {
     if( !(navData.instVisibility == MNavStealthLink::Instrument::VISIBLE) && !(navData.instVisibility == MNavStealthLink::Instrument::ALMOST_BLOCKED))
     {
-      instrumentOutOfView = TRUE;
+      instrumentOutOfView = true;
       return;
     }
     else
     {
-      instrumentOutOfView = FALSE;
+      instrumentOutOfView = false;
     }
     for(int col=0; col < 4; col++)
     {
@@ -397,12 +402,12 @@ private:
   {
     if( !(navData.frameVisibility == MNavStealthLink::Frame::VISIBLE) && !(navData.frameVisibility == MNavStealthLink::Frame::ALMOST_BLOCKED))
     {
-      frameOutOfView = TRUE;
+      frameOutOfView = true;
       return;
     }
     else
     {
-      frameOutOfView = FALSE;
+      frameOutOfView = false;
     }
     vtkSmartPointer<vtkMatrix4x4> trackerToFrameTransform = vtkSmartPointer<vtkMatrix4x4>::New();
     for(int col=0; col < 4; col++)
@@ -656,7 +661,7 @@ PlusStatus vtkStealthLinkTracker::GetImage(const std::string& requestedImageId, 
     //These matrices are needed to calculate rasToTracker
     this->InternalShared->SetExamIjkToRpiTransformMatrix(examIjkToRpiTransform); //thread safe with get function
     this->InternalShared->SetExamIjkToRasTransformMatrix(examIjkToRasTransform);         //thread safe with get function
-    this->InternalShared->SetExamValid(TRUE);                            // thread safe with get function
+    this->InternalShared->SetExamValid(true);                            // thread safe with get function
 
     if(imageReferencFrameName.compare("Ras") == 0) 
     {
@@ -686,7 +691,7 @@ PlusStatus vtkStealthLinkTracker::GetImage(const std::string& requestedImageId, 
       this->Internal->GetFrameInformation(navData,frameOutOfView,frameToTrackerTransform);
 
       vtkSmartPointer<vtkMatrix4x4> rasToTrackerTransform = vtkSmartPointer<vtkMatrix4x4>::New();
-      if(frameOutOfView == TRUE)
+      if(frameOutOfView == true)
       {
         LOG_WARNING("The frame is out of view. If you requested the image in Stylus, Frame or Tracker coordinate system, this will give wrong results. Please make sure that the frame is visible");
       }
@@ -706,7 +711,7 @@ PlusStatus vtkStealthLinkTracker::GetImage(const std::string& requestedImageId, 
   {
     return this->DeleteDicomImageOutputDirectory(examImageDirectoryToDelete);
   }
-  this->SetKeepReceivedDicomFiles(FALSE);
+  this->SetKeepReceivedDicomFiles(false);
   return PLUS_SUCCESS;
 }
 
@@ -803,9 +808,9 @@ PlusStatus vtkStealthLinkTracker::InternalConnect()
   this->InternalUpdatePrivate->TrackerTimeToSystemTimeSec =  vtkAccurateTimer::GetSystemTime();
 
   this->Internal->DicomImagesOutputDirectory = vtkPlusConfig::GetInstance()->GetOutputDirectory() +  std::string("/StealthLinkDicomOutput");
-  this->Internal->KeepReceivedDicomFiles = FALSE;
+  this->Internal->KeepReceivedDicomFiles = false;
   this->Internal->ImageMetaDatasetsCount = 1;
-  this->InternalShared->SetExamValid(FALSE);
+  this->InternalShared->SetExamValid(false);
   return PLUS_SUCCESS;
 }
 //----------------------------------------------------------------------------
@@ -854,11 +859,11 @@ PlusStatus vtkStealthLinkTracker::InternalUpdate()
     //if the wanted transformation is the frameToTracker
     if(!strcmp(toolIterator->second->GetPortName(),navData.frameName.c_str())) // static!
     {
-      if(frameOutOfView == FALSE)
+      if(frameOutOfView == false)
       {
         this->ToolTimeStampedUpdateWithoutFiltering( toolIterator->second->GetSourceId(), frameToTrackerTransform, TOOL_OK, unfilteredTime, timeSystemSec);
       }
-      else if(frameOutOfView == TRUE)
+      else if(frameOutOfView == true)
       {
         this->ToolTimeStampedUpdateWithoutFiltering( toolIterator->second->GetSourceId(), frameToTrackerTransform, TOOL_OUT_OF_VIEW, unfilteredTime, timeSystemSec);
       }
@@ -868,7 +873,7 @@ PlusStatus vtkStealthLinkTracker::InternalUpdate()
     {
       // If frame is not out of view, the RasToTrackerTransform is invalid
       bool examValid =	this->InternalShared->GetExamValid(); //thread safe with the set function
-      if(frameOutOfView == FALSE && examValid == TRUE)
+      if(frameOutOfView == false && examValid == true)
       {
         vtkSmartPointer<vtkMatrix4x4> rasToTrackerTransform = vtkSmartPointer<vtkMatrix4x4>::New();
         this->Internal->GetRasToTrackerTransform(frameToTrackerTransform,rasToTrackerTransform); // thread-safe
@@ -883,11 +888,11 @@ PlusStatus vtkStealthLinkTracker::InternalUpdate()
     // if the wanted Transform is any tool to Tracker example sytlusToTracker, probeToTracker etc
     else if(!strcmp(toolIterator->second->GetPortName(),navData.instrumentName.c_str()))
     {
-      if(instrumentOutOfView == FALSE)
+      if(instrumentOutOfView == false)
       {
         this->ToolTimeStampedUpdateWithoutFiltering( toolIterator->second->GetSourceId(), instrumentToTrackerTransform, TOOL_OK, unfilteredTime, timeSystemSec);
       }
-      else if(instrumentOutOfView == TRUE)
+      else if(instrumentOutOfView == true)
       {
         this->ToolTimeStampedUpdateWithoutFiltering( toolIterator->second->GetSourceId(), instrumentToTrackerTransform, TOOL_OUT_OF_VIEW, unfilteredTime, timeSystemSec);
       }
