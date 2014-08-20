@@ -357,6 +357,14 @@ private:
 	/*! Keeping track in which direction the probe moves */
 	bool IncrementVolumeIndexClockwise;
 	bool IncrementVolumeIndexCounterClockwise;
+
+	bool RequireFrameBufferSizeInDeviceSetConfiguration;
+  bool RequireAcquisitionRateInDeviceSetConfiguration;
+  bool RequireAveragedItemsForFilteringInDeviceSetConfiguration;
+  bool RequireLocalTimeOffsetSecInDeviceSetConfiguration;
+  bool RequireUsImageOrientationInDeviceSetConfiguration;
+  bool RequireRfElementInDeviceSetConfiguration;
+	unsigned char* ImageBuffer;
 };
 
 #endif // of __VTKSONIXPORTAVIDEOSOURCE_H__
