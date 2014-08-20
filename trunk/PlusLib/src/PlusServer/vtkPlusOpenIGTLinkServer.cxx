@@ -588,10 +588,11 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
           std::string uid=vtkPlusCommand::GetUidFromCommandDeviceName(deviceName);;
           if( !uid.empty() )
           {
-            if( std::find(self->PreviousCommands[client.ClientId].begin(), self->PreviousCommands[client.ClientId].end(), uid) != self->PreviousCommands[client.ClientId].end() )
+            std::vector<std::string> & previousCommands = self->PreviousCommands[client.ClientId];
+            if( std::find(previousCommands.begin(), previousCommands.end(), uid) != previousCommands.end() )
             {
               // Command already exists
-              LOG_WARNING("Command already received with ID: " << uid << ".");
+              LOG_WARNING("Already received a command with id = " << uid << " from client id = " << client.ClientId <<". This repeated command will be ignored.");
               continue;
             }
             else

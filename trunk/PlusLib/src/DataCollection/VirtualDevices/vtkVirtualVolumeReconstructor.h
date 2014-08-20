@@ -79,6 +79,8 @@ public:
   /*! Set the output volume's extent (xStart, xEnd, yStart, yEnd, zStart, zEnd) in voxels */
   void SetOutputExtent(int* extent);
 
+  vtkGetMacro(TotalFramesRecorded, long int);
+
 protected:
 
     /*! Read main configuration from xml data */
@@ -104,7 +106,6 @@ protected:
   vtkGetMacro(RequestedFrameRate, double);
 
   vtkGetMacro(ActualFrameRate, double);
-  vtkGetMacro(TotalFramesRecorded, long int);
 
   virtual vtkDataCollector* GetDataCollector() { return this->DataCollector; }
 

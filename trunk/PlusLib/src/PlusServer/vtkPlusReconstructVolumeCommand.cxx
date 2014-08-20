@@ -291,6 +291,13 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
   }
   else if (STRCASECMP(this->Name, STOP_LIVE_RECONSTRUCTION_CMD)==0)
   {
+    // it's stopped if: not in progress (it may be just suspended) and no frames have been recorded
+    if (!reconstructorDevice->GetEnableReconstruction() && reconstructorDevice->GetTotalFramesRecorded()==0)
+    {
+      this->QueueStringResponse("Volume reconstruction stop from live frames failed: live volume reconstruction is already stopped, device: "+reconstructorDeviceId,PLUS_FAIL);
+      return PLUS_FAIL;
+    }
+
     LOG_INFO("Volume reconstruction from live frames stopping, device: "<<reconstructorDeviceId);
     reconstructorDevice->SetEnableReconstruction(false);
     vtkSmartPointer<vtkImageData> volumeToSend=vtkSmartPointer<vtkImageData>::New();
