@@ -130,6 +130,10 @@ PlusStatus ConstructSignalPlot(vtkTrackedFrameList* trackedStylusTipFrames, std:
   std::deque<double> signalTimestamps;
   std::deque<double> signalValues;
 
+  //////this is for removing US image data and leave only the tracking pose data
+  //std::string filenameTracked=intermediateFileOutputDirectory + "\\EightPivotingPointsTracked.mha";
+  //trackedStylusTipFrames->SaveTrackerDataOnlyToSequenceMetafile(filenameTracked.c_str(),false);
+  
   LOG_INFO("Range ["<< signalTimeRangeMin<<"-"<<signalTimeRangeMax<<"] "<<(signalTimeRangeMax-signalTimeRangeMin) << "[s]");
   double frequency = 1/(trackedStylusTipFrames->GetTrackedFrame(1)->GetTimestamp()-trackedStylusTipFrames->GetTrackedFrame(0)->GetTimestamp());
   LOG_INFO("Frequency one frame = "<< frequency);
@@ -282,6 +286,12 @@ int main (int argc, char* argv[])
     LOG_ERROR("Failed to read CoordinateDefinitions!"); 
     exit(EXIT_FAILURE);
   }
+  if ( transformRepository->ReadConfiguration(configStylusCalibration) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to read CoordinateDefinitions!"); 
+    exit(EXIT_FAILURE);
+  }
+
   // Initialize phantom registration
   vtkSmartPointer<vtkPhantomLandmarkRegistrationAlgo> phantomRegistration = vtkSmartPointer<vtkPhantomLandmarkRegistrationAlgo>::New();
   if (phantomRegistration == NULL)
@@ -294,6 +304,7 @@ int main (int argc, char* argv[])
     LOG_ERROR("Unable to read phantom definition!");
     exit(EXIT_FAILURE);
   }
+
   int numberOfLandmarks = phantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints();
   if (numberOfLandmarks != 8)
   {

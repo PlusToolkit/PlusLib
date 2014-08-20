@@ -61,14 +61,23 @@ public:
   /*! Write object contents into file */
   virtual PlusStatus Write();
 
+  /*! Write tracked pose data without image data object contents into file */
+  virtual PlusStatus WriteOnlyTrackerData();
+
   /*! Read file contents into the object */
   virtual PlusStatus Read();
 
   /*! Prepare the sequence for writing */
   virtual PlusStatus PrepareHeader();
 
-  /*! Append the frames in tracked frame list to the header */
-  virtual PlusStatus AppendImagesToHeader();
+  /*! Prepare the sequence for writing tracked pose data without image data*/
+  virtual PlusStatus PrepareHeaderOnlyTrackerData();
+
+  /*! 
+    Append the frames in tracked frame list to the header, if the onlyTrackerData flag is true it will not save
+    in the header the image data related fields. 
+  */
+  virtual PlusStatus AppendImagesToHeader(bool onlyTrackerData = false);
 
   /*! Finalize the header */
   virtual PlusStatus FinalizeHeader();
@@ -135,8 +144,17 @@ protected:
   /*! Write all the fields to the metaimage file header */
   virtual PlusStatus OpenImageHeader();
 
+  /*! Write the fields to the metaimage file header of tracked pose data without image data*/
+  virtual PlusStatus OpenImageHeaderOnlyTrackerData();
+
   /*! Write pixel data to the metaimage */
   virtual PlusStatus WriteImagePixels(const std::string& aFilename, bool forceAppend = false);
+
+  /*! 
+    Write pixel data to the metaimage. It will be a 1x1xNumberOfTrackedFrames blank image. 
+    It seems to work with compression but was not tested!!!
+  */
+  virtual PlusStatus WriteImagePixelsOnlyTrackerData(const std::string& aFilename, bool forceAppend = false);
 
   /*! 
     Convenience function that extends the tracked frame list (if needed) to make sure
@@ -161,6 +179,13 @@ protected:
     \param compressedDataSize returns the size of the total compressed data that is written to the file.
   */
   virtual PlusStatus WriteCompressedImagePixelsToFile(FILE *outputFileStream, int &compressedDataSize);
+   /*! 
+    Writes the compressed pixel data directly into file. It seems to work with compression but was not tested!!!
+    The compression is performed in chunks, so no excessive memory is used for the compression.
+    \param outputFileStream the file stream where the compressed pixel data will be written to
+    \param compressedDataSize returns the size of the total compressed data that is written to the file.
+  */
+  virtual PlusStatus WriteCompressedImagePixelsToFileOnlyTrackerData(FILE *outputFileStream, int &compressedDataSize);
 
   /*! Copy from file A to B */
   virtual PlusStatus MoveDataInFiles(const std::string& sourceFilename, const std::string& destFilename, bool append);
