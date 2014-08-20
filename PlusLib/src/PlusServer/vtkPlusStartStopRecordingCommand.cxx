@@ -185,7 +185,7 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
   {
     if (captureDevice->GetEnableCapturing())
     {
-      this->QueueStringResponse(std::string("Start recording failed: recording to file ") + (this->OutputFilename?this->OutputFilename:"(undefined)") + " is already in progress, device: " + captureDevice->GetDeviceId(),PLUS_FAIL);
+      this->QueueStringResponse(std::string("Start recording failed: recording to file is already in progress, device: ") + captureDevice->GetDeviceId(),PLUS_FAIL);
       return PLUS_FAIL;
     }
     if (captureDevice->OpenFile(this->OutputFilename)!=PLUS_SUCCESS)
@@ -212,7 +212,7 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
   {    
     if (captureDevice->GetEnableCapturing())
     {
-      this->QueueStringResponse(std::string("Resume recording failed: recording to file ") + (this->OutputFilename?this->OutputFilename:"(undefined)") + " is already in progress, device: "+captureDevice->GetDeviceId(),PLUS_FAIL);
+      this->QueueStringResponse(std::string("Resume recording failed: recording to file is already in progress, device: ")+captureDevice->GetDeviceId(),PLUS_FAIL);
       return PLUS_FAIL;
     }
     captureDevice->SetEnableCapturing(true);
@@ -221,6 +221,13 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
   }
   else if (STRCASECMP(this->Name, STOP_CMD)==0)
   { 
+    // it's stopped if: not in progress (it may be just suspended) and no frames have been recorded
+    if (!captureDevice->GetEnableCapturing() && captureDevice->GetTotalFramesRecorded()==0)
+    {
+      this->QueueStringResponse(std::string("Stop recording failed: recording to file is already stopped, device: ") + captureDevice->GetDeviceId(),PLUS_FAIL);
+      return PLUS_FAIL;
+    }
+
     captureDevice->SetEnableCapturing(false);    
     
     // Once the file is closed, the filename is no longer valid, so we need to get the filename now

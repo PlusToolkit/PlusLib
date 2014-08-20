@@ -33,7 +33,7 @@ PlusStatus DisconnectClients( std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSo
 
 // Forward declare signal handler
 void SignalInterruptHandler(int s);
-static bool neverStop;
+static bool stopRequested = false;
 
 int main( int argc, char** argv )
 {
@@ -49,7 +49,7 @@ int main( int argc, char** argv )
   std::string inputConfigFileName;
   std::string testingConfigFileName;
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
-  double runTime = 0;
+  double runTimeSec = 0.0;
 
   const int numOfTestClientsToConnect = 5; // only if testing is enabled S
 
@@ -58,7 +58,7 @@ int main( int argc, char** argv )
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
   args.AddArgument( "--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Name of the input configuration file." );
-  args.AddArgument( "--running-time", vtksys::CommandLineArguments::EQUAL_ARGUMENT,&runTime, "Server running time period in seconds. If the parameter is not defined or 0 then the server runs infinitely." );
+  args.AddArgument( "--running-time", vtksys::CommandLineArguments::EQUAL_ARGUMENT,&runTimeSec, "Server running time period in seconds. If the parameter is not defined or 0 then the server runs infinitely." );
   args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)" );
   args.AddArgument( "--testing-config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &testingConfigFileName, "Enable testing mode (testing PlusServer functionality by running a few OpenIGTLink clients)" );
 
@@ -116,35 +116,26 @@ int main( int argc, char** argv )
       server->Stop(); 
       exit(EXIT_FAILURE);
     }
-    vtkAccurateTimer::Delay( 1.0 ); // make sure the threads have some time to connect regardless of the specified runTime
+    vtkAccurateTimer::Delay( 1.0 ); // make sure the threads have some time to connect regardless of the specified runTimeSec
     LOG_INFO("Clients are connected");
   }
   // *************************** End of testing **************************
 
-#ifdef _WIN32
-  std::cout << "Press Q or Ctrl-C to quit:" << std::endl;
-#else
   std::cout << "Press Ctrl-C to quit:" << std::endl;
-#endif
+
   // Set up signal catching
   signal(SIGINT, SignalInterruptHandler);
 
-  neverStop = (runTime==0.0);
+  bool neverStop = (runTimeSec==0.0);
 
   // Run server until requested 
   const double commandQueuePollIntervalSec=0.010;
-  while ( (vtkAccurateTimer::GetSystemTime() < startTime + runTime) || (neverStop) )
+  while ( ((vtkAccurateTimer::GetSystemTime() < startTime + runTimeSec) || neverStop)
+    && (!stopRequested) )
   {
     server->ProcessPendingCommands();
     // Need to process messages while waiting because some devices (such as the vtkWin32VideoSource2) require event processing
     vtkAccurateTimer::DelayWithEventProcessing(commandQueuePollIntervalSec);
-#ifdef _WIN32
-    if( GetAsyncKeyState('Q') || GetAsyncKeyState('q') )
-    {
-      runTime = 0.0;
-      neverStop = false;
-    }
-#endif
   }
 
   // *************************** Testing **************************
@@ -275,5 +266,6 @@ PlusStatus DisconnectClients( std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSo
 // -------------------------------------------------
 void SignalInterruptHandler(int s)
 {
-  neverStop = false;
+  LOG_INFO("Stop requested...");
+  stopRequested = true;
 }
