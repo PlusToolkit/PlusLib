@@ -248,6 +248,11 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
   if (STRCASECMP(this->Name, RECONSTRUCT_PRERECORDED_CMD)==0)
   {
     LOG_INFO("Volume reconstruction from sequence file: "<<(this->InputSeqFilename?this->InputSeqFilename:"(undefined)")<<", device: "<<reconstructorDeviceId);
+    if (reconstructorDevice->GetEnableReconstruction())
+    {
+      this->QueueStringResponse("Volume reconstruction from sequence file failed: live volume reconstruction is in progress, device: "+reconstructorDeviceId,PLUS_FAIL);
+      return PLUS_FAIL;
+    }
     if (reconstructorDevice->UpdateTransformRepository(this->CommandProcessor->GetPlusServer()->GetTransformRepository())!=PLUS_SUCCESS)
     {
       this->QueueStringResponse("Volume reconstruction from sequence file failed: cannot get transform repository, device: "+reconstructorDeviceId,PLUS_FAIL);
@@ -269,6 +274,11 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
   else if (STRCASECMP(this->Name, START_LIVE_RECONSTRUCTION_CMD)==0)
   {    
     LOG_INFO("Volume reconstruction from live frames starting, device: "<<reconstructorDeviceId);
+    if (reconstructorDevice->GetEnableReconstruction())
+    {
+      this->QueueStringResponse("Volume reconstruction starting from live frames failed: live volume reconstruction is in progress, device: "+reconstructorDeviceId,PLUS_FAIL);
+      return PLUS_FAIL;
+    }
     if (reconstructorDevice->UpdateTransformRepository(this->CommandProcessor->GetPlusServer()->GetTransformRepository())!=PLUS_SUCCESS)
     {
       this->QueueStringResponse("Volume reconstruction starting from live frames failed: cannot get transform repository, device: "+reconstructorDeviceId,PLUS_FAIL);
@@ -314,13 +324,23 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
   else if (STRCASECMP(this->Name, SUSPEND_LIVE_RECONSTRUCTION_CMD)==0)
   {
     LOG_INFO("Volume reconstruction from live frames suspending, device: "<<reconstructorDeviceId);
-    reconstructorDevice->SetEnableReconstruction(false);
+    if (!reconstructorDevice->GetEnableReconstruction())
+    {
+      this->QueueStringResponse("Volume reconstruction suspend from live frames failed: live volume reconstruction is not in progress, device: "+reconstructorDeviceId,PLUS_FAIL);
+      return PLUS_FAIL;
+    }
+   reconstructorDevice->SetEnableReconstruction(false);
     this->QueueStringResponse("Volume reconstruction from live frames suspended, device: "+reconstructorDeviceId,PLUS_SUCCESS);
     return PLUS_SUCCESS;
   }
   else if (STRCASECMP(this->Name, RESUME_LIVE_RECONSTRUCTION_CMD)==0)
   {
     LOG_INFO("Volume reconstruction from live frames resuming, device: "<<reconstructorDeviceId);
+    if (reconstructorDevice->GetEnableReconstruction())
+    {
+      this->QueueStringResponse("Volume reconstruction resume from live frames failed: live volume reconstruction is already in progress, device: "+reconstructorDeviceId,PLUS_FAIL);
+      return PLUS_FAIL;
+    }
     reconstructorDevice->SetEnableReconstruction(true);
     this->QueueStringResponse("Volume reconstruction from live frames resumed, device: "+reconstructorDeviceId, PLUS_SUCCESS);
     return PLUS_SUCCESS;
