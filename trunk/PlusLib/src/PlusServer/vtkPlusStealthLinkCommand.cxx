@@ -7,7 +7,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkDataCollector.h"
 #include "vtkPlusStealthLinkCommand.h"
-#include "StealthLink\vtkStealthLinkTracker.h"
+#include "StealthLink/vtkStealthLinkTracker.h"
 
 #include "vtkImageData.h"
 #include "vtkDICOMImageReader.h"

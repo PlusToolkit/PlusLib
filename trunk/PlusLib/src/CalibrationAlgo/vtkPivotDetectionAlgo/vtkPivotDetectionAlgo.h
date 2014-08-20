@@ -133,7 +133,7 @@ protected:
   //char*               ObjectPivotPointCoordinateFrame;
 
   /*! Array of the input point transformations*/
-  std::list< vtkSmartPointer<vtkMatrix4x4>> StylusTipToReferenceTransformsList;
+  std::list< vtkSmartPointer<vtkMatrix4x4> > StylusTipToReferenceTransformsList;
   /*! Iterators to track stylus tip transformations in the list*/
   std::list< vtkSmartPointer<vtkMatrix4x4> >::iterator CurrentStylusTipIterator;
   std::list< vtkSmartPointer<vtkMatrix4x4> >::iterator LastStylusTipIterator;

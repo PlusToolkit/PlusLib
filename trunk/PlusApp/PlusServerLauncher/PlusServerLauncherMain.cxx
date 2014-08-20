@@ -4,6 +4,10 @@
   See License.txt for details.
 =========================================================Plus=header=end*/ 
 
+#ifndef _WIN32
+  #include <signal.h>
+#endif
+
 #include "vtksys/CommandLineArguments.hxx" 
 #include "vtksys/SystemTools.hxx"
 
