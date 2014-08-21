@@ -190,14 +190,11 @@ int main (int argc, char* argv[])
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
   std::string inputTrackedStylusTipSequenceMetafile;
   std::string intermediateFileOutputDirectory;
-  std::string styluscalibratedConfigFileName;
   vtksys::CommandLineArguments cmdargs;
   cmdargs.Initialize(argc, argv);
   cmdargs.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
   cmdargs.AddArgument("--baseline-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
   cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
-  cmdargs.AddArgument("--intermediate-file-output-dir", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &intermediateFileOutputDirectory, "Directory into which the intermediate files are written");
-  cmdargs.AddArgument("--stylus-calibrated-config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &styluscalibratedConfigFileName, "Configuration file name");
   cmdargs.AddArgument("--tracker-input-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTrackedStylusTipSequenceMetafile, "Input tracker sequence metafile name with path");
   if ( !cmdargs.Parse() )
   {
@@ -219,13 +216,7 @@ int main (int argc, char* argv[])
   {
     intermediateFileOutputDirectory = vtkPlusConfig::GetInstance()->GetOutputDirectory();
   }
-  // Read StylusCalibration configuration
-  vtkSmartPointer<vtkXMLDataElement> configStylusCalibration = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(styluscalibratedConfigFileName.c_str()));
-  if (configStylusCalibration == NULL)
-  {  
-    LOG_ERROR("Unable to read StylusCalibration configuration from file " << styluscalibratedConfigFileName.c_str()); 
-    exit(EXIT_FAILURE);
-  }
+
   // Read stylus tracker data
   vtkSmartPointer<vtkTrackedFrameList> trackedStylusTipFrames = vtkSmartPointer<vtkTrackedFrameList>::New();
   if( !inputTrackedStylusTipSequenceMetafile.empty() )
@@ -239,7 +230,9 @@ int main (int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
   trackedStylusTipFrames->Register(NULL);
-  ConstructSignalPlot( trackedStylusTipFrames, intermediateFileOutputDirectory, configStylusCalibration);
+
+  //This is to construct a plot of the tracked stylus and stylus tip position norms.
+  //ConstructSignalPlot( trackedStylusTipFrames, intermediateFileOutputDirectory, configPivotDetection);
 
   //--------------------------------------------------------------------------------------------------------------------------------------
   // Initialize data collection
@@ -286,7 +279,7 @@ int main (int argc, char* argv[])
     LOG_ERROR("Failed to read CoordinateDefinitions!"); 
     exit(EXIT_FAILURE);
   }
-  if ( transformRepository->ReadConfiguration(configStylusCalibration) != PLUS_SUCCESS )
+  if ( transformRepository->ReadConfiguration(configPivotDetection) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read CoordinateDefinitions!"); 
     exit(EXIT_FAILURE);
@@ -337,15 +330,10 @@ int main (int argc, char* argv[])
   // Check stylus tool
   PlusTransformName stylusToReferenceTransformName(PivotDetection->GetObjectMarkerCoordinateFrame(), PivotDetection->GetReferenceCoordinateFrame());
   PlusTransformName stylusTipToStylusTransformName(phantomRegistration->GetStylusTipCoordinateFrame(), PivotDetection->GetObjectMarkerCoordinateFrame());
-  vtkSmartPointer<vtkTransformRepository> transformRepositoryCalibration = vtkSmartPointer<vtkTransformRepository>::New();
-  if ( transformRepositoryCalibration->ReadConfiguration(configStylusCalibration) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to read CoordinateDefinitions!"); 
-    exit(EXIT_FAILURE);
-  }
+
   vtkSmartPointer<vtkMatrix4x4> stylusTipToStylusTransform = vtkSmartPointer<vtkMatrix4x4>::New();
   bool valid = false;
-  transformRepositoryCalibration->GetTransform(stylusTipToStylusTransformName, stylusTipToStylusTransform, &valid);
+  transformRepository->GetTransform(stylusTipToStylusTransformName, stylusTipToStylusTransform, &valid);
   double offsetPhantom[3] = {0,0,0};
   double pivotFound[3] = {0,0,0};
   double pivotLandmark[3] = {0,0,0};
@@ -355,7 +343,6 @@ int main (int argc, char* argv[])
     for (int i=0; i < trackedStylusTipFrames->GetNumberOfTrackedFrames(); ++i)
     {
       fakeTracker->SetCounter(i);
-      //vtkAccurateTimer::Delay(2.1 / fakeTracker->GetAcquisitionRate());
       //aChannel->GetTrackedFrame((trackedStylusTipFrames->GetTrackedFrame(i)));
 
       vtkSmartPointer<vtkMatrix4x4> stylusToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -397,28 +384,6 @@ int main (int argc, char* argv[])
   }
 
   LOG_INFO(PivotDetection->GetDetectedPivotsString());
-
-  //for (int id =0; id<PivotDetection->GetPivotPointsReference()->GetNumberOfPoints();id++)
-  //{
-  //  // Compare to baseline
-  //  phantomRegistration->GetDefinedLandmarks()->GetPoint(id, pivotLandmark);
-  //  //phantomRegistration->GetRecordedLandmarks()->GetPoint(id, pivotLandmark);
-  //  PivotDetection->GetPivotPointsReference()->GetPoint(id, pivotFound);
-  //  //pivotLandmark[0]=pivotFound[0]-pivotLandmark[0];
-  //  //pivotLandmark[1]=pivotFound[1]-pivotLandmark[1];
-  //  //pivotLandmark[2]=pivotFound[2]-pivotLandmark[2];
-  //  //if (vtkMath::Norm(pivotLandmark)>ERROR_THRESHOLD_MM)
-  //  //{
-  //  //  LOG_ERROR("Comparison of calibration data to baseline failed");
-  //  //  std::cout << "Exit failure!!!" << std::endl;
-  //  //  return EXIT_FAILURE;
-  //  //}
-  //  //else
-  //  //{
-  //    LOG_INFO("\nPivot "<< id << " found (" << pivotFound[0]<<", " << pivotFound[1]<<", " << pivotFound[2]);
-  //    LOG_INFO("\nDefLandmark "<< id << " (" << pivotLandmark[0]<<", " << pivotLandmark[1]<<", " << pivotLandmark[2]);
-  //  //}
-  //}
 
   if (phantomRegistration->Register(transformRepository) != PLUS_SUCCESS)
   {
@@ -534,13 +499,6 @@ PlusStatus CompareRegistrationResultsWithBaseline(const char* baselineFileName, 
     LOG_ERROR("Transform mismatch (position difference: " << posDiff << "  orientation difference: " << orientDiff);
     return PLUS_FAIL; 
   }
-
-
-  //if (trackedStylusTipFrames != NULL)
-  //{
-  //  trackedStylusTipFrames->UnRegister(NULL);
-  //  trackedStylusTipFrames = NULL;
-  //}
 
   return PLUS_SUCCESS; 
 }
