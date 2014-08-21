@@ -883,7 +883,11 @@ PlusStatus vtkTemporalCalibrationAlgo::ConstructTableSignal(std::deque<double> &
 PlusStatus vtkTemporalCalibrationAlgo::ReadConfiguration( vtkXMLDataElement* aConfig )
 {
   XML_FIND_NESTED_ELEMENT_OPTIONAL(calibrationParameters, aConfig, "vtkTemporalCalibrationAlgo");
-
+  if (calibrationParameters==NULL)
+  {
+    LOG_DEBUG("vtkTemporalCalibrationAlgo element is not defined");
+    return PLUS_SUCCESS;
+  }
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(SaveIntermediateImages, calibrationParameters);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, MaximumMovingLagSec, calibrationParameters);
 
