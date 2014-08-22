@@ -331,9 +331,10 @@ PlusStatus vtkVirtualVolumeReconstructor::GetReconstructedVolumeFromFile(const c
   PlusLockGuard<vtkRecursiveCriticalSection> writerLock(this->VolumeReconstructorAccessMutex);
 
   // Determine volume extents automatically
-  if ( this->VolumeReconstructor->SetOutputExtentFromFrameList(trackedFrameList, this->TransformRepository) != PLUS_SUCCESS )
+  std::string errorDetail;
+  if ( this->VolumeReconstructor->SetOutputExtentFromFrameList(trackedFrameList, this->TransformRepository, errorDetail) != PLUS_SUCCESS )
   {
-    errorMessage="vtkPlusReconstructVolumeCommand::Execute: failed, could not set up output volume (computing extent or allocating memory failed)";
+    errorMessage="vtkPlusReconstructVolumeCommand::Execute: failed, could not set up output volume - "+errorDetail;
     LOG_INFO(errorMessage);
     return PLUS_FAIL;
   }

@@ -289,29 +289,33 @@ PlusStatus vtkVolumeReconstructor::GetImageToReferenceTransformName(PlusTransfor
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameList* trackedFrameList, vtkTransformRepository* transformRepository)
+PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameList* trackedFrameList, vtkTransformRepository* transformRepository, std::string &errorDescription)
 {
   PlusTransformName imageToReferenceTransformName;
   if (GetImageToReferenceTransformName(imageToReferenceTransformName)!=PLUS_SUCCESS)
   {
-    LOG_ERROR("Invalid ImageToReference transform name"); 
+    errorDescription="Invalid ImageToReference transform name";
+    LOG_ERROR(errorDescription);
     return PLUS_FAIL; 
   }
 
   if ( trackedFrameList == NULL )
   {
-    LOG_ERROR("Failed to set output extent from tracked frame list - input frame list is NULL!"); 
+    errorDescription="No valid frames are available";
+    LOG_ERROR("Failed to set output extent from tracked frame list - input frame list is NULL");
     return PLUS_FAIL; 
   }
   if ( trackedFrameList->GetNumberOfTrackedFrames() == 0)
   {
-    LOG_ERROR("Failed to set output extent from tracked frame list - input frame list is empty!"); 
+    errorDescription="No valid frames are available";
+    LOG_ERROR("Failed to set output extent from tracked frame list - input frame list is empty");
     return PLUS_FAIL; 
   }
 
   if ( transformRepository == NULL )
   {
-    LOG_ERROR("Failed to set output extent from tracked frame list - input transform repository is NULL!"); 
+    errorDescription="Error in transform repository";
+    LOG_ERROR("Failed to set output extent from tracked frame list - input transform repository is NULL");
     return PLUS_FAIL; 
   }
 
@@ -331,7 +335,7 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
     if ( transformRepository->SetTransforms(*frame) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to update transform repository with tracked frame!"); 
-      return PLUS_FAIL; 
+      continue;
     }
 
     // Get transform
@@ -341,8 +345,8 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
     {
       std::string strImageToReferenceTransformName; 
       imageToReferenceTransformName.GetTransformName(strImageToReferenceTransformName); 
-      LOG_ERROR("Failed to get transform '"<<strImageToReferenceTransformName<<"' from transform repository!"); 
-      return PLUS_FAIL; 
+      LOG_WARNING("Failed to get transform '"<<strImageToReferenceTransformName<<"' from transform repository!"); 
+      continue;
     }
 
     if ( isMatrixValid )
@@ -362,7 +366,8 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
   {
     std::string strImageToReferenceTransformName; 
     imageToReferenceTransformName.GetTransformName(strImageToReferenceTransformName);
-    LOG_ERROR("Automatic volume extent computation failed, there were no valid "<<strImageToReferenceTransformName<<" transform available in the whole sequence");
+    errorDescription="Automatic volume extent computation failed, there were no valid "+strImageToReferenceTransformName+" transform available in the whole sequence";
+    LOG_ERROR(errorDescription);
     return PLUS_FAIL;
   }
 
@@ -380,14 +385,16 @@ PlusStatus vtkVolumeReconstructor::SetOutputExtentFromFrameList(vtkTrackedFrameL
   {
     if (this->Reconstructor->ResetOutput()!=PLUS_SUCCESS) // :TODO: call this automatically
     {
-      LOG_ERROR("Failed to initialize output of the reconstructor");
+      errorDescription="Failed to initialize output volume of the reconstructor";
+      LOG_ERROR(errorDescription);
       return PLUS_FAIL;
     }
   }
   catch(std::bad_alloc& e)
   {
     cerr << e.what() << endl;
-    LOG_ERROR("StartReconstruction failed due to out of memory. Try to reduce the size or increase spacing of the output volume.");
+    errorDescription="StartReconstruction failed due to out of memory. Try to reduce the size or increase spacing of the output volume.";
+    LOG_ERROR(errorDescription);
     return PLUS_FAIL;
   }
 
