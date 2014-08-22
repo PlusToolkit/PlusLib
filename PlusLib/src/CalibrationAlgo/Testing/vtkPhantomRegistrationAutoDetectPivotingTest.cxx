@@ -181,6 +181,7 @@ PlusStatus ConstructSignalPlot(vtkTrackedFrameList* trackedStylusTipFrames, std:
   std::string xLabel = "Time [s]";
   std::string yLabel = "Position Metric";
   SaveMetricPlot(filename.c_str(), stylusRefTable, stylusTipRefTable,  stylusTipSpeedTable, xLabel, yLabel);
+  return PLUS_SUCCESS;
 }
 
 int main (int argc, char* argv[])
