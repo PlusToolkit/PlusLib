@@ -64,7 +64,7 @@ public:
     Automatically adjusts the reconstruced volume size to enclose all the
     frames in the supplied vtkTrackedFrameList. It clears the reconstructed volume.
   */
-  virtual PlusStatus SetOutputExtentFromFrameList(vtkTrackedFrameList* trackedFrameList, vtkTransformRepository* transformRepository);
+  virtual PlusStatus SetOutputExtentFromFrameList(vtkTrackedFrameList* trackedFrameList, vtkTransformRepository* transformRepository, std::string &errorDescription);
 
   /*! 
     Inserts the tracked frame into the volume. The origin, spacing, and extent of the output volume
