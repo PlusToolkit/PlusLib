@@ -162,5 +162,7 @@ PlusStatus vtkPlusUpdateTransformCommand::Execute()
 //-----------------------------------------------------------------------------
 void vtkPlusUpdateTransformCommand::SetTransformValue(double* matrixElements)
 {
-  this->TransformValue->DeepCopy(matrixElements); 
+  vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  matrix->DeepCopy(matrixElements); 
+  this->SetTransformValue(matrix);
 }
