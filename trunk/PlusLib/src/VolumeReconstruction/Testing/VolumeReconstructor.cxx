@@ -158,7 +158,8 @@ int main (int argc, char* argv[])
   }
   
   LOG_INFO("Set volume output extent...");
-  if ( reconstructor->SetOutputExtentFromFrameList(trackedFrameList, transformRepository) != PLUS_SUCCESS )
+  std::string errorDetail;
+  if ( reconstructor->SetOutputExtentFromFrameList(trackedFrameList, transformRepository, errorDetail) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to set output extent of volume!"); 
     return EXIT_FAILURE; 
