@@ -411,8 +411,13 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
 
   m_VolumeReconstructor->SetReferenceCoordinateFrame(m_ParentMainWindow->GetReferenceCoordinateFrame().c_str());
   m_VolumeReconstructor->SetImageCoordinateFrame(m_ParentMainWindow->GetImageCoordinateFrame().c_str());
-
-  m_VolumeReconstructor->SetOutputExtentFromFrameList(trackedFrameList, m_ParentMainWindow->GetVisualizationController()->GetTransformRepository());
+  
+  std::string errorDetail;
+  if (m_VolumeReconstructor->SetOutputExtentFromFrameList(trackedFrameList, 
+    m_ParentMainWindow->GetVisualizationController()->GetTransformRepository(), errorDetail) == PLUS_FAIL)
+  {
+    return PLUS_FAIL;
+  }
 
   const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames(); 
   for ( int frameIndex = 0; frameIndex < numberOfFrames; frameIndex += m_VolumeReconstructor->GetSkipInterval() )
