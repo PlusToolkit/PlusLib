@@ -44,7 +44,8 @@ PlusStatus vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtl::Matrix4x4& igtlMatrix, 
 
   if ( transformRepository == NULL || !transformName.IsValid() )
   {
-    return PLUS_SUCCESS; 
+    LOG_ERROR("GetIgtlMatrix failed: Transform repository or transform name is invalid");
+    return PLUS_FAIL;
   }
 
   bool valid = false; 

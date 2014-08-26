@@ -140,11 +140,13 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData( const char* strXmlData 
       const char* embeddedTransformToFrame = imageNames->GetNestedElement(i)->GetAttribute("EmbeddedTransformToFrame"); 
       if ( embeddedTransformToFrame == NULL)
       {
+        LOG_WARNING("EmbeddedTransformToFrame attribute of ImageNames/Image element is missing. This element will be ignored.");
         continue; 
       }
       const char* name = imageNames->GetNestedElement(i)->GetAttribute("Name"); 
       if ( name == NULL )
       {
+        LOG_WARNING("Name attribute of ImageNames/Image element is missing. This element will be ignored.");
         continue; 
       }
 
