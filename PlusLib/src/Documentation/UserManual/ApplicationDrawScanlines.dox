@@ -1,0 +1,15 @@
+/*!
+\page ApplicationDrawScanlines Draw scanlines (DrawScanlines)
+
+This is a command-line tool for drawing scanlines over brightness images.
+Scanline parameters are read from ScanConversion element of the device set configuration file.
+
+\section ApplicationDrawScanlinesExamples Examples
+
+    RfProcessor --config-file=PlusConfiguration_RfProcessingAlgoTest.xml --config-file=PlusDeviceSet_RfProcessingAlgoCurvilinearTest.xml --source-seq-file=UltrasonixCurvilinearScanConvertedData.mha --output-seq-file=UltrasonixCurvilinearScanConvertedDataWithScanlines.mha
+
+\section ApplicationDrawScanlinesHelp Command-line parameters reference
+
+\verbinclude "DrawScanlinesHelp.txt"
+
+*/

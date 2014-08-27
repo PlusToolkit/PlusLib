@@ -162,7 +162,7 @@ PlusStatus vtkUsScanConvertLinear::GetScanLineEndPoints(int scanLineIndex, doubl
   scanlineStartPoint_OutputImage[3] = 1;
 
   scanlineEndPoint_OutputImage[0] = scanlineStartPoint_OutputImage[0];
-  scanlineEndPoint_OutputImage[1] = transducerCornerPixel[1] + outputImageSizePixel[1]-1;
+  scanlineEndPoint_OutputImage[1] = transducerCornerPixel[1] + this->ImagingDepthMm/this->OutputImageSpacing[1];
   scanlineEndPoint_OutputImage[2] = 0;
   scanlineEndPoint_OutputImage[3] = 1;
 
