@@ -12,8 +12,8 @@
               TransducerGeometry="LINEAR"
               ImagingDepthMm="55.0"
               TransducerWidthMm="38.0"
-              OutputImageSizePixel="220 300"
-              TransducerCenterPixel="95 0"
+              OutputImageSizePixel="260 400"
+              TransducerCenterPixel="120 12"
               OutputImageSpacingMmPerPixel="0.2 0.2" />
           </RfProcessing>
         </OutputChannel>

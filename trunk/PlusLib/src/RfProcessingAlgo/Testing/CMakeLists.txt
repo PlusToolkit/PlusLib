@@ -5,11 +5,6 @@ ADD_EXECUTABLE(RfProcessor RfProcessor.cxx )
 TARGET_LINK_LIBRARIES(RfProcessor vtkRfProcessingAlgo ${VTK_LIBRARIES} )
 GENERATE_HELP_DOC(RfProcessor)
 
-#---------------------------------------------------------------------------
-ADD_EXECUTABLE(DrawScanLines DrawScanLines.cxx )
-TARGET_LINK_LIBRARIES(DrawScanLines vtkRfProcessingAlgo )
-
-
 # --------------------------------------------------------------------------
 ADD_TEST(vtkRfToBrightnessConvertRunTest
   ${EXECUTABLE_OUTPUT_PATH}/RfProcessor
@@ -78,8 +73,48 @@ ADD_TEST(vtkUsScanConvertBkCurvilinearCompareToBaselineTest
   )
 SET_TESTS_PROPERTIES(vtkUsScanConvertBkCurvilinearCompareToBaselineTest PROPERTIES DEPENDS vtkUsScanConvertBkCurvilinearRunTest)
 
+#---------------------------------------------------------------------------
+ADD_EXECUTABLE(DrawScanLines DrawScanLines.cxx )
+TARGET_LINK_LIBRARIES(DrawScanLines vtkRfProcessingAlgo )
+GENERATE_HELP_DOC(DrawScanLines)
+
 # --------------------------------------------------------------------------
-INSTALL(TARGETS RfProcessor
+ADD_TEST(DrawScanLinesCurvilinearRunTest
+  ${EXECUTABLE_OUTPUT_PATH}/DrawScanLines
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_RfProcessingAlgoCurvilinearTest.xml
+  --source-seq-file=${TestDataDir}/UltrasonixCurvilinearScanConvertedData.mha
+  --output-seq-file=UltrasonixCurvilinearScanConvertedDataWithScanlines.mha
+  )
+SET_TESTS_PROPERTIES( DrawScanLinesCurvilinearRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+#ADD_TEST(vtkUsScanConvertCurvilinearCompareToBaselineTest
+#  ${CMAKE_COMMAND} -E compare_files 
+#   ${TEST_OUTPUT_PATH}/outputUltrasonixCurvilinearScanConvertedData_OutputChannel_ScanConvertOutput.mha
+#   ${TestDataDir}/UltrasonixCurvilinearScanConvertedData.mha
+#  )
+#SET_TESTS_PROPERTIES(vtkUsScanConvertCurvilinearCompareToBaselineTest PROPERTIES DEPENDS vtkUsScanConvertCurvilinearRunTest)
+
+# --------------------------------------------------------------------------
+ADD_TEST(DrawScanLinesLinearRunTest
+  ${EXECUTABLE_OUTPUT_PATH}/DrawScanLines
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_RfProcessingAlgoLinearTest.xml
+  --source-seq-file=${TestDataDir}/UltrasonixLinearScanConvertedData.mha
+  --output-seq-file=UltrasonixLinearScanConvertedDataWithScanlines.mha
+  )
+SET_TESTS_PROPERTIES( vtkUsScanConvertLinearRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+#ADD_TEST(vtkUsScanConvertLinearCompareToBaselineTest
+#  ${CMAKE_COMMAND} -E compare_files 
+#   ${TEST_OUTPUT_PATH}/outputUltrasonixLinearScanConvertedData_OutputChannel_ScanConvertOutput.mha   
+#  )
+#SET_TESTS_PROPERTIES(vtkUsScanConvertLinearCompareToBaselineTest PROPERTIES DEPENDS vtkUsScanConvertLinearRunTest)
+
+
+# --------------------------------------------------------------------------
+INSTALL(
+  TARGETS
+    RfProcessor
+    DrawScanLines
   RUNTIME
   DESTINATION bin
   CONFIGURATIONS Release

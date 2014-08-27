@@ -17,140 +17,73 @@
 #include "itkVTKImageExport.h"
 #include "itkImageToVTKImageFilter.h"
 
+float SCANLINE_GRAY_LEVEL = 255;
 
-typedef itk::Image<unsigned char, 2> ImageType;
-typedef unsigned char PixelType;
-typedef itk::ImageToVTKImageFilter<ImageType> ITKtoVTKFilter;
-
-template <typename T>
-int GenerateScanLines(vtkSmartPointer<T> scanConverter,
-                      vtkXMLDataElement* scanConversionElement,
-                      vtkSmartPointer<vtkTrackedFrameList> adjustedFrameList,
-                      int numOfSamplesPerScanline,int numOfScanlines,
-                      std::string ultrasoundImageFile)
+//----------------------------------------------------------------------------
+PlusStatus DrawScanLines(vtkUsScanConvert* scanConverter, vtkTrackedFrameList* trackedFrameList)
 {
-  vtkSmartPointer<vtkImageData> scanLines =
-    vtkSmartPointer<vtkImageData>::New();
-  // Set the transducer width/depth
-  scanConverter->ReadConfiguration(scanConversionElement);
-
-  scanLines->SetExtent(0,numOfSamplesPerScanline-1,0,numOfScanlines-1,0,0);
-#if (VTK_MAJOR_VERSION < 6)
-  scanLines->SetScalarTypeToUnsignedChar();
-  scanLines->SetNumberOfScalarComponents(1); 
-  scanLines->AllocateScalars();
-#else
-  scanLines->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-#endif
-  
-  scanConverter->SetInputImageExtent(scanLines->GetExtent());
-
-  // Start/end points of scanline
-  double start[4] = {-1,-1,-1,-1};
-  double end[4] = {-1,-1,-1,-1};
-
-  // Probe line
-  vtkSmartPointer<vtkLineSource> probeLine =
-    vtkSmartPointer<vtkLineSource>::New();
-
-  // Read the image sequence
-  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList =
-    vtkSmartPointer<vtkTrackedFrameList>::New();
-  trackedFrameList->ReadFromSequenceMetafile(ultrasoundImageFile.c_str());
-
-  // Get number of frames in sequence
-  int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames();
-  std::cout << "Number of tracked frames: " << numberOfFrames << std::endl;
-
-  // To hold each individual frames vtkImageData
-  vtkSmartPointer<vtkImageData> imageData =
-    vtkSmartPointer<vtkImageData>::New();
-
-  // For converting itkImage to vtkImageData
-  ITKtoVTKFilter::Pointer ITKtoVTK = ITKtoVTKFilter::New();
-
-  PixelType pixel = 255; // Value to set scanlines to
+  int *rfImageExtent = scanConverter->GetInputImageExtent();
+  int numOfSamplesPerScanline = rfImageExtent[1]-rfImageExtent[0]+1;
+  int numOfScanlines = rfImageExtent[3]-rfImageExtent[2]+1;
 
   // Iterate over each frame
-  std::cout << "Processing frames..." << std::endl;
+  int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames();
+  LOG_INFO("Processing "<<numberOfFrames<<" frames...");
   for (int index = 0; index < numberOfFrames; index++)
   {
     // Convert the current tracked frame into an itkImage
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame(index);
-    imageData = frame->GetImageData()->GetImage();
-    ImageType::Pointer itkImageData = ImageType::New();
-    PlusVideoFrame::DeepCopyVtkImageToItkImage<unsigned char>(imageData, itkImageData);
+    // To hold each individual frames vtkImageData
+    vtkImageData* imageData = frame->GetImageData()->GetImage();
+    int* outputExtent = imageData->GetExtent();
 
-    // Iterate over each scanline, getting the start/end points of
-    // the line and using lineiterator to set each pixel in the line
+    // Draw pixels
     for (int scanLine = 0; scanLine < numOfScanlines; scanLine++)
     {
-      //std::cout << "Processing scanline #" << scanLine << "..." << std::endl;
+      // Start/end points of scanline
+      double start[4] = {0};
+      double end[4] = {0};
       scanConverter->GetScanLineEndPoints(scanLine,start,end);
-      ImageType::IndexType startIndex = {start[0], start[1]};
-      ImageType::IndexType endIndex = {end[0], end[1]};
-      //std::cout << "Start index: [" << start[0] << " " << start[1] << "]" << std::endl;
-      //std::cout << "End index: [" << end[0] << " " << end[1] << "]" << std::endl;
-      itk::LineIterator<ImageType> iterator(itkImageData,startIndex,endIndex);
-      //ImageType::IndexType currentIndex = iterator.GetIndex();
-      // Set the pixel values in the line
-      while (!iterator.IsAtEnd())
+      double directionVectorX = static_cast<double>(end[0]-start[0])/(numOfSamplesPerScanline-1);
+      double directionVectorY = static_cast<double>(end[1]-start[1])/(numOfSamplesPerScanline-1);
+      for (int sampleIndex=0; sampleIndex<numOfSamplesPerScanline; ++sampleIndex)
       {
-        iterator.Set(pixel);
-        ++iterator;
+        int pixelCoordX = start[0] + directionVectorX * sampleIndex;
+        int pixelCoordY = start[1] + directionVectorY * sampleIndex;
+        if (pixelCoordX<outputExtent[0] ||  pixelCoordX>outputExtent[1]
+          || pixelCoordY<outputExtent[2] ||  pixelCoordY>outputExtent[3])
+        {
+          // outside of the image
+          continue;
+        }
+        imageData->SetScalarComponentFromFloat(pixelCoordX, pixelCoordY, 0, 0, SCANLINE_GRAY_LEVEL);
       }
     }
-
-    // Convert from itkImage to vtkImageData
-    ITKtoVTK->SetInput(itkImageData);
-    ITKtoVTK->Update();
-    vtkSmartPointer<vtkImageData> convertedImage = ITKtoVTK->GetOutput();
-
-    // Create new PlusVideoFrame
-    PlusVideoFrame currentVideoFrame = PlusVideoFrame();
-    PlusStatus copyResult = currentVideoFrame.DeepCopyFrom(convertedImage);
-    if (copyResult == 0)
-    {
-      std::cerr << "Error deep copying itkImage to PlusVideoFrame" << std::endl;
-      exit(EXIT_FAILURE);
-    }
-
-    // Create new TrackedFrame
-    TrackedFrame currentTrackedFrame = TrackedFrame();
-    currentTrackedFrame.SetImageData(currentVideoFrame);
-
-    // Add TrackedFrame to new TrackedFrameList
-    PlusStatus addFrameResult =
-      adjustedFrameList->AddTrackedFrame(&currentTrackedFrame);
-    if (addFrameResult == 0)
-    {
-      std::cerr << "Error adding TrackedFrame to TrackedFrameList" << std::endl;
-      exit(EXIT_FAILURE);
-    }
   }
-  std::cout << "Done processing frames" << std::endl;
-  return 1;
+
+  return PLUS_SUCCESS;
 }
 
+
+//----------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
   // Setup for command line arguments
   bool printHelp(false);
-  std::string ultrasoundImageFile;
-  std::string ultrasoundConfigFile;
+  std::string inputImgSeqFileName;
+  std::string outputImgSeqFileName;
+  std::string inputConfigFileName;
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
-  args.AddArgument("--ultrasound-image-file",vtksys::CommandLineArguments::EQUAL_ARGUMENT,
-    &ultrasoundImageFile, "The ultrasound sequence to draw the scanlines on.");
-  args.AddArgument("--ultrasound-config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT,
-    &ultrasoundConfigFile, "The ultrasound sequence config file.");
-  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp,
-    "Print this help.");
+  args.AddArgument("--source-seq-file",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImgSeqFileName, "The ultrasound sequence to draw the scanlines on.");
+  args.AddArgument("--output-seq-file",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputImgSeqFileName, "The output ultrasound sequence with scanlines overlaid on the images.");
+  args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "The ultrasound sequence config file.");
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
-  
+
   // Fail if arguements can't be parsed
   if (!args.Parse())
   {
@@ -164,88 +97,99 @@ int main(int argc, char** argv)
     std::cout << args.GetHelp() << std::endl;
     exit(EXIT_SUCCESS);
   }
-  
+
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
-  
+
   // Fail if no ultrasound image file specified
-  if (ultrasoundImageFile.empty())
+  if (inputImgSeqFileName.empty())
   {
-    std::cerr << "--ultrasound-image-file required" << std::endl;
+    LOG_ERROR("--seq-file required");
     exit(EXIT_FAILURE);
   }
   // Fail if no ultrasound config file specified
-  if (ultrasoundConfigFile.empty())
+  if (inputConfigFileName.empty())
   {
-    std::cerr << "--ultrasound-config-file required" << std::endl;
+    LOG_ERROR("--config-file required");
     exit(EXIT_FAILURE);
   }
+
+  // Read the image sequence
+  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
+  trackedFrameList->ReadFromSequenceMetafile(inputImgSeqFileName.c_str());
 
   // For reading the configuration file
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
-  if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, ultrasoundConfigFile.c_str())==PLUS_FAIL)
+  if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, inputConfigFileName.c_str())==PLUS_FAIL)
   {  
-    LOG_ERROR("Unable to read configuration from file " << ultrasoundConfigFile.c_str()); 
+    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
     return EXIT_FAILURE;
   }
 
-  // Get the scan conversion XML Element
-  vtkXMLDataElement* scanConversionElement =
-    configRootElement->LookupElementWithName("ScanConversion");
-  if (scanConversionElement == NULL)
+  // Draw scanlines if ScanConversion element is found
+  vtkXMLDataElement* scanConversionElement = configRootElement->LookupElementWithName("ScanConversion");
+  if (scanConversionElement != NULL)
   {
-    std::cerr << "Unable to find ScanConversion element in XML tree." << std::endl;
-    exit(EXIT_FAILURE);
+    // Get number of scanlines from US simulator algo (if present)
+    int numOfScanlines = 50;
+    vtkXMLDataElement* usSimulatorAlgoElement = configRootElement->LookupElementWithName("vtkUsSimulatorAlgo");
+    if (usSimulatorAlgoElement != NULL)
+    {
+      // Get US simulator attributes
+      usSimulatorAlgoElement->GetScalarAttribute("NumberOfScanlines",numOfScanlines);
+    }
+    else
+    {
+      LOG_INFO("vtkUsSimulatorAlgo element not found in input configuration file. Using default NumberOfScanlines ("<<numOfScanlines<<")");
+    }
+
+    // Call scanline generator with appropriate scanconvert
+    const char* transducerGeometry = scanConversionElement->GetAttribute("TransducerGeometry");
+    if (transducerGeometry==NULL)
+    {
+      LOG_ERROR("Scan converter TransducerGeometry is undefined");
+      return EXIT_FAILURE;
+    }
+    vtkSmartPointer<vtkUsScanConvert> scanConverter;
+    if (STRCASECMP(transducerGeometry,"CURVILINEAR") == 0)
+    {
+      scanConverter = vtkSmartPointer<vtkUsScanConvert>::Take(vtkUsScanConvertCurvilinear::New());
+    }
+    else if (STRCASECMP(transducerGeometry, "LINEAR") == 0)
+    {
+      scanConverter = vtkSmartPointer<vtkUsScanConvert>::Take(vtkUsScanConvertLinear::New());
+    }
+    else
+    {
+      LOG_ERROR("Invalid scan converter TransducerGeometry: "<<transducerGeometry);
+      return EXIT_FAILURE;
+    }
+
+    scanConverter->ReadConfiguration(scanConversionElement);
+
+    const int numOfSamplesPerScanline = 100; // this many dots will be drawn per scanline
+    int rfImageExtent[6] = {0,numOfSamplesPerScanline-1,0,numOfScanlines-1,0,0};
+    scanConverter->SetInputImageExtent(rfImageExtent);
+
+    DrawScanLines(scanConverter, trackedFrameList);
   }
-
-  // Get scan geometry
-  std::string geometry = scanConversionElement->GetAttribute("TransducerGeometry");
-
-  // Get the vtkUsSimulatorAlgo XML Element
-  vtkXMLDataElement* usSimulatorAlgoElement =
-    configRootElement->LookupElementWithName("vtkUsSimulatorAlgo");
-  if (scanConversionElement == NULL)
+  else
   {
-    std::cerr << "Unable to find vtkUsSimulatorAlgo element in the XML tree."
-              << std::endl;
-    exit(EXIT_FAILURE);
-  }
-
-  // Get US simulator attributes
-  int numOfScanlines = -1;
-  int numOfSamplesPerScanline = -1;
-  usSimulatorAlgoElement->GetScalarAttribute("NumberOfScanlines",numOfScanlines);
-  usSimulatorAlgoElement->GetScalarAttribute("NumberOfSamplesPerScanline",
-                                             numOfSamplesPerScanline);
-
-  // The framelist to hold the ultrasound sequence with
-  // scanlines added
-  vtkSmartPointer<vtkTrackedFrameList> adjustedFrameList =
-    vtkSmartPointer<vtkTrackedFrameList>::New();
-
-  // Call scanline generator with appropriate scanconvert
-  if (geometry.compare("CURVILINEAR") == 0)
-  {
-    vtkSmartPointer<vtkUsScanConvertCurvilinear> scanConverter =
-      vtkSmartPointer<vtkUsScanConvertCurvilinear>::New();
-    GenerateScanLines(scanConverter, scanConversionElement, adjustedFrameList,
-                      numOfSamplesPerScanline, numOfScanlines, ultrasoundImageFile);
-  } else if (geometry.compare("LINEAR") == 0)
-  {
-    vtkSmartPointer<vtkUsScanConvertLinear> scanConverter =
-      vtkSmartPointer<vtkUsScanConvertLinear>::New();
-    GenerateScanLines(scanConverter, scanConversionElement, adjustedFrameList,
-                      numOfSamplesPerScanline, numOfScanlines, ultrasoundImageFile);
+    LOG_INFO("ScanConversion element not found in input configuration file");
   }
 
   // Write the new TrackedFrameList to metafile
-  std::cout << "Writing new sequence to file..." << std::endl;
-  int extensionDot = ultrasoundImageFile.find_last_of(".");
-  if (extensionDot != std::string::npos)
+  LOG_INFO("Writing new sequence to file...");
+  if (outputImgSeqFileName.empty())
   {
-    ultrasoundImageFile = ultrasoundImageFile.substr(0,extensionDot);
+    int extensionDot = inputImgSeqFileName.find_last_of(".");
+    if (extensionDot != std::string::npos)
+    {
+      inputImgSeqFileName = inputImgSeqFileName.substr(0,extensionDot);
+    }
+    outputImgSeqFileName = inputImgSeqFileName + "-Scanlines.mha";
   }
-  adjustedFrameList->SaveToSequenceMetafile((ultrasoundImageFile + "-Scanlines.mha").c_str());
-  std::cout << "Writing complete." << std::endl;
+  trackedFrameList->SaveToSequenceMetafile(outputImgSeqFileName.c_str());
+  LOG_INFO("Writing to "<<outputImgSeqFileName<<" complete.");
 
   return EXIT_SUCCESS;
 }
