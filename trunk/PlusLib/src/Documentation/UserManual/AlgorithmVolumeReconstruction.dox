@@ -4,13 +4,18 @@
 
 This algorithm reconstructs a 3D volume from a set of 2D image slices.
 
-The reconstructor takes as input a set of tracked ultrasound slices. In the first step (the "distribution step"),
-the images are inserted into a volume. A voxel grid is constructed, whose resolution is defined by the config file
-and whose boundaries are defined by the 3D coordinates of the image pixels. Each pixel value is inserted either
-into the spatially nearest single voxel or into the spatially nearest *set* of voxels according to options specified 
-in the config file. In the optional second step (the "hole filling step"), an algorithm is used to attempt to fill each
-voxel that has not been assigned any intensity value in the distribution step. Hole filling algorithm runs after all the 
-slices are pasted into the volume.
+The reconstructor takes as input a set of tracked ultrasound slices. A rectangular or fan-shaped clipping region
+may be applied on each slice to make sure only valid image regions are used for reconstruction. Angle range of fan-shaped
+clipping region may be adjusted automatically based on image contents to exclude areas in the image that remain blank
+because lack of acoustic coupling between the transducer and the scanned surface.
+
+At the beginning of the reconstruction, a 3D voxel array is constructed (location, size, and resolution is specified in the configuration
+file or detected automatically from the location of the image slices). Then, each pixels of slice is inserted into a volume (distribution step).
+Each pixel value is inserted either into the spatially nearest single voxel or into the spatially nearest set of 8 voxels according to options specified 
+in the config file.
+
+Once all the available frames have been inserted, an optional hole-filling step may be performed. An algorithm is used to attempt to fill each
+voxel that has not been assigned any intensity value in the distribution step.
 
 \section AlgorithmVolumeReconstructionTroubleshooting Troubleshooting volume reconstruction
 - I got an error from PlusServer when trying to reconstruct a volume: StartReconstruction failed due to out of memory. Try to reduce the size or increase spacing of the output
@@ -48,14 +53,17 @@ slices are pasted into the volume.
     If not defined then the coordinate system name has to be specified by other means before starting a reconstruction. \OptionalAtt{" "}
   - \xmlAtt \b ImageCoordinateFrame Defines the image coordinate system name: it corresponds to the 2D frame of the image data in the tracked frame.
     If not defined then the coordinate system name has to be specified by other means before starting a reconstruction. \OptionalAtt{" "} \OptionalAtt{" "}
-  - \xmlAtt \b OutputSpacing Is output image resolution vector for each dimesion of the reconstructed volume. \RequiredAtt
-  - \xmlAtt \b OutputOrigin VECTOR  Is output image origin position vector for each dimesion of the reconstructed volume \OptionalAtt{0 0 0}
-  - \xmlAtt \b OutputExtent Two position vectors that determine the reconstructed volume extent. \OptionalAtt{0 0 0}
+  - \xmlAtt \b OutputSpacing Output image resolution for each dimension of the reconstructed volume. Vector of 3 numbers, separated by spaces.\RequiredAtt
+  - \xmlAtt \b OutputOrigin Is output image origin position vector for each dimension of the reconstructed volume. Vector of 3 numbers, separated by spaces. \OptionalAtt{0 0 0}
+  - \xmlAtt \b OutputExtent Defines the size of the reconstructed volume.  Vector of 6 numbers (x start, x end, y start, y end, z start, z end), separated by spaces. Usually the start values are 0, end values are the intended size - 1.\OptionalAtt{" "}
   - \xmlAtt \b ClipRectangleOrigin Crop rectangle origin of the frame (in pixels). See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{0 0}
   - \xmlAtt \b ClipRectangleSize Crop rectangle size of the frame (in pixels). If it is \c "0 0" then the whole frame will be captured. See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{0 0}
   - \xmlAtt \b FanAnglesDeg Two-element vector containing the angles of the two straight edge of the fan, in degrees. If both angles are 0 then no fan clipping is performed. See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{0 0}
+  - \xmlAtt \b EnableFanAngleAutoDetect If enabled then the provided fan angle is used as maximum limit for the angle range and the actual start and stop angle is determined fro each frame automatically, based on the image contents. This switch is useful for excluding shaded black areas from the image reconstruction (e.g., those parts that remained black because there was insufficient acoustic coupling between the skin surface and the transducer). \c TRUE or  \c FALSE. \OptionalAtt{FALSE}
+  - \xmlAtt \b FanAnglesAutoDetectBrightnessThreshold Fan angle range where all pixels remain below this threshold will be discarded if fan angle auto-detection is enabled. \OptionalAtt{30}
+  - \xmlAtt \b FanAnglesAutoDetectFilterRadiusPixel Radius of the filter that is applied to detect non-blank fan angle ranges (in pixels). If the radius is larger then larger continuous regions will be detected. \OptionalAtt{10}
   - \xmlAtt \b FanOriginPixel Two-element vector containing the origin of the clipping fan, in the image coordinate system (in pixels). See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{0 0}
-  - \xmlAtt \b FanRadiusStartPixel Maximum depth of the clipping fan in the image coordinate system (in pixels). See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{0}
+  - \xmlAtt \b FanRadiusStartPixel Minimum depth of the clipping fan in the image coordinate system (in pixels). See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{0}
   - \xmlAtt \b FanRadiusStopPixel Maximum depth of the clipping fan in the image coordinate system (in pixels). See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{500}
   - \xmlAtt \b SkipInterval only every [SkipInterval] images from the input will be used in the reconstruction (Ie this is the number of frames that are skipped when the index is increased) \OptionalAtt{1}
   - \xmlAtt \b Interpolation Set the interpolation mode\OptionalAtt{NEAREST_NEIGHBOR}
@@ -71,9 +79,6 @@ slices are pasted into the volume.
       - \c PARTIAL Break transformation into x, y and z components, and don't do bounds checking for nearest-neighbor interpolation.
       - \c FULL Fixed-point (i.e. integer) math is used instead of float math, it is only useful with NEAREST_NEIGHBOR interpolation (when used with LINEAR interpolation then it is slower than NO_OPTIMIZATION). 
   - \xmlAtt \b NumberOfThreads Set number of threads used for processing the data. The reconstruction result is slightly different if more than one thread is used because due to interpolation and rounding errors is influenced by the order the pixels are processed. Choose 0 (this is the default) for maximum speed, in this case the default number of used threads equals the number of processors. Choose 1 for reproducible results. \OptionalAtt{0}
-  - \xmlAtt \b EnableFanAngleAutoDetect If enabled then the provided fan angle is used as maximum limit for the angle range and the actual start and stop angle is determined fro each frame automatically, based on the image contents. This switch is useful for excluding shaded black areas from the image reconstruction (e.g., those parts that remained black because there was insufficient acoustic coupling between the skin surface and the transducer). \c TRUE or  \c FALSE. \OptionalAtt{FALSE}
-  - \xmlAtt \b FanAnglesAutoDetectBrightnessThreshold Fan angle range where all pixels remain below this threshold will be discarded if fan angle auto-detection is enabled. \OptionalAtt{30}
-  - \xmlAtt \b FanAnglesAutoDetectFilterRadiusPixel Radius of the filter that is applied to detect non-blank fan angle ranges (in pixels). If the radius is larger then larger continuous regions will be detected. \OptionalAtt{10}
   - \xmlAtt \b FillHoles If enabled then the hole filling will be applied on output reconstructed volume. \c ON or  \c OFF. \OptionalAtt{OFF}
   - \xmlElem \b HoleFilling: \RequiredAtt If \b FillHoles \c ="ON"
     - \xmlElem \b HoleFillingElement The user can specify one or more hole filling "elements" which are tried one by one until either one succeeds or they all fail. If the hole is not filled (all methods fail), then the hole remains a black voxel with value 0.
@@ -83,14 +88,11 @@ slices are pasted into the volume.
         - \c STICK The hole is filled by looking along several directions through the hole and interpolating between pairs of opposite voxels:
         - \c NEAREST_NEIGHBOR A small 3 x 3 x 3 cube-shaped kernel is placed over the hole. If there are any filled voxels in the region, then a simple mean of filled voxels is used to fill the hole voxel. If not, then a slightly larger kernel size (eg, 5 x 5 x 5) is used, until a maximum kernel size (as defined by the user) is reached. 
         - \c DISTANCE_WEIGHT_INVERSE It is weigthed inversly proportional to the euclidian distance of each pixels.
-
       - \xmlAtt \b Size An odd integer representing the diameter of the largest possible kernel for hole filling. A larger region will be more likely to encompass more information for the interpolation, but it will increase the running time. \RequiredAtt If \b Type \c ="GAUSSIAN", \b Type \c ="GAUSSIAN_ACCUMULATION", \b Type \c ="GAUSSIANNEAREST_NEIGHBOR", or \b Type \c = "DISTANCE_WEIGHT_INVERSE"
       - \xmlAtt \b MinimumKnownVoxelsRatio A floating point number between 0 and 1 indicating the ratio of voxels in the neighborhood that must be known in order to fill the hole (ie, 0.5 means that 50% of voxels in the cubic region must be known, or the hole will not be filled). \RequiredAtt If \b Type \c ="GAUSSIAN", \b Type \c ="GAUSSIAN_ACCUMULATION", \b Type \c ="GAUSSIANNEAREST_NEIGHBOR", or \b Type \c = "DISTANCE_WEIGHT_INVERSE"
       - \xmlAtt \b Stdev a floating point number representing the standard deviation of the Gaussian weight. \RequiredAtt If \b Type \c ="GAUSSIAN" or \b Type \c ="GAUSSIAN_ACCUMULATION"
-      
       - \xmlAtt \b StickLengthLimit An integer representing the maximum length of the stick used to fill the hole. A smaller value means that the algorithm will take longer, but that suitable values are more likely to be found. \RequiredAtt If \b Type \c ="STICK"
       - \xmlAtt \b NumberOfSticksToUse An integer representing the number of sticks that should be used in calculating the final voxel value. The voxel will be calculated as a weighted average of individual stick results. The results of these sticks will be weighted according to their length. \RequiredAtt If \b Type \c ="STICK"
-
 
 \subsection VolumeReconstructionConfigSettingsClipping Clipping
 
