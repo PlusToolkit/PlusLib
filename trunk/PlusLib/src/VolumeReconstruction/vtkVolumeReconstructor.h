@@ -178,10 +178,14 @@ public:
 
   double* GetFanOrigin();
   double* GetFanAnglesDeg();
+  double* GetDetectedFanAnglesDeg();
   double GetFanRadiusStartPixel();
   double GetFanRadiusStopPixel();
 
   void UpdateFanAnglesFromImage(vtkImageData* frameImage, bool &isImageEmpty);
+
+  void SetFanAnglesAutoDetectBrightnessThreshold(double threshold);
+  void SetFanAnglesAutoDetectFilterRadiusPixel(int radiusPixel);
 
 protected: 
   vtkVolumeReconstructor();
