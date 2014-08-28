@@ -102,6 +102,9 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FanRadiusStartPixel, reconConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FanRadiusStopPixel, reconConfig);
 
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FanAnglesAutoDetectBrightnessThreshold, reconConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FanAnglesAutoDetectFilterRadiusPixel, reconConfig);
+
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, SkipInterval, reconConfig);
   if (this->SkipInterval < 1)
   {
@@ -196,7 +199,12 @@ PlusStatus vtkVolumeReconstructor::WriteConfiguration(vtkXMLDataElement *config)
     reconConfig->SetVectorAttribute("FanOriginPixel", 2, this->Reconstructor->GetFanOrigin());
     reconConfig->SetDoubleAttribute("FanRadiusStartPixel", this->Reconstructor->GetFanRadiusStart());
     reconConfig->SetDoubleAttribute("FanRadiusStopPixel", this->Reconstructor->GetFanRadiusStop());
-    XML_WRITE_BOOL_ATTRIBUTE(EnableFanAnglesAutoDetect, reconConfig)
+    XML_WRITE_BOOL_ATTRIBUTE(EnableFanAnglesAutoDetect, reconConfig);
+    if (this->EnableFanAnglesAutoDetect)
+    {
+      reconConfig->SetDoubleAttribute("FanAnglesAutoDetectBrightnessThreshold", this->FanAngleDetector->GetBrightnessThreshold());
+      reconConfig->SetIntAttribute("FanAnglesAutoDetectFilterRadiusPixel", this->FanAngleDetector->GetFilterRadiusPixel());
+    }
   }
   else
   {
@@ -814,6 +822,12 @@ double* vtkVolumeReconstructor::GetFanOrigin()
 //----------------------------------------------------------------------------
 double* vtkVolumeReconstructor::GetFanAnglesDeg()
 {
+  return this->FanAnglesDeg;
+}
+
+//----------------------------------------------------------------------------
+double* vtkVolumeReconstructor::GetDetectedFanAnglesDeg()
+{
   return this->Reconstructor->GetFanAnglesDeg();
 }
 
@@ -827,4 +841,16 @@ double vtkVolumeReconstructor::GetFanRadiusStartPixel()
 double vtkVolumeReconstructor::GetFanRadiusStopPixel()
 {
   return this->Reconstructor->GetFanRadiusStop();
+}
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::SetFanAnglesAutoDetectBrightnessThreshold(double threshold)
+{
+  this->FanAngleDetector->SetBrightnessThreshold(threshold);
+}
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::SetFanAnglesAutoDetectFilterRadiusPixel(int radiusPixel)
+{
+  this->FanAngleDetector->SetFilterRadiusPixel(radiusPixel);
 }

@@ -22,6 +22,8 @@ class VTK_EXPORT vtkFanAngleDetectorAlgo : public vtkObject
 {
 public:
 
+  typedef std::vector<double> EvaluatedDepthsRadiusPercentageType;
+
   static vtkFanAngleDetectorAlgo *New();
   vtkTypeMacro(vtkFanAngleDetectorAlgo, vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
@@ -85,6 +87,12 @@ public:
   */
   vtkGetMacro(FanRadiusStop,double);
 
+  vtkSetMacro(FilterRadiusPixel, int);
+  vtkGetMacro(FilterRadiusPixel, int);
+
+  vtkSetMacro(BrightnessThreshold, double);
+  vtkGetMacro(BrightnessThreshold, double);
+
   /*! Compute angles */
   void Update();
 
@@ -113,6 +121,38 @@ protected:
   double FanRadiusStop; // in the input image coordinate system (in physical coordinates; but Plus always uses 1.0 spacing, so the value effectively in pixels)
 
   bool IsFrameEmpty;
+
+  // This margin will be added to the detected angle. If positive then the detected range is enlarged, if negative then reduced.
+  double FanAngleMarginDeg;
+
+  int FilterRadiusPixel;
+  double BrightnessThreshold;
+
+  /*!
+    Depth where image intensities will be evaluated to detect image contents. SPecified as a percentage value (0-100).
+    0 means at the start radius, 100 means at the stop radius.
+  */
+  EvaluatedDepthsRadiusPercentageType EvaluatedDepthsRadiusPercentage;
+
+  struct BandInfo
+  {
+    BandInfo()
+    {
+      Valid=false;
+      TestRadius=1.0;
+      AngleIncrementRad=1.0;
+      DetectedFanAnglesRad[0]=0.0;
+      DetectedFanAnglesRad[1]=0.0;
+    }
+    bool Valid;
+    double TestRadius;
+    double AngleIncrementRad;
+    double DetectedFanAnglesRad[2];
+    std::vector<double> TestThetaRad;
+    std::vector<double> TestValue;
+  	std::vector<double> LeftLogRad;
+  	std::vector<double> RightLogRad;
+  };
 
 private: 
   vtkFanAngleDetectorAlgo(const vtkFanAngleDetectorAlgo&);  // Not implemented.

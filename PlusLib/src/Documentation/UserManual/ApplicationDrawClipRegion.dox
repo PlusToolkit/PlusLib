@@ -4,6 +4,8 @@
 This is a command-line tool for drawing clip rectangle and fan over ultrasound images.
 Clipping parameters are read from VolumeReconstruction element of the device set configuration file.
 
+\image html ApplicationDrawClipRegionExample.png
+
 \section ApplicationDrawClipRegionExamples Examples
 
     DrawClipRegion --config-file=PlusDeviceSet_VolumeReconstructionOnly_FanAnglesAutoDetect.xml --source-seq-file=UsSimulatorOutputSpinePhantom2CurvilinearBaseline.mha --output-seq-file=UsSimulatorOutputSpinePhantom2CurvilinearBaselineWithClipRegion.mha

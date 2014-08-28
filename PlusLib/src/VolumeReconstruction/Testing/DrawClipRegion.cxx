@@ -54,6 +54,33 @@ void DrawSector(vtkImageData* imageData, int* imageExtent, double* origin, doubl
 }
 
 //----------------------------------------------------------------------------
+void DrawFan(vtkImageData* imageData, double* fanOrigin, double startRadius, double stopRadius, double* fanAnglesDeg, int pointSpacing, bool drawOrigin)
+{
+  double fanAnglesRad[2]={vtkMath::RadiansFromDegrees(fanAnglesDeg[0]), vtkMath::RadiansFromDegrees(fanAnglesDeg[1])};
+  int* extent = imageData->GetExtent();
+  // origin to start radius (to highlight the origin in the image)
+  if (drawOrigin)
+  {
+    int numberOfPointsForDrawing = startRadius/10; // 1/10 point/pixel: dotted line
+    DrawLine(imageData, extent, fanOrigin[0], fanOrigin[1], fanOrigin[0]+startRadius*sin(fanAnglesRad[0]), fanOrigin[1]+startRadius*cos(fanAnglesRad[0]), numberOfPointsForDrawing);
+    DrawLine(imageData, extent, fanOrigin[0], fanOrigin[1], fanOrigin[0]+startRadius*sin(fanAnglesRad[1]), fanOrigin[1]+startRadius*cos(fanAnglesRad[1]), numberOfPointsForDrawing);
+  }
+  // side lines from start to stop radius
+  {
+    int numberOfPointsForDrawing = (stopRadius-startRadius)/pointSpacing;
+    DrawLine(imageData, extent, fanOrigin[0]+startRadius*sin(fanAnglesRad[0]), fanOrigin[1]+startRadius*cos(fanAnglesRad[0]), fanOrigin[0]+stopRadius*sin(fanAnglesRad[0]), fanOrigin[1]+stopRadius*cos(fanAnglesRad[0]), numberOfPointsForDrawing);
+    DrawLine(imageData, extent, fanOrigin[0]+startRadius*sin(fanAnglesRad[1]), fanOrigin[1]+startRadius*cos(fanAnglesRad[1]), fanOrigin[0]+stopRadius*sin(fanAnglesRad[1]), fanOrigin[1]+stopRadius*cos(fanAnglesRad[1]), numberOfPointsForDrawing);
+  }
+  // circle sectors at start and stop radius
+  {
+    int numberOfPointsForDrawing = startRadius*(fanAnglesRad[1]-fanAnglesRad[0])/pointSpacing; // sector length
+    DrawSector(imageData, extent, fanOrigin, fanAnglesDeg, startRadius, numberOfPointsForDrawing);
+    numberOfPointsForDrawing = stopRadius*(fanAnglesRad[1]-fanAnglesRad[0])/pointSpacing; // sector length
+    DrawSector(imageData, extent, fanOrigin, fanAnglesDeg, stopRadius, numberOfPointsForDrawing);
+  }
+}
+
+//----------------------------------------------------------------------------
 void DrawClipRectangle(vtkImageData* imageData, vtkVolumeReconstructor* reconstructor)
 {
   int* clipRectangleOrigin = reconstructor->GetClipRectangleOrigin();
@@ -77,28 +104,32 @@ void DrawClipFan(vtkImageData* imageData, vtkVolumeReconstructor* reconstructor)
   {
     return;
   }
-  int* extent = imageData->GetExtent();
+  
   double* fanOrigin = reconstructor->GetFanOrigin();
-  double* fanAnglesDeg = reconstructor->GetFanAnglesDeg();
+  double* maxFanAnglesDeg = reconstructor->GetFanAnglesDeg();
+  double* detectedFanAnglesDeg = reconstructor->GetDetectedFanAnglesDeg();
   double fanRadiusStartPixel = reconstructor->GetFanRadiusStartPixel();
   double fanRadiusStopPixel = reconstructor->GetFanRadiusStopPixel();
-  double fanAnglesRad[2]={vtkMath::RadiansFromDegrees(fanAnglesDeg[0]), vtkMath::RadiansFromDegrees(fanAnglesDeg[1])};
-  double pixelSpacing = isImageEmpty ? 10 : 1; // if image is empty then draw a dotted line; otherwise a solid line
-  int numberOfPointsForDrawing = 0;
-  // origin to start radius
-  numberOfPointsForDrawing = fanRadiusStartPixel/10; // 1/10 point/pixel: dotted line
-  DrawLine(imageData, extent, fanOrigin[0], fanOrigin[1], fanOrigin[0]+fanRadiusStartPixel*sin(fanAnglesRad[0]), fanOrigin[1]+fanRadiusStartPixel*cos(fanAnglesRad[0]), numberOfPointsForDrawing);
-  DrawLine(imageData, extent, fanOrigin[0], fanOrigin[1], fanOrigin[0]+fanRadiusStartPixel*sin(fanAnglesRad[1]), fanOrigin[1]+fanRadiusStartPixel*cos(fanAnglesRad[1]), numberOfPointsForDrawing);
-  // start to stop radius
-  numberOfPointsForDrawing = (fanRadiusStopPixel-fanRadiusStartPixel)/pixelSpacing;
-  DrawLine(imageData, extent, fanOrigin[0]+fanRadiusStartPixel*sin(fanAnglesRad[0]), fanOrigin[1]+fanRadiusStartPixel*cos(fanAnglesRad[0]), fanOrigin[0]+fanRadiusStopPixel*sin(fanAnglesRad[0]), fanOrigin[1]+fanRadiusStopPixel*cos(fanAnglesRad[0]), numberOfPointsForDrawing);
-  DrawLine(imageData, extent, fanOrigin[0]+fanRadiusStartPixel*sin(fanAnglesRad[1]), fanOrigin[1]+fanRadiusStartPixel*cos(fanAnglesRad[1]), fanOrigin[0]+fanRadiusStopPixel*sin(fanAnglesRad[1]), fanOrigin[1]+fanRadiusStopPixel*cos(fanAnglesRad[1]), numberOfPointsForDrawing);
-  // sectors at start and stop radius
-  numberOfPointsForDrawing = fanRadiusStartPixel*(fanAnglesRad[1]-fanAnglesRad[0])/pixelSpacing; // sector length
-  DrawSector(imageData, extent, fanOrigin, fanAnglesDeg, fanRadiusStartPixel, numberOfPointsForDrawing);
-  numberOfPointsForDrawing = fanRadiusStopPixel*(fanAnglesRad[1]-fanAnglesRad[0])/pixelSpacing; // sector length
-  DrawSector(imageData, extent, fanOrigin, fanAnglesDeg, fanRadiusStopPixel, numberOfPointsForDrawing);
-  
+
+  if (isImageEmpty)
+  {
+    // draw maximum fan angles with dotted line
+    DrawFan(imageData, fanOrigin, fanRadiusStartPixel, fanRadiusStopPixel, maxFanAnglesDeg, 10, true /* draw origin*/);
+  }
+  else
+  {
+    if (reconstructor->GetEnableFanAnglesAutoDetect())
+    {
+      // draw maximum fan angles with dotted line
+      DrawFan(imageData, fanOrigin, fanRadiusStartPixel, fanRadiusStopPixel, maxFanAnglesDeg, 10, true /* draw origin*/);
+      DrawFan(imageData, fanOrigin, fanRadiusStartPixel, fanRadiusStopPixel, detectedFanAnglesDeg, 1, false /* do not draw origin*/);      
+    }
+    else
+    {
+      // no fan angle auto-detect => max angle range is used => draw maximum fan angles with solid line
+      DrawFan(imageData, fanOrigin, fanRadiusStartPixel, fanRadiusStopPixel, maxFanAnglesDeg, 1, true /* draw origin*/);
+    }
+  }
 }
 
 
