@@ -7,6 +7,7 @@ SET (VolumeReconstruction_SRCS
   vtkPasteSliceIntoVolume.cxx 
   vtkVolumeReconstructor.cxx 
   vtkFillHolesInVolume.cxx
+  vtkFanAngleDetectorAlgo.cxx
   )
 
 SET (VolumeReconstruction_HDRS)
@@ -19,6 +20,7 @@ if (WIN32)
     vtkPasteSliceIntoVolumeHelperUnoptimized.h 
     vtkVolumeReconstructor.h 
     vtkFillHolesInVolume.h
+    vtkFanAngleDetectorAlgo.h
     )
 endif (WIN32)  
 

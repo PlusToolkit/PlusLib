@@ -18,7 +18,7 @@ class vtkPasteSliceIntoVolume;
 class vtkTrackedFrameList;
 class TrackedFrame;
 class vtkTransformRepository; 
-
+class vtkFanAngleDetectorAlgo;
 /*!
   \class vtkVolumeReconstructor
   \brief Reconstructs a volume from tracked frames
@@ -120,6 +120,9 @@ public:
   vtkGetStringMacro(ReferenceCoordinateFrame);
   vtkSetStringMacro(ReferenceCoordinateFrame);
 
+  vtkGetMacro(EnableFanAnglesAutoDetect, bool);
+  vtkSetMacro(EnableFanAnglesAutoDetect, bool);
+
   /*!
     Get the clip rectangle origin to apply to the image in pixel coordinates.
   */
@@ -171,6 +174,15 @@ public:
   
   vtkSetMacro(FillHoles, bool);
 
+  bool FanClippingApplied();
+
+  double* GetFanOrigin();
+  double* GetFanAnglesDeg();
+  double GetFanRadiusStartPixel();
+  double GetFanRadiusStopPixel();
+
+  void UpdateFanAnglesFromImage(vtkImageData* frameImage, bool &isImageEmpty);
+
 protected: 
   vtkVolumeReconstructor();
   virtual ~vtkVolumeReconstructor();
@@ -183,6 +195,7 @@ protected:
 
   vtkPasteSliceIntoVolume* Reconstructor; 
   vtkFillHolesInVolume* HoleFiller; 
+  vtkFanAngleDetectorAlgo* FanAngleDetector;
  
   vtkSmartPointer<vtkImageData> ReconstructedVolume;
 
@@ -199,11 +212,20 @@ protected:
   /*! If enabled then the hole filling will be applied on output reconstructed volume */
   bool FillHoles;
 
+  /*! Automatically reduce the fan angle to only sector that has proper acoustic coupling */
+  bool EnableFanAnglesAutoDetect;
+  
   /*! only every [SkipInterval] images from the input will be used in the reconstruction (Ie this is the number of frames that are skipped when the index is increased) */
   int SkipInterval;
 
   /*! Modified time when reconstructing. This is used to determine whether re-reconstruction is necessary */
   unsigned long ReconstructedVolumeUpdatedTime;
+  
+  /*!
+    If EnableFanAngleAutoDetect is enabled then actually used fan angles will be computed from each frame (these angles define the maximum range. 
+    If EnableFanAngleAutoDetect is disabled then these values will be used as fan angles.
+  */
+  double FanAnglesDeg[2];
 
 private: 
   vtkVolumeReconstructor(const vtkVolumeReconstructor&);  // Not implemented.

@@ -71,6 +71,7 @@ slices are pasted into the volume.
       - \c PARTIAL Break transformation into x, y and z components, and don't do bounds checking for nearest-neighbor interpolation.
       - \c FULL Fixed-point (i.e. integer) math is used instead of float math, it is only useful with NEAREST_NEIGHBOR interpolation (when used with LINEAR interpolation then it is slower than NO_OPTIMIZATION). 
   - \xmlAtt \b NumberOfThreads Set number of threads used for processing the data. The reconstruction result is slightly different if more than one thread is used because due to interpolation and rounding errors is influenced by the order the pixels are processed. Choose 0 (this is the default) for maximum speed, in this case the default number of used threads equals the number of processors. Choose 1 for reproducible results. \OptionalAtt{0}
+  - \xmlAtt \b EnableFanAngleAutoDetect If enabled then the provided fan angle is used as maximum limit for the angle range and the actual start and stop angle is determined fro each frame automatically, based on the image contents. This switch is useful for excluding shaded black areas from the image reconstruction (e.g., those parts that remained black because there was insufficient acoustic coupling between the skin surface and the transducer). \c TRUE or  \c FALSE. \OptionalAtt{FALSE}
   - \xmlAtt \b FillHoles If enabled then the hole filling will be applied on output reconstructed volume. \c ON or  \c OFF. \OptionalAtt{OFF}
 
   - \xmlElem \b HoleFilling: \RequiredAtt If \b FillHoles \c ="ON"
