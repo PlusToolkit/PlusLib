@@ -11,9 +11,11 @@ Tool                                         | Description
 \subpage ApplicationEditSeqMetaFile          | Edit sequence metafiles (trim, merge, compress/uncompress, etc.)
 \subpage ApplicationViewSeqMetaFile          | View sequence metafile frames in 3D
 \subpage ApplicationVolumeReconstructor      | Reconstruct 3D ultrasound volume from 2D slices
+\subpage ApplicationDrawClipRegion           | Show clip rectangle and fan over ultrasound images
 \subpage ApplicationCreateSliceModels        | Create 3D surface model showing 2D slice positions (for volume reconstruction troubleshooting)
 \subpage ApplicationPointSetExtractor        | Create 3D surface model (points or tube) from tool trajectory
 \subpage ApplicationRfProcessor              | Convert RF data to displayable B-mode images
+\subpage ApplicationDrawScanLines            | Show scanlines over scan-converted ultrasound images
 \subpage ApplicationSpatialSensorFusion      | Compute orientation from accelerometer, gyroscope, and magnetometer measurements
 \subpage ApplicationProbeCalibration         | Calibrate the ultrasound probe from pre-recorded data (compute ImageToProbe transform)
 \subpage ApplicationTemporalCalibration      | Compute time offset between two streams
