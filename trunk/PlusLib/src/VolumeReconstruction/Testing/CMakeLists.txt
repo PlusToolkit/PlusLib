@@ -136,6 +136,28 @@ SET_TESTS_PROPERTIES( CreateSliceModelsTest PROPERTIES FAIL_REGULAR_EXPRESSION "
 ADD_EXECUTABLE( CompareVolumes CompareVolumes.cxx vtkCompareVolumes.cxx )
 TARGET_LINK_LIBRARIES( CompareVolumes vtkPlusCommon )
 
+#***************************  CompareVolumes  ***************************
+# This program compares two volumes and outputs difference statistics
+ADD_EXECUTABLE( DrawClipRegion DrawClipRegion.cxx )
+TARGET_LINK_LIBRARIES( DrawClipRegion vtkPlusCommon vtkVolumeReconstruction)
+GENERATE_HELP_DOC(DrawClipRegion)
+
+# --------------------------------------------------------------------------
+ADD_TEST(DrawClipRegionRunTest
+  ${EXECUTABLE_OUTPUT_PATH}/DrawClipRegion
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_VolumeReconstructionOnly_FanAnglesAutoDetect.xml
+  --source-seq-file=${TestDataDir}/UsSimulatorOutputSpinePhantom2CurvilinearBaseline.mha
+  --output-seq-file=UsSimulatorOutputSpinePhantom2CurvilinearBaselineWithClipRegion.mha
+  )
+SET_TESTS_PROPERTIES( DrawClipRegionRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+#ADD_TEST(vtkUsScanConvertCurvilinearCompareToBaselineTest
+#  ${CMAKE_COMMAND} -E compare_files 
+#   ${TEST_OUTPUT_PATH}/outputUltrasonixCurvilinearScanConvertedData_OutputChannel_ScanConvertOutput.mha
+#   ${TestDataDir}/UltrasonixCurvilinearScanConvertedData.mha
+#  )
+#SET_TESTS_PROPERTIES(vtkUsScanConvertCurvilinearCompareToBaselineTest PROPERTIES DEPENDS vtkUsScanConvertCurvilinearRunTest)
+
 # --------------------------------------------------------------------------
 # Install
 #

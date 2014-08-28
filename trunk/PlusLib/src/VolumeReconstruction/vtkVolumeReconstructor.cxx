@@ -21,6 +21,7 @@
 #include "vtkDataSetWriter.h"
 
 #include "vtkPasteSliceIntoVolume.h"
+#include "vtkFanAngleDetectorAlgo.h"
 #include "vtkFillHolesInVolume.h"
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
@@ -39,7 +40,11 @@ vtkVolumeReconstructor::vtkVolumeReconstructor()
   this->ReconstructedVolume = vtkSmartPointer<vtkImageData>::New();
   this->Reconstructor = vtkPasteSliceIntoVolume::New();  
   this->HoleFiller = vtkFillHolesInVolume::New();  
+  this->FanAngleDetector = vtkFanAngleDetectorAlgo::New();
   this->FillHoles = false;
+  this->FanAnglesDeg[0] = 0.0;
+  this->FanAnglesDeg[1] = 0.0;
+  this->EnableFanAnglesAutoDetect = false;
   this->SkipInterval = 1;
   this->ReconstructedVolumeUpdatedTime = 0;
 }
@@ -52,11 +57,15 @@ vtkVolumeReconstructor::~vtkVolumeReconstructor()
     this->Reconstructor->Delete();
     this->Reconstructor=NULL;
   }
-
   if (this->HoleFiller)
   {
     this->HoleFiller->Delete();
     this->HoleFiller=NULL;
+  }
+  if (this->FanAngleDetector)
+  {
+    this->FanAngleDetector->Delete();
+    this->FanAngleDetector=NULL;
   }
   SetImageCoordinateFrame(NULL);
   SetReferenceCoordinateFrame(NULL);
@@ -118,6 +127,7 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, NumberOfThreads, reconConfig);
 
   XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(FillHoles, reconConfig, "ON", true, "OFF", false);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableFanAnglesAutoDetect, reconConfig);
 
   // Find and read kernels. First for loop counts the number of kernels to allocate, second for loop stores them
   if (this->FillHoles) 
@@ -186,10 +196,12 @@ PlusStatus vtkVolumeReconstructor::WriteConfiguration(vtkXMLDataElement *config)
     reconConfig->SetVectorAttribute("FanOriginPixel", 2, this->Reconstructor->GetFanOrigin());
     reconConfig->SetDoubleAttribute("FanRadiusStartPixel", this->Reconstructor->GetFanRadiusStart());
     reconConfig->SetDoubleAttribute("FanRadiusStopPixel", this->Reconstructor->GetFanRadiusStop());
+    XML_WRITE_BOOL_ATTRIBUTE(EnableFanAnglesAutoDetect, reconConfig)
   }
   else
   {
     XML_REMOVE_ATTRIBUTE(reconConfig, "FanAnglesDeg");
+    XML_REMOVE_ATTRIBUTE(reconConfig, "EnableFanAnglesAutoDetect")
     XML_REMOVE_ATTRIBUTE(reconConfig, "FanOriginPixel");
     XML_REMOVE_ATTRIBUTE(reconConfig, "FanRadiusStartPixel");
     XML_REMOVE_ATTRIBUTE(reconConfig, "FanRadiusStopPixel");
@@ -450,10 +462,17 @@ PlusStatus vtkVolumeReconstructor::AddTrackedFrame(TrackedFrame* frame, vtkTrans
   }
 
   vtkImageData* frameImage=frame->GetImageData()->GetImage();
+  bool isImageEmpty = false;
+  UpdateFanAnglesFromImage(frameImage, isImageEmpty);
+  if (isImageEmpty)
+  {
+    // nothing to insert, image is empty
+    return PLUS_SUCCESS;
+  }
 
+  PlusStatus status = this->Reconstructor->InsertSlice(frameImage, imageToReferenceTransformMatrix);
   this->Modified();
-
-  return this->Reconstructor->InsertSlice(frameImage, imageToReferenceTransformMatrix);
+  return status;
 }
 
 //----------------------------------------------------------------------------
@@ -635,6 +654,31 @@ void vtkVolumeReconstructor::Reset()
 }
 
 //----------------------------------------------------------------------------
+void vtkVolumeReconstructor::UpdateFanAnglesFromImage(vtkImageData* frameImage, bool &isImageEmpty)
+{
+  isImageEmpty = false;
+  if (this->EnableFanAnglesAutoDetect)
+  {
+    this->FanAngleDetector->SetMaxFanAnglesDeg(this->FanAnglesDeg);
+    this->FanAngleDetector->SetImage(frameImage);
+    this->FanAngleDetector->Update();
+    if (this->FanAngleDetector->GetIsFrameEmpty())
+    {
+      // no image content is found
+      LOG_TRACE("No image data is detected in the current frame, the frame is skipped");
+      this->Reconstructor->SetFanAnglesDeg(this->FanAnglesDeg); // to make sure fan enable/disable is computed correctly
+      isImageEmpty = true;
+      return;
+    }
+    this->Reconstructor->SetFanAnglesDeg(this->FanAngleDetector->GetDetectedFanAnglesDeg());
+  }
+  else
+  {
+    this->Reconstructor->SetFanAnglesDeg(this->FanAnglesDeg);
+  }
+}
+
+//----------------------------------------------------------------------------
 void vtkVolumeReconstructor::SetOutputOrigin(double* origin)
 {
   this->Reconstructor->SetOutputOrigin(origin);
@@ -663,18 +707,21 @@ void vtkVolumeReconstructor::SetNumberOfThreads(int numberOfThreads)
 void vtkVolumeReconstructor::SetClipRectangleOrigin(int* origin)
 {
   this->Reconstructor->SetClipRectangleOrigin(origin);
+  this->FanAngleDetector->SetClipRectangleOrigin(origin);
 }
 
 //----------------------------------------------------------------------------
 void vtkVolumeReconstructor::SetClipRectangleSize(int* size)
 {
   this->Reconstructor->SetClipRectangleSize(size);
+  this->FanAngleDetector->SetClipRectangleSize(size);
 }
 
 //----------------------------------------------------------------------------
 void vtkVolumeReconstructor::SetFanAnglesDeg(double* anglesDeg)
 {
-  this->Reconstructor->SetFanAnglesDeg(anglesDeg);
+  this->FanAnglesDeg[0]=anglesDeg[0];
+  this->FanAnglesDeg[1]=anglesDeg[1];
 }
 
 //----------------------------------------------------------------------------
@@ -689,6 +736,7 @@ void vtkVolumeReconstructor::SetFanOriginPixel(double* originPixel)
 {
   // Image coordinate system has unit spacing, so we can set the pixel values directly
   this->Reconstructor->SetFanOrigin(originPixel);
+  this->FanAngleDetector->SetFanOrigin(originPixel);
 }
 
 //----------------------------------------------------------------------------
@@ -703,6 +751,7 @@ void vtkVolumeReconstructor::SetFanRadiusStartPixel(double radiusPixel)
 {
   // Image coordinate system has unit spacing, so we can set the pixel values directly
   this->Reconstructor->SetFanRadiusStart(radiusPixel);
+  this->FanAngleDetector->SetFanRadiusStart(radiusPixel);
 }
 
 //----------------------------------------------------------------------------
@@ -710,6 +759,7 @@ void vtkVolumeReconstructor::SetFanRadiusStopPixel(double radiusPixel)
 {
   // Image coordinate system has unit spacing, so we can set the pixel values directly
   this->Reconstructor->SetFanRadiusStop(radiusPixel);
+  this->FanAngleDetector->SetFanRadiusStop(radiusPixel);
 }
 
 //----------------------------------------------------------------------------
@@ -747,4 +797,34 @@ void vtkVolumeReconstructor::SetCalculation(vtkPasteSliceIntoVolume::Calculation
 void vtkVolumeReconstructor::SetCompounding(int comp)
 {
   this->Reconstructor->SetCompounding(comp);
+}
+
+//----------------------------------------------------------------------------
+bool vtkVolumeReconstructor::FanClippingApplied()
+{
+  return this->Reconstructor->FanClippingApplied();
+}
+
+//----------------------------------------------------------------------------
+double* vtkVolumeReconstructor::GetFanOrigin()
+{
+  return this->Reconstructor->GetFanOrigin();
+}
+
+//----------------------------------------------------------------------------
+double* vtkVolumeReconstructor::GetFanAnglesDeg()
+{
+  return this->Reconstructor->GetFanAnglesDeg();
+}
+
+//----------------------------------------------------------------------------
+double vtkVolumeReconstructor::GetFanRadiusStartPixel()
+{
+  return this->Reconstructor->GetFanRadiusStart();
+}
+
+//----------------------------------------------------------------------------
+double vtkVolumeReconstructor::GetFanRadiusStopPixel()
+{
+  return this->Reconstructor->GetFanRadiusStop();
 }

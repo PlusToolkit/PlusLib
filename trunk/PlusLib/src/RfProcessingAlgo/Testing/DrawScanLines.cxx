@@ -13,57 +13,50 @@
 #include "PlusVideoFrame.h"
 #include "TrackedFrame.h"
 
-#include "itkLineIterator.h"
-#include "itkVTKImageExport.h"
-#include "itkImageToVTKImageFilter.h"
-
-float SCANLINE_GRAY_LEVEL = 255;
+float DRAWING_COLOR = 255;
 
 //----------------------------------------------------------------------------
-PlusStatus DrawScanLines(vtkUsScanConvert* scanConverter, vtkTrackedFrameList* trackedFrameList)
+void DrawLine(vtkImageData* imageData, int* imageExtent, double* start, double* end, int numberOfPoints)
+{
+  double directionVectorX = static_cast<double>(end[0]-start[0])/(numberOfPoints-1);
+  double directionVectorY = static_cast<double>(end[1]-start[1])/(numberOfPoints-1);
+  for (int pointIndex=0; pointIndex<numberOfPoints; ++pointIndex)
+  {
+    int pixelCoordX = start[0] + directionVectorX * pointIndex;
+    int pixelCoordY = start[1] + directionVectorY * pointIndex;
+    if (pixelCoordX<imageExtent[0] ||  pixelCoordX>imageExtent[1]
+    || pixelCoordY<imageExtent[2] ||  pixelCoordY>imageExtent[3])
+    {
+      // outside of the specified extent
+      continue;
+    }
+    imageData->SetScalarComponentFromFloat(pixelCoordX, pixelCoordY, 0, 0, DRAWING_COLOR);
+  }
+}
+
+//----------------------------------------------------------------------------
+void DrawScanLines(vtkUsScanConvert* scanConverter, vtkTrackedFrameList* trackedFrameList)
 {
   int *rfImageExtent = scanConverter->GetInputImageExtent();
   int numOfSamplesPerScanline = rfImageExtent[1]-rfImageExtent[0]+1;
   int numOfScanlines = rfImageExtent[3]-rfImageExtent[2]+1;
 
-  // Iterate over each frame
   int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames();
   LOG_INFO("Processing "<<numberOfFrames<<" frames...");
-  for (int index = 0; index < numberOfFrames; index++)
+  for (int frameIndex = 0; frameIndex < numberOfFrames; frameIndex++)
   {
-    // Convert the current tracked frame into an itkImage
-    TrackedFrame* frame = trackedFrameList->GetTrackedFrame(index);
-    // To hold each individual frames vtkImageData
+    TrackedFrame* frame = trackedFrameList->GetTrackedFrame(frameIndex);
     vtkImageData* imageData = frame->GetImageData()->GetImage();
     int* outputExtent = imageData->GetExtent();
-
-    // Draw pixels
     for (int scanLine = 0; scanLine < numOfScanlines; scanLine++)
     {
-      // Start/end points of scanline
       double start[4] = {0};
       double end[4] = {0};
       scanConverter->GetScanLineEndPoints(scanLine,start,end);
-      double directionVectorX = static_cast<double>(end[0]-start[0])/(numOfSamplesPerScanline-1);
-      double directionVectorY = static_cast<double>(end[1]-start[1])/(numOfSamplesPerScanline-1);
-      for (int sampleIndex=0; sampleIndex<numOfSamplesPerScanline; ++sampleIndex)
-      {
-        int pixelCoordX = start[0] + directionVectorX * sampleIndex;
-        int pixelCoordY = start[1] + directionVectorY * sampleIndex;
-        if (pixelCoordX<outputExtent[0] ||  pixelCoordX>outputExtent[1]
-          || pixelCoordY<outputExtent[2] ||  pixelCoordY>outputExtent[3])
-        {
-          // outside of the image
-          continue;
-        }
-        imageData->SetScalarComponentFromFloat(pixelCoordX, pixelCoordY, 0, 0, SCANLINE_GRAY_LEVEL);
-      }
+      DrawLine(imageData, outputExtent, start, end, numOfSamplesPerScanline);
     }
   }
-
-  return PLUS_SUCCESS;
 }
-
 
 //----------------------------------------------------------------------------
 int main(int argc, char** argv)
@@ -125,57 +118,54 @@ int main(int argc, char** argv)
     return EXIT_FAILURE;
   }
 
-  // Draw scanlines if ScanConversion element is found
   vtkXMLDataElement* scanConversionElement = configRootElement->LookupElementWithName("ScanConversion");
-  if (scanConversionElement != NULL)
+  if (scanConversionElement == NULL)
   {
-    // Get number of scanlines from US simulator algo (if present)
-    int numOfScanlines = 50;
-    vtkXMLDataElement* usSimulatorAlgoElement = configRootElement->LookupElementWithName("vtkUsSimulatorAlgo");
-    if (usSimulatorAlgoElement != NULL)
-    {
-      // Get US simulator attributes
-      usSimulatorAlgoElement->GetScalarAttribute("NumberOfScanlines",numOfScanlines);
-    }
-    else
-    {
-      LOG_INFO("vtkUsSimulatorAlgo element not found in input configuration file. Using default NumberOfScanlines ("<<numOfScanlines<<")");
-    }
+    LOG_ERROR("ScanConversion element was not found in input configuration file");
+    return EXIT_FAILURE;
+  }
 
-    // Call scanline generator with appropriate scanconvert
-    const char* transducerGeometry = scanConversionElement->GetAttribute("TransducerGeometry");
-    if (transducerGeometry==NULL)
-    {
-      LOG_ERROR("Scan converter TransducerGeometry is undefined");
-      return EXIT_FAILURE;
-    }
-    vtkSmartPointer<vtkUsScanConvert> scanConverter;
-    if (STRCASECMP(transducerGeometry,"CURVILINEAR") == 0)
-    {
-      scanConverter = vtkSmartPointer<vtkUsScanConvert>::Take(vtkUsScanConvertCurvilinear::New());
-    }
-    else if (STRCASECMP(transducerGeometry, "LINEAR") == 0)
-    {
-      scanConverter = vtkSmartPointer<vtkUsScanConvert>::Take(vtkUsScanConvertLinear::New());
-    }
-    else
-    {
-      LOG_ERROR("Invalid scan converter TransducerGeometry: "<<transducerGeometry);
-      return EXIT_FAILURE;
-    }
-
-    scanConverter->ReadConfiguration(scanConversionElement);
-
-    const int numOfSamplesPerScanline = 100; // this many dots will be drawn per scanline
-    int rfImageExtent[6] = {0,numOfSamplesPerScanline-1,0,numOfScanlines-1,0,0};
-    scanConverter->SetInputImageExtent(rfImageExtent);
-
-    DrawScanLines(scanConverter, trackedFrameList);
+  // Get number of scanlines from US simulator algo (if present)
+  int numOfScanlines = 50;
+  vtkXMLDataElement* usSimulatorAlgoElement = configRootElement->LookupElementWithName("vtkUsSimulatorAlgo");
+  if (usSimulatorAlgoElement != NULL)
+  {
+    // Get US simulator attributes
+    usSimulatorAlgoElement->GetScalarAttribute("NumberOfScanlines",numOfScanlines);
   }
   else
   {
-    LOG_INFO("ScanConversion element not found in input configuration file");
+    LOG_INFO("vtkUsSimulatorAlgo element not found in input configuration file. Using default NumberOfScanlines ("<<numOfScanlines<<")");
   }
+
+  // Call scanline generator with appropriate scanconvert
+  const char* transducerGeometry = scanConversionElement->GetAttribute("TransducerGeometry");
+  if (transducerGeometry==NULL)
+  {
+    LOG_ERROR("Scan converter TransducerGeometry is undefined");
+    return EXIT_FAILURE;
+  }
+  vtkSmartPointer<vtkUsScanConvert> scanConverter;
+  if (STRCASECMP(transducerGeometry,"CURVILINEAR") == 0)
+  {
+    scanConverter = vtkSmartPointer<vtkUsScanConvert>::Take(vtkUsScanConvertCurvilinear::New());
+  }
+  else if (STRCASECMP(transducerGeometry, "LINEAR") == 0)
+  {
+    scanConverter = vtkSmartPointer<vtkUsScanConvert>::Take(vtkUsScanConvertLinear::New());
+  }
+  else
+  {
+    LOG_ERROR("Invalid scan converter TransducerGeometry: "<<transducerGeometry);
+    return EXIT_FAILURE;
+  }
+
+  scanConverter->ReadConfiguration(scanConversionElement);
+
+  const int numOfSamplesPerScanline = 100; // number of dots drawn per scanline
+  int rfImageExtent[6] = {0,numOfSamplesPerScanline-1,0,numOfScanlines-1,0,0};
+  scanConverter->SetInputImageExtent(rfImageExtent);
+  DrawScanLines(scanConverter, trackedFrameList);
 
   // Write the new TrackedFrameList to metafile
   LOG_INFO("Writing new sequence to file...");
