@@ -66,7 +66,7 @@ PlusStatus vtkPhantomLandmarkRegistrationAlgo::Register(vtkTransformRepository* 
 
   for (int i=0; i<this->RecordedLandmarks->GetNumberOfPoints(); ++i)
   {
-     // Defined landmarks from xml are in the phantom coordinate system
+    // Defined landmarks from xml are in the phantom coordinate system
     double* fixedPointArray = this->DefinedLandmarks->GetPoint(i);
     itk::Point<double,3> fixedPoint(fixedPointArray);
 

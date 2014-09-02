@@ -3,13 +3,14 @@
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
       Name="fCal: Simulation mode for pivot automatic detection for Phantom registration - fCal Phantom 2.0" 
-      Description="Fake tracker in 'Record phantom landmarks with automatic pivot detection' mode. This configuration can be used for testing fCal (**PivotCalibrationAutoDetect fakeTrackerMode**)and also used by the automatic test vtkPhantomRegistrationTest." />
+      Description="Stylus tracked framelist without video(Fake tracker in 'RecordedPoseFrameList' mode). The recorded tracked stylus poses are used for pivot detection and the detected pivots are used for phantom landmark registration. This configuration can be used for testing fCal and also used by the automatic test vtkPhantomRegistrationAutoDetectPivotingTest." />
     <Device
       Id="TrackerDevice"
       Type="FakeTracker"
-      AcquisitionRate="20"
-      Mode="RecordPhantomLandmarks"
-      ToolReferenceFrame="Tracker" >
+      AcquisitionRate="15"
+      Mode="RecordedPoseFrameList"
+      ToolReferenceFrame="Tracker" 
+      TrackedPoseListFileName="EightPivotingPointsTracked.mha">
       <DataSources>
         <DataSource Type="Tool" Id="Reference"  PortName="0" />
         <DataSource Type="Tool" Id="Stylus"  PortName="1" />
@@ -43,10 +44,10 @@
     <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel"
       File="Stylus_Example.stl"
       ModelToObjectTransform="
-        1 0 0 -100.208
-        0 1 0 0
-        0 0 1 0
-        0 0 0 1" />
+        1	0	0	-210
+        0	1	0	0
+        0	0	1	0
+        0	0	0	1" />
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
       Opacity="0.6"
       File="fCal_2.0.stl"
@@ -115,7 +116,6 @@
     </Geometry>
   </PhantomDefinition>
 
-
   <fCal
     PhantomModelId="PhantomModel"
     TransducerModelId="ProbeModel"
@@ -135,11 +135,15 @@
     ObjectPivotPointCoordinateFrame="StylusTip" />
 
   <vtkPivotDetectionAlgo
-  ObjectMarkerCoordinateFrame="Stylus"
-  ReferenceCoordinateFrame="Reference"
-  ObjectPivotPointCoordinateFrame="StylusTip"
-  AcquisitionRate="15"/>
-  
+    ObjectMarkerCoordinateFrame="Stylus"
+    ReferenceCoordinateFrame="Reference"
+    ObjectPivotPointCoordinateFrame="StylusTip"
+    AcquisitionRate="15"
+    AbovePivotThresholdMM="3.0"
+    PivotThresholdMM="0.9"
+    DetectionTimeSec=".15"
+    WindowTimeSec="0.04" />
+
   <vtkPhantomLandmarkRegistrationAlgo
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"

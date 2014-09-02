@@ -18,6 +18,8 @@ enum FakeTrackerMode
   FakeTrackerMode_Default,
   FakeTrackerMode_SmoothMove,
   FakeTrackerMode_PivotCalibration,
+  FakeTrackerMode_PivotCalibrationAutoDetect,
+  FakeTrackerMode_RecordedPoseFrameList,
   FakeTrackerMode_RecordPhantomLandmarks,
   FakeTrackerMode_ToolState
 };
@@ -60,8 +62,12 @@ public:
   /*! Set counter value used for translating landmark points */
   vtkSetMacro(Counter, int);
 
+  /*! Set counter value used for translating landmark points */
+  vtkSetMacro(Frame, int);
+
   /*! Set transform repository */
   vtkSetObjectMacro(TransformRepository, vtkTransformRepository);
+
   /*! Get transform repository */
   vtkGetObjectMacro(TransformRepository, vtkTransformRepository);
 
@@ -71,6 +77,8 @@ public:
 protected:
   /*! Set the phantom landmark points positions */
   vtkSetObjectMacro(PhantomLandmarks, vtkPoints);
+
+  vtkSetObjectMacro(TrackedStylusTipFrames,vtkTrackedFrameList);
 
 protected:
   /*! Start the tracking system. */
@@ -86,7 +94,7 @@ protected:
   ~vtkFakeTracker();
 
 protected:
-  /*! Internal frame number cunting */
+  /*! Internal frame number counting */
   unsigned long Frame;
 
   /*! Internal transform used for simulating tool movements */
@@ -109,6 +117,12 @@ protected:
     Need for setting up RecordPhantomLandmarks mode
   */
   vtkPoints* PhantomLandmarks;
+
+  /*!
+  List of tracked frames used for FakeTrackerMode_PivotCalibrationAutoDetect FakeTrackerMode_RecordedPoseFrameList modes
+  */
+  vtkTrackedFrameList* TrackedStylusTipFrames;
+
 };
 
 
