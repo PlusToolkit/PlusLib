@@ -16,6 +16,7 @@
 
 class vtkPhantomLandmarkRegistrationAlgo;
 class vtkPhantomLinearObjectRegistrationAlgo;
+class vtkPivotDetectionAlgo;
 class vtkActor;
 class vtkPolyData;
 class vtkRenderer;
@@ -33,6 +34,12 @@ enum LinearObjectRegistrationState
   LinearObjectRegistrationState_Complete
 };
 
+enum LandmarkPivotingState
+{
+  LandmarkPivotingState_Incomplete,
+  LandmarkPivotingState_InProgress,
+  LandmarkPivotingState_Complete
+};
 //-----------------------------------------------------------------------------
 
 /*! \class PhantomRegistrationToolbox 
@@ -91,14 +98,22 @@ public:
   vtkPhantomLinearObjectRegistrationAlgo* GetPhantomLinearObjectRegistrationAlgo();;
 
   /*!
-  * Sets the state of 
+  * Sets the state of the linear object registration
   */
   void SetLinearObjectRegistrationState(LinearObjectRegistrationState state);
-
   /*!
   * Return state of the linear object registration
   */
-  LinearObjectRegistrationState GetLinearObjectRegistrationState();;
+  LinearObjectRegistrationState GetLinearObjectRegistrationState();
+
+  /*!
+  * Sets the state of the landmark pivoting detection
+  */
+  void SetLandmarkPivotingState(LandmarkPivotingState state);
+  /*!
+  * Return state of the landmark pivoting detection
+  */
+  LandmarkPivotingState GetLandmarkPivotingState();
 
 protected:
   /*!
@@ -151,11 +166,26 @@ protected slots:
   Slot handling reset button for the linear object registration click
   */
   void ResetLinearObjectRegistration();
+
+  /*!
+  Slot handling Detect Pivot button to activate the automatic pivot detection for landmark registration, ´pivoting instead of pressing the record button
+  */
+  void StartLandmarkPivotingRegistration();
+  
+  /*!
+  Slot handling Stop Detection Pivot button to activate the automatic pivot detection for landmark registration, ´pivoting instead of pressing the record button
+  */
+  void StopLandmarkPivotingRegistration();
   
   /*!
   Slot handling the continuous point acquisition during the linear object registration
   */
-  void AddStylusTipPositionToLinearObjectRegistration();
+  void AddStylusTipTransformToLinearObjectRegistration();
+
+    /*!
+  Slot handling the continuous point acquisition during the linear object registration
+  */
+  void AddStylusTipTransformToLandmarkPivotingRegistration();
 
 protected:
   /*! Phantom landmark registration algorithm */
@@ -163,6 +193,12 @@ protected:
 
   /*! Phantom linear object registration algorithm */
   vtkPhantomLinearObjectRegistrationAlgo* m_PhantomLinearObjectRegistration;
+
+  /*! Stylus tip pivot detection algorithm */
+  vtkPivotDetectionAlgo*                  m_PivotDetection;
+
+  /*! Pivot detection algorithm config file read successfully flag */
+  bool                                    m_AutoDetectPivoting;
 
   /*! Renderer for the canvas */
   vtkRenderer*                            m_PhantomRenderer;
@@ -181,6 +217,9 @@ protected:
 
   /*! State of the collection of linear objects */
   LinearObjectRegistrationState           m_LinearObjectRegistrationState;
+
+  /*! State of the pivot detection */
+  LandmarkPivotingState                   m_LandmarkPivotingState;
 
   /*! Number of points acquired for linear object registration so far */
   int                                     m_CurrentPointNumber;
