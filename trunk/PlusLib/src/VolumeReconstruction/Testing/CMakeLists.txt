@@ -162,7 +162,11 @@ SET_TESTS_PROPERTIES( DrawClipRegionRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "
 # Install
 #
 
-INSTALL(TARGETS VolumeReconstructor CreateSliceModels
+INSTALL(
+  TARGETS
+    VolumeReconstructor
+    CreateSliceModels
+    DrawClipRegion
   DESTINATION bin
   COMPONENT RuntimeExecutables
   )
