@@ -181,6 +181,9 @@ public:
   */
   PlusStatus ReadConfiguration(vtkXMLDataElement* aXMLElement);
 
+  /*! Read clipping rectangle parameters from XML */
+  PlusStatus ReadRoiConfiguration(vtkXMLDataElement* aXMLElement);
+
   /*!
   * Save the current device set configuration into XML
   */

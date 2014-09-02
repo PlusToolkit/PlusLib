@@ -44,6 +44,9 @@ public:
   /*! Publicly available color for ROI */
   static double ROI_COLOR[3];
 
+  /*! Read clipping rectangle parameters from XML */
+  PlusStatus ReadRoiConfiguration(vtkXMLDataElement* aXMLElement);
+
   /*!
   * Read rendering configuration
   * \param aConfig Root element of the device set configuration

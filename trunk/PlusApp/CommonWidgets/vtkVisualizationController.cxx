@@ -680,6 +680,22 @@ PlusStatus vtkVisualizationController::ShowAllObjects( bool aShow )
 }
 
 //-----------------------------------------------------------------------------
+PlusStatus vtkVisualizationController::ReadRoiConfiguration(vtkXMLDataElement* aXMLElement)
+{
+  if( this->ImageVisualizer == NULL )
+  {
+    LOG_ERROR("Failed to read ROI configuration, ImageVisualizer is invalid");
+    return PLUS_FAIL;
+  }
+  if( this->ImageVisualizer->ReadRoiConfiguration(aXMLElement) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to configure image visualizer ROI.");
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
 
 PlusStatus vtkVisualizationController::ReadConfiguration(vtkXMLDataElement* aXMLElement)
 {
@@ -740,7 +756,7 @@ PlusStatus vtkVisualizationController::WriteConfiguration(vtkXMLDataElement* aXM
 
 PlusStatus vtkVisualizationController::StopAndDisconnectDataCollector()
 {
-  vtkDataCollector* dataCollector=this->GetDataCollector();
+  vtkSmartPointer<vtkDataCollector> dataCollector=this->GetDataCollector();
   if( dataCollector == NULL )
   {
     LOG_WARNING("Trying to disconnect from non-connected data collector.");
@@ -748,7 +764,7 @@ PlusStatus vtkVisualizationController::StopAndDisconnectDataCollector()
   }
 
   this->DisconnectInput();
-  SetDataCollector(NULL);
+  SetDataCollector(NULL); // the local smart pointer still keeps a reference
 
   dataCollector->Stop();
   dataCollector->Disconnect();
@@ -770,14 +786,13 @@ PlusStatus vtkVisualizationController::ClearTransformRepository()
 
 PlusStatus vtkVisualizationController::SetROIBounds( int xMin, int xMax, int yMin, int yMax )
 {
-  if( this->ImageVisualizer != NULL )
+  if( this->ImageVisualizer == NULL )
   {
-    this->ImageVisualizer->SetROIBounds(xMin, xMax, yMin, yMax);
-    return PLUS_SUCCESS;
+    LOG_ERROR("Image visualizer not created when attempting to set ROI bounds.");
+    return PLUS_FAIL;
   }
-
-  LOG_ERROR("Image visualizer not created when attempting to set ROI bounds.");
-  return PLUS_FAIL;
+  this->ImageVisualizer->SetROIBounds(xMin, xMax, yMin, yMax);
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------

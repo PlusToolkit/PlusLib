@@ -637,6 +637,42 @@ PlusStatus vtkImageVisualizer::UpdateScreenAlignedActors()
 }
 
 //-----------------------------------------------------------------------------
+PlusStatus vtkImageVisualizer::ReadRoiConfiguration(vtkXMLDataElement* aXMLElement)
+{
+  //Find segmentation parameters element
+  vtkXMLDataElement* segmentationParameters = aXMLElement->FindNestedElementWithName("Segmentation");
+  if (segmentationParameters == NULL)
+  {
+    LOG_WARNING("No Segmentation element is found in the XML tree!");
+    this->EnableROI(false);
+    return PLUS_FAIL;
+  }
+  // clipping parameters
+  int clipRectangleOrigin[2]={-1, -1};
+  if (!segmentationParameters->GetVectorAttribute("ClipRectangleOrigin", 2, clipRectangleOrigin))
+  {
+    LOG_WARNING("Cannot find ClipRectangleOrigin attribute in the segmentation parameters section of the configuration, region of interest will not be displayed");
+  }
+  int clipRectangleSize[2]={-1, -1};
+  if (!segmentationParameters->GetVectorAttribute("ClipRectangleSize", 2, clipRectangleSize))
+  {
+    LOG_WARNING("Cannot find ClipRectangleSize attribute in the segmentation parameters section of the configuration, region of interest will not be displayed");
+  }
+  if (clipRectangleOrigin[0]>=0 && clipRectangleOrigin[1]>=0 && clipRectangleSize[0]>0 && clipRectangleSize[1]>0)
+  {
+    this->SetROIBounds(clipRectangleOrigin[0], clipRectangleOrigin[0]+clipRectangleSize[0], clipRectangleOrigin[1], clipRectangleOrigin[1]+clipRectangleSize[1]);
+  } 
+  else
+  {
+    LOG_DEBUG("Region of interest will not be displayed until valid values are specified");
+    this->EnableROI(false);
+  }
+
+  return PLUS_SUCCESS;
+}
+
+
+//-----------------------------------------------------------------------------
 
 PlusStatus vtkImageVisualizer::ReadConfiguration( vtkXMLDataElement* aConfig )
 {
@@ -661,38 +697,7 @@ PlusStatus vtkImageVisualizer::ReadConfiguration( vtkXMLDataElement* aConfig )
   }
   this->CurrentMarkerOrientation = orientationValue;
 
-  //Find segmentation parameters element
-  vtkXMLDataElement* segmentationParameters = aConfig->FindNestedElementWithName("Segmentation");
-  if (segmentationParameters == NULL)
-  {
-    LOG_WARNING("No Segmentation element is found in the XML tree!");
-    this->RegionOfInterest[0] = this->RegionOfInterest[1] = this->RegionOfInterest[2] = this->RegionOfInterest[3] = -1;
-    this->EnableROI(false);
-  }
-  else
-  {
-    // clipping parameters
-    int clipRectangleOrigin[2]={-1, -1};
-    if (!segmentationParameters->GetVectorAttribute("ClipRectangleOrigin", 2, clipRectangleOrigin))
-    {
-      LOG_WARNING("Cannot find ClipRectangleOrigin attribute in the segmentation parameters section of the configuration, region of interest will not be displayed");
-    }
-    int clipRectangleSize[2]={-1, -1};
-    if (!segmentationParameters->GetVectorAttribute("ClipRectangleSize", 2, clipRectangleSize))
-    {
-      LOG_WARNING("Cannot find ClipRectangleSize attribute in the segmentation parameters section of the configuration, region of interest will not be displayed");
-    }
-    if (clipRectangleOrigin[0]>=0 && clipRectangleOrigin[1]>=0 && clipRectangleSize[0]>0 && clipRectangleSize[1]>0)
-    {
-      this->SetROIBounds(clipRectangleOrigin[0], clipRectangleOrigin[0]+clipRectangleSize[0], clipRectangleOrigin[1], clipRectangleOrigin[1]+clipRectangleSize[1]);
-    } 
-    else
-    {
-      LOG_DEBUG("Region of interest will not be displayed until valid values are specified");
-      this->EnableROI(false);
-    }
-     
-  }
+  ReadRoiConfiguration(aConfig);
 
   if( InitializeWireLabelVisualization(aConfig) != PLUS_SUCCESS )
   {
@@ -781,8 +786,6 @@ PlusStatus vtkImageVisualizer::InitializeROIVisualization()
   bottomLineMapper->SetInputConnection(this->BottomLineSource->GetOutputPort());
   bottomLineActor->SetMapper(bottomLineMapper);
   this->ROIActorAssembly->AddPart(bottomLineActor);
-
-  this->ROIActorAssembly->SetPosition(0.0, 0.0, -1.0);
 
   this->CanvasRenderer->AddActor(this->ROIActorAssembly);
 
@@ -923,14 +926,7 @@ PlusStatus vtkImageVisualizer::SetWireLabelPositions( vtkPoints* aPointList )
 {
   LOG_TRACE("vtkImageVisualizer::SetWireLabelPositions");
 
-  if( aPointList == NULL )
-  {
-    this->EnableWireLabels(false);
-    LOG_ERROR("Null point list sent to wire label visualization.");
-    return PLUS_FAIL;
-  }
-
-  if( aPointList->GetNumberOfPoints() == 0 )
+  if( aPointList == NULL || aPointList->GetNumberOfPoints() == 0)
   {
     this->EnableWireLabels(false);
     return PLUS_SUCCESS;

@@ -552,15 +552,7 @@ void SpatialCalibrationToolbox::EditSegmentationParameters()
   // Show segmentation parameter dialog
   SegmentationParameterDialog* segmentationParamDialog = new SegmentationParameterDialog(this, m_ParentMainWindow->GetVisualizationController()->GetDataCollector(), m_ParentMainWindow->GetSelectedChannel());
   segmentationParamDialog->exec();
-
   delete segmentationParamDialog;
-
-  int regionOfInterest[4] = {0}; 
-  vtkXMLDataElement* segmentationParameters = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("Segmentation");
-  if ( segmentationParameters != NULL && segmentationParameters->GetVectorAttribute("RegionOfInterest", 4, regionOfInterest) )
-  {
-    m_ParentMainWindow->GetVisualizationController()->SetROIBounds(regionOfInterest[0], regionOfInterest[2], regionOfInterest[1], regionOfInterest[3]);
-  }
 
   // Re-connect realtime image to canvas
   if( m_ParentMainWindow->GetVisualizationController()->ConnectInput() != PLUS_SUCCESS )
@@ -568,6 +560,9 @@ void SpatialCalibrationToolbox::EditSegmentationParameters()
     LOG_WARNING("Unable to reconnect input. Image will no longer show in main window.");
   }
   this->SetDisplayAccordingToState();
+
+  // Update ROI
+  m_ParentMainWindow->GetVisualizationController()->ReadRoiConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 
   // Update segmentation parameters
   if (m_PatternRecognition->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
@@ -737,14 +732,7 @@ void SpatialCalibrationToolbox::DoCalibration()
   m_ParentMainWindow->SetStatusBarProgress(progressPercent);
 
   // Display segmented points (or hide them if unsuccessful)
-  if (numberOfNewlySegmentedImages > 0)
-  {
-    DisplaySegmentedPoints();
-  }
-  else
-  {
-    m_ParentMainWindow->GetVisualizationController()->ShowResult(false);
-  }
+  DisplaySegmentedPoints();
 
   // Compute time spent with processing one frame in this round
   double computationTimeMs = (vtkAccurateTimer::GetSystemTime() - startTimeSec) * 1000.0;
@@ -884,19 +872,23 @@ void SpatialCalibrationToolbox::DisplaySegmentedPoints()
     trackedFrameListToUse = m_SpatialCalibrationData;
   }
 
-  // Look for last segmented image and display the points
-  for (int i=trackedFrameListToUse->GetNumberOfTrackedFrames() - 1; i>=0; --i)
+  // Display found wire interesections in the most recent frame
+  vtkPoints* segmentedPoints = NULL;
+  if (trackedFrameListToUse->GetNumberOfTrackedFrames()>0)
   {
-    TrackedFrame * frame = trackedFrameListToUse->GetTrackedFrame(i);
-    vtkPoints* segmentedPoints = trackedFrameListToUse->GetTrackedFrame(i)->GetFiducialPointsCoordinatePx();
-    if (segmentedPoints)
-    {
-      m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->SetPoints(segmentedPoints);
-      m_ParentMainWindow->GetVisualizationController()->SetWireLabelPositions(segmentedPoints);
-      m_ParentMainWindow->GetVisualizationController()->ShowResult(true);
-      break;
-    }
+    TrackedFrame * frame = trackedFrameListToUse->GetTrackedFrame(trackedFrameListToUse->GetNumberOfTrackedFrames()-1); // most recently acquired frame
+    segmentedPoints = frame->GetFiducialPointsCoordinatePx();
   }
+  if (segmentedPoints && segmentedPoints->GetNumberOfPoints()>0)
+  {
+    m_ParentMainWindow->GetVisualizationController()->ShowResult(true);
+  }
+  else
+  {
+    m_ParentMainWindow->GetVisualizationController()->ShowResult(false);
+  }
+  m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->SetPoints(segmentedPoints);
+  m_ParentMainWindow->GetVisualizationController()->SetWireLabelPositions(segmentedPoints);
 }
 
 //-----------------------------------------------------------------------------
