@@ -34,6 +34,7 @@ enum OperationType
   MERGE,
   FILL_IMAGE_RECTANGLE,
   CROP,
+  DECIMATE,
   NO_OPERATION
 }; 
 
@@ -62,6 +63,7 @@ public:
 }; 
 
 PlusStatus TrimSequenceMetafile( vtkTrackedFrameList* trackedFrameList, unsigned int firstFrameIndex, unsigned int lastFrameIndex ); 
+PlusStatus DecimateSequenceMetafile( vtkTrackedFrameList* trackedFrameList, unsigned int decimationFactor); 
 PlusStatus UpdateFrameFieldValue( FrameFieldUpdate& fieldUpdate ); 
 PlusStatus DeleteFrameField( vtkTrackedFrameList* trackedFrameList, std::string fieldName ); 
 PlusStatus ConvertStringToMatrix( std::string &strMatrix, vtkMatrix4x4* matrix); 
@@ -98,6 +100,8 @@ int main(int argc, char **argv)
 
   double frameScalarStart = 0.0;  // Frame scalar field value starting index (Default: 0.0)
   double frameScalarIncrement = 1.0;  // Frame scalar field value increment (Default: 1.0)
+
+  int decimationFactor = 2; // Keep every 2nd frame by default
   
   std::string strFrameTransformStart; // Frame transform field starting 4x4 transform matrix (Default: identity)
   vtkSmartPointer<vtkMatrix4x4> frameTransformStart = vtkSmartPointer<vtkMatrix4x4>::New();  // Frame transform field starting 4x4 transform matrix (Default: identity)
@@ -127,6 +131,9 @@ int main(int argc, char **argv)
   // Trimming parameters 
   args.AddArgument("--first-frame-index", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &firstFrameIndex, "First frame index used for trimming the sequence metafile. Index of the first frame of the sequence is 0.");  
   args.AddArgument("--last-frame-index", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &lastFrameIndex, "Last frame index used for trimming the sequence metafile.");  
+
+  // Decimation parameters
+  args.AddArgument("--decimation-factor", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &decimationFactor, "Used for DECIMATE operation, where every N-th frame is kept. This parameter specifies N (Default: 2)");
 
   args.AddArgument("--field-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &fieldName, "Field name to edit");  
   args.AddArgument("--updated-field-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &updatedFieldName, "Updated field name after edit");  
@@ -172,7 +179,8 @@ int main(int argc, char **argv)
     std::cout << "- DELETE_FIELD: delete field with name specified." << std::endl; 
     std::cout << "- ADD_TRANSFORM: add specified transform." << std::endl; 
 
-    std::cout << "- TRIM: Trim sequence metafile." << std::endl; 
+    std::cout << "- TRIM: Trim sequence metafile." << std::endl;
+    std::cout << "- DECIMATE: Keep every N-th frame of the sequence metafile." << std::endl;
     std::cout << "- MERGE: Merge multiple sequence metafiles into one. Set input files with the --source-seq-files parameter." << std::endl; 
     
     std::cout << "- FILL_IMAGE_RECTANGLE: Fill a rectangle in the image (useful for removing patient data from sequences)." << std::endl;
@@ -235,6 +243,10 @@ int main(int argc, char **argv)
   else if ( STRCASECMP(strOperation.c_str(), "TRIM" ) == 0 )
   {
     operation = TRIM; 
+  }
+  else if ( STRCASECMP(strOperation.c_str(), "DECIMATE" ) == 0 )
+  {
+    operation = DECIMATE; 
   }
   else if ( STRCASECMP(strOperation.c_str(), "MERGE" ) == 0 )
   {
@@ -327,7 +339,16 @@ int main(int argc, char **argv)
     {
       if ( TrimSequenceMetafile( trackedFrameList, firstFrameIndex, lastFrameIndex ) != PLUS_SUCCESS )
       {
-        LOG_ERROR("Failed to trim sequence metafile!"); 
+        LOG_ERROR("Failed to trim sequence metafile");
+        return EXIT_FAILURE; 
+      }
+    }
+    break; 
+  case DECIMATE: 
+    {
+      if ( DecimateSequenceMetafile( trackedFrameList, decimationFactor ) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Failed to decimate sequence metafile"); 
         return EXIT_FAILURE; 
       }
     }
@@ -361,7 +382,7 @@ int main(int argc, char **argv)
 
       if ( UpdateFrameFieldValue( fieldUpdate ) != PLUS_SUCCESS )
       {
-        LOG_ERROR("Failed to update frame field value!"); 
+        LOG_ERROR("Failed to update frame field value"); 
         return EXIT_FAILURE; 
       }
     }
@@ -370,7 +391,7 @@ int main(int argc, char **argv)
     {
       if ( DeleteFrameField( trackedFrameList, fieldName ) != PLUS_SUCCESS )
       {
-        LOG_ERROR("Failed to delete frame field!"); 
+        LOG_ERROR("Failed to delete frame field"); 
         return EXIT_FAILURE; 
       }
     }
@@ -450,11 +471,10 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
       }
     }
-    break;     
-
+    break;
   default: 
     {
-      LOG_WARNING("Selected operation not yet implemented!"); 
+      LOG_WARNING("Unknown operation is specified"); 
       return EXIT_FAILURE; 
     }
   }
@@ -598,6 +618,32 @@ PlusStatus TrimSequenceMetafile( vtkTrackedFrameList* aTrackedFrameList, unsigne
   return PLUS_SUCCESS; 
 }
 
+//-------------------------------------------------------
+PlusStatus DecimateSequenceMetafile( vtkTrackedFrameList* aTrackedFrameList, unsigned int decimationFactor)
+{
+  LOG_INFO("Decimate sequence metafile: keep 1 frame out of every " << decimationFactor << " frames"); 
+  if (decimationFactor < 2)
+  {
+    LOG_ERROR("Invalid decimation factor: "<<decimationFactor<<". It must be an integer larger or equal than 2.");
+    return PLUS_FAIL;
+  }
+  for (int i=0; i<aTrackedFrameList->GetNumberOfTrackedFrames()-1; i++)
+  {
+    int removeFirstFrameIndex = i+1;
+    int removeLastFrameIndex = i+decimationFactor-1;
+    if (removeLastFrameIndex >= aTrackedFrameList->GetNumberOfTrackedFrames())
+    {
+      removeLastFrameIndex = aTrackedFrameList->GetNumberOfTrackedFrames()-1;
+      if (removeLastFrameIndex < removeFirstFrameIndex)
+      {
+        removeLastFrameIndex = removeFirstFrameIndex;
+      }
+    }
+    aTrackedFrameList->RemoveTrackedFrameRange(removeFirstFrameIndex, removeLastFrameIndex);
+  }
+  return PLUS_SUCCESS; 
+}
+ 
 //-------------------------------------------------------
 PlusStatus DeleteFrameField( vtkTrackedFrameList* trackedFrameList, std::string fieldName )
 {
