@@ -165,6 +165,8 @@
 
   <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
     ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
+    FanOriginPixel="410 -140" FanAnglesDeg="-28 28" FanRadiusStartPixel="200" FanRadiusStopPixel="735"
+    EnableFanAnglesAutoDetect="TRUE" FanAnglesAutoDetectBrightnessThreshold="10"
     Interpolation="LINEAR" Optimization="FULL" CompoundingMode="MEAN" FillHoles="OFF"
   />
 

@@ -13,11 +13,11 @@ This is a command-line tool for editing sequence metafiles. Operations include d
 
 ## Compress a sequence metafile
 
-    EditSeqMetafile.exe --input-file-name=[inputFilePath] --output-file-name=[outputFilePath] --use-compression
+    EditSeqMetafile.exe --source-seq-file=[inputFilePath] --output-seq-file=[outputFilePath] --use-compression
 
 ## Uncompress a sequence metafile
 
-    EditSeqMetafile.exe --input-file-name=[inputFilePath] --output-file-name=[outputFilePath]
+    EditSeqMetafile.exe --source-seq-file=[inputFilePath] --output-seq-file=[outputFilePath]
     
 ## Trim a long sequence
 

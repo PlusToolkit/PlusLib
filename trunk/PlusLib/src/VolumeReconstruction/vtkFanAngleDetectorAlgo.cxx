@@ -38,6 +38,7 @@ vtkFanAngleDetectorAlgo::vtkFanAngleDetectorAlgo()
   this->BrightnessThreshold = 30;
   this->FanAngleMarginDeg = -3;
 
+  this->EvaluatedDepthsRadiusPercentage.push_back(15);
   this->EvaluatedDepthsRadiusPercentage.push_back(30);
   this->EvaluatedDepthsRadiusPercentage.push_back(50);
   this->EvaluatedDepthsRadiusPercentage.push_back(70);

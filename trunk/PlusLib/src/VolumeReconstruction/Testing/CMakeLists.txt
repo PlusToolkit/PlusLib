@@ -145,18 +145,18 @@ GENERATE_HELP_DOC(DrawClipRegion)
 # --------------------------------------------------------------------------
 ADD_TEST(DrawClipRegionRunTest
   ${EXECUTABLE_OUTPUT_PATH}/DrawClipRegion
-  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_VolumeReconstructionOnly_FanAnglesAutoDetect.xml
-  --source-seq-file=${TestDataDir}/UsSimulatorOutputSpinePhantom2CurvilinearBaseline.mha
-  --output-seq-file=UsSimulatorOutputSpinePhantom2CurvilinearBaselineWithClipRegion.mha
+  --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_SonixTablet_C5-2_NDIPolaris_fCal3.xml
+  --source-seq-file=${TestDataDir}/SpinePhantomPartialSurfaceContact.mha
+  --output-seq-file=outputSpinePhantomPartialSurfaceContactWithClipRegion.mha
   )
 SET_TESTS_PROPERTIES( DrawClipRegionRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-#ADD_TEST(vtkUsScanConvertCurvilinearCompareToBaselineTest
-#  ${CMAKE_COMMAND} -E compare_files 
-#   ${TEST_OUTPUT_PATH}/outputUltrasonixCurvilinearScanConvertedData_OutputChannel_ScanConvertOutput.mha
-#   ${TestDataDir}/UltrasonixCurvilinearScanConvertedData.mha
-#  )
-#SET_TESTS_PROPERTIES(vtkUsScanConvertCurvilinearCompareToBaselineTest PROPERTIES DEPENDS vtkUsScanConvertCurvilinearRunTest)
+ADD_TEST(DrawClipRegionCompareToBaselineTest
+  ${CMAKE_COMMAND} -E compare_files 
+   ${TEST_OUTPUT_PATH}/outputSpinePhantomPartialSurfaceContactWithClipRegion.mha
+   ${TestDataDir}/SpinePhantomPartialSurfaceContactWithClipRegionBaseline.mha
+  )
+SET_TESTS_PROPERTIES(DrawClipRegionCompareToBaselineTest PROPERTIES DEPENDS DrawClipRegionRunTest)
 
 # --------------------------------------------------------------------------
 # Install
