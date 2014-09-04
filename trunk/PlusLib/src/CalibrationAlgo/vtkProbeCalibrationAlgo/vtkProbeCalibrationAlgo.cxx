@@ -256,7 +256,9 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
     if ( AddPositionsPerImage(validationTrackedFrameList->GetTrackedFrame(frameNumber), transformRepository, VALIDATION_ALL) != PLUS_SUCCESS )
     {
       LOG_ERROR("Add validation position failed on frame #" << frameNumber);
-      continue;
+      // we cannot continue the calibration, as there would be a mismatch between
+      // the number of frames and the number of wire positions
+      return PLUS_FAIL;
     }
   }    
 
@@ -267,7 +269,9 @@ PlusStatus vtkProbeCalibrationAlgo::Calibrate( vtkTrackedFrameList* validationTr
     if ( AddPositionsPerImage(calibrationTrackedFrameList->GetTrackedFrame(frameNumber), transformRepository, CALIBRATION_ALL) != PLUS_SUCCESS )
     {
       LOG_ERROR("Add calibration position failed on frame #" << frameNumber);
-      continue;
+      // we cannot continue the calibration, as there would be a mismatch between
+      // the number of frames and the number of wire positions
+      return PLUS_FAIL;
     }
   }
 
