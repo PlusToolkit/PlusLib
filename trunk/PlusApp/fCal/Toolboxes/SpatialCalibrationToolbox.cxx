@@ -112,14 +112,14 @@ void SpatialCalibrationToolbox::OnActivated()
   {
     if (m_Calibration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Reading probe calibration algorithm configuration failed!");
+      LOG_ERROR("Reading probe calibration algorithm configuration failed");
       return;
     }
 
     // Read spatial calibration configuration
     if (ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Reading spatial calibration configuration failed!");
+      LOG_ERROR("Reading spatial calibration configuration failed");
       return;
     }
 
@@ -155,7 +155,7 @@ PlusStatus SpatialCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aConf
 
   if (fCalElement == NULL)
   {
-    LOG_ERROR("Unable to find fCal element in XML tree!"); 
+    LOG_ERROR("Unable to find fCal element in XML tree"); 
     return PLUS_FAIL;     
   }
 
@@ -302,7 +302,7 @@ void SpatialCalibrationToolbox::SetDisplayAccordingToState()
       QPalette palette;
       palette.setColor(ui.label_State->foregroundRole(), QColor::fromRgb(255, 128, 0));
       ui.label_State->setPalette(palette);
-      ui.label_State->setText( QString("Probe calibration configuration is missing!") );
+      ui.label_State->setText( QString("Probe calibration configuration is missing") );
       LOG_INFO("Probe calibration configuration is missing");
       m_State = ToolboxState_Error;
     }
@@ -366,6 +366,10 @@ void SpatialCalibrationToolbox::SetDisplayAccordingToState()
     ui.pushButton_EditSegmentationParameters->setEnabled(false);
 
     ui.label_Warning->setVisible(false);
+    QPalette palette;
+    palette.setColor(ui.label_State->foregroundRole(), Qt::black);
+    ui.label_State->setPalette(palette);
+    ui.label_State->setText(tr("Spatial calibration is in progress..."));
     ui.label_Results->setText(QString(""));
 
     m_ParentMainWindow->SetStatusBarText(QString(" Acquiring and adding images to calibrator"));
@@ -468,7 +472,7 @@ void SpatialCalibrationToolbox::OpenPhantomRegistration()
     || tempTransformRepo->GetTransformDate(phantomToReferenceTransformName, transformDate) != PLUS_SUCCESS
     || tempTransformRepo->GetTransformError(phantomToReferenceTransformName, transformError) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to read transform from opened file!");
+    LOG_ERROR("Failed to read transform from opened file");
     tempTransformRepo->Delete();
     return;
   }
@@ -479,7 +483,7 @@ void SpatialCalibrationToolbox::OpenPhantomRegistration()
   {
     if (m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->SetTransform(phantomToReferenceTransformName, phantomToReferenceTransformMatrix) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Failed to set phantom registration transform to transform repository!");
+      LOG_ERROR("Failed to set phantom registration transform to transform repository");
       return;
     }
 
@@ -489,7 +493,7 @@ void SpatialCalibrationToolbox::OpenPhantomRegistration()
   }
   else
   {
-    LOG_ERROR("Invalid phantom registration transform found, it was not set!");
+    LOG_ERROR("Invalid phantom registration transform found, it was not set");
   }
 
   SetDisplayAccordingToState();
@@ -523,7 +527,7 @@ void SpatialCalibrationToolbox::OpenSegmentationParameters()
   // Load calibration configuration xml
   if (m_PatternRecognition->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Unable to import segmentation parameters!");
+    LOG_ERROR("Unable to import segmentation parameters");
     return;
   }
 
@@ -567,7 +571,7 @@ void SpatialCalibrationToolbox::EditSegmentationParameters()
   // Update segmentation parameters
   if (m_PatternRecognition->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Unable to update segmentation parameters!");
+    LOG_ERROR("Unable to update segmentation parameters");
     return;
   }
 
@@ -589,7 +593,7 @@ void SpatialCalibrationToolbox::StartCalibration()
   if ( (m_ParentMainWindow->GetSelectedChannel() == NULL)
     || (m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->GetToolReferenceFrameName() == NULL) )
   {
-    LOG_ERROR("Failed to get tool reference frame name!");
+    LOG_ERROR("Failed to get tool reference frame name");
     return;
   }
   toolReferenceFrame = m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->GetToolReferenceFrameName();
@@ -601,7 +605,7 @@ void SpatialCalibrationToolbox::StartCalibration()
   if ( (this->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
     || (m_PatternRecognition->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS) )
   {
-    LOG_ERROR("Reading configuration failed!");
+    LOG_ERROR("Reading configuration failed");
     return;
   }
 
@@ -640,14 +644,15 @@ void SpatialCalibrationToolbox::DoCalibration()
 
     if (m_Calibration->Calibrate( m_SpatialValidationData, m_SpatialCalibrationData, m_ParentMainWindow->GetVisualizationController()->GetTransformRepository(), m_PatternRecognition->GetFidLineFinder()->GetNWires() ) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Calibration failed!");
+      LOG_ERROR("Calibration failed");
       CancelCalibration();
+      ui.label_Results->setText("Calibration failed.");
       return;
     }
 
     if (SetAndSaveResults() != PLUS_SUCCESS)
     {
-      LOG_ERROR("Setting and saving results failed!");
+      LOG_ERROR("Setting and saving results failed");
       CancelCalibration();
       return;
     }
@@ -694,35 +699,67 @@ void SpatialCalibrationToolbox::DoCalibration()
   }
   int numberOfFramesToGet = std::max(m_MaxTimeSpentWithProcessingMs / m_LastProcessingTimePerFrameMs, 1);
 
-  if ( m_ParentMainWindow->GetSelectedChannel() != NULL && m_ParentMainWindow->GetSelectedChannel()->GetTrackedFrameList(
-    m_LastRecordedFrameTimestamp, trackedFrameListToUse, numberOfFramesToGet) != PLUS_SUCCESS )
+  if ( m_ParentMainWindow->GetSelectedChannel() != NULL &&
+    m_ParentMainWindow->GetSelectedChannel()->GetTrackedFrameList(m_LastRecordedFrameTimestamp, trackedFrameListToUse, numberOfFramesToGet) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << m_LastRecordedFrameTimestamp ); 
     QTimer::singleShot(50, this, SLOT(DoCalibration()));
-    return; 
+    return;
+  }
+
+  // Remove tracked frames without valid transforms
+  PlusTransformName probeToPhantomTransformName=PlusTransformName(m_Calibration->GetProbeCoordinateFrame(), m_Calibration->GetPhantomCoordinateFrame());
+  vtkTransformRepository* transformRepository=m_ParentMainWindow->GetVisualizationController()->GetTransformRepository();
+  bool probeToPhantomTransformValid=false;
+  for (int frameIndex=numberOfFramesBeforeRecording; frameIndex<trackedFrameListToUse->GetNumberOfTrackedFrames(); frameIndex++)
+  {
+    TrackedFrame* trackedFrame=trackedFrameListToUse->GetTrackedFrame(frameIndex);
+    transformRepository->SetTransforms(*trackedFrame);
+    transformRepository->GetTransformValid(probeToPhantomTransformName, probeToPhantomTransformValid);
+    if (!probeToPhantomTransformValid)
+    {
+      trackedFrameListToUse->RemoveTrackedFrame(frameIndex);
+      frameIndex--; // we've deleted the current frame, so continue with the same frameIndex
+    }
+  }
+  
+  if (probeToPhantomTransformValid)
+  {    
+    ui.label_Warning->setVisible(false);
+  }
+  else
+  {
+    QPalette palette;
+    palette.setColor(ui.label_Warning->foregroundRole(), QColor::fromRgb(255, 128, 0));
+    ui.label_Warning->setPalette(palette);
+    ui.label_Warning->setText( QString("Cannot determine transform between probe and phantom (%1 transform is invalid).\nMake sure all markers are in the field of view.").arg(probeToPhantomTransformName.GetTransformName().c_str()));
+    ui.label_Warning->setVisible(true);
   }
 
   // Segment last recorded images
   int numberOfNewlySegmentedImages = 0;
-  PatternRecognitionError error;
-  if ( m_PatternRecognition->RecognizePattern(trackedFrameListToUse, error, &numberOfNewlySegmentedImages) != PLUS_SUCCESS )
+  if (numberOfFramesBeforeRecording<trackedFrameListToUse->GetNumberOfTrackedFrames())
   {
-    LOG_ERROR("Failed to segment tracked frame list!"); 
-    CancelCalibration();
-    return; 
-  }
-  if( error == PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES )
-  {
-    LOG_WARNING("Too many candidates in frame. Some candidates have been truncated to prevent freezing of the application.");
-  }
+    PatternRecognitionError error;
+    if ( m_PatternRecognition->RecognizePattern(trackedFrameListToUse, error, &numberOfNewlySegmentedImages) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to segment tracked frame list"); 
+      QTimer::singleShot(50, this, SLOT(DoCalibration()));
+      return;
+    }
+    if( error == PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES )
+    {
+      LOG_WARNING("Too many candidates in frame. Some candidates have been truncated to prevent freezing of the application.");
+    }
 
-  if (m_NumberOfSegmentedValidationImages < m_NumberOfValidationImagesToAcquire)
-  {
-    m_NumberOfSegmentedValidationImages += numberOfNewlySegmentedImages;
-  }
-  else
-  {
-    m_NumberOfSegmentedCalibrationImages += numberOfNewlySegmentedImages;
+    if (m_NumberOfSegmentedValidationImages < m_NumberOfValidationImagesToAcquire)
+    {
+      m_NumberOfSegmentedValidationImages += numberOfNewlySegmentedImages;
+    }
+    else
+    {
+      m_NumberOfSegmentedCalibrationImages += numberOfNewlySegmentedImages;
+    }
   }
 
   LOG_DEBUG("Number of segmented images in this round: " << numberOfNewlySegmentedImages << " out of " << trackedFrameListToUse->GetNumberOfTrackedFrames() - numberOfFramesBeforeRecording);
@@ -732,11 +769,10 @@ void SpatialCalibrationToolbox::DoCalibration()
   m_ParentMainWindow->SetStatusBarProgress(progressPercent);
 
   // Display segmented points (or hide them if unsuccessful)
-  DisplaySegmentedPoints();
+  DisplaySegmentedPoints(probeToPhantomTransformValid);
 
   // Compute time spent with processing one frame in this round
   double computationTimeMs = (vtkAccurateTimer::GetSystemTime() - startTimeSec) * 1000.0;
-
   // Update last processing time if new tracked frames have been acquired
   if (trackedFrameListToUse->GetNumberOfTrackedFrames() > numberOfFramesBeforeRecording)
   {
@@ -745,7 +781,6 @@ void SpatialCalibrationToolbox::DoCalibration()
 
   // Launch timer to run acquisition again
   int waitTimeMs = std::max((int)(m_RecordingIntervalMs - computationTimeMs), 0);
-
   if (waitTimeMs == 0)
   {
     LOG_WARNING("Processing cannot keep up with aquisition! Try to decrease MaxTimeSpentWithProcessingMs parameter in device set configuration (it should be more than the processing time (the last one was " << m_LastProcessingTimePerFrameMs << "), so if it is already small, try to increase RecordingIntervalMs too)");
@@ -804,7 +839,7 @@ PlusStatus SpatialCalibrationToolbox::SetAndSaveResults()
   // Save result in configuration
   if ( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->WriteConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Unable to save freehand calibration result in configuration XML tree!");
+    LOG_ERROR("Unable to save freehand calibration result in configuration XML tree");
     SetState(ToolboxState_Error);
     return PLUS_FAIL;
   }
@@ -857,7 +892,7 @@ bool SpatialCalibrationToolbox::IsReadyToStartSpatialCalibration()
 
 //-----------------------------------------------------------------------------
 
-void SpatialCalibrationToolbox::DisplaySegmentedPoints()
+void SpatialCalibrationToolbox::DisplaySegmentedPoints(bool enable)
 {
   LOG_TRACE("SpatialCalibrationToolbox::DisplaySegmentedPoints");
 
@@ -874,7 +909,7 @@ void SpatialCalibrationToolbox::DisplaySegmentedPoints()
 
   // Display found wire interesections in the most recent frame
   vtkPoints* segmentedPoints = NULL;
-  if (trackedFrameListToUse->GetNumberOfTrackedFrames()>0)
+  if (trackedFrameListToUse->GetNumberOfTrackedFrames()>0 && enable)
   {
     TrackedFrame * frame = trackedFrameListToUse->GetTrackedFrame(trackedFrameListToUse->GetNumberOfTrackedFrames()-1); // most recently acquired frame
     segmentedPoints = frame->GetFiducialPointsCoordinatePx();

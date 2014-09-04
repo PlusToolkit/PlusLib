@@ -71,8 +71,11 @@ protected:
   */
   bool IsReadyToStartSpatialCalibration();
 
-  /*! Prepares and shows the last segmented points from the current acquisition */
-  void DisplaySegmentedPoints();
+  /*!
+    Prepares and shows the last segmented points from the current acquisition.
+    If enable is false then segmented points are hidden (even if they were available).
+  */
+  void DisplaySegmentedPoints(bool enable);
 
   /*! Set and save calibration results */
   PlusStatus SetAndSaveResults();
