@@ -338,6 +338,7 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
       continue;
     }
 
+// RF acquisition mode is always enabled on Ultrasonix SDK 6.x and above
 #if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6) 
     if ( this->ImagingMode == RfMode )
     {
@@ -358,9 +359,6 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
         continue;
       }
     }
-#else
-    LOG_ERROR("RF acquisition mode is not supported on Ultrasonix SDK 6.x and above"); // see https://www.assembla.com/spaces/plus/tickets/489-add-rf-image-acquisition-support-on-ulterius-6-x
-    continue;
 #endif
 
     if( this->WantDataType(udtBPost) && this->HasDataType(udtBPost) )

@@ -14,6 +14,8 @@ Elvis Chen (Queen's University), Danielle Pace (Robarts Research Institute
 and The University of Western Ontario)
 =========================================================================*/  
 
+#include "PlusConfigure.h"
+
 #include "TrackedFrame.h" 
 #include "vtkImageData.h"
 #include "vtkInformation.h"
@@ -90,9 +92,18 @@ vtkSonixPortaVideoSourceCleanup vtkSonixPortaVideoSource::Cleanup;
 #  define vtkGWL_USERDATA GWL_USERDATA
 #endif //
 
-// The porta wrapper implementation does not have the proper #includes, so we have to include the file here
 #if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION >= 6) 
-#include "porta_wrapper.cpp"
+
+  // This is a workaround to avoid linker error due to missing portaImportChromaMap (caused by Ultrasonix SDK 6.1.0 bug)
+  int portaImportChromaMap(int index, const unsigned int* lut)
+  {
+    LOG_ERROR("portaImportChromaMap function is missing from Ultrasonix Porta SDK");
+    return 0;
+  }
+
+  // The porta wrapper implementation is not included in porta.lib, so we have to include it here
+  #include "porta_wrapper.cpp"
+
 #endif
 
 //----------------------------------------------------------------------------
