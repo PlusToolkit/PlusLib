@@ -25,6 +25,8 @@ IF (PLUS_TEST_ULTRASONIX)
   SET (PLUS_TEST_ULTRASONIX_IP_ADDRESS "127.0.0.1" CACHE STRING "IP address of the Ultrasonix scanner that is used during testing")
 ENDIF()
 
+SET (DataCollection_INCLUDE_DIRS "" CACHE INTERNAL "" FORCE)
+
 # --------------------------------------------------------------------------
 # Sources
 SET (DataCollection_SRCS
@@ -420,92 +422,31 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
     SET(PORTA_LIB_DIR ${ULTRASONIX_SDK_DIR}/porta/lib CACHE PATH "Path to the Ultrasonix SDK Porta library directory." FORCE)                  
 
     SET (DataCollection_LIBS ${DataCollection_LIBS} 
-      ${ULTERIUS_LIB_DIR}/ulterius.lib
       ${PORTA_LIB_DIR}/porta.lib
       )
-    
     IF (PLUS_ULTRASONIX_SDK_MAJOR_VERSION EQUAL 6)
-      # All DLLs except ITK, VTK, and QT libraries
-      SET(ULTRASONIX_SDK_SHARED_LIBRARIES 
-        "${ULTRASONIX_SDK_BINARY_DIR}/actions.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/adaptivefilter.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/amplio.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/ATC3DG.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/BCAD.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/CadDLL.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/CadSDKWin32.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/console.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/cvgop.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/cvie.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/cvltk.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/daq.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/DICOM.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/DICOMNet.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/DigitalSignature.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/display.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/ecg.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/eizmon.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/elasto.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/ewfapi.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/fluctus.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/ftd2xx.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/gps.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/impero.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/libmmd.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/measurements.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/memoryleakdetector.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/mfc100u.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/msvcp100.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/msvcp71.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/msvcr100.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/msvcr71.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/panoramic.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/patient.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/patientreview.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/PDF.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/porta.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/presets.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/reporting.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/reslicevolume.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/StarBurn.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/strategy.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/surf.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/sx32w.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/texo.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/ulterius.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/umcDICOM.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/umc_string_convert.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/umc_unit_convert.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/umc_xml.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/utils_controls.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/utils_sse.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/utils_statics.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/utx_driver.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/utx_imgproc.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/utx_seq.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/utx_utils.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/variables.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/xerces-c_2_7_u_vc10.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/xerces-c_2_8.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/zlib1.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/zlibwapi.dll"
-        "${ULTRASONIX_SDK_BINARY_DIR}/zones.dll"
-        )
+
+      IF (PLUS_ULTRASONIX_SDK_MINOR_VERSION EQUAL 0)
+        MESSAGE( FATAL_ERROR "Plus does not support Ultrasonix SDK version 6.0.x") 
+      ENDIF()
+
+      SET (DataCollection_LIBS ${DataCollection_LIBS} ${ULTERIUS_LIB_DIR}/ulterius_old.lib)
     ELSE()
-      # Prior to SDK 6.x all DLLs can be added, no filtering is needed
-      FILE(GLOB ULTRASONIX_SDK_SHARED_LIBRARIES "${ULTRASONIX_SDK_BINARY_DIR}/[^.]*${CMAKE_SHARED_LIBRARY_SUFFIX}") 
+      SET (DataCollection_LIBS ${DataCollection_LIBS} ${ULTERIUS_LIB_DIR}/ulterius.lib)
     ENDIF()
-    
+
+    FILE(GLOB ULTRASONIX_SDK_SHARED_LIBRARIES "${ULTRASONIX_SDK_BINARY_DIR}/[^.]*${CMAKE_SHARED_LIBRARY_SUFFIX}")
+
     SET ( External_Libraries_Install ${External_Libraries_Install} ${ULTRASONIX_SDK_SHARED_LIBRARIES} )
     SET ( External_Libraries_Debug ${External_Libraries_Debug} ${ULTRASONIX_SDK_SHARED_LIBRARIES} )
   ENDIF()
-    
+
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
     ${ULTERIUS_INCLUDE_DIR}        
     ${PORTA_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/SonixVideo 
     )
-      
+
 ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 
 # --------------------------------------------------------------------------
