@@ -28,6 +28,8 @@ compares the results to a baseline
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx" 
 #include "vtksys/SystemTools.hxx"
+#include "vtkDirectory.h"
+
 #include <iostream>
 #include <stdlib.h>
 
@@ -135,9 +137,7 @@ PlusStatus ConstructSignalPlot(vtkTrackedFrameList* trackedStylusTipFrames, std:
 
   LOG_INFO("Range ["<< signalTimeRangeMin<<"-"<<signalTimeRangeMax<<"] "<<(signalTimeRangeMax-signalTimeRangeMin) << "[s]");
   double frequency = 1/(trackedStylusTipFrames->GetTrackedFrame(1)->GetTimestamp()-trackedStylusTipFrames->GetTrackedFrame(0)->GetTimestamp());
-  LOG_INFO("Frequency one frame = "<< frequency);
-  frequency=trackedStylusTipFrames->GetNumberOfTrackedFrames()/(signalTimeRangeMax-signalTimeRangeMin);
-  LOG_INFO("Frequency average frame = "<< frequency);
+  LOG_INFO("Frequency first frames = "<< frequency << " Frequency average frame = "<<trackedStylusTipFrames->GetNumberOfTrackedFrames()/(signalTimeRangeMax-signalTimeRangeMin));
 
   vtkSmartPointer<vtkReadTrackedSignals> trackerDataMetricExtractor = vtkSmartPointer<vtkReadTrackedSignals>::New();
 
@@ -176,7 +176,7 @@ PlusStatus ConstructSignalPlot(vtkTrackedFrameList* trackedStylusTipFrames, std:
     return PLUS_FAIL;
   }
 
-  std::string filename=intermediateFileOutputDirectory + "\\StylusTracked.png";
+  std::string filename=intermediateFileOutputDirectory /*+ "\\StylusTracked.png"*/;
   std::string xLabel = "Time [s]";
   std::string yLabel = "Position Metric";
   SaveMetricPlot(filename.c_str(), stylusRefTable, stylusTipRefTable,  stylusTipSpeedTable, xLabel, yLabel);
@@ -188,14 +188,19 @@ int main (int argc, char* argv[])
   std::string inputConfigFileName;
   std::string inputBaselineFileName;
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
-  std::string inputTrackedStylusTipSequenceMetafile;
+  std::string inputTrackedStylusTipSequence;
   std::string intermediateFileOutputDirectory;
   vtksys::CommandLineArguments cmdargs;
+  double accumulatedError=0.0;
+  int succesfulDatasets=0;
+
   cmdargs.Initialize(argc, argv);
   cmdargs.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
   cmdargs.AddArgument("--baseline-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
   cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
-  cmdargs.AddArgument("--tracker-input-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTrackedStylusTipSequenceMetafile, "Input tracker sequence metafile name with path");
+  cmdargs.AddArgument("--tracker-input-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTrackedStylusTipSequence, "Input tracker sequence metafile name with path");
+cmdargs.AddArgument("--intermediate-file-output-dir", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &intermediateFileOutputDirectory, "Directory into which the intermediate files are written");
+
   if ( !cmdargs.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
@@ -204,6 +209,7 @@ int main (int argc, char* argv[])
   }
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
   LOG_INFO("Initialize"); 
+
   // Read PivotDetection configuration
   vtkSmartPointer<vtkXMLDataElement> configPivotDetection = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
   if (configPivotDetection == NULL)
@@ -216,27 +222,6 @@ int main (int argc, char* argv[])
   {
     intermediateFileOutputDirectory = vtkPlusConfig::GetInstance()->GetOutputDirectory();
   }
-
-  // Read stylus tracker data
-  vtkSmartPointer<vtkTrackedFrameList> trackedStylusTipFrames = vtkSmartPointer<vtkTrackedFrameList>::New();
-  if( !inputTrackedStylusTipSequenceMetafile.empty() )
-  {
-    trackedStylusTipFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK);
-    LOG_INFO("Read stylus tracker data from " << inputTrackedStylusTipSequenceMetafile);
-    if ( trackedStylusTipFrames->ReadFromSequenceMetafile(inputTrackedStylusTipSequenceMetafile.c_str()) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to read stylus data from sequence metafile: " << inputTrackedStylusTipSequenceMetafile << ". Exiting...");
-      exit(EXIT_FAILURE);
-    }
-    trackedStylusTipFrames->Register(NULL);
-  }
-  else
-  {
-    LOG_ERROR("Empty file name to read sequence metafile: " );
-  }
-
-  //This is to construct a plot of the tracked stylus and stylus tip position norms.
-  //ConstructSignalPlot( trackedStylusTipFrames, intermediateFileOutputDirectory, configPivotDetection);
 
   //--------------------------------------------------------------------------------------------------------------------------------------
   // Initialize data collection
@@ -297,128 +282,206 @@ int main (int argc, char* argv[])
   }
   fakeTracker->SetTransformRepository(transformRepository);
 
-  // Initialize phantom registration
-  vtkSmartPointer<vtkPhantomLandmarkRegistrationAlgo> phantomRegistration = vtkSmartPointer<vtkPhantomLandmarkRegistrationAlgo>::New();
-  if (phantomRegistration == NULL)
-  {
-    LOG_ERROR("Unable to instantiate phantom registration algorithm class!");
-    exit(EXIT_FAILURE);
-  }
-  if (phantomRegistration->ReadConfiguration(configPivotDetection) != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Unable to read phantom definition!");
-    exit(EXIT_FAILURE);
-  }
-  int numberOfLandmarks = phantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints();
-  if (numberOfLandmarks != 8)
-  {
-    LOG_ERROR("Number of defined landmarks should be 8 instead of " << numberOfLandmarks << "!");
-    exit(EXIT_FAILURE);
-  }
+  std::string extension = vtksys::SystemTools::GetFilenameExtension(inputTrackedStylusTipSequence);
+  int numberFiles = 0;
+  vtkSmartPointer<vtkDirectory> myDir = vtkSmartPointer<vtkDirectory>::New();
 
-  // Initialize pivot detection
-  vtkSmartPointer<vtkPivotDetectionAlgo> PivotDetection = vtkSmartPointer<vtkPivotDetectionAlgo>::New();
-  if (PivotDetection == NULL)
+  if(extension==".mha")
   {
-    LOG_ERROR("Unable to instantiate pivot detection algorithm class!");
-    exit(EXIT_FAILURE);
-  }
-  if (PivotDetection->ReadConfiguration(configPivotDetection) != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Unable to read pivot calibration configuration!");
-    exit(EXIT_FAILURE);
-  }
-  PivotDetection->SetExpectedPivotsNumber(phantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints());
-
-  // Check stylus tool
-  PlusTransformName stylusTipToReferenceTransformName(phantomRegistration->GetStylusTipCoordinateFrame(), phantomRegistration->GetReferenceCoordinateFrame());
-  PlusTransformName stylusToReferenceTransformName(PivotDetection->GetObjectMarkerCoordinateFrame(), PivotDetection->GetReferenceCoordinateFrame());
-  PlusTransformName stylusTipToStylusTransformName(phantomRegistration->GetStylusTipCoordinateFrame(), PivotDetection->GetObjectMarkerCoordinateFrame());
-
-  vtkSmartPointer<vtkMatrix4x4> stylusTipToStylusTransform = vtkSmartPointer<vtkMatrix4x4>::New();
-  bool valid = false;
-  transformRepository->GetTransform(stylusTipToStylusTransformName, stylusTipToStylusTransform, &valid);
-  double offsetPhantom[3] = {0,0,0};
-  double pivotFound[3] = {0,0,0};
-  double pivotLandmark[3] = {0,0,0};
-
-  if (valid)
-  {
-    // Acquire positions for pivot detection
-    TrackedFrame trackedFrame;
-    vtkSmartPointer<vtkMatrix4x4> stylusToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-    for (int i=0; i < trackedStylusTipFrames->GetNumberOfTrackedFrames(); ++i)
-    {
-      //fakeTracker->SetCounter(i);
-      //aChannel->GetTrackedFrame((trackedStylusTipFrames->GetTrackedFrame(i)));
-
-      if ( transformRepository->SetTransforms(*(trackedStylusTipFrames->GetTrackedFrame(i))) != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Failed to update transforms in repository with tracked frame!");
-        exit(EXIT_FAILURE);
-      }
-
-      valid = false;
-      if ( (transformRepository->GetTransform(stylusToReferenceTransformName, stylusToReferenceMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
-      {
-        LOG_ERROR("No valid transform found between stylus to reference!");
-        exit(EXIT_FAILURE);
-      }
-      vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceTransformMatrix = vtkMatrix4x4::New();
-      vtkMatrix4x4::Multiply4x4(stylusToReferenceMatrix,stylusTipToStylusTransform,stylusTipToReferenceTransformMatrix);
-      PivotDetection->InsertNextStylusTipToReferenceTransform(stylusTipToReferenceTransformMatrix);
-      PivotDetection->IsNewPivotPointFound(valid);
-      if(valid)
-      {
-        vtkPlusLogger::PrintProgressbar((100.0 * PivotDetection->GetPivotPointsReference()->GetNumberOfPoints()-1) / phantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints()); 
-        PivotDetection->GetPivotPointsReference()->GetPoint(PivotDetection->GetPivotPointsReference()->GetNumberOfPoints()-1, pivotFound);
-        // Add recorded point to algorithm
-        phantomRegistration->GetRecordedLandmarks()->InsertPoint(PivotDetection->GetPivotPointsReference()->GetNumberOfPoints()-1, pivotFound);
-        phantomRegistration->GetRecordedLandmarks()->Modified();
-        LOG_INFO("\nPivot found (" << pivotFound[0]<<", " << pivotFound[1]<<", " << pivotFound[2]<<") at "<<trackedStylusTipFrames->GetTrackedFrame(i)->GetTimestamp()<<"[ms]"<< "\nNumber of pivots in phantonReg "<<phantomRegistration->GetRecordedLandmarks()->GetNumberOfPoints());
-      }
-      PivotDetection->IsPivotDetectionCompleted(valid);
-      if(valid)
-      {
-        break;
-      }
-    }
+    LOG_INFO("Only one sequence"<<extension);
+    numberFiles=1;
   }
   else
   {
-    LOG_ERROR("No valid transform found between stylus to stylus tip!");
+    myDir->Open (inputTrackedStylusTipSequence.c_str());
+    numberFiles = myDir->GetNumberOfFiles();
   }
-
-  LOG_INFO(PivotDetection->GetDetectedPivotsString());
-
-  if (phantomRegistration->Register(transformRepository) != PLUS_SUCCESS)
+  // Get each file name in the directory
+  for (int i = 0; i < numberFiles; i++)
   {
-    LOG_ERROR("Phantom registration failed!");
-    exit(EXIT_FAILURE);
+    std::string fileString;
+    if(numberFiles==1)
+    {
+      fileString = inputTrackedStylusTipSequence;
+    }
+    else
+    {   
+      fileString =inputTrackedStylusTipSequence;
+      fileString += "\\";
+      fileString += myDir->GetFile(i);
+    }
+    extension = vtksys::SystemTools::GetFilenameExtension(fileString);
+    if(extension==".mha")
+    {
+      vtkSmartPointer<vtkTrackedFrameList> trackedStylusTipFrames = vtkSmartPointer<vtkTrackedFrameList>::New();
+      if( !fileString.empty() )
+      {
+        trackedStylusTipFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK);
+        LOG_INFO("Read stylus tracker data from " << fileString);
+        if ( trackedStylusTipFrames->ReadFromSequenceMetafile(fileString.c_str()) != PLUS_SUCCESS )
+        {
+          LOG_ERROR("Failed to read stylus data from sequence metafile: " << fileString << ". Exiting...");
+          exit(EXIT_FAILURE);
+        }
+        trackedStylusTipFrames->Register(NULL);
+      }
+      else
+      {
+        LOG_ERROR("Empty file name to read sequence metafile: " );
+      }
+
+      //This is to construct a plot of the tracked stylus and stylus tip position norms.
+      fileString =intermediateFileOutputDirectory;
+      fileString+="\\";
+      if(numberFiles==1)
+      {      
+        fileString+=vtksys::SystemTools::GetFilenameWithoutLastExtension(inputTrackedStylusTipSequence);
+        fileString+=".png";
+      }
+      else
+      {
+        fileString+=vtksys::SystemTools::GetFilenameWithoutLastExtension(myDir->GetFile(i));
+        fileString+=".png";
+      }
+      ConstructSignalPlot( trackedStylusTipFrames, fileString, configPivotDetection);
+
+      //----------------------------------------------------------------------------------------------
+      // Initialize phantom registration
+      vtkSmartPointer<vtkPhantomLandmarkRegistrationAlgo> phantomRegistration = vtkSmartPointer<vtkPhantomLandmarkRegistrationAlgo>::New();
+      if (phantomRegistration == NULL)
+      {
+        LOG_ERROR("Unable to instantiate phantom registration algorithm class!");
+        exit(EXIT_FAILURE);
+      }
+      if (phantomRegistration->ReadConfiguration(configPivotDetection) != PLUS_SUCCESS)
+      {
+        LOG_ERROR("Unable to read phantom definition!");
+        exit(EXIT_FAILURE);
+      }
+      int numberOfLandmarks = phantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints();
+      if (numberOfLandmarks != 8)
+      {
+        LOG_ERROR("Number of defined landmarks should be 8 instead of " << numberOfLandmarks << "!");
+        exit(EXIT_FAILURE);
+      }
+
+      // Initialize pivot detection
+      vtkSmartPointer<vtkPivotDetectionAlgo> PivotDetection = vtkSmartPointer<vtkPivotDetectionAlgo>::New();
+      if (PivotDetection == NULL)
+      {
+        LOG_ERROR("Unable to instantiate pivot detection algorithm class!");
+        exit(EXIT_FAILURE);
+      }
+      PivotDetection->SetExpectedPivotsNumber(phantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints());
+      PivotDetection->SetMinimunDistanceBetweenLandmarksMM(phantomRegistration->GetMinimunDistanceBetweenTwoLandmarks());
+      PivotDetection->SetAcquisitionRate(1/(trackedStylusTipFrames->GetTrackedFrame(1)->GetTimestamp()-trackedStylusTipFrames->GetTrackedFrame(0)->GetTimestamp()));
+      if (PivotDetection->ReadConfiguration(configPivotDetection) != PLUS_SUCCESS)
+      {
+        LOG_ERROR("Unable to read pivot calibration configuration!");
+        exit(EXIT_FAILURE);
+      }
+
+      // Check stylus tool
+      PlusTransformName stylusTipToReferenceTransformName(phantomRegistration->GetStylusTipCoordinateFrame(), phantomRegistration->GetReferenceCoordinateFrame());
+      PlusTransformName stylusToReferenceTransformName(PivotDetection->GetObjectMarkerCoordinateFrame(), PivotDetection->GetReferenceCoordinateFrame());
+      PlusTransformName stylusTipToStylusTransformName(phantomRegistration->GetStylusTipCoordinateFrame(), PivotDetection->GetObjectMarkerCoordinateFrame());
+
+      vtkSmartPointer<vtkMatrix4x4> stylusTipToStylusTransform = vtkSmartPointer<vtkMatrix4x4>::New();
+      bool valid = false;
+      transformRepository->GetTransform(stylusTipToStylusTransformName, stylusTipToStylusTransform, &valid);
+      double offsetPhantom[3] = {0,0,0};
+      double pivotFound[3] = {0,0,0};
+      double pivotLandmark[3] = {0,0,0};
+
+      if (valid)
+      {
+        // Acquire positions for pivot detection
+        TrackedFrame trackedFrame;
+        vtkSmartPointer<vtkMatrix4x4> stylusToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+        for (int j=0; j < trackedStylusTipFrames->GetNumberOfTrackedFrames(); ++j)
+        {
+          //fakeTracker->SetCounter(j);
+          //aChannel->GetTrackedFrame((trackedStylusTipFrames->GetTrackedFrame(j)));
+
+          if ( transformRepository->SetTransforms(*(trackedStylusTipFrames->GetTrackedFrame(j))) != PLUS_SUCCESS )
+          {
+            LOG_ERROR("Failed to update transforms in repository with tracked frame!");
+            exit(EXIT_FAILURE);
+          }
+
+          valid = false;
+          if ( (transformRepository->GetTransform(stylusToReferenceTransformName, stylusToReferenceMatrix, &valid) != PLUS_SUCCESS) || (!valid) )
+          {
+            //LOG_ERROR("No valid transform found between stylus to reference!");
+            //exit(EXIT_FAILURE);
+            // There is no available transform for this frame; skip that frame
+            LOG_INFO("There is no available transform for this frame; skip frame "<<trackedStylusTipFrames->GetTrackedFrame(j)->GetTimestamp()<<" [s]")
+              continue;
+          }
+
+          vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceTransformMatrix = vtkMatrix4x4::New();
+          vtkMatrix4x4::Multiply4x4(stylusToReferenceMatrix,stylusTipToStylusTransform,stylusTipToReferenceTransformMatrix);
+          PivotDetection->InsertNextStylusTipToReferenceTransform(stylusTipToReferenceTransformMatrix);
+          PivotDetection->IsNewPivotPointFound(valid);
+          if(valid)
+          {
+            vtkPlusLogger::PrintProgressbar((100.0 * PivotDetection->GetPivotPointsReference()->GetNumberOfPoints()-1) / phantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints()); 
+            PivotDetection->GetPivotPointsReference()->GetPoint(PivotDetection->GetPivotPointsReference()->GetNumberOfPoints()-1, pivotFound);
+            // Add recorded point to algorithm
+            phantomRegistration->GetRecordedLandmarks()->InsertPoint(PivotDetection->GetPivotPointsReference()->GetNumberOfPoints()-1, pivotFound);
+            phantomRegistration->GetRecordedLandmarks()->Modified();
+            LOG_INFO("\nPivot found (" << pivotFound[0]<<", " << pivotFound[1]<<", " << pivotFound[2]<<") at "<<trackedStylusTipFrames->GetTrackedFrame(j)->GetTimestamp()<<"[ms]"<< "\nNumber of pivots in phantonReg "<<phantomRegistration->GetRecordedLandmarks()->GetNumberOfPoints());
+          }
+          PivotDetection->IsPivotDetectionCompleted(valid);
+          if(valid)
+          {
+            succesfulDatasets++;
+            //LOG_INFO("\nREgistration completed" );
+            break;
+          }
+        }
+      }
+      else
+      {
+        LOG_ERROR("No valid transform found between stylus to stylus tip!");
+      }
+
+      LOG_INFO(PivotDetection->GetDetectedPivotsString());
+
+      if (phantomRegistration->Register(transformRepository) != PLUS_SUCCESS)
+      {
+        LOG_ERROR("Phantom registration failed!");
+        exit(EXIT_FAILURE);
+      }
+
+      LOG_INFO("Registration error = " << phantomRegistration->GetRegistrationError());
+      accumulatedError+=phantomRegistration->GetRegistrationError();
+      vtkPlusLogger::PrintProgressbar(100); 
+
+      if(numberFiles==1)
+      {
+        // Save result
+        if (transformRepository->WriteConfiguration(configPivotDetection) != PLUS_SUCCESS )
+        {
+          LOG_ERROR("Failed to write phantom registration result to configuration element!");
+          exit(EXIT_FAILURE);
+        }
+
+        std::string registrationResultFileName = "PhantomRegistrationAutoDetectPivotingTest.xml";
+        vtksys::SystemTools::RemoveFile(registrationResultFileName.c_str());
+        PlusCommon::PrintXML(registrationResultFileName.c_str(), configPivotDetection); 
+
+        if ( CompareRegistrationResultsWithBaseline( inputBaselineFileName.c_str(), registrationResultFileName.c_str(), phantomRegistration->GetPhantomCoordinateFrame(), phantomRegistration->GetReferenceCoordinateFrame() ) != PLUS_SUCCESS )
+        {
+          LOG_ERROR("Comparison of calibration data to baseline failed");
+          std::cout << "Exit failure!!!" << std::endl; 
+          return EXIT_FAILURE;
+        }
+      }
+    }
   }
-
-  vtkPlusLogger::PrintProgressbar(100); 
-  LOG_INFO("Registration error = " << phantomRegistration->GetRegistrationError());
-
-  // Save result
-  if (transformRepository->WriteConfiguration(configPivotDetection) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to write phantom registration result to configuration element!");
-    exit(EXIT_FAILURE);
-  }
-
-  std::string registrationResultFileName = "PhantomRegistrationAutoDetectPivotingTest.xml";
-  vtksys::SystemTools::RemoveFile(registrationResultFileName.c_str());
-  PlusCommon::PrintXML(registrationResultFileName.c_str(), configPivotDetection); 
-
-  if ( CompareRegistrationResultsWithBaseline( inputBaselineFileName.c_str(), registrationResultFileName.c_str(), phantomRegistration->GetPhantomCoordinateFrame(), phantomRegistration->GetReferenceCoordinateFrame() ) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Comparison of calibration data to baseline failed");
-    std::cout << "Exit failure!!!" << std::endl; 
-    return EXIT_FAILURE;
-  }
-
-  std::cout << "Exit success!!!" << std::endl; 
+  LOG_INFO("AccumulatedError = " << accumulatedError<< " Number of succesful registrations/datasets = " << succesfulDatasets<<"/"<<numberFiles-2);
+  LOG_INFO( "Exit success!!!" ); 
   return EXIT_SUCCESS; 
 }
 

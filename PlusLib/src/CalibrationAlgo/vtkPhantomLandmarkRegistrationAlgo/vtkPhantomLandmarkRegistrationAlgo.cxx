@@ -141,6 +141,7 @@ PlusStatus vtkPhantomLandmarkRegistrationAlgo::Register(vtkTransformRepository* 
   return PLUS_SUCCESS;
 }
 
+
 //-----------------------------------------------------------------------------
 
 PlusStatus vtkPhantomLandmarkRegistrationAlgo::ReadConfiguration(vtkXMLDataElement* aConfig)
@@ -247,3 +248,27 @@ PlusStatus vtkPhantomLandmarkRegistrationAlgo::ComputeError()
 
   return PLUS_SUCCESS;
 }
+
+
+double vtkPhantomLandmarkRegistrationAlgo::GetMinimunDistanceBetweenTwoLandmarks()
+{
+  // Defined landmarks from xml are in the phantom coordinate system
+  double referencePointArray[3] ;
+  this->DefinedLandmarks->GetPoint(0,referencePointArray);
+  double distance = DBL_MAX;
+  double otherPointArray[3];
+
+  for (int i=1; i<this->DefinedLandmarks->GetNumberOfPoints(); ++i)
+  {
+    this->DefinedLandmarks->GetPoint(i,otherPointArray);
+    // Defined landmarks from xml are in the phantom coordinate system
+    if(distance > sqrt( vtkMath::Distance2BetweenPoints(referencePointArray, otherPointArray) ))
+    {
+      distance = sqrt( vtkMath::Distance2BetweenPoints(referencePointArray, otherPointArray) );
+    }
+  }
+
+  return distance;
+}
+
+

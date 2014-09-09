@@ -26,11 +26,12 @@ namespace
 {
   const int EXPECTED_PIVOTS_NUMBER=3;// The default expected number of pivots to be detected
   const double ABOVE_PIVOT_THRESHOLD_MM=3.0;//Above the pivot threshold is used to detect stylus pivoting and not static. When a point 10 cm above the stylus tip magnitude change is bigger than AbovePivotThresholdMM, the stylus is pivoting.
-  const double PIVOT_THRESHOLD_MM=1.8;// A pivot position will be consider when the stylus tip position magnitude change is below PivotThresholdMM.
+  const double PIVOT_THRESHOLD_MM=1.5;// A pivot position will be consider when the stylus tip position magnitude change is below PivotThresholdMM.
 
-  const int NUMBER_WINDOWS=6;//The number of windows to be detected as pivot in DetectionTime (2 [s])DetectionTime/WindowTime
-  const int WINDOW_SIZE=5;//The number of acquisitions in WindowTime (1/3 [s]) AcquisitonRate*WindowTime
+  const int NUMBER_WINDOWS=5;//The number of windows to be detected as pivot in DetectionTime (1.0 [s]) DetectionTime/WindowTime
+  const int WINDOW_SIZE=3;//The number of acquisitions in WindowTime (0.2 [s]) AcquisitonRate*WindowTime
   const double MAXIMUM_WINDOW_TIME_SEC=3.0;
+  const int NUMBER_WINDOWS_SKIP =2;
 }
 
 //----------------------------------------------------------------------------
@@ -41,30 +42,13 @@ void vtkPivotDetectionAlgo::SetAcquisitionRate(double aquisitionRate)
     LOG_ERROR("Specified acquisition rate is not valid");
   }
   this->AcquisitionRate=aquisitionRate;
-  this->WindowSize=PlusMath::Round(this->AcquisitionRate*this->WindowTimeSec);
-}
 
-//----------------------------------------------------------------------------
-void vtkPivotDetectionAlgo::SetWindowTimeSec(double windowTime)
-{
-  if(this->AcquisitionRate<=0)
+  this->WindowTimeSec=WINDOW_SIZE/this->AcquisitionRate; //If not specified window time will span by default WINDOW_SIZE=3 of acquisition points
+  this->WindowSize=PlusMath::Round(this->AcquisitionRate*this->WindowTimeSec);
+  if(this->WindowSize<1)
   {
-    LOG_ERROR("There is no acquisition rate specified");
-  }
-  if(windowTime>0&& windowTime<MAXIMUM_WINDOW_TIME_SEC)
-  {
-    this->WindowTimeSec=windowTime;
-    this->WindowSize=PlusMath::Round(this->AcquisitionRate*this->WindowTimeSec);
-    if(this->WindowSize<1)
-    {
-      LOG_WARNING("The smallest window size is set to 1");
-      this->WindowSize=1;
-    }
-    this->NumberOfWindows=this->DetectionTimeSec/this->WindowTimeSec;
-  }
-  else
-  {
-    LOG_WARNING("Specified window time (" << windowTime << " [s]) is not correct, default "<<this->WindowTimeSec<<" [s] is used instead");
+    LOG_WARNING("The smallest window size is set to 1");
+    this->WindowSize=1;
   }
 }
 
@@ -80,6 +64,34 @@ void vtkPivotDetectionAlgo::SetDetectionTimeSec(double detectionTime)
   {
     LOG_WARNING("Specified window time (" << detectionTime << " [s]) is not correct, default "<<this->DetectionTimeSec<<" [s] is used instead");
   }
+  LOG_INFO("AcquisitionRate = "<< AcquisitionRate << " WindowTimeSec = " << WindowTimeSec<<"SET DetectionTimeSec = "<< DetectionTimeSec);
+  LOG_INFO("NumberOfWindows = "<< NumberOfWindows<< " WindowSize = "<< WindowSize<< " MinimunDistanceBetweenLandmarksMM = "<< MinimunDistanceBetweenLandmarksMM );
+}
+
+//----------------------------------------------------------------------------
+void vtkPivotDetectionAlgo::SetWindowTimeSec(double windowTime)
+{
+  if(this->AcquisitionRate<=0)
+  {
+    LOG_ERROR("There is no acquisition rate specified");
+  }
+  if(windowTime>0&& windowTime<=this->DetectionTimeSec)
+  {
+    this->WindowTimeSec=windowTime;
+    this->WindowSize=PlusMath::Round(this->AcquisitionRate*this->WindowTimeSec);
+    if(this->WindowSize<1)
+    {
+      LOG_WARNING("The smallest window size is set to 1");
+      this->WindowSize=1;
+    }
+    this->NumberOfWindows=this->DetectionTimeSec/this->WindowTimeSec;
+  }
+  else
+  {
+    LOG_WARNING("Specified window time (" << windowTime << " [s]) is not correct, default "<<this->WindowTimeSec<<" [s] is used instead");
+  }
+  LOG_INFO("AcquisitionRate = "<< AcquisitionRate << " WindowTimeSec = " << WindowTimeSec<<"SET DetectionTimeSec = "<< DetectionTimeSec);
+  LOG_INFO("NumberOfWindows = "<< NumberOfWindows<< " WindowSize = "<< WindowSize<< " MinimunDistanceBetweenLandmarksMM = "<< MinimunDistanceBetweenLandmarksMM );
 }
 
 //----------------------------------------------------------------------------
@@ -146,11 +158,12 @@ vtkPivotDetectionAlgo::vtkPivotDetectionAlgo()
   this->WindowSize=WINDOW_SIZE;
 
   this->AcquisitionRate=0.0;
-  this->WindowTimeSec=1/3.0;
-  this->DetectionTimeSec=2.0;
+  this->WindowTimeSec=0.2;
+  this->DetectionTimeSec=1.0;
   this->AbovePivotThresholdMM = ABOVE_PIVOT_THRESHOLD_MM;
   this->PivotThresholdMM = PIVOT_THRESHOLD_MM;
   this->ExpectedPivotsNumber=EXPECTED_PIVOTS_NUMBER;
+  this->MinimunDistanceBetweenLandmarksMM=15.0;
 }
 
 //-----------------------------------------------------------------------------
@@ -384,20 +397,21 @@ bool vtkPivotDetectionAlgo::IsNewPivotPointPosition(double* stylusTipPosition)
     pivotDifference[0]=pivotFound[0]-stylusTipPosition[0];
     pivotDifference[1]=pivotFound[1]-stylusTipPosition[1];
     pivotDifference[2]=pivotFound[2]-stylusTipPosition[2];
-    //average if it is really close
-    if(vtkMath::Norm(pivotDifference)<this->PivotThresholdMM/3 )
-    {
-      NumberOfWindowsFoundPerPivot[id]=NumberOfWindowsFoundPerPivot[id]+1.0;
-      pivotFound[0]=(pivotFound[0]*(NumberOfWindowsFoundPerPivot[id]-1)+stylusTipPosition[0])/NumberOfWindowsFoundPerPivot[id];
-      pivotFound[1]=(pivotFound[1]*(NumberOfWindowsFoundPerPivot[id]-1)+stylusTipPosition[1])/NumberOfWindowsFoundPerPivot[id];
-      pivotFound[2]=(pivotFound[2]*(NumberOfWindowsFoundPerPivot[id]-1)+stylusTipPosition[2])/NumberOfWindowsFoundPerPivot[id];
-      //Only using the first detection time pivot detection and not the average might be more accurate
-      this->PivotPointsReference->InsertPoint(id,pivotFound);
-      LOG_INFO("Pivot found "<<NumberOfWindowsFoundPerPivot[id]<<" times. Average("<< pivotFound[0]<< ", "<< pivotFound[1]<< ", "<< pivotFound[2]<< ") set")
-        return false;
-    }
-    //if it is relatively close it might be same pivot outlier do not average it
-    else if(vtkMath::Norm(pivotDifference)<this->PivotThresholdMM*5)
+    ////average if it is really close
+    //if(vtkMath::Norm(pivotDifference)<this->PivotThresholdMM/5 )
+    //{
+    //  NumberOfWindowsFoundPerPivot[id]=NumberOfWindowsFoundPerPivot[id]+1.0;
+    //  pivotFound[0]=(pivotFound[0]*(NumberOfWindowsFoundPerPivot[id]-1)+stylusTipPosition[0])/NumberOfWindowsFoundPerPivot[id];
+    //  pivotFound[1]=(pivotFound[1]*(NumberOfWindowsFoundPerPivot[id]-1)+stylusTipPosition[1])/NumberOfWindowsFoundPerPivot[id];
+    //  pivotFound[2]=(pivotFound[2]*(NumberOfWindowsFoundPerPivot[id]-1)+stylusTipPosition[2])/NumberOfWindowsFoundPerPivot[id];
+    //  //Only using the first detection time pivot detection and not the average might be more accurate
+    //  this->PivotPointsReference->InsertPoint(id,pivotFound);
+    //  LOG_INFO("Pivot found "<<NumberOfWindowsFoundPerPivot[id]<<" times. Average("<< pivotFound[0]<< ", "<< pivotFound[1]<< ", "<< pivotFound[2]<< ") set")
+    //    return false;
+    //}
+    ////if it is relatively close it might be same pivot outlier do not average it 
+    //else if(vtkMath::Norm(pivotDifference)<this->MinimunDistanceBetweenLandmarksMM/2)
+    if(vtkMath::Norm(pivotDifference)<this->MinimunDistanceBetweenLandmarksMM/2)
     {
       return false;
     }
@@ -413,7 +427,7 @@ PlusStatus vtkPivotDetectionAlgo::EstimatePivotPointPosition()
     stylusTipToReferenceTransformIt!=this->StylusTipToReferenceTransformsList.end(); ++stylusTipToReferenceTransformIt)
   {
     //Only the middle windows
-    if(i>=this->WindowSize && i <(this->NumberOfWindows-1)*this->WindowSize)
+    if(i>=(this->WindowSize*NUMBER_WINDOWS_SKIP) && i <(this->NumberOfWindows)*this->WindowSize)
     {
       stylusPositionSum[0] +=(*stylusTipToReferenceTransformIt)->Element[0][3];
       stylusPositionSum[1] +=(*stylusTipToReferenceTransformIt)->Element[1][3];
@@ -422,11 +436,11 @@ PlusStatus vtkPivotDetectionAlgo::EstimatePivotPointPosition()
     }
     i++;
   }
-  if(j==(this->NumberOfWindows-2)*this->WindowSize)
+  if(j==(this->NumberOfWindows-NUMBER_WINDOWS_SKIP)*this->WindowSize)
   {
-    stylusPositionSum[0]=stylusPositionSum[0]/((this->NumberOfWindows-2)*this->WindowSize);
-    stylusPositionSum[1]=stylusPositionSum[1]/((this->NumberOfWindows-2)*this->WindowSize);
-    stylusPositionSum[2]=stylusPositionSum[2]/((this->NumberOfWindows-2)*this->WindowSize);
+    stylusPositionSum[0]=stylusPositionSum[0]/((this->NumberOfWindows-NUMBER_WINDOWS_SKIP)*this->WindowSize);
+    stylusPositionSum[1]=stylusPositionSum[1]/((this->NumberOfWindows-NUMBER_WINDOWS_SKIP)*this->WindowSize);
+    stylusPositionSum[2]=stylusPositionSum[2]/((this->NumberOfWindows-NUMBER_WINDOWS_SKIP)*this->WindowSize);
     if(IsNewPivotPointPosition(stylusPositionSum)==true)
     {
       NumberOfWindowsFoundPerPivot.push_back(1.0);
@@ -474,7 +488,7 @@ std::string vtkPivotDetectionAlgo::GetDetectedPivotsString( double aPrecision/*=
     for (int id =0; id<this->PivotPointsReference->GetNumberOfPoints();id++)
     {
       this->PivotPointsReference->GetPoint(id, pivotFound);
-      s <<"\nPivot "<< id << " found (" << pivotFound[0]<<", " << pivotFound[1]<<", " << pivotFound[2]<<")";
+      s <<"\nPivot "<< id+1 << " (" << pivotFound[0]<<", " << pivotFound[1]<<", " << pivotFound[2]<<")";
     }
     s << std::ends;  
     return s.str();
@@ -491,13 +505,15 @@ PlusStatus vtkPivotDetectionAlgo::ReadConfiguration(vtkXMLDataElement* aConfig)
   XML_FIND_NESTED_ELEMENT_REQUIRED(pivotDetectionElement, aConfig, "vtkPivotDetectionAlgo");
   XML_READ_STRING_ATTRIBUTE_REQUIRED(ObjectMarkerCoordinateFrame, pivotDetectionElement);
   XML_READ_STRING_ATTRIBUTE_REQUIRED(ReferenceCoordinateFrame, pivotDetectionElement);
-  XML_READ_SCALAR_ATTRIBUTE_REQUIRED(double, AcquisitionRate, pivotDetectionElement);
+
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, AcquisitionRate, pivotDetectionElement);
 
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, ExpectedPivotsNumber, pivotDetectionElement);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, WindowTimeSec, pivotDetectionElement);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DetectionTimeSec, pivotDetectionElement);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, AbovePivotThresholdMM, pivotDetectionElement);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, PivotThresholdMM, pivotDetectionElement);
+
   return PLUS_SUCCESS;
 }
 
