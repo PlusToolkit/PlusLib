@@ -138,11 +138,9 @@
     ObjectMarkerCoordinateFrame="Stylus"
     ReferenceCoordinateFrame="Reference"
     ObjectPivotPointCoordinateFrame="StylusTip"
-    AcquisitionRate="15"
+    DetectionTimeSec="1.0"
     AbovePivotThresholdMM="3.0"
-    PivotThresholdMM="0.9"
-    DetectionTimeSec=".15"
-    WindowTimeSec="0.04" />
+    PivotThresholdMM="1.5" />
 
   <vtkPhantomLandmarkRegistrationAlgo
     PhantomCoordinateFrame="Phantom"

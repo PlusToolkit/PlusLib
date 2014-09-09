@@ -51,6 +51,8 @@ public:
   /*! Get configuration element name */
   static std::string GetConfigurationElementName() { return vtkPhantomLandmarkRegistrationAlgo::ConfigurationElementName; };
 
+  double GetMinimunDistanceBetweenTwoLandmarks();
+
 public:
 
   vtkGetMacro(RegistrationError, double);
@@ -85,6 +87,7 @@ protected:
   virtual  ~vtkPhantomLandmarkRegistrationAlgo();
 
 protected:
+  double minimunDistanceBetweenTwoLandmarks;
   /*! Point array holding the defined landmarks from the configuration file */
   vtkPoints*                DefinedLandmarks;
 

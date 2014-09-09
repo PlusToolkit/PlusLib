@@ -118,6 +118,7 @@ PlusStatus vtkReadTrackedSignals::ComputeTrackerPositionMetric()
     if (!valid)
     {
       // There is no available transform for this frame; skip that frame
+      LOG_INFO("There is no available transform for this frame; skip frame "<<trackedFrame->GetTimestamp()<<" [s]")
       continue;
     }  
 

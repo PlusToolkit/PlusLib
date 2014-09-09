@@ -90,6 +90,7 @@ public:
   vtkGetStringMacro(ReferenceCoordinateFrame);
   vtkGetObjectMacro(PivotPointsReference, vtkPoints);
   vtkGetMacro(ExpectedPivotsNumber, int);
+  vtkSetMacro(MinimunDistanceBetweenLandmarksMM, double);
 
 protected:
 
@@ -124,8 +125,8 @@ protected:
   int NumberOfWindows;
   //The number of acquisitions in WindowTime (AcquisitonRate/WindowTime)
   int WindowSize;
-  /*! The expected number of pivots to be detected */
 
+  /*! The expected number of pivots to be detected */
   int ExpectedPivotsNumber;
   /*! Device acquisition rate */
   double AcquisitionRate;
@@ -137,6 +138,9 @@ protected:
   double AbovePivotThresholdMM;
   /*! A pivot position will be consider when the stylus tip position magnitude change is below PivotThresholdMM.*/
   double PivotThresholdMM;
+  /*!The minimun distance in between any two landmarks, it will be a NEW pivot detected only if it is further away from anyother already detected pivot .*/
+  double MinimunDistanceBetweenLandmarksMM;
+
   /*! Name of the object marker coordinate frame (eg. Stylus) */
   char*               ObjectMarkerCoordinateFrame;
   /*! Name of the reference coordinate frame (eg. Reference) */
