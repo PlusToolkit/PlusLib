@@ -49,9 +49,8 @@ StylusCalibrationToolbox::StylusCalibrationToolbox(fCalMainWindow* aParentMainWi
   m_StartupDelayTimer = new QTimer(this);
 
   // Connect events
-  connect( ui.pushButton_Start, SIGNAL( clicked() ), this, SLOT( StartDelayTimer() ) );
+  connect( ui.pushButton_StartStop, SIGNAL( clicked() ), this, SLOT( StartDelayTimer() ) );
   connect( m_StartupDelayTimer, SIGNAL(timeout()),this , SLOT(DelayStartup()));
-  connect( ui.pushButton_Stop, SIGNAL( clicked() ), this, SLOT( Stop() ) );
   connect( ui.spinBox_NumberOfStylusCalibrationPoints, SIGNAL( valueChanged(int) ), this, SLOT( NumberOfStylusCalibrationPointsChanged(int) ) );
 }
 
@@ -314,8 +313,7 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
     ui.label_StylusTipTransform->setText(tr("N/A"));
     ui.label_Instructions->setText(tr(""));
 
-    ui.pushButton_Start->setEnabled(false);
-    ui.pushButton_Stop->setEnabled(false);
+    ui.pushButton_StartStop->setEnabled(false);
     ui.spinBox_NumberOfStylusCalibrationPoints->setEnabled(false);
 
     m_ParentMainWindow->SetStatusBarText(QString(""));
@@ -329,11 +327,10 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
     ui.label_StylusTipTransform->setText(tr("N/A"));
     ui.label_Instructions->setText(tr("Put stylus so that its tip is in steady position, and press Start"));
 
-    ui.pushButton_Start->setEnabled(true);
-    ui.pushButton_Stop->setEnabled(false);
+    ui.pushButton_StartStop->setEnabled(true);
     ui.spinBox_NumberOfStylusCalibrationPoints->setEnabled(true);
 
-    ui.pushButton_Start->setFocus();
+    ui.pushButton_StartStop->setFocus();
 
     m_ParentMainWindow->SetStatusBarText(QString(""));
     m_ParentMainWindow->SetStatusBarProgress(-1);
@@ -345,11 +342,9 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
     ui.label_CurrentPosition->setText(tr("N/A"));
     ui.label_StylusTipTransform->setText(tr("N/A"));
 
-    ui.pushButton_Start->setEnabled(false);
-    ui.pushButton_Stop->setEnabled(true);
+    ui.pushButton_StartStop->setEnabled(true);
+    ui.pushButton_StartStop->setText("Stop");
     ui.spinBox_NumberOfStylusCalibrationPoints->setEnabled(true);
-
-    ui.pushButton_Stop->setFocus();
 
     m_ParentMainWindow->SetStatusBarText(QString("Get ready to record stylus positions"));
     m_ParentMainWindow->SetStatusBarProgress(-1);
@@ -363,23 +358,22 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
     ui.label_StylusTipTransform->setText(tr("N/A"));
     ui.label_Instructions->setText(tr("Move around stylus with its tip fixed until the required amount of points are aquired"));
 
-    ui.pushButton_Start->setEnabled(false);
-    ui.pushButton_Stop->setEnabled(true);
+    ui.pushButton_StartStop->setEnabled(true);
+    ui.pushButton_StartStop->setText("Stop");
     ui.spinBox_NumberOfStylusCalibrationPoints->setEnabled(false);
 
     m_ParentMainWindow->SetStatusBarText(QString(" Recording stylus positions"));
     m_ParentMainWindow->SetStatusBarProgress(0);
 
     m_ParentMainWindow->GetVisualizationController()->ShowInput(true);
-
-    ui.pushButton_Stop->setFocus();
   }
   else if (m_State == ToolboxState_Done)
   {
     ui.label_Instructions->setText(tr("Calibration transform is ready to save"));
 
-    ui.pushButton_Start->setEnabled(true);
-    ui.pushButton_Stop->setEnabled(false);
+    ui.pushButton_StartStop->setEnabled(true);
+    ui.pushButton_StartStop->setText("Start");
+    //ui.pushButton_Stop->setEnabled(false);
     ui.spinBox_NumberOfStylusCalibrationPoints->setEnabled(true);
 
     ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(m_CurrentPointNumber).arg(m_NumberOfPoints));
@@ -402,8 +396,9 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
   {
     ui.label_Instructions->setText(tr(""));
 
-    ui.pushButton_Start->setEnabled(false);
-    ui.pushButton_Stop->setEnabled(false);
+    ui.pushButton_StartStop->setEnabled(false);
+    ui.pushButton_StartStop->setText("Start");
+    //ui.pushButton_Stop->setEnabled(false);
     ui.spinBox_NumberOfStylusCalibrationPoints->setEnabled(false);
 
     ui.label_NumberOfPoints->setText(tr("N/A"));
@@ -424,6 +419,11 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
 void StylusCalibrationToolbox::StartDelayTimer()
 {
   LOG_INFO("Delay start up "<< m_StartupDelayRemainingTimeSec );
+
+  disconnect(ui.pushButton_StartStop, SIGNAL( clicked() ), this, SLOT( StartDelayTimer() ));
+  connect( ui.pushButton_StartStop, SIGNAL( clicked() ), this, SLOT( Stop() ) );
+  ui.pushButton_StartStop->setText(tr("Stop"));
+
   if( m_State != ToolboxState_InProgress)
   {
     LOG_INFO("set current Delay start up"<<m_FreeHandStartupDelaySec);
@@ -496,6 +496,11 @@ void StylusCalibrationToolbox::Start()
 void StylusCalibrationToolbox::Stop()
 {
   LOG_TRACE("StylusCalibrationToolbox::Stop"); 
+
+  disconnect( ui.pushButton_StartStop, SIGNAL( clicked() ), this, SLOT( Stop() ) );
+  connect(ui.pushButton_StartStop, SIGNAL( clicked() ), this, SLOT( StartDelayTimer() ));
+  ui.pushButton_StartStop->setText(tr("Start"));
+
   if(m_State==ToolboxState_StartupDelay)
   {
     if(m_StartupDelayTimer->isActive())
