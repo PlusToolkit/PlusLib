@@ -620,7 +620,25 @@ PlusStatus PhantomRegistrationToolbox::Start()
 
   if( m_AutoDetectPivoting==true)
   {
+    // If tracker is FakeTracker then set counter (trigger position change) and wait for it to apply the new position
+    vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
     m_PivotDetection->SetExpectedPivotsNumber(m_PhantomLandmarkRegistration->GetDefinedLandmarks()->GetNumberOfPoints());
+    m_PivotDetection->SetMinimunDistanceBetweenLandmarksMM(m_PhantomLandmarkRegistration->GetMinimunDistanceBetweenTwoLandmarks());
+      if (dataCollector)
+      {
+        for( DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it )
+        {
+          vtkPlusDevice *vtkTracker = dynamic_cast<vtkFakeTracker*>(*it);
+          if (vtkTracker != NULL)
+          {
+            if(vtkTracker->IsTracker())
+            {
+             m_PivotDetection->SetAcquisitionRate(vtkTracker->GetAcquisitionRate());
+             break;
+            }
+          }
+        }
+      }
   }
 
   // Initialize toolbox canvas
@@ -856,7 +874,10 @@ void PhantomRegistrationToolbox::Undo()
 
     ui.tabWidget->setTabEnabled(1, false);
   }
-
+  if( m_LandmarkPivotingState==LandmarkPivotingState_Complete)
+  {
+    m_LandmarkPivotingState=LandmarkPivotingState_Incomplete;
+  }
   if (m_CurrentLandmarkIndex > 0)
   {
     if(m_CurrentLandmarkIndex == 1) 
@@ -1114,21 +1135,28 @@ void PhantomRegistrationToolbox::StopLandmarkPivotingRegistration()
 
   ui.pushButton_StartStop_2->setText(tr("Detect Pivot"));
 
-  SetLandmarkPivotingState(LandmarkPivotingState_Complete);
-
   // Disconnect acquisition function to timer
   disconnect( m_ParentMainWindow->GetVisualizationController()->GetAcquisitionTimer(), SIGNAL( timeout() ), this, SLOT( AddStylusTipTransformToLandmarkPivotingRegistration() ) );
-
-  if(m_PhantomLandmarkRegistration->Register( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository() ) != PLUS_SUCCESS)
+  if (m_CurrentLandmarkIndex >= 2)
   {
-    LOG_WARNING("Unable to register phantom! Try again");
-    Reset();
-    SetLandmarkPivotingState(LandmarkPivotingState_Incomplete);
+    if(m_PhantomLandmarkRegistration->Register( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository() ) != PLUS_SUCCESS)
+    {
+      LOG_WARNING("Unable to register phantom! Try again");
+      Reset();
+      SetLandmarkPivotingState(LandmarkPivotingState_Incomplete);
+    }
+    else
+    {
+      LOG_INFO("Stopped Phantom landmark Pivoting Registration successful!"); 
+      SetLandmarkPivotingState(LandmarkPivotingState_Complete);
+      SetState(ToolboxState_Done);
+    }
   }
   else
   {
-    LOG_INFO("Stopped Phantom landmark Pivoting Registration successful!"); 
-    SetLandmarkPivotingState(LandmarkPivotingState_Complete);
+    LOG_WARNING("Less than 3 landmarks! Try again");
+    Reset();
+    SetLandmarkPivotingState(LandmarkPivotingState_Incomplete);
   }
 }
 
