@@ -119,6 +119,12 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
     {
       LOG_WARNING("ClipRectangleSize[0] is not a multiple of 4. Acquired image may be skewed.");
     }
+    if (this->ClipRectangleOrigin[0]+this->ClipRectangleSize[0]>vm.width || this->ClipRectangleOrigin[1]+this->ClipRectangleSize[1]>vm.height)
+    {
+      LOG_ERROR("Invalid clip rectangle: rectangle does not fit into the image. Clip rectangle origin: ("<<this->ClipRectangleOrigin[0]<<","<<this->ClipRectangleOrigin[1]
+        <<"), size: "<<this->ClipRectangleSize[0]<<","<<this->ClipRectangleSize[1]<<". Image size: "<<vm.width<<"x"<<vm.height);
+      return PLUS_FAIL;
+    }
     this->FrameSize[0] = this->ClipRectangleSize[0];
     this->FrameSize[1] = this->ClipRectangleSize[1];
   }
@@ -228,12 +234,18 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
         continue;
       }
 
+      if (frame->crop.width!=this->FrameSize[0] || frame->crop.height!=this->FrameSize[1])
+      {
+        LOG_ERROR("Image size received from Epiphan ("<<frame->crop.width<<"x"<<frame->crop.height<<") does not match the clip rectangle size ("<<this->FrameSize[0]<<"x"<<this->FrameSize[1]<<")");
+        return PLUS_FAIL;
+      }
+
       int numberOfScalarComponents(1);
       if( aSource->GetBuffer()->GetImageType() == US_IMG_RGB_COLOR )
       {
         numberOfScalarComponents = 3;
       }
-      if( aSource->GetBuffer()->AddItem(frame->pixbuf, aSource->GetPortImageOrientation(), FrameSize, VTK_UNSIGNED_CHAR, numberOfScalarComponents, aSource->GetBuffer()->GetImageType(), 0, this->FrameNumber) != PLUS_SUCCESS )
+      if( aSource->GetBuffer()->AddItem(frame->pixbuf, aSource->GetPortImageOrientation(), this->FrameSize, VTK_UNSIGNED_CHAR, numberOfScalarComponents, aSource->GetBuffer()->GetImageType(), 0, this->FrameNumber) != PLUS_SUCCESS )
       {
         LOG_ERROR("Error adding item to video source " << aSource->GetSourceId() << " on channel " << (*it)->GetChannelId() );
         return PLUS_FAIL;
