@@ -24,6 +24,7 @@ OPTION (PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultr
 IF (PLUS_TEST_ULTRASONIX)
   SET (PLUS_TEST_ULTRASONIX_IP_ADDRESS "127.0.0.1" CACHE STRING "IP address of the Ultrasonix scanner that is used during testing")
 ENDIF()
+OPTION (PLUS_TEST_MMF_VIDEO "Enable testing of acquisition from the first available Microsoft Media Foundation compatible device. Turn off if no such device is available or the first device does not have any Plus-compatible video mode." ON)
 
 SET (DataCollection_INCLUDE_DIRS "" CACHE INTERNAL "" FORCE)
 
