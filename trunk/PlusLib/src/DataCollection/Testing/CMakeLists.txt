@@ -294,12 +294,15 @@ ENDIF (PLUS_USE_VFW_VIDEO)
 IF (PLUS_USE_MMF_VIDEO)
   ADD_EXECUTABLE(vtkMmfVideoSourceTest vtkMmfVideoSourceTest.cxx )
   TARGET_LINK_LIBRARIES(vtkMmfVideoSourceTest vtkDataCollection )
-  
-  ADD_TEST(MmfVideoSourceTest 
-  ${EXECUTABLE_OUTPUT_PATH}/vtkMmfVideoSourceTest
-  --rendering-off
-  --frame-size 640 480
-  )
+
+  IF (PLUS_TEST_MMF_VIDEO)
+    ADD_TEST(MmfVideoSourceTest 
+      ${EXECUTABLE_OUTPUT_PATH}/vtkMmfVideoSourceTest
+      --rendering-off
+      --frame-size 640 480
+      )
+  ENDIF(PLUS_TEST_MMF_VIDEO)
+
 ENDIF (PLUS_USE_MMF_VIDEO)
 
 #***************************  vtkEpiphanVideoSourceTest.cxx ***************************
