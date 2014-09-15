@@ -394,7 +394,6 @@ PlusStatus vtkPivotDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtkSma
     this->AboveStylusTipAverage[3] = 0.0;
 
     this->PartialInsertedPoints=0;
-    double bounds[6];
     double lengths[3];
     this->BoundingBox.GetLengths(lengths);
     if(StylusTipWindowAverage_Reference_List.size()>=this->NumberOfWindows  )
@@ -472,7 +471,6 @@ PlusStatus vtkPivotDetectionAlgo::EstimatePivotPointPosition()
     //Don't use first NUMBER_WINDOWS_SKIP windows
     if(i>=(this->WindowSize*NUMBER_WINDOWS_SKIP) && i <(this->NumberOfWindows)*this->WindowSize)
     {
-      
       datasetArrX->InsertNextValue( (*stylusTipToReferenceTransformIt)->Element[0][3] );
       datasetArrY->InsertNextValue( (*stylusTipToReferenceTransformIt)->Element[1][3] );
       datasetArrZ->InsertNextValue( (*stylusTipToReferenceTransformIt)->Element[2][3] );
