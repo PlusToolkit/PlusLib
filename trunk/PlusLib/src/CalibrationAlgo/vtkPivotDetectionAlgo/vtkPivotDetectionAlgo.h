@@ -12,6 +12,7 @@ See License.txt for details.
 #include "vtkObject.h"
 #include "vtkMatrix4x4.h"
 #include "vtkPoints.h"
+#include "vtkBoundingBox.h"
 
 #include <list>
 #include <set>
@@ -140,6 +141,8 @@ protected:
   double PivotThresholdMM;
   /*!The minimun distance in between any two landmarks, it will be a NEW pivot detected only if it is further away from anyother already detected pivot .*/
   double MinimunDistanceBetweenLandmarksMM;
+
+  vtkBoundingBox BoundingBox;
 
   /*! Name of the object marker coordinate frame (eg. Stylus) */
   char*               ObjectMarkerCoordinateFrame;

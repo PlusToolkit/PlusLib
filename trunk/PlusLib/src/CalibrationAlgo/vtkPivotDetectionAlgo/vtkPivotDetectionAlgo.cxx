@@ -11,11 +11,17 @@ See License.txt for details.
 #include "vtkTransformRepository.h"
 #include "PlusMath.h"
 
+#include "vtkMultiBlockDataSet.h"
+#include "vtkDoubleArray.h"
+#include "vtkDescriptiveStatistics.h"
+#include "vtkTable.h"
+
 #include "vtkObjectFactory.h"
 #include "vtkTransform.h"
 #include "vtkXMLUtilities.h"
 #include "vtkMath.h"
 #include "vtksys/SystemTools.hxx"
+
 
 vtkCxxRevisionMacro(vtkPivotDetectionAlgo, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkPivotDetectionAlgo);
@@ -30,8 +36,10 @@ namespace
 
   const int NUMBER_WINDOWS=5;//The number of windows to be detected as pivot in DetectionTime (1.0 [s]) DetectionTime/WindowTime
   const int WINDOW_SIZE=3;//The number of acquisitions in WindowTime (0.2 [s]) AcquisitonRate*WindowTime
-  const double MAXIMUM_WINDOW_TIME_SEC=3.0;
-  const int NUMBER_WINDOWS_SKIP =2;
+  const double MAXIMUM_WINDOW_TIME_SEC=3.5;//Maximum detection time
+  const int NUMBER_WINDOWS_SKIP =2;//The first windows detected as pivoting wont be used for averaging.
+  const double MIN_LENGTH_ABOVE=30;//The minimum displacement (sum of bounding box lengths during detection time) to be detected as a the stylus moving 
+
 }
 
 //----------------------------------------------------------------------------
@@ -50,6 +58,8 @@ void vtkPivotDetectionAlgo::SetAcquisitionRate(double aquisitionRate)
     LOG_WARNING("The smallest window size is set to 1");
     this->WindowSize=1;
   }
+  LOG_INFO("SET AcquisitionRate = "<< AcquisitionRate << " WindowTimeSec = " << WindowTimeSec<<" DetectionTimeSec = "<< DetectionTimeSec);
+  LOG_INFO("NumberOfWindows = "<< NumberOfWindows<< " WindowSize = "<< WindowSize<< " MinimunDistanceBetweenLandmarksMM = "<< MinimunDistanceBetweenLandmarksMM );
 }
 
 //----------------------------------------------------------------------------
@@ -90,7 +100,7 @@ void vtkPivotDetectionAlgo::SetWindowTimeSec(double windowTime)
   {
     LOG_WARNING("Specified window time (" << windowTime << " [s]) is not correct, default "<<this->WindowTimeSec<<" [s] is used instead");
   }
-  LOG_INFO("AcquisitionRate = "<< AcquisitionRate << " WindowTimeSec = " << WindowTimeSec<<"SET DetectionTimeSec = "<< DetectionTimeSec);
+  LOG_INFO("AcquisitionRate = "<< AcquisitionRate << " SET WindowTimeSec = " << WindowTimeSec<<" DetectionTimeSec = "<< DetectionTimeSec);
   LOG_INFO("NumberOfWindows = "<< NumberOfWindows<< " WindowSize = "<< WindowSize<< " MinimunDistanceBetweenLandmarksMM = "<< MinimunDistanceBetweenLandmarksMM );
 }
 
@@ -264,7 +274,7 @@ void vtkPivotDetectionAlgo::EraseLastPoints()
   for (std::list<vtkSmartPointer<vtkMatrix4x4> >::iterator markerToReferenceTransformIt=this->StylusTipToReferenceTransformsList.begin();
     markerToReferenceTransformIt!=this->StylusTipToReferenceTransformsList.end(); ++markerToReferenceTransformIt)
   {
-    if(i==this->WindowSize)
+    if(i%this->WindowSize==0)
     {
       LOG_DEBUG( "\n");
     }
@@ -276,8 +286,10 @@ void vtkPivotDetectionAlgo::EraseLastPoints()
   this->CurrentStylusTipIterator++;
   std::list< vtkSmartPointer<vtkMatrix4x4> >::iterator markerToReferenceTransformIt=this->StylusTipToReferenceTransformsList.begin();
   this->CurrentStylusTipIterator--;
+  int j=0;
   while ( markerToReferenceTransformIt!=this->CurrentStylusTipIterator)
   {
+    j++;
     this->StylusTipToReferenceTransformsList.pop_front();
     markerToReferenceTransformIt=this->StylusTipToReferenceTransformsList.begin();
   }
@@ -287,8 +299,10 @@ void vtkPivotDetectionAlgo::EraseLastPoints()
   {
     LOG_DEBUG( "\n P( " << -(*markerToReferenceTransformIt)->Element[0][3]<<", "<< -(*markerToReferenceTransformIt)->Element[1][3]<<", "<< -(*markerToReferenceTransformIt)->Element[2][3]<<") ");
   }
-
-  StylusTipWindowAverage_Reference_List.pop_front();
+  for(int a=0; a<j/this->WindowSize;a++)
+  {
+    StylusTipWindowAverage_Reference_List.pop_front();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -340,8 +354,8 @@ PlusStatus vtkPivotDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtkSma
       aboveStylusTipChange[0]=LastAboveStylusTipAverage[0]-AboveStylusTipAverage[0];
       aboveStylusTipChange[1]=LastAboveStylusTipAverage[1]-AboveStylusTipAverage[1];
       aboveStylusTipChange[2]=LastAboveStylusTipAverage[2]-AboveStylusTipAverage[2];
-
-      if(vtkMath::Norm(stylusTipChange)<this->PivotThresholdMM && vtkMath::Norm(aboveStylusTipChange)>this->AbovePivotThresholdMM)
+      this->BoundingBox.AddPoint(AboveStylusTipAverage);
+      if(vtkMath::Norm(stylusTipChange)<this->PivotThresholdMM /*&& vtkMath::Norm(aboveStylusTipChange)>this->AbovePivotThresholdMM*/ )
       {
         LOG_DEBUG("\nDif last points (" <<abs(lastStylusTipWindowAverage[0]-stylusTipWindowAverage[0])<< ", "<<abs(lastStylusTipWindowAverage[1]-stylusTipWindowAverage[1])<< ", "<<abs(lastStylusTipWindowAverage[2]-stylusTipWindowAverage[2])<< ")\n");
         LOG_DEBUG("Window Pivot ("<< lastStylusTipWindowAverage[0]<< ", "<< lastStylusTipWindowAverage[1]<< ", "<< lastStylusTipWindowAverage[2]<< ") found keep going!!");
@@ -361,6 +375,12 @@ PlusStatus vtkPivotDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtkSma
       {
         LOG_DEBUG("\nDif last points (" <<abs(lastStylusTipWindowAverage[0]-stylusTipWindowAverage[0])<< ", "<<abs(lastStylusTipWindowAverage[1]-stylusTipWindowAverage[1])<< ", "<<abs(lastStylusTipWindowAverage[2]-stylusTipWindowAverage[2])<< ")\n");
         EraseLastPoints();
+        while(StylusTipWindowAverage_Reference_List.size()>1)
+        {
+          StylusTipWindowAverage_Reference_List.pop_front();
+        }
+        this->BoundingBox.Reset();
+        this->BoundingBox.AddPoint(AboveStylusTipAverage);
       }
     }
     this->LastAboveStylusTipAverage[0]=this->AboveStylusTipAverage[0];
@@ -374,13 +394,23 @@ PlusStatus vtkPivotDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtkSma
     this->AboveStylusTipAverage[3] = 0.0;
 
     this->PartialInsertedPoints=0;
-
-    if(StylusTipWindowAverage_Reference_List.size()>=this->NumberOfWindows)
+    double bounds[6];
+    double lengths[3];
+    this->BoundingBox.GetLengths(lengths);
+    if(StylusTipWindowAverage_Reference_List.size()>=this->NumberOfWindows  )
     {
-      EstimatePivotPointPosition();
+      this->BoundingBox.Reset();
+      if((lengths[0]+lengths[1]+lengths[2])>MIN_LENGTH_ABOVE)
+      {
+        EstimatePivotPointPosition();
+      }
+      else
+      {
+        this->BoundingBox.AddPoint(this->LastAboveStylusTipAverage);
+        EraseLastPoints();
+      }
     }
   }
-
   return PLUS_SUCCESS; 
 }
 
@@ -422,29 +452,82 @@ bool vtkPivotDetectionAlgo::IsNewPivotPointPosition(double* stylusTipPosition)
 //----------------------------------------------------------------------------
 PlusStatus vtkPivotDetectionAlgo::EstimatePivotPointPosition()
 {
-  double stylusPositionSum[3] ={0,0,0};int i=0; int j=0;
+  int i=0; int j=0;
+  double stylusPositionMean[3]={0,0,0};
+  double stylusPositionStdev[3]={0,0,0};
+
+  vtkSmartPointer<vtkDoubleArray> datasetArrX = vtkSmartPointer<vtkDoubleArray>::New();
+  datasetArrX->SetNumberOfComponents( 1 );
+  datasetArrX->SetName( "X" );
+  vtkSmartPointer<vtkDoubleArray> datasetArrY = vtkSmartPointer<vtkDoubleArray>::New();
+  datasetArrY->SetNumberOfComponents( 1 );
+  datasetArrY->SetName( "Y" );
+  vtkSmartPointer<vtkDoubleArray> datasetArrZ = vtkSmartPointer<vtkDoubleArray>::New();
+  datasetArrZ->SetNumberOfComponents( 1 );
+  datasetArrZ->SetName( "Z" );
+
   for (std::list< vtkSmartPointer<vtkMatrix4x4> >::iterator stylusTipToReferenceTransformIt=this->StylusTipToReferenceTransformsList.begin();
     stylusTipToReferenceTransformIt!=this->StylusTipToReferenceTransformsList.end(); ++stylusTipToReferenceTransformIt)
   {
-    //Only the middle windows
+    //Don't use first NUMBER_WINDOWS_SKIP windows
     if(i>=(this->WindowSize*NUMBER_WINDOWS_SKIP) && i <(this->NumberOfWindows)*this->WindowSize)
     {
-      stylusPositionSum[0] +=(*stylusTipToReferenceTransformIt)->Element[0][3];
-      stylusPositionSum[1] +=(*stylusTipToReferenceTransformIt)->Element[1][3];
-      stylusPositionSum[2] +=(*stylusTipToReferenceTransformIt)->Element[2][3];
+      
+      datasetArrX->InsertNextValue( (*stylusTipToReferenceTransformIt)->Element[0][3] );
+      datasetArrY->InsertNextValue( (*stylusTipToReferenceTransformIt)->Element[1][3] );
+      datasetArrZ->InsertNextValue( (*stylusTipToReferenceTransformIt)->Element[2][3] );
       j++;
     }
     i++;
   }
+
+  vtkSmartPointer<vtkTable> simpleTable = vtkSmartPointer<vtkTable>::New();
+  simpleTable->AddColumn( datasetArrX );
+  simpleTable->AddColumn( datasetArrY );
+  simpleTable->AddColumn( datasetArrZ );
+
+  // Pairs of interest
+  int nMetrics = 3;
+  vtkStdString columns[] =
+  {
+    "X",
+    "Y",
+    "Z"
+  };
+
+  // Set descriptive statistics algorithm and its input data port
+  vtkSmartPointer<vtkDescriptiveStatistics> ds = vtkSmartPointer<vtkDescriptiveStatistics>::New();
+  ds->SetInput( vtkStatisticsAlgorithm::INPUT_DATA, simpleTable );
+
+  // Select Columns of Interest
+  for ( int i = 0; i< nMetrics; ++ i )
+  {
+    ds->AddColumn( columns[i] );
+  }
+
+  // Test Learn, Derive, Test, and Assess options
+  ds->SetLearnOption( true );
+  ds->SetDeriveOption( true );
+  ds->SetAssessOption( false );
+  ds->SetTestOption( false );
+  ds->Update();
+
+  vtkSmartPointer<vtkMultiBlockDataSet> outputMetaDS = vtkMultiBlockDataSet::SafeDownCast( ds->GetOutputDataObject( vtkStatisticsAlgorithm::OUTPUT_MODEL ) );
+  vtkSmartPointer<vtkTable> outputPrimary = vtkTable::SafeDownCast( outputMetaDS->GetBlock( 0 ) );
+  vtkSmartPointer<vtkTable> outputDerived = vtkTable::SafeDownCast( outputMetaDS->GetBlock( 1 ) );
+
   if(j==(this->NumberOfWindows-NUMBER_WINDOWS_SKIP)*this->WindowSize)
   {
-    stylusPositionSum[0]=stylusPositionSum[0]/((this->NumberOfWindows-NUMBER_WINDOWS_SKIP)*this->WindowSize);
-    stylusPositionSum[1]=stylusPositionSum[1]/((this->NumberOfWindows-NUMBER_WINDOWS_SKIP)*this->WindowSize);
-    stylusPositionSum[2]=stylusPositionSum[2]/((this->NumberOfWindows-NUMBER_WINDOWS_SKIP)*this->WindowSize);
-    if(IsNewPivotPointPosition(stylusPositionSum)==true)
+    for ( vtkIdType r = 0; r < outputPrimary->GetNumberOfRows(); ++ r )
+    {
+        stylusPositionMean[r]=outputPrimary->GetValueByName( r, "Mean" ).ToDouble();
+        stylusPositionStdev[r]=outputDerived->GetValueByName( r, "Standard Deviation" ).ToDouble();
+    }
+    if(IsNewPivotPointPosition(stylusPositionMean)==true)
     {
       NumberOfWindowsFoundPerPivot.push_back(1.0);
-      this->PivotPointsReference->InsertNextPoint(stylusPositionSum);
+      this->PivotPointsReference->InsertNextPoint(stylusPositionMean);
+      LOG_INFO("STD deviation ( " << stylusPositionStdev[0]<< ", "<< stylusPositionStdev[1]<< ", "<< stylusPositionStdev[2]<< ") " );
       this->NewPivotFound=true;
     }
     RemoveAllDetectionPoints();

@@ -138,7 +138,7 @@
     ObjectMarkerCoordinateFrame="Stylus"
     ReferenceCoordinateFrame="Reference"
     ObjectPivotPointCoordinateFrame="StylusTip"
-    DetectionTimeSec="1.0"
+    DetectionTimeSec="1.5"
     AbovePivotThresholdMM="3.0"
     PivotThresholdMM="1.5" />
 
