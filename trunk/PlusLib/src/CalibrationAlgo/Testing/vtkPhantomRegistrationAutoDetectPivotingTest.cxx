@@ -190,6 +190,7 @@ int main (int argc, char* argv[])
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
   std::string inputTrackedStylusTipSequence;
   std::string intermediateFileOutputDirectory;
+  bool plotSignal(false);
   vtksys::CommandLineArguments cmdargs;
   double accumulatedError=0.0;
   int succesfulDatasets=0;
@@ -198,9 +199,9 @@ int main (int argc, char* argv[])
   cmdargs.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
   cmdargs.AddArgument("--baseline-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
   cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
-  cmdargs.AddArgument("--tracker-input-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTrackedStylusTipSequence, "Input tracker sequence metafile name with path");
+  cmdargs.AddArgument("--tracker-input-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTrackedStylusTipSequence, "Input tracker sequence metafile name (or directory) with path");
 cmdargs.AddArgument("--intermediate-file-output-dir", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &intermediateFileOutputDirectory, "Directory into which the intermediate files are written");
-
+  cmdargs.AddArgument("--plot-signal", vtksys::CommandLineArguments::NO_ARGUMENT, &plotSignal, "Run test without plotting the signal.");
   if ( !cmdargs.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
@@ -343,7 +344,10 @@ cmdargs.AddArgument("--intermediate-file-output-dir", vtksys::CommandLineArgumen
         fileString+=vtksys::SystemTools::GetFilenameWithoutLastExtension(myDir->GetFile(i));
         fileString+=".png";
       }
-      ConstructSignalPlot( trackedStylusTipFrames, fileString, configPivotDetection);
+      if(plotSignal)
+      {    
+        ConstructSignalPlot( trackedStylusTipFrames, fileString, configPivotDetection);
+      }
 
       //----------------------------------------------------------------------------------------------
       // Initialize phantom registration
