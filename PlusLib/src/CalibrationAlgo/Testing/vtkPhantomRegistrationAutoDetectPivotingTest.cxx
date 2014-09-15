@@ -364,7 +364,6 @@ cmdargs.AddArgument("--intermediate-file-output-dir", vtksys::CommandLineArgumen
         LOG_ERROR("Number of defined landmarks should be 8 instead of " << numberOfLandmarks << "!");
         exit(EXIT_FAILURE);
       }
-
       // Initialize pivot detection
       vtkSmartPointer<vtkPivotDetectionAlgo> PivotDetection = vtkSmartPointer<vtkPivotDetectionAlgo>::New();
       if (PivotDetection == NULL)
@@ -425,12 +424,12 @@ cmdargs.AddArgument("--intermediate-file-output-dir", vtksys::CommandLineArgumen
           PivotDetection->IsNewPivotPointFound(valid);
           if(valid)
           {
-            vtkPlusLogger::PrintProgressbar((100.0 * PivotDetection->GetPivotPointsReference()->GetNumberOfPoints()-1) / phantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints()); 
             PivotDetection->GetPivotPointsReference()->GetPoint(PivotDetection->GetPivotPointsReference()->GetNumberOfPoints()-1, pivotFound);
             // Add recorded point to algorithm
             phantomRegistration->GetRecordedLandmarks()->InsertPoint(PivotDetection->GetPivotPointsReference()->GetNumberOfPoints()-1, pivotFound);
             phantomRegistration->GetRecordedLandmarks()->Modified();
             LOG_INFO("\nPivot found (" << pivotFound[0]<<", " << pivotFound[1]<<", " << pivotFound[2]<<") at "<<trackedStylusTipFrames->GetTrackedFrame(j)->GetTimestamp()<<"[ms]"<< "\nNumber of pivots in phantonReg "<<phantomRegistration->GetRecordedLandmarks()->GetNumberOfPoints());
+            vtkPlusLogger::PrintProgressbar((100.0 * PivotDetection->GetPivotPointsReference()->GetNumberOfPoints()-1) / phantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints()); 
           }
           PivotDetection->IsPivotDetectionCompleted(valid);
           if(valid)
