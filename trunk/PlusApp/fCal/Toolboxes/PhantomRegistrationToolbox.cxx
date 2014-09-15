@@ -324,7 +324,7 @@ void PhantomRegistrationToolbox::RefreshContent()
     {
       if(GetLandmarkPivotingState() == LandmarkPivotingState_Incomplete)
       {
-        ui.label_Instructions->setText("Press the detect pivot button\n\n");
+        ui.label_Instructions->setText("Press the Start Pivot Detection button\n\n");
       }
       else if(GetLandmarkPivotingState() == LandmarkPivotingState_InProgress)
       {
@@ -495,7 +495,7 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
     ui.pushButton_LinearObject_Reset->setEnabled(false);
 
     ui.pushButton_StartStop_2->setEnabled(false);
-    ui.pushButton_StartStop_2->setText("Detect Pivot");
+    ui.pushButton_StartStop_2->setText("Start Pivot Detection");
 
     ui.pushButton_StartStop->setEnabled(false);
     ui.pushButton_StartStop->setText("Start");
@@ -514,7 +514,7 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
     ui.pushButton_Undo->setEnabled(false);
 
     ui.pushButton_StartStop_2->setEnabled(false);
-    ui.pushButton_StartStop_2->setText("Detect Pivot");
+    ui.pushButton_StartStop_2->setText("Start Pivot Detection");
 
     ui.pushButton_LinearObject_Reset->setEnabled(false);
     ui.pushButton_StartStop->setEnabled(false);
@@ -595,7 +595,7 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
     ui.pushButton_Undo->setEnabled(false);
 
     ui.pushButton_StartStop_2->setEnabled(false);
-    ui.pushButton_StartStop_2->setText("Detect Pivot");
+    ui.pushButton_StartStop_2->setText("Start Pivot Detection");
 
     ui.pushButton_LinearObject_Reset->setEnabled(false);
     ui.pushButton_StartStop->setEnabled(false);
@@ -942,9 +942,11 @@ void PhantomRegistrationToolbox::Reset()
     //In case the reset stops the detection as well.
     //StopLandmarkPivotingRegistration();
     m_PivotDetection->ResetDetection();
+    if(m_LandmarkPivotingState==LandmarkPivotingState_Complete)
+    {
     SetLandmarkPivotingState(LandmarkPivotingState_Incomplete);
+    }
   }
-
   // Delete acquired landmarks
   vtkSmartPointer<vtkPoints> landmarkPoints = vtkSmartPointer<vtkPoints>::New();
   m_ParentMainWindow->GetVisualizationController()->GetInputPolyData()->SetPoints(landmarkPoints);
@@ -1087,6 +1089,12 @@ void PhantomRegistrationToolbox::StartLandmarkPivotingRegistration()
   ui.pushButton_StartStop_2->setText(tr("Stop Detection"));
 
   SetLandmarkPivotingState(LandmarkPivotingState_InProgress);
+
+  if(m_State==ToolboxState_Done)
+  {
+    Reset();
+  }
+
   m_CurrentLandmarkIndex=0;
   m_CurrentPointNumber = 0;
 
@@ -1133,11 +1141,11 @@ void PhantomRegistrationToolbox::StopLandmarkPivotingRegistration()
   disconnect(ui.pushButton_StartStop_2, SIGNAL( clicked() ), this, SLOT( StopLandmarkPivotingRegistration() ));
   connect( ui.pushButton_StartStop_2, SIGNAL( clicked() ), this, SLOT( StartLandmarkPivotingRegistration() ));
 
-  ui.pushButton_StartStop_2->setText(tr("Detect Pivot"));
+  ui.pushButton_StartStop_2->setText(tr("Start Pivot Detection"));
 
   // Disconnect acquisition function to timer
   disconnect( m_ParentMainWindow->GetVisualizationController()->GetAcquisitionTimer(), SIGNAL( timeout() ), this, SLOT( AddStylusTipTransformToLandmarkPivotingRegistration() ) );
-  if (m_CurrentLandmarkIndex >= 2)
+  if (m_CurrentLandmarkIndex > 2)
   {
     if(m_PhantomLandmarkRegistration->Register( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository() ) != PLUS_SUCCESS)
     {
@@ -1154,7 +1162,7 @@ void PhantomRegistrationToolbox::StopLandmarkPivotingRegistration()
   }
   else
   {
-    LOG_WARNING("Less than 3 landmarks! Try again");
+    LOG_INFO("Less than 3 landmarks! Try again");
     Reset();
     SetLandmarkPivotingState(LandmarkPivotingState_Incomplete);
   }

@@ -291,9 +291,9 @@
       <widget class="QWidget" name="horizontalLayoutWidget">
        <property name="geometry">
         <rect>
-         <x>10</x>
+         <x>0</x>
          <y>10</y>
-         <width>208</width>
+         <width>218</width>
          <height>25</height>
         </rect>
        </property>
@@ -302,12 +302,12 @@
          <widget class="QPushButton" name="pushButton_StartStop_2">
           <property name="minimumSize">
            <size>
-            <width>100</width>
+            <width>120</width>
             <height>0</height>
            </size>
           </property>
           <property name="text">
-           <string>Detect Pivot</string>
+           <string>Start Pivot Detection</string>
           </property>
          </widget>
         </item>
@@ -321,7 +321,7 @@
           </property>
           <property name="minimumSize">
            <size>
-            <width>100</width>
+            <width>80</width>
             <height>0</height>
            </size>
           </property>

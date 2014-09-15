@@ -168,7 +168,7 @@ protected slots:
   void ResetLinearObjectRegistration();
 
   /*!
-  Slot handling Detect Pivot button to activate the automatic pivot detection for landmark registration, ´pivoting instead of pressing the record button
+  Slot handling Start Pivot Detection button to activate the automatic pivot detection for landmark registration, ´pivoting instead of pressing the record button
   */
   void StartLandmarkPivotingRegistration();
   
