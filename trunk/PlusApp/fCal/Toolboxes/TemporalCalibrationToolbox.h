@@ -60,51 +60,57 @@ public:
 
 protected:
   /*!
-	* \brief Filters events if this object has been installed as an event filter for the watched object
-	* \param obj object
-	* \param ev event
-	* \return if you want to filter the event out, i.e. stop it being handled further, return true; otherwise return false
-	*/
-	bool eventFilter(QObject *obj, QEvent *ev);
+  * \brief Filters events if this object has been installed as an event filter for the watched object
+  * \param obj object
+  * \param ev event
+  * \return if you want to filter the event out, i.e. stop it being handled further, return true; otherwise return false
+  */
+  bool eventFilter(QObject *obj, QEvent *ev);
 
   /*! Prints a time value in sec as a string in msec */
   static std::string GetTimeAsString(double timeSec);
 
-protected slots:
-
-  /*! Start the delay startup timer*/
-  void StartDelayTimer();
-
-  /*! Delay before startup calibration*/
-  void DelayStartup();
-
-  /*! Acquire tracked frames for temporal calibration and calls the algorithm when done */
-  void DoCalibration();
-
-  /*! Show/hide popup window with the plots in it when toggling the Show Plots button */
-  void ShowPlotsToggled(bool aOn);
-
-  /*! Slot handling start temporal calibration button click */
-  void StartCalibration();
-
-  /*! Slot handling cancel calibration event (button click or explicit call) */
-  void CancelCalibration();
-  
-  /*! Compute calibration results from the collected data and display the results */
-  void ComputeCalibrationResults();
-
-  /*! A signal combo box was changed */
-  void FixedSignalChanged(int newIndex);
-
-  void MovingSignalChanged(int newIndex);
-
-  void FixedSourceChanged(int newIndex);
-
-  void MovingSourceChanged(int newIndex);
-
   void SetFreeHandStartupDelaySec(int freeHandStartupDelaySec){m_FreeHandStartupDelaySec=freeHandStartupDelaySec;};
 
+  protected slots:
+
+    /*! Start the delay startup timer*/
+    void StartDelayTimer();
+
+    /*! Delay before startup calibration*/
+    void DelayStartup();
+
+    /*! Acquire tracked frames for temporal calibration and calls the algorithm when done */
+    void DoCalibration();
+
+    /*! Show/hide popup window with the plots in it when toggling the Show Plots button */
+    void ShowPlotsToggled(bool aOn);
+
+    /*! Slot handling start temporal calibration button click */
+    void StartCalibration();
+
+    /*! Slot handling cancel calibration event (button click or explicit call) */
+    void CancelCalibration();
+
+    /*! Compute calibration results from the collected data and display the results */
+    void ComputeCalibrationResults();
+
+    /*! A signal combo box was changed */
+    void FixedSignalChanged(int newIndex);
+
+    void MovingSignalChanged(int newIndex);
+
+    void FixedSourceChanged(int newIndex);
+
+    void MovingSourceChanged(int newIndex);
+
 protected:
+
+  /*! Tracked frame for tracking data for temporal calibration */
+  vtkTrackedFrameList* TemporalCalibrationFixedData;
+
+  /*! Tracked frame for video data for temporal calibration */
+  vtkTrackedFrameList* TemporalCalibrationMovingData;
 
   /*! Delay time before start acquisition [s] */
   int                        m_FreeHandStartupDelaySec;
@@ -114,12 +120,6 @@ protected:
 
   /*! Timer before start acquisition*/
   QTimer*                    m_StartupDelayTimer;
-
-  /*! Tracked frame for tracking data for temporal calibration */
-  vtkTrackedFrameList* TemporalCalibrationFixedData;
-
-  /*! Tracked frame for video data for temporal calibration */
-  vtkTrackedFrameList* TemporalCalibrationMovingData;
 
   /*! Flag if cancel is requested */
   bool CancelRequest;
@@ -154,8 +154,8 @@ protected:
   /*! Metric table of calibrated tracker positions for temporal calibration */
   vtkTable* CalibratedMovingPositionMetric;
 
-	/*! Window that is created/deleted when Show Plots button is toggled */
-	QWidget* TemporalCalibrationPlotsWindow;
+  /*! Window that is created/deleted when Show Plots button is toggled */
+  QWidget* TemporalCalibrationPlotsWindow;
 
   /*! Chart view for the uncalibrated plot */
   vtkContextView* UncalibratedPlotContextView;

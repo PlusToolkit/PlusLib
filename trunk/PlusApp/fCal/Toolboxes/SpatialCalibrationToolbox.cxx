@@ -27,6 +27,9 @@ SpatialCalibrationToolbox::SpatialCalibrationToolbox(fCalMainWindow* aParentMain
   , QWidget(aParentMainWindow, aFlags)
   , m_CancelRequest(false)
   , m_LastRecordedFrameTimestamp(UNDEFINED_TIMESTAMP)
+  , m_FreeHandStartupDelaySec(5)
+  , m_StartupDelayRemainingTimeSec(0)
+  , m_StartupDelayTimer(NULL)
   , m_NumberOfCalibrationImagesToAcquire(200)
   , m_NumberOfValidationImagesToAcquire(100)
   , m_NumberOfSegmentedCalibrationImages(0)
@@ -52,12 +55,15 @@ SpatialCalibrationToolbox::SpatialCalibrationToolbox(fCalMainWindow* aParentMain
   // Change result display properties
   ui.label_Results->setFont(QFont("Courier", 8));
 
+  // Set up timer to wait before acquisition
+  m_StartupDelayTimer = new QTimer(this);
+
   // Connect events
   connect( ui.pushButton_OpenPhantomRegistration, SIGNAL( clicked() ), this, SLOT( OpenPhantomRegistration() ) );
   connect( ui.pushButton_OpenSegmentationParameters, SIGNAL( clicked() ), this, SLOT( OpenSegmentationParameters() ) );
   connect( ui.pushButton_EditSegmentationParameters, SIGNAL( clicked() ), this, SLOT( EditSegmentationParameters() ) );
-  connect( ui.pushButton_StartSpatial, SIGNAL( clicked() ), this, SLOT( StartCalibration() ) );
-  connect( ui.pushButton_CancelSpatial, SIGNAL( clicked() ), this, SLOT( CancelCalibration() ) );
+  connect( ui.pushButton_StartCancelSpatial, SIGNAL( clicked() ), this, SLOT( StartDelayTimer() ) );
+  connect( m_StartupDelayTimer, SIGNAL(timeout()),this , SLOT(DelayStartup()));
 }
 
 //-----------------------------------------------------------------------------
@@ -87,6 +93,16 @@ SpatialCalibrationToolbox::~SpatialCalibrationToolbox()
     m_SpatialValidationData->Delete();
     m_SpatialValidationData = NULL;
   } 
+
+  if (m_StartupDelayTimer != NULL)
+  {
+    if(m_StartupDelayTimer->isActive())
+    {
+      m_StartupDelayTimer->stop();
+    }
+    delete m_StartupDelayTimer;
+    m_StartupDelayTimer = NULL;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -200,6 +216,8 @@ PlusStatus SpatialCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aConf
   {
     LOG_WARNING("Unable to read MaxTimeSpentWithProcessingMs attribute from fCal element of the device set configuration, default value '" << m_MaxTimeSpentWithProcessingMs << "' will be used");
   }
+
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FreeHandStartupDelaySec , fCalElement);
 
   return PLUS_SUCCESS;
 }
@@ -327,8 +345,7 @@ void SpatialCalibrationToolbox::SetDisplayAccordingToState()
     ui.label_Results->setText(QString(""));
 
     ui.label_InstructionsSpatial->setText(QString(""));
-    ui.pushButton_StartSpatial->setEnabled(false);
-    ui.pushButton_CancelSpatial->setEnabled(false);
+    ui.pushButton_StartCancelSpatial->setEnabled(false);
 
     m_ParentMainWindow->SetStatusBarText(QString(""));
     m_ParentMainWindow->SetStatusBarProgress(-1);
@@ -350,14 +367,21 @@ void SpatialCalibrationToolbox::SetDisplayAccordingToState()
     ui.label_Results->setText(QString(""));
 
     ui.label_InstructionsSpatial->setText(QString(""));
-    ui.pushButton_CancelSpatial->setEnabled(false);
-    ui.pushButton_StartSpatial->setEnabled(isReadyToStartSpatialCalibration);
-    ui.pushButton_StartSpatial->setFocus();
+    ui.pushButton_StartCancelSpatial->setEnabled(isReadyToStartSpatialCalibration);
+    ui.pushButton_StartCancelSpatial->setFocus();
 
     m_ParentMainWindow->SetStatusBarText(QString(""));
     m_ParentMainWindow->SetStatusBarProgress(-1);
 
     QApplication::restoreOverrideCursor();
+  }
+  else if (m_State == ToolboxState_StartupDelay)
+  {
+    ui.pushButton_StartCancelSpatial->setEnabled(true);
+    ui.pushButton_StartCancelSpatial->setText("Cancel");
+
+    m_ParentMainWindow->SetStatusBarText(QString("Get ready for spatial calibration"));
+    m_ParentMainWindow->SetStatusBarProgress(-1);
   }
   else if (m_State == ToolboxState_InProgress)
   {
@@ -376,9 +400,7 @@ void SpatialCalibrationToolbox::SetDisplayAccordingToState()
     m_ParentMainWindow->SetStatusBarProgress(0);
 
     ui.label_InstructionsSpatial->setText(tr("Scan the phantom until the progress bar is filled. Keep the image plane approximately orthogonal to the wires and translate in all directions.\nIf the segmentation does not work (green dots on wires do not appear) then cancel and edit segmentation parameters"));
-    ui.pushButton_StartSpatial->setEnabled(false);
-    ui.pushButton_CancelSpatial->setEnabled(true);
-    ui.pushButton_CancelSpatial->setFocus();
+    ui.pushButton_StartCancelSpatial->setEnabled(true);
   }
   else if (m_State == ToolboxState_Done)
   {
@@ -410,8 +432,7 @@ void SpatialCalibrationToolbox::SetDisplayAccordingToState()
     }
     ui.label_Results->setText(m_Calibration->GetResultString().c_str());
 
-    ui.pushButton_StartSpatial->setEnabled(true);
-    ui.pushButton_CancelSpatial->setEnabled(false);
+    ui.pushButton_StartCancelSpatial->setEnabled(true);
 
     m_ParentMainWindow->SetStatusBarText(QString(" Calibration done"));
     m_ParentMainWindow->SetStatusBarProgress(-1);
@@ -427,8 +448,7 @@ void SpatialCalibrationToolbox::SetDisplayAccordingToState()
     ui.label_Results->setText(QString(""));
 
     ui.label_InstructionsSpatial->setText(QString(""));
-    ui.pushButton_StartSpatial->setEnabled(false);
-    ui.pushButton_CancelSpatial->setEnabled(false);
+    ui.pushButton_StartCancelSpatial->setEnabled(false);
 
     m_ParentMainWindow->SetStatusBarText(QString(""));
     m_ParentMainWindow->SetStatusBarProgress(-1);
@@ -580,6 +600,45 @@ void SpatialCalibrationToolbox::EditSegmentationParameters()
 
 //-----------------------------------------------------------------------------
 
+void SpatialCalibrationToolbox::StartDelayTimer()
+{
+  LOG_INFO("Delay start up "<< m_StartupDelayRemainingTimeSec );
+
+  disconnect(ui.pushButton_StartCancelSpatial, SIGNAL( clicked() ), this, SLOT( StartDelayTimer() ));
+  connect( ui.pushButton_StartCancelSpatial, SIGNAL( clicked() ), this, SLOT( CancelCalibration() ) );
+  ui.pushButton_StartCancelSpatial->setText(tr("Cancel"));
+
+  if( m_State != ToolboxState_InProgress)
+  {
+    LOG_INFO("set current Delay start up"<<m_FreeHandStartupDelaySec);
+    m_StartupDelayRemainingTimeSec=m_FreeHandStartupDelaySec;
+    ui.label_InstructionsSpatial->setText(QString("Spatial calibration will start in %1").arg(m_StartupDelayRemainingTimeSec--));
+    SetState(ToolboxState_StartupDelay);
+    // Start timer every 1000 ms
+    m_StartupDelayTimer->start(1000);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void  SpatialCalibrationToolbox::DelayStartup()
+{
+  if(m_StartupDelayRemainingTimeSec>0)
+  {
+    ui.label_InstructionsSpatial->setText(QString("Spatial calibration will start in %1").arg(m_StartupDelayRemainingTimeSec--));
+  }
+  else
+  {
+    if(m_StartupDelayTimer->isActive())
+    {
+      m_StartupDelayTimer->stop();
+    }
+    StartCalibration();
+  }
+}
+
+//-----------------------------------------------------------------------------
+
 void SpatialCalibrationToolbox::StartCalibration()
 {
   LOG_INFO("Spatial calibration started");
@@ -661,6 +720,10 @@ void SpatialCalibrationToolbox::DoCalibration()
     m_SpatialValidationData->Clear();
 
     SetState(ToolboxState_Done);
+
+    disconnect( ui.pushButton_StartCancelSpatial, SIGNAL( clicked() ), this, SLOT( CancelCalibration() ) );
+    connect(ui.pushButton_StartCancelSpatial, SIGNAL( clicked() ), this, SLOT( StartDelayTimer() ));
+    ui.pushButton_StartCancelSpatial->setText(tr("Start"));
 
     m_ParentMainWindow->SetToolboxesEnabled(true);
     m_ParentMainWindow->GetVisualizationController()->EnableWireLabels(false);
@@ -853,12 +916,26 @@ void SpatialCalibrationToolbox::CancelCalibration()
 {
   LOG_INFO("Calibration cancelled");
 
+  disconnect( ui.pushButton_StartCancelSpatial, SIGNAL( clicked() ), this, SLOT( CancelCalibration() ) );
+  connect(ui.pushButton_StartCancelSpatial, SIGNAL( clicked() ), this, SLOT( StartDelayTimer() ));
+  ui.pushButton_StartCancelSpatial->setText(tr("Start"));
+
+  if(m_State==ToolboxState_StartupDelay)
+  {
+    if(m_StartupDelayTimer->isActive())
+    {
+      m_StartupDelayTimer->stop();
+    }
+    LOG_TRACE("SpatialCalibrationToolbox::CancelCalibration before calibration delay timer finished");   }
+  else
+  {
+
   m_CancelRequest = true;
 
   m_ParentMainWindow->SetToolboxesEnabled(true);
   m_ParentMainWindow->GetVisualizationController()->EnableWireLabels(false);
   m_ParentMainWindow->GetVisualizationController()->ShowResult(false);
-
+  }
   SetState(ToolboxState_Idle);
 }
 

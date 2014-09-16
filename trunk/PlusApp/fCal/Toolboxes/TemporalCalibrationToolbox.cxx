@@ -471,7 +471,6 @@ void TemporalCalibrationToolbox::SetDisplayAccordingToState()
   }
 }
 
-
 //-----------------------------------------------------------------------------
 
 void TemporalCalibrationToolbox::StartDelayTimer()
@@ -612,7 +611,7 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
   m_ParentMainWindow->SetStatusBarText(QString(" Computing temporal calibration"));
 
   QApplication::processEvents();
-  
+
   this->TemporalCalibrationAlgo->SetFixedFrames(TemporalCalibrationFixedData, this->FixedType);
   if( this->FixedType == vtkTemporalCalibrationAlgo::FRAME_TYPE_TRACKER )
   {
@@ -1004,7 +1003,7 @@ void TemporalCalibrationToolbox::FixedSignalChanged( int newIndex )
     }
     vtkTransformRepository* repo = vtkTransformRepository::New();
     repo->SetTransforms(frame);
-    
+
     std::vector<PlusTransformName> nameList;
     frame.GetCustomFrameTransformNameList(nameList);
     std::vector<std::string> fromList;
@@ -1048,7 +1047,7 @@ void TemporalCalibrationToolbox::FixedSignalChanged( int newIndex )
 
     repo->Delete();
   }
-  
+
   this->SetDisplayAccordingToState();
 }
 
@@ -1115,7 +1114,7 @@ void TemporalCalibrationToolbox::MovingSignalChanged( int newIndex )
         std::stringstream ss;
         ss << (*fromIt) << "To" << (*toIt);
         trans.SetTransformName(ss.str().c_str());
-        
+
         if( trans.IsValid() && repo->IsExistingTransform(trans) )
         {
           QVariant strVar = QVariant::fromValue(QString("Transform"));

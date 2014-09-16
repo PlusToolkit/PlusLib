@@ -80,7 +80,16 @@ protected:
   /*! Set and save calibration results */
   PlusStatus SetAndSaveResults();
 
+    void SetFreeHandStartupDelaySec(int freeHandStartupDelaySec){m_FreeHandStartupDelaySec=freeHandStartupDelaySec;};
+
 protected slots:
+
+  /*! Start the delay startup timer*/
+  void StartDelayTimer();
+
+  /*! Delay before startup calibration*/
+  void DelayStartup();
+
   /*! Acquire tracked frames and segment them. Runs calibration if acquisition is ready */
   void DoCalibration();
 
@@ -111,6 +120,15 @@ protected:
 
   /*! Tracked frame data for validation of spatial calibration */
   vtkTrackedFrameList* m_SpatialValidationData;
+
+  /*! Delay time before start acquisition [s] */
+  int                        m_FreeHandStartupDelaySec;
+
+  /*! Current time delayed before the acquisition [s] */
+  int                        m_StartupDelayRemainingTimeSec;
+
+  /*! Timer before start acquisition*/
+  QTimer*                    m_StartupDelayTimer;
 
   /*! Timestamp of last recorded frame (the tracked frames acquired since this timestamp will be recorded) */
   double m_LastRecordedFrameTimestamp;
