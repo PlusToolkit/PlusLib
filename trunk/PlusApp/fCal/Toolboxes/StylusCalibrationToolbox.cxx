@@ -76,7 +76,6 @@ StylusCalibrationToolbox::~StylusCalibrationToolbox()
     {
       m_StartupDelayTimer->stop();
     }
-
     delete m_StartupDelayTimer;
     m_StartupDelayTimer = NULL;
   }

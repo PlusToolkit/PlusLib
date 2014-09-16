@@ -37,6 +37,9 @@ TemporalCalibrationToolbox::TemporalCalibrationToolbox(fCalMainWindow* aParentMa
 , QWidget(aParentMainWindow, aFlags)
 , CancelRequest(false)
 , LastRecordedFixedItemTimestamp(UNDEFINED_TIMESTAMP)
+, m_FreeHandStartupDelaySec(5)
+, m_StartupDelayRemainingTimeSec(0)
+, m_StartupDelayTimer(NULL)
 , LastRecordedMovingItemTimestamp(0.0)
 , RecordingIntervalMs(200)
 , TemporalCalibrationDurationSec(10)
@@ -60,15 +63,19 @@ TemporalCalibrationToolbox::TemporalCalibrationToolbox(fCalMainWindow* aParentMa
   TemporalCalibrationFixedData = vtkTrackedFrameList::New();
   TemporalCalibrationMovingData = vtkTrackedFrameList::New();
 
+  // Set up timer to wait before acquisition
+  m_StartupDelayTimer = new QTimer(this);
+
   // Create temporal calibration metric tables
   FixedPositionMetric = vtkTable::New();
   UncalibratedMovingPositionMetric = vtkTable::New();
   CalibratedMovingPositionMetric = vtkTable::New();
 
   // Connect events
-  connect( ui.pushButton_StartTemporal, SIGNAL( clicked() ), this, SLOT( StartCalibration() ) );
-  connect( ui.pushButton_CancelTemporal, SIGNAL( clicked() ), this, SLOT( CancelCalibration() ) );
+  connect( ui.pushButton_StartCancelTemporal, SIGNAL( clicked() ), this, SLOT( StartDelayTimer() ) );
+  connect( m_StartupDelayTimer, SIGNAL(timeout()),this , SLOT(DelayStartup()));
   connect( ui.pushButton_ShowPlots, SIGNAL( toggled(bool) ), this, SLOT( ShowPlotsToggled(bool) ) );
+
 
   connect( ui.comboBox_FixedChannelValue, SIGNAL( currentIndexChanged(int) ), this, SLOT( FixedSignalChanged(int) ) );
   connect( ui.comboBox_MovingChannelValue, SIGNAL( currentIndexChanged(int) ), this, SLOT( MovingSignalChanged(int) ) );
@@ -93,6 +100,15 @@ TemporalCalibrationToolbox::~TemporalCalibrationToolbox()
   DELETE_IF_NOT_NULL(UncalibratedPlotContextView);
   DELETE_IF_NOT_NULL(CalibratedPlotContextView);
   DELETE_IF_NOT_NULL(TemporalCalibrationAlgo);
+  if (m_StartupDelayTimer != NULL)
+  {
+    if(m_StartupDelayTimer->isActive())
+    {
+      m_StartupDelayTimer->stop();
+    }
+    delete m_StartupDelayTimer;
+    m_StartupDelayTimer = NULL;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -266,6 +282,8 @@ PlusStatus TemporalCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
     this->RequestedMovingSource = fCalElement->GetAttribute("MovingSourceId");
   }
 
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FreeHandStartupDelaySec , fCalElement);
+
   return PLUS_SUCCESS;
 }
 
@@ -346,8 +364,7 @@ void TemporalCalibrationToolbox::SetDisplayAccordingToState()
   if (m_State == ToolboxState_Uninitialized)
   {
     ui.label_InstructionsTemporal->setText(QString(""));
-    ui.pushButton_StartTemporal->setEnabled(false);
-    ui.pushButton_CancelTemporal->setEnabled(false);
+    ui.pushButton_StartCancelTemporal->setEnabled(false);
     ui.pushButton_ShowPlots->setEnabled(false);
 
     m_ParentMainWindow->SetStatusBarText(QString(""));
@@ -370,8 +387,7 @@ void TemporalCalibrationToolbox::SetDisplayAccordingToState()
     {
       ui.label_InstructionsTemporal->setText(tr("Move probe to vertical position in the water tank so that the bottom is visible and press Start"));
     }
-    ui.pushButton_StartTemporal->setEnabled(!result);
-    ui.pushButton_CancelTemporal->setEnabled(false);
+    ui.pushButton_StartCancelTemporal->setEnabled(!result);
     ui.pushButton_ShowPlots->setEnabled(false);
 
     m_ParentMainWindow->SetStatusBarText(QString(""));
@@ -384,15 +400,28 @@ void TemporalCalibrationToolbox::SetDisplayAccordingToState()
 
     QApplication::restoreOverrideCursor();
   }
+  else if (m_State == ToolboxState_StartupDelay)
+  {
+    ui.pushButton_StartCancelTemporal->setEnabled(true);
+    ui.pushButton_StartCancelTemporal->setText("Cancel");
+
+    ui.pushButton_ShowPlots->setEnabled(false);
+
+    m_ParentMainWindow->SetStatusBarText(QString("Get ready for temporal calibration"));
+    m_ParentMainWindow->SetStatusBarProgress(-1);
+
+    ui.comboBox_FixedChannelValue->setEnabled(true);
+    ui.comboBox_MovingChannelValue->setEnabled(true);
+    ui.comboBox_FixedSourceValue->setEnabled(ui.comboBox_FixedSourceValue->count() > 0 );
+    ui.comboBox_MovingSourceValue->setEnabled(ui.comboBox_MovingSourceValue->count() > 0 );
+  }
   else if (m_State == ToolboxState_InProgress)
   {
     m_ParentMainWindow->SetStatusBarText(QString(" Acquiring and adding images to calibrator"));
     m_ParentMainWindow->SetStatusBarProgress(0);
 
     ui.label_InstructionsTemporal->setText(tr("Move probe up and down so that the tank bottom is visible with 2s period until the progress bar is filled"));
-    ui.pushButton_StartTemporal->setEnabled(false);
-    ui.pushButton_CancelTemporal->setEnabled(true);
-    ui.pushButton_CancelTemporal->setFocus();
+    ui.pushButton_StartCancelTemporal->setEnabled(true);
 
     ui.comboBox_FixedChannelValue->setEnabled(false);
     ui.comboBox_MovingChannelValue->setEnabled(false);
@@ -412,8 +441,7 @@ void TemporalCalibrationToolbox::SetDisplayAccordingToState()
       ui.label_InstructionsTemporal->setText(tr("Temporal calibration is ready to save and its result plots can be viewed."));
     }
     ui.pushButton_ShowPlots->setEnabled(true);
-    ui.pushButton_StartTemporal->setEnabled(!result);
-    ui.pushButton_CancelTemporal->setEnabled(false);
+    ui.pushButton_StartCancelTemporal->setEnabled(!result);
 
     m_ParentMainWindow->SetStatusBarText(QString(" Calibration done"));
     m_ParentMainWindow->SetStatusBarProgress(-1);
@@ -428,8 +456,7 @@ void TemporalCalibrationToolbox::SetDisplayAccordingToState()
   else if (m_State == ToolboxState_Error)
   {
     ui.label_InstructionsTemporal->setText(tr("Error occurred!"));
-    ui.pushButton_StartTemporal->setEnabled(false);
-    ui.pushButton_CancelTemporal->setEnabled(false);
+    ui.pushButton_StartCancelTemporal->setEnabled(false);
     ui.pushButton_ShowPlots->setEnabled(false);
 
     m_ParentMainWindow->SetStatusBarText(QString(""));
@@ -441,6 +468,46 @@ void TemporalCalibrationToolbox::SetDisplayAccordingToState()
     ui.comboBox_MovingSourceValue->setEnabled(false);
 
     QApplication::restoreOverrideCursor();
+  }
+}
+
+
+//-----------------------------------------------------------------------------
+
+void TemporalCalibrationToolbox::StartDelayTimer()
+{
+  LOG_INFO("Delay start up "<< m_StartupDelayRemainingTimeSec );
+
+  disconnect(ui.pushButton_StartCancelTemporal, SIGNAL( clicked() ), this, SLOT( StartDelayTimer() ));
+  connect( ui.pushButton_StartCancelTemporal, SIGNAL( clicked() ), this, SLOT( CancelCalibration() ) );
+  ui.pushButton_StartCancelTemporal->setText(tr("Cancel"));
+
+  if( m_State != ToolboxState_InProgress)
+  {
+    LOG_INFO("set current Delay start up"<<m_FreeHandStartupDelaySec);
+    m_StartupDelayRemainingTimeSec=m_FreeHandStartupDelaySec;
+    ui.label_InstructionsTemporal->setText(QString("Temporal calibration will start in %1").arg(m_StartupDelayRemainingTimeSec--));
+    SetState(ToolboxState_StartupDelay);
+    // Start timer every 1000 ms
+    m_StartupDelayTimer->start(1000);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void  TemporalCalibrationToolbox::DelayStartup()
+{
+  if(m_StartupDelayRemainingTimeSec>0)
+  {
+    ui.label_InstructionsTemporal->setText(QString("Temporal calibration will start in %1").arg(m_StartupDelayRemainingTimeSec--));
+  }
+  else
+  {
+    if(m_StartupDelayTimer->isActive())
+    {
+      m_StartupDelayTimer->stop();
+    }
+    StartCalibration();
   }
 }
 
@@ -660,6 +727,10 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
 
   SetState(ToolboxState_Done);
 
+  disconnect( ui.pushButton_StartCancelTemporal, SIGNAL( clicked() ), this, SLOT( CancelCalibration() ) );
+  connect(ui.pushButton_StartCancelTemporal, SIGNAL( clicked() ), this, SLOT( StartDelayTimer() ));
+  ui.pushButton_StartCancelTemporal->setText(tr("Start"));
+
   m_ParentMainWindow->SetToolboxesEnabled(true);
 
   // Close dialog
@@ -740,19 +811,33 @@ void TemporalCalibrationToolbox::CancelCalibration()
 {
   LOG_INFO("Temporal calibration cancelled.");
 
-  CancelRequest = true;
+  disconnect( ui.pushButton_StartCancelTemporal, SIGNAL( clicked() ), this, SLOT( CancelCalibration() ) );
+  connect(ui.pushButton_StartCancelTemporal, SIGNAL( clicked() ), this, SLOT( StartDelayTimer() ));
+  ui.pushButton_StartCancelTemporal->setText(tr("Start"));
 
-  this->PreviousFixedOffset = INVALID_OFFSET;
-  this->PreviousMovingOffset = INVALID_OFFSET;
+  if(m_State==ToolboxState_StartupDelay)
+  {
+    if(m_StartupDelayTimer->isActive())
+    {
+      m_StartupDelayTimer->stop();
+    }
+    LOG_TRACE("TemporalCalibrationToolbox::CancelCalibration before calibration delay timer finished");   }
+  else
+  {
+    CancelRequest = true;
 
-  this->FixedChannel = NULL;
-  this->MovingChannel = NULL;
-  this->FixedType = vtkTemporalCalibrationAlgo::FRAME_TYPE_NONE;
-  this->MovingType = vtkTemporalCalibrationAlgo::FRAME_TYPE_NONE;
-  this->FixedValidationTransformName.Clear();
-  this->MovingValidationTransformName.Clear();
+    this->PreviousFixedOffset = INVALID_OFFSET;
+    this->PreviousMovingOffset = INVALID_OFFSET;
 
-  m_ParentMainWindow->SetToolboxesEnabled(true);
+    this->FixedChannel = NULL;
+    this->MovingChannel = NULL;
+    this->FixedType = vtkTemporalCalibrationAlgo::FRAME_TYPE_NONE;
+    this->MovingType = vtkTemporalCalibrationAlgo::FRAME_TYPE_NONE;
+    this->FixedValidationTransformName.Clear();
+    this->MovingValidationTransformName.Clear();
+
+    m_ParentMainWindow->SetToolboxesEnabled(true);
+  }
 
   SetState(ToolboxState_Idle);
 }

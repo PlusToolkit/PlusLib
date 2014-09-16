@@ -71,6 +71,13 @@ protected:
   static std::string GetTimeAsString(double timeSec);
 
 protected slots:
+
+  /*! Start the delay startup timer*/
+  void StartDelayTimer();
+
+  /*! Delay before startup calibration*/
+  void DelayStartup();
+
   /*! Acquire tracked frames for temporal calibration and calls the algorithm when done */
   void DoCalibration();
 
@@ -95,7 +102,19 @@ protected slots:
 
   void MovingSourceChanged(int newIndex);
 
+  void SetFreeHandStartupDelaySec(int freeHandStartupDelaySec){m_FreeHandStartupDelaySec=freeHandStartupDelaySec;};
+
 protected:
+
+  /*! Delay time before start acquisition [s] */
+  int                        m_FreeHandStartupDelaySec;
+
+  /*! Current time delayed before the acquisition [s] */
+  int                        m_StartupDelayRemainingTimeSec;
+
+  /*! Timer before start acquisition*/
+  QTimer*                    m_StartupDelayTimer;
+
   /*! Tracked frame for tracking data for temporal calibration */
   vtkTrackedFrameList* TemporalCalibrationFixedData;
 
