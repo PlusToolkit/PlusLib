@@ -175,7 +175,8 @@
     FixedSourceId="Video"
     MovingChannelId="TrackerStream"
     MovingSourceId="ProbeToTracker"
-    DefaultSelectedChannelId="TrackedVideoStream" />
+    DefaultSelectedChannelId="TrackedVideoStream" 
+    FreeHandStartupDelaySec="3" />
 
   <vtkPivotCalibrationAlgo
     ObjectMarkerCoordinateFrame="Stylus"
