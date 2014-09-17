@@ -494,23 +494,23 @@ PlusStatus vtkPivotDetectionAlgo::EstimatePivotPointPosition()
   };
 
   // Set descriptive statistics algorithm and its input data port
-  vtkSmartPointer<vtkDescriptiveStatistics> ds = vtkSmartPointer<vtkDescriptiveStatistics>::New();
-  ds->SetInput( vtkStatisticsAlgorithm::INPUT_DATA, simpleTable );
+  vtkSmartPointer<vtkDescriptiveStatistics> descriptiveStats = vtkSmartPointer<vtkDescriptiveStatistics>::New();
+  descriptiveStats->SetInputConnection( simpleTable->GetProducerPort() );
 
   // Select Columns of Interest
   for ( int i = 0; i< nMetrics; ++ i )
   {
-    ds->AddColumn( columns[i] );
+    descriptiveStats->AddColumn( columns[i] );
   }
 
   // Test Learn, Derive, Test, and Assess options
-  ds->SetLearnOption( true );
-  ds->SetDeriveOption( true );
-  ds->SetAssessOption( false );
-  ds->SetTestOption( false );
-  ds->Update();
+  descriptiveStats->SetLearnOption( true );
+  descriptiveStats->SetDeriveOption( true );
+  descriptiveStats->SetAssessOption( false );
+  descriptiveStats->SetTestOption( false );
+  descriptiveStats->Update();
 
-  vtkSmartPointer<vtkMultiBlockDataSet> outputMetaDS = vtkMultiBlockDataSet::SafeDownCast( ds->GetOutputDataObject( vtkStatisticsAlgorithm::OUTPUT_MODEL ) );
+  vtkSmartPointer<vtkMultiBlockDataSet> outputMetaDS = vtkMultiBlockDataSet::SafeDownCast( descriptiveStats->GetOutputDataObject( vtkStatisticsAlgorithm::OUTPUT_MODEL ) );
   vtkSmartPointer<vtkTable> outputPrimary = vtkTable::SafeDownCast( outputMetaDS->GetBlock( 0 ) );
   vtkSmartPointer<vtkTable> outputDerived = vtkTable::SafeDownCast( outputMetaDS->GetBlock( 1 ) );
 
