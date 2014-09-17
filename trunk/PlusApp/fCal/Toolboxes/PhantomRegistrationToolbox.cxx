@@ -40,6 +40,7 @@ PhantomRegistrationToolbox::PhantomRegistrationToolbox(fCalMainWindow* aParentMa
 , m_LandmarkPivotingState(LandmarkPivotingState_Incomplete)
 , m_PreviousStylusTipToReferenceTransformMatrix(NULL)
 , m_AutoDetectPivoting(false)
+, m_LandmarkDetected(false)
 {
   ui.setupUi(this);
 
@@ -191,7 +192,7 @@ void PhantomRegistrationToolbox::OnActivated()
         ui.tabWidget->setTabEnabled(0, false);
         LOG_WARNING("Phantom landmark definitions not found in XML tree. Perform Linear Object Registration instead!");
       }
-      
+
       if(m_PivotDetection->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) == PLUS_SUCCESS)
       {
         m_AutoDetectPivoting=true;
@@ -208,7 +209,7 @@ void PhantomRegistrationToolbox::OnActivated()
         LOG_WARNING("Phantom plane definitions not found in XML tree. Perform Landmark Registration instead!");
       }
     }
-    
+
     if (ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
     {
       LOG_ERROR("Stylus tool name cannot be loaded from device set configuration data!");
@@ -257,7 +258,7 @@ PlusStatus PhantomRegistrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
 PlusStatus PhantomRegistrationToolbox::LoadPhantomModel()
 {
   LOG_TRACE("PhantomRegistrationToolbox::InitializeVisualization");   
-  
+
   if( m_ParentMainWindow->GetPhantomModelId() == NULL )
   {
     LOG_ERROR("Unable to retreive phantom model by ID. Is the phantom model ID well defined?");
@@ -270,12 +271,12 @@ PlusStatus PhantomRegistrationToolbox::LoadPhantomModel()
     LOG_ERROR("Unable to retreive phantom model by ID. Is the phantom model ID well defined?");
     return PLUS_FAIL;
   }  
-  
+
   vtkSmartPointer<vtkPolyDataMapper> stlMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   stlMapper->SetInputData_vtk5compatible(phantomDisplayableModel->GetPolyData());
   m_PhantomActor->SetMapper(stlMapper);
   m_PhantomActor->GetProperty()->SetOpacity( phantomDisplayableModel->GetLastOpacity() );
-  
+
   if ( phantomDisplayableModel->GetModelToObjectTransform() != NULL )
   {
     m_PhantomActor->SetUserTransform(phantomDisplayableModel->GetModelToObjectTransform());      
@@ -328,7 +329,17 @@ void PhantomRegistrationToolbox::RefreshContent()
       }
       else if(GetLandmarkPivotingState() == LandmarkPivotingState_InProgress)
       {
-        ui.label_Instructions->setText(QString("Pivot around landmark named %1 until detected\n\n").arg(m_PhantomLandmarkRegistration->GetDefinedLandmarkName(m_CurrentLandmarkIndex).c_str()));
+
+        if(m_LandmarkDetected)
+        {
+          ui.label_Instructions->setStyleSheet("QLabel { color : orange; }");
+          ui.label_Instructions->setText(QString("The landmark %1 is already detected\n\n").arg(m_PhantomLandmarkRegistration->GetDefinedLandmarkName(m_CurrentLandmarkIndex-1).c_str()));
+        }
+        else
+        {
+          ui.label_Instructions->setStyleSheet("QLabel { color : black; }");
+          ui.label_Instructions->setText(QString("Pivot around landmark named %1 until detected \n\n").arg(m_PhantomLandmarkRegistration->GetDefinedLandmarkName(m_CurrentLandmarkIndex).c_str()));
+        }
       }
       else if(GetLandmarkPivotingState() == LandmarkPivotingState_Complete)
       {
@@ -571,7 +582,7 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
 
     if(m_AutoDetectPivoting==true)
     {
-    ui.pushButton_StartStop_2->setEnabled(true);
+      ui.pushButton_StartStop_2->setEnabled(true);
     }
 
     ui.pushButton_StartStop->setEnabled(true);
@@ -624,21 +635,29 @@ PlusStatus PhantomRegistrationToolbox::Start()
     vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
     m_PivotDetection->SetExpectedPivotsNumber(m_PhantomLandmarkRegistration->GetDefinedLandmarks()->GetNumberOfPoints());
     m_PivotDetection->SetMinimunDistanceBetweenLandmarksMM(m_PhantomLandmarkRegistration->GetMinimunDistanceBetweenTwoLandmarks());
-      if (dataCollector)
+    if (dataCollector)
+    {
+      for( DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it )
       {
-        for( DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it )
+        vtkPlusDevice *vtkTracker = dynamic_cast<vtkPlusDevice*>(*it);
+        if (vtkTracker != NULL)
         {
-          vtkPlusDevice *vtkTracker = dynamic_cast<vtkFakeTracker*>(*it);
-          if (vtkTracker != NULL)
+          if(vtkTracker->IsTracker())
           {
-            if(vtkTracker->IsTracker())
-            {
-             m_PivotDetection->SetAcquisitionRate(vtkTracker->GetAcquisitionRate());
-             break;
-            }
+            m_PivotDetection->SetAcquisitionRate(vtkTracker->GetAcquisitionRate());
+            break;
+          }
+          else
+          {
+            LOG_INFO("vtkPlusDevice is not a tracker");
           }
         }
+        else
+        {
+          LOG_INFO("vtkPlusDevice equal NULL");
+        }
       }
+    }
   }
 
   // Initialize toolbox canvas
@@ -944,7 +963,7 @@ void PhantomRegistrationToolbox::Reset()
     m_PivotDetection->ResetDetection();
     if(m_LandmarkPivotingState==LandmarkPivotingState_Complete)
     {
-    SetLandmarkPivotingState(LandmarkPivotingState_Incomplete);
+      SetLandmarkPivotingState(LandmarkPivotingState_Incomplete);
     }
   }
   // Delete acquired landmarks
@@ -1068,7 +1087,7 @@ void PhantomRegistrationToolbox::ResetLinearObjectRegistration()
 
   ui.pushButton_StartStop->setEnabled(true);
   ui.tabWidget->setTabEnabled(0, true);
-  
+
   SetLinearObjectRegistrationState(LinearObjectRegistrationState_Incomplete);
 
   //clear input points
@@ -1212,6 +1231,10 @@ void PhantomRegistrationToolbox::AddStylusTipTransformToLandmarkPivotingRegistra
       orientationDifferenceDegrees = PlusMath::GetOrientationDifference(stylusTipToReferenceTransformMatrix, m_PreviousStylusTipToReferenceTransformMatrix);
     }
 
+    double positionSylusTip [3]={stylusTipToReferenceTransformMatrix->GetElement(0,3),stylusTipToReferenceTransformMatrix->GetElement(1,3),stylusTipToReferenceTransformMatrix->GetElement(2,3)};
+
+    m_LandmarkDetected=!m_PivotDetection->IsNewPivotPointPosition(positionSylusTip);
+
     if (positionDifferenceMm > positionDifferenceHighThresholdMm || orientationDifferenceDegrees > orientationDifferenceHighThresholdDegrees)
     {
       LOG_DEBUG("Acquired position seems to be an outlier - it is skipped");
@@ -1222,14 +1245,13 @@ void PhantomRegistrationToolbox::AddStylusTipTransformToLandmarkPivotingRegistra
       m_PivotDetection->InsertNextStylusTipToReferenceTransform(stylusTipToReferenceTransformMatrix);
       // Set new current point number
       ++m_CurrentPointNumber;
-      //// Reset the camera once in a while
-      //if ((m_CurrentPointNumber > 0) && ((m_CurrentPointNumber % 10 == 0) || (m_CurrentPointNumber == 5)))
-      //{
-      //  m_ParentMainWindow->GetVisualizationController()->GetCanvasRenderer()->ResetCamera();
-      //}
+
       m_PivotDetection->IsNewPivotPointFound(valid);
       if(valid)
       {
+        // Reset the camera when new pivot found
+        m_ParentMainWindow->GetVisualizationController()->GetCanvasRenderer()->ResetCamera();
+
         LOG_INFO("\n"<<m_PivotDetection->GetDetectedPivotsString()<<"\n");
         vtkPlusLogger::PrintProgressbar((100.0 * m_PivotDetection->GetPivotPointsReference()->GetNumberOfPoints()-1) / m_PhantomLandmarkRegistration->GetDefinedLandmarks()->GetNumberOfPoints()); 
         m_PivotDetection->GetPivotPointsReference()->GetPoint(m_PivotDetection->GetPivotPointsReference()->GetNumberOfPoints()-1, pivotFound);
@@ -1317,7 +1339,7 @@ void PhantomRegistrationToolbox::AddStylusTipTransformToLinearObjectRegistration
     double orientationDifferenceLowThresholdDegrees = 2.0;
     double orientationDifferenceHighThresholdDegrees = 90.0;
     double orientationDifferenceDegrees = -1.0;
-    
+
     //TODO: make sure that when you switch planes you are recording, all the new points are not treated as outliers
     if (m_CurrentPointNumber < 1)
     {

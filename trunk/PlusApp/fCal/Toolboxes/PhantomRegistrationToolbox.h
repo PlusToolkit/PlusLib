@@ -200,6 +200,10 @@ protected:
   /*! Pivot detection algorithm config file read successfully flag */
   bool                                    m_AutoDetectPivoting;
 
+  /*! Landmark already detected */
+  bool                                    m_LandmarkDetected;
+
+
   /*! Renderer for the canvas */
   vtkRenderer*                            m_PhantomRenderer;
 
