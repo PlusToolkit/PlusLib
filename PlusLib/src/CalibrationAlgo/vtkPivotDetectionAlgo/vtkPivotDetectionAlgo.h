@@ -93,6 +93,9 @@ public:
   vtkGetMacro(ExpectedPivotsNumber, int);
   vtkSetMacro(MinimunDistanceBetweenLandmarksMM, double);
 
+  /*! Once the pivot is detected (after DetectionTime) the stylus could still be pivoting in the same place, this function determines if it is a new pivot position if it is not the pivot position will be averaged with the existing one.*/
+  bool IsNewPivotPointPosition(double* stylusPosition);
+
 protected:
 
   vtkSetStringMacro(ObjectMarkerCoordinateFrame);
@@ -103,9 +106,6 @@ protected:
 
   /* Estimate pivot point position from the stylus tip points. The average of NumberOfWindows*WindowSize consecutive points that remain in the same position within the PivotThresholdMM.*/
   PlusStatus EstimatePivotPointPosition();
-
-  /*! Once the pivot is detected (after DetectionTime) the stylus could still be pivoting in the same place, this function determines if it is a new pivot position if it is not the pivot position will be averaged with the existing one.*/
-  bool IsNewPivotPointPosition(double* stylusPosition);
 
   /*! The change in pivot positions is measured in windows of points. If the current window is not considered the same pivoting point as the one before. The points acquired that belong to the first window will be erased by this function.*/
   void EraseLastPoints();
