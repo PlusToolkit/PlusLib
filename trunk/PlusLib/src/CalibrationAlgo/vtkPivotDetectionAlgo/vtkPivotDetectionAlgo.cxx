@@ -31,7 +31,7 @@ vtkStandardNewMacro(vtkPivotDetectionAlgo);
 namespace
 {
   const int EXPECTED_PIVOTS_NUMBER=3;// The default expected number of pivots to be detected
-  const double ABOVE_PIVOT_THRESHOLD_MM=3.0;//Above the pivot threshold is used to detect stylus pivoting and not static. When a point 10 cm above the stylus tip magnitude change is bigger than AbovePivotThresholdMM, the stylus is pivoting.
+  const double ABOVE_PIVOT_THRESHOLD_MM=10.0;//Above the pivot threshold is used to detect stylus pivoting and not static. When a point 100 mm above the stylus tip magnitude change is bigger than AbovePivotThresholdMM, the stylus is pivoting.
   const double PIVOT_THRESHOLD_MM=1.5;// A pivot position will be consider when the stylus tip position magnitude change is below PivotThresholdMM.
 
   const int NUMBER_WINDOWS=5;//The number of windows to be detected as pivot in DetectionTime (1.0 [s]) DetectionTime/WindowTime
@@ -58,8 +58,8 @@ void vtkPivotDetectionAlgo::SetAcquisitionRate(double aquisitionRate)
     LOG_WARNING("The smallest window size is set to 1");
     this->WindowSize=1;
   }
-  LOG_INFO("SET AcquisitionRate = "<< AcquisitionRate << " WindowTimeSec = " << WindowTimeSec<<" DetectionTimeSec = "<< DetectionTimeSec);
-  LOG_INFO("NumberOfWindows = "<< NumberOfWindows<< " WindowSize = "<< WindowSize<< " MinimunDistanceBetweenLandmarksMM = "<< MinimunDistanceBetweenLandmarksMM );
+  LOG_INFO("SET AcquisitionRate = "<< AcquisitionRate << "[fps] WindowTimeSec = " << WindowTimeSec<<"[s] DetectionTimeSec = "<< DetectionTimeSec <<"[s]");
+  LOG_INFO("NumberOfWindows = "<< NumberOfWindows<< " WindowSize = "<< WindowSize<< " MinimunDistanceBetweenLandmarksMM = "<< MinimunDistanceBetweenLandmarksMM << "[mm] PivotThreshold " << PivotThresholdMM <<"[mm]");
 }
 
 //----------------------------------------------------------------------------
@@ -74,8 +74,6 @@ void vtkPivotDetectionAlgo::SetDetectionTimeSec(double detectionTime)
   {
     LOG_WARNING("Specified window time (" << detectionTime << " [s]) is not correct, default "<<this->DetectionTimeSec<<" [s] is used instead");
   }
-  LOG_INFO("AcquisitionRate = "<< AcquisitionRate << " WindowTimeSec = " << WindowTimeSec<<"SET DetectionTimeSec = "<< DetectionTimeSec);
-  LOG_INFO("NumberOfWindows = "<< NumberOfWindows<< " WindowSize = "<< WindowSize<< " MinimunDistanceBetweenLandmarksMM = "<< MinimunDistanceBetweenLandmarksMM );
 }
 
 //----------------------------------------------------------------------------
@@ -100,8 +98,6 @@ void vtkPivotDetectionAlgo::SetWindowTimeSec(double windowTime)
   {
     LOG_WARNING("Specified window time (" << windowTime << " [s]) is not correct, default "<<this->WindowTimeSec<<" [s] is used instead");
   }
-  LOG_INFO("AcquisitionRate = "<< AcquisitionRate << " SET WindowTimeSec = " << WindowTimeSec<<" DetectionTimeSec = "<< DetectionTimeSec);
-  LOG_INFO("NumberOfWindows = "<< NumberOfWindows<< " WindowSize = "<< WindowSize<< " MinimunDistanceBetweenLandmarksMM = "<< MinimunDistanceBetweenLandmarksMM );
 }
 
 //----------------------------------------------------------------------------
@@ -126,7 +122,7 @@ void vtkPivotDetectionAlgo::SetPivotThresholdMM(double samePivotThreshold)
   }
   else
   {
-    LOG_WARNING("Specified same pivot threshold (" << samePivotThreshold << " [mm]) is not correct, default "<<this->PivotThresholdMM<<" [s] is used instead");
+    LOG_WARNING("Specified pivot threshold (" << samePivotThreshold << " [mm]) is not correct, default "<<this->PivotThresholdMM<<" [s] is used instead");
   }
 }
 
@@ -167,7 +163,7 @@ vtkPivotDetectionAlgo::vtkPivotDetectionAlgo()
   this->NumberOfWindows=NUMBER_WINDOWS;
   this->WindowSize=WINDOW_SIZE;
 
-  this->AcquisitionRate=0.0;
+  this->AcquisitionRate=20.0;
   this->WindowTimeSec=0.2;
   this->DetectionTimeSec=1.0;
   this->AbovePivotThresholdMM = ABOVE_PIVOT_THRESHOLD_MM;
@@ -594,6 +590,9 @@ PlusStatus vtkPivotDetectionAlgo::ReadConfiguration(vtkXMLDataElement* aConfig)
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DetectionTimeSec, pivotDetectionElement);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, AbovePivotThresholdMM, pivotDetectionElement);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, PivotThresholdMM, pivotDetectionElement);
+
+  LOG_INFO("AcquisitionRate = "<< AcquisitionRate << "[fps] WindowTimeSec = " << WindowTimeSec<<"[s] DetectionTimeSec = "<< DetectionTimeSec <<"[s]");
+  LOG_INFO("NumberOfWindows = "<< NumberOfWindows<< " WindowSize = "<< WindowSize<< " MinimunDistanceBetweenLandmarksMM = "<< MinimunDistanceBetweenLandmarksMM << "[mm] PivotThreshold " << PivotThresholdMM <<"[mm]");
 
   return PLUS_SUCCESS;
 }

@@ -53,13 +53,12 @@ using simple linear regression. The filtered timestamp is the time corresponding
   
 \par Configuration settings
 
-- Element name: \c vtkTemporalCalibrationAlgo
-- Attributes
-  - \c ClipRectangleOrigin and \c ClipRectangleSize define a region to take into account when line detection is performed on images. Optional attribute, if not specified then the whole image is used.
-  - \c SaveIntermediateImages controls if diagnostic information of line detection in images is written to files. Optional attribute, default value is \c FALSE.
+- \xmlElem \b vtkTemporalCalibrationAlgo
+  - \xmlAtt \c ClipRectangleOrigin and \c ClipRectangleSize define a region to take into account when line detection is performed on images. Optional attribute, if not specified then the whole image is used.
+  - \xmlAtt \c SaveIntermediateImages controls if diagnostic information of line detection in images is written to files.\OptionalAtt{FALSE}.
     - \c FALSE No debug information will be written.
     - \c TRUE Image files are written to the output directory that show the lines along image intensity is sampled and the detected line.
-  - \c SetMaximumMovingLagSec defines the maximum time lag that will be considered by the algorithm, in seconds. Optional attribute, default value is 0.5 sec.
+  - \xmlAtt SetMaximumMovingLagSec defines the maximum time lag that will be considered by the algorithm, in seconds. \OptionalAtt{0.5 sec}
 
 \par Example configuration file
 

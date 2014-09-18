@@ -195,7 +195,8 @@
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
     TemporalCalibrationDurationSec="10" 
-	  DefaultSelectedChannelId="TrackedVideoStream" />
+    DefaultSelectedChannelId="TrackedVideoStream" 
+    FreeHandStartupDelaySec="3" />
 
   <vtkPivotCalibrationAlgo
     ObjectMarkerCoordinateFrame="Stylus"
@@ -212,5 +213,12 @@
     ProbeCoordinateFrame="Probe"
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference" />
+
+  <vtkPivotDetectionAlgo
+    ObjectMarkerCoordinateFrame="Stylus"
+    ReferenceCoordinateFrame="Reference"
+    ObjectPivotPointCoordinateFrame="StylusTip"
+    DetectionTimeSec="1.0"
+    PivotThresholdMM="1.8" />
 
 </PlusConfiguration>

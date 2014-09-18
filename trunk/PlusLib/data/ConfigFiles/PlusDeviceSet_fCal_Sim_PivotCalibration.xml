@@ -43,7 +43,6 @@ vtkStylusCalibrationTest uses this configuration" />
     StylusModelId="StylusModel"
     ImageDisplayableObjectId="LiveImage"
     NumberOfStylusCalibrationPointsToAcquire="200"
-    FreeHandStartupDelaySec="0"
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"
     ReferenceCoordinateFrame="Reference"
