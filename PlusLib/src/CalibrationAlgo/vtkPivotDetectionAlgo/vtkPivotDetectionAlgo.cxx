@@ -142,7 +142,6 @@ void vtkPivotDetectionAlgo::SetExpectedPivotsNumber(int expectedPivotsNumber)
 //-----------------------------------------------------------------------------
 vtkPivotDetectionAlgo::vtkPivotDetectionAlgo()
 {
-  this->ObjectMarkerCoordinateFrame = NULL;
   this->ReferenceCoordinateFrame = NULL;
 
   this->PivotPointsReference = NULL;
@@ -579,17 +578,16 @@ std::string vtkPivotDetectionAlgo::GetDetectedPivotsString( double aPrecision/*=
 //-----------------------------------------------------------------------------
 PlusStatus vtkPivotDetectionAlgo::ReadConfiguration(vtkXMLDataElement* aConfig)
 {
-  XML_FIND_NESTED_ELEMENT_REQUIRED(pivotDetectionElement, aConfig, "vtkPivotDetectionAlgo");
-  XML_READ_STRING_ATTRIBUTE_REQUIRED(ObjectMarkerCoordinateFrame, pivotDetectionElement);
-  XML_READ_STRING_ATTRIBUTE_REQUIRED(ReferenceCoordinateFrame, pivotDetectionElement);
+  XML_FIND_NESTED_ELEMENT_REQUIRED(PhantomLandmarkPivotDetectionElement, aConfig, "vtkPhantomLandmarkRegistrationAlgo");
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(ReferenceCoordinateFrame, PhantomLandmarkPivotDetectionElement);
 
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, AcquisitionRate, pivotDetectionElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, AcquisitionRate, PhantomLandmarkPivotDetectionElement);
 
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, ExpectedPivotsNumber, pivotDetectionElement);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, WindowTimeSec, pivotDetectionElement);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DetectionTimeSec, pivotDetectionElement);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, AbovePivotThresholdMM, pivotDetectionElement);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, PivotThresholdMM, pivotDetectionElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, ExpectedPivotsNumber, PhantomLandmarkPivotDetectionElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, WindowTimeSec, PhantomLandmarkPivotDetectionElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DetectionTimeSec, PhantomLandmarkPivotDetectionElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, AbovePivotThresholdMM, PhantomLandmarkPivotDetectionElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, PivotThresholdMM, PhantomLandmarkPivotDetectionElement);
 
   LOG_INFO("AcquisitionRate = "<< AcquisitionRate << "[fps] WindowTimeSec = " << WindowTimeSec<<"[s] DetectionTimeSec = "<< DetectionTimeSec <<"[s]");
   LOG_INFO("NumberOfWindows = "<< NumberOfWindows<< " WindowSize = "<< WindowSize<< " MinimunDistanceBetweenLandmarksMM = "<< MinimunDistanceBetweenLandmarksMM << "[mm] PivotThreshold " << PivotThresholdMM <<"[mm]");

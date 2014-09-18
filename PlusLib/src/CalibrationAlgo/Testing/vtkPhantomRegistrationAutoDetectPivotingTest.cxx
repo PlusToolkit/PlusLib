@@ -386,8 +386,8 @@ cmdargs.AddArgument("--intermediate-file-output-dir", vtksys::CommandLineArgumen
 
       // Check stylus tool
       PlusTransformName stylusTipToReferenceTransformName(phantomRegistration->GetStylusTipCoordinateFrame(), phantomRegistration->GetReferenceCoordinateFrame());
-      PlusTransformName stylusToReferenceTransformName(PivotDetection->GetObjectMarkerCoordinateFrame(), PivotDetection->GetReferenceCoordinateFrame());
-      PlusTransformName stylusTipToStylusTransformName(phantomRegistration->GetStylusTipCoordinateFrame(), PivotDetection->GetObjectMarkerCoordinateFrame());
+      PlusTransformName stylusToReferenceTransformName("Stylus", PivotDetection->GetReferenceCoordinateFrame());
+      PlusTransformName stylusTipToStylusTransformName(phantomRegistration->GetStylusTipCoordinateFrame(), "Stylus");
 
       vtkSmartPointer<vtkMatrix4x4> stylusTipToStylusTransform = vtkSmartPointer<vtkMatrix4x4>::New();
       bool valid = false;
