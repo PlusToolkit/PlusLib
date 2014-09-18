@@ -87,7 +87,6 @@ public:
   /*Directly inserts a pivot position into the list, bypassing the detection*/
   PlusStatus InsertPivot(double* stylusTipPosition);
 
-  vtkGetStringMacro(ObjectMarkerCoordinateFrame);
   vtkGetStringMacro(ReferenceCoordinateFrame);
   vtkGetObjectMacro(PivotPointsReference, vtkPoints);
   vtkGetMacro(ExpectedPivotsNumber, int);
@@ -98,7 +97,6 @@ public:
 
 protected:
 
-  vtkSetStringMacro(ObjectMarkerCoordinateFrame);
   vtkSetStringMacro(ReferenceCoordinateFrame);
   vtkSetObjectMacro(PivotPointsReference, vtkPoints);
   vtkPivotDetectionAlgo();
@@ -144,8 +142,6 @@ protected:
 
   vtkBoundingBox BoundingBox;
 
-  /*! Name of the object marker coordinate frame (eg. Stylus) */
-  char*               ObjectMarkerCoordinateFrame;
   /*! Name of the reference coordinate frame (eg. Reference) */
   char*               ReferenceCoordinateFrame;
 
