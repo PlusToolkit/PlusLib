@@ -629,37 +629,6 @@ PlusStatus PhantomRegistrationToolbox::Start()
     return PLUS_FAIL;
   }
 
-  if( m_AutoDetectPivoting==true)
-  {
-    // If tracker is FakeTracker then set counter (trigger position change) and wait for it to apply the new position
-    vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
-    m_PivotDetection->SetExpectedPivotsNumber(m_PhantomLandmarkRegistration->GetDefinedLandmarks()->GetNumberOfPoints());
-    m_PivotDetection->SetMinimunDistanceBetweenLandmarksMM(m_PhantomLandmarkRegistration->GetMinimunDistanceBetweenTwoLandmarks());
-    if (dataCollector)
-    {
-      for( DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it )
-      {
-        vtkPlusDevice *vtkTracker = dynamic_cast<vtkPlusDevice*>(*it);
-        if (vtkTracker != NULL)
-        {
-          if(vtkTracker->IsTracker())
-          {
-            m_PivotDetection->SetAcquisitionRate(vtkTracker->GetAcquisitionRate());
-            break;
-          }
-          else
-          {
-            LOG_INFO("vtkPlusDevice is not a tracker");
-          }
-        }
-        else
-        {
-          LOG_INFO("vtkPlusDevice equal NULL");
-        }
-      }
-    }
-  }
-
   // Initialize toolbox canvas
   if (LoadPhantomModel() != PLUS_SUCCESS)
   {
@@ -687,6 +656,45 @@ PlusStatus PhantomRegistrationToolbox::Start()
     LOG_ERROR("No stylus tip to reference transform available!");
     SetState(ToolboxState_Error);
     return PLUS_FAIL;
+  }
+
+  if( m_AutoDetectPivoting==true)
+  {
+    // If tracker is FakeTracker then set counter (trigger position change) and wait for it to apply the new position
+    vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
+    m_PivotDetection->SetExpectedPivotsNumber(m_PhantomLandmarkRegistration->GetDefinedLandmarks()->GetNumberOfPoints());
+    m_PivotDetection->SetMinimunDistanceBetweenLandmarksMM(m_PhantomLandmarkRegistration->GetMinimunDistanceBetweenTwoLandmarks());
+    //The pivot threshold set proportional to the the pivot calibration error
+    double error;
+    PlusTransformName sylusTipToStylusTransformName(
+      m_PhantomLandmarkRegistration->GetStylusTipCoordinateFrame(), m_PivotDetection->GetObjectMarkerCoordinateFrame());
+    m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->GetTransformError(sylusTipToStylusTransformName, error);
+    m_PivotDetection->SetPivotThresholdMM(error*3);
+    if (dataCollector)
+    {
+      for( DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it )
+      {
+        vtkPlusDevice *vtkTracker = dynamic_cast<vtkPlusDevice*>(*it);
+        if (vtkTracker != NULL)
+        {
+          if(vtkTracker->IsTracker())
+          {
+            m_PivotDetection->SetAcquisitionRate(vtkTracker->GetAcquisitionRate());
+            break;
+          }
+          else
+          {
+            LOG_INFO("vtkPlusDevice is not a tracker");
+          }
+        }
+        else
+        {
+          LOG_INFO("vtkPlusDevice equal NULL");
+        }
+      }
+    }
+    //If acquisition rate and/or pivot threshold were specified in the configuration file,read them again and used those values.
+    m_PivotDetection->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
   }
 
   return PLUS_SUCCESS;
