@@ -185,11 +185,11 @@ PlusStatus PlusCommon::CreateTemporaryFilename( std::string& aString, const std:
     tryCount++;
 
 #ifdef _WIN32
-    UINT uRetVal(0);
+    // Get output directory
+    std::string path;
     if( !anOutputDirectory.empty() )
     {
-      std::string path = vtksys::SystemTools::GetRealPath(anOutputDirectory.c_str()); 
-      uRetVal = GetTempFileName(path.c_str(), "", 0, candidateFilename);  // buffer for name
+      path = vtksys::SystemTools::GetRealPath(anOutputDirectory.c_str());
     }
     else
     {
@@ -199,17 +199,18 @@ PlusStatus PlusCommon::CreateTemporaryFilename( std::string& aString, const std:
         LOG_ERROR("Unable to retrieve temp path: " << GetLastError() );
         return PLUS_FAIL;
       }
-      uRetVal = GetTempFileName(tempPath, "", 0, candidateFilename);
+      path = tempPath;
     }
 
-
+    // Get full output file path
+    UINT uRetVal = GetTempFileName(path.c_str(), "", 0, candidateFilename);  // buffer for name
     if( uRetVal == ERROR_BUFFER_OVERFLOW )
     {
       if( vtksys::SystemTools::FileExists(candidateFilename) )
       {
         vtksys::SystemTools::RemoveFile(candidateFilename);
       }
-      LOG_ERROR("Path too long to generate temporary filename. Consider moving output directory to shorter path.");
+      LOG_ERROR("Path too long to generate temporary filename ("<<path<<"). Consider moving output directory to shorter path.");
       continue;
     }
     else if (uRetVal==0)
