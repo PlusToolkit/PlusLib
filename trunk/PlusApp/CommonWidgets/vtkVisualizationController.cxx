@@ -219,7 +219,7 @@ PlusStatus vtkVisualizationController::SetVisualizationMode( DISPLAY_MODE aMode 
 
   if (aMode == DISPLAY_MODE_2D)
   {
-    if (this->SelectedChannel->GetVideoDataAvailable() == false)
+    if (this->SelectedChannel==NULL || this->SelectedChannel->GetVideoDataAvailable() == false)
     {
       LOG_WARNING("Cannot switch to image mode without enabled video in data collector!");
       return PLUS_FAIL;
@@ -497,7 +497,7 @@ PlusStatus vtkVisualizationController::GetTransformMatrix(const char* aTransform
 PlusStatus vtkVisualizationController::GetTransformMatrix(PlusTransformName aTransform, vtkMatrix4x4* aOutputMatrix, bool* aValid/* = NULL*/)
 {
   TrackedFrame trackedFrame;
-  if (this->SelectedChannel->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
+  if (this->SelectedChannel==NULL || this->SelectedChannel->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to get tracked frame from selected channel!");
     return PLUS_FAIL;
