@@ -131,6 +131,9 @@ protected:
   /*! Get message telling the state of the calibration */
   QString GetCalibrationStateMessage();
 
+  /*! Get the stylus calibration error*/
+  PlusStatus GetStylusCalibrationError(double & calibrationError);
+
 protected slots:
   /*!
   * Slot handling open stylus calibration button click
@@ -230,6 +233,10 @@ protected:
 
  /*! Stylus or stylus tip position (depending on the state) as string */
   QString                                 m_StylusPositionString;
+
+  /*! Object marker coordinate frame string (e.g. Stylus)*/
+  QString                                 m_ObjectMarkerCoordinateFrame;
+
 
   /*! Previous stylus tip to reference transform matrix to determine the difference at each point acquisition */
   vtkMatrix4x4*                           m_PreviousStylusTipToReferenceTransformMatrix;

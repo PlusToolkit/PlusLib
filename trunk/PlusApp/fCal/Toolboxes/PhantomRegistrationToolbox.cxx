@@ -664,12 +664,18 @@ PlusStatus PhantomRegistrationToolbox::Start()
     vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
     m_PivotDetection->SetExpectedPivotsNumber(m_PhantomLandmarkRegistration->GetDefinedLandmarks()->GetNumberOfPoints());
     m_PivotDetection->SetMinimunDistanceBetweenLandmarksMM(m_PhantomLandmarkRegistration->GetMinimunDistanceBetweenTwoLandmarks());
+    
     //The pivot threshold set proportional to the the pivot calibration error
-    double error;
-    PlusTransformName sylusTipToStylusTransformName(
-      m_PhantomLandmarkRegistration->GetStylusTipCoordinateFrame(), m_PivotDetection->GetObjectMarkerCoordinateFrame());
-    m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->GetTransformError(sylusTipToStylusTransformName, error);
-    m_PivotDetection->SetPivotThresholdMM(error*3);
+    double error=0;
+    if(GetStylusCalibrationError(error)==PLUS_SUCCESS)
+    {
+      m_PivotDetection->SetPivotThresholdMM(error*3);
+    }
+    else
+    {
+      LOG_WARNING("Use default pivot threshold")
+    }
+
     if (dataCollector)
     {
       for( DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it )
@@ -733,6 +739,7 @@ void PhantomRegistrationToolbox::OpenStylusCalibration()
 
   // Read stylus calibration transform
   PlusTransformName stylusTipToStylusTransformName(m_PhantomLandmarkRegistration->GetStylusTipCoordinateFrame(), pivotCalibrationAlgo->GetObjectMarkerCoordinateFrame());
+
   vtkSmartPointer<vtkMatrix4x4> stylusTipToStylusTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   std::string transformDate;
   double transformError = 0.0;
@@ -772,6 +779,28 @@ void PhantomRegistrationToolbox::OpenStylusCalibration()
   // Set to InProgress if both stylus calibration and phantom definition are available
   Start();
 }
+
+//-----------------------------------------------------------------------------
+PlusStatus PhantomRegistrationToolbox::GetStylusCalibrationError(double & calibrationError)
+{
+  LOG_TRACE("PhantomRegistrationToolbox::GetStylusCalibrationError");
+
+  // Read stylus coordinate frame name
+  vtkPivotCalibrationAlgo* pivotCalibrationAlgo = vtkPivotCalibrationAlgo::New();
+  if (pivotCalibrationAlgo->ReadConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to read stylus coordinate frame name!");
+    pivotCalibrationAlgo->Delete();
+    return PLUS_FAIL;
+  }
+
+  // Read stylus calibration transform
+  PlusTransformName stylusTipToStylusTransformName(m_PhantomLandmarkRegistration->GetStylusTipCoordinateFrame(), pivotCalibrationAlgo->GetObjectMarkerCoordinateFrame());
+  pivotCalibrationAlgo->Delete();
+  return m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->GetTransformError(stylusTipToStylusTransformName, calibrationError);
+}
+
+
 
 //-----------------------------------------------------------------------------
 void PhantomRegistrationToolbox::RecordPoint()
