@@ -490,7 +490,7 @@ PlusStatus vtkPivotDetectionAlgo::EstimatePivotPointPosition()
 
   // Set descriptive statistics algorithm and its input data port
   vtkSmartPointer<vtkDescriptiveStatistics> descriptiveStats = vtkSmartPointer<vtkDescriptiveStatistics>::New();
-  descriptiveStats->SetInputConnection( simpleTable->GetProducerPort() );
+  descriptiveStats->SetInputData_vtk5compatible( simpleTable );
 
   // Select Columns of Interest
   for ( int i = 0; i< nMetrics; ++ i )
