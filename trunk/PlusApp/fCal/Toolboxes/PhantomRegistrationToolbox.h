@@ -202,9 +202,6 @@ protected:
   /*! Stylus tip pivot detection algorithm */
   vtkPivotDetectionAlgo*                  m_PivotDetection;
 
-  /*! Pivot detection algorithm config file read successfully flag */
-  bool                                    m_AutoDetectPivoting;
-
   /*! Landmark already detected */
   int                                    m_LandmarkDetected;
 
