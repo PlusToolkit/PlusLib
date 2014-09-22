@@ -434,7 +434,7 @@ int vtkPivotDetectionAlgo::IsNewPivotPointPosition(double* stylusTipPosition)
     //    return false;
     //}
     ////if it is relatively close it might be same pivot outlier do not average it 
-    //else if(vtkMath::Norm(pivotDifference)<this->MinimunDistanceBetweenLandmarksMM/2)
+    //else if(vtkMath::Norm(pivotDifference)<this->MinimunDistanceBetweenLandmarksMM/3)
     if(vtkMath::Norm(pivotDifference)<this->MinimunDistanceBetweenLandmarksMM/3)
     {
       return id;
