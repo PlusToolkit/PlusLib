@@ -8,10 +8,10 @@ See License.txt for details.
   \file TemporalCalibrationAlgoTest.cxx
   \brief This program tests the temporal calibration algorithm by computing the time by which the inputted tracker data lags the inputted US video data.
   
-  The inputted data--video and tracker--is assumed to be collected by a US probe imaging a planar object; furthermore,
+  The inputted data is assumed to be collected by a US probe imaging a planar object; furthermore,
   it is assumed that the probe is undergoing uni-dirctional periodic motion in the direction perpendicular to the
-  plane's face (E.g. moving the probe in a repeating up-and-down fashion while imaging the bottom of a water bath).
-  The inputted data is assumed to contain at least ?five? full periods (although the algorithm may work for fewer periods
+  plane's face (e.g., moving the probe in a repeating up-and-down fashion while imaging the bottom of a water bath).
+  The inputted data is assumed to contain at least 5 full periods (although the algorithm may work for fewer periods
   it has not been tested under these conditions.
 
   \ingroup PlusLibCalibrationAlgorithm
@@ -195,9 +195,9 @@ int main(int argc, char **argv)
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
   args.AddArgument("--fixed-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFixedSequenceMetafile, "Input US image sequence metafile name with path");
   args.AddArgument("--moving-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMovingSequenceMetafile, "Input tracker sequence metafile name with path");
-  args.AddArgument("--fixed-probe-to-reference-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &fixedProbeToReferenceTransformNameStr, "Transform name that describes the probe pose relative to a static reference (default: ProbeToReference)");  
-  args.AddArgument("--moving-probe-to-reference-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &movingProbeToReferenceTransformNameStr, "Transform name that describes the probe pose relative to a static reference (default: ProbeToReference)");  
-  args.AddArgument("--max-time-offset-sec", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &maxTimeOffsetSec, "Maximum time offset between the signals, in seconds (default: 2 seconds)");  
+  args.AddArgument("--fixed-probe-to-reference-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &fixedProbeToReferenceTransformNameStr, "If specified then it indicates that the fixed sequence contains tracking data and it specifies the transform name that describes the probe pose relative to a static reference (for example, ProbeToReference). If not specified then video data is used from the fixed sequence.");
+  args.AddArgument("--moving-probe-to-reference-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &movingProbeToReferenceTransformNameStr, "If specified then it indicates that the moving sequence contains tracking data and it specifies the transform name that describes the probe pose relative to a static reference (for example, ProbeToReference). If not specified then video data is used from the moving sequence.");
+  args.AddArgument("--max-time-offset-sec", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &maxTimeOffsetSec, "Maximum time offset between the signals, in seconds (default: 2 seconds)");
   args.AddArgument("--plot-results", vtksys::CommandLineArguments::NO_ARGUMENT, &plotResults, "Plot results (display position vs. time plots without and with temporal calibration)");
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
   args.AddArgument("--sampling-resolution-sec", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &samplingResolutionSec, "Sampling resolution (in seconds, default is 0.001)");    
@@ -236,6 +236,9 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
 
+
+  vtkPlusConfig::GetInstance()->GetOutputDirectory();
+
   if ( intermediateFileOutputDirectory.empty() )
   {
     intermediateFileOutputDirectory = vtkPlusConfig::GetInstance()->GetOutputDirectory();
@@ -251,11 +254,13 @@ int main(int argc, char **argv)
     fixedFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK);
     testTemporalCalibrationObject->SetFixedProbeToReferenceTransformName(fixedProbeToReferenceTransformNameStr);
     fixedType = vtkTemporalCalibrationAlgo::FRAME_TYPE_TRACKER;
+    LOG_DEBUG("Fixed data type: tracking");
   }
   else
   {
     fixedFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP);
     fixedType = vtkTemporalCalibrationAlgo::FRAME_TYPE_VIDEO;
+    LOG_DEBUG("Fixed data type: video");
   }
 
   if( !movingProbeToReferenceTransformNameStr.empty() )
@@ -263,15 +268,27 @@ int main(int argc, char **argv)
     movingFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK);
     testTemporalCalibrationObject->SetMovingProbeToReferenceTransformName(movingProbeToReferenceTransformNameStr);
     movingType = vtkTemporalCalibrationAlgo::FRAME_TYPE_TRACKER;
+    LOG_DEBUG("Moving data type: video");
+
   }
   else
   {
     movingFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP);
     movingType = vtkTemporalCalibrationAlgo::FRAME_TYPE_VIDEO;
+    LOG_DEBUG("Moving data type: tracking");
   }
 
+  //  Read fixed frames
+  LOG_DEBUG("Read fixed data from " << inputFixedSequenceMetafile);
+  if ( fixedFrames->ReadFromSequenceMetafile(inputFixedSequenceMetafile.c_str()) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to read fixed data from sequence metafile: " << inputFixedSequenceMetafile << ". Exiting...");
+    exit(EXIT_FAILURE);
+  }
+  testTemporalCalibrationObject->SetFixedFrames(fixedFrames, fixedType);
+
   //  Read moving frames
-  LOG_DEBUG("Read tracker data from " << inputMovingSequenceMetafile);
+  LOG_DEBUG("Read moving data from " << inputMovingSequenceMetafile);
   if ( movingFrames->ReadFromSequenceMetafile(inputMovingSequenceMetafile.c_str()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read moving data from sequence metafile: " << inputMovingSequenceMetafile << ". Exiting...");
@@ -279,15 +296,6 @@ int main(int argc, char **argv)
   }
   testTemporalCalibrationObject->SetMovingFrames(movingFrames, movingType);
 
-  //  Read fixed frames
-  LOG_DEBUG("Read video data from " << inputFixedSequenceMetafile);
-  if ( fixedFrames->ReadFromSequenceMetafile(inputFixedSequenceMetafile.c_str()) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to read fixed data from sequence metafile: " << inputFixedSequenceMetafile << ". Exiting...");
-    exit(EXIT_FAILURE);
-  }
-  testTemporalCalibrationObject->SetFixedFrames(fixedFrames, fixedType);
-  
   //  Create temporal calibration object; Set pertinent parameters
   testTemporalCalibrationObject->SetSamplingResolutionSec(samplingResolutionSec);
   testTemporalCalibrationObject->SetSaveIntermediateImages(saveIntermediateImages);

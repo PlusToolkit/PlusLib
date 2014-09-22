@@ -644,7 +644,7 @@ PlusStatus vtkTemporalCalibrationAlgo::ComputeCommonTimeRange()
   double commonRangeMax = std::min(fixedTimestampMax, movingTimestampMax);
   if (commonRangeMin + this->MaxMovingLagSec >= commonRangeMax - this->MaxMovingLagSec)
   {
-    LOG_ERROR("Insufficient overlap between fixed and moving frames timestamps to compute time offset"); 
+    LOG_ERROR("Insufficient overlap between fixed and moving frames timestamps to compute time offset (fixed: "<<fixedTimestampMin<<"-"<<fixedTimestampMax<<" sec, moving: "<<movingTimestampMin<<"-"<<movingTimestampMax<<" sec)"); 
     return PLUS_FAIL;
   }
   

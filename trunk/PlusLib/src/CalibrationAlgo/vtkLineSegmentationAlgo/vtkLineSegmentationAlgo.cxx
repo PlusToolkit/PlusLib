@@ -698,7 +698,15 @@ void vtkLineSegmentationAlgo::SaveIntermediateImage(int frameNumber, CharImageTy
 
   rgbImageWriter->SetFileName(rgbImageFilename.str());
   rgbImageWriter->SetInput(rgbImageCopy);
-  rgbImageWriter->Update();
+  try
+  {
+    rgbImageWriter->Update();
+  }
+  catch( itk::ExceptionObject & e )
+  {
+    LOG_ERROR("Failed to write intermediate image in line segmentation algorithm, check if the destination directory exists: "<<rgbImageFilename.str()<<"\n"<<e);
+    return;
+  }
 
   LOG_DEBUG("Line segmentation intermediate image is saved to: "<<rgbImageFilename.str());
 }
