@@ -7,6 +7,8 @@
 #ifndef __vtkIGTLMessageQueue_h
 #define __vtkIGTLMessageQueue_h
 
+#include "vtkPlusOpenIGTLinkExport.h"
+
 #include "vtkObject.h"
 
 #include <deque>
@@ -22,9 +24,7 @@ class vtkRecursiveCriticalSection;
   \brief Message queue to store OpenIGTLink messages.
   \ingroup PlusLibOpenIGTLink
 */
-class
-VTK_EXPORT 
-vtkIGTLMessageQueue
+class vtkPlusOpenIGTLinkExport vtkIGTLMessageQueue
 : public vtkObject
 {
 public:

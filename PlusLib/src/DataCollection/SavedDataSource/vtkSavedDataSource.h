@@ -7,11 +7,13 @@ See License.txt for details.
 #ifndef __vtkSavedDataSource_h
 #define __vtkSavedDataSource_h
 
+#include "vtkDataCollectionExport.h"
+
 #include "vtkPlusDevice.h"
 
 class vtkPlusBuffer; 
 
-class VTK_EXPORT vtkSavedDataSource;
+class vtkDataCollectionExport vtkSavedDataSource;
 
 /*!
 \class vtkSavedDataSource 
@@ -27,7 +29,7 @@ Attributes:
   starting from the current time (TRUE|FALSE)
 
 */
-class VTK_EXPORT vtkSavedDataSource : public vtkPlusDevice
+class vtkDataCollectionExport vtkSavedDataSource : public vtkPlusDevice
 {
 public:
   vtkTypeRevisionMacro(vtkSavedDataSource,vtkPlusDevice);

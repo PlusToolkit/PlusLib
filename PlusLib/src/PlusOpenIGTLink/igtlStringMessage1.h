@@ -7,6 +7,8 @@
 #ifndef __igtlStringMessage1_h
 #define __igtlStringMessage1_h
 
+#include "vtkPlusOpenIGTLinkExport.h"
+
 #include <string>
 
 #include "igtlObject.h"
@@ -23,7 +25,7 @@ namespace igtl
   \brief This class enables string messages in programs that still use OpenIGTLink protocol 1. 
   \ingroup PlusLibOpenIGTLink
 */
-class IGTLCommon_EXPORT StringMessage1: public MessageBase
+class vtkPlusOpenIGTLinkExport StringMessage1: public MessageBase
 {
 public:
   typedef StringMessage1                 Self;

@@ -24,7 +24,7 @@ IF (WIN32)
     )
 ENDIF (WIN32)
 
-SET (PlusOpenIGTLink_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
+SET (PlusOpenIGTLink_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Build the library
@@ -36,6 +36,7 @@ SET (PlusOpenIGTLink_LIBS
   )
 
 INCLUDE_DIRECTORIES( ${PlusOpenIGTLink_INCLUDE_DIRS} )
+GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusOpenIGTLink)
 ADD_LIBRARY(vtkPlusOpenIGTLink ${PlusOpenIGTLink_SRCS} ${PlusOpenIGTLink_HDRS})
 TARGET_LINK_LIBRARIES(vtkPlusOpenIGTLink ${PlusOpenIGTLink_LIBS})
 

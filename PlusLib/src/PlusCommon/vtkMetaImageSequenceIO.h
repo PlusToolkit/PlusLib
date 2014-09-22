@@ -7,11 +7,11 @@
 #ifndef __vtkMetaImageSequenceIO_h
 #define __vtkMetaImageSequenceIO_h
 
+#include "vtkPlusCommonExport.h"
+
 #ifdef _MSC_VER
 #pragma warning ( disable : 4786 )
 #endif 
-
-#define PLUS_EXPORTS
 
 #include "vtkPlusWin32Header.h"
 #include "PlusVideoFrame.h"
@@ -27,7 +27,7 @@ class TrackedFrame;
   \brief Read and write MetaImage file with a sequence of frames, with additional information for each frame
   \ingroup PlusLibCommon
 */
-class PLUS_EXPORT vtkMetaImageSequenceIO : public vtkObject
+class vtkPlusCommonExport vtkMetaImageSequenceIO : public vtkObject
 {
 public:
 

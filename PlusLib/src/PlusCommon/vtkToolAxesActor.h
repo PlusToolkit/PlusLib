@@ -7,6 +7,8 @@ See License.txt for details.
 #ifndef __vtkToolAxesActor_h
 #define __vtkToolAxesActor_h
 
+#include "vtkPlusCommonExport.h"
+
 #include "vtkProp3D.h"
 
 class vtkActor;
@@ -23,7 +25,7 @@ class vtkTubeFilter;
   The actor's UserTransform shall be the tool to world transform.
 
 */
-class VTK_EXPORT vtkToolAxesActor : public vtkProp3D
+class vtkPlusCommonExport vtkToolAxesActor : public vtkProp3D
 {
 public:
   static vtkToolAxesActor *New();

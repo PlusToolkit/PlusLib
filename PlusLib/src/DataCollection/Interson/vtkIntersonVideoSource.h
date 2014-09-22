@@ -7,6 +7,8 @@
 #ifndef __vtkIntersonVideoSource_h
 #define __vtkIntersonVideoSource_h
 
+#include "vtkDataCollectionExport.h"
+
 #include "vtkPlusDevice.h"
 #include "vtkUSImagingParameters.h"
 
@@ -25,7 +27,7 @@ using namespace std;
 
   \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkIntersonVideoSource : public vtkPlusDevice
+class vtkDataCollectionExport vtkIntersonVideoSource : public vtkPlusDevice
 {
 public:
   static vtkIntersonVideoSource *New();

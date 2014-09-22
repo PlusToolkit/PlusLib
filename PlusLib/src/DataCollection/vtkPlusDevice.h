@@ -8,6 +8,8 @@ See License.txt for details.
 #define __vtkPlusDevice_h
 
 #include "PlusConfigure.h"
+#include "vtkDataCollectionExport.h"
+
 #include "PlusXmlUtils.h"
 #include "TrackedFrame.h"
 #include "vtkDataCollector.h"
@@ -35,7 +37,7 @@ GetSdkVersion(), ReadConfiguration(), WriteConfiguration() methods.
 
 \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkPlusDevice : public vtkImageAlgorithm
+class vtkDataCollectionExport vtkPlusDevice : public vtkImageAlgorithm
 {
 public:
   class ParamIndexKey

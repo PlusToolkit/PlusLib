@@ -7,6 +7,8 @@
 #ifndef __igtlPlusTrackedFrameMessage_h
 #define __igtlPlusTrackedFrameMessage_h
 
+#include "vtkPlusOpenIGTLinkExport.h"
+
 #include <string>
 
 #include "igtlObject.h"
@@ -25,7 +27,7 @@ namespace igtl
   \brief IGTL message helper class for tracked frame messages
   \ingroup PlusLibOpenIGTLink
 */
-class IGTLCommon_EXPORT PlusTrackedFrameMessage: public MessageBase
+class vtkPlusOpenIGTLinkExport PlusTrackedFrameMessage: public MessageBase
 {
 public:
   typedef PlusTrackedFrameMessage                 Self;

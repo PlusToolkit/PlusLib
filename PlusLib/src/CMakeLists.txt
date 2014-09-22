@@ -117,6 +117,21 @@ MACRO(GENERATE_HELP_DOC TARGET_NAME)
   endif(BUILD_DOCUMENTATION)
 ENDMACRO(GENERATE_HELP_DOC) 
 
+# --------------------------------------------------------------------------
+# Library export directive file generation
+#
+
+# This macro generates a ...Export.h file that specifies platform-specific DLL export directives,
+# for example on Windows: __declspec( dllexport )
+MACRO(GENERATE_EXPORT_DIRECTIVE_FILE LIBRARY_NAME)
+  SET (MY_LIBNAME ${LIBRARY_NAME})
+  SET (MY_EXPORT_HEADER_PREFIX ${MY_LIBNAME})
+  SET (MY_LIBRARY_EXPORT_DIRECTIVE "${MY_LIBNAME}Export")
+  configure_file(
+    ${PlusLib_SOURCE_DIR}/src/PlusExport.h.in
+    ${CMAKE_CURRENT_BINARY_DIR}/${MY_EXPORT_HEADER_PREFIX}Export.h
+    )
+ENDMACRO(GENERATE_EXPORT_DIRECTIVE_FILE) 
 
 # --------------------------------------------------------------------------
 # Initialize variables that will be filled by makefiles in subdirectories

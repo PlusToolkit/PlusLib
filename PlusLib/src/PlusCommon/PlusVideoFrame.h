@@ -8,6 +8,7 @@ See License.txt for details.
 #ifndef __PlusVideoFrame_h
 #define __PlusVideoFrame_h
 
+#include "vtkPlusCommonExport.h"
 #include "PlusCommon.h"
 #include "itkImage.h"
 #include "itkImageIOBase.h"
@@ -63,7 +64,7 @@ functions to get/set its content from ITK and VTK images and byte arrays.
 \ingroup PlusLibPlusCommon
 \sa vtkPlusDataBufferItem
 */
-class VTK_EXPORT PlusVideoFrame
+class vtkPlusCommonExport PlusVideoFrame
 {
 public:
   struct FlipInfoType

@@ -8,6 +8,8 @@
 #define __vtkBrachyStepperPhantomRegistrationAlgo_h
 
 #include "PlusConfigure.h"
+#include "vtkCalibrationAlgoExport.h"
+
 #include "vtkObject.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkTable.h"
@@ -29,7 +31,7 @@ class vtkTransformRepository;
 
   \ingroup PlusLibCalibrationAlgorithm
 */ 
-class VTK_EXPORT vtkBrachyStepperPhantomRegistrationAlgo : public vtkObject
+class vtkCalibrationAlgoExport vtkBrachyStepperPhantomRegistrationAlgo : public vtkObject
 {
 public:
 

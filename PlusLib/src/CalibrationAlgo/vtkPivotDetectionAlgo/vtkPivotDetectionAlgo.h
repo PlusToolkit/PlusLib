@@ -8,6 +8,7 @@ See License.txt for details.
 #define __vtkPivotDetectionAlgo_h
 
 #include "PlusConfigure.h"
+#include "vtkCalibrationAlgoExport.h"
 
 #include "vtkObject.h"
 #include "vtkMatrix4x4.h"
@@ -29,7 +30,7 @@ The stylus pivoting point is computed assuming that the stylus is calibrated.
 
 \ingroup PlusLibCalibrationAlgorithm
 */
-class vtkPivotDetectionAlgo : public vtkObject
+class vtkCalibrationAlgoExport vtkPivotDetectionAlgo : public vtkObject
 {
 public:
   vtkTypeRevisionMacro(vtkPivotDetectionAlgo,vtkObject);

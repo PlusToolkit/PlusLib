@@ -8,6 +8,7 @@ See License.txt for details.
 #define __vtkTransformRepository_h
 
 #include "PlusConfigure.h"
+#include "vtkPlusCommonExport.h"
 #include "vtkObject.h"
 #include <list>
 #include <map>
@@ -44,7 +45,7 @@ The following coordinate frames are used commonly:
 
 \ingroup PlusLibCommon
 */
-class VTK_EXPORT vtkTransformRepository : public vtkObject
+class vtkPlusCommonExport vtkTransformRepository : public vtkObject
 {
 public:
   static vtkTransformRepository *New();

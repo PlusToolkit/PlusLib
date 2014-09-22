@@ -6,6 +6,8 @@ See License.txt for details.
 #ifndef __igtlPlusUsMessage_h
 #define __igtlPlusUsMessage_h
 
+#include "vtkPlusOpenIGTLinkExport.h"
+
 #include "igtlObject.h"
 #include "igtlutil/igtl_util.h"
 #include "igtlutil/igtl_header.h"
@@ -22,7 +24,7 @@ namespace igtl
   as IMAGE type message from tracked frame (for MUSiiC igtlMUSMessage)
   \ingroup PlusLibOpenIGTLink
   */
-  class IGTLCommon_EXPORT PlusUsMessage: public igtl::ImageMessage
+  class vtkPlusOpenIGTLinkExport PlusUsMessage: public igtl::ImageMessage
   {
   public:
     typedef PlusUsMessage                   Self;

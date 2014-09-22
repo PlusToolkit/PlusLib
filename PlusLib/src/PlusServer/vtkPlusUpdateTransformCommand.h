@@ -7,6 +7,7 @@
 #ifndef __vtkPlusUpdateTransformCommand_h
 #define __vtkPlusUpdateTransformCommand_h
 
+#include "vtkPlusServerExport.h"
 #include "vtkPlusCommand.h"
 
 class vtkMatrix4x4;
@@ -16,7 +17,7 @@ class vtkMatrix4x4;
   \brief This command updates the value of a transformation in the transform repository
   \ingroup PlusLibPlusServer
  */ 
-class VTK_EXPORT vtkPlusUpdateTransformCommand : public vtkPlusCommand
+class vtkPlusServerExport vtkPlusUpdateTransformCommand : public vtkPlusCommand
 {
 public:
 

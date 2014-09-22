@@ -20,7 +20,7 @@ then computes n-points lines from these 2-points lines.
 \ingroup PlusLibPatternRecognition
 */
 
-class FidLineFinder
+class PatternLocAlgoExport FidLineFinder
 {
 public:
   FidLineFinder();

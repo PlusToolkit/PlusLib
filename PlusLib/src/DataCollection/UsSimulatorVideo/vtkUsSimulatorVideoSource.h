@@ -7,19 +7,21 @@
 #ifndef __vtkUsSimulatorVideoSource_h
 #define __vtkUsSimulatorVideoSource_h
 
+#include "vtkDataCollectionExport.h"
+
 #include "vtkPlusDevice.h"
 #include "vtkUsSimulatorAlgo.h"
 
 class vtkPlusDataBuffer; 
 
-class VTK_EXPORT vtkUsSimulatorVideoSource;
+class vtkDataCollectionExport vtkUsSimulatorVideoSource;
 
 /*!
   \class vtkUsSimulatorVideoSource 
   \brief Class for providing VTK video input interface from simulated ultrasound
   \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkUsSimulatorVideoSource : public vtkPlusDevice
+class vtkDataCollectionExport vtkUsSimulatorVideoSource : public vtkPlusDevice
 {
 public:
   vtkTypeRevisionMacro(vtkUsSimulatorVideoSource,vtkPlusDevice);

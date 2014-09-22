@@ -7,6 +7,8 @@
 #ifndef __vtkPlusDeviceFactory_h
 #define __vtkPlusDeviceFactory_h
 
+#include "vtkDataCollectionExport.h"
+
 #include "vtkObject.h"
 #include "PlusCommon.h"
 
@@ -20,7 +22,7 @@ class vtkPlusDevice;
 
   \ingroup PlusLibPlusCommon
 */
-class VTK_EXPORT vtkPlusDeviceFactory : public vtkObject
+class vtkDataCollectionExport vtkPlusDeviceFactory : public vtkObject
 {
 public:
   static vtkPlusDeviceFactory *New();

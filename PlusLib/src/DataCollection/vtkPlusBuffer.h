@@ -15,6 +15,8 @@ See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
 #define __vtkPlusDataBuffer_h
 
 #include "PlusConfigure.h"
+#include "vtkDataCollectionExport.h"
+
 #include "TrackedFrame.h"
 #include "vtkObject.h"
 #include "vtkPlusDeviceTypes.h"
@@ -24,7 +26,7 @@ enum ToolStatus;
 
 class vtkTrackedFrameList;
 
-class VTK_EXPORT vtkPlusBuffer : public vtkObject
+class vtkDataCollectionExport vtkPlusBuffer : public vtkObject
 {
 public:  
   enum TIMESTAMP_FILTERING_OPTION

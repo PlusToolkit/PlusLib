@@ -7,6 +7,8 @@ See License.txt for details.
 #ifndef __vtkDataCollector_h
 #define __vtkDataCollector_h
 
+#include "vtkDataCollectionExport.h"
+
 #include "PlusCommon.h"
 #include "vtkObject.h"
 #include "vtkPlusDeviceTypes.h"
@@ -27,7 +29,7 @@ Provides an interface for clients to connect to a device set, and request data t
 
 \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkDataCollector : public vtkObject
+class vtkDataCollectionExport vtkDataCollector : public vtkObject
 {
 public:
   static vtkDataCollector *New();

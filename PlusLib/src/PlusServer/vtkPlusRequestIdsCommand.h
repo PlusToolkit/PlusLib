@@ -7,6 +7,8 @@
 #ifndef __vtkPlusRequestIdsCommand_h
 #define __vtkPlusRequestIdsCommand_h
 
+#include "vtkPlusServerExport.h"
+
 #include "vtkPlusCommand.h"
 
 /*!
@@ -14,7 +16,7 @@
   \brief This command returns the list of devices to the client
   \ingroup PlusLibPlusServer
  */ 
-class VTK_EXPORT vtkPlusRequestIdsCommand : public vtkPlusCommand
+class vtkPlusServerExport vtkPlusRequestIdsCommand : public vtkPlusCommand
 {
 public:
 

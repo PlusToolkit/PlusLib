@@ -78,7 +78,8 @@ SET (External_Libraries_Install)
 SET (External_Libraries_Debug)
 SET (DataCollection_INCLUDE_DIRS 
   ${DataCollection_INCLUDE_DIRS}
-  ${CMAKE_CURRENT_SOURCE_DIR} 
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/FakeTracking 
   ${CMAKE_CURRENT_SOURCE_DIR}/SavedDataSource 
   ${CMAKE_CURRENT_SOURCE_DIR}/UsSimulatorVideo 
@@ -807,6 +808,7 @@ SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
   )
 
 INCLUDE_DIRECTORIES( ${DataCollection_INCLUDE_DIRS} )
+GENERATE_EXPORT_DIRECTIVE_FILE(vtkDataCollection)
 ADD_LIBRARY(vtkDataCollection ${DataCollection_SRCS} ${DataCollection_HDRS})
 TARGET_LINK_LIBRARIES(vtkDataCollection ${DataCollection_LIBS})
 

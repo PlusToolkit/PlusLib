@@ -7,6 +7,8 @@
 #ifndef __TRACKEDFRAME_H
 #define __TRACKEDFRAME_H
 
+#include "vtkPlusCommonExport.h"
+
 #include "PlusVideoFrame.h" 
 
 class vtkMatrix4x4; 
@@ -35,7 +37,7 @@ enum TrackedFrameFieldStatus
   \brief Stores tracked frame (image + pose information)
   \ingroup PlusLibCommon
 */ 
-class VTK_EXPORT TrackedFrame
+class vtkPlusCommonExport TrackedFrame
 {
 public:
   static const std::string TransformPostfix;

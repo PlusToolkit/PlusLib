@@ -8,6 +8,8 @@
 #define _VTKSONIXVOLUMEREADER_H_
 
 #include "PlusConfigure.h"
+#include "vtkDataCollectionExport.h"
+
 #include "vtkImageAlgorithm.h" 
 
 #include <vector>
@@ -27,7 +29,7 @@ class vtkTrackedFrameList;
   \brief Reads a volume from file to tracked frame list
   \ingroup PlusLibDataCollection
 */ 
-class VTK_EXPORT vtkSonixVolumeReader: public vtkImageAlgorithm
+class vtkDataCollectionExport vtkSonixVolumeReader: public vtkImageAlgorithm
 {
 public:
   vtkTypeRevisionMacro(vtkSonixVolumeReader,vtkImageAlgorithm);

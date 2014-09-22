@@ -27,7 +27,7 @@
 #include "vtkThreadedImageAlgorithm.h"
 #include <vector>
 
-class VTK_EXPORT vtkCompareVolumes : public vtkThreadedImageAlgorithm 
+class vtkCompareVolumes : public vtkThreadedImageAlgorithm 
 {
 public:
   static vtkCompareVolumes *New();

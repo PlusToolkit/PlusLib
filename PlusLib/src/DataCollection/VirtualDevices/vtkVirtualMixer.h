@@ -7,6 +7,8 @@ See License.txt for details.
 #ifndef __vtkVirtualMixer_h
 #define __vtkVirtualMixer_h
 
+#include "vtkDataCollectionExport.h"
+
 #include "vtkPlusDevice.h"
 #include "vtkPlusChannel.h"
 #include <string>
@@ -17,7 +19,7 @@ See License.txt for details.
 
 \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkVirtualMixer : public vtkPlusDevice
+class vtkDataCollectionExport vtkVirtualMixer : public vtkPlusDevice
 {
 public:
   static vtkVirtualMixer *New();

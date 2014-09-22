@@ -8,6 +8,8 @@
 #define __vtkPlusStream_h
 
 #include "PlusConfigure.h"
+#include "vtkDataCollectionExport.h"
+
 #include "vtkDataObject.h"
 #include "vtkPlusDevice.h"
 #include "vtkRfProcessor.h"
@@ -21,7 +23,7 @@ class vtkPlusDevice;
 
   \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkPlusChannel : public vtkDataObject
+class vtkDataCollectionExport vtkPlusChannel : public vtkDataObject
 {
 public:
   typedef std::map< std::string, std::string > CustomAttributeMap;

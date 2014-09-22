@@ -7,6 +7,8 @@
 #ifndef __VTKGNUPLOTEXECUTER_H
 #define __VTKGNUPLOTEXECUTER_H
 
+#include "vtkPlusCommonExport.h"
+
 #include "vtkObject.h"
 #include "vtkTable.h"
 #include <vector>
@@ -16,7 +18,7 @@
   \brief Class for executing gnuplot for diagram generation
   \ingroup PlusLibCommon
 */ 
-class VTK_EXPORT vtkGnuplotExecuter : public vtkObject
+class vtkPlusCommonExport vtkGnuplotExecuter : public vtkObject
 {
 public: 
   static vtkGnuplotExecuter* New();

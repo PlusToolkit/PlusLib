@@ -1,6 +1,8 @@
 #ifndef __vtkIntuitiveDaVinciTracker_h
 #define __vtkIntuitiveDaVinciTracker_h
 
+#include "vtkDataCollectionExport.h"
+
 #include "time.h"
 #include "vtkDoubleArray.h"
 #include "vtkImageFlip.h"
@@ -36,7 +38,7 @@ namespace vtkIntuitiveDaVinciTrackerUtilities{
  void ISICALLBACK eventCB(ISI_MANIP_INDEX mid, ISI_EVENT_ID event_id, ISI_INT args[ISI_NUM_EVENT_ARGS],  void *userdata);
 };
 
-class VTK_EXPORT vtkIntuitiveDaVinciTracker : public vtkPlusDevice
+class vtkDataCollectionExport vtkIntuitiveDaVinciTracker : public vtkPlusDevice
 {
 public:
 

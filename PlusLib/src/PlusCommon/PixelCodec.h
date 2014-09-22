@@ -34,7 +34,7 @@ static const long VTK_BI_YUY2=0x32595559;
 \brief A utility class that contains static functions for converting between various pixel encodings
 \ingroup PlusLibCommon
 */
-class VTK_EXPORT PixelCodec
+class PixelCodec
 {
 public:
   enum ComponentOrdering

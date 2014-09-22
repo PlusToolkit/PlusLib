@@ -7,6 +7,8 @@
 #ifndef __vtkStealthLinkTracker_h
 #define __vtkStealthLinkTracker_h
 
+#include "vtkDataCollectionExport.h"
+
 #include "vtkTransformRepository.h"
 #include "vtkPlusDevice.h"
 #include <string>
@@ -20,7 +22,7 @@
 
 */
 
-class VTK_EXPORT vtkStealthLinkTracker : public vtkPlusDevice
+class vtkDataCollectionExport vtkStealthLinkTracker : public vtkPlusDevice
 {
 public:
 

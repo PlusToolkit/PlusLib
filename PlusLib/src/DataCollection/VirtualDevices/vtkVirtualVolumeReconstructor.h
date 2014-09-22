@@ -7,6 +7,8 @@ See License.txt for details.
 #ifndef __vtkVirtualVolumeReconstructor_h
 #define __vtkVirtualVolumeReconstructor_h
 
+#include "vtkDataCollectionExport.h"
+
 #include "vtkMetaImageSequenceIO.h"
 #include "vtkPlusDevice.h"
 #include "vtkPlusChannel.h"
@@ -21,7 +23,7 @@ class vtkTransformRepository;
 
 \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkVirtualVolumeReconstructor : public vtkPlusDevice
+class vtkDataCollectionExport vtkVirtualVolumeReconstructor : public vtkPlusDevice
 {
 public:
   static vtkVirtualVolumeReconstructor *New();

@@ -24,7 +24,7 @@ if (WIN32)
     )
 endif (WIN32)  
 
-SET (VolumeReconstruction_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE )
+SET (VolumeReconstruction_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "" FORCE )
 
 # --------------------------------------------------------------------------
 # Build the library
@@ -35,6 +35,7 @@ SET (VolumeReconstruction_LIBS
   )
 
 INCLUDE_DIRECTORIES( ${VolumeReconstruction_INCLUDE_DIRS} )
+GENERATE_EXPORT_DIRECTIVE_FILE(vtkVolumeReconstruction)
 ADD_LIBRARY(vtkVolumeReconstruction ${VolumeReconstruction_SRCS} ${VolumeReconstruction_HDRS})
 TARGET_LINK_LIBRARIES(  vtkVolumeReconstruction  ${VolumeReconstruction_LIBS} )
 

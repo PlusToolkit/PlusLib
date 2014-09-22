@@ -7,6 +7,8 @@
 #ifndef __vtkAccurateTimer_h
 #define __vtkAccurateTimer_h
 
+#include "vtkPlusCommonExport.h"
+
 #include "vtkObject.h"
 
 //----------------------------------------------------------------------------
@@ -17,7 +19,7 @@
 */
 
 //BTX
-class VTK_EXPORT vtkAccurateTimerCleanup
+class vtkPlusCommonExport vtkAccurateTimerCleanup
 {
 public:
   /*! Constructor */
@@ -33,7 +35,7 @@ public:
   \brief This singleton class is used for accurately measuring elapsed time and getting formatted date strings
   \ingroup PlusLibCommon
 */
-class VTK_EXPORT vtkAccurateTimer : public vtkObject
+class vtkPlusCommonExport vtkAccurateTimer : public vtkObject
 {
 public: 
   vtkTypeRevisionMacro(vtkAccurateTimer,vtkObject);

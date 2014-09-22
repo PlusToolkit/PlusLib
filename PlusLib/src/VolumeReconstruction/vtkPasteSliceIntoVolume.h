@@ -43,6 +43,8 @@ POSSIBILITY OF SUCH DAMAGES.
 #ifndef __vtkPasteSliceIntoVolume_h
 #define __vtkPasteSliceIntoVolume_h
 
+#include "vtkVolumeReconstructionExport.h"
+
 class TrackedFrame;
 class vtkImageData;
 class vtkMatrix4x4;
@@ -66,7 +68,7 @@ class vtkMultiThreader;
   \sa vtkFillHolesInVolume
   \ingroup PlusLibVolumeReconstruction
 */
-class VTK_EXPORT vtkPasteSliceIntoVolume : public vtkObject
+class vtkVolumeReconstructionExport vtkPasteSliceIntoVolume : public vtkObject
 {
 
 public:

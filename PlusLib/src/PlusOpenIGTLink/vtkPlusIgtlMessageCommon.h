@@ -8,6 +8,8 @@ See License.txt for details.
 #define __vtkPlusIgtlMessageCommon_h
 
 #include "PlusConfigure.h"
+#include "vtkPlusOpenIGTLinkExport.h"
+
 #include "vtkObject.h"
 #include "igtlMessageBase.h"
 #include "igtlSocket.h"
@@ -32,7 +34,7 @@ This class is a helper class for OpenIGTLink message pack/unpack
 
 \ingroup PlusLibOpenIGTLink
 */ 
-class VTK_EXPORT vtkPlusIgtlMessageCommon: public vtkObject
+class vtkPlusOpenIGTLinkExport vtkPlusIgtlMessageCommon: public vtkObject
 {
 public:
   

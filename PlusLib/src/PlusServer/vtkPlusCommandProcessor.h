@@ -7,6 +7,8 @@
 #ifndef __vtkPlusCommandProcessor_h
 #define __vtkPlusCommandProcessor_h
 
+#include "vtkPlusServerExport.h"
+
 #include "vtkMultiThreader.h"
 #include "vtkObject.h"
 #include "vtkPlusCommand.h"
@@ -26,9 +28,7 @@ class vtkMatrix4x4;
   TODO: keep only one method and remove the other approach completely once the processing model decision is finalized.
   \ingroup PlusLibPlusServer
 */
-class
-VTK_EXPORT
-vtkPlusCommandProcessor : public vtkObject
+class vtkPlusServerExport vtkPlusCommandProcessor : public vtkObject
 {
 public:
 

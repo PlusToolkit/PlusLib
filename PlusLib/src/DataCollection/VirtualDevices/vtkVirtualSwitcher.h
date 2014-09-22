@@ -7,6 +7,8 @@ See License.txt for details.
 #ifndef __vtkVirtualSwitcher_h
 #define __vtkVirtualSwitcher_h
 
+#include "vtkDataCollectionExport.h"
+
 #include "vtkPlusDevice.h"
 #include "vtkPlusChannel.h"
 #include <string>
@@ -17,7 +19,7 @@ See License.txt for details.
 
 \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkVirtualSwitcher : public vtkPlusDevice
+class vtkDataCollectionExport vtkVirtualSwitcher : public vtkPlusDevice
 {
 public:
   static vtkVirtualSwitcher *New();

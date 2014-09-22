@@ -8,6 +8,8 @@
 #define _CIVCOBRACHYSTEPPER_H_
 
 #include "PlusConfigure.h"
+#include "vtkDataCollectionExport.h"
+
 #include "BrachyStepper.h"
 
 /*! \class CivcoBrachyStepper 
@@ -19,7 +21,7 @@
  *
  * \ingroup PlusLibBrachyStepper
  */
-class VTK_EXPORT CivcoBrachyStepper : public BrachyStepper
+class vtkDataCollectionExport CivcoBrachyStepper : public BrachyStepper
 {
 public:
 

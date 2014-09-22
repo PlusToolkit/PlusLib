@@ -7,10 +7,12 @@
 #ifndef __vtkIntersonSDKCxxVideoSource_h
 #define __vtkIntersonSDKCxxVideoSource_h
 
+#include "vtkDataCollectionExport.h"
+
 #include "vtkPlusDevice.h"
 #include "vtkUSImagingParameters.h"
 
-class VTK_EXPORT vtkIntersonSDKCxxVideoSource;
+class vtkDataCollectionExport vtkIntersonSDKCxxVideoSource;
 
 /*!
   \class vtkIntersonSDKCxxVideoSource 
@@ -31,7 +33,7 @@ class VTK_EXPORT vtkIntersonSDKCxxVideoSource;
 
   \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkIntersonSDKCxxVideoSource : public vtkPlusDevice
+class vtkDataCollectionExport vtkIntersonSDKCxxVideoSource : public vtkPlusDevice
 {
 public:
   static vtkIntersonSDKCxxVideoSource *New();

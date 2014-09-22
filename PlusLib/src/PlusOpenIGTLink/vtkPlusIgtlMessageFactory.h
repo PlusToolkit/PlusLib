@@ -8,6 +8,8 @@
 #define __vtkPlusIgtlMessageFactory_h
 
 #include "PlusConfigure.h"
+#include "vtkPlusOpenIGTLinkExport.h"
+
 #include "vtkObject.h" 
 #include "igtlMessageBase.h"
 #include "igtlSocket.h"
@@ -26,7 +28,7 @@ class vtkTransformRepository;
 
   \ingroup PlusLibOpenIGTLink
 */ 
-class VTK_EXPORT vtkPlusIgtlMessageFactory: public vtkObject
+class vtkPlusOpenIGTLinkExport vtkPlusIgtlMessageFactory: public vtkObject
 {
 public:
   static vtkPlusIgtlMessageFactory *New();

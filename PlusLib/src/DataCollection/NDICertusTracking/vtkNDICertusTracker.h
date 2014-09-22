@@ -7,6 +7,8 @@
 #ifndef __vtkNDICertusTracker_h
 #define __vtkNDICertusTracker_h
 
+#include "vtkDataCollectionExport.h"
+
 #include "vtkPlusDevice.h"
 #include <map>
 
@@ -22,7 +24,7 @@ Certus (Northern Digital Inc., Waterloo, Canada)
 
 \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkNDICertusTracker : public vtkPlusDevice
+class vtkDataCollectionExport vtkNDICertusTracker : public vtkPlusDevice
 {
 public:
 

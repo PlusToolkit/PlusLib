@@ -7,6 +7,8 @@
 #ifndef __vtkMicronTracker_h
 #define __vtkMicronTracker_h
 
+#include "vtkDataCollectionExport.h"
+
 #include "time.h"
 #include "vtkDoubleArray.h"
 #include "vtkImageFlip.h"
@@ -35,7 +37,7 @@ class MicronTrackerInterface;
   \brief Interface class to Claron MicronTracker optical trackers
   \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkMicronTracker : public vtkPlusDevice
+class vtkDataCollectionExport vtkMicronTracker : public vtkPlusDevice
 {
 public:
 
