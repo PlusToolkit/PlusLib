@@ -31,8 +31,8 @@ vtkStandardNewMacro(vtkPivotDetectionAlgo);
 namespace
 {
   const int EXPECTED_PIVOTS_NUMBER=3;// The default expected number of pivots to be detected
-  const double ABOVE_PIVOT_THRESHOLD_MM=10.0;//Above the pivot threshold is used to detect stylus pivoting and not static. When a point 100 mm above the stylus tip magnitude change is bigger than AbovePivotThresholdMM, the stylus is pivoting.
-  const double PIVOT_THRESHOLD_MM=1.5;// A pivot position will be consider when the stylus tip position magnitude change is below PivotThresholdMM.
+  const double ABOVE_PIVOT_THRESHOLD_MM=10.0;//Above the pivot threshold is used to detect stylus pivoting and not static. When a point 100 mm above the stylus tip magnitude change is bigger than AbovePivotThresholdMm, the stylus is pivoting.
+  const double PIVOT_THRESHOLD_MM=1.5;// A pivot position will be consider when the stylus tip position magnitude change is below PivotThresholdMm.
 
   const int NUMBER_WINDOWS=5;//The number of windows to be detected as pivot in DetectionTime (1.0 [s]) DetectionTime/WindowTime
   const int WINDOW_SIZE=3;//The number of acquisitions in WindowTime (0.2 [s]) AcquisitonRate*WindowTime
@@ -59,7 +59,7 @@ void vtkPivotDetectionAlgo::SetAcquisitionRate(double aquisitionRate)
     this->WindowSize=1;
   }
   LOG_INFO("SET AcquisitionRate = "<< AcquisitionRate << "[fps] WindowTimeSec = " << WindowTimeSec<<"[s] DetectionTimeSec = "<< DetectionTimeSec <<"[s]");
-  LOG_INFO("NumberOfWindows = "<< NumberOfWindows<< " WindowSize = "<< WindowSize<< " MinimunDistanceBetweenLandmarksMM = "<< MinimunDistanceBetweenLandmarksMM << "[mm] PivotThreshold " << PivotThresholdMM <<"[mm]");
+  LOG_INFO("NumberOfWindows = "<< NumberOfWindows<< " WindowSize = "<< WindowSize<< " MinimunDistanceBetweenLandmarksMM = "<< MinimunDistanceBetweenLandmarksMM << "[mm] PivotThreshold " << PivotThresholdMm <<"[mm]");
 }
 
 //----------------------------------------------------------------------------
@@ -101,28 +101,28 @@ void vtkPivotDetectionAlgo::SetWindowTimeSec(double windowTime)
 }
 
 //----------------------------------------------------------------------------
-void vtkPivotDetectionAlgo::SetAbovePivotThresholdMM(double abovePivotThreshold)
+void vtkPivotDetectionAlgo::SetAbovePivotThresholdMm(double abovePivotThreshold)
 {
   if(abovePivotThreshold>0)
   {
-    this->AbovePivotThresholdMM=abovePivotThreshold;
+    this->AbovePivotThresholdMm=abovePivotThreshold;
   }
   else
   {
-    LOG_WARNING("Specified pivot threshold (" << abovePivotThreshold << " [mm]) is not correct, default "<<this->AbovePivotThresholdMM<<" [s] is used instead");
+    LOG_WARNING("Specified pivot threshold (" << abovePivotThreshold << " [mm]) is not correct, default "<<this->AbovePivotThresholdMm<<" [s] is used instead");
   }
 }
 
 //----------------------------------------------------------------------------
-void vtkPivotDetectionAlgo::SetPivotThresholdMM(double samePivotThreshold)
+void vtkPivotDetectionAlgo::SetPivotThresholdMm(double samePivotThreshold)
 {
   if(samePivotThreshold>0)
   {
-    this->PivotThresholdMM=samePivotThreshold;
+    this->PivotThresholdMm=samePivotThreshold;
   }
   else
   {
-    LOG_WARNING("Specified pivot threshold (" << samePivotThreshold << " [mm]) is not correct, default "<<this->PivotThresholdMM<<" [s] is used instead");
+    LOG_WARNING("Specified pivot threshold (" << samePivotThreshold << " [mm]) is not correct, default "<<this->PivotThresholdMm<<" [s] is used instead");
   }
 }
 
@@ -165,8 +165,8 @@ vtkPivotDetectionAlgo::vtkPivotDetectionAlgo()
   this->AcquisitionRate=20.0;
   this->WindowTimeSec=0.2;
   this->DetectionTimeSec=1.0;
-  this->AbovePivotThresholdMM = ABOVE_PIVOT_THRESHOLD_MM;
-  this->PivotThresholdMM = PIVOT_THRESHOLD_MM;
+  this->AbovePivotThresholdMm = ABOVE_PIVOT_THRESHOLD_MM;
+  this->PivotThresholdMm = PIVOT_THRESHOLD_MM;
   this->ExpectedPivotsNumber=EXPECTED_PIVOTS_NUMBER;
   this->MinimunDistanceBetweenLandmarksMM=15.0;
 }
@@ -210,7 +210,7 @@ PlusStatus vtkPivotDetectionAlgo::ResetDetection()
 //----------------------------------------------------------------------------
 PlusStatus vtkPivotDetectionAlgo::InsertPivot(double* stylusTipPosition)
 {
-  if(IsNewPivotPointPosition(stylusTipPosition)==true)
+  if(IsNewPivotPointPosition(stylusTipPosition)==-1)
   {
     NumberOfWindowsFoundPerPivot.push_back(1.0);
     this->PivotPointsReference->InsertNextPoint(stylusTipPosition);
@@ -303,7 +303,7 @@ void vtkPivotDetectionAlgo::EraseLastPoints()
 //----------------------------------------------------------------------------
 PlusStatus vtkPivotDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceTransform)
 {
-  //Point 10 cm above the stylus tip, if it moves(window change bigger than AbovePivotThresholdMM) while the tip is static (window change smaller than PivotThresholdMM then it is pivot point.
+  //Point 10 cm above the stylus tip, if it moves(window change bigger than AbovePivotThresholdMm) while the tip is static (window change smaller than PivotThresholdMm then it is pivot point.
   float pointAboveStylusTip_Reference[4]={100,0,0,1};
   double stylusTipChange[3]={0,0,0};
   double aboveStylusTipChange[3]={0,0,0};
@@ -350,7 +350,7 @@ PlusStatus vtkPivotDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtkSma
       aboveStylusTipChange[1]=LastAboveStylusTipAverage[1]-AboveStylusTipAverage[1];
       aboveStylusTipChange[2]=LastAboveStylusTipAverage[2]-AboveStylusTipAverage[2];
       this->BoundingBox.AddPoint(AboveStylusTipAverage);
-      if(vtkMath::Norm(stylusTipChange)<this->PivotThresholdMM /*&& vtkMath::Norm(aboveStylusTipChange)>this->AbovePivotThresholdMM*/ )
+      if(vtkMath::Norm(stylusTipChange)<this->PivotThresholdMm /*&& vtkMath::Norm(aboveStylusTipChange)>this->AbovePivotThresholdMm*/ )
       {
         LOG_DEBUG("\nDif last points (" <<abs(lastStylusTipWindowAverage[0]-stylusTipWindowAverage[0])<< ", "<<abs(lastStylusTipWindowAverage[1]-stylusTipWindowAverage[1])<< ", "<<abs(lastStylusTipWindowAverage[2]-stylusTipWindowAverage[2])<< ")\n");
         LOG_DEBUG("Window Pivot ("<< lastStylusTipWindowAverage[0]<< ", "<< lastStylusTipWindowAverage[1]<< ", "<< lastStylusTipWindowAverage[2]<< ") found keep going!!");
@@ -409,7 +409,7 @@ PlusStatus vtkPivotDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtkSma
 }
 
 //----------------------------------------------------------------------------
-bool vtkPivotDetectionAlgo::IsNewPivotPointPosition(double* stylusTipPosition)
+int vtkPivotDetectionAlgo::IsNewPivotPointPosition(double* stylusTipPosition)
 {
   double pivotFound[3] = {0,0,0};
   double pivotDifference[3] = {0,0,0};
@@ -422,7 +422,7 @@ bool vtkPivotDetectionAlgo::IsNewPivotPointPosition(double* stylusTipPosition)
     pivotDifference[1]=pivotFound[1]-stylusTipPosition[1];
     pivotDifference[2]=pivotFound[2]-stylusTipPosition[2];
     ////average if it is really close
-    //if(vtkMath::Norm(pivotDifference)<this->PivotThresholdMM/5 )
+    //if(vtkMath::Norm(pivotDifference)<this->PivotThresholdMm/5 )
     //{
     //  NumberOfWindowsFoundPerPivot[id]=NumberOfWindowsFoundPerPivot[id]+1.0;
     //  pivotFound[0]=(pivotFound[0]*(NumberOfWindowsFoundPerPivot[id]-1)+stylusTipPosition[0])/NumberOfWindowsFoundPerPivot[id];
@@ -435,12 +435,12 @@ bool vtkPivotDetectionAlgo::IsNewPivotPointPosition(double* stylusTipPosition)
     //}
     ////if it is relatively close it might be same pivot outlier do not average it 
     //else if(vtkMath::Norm(pivotDifference)<this->MinimunDistanceBetweenLandmarksMM/2)
-    if(vtkMath::Norm(pivotDifference)<this->MinimunDistanceBetweenLandmarksMM/2)
+    if(vtkMath::Norm(pivotDifference)<this->MinimunDistanceBetweenLandmarksMM/3)
     {
-      return false;
+      return id;
     }
   }
-  return true;
+  return -1;
 }
 
 //----------------------------------------------------------------------------
@@ -516,7 +516,7 @@ PlusStatus vtkPivotDetectionAlgo::EstimatePivotPointPosition()
         stylusPositionMean[r]=outputPrimary->GetValueByName( r, "Mean" ).ToDouble();
         stylusPositionStdev[r]=outputDerived->GetValueByName( r, "Standard Deviation" ).ToDouble();
     }
-    if(IsNewPivotPointPosition(stylusPositionMean)==true)
+    if(IsNewPivotPointPosition(stylusPositionMean)==-1)
     {
       NumberOfWindowsFoundPerPivot.push_back(1.0);
       this->PivotPointsReference->InsertNextPoint(stylusPositionMean);
@@ -586,11 +586,11 @@ PlusStatus vtkPivotDetectionAlgo::ReadConfiguration(vtkXMLDataElement* aConfig)
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, ExpectedPivotsNumber, PhantomLandmarkPivotDetectionElement);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, WindowTimeSec, PhantomLandmarkPivotDetectionElement);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DetectionTimeSec, PhantomLandmarkPivotDetectionElement);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, AbovePivotThresholdMM, PhantomLandmarkPivotDetectionElement);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, PivotThresholdMM, PhantomLandmarkPivotDetectionElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, AbovePivotThresholdMm, PhantomLandmarkPivotDetectionElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, PivotThresholdMm, PhantomLandmarkPivotDetectionElement);
 
   LOG_INFO("AcquisitionRate = "<< AcquisitionRate << "[fps] WindowTimeSec = " << WindowTimeSec<<"[s] DetectionTimeSec = "<< DetectionTimeSec <<"[s]");
-  LOG_INFO("NumberOfWindows = "<< NumberOfWindows<< " WindowSize = "<< WindowSize<< " MinimunDistanceBetweenLandmarksMM = "<< MinimunDistanceBetweenLandmarksMM << "[mm] PivotThreshold " << PivotThresholdMM <<"[mm]");
+  LOG_INFO("NumberOfWindows = "<< NumberOfWindows<< " WindowSize = "<< WindowSize<< " MinimunDistanceBetweenLandmarksMM = "<< MinimunDistanceBetweenLandmarksMM << "[mm] PivotThreshold " << PivotThresholdMm <<"[mm]");
 
   return PLUS_SUCCESS;
 }

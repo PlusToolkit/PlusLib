@@ -267,8 +267,73 @@ double vtkPhantomLandmarkRegistrationAlgo::GetMinimunDistanceBetweenTwoLandmarks
       distance = sqrt( vtkMath::Distance2BetweenPoints(referencePointArray, otherPointArray) );
     }
   }
-
   return distance;
 }
 
+void vtkPhantomLandmarkRegistrationAlgo::GetDefinedLandmarksAverageFromReference(double* landmarksAverage_Reference)
+{
+  // Defined landmarks from xml are in the phantom coordinate system
+  double definedLandmarkPoint[3];
+  double landmarksAverage[4]={0,0,0,1};
+  double *temporalPtr;
+  int i=0;
+  while( i<this->DefinedLandmarks->GetNumberOfPoints())
+  {
+    this->DefinedLandmarks->GetPoint(i,definedLandmarkPoint);
+    landmarksAverage[0]+=definedLandmarkPoint[0];
+    landmarksAverage[1]+=definedLandmarkPoint[1];
+    landmarksAverage[2]+=definedLandmarkPoint[2];
+    i++;
+  }
+  landmarksAverage[0]=landmarksAverage[0]/i;
+  landmarksAverage[1]=landmarksAverage[1]/i;
+  landmarksAverage[2]=landmarksAverage[2]/i;
+  temporalPtr=this->PhantomToReferenceTransformMatrix->MultiplyDoublePoint(landmarksAverage);
+  landmarksAverage_Reference[0]=temporalPtr[0];
+  landmarksAverage_Reference[1]=temporalPtr[1];
+  landmarksAverage_Reference[2]=temporalPtr[2];
+  //LOG_INFO("Centroid ("<<landmarksAverage[0]<<", "<<landmarksAverage[1]<<", "<<landmarksAverage[2]<<")");
+  return;
+}
 
+void vtkPhantomLandmarkRegistrationAlgo::GetDefinedLandmarksAverage(double* landmarksAverage)
+{
+  // Defined landmarks from xml are in the phantom coordinate system
+  double definedLandmarkPoint[3];
+  int i=0;
+  while( i<this->DefinedLandmarks->GetNumberOfPoints())
+  {
+    this->DefinedLandmarks->GetPoint(i,definedLandmarkPoint);
+    landmarksAverage[0]+=definedLandmarkPoint[0];
+    landmarksAverage[1]+=definedLandmarkPoint[1];
+    landmarksAverage[2]+=definedLandmarkPoint[2];
+    i++;
+  }
+  landmarksAverage[0]=landmarksAverage[0]/i;
+  landmarksAverage[1]=landmarksAverage[1]/i;
+  landmarksAverage[2]=landmarksAverage[2]/i;
+  return;
+}
+
+void vtkPhantomLandmarkRegistrationAlgo::GetLandmarkCameraPositionFromReference(int index, double* cameraPosition_Reference)
+{
+  this->DefinedLandmarks->GetPoint(index,cameraPosition_Reference);
+  double centroid[3]={0,0,0};
+  double tempVec[3]={0,0,0};
+  double *temporalPoint;
+  this->GetDefinedLandmarksAverage(centroid);
+  tempVec[0]=cameraPosition_Reference[0]-centroid[0];
+  tempVec[1]=cameraPosition_Reference[1]-centroid[1];
+  tempVec[2]=cameraPosition_Reference[2]-centroid[2];
+
+  vtkMath::Normalize(tempVec);
+  centroid[0]=centroid[0]+500*tempVec[0];
+  centroid[1]=centroid[1]+500*tempVec[1];
+  centroid[2]=centroid[2]+500*tempVec[2];
+
+  temporalPoint=this->PhantomToReferenceTransformMatrix->MultiplyDoublePoint(centroid);
+  cameraPosition_Reference[0]=temporalPoint[0];
+  cameraPosition_Reference[1]=temporalPoint[1];
+  cameraPosition_Reference[2]=temporalPoint[2];
+  LOG_INFO("Defined Landmark " <<index<< cameraPosition_Reference);
+}

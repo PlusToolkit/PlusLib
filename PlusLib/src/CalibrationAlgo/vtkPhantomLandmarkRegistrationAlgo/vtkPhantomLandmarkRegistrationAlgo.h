@@ -54,6 +54,15 @@ public:
   static std::string GetConfigurationElementName() { return vtkPhantomLandmarkRegistrationAlgo::ConfigurationElementName; };
 
   double GetMinimunDistanceBetweenTwoLandmarks();
+  
+  /*! Get the defined landmarks average from the reference coordinates system*/
+  void GetDefinedLandmarksAverage(double* landmarksAverage_Reference);
+
+  /*! Get the defined landmarks average from the reference coordinates system*/
+  void GetDefinedLandmarksAverageFromReference(double* landmarksAverage_Reference);
+
+  /*! Get the defined landmark at index from the reference coordinates system */
+  void GetLandmarkCameraPositionFromReference(int index, double* definedLandmark_Reference);
 
 public:
 

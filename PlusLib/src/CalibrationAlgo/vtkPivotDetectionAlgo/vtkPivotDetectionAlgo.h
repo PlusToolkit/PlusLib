@@ -66,10 +66,10 @@ public:
   void SetWindowTimeSec(double windowTime);
   /*! Set total DetectionTime (default 2 [s])*/
   void SetDetectionTimeSec(double detectionTime);
-  /*! Set the above the pivot threshold. It is used to detect that stylus is pivoting and not static. When a point 10 cm above the stylus tip magnitude change is bigger than AbovePivotThresholdMM, the stylus is pivoting.*/
-  void SetAbovePivotThresholdMM(double abovePivotThreshold);
-  /*! Set the pivot threshold. A pivot position will be consider when the stylus tip position magnitude change is below SamePivotThresholdMM.  */
-  void SetPivotThresholdMM(double samePivotThreshold);
+  /*! Set the above the pivot threshold. It is used to detect that stylus is pivoting and not static. When a point 10 cm above the stylus tip magnitude change is bigger than AbovePivotThresholdMm, the stylus is pivoting.*/
+  void SetAbovePivotThresholdMm(double abovePivotThreshold);
+  /*! Set the pivot threshold. A pivot position will be consider when the stylus tip position magnitude change is below SamePivotThresholdMm.  */
+  void SetPivotThresholdMm(double samePivotThreshold);
   /*! Set the number of expected pivots to be found.*/
   void SetExpectedPivotsNumber(int expectedPivotsNumber);
 
@@ -94,7 +94,7 @@ public:
   vtkSetMacro(MinimunDistanceBetweenLandmarksMM, double);
 
   /*! Once the pivot is detected (after DetectionTime) the stylus could still be pivoting in the same place, this function determines if it is a new pivot position if it is not the pivot position will be averaged with the existing one.*/
-  bool IsNewPivotPointPosition(double* stylusPosition);
+  int IsNewPivotPointPosition(double* stylusPosition);
 
 protected:
 
@@ -103,7 +103,7 @@ protected:
   vtkPivotDetectionAlgo();
   virtual  ~vtkPivotDetectionAlgo();
 
-  /* Estimate pivot point position from the stylus tip points. The average of NumberOfWindows*WindowSize consecutive points that remain in the same position within the PivotThresholdMM.*/
+  /* Estimate pivot point position from the stylus tip points. The average of NumberOfWindows*WindowSize consecutive points that remain in the same position within the PivotThresholdMm.*/
   PlusStatus EstimatePivotPointPosition();
 
   /*! The change in pivot positions is measured in windows of points. If the current window is not considered the same pivoting point as the one before. The points acquired that belong to the first window will be erased by this function.*/
@@ -134,10 +134,10 @@ protected:
   double WindowTimeSec;
   /*! DetectionTime (2 [s])*/
   double DetectionTimeSec;
-  /*! Above the pivot threshold is used to detect stylus pivoting and not static. When a point 10 cm above the stylus tip magnitude change is bigger than AbovePivotThresholdMM, the stylus is pivoting.*/
-  double AbovePivotThresholdMM;
-  /*! A pivot position will be consider when the stylus tip position magnitude change is below PivotThresholdMM.*/
-  double PivotThresholdMM;
+  /*! Above the pivot threshold is used to detect stylus pivoting and not static. When a point 10 cm above the stylus tip magnitude change is bigger than AbovePivotThresholdMm, the stylus is pivoting.*/
+  double AbovePivotThresholdMm;
+  /*! A pivot position will be consider when the stylus tip position magnitude change is below PivotThresholdMm.*/
+  double PivotThresholdMm;
   /*!The minimun distance in between any two landmarks, it will be a NEW pivot detected only if it is further away from anyother already detected pivot .*/
   double MinimunDistanceBetweenLandmarksMM;
 
