@@ -5,11 +5,11 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
+#include "vtkVirtualDiscCapture.h"
 #include "TrackedFrame.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusBuffer.h"
 #include "vtkPlusDataSource.h"
-#include "vtkVirtualDiscCapture.h"
 #include "vtksys/SystemTools.hxx"
 
 //----------------------------------------------------------------------------

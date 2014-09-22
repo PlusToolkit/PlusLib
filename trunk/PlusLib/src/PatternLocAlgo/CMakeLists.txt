@@ -22,7 +22,7 @@ IF (WIN32)
     )
 ENDIF (WIN32)
 
-SET (PatternLocAlgo_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE )
+SET (PatternLocAlgo_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "" FORCE )
 
 # --------------------------------------------------------------------------
 # Build the library
@@ -35,7 +35,8 @@ SET(PatternLocAlgo_LIBS
   )
   
 INCLUDE_DIRECTORIES( ${PatternLocAlgo_INCLUDE_DIRS} )
-ADD_LIBRARY( PatternLocAlgo STATIC ${PatternLocAlgo_SRCS} ${PatternLocAlgo_HDRS} )
+GENERATE_EXPORT_DIRECTIVE_FILE(PatternLocAlgo)
+ADD_LIBRARY( PatternLocAlgo ${PatternLocAlgo_SRCS} ${PatternLocAlgo_HDRS} )
 TARGET_LINK_LIBRARIES( PatternLocAlgo ${PatternLocAlgo_LIBS})
 
 # --------------------------------------------------------------------------
@@ -49,10 +50,11 @@ SET(vcProj_PatternLocAlgo PatternLocAlgo;"${PlusLib_BINARY_DIR}/src/PatternLocAl
 # Install
 #
 
-# INSTALL(TARGETS PatternLocAlgo
-  # DESTINATION bin
-  # COMPONENT RuntimeLibraries)
-  
+INSTALL(TARGETS PatternLocAlgo
+  RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  LIBRARY DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  )
+
 # --------------------------------------------------------------------------
 # Testing
 #

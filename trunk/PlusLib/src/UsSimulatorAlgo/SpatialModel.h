@@ -9,6 +9,7 @@
 #include <deque>
 #include <string>
 
+#include "vtkUsSimulatorAlgoExport.h"
 #include "vtkSmartPointer.h"
 #include "vtkImageData.h"
 #include "vtkMatrix4x4.h"
@@ -19,7 +20,7 @@
   \brief Class to store all properties of a simulated object.
   \ingroup PlusLibUsSimulatorAlgo
 */
-class VTK_EXPORT SpatialModel
+class vtkUsSimulatorAlgoExport SpatialModel
 {
 public:
 

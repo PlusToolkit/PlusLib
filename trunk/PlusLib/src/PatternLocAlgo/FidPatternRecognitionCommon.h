@@ -7,6 +7,8 @@ See License.txt for details.
 #ifndef _FIDUCIAL_ALGORITHM_COMMON_H
 #define _FIDUCIAL_ALGORITHM_COMMON_H
 
+#include "PatternLocAlgoExport.h"
+
 #include <vector>
 #include <string>
 
@@ -211,7 +213,7 @@ public:
 \brief This class stores the Pattern Recognition algorithm results.
 \ingroup PlusLibPatternRecognition
 */
-class PatternRecognitionResult
+class PatternLocAlgoExport PatternRecognitionResult
 {
 public:
   PatternRecognitionResult();

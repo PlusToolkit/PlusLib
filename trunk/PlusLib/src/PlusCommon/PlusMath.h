@@ -8,6 +8,8 @@
 #define __PLUSMATH_H
 
 #include "PlusConfigure.h"
+#include "vtkPlusCommonExport.h"
+
 #include <vector>
 
 #include "vnl/vnl_matrix.h"
@@ -23,7 +25,7 @@
   \brief A utility class that contains static functions for various useful commonly used computations
   \ingroup PlusLibCommon
 */
-class VTK_EXPORT PlusMath
+class vtkPlusCommonExport PlusMath
 {
 public:
 

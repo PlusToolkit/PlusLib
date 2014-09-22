@@ -7,6 +7,8 @@ See License.txt for details.
 #ifndef __vtk3dConnexionTracker_h
 #define __vtk3dConnexionTracker_h
 
+#include "vtkDataCollectionExport.h"
+
 #include "vtkPlusDevice.h"
 
 class vtkPlusBuffer;
@@ -21,7 +23,7 @@ This class reads transforms from 3D mouse devices.
 
 \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtk3dConnexionTracker : public vtkPlusDevice
+class vtkDataCollectionExport vtk3dConnexionTracker : public vtkPlusDevice
 {
 public:
 

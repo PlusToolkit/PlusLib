@@ -37,7 +37,7 @@ IF (PLUS_USE_STEALTHLINK)
   ENDIF (WIN32)
 ENDIF(PLUS_USE_STEALTHLINK)
 
-SET (PlusServer_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
+SET (PlusServer_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Build the library
@@ -50,6 +50,7 @@ SET (PlusServer_LIBS
   )
 
 INCLUDE_DIRECTORIES( ${PlusServer_INCLUDE_DIRS} )
+GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusServer)
 ADD_LIBRARY(vtkPlusServer ${PlusServer_SRCS} ${PlusServer_HDRS})
 TARGET_LINK_LIBRARIES(vtkPlusServer ${PlusServer_LIBS})
 

@@ -7,6 +7,8 @@
 #ifndef __VTKPLUSOPENIGTLINKCLIENT_H
 #define __VTKPLUSOPENIGTLINKCLIENT_H
 
+#include "vtkPlusServerExport.h"
+
 #include "igtlClientSocket.h"
 #include "igtlMessageHeader.h"
 #include "igtlOSUtil.h"
@@ -28,7 +30,7 @@ class vtkRecursiveCriticalSection;
   
   \ingroup PlusLibPlusServer
 */
-class VTK_EXPORT vtkPlusOpenIGTLinkClient : public vtkObject
+class vtkPlusServerExport vtkPlusOpenIGTLinkClient : public vtkObject
 {
 public:
   

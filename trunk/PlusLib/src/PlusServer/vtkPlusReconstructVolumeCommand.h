@@ -7,6 +7,8 @@
 #ifndef __vtkPlusReconstructVolumeCommand_h
 #define __vtkPlusReconstructVolumeCommand_h
 
+#include "vtkPlusServerExport.h"
+
 #include "vtkPlusCommand.h"
 
 class vtkVolumeReconstructor;
@@ -18,7 +20,7 @@ class vtkVirtualVolumeReconstructor;
   \brief This command reconstructs a volume from an image sequence and saves it to disk or sends it to the client in an IMAGE message. 
   \ingroup PlusLibPlusServer
  */ 
-class VTK_EXPORT vtkPlusReconstructVolumeCommand : public vtkPlusCommand
+class vtkPlusServerExport vtkPlusReconstructVolumeCommand : public vtkPlusCommand
 {
 public:
   

@@ -8,6 +8,7 @@
 #define __vtkPlusConfig_h
 
 #include "PlusConfigure.h"
+#include "vtkPlusCommonExport.h"
 
 #include "vtkObject.h"
 #include "vtkXMLDataElement.h"
@@ -20,7 +21,7 @@ class vtkRecursiveCriticalSection;
   \brief Singleton class providing tools needed for handling the configuration - finding files, assembling file names, holding and saving the configuration data
   \ingroup PlusLibCommon
 */ 
-class VTK_EXPORT vtkPlusConfig : public vtkObject
+class vtkPlusCommonExport vtkPlusConfig : public vtkObject
 {
 public:
   vtkTypeRevisionMacro(vtkPlusConfig, vtkObject);

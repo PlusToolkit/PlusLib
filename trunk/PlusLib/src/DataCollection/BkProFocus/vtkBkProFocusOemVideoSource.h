@@ -7,6 +7,8 @@
 #ifndef __vtkBkProFocusOemVideoSource_h
 #define __vtkBkProFocusOemVideoSource_h
 
+#include "vtkDataCollectionExport.h"
+
 #include "vtkPlusDevice.h"
 
 /*!
@@ -18,7 +20,7 @@
 
   \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkBkProFocusOemVideoSource : public vtkPlusDevice
+class vtkDataCollectionExport vtkBkProFocusOemVideoSource : public vtkPlusDevice
 {
 public:
   static vtkBkProFocusOemVideoSource *New();

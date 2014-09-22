@@ -7,6 +7,8 @@
 #ifndef __vtkReadTrackedSignals_h
 #define __vtkReadTrackedSignals_h
 
+#include "vtkCalibrationAlgoExport.h"
+
 #include <deque>
 #include "vtkObject.h"
 
@@ -17,7 +19,7 @@ class vtkTrackedFrameList;
   \brief Extract the motion component along the the principal axis of the motion. Used for computing a position metric from a periodically moving tool.
   \ingroup PlusLibCalibrationAlgorithm
 */
-class vtkReadTrackedSignals: public vtkObject
+class vtkCalibrationAlgoExport vtkReadTrackedSignals: public vtkObject
 {
 public:
   static vtkReadTrackedSignals* New();

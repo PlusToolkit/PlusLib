@@ -8,6 +8,8 @@
 #define __vtkCenterOfRotationCalibAlgo_h
 
 #include "PlusConfigure.h"
+#include "vtkCalibrationAlgoExport.h"
+
 #include "vtkObject.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkTable.h"
@@ -47,7 +49,7 @@ class vtkGnuplotExecuter;
   \ingroup PlusLibCalibrationAlgorithm
 */ 
 
-class VTK_EXPORT vtkCenterOfRotationCalibAlgo : public vtkObject
+class vtkCalibrationAlgoExport vtkCenterOfRotationCalibAlgo : public vtkObject
 {
 public:
 

@@ -7,6 +7,7 @@
 #ifndef __vtkTelemedVideoSource_h
 #define __vtkTelemedVideoSource_h
 
+#include "vtkDataCollectionExport.h"
 
 #include "TelemedUltrasound.h"
 #include "vtkPlusDevice.h"
@@ -23,7 +24,7 @@
 
   \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkTelemedVideoSource : public vtkPlusDevice
+class vtkDataCollectionExport vtkTelemedVideoSource : public vtkPlusDevice
 {
 public:
 

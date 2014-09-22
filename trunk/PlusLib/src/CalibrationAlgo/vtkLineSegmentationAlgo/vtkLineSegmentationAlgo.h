@@ -7,6 +7,8 @@
 #ifndef __vtkLineSegmentationAlgo_h
 #define __vtkLineSegmentationAlgo_h
 
+#include "vtkCalibrationAlgoExport.h"
+
 #include "itkImage.h"
 #include "vtkObject.h"
 #include <deque>
@@ -18,7 +20,7 @@ class vtkTrackedFrameList;
   \brief Detect the position of a line (image of a plane) in an US image sequence.
   \ingroup PlusLibCalibrationAlgorithm
 */
-class VTK_EXPORT vtkLineSegmentationAlgo : public vtkObject
+class vtkCalibrationAlgoExport vtkLineSegmentationAlgo : public vtkObject
 {
 public:  
   struct LineParameters /*!< Line parameters is defined in the Image coordinate system (orientation is MF, origin is in the image corner, unit is pixel) */

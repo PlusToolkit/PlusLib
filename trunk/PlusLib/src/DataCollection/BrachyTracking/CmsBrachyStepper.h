@@ -8,6 +8,8 @@
 #define _CMSBRACHYSTEPPER_H_
 
 #include "PlusConfigure.h"
+#include "vtkDataCollectionExport.h"
+
 #include "BrachyStepper.h"
 #include "SerialLine.h"
 #include <vector>
@@ -26,7 +28,7 @@
  *
  * \ingroup PlusLibBrachyStepper
  */
-class VTK_EXPORT CmsBrachyStepper : public BrachyStepper
+class vtkDataCollectionExport CmsBrachyStepper : public BrachyStepper
 {
 public:
   typedef const char* STEPPERCOMMAND;

@@ -8,6 +8,7 @@
 #define __VTKTRACKEDFRAMELIST_H
 
 #include "PlusConfigure.h"
+#include "vtkPlusCommonExport.h"
 #include "PlusVideoFrame.h"
 #include "vtkObject.h"
 #include <deque>
@@ -30,7 +31,7 @@ class vtkMatrix4x4;
 
   \ingroup PlusLibCommon
 */
-class VTK_EXPORT vtkTrackedFrameList : public vtkObject
+class vtkPlusCommonExport vtkTrackedFrameList : public vtkObject
 {
 
 public:

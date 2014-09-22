@@ -15,19 +15,20 @@ if (WIN32)
     vtkUsScanConvertLinear.h 
     vtkUsScanConvertCurvilinear.h 
     vtkRfProcessor.h
-  )
+    )
 endif (WIN32)
 
-SET (RfProcessingAlgo_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}" CACHE INTERNAL "" FORCE)
+SET (RfProcessingAlgo_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Build the library
 
 SET (RfProcessingAlgo_LIBS
   vtkPlusCommon
-  )     
+  )
 
 INCLUDE_DIRECTORIES( ${RfProcessingAlgo_INCLUDE_DIRS} )
+GENERATE_EXPORT_DIRECTIVE_FILE(vtkRfProcessingAlgo)
 ADD_LIBRARY(vtkRfProcessingAlgo ${RfProcessingAlgo_SRCS} ${RfProcessingAlgo_HDRS})
 TARGET_LINK_LIBRARIES(vtkRfProcessingAlgo ${RfProcessingAlgo_LIBS})
 

@@ -7,6 +7,8 @@ See License.txt for details.
 #ifndef __vtkPhantomLinearObjectRegistrationAlgo_h
 #define __vtkPhantomLinearObjectRegistrationAlgo_h
 
+#include "vtkCalibrationAlgoExport.h"
+
 #include "Plane.h"
 #include "Planes.h"
 #include "Reference.h"
@@ -27,7 +29,7 @@ class vtkXMLDataElement;
   \brief Landmark registration to determine the Phantom pose relative to the attached marker (PhantomReference).
   \ingroup PlusLibCalibrationAlgorithm
 */
-class VTK_EXPORT vtkPhantomLinearObjectRegistrationAlgo : public vtkObject
+class vtkCalibrationAlgoExport vtkPhantomLinearObjectRegistrationAlgo : public vtkObject
 {
 public:
   vtkTypeRevisionMacro(vtkPhantomLinearObjectRegistrationAlgo,vtkObject);

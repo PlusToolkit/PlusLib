@@ -17,7 +17,7 @@ See License.txt for details.
 a dot as well as its wire and pattern id to allow identification of the dot.
 \ingroup PlusLibPatternRecognition
 */
-class LabelingResults
+class PatternLocAlgoExport LabelingResults
 {
 public:
   int patternId;//Id of the pattern
@@ -33,7 +33,7 @@ public:
 patterns defined in the configuration file. It also labels the dots found.
 \ingroup PlusLibPatternRecognition
 */
-class FidLabeling
+class PatternLocAlgoExport FidLabeling
 {
 public:
   FidLabeling();

@@ -7,6 +7,8 @@ See License.txt for details.
 #ifndef __vtkPhidgetSpatialTracker_h
 #define __vtkPhidgetSpatialTracker_h
 
+#include "vtkDataCollectionExport.h"
+
 #include "vtkPlusDevice.h"
 #include <phidget21.h>
 
@@ -51,9 +53,7 @@ data can be retrieved from the magnetometer. When magnetometer data is not avail
 
 \ingroup PlusLibDataCollection
 */
-class
-  VTK_EXPORT
-vtkPhidgetSpatialTracker : public vtkPlusDevice
+class vtkDataCollectionExport vtkPhidgetSpatialTracker : public vtkPlusDevice
 {
 public:
 

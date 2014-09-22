@@ -7,6 +7,7 @@
 #ifndef __vtkUsSimulatorAlgo_h
 #define __vtkUsSimulatorAlgo_h
 
+#include "vtkUsSimulatorAlgoExport.h"
 #include "vtkImageAlgorithm.h"
 #include "vtkSmartPointer.h"
 #include "vtkImageData.h"
@@ -26,7 +27,7 @@ class vtkRfProcessor;
   \brief Class that simulates ultrasound images from multiple surface models
   \ingroup PlusLibUsSimulatorAlgo
 */
-class VTK_EXPORT vtkUsSimulatorAlgo : public vtkImageAlgorithm
+class vtkUsSimulatorAlgoExport vtkUsSimulatorAlgo : public vtkImageAlgorithm
 {
 public:
   vtkTypeRevisionMacro(vtkUsSimulatorAlgo,vtkImageAlgorithm);

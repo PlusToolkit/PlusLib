@@ -17,6 +17,8 @@ Siddharth Vikal (Queen's University, Kingston, Ontario, Canada)
 #define __vtkSonixVideoSource_h
 
 #include "PlusConfigure.h"
+#include "vtkDataCollectionExport.h"
+
 #include "vtkPlusDevice.h"
 #include "ulterius.h"
 #include "ulterius_def.h"
@@ -27,7 +29,7 @@ Siddharth Vikal (Queen's University, Kingston, Ontario, Canada)
 class uDataDesc;
 class ulterius;
 
-class VTK_EXPORT vtkSonixVideoSource;
+class vtkDataCollectionExport vtkSonixVideoSource;
 
 //ETX
 
@@ -54,7 +56,7 @@ class VTK_EXPORT vtkSonixVideoSource;
   \ingroup PlusLibDataCollection
 */
 
-class VTK_EXPORT vtkSonixVideoSource : public vtkPlusDevice
+class vtkDataCollectionExport vtkSonixVideoSource : public vtkPlusDevice
 {
 public:
   static vtkSonixVideoSource* New();

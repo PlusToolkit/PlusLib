@@ -7,6 +7,8 @@
 #ifndef __VTKPLUSCOMMAND_H
 #define __VTKPLUSCOMMAND_H
 
+#include "vtkPlusServerExport.h"
+
 class vtkDataCollector;
 class vtkPlusCommandProcessor;
 class vtkTransformRepository;
@@ -23,7 +25,7 @@ class vtkImageData;
   
   \ingroup PlusLibPlusServer
 */
-class VTK_EXPORT vtkPlusCommand : public vtkObject
+class vtkPlusServerExport vtkPlusCommand : public vtkObject
 {
 public:
 

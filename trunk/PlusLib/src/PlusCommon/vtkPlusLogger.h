@@ -7,6 +7,8 @@
 #ifndef __PLUSLOGGER_H
 #define __PLUSLOGGER_H
 
+#include "vtkPlusCommonExport.h"
+
 #include "vtkObject.h"
 
 #include <fstream>
@@ -79,7 +81,7 @@ private:
   with adjustable verbosity.
   \ingroup PlusLibCommon
 */
-class VTK_EXPORT vtkPlusLogger : public vtkObject
+class vtkPlusCommonExport vtkPlusLogger : public vtkObject
 {
 
 public:

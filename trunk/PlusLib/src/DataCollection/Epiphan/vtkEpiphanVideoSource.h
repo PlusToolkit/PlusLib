@@ -7,6 +7,8 @@
 #ifndef __vtkEpiphanVideoSource_h
 #define __vtkEpiphanVideoSource_h
 
+#include "vtkDataCollectionExport.h"
+
 #include "vtkPlusDevice.h"
 
 /*!
@@ -14,7 +16,7 @@
   \brief Class for providing video input interfaces between VTK and Epiphan frame grabber device
   \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkEpiphanVideoSource : public vtkPlusDevice
+class vtkDataCollectionExport vtkEpiphanVideoSource : public vtkPlusDevice
 {
 public:
   static vtkEpiphanVideoSource *New();

@@ -16,6 +16,8 @@ Authors include: Danielle Pace
 #ifndef __vtkWin32VideoSource2_h
 #define __vtkWin32VideoSource2_h
 
+#include "vtkDataCollectionExport.h"
+
 #include "vtkPlusDevice.h"
 #include "PlusVideoFrame.h"
 
@@ -39,7 +41,7 @@ class vtkWin32VideoSource2Internal;
   \sa vtkPlusDevice vtkMILVideoSource2 vtkWin32VideoSource
   \ingroup PlusLibDataCollection
 */ 
-class VTK_EXPORT vtkWin32VideoSource2 : public vtkPlusDevice
+class vtkDataCollectionExport vtkWin32VideoSource2 : public vtkPlusDevice
 {
 public:
   static vtkWin32VideoSource2 *New();

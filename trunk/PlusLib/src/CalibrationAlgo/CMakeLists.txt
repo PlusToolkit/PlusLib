@@ -56,7 +56,8 @@ IF (WIN32)
     )
 ENDIF (WIN32)
 
-SET (CalibrationAlgo_INCLUDE_DIRS 
+SET (CalibrationAlgo_INCLUDE_DIRS
+  ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkBrachyStepperPhantomRegistrationAlgo
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkCenterOfRotationCalibAlgo
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkLineSegmentationAlgo
@@ -82,7 +83,8 @@ SET (CalibrationAlgo_LIBS
   )
 
 INCLUDE_DIRECTORIES( ${CalibrationAlgo_INCLUDE_DIRS} )
-ADD_LIBRARY( vtkCalibrationAlgo STATIC ${CalibrationAlgo_SRCS} ${CalibrationAlgo_HDRS} )
+GENERATE_EXPORT_DIRECTIVE_FILE(vtkCalibrationAlgo)
+ADD_LIBRARY( vtkCalibrationAlgo ${CalibrationAlgo_SRCS} ${CalibrationAlgo_HDRS} )
 TARGET_LINK_LIBRARIES(vtkCalibrationAlgo ${CalibrationAlgo_LIBS})
 
 # --------------------------------------------------------------------------
@@ -96,11 +98,11 @@ SET(vcProj_vtkCalibrationAlgo vtkCalibrationAlgo;"${PlusLib_BINARY_DIR}/src/Cali
 # Install
 #
 
-# INSTALL(TARGETS vtkCalibrationAlgo
-  # DESTINATION bin
-  # CONFIGURATIONS Release
-  # COMPONENT RuntimeLibraries)
-    
+INSTALL(TARGETS vtkCalibrationAlgo
+  RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  LIBRARY DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  )
+
 # --------------------------------------------------------------------------
 # Testing
 #

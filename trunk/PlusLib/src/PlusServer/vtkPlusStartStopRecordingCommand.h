@@ -7,6 +7,8 @@
 #ifndef __vtkPlusStartStopRecordingCommand_h
 #define __vtkPlusStartStopRecordingCommand_h
 
+#include "vtkPlusServerExport.h"
+
 #include "vtkPlusCommand.h"
 
 class vtkVirtualDiscCapture;
@@ -17,7 +19,7 @@ class vtkDataCollector;
   \brief This command starts and stops capturing with a vtkVirtualDiscCapture capture on the server side. 
   \ingroup PlusLibPlusServer
  */ 
-class VTK_EXPORT vtkPlusStartStopRecordingCommand : public vtkPlusCommand
+class vtkPlusServerExport vtkPlusStartStopRecordingCommand : public vtkPlusCommand
 {
 public:
 

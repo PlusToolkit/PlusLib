@@ -7,6 +7,8 @@
 #ifndef __vtkPlusStealthLinkCommand_h
 #define __vtkPlusStealthLinkCommand_h
 
+#include "vtkPlusServerExport.h"
+
 #include "vtkPlusCommand.h"
 #include "vtkTransformRepository.h"
 
@@ -18,7 +20,7 @@ class vtkStealthLinkTracker;
   \brief This command reconstructs a volume from an image sequence and saves it to disk or sends it to the client in an IMAGE message. 
   \ingroup PlusLibPlusServer
  */ 
-class VTK_EXPORT vtkPlusStealthLinkCommand : public vtkPlusCommand
+class vtkPlusServerExport vtkPlusStealthLinkCommand : public vtkPlusCommand
 {
 public:
   

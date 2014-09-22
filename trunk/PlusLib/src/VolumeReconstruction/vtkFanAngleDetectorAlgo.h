@@ -8,6 +8,7 @@
 #define __vtkFanAngleDetectorAlgo_h
 
 #include "PlusConfigure.h"
+#include "vtkVolumeReconstructionExport.h"
 
 #include "vtkImageData.h"
 
@@ -18,7 +19,7 @@
   \sa vtkPasteSliceIntoVolume
   \ingroup PlusLibVolumeReconstruction
 */
-class VTK_EXPORT vtkFanAngleDetectorAlgo : public vtkObject
+class vtkVolumeReconstructionExport vtkFanAngleDetectorAlgo : public vtkObject
 {
 public:
 

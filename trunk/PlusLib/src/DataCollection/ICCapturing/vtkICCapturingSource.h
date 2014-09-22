@@ -7,17 +7,19 @@ See License.txt for details.
 #ifndef __vtkICCapturingSource_h
 #define __vtkICCapturingSource_h
 
+#include "vtkDataCollectionExport.h"
+
 #include "vtkPlusDevice.h"
 class ICCapturingListener; 
 
-class VTK_EXPORT vtkICCapturingSource;
+class vtkDataCollectionExport vtkICCapturingSource;
 
 /*!
 \class vtkICCapturingSourceCleanup 
 \brief Class that cleans up (deletes singleton instance of) vtkICCapturingSource when destroyed
 \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkICCapturingSourceCleanup
+class vtkDataCollectionExport vtkICCapturingSourceCleanup
 {
 public:
   vtkICCapturingSourceCleanup();
@@ -29,7 +31,7 @@ public:
 \brief Class for providing video input interfaces between VTK and ICCapturing frame grabber device
 \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkICCapturingSource : public vtkPlusDevice
+class vtkDataCollectionExport vtkICCapturingSource : public vtkPlusDevice
 {
 public:
   vtkTypeRevisionMacro(vtkICCapturingSource,vtkPlusDevice);

@@ -16,6 +16,8 @@ Authors include: Danielle Pace
 #ifndef __vtkMmfVideoSource_h
 #define __vtkMmfVideoSource_h
 
+#include "vtkDataCollectionExport.h"
+
 #include "PlusVideoFrame.h"
 #include "vtkPlusDevice.h"
 
@@ -31,7 +33,7 @@ Authors include: Danielle Pace
   \sa vtkPlusDevice
   \ingroup PlusLibDataCollection
 */ 
-class VTK_EXPORT vtkMmfVideoSource : public vtkPlusDevice, public IMFSourceReaderCallback
+class vtkDataCollectionExport vtkMmfVideoSource : public vtkPlusDevice, public IMFSourceReaderCallback
 {
   struct VideoFormat
   {

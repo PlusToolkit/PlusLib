@@ -8,6 +8,8 @@
 #define _TEMPORAL_CALIBRATION_H
 
 #include "PlusConfigure.h"
+#include "vtkCalibrationAlgoExport.h"
+
 #include "vtkObject.h"
 #include <deque>
 #include <iostream>
@@ -27,7 +29,7 @@ class vtkTrackedFrameList;
 */
 
 
-class vtkTemporalCalibrationAlgo : public vtkObject
+class vtkCalibrationAlgoExport vtkTemporalCalibrationAlgo : public vtkObject
 {
 public:
   vtkTypeRevisionMacro(vtkTemporalCalibrationAlgo,vtkObject);

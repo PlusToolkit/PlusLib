@@ -7,6 +7,8 @@
 #ifndef __PlusCommon_h
 #define __PlusCommon_h
 
+#include "vtkPlusCommonExport.h"
+
 #include "itkImageIOBase.h"
 #include "vtkOutputWindow.h"
 #include "vtkPlusLogger.h"
@@ -112,7 +114,8 @@ enum PlusImagingMode
 
   \ingroup PlusLibCommon
 */
-template <typename T> class PlusLockGuard
+template <typename T>
+class PlusLockGuard
 {
 public:
   PlusLockGuard(T* lockableObject)
@@ -155,7 +158,7 @@ namespace PlusCommon
   //----------------------------------------------------------------------------
   /*! Quick and robust string to int conversion */
   template<class T>
-  VTK_EXPORT PlusStatus StringToInt(const char* strPtr, T &result)
+  PlusStatus StringToInt(const char* strPtr, T &result)
   {
     if (strPtr==NULL || strlen(strPtr) == 0 )
     {
@@ -173,7 +176,7 @@ namespace PlusCommon
   //----------------------------------------------------------------------------
   /*! Quick and robust string to double conversion */
   template<class T>
-  VTK_EXPORT PlusStatus StringToDouble(const char* strPtr, T &result)
+  PlusStatus StringToDouble(const char* strPtr, T &result)
   {
     if (strPtr==NULL || strlen(strPtr) == 0 )
     {
@@ -204,7 +207,7 @@ namespace PlusCommon
   //----------------------------------------------------------------------------
   /*! Quick and robust string to int conversion */
   template<class T>
-  VTK_EXPORT PlusStatus StringToLong(const char* strPtr, T &result)
+  PlusStatus StringToLong(const char* strPtr, T &result)
   {
     if (strPtr==NULL || strlen(strPtr) == 0 )
     {
@@ -219,14 +222,14 @@ namespace PlusCommon
     return PLUS_SUCCESS;
   }
 
-  VTK_EXPORT void SplitStringIntoTokens(const std::string &s, char delim, std::vector<std::string> &elems);
+  vtkPlusCommonExport void SplitStringIntoTokens(const std::string &s, char delim, std::vector<std::string> &elems);
 
-  VTK_EXPORT PlusStatus CreateTemporaryFilename( std::string& aString, const std::string& anOutputDirectory );
+  vtkPlusCommonExport PlusStatus CreateTemporaryFilename( std::string& aString, const std::string& anOutputDirectory );
 
   /*! Trim whitespace characters from the left and right */
-  VTK_EXPORT void Trim(std::string &str);
+  vtkPlusCommonExport void Trim(std::string &str);
   
-  VTK_EXPORT std::string Trim(const char* c);
+  vtkPlusCommonExport std::string Trim(const char* c);
 
   /*!
     Writes an XML element to file. The output is nicer that with the built-in vtkXMLDataElement::PrintXML, as
@@ -234,24 +237,24 @@ namespace PlusCommon
     matrix elements (those that contain Matrix or Transform in the attribute name and 16 numerical elements in the attribute value)
     are printed in 4 lines.
   */
-  VTK_EXPORT PlusStatus PrintXML(const char* fname, vtkXMLDataElement* elem);
+  vtkPlusCommonExport PlusStatus PrintXML(const char* fname, vtkXMLDataElement* elem);
   /*!
     Writes an XML element to a stream. The output is nicer that with the built-in vtkXMLDataElement::PrintXML, as
     there are no extra lines, if there are many attributes then each of them is printed on separate line, and
     matrix elements (those that contain Matrix or Transform in the attribute name and 16 numerical elements in the attribute value)
     are printed in 4 lines.
   */
-  VTK_EXPORT PlusStatus PrintXML(ostream& os, vtkIndent indent, vtkXMLDataElement* elem);
+  vtkPlusCommonExport PlusStatus PrintXML(ostream& os, vtkIndent indent, vtkXMLDataElement* elem);
 
 #if (VTK_MAJOR_VERSION < 6)
   /*!
     Workaround for vtkXMLDataElement::RemoveAttribute bug.
     See details in https://www.assembla.com/spaces/plus/tickets/859
   */
-  VTK_EXPORT void RemoveAttribute(vtkXMLDataElement* elem, const char *name);
+  vtkPlusCommonExport void RemoveAttribute(vtkXMLDataElement* elem, const char *name);
 #endif
 
-  VTK_EXPORT std::string GetPlusLibVersionString();
+  vtkPlusCommonExport std::string GetPlusLibVersionString();
 };
 
 /*!
@@ -294,7 +297,7 @@ namespace PlusCommon
 
   \ingroup PlusLibCommon
 */
-class VTK_EXPORT PlusTransformName
+class vtkPlusCommonExport PlusTransformName
 {
 public:
   PlusTransformName(); 

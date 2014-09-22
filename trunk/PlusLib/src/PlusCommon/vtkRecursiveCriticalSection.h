@@ -7,6 +7,8 @@
 #ifndef __vtkRecursiveCriticalSection_h
 #define __vtkRecursiveCriticalSection_h
 
+#include "vtkPlusCommonExport.h"
+
 // Get vtkCritSecType definition
 #include "vtkCriticalSection.h"
 
@@ -19,7 +21,7 @@
 */
 
 // Critical Section object that is not a vtkObject.
-class VTK_EXPORT vtkSimpleRecursiveCriticalSection
+class vtkPlusCommonExport vtkSimpleRecursiveCriticalSection
 {
 public:
   // Default cstor
@@ -72,7 +74,7 @@ protected:
   \sa vtkSimpleRecursiveCriticalSection
   \ingroup PlusLibCommon
 */
-class VTK_EXPORT vtkRecursiveCriticalSection : public vtkObject
+class vtkPlusCommonExport vtkRecursiveCriticalSection : public vtkObject
 {
 public:
   static vtkRecursiveCriticalSection *New();

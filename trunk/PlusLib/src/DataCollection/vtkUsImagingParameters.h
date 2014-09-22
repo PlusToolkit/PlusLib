@@ -7,6 +7,8 @@
 #ifndef __vtkUsImagingParameters_h
 #define __vtkUsImagingParameters_h
 
+#include "vtkDataCollectionExport.h"
+
 #include "vtkPlusDevice.h"
 
 /*!
@@ -20,7 +22,7 @@ This class exists mainly for two reasons:
 \ingroup PlusLibDataCollection
 */
 
-class VTK_EXPORT vtkUsImagingParameters : public vtkObject
+class vtkDataCollectionExport vtkUsImagingParameters : public vtkObject
 {
 public:
   vtkUsImagingParameters(vtkPlusDevice*);

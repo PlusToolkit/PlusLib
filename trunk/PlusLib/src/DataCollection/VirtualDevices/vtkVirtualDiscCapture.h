@@ -7,6 +7,8 @@ See License.txt for details.
 #ifndef __vtkVirtualDiscCapture_h
 #define __vtkVirtualDiscCapture_h
 
+#include "vtkDataCollectionExport.h"
+
 #include "vtkMetaImageSequenceIO.h"
 #include "vtkPlusDevice.h"
 #include "vtkPlusChannel.h"
@@ -18,7 +20,7 @@ See License.txt for details.
 
 \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkVirtualDiscCapture : public vtkPlusDevice
+class vtkDataCollectionExport vtkVirtualDiscCapture : public vtkPlusDevice
 {
 public:
   static vtkVirtualDiscCapture *New();

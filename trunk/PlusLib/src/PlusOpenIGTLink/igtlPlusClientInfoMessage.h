@@ -7,6 +7,8 @@
 #ifndef __igtlPlusClientInfoMessage_h
 #define __igtlPlusClientInfoMessage_h
 
+#include "vtkPlusOpenIGTLinkExport.h"
+
 #include <string>
 
 #include "igtlObject.h"
@@ -21,7 +23,7 @@ namespace igtl
   \brief IGTL message helper class for PlusServer ClientInfo class
   \ingroup PlusLibOpenIGTLink
 */
-class IGTLCommon_EXPORT PlusClientInfoMessage: public StringMessage
+class vtkPlusOpenIGTLinkExport PlusClientInfoMessage: public StringMessage
 {
 public:
   typedef PlusClientInfoMessage                 Self;

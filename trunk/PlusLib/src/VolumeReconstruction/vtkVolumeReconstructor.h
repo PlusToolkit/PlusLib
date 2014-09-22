@@ -8,6 +8,8 @@
 #define __vtkVolumeReconstructor_h
 
 #include "PlusConfigure.h"
+#include "vtkVolumeReconstructionExport.h"
+
 #include "vtkImageAlgorithm.h"
 #include "vtkPasteSliceIntoVolume.h"
 #include "vtkSmartPointer.h"
@@ -44,7 +46,7 @@ class vtkFanAngleDetectorAlgo;
   \sa vtkPasteSliceIntoVolume
   \ingroup PlusLibVolumeReconstruction
 */
-class VTK_EXPORT vtkVolumeReconstructor : public vtkImageAlgorithm
+class vtkVolumeReconstructionExport vtkVolumeReconstructor : public vtkImageAlgorithm
 {
 public:
 

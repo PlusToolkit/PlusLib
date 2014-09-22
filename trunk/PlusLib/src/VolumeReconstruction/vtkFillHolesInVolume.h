@@ -42,6 +42,7 @@ POSSIBILITY OF SUCH DAMAGES.
 #ifndef __vtkFillHolesInVolume_h
 #define __vtkFillHolesInVolume_h
 
+#include "vtkVolumeReconstructionExport.h"
 #include "vtkThreadedImageAlgorithm.h"
 
 /*!
@@ -193,7 +194,7 @@ public:
   \sa vtkPasteSliceIntoVolume
   \ingroup PlusLibVolumeReconstruction
 */
-class VTK_EXPORT vtkFillHolesInVolume : public vtkThreadedImageAlgorithm
+class vtkVolumeReconstructionExport vtkFillHolesInVolume : public vtkThreadedImageAlgorithm
 {
 public:
   static vtkFillHolesInVolume *New();

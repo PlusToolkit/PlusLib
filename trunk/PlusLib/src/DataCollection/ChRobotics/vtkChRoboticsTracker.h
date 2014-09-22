@@ -7,6 +7,8 @@ See License.txt for details.
 #ifndef __vtkChRoboticsTracker_h
 #define __vtkChRoboticsTracker_h
 
+#include "vtkDataCollectionExport.h"
+
 #include "ChrDataItem.h"
 #include "vtkPlusDevice.h"
 
@@ -22,7 +24,7 @@ This class talks with CH Robotics CHR-UM6 accelerometer/magnetometer/gyroscope d
 
 \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkChRoboticsTracker : public vtkPlusDevice
+class vtkDataCollectionExport vtkChRoboticsTracker : public vtkPlusDevice
 {
 public:
 

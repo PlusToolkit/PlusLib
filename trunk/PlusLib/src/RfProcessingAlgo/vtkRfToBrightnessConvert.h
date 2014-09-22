@@ -7,6 +7,7 @@
 #ifndef __vtkRfToBrightnessConvert_h
 #define __vtkRfToBrightnessConvert_h
 
+#include "vtkRfProcessingAlgoExport.h"
 #include "vtkThreadedImageAlgorithm.h"
 #include "PlusVideoFrame.h"
 
@@ -33,7 +34,7 @@ is always VTK_UNSIGNED_CHAR (unsigned 8-bit).
 
 \ingroup PlusLibRfProcessingAlgo
 */ 
-class VTK_EXPORT vtkRfToBrightnessConvert : public vtkThreadedImageAlgorithm
+class vtkRfProcessingAlgoExport vtkRfToBrightnessConvert : public vtkThreadedImageAlgorithm
 {
 public:
   static vtkRfToBrightnessConvert *New();

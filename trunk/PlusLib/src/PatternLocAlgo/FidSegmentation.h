@@ -19,7 +19,7 @@
   \brief Structure holding a coordinate of a structuring element
   \ingroup PlusLibPatternRecognition
 */ 
-struct Coordinate2D
+struct PatternLocAlgoExport Coordinate2D
 {
   Coordinate2D(){ Y = 0; X = 0; }; 
   Coordinate2D( int y, int x) { Y = y; X = x; }; 
@@ -35,7 +35,7 @@ struct Coordinate2D
   \brief Algorithm for segmenting dots in an image. The dots correspond to the fiducial lines that are orthogonal to the image plane
   \ingroup PlusLibPatternRecognition
 */
-class FidSegmentation
+class PatternLocAlgoExport FidSegmentation
 {
   public:
     static const int DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDATES;

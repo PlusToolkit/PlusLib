@@ -7,6 +7,8 @@
 #ifndef __vtkHTMLGenerator_H
 #define __vtkHTMLGenerator_H
 
+#include "vtkPlusCommonExport.h"
+
 #include "vtkObject.h"
 #include <vector>
 #include <sstream>
@@ -18,7 +20,7 @@ class vtkTable;
   \brief class for generating basic html tags
   \ingroup PlusLibCommon
 */ 
-class VTK_EXPORT vtkHTMLGenerator : public vtkObject
+class vtkPlusCommonExport vtkHTMLGenerator : public vtkObject
 {
 public: 
   

@@ -7,6 +7,7 @@ See License.txt for details.
 #ifndef __vtkUsScanConvertCurvilinear_h
 #define __vtkUsScanConvertCurvilinear_h
 
+#include "vtkRfProcessingAlgoExport.h"
 #include "vtkUsScanConvert.h"
 
 /*!
@@ -14,7 +15,7 @@ See License.txt for details.
 \brief This class performs scan conversion from scan lines for curvilinear probes
 \ingroup PlusLibRfProcessingAlgo
 */ 
-class VTK_EXPORT vtkUsScanConvertCurvilinear : public vtkUsScanConvert
+class vtkRfProcessingAlgoExport vtkUsScanConvertCurvilinear : public vtkUsScanConvert
 {
 public:
   static vtkUsScanConvertCurvilinear *New();

@@ -14,6 +14,8 @@
 #ifndef __vtkPlusDataSource_h
 #define __vtkPlusDataSource_h
 
+#include "vtkDataCollectionExport.h"
+
 #include "vtkObject.h"
 #include "vtkPlusDevice.h"
 
@@ -32,7 +34,7 @@ enum DataSourceType
   DATA_SOURCE_TYPE_VIDEO,
 };
 
-class VTK_EXPORT vtkPlusDataSource : public vtkObject
+class vtkDataCollectionExport vtkPlusDataSource : public vtkObject
 {
 public:
 

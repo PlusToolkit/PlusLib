@@ -8,6 +8,8 @@
 #define __vtkSpacingCalibAlgo_h
 
 #include "PlusConfigure.h"
+#include "vtkCalibrationAlgoExport.h"
+
 #include "vtkObject.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkTable.h"
@@ -21,7 +23,7 @@ class vtkGnuplotExecuter;
   \brief Calculates ultrasound image spacing from phantom definition file 
   \ingroup PlusLibCalibrationAlgorithm
 */ 
-class VTK_EXPORT vtkSpacingCalibAlgo : public vtkObject
+class vtkCalibrationAlgoExport vtkSpacingCalibAlgo : public vtkObject
 {
 public:
 

@@ -7,6 +7,8 @@
 #ifndef __vtkPlusSaveConfigCommand_h
 #define __vtkPlusSaveConfigCommand_h
 
+#include "vtkPlusServerExport.h"
+
 #include "vtkPlusCommand.h"
 
 class vtkMatrix4x4;
@@ -16,7 +18,7 @@ class vtkMatrix4x4;
   \brief This command forces the data collector to save the config file
   \ingroup PlusLibPlusServer
  */ 
-class VTK_EXPORT vtkPlusSaveConfigCommand : public vtkPlusCommand
+class vtkPlusServerExport vtkPlusSaveConfigCommand : public vtkPlusCommand
 {
 public:
 

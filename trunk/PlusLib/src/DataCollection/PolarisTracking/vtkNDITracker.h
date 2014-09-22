@@ -42,6 +42,8 @@ POSSIBILITY OF SUCH DAMAGES.
 #ifndef __vtkNDITracker_h
 #define __vtkNDITracker_h
 
+#include "vtkDataCollectionExport.h"
+
 #include "vtkPlusDevice.h"
 #include "ndicapi.h"
 
@@ -98,7 +100,7 @@ class vtkSocketCommunicator;
 
   \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkNDITracker : public vtkPlusDevice
+class vtkDataCollectionExport vtkNDITracker : public vtkPlusDevice
 {
 public:
 

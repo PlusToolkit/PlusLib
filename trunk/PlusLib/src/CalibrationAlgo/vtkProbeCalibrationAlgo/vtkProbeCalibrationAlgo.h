@@ -7,6 +7,7 @@
 #ifndef __vtkProbeCalibrationAlgo_h
 #define __vtkProbeCalibrationAlgo_h
 
+#include "vtkCalibrationAlgoExport.h"
 #include "vtkObject.h"
 
 #include <string>
@@ -28,7 +29,7 @@ class NWire;
   \brief Probe calibration algorithm class
   \ingroup PlusLibCalibrationAlgorithm
 */
-class vtkProbeCalibrationAlgo : public vtkObject
+class vtkCalibrationAlgoExport vtkProbeCalibrationAlgo : public vtkObject
 {
 public:
   static vtkProbeCalibrationAlgo *New();

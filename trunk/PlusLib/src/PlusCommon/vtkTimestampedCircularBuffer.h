@@ -46,7 +46,7 @@ enum ItemStatus { ITEM_OK, ITEM_NOT_AVAILABLE_YET, ITEM_NOT_AVAILABLE_ANYMORE, I
   \brief This class stores an object (such as an image or transform) with a timestamp. This object can be stored in a timestamped buffer.
   \ingroup PlusLibCommon
 */
-class VTK_EXPORT TimestampedBufferItem
+class TimestampedBufferItem
 {
 public:
   typedef std::map<std::string, std::string> FieldMapType;
@@ -162,7 +162,7 @@ protected:
   \ingroup PlusLibCommon
 */
 template <typename BufferItemType>
-class VTK_EXPORT vtkTimestampedCircularBuffer: public vtkTypeTemplate<vtkTimestampedCircularBuffer<BufferItemType>, vtkObject>
+class vtkTimestampedCircularBuffer: public vtkTypeTemplate<vtkTimestampedCircularBuffer<BufferItemType>, vtkObject>
 {
 public:  
   static vtkTimestampedCircularBuffer<BufferItemType> *New();

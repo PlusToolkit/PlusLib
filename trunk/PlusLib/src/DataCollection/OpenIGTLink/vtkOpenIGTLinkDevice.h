@@ -8,6 +8,8 @@
 #define __vtkOpenIGTLinkDevice_h
 
 #include "PlusConfigure.h"
+#include "vtkDataCollectionExport.h"
+
 #include "vtkPlusDevice.h"
 #include "igtlClientSocket.h"
 #include "igtlMessageBase.h"
@@ -18,7 +20,7 @@
 
   \ingroup PlusLibDataCollection
 */ 
-class VTK_EXPORT vtkOpenIGTLinkDevice : public vtkPlusDevice
+class vtkDataCollectionExport vtkOpenIGTLinkDevice : public vtkPlusDevice
 {
 public:
 

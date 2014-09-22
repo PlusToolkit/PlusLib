@@ -43,7 +43,7 @@ if (WIN32)
     )
 endif (WIN32)  
 
-SET (PlusCommon_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
+SET (PlusCommon_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Build the library
@@ -59,6 +59,7 @@ IF (PLUS_USE_OpenIGTLink)
 ENDIF(PLUS_USE_OpenIGTLink)   
 
 INCLUDE_DIRECTORIES( ${PlusCommon_INCLUDE_DIRS} )
+GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusCommon)
 ADD_LIBRARY(vtkPlusCommon ${PlusCommon_SRCS} ${PlusCommon_HDRS})
 TARGET_LINK_LIBRARIES(  vtkPlusCommon ${PlusCommon_LIBS} )
 

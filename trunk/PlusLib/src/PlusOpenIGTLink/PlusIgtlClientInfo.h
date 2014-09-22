@@ -8,6 +8,8 @@
 #define __PlusIgtlClientInfo_h
 
 #include "PlusConfigure.h"
+#include "vtkPlusOpenIGTLinkExport.h"
+
 #include "igtlClientSocket.h"
 #include "vtkXMLUtilities.h" 
 
@@ -21,7 +23,7 @@
 
   \ingroup PlusLibOpenIGTLink
 */
-class VTK_EXPORT PlusIgtlClientInfo
+class vtkPlusOpenIGTLinkExport PlusIgtlClientInfo
 {
 public:
 

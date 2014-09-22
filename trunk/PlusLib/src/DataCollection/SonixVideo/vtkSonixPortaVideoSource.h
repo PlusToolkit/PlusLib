@@ -16,6 +16,8 @@ Authors include: Elvis Chen (Queen's University)
 #define __VTKSONIXPORTAVIDEOSOURCE_H__
 
 #include "PlusConfigure.h"
+#include "vtkDataCollectionExport.h"
+
 #include "vtkPlusDevice.h"
 
 // porta includes
@@ -29,14 +31,14 @@ Authors include: Elvis Chen (Queen's University)
   #include <porta_wrapper.h>
 #endif
 
-class VTK_EXPORT vtkSonixPortaVideoSource;
+class vtkDataCollectionExport vtkSonixPortaVideoSource;
 
 /*!
 \class vtkSonixPortaVideoSourceCleanup 
 \brief Class that cleans up (deletes singleton instance of) vtkSonixPortaVideoSource when destroyed
 \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkSonixPortaVideoSourceCleanup 
+class vtkDataCollectionExport vtkSonixPortaVideoSourceCleanup 
 {
 public:
   vtkSonixPortaVideoSourceCleanup();
@@ -74,7 +76,7 @@ public:
 
   \ingroup PlusLibDataCollection
 */ 
-class VTK_EXPORT vtkSonixPortaVideoSource : public vtkPlusDevice {
+class vtkDataCollectionExport vtkSonixPortaVideoSource : public vtkPlusDevice {
 
   vtkTypeRevisionMacro( vtkSonixPortaVideoSource, vtkPlusDevice );
   void PrintSelf( ostream &os, vtkIndent indent );

@@ -25,7 +25,7 @@ lines and then find the pattern and label the dots.
 \ingroup PlusLibPatternRecognition
 */
 
-class FidPatternRecognition
+class PatternLocAlgoExport FidPatternRecognition
 {
 
 public:

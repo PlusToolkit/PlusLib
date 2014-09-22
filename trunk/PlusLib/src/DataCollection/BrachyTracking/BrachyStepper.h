@@ -6,13 +6,15 @@
 
 #ifndef _BRACHYSTEPPER_H_
 #define _BRACHYSTEPPER_H_
+
 #include "PlusConfigure.h"
+#include "vtkDataCollectionExport.h"
 
 /*! \class BrachyStepper 
  * \brief Generic interface for position tracking using brachy stepper devices
  * \ingroup PlusLibBrachyStepper
  */
-class VTK_EXPORT BrachyStepper 
+class vtkDataCollectionExport BrachyStepper
 {
 public:
 

@@ -7,6 +7,8 @@ See License.txt for details.
 #ifndef __vtkBrachyTracker_h
 #define __vtkBrachyTracker_h
 
+#include "vtkDataCollectionExport.h"
+
 #include "BrachyStepper.h" 
 #include "PlusConfigure.h"
 #include "vtkPlusDevice.h"
@@ -23,7 +25,7 @@ This class talks with CMS and CIVCO brachy steppers
 
 \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkBrachyTracker : public vtkPlusDevice
+class vtkDataCollectionExport vtkBrachyTracker : public vtkPlusDevice
 {
 public:
 

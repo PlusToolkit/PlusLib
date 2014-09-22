@@ -8,6 +8,7 @@ See License.txt for details.
 #define __vtkPivotCalibrationAlgo_h
 
 #include "PlusConfigure.h"
+#include "vtkCalibrationAlgoExport.h"
 
 #include "vtkObject.h"
 #include "vtkMatrix4x4.h"
@@ -37,7 +38,7 @@ class vtkXMLDataElement;
   
   \ingroup PlusLibCalibrationAlgorithm
 */
-class vtkPivotCalibrationAlgo : public vtkObject
+class vtkCalibrationAlgoExport vtkPivotCalibrationAlgo : public vtkObject
 {
 public:
   vtkTypeRevisionMacro(vtkPivotCalibrationAlgo,vtkObject);

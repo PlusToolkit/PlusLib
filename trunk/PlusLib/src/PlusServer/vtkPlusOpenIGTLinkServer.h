@@ -7,6 +7,8 @@
 #ifndef __VTKPLUSOPENIGTLINKSERVER_H
 #define __VTKPLUSOPENIGTLINKSERVER_H
 
+#include "vtkPlusServerExport.h"
+
 #include "vtkObject.h"
 #include "vtkMultiThreader.h"
 #include "PlusIgtlClientInfo.h" 
@@ -37,7 +39,7 @@ class vtkTransformRepository;
 
   \ingroup PlusLibPlusServer
 */
-class VTK_EXPORT vtkPlusOpenIGTLinkServer: public vtkObject
+class vtkPlusServerExport vtkPlusOpenIGTLinkServer: public vtkObject
 {
   typedef std::map< int, std::vector<std::string> > PreviousCommandIdMap;
   typedef PreviousCommandIdMap::iterator PreviousCommandIdMapIterator;

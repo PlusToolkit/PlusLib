@@ -12,7 +12,7 @@ if (WIN32)
   )
 endif (WIN32)
 
-SET (UsSimulatorAlgo_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
+SET (UsSimulatorAlgo_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Build the library
@@ -23,6 +23,7 @@ SET (UsSimulatorAlgo_LIBS
   )     
 
 INCLUDE_DIRECTORIES( ${UsSimulatorAlgo_INCLUDE_DIRS} )
+GENERATE_EXPORT_DIRECTIVE_FILE(vtkUsSimulatorAlgo)
 ADD_LIBRARY(vtkUsSimulatorAlgo ${UsSimulatorAlgo_SRCS} ${UsSimulatorAlgo_HDRS})
 TARGET_LINK_LIBRARIES(vtkUsSimulatorAlgo ${UsSimulatorAlgo_LIBS})
 

@@ -9,6 +9,8 @@
 
 // PLUS Includes
 #include "PlusConfigure.h"
+#include "vtkDataCollectionExport.h"
+
 #include "vtkPlusDevice.h"
 
 class PlusBkProFocusCameraLinkReceiver;
@@ -27,7 +29,7 @@ Requires GrabbieLib (SDK provided by BK).
 
 \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkBkProFocusCameraLinkVideoSource : public vtkPlusDevice
+class vtkDataCollectionExport vtkBkProFocusCameraLinkVideoSource : public vtkPlusDevice
 {
 public:  
   enum ImagingModeType

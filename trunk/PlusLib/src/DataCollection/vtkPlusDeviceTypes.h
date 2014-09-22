@@ -7,6 +7,8 @@ See License.txt for details.
 #ifndef __vtkPlusDeviceTypes_h
 #define __vtkPlusDeviceTypes_h
 
+#include "vtkDataCollectionExport.h"
+
 class vtkPlusDevice;
 class vtkPlusChannel;
 class vtkPlusBuffer;
@@ -60,7 +62,7 @@ typedef std::vector<vtkPlusDevice*>::const_iterator DeviceCollectionConstIterato
   \brief Stores a single video frame OR a single transform
   \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT StreamBufferItem : public TimestampedBufferItem
+class vtkDataCollectionExport StreamBufferItem : public TimestampedBufferItem
 {
 public:
 

@@ -4,6 +4,8 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+#include "vtkDataCollectionExport.h"
+
 #include "vtkPlusDevice.h"
 
 class vtkPlusDataBuffer; 
@@ -16,9 +18,7 @@ This class talks with Ascension3DG tracker over the ATC trakSTAR device driver
 
 \ingroup PlusLibDataCollection
 */
-class
-  VTK_EXPORT
-vtkAscension3DGTrackerBase : public vtkPlusDevice
+class vtkDataCollectionExport vtkAscension3DGTrackerBase : public vtkPlusDevice
 {
 public:
 

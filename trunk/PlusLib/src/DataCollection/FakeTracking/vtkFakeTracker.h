@@ -7,6 +7,8 @@ See License.txt for details.
 #ifndef __vtkFakeTracker_h
 #define __vtkFakeTracker_h
 
+#include "vtkDataCollectionExport.h"
+
 #include "vtkPlusDevice.h"
 #include "vtkTransformRepository.h"
 #include "vtkPoints.h"
@@ -36,7 +38,7 @@ a tracking system to test code that relies on having one active.
 
 \ingroup PlusLibDataCollection
 */
-class VTK_EXPORT vtkFakeTracker : public vtkPlusDevice
+class vtkDataCollectionExport vtkFakeTracker : public vtkPlusDevice
 {
 public:
   static vtkFakeTracker *New();

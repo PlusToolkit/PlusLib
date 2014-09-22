@@ -7,6 +7,7 @@ See License.txt for details.
 #ifndef __vtkUsScanConvert_h
 #define __vtkUsScanConvert_h
 
+#include "vtkRfProcessingAlgoExport.h"
 #include "vtkThreadedImageAlgorithm.h"
 
 /*!
@@ -14,7 +15,7 @@ See License.txt for details.
 \brief This is a base class for defining a common scan conversion algorithm interface for all kinds of probes
 \ingroup PlusLibRfProcessingAlgo
 */ 
-class VTK_EXPORT vtkUsScanConvert : public vtkThreadedImageAlgorithm
+class vtkRfProcessingAlgoExport vtkUsScanConvert : public vtkThreadedImageAlgorithm
 {
 public:
   vtkTypeMacro(vtkUsScanConvert,vtkThreadedImageAlgorithm);

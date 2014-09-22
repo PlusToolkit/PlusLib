@@ -7,6 +7,8 @@
 #ifndef __vtkPlusGetImageCommand_h
 #define __vtkPlusGetImageCommand_h
 
+#include "vtkPlusServerExport.h"
+
 #include "vtkPlusCommand.h"
 
 /*!
@@ -17,7 +19,7 @@
   \ It is the id of the image selected on slicer for the command GET_IMAGE
   \ingroup PlusLibPlusServer
  */ 
-class VTK_EXPORT vtkPlusGetImageCommand : public vtkPlusCommand
+class vtkPlusServerExport vtkPlusGetImageCommand : public vtkPlusCommand
 {
 public:
   

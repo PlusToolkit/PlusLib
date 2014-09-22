@@ -16,7 +16,7 @@
   \brief This class can write fiducial segmentation results to an XML file
   \ingroup PlusLibPatternRecognition
 */ 
-class UsFidSegResultFile
+class PatternLocAlgoExport UsFidSegResultFile
 {
 public:
   static void WriteSegmentationResultsHeader(std::ostream &outFile);
