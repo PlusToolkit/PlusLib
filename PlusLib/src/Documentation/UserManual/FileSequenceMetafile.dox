@@ -35,7 +35,7 @@ There are two variants of the file format:
 - Seq_Frame[FrameIndex]_Timestamp: Similar to Seq_Frame[FrameIndex]_UnfilteredTimestamp, but with a temporal filtering. The filtering reduces the jitter caused by acquiring data on a non-real-time operating system. This timestamp is supposed to be more accurate then the unfiltered. 
 - Seq_Frame[FrameIndex]_[TransformName]TransformStatus: transform status. Its value is \c OK if the Seq_Frame [FrameIndex]_[TransformName]Transform is valid. Otherwise its value is \c INVALID. 
   - Example: Seq_Frame0000_ToolToTrackerTransform = -0.208747 -0.972904 0.0993168 229.828 0.481211 -0.190655 -0.855521 -44.6484 0.851242 -0.130739 0.50794 -25.0031 0 0 0 1 
-- ElementDataFile: Location of the image data. For *.mha files it must be \c LOCAL, which means that the pixel data is stored in the same file, right after this field. For *.mhd files it must contain a file name, where the image data is stored. This must be the last field in the file.
+- ElementDataFile: Location of the image data. For *.mha files it must be \c LOCAL, which means that the pixel data is stored in the same file, right after this field. For *.mhd files it must contain a file name, where the image data is stored. This must be the last field in the file (all data after this field assumed to belong to the image data, therefore those fields that defined after it will be ignored and will cause a shift in the image data).
 
 \section FileSequenceMetafileMatlab Reading/writing in Matlab
 
