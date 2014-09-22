@@ -85,6 +85,8 @@ public:
   */
   void SetDisplayAccordingToState();
 
+
+
   /*!
   * Return phantom landmark registration algorithm object
   * \return Phantom registration algo
@@ -204,8 +206,7 @@ protected:
   bool                                    m_AutoDetectPivoting;
 
   /*! Landmark already detected */
-  bool                                    m_LandmarkDetected;
-
+  int                                    m_LandmarkDetected;
 
   /*! Renderer for the canvas */
   vtkRenderer*                            m_PhantomRenderer;
