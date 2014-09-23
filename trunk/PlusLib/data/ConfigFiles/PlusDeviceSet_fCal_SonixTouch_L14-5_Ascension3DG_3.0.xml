@@ -91,9 +91,9 @@
       Opacity="0.6"
       File="fCal_3.1.stl"
       ModelToObjectTransform="
-        1 0 0 -13.5
-        0 1 0 -10.0
-        0 0 1 15.5
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
         0 0 0 1" />
     <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
   </Rendering>
@@ -124,33 +124,33 @@
       Institution="Queen's University PerkLab" />
     <Geometry>      
       <Pattern Type="NWire">
-        <Wire Name="7:G6_g6" EndPointFront="60.0 0.0 0.0" EndPointBack="60.0 40.0 0.0" />
-        <Wire Name="8:J6_g6" EndPointFront="90.0 0.0 0.0" EndPointBack="60.0 40.0 0.0" />
-        <Wire Name="9:J6_j6" EndPointFront="90.0 0.0 0.0" EndPointBack="90.0 40.0 0.0" />
+        <Wire Name="7:G6_g6" EndPointFront="20.0 0.0 -20.0" EndPointBack="20.0 40.0 -20.0" />
+        <Wire Name="8:J6_g6" EndPointFront="50.0 0.0 -20.0" EndPointBack="20.0 40.0 -20.0" />
+        <Wire Name="9:J6_j6" EndPointFront="50.0 0.0 -20.0" EndPointBack="50.0 40.0 -20.0" />
       </Pattern>
       <Pattern Type="NWire">
-        <Wire Name="4:G7_g7" EndPointFront="60.0 0.0 -10.0" EndPointBack="60.0 40.0 -10.0" />
-        <Wire Name="5:G7_j7" EndPointFront="60.0 0.0 -10.0" EndPointBack="90.0 40.0 -10.0" />
-        <Wire Name="6:J7_j7" EndPointFront="90.0 0.0 -10.0" EndPointBack="90.0 40.0 -10.0" />
+        <Wire Name="4:G7_g7" EndPointFront="20.0 0.0 -30.0" EndPointBack="20.0 40.0 -30.0" />
+        <Wire Name="5:G7_j7" EndPointFront="20.0 0.0 -30.0" EndPointBack="50.0 40.0 -30.0" />
+        <Wire Name="6:J7_j7" EndPointFront="50.0 0.0 -30.0" EndPointBack="50.0 40.0 -30.0" />
       </Pattern>
       <Pattern Type="NWire">
-        <Wire Name="1:H8_h8" EndPointFront="70.0 0.0 -20.0" EndPointBack="70.0 40.0 -20.0" />
-        <Wire Name="2:J8_h8" EndPointFront="90.0 0.0 -20.0" EndPointBack="70.0 40.0 -20.0" />
-        <Wire Name="3:J8_j8" EndPointFront="90.0 0.0 -20.0" EndPointBack="90.0 40.0 -20.0" />
+        <Wire Name="1:H8_h8" EndPointFront="30.0 0.0 -40.0" EndPointBack="30.0 40.0 -40.0" />
+        <Wire Name="2:J8_h8" EndPointFront="50.0 0.0 -40.0" EndPointBack="30.0 40.0 -40.0" />
+        <Wire Name="3:J8_j8" EndPointFront="50.0 0.0 -40.0" EndPointBack="50.0 40.0 -40.0" />
       </Pattern>
       <Landmarks>
-        <Landmark Name="#1" Position="186 -5.0 35.5"/>
-        <Landmark Name="#2" Position="186 -5.0 -19.5"/>
-        <Landmark Name="#3" Position="186 -5.0 -94.5"/>
-        <Landmark Name="#4" Position="186 45.0 40.5"/>
-        <Landmark Name="#5" Position="186 45.0 10.5"/>
-        <Landmark Name="#6" Position="186 45.0 -94.5"/>
-        <Landmark Name="#7" Position="-32.3 45.0 40.5"/>
-        <Landmark Name="#8" Position="-32.3 45.0 10.5"/>
-        <Landmark Name="#9" Position="-32.3 45.0 -94.5"/>
-        <Landmark Name="#10" Position="-32.5 -5.0 40.5"/>
-        <Landmark Name="#11" Position="-32.5 -5.0 -19.5"/>
-        <Landmark Name="#12" Position="-32.9 -5.0 -84.5"/>
+        <Landmark Name="#1" Position="145.5 -5.0 15.5"/>
+        <Landmark Name="#2" Position="145.5 -5.0 -39.5"/>
+        <Landmark Name="#3" Position="145.1 -5.0 -114.5"/>
+        <Landmark Name="#4" Position="145.1 45.0 20.5"/>
+        <Landmark Name="#5" Position="145.1 45.0 -9.5"/>
+        <Landmark Name="#6" Position="145.1 45.0 -114.5"/>
+        <Landmark Name="#7" Position="-73.0 45.0 20.5"/>
+        <Landmark Name="#8" Position="-73.0 45.0 -9.5"/>
+        <Landmark Name="#9" Position="-73.0 45.0 -114.5"/>
+        <Landmark Name="#10" Position="-73.0 -5.0 20.5"/>
+        <Landmark Name="#11" Position="-73.0 -5.0 -39.5"/>
+        <Landmark Name="#12" Position="-73.4 -5.0 -104.5"/>
       </Landmarks>
     </Geometry>
   </PhantomDefinition>
