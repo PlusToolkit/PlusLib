@@ -20,9 +20,9 @@ class vtkXMLDataElement;
 //-----------------------------------------------------------------------------
 
 /*!
-  \class vtkPhantomLandmarkRegistrationAlgo 
-  \brief Landmark registration to determine the Phantom pose relative to the attached marker (PhantomReference).
-  \ingroup PlusLibCalibrationAlgorithm
+\class vtkPhantomLandmarkRegistrationAlgo 
+\brief Landmark registration to determine the Phantom pose relative to the attached marker (PhantomReference).
+\ingroup PlusLibCalibrationAlgorithm
 */
 class vtkCalibrationAlgoExport vtkPhantomLandmarkRegistrationAlgo : public vtkObject
 {
@@ -32,21 +32,21 @@ public:
 
 public:
   /*!
-    Performs landmark registration to determine transformation from phantom reference to phantom
-    \param aTransformRepository Transform repository to save the results into
+  Performs landmark registration to determine transformation from phantom reference to phantom
+  \param aTransformRepository Transform repository to save the results into
   */
   PlusStatus Register(vtkTransformRepository* aTransformRepository = NULL);
 
   /*!
-    Read phantom definition (landmarks)
-    \param aConfig Root XML data element containing the tool calibration
+  Read phantom definition (landmarks)
+  \param aConfig Root XML data element containing the tool calibration
   */
   PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
   /*!
-    Gets defined landmark name
-    \param aIndex Index of the landmark
-    \return Name string
+  Gets defined landmark name
+  \param aIndex Index of the landmark
+  \return Name string
   */
   std::string GetDefinedLandmarkName(int aIndex) { return this->DefinedLandmarkNames[aIndex]; };
 
@@ -54,15 +54,19 @@ public:
   static std::string GetConfigurationElementName() { return vtkPhantomLandmarkRegistrationAlgo::ConfigurationElementName; };
 
   double GetMinimunDistanceBetweenTwoLandmarks();
-  
+
   /*! Get the defined landmarks average from the reference coordinates system*/
   void GetDefinedLandmarksAverage(double* landmarksAverage_Reference);
 
   /*! Get the defined landmarks average from the reference coordinates system*/
   void GetDefinedLandmarksAverageFromReference(double* landmarksAverage_Reference);
 
-  /*! Get the defined landmark at index from the reference coordinates system */
+  /*! Get the camera position of the next landmark to be added in the reference coordinates system. The position is 500 mm away from the next landmark along 
+  the centroid-nextlandmark direction  */
   void GetLandmarkCameraPositionFromReference(int index, double* definedLandmark_Reference);
+
+  /*! Get the defined landmark at index from the reference coordinates system */
+  void GetDefinedLandmarkFromReference(int index, double* definedLandmark_Reference);
 
 public:
 

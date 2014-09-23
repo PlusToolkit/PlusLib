@@ -335,5 +335,18 @@ void vtkPhantomLandmarkRegistrationAlgo::GetLandmarkCameraPositionFromReference(
   cameraPosition_Reference[0]=temporalPoint[0];
   cameraPosition_Reference[1]=temporalPoint[1];
   cameraPosition_Reference[2]=temporalPoint[2];
-  LOG_INFO("Defined Landmark " <<index<< cameraPosition_Reference);
+  //LOG_INFO("Defined Landmark " <<index<< cameraPosition_Reference);
 }
+
+void vtkPhantomLandmarkRegistrationAlgo::GetDefinedLandmarkFromReference(int index, double* cameraPosition_Reference)
+{
+  this->DefinedLandmarks->GetPoint(index,cameraPosition_Reference);
+  double *temporalPoint;
+
+  temporalPoint=this->PhantomToReferenceTransformMatrix->MultiplyDoublePoint(cameraPosition_Reference);
+  cameraPosition_Reference[0]=temporalPoint[0];
+  cameraPosition_Reference[1]=temporalPoint[1];
+  cameraPosition_Reference[2]=temporalPoint[2];
+  //LOG_INFO("Defined Landmark " <<index<< cameraPosition_Reference);
+}
+
