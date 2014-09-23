@@ -1046,28 +1046,10 @@ PlusStatus vtkStealthLinkTracker::DeleteDicomImageOutputDirectory(std::string ex
 //----------------------------------------------------------------------------
 std::string vtkStealthLinkTracker::GetImageMetaDatasetsCountAsString()
 {
-  const char digits[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
-  std::string ImageMetaDatasetsCountAsStr;
-  if(this->Internal->ImageMetaDatasetsCount > 99)
-  {
-    this->Internal->ImageMetaDatasetsCount= (this->Internal->ImageMetaDatasetsCount>999)?1:(this->Internal->ImageMetaDatasetsCount);
-    ImageMetaDatasetsCountAsStr.push_back(digits[this->Internal->ImageMetaDatasetsCount/100]);
-    ImageMetaDatasetsCountAsStr.push_back(digits[(this->Internal->ImageMetaDatasetsCount - 100*(int)this->Internal->ImageMetaDatasetsCount/100)/10]);	
-    ImageMetaDatasetsCountAsStr.push_back(digits[(this->Internal->ImageMetaDatasetsCount - 100*(int)this->Internal->ImageMetaDatasetsCount/100)%10]);
-  }
-  else if(this->Internal->ImageMetaDatasetsCount > 9)
-  {
-    ImageMetaDatasetsCountAsStr.push_back(digits[(this->Internal->ImageMetaDatasetsCount/10)]);
-    ImageMetaDatasetsCountAsStr.push_back(digits[this->Internal->ImageMetaDatasetsCount%10]);
-  }
-  else
-  {
-    ImageMetaDatasetsCountAsStr.push_back(digits[0]);
-    ImageMetaDatasetsCountAsStr.push_back(digits[0]);
-    ImageMetaDatasetsCountAsStr.push_back(digits[this->Internal->ImageMetaDatasetsCount]);
-  }
+  std::ostringstream message;
+  message << std::setw(3) << std::setfill('0') << this->Internal->ImageMetaDatasetsCount << std::ends; 
   this->Internal->ImageMetaDatasetsCount++;
-  return ImageMetaDatasetsCountAsStr;
+  return message.str();
 }
 
 //----------------------------------------------------------------------------
