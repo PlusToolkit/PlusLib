@@ -33,11 +33,11 @@
       Date="2011.12.01 11:57:00" />
     <Transform From="StylusTip" To="Stylus"
       Matrix="
-        0.995286	-0.0191825	-0.0950705	100.208
-        0.0192698	0.999814	0	1.94012
-        0.0950529	-0.00183199	0.995471	9.57013
+        0.997175	-0.0713837	-0.0233796	108.565
+        0.0714032	0.997448	0	7.77385
+        0.0233199	-0.00166938	0.999727	2.5389
         0	0	0	1"
-       Error="0.579798" Date="081214_190248" />
+       Error="0.462016" Date="091114_150742" />
   </CoordinateDefinitions>
   
   <Rendering WorldCoordinateFrame="Reference">
@@ -138,9 +138,9 @@
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
     StylusTipCoordinateFrame="StylusTip"
-    DetectionTimeSec="1.0"
+    DetectionTimeSec="2.0"
     AbovePivotThresholdMM="3.0"
-    PivotThresholdMM="1.8" />
+    PivotThresholdMM="1.0" />
   
   <vtkPhantomLinearObjectRegistrationAlgo
     PhantomCoordinateFrame="Phantom"
