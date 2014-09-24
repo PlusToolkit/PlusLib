@@ -953,7 +953,7 @@ PlusStatus vtkPlusBuffer::WriteToMetafile( const char* filename, bool useCompres
     vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
     bufferItem.GetMatrix(matrix);
     trackedFrame.SetCustomFrameTransform(PlusTransformName("Tool", "Tracker"), matrix);
-    trackedFrame.SetCustomFrameTransformStatus(PlusTransformName("Tool", "Tracker"), bufferItem.GetStatus()==ITEM_OK?FIELD_OK:FIELD_INVALID);
+    trackedFrame.SetCustomFrameTransformStatus(PlusTransformName("Tool", "Tracker"), (bufferItem.GetStatus()==TOOL_OK)?FIELD_OK:FIELD_INVALID);
 
     // Add filtered timestamp
     double filteredTimestamp = bufferItem.GetFilteredTimestamp( this->GetLocalTimeOffsetSec() );
