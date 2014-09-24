@@ -16,10 +16,6 @@
 #include "vtkDoubleArray.h"
 #include "vtkVariantArray.h"
 
-#ifdef PLUS_USE_BRACHY_TRACKER
-  #include "vtkBrachyTracker.h"
-#endif 
-
 //----------------------------------------------------------------------------
 vtkCxxRevisionMacro(vtkCenterOfRotationCalibAlgo, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkCenterOfRotationCalibAlgo); 
@@ -355,11 +351,10 @@ PlusStatus vtkCenterOfRotationCalibAlgo::UpdateReportTable()
 
   if ( this->ReportTable == NULL )
   {
-#ifdef PLUS_USE_BRACHY_TRACKER
     this->AddNewColumnToReportTable("ProbePosition"); 
     this->AddNewColumnToReportTable("ProbeRotation"); 
     this->AddNewColumnToReportTable("TemplatePosition"); 
-#endif
+
     for ( int i = 0; i < this->GetNumberOfNWirePatterns(); ++i )
     {
       std::ostringstream columnNameRightRadius; 
@@ -401,12 +396,9 @@ PlusStatus vtkCenterOfRotationCalibAlgo::UpdateReportTable()
   std::vector<std::vector<double> > wireRadiusVector(this->GetNumberOfNWirePatterns()*2); // each wire has two points 
   std::vector<std::vector<double> > wirePositions(this->GetNumberOfNWirePatterns()*4); // each wire has 2 point and each point has 2 coordinates 
 
-#ifdef PLUS_USE_BRACHY_TRACKER
   std::vector<double> probePosVector; 
   std::vector<double> probeRotVector; 
   std::vector<double> templatePosVector; 
-#endif
-
 
   for ( unsigned int i = 0; i < this->TrackedFrameListIndices.size(); i++ )
   {
@@ -476,11 +468,10 @@ PlusStatus vtkCenterOfRotationCalibAlgo::UpdateReportTable()
   {
     vtkSmartPointer<vtkVariantArray> tableRow = vtkSmartPointer<vtkVariantArray>::New(); 
 
-#ifdef PLUS_USE_BRACHY_TRACKER
     tableRow->InsertNextValue(probePosVector[row]); //ProbePosition
     tableRow->InsertNextValue(probeRotVector[row]); //ProbeRotation
     tableRow->InsertNextValue(templatePosVector[row]); //TemplatePosition
-#endif
+
     for ( int w = 0; w < this->GetNumberOfNWirePatterns()*2; ++w)
     {
       tableRow->InsertNextValue( wireRadiusVector[w][row] ); //Wire Radius
@@ -560,10 +551,6 @@ PlusStatus vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport(int numb
 {
   LOG_TRACE("vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport"); 
 
-#ifndef PLUS_USE_BRACHY_TRACKER
-  LOG_INFO("Unable to generate center of rotation report without PLUS_USE_BRACHY_TRACKER enabled!"); 
-#endif
-
   if ( htmlReport == NULL || plotter == NULL )
   {
     LOG_ERROR("Caller should define HTML report generator and gnuplot plotter before report generation!"); 
@@ -617,8 +604,6 @@ PlusStatus vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport(int numb
   report << "Center of rotation (px): " << centerOfRotationPx[0] << "     " << centerOfRotationPx[1] << "</br>" ; 
   htmlReport->AddParagraph(report.str().c_str()); 
 
-#ifdef PLUS_USE_BRACHY_TRACKER
- 
   // Every N wire has 2 plots, one for w#1 and w#3 
   const int numOfPlots = numberOfNWirePatterns * 2; 
 
@@ -677,7 +662,6 @@ PlusStatus vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport(int numb
   }
 
   delete[] wires; 
-#endif
 
   htmlReport->AddHorizontalLine(); 
 
