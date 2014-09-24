@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #ifndef RECORDPHANTOMPOINTSTOOLBOX_H
@@ -43,9 +43,9 @@ enum LandmarkPivotingState
 //-----------------------------------------------------------------------------
 
 /*! \class PhantomRegistrationToolbox 
- * \brief Phantom registration toolbox class
- * \ingroup PlusAppFCal
- */
+* \brief Phantom registration toolbox class
+* \ingroup PlusAppFCal
+*/
 class PhantomRegistrationToolbox : public QWidget, public AbstractToolbox
 {
   Q_OBJECT
@@ -136,61 +136,61 @@ protected:
   /*! Get the stylus calibration error*/
   PlusStatus GetStylusCalibrationError(double & calibrationError);
 
-protected slots:
-  /*!
-  * Slot handling open stylus calibration button click
-  */
-  void OpenStylusCalibration();
-
-  /*!
-  * Slot handling record button for the landmark registration click
-  */
-  void RecordPoint();
-
-  /*!
-  * Slot handling undo button for the landmark registration click
-  */
-  void Undo();
-
-  /*!
-  * Slot handling reset button for the landmark registration click (and also is an overridden method of AbstractToolbox which is called when disconnecting from the device set)
-  */
-  void Reset();
-
-  /*!
-  Slot handling start button for the linear object registration click
-  */
-  void StartLinearObjectRegistration();
-  
-  /*!
-  Slot handling stop button for the linear object registration click
-  */
-  void StopLinearObjectRegistration();
-  
-  /*!
-  Slot handling reset button for the linear object registration click
-  */
-  void ResetLinearObjectRegistration();
-
-  /*!
-  Slot handling Start Pivot Detection button to activate the automatic pivot detection for landmark registration, 큣ivoting instead of pressing the record button
-  */
-  void StartLandmarkPivotingRegistration();
-  
-  /*!
-  Slot handling Stop Detection Pivot button to activate the automatic pivot detection for landmark registration, 큣ivoting instead of pressing the record button
-  */
-  void StopLandmarkPivotingRegistration();
-  
-  /*!
-  Slot handling the continuous point acquisition during the linear object registration
-  */
-  void AddStylusTipTransformToLinearObjectRegistration();
+  protected slots:
+    /*!
+    * Slot handling open stylus calibration button click
+    */
+    void OpenStylusCalibration();
 
     /*!
-  Slot handling the continuous point acquisition during the linear object registration
-  */
-  void AddStylusTipTransformToLandmarkPivotingRegistration();
+    * Slot handling record button for the landmark registration click
+    */
+    void RecordPoint();
+
+    /*!
+    * Slot handling undo button for the landmark registration click
+    */
+    void Undo();
+
+    /*!
+    * Slot handling reset button for the landmark registration click (and also is an overridden method of AbstractToolbox which is called when disconnecting from the device set)
+    */
+    void Reset();
+
+    /*!
+    Slot handling start button for the linear object registration click
+    */
+    void StartLinearObjectRegistration();
+
+    /*!
+    Slot handling stop button for the linear object registration click
+    */
+    void StopLinearObjectRegistration();
+
+    /*!
+    Slot handling reset button for the linear object registration click
+    */
+    void ResetLinearObjectRegistration();
+
+    /*!
+    Slot handling Start Pivot Detection button to activate the automatic pivot detection for landmark registration, 큣ivoting instead of pressing the record button
+    */
+    void StartLandmarkPivotingRegistration();
+
+    /*!
+    Slot handling Stop Detection Pivot button to activate the automatic pivot detection for landmark registration, 큣ivoting instead of pressing the record button
+    */
+    void StopLandmarkPivotingRegistration();
+
+    /*!
+    Slot handling the continuous point acquisition during the linear object registration
+    */
+    void AddStylusTipTransformToLinearObjectRegistration();
+
+    /*!
+    Slot handling the continuous point acquisition during the linear object registration
+    */
+    void AddStylusTipTransformToLandmarkPivotingRegistration();
 
 protected:
   /*! Phantom landmark registration algorithm */
@@ -229,7 +229,7 @@ protected:
   /*! Number of points acquired for linear object registration so far */
   int                                     m_CurrentPointNumber;
 
- /*! Stylus or stylus tip position (depending on the state) as string */
+  /*! Stylus or stylus tip position (depending on the state) as string */
   QString                                 m_StylusPositionString;
 
   /*! Object marker coordinate frame string (e.g. Stylus)*/

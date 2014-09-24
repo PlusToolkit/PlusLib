@@ -192,6 +192,12 @@ void PhantomRegistrationToolbox::OnActivated()
     return;
   }
 
+  // Clear results polydata
+  if(m_ParentMainWindow->GetVisualizationController()->GetResultPolyData() != NULL)
+  {
+    m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->Initialize();
+  }
+
   if ( (m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL)
     && (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetConnected()) )
   {
@@ -569,8 +575,6 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
       m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId(), true);
       m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomWiresModelId(), true);
     }
-
-
   }
   else if (m_State == ToolboxState_Done)
   {
@@ -605,7 +609,7 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
     ui.pushButton_Landmark_Reset->setEnabled(false);
     ui.pushButton_Undo->setEnabled(false);
 
-    //ui.pushButton_StartStop_2->setEnabled(false);
+    ui.pushButton_StartStop_2->setEnabled(false);
     ui.pushButton_StartStop_2->setText("Start Pivot Detection");
 
     ui.pushButton_LinearObject_Reset->setEnabled(false);
@@ -645,10 +649,6 @@ PlusStatus PhantomRegistrationToolbox::Start()
     m_ParentMainWindow->GetVisualizationController()->GetInputPolyData()->GetPoints()->Initialize();
     m_ParentMainWindow->GetVisualizationController()->GetInputPolyData()->Modified();
 
-    // Initialize next landmark point polydata in visualizer
-    m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->GetPoints()->Initialize();
-    m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->Modified();
-
     // Highlight first landmark
     m_RequestedLandmarkPolyData->GetPoints()->InsertPoint(0, m_PhantomLandmarkRegistration->GetDefinedLandmarks()->GetPoint(0));
     m_RequestedLandmarkPolyData->GetPoints()->Modified();
@@ -664,7 +664,7 @@ PlusStatus PhantomRegistrationToolbox::Start()
 
   vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
   m_PivotDetection->SetExpectedPivotsNumber(m_PhantomLandmarkRegistration->GetDefinedLandmarks()->GetNumberOfPoints());
-  m_PivotDetection->SetMinimunDistanceBetweenLandmarksMM(m_PhantomLandmarkRegistration->GetMinimunDistanceBetweenTwoLandmarks());
+  m_PivotDetection->SetMinimunDistanceBetweenLandmarksMm(m_PhantomLandmarkRegistration->GetMinimunDistanceBetweenTwoLandmarks());
   //The pivot threshold set proportional to the the pivot calibration error
   double error=0;
   if(GetStylusCalibrationError(error)==PLUS_SUCCESS)
@@ -874,6 +874,7 @@ void PhantomRegistrationToolbox::RecordPoint()
       m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId(), true);
       m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomWiresModelId(), true);
       // Set the camera to face the new pivot to be found     
+      m_ParentMainWindow->GetVisualizationController()->ShowResult(true);
       SetCameraViewNextLandmark(m_ParentMainWindow->GetVisualizationController()->GetCanvasRenderer()->GetActiveCamera(), m_PhantomLandmarkRegistration, m_CurrentLandmarkIndex,m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->GetPoints());
     }
     else
@@ -966,7 +967,13 @@ void PhantomRegistrationToolbox::Undo()
     }
     else
     {
+      if(m_CurrentLandmarkIndex==2)
+      {
+        m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->GetPoints()->GetData()->RemoveTuple(0);
+        m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->GetPoints()->GetData()->Modified();
+      }
       // Hide phantom from main canvas
+      m_ParentMainWindow->GetVisualizationController()->ShowResult(false);
       m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId(), false);
       m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomWiresModelId(), false);
       m_ParentMainWindow->GetVisualizationController()->GetCanvasRenderer()->ResetCamera();
@@ -1153,52 +1160,53 @@ void PhantomRegistrationToolbox::StartLandmarkPivotingRegistration()
   ui.tabWidget->setTabEnabled(1, false);
   ui.pushButton_StartStop_2->setText(tr("Stop Detection"));
 
-  SetLandmarkPivotingState(LandmarkPivotingState_InProgress);
 
-  if(m_State==ToolboxState_Done||m_LandmarkPivotingState==LandmarkPivotingState_Complete)
+
+  if(m_State==ToolboxState_Done||m_LandmarkPivotingState!=LandmarkPivotingState_InProgress)
   {
     Reset();
-  }
 
-  m_CurrentLandmarkIndex=0;
-  m_CurrentPointNumber = 0;
 
-  // If tracker is FakeTracker then reset frame
-  vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
-  if (dataCollector)
-  {
-    for( DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it )
+    m_CurrentLandmarkIndex=0;
+    m_CurrentPointNumber = 0;
+
+    // If tracker is FakeTracker then reset frame
+    vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
+    if (dataCollector)
     {
-      vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(*it);
-
-      if (fakeTracker != NULL)
+      for( DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it )
       {
-        fakeTracker->SetFrame(m_CurrentPointNumber);
-        break;
+        vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(*it);
+
+        if (fakeTracker != NULL)
+        {
+          fakeTracker->SetFrame(m_CurrentPointNumber);
+          break;
+        }
       }
     }
+
+    // Clear input points
+    vtkSmartPointer<vtkPoints> inputPoints = vtkSmartPointer<vtkPoints>::New();
+    m_ParentMainWindow->GetVisualizationController()->GetInputPolyData()->SetPoints(inputPoints);
+    // Clear input points
+    vtkSmartPointer<vtkPoints> nextInputPoint = vtkSmartPointer<vtkPoints>::New();
+    m_ParentMainWindow->GetVisualizationController()->GetInputPolyData()->SetPoints(nextInputPoint);
+
+    // Initialize stylus tool
+    vtkDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetStylusModelId());
+    if (object == NULL)
+    {
+      LOG_ERROR("No stylus tip displayable objects could be found!");
+      return;
+    }
+
+    // Set state to in progress
+    SetLandmarkPivotingState(LandmarkPivotingState_InProgress);
   }
-
-  // Clear input points
-  vtkSmartPointer<vtkPoints> inputPoints = vtkSmartPointer<vtkPoints>::New();
-  m_ParentMainWindow->GetVisualizationController()->GetInputPolyData()->SetPoints(inputPoints);
-  // Clear input points
-  vtkSmartPointer<vtkPoints> nextInputPoint = vtkSmartPointer<vtkPoints>::New();
-  m_ParentMainWindow->GetVisualizationController()->GetInputPolyData()->SetPoints(nextInputPoint);
-
-  // Initialize stylus tool
-  vtkDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetStylusModelId());
-  if (object == NULL)
-  {
-    LOG_ERROR("No stylus tip displayable objects could be found!");
-    return;
-  }
-
-  // Set state to in progress
-  SetLandmarkPivotingState(LandmarkPivotingState_InProgress);
-
   // Connect acquisition function to timer
   connect( m_ParentMainWindow->GetVisualizationController()->GetAcquisitionTimer(), SIGNAL( timeout() ), this, SLOT( AddStylusTipTransformToLandmarkPivotingRegistration() ) );
+
 }
 
 //-----------------------------------------------------------------------------
@@ -1218,7 +1226,7 @@ void PhantomRegistrationToolbox::StopLandmarkPivotingRegistration()
     if(m_PhantomLandmarkRegistration->Register( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository() ) != PLUS_SUCCESS)
     {
       LOG_WARNING("Unable to register phantom! Try again");
-      Reset();
+      //Reset();
       SetLandmarkPivotingState(LandmarkPivotingState_Incomplete);
       /*SetState(ToolboxState_Idle);*/
     }
@@ -1232,7 +1240,7 @@ void PhantomRegistrationToolbox::StopLandmarkPivotingRegistration()
   else
   {
     LOG_INFO("Less than 3 landmarks! Try again");
-    Reset();
+    //Reset();
     SetLandmarkPivotingState(LandmarkPivotingState_Incomplete);
     SetState(ToolboxState_Done);
     SetState(ToolboxState_InProgress);
@@ -1253,7 +1261,7 @@ void PhantomRegistrationToolbox::AddStylusTipTransformToLandmarkPivotingRegistra
     return;
   }
 
-  if (valid)
+  if (valid && ToolboxState_InProgress==GetState())
   {
     // Assemble position string for toolbox
     std::stringstream ss;
@@ -1343,12 +1351,13 @@ void PhantomRegistrationToolbox::AddStylusTipTransformToLandmarkPivotingRegistra
             m_RequestedLandmarkPolyData->GetPoints()->GetData()->RemoveTuple(0);
             m_RequestedLandmarkPolyData->GetPoints()->Modified();
 
-            //StopLandmarkPivotingRegistration();
+            StopLandmarkPivotingRegistration();
             return;
           }
           else
           {
             // Set the camera to face the new pivot to be found     
+            m_ParentMainWindow->GetVisualizationController()->ShowResult(true);
             SetCameraViewNextLandmark(m_ParentMainWindow->GetVisualizationController()->GetCanvasRenderer()->GetActiveCamera(), m_PhantomLandmarkRegistration, m_CurrentLandmarkIndex,m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->GetPoints());
           }
         }
