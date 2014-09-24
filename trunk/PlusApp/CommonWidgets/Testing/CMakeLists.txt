@@ -22,7 +22,7 @@ SET (SegmentationParameterDialogTest_LIBS
     ${QT_LIBRARIES}
     CommonWidgets
     vtkPlusCommon
-    PatternLocAlgo
+    vtkCalibrationAlgo
     vtkDataCollection
   )
   
