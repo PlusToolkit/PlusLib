@@ -340,6 +340,10 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usIm
       return PLUS_SUCCESS;
     }
   }
+  else
+  {
+    this->StreamBuffer->AddToTimeStampReport(frameNumber, unfilteredTimestamp, filteredTimestamp);
+  }
 
   if ( imageDataPtr == NULL )
   {
@@ -444,6 +448,10 @@ PlusStatus vtkPlusBuffer::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usIm
       return PLUS_SUCCESS;
     }
   }
+  else
+  {
+    this->StreamBuffer->AddToTimeStampReport(frameNumber, unfilteredTimestamp, filteredTimestamp);
+  }
 
   vtkSmartPointer<vtkImageData> mfOrientedImage = vtkSmartPointer<vtkImageData>::New(); 
   if ( PlusVideoFrame::GetOrientedImage(frame, usImageOrientation, imageType, this->ImageOrientation, mfOrientedImage) != PLUS_SUCCESS )
@@ -486,6 +494,10 @@ PlusStatus vtkPlusBuffer::AddItem(const PlusVideoFrame* frame, long frameNumber,
       return PLUS_SUCCESS;
     }
   }
+  else
+  {
+    this->StreamBuffer->AddToTimeStampReport(frameNumber, unfilteredTimestamp, filteredTimestamp);
+  }
 
   unsigned char* pixelBufferPointer = static_cast<unsigned char*>(frame->GetScalarPointer()); 
   int frameSize[2]={0,0};
@@ -519,6 +531,10 @@ PlusStatus vtkPlusBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus st
       LOG_INFO("Filtered timestamp is probably invalid for tracker buffer item with item index=" << frameNumber << ", time="<<unfilteredTimestamp<<". The item may have been tagged with an inaccurate timestamp, therefore it will not be recorded." ); 
       return PLUS_SUCCESS;
     }
+  }
+  else
+  {
+    this->StreamBuffer->AddToTimeStampReport(frameNumber, unfilteredTimestamp, filteredTimestamp);
   }
 
   int bufferIndex(0); 
@@ -920,8 +936,8 @@ PlusStatus vtkPlusBuffer::WriteToMetafile( const char* filename, bool useCompres
 
   for ( BufferItemUidType frameUid = this->GetOldestItemUidInBuffer(); frameUid <= this->GetLatestItemUidInBuffer(); ++frameUid )
   {
-    StreamBufferItem videoItem;
-    if ( this->GetStreamBufferItem(frameUid, &videoItem) != ITEM_OK )
+    StreamBufferItem bufferItem;
+    if ( this->GetStreamBufferItem(frameUid, &bufferItem) != ITEM_OK )
     {
       LOCAL_LOG_ERROR("Unable to get frame from buffer with UID: " << frameUid);
       status=PLUS_FAIL;
@@ -929,22 +945,30 @@ PlusStatus vtkPlusBuffer::WriteToMetafile( const char* filename, bool useCompres
     }
 
     TrackedFrame trackedFrame;
-    trackedFrame.SetImageData(videoItem.GetFrame());
+
+    // Add image data
+    trackedFrame.SetImageData(bufferItem.GetFrame());
+
+    // Add tracking data
+    vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    bufferItem.GetMatrix(matrix);
+    trackedFrame.SetCustomFrameTransform(PlusTransformName("Tool", "Tracker"), matrix);
+    trackedFrame.SetCustomFrameTransformStatus(PlusTransformName("Tool", "Tracker"), bufferItem.GetStatus()==ITEM_OK?FIELD_OK:FIELD_INVALID);
 
     // Add filtered timestamp
-    double filteredTimestamp = videoItem.GetFilteredTimestamp( this->GetLocalTimeOffsetSec() );
+    double filteredTimestamp = bufferItem.GetFilteredTimestamp( this->GetLocalTimeOffsetSec() );
     std::ostringstream timestampFieldValue;
     timestampFieldValue << std::fixed << filteredTimestamp;
     trackedFrame.SetCustomFrameField("Timestamp", timestampFieldValue.str());
 
     // Add unfiltered timestamp
-    double unfilteredTimestamp = videoItem.GetUnfilteredTimestamp( this->GetLocalTimeOffsetSec() );
+    double unfilteredTimestamp = bufferItem.GetUnfilteredTimestamp( this->GetLocalTimeOffsetSec() );
     std::ostringstream unfilteredtimestampFieldValue;
     unfilteredtimestampFieldValue << std::fixed << unfilteredTimestamp;
     trackedFrame.SetCustomFrameField("UnfilteredTimestamp", unfilteredtimestampFieldValue.str());
 
     // Add frame number
-    unsigned long frameNumber = videoItem.GetIndex(); 
+    unsigned long frameNumber = bufferItem.GetIndex(); 
     std::ostringstream frameNumberFieldValue;
     frameNumberFieldValue << std::fixed << frameNumber;
     trackedFrame.SetCustomFrameField("FrameNumber", frameNumberFieldValue.str());

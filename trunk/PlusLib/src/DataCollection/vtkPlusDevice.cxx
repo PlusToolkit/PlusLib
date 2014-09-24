@@ -5,8 +5,6 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "vtkGnuplotExecuter.h"
-#include "vtkHTMLGenerator.h"
 #include "vtkImageData.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
@@ -1340,100 +1338,6 @@ PlusStatus vtkPlusDevice::ToolTimeStampedUpdate(const char* aToolSourceId, vtkMa
   tool->SetFrameNumber(frameNumber); 
 
   return bufferStatus; 
-}
-
-//-----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GenerateDataAcquisitionReport( vtkPlusChannel& aChannel, vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter)
-{
-  if ( htmlReport == NULL || plotter == NULL )
-  {
-    LOCAL_LOG_ERROR("Caller should define HTML report generator and gnuplot plotter before report generation!"); 
-    return PLUS_FAIL; 
-  }
-
-  vtkSmartPointer<vtkTable> timestampReportTable = vtkSmartPointer<vtkTable>::New(); 
-
-  if( aChannel.GetTrackingEnabled() )
-  {
-    // Use the first tool in the container to generate the report
-    vtkPlusDataSource* tool = aChannel.GetToolsStartIterator()->second;  
-
-    if ( tool->GetBuffer()->GetTimeStampReportTable(timestampReportTable) != PLUS_SUCCESS )
-    { 
-      LOCAL_LOG_ERROR("Failed to get timestamp report table from tool '"<< tool->GetSourceId() << "' buffer!"); 
-      return PLUS_FAIL; 
-    }
-  }
-
-  std::string reportFile = vtkPlusConfig::GetInstance()->GetOutputPath(
-    vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()+".DataBufferTimestamps.txt" ); 
-  std::string plotBufferTimestampScript = vtkPlusConfig::GetInstance()->GetScriptPath("gnuplot/PlotBufferTimestamp.gnu");
-  if ( !vtksys::SystemTools::FileExists( plotBufferTimestampScript.c_str(), true) )
-  {
-    LOCAL_LOG_ERROR("Unable to find gnuplot script at: " << plotBufferTimestampScript); 
-    return PLUS_FAIL; 
-  }
-
-  htmlReport->AddText("Tracking Data Acquisition Analysis", vtkHTMLGenerator::H1); 
-  plotter->ClearArguments(); 
-  plotter->AddArgument("-e");
-  std::ostringstream trackerBufferAnalysis; 
-  trackerBufferAnalysis << "f='" << reportFile << "'; o='TrackerBufferTimestamps';" << std::ends; 
-  plotter->AddArgument(trackerBufferAnalysis.str().c_str()); 
-  plotter->AddArgument(plotBufferTimestampScript.c_str());  
-
-  htmlReport->AddImage("TrackerBufferTimestamps.jpg", "Tracking Data Acquisition Analysis"); 
-
-  htmlReport->AddHorizontalLine(); 
-
-  if( aChannel.GetVideoEnabled() )
-  {
-    vtkPlusDataSource* aSource(NULL);
-    if( aChannel.GetVideoSource(aSource) != PLUS_SUCCESS )
-    {
-      LOCAL_LOG_ERROR("Unable to retrieve the video source.");
-      return PLUS_FAIL;
-    }
-
-    if ( aSource->GetBuffer()->GetTimeStampReportTable(timestampReportTable) != PLUS_SUCCESS )
-    {
-      LOCAL_LOG_ERROR("Failed to get timestamp report table from video buffer!");
-      return PLUS_FAIL;
-    }
-
-    htmlReport->AddText("Video Data Acquisition Analysis", vtkHTMLGenerator::H1);
-    plotter->ClearArguments();
-    plotter->AddArgument("-e");
-    std::ostringstream videoBufferAnalysis;
-    videoBufferAnalysis << "f='" << reportFile << "'; o='VideoBufferTimestamps';" << std::ends;
-    plotter->AddArgument(videoBufferAnalysis.str().c_str());
-
-    plotter->AddArgument(plotBufferTimestampScript.c_str()); 
-    if ( plotter->Execute() != PLUS_SUCCESS )
-    {
-      LOCAL_LOG_ERROR("Failed to run gnuplot executer!");
-      return PLUS_FAIL;
-    }
-    plotter->ClearArguments();
-
-    htmlReport->AddImage("VideoBufferTimestamps.jpg", "Video Data Acquisition Analysis");
-
-    htmlReport->AddHorizontalLine();
-
-    if ( vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat( timestampReportTable, reportFile.c_str() ) != PLUS_SUCCESS )
-    {
-      LOCAL_LOG_ERROR("Failed to write table to file in gnuplot format!");
-      return PLUS_FAIL;
-    }
-
-    if ( !vtksys::SystemTools::FileExists( reportFile.c_str(), true) )
-    {
-      LOCAL_LOG_ERROR("Unable to find video data acquisition report file at: " << reportFile);
-      return PLUS_FAIL;
-    }
-  }
-
-  return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------

@@ -308,6 +308,9 @@ public:
   */
   virtual PlusStatus CreateFilteredTimeStampForItem(unsigned long itemIndex, double inUnfilteredTimestamp, double &outFilteredTimestamp, bool &filteredTimestampProbablyValid); 
 
+  /*! Add values to the timestamp report. If reporting is not enabled then no values will be added. This should only be called if an item is added without calling CreateFilteredTimeStampForItem. */
+  void AddToTimeStampReport(unsigned long itemIndex, double unfilteredTimestamp, double filteredTimestamp);
+
   /*! Get the table report of the timestamped buffer. To fill this table TimeStampReporting has to be enabled.  */
   PlusStatus GetTimeStampReportTable(vtkTable* timeStampReportTable); 
 
@@ -340,9 +343,6 @@ protected:
     Returns buffer index if the ItemStatus is ITEM_OK, otherwise -1; 
   */
   virtual ItemStatus GetBufferIndex( BufferItemUidType uid, int& bufferIndex ); 
-
-  /*! Add values to the timestamp report. If reporting is not enabled then no values will be added. */
-  void AddToTimeStampReport(unsigned long itemIndex, double unfilteredTimestamp, double filteredTimestamp);
 
 protected:
   vtkRecursiveCriticalSection *Mutex;
