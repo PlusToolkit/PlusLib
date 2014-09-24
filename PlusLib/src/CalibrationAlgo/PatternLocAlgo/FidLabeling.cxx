@@ -168,7 +168,7 @@ void FidLabeling::Clear()
   m_Results.clear();
   m_FoundLines.clear();
 
-  std::vector<Line> emptyLine;
+  std::vector<FidLine> emptyLine;
   m_LinesVector.push_back(emptyLine);//initializing the 0 vector of lines (unused)
   m_LinesVector.push_back(emptyLine);//initializing the 1 vector of lines (unused)
 }
@@ -211,7 +211,7 @@ bool FidLabeling::SortCompare(const std::vector<double>& temporaryLine1, const s
 
 //-----------------------------------------------------------------------------
 
-Line FidLabeling::SortPointsByDistanceFromStartPoint(Line& fiducials) 
+FidLine FidLabeling::SortPointsByDistanceFromStartPoint(FidLine& fiducials) 
 {
   std::vector<std::vector<double> > temporaryLine;
   Dot startPointIndex = m_DotsVector[fiducials.GetStartPointIndex()];
@@ -228,7 +228,7 @@ Line FidLabeling::SortPointsByDistanceFromStartPoint(Line& fiducials)
   //sort the indexes by the distance of their respective pioint to the startPointIndex
   std::sort(temporaryLine.begin(),temporaryLine.end(), FidLabeling::SortCompare); 
 
-  Line resultLine = fiducials;
+  FidLine resultLine = fiducials;
 
   for(unsigned int i=0 ; i<fiducials.GetPoints().size() ; i++)
   {
@@ -240,7 +240,7 @@ Line FidLabeling::SortPointsByDistanceFromStartPoint(Line& fiducials)
 
 //-----------------------------------------------------------------------------
 
-double FidLabeling::ComputeSlope( Line& line )
+double FidLabeling::ComputeSlope( FidLine& line )
 {
   //LOG_TRACE("FidLineFinder::ComputeSlope");
   Dot dot1 = m_DotsVector[line.GetStartPointIndex()];
@@ -279,7 +279,7 @@ double FidLabeling::ComputeSlope( Line& line )
 
 //-----------------------------------------------------------------------------
 
-double FidLabeling::ComputeDistancePointLine(Dot& dot, Line& line)
+double FidLabeling::ComputeDistancePointLine(Dot& dot, FidLine& line)
 {     
   double x[3], y[3], z[3];
 
@@ -300,7 +300,7 @@ double FidLabeling::ComputeDistancePointLine(Dot& dot, Line& line)
 
 //-----------------------------------------------------------------------------
 
-double FidLabeling::ComputeShift(Line& line1, Line& line2)
+double FidLabeling::ComputeShift(FidLine& line1, FidLine& line2)
 {
   //middle of the line 1
   double midLine1[2]=
@@ -337,7 +337,7 @@ double FidLabeling::ComputeShift(Line& line1, Line& line2)
 
 //-----------------------------------------------------------------------------
 
-void FidLabeling::UpdateNWiresResults(std::vector<Line*>& resultLines)
+void FidLabeling::UpdateNWiresResults(std::vector<FidLine*>& resultLines)
 {
   int numberOfLines = m_Patterns.size(); //the number of lines in the pattern
   double intensity = 0;
@@ -377,7 +377,7 @@ void FidLabeling::UpdateNWiresResults(std::vector<Line*>& resultLines)
 
 //-----------------------------------------------------------------------------
 
-void FidLabeling::UpdateCirsResults(const Line& resultLine1, const Line& resultLine2, const Line& resultLine3)
+void FidLabeling::UpdateCirsResults(const FidLine& resultLine1, const FidLine& resultLine2, const FidLine& resultLine3)
 {
   //resultLine1 is the left line, resultLine2 is the diagonal, resultLine3 is the right line
   double intensity = 0;
@@ -444,7 +444,7 @@ void FidLabeling::FindPattern()
 {
   //LOG_TRACE("FidLabeling::FindPattern");
 
-  std::vector<Line> maxPointsLines = m_LinesVector[m_LinesVector.size()-1];
+  std::vector<FidLine> maxPointsLines = m_LinesVector[m_LinesVector.size()-1];
   int numberOfLines = m_Patterns.size();//the number of lines in the pattern
   int numberOfCandidateLines = maxPointsLines.size();
   std::vector<int> lineIndices(numberOfLines);
@@ -529,12 +529,12 @@ void FidLabeling::FindPattern()
     foundPattern=true; // assume that we've found a valid pattern (then set the flag to false if it turns out that one of the values are not within the allowed range)
     for( int i=0 ; i<numberOfLines-1 && foundPattern; i++)
     {
-      Line currentLine1 = maxPointsLines[lineIndices[i]];
+      FidLine currentLine1 = maxPointsLines[lineIndices[i]];
       for( int j=i+1 ; j<numberOfLines && foundPattern; j++)
       {
-        Line currentLine2 = maxPointsLines[lineIndices[j]];
+        FidLine currentLine2 = maxPointsLines[lineIndices[j]];
 
-        double angleBetweenLinesRad = Line::ComputeAngleRad(currentLine1, currentLine2);
+        double angleBetweenLinesRad = FidLine::ComputeAngleRad(currentLine1, currentLine2);
         if (angleBetweenLinesRad<m_AngleToleranceRad) //The angle between 2 lines is close to 0
         {
           // Parallel lines
@@ -632,7 +632,7 @@ void FidLabeling::FindPattern()
     CoplanarParallelWires* coplanarParallelWire = dynamic_cast<CoplanarParallelWires*>(m_Patterns.at(0));
     if (nWire) // NWires
     {
-      std::vector<Line*> resultLines(numberOfLines);
+      std::vector<FidLine*> resultLines(numberOfLines);
       std::vector<double> resultLineMiddlePointYs;
 
       for (std::vector<int>::iterator it = lineIndices.begin(); it != lineIndices.end(); ++it)
@@ -655,9 +655,9 @@ void FidLabeling::FindPattern()
     }
     else if (coplanarParallelWire) // CIRS phantom
     {
-      Line resultLine1 = maxPointsLines[lineIndices[0]];
-      Line resultLine2 = maxPointsLines[lineIndices[1]];
-      Line resultLine3 = maxPointsLines[lineIndices[2]];
+      FidLine resultLine1 = maxPointsLines[lineIndices[0]];
+      FidLine resultLine2 = maxPointsLines[lineIndices[1]];
+      FidLine resultLine3 = maxPointsLines[lineIndices[2]];
 
       bool test1 = (resultLine1.GetStartPointIndex() == resultLine2.GetStartPointIndex()) || (resultLine1.GetStartPointIndex() == resultLine2.GetEndPointIndex());
       bool test2 = (resultLine1.GetEndPointIndex() == resultLine2.GetStartPointIndex()) || (resultLine1.GetEndPointIndex() == resultLine2.GetEndPointIndex());
@@ -702,7 +702,7 @@ void FidLabeling::FindPattern()
 }
 
 //-----------------------------------------------------------------------------
-void FidLabeling::SortRightToLeft( Line& line )
+void FidLabeling::SortRightToLeft( FidLine& line )
 {
   //LOG_TRACE("FidLabeling::SortRightToLeft");
 

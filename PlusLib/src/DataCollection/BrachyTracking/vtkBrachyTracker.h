@@ -98,9 +98,6 @@ public:
   /*! Get raw encoder values transform in a particular timestamp */
   PlusStatus GetRawEncoderValuesTransform( double timestamp, vtkMatrix4x4* rawEncoderValuesTransform, ToolStatus &status); 
 
-  /*! Get stepper encoder values from the tracked frame */
-  static PlusStatus GetStepperEncoderValues( TrackedFrame* trackedFrame, double &probePosition, double &probeRotation, double &templatePosition); 
-
   virtual bool IsTracker() const { return true; }
 
   /*! Get the a string (perhaps a long one) describing the type and version of the device. */

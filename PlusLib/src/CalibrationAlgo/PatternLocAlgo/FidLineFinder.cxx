@@ -276,7 +276,7 @@ double FidLineFinder::ComputeAngleRad( const Dot& dot1, const Dot& dot2 )
 
 //-----------------------------------------------------------------------------
 
-void FidLineFinder::ComputeLine( Line& line )
+void FidLineFinder::ComputeLine( FidLine& line )
 {
   if (line.GetPoints().size()<1)
   {
@@ -413,7 +413,7 @@ double FidLineFinder::SegmentLength( const Dot& d1, const Dot& d2 )
 
 //-----------------------------------------------------------------------------
 
-double FidLineFinder::ComputeDistancePointLine(const Dot& dot, const Line& line)
+double FidLineFinder::ComputeDistancePointLine(const Dot& dot, const FidLine& line)
 {     
   double x[3], y[3], z[3];
 
@@ -443,7 +443,7 @@ void FidLineFinder::FindLines2Points()
     return;
   }
 
-  std::vector<Line> twoPointsLinesVector;
+  std::vector<FidLine> twoPointsLinesVector;
 
   for( int i=0 ; i<m_Patterns.size() ; i++)
   {
@@ -464,12 +464,11 @@ void FidLineFinder::FindLines2Points()
 
           if(acceptAngle)
           {
-            Line twoPointsLine;
-            twoPointsLine.ResizePoints(2);
-            twoPointsLine.SetPoint(0, dot1Index);
-            twoPointsLine.SetPoint(1, dot2Index);
+            FidLine twoPointsLine;            
+            twoPointsLine.AddPoint(dot1Index);
+            twoPointsLine.AddPoint(dot2Index);
 
-            bool duplicate = std::binary_search(twoPointsLinesVector.begin(), twoPointsLinesVector.end(),twoPointsLine, Line::compareLines);
+            bool duplicate = std::binary_search(twoPointsLinesVector.begin(), twoPointsLinesVector.end(),twoPointsLine, FidLine::compareLines);
 
             if(!duplicate)
             {
@@ -477,14 +476,14 @@ void FidLineFinder::FindLines2Points()
               ComputeLine(twoPointsLine);
 
               twoPointsLinesVector.push_back(twoPointsLine);
-              std::sort(twoPointsLinesVector.begin(), twoPointsLinesVector.end(), Line::compareLines);//the lines need to be sorted that way each time for the binary search to be performed
+              std::sort(twoPointsLinesVector.begin(), twoPointsLinesVector.end(), FidLine::compareLines);//the lines need to be sorted that way each time for the binary search to be performed
             }
           }
         }
       }
     }
   }
-  std::sort(twoPointsLinesVector.begin(), twoPointsLinesVector.end(), Line::lessThan);//sort the lines by intensity finally 
+  std::sort(twoPointsLinesVector.begin(), twoPointsLinesVector.end(), FidLine::lessThan);//sort the lines by intensity finally 
 
   m_LinesVector.push_back(twoPointsLinesVector);
 }
@@ -522,7 +521,7 @@ void FidLineFinder::FindLinesNPoints()
 
       for ( int l = 0; l < m_LinesVector[linesVectorIndex-1].size(); l++ ) 
       {
-        Line currentShorterPointsLine;
+        FidLine currentShorterPointsLine;
         currentShorterPointsLine = m_LinesVector[linesVectorIndex-1][l];//the current max point line we want to expand
 
         for ( int b3 = 0; b3 < m_DotsVector.size(); b3++ ) 
@@ -549,7 +548,7 @@ void FidLineFinder::FindLinesNPoints()
 
           if ( pointToLineDistance <= dist ) 
           {
-            Line line;
+            FidLine line;
 
             // To find unique lines, each line must have a unique configuration of points.
             std::sort(candidatesIndex.begin(),candidatesIndex.end());
@@ -590,18 +589,18 @@ void FidLineFinder::FindLinesNPoints()
 
             if(m_LinesVector.size() <= linesVectorIndex)//in case the maxpoint lines has not found any yet (the binary search works on empty vector, not on NULL one obviously)
             { 
-              std::vector<Line> emptyLine;
+              std::vector<FidLine> emptyLine;
               m_LinesVector.push_back(emptyLine);
             }
 
-            if(!std::binary_search(m_LinesVector[linesVectorIndex].begin(), m_LinesVector[linesVectorIndex].end(),line, Line::compareLines)) 
+            if(!std::binary_search(m_LinesVector[linesVectorIndex].begin(), m_LinesVector[linesVectorIndex].end(),line, FidLine::compareLines)) 
             {
               ComputeLine(line);
               if(AcceptLine(line))
               {
                 m_LinesVector[linesVectorIndex].push_back(line);
                 // sort the lines so that lines that are already in the list can be quickly found by a binary search
-                std::sort (m_LinesVector[linesVectorIndex].begin(), m_LinesVector[linesVectorIndex].end(), Line::compareLines);
+                std::sort (m_LinesVector[linesVectorIndex].begin(), m_LinesVector[linesVectorIndex].end(), FidLine::compareLines);
               }
             }
           }
@@ -625,7 +624,7 @@ void FidLineFinder::Clear()
   m_LinesVector.clear();
   m_CandidateFidValues.clear();
 
-  std::vector<Line> emptyLine;
+  std::vector<FidLine> emptyLine;
   m_LinesVector.push_back(emptyLine);//initializing the 0 vector of lines (unused)
   m_LinesVector.push_back(emptyLine);//initializing the 1 vector of lines (unused)
 }
@@ -666,9 +665,9 @@ bool FidLineFinder::AcceptAngleRad( double angleRad )
 
 //-----------------------------------------------------------------------------
 
-bool FidLineFinder::AcceptLine( Line &line )
+bool FidLineFinder::AcceptLine( FidLine &line )
 {
-  double angleRad = Line::ComputeAngleRad(line);
+  double angleRad = FidLine::ComputeAngleRad(line);
   bool acceptAngle = AcceptAngleRad(angleRad);
   return acceptAngle;
 }
@@ -686,7 +685,7 @@ void FidLineFinder::FindLines( )
   FindLinesNPoints();
 
   // Sort by intensity.
-  std::sort (m_LinesVector[m_LinesVector.size()-1].begin(), m_LinesVector[m_LinesVector.size()-1].end(), Line::lessThan);
+  std::sort (m_LinesVector[m_LinesVector.size()-1].begin(), m_LinesVector[m_LinesVector.size()-1].end(), FidLine::lessThan);
 }
 
 //-----------------------------------------------------------------------------

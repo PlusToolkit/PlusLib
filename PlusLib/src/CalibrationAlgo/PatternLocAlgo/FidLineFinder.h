@@ -20,7 +20,7 @@ then computes n-points lines from these 2-points lines.
 \ingroup PlusLibPatternRecognition
 */
 
-class PatternLocAlgoExport FidLineFinder
+class vtkCalibrationAlgoExport FidLineFinder
 {
 public:
   FidLineFinder();
@@ -57,7 +57,7 @@ public:
   void FindLines();
 
   /*! Get the vector of lines, this vector contains all lines of different number of points that match the criteria */
-  std::vector<std::vector<Line> >&  GetLinesVector() { return m_LinesVector; };
+  std::vector<std::vector<FidLine> >&  GetLinesVector() { return m_LinesVector; };
 
   /*! Get the maximum angle allowed for a line, in radians */
   double GetMaxThetaRad() { return m_MaxThetaRad; };
@@ -91,17 +91,17 @@ protected:
   static double SegmentLength( const Dot& dot1, const Dot& dot2 );
 
   /*! Compute the shortest distance from a point: dot, to a line: line */
-  double ComputeDistancePointLine(const Dot& dot, const Line& line);
+  double ComputeDistancePointLine(const Dot& dot, const FidLine& line);
 
   /*! Compute a line, all that is required is a set origin and the dots part of the line. It computes then the line length,
   the direction vector, the endpoint */
-  void ComputeLine( Line& line );
+  void ComputeLine( FidLine& line );
 
   /*! Compute the angle between thee lin formed by 2 dots and the x-axis, in radian */
   static double ComputeAngleRad( const Dot& dot1, const Dot& dot2 );
 
   /*! Return true if a line matches the requirements, false otherwise */
-  bool AcceptLine( Line& line );  
+  bool AcceptLine( FidLine& line );  
 
   /*! Return true if an angle is in the allowed angle range, false otherwise */
   bool AcceptAngleRad(double angleRad);
@@ -131,7 +131,7 @@ protected:
   std::vector<Dot>  m_CandidateFidValues; // pointer to the fiducial candidates coordinates
 
   std::vector<Dot>  m_DotsVector;
-  std::vector<std::vector<Line> >  m_LinesVector;
+  std::vector< std::vector<FidLine> >  m_LinesVector;
 
   std::vector<Pattern*> m_Patterns;
 };

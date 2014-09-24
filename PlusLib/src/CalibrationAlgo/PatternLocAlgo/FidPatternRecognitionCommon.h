@@ -7,7 +7,7 @@ See License.txt for details.
 #ifndef _FIDUCIAL_ALGORITHM_COMMON_H
 #define _FIDUCIAL_ALGORITHM_COMMON_H
 
-#include "PatternLocAlgoExport.h"
+#include "vtkCalibrationAlgoExport.h"
 
 #include <vector>
 #include <string>
@@ -28,7 +28,7 @@ It contains the X and Y coordinate of the dot as well as its intensity. Also con
 to check if dots are equal (both X and Y are the same).
 \ingroup PlusLibPatternRecognition
 */
-class PatternLocAlgoExport Dot
+class vtkCalibrationAlgoExport Dot
 {
 public:
   /*! Compare the intensity of 2 dots */
@@ -69,26 +69,26 @@ protected:
 
 //-----------------------------------------------------------------------------
 /*!
-\class Line
+\class FidLine
 \brief This class defines a single line made from a vector of dots obtained from the segmentation part of the algorithm.
 It contains the list of indexes of the dots, the length of the line, the origin and the endpoint as well as the
 line intensity and its direction vector.
 \ingroup PlusLibPatternRecognition
 */
-class PatternLocAlgoExport Line
+class vtkCalibrationAlgoExport FidLine
 {
 public:
   /*! Compare the intensity of 2 lines */
-  static bool lessThan( const Line& line1, const Line& line2 );
+  static bool lessThan( const FidLine& line1, const FidLine& line2 );
 
   /*! Compare 2 lines to know if they are the same */
-  static bool compareLines( const Line& line1, const Line& line2 );
+  static bool compareLines( const FidLine& line1, const FidLine& line2 );
 
   /*! Compute the angle in radians between the line and the positive x-axis, value between -Pi and +Pi */
-  static double ComputeAngleRad(const Line& line1);
+  static double ComputeAngleRad(const FidLine& line1);
 
   /*! Compute the angle difference in radians between two lines, the result value is between 0 and Pi/2 */
-  static double ComputeAngleRad( const Line& line1, const Line& line2 );
+  static double ComputeAngleRad( const FidLine& line1, const FidLine& line2 );
 
   /*! Set the point of line
   \param aIndex is the index in the dots vector of the line
@@ -153,7 +153,7 @@ protected:
 \brief This structure defines a single fiducial wire by its name and its endpoint (front and back)
 \ingroup PlusLibPatternRecognition
 */
-struct PatternLocAlgoExport Wire
+struct vtkCalibrationAlgoExport Wire
 {
   std::string Name;
   double EndPointFront[3];
@@ -168,7 +168,7 @@ defintion, the distance from the line origin of each expected "dot" and the tole
 distances.
 \ingroup PlusLibPatternRecognition
 */
-class PatternLocAlgoExport Pattern
+class vtkCalibrationAlgoExport Pattern
 {
 public:
   virtual ~Pattern() { };
@@ -185,7 +185,7 @@ public:
 between lines 1 and 2, and, 2 and 3.
 \ingroup PlusLibPatternRecognition
 */
-class PatternLocAlgoExport NWire : public Pattern
+class vtkCalibrationAlgoExport NWire : public Pattern
 {
 public:
   virtual ~NWire() { };
@@ -201,7 +201,7 @@ public:
 parallel fiducial wires.
 \ingroup PlusLibPatternRecognition
 */
-class PatternLocAlgoExport CoplanarParallelWires : public Pattern
+class vtkCalibrationAlgoExport CoplanarParallelWires : public Pattern
 {
 public:
   virtual ~CoplanarParallelWires() { };
@@ -213,7 +213,7 @@ public:
 \brief This class stores the Pattern Recognition algorithm results.
 \ingroup PlusLibPatternRecognition
 */
-class PatternLocAlgoExport PatternRecognitionResult
+class vtkCalibrationAlgoExport PatternRecognitionResult
 {
 public:
   PatternRecognitionResult();

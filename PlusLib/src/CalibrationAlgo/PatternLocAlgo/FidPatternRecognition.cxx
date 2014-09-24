@@ -233,7 +233,7 @@ void FidPatternRecognition::DrawDots( PixelType *image)
 
 void FidPatternRecognition::DrawResults( PixelType *image )
 {
-  std::vector<Line> foundLines = m_FidLabeling.GetFoundLinesVector();
+  std::vector<FidLine> foundLines = m_FidLabeling.GetFoundLinesVector();
   DrawDots(image);  
 
   LOG_TRACE("FidPatternRecognition::DrawLines"); 
