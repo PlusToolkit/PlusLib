@@ -14,6 +14,12 @@ See License.txt for details.
 #include "Shellapi.h"
 #endif
 
+enum DataItemRoles
+{
+  FileNameRole = Qt::UserRole+0,
+  DescriptionRole = Qt::UserRole+1
+};
+
 //-----------------------------------------------------------------------------
 
 DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
@@ -108,7 +114,7 @@ void DeviceSetSelectorWidget::InvokeConnect()
   ui.pushButton_Connect->setEnabled(false);
   QCoreApplication::processEvents();
 
-  emit ConnectToDevicesByConfigFileInvoked(ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0).toLatin1().constData());
+  emit ConnectToDevicesByConfigFileInvoked(ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex(), FileNameRole).toString().toLatin1().constData());
 }
 
 //-----------------------------------------------------------------------------
@@ -117,7 +123,7 @@ std::string DeviceSetSelectorWidget::GetSelectedDeviceSetDescription()
 {
   LOG_TRACE("DeviceSetSelectorWidget::GetSelectedDeviceSetDescription"); 
 
-  return ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(1).toLatin1().constData(); 
+  return ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex(), DescriptionRole).toString().toLatin1().constData(); 
 }
 
 //-----------------------------------------------------------------------------
@@ -147,14 +153,11 @@ void DeviceSetSelectorWidget::DeviceSetSelected(int aIndex)
 
   ui.textEdit_Description->setTextColor(QColor(Qt::black));
 
-  ui.textEdit_Description->setText(
-    ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(1)
-    //+ "\n\n(" + ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(0) + ")"
-    );
+  ui.textEdit_Description->setText(ui.comboBox_DeviceSet->itemData(aIndex, DescriptionRole).toString());
 
-  ui.comboBox_DeviceSet->setToolTip(ui.comboBox_DeviceSet->currentText() + "\n" + ui.comboBox_DeviceSet->itemData(aIndex).toStringList().at(0));
+  ui.comboBox_DeviceSet->setToolTip(ui.comboBox_DeviceSet->currentText() + "\n" + ui.comboBox_DeviceSet->itemData(aIndex, FileNameRole).toString());
 
-  QString configurationFilePath = ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0); 
+  QString configurationFilePath = ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex(), FileNameRole).toString(); 
 
   emit DeviceSetSelected( configurationFilePath.toLatin1().constData() ); 
 }
@@ -176,17 +179,14 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
       ui.comboBox_DeviceSet->setEnabled(false);
 
       ui.textEdit_Description->setTextColor(QColor(Qt::black));
-      ui.textEdit_Description->setText("Connection successful!\n\n"
-        + ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(1)
-        //+ "\n\n(" + ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0) + ")"
-        );
+      ui.textEdit_Description->setText("Connection successful!\n\n" + ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex(), DescriptionRole).toString());
 
       // Change the function to be invoked on clicking on the now Disconnect button to InvokeDisconnect
       disconnect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeConnect() ) );
       connect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeDisconnect() ) );
 
       // Set last used device set config file
-      vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationFileName(ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex()).toStringList().at(0).toLatin1().constData());
+      vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationFileName(ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex(), FileNameRole).toString().toLatin1().constData());
     }
     else
     {
@@ -204,7 +204,7 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
       ui.textEdit_Description->setTextColor(QColor(Qt::black));
       if( ui.comboBox_DeviceSet->currentIndex() >= 0 )
       {
-        ui.textEdit_Description->setText( ui.comboBox_DeviceSet->itemData( ui.comboBox_DeviceSet->currentIndex()).toStringList().at(1) );
+        ui.textEdit_Description->setText( ui.comboBox_DeviceSet->itemData( ui.comboBox_DeviceSet->currentIndex(), DescriptionRole).toString() );
       }
 
       // Change the function to be invoked on clicking on the now Connect button to InvokeConnect
@@ -246,8 +246,6 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
     }
   }
 
-  int lastSelectedDeviceSetIndex = -1; 
-
   // Block signals before we add items
   ui.comboBox_DeviceSet->blockSignals(true); 
   ui.comboBox_DeviceSet->clear();
@@ -257,7 +255,8 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 
   while (filesIterator.hasNext())
   {
-    QString fileName(configDir.absoluteFilePath(filesIterator.next()));
+    
+    QString fileName = QDir::toNativeSeparators(QString(configDir.absoluteFilePath(filesIterator.next())));
     QString extension = fileName.mid(fileName.lastIndexOf("."));
     if( extension.compare(QString(".xml")) != 0 )
     {
@@ -307,11 +306,6 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 
       QDomElement elem = list.at(0).toElement();
 
-      QStringList datas;
-      datas.append(fileName);
-      datas.append(elem.attribute("Description", tr("Description not found")));
-      QVariant userData(datas);
-
       QString name(elem.attribute("Name"));
       QString description(elem.attribute("Description"));
       if (name.isEmpty())
@@ -337,20 +331,16 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
         }
       }
 
-      ui.comboBox_DeviceSet->addItem(name, userData);
+      ui.comboBox_DeviceSet->addItem(name, fileName);
       int currentIndex = ui.comboBox_DeviceSet->findText(name, Qt::MatchExactly);
+
+      ui.comboBox_DeviceSet->setItemData(currentIndex, description, DescriptionRole); 
 
       // Add tooltip word wrapped rich text  
       name.prepend("<p>");
       name.append("</p> <p>"+fileInfo.fileName().toLatin1()+"</p> <p>"+description.toLatin1()+"</p>");
-
       ui.comboBox_DeviceSet->setItemData(currentIndex, name, Qt::ToolTipRole); 
 
-      // If this item is the same as in the config file, select it by default
-      if ( QDir::toNativeSeparators(QString(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName().c_str())) == QDir::toNativeSeparators(fileName) )
-      {
-        lastSelectedDeviceSetIndex = currentIndex; 
-      }
     }
     else
     {
@@ -368,10 +358,14 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
   // Set current index to default so that setting the last selected item raises the event even if it is the first item
   ui.comboBox_DeviceSet->setCurrentIndex(-1);
 
+  ui.comboBox_DeviceSet->model()->sort(0);
+
   // Unblock signals after we add items
   ui.comboBox_DeviceSet->blockSignals(false); 
 
-  ui.comboBox_DeviceSet->setCurrentIndex(lastSelectedDeviceSetIndex); 
+  // Restore the  saved selection
+  int lastSelectedDeviceSetIndex = ui.comboBox_DeviceSet->findData( QDir::toNativeSeparators(QString(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName().c_str())));
+  ui.comboBox_DeviceSet->setCurrentIndex(lastSelectedDeviceSetIndex);
 
   return PLUS_SUCCESS;
 }
