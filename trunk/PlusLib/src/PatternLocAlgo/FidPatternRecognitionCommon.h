@@ -28,7 +28,7 @@ It contains the X and Y coordinate of the dot as well as its intensity. Also con
 to check if dots are equal (both X and Y are the same).
 \ingroup PlusLibPatternRecognition
 */
-class Dot
+class PatternLocAlgoExport Dot
 {
 public:
   /*! Compare the intensity of 2 dots */
@@ -75,7 +75,7 @@ It contains the list of indexes of the dots, the length of the line, the origin 
 line intensity and its direction vector.
 \ingroup PlusLibPatternRecognition
 */
-class Line
+class PatternLocAlgoExport Line
 {
 public:
   /*! Compare the intensity of 2 lines */
@@ -153,7 +153,7 @@ protected:
 \brief This structure defines a single fiducial wire by its name and its endpoint (front and back)
 \ingroup PlusLibPatternRecognition
 */
-struct Wire
+struct PatternLocAlgoExport Wire
 {
   std::string Name;
   double EndPointFront[3];
@@ -168,7 +168,7 @@ defintion, the distance from the line origin of each expected "dot" and the tole
 distances.
 \ingroup PlusLibPatternRecognition
 */
-class Pattern
+class PatternLocAlgoExport Pattern
 {
 public:
   virtual ~Pattern() { };
@@ -185,7 +185,7 @@ public:
 between lines 1 and 2, and, 2 and 3.
 \ingroup PlusLibPatternRecognition
 */
-class NWire : public Pattern
+class PatternLocAlgoExport NWire : public Pattern
 {
 public:
   virtual ~NWire() { };
@@ -201,7 +201,7 @@ public:
 parallel fiducial wires.
 \ingroup PlusLibPatternRecognition
 */
-class CoplanarParallelWires : public Pattern
+class PatternLocAlgoExport CoplanarParallelWires : public Pattern
 {
 public:
   virtual ~CoplanarParallelWires() { };
