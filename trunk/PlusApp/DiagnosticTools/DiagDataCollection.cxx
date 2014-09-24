@@ -20,298 +20,271 @@
 
 int main(int argc, char **argv)
 {
-	bool printHelp(false);
-	std::string inputConfigFileName;
-	double inputAcqTimeLength(60);
-	std::string outputTrackerBufferSequenceFileName("TrackerBufferMetafile"); 
-	std::string outputVideoBufferSequenceFileName("VideoBufferMetafile"); 
-	
-	int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  bool printHelp(false);
+  std::string inputConfigFileName;
+  double inputAcqTimeLength(60);
+  std::vector<std::string> acqChannelIds;
+  std::string outputSequenceFileNamePrefix="Diag";
 
-	vtksys::CommandLineArguments args;
-	args.Initialize(argc, argv);
+  int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
-	args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
-	args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Name of the input configuration file.");
-	args.AddArgument("--acq-time-length", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputAcqTimeLength, "Length of acquisition time in seconds (Default: 60s)");	
-	args.AddArgument("--output-tracker-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputTrackerBufferSequenceFileName, "Filename of the output tracker buffer sequence metafile (Default: TrackerBufferMetafile)");
-	args.AddArgument("--output-video-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVideoBufferSequenceFileName, "Filename of the output video buffer sequence metafile (Default: VideoBufferMetafile)");
-	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
+  vtksys::CommandLineArguments args;
+  args.Initialize(argc, argv);
+
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
+  args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Name of the input configuration file.");
+  args.AddArgument("--acq-time-length", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputAcqTimeLength, "Length of acquisition time in seconds (Default: 60s)");
+  args.AddArgument("--acq-channel-ids", vtksys::CommandLineArguments::MULTI_ARGUMENT, &acqChannelIds, "Identifiers of the output channels that are recorded. If not specified then all channels are recorded.");
+  args.AddArgument("--output-seq-file-prefix", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputSequenceFileNamePrefix, "Filename prefix for the recorded output channels (Default: Diag)");
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
 
   if ( !args.Parse() )
-	{
-		std::cerr << "Problem parsing arguments" << std::endl;
-		std::cout << "Help: " << args.GetHelp() << std::endl;
-		exit(EXIT_FAILURE);
-	}
-  
-	if ( printHelp ) 
-	{
-		std::cout << "Help: " << args.GetHelp() << std::endl;
-		exit(EXIT_SUCCESS); 
-	}
-  
+  {
+    std::cerr << "Problem parsing arguments" << std::endl;
+    std::cout << "Help: " << args.GetHelp() << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  if ( printHelp )
+  {
+    std::cout << "Help: " << args.GetHelp() << std::endl;
+    exit(EXIT_SUCCESS);
+  }
+
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-	if (inputConfigFileName.empty())
-	{
-		std::cerr << "--config-file is required" << std::endl;
-		exit(EXIT_FAILURE);
-	}
+  if (inputConfigFileName.empty())
+  {
+    std::cerr << "--config-file is required" << std::endl;
+    exit(EXIT_FAILURE);
+  }
 
-	///////////////  
+  // Find program path
+  std::string programPath("./"), errorMsg;
+  if ( !vtksys::SystemTools::FindProgramPath(argv[0], programPath, errorMsg) )
+  {
+    LOG_ERROR(errorMsg);
+  }
+  programPath = vtksys::SystemTools::GetParentDirectory(programPath.c_str());
 
-	//************************************************************************************
-	// Find program path 
-	std::string programPath("./"), errorMsg; 
-	if ( !vtksys::SystemTools::FindProgramPath(argv[0], programPath, errorMsg) )
-	{
-		LOG_ERROR(errorMsg); 
-	}
-	programPath = vtksys::SystemTools::GetParentDirectory(programPath.c_str()); 
-
-	//************************************************************************************
-	// Initialize data collector
+  // Initialize data collector
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
   if ( configRootElement == NULL )
-  {	
-    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
-    exit(EXIT_FAILURE); 
+  {
+    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str());
+    exit(EXIT_FAILURE);
   }
 
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
 
-	vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
+  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New();
 
-	dataCollector->ReadConfiguration(configRootElement);
-
-  DeviceCollection devices;
-  dataCollector->GetDevices(devices);
-  if( devices.size() != 1 )
-  {
-    LOG_ERROR("Multiple selectable devices defined when only 1 expected. Please review configuration file.");
-    exit(EXIT_FAILURE);
-  }
+  dataCollector->ReadConfiguration(configRootElement);
 
   if ( dataCollector->Connect() != PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to initialize data collector!"); 
-    exit(EXIT_FAILURE); 
-  }
-
-  vtkPlusDevice* videoDevice = NULL;
-  dataCollector->GetDevice(videoDevice, "VideoSource");
-
-  if( videoDevice == NULL )
-  {
-    LOG_ERROR("No device found with ID \"VideoSource\". Please define your video source device.");
+    LOG_ERROR("Failed to initialize data collector!");
     exit(EXIT_FAILURE);
   }
 
-  vtkPlusDevice* trackerDevice = NULL;
-  dataCollector->GetDevice(trackerDevice, "Tracker");
-
-  if( trackerDevice == NULL )
+  std::vector< vtkPlusChannel* > acqChannels;
+  if (acqChannelIds.empty())
   {
-    LOG_ERROR("No device found with ID \"Tracker\". Please define your tracker device.");
-    exit(EXIT_FAILURE);
+    // No channel names have been specified - use them all
+    for( DeviceCollectionConstIterator deviceIt = dataCollector->GetDeviceConstIteratorBegin(); deviceIt != dataCollector->GetDeviceConstIteratorEnd(); ++deviceIt )
+    {
+      for( ChannelContainerConstIterator channelIt = (*deviceIt)->GetOutputChannelsStart(); channelIt != (*deviceIt)->GetOutputChannelsEnd(); ++channelIt )
+      {
+        if ((*channelIt)->GetOwnerDevice()==(*deviceIt))
+        {
+          // only add original channels (don't add mirrored output channels)
+          acqChannels.push_back(*channelIt);
+        }
+      }
+    }
   }
-  
-  vtkPlusChannel* aChannel(NULL);
-  vtkPlusDataSource* aSource(NULL);
-  if( videoDevice->GetOutputChannelByName(aChannel, "VideoOutput") != PLUS_SUCCESS || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  else
   {
-    LOG_ERROR("Unable to retrieve video source from channel VideoOutput.");
-    exit(EXIT_FAILURE);
+    for (std::vector<std::string>::iterator acqChannelIdIt=acqChannelIds.begin(); acqChannelIdIt!=acqChannelIds.end(); ++acqChannelIdIt)
+    {
+      vtkPlusChannel* channel=NULL;
+      dataCollector->GetChannel(channel, *acqChannelIdIt);
+      if (channel==NULL)
+      {
+        LOG_ERROR("Channel not found: " << (*acqChannelIdIt));
+        exit(EXIT_FAILURE);
+      }
+      acqChannels.push_back(channel);
+    }
   }
 
   // Enable timestamp reporting for video and all tools
-  if (aSource != NULL ) 
+  for (std::vector< vtkPlusChannel* >::iterator acqChannelIt=acqChannels.begin(); acqChannelIt!=acqChannels.end(); ++acqChannelIt)
   {
-    aSource->GetBuffer()->SetTimeStampReporting(true);
-  }
-	if ( trackerDevice != NULL )
-	{
-    for (DataSourceContainerConstIterator it = trackerDevice->GetToolIteratorBegin(); it != trackerDevice->GetToolIteratorEnd(); ++it)
-		{
-      vtkPlusDataSource* tool = it->second;
-		  tool->GetBuffer()->SetTimeStampReporting(true);
+    vtkPlusDataSource* videoSource=NULL;
+    if( (*acqChannelIt)->GetVideoSource(videoSource) == PLUS_SUCCESS && videoSource != NULL )
+    {
+      videoSource->GetBuffer()->SetTimeStampReporting(true);
     }
-	}
-  
-	if ( dataCollector->Start() != PLUS_SUCCESS )
+    for (DataSourceContainerConstIterator it = (*acqChannelIt)->GetToolsStartIterator(); it != (*acqChannelIt)->GetToolsEndIterator(); ++it)
+    {
+      vtkPlusDataSource* tool = it->second;
+      tool->GetBuffer()->SetTimeStampReporting(true);
+    }
+  }
+
+  if ( dataCollector->Start() != PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to start data collection!"); 
+    LOG_ERROR("Failed to start data collection!");
     exit(EXIT_FAILURE);
   }
 
-	const double acqStartTime = vtkTimerLog::GetUniversalTime(); 
+  const double acqStartTime = vtkTimerLog::GetUniversalTime();
 
-	//************************************************************************************
-	// Record data
-	while ( acqStartTime + inputAcqTimeLength > vtkTimerLog::GetUniversalTime() )
-	{
-		LOG_INFO( acqStartTime + inputAcqTimeLength - vtkTimerLog::GetUniversalTime() << " seconds left..." ); 
-		vtksys::SystemTools::Delay(1000); 
-	}
+  // Record data
+  while ( acqStartTime + inputAcqTimeLength > vtkTimerLog::GetUniversalTime() )
+  {
+    LOG_INFO( acqStartTime + inputAcqTimeLength - vtkTimerLog::GetUniversalTime() << " seconds left..." );
+    vtksys::SystemTools::Delay(1000);
+  }
 
-	//************************************************************************************
-	// Stop recording
-	if ( videoDevice != NULL ) 
-	{
-		LOG_INFO("Stop video recording ..."); 
-		videoDevice->StopRecording(); 
-	}
+  // Stop recording
+  if ( dataCollector->Stop() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to stop data collection!");
+    exit(EXIT_FAILURE);
+  }
 
-	if ( trackerDevice != NULL )
-	{
-		LOG_INFO("Stop tracking ..."); 
-		trackerDevice->StopRecording(); 
-	}
+  // Print statistics
+  for (std::vector< vtkPlusChannel* >::iterator acqChannelIt=acqChannels.begin(); acqChannelIt!=acqChannels.end(); ++acqChannelIt)
+  {
+    LOG_INFO("---------------------------------");
+    LOG_INFO("Device: "<<(*acqChannelIt)->GetOwnerDevice()->GetDeviceId());
+    LOG_INFO("Channel: "<<(*acqChannelIt)->GetChannelId());
 
-	//************************************************************************************
-	// Print statistics
-	if ( aSource != NULL ) 
-	{    
-    double realVideoFramePeriodStdevSec=0;
-		double realVideoFrameRate = aSource->GetBuffer()->GetFrameRate(false, &realVideoFramePeriodStdevSec);
-		double idealVideoFrameRate = aSource->GetBuffer()->GetFrameRate(true);
-		int numOfItems = aSource->GetBuffer()->GetNumberOfItems(); 
-		int bufferSize = aSource->GetBuffer()->GetBufferSize(); 
-
-		LOG_INFO("Nominal video frame rate: " << idealVideoFrameRate << "fps"); 
-    LOG_INFO("Actual video frame rate: " << realVideoFrameRate << "fps (frame period stdev: "<<realVideoFramePeriodStdevSec*1000.0<<"ms)"); 
-    LOG_INFO("Number of items in the video buffer: " << numOfItems ); 
-		LOG_INFO("Video buffer size: " << bufferSize); 
-
-    // Check if the same item index (usually "frame number") is stored in multiple items. It may mean too frequent data reading from a tracking device
-    int numberOfNonUniqueFrames=0;
-    int numberOfValidFrames=0;
-    for ( BufferItemUidType frameUid = aSource->GetBuffer()->GetOldestItemUidInBuffer(); frameUid <= aSource->GetBuffer()->GetLatestItemUidInBuffer(); ++frameUid )
+    // Video data
+    vtkPlusDataSource* videoSource=NULL;
+    if( (*acqChannelIt)->GetVideoSource(videoSource) == PLUS_SUCCESS && videoSource != NULL )
     {
-      double time(0); 
-      if ( aSource->GetBuffer()->GetTimeStamp(frameUid, time) != ITEM_OK ) { continue; }
-      unsigned long framenum(0); 
-      if ( aSource->GetBuffer()->GetIndex(frameUid, framenum) != ITEM_OK) { continue; }
-      numberOfValidFrames++;
-      if (frameUid == aSource->GetBuffer()->GetOldestItemUidInBuffer())
-      { 
-        // no previous frame
-        continue;
-      }
-      double prevtime(0); 
-      if ( aSource->GetBuffer()->GetTimeStamp(frameUid - 1, prevtime) != ITEM_OK ) { continue; }		
-      unsigned long prevframenum(0); 
-      if ( aSource->GetBuffer()->GetIndex(frameUid - 1, prevframenum) != ITEM_OK) { continue; }      
-      if (framenum == prevframenum)
-      {
-        // the same frame number was set for different frame indexes; this should not happen
-        LOG_DEBUG("Non-unique frame has been found with frame number "<<framenum<<" (uid: "<<frameUid-1<<", "<<frameUid<<", time: "<<prevtime<<", "<<time<<")");
-        numberOfNonUniqueFrames++;
-      }
-    }  	
-    LOG_INFO("Number of valid frames: "<<numberOfValidFrames);      
-    LOG_INFO("Number of non-unique frames: "<<numberOfNonUniqueFrames);
-    if (numberOfNonUniqueFrames>0)
-    {
-      LOG_WARNING("Non-unique frames are recorded in the buffer, probably the requested acquisition rate is too high");
-    }
+      double realVideoFramePeriodStdevSec=0;
+      double realVideoFrameRate = videoSource->GetBuffer()->GetFrameRate(false, &realVideoFramePeriodStdevSec);
+      double idealVideoFrameRate = videoSource->GetBuffer()->GetFrameRate(true);
+      int numOfItems = videoSource->GetBuffer()->GetNumberOfItems();
+      int bufferSize = videoSource->GetBuffer()->GetBufferSize();
 
-	}
-
-	if ( trackerDevice != NULL )
-	{
-    for (DataSourceContainerConstIterator it = trackerDevice->GetToolIteratorBegin(); it != trackerDevice->GetToolIteratorEnd(); ++it)
-		{
-      vtkPlusDataSource* tool = it->second;
-
-			int numOfItems = tool->GetBuffer()->GetNumberOfItems(); 
-			int bufferSize = tool->GetBuffer()->GetBufferSize(); 
-      double realFramePeriodStdevSec=0;
-			double realFrameRate = tool->GetBuffer()->GetFrameRate(false, &realFramePeriodStdevSec);
-			double idealFrameRate = tool->GetBuffer()->GetFrameRate(true);
-			LOG_INFO("------------------ " << tool->GetSourceId() << " ---------------------"); 
-			LOG_INFO("Tracker tool " << tool <<  " actual sampling frequency: " << realFrameRate << "fps (sampling period stdev: "<<realFramePeriodStdevSec*1000.0<<"ms)"); 
-			LOG_INFO("Tracker tool " << tool <<  " nominal sampling frequency: " << idealFrameRate << "fps"); 
-			LOG_INFO("Number of items in the tool buffer: " << numOfItems ); 
-			LOG_INFO("Tool buffer size: " << bufferSize); 
+      LOG_INFO("Nominal video frame rate: " << idealVideoFrameRate << "fps");
+      LOG_INFO("Actual video frame rate: " << realVideoFrameRate << "fps (frame period stdev: "<<realVideoFramePeriodStdevSec*1000.0<<"ms)");
+      LOG_INFO("Number of items in the video buffer: " << numOfItems );
+      LOG_INFO("Video buffer size: " << bufferSize);
 
       // Check if the same item index (usually "frame number") is stored in multiple items. It may mean too frequent data reading from a tracking device
       int numberOfNonUniqueFrames=0;
       int numberOfValidFrames=0;
-	    for ( BufferItemUidType frameUid = tool->GetBuffer()->GetOldestItemUidInBuffer(); frameUid <= tool->GetBuffer()->GetLatestItemUidInBuffer(); ++frameUid )
-	    {
-		    double time(0); 
-		    if ( tool->GetBuffer()->GetTimeStamp(frameUid, time) != ITEM_OK ) { continue; }
-		    unsigned long framenum(0); 
-		    if ( tool->GetBuffer()->GetIndex(frameUid, framenum) != ITEM_OK) { continue; }
+      for ( BufferItemUidType frameUid = videoSource->GetBuffer()->GetOldestItemUidInBuffer(); frameUid <= videoSource->GetBuffer()->GetLatestItemUidInBuffer(); ++frameUid )
+      {
+        double time(0);
+        if ( videoSource->GetBuffer()->GetTimeStamp(frameUid, time) != ITEM_OK ) { continue; }
+        unsigned long framenum(0);
+        if ( videoSource->GetBuffer()->GetIndex(frameUid, framenum) != ITEM_OK) { continue; }
         numberOfValidFrames++;
-        if (frameUid == tool->GetBuffer()->GetOldestItemUidInBuffer())
-        { 
+        if (frameUid == videoSource->GetBuffer()->GetOldestItemUidInBuffer())
+        {
           // no previous frame
           continue;
         }
-		    double prevtime(0); 
-		    if ( tool->GetBuffer()->GetTimeStamp(frameUid - 1, prevtime) != ITEM_OK ) { continue; }		
-		    unsigned long prevframenum(0); 
-		    if ( tool->GetBuffer()->GetIndex(frameUid - 1, prevframenum) != ITEM_OK) { continue; }
-		    if (framenum == prevframenum)
-		    {
-			    // the same frame number was set for different frame indexes; this should not happen
+        double prevtime(0);
+        if ( videoSource->GetBuffer()->GetTimeStamp(frameUid - 1, prevtime) != ITEM_OK ) { continue; }
+        unsigned long prevframenum(0);
+        if ( videoSource->GetBuffer()->GetIndex(frameUid - 1, prevframenum) != ITEM_OK) { continue; }
+        if (framenum == prevframenum)
+        {
+          // the same frame number was set for different frame indexes; this should not happen
           LOG_DEBUG("Non-unique frame has been found with frame number "<<framenum<<" (uid: "<<frameUid-1<<", "<<frameUid<<", time: "<<prevtime<<", "<<time<<")");
           numberOfNonUniqueFrames++;
-		    }
-	    }  	
-      LOG_INFO("Number of valid frames: "<<numberOfValidFrames);      
+        }
+      }
+      LOG_INFO("Number of valid frames: "<<numberOfValidFrames);
       LOG_INFO("Number of non-unique frames: "<<numberOfNonUniqueFrames);
       if (numberOfNonUniqueFrames>0)
       {
         LOG_WARNING("Non-unique frames are recorded in the buffer, probably the requested acquisition rate is too high");
       }
-		}
-	}  
 
+      // Dump video buffer to file
+      std::string outputVideoBufferSequenceFileName = vtkPlusConfig::GetInstance()->GetOutputPath(outputSequenceFileNamePrefix
+        + "-" + (*acqChannelIt)->GetChannelId() + "-" + videoSource->GetSourceId() + ".mha" );
+      LOG_INFO("Write video buffer to " << outputVideoBufferSequenceFileName);
+      videoSource->GetBuffer()->WriteToMetafile( outputVideoBufferSequenceFileName.c_str(), false);
+    }
 
-	//************************************************************************************
-	// Generate html report
-  LOG_INFO("Generate report ...");
-  vtkSmartPointer<vtkHTMLGenerator> htmlReport = vtkSmartPointer<vtkHTMLGenerator>::New(); 
-  htmlReport->SetTitle("Data Collection Report"); 
+    // Tracker tools
+    for (DataSourceContainerConstIterator it = (*acqChannelIt)->GetToolsStartIterator(); it != (*acqChannelIt)->GetToolsEndIterator(); ++it)
+    {
+      vtkPlusDataSource* tool = it->second;
 
-  vtkSmartPointer<vtkGnuplotExecuter> plotter = vtkSmartPointer<vtkGnuplotExecuter>::New(); 
-  plotter->SetHideWindow(true); 
+      int numOfItems = tool->GetBuffer()->GetNumberOfItems();
+      int bufferSize = tool->GetBuffer()->GetBufferSize();
+      double realFramePeriodStdevSec=0;
+      double realFrameRate = tool->GetBuffer()->GetFrameRate(false, &realFramePeriodStdevSec);
+      double idealFrameRate = tool->GetBuffer()->GetFrameRate(true);
+      LOG_INFO("------------------ " << tool->GetSourceId() << " ---------------------");
+      LOG_INFO("Tracker tool " << tool->GetSourceId() <<  " actual sampling frequency: " << realFrameRate << "fps (sampling period stdev: "<<realFramePeriodStdevSec*1000.0<<"ms)");
+      LOG_INFO("Tracker tool " << tool->GetSourceId() <<  " nominal sampling frequency: " << idealFrameRate << "fps");
+      LOG_INFO("Number of items in the tool buffer: " << numOfItems );
+      LOG_INFO("Tool buffer size: " << bufferSize);
 
-  // Generate tracking data acq report
-  if ( trackerDevice != NULL )
-  {
-    trackerDevice->GenerateDataAcquisitionReport(**(trackerDevice->GetOutputChannelsStart()), htmlReport, plotter); 
+      // Check if the same item index (usually "frame number") is stored in multiple items. It may mean too frequent data reading from a tracking device
+      int numberOfNonUniqueFrames=0;
+      int numberOfValidFrames=0;
+      for ( BufferItemUidType frameUid = tool->GetBuffer()->GetOldestItemUidInBuffer(); frameUid <= tool->GetBuffer()->GetLatestItemUidInBuffer(); ++frameUid )
+      {
+        double time(0);
+        if ( tool->GetBuffer()->GetTimeStamp(frameUid, time) != ITEM_OK ) { continue; }
+        unsigned long framenum(0);
+        if ( tool->GetBuffer()->GetIndex(frameUid, framenum) != ITEM_OK) { continue; }
+        numberOfValidFrames++;
+        if (frameUid == tool->GetBuffer()->GetOldestItemUidInBuffer())
+        {
+          // no previous frame
+          continue;
+        }
+        double prevtime(0);
+        if ( tool->GetBuffer()->GetTimeStamp(frameUid - 1, prevtime) != ITEM_OK ) { continue; }
+        unsigned long prevframenum(0);
+        if ( tool->GetBuffer()->GetIndex(frameUid - 1, prevframenum) != ITEM_OK) { continue; }
+        if (framenum == prevframenum)
+        {
+          // the same frame number was set for different frame indexes; this should not happen
+          LOG_DEBUG("Non-unique frame has been found with frame number "<<framenum<<" (uid: "<<frameUid-1<<", "<<frameUid<<", time: "<<prevtime<<", "<<time<<")");
+          numberOfNonUniqueFrames++;
+        }
+      }
+      LOG_INFO("Number of valid frames: "<<numberOfValidFrames);
+      LOG_INFO("Number of non-unique frames: "<<numberOfNonUniqueFrames);
+      if (numberOfNonUniqueFrames>0)
+      {
+        LOG_WARNING("Non-unique frames are recorded in the buffer, probably the requested acquisition rate is too high");
+      }
+      // Dump tracker tool buffer to file
+      std::string outputTrackerBufferSequenceFileName = vtkPlusConfig::GetInstance()->GetOutputPath(outputSequenceFileNamePrefix
+        + "-" + (*acqChannelIt)->GetChannelId() + "-" + tool->GetSourceId() + ".mha" );
+      LOG_INFO("Write tracker buffer to " << outputTrackerBufferSequenceFileName);
+      tool->GetBuffer()->WriteToMetafile( outputTrackerBufferSequenceFileName.c_str(), false);
+    }
+
+    // Generate tracking data acq report
+    vtkSmartPointer<vtkHTMLGenerator> htmlReport = vtkSmartPointer<vtkHTMLGenerator>::New();
+    htmlReport->SetTitle("Data Collection Report");
+    vtkSmartPointer<vtkGnuplotExecuter> plotter = vtkSmartPointer<vtkGnuplotExecuter>::New();
+    plotter->SetHideWindow(true);
+    (*acqChannelIt)->GenerateDataAcquisitionReport(htmlReport, plotter);
+    std::string workingDir = plotter->GetWorkingDirectory();
+    std::string reportFileName = workingDir + "/DataCollectionReport-" + (*acqChannelIt)->GetChannelId() + ".html";
+    htmlReport->SaveHtmlPage(reportFileName.c_str());
   }
 
-  // Generate video data acq report
-  if ( videoDevice != NULL ) 
-  {
-    videoDevice->GenerateDataAcquisitionReport(**(videoDevice->GetOutputChannelsStart()), htmlReport, plotter); 
-  }
+  dataCollector->Disconnect();
 
-  std::string reportFileName = plotter->GetWorkingDirectory() + std::string("/DataCollectionReport.html"); 
-  htmlReport->SaveHtmlPage(reportFileName.c_str()); 
-
-	//************************************************************************************
-	// Dump buffers to file 
-	if ( aSource != NULL ) 
-	{
-		LOG_INFO("Write video buffer to " << outputVideoBufferSequenceFileName);
-		aSource->GetBuffer()->WriteToMetafile( outputVideoBufferSequenceFileName.c_str(), false); 
-	}
-
-	if ( trackerDevice != NULL )
-	{
-		LOG_INFO("Write tracker buffer to " << outputTrackerBufferSequenceFileName);
-		trackerDevice->WriteToMetafile( outputTrackerBufferSequenceFileName.c_str(), false); 
-	}
-
-	dataCollector->Disconnect(); 
-
-	return EXIT_SUCCESS; 
+  return EXIT_SUCCESS;
 }
 
