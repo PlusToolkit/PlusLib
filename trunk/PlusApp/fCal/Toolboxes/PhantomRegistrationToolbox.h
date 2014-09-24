@@ -133,9 +133,6 @@ protected:
   /*! Get message telling the state of the calibration */
   QString GetCalibrationStateMessage();
 
-  /*! Get the stylus calibration error*/
-  PlusStatus GetStylusCalibrationError(double & calibrationError);
-
   protected slots:
     /*!
     * Slot handling open stylus calibration button click

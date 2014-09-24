@@ -666,16 +666,6 @@ PlusStatus PhantomRegistrationToolbox::Start()
   vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
   m_PivotDetection->SetExpectedPivotsNumber(m_PhantomLandmarkRegistration->GetDefinedLandmarks()->GetNumberOfPoints());
   m_PivotDetection->SetMinimunDistanceBetweenLandmarksMm(m_PhantomLandmarkRegistration->GetMinimunDistanceBetweenTwoLandmarks());
-  //The pivot threshold set proportional to the the pivot calibration error
-  double error=0;
-  if(GetStylusCalibrationError(error)==PLUS_SUCCESS)
-  {
-    m_PivotDetection->SetPivotThresholdMm(error*3);
-  }
-  else
-  {
-    LOG_WARNING("Use default pivot threshold")
-  }
 
   if (dataCollector)
   {
@@ -778,26 +768,6 @@ void PhantomRegistrationToolbox::OpenStylusCalibration()
 
   // Set to InProgress if both stylus calibration and phantom definition are available
   Start();
-}
-
-//-----------------------------------------------------------------------------
-PlusStatus PhantomRegistrationToolbox::GetStylusCalibrationError(double & calibrationError)
-{
-  LOG_TRACE("PhantomRegistrationToolbox::GetStylusCalibrationError");
-
-  // Read stylus coordinate frame name
-  vtkPivotCalibrationAlgo* pivotCalibrationAlgo = vtkPivotCalibrationAlgo::New();
-  if (pivotCalibrationAlgo->ReadConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ) != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Failed to read stylus coordinate frame name!");
-    pivotCalibrationAlgo->Delete();
-    return PLUS_FAIL;
-  }
-
-  // Read stylus calibration transform
-  PlusTransformName stylusTipToStylusTransformName(m_PhantomLandmarkRegistration->GetStylusTipCoordinateFrame(), pivotCalibrationAlgo->GetObjectMarkerCoordinateFrame());
-  pivotCalibrationAlgo->Delete();
-  return m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->GetTransformError(stylusTipToStylusTransformName, calibrationError);
 }
 
 //-----------------------------------------------------------------------------
