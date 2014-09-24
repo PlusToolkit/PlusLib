@@ -91,7 +91,7 @@ public:
   vtkGetStringMacro(ReferenceCoordinateFrame);
   vtkGetObjectMacro(PivotPointsReference, vtkPoints);
   vtkGetMacro(ExpectedPivotsNumber, int);
-  vtkSetMacro(MinimunDistanceBetweenLandmarksMM, double);
+  vtkSetMacro(MinimunDistanceBetweenLandmarksMm, double);
 
   /*! Once the pivot is detected (after DetectionTime) the stylus could still be pivoting in the same place, this function determines if it is a new pivot position if it is not the pivot position will be averaged with the existing one.*/
   int IsNewPivotPointPosition(double* stylusPosition);
@@ -139,7 +139,7 @@ protected:
   /*! A pivot position will be consider when the stylus tip position magnitude change is below PivotThresholdMm.*/
   double PivotThresholdMm;
   /*!The minimun distance in between any two landmarks, it will be a NEW pivot detected only if it is further away from anyother already detected pivot .*/
-  double MinimunDistanceBetweenLandmarksMM;
+  double MinimunDistanceBetweenLandmarksMm;
 
   vtkBoundingBox BoundingBox;
 
