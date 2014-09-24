@@ -10,6 +10,9 @@ See License.txt for details.
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 
+#include "vtkGnuplotExecuter.h"
+#include "vtkHTMLGenerator.h"
+
 //----------------------------------------------------------------------------
 
 vtkCxxRevisionMacro(vtkPlusChannel, "$Revision: 1.0$");
@@ -1477,4 +1480,114 @@ PlusStatus vtkPlusChannel::SetCustomAttribute( const std::string& attributeId, c
   this->CustomAttributes[attributeId] = value;
 
   return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkPlusChannel::GenerateDataAcquisitionReport(vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter)
+{
+  if ( htmlReport == NULL || plotter == NULL )
+  {
+    LOG_ERROR("Caller should define HTML report generator and gnuplot plotter before report generation!"); 
+    return PLUS_FAIL; 
+  }
+  
+  vtkSmartPointer<vtkTable> timestampReportTable = vtkSmartPointer<vtkTable>::New();
+  std::string reportFile = vtkPlusConfig::GetInstance()->GetOutputPath(
+    vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()+".DataBufferTimestamps.txt" ); 
+
+  std::string plotBufferTimestampScript = vtkPlusConfig::GetInstance()->GetScriptPath("gnuplot/PlotBufferTimestamp.gnu");
+  if ( !vtksys::SystemTools::FileExists( plotBufferTimestampScript.c_str(), true) )
+  {
+    LOG_ERROR("Unable to find gnuplot script at: " << plotBufferTimestampScript); 
+    return PLUS_FAIL; 
+  }
+
+  std::string reportText = std::string("Device: ")+this->GetOwnerDevice()->GetDeviceId()+" - Channel: "+this->GetChannelId();
+  htmlReport->AddText(reportText.c_str(), vtkHTMLGenerator::H1); 
+
+  std::string deviceAndChannelName=std::string(this->GetOwnerDevice()->GetDeviceId())+"-"+this->GetChannelId();
+
+  // Video data
+  vtkPlusDataSource* videoSource=NULL;
+  if( this->GetVideoSource(videoSource) == PLUS_SUCCESS && videoSource != NULL ) 
+  {
+    if ( videoSource->GetBuffer()->GetTimeStampReportTable(timestampReportTable) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to get timestamp report table from video buffer!");
+      return PLUS_FAIL;
+    }
+
+    if ( vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat( timestampReportTable, reportFile.c_str() ) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to write table to file in gnuplot format!");
+      return PLUS_FAIL;
+    }
+
+    if ( !vtksys::SystemTools::FileExists( reportFile.c_str(), true) )
+    {
+      LOG_ERROR("Unable to find video data acquisition report file at: " << reportFile);
+      return PLUS_FAIL;
+    }
+
+    htmlReport->AddText("Video Data Acquisition Analysis", vtkHTMLGenerator::H2);
+    plotter->ClearArguments();
+    plotter->AddArgument("-e");
+    std::ostringstream videoBufferAnalysis;
+    videoBufferAnalysis << "f='" << reportFile << "'; o='VideoBufferTimestamps-"+deviceAndChannelName+"';" << std::ends;
+    plotter->AddArgument(videoBufferAnalysis.str().c_str());
+
+    plotter->AddArgument(plotBufferTimestampScript.c_str()); 
+    if ( plotter->Execute() != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to run gnuplot executer!");
+      return PLUS_FAIL;
+    }
+    plotter->ClearArguments();
+
+    std::string imageFilename = std::string("VideoBufferTimestamps-")+deviceAndChannelName+".jpg";
+    htmlReport->AddImage(imageFilename.c_str(), "Video Data Acquisition Analysis");
+    htmlReport->AddHorizontalLine();
+  }
+
+  // Tracker tools
+  for (DataSourceContainerConstIterator it = this->GetToolsStartIterator(); it != this->GetToolsEndIterator(); ++it)
+  {
+    vtkPlusDataSource* tool = it->second;
+
+    if ( tool->GetBuffer()->GetTimeStampReportTable(timestampReportTable) != PLUS_SUCCESS )
+    { 
+      LOG_ERROR("Failed to get timestamp report table from tool '"<< tool->GetSourceId() << "' buffer!"); 
+      return PLUS_FAIL; 
+    }
+
+    if ( vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat( timestampReportTable, reportFile.c_str() ) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to write table to file in gnuplot format!");
+      return PLUS_FAIL;
+    }
+
+    reportText = std::string("Tracking Data Acquisition Analysis - ")+tool->GetSourceId();
+    htmlReport->AddText(reportText.c_str(), vtkHTMLGenerator::H2); 
+    plotter->ClearArguments(); 
+    plotter->AddArgument("-e");
+    std::ostringstream trackerBufferAnalysis;
+    trackerBufferAnalysis << "f='" << reportFile << "'; o='TrackerBufferTimestamps-"<<deviceAndChannelName<<"-"<<tool->GetSourceId()<<"';" << std::ends; 
+    plotter->AddArgument(trackerBufferAnalysis.str().c_str()); 
+    plotter->AddArgument(plotBufferTimestampScript.c_str());  
+
+    if ( plotter->Execute() != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Failed to run gnuplot executer!");
+      return PLUS_FAIL;
+    }
+    plotter->ClearArguments();
+
+    std::string imageFilename = std::string("TrackerBufferTimestamps-")+deviceAndChannelName+"-"+tool->GetSourceId()+".jpg";
+    reportText =  std::string("Tracking Data Acquisition Analysis - ")+tool->GetSourceId();    
+    htmlReport->AddImage(imageFilename.c_str(), reportText.c_str()); 
+
+    htmlReport->AddHorizontalLine(); 
+  }
+
+  return PLUS_SUCCESS; 
 }

@@ -137,6 +137,12 @@ public:
 
   vtkSetMacro(SaveRfProcessingParameters, bool);
 
+  /*! 
+    Add generated html report from data acquisition to the existing html report. 
+    htmlReport and plotter arguments has to be defined by the caller function 
+  */
+  virtual PlusStatus GenerateDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter ); 
+
 protected:
   /*! Get number of tracked frames between two given timestamps (inclusive) */
   virtual int GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, double aTimestampTo);

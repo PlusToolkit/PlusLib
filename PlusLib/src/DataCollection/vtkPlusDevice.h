@@ -230,12 +230,6 @@ public:
   virtual double GetLocalTimeOffsetSec();
 
   /*! 
-  Add generated html report from data acquisition to the existing html report. 
-  htmlReport and plotter arguments has to be defined by the caller function 
-  */
-  virtual PlusStatus GenerateDataAcquisitionReport( vtkPlusChannel& aChannel, vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter ); 
-
-  /*! 
   The subclass will do all the hardware-specific update stuff
   in this function. It should call ToolUpdate() for each tool.
   Note that vtkPlusDevice.cxx starts up a separate thread after
