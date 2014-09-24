@@ -1,13 +1,13 @@
 <PlusConfiguration version="2.1">
   <CoordinateDefinitions>
-    <Transform From="Phantom" To="Reference"
+	 <Transform From="Phantom" To="Reference"
       Matrix="
-        -0.00836038	0.00375058	-0.999958	22.5696
-        -0.0179895	0.999831	0.00390051	-39.8664
-        0.999803	0.0180214	-0.00829149	25.6593
+        -0.0078756	0.00599428	-0.999951	22.5086
+        -0.0166445	0.999843	0.00612472	-39.8148
+        0.99983	0.0166919	-0.00777459	25.6756
         0	0	0	1"
-       Error="0.325063" Date="092314_160233" />
-    <Transform From="Reference" To="Tracker"
+       Error="0.257354" Date="092414_171135" />
+	<Transform From="Reference" To="Tracker"
       Matrix="
         2.22045e-016	-1	0	300
         1	2.22045e-016	0	400

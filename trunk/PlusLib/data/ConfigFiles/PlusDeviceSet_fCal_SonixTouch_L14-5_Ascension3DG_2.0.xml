@@ -208,7 +208,7 @@
     ReferenceCoordinateFrame="Reference"
     StylusTipCoordinateFrame="StylusTip" 
     DetectionTimeSec="1.0"
-    PivotThresholdMM="1.8" />
+    PivotThresholdMm="1.8" />
 
   <vtkProbeCalibrationAlgo
     ImageCoordinateFrame="Image"
