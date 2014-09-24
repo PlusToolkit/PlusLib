@@ -376,7 +376,7 @@ cmdargs.AddArgument("--intermediate-file-output-dir", vtksys::CommandLineArgumen
         exit(EXIT_FAILURE);
       }
       PivotDetection->SetExpectedPivotsNumber(phantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints());
-      PivotDetection->SetMinimunDistanceBetweenLandmarksMM(phantomRegistration->GetMinimunDistanceBetweenTwoLandmarks());
+      PivotDetection->SetMinimunDistanceBetweenLandmarksMm(phantomRegistration->GetMinimunDistanceBetweenTwoLandmarks());
       PivotDetection->SetAcquisitionRate(1/(trackedStylusTipFrames->GetTrackedFrame(1)->GetTimestamp()-trackedStylusTipFrames->GetTrackedFrame(0)->GetTimestamp()));
       if (PivotDetection->ReadConfiguration(configPivotDetection) != PLUS_SUCCESS)
       {

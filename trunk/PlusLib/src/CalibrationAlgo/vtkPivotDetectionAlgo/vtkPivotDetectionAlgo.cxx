@@ -59,7 +59,7 @@ void vtkPivotDetectionAlgo::SetAcquisitionRate(double aquisitionRate)
     this->WindowSize=1;
   }
   LOG_INFO("SET AcquisitionRate = "<< AcquisitionRate << "[fps] WindowTimeSec = " << WindowTimeSec<<"[s] DetectionTimeSec = "<< DetectionTimeSec <<"[s]");
-  LOG_INFO("NumberOfWindows = "<< NumberOfWindows<< " WindowSize = "<< WindowSize<< " MinimunDistanceBetweenLandmarksMM = "<< MinimunDistanceBetweenLandmarksMM << "[mm] PivotThreshold " << PivotThresholdMm <<"[mm]");
+  LOG_INFO("NumberOfWindows = "<< NumberOfWindows<< " WindowSize = "<< WindowSize<< " MinimunDistanceBetweenLandmarksMM = "<< MinimunDistanceBetweenLandmarksMm << "[mm] PivotThreshold " << PivotThresholdMm <<"[mm]");
 }
 
 //----------------------------------------------------------------------------
@@ -168,7 +168,7 @@ vtkPivotDetectionAlgo::vtkPivotDetectionAlgo()
   this->AbovePivotThresholdMm = ABOVE_PIVOT_THRESHOLD_MM;
   this->PivotThresholdMm = PIVOT_THRESHOLD_MM;
   this->ExpectedPivotsNumber=EXPECTED_PIVOTS_NUMBER;
-  this->MinimunDistanceBetweenLandmarksMM=15.0;
+  this->MinimunDistanceBetweenLandmarksMm=15.0;
 }
 
 //-----------------------------------------------------------------------------
@@ -434,8 +434,8 @@ int vtkPivotDetectionAlgo::IsNewPivotPointPosition(double* stylusTipPosition)
     //    return false;
     //}
     ////if it is relatively close it might be same pivot outlier do not average it 
-    //else if(vtkMath::Norm(pivotDifference)<this->MinimunDistanceBetweenLandmarksMM/3)
-    if(vtkMath::Norm(pivotDifference)<this->MinimunDistanceBetweenLandmarksMM/3)
+    //else if(vtkMath::Norm(pivotDifference)<this->MinimunDistanceBetweenLandmarksMm/3)
+    if(vtkMath::Norm(pivotDifference)<this->MinimunDistanceBetweenLandmarksMm/3)
     {
       return id;
     }
@@ -590,7 +590,7 @@ PlusStatus vtkPivotDetectionAlgo::ReadConfiguration(vtkXMLDataElement* aConfig)
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, PivotThresholdMm, PhantomLandmarkPivotDetectionElement);
 
   LOG_INFO("AcquisitionRate = "<< AcquisitionRate << "[fps] WindowTimeSec = " << WindowTimeSec<<"[s] DetectionTimeSec = "<< DetectionTimeSec <<"[s]");
-  LOG_INFO("NumberOfWindows = "<< NumberOfWindows<< " WindowSize = "<< WindowSize<< " MinimunDistanceBetweenLandmarksMM = "<< MinimunDistanceBetweenLandmarksMM << "[mm] PivotThreshold " << PivotThresholdMm <<"[mm]");
+  LOG_INFO("NumberOfWindows = "<< NumberOfWindows<< " WindowSize = "<< WindowSize<< " MinimunDistanceBetweenLandmarksMm = "<< MinimunDistanceBetweenLandmarksMm << "[mm] PivotThreshold " << PivotThresholdMm <<"[mm]");
 
   return PLUS_SUCCESS;
 }
