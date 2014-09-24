@@ -544,6 +544,17 @@ PlusStatus vtkVisualizationController::SetVolumeColor( double r, double g, doubl
 
 //-----------------------------------------------------------------------------
 
+PlusStatus vtkVisualizationController::SetInputColor( double r, double g, double b )
+{
+  if( this->PerspectiveVisualizer != NULL )
+  {
+    this->PerspectiveVisualizer->SetInputColor(r, g, b);
+  }
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+
 PlusStatus vtkVisualizationController::IsExistingTransform(const char* aTransformFrom, const char* aTransformTo, bool aUseLatestTrackedFrame/* = true */)
 {
   PlusTransformName transformName(aTransformFrom, aTransformTo);

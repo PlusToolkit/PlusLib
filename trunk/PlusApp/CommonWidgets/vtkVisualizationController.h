@@ -236,6 +236,14 @@ public:
   */
   PlusStatus SetVolumeColor( double r, double g, double b );
 
+  /*!
+  * Set the input actor color
+  * \param r red value
+  * \param g green value
+  * \param b blue value
+  */
+  PlusStatus SetInputColor( double r, double g, double b );
+
   /*! Disconnect the image input */
   PlusStatus DisconnectInput();
 

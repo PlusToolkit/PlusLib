@@ -48,7 +48,7 @@ vtk3DObjectVisualizer::vtk3DObjectVisualizer()
   vtkSmartPointer<vtkGlyph3D> inputGlyph = vtkSmartPointer<vtkGlyph3D>::New();
   this->SetInputGlyph(inputGlyph);
   vtkSmartPointer<vtkSphereSource> inputSphereSource = vtkSmartPointer<vtkSphereSource>::New();
-  inputSphereSource->SetRadius(1.5); // mm
+  inputSphereSource->SetRadius(2.0); // mm
 
   // Connect all input items (except poly data) in chain
   this->InputGlyph->SetSourceConnection(inputSphereSource->GetOutputPort());  
@@ -63,7 +63,7 @@ vtk3DObjectVisualizer::vtk3DObjectVisualizer()
   vtkSmartPointer<vtkGlyph3D> resultGlyph = vtkSmartPointer<vtkGlyph3D>::New();
   this->SetResultGlyph(resultGlyph);
   vtkSmartPointer<vtkSphereSource> resultSphereSource = vtkSmartPointer<vtkSphereSource>::New();
-  resultSphereSource->SetRadius(3.0); // mm
+  resultSphereSource->SetRadius(1.0); // mm
 
   // Connect all result items (except poly data) in chain
   this->ResultGlyph->SetSourceConnection(resultSphereSource->GetOutputPort());
@@ -255,6 +255,15 @@ PlusStatus vtk3DObjectVisualizer::ShowAllObjects(bool aOn)
 PlusStatus vtk3DObjectVisualizer::ShowInput(bool aOn)
 {
   this->InputActor->SetVisibility(aOn);
+  this->CanvasRenderer->Modified();
+
+  return PLUS_SUCCESS;
+}
+//-----------------------------------------------------------------------------
+
+PlusStatus vtk3DObjectVisualizer::SetInputColor(double r, double g, double b)
+{
+  this->InputActor->GetProperty()->SetColor(r, g, b);
   this->CanvasRenderer->Modified();
 
   return PLUS_SUCCESS;

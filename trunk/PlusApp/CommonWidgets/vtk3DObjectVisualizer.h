@@ -88,6 +88,12 @@ public:
   PlusStatus ShowInput(bool aOn);
 
   /*!
+  * Set the actor color of the input polydata
+  * \param r g b
+  */
+  PlusStatus SetInputColor(double r, double g, double b);
+
+  /*!
   * Show or hide result points
   * \param aOn Show if true, else hide
   */
