@@ -879,60 +879,6 @@ PlusStatus vtkBrachyTracker::GetRawEncoderValuesTransform( double timestamp, vtk
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkBrachyTracker::GetStepperEncoderValues( TrackedFrame* trackedFrame, double &probePosition, double &probeRotation, double &templatePosition)
-{
-  if ( trackedFrame == NULL )
-  {
-    LOG_ERROR("Unable to get stepper encoder values - input tracked frame is NULL!"); 
-    return PLUS_FAIL; 
-  }
-
-  // Get the probe position from tracked frame info
-  const char* cProbePos = trackedFrame->GetCustomFrameField("ProbePosition"); 
-  if ( cProbePos == NULL )
-  {
-    LOG_ERROR("Couldn't find ProbePosition field in tracked frame!"); 
-    return PLUS_FAIL; 
-  }
-
-  if ( PlusCommon::StringToDouble(cProbePos, probePosition) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to convert probe position " << cProbePos << " to double!"); 
-    return PLUS_FAIL; 
-  }
-
-  // Get the probe rotation from tracked frame info
-  const char* cProbeRot = trackedFrame->GetCustomFrameField("ProbeRotation"); 
-  if ( cProbeRot == NULL )
-  {
-    LOG_ERROR("Couldn't find ProbeRotation field in tracked frame!"); 
-    return PLUS_FAIL; 
-  }
-
-  if ( PlusCommon::StringToDouble(cProbeRot, probeRotation) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to convert probe rotation " << cProbeRot << " to double!"); 
-    return PLUS_FAIL; 
-  }
-
-  // Get the template position from tracked frame info
-  const char* cTemplatePos = trackedFrame->GetCustomFrameField("TemplatePosition"); 
-  if ( cTemplatePos == NULL )
-  {
-    LOG_ERROR("Couldn't find TemplatePosition field in tracked frame!"); 
-    return PLUS_FAIL; 
-  }
-
-  if ( PlusCommon::StringToDouble(cTemplatePos, templatePosition) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to convert template position " << cTemplatePos << " to double!"); 
-    return PLUS_FAIL; 
-  }
-
-  return PLUS_SUCCESS; 
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkBrachyTracker::NotifyConfigured()
 {
   if( this->OutputChannels.size() > 1 )

@@ -20,7 +20,7 @@ PatternRecognitionResult::PatternRecognitionResult()
 
 //-----------------------------------------------------------------------------
 
-double Line::ComputeAngleRad(const Line& line)
+double FidLine::ComputeAngleRad(const FidLine& line)
 {
   //atan2 return the angle between the line and the x-axis from -Pi to Pi
   double angleRad = atan2(line.GetDirectionVector()[1],line.GetDirectionVector()[0]);
@@ -29,7 +29,7 @@ double Line::ComputeAngleRad(const Line& line)
 
 //-----------------------------------------------------------------------------
 
-double Line::ComputeAngleRad(const Line& line1, const Line& line2)
+double FidLine::ComputeAngleRad(const FidLine& line1, const FidLine& line2)
 {
   // a * b = |a| * |b| * cos(alpha)
   const double* a=line1.GetDirectionVector();
@@ -73,7 +73,7 @@ double  Dot::GetDistanceFrom(Dot &d)
 
 //-----------------------------------------------------------------------------
 
-bool Line::lessThan(const Line& line1, const Line& line2)
+bool FidLine::lessThan(const FidLine& line1, const FidLine& line2)
 {
   /* Use > to get descending. */
   return line1.GetIntensity() > line2.GetIntensity();
@@ -81,7 +81,7 @@ bool Line::lessThan(const Line& line1, const Line& line2)
 
 //-----------------------------------------------------------------------------
 
-bool Line::compareLines(const Line& line1, const Line& line2)
+bool FidLine::compareLines(const FidLine& line1, const FidLine& line2)
 {
   //make sure the lines are not the same, dot-wise
   for (unsigned int i=0; i<line1.GetPoints().size(); i++)

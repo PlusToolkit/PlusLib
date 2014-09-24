@@ -47,7 +47,8 @@
     MaxTimeSpentWithProcessingMs="50" 
     ListeningPort="18944" 
     SendValidTransformsOnly="true" 
-    OutputChannelId="TrackedVideoStream" > 
+    OutputChannelId="TrackedVideoStream"
+    IgtlMessageCrcCheckEnabled="FALSE" > 
     <DefaultClientInfo> 
       <MessageTypes> 
         <Message Type="IMAGE" />

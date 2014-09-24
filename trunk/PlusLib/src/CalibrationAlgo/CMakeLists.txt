@@ -2,6 +2,12 @@
 # Sources
 
 SET (CalibrationAlgo_SRCS
+  PatternLocAlgo/FidSegmentation.cxx
+  PatternLocAlgo/FidLineFinder.cxx
+  PatternLocAlgo/FidLabeling.cxx
+  PatternLocAlgo/FidPatternRecognitionCommon.cxx
+  PatternLocAlgo/FidPatternRecognition.cxx
+  PatternLocAlgo/PatternLocResultFile.cxx
   vtkProbeCalibrationAlgo/vtkProbeCalibrationAlgo.cxx 
   vtkProbeCalibrationAlgo/vtkProbeCalibrationOptimizerAlgo.cxx
   vtkPivotCalibrationAlgo/vtkPivotCalibrationAlgo.cxx
@@ -30,6 +36,12 @@ SET (CalibrationAlgo_SRCS
 SET (CalibrationAlgo_HDRS)  
 IF (WIN32)  
   SET (CalibrationAlgo_HDRS
+    PatternLocAlgo/FidSegmentation.h
+    PatternLocAlgo/FidLineFinder.h
+    PatternLocAlgo/FidLabeling.h
+    PatternLocAlgo/FidPatternRecognitionCommon.h
+    PatternLocAlgo/FidPatternRecognition.h
+    PatternLocAlgo/PatternLocResultFile.h
     vtkProbeCalibrationAlgo/vtkProbeCalibrationAlgo.h
     vtkProbeCalibrationAlgo/vtkProbeCalibrationOptimizerAlgo.h
     vtkPivotCalibrationAlgo/vtkPivotCalibrationAlgo.h
@@ -58,6 +70,7 @@ ENDIF (WIN32)
 
 SET (CalibrationAlgo_INCLUDE_DIRS
   ${CMAKE_CURRENT_BINARY_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/PatternLocAlgo
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkBrachyStepperPhantomRegistrationAlgo
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkCenterOfRotationCalibAlgo
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkLineSegmentationAlgo
@@ -75,11 +88,11 @@ SET (CalibrationAlgo_INCLUDE_DIRS
 
 SET (CalibrationAlgo_LIBS 
   ${VTK_LIBRARIES}
-  itkvnl 
-  itkvnl_algo 
-  PatternLocAlgo 
+  ${ITK_LIBRARIES}
+#  itkvnl
+#  itkvnl_algo
   vtkPlusCommon
-  vtkDataCollection
+#  vtkDataCollection
   )
 
 INCLUDE_DIRECTORIES( ${CalibrationAlgo_INCLUDE_DIRS} )
@@ -92,7 +105,7 @@ TARGET_LINK_LIBRARIES(vtkCalibrationAlgo ${CalibrationAlgo_LIBS})
 SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkCalibrationAlgo CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkCalibrationAlgo vtkCalibrationAlgo;"${PlusLib_BINARY_DIR}/src/CalibrationAlgo/vtkCalibrationAlgo.vcproj";vtkPlusCommon;PatternLocAlgo CACHE INTERNAL "" FORCE)
+SET(vcProj_vtkCalibrationAlgo vtkCalibrationAlgo;"${PlusLib_BINARY_DIR}/src/CalibrationAlgo/vtkCalibrationAlgo.vcproj";vtkPlusCommon CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Install

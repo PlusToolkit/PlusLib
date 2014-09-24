@@ -419,9 +419,9 @@ PlusStatus vtkCenterOfRotationCalibAlgo::UpdateReportTable()
       // This frame was not segmented
       continue; 
     }
-#ifdef PLUS_USE_BRACHY_TRACKER
+
     double probePos(0), probeRot(0), templatePos(0); 
-    if ( !vtkBrachyTracker::GetStepperEncoderValues(frame, probePos, probeRot, templatePos) )
+    if ( !TrackedFrameEncoderPositionFinder::GetStepperEncoderValues(frame, probePos, probeRot, templatePos) )
     {
       LOG_WARNING("Unable to get probe position from tracked frame info for frame #" << frameNumber); 
       continue; 
@@ -429,7 +429,6 @@ PlusStatus vtkCenterOfRotationCalibAlgo::UpdateReportTable()
     probePosVector.push_back(probePos); 
     probeRotVector.push_back(probeRot); 
     templatePosVector.push_back(templatePos); 
-#endif
   
     // Compute radius 
     for ( int w = 0; w < this->GetNumberOfNWirePatterns(); ++w )

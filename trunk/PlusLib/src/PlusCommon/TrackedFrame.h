@@ -214,14 +214,14 @@ public:
   \brief Helper class used for validating encoder position in a tracked frame list
   \ingroup PlusLibCommon
 */ 
-class TrackedFrameEncoderPositionFinder
+class vtkPlusCommonExport TrackedFrameEncoderPositionFinder
 {  
 public:
   TrackedFrameEncoderPositionFinder(TrackedFrame* frame, double minRequiredTranslationDifferenceMm, double minRequiredAngleDifferenceDeg); 
   ~TrackedFrameEncoderPositionFinder(); 
 
-  // TODO: use BrachyTracker::GetStepperEncoderValues if the design allows 
-  PlusStatus GetStepperEncoderValues( TrackedFrame* trackedFrame, double &probePosition, double &probeRotation, double &templatePosition ); 
+  /*! Get stepper encoder values from the tracked frame */
+  static PlusStatus GetStepperEncoderValues( TrackedFrame* trackedFrame, double &probePosition, double &probeRotation, double &templatePosition ); 
 
   /*! 
     Predicate unary function for std::find_if to validate encoder position 

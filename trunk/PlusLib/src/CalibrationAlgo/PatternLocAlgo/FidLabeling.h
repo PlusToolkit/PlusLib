@@ -17,7 +17,7 @@ See License.txt for details.
 a dot as well as its wire and pattern id to allow identification of the dot.
 \ingroup PlusLibPatternRecognition
 */
-class PatternLocAlgoExport LabelingResults
+class vtkCalibrationAlgoExport LabelingResults
 {
 public:
   int patternId;//Id of the pattern
@@ -33,7 +33,7 @@ public:
 patterns defined in the configuration file. It also labels the dots found.
 \ingroup PlusLibPatternRecognition
 */
-class PatternLocAlgoExport FidLabeling
+class vtkCalibrationAlgoExport FidLabeling
 {
 public:
   FidLabeling();
@@ -52,34 +52,34 @@ public:
   void SetFrameSize(int frameSize[2]);
 
   /*! Compute the shortest distance from a point: dot, to a line: line */
-  double ComputeDistancePointLine(Dot& dot, Line& line);
+  double ComputeDistancePointLine(Dot& dot, FidLine& line);
 
   /*! Compute the shift between the middle of line1 and line2 */
-  double ComputeShift(Line& line1, Line& line2);
+  double ComputeShift(FidLine& line1, FidLine& line2);
 
   /*! Compute the slope of the line relative to the x-axis */
-  double ComputeSlope( Line& line );
+  double ComputeSlope( FidLine& line );
 
   /*! Find the patterns defined by the configuration file */
   void FindPattern();
 
   /*! Update the CIRS phantom model 45 results once the pattern has been found, the order of the lines is:
   resultLine1: left-most, resultLine2: diagonal, resultLine3: right-most*/
-  void UpdateCirsResults(const Line& resultLine1, const Line& resultLine2, const Line& resultLine3);
+  void UpdateCirsResults(const FidLine& resultLine1, const FidLine& resultLine2, const FidLine& resultLine3);
 
   /*! Update the NWires results once the pattern has been found
   \param resultLines Found lines in ascending order of their StartPoint's Y coordinate (top line is first, bottom line is last)
   */
-  void UpdateNWiresResults(std::vector<Line*>& resultLines);
+  void UpdateNWiresResults(std::vector<FidLine*>& resultLines);
 
   /*! Sort the points of a line from right to left */
-  void SortRightToLeft( Line& line );
+  void SortRightToLeft( FidLine& line );
 
   /*! Sort the points of a line, used for sorting the points by distance from StartPoint */
   static bool SortCompare(const std::vector<double>& temporaryLine1, const std::vector<double>& temporaryLine2);
 
   /*! Sort points of a line by their distance from the start point of the line */
-  Line SortPointsByDistanceFromStartPoint(Line& fiducials); 
+  FidLine SortPointsByDistanceFromStartPoint(FidLine& fiducials); 
 
   //Accessors and mutators
   /*! Get the vector of dots found by FidSegmentation */
@@ -89,10 +89,10 @@ public:
   void SetDotsVector(std::vector<Dot>& value) { m_DotsVector = value; };
 
   /*! Get the vector of the identified lines */
-  std::vector<Line>& GetFoundLinesVector() {return m_FoundLines; };
+  std::vector<FidLine>& GetFoundLinesVector() {return m_FoundLines; };
 
   /*! Set the vector of lines found by FidLineFinder */
-  void SetLinesVector(std::vector< std::vector<Line> >& value) { m_LinesVector = value; };
+  void SetLinesVector(std::vector< std::vector<FidLine> >& value) { m_LinesVector = value; };
 
   /*! Get the pattern structure vector, this defines the patterns that the algorithm finds */
   std::vector<Pattern*>& GetPatterns() { return m_Patterns; };
@@ -113,7 +113,7 @@ public:
   std::vector< std::vector<double> >  GetFoundDotsCoordinateValue() { return m_FoundDotsCoordinateValue; };
 
   /*! Get the vector of lines found by FidLineFinder */
-  std::vector<std::vector<Line> >  GetLinesVector() { return m_LinesVector; };
+  std::vector<std::vector<FidLine> >  GetLinesVector() { return m_LinesVector; };
 
   /*! Set the approximate spacing in Mm per pixel */
   void SetApproximateSpacingMmPerPixel(double value) { m_ApproximateSpacingMmPerPixel = value; };
@@ -164,10 +164,10 @@ protected:
   double   m_PatternIntensity;
 
   std::vector<Dot>      m_DotsVector;
-  std::vector<Line>     m_FoundLines;
+  std::vector<FidLine>     m_FoundLines;
   std::vector<Pattern*> m_Patterns;
   std::vector<LabelingResults> m_Results;
-  std::vector< std::vector<Line> > m_LinesVector;
+  std::vector< std::vector<FidLine> > m_LinesVector;
   std::vector< std::vector<double> >  m_FoundDotsCoordinateValue;
 };
 

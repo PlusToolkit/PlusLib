@@ -670,57 +670,55 @@ TrackedFrameEncoderPositionFinder::~TrackedFrameEncoderPositionFinder()
 //----------------------------------------------------------------------------
 PlusStatus TrackedFrameEncoderPositionFinder::GetStepperEncoderValues( TrackedFrame* trackedFrame, double &probePosition, double &probeRotation, double &templatePosition )
 { 
+  if ( trackedFrame == NULL )
+  {
+    LOG_ERROR("Unable to get stepper encoder values - input tracked frame is NULL!"); 
+    return PLUS_FAIL; 
+  }
+
   // Get the probe position from tracked frame info
   const char* cProbePos = trackedFrame->GetCustomFrameField("ProbePosition"); 
-  if ( cProbePos != NULL )
+  if ( cProbePos == NULL )
   {
-    if ( PlusCommon::StringToDouble(cProbePos, probePosition) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to convert ProbePosition '"<< cProbePos << "' to double"); 
-      return PLUS_FAIL;
-    }
+    LOG_ERROR("Couldn't find ProbePosition field in tracked frame!"); 
+    return PLUS_FAIL; 
   }
-  else
+
+  if ( PlusCommon::StringToDouble(cProbePos, probePosition) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Unable to find frame field: ProbePosition"); 
-    return PLUS_FAIL;
+    LOG_ERROR("Failed to convert probe position " << cProbePos << " to double!"); 
+    return PLUS_FAIL; 
   }
 
   // Get the probe rotation from tracked frame info
   const char* cProbeRot = trackedFrame->GetCustomFrameField("ProbeRotation"); 
-  if ( cProbeRot != NULL )
+  if ( cProbeRot == NULL )
   {
-    if ( PlusCommon::StringToDouble(cProbeRot, probeRotation) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to convert ProbeRotation '"<< cProbeRot << "' to double"); 
-      return PLUS_FAIL;
-    }
+    LOG_ERROR("Couldn't find ProbeRotation field in tracked frame!"); 
+    return PLUS_FAIL; 
   }
-  else
+
+  if ( PlusCommon::StringToDouble(cProbeRot, probeRotation) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Unable to find frame field: ProbeRotation"); 
-    return PLUS_FAIL;
+    LOG_ERROR("Failed to convert probe rotation " << cProbeRot << " to double!"); 
+    return PLUS_FAIL; 
   }
 
   // Get the template position from tracked frame info
   const char* cTemplatePos = trackedFrame->GetCustomFrameField("TemplatePosition"); 
-  if ( cTemplatePos != NULL )
+  if ( cTemplatePos == NULL )
   {
-    if ( PlusCommon::StringToDouble(cTemplatePos, templatePosition) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to convert TemplatePosition '"<< cTemplatePos << "' to double"); 
-      return PLUS_FAIL;
-    }
-  }
-  else
-  {
-    LOG_ERROR("Unable to find frame field: TemplatePosition"); 
-    return PLUS_FAIL;
+    LOG_ERROR("Couldn't find TemplatePosition field in tracked frame!"); 
+    return PLUS_FAIL; 
   }
 
-  return PLUS_SUCCESS; 
+  if ( PlusCommon::StringToDouble(cTemplatePos, templatePosition) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to convert template position " << cTemplatePos << " to double!"); 
+    return PLUS_FAIL; 
+  }
 
-
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
