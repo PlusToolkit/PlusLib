@@ -514,162 +514,137 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
         self->PreviousCommands[client.ClientId].clear();
       }
 
-      while (true) // while we have available commands
+      // Receive generic header from the socket
+      int bytesReceived = client.ClientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize() );
+      if ( bytesReceived == IGTL_EMPTY_DATA_SIZE || bytesReceived != headerMsg->GetPackSize() )
       {
-        // Receive generic header from the socket
-        int bytesReceived = client.ClientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize() );
-        if ( bytesReceived == IGTL_EMPTY_DATA_SIZE )
+        continue; 
+      }
+
+      self->LastCommandTimestamp[client.ClientId] = vtkAccurateTimer::GetSystemTime();
+
+      headerMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
+      if (strcmp(headerMsg->GetDeviceType(), "CLIENTINFO") == 0)
+      {
+        igtl::PlusClientInfoMessage::Pointer clientInfoMsg = igtl::PlusClientInfoMessage::New(); 
+        clientInfoMsg->SetMessageHeader(headerMsg); 
+        clientInfoMsg->AllocatePack(); 
+
+        client.ClientSocket->Receive(clientInfoMsg->GetPackBodyPointer(), clientInfoMsg->GetPackBodySize() ); 
+
+        int c = clientInfoMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
+        if (c & igtl::MessageHeader::UNPACK_BODY) 
         {
-          break; 
-        }
-
-        if ( bytesReceived != headerMsg->GetPackSize() )
-        {
-          LOG_ERROR("Invalid number of bytes received: "<<bytesReceived);
-          break; 
-        }
-
-        self->LastCommandTimestamp[client.ClientId] = vtkAccurateTimer::GetSystemTime();
-
-        headerMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
-        if (strcmp(headerMsg->GetDeviceType(), "CLIENTINFO") == 0)
-        {
-          igtl::PlusClientInfoMessage::Pointer clientInfoMsg = igtl::PlusClientInfoMessage::New(); 
-          clientInfoMsg->SetMessageHeader(headerMsg); 
-          clientInfoMsg->AllocatePack(); 
-
-          client.ClientSocket->Receive(clientInfoMsg->GetPackBodyPointer(), clientInfoMsg->GetPackBodySize() ); 
-
-          int c = clientInfoMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
-          if (c & igtl::MessageHeader::UNPACK_BODY) 
+          int port = -1; 
+          std::string clientAddress; 
+#if (OPENIGTLINK_VERSION_MAJOR > 1) || ( OPENIGTLINK_VERSION_MAJOR == 1 && OPENIGTLINK_VERSION_MINOR > 9 ) || ( OPENIGTLINK_VERSION_MAJOR == 1 && OPENIGTLINK_VERSION_MINOR == 9 && OPENIGTLINK_VERSION_PATCH > 4 )
+          client.ClientSocket->GetSocketAddressAndPort(clientAddress, port);
+#endif
+          // Message received from client, need to lock to modify client info
+          PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(self->Mutex);
+          std::list<PlusIgtlClientInfo>::iterator it = std::find(self->IgtlClients.begin(), self->IgtlClients.end(), client ); 
+          if ( it != self->IgtlClients.end() )
           {
-            int port = -1; 
-            std::string clientAddress; 
-  #if (OPENIGTLINK_VERSION_MAJOR > 1) || ( OPENIGTLINK_VERSION_MAJOR == 1 && OPENIGTLINK_VERSION_MINOR > 9 ) || ( OPENIGTLINK_VERSION_MAJOR == 1 && OPENIGTLINK_VERSION_MINOR == 9 && OPENIGTLINK_VERSION_PATCH > 4 )
-            client.ClientSocket->GetSocketAddressAndPort(clientAddress, port);
-  #endif
-            // Message received from client, need to lock to modify client info
-            PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(self->Mutex);
-            std::list<PlusIgtlClientInfo>::iterator it = std::find(self->IgtlClients.begin(), self->IgtlClients.end(), client ); 
-            if ( it != self->IgtlClients.end() )
-            {
-              // Copy client info
-              (*it).ShallowCopy(clientInfoMsg->GetClientInfo()); 
-              LOG_INFO("Client info message received from client (" << clientAddress << ":" << port << ")."); 
-            }
+            // Copy client info
+            (*it).ShallowCopy(clientInfoMsg->GetClientInfo()); 
+            LOG_INFO("Client info message received from client (" << clientAddress << ":" << port << ")."); 
           }
         }
-        else if (strcmp(headerMsg->GetDeviceType(), "GET_STATUS") == 0)
-        {
-          // Just ping server, we can skip message and respond
-          client.ClientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
+      }
+      else if (strcmp(headerMsg->GetDeviceType(), "GET_STATUS") == 0)
+      {
+        // Just ping server, we can skip message and respond
+        client.ClientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
 
-          igtl::StatusMessage::Pointer replyMsg = igtl::StatusMessage::New(); 
-          replyMsg->SetCode(igtl::StatusMessage::STATUS_OK); 
-          replyMsg->Pack(); 
-          client.ClientSocket->Send(replyMsg->GetPackPointer(), replyMsg->GetPackBodySize()); 
-        }
-        else if ( (strcmp(headerMsg->GetDeviceType(), "STRING") == 0) )
-        {
-          // Received a remote command execution message
-          // The command is encoded in in an XML string in a STRING message body
+        igtl::StatusMessage::Pointer replyMsg = igtl::StatusMessage::New(); 
+        replyMsg->SetCode(igtl::StatusMessage::STATUS_OK); 
+        replyMsg->Pack(); 
+        client.ClientSocket->Send(replyMsg->GetPackPointer(), replyMsg->GetPackBodySize()); 
+      }
+      else if ( (strcmp(headerMsg->GetDeviceType(), "STRING") == 0) )
+      {
+        // Received a remote command execution message
+        // The command is encoded in in an XML string in a STRING message body
 
-          igtl::StringMessage::Pointer commandMsg = igtl::StringMessage::New(); 
-          commandMsg->SetMessageHeader(headerMsg); 
-          commandMsg->AllocatePack();
-          unsigned char* writePointer = (unsigned char*) commandMsg->GetPackBodyPointer();
-          int bytesWritten = 0;
-          while (bytesWritten<commandMsg->GetPackBodySize())
+        igtl::StringMessage::Pointer commandMsg = igtl::StringMessage::New(); 
+        commandMsg->SetMessageHeader(headerMsg); 
+        commandMsg->AllocatePack(); 
+        client.ClientSocket->Receive(commandMsg->GetPackBodyPointer(), commandMsg->GetPackBodySize() ); 
+        
+        int c = commandMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
+        if (c & igtl::MessageHeader::UNPACK_BODY) 
+        {          
+          const char* deviceName = "UNKNOWN";
+          if (headerMsg->GetDeviceName() != NULL)
           {
-            Sleep(50);
-            int bytesReceived = client.ClientSocket->Receive(writePointer, commandMsg->GetPackBodySize()-bytesWritten );
-            if (bytesReceived<=0)
-            {
-              LOG_ERROR("Failed to receive command");
-              break;
-            }
-            writePointer+=bytesReceived;
-            bytesWritten+=bytesReceived;
+            deviceName = headerMsg->GetDeviceName();
           }
-          if (bytesWritten!=commandMsg->GetPackBodySize())
+          else
           {
-            LOG_ERROR("Failed to receive command: expected "<<commandMsg->GetPackBodySize()<<", received "<<bytesWritten<<" bytes");
-            break;
+            LOG_ERROR("Received message from unknown device");
           }
-          int c = commandMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
-          if (c & igtl::MessageHeader::UNPACK_BODY) 
-          {          
-            const char* deviceName = "UNKNOWN";
-            if (headerMsg->GetDeviceName() != NULL)
+
+          std::string deviceNameStr=vtkPlusCommand::GetPrefixFromCommandDeviceName(deviceName);
+          std::string uid=vtkPlusCommand::GetUidFromCommandDeviceName(deviceName);;
+          if( !uid.empty() )
+          {
+            std::vector<std::string> & previousCommands = self->PreviousCommands[client.ClientId];
+            if( std::find(previousCommands.begin(), previousCommands.end(), uid) != previousCommands.end() )
             {
-              deviceName = headerMsg->GetDeviceName();
+              // Command already exists
+              LOG_WARNING("Already received a command with id = " << uid << " from client id = " << client.ClientId <<". This repeated command will be ignored.");
+              continue;
             }
             else
             {
-              LOG_ERROR("Received message from unknown device");
+              self->PreviousCommands[client.ClientId].push_back(uid);
             }
+          }
+          std::stringstream ss;
+          ss << "Received command from device " << deviceNameStr;
+          if( !uid.empty() )
+          {
+            ss << " with UID " << uid;
+          }
+          ss << ": " << commandMsg->GetString();
+          LOG_INFO(ss.str());
 
-            std::string deviceNameStr=vtkPlusCommand::GetPrefixFromCommandDeviceName(deviceName);
-            std::string uid=vtkPlusCommand::GetUidFromCommandDeviceName(deviceName);;
-            if( !uid.empty() )
-            {
-              std::vector<std::string> & previousCommands = self->PreviousCommands[client.ClientId];
-              if( std::find(previousCommands.begin(), previousCommands.end(), uid) != previousCommands.end() )
-              {
-                // Command already exists
-                LOG_WARNING("Received a command with id = " << uid << " from client id = " << client.ClientId << ": " << commandMsg->GetString() << ". This repeated command will be ignored.");
-                continue;
-              }
-              else
-              {
-                self->PreviousCommands[client.ClientId].push_back(uid);
-              }
-            }
-            std::stringstream ss;
-            ss << "Received command from device " << deviceNameStr;
-            if( !uid.empty() )
-            {
-              ss << " with UID " << uid;
-            }
-            ss << ": " << commandMsg->GetString();
-            LOG_INFO(ss.str());
-
-            self->PlusCommandProcessor->QueueCommand(client.ClientId, commandMsg->GetString(), deviceNameStr, uid);
-          }
-          else
-          {
-            LOG_ERROR("STRING message unpacking failed");
-          }        
-        }
-        else if ( (strcmp(headerMsg->GetDeviceType(), "GET_IMGMETA") == 0) )
-        {
-          std::string deviceName("");
-          if (headerMsg->GetDeviceName() != NULL)
-          {
-            deviceName = headerMsg->GetDeviceName();
-          }
-          self->PlusCommandProcessor->QueueGetImageMetaData(client.ClientId, deviceName);
-        }
-        else if(strcmp(headerMsg->GetDeviceType(), "GET_IMAGE") == 0)
-        {
-          std::string deviceName("");
-          if (headerMsg->GetDeviceName() != NULL)
-          {
-            deviceName = headerMsg->GetDeviceName();
-          }
-          else
-          {
-            LOG_ERROR("Please select the image you want to acquire");
-          }
-          self->PlusCommandProcessor->QueueGetImage(client.ClientId, deviceName);
+          self->PlusCommandProcessor->QueueCommand(client.ClientId, commandMsg->GetString(), deviceNameStr, uid);
         }
         else
         {
-          // if the device type is unknown, skip reading. 
-          LOG_WARNING("Unknown OpenIGTLink message is received. Device type: "<<headerMsg->GetDeviceType()<<". Device name: "<<headerMsg->GetDeviceName()<<".");
-          client.ClientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
-          continue; 
+          LOG_ERROR("STRING message unpacking failed");
+        }        
+      }
+      else if ( (strcmp(headerMsg->GetDeviceType(), "GET_IMGMETA") == 0) )
+      {
+        std::string deviceName("");
+        if (headerMsg->GetDeviceName() != NULL)
+        {
+          deviceName = headerMsg->GetDeviceName();
         }
+        self->PlusCommandProcessor->QueueGetImageMetaData(client.ClientId, deviceName);
+      }
+      else if(strcmp(headerMsg->GetDeviceType(), "GET_IMAGE") == 0)
+      {
+        std::string deviceName("");
+        if (headerMsg->GetDeviceName() != NULL)
+        {
+          deviceName = headerMsg->GetDeviceName();
+        }
+        else
+        {
+          LOG_ERROR("Please select the image you want to acquire");
+          return NULL;
+        }
+        self->PlusCommandProcessor->QueueGetImage(client.ClientId, deviceName);
+      }
+      else
+      {
+        // if the device type is unknown, skip reading. 
+        LOG_WARNING("Unknown OpenIGTLink message is received. Device type: "<<headerMsg->GetDeviceType()<<". Device name: "<<headerMsg->GetDeviceName()<<".");
+        client.ClientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
+        continue; 
       }
 
     } // clientIterator
@@ -776,7 +751,6 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
       client.ClientSocket->GetSocketAddressAndPort(address, port); 
 #endif
       LOG_INFO( "Client disconnected (" <<  address << ":" << port << ")."); 
-      client.ClientSocket->CloseSocket();
       clientIterator = this->IgtlClients.erase(clientIterator);
       LOG_INFO( "Number of connected clients: " << GetNumberOfConnectedClients() ); 
       clientDisconnected = false; 

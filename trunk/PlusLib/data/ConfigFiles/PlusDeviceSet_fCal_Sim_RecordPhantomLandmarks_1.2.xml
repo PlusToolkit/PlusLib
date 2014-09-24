@@ -109,14 +109,6 @@
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
     StylusTipCoordinateFrame="StylusTip" />
-
-  <vtkPivotDetectionAlgo
-    ObjectMarkerCoordinateFrame="Stylus"
-    ReferenceCoordinateFrame="Reference"
-    ObjectPivotPointCoordinateFrame="StylusTip"
-    DetectionTimeSec="1.0"
-    AbovePivotThresholdMM="3.0"
-    PivotThresholdMM="1.8" />
   
   <vtkPhantomLinearObjectRegistrationAlgo
     PhantomCoordinateFrame="Phantom"
