@@ -544,13 +544,12 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
   else if (m_State == ToolboxState_InProgress)
   {
     ui.pushButton_OpenStylusCalibration->setEnabled(true);
+    ui.pushButton_StartStop_2->setEnabled(true);
     if( m_LandmarkPivotingState==LandmarkPivotingState_InProgress)
     {
       ui.pushButton_RecordPoint->setEnabled(true);
       ui.pushButton_RecordPoint->setFocus();
       m_ParentMainWindow->GetVisualizationController()->ShowInput(true);
-
-      ui.pushButton_StartStop_2->setEnabled(true);
     }
 
     ui.pushButton_StartStop->setEnabled(true);
@@ -869,13 +868,12 @@ void PhantomRegistrationToolbox::RecordPoint()
       SetState(ToolboxState_Error);
       return;
     }
-
     SetState(ToolboxState_Done);
-
     m_RequestedLandmarkPolyData->GetPoints()->GetData()->RemoveTuple(0);
     m_RequestedLandmarkPolyData->GetPoints()->Modified();
 
     LOG_INFO("Phantom landmark registration performed successfully");
+    StopLandmarkPivotingRegistration();
   }
   else
   {
@@ -898,6 +896,7 @@ void PhantomRegistrationToolbox::Undo()
   if( m_LandmarkPivotingState==LandmarkPivotingState_Complete)
   {
     SetLandmarkPivotingState(LandmarkPivotingState_InProgress);
+    StartLandmarkPivotingRegistration();
   }
   if (m_CurrentLandmarkIndex > 0)
   {
@@ -1131,13 +1130,9 @@ void PhantomRegistrationToolbox::StartLandmarkPivotingRegistration()
   ui.tabWidget->setTabEnabled(1, false);
   ui.pushButton_StartStop_2->setText(tr("Stop Detection"));
 
-
-
   if(m_State==ToolboxState_Done||m_LandmarkPivotingState!=LandmarkPivotingState_InProgress)
   {
     Reset();
-
-
     m_CurrentLandmarkIndex=0;
     m_CurrentPointNumber = 0;
 
@@ -1177,7 +1172,6 @@ void PhantomRegistrationToolbox::StartLandmarkPivotingRegistration()
   }
   // Connect acquisition function to timer
   connect( m_ParentMainWindow->GetVisualizationController()->GetAcquisitionTimer(), SIGNAL( timeout() ), this, SLOT( AddStylusTipTransformToLandmarkPivotingRegistration() ) );
-
 }
 
 //-----------------------------------------------------------------------------
