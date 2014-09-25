@@ -32,8 +32,7 @@ The tool state box can be detached so that it is visible during all steps by cli
 \section SystemCalibrationStylusCalibration Stylus Calibration
 1. Place the Stylus in a position that allows the tip of the needle to remain stationary and for all of the sensors to
 be seen by the camera.
-2. Click start, get prepared and wait for the timer(the time can be set by the FreeHandStartupDelaySec attribute of the fcal configuration file, by default is 5 seconds), when the timer is done begin to swivel the needle until all the points have been collected. The tip of the stylus must remain
-stationary relative to the Reference marker on the phantom, therefore it is advisable to place the stylus tip on the phantom surface (or make sure that the phantom does not move during the stylus calibration).
+2. Click start, get prepared and wait for the timer (the time can be set by the FreeHandStartupDelaySec attribute of the fcal configuration file, by default is 5 seconds), when the timer is done begin to swivel (a slow movement gives better calibration error) the needle until all the points have been collected. The tip of the stylus must remain stationary relative to the Reference marker on the phantom, therefore it is advisable to place the stylus tip on the phantom surface (or make sure that the phantom does not move during the stylus calibration).
 3. There is no need to save once this is done.
 
 
@@ -44,7 +43,7 @@ loaded device set configuration contained one.
 The content of this window can be rotated and zoomed using the mouse.
 3. Click "Start Pivot Detection", place the tip of the calibrated Stylus on the indicated point of the phantom and slowly swivel the stylus until it is detected. Repeat for the next indicated point until they are all detected. Alternatively, place the tip of the Stylus at the indicated point and keep it there while clicking "Record Point".
 4. If you have selected a wrong point there is an option to "Undo" the last recorded point or a "Reset" button to start from the beginning.
-- You can get better phantom registration error by setting a small PivotThresholdMM attribute (in the pivot detection element of the configuration file) but the stylus swivel has to be done more slow and carfully, and it may take longer to detect. The PivotThresholdMM has to be bigger than pivot calibration error, by default is set 3 times bigger.
+- You can get better phantom registration error by setting a small PivotThresholdMm attribute (in the pivot detection element of the configuration file) but the stylus swivel has to be done more slow and carfully, and it may take longer to detect. The PivotThresholdMm has to be bigger than pivot calibration error, by default is set 1.5 mm.
 
 \section SystemCalibrationTemporalCalibration Temporal Calibration
 
