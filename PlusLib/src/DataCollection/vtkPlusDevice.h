@@ -20,7 +20,6 @@ See License.txt for details.
 #include "PlusCommon.h"
 #include <string>
 
-class vtkGnuplotExecuter;
 class vtkHTMLGenerator;
 class vtkPlusBuffer;
 class vtkPlusChannel;

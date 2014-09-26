@@ -19,8 +19,10 @@ vtkStandardNewMacro(vtkHTMLGenerator);
 vtkHTMLGenerator::vtkHTMLGenerator()
 {
   this->Title = NULL; 
+  this->OutputDirectory = NULL; 
   this->SetTitle(""); 
-  this->HtmlBody.clear(); 
+  this->HtmlBody.clear();
+  this->SetOutputDirectory(vtkPlusConfig::GetInstance()->GetOutputDirectory().c_str());
 }
 
 //----------------------------------------------------------------------------
@@ -279,4 +281,19 @@ void vtkHTMLGenerator::SaveHtmlPage(const char *fileName)
   htmlpage.open (fileName, ios::out);
   htmlpage << this->GetHtmlPage(); 
   htmlpage.close(); 
+}
+
+//----------------------------------------------------------------------------
+std::string vtkHTMLGenerator::SaveHtmlPageAutoFilename( const char * baseName)
+{
+  std::string fullPath;
+  if (GetOutputDirectory())
+  {
+    fullPath += GetOutputDirectory();
+    fullPath += "/";
+  }
+  fullPath += std::string(baseName)+"-"+vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()+".html";
+  LOG_INFO("Write HTML report to "<<fullPath);
+  SaveHtmlPage(fullPath.c_str());
+  return fullPath;
 }
