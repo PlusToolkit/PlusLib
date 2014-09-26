@@ -39,8 +39,11 @@ public:
   vtkTypeRevisionMacro(vtkHTMLGenerator,vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent); 
 
-  /*! Get the html page source */
+  /*! Write the report to html file. Deprecated - use SaveHtmlPageAutoFilename instead. */
   virtual void SaveHtmlPage( const char * fileName); 
+
+  /*! Write the report to html file. Create file in the output directory, including the application start time in the filename. */
+  virtual std::string SaveHtmlPageAutoFilename( const char * baseName);
 
   /*! Add image to document */
   virtual void AddImage(const char* imageSource, const char* alt, const int widthPx=0, const int heightPx=0); 
@@ -65,6 +68,11 @@ public:
   /*! Get the page title */
   vtkGetStringMacro(Title); 
 
+  /*! Set the output directory */
+  vtkSetStringMacro(OutputDirectory);
+  /*! Get the output directory */
+  vtkGetStringMacro(OutputDirectory);   
+
 protected:
 
   /*! Get the body */
@@ -77,6 +85,7 @@ protected:
   virtual ~vtkHTMLGenerator(); 
 
   char* Title; 
+  char* OutputDirectory; 
 
   std::ostringstream HtmlBody; 
 

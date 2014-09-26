@@ -17,7 +17,6 @@
 #include "vtkXMLUtilities.h"
 #include "FidPatternRecognition.h"
 #include "vtkSpacingCalibAlgo.h"
-#include "vtkGnuplotExecuter.h"
 #include "vtkHTMLGenerator.h"
 
 // define tolerance used for comparing double numbers
@@ -141,10 +140,10 @@ int main(int argc, char **argv)
   vtkTable* reportTable = spacingCalibAlgo->GetReportTable(); 
   if ( reportTable != NULL )
   {
-    if ( vtkPlusLogger::Instance()->GetLogLevel() >= vtkPlusLogger::LOG_LEVEL_DEBUG ) 
+    if ( vtkPlusLogger::Instance()->GetLogLevel() >= vtkPlusLogger::LOG_LEVEL_DEBUG )
+    {
       reportTable->Dump(25); 
-
-    vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat(reportTable, "./SpacingCalibrationErrorReport.txt"); 
+    }
   }
   else
   {
@@ -155,10 +154,8 @@ int main(int argc, char **argv)
   LOG_INFO("Testing HTML report generation..."); 
   vtkSmartPointer<vtkHTMLGenerator> htmlGenerator = vtkSmartPointer<vtkHTMLGenerator>::New(); 
   htmlGenerator->SetTitle("Spacing Calibration Test Report"); 
-  vtkSmartPointer<vtkGnuplotExecuter> gnuplotExecuter = vtkSmartPointer<vtkGnuplotExecuter>::New(); 
-  gnuplotExecuter->SetHideWindow(true); 
-  spacingCalibAlgo->GenerateReport(htmlGenerator, gnuplotExecuter); 
-  htmlGenerator->SaveHtmlPage("SpacingCalibrationErrorReport.html"); 
+  spacingCalibAlgo->GenerateReport(htmlGenerator);
+  htmlGenerator->SaveHtmlPageAutoFilename("SpacingCalibrationReport");
 
   std::ostringstream spacingCalibAlgoStream; 
   spacingCalibAlgo->PrintSelf(spacingCalibAlgoStream, vtkIndent(0)); 

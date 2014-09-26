@@ -5,16 +5,18 @@
 =========================================================Plus=header=end*/ 
 
 #include "PlusMath.h"
+#include "PlusPlotter.h"
 #include "vtkSpacingCalibAlgo.h"
 #include "vtkObjectFactory.h"
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
 #include "vtkPoints.h"
 #include "vtksys/SystemTools.hxx"
-#include "vtkGnuplotExecuter.h"
 #include "vtkHTMLGenerator.h"
 #include "vtkDoubleArray.h"
 #include "vtkVariantArray.h"
+
+#include "vtkOrderStatistics.h" 
 
 //----------------------------------------------------------------------------
 vtkCxxRevisionMacro(vtkSpacingCalibAlgo, "$Revision: 1.0 $");
@@ -271,9 +273,9 @@ PlusStatus vtkSpacingCalibAlgo::UpdateReportTable(const std::vector<vnl_vector<d
 
   if ( this->ReportTable == NULL )
   {
-    this->AddNewColumnToReportTable("Computed Distance - X (mm)"); 
+    this->AddNewColumnToReportTable("Computed-Measured Distance - X (mm)"); 
     this->AddNewColumnToReportTable("Measured Distance - X (mm)"); 
-    this->AddNewColumnToReportTable("Computed Distance - Y (mm)"); 
+    this->AddNewColumnToReportTable("Computed-Measured Distance - Y (mm)"); 
     this->AddNewColumnToReportTable("Measured Distance - Y (mm)"); 
   }
 
@@ -286,9 +288,9 @@ PlusStatus vtkSpacingCalibAlgo::UpdateReportTable(const std::vector<vnl_vector<d
   {
     vtkSmartPointer<vtkVariantArray> tableRow = vtkSmartPointer<vtkVariantArray>::New(); 
 
-    tableRow->InsertNextValue(sqrt( aMatrix[row].get(0) * sX + aMatrix[row].get(1) * sY ));  // Computed Distance - X (mm)
+    tableRow->InsertNextValue(sqrt( aMatrix[row].get(0) * sX + aMatrix[row].get(1) * sY )-sqrt( bVector[row]));  // Computed-Measured Distance - X (mm)
     tableRow->InsertNextValue(sqrt( bVector[row]));  // Measured Distance - X (mm)
-    tableRow->InsertNextValue(sqrt( aMatrix[row + 1].get(0) * sX + aMatrix[row + 1].get(1) * sY ));  // Computed Distance - Y (mm)
+    tableRow->InsertNextValue(sqrt( aMatrix[row + 1].get(0) * sX + aMatrix[row + 1].get(1) * sY )-sqrt( bVector[row + 1]));  // Computed-Measured Distance - Y (mm)
     tableRow->InsertNextValue(sqrt( bVector[row + 1]));  // Measured Distance - Y (mm)
 
     if ( tableRow->GetNumberOfTuples() == this->ReportTable->GetNumberOfColumns() )
@@ -335,9 +337,15 @@ PlusStatus vtkSpacingCalibAlgo::AddNewColumnToReportTable( const char* columnNam
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSpacingCalibAlgo::GenerateReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter)
+PlusStatus vtkSpacingCalibAlgo::GenerateReport( vtkHTMLGenerator* htmlReport)
 {
   LOG_TRACE("vtkSpacingCalibAlgo::GenerateReport"); 
+
+  if ( htmlReport == NULL )
+  {
+    LOG_ERROR("vtkSpacingCalibAlgo::GenerateReport failed: HTML report generator is invalid"); 
+    return PLUS_FAIL; 
+  }
 
   // Update result before report generation 
   if ( this->Update() != PLUS_SUCCESS )
@@ -346,40 +354,7 @@ PlusStatus vtkSpacingCalibAlgo::GenerateReport( vtkHTMLGenerator* htmlReport, vt
     return PLUS_FAIL;
   }
 
-  if ( htmlReport == NULL || plotter == NULL )
-  {
-    LOG_ERROR("Caller should define HTML report generator and gnuplot plotter before report generation!"); 
-    return PLUS_FAIL; 
-  }
-
-  // Check gnuplot scripts 
-  std::string plotSpacingCalculationErrorScript = vtkPlusConfig::GetInstance()->GetScriptPath("gnuplot/PlotSpacingCalculationErrorHistogram.gnu"); 
-  if ( !vtksys::SystemTools::FileExists( plotSpacingCalculationErrorScript.c_str(), true) )
-  {
-    LOG_ERROR("Unable to find gnuplot script at: " << plotSpacingCalculationErrorScript); 
-    return PLUS_FAIL; 
-  }
-
-  // Generate report files from table 
-  std::string reportFile = vtkPlusConfig::GetInstance()->GetOutputPath(
-    vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp() + ".SpacingCalibrationReport.txt" );
-  if ( vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat( this->ReportTable, reportFile.c_str()) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to dump spacing calibration report table to " << reportFile );
-    return PLUS_FAIL; 
-  }
-
-  // Make sure the report file is there
-  if ( !vtksys::SystemTools::FileExists( reportFile.c_str(), true) )
-  {
-    LOG_ERROR("Unable to find spacing calibration report file at: " << reportFile); 
-    return PLUS_FAIL; 
-  }
-
-  std::string title = "Spacing Calculation Analysis"; 
-  std::string scriptOutputFilePrefix = "PlotSpacingCalculationErrorHistogram"; 
-
-  htmlReport->AddText(title.c_str(), vtkHTMLGenerator::H1); 
+  htmlReport->AddText("Spacing Calculation Analysis", vtkHTMLGenerator::H1); 
 
   std::ostringstream report; 
   report << "Image spacing (mm/px): " << this->Spacing[0] << "     " << this->Spacing[1] << "</br>" ; 
@@ -387,24 +362,21 @@ PlusStatus vtkSpacingCalibAlgo::GenerateReport( vtkHTMLGenerator* htmlReport, vt
   report << "Standard deviation (mm): " << this->ErrorStdev << "</br>" ; 
   htmlReport->AddParagraph(report.str().c_str()); 
 
-  plotter->ClearArguments(); 
-  plotter->AddArgument("-e");
-  std::ostringstream spacingCalculationError; 
-  spacingCalculationError << "f='" << reportFile << "'; o='" << scriptOutputFilePrefix << "';" << std::ends; 
-  plotter->AddArgument(spacingCalculationError.str().c_str()); 
-  plotter->AddArgument(plotSpacingCalculationErrorScript.c_str());  
-  if ( plotter->Execute() != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to run gnuplot executer!"); 
-    return PLUS_FAIL; 
-  }
-  plotter->ClearArguments(); 
+  double valueRangeMin=-2.5;
+  double valueRangeMax=2.5;
+  int numberOfBins=41;
+  int imageSize[2]={800,400};
+  std::string outputFilePrefix = std::string(htmlReport->GetOutputDirectory())+"/SpacingCalibrationReport-"+vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()+"-";
 
-  std::ostringstream imageSource, imageAlt; 
-  imageSource << scriptOutputFilePrefix << ".jpg" << std::ends; 
-  imageAlt << "Spacing calculation error histogram" << std::ends; 
+  std::string outputImageFilename = outputFilePrefix + "X.png";
+  PlusPlotter::WriteHistogramChartToFile("X spacing error histogram", this->ReportTable, 0 /* "Computed-Measured Distance - X (mm)" */, valueRangeMin, valueRangeMax, numberOfBins, imageSize, outputImageFilename.c_str());
+  htmlReport->AddImage(outputImageFilename.c_str(), "X spacing calculation error histogram"); 
 
-  htmlReport->AddImage(imageSource.str().c_str(), imageAlt.str().c_str()); 
+  htmlReport->AddParagraph("<p>");
+
+  outputImageFilename = outputFilePrefix + "Y.png";
+  PlusPlotter::WriteHistogramChartToFile("Y spacing error histogram", this->ReportTable, 2 /* "Computed-Measured Distance - Y (mm)" */, valueRangeMin, valueRangeMax, numberOfBins, imageSize, outputImageFilename.c_str());
+  htmlReport->AddImage(outputImageFilename.c_str(), "Y spacing calculation error histogram"); 
 
   htmlReport->AddHorizontalLine(); 
 

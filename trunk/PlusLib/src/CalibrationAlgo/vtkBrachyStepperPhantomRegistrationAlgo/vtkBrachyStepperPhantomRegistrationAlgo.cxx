@@ -17,7 +17,6 @@
 #include "vtkObjectFactory.h"
 #include "vtkPoints.h"
 #include "vtksys/SystemTools.hxx"
-#include "vtkGnuplotExecuter.h"
 #include "vtkHTMLGenerator.h"
 #include "vtkDoubleArray.h"
 #include "vtkVariantArray.h"

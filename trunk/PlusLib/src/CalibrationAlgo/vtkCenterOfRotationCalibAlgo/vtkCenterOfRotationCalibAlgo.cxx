@@ -5,13 +5,13 @@
 =========================================================Plus=header=end*/ 
 
 #include "PlusMath.h"
+#include "PlusPlotter.h"
 #include "vtkCenterOfRotationCalibAlgo.h"
 #include "vtkObjectFactory.h"
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
 #include "vtkPoints.h"
 #include "vtksys/SystemTools.hxx"
-#include "vtkGnuplotExecuter.h"
 #include "vtkHTMLGenerator.h"
 #include "vtkDoubleArray.h"
 #include "vtkVariantArray.h"
@@ -492,7 +492,7 @@ PlusStatus vtkCenterOfRotationCalibAlgo::UpdateReportTable()
 
   }
 
-   vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat(ReportTable, "./RotationAxisCalibrationErrorReport.txt"); 
+   PlusPlotter::DumpTableToFile(ReportTable, "RotationAxisCalibrationErrorReport.txt"); 
 
   return PLUS_SUCCESS; 
 }
@@ -527,7 +527,7 @@ PlusStatus vtkCenterOfRotationCalibAlgo::AddNewColumnToReportTable( const char* 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkCenterOfRotationCalibAlgo::GenerateReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter)
+PlusStatus vtkCenterOfRotationCalibAlgo::GenerateReport( vtkHTMLGenerator* htmlReport)
 {
   LOG_TRACE("vtkCenterOfRotationCalibAlgo::GenerateReport"); 
 
@@ -538,22 +538,19 @@ PlusStatus vtkCenterOfRotationCalibAlgo::GenerateReport( vtkHTMLGenerator* htmlR
     return PLUS_FAIL;
   }
 
-  return vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport(this->GetNumberOfNWirePatterns(), htmlReport, plotter, this->ReportTable, this->CenterOfRotationPx); 
+  return vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport(this->GetNumberOfNWirePatterns(), htmlReport, this->ReportTable, this->CenterOfRotationPx);
 }
 
 //----------------------------------------------------------------------------
 //static
 PlusStatus vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport(int numberOfNWirePatterns, 
-                                                                        vtkHTMLGenerator* htmlReport, 
-                                                                        vtkGnuplotExecuter* plotter, 
-                                                                        vtkTable* reportTable,
-                                                                        double centerOfRotationPx[2])
+  vtkHTMLGenerator* htmlReport, vtkTable* reportTable, double centerOfRotationPx[2])
 {
   LOG_TRACE("vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport"); 
 
-  if ( htmlReport == NULL || plotter == NULL )
+  if ( htmlReport == NULL )
   {
-    LOG_ERROR("Caller should define HTML report generator and gnuplot plotter before report generation!"); 
+    LOG_ERROR("Caller should define HTML report generator before report generation!"); 
     return PLUS_FAIL; 
   }
 
@@ -563,52 +560,25 @@ PlusStatus vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport(int numb
     return PLUS_FAIL; 
   }
 
-  // Check gnuplot scripts 
-  std::string plotCenterOfRotCalcErrorScript = vtkPlusConfig::GetInstance()->GetScriptPath("gnuplot/PlotCenterOfRotationCalculationError.gnu"); 
-  if ( !vtksys::SystemTools::FileExists( plotCenterOfRotCalcErrorScript.c_str(), true) )
-  {
-    LOG_ERROR("Unable to find gnuplot script at: " << plotCenterOfRotCalcErrorScript); 
-    return PLUS_FAIL; 
-  }
 
-  std::string plotCenterOfRotCalcErrorHistogramScript = vtkPlusConfig::GetInstance()->GetScriptPath("gnuplot/PlotCenterOfRotationCalculationErrorHistogram.gnu"); 
-  if ( !vtksys::SystemTools::FileExists( plotCenterOfRotCalcErrorHistogramScript.c_str(), true) )
-  {
-    LOG_ERROR("Unable to find gnuplot script at: " << plotCenterOfRotCalcErrorHistogramScript); 
-    return PLUS_FAIL; 
-  }
-
-  // Generate report files from table 
   std::string reportFileName=vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()+".CenterOfRotationCalculationError.txt";
   std::string reportFile = vtkPlusConfig::GetInstance()->GetOutputPath(reportFileName);
-  if ( vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat( reportTable, reportFile.c_str()) != PLUS_SUCCESS )
+  if ( PlusPlotter::DumpTableToFile( reportTable, reportFile.c_str()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to dump translation axis calibration report table to " << reportFile );
     return PLUS_FAIL; 
   }
-
-  // Make sure the report file is there
-  if ( !vtksys::SystemTools::FileExists( reportFile.c_str(), true) )
-  {
-    LOG_ERROR("Unable to find center of rotation calibration report file at: " << reportFile); 
-    return PLUS_FAIL; 
-  }
-
-  std::string title = "Center of Rotation Calculation Analysis"; 
-  std::string scriptOutputFilePrefix = "CenterOfRotationCalculationError"; 
-  std::string scriptOutputFilePrefixHistogram = "CenterOfRotationCalculationErrorHistogram"; 
-
-  htmlReport->AddText(title.c_str(), vtkHTMLGenerator::H1); 
+  htmlReport->AddText("Center of Rotation Calculation Analysis", vtkHTMLGenerator::H1); 
 
   std::ostringstream report; 
   report << "Center of rotation (px): " << centerOfRotationPx[0] << "     " << centerOfRotationPx[1] << "</br>" ; 
   htmlReport->AddParagraph(report.str().c_str()); 
 
-  // Every N wire has 2 plots, one for w#1 and w#3 
+  // Every N wire has 2 plots, one for each side wire 
   const int numOfPlots = numberOfNWirePatterns * 2; 
 
   // Create wire labels 
-  int *wires = new int[numOfPlots]; // = {1, 3, 4, 6, ... }; 
+  std::vector<int> wires(numOfPlots); // = {1, 3, 4, 6, ... }; 
   for ( int i = 0; i < numberOfNWirePatterns; ++i )
   {
     wires[2*i] = i*3 + 1; 
@@ -617,51 +587,30 @@ PlusStatus vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport(int numb
 
   for ( int i = 0; i < numOfPlots; i++ )
   {
-    std::ostringstream wireName; 
-    wireName << "Wire #" << wires[i] << std::ends; 
-    htmlReport->AddText(wireName.str().c_str(), vtkHTMLGenerator::H3); 
-    plotter->ClearArguments(); 
-    plotter->AddArgument("-e");
-    std::ostringstream centerOfRotCalcError; 
-    centerOfRotCalcError << "f='" << reportFile << "'; o='" << scriptOutputFilePrefix << "'; w=" << wires[i] << std::ends; 
-    plotter->AddArgument(centerOfRotCalcError.str().c_str()); 
-    plotter->AddArgument(plotCenterOfRotCalcErrorScript.c_str());  
-    if ( plotter->Execute() != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to run gnuplot executer!"); 
-      return PLUS_FAIL; 
-    }
-    plotter->ClearArguments(); 
+    std::ostringstream wireName;
+    wireName << wires[i];
+    std::string wireFullName = std::string("Wire #")+wireName.str();
+    htmlReport->AddText(wireFullName.c_str(), vtkHTMLGenerator::H3); 
 
-    // Generate histogram 
-    plotter->ClearArguments(); 
-    plotter->AddArgument("-e");
-    std::ostringstream centerOfRotCalcErrorHistogram; 
-    centerOfRotCalcErrorHistogram << "f='" << reportFile << "'; o='" << scriptOutputFilePrefixHistogram << "'; w=" << wires[i] << std::ends; 
-    plotter->AddArgument(centerOfRotCalcErrorHistogram.str().c_str()); 
-    plotter->AddArgument(plotCenterOfRotCalcErrorHistogramScript.c_str());  
-    if ( plotter->Execute() != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to run gnuplot executer!"); 
-      return PLUS_FAIL; 
-    }
-    plotter->ClearArguments(); 
+    double valueRangeMin=-2.0;
+    double valueRangeMax=2.0;
+    int numberOfBins=41;
+    int imageSize[2]={800,400};
+    std::string outputFilePrefix = std::string(htmlReport->GetOutputDirectory())+"/CenterOfRotationCalibrationReport-"+vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()+"-";
 
-    std::ostringstream imageSource; 
-    std::ostringstream imageAlt; 
-    imageSource << "w" << wires[i] << "_CenterOfRotationCalculationError.jpg" << std::ends; 
-    imageAlt << "Center of rotation calculation error - wire #" << wires[i] << std::ends; 
+    std::string outputImageFilename = outputFilePrefix + "w" + wireName.str() + "-PositionError.png";
+    PlusPlotter::WriteScatterChartToFile("Wire distance from transducer at different positions", reportTable, 0 /* ProbePosition */, 3+i*4 /* Wire#xRadius */, imageSize, outputImageFilename.c_str());
+    htmlReport->AddImage(outputImageFilename.c_str(), "Wire distance from transducer"); 
 
-    htmlReport->AddImage(imageSource.str().c_str(), imageAlt.str().c_str()); 
+    outputImageFilename = outputFilePrefix + "w" + wireName.str() + "-AngleError.png";
+    PlusPlotter::WriteScatterChartToFile("Wire distance from transducer at different angles", reportTable, 1 /* ProbeAngle */, 3+i*4 /* Wire#xRadius */, imageSize, outputImageFilename.c_str());
+    htmlReport->AddImage(outputImageFilename.c_str(), "Wire distance from transducer"); 
 
-    std::ostringstream imageSourceHistogram; 
-    std::ostringstream imageAltHistogram; 
-    imageSourceHistogram << "w" << wires[i] << "_CenterOfRotationCalculationErrorHistogram.jpg" << std::ends; 
-    imageAltHistogram << "Center of rotation calculation error histogram - wire #" << wires[i] << std::ends; 
-    htmlReport->AddImage(imageSourceHistogram.str().c_str(), imageAltHistogram.str().c_str()); 
+    outputImageFilename = outputFilePrefix + "w" + wireName.str() + "-ErrorHistogram.png";
+    PlusPlotter::WriteHistogramChartToFile("Wire distance from transducer - error histogram", reportTable, 4+i*4 /* Wire#xRadius */, valueRangeMin, valueRangeMax, numberOfBins, imageSize, outputImageFilename.c_str());
+    htmlReport->AddImage(outputImageFilename.c_str(), "Wire distance from transducer - error histogram");
+
   }
-
-  delete[] wires; 
 
   htmlReport->AddHorizontalLine(); 
 

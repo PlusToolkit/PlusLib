@@ -10,10 +10,10 @@ See License.txt for details.
 */ 
 
 #include "PlusConfigure.h"
+#include "PlusPlotter.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkPlusBuffer.h"
 #include "vtkHTMLGenerator.h"
-#include "vtkGnuplotExecuter.h"
 #include "vtkTrackedFrameList.h"
 #include "vtksys/SystemTools.hxx"
 
@@ -182,9 +182,9 @@ int main(int argc, char **argv)
 
   std::string reportFile = vtksys::SystemTools::GetCurrentWorkingDirectory() + std::string("/TimestampReport.txt"); 
 
-  if ( vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat( timestampReportTable, reportFile.c_str() ) != PLUS_SUCCESS )
+  if ( PlusPlotter::DumpTableToFile( timestampReportTable, reportFile.c_str() ) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to write table to file in gnuplot format!"); 
+    LOG_ERROR("Failed to write table to file"); 
     return PLUS_FAIL; 
   }
 

@@ -14,11 +14,6 @@
 class vtkMatrix4x4; 
 class vtkPoints; 
 
-/*!
-  \class vtkGnuplotExecuter 
-  Class for executing gnuplot for diagram generation
-*/ 
-
 /*! 
   \enum TrackedFrameFieldStatus
   \brief Tracked frame field status

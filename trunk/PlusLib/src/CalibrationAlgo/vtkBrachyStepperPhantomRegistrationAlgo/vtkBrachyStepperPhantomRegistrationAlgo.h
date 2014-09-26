@@ -16,7 +16,6 @@
 #include "FidPatternRecognitionCommon.h"
 
 class vtkHTMLGenerator; 
-class vtkGnuplotExecuter; 
 class vtkMatrix4x4;
 class vtkTransformRepository;
 

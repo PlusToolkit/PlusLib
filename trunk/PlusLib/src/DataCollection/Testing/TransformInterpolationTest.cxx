@@ -6,7 +6,6 @@
 
 #include "PlusConfigure.h"
 #include "PlusMath.h"
-#include "vtkGnuplotExecuter.h"
 #include "vtkHTMLGenerator.h"
 #include "vtkMath.h"
 #include "vtkPlusDevice.h"

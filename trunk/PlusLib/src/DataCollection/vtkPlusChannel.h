@@ -15,6 +15,7 @@
 #include "vtkRfProcessor.h"
 
 class vtkPlusDevice;
+class vtkGnuplotExecuter;
 
 /*!
   \class vtkPlusChannel 

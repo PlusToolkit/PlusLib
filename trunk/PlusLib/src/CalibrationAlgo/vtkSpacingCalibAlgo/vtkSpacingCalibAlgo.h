@@ -16,7 +16,6 @@
 #include "FidPatternRecognitionCommon.h"
 
 class vtkHTMLGenerator; 
-class vtkGnuplotExecuter; 
 
 /*!
   \class vtkSpacingCalibAlgo 
@@ -35,7 +34,7 @@ public:
     Add generated html report from spacing calibration to the existing html report
     htmlReport and plotter arguments has to be defined by the caller function 
   */
-  virtual PlusStatus GenerateReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter); 
+  virtual PlusStatus GenerateReport( vtkHTMLGenerator* htmlReport); 
 
   /*!
     Set inputs: 

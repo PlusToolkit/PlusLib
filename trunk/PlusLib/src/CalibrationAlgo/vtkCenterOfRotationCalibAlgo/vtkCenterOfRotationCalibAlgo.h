@@ -15,7 +15,6 @@
 #include "vtkTable.h"
 
 class vtkHTMLGenerator; 
-class vtkGnuplotExecuter; 
 
 /*!
   \class vtkCenterOfRotationCalibAlgo 
@@ -75,7 +74,7 @@ public:
   vtkGetObjectMacro(ReportTable, vtkTable); 
 
   /*! Add generated html report from center of rotation calibration to the existing html report */
-  virtual PlusStatus GenerateReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter); 
+  virtual PlusStatus GenerateReport( vtkHTMLGenerator* htmlReport); 
 
   /*!
     Add generated html report from center of rotation calibration to the existing html report
@@ -86,10 +85,9 @@ public:
     \param centerOfRotationPx Computed output
   */
   static PlusStatus GenerateCenterOfRotationReport( int numberOfNWirePatterns, 
-    vtkHTMLGenerator* htmlReport, 
-    vtkGnuplotExecuter* plotter, 
+    vtkHTMLGenerator* htmlReport,
     vtkTable* reportTable,
-    double centerOfRotationPx[2]); 
+    double centerOfRotationPx[2]);
 
 protected:
   vtkCenterOfRotationCalibAlgo();

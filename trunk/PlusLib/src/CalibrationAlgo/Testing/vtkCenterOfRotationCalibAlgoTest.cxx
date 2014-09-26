@@ -11,6 +11,7 @@
 */ 
 
 #include "PlusConfigure.h"
+#include "PlusPlotter.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtksys/SystemTools.hxx"
 #include "vtkXMLDataElement.h"
@@ -18,7 +19,6 @@
 #include "FidPatternRecognition.h"
 #include "vtkCenterOfRotationCalibAlgo.h"
 #include "vtkSpacingCalibAlgo.h"
-#include "vtkGnuplotExecuter.h"
 #include "vtkHTMLGenerator.h"
 
 // define tolerance used for comparing double numbers
@@ -166,9 +166,10 @@ int main(int argc, char **argv)
   if ( reportTable != NULL )
   {
     if ( vtkPlusLogger::Instance()->GetLogLevel() >= vtkPlusLogger::LOG_LEVEL_DEBUG ) 
+    {
       reportTable->Dump(25); 
-
-    vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat(reportTable, "./CenterOfRotationCalibrationErrorReport.txt"); 
+    }
+    PlusPlotter::DumpTableToFile(reportTable, "CenterOfRotationCalibrationErrorReport.txt"); 
   }
   else
   {
@@ -178,12 +179,10 @@ int main(int argc, char **argv)
 
   LOG_INFO("Testing HTML report generation..."); 
   vtkSmartPointer<vtkHTMLGenerator> htmlGenerator = vtkSmartPointer<vtkHTMLGenerator>::New(); 
-  htmlGenerator->SetTitle("Center of Rotation Calibration Report"); 
-  vtkSmartPointer<vtkGnuplotExecuter> gnuplotExecuter = vtkSmartPointer<vtkGnuplotExecuter>::New(); 
-  gnuplotExecuter->SetHideWindow(true); 
-  spacingCalibAlgo->GenerateReport(htmlGenerator, gnuplotExecuter); 
-  centerOfRotationCalibAlgo->GenerateReport(htmlGenerator, gnuplotExecuter); 
-  htmlGenerator->SaveHtmlPage("CenterOfRotationCalibrationErrorReport.html"); 
+  htmlGenerator->SetTitle("Center of Rotation Calibration Report");
+  spacingCalibAlgo->GenerateReport(htmlGenerator);
+  centerOfRotationCalibAlgo->GenerateReport(htmlGenerator); 
+  htmlGenerator->SaveHtmlPageAutoFilename("CenterOfRotationCalibrationReport"); 
 
   std::ostringstream centerOfRotationCalibAlgoStream; 
   centerOfRotationCalibAlgo->PrintSelf(centerOfRotationCalibAlgoStream, vtkIndent(0)); 
