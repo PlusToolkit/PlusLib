@@ -333,19 +333,6 @@ PlusStatus vtkPlusConfig::LoadApplicationConfiguration()
     saveNeeded = true;
   }
 
-  // Read gnuplot directory
-  const char* gnuplotDirectory = applicationConfigurationRoot->GetAttribute("GnuplotDirectory");
-  if ((gnuplotDirectory != NULL) && (STRCASECMP(gnuplotDirectory, "") != 0))
-  {
-    this->GnuplotDirectory=gnuplotDirectory;
-  }
-  else
-  {
-    LOG_INFO("Gnuplot directory is not set - default '../gnuplot' will be used");
-    this->GnuplotDirectory="../gnuplot";
-    saveNeeded = true;
-  }
-
   // Read scripts directory
   const char* scriptsDirectory = applicationConfigurationRoot->GetAttribute("ScriptsDirectory");
   if ((scriptsDirectory != NULL) && (STRCASECMP(scriptsDirectory, "") != 0))
@@ -412,9 +399,6 @@ PlusStatus vtkPlusConfig::WriteApplicationConfiguration()
 
   // Save model directory path
   applicationConfigurationRoot->SetAttribute("ModelDirectory", this->ModelDirectory.c_str());
-
-  // Save gnuplot directory path
-  applicationConfigurationRoot->SetAttribute("GnuplotDirectory", this->GnuplotDirectory.c_str());
 
   // Save scripts directory path
   applicationConfigurationRoot->SetAttribute("ScriptsDirectory", this->ScriptsDirectory.c_str());
@@ -955,12 +939,6 @@ std::string vtkPlusConfig::GetImageDirectory()
 std::string vtkPlusConfig::GetImagePath(const std::string& subPath)
 {
   return GetAbsolutePath(subPath, GetAbsolutePath(this->ImageDirectory, this->ProgramDirectory) );
-}
-
-//-----------------------------------------------------------------------------
-std::string vtkPlusConfig::GetGnuplotPath(const std::string& subPath)
-{
-  return GetAbsolutePath(subPath, GetAbsolutePath(this->GnuplotDirectory, this->ProgramDirectory) );
 }
 
 //-----------------------------------------------------------------------------

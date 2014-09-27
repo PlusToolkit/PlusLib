@@ -153,9 +153,10 @@ int main(int argc, char **argv)
 
   LOG_INFO("Testing HTML report generation..."); 
   vtkSmartPointer<vtkHTMLGenerator> htmlGenerator = vtkSmartPointer<vtkHTMLGenerator>::New(); 
+  htmlGenerator->SetBaseFilename("SpacingCalibrationReport");
   htmlGenerator->SetTitle("Spacing Calibration Test Report"); 
   spacingCalibAlgo->GenerateReport(htmlGenerator);
-  htmlGenerator->SaveHtmlPageAutoFilename("SpacingCalibrationReport");
+  htmlGenerator->SaveHtmlPageAutoFilename();
 
   std::ostringstream spacingCalibAlgoStream; 
   spacingCalibAlgo->PrintSelf(spacingCalibAlgoStream, vtkIndent(0)); 

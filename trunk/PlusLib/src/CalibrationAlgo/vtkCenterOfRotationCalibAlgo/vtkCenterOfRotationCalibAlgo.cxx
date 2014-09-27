@@ -596,20 +596,18 @@ PlusStatus vtkCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport(int numb
     double valueRangeMax=2.0;
     int numberOfBins=41;
     int imageSize[2]={800,400};
-    std::string outputFilePrefix = std::string(htmlReport->GetOutputDirectory())+"/CenterOfRotationCalibrationReport-"+vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()+"-";
 
-    std::string outputImageFilename = outputFilePrefix + "w" + wireName.str() + "-PositionError.png";
-    PlusPlotter::WriteScatterChartToFile("Wire distance from transducer at different positions", reportTable, 0 /* ProbePosition */, 3+i*4 /* Wire#xRadius */, imageSize, outputImageFilename.c_str());
-    htmlReport->AddImage(outputImageFilename.c_str(), "Wire distance from transducer"); 
+    std::string outputImageFilename = std::string("w") + wireName.str() + "-PositionError.png";
+    std::string outputImagePath = htmlReport->AddImageAutoFilename(outputImageFilename.c_str(), "Wire distance from transducer");
+    PlusPlotter::WriteScatterChartToFile("Probe position (mm)", "Wire distance from transducer (mm)", reportTable, 0 /* ProbePosition */, 3+i*4 /* Wire#xRadius */, imageSize, outputImagePath.c_str());
 
-    outputImageFilename = outputFilePrefix + "w" + wireName.str() + "-AngleError.png";
-    PlusPlotter::WriteScatterChartToFile("Wire distance from transducer at different angles", reportTable, 1 /* ProbeAngle */, 3+i*4 /* Wire#xRadius */, imageSize, outputImageFilename.c_str());
-    htmlReport->AddImage(outputImageFilename.c_str(), "Wire distance from transducer"); 
+    outputImageFilename = std::string("w") + wireName.str() + "-AngleError.png";
+    outputImagePath = htmlReport->AddImageAutoFilename(outputImageFilename.c_str(), "Wire distance from transducer");
+    PlusPlotter::WriteScatterChartToFile("Probe angle (deg)", "Wire distance from transducer (mm)", reportTable, 1 /* ProbeAngle */, 3+i*4 /* Wire#xRadius */, imageSize, outputImagePath.c_str());    
 
-    outputImageFilename = outputFilePrefix + "w" + wireName.str() + "-ErrorHistogram.png";
-    PlusPlotter::WriteHistogramChartToFile("Wire distance from transducer - error histogram", reportTable, 4+i*4 /* Wire#xRadius */, valueRangeMin, valueRangeMax, numberOfBins, imageSize, outputImageFilename.c_str());
-    htmlReport->AddImage(outputImageFilename.c_str(), "Wire distance from transducer - error histogram");
-
+    outputImageFilename = std::string("w") + wireName.str() + "-ErrorHistogram.png";
+    outputImagePath = htmlReport->AddImageAutoFilename(outputImageFilename.c_str(), "Wire distance from transducer - error histogram");
+    PlusPlotter::WriteHistogramChartToFile("Wire distance from transducer - error histogram", reportTable, 4+i*4 /* Wire#xRadius */, valueRangeMin, valueRangeMax, numberOfBins, imageSize, outputImagePath.c_str());
   }
 
   htmlReport->AddHorizontalLine(); 

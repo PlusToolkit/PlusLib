@@ -770,12 +770,12 @@ void vtkTimestampedCircularBuffer<BufferItemType>::AddToTimeStampReport(unsigned
     this->TimeStampReportTable->AddColumn(colFrameNumber); 
 
     const char* colUnfilteredTimestampName = "UnfilteredTimestamp"; 
-    vtkSmartPointer<vtkStringArray> colUnfilteredTimestamp = vtkSmartPointer<vtkStringArray>::New(); 
+    vtkSmartPointer<vtkDoubleArray> colUnfilteredTimestamp = vtkSmartPointer<vtkDoubleArray>::New(); 
     colUnfilteredTimestamp->SetName(colUnfilteredTimestampName); 
     this->TimeStampReportTable->AddColumn(colUnfilteredTimestamp); 
 
     const char* colFilteredTimestampName = "FilteredTimestamp"; 
-    vtkSmartPointer<vtkStringArray> colFilteredTimestamp = vtkSmartPointer<vtkStringArray>::New(); 
+    vtkSmartPointer<vtkDoubleArray> colFilteredTimestamp = vtkSmartPointer<vtkDoubleArray>::New(); 
     colFilteredTimestamp->SetName(colFilteredTimestampName); 
     this->TimeStampReportTable->AddColumn(colFilteredTimestamp); 
   }
@@ -784,16 +784,8 @@ void vtkTimestampedCircularBuffer<BufferItemType>::AddToTimeStampReport(unsigned
   vtkSmartPointer<vtkVariantArray> timeStampReportTableRow = vtkSmartPointer<vtkVariantArray>::New();  
   
   timeStampReportTableRow->InsertNextValue(itemIndex); 
-
-  // insert as string to control floating point formatting
-  std::ostringstream strUnfilteredTimestamp; 
-  strUnfilteredTimestamp << std::fixed << unfilteredTimestamp - this->StartTime; 
-  timeStampReportTableRow->InsertNextValue(vtkVariant(strUnfilteredTimestamp.str())); 
-
-  // insert as string to control floating point formatting
-  std::ostringstream strFilteredTimestamp; 
-  strFilteredTimestamp << std::fixed << filteredTimestamp - this->StartTime; 
-  timeStampReportTableRow->InsertNextValue(vtkVariant(strFilteredTimestamp.str())); 
+  timeStampReportTableRow->InsertNextValue(unfilteredTimestamp - this->StartTime); 
+  timeStampReportTableRow->InsertNextValue(filteredTimestamp - this->StartTime); 
 
   this->TimeStampReportTable->InsertNextRow(timeStampReportTableRow);
 

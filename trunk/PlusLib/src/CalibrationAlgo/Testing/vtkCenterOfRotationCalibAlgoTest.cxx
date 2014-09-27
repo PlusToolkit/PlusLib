@@ -179,10 +179,11 @@ int main(int argc, char **argv)
 
   LOG_INFO("Testing HTML report generation..."); 
   vtkSmartPointer<vtkHTMLGenerator> htmlGenerator = vtkSmartPointer<vtkHTMLGenerator>::New(); 
+  htmlGenerator->SetBaseFilename("CenterOfRotationCalibrationReport");
   htmlGenerator->SetTitle("Center of Rotation Calibration Report");
   spacingCalibAlgo->GenerateReport(htmlGenerator);
   centerOfRotationCalibAlgo->GenerateReport(htmlGenerator); 
-  htmlGenerator->SaveHtmlPageAutoFilename("CenterOfRotationCalibrationReport"); 
+  htmlGenerator->SaveHtmlPageAutoFilename();
 
   std::ostringstream centerOfRotationCalibAlgoStream; 
   centerOfRotationCalibAlgo->PrintSelf(centerOfRotationCalibAlgoStream, vtkIndent(0)); 

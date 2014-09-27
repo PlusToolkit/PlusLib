@@ -60,16 +60,6 @@ ELSE()
 ENDIF()
 
 # --------------------------------------------------------------------------
-# gnuplot binary directory path.
-# 
-IF (WIN32)
-  SET(GNUPLOT_BIN_DIR ${PLUSLIB_TOOLS_DIR}/Gnuplot/binary/ CACHE PATH "Path to the Gnuplot binary directory." FORCE)
-ELSE (WIN32)
-  # Use system gnuplot on non-Windows OS
-  SET(GNUPLOT_BIN_DIR "/usr/bin" CACHE PATH "Path to the Gnuplot binary directory." FORCE)
-ENDIF (WIN32)
-
-# --------------------------------------------------------------------------
 # Sikuli binary directory path.
 # 
 SET(SIKULI_BIN_DIR ${PLUSLIB_TOOLS_DIR}/Sikuli/ CACHE PATH "Path to the Sikuli binary directory." FORCE)
@@ -235,7 +225,6 @@ configure_file(PlusLibConfigVersion.cmake.in
 SET( PLUSCONFIG_DEVICESET_CONFIG_DIR "${PLUSLIB_DATA_DIR}/ConfigFiles" )
 SET( PLUSCONFIG_IMAGE_DIR "${PLUSLIB_DATA_DIR}/TestImages" )
 SET( PLUSCONFIG_MODEL_DIR "${PLUSLIB_DATA_DIR}/CADModels" )
-SET( PLUSCONFIG_GNUPLOT_DIR "${GNUPLOT_BIN_DIR}" )
 SET( PLUSCONFIG_SCRIPTS_DIR "${PLUSLIB_SCRIPTS_DIR}" )
 
 IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )

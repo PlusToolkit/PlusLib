@@ -21,10 +21,7 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
     
   ## Set Plus scripts folder path 
   SET(PLUSLIB_SCRIPTS_DIR "@PLUSLIB_SCRIPTS_DIR@" )
-  
-  ## Set gnuplot binary dir path 
-  SET(GNUPLOT_BIN_DIR "@GNUPLOT_BIN_DIR@" )
-  
+    
   ## Set Sikuli binary dir path 
   SET(SIKULI_BIN_DIR "@SIKULI_BIN_DIR@" )
 

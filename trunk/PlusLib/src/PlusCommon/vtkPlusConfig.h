@@ -184,12 +184,6 @@ public:
   std::string GetImagePath(const std::string &subPath);
 
   /*!
-    Get absolute path for a gnuplot file specified by a path relative to the gnuplot directory.
-    If subPath is not defined then the absolute path of the gnuplot directory will be returned.
-  */
-  std::string GetGnuplotPath(const std::string &subPath);
-
-  /*!
     Get absolute path for a script file specified by a path relative to the scripts directory.
     If subPath is not defined then the absolute path of the scripts directory will be returned.
   */
@@ -276,9 +270,6 @@ protected:
 
   /*! Model directory path. It is used as home directory for models when the model path for a saved dataset is not an absolute path. If relative then the base is ProgramDirectory. */
   std::string ModelDirectory;
-
-  /*! Gnuplot binary directory path. If relative then the base is ProgramDirectory. */
-  std::string GnuplotDirectory;
 
   /*! Scripts directory path. If relative then the base is ProgramDirectory. */
   std::string ScriptsDirectory;
