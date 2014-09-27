@@ -395,6 +395,11 @@ PlusStatus vtkVirtualDiscCapture::NotifyConfigured()
   }
   vtkPlusChannel* inputChannel=this->InputChannels[0];
 
+  if( this->InputChannels.size() > 1 )
+  {
+    LOG_WARNING("vtkVirtualDiscCapture is expecting one input channel and there are " << this->InputChannels.size() << " channels. First output channel will be used, all other are ignored.");
+  }
+
   // GetTrackedFrame reads from the OutputChannels
   // For now, place the input stream as an output stream so its data is read
   this->OutputChannels.push_back(inputChannel);
