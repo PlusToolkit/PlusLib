@@ -83,8 +83,7 @@ ENDIF (PLUS_USE_OpenIGTLink)
 # PLUSAPP_INSTALL_LIB_DIR          - library dir (libs)
 # PLUSAPP_INSTALL_DATA_DIR         - share dir (say, examples, data, etc)
 # PLUSAPP_INSTALL_CONFIG_DIR       - config dir (configuration files)
-# PLUSAPP_INSTALL_GNUPLOT_DIR      - gnuplot dir (gnuplot binary files)
-# PLUSAPP_INSTALL_SCRIPTS_DIR      - scripts dir (gnuplot script files)
+# PLUSAPP_INSTALL_SCRIPTS_DIR      - scripts dir
 # PLUSAPP_INSTALL_INCLUDE_DIR      - include dir (headers)
 # PLUSAPP_INSTALL_PACKAGE_DIR      - package/export configuration files
 # PLUSAPP_INSTALL_NO_DEVELOPMENT   - do not install development files
@@ -109,10 +108,6 @@ ENDIF(NOT PLUSAPP_INSTALL_DATA_DIR)
 IF(NOT PLUSAPP_INSTALL_CONFIG_DIR)
   SET(PLUSAPP_INSTALL_CONFIG_DIR "config")
 ENDIF(NOT PLUSAPP_INSTALL_CONFIG_DIR)
-
-IF(NOT PLUSAPP_INSTALL_GNUPLOT_DIR)
-  SET(PLUSAPP_INSTALL_GNUPLOT_DIR "gnuplot")
-ENDIF(NOT PLUSAPP_INSTALL_GNUPLOT_DIR)
 
 IF(NOT PLUSAPP_INSTALL_SCRIPTS_DIR)
   SET(PLUSAPP_INSTALL_SCRIPTS_DIR "scripts")

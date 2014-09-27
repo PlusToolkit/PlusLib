@@ -6,7 +6,6 @@
 
 #include "PlusConfigure.h"
 #include "vtkDataCollector.h"
-#include "vtkGnuplotExecuter.h"
 #include "vtkHTMLGenerator.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
@@ -156,6 +155,10 @@ int main(int argc, char **argv)
   }
 
   // Print statistics
+
+  vtkSmartPointer<vtkHTMLGenerator> htmlReport = vtkSmartPointer<vtkHTMLGenerator>::New();
+  htmlReport->SetBaseFilename("DataCollectionReport");
+  htmlReport->SetTitle("Data Collection Report");
   for (std::vector< vtkPlusChannel* >::iterator acqChannelIt=acqChannels.begin(); acqChannelIt!=acqChannels.end(); ++acqChannelIt)
   {
     LOG_INFO("---------------------------------");
@@ -272,16 +275,12 @@ int main(int argc, char **argv)
       tool->GetBuffer()->WriteToMetafile( outputTrackerBufferSequenceFileName.c_str(), false);
     }
 
-    // Generate tracking data acq report
-    vtkSmartPointer<vtkHTMLGenerator> htmlReport = vtkSmartPointer<vtkHTMLGenerator>::New();
-    htmlReport->SetTitle("Data Collection Report");
-    vtkSmartPointer<vtkGnuplotExecuter> plotter = vtkSmartPointer<vtkGnuplotExecuter>::New();
-    plotter->SetHideWindow(true);
-    (*acqChannelIt)->GenerateDataAcquisitionReport(htmlReport, plotter);
-    std::string workingDir = plotter->GetWorkingDirectory();
-    std::string reportFileName = workingDir + "/DataCollectionReport-" + (*acqChannelIt)->GetChannelId() + ".html";
-    htmlReport->SaveHtmlPage(reportFileName.c_str());
+    // Add info to data acq report
+//    htmlReport->AddText(std::string(std::string("Channel: ")+(*acqChannelIt)->GetChannelId()).c_str(), vtkHTMLGenerator::H1);
+    (*acqChannelIt)->GenerateDataAcquisitionReport(htmlReport);
   }
+
+  htmlReport->SaveHtmlPageAutoFilename();
 
   dataCollector->Disconnect();
 

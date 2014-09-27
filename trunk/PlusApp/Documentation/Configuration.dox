@@ -55,7 +55,6 @@ The application configuration file is an XML file with the following root elemen
   - \xmlAtt \b DeviceSetConfigurationDirectory Device set configuration files will be searched relative to this directory (if an absolute path is defined then this directory is ignored).
   - \xmlAtt \b ImageDirectory Sequence metafiles (.mha, .mhd files) will be searched relative to this directory.
   - \xmlAtt \b ModelDirectory Model files (.stl files) will be searched relative to this directory.
-  - \xmlAtt \b GnuplotDirectory Directory of the gnuplot executable.
   - \xmlAtt \b ScriptsDirectory Directory of scripts that application may need.
 
 */
