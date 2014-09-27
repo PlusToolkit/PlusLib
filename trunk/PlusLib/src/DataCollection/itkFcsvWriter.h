@@ -11,9 +11,7 @@
 #pragma warning ( disable : 4786 )
 #endif
 
-#define PLUS_EXPORTS
-
-#include "vtkPlusWin32Header.h"
+#include "vtkDataCollectionExport.h"
 
 #include <vector>
 #include <fstream>
@@ -33,7 +31,7 @@ namespace itk
   \ingroup PlusLibDataCollection
 */
 
-class PLUS_EXPORT FcsvWriter : public Object
+class vtkDataCollectionExport FcsvWriter : public Object
 {
 public:
 
