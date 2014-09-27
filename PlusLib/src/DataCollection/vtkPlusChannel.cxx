@@ -10,7 +10,7 @@ See License.txt for details.
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 
-#include "vtkGnuplotExecuter.h"
+#include "PlusPlotter.h"
 #include "vtkHTMLGenerator.h"
 
 //----------------------------------------------------------------------------
@@ -1483,29 +1483,22 @@ PlusStatus vtkPlusChannel::SetCustomAttribute( const std::string& attributeId, c
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::GenerateDataAcquisitionReport(vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter)
+PlusStatus vtkPlusChannel::GenerateDataAcquisitionReport(vtkHTMLGenerator* htmlReport)
 {
-  if ( htmlReport == NULL || plotter == NULL )
+  if (htmlReport == NULL)
   {
-    LOG_ERROR("Caller should define HTML report generator and gnuplot plotter before report generation!"); 
+    LOG_ERROR("Caller should define HTML report generator before report generation!"); 
     return PLUS_FAIL; 
   }
   
   vtkSmartPointer<vtkTable> timestampReportTable = vtkSmartPointer<vtkTable>::New();
-  std::string reportFile = vtkPlusConfig::GetInstance()->GetOutputPath(
-    vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()+".DataBufferTimestamps.txt" ); 
-
-  std::string plotBufferTimestampScript = vtkPlusConfig::GetInstance()->GetScriptPath("gnuplot/PlotBufferTimestamp.gnu");
-  if ( !vtksys::SystemTools::FileExists( plotBufferTimestampScript.c_str(), true) )
-  {
-    LOG_ERROR("Unable to find gnuplot script at: " << plotBufferTimestampScript); 
-    return PLUS_FAIL; 
-  }
 
   std::string reportText = std::string("Device: ")+this->GetOwnerDevice()->GetDeviceId()+" - Channel: "+this->GetChannelId();
   htmlReport->AddText(reportText.c_str(), vtkHTMLGenerator::H1); 
 
   std::string deviceAndChannelName=std::string(this->GetOwnerDevice()->GetDeviceId())+"-"+this->GetChannelId();
+
+  int imageSize[2]={800,400};
 
   // Video data
   vtkPlusDataSource* videoSource=NULL;
@@ -1517,35 +1510,13 @@ PlusStatus vtkPlusChannel::GenerateDataAcquisitionReport(vtkHTMLGenerator* htmlR
       return PLUS_FAIL;
     }
 
-    if ( vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat( timestampReportTable, reportFile.c_str() ) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to write table to file in gnuplot format!");
-      return PLUS_FAIL;
-    }
+    std::string reportFile = vtkPlusConfig::GetInstance()->GetOutputPath(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()+"-"+deviceAndChannelName+"-VideoBufferTimestamps.txt" ); 
+    PlusPlotter::DumpTableToFile( timestampReportTable, reportFile.c_str() );
 
-    if ( !vtksys::SystemTools::FileExists( reportFile.c_str(), true) )
-    {
-      LOG_ERROR("Unable to find video data acquisition report file at: " << reportFile);
-      return PLUS_FAIL;
-    }
-
-    htmlReport->AddText("Video Data Acquisition Analysis", vtkHTMLGenerator::H2);
-    plotter->ClearArguments();
-    plotter->AddArgument("-e");
-    std::ostringstream videoBufferAnalysis;
-    videoBufferAnalysis << "f='" << reportFile << "'; o='VideoBufferTimestamps-"+deviceAndChannelName+"';" << std::ends;
-    plotter->AddArgument(videoBufferAnalysis.str().c_str());
-
-    plotter->AddArgument(plotBufferTimestampScript.c_str()); 
-    if ( plotter->Execute() != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to run gnuplot executer!");
-      return PLUS_FAIL;
-    }
-    plotter->ClearArguments();
-
-    std::string imageFilename = std::string("VideoBufferTimestamps-")+deviceAndChannelName+".jpg";
-    htmlReport->AddImage(imageFilename.c_str(), "Video Data Acquisition Analysis");
+    htmlReport->AddText("Video data", vtkHTMLGenerator::H2);
+    std::string imageFilePath = htmlReport->AddImageAutoFilename(std::string(deviceAndChannelName+"VideoBufferTimestamps.png").c_str(), "Video Data Acquisition Analysis");
+    PlusPlotter::WriteLineChartToFile("Frame index", "Timestamp (s)", timestampReportTable, 0, 1, 2, imageSize, imageFilePath.c_str());
+    
     htmlReport->AddHorizontalLine();
   }
 
@@ -1560,31 +1531,13 @@ PlusStatus vtkPlusChannel::GenerateDataAcquisitionReport(vtkHTMLGenerator* htmlR
       return PLUS_FAIL; 
     }
 
-    if ( vtkGnuplotExecuter::DumpTableToFileInGnuplotFormat( timestampReportTable, reportFile.c_str() ) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to write table to file in gnuplot format!");
-      return PLUS_FAIL;
-    }
+    reportText =  std::string("Tracking data - ")+tool->GetSourceId();
+    htmlReport->AddText(reportText.c_str(), vtkHTMLGenerator::H2);
+    std::string imageFilePath = htmlReport->AddImageAutoFilename(std::string(deviceAndChannelName+"-"+tool->GetSourceId()+"-TrackerBufferTimestamps.png").c_str(), reportText.c_str());
+    PlusPlotter::WriteLineChartToFile("Frame index", "Timestamp (s)", timestampReportTable, 0, 1, 2, imageSize, imageFilePath.c_str());
 
-    reportText = std::string("Tracking Data Acquisition Analysis - ")+tool->GetSourceId();
-    htmlReport->AddText(reportText.c_str(), vtkHTMLGenerator::H2); 
-    plotter->ClearArguments(); 
-    plotter->AddArgument("-e");
-    std::ostringstream trackerBufferAnalysis;
-    trackerBufferAnalysis << "f='" << reportFile << "'; o='TrackerBufferTimestamps-"<<deviceAndChannelName<<"-"<<tool->GetSourceId()<<"';" << std::ends; 
-    plotter->AddArgument(trackerBufferAnalysis.str().c_str()); 
-    plotter->AddArgument(plotBufferTimestampScript.c_str());  
-
-    if ( plotter->Execute() != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Failed to run gnuplot executer!");
-      return PLUS_FAIL;
-    }
-    plotter->ClearArguments();
-
-    std::string imageFilename = std::string("TrackerBufferTimestamps-")+deviceAndChannelName+"-"+tool->GetSourceId()+".jpg";
-    reportText =  std::string("Tracking Data Acquisition Analysis - ")+tool->GetSourceId();    
-    htmlReport->AddImage(imageFilename.c_str(), reportText.c_str()); 
+    std::string reportFile = vtkPlusConfig::GetInstance()->GetOutputPath(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()+"-"+deviceAndChannelName+"-"+tool->GetSourceId()+"TrackerBufferTimestamps.txt" ); 
+    PlusPlotter::DumpTableToFile( timestampReportTable, reportFile.c_str() );
 
     htmlReport->AddHorizontalLine(); 
   }

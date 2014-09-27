@@ -15,7 +15,6 @@
 #include "vtkRfProcessor.h"
 
 class vtkPlusDevice;
-class vtkGnuplotExecuter;
 
 /*!
   \class vtkPlusChannel 
@@ -142,7 +141,7 @@ public:
     Add generated html report from data acquisition to the existing html report. 
     htmlReport and plotter arguments has to be defined by the caller function 
   */
-  virtual PlusStatus GenerateDataAcquisitionReport( vtkHTMLGenerator* htmlReport, vtkGnuplotExecuter* plotter ); 
+  virtual PlusStatus GenerateDataAcquisitionReport( vtkHTMLGenerator* htmlReport); 
 
 protected:
   /*! Get number of tracked frames between two given timestamps (inclusive) */

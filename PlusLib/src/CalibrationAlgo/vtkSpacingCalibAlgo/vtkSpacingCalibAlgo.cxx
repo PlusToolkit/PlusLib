@@ -366,17 +366,14 @@ PlusStatus vtkSpacingCalibAlgo::GenerateReport( vtkHTMLGenerator* htmlReport)
   double valueRangeMax=2.5;
   int numberOfBins=41;
   int imageSize[2]={800,400};
-  std::string outputFilePrefix = std::string(htmlReport->GetOutputDirectory())+"/SpacingCalibrationReport-"+vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()+"-";
 
-  std::string outputImageFilename = outputFilePrefix + "X.png";
+  std::string outputImageFilename = htmlReport->AddImageAutoFilename("ErrorHistogramX.png", "X spacing calculation error histogram"); 
   PlusPlotter::WriteHistogramChartToFile("X spacing error histogram", this->ReportTable, 0 /* "Computed-Measured Distance - X (mm)" */, valueRangeMin, valueRangeMax, numberOfBins, imageSize, outputImageFilename.c_str());
-  htmlReport->AddImage(outputImageFilename.c_str(), "X spacing calculation error histogram"); 
 
   htmlReport->AddParagraph("<p>");
 
-  outputImageFilename = outputFilePrefix + "Y.png";
+  outputImageFilename = htmlReport->AddImageAutoFilename("ErrorHistogramY.png", "Y spacing calculation error histogram");
   PlusPlotter::WriteHistogramChartToFile("Y spacing error histogram", this->ReportTable, 2 /* "Computed-Measured Distance - Y (mm)" */, valueRangeMin, valueRangeMax, numberOfBins, imageSize, outputImageFilename.c_str());
-  htmlReport->AddImage(outputImageFilename.c_str(), "Y spacing calculation error histogram"); 
 
   htmlReport->AddHorizontalLine(); 
 

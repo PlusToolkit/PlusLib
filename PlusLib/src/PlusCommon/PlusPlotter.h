@@ -20,6 +20,7 @@ See License.txt for details.
 #include "vtkMultiBlockDataSet.h"
 #include "vtkPlot.h"
 #include "vtkPlotBar.h"
+#include "vtkPlotLine.h"
 #include "vtkPlotPoints.h"
 #include "vtkPNGWriter.h"
 #include "vtkRenderer.h"
@@ -32,9 +33,9 @@ class PlusPlotter
 public:
 
   /*! 
-    Computer scatter plot and write to PNG file
+    Write scatter plot to PNG file
   */    
-  static PlusStatus WriteScatterChartToFile(const char* chartTitle, vtkTable* inputTable, int xColumnIndex, int yColumnIndex, int imageSize[2], const char* outputImageFilename)
+  static PlusStatus WriteScatterChartToFile(const char* chartTitle, const char* yAxisText, vtkTable* inputTable, int xColumnIndex, int yColumnIndex, int imageSize[2], const char* outputImageFilename)
   {
     vtkSmartPointer<vtkContextView> view = vtkSmartPointer<vtkContextView>::New();
     view->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
@@ -48,14 +49,46 @@ public:
 
     chart->SetShowLegend(false);
 
-    chart->GetAxis(vtkAxis::LEFT)->SetTitle("Number of samples");
+    chart->GetAxis(vtkAxis::LEFT)->SetTitle(yAxisText);
     chart->GetAxis(vtkAxis::BOTTOM)->SetTitle(chartTitle);
 
     return WriteChartToFile(view, imageSize, outputImageFilename);
   }
 
   /*! 
-    Computer histogram and write to PNG file
+    Write line plot to PNG file
+  */    
+  static PlusStatus WriteLineChartToFile(const char* chartTitle, const char* yAxisText, vtkTable* inputTable, int xColumnIndex, int y1ColumnIndex, int y2ColumnIndex, int imageSize[2], const char* outputImageFilename)
+  {
+    vtkSmartPointer<vtkContextView> view = vtkSmartPointer<vtkContextView>::New();
+    view->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
+    vtkSmartPointer<vtkChartXY> chart = vtkSmartPointer<vtkChartXY>::New();
+    view->GetScene()->AddItem(chart);
+    
+    if (y1ColumnIndex>=0)
+    {
+      vtkPlotLine *linePlot = vtkPlotLine::SafeDownCast(chart->AddPlot(vtkChart::LINE));
+      linePlot->SetInputData_vtk5compatible(inputTable, xColumnIndex, y1ColumnIndex);
+      //linePlot->SetColor(0,0,1);
+    }    
+
+    if (y2ColumnIndex>=0)
+    {
+      vtkPlotLine *linePlot = vtkPlotLine::SafeDownCast(chart->AddPlot(vtkChart::LINE));
+      linePlot->SetInputData_vtk5compatible(inputTable, xColumnIndex, y2ColumnIndex);
+      //linePlot1->SetColor(0,0,1);
+    }
+
+    chart->SetShowLegend(true);
+
+    chart->GetAxis(vtkAxis::LEFT)->SetTitle(yAxisText);
+    chart->GetAxis(vtkAxis::BOTTOM)->SetTitle(chartTitle);
+
+    return WriteChartToFile(view, imageSize, outputImageFilename);
+  }
+
+  /*! 
+    Compute histogram and write to PNG file
   */    
   static PlusStatus WriteHistogramChartToFile(const char* chartTitle, vtkTable* inputTable, int inputColumnIndex, double valueRangeMin, double valueRangeMax, int numberOfBins, int imageSize[2], const char* outputImageFilename)
   {

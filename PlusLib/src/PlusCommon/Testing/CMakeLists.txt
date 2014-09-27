@@ -2,10 +2,6 @@ SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 #--------------------------------------------------------------------------------------------
-ADD_EXECUTABLE(vtkGnuplotExecuterTest vtkGnuplotExecuterTest.cxx )
-TARGET_LINK_LIBRARIES(vtkGnuplotExecuterTest ${VTK_LIBRARIES} vtkPlusCommon )
-
-#--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkPlusLoggerTest vtkPlusLoggerTest.cxx )
 TARGET_LINK_LIBRARIES(vtkPlusLoggerTest vtkPlusCommon )
 

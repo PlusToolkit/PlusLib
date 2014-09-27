@@ -6,7 +6,6 @@ SET (PlusCommon_SRCS
   vtkAccurateTimer.cxx 
   vtkPlusLogger.cxx
   vtkHTMLGenerator.cxx 
-  vtkGnuplotExecuter.cxx
   vtkPlusConfig.cxx
   PlusMath.cxx 
   vtkTransformRepository.cxx
@@ -26,7 +25,6 @@ if (WIN32)
     WindowsAccurateTimer.h
     vtkPlusLogger.h
     vtkHTMLGenerator.h
-    vtkGnuplotExecuter.h
     vtkTimestampedCircularBuffer.h
     vtkTimestampedCircularBuffer.txx
     vtkPlusConfig.h

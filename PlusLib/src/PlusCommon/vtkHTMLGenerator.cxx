@@ -19,7 +19,9 @@ vtkStandardNewMacro(vtkHTMLGenerator);
 vtkHTMLGenerator::vtkHTMLGenerator()
 {
   this->Title = NULL; 
-  this->OutputDirectory = NULL; 
+  this->OutputDirectory = NULL;
+  this->BaseFilename = NULL;
+  this->SetBaseFilename("PlusReport");
   this->SetTitle(""); 
   this->HtmlBody.clear();
   this->SetOutputDirectory(vtkPlusConfig::GetInstance()->GetOutputDirectory().c_str());
@@ -284,7 +286,7 @@ void vtkHTMLGenerator::SaveHtmlPage(const char *fileName)
 }
 
 //----------------------------------------------------------------------------
-std::string vtkHTMLGenerator::SaveHtmlPageAutoFilename( const char * baseName)
+std::string vtkHTMLGenerator::SaveHtmlPageAutoFilename()
 {
   std::string fullPath;
   if (GetOutputDirectory())
@@ -292,8 +294,22 @@ std::string vtkHTMLGenerator::SaveHtmlPageAutoFilename( const char * baseName)
     fullPath += GetOutputDirectory();
     fullPath += "/";
   }
-  fullPath += std::string(baseName)+"-"+vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()+".html";
+  fullPath += std::string(this->GetBaseFilename())+"-"+vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()+".html";
   LOG_INFO("Write HTML report to "<<fullPath);
   SaveHtmlPage(fullPath.c_str());
+  return fullPath;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkHTMLGenerator::AddImageAutoFilename(const char* filenamePostfix, const char* description, const int widthPx/*=0*/, const int heightPx/*=0*/)
+{
+  std::string fullPath;
+  if (GetOutputDirectory())
+  {
+    fullPath += GetOutputDirectory();
+    fullPath += "/";
+  }
+  fullPath += std::string(this->GetBaseFilename())+"-"+vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()+"-"+filenamePostfix;
+  AddImage(fullPath.c_str(), description, widthPx, heightPx);
   return fullPath;
 }
