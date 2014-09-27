@@ -16,20 +16,20 @@ Overview papers and presentations:
 
 Please cite the following paper when referring to Plus in your publication:
   
-  <i><a href="http://perk.cs.queensu.ca/sites/perk.cs.queensu.ca/files/biblio/Lasso2014a-manuscript.pdf">Andras Lasso, Tamas Heffter, Adam Rankin, Csaba Pinter, Tamas Ungi, and Gabor Fichtinger, "PLUS: open-source toolkit for ultrasound-guided intervention systems",  IEEE Trans Biomed Eng, 2014 May 9. [Epub ahead of print]</a></i>
+  <i><a href="http://perk.cs.queensu.ca/sites/perk.cs.queensu.ca/files/biblio/Lasso2014a-manuscript.pdf">Andras Lasso, Tamas Heffter, Adam Rankin, Csaba Pinter, Tamas Ungi, and Gabor Fichtinger, "PLUS: Open-source toolkit for ultrasound-guided intervention systems", IEEE Trans Biomed Eng. 2014 Oct;61(10):2527-37. doi: 10.1109/TBME.2014.2322864</a></i>
   
 <pre>
 @@ARTICLE{Lasso2014a,
-  author = {Lasso, Andras and Heffter, Tamas and Rankin, Adam and Pinter, Csaba
-	and Ungi, Tamas and Fichtinger, Gabor},
-  title = {PLUS: open-source toolkit for ultrasound-guided intervention systems.},
-  journal = {IEEE Trans Biomed Eng},
+  title = {PLUS: Open-source toolkit for ultrasound-guided intervention systems},
+  author = {Andras Lasso and Tamas Heffter and Adam Rankin and Csaba Pinter and Tamas Ungi and Gabor Fichtinger},
+  journal = {IEEE Transactions on Biomedical Engineering},
   year = {2014},
-  month = {May},
+  month = {Oct},
+  number = {10},
+  pages = {2527-2537},
   doi = {10.1109/TBME.2014.2322864},
-  medline-pst = {aheadofprint},
   pmid = {24833412},
-  url = {http://dx.doi.org/10.1109/TBME.2014.2322864}
+  url = {http://perk.cs.queensu.ca/contents/plus-open-source-toolkit-ultrasound-guided-intervention-systems}
 }
 </pre>
 
