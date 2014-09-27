@@ -13,7 +13,6 @@
 #pragma warning ( disable : 4786 )
 #endif 
 
-#include "vtkPlusWin32Header.h"
 #include "PlusVideoFrame.h"
 
 #include "itkImageIOBase.h"

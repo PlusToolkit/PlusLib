@@ -11,9 +11,7 @@
 #pragma warning ( disable : 4786 )
 #endif
 
-#define PLUS_EXPORTS
-
-#include "vtkPlusWin32Header.h"
+#include "vtkDataCollectionExport.h"
 
 #include <vector>
 #include <fstream>
@@ -77,7 +75,7 @@ static const int FcsvNDimensions=3;
   The fcsv file is the standard file format of 3D Slicer for storing a fiducial list
   \ingroup PlusLibDataCollection
 */
-class PLUS_EXPORT FcsvReader : public Object
+class vtkDataCollectionExport FcsvReader : public Object
 {
 public:
 
