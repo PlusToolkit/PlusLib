@@ -86,7 +86,12 @@ public:
   /*! Set the IC capturing device buffer size ( Default: 50 frame ) */
   vtkSetMacro(ICBufferSize, int); 
   /*! Get the IC capturing device buffer size ( Default: 50 frame ) */
-  vtkGetMacro(ICBufferSize, int); 
+  vtkGetMacro(ICBufferSize, int);
+
+  /*! Set the frame size */
+  vtkSetVector2Macro(FrameSize,int);
+  /*! Get the frame size */
+  vtkGetVector2Macro(FrameSize,int);
 
   /*!
   Set the clip rectangle size to apply to the image in pixel coordinates.
@@ -141,6 +146,12 @@ protected:
   /*! Adjust clipping region origin and size to fit inside the frame size. */
   void LimitClippingToValidRegion(const int frameSize[2]);
 
+  /*! Parse DShowLib video format string (format + frame size) and if successful set VideoFormat and FrameSize */
+  void ParseDShowLibVideoFormatString(const char* videoFormatFrameSizeString);
+
+  /*! Constructs a DShowLib video format string (format + frame size) from VideoFormat and FrameSize */
+  std::string GetDShowLibVideoFormatString();
+
   /*! Frame grabber device - DShowLib::Grabber type */
   void* FrameGrabber;
   ICCapturingListener* FrameGrabberListener; 
@@ -159,6 +170,9 @@ protected:
 
   /*! IC buffer size */
   int ICBufferSize; 
+
+  /*! Frame size of the captured image */
+  int FrameSize[2];
 
   /*! Crop rectangle origin for the grabber (in pixels) */
   int ClipRectangleOrigin[2];

@@ -46,7 +46,9 @@ vtkICCapturingSource::vtkICCapturingSource()
 
   this->DeviceName = NULL; 
   this->VideoNorm = NULL; 
-  this->VideoFormat = NULL; 
+  this->VideoFormat = NULL;
+  this->FrameSize[0] = 640;
+  this->FrameSize[1] = 480;
   this->InputChannel = NULL; 
 
   this->ClipRectangleOrigin[0]=0;
@@ -80,6 +82,10 @@ vtkICCapturingSource::~vtkICCapturingSource()
     delete this->FrameGrabberListener; 
     this->FrameGrabberListener = NULL;
   }
+
+  SetDeviceName(NULL);
+  SetVideoNorm(NULL);
+  SetVideoFormat(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -284,9 +290,9 @@ PlusStatus vtkICCapturingSource::InternalConnect()
   }
 
   // The Y800 color format is an 8 bit monochrome format. 
-  if ( this->GetVideoFormat() == NULL || !static_cast<DShowLib::Grabber*>(FrameGrabber)->setVideoFormat( this->GetVideoFormat() ) )
+  if ( !static_cast<DShowLib::Grabber*>(FrameGrabber)->setVideoFormat( this->GetDShowLibVideoFormatString().c_str() ) )
   {
-    LOG_ERROR("The IC capturing library could not be initialized - invalid video format: " << this->GetVideoFormat() ); 
+    LOG_ERROR("The IC capturing library could not be initialized - invalid video format: " << this->GetDShowLibVideoFormatString() ); 
     return PLUS_FAIL;
   }
 
@@ -424,6 +430,13 @@ PlusStatus vtkICCapturingSource::ReadConfiguration(vtkXMLDataElement* rootConfig
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(DeviceName, deviceConfig);
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(VideoNorm, deviceConfig);
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(VideoFormat, deviceConfig);
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, FrameSize, deviceConfig);
+
+  // Only for backward compatibility
+  // VideoFormat used to contain both video format and frame size, so in case frame size is defined
+  // then this method parses that and updates VideoFormat and FrameSize accordingly
+  ParseDShowLibVideoFormatString(this->VideoFormat);
+
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(InputChannel, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, ICBufferSize, deviceConfig);
 
@@ -442,6 +455,7 @@ PlusStatus vtkICCapturingSource::WriteConfiguration(vtkXMLDataElement* rootConfi
   imageAcquisitionConfig->SetAttribute("DeviceName", this->DeviceName);
   imageAcquisitionConfig->SetAttribute("VideoNorm", this->VideoNorm);
   imageAcquisitionConfig->SetAttribute("VideoFormat", this->VideoFormat);
+  imageAcquisitionConfig->SetVectorAttribute("FrameSize", 2, this->FrameSize);
   imageAcquisitionConfig->SetAttribute("InputChannel", this->InputChannel);
   imageAcquisitionConfig->SetIntAttribute("ICBufferSize", this->ICBufferSize);
 
@@ -453,7 +467,6 @@ PlusStatus vtkICCapturingSource::WriteConfiguration(vtkXMLDataElement* rootConfi
 }
 
 //----------------------------------------------------------------------------
-
 PlusStatus vtkICCapturingSource::NotifyConfigured()
 {
   if( this->OutputChannels.size() > 1 )
@@ -470,4 +483,69 @@ PlusStatus vtkICCapturingSource::NotifyConfigured()
   }
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+void vtkICCapturingSource::ParseDShowLibVideoFormatString(const char* videoFormatFrameSizeString)
+{
+  if (videoFormatFrameSizeString==NULL)
+  {
+    // parsing failed
+    return;
+  }
+
+  // videoFormatFrameSizeString sample: "Y800 (640x480)"
+  std::vector<std::string> splitVideoFormatFrameSize;
+  PlusCommon::SplitStringIntoTokens(videoFormatFrameSizeString, ' ', splitVideoFormatFrameSize);
+  if (splitVideoFormatFrameSize.size()!=2)
+  {
+    // parsing failed
+    return;
+  }
+
+  // splitVideoFormatFrameSize[0] is Y800
+  // splitVideoFormatFrameSize[1] is (640x480), so it has to be split and parsed further
+
+  // parse frame size
+  std::vector<std::string> splitFrameSize;
+  PlusCommon::SplitStringIntoTokens(splitVideoFormatFrameSize[1], 'x', splitFrameSize);
+  if (splitFrameSize.size()!=2) // (640 480)
+  {
+    // parsing failed
+    return;
+  }
+  if (splitFrameSize[0]!='(' || splitFrameSize[1]!=')')
+  {
+    // parsing failed
+    return;
+  }
+  // Remove parentheses
+  splitFrameSize[0].erase(splitFrameSize[0].begin());
+  splitFrameSize[1].erase(splitFrameSize[1].end());
+  // Convert to integer
+  int frameSizeX=0;
+  int frameSizeY=0;
+  if (PlusCommon::StringToInt(splitFrameSize[0], frameSizeX)==PLUS_FAIL)
+  {
+    return;
+  }
+  if (PlusCommon::StringToInt(splitFrameSize[1], frameSizeY)==PLUS_FAIL)
+  {
+    return;
+  }
+
+  // Parsing successful, save results
+  this->SetVideoFormat(splitVideoFormatFrameSize[0]);
+  this->SetFrameSize(frameSizeX, frameSizeY);
+}
+
+
+//----------------------------------------------------------------------------
+std::string vtkICCapturingSource::GetDShowLibVideoFormatString()
+{
+  std::ostringstream ss;
+  ss << (this->GetVideoFormat()?this->GetVideoFormat():"Y800");
+  ss << " (" << this->FrameSize[0] << "x" << this->FrameSize[1] << ")" << std::ends;
+  std::string formatString = ss.str();
+  return formatString;
 }
