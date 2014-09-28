@@ -37,7 +37,8 @@ Connect the framegrabber via USB and plug in the stepper through Serial2USB conv
       LocalTimeOffsetSec="-0.13"
       DeviceName="DFG/USB2-lt"
       VideoNorm="NTSC_M"
-      VideoFormat="Y800 (640x480)"
+      VideoFormat="Y800"
+      FrameSize="640 480"
       InputChannel="01 Video: SVideo" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />

@@ -10,7 +10,8 @@
       Type="ICCapturing"      
       DeviceName="DFG/USB2-lt"
       VideoNorm="NTSC_M"
-      VideoFormat="Y800 (640x480)"
+      VideoFormat="Y800"
+      FrameSize="640 480"
       InputChannel="01 Video: SVideo" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />

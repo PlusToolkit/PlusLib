@@ -20,13 +20,14 @@ Supported model: DFG/USB2pro analog frame grabbers with USB interface
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125} 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 
-- \xmlAtt \b DeviceName Is a string with the name of the device used (e.g. \c "DFG/USB2-lt"). \RequiredAtt
-- \xmlAtt \b VideoNorm Is a string with the name of Video norm (e.g. \c "PAL_B" or \c "NTSC_M") \RequiredAtt
-- \xmlAtt \b VideoFormat Is a string with the name of teh video format. (e.g. The \c "Y800 (640x480)" color format is an 8 bit monochrome format).\RequiredAtt
-- \xmlAtt \b InputChannel Is a string with the name of the IC capturing device input channel (e.g. \c "01 Video: SVideo"). \RequiredAtt
-- \xmlAtt \b ICBufferSize Is the IC capturing device buffer size. \OptionalAtt{50}
-- \xmlAtt \b ClipRectangleOrigin Crop rectangle origin for the grabber (in pixels). \OptionalAtt{0 0}
-- \xmlAtt \b ClipRectangleSize Crop rectangle size for the grabber (in pixels). If it is \c "0 0" then the whole frame will be captured. \OptionalAtt{0 0}
+- \xmlAtt \b DeviceName Requested device name (e.g. \c "DFG/USB2-lt"). \RequiredAtt
+- \xmlAtt \b VideoNorm Requested video norm (e.g. \c "PAL_B" or \c "NTSC_M") \RequiredAtt
+- \xmlAtt \b VideoFormat Requested video format string (for example \c "Y800"  is an 8 bit monochrome video format). For backward compatibility (will be removed in the future) also the frame size may be defined in this attribute (for example \c "Y800 (640x480).").\RequiredAtt
+- \xmlAtt \b FrameSize Requested size of the video frame. \OptionalAtt{640 480}
+- \xmlAtt \b InputChannel Name of the IC capturing device input channel (e.g. \c "01 Video: SVideo"). \RequiredAtt
+- \xmlAtt \b ICBufferSize Number of frames the IC capturing device should store in a temporary buffer. \OptionalAtt{50}
+- \xmlAtt \b ClipRectangleOrigin Clipping rectangle origin for the grabber (in pixels). \OptionalAtt{0 0}
+- \xmlAtt \b ClipRectangleSize Clipping rectangle size for the grabber (in pixels). If it is \c "0 0" then the whole frame will be captured. \OptionalAtt{0 0}
 
 - \xmlElem \ref DataSources Exactly one \c DataSource child element is required \RequiredAtt
    - \xmlElem \ref DataSource \RequiredAtt

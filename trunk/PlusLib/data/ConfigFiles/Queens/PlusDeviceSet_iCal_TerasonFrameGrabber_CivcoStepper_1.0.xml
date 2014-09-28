@@ -39,7 +39,8 @@ Connect the framegrabber via USB. Plug in the US Digital ED2 digital display thr
       LocalTimeOffsetSec="-0.13"
       DeviceName="DFG/USB2-lt"
       VideoNorm="NTSC_M"
-      VideoFormat="Y800 (640x480)"
+      VideoFormat="Y800"
+      FrameSize="640 480"
       InputChannel="01 Video: SVideo" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />
