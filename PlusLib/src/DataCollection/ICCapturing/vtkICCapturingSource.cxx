@@ -509,33 +509,33 @@ void vtkICCapturingSource::ParseDShowLibVideoFormatString(const char* videoForma
   // parse frame size
   std::vector<std::string> splitFrameSize;
   PlusCommon::SplitStringIntoTokens(splitVideoFormatFrameSize[1], 'x', splitFrameSize);
-  if (splitFrameSize.size()!=2) // (640 480)
+  if (splitFrameSize.size()!=2 || splitFrameSize[0].empty() || splitFrameSize[1].empty()) // (640 480)
   {
     // parsing failed
     return;
   }
-  if (splitFrameSize[0]!='(' || splitFrameSize[1]!=')')
+  if (splitFrameSize[0][0]!='(' || splitFrameSize[1][splitFrameSize[1].size()-1]!=')')
   {
     // parsing failed
     return;
   }
   // Remove parentheses
   splitFrameSize[0].erase(splitFrameSize[0].begin());
-  splitFrameSize[1].erase(splitFrameSize[1].end());
+  splitFrameSize[1].erase(splitFrameSize[1].end()-1);
   // Convert to integer
   int frameSizeX=0;
   int frameSizeY=0;
-  if (PlusCommon::StringToInt(splitFrameSize[0], frameSizeX)==PLUS_FAIL)
+  if (PlusCommon::StringToInt(splitFrameSize[0].c_str(), frameSizeX)==PLUS_FAIL)
   {
     return;
   }
-  if (PlusCommon::StringToInt(splitFrameSize[1], frameSizeY)==PLUS_FAIL)
+  if (PlusCommon::StringToInt(splitFrameSize[1].c_str(), frameSizeY)==PLUS_FAIL)
   {
     return;
   }
 
   // Parsing successful, save results
-  this->SetVideoFormat(splitVideoFormatFrameSize[0]);
+  this->SetVideoFormat(splitVideoFormatFrameSize[0].c_str());
   this->SetFrameSize(frameSizeX, frameSizeY);
 }
 
