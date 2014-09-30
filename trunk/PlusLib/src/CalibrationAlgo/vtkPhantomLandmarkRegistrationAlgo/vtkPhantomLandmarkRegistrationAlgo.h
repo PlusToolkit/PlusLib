@@ -8,6 +8,7 @@ See License.txt for details.
 #define __vtkPhantomLandmarkRegistrationAlgo_h
 
 #include "PlusConfigure.h"
+
 #include "vtkCalibrationAlgoExport.h"
 
 #include "vtkMatrix4x4.h"
@@ -59,14 +60,18 @@ public:
   void GetDefinedLandmarksAverage(double* landmarksAverage_Reference);
 
   /*! Get the defined landmarks average from the reference coordinates system*/
-  void GetDefinedLandmarksAverageFromReference(double* landmarksAverage_Reference);
+  void GetDefinedLandmarksCentroid_Reference(double* landmarksAverage_Reference);
 
-  /*! Get the camera position of the next landmark to be added in the reference coordinates system. The position is 500 mm away from the next landmark along 
-  the centroid-nextlandmark direction  */
-  void GetLandmarkCameraPositionFromReference(int index, double* definedLandmark_Reference);
+  /*!
+    Get the camera position of the next landmark to be added in the reference coordinates system. The position is 500 mm away from the next landmark along 
+    the centroid-next landmark direction
+  */
+  void GetLandmarkCameraPosition_Reference(int index, double* definedLandmark_Reference);
 
   /*! Get the defined landmark at index from the reference coordinates system */
-  void GetDefinedLandmarkFromReference(int index, double* definedLandmark_Reference);
+  void GetDefinedLandmark_Reference(int index, double* definedLandmark_Reference);
+
+  void PrintRecordedLandmarks_Phantom();
 
 public:
 
@@ -104,31 +109,31 @@ protected:
 protected:
   double minimunDistanceBetweenTwoLandmarks;
   /*! Point array holding the defined landmarks from the configuration file */
-  vtkPoints*                DefinedLandmarks;
+  vtkPoints* DefinedLandmarks;
 
   /*! Names of the defined phantom landmarks from the configuration file */
   std::vector<std::string>  DefinedLandmarkNames;
 
   /*! Point array holding the recorded landmarks */
-  vtkPoints*                RecordedLandmarks;
+  vtkPoints* RecordedLandmarks;
 
   /*! Phantom to reference transform matrix - the result of the registration */
-  vtkMatrix4x4*              PhantomToReferenceTransformMatrix;
+  vtkMatrix4x4* PhantomToReferenceTransformMatrix;
 
   /*! The mean error of the landmark registration in mm */
-  double                    RegistrationError;
+  double RegistrationError;
 
   /*! Name of the phantom coordinate frame (eg. Phantom) */
-  char*                     PhantomCoordinateFrame;
+  char* PhantomCoordinateFrame;
 
   /*! Name of the reference coordinate frame (eg. Reference) */
-  char*                     ReferenceCoordinateFrame;
+  char* ReferenceCoordinateFrame;
 
   /*! Name of the stylus tip coordinate frame (eg. StylusTip) */
-  char*                     StylusTipCoordinateFrame;
+  char* StylusTipCoordinateFrame;
 
   /*! Name of the phantom registration configuration element */
-  static std::string        ConfigurationElementName;
+  static std::string ConfigurationElementName;
 
 };
 
