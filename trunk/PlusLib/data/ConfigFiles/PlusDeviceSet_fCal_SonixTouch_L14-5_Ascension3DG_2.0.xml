@@ -196,7 +196,7 @@
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
     TemporalCalibrationDurationSec="10" 
     DefaultSelectedChannelId="TrackedVideoStream" 
-    FreeHandStartupDelaySec="3" />
+    FreeHandStartupDelaySec="5" />
 
   <vtkPivotCalibrationAlgo
     ObjectMarkerCoordinateFrame="Stylus"

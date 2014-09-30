@@ -6,36 +6,36 @@
       Description="No Video with Fake tracker in Record phantom landmarks mode vtkPhantomRegistrationTest uses this configuration" />
     <Device
       Id="TrackerDevice"
-      Type="FakeTracker" 
-      AcquisitionRate="20"
-      ToolReferenceFrame="Tracker" 
-      Mode="RecordPhantomLandmarks" >
+      Type="SavedDataSource"
+      UseData="TRANSFORM"
+      AcquisitionRate="10"
+      LocalTimeOffsetSec="0.0"
+      SequenceMetafile="EightPivotingPointsTracked.mha"
+      UseOriginalTimestamps="TRUE"
+      RepeatEnabled="TRUE"
+      ToolReferenceFrame="Tracker" >
       <DataSources>
-        <DataSource Type="Tool" Id="Reference"  PortName="0" />
-        <DataSource Type="Tool" Id="Stylus"  PortName="1" />
-      </DataSources> 
+        <DataSource Type="Tool" Id="Reference" />
+        <DataSource Type="Tool" Id="Stylus" />
+      </DataSources>
       <OutputChannels>
-        <OutputChannel Id="TrackerStream">
-          <DataSource Id="Reference" />
-          <DataSource Id="Stylus" />
+        <OutputChannel Id="TrackerStream" >
+          <DataSource Id="Reference"/>
+          <DataSource Id="Stylus"/>
         </OutputChannel>
       </OutputChannels>
     </Device>
+
   </DataCollection> 
 
   <CoordinateDefinitions>
-    <Transform From="Reference" To="Tracker"
-      Matrix="0 -1 0 300.0
-              1 0 0 400.0
-              0 0 1 700.0
-              0 0 0 1"
-      Date="2011.12.01 11:57:00" />
     <Transform From="StylusTip" To="Stylus"
-      Matrix="1 0 0 210.0
-              0 1 0 0
-              0 0 1 0
-              0 0 0 1"
-      Date="2011.12.01 17:22:12" />
+      Matrix="
+        0.997175  -0.0713837  -0.0233796 108.565
+        0.0714032 0.997448    0          7.77385
+        0.0233199 -0.00166938 0.999727   2.5389
+        0 0 0 1"
+       Error="0.462016" Date="091114_150742" />
   </CoordinateDefinitions>
 
   <Rendering WorldCoordinateFrame="Reference">

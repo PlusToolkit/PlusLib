@@ -3,18 +3,18 @@
 
 Temporal calibration algorithms estimate time offset between data streams acquired by different devices.
 
-Hardware devices usually generate timestamps by using their own hardware clock, which are
-not synchronized to the clocks of other devices. Some devices do not even
-provide a timestamp: in this case the data collector component assigns a timestamp to each item
-upon reception.
+For example, imaging data and position tracking data is typically acquired by different hardware devices, therefore the time delay
+between data acquisition and reception time in Plus may be different. This time difference can be up to
+300-400ms (depending on the hardware devices, data acquisition settings, computer hardware, connection type, network or CPU load, ...).
+
+Hardware devices often do not provide an accurate timestamp for the acquisition of each frame, and even if they do,
+the time reference (clock) of the various hardware devices are typically not synchronized. Therefore, Plus records the timestamp
+when it receives the data, applies timestamp filtering to reduce the effect of varying transmission delay, and applies
+a device-specific time offset value.
 
 # Time offset estimation
 
-Temporal calibration method in Plus assumes that devices attach timestamps on the acquired
-data with an accurate clock that has constant time offset compared to other clocks.
-
-Time offset can be computed between two devices at a time (using either tracking of imaging data). If there are more
-devices then each device has to be included in at least one temporal calibration.
+Temporal calibration method in Plus assumes that timestamps on the received data items have a constant time offset compared to other clocks.
 
 The calibration algorithm requires data acquired while performing continuous linear quasi-periodic motion for at least
 about 5 full periods (typically about 10-15 seconds). Although the algorithm may work for fewer periods it has not been tested
@@ -22,6 +22,9 @@ under these conditions. When an image stream is used the data assumed to be coll
 Furthermore, it is assumed that the probe is undergoing periodic motion in the direction perpendicular to the
 plane's face (e.g., moving the probe in a repeating up-and-down fashion while imaging the bottom of a water bath).   
 The first step of the algorithm is the computation of a normalized position signal from each data stream.
+
+Time offset can be computed between two devices at a time (using either tracking of imaging data). If there are more
+devices then each device has to be included in at least one temporal calibration.
 
 Notes:
 - The time offset is then determined by computing the time offset that leads to the highest correlation between the two signals.
