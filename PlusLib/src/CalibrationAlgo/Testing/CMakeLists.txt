@@ -70,7 +70,7 @@ TARGET_LINK_LIBRARIES(vtkPhantomRegistrationTest itkvnl itkvnl_algo ${VTK_LIBRAR
 
 ADD_TEST(vtkPhantomRegistrationTest
   ${EXECUTABLE_OUTPUT_PATH}/vtkPhantomRegistrationTest
-  --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_Sim_RecordPhantomLandmarks.xml
+  --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_Sim_RecordPhantomLandmarks_1.2.xml
   --baseline-file=${TestDataDir}/PhantomRegistration.results.xml
   )
 SET_TESTS_PROPERTIES( vtkPhantomRegistrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -81,7 +81,7 @@ TARGET_LINK_LIBRARIES(vtkPhantomRegistrationAutoDetectPivotingTest itkvnl itkvnl
 
 ADD_TEST(vtkPhantomRegistrationAutoDetectPivotingTest
   ${EXECUTABLE_OUTPUT_PATH}/vtkPhantomRegistrationAutoDetectPivotingTest
-  --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_Sim_RecordedAutoDetectPivotingPhantomLandmarks.xml
+  --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_Sim_RecordPhantomLandmarks.xml
   --tracker-input-seq-file=${TestDataDir}/EightPivotingPointsTracked.mha  
   --baseline-file=${TestDataDir}/PhantomAutoDetectPivotingRegistration.results.xml
   )

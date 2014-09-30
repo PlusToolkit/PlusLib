@@ -14,7 +14,7 @@ compares the results to a baseline
 #include "PlusMath.h"
 #include "TrackedFrame.h"
 #include "vtkDataCollector.h"
-#include "vtkFakeTracker.h"
+#include "vtkSavedDataSource.h"
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
 #include "vtkPhantomLandmarkRegistrationAlgo.h"
@@ -47,7 +47,8 @@ compares the results to a baseline
 #include "vtkPivotDetectionAlgo.h"
 
 ///////////////////////////////////////////////////////////////////
-const double ERROR_THRESHOLD_MM = 0.001; // error threshold
+const double ERROR_THRESHOLD_MM = 0.1; // error threshold
+const double ERROR_THRESHOLD_DEG = 0.2; // error threshold
 
 PlusStatus CompareRegistrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, const char* phantomCoordinateFrame, const char* referenceCoordinateFrame);
 
@@ -276,12 +277,12 @@ cmdargs.AddArgument("--intermediate-file-output-dir", vtksys::CommandLineArgumen
   }
 
   // Initialize fake tracker
-  vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(aDevice);
-  if (fakeTracker == NULL) {
+  vtkSavedDataSource *trackerDevice = dynamic_cast<vtkSavedDataSource*>(aDevice);
+  if (trackerDevice== NULL)
+  {
     LOG_ERROR("Invalid tracker object!");
     exit(EXIT_FAILURE);
   }
-  fakeTracker->SetTransformRepository(transformRepository);
 
   std::string extension = vtksys::SystemTools::GetFilenameExtension(inputTrackedStylusTipSequence);
   int numberFiles = 0;
@@ -403,7 +404,7 @@ cmdargs.AddArgument("--intermediate-file-output-dir", vtksys::CommandLineArgumen
         vtkSmartPointer<vtkMatrix4x4> stylusToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
         for (int j=0; j < trackedStylusTipFrames->GetNumberOfTrackedFrames(); ++j)
         {
-          //fakeTracker->SetCounter(j);
+          //trackerDevice->SetCounter(j);
           //aChannel->GetTrackedFrame((trackedStylusTipFrames->GetTrackedFrame(j)));
 
           if ( transformRepository->SetTransforms(*(trackedStylusTipFrames->GetTrackedFrame(j))) != PLUS_SUCCESS )
@@ -563,11 +564,12 @@ PlusStatus CompareRegistrationResultsWithBaseline(const char* baselineFileName, 
   double posDiff=PlusMath::GetPositionDifference(currentMatrix, baselineMatrix); 
   double orientDiff=PlusMath::GetOrientationDifference(currentMatrix, baselineMatrix); 
 
-  if ( fabs(posDiff) > ERROR_THRESHOLD_MM || fabs(orientDiff) > ERROR_THRESHOLD_MM )
+  if ( fabs(posDiff) > ERROR_THRESHOLD_MM || fabs(orientDiff) > ERROR_THRESHOLD_DEG )
   {
     LOG_ERROR("Transform mismatch (position difference: " << posDiff << "  orientation difference: " << orientDiff);
     return PLUS_FAIL; 
   }
+  LOG_INFO("Transform difference is acceptable (position difference: " << posDiff << "  orientation difference: " << orientDiff);
 
   return PLUS_SUCCESS; 
 }
