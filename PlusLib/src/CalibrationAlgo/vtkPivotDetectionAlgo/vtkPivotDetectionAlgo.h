@@ -37,40 +37,37 @@ public:
   static vtkPivotDetectionAlgo *New();
 
   /*!
-  * Read configuration
-  * \param aConfig Root element of the device set configuration
+    Read configuration
+    \param aConfig Root element of the device set configuration
   */
   PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
   /*!
-  Remove all previously inserted points.
-  Call this method to get rid of previously added points before starting a new detection.
-  */
-  void RemoveAllDetectionPoints();
-
-  /*!
-  Insert acquired pose to the detection pose list
-  \param stylusTipToReferenceTransform New detection pose (stylus tip to reference transform)
+    Insert acquired pose to the detection pose list
+    \param stylusTipToReferenceTransform New detection pose (stylus tip to reference transform)
   */
   PlusStatus InsertNextStylusTipToReferenceTransform(vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceTransform);
 
   /*! Get detected pivot(s) string to display
-  \param aPrecision Number of decimals shown
-  \return detection result (e.g. pivot(s) position in reference coordinates system) string
+    \param aPrecision Number of decimals shown
+    \return detection result (e.g. pivot(s) position in reference coordinates system) string
   */
   std::string GetDetectedPivotsString(double aPrecision=3);
 
-  /*! Set Device acquisition rate. This is required.*/
-  void SetAcquisitionRate(double aquisitionRate); 
-  /*! Set WindowTime (default 1/3 [s])*/
-  void SetWindowTimeSec(double windowTime);
-  /*! Set total DetectionTime (default 2 [s])*/
+  /*! Set Device acquisition rate. This is required to determine the minimum number of transforms required for detecting a point. */
+  void SetAcquisitionRate(double aquisitionRateSamplesPerSec);
+  /*! Set size of the time window used for sample averaging (default 1/3 [s]). Higher value makes the algorithm ignore more outliers. */
+  void SetWindowTimeSec(double windowTimeSec);
+  /*! Set the minimum time the stylus tip has to be at a fixed position to detect a pivot point (default 2 [s]) */
   void SetDetectionTimeSec(double detectionTime);
-  /*! Set the above the pivot threshold. It is used to detect that stylus is pivoting and not static. When a point 10 cm above the stylus tip magnitude change is bigger than AbovePivotThresholdMm, the stylus is pivoting.*/
+  /*!
+    Set the above the pivot threshold. It is used to detect that stylus is pivoting and not static.
+    When a point 10 cm above the stylus tip magnitude change is bigger than AbovePivotThresholdMm, the stylus is pivoting.
+  */
   void SetAbovePivotThresholdMm(double abovePivotThreshold);
   /*! Set the pivot threshold. A pivot position will be consider when the stylus tip position magnitude change is below SamePivotThresholdMm.  */
   void SetPivotThresholdMm(double samePivotThreshold);
-  /*! Set the number of expected pivots to be found.*/
+  /*! Set the number of expected landmarks to be found. Used for deciding if the algorithm is completed. */
   void SetExpectedPivotsNumber(int expectedPivotsNumber);
 
   /* The flag completed will be true when the number of pivot points detected is equal to the expected number of pivot points */
@@ -95,6 +92,7 @@ public:
 
   /*! Once the pivot is detected (after DetectionTime) the stylus could still be pivoting in the same place, this function determines if it is a new pivot position if it is not the pivot position will be averaged with the existing one.*/
   int IsNewPivotPointPosition(double* stylusPosition);
+  //int GetNearExistingLandmark(double* stylusPosition);
 
 protected:
 
@@ -103,13 +101,22 @@ protected:
   vtkPivotDetectionAlgo();
   virtual  ~vtkPivotDetectionAlgo();
 
+  /*!
+    Remove all previously inserted points.
+    Call this method to get rid of previously added points before starting a new detection.
+  */
+  void RemoveAllDetectionPoints();
+
   /* Estimate pivot point position from the stylus tip points. The average of NumberOfWindows*WindowSize consecutive points that remain in the same position within the PivotThresholdMm.*/
   PlusStatus EstimatePivotPointPosition();
 
-  /*! The change in pivot positions is measured in windows of points. If the current window is not considered the same pivoting point as the one before. The points acquired that belong to the first window will be erased by this function.*/
+  /*!
+    The change in pivot positions is measured in windows of points.
+    If the current window is not considered the same pivoting point as the one before. The points acquired that belong to the first window will be erased by this function.
+  */
   void EraseLastPoints();
 
-  /* Computes the average of the stylus tip positions in the latest acquired window */
+  /* Computes the average of the stylus tip positions in the last FilterWindowSize samples */
   PlusStatus GetStylusTipPositionWindowAverage(double* pivotPoint_Reference);
 
 protected:
@@ -121,9 +128,9 @@ protected:
 
   /*! The flag is true when a pivot is detected it is reset again to false when PivotFound() is called.*/
   bool NewPivotFound;
-  //The number of windows to be detected as pivot in DetectionTime (DetectionTime/WindowTime)
+  /*! The number of windows to be detected as pivot in DetectionTime (DetectionTime/WindowTime) */
   int NumberOfWindows;
-  //The number of acquisitions in WindowTime (AcquisitonRate/WindowTime)
+  /*! The number of acquisitions in WindowTime (AcquisitonRate/WindowTime) */
   int WindowSize;
 
   /*! The expected number of pivots to be detected */
@@ -138,18 +145,22 @@ protected:
   double AbovePivotThresholdMm;
   /*! A pivot position will be consider when the stylus tip position magnitude change is below PivotThresholdMm.*/
   double PivotThresholdMm;
-  /*!The minimun distance in between any two landmarks, it will be a NEW pivot detected only if it is further away from anyother already detected pivot .*/
+  /*! The minimum distance in between any two landmarks, it will be a NEW pivot detected only if it is further away from anyother already detected pivot .*/
   double MinimunDistanceBetweenLandmarksMm;
+  /*! TODO: add doc */
+  double SumStdDevMagnitude;
 
+  /*! TODO: add doc */
   vtkBoundingBox BoundingBox;
 
   /*! Name of the reference coordinate frame (eg. Reference) */
-  char*               ReferenceCoordinateFrame;
+  char* ReferenceCoordinateFrame;
 
-  /*! Array of the input point transformations*/
+  /*! Array of the input point transformations */
   std::list< vtkSmartPointer<vtkMatrix4x4> > StylusTipToReferenceTransformsList;
   /*! Iterators to track stylus tip transformations in the list*/
   std::list< vtkSmartPointer<vtkMatrix4x4> >::iterator CurrentStylusTipIterator;
+  /*! TODO: add doc */
   std::list< vtkSmartPointer<vtkMatrix4x4> >::iterator LastStylusTipIterator;
   /*! The number of partial inserted points*/
   int PartialInsertedPoints;

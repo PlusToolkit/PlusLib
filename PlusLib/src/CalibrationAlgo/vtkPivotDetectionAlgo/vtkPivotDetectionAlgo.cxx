@@ -149,6 +149,7 @@ vtkPivotDetectionAlgo::vtkPivotDetectionAlgo()
   this->SetPivotPointsReference(pivotPointsReference);
 
   this->NewPivotFound=false;
+  this->SumStdDevMagnitude=0.0;
 
   this->AboveStylusTipAverage[0] = 0.0;
   this->AboveStylusTipAverage[1] = 0.0;
@@ -520,7 +521,9 @@ PlusStatus vtkPivotDetectionAlgo::EstimatePivotPointPosition()
     {
       NumberOfWindowsFoundPerPivot.push_back(1.0);
       this->PivotPointsReference->InsertNextPoint(stylusPositionMean);
-      LOG_INFO("STD deviation ( " << stylusPositionStdev[0]<< ", "<< stylusPositionStdev[1]<< ", "<< stylusPositionStdev[2]<< ") " );
+      LOG_DEBUG("\nSTD deviation ( " << stylusPositionStdev[0]<< ", "<< stylusPositionStdev[1]<< ", "<< stylusPositionStdev[2]<< ") " );
+      LOG_DEBUG("STD deviation magnitude " << vtkMath::Norm(stylusPositionStdev));
+      this->SumStdDevMagnitude+=vtkMath::Norm(stylusPositionStdev);
       this->NewPivotFound=true;
     }
     RemoveAllDetectionPoints();
@@ -566,6 +569,7 @@ std::string vtkPivotDetectionAlgo::GetDetectedPivotsString( double aPrecision/*=
       this->PivotPointsReference->GetPoint(id, pivotFound);
       s <<"\nPivot "<< id+1 << " (" << pivotFound[0]<<", " << pivotFound[1]<<", " << pivotFound[2]<<")";
     }
+    s<<"\nStd Deviation magnitude eight points average "<< this->SumStdDevMagnitude/this->PivotPointsReference->GetNumberOfPoints();
     s << std::ends;  
     return s.str();
   }

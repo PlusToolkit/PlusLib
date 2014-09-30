@@ -458,6 +458,8 @@ cmdargs.AddArgument("--intermediate-file-output-dir", vtksys::CommandLineArgumen
         exit(EXIT_FAILURE);
       }
 
+      phantomRegistration->PrintRecordedLandmarks_Phantom();
+
       LOG_INFO("Registration error = " << phantomRegistration->GetRegistrationError());
       accumulatedError+=phantomRegistration->GetRegistrationError();
       vtkPlusLogger::PrintProgressbar(100); 
