@@ -646,7 +646,7 @@ PlusStatus PhantomRegistrationToolbox::Start()
     m_CurrentLandmarkIndex = 0;
 
     // Initialize input points polydata in visualizer
-    m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->GetPoints()->Initialize();
+    m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->Initialize();
     m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->Modified();
 
     // Highlight first landmark
