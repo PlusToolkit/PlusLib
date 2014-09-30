@@ -30,42 +30,42 @@ interface for a small box on the left that will either say "missing" or "OK".
 The tool state box can be detached so that it is visible during all steps by clicking on the little button in its corner.
 
 \section SystemCalibrationStylusCalibration Stylus Calibration
-1. Place the Stylus in a position that allows the tip of the needle to remain stationary and for all of the sensors to
-be seen by the camera.
-2. Click start, get prepared and wait for the timer (the time can be set by the FreeHandStartupDelaySec attribute of the fcal configuration file, by default is 5 seconds), when the timer is done begin to swivel (a slow movement gives better calibration error) the needle until all the points have been collected. The tip of the stylus must remain stationary relative to the Reference marker on the phantom, therefore it is advisable to place the stylus tip on the phantom surface (or make sure that the phantom does not move during the stylus calibration).
-3. There is no need to save once this is done.
 
+1. Click "Start"
+2. Before the startup timer elapses move the stylus tip into a chosen position. Make sure to not move the tip of the stylus after the timer elapsed.
+3. Swivel the stylus while keeping the tip at the same position until all the points have been collected. Slower movement and larger swivel angle range gives more accurate calibration.
+
+Notes:
+- The tip of the stylus must remain stationary relative to the Reference marker on the phantom, therefore it is advisable to place the stylus tip on the phantom surface (or place the stylus tip anywhere and make sure that the phantom does not move during the stylus calibration).
+- The startup timer allows some time to move the stylus tip to the intended position after the button is clicked. It is safe to move the stylus tip while the timer is on but the tip should remain stationary after the timer is elapsed. The startup time can be adjusted by the FreeHandStartupDelaySec attribute of the configuration file.
 
 \section SystemCalibrationPhantomRegistration Phantom Registration
-1. If you haven't disconnected since Stylus calibration, then there is no need to import a calibration result, also if the
-loaded device set configuration contained one.
-2. A small window on the left will indicate the points that are to be selected on the phantom.
-The content of this window can be rotated and zoomed using the mouse.
-3. Click "Start Pivot Detection", place the tip of the calibrated Stylus on the indicated point of the phantom and slowly swivel the stylus until it is detected. Repeat for the next indicated point until they are all detected. Alternatively, place the tip of the Stylus at the indicated point and keep it there while clicking "Record Point".
-4. If you have selected a wrong point there is an option to "Undo" the last recorded point or a "Reset" button to start from the beginning.
-- You can get better phantom registration error by setting a small PivotThresholdMm attribute (in the pivot detection element of the configuration file) but the stylus swivel has to be done more slow and carfully, and it may take longer to detect. The PivotThresholdMm has to be bigger than pivot calibration error, by default is set 1.5 mm.
+
+Prerequisites: Stylus calibration performed
+
+1. Click "Start Pivot Detection"
+2. Place the tip of the calibrated stylus on the phantom at the first landmark's divot point and slowly swivel the stylus until it is detected. Alternatively, place the tip of the stylus at the indicated point and keep it there while clicking "Record Point".
+3. Repeat the previous step for each landmark (in the order specified in the configuration file, typically from #1 to #8) until all landmark points are recorded. All recorded points are shown in green, the next expected point position (available only if a few points have been recorded already) are shown in orange.
+
+See demo video at: http://youtu.be/6Oi8baLmRNY
+
+Notes:
+- If you have selected a wrong point, click "Undo" to remove the last added landmark point a click "Reset" button to start from the beginning.
+- You can get better phantom registration error by reducing PivotThresholdMm attribute (in the pivot detection element of the configuration file) but the stylus swivel has to be done more slowly and carefully, and detection may take longer. PivotThresholdMm has to be considerably larger than the pivot calibration error.
+- A small window on the left will indicate the points that are to be selected on the phantom. The content of this window can be rotated and zoomed using the mouse.
 
 \section SystemCalibrationTemporalCalibration Temporal Calibration
 
-Typically imaging data and position tracking data is acquired by different hardware devices, therefore the time delay
-between data acquisition and reception in the Plus data collector may be different. This time difference can be up to
-300-400ms (depending on the hardware devices, data acquisition settings, computer hardware, connection type, network or CPU load, ...).
-This difference in time delay has to be taken into account when acquiring tracked ultrasound data (pairing of image and tracking data).
+1. Click "Start"
+2. Start moving the tracked ultrasound transducer up-and-down with a periodic motion along a line, while imaging the bottom of the water tank (see more details at \ref AlgorithmTemporalCalibration). Make sure that the periodic motion pattern starts before the startup timer is elapsed.
+3. Continue the periodic motion until the calibration completes.
+3. Click "Show plots" to verify that the motion was periodic and after time offset compensation the position signals are aligned accurately.
 
-The hardware devices typically do not provide an accurate timestamp for the acquisition of each frame, and even if they do,
-the time reference (clock) of the various hardware devices are typically not synchronized. Therefore, Plus records the timestamp
-when it receives the data, applies timestamp filtering to reduce the effect of varying transmission delay, and applies
-a device-specific time offset value.
-
-Temporal calibration in fCal measures the device-specific time offset difference automatically. Below is a video tutorial
-on demonstrating how to use the temporal calibration algorithm in fCal. 
-
-http://www.youtube.com/watch?v=cZq_ZAxA49c
-
+See demo video at: http://www.youtube.com/watch?v=cZq_ZAxA49c
 
 \section SystemCalibrationSpatialCalibration Spatial Calibration
 
-For optimal results always perform temporal calibration before spatial calibration and move the probe slowly.
+Prerequisites: Stylus calibration, Phantom calibration, Temporal calibration performed
 
 For calibration of curvilinear transducers the speed of sound setting in the ultrasound system shall match
 the actual speed of sound in the liquid where the calibration is performed in (otherwise the image will be
@@ -75,30 +75,19 @@ corresponding to speed of sound in room temperature water), or use a mixture in 
 glycol and water, degassed, could be a suitable mixture - see Goldstein et al. "Design of Quality Assurance for
 Sonographic Prostate Brachytherapy Needle Guides", 2002.
 
-1. Click Start, get prepared and wait for the timer(the time can be set by the FreeHandStartupDelaySec attribute of the fcal configuration file)
-2. Move the probe slowly so that all the phantom wires are visible. Use the most degrees of freedom possible.
-3. Green dots should appear over the wire points in the image as you move the probe, which indicates the
-successfully segmented points. Keep the probe approximately orthogonal to the wires to have optimal image quality.
-There is no need to tilt or rotate the probe, only translate between the front and back face of the phantom and
-optionally move slightly up&down and left&right so that the fiducial positions throughout the calibration are
-distributed over the region of interest that will later be used for imaging.
-If green dots do not appear, then cancel the calibration by clicking on Cancel button, and bring up the Segmentation
-parameter dialog by pressing the edit icon (next to the Segmentation parameters import button).
-  1. Press Freeze button if the image shows all the wires (it seems suitable for segmentation)
-  2. Check if initial spacing is correct. For giving a hint on image spacing to fCal, select the checkbox
-  next to spacing. It will give you two rulers, a green (G) and a blue (B). You can manually enter two
-  known distances that appear on the image, one horizontal and one vertical. Then set the visual rulers
-  on the image to represent these distances. You can do this by dragging the end points of the ruler.
-  3. It's usually a good idea to unfreeze the image at this point and play with the "Gain" setting on your
-  ultrasound machine to find the optimal value when dots (wires) on the image are all visible but not too large.
-  4. If wires are still not recognized, you can freeze the image again, and change the other segmentation
-  parameters. The first goal is to find all the candidates (red dots). If the wires are detected as
-  candidates (they are red), the next step is the pattern recognition (make them green). When green
-  dots appear on the wires in the parameter editor, then unfreeze, return to the Freehand Calibration tab
-  and see if the segmentation is good enough on the other images.
+1. Click "Start"
+2. Move the transducer into a position where all the phantom wires are visible. Green dots should appear over the wire points in the image, which indicates that the wire positions are successully detected.
+3. Keep the probe approximately orthogonal to the wires to have optimal image quality and move it slowly. There is no need to tilt or rotate the probe, only translate between the front and back face of the phantom and optionally move slightly up&down and left&right so that the fiducial positions throughout the calibration are distributed over the region of interest that will later be used for imaging.
 4. Once the calibration has been done, the result transformation matrix and the errors appear in the toolbox, and the Show devices checkbox becomes enabled
 5. Check Show devices to see the devices in 3D
 6. You can save the results by clicking the Save results button 
+
+Notes:
+- If green dots do not appear, then cancel the calibration by clicking on Cancel button, and bring up the Segmentation parameter dialog by pressing the edit icon (next to the Segmentation parameters import button):
+  1. Press Freeze button if the image shows all the wires (it seems suitable for segmentation)
+  2. Check if initial spacing is correct. For giving a hint on image spacing to fCal, select the checkbox next to spacing. It will give you two rulers, a green (G) and a blue (B). You can manually enter two known distances that appear on the image, one horizontal and one vertical. Then set the visual rulers on the image to represent these distances. You can do this by dragging the end points of the ruler.
+  3. It's usually a good idea to unfreeze the image at this point and play with the "Gain" setting on your ultrasound machine to find the optimal value when dots (wires) on the image are all visible but not too large.
+  4. If wires are still not recognized, you can freeze the image again, and change the other segmentation parameters. The first goal is to find all the candidates (red dots). If the wires are detected as candidates (they are red), the next step is the pattern recognition (make them green). When green dots appear on the wires in the parameter editor, then unfreeze, return to the Freehand Calibration tab and see if the segmentation is good enough on the other images.
 
 \section SystemCalibrationfCalSimulation Running fCal in simulation mode (for testing only)
 
@@ -224,7 +213,7 @@ This is probably caused by inaccurate stylus or phantom calibration. If you use 
   - \xmlAtt TransducerOriginPixelCoordinateFrame
   - \xmlAtt TemporalCalibrationDurationSec
   - \xmlAtt DefaultSelectedChannelId
-  - \xmlAtt FreeHandStartupDelaySec
+  - \xmlAtt FreeHandStartupDelaySec Specifies the delay between clicking a button to start a calibration step and the time of start collecting data. The delay allows a single person to operate fCal and handle the instruments.
 - \xmlElem \b Rendering Objects for the visualizer common widget to render (used in fCal)
   - \xmlAtt WorldCoordinateFrame: Name  of the rendering world coordinate frame (e.g. "Reference")
   - \xmlElem \b DisplayableObject 
