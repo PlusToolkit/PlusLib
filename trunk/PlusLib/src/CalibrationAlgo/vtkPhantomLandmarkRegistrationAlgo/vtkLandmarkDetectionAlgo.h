@@ -55,21 +55,20 @@ public:
   std::string GetDetectedLandmarksString(double aPrecision=3);
 
   /*! Set Device acquisition rate. This is required to determine the minimum number of transforms required for detecting a point. */
-  void SetAcquisitionRate(double aquisitionRate);
+  void SetAcquisitionRate(double aquisitionRateSamplesPerSec);
   /*! Set size of the time window used for sample averaging (default 1/3 [s]). Higher value makes the algorithm ignore more outliers. */
-  void SetWindowTimeSec(double windowTimeSec);
+  void SetFilterWindowTimeSec(double filterWindowTimeSec);
   /*! Set the minimum time the stylus tip has to be at a fixed position to detect a landmark point (default 2 [s]) */
-  void SetDetectionTimeSec(double detectionTime);
+  void SetDetectionTimeSec(double detectionTimeSec);
   /*!
     Set stylus shaft threshold. It is used to detect that stylus is pivoting and not static.
-    When a point in the stylus shaft (10 cm above the stylus tip) change is bigger than StylusShaftThresholdMm, the stylus is pivoting.
+    When a point in the stylus shaft (10 cm above the stylus tip) move during detection time more than StylusShaftThresholdMm, the stylus is pivoting.
   */
-  void SetStylusShaftThresholdMm(double stylusShaftThreshold);
+  void SetStylusShaftMinimumDisplacementThresholdMm(double stylusShaftMinimumDisplacementThresholdMm);
   /*! Set the landmark threshold. A landmark position will be consider when the stylus tip position magnitude change is below SameLandmarkThresholdMm.  */
-  void SetLandmarkThresholdMm(double sameLandmarkThreshold);
+  void SetStylusTipMaximumMotionThresholdMm(double stylusTipMaximumMotionThresholdMm);
   /*! Set the number of expected landmarks to be found. Used for deciding if the algorithm is completed. */
-  void SetExpectedLandmarksNumber(int expectedLandmarksNumber);
-
+  void SetNumberOfExpectedLandmarks(int numberOfExpectedLandmarks);
   /* The flag completed will be true when the number of landmark points detected is equal to the expected number of landmark points */
   PlusStatus IsLandmarkDetectionCompleted(bool &completed);
 
@@ -83,11 +82,11 @@ public:
   PlusStatus IsNewLandmarkPointFound(bool &found);
 
   /*Directly inserts a landmark position into the list, bypassing the detection*/
-  PlusStatus InsertLandmark(double* stylusTipPosition);
+  PlusStatus InsertLandmark_Reference(double* stylusTipPosition_Reference);
 
   vtkGetStringMacro(ReferenceCoordinateFrame);
-  vtkGetObjectMacro(LandmarkPointsReference, vtkPoints);
-  vtkGetMacro(ExpectedLandmarksNumber, int);
+  vtkGetObjectMacro(DetectedLandmarkPoints_Reference, vtkPoints);
+  vtkGetMacro(NumberOfExpectedLandmarks, int);
   vtkSetMacro(MinimunDistanceBetweenLandmarksMm, double);
 
   /*! Once the landmark is detected (after DetectionTime) the stylus could still be pivoting in the same place, this function determines if it is a new landmark position if it is not the landmark position will be averaged with the existing one.*/
@@ -97,7 +96,7 @@ public:
 protected:
 
   vtkSetStringMacro(ReferenceCoordinateFrame);
-  vtkSetObjectMacro(LandmarkPointsReference, vtkPoints);
+  vtkSetObjectMacro(DetectedLandmarkPoints_Reference, vtkPoints);
   vtkLandmarkDetectionAlgo();
   virtual  ~vtkLandmarkDetectionAlgo();
 
@@ -105,7 +104,7 @@ protected:
     Remove all previously inserted points.
     Call this method to get rid of previously added points before starting a new detection.
   */
-  void RemoveAllDetectionPoints();
+  void RemoveAllFilterWindows();
 
   /* Estimate landmark point position from the stylus tip points. The average of NumberOfWindows*WindowSize consecutive points that remain in the same position within the LandmarkThresholdMm.*/
   PlusStatus EstimateLandmarkPointPosition();
@@ -114,14 +113,14 @@ protected:
     The change in landmark positions is measured in windows of points.
     If the current window is not considered the same pivoting point as the one before. The points acquired that belong to the first window will be erased by this function.
   */
-  void EraseLastPoints();
+  void KeepLastWindow();
 
   /* Computes the average of the stylus tip positions in the last FilterWindowSize samples */
-  PlusStatus GetStylusTipPositionWindowAverage(double* landmarkPoint_Reference);
+  PlusStatus AverageFilterStylusTipPositionsWindow(double* landmarkPoint_Reference);
 
 protected:
   /*! The detected landmark point position(s)(defined in the reference coordinate system) */
-  vtkPoints* LandmarkPointsReference;
+  vtkPoints* DetectedLandmarkPoints_Reference;
 
   /*The vector is used to average position of the same landmark found*/
   std::vector<double> NumberOfWindowsFoundPerLandmark;
@@ -131,29 +130,30 @@ protected:
   /*! The number of windows to be detected as landmark in DetectionTime (DetectionTime/WindowTime) */
   int NumberOfWindows;
   /*! The number of acquisitions in WindowTime (AcquisitonRate/WindowTime) */
-  int WindowSize;
+  int FilterWindowSize;
 
   /*! The expected number of landmarks to be detected */
-  int ExpectedLandmarksNumber;
+  int NumberOfExpectedLandmarks;
   /*! Device acquisition rate */
   double AcquisitionRate;
-  /*! WindowTime (1/3 [s])*/
-  double WindowTimeSec;
-  /*! DetectionTime (2 [s])*/
+  /*! Filter window time (1/3 [s])*/
+  double FilterWindowTimeSec;
+  /*! Detection time (2 [s])*/
   double DetectionTimeSec;
-  /*! Stylus Shaft threshold is used to detect stylus pivoting and not static. When a point 10 cm above the stylus tip magnitude change is bigger than AboveLandmarkThresholdMm, the stylus is pivoting.*/
-  double StylusShaftThresholdMm;
-  /*! A landmark position will be consider when the stylus tip position magnitude change is below LandmarkThresholdMm.*/
-  double LandmarkThresholdMm;
-  /*! The minimum distance in between any two landmarks, it will be a NEW landmark detected only if it is further away from any other already detected landmark .*/
+  /*! 
+  Stylus shaft threshold is used to decide if the stylus is pivoting or static. When a point, 10 cm above the stylus tip, in the stylus shaft moved, during the detection time, 
+  more than StylusShaftThresholdMm the stylus is consider for landmark detection.
+  */
+  double StylusShaftMinimumDisplacementThresholdMm;
+  /*! A landmark position will be detected when the stylus tip position magnitude change is below StylusTipMaximumMotionThresholdMm.*/
+  double StylusTipMaximumMotionThresholdMm;
+  /*! The minimum distance in between any two defined landmarks in the phantom, it will be a NEW landmark detected only if it is further away from any other already detected landmark .*/
   double MinimunDistanceBetweenLandmarksMm;
 
-  /*! TODO: add doc */
-  vtkBoundingBox BoundingBox;
-
+  /*! The bounding box is updated during the detection time covering the path of the stylus shaft position*/
+  vtkBoundingBox StylusShaftPathBoundingBox;
   /*! Name of the reference coordinate frame (eg. Reference) */
   char* ReferenceCoordinateFrame;
-
   /*! Array of the input point transformations */
   std::list< vtkSmartPointer<vtkMatrix4x4> > StylusTipToReferenceTransformsList;
   /*! Iterators to track stylus tip transformations in the list*/
@@ -167,7 +167,7 @@ protected:
   /*! Landmark point position in the Reference coordinate system */
   double LastAboveStylusTipAverage[4];
   /*! Landmark point position average per window list (defined in the reference coordinate system)*/
-  std::list< std::vector<double> > StylusTipWindowAverage_Reference_List;
+  std::list< std::vector<double> > StylusTipFilteredList_Reference;
 };
 
 #endif

@@ -57,10 +57,10 @@ public:
   /*!Get minimum distance between any two landmarks [mm] */
   double GetMinimunDistanceBetweenTwoLandmarks();
 
-  /*! Get the defined landmarks "centroid" (it is actually just the average of the landmarks position) in phantom coordinates system*/
+  /*! Get the defined landmarks "centroid" (it is actually just the average of the landmarks position, pretty close to phantom centroid) in phantom coordinates system*/
   void GetDefinedLandmarksCentroid_Phantom(double* landmarksAverage_Phantom);
 
-  /*! Get the defined landmarks "centroid" (it is actually just the average of the landmarks position) in reference coordinates system*/
+  /*! Get the defined landmarks "centroid" (it is actually just the average of the landmarks position, pretty close to phantom centroid) in reference coordinates system*/
   void GetDefinedLandmarksCentroid_Reference(double* landmarksAverage_Reference);
 
   /*!
