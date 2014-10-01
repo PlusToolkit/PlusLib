@@ -82,8 +82,8 @@ TARGET_LINK_LIBRARIES(vtkPhantomRegistrationLandmarkDetectionTest itkvnl itkvnl_
 ADD_TEST(vtkPhantomRegistrationLandmarkDetectionTest
   ${EXECUTABLE_OUTPUT_PATH}/vtkPhantomRegistrationLandmarkDetectionTest
   --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_Sim_RecordPhantomLandmarks.xml
-  --seq-file=${TestDataDir}/EightPivotingPointsTracked.mha
-  --baseline-file=${TestDataDir}/PhantomAutoDetectPivotingRegistration.results.xml
+  --seq-file=${TestDataDir}/EightLandmarkPointsTrackedForPhantomRegistration.mha
+  --baseline-file=${TestDataDir}/PhantomRegistrationLandmarkDetection.results.xml
   )
 SET_TESTS_PROPERTIES( vtkPhantomRegistrationLandmarkDetectionTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
