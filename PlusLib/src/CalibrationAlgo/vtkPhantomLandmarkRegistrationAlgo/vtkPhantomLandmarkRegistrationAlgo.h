@@ -55,7 +55,7 @@ public:
   static std::string GetConfigurationElementName() { return vtkPhantomLandmarkRegistrationAlgo::ConfigurationElementName; };
 
   /*!Get minimum distance between any two landmarks [mm] */
-  double GetMinimunDistanceBetweenTwoLandmarks();
+  double GetMinimunDistanceBetweenTwoLandmarksMm();
 
   /*! Get the defined landmarks "centroid" (it is actually just the average of the landmarks position, pretty close to phantom centroid) in phantom coordinates system*/
   void GetDefinedLandmarksCentroid_Phantom(double* landmarksAverage_Phantom);
