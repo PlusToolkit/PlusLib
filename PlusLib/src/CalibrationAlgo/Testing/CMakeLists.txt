@@ -76,16 +76,16 @@ ADD_TEST(vtkPhantomRegistrationTest
 SET_TESTS_PROPERTIES( vtkPhantomRegistrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #--------------------------------------------------------------------------------------------
-ADD_EXECUTABLE(vtkPhantomRegistrationAutoDetectPivotingTest vtkPhantomRegistrationAutoDetectPivotingTest.cxx)
-TARGET_LINK_LIBRARIES(vtkPhantomRegistrationAutoDetectPivotingTest itkvnl itkvnl_algo ${VTK_LIBRARIES} vtkCalibrationAlgo vtkDataCollection )
+ADD_EXECUTABLE(vtkPhantomRegistrationLandmarkDetectionTest vtkPhantomRegistrationLandmarkDetectionTest.cxx)
+TARGET_LINK_LIBRARIES(vtkPhantomRegistrationLandmarkDetectionTest itkvnl itkvnl_algo ${VTK_LIBRARIES} vtkCalibrationAlgo vtkDataCollection )
 
-ADD_TEST(vtkPhantomRegistrationAutoDetectPivotingTest
-  ${EXECUTABLE_OUTPUT_PATH}/vtkPhantomRegistrationAutoDetectPivotingTest
+ADD_TEST(vtkPhantomRegistrationLandmarkDetectionTest
+  ${EXECUTABLE_OUTPUT_PATH}/vtkPhantomRegistrationLandmarkDetectionTest
   --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_Sim_RecordPhantomLandmarks.xml
   --seq-file=${TestDataDir}/EightPivotingPointsTracked.mha
   --baseline-file=${TestDataDir}/PhantomAutoDetectPivotingRegistration.results.xml
   )
-SET_TESTS_PROPERTIES( vtkPhantomRegistrationAutoDetectPivotingTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES( vtkPhantomRegistrationLandmarkDetectionTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #--------------------------------------------------------------------------------------------
 
