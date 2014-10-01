@@ -18,14 +18,6 @@
 
 int main(int argc, char *argv[])
 {
-#ifndef _WIN32
-  // Prevent crash on linux when a client is disconnected
-  // (socket->Send to a disconnected client generates a SIGPIPE signal that crashes the application if not handled
-  // or explicitly ignored)
-  // This call is not necessary anymore if https://github.com/openigtlink/OpenIGTLink/pull/37 gets integrated
-  signal(SIGPIPE, SIG_IGN);
-#endif
-
   bool printHelp(false);
   std::string deviceSetConfigurationDirectoryPath;
   std::string inputConfigFileName;
