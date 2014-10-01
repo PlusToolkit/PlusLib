@@ -103,6 +103,11 @@ vtkSonixVideoSource::vtkSonixVideoSource()
     LOG_WARNING("There is already an active vtkSonixVideoSource device. Ultrasonix SDK only supports one connection at a time, so the existing device is now deactivated and the newly created class is activated instead.");
   }
   vtkSonixVideoSource::ActiveSonixDevice = this;
+
+  this->ClipRectangleOrigin[0]=0;
+  this->ClipRectangleOrigin[1]=0;
+  this->ClipRectangleSize[0]=0;
+  this->ClipRectangleSize[1]=0;
 }
 
 //----------------------------------------------------------------------------
@@ -267,10 +272,60 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
   // get the pointer to actual incoming data on to a local pointer
   unsigned char *deviceDataPtr = static_cast<unsigned char*>(dataPtr);
 
-  PlusStatus status = aSource->GetBuffer()->AddItem(deviceDataPtr, aSource->GetPortImageOrientation(), frameSize, pixelType, 1, imgType, numberOfBytesToSkip, this->FrameNumber); 
+  PlusStatus status=PLUS_SUCCESS;
+  if( (this->ClipRectangleSize[0] > 0) && (this->ClipRectangleSize[1] > 0)
+    && (this->ClipRectangleSize[0]<frameSize[0] || this->ClipRectangleSize[1]<frameSize[1]))
+  {
+    unsigned char* dataPtr = deviceDataPtr+numberOfBytesToSkip;
+    // Clipping
+    LimitClippingToValidRegion(frameSize);
+    unsigned int bufferSize=this->ClipRectangleSize[0]*this->ClipRectangleSize[1];
+    this->ClippedImageBuffer.resize(bufferSize);
+    // Copy the pixels from full frame buffer to clipped frame buffer line-by-line
+    unsigned char* fullFramePixelPtr=dataPtr+this->ClipRectangleOrigin[1]*frameSize[0]+this->ClipRectangleOrigin[0];
+    unsigned char* clippedFramePixelPtr=&(this->ClippedImageBuffer[0]);
+    for (int y=0; y<this->ClipRectangleSize[1]; y++)
+    {
+      memcpy(clippedFramePixelPtr,fullFramePixelPtr,this->ClipRectangleSize[0]);
+      clippedFramePixelPtr+=this->ClipRectangleSize[0];
+      fullFramePixelPtr+=frameSize[0];
+    }
+    status = aSource->GetBuffer()->AddItem(&(this->ClippedImageBuffer[0]), aSource->GetPortImageOrientation(), this->ClipRectangleSize, pixelType, 1, imgType, 0, this->FrameNumber); 
+  }
+  else
+  {
+    // No clipping
+    status = aSource->GetBuffer()->AddItem(deviceDataPtr, aSource->GetPortImageOrientation(), frameSize, pixelType, 1, imgType, numberOfBytesToSkip, this->FrameNumber);
+  }
+
   this->Modified(); 
 
   return status;
+}
+
+//----------------------------------------------------------------------------
+void vtkSonixVideoSource::LimitClippingToValidRegion(const int frameSize[2])
+{
+  if (this->ClipRectangleOrigin[0]<0 || this->ClipRectangleOrigin[1]<0
+    || this->ClipRectangleOrigin[0]>=frameSize[0] || this->ClipRectangleOrigin[1]>=frameSize[1])
+  {
+    LOG_WARNING("ClipRectangleOrigin is invalid ("<<this->ClipRectangleOrigin[0]<<", "<<this->ClipRectangleOrigin[1]<<"). The frame size is "
+      <<frameSize[0]<<"x"<<frameSize[1]<<". Using (0,0) as ClipRectangleOrigin.");
+    this->ClipRectangleOrigin[0]=0;
+    this->ClipRectangleOrigin[1]=0;
+  }
+  if (this->ClipRectangleOrigin[0]+this->ClipRectangleSize[0]>=frameSize[0])
+  {
+    // rectangle size is out of the framSize bounds, clip it to the available size
+    this->ClipRectangleSize[0]=frameSize[0]-this->ClipRectangleOrigin[0];
+    LOG_WARNING("Adjusting ClipRectangleSize x to "<<this->ClipRectangleSize[0]);
+  }
+  if (this->ClipRectangleOrigin[1]+this->ClipRectangleSize[1]>frameSize[1])
+  {
+    // rectangle size is out of the framSize bounds, clip it to the available size
+    this->ClipRectangleSize[1]=frameSize[1]-this->ClipRectangleOrigin[1];
+    LOG_WARNING("Adjusting ClipRectangleSize y to "<<this->ClipRectangleSize[1]);
+  }    
 }
 
 //----------------------------------------------------------------------------
@@ -553,6 +608,10 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigE
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, SoundVelocity, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ConnectionSetupDelayMs, deviceConfig);
 
+  // clipping parameters
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleOrigin, deviceConfig);
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleSize, deviceConfig);
+
   return PLUS_SUCCESS;
 }
 
@@ -624,6 +683,10 @@ PlusStatus vtkSonixVideoSource::WriteConfiguration(vtkXMLDataElement* rootConfig
   imageAcquisitionConfig->SetIntAttribute("CompressionStatus", this->CompressionStatus);
   imageAcquisitionConfig->SetIntAttribute("Timeout", this->Timeout);
   imageAcquisitionConfig->SetDoubleAttribute("ConnectionSetupDelayMs", this->ConnectionSetupDelayMs);
+
+  // clipping parameters
+  imageAcquisitionConfig->SetVectorAttribute("ClipRectangleOrigin", 2, this->GetClipRectangleOrigin());
+  imageAcquisitionConfig->SetVectorAttribute("ClipRectangleSize", 2, this->GetClipRectangleSize());
 
   return PLUS_SUCCESS;
 }
@@ -1130,7 +1193,18 @@ PlusStatus vtkSonixVideoSource::ConfigureVideoSource( uData aValue )
     LOG_ERROR("Unsupported Ulterius bit depth: " << aDataDescriptor.ss);
     return PLUS_FAIL;
   }
-  this->SetFrameSize( *aSource, aDataDescriptor.w, aDataDescriptor.h);
+
+  int frameSize[2]={aDataDescriptor.w, aDataDescriptor.h};
+  if( (this->ClipRectangleSize[0] > 0) && (this->ClipRectangleSize[1] > 0) )
+  {
+    LimitClippingToValidRegion(frameSize);
+    this->SetFrameSize(*aSource, this->ClipRectangleSize);
+  }
+  else
+  {
+    // No clipping
+    this->SetFrameSize( *aSource, frameSize);
+  }
 
   return PLUS_SUCCESS;
 }

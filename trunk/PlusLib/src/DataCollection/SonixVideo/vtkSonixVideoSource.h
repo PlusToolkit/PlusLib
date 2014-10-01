@@ -226,6 +226,30 @@ public:
   /*! Get current RF acquire mode */
   PlusStatus GetRfAcquisitionMode(RfAcquisitionModeType & mode);
 
+  /*!
+  Set the clip rectangle size to apply to the image in pixel coordinates.
+  If the ClipRectangleSize is (0,0) then the values are ignored and the whole frame is captured.  
+  This method has to be called before Connect().
+  */
+  vtkSetVector2Macro(ClipRectangleSize,int);
+  /*!
+  Get the clip rectangle size to apply to the image in pixel coordinates.
+  If the ClipRectangleSize is (0,0) then the values are ignored and the whole frame is captured.
+  */
+  vtkGetVector2Macro(ClipRectangleSize,int);
+
+  /*!
+  Set the clip rectangle origin to apply to the image in pixel coordinates.
+  If the ClipRectangleSize is (0,0) then the whole frame is captured.
+  This method has to be called before Connect().
+  */
+  vtkSetVector2Macro(ClipRectangleOrigin,int);
+  /*!
+  Get the clip rectangle origin to apply to the image in pixel coordinates.
+  If the ClipRectangleSize is (0,0) then the whole frame is captured.
+  */
+  vtkGetVector2Macro(ClipRectangleOrigin,int);
+
   /*! Verify the device is correctly configured */
   virtual PlusStatus NotifyConfigured();
 
@@ -259,6 +283,9 @@ protected:
 
   /*! For internal use only */
   PlusStatus AddFrameToBuffer(void * data, int type, int sz, bool cine, int frmnum);
+
+  /*! Adjust clipping region origin and size to fit inside the frame size. */
+  void LimitClippingToValidRegion(const int frameSize[2]);
 
   /*! For internal use only */
   PlusStatus SetParamValue(char* paramId, int paramValue, int &validatedParamValue);
@@ -302,7 +329,16 @@ protected:
     but the connection initialization (setup of requested imaging parameters, etc.) may fail.
   */
   bool UlteriusConnected;
-    
+
+  /*! Crop rectangle origin for the grabber (in pixels) */
+  int ClipRectangleOrigin[2];
+
+  /*! Crop rectangle size for the grabber (in pixels). If it is (0,0) then the whole frame will be captured. */
+  int ClipRectangleSize[2];
+
+  /*! Helper buffer to store the image pixels when clipping is enabled */
+  std::vector<unsigned char> ClippedImageBuffer;
+
 private:
   static bool vtkSonixVideoSourceNewFrameCallback(void * data, int type, int sz, bool cine, int frmnum);
   static bool vtkSonixVideoSourceParamCallback(void * paramId, int ptX, int ptY);
