@@ -33,11 +33,11 @@ PlusStatus SetCameraViewNextLandmark(vtkCamera* activeCamera, vtkPhantomLandmark
 {
   double temporalPoint[4]={-1,0,0,1};//up vector
   activeCamera->SetViewUp(temporalPoint);
-  phantomLandmarkRegistration->GetDefinedLandmarksAverageFromReference(temporalPoint);
+  phantomLandmarkRegistration->GetDefinedLandmarksCentroid_Reference(temporalPoint);
   activeCamera->SetFocalPoint(temporalPoint);
-  phantomLandmarkRegistration->GetLandmarkCameraPositionFromReference(nextLandmarkindex,temporalPoint);
+  phantomLandmarkRegistration->GetLandmarkCameraPosition_Reference(nextLandmarkindex,temporalPoint);
   activeCamera->SetPosition(temporalPoint);
-  phantomLandmarkRegistration->GetDefinedLandmarkFromReference(nextLandmarkindex,temporalPoint);
+  phantomLandmarkRegistration->GetDefinedLandmark_Reference(nextLandmarkindex,temporalPoint);
   nextPoint->InsertPoint(0, temporalPoint);
   nextPoint->Modified();
   return PLUS_SUCCESS;
@@ -646,7 +646,7 @@ PlusStatus PhantomRegistrationToolbox::Start()
     m_CurrentLandmarkIndex = 0;
 
     // Initialize input points polydata in visualizer
-    m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->Initialize();
+    m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->GetPoints()->Initialize();
     m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->Modified();
 
     // Highlight first landmark
@@ -1274,12 +1274,12 @@ void PhantomRegistrationToolbox::AddStylusTipTransformToLandmarkPivotingRegistra
       m_PivotDetection->IsNewPivotPointFound(valid);
       if(valid)
       {
-        LOG_INFO("\n"<<m_PivotDetection->GetDetectedPivotsString()<<"\n");
+        LOG_DEBUG("\n"<<m_PivotDetection->GetDetectedPivotsString()<<"\n");
         m_PivotDetection->GetPivotPointsReference()->GetPoint(m_PivotDetection->GetPivotPointsReference()->GetNumberOfPoints()-1, pivotFound);
         //// Add recorded point to visualization
         points->InsertPoint(m_CurrentLandmarkIndex, pivotFound[0], pivotFound[1],pivotFound[2]);
         points->Modified();
-        LOG_INFO("\nPivot landmarkNumber "<<m_CurrentLandmarkIndex<<" found (" << pivotFound[0]<<", " << pivotFound[1]<<", " << pivotFound[2]<< ") \nNumber of pivots in phantonReg "<<m_PhantomLandmarkRegistration->GetRecordedLandmarks()->GetNumberOfPoints());
+        LOG_DEBUG("\nPivot landmarkNumber "<<m_CurrentLandmarkIndex<<" found (" << pivotFound[0]<<", " << pivotFound[1]<<", " << pivotFound[2]<< ") \nNumber of pivots in phantonReg "<<m_PhantomLandmarkRegistration->GetRecordedLandmarks()->GetNumberOfPoints());
         m_CurrentLandmarkIndex++;
         vtkPlusLogger::PrintProgressbar((100.0 * m_PivotDetection->GetPivotPointsReference()->GetNumberOfPoints()-1) / m_PhantomLandmarkRegistration->GetDefinedLandmarks()->GetNumberOfPoints()); 
 
@@ -1317,6 +1317,8 @@ void PhantomRegistrationToolbox::AddStylusTipTransformToLandmarkPivotingRegistra
             m_RequestedLandmarkPolyData->GetPoints()->Modified();
 
             StopLandmarkPivotingRegistration();
+            LOG_INFO("\n"<<m_PivotDetection->GetDetectedPivotsString()<<"\n");
+            m_PhantomLandmarkRegistration->PrintRecordedLandmarks_Phantom();
             return;
           }
           else
