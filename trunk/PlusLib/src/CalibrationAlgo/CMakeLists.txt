@@ -12,6 +12,8 @@ SET (CalibrationAlgo_SRCS
   vtkProbeCalibrationAlgo/vtkProbeCalibrationOptimizerAlgo.cxx
   vtkPivotCalibrationAlgo/vtkPivotCalibrationAlgo.cxx
   vtkPhantomLandmarkRegistrationAlgo/vtkPhantomLandmarkRegistrationAlgo.cxx
+  vtkPhantomLandmarkRegistrationAlgo/vtkLandmarkDetectionAlgo.cxx
+  vtkPhantomLandmarkRegistrationAlgo/vtkReadTrackedSignals.cxx
   vtkPhantomLinearObjectRegistrationAlgo/vtkPhantomLinearObjectRegistrationAlgo.cxx
   vtkSpacingCalibAlgo/vtkSpacingCalibAlgo.cxx 
   vtkCenterOfRotationCalibAlgo/vtkCenterOfRotationCalibAlgo.cxx
@@ -29,8 +31,6 @@ SET (CalibrationAlgo_SRCS
   vtkPhantomLinearObjectRegistrationAlgo/PointObservationBuffer.cxx
   vtkPhantomLinearObjectRegistrationAlgo/Reference.cxx
   vtkPhantomLinearObjectRegistrationAlgo/References.cxx
-  vtkPivotDetectionAlgo/vtkPivotDetectionAlgo.cxx
-  vtkPivotDetectionAlgo/vtkReadTrackedSignals.cxx
   )
 
 SET (CalibrationAlgo_HDRS)  
@@ -46,6 +46,8 @@ IF (WIN32)
     vtkProbeCalibrationAlgo/vtkProbeCalibrationOptimizerAlgo.h
     vtkPivotCalibrationAlgo/vtkPivotCalibrationAlgo.h
     vtkPhantomLandmarkRegistrationAlgo/vtkPhantomLandmarkRegistrationAlgo.h
+    vtkPhantomLandmarkRegistrationAlgo/vtkLandmarkDetectionAlgo.h
+    vtkPhantomLandmarkRegistrationAlgo/vtkReadTrackedSignals.h
     vtkPhantomLinearObjectRegistrationAlgo/vtkPhantomLinearObjectRegistrationAlgo.h
     vtkSpacingCalibAlgo/vtkSpacingCalibAlgo.h 
     vtkCenterOfRotationCalibAlgo/vtkCenterOfRotationCalibAlgo.h
@@ -63,8 +65,6 @@ IF (WIN32)
     vtkPhantomLinearObjectRegistrationAlgo/PointObservationBuffer.h
     vtkPhantomLinearObjectRegistrationAlgo/Reference.h
     vtkPhantomLinearObjectRegistrationAlgo/References.h
-    vtkPivotDetectionAlgo/vtkPivotDetectionAlgo.h
-    vtkPivotDetectionAlgo/vtkReadTrackedSignals.h
     )
 ENDIF (WIN32)
 
@@ -80,7 +80,7 @@ SET (CalibrationAlgo_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkProbeCalibrationAlgo
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkSpacingCalibAlgo
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkTemporalCalibrationAlgo
-  ${CMAKE_CURRENT_SOURCE_DIR}/vtkPivotDetectionAlgo
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkLandmarkDetectionAlgo
   CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------

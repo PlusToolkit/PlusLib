@@ -20,7 +20,7 @@ enum FakeTrackerMode
   FakeTrackerMode_Default,
   FakeTrackerMode_SmoothMove,
   FakeTrackerMode_PivotCalibration,
-  FakeTrackerMode_PivotCalibrationAutoDetect,
+  FakeTrackerMode_LandmarkDetection,
   FakeTrackerMode_RecordedPoseFrameList,
   FakeTrackerMode_RecordPhantomLandmarks,
   FakeTrackerMode_ToolState
@@ -121,7 +121,7 @@ protected:
   vtkPoints* PhantomLandmarks;
 
   /*!
-  List of tracked frames used for FakeTrackerMode_PivotCalibrationAutoDetect FakeTrackerMode_RecordedPoseFrameList modes
+  List of tracked frames used for FakeTrackerMode_LandmarkDetection FakeTrackerMode_RecordedPoseFrameList modes
   */
   vtkTrackedFrameList* TrackedStylusTipFrames;
 

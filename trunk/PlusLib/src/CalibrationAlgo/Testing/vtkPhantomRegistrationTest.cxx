@@ -130,7 +130,7 @@ int main (int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
-  int numberOfLandmarks = phantomRegistration->GetDefinedLandmarks()->GetNumberOfPoints();
+  int numberOfLandmarks = phantomRegistration->GetDefinedLandmarks_Phantom()->GetNumberOfPoints();
   if (numberOfLandmarks != 8)
   {
     LOG_ERROR("Number of defined landmarks should be 8 instead of " << numberOfLandmarks << "!");
@@ -169,8 +169,8 @@ int main (int argc, char* argv[])
     double stylusTipPosition[3] = {stylusTipToReferenceMatrix->GetElement(0,3), stylusTipToReferenceMatrix->GetElement(1,3), stylusTipToReferenceMatrix->GetElement(2,3) };
     
     // Add recorded point to algorithm
-    phantomRegistration->GetRecordedLandmarks()->InsertPoint(landmarkCounter, stylusTipPosition);
-    phantomRegistration->GetRecordedLandmarks()->Modified();
+    phantomRegistration->GetRecordedLandmarks_Reference()->InsertPoint(landmarkCounter, stylusTipPosition);
+    phantomRegistration->GetRecordedLandmarks_Reference()->Modified();
 
     vtkPlusLogger::PrintProgressbar((100.0 * landmarkCounter) / numberOfLandmarks); 
   }
@@ -183,7 +183,7 @@ int main (int argc, char* argv[])
 
   vtkPlusLogger::PrintProgressbar(100); 
 
-  LOG_INFO("Registration error = " << phantomRegistration->GetRegistrationError());
+  LOG_INFO("Registration error = " << phantomRegistration->GetRegistrationErrorMm());
 
   // Save result
   if (transformRepository->WriteConfiguration(configRootElement) != PLUS_SUCCESS )

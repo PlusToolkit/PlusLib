@@ -171,7 +171,7 @@ PlusStatus vtkFakeTracker::InternalConnect()
     }
     break;
 
-  case (FakeTrackerMode_PivotCalibrationAutoDetect):
+  case (FakeTrackerMode_LandmarkDetection):
     {
       //*************************************************************
       // Check Reference
@@ -465,7 +465,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
       }
       break;
     }
-  case (FakeTrackerMode_PivotCalibrationAutoDetect): // Linear translation and small rotation then moves around a stylus with the tip fixed to a position
+  case (FakeTrackerMode_LandmarkDetection): // Linear translation and small rotation then moves around a stylus with the tip fixed to a position
     {
       vtkMinimalStandardRandomSequence* random = vtkMinimalStandardRandomSequence::New();
       random->SetSeed(RandomSeed++); // To get completely random numbers, timestamp should use instead of constant seed
@@ -727,9 +727,9 @@ PlusStatus vtkFakeTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElemen
       {
         this->SetMode(FakeTrackerMode_PivotCalibration); 
       }
-      else if (STRCASECMP(mode, "PivotCalibrationAutoDetect") == 0)
+      else if (STRCASECMP(mode, "LandmarkDetection") == 0)
       {
-        this->SetMode(FakeTrackerMode_PivotCalibrationAutoDetect); 
+        this->SetMode(FakeTrackerMode_LandmarkDetection); 
       }
       else if (STRCASECMP(mode, "RecordedPoseFrameList") == 0)
       {
