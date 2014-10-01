@@ -377,7 +377,7 @@ cmdargs.AddArgument("--intermediate-file-output-dir", vtksys::CommandLineArgumen
         exit(EXIT_FAILURE);
       }
       landmarkDetection->SetNumberOfExpectedLandmarks(phantomRegistration->GetDefinedLandmarks_Phantom()->GetNumberOfPoints());
-      landmarkDetection->SetMinimunDistanceBetweenLandmarksMm(phantomRegistration->GetMinimunDistanceBetweenTwoLandmarks());
+      landmarkDetection->SetMinimunDistanceBetweenLandmarksMm(phantomRegistration->GetMinimunDistanceBetweenTwoLandmarksMm());
       landmarkDetection->SetAcquisitionRate(1/(trackedStylusTipFrames->GetTrackedFrame(1)->GetTimestamp()-trackedStylusTipFrames->GetTrackedFrame(0)->GetTimestamp()));
       if (landmarkDetection->ReadConfiguration(configLandmarkDetection) != PLUS_SUCCESS)
       {

@@ -87,7 +87,7 @@ PlusStatus vtkPhantomLandmarkRegistrationAlgo::Register(vtkTransformRepository* 
   itk::VersorRigid3DTransform<double>::Pointer transform = itk::VersorRigid3DTransform<double>::New();
   transform->SetIdentity();
 
-  itk::LandmarkBasedTransformInitializer<itk::VersorRigid3DTransform<double>, itk::Image<short,3>, itk::Image<short,3> >::Pointer initializer = itk::LandmarkBasedTransformInitializer<itk::VersorRigid3DTransform<double>, itk::Image<short,3>, itk::Image<short,3> >::New();
+  itk::LandmarkBasedTransformInitializer< itk::VersorRigid3DTransform<double>, itk::Image<short,3>, itk::Image<short,3> >::Pointer initializer = itk::LandmarkBasedTransformInitializer< itk::VersorRigid3DTransform<double>, itk::Image<short,3>, itk::Image<short,3> >::New();
   initializer->SetTransform(transform);
   initializer->SetFixedLandmarks(fixedPoints);
   initializer->SetMovingLandmarks(movingPoints);
@@ -193,7 +193,7 @@ PlusStatus vtkPhantomLandmarkRegistrationAlgo::ReadConfiguration(vtkXMLDataEleme
         continue;
       }
 
-      double landmarkPosition[3];
+      double landmarkPosition[4] = {0,0,0,1};
       if (! landmark->GetVectorAttribute("Position", 3, landmarkPosition))
       {
         LOG_WARNING("Invalid landmark position (landmark #"<<i+1<<")");
@@ -249,46 +249,38 @@ PlusStatus vtkPhantomLandmarkRegistrationAlgo::ComputeError()
 }
 
 //-----------------------------------------------------------------------------
-double vtkPhantomLandmarkRegistrationAlgo::GetMinimunDistanceBetweenTwoLandmarks()
+double vtkPhantomLandmarkRegistrationAlgo::GetMinimunDistanceBetweenTwoLandmarksMm()
 {
   // Defined landmarks from xml are in the phantom coordinate system
-  double referencePointArray[3] ;
-  this->DefinedLandmarks_Phantom->GetPoint(0,referencePointArray);
-  double minimumDistance = DBL_MAX;
-  double otherPointArray[3];
+  double referencePointArray_Phantom[4]={0,0,0,1};
+  double otherPointArray_Phantom[4]={0,0,0,1};
+  double minimumDistanceMm = DBL_MAX;
 
-  for (int i=1; i<this->DefinedLandmarks_Phantom->GetNumberOfPoints(); ++i)
+  for (int i=0; i<this->DefinedLandmarks_Phantom->GetNumberOfPoints(); ++i)
   {
-    this->DefinedLandmarks_Phantom->GetPoint(i,otherPointArray);
-    // Defined landmarks from xml are in the phantom coordinate system
-    double distance = sqrt( vtkMath::Distance2BetweenPoints(referencePointArray, otherPointArray) );
-    if( distance < minimumDistance)
+    this->DefinedLandmarks_Phantom->GetPoint(i,referencePointArray_Phantom);
+    for(int j=i+1; j<this->DefinedLandmarks_Phantom->GetNumberOfPoints(); ++j)
     {
-      minimumDistance = distance;
+      this->DefinedLandmarks_Phantom->GetPoint(j,otherPointArray_Phantom);
+      // Defined landmarks from xml are in the phantom coordinate system
+      double distanceMm = sqrt( vtkMath::Distance2BetweenPoints(referencePointArray_Phantom, otherPointArray_Phantom) );
+      if( distanceMm < minimumDistanceMm)
+      {
+        minimumDistanceMm = distanceMm;
+      }
     }
   }
-  return minimumDistance;
+  return minimumDistanceMm;
 }
 
 //-----------------------------------------------------------------------------
 void vtkPhantomLandmarkRegistrationAlgo::GetDefinedLandmarksCentroid_Reference(double* landmarksAverage_Reference)
 {
   // Defined landmarks from xml are in the phantom coordinate system
-  double landmarksAverage[4] = {0,0,0,1};
-  int numberOfLandmarks = this->DefinedLandmarks_Phantom->GetNumberOfPoints();
-  for ( int landmarkIndex=0; landmarkIndex<numberOfLandmarks; landmarkIndex++ )
-  {
-    double definedLandmarkPoint[3] = {0,0,0};
-    this->DefinedLandmarks_Phantom->GetPoint(landmarkIndex,definedLandmarkPoint);
-    landmarksAverage[0]+=definedLandmarkPoint[0];
-    landmarksAverage[1]+=definedLandmarkPoint[1];
-    landmarksAverage[2]+=definedLandmarkPoint[2];
-  }
-  landmarksAverage[0]=landmarksAverage[0]/numberOfLandmarks;
-  landmarksAverage[1]=landmarksAverage[1]/numberOfLandmarks;
-  landmarksAverage[2]=landmarksAverage[2]/numberOfLandmarks;
+  double landmarksAverage_Phantom[4] = {0,0,0,1};
+ GetDefinedLandmarksCentroid_Phantom(landmarksAverage_Phantom);
   // store it in a temporary variable because MultiplyDoublePoint would overwrite the 4th component of landmarksAverage_Reference, too
-  double *tempPtr = this->PhantomToReferenceTransformMatrix->MultiplyDoublePoint(landmarksAverage);
+  double *tempPtr = this->PhantomToReferenceTransformMatrix->MultiplyDoublePoint(landmarksAverage_Phantom);
   landmarksAverage_Reference[0]=tempPtr[0];
   landmarksAverage_Reference[1]=tempPtr[1];
   landmarksAverage_Reference[2]=tempPtr[2];
@@ -298,14 +290,14 @@ void vtkPhantomLandmarkRegistrationAlgo::GetDefinedLandmarksCentroid_Reference(d
 void vtkPhantomLandmarkRegistrationAlgo::GetDefinedLandmarksCentroid_Phantom(double* landmarksCentroid_Phantom)
 {
   // Defined landmarks from xml are in the phantom coordinate system
-  double definedLandmarkPoint[3];
+  double definedLandmarkPoint_Phantom[4] = {0,0,0,1};
   int numberOfLandmarks = this->DefinedLandmarks_Phantom->GetNumberOfPoints();
   for ( int landmarkIndex=0; landmarkIndex<numberOfLandmarks; landmarkIndex++ )
   {
-    this->DefinedLandmarks_Phantom->GetPoint(landmarkIndex,definedLandmarkPoint);
-    landmarksCentroid_Phantom[0]+=definedLandmarkPoint[0];
-    landmarksCentroid_Phantom[1]+=definedLandmarkPoint[1];
-    landmarksCentroid_Phantom[2]+=definedLandmarkPoint[2];
+    this->DefinedLandmarks_Phantom->GetPoint(landmarkIndex,definedLandmarkPoint_Phantom);
+    landmarksCentroid_Phantom[0]+=definedLandmarkPoint_Phantom[0];
+    landmarksCentroid_Phantom[1]+=definedLandmarkPoint_Phantom[1];
+    landmarksCentroid_Phantom[2]+=definedLandmarkPoint_Phantom[2];
   }
   landmarksCentroid_Phantom[0]=landmarksCentroid_Phantom[0]/numberOfLandmarks;
   landmarksCentroid_Phantom[1]=landmarksCentroid_Phantom[1]/numberOfLandmarks;
@@ -317,26 +309,25 @@ void vtkPhantomLandmarkRegistrationAlgo::GetDefinedLandmarksCentroid_Phantom(dou
 void vtkPhantomLandmarkRegistrationAlgo::GetLandmarkCameraPosition_Reference(int index, double* cameraPosition_Reference)
 {
   this->DefinedLandmarks_Phantom->GetPoint(index,cameraPosition_Reference);
-  double centroid[3]={0,0,0};
-  double viewNormalVector_Reference[3]={0,0,0};
+  double centroid_Phantom[4] = {0,0,0,1};
+  double viewNormalVector_Reference[4] = {0,0,0,1};
 
-  this->GetDefinedLandmarksCentroid_Phantom(centroid);
-  viewNormalVector_Reference[0]=cameraPosition_Reference[0]-centroid[0];
-  viewNormalVector_Reference[1]=cameraPosition_Reference[1]-centroid[1];
-  viewNormalVector_Reference[2]=cameraPosition_Reference[2]-centroid[2];
+  this->GetDefinedLandmarksCentroid_Phantom(centroid_Phantom);
+  viewNormalVector_Reference[0]=cameraPosition_Reference[0]-centroid_Phantom[0];
+  viewNormalVector_Reference[1]=cameraPosition_Reference[1]-centroid_Phantom[1];
+  viewNormalVector_Reference[2]=cameraPosition_Reference[2]-centroid_Phantom[2];
 
   vtkMath::Normalize(viewNormalVector_Reference);
   const double CAMERA_DISTANCE_FROM_CENTROID = 500; // in general, 50cm from the centroid gives a good view of the phantom
-  centroid[0]=centroid[0]+CAMERA_DISTANCE_FROM_CENTROID*viewNormalVector_Reference[0];
-  centroid[1]=centroid[1]+CAMERA_DISTANCE_FROM_CENTROID*viewNormalVector_Reference[1];
-  centroid[2]=centroid[2]+CAMERA_DISTANCE_FROM_CENTROID*viewNormalVector_Reference[2];
+  centroid_Phantom[0]=centroid_Phantom[0]+CAMERA_DISTANCE_FROM_CENTROID*viewNormalVector_Reference[0];
+  centroid_Phantom[1]=centroid_Phantom[1]+CAMERA_DISTANCE_FROM_CENTROID*viewNormalVector_Reference[1];
+  centroid_Phantom[2]=centroid_Phantom[2]+CAMERA_DISTANCE_FROM_CENTROID*viewNormalVector_Reference[2];
 
   // store it in a temporary variable because MultiplyDoublePoint would overwrite the 4th component of cameraPosition_Reference, too
-  double *tempPtr = this->PhantomToReferenceTransformMatrix->MultiplyDoublePoint(centroid); 
+  double *tempPtr = this->PhantomToReferenceTransformMatrix->MultiplyDoublePoint(centroid_Phantom); 
   cameraPosition_Reference[0]=tempPtr[0];
   cameraPosition_Reference[1]=tempPtr[1];
   cameraPosition_Reference[2]=tempPtr[2];
-  //LOG_INFO("Defined Landmark " <<index<< cameraPosition_Reference);
 }
 
 //-----------------------------------------------------------------------------
@@ -349,28 +340,23 @@ void vtkPhantomLandmarkRegistrationAlgo::GetDefinedLandmark_Reference(int index,
   cameraPosition_Reference[0]=tempPtr[0];
   cameraPosition_Reference[1]=tempPtr[1];
   cameraPosition_Reference[2]=tempPtr[2];
-  //LOG_INFO("Defined Landmark " <<index<< cameraPosition_Reference);
 }
 
 //-----------------------------------------------------------------------------
 void vtkPhantomLandmarkRegistrationAlgo::PrintRecordedLandmarks_Phantom()
 {
   // Defined landmarks from xml are in the phantom coordinate system
-  double recordedLandmarkPoint[3];
-  double recordedLandmark[4]={0,0,0,1};
+  double recordedLandmarkPoint_Phantom[4] = {0,0,0,1};
   double *tempPtr;
-  int i=0;
 
   vtkSmartPointer<vtkMatrix4x4> referenceToPhantomTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   vtkMatrix4x4::Invert(this->PhantomToReferenceTransformMatrix,referenceToPhantomTransformMatrix);
-  while( i<this->RecordedLandmarks_Reference->GetNumberOfPoints())
+  int numberOfLandmarks = this->DefinedLandmarks_Phantom->GetNumberOfPoints();
+  for ( int landmarkIndex=0; landmarkIndex<numberOfLandmarks; landmarkIndex++ )
   {
-    this->RecordedLandmarks_Reference->GetPoint(i,recordedLandmarkPoint);
-    recordedLandmark[0]=recordedLandmarkPoint[0];
-    recordedLandmark[1]=recordedLandmarkPoint[1];
-    recordedLandmark[2]=recordedLandmarkPoint[2];
-    tempPtr=referenceToPhantomTransformMatrix->MultiplyDoublePoint(recordedLandmark);
-    LOG_INFO("Pivot_Phantom "<< i <<" ("<<tempPtr[0]<<", "<<tempPtr[1]<<", "<<tempPtr[2]<<")");
-    i++;
+    this->RecordedLandmarks_Reference->GetPoint(landmarkIndex,recordedLandmarkPoint_Phantom);
+    // store it in a temporary variable because MultiplyDoublePoint would overwrite the 4th component of cameraPosition_Reference, too
+    tempPtr=referenceToPhantomTransformMatrix->MultiplyDoublePoint(recordedLandmarkPoint_Phantom);
+    LOG_INFO("RecordedLandmark_Phantom "<< landmarkIndex <<" ("<<tempPtr[0]<<", "<<tempPtr[1]<<", "<<tempPtr[2]<<")");
   }
 }

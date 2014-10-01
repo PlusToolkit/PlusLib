@@ -89,9 +89,8 @@ public:
   vtkGetMacro(NumberOfExpectedLandmarks, int);
   vtkSetMacro(MinimunDistanceBetweenLandmarksMm, double);
 
-  /*! Once the landmark is detected (after DetectionTime) the stylus could still be pivoting in the same place, this function determines if it is a new landmark position if it is not the landmark position will be averaged with the existing one.*/
-  int IsNewLandmarkPointPosition(double* stylusPosition);
-  //int GetNearExistingLandmark(double* stylusPosition);
+  /*! Once the landmark is detected (after DetectionTime) the stylus could still be pivoting in the same place, this function determines if it is a new landmark position (return -1) if it is near to an already detected one its id will be returned.*/
+  int GetNearExistingLandmarkId(double* stylusPosition_Reference);
 
 protected:
 

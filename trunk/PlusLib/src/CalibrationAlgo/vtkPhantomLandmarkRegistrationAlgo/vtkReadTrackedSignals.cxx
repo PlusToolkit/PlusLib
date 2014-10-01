@@ -96,7 +96,7 @@ PlusStatus vtkReadTrackedSignals::ComputeTrackerPositionMetric()
   itk::Point<double, 3> trackerPositionSum;
   trackerPositionSum[0] = trackerPositionSum[1] = trackerPositionSum[2] = 0.0;
 
-  std::deque<itk::Point<double, 3> > trackerPositions;
+  std::deque< itk::Point<double, 3> > trackerPositions;
   int numberOfValidFrames = 0;
   bool signalTimeRangeDefined=(m_SignalTimeRangeMin<=m_SignalTimeRangeMax);
   double previousStylusTipPosition=0.0;

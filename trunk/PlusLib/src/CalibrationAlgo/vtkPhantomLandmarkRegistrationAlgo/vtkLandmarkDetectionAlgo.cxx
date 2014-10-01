@@ -6,22 +6,16 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "PlusXmlUtils.h"
-
-#include "vtkLandmarkDetectionAlgo.h"
-#include "vtkTransformRepository.h"
 #include "PlusMath.h"
 
-#include "vtkMultiBlockDataSet.h"
-#include "vtkDoubleArray.h"
+#include "vtkLandmarkDetectionAlgo.h"
+
 #include "vtkDescriptiveStatistics.h"
-#include "vtkTable.h"
-
+#include "vtkDoubleArray.h"
+#include "vtkMultiBlockDataSet.h"
 #include "vtkObjectFactory.h"
-#include "vtkTransform.h"
+#include "vtkTable.h"
 #include "vtkXMLUtilities.h"
-#include "vtkMath.h"
-#include "vtksys/SystemTools.hxx"
-
 
 vtkCxxRevisionMacro(vtkLandmarkDetectionAlgo, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkLandmarkDetectionAlgo);
@@ -38,7 +32,6 @@ namespace
   const int FILTER_WINDOW_SIZE=3;//The number of acquisitions in FilterWindowTime (0.2 [s]) AcquisitonRate*FilterWindowTime
   const double MAXIMUM_WINDOW_TIME_SEC=3.5;//Maximum detection time
   const int NUMBER_WINDOWS_SKIP =2;//The first windows detected as pivoting wont be used for averaging.
-
 }
 
 //----------------------------------------------------------------------------
@@ -205,7 +198,7 @@ PlusStatus vtkLandmarkDetectionAlgo::ResetDetection()
 //----------------------------------------------------------------------------
 PlusStatus vtkLandmarkDetectionAlgo::InsertLandmark_Reference(double* stylusTipPosition_Reference)
 {
-  if(IsNewLandmarkPointPosition(stylusTipPosition_Reference)==-1)
+  if(GetNearExistingLandmarkId(stylusTipPosition_Reference)==-1)
   {
     NumberOfWindowsFoundPerLandmark.push_back(1.0);
     this->DetectedLandmarkPoints_Reference->InsertNextPoint(stylusTipPosition_Reference);
@@ -220,7 +213,7 @@ PlusStatus vtkLandmarkDetectionAlgo::DeleteLastLandmark()
 {
   if(this->DetectedLandmarkPoints_Reference->GetNumberOfPoints()>0)
   {
-    double landmarkFound_Reference[3] = {0,0,0};
+    double landmarkFound_Reference[4] = {0,0,0,1};
     this->DetectedLandmarkPoints_Reference->GetPoint(this->DetectedLandmarkPoints_Reference->GetNumberOfPoints()-1, landmarkFound_Reference);
     this->DetectedLandmarkPoints_Reference->GetData()->RemoveTuple(this->DetectedLandmarkPoints_Reference->GetNumberOfPoints()-1);
     this->NumberOfWindowsFoundPerLandmark[this->DetectedLandmarkPoints_Reference->GetNumberOfPoints()]=-1;
@@ -232,7 +225,7 @@ PlusStatus vtkLandmarkDetectionAlgo::DeleteLastLandmark()
 //----------------------------------------------------------------------------
 PlusStatus vtkLandmarkDetectionAlgo::AverageFilterStylusTipPositionsWindow(double* stylusTipAverageFiltered_Reference)
 {
-  double stylusTipPositionSum_Reference [3] ={0,0,0};
+  double stylusTipPositionSum_Reference [4] = {0,0,0,1};
   std::list< vtkSmartPointer<vtkMatrix4x4> >::iterator stylusTipToReferenceTransformIt=this->StylusTipToReferenceTransformsList.end();
   int i=0;
   do
@@ -261,7 +254,7 @@ PlusStatus vtkLandmarkDetectionAlgo::AverageFilterStylusTipPositionsWindow(doubl
 void vtkLandmarkDetectionAlgo::KeepLastWindow()
 {
   int i=0;
-  for (std::list<vtkSmartPointer<vtkMatrix4x4> >::iterator markerToReferenceTransformIt=this->StylusTipToReferenceTransformsList.begin();
+  for (std::list< vtkSmartPointer<vtkMatrix4x4> >::iterator markerToReferenceTransformIt=this->StylusTipToReferenceTransformsList.begin();
     markerToReferenceTransformIt!=this->StylusTipToReferenceTransformsList.end(); ++markerToReferenceTransformIt)
   {
     if(i%this->FilterWindowSize==0)
@@ -301,8 +294,8 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtk
   //Point 10 cm above the stylus tip, if it moves(window change bigger than AboveLandmarkThresholdMm) while the tip is static (window change smaller than LandmarkThresholdMm then it is landmark point.
   float pointAboveStylusTip_StylusTip[4]={100,0,0,1};
   float pointAboveStylusTip_Reference[4]={0,0,0,1};
-  double stylusTipChange_Reference[3]={0,0,0};
-  double aboveStylusTipChange[3]={0,0,0};
+  double stylusTipChange_Reference[4] = {0,0,0,1};
+  double aboveStylusTipChange[4] = {0,0,0,1};
   stylusTipToReferenceTransform->MultiplyPoint(pointAboveStylusTip_StylusTip, pointAboveStylusTip_Reference);
 
   AboveStylusTipAverage[0]+=pointAboveStylusTip_Reference[0];
@@ -312,7 +305,7 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtk
 
   this->StylusTipToReferenceTransformsList.push_back(stylusTipToReferenceTransform);
   this->PartialInsertedPoints++;
-  if(this->PartialInsertedPoints>=this->FilterWindowSize)
+  if(this->PartialInsertedPoints>=this->FilterWindowSize &&  this->DetectedLandmarkPoints_Reference->GetNumberOfPoints() < this->NumberOfExpectedLandmarks)
   {
     if(StylusTipFilteredList_Reference.size()<1)
     {
@@ -405,10 +398,10 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtk
 }
 
 //----------------------------------------------------------------------------
-int vtkLandmarkDetectionAlgo::IsNewLandmarkPointPosition(double* stylusTipPosition_Reference)
+int vtkLandmarkDetectionAlgo::GetNearExistingLandmarkId(double* stylusTipPosition_Reference)
 {
-  double detectedLandmark_Reference[3] = {0,0,0};
-  double landmarkDifference_Reference[3] = {0,0,0};
+  double detectedLandmark_Reference[4] = {0,0,0,1};
+  double landmarkDifference_Reference[4] = {0,0,0,1};
 
   for(int id=0; id<this->DetectedLandmarkPoints_Reference->GetNumberOfPoints();id++)
   {
@@ -443,8 +436,8 @@ int vtkLandmarkDetectionAlgo::IsNewLandmarkPointPosition(double* stylusTipPositi
 PlusStatus vtkLandmarkDetectionAlgo::EstimateLandmarkPointPosition()
 {
   int i=0; int j=0;
-  double stylusPositionMean_Reference[3]={0,0,0};
-  double stylusPositionStdev_Reference[3]={0,0,0};
+  double stylusPositionMean_Reference[4] = {0,0,0,1};
+  double stylusPositionStdev_Reference[4] = {0,0,0,1};
 
   vtkSmartPointer<vtkDoubleArray> datasetArrX = vtkSmartPointer<vtkDoubleArray>::New();
   datasetArrX->SetNumberOfComponents( 1 );
@@ -512,7 +505,7 @@ PlusStatus vtkLandmarkDetectionAlgo::EstimateLandmarkPointPosition()
         stylusPositionMean_Reference[r]=outputPrimary->GetValueByName( r, "Mean" ).ToDouble();
         stylusPositionStdev_Reference[r]=outputDerived->GetValueByName( r, "Standard Deviation" ).ToDouble();
     }
-    if(IsNewLandmarkPointPosition(stylusPositionMean_Reference)==-1)
+    if(GetNearExistingLandmarkId(stylusPositionMean_Reference)==-1)
     {
       NumberOfWindowsFoundPerLandmark.push_back(1.0);
       this->DetectedLandmarkPoints_Reference->InsertNextPoint(stylusPositionMean_Reference);
@@ -556,7 +549,7 @@ std::string vtkLandmarkDetectionAlgo::GetDetectedLandmarksString( double aPrecis
   if (this->DetectedLandmarkPoints_Reference->GetNumberOfPoints()>0)
   {
     std::ostrstream s;
-    double landmarkFound[3] = {0,0,0};
+    double landmarkFound[4] = {0,0,0,1};
     s << std::fixed << std::setprecision(aPrecision);
     for (int id =0; id<this->DetectedLandmarkPoints_Reference->GetNumberOfPoints();id++)
     {
