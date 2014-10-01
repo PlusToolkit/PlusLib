@@ -42,8 +42,8 @@ compares the results to a baseline
 #include "vtkPNGWriter.h"
 #include "vtkPlot.h"
 #include "vtkRenderWindow.h"
-#include "vtkReadTrackedSignals.h"
 
+#include "vtkReadTrackedSignals.h"
 #include "vtkLandmarkDetectionAlgo.h"
 
 ///////////////////////////////////////////////////////////////////
@@ -376,7 +376,7 @@ cmdargs.AddArgument("--intermediate-file-output-dir", vtksys::CommandLineArgumen
         LOG_ERROR("Unable to instantiate landmark detection algorithm class!");
         exit(EXIT_FAILURE);
       }
-      landmarkDetection->SetExpectedLandmarksNumber(phantomRegistration->GetDefinedLandmarks_Phantom()->GetNumberOfPoints());
+      landmarkDetection->SetNumberOfExpectedLandmarks(phantomRegistration->GetDefinedLandmarks_Phantom()->GetNumberOfPoints());
       landmarkDetection->SetMinimunDistanceBetweenLandmarksMm(phantomRegistration->GetMinimunDistanceBetweenTwoLandmarks());
       landmarkDetection->SetAcquisitionRate(1/(trackedStylusTipFrames->GetTrackedFrame(1)->GetTimestamp()-trackedStylusTipFrames->GetTrackedFrame(0)->GetTimestamp()));
       if (landmarkDetection->ReadConfiguration(configLandmarkDetection) != PLUS_SUCCESS)
@@ -428,12 +428,12 @@ cmdargs.AddArgument("--intermediate-file-output-dir", vtksys::CommandLineArgumen
           landmarkDetection->IsNewLandmarkPointFound(valid);
           if(valid)
           {
-            landmarkDetection->GetLandmarkPointsReference()->GetPoint(landmarkDetection->GetLandmarkPointsReference()->GetNumberOfPoints()-1, landmarkFound);
+            landmarkDetection->GetDetectedLandmarkPoints_Reference()->GetPoint(landmarkDetection->GetDetectedLandmarkPoints_Reference()->GetNumberOfPoints()-1, landmarkFound);
             // Add recorded point to algorithm
-            phantomRegistration->GetRecordedLandmarks_Reference()->InsertPoint(landmarkDetection->GetLandmarkPointsReference()->GetNumberOfPoints()-1, landmarkFound);
+            phantomRegistration->GetRecordedLandmarks_Reference()->InsertPoint(landmarkDetection->GetDetectedLandmarkPoints_Reference()->GetNumberOfPoints()-1, landmarkFound);
             phantomRegistration->GetRecordedLandmarks_Reference()->Modified();
             LOG_INFO("\nLandmark found (" << landmarkFound[0]<<", " << landmarkFound[1]<<", " << landmarkFound[2]<<") at "<<trackedStylusTipFrames->GetTrackedFrame(j)->GetTimestamp()<<"[ms]"<< "\nNumber of landmarks in phantonReg "<<phantomRegistration->GetRecordedLandmarks_Reference()->GetNumberOfPoints());
-            vtkPlusLogger::PrintProgressbar((100.0 * landmarkDetection->GetLandmarkPointsReference()->GetNumberOfPoints()-1) / phantomRegistration->GetDefinedLandmarks_Phantom()->GetNumberOfPoints()); 
+            vtkPlusLogger::PrintProgressbar((100.0 * landmarkDetection->GetDetectedLandmarkPoints_Reference()->GetNumberOfPoints()-1) / phantomRegistration->GetDefinedLandmarks_Phantom()->GetNumberOfPoints()); 
           }
           landmarkDetection->IsLandmarkDetectionCompleted(valid);
           if(valid)
