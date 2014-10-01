@@ -27,15 +27,7 @@
       Id="VideoDevice"
       Type="SonixVideo" 
       AcquisitionRate="-1" 
-      IP="130.15.7.20" 
-      Depth="-1" 
-      Sector="-1" 
-      Gain="-1" 
-      DynRange="-1" 
-      Zoom="-1" 
-      Frequency="-1" 
-      Timeout="-1" 
-      CompressionStatus="0" >
+      IP="130.15.7.20" >
       <DataSources>
         <DataSource Type="Video" Id="BModeVideo" PortName="B" PortUsImageOrientation="MF"  />
         <DataSource Type="Video" Id="RfModeVideo" PortName="Rf" PortUsImageOrientation="FM" />

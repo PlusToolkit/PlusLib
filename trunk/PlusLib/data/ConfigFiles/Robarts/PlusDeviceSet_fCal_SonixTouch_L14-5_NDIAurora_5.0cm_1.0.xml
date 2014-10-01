@@ -32,13 +32,6 @@
       LocalTimeOffsetSec="0.008"
       IP="127.0.0.1"
       Depth="6"
-      Sector="-1"
-      Gain="-1"
-      DynRange="-1"
-      Zoom="-1"
-      Frequency="-1"
-      Timeout="-1"
-      CompressionStatus="0"
       ConnectionSetupDelayMs="3000" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF"  />

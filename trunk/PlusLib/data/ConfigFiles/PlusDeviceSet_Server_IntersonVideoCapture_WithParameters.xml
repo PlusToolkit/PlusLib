@@ -17,7 +17,7 @@
       SectorPercent="-1" 
       DynRangeDb="-1" 
       ZoomFactor="-1" 
-      FrequencyMhz="-1">
+      FrequencyMhz="-1" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />
       </DataSources>      

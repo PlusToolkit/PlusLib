@@ -28,15 +28,7 @@
       Type="SonixVideo"
       Id="DeviceSonixVideo" 
       IP="130.15.7.20" 
-      AcquisitionDataType="BPost" 
-      Depth="-1" 
-      Sector="-1" 
-      Gain="-1" 
-      DynRange="-1" 
-      Zoom="-1" 
-      Frequency="-1" 
-      Timeout="-1" 
-      CompressionStatus="0" >
+      AcquisitionDataType="BPost" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="MF"  />
       </DataSources>      

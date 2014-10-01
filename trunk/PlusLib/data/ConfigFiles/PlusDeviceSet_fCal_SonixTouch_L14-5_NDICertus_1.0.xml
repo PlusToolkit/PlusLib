@@ -29,15 +29,7 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
       Type="SonixVideo" 
       AcquisitionRate="30" 
       LocalTimeOffsetSec="-0.2976"
-      IP="127.0.0.1"
-      Depth="-1" 
-      Sector="-1" 
-      Gain="-1" 
-      DynRange="-1" 
-      Zoom="-1" 
-      Frequency="-1" 
-      Timeout="-1" 
-      CompressionStatus="0" >
+      IP="127.0.0.1">
       <DataSources>
         <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF"  />
       </DataSources>
