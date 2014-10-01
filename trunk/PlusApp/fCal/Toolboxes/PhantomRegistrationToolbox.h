@@ -16,7 +16,7 @@ See License.txt for details.
 
 class vtkPhantomLandmarkRegistrationAlgo;
 class vtkPhantomLinearObjectRegistrationAlgo;
-class vtkPivotDetectionAlgo;
+class vtkLandmarkDetectionAlgo;
 class vtkActor;
 class vtkPolyData;
 class vtkRenderer;
@@ -170,12 +170,12 @@ protected:
     void ResetLinearObjectRegistration();
 
     /*!
-    Slot handling Start Pivot Detection button to activate the automatic pivot detection for landmark registration, 큣ivoting instead of pressing the record button
+    Slot handling Start Landmark Detection button to activate the automatic Landmark detection for landmark registration, 큣ivoting instead of pressing the record button
     */
     void StartLandmarkPivotingRegistration();
 
     /*!
-    Slot handling Stop Detection Pivot button to activate the automatic pivot detection for landmark registration, 큣ivoting instead of pressing the record button
+    Slot handling Stop landmark detection button to deactivate the automatic Landmark detection for landmark registration, 큣ivoting instead of pressing the record button
     */
     void StopLandmarkPivotingRegistration();
 
@@ -196,8 +196,8 @@ protected:
   /*! Phantom linear object registration algorithm */
   vtkPhantomLinearObjectRegistrationAlgo* m_PhantomLinearObjectRegistration;
 
-  /*! Stylus tip pivot detection algorithm */
-  vtkPivotDetectionAlgo*                  m_PivotDetection;
+  /*! Stylus tip Landmark detection algorithm */
+  vtkLandmarkDetectionAlgo*                  m_LandmarkDetection;
 
   /*! Landmark already detected */
   int                                    m_LandmarkDetected;
