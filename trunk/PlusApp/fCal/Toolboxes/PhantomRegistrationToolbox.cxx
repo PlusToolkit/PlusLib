@@ -31,14 +31,14 @@ See License.txt for details.
 // Set the camera to face the next pivot to be found     
 PlusStatus SetCameraViewNextLandmark(vtkCamera* activeCamera, vtkPhantomLandmarkRegistrationAlgo* phantomLandmarkRegistration, int nextLandmarkindex, vtkPoints * nextPoint )
 {
-  double temporalPoint[4]={-1,0,0,1};//up vector
-  activeCamera->SetViewUp(temporalPoint);
-  phantomLandmarkRegistration->GetDefinedLandmarksCentroid_Reference(temporalPoint);
-  activeCamera->SetFocalPoint(temporalPoint);
-  phantomLandmarkRegistration->GetLandmarkCameraPosition_Reference(nextLandmarkindex,temporalPoint);
-  activeCamera->SetPosition(temporalPoint);
-  phantomLandmarkRegistration->GetDefinedLandmark_Reference(nextLandmarkindex,temporalPoint);
-  nextPoint->InsertPoint(0, temporalPoint);
+  double tempPtr[4]={-1,0,0,1};//up vector
+  activeCamera->SetViewUp(tempPtr);
+  phantomLandmarkRegistration->GetDefinedLandmarksCentroid_Reference(tempPtr);
+  activeCamera->SetFocalPoint(tempPtr);
+  phantomLandmarkRegistration->GetLandmarkCameraPosition_Reference(nextLandmarkindex,tempPtr);
+  activeCamera->SetPosition(tempPtr);
+  phantomLandmarkRegistration->GetDefinedLandmark_Reference(nextLandmarkindex,tempPtr);
+  nextPoint->InsertPoint(0, tempPtr);
   nextPoint->Modified();
   return PLUS_SUCCESS;
 }
@@ -663,8 +663,8 @@ PlusStatus PhantomRegistrationToolbox::Start()
   }
 
   vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
-  m_LandmarkDetection->SetExpectedLandmarksNumber(m_PhantomLandmarkRegistration->GetDefinedLandmarks_Phantom()->GetNumberOfPoints());
-  m_LandmarkDetection->SetMinimunDistanceBetweenLandmarksMm(m_PhantomLandmarkRegistration->GetMinimunDistanceBetweenTwoLandmarks());
+  m_LandmarkDetection->SetNumberOfExpectedLandmarks(m_PhantomLandmarkRegistration->GetDefinedLandmarks_Phantom()->GetNumberOfPoints());
+  m_LandmarkDetection->SetMinimunDistanceBetweenLandmarksMm(m_PhantomLandmarkRegistration->GetMinimunDistanceBetweenTwoLandmarksMm());
 
   if (dataCollector)
   {
@@ -817,7 +817,7 @@ void PhantomRegistrationToolbox::RecordPoint()
   m_PhantomLandmarkRegistration->GetRecordedLandmarks_Reference()->InsertPoint(m_CurrentLandmarkIndex, stylusTipPosition[0], stylusTipPosition[1], stylusTipPosition[2]);
 
   //Insert the pivot position for the pivot detection and see if a new pivot is found (that only resets the pivot detection found flag).
-  if(m_LandmarkDetection->InsertLandmark(stylusTipPosition)==PLUS_FAIL)
+  if(m_LandmarkDetection->InsertLandmark_Reference(stylusTipPosition)==PLUS_FAIL)
   {
     return;
   }
@@ -1275,16 +1275,16 @@ void PhantomRegistrationToolbox::AddStylusTipTransformToLandmarkPivotingRegistra
       if(valid)
       {
         LOG_DEBUG("\n"<<m_LandmarkDetection->GetDetectedLandmarksString()<<"\n");
-        m_LandmarkDetection->GetLandmarkPointsReference()->GetPoint(m_LandmarkDetection->GetLandmarkPointsReference()->GetNumberOfPoints()-1, pivotFound);
+        m_LandmarkDetection->GetDetectedLandmarkPoints_Reference()->GetPoint(m_LandmarkDetection->GetDetectedLandmarkPoints_Reference()->GetNumberOfPoints()-1, pivotFound);
         //// Add recorded point to visualization
         points->InsertPoint(m_CurrentLandmarkIndex, pivotFound[0], pivotFound[1],pivotFound[2]);
         points->Modified();
         LOG_DEBUG("\nLandmark detected Number "<<m_CurrentLandmarkIndex<<" found (" << pivotFound[0]<<", " << pivotFound[1]<<", " << pivotFound[2]<< ") \nNumber of pivots in phantonReg "<<m_PhantomLandmarkRegistration->GetRecordedLandmarks_Reference()->GetNumberOfPoints());
         m_CurrentLandmarkIndex++;
-        vtkPlusLogger::PrintProgressbar((100.0 * m_LandmarkDetection->GetLandmarkPointsReference()->GetNumberOfPoints()-1) / m_PhantomLandmarkRegistration->GetDefinedLandmarks_Phantom()->GetNumberOfPoints()); 
+        vtkPlusLogger::PrintProgressbar((100.0 * m_LandmarkDetection->GetDetectedLandmarkPoints_Reference()->GetNumberOfPoints()-1) / m_PhantomLandmarkRegistration->GetDefinedLandmarks_Phantom()->GetNumberOfPoints()); 
 
         // Add recorded point to algorithm
-        m_PhantomLandmarkRegistration->GetRecordedLandmarks_Reference()->InsertPoint(m_LandmarkDetection->GetLandmarkPointsReference()->GetNumberOfPoints()-1, pivotFound);
+        m_PhantomLandmarkRegistration->GetRecordedLandmarks_Reference()->InsertPoint(m_LandmarkDetection->GetDetectedLandmarkPoints_Reference()->GetNumberOfPoints()-1, pivotFound);
         m_PhantomLandmarkRegistration->GetRecordedLandmarks_Reference()->Modified();
 
         // If there are at least 3 acquired points then register
