@@ -82,7 +82,7 @@ TARGET_LINK_LIBRARIES(vtkPhantomRegistrationAutoDetectPivotingTest itkvnl itkvnl
 ADD_TEST(vtkPhantomRegistrationAutoDetectPivotingTest
   ${EXECUTABLE_OUTPUT_PATH}/vtkPhantomRegistrationAutoDetectPivotingTest
   --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_Sim_RecordPhantomLandmarks.xml
-  --tracker-input-seq-file=${TestDataDir}/EightPivotingPointsTracked.mha  
+  --seq-file=${TestDataDir}/EightPivotingPointsTracked.mha
   --baseline-file=${TestDataDir}/PhantomAutoDetectPivotingRegistration.results.xml
   )
 SET_TESTS_PROPERTIES( vtkPhantomRegistrationAutoDetectPivotingTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
