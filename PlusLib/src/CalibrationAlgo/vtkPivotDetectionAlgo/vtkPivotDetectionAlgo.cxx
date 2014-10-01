@@ -564,18 +564,18 @@ std::string vtkPivotDetectionAlgo::GetDetectedPivotsString( double aPrecision/*=
     std::ostrstream s;
     double pivotFound[3] = {0,0,0};
     s << std::fixed << std::setprecision(aPrecision);
-    for (int id =0; id<this->PivotPointsReference->GetNumberOfPoints();id++)
+    for (int id=0; id<this->PivotPointsReference->GetNumberOfPoints();id++)
     {
       this->PivotPointsReference->GetPoint(id, pivotFound);
-      s <<"\nPivot "<< id+1 << " (" << pivotFound[0]<<", " << pivotFound[1]<<", " << pivotFound[2]<<")";
+      s <<"Pivot "<< id+1 << " (" << pivotFound[0]<<", " << pivotFound[1]<<", " << pivotFound[2]<<")\n";
     }
-    s<<"\nStd Deviation magnitude eight points average "<< this->SumStdDevMagnitude/this->PivotPointsReference->GetNumberOfPoints();
+    s<<"Std Deviation magnitude eight points average "<< this->SumStdDevMagnitude/this->PivotPointsReference->GetNumberOfPoints();
     s << std::ends;  
     return s.str();
   }
   else
   {
-    return "\nNo pivots found";
+    return "No pivots found";
   }
 }
 
