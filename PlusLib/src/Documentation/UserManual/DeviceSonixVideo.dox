@@ -82,13 +82,16 @@ Plus allows using different spatial calibration parameters when the imaging dept
 If you change to a parameter that is not supported by your configuration (ie.: a depth you didn't specify) the data collection will stop!
 If you did not specify the global parameters above, Plus will attempt to configure the Sonix hardware with the parameters from the first output channel.
     
-\section SonixVideoExampleConfigFile Example configuration file Sonix Video Touch_L14-5 PlusDeviceSet_Server_SonixTouch_L14-5_Porta.xml
+\section SonixVideoExampleConfigFileUlterius Example configuration file for B-mode acquisition using Ulterius interface
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_SonixTouch_L14-5.xml"
 
-\section SonixVideoExampleConfigFileB Example configuration file Sonix Porta Touch_L14-5 PlusDeviceSet_Server_SonixTouch_L14-5_Porta.xml
+\section SonixVideoExampleConfigFilePorta Example configuration file for B-mode acquisition using Porta interface
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_SonixTouch_L14-5_Porta.xml"
 
+\section SonixVideoExampleConfigFileRf Example configuration file for RF-mode acquisition using Ulterius interface
+
+\include "data/ConfigFiles/PlusDeviceSet_fCal_SonixRP_L14-5_RF_NDICertus_1.0.xml"
 
 */
