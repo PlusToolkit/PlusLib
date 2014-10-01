@@ -29,7 +29,7 @@ The computer needs to be on the same local network as SonixTOUCH and the Certus 
       Type="SonixVideo" 
       AcquisitionRate="30" 
       LocalTimeOffsetSec="-0.2976"
-      IP="130.15.7.20" 
+      IP="127.0.0.1"
       Depth="-1" 
       Sector="-1" 
       Gain="-1" 
