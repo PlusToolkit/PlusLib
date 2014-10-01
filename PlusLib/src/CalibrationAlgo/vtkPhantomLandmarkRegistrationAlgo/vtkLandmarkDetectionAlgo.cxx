@@ -7,7 +7,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "PlusXmlUtils.h"
 
-#include "vtkPivotDetectionAlgo.h"
+#include "vtkLandmarkDetectionAlgo.h"
 #include "vtkTransformRepository.h"
 #include "PlusMath.h"
 
@@ -23,18 +23,18 @@ See License.txt for details.
 #include "vtksys/SystemTools.hxx"
 
 
-vtkCxxRevisionMacro(vtkPivotDetectionAlgo, "$Revision: 1.0 $");
-vtkStandardNewMacro(vtkPivotDetectionAlgo);
+vtkCxxRevisionMacro(vtkLandmarkDetectionAlgo, "$Revision: 1.0 $");
+vtkStandardNewMacro(vtkLandmarkDetectionAlgo);
 
 //-----------------------------------------------------------------------------
 // Default algorithm parameters
 namespace
 {
-  const int EXPECTED_PIVOTS_NUMBER=3;// The default expected number of pivots to be detected
-  const double ABOVE_PIVOT_THRESHOLD_MM=10.0;//Above the pivot threshold is used to detect stylus pivoting and not static. When a point 100 mm above the stylus tip magnitude change is bigger than AbovePivotThresholdMm, the stylus is pivoting.
-  const double PIVOT_THRESHOLD_MM=1.5;// A pivot position will be consider when the stylus tip position magnitude change is below PivotThresholdMm.
+  const int EXPECTED_LANDMARKS_NUMBER=3;// The default expected number of landmarks to be detected
+  const double ABOVE_LANDMARK_THRESHOLD_MM=10.0;//Above the landmark threshold is used to detect stylus pivoting and not static. When a point 100 mm above the stylus tip magnitude change is bigger than AboveLandmarkThresholdMm, the stylus is pivoting.
+  const double LANDMARK_THRESHOLD_MM=1.5;// A landmark position will be consider when the stylus tip position magnitude change is below LandmarkThresholdMm.
 
-  const int NUMBER_WINDOWS=5;//The number of windows to be detected as pivot in DetectionTime (1.0 [s]) DetectionTime/WindowTime
+  const int NUMBER_WINDOWS=5;//The number of windows to be detected as landmark in DetectionTime (1.0 [s]) DetectionTime/WindowTime
   const int WINDOW_SIZE=3;//The number of acquisitions in WindowTime (0.2 [s]) AcquisitonRate*WindowTime
   const double MAXIMUM_WINDOW_TIME_SEC=3.5;//Maximum detection time
   const int NUMBER_WINDOWS_SKIP =2;//The first windows detected as pivoting wont be used for averaging.
@@ -43,7 +43,7 @@ namespace
 }
 
 //----------------------------------------------------------------------------
-void vtkPivotDetectionAlgo::SetAcquisitionRate(double aquisitionRate)
+void vtkLandmarkDetectionAlgo::SetAcquisitionRate(double aquisitionRate)
 {
   if(aquisitionRate<=0)
   {
@@ -59,11 +59,11 @@ void vtkPivotDetectionAlgo::SetAcquisitionRate(double aquisitionRate)
     this->WindowSize=1;
   }
   LOG_INFO("SET AcquisitionRate = "<< AcquisitionRate << "[fps] WindowTimeSec = " << WindowTimeSec<<"[s] DetectionTimeSec = "<< DetectionTimeSec <<"[s]");
-  LOG_INFO("NumberOfWindows = "<< NumberOfWindows<< " WindowSize = "<< WindowSize<< " MinimunDistanceBetweenLandmarksMM = "<< MinimunDistanceBetweenLandmarksMm << "[mm] PivotThreshold " << PivotThresholdMm <<"[mm]");
+  LOG_INFO("NumberOfWindows = "<< NumberOfWindows<< " WindowSize = "<< WindowSize<< " MinimunDistanceBetweenLandmarksMM = "<< MinimunDistanceBetweenLandmarksMm << "[mm] LandmarkThreshold " << LandmarkThresholdMm <<"[mm]");
 }
 
 //----------------------------------------------------------------------------
-void vtkPivotDetectionAlgo::SetDetectionTimeSec(double detectionTime)
+void vtkLandmarkDetectionAlgo::SetDetectionTimeSec(double detectionTime)
 {
   if(detectionTime>this->WindowTimeSec&&detectionTime<MAXIMUM_WINDOW_TIME_SEC*NUMBER_WINDOWS)
   {
@@ -77,7 +77,7 @@ void vtkPivotDetectionAlgo::SetDetectionTimeSec(double detectionTime)
 }
 
 //----------------------------------------------------------------------------
-void vtkPivotDetectionAlgo::SetWindowTimeSec(double windowTime)
+void vtkLandmarkDetectionAlgo::SetWindowTimeSec(double windowTime)
 {
   if(this->AcquisitionRate<=0)
   {
@@ -101,55 +101,54 @@ void vtkPivotDetectionAlgo::SetWindowTimeSec(double windowTime)
 }
 
 //----------------------------------------------------------------------------
-void vtkPivotDetectionAlgo::SetAbovePivotThresholdMm(double abovePivotThreshold)
+void vtkLandmarkDetectionAlgo::SetStylusShaftThresholdMm(double aboveLandmarkThreshold)
 {
-  if(abovePivotThreshold>0)
+  if(aboveLandmarkThreshold>0)
   {
-    this->AbovePivotThresholdMm=abovePivotThreshold;
+    this->StylusShaftThresholdMm=aboveLandmarkThreshold;
   }
   else
   {
-    LOG_WARNING("Specified pivot threshold (" << abovePivotThreshold << " [mm]) is not correct, default "<<this->AbovePivotThresholdMm<<" [s] is used instead");
+    LOG_WARNING("Specified landmark threshold (" << aboveLandmarkThreshold << " [mm]) is not correct, default "<<this->StylusShaftThresholdMm<<" [s] is used instead");
   }
 }
 
 //----------------------------------------------------------------------------
-void vtkPivotDetectionAlgo::SetPivotThresholdMm(double samePivotThreshold)
+void vtkLandmarkDetectionAlgo::SetLandmarkThresholdMm(double sameLandmarkThreshold)
 {
-  if(samePivotThreshold>0)
+  if(sameLandmarkThreshold>0)
   {
-    this->PivotThresholdMm=samePivotThreshold;
+    this->LandmarkThresholdMm=sameLandmarkThreshold;
   }
   else
   {
-    LOG_WARNING("Specified pivot threshold (" << samePivotThreshold << " [mm]) is not correct, default "<<this->PivotThresholdMm<<" [s] is used instead");
+    LOG_WARNING("Specified landmark threshold (" << sameLandmarkThreshold << " [mm]) is not correct, default "<<this->LandmarkThresholdMm<<" [s] is used instead");
   }
 }
 
 //----------------------------------------------------------------------------
-void vtkPivotDetectionAlgo::SetExpectedPivotsNumber(int expectedPivotsNumber)
+void vtkLandmarkDetectionAlgo::SetExpectedLandmarksNumber(int expectedLandmarksNumber)
 {
-  if(expectedPivotsNumber>0)
+  if(expectedLandmarksNumber>0)
   {
-    this->ExpectedPivotsNumber=expectedPivotsNumber;
+    this->ExpectedLandmarksNumber=expectedLandmarksNumber;
   }
   else
   {
-    LOG_WARNING("Specified expected number of pivots (" << expectedPivotsNumber << " is not correct, default "<<this->ExpectedPivotsNumber<<" is used instead");
+    LOG_WARNING("Specified expected number of landmarks (" << expectedLandmarksNumber << " is not correct, default "<<this->ExpectedLandmarksNumber<<" is used instead");
   }
 }
 
 //-----------------------------------------------------------------------------
-vtkPivotDetectionAlgo::vtkPivotDetectionAlgo()
+vtkLandmarkDetectionAlgo::vtkLandmarkDetectionAlgo()
 {
   this->ReferenceCoordinateFrame = NULL;
 
-  this->PivotPointsReference = NULL;
-  vtkSmartPointer<vtkPoints> pivotPointsReference = vtkSmartPointer<vtkPoints>::New();
-  this->SetPivotPointsReference(pivotPointsReference);
+  this->LandmarkPointsReference = NULL;
+  vtkSmartPointer<vtkPoints> landmarkPointsReference = vtkSmartPointer<vtkPoints>::New();
+  this->SetLandmarkPointsReference(landmarkPointsReference);
 
-  this->NewPivotFound=false;
-  this->SumStdDevMagnitude=0.0;
+  this->NewLandmarkFound=false;
 
   this->AboveStylusTipAverage[0] = 0.0;
   this->AboveStylusTipAverage[1] = 0.0;
@@ -166,26 +165,26 @@ vtkPivotDetectionAlgo::vtkPivotDetectionAlgo()
   this->AcquisitionRate=20.0;
   this->WindowTimeSec=0.2;
   this->DetectionTimeSec=1.0;
-  this->AbovePivotThresholdMm = ABOVE_PIVOT_THRESHOLD_MM;
-  this->PivotThresholdMm = PIVOT_THRESHOLD_MM;
-  this->ExpectedPivotsNumber=EXPECTED_PIVOTS_NUMBER;
+  this->StylusShaftThresholdMm = ABOVE_LANDMARK_THRESHOLD_MM;
+  this->LandmarkThresholdMm = LANDMARK_THRESHOLD_MM;
+  this->ExpectedLandmarksNumber=EXPECTED_LANDMARKS_NUMBER;
   this->MinimunDistanceBetweenLandmarksMm=15.0;
 }
 
 //-----------------------------------------------------------------------------
-vtkPivotDetectionAlgo::~vtkPivotDetectionAlgo()
+vtkLandmarkDetectionAlgo::~vtkLandmarkDetectionAlgo()
 {
   this->RemoveAllDetectionPoints();
 }
 
 //-----------------------------------------------------------------------------
-void vtkPivotDetectionAlgo::RemoveAllDetectionPoints()
+void vtkLandmarkDetectionAlgo::RemoveAllDetectionPoints()
 {
   this->StylusTipToReferenceTransformsList.clear();
 }
-PlusStatus vtkPivotDetectionAlgo::ResetDetection()
+PlusStatus vtkLandmarkDetectionAlgo::ResetDetection()
 {
-  this->NewPivotFound=false;
+  this->NewLandmarkFound=false;
   LOG_INFO("Reset");
   this->AboveStylusTipAverage[0] = 0.0;
   this->AboveStylusTipAverage[1] = 0.0;
@@ -196,47 +195,47 @@ PlusStatus vtkPivotDetectionAlgo::ResetDetection()
   RemoveAllDetectionPoints();
   this->CurrentStylusTipIterator=this->StylusTipToReferenceTransformsList.end();
   this->LastStylusTipIterator=this->StylusTipToReferenceTransformsList.begin();
-  this->PivotPointsReference->Reset();
-  this->PivotPointsReference->Initialize();
-  this->NumberOfWindowsFoundPerPivot.clear();
-  //double pivotFound[3] = {0,0,0};
-  //for(int id=0; id<this->PivotPointsReference->GetNumberOfPoints();id++)
+  this->LandmarkPointsReference->Reset();
+  this->LandmarkPointsReference->Initialize();
+  this->NumberOfWindowsFoundPerLandmark.clear();
+  //double landmarkFound[3] = {0,0,0};
+  //for(int id=0; id<this->LandmarkPointsReference->GetNumberOfPoints();id++)
   //{
-  //  this->PivotPointsReference->GetPoint(id, pivotFound);
-  //  LOG_INFO("Pivot not deleted" /*<<NumberOfWindowsFoundPerPivot[id]*/<< " ("<< pivotFound[0]<< ", "<< pivotFound[1]<< ", "<< pivotFound[2]<< ")")
+  //  this->LandmarkPointsReference->GetPoint(id, landmarkFound);
+  //  LOG_INFO("Landmark not deleted" /*<<NumberOfWindowsFoundPerLandmark[id]*/<< " ("<< landmarkFound[0]<< ", "<< landmarkFound[1]<< ", "<< landmarkFound[2]<< ")")
   //}
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPivotDetectionAlgo::InsertPivot(double* stylusTipPosition)
+PlusStatus vtkLandmarkDetectionAlgo::InsertLandmark(double* stylusTipPosition)
 {
-  if(IsNewPivotPointPosition(stylusTipPosition)==-1)
+  if(IsNewLandmarkPointPosition(stylusTipPosition)==-1)
   {
-    NumberOfWindowsFoundPerPivot.push_back(1.0);
-    this->PivotPointsReference->InsertNextPoint(stylusTipPosition);
-    this->NewPivotFound=true;
+    NumberOfWindowsFoundPerLandmark.push_back(1.0);
+    this->LandmarkPointsReference->InsertNextPoint(stylusTipPosition);
+    this->NewLandmarkFound=true;
     return PLUS_SUCCESS;
   }
   return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPivotDetectionAlgo::DeleteLastPivot()
+PlusStatus vtkLandmarkDetectionAlgo::DeleteLastLandmark()
 {
-  if(this->PivotPointsReference->GetNumberOfPoints()>0)
+  if(this->LandmarkPointsReference->GetNumberOfPoints()>0)
   {
-    double pivotFound[3] = {0,0,0};
-    this->PivotPointsReference->GetPoint(this->PivotPointsReference->GetNumberOfPoints()-1, pivotFound);
-    this->PivotPointsReference->GetData()->RemoveTuple(this->PivotPointsReference->GetNumberOfPoints()-1);
-    this->NumberOfWindowsFoundPerPivot[this->PivotPointsReference->GetNumberOfPoints()]=-1;
+    double landmarkFound[3] = {0,0,0};
+    this->LandmarkPointsReference->GetPoint(this->LandmarkPointsReference->GetNumberOfPoints()-1, landmarkFound);
+    this->LandmarkPointsReference->GetData()->RemoveTuple(this->LandmarkPointsReference->GetNumberOfPoints()-1);
+    this->NumberOfWindowsFoundPerLandmark[this->LandmarkPointsReference->GetNumberOfPoints()]=-1;
     return PLUS_SUCCESS;
   }
   return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPivotDetectionAlgo::GetStylusTipPositionWindowAverage(double* pivotPoint_Reference)
+PlusStatus vtkLandmarkDetectionAlgo::GetStylusTipPositionWindowAverage(double* landmarkPoint_Reference)
 {
   double stylusPositionSum [3] ={0,0,0};
   std::list< vtkSmartPointer<vtkMatrix4x4> >::iterator stylusTipToReferenceTransformIt=this->StylusTipToReferenceTransformsList.end();
@@ -255,16 +254,16 @@ PlusStatus vtkPivotDetectionAlgo::GetStylusTipPositionWindowAverage(double* pivo
   this->LastStylusTipIterator--;
   if(i==this->WindowSize)
   {
-    pivotPoint_Reference[0]=stylusPositionSum[0]/this->WindowSize;
-    pivotPoint_Reference[1]=stylusPositionSum[1]/this->WindowSize;
-    pivotPoint_Reference[2]=stylusPositionSum[2]/this->WindowSize;
+    landmarkPoint_Reference[0]=stylusPositionSum[0]/this->WindowSize;
+    landmarkPoint_Reference[1]=stylusPositionSum[1]/this->WindowSize;
+    landmarkPoint_Reference[2]=stylusPositionSum[2]/this->WindowSize;
   }
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkPivotDetectionAlgo::EraseLastPoints()
+void vtkLandmarkDetectionAlgo::EraseLastPoints()
 {
   int i=0;
   for (std::list<vtkSmartPointer<vtkMatrix4x4> >::iterator markerToReferenceTransformIt=this->StylusTipToReferenceTransformsList.begin();
@@ -302,9 +301,9 @@ void vtkPivotDetectionAlgo::EraseLastPoints()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPivotDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceTransform)
+PlusStatus vtkLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceTransform)
 {
-  //Point 10 cm above the stylus tip, if it moves(window change bigger than AbovePivotThresholdMm) while the tip is static (window change smaller than PivotThresholdMm then it is pivot point.
+  //Point 10 cm above the stylus tip, if it moves(window change bigger than AboveLandmarkThresholdMm) while the tip is static (window change smaller than LandmarkThresholdMm then it is landmark point.
   float pointAboveStylusTip_Reference[4]={100,0,0,1};
   double stylusTipChange[3]={0,0,0};
   double aboveStylusTipChange[3]={0,0,0};
@@ -328,8 +327,8 @@ PlusStatus vtkPivotDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtkSma
     {
       return PLUS_FAIL;
     }
-    std::vector<double> pivotPointReference (stylusTipWindowAverage, stylusTipWindowAverage+sizeof(stylusTipWindowAverage)/sizeof(stylusTipWindowAverage[0]));
-    StylusTipWindowAverage_Reference_List.push_back(pivotPointReference);
+    std::vector<double> landmarkPointReference (stylusTipWindowAverage, stylusTipWindowAverage+sizeof(stylusTipWindowAverage)/sizeof(stylusTipWindowAverage[0]));
+    StylusTipWindowAverage_Reference_List.push_back(landmarkPointReference);
 
     this->AboveStylusTipAverage[0]=this->AboveStylusTipAverage[0]/PartialInsertedPoints;
     this->AboveStylusTipAverage[1]=this->AboveStylusTipAverage[1]/PartialInsertedPoints;
@@ -351,10 +350,10 @@ PlusStatus vtkPivotDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtkSma
       aboveStylusTipChange[1]=LastAboveStylusTipAverage[1]-AboveStylusTipAverage[1];
       aboveStylusTipChange[2]=LastAboveStylusTipAverage[2]-AboveStylusTipAverage[2];
       this->BoundingBox.AddPoint(AboveStylusTipAverage);
-      if(vtkMath::Norm(stylusTipChange)<this->PivotThresholdMm /*&& vtkMath::Norm(aboveStylusTipChange)>this->AbovePivotThresholdMm*/ )
+      if(vtkMath::Norm(stylusTipChange)<this->LandmarkThresholdMm /*&& vtkMath::Norm(aboveStylusTipChange)>this->AboveLandmarkThresholdMm*/ )
       {
         LOG_DEBUG("\nDif last points (" <<abs(lastStylusTipWindowAverage[0]-stylusTipWindowAverage[0])<< ", "<<abs(lastStylusTipWindowAverage[1]-stylusTipWindowAverage[1])<< ", "<<abs(lastStylusTipWindowAverage[2]-stylusTipWindowAverage[2])<< ")\n");
-        LOG_DEBUG("Window Pivot ("<< lastStylusTipWindowAverage[0]<< ", "<< lastStylusTipWindowAverage[1]<< ", "<< lastStylusTipWindowAverage[2]<< ") found keep going!!");
+        LOG_DEBUG("Window Landmark ("<< lastStylusTipWindowAverage[0]<< ", "<< lastStylusTipWindowAverage[1]<< ", "<< lastStylusTipWindowAverage[2]<< ") found keep going!!");
         int i =0;
         for (std::list< vtkSmartPointer<vtkMatrix4x4> >::iterator markerToReferenceTransformIt=this->StylusTipToReferenceTransformsList.begin();
           markerToReferenceTransformIt!=this->StylusTipToReferenceTransformsList.end(); ++markerToReferenceTransformIt)
@@ -397,7 +396,7 @@ PlusStatus vtkPivotDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtkSma
       this->BoundingBox.Reset();
       if((lengths[0]+lengths[1]+lengths[2])>MIN_LENGTH_ABOVE)
       {
-        EstimatePivotPointPosition();
+        EstimateLandmarkPointPosition();
       }
       else
       {
@@ -410,33 +409,33 @@ PlusStatus vtkPivotDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtkSma
 }
 
 //----------------------------------------------------------------------------
-int vtkPivotDetectionAlgo::IsNewPivotPointPosition(double* stylusTipPosition)
+int vtkLandmarkDetectionAlgo::IsNewLandmarkPointPosition(double* stylusTipPosition)
 {
-  double pivotFound[3] = {0,0,0};
-  double pivotDifference[3] = {0,0,0};
+  double landmarkFound[3] = {0,0,0};
+  double landmarkDifference[3] = {0,0,0};
 
-  for(int id=0; id<this->PivotPointsReference->GetNumberOfPoints();id++)
+  for(int id=0; id<this->LandmarkPointsReference->GetNumberOfPoints();id++)
   {
-    this->PivotPointsReference->GetPoint(id, pivotFound);
+    this->LandmarkPointsReference->GetPoint(id, landmarkFound);
 
-    pivotDifference[0]=pivotFound[0]-stylusTipPosition[0];
-    pivotDifference[1]=pivotFound[1]-stylusTipPosition[1];
-    pivotDifference[2]=pivotFound[2]-stylusTipPosition[2];
+    landmarkDifference[0]=landmarkFound[0]-stylusTipPosition[0];
+    landmarkDifference[1]=landmarkFound[1]-stylusTipPosition[1];
+    landmarkDifference[2]=landmarkFound[2]-stylusTipPosition[2];
     ////average if it is really close
-    //if(vtkMath::Norm(pivotDifference)<this->PivotThresholdMm/5 )
+    //if(vtkMath::Norm(landmarkDifference)<this->LandmarkThresholdMm/5 )
     //{
-    //  NumberOfWindowsFoundPerPivot[id]=NumberOfWindowsFoundPerPivot[id]+1.0;
-    //  pivotFound[0]=(pivotFound[0]*(NumberOfWindowsFoundPerPivot[id]-1)+stylusTipPosition[0])/NumberOfWindowsFoundPerPivot[id];
-    //  pivotFound[1]=(pivotFound[1]*(NumberOfWindowsFoundPerPivot[id]-1)+stylusTipPosition[1])/NumberOfWindowsFoundPerPivot[id];
-    //  pivotFound[2]=(pivotFound[2]*(NumberOfWindowsFoundPerPivot[id]-1)+stylusTipPosition[2])/NumberOfWindowsFoundPerPivot[id];
-    //  //Only using the first detection time pivot detection and not the average might be more accurate
-    //  this->PivotPointsReference->InsertPoint(id,pivotFound);
-    //  LOG_INFO("Pivot found "<<NumberOfWindowsFoundPerPivot[id]<<" times. Average("<< pivotFound[0]<< ", "<< pivotFound[1]<< ", "<< pivotFound[2]<< ") set")
+    //  NumberOfWindowsFoundPerLandmark[id]=NumberOfWindowsFoundPerLandmark[id]+1.0;
+    //  landmarkFound[0]=(landmarkFound[0]*(NumberOfWindowsFoundPerLandmark[id]-1)+stylusTipPosition[0])/NumberOfWindowsFoundPerLandmark[id];
+    //  landmarkFound[1]=(landmarkFound[1]*(NumberOfWindowsFoundPerLandmark[id]-1)+stylusTipPosition[1])/NumberOfWindowsFoundPerLandmark[id];
+    //  landmarkFound[2]=(landmarkFound[2]*(NumberOfWindowsFoundPerLandmark[id]-1)+stylusTipPosition[2])/NumberOfWindowsFoundPerLandmark[id];
+    //  //Only using the first detection time landmark detection and not the average might be more accurate
+    //  this->LandmarkPointsReference->InsertPoint(id,landmarkFound);
+    //  LOG_INFO("Landmark found "<<NumberOfWindowsFoundPerLandmark[id]<<" times. Average("<< landmarkFound[0]<< ", "<< landmarkFound[1]<< ", "<< landmarkFound[2]<< ") set")
     //    return false;
     //}
-    ////if it is relatively close it might be same pivot outlier do not average it 
-    //else if(vtkMath::Norm(pivotDifference)<this->MinimunDistanceBetweenLandmarksMm/3)
-    if(vtkMath::Norm(pivotDifference)<this->MinimunDistanceBetweenLandmarksMm/3)
+    ////if it is relatively close it might be same landmark outlier do not average it 
+    //else if(vtkMath::Norm(landmarkDifference)<this->MinimunDistanceBetweenLandmarksMm/3)
+    if(vtkMath::Norm(landmarkDifference)<this->MinimunDistanceBetweenLandmarksMm/3)
     {
       return id;
     }
@@ -445,7 +444,7 @@ int vtkPivotDetectionAlgo::IsNewPivotPointPosition(double* stylusTipPosition)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPivotDetectionAlgo::EstimatePivotPointPosition()
+PlusStatus vtkLandmarkDetectionAlgo::EstimateLandmarkPointPosition()
 {
   int i=0; int j=0;
   double stylusPositionMean[3]={0,0,0};
@@ -517,14 +516,13 @@ PlusStatus vtkPivotDetectionAlgo::EstimatePivotPointPosition()
         stylusPositionMean[r]=outputPrimary->GetValueByName( r, "Mean" ).ToDouble();
         stylusPositionStdev[r]=outputDerived->GetValueByName( r, "Standard Deviation" ).ToDouble();
     }
-    if(IsNewPivotPointPosition(stylusPositionMean)==-1)
+    if(IsNewLandmarkPointPosition(stylusPositionMean)==-1)
     {
-      NumberOfWindowsFoundPerPivot.push_back(1.0);
-      this->PivotPointsReference->InsertNextPoint(stylusPositionMean);
+      NumberOfWindowsFoundPerLandmark.push_back(1.0);
+      this->LandmarkPointsReference->InsertNextPoint(stylusPositionMean);
       LOG_DEBUG("\nSTD deviation ( " << stylusPositionStdev[0]<< ", "<< stylusPositionStdev[1]<< ", "<< stylusPositionStdev[2]<< ") " );
       LOG_DEBUG("STD deviation magnitude " << vtkMath::Norm(stylusPositionStdev));
-      this->SumStdDevMagnitude+=vtkMath::Norm(stylusPositionStdev);
-      this->NewPivotFound=true;
+      this->NewLandmarkFound=true;
     }
     RemoveAllDetectionPoints();
   }
@@ -532,20 +530,20 @@ PlusStatus vtkPivotDetectionAlgo::EstimatePivotPointPosition()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPivotDetectionAlgo::IsNewPivotPointFound(bool &found)
+PlusStatus vtkLandmarkDetectionAlgo::IsNewLandmarkPointFound(bool &found)
 {
-  found=this->NewPivotFound;
-  if (this->NewPivotFound==true)
+  found=this->NewLandmarkFound;
+  if (this->NewLandmarkFound==true)
   {
-    this->NewPivotFound=false;
+    this->NewLandmarkFound=false;
   }
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPivotDetectionAlgo::IsPivotDetectionCompleted(bool &completed)
+PlusStatus vtkLandmarkDetectionAlgo::IsLandmarkDetectionCompleted(bool &completed)
 {
-  if(this->PivotPointsReference->GetNumberOfPoints()>=this->ExpectedPivotsNumber)
+  if(this->LandmarkPointsReference->GetNumberOfPoints()>=this->ExpectedLandmarksNumber)
   {
     completed=true;
   }
@@ -557,44 +555,43 @@ PlusStatus vtkPivotDetectionAlgo::IsPivotDetectionCompleted(bool &completed)
 }
 
 //-----------------------------------------------------------------------------
-std::string vtkPivotDetectionAlgo::GetDetectedPivotsString( double aPrecision/*=3*/ )
+std::string vtkLandmarkDetectionAlgo::GetDetectedLandmarksString( double aPrecision/*=3*/ )
 {
-  if (this->PivotPointsReference->GetNumberOfPoints()>0)
+  if (this->LandmarkPointsReference->GetNumberOfPoints()>0)
   {
     std::ostrstream s;
-    double pivotFound[3] = {0,0,0};
+    double landmarkFound[3] = {0,0,0};
     s << std::fixed << std::setprecision(aPrecision);
-    for (int id=0; id<this->PivotPointsReference->GetNumberOfPoints();id++)
+    for (int id =0; id<this->LandmarkPointsReference->GetNumberOfPoints();id++)
     {
-      this->PivotPointsReference->GetPoint(id, pivotFound);
-      s <<"Pivot "<< id+1 << " (" << pivotFound[0]<<", " << pivotFound[1]<<", " << pivotFound[2]<<")\n";
+      this->LandmarkPointsReference->GetPoint(id, landmarkFound);
+      s <<"\nLandmark "<< id+1 << " (" << landmarkFound[0]<<", " << landmarkFound[1]<<", " << landmarkFound[2]<<")";
     }
-    s<<"Std Deviation magnitude eight points average "<< this->SumStdDevMagnitude/this->PivotPointsReference->GetNumberOfPoints();
     s << std::ends;  
     return s.str();
   }
   else
   {
-    return "No pivots found";
+    return "\nNo landmarks found";
   }
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPivotDetectionAlgo::ReadConfiguration(vtkXMLDataElement* aConfig)
+PlusStatus vtkLandmarkDetectionAlgo::ReadConfiguration(vtkXMLDataElement* aConfig)
 {
-  XML_FIND_NESTED_ELEMENT_REQUIRED(PhantomLandmarkPivotDetectionElement, aConfig, "vtkPhantomLandmarkRegistrationAlgo");
-  XML_READ_STRING_ATTRIBUTE_REQUIRED(ReferenceCoordinateFrame, PhantomLandmarkPivotDetectionElement);
+  XML_FIND_NESTED_ELEMENT_REQUIRED(PhantomLandmarkLandmarkDetectionElement, aConfig, "vtkPhantomLandmarkRegistrationAlgo");
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(ReferenceCoordinateFrame, PhantomLandmarkLandmarkDetectionElement);
 
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, AcquisitionRate, PhantomLandmarkPivotDetectionElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, AcquisitionRate, PhantomLandmarkLandmarkDetectionElement);
 
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, ExpectedPivotsNumber, PhantomLandmarkPivotDetectionElement);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, WindowTimeSec, PhantomLandmarkPivotDetectionElement);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DetectionTimeSec, PhantomLandmarkPivotDetectionElement);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, AbovePivotThresholdMm, PhantomLandmarkPivotDetectionElement);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, PivotThresholdMm, PhantomLandmarkPivotDetectionElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, ExpectedLandmarksNumber, PhantomLandmarkLandmarkDetectionElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, WindowTimeSec, PhantomLandmarkLandmarkDetectionElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DetectionTimeSec, PhantomLandmarkLandmarkDetectionElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, StylusShaftThresholdMm, PhantomLandmarkLandmarkDetectionElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, LandmarkThresholdMm, PhantomLandmarkLandmarkDetectionElement);
 
   LOG_INFO("AcquisitionRate = "<< AcquisitionRate << "[fps] WindowTimeSec = " << WindowTimeSec<<"[s] DetectionTimeSec = "<< DetectionTimeSec <<"[s]");
-  LOG_INFO("NumberOfWindows = "<< NumberOfWindows<< " WindowSize = "<< WindowSize<< " MinimunDistanceBetweenLandmarksMm = "<< MinimunDistanceBetweenLandmarksMm << "[mm] PivotThreshold " << PivotThresholdMm <<"[mm]");
+  LOG_INFO("NumberOfWindows = "<< NumberOfWindows<< " WindowSize = "<< WindowSize<< " MinimunDistanceBetweenLandmarksMm = "<< MinimunDistanceBetweenLandmarksMm << "[mm] LandmarkThreshold " << LandmarkThresholdMm <<"[mm]");
 
   return PLUS_SUCCESS;
 }

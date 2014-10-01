@@ -54,34 +54,36 @@ public:
   /*! Get configuration element name */
   static std::string GetConfigurationElementName() { return vtkPhantomLandmarkRegistrationAlgo::ConfigurationElementName; };
 
+  /*!Get minimum distance between any two landmarks [mm] */
   double GetMinimunDistanceBetweenTwoLandmarks();
 
-  /*! Get the defined landmarks average from the reference coordinates system*/
-  void GetDefinedLandmarksAverage(double* landmarksAverage_Reference);
+  /*! Get the defined landmarks "centroid" (it is actually just the average of the landmarks position) in phantom coordinates system*/
+  void GetDefinedLandmarksCentroid_Phantom(double* landmarksAverage_Phantom);
 
-  /*! Get the defined landmarks average from the reference coordinates system*/
+  /*! Get the defined landmarks "centroid" (it is actually just the average of the landmarks position) in reference coordinates system*/
   void GetDefinedLandmarksCentroid_Reference(double* landmarksAverage_Reference);
 
   /*!
-    Get the camera position of the next landmark to be added in the reference coordinates system. The position is 500 mm away from the next landmark along 
-    the centroid-next landmark direction
+    Get the camera position (in reference coordinates system) of the next landmark to be added. The position is 500 mm away from the next landmark along 
+    the "centroid"-next landmark direction
   */
   void GetLandmarkCameraPosition_Reference(int index, double* definedLandmark_Reference);
 
-  /*! Get the defined landmark at index from the reference coordinates system */
+  /*! Get the defined landmark at index in the reference coordinates system */
   void GetDefinedLandmark_Reference(int index, double* definedLandmark_Reference);
 
+    /*! Print recorded landmarks in Phantom coordinates system*/
   void PrintRecordedLandmarks_Phantom();
 
 public:
 
-  vtkGetMacro(RegistrationError, double);
+  vtkGetMacro(RegistrationErrorMm, double);
 
   vtkGetObjectMacro(PhantomToReferenceTransformMatrix, vtkMatrix4x4); 
   vtkSetObjectMacro(PhantomToReferenceTransformMatrix, vtkMatrix4x4);
 
-  vtkGetObjectMacro(DefinedLandmarks, vtkPoints);
-  vtkGetObjectMacro(RecordedLandmarks, vtkPoints);
+  vtkGetObjectMacro(DefinedLandmarks_Phantom, vtkPoints);
+  vtkGetObjectMacro(RecordedLandmarks_Reference, vtkPoints);
 
   vtkGetStringMacro(PhantomCoordinateFrame);
   vtkGetStringMacro(ReferenceCoordinateFrame);
@@ -93,10 +95,10 @@ protected:
 
 protected:
   /*! Sets the known landmark points positions (defined in the Phantom coordinate system) */
-  vtkSetObjectMacro(DefinedLandmarks, vtkPoints);
+  vtkSetObjectMacro(DefinedLandmarks_Phantom, vtkPoints);
 
-  /*! Sets the landmark points that were recorded by a stylus */
-  vtkSetObjectMacro(RecordedLandmarks, vtkPoints);
+  /*! Sets the landmark points that were recorded by a stylus (defined in the Reference coordinate system)*/
+  vtkSetObjectMacro(RecordedLandmarks_Reference, vtkPoints);
 
   vtkSetStringMacro(PhantomCoordinateFrame);
   vtkSetStringMacro(ReferenceCoordinateFrame);
@@ -107,21 +109,23 @@ protected:
   virtual  ~vtkPhantomLandmarkRegistrationAlgo();
 
 protected:
-  double minimunDistanceBetweenTwoLandmarks;
+  /*! Minimum distance between any two landmarks [mm] */
+  double minimumDistanceBetweenTwoLandmarksMm;
+
   /*! Point array holding the defined landmarks from the configuration file */
-  vtkPoints* DefinedLandmarks;
+  vtkPoints* DefinedLandmarks_Phantom;
 
   /*! Names of the defined phantom landmarks from the configuration file */
   std::vector<std::string>  DefinedLandmarkNames;
 
   /*! Point array holding the recorded landmarks */
-  vtkPoints* RecordedLandmarks;
+  vtkPoints* RecordedLandmarks_Reference;
 
   /*! Phantom to reference transform matrix - the result of the registration */
   vtkMatrix4x4* PhantomToReferenceTransformMatrix;
 
   /*! The mean error of the landmark registration in mm */
-  double RegistrationError;
+  double RegistrationErrorMm;
 
   /*! Name of the phantom coordinate frame (eg. Phantom) */
   char* PhantomCoordinateFrame;
