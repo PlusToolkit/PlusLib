@@ -18,6 +18,8 @@ See License.txt for details.
 #include <QFileDialog>
 #include <QTimer>
 
+#include "PlusMath.h"
+
 #include "vtkAccurateTimer.h"
 #include "vtkGlyph3D.h"
 #include "vtkPolyDataMapper.h"

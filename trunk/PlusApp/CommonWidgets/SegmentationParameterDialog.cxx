@@ -32,6 +32,7 @@ See License.txt for details.
 #include "vtkSphereSource.h"
 #include "vtkTextActor3D.h"
 #include "vtkTextProperty.h"
+#include "vtkTrackedFrameList.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/SystemTools.hxx"

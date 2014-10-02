@@ -11,7 +11,7 @@ See License.txt for details.
 #include "TrackedFrame.h"
 #include "fCalMainWindow.h"
 
-
+#include "vtkPlusDevice.h"
 #include "vtkProbeCalibrationAlgo.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkVisualizationController.h"

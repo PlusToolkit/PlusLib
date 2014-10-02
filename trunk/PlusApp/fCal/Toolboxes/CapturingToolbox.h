@@ -10,10 +10,9 @@ See License.txt for details.
 #include "AbstractToolbox.h"
 #include "PlusConfigure.h"
 #include "ui_CapturingToolbox.h"
-#include "vtkTimestampedCircularBuffer.h"
+
 #include <QString>
 #include <QWidget>
-#include <deque>
 
 class CaptureControlWidget;
 class QScrollArea;

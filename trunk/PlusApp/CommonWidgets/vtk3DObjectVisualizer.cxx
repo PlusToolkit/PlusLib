@@ -12,6 +12,7 @@ See License.txt for details.
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPolyDataMapper.h"
+#include "vtkPlusDevice.h"
 #include "vtkProperty.h"
 #include "vtkSmartPointer.h"
 #include "vtkSphereSource.h"

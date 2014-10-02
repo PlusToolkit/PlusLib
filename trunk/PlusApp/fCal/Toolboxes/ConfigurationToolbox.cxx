@@ -12,6 +12,7 @@ See License.txt for details.
 #include "vtkLineSource.h"
 #include "vtkPhantomLandmarkRegistrationAlgo.h"
 #include "vtkPlusChannel.h"
+#include "vtkPlusDevice.h"
 #include "vtkVisualizationController.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"

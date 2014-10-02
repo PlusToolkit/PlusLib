@@ -9,20 +9,18 @@ See License.txt for details.
 
 #include "PlusCommon.h"
 #include "PlusVideoFrame.h"
-#include "vtkCamera.h"
 #include "vtkDataCollector.h"
-#include "vtkImageActor.h"
 #include "vtkImageVisualizer.h"
-#include "vtkObject.h"
 #include "vtk3DObjectVisualizer.h"
 #include "vtkPolyData.h"
-#include "vtkPolyDataMapper.h"
-#include "vtkRenderer.h"
 #include "vtkTransformRepository.h"
 
 #include <QObject>
 
+class vtkImageActor;
 class vtkMatrix4x4;
+class vtkPolyDataMapper;
+class vtkRenderer;
 class vtkSTLReader;
 class vtkTransform;
 class vtkXMLDataElement;
