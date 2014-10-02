@@ -140,7 +140,6 @@ vtkLandmarkDetectionAlgo::vtkLandmarkDetectionAlgo()
   this->SetDetectedLandmarkPoints_Reference(detectedLandmarkPoints_Reference);
 
   this->NewLandmarkFound=false;
-  this->PartialInsertedPoints=0;
 
   this->NumberOfWindows=NUMBER_WINDOWS;
   this->FilterWindowSize=FILTER_WINDOW_SIZE;
@@ -173,7 +172,6 @@ PlusStatus vtkLandmarkDetectionAlgo::ResetDetection()
   this->NewLandmarkFound=false;
   LOG_INFO("Reset");
 
-  this->PartialInsertedPoints=0;
   RemoveAllFilterWindows();
   this->DetectedLandmarkPoints_Reference->Reset();
   this->DetectedLandmarkPoints_Reference->Initialize();
@@ -204,7 +202,7 @@ PlusStatus vtkLandmarkDetectionAlgo::DeleteLastLandmark()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkLandmarkDetectionAlgo::AverageFilterStylusTipPositionsWindow(double* stylusTipAverageFiltered_Reference)
+PlusStatus vtkLandmarkDetectionAlgo::FilterWindowOfStylusTipPositions(double* stylusTipFiltered_Reference)
 {
   double stylusTipPositionSum_Reference [4] = {0,0,0,1};
 
@@ -218,9 +216,9 @@ PlusStatus vtkLandmarkDetectionAlgo::AverageFilterStylusTipPositionsWindow(doubl
       stylusTipPositionSum_Reference[1] +=(*stylusTipToReferenceTransformItD)->Element[1][3];
       stylusTipPositionSum_Reference[2] +=(*stylusTipToReferenceTransformItD)->Element[2][3];
     }
-    stylusTipAverageFiltered_Reference[0]=stylusTipPositionSum_Reference[0]/this->FilterWindowSize;
-    stylusTipAverageFiltered_Reference[1]=stylusTipPositionSum_Reference[1]/this->FilterWindowSize;
-    stylusTipAverageFiltered_Reference[2]=stylusTipPositionSum_Reference[2]/this->FilterWindowSize;
+    stylusTipFiltered_Reference[0]=stylusTipPositionSum_Reference[0]/this->FilterWindowSize;
+    stylusTipFiltered_Reference[1]=stylusTipPositionSum_Reference[1]/this->FilterWindowSize;
+    stylusTipFiltered_Reference[2]=stylusTipPositionSum_Reference[2]/this->FilterWindowSize;
   }
   return PLUS_SUCCESS;
 }
@@ -238,7 +236,6 @@ void vtkLandmarkDetectionAlgo::KeepLastWindow()
       this->StylusTipToReferenceTransformsDeque.pop_front();
       j++;
     }
-    //ONLY USEFULL FOR AVERAAGING AFTER DETECTION REMOVE!!!
     for(int a=0; a<j/this->FilterWindowSize;a++)
     {
       this->StylusTipFilteredList_Reference.pop_front();
@@ -262,11 +259,15 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtk
   stylusTipToReferenceTransform->MultiplyPoint(pointAboveStylusTip_StylusTip, pointAboveStylusTip_Reference);
 
   this->StylusTipToReferenceTransformsDeque.push_back(stylusTipToReferenceTransform);
-  this->PartialInsertedPoints++;
-  if(this->PartialInsertedPoints>=this->FilterWindowSize &&  this->DetectedLandmarkPoints_Reference->GetNumberOfPoints() < this->NumberOfExpectedLandmarks)
+  int modulus =this->StylusTipToReferenceTransformsDeque.size()%(this->FilterWindowSize);
+  if(modulus==0)
+  {
+    modulus=3;
+  }
+  if(modulus>=this->FilterWindowSize &&  this->DetectedLandmarkPoints_Reference->GetNumberOfPoints() < this->NumberOfExpectedLandmarks)
   {
     double stylusTipFiltered_Reference[4]={0,0,0,1};
-    if (AverageFilterStylusTipPositionsWindow( stylusTipFiltered_Reference)!=PLUS_SUCCESS)
+    if (FilterWindowOfStylusTipPositions( stylusTipFiltered_Reference)!=PLUS_SUCCESS)
     {
       return PLUS_FAIL;
     }
@@ -289,7 +290,7 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtk
       {
         LOG_DEBUG("\nDif last points (" <<abs(lastStylusTipFiltered_Reference[0]-stylusTipFiltered_Reference[0])<< ", "<<abs(lastStylusTipFiltered_Reference[1]-stylusTipFiltered_Reference[1])<< ", "<<abs(lastStylusTipFiltered_Reference[2]-stylusTipFiltered_Reference[2])<< ")\n");
         LOG_DEBUG("Window Landmark ("<< lastStylusTipFiltered_Reference[0]<< ", "<< lastStylusTipFiltered_Reference[1]<< ", "<< lastStylusTipFiltered_Reference[2]<< ") found keep going!!");
-        /////////////////////////////////////DEBUG
+        //DEBUG
         int i =0;
         for (std::deque< vtkSmartPointer<vtkMatrix4x4> >::iterator markerToReferenceTransformIt=this->StylusTipToReferenceTransformsDeque.begin();
           markerToReferenceTransformIt!=this->StylusTipToReferenceTransformsDeque.end(); ++markerToReferenceTransformIt)
@@ -314,7 +315,6 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtk
         this->StylusShaftPathBoundingBox.AddPoint(pointAboveStylusTip_Reference);
       }
     }
-    this->PartialInsertedPoints=0;
     double lengths[3];
     this->StylusShaftPathBoundingBox.GetLengths(lengths);
     if(StylusTipFilteredList_Reference.size()>=this->NumberOfWindows)
@@ -339,7 +339,6 @@ int vtkLandmarkDetectionAlgo::GetNearExistingLandmarkId(double* stylusTipPositio
 {
   double detectedLandmark_Reference[4] = {0,0,0,1};
   double landmarkDifference_Reference[4] = {0,0,0,1};
-
   for(int id=0; id<this->DetectedLandmarkPoints_Reference->GetNumberOfPoints();id++)
   {
     this->DetectedLandmarkPoints_Reference->GetPoint(id, detectedLandmark_Reference);
