@@ -803,14 +803,14 @@ void SpatialCalibrationToolbox::DoCalibration()
   int numberOfNewlySegmentedImages = 0;
   if (numberOfFramesBeforeRecording<trackedFrameListToUse->GetNumberOfTrackedFrames())
   {
-    PatternRecognitionError error;
+    FidPatternRecognition::PatternRecognitionError error;
     if ( m_PatternRecognition->RecognizePattern(trackedFrameListToUse, error, &numberOfNewlySegmentedImages) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to segment tracked frame list"); 
       QTimer::singleShot(50, this, SLOT(DoCalibration()));
       return;
     }
-    if( error == PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES )
+    if( error == FidPatternRecognition::PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES )
     {
       LOG_WARNING("Too many candidates in frame. Some candidates have been truncated to prevent freezing of the application.");
     }

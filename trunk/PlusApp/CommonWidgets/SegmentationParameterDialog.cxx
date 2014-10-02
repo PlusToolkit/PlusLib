@@ -1367,9 +1367,9 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
 
   // Segment image
   PatternRecognitionResult segResults;
-  PatternRecognitionError error(PATTERN_RECOGNITION_ERROR_NO_ERROR);
+  FidPatternRecognition::PatternRecognitionError error = FidPatternRecognition::PATTERN_RECOGNITION_ERROR_NO_ERROR;
   m_PatternRecognition->RecognizePattern(&m_Frame, segResults, error, 0); // 0: the frame is not saved into a buffer, so there is no specific frame index
-  if( error == PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES )
+  if( error == FidPatternRecognition::PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES )
   {
     ui.label_Feedback->setText("Too many candidates. Reduce ROI region.");
     ui.label_Feedback->setStyleSheet("QLabel { color : orange; }");
@@ -1393,7 +1393,7 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
   vtkSmartPointer<vtkPoints> candidatePoints = vtkSmartPointer<vtkPoints>::New();
   candidatePoints->SetNumberOfPoints(segResults.GetCandidateFidValues().size());
 
-  std::vector<Dot> candidateDots = segResults.GetCandidateFidValues();
+  std::vector<FidDot> candidateDots = segResults.GetCandidateFidValues();
   for (int i=0; i<candidateDots.size(); ++i)
   {
     candidatePoints->InsertPoint(i, candidateDots[i].GetX(), candidateDots[i].GetY(), -0.3);

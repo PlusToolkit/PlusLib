@@ -582,15 +582,15 @@ PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
     return PLUS_FAIL;
   }
 
-  std::vector<Pattern*> patterns( patternRecognition.GetFidLineFinder()->GetPatterns() );
+  std::vector<FidPattern*> patterns( patternRecognition.GetFidLineFinder()->GetPatterns() );
   
   // Set an empty polydata to initialize
   phantomWiresDisplayablePolyData->SetPolyData(vtkSmartPointer<vtkPolyData>::New());
 
   // Construct wires poly data
-  for (std::vector<Pattern*>::iterator patternIt = patterns.begin(); patternIt != patterns.end(); ++patternIt)
+  for (std::vector<FidPattern*>::iterator patternIt = patterns.begin(); patternIt != patterns.end(); ++patternIt)
   {
-    for (std::vector<Wire>::iterator wireIt = (*patternIt)->Wires.begin(); wireIt != (*patternIt)->Wires.end(); ++wireIt)
+    for (std::vector<FidWire>::iterator wireIt = (*patternIt)->Wires.begin(); wireIt != (*patternIt)->Wires.end(); ++wireIt)
     {
       double endPointFrontInPhantomFrame[4] = { wireIt->EndPointFront[0], wireIt->EndPointFront[1], wireIt->EndPointFront[2], 1.0 };
       double endPointBackInPhantomFrame[4] = { wireIt->EndPointBack[0], wireIt->EndPointBack[1], wireIt->EndPointBack[2], 1.0 };
