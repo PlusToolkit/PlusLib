@@ -34,7 +34,7 @@ The stylus pivoting point is computed assuming that the stylus is calibrated.
 class vtkCalibrationAlgoExport vtkLandmarkDetectionAlgo : public vtkObject
 {
 public:
-  vtkTypeRevisionMacro(vtkLandmarkDetectionAlgo,vtkObject);
+  vtkTypeMacro(vtkLandmarkDetectionAlgo,vtkObject);
   static vtkLandmarkDetectionAlgo *New();
 
   /*!
@@ -101,7 +101,7 @@ protected:
   Estimate landmark point position from the stylus tip points. The average of NumberOfWindows*WindowSize consecutive points that remain in the same position 
   within the LandmarkThresholdMm.
   */
-  PlusStatus EstimateLandmarkPointPosition();
+  PlusStatus EstimateLandmarkPosition();
 
   /*Sets the parameter boolean flag found true when a new landmark is found*/
   PlusStatus IsNewLandmarkPointFound(bool &found);
