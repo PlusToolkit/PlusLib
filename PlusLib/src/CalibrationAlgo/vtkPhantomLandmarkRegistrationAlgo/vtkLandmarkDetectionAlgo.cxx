@@ -157,6 +157,8 @@ vtkLandmarkDetectionAlgo::vtkLandmarkDetectionAlgo()
 vtkLandmarkDetectionAlgo::~vtkLandmarkDetectionAlgo()
 {
   this->RemoveAllFilterWindows();
+  this->ReferenceCoordinateFrame = NULL;
+  this->SetDetectedLandmarkPoints_Reference(NULL);
 }
 
 //-----------------------------------------------------------------------------
@@ -168,9 +170,8 @@ void vtkLandmarkDetectionAlgo::RemoveAllFilterWindows()
 //-----------------------------------------------------------------------------
 PlusStatus vtkLandmarkDetectionAlgo::ResetDetection()
 {
-  this->NewLandmarkFound=false;
+  //this->NewLandmarkFound=false;
   LOG_INFO("Reset");
-
   RemoveAllFilterWindows();
   this->DetectedLandmarkPoints_Reference->Reset();
   this->DetectedLandmarkPoints_Reference->Initialize();
@@ -320,7 +321,7 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtk
       this->StylusShaftPathBoundingBox.Reset();
       if((lengths[0]+lengths[1]+lengths[2])>this->StylusShaftMinimumDisplacementThresholdMm)
       {
-        EstimateLandmarkPointPosition();
+        EstimateLandmarkPosition();
       }
       else
       {
@@ -353,7 +354,7 @@ int vtkLandmarkDetectionAlgo::GetNearExistingLandmarkId(double* stylusTipPositio
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkLandmarkDetectionAlgo::EstimateLandmarkPointPosition()
+PlusStatus vtkLandmarkDetectionAlgo::EstimateLandmarkPosition()
 {
   vtkSmartPointer<vtkDoubleArray> datasetArrX = vtkSmartPointer<vtkDoubleArray>::New();
   datasetArrX->SetNumberOfComponents( 1 );

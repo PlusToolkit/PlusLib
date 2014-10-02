@@ -52,6 +52,9 @@ vtkPhantomLandmarkRegistrationAlgo::~vtkPhantomLandmarkRegistrationAlgo()
   this->SetPhantomToReferenceTransformMatrix(NULL);
   this->SetDefinedLandmarks_Phantom(NULL);
   this->SetRecordedLandmarks_Reference(NULL);
+  this->PhantomCoordinateFrame = NULL;
+  this->ReferenceCoordinateFrame = NULL;
+  this->StylusTipCoordinateFrame = NULL;
 }
 
 //-----------------------------------------------------------------------------
