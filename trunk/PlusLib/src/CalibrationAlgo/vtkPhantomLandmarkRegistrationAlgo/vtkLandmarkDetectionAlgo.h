@@ -16,6 +16,7 @@ See License.txt for details.
 #include "vtkBoundingBox.h"
 
 #include <list>
+#include <deque>
 #include <set>
 
 class vtkTransformRepository;
@@ -104,7 +105,6 @@ protected:
     Call this method to get rid of previously added points before starting a new detection.
   */
   void RemoveAllFilterWindows();
-
   /* 
   Estimate landmark point position from the stylus tip points. The average of NumberOfWindows*WindowSize consecutive points that remain in the same position 
   within the LandmarkThresholdMm.
@@ -129,7 +129,6 @@ protected:
   int NumberOfWindows;
   /*! The number of acquisitions in WindowTime (AcquisitonRate/WindowTime) */
   int FilterWindowSize;
-
   /*! The expected number of landmarks to be detected */
   int NumberOfExpectedLandmarks;
   /*! Device acquisition rate */
@@ -151,12 +150,8 @@ protected:
   vtkBoundingBox StylusShaftPathBoundingBox;
   /*! Name of the reference coordinate frame (eg. Reference) */
   char* ReferenceCoordinateFrame;
-  /*! Array of the input point transformations */
-  std::list< vtkSmartPointer<vtkMatrix4x4> > StylusTipToReferenceTransformsList;
-  /*! Iterators to track stylus tip transformations in the list*/
-  std::list< vtkSmartPointer<vtkMatrix4x4> >::iterator CurrentStylusTipIterator;
-  /*! TODO: add doc */
-  std::list< vtkSmartPointer<vtkMatrix4x4> >::iterator LastStylusTipIterator;
+  /*! Double ended queue the input point transformations */
+  std::deque< vtkSmartPointer<vtkMatrix4x4> > StylusTipToReferenceTransformsDeque;
   /*! The number of partial inserted points*/
   int PartialInsertedPoints;
   /*! Landmark point position average per window list (defined in the reference coordinate system)*/
