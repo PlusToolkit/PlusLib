@@ -424,9 +424,9 @@ cmdargs.AddArgument("--intermediate-file-output-dir", vtksys::CommandLineArgumen
 
           vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceTransformMatrix = vtkMatrix4x4::New();
           vtkMatrix4x4::Multiply4x4(stylusToReferenceMatrix,stylusTipToStylusTransform,stylusTipToReferenceTransformMatrix);
-          landmarkDetection->InsertNextStylusTipToReferenceTransform(stylusTipToReferenceTransformMatrix);
-          landmarkDetection->IsNewLandmarkPointFound(valid);
-          if(valid)
+          bool newLandmarkDetected=false;
+          landmarkDetection->InsertNextStylusTipToReferenceTransform(stylusTipToReferenceTransformMatrix, newLandmarkDetected);
+          if(newLandmarkDetected)
           {
             landmarkDetection->GetDetectedLandmarkPoints_Reference()->GetPoint(landmarkDetection->GetDetectedLandmarkPoints_Reference()->GetNumberOfPoints()-1, landmarkFound);
             // Add recorded point to algorithm

@@ -141,7 +141,6 @@ vtkLandmarkDetectionAlgo::vtkLandmarkDetectionAlgo()
   this->SetDetectedLandmarkPoints_Reference(detectedLandmarkPoints_Reference);
 
   this->NewLandmarkFound=false;
-
   this->NumberOfWindows=NUMBER_WINDOWS;
   this->FilterWindowSize=FILTER_WINDOW_SIZE;
 
@@ -159,7 +158,6 @@ vtkLandmarkDetectionAlgo::~vtkLandmarkDetectionAlgo()
 {
   this->RemoveAllFilterWindows();
 }
-
 
 //-----------------------------------------------------------------------------
 void vtkLandmarkDetectionAlgo::RemoveAllFilterWindows()
@@ -185,7 +183,6 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertLandmark_Reference(double* stylusTipP
   if(GetNearExistingLandmarkId(stylusTipPosition_Reference)==-1)
   {
     this->DetectedLandmarkPoints_Reference->InsertNextPoint(stylusTipPosition_Reference);
-    this->NewLandmarkFound=true;
     return PLUS_SUCCESS;
   }
   return PLUS_FAIL;
@@ -252,7 +249,7 @@ void vtkLandmarkDetectionAlgo::KeepLastWindow()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceTransform)
+PlusStatus vtkLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceTransform, bool &newLandmarkDetected)
 {
   //Point 10 cm above the stylus tip, if it moves(window change bigger than AboveLandmarkThresholdMm) while the tip is static (window change smaller than LandmarkThresholdMm then it is landmark point.
   double pointAboveStylusTip_StylusTip[4]={100,0,0,1};
@@ -332,6 +329,7 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtk
       }
     }
   }
+  IsNewLandmarkPointFound(newLandmarkDetected);
   return PLUS_SUCCESS; 
 }
 
