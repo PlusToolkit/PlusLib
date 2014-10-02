@@ -267,7 +267,7 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
 
   if ( sz != frameSizeInBytes + numberOfBytesToSkip )
   {
-    LOG_ERROR("Received frame size (" << sz << " bytes) doesn't match the buffer size (" << frameSizeInBytes + numberOfBytesToSkip << " bytes)!"); 
+    LOG_ERROR("Received frame size (" << sz << " bytes) doesn't match the buffer size (" << frameSizeInBytes + numberOfBytesToSkip << " bytes). Make sure the Ultrasonix SDK version used in Plus ("<<GetSdkVersion()<<") is compatible with the Exam software running on the ultrasound device."); 
     return PLUS_FAIL; 
   }
 
@@ -297,6 +297,7 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
       // disconnect before trying to connect again
       this->Ult->setDataToAcquire(0); // without this Ulterius 5.x may crash
       this->Ult->disconnect();
+      vtkAccurateTimer::Delay(0.5); // without this Ulterius 6.x may crash
       this->UlteriusConnected=false;
     }
     if (connectionTried > 0)
@@ -441,7 +442,8 @@ PlusStatus vtkSonixVideoSource::InternalDisconnect()
 {
   this->UlteriusConnected=false;
   this->Ult->setDataToAcquire(0); // without this Ulterius 5.x may crash
-  this->Ult->disconnect();  
+  this->Ult->disconnect();
+  vtkAccurateTimer::Delay(0.5); // without this Ulterius 6.x may crash
   return PLUS_SUCCESS;
 }
 
