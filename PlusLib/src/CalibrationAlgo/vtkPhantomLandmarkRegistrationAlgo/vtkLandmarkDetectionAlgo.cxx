@@ -181,8 +181,6 @@ PlusStatus vtkLandmarkDetectionAlgo::ResetDetection()
   this->LastStylusTipIterator=this->StylusTipToReferenceTransformsList.begin();
   this->DetectedLandmarkPoints_Reference->Reset();
   this->DetectedLandmarkPoints_Reference->Initialize();
-  this->NumberOfWindowsFoundPerLandmark.clear();
-
   return PLUS_SUCCESS;
 }
 
@@ -191,7 +189,6 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertLandmark_Reference(double* stylusTipP
 {
   if(GetNearExistingLandmarkId(stylusTipPosition_Reference)==-1)
   {
-    NumberOfWindowsFoundPerLandmark.push_back(1.0);
     this->DetectedLandmarkPoints_Reference->InsertNextPoint(stylusTipPosition_Reference);
     this->NewLandmarkFound=true;
     return PLUS_SUCCESS;
@@ -207,7 +204,6 @@ PlusStatus vtkLandmarkDetectionAlgo::DeleteLastLandmark()
     double landmarkFound_Reference[4] = {0,0,0,1};
     this->DetectedLandmarkPoints_Reference->GetPoint(this->DetectedLandmarkPoints_Reference->GetNumberOfPoints()-1, landmarkFound_Reference);
     this->DetectedLandmarkPoints_Reference->GetData()->RemoveTuple(this->DetectedLandmarkPoints_Reference->GetNumberOfPoints()-1);
-    this->NumberOfWindowsFoundPerLandmark[this->DetectedLandmarkPoints_Reference->GetNumberOfPoints()]=-1;
     return PLUS_SUCCESS;
   }
   return PLUS_FAIL;
@@ -459,7 +455,6 @@ PlusStatus vtkLandmarkDetectionAlgo::EstimateLandmarkPointPosition()
     }
     if(GetNearExistingLandmarkId(stylusPositionMean_Reference)==-1)
     {
-      NumberOfWindowsFoundPerLandmark.push_back(1.0);
       this->DetectedLandmarkPoints_Reference->InsertNextPoint(stylusPositionMean_Reference);
       LOG_DEBUG("\nSTD deviation ( " << stylusPositionStdev_Reference[0]<< ", "<< stylusPositionStdev_Reference[1]<< ", "<< stylusPositionStdev_Reference[2]<< ") " );
       LOG_DEBUG("STD deviation magnitude " << vtkMath::Norm(stylusPositionStdev_Reference));
