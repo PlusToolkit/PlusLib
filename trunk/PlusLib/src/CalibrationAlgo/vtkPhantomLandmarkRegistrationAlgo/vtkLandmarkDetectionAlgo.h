@@ -123,10 +123,6 @@ protected:
 protected:
   /*! The detected landmark point position(s)(defined in the reference coordinate system) */
   vtkPoints* DetectedLandmarkPoints_Reference;
-
-  /*The vector is used to average position of the same landmark found*/
-  std::vector<double> NumberOfWindowsFoundPerLandmark;
-
   /*! The flag is true when a landmark is detected it is reset again to false when LandmarkFound() is called.*/
   bool NewLandmarkFound;
   /*! The number of windows to be detected as landmark in DetectionTime (DetectionTime/WindowTime) */
