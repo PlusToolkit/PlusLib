@@ -823,11 +823,11 @@ void PhantomRegistrationToolbox::RecordPoint()
   {
     return;
   }
-  m_LandmarkDetection->IsNewLandmarkPointFound(valid);
-  if(!valid)
-  {
-    return;
-  }
+  //m_LandmarkDetection->IsNewLandmarkPointFound(valid);
+  //if(!valid)
+  //{
+  //  return;
+  //}
   vtkPoints* points = m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->GetPoints();
   // Add recorded point to visualization
   points->InsertPoint(m_CurrentLandmarkIndex, stylusTipPosition[0], stylusTipPosition[1], stylusTipPosition[2]);
@@ -1268,13 +1268,12 @@ void PhantomRegistrationToolbox::AddStylusTipTransformToLandmarkPivotingRegistra
     }
     else
     {
-      // Add the point into the registration dataset
-      m_LandmarkDetection->InsertNextStylusTipToReferenceTransform(stylusTipToReferenceTransformMatrix);
       // Set new current point number
       ++m_CurrentPointNumber;
-
-      m_LandmarkDetection->IsNewLandmarkPointFound(valid);
-      if(valid)
+      bool newLandmarkDetected=false;
+      // Add the point into the registration dataset
+      m_LandmarkDetection->InsertNextStylusTipToReferenceTransform(stylusTipToReferenceTransformMatrix, newLandmarkDetected);
+      if(newLandmarkDetected)
       {
         LOG_DEBUG("\n"<<m_LandmarkDetection->GetDetectedLandmarksString()<<"\n");
         m_LandmarkDetection->GetDetectedLandmarkPoints_Reference()->GetPoint(m_LandmarkDetection->GetDetectedLandmarkPoints_Reference()->GetNumberOfPoints()-1, pivotFound);
