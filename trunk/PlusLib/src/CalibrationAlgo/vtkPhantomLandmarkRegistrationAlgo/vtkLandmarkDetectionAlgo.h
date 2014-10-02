@@ -118,7 +118,7 @@ protected:
   void KeepLastWindow();
 
   /* Computes the average of the stylus tip positions in the last FilterWindowSize samples */
-  PlusStatus AverageFilterStylusTipPositionsWindow(double* landmarkPoint_Reference);
+  PlusStatus FilterWindowOfStylusTipPositions(double* landmarkPoint_Reference);
 
 protected:
   /*! The detected landmark point position(s)(defined in the reference coordinate system) */
@@ -152,8 +152,6 @@ protected:
   char* ReferenceCoordinateFrame;
   /*! Double ended queue the input point transformations */
   std::deque< vtkSmartPointer<vtkMatrix4x4> > StylusTipToReferenceTransformsDeque;
-  /*! The number of partial inserted points*/
-  int PartialInsertedPoints;
   /*! Landmark point position average per window list (defined in the reference coordinate system)*/
   std::list< std::vector<double> > StylusTipFilteredList_Reference;
 };
