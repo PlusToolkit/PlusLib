@@ -161,8 +161,6 @@ protected:
   std::list< vtkSmartPointer<vtkMatrix4x4> >::iterator LastStylusTipIterator;
   /*! The number of partial inserted points*/
   int PartialInsertedPoints;
-  /*! Landmark point position in the Reference coordinate system */
-  double LastAboveStylusTip[4];
   /*! Landmark point position average per window list (defined in the reference coordinate system)*/
   std::list< std::vector<double> > StylusTipFilteredList_Reference;
 };
