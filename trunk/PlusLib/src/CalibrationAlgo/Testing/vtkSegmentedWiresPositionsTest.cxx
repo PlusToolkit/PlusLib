@@ -82,7 +82,7 @@ int main (int argc, char* argv[])
 
     FidPatternRecognition patternRecognition;
     PatternRecognitionResult segResults;
-    PatternRecognitionError error;
+    FidPatternRecognition::PatternRecognitionError error;
 
     try
     {

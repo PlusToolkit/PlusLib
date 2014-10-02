@@ -214,12 +214,12 @@ bool FidLabeling::SortCompare(const std::vector<double>& temporaryLine1, const s
 FidLine FidLabeling::SortPointsByDistanceFromStartPoint(FidLine& fiducials) 
 {
   std::vector<std::vector<double> > temporaryLine;
-  Dot startPointIndex = m_DotsVector[fiducials.GetStartPointIndex()];
+  FidDot startPointIndex = m_DotsVector[fiducials.GetStartPointIndex()];
 
   for(unsigned int i=0 ; i<fiducials.GetPoints().size() ; i++)
   {
     std::vector<double> temp;
-    Dot point = m_DotsVector[fiducials.GetPoint(i)];
+    FidDot point = m_DotsVector[fiducials.GetPoint(i)];
     temp.push_back(fiducials.GetPoint(i));
     temp.push_back(sqrt((startPointIndex.GetX()-point.GetX())*(startPointIndex.GetX()-point.GetX()) + (startPointIndex.GetY()-point.GetY())*(startPointIndex.GetY()-point.GetY())));
     temporaryLine.push_back(temp);
@@ -243,8 +243,8 @@ FidLine FidLabeling::SortPointsByDistanceFromStartPoint(FidLine& fiducials)
 double FidLabeling::ComputeSlope( FidLine& line )
 {
   //LOG_TRACE("FidLineFinder::ComputeSlope");
-  Dot dot1 = m_DotsVector[line.GetStartPointIndex()];
-  Dot dot2 = m_DotsVector[line.GetEndPointIndex()];
+  FidDot dot1 = m_DotsVector[line.GetStartPointIndex()];
+  FidDot dot2 = m_DotsVector[line.GetEndPointIndex()];
 
   double x1 = dot1.GetX();
   double y1 = dot1.GetY();
@@ -279,7 +279,7 @@ double FidLabeling::ComputeSlope( FidLine& line )
 
 //-----------------------------------------------------------------------------
 
-double FidLabeling::ComputeDistancePointLine(Dot& dot, FidLine& line)
+double FidLabeling::ComputeDistancePointLine(FidDot& dot, FidLine& line)
 {     
   double x[3], y[3], z[3];
 
@@ -627,7 +627,7 @@ void FidLabeling::FindPattern()
 
   if (foundPattern)//We have the right permutation of lines in lineIndices
   {
-    //Update the results, this part is not generic but depends on the Pattern we are looking for
+    //Update the results, this part is not generic but depends on the FidPattern we are looking for
     NWire* nWire = dynamic_cast<NWire*>(m_Patterns.at(0));
     CoplanarParallelWires* coplanarParallelWire = dynamic_cast<CoplanarParallelWires*>(m_Patterns.at(0));
     if (nWire) // NWires
@@ -706,14 +706,14 @@ void FidLabeling::SortRightToLeft( FidLine& line )
 {
   //LOG_TRACE("FidLabeling::SortRightToLeft");
 
-  std::vector<std::vector<Dot>::iterator> pointsIterator(line.GetPoints().size());
+  std::vector<std::vector<FidDot>::iterator> pointsIterator(line.GetPoints().size());
 
   for (unsigned int i=0; i<line.GetPoints().size() ; i++)
   {
     pointsIterator[i] = m_DotsVector.begin() + line.GetPoint(i);
   }
 
-  std::sort(pointsIterator.begin(), pointsIterator.end(), Dot::PositionLessThan);
+  std::sort(pointsIterator.begin(), pointsIterator.end(), FidDot::PositionLessThan);
 
   for (unsigned int i=0; i<line.GetPoints().size(); i++)
   {

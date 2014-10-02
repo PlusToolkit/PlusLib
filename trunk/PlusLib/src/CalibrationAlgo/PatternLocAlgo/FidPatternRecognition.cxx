@@ -96,8 +96,8 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
     return PLUS_FAIL;
   }
 
-  int bytes = trackedFrame->GetFrameSize()[0] * trackedFrame->GetFrameSize()[1] * sizeof(PixelType);
-  PixelType* image = reinterpret_cast<PixelType*>(trackedFrame->GetImageData()->GetScalarPointer());
+  int bytes = trackedFrame->GetFrameSize()[0] * trackedFrame->GetFrameSize()[1] * sizeof(FidSegmentation::PixelType);
+  FidSegmentation::PixelType* image = reinterpret_cast<FidSegmentation::PixelType*>(trackedFrame->GetImageData()->GetScalarPointer());
 
   memcpy( m_FidSegmentation.GetWorking(), image, bytes );
   memcpy( m_FidSegmentation.GetUnalteredImage(), image, bytes);
@@ -105,7 +105,17 @@ PlusStatus FidPatternRecognition::RecognizePattern(TrackedFrame* trackedFrame, P
   //Start of the segmentation
   m_FidSegmentation.MorphologicalOperations();
   m_FidSegmentation.Suppress( m_FidSegmentation.GetWorking(), m_FidSegmentation.GetThresholdImagePercent()/100.00 );
-  m_FidSegmentation.Cluster(patternRecognitionError);
+  bool tooManyCandidates = false;
+  bool clusteringSuccessful = m_FidSegmentation.Cluster(tooManyCandidates);
+  if (tooManyCandidates)
+  {
+    patternRecognitionError = PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES;
+  }
+  if (!clusteringSuccessful)
+  {
+    patternRecognitionError = PATTERN_RECOGNITION_ERROR_UNKNOWN;
+  }
+
   //End of the segmentation
 
   m_FidSegmentation.SetCandidateFidValues(m_FidSegmentation.GetDotsVector());   
@@ -207,7 +217,7 @@ PlusStatus FidPatternRecognition::RecognizePattern(vtkTrackedFrameList* trackedF
 
 //-----------------------------------------------------------------------------
 
-void FidPatternRecognition::DrawDots( PixelType *image)
+void FidPatternRecognition::DrawDots( FidSegmentation::PixelType *image)
 {
   LOG_TRACE("FidPatternRecognition::DrawDots"); 
 
@@ -231,7 +241,7 @@ void FidPatternRecognition::DrawDots( PixelType *image)
 
 //-----------------------------------------------------------------------------
 
-void FidPatternRecognition::DrawResults( PixelType *image )
+void FidPatternRecognition::DrawResults( FidSegmentation::PixelType *image )
 {
   std::vector<FidLine> foundLines = m_FidLabeling.GetFoundLinesVector();
   DrawDots(image);  
@@ -306,7 +316,7 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
   }
   else
   {
-    std::vector<Pattern*> tempPatterns;
+    std::vector<FidPattern*> tempPatterns;
 
     // Load geometry
     vtkXMLDataElement* geometry = phantomDefinition->FindNestedElementWithName("Geometry"); 
@@ -345,11 +355,11 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
 
           if (wireElement == NULL) 
           {
-            LOG_WARNING("Invalid Wire description in Pattern - skipped");
+            LOG_WARNING("Invalid wire description in Pattern - skipped");
             break;
           }
 
-          Wire wire;
+          FidWire wire;
 
           const char* wireName =  wireElement->GetAttribute("Name"); 
           if ( wireName != NULL )
@@ -524,7 +534,7 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
 void FidPatternRecognition::SetNumberOfMaximumFiducialPointCandidates( int aValue )
 {
   int numWires(0);
-  for( std::vector<Pattern*>::iterator it = m_FidLabeling.GetPatterns().begin(); it != m_FidLabeling.GetPatterns().end(); ++it )
+  for( std::vector<FidPattern*>::iterator it = m_FidLabeling.GetPatterns().begin(); it != m_FidLabeling.GetPatterns().end(); ++it )
   {
     numWires += (*it)->Wires.size();
   }

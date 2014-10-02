@@ -51,7 +51,7 @@ double FidLine::ComputeAngleRad(const FidLine& line1, const FidLine& line2)
 
 //-----------------------------------------------------------------------------
 
-bool Dot::IntensityLessThan( const Dot &dot1, const Dot &dot2 )
+bool FidDot::IntensityLessThan( const FidDot &dot1, const FidDot &dot2 )
 {
   /* Use > to get descending. */
   return dot1.GetDotIntensity() > dot2.GetDotIntensity();
@@ -59,14 +59,14 @@ bool Dot::IntensityLessThan( const Dot &dot1, const Dot &dot2 )
 
 //-----------------------------------------------------------------------------
 
-bool Dot::PositionLessThan( std::vector<Dot>::iterator b1, std::vector<Dot>::iterator b2 )
+bool FidDot::PositionLessThan( std::vector<FidDot>::iterator b1, std::vector<FidDot>::iterator b2 )
 {
   /* Use > to get descending. */
   return b1->GetX() > b2->GetX();
 }
 
 //-----------------------------------------------------------------------------
-double  Dot::GetDistanceFrom(Dot &d) 
+double  FidDot::GetDistanceFrom(FidDot &d) 
 { 
   return sqrt((m_X-d.m_X)*(m_X-d.m_X)+(m_Y-d.m_Y)*(m_Y-d.m_Y)); 
 }

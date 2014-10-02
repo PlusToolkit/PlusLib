@@ -29,6 +29,13 @@ class vtkCalibrationAlgoExport FidPatternRecognition
 {
 
 public:
+  enum PatternRecognitionError
+  {
+    PATTERN_RECOGNITION_ERROR_NO_ERROR,
+    PATTERN_RECOGNITION_ERROR_UNKNOWN,
+    PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES
+  };
+
   FidPatternRecognition();
   virtual ~FidPatternRecognition();
 
@@ -62,10 +69,10 @@ public:
   PlusStatus RecognizePattern(TrackedFrame* trackedFrame, PatternRecognitionResult &patternRecognitionResult, PatternRecognitionError &patternRecognitionError, unsigned int frameIndex);
 
   /*! Draw dots for debug purpose */
-  void DrawDots(PixelType* image);
+  void DrawDots(FidSegmentation::PixelType* image);
 
   /*! Draw the results on an image for debug purpose */
-  void DrawResults(PixelType* image);
+  void DrawResults(FidSegmentation::PixelType* image);
 
   /*! Get the FidSegmentation element, this element handles the segmentation part of the algorithm */
   FidSegmentation*  GetFidSegmentation() { return  & m_FidSegmentation; };

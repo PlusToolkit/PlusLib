@@ -9,7 +9,7 @@ See License.txt for details.
 
 #include "FidPatternRecognitionCommon.h"
 #include "PlusConfigure.h"
-#include "vtkXMLDataElement.h"
+class vtkXMLDataElement;
 
 /*!
 \class LabelingResults
@@ -52,7 +52,7 @@ public:
   void SetFrameSize(int frameSize[2]);
 
   /*! Compute the shortest distance from a point: dot, to a line: line */
-  double ComputeDistancePointLine(Dot& dot, FidLine& line);
+  double ComputeDistancePointLine(FidDot& dot, FidLine& line);
 
   /*! Compute the shift between the middle of line1 and line2 */
   double ComputeShift(FidLine& line1, FidLine& line2);
@@ -83,10 +83,10 @@ public:
 
   //Accessors and mutators
   /*! Get the vector of dots found by FidSegmentation */
-  std::vector<Dot>& GetDotsVector() {return m_DotsVector; };  
+  std::vector<FidDot>& GetDotsVector() {return m_DotsVector; };  
 
   /*! Set the vector of dots found by FidSegmentation */
-  void SetDotsVector(std::vector<Dot>& value) { m_DotsVector = value; };
+  void SetDotsVector(std::vector<FidDot>& value) { m_DotsVector = value; };
 
   /*! Get the vector of the identified lines */
   std::vector<FidLine>& GetFoundLinesVector() {return m_FoundLines; };
@@ -95,10 +95,10 @@ public:
   void SetLinesVector(std::vector< std::vector<FidLine> >& value) { m_LinesVector = value; };
 
   /*! Get the pattern structure vector, this defines the patterns that the algorithm finds */
-  std::vector<Pattern*>& GetPatterns() { return m_Patterns; };
+  std::vector<FidPattern*>& GetPatterns() { return m_Patterns; };
 
   /*! Set the pattern structure vector, this defines the patterns that the algorithm finds */
-  void SetPatterns( const std::vector<Pattern*>& value ) { m_Patterns = value; };
+  void SetPatterns( const std::vector<FidPattern*>& value ) { m_Patterns = value; };
 
   /*! Get the intensity of a pair of lines */
   double GetPatternIntensity() { return m_PatternIntensity; };
@@ -163,9 +163,9 @@ protected:
   double   m_InclinedLineAngleRad;
   double   m_PatternIntensity;
 
-  std::vector<Dot>      m_DotsVector;
+  std::vector<FidDot>      m_DotsVector;
   std::vector<FidLine>     m_FoundLines;
-  std::vector<Pattern*> m_Patterns;
+  std::vector<FidPattern*> m_Patterns;
   std::vector<LabelingResults> m_Results;
   std::vector< std::vector<FidLine> > m_LinesVector;
   std::vector< std::vector<double> >  m_FoundDotsCoordinateValue;

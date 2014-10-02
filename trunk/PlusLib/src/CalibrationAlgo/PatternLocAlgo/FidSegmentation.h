@@ -40,6 +40,8 @@ class vtkCalibrationAlgoExport FidSegmentation
   public:
     static const int DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDATES;
 
+    typedef unsigned char PixelType;
+
     /*! The different types of phantom the algorithm covers */
     enum FiducialGeometryType
     {
@@ -69,26 +71,26 @@ class vtkCalibrationAlgoExport FidSegmentation
     void ValidateRegionOfInterest();
 
     /*! Morphological operations performed by the algorithm */
-    inline PixelType    ErodePoint0( PixelType *image, unsigned int ir, unsigned int ic );
-    void                Erode0( PixelType *dest, PixelType *image );
-    inline PixelType    ErodePoint45( PixelType *image, unsigned int ir, unsigned int ic );
-    void                 Erode45( PixelType *dest, PixelType *image );
-    inline PixelType    ErodePoint90( PixelType *image, unsigned int ir, unsigned int ic );
-    void                 Erode90( PixelType *dest, PixelType *image );
-    inline PixelType    ErodePoint135( PixelType *image, unsigned int ir, unsigned int ic );
-    void                 Erode135( PixelType *dest, PixelType *image );
-    void                 ErodeCircle( PixelType *dest, PixelType *image );
-    inline PixelType    DilatePoint0( PixelType *image, unsigned int ir, unsigned int ic );
-    void                 Dilate0( PixelType *dest, PixelType *image );
-    inline PixelType    DilatePoint45( PixelType *image, unsigned int ir, unsigned int ic );
-    void                 Dilate45( PixelType *dest, PixelType *image );
-    inline PixelType    DilatePoint90( PixelType *image, unsigned int ir, unsigned int ic );
-    void                Dilate90( PixelType *dest, PixelType *image );
-    inline PixelType    DilatePoint135( PixelType *image, unsigned int ir, unsigned int ic );
-    void                 Dilate135( PixelType *dest, PixelType *image );
-    inline PixelType    DilatePoint( PixelType *image, unsigned int ir, unsigned int ic, Coordinate2D *shape, int slen );
-    void                 DilateCircle( PixelType *dest, PixelType *image );
-    void                 Subtract( PixelType *image, PixelType *vals );
+    inline FidSegmentation::PixelType    ErodePoint0( FidSegmentation::PixelType *image, unsigned int ir, unsigned int ic );
+    void                Erode0( FidSegmentation::PixelType *dest, FidSegmentation::PixelType *image );
+    inline FidSegmentation::PixelType    ErodePoint45( FidSegmentation::PixelType *image, unsigned int ir, unsigned int ic );
+    void                 Erode45( FidSegmentation::PixelType *dest, FidSegmentation::PixelType *image );
+    inline FidSegmentation::PixelType    ErodePoint90( FidSegmentation::PixelType *image, unsigned int ir, unsigned int ic );
+    void                 Erode90( FidSegmentation::PixelType *dest, FidSegmentation::PixelType *image );
+    inline FidSegmentation::PixelType    ErodePoint135( FidSegmentation::PixelType *image, unsigned int ir, unsigned int ic );
+    void                 Erode135( FidSegmentation::PixelType *dest, FidSegmentation::PixelType *image );
+    void                 ErodeCircle( FidSegmentation::PixelType *dest, FidSegmentation::PixelType *image );
+    inline FidSegmentation::PixelType    DilatePoint0( FidSegmentation::PixelType *image, unsigned int ir, unsigned int ic );
+    void                 Dilate0( FidSegmentation::PixelType *dest, FidSegmentation::PixelType *image );
+    inline FidSegmentation::PixelType    DilatePoint45( FidSegmentation::PixelType *image, unsigned int ir, unsigned int ic );
+    void                 Dilate45( FidSegmentation::PixelType *dest, FidSegmentation::PixelType *image );
+    inline FidSegmentation::PixelType    DilatePoint90( FidSegmentation::PixelType *image, unsigned int ir, unsigned int ic );
+    void                Dilate90( FidSegmentation::PixelType *dest, FidSegmentation::PixelType *image );
+    inline FidSegmentation::PixelType    DilatePoint135( FidSegmentation::PixelType *image, unsigned int ir, unsigned int ic );
+    void                 Dilate135( FidSegmentation::PixelType *dest, FidSegmentation::PixelType *image );
+    inline FidSegmentation::PixelType    DilatePoint( FidSegmentation::PixelType *image, unsigned int ir, unsigned int ic, Coordinate2D *shape, int slen );
+    void                 DilateCircle( FidSegmentation::PixelType *dest, FidSegmentation::PixelType *image );
+    void                 Subtract( FidSegmentation::PixelType *image, FidSegmentation::PixelType *vals );
         
     /*! 
       Write image with the selected points on it to an image file (possibleFiducialsNNN.bmp)
@@ -97,7 +99,7 @@ class vtkCalibrationAlgoExport FidSegmentation
       \param namePrefix prefix used for image file name generation
       \param frameIndex frame index (used for generating the file name)
     */
-    void WritePossibleFiducialOverlayImage(const std::vector< std::vector<double> >& fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex); 
+    void WritePossibleFiducialOverlayImage(const std::vector< std::vector<double> >& fiducials, FidSegmentation::PixelType *unalteredImage, const char* namePrefix, int frameIndex); 
 
     /*! 
       Write image with the selected points on it to an image file (possibleFiducialsNNN.bmp)
@@ -106,28 +108,32 @@ class vtkCalibrationAlgoExport FidSegmentation
       \param namePrefix prefix used for image file name generation
       \param frameIndex frame index (used for generating the file name)
     */
-    void WritePossibleFiducialOverlayImage(const std::vector<Dot>& fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex);
+    void WritePossibleFiducialOverlayImage(const std::vector<FidDot>& fiducials, FidSegmentation::PixelType *unalteredImage, const char* namePrefix, int frameIndex);
 
     /*! Perform the morphological operations on the image */
     void MorphologicalOperations();  
 
     /*! Suppress unwanted parts of the image */
-    void Suppress( PixelType *image, double percent_thresh ); 
+    void Suppress( FidSegmentation::PixelType *image, double percent_thresh ); 
 
     /*! Accept a dot as a possible fiducial */
-    inline bool AcceptDot( Dot &dot );
+    inline bool AcceptDot( FidDot &dot );
 
-    /*! Cluster the dots */
-    void Cluster(PatternRecognitionError& patternRecognitionError);
+    /*!
+      Cluster the dots.
+      Returns true on success.
+      If tooManyCandidates is true then the maximum limit of clusters are reached and so not all clusters are computed.
+    */
+    bool Cluster(bool& tooManyCandidates);
 
     /*! Utility function to write image to file */
-    static void WritePng(PixelType *modifiedImage, std::string outImageName, int cols, int rows); 
+    static void WritePng(FidSegmentation::PixelType *modifiedImage, std::string outImageName, int cols, int rows); 
 
     /*! Check if shape (structuring element) contains the new element (a point) */
     bool ShapeContains( std::vector<Coordinate2D>& shape, Coordinate2D point );
 
     /*! Add neighbors to the cluster */
-    inline void ClusteringAddNeighbors(PixelType *image, int r, int c, std::vector<Dot> &m_Test, std::vector<Dot> &m_Set, std::vector<PixelType>&m_Vals);
+    inline void ClusteringAddNeighbors(FidSegmentation::PixelType *image, int r, int c, std::vector<FidDot> &m_Test, std::vector<FidDot> &m_Set, std::vector<FidSegmentation::PixelType>&m_Vals);
     
     // Accessors and mutators
 
@@ -150,13 +156,13 @@ class vtkCalibrationAlgoExport FidSegmentation
     int* GetFrameSize() { return m_FrameSize; };
 
     /*! Get the vector that contains all the dots that have been segmented */
-    std::vector<Dot>& GetDotsVector() {return m_DotsVector; };  
+    std::vector<FidDot>& GetDotsVector() {return m_DotsVector; };  
 
     /*! Get the dots that are considered candidates */
-    void SetCandidateFidValues(const std::vector<Dot>& value) { m_CandidateFidValues = value; };
+    void SetCandidateFidValues(const std::vector<FidDot>& value) { m_CandidateFidValues = value; };
 
     /*! Set the dots that are considered candidates */
-    std::vector<Dot>& GetCandidateFidValues() { return m_CandidateFidValues; };
+    std::vector<FidDot>& GetCandidateFidValues() { return m_CandidateFidValues; };
 
     /*! Set the maximum number of candidates to generate */
     void SetNumberOfMaximumFiducialPointCandidates( int aValue );
@@ -165,10 +171,10 @@ class vtkCalibrationAlgoExport FidSegmentation
     FiducialGeometryType  GetFiducialGeometry() { return m_FiducialGeometry; };
 
     /*! Get the working copy of the image */
-    PixelType* GetWorking() {return m_Working; };
+    FidSegmentation::PixelType* GetWorking() {return m_Working; };
 
     /*! Get the unaltered copy of the image */
-    PixelType* GetUnalteredImage() {return m_UnalteredImage; };
+    FidSegmentation::PixelType* GetUnalteredImage() {return m_UnalteredImage; };
 
     /*! Set the Approximate spacing, this is in Mm per pixel */
     void  SetApproximateSpacingMmPerPixel(double value) { m_ApproximateSpacingMmPerPixel = value; };
@@ -222,14 +228,14 @@ class vtkCalibrationAlgoExport FidSegmentation
     /*! Number of possibel fiducial points */
     double                m_NumDots; 
     /*! Pointer to the fiducial candidates coordinates */
-    std::vector<Dot>      m_CandidateFidValues; 
+    std::vector<FidDot>      m_CandidateFidValues; 
 
-    PixelType*            m_Working;
-    PixelType*            m_Dilated;
-    PixelType*            m_Eroded;
-    PixelType*            m_UnalteredImage; 
+    FidSegmentation::PixelType*            m_Working;
+    FidSegmentation::PixelType*            m_Dilated;
+    FidSegmentation::PixelType*            m_Eroded;
+    FidSegmentation::PixelType*            m_UnalteredImage; 
 
-    std::vector<Dot>      m_DotsVector;
+    std::vector<FidDot>      m_DotsVector;
 
     bool                  m_DebugOutput; 
 };
