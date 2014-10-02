@@ -1258,7 +1258,7 @@ void PhantomRegistrationToolbox::AddStylusTipTransformToLandmarkPivotingRegistra
 
     double positionSylusTip [3]={stylusTipToReferenceTransformMatrix->GetElement(0,3),stylusTipToReferenceTransformMatrix->GetElement(1,3),stylusTipToReferenceTransformMatrix->GetElement(2,3)};
 
-    m_LandmarkDetected=m_LandmarkDetection->IsNewLandmarkPointPosition(positionSylusTip);
+    m_LandmarkDetected=m_LandmarkDetection->GetNearExistingLandmarkId(positionSylusTip);
 
     if (positionDifferenceMm > positionDifferenceHighThresholdMm || orientationDifferenceDegrees > orientationDifferenceHighThresholdDegrees)
     {
