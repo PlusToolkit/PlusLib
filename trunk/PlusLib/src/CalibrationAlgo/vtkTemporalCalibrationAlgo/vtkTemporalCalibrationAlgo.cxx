@@ -10,7 +10,9 @@
 #include "vtkDoubleArray.h"
 #include "vtkLineSegmentationAlgo.h"
 #include "vtkMath.h"
+#include "vtkPiecewiseFunction.h"
 #include "vtkPrincipalMotionDetectionAlgo.h"
+#include "vtkTable.h"
 #include "vtkTemporalCalibrationAlgo.h"
 #include "vtkTrackedFrameList.h"
 #include <algorithm>

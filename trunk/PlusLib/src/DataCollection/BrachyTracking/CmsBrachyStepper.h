@@ -11,9 +11,10 @@
 #include "vtkDataCollectionExport.h"
 
 #include "BrachyStepper.h"
-#include "SerialLine.h"
 #include <vector>
 #include <string>
+
+class SerialLine;
 
 /*! \class CmsBrachyStepper 
  * \brief Interface for position tracking using CMS brachy steppers

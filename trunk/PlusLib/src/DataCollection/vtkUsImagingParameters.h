@@ -85,18 +85,7 @@ public:
   /*! Print the list of supported parameters. For diagnostic purposes only. */
   PlusStatus PrintListOfImagingParameters();
 
-protected:
-
-  vtkPlusDevice *ImagingDevice; 
-  double FrequencyMhz;
-  double DepthMm;
-  double SectorPercent; 
-  double GainPercent[3]; 
-  int Intensity;
-  int Contrast;
-  double DynRangeDb; 
-  double ZoomFactor; 
-  /*!
+    /*!
     Request a particular mode of imaging
     Usable values are described in ImagingModes.h (default: B-mode)  
     BMode = 0,
@@ -159,6 +148,47 @@ protected:
     SHINEMode = 26,
     ColourRfMode = 27
   };
+
+  enum DataType
+  {
+    DataTypeScreen = 0x00000001,
+    DataTypeBPre = 0x00000002,
+    DataTypeBPost = 0x00000004,
+    DataTypeBPost32 = 0x00000008,
+    DataTypeRF = 0x00000010,
+    DataTypeMPre = 0x00000020,
+    DataTypeMPost = 0x00000040,
+    DataTypePWRF = 0x00000080,
+    DataTypePWSpectrum = 0x00000100,
+    DataTypeColorRF = 0x00000200,
+    DataTypeColorCombined = 0x00000400,
+    DataTypeColorVelocityVariance = 0x00000800,
+    DataTypeContrast = 0x00001000,
+    DataTypeElastoCombined = 0x00002000,
+    DataTypeElastoOverlay = 0x00004000,
+    DataTypeElastoPre = 0x00008000,
+    DataTypeECG = 0x00010000,
+    DataTypeGPS1 = 0x00020000,
+    DataTypeGPS2 = 0x00040000,
+    DataTypeTimeStamp = 0x00080000,
+    DataTypeColorSpectrumRF = 0x00100000,
+    DataTypeMRF = 0x00200000,
+    DataTypeDAQRF = 0x00400000,
+    DataType3DPre = 0x00800000,
+    DataType3DPost = 0x01000000,
+    DataTypePNG = 0x10000000
+  };
+protected:
+
+  vtkPlusDevice *ImagingDevice; 
+  double FrequencyMhz;
+  double DepthMm;
+  double SectorPercent; 
+  double GainPercent[3]; 
+  int Intensity;
+  int Contrast;
+  double DynRangeDb; 
+  double ZoomFactor; 
   double SoundVelocity;
 
 };

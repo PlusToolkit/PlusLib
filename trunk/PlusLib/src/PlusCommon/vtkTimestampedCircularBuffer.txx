@@ -1,3 +1,8 @@
+#include "vtkDoubleArray.h"
+#include "vtkRecursiveCriticalSection.h"
+#include "vtkTable.h"
+#include "vtkVariantArray.h"
+
 template<class BufferItemType>
 vtkTimestampedCircularBuffer<BufferItemType>* vtkTimestampedCircularBuffer<BufferItemType>::New()
 {

@@ -11,8 +11,8 @@
 
 #include "TelemedUltrasound.h"
 #include "vtkPlusDevice.h"
-#include "vtkImageImport.h"
 
+class vtkImageImport;
 
 /*!
   \class vtkTelemedVideoSource

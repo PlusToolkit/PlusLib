@@ -8,25 +8,17 @@
 #define __vtkTimestampedCircularBuffer_h
 
 #include "PlusConfigure.h"
-#include "PlusMath.h"
 #include "vtkObject.h"
-#include "vtkObjectFactory.h"
 #include "vtkTypeTemplate.h"
 #include <deque>
-#include <vector>
-#include <queue>
-#include "vtkRecursiveCriticalSection.h"
-#include "vtkTable.h"
-#include "vtkVariantArray.h"
-#include "vtkDoubleArray.h"
-#include "vtkStringArray.h"
-#include <iostream>
-#include <sstream>
 
 #include "vnl/vnl_matrix.h"
 #include "vnl/vnl_vector.h"
 
 #include <float.h> // for DBL_MAX
+
+class vtkRecursiveCriticalSection;
+class vtkTable;
 
 #ifdef _WIN32
   typedef unsigned __int64 BufferItemUidType;

@@ -12,14 +12,13 @@
 
 #include <vector>
 
-#include "vnl/vnl_matrix.h"
 #include "vnl/vnl_matrix_fixed.h"
 #include "vnl/vnl_vector.h"
-#include "vnl/vnl_sparse_matrix.h"   
-#include "vtkMatrix4x4.h"
-#include "vtkTransform.h"
+#include "vnl/vnl_sparse_matrix.h"
 #include "vtkMath.h"
 
+class vtkMatrix4x4;
+class vtkTransform;
 /*!
   \class PlusMath
   \brief A utility class that contains static functions for various useful commonly used computations

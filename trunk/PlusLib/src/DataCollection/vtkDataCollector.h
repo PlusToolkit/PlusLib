@@ -12,14 +12,10 @@ See License.txt for details.
 #include "PlusCommon.h"
 #include "vtkObject.h"
 #include "vtkPlusDeviceTypes.h"
-#include <vector>
 
 class TrackedFrame;
-class vtkDataCollector;
 class vtkTrackedFrameList;
-class vtkVirtualMixer;
 class vtkXMLDataElement;
-class vtkPlusDevice;
 
 /*!
 \class vtkDataCollector 

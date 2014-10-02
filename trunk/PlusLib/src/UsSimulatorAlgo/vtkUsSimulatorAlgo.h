@@ -8,10 +8,8 @@
 #define __vtkUsSimulatorAlgo_h
 
 #include "vtkUsSimulatorAlgoExport.h"
+
 #include "vtkImageAlgorithm.h"
-#include "vtkSmartPointer.h"
-#include "vtkImageData.h"
-#include "vtkMatrix4x4.h"
 
 #include "SpatialModel.h"
 #include "vtkTransformRepository.h"

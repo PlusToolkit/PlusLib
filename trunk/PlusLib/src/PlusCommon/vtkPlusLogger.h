@@ -10,7 +10,7 @@
 #include "vtkPlusCommonExport.h"
 
 #include "vtkObject.h"
-
+#include "vtkOutputWindow.h"
 #include <fstream>
 #include <sstream>
 

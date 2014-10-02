@@ -16,6 +16,9 @@ See License.txt for details.
 
 #include "vtkUSImagingParameters.h"
 
+#include "BmodeDLL.h"
+#include "usbProbeDLL_net.h"
+
 // Interson's OEM ID (probes released by Interson have this OEM ID)
 #define OEM_ID_INTERSON 0x00
 #define TOLERANCE 0.001
@@ -88,6 +91,36 @@ public:
   {
     vtkIntersonVideoSource::vtkInternal* self = (vtkIntersonVideoSource::vtkInternal*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
     return DefWindowProc (hwnd, iMsg, wParam, lParam) ;
+  }
+
+  //----------------------------------------------------------------------------
+  PlusStatus vtkIntersonVideoSource::vtkInternal::InitializeDIB(int imageSize[2])
+  {
+    this->BitmapInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    this->BitmapInfo.bmiHeader.biWidth = imageSize[0];
+    this->BitmapInfo.bmiHeader.biHeight = -imageSize[1];
+    this->BitmapInfo.bmiHeader.biPlanes = 1;
+    this->BitmapInfo.bmiHeader.biBitCount = 8;
+    this->BitmapInfo.bmiHeader.biCompression = 0;
+    this->BitmapInfo.bmiHeader.biXPelsPerMeter = 0;
+    this->BitmapInfo.bmiHeader.biYPelsPerMeter = 0;
+    this->BitmapInfo.bmiHeader.biClrUsed = 0;
+    this->BitmapInfo.bmiHeader.biClrImportant = 0;
+
+    // Compute the number of bytes in the array of color  
+    // indices and store the result in biSizeImage.  
+    // The width must be DWORD aligned unless the bitmap is RLE compressed. 
+    this->BitmapInfo.bmiHeader.biSizeImage = ((imageSize[0]*8+31)&~31)/8 * imageSize[1]; 
+
+    for( int i=0; i<256; i++ )
+    {
+      this->BitmapInfo.bmiColors[i].rgbRed = i;
+      this->BitmapInfo.bmiColors[i].rgbBlue = i;
+      this->BitmapInfo.bmiColors[i].rgbGreen = i;
+      this->BitmapInfo.bmiColors[i].rgbReserved = 0;
+    }
+
+    return PLUS_SUCCESS;
   }
 
   //----------------------------------------------------------------------------
@@ -227,36 +260,6 @@ int CALLBACK ProbeDetached()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkIntersonVideoSource::InitializeDIB(bmBITMAPINFO *bmi)
-{
-  bmi->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-  bmi->bmiHeader.biWidth = this->ImageSize[0];
-  bmi->bmiHeader.biHeight = -this->ImageSize[1];
-  bmi->bmiHeader.biPlanes = 1;
-  bmi->bmiHeader.biBitCount = 8;
-  bmi->bmiHeader.biCompression = 0;
-  bmi->bmiHeader.biXPelsPerMeter = 0;
-  bmi->bmiHeader.biYPelsPerMeter = 0;
-  bmi->bmiHeader.biClrUsed = 0;
-  bmi->bmiHeader.biClrImportant = 0;
-
-  // Compute the number of bytes in the array of color  
-  // indices and store the result in biSizeImage.  
-  // The width must be DWORD aligned unless the bitmap is RLE compressed. 
-  bmi->bmiHeader.biSizeImage = ((this->ImageSize[0]*8+31)&~31)/8 * this->ImageSize[1]; 
-
-  for( int i=0; i<256; i++ )
-  {
-    bmi->bmiColors[i].rgbRed = i;
-    bmi->bmiColors[i].rgbBlue = i;
-    bmi->bmiColors[i].rgbGreen = i;
-    bmi->bmiColors[i].rgbReserved = 0;
-  }
-
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkIntersonVideoSource::InternalConnect()
 {
   LOG_TRACE( "vtkIntersonVideoSource::InternalConnect" );
@@ -305,7 +308,7 @@ PlusStatus vtkIntersonVideoSource::InternalConnect()
     return PLUS_FAIL;
   }
 
-  InitializeDIB(&this->Internal->BitmapInfo);
+  this->Internal->InitializeDIB(this->ImageSize);
 
   BYTE currentOemId=usbProbeOEMID();
   if (currentOemId != OEM_ID_INTERSON)
@@ -742,7 +745,7 @@ PlusStatus vtkIntersonVideoSource::SetDepthMmDevice(double depthMm)
   }
 
   // to be implemented
-  std::vector<pair<double,double>> allowedModes;
+  std::vector< std::pair<double,double> > allowedModes;
   this->GetProbeAllowedModes(allowedModes);
   int numberOfAllowedModes = allowedModes.size();
   std::vector<int> possibleModes;
@@ -871,7 +874,7 @@ PlusStatus vtkIntersonVideoSource::SetZoomFactor(double gainPercent)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkIntersonVideoSource::GetProbeAllowedModes(std::vector<pair<double,double>>& allowedModes)
+PlusStatus vtkIntersonVideoSource::GetProbeAllowedModes(std::vector< std::pair<double,double> > &allowedModes)
 {
   
   double clockDivider = usbClockDivider();	

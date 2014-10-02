@@ -9,8 +9,10 @@
 
 #include "PlusConfigure.h"
 #include "vtkPlusCommonExport.h"
-#include "PlusVideoFrame.h"
+
+#include "PlusVideoFrame.h" // for US_IMAGE_ORIENTATION
 #include "vtkObject.h"
+
 #include <deque>
 
 class vtkXMLDataElement; 

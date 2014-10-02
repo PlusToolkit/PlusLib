@@ -1,9 +1,43 @@
 #include "PlusConfigure.h"
+#include "TrackedFrame.h"
 #include "igtlPlusUsMessage.h"
 #include "igtl_image.h"
+#include "igtlutil/igtl_util.h"
+#include "igtlutil/igtl_header.h"
 
 namespace igtl
 {
+
+  //----------------------------------------------------------------------------
+  size_t PlusUsMessage::MessageHeader::GetMessageHeaderSize()
+  {
+    size_t headersize = 13* sizeof(igtl_uint32); 
+    return headersize; 
+  }
+
+  //----------------------------------------------------------------------------
+  void PlusUsMessage::MessageHeader::ConvertEndianness()
+  {
+    if (igtl_is_little_endian()) 
+    {
+      m_DataType = BYTE_SWAP_INT32(m_DataType); 
+      m_TransmitFrequency = BYTE_SWAP_INT32(m_TransmitFrequency); 
+      m_SamplingFrequency = BYTE_SWAP_INT32(m_SamplingFrequency); 
+      m_DataRate = BYTE_SWAP_INT32(m_DataRate); 
+      m_LineDensity = BYTE_SWAP_INT32(m_LineDensity);
+
+      m_SteeringAngle = BYTE_SWAP_INT32(m_SteeringAngle);
+      m_ProbeID = BYTE_SWAP_INT32(m_ProbeID);
+      m_ExtensionAngle = BYTE_SWAP_INT32(m_ExtensionAngle);
+      m_Elements = BYTE_SWAP_INT32(m_Elements);
+      m_Pitch = BYTE_SWAP_INT32(m_Pitch);
+
+      m_Radius = BYTE_SWAP_INT32(m_Radius);
+      m_ProbeAngle = BYTE_SWAP_INT32(m_ProbeAngle);
+      m_TxOffset = BYTE_SWAP_INT32(m_TxOffset);
+    }
+  }
+
   //----------------------------------------------------------------------------
   PlusUsMessage::PlusUsMessage():ImageMessage()
   {
@@ -16,7 +50,7 @@ namespace igtl
   }
 
   //----------------------------------------------------------------------------
-  TrackedFrame PlusUsMessage::GetTrackedFrame()
+  TrackedFrame& PlusUsMessage::GetTrackedFrame()
   {
     return this->m_TrackedFrame;
   }

@@ -55,7 +55,6 @@ POSSIBILITY OF SUCH DAMAGES.
 #define __vtkPasteSliceIntoVolumeHelperUnoptimized_h
 
 #include "vtkPasteSliceIntoVolumeHelperCommon.h"
-#include "vtkMatrix4x4.h"
 
 /*!
   Non-optimized nearest neighbor interpolation.

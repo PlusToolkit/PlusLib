@@ -12,10 +12,8 @@
 
 #include "vtkObject.h"
 #include "vtkTrackedFrameList.h"
-#include "vtkTable.h"
 #include "FidPatternRecognitionCommon.h"
 
-class vtkHTMLGenerator; 
 class vtkMatrix4x4;
 class vtkTransformRepository;
 

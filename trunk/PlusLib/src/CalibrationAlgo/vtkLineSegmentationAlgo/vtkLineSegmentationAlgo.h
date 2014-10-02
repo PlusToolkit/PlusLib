@@ -9,9 +9,9 @@
 
 #include "vtkCalibrationAlgoExport.h"
 
-#include "itkImage.h"
-#include "vtkObject.h"
 #include <deque>
+
+#include "vtkObject.h"
 
 class vtkTrackedFrameList;
 

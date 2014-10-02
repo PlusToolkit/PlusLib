@@ -10,33 +10,11 @@ See License.txt for details.
 #include "PlusConfigure.h"
 
 #include "vtkObject.h"
-#include "vtkDoubleArray.h"
-#include "vtkMatrix4x4.h"
-
-#include "vnl/vnl_matrix.h"
-#include <vnl/vnl_double_3x3.h>
-#include <vnl/vnl_double_3.h>
-#include <vnl/algo/vnl_svd.h>
-#include <vnl/algo/vnl_determinant.h>
-#include <vnl/vnl_trace.h>
-#include <vnl/vnl_quaternion.h>
-#include <vnl/vnl_inverse.h>
-#include <vnl/vnl_cross.h>
-
-#include <vcl_iostream.h>
 
 #include "FidPatternRecognitionCommon.h"
-#include "itkScaleVersor3DTransform.h"
-#include "itkSimilarity3DTransform.h"
-
-#include <algorithm>
-#include <PlusMath.h>
-
-
 
 #include <set>
 
-class vtkTransformRepository;
 class vtkXMLDataElement;
 class vtkProbeCalibrationAlgo;
 

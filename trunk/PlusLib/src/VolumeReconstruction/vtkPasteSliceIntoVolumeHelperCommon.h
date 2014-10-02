@@ -88,15 +88,14 @@ afterward. This resulted in unwanted and clearly-wrong artifacts.
 
 #include "PlusConfigure.h"
 
-#include "vtkImageData.h"
-
 #include "PlusMath.h"
+
+class vtkImageData;
 
 // regarding these values, see comments at the top of this file by Thomas Vaughan
 #define ACCUMULATION_MULTIPLIER 256
 #define ACCUMULATION_MAXIMUM 65535
 #define ACCUMULATION_THRESHOLD 65279 // calculate manually to possibly save on computation time
-
 
 /*!
   These are the parameters that are supplied to any given "InsertSlice" function, whether it be

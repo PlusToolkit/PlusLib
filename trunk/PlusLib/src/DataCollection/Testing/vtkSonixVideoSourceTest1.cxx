@@ -36,6 +36,7 @@
 #include "vtkSonixVideoSource.h"
 #include "vtkTable.h"
 #include "vtkTableAlgorithm.h"
+#include "vtkUsImagingParameters.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include <stdlib.h>
@@ -297,8 +298,8 @@ int main(int argc, char* argv[])
   if (STRCASECMP(acqMode.c_str(), "B")==0)
   {
     LOG_DEBUG("Acquisition mode: B");
-    sonixGrabber->SetImagingMode(BMode);
-    sonixGrabber->SetAcquisitionDataType(udtBPost);
+    sonixGrabber->SetImagingMode(vtkUsImagingParameters::BMode);
+    sonixGrabber->SetAcquisitionDataType(vtkUsImagingParameters::DataTypeBPost);
     displayMode=SHOW_IMAGE;
   }
   else if (STRCASECMP(acqMode.c_str(), "RF")==0)
@@ -308,7 +309,7 @@ int main(int argc, char* argv[])
 #if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6) 
     sonixGrabber->SetImagingMode(RfMode);
 #endif
-    sonixGrabber->SetAcquisitionDataType(udtRF);
+    sonixGrabber->SetAcquisitionDataType(vtkUsImagingParameters::DataTypeRF);
     displayMode=SHOW_PLOT;
   }
   else

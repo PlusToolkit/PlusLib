@@ -12,6 +12,7 @@ See License.txt for details.
 
 #include "vtkDescriptiveStatistics.h"
 #include "vtkDoubleArray.h"
+#include "vtkMatrix4x4.h"
 #include "vtkMultiBlockDataSet.h"
 #include "vtkObjectFactory.h"
 #include "vtkTable.h"

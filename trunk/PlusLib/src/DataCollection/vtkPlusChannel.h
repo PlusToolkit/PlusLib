@@ -11,10 +11,12 @@
 #include "vtkDataCollectionExport.h"
 
 #include "vtkDataObject.h"
-#include "vtkPlusDevice.h"
+#include "vtkPlusDeviceTypes.h"
 #include "vtkRfProcessor.h"
 
-class vtkPlusDevice;
+class TrackedFrame;
+class vtkHTMLGenerator;
+class vtkTrackedFrameList;
 
 /*!
   \class vtkPlusChannel 

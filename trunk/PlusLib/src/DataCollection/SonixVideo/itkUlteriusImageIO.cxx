@@ -33,12 +33,15 @@ PURPOSE.  See the above copyright notices for more information.
 #include "itkIOCommon.h"
 #include <itksys/SystemTools.hxx>
 
+#include "ulterius_def.h"
+
 namespace itk
 {
 
   UlteriusImageIO::UlteriusImageIO()
   {
     m_FileType = Binary;
+    m_FileHeaderPtr = new uFileHeader;
 
     // :TODO: check all the supported file formats (extensions) on the Ultrasonix GUI and add them here
 
@@ -67,13 +70,15 @@ namespace itk
 
   UlteriusImageIO::~UlteriusImageIO()
   {
+    delete m_FileHeaderPtr;
+    m_FileHeaderPtr = NULL;
   }
 
   void UlteriusImageIO::PrintSelf(std::ostream& os, Indent indent) const
   {
     Superclass::PrintSelf(os, indent);
-    os << indent << "Type: " << m_FileHeader.type << "\n";
-    os << indent << "Number of frames: " << m_FileHeader.frames << "\n";  
+    os << indent << "Type: " << m_FileHeaderPtr->type << "\n";
+    os << indent << "Number of frames: " << m_FileHeaderPtr->frames << "\n";  
   }
 
   // This method will only test if the header looks like a
@@ -93,7 +98,7 @@ namespace itk
       return false;
     }
 
-    switch (m_FileHeader.type)
+    switch (m_FileHeaderPtr->type)
     {
     case udtBPost:
     case udtBPost32:
@@ -122,7 +127,7 @@ namespace itk
     }
 
 
-    switch (m_FileHeader.type)
+    switch (m_FileHeaderPtr->type)
     {
     case udtBPost:
       this->SetNumberOfComponents(1);
@@ -139,22 +144,22 @@ namespace itk
       itkExceptionMacro("File cannot be read: "
         << this->GetFileName() << " for reading."
         << std::endl
-        << "Reason: unknown data type " << m_FileHeader.type);
+        << "Reason: unknown data type " << m_FileHeaderPtr->type);
     }
 
-    if (m_FileHeader.frames<=0)
+    if (m_FileHeaderPtr->frames<=0)
     {
       itkExceptionMacro("File cannot be read: "
         << this->GetFileName() << " for reading."
         << std::endl
-        << "Reason: invalid number of frames: " << m_FileHeader.frames);
+        << "Reason: invalid number of frames: " << m_FileHeaderPtr->frames);
     }
 
     this->SetNumberOfDimensions(3);
 
-    this->SetDimensions(0, m_FileHeader.w);
-    this->SetDimensions(1, m_FileHeader.h);
-    this->SetDimensions(2, m_FileHeader.frames);
+    this->SetDimensions(0, m_FileHeaderPtr->w);
+    this->SetDimensions(1, m_FileHeaderPtr->h);
+    this->SetDimensions(2, m_FileHeaderPtr->frames);
 
     // :TODO: get spacing info, if possible
     // it might be computed from line density (if pitch and native # elements is known)
@@ -225,7 +230,7 @@ namespace itk
       return false;
     }
     if( ! this->ReadBufferAsBinary( local_InputStream,
-      (void *)&(this->m_FileHeader),
+      (void *)this->m_FileHeaderPtr,
       sizeof(uFileHeader) ) )
     {
       local_InputStream.close();

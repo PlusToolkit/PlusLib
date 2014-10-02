@@ -11,10 +11,9 @@ See License.txt for details.
 #include "vtkPlusCommonExport.h"
 #include "PlusCommon.h"
 #include "itkImage.h"
-#include "itkImageIOBase.h"
-#include "vtkImageData.h"
 #include "vtkImageExport.h"
-#include "vtkSmartPointer.h"
+
+class vtkImageData;
 
 /*!
 \enum US_IMAGE_ORIENTATION

@@ -12,7 +12,6 @@
 
 #include "vtkObject.h" 
 #include "igtlMessageBase.h"
-#include "igtlSocket.h"
 #include "PlusIgtlClientInfo.h" 
 
 class vtkXMLDataElement; 
@@ -74,7 +73,6 @@ public:
 protected:
   vtkPlusIgtlMessageFactory();
   virtual ~vtkPlusIgtlMessageFactory();
-
   
   /*! Map igt message types and the New() static methods of igtl::MessageBase classes */ 
   std::map<std::string,PointerToMessageBaseNew> IgtlMessageTypes; 

@@ -10,7 +10,7 @@
 #include "vtkPlusCommonExport.h"
 
 #include "itkImageIOBase.h"
-#include "vtkOutputWindow.h"
+//#include "vtkOutputWindow.h"
 #include "vtkPlusLogger.h"
 #include "vtkPlusMacro.h"
 #include "vtksys/SystemTools.hxx"

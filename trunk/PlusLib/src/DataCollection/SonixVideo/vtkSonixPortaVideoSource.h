@@ -20,18 +20,9 @@ Authors include: Elvis Chen (Queen's University)
 
 #include "vtkPlusDevice.h"
 
-// porta includes
-#include <porta_params_def.h>
-#include <ImagingModes.h>
-#include <porta.h>
-#if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6)
-  #include <porta_std_includes.h>
-#else
-  #include <porta_def.h>
-  #include <porta_wrapper.h>
-#endif
-
 class vtkDataCollectionExport vtkSonixPortaVideoSource;
+class porta;
+struct probeInfo;
 
 /*!
 \class vtkSonixPortaVideoSourceCleanup 
@@ -243,7 +234,7 @@ protected:
   std::string GetLastPortaError();
   
   /*! Pointer to the hardware. Only required for SDK versions prior to 6.0 */  
-  porta Porta;
+  porta* Porta;
 
   /*! Imaging parameters */
   int Depth;
@@ -339,7 +330,7 @@ private:
   int StepPerFrame;
 
   /*! Probe information */
-  probeInfo ProbeInformation;
+  probeInfo* ProbeInformation;
 
   /*! Motor rotation per step (in degrees) */
   double MotorRotationPerStepDeg;

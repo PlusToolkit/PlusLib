@@ -20,6 +20,7 @@
 #include "vtkRenderWindowInteractor.h"
 #include "vtkSmartPointer.h"
 #include "vtkSonixPortaVideoSource.h"
+#include "vtkUsImagingParameters.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include <stdlib.h>
 
@@ -281,7 +282,7 @@ int main(int argc, char* argv[])
   DisplayMode displayMode=SHOW_IMAGE;
   
   LOG_DEBUG("Acquisition mode: B");
-  portaGrabber->SetImagingMode(BMode);
+  portaGrabber->SetImagingMode(vtkUsImagingParameters::BMode);
   displayMode=SHOW_IMAGE;
 
   portaGrabber->CreateDefaultOutputChannel();

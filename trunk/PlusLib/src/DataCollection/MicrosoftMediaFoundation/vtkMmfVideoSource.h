@@ -21,10 +21,7 @@ Authors include: Danielle Pace
 #include "PlusVideoFrame.h"
 #include "vtkPlusDevice.h"
 
-// Media foundation includes - require Microsoft Windows SDK 7.1 or later.
-// Download from: http://www.microsoft.com/en-us/download/details.aspx?id=8279
-#include <Mfidl.h>
-#include <Mfreadwrite.h>
+class MmfVideoSourceReader;
 
 /*!
   \class vtkMmfVideoSource 
@@ -33,8 +30,10 @@ Authors include: Danielle Pace
   \sa vtkPlusDevice
   \ingroup PlusLibDataCollection
 */ 
-class vtkDataCollectionExport vtkMmfVideoSource : public vtkPlusDevice, public IMFSourceReaderCallback
+class vtkDataCollectionExport vtkMmfVideoSource : public vtkPlusDevice
 {
+  friend class MmfVideoSourceReader;
+
   struct VideoFormat
   {
     unsigned int DeviceId;
@@ -92,29 +91,15 @@ protected:
 
   int FrameIndex;
 
-  IMFMediaSource* CaptureSource;
-  IMFSourceReader* CaptureSourceReader;
-
   vtkSmartPointer<vtkRecursiveCriticalSection> Mutex;
   PlusVideoFrame UncompressedVideoFrame;
   VideoFormat RequestedVideoFormat;
   VideoFormat ActiveVideoFormat;
 
+  MmfVideoSourceReader* MmfSourceReader;
 private:
   vtkMmfVideoSource(const vtkMmfVideoSource&);  // Not implemented.
   void operator=(const vtkMmfVideoSource&);  // Not implemented.
-
- //------- IMFSourceReaderCallback functions ----------------------
-public:
-  // IUnknown methods
-  STDMETHODIMP QueryInterface(REFIID iid, void** ppv);
-  STDMETHOD_(ULONG, AddRef)();
-  STDMETHOD_(ULONG, Release)();
-  STDMETHODIMP OnEvent(DWORD, IMFMediaEvent *);
-  STDMETHODIMP OnFlush(DWORD);
-  STDMETHODIMP OnReadSample(HRESULT hrStatus, DWORD dwStreamIndex, DWORD dwStreamFlags, LONGLONG llTimestamp, IMFSample *pSample);
-protected:
-  long RefCount;
 };
 
 #endif

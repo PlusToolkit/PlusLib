@@ -42,14 +42,13 @@ POSSIBILITY OF SUCH DAMAGES.
 
 #include "PlusConfigure.h"
 
-#include "vtkObjectFactory.h"
-#include "vtkSmartPointer.h"
-#include "vtkMultiThreader.h"
-#include "vtkXMLUtilities.h"
-#include "vtkXMLDataElement.h"
+#include "vtkImageData.h"
 #include "vtkIndent.h"
 #include "vtkMath.h"
+#include "vtkMultiThreader.h"
 #include "vtkTransform.h"
+#include "vtkXMLUtilities.h"
+#include "vtkXMLDataElement.h"
 
 #include "vtkPasteSliceIntoVolume.h"
 #include "vtkPasteSliceIntoVolumeHelperUnoptimized.h"

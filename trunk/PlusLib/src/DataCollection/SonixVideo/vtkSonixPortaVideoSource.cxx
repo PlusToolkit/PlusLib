@@ -16,6 +16,17 @@ and The University of Western Ontario)
 
 #include "PlusConfigure.h"
 
+// porta includes
+#include <porta_params_def.h>
+#include <ImagingModes.h>
+#include <porta.h>
+#if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6)
+  #include <porta_std_includes.h>
+#else
+  #include <porta_def.h>
+  #include <porta_wrapper.h>
+#endif
+
 #include "TrackedFrame.h" 
 #include "vtkImageData.h"
 #include "vtkInformation.h"
@@ -131,6 +142,9 @@ vtkSonixPortaVideoSource::vtkSonixPortaVideoSource()
   //{
   //  LOG_ERROR("vtkSonixPortaVideoSource constructor: not enough memory for ImageBuffer" );
   //}
+  this->Porta = new porta;
+  this->ProbeInformation = new probeInfo;
+
 	this->PortaBModeWidth = 480;
 	this->PortaBModeHeight = 436;
 	this->ImageBuffer = 0;
@@ -176,6 +190,11 @@ vtkSonixPortaVideoSource::~vtkSonixPortaVideoSource()
   delete [] this->ImageBuffer;
   this->ImageBuffer = 0;
 
+  delete this->ProbeInformation;
+  this->ProbeInformation = NULL;
+
+  delete this->Porta;
+  this->Porta = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -311,12 +330,12 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
   // Aligns the motor for correct acqusition of its angle
   if ( this->FirstCallToAddFrameToBuffer )
   {
-	this->Porta.setParam( prmMotorStatus, 0 );
-    this->Porta.setParam( prmMotorStatus, 1 );
+	  this->Porta->setParam( prmMotorStatus, 0 );
+    this->Porta->setParam( prmMotorStatus, 1 );
     this->FirstCallToAddFrameToBuffer = false;
   }
 
-  this->Porta.getBwImage( 0, this->ImageBuffer, false );
+  this->Porta->getBwImage( 0, this->ImageBuffer, false );
 
   // get the pointer to the actual incoming data onto a local pointer
   unsigned char *deviceDataPtr = static_cast<unsigned char*>( this->ImageBuffer );
@@ -406,7 +425,7 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
   }
 
   LOG_TRACE("Some info on the initializaton" << this->Usm << " " << this->Pci );
-  if ( !this->Porta.init( this->PortaCineSize,
+  if ( !this->Porta->init( this->PortaCineSize,
     this->PortaFirmwarePath,
     this->PortaSettingPath,
     this->PortaLicensePath,
@@ -425,15 +444,15 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
 
   // select the probe
   int code=0;
-  if ( this->Porta.isConnected() ) 
+  if ( this->Porta->isConnected() ) 
   {
-    code = (char)this->Porta.getProbeID( 0 );
+    code = (char)this->Porta->getProbeID( 0 );
   }
 
   // select the code read and see if it is motorized
-  if ( this->Porta.selectProbe( code ) &&
-    this->Porta.getProbeInfo( this->ProbeInformation ) &&
-    this->ProbeInformation.motorized ) 
+  if ( this->Porta->selectProbe( code ) &&
+    this->Porta->getProbeInfo( *this->ProbeInformation ) &&
+    this->ProbeInformation->motorized ) 
   {
     const int MAX_NAME_LENGTH=100;
     char name[MAX_NAME_LENGTH+1];
@@ -441,18 +460,18 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
 
 
     // the 3D/4D probe is always connected to port 0
-    this->Porta.activateProbeConnector( 0 );
-    this->Porta.getProbeName( name, MAX_NAME_LENGTH, code );
+    this->Porta->activateProbeConnector( 0 );
+    this->Porta->getProbeName( name, MAX_NAME_LENGTH, code );
 
     // store the probe name
     SetPortaProbeName(name);
-	if ( !this->Porta.findMasterPreset( name, MAX_NAME_LENGTH, code ) ) 
+	if ( !this->Porta->findMasterPreset( name, MAX_NAME_LENGTH, code ) ) 
     {
       LOG_ERROR("Initialize: master preset cannot be found" );
       return PLUS_FAIL;
     }
 
-    if ( !this->Porta.loadPreset( name ) )
+    if ( !this->Porta->loadPreset( name ) )
     {
       LOG_ERROR("Initialize: master preset could not be loaded" );
       return PLUS_FAIL;
@@ -482,14 +501,14 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
   }
 
   // this is from propello
-  if( !this->Porta.initImagingMode( BMode ) ) 
+  if( !this->Porta->initImagingMode( BMode ) ) 
   {    
     LOG_ERROR("Initialize: cannot initialize imagingMode (" << this->GetLastPortaError() << ")" );
     return PLUS_FAIL;
   }
   else
   {
-    this->Porta.setDisplayDimensions( 0,
+    this->Porta->setDisplayDimensions( 0,
       this->PortaBModeWidth,
       this->PortaBModeHeight );
   }
@@ -505,11 +524,11 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
   SetStepPerFrame(this->StepPerFrame);
 
   // Compute the angle per step
-  this->MotorRotationPerStepDeg = (double)this->ProbeInformation.motorFov / (double)this->ProbeInformation.motorSteps / 1000;
+  this->MotorRotationPerStepDeg = (double)this->ProbeInformation->motorFov / (double)this->ProbeInformation->motorSteps / 1000;
   this->StartMotorAngle = ((double)(this->FramePerVolume-1) * this->MotorRotationPerStepDeg * (double)this->StepPerFrame) / 2;
 
   // Turn on the motor
-  this->Porta.setParam( prmMotorStatus, 1 );
+  this->Porta->setParam( prmMotorStatus, 1 );
 
   // finally, update all the parameters
   if ( !this->UpdateSonixPortaParams() ) 
@@ -519,7 +538,7 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
 
   // set up the callback function which is invocked upon arrival
   // of a new frame
-  this->Porta.setDisplayCallback( 0, vtkSonixPortaVideoSourceNewFrameCallback,(void*)this ); 
+  this->Porta->setDisplayCallback( 0, vtkSonixPortaVideoSourceNewFrameCallback,(void*)this ); 
 
   LOG_DEBUG("Successfully connected to sonix porta video device");
   return PLUS_SUCCESS;
@@ -528,9 +547,9 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixPortaVideoSource::InternalDisconnect()
 {
-  this->Porta.setParam( prmMotorStatus, 0 );
-  this->Porta.stopImage();
-  this->Porta.shutdown();
+  this->Porta->setParam( prmMotorStatus, 0 );
+  this->Porta->stopImage();
+  this->Porta->shutdown();
   return PLUS_SUCCESS;
 }
 //----------------------------------------------------------------------------
@@ -541,9 +560,9 @@ PlusStatus vtkSonixPortaVideoSource::InternalStartRecording()
     this->Recording = 1;
     this->Modified();
 
-    if ( !this->Porta.isImaging() )
+    if ( !this->Porta->isImaging() )
     {
-      this->Porta.runImage();
+      this->Porta->runImage();
     }
   }
 
@@ -558,9 +577,9 @@ PlusStatus vtkSonixPortaVideoSource::InternalStopRecording()
     this->Recording = 0;
     this->Modified();
 
-    if ( this->Porta.isImaging() )
+    if ( this->Porta->isImaging() )
     {
-      this->Porta.stopImage();
+      this->Porta->stopImage();
     }
   }
   return PLUS_SUCCESS;
@@ -776,7 +795,7 @@ std::string vtkSonixPortaVideoSource::GetLastPortaError()
   const unsigned int MAX_PORTA_ERROR_MSG_LENGTH=256;
   char err[MAX_PORTA_ERROR_MSG_LENGTH+1];
   err[MAX_PORTA_ERROR_MSG_LENGTH]=0; // make sure the string is null-terminated
-  this->Porta.getLastError(err,MAX_PORTA_ERROR_MSG_LENGTH);
+  this->Porta->getLastError(err,MAX_PORTA_ERROR_MSG_LENGTH);
   return err; 
 #else
   return "unknown";
@@ -792,7 +811,7 @@ PlusStatus vtkSonixPortaVideoSource::SetParamValue(char* paramId, int paramValue
     validatedParamValue=paramValue;
     return PLUS_SUCCESS;
   }
-  if (!this->Porta.setParam(paramId, paramValue))
+  if (!this->Porta->setParam(paramId, paramValue))
   {
     LOG_ERROR("vtkSonixPortaVideoSource::SetParamValue failed (paramId="<<paramId<<", paramValue="<<paramValue<<") "<<GetLastPortaError());
     return PLUS_FAIL;
@@ -811,7 +830,7 @@ PlusStatus vtkSonixPortaVideoSource::GetParamValue(char* paramId, int& paramValu
     return PLUS_SUCCESS;
   }
   paramValue=-1;
-  if (!this->Porta.getParam(paramId, paramValue))
+  if (!this->Porta->getParam(paramId, paramValue))
   {
     LOG_ERROR("vtkSonixPortaVideoSource::GetParamValue failed (paramId="<<paramId<<", paramValue="<<paramValue<<") "<<GetLastPortaError());
     return PLUS_FAIL;
@@ -904,11 +923,11 @@ PlusStatus vtkSonixPortaVideoSource::SetTimeout(int aTimeout)
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixPortaVideoSource::UpdateSonixPortaParams() 
 {
-  bool bRunning = this->Porta.isImaging();
+  bool bRunning = this->Porta->isImaging();
 
   if ( bRunning ) 
   {
-    this->Porta.stopImage();
+    this->Porta->stopImage();
   }
 
   // update VTK FrameRate with SonixRP's hardware frame rate
@@ -917,11 +936,11 @@ PlusStatus vtkSonixPortaVideoSource::UpdateSonixPortaParams()
   // frame rate is a function of several parameters, such as
   // bline density and image-depths.
   //
-  this->AcquisitionRate = (float)(this->Porta.getFrameRate() );
+  this->AcquisitionRate = (float)(this->Porta->getFrameRate() );
 
   if ( bRunning ) 
   {
-    this->Porta.runImage();
+    this->Porta->runImage();
   }
 
   this->Modified();

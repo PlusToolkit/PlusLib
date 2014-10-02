@@ -9,10 +9,10 @@
 
 #include "vtkDataCollectionExport.h"
 
-#include "vtkTransformRepository.h"
 #include "vtkPlusDevice.h"
 #include <string>
-#include <deque>
+
+class vtkTransformRepository;
 
 /*!
 \class StealthServer 

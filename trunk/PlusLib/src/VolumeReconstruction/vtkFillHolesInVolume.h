@@ -51,11 +51,11 @@ POSSIBILITY OF SUCH DAMAGES.
   Holds information about a user-specified kernel
   \ingroup PlusLibVolumeReconstruction
 */
-struct vtkFillHolesInVolumeKernel {
+struct vtkFillHolesInVolumeKernel
+{
   int size[3];
   float stdev[3];
   float minRatio;
-
 };
 
 // TODO: This needs massive optimization

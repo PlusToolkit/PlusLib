@@ -7,19 +7,22 @@
 #include "PlusConfigure.h"
 
 #include "PlusMath.h"
+#include "TrackedFrame.h"
+
+#include "vtkBrachyStepperPhantomRegistrationAlgo.h"
+#include "vtkDoubleArray.h"
+#include "vtkHTMLGenerator.h"
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
-#include "vtkBrachyStepperPhantomRegistrationAlgo.h"
-#include "vtkTrackedFrameList.h"
-#include "TrackedFrame.h"
-#include "vtkTransformRepository.h"
-
 #include "vtkObjectFactory.h"
 #include "vtkPoints.h"
-#include "vtksys/SystemTools.hxx"
-#include "vtkHTMLGenerator.h"
-#include "vtkDoubleArray.h"
+#include "vtkTrackedFrameList.h"
+#include "vtkTransform.h"
+#include "vtkTransformRepository.h"
 #include "vtkVariantArray.h"
+
+#include "vtksys/SystemTools.hxx"
+
 #include "vnl/vnl_cross.h"  
 
 //----------------------------------------------------------------------------

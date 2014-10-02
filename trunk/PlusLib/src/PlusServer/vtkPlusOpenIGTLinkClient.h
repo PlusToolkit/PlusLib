@@ -12,12 +12,10 @@
 #include "igtlClientSocket.h"
 #include "igtlMessageHeader.h"
 #include "igtlOSUtil.h"
-#include "vtkDataCollector.h"
-#include "vtkMultiThreader.h"
 #include "vtkObject.h"
 #include "vtkPlusCommand.h"
+
 #include <string>
-#include <vector>
 
 class vtkMultiThreader; 
 class vtkRecursiveCriticalSection;

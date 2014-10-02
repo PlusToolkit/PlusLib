@@ -11,6 +11,7 @@ See License.txt for details.
 
 #include "vtkPlusDevice.h"
 #include "vtkTransformRepository.h"
+#include "vtkTrackedFrameList.h"
 #include "vtkPoints.h"
 
 /*! Fake tracker modes */

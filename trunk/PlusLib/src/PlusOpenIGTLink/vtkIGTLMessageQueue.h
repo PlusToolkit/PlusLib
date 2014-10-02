@@ -12,10 +12,8 @@
 #include "vtkObject.h"
 
 #include <deque>
-#include <string>
 
 #include "igtlMessageBase.h"
-
 
 class vtkRecursiveCriticalSection;
 

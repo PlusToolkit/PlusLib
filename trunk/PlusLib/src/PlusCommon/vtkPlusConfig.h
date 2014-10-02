@@ -12,9 +12,9 @@
 
 #include "vtkObject.h"
 #include "vtkXMLDataElement.h"
+
 class vtkMatrix4x4; 
 class vtkRecursiveCriticalSection;
-//-----------------------------------------------------------------------------
 
 /*!
   \class vtkPlusConfig 

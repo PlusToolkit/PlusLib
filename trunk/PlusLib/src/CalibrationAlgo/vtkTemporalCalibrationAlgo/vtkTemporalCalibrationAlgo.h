@@ -10,13 +10,13 @@
 #include "PlusConfigure.h"
 #include "vtkCalibrationAlgoExport.h"
 
-#include "vtkObject.h"
 #include <deque>
-#include <iostream>
-#include <time.h>
-#include <vtkPiecewiseFunction.h>
-#include <vtkTable.h>
+
+#include "vtkObject.h"
+
 class TrackedFrame;
+class vtkPiecewiseFunction;
+class vtkTable;
 class vtkTrackedFrameList;
 
 /*!

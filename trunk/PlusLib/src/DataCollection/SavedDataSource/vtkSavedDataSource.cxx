@@ -6,6 +6,7 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "vtkImageData.h"
+#include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"

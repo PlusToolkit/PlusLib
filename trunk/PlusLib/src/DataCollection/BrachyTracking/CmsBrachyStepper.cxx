@@ -5,10 +5,13 @@
 =========================================================Plus=header=end*/
 
 #include "CmsBrachyStepper.h"
-#include <iostream>
-#include <assert.h>
-#include <math.h>
 #include "vtkAccurateTimer.h" 
+
+#include "SerialLine.h"
+
+#include <assert.h>
+#include <iostream>
+#include <math.h>
 #include <sstream>
 
 #define STEPPERDEBUGMSG 0

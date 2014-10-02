@@ -11,8 +11,6 @@
 #include "vtkDataCollectionExport.h"
 
 #include "vtkOpenIGTLinkDevice.h"
-#include "igtlClientSocket.h"
-#include "igtlMessageBase.h"
 
 /*!
   \class vtkOpenIGTLinkVideoSource 

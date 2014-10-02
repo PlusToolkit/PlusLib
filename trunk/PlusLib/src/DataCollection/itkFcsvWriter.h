@@ -13,14 +13,6 @@
 
 #include "vtkDataCollectionExport.h"
 
-#include <vector>
-#include <fstream>
-#include "itkProcessObject.h"
-
-#include "itkFcsvReader.h"
-
-#include "itkImageIOBase.h"
-
 namespace itk
 {
 

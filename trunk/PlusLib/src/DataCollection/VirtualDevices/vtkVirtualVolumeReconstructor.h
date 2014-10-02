@@ -9,11 +9,10 @@ See License.txt for details.
 
 #include "vtkDataCollectionExport.h"
 
-#include "vtkMetaImageSequenceIO.h"
 #include "vtkPlusDevice.h"
-#include "vtkPlusChannel.h"
 #include <string>
 
+class vtkTrackedFrameList;
 class vtkVolumeReconstructor;
 class vtkTransformRepository;
 
