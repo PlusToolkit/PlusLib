@@ -283,8 +283,8 @@ void vtkLandmarkDetectionAlgo::KeepLastWindow()
 PlusStatus vtkLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceTransform)
 {
   //Point 10 cm above the stylus tip, if it moves(window change bigger than AboveLandmarkThresholdMm) while the tip is static (window change smaller than LandmarkThresholdMm then it is landmark point.
-  float pointAboveStylusTip_StylusTip[4]={100,0,0,1};
-  float pointAboveStylusTip_Reference[4]={0,0,0,1};
+  double pointAboveStylusTip_StylusTip[4]={100,0,0,1};
+  double pointAboveStylusTip_Reference[4]={0,0,0,1};
   double stylusTipChange_Reference[4] = {0,0,0,1};
   double aboveStylusTipChange[4] = {0,0,0,1};
   stylusTipToReferenceTransform->MultiplyPoint(pointAboveStylusTip_StylusTip, pointAboveStylusTip_Reference);
@@ -316,7 +316,7 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtk
       stylusTipChange_Reference[1]=lastStylusTipFiltered_Reference[1]-stylusTipFiltered_Reference[1];
       stylusTipChange_Reference[2]=lastStylusTipFiltered_Reference[2]-stylusTipFiltered_Reference[2];
 
-      this->StylusShaftPathBoundingBox.AddPoint(pointAboveStylusTip_Reference[0],pointAboveStylusTip_Reference[1],pointAboveStylusTip_Reference[2]);
+      this->StylusShaftPathBoundingBox.AddPoint(pointAboveStylusTip_Reference);
       if(vtkMath::Norm(stylusTipChange_Reference)<this->StylusTipMaximumMotionThresholdMm /*&& vtkMath::Norm(aboveStylusTipChange)>this->AboveLandmarkThresholdMm*/ )
       {
         LOG_DEBUG("\nDif last points (" <<abs(lastStylusTipFiltered_Reference[0]-stylusTipFiltered_Reference[0])<< ", "<<abs(lastStylusTipFiltered_Reference[1]-stylusTipFiltered_Reference[1])<< ", "<<abs(lastStylusTipFiltered_Reference[2]-stylusTipFiltered_Reference[2])<< ")\n");
@@ -342,14 +342,9 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtk
           StylusTipFilteredList_Reference.pop_front();
         }
         this->StylusShaftPathBoundingBox.Reset();
-        this->StylusShaftPathBoundingBox.AddPoint(pointAboveStylusTip_Reference[0],pointAboveStylusTip_Reference[1],pointAboveStylusTip_Reference[2]);
+        this->StylusShaftPathBoundingBox.AddPoint(pointAboveStylusTip_Reference);
       }
     }
-    this->LastAboveStylusTip[0]=pointAboveStylusTip_Reference[0];
-    this->LastAboveStylusTip[1]=pointAboveStylusTip_Reference[1];
-    this->LastAboveStylusTip[2]=pointAboveStylusTip_Reference[2];
-    this->LastAboveStylusTip[3]=pointAboveStylusTip_Reference[3];
-
     this->PartialInsertedPoints=0;
     double lengths[3];
     this->StylusShaftPathBoundingBox.GetLengths(lengths);
@@ -362,7 +357,7 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtk
       }
       else
       {
-        this->StylusShaftPathBoundingBox.AddPoint(this->LastAboveStylusTip);
+        this->StylusShaftPathBoundingBox.AddPoint(pointAboveStylusTip_Reference);
         KeepLastWindow();
       }
     }
