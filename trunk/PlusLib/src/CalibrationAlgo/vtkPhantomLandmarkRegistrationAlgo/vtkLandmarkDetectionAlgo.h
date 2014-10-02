@@ -42,19 +42,17 @@ public:
     \param aConfig Root element of the device set configuration
   */
   PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
-
   /*!
     Insert acquired pose to the detection pose list
     \param stylusTipToReferenceTransform New detection pose (stylus tip to reference transform)
+    \param newLandmarkDetected flag is set if after the insertion a new landmark is detected
   */
-  PlusStatus InsertNextStylusTipToReferenceTransform(vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceTransform);
-
+  PlusStatus InsertNextStylusTipToReferenceTransform(vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceTransform, bool &newLandmarkDetected);
   /*! Get detected landmark(s) string to display
     \param aPrecision Number of decimals shown
     \return detection result (e.g. landmark(s) position in reference coordinates system) string
   */
   std::string GetDetectedLandmarksString(double aPrecision=3);
-
   /*! Set Device acquisition rate. This is required to determine the minimum number of transforms required for detecting a point. */
   void SetAcquisitionRate(double aquisitionRateSamplesPerSec);
   /*! Set size of the time window used for sample averaging (default 1/3 [s]). Higher value makes the algorithm ignore more outliers. */
@@ -72,16 +70,10 @@ public:
   void SetNumberOfExpectedLandmarks(int numberOfExpectedLandmarks);
   /* The flag completed will be true when the number of landmark points detected is equal to the expected number of landmark points */
   PlusStatus IsLandmarkDetectionCompleted(bool &completed);
-
   /* Reset the landmark point detected to start over */
   PlusStatus ResetDetection();
-
   /*It deletes the last landmark detected, in case it does not correspond to a landmark and could be detected again*/
   PlusStatus DeleteLastLandmark();
-
-  /*Sets the boolean flag true when a new landmark is found*/
-  PlusStatus IsNewLandmarkPointFound(bool &found);
-
   /*Directly inserts a landmark position into the list, bypassing the detection*/
   PlusStatus InsertLandmark_Reference(double* stylusTipPosition_Reference);
 
@@ -110,6 +102,9 @@ protected:
   within the LandmarkThresholdMm.
   */
   PlusStatus EstimateLandmarkPointPosition();
+
+  /*Sets the parameter boolean flag found true when a new landmark is found*/
+  PlusStatus IsNewLandmarkPointFound(bool &found);
 
   /*!
     The change in landmark positions is measured in windows of points.
