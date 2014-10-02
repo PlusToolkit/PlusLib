@@ -8,7 +8,7 @@
       Id="TrackerDevice"
       Type="SavedDataSource"
       UseData="TRANSFORM"
-      AcquisitionRate="10"
+      AcquisitionRate="30"
       LocalTimeOffsetSec="0.0"
       SequenceMetafile="EightLandmarkPointsTrackedForPhantomRegistration.mha"
       UseOriginalTimestamps="TRUE"

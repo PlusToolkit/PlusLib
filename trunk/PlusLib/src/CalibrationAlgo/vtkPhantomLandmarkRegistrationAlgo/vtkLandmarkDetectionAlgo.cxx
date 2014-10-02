@@ -141,11 +141,6 @@ vtkLandmarkDetectionAlgo::vtkLandmarkDetectionAlgo()
 
   this->NewLandmarkFound=false;
 
-  this->AboveStylusTipAverage[0] = 0.0;
-  this->AboveStylusTipAverage[1] = 0.0;
-  this->AboveStylusTipAverage[2] = 0.0;
-  this->AboveStylusTipAverage[3] = 0.0;
-
   this->PartialInsertedPoints=0;
   this->CurrentStylusTipIterator=this->StylusTipToReferenceTransformsList.end();
   this->LastStylusTipIterator=this->StylusTipToReferenceTransformsList.begin();
@@ -179,10 +174,6 @@ PlusStatus vtkLandmarkDetectionAlgo::ResetDetection()
 {
   this->NewLandmarkFound=false;
   LOG_INFO("Reset");
-  this->AboveStylusTipAverage[0] = 0.0;
-  this->AboveStylusTipAverage[1] = 0.0;
-  this->AboveStylusTipAverage[2] = 0.0;
-  this->AboveStylusTipAverage[3] = 0.0;
 
   this->PartialInsertedPoints=0;
   RemoveAllFilterWindows();
@@ -298,11 +289,6 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtk
   double aboveStylusTipChange[4] = {0,0,0,1};
   stylusTipToReferenceTransform->MultiplyPoint(pointAboveStylusTip_StylusTip, pointAboveStylusTip_Reference);
 
-  AboveStylusTipAverage[0]+=pointAboveStylusTip_Reference[0];
-  AboveStylusTipAverage[1]+=pointAboveStylusTip_Reference[1];
-  AboveStylusTipAverage[2]+=pointAboveStylusTip_Reference[2];
-  AboveStylusTipAverage[3]+=pointAboveStylusTip_Reference[3];
-
   this->StylusTipToReferenceTransformsList.push_back(stylusTipToReferenceTransform);
   this->PartialInsertedPoints++;
   if(this->PartialInsertedPoints>=this->FilterWindowSize &&  this->DetectedLandmarkPoints_Reference->GetNumberOfPoints() < this->NumberOfExpectedLandmarks)
@@ -319,11 +305,6 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtk
     std::vector<double> stylusTipFilteredVector_Reference (stylusTipFiltered_Reference, stylusTipFiltered_Reference+sizeof(stylusTipFiltered_Reference)/sizeof(stylusTipFiltered_Reference[0]));
     StylusTipFilteredList_Reference.push_back(stylusTipFilteredVector_Reference);
 
-    this->AboveStylusTipAverage[0]=this->AboveStylusTipAverage[0]/PartialInsertedPoints;
-    this->AboveStylusTipAverage[1]=this->AboveStylusTipAverage[1]/PartialInsertedPoints;
-    this->AboveStylusTipAverage[2]=this->AboveStylusTipAverage[2]/PartialInsertedPoints;
-    this->AboveStylusTipAverage[3]=this->AboveStylusTipAverage[3]/PartialInsertedPoints;
-
     if(StylusTipFilteredList_Reference.size()>1)
     {
       std::list< std::vector<double> >::iterator pointIt=StylusTipFilteredList_Reference.end();
@@ -335,10 +316,7 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtk
       stylusTipChange_Reference[1]=lastStylusTipFiltered_Reference[1]-stylusTipFiltered_Reference[1];
       stylusTipChange_Reference[2]=lastStylusTipFiltered_Reference[2]-stylusTipFiltered_Reference[2];
 
-      aboveStylusTipChange[0]=LastAboveStylusTipAverage[0]-AboveStylusTipAverage[0];
-      aboveStylusTipChange[1]=LastAboveStylusTipAverage[1]-AboveStylusTipAverage[1];
-      aboveStylusTipChange[2]=LastAboveStylusTipAverage[2]-AboveStylusTipAverage[2];
-      this->StylusShaftPathBoundingBox.AddPoint(AboveStylusTipAverage);
+      this->StylusShaftPathBoundingBox.AddPoint(pointAboveStylusTip_Reference[0],pointAboveStylusTip_Reference[1],pointAboveStylusTip_Reference[2]);
       if(vtkMath::Norm(stylusTipChange_Reference)<this->StylusTipMaximumMotionThresholdMm /*&& vtkMath::Norm(aboveStylusTipChange)>this->AboveLandmarkThresholdMm*/ )
       {
         LOG_DEBUG("\nDif last points (" <<abs(lastStylusTipFiltered_Reference[0]-stylusTipFiltered_Reference[0])<< ", "<<abs(lastStylusTipFiltered_Reference[1]-stylusTipFiltered_Reference[1])<< ", "<<abs(lastStylusTipFiltered_Reference[2]-stylusTipFiltered_Reference[2])<< ")\n");
@@ -364,18 +342,13 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtk
           StylusTipFilteredList_Reference.pop_front();
         }
         this->StylusShaftPathBoundingBox.Reset();
-        this->StylusShaftPathBoundingBox.AddPoint(AboveStylusTipAverage);
+        this->StylusShaftPathBoundingBox.AddPoint(pointAboveStylusTip_Reference[0],pointAboveStylusTip_Reference[1],pointAboveStylusTip_Reference[2]);
       }
     }
-    this->LastAboveStylusTipAverage[0]=this->AboveStylusTipAverage[0];
-    this->LastAboveStylusTipAverage[1]=this->AboveStylusTipAverage[1];
-    this->LastAboveStylusTipAverage[2]=this->AboveStylusTipAverage[2];
-    this->LastAboveStylusTipAverage[3]=this->AboveStylusTipAverage[3];
-
-    this->AboveStylusTipAverage[0] = 0.0;
-    this->AboveStylusTipAverage[1] = 0.0;
-    this->AboveStylusTipAverage[2] = 0.0;
-    this->AboveStylusTipAverage[3] = 0.0;
+    this->LastAboveStylusTip[0]=pointAboveStylusTip_Reference[0];
+    this->LastAboveStylusTip[1]=pointAboveStylusTip_Reference[1];
+    this->LastAboveStylusTip[2]=pointAboveStylusTip_Reference[2];
+    this->LastAboveStylusTip[3]=pointAboveStylusTip_Reference[3];
 
     this->PartialInsertedPoints=0;
     double lengths[3];
@@ -389,7 +362,7 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtk
       }
       else
       {
-        this->StylusShaftPathBoundingBox.AddPoint(this->LastAboveStylusTipAverage);
+        this->StylusShaftPathBoundingBox.AddPoint(this->LastAboveStylusTip);
         KeepLastWindow();
       }
     }

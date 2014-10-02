@@ -162,9 +162,7 @@ protected:
   /*! The number of partial inserted points*/
   int PartialInsertedPoints;
   /*! Landmark point position in the Reference coordinate system */
-  double AboveStylusTipAverage[4];
-  /*! Landmark point position in the Reference coordinate system */
-  double LastAboveStylusTipAverage[4];
+  double LastAboveStylusTip[4];
   /*! Landmark point position average per window list (defined in the reference coordinate system)*/
   std::list< std::vector<double> > StylusTipFilteredList_Reference;
 };
