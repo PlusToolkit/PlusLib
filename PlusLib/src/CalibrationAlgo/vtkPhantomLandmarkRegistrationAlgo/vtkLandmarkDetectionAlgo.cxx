@@ -14,15 +14,13 @@ See License.txt for details.
 #include "vtkDoubleArray.h"
 #include "vtkMatrix4x4.h"
 #include "vtkMultiBlockDataSet.h"
-#include "vtkObjectFactory.h"
 #include "vtkTable.h"
-#include "vtkXMLUtilities.h"
 
-vtkCxxRevisionMacro(vtkLandmarkDetectionAlgo, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkLandmarkDetectionAlgo);
 
 //-----------------------------------------------------------------------------
 // Default algorithm parameters
+
 namespace
 {
   const int NUMBER_EXPECTED_LANDMARKS=3;// The default expected number of landmarks to be detected
@@ -32,7 +30,7 @@ namespace
   const int NUMBER_WINDOWS=5;//The number of windows to be detected as landmark in DetectionTime (1.0 [s]) DetectionTime/FilterWindowTime
   const int FILTER_WINDOW_SIZE=3;//The number of acquisitions in FilterWindowTime (0.2 [s]) AcquisitonRate*FilterWindowTime
   const double MAXIMUM_WINDOW_TIME_SEC=3.5;//Maximum detection time
-  const int NUMBER_WINDOWS_SKIP =2;//The first windows detected as pivoting wont be used for averaging.
+  const int NUMBER_WINDOWS_SKIP = 1;//The first windows detected as pivoting wont be used for averaging.
 }
 
 //----------------------------------------------------------------------------
@@ -75,22 +73,23 @@ void vtkLandmarkDetectionAlgo::SetFilterWindowTimeSec(double filterWindowTimeSec
   if(this->AcquisitionRate<=0)
   {
     LOG_ERROR("There is no acquisition rate specified");
+    return;
   }
-  if(filterWindowTimeSec>0&& filterWindowTimeSec<=this->DetectionTimeSec)
+  if(filterWindowTimeSec>0&& filterWindowTimeSec>this->DetectionTimeSec)
   {
-    this->FilterWindowTimeSec=filterWindowTimeSec;
-    this->FilterWindowSize=PlusMath::Round(this->AcquisitionRate*this->FilterWindowTimeSec);
-    if(this->FilterWindowSize<1)
-    {
-      LOG_WARNING("The smallest window size is set to 1");
-      this->FilterWindowSize=1;
-    }
-    this->NumberOfWindows=this->DetectionTimeSec/this->FilterWindowTimeSec;
+    LOG_ERROR("Specified window time (" << filterWindowTimeSec << " [s]) is not correct, default "<<this->FilterWindowTimeSec<<" [s] is used instead");
+    return;
   }
-  else
+
+  this->FilterWindowTimeSec=filterWindowTimeSec;
+  this->FilterWindowSize=PlusMath::Round(this->AcquisitionRate*this->FilterWindowTimeSec);
+  if(this->FilterWindowSize<1)
   {
-    LOG_WARNING("Specified window time (" << filterWindowTimeSec << " [s]) is not correct, default "<<this->FilterWindowTimeSec<<" [s] is used instead");
+    LOG_WARNING("The smallest window size is set to 1");
+    this->FilterWindowSize=1;
   }
+  this->NumberOfWindows=this->DetectionTimeSec/this->FilterWindowTimeSec;
+
 }
 
 //----------------------------------------------------------------------------
@@ -170,7 +169,7 @@ void vtkLandmarkDetectionAlgo::RemoveAllFilterWindows()
 //-----------------------------------------------------------------------------
 PlusStatus vtkLandmarkDetectionAlgo::ResetDetection()
 {
-  //this->NewLandmarkFound=false;
+  this->NewLandmarkFound=false;
   LOG_INFO("Reset");
   RemoveAllFilterWindows();
   this->DetectedLandmarkPoints_Reference->Reset();
@@ -192,6 +191,7 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertLandmark_Reference(double* stylusTipP
 //----------------------------------------------------------------------------
 PlusStatus vtkLandmarkDetectionAlgo::DeleteLastLandmark()
 {
+  this->NewLandmarkFound=false;
   if(this->DetectedLandmarkPoints_Reference->GetNumberOfPoints()>0)
   {
     this->DetectedLandmarkPoints_Reference->GetData()->RemoveTuple(this->DetectedLandmarkPoints_Reference->GetNumberOfPoints()-1);
