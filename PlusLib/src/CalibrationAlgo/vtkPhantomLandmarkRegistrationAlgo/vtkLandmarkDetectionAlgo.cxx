@@ -285,8 +285,6 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtk
   //Point 10 cm above the stylus tip, if it moves(window change bigger than AboveLandmarkThresholdMm) while the tip is static (window change smaller than LandmarkThresholdMm then it is landmark point.
   double pointAboveStylusTip_StylusTip[4]={100,0,0,1};
   double pointAboveStylusTip_Reference[4]={0,0,0,1};
-  double stylusTipChange_Reference[4] = {0,0,0,1};
-  double aboveStylusTipChange[4] = {0,0,0,1};
   stylusTipToReferenceTransform->MultiplyPoint(pointAboveStylusTip_StylusTip, pointAboveStylusTip_Reference);
 
   this->StylusTipToReferenceTransformsList.push_back(stylusTipToReferenceTransform);
@@ -311,7 +309,7 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtk
       --pointIt;--pointIt;
 
       double lastStylusTipFiltered_Reference[4] = {(*pointIt)[0],(*pointIt)[1],(*pointIt)[2],0};
-
+      double stylusTipChange_Reference[4] = {0,0,0,1};
       stylusTipChange_Reference[0]=lastStylusTipFiltered_Reference[0]-stylusTipFiltered_Reference[0];
       stylusTipChange_Reference[1]=lastStylusTipFiltered_Reference[1]-stylusTipFiltered_Reference[1];
       stylusTipChange_Reference[2]=lastStylusTipFiltered_Reference[2]-stylusTipFiltered_Reference[2];
@@ -378,20 +376,6 @@ int vtkLandmarkDetectionAlgo::GetNearExistingLandmarkId(double* stylusTipPositio
     landmarkDifference_Reference[0]=detectedLandmark_Reference[0]-stylusTipPosition_Reference[0];
     landmarkDifference_Reference[1]=detectedLandmark_Reference[1]-stylusTipPosition_Reference[1];
     landmarkDifference_Reference[2]=detectedLandmark_Reference[2]-stylusTipPosition_Reference[2];
-    ////average if it is really close
-    //if(vtkMath::Norm(landmarkDifference)<this->LandmarkThresholdMm/5 )
-    //{
-    //  NumberOfWindowsFoundPerLandmark[id]=NumberOfWindowsFoundPerLandmark[id]+1.0;
-    //  landmarkFound[0]=(landmarkFound[0]*(NumberOfWindowsFoundPerLandmark[id]-1)+stylusTipPosition[0])/NumberOfWindowsFoundPerLandmark[id];
-    //  landmarkFound[1]=(landmarkFound[1]*(NumberOfWindowsFoundPerLandmark[id]-1)+stylusTipPosition[1])/NumberOfWindowsFoundPerLandmark[id];
-    //  landmarkFound[2]=(landmarkFound[2]*(NumberOfWindowsFoundPerLandmark[id]-1)+stylusTipPosition[2])/NumberOfWindowsFoundPerLandmark[id];
-    //  //Only using the first detection time landmark detection and not the average might be more accurate
-    //  this->LandmarkPointsReference->InsertPoint(id,landmarkFound);
-    //  LOG_INFO("Landmark found "<<NumberOfWindowsFoundPerLandmark[id]<<" times. Average("<< landmarkFound[0]<< ", "<< landmarkFound[1]<< ", "<< landmarkFound[2]<< ") set")
-    //    return false;
-    //}
-    ////if it is relatively close it might be same landmark outlier do not average it 
-    //else if(vtkMath::Norm(landmarkDifference)<this->MinimunDistanceBetweenLandmarksMm/3)
     if(vtkMath::Norm(landmarkDifference_Reference)<this->MinimunDistanceBetweenLandmarksMm/3)
     {
       return id;

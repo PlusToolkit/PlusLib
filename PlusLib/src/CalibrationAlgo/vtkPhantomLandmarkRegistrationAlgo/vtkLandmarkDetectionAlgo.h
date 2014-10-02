@@ -105,7 +105,10 @@ protected:
   */
   void RemoveAllFilterWindows();
 
-  /* Estimate landmark point position from the stylus tip points. The average of NumberOfWindows*WindowSize consecutive points that remain in the same position within the LandmarkThresholdMm.*/
+  /* 
+  Estimate landmark point position from the stylus tip points. The average of NumberOfWindows*WindowSize consecutive points that remain in the same position 
+  within the LandmarkThresholdMm.
+  */
   PlusStatus EstimateLandmarkPointPosition();
 
   /*!
@@ -148,7 +151,6 @@ protected:
   double StylusTipMaximumMotionThresholdMm;
   /*! The minimum distance in between any two defined landmarks in the phantom, it will be a NEW landmark detected only if it is further away from any other already detected landmark .*/
   double MinimunDistanceBetweenLandmarksMm;
-
   /*! The bounding box is updated during the detection time covering the path of the stylus shaft position*/
   vtkBoundingBox StylusShaftPathBoundingBox;
   /*! Name of the reference coordinate frame (eg. Reference) */
