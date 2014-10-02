@@ -73,10 +73,10 @@ FidSegmentation::FidSegmentation() :
 
   m_DebugOutput = false;
 
-  m_Dilated = new PixelType;
-  m_Eroded = new PixelType;
-  m_Working = new PixelType;
-  m_UnalteredImage = new PixelType;
+  m_Dilated = new FidSegmentation::PixelType;
+  m_Eroded = new FidSegmentation::PixelType;
+  m_Working = new FidSegmentation::PixelType;
+  m_UnalteredImage = new FidSegmentation::PixelType;
 }
 
 //-----------------------------------------------------------------------------
@@ -226,10 +226,10 @@ void FidSegmentation::SetFrameSize(int frameSize[2])
 
   // Create working images (after deleting them in case they were already created)
   long size = m_FrameSize[0] * m_FrameSize[1];
-  m_Dilated = new PixelType[size];
-  m_Eroded = new PixelType[size];
-  m_Working = new PixelType[size];
-  m_UnalteredImage = new PixelType[size];
+  m_Dilated = new FidSegmentation::PixelType[size];
+  m_Eroded = new FidSegmentation::PixelType[size];
+  m_Working = new FidSegmentation::PixelType[size];
+  m_UnalteredImage = new FidSegmentation::PixelType[size];
 
   // Set ROI to the largest possible if not already set
   if ((m_RegionOfInterest[0] == -1) && (m_RegionOfInterest[1] == -1) && (m_RegionOfInterest[2] == -1) && (m_RegionOfInterest[3] == -1))
@@ -289,12 +289,12 @@ int FidSegmentation::GetMorphologicalOpeningBarSizePx()
 
 //-----------------------------------------------------------------------------
 
-inline PixelType FidSegmentation::ErodePoint0( PixelType *image, unsigned int ir, unsigned int ic )
+inline FidSegmentation::PixelType FidSegmentation::ErodePoint0( FidSegmentation::PixelType *image, unsigned int ir, unsigned int ic )
 {
   //LOG_TRACE("FidSegmentation::ErodePoint0");
 
   const int barSize = GetMorphologicalOpeningBarSizePx(); 
-  PixelType dval = UCHAR_MAX;
+  FidSegmentation::PixelType dval = UCHAR_MAX;
   unsigned int p = ir*m_FrameSize[0] + ic - barSize; // current pixel - bar size (position of the start of the bar)
   unsigned int p_max = ir*m_FrameSize[0] + ic + barSize;// current pixel +  bar size (position of the end  of the bar)
 
@@ -316,11 +316,11 @@ inline PixelType FidSegmentation::ErodePoint0( PixelType *image, unsigned int ir
 
 //-----------------------------------------------------------------------------
 
-void FidSegmentation::Erode0( PixelType *dest, PixelType *image )
+void FidSegmentation::Erode0( FidSegmentation::PixelType *dest, FidSegmentation::PixelType *image )
 {
   //LOG_TRACE("FidSegmentation::Erode0");
 
-  memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
+  memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(FidSegmentation::PixelType) );
 
   const int barSize = GetMorphologicalOpeningBarSizePx(); 
 
@@ -329,13 +329,13 @@ void FidSegmentation::Erode0( PixelType *dest, PixelType *image )
     unsigned int ic = m_RegionOfInterest[0];
     unsigned int p_base = ir*m_FrameSize[0];
 
-    PixelType dval = ErodePoint0( image, ir, ic ); // find lowest pixel intensity in surroudning region ( postions +/- 8 of current pixel position) 
+    FidSegmentation::PixelType dval = ErodePoint0( image, ir, ic ); // find lowest pixel intensity in surroudning region ( postions +/- 8 of current pixel position) 
     dest[p_base+ic] = dval; // p_base+ic = current pixel
 
     for ( ic++; ic < m_RegionOfInterest[2]; ic++ )
     {
-      PixelType new_val = image[p_base + ic + barSize];
-      PixelType del_val = image[p_base + ic - 1 - barSize];
+      FidSegmentation::PixelType new_val = image[p_base + ic + barSize];
+      FidSegmentation::PixelType del_val = image[p_base + ic - 1 - barSize];
 
       dval = new_val <= dval ? new_val  : // dval = new val if new val is less than or equal to dval
         del_val > dval ? std::min(dval, new_val) : // if del val is greater than dval, dval= min of dval and new val
@@ -348,13 +348,13 @@ void FidSegmentation::Erode0( PixelType *dest, PixelType *image )
 
 //-----------------------------------------------------------------------------
 
-inline PixelType FidSegmentation::ErodePoint45( PixelType *image, unsigned int ir, unsigned int ic )
+inline FidSegmentation::PixelType FidSegmentation::ErodePoint45( FidSegmentation::PixelType *image, unsigned int ir, unsigned int ic )
 {
   //LOG_TRACE("FidSegmentation::ErodePoint45");
 
   const int barSize = GetMorphologicalOpeningBarSizePx(); 
 
-  PixelType dval = UCHAR_MAX;
+  FidSegmentation::PixelType dval = UCHAR_MAX;
   unsigned int p = (ir+barSize)*m_FrameSize[0] + ic-barSize;
   unsigned int p_max = (ir-barSize)*m_FrameSize[0] + ic+barSize;
 
@@ -374,11 +374,11 @@ inline PixelType FidSegmentation::ErodePoint45( PixelType *image, unsigned int i
 
 //-----------------------------------------------------------------------------
 
-void FidSegmentation::Erode45( PixelType *dest, PixelType *image )
+void FidSegmentation::Erode45( FidSegmentation::PixelType *dest, FidSegmentation::PixelType *image )
 {
   //LOG_TRACE("FidSegmentation::Erode45");
 
-  memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
+  memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(FidSegmentation::PixelType) );
   const int barSize = GetMorphologicalOpeningBarSizePx(); 
 
   /* Down the left side. */
@@ -387,13 +387,13 @@ void FidSegmentation::Erode45( PixelType *dest, PixelType *image )
     unsigned int ir = sr;
     unsigned int ic = m_RegionOfInterest[0];
 
-    PixelType dval = ErodePoint45( image, ir, ic );
+    FidSegmentation::PixelType dval = ErodePoint45( image, ir, ic );
     dest[ir*m_FrameSize[0]+ic] = dval;
 
     for ( ir--, ic++; ir >= m_RegionOfInterest[1] && ic < m_RegionOfInterest[2]; ir--, ic++ )
     {
-      PixelType new_val = image[(ir - barSize)*m_FrameSize[0]+(ic + barSize)];
-      PixelType del_val = image[(ir + 1 + barSize)*m_FrameSize[0]+(ic - 1 - barSize)];
+      FidSegmentation::PixelType new_val = image[(ir - barSize)*m_FrameSize[0]+(ic + barSize)];
+      FidSegmentation::PixelType del_val = image[(ir + 1 + barSize)*m_FrameSize[0]+(ic - 1 - barSize)];
 
       dval = new_val <= dval ? new_val : 
           del_val > dval ? std::min(dval, new_val) :
@@ -409,13 +409,13 @@ void FidSegmentation::Erode45( PixelType *dest, PixelType *image )
     unsigned int ic = sc;
     unsigned int ir = m_RegionOfInterest[3]-1;
 
-    PixelType dval = ErodePoint45( image, ir, ic );
+    FidSegmentation::PixelType dval = ErodePoint45( image, ir, ic );
     dest[ir*m_FrameSize[0]+ic] = dval;
 
     for ( ir--, ic++; ir >= m_RegionOfInterest[1] && ic < m_RegionOfInterest[2]; ir--, ic++ )
     {
-      PixelType new_val = image[(ir - barSize)*m_FrameSize[0]+(ic + barSize)];
-      PixelType del_val = image[(ir + 1 + barSize)*m_FrameSize[0]+(ic - 1 - barSize)];
+      FidSegmentation::PixelType new_val = image[(ir - barSize)*m_FrameSize[0]+(ic + barSize)];
+      FidSegmentation::PixelType del_val = image[(ir + 1 + barSize)*m_FrameSize[0]+(ic - 1 - barSize)];
 
       dval = new_val <= dval ? new_val : 
           del_val > dval ? std::min(dval, new_val) :
@@ -428,12 +428,12 @@ void FidSegmentation::Erode45( PixelType *dest, PixelType *image )
 
 //-----------------------------------------------------------------------------
 
-inline PixelType FidSegmentation::ErodePoint90( PixelType *image, unsigned int ir, unsigned int ic )
+inline FidSegmentation::PixelType FidSegmentation::ErodePoint90( FidSegmentation::PixelType *image, unsigned int ir, unsigned int ic )
 {
   //LOG_TRACE("FidSegmentation::ErodePoint90");
 
   const int barSize = GetMorphologicalOpeningBarSizePx(); 
-  PixelType dval = UCHAR_MAX;
+  FidSegmentation::PixelType dval = UCHAR_MAX;
   unsigned int p = (ir-barSize)*m_FrameSize[0] + ic;
   unsigned int p_max = (ir+barSize)*m_FrameSize[0] + ic;
 
@@ -453,11 +453,11 @@ inline PixelType FidSegmentation::ErodePoint90( PixelType *image, unsigned int i
 
 //-----------------------------------------------------------------------------
 
-void FidSegmentation::Erode90( PixelType *dest, PixelType *image )
+void FidSegmentation::Erode90( FidSegmentation::PixelType *dest, FidSegmentation::PixelType *image )
 {
   //LOG_TRACE("FidSegmentation::Erode90");
 
-  memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
+  memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(FidSegmentation::PixelType) );
 
   const int barSize = GetMorphologicalOpeningBarSizePx(); 
 
@@ -465,13 +465,13 @@ void FidSegmentation::Erode90( PixelType *dest, PixelType *image )
   {
     unsigned int ir = m_RegionOfInterest[1];
 
-    PixelType dval = ErodePoint90( image, ir, ic );
+    FidSegmentation::PixelType dval = ErodePoint90( image, ir, ic );
     dest[ir*m_FrameSize[0]+ic] = dval;
 
     for ( ir++; ir < m_RegionOfInterest[3]; ir++ )
     {
-      PixelType new_val = image[(ir + barSize)*m_FrameSize[0]+ic];
-      PixelType del_val = image[(ir - 1 - barSize)*m_FrameSize[0]+ic];
+      FidSegmentation::PixelType new_val = image[(ir + barSize)*m_FrameSize[0]+ic];
+      FidSegmentation::PixelType del_val = image[(ir - 1 - barSize)*m_FrameSize[0]+ic];
 
       dval = new_val <= dval ? new_val : 
           del_val > dval ? std::min(dval, new_val) :
@@ -484,12 +484,12 @@ void FidSegmentation::Erode90( PixelType *dest, PixelType *image )
 
 //-----------------------------------------------------------------------------
 
-inline PixelType FidSegmentation::ErodePoint135( PixelType *image, unsigned int ir, unsigned int ic )
+inline FidSegmentation::PixelType FidSegmentation::ErodePoint135( FidSegmentation::PixelType *image, unsigned int ir, unsigned int ic )
 {
   //LOG_TRACE("FidSegmentation::ErodePoint135");
 
   const int barSize = GetMorphologicalOpeningBarSizePx(); 
-  PixelType dval = UCHAR_MAX;
+  FidSegmentation::PixelType dval = UCHAR_MAX;
   unsigned int p = (ir-barSize)*m_FrameSize[0] + ic-barSize;
   unsigned int p_max = (ir+barSize)*m_FrameSize[0] + ic+barSize;
 
@@ -509,11 +509,11 @@ inline PixelType FidSegmentation::ErodePoint135( PixelType *image, unsigned int 
 
 //-----------------------------------------------------------------------------
 
-void FidSegmentation::Erode135( PixelType *dest, PixelType *image )
+void FidSegmentation::Erode135( FidSegmentation::PixelType *dest, FidSegmentation::PixelType *image )
 {
   //LOG_TRACE("FidSegmentation::Erode135");
 
-  memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
+  memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(FidSegmentation::PixelType) );
 
   const int barSize = GetMorphologicalOpeningBarSizePx(); 
 
@@ -523,13 +523,13 @@ void FidSegmentation::Erode135( PixelType *dest, PixelType *image )
     unsigned int ir = sr;
 
     unsigned int ic = m_RegionOfInterest[0];
-    PixelType dval = ErodePoint135( image, ir, ic );
+    FidSegmentation::PixelType dval = ErodePoint135( image, ir, ic );
     dest[ir*m_FrameSize[0]+ic] = dval;
 
     for ( ir++, ic++; ir < m_RegionOfInterest[3] && ic < m_RegionOfInterest[2]; ir++, ic++ )
     {
-      PixelType new_val = image[(ir + barSize)*m_FrameSize[0]+(ic + barSize)];
-      PixelType del_val = image[(ir - 1 -barSize)*m_FrameSize[0]+(ic - 1 - barSize)];
+      FidSegmentation::PixelType new_val = image[(ir + barSize)*m_FrameSize[0]+(ic + barSize)];
+      FidSegmentation::PixelType del_val = image[(ir - 1 -barSize)*m_FrameSize[0]+(ic - 1 - barSize)];
 
       dval = new_val <= dval ? new_val : 
           del_val > dval ? std::min(dval, new_val) :
@@ -545,13 +545,13 @@ void FidSegmentation::Erode135( PixelType *dest, PixelType *image )
     unsigned int ic = sc;
     unsigned int ir = m_RegionOfInterest[1];
 
-    PixelType dval = ErodePoint135( image, ir, ic );
+    FidSegmentation::PixelType dval = ErodePoint135( image, ir, ic );
     dest[ir*m_FrameSize[0]+ic] = dval;
 
     for ( ir++, ic++; ir < m_RegionOfInterest[3] && ic < m_RegionOfInterest[2]; ir++, ic++ )
     {
-      PixelType new_val = image[(ir + barSize)*m_FrameSize[0]+(ic + barSize)];
-      PixelType del_val = image[(ir - 1 -barSize)*m_FrameSize[0]+(ic - 1 - barSize)];
+      FidSegmentation::PixelType new_val = image[(ir + barSize)*m_FrameSize[0]+(ic + barSize)];
+      FidSegmentation::PixelType del_val = image[(ir - 1 -barSize)*m_FrameSize[0]+(ic - 1 - barSize)];
 
       dval = new_val <= dval ? new_val : 
           del_val > dval ? std::min(dval, new_val) :
@@ -564,24 +564,24 @@ void FidSegmentation::Erode135( PixelType *dest, PixelType *image )
 
 //-----------------------------------------------------------------------------
 
-void FidSegmentation::ErodeCircle( PixelType *dest, PixelType *image )
+void FidSegmentation::ErodeCircle( FidSegmentation::PixelType *dest, FidSegmentation::PixelType *image )
 {
   //LOG_TRACE("FidSegmentation::ErodeCircle");
 
   unsigned int slen = m_MorphologicalCircle.size();
 
-  memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
+  memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(FidSegmentation::PixelType) );
 
   for ( unsigned int ir = m_RegionOfInterest[1]; ir < m_RegionOfInterest[3]; ir++ )
   {
     for ( unsigned int ic = m_RegionOfInterest[0]; ic < m_RegionOfInterest[2]; ic++ )
     {
-      PixelType dval = UCHAR_MAX;
+      FidSegmentation::PixelType dval = UCHAR_MAX;
       for ( unsigned int sp = 0; sp < slen; sp++ )
       {
         unsigned int sr = ir + m_MorphologicalCircle[sp].X;
         unsigned int sc = ic + m_MorphologicalCircle[sp].Y;
-        PixelType pixSrc=image[sr*m_FrameSize[0]+sc];
+        FidSegmentation::PixelType pixSrc=image[sr*m_FrameSize[0]+sc];
 
         if ( pixSrc < dval )
         {
@@ -601,12 +601,12 @@ void FidSegmentation::ErodeCircle( PixelType *dest, PixelType *image )
 
 //-----------------------------------------------------------------------------
 
-inline PixelType FidSegmentation::DilatePoint0( PixelType *image, unsigned int ir, unsigned int ic )
+inline FidSegmentation::PixelType FidSegmentation::DilatePoint0( FidSegmentation::PixelType *image, unsigned int ir, unsigned int ic )
 {
   //LOG_TRACE("FidSegmentation::DilatePoint0");
 
   const int barSize = GetMorphologicalOpeningBarSizePx(); 
-  PixelType dval = 0;
+  FidSegmentation::PixelType dval = 0;
   unsigned int p = ir*m_FrameSize[0] + ic - barSize;
   unsigned int p_max = ir*m_FrameSize[0] + ic + barSize;
 
@@ -623,11 +623,11 @@ inline PixelType FidSegmentation::DilatePoint0( PixelType *image, unsigned int i
 
 //-----------------------------------------------------------------------------
 
-void FidSegmentation::Dilate0( PixelType *dest, PixelType *image )
+void FidSegmentation::Dilate0( FidSegmentation::PixelType *dest, FidSegmentation::PixelType *image )
 {
   //LOG_TRACE("FidSegmentation::Dilate0");
 
-  memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
+  memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(FidSegmentation::PixelType) );
 
   const int barSize = GetMorphologicalOpeningBarSizePx(); 
 
@@ -636,13 +636,13 @@ void FidSegmentation::Dilate0( PixelType *dest, PixelType *image )
     unsigned int ic = m_RegionOfInterest[0];
     unsigned int p_base = ir*m_FrameSize[0];
 
-    PixelType dval = DilatePoint0( image, ir, ic );
+    FidSegmentation::PixelType dval = DilatePoint0( image, ir, ic );
     dest[ir*m_FrameSize[0]+ic] = dval;
 
     for ( ic++; ic < m_RegionOfInterest[2]; ic++ )
     {
-      PixelType new_val = image[p_base + ic + barSize];
-      PixelType del_val = image[p_base + ic - 1 - barSize];
+      FidSegmentation::PixelType new_val = image[p_base + ic + barSize];
+      FidSegmentation::PixelType del_val = image[p_base + ic - 1 - barSize];
 
       dval = new_val >= dval ? new_val :
           (del_val < dval ? std::max(dval, new_val) :
@@ -654,12 +654,12 @@ void FidSegmentation::Dilate0( PixelType *dest, PixelType *image )
 
 //-----------------------------------------------------------------------------
 
-inline PixelType FidSegmentation::DilatePoint45( PixelType *image, unsigned int ir, unsigned int ic )
+inline FidSegmentation::PixelType FidSegmentation::DilatePoint45( FidSegmentation::PixelType *image, unsigned int ir, unsigned int ic )
 {
   //LOG_TRACE("FidSegmentation::DilatePoint45");
 
   const int barSize = GetMorphologicalOpeningBarSizePx(); 
-  PixelType dval = 0;
+  FidSegmentation::PixelType dval = 0;
   unsigned int p = (ir+barSize)*m_FrameSize[0] + ic-barSize;
   unsigned int p_max = (ir-barSize)*m_FrameSize[0] + ic+barSize;
 
@@ -675,11 +675,11 @@ inline PixelType FidSegmentation::DilatePoint45( PixelType *image, unsigned int 
 
 //-----------------------------------------------------------------------------
 
-void FidSegmentation::Dilate45( PixelType *dest, PixelType *image )
+void FidSegmentation::Dilate45( FidSegmentation::PixelType *dest, FidSegmentation::PixelType *image )
 {
   //LOG_TRACE("FidSegmentation::Dilate45");
 
-  memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
+  memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(FidSegmentation::PixelType) );
   const int barSize = GetMorphologicalOpeningBarSizePx(); 
 
   /* Down the left side. */
@@ -688,12 +688,12 @@ void FidSegmentation::Dilate45( PixelType *dest, PixelType *image )
     unsigned int ir = sr;
     unsigned int ic = m_RegionOfInterest[0];
 
-    PixelType dval = DilatePoint45( image, ir, ic );
+    FidSegmentation::PixelType dval = DilatePoint45( image, ir, ic );
     dest[ir*m_FrameSize[0]+ic] = dval ;
     for ( ir--, ic++; ir >= m_RegionOfInterest[1] && ic < m_RegionOfInterest[2]; ir--, ic++ )
     {
-      PixelType new_val = image[(ir - barSize)*m_FrameSize[0]+(ic + barSize)];
-      PixelType del_val = image[(ir + 1 + barSize)*m_FrameSize[0]+(ic - 1 - barSize)];
+      FidSegmentation::PixelType new_val = image[(ir - barSize)*m_FrameSize[0]+(ic + barSize)];
+      FidSegmentation::PixelType del_val = image[(ir + 1 + barSize)*m_FrameSize[0]+(ic - 1 - barSize)];
 
       dval = new_val >= dval ? new_val :
           (del_val < dval ? std::max(dval, new_val) :
@@ -708,12 +708,12 @@ void FidSegmentation::Dilate45( PixelType *dest, PixelType *image )
     unsigned int ic = sc;
     unsigned int ir = m_RegionOfInterest[3]-1;
 
-    PixelType dval = DilatePoint45( image, ir, ic );
+    FidSegmentation::PixelType dval = DilatePoint45( image, ir, ic );
     dest[ir*m_FrameSize[0]+ic] = dval ;
     for ( ir--, ic++; ir >= m_RegionOfInterest[1] && ic < m_RegionOfInterest[2]; ir--, ic++ )
     {
-      PixelType new_val = image[(ir - barSize)*m_FrameSize[0]+(ic + barSize)];
-      PixelType del_val = image[(ir + 1 + barSize)*m_FrameSize[0]+(ic - 1 - barSize)];
+      FidSegmentation::PixelType new_val = image[(ir - barSize)*m_FrameSize[0]+(ic + barSize)];
+      FidSegmentation::PixelType del_val = image[(ir + 1 + barSize)*m_FrameSize[0]+(ic - 1 - barSize)];
 
       dval = new_val >= dval ? new_val :
           (del_val < dval ? std::max(dval, new_val) :
@@ -725,12 +725,12 @@ void FidSegmentation::Dilate45( PixelType *dest, PixelType *image )
 
 //-----------------------------------------------------------------------------
 
-inline PixelType FidSegmentation::DilatePoint90( PixelType *image, unsigned int ir, unsigned int ic )
+inline FidSegmentation::PixelType FidSegmentation::DilatePoint90( FidSegmentation::PixelType *image, unsigned int ir, unsigned int ic )
 {
   //LOG_TRACE("FidSegmentation::DilatePoint90");
 
   const int barSize = GetMorphologicalOpeningBarSizePx(); 
-  PixelType dval = 0;
+  FidSegmentation::PixelType dval = 0;
   unsigned int p = (ir-barSize)*m_FrameSize[0] + ic;
   unsigned int p_max = (ir+barSize)*m_FrameSize[0] + ic;
 
@@ -746,22 +746,22 @@ inline PixelType FidSegmentation::DilatePoint90( PixelType *image, unsigned int 
 
 //-----------------------------------------------------------------------------
 
-void FidSegmentation::Dilate90( PixelType *dest, PixelType *image )
+void FidSegmentation::Dilate90( FidSegmentation::PixelType *dest, FidSegmentation::PixelType *image )
 {
   //LOG_TRACE("FidSegmentation::Dilate90");
 
-  memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
+  memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(FidSegmentation::PixelType) );
   const int barSize = GetMorphologicalOpeningBarSizePx(); 
 
   for ( unsigned int ic = m_RegionOfInterest[0]; ic < m_RegionOfInterest[2]; ic++ )
   {
     unsigned int ir = m_RegionOfInterest[1];
-    PixelType dval = DilatePoint90( image, ir, ic );
+    FidSegmentation::PixelType dval = DilatePoint90( image, ir, ic );
     dest[ir*m_FrameSize[0]+ic] = dval ;
     for ( ir++; ir < m_RegionOfInterest[3]; ir++ )
     {
-      PixelType new_val = image[(ir + barSize)*m_FrameSize[0]+ic];
-      PixelType del_val = image[(ir - 1 - barSize)*m_FrameSize[0]+ic];
+      FidSegmentation::PixelType new_val = image[(ir + barSize)*m_FrameSize[0]+ic];
+      FidSegmentation::PixelType del_val = image[(ir - 1 - barSize)*m_FrameSize[0]+ic];
 
       dval = new_val >= dval ? new_val :
           (del_val < dval ? std::max(dval, new_val) :
@@ -774,12 +774,12 @@ void FidSegmentation::Dilate90( PixelType *dest, PixelType *image )
 
 //-----------------------------------------------------------------------------
 
-inline PixelType FidSegmentation::DilatePoint135( PixelType *image, unsigned int ir, unsigned int ic )
+inline FidSegmentation::PixelType FidSegmentation::DilatePoint135( FidSegmentation::PixelType *image, unsigned int ir, unsigned int ic )
 {
   //LOG_TRACE("FidSegmentation::DilatePoint135");
 
   const int barSize = GetMorphologicalOpeningBarSizePx(); 
-  PixelType dval = 0;
+  FidSegmentation::PixelType dval = 0;
   unsigned int p = (ir-barSize)*m_FrameSize[0] + ic-barSize;
   unsigned int p_max = (ir+barSize)*m_FrameSize[0] + ic+barSize;
 
@@ -795,11 +795,11 @@ inline PixelType FidSegmentation::DilatePoint135( PixelType *image, unsigned int
 
 //-----------------------------------------------------------------------------
 
-void FidSegmentation::Dilate135( PixelType *dest, PixelType *image )
+void FidSegmentation::Dilate135( FidSegmentation::PixelType *dest, FidSegmentation::PixelType *image )
 {
   //LOG_TRACE("FidSegmentation::Dilate135");
 
-  memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
+  memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(FidSegmentation::PixelType) );
   const int barSize = GetMorphologicalOpeningBarSizePx(); 
 
   /* Up the left side. */
@@ -807,12 +807,12 @@ void FidSegmentation::Dilate135( PixelType *dest, PixelType *image )
   {
     unsigned int ir = sr;
     unsigned int ic = m_RegionOfInterest[0];
-    PixelType dval = DilatePoint135( image, ir, ic );
+    FidSegmentation::PixelType dval = DilatePoint135( image, ir, ic );
     dest[ir*m_FrameSize[0]+ic] = dval ;
     for ( ir++, ic++; ir < m_RegionOfInterest[3] && ic < m_RegionOfInterest[2]; ir++, ic++ )
     {
-      PixelType new_val = image[(ir + barSize)*m_FrameSize[0]+(ic + barSize)];
-      PixelType del_val = image[(ir - 1 -barSize)*m_FrameSize[0]+(ic - 1 - barSize)];
+      FidSegmentation::PixelType new_val = image[(ir + barSize)*m_FrameSize[0]+(ic + barSize)];
+      FidSegmentation::PixelType del_val = image[(ir - 1 -barSize)*m_FrameSize[0]+(ic - 1 - barSize)];
 
       dval = new_val >= dval ? new_val :
           (del_val < dval ? std::max(dval, new_val) :
@@ -826,12 +826,12 @@ void FidSegmentation::Dilate135( PixelType *dest, PixelType *image )
   {
     unsigned int ic = sc;
     unsigned int ir = m_RegionOfInterest[1];
-    PixelType dval = DilatePoint135( image, ir, ic );
+    FidSegmentation::PixelType dval = DilatePoint135( image, ir, ic );
     dest[ir*m_FrameSize[0]+ic] = dval;
     for ( ir++, ic++; ir < m_RegionOfInterest[3] && ic < m_RegionOfInterest[2]; ir++, ic++ )
     {
-      PixelType new_val = image[(ir + barSize)*m_FrameSize[0]+(ic + barSize)];
-      PixelType del_val = image[(ir - 1 -barSize)*m_FrameSize[0]+(ic - 1 - barSize)];
+      FidSegmentation::PixelType new_val = image[(ir + barSize)*m_FrameSize[0]+(ic + barSize)];
+      FidSegmentation::PixelType del_val = image[(ir - 1 -barSize)*m_FrameSize[0]+(ic - 1 - barSize)];
 
       dval = new_val >= dval ? new_val :
           (del_val < dval ? std::max(dval, new_val) : 
@@ -843,11 +843,11 @@ void FidSegmentation::Dilate135( PixelType *dest, PixelType *image )
 
 //-----------------------------------------------------------------------------
 
-inline PixelType FidSegmentation::DilatePoint( PixelType *image, unsigned int ir, unsigned int ic, Coordinate2D *shape, int slen )
+inline FidSegmentation::PixelType FidSegmentation::DilatePoint( FidSegmentation::PixelType *image, unsigned int ir, unsigned int ic, Coordinate2D *shape, int slen )
 {
   //LOG_TRACE("FidSegmentation::DilatePoint");
 
-  PixelType dval = 0;
+  FidSegmentation::PixelType dval = 0;
   for ( int sp = 0; sp < slen; sp++ )
   {
     unsigned int sr = ir + shape[sp].Y;
@@ -863,7 +863,7 @@ inline PixelType FidSegmentation::DilatePoint( PixelType *image, unsigned int ir
 
 //-----------------------------------------------------------------------------
 
-void FidSegmentation::DilateCircle( PixelType *dest, PixelType *image )
+void FidSegmentation::DilateCircle( FidSegmentation::PixelType *dest, FidSegmentation::PixelType *image )
 {
   //LOG_TRACE("FidSegmentation::DilateCircle");
 
@@ -912,17 +912,17 @@ void FidSegmentation::DilateCircle( PixelType *dest, PixelType *image )
 
   delete [] sr_exist; 
 
-  memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(PixelType) );
+  memset( dest, 0, m_FrameSize[1]*m_FrameSize[0]*sizeof(FidSegmentation::PixelType) );
   for ( unsigned int ir = m_RegionOfInterest[1]; ir < m_RegionOfInterest[3]; ir++ ) 
   {
     unsigned int ic = m_RegionOfInterest[0];
 
-    PixelType dval = DilatePoint( image, ir, ic, shape, slen );
-    PixelType last = dest[ir*m_FrameSize[0]+ic] = dval;
+    FidSegmentation::PixelType dval = DilatePoint( image, ir, ic, shape, slen );
+    FidSegmentation::PixelType last = dest[ir*m_FrameSize[0]+ic] = dval;
     
     for ( ic++; ic < m_RegionOfInterest[2]; ic++ ) 
     {
-      PixelType dval = DilatePoint( image, ir, ic, newDots, nNewDots );
+      FidSegmentation::PixelType dval = DilatePoint( image, ir, ic, newDots, nNewDots );
 
       if ( dval < last ) 
       {
@@ -965,7 +965,7 @@ bool FidSegmentation::ShapeContains( std::vector<Coordinate2D>& shape, Coordinat
 
 //-----------------------------------------------------------------------------
 
-void FidSegmentation::WritePng(PixelType *modifiedImage, std::string outImageName, int cols, int rows) 
+void FidSegmentation::WritePng(FidSegmentation::PixelType *modifiedImage, std::string outImageName, int cols, int rows) 
 {
   //LOG_TRACE("FidSegmentation::WritePng");
 
@@ -973,7 +973,7 @@ void FidSegmentation::WritePng(PixelType *modifiedImage, std::string outImageNam
   typedef unsigned char          PixelType; // define type for pixel representation
   const unsigned int             Dimension = 2; 
 
-  typedef itk::Image< PixelType, Dimension > ImageType;
+  typedef itk::Image< FidSegmentation::PixelType, Dimension > ImageType;
   ImageType::Pointer modImage = ImageType::New(); 
   ImageType::SizeType size;
   size[0] = cols;
@@ -1029,12 +1029,12 @@ void FidSegmentation::WritePng(PixelType *modifiedImage, std::string outImageNam
 
 //-----------------------------------------------------------------------------
 
-void FidSegmentation::WritePossibleFiducialOverlayImage(const std::vector<Dot>& fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex)
+void FidSegmentation::WritePossibleFiducialOverlayImage(const std::vector<FidDot>& fiducials, FidSegmentation::PixelType *unalteredImage, const char* namePrefix, int frameIndex)
 {
   //LOG_TRACE("FidSegmentation::WritePossibleFiducialOverlayImage");
 
-  typedef itk::RGBPixel< unsigned char >    PixelType;
-  typedef itk::Image< PixelType, 2 >   ImageType;
+  typedef itk::RGBPixel< unsigned char >    ColorPixelType;
+  typedef itk::Image< ColorPixelType, 2 >   ImageType;
 
   ImageType::Pointer possibleFiducials = ImageType::New(); 
   
@@ -1116,12 +1116,12 @@ void FidSegmentation::WritePossibleFiducialOverlayImage(const std::vector<Dot>& 
 
 //-----------------------------------------------------------------------------
 
-void FidSegmentation::WritePossibleFiducialOverlayImage(const std::vector< std::vector<double> >& fiducials, PixelType *unalteredImage, const char* namePrefix, int frameIndex)
+void FidSegmentation::WritePossibleFiducialOverlayImage(const std::vector< std::vector<double> >& fiducials, FidSegmentation::PixelType *unalteredImage, const char* namePrefix, int frameIndex)
 {
-  std::vector<Dot> dots;
+  std::vector<FidDot> dots;
   for(int numDots=0; numDots<fiducials.size(); numDots++)
   {
-    Dot newDot;
+    FidDot newDot;
     newDot.SetX(fiducials[numDots][0]);
     newDot.SetY(fiducials[numDots][1]);
     newDot.SetDotIntensity(10.0);
@@ -1132,7 +1132,7 @@ void FidSegmentation::WritePossibleFiducialOverlayImage(const std::vector< std::
 
 //-----------------------------------------------------------------------------
 
-void FidSegmentation::Subtract( PixelType *image, PixelType *vals )
+void FidSegmentation::Subtract( FidSegmentation::PixelType *image, FidSegmentation::PixelType *vals )
 {
   //LOG_TRACE("FidSegmentation::Subtract");
 
@@ -1150,14 +1150,14 @@ void FidSegmentation::Subtract( PixelType *image, PixelType *vals )
  *  1. Track the frame-to-frame data?
  *  2. Lines should be roughly of the same length? */
 
-void FidSegmentation::Suppress( PixelType *image, double percent_thresh )
+void FidSegmentation::Suppress( FidSegmentation::PixelType *image, double percent_thresh )
 {
   LOG_TRACE("FidSegmentation::Suppress");
 
   // Get the minimum and maximum pixel value
-  PixelType max = 0;
-  PixelType min = 255;
-  PixelType* pix=image;
+  FidSegmentation::PixelType max = 0;
+  FidSegmentation::PixelType min = 255;
+  FidSegmentation::PixelType* pix=image;
   for ( unsigned int pos = 0; pos < m_FrameSize[0]*m_FrameSize[1]; pos ++ ) 
   {
     if ( *pix > max )
@@ -1173,11 +1173,11 @@ void FidSegmentation::Suppress( PixelType *image, double percent_thresh )
 
   //We use floor to calculate the round value here.
   
-  PixelType thresh = min+(PixelType)floor( (double)(max-min) * percent_thresh + 0.5 );
+  FidSegmentation::PixelType thresh = min+(FidSegmentation::PixelType)floor( (double)(max-min) * percent_thresh + 0.5 );
 
   //thresholding 
   int pixelCount=m_FrameSize[0]*m_FrameSize[1];
-  PixelType* pixel=image;
+  FidSegmentation::PixelType* pixel=image;
   for (int i=0; i<pixelCount; i++)
   {
     if (*pixel<thresh)
@@ -1196,13 +1196,13 @@ void FidSegmentation::Suppress( PixelType *image, double percent_thresh )
 
 //-----------------------------------------------------------------------------
 
-inline void FidSegmentation::ClusteringAddNeighbors( PixelType *image, int r, int c, std::vector<Dot> &testPosition, std::vector<Dot> &setPosition, std::vector<PixelType>& valuesOfPosition)
+inline void FidSegmentation::ClusteringAddNeighbors( FidSegmentation::PixelType *image, int r, int c, std::vector<FidDot> &testPosition, std::vector<FidDot> &setPosition, std::vector<FidSegmentation::PixelType>& valuesOfPosition)
 {
   //LOG_TRACE("FidSegmentation::ClusteringAddNeighbors");
 
   if ( image[r*m_FrameSize[0]+c] > 0 && testPosition.size() < MAX_CLUSTER_VALS && setPosition.size() < MAX_CLUSTER_VALS )
   {
-    Dot dot;
+    FidDot dot;
     dot.SetY(r);
     dot.SetX(c);
     testPosition.push_back(dot);
@@ -1215,7 +1215,7 @@ inline void FidSegmentation::ClusteringAddNeighbors( PixelType *image, int r, in
 //-----------------------------------------------------------------------------
 
 /* Should we accept a dot? */
-inline bool FidSegmentation::AcceptDot( Dot &dot )
+inline bool FidSegmentation::AcceptDot( FidDot &dot )
 {
   //LOG_TRACE("FidSegmentation::AcceptDot");
 
@@ -1234,13 +1234,14 @@ inline bool FidSegmentation::AcceptDot( Dot &dot )
 
 //-----------------------------------------------------------------------------
 
-void FidSegmentation::Cluster(PatternRecognitionError& patternRecognitionError)
+bool FidSegmentation::Cluster(bool& tooManyCandidates)
 {
   LOG_TRACE("FidSegmentation::Cluster");
-  
-  std::vector<Dot> testPosition;
-  std::vector<Dot> setPosition;
-  std::vector<PixelType> valuesOfPosition;
+  tooManyCandidates = false;
+
+  std::vector<FidDot> testPosition;
+  std::vector<FidDot> setPosition;
+  std::vector<FidSegmentation::PixelType> valuesOfPosition;
 
   for ( unsigned int r = m_RegionOfInterest[1]; r < m_RegionOfInterest[3]; r++ ) 
   {
@@ -1250,7 +1251,7 @@ void FidSegmentation::Cluster(PatternRecognitionError& patternRecognitionError)
       {
         testPosition.clear();
 
-        Dot dot;
+        FidDot dot;
         dot.SetX(c);
         dot.SetY(r);
         testPosition.push_back(dot);
@@ -1265,7 +1266,7 @@ void FidSegmentation::Cluster(PatternRecognitionError& patternRecognitionError)
 
         while ( testPosition.size() > 0 ) 
         {
-          Dot dot=testPosition.back();
+          FidDot dot=testPosition.back();
           testPosition.pop_back();
 
           ClusteringAddNeighbors( m_Working, dot.GetY()-1, dot.GetX()-1, testPosition, setPosition, valuesOfPosition);
@@ -1320,15 +1321,15 @@ void FidSegmentation::Cluster(PatternRecognitionError& patternRecognitionError)
     }
   }
 
-  std::sort(m_DotsVector.begin(), m_DotsVector.end(), Dot::IntensityLessThan);
+  std::sort(m_DotsVector.begin(), m_DotsVector.end(), FidDot::IntensityLessThan);
   if( m_DotsVector.size() > m_NumberOfMaximumFiducialPointCandidates )
   {
     LOG_WARNING("Too many candidates found in segmentation. Consider reducing ROI. " << m_DotsVector.size() << " > " << m_NumberOfMaximumFiducialPointCandidates);
     m_DotsVector.erase(m_DotsVector.begin() + m_NumberOfMaximumFiducialPointCandidates, m_DotsVector.begin() + m_DotsVector.size());
-    patternRecognitionError = PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES;
-    return;
+    tooManyCandidates = true;
+    return false;
   }
-  patternRecognitionError = PATTERN_RECOGNITION_ERROR_NO_ERROR;
+  return true;
 }
 
 //-----------------------------------------------------------------------------

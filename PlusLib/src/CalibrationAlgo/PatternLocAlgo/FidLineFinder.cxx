@@ -256,7 +256,7 @@ void FidLineFinder::SetFrameSize(int frameSize[2])
 
 //-----------------------------------------------------------------------------
 
-double FidLineFinder::ComputeAngleRad( const Dot& dot1, const Dot& dot2 )
+double FidLineFinder::ComputeAngleRad( const FidDot& dot1, const FidDot& dot2 )
 {
   //LOG_TRACE("FidLineFinder::ComputeSlope");
 
@@ -402,7 +402,7 @@ void FidLineFinder::ComputeLine( FidLine& line )
 
 //-----------------------------------------------------------------------------
 
-double FidLineFinder::SegmentLength( const Dot& d1, const Dot& d2 )
+double FidLineFinder::SegmentLength( const FidDot& d1, const FidDot& d2 )
 {
   //LOG_TRACE("FidLineFinder::SegmentLength");
 
@@ -413,7 +413,7 @@ double FidLineFinder::SegmentLength( const Dot& d1, const Dot& d2 )
 
 //-----------------------------------------------------------------------------
 
-double FidLineFinder::ComputeDistancePointLine(const Dot& dot, const FidLine& line)
+double FidLineFinder::ComputeDistancePointLine(const FidDot& dot, const FidLine& line)
 {     
   double x[3], y[3], z[3];
 

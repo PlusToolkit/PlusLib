@@ -1093,7 +1093,7 @@ void vtkProbeCalibrationAlgo::ComputeError2d(PreProcessedWirePositionIdType data
       for (int wireIndex=0;wireIndex<3;wireIndex++)  // for each segmented point
       {
         // Compute the wire intersection point position in the image
-        Wire wire = this->NWires[nWireIndex].Wires[wireIndex];
+        FidWire wire = this->NWires[nWireIndex].Wires[wireIndex];
         double wireEndPointFrontInPhantomFrame[4] = { wire.EndPointFront[0], wire.EndPointFront[1], wire.EndPointFront[2], 1.0 };
         double wireEndPointBackInPhantomFrame[4] = { wire.EndPointBack[0], wire.EndPointBack[1], wire.EndPointBack[2], 1.0 };
         double wireEndPointFrontInImageFrame[4]={0};

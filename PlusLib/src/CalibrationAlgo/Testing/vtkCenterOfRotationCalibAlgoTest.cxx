@@ -81,7 +81,7 @@ int main(int argc, char **argv)
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
 
   FidPatternRecognition patternRecognition;
-  PatternRecognitionError error;
+  FidPatternRecognition::PatternRecognitionError error;
   patternRecognition.ReadConfiguration(configRootElement);
 
   LOG_INFO("Read center of rotation data from metafile...");

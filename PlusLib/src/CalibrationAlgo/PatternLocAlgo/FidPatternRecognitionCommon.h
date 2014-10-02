@@ -12,30 +12,21 @@ See License.txt for details.
 #include <vector>
 #include <string>
 
-typedef unsigned char PixelType;
-
-enum PatternRecognitionError
-{
-  PATTERN_RECOGNITION_ERROR_NO_ERROR,
-  PATTERN_RECOGNITION_ERROR_UNKNOWN,
-  PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES
-};
-
 /*!
-\class Dot
+\class FidDot
 \brief This class defines a single dot made obtained from the segmentation part of the algorithm.
 It contains the X and Y coordinate of the dot as well as its intensity. Also contains an operator 
 to check if dots are equal (both X and Y are the same).
 \ingroup PlusLibPatternRecognition
 */
-class vtkCalibrationAlgoExport Dot
+class vtkCalibrationAlgoExport FidDot
 {
 public:
   /*! Compare the intensity of 2 dots */
-  static bool IntensityLessThan( const Dot &dot1, const Dot &dot2 );
+  static bool IntensityLessThan( const FidDot &dot1, const FidDot &dot2 );
 
   /*! Compare the position of 2 dots */
-  static bool PositionLessThan( std::vector<Dot>::iterator b1, std::vector<Dot>::iterator b2 );
+  static bool PositionLessThan( std::vector<FidDot>::iterator b1, std::vector<FidDot>::iterator b2 );
 
   /*! Set the x coordinate of the dot */
   void SetX(double value) { m_X = value; };
@@ -56,10 +47,10 @@ public:
   double GetDotIntensity() const { return m_DotIntensity; };
 
   /*! Get Euclidean distance from another point */
-  double GetDistanceFrom(Dot &d);
+  double GetDistanceFrom(FidDot &d);
 
   /*! Compare two dots, coordinate-wise */
-  bool operator== (const Dot& data) const { return (m_X == data.m_X && m_Y == data.m_Y) ; }
+  bool operator== (const FidDot& data) const { return (m_X == data.m_X && m_Y == data.m_Y) ; }
 
 protected:
   double  m_X;
@@ -149,11 +140,11 @@ protected:
 
 //-----------------------------------------------------------------------------
 /*!
-\class Wire
+\class FidWire
 \brief This structure defines a single fiducial wire by its name and its endpoint (front and back)
 \ingroup PlusLibPatternRecognition
 */
-struct vtkCalibrationAlgoExport Wire
+struct vtkCalibrationAlgoExport FidWire
 {
   std::string Name;
   double EndPointFront[3];
@@ -162,18 +153,18 @@ struct vtkCalibrationAlgoExport Wire
 
 //-----------------------------------------------------------------------------
 /*!
-\class Pattern
+\class FidPattern
 \brief This class stores the different Patterns defined in the configuration file. It contains the wires
 defintion, the distance from the line origin of each expected "dot" and the tolerances on these
 distances.
 \ingroup PlusLibPatternRecognition
 */
-class vtkCalibrationAlgoExport Pattern
+class vtkCalibrationAlgoExport FidPattern
 {
 public:
-  virtual ~Pattern() { };
+  virtual ~FidPattern() { };
 
-  std::vector<Wire> Wires;
+  std::vector<FidWire> Wires;
   std::vector<double> DistanceToOriginMm; //These distances are in mm.
   std::vector<double> DistanceToOriginToleranceMm; //These tolerances are in mm.
 };
@@ -181,11 +172,11 @@ public:
 //-----------------------------------------------------------------------------
 /*!
 \class NWire
-\brief The struct NWire is a child from Pattern and has two more features that are the intersections of the NWires
+\brief The struct NWire is a child from FidPattern and has two more features that are the intersections of the NWires
 between lines 1 and 2, and, 2 and 3.
 \ingroup PlusLibPatternRecognition
 */
-class vtkCalibrationAlgoExport NWire : public Pattern
+class vtkCalibrationAlgoExport NWire : public FidPattern
 {
 public:
   virtual ~NWire() { };
@@ -197,11 +188,11 @@ public:
 //-----------------------------------------------------------------------------
 /*!
 \class CoplanarParallelWires
-\brief The struct CoplanarparallelWires is a child from Pattern and represents an undefinite number of coplanar 
+\brief The struct CoplanarparallelWires is a child from FidPattern and represents an undefinite number of coplanar 
 parallel fiducial wires.
 \ingroup PlusLibPatternRecognition
 */
-class vtkCalibrationAlgoExport CoplanarParallelWires : public Pattern
+class vtkCalibrationAlgoExport CoplanarParallelWires : public FidPattern
 {
 public:
   virtual ~CoplanarParallelWires() { };
@@ -210,7 +201,7 @@ public:
 //-----------------------------------------------------------------------------
 /*!
 \class PatternRecognitionResult
-\brief This class stores the Pattern Recognition algorithm results.
+\brief This class stores the FidPattern Recognition algorithm results.
 \ingroup PlusLibPatternRecognition
 */
 class vtkCalibrationAlgoExport PatternRecognitionResult
@@ -247,10 +238,10 @@ public:
   double GetNumDots() const { return m_NumDots; };
 
   /*! Set the dots that are considered candidates */
-  void SetCandidateFidValues(std::vector<Dot> value) { m_CandidateFidValues = value; };
+  void SetCandidateFidValues(std::vector<FidDot> value) { m_CandidateFidValues = value; };
 
   /*! Get the dots that are considered candidates */
-  const std::vector<Dot>& GetCandidateFidValues() const { return m_CandidateFidValues; };
+  const std::vector<FidDot>& GetCandidateFidValues() const { return m_CandidateFidValues; };
 
 protected:
   /*! True if the dots are found, false otherwise. */
@@ -269,7 +260,7 @@ protected:
   double m_NumDots; 
 
   /*! pointer to the fiducial candidates coordinates */
-  std::vector<Dot>  m_CandidateFidValues; 
+  std::vector<FidDot>  m_CandidateFidValues; 
 };
 
 #endif //_FIDUCIAL_ALGORITHM_COMMON_H

@@ -109,7 +109,7 @@ int main (int argc, char* argv[])
   freehandCalibration->ReadConfiguration(configRootElement);
 
   FidPatternRecognition patternRecognition;
-  PatternRecognitionError error;
+  FidPatternRecognition::PatternRecognitionError error;
   patternRecognition.ReadConfiguration(configRootElement);
 
   bool debugOutput=vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE; 
