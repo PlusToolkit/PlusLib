@@ -12,8 +12,6 @@ See License.txt for details.
 #include "BrachyStepper.h" 
 #include "PlusConfigure.h"
 #include "vtkPlusDevice.h"
-#include "vtkPlusDevice.h"
-#include "vtkTimestampedCircularBuffer.h"
 
 class TrackedFrame; 
 

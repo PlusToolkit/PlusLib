@@ -18,6 +18,7 @@
 #include "vtkMinimalStandardRandomSequence.h"
 #include "vtkPivotCalibrationAlgo.h"
 #include "vtkPlusChannel.h"
+#include "vtkPlusDevice.h"
 #include "vtkSmartPointer.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkTransform.h"

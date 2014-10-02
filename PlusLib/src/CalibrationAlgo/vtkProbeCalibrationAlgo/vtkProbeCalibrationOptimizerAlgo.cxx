@@ -6,17 +6,21 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 
-#include "vtkProbeCalibrationOptimizerAlgo.h"
-#include "vtkProbeCalibrationAlgo.h"
-#include "vtkTransformRepository.h"
+#include "PlusMath.h"
 
 #include "vtkObjectFactory.h"
-#include "vtkTransform.h"
-#include "vtkXMLUtilities.h"
 #include "vtkMath.h"
+#include "vtkProbeCalibrationOptimizerAlgo.h"
+#include "vtkProbeCalibrationAlgo.h"
+#include "vtkTransform.h"
+#include "vtkTransformRepository.h"
+#include "vtkXMLUtilities.h"
+
 #include "vtksys/SystemTools.hxx"
 
 #include "itkPowellOptimizer.h"
+#include "itkScaleVersor3DTransform.h"
+#include "itkSimilarity3DTransform.h"
 
 typedef  itk::PowellOptimizer  OptimizerType;
 

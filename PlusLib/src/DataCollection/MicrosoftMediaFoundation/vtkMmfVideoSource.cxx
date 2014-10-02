@@ -28,6 +28,11 @@ Authors include: Adam Rankin
 #include <Mfapi.h>
 #include <Mferror.h>
 
+// Media foundation includes - require Microsoft Windows SDK 7.1 or later.
+// Download from: http://www.microsoft.com/en-us/download/details.aspx?id=8279
+#include <Mfidl.h>
+#include <Mfreadwrite.h>
+
 // Windows includes
 #include <lmerr.h>
 #include <shlwapi.h>
@@ -56,6 +61,175 @@ namespace
 }
 
 //----------------------------------------------------------------------------
+class MmfVideoSourceReader : public IMFSourceReaderCallback
+{
+public:
+
+  MmfVideoSourceReader(vtkMmfVideoSource* plusDevice)
+  : CaptureSource(NULL)
+  , CaptureSourceReader(NULL)
+  , RefCount(0)
+  , PlusDevice(plusDevice)
+  {
+  };
+
+  //------- IMFSourceReaderCallback functions ----------------------
+  STDMETHODIMP QueryInterface(REFIID iid, void** ppv);
+  STDMETHOD_(ULONG, AddRef)();
+  STDMETHOD_(ULONG, Release)();
+  STDMETHODIMP OnEvent(DWORD, IMFMediaEvent *);
+  STDMETHODIMP OnFlush(DWORD);
+  STDMETHODIMP OnReadSample(HRESULT hrStatus, DWORD dwStreamIndex, DWORD dwStreamFlags, LONGLONG llTimestamp, IMFSample *pSample);
+
+  IMFMediaSource* CaptureSource;
+  IMFSourceReader* CaptureSourceReader;
+
+  long RefCount;
+  vtkMmfVideoSource* PlusDevice;
+};
+
+//----------------------------------------------------------------------------
+STDMETHODIMP MmfVideoSourceReader::QueryInterface( REFIID iid, void** ppv )
+{
+  static const QITAB qit[] =
+  {
+    QITABENT(MmfVideoSourceReader, IMFSourceReaderCallback),
+    { 0 },
+  };
+  return QISearch(this, qit, iid, ppv);
+}
+
+//----------------------------------------------------------------------------
+
+STDMETHODIMP_(ULONG) MmfVideoSourceReader::AddRef()
+{
+  LONG uCount=InterlockedIncrement(&RefCount);
+  if (uCount==1)
+  {
+    this->PlusDevice->Register(NULL);
+  }
+  return uCount;
+}
+
+//----------------------------------------------------------------------------
+
+STDMETHODIMP_(ULONG) MmfVideoSourceReader::Release()
+{
+  ULONG uCount = InterlockedDecrement(&RefCount);
+  if (uCount == 0)
+  {
+    LOG_DEBUG("vtkMmfVideoSource::Release - unregister");
+    this->PlusDevice->UnRegister(NULL);
+  }
+  return uCount;
+}
+
+//----------------------------------------------------------------------------
+STDMETHODIMP MmfVideoSourceReader::OnEvent( DWORD, IMFMediaEvent * )
+{
+  return S_OK;
+}
+
+//----------------------------------------------------------------------------
+
+STDMETHODIMP MmfVideoSourceReader::OnFlush( DWORD )
+{
+  return S_OK;
+}
+
+//----------------------------------------------------------------------------
+
+STDMETHODIMP MmfVideoSourceReader::OnReadSample( HRESULT hrStatus, DWORD dwStreamIndex, DWORD dwStreamFlags, LONGLONG llTimestamp, IMFSample *pSample )
+{
+  PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->PlusDevice->Mutex);
+
+  if (!SUCCEEDED(hrStatus))
+  {
+    // Streaming error  
+    LOG_ERROR("Source Reader error: " << std::hex << hrStatus);
+    return S_FALSE;
+  }
+
+  if( !this->PlusDevice->IsRecording() )
+  {
+    return S_OK;
+  }
+
+  if (this->CaptureSourceReader==NULL)
+  {
+    return S_FALSE;
+  }
+
+  if (pSample!=NULL)
+  {
+
+    // Get the media type from the stream.
+    IMFMediaType* pType=NULL;
+    this->CaptureSourceReader->GetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, &pType);
+    if (pType==NULL)
+    {
+      LOG_ERROR("Cannot get current media type");
+    }
+    // Check the pixel type, as it may be different from what we requested (even if setup does not give any error).
+    // Mostly happens for larger resolutions (e.g., when requesting webcam feed at 1280x720 with YUY then we get MJPG).
+    // The check has to be done here, the media type is not yet available at InternalConnect time.
+    GUID videoFormat=DEFAULT_PIXEL_TYPE;
+    pType->GetGUID( MF_MT_SUBTYPE, &videoFormat );
+    std::wstring videoFormatWStr = MfVideoCapture::FormatReader::StringFromGUID(videoFormat);
+    std::string videoFormatStr(videoFormatWStr.begin(), videoFormatWStr.end());
+    if (videoFormatStr.compare(0, MF_VIDEO_FORMAT_PREFIX.size(), MF_VIDEO_FORMAT_PREFIX)==0)
+    {
+      // found standard prefix, remove it
+      videoFormatStr.erase(0,MF_VIDEO_FORMAT_PREFIX.size());
+    }
+
+    if (videoFormatStr.compare(this->PlusDevice->ActiveVideoFormat.PixelFormatName)!=0)
+    {
+      LOG_ERROR("Unexpected video format: "<<videoFormatStr<<" (expected: "<<this->PlusDevice->ActiveVideoFormat.PixelFormatName<<")"); 
+      return S_FALSE;
+    }
+
+    IMFMediaBuffer* aBuffer=NULL;
+    DWORD bufferCount=0;
+    pSample->GetBufferCount(&bufferCount);
+    if( bufferCount < 1 )
+    {
+      LOG_ERROR("No buffer available in the sample.");
+      return S_FALSE;
+    }
+    pSample->GetBufferByIndex(0, &aBuffer);
+    BYTE* bufferData=NULL;
+    DWORD maxLength=0;
+    DWORD currentLength=0;
+
+    HRESULT hr = aBuffer->Lock(&bufferData, &maxLength, &currentLength);
+    if( SUCCEEDED(hr) ) 
+    {
+      this->PlusDevice->AddFrame(bufferData);
+      aBuffer->Unlock();
+    }  
+    else
+    {
+      LOG_ERROR("Unable to lock the buffer.");
+    }
+    SafeRelease(&aBuffer);
+  }
+
+  if (MF_SOURCE_READERF_ENDOFSTREAM & dwStreamFlags)
+  {
+    // Reached the end of the stream.
+    LOG_ERROR("End of stream reached. Capture device should never reach end of stream.");
+    this->PlusDevice->Disconnect();
+    return S_FALSE;
+    // This should never occur under normal operation.
+  }
+
+  this->CaptureSourceReader->ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, NULL, NULL, NULL, NULL);
+
+  return S_OK;
+}
+
+//----------------------------------------------------------------------------
 
 vtkCxxRevisionMacro(vtkMmfVideoSource, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkMmfVideoSource);
@@ -63,11 +237,9 @@ vtkStandardNewMacro(vtkMmfVideoSource);
 //----------------------------------------------------------------------------
 vtkMmfVideoSource::vtkMmfVideoSource()
 : FrameIndex(0)
-, CaptureSource(NULL)
-, CaptureSourceReader(NULL)
 , Mutex(vtkSmartPointer<vtkRecursiveCriticalSection>::New())
-, RefCount(0)
 {
+  this->MmfSourceReader = new MmfVideoSourceReader(this);
   this->RequireImageOrientationInConfiguration = true;
 
   this->AcquisitionRate = vtkPlusDevice::VIRTUAL_DEVICE_FRAME_RATE;
@@ -85,7 +257,8 @@ vtkMmfVideoSource::vtkMmfVideoSource()
 //----------------------------------------------------------------------------
 vtkMmfVideoSource::~vtkMmfVideoSource()
 {
-
+  delete this->MmfSourceReader;
+  this->MmfSourceReader = NULL;
 }
 
 
@@ -102,7 +275,7 @@ PlusStatus vtkMmfVideoSource::InternalConnect()
 {
   PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
 
-  if (this->RefCount!=0)
+  if (this->MmfSourceReader->RefCount!=0)
   {
     LOG_WARNING("There is a reference to this class from a previous connection");
   }
@@ -150,8 +323,8 @@ PlusStatus vtkMmfVideoSource::InternalConnect()
     << ", "<<DEFAULT_ACQUISITION_RATE<<"Hz, "<<this->ActiveVideoFormat.PixelFormatName);
   }
 
-  this->CaptureSource = MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().GetMediaSource(this->ActiveVideoFormat.DeviceId);
-  if (this->CaptureSource == NULL )
+  this->MmfSourceReader->CaptureSource = MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().GetMediaSource(this->ActiveVideoFormat.DeviceId);
+  if (this->MmfSourceReader->CaptureSource == NULL )
   {
     LOG_ERROR("Unable to request capture source from the media foundation library.");
     return PLUS_FAIL;
@@ -171,7 +344,7 @@ PlusStatus vtkMmfVideoSource::InternalDisconnect()
   PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
 
   MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().CloseDevice(this->ActiveVideoFormat.DeviceId);
-  this->CaptureSource = NULL;
+  this->MmfSourceReader->CaptureSource = NULL;
 
   return PLUS_SUCCESS;
 }
@@ -182,14 +355,14 @@ PlusStatus vtkMmfVideoSource::InternalStartRecording()
   PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
 
   HRESULT hr;
-  if( this->CaptureSource != NULL )
+  if( this->MmfSourceReader->CaptureSource != NULL )
   {
     IMFAttributes* attr;
     MFCreateAttributes(&attr, 2);
-    hr = attr->SetUnknown(MF_SOURCE_READER_ASYNC_CALLBACK, this);
+    hr = attr->SetUnknown(MF_SOURCE_READER_ASYNC_CALLBACK, this->MmfSourceReader);
     hr = attr->SetUINT32(MF_READWRITE_DISABLE_CONVERTERS, TRUE);
 
-    hr = MFCreateSourceReaderFromMediaSource(this->CaptureSource, attr, &this->CaptureSourceReader);
+    hr = MFCreateSourceReaderFromMediaSource(this->MmfSourceReader->CaptureSource, attr, &this->MmfSourceReader->CaptureSourceReader);
 
     if( FAILED(hr) )
     {
@@ -202,7 +375,7 @@ PlusStatus vtkMmfVideoSource::InternalStartRecording()
 
     MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().StartRecording(this->ActiveVideoFormat.DeviceId);
 
-    this->CaptureSourceReader->ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, NULL, NULL, NULL, NULL);
+    this->MmfSourceReader->CaptureSourceReader->ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, NULL, NULL, NULL, NULL);
   }
   else
   {
@@ -222,8 +395,8 @@ PlusStatus vtkMmfVideoSource::InternalStopRecording()
 
   MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().StopRecording(this->ActiveVideoFormat.DeviceId);
 
-  this->CaptureSourceReader->Flush(MF_SOURCE_READER_FIRST_VIDEO_STREAM);
-  SafeRelease(&this->CaptureSourceReader);
+  this->MmfSourceReader->CaptureSourceReader->Flush(MF_SOURCE_READER_FIRST_VIDEO_STREAM);
+  SafeRelease(&this->MmfSourceReader->CaptureSourceReader);
   return PLUS_SUCCESS; 
 }
 
@@ -248,153 +421,9 @@ PlusStatus vtkMmfVideoSource::NotifyConfigured()
 }
 
 //----------------------------------------------------------------------------
-
-STDMETHODIMP vtkMmfVideoSource::QueryInterface( REFIID iid, void** ppv )
-{
-  static const QITAB qit[] =
-  {
-    QITABENT(vtkMmfVideoSource, IMFSourceReaderCallback),
-    { 0 },
-  };
-  return QISearch(this, qit, iid, ppv);
-}
-
-//----------------------------------------------------------------------------
-
-STDMETHODIMP_(ULONG) vtkMmfVideoSource::AddRef()
-{
-  LONG uCount=InterlockedIncrement(&RefCount);
-  if (uCount==1)
-  {
-    this->Register(NULL);
-  }
-  return uCount;
-}
-
-//----------------------------------------------------------------------------
-
-STDMETHODIMP_(ULONG) vtkMmfVideoSource::Release()
-{
-  ULONG uCount = InterlockedDecrement(&RefCount);
-  if (uCount == 0)
-  {
-    LOG_DEBUG("vtkMmfVideoSource::Release - unregister");
-    this->UnRegister(NULL);
-  }
-  return uCount;
-}
-
-//----------------------------------------------------------------------------
-
-STDMETHODIMP vtkMmfVideoSource::OnEvent( DWORD, IMFMediaEvent * )
-{
-  return S_OK;
-}
-
-//----------------------------------------------------------------------------
-
-STDMETHODIMP vtkMmfVideoSource::OnFlush( DWORD )
-{
-  return S_OK;
-}
-
-//----------------------------------------------------------------------------
-
-STDMETHODIMP vtkMmfVideoSource::OnReadSample( HRESULT hrStatus, DWORD dwStreamIndex, DWORD dwStreamFlags, LONGLONG llTimestamp, IMFSample *pSample )
-{
-  PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
-
-  if (!SUCCEEDED(hrStatus))
-  {
-    // Streaming error  
-    LOG_ERROR("Source Reader error: " << std::hex << hrStatus);
-    return S_FALSE;
-  }
-
-  if( !this->IsRecording() )
-  {
-    return S_OK;
-  }
-
-  if (this->CaptureSourceReader==NULL)
-  {
-    return S_FALSE;
-  }
-
-  if (pSample!=NULL)
-  {
-
-    // Get the media type from the stream.
-    IMFMediaType* pType=NULL;
-    this->CaptureSourceReader->GetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, &pType);
-    if (pType==NULL)
-    {
-      LOG_ERROR("Cannot get current media type");
-    }
-    // Check the pixel type, as it may be different from what we requested (even if setup does not give any error).
-    // Mostly happens for larger resolutions (e.g., when requesting webcam feed at 1280x720 with YUY then we get MJPG).
-    // The check has to be done here, the media type is not yet available at InternalConnect time.
-    GUID videoFormat=DEFAULT_PIXEL_TYPE;
-    pType->GetGUID( MF_MT_SUBTYPE, &videoFormat );
-    std::wstring videoFormatWStr = MfVideoCapture::FormatReader::StringFromGUID(videoFormat);
-    std::string videoFormatStr(videoFormatWStr.begin(), videoFormatWStr.end());
-    if (videoFormatStr.compare(0, MF_VIDEO_FORMAT_PREFIX.size(), MF_VIDEO_FORMAT_PREFIX)==0)
-    {
-      // found standard prefix, remove it
-      videoFormatStr.erase(0,MF_VIDEO_FORMAT_PREFIX.size());
-    }
-
-    if (videoFormatStr.compare(this->ActiveVideoFormat.PixelFormatName)!=0)
-    {
-      LOG_ERROR("Unexpected video format: "<<videoFormatStr<<" (expected: "<<this->ActiveVideoFormat.PixelFormatName<<")"); 
-      return S_FALSE;
-    }
-
-    IMFMediaBuffer* aBuffer=NULL;
-    DWORD bufferCount=0;
-    pSample->GetBufferCount(&bufferCount);
-    if( bufferCount < 1 )
-    {
-      LOG_ERROR("No buffer available in the sample.");
-      return S_FALSE;
-    }
-    pSample->GetBufferByIndex(0, &aBuffer);
-    BYTE* bufferData=NULL;
-    DWORD maxLength=0;
-    DWORD currentLength=0;
-
-    HRESULT hr = aBuffer->Lock(&bufferData, &maxLength, &currentLength);
-    if( SUCCEEDED(hr) ) 
-    {
-      AddFrame(bufferData);
-      aBuffer->Unlock();
-    }  
-    else
-    {
-      LOG_ERROR("Unable to lock the buffer.");
-    }
-    SafeRelease(&aBuffer);
-  }
-
-  if (MF_SOURCE_READERF_ENDOFSTREAM & dwStreamFlags)
-  {
-    // Reached the end of the stream.
-    LOG_ERROR("End of stream reached. Capture device should never reach end of stream.");
-    this->Disconnect();
-    return S_FALSE;
-    // This should never occur under normal operation.
-  }
-
-  this->CaptureSourceReader->ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, NULL, NULL, NULL, NULL);
-
-  return S_OK;
-}
-
-//----------------------------------------------------------------------------
-
 PlusStatus vtkMmfVideoSource::UpdateFrameSize()
 {
-  if( this->CaptureSourceReader != NULL )
+  if( this->MmfSourceReader->CaptureSourceReader != NULL )
   {
     int currentFrameSize[2] = {0,0};
     vtkPlusDataSource* videoSource(NULL);
@@ -418,7 +447,6 @@ PlusStatus vtkMmfVideoSource::UpdateFrameSize()
 }
 
 //----------------------------------------------------------------------------
-
 PlusStatus vtkMmfVideoSource::ReadConfiguration( vtkXMLDataElement* rootConfigElement )
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
@@ -446,7 +474,6 @@ PlusStatus vtkMmfVideoSource::ReadConfiguration( vtkXMLDataElement* rootConfigEl
 }
 
 //----------------------------------------------------------------------------
-
 PlusStatus vtkMmfVideoSource::WriteConfiguration( vtkXMLDataElement* rootConfigElement )
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);

@@ -4,13 +4,15 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+#include "PlusConfigure.h"
+#include "vtkPhidgetSpatialTracker.h"
+
 #include "MadgwickAhrsAlgo.h"
 #include "MahonyAhrsAlgo.h"
-#include "PlusConfigure.h"
-#include "PlusConfigure.h"
+#include "PlusMath.h"
+#include "vtkMath.h"
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
-#include "vtkPhidgetSpatialTracker.h"
 #include "vtkPlusBuffer.h"
 #include "vtkPlusDataSource.h"
 #include "vtkTransform.h"
@@ -19,12 +21,206 @@ See License.txt for details.
 #include <math.h>
 #include <sstream>
 
+#include <phidget21.h>
+
 vtkStandardNewMacro(vtkPhidgetSpatialTracker);
+
+class PhidgetSpatialCallbackClass
+{
+  public:
+
+  //callback that will run if the Spatial is attached to the computer
+  static int CCONV AttachHandler(CPhidgetHandle spatial, void *trackerPtr)
+  {
+    int serialNo;
+    CPhidget_getSerialNumber(spatial, &serialNo);
+    LOG_DEBUG("Phidget spatial sensor attached: " << serialNo);
+    return 0;
+  }
+
+  //callback that will run if the Spatial is detached from the computer
+  static int CCONV DetachHandler(CPhidgetHandle spatial, void *trackerPtr)
+  {
+    int serialNo;
+    CPhidget_getSerialNumber(spatial, &serialNo);
+    LOG_DEBUG("Phidget spatial sensor detached: " << serialNo);
+    return 0;
+  }
+
+  //callback that will run if the Spatial generates an error
+  static int CCONV ErrorHandler(CPhidgetHandle spatial, void *trackerPtr, int ErrorCode, const char *unknown)
+  {
+    LOG_ERROR("Phidget spatial sensor error: "<<ErrorCode<<" ("<<unknown<<")");
+    return 0;
+  }
+
+  //callback that will run at datarate
+  //data - array of spatial event data structures that holds the spatial data packets that were sent in this event
+  //count - the number of spatial data event packets included in this event
+  static int CCONV SpatialDataHandler(CPhidgetSpatialHandle spatial, void *trackerPtr, CPhidgetSpatial_SpatialEventDataHandle *data, int count)
+  {
+    vtkPhidgetSpatialTracker* tracker=(vtkPhidgetSpatialTracker*)trackerPtr;
+    if ( ! tracker->IsRecording() )
+    {
+      // Received phidget tracking data when not tracking
+      return 0;
+    }
+
+    if ( count<1 )
+    {
+      LOG_WARNING("No phidget data received in data handler" );
+      return 0;
+    }
+
+    if (!tracker->TrackerTimeToSystemTimeComputed)
+    {
+      const double timeSystemSec = vtkAccurateTimer::GetSystemTime();
+      const double timeTrackerSec = data[count-1]->timestamp.seconds+data[count-1]->timestamp.microseconds*1e-6;
+      tracker->TrackerTimeToSystemTimeSec = timeSystemSec-timeTrackerSec;
+      tracker->TrackerTimeToSystemTimeComputed = true;
+    }
+
+    LOG_TRACE("Number of phidget data packets received in the current event: " << count);
+
+    for(int i = 0; i < count; i++)
+    { 
+      const double timeTrackerSec = data[i]->timestamp.seconds+data[i]->timestamp.microseconds*1e-6;
+      const double timeSystemSec = timeTrackerSec + tracker->TrackerTimeToSystemTimeSec;  
+      if (tracker->AccelerometerTool!=NULL)
+      {
+        tracker->LastAccelerometerToTrackerTransform->Identity();
+        tracker->LastAccelerometerToTrackerTransform->SetElement(0,3,data[i]->acceleration[0]);
+        tracker->LastAccelerometerToTrackerTransform->SetElement(1,3,data[i]->acceleration[1]);
+        tracker->LastAccelerometerToTrackerTransform->SetElement(2,3,data[i]->acceleration[2]);
+        tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->AccelerometerTool->GetSourceId(), tracker->LastAccelerometerToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
+      }  
+      if (tracker->GyroscopeTool!=NULL)
+      {
+        tracker->LastGyroscopeToTrackerTransform->Identity();
+        tracker->LastGyroscopeToTrackerTransform->SetElement(0,3,data[i]->angularRate[0]);
+        tracker->LastGyroscopeToTrackerTransform->SetElement(1,3,data[i]->angularRate[1]);
+        tracker->LastGyroscopeToTrackerTransform->SetElement(2,3,data[i]->angularRate[2]);
+        tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->GyroscopeTool->GetSourceId(), tracker->LastGyroscopeToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
+      }  
+      if (tracker->MagnetometerTool!=NULL)
+      {      
+        if (data[i]->magneticField[0]>1e100)
+        {
+          // magnetometer data is not available, use the last transform with an invalid status to not have any missing transform
+          tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->MagnetometerTool->GetSourceId(), tracker->LastMagnetometerToTrackerTransform, TOOL_INVALID, timeSystemSec, timeSystemSec);
+        }
+        else
+        {
+          // magnetometer data is valid
+          tracker->LastMagnetometerToTrackerTransform->Identity();
+          tracker->LastMagnetometerToTrackerTransform->SetElement(0,3,data[i]->magneticField[0]);
+          tracker->LastMagnetometerToTrackerTransform->SetElement(1,3,data[i]->magneticField[1]);
+          tracker->LastMagnetometerToTrackerTransform->SetElement(2,3,data[i]->magneticField[2]);
+          tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->MagnetometerTool->GetSourceId(), tracker->LastMagnetometerToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
+        }
+      }     
+
+      if (tracker->TiltSensorTool!=NULL)
+      {
+        // Compose matrix that transforms the x axis to the input vector by rotations around two orthogonal axes
+        vtkSmartPointer<vtkTransform> transform=vtkSmartPointer<vtkTransform>::New();      
+
+        double downVector_Sensor[4] = {data[i]->acceleration[0],data[i]->acceleration[1],data[i]->acceleration[2],0}; // provided by the sensor
+        vtkMath::Normalize(downVector_Sensor);
+
+        PlusMath::ConstrainRotationToTwoAxes(downVector_Sensor,tracker->TiltSensorWestAxisIndex, tracker->LastTiltSensorToTrackerTransform);
+
+        tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->TiltSensorTool->GetSourceId(), tracker->LastTiltSensorToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
+      }  
+
+      if (tracker->OrientationSensorTool!=NULL)
+      {
+        if (data[i]->magneticField[0]>1e100)
+        {
+          // magnetometer data is not available, use the last transform with an invalid status to not have any missing transform
+          tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->OrientationSensorTool->GetSourceId(), tracker->LastOrientationSensorToTrackerTransform, TOOL_INVALID, timeSystemSec, timeSystemSec);        
+        }
+        else
+        {
+          // magnetometer data is valid
+
+          //LOG_TRACE("samplingTime(msec)="<<1000.0*timeSinceLastAhrsUpdateSec<<", packetCount="<<count);
+          //LOG_TRACE("gyroX="<<std::fixed<<std::setprecision(2)<<std::setw(6)<<data[i]->angularRate[0]<<", gyroY="<<data[i]->angularRate[1]<<", gyroZ="<<data[i]->angularRate[2]);               
+          //LOG_TRACE("magX="<<std::fixed<<std::setprecision(2)<<std::setw(6)<<data[i]->magneticField[0]<<", magY="<<data[i]->magneticField[1]<<", magZ="<<data[i]->magneticField[2]);               
+
+          if (tracker->AhrsUseMagnetometer)
+          {
+            tracker->AhrsAlgo->UpdateWithTimestamp(          
+              vtkMath::RadiansFromDegrees(data[i]->angularRate[0]), vtkMath::RadiansFromDegrees(data[i]->angularRate[1]), vtkMath::RadiansFromDegrees(data[i]->angularRate[2]),
+              data[i]->acceleration[0], data[i]->acceleration[1], data[i]->acceleration[2],
+              data[i]->magneticField[0], data[i]->magneticField[1], data[i]->magneticField[2], timeSystemSec);
+          }
+          else
+          {
+            tracker->AhrsAlgo->UpdateIMUWithTimestamp(          
+              vtkMath::RadiansFromDegrees(data[i]->angularRate[0]), vtkMath::RadiansFromDegrees(data[i]->angularRate[1]), vtkMath::RadiansFromDegrees(data[i]->angularRate[2]),
+              data[i]->acceleration[0], data[i]->acceleration[1], data[i]->acceleration[2], timeSystemSec);
+          }
+
+
+          double rotQuat[4]={0};
+          tracker->AhrsAlgo->GetOrientation(rotQuat[0],rotQuat[1],rotQuat[2],rotQuat[3]);
+
+          double rotMatrix[3][3]={0};
+          vtkMath::QuaternionToMatrix3x3(rotQuat, rotMatrix); 
+
+          for (int c=0;c<3; c++)
+          {
+            for (int r=0;r<3; r++)
+            {
+              tracker->LastOrientationSensorToTrackerTransform->SetElement(r,c,rotMatrix[r][c]);
+            }
+          }
+
+          tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->OrientationSensorTool->GetSourceId(), tracker->LastOrientationSensorToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);            
+        }            
+        if(tracker->FilteredTiltSensorTool!=NULL)
+        {
+          tracker->FilteredTiltSensorAhrsAlgo->UpdateIMUWithTimestamp(          
+            vtkMath::RadiansFromDegrees(data[i]->angularRate[0]), vtkMath::RadiansFromDegrees(data[i]->angularRate[1]), vtkMath::RadiansFromDegrees(data[i]->angularRate[2]),
+            data[i]->acceleration[0], data[i]->acceleration[1], data[i]->acceleration[2], timeSystemSec);
+
+          double rotQuat[4]={0};
+          tracker->AhrsAlgo->GetOrientation(rotQuat[0],rotQuat[1],rotQuat[2],rotQuat[3]);
+
+          double rotMatrix[3][3]={0};
+          vtkMath::QuaternionToMatrix3x3(rotQuat, rotMatrix); 
+
+          double filteredDownVector_Sensor[4] = {rotMatrix[2][0],rotMatrix[2][1],rotMatrix[2][2],0};
+          vtkMath::Normalize(filteredDownVector_Sensor);
+
+          PlusMath::ConstrainRotationToTwoAxes(filteredDownVector_Sensor,tracker->FilteredTiltSensorWestAxisIndex, tracker->LastFilteredTiltSensorToTrackerTransform);
+
+          tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->FilteredTiltSensorTool->GetSourceId(), tracker->LastFilteredTiltSensorToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
+
+          // write back the results to the FilteredTiltSensor_AHRS algorithm
+          for (int c=0;c<3; c++)
+          {
+            for (int r=0;r<3; r++)
+            {
+              rotMatrix[r][c]=tracker->LastFilteredTiltSensorToTrackerTransform->GetElement(r,c);
+            }
+          }
+          double filteredTiltSensorRotQuat[4]={0};
+          vtkMath::Matrix3x3ToQuaternion(rotMatrix,filteredTiltSensorRotQuat);
+          tracker->FilteredTiltSensorAhrsAlgo->SetOrientation(filteredTiltSensorRotQuat[0],filteredTiltSensorRotQuat[1],filteredTiltSensorRotQuat[2],filteredTiltSensorRotQuat[3]);
+        }  
+      }
+    }
+    return 0;
+  }
+
+};
 
 //-------------------------------------------------------------------------
 vtkPhidgetSpatialTracker::vtkPhidgetSpatialTracker()
 { 
-  this->SpatialDeviceHandle = 0;
+  this->SpatialDeviceHandle = NULL;
   this->TrackerTimeToSystemTimeSec = 0;
   this->TrackerTimeToSystemTimeComputed = false;
   this->ZeroGyroscopeOnConnect = false;
@@ -103,22 +299,22 @@ void vtkPhidgetSpatialTracker::PrintSelf( ostream& os, vtkIndent indent )
     CPhidget_getDeviceVersion((CPhidgetHandle)this->SpatialDeviceHandle, &version);
     os << "Version: " << version << std::endl;
     int numAccelAxes=0;
-    CPhidgetSpatial_getAccelerationAxisCount(this->SpatialDeviceHandle, &numAccelAxes);
+    CPhidgetSpatial_getAccelerationAxisCount((CPhidgetSpatialHandle)this->SpatialDeviceHandle, &numAccelAxes);
     os << "Number of Accel Axes: " << numAccelAxes << std::endl;
     int numGyroAxes=0;
-    CPhidgetSpatial_getGyroAxisCount(this->SpatialDeviceHandle, &numGyroAxes);
+    CPhidgetSpatial_getGyroAxisCount((CPhidgetSpatialHandle)this->SpatialDeviceHandle, &numGyroAxes);
     os << "Number of Gyro Axes: " << numGyroAxes << std::endl;
     int numCompassAxes=0;
-    CPhidgetSpatial_getCompassAxisCount(this->SpatialDeviceHandle, &numCompassAxes);
+    CPhidgetSpatial_getCompassAxisCount((CPhidgetSpatialHandle)this->SpatialDeviceHandle, &numCompassAxes);
     os << "Number of Compass Axes: " << numCompassAxes << std::endl;
     int dataRateMax=0;
-    CPhidgetSpatial_getDataRateMax(this->SpatialDeviceHandle, &dataRateMax);
+    CPhidgetSpatial_getDataRateMax((CPhidgetSpatialHandle)this->SpatialDeviceHandle, &dataRateMax);
     os << "Maximum data rate: " << dataRateMax << std::endl;
     int dataRateMin=0;    
-    CPhidgetSpatial_getDataRateMin(this->SpatialDeviceHandle, &dataRateMin);
+    CPhidgetSpatial_getDataRateMin((CPhidgetSpatialHandle)this->SpatialDeviceHandle, &dataRateMin);
     os << "Minimum data rate: " << dataRateMin << std::endl;
     int dataRate=0;
-    CPhidgetSpatial_getDataRate(this->SpatialDeviceHandle, &dataRate);    
+    CPhidgetSpatial_getDataRate((CPhidgetSpatialHandle)this->SpatialDeviceHandle, &dataRate);    
     os << "Current data rate: " << dataRate << std::endl;
   }
   else
@@ -126,196 +322,6 @@ void vtkPhidgetSpatialTracker::PrintSelf( ostream& os, vtkIndent indent )
     os << "Spatial device is not available" << std::endl;
   }
 
-}
-
-//callback that will run if the Spatial is attached to the computer
-int CCONV AttachHandler(CPhidgetHandle spatial, void *trackerPtr)
-{
-  int serialNo;
-  CPhidget_getSerialNumber(spatial, &serialNo);
-  LOG_DEBUG("Phidget spatial sensor attached: " << serialNo);
-  return 0;
-}
-
-//callback that will run if the Spatial is detached from the computer
-int CCONV DetachHandler(CPhidgetHandle spatial, void *trackerPtr)
-{
-  int serialNo;
-  CPhidget_getSerialNumber(spatial, &serialNo);
-  LOG_DEBUG("Phidget spatial sensor detached: " << serialNo);
-  return 0;
-}
-
-//callback that will run if the Spatial generates an error
-int CCONV ErrorHandler(CPhidgetHandle spatial, void *trackerPtr, int ErrorCode, const char *unknown)
-{
-  LOG_ERROR("Phidget spatial sensor error: "<<ErrorCode<<" ("<<unknown<<")");
-  return 0;
-}
-
-//callback that will run at datarate
-//data - array of spatial event data structures that holds the spatial data packets that were sent in this event
-//count - the number of spatial data event packets included in this event
-int CCONV vtkPhidgetSpatialTracker::SpatialDataHandler(CPhidgetSpatialHandle spatial, void *trackerPtr, CPhidgetSpatial_SpatialEventDataHandle *data, int count)
-{
-  vtkPhidgetSpatialTracker* tracker=(vtkPhidgetSpatialTracker*)trackerPtr;
-  if ( ! tracker->IsRecording() )
-  {
-    // Received phidget tracking data when not tracking
-    return 0;
-  }
-
-  if ( count<1 )
-  {
-    LOG_WARNING("No phidget data received in data handler" );
-    return 0;
-  }
-
-  if (!tracker->TrackerTimeToSystemTimeComputed)
-  {
-    const double timeSystemSec = vtkAccurateTimer::GetSystemTime();
-    const double timeTrackerSec = data[count-1]->timestamp.seconds+data[count-1]->timestamp.microseconds*1e-6;
-    tracker->TrackerTimeToSystemTimeSec = timeSystemSec-timeTrackerSec;
-    tracker->TrackerTimeToSystemTimeComputed = true;
-  }
-
-  LOG_TRACE("Number of phidget data packets received in the current event: " << count);
-
-  for(int i = 0; i < count; i++)
-  { 
-    const double timeTrackerSec = data[i]->timestamp.seconds+data[i]->timestamp.microseconds*1e-6;
-    const double timeSystemSec = timeTrackerSec + tracker->TrackerTimeToSystemTimeSec;  
-    if (tracker->AccelerometerTool!=NULL)
-    {
-      tracker->LastAccelerometerToTrackerTransform->Identity();
-      tracker->LastAccelerometerToTrackerTransform->SetElement(0,3,data[i]->acceleration[0]);
-      tracker->LastAccelerometerToTrackerTransform->SetElement(1,3,data[i]->acceleration[1]);
-      tracker->LastAccelerometerToTrackerTransform->SetElement(2,3,data[i]->acceleration[2]);
-      tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->AccelerometerTool->GetSourceId(), tracker->LastAccelerometerToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
-    }  
-    if (tracker->GyroscopeTool!=NULL)
-    {
-      tracker->LastGyroscopeToTrackerTransform->Identity();
-      tracker->LastGyroscopeToTrackerTransform->SetElement(0,3,data[i]->angularRate[0]);
-      tracker->LastGyroscopeToTrackerTransform->SetElement(1,3,data[i]->angularRate[1]);
-      tracker->LastGyroscopeToTrackerTransform->SetElement(2,3,data[i]->angularRate[2]);
-      tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->GyroscopeTool->GetSourceId(), tracker->LastGyroscopeToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
-    }  
-    if (tracker->MagnetometerTool!=NULL)
-    {      
-      if (data[i]->magneticField[0]>1e100)
-      {
-        // magnetometer data is not available, use the last transform with an invalid status to not have any missing transform
-        tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->MagnetometerTool->GetSourceId(), tracker->LastMagnetometerToTrackerTransform, TOOL_INVALID, timeSystemSec, timeSystemSec);
-      }
-      else
-      {
-        // magnetometer data is valid
-        tracker->LastMagnetometerToTrackerTransform->Identity();
-        tracker->LastMagnetometerToTrackerTransform->SetElement(0,3,data[i]->magneticField[0]);
-        tracker->LastMagnetometerToTrackerTransform->SetElement(1,3,data[i]->magneticField[1]);
-        tracker->LastMagnetometerToTrackerTransform->SetElement(2,3,data[i]->magneticField[2]);
-        tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->MagnetometerTool->GetSourceId(), tracker->LastMagnetometerToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
-      }
-    }     
-
-    if (tracker->TiltSensorTool!=NULL)
-    {
-      // Compose matrix that transforms the x axis to the input vector by rotations around two orthogonal axes
-      vtkSmartPointer<vtkTransform> transform=vtkSmartPointer<vtkTransform>::New();      
-
-      double downVector_Sensor[4] = {data[i]->acceleration[0],data[i]->acceleration[1],data[i]->acceleration[2],0}; // provided by the sensor
-      vtkMath::Normalize(downVector_Sensor);
-
-      PlusMath::ConstrainRotationToTwoAxes(downVector_Sensor,tracker->TiltSensorWestAxisIndex, tracker->LastTiltSensorToTrackerTransform);
-
-      tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->TiltSensorTool->GetSourceId(), tracker->LastTiltSensorToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
-    }  
-
-    if (tracker->OrientationSensorTool!=NULL)
-    {
-      if (data[i]->magneticField[0]>1e100)
-      {
-        // magnetometer data is not available, use the last transform with an invalid status to not have any missing transform
-        tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->OrientationSensorTool->GetSourceId(), tracker->LastOrientationSensorToTrackerTransform, TOOL_INVALID, timeSystemSec, timeSystemSec);        
-      }
-      else
-      {
-        // magnetometer data is valid
-
-        //LOG_TRACE("samplingTime(msec)="<<1000.0*timeSinceLastAhrsUpdateSec<<", packetCount="<<count);
-        //LOG_TRACE("gyroX="<<std::fixed<<std::setprecision(2)<<std::setw(6)<<data[i]->angularRate[0]<<", gyroY="<<data[i]->angularRate[1]<<", gyroZ="<<data[i]->angularRate[2]);               
-        //LOG_TRACE("magX="<<std::fixed<<std::setprecision(2)<<std::setw(6)<<data[i]->magneticField[0]<<", magY="<<data[i]->magneticField[1]<<", magZ="<<data[i]->magneticField[2]);               
-
-        if (tracker->AhrsUseMagnetometer)
-        {
-          tracker->AhrsAlgo->UpdateWithTimestamp(          
-            vtkMath::RadiansFromDegrees(data[i]->angularRate[0]), vtkMath::RadiansFromDegrees(data[i]->angularRate[1]), vtkMath::RadiansFromDegrees(data[i]->angularRate[2]),
-            data[i]->acceleration[0], data[i]->acceleration[1], data[i]->acceleration[2],
-            data[i]->magneticField[0], data[i]->magneticField[1], data[i]->magneticField[2], timeSystemSec);
-        }
-        else
-        {
-          tracker->AhrsAlgo->UpdateIMUWithTimestamp(          
-            vtkMath::RadiansFromDegrees(data[i]->angularRate[0]), vtkMath::RadiansFromDegrees(data[i]->angularRate[1]), vtkMath::RadiansFromDegrees(data[i]->angularRate[2]),
-            data[i]->acceleration[0], data[i]->acceleration[1], data[i]->acceleration[2], timeSystemSec);
-        }
-
-
-        double rotQuat[4]={0};
-        tracker->AhrsAlgo->GetOrientation(rotQuat[0],rotQuat[1],rotQuat[2],rotQuat[3]);
-
-        double rotMatrix[3][3]={0};
-        vtkMath::QuaternionToMatrix3x3(rotQuat, rotMatrix); 
-
-        for (int c=0;c<3; c++)
-        {
-          for (int r=0;r<3; r++)
-          {
-            tracker->LastOrientationSensorToTrackerTransform->SetElement(r,c,rotMatrix[r][c]);
-          }
-        }
-
-        tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->OrientationSensorTool->GetSourceId(), tracker->LastOrientationSensorToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);            
-      }            
-      if(tracker->FilteredTiltSensorTool!=NULL)
-      {
-        tracker->FilteredTiltSensorAhrsAlgo->UpdateIMUWithTimestamp(          
-          vtkMath::RadiansFromDegrees(data[i]->angularRate[0]), vtkMath::RadiansFromDegrees(data[i]->angularRate[1]), vtkMath::RadiansFromDegrees(data[i]->angularRate[2]),
-          data[i]->acceleration[0], data[i]->acceleration[1], data[i]->acceleration[2], timeSystemSec);
-
-        double rotQuat[4]={0};
-        tracker->AhrsAlgo->GetOrientation(rotQuat[0],rotQuat[1],rotQuat[2],rotQuat[3]);
-
-        double rotMatrix[3][3]={0};
-        vtkMath::QuaternionToMatrix3x3(rotQuat, rotMatrix); 
-
-        double filteredDownVector_Sensor[4] = {rotMatrix[2][0],rotMatrix[2][1],rotMatrix[2][2],0};
-        vtkMath::Normalize(filteredDownVector_Sensor);
-
-        PlusMath::ConstrainRotationToTwoAxes(filteredDownVector_Sensor,tracker->FilteredTiltSensorWestAxisIndex, tracker->LastFilteredTiltSensorToTrackerTransform);
-
-        tracker->ToolTimeStampedUpdateWithoutFiltering( tracker->FilteredTiltSensorTool->GetSourceId(), tracker->LastFilteredTiltSensorToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
-
-        // write back the results to the FilteredTiltSensor_AHRS algorithm
-        for (int c=0;c<3; c++)
-        {
-          for (int r=0;r<3; r++)
-          {
-            rotMatrix[r][c]=tracker->LastFilteredTiltSensorToTrackerTransform->GetElement(r,c);
-          }
-        }
-        double filteredTiltSensorRotQuat[4]={0};
-        vtkMath::Matrix3x3ToQuaternion(rotMatrix,filteredTiltSensorRotQuat);
-        tracker->FilteredTiltSensorAhrsAlgo->SetOrientation(filteredTiltSensorRotQuat[0],filteredTiltSensorRotQuat[1],filteredTiltSensorRotQuat[2],filteredTiltSensorRotQuat[3]);
-
-      }  
-
-
-    }
-  }
-
-  return 0;
 }
 
 //-------------------------------------------------------------------------
@@ -344,15 +350,15 @@ PlusStatus vtkPhidgetSpatialTracker::InternalConnect()
   // TODO: verify tool definition
 
   //Create the communicator object to the PhidgetSpatial device
-  CPhidgetSpatial_create(&this->SpatialDeviceHandle);
+  CPhidgetSpatial_create((CPhidgetSpatialHandle*)(&this->SpatialDeviceHandle));
 
   //Set the handlers to be run when the device is plugged in or opened from software, unplugged or closed from software, or generates an error.
-  CPhidget_set_OnAttach_Handler((CPhidgetHandle)this->SpatialDeviceHandle, AttachHandler, this);
-  CPhidget_set_OnDetach_Handler((CPhidgetHandle)this->SpatialDeviceHandle, DetachHandler, this);
-  CPhidget_set_OnError_Handler((CPhidgetHandle)this->SpatialDeviceHandle, ErrorHandler, this);
+  CPhidget_set_OnAttach_Handler((CPhidgetHandle)this->SpatialDeviceHandle, PhidgetSpatialCallbackClass::AttachHandler, this);
+  CPhidget_set_OnDetach_Handler((CPhidgetHandle)this->SpatialDeviceHandle, PhidgetSpatialCallbackClass::DetachHandler, this);
+  CPhidget_set_OnError_Handler((CPhidgetHandle)this->SpatialDeviceHandle, PhidgetSpatialCallbackClass::ErrorHandler, this);
 
   //Registers a callback that will run according to the set data rate that will return the spatial data changes
-  CPhidgetSpatial_set_OnSpatialData_Handler(this->SpatialDeviceHandle, vtkPhidgetSpatialTracker::SpatialDataHandler, this);
+  CPhidgetSpatial_set_OnSpatialData_Handler((CPhidgetSpatialHandle)this->SpatialDeviceHandle, PhidgetSpatialCallbackClass::SpatialDataHandler, this);
 
   //This will initiate the SystemTime (time reference in Plus) to TrackerTime (time reference of the internal clock of the device) offset computation
   this->TrackerTimeToSystemTimeSec = 0;
@@ -383,13 +389,13 @@ PlusStatus vtkPhidgetSpatialTracker::InternalConnect()
   else if (userDataRateMsec<384) { userDataRateMsec=256; }
   else if (userDataRateMsec<756) { userDataRateMsec=512; }
   else { userDataRateMsec=1000; }
-  CPhidgetSpatial_setDataRate(this->SpatialDeviceHandle, userDataRateMsec);
+  CPhidgetSpatial_setDataRate((CPhidgetSpatialHandle)this->SpatialDeviceHandle, userDataRateMsec);
   LOG_DEBUG("DataRate (msec):" << userDataRateMsec);
 
   // To set compass correction parameters:
-  //  CPhidgetSpatial_setCompassCorrectionParameters(this->SpatialDeviceHandle, 0.648435, 0.002954, -0.024140, 0.002182, 1.520509, 1.530625, 1.575390, -0.002039, 0.003182, -0.001966, -0.013848, 0.003168, -0.014385);
+  //  CPhidgetSpatial_setCompassCorrectionParameters((CPhidgetSpatialHandle)this->SpatialDeviceHandle, 0.648435, 0.002954, -0.024140, 0.002182, 1.520509, 1.530625, 1.575390, -0.002039, 0.003182, -0.001966, -0.013848, 0.003168, -0.014385);
   // To reset compass correction parameters:
-  //  CPhidgetSpatial_resetCompassCorrectionParameters(this->SpatialDeviceHandle);
+  //  CPhidgetSpatial_resetCompassCorrectionParameters((CPhidgetSpatialHandle)this->SpatialDeviceHandle);
 
   if (this->ZeroGyroscopeOnConnect)
   {
@@ -649,7 +655,7 @@ PlusStatus vtkPhidgetSpatialTracker::WriteConfiguration(vtkXMLDataElement* rootC
 void vtkPhidgetSpatialTracker::ZeroGyroscope()
 {  
   LOG_INFO("Zeroing the gyroscope. Keep the sensor stationary for 2 seconds.");
-  CPhidgetSpatial_zeroGyro(this->SpatialDeviceHandle);
+  CPhidgetSpatial_zeroGyro((CPhidgetSpatialHandle)this->SpatialDeviceHandle);
 }
 
 //----------------------------------------------------------------------------

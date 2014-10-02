@@ -11,11 +11,9 @@
 #include "vtkPlusOpenIGTLinkExport.h"
 
 #include "igtlClientSocket.h"
-#include "vtkXMLUtilities.h" 
 
 #include <string>
 #include <vector>
-#include <list>
 
 /*!
   \class PlusIgtlClientInfo 

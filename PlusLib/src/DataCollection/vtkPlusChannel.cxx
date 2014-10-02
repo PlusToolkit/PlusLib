@@ -5,11 +5,12 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "vtkImageData.h"
+#include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusBuffer.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-
+#include "vtkTrackedFrameList.h"
 #include "PlusPlotter.h"
 #include "vtkHTMLGenerator.h"
 

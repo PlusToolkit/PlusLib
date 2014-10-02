@@ -9,19 +9,21 @@ See License.txt for details.
 
 #include "vtkDataCollectionExport.h"
 
+#include "PlusCommon.h"
+#include "PlusVideoFrame.h"
+
+#include "vtkSmartPointer.h"
+#include "vtkTimestampedCircularBuffer.h"
+
+#include <vector>
+
+class vtkMatrix4x4;
 class vtkPlusDevice;
 class vtkPlusChannel;
 class vtkPlusBuffer;
 class vtkPlusDataSource;
 class vtkPlusDataSource;
 class vtkVirtualMixer;
-
-#include "PlusCommon.h"
-#include "PlusVideoFrame.h"
-#include "vtkMatrix4x4.h"
-#include "vtkSmartPointer.h"
-#include "vtkTimestampedCircularBuffer.h"
-#include <vector>
 
 /*! Flags for tool statuses */
 enum ToolStatus 

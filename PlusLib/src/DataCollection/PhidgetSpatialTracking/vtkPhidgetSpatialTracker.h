@@ -10,7 +10,6 @@ See License.txt for details.
 #include "vtkDataCollectionExport.h"
 
 #include "vtkPlusDevice.h"
-#include <phidget21.h>
 
 class vtkPlusBuffer; 
 class AhrsAlgo;
@@ -93,6 +92,8 @@ public:
 
   vtkSetMacro(ZeroGyroscopeOnConnect, bool);
 
+  friend class PhidgetSpatialCallbackClass;
+
 protected:
 
   vtkPhidgetSpatialTracker();
@@ -106,8 +107,6 @@ protected:
 
   /*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking, at 9600 Baud. */
   PlusStatus InternalStopRecording();
-
-  static int CCONV SpatialDataHandler(CPhidgetSpatialHandle spatial, void *trackerPtr, CPhidgetSpatial_SpatialEventDataHandle *data, int count);
 
   /*! 
     Determine the gyroscope sensors offset by integrating the gyroscope values for 2 seconds while the sensor is stationary.
@@ -127,7 +126,7 @@ private:  // Functions.
 
 private:  // Variables.  
 
-  CPhidgetSpatialHandle SpatialDeviceHandle;
+  void* SpatialDeviceHandle;
 
   unsigned int FrameNumber;
   double TrackerTimeToSystemTimeSec; // time_System = time_Tracker + TrackerTimeToSystemTimeSec

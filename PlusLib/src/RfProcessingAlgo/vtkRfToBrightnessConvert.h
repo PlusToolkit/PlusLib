@@ -9,7 +9,7 @@
 
 #include "vtkRfProcessingAlgoExport.h"
 #include "vtkThreadedImageAlgorithm.h"
-#include "PlusVideoFrame.h"
+#include "PlusVideoFrame.h" // for US_IMAGE_TYPE
 
 /*!
 \class vtkRfToBrightnessConvert

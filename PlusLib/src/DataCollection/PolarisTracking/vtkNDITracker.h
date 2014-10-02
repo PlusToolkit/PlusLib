@@ -45,12 +45,11 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkDataCollectionExport.h"
 
 #include "vtkPlusDevice.h"
-#include "ndicapi.h"
 
 class vtkSocketCommunicator;
+struct ndicapi;
 
 // the number of tools the polaris can handle
-#define VTK_NDI_NTOOLS 12
 #define VTK_NDI_REPLY_LEN 2048
 
 /*!

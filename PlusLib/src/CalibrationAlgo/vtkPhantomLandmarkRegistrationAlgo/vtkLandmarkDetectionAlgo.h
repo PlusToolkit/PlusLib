@@ -11,7 +11,6 @@ See License.txt for details.
 #include "vtkCalibrationAlgoExport.h"
 
 #include "vtkObject.h"
-#include "vtkMatrix4x4.h"
 #include "vtkPoints.h"
 #include "vtkBoundingBox.h"
 
@@ -19,6 +18,7 @@ See License.txt for details.
 #include <deque>
 #include <set>
 
+class vtkMatrix4x4;
 class vtkTransformRepository;
 class vtkXMLDataElement;
 

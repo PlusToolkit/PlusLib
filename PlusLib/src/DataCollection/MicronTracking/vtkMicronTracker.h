@@ -9,28 +9,10 @@
 
 #include "vtkDataCollectionExport.h"
 
-#include "time.h"
-#include "vtkDoubleArray.h"
-#include "vtkImageFlip.h"
-#include "vtkImageImport.h"
-#include "vtkIntArray.h"
-#include "vtkLongArray.h"
-#include "vtkMath.h"
-#include "vtkMatrix4x4.h"
-#include "vtkMicronTracker.h"
-#include "vtkObjectFactory.h"
 #include "vtkPlusDevice.h"
-#include "vtkTimerLog.h"
-#include "vtkPlusDataSource.h"
-#include "vtkTransform.h"
-#include "vtkUnsignedCharArray.h"
-#include <ctype.h>
-#include <float.h>
-#include <iomanip>
-#include <limits.h>
-#include <math.h>
 
 class MicronTrackerInterface;
+class vtkMatrix4x4;
 
 /*!
   \class vtkMicronTracker

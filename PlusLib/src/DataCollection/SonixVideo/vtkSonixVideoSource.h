@@ -20,18 +20,10 @@ Siddharth Vikal (Queen's University, Kingston, Ontario, Canada)
 #include "vtkDataCollectionExport.h"
 
 #include "vtkPlusDevice.h"
-#include "ulterius.h"
-#include "ulterius_def.h"
-#include "ImagingModes.h" // Ulterius imaging modes
 
-//BTX
-
-class uDataDesc;
 class ulterius;
-
-class vtkDataCollectionExport vtkSonixVideoSource;
-
-//ETX
+class uDataDesc;
+enum uData;
 
 /*!
   \class vtkSonixVideoSource 
@@ -273,7 +265,7 @@ protected:
   vtkSetMacro(DetectPlaneSwitching, bool);  
   vtkSetMacro(SoundVelocity, int);
 
-  ulterius Ult;
+  ulterius* Ult;
 
   int Frequency;
   int Depth;

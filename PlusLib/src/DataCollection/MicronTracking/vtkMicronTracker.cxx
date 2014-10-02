@@ -9,12 +9,17 @@ See License.txt for details.
 // E.g., it could be checked by performing temporal calibration.
 // #define USE_MICRONTRACKER_TIMESTAMPS
 
+#include "PlusConfigure.h"
+#include "vtkMicronTracker.h"
+
 #include "MicronTrackerInterface.h"
 #include "MicronTrackerLogger.h"
-#include "PlusConfigure.h"
 #include "PlusVideoFrame.h"
 #include "vtkImageData.h"
-#include "vtkMicronTracker.h"
+#include "vtkImageImport.h"
+#include "vtkMatrix4x4.h"
+#include "vtkObjectFactory.h"
+#include "vtkPlusDataSource.h"
 #include <fstream>
 #include <iostream>
 #include <set>

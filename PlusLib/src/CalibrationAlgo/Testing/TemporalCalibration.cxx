@@ -27,6 +27,7 @@ See License.txt for details.
 #include "vtkPlot.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderer.h"
+#include "vtkTable.h"
 #include "vtkTemporalCalibrationAlgo.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkWindowToImageFilter.h"

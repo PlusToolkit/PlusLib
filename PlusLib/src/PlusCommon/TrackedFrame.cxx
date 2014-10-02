@@ -4,6 +4,7 @@
 #include "itkCastImageFilter.h"
 #include "itkImageFileWriter.h"
 #include "metaImage.h"
+#include "vtkImageData.h"
 #include "vtkMatrix4x4.h"
 #include "vtkPoints.h"
 #include "vtkXMLUtilities.h"

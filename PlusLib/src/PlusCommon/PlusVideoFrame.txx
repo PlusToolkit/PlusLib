@@ -5,6 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
+#include "vtkImageData.h"
 
 template<typename PixelType> PlusStatus PlusVideoFrame::DeepCopyVtkImageToItkImage( vtkImageData* inFrame, typename itk::Image< PixelType, 2 >::Pointer outFrame )
 {

@@ -7,9 +7,12 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkVirtualDiscCapture.h"
 #include "TrackedFrame.h"
+#include "vtkMetaImageSequenceIO.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusBuffer.h"
+#include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
+#include "vtkTrackedFrameList.h"
 #include "vtksys/SystemTools.hxx"
 
 //----------------------------------------------------------------------------

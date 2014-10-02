@@ -10,21 +10,22 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkDataCollectionExport.h"
 
-#include "PlusXmlUtils.h"
-#include "TrackedFrame.h"
-#include "vtkDataCollector.h"
 #include "vtkImageAlgorithm.h"
 #include "vtkMultiThreader.h"
 #include "vtkPlusDeviceTypes.h"
-#include "vtkTrackedFrameList.h"
 #include "PlusCommon.h"
+
 #include <string>
 
+class TrackedFrame;
+class vtkDataCollector;
 class vtkHTMLGenerator;
 class vtkPlusBuffer;
 class vtkPlusChannel;
 class vtkPlusDataSource;
 class vtkXMLDataElement;
+
+enum TrackedFrameFieldStatus;
 
 /*!
 \class vtkPlusDevice 

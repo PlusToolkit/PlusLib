@@ -5,6 +5,9 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
+
+#include "TrackedFrame.h"
+
 #include "vtkFakeTracker.h"
 #include "vtkMatrix4x4.h"
 #include "vtkMinimalStandardRandomSequence.h"

@@ -10,10 +10,10 @@
 #include <string>
 
 #include "vtkUsSimulatorAlgoExport.h"
-#include "vtkSmartPointer.h"
-#include "vtkImageData.h"
-#include "vtkMatrix4x4.h"
-#include "vtkModifiedBSPTree.h"
+
+class vtkMatrix4x4;
+class vtkModifiedBSPTree;
+class vtkPolyData;
 
 /*!
   \class SpatialModel 

@@ -8,14 +8,14 @@
 #define __vtkProbeCalibrationAlgo_h
 
 #include "vtkCalibrationAlgoExport.h"
-#include "vtkObject.h"
 
 #include <string>
 #include <vector>
 #include <set>
 
-#include "vnl/vnl_matrix.h"
+#include <vnl/vnl_double_3.h>
 
+#include "vtkObject.h"
 #include "vtkProbeCalibrationOptimizerAlgo.h"
 
 class TrackedFrame; 

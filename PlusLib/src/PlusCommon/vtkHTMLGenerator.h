@@ -10,8 +10,6 @@
 #include "vtkPlusCommonExport.h"
 
 #include "vtkObject.h"
-#include <vector>
-#include <sstream>
 
 class vtkTable; 
 

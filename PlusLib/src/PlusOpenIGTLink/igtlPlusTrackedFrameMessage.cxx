@@ -8,6 +8,8 @@ See License.txt for details.
 
 #include "igtlPlusTrackedFrameMessage.h"
 
+#include "vtkImageData.h"
+
 namespace igtl 
 {
 

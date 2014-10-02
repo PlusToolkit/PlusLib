@@ -10,8 +10,8 @@ See License.txt for details.
 #include "vtkDataCollectionExport.h"
 
 #include "vtkPlusDevice.h"
-#include "vtkPlusChannel.h"
-#include <string>
+
+class vtkPlusChannel;
 
 /*!
 \class vtkVirtualMixer 

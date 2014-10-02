@@ -9,6 +9,8 @@ See License.txt for details.
 #include "SpatialModel.h"
 
 #include "vtkMath.h"
+#include "vtkMatrix4x4.h"
+#include "vtkModifiedBSPTree.h"
 #include "vtkObjectFactory.h"
 #include "vtkSTLReader.h"
 #include "vtkXMLPolyDataReader.h"

@@ -12,15 +12,12 @@
 
 #include "vtkImageAlgorithm.h"
 #include "vtkPasteSliceIntoVolume.h"
-#include "vtkSmartPointer.h"
-#include "vtkTransform.h"
-#include "vtkFillHolesInVolume.h"
 
-class vtkPasteSliceIntoVolume;
-class vtkTrackedFrameList;
 class TrackedFrame;
-class vtkTransformRepository; 
 class vtkFanAngleDetectorAlgo;
+class vtkFillHolesInVolume;
+class vtkTrackedFrameList;
+class vtkTransformRepository; 
 /*!
   \class vtkVolumeReconstructor
   \brief Reconstructs a volume from tracked frames
@@ -166,7 +163,7 @@ public:
   /*! DEPRECATED: use SetFanRadiusStopPixel instead. */
   void SetFanDepth(double fanDepthPixel);
   /*! DEPRECATED: use SetCompoundingMode instead. */
-  void SetCompounding(int Compounding);
+  void SetCompounding(int compounding);
   /*! DEPRECATED: use SetCompoundingMode instead. */
   void SetCalculation(vtkPasteSliceIntoVolume::CalculationTypeDeprecated type);
   

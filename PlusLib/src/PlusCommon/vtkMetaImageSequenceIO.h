@@ -13,10 +13,7 @@
 #pragma warning ( disable : 4786 )
 #endif 
 
-#include "PlusVideoFrame.h"
-
-#include "itkImageIOBase.h"
-#include "vtkMatrix4x4.h"
+#include "PlusVideoFrame.h" // for US_IMAGE_ORIENTATION
 
 class vtkTrackedFrameList;
 class TrackedFrame;

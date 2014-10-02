@@ -8,6 +8,7 @@
 #include "PlusMath.h"
 #include "vtkHTMLGenerator.h"
 #include "vtkMath.h"
+#include "vtkMatrix4x4.h"
 #include "vtkPlusDevice.h"
 #include "vtkPlusBuffer.h"
 #include "vtkTrackedFrameList.h"

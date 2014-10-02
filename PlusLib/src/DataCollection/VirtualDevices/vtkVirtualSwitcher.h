@@ -11,7 +11,6 @@ See License.txt for details.
 
 #include "vtkPlusDevice.h"
 #include "vtkPlusChannel.h"
-#include <string>
 
 /*!
 \class vtkVirtualSwitcher

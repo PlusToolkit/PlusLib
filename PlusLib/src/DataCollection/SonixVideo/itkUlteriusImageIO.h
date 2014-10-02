@@ -27,10 +27,9 @@
 #pragma warning ( disable : 4786 )
 #endif
 
-#include <fstream>
 #include "itkImageIOBase.h"
 
-#include "ulterius_def.h"
+class uFileHeader;
 
 namespace itk
 {
@@ -101,7 +100,7 @@ protected:
   
   bool ReadHeader(const char* filename);
 
-  uFileHeader m_FileHeader;
+  uFileHeader* m_FileHeaderPtr;
 
 private:
   

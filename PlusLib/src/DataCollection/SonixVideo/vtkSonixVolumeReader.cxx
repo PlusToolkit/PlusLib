@@ -15,6 +15,12 @@ See License.txt for details.
 #include <iostream>
 #include <sstream>
 
+#include "ulterius_def.h"
+
+#if PLUS_ULTRASONIX_SDK_MAJOR_VERSION == 1
+#include "utx_imaging_modes.h"
+#endif
+
 vtkCxxRevisionMacro(vtkSonixVolumeReader, "$Revision: 1.0 $");
 
 vtkStandardNewMacro(vtkSonixVolumeReader);

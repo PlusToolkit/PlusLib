@@ -6,6 +6,8 @@
 
 #include "PlusMath.h"
 #include "TrackedFrame.h"
+#include "vtkImageData.h"
+#include "vtkMatrix4x4.h"
 #include "vtkMetaImageSequenceIO.h"
 #include "vtkObjectFactory.h"
 #include "vtkTrackedFrameList.h" 

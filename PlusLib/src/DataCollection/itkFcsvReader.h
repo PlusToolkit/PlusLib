@@ -14,12 +14,6 @@
 #include "vtkDataCollectionExport.h"
 
 #include <vector>
-#include <fstream>
-#include "itkProcessObject.h"
-#include "itkSpatialObject.h"
-#include "itkMetaEvent.h"
-#include <itkDefaultStaticMeshTraits.h>
-#include "itkSpatialObjectReader.h"
 
 #include "itkImageIOBase.h"
 

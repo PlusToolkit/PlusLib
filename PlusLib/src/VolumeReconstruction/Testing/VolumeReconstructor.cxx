@@ -6,15 +6,16 @@
 
 #include "PlusConfigure.h"
 
-#include "vtksys/CommandLineArguments.hxx" 
-#include "vtkSmartPointer.h"
-#include "vtkImageData.h"
-#include "vtkXMLUtilities.h"
+#include "vtksys/CommandLineArguments.hxx"
 
-#include "vtkVolumeReconstructor.h"
-#include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
+
+#include "vtkImageData.h"
+#include "vtkMatrix4x4.h"
+#include "vtkTrackedFrameList.h"
 #include "vtkTransformRepository.h"
+#include "vtkVolumeReconstructor.h"
+#include "vtkXMLUtilities.h"
 
 int main (int argc, char* argv[])
 { 

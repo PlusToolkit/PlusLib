@@ -7,9 +7,6 @@
 #ifndef __PlusXmlUtils_h
 #define __PlusXmlUtils_h
 
-#include "vtkOutputWindow.h"
-#include "vtkPlusLogger.h"
-#include "itkImageIOBase.h"
 #include "vtkXMLUtilities.h"
 
 /*!

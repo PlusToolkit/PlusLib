@@ -5,8 +5,11 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
-#include "float.h"
 #include "vtkProbeCalibrationAlgo.h"
+
+#include "float.h"
+#include <vnl/vnl_inverse.h>
+
 #include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
 #include "vtkTransformRepository.h"

@@ -8,13 +8,10 @@ See License.txt for details.
 
 #include "vtkPlusOpenIGTLinkExport.h"
 
-#include "igtlObject.h"
-#include "igtlutil/igtl_util.h"
-#include "igtlutil/igtl_header.h"
 #include "igtlImageMessage.h"
 #include "igtl_types.h"
-#include "igtl_win32header.h"
-#include "TrackedFrame.h"
+
+class TrackedFrame;
 
 namespace igtl
 {
@@ -41,39 +38,14 @@ namespace igtl
     PlusStatus SetTrackedFrame( const TrackedFrame& trackedFrame); 
 
     /*! Get Plus TrackedFrame */ 
-    TrackedFrame GetTrackedFrame(); 
+    TrackedFrame& GetTrackedFrame(); 
 
   protected:
 
     struct MessageHeader 
     {
-      size_t GetMessageHeaderSize()
-      {
-        size_t headersize = 13* sizeof(igtl_uint32); 
-        return headersize; 
-      }
-
-      void ConvertEndianness()
-      {
-        if (igtl_is_little_endian()) 
-        {
-          m_DataType = BYTE_SWAP_INT32(m_DataType); 
-          m_TransmitFrequency = BYTE_SWAP_INT32(m_TransmitFrequency); 
-          m_SamplingFrequency = BYTE_SWAP_INT32(m_SamplingFrequency); 
-          m_DataRate = BYTE_SWAP_INT32(m_DataRate); 
-          m_LineDensity = BYTE_SWAP_INT32(m_LineDensity);
-
-          m_SteeringAngle = BYTE_SWAP_INT32(m_SteeringAngle);
-          m_ProbeID = BYTE_SWAP_INT32(m_ProbeID);
-          m_ExtensionAngle = BYTE_SWAP_INT32(m_ExtensionAngle);
-          m_Elements = BYTE_SWAP_INT32(m_Elements);
-          m_Pitch = BYTE_SWAP_INT32(m_Pitch);
-
-          m_Radius = BYTE_SWAP_INT32(m_Radius);
-          m_ProbeAngle = BYTE_SWAP_INT32(m_ProbeAngle);
-          m_TxOffset = BYTE_SWAP_INT32(m_TxOffset);
-        }
-      }
+      size_t GetMessageHeaderSize();
+      void ConvertEndianness();
 
       igtl_int32 m_DataType;              // US data type
       igtl_int32 m_TransmitFrequency;     // transmit frequency of ultrasound probe

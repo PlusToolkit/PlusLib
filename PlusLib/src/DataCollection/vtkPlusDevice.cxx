@@ -8,6 +8,7 @@ See License.txt for details.
 #include "vtkImageData.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
+#include "vtkMatrix4x4.h"
 #include "vtkMetaImageReader.h"
 #include "vtkMetaImageWriter.h"
 #include "vtkMultiThreader.h" 

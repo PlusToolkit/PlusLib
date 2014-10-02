@@ -12,16 +12,6 @@
 
 #include "vtkImageAlgorithm.h" 
 
-#include <vector>
-#include <string>
-
-#include "ulterius_def.h"
-
-#if PLUS_ULTRASONIX_SDK_MAJOR_VERSION == 1
-#include "utx_imaging_modes.h"
-#endif
-
-class ulterius; 
 class vtkTrackedFrameList; 
 
 /*!

@@ -12,12 +12,6 @@
 #include "vtkPlusDevice.h"
 #include "vtkUSImagingParameters.h"
 
-#include "BmodeDLL.h"
-#include "usbProbeDLL_net.h"
-
-using namespace std;
-
-
 /*!
   \class vtkIntersonVideoSource 
   \brief Class for acquiring ultrasound images from Interson USB ultrasound systems
@@ -117,7 +111,7 @@ protected:
   These modes are combinations of pulse frequency and sample rate that yield acceptable results
   with that particular probe. While there is no enforcement to use only these modes, one should 
   understand the implications on image quality if one of the allowed modes is not selected.*/
-  PlusStatus GetProbeAllowedModes(std::vector<pair<double,double>>& allowedModes);
+  PlusStatus GetProbeAllowedModes(std::vector< std::pair<double,double> > &allowedModes);
 
   /*! Get probe name from the device */
   PlusStatus GetProbeNameDevice(std::string& probeName);
@@ -149,8 +143,6 @@ protected:
 private:
   vtkIntersonVideoSource(const vtkIntersonVideoSource&);  // Not implemented.
   void operator=(const vtkIntersonVideoSource&);  // Not implemented.
-
-  PlusStatus InitializeDIB(bmBITMAPINFO *bmi);
 };
 
 #endif

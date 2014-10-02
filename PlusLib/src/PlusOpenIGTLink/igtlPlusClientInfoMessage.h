@@ -9,8 +9,6 @@
 
 #include "vtkPlusOpenIGTLinkExport.h"
 
-#include <string>
-
 #include "igtlObject.h"
 #include "igtlStringMessage.h"
 #include "PlusIgtlClientInfo.h" 
