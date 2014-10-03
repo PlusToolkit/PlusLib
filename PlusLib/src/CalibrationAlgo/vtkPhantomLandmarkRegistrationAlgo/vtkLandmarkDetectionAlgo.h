@@ -65,7 +65,7 @@ public:
   */
   void SetStylusShaftMinimumDisplacementThresholdMm(double stylusShaftMinimumDisplacementThresholdMm);
   /*! Set the landmark threshold. A landmark position will be consider when the stylus tip position magnitude change is below SameLandmarkThresholdMm.  */
-  void SetStylusTipMaximumMotionThresholdMm(double stylusTipMaximumMotionThresholdMm);
+  void SetStylusTipMaximumDisplacementThresholdMm(double stylusTipMaximumMotionThresholdMm);
   /*! Set the number of expected landmarks to be found. Used for deciding if the algorithm is completed. */
   void SetNumberOfExpectedLandmarks(int numberOfExpectedLandmarks);
   /* The flag completed will be true when the number of landmark points detected is equal to the expected number of landmark points */
@@ -92,6 +92,11 @@ protected:
   vtkLandmarkDetectionAlgo();
   virtual  ~vtkLandmarkDetectionAlgo();
 
+  /*
+  filterWindowSize=DetectionTime/FilterWindowTime. The number of windows to be detected as landmark in DetectionTime.
+  numberOfWindows=AcquisitonRate*FilterWindowTime. The number of acquisitions in FilterWindowTime
+  */
+  void GetAlgoVariables(int & filterWindowSize, int & numberOfWindows);
   /*!
     Remove all previously inserted points.
     Call this method to get rid of previously added points before starting a new detection.
@@ -120,10 +125,10 @@ protected:
   vtkPoints* DetectedLandmarkPoints_Reference;
   /*! The flag is true when a landmark is detected it is reset again to false when LandmarkFound() is called.*/
   bool NewLandmarkFound;
-  /*! The number of windows to be detected as landmark in DetectionTime (DetectionTime/WindowTime) */
-  int NumberOfWindows;
-  /*! The number of acquisitions in WindowTime (AcquisitonRate/WindowTime) */
-  int FilterWindowSize;
+  ///*! The number of windows to be detected as landmark in DetectionTime (DetectionTime/WindowTime) */
+  //int NumberOfWindows;
+  ///*! The number of acquisitions in WindowTime (AcquisitonRate/WindowTime) */
+  //int FilterWindowSize;
   /*! The expected number of landmarks to be detected */
   int NumberOfExpectedLandmarks;
   /*! Device acquisition rate */
@@ -138,7 +143,7 @@ protected:
   */
   double StylusShaftMinimumDisplacementThresholdMm;
   /*! A landmark position will be detected when the stylus tip position magnitude change is below StylusTipMaximumMotionThresholdMm.*/
-  double StylusTipMaximumMotionThresholdMm;
+  double StylusTipMaximumDisplacementThresholdMm;
   /*! The minimum distance in between any two defined landmarks in the phantom, it will be a NEW landmark detected only if it is further away from any other already detected landmark .*/
   double MinimunDistanceBetweenLandmarksMm;
   /*! The bounding box is updated during the detection time covering the path of the stylus shaft position*/
