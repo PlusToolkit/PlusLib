@@ -201,10 +201,6 @@ void vtkLandmarkDetectionAlgo::KeepLastWindow()
       this->StylusTipToReferenceTransformsDeque.pop_front();
       j++;
     }
-    for(int a=0; a<j/filterWindowSize;a++)
-    {
-      this->StylusTipFilteredDeque_Reference.pop_front();
-    }
   }
   //DEBUG
   for (std::deque< vtkSmartPointer<vtkMatrix4x4> >::iterator markerToReferenceTransformIt=this->StylusTipToReferenceTransformsDeque.begin();
@@ -238,9 +234,9 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtk
       return PLUS_FAIL;
     }
     std::vector<double> stylusTipFilteredVector_Reference (stylusTipFiltered_Reference, stylusTipFiltered_Reference+sizeof(stylusTipFiltered_Reference)/sizeof(stylusTipFiltered_Reference[0]));
-    StylusTipFilteredDeque_Reference.push_back(stylusTipFilteredVector_Reference);
-
-    if(StylusTipFilteredDeque_Reference.size()>1)
+    
+    int numberFilteredWindows =PlusMath::Floor(this->StylusTipToReferenceTransformsDeque.size()/filterWindowSize);
+    if(numberFilteredWindows>1)
     {
       this->StylusShaftPathBoundingBox.AddPoint(pointAboveStylusTip_Reference);
       this->StylusTipPathBoundingBox.AddPoint(stylusTipFiltered_Reference);
@@ -266,10 +262,7 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtk
       {
         LOG_DEBUG("\nStylusTipBoundingBox norm = " <<vtkMath::Norm(lengthsTip)<<"\n");
         KeepLastWindow();
-        while(StylusTipFilteredDeque_Reference.size()>1)
-        {
-          StylusTipFilteredDeque_Reference.pop_front();
-        }
+
         this->StylusShaftPathBoundingBox.Reset();
         this->StylusShaftPathBoundingBox.AddPoint(pointAboveStylusTip_Reference);
         this->StylusTipPathBoundingBox.Reset();
@@ -278,7 +271,7 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtk
     }
     double lengths[3];
     this->StylusShaftPathBoundingBox.GetLengths(lengths);
-    if(StylusTipFilteredDeque_Reference.size()>=numberOfWindows)
+    if(numberFilteredWindows >=numberOfWindows)
     {
       this->StylusTipPathBoundingBox.Reset();
       this->StylusShaftPathBoundingBox.Reset();

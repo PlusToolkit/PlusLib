@@ -153,8 +153,6 @@ protected:
   char* ReferenceCoordinateFrame;
   /*! Double ended queue the input point transformations */
   std::deque< vtkSmartPointer<vtkMatrix4x4> > StylusTipToReferenceTransformsDeque;
-  /*! Landmark point position average per window Double ended queue (defined in the reference coordinate system)*/
-  std::deque< std::vector<double> > StylusTipFilteredDeque_Reference;
 };
 
 #endif
