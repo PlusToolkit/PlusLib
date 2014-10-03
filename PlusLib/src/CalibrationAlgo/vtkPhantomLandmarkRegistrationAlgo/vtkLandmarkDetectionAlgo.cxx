@@ -10,17 +10,10 @@ See License.txt for details.
 
 #include "vtkLandmarkDetectionAlgo.h"
 
-#include "vtkDescriptiveStatistics.h"
-#include "vtkDoubleArray.h"
-#include "vtkMatrix4x4.h"
-#include "vtkMultiBlockDataSet.h"
-#include "vtkTable.h"
-
 vtkStandardNewMacro(vtkLandmarkDetectionAlgo);
 
 //-----------------------------------------------------------------------------
 // Default algorithm parameters
-
 namespace
 {
   const int NUMBER_EXPECTED_LANDMARKS=3;// The default expected number of landmarks to be detected
@@ -356,68 +349,30 @@ int vtkLandmarkDetectionAlgo::GetNearExistingLandmarkId(double* stylusTipPositio
 //----------------------------------------------------------------------------
 PlusStatus vtkLandmarkDetectionAlgo::EstimateLandmarkPosition()
 {
-  vtkSmartPointer<vtkDoubleArray> datasetArrX = vtkSmartPointer<vtkDoubleArray>::New();
-  datasetArrX->SetNumberOfComponents( 1 );
-  datasetArrX->SetName( "X" );
-  vtkSmartPointer<vtkDoubleArray> datasetArrY = vtkSmartPointer<vtkDoubleArray>::New();
-  datasetArrY->SetNumberOfComponents( 1 );
-  datasetArrY->SetName( "Y" );
-  vtkSmartPointer<vtkDoubleArray> datasetArrZ = vtkSmartPointer<vtkDoubleArray>::New();
-  datasetArrZ->SetNumberOfComponents( 1 );
-  datasetArrZ->SetName( "Z" );
   int i=0; int j=0;
-  for (std::deque< vtkSmartPointer<vtkMatrix4x4> >::iterator stylusTipToReferenceTransformItD=this->StylusTipToReferenceTransformsDeque.begin();
-    stylusTipToReferenceTransformItD!=this->StylusTipToReferenceTransformsDeque.end(); ++stylusTipToReferenceTransformItD)
+  const int pointDimensions=3;
+  std::vector<double> values[pointDimensions]; 
+  for (std::deque< vtkSmartPointer<vtkMatrix4x4> >::iterator stylusTipToReferenceTransformIt=this->StylusTipToReferenceTransformsDeque.begin();
+    stylusTipToReferenceTransformIt!=this->StylusTipToReferenceTransformsDeque.end(); ++stylusTipToReferenceTransformIt)
   {
     //Don't use first NUMBER_WINDOWS_SKIP windows
     if(i>=(this->FilterWindowSize*NUMBER_WINDOWS_SKIP) && i <(this->NumberOfWindows)*this->FilterWindowSize)
     {
-      datasetArrX->InsertNextValue( (*stylusTipToReferenceTransformItD)->Element[0][3] );
-      datasetArrY->InsertNextValue( (*stylusTipToReferenceTransformItD)->Element[1][3] );
-      datasetArrZ->InsertNextValue( (*stylusTipToReferenceTransformItD)->Element[2][3] );
+      values[0].push_back( (*stylusTipToReferenceTransformIt)->Element[0][3] );
+      values[1].push_back( (*stylusTipToReferenceTransformIt)->Element[1][3] );
+      values[2].push_back( (*stylusTipToReferenceTransformIt)->Element[2][3] );
       j++;
     }
     i++;
   }
 
-  vtkSmartPointer<vtkTable> simpleTable = vtkSmartPointer<vtkTable>::New();
-  simpleTable->AddColumn( datasetArrX );
-  simpleTable->AddColumn( datasetArrY );
-  simpleTable->AddColumn( datasetArrZ );
-  // Pairs of interest
-  int nMetrics = 3;
-  vtkStdString columns[] =
-  {
-    "X",
-    "Y",
-    "Z"
-  };
-  // Set descriptive statistics algorithm and its input data port
-  vtkSmartPointer<vtkDescriptiveStatistics> descriptiveStats = vtkSmartPointer<vtkDescriptiveStatistics>::New();
-  descriptiveStats->SetInputData_vtk5compatible( simpleTable );
-  // Select Columns of Interest
-  for ( int i = 0; i< nMetrics; ++ i )
-  {
-    descriptiveStats->AddColumn( columns[i] );
-  }
-  // Test Learn, Derive, Test, and Assess options
-  descriptiveStats->SetLearnOption( true );
-  descriptiveStats->SetDeriveOption( true );
-  descriptiveStats->SetAssessOption( false );
-  descriptiveStats->SetTestOption( false );
-  descriptiveStats->Update();
-  vtkSmartPointer<vtkMultiBlockDataSet> outputMetaDS = vtkMultiBlockDataSet::SafeDownCast( descriptiveStats->GetOutputDataObject( vtkStatisticsAlgorithm::OUTPUT_MODEL ) );
-  vtkSmartPointer<vtkTable> outputPrimary = vtkTable::SafeDownCast( outputMetaDS->GetBlock( 0 ) );
-  vtkSmartPointer<vtkTable> outputDerived = vtkTable::SafeDownCast( outputMetaDS->GetBlock( 1 ) );
-
   if(j==(this->NumberOfWindows-NUMBER_WINDOWS_SKIP)*this->FilterWindowSize)
   {
     double stylusPositionMean_Reference[4] = {0,0,0,1};
-    double stylusPositionStdev_Reference[4] = {0,0,0,1};
-    for ( vtkIdType r = 0; r < outputPrimary->GetNumberOfRows(); ++ r )
+    double stylusPositionStdev_Reference[4] = {0,0,0,0};
+    for ( int r = 0; r < pointDimensions; ++ r )
     {
-      stylusPositionMean_Reference[r]=outputPrimary->GetValueByName( r, "Mean" ).ToDouble();
-      stylusPositionStdev_Reference[r]=outputDerived->GetValueByName( r, "Standard Deviation" ).ToDouble();
+      PlusMath::ComputeMeanAndStdev( values[r], stylusPositionMean_Reference[r], stylusPositionStdev_Reference[r]);
     }
     if(GetNearExistingLandmarkId(stylusPositionMean_Reference)==-1)
     {
