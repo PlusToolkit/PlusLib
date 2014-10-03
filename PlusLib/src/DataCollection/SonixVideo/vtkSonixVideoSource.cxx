@@ -25,6 +25,7 @@ Siddharth Vikal (Queen's University, Kingston, Ontario, Canada)
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkTimerLog.h"
 #include "vtkUnsignedCharArray.h"
+#include "vtkUsImagingParameters.h"
 #include "vtksys/SystemTools.hxx"
 
 #include "ulterius.h"
@@ -144,7 +145,7 @@ bool vtkSonixVideoSource::vtkSonixVideoSourceNewFrameCallback(void * data, int t
 {    
   if(data == NULL || sz == 0)
   {
-    LOG_DEBUG("Error: no actual frame data received"); 
+    LOG_DEBUG("vtkSonixVideoSourceNewFrameCallback: called without data");
     return false;
   }
 
@@ -285,6 +286,46 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
 {
   this->Ult->setMessaging(false); // don't print messages on stdout
 
+  int requestedImagingDataType = 0;
+  if (GetRequestedImagingDataTypeFromSources(requestedImagingDataType)!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to connect to sonix video device");
+    return PLUS_FAIL;
+  }
+
+  switch (requestedImagingDataType)
+  {
+  case vtkUsImagingParameters::DataTypeBPost:
+    LOG_DEBUG("Imaging mode set: BMode");
+    this->ImagingMode = BMode;
+    this->RfAcquisitionMode = RF_ACQ_B_ONLY;
+    this->AcquisitionDataType = udtBPost;
+    break;
+  case vtkUsImagingParameters::DataTypeRF:
+    LOG_DEBUG("Imaging mode set: RfMode");
+#if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6)
+    this->ImagingMode = RfMode;
+#else
+    this->ImagingMode = 0; // RfMode is always enabled for SDK 6.x
+#endif
+    this->RfAcquisitionMode = RF_ACQ_RF_ONLY;
+    this->AcquisitionDataType = udtRF;
+    break;
+  case (vtkUsImagingParameters::DataTypeBPost+vtkUsImagingParameters::DataTypeRF):
+    LOG_DEBUG("Imaging mode set: BAndRfMode");
+#if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6)
+    this->ImagingMode = RfMode;
+#else
+    this->ImagingMode = BMode; // RfMode is always enabled for SDK 6.x
+#endif
+    this->RfAcquisitionMode = RF_ACQ_B_AND_RF;
+    this->AcquisitionDataType = udtBPost | udtRF;
+    break;
+  default:
+    LOG_ERROR("Unsupported imaging data types are requested: "<<requestedImagingDataType);
+    return PLUS_FAIL;
+  }
+
   // Connect to device. Sometimes it just fails so try to make it more robust by retrying
   // the connection a few times.
   int connectionTried=0;
@@ -346,8 +387,8 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
       continue;
     }
 
-// RF acquisition mode is always enabled on Ultrasonix SDK 6.x and above
-#if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6) 
+#if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6)
+    // RF acquisition mode is always enabled on Ultrasonix SDK 6.x and above, so we only need to change it if it's an earlier SDK version
     if ( this->ImagingMode == RfMode )
     {
       if ( this->SetRfAcquisitionMode(this->RfAcquisitionMode) != PLUS_SUCCESS )
@@ -369,20 +410,30 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
     }
 #endif
 
-    if( this->WantDataType(udtBPost) && this->HasDataType(udtBPost) )
+    // Configure video sources
+    if( this->WantDataType(udtBPost))
     {
+      if (!this->HasDataType(udtBPost))
+      {
+        LOG_ERROR("No B-mode data is available");
+        continue;
+      }
       if( this->ConfigureVideoSource(udtBPost) != PLUS_SUCCESS )
       {
-        LOG_ERROR("Unable to configure B-mode video source.");
+        LOG_ERROR("Unable to configure B-mode video source");
         continue;
       }
     }
-
-    if( this->WantDataType(udtRF) && this->HasDataType(udtRF) )
+    if( this->WantDataType(udtRF))
     {
+      if (!this->HasDataType(udtRF))
+      {
+        LOG_ERROR("No Rf-mode data is available");
+        continue;
+      }
       if( this->ConfigureVideoSource(udtRF) != PLUS_SUCCESS )
       {
-        LOG_ERROR("Unable to configure Rf-mode video source.");
+        LOG_ERROR("Unable to configure Rf-mode video source");
         continue;
       }
     }
@@ -488,52 +539,6 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigE
     LOG_WARNING("Ultrasonix IP address is not defined. Defaulting to " << this->GetSonixIP() );
   }  
 
-  std::vector<vtkPlusDataSource*> bSources;
-  std::vector<vtkPlusDataSource*> rfSources;
-  this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, bSources);
-  this->GetVideoSourcesByPortName(vtkPlusDevice::RFMODE_PORT_NAME, rfSources);
-  bool bMode = bSources.size() > 0;
-  bool rfMode = rfSources.size() > 0;
-
-  if (bMode && !rfMode)
-  {
-    LOG_DEBUG("Imaging mode set: BMode"); 
-    this->ImagingMode = BMode; 
-    this->RfAcquisitionMode = RF_ACQ_B_ONLY; // Not necessary, setting it just in case
-    this->AcquisitionDataType = udtBPost;
-  } 
-  else if ( rfMode && !bMode )
-  {
-#if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6)
-    LOG_DEBUG("Imaging mode set: RfMode"); 
-    this->ImagingMode = RfMode;
-    this->RfAcquisitionMode = RF_ACQ_RF_ONLY;
-    this->AcquisitionDataType = udtRF;
-#else
-    LOG_ERROR("RF acquisition mode is not supported on Ultrasonix SDK 6.x and above. ImagingMode is set to BMode."); // see https://www.assembla.com/spaces/plus/tickets/489-add-rf-image-acquisition-support-on-ulterius-6-x      
-    this->ImagingMode = BMode; 
-    this->AcquisitionDataType = udtBPost;
-#endif
-  }
-  else if ( bMode && rfMode )
-  {
-#if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6)
-    LOG_DEBUG("Imaging mode set: BAndRfMode");
-    this->ImagingMode = RfMode;
-    this->RfAcquisitionMode = RF_ACQ_B_AND_RF;
-    this->AcquisitionDataType = udtBPost | udtRF;
-#else
-    LOG_ERROR("RF acquisition mode is not supported on Ultrasonix SDK 6.x and above. ImagingMode is set to BMode."); // see https://www.assembla.com/spaces/plus/tickets/489-add-rf-image-acquisition-support-on-ulterius-6-x      
-    this->ImagingMode = BMode; 
-    this->AcquisitionDataType = udtBPost;
-#endif
-  }
-  else
-  {
-    LOG_ERROR("PortName is not defined for the data sources in the SonixVideo device "<<this->GetDeviceId());
-    return PLUS_FAIL;
-  }
-
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(DetectDepthSwitching, deviceConfig);
   if (this->DetectDepthSwitching)
   {
@@ -583,44 +588,6 @@ PlusStatus vtkSonixVideoSource::WriteConfiguration(vtkXMLDataElement* rootConfig
   else
   {
     LOG_ERROR("Saving of unsupported ImagingMode requested!");
-  }
-
-  if (this->RfAcquisitionMode == RF_ACQ_B_ONLY)
-  {
-    imageAcquisitionConfig->SetAttribute("RfAcquisitionMode", "BOnly");
-  }
-  else if (this->RfAcquisitionMode == RF_ACQ_RF_ONLY)
-  {
-    imageAcquisitionConfig->SetAttribute("RfAcquisitionMode", "RfOnly");
-  }
-  else if (this->RfAcquisitionMode == RF_ACQ_B_AND_RF)
-  {
-    imageAcquisitionConfig->SetAttribute("RfAcquisitionMode", "BAndRf");
-  }
-  else if (this->RfAcquisitionMode == RF_ACQ_CHRF_ONLY)
-  {
-    imageAcquisitionConfig->SetAttribute("RfAcquisitionMode", "ChRfOnly");
-  }
-  else if (this->RfAcquisitionMode == RF_ACQ_B_AND_CHRF)
-  {
-    imageAcquisitionConfig->SetAttribute("RfAcquisitionMode", "BAndChRf");
-  }
-  else
-  {
-    LOG_ERROR("Saving of unsupported RfAcquisitionMode requested!");
-  }
-
-  if (this->AcquisitionDataType == udtBPost)
-  {
-    imageAcquisitionConfig->SetAttribute("AcquisitionDataType", "BPost");
-  }
-  else if (this->AcquisitionDataType == udtRF)
-  {
-    imageAcquisitionConfig->SetAttribute("AcquisitionDataType", "RF");
-  }
-  else
-  {
-    LOG_ERROR("Saving of unsupported AcquisitionDataType requested!");
   }
 
   imageAcquisitionConfig->SetAttribute("IP", this->SonixIP);
@@ -1060,13 +1027,14 @@ PlusStatus vtkSonixVideoSource::NotifyConfigured()
 bool vtkSonixVideoSource::HasDataType( uData aValue )
 {
   uDataDesc someVal;
-  return this->Ult->getDataDescriptor( aValue, someVal ) ? PLUS_SUCCESS : PLUS_FAIL;
+  bool success = this->Ult->getDataDescriptor( aValue, someVal );
+  return success;
 }
 
 //----------------------------------------------------------------------------
 bool vtkSonixVideoSource::WantDataType( uData aValue )
 {
-  return (AcquisitionDataType & aValue) > 0;
+  return (this->AcquisitionDataType & aValue) > 0;
 }
 
 //----------------------------------------------------------------------------
@@ -1141,5 +1109,30 @@ PlusStatus vtkSonixVideoSource::ConfigureVideoSource( uData aValue )
   }
   this->SetFrameSize( *aSource, aDataDescriptor.w, aDataDescriptor.h);
 
+  return PLUS_SUCCESS;
+}
+
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixVideoSource::GetRequestedImagingDataTypeFromSources(int &requestedImagingDataType)
+{
+  requestedImagingDataType=0;
+  std::vector<vtkPlusDataSource*> sources;  
+  if (this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, sources) != PLUS_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
+  if (!sources.empty())
+  {
+    requestedImagingDataType |= vtkUsImagingParameters::DataTypeBPost;
+  }
+  if (this->GetVideoSourcesByPortName(vtkPlusDevice::RFMODE_PORT_NAME, sources) != PLUS_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
+  if (!sources.empty())
+  {
+    requestedImagingDataType |= vtkUsImagingParameters::DataTypeRF;
+  }
   return PLUS_SUCCESS;
 }

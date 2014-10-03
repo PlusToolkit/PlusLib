@@ -90,8 +90,8 @@ If you did not specify the global parameters above, Plus will attempt to configu
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_SonixTouch_L14-5_Porta.xml"
 
-\section SonixVideoExampleConfigFileRf Example configuration file for RF-mode acquisition using Ulterius interface
+\section SonixVideoExampleConfigFileRf Example configuration file for dual B-mode and RF-mode acquisition using Ulterius interface
 
-\include "data/ConfigFiles/PlusDeviceSet_fCal_SonixRP_L14-5_RF_NDICertus_1.0.xml"
+\include "data/ConfigFiles/Testing/PlusDeviceSet_DataCollectionOnly_SonixVideo_FakeTracker_DualMode.xml"
 
 */
