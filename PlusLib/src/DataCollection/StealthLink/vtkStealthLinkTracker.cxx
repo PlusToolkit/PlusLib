@@ -9,15 +9,16 @@ See License.txt for details.
 #include "vtkStealthLinkTracker.h"
 #include "StealthLink/StealthLink.h"
 
-#include <vtkDirectory.h>
+#include "vtkDICOMImageReader.h"
+#include "vtkDirectory.h"
+#include "vtkImageData.h"
+#include "vtkImageFlip.h"
+#include "vtkMath.h"
+#include "vtkMatrix4x4.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusBuffer.h"
-
-#include "vtkImageData.h"
-#include "vtkSmartPointer.h"
-#include "vtkDICOMImageReader.h"
-#include <vtkImageFlip.h>
+#include "vtkTransformRepository.h"
 
 #include <iostream>
 
