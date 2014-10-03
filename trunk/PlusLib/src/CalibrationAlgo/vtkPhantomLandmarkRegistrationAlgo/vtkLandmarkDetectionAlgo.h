@@ -93,10 +93,10 @@ protected:
   virtual  ~vtkLandmarkDetectionAlgo();
 
   /*
-  filterWindowSize=DetectionTime/FilterWindowTime. The number of windows to be detected as landmark in DetectionTime.
-  numberOfWindows=AcquisitonRate*FilterWindowTime. The number of acquisitions in FilterWindowTime
+  The number of windows to be detected as landmark in DetectionTime.
+  \param filterWindowSize=DetectionTime/FilterWindowTime. 
   */
-  void GetAlgoVariables(int & filterWindowSize, int & numberOfWindows);
+  void GetFilterWindowSize(int & filterWindowSize);
   /*!
     Remove all previously inserted points.
     Call this method to get rid of previously added points before starting a new detection.
@@ -112,8 +112,8 @@ protected:
   PlusStatus IsNewLandmarkPointFound(bool &found);
 
   /*!
-    The change in landmark positions is measured in windows of points.
-    If the current window is not considered the same pivoting point as the one before. The points acquired that belong to the first window will be erased by this function.
+  The change in landmark positions is measured in windows of points.
+  If the current window is not considered the same pivoting point as the one before. The points acquired that belong to the first window will be erased by this function.
   */
   void KeepLastWindow();
 
@@ -125,10 +125,6 @@ protected:
   vtkPoints* DetectedLandmarkPoints_Reference;
   /*! The flag is true when a landmark is detected it is reset again to false when LandmarkFound() is called.*/
   bool NewLandmarkFound;
-  ///*! The number of windows to be detected as landmark in DetectionTime (DetectionTime/WindowTime) */
-  //int NumberOfWindows;
-  ///*! The number of acquisitions in WindowTime (AcquisitonRate/WindowTime) */
-  //int FilterWindowSize;
   /*! The expected number of landmarks to be detected */
   int NumberOfExpectedLandmarks;
   /*! Device acquisition rate */
@@ -148,12 +144,17 @@ protected:
   double MinimunDistanceBetweenLandmarksMm;
   /*! The bounding box is updated during the detection time covering the path of the stylus shaft position*/
   vtkBoundingBox StylusShaftPathBoundingBox;
+  /*! 
+  The bounding box is updated during the detection time covering the path of the stylus tip position, if lenth of the box norm is smaller than
+  StylusTipMaximumDisplacementThresholdMm a landkmark is detected
+  */
+  vtkBoundingBox StylusTipPathBoundingBox;
   /*! Name of the reference coordinate frame (eg. Reference) */
   char* ReferenceCoordinateFrame;
   /*! Double ended queue the input point transformations */
   std::deque< vtkSmartPointer<vtkMatrix4x4> > StylusTipToReferenceTransformsDeque;
-  /*! Landmark point position average per window list (defined in the reference coordinate system)*/
-  std::list< std::vector<double> > StylusTipFilteredList_Reference;
+  /*! Landmark point position average per window Double ended queue (defined in the reference coordinate system)*/
+  std::deque< std::vector<double> > StylusTipFilteredDeque_Reference;
 };
 
 #endif
