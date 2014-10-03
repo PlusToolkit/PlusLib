@@ -386,6 +386,7 @@ PlusStatus vtkPlusDevice::GetToolByPortName( const char* portName, vtkPlusDataSo
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::GetVideoSourcesByPortName( const char* aPortName, std::vector<vtkPlusDataSource*>& sources )
 {
+  sources.clear();
   if ( aPortName == NULL )
   {
     LOCAL_LOG_ERROR("Failed to get video source - port name is NULL!"); 

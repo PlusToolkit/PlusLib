@@ -7,10 +7,10 @@
       LocalTimeOffsetSec="-0.2976"
       IP="130.15.7.20" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" />
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="MF" />
       </DataSources>
-      <OutputChannels>
-        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+      <OutputChannels>		
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />		
       </OutputChannels>
     </Device>
   </DataCollection>

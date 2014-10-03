@@ -200,24 +200,6 @@ public:
   /*! Print the list of supported parameters. For diagnostic purposes only. */
   PlusStatus PrintListOfImagingParameters();
 
-  /*!
-  \enum RfAcquisitionModeType
-  \brief Defines RF acquisition mode types (0=B only, 1=RF only, 2=B and RF, 3=ChRF, 4=B and ChRF)
-  */
-  enum RfAcquisitionModeType
-  {
-    RF_UNKNOWN = -1, 
-    RF_ACQ_B_ONLY = 0, 
-    RF_ACQ_RF_ONLY = 1, 
-    RF_ACQ_B_AND_RF = 2,
-    RF_ACQ_CHRF_ONLY = 3, 
-    RF_ACQ_B_AND_CHRF = 4 
-  }; 
-  /*! Set RF acquire mode */
-  PlusStatus SetRfAcquisitionMode(RfAcquisitionModeType mode);
-  /*! Get current RF acquire mode */
-  PlusStatus GetRfAcquisitionMode(RfAcquisitionModeType & mode);
-
   /*! Verify the device is correctly configured */
   virtual PlusStatus NotifyConfigured();
 
@@ -249,6 +231,24 @@ protected:
 
   ////////////////////////
 
+  /*!
+  \enum RfAcquisitionModeType
+  \brief Defines RF acquisition mode types (0=B only, 1=RF only, 2=B and RF, 3=ChRF, 4=B and ChRF)
+  */
+  enum RfAcquisitionModeType
+  {
+    RF_UNKNOWN = -1, 
+    RF_ACQ_B_ONLY = 0, 
+    RF_ACQ_RF_ONLY = 1, 
+    RF_ACQ_B_AND_RF = 2,
+    RF_ACQ_CHRF_ONLY = 3, 
+    RF_ACQ_B_AND_CHRF = 4 
+  }; 
+  /*! Set RF acquire mode. Determined from the video data sources. */
+  PlusStatus SetRfAcquisitionMode(RfAcquisitionModeType mode);
+  /*! Get current RF acquire mode */
+  PlusStatus GetRfAcquisitionMode(RfAcquisitionModeType & mode);
+
   /*! For internal use only */
   PlusStatus AddFrameToBuffer(void * data, int type, int sz, bool cine, int frmnum);
 
@@ -260,6 +260,12 @@ protected:
   bool HasDataType( uData aValue );
   bool WantDataType( uData aValue );
   PlusStatus ConfigureVideoSource( uData aValue );
+
+  /*!
+    Determine all necessary imaging data types from the DataSource elements with Type="Video".
+    Returns a combination of vtkUsImagingParameters::DataType enum flags.
+  */
+  virtual PlusStatus GetRequestedImagingDataTypeFromSources(int &requestedImagingDataType);
 
   vtkSetMacro(DetectDepthSwitching, bool);
   vtkSetMacro(DetectPlaneSwitching, bool);  

@@ -29,6 +29,7 @@
 #include "vtkInformationVector.h"
 #include "vtkPlot.h"
 #include "vtkPlusBuffer.h"
+#include "vtkPlusChannel.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
@@ -42,12 +43,6 @@
 #include <stdlib.h>
 
 //----------------------------------------------------------------------------
-
-enum DisplayMode
-{
-  SHOW_IMAGE,
-  SHOW_PLOT
-};
 
 //----------------------------------------------------------------------------
 
@@ -107,26 +102,34 @@ protected:
       arrRfValNew->SetName("RF value");
       outputTable->AddColumn(arrRfValNew);
     }
-
-    if (inputImage->GetScalarType()!=VTK_SHORT)
-    {
-      LOG_ERROR("Plotting is only supported for signed short data");
-      return 0;
-    }
+    
     int rowCount=inputImage->GetDimensions()[1]; // number of transducer crystals
     int numPoints=inputImage->GetDimensions()[0]; // number of data points (RF data values) recorded for one crystal
     int selectedRow=rowCount/2; // plot the center column of the image
-    short* pixelBuffer=reinterpret_cast<short*>(inputImage->GetScalarPointer())+selectedRow*numPoints;
 
     outputTable->SetNumberOfRows(numPoints);
-    int timeIndex=numPoints-1; // the RF data set starts with the latest time
-    for (int i = 0; i < numPoints; ++i)
+    if (inputImage->GetScalarType()==VTK_SHORT)
     {
-      outputTable->SetValue(i, 0, timeIndex);
-      short value=*pixelBuffer;
-      outputTable->SetValue(i, 1, value);
-      pixelBuffer++;
-      timeIndex--;
+      short* pixelBuffer=reinterpret_cast<short*>(inputImage->GetScalarPointer())+selectedRow*numPoints;
+      for (int i = 0; i < numPoints; ++i)
+      {        
+        outputTable->SetValue(i, 0, i);
+        outputTable->SetValue(i, 1, *(pixelBuffer++));
+      }
+    }
+    else if (inputImage->GetScalarType()==VTK_UNSIGNED_CHAR)
+    {
+      unsigned char* pixelBuffer=reinterpret_cast<unsigned char*>(inputImage->GetScalarPointer())+selectedRow*numPoints;     
+      for (int i = 0; i < numPoints; ++i)
+      {        
+        outputTable->SetValue(i, 0, i);
+        outputTable->SetValue(i, 1, *(pixelBuffer++));
+      }
+    }
+    else
+    {
+      LOG_ERROR("Plotting is only supported for unsigned char and signed short data");
+      return 0;
     }
 
     return 1;
@@ -195,7 +198,7 @@ void TestLinePlot(vtkSonixVideoSource *sonixGrabber)
   vtkPlot *line = chart->AddPlot(vtkChart::LINE);
   line->SetInputData_vtk5compatible(imageToTableAdaptor->GetOutput(), 0, 1);
   line->SetColor(0, 255, 0, 255);
-  line->SetWidth(1.0);
+  line->SetWidth(1.0);  
 
   vtkSmartPointer<vtkMyPlotCallback> call = vtkSmartPointer<vtkMyPlotCallback>::New();
   call->m_Interactor=view->GetInteractor();
@@ -246,11 +249,10 @@ int main(int argc, char* argv[])
 {
   bool printHelp(false); 
   bool renderingOff(false);
+  bool renderingAsPlot(false);
   bool printParams(false);
   std::string inputConfigFileName;
   std::string inputSonixIp;
-
-  std::string acqMode("B");
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -259,9 +261,9 @@ int main(int argc, char* argv[])
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Config file containing the device configuration.");
-  args.AddArgument("--acq-mode", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &acqMode, "Acquisition mode: B or RF (Default: B).");	
   args.AddArgument("--sonix-ip", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSonixIp, "IP address of the Ultrasonix scanner (overrides the IP address parameter defined in the config file).");
   args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
+  args.AddArgument("--rendering-as-plot", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingAsPlot, "Show the result as a line plot of the values in middle row (recommended for RF output). If not set then acquired data is displayed as a grayscale image.");
   args.AddArgument("--print-params", vtksys::CommandLineArguments::NO_ARGUMENT, &printParams, "Print all the supported imaging parameters (for diagnostic purposes only).");	
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level 1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
@@ -292,32 +294,7 @@ int main(int argc, char* argv[])
   vtkSmartPointer<vtkSonixVideoSource> sonixGrabber = vtkSmartPointer<vtkSonixVideoSource>::New();
   sonixGrabber->SetDeviceId("VideoDevice");
   sonixGrabber->ReadConfiguration(configRootElement);
-
-  DisplayMode displayMode=SHOW_IMAGE;
   
-  if (STRCASECMP(acqMode.c_str(), "B")==0)
-  {
-    LOG_DEBUG("Acquisition mode: B");
-    sonixGrabber->SetImagingMode(vtkUsImagingParameters::BMode);
-    sonixGrabber->SetAcquisitionDataType(vtkUsImagingParameters::DataTypeBPost);
-    displayMode=SHOW_IMAGE;
-  }
-  else if (STRCASECMP(acqMode.c_str(), "RF")==0)
-  {
-    LOG_DEBUG("Acquisition mode: RF");
-// RF acquisition mode is always enabled on Ultrasonix SDK 6.x and above
-#if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6) 
-    sonixGrabber->SetImagingMode(RfMode);
-#endif
-    sonixGrabber->SetAcquisitionDataType(vtkUsImagingParameters::DataTypeRF);
-    displayMode=SHOW_PLOT;
-  }
-  else
-  {
-    LOG_ERROR("Unsupported AcquisitionDataType requested: "<<acqMode);
-    exit(EXIT_FAILURE);
-  }
-
   if (!inputSonixIp.empty())
   {
     sonixGrabber->SetSonixIP(inputSonixIp.c_str());
@@ -347,7 +324,38 @@ int main(int argc, char* argv[])
   }
   else
   {
-    if (displayMode==SHOW_PLOT)
+    // Allow some time to acquire the first frames (having a first valid frame is important for auto-scale of the display)
+    Sleep(500);
+
+    // Print a warning message if there are multiple output channels and rendering is enabled,
+    // because only the first output channel is rendered
+    std::string firstChannelName;
+    std::string allChannelNames;
+    int numberOfVideoOutputChannels=0;
+    for( ChannelContainerIterator it = sonixGrabber->GetOutputChannelsStart(); it != sonixGrabber->GetOutputChannelsEnd(); ++it)
+    {
+      if ((*it)->HasVideoSource())
+      {
+        if (numberOfVideoOutputChannels==0)
+        {
+          // first channel containing video output
+          firstChannelName = (*it)->GetChannelId();
+          allChannelNames = (*it)->GetChannelId();
+        }
+        else
+        {
+          allChannelNames += std::string(", ") + (*it)->GetChannelId();
+        }
+        numberOfVideoOutputChannels++;
+      }
+    }
+    if (numberOfVideoOutputChannels>1)
+    {
+      LOG_WARNING("Multiple output channels contain video data: "<<allChannelNames<<". Only the first one ("<<firstChannelName<<") will be displayed");
+    }
+
+    // Display the output
+    if (renderingAsPlot)
     {
       TestLinePlot(sonixGrabber);
     }
