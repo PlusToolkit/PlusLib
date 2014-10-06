@@ -98,12 +98,10 @@ protected:
   virtual  ~vtkLandmarkDetectionAlgo();
 
   /*
-  During DetectionTime, the acquisiton will be filtered in windows. This method calculates the filter window size.
+  During DetectionTime, the acquisition will be filtered in windows. This method calculates the filter window size.
   \param filterWindowSize=DetectionTime/FilterWindowTime.
   */
   void GetFilterWindowSize(int & filterWindowSize);
-  /*! Remove all previously inserted points. Call this method to get rid of previously added points before starting a new detection. */
-  void RemoveAllFilterWindows();
   /* 
   Estimate landmark point position from the stylus tip points. The average of NumberOfWindows*WindowSize consecutive points that remain in the same position 
   within the LandmarkThresholdMm.
@@ -120,7 +118,7 @@ protected:
   void KeepLastWindow();
 
   /* Computes the average of the stylus tip positions in the last FilterWindowSize samples.*/
-  PlusStatus FilterWindowOfStylusTipPositions(double* landmarkPoint_Reference);
+  PlusStatus FilterStylusTipPositionsWindow(double* landmarkPoint_Reference);
 
 protected:
   /*! The detected landmark point position(s)(defined in the reference coordinate system).*/
@@ -147,8 +145,8 @@ protected:
   /*! The bounding box is updated during the detection time covering the path of the stylus shaft position.*/
   vtkBoundingBox StylusShaftPathBoundingBox;
   /*! 
-  The bounding box is updated during the detection time covering the path of the stylus tip position, if lenth of the box norm is smaller than
-  StylusTipMaximumDisplacementThresholdMm a landkmark is detected.
+  The bounding box is updated during the detection time covering the path of the stylus tip position, if length of the box norm is smaller than
+  StylusTipMaximumDisplacementThresholdMm a landmark is detected.
   */
   vtkBoundingBox StylusTipPathBoundingBox;
   /*! Name of the reference coordinate frame (eg. Reference).*/
