@@ -5,7 +5,8 @@
 # MICRONTRACKER_LIBRARY - libraries to be linked
 # MICRONTRACKER_BINARY_DIR - shared libraries to be installed
 
-OPTION(PLUSBUILD_PREFER_MICRONTRACKER_36 "Plus prefers MicronTracker SDK version MTC_3.6 instead of MTC_3.7" OFF)
+# By default prefer MTC_3.6 as MTC_3.7 requires installation of VS2013 redistributable package
+OPTION(PLUSBUILD_PREFER_MICRONTRACKER_36 "Plus prefers MicronTracker SDK version MTC_3.6 instead of MTC_3.7" ON)
 MARK_AS_ADVANCED(PLUSBUILD_PREFER_MICRONTRACKER_36)
 
 # If PLUSBUILD_PREFER_MICRONTRACKER_36 is defined: try to find MTC_3.6 first and fall back to MTC_3.7,
