@@ -5,17 +5,50 @@
 # MICRONTRACKER_LIBRARY - libraries to be linked
 # MICRONTRACKER_BINARY_DIR - shared libraries to be installed
 
-SET( MicronTracker_PATH_HINTS 
-  ../Claron/MTC_3.6.5.4_x86_win/MicronTracker
-  ../PLTools/Claron/MTC_3.6.5.4_x86_win/MicronTracker
-  ../../PLTools/Claron/MTC_3.6.5.4_x86_win/MicronTracker
-  ../trunk/PLTools/Claron/MTC_3.6.5.4_x86_win/MicronTracker
-  ${CMAKE_CURRENT_BINARY_DIR}/PLTools/Claron/MTC_3.6.5.4_x86_win/MicronTracker  
-  ../Claron/MTC_3.6.1.6_x86_win/MicronTracker
-  ../PLTools/Claron/MTC_3.6.1.6_x86_win/MicronTracker
-  ../../PLTools/Claron/MTC_3.6.1.6_x86_win/MicronTracker
-  ../trunk/PLTools/Claron/MTC_3.6.1.6_x86_win/MicronTracker
-  ${CMAKE_CURRENT_BINARY_DIR}/PLTools/Claron/MTC_3.6.1.6_x86_win/MicronTracker
+OPTION(PLUSBUILD_PREFER_MICRONTRACKER_36 "Plus prefers MicronTracker SDK version MTC_3.6 instead of MTC_3.7" OFF)
+MARK_AS_ADVANCED(PLUSBUILD_PREFER_MICRONTRACKER_36)
+
+# If PLUSBUILD_PREFER_MICRONTRACKER_36 is defined: try to find MTC_3.6 first and fall back to MTC_3.7,
+# otherwise try to find MTC_3.7 and fall back to MTC_3.6.
+IF (PLUSBUILD_PREFER_MICRONTRACKER_36)
+  SET( MicronTracker_PATH_HINTS
+    ../Claron/MTC_3.6.5.4_x86_win/MicronTracker
+    ../PLTools/Claron/MTC_3.6.5.4_x86_win/MicronTracker
+    ../../PLTools/Claron/MTC_3.6.5.4_x86_win/MicronTracker
+    ../trunk/PLTools/Claron/MTC_3.6.5.4_x86_win/MicronTracker
+    ${CMAKE_CURRENT_BINARY_DIR}/PLTools/Claron/MTC_3.6.5.4_x86_win/MicronTracker  
+    ../Claron/MTC_3.6.1.6_x86_win/MicronTracker
+    ../PLTools/Claron/MTC_3.6.1.6_x86_win/MicronTracker
+    ../../PLTools/Claron/MTC_3.6.1.6_x86_win/MicronTracker
+    ../trunk/PLTools/Claron/MTC_3.6.1.6_x86_win/MicronTracker
+    ${CMAKE_CURRENT_BINARY_DIR}/PLTools/Claron/MTC_3.6.1.6_x86_win/MicronTracker
+    ../Claron/MTC_3.7.6.8_x86_win/MicronTracker
+    ../PLTools/Claron/MTC_3.7.6.8_x86_win/MicronTracker
+    ../../PLTools/Claron/MTC_3.7.6.8_x86_win/MicronTracker
+    ../trunk/PLTools/Claron/MTC_3.7.6.8_x86_win/MicronTracker
+    ${CMAKE_CURRENT_BINARY_DIR}/PLTools/Claron/MTC_3.7.6.8_x86_win/MicronTracker
+    )
+ELSE()
+  SET( MicronTracker_PATH_HINTS
+    ../Claron/MTC_3.7.6.8_x86_win/MicronTracker
+    ../PLTools/Claron/MTC_3.7.6.8_x86_win/MicronTracker
+    ../../PLTools/Claron/MTC_3.7.6.8_x86_win/MicronTracker
+    ../trunk/PLTools/Claron/MTC_3.7.6.8_x86_win/MicronTracker
+    ${CMAKE_CURRENT_BINARY_DIR}/PLTools/Claron/MTC_3.7.6.8_x86_win/MicronTracker
+    ../Claron/MTC_3.6.5.4_x86_win/MicronTracker
+    ../PLTools/Claron/MTC_3.6.5.4_x86_win/MicronTracker
+    ../../PLTools/Claron/MTC_3.6.5.4_x86_win/MicronTracker
+    ../trunk/PLTools/Claron/MTC_3.6.5.4_x86_win/MicronTracker
+    ${CMAKE_CURRENT_BINARY_DIR}/PLTools/Claron/MTC_3.6.5.4_x86_win/MicronTracker  
+    ../Claron/MTC_3.6.1.6_x86_win/MicronTracker
+    ../PLTools/Claron/MTC_3.6.1.6_x86_win/MicronTracker
+    ../../PLTools/Claron/MTC_3.6.1.6_x86_win/MicronTracker
+    ../trunk/PLTools/Claron/MTC_3.6.1.6_x86_win/MicronTracker
+    ${CMAKE_CURRENT_BINARY_DIR}/PLTools/Claron/MTC_3.6.1.6_x86_win/MicronTracker
+    )
+ENDIF()
+
+SET( MicronTracker_PATH_HINTS ${MicronTracker_PATH_HINTS}
   "c:/Program Files (x86)/Claron Technology/MicronTracker"
   "c:/Program Files/Claron Technology/MicronTracker"
   )
