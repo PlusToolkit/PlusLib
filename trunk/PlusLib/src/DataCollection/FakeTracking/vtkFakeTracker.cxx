@@ -26,13 +26,9 @@ vtkFakeTracker::vtkFakeTracker()
 , RandomSeed(0)
 , Counter(-1)
 , PhantomLandmarks(NULL)
-, TrackedStylusTipFrames(NULL)
 {
   vtkSmartPointer<vtkPoints> phantomLandmarks = vtkSmartPointer<vtkPoints>::New();
   this->SetPhantomLandmarks(phantomLandmarks);
-
-  vtkSmartPointer<vtkTrackedFrameList>trackedStylusTipFrames = vtkSmartPointer<vtkTrackedFrameList>::New();
-  this->SetTrackedStylusTipFrames(trackedStylusTipFrames);
 
   this->RequirePortNameInDeviceSetConfiguration = true;
 
@@ -50,7 +46,6 @@ vtkFakeTracker::~vtkFakeTracker()
   this->SetTransformRepository(NULL);
 
   this->SetPhantomLandmarks(NULL);
-  this->SetTrackedStylusTipFrames(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -159,6 +154,7 @@ PlusStatus vtkFakeTracker::InternalConnect()
         LOG_ERROR("Failed to get tool: Reference in FakeTracker PivotCalibration mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
         return PLUS_FAIL; 
       }
+
       tool->SetCustomProperty("PartNumber", "Stationary");
     }
     {
@@ -170,58 +166,11 @@ PlusStatus vtkFakeTracker::InternalConnect()
         LOG_ERROR("Failed to get tool: Stylus in FakeTracker PivotCalibration mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
         return PLUS_FAIL; 
       }
+
       tool->SetCustomProperty("PartNumber", "Stylus");
     }
     break;
 
-  case (FakeTrackerMode_LandmarkDetection):
-    {
-      //*************************************************************
-      // Check Reference
-      PlusTransformName sourceId("Reference", this->GetToolReferenceFrameName());
-      if ( this->GetTool(sourceId.GetTransformName(), tool) != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Failed to get tool: Reference in FakeTracker PivotCalibration mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
-        return PLUS_FAIL; 
-      }
-      tool->SetCustomProperty("PartNumber", "Stationary");
-    }
-    {
-      //*************************************************************
-      // Check Stylus
-      PlusTransformName sourceId("Stylus", this->GetToolReferenceFrameName());
-      if ( this->GetTool(sourceId.GetTransformName(), tool) != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Failed to get tool: Stylus in FakeTracker PivotCalibration mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
-        return PLUS_FAIL; 
-      }
-      tool->SetCustomProperty("PartNumber", "Stylus");
-    }
-    break;
-  case (FakeTrackerMode_RecordedPoseFrameList):
-    {
-      //*************************************************************
-      // Check Reference
-      PlusTransformName sourceId("Reference", this->GetToolReferenceFrameName());
-      if ( this->GetTool(sourceId.GetTransformName(), tool) != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Failed to get tool: Reference in FakeTracker RecordedPoseFrameList mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
-        return PLUS_FAIL; 
-      }
-      tool->SetCustomProperty("PartNumber", "Stationary");
-    }
-    {
-      //*************************************************************
-      // Check Stylus
-      PlusTransformName sourceId("Stylus", this->GetToolReferenceFrameName());
-      if ( this->GetTool(sourceId.GetTransformName(), tool) != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Failed to get tool: Stylus in FakeTracker RecordedPoseFrameList mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
-        return PLUS_FAIL; 
-      }
-      tool->SetCustomProperty("PartNumber", "Stylus");
-    }
-    break;
   case (FakeTrackerMode_RecordPhantomLandmarks):
     {
       //*************************************************************
@@ -232,6 +181,7 @@ PlusStatus vtkFakeTracker::InternalConnect()
         LOG_ERROR("Failed to get tool: Reference in FakeTracker RecordPhantomLandmarks mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
         return PLUS_FAIL; 
       }
+
       tool->SetCustomProperty("PartNumber", "Stationary");
     }
     {
@@ -246,6 +196,7 @@ PlusStatus vtkFakeTracker::InternalConnect()
 
       tool->SetCustomProperty("PartNumber", "Stylus");
     }
+
     this->Counter = -1;
 
     break;
@@ -262,7 +213,9 @@ PlusStatus vtkFakeTracker::InternalConnect()
 
       tool->SetCustomProperty("PartNumber", "Stationary");
     }
+
     this->Counter = 0;
+
     break;
   default:
     break;
@@ -466,141 +419,8 @@ PlusStatus vtkFakeTracker::InternalUpdate()
         PlusTransformName name("Stylus", this->GetToolReferenceFrameName());
         this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), stylusToTrackerTransform->GetMatrix(), toolStatus, this->Frame, unfilteredTimestamp);       
       }
-      break;
-    }
-  case (FakeTrackerMode_LandmarkDetection): // Linear translation and small rotation then moves around a stylus with the tip fixed to a position
-    {
-      vtkMinimalStandardRandomSequence* random = vtkMinimalStandardRandomSequence::New();
-      random->SetSeed(RandomSeed++); // To get completely random numbers, timestamp should use instead of constant seed
-
-      // Set flags
-      ToolStatus toolStatus = TOOL_OK;
-      const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
-
-      // create stationary position for reference (tool 0)
-      vtkSmartPointer<vtkTransform> referenceToTrackerTransform = vtkSmartPointer<vtkTransform>::New();
-      referenceToTrackerTransform->Identity();
-      referenceToTrackerTransform->Translate(300, 400, 700);
-      referenceToTrackerTransform->RotateZ(90);
-      {
-        PlusTransformName name("Reference", this->GetToolReferenceFrameName());
-        this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), referenceToTrackerTransform->GetMatrix(), toolStatus, this->Frame, unfilteredTimestamp);
-      }
-
-      double exactRadius = 210.0;
-      double variance = 1.0;
-      double radius = random->GetRangeValue(exactRadius-variance, exactRadius+variance);
-
-      const double LINEAR_CYCLE=80.0;
-      const double CIRCULAR_CYCLE=3*360.0;
-      const double OFFSET_Y=100.0;
-      const double OFFSET_Z=200.0;
-
-      int currentState = 0;
-      currentState=this->Frame % (2*(int)LINEAR_CYCLE+(int)CIRCULAR_CYCLE);
-
-      if(currentState<LINEAR_CYCLE)
-      {
-        double tx = (currentState); // [0, LINEAR_CYCLE)
-        double ty = (currentState) + OFFSET_Y; // [OFFSET, LINEAR_CYCLE+OFFSET) Offset from the reference
-        double tz = (currentState) + OFFSET_Z; //
-        double ry = (LINEAR_CYCLE/2.0)-(currentState) / 2.0; // [LINEAR_CYCLE/2, 0)
-
-        vtkSmartPointer<vtkTransform> stylusToReferenceTransform = vtkSmartPointer<vtkTransform>::New();
-        stylusToReferenceTransform->Identity();
-        stylusToReferenceTransform->Translate(tx-radius, ty, tz);
-        stylusToReferenceTransform->RotateY(ry);
-        //stylusToReferenceTransform->RotateZ(theta);
-        //stylusToReferenceTransform->Translate(-radius, 0.0, 0.0);
-
-        vtkSmartPointer<vtkTransform> stylusToTrackerTransform = vtkSmartPointer<vtkTransform>::New();
-        stylusToTrackerTransform->Identity();
-        stylusToTrackerTransform->Concatenate(referenceToTrackerTransform);
-        stylusToTrackerTransform->Concatenate(stylusToReferenceTransform);
-
-        {
-          PlusTransformName name("Stylus", this->GetToolReferenceFrameName());
-          this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), stylusToTrackerTransform->GetMatrix(), toolStatus, this->Frame, unfilteredTimestamp); 
-        }
-      }
-      else if(currentState >= LINEAR_CYCLE && currentState < (LINEAR_CYCLE+CIRCULAR_CYCLE))
-      {
-        // create a progresive changing position along a sphere (with built-in error)
-        //double deltaTheta = 60.0; double deltaPhi = 60.0;
-        random->Next();
-        double theta = currentState- LINEAR_CYCLE + random->GetRangeValue(-variance, variance);// random->GetRangeValue(-deltaTheta, deltaTheta);
-
-        random->Next();
-        double phi = currentState- LINEAR_CYCLE +random->GetRangeValue(-variance, variance);//random->GetRangeValue(-deltaPhi, deltaPhi);
-
-        random->Next();
-        vtkSmartPointer<vtkTransform> stylusToReferenceTransform = vtkSmartPointer<vtkTransform>::New();
-        stylusToReferenceTransform->Identity();
-        stylusToReferenceTransform->Translate(LINEAR_CYCLE, LINEAR_CYCLE+OFFSET_Y, LINEAR_CYCLE+OFFSET_Z); // Offset from the reference
-        stylusToReferenceTransform->RotateY(phi);
-        stylusToReferenceTransform->RotateZ(theta);
-        stylusToReferenceTransform->Translate(-radius, 0.0, 0.0);
-
-        vtkSmartPointer<vtkTransform> stylusToTrackerTransform = vtkSmartPointer<vtkTransform>::New();
-        stylusToTrackerTransform->Identity();
-        stylusToTrackerTransform->Concatenate(referenceToTrackerTransform);
-        stylusToTrackerTransform->Concatenate(stylusToReferenceTransform);
-
-        random->Delete();
-        {
-          PlusTransformName name("Stylus", this->GetToolReferenceFrameName());
-          this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), stylusToTrackerTransform->GetMatrix(), toolStatus, this->Frame, unfilteredTimestamp);
-        }
-      }
-      else
-      {
-        double tx = 2*LINEAR_CYCLE+CIRCULAR_CYCLE-currentState;//100-(currentState-460); // 0 - 99
-        double ty = OFFSET_Y+2*LINEAR_CYCLE+CIRCULAR_CYCLE-currentState;//200-(currentState-460); // 100 - 199 
-        double tz = OFFSET_Z+2*LINEAR_CYCLE+CIRCULAR_CYCLE-currentState;//300-(currentState-460); // 200 - 299  
-        double ry = (currentState-(LINEAR_CYCLE+CIRCULAR_CYCLE)) / 2.0; // [0, LINEAR_CYCLE/2)
-
-        vtkSmartPointer<vtkTransform> stylusToReferenceTransform = vtkSmartPointer<vtkTransform>::New();
-        stylusToReferenceTransform->Identity();
-        stylusToReferenceTransform->Translate(tx-radius, ty, tz); // 
-        stylusToReferenceTransform->RotateY(ry);
-        //stylusToReferenceTransform->RotateZ(theta);
-        //stylusToReferenceTransform->Translate(-radius, 0.0, 0.0);
-
-        vtkSmartPointer<vtkTransform> stylusToTrackerTransform = vtkSmartPointer<vtkTransform>::New();
-        stylusToTrackerTransform->Identity();
-        stylusToTrackerTransform->Concatenate(referenceToTrackerTransform);
-        stylusToTrackerTransform->Concatenate(stylusToReferenceTransform);
-
-        {
-          PlusTransformName name("Stylus", this->GetToolReferenceFrameName());
-          this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), stylusToTrackerTransform->GetMatrix(), toolStatus, this->Frame, unfilteredTimestamp);       
-        }
-      }
-      break;
-    }
-  case (  FakeTrackerMode_RecordedPoseFrameList): // Touches recorded poses
-    {
-      ToolStatus toolStatus = TOOL_OK;
-      const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
-
-      int currentState = 0;
-      currentState=this->Frame % this->TrackedStylusTipFrames->GetNumberOfTrackedFrames();
-      // Translate to actual landmark point
-      if (currentState >= 0 &&currentState <this->TrackedStylusTipFrames->GetNumberOfTrackedFrames())
-      {
-        PlusTransformName name( "Reference",this->GetToolReferenceFrameName());
-        // create stationary position for reference (tool 0)
-        vtkSmartPointer<vtkMatrix4x4> referenceToTrackerMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-        this->TrackedStylusTipFrames->GetTrackedFrame(currentState)->GetCustomFrameTransform(name,referenceToTrackerMatrix);
-        this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), referenceToTrackerMatrix, toolStatus, this->Frame, unfilteredTimestamp);
-
-        PlusTransformName nameStylus("Stylus", this->GetToolReferenceFrameName());
-        vtkSmartPointer<vtkMatrix4x4> stylusToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-        this->TrackedStylusTipFrames->GetTrackedFrame(currentState)->GetCustomFrameTransform(nameStylus,stylusToReferenceMatrix);
-        this->ToolTimeStampedUpdate(nameStylus.GetTransformName().c_str(), stylusToReferenceMatrix, toolStatus, this->Frame, unfilteredTimestamp);   
-      }
-    }
     break;
+    }
   case (FakeTrackerMode_RecordPhantomLandmarks): // Touches some positions with 1 sec difference
     {
       ToolStatus toolStatus = TOOL_OK;
@@ -669,6 +489,7 @@ PlusStatus vtkFakeTracker::InternalUpdate()
       }
     }
     break;
+
   case (FakeTrackerMode_ToolState): // Changes the state of the tool from time to time
     {
       // Set flags
@@ -730,14 +551,6 @@ PlusStatus vtkFakeTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElemen
       {
         this->SetMode(FakeTrackerMode_PivotCalibration); 
       }
-      else if (STRCASECMP(mode, "LandmarkDetection") == 0)
-      {
-        this->SetMode(FakeTrackerMode_LandmarkDetection); 
-      }
-      else if (STRCASECMP(mode, "RecordedPoseFrameList") == 0)
-      {
-        this->SetMode(FakeTrackerMode_RecordedPoseFrameList); 
-      }
       else if (STRCASECMP(mode, "RecordPhantomLandmarks") == 0)
       {
         this->SetMode(FakeTrackerMode_RecordPhantomLandmarks); 
@@ -752,29 +565,6 @@ PlusStatus vtkFakeTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElemen
       }
     }
 
-    if(this->Mode==FakeTrackerMode_RecordedPoseFrameList)
-    {
-      const char* trackedPoseListFileName = deviceConfig->GetAttribute("TrackedPoseListFileName"); 
-
-      // Read stylus tracker data
-
-      if( trackedPoseListFileName != NULL )
-      {
-        //this->TrackedStylusTipFrames = vtkSmartPointer<vtkTrackedFrameList>::New();
-        this->TrackedStylusTipFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK);
-        LOG_INFO("Read stylus tracker data from " << this->TrackedStylusTipFrames);
-        if ( this->TrackedStylusTipFrames->ReadFromSequenceMetafile(trackedPoseListFileName) != PLUS_SUCCESS )
-        {
-          LOG_ERROR("Failed to read stylus data from sequence metafile: " << trackedPoseListFileName << ". Exiting...");
-          exit(EXIT_FAILURE);
-        }
-        this->TrackedStylusTipFrames->Register(NULL);
-      }
-      else
-      {
-        LOG_ERROR("Empty file name to read sequence metafile: " );
-      }
-    }
     // Read landmarks for RecordPhantomLandmarks mode
     bool phantomLandmarksFound = true;
     vtkXMLDataElement* landmarks = NULL;
