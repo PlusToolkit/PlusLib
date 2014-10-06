@@ -1138,22 +1138,6 @@ void PhantomRegistrationToolbox::StartLandmarkPivotingRegistration()
     m_CurrentLandmarkIndex=0;
     m_CurrentPointNumber = 0;
 
-    // If tracker is FakeTracker then reset frame
-    vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
-    if (dataCollector)
-    {
-      for( DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it )
-      {
-        vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(*it);
-
-        if (fakeTracker != NULL)
-        {
-          fakeTracker->SetFrame(m_CurrentPointNumber);
-          break;
-        }
-      }
-    }
-
     // Clear input points
     vtkSmartPointer<vtkPoints> inputPoints = vtkSmartPointer<vtkPoints>::New();
     m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->SetPoints(inputPoints);
