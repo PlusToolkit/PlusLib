@@ -3,23 +3,27 @@
 *     Micron Tracker: Example C++ wrapper and Multi-platform demo
 *   
 *     Written by: 
-*      Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
-*      Claudio Gatti, Claron Technology - Toronto -Ontario, www.clarontech.com
+*			Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
+*			Claudio Gatti, Ahmad Kolahi, Claron Technology - Toronto -Ontario, www.clarontech.com
 *
-*     Copyright Claron Technology 2000-2003
+*     Copyright Claron Technology 2000-2013
 *
 ***************************************************************/
-#include "Collection.h"
-
 #include "MTC.h"
 
-Collection::Collection(int h)
+#include "Collection.h"
+
+Collection::Collection(mtHandle h)
 {
   // If a handle is already passed to this class, then use that handle and don't create a new one.
   if (h != 0)
+  {
     this->m_handle = h;
+  }
   else
+  {
     this->m_handle = Collection_New();
+  }
 
   this->ownedByMe = TRUE;
 }
@@ -29,19 +33,22 @@ Collection::Collection(int h)
 Collection::~Collection()
 {
   if (this->m_handle != 0 && this->ownedByMe == true)
+  {
     Collection_Free(this->m_handle);
+    this->m_handle = NULL;
+  }
 }
 
 /****************************/
 /** Add an item to the collection */
-void Collection::add(int val)
+void Collection::add(mtHandle val)
 {
   Collection_Add(this->m_handle, val, 0);
 }
 
 /****************************/
 /** Remove an item from the collection */
-void Collection::remove(int idx)
+void Collection::remove(mtHandle idx)
 {
   Collection_Remove(this->m_handle, idx);
 }
@@ -58,18 +65,18 @@ int Collection::count()
 /** Returns the integer item  of index  idx in the collection  */
 int Collection::itemI(int idx)
 {
-  int intResult = 0;
+  mtHandle hResult = 0;
   double dblResult = 0;
-  Collection_Item(this->m_handle, idx, &intResult, &dblResult);
-  return intResult;
+  Collection_Item(this->m_handle, idx, &hResult, &dblResult);
+  return hResult;
 }
 
 /****************************/
 /** Returns the integer item  of index  idx in the collection  */
 double Collection::itemD(int idx)
 {
-  int intResult = 0;
-  double dblResult = 0;
-  Collection_Item(this->m_handle, idx, &intResult, &dblResult);
-  return dblResult;
+	mtHandle hResult = 0;
+	double dblResult = 0;
+	Collection_Item(this->m_handle, idx, &hResult, &dblResult);
+	return dblResult;
 }

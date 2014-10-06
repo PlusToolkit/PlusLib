@@ -3,16 +3,18 @@
 *     Micron Tracker: Example C++ wrapper and Multi-platform demo
 *   
 *     Written by: 
-*      Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
-*      Claudio Gatti, Claron Technology - Toronto -Ontario, www.clarontech.com
+*			Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
+*			Claudio Gatti, Ahmad Kolahi, Claron Technology - Toronto -Ontario, www.clarontech.com
 *
-*     Copyright Claron Technology 2000-2003
+*     Copyright Claron Technology 2000-2013
 *
 ***************************************************************/
-#include "Facet.h"
+
 #include "MTC.h"
 
-Facet::Facet(int h)
+#include "Facet.h"
+
+Facet::Facet(mtHandle h)
 {
   if (h != 0)
     this->m_handle = h;
@@ -33,17 +35,14 @@ Facet::~Facet()
 /****************************/
 /** */
 
-int Facet::getXpoints( MCamera *cam, double *result2x2x2x2)
- //[LV/SV][L/R][base/head][X/Y]
+int Facet::getXpoints( MCamera *cam, XPointsType_LS_LRM_BH_XY result2x3x2x2)
 {
-  int camHandle;
-  if (cam == NULL) {
-    camHandle = NULL;
-  } else {
+  mtHandle camHandle = NULL;
+  if (cam != NULL)
+  {
     camHandle = cam->Handle();
   }
-  int result = 0;
-  result = Facet_IdentifiedXPointsGet(this->m_handle, camHandle, result2x2x2x2 ); //Claudio
+  int result = Facet_IdentifiedXPointsGet(this->m_handle, camHandle, (double*)result2x3x2x2 );
   return result;
 }
 
@@ -105,15 +104,15 @@ bool Facet::setVectorsFromSample(std::vector<Collection*> &sampledVectorSets, st
 bool Facet::identify(MCamera* cam, std::vector<Vector*> vectorSet, double positionToleranceMM)
 {
   bool result;
-  int* vectorHandles;
+  mtHandle* vectorHandles;
 
-  vectorHandles = (int *)malloc(vectorSet.size()*sizeof(int));
+  vectorHandles = (mtHandle *)malloc(vectorSet.size()*sizeof(int));
 
   for(unsigned int i=0; i<vectorSet.size(); i++)
     vectorHandles[i] = vectorSet[i]->Handle();
 
 
-  int camHandle;
+  mtHandle camHandle;
   if(cam == NULL)
     camHandle = 0;
   else

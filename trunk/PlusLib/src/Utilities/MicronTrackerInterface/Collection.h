@@ -3,10 +3,10 @@
 *     Micron Tracker: Example C++ wrapper and Multi-platform demo
 *   
 *     Written by: 
-*      Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
-*      Claudio Gatti, Claron Technology - Toronto -Ontario, www.clarontech.com
+*			Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
+*			Claudio Gatti, Ahmad Kolahi, Claron Technology - Toronto -Ontario, www.clarontech.com
 *
-*     Copyright Claron Technology 2000-2003
+*     Copyright Claron Technology 2000-2013
 *
 ***************************************************************/
 #ifndef __COLLECTION_H__
@@ -15,19 +15,19 @@
 class Collection
 {
 public:
-  Collection(int h=0);
+  Collection(mtHandle h=0);
   ~Collection();
-  inline int getHandle(){ return m_handle; };
-  inline void setHandle(int h){m_handle = h; };
+  inline mtHandle getHandle(){ return m_handle; };
+  inline void setHandle(mtHandle h){m_handle = h; };
   
-  void add(int val);
+  void add(mtHandle val);
   void remove(int idx);
   int count();
-  int itemI(int idx);
+  mtHandle itemI(int idx);
   double itemD(int idx);
 
 private:
-  int m_handle;
+  mtHandle m_handle;
   bool ownedByMe;
 };
 

@@ -6,7 +6,7 @@
 *      Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
 *      Claudio Gatti, Claron Technology - Toronto -Ontario, www.clarontech.com
 *
-*     Copyright Claron Technology 2000-2003
+*     Copyright Claron Technology 2000-2013
 *
 ***************************************************************/
 #ifndef __VECTOR_H__
@@ -15,18 +15,20 @@
 class Vector
 {
 public:
-  Vector(int h =0);
+  // left/right/middle camera; base/head; x/y coordinate
+  typedef double EndXPointType_LRM_BH_XY[3][2][2];
+  // left/right/middle camera; base/head; x/y/z coordinate
+  typedef double EndPosType_BH_XYZ[2][3];
+
+  Vector(mtHandle h=0);
   ~Vector();
-  int Handle();
+  mtHandle Handle();
 
-  int getEndPos3x2(double* result);
-  // int setEndPos3x2(double* newPos3x2); // Claudio
-  int getEndXPoints(double* result);
-
-
+  int getEndPos(EndPosType_BH_XYZ result);
+  int getEndXPoints(EndXPointType_LRM_BH_XY result);
 
 private:
-  int m_handle;
+  mtHandle m_handle;
   bool ownedByMe;
 };
 

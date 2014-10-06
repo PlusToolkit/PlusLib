@@ -22,12 +22,16 @@ SET(vtkMicronTrackerInterface_SRCS
   Marker.cpp
   Markers.h
   Markers.cpp
+  MTXPoint.h
+  MTXPoint.cpp
   Persistence.h
   Persistence.cpp
   Vector.h
   Vector.cpp
   Xform3D.h
   Xform3D.cpp
+  XPoints.h
+  XPoints.cpp
 )
 
 SET (vtkMicronTrackerInterface_INCLUDE_DIRS 

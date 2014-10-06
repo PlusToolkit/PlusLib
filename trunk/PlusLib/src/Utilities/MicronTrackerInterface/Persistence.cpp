@@ -6,12 +6,12 @@
 *      Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
 *      Claudio Gatti, Claron Technology - Toronto -Ontario, www.clarontech.com
 *
-*     Copyright Claron Technology 2000-2003
+*     Copyright Claron Technology 2000-2013
 *
 ***************************************************************/
-#include "Persistence.h"
-
 #include "MTC.h"
+
+#include "Persistence.h"
 
 #include <string>
 /****************************/
@@ -40,7 +40,7 @@ int Persistence::setPath(const char* path)
 
 /****************************/
 /** Set the path of the .ini file */
-void Persistence::setSection(char* section)
+void Persistence::setSection(const char* section)
 {
   Persistence_SectionSet(this->m_handle, section); 
 }
@@ -59,7 +59,7 @@ char* Persistence::getPath()
   
 /****************************/
 /** Retrieve an int from the persistence */
-int Persistence::retrieveInt(char* name, int defaultVal)
+int Persistence::retrieveInt(const char* name, int defaultVal)
 {
   int intVal = 0;
   Persistence_RetrieveInt(this->m_handle, name, defaultVal, &intVal);
@@ -68,7 +68,7 @@ int Persistence::retrieveInt(char* name, int defaultVal)
 
 /****************************/
 /** Retrieve a double from the persistence. */
-double Persistence::retrieveDouble(char* name, double defaultVal)
+double Persistence::retrieveDouble(const char* name, double defaultVal)
 {
   double dblVal = 0;
   Persistence_RetrieveDouble(this->m_handle, name, defaultVal, &dblVal);
@@ -77,14 +77,14 @@ double Persistence::retrieveDouble(char* name, double defaultVal)
 
 /****************************/
 /** Save an integer value in the persistence. */
-void Persistence::saveInt(char* name, int val)
+void Persistence::saveInt(const char* name, int val)
 {
   Persistence_SaveInt(this->m_handle, name, val);
 }
 
 /****************************/
 /** Save a double value in the persistnce */
-void Persistence::saveDouble(char* name, double val)
+void Persistence::saveDouble(const char* name, double val)
 {
   Persistence_SaveDouble(this->m_handle, name, val);
 }
