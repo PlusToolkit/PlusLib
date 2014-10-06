@@ -201,6 +201,12 @@ public:
 
   /*! Get application start timestamp */
   std::string GetApplicationStartTimestamp();
+  
+  /*!
+    Gets the full path of a Plus executable file.
+    executableName should not contain file extension (.exe is added automatically on Windows platforms)
+  */
+  std::string GetPlusExecutablePath(const std::string& executableName);
 
 protected:
   /*! Set program directory path */

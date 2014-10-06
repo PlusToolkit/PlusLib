@@ -18,7 +18,14 @@ IF (PLUS_USE_OpenIGTLink )
   
   ADD_EXECUTABLE( PlusServerRemoteControl PlusServerRemoteControl.cxx )
   TARGET_LINK_LIBRARIES( PlusServerRemoteControl vtkDataCollection ${VTK_LIBRARIES} vtkPlusServer )
-  
+
+  ADD_TEST( PlusServerOpenIGTLinkCommandsTest
+    ${EXECUTABLE_OUTPUT_PATH}/PlusServerRemoteControl
+    --server-config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_OpenIGTLinkCommandsTest.xml
+    --run-tests
+    )
+  SET_TESTS_PROPERTIES( PlusServerOpenIGTLinkCommandsTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
 ENDIF (PLUS_USE_OpenIGTLink )
  
 # --------------------------------------------------------------------------

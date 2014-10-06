@@ -970,3 +970,12 @@ void vtkPlusConfig::SetDeviceSetConfigurationData(vtkXMLDataElement* deviceSetCo
   }
 }
 
+//-----------------------------------------------------------------------------
+std::string vtkPlusConfig::GetPlusExecutablePath(const std::string& executableName)
+{
+  std::string processNameWithExtension=executableName;
+#ifdef _WIN32
+  processNameWithExtension+=".exe"; 
+#endif
+  return GetAbsolutePath(processNameWithExtension, this->ProgramDirectory);
+}

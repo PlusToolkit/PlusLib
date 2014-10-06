@@ -457,7 +457,8 @@ void PlusCommon::SplitStringIntoTokens(const std::string &s, char delim, std::ve
 {
   std::stringstream ss(s);
   std::string item;
-  while (std::getline(ss, item, delim)) {
+  while (std::getline(ss, item, delim))
+  {
     elems.push_back(item);
   }
 }

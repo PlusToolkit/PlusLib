@@ -20,6 +20,7 @@ See License.txt for details.
   #include "vtkPlusStealthLinkCommand.h"
 #endif
 #include "vtksys/CommandLineArguments.hxx"
+#include "vtksys/Process.h"
 #include "vtkXMLUtilities.h"
 
 #include "igtlTransformMessage.h"
@@ -29,15 +30,11 @@ See License.txt for details.
 #include <cstdlib>
 #include <cstdio>
 
-// Normally a client should generate unique command IDs for each executed command
-// for sake of simplicity, in this sample app we don't generate new IDs, just use
-// this single hardcoded value.
-static const char* COMMAND_ID="101";
-
-// Forward declare signal handler
-void SignalInterruptHandler(int s);
+//----------------------------------------------------------------------------
+// For CTRL-C signal handling
 static bool StopClient=false;
 
+//----------------------------------------------------------------------------
 // A customized vtkPlusOpenIGTLinkClient that can display the received transformation matrices
 class vtkPlusOpenIGTLinkClientWithTransformLogging : public vtkPlusOpenIGTLinkClient
 {
@@ -267,7 +264,6 @@ void ExecuteGetChannelIds(vtkPlusOpenIGTLinkClient* client)
 {
   vtkSmartPointer<vtkPlusRequestIdsCommand> cmd=vtkSmartPointer<vtkPlusRequestIdsCommand>::New();
   cmd->SetNameToRequestChannelIds();
-  cmd->SetId(COMMAND_ID);
   client->SendCommand(cmd);
 }
 
@@ -277,7 +273,6 @@ void ExecuteGetDeviceIds(vtkPlusOpenIGTLinkClient* client, const std::string &de
   vtkSmartPointer<vtkPlusRequestIdsCommand> cmd=vtkSmartPointer<vtkPlusRequestIdsCommand>::New();
   cmd->SetNameToRequestDeviceIds();
   cmd->SetDeviceType(deviceType.c_str());
-  cmd->SetId(COMMAND_ID);
   client->SendCommand(cmd);
 }
 
@@ -286,7 +281,6 @@ void ExecuteUpdateTransform(vtkPlusOpenIGTLinkClient* client, const std::string 
 {
   vtkSmartPointer<vtkPlusUpdateTransformCommand> cmd = vtkSmartPointer<vtkPlusUpdateTransformCommand>::New();
   cmd->SetNameToUpdateTransform();
-  cmd->SetId(COMMAND_ID);
   cmd->SetTransformName(transformName.c_str());
   double value;
   std::stringstream ss(transformError);
@@ -321,7 +315,6 @@ void ExecuteSaveConfig(vtkPlusOpenIGTLinkClient* client, const std::string &outp
 {
   vtkSmartPointer<vtkPlusSaveConfigCommand> cmd = vtkSmartPointer<vtkPlusSaveConfigCommand>::New();
   cmd->SetNameToSaveConfig();
-  cmd->SetId(COMMAND_ID);
   cmd->SetFilename(outputFilename.c_str());
   client->SendCommand(cmd);
 }
@@ -367,6 +360,139 @@ PlusStatus PrintReply(vtkPlusOpenIGTLinkClient* client)
 }
 
 //----------------------------------------------------------------------------
+PlusStatus StartPlusServerProcess(const std::string& configFile, vtksysProcess* &processPtr)
+{
+  processPtr = NULL;
+  std::string executablePath = vtkPlusConfig::GetInstance()->GetPlusExecutablePath("PlusServer");
+
+  if ( !vtksys::SystemTools::FileExists( executablePath.c_str(), true) )
+  {
+    LOG_ERROR("Unable to find executable at: " << executablePath); 
+    return PLUS_FAIL; 
+  }
+
+  try 
+  {
+    processPtr = vtksysProcess_New();
+
+    // Command name and parameters
+    std::vector<const char*> command;
+    command.push_back(executablePath.c_str()); // command name
+    std::string param1 = std::string("--config-file=")+configFile;
+    command.push_back(param1.c_str()); // command parameter
+    command.push_back(0); // The array must end with a NULL pointer.
+    vtksysProcess_SetCommand(processPtr, &*command.begin());
+
+    // Redirect PlusServer output to this process output (otherwise execution would be blocked and we could not capture server-side errors)
+    vtksysProcess_SetPipeShared(processPtr, vtksysProcess_Pipe_STDOUT, 1);
+    vtksysProcess_SetPipeShared(processPtr, vtksysProcess_Pipe_STDERR, 1);
+    
+    LOG_INFO("Start PlusServer..." );
+    vtksysProcess_Execute(processPtr);
+    vtkAccurateTimer::DelayWithEventProcessing(3.0);
+    LOG_DEBUG("PlusServer started" );
+
+    return PLUS_SUCCESS;
+  }
+  catch (...)
+  {
+    LOG_ERROR("Failed to start PlusServer"); 
+    return PLUS_FAIL; 
+  }
+}
+
+//----------------------------------------------------------------------------
+void StopPlusServerProcess(vtksysProcess* &processPtr)
+{
+  if (processPtr==NULL)
+  {
+    return;
+  }
+  vtksysProcess_Kill(processPtr);
+  processPtr = NULL;
+}
+
+#define RETURN_IF_FAIL(cmd) if (cmd!=PLUS_SUCCESS) { return PLUS_FAIL; };
+
+//----------------------------------------------------------------------------
+PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client)
+{
+  const char captureDeviceId[]="CaptureDevice";
+  const char capturingOutputFileName[]="OpenIGTTrackedVideoRecordingTest.mha";
+
+  const char volumeReconstructionDeviceId[]="VolumeReconstructorDevice";
+  const char* batchReconstructionInputFileName=capturingOutputFileName;
+  const char batchReconstructionOutputFileName[]="VolumeReconstructedBatch.mha";
+  const char batchReconstructionOutputImageName[]="VolumeReconstructedBatch";
+  const char snapshotReconstructionOutputFileName[]="VolumeReconstructedSnapshot.mha";
+  const char snapshotReconstructionOutputImageName[]="VolumeReconstructedSnapshot";
+  const char liveReconstructionOutputFileName[]="VolumeReconstructedLive.mha";
+  const char liveReconstructionOutputImageName[]="VolumeReconstructedLive";
+
+  // Basic commands
+  ExecuteGetChannelIds(client);
+  RETURN_IF_FAIL(PrintReply(client));
+  ExecuteGetDeviceIds(client, "VirtualVolumeReconstructor");
+  RETURN_IF_FAIL(PrintReply(client));
+  ExecuteUpdateTransform(client, "Test1ToReference", "1 0 0 10 0 1.2 0.1 12 0.1 0.2 -0.9 -20 0 0 0 1", "1.4", "100314_182141", "TRUE");
+  RETURN_IF_FAIL(PrintReply(client));
+  ExecuteSaveConfig(client, "Test1SavedConfig.xml");
+  RETURN_IF_FAIL(PrintReply(client));
+
+  // Capturing
+  ExecuteStartAcquisition(client, captureDeviceId);
+  RETURN_IF_FAIL(PrintReply(client));
+  vtkAccurateTimer::DelayWithEventProcessing(2.0);
+  ExecuteSuspendAcquisition(client, captureDeviceId);
+  RETURN_IF_FAIL(PrintReply(client));
+  vtkAccurateTimer::DelayWithEventProcessing(2.0);
+  ExecuteResumeAcquisition(client, captureDeviceId);
+  RETURN_IF_FAIL(PrintReply(client));
+  vtkAccurateTimer::DelayWithEventProcessing(2.0);
+  ExecuteStopAcquisition(client, captureDeviceId, capturingOutputFileName);
+  RETURN_IF_FAIL(PrintReply(client));
+  vtkAccurateTimer::DelayWithEventProcessing(2.0);
+
+  // Volume reconstruction from file
+  ExecuteReconstructFromFile(client, volumeReconstructionDeviceId, batchReconstructionInputFileName, batchReconstructionOutputFileName, batchReconstructionOutputImageName);
+  RETURN_IF_FAIL(PrintReply(client));
+  vtkAccurateTimer::DelayWithEventProcessing(2.0);
+
+  // Live volume reconstruction
+  ExecuteStartReconstruction(client, volumeReconstructionDeviceId);
+  RETURN_IF_FAIL(PrintReply(client));
+  vtkAccurateTimer::DelayWithEventProcessing(2.0);
+  ExecuteSuspendReconstruction(client, volumeReconstructionDeviceId);
+  RETURN_IF_FAIL(PrintReply(client));
+  vtkAccurateTimer::DelayWithEventProcessing(2.0);
+  ExecuteResumeReconstruction(client, volumeReconstructionDeviceId);
+  RETURN_IF_FAIL(PrintReply(client));
+  vtkAccurateTimer::DelayWithEventProcessing(2.0);
+  ExecuteGetSnapshotReconstruction(client, volumeReconstructionDeviceId, snapshotReconstructionOutputFileName, snapshotReconstructionOutputImageName);
+  RETURN_IF_FAIL(PrintReply(client));
+  vtkAccurateTimer::DelayWithEventProcessing(2.0);
+  ExecuteGetSnapshotReconstruction(client, volumeReconstructionDeviceId, snapshotReconstructionOutputFileName, snapshotReconstructionOutputImageName);
+  RETURN_IF_FAIL(PrintReply(client));
+  vtkAccurateTimer::DelayWithEventProcessing(2.0);
+  ExecuteGetSnapshotReconstruction(client, volumeReconstructionDeviceId, snapshotReconstructionOutputFileName, snapshotReconstructionOutputImageName);
+  RETURN_IF_FAIL(PrintReply(client));
+  vtkAccurateTimer::DelayWithEventProcessing(2.0);
+  ExecuteStopReconstruction(client, volumeReconstructionDeviceId, liveReconstructionOutputFileName, liveReconstructionOutputImageName);
+  RETURN_IF_FAIL(PrintReply(client));
+  vtkAccurateTimer::DelayWithEventProcessing(2.0);
+
+  return PLUS_SUCCESS;
+}
+
+// -------------------------------------------------
+// For CTRL-C signal handling
+void SignalInterruptHandler(int s)
+{
+  StopClient = true;
+}
+
+
+//----------------------------------------------------------------------------
 int main( int argc, char** argv )
 {
   // Check command line arguments.
@@ -387,6 +513,8 @@ int main( int argc, char** argv )
   bool keepReceivedDicomFiles = false;
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
   bool keepConnected=false;
+  std::string serverConfigFileName;
+  bool runTests=false;
 
   vtksys::CommandLineArguments args;
   args.Initialize( argc, argv );
@@ -410,22 +538,34 @@ int main( int argc, char** argv )
   args.AddArgument( "--dicom-directory", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &dicomOutputDirectory, "The folder directory for the dicom images acquired from the StealthLink Server");
   args.AddArgument( "--volumeEmbeddedTransformToFrame", vtksys::CommandLineArguments::EQUAL_ARGUMENT,&volumeEmbeddedTransformToFrame, "The reference frame in which the dicom image will be represented. Ex: RAS,LPS,Reference,Tracker etc");
   args.AddArgument( "--keepReceivedDicomFiles", vtksys::CommandLineArguments::NO_ARGUMENT, &keepReceivedDicomFiles, "Keep the dicom files in the designated folder after having acquired them from the server");
+  args.AddArgument( "--server-config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverConfigFileName, "Starts a PlusServer instance with the provided config file. When this process exits, the server is stopped." );
+  args.AddArgument( "--run-tests", vtksys::CommandLineArguments::NO_ARGUMENT, &runTests, "Test execution of all remote control commands. Requires a running PlusServer, which can be launched by --server-config-file");
+
   if ( !args.Parse() )
   {
     std::cerr << "Problem parsing arguments." << std::endl;
     std::cout << "Help: " << args.GetHelp() << std::endl;
-    exit(EXIT_FAILURE); 
+    exit(EXIT_FAILURE);
   }
   
-  if ( command.empty() && !keepConnected)
+  if ( command.empty() && !keepConnected && !runTests)
   {
-    LOG_ERROR("The program has nothing to do, as neither --command nor --keep-connected is specifed"); 
+    LOG_ERROR("The program has nothing to do, as neither --command, --keep-connected, nor --run-tests is specifed"); 
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE); 
   }
 
   vtkPlusLogger::Instance()->SetLogLevel( verboseLevel );
- 
+
+  vtksysProcess* plusServerProcess = NULL;
+  if (!serverConfigFileName.empty())
+  {
+    if (StartPlusServerProcess(serverConfigFileName, plusServerProcess)!=PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to start PlusServer");
+      exit(EXIT_FAILURE);
+    }
+  }
 
   vtkSmartPointer<vtkPlusOpenIGTLinkClient> client = vtkSmartPointer<vtkPlusOpenIGTLinkClient>::New();
   if (keepConnected)
@@ -442,6 +582,8 @@ int main( int argc, char** argv )
     LOG_ERROR("Failed to connect to server at "<<serverHost<<":"<<serverPort);
     exit(EXIT_FAILURE);
   }    
+
+  int returnValue = EXIT_SUCCESS;
 
   if ( !command.empty() )
   {
@@ -467,7 +609,7 @@ int main( int argc, char** argv )
 #else
       LOG_ERROR("Plus is not built with StealthLink support");
       exit(EXIT_FAILURE);
-#endif      
+#endif
     }
     else
     {
@@ -475,38 +617,44 @@ int main( int argc, char** argv )
       client->Disconnect();
       exit(EXIT_FAILURE);
     }
-    PlusStatus status=PrintReply(client);
+    if (PrintReply(client)!=PLUS_SUCCESS)
+    {
+      returnValue = EXIT_FAILURE;
+    }
     if (!keepConnected)
     {
-      // we don't need to remain connected, just exit now
-      client->Disconnect();
-      return status;
+      // we don't need to remain connected after the command has been executed
+      StopClient = true;
     }
   }
 
-  std::cout << "Press Ctrl-C to quit:" << std::endl;
-
-  // Set up signal catching
-  signal(SIGINT, SignalInterruptHandler);
-
-  // Run client until requested 
-  const double commandQueuePollIntervalSec=0.010;
-  while (!StopClient)
+  if (runTests)
   {
-    // the customized client logs the transformation matrices in the data receiver thread
-#ifdef _WIN32
-    Sleep(commandQueuePollIntervalSec*1000);
-#else
-    usleep(commandQueuePollIntervalSec * 1000000);
-#endif
+    if (RunTests(client)!=PLUS_SUCCESS)
+    {
+      returnValue = EXIT_FAILURE;
+    }
+    // we don't need to remain connected after the tests have been executed
+    StopClient = true;
+  }
+
+  if (!StopClient)
+  {
+    std::cout << "Press Ctrl-C to quit:" << std::endl;
+
+    // Set up signal catching
+    signal(SIGINT, SignalInterruptHandler);
+
+    // Run client until requested 
+    const double commandQueuePollIntervalSec=0.010;
+    while (!StopClient)
+    {
+      // the customized client logs the transformation matrices in the data receiver thread
+      vtkAccurateTimer::DelayWithEventProcessing(commandQueuePollIntervalSec);
+    }
   }
 
   client->Disconnect();
+  StopPlusServerProcess(plusServerProcess);
   return EXIT_SUCCESS;
-}
-
-// -------------------------------------------------
-void SignalInterruptHandler(int s)
-{
-  StopClient = true;
 }
