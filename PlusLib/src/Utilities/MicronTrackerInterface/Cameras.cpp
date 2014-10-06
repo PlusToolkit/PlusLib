@@ -3,17 +3,19 @@
 *     Micron Tracker: Example C++ wrapper and Multi-platform demo
 *   
 *     Written by: 
+*      Shi Sherebrin , Robarts Research Institute - London- Ontario , www.robarts.ca
 *      Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
-*      Claudio Gatti, Claron Technology - Toronto -Ontario, www.clarontech.com
+*      Claudio Gatti, Ahmad Kolahi, Claron Technology - Toronto- Ontario, www.clarontech.com
 *
-*     Copyright Claron Technology 2000-2003
+*     Copyright Claron Technology 2000-2013
 *
 ***************************************************************/
 
+#include "MTC.h"
+
 #include "Cameras.h"
 #include "MCamera.h"
-#include "MTC.h"
-#include "MTVideo.h"
+//#include "MTVideo.h"
 #include "MicronTrackerLoggerMacros.h"
 
 /****************************/
@@ -23,6 +25,7 @@ Cameras::Cameras()
   this->ownedByMe = TRUE;
   this->mCurrCam = NULL;
   this->mFailedCam = NULL;
+  Cameras_HistogramEqualizeImagesSet(true);
   // error handling here
 }
 
@@ -31,7 +34,7 @@ Cameras::Cameras()
 Cameras::~Cameras()
 {
   // Clear all previously connected camera
-  for (std::vector<MCamera *>::iterator camsIterator = m_vCameras.begin(); camsIterator != m_vCameras.end(); camsIterator++)
+  for (std::vector<MCamera *>::iterator camsIterator = m_vCameras.begin(); camsIterator != m_vCameras.end(); ++camsIterator)
   {
     free(*camsIterator);
   }
@@ -51,6 +54,22 @@ Cameras::~Cameras()
 }
 
 /****************************/
+/** */ 
+bool Cameras::getHistogramEqualizeImages()
+{
+	bool R;
+	Cameras_HistogramEqualizeImagesGet(&R);
+	return R;
+}
+
+/****************************/
+int Cameras::setHistogramEqualizeImages(bool on_off)
+{
+	int result = Cameras_HistogramEqualizeImagesSet(on_off);
+	return result == mtOK ? result : -1;
+}
+
+/****************************/
 /** Returns the camera with the index of /param index. */
 MCamera* Cameras::getCamera(int index)
 {
@@ -64,7 +83,7 @@ MCamera* Cameras::getCamera(int index)
 
 int Cameras::grabFrame(MCamera *cam)
 {
-  int result = 0; // success
+  int result = mtOK; // success
   if (cam == NULL)
   {
     // grab from all cameras
@@ -93,7 +112,7 @@ int Cameras::grabFrame(MCamera *cam)
 
 void Cameras::Detach()
 {
-  MTexit();
+  Cameras_Detach();
 }
 
 
@@ -106,9 +125,8 @@ int Cameras::getMTHome(std::string &mtHomeDirectory)
   const char subkey[]="SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment";
 
   /* Check registry key to determine log file name: */
-  LONG err=ERROR_SUCCESS;
   HKEY key=NULL;
-  if ( (err = RegOpenKeyEx(topkey, subkey, 0, KEY_QUERY_VALUE, &key)) != ERROR_SUCCESS ) 
+  if ( RegOpenKeyEx(topkey, subkey, 0, KEY_QUERY_VALUE, &key) != ERROR_SUCCESS ) 
   {
     LOG_ERROR("Failed to opern registry key: "<<subkey);
     return (-1);
@@ -152,17 +170,19 @@ int Cameras::AttachAvailableCameras()
 #if 0
   // Clear all previously connected camera
   vector<MCamera *>::iterator camsIterator;
-  for (camsIterator = m_vCameras.begin(); camsIterator != m_vCameras.end(); camsIterator++)
+  for (camsIterator = m_vCameras.begin(); camsIterator != m_vCameras.end(); ++camsIterator)
   {
     free (*camsIterator);
   }
   if (mCurrCam != NULL) 
   {
     free(mCurrCam);
+    mCurrCam = NULL;
   }
   if (mFailedCam != NULL) 
   {
     free(mFailedCam);
+    mFailedCam = NULL;
   }
 #endif
   int result = Cameras_AttachAvailableCameras((char*)calibrationDir.c_str());
@@ -187,47 +207,13 @@ int Cameras::AttachAvailableCameras()
     {
       break;
     }
-    int camHandle=0;
+    mtHandle camHandle=0;
     if (Cameras_ItemGet( c , &camHandle)==mtOK)
     {
       m_vCameras.push_back( new MCamera(camHandle));
     }
   }
 
-  return 0;
-}
-
-/****************************/
-/** Returns the shutter preference of the cameras. Returns 0 if successful, -1 if not. */
-int Cameras::getShutterPreference()
-{   
-  int shutterPref = 0;
-  int r = -1;//Cameras_ShutterPreferenceGet(this->m_handle, &shutterPref);
-  return r == mtOK ? shutterPref : -1;
-}
-
-/****************************/
-/** Sets the shutter preference of the cameras. Returns 0 if successful, -1 if not. */
-int Cameras::setShutterPreference(int val)
-{
-  int r = -1;//Cameras_ShutterPreferenceSet(this->m_handle, val);
-  return r == mtOK ? r : -1;
-}
-
-/****************************/
-/** Returns the gain preference of the cameras. Returns 0 if successful, -1 if not. */
-int Cameras::getGainPreference()
-{
-  int gainPref = 0;
-  int r = -1;//Cameras_gainPreferenceGet(this->m_handle, &gainPref);
-  return r == mtOK ? gainPref : -1;
-}
-
-/****************************/
-/** Sets the gain preference of the cameras. Returns 0 if successful, -1 if not. */
-int Cameras::setGainPreference(int val)
-{
-  int r = -1;//Cameras_gainPreferenceSet(this->m_handle, val);
-  return r == mtOK ? r : -1;
+  return mtOK;
 }
 

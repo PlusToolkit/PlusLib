@@ -6,17 +6,19 @@
 *      Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
 *      Claudio Gatti, Claron Technology - Toronto -Ontario, www.clarontech.com
 *
-*     Copyright Claron Technology 2000-2003
+*     Copyright Claron Technology 2000-2013
 *
 ***************************************************************/
-#include "Vector.h"
+
 #include "MTC.h"
 
+#include "Vector.h"
 
+#include "MicronTrackerLoggerMacros.h"
 
 /****************************/
 /** Constructor */
-Vector::Vector(int handle)
+Vector::Vector(mtHandle handle)
 {
   // If a handle is provided to this class, don't create a new one
   if (handle != 0)
@@ -31,36 +33,26 @@ Vector::Vector(int handle)
 Vector::~Vector()
 {
   if (this->m_handle != 0 && this->ownedByMe )
+  {
     Vector_Free(this->m_handle);
+    this->m_handle = NULL;
+  }
 }
-int Vector::Handle()
+mtHandle Vector::Handle()
 {
   return ( m_handle);
-
 }
 
 /****************************/
 /** */
-int Vector::getEndPos3x2(double* result)
+int Vector::getEndPos(EndPosType_BH_XYZ result)
 {
-  int r = Vector_EndPosGet(this->m_handle, result );
-  return r;
+  return Vector_EndPosGet(this->m_handle, (double*) result );
 }
 
-#if 0 // Claudio
 /****************************/
 /** */
-int Vector::setEndPos3x2(double* newPos3x2)
+int Vector::getEndXPoints(EndXPointType_LRM_BH_XY result)
 {
-  int result = Vector_EndPosSet(this->m_handle, newPos3x2);
-  return result;
-}
-
-#endif
-/****************************/
-/** */
-int Vector::getEndXPoints(double* result)
-{
-  int r = Vector_EndXPointsGet(this->m_handle, result);
-  return r;
+  return Vector_EndXPointsGet(this->m_handle, (double*) result);
 }

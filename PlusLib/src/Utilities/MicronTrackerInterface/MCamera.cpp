@@ -3,28 +3,36 @@
 *     Micron Tracker: Example C++ wrapper and Multi-platform demo
 *   
 *     Written by: 
-*      Shi Sherebrin , Robarts Research Institute - London- Ontario , www.robarts.ca
-*      Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
-*      Claudio Gatti, Claron Technology - Toronto -Ontario, www.clarontech.com
+*			Shi Sherebrin , Robarts Research Institute - London- Ontario , www.robarts.ca
+*			Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
+*			Claudio Gatti, Ahmad Kolahi, Claron Technology - Toronto -Ontario, www.clarontech.com
 *
-*     Copyright Claron Technology 2000-2003
+*     Copyright Claron Technology 2000-2013
 *
 ***************************************************************/
-#include "MCamera.h"
+
 #include "MTC.h"
+
+#include "MCamera.h"
 
 /****************************/
 /** Constructor */
-MCamera::MCamera(int handle)
+MCamera::MCamera(mtHandle handle)
 {
   // If a handle is provided to this class, don't create a new one
+  char *DriverName = NULL;
   if (handle != 0)
+  {
     this->m_handle = handle;
+  }
   else
-    this->m_handle = Camera_New( "",1965 ); 
+  {
+    this->m_handle = Camera_New( DriverName,1965 ); 
+  }
   this->ownedByMe = TRUE;
   limage = NULL;
   rimage = NULL;
+  mimage = NULL;
   // error handling here
 }
 
@@ -37,10 +45,9 @@ MCamera::~MCamera()
   free(limage);
   free(rimage);
 }
-int MCamera::Handle()
+mtHandle MCamera::Handle()
 {
-  return ( m_handle);
-
+  return m_handle;
 }
 
 #if 0
@@ -119,7 +126,7 @@ double MCamera::getMinShutterTime()
 }
 
 /****************************/
-/** Gets the maximum shuttter time of the camera.  Returns -1 if not successful. */
+/** Gets the maximum shutter time of the camera.  Returns -1 if not successful. */
 double MCamera::getMaxShutterTime()
 {
   double maxShutterTime = 0;
@@ -263,6 +270,15 @@ double MCamera::getMaxExposure()
 }
 
 /****************************/
+/** Gets the number os CCDs available in the current camera. */
+int MCamera::getSensorsNum()
+{
+	int numOfSensors = 0;
+	int result = Camera_NumofSensorsGet(this->m_handle, &numOfSensors);
+	return numOfSensors;
+}
+
+/****************************/
 /** Gets the AutoExposure property of the camera. Returns -1 if true, 0 if false. */
 int MCamera::getAutoExposure()
 {
@@ -296,47 +312,36 @@ int MCamera::setLightCoolness(double value)
   return (result == mtOK ? result : -1);
 }
 
+mtMeasurementHazardCode MCamera::getThermalHazard()
+{
+  return Camera_LastFrameThermalHazard(this->m_handle);
+}
 
-int MCamera::AdjustCoolnessFromColorVector(int ColorVectorHandle)
+int MCamera::AdjustCoolnessFromColorVector(mtHandle ColorVectorHandle)
 {
   int result = Camera_LightCoolnessAdjustFromColorVector(this->m_handle, ColorVectorHandle, 0 );
-  return (result == mtOK ? result : -1);
-  
+  return (result == mtOK ? result : -1);  
+}
+
+//image - 0 left, 1 right, 2 middle
+bool MCamera::getProjectionOnImage( int image, double XYZ[], double *x, double *y )
+{
+	mtCompletionCode  result =  Camera_ProjectionOnImage( this->m_handle, image, XYZ, x, y );
+	return( result == mtOK ? true : false );
 }
 
 bool MCamera::getImages( unsigned char ***li, unsigned char ***ri)
 {
-  int r;
-
   if (limage == NULL)
+  {
     limage = (unsigned char *)calloc (sizeof(unsigned char), getXRes() * getYRes());
-  if (rimage == NULL)
-    rimage = (unsigned char *)calloc (sizeof(unsigned char), getXRes() * getYRes());
-
-  r = Camera_ImagesGet(m_handle, (unsigned char *)limage, (unsigned char *)rimage);
-  if (r != mtOK) {
-    *li = NULL;
-    *ri = NULL;
-    return false;
-  } else {
-    *li = (unsigned char **)limage;
-    *ri = (unsigned char **)rimage;
-    return true;
   }
-}
-
-/****************************/
-/** Gets the grabed images. Returns true if successful. Returns false if not. */
-bool MCamera::getHalfSizeImages(unsigned char ***li, unsigned char ***ri, int xRes, int yRes)
-{
-  int r;
-
-  if (limage == NULL)
-    limage = (unsigned char *)calloc (sizeof(unsigned char), getXRes() * getYRes());
   if (rimage == NULL)
+  {
     rimage = (unsigned char *)calloc (sizeof(unsigned char), getXRes() * getYRes());
+  }
 
-  r = Camera_HalfSizeImagesGet(m_handle, (unsigned char *)limage, (unsigned char *)rimage);
+  int r = Camera_ImagesGet(m_handle, (unsigned char *)limage, (unsigned char *)rimage);
   if (r != mtOK)
   {
     *li = NULL;
@@ -351,13 +356,113 @@ bool MCamera::getHalfSizeImages(unsigned char ***li, unsigned char ***ri, int xR
   }
 }
 
+bool MCamera::getImages3( unsigned char ***li, unsigned char ***ri, unsigned char ***mi)
+{
+  if (limage == NULL)
+  {
+    limage = (unsigned char *)calloc (sizeof(unsigned char), getXRes() * getYRes());
+  }
+  if (rimage == NULL)
+  {
+    rimage = (unsigned char *)calloc (sizeof(unsigned char), getXRes() * getYRes());
+  }
+  if (mimage == NULL)
+  {
+    mimage = (unsigned char *)calloc (sizeof(unsigned char), getXRes() * getYRes());
+  }
+  int r = Camera_ImagesGet3(m_handle, (unsigned char *)limage, (unsigned char *)rimage, (unsigned char *)mimage);
+  if (r != mtOK)
+  {
+    *li = NULL;
+    *ri = NULL;
+    *mi = NULL;
+    return false;
+  }
+  else
+  {
+    *li = (unsigned char **)limage;
+    *ri = (unsigned char **)rimage;
+    *mi = (unsigned char **)mimage;
+    return true;
+  }
+}
+
+/****************************/
+/** Gets the grabbed images. Returns true if successful. Returns false if not. */
+bool MCamera::getHalfSizeImages(unsigned char ***li, unsigned char ***ri, int xRes, int yRes)
+{
+  if (limage == NULL)
+  {
+    limage = (unsigned char *)calloc (sizeof(unsigned char), getXRes() * getYRes()/2);
+  }
+  if (rimage == NULL)
+  {
+    rimage = (unsigned char *)calloc (sizeof(unsigned char), getXRes() * getYRes()/2);
+  }
+  int r = Camera_HalfSizeImagesGet(m_handle, (unsigned char *)limage, (unsigned char *)rimage);
+  if (r != mtOK)
+  {
+    *li = NULL;
+    *ri = NULL;
+    return false;
+  }
+  else
+  {
+    *li = (unsigned char **)limage;
+    *ri = (unsigned char **)rimage;
+    return true;
+  }
+}
+
+bool MCamera::getHalfSizeImages3(unsigned char ***li, unsigned char ***ri, unsigned char ***mi, int xRes, int yRes)
+{
+  if (limage == NULL)
+  {
+    limage = (unsigned char *)calloc (sizeof(unsigned char), getXRes() * getYRes()/2);
+  }
+  if (rimage == NULL)
+  {
+    rimage = (unsigned char *)calloc (sizeof(unsigned char), getXRes() * getYRes()/2);
+  }
+  if (mimage == NULL)
+  {
+    mimage = (unsigned char *)calloc (sizeof(unsigned char), getXRes() * getYRes()/2);
+  }
+  int r = Camera_HalfSizeImagesGet3(m_handle, (unsigned char *)limage, (unsigned char *)rimage, (unsigned char *)mimage);
+  if (r != mtOK)
+  {
+    *li = NULL;
+    *ri = NULL;
+    *mi = NULL;
+    return false;
+  }
+  else
+  {
+    *li = (unsigned char **)limage;
+    *ri = (unsigned char **)rimage;
+    *mi = (unsigned char **)mimage;
+    return true;
+  }
+}
+
 bool MCamera::grabFrame( )
 {
   int r = Camera_GrabFrame (this->m_handle );
   return (mtOK == r);
 }
 
-int MCamera::getHazardCode()
+/****************************/
+bool MCamera::getHdrModeEnabled()
 {
-    return  ( Camera_LastFrameThermalHazard (this->m_handle) );
+  bool IsEnabled = false;
+  int result = Camera_HdrEnabledGet(this->m_handle, &IsEnabled);
+  return IsEnabled;
+}
+
+/****************************/
+/** Sets the AutoExposure property of the camera. Returns 0 if successful, -1 if not. */
+int MCamera::setHdrModeEnabled(bool NewVal)
+{
+  int result = Camera_HdrEnabledSet(this->m_handle, NewVal);
+  return (result == mtOK ? result : -1);
 }

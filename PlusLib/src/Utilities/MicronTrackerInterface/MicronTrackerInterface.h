@@ -13,10 +13,16 @@
 #ifndef __MICRONTRACKERINTERFACE_H__
 #define __MICRONTRACKERINTERFACE_H__
 
-#include "Persistence.h"
-#include "Cameras.h"
-#include "Markers.h"
-#include "Collection.h"
+#include <string>
+#include <vector>
+
+class Cameras;
+class Collection;
+class Marker;
+class MCamera;
+class Markers;
+class Persistence;
+class Xform3D;
 
 class MicronTrackerInterface
 {
@@ -337,7 +343,7 @@ class MicronTrackerInterface
   int mtSetTemplateName(int index, char* templName);
 
   // Get the name of the template 'index' in the template list.
-  char* mtGetTemplateName(int index);
+  std::string mtGetTemplateName(int index);
 
   // Get the name of the template 'index' in the list of the identified markers. 
   // If index is out of range returns an empty string. 
@@ -406,7 +412,6 @@ class MicronTrackerInterface
   // Get the status of the tracked tool
   //
   //------------------------
-
   int  mtGetStatus();
 
   // Finds the status of the loaded marker with the index of \param loadedMarkerIndex. The status of the marker
@@ -475,47 +480,44 @@ private:
   int renameFile(const std::string &oldName, const std::string &newName, const std::string& dir);
   void handleError(int errorNum, const char* description=NULL);
 
-  enum    mti_Error{
-            MTI_FAIL = 0,
-            MTI_SUCCESS = 1,
-            MTI_CAMERA_NOT_FOUND = 2,
-            MTI_GRAB_FRAME_ERROR = 3,
-            MTI_MARKER_CAPTURED = 4,
-            MTI_NO_MARKER_CAPTURED = 5,
-            MTI_CAMERA_INDEX_OUT_OF_RANGE = 6
-          };
+  enum    mti_Error
+  {
+    MTI_FAIL = 0,
+    MTI_SUCCESS = 1,
+    MTI_CAMERA_NOT_FOUND = 2,
+    MTI_GRAB_FRAME_ERROR = 3,
+    MTI_MARKER_CAPTURED = 4,
+    MTI_NO_MARKER_CAPTURED = 5,
+    MTI_CAMERA_INDEX_OUT_OF_RANGE = 6
+  };
+
   static void getFileNamesFromDirectory(std::vector<std::string> &fileNames, const std::string &dir, bool returnCompletePath);
 
   // Accesses the "MicronTracker.ini" file to retrieve some values from it and then
   // set those values in the Markers interface object.   
   void initialINIAccess(const std::string &iniFilePath);
   bool checkCamIndex(int id);
+
   // A two dimensional vector for storing the rotation matrices. The first dimension is the marker number.
   // The second dimension is the vector of rotation matrices
-
   std::vector< std::vector<double> > m_2dvRotations;
 
   // A two dimensional vector for storing the translations. 
-
   std::vector< std::vector<double> > m_2dvTranslations;
 
   // A two dimensional vector for storing the xpoints of the identified vectors. The first vector is the index 
   // of the marker. The second dimension is the vector of xpoints. The latter vector is divided into group of 16s, 
   // i.e. the first 16 elements belong to the first facet in the marker, if there are more than one facet in that 
   // marker then the next 16 elements represent the xpoints of that facet and so on.
-
   std::vector< std::vector<double> > m_vIdentifiedMarkersXPoints;
 
   // A vector for storing the name of the indentified markers 
-
   std::vector<std::string> m_vIdentifiedMarkersName;
 
   // A two dimensional vector for storing the xpoints of the unidentified vectors.
-
   std::vector< std::vector<double> > m_vUnidentifiedMarkersEndPoints;
 
   // A vector for storing new sample vectors.
-
   std::vector<Collection*> m_sampleVectors;
 
   Marker* m_pCurrMarker;
@@ -530,17 +532,12 @@ private:
 
   std::vector<int> m_vNumOfTotalFacetsInEachMarker;
 
-  bool isCameraAttached;
-  double LS_LR_BH_XY[2][2][2][2];
-  double LR_BH_XY[2][2][2];
-  std::vector<double> vXPointsTemp;
-  std::vector<double> vUnidentifiedEndPointsTemp;
+  bool m_isCameraAttached;
   Cameras* m_pCameras;
   MCamera* m_pCurrCam;
   int m_currCamIndex;
   Markers* m_pMarkers;
   Persistence* m_pPers;
-  //Marker* m_pCurrTempMarker;
   Marker *m_pTempMarkerForAddingFacet;
 
   int m_markerStatus;
@@ -551,7 +548,7 @@ private:
   // a new facet or it is a new facet being added to an already existing marker. 0 = false; 1 = true
 
   int m_isAddingAdditionalFacet;
-  std::vector<Xform3D*> facet1ToCameraXfs;
+  std::vector<Xform3D*> m_facet1ToCameraXfs;
   std::string m_errorString;
 };
 

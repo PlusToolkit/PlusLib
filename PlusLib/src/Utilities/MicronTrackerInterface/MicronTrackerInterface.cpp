@@ -7,8 +7,25 @@
 
 #include "MicronTrackerInterface.h"
 #include "MicronTrackerLoggerMacros.h"
+
 #include "MTC.h"
-#include "MTVideo.h"
+
+/*
+#if (MTCMajorVersion == 3) && (MTCMinorVersion < 7)
+  // MTVideo.h is provided before MTC_3.7, use that
+  #include "MTVideo.h"
+#else
+  // MTVideo.h is not included anymore in the dist directory of MicronTracker SDK 3.7.x
+  // therefore use a private copy (MTVideo_private.h)
+  // When we drop support of MTC_3.6 and older we can probably drop this MTVideo.h header file, too.
+  //#include "MTVideo_private.h"
+#endif
+*/
+
+#include "Persistence.h"
+#include "Cameras.h"
+#include "Markers.h"
+#include "Collection.h"
 #include "Cameras.h"
 #include <sstream>
 
@@ -27,12 +44,13 @@ MicronTrackerInterface::~MicronTrackerInterface()
 int MicronTrackerInterface::mtInit(const std::string &iniFilePath)
 {
   this->m_errorString.clear();
-  this->isCameraAttached = false;
+  this->m_isCameraAttached = false;
   this->m_pMarkers = new Markers();
   this->m_pPers = new Persistence();
-  this->initialINIAccess(iniFilePath);
   //m_pCurrTempMarker =  new Marker();
   this->m_pTempMarkerForAddingFacet = NULL; //new Marker();
+
+  initialINIAccess(iniFilePath);
 
   return 1;
 }
@@ -76,7 +94,7 @@ int MicronTrackerInterface::mtSetupCameras()
     // Set the current camera to the first in the list. 
     this->m_currCamIndex = 0;
     this->m_pCurrCam = this->m_pCameras->getCamera(this->m_currCamIndex);
-    this->isCameraAttached = true;
+    this->m_isCameraAttached = true;
 
     return 1;
   }
@@ -90,10 +108,10 @@ int MicronTrackerInterface::mtSetupCameras()
 //------------------------------------------
 void MicronTrackerInterface::mtDetachCameras()
 {
-  if ( isCameraAttached )
+  if ( m_isCameraAttached )
   {
-    isCameraAttached = false;
-    MTexit();     
+    m_isCameraAttached = false;
+    m_pCameras->Detach();
   }
 }
 
@@ -246,7 +264,7 @@ int MicronTrackerInterface::mtCollectNewSamples(int collectingAdditionalFacet)
         // relates to registering a marker with two cameras. As soon as the second camera is 
         // in, we can start working on it.
         //if (this->m_pCurrMarker->marker2CameraXf(this->m_pCurrCam->getHandle() != (Xform3D*)NULL)
-        this->facet1ToCameraXfs.push_back(this->m_pTempMarkerForAddingFacet->marker2CameraXf(this->m_pCurrCam->getHandle()));
+        this->m_facet1ToCameraXfs.push_back(this->m_pTempMarkerForAddingFacet->marker2CameraXf(this->m_pCurrCam->getHandle()));
 
         //else // Seen by a camera not registered with this one
         //{
@@ -309,7 +327,7 @@ int MicronTrackerInterface::mtStopSampling(char* templateName, double jitterValu
         if (f->identify(this->m_pCurrCam, vectorPair, 1)) // Then the sample matches the template
         {
           // Compute the xform between the first marker facet and the new one
-          facet1ToNewFacetXf = this->facet1ToCameraXfs[i]->concatenate(f->getFacet2CameraXf(this->m_pCurrCam)->inverse());
+          facet1ToNewFacetXf = this->m_facet1ToCameraXfs[i]->concatenate(f->getFacet2CameraXf(this->m_pCurrCam)->inverse());
           facet1ToNewFacetXfs.push_back(facet1ToNewFacetXf);
         }
 
@@ -455,39 +473,40 @@ void MicronTrackerInterface::mtFindIdentifiedMarkers()
         this->m_pCurrCam->AdjustCoolnessFromColorVector(ColorVector->Handle());
         delete f;
       }
-      vXPointsTemp.clear();
+      std::vector<double> vXPointsTemp;
       for (facetNum = 1; facetNum <= facetsCollection->count(); facetNum++)
       {
         Facet* f = new Facet(facetsCollection->itemI(facetNum));
-        // get Xpoints and then draw on each image if enabled  
-        f->getXpoints(this->m_pCurrCam, (double *)LS_LR_BH_XY);
+        // get Xpoints and then draw on each image if enabled
+        Facet::XPointsType_LS_LRM_BH_XY xPoints_LS_LRM_BH_XY = {0};
+        f->getXpoints(this->m_pCurrCam, xPoints_LS_LRM_BH_XY);
 
         // Have to push_back the elements one by one. If pass the address of the whole
         // array, the points will be deleted if the facet is deleted.
 
         // Left, Long vector
-        vXPointsTemp.push_back(LS_LR_BH_XY[0][0][0][0]);
-        vXPointsTemp.push_back(LS_LR_BH_XY[0][0][0][1]);
-        vXPointsTemp.push_back(LS_LR_BH_XY[0][0][1][0]);
-        vXPointsTemp.push_back(LS_LR_BH_XY[0][0][1][1]);
+        vXPointsTemp.push_back(xPoints_LS_LRM_BH_XY[0][0][0][0]);
+        vXPointsTemp.push_back(xPoints_LS_LRM_BH_XY[0][0][0][1]);
+        vXPointsTemp.push_back(xPoints_LS_LRM_BH_XY[0][0][1][0]);
+        vXPointsTemp.push_back(xPoints_LS_LRM_BH_XY[0][0][1][1]);
 
         // Right, Long vector
-        vXPointsTemp.push_back(LS_LR_BH_XY[0][1][0][0]);
-        vXPointsTemp.push_back(LS_LR_BH_XY[0][1][0][1]);
-        vXPointsTemp.push_back(LS_LR_BH_XY[0][1][1][0]);
-        vXPointsTemp.push_back(LS_LR_BH_XY[0][1][1][1]);
+        vXPointsTemp.push_back(xPoints_LS_LRM_BH_XY[0][1][0][0]);
+        vXPointsTemp.push_back(xPoints_LS_LRM_BH_XY[0][1][0][1]);
+        vXPointsTemp.push_back(xPoints_LS_LRM_BH_XY[0][1][1][0]);
+        vXPointsTemp.push_back(xPoints_LS_LRM_BH_XY[0][1][1][1]);
 
         // Left, short vector
-        vXPointsTemp.push_back(LS_LR_BH_XY[1][0][0][0]);
-        vXPointsTemp.push_back(LS_LR_BH_XY[1][0][0][1]);
-        vXPointsTemp.push_back(LS_LR_BH_XY[1][0][1][0]);
-        vXPointsTemp.push_back(LS_LR_BH_XY[1][0][1][1]);
+        vXPointsTemp.push_back(xPoints_LS_LRM_BH_XY[1][0][0][0]);
+        vXPointsTemp.push_back(xPoints_LS_LRM_BH_XY[1][0][0][1]);
+        vXPointsTemp.push_back(xPoints_LS_LRM_BH_XY[1][0][1][0]);
+        vXPointsTemp.push_back(xPoints_LS_LRM_BH_XY[1][0][1][1]);
 
         // Right, Short vector
-        vXPointsTemp.push_back(LS_LR_BH_XY[1][1][0][0]);
-        vXPointsTemp.push_back(LS_LR_BH_XY[1][1][0][1]);
-        vXPointsTemp.push_back(LS_LR_BH_XY[1][1][1][0]);
-        vXPointsTemp.push_back(LS_LR_BH_XY[1][1][1][1]);
+        vXPointsTemp.push_back(xPoints_LS_LRM_BH_XY[1][1][0][0]);
+        vXPointsTemp.push_back(xPoints_LS_LRM_BH_XY[1][1][0][1]);
+        vXPointsTemp.push_back(xPoints_LS_LRM_BH_XY[1][1][1][0]);
+        vXPointsTemp.push_back(xPoints_LS_LRM_BH_XY[1][1][1][1]);
 
         delete f;
 
@@ -496,7 +515,6 @@ void MicronTrackerInterface::mtFindIdentifiedMarkers()
       this->m_vNumOfFacetsInEachMarker.push_back(facetsCollection->count());
       this->m_vNumOfTotalFacetsInEachMarker.push_back(totalFacetsCollection->count());
       delete facetsCollection;
-
 
       /***********************************/
       /*VERY IMPORTANT PROGRAMMING NOTE                                       
@@ -519,12 +537,11 @@ void MicronTrackerInterface::mtFindIdentifiedMarkers()
       // Find the rotations and push them in a 2 temporary vector and then push that temp vector into a 
       // 2 dimensional vector.
 
-      double vR[3][3];
-
-      std::vector<double> vRotTemp;
       // problem lies here !
+      double vR[3][3] = {0};
       Xform3D_RotMatGet(Marker2CurrCameraXf->getHandle(), reinterpret_cast<double *>(vR[0]));
       //Marker2CurrCameraXf->getRotationMatrix(reinterpret_cast<double *>(vR[0]));
+      std::vector<double> vRotTemp;
       for (int j = 0; j < 3; j++)
       {
         for (int k = 0; k < 3; k++)
@@ -571,22 +588,23 @@ void MicronTrackerInterface::mtFindUnidentifiedMarkers()
   this->m_vUnidentifiedMarkersEndPoints.clear();
   for (int i=1; i<= m_numOfUnidentifiedMarkers; i++)
   {
-    this->vUnidentifiedEndPointsTemp.clear();
+    std::vector<double> vUnidentifiedEndPointsTemp;
     Vector* v = new Vector(unidentifiedVectorsColl->itemI(i));
-    v->getEndXPoints((double *)LR_BH_XY);
+    Vector::EndXPointType_LRM_BH_XY endXPoints_LRM_BH_XY = {0};
+    v->getEndXPoints(endXPoints_LRM_BH_XY);
     // Left  
-    this->vUnidentifiedEndPointsTemp.push_back(LR_BH_XY[0][0][0]);
-    this->vUnidentifiedEndPointsTemp.push_back(LR_BH_XY[0][0][1]);
-    this->vUnidentifiedEndPointsTemp.push_back(LR_BH_XY[0][1][0]);
-    this->vUnidentifiedEndPointsTemp.push_back(LR_BH_XY[0][1][1]);
+    vUnidentifiedEndPointsTemp.push_back(endXPoints_LRM_BH_XY[0][0][0]);
+    vUnidentifiedEndPointsTemp.push_back(endXPoints_LRM_BH_XY[0][0][1]);
+    vUnidentifiedEndPointsTemp.push_back(endXPoints_LRM_BH_XY[0][1][0]);
+    vUnidentifiedEndPointsTemp.push_back(endXPoints_LRM_BH_XY[0][1][1]);
 
-    this->vUnidentifiedEndPointsTemp.push_back(LR_BH_XY[1][0][0]);
-    this->vUnidentifiedEndPointsTemp.push_back(LR_BH_XY[1][0][1]);
-    this->vUnidentifiedEndPointsTemp.push_back(LR_BH_XY[1][1][0]);
-    this->vUnidentifiedEndPointsTemp.push_back(LR_BH_XY[1][1][1]);
+    vUnidentifiedEndPointsTemp.push_back(endXPoints_LRM_BH_XY[1][0][0]);
+    vUnidentifiedEndPointsTemp.push_back(endXPoints_LRM_BH_XY[1][0][1]);
+    vUnidentifiedEndPointsTemp.push_back(endXPoints_LRM_BH_XY[1][1][0]);
+    vUnidentifiedEndPointsTemp.push_back(endXPoints_LRM_BH_XY[1][1][1]);
 
     // Right
-    this->m_vUnidentifiedMarkersEndPoints.push_back(this->vUnidentifiedEndPointsTemp);
+    this->m_vUnidentifiedMarkersEndPoints.push_back(vUnidentifiedEndPointsTemp);
     delete v;
   }
   return ;
@@ -620,7 +638,7 @@ int MicronTrackerInterface::mtGetMarkerStatus(int loadedMarkerIndex, int* identi
   {
     return MTI_NO_MARKER_CAPTURED;
   }
-  char* markerName = this->mtGetTemplateName(loadedMarkerIndex);
+  std::string markerName = this->mtGetTemplateName(loadedMarkerIndex);
   for (int i=0; i< this->m_numOfIdentifiedMarkers; i++)
   {
     if (markerName == this->m_vIdentifiedMarkersName[i])
@@ -1073,7 +1091,7 @@ int MicronTrackerInterface::mtSetTemplateName(int index, char* templName)
     handleError(-1, "Marker index out of range");
     return result;
   }
-  char* oldN = this->mtGetTemplateName(index);
+  std::string oldN = this->mtGetTemplateName(index);
   result = this->m_pMarkers->setTemplateItemName(index, templName);
   result = this->m_pMarkers->storeTemplate(index, this->m_pPers->getHandle(), NULL );
   result = this->renameFile(oldN, templName, "Markers");
@@ -1085,11 +1103,11 @@ int MicronTrackerInterface::mtSetTemplateName(int index, char* templName)
 }
 
 //------------------------------------------
-char* MicronTrackerInterface::mtGetTemplateName(int index)
+std::string MicronTrackerInterface::mtGetTemplateName(int index)
 {
   std::string s;
-
-  return this->m_pMarkers->getTemplateItemName(index);
+  this->m_pMarkers->getTemplateItemName(index, s);
+  return s;
 }
 
 //------------------------------------------
@@ -1112,7 +1130,7 @@ int MicronTrackerInterface::mtDeleteTemplate(int index)
   int result = -1;
   if (index > -1 && index < this->m_pMarkers->getTemplateCount() )
   {
-    char* templateName = this->mtGetTemplateName(index);//this->m_pMarkers->getTemplateItemName(index);
+    std::string templateName = this->mtGetTemplateName(index);//this->m_pMarkers->getTemplateItemName(index);
     result = this->removeFile(templateName, "Markers");
     if (result != 0)
     {

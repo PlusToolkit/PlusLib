@@ -3,10 +3,10 @@
 *     Micron Tracker: Example C++ wrapper and Multi-platform demo
 *   
 *     Written by: 
-*      Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
-*      Claudio Gatti, Claron Technology - Toronto -Ontario, www.clarontech.com
+*			Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
+*			Claudio Gatti, Ahmad Kolahi, Claron Technology - Toronto -Ontario, www.clarontech.com
 *
-*     Copyright Claron Technology 2000-2003
+*     Copyright Claron Technology 2000-2013
 *
 ***************************************************************/
 #ifndef __FACET_H__
@@ -16,15 +16,17 @@
 #include "Vector.h"
 #include "Collection.h"
 #include "Xform3D.h"
-#include <iostream>
 
 class Facet
 {
 public:
-  Facet(int h =0);
+  // long/short vector; left/right/middle camera; base/head; x/y coordinate
+  typedef double XPointsType_LS_LRM_BH_XY[2][3][2][2];
+
+  Facet(mtHandle h =0);
   ~Facet();
-  inline int getHandle(){ return m_handle; };
-  int getXpoints( MCamera *cam, double *result2x2x2x2); //[LV/SV][L/R][base/head][X/Y]
+  inline mtHandle getHandle(){ return m_handle; };
+  int getXpoints( MCamera *cam, XPointsType_LS_LRM_BH_XY result2x3x2x2); //[LV/SV][L/R/M][base/head][X/Y]
   std::vector<Vector *> IdentifiedVectors();
   std::vector<Vector *> TemplateVectors();
   bool setVectorsFromSample(std::vector<Collection*> &sampledVectorSets, std::string &outCompletionExplanation , double maxSampleErrorAllowedMM = 2.0);
@@ -34,7 +36,7 @@ public:
 
 
 private:
-  int m_handle;
+  mtHandle m_handle;
   bool ownedByMe;
 };
 

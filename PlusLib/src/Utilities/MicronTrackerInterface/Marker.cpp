@@ -4,18 +4,20 @@
 *   
 *     Written by: 
 *      Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
-*      Claudio Gatti, Claron Technology - Toronto -Ontario, www.clarontech.com
+*			Claudio Gatti, Ahmad Kolahi, Claron Technology - Toronto -Ontario, www.clarontech.com
 *
-*     Copyright Claron Technology 2000-2003
+*     Copyright Claron Technology 2000-2013
 *
 ***************************************************************/
-#include "Marker.h"
 #include "MTC.h"
+
+#include "Marker.h"
+
 #include <string>
 
 /****************************/
-/** Instructor */
-Marker::Marker(int h)
+/** Constructor */
+Marker::Marker(mtHandle h)
 {
   // If a handle is provided to this class, don't create a new one
   if (h != 0)
@@ -36,19 +38,20 @@ Marker::~Marker()
   if (this->m_handle != 0 && this->ownedByMe)
   {
     Marker_Free(this->m_handle);
+    this->m_handle = NULL;
   }
 }
 
 /****************************/
 /** Return a handle to the collection of the identified facets */
-int Marker::identifiedFacets(MCamera *cam)
+mtHandle Marker::identifiedFacets(MCamera *cam)
 {
-  int camHandle = NULL;
+  mtHandle camHandle = NULL;
   if (cam != NULL) 
   {
     camHandle = cam->Handle();
   }
-  int identifiedHandle = Collection_New();
+  mtHandle identifiedHandle = Collection_New();
   Marker_IdentifiedFacetsGet(this->m_handle, camHandle, true, identifiedHandle);
   return identifiedHandle;
 }
@@ -56,27 +59,19 @@ int Marker::identifiedFacets(MCamera *cam)
 
 /****************************/
 /** Return a handle to the collection of the facets */
-int Marker::getTemplateFacets()
+mtHandle Marker::getTemplateFacets()
 {
-  int templateFacetsColl = 0;
+  mtHandle templateFacetsColl = 0;
   Marker_TemplateFacetsGet(this->m_handle, &templateFacetsColl);
   return templateFacetsColl;
 }
 
-/****************************/
-/** Restores a template. Returns 0 if succesfull, -1 if not. */
-int Marker::restoreTemplate(int persistenceHandle, char* name)
-{
-  int result = 0;
-  result = Marker_RestoreTemplate(this->m_handle, persistenceHandle, name );
-  return result;
-}
 
 /****************************/
 /** */
 bool Marker::wasIdentified(MCamera *cam)
 {
-  int camHandle = NULL;
+  mtHandle camHandle = NULL;
   if (cam != NULL) 
   {
     camHandle = cam->Handle();
@@ -88,10 +83,10 @@ bool Marker::wasIdentified(MCamera *cam)
 
 /****************************/
 /** */
-Xform3D* Marker::marker2CameraXf(int camHandle)
+Xform3D* Marker::marker2CameraXf(mtHandle camHandle)
 {
   Xform3D* xf = new Xform3D;
-  int identifyingCamHandle=0;
+  mtHandle identifyingCamHandle=0;
   int result = Marker_Marker2CameraXfGet(this->m_handle, camHandle, xf->getHandle(), &identifyingCamHandle);
   // if the result is ok then return the handle, otherwise return NULL
   if (result != mtOK)
@@ -99,6 +94,21 @@ Xform3D* Marker::marker2CameraXf(int camHandle)
     return NULL;
   }
   return xf;
+}
+
+/****************************/
+/** */
+Xform3D* Marker::tooltip2MarkerXf()
+{
+	Xform3D* xf = new Xform3D;
+	int result = Marker_Tooltip2MarkerXfGet(this->m_handle, xf->getHandle());
+
+	// if the result is ok then return the handle, otherwise return NULL
+	if (result != mtOK)
+	{
+		return NULL;
+	}
+	return xf;
 }
 
 /****************************/
@@ -185,8 +195,7 @@ End Function
 }
 
 /****************************/
-/** */
-int Marker::storeTemplate(Persistence* p, char* name)
+int Marker::storeTemplate(Persistence* p, const char* name)
 {
   int result = Marker_StoreTemplate(this->m_handle, p->getHandle(), name);
   return result;

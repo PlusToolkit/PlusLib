@@ -3,10 +3,10 @@
 *     Micron Tracker: Example C++ wrapper and Multi-platform demo
 *   
 *     Written by: 
-*      Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
-*      Claudio Gatti, Claron Technology - Toronto -Ontario, www.clarontech.com
+*			Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
+*			Claudio Gatti, Ahmad Kolahi, Claron Technology - Toronto -Ontario, www.clarontech.com
 *
-*     Copyright Claron Technology 2000-2003
+*     Copyright Claron Technology 2000-2013
 *
 ***************************************************************/
 #ifndef __MARKER_H__
@@ -21,25 +21,24 @@
 class Marker
 {
 public:
-  Marker(int h=0);
+  Marker(mtHandle h=0);
   ~Marker();
-  inline int getHandle(){ return m_handle; };
-  inline void setHandle(int h){m_handle = h;};
+  inline mtHandle getHandle(){ return m_handle; };
 
-  int getTemplateFacets();
-  int restoreTemplate(int persistenceHandle, char* name);
+  mtHandle getTemplateFacets();
   
   std::string getName();
   void setName(char* name);
   bool wasIdentified(MCamera *cam);
-  Xform3D* marker2CameraXf(int camHandle);
-  int identifiedFacets (MCamera *cam);
+  Xform3D* marker2CameraXf(mtHandle camHandle);
+  Xform3D* tooltip2MarkerXf();
+  mtHandle identifiedFacets (MCamera *cam);
   int addTemplateFacet(Facet* newFacet, Xform3D* facet1ToNewFacetXf);
   bool validateTemplate(double positionToleranceMM, std::string complString);
-  int storeTemplate(Persistence* p, char* name);
+  int storeTemplate(Persistence* p, const char* name);
 
 private:
-  int m_handle;
+  mtHandle m_handle;
   bool ownedByMe;
   std::string m_MarkerName;
 

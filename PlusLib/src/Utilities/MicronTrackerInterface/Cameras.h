@@ -3,10 +3,11 @@
 *     Micron Tracker: Example C++ wrapper and Multi-platform demo
 *   
 *     Written by: 
-*      Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
-*      Claudio Gatti, Claron Technology - Toronto -Ontario, www.clarontech.com
+*			Shi Sherebrin , Robarts Research Institute - London- Ontario , www.robarts.ca
+*			Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
+*			Claudio Gatti, Ahmad Kolahi, Claron Technology - Toronto -Ontario, www.clarontech.com
 *
-*     Copyright Claron Technology 2000-2003
+*     Copyright Claron Technology 2000-2013
 *
 ***************************************************************/
 
@@ -21,8 +22,10 @@ class Cameras
 public:
   Cameras();
   ~Cameras();
-  inline int getHandle() {return m_handle;};
+  inline mtHandle getHandle() {return m_handle;};
   inline int getCount() {return m_attachedCamNums;};
+  int setHistogramEqualizeImages(bool on_off);
+  bool getHistogramEqualizeImages();
   MCamera* getCamera(int index);
 
   int getShutterPreference();
@@ -30,27 +33,25 @@ public:
   int getGainPreference();
   int setGainPreference(int val);
 
-  // return with 0 if successful
+  // return with mtOK if successful
   int AttachAvailableCameras();
   void Detach();
 
-  // returns 0 if success, -1 if failed
+  // returns mtOK if success, -1 if failed
   int grabFrame(MCamera *cam = NULL);
 
-  void getLeftRightImageArray(unsigned char* &lImageArray, unsigned char* &rImageArray, int camIndex);
-
 private:
+  std::vector<MCamera *> m_vCameras;
+
   int getMTHome(std::string &mtHomeDirectory);
 
-  int m_handle;
+  mtHandle m_handle;
   bool ownedByMe;  
+
+  MCamera* mCurrCam;
 
   // Pointer to the camera object that the last operation failed on
   MCamera* mFailedCam;
-
-  MCamera* mCurrCam;
-  
-  std::vector<MCamera *> m_vCameras;
 
   int m_attachedCamNums;
 };
