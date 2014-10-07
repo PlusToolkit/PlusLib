@@ -374,7 +374,7 @@ PlusStatus vtkICCapturingSource::InternalDisconnect()
   delete FrameGrabber;
   this->FrameGrabber=NULL;
 
-  DShowLib::ExitLibrary(); 
+  DShowLib::ExitLibrary();
 
   return PLUS_SUCCESS;
 }
@@ -548,4 +548,123 @@ std::string vtkICCapturingSource::GetDShowLibVideoFormatString()
   ss << " (" << this->FrameSize[0] << "x" << this->FrameSize[1] << ")" << std::ends;
   std::string formatString = ss.str();
   return formatString;
+}
+
+//----------------------------------------------------------------------------
+void vtkICCapturingSource::GetListOfCaptureDevices(std::vector< std::string > &deviceNames)
+{
+  deviceNames.clear();
+
+  if( !DShowLib::InitLibrary() )
+  {
+    LOG_ERROR("The IC capturing library could not be initialized");
+    return;
+  }
+  DShowLib::Grabber grabber; 
+  DShowLib::Grabber::tVidCapDevListPtr pVidCapDevList = grabber.getAvailableVideoCaptureDevices();
+  DShowLib::ExitLibrary();
+
+  if( pVidCapDevList == 0)
+  {
+    // no devices are found
+    return;
+  }
+  for( DShowLib::Grabber::tVidCapDevList::iterator it = pVidCapDevList->begin(); it != pVidCapDevList->end(); ++it )
+  {
+    deviceNames.push_back(it->toString());
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkICCapturingSource::GetListOfCaptureVideoNorms(std::vector< std::string > &videoNorms, const std::string& deviceName)
+{
+  videoNorms.clear();
+
+  if( !DShowLib::InitLibrary() )
+  {
+    LOG_ERROR("The IC capturing library could not be initialized");
+    return;
+  }
+  DShowLib::Grabber grabber; 
+  if ( !grabber.openDev(deviceName) ) 
+  {
+    LOG_ERROR("Could not connect to device: " << deviceName ); 
+    DShowLib::ExitLibrary();
+    return;
+  }
+  DShowLib::Grabber::tVidNrmListPtr pVidNrmList = grabber.getAvailableVideoNorms();
+  DShowLib::ExitLibrary();
+
+  if( pVidNrmList == 0 )
+  {
+    LOG_ERROR("Error getting list of capture video norms for device: "<<grabber.getLastError().toString());
+    return;
+  }
+
+  for( DShowLib::Grabber::tVidNrmList::iterator it = pVidNrmList->begin(); it != pVidNrmList->end(); ++it )
+  {
+    videoNorms.push_back(it->toString());
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkICCapturingSource::GetListOfCaptureVideoModes(std::vector< std::string > &videoFormats, const std::string& deviceName, const std::string& videoNorm)
+{
+  videoFormats.clear();
+
+  if( !DShowLib::InitLibrary() )
+  {
+    LOG_ERROR("The IC capturing library could not be initialized");
+    return;
+  }
+  DShowLib::Grabber grabber; 
+  if ( !grabber.openDev(deviceName) ) 
+  {
+    LOG_ERROR("Could not connect to device: " << deviceName ); 
+    DShowLib::ExitLibrary();
+    return;
+  }
+  if ( !grabber.setVideoNorm( videoNorm ) ) 
+  {
+    LOG_ERROR("Failed to set video norm: " << videoNorm ); 
+    DShowLib::ExitLibrary();
+    return;
+  }
+  DShowLib::Grabber::tVidFmtListPtr pVidFmtList = grabber.getAvailableVideoFormats(); 
+  DShowLib::ExitLibrary();
+
+  if( pVidFmtList == 0 )
+  {
+    LOG_ERROR("Error getting list of capture video formats for device "<<grabber.getLastError().toString());
+    return;
+  }
+
+  for( DShowLib::Grabber::tVidFmtList::iterator it = pVidFmtList->begin(); it != pVidFmtList->end(); ++it )
+  {
+    videoFormats.push_back(it->toString());
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkICCapturingSource::LogListOfCaptureDevices()
+{
+  LOG_INFO("Available video formats and frame sizes for all available capture devices:");
+  std::vector< std::string > deviceNames;
+  GetListOfCaptureDevices(deviceNames);
+  for (std::vector< std::string > :: iterator deviceNameIt=deviceNames.begin(); deviceNameIt!=deviceNames.end(); ++deviceNameIt)
+  {
+    LOG_INFO(" Device name: "<<(*deviceNameIt));
+    std::vector< std::string > videoNorms;
+    GetListOfCaptureVideoNorms(videoNorms, (*deviceNameIt));
+    for (std::vector< std::string > :: iterator videoNormIt=videoNorms.begin(); videoNormIt!=videoNorms.end(); ++videoNormIt)
+    {
+      LOG_INFO("  Video norm: "<<(*videoNormIt));
+      std::vector< std::string > videoModes;
+      GetListOfCaptureVideoModes(videoModes, (*deviceNameIt), (*videoNormIt));
+      for (std::vector< std::string > :: iterator videoModeIt=videoModes.begin(); videoModeIt!=videoModes.end(); ++videoModeIt)
+      {
+        LOG_INFO("   "<<(*videoModeIt));
+      }
+    }
+  }
 }

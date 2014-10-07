@@ -34,6 +34,7 @@ int main(int argc, char **argv)
 {
   bool printHelp(false); 
   bool renderingOff(false);
+  bool listDevices=false;
   std::string deviceName("DFG/USB2-lt");
   std::string videoNorm("NTSC_M");
   std::string videoFormat("Y800 (640x480)");
@@ -45,6 +46,7 @@ int main(int argc, char **argv)
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
+  args.AddArgument("--list-devices", vtksys::CommandLineArguments::NO_ARGUMENT, &listDevices, "Show the list of available devices, norms, formats, and frame sizes and exit");
   args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");  
   args.AddArgument("--device-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceName, "IC Capturing device name (Default: DFG/USB2-lt)." );
   args.AddArgument("--video-norm", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &videoNorm, "IC Capturing device video norm (Default: NTSC_M)." );
@@ -68,6 +70,12 @@ int main(int argc, char **argv)
   }
 
   vtkSmartPointer<vtkICCapturingSource> frameGrabber = vtkSmartPointer<vtkICCapturingSource>::New();
+
+  if (listDevices)
+  {
+    frameGrabber->LogListOfCaptureDevices();
+    exit(EXIT_SUCCESS);
+  }
 
   frameGrabber->SetDeviceName(deviceName.c_str()); 
   frameGrabber->SetVideoNorm(videoNorm.c_str()); 
