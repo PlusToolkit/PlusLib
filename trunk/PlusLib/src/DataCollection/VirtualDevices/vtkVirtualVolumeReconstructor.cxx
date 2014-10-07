@@ -200,17 +200,17 @@ PlusStatus vtkVirtualVolumeReconstructor::InternalUpdate()
 
   if( this->AddFrames(recordedFrames) != PLUS_SUCCESS )
   {
-    LOG_ERROR(this->GetDeviceId() << ": Unable to add " << recordedFrames->GetNumberOfTrackedFrames() << " frames for volume reconstruction");
+    LOG_ERROR(this->GetDeviceId() << ": Unable to add " << nbFramesRecorded << " frames for volume reconstruction");
     return PLUS_FAIL;
   }
 
-  this->TotalFramesRecorded += recordedFrames->GetNumberOfTrackedFrames();
+  this->TotalFramesRecorded += nbFramesRecorded;
 
   // Check whether the reconstruction needed more time than the sampling interval
   double recordingTimeSec = vtkAccurateTimer::GetSystemTime() - startTimeSec;
   if (recordingTimeSec > GetSamplingPeriodSec())
   {
-    LOG_WARNING("Volume reconstruction takes too long time (" << recordingTimeSec << "sec instead of the allocated " << GetSamplingPeriodSec() << "sec). This can cause slow-down of the application and non-uniform sampling. Reduce the acquisition rate or sampling rate to resolve the problem.");
+    LOG_WARNING("Volume reconstruction of the acquired "<<nbFramesRecorded<<" frames takes too long time (" << recordingTimeSec << "sec instead of the allocated " << GetSamplingPeriodSec() << "sec). This can cause slow-down of the application and non-uniform sampling. Reduce the image acquisition rate, output size, or image clip rectangle size to resolve the problem.");
   }
   double recordingLagSec = vtkAccurateTimer::GetSystemTime() - m_NextFrameToBeRecordedTimestamp;
 
