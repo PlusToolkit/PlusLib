@@ -10,7 +10,8 @@
       Type="SavedDataSource"
       SequenceMetafile="NwirePhantomFreehandCropped.mha"
       UseData="IMAGE_AND_TRANSFORM"
-      UseOriginalTimestamps="TRUE"
+      UseOriginalTimestamps="FALSE"
+      AcquisitionRate="3.0"
       RepeatEnabled="TRUE">
       <DataSources>
         <DataSource Type="Video" Id="Video"  />

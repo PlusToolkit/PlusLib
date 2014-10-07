@@ -206,9 +206,9 @@ PlusStatus vtkVirtualVolumeReconstructor::InternalUpdate()
 
   this->TotalFramesRecorded += nbFramesRecorded;
 
-  // Check whether the reconstruction needed more time than the sampling interval
+  // Check whether the reconstruction needed more time than the 2 * sampling interval (double the interval to avoid warnings due to small transient slow-downs)
   double recordingTimeSec = vtkAccurateTimer::GetSystemTime() - startTimeSec;
-  if (recordingTimeSec > GetSamplingPeriodSec())
+  if (recordingTimeSec > GetSamplingPeriodSec()*2.0)
   {
     LOG_WARNING("Volume reconstruction of the acquired "<<nbFramesRecorded<<" frames takes too long time (" << recordingTimeSec << "sec instead of the allocated " << GetSamplingPeriodSec() << "sec). This can cause slow-down of the application and non-uniform sampling. Reduce the image acquisition rate, output size, or image clip rectangle size to resolve the problem.");
   }
