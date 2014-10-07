@@ -8,7 +8,7 @@
     <Device
       Id="TrackedVideoDevice"
       Type="SavedDataSource"
-      SequenceMetafile="NwirePhantomFreehand.mha"
+      SequenceMetafile="NwirePhantomFreehandCropped.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE">
@@ -39,7 +39,7 @@
       <VolumeReconstruction
         ImageCoordinateFrame="Image" ReferenceCoordinateFrame="Reference"
         Interpolation="LINEAR" Optimization="NONE" CompoundingMode="MEAN" FillHoles="OFF" NumberOfThreads="2"
-        ClipRectangleOrigin="167 62" ClipRectangleSize="495 488" OutputOrigin="-34 -144 -59" OutputExtent="0 150 0 130 0 70" OutputSpacing="1.5 1.5 1.5" />
+        ClipRectangleOrigin="0 0" ClipRectangleSize="200 150" OutputOrigin="-10 -128 -36" OutputExtent="0 20 0 15 0 12" OutputSpacing="1.0 1.0 1.0" />
     </Device>
 
     </DataCollection>
@@ -49,7 +49,14 @@
       Matrix="1 0 0 -410 0 1 0 5 0 0 1 0 0 0 0 1"
       Date="2011.12.06 17:57:00" />
     <Transform From="Phantom" To="Reference" Matrix="1 0 0 0  0 1 0 0  0 0 1 0 0 0 0 1" Error="0.0" />
-    <Transform From="Image" To="Probe"
+    <!-- Image was cropped with a rectangle origin (335, 285), size (200, 150). The original non-cropped image is renamed to ImageFull. Therefore, transform between the cropped image (Image) and the original image (ImageFull) is the following: -->
+    <Transform From="Image" To="ImageFull"
+      Matrix="
+        1 0 0 335
+        0 1 0 285
+        0 0 1 0
+        0 0 0 1" />
+    <Transform From="ImageFull" To="Probe"
       Matrix="
         -0.0094 -0.0739 -0.0028 -103.5322
         0.0774 -0.0076 -0.0049 -43.1227
