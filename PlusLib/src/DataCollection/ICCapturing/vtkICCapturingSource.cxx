@@ -279,6 +279,7 @@ PlusStatus vtkICCapturingSource::InternalConnect()
   if ( this->GetDeviceName() == NULL || !static_cast<DShowLib::Grabber*>(FrameGrabber)->openDev(this->GetDeviceName() ) ) 
   {
     LOG_ERROR("The IC capturing library could not be initialized - invalid device name: " << this->GetDeviceName() ); 
+    LogListOfCaptureDevices();
     return PLUS_FAIL;
   }
 
@@ -286,20 +287,22 @@ PlusStatus vtkICCapturingSource::InternalConnect()
   if ( this->GetVideoNorm() == NULL || !static_cast<DShowLib::Grabber*>(FrameGrabber)->setVideoNorm( this->GetVideoNorm() ) ) 
   {
     LOG_ERROR("The IC capturing library could not be initialized - invalid video norm: " << this->GetVideoNorm() ); 
+    LogListOfCaptureDevices();
     return PLUS_FAIL;
   }
 
   // The Y800 color format is an 8 bit monochrome format. 
   if ( !static_cast<DShowLib::Grabber*>(FrameGrabber)->setVideoFormat( this->GetDShowLibVideoFormatString().c_str() ) )
   {
-    LOG_ERROR("The IC capturing library could not be initialized - invalid video format: " << this->GetDShowLibVideoFormatString() ); 
+    LOG_ERROR("The IC capturing library could not be initialized - invalid video format: " << this->GetDShowLibVideoFormatString() );
+    LogListOfCaptureDevices();
     return PLUS_FAIL;
   }
 
   int bitsPerPixel=static_cast<DShowLib::Grabber*>(FrameGrabber)->getVideoFormat().getBitsPerPixel();
   if (bitsPerPixel!=8)
   {
-    LOG_ERROR("The IC capturing library could not be initialized - invalid bits per pixel: " << bitsPerPixel ); 
+    LOG_ERROR("The IC capturing library could not be initialized - invalid bits per pixel: " << bitsPerPixel );
     return PLUS_FAIL;    
   }
 
