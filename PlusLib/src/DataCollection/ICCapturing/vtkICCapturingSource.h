@@ -122,6 +122,16 @@ public:
 
   virtual bool IsTracker() const { return false; }
 
+  void GetListOfCaptureDevices(std::vector< std::string > &deviceNames);
+
+  void GetListOfCaptureVideoNorms(std::vector< std::string > &videoNorms, const std::string& deviceName);
+
+  /*! Get list of available video modes (video format & frame size) */
+  void GetListOfCaptureVideoModes(std::vector< std::string > &videoModes, const std::string& deviceName, const std::string& videoNorm);
+
+  /*! Print the name of all supported video modes (video format & frame size) for available capture devices and video norms */
+  void LogListOfCaptureDevices();
+  
 protected:
   /*! Constructor */
   vtkICCapturingSource();
