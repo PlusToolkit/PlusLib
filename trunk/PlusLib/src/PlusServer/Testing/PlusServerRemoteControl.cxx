@@ -32,7 +32,7 @@ See License.txt for details.
 
 //----------------------------------------------------------------------------
 // For CTRL-C signal handling
-static bool StopClient=false;
+static bool StopClientRequested=false;
 
 //----------------------------------------------------------------------------
 // A customized vtkPlusOpenIGTLinkClient that can display the received transformation matrices
@@ -88,7 +88,7 @@ vtkCxxRevisionMacro( vtkPlusOpenIGTLinkClientWithTransformLogging, "$Revision: 1
 // Utility functions for sending commands
 
 //----------------------------------------------------------------------------
-void ExecuteStartAcquisition(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId)
+PlusStatus ExecuteStartAcquisition(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId)
 {
   vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd=vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();    
   cmd->SetNameToStart();
@@ -96,11 +96,11 @@ void ExecuteStartAcquisition(vtkPlusOpenIGTLinkClient* client, const std::string
   {
     cmd->SetCaptureDeviceId(deviceId.c_str());
   }
-  client->SendCommand(cmd);
+  return client->SendCommand(cmd);
 }
 
 //----------------------------------------------------------------------------
-void ExecuteStopAcquisition(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId, std::string outputFilename)
+PlusStatus ExecuteStopAcquisition(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId, std::string outputFilename)
 {
   vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd=vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();
   cmd->SetNameToStop();
@@ -113,11 +113,11 @@ void ExecuteStopAcquisition(vtkPlusOpenIGTLinkClient* client, const std::string 
   {
     cmd->SetCaptureDeviceId(deviceId.c_str());
   }
-  client->SendCommand(cmd);
+  return client->SendCommand(cmd);
 }
 
 //----------------------------------------------------------------------------
-void ExecuteSuspendAcquisition(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId)
+PlusStatus ExecuteSuspendAcquisition(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId)
 {
   vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd=vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();
   cmd->SetNameToSuspend();
@@ -125,11 +125,11 @@ void ExecuteSuspendAcquisition(vtkPlusOpenIGTLinkClient* client, const std::stri
   {
     cmd->SetCaptureDeviceId(deviceId.c_str());
   }
-  client->SendCommand(cmd);
+  return client->SendCommand(cmd);
 }
 
 //----------------------------------------------------------------------------
-void ExecuteResumeAcquisition(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId)
+PlusStatus ExecuteResumeAcquisition(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId)
 {
   vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd=vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();
   cmd->SetNameToResume();
@@ -137,11 +137,11 @@ void ExecuteResumeAcquisition(vtkPlusOpenIGTLinkClient* client, const std::strin
   {
     cmd->SetCaptureDeviceId(deviceId.c_str());
   }
-  client->SendCommand(cmd);
+  return client->SendCommand(cmd);
 }
 
 //----------------------------------------------------------------------------
-void ExecuteReconstructFromFile(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId, const std::string &inputFilename, const std::string &outputFilename, const std::string &outputImageName)
+PlusStatus ExecuteReconstructFromFile(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId, const std::string &inputFilename, const std::string &outputFilename, const std::string &outputImageName)
 {
   vtkSmartPointer<vtkPlusReconstructVolumeCommand> cmd=vtkSmartPointer<vtkPlusReconstructVolumeCommand>::New();
   cmd->SetNameToReconstruct();
@@ -158,11 +158,11 @@ void ExecuteReconstructFromFile(vtkPlusOpenIGTLinkClient* client, const std::str
   {
     cmd->SetOutputVolDeviceName(outputImageName.c_str());
   }
-  client->SendCommand(cmd);
+  return client->SendCommand(cmd);
 }
 
 //----------------------------------------------------------------------------
-void ExecuteStartReconstruction(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId)
+PlusStatus ExecuteStartReconstruction(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId)
 {
   vtkSmartPointer<vtkPlusReconstructVolumeCommand> cmd=vtkSmartPointer<vtkPlusReconstructVolumeCommand>::New();
   cmd->SetNameToStart();
@@ -170,11 +170,11 @@ void ExecuteStartReconstruction(vtkPlusOpenIGTLinkClient* client, const std::str
   {
     cmd->SetVolumeReconstructorDeviceId(deviceId.c_str());
   }
-  client->SendCommand(cmd);
+  return client->SendCommand(cmd);
 }
 
 //----------------------------------------------------------------------------
-void ExecuteSuspendReconstruction(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId)
+PlusStatus ExecuteSuspendReconstruction(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId)
 {
   vtkSmartPointer<vtkPlusReconstructVolumeCommand> cmd=vtkSmartPointer<vtkPlusReconstructVolumeCommand>::New();
   cmd->SetNameToSuspend();
@@ -182,11 +182,11 @@ void ExecuteSuspendReconstruction(vtkPlusOpenIGTLinkClient* client, const std::s
   {
     cmd->SetVolumeReconstructorDeviceId(deviceId.c_str());
   }
-  client->SendCommand(cmd);
+  return client->SendCommand(cmd);
 }
 
 //----------------------------------------------------------------------------
-void ExecuteResumeReconstruction(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId)
+PlusStatus ExecuteResumeReconstruction(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId)
 {
   vtkSmartPointer<vtkPlusReconstructVolumeCommand> cmd=vtkSmartPointer<vtkPlusReconstructVolumeCommand>::New();
   cmd->SetNameToResume();
@@ -194,11 +194,11 @@ void ExecuteResumeReconstruction(vtkPlusOpenIGTLinkClient* client, const std::st
   {
     cmd->SetVolumeReconstructorDeviceId(deviceId.c_str());
   }
-  client->SendCommand(cmd);
+  return client->SendCommand(cmd);
 }
 
 //----------------------------------------------------------------------------
-void ExecuteGetSnapshotReconstruction(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId, const std::string &outputFilename, const std::string &outputImageName)
+PlusStatus ExecuteGetSnapshotReconstruction(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId, const std::string &outputFilename, const std::string &outputImageName)
 {
   vtkSmartPointer<vtkPlusReconstructVolumeCommand> cmd=vtkSmartPointer<vtkPlusReconstructVolumeCommand>::New();
   cmd->SetNameToGetSnapshot();
@@ -214,11 +214,11 @@ void ExecuteGetSnapshotReconstruction(vtkPlusOpenIGTLinkClient* client, const st
   {
     cmd->SetOutputVolDeviceName(outputImageName.c_str());
   }
-  client->SendCommand(cmd);
+  return client->SendCommand(cmd);
 }
 
 //----------------------------------------------------------------------------
-void ExecuteStopReconstruction(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId, const std::string &outputFilename, const std::string &outputImageName)
+PlusStatus ExecuteStopReconstruction(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId, const std::string &outputFilename, const std::string &outputImageName)
 {
   vtkSmartPointer<vtkPlusReconstructVolumeCommand> cmd=vtkSmartPointer<vtkPlusReconstructVolumeCommand>::New();
   cmd->SetNameToStop();
@@ -234,11 +234,11 @@ void ExecuteStopReconstruction(vtkPlusOpenIGTLinkClient* client, const std::stri
   {
     cmd->SetOutputVolDeviceName(outputImageName.c_str());
   }
-  client->SendCommand(cmd);
+  return client->SendCommand(cmd);
 }
 //----------------------------------------------------------------------------
 #ifdef PLUS_USE_STEALTHLINK
-void ExecuteGetExamData(vtkPlusOpenIGTLinkClient* client,const std::string &deviceId, const std::string &dicomOutputDirectory, const std::string& volumeEmbeddedTransformToFrame,
+PlusStatus ExecuteGetExamData(vtkPlusOpenIGTLinkClient* client,const std::string &deviceId, const std::string &dicomOutputDirectory, const std::string& volumeEmbeddedTransformToFrame,
                                                                                       const bool& keepReceivedDicomFiles)
 {
   vtkSmartPointer<vtkPlusStealthLinkCommand> cmd=vtkSmartPointer<vtkPlusStealthLinkCommand>::New();
@@ -256,28 +256,28 @@ void ExecuteGetExamData(vtkPlusOpenIGTLinkClient* client,const std::string &devi
     cmd->SetVolumeEmbeddedTransformToFrame(volumeEmbeddedTransformToFrame.c_str());
   }
   cmd->SetKeepReceivedDicomFiles(keepReceivedDicomFiles);
-  client->SendCommand(cmd);
+  return client->SendCommand(cmd);
 }
 #endif
 //----------------------------------------------------------------------------
-void ExecuteGetChannelIds(vtkPlusOpenIGTLinkClient* client)
+PlusStatus ExecuteGetChannelIds(vtkPlusOpenIGTLinkClient* client)
 {
   vtkSmartPointer<vtkPlusRequestIdsCommand> cmd=vtkSmartPointer<vtkPlusRequestIdsCommand>::New();
   cmd->SetNameToRequestChannelIds();
-  client->SendCommand(cmd);
+  return client->SendCommand(cmd);
 }
 
 //----------------------------------------------------------------------------
-void ExecuteGetDeviceIds(vtkPlusOpenIGTLinkClient* client, const std::string &deviceType)
+PlusStatus ExecuteGetDeviceIds(vtkPlusOpenIGTLinkClient* client, const std::string &deviceType)
 {
   vtkSmartPointer<vtkPlusRequestIdsCommand> cmd=vtkSmartPointer<vtkPlusRequestIdsCommand>::New();
   cmd->SetNameToRequestDeviceIds();
   cmd->SetDeviceType(deviceType.c_str());
-  client->SendCommand(cmd);
+  return client->SendCommand(cmd);
 }
 
 //----------------------------------------------------------------------------
-void ExecuteUpdateTransform(vtkPlusOpenIGTLinkClient* client, const std::string &transformName, const std::string &transformValue, const std::string &transformError, const std::string &transformDate, const std::string &transformPersistent)
+PlusStatus ExecuteUpdateTransform(vtkPlusOpenIGTLinkClient* client, const std::string &transformName, const std::string &transformValue, const std::string &transformError, const std::string &transformDate, const std::string &transformPersistent)
 {
   vtkSmartPointer<vtkPlusUpdateTransformCommand> cmd = vtkSmartPointer<vtkPlusUpdateTransformCommand>::New();
   cmd->SetNameToUpdateTransform();
@@ -294,7 +294,7 @@ void ExecuteUpdateTransform(vtkPlusOpenIGTLinkClient* client, const std::string 
   if( elems.size() != 16 )
   {
     LOG_ERROR("Invalid formatting of matrix string.");
-    exit(EXIT_FAILURE);
+    return PLUS_FAIL;
   }
   for (int i = 0; i < 4; i++)
   {
@@ -307,16 +307,16 @@ void ExecuteUpdateTransform(vtkPlusOpenIGTLinkClient* client, const std::string 
   }
   cmd->SetTransformValue(transformValueMatrix);
   transformValueMatrix->Delete();
-  client->SendCommand(cmd);
+  return client->SendCommand(cmd);
 }
 
 //----------------------------------------------------------------------------
-void ExecuteSaveConfig(vtkPlusOpenIGTLinkClient* client, const std::string &outputFilename)
+PlusStatus ExecuteSaveConfig(vtkPlusOpenIGTLinkClient* client, const std::string &outputFilename)
 {
   vtkSmartPointer<vtkPlusSaveConfigCommand> cmd = vtkSmartPointer<vtkPlusSaveConfigCommand>::New();
   cmd->SetNameToSaveConfig();
   cmd->SetFilename(outputFilename.c_str());
-  client->SendCommand(cmd);
+  return client->SendCommand(cmd);
 }
 
 //----------------------------------------------------------------------------
@@ -488,7 +488,7 @@ PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client)
 // For CTRL-C signal handling
 void SignalInterruptHandler(int s)
 {
-  StopClient = true;
+  StopClientRequested = true;
 }
 
 
@@ -557,6 +557,7 @@ int main( int argc, char** argv )
 
   vtkPlusLogger::Instance()->SetLogLevel( verboseLevel );
 
+  // Start a PlusServer
   vtksysProcess* plusServerProcess = NULL;
   if (!serverConfigFileName.empty())
   {
@@ -566,88 +567,99 @@ int main( int argc, char** argv )
       exit(EXIT_FAILURE);
     }
   }
+  // From this point PlusServer may be running, therefore before calling exit() the server process must be stopped (otherwise the process does not stop ever)
 
+  // Connect to PlusServer
   vtkSmartPointer<vtkPlusOpenIGTLinkClient> client = vtkSmartPointer<vtkPlusOpenIGTLinkClient>::New();
   if (keepConnected)
   {
     // We use vtkPlusOpenIGTLinkClientWithTransformLogging instead of vtkPlusOpenIGTLinkClient to log the received transforms
     client = vtkSmartPointer<vtkPlusOpenIGTLinkClientWithTransformLogging>::New();
   }
-
-  // Connect to server
   client->SetServerHost(serverHost.c_str());
   client->SetServerPort(serverPort);
   if (client->Connect()==PLUS_FAIL)
   {
     LOG_ERROR("Failed to connect to server at "<<serverHost<<":"<<serverPort);
+    StopPlusServerProcess(plusServerProcess);
     exit(EXIT_FAILURE);
   }    
 
-  int returnValue = EXIT_SUCCESS;
+  int processReturnValue = EXIT_SUCCESS;
 
+  // Run a command
   if ( !command.empty() )
   {
+    PlusStatus commandExecutionStatus = PLUS_SUCCESS;
     // Execute command
-    if (STRCASECMP(command.c_str(),"START_ACQUISITION")==0) { ExecuteStartAcquisition(client, deviceId); }
-    else if (STRCASECMP(command.c_str(),"STOP_ACQUISITION")==0) { ExecuteStopAcquisition(client, deviceId, outputFilename); }
-    else if (STRCASECMP(command.c_str(),"SUSPEND_ACQUISITION")==0) { ExecuteSuspendAcquisition(client, deviceId); }
-    else if (STRCASECMP(command.c_str(),"RESUME_ACQUISITION")==0) { ExecuteResumeAcquisition(client, deviceId); }
-    else if (STRCASECMP(command.c_str(),"START_RECONSTRUCTION")==0) { ExecuteStartReconstruction(client, deviceId); }
-    else if (STRCASECMP(command.c_str(),"SUSPEND_RECONSTRUCTION")==0) { ExecuteSuspendReconstruction(client, deviceId); }
-    else if (STRCASECMP(command.c_str(),"RESUME_RECONSTRUCTION")==0) { ExecuteResumeReconstruction(client, deviceId); }
-    else if (STRCASECMP(command.c_str(),"GET_RECONSTRUCTION_SNAPSHOT")==0) { ExecuteGetSnapshotReconstruction(client, deviceId, outputFilename, outputImageName); }
-    else if (STRCASECMP(command.c_str(),"STOP_RECONSTRUCTION")==0) { ExecuteStopReconstruction(client, deviceId, outputFilename, outputImageName); }
-    else if (STRCASECMP(command.c_str(),"RECONSTRUCT")==0) { ExecuteReconstructFromFile(client, deviceId, inputFilename, outputFilename, outputImageName); }
-    else if (STRCASECMP(command.c_str(),"GET_CHANNEL_IDS")==0) { ExecuteGetChannelIds(client); }
-    else if (STRCASECMP(command.c_str(),"GET_DEVICE_IDS")==0) { ExecuteGetDeviceIds(client, deviceId /* actually a device type */); }
-    else if (STRCASECMP(command.c_str(), "UPDATE_TRANSFORM")==0) { ExecuteUpdateTransform(client, transformName, transformValue, transformError, transformDate, transformPersistent); }
-    else if (STRCASECMP(command.c_str(), "SAVE_CONFIG")==0) { ExecuteSaveConfig(client, outputFilename); }
+    if (STRCASECMP(command.c_str(),"START_ACQUISITION")==0) { commandExecutionStatus = ExecuteStartAcquisition(client, deviceId); }
+    else if (STRCASECMP(command.c_str(),"STOP_ACQUISITION")==0) { commandExecutionStatus = ExecuteStopAcquisition(client, deviceId, outputFilename); }
+    else if (STRCASECMP(command.c_str(),"SUSPEND_ACQUISITION")==0) { commandExecutionStatus = ExecuteSuspendAcquisition(client, deviceId); }
+    else if (STRCASECMP(command.c_str(),"RESUME_ACQUISITION")==0) { commandExecutionStatus = ExecuteResumeAcquisition(client, deviceId); }
+    else if (STRCASECMP(command.c_str(),"START_RECONSTRUCTION")==0) { commandExecutionStatus = ExecuteStartReconstruction(client, deviceId); }
+    else if (STRCASECMP(command.c_str(),"SUSPEND_RECONSTRUCTION")==0) { commandExecutionStatus = ExecuteSuspendReconstruction(client, deviceId); }
+    else if (STRCASECMP(command.c_str(),"RESUME_RECONSTRUCTION")==0) { commandExecutionStatus = ExecuteResumeReconstruction(client, deviceId); }
+    else if (STRCASECMP(command.c_str(),"GET_RECONSTRUCTION_SNAPSHOT")==0) { commandExecutionStatus = ExecuteGetSnapshotReconstruction(client, deviceId, outputFilename, outputImageName); }
+    else if (STRCASECMP(command.c_str(),"STOP_RECONSTRUCTION")==0) { commandExecutionStatus = ExecuteStopReconstruction(client, deviceId, outputFilename, outputImageName); }
+    else if (STRCASECMP(command.c_str(),"RECONSTRUCT")==0) { commandExecutionStatus = ExecuteReconstructFromFile(client, deviceId, inputFilename, outputFilename, outputImageName); }
+    else if (STRCASECMP(command.c_str(),"GET_CHANNEL_IDS")==0) { commandExecutionStatus = ExecuteGetChannelIds(client); }
+    else if (STRCASECMP(command.c_str(),"GET_DEVICE_IDS")==0) { commandExecutionStatus = ExecuteGetDeviceIds(client, deviceId /* actually a device type */); }
+    else if (STRCASECMP(command.c_str(), "UPDATE_TRANSFORM")==0) { commandExecutionStatus = ExecuteUpdateTransform(client, transformName, transformValue, transformError, transformDate, transformPersistent); }
+    else if (STRCASECMP(command.c_str(), "SAVE_CONFIG")==0) { commandExecutionStatus = ExecuteSaveConfig(client, outputFilename); }
     else if (STRCASECMP(command.c_str(), "GET_EXAM_DATA")==0)
     {
 #ifdef PLUS_USE_STEALTHLINK
-      ExecuteGetExamData(client, deviceId,dicomOutputDirectory,volumeEmbeddedTransformToFrame,keepReceivedDicomFiles);
+      commandExecutionStatus = ExecuteGetExamData(client, deviceId,dicomOutputDirectory,volumeEmbeddedTransformToFrame,keepReceivedDicomFiles);
 #else
       LOG_ERROR("Plus is not built with StealthLink support");
-      exit(EXIT_FAILURE);
+      commandExecutionStatus = PLUS_FAIL;
 #endif
     }
     else
     {
       LOG_ERROR("Unknown command: "<<command);
       client->Disconnect();
-      exit(EXIT_FAILURE);
+      commandExecutionStatus = PLUS_FAIL;
     }
-    if (PrintReply(client)!=PLUS_SUCCESS)
+    if (commandExecutionStatus == PLUS_SUCCESS)
     {
-      returnValue = EXIT_FAILURE;
+      if (PrintReply(client)!=PLUS_SUCCESS)
+      {
+        processReturnValue = EXIT_FAILURE;
+      }
+    }
+    else
+    {
+      // command execution failed
+      processReturnValue = EXIT_FAILURE;
     }
     if (!keepConnected)
     {
-      // we don't need to remain connected after the command has been executed
-      StopClient = true;
+      // we don't need to remain connected if a command has been executed
+      StopClientRequested = true;
     }
   }
 
+  // Run automatic tests
   if (runTests)
   {
     if (RunTests(client)!=PLUS_SUCCESS)
     {
-      returnValue = EXIT_FAILURE;
+      processReturnValue = EXIT_FAILURE;
     }
-    // we don't need to remain connected after the tests have been executed
-    StopClient = true;
+    // we don't need to remain connected if tests have been executed
+    StopClientRequested = true;
   }
 
-  if (!StopClient)
+  // Remain connected until the user requests to stop
+  if (!StopClientRequested)
   {
     std::cout << "Press Ctrl-C to quit:" << std::endl;
-
     // Set up signal catching
     signal(SIGINT, SignalInterruptHandler);
-
     // Run client until requested 
     const double commandQueuePollIntervalSec=0.010;
-    while (!StopClient)
+    while (!StopClientRequested)
     {
       // the customized client logs the transformation matrices in the data receiver thread
       vtkAccurateTimer::DelayWithEventProcessing(commandQueuePollIntervalSec);
@@ -656,5 +668,5 @@ int main( int argc, char** argv )
 
   client->Disconnect();
   StopPlusServerProcess(plusServerProcess);
-  return EXIT_SUCCESS;
+  return processReturnValue;
 }
