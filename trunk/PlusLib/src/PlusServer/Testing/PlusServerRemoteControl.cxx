@@ -383,10 +383,10 @@ PlusStatus StartPlusServerProcess(const std::string& configFile, vtksysProcess* 
     command.push_back(0); // The array must end with a NULL pointer.
     vtksysProcess_SetCommand(processPtr, &*command.begin());
 
-    // Redirect PlusServer output to this process output (otherwise execution would be blocked and we could not capture server-side errors)
-    vtksysProcess_SetPipeShared(processPtr, vtksysProcess_Pipe_STDOUT, 1);
-    vtksysProcess_SetPipeShared(processPtr, vtksysProcess_Pipe_STDERR, 1);
-    
+    // Redirect PlusServer output to this process output (otherwise server execution would be blocked)
+    vtksysProcess_SetPipeFile(processPtr, vtksysProcess_Pipe_STDOUT, "PlusServerRemoteControlStdOut.log");
+    vtksysProcess_SetPipeFile(processPtr, vtksysProcess_Pipe_STDERR, "PlusServerRemoteControlStdErr.log");
+
     LOG_INFO("Start PlusServer..." );
     vtksysProcess_Execute(processPtr);
     vtkAccurateTimer::DelayWithEventProcessing(3.0);
