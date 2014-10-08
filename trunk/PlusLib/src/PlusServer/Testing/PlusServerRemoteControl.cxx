@@ -88,6 +88,18 @@ vtkCxxRevisionMacro( vtkPlusOpenIGTLinkClientWithTransformLogging, "$Revision: 1
 // Utility functions for sending commands
 
 //----------------------------------------------------------------------------
+// Print command XML string
+void PrintCommand(vtkPlusCommand* command)
+{
+  vtkSmartPointer<vtkXMLDataElement> cmdConfig=vtkSmartPointer<vtkXMLDataElement>::New();
+  command->WriteConfiguration(cmdConfig);
+  std::ostringstream xmlStr;
+  vtkXMLUtilities::FlattenElement(cmdConfig, xmlStr);
+  xmlStr << std::ends;
+  LOG_INFO(">>> Command: "<<xmlStr.str());
+}
+
+//----------------------------------------------------------------------------
 PlusStatus ExecuteStartAcquisition(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId)
 {
   vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd=vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();    
@@ -96,6 +108,7 @@ PlusStatus ExecuteStartAcquisition(vtkPlusOpenIGTLinkClient* client, const std::
   {
     cmd->SetCaptureDeviceId(deviceId.c_str());
   }
+  PrintCommand(cmd);
   return client->SendCommand(cmd);
 }
 
@@ -113,6 +126,7 @@ PlusStatus ExecuteStopAcquisition(vtkPlusOpenIGTLinkClient* client, const std::s
   {
     cmd->SetCaptureDeviceId(deviceId.c_str());
   }
+  PrintCommand(cmd);
   return client->SendCommand(cmd);
 }
 
@@ -125,6 +139,7 @@ PlusStatus ExecuteSuspendAcquisition(vtkPlusOpenIGTLinkClient* client, const std
   {
     cmd->SetCaptureDeviceId(deviceId.c_str());
   }
+  PrintCommand(cmd);
   return client->SendCommand(cmd);
 }
 
@@ -137,6 +152,7 @@ PlusStatus ExecuteResumeAcquisition(vtkPlusOpenIGTLinkClient* client, const std:
   {
     cmd->SetCaptureDeviceId(deviceId.c_str());
   }
+  PrintCommand(cmd);
   return client->SendCommand(cmd);
 }
 
@@ -158,6 +174,7 @@ PlusStatus ExecuteReconstructFromFile(vtkPlusOpenIGTLinkClient* client, const st
   {
     cmd->SetOutputVolDeviceName(outputImageName.c_str());
   }
+  PrintCommand(cmd);
   return client->SendCommand(cmd);
 }
 
@@ -170,6 +187,7 @@ PlusStatus ExecuteStartReconstruction(vtkPlusOpenIGTLinkClient* client, const st
   {
     cmd->SetVolumeReconstructorDeviceId(deviceId.c_str());
   }
+  PrintCommand(cmd);
   return client->SendCommand(cmd);
 }
 
@@ -182,6 +200,7 @@ PlusStatus ExecuteSuspendReconstruction(vtkPlusOpenIGTLinkClient* client, const 
   {
     cmd->SetVolumeReconstructorDeviceId(deviceId.c_str());
   }
+  PrintCommand(cmd);
   return client->SendCommand(cmd);
 }
 
@@ -194,6 +213,7 @@ PlusStatus ExecuteResumeReconstruction(vtkPlusOpenIGTLinkClient* client, const s
   {
     cmd->SetVolumeReconstructorDeviceId(deviceId.c_str());
   }
+  PrintCommand(cmd);
   return client->SendCommand(cmd);
 }
 
@@ -214,6 +234,7 @@ PlusStatus ExecuteGetSnapshotReconstruction(vtkPlusOpenIGTLinkClient* client, co
   {
     cmd->SetOutputVolDeviceName(outputImageName.c_str());
   }
+  PrintCommand(cmd);
   return client->SendCommand(cmd);
 }
 
@@ -234,6 +255,7 @@ PlusStatus ExecuteStopReconstruction(vtkPlusOpenIGTLinkClient* client, const std
   {
     cmd->SetOutputVolDeviceName(outputImageName.c_str());
   }
+  PrintCommand(cmd);
   return client->SendCommand(cmd);
 }
 //----------------------------------------------------------------------------
@@ -256,6 +278,7 @@ PlusStatus ExecuteGetExamData(vtkPlusOpenIGTLinkClient* client,const std::string
     cmd->SetVolumeEmbeddedTransformToFrame(volumeEmbeddedTransformToFrame.c_str());
   }
   cmd->SetKeepReceivedDicomFiles(keepReceivedDicomFiles);
+  PrintCommand(cmd);
   return client->SendCommand(cmd);
 }
 #endif
@@ -264,6 +287,7 @@ PlusStatus ExecuteGetChannelIds(vtkPlusOpenIGTLinkClient* client)
 {
   vtkSmartPointer<vtkPlusRequestIdsCommand> cmd=vtkSmartPointer<vtkPlusRequestIdsCommand>::New();
   cmd->SetNameToRequestChannelIds();
+  PrintCommand(cmd);
   return client->SendCommand(cmd);
 }
 
@@ -273,6 +297,7 @@ PlusStatus ExecuteGetDeviceIds(vtkPlusOpenIGTLinkClient* client, const std::stri
   vtkSmartPointer<vtkPlusRequestIdsCommand> cmd=vtkSmartPointer<vtkPlusRequestIdsCommand>::New();
   cmd->SetNameToRequestDeviceIds();
   cmd->SetDeviceType(deviceType.c_str());
+  PrintCommand(cmd);
   return client->SendCommand(cmd);
 }
 
@@ -307,6 +332,7 @@ PlusStatus ExecuteUpdateTransform(vtkPlusOpenIGTLinkClient* client, const std::s
   }
   cmd->SetTransformValue(transformValueMatrix);
   transformValueMatrix->Delete();
+  PrintCommand(cmd);
   return client->SendCommand(cmd);
 }
 
@@ -316,6 +342,7 @@ PlusStatus ExecuteSaveConfig(vtkPlusOpenIGTLinkClient* client, const std::string
   vtkSmartPointer<vtkPlusSaveConfigCommand> cmd = vtkSmartPointer<vtkPlusSaveConfigCommand>::New();
   cmd->SetNameToSaveConfig();
   cmd->SetFilename(outputFilename.c_str());
+  PrintCommand(cmd);
   return client->SendCommand(cmd);
 }
 
