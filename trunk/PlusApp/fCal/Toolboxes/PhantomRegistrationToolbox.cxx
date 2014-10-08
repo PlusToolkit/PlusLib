@@ -648,7 +648,7 @@ PlusStatus PhantomRegistrationToolbox::Start()
     m_CurrentLandmarkIndex = 0;
 
     // Initialize input points polydata in visualizer
-    m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->GetPoints()->Initialize();
+    m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->Initialize();
     m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->Modified();
 
     // Highlight first landmark
@@ -665,7 +665,6 @@ PlusStatus PhantomRegistrationToolbox::Start()
   }
 
   vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
-  m_LandmarkDetection->SetNumberOfExpectedLandmarks(m_PhantomLandmarkRegistration->GetDefinedLandmarks_Phantom()->GetNumberOfPoints());
   m_LandmarkDetection->SetMinimunDistanceBetweenLandmarksMm(m_PhantomLandmarkRegistration->GetMinimunDistanceBetweenTwoLandmarksMm());
 
   if (dataCollector)
@@ -815,19 +814,15 @@ void PhantomRegistrationToolbox::RecordPoint()
 
   double stylusTipPosition[4] = {stylusTipToReferenceTransformMatrix->GetElement(0,3), stylusTipToReferenceTransformMatrix->GetElement(1,3), stylusTipToReferenceTransformMatrix->GetElement(2,3), 1.0 };
 
-  // Add recorded point to algorithm
-  m_PhantomLandmarkRegistration->GetRecordedLandmarks_Reference()->InsertPoint(m_CurrentLandmarkIndex, stylusTipPosition[0], stylusTipPosition[1], stylusTipPosition[2]);
-
   //Insert the pivot position for the pivot detection and see if a new pivot is found (that only resets the pivot detection found flag).
   if(m_LandmarkDetection->InsertLandmark_Reference(stylusTipPosition)==PLUS_FAIL)
   {
     return;
   }
-  //m_LandmarkDetection->IsNewLandmarkPointFound(valid);
-  //if(!valid)
-  //{
-  //  return;
-  //}
+
+  // Add recorded point to registration algorithm
+  m_PhantomLandmarkRegistration->GetRecordedLandmarks_Reference()->InsertPoint(m_CurrentLandmarkIndex, stylusTipPosition[0], stylusTipPosition[1], stylusTipPosition[2]);
+
   vtkPoints* points = m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->GetPoints();
   // Add recorded point to visualization
   points->InsertPoint(m_CurrentLandmarkIndex, stylusTipPosition[0], stylusTipPosition[1], stylusTipPosition[2]);
@@ -1241,92 +1236,95 @@ void PhantomRegistrationToolbox::AddStylusTipTransformToLandmarkPivotingRegistra
       positionDifferenceMm = PlusMath::GetPositionDifference(stylusTipToReferenceTransformMatrix, m_PreviousStylusTipToReferenceTransformMatrix);
       orientationDifferenceDegrees = PlusMath::GetOrientationDifference(stylusTipToReferenceTransformMatrix, m_PreviousStylusTipToReferenceTransformMatrix);
     }
-
-    double positionSylusTip [3]={stylusTipToReferenceTransformMatrix->GetElement(0,3),stylusTipToReferenceTransformMatrix->GetElement(1,3),stylusTipToReferenceTransformMatrix->GetElement(2,3)};
-
-    m_LandmarkDetected=m_LandmarkDetection->GetNearExistingLandmarkId(positionSylusTip);
-
     if (positionDifferenceMm > positionDifferenceHighThresholdMm || orientationDifferenceDegrees > orientationDifferenceHighThresholdDegrees)
     {
       LOG_DEBUG("Acquired position seems to be an outlier - it is skipped");
+      return;
     }
-    else
+
+    double positionSylusTip [3]={stylusTipToReferenceTransformMatrix->GetElement(0,3),stylusTipToReferenceTransformMatrix->GetElement(1,3),stylusTipToReferenceTransformMatrix->GetElement(2,3)};
+    m_LandmarkDetected=m_LandmarkDetection->GetNearExistingLandmarkId(positionSylusTip);
+    if(m_LandmarkDetected>=0)
     {
-      // Set new current point number
-      ++m_CurrentPointNumber;
-      bool newLandmarkDetected=false;
-      // Add the point into the registration dataset
-      m_LandmarkDetection->InsertNextStylusTipToReferenceTransform(stylusTipToReferenceTransformMatrix, newLandmarkDetected);
-      if(newLandmarkDetected)
+      LOG_DEBUG("There is a Landmark detected close to the stylus tip position.");
+      return;
+    }
+
+    // Set new current point number
+    ++m_CurrentPointNumber;
+    int newLandmarkDetected=-1;
+    // Add the point into the registration dataset
+    m_LandmarkDetection->InsertNextStylusTipToReferenceTransform(stylusTipToReferenceTransformMatrix, newLandmarkDetected);
+    if(newLandmarkDetected>0)
+    {
+      LOG_DEBUG("\n"<<m_LandmarkDetection->GetDetectedLandmarksString()<<"\n");
+      m_LandmarkDetection->GetDetectedLandmarkPoints_Reference()->GetPoint(m_LandmarkDetection->GetDetectedLandmarkPoints_Reference()->GetNumberOfPoints()-1, pivotFound);
+      //// Add recorded point to visualization
+      points->InsertPoint(m_CurrentLandmarkIndex, pivotFound[0], pivotFound[1],pivotFound[2]);
+      points->Modified();
+      LOG_DEBUG("\nLandmark detected Number "<<m_CurrentLandmarkIndex<<" found (" << pivotFound[0]<<", " << pivotFound[1]<<", " << pivotFound[2]<< ") \nNumber of pivots in phantonReg "<<m_PhantomLandmarkRegistration->GetRecordedLandmarks_Reference()->GetNumberOfPoints());
+      m_CurrentLandmarkIndex++;
+      vtkPlusLogger::PrintProgressbar((100.0 * m_LandmarkDetection->GetDetectedLandmarkPoints_Reference()->GetNumberOfPoints()-1) / m_PhantomLandmarkRegistration->GetDefinedLandmarks_Phantom()->GetNumberOfPoints()); 
+
+      // Add recorded point to algorithm
+      m_PhantomLandmarkRegistration->GetRecordedLandmarks_Reference()->InsertPoint(m_LandmarkDetection->GetDetectedLandmarkPoints_Reference()->GetNumberOfPoints()-1, pivotFound);
+      m_PhantomLandmarkRegistration->GetRecordedLandmarks_Reference()->Modified();
+
+      // If there are at least 3 acquired points then register
+      int numberOfExpectedLandmarks = m_PhantomLandmarkRegistration->GetDefinedLandmarks_Phantom()->GetNumberOfPoints();
+      if (m_CurrentLandmarkIndex >= 3)
       {
-        LOG_DEBUG("\n"<<m_LandmarkDetection->GetDetectedLandmarksString()<<"\n");
-        m_LandmarkDetection->GetDetectedLandmarkPoints_Reference()->GetPoint(m_LandmarkDetection->GetDetectedLandmarkPoints_Reference()->GetNumberOfPoints()-1, pivotFound);
-        //// Add recorded point to visualization
-        points->InsertPoint(m_CurrentLandmarkIndex, pivotFound[0], pivotFound[1],pivotFound[2]);
-        points->Modified();
-        LOG_DEBUG("\nLandmark detected Number "<<m_CurrentLandmarkIndex<<" found (" << pivotFound[0]<<", " << pivotFound[1]<<", " << pivotFound[2]<< ") \nNumber of pivots in phantonReg "<<m_PhantomLandmarkRegistration->GetRecordedLandmarks_Reference()->GetNumberOfPoints());
-        m_CurrentLandmarkIndex++;
-        vtkPlusLogger::PrintProgressbar((100.0 * m_LandmarkDetection->GetDetectedLandmarkPoints_Reference()->GetNumberOfPoints()-1) / m_PhantomLandmarkRegistration->GetDefinedLandmarks_Phantom()->GetNumberOfPoints()); 
-
-        // Add recorded point to algorithm
-        m_PhantomLandmarkRegistration->GetRecordedLandmarks_Reference()->InsertPoint(m_LandmarkDetection->GetDetectedLandmarkPoints_Reference()->GetNumberOfPoints()-1, pivotFound);
-        m_PhantomLandmarkRegistration->GetRecordedLandmarks_Reference()->Modified();
-
-        // If there are at least 3 acquired points then register
-        if (m_CurrentLandmarkIndex >= 3)
+        if (m_PhantomLandmarkRegistration->Register( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository() ) == PLUS_SUCCESS)
         {
-          if (m_PhantomLandmarkRegistration->Register( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository() ) == PLUS_SUCCESS)
-          {
-            m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId(), true);
-            m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomWiresModelId(), true);
-          }
-          else
-          {
-            LOG_ERROR("Phantom landmark registration failed!");
-          }
-
-          //stop registration
-          m_LandmarkDetection->IsLandmarkDetectionCompleted(valid);
-          if(valid)
-          {
-            ui.tabWidget->setTabEnabled(1, false);
-            if (m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->WriteConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ) != PLUS_SUCCESS)
-            {
-              LOG_ERROR("Unable to save phantom registration result in configuration XML tree!");
-              SetState(ToolboxState_Error);
-              return;
-            }
-            SetState(ToolboxState_Done);
-
-            m_RequestedLandmarkPolyData->GetPoints()->GetData()->RemoveTuple(0);
-            m_RequestedLandmarkPolyData->GetPoints()->Modified();
-
-            StopLandmarkPivotingRegistration();
-            LOG_INFO("\n"<<m_LandmarkDetection->GetDetectedLandmarksString()<<"\n");
-            m_PhantomLandmarkRegistration->PrintRecordedLandmarks_Phantom();
-            return;
-          }
-          else
-          {
-            // Set the camera to face the new pivot to be found     
-            m_ParentMainWindow->GetVisualizationController()->ShowInput(true);
-            SetCameraViewNextLandmark(m_ParentMainWindow->GetVisualizationController()->GetCanvasRenderer()->GetActiveCamera(), m_PhantomLandmarkRegistration, m_CurrentLandmarkIndex,m_ParentMainWindow->GetVisualizationController()->GetInputPolyData()->GetPoints());
-          }
+          m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId(), true);
+          m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomWiresModelId(), true);
         }
         else
         {
-          m_ParentMainWindow->GetVisualizationController()->GetCanvasRenderer()->ResetCamera();
+          LOG_ERROR("Phantom landmark registration failed!");
         }
 
-        if(m_CurrentLandmarkIndex<m_PhantomLandmarkRegistration->GetDefinedLandmarks_Phantom()->GetNumberOfPoints())
+        //stop registration
+        if( newLandmarkDetected==numberOfExpectedLandmarks)
         {
-          // Highlight next landmark
-          m_RequestedLandmarkPolyData->GetPoints()->InsertPoint(0, m_PhantomLandmarkRegistration->GetDefinedLandmarks_Phantom()->GetPoint(m_CurrentLandmarkIndex));
+          ui.tabWidget->setTabEnabled(1, false);
+          if (m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->WriteConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ) != PLUS_SUCCESS)
+          {
+            LOG_ERROR("Unable to save phantom registration result in configuration XML tree!");
+            SetState(ToolboxState_Error);
+            return;
+          }
+          SetState(ToolboxState_Done);
+
+          m_RequestedLandmarkPolyData->GetPoints()->GetData()->RemoveTuple(0);
           m_RequestedLandmarkPolyData->GetPoints()->Modified();
+
+          StopLandmarkPivotingRegistration();
+          LOG_INFO("\n"<<m_LandmarkDetection->GetDetectedLandmarksString()<<"\n");
+          m_PhantomLandmarkRegistration->PrintRecordedLandmarks_Phantom();
+          return;
+        }
+        else
+        {
+          // Set the camera to face the new pivot to be found     
+          m_ParentMainWindow->GetVisualizationController()->ShowInput(true);
+          SetCameraViewNextLandmark(m_ParentMainWindow->GetVisualizationController()->GetCanvasRenderer()->GetActiveCamera(), m_PhantomLandmarkRegistration, m_CurrentLandmarkIndex,m_ParentMainWindow->GetVisualizationController()->GetInputPolyData()->GetPoints());
         }
       }
-      m_PreviousStylusTipToReferenceTransformMatrix->DeepCopy(stylusTipToReferenceTransformMatrix);
+      else
+      {
+        m_ParentMainWindow->GetVisualizationController()->GetCanvasRenderer()->ResetCamera();
+      }
+
+      if(m_CurrentLandmarkIndex< numberOfExpectedLandmarks)
+      {
+        // Highlight next landmark
+        m_RequestedLandmarkPolyData->GetPoints()->InsertPoint(0, m_PhantomLandmarkRegistration->GetDefinedLandmarks_Phantom()->GetPoint(m_CurrentLandmarkIndex));
+        m_RequestedLandmarkPolyData->GetPoints()->Modified();
+      }
     }
+    m_PreviousStylusTipToReferenceTransformMatrix->DeepCopy(stylusTipToReferenceTransformMatrix);
+
   }
 }
 
