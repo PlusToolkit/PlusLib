@@ -363,10 +363,10 @@ int main (int argc, char* argv[])
         LOG_ERROR("Unable to read phantom definition!");
         exit(EXIT_FAILURE);
       }
-      int numberOfLandmarks = phantomRegistration->GetDefinedLandmarks_Phantom()->GetNumberOfPoints();
-      if (numberOfLandmarks != 8)
+      int numberOfExpectedLandmarks = phantomRegistration->GetDefinedLandmarks_Phantom()->GetNumberOfPoints();
+      if (numberOfExpectedLandmarks != 8)
       {
-        LOG_ERROR("Number of defined landmarks should be 8 instead of " << numberOfLandmarks << "!");
+        LOG_ERROR("Number of defined landmarks should be 8 instead of " << numberOfExpectedLandmarks << "!");
         exit(EXIT_FAILURE);
       }
       // Initialize Landmark detection
@@ -376,7 +376,6 @@ int main (int argc, char* argv[])
         LOG_ERROR("Unable to instantiate landmark detection algorithm class!");
         exit(EXIT_FAILURE);
       }
-      landmarkDetection->SetNumberOfExpectedLandmarks(phantomRegistration->GetDefinedLandmarks_Phantom()->GetNumberOfPoints());
       landmarkDetection->SetMinimunDistanceBetweenLandmarksMm(phantomRegistration->GetMinimunDistanceBetweenTwoLandmarksMm());
       landmarkDetection->SetAcquisitionRate(1/(trackedStylusTipFrames->GetTrackedFrame(1)->GetTimestamp()-trackedStylusTipFrames->GetTrackedFrame(0)->GetTimestamp()));
       if (landmarkDetection->ReadConfiguration(configLandmarkDetection) != PLUS_SUCCESS)
@@ -387,7 +386,7 @@ int main (int argc, char* argv[])
 
       // Check stylus tool
       PlusTransformName stylusTipToReferenceTransformName(phantomRegistration->GetStylusTipCoordinateFrame(), phantomRegistration->GetReferenceCoordinateFrame());
-      PlusTransformName stylusToReferenceTransformName("Stylus", landmarkDetection->GetReferenceCoordinateFrame());
+      PlusTransformName stylusToReferenceTransformName("Stylus", phantomRegistration->GetReferenceCoordinateFrame());
       PlusTransformName stylusTipToStylusTransformName(phantomRegistration->GetStylusTipCoordinateFrame(), "Stylus");
 
       vtkSmartPointer<vtkMatrix4x4> stylusTipToStylusTransform = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -424,24 +423,25 @@ int main (int argc, char* argv[])
 
           vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceTransformMatrix = vtkMatrix4x4::New();
           vtkMatrix4x4::Multiply4x4(stylusToReferenceMatrix,stylusTipToStylusTransform,stylusTipToReferenceTransformMatrix);
-          bool newLandmarkDetected=false;
+          int newLandmarkDetected=-1;
           landmarkDetection->InsertNextStylusTipToReferenceTransform(stylusTipToReferenceTransformMatrix, newLandmarkDetected);
-          if(newLandmarkDetected)
+          if(newLandmarkDetected>0)
           {
             landmarkDetection->GetDetectedLandmarkPoints_Reference()->GetPoint(landmarkDetection->GetDetectedLandmarkPoints_Reference()->GetNumberOfPoints()-1, landmarkFound);
             // Add recorded point to algorithm
             phantomRegistration->GetRecordedLandmarks_Reference()->InsertPoint(landmarkDetection->GetDetectedLandmarkPoints_Reference()->GetNumberOfPoints()-1, landmarkFound);
             phantomRegistration->GetRecordedLandmarks_Reference()->Modified();
             LOG_INFO("\nLandmark found (" << landmarkFound[0]<<", " << landmarkFound[1]<<", " << landmarkFound[2]<<") at "<<trackedStylusTipFrames->GetTrackedFrame(j)->GetTimestamp()<<"[ms]"<< "\nNumber of landmarks in phantonReg "<<phantomRegistration->GetRecordedLandmarks_Reference()->GetNumberOfPoints());
-            vtkPlusLogger::PrintProgressbar((100.0 * landmarkDetection->GetDetectedLandmarkPoints_Reference()->GetNumberOfPoints()-1) / phantomRegistration->GetDefinedLandmarks_Phantom()->GetNumberOfPoints()); 
+            vtkPlusLogger::PrintProgressbar((100.0 *  newLandmarkDetected-1) / numberOfExpectedLandmarks);
+
+            if(newLandmarkDetected==numberOfExpectedLandmarks)
+            {
+              succesfulDatasets++;
+              //LOG_INFO("\nREgistration completed" );
+              break;
+            }
           }
-          landmarkDetection->IsLandmarkDetectionCompleted(valid);
-          if(valid)
-          {
-            succesfulDatasets++;
-            //LOG_INFO("\nREgistration completed" );
-            break;
-          }
+ 
         }
       }
       else
