@@ -58,19 +58,19 @@ public:
   double GetMinimunDistanceBetweenTwoLandmarksMm();
 
   /*! Get the defined landmarks "centroid" (it is actually just the average of the landmarks position, pretty close to phantom centroid) in phantom coordinates system*/
-  void GetDefinedLandmarksCentroid_Phantom(double* landmarksAverage_Phantom);
+  void GetDefinedLandmarksCentroid_Phantom(double landmarksCentroid_Phantom[4]);
 
   /*! Get the defined landmarks "centroid" (it is actually just the average of the landmarks position, pretty close to phantom centroid) in reference coordinates system*/
-  void GetDefinedLandmarksCentroid_Reference(double* landmarksAverage_Reference);
+  void GetDefinedLandmarksCentroid_Reference(double landmarksAverage_Reference[4]);
 
   /*!
     Get the camera position (in reference coordinates system) of the next landmark to be added. The position is 500 mm away from the next landmark along 
     the "centroid"-next landmark direction
   */
-  void GetLandmarkCameraPosition_Reference(int index, double* definedLandmark_Reference);
+  void GetLandmarkCameraPosition_Reference(int index, double cameraPosition_Reference[4]);
 
   /*! Get the defined landmark at index in the reference coordinates system */
-  void GetDefinedLandmark_Reference(int index, double* definedLandmark_Reference);
+  void GetDefinedLandmark_Reference(int index, double cameraPosition_Reference[4]);
 
     /*! Print recorded landmarks in Phantom coordinates system*/
   void PrintRecordedLandmarks_Phantom();

@@ -83,7 +83,7 @@ public:
   PlusStatus DeleteLastLandmark();
 
   /*! Directly inserts a landmark position into the list, bypassing the detection. */
-  PlusStatus InsertLandmark_Reference(double* stylusTipPosition_Reference);
+  PlusStatus InsertLandmark_Reference(double stylusTipPosition_Reference[4]);
 
   /*! Get position of all the detected landmark points in Reference coordinate system. */
   vtkGetObjectMacro(DetectedLandmarkPoints_Reference, vtkPoints);
@@ -97,7 +97,7 @@ public:
     \param stylusPosition_Reference.
     \return If it is new landmark position -1. The landmark Id if it is already detected.
   */
-  int GetNearExistingLandmarkId(double* stylusPosition_Reference);
+  int GetNearExistingLandmarkId(double stylusTipPosition_Reference[4]);
 
 protected:
 
@@ -131,7 +131,7 @@ protected:
   PlusStatus KeepLastWindow();
 
   /* Computes the average of the stylus tip positions in the last FilterWindowSize samples.*/
-  PlusStatus FilterStylusTipPositionsWindow(double* landmarkPoint_Reference);
+  PlusStatus FilterStylusTipPositionsWindow(double stylusTipFiltered_Reference[4]);
 
 protected:
   /*! The detected landmark point position(s)(defined in the reference coordinate system).*/

@@ -125,6 +125,7 @@ PlusStatus vtkLandmarkDetectionAlgo::ComputeNumberOfWindows(int & numberOfWindow
     return PLUS_FAIL;
   }
   numberOfWindows=this->DetectionTimeSec/this->FilterWindowTimeSec;
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -150,7 +151,7 @@ PlusStatus vtkLandmarkDetectionAlgo::DeleteLastLandmark()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkLandmarkDetectionAlgo::InsertLandmark_Reference(double stylusTipPosition_Reference[3])
+PlusStatus vtkLandmarkDetectionAlgo::InsertLandmark_Reference(double stylusTipPosition_Reference[4])
 {
   if(GetNearExistingLandmarkId(stylusTipPosition_Reference)!=-1)
   {
@@ -162,7 +163,7 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertLandmark_Reference(double stylusTipPo
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkLandmarkDetectionAlgo::FilterStylusTipPositionsWindow(double stylusTipFiltered_Reference[3])
+PlusStatus vtkLandmarkDetectionAlgo::FilterStylusTipPositionsWindow(double stylusTipFiltered_Reference[4])
 {
   int filterWindowSize=0;
   if (ComputeFilterWindowSize(filterWindowSize)==PLUS_FAIL)
@@ -194,7 +195,8 @@ PlusStatus vtkLandmarkDetectionAlgo::FilterStylusTipPositionsWindow(double stylu
   stylusTipFiltered_Reference[0]=stylusTipPositionSum_Reference[0]/filterWindowSize;
   stylusTipFiltered_Reference[1]=stylusTipPositionSum_Reference[1]/filterWindowSize;
   stylusTipFiltered_Reference[2]=stylusTipPositionSum_Reference[2]/filterWindowSize;
-  return PLUS_SUCCESS;
+  stylusTipFiltered_Reference[3]=1.0;
+    return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -320,16 +322,17 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtk
 }
 
 //----------------------------------------------------------------------------
-int vtkLandmarkDetectionAlgo::GetNearExistingLandmarkId(double stylusTipPosition_Reference[3])
+int vtkLandmarkDetectionAlgo::GetNearExistingLandmarkId(double stylusTipPosition_Reference[4])
 {
   double detectedLandmark_Reference[4] = {0,0,0,1};
-  double landmarkDifference_Reference[4] = {0,0,0,1};
+  double landmarkDifference_Reference[4] = {0,0,0,0};
   for(int id=0; id<this->DetectedLandmarkPoints_Reference->GetNumberOfPoints();id++)
   {
     this->DetectedLandmarkPoints_Reference->GetPoint(id, detectedLandmark_Reference);
     landmarkDifference_Reference[0]=detectedLandmark_Reference[0]-stylusTipPosition_Reference[0];
     landmarkDifference_Reference[1]=detectedLandmark_Reference[1]-stylusTipPosition_Reference[1];
     landmarkDifference_Reference[2]=detectedLandmark_Reference[2]-stylusTipPosition_Reference[2];
+    landmarkDifference_Reference[3]=detectedLandmark_Reference[3]-stylusTipPosition_Reference[3];
     if(vtkMath::Norm(landmarkDifference_Reference)<this->MinimunDistanceBetweenLandmarksMm/3)
     {
       return id;
@@ -381,6 +384,7 @@ PlusStatus vtkLandmarkDetectionAlgo::EstimateLandmarkPosition()
     if(GetNearExistingLandmarkId(stylusPositionMean_Reference)==-1)
     {
       this->DetectedLandmarkPoints_Reference->InsertNextPoint(stylusPositionMean_Reference);
+      LOG_INFO("\nSTD deviation ( " << stylusPositionMean_Reference[0]<< ", "<< stylusPositionMean_Reference[1]<< ", "<< stylusPositionMean_Reference[2]<< ", "<< stylusPositionMean_Reference[3]<< ") " );
       LOG_DEBUG("\nSTD deviation ( " << stylusPositionStdev_Reference[0]<< ", "<< stylusPositionStdev_Reference[1]<< ", "<< stylusPositionStdev_Reference[2]<< ") " );
       LOG_DEBUG("STD deviation magnitude " << vtkMath::Norm(stylusPositionStdev_Reference));
     }

@@ -233,15 +233,11 @@ PlusStatus vtkPhantomLandmarkRegistrationAlgo::ComputeError()
   for (int i=0; i<this->RecordedLandmarks_Reference->GetNumberOfPoints(); ++i)
   {
     // Defined landmarks from xml are in the phantom coordinate system
-    double* landmarkPointArray = this->DefinedLandmarks_Phantom->GetPoint(i);
-    double landmarkPoint[4] = {landmarkPointArray[0], landmarkPointArray[1], landmarkPointArray[2], 1.0};
+    double definedLandmark_Phantom[4] = {0,0,0, 1.0};
+    this->DefinedLandmarks_Phantom->GetPoint(i,definedLandmark_Phantom);
 
-    double* transformedLandmarkPoint = this->PhantomToReferenceTransformMatrix->MultiplyDoublePoint(landmarkPoint);
-
-    // Recorded landmarks are in the tracker coordinate system
-    double* recordedPointArray = this->RecordedLandmarks_Reference->GetPoint(i);
-//LOG_INFO("Difference pivot " <<i<<"("<<landmarksAverage[0]<<", "<<landmarksAverage[1]<<", "<<landmarksAverage[2]<<")");
-    sumDistance += sqrt( vtkMath::Distance2BetweenPoints(transformedLandmarkPoint, recordedPointArray) );
+    double* definedLandmark_Reference = this->PhantomToReferenceTransformMatrix->MultiplyDoublePoint(definedLandmark_Phantom);
+    sumDistance += sqrt( vtkMath::Distance2BetweenPoints(definedLandmark_Reference, this->RecordedLandmarks_Reference->GetPoint(i)) );
   }
 
   this->RegistrationErrorMm = sumDistance / this->RecordedLandmarks_Reference->GetNumberOfPoints();
@@ -277,7 +273,7 @@ double vtkPhantomLandmarkRegistrationAlgo::GetMinimunDistanceBetweenTwoLandmarks
 }
 
 //-----------------------------------------------------------------------------
-void vtkPhantomLandmarkRegistrationAlgo::GetDefinedLandmarksCentroid_Reference(double* landmarksAverage_Reference)
+void vtkPhantomLandmarkRegistrationAlgo::GetDefinedLandmarksCentroid_Reference(double landmarksAverage_Reference[4])
 {
   // Defined landmarks from xml are in the phantom coordinate system
   double landmarksAverage_Phantom[4] = {0,0,0,1};
@@ -290,7 +286,7 @@ void vtkPhantomLandmarkRegistrationAlgo::GetDefinedLandmarksCentroid_Reference(d
 }
 
 //-----------------------------------------------------------------------------
-void vtkPhantomLandmarkRegistrationAlgo::GetDefinedLandmarksCentroid_Phantom(double* landmarksCentroid_Phantom)
+void vtkPhantomLandmarkRegistrationAlgo::GetDefinedLandmarksCentroid_Phantom(double landmarksCentroid_Phantom[4])
 {
   // Defined landmarks from xml are in the phantom coordinate system
   double definedLandmarkPoint_Phantom[4] = {0,0,0,1};
@@ -309,7 +305,7 @@ void vtkPhantomLandmarkRegistrationAlgo::GetDefinedLandmarksCentroid_Phantom(dou
 }
 
 //-----------------------------------------------------------------------------
-void vtkPhantomLandmarkRegistrationAlgo::GetLandmarkCameraPosition_Reference(int index, double* cameraPosition_Reference)
+void vtkPhantomLandmarkRegistrationAlgo::GetLandmarkCameraPosition_Reference(int index, double cameraPosition_Reference[4])
 {
   this->DefinedLandmarks_Phantom->GetPoint(index,cameraPosition_Reference);
   double centroid_Phantom[4] = {0,0,0,1};
@@ -334,7 +330,7 @@ void vtkPhantomLandmarkRegistrationAlgo::GetLandmarkCameraPosition_Reference(int
 }
 
 //-----------------------------------------------------------------------------
-void vtkPhantomLandmarkRegistrationAlgo::GetDefinedLandmark_Reference(int index, double* cameraPosition_Reference)
+void vtkPhantomLandmarkRegistrationAlgo::GetDefinedLandmark_Reference(int index, double cameraPosition_Reference[4])
 {
   this->DefinedLandmarks_Phantom->GetPoint(index,cameraPosition_Reference);
 
