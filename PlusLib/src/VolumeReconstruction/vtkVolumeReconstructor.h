@@ -172,6 +172,7 @@ public:
   void SetOptimization(vtkPasteSliceIntoVolume::OptimizationType optimization);
   
   vtkSetMacro(FillHoles, bool);
+  vtkGetMacro(FillHoles, bool);
 
   bool FanClippingApplied();
 

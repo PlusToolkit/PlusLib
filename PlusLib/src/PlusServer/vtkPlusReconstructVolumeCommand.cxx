@@ -36,6 +36,7 @@ vtkPlusReconstructVolumeCommand::vtkPlusReconstructVolumeCommand()
 , OutputVolFilename(NULL)
 , OutputVolDeviceName(NULL)
 , VolumeReconstructorDeviceId(NULL)
+, ApplyHoleFilling(true)
 {
   this->OutputOrigin[0]=UNDEFINED_VALUE;
   this->OutputOrigin[1]=UNDEFINED_VALUE;
@@ -118,7 +119,7 @@ std::string vtkPlusReconstructVolumeCommand::GetDescription(const char* commandN
   if (commandName==NULL || STRCASECMP(commandName, GET_LIVE_RECONSTRUCTION_SNAPSHOT_CMD))
   {
     desc+=GET_LIVE_RECONSTRUCTION_SNAPSHOT_CMD;
-    desc+=": Request a snapshot of the live reconstruction result. Attributes: VolumeReconstructorDeviceId: ID of the volume reconstructor device. OutputVolFilename: name of the output volume file name (optional). OutputVolDeviceName: name of the OpenIGTLink device for the IMAGE message (optional).";
+    desc+=": Request a snapshot of the live reconstruction result. Attributes: VolumeReconstructorDeviceId: ID of the volume reconstructor device. OutputVolFilename: name of the output volume file name (optional). OutputVolDeviceName: name of the OpenIGTLink device for the IMAGE message (optional). ApplyHoleFilling: if FALSE then holes will not be filled (optional, default: TRUE).";
   }
   
   return desc;
@@ -142,6 +143,7 @@ PlusStatus vtkPlusReconstructVolumeCommand::ReadConfiguration(vtkXMLDataElement*
   XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, OutputOrigin, aConfig);
   XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 6, OutputExtent, aConfig);
 
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ApplyHoleFilling, aConfig);
   return PLUS_SUCCESS;
 }
 
@@ -178,6 +180,8 @@ PlusStatus vtkPlusReconstructVolumeCommand::WriteConfiguration(vtkXMLDataElement
   {
     aConfig->SetVectorAttribute("OutputExtent", 6, this->OutputExtent);
   }
+
+  XML_WRITE_BOOL_ATTRIBUTE(ApplyHoleFilling, aConfig);
 
   return PLUS_SUCCESS;
 }
@@ -318,7 +322,7 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
     LOG_INFO("Volume reconstruction from live frames snapshot request, device: "<<reconstructorDeviceId);
     vtkSmartPointer<vtkImageData> volumeToSend=vtkSmartPointer<vtkImageData>::New();
     std::string errorMessage;
-    if (reconstructorDevice->GetReconstructedVolume(volumeToSend, errorMessage)!=PLUS_SUCCESS)
+    if (reconstructorDevice->GetReconstructedVolume(volumeToSend, errorMessage, this->ApplyHoleFilling)!=PLUS_SUCCESS)
     {
       this->QueueStringResponse("Volume reconstruction snapshot request failed, device: "+reconstructorDeviceId+" "+errorMessage,PLUS_FAIL);
       return PLUS_FAIL;
