@@ -36,8 +36,9 @@ public:
 
   /*!
     This method is safe to be called from any thread.
+    \param applyHoleFilling If true (default) then hole filling will be applied (if enabled and fully specified), otherwise hole filling will be skipped
   */
-  PlusStatus GetReconstructedVolume(vtkImageData* reconstructedVolume, std::string& errorMessage);
+  PlusStatus GetReconstructedVolume(vtkImageData* reconstructedVolume, std::string& errorMessage, bool applyHoleFilling=true);
 
   /*!
     Updated the transform repository contents within the volume reconstructor.

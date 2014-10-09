@@ -144,6 +144,7 @@ PlusServerRemoteControl.exe --command=GET_EXAM_DATA --device=StealthLinkDevice -
   - \xmlAtt VolumeReconstructorDeviceId: name of the volume reconstructor device (if not specified then the first volume reconstructor device will be used)
   - \xmlAtt OutputVolFilename: name of the output volume file name (optional, if saving of the reconstructed volume to file is not needed or the value is already set)
   - \xmlAtt OutputVolDeviceName: name of the OpenIGTLink device for the IMAGE message (optional, if sending of the reconstructed volume is not needed or the value is already set)
+  - \xmlAtt ApplyHoleFilling: if FALSE then holes will not be filled (optional, default: TRUE)
 - UpdateTransform: updates a transform in the transform repository
   - \xmlAtt TransformName: transform name in CoordinateSystem1ToCoordinateSystem2 format
   - \xmlAtt TransformValue: 4x4 matrix, separated by spaces

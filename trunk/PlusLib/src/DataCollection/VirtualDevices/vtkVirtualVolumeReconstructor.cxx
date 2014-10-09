@@ -357,11 +357,22 @@ PlusStatus vtkVirtualVolumeReconstructor::GetReconstructedVolumeFromFile(const c
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkVirtualVolumeReconstructor::GetReconstructedVolume(vtkImageData* reconstructedVolume, std::string& errorMessage)
+PlusStatus vtkVirtualVolumeReconstructor::GetReconstructedVolume(vtkImageData* reconstructedVolume, std::string& errorMessage, bool applyHoleFilling/*=true*/)
 {
   errorMessage.clear();
   PlusLockGuard<vtkRecursiveCriticalSection> writerLock(this->VolumeReconstructorAccessMutex);
-  if (this->VolumeReconstructor->ExtractGrayLevels(reconstructedVolume) != PLUS_SUCCESS)
+  bool oldFillHoles = this->VolumeReconstructor->GetFillHoles();
+  if (!applyHoleFilling)
+  {
+    this->VolumeReconstructor->SetFillHoles(false);
+  }
+  PlusStatus status = this->VolumeReconstructor->ExtractGrayLevels(reconstructedVolume);
+  if (!applyHoleFilling)
+  {
+    this->VolumeReconstructor->SetFillHoles(oldFillHoles);
+  }
+
+  if (status != PLUS_SUCCESS)
   {
     errorMessage="Extracting gray levels failed";
     LOG_ERROR(errorMessage);

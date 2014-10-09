@@ -84,6 +84,9 @@ public:
   /*! Get extentof the output data in Reference coordinate system  */
   vtkGetVector6Macro(OutputExtent, int);  
 
+  vtkGetMacro(ApplyHoleFilling, bool);
+  vtkSetMacro(ApplyHoleFilling, bool);
+
   void SetNameToReconstruct();
   void SetNameToStart();
   void SetNameToStop();
@@ -112,6 +115,8 @@ private:
   vtkFloatingPointType OutputOrigin[3];
   vtkFloatingPointType OutputSpacing[3];
   int OutputExtent[6];
+
+  bool ApplyHoleFilling;
   
   vtkPlusReconstructVolumeCommand( const vtkPlusReconstructVolumeCommand& );
   void operator=( const vtkPlusReconstructVolumeCommand& );
