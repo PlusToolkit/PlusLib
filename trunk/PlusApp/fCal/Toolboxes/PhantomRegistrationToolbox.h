@@ -172,7 +172,7 @@ protected:
     /*!
     Slot handling Start Landmark Detection button to activate the automatic Landmark detection for landmark registration, ´pivoting instead of pressing the record button
     */
-    void StartLandmarkPivotingRegistration();
+    void StartLandmarkDetectionRegistration();
 
     /*!
     Slot handling Stop landmark detection button to deactivate the automatic Landmark detection for landmark registration, ´pivoting instead of pressing the record button
