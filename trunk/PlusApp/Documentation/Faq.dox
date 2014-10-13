@@ -107,4 +107,13 @@ To ask any questions, register at <a href="http://www.assembla.com">www.assembla
 
 To ask question from a specific person, click the <em>Email specific members</em> option.
 
+# What causes this error: "Angle difference between interpolated orientation is large, interpolation may be inaccurate"?
+
+This message indicates that the angle difference between two subsequent pose measurements is too large.
+
+Possible reasons:
+- tool is moved (rotated) too quickly: move the tools slower
+- acquisition rate is very low: increase AcquisitionRate attribute of the Device in the Device set configuration file
+- pose tracking sensor is damaged: can be confirmed by visualizing the tool position in 3D and check if it follows the actual motion of the tool
+
 */
