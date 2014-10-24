@@ -268,6 +268,7 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
 
   if ( sz != frameSizeInBytes + numberOfBytesToSkip )
   {
+    // This typically occurs when Plus with Ultrasonix SDK 5.7.x is used with Exam software 6.0.7 or later
     LOG_ERROR("Received frame size (" << sz << " bytes) doesn't match the buffer size (" << frameSizeInBytes + numberOfBytesToSkip << " bytes). Make sure the Ultrasonix SDK version used in Plus ("<<GetSdkVersion()<<") is compatible with the Exam software running on the ultrasound device."); 
     return PLUS_FAIL; 
   }
@@ -415,7 +416,8 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
     {
       if (!this->HasDataType(udtBPost))
       {
-        LOG_ERROR("No B-mode data is available");
+        // This typically occurs when Plus with Ultrasonix SDK 6.1.0 is used with Exam software 6.0.2
+        LOG_ERROR("No B-mode data is available. Make sure the Ultrasonix SDK version used in Plus ("<<GetSdkVersion()<<") is compatible with the Exam software running on the ultrasound device.");
         continue;
       }
       if( this->ConfigureVideoSource(udtBPost) != PLUS_SUCCESS )
