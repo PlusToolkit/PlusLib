@@ -4,7 +4,7 @@
 \section SonixVideoSupportedHwDevices Supported hardware devices
 
 - Supported models: Ultrasonix SonixRP, SonixMDP, SonixTouch, SonixTablet, etc.
-- As all models use the same research interface, there is no difference in using Plus with any of the Ultrasonix scanner models (e.g., a sample config file for SonixRP works well for a SonixMDP scanner)
+- As all models use the same research interface, there is no difference in using Plus with any of the Ultrasonix scanner models (e.g., a sample config file for SonixRP works well for a SonixMDP scanner). However, the ultrasound firmware and Exam software on the scanner has to match the Ultrasonix SDK version that Plus uses. Plus with Ultrasonix SDK 5.7.x works through Ulterius interface with Exam software 5.7.x-6.0.2. Plus with Ultrasonix SDK 6.1.x works through Ulterius interface with Exam software 6.0.7 and later. Use the \ref ApplicationPlusVersion to find out which Ultrasonix SDK version is used by Plus.
 - Supported interfaces: Ulterius and Porta. 
 - Link to manufacturer's website: http://www.analogicultrasound.com/ultrasonix
 
