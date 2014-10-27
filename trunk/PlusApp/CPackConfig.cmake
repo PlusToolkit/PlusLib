@@ -43,7 +43,7 @@ IF(WIN32)
       ")
     SET(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS ${CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS} "
       !insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
-      Delete \\\"$SMPROGRAMS\\\\$MUI_TEMP\\\\User manual.lnk\\\"
+      Delete \\\"$SMPROGRAMS\\\\$MUI_TEMP\\\\Plus user manual.lnk\\\"
       ")
   ENDIF(BUILD_DOCUMENTATION)
 ENDIF(WIN32)

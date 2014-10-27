@@ -22,7 +22,7 @@ The file contains the following XML elements:
 - \xmlElem \b PlusConfiguration
   - \xmlAtt Version Major Plus toolkit version the configuration file is compatible with
   - \xmlAtt PlusRevision Detailed Plus toolkit version that created the configuration file
-  - \xmlElem \subpage DataCollection Definition of all devices used for collecting and processing data
+  - \xmlElem \subpage DataCollection Definition of all devices used for collecting and processing data. See \subpage Devices page for a list of supported devices.
   - \xmlElem \subpage CoordinateSystemDefinitions List of fixed transforms
   - Application elements
     - \xmlElem \ref ApplicationfCalConfigSettings "Freehand calibration (fCal) settings"
