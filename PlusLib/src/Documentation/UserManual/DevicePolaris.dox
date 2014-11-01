@@ -6,6 +6,7 @@ Any NDI tracking device is supported that uses the common API, such as <a href="
 
 \section PolarisSupportedPlatforms Included in packages
 - \ref PackageWin32
+- \ref PackageWin64
 - \ref PackageWin32Embedded
 - \ref PackageMacOs
 - \ref PackageLinux
