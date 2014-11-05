@@ -155,8 +155,8 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertLandmark_Reference(double stylusTipPo
   int existingLandmarkId=GetNearExistingLandmarkId(stylusTipPosition_Reference);
   if( existingLandmarkId!=-1)
   {
-    LOG_WARNING("Landmark #"<< existingLandmarkId<<" is already detected");
-    return PLUS_FAIL;
+    LOG_INFO("No landmark inserted, landmark #"<< existingLandmarkId<<" was already detected");
+    return PLUS_SUCCESS;
   }
   this->DetectedLandmarkPoints_Reference->InsertNextPoint(stylusTipPosition_Reference);
   return PLUS_SUCCESS;
@@ -375,8 +375,8 @@ PlusStatus vtkLandmarkDetectionAlgo::EstimateLandmarkPosition()
   int existingLandmarkId=GetNearExistingLandmarkId(stylusTipMean_Reference);
   if (existingLandmarkId!=-1)
   {
-    LOG_WARNING("Landmark #"<<existingLandmarkId<<" is already detected");
-    return PLUS_FAIL;
+    LOG_INFO("Landmark #"<<existingLandmarkId<<" was already detected");
+    return PLUS_SUCCESS;
   }
   this->DetectedLandmarkPoints_Reference->InsertNextPoint(stylusTipMean_Reference);
 
