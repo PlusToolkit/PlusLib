@@ -47,7 +47,7 @@ public:
     \param stylusTipToReferenceTransform New detection pose (stylus tip to reference transform).
     \param newLandmarkDetected is assigned the number of detected landmarks if a new one is detected. It assigns -1 if there is not a new detected landmark.
   */
-  PlusStatus InsertNextStylusTipToReferenceTransform(vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceTransform, int &newLandmarkDetected);
+  PlusStatus InsertNextStylusTipToReferenceTransform(vtkMatrix4x4* stylusTipToReferenceTransform, int &newLandmarkDetected);
 
   /*! 
     Get detected landmark(s) positions as a string to display.
@@ -126,7 +126,7 @@ protected:
 
   /*!
     During detection time windows of stylus tip positions are filtered. When a pivot is detected or the stylus tip position is outside the bounding box threshold. 
-    The all the points acquired,except the last window, will be erarsed.
+    Then all the points acquired,except the last window, will be erased.
   */
   PlusStatus KeepLastWindow();
 
@@ -164,7 +164,7 @@ protected:
     StylusTipMaximumDisplacementThresholdMm a landmark is detected.
   */
   vtkBoundingBox StylusTipPathBoundingBox;
-  /*! Double ended queue the input point transformations. */
+  /*! Double ended queue the input point transformations. These are used for determining the next landmark (once the landmark is detected this list is cleared).*/
   std::deque< vtkSmartPointer<vtkMatrix4x4> > StylusTipToReferenceTransformsDeque;
 };
 
