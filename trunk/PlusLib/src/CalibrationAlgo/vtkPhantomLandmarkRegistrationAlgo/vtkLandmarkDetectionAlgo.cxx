@@ -56,7 +56,7 @@ PlusStatus vtkLandmarkDetectionAlgo::SetDetectionTimeSec(double detectionTimeSec
 {
   if(detectionTimeSec<=0)
   {
-    LOG_ERROR("Specified detection time (" << detectionTimeSec<<" [s]) is not positive");
+    LOG_ERROR("Specified detection time (" << detectionTimeSec << " [s]) is not positive");
     return PLUS_FAIL;
   }
   this->DetectionTimeSec=detectionTimeSec;
@@ -152,9 +152,10 @@ PlusStatus vtkLandmarkDetectionAlgo::DeleteLastLandmark()
 //----------------------------------------------------------------------------
 PlusStatus vtkLandmarkDetectionAlgo::InsertLandmark_Reference(double stylusTipPosition_Reference[4])
 {
-  if(GetNearExistingLandmarkId(stylusTipPosition_Reference)!=-1)
+  int existingLandmarkId=GetNearExistingLandmarkId(stylusTipPosition_Reference);
+  if( existingLandmarkId!=-1)
   {
-    LOG_ERROR("It was attempted to insert a landmark where there is already one detected");
+    LOG_WARNING("Landmark #"<< existingLandmarkId<<" is already detected");
     return PLUS_FAIL;
   }
   this->DetectedLandmarkPoints_Reference->InsertNextPoint(stylusTipPosition_Reference);
@@ -195,7 +196,7 @@ PlusStatus vtkLandmarkDetectionAlgo::FilterStylusTipPositionsWindow(double stylu
   stylusTipFiltered_Reference[1]=stylusTipPositionSum_Reference[1]/filterWindowSize;
   stylusTipFiltered_Reference[2]=stylusTipPositionSum_Reference[2]/filterWindowSize;
   stylusTipFiltered_Reference[3]=1.0;
-    return PLUS_SUCCESS;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -204,6 +205,7 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtk
   newLandmarkDetected = -1;
   if (stylusTipToReferenceTransform == NULL )
   {
+    LOG_ERROR("stylusTipToReferenceTransform is NULL");
     return PLUS_FAIL;
   }
 
@@ -271,7 +273,7 @@ PlusStatus vtkLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtk
     this->StylusTipPathBoundingBox.Reset();
     return PLUS_SUCCESS;
   }
-  
+
   // If enough rotation range has been covered and we collected enough windows then we accept this as a new landmark point
   if(numberOfAcquiredWindows < numberOfRequiredWindows)
   {
@@ -370,10 +372,11 @@ PlusStatus vtkLandmarkDetectionAlgo::EstimateLandmarkPosition()
   {
     PlusMath::ComputeMeanAndStdev( values[j], stylusTipMean_Reference[j], stylusTipStdev_Reference[j]);
   }
-  if (GetNearExistingLandmarkId(stylusTipMean_Reference)!=-1)
+  int existingLandmarkId=GetNearExistingLandmarkId(stylusTipMean_Reference);
+  if (existingLandmarkId!=-1)
   {
-      LOG_INFO("It was detecting where landmark was already detected");
-      return PLUS_FAIL;
+    LOG_WARNING("Landmark #"<<existingLandmarkId<<" is already detected");
+    return PLUS_FAIL;
   }
   this->DetectedLandmarkPoints_Reference->InsertNextPoint(stylusTipMean_Reference);
 
