@@ -119,11 +119,12 @@ PlusStatus vtkLandmarkDetectionAlgo::ComputeFilterWindowSize(int & filterWindowS
 //----------------------------------------------------------------------------
 PlusStatus vtkLandmarkDetectionAlgo::ComputeNumberOfWindows(int & numberOfWindows)
 {
-  if(this->FilterWindowTimeSec<=0&&this->DetectionTimeSec<=this->FilterWindowTimeSec)
+  if(this->FilterWindowTimeSec<=0 || this->DetectionTimeSec<=this->FilterWindowTimeSec)
   {
-    LOG_ERROR("Detection or filter window times are not correct");
+    LOG_ERROR("Detection ("<<this->DetectionTimeSec<<" [s]) or filter window ("<< this->FilterWindowTimeSec<<" [s]) times are not correct");
     return PLUS_FAIL;
   }
+
   numberOfWindows=this->DetectionTimeSec/this->FilterWindowTimeSec;
   return PLUS_SUCCESS;
 }
