@@ -48,6 +48,9 @@ public:
   void SetDynRangeDb(double value) { this->ImagingParameters->SetDynRangeDb(value); }
   void SetSoundVelocity(double value) { this->ImagingParameters->SetSoundVelocity(value); }
 
+  vtkGetMacro(EnableProbeButtonMonitoring, bool);
+  vtkSetMacro(EnableProbeButtonMonitoring, bool);
+
 protected:
   /*! Constructor */
   vtkIntersonVideoSource();
@@ -139,6 +142,12 @@ protected:
   double InitialGain;
   double MidGain;
   double FarGain;
+
+  // ProbeButtonPressCount is incremented each time the button on the probe is pressed
+  // The value is available in the output channel in the translation component of the ProbeButtonToDummyTransform
+  int ProbeButtonPressCount;
+
+  bool EnableProbeButtonMonitoring;
 
 private:
   vtkIntersonVideoSource(const vtkIntersonVideoSource&);  // Not implemented.
