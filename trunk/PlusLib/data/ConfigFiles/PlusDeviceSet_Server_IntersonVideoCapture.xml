@@ -3,11 +3,12 @@
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
       Name="PlusServer: Interson USB ultrasound device"
-      Description="Broadcasting acquired video through OpenIGTLink"
+      Description="Broadcasting acquired video through OpenIGTLink. Probe button status is sent in ProbeButtonToDummy transform."
     />
     <Device
       Id="VideoDevice" 
-      Type="IntersonVideo" >
+      Type="IntersonVideo"
+      EnableProbeButtonMonitoring="TRUE" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />
       </DataSources>      
@@ -44,7 +45,11 @@
     <DefaultClientInfo> 
       <MessageTypes> 
         <Message Type="IMAGE" />
+        <Message Type="TRANSFORM" />
       </MessageTypes>
+      <TransformNames> 
+        <Transform Name="ProbeButtonToDummy" />
+      </TransformNames>
       <ImageNames>
         <Image Name="Image" EmbeddedTransformToFrame="Reference" />
       </ImageNames>
