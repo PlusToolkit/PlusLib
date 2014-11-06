@@ -224,6 +224,9 @@ vtkIntersonVideoSource::vtkIntersonVideoSource()
   // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
   this->StartThreadForInternalUpdates=true;
   this->AcquisitionRate = 30;
+
+  this->EnableProbeButtonMonitoring=false;
+  this->ProbeButtonPressCount = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -527,9 +530,9 @@ PlusStatus vtkIntersonVideoSource::InternalUpdate()
     return PLUS_SUCCESS;
   }
 
-  if (usbProbeButtonPressed())
+  if (usbProbeButtonPressed() && this->EnableProbeButtonMonitoring)
   {
-    // TODO: add support for sending the button press info through OpenIGTLink
+    this->ProbeButtonPressCount++;
   }
 
   WaitForFrame();
@@ -574,8 +577,18 @@ PlusStatus vtkIntersonVideoSource::InternalUpdate()
       << ", buffer image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetBuffer()->GetImageOrientation()));
   }
   
+  TrackedFrame::FieldMapType customFields;
+
+  if (this->EnableProbeButtonMonitoring)
+  {
+	  std::ostringstream probeButtonPressCountString;
+    probeButtonPressCountString << this->ProbeButtonPressCount;
+	  customFields["ProbeButtonToDummyTransform"] =  std::string("1 0 0 ") + probeButtonPressCountString.str() + " 0 1 0 0 0 0 1 0 0 0 0 1";
+    customFields["ProbeButtonToDummyTransformStatus"] = "OK";
+  }
+
   if( aSource->GetBuffer()->AddItem((void*)&(this->Internal->MemoryBitmapBuffer[0]), aSource->GetPortImageOrientation(),
-    frameSizeInPx, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber) != PLUS_SUCCESS )
+    frameSizeInPx, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields) != PLUS_SUCCESS )
   {
     LOG_ERROR("Error adding item to video source " << aSource->GetSourceId());
     return PLUS_FAIL;
@@ -599,13 +612,17 @@ PlusStatus vtkIntersonVideoSource::ReadConfiguration(vtkXMLDataElement* rootConf
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DepthMm, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SoundVelocity, deviceConfig);
 
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableProbeButtonMonitoring, deviceConfig);
+
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkIntersonVideoSource::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(imageAcquisitionConfig, rootConfigElement);
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
+
+  deviceConfig->SetAttribute("EnableProbeButtonMonitoring", this->EnableProbeButtonMonitoring?"true":"false");
 
   return PLUS_SUCCESS;
 }
