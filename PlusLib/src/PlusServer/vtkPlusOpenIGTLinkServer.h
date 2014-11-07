@@ -49,7 +49,7 @@ class vtkPlusServerExport vtkPlusOpenIGTLinkServer: public vtkObject
 
 public:
   static vtkPlusOpenIGTLinkServer *New();
-  vtkTypeRevisionMacro( vtkPlusOpenIGTLinkServer, vtkObject );
+  vtkTypeMacro( vtkPlusOpenIGTLinkServer, vtkObject );
   virtual void PrintSelf( ostream& os, vtkIndent indent );
   
 

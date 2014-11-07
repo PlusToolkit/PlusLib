@@ -61,7 +61,6 @@ static const char* SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL = "LOCAL";
 static std::string SEQMETA_FIELD_FRAME_FIELD_PREFIX = "Seq_Frame"; 
 static std::string SEQMETA_FIELD_IMG_STATUS = "ImageStatus"; 
 
-vtkCxxRevisionMacro(vtkMetaImageSequenceIO, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkMetaImageSequenceIO); 
 vtkCxxSetObjectMacro(vtkMetaImageSequenceIO, TrackedFrameList, vtkTrackedFrameList);
 

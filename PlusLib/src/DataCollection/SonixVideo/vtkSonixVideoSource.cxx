@@ -48,7 +48,6 @@ Siddharth Vikal (Queen's University, Kingston, Ontario, Canada)
 #pragma warning (pop)
 #endif
 
-vtkCxxRevisionMacro(vtkSonixVideoSource, "$Revision: 2.0$");
 
 //----------------------------------------------------------------------------
 

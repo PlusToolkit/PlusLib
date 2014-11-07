@@ -21,7 +21,6 @@ See License.txt for details.
 #include "utx_imaging_modes.h"
 #endif
 
-vtkCxxRevisionMacro(vtkSonixVolumeReader, "$Revision: 1.0 $");
 
 vtkStandardNewMacro(vtkSonixVolumeReader);
 

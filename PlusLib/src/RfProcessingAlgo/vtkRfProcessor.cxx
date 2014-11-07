@@ -14,7 +14,6 @@ See License.txt for details.
 #include "vtkImageData.h"
 
 //----------------------------------------------------------------------------
-vtkCxxRevisionMacro(vtkRfProcessor, "$Revision: 1.1 $");
 vtkStandardNewMacro(vtkRfProcessor);
 //----------------------------------------------------------------------------
 const char* vtkRfProcessor::RF_PROCESSOR_TAG_NAME = "RfProcessing";

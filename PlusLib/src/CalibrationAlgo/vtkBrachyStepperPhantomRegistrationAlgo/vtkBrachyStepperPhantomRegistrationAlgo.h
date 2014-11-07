@@ -33,7 +33,7 @@ class vtkCalibrationAlgoExport vtkBrachyStepperPhantomRegistrationAlgo : public 
 public:
 
   static vtkBrachyStepperPhantomRegistrationAlgo *New();
-  vtkTypeRevisionMacro(vtkBrachyStepperPhantomRegistrationAlgo , vtkObject);
+  vtkTypeMacro(vtkBrachyStepperPhantomRegistrationAlgo , vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent); 
 
   /*!

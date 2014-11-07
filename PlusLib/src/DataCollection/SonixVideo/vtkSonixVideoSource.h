@@ -52,7 +52,7 @@ class vtkDataCollectionExport vtkSonixVideoSource : public vtkPlusDevice
 {
 public:
   static vtkSonixVideoSource* New();
-  vtkTypeRevisionMacro(vtkSonixVideoSource,vtkPlusDevice);
+  vtkTypeMacro(vtkSonixVideoSource,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);   
 
   /*! Hardware device SDK version. */

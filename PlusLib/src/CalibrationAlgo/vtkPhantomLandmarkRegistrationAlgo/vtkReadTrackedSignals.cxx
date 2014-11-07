@@ -21,7 +21,6 @@
 #include "vtkXMLUtilities.h"
 
 //-----------------------------------------------------------------------------
-vtkCxxRevisionMacro(vtkReadTrackedSignals, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkReadTrackedSignals);
 
 //-----------------------------------------------------------------------------

@@ -44,7 +44,7 @@ public:
     Sagittal
   };
 
-  vtkTypeRevisionMacro(vtkBkProFocusCameraLinkVideoSource,vtkPlusDevice);
+  vtkTypeMacro(vtkBkProFocusCameraLinkVideoSource,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);   
 
   static vtkBkProFocusCameraLinkVideoSource* New();

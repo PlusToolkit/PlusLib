@@ -24,7 +24,7 @@ class vtkRecursiveCriticalSection;
 class vtkPlusCommonExport vtkPlusConfig : public vtkObject
 {
 public:
-  vtkTypeRevisionMacro(vtkPlusConfig, vtkObject);
+  vtkTypeMacro(vtkPlusConfig, vtkObject);
 
   /*! New */
   static vtkPlusConfig *New();

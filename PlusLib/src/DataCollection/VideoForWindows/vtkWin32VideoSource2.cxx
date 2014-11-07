@@ -96,7 +96,6 @@ public:
   int BitMapInfoSize;
 };
 
-vtkCxxRevisionMacro(vtkWin32VideoSource2, "$Revision: 1.1 $");
 vtkStandardNewMacro(vtkWin32VideoSource2);
 
 #if ( _MSC_VER >= 1300 ) // Visual studio .NET

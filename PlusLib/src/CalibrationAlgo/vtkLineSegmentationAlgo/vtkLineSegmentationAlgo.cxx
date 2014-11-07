@@ -49,7 +49,6 @@ enum PEAK_POS_METRIC_TYPE
 };
 const PEAK_POS_METRIC_TYPE PEAK_POS_METRIC = PEAK_POS_COG;
 
-vtkCxxRevisionMacro(vtkLineSegmentationAlgo, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkLineSegmentationAlgo);
 
 //----------------------------------------------------------------------------

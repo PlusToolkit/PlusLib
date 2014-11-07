@@ -29,7 +29,7 @@ class vtkDataCollectionExport vtkDataCollector : public vtkObject
 {
 public:
   static vtkDataCollector *New();
-  vtkTypeRevisionMacro(vtkDataCollector, vtkObject);
+  vtkTypeMacro(vtkDataCollector, vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! 

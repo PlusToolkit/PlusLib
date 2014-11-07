@@ -109,7 +109,6 @@ See License.txt for details.
 
 //----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkPlusDevice, "$Revision: 1.1$");
 vtkStandardNewMacro(vtkPlusDevice);
 
 const int vtkPlusDevice::VIRTUAL_DEVICE_FRAME_RATE = 50;

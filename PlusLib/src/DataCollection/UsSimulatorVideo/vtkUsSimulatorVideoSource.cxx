@@ -14,7 +14,6 @@
 #include "vtkUsSimulatorVideoSource.h"
 #include "vtkTransformRepository.h"
 
-vtkCxxRevisionMacro(vtkUsSimulatorVideoSource, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkUsSimulatorVideoSource);
 
 //----------------------------------------------------------------------------

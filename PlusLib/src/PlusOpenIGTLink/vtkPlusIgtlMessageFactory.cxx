@@ -27,7 +27,6 @@ See License.txt for details.
 
 //----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkPlusIgtlMessageFactory, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkPlusIgtlMessageFactory);
 
 //----------------------------------------------------------------------------

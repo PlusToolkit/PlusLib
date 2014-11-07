@@ -32,7 +32,7 @@ class vtkTrackedFrameList;
 class vtkCalibrationAlgoExport vtkTemporalCalibrationAlgo : public vtkObject
 {
 public:
-  vtkTypeRevisionMacro(vtkTemporalCalibrationAlgo,vtkObject);
+  vtkTypeMacro(vtkTemporalCalibrationAlgo,vtkObject);
   static vtkTemporalCalibrationAlgo *New();
 
 public:

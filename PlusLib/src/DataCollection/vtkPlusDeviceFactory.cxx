@@ -110,7 +110,6 @@ See License.txt for details.
 
 //----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkPlusDeviceFactory, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkPlusDeviceFactory);
 
 //----------------------------------------------------------------------------

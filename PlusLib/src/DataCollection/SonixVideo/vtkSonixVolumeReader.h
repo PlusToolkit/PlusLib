@@ -22,7 +22,7 @@ class vtkTrackedFrameList;
 class vtkDataCollectionExport vtkSonixVolumeReader: public vtkImageAlgorithm
 {
 public:
-  vtkTypeRevisionMacro(vtkSonixVolumeReader,vtkImageAlgorithm);
+  vtkTypeMacro(vtkSonixVolumeReader,vtkImageAlgorithm);
   static vtkSonixVolumeReader *New();
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 

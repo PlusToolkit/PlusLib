@@ -23,7 +23,6 @@
 
 static const char APPLICATION_CONFIGURATION_FILE_NAME[] = "PlusConfig.xml";
 
-vtkCxxRevisionMacro(vtkPlusConfig, "$Revision: 1.1 $");
 
 vtkPlusConfig *vtkPlusConfig::Instance = NULL;
 

@@ -34,7 +34,7 @@ public:
 class vtkDataCollectionExport vtkICCapturingSource : public vtkPlusDevice
 {
 public:
-  vtkTypeRevisionMacro(vtkICCapturingSource,vtkPlusDevice);
+  vtkTypeMacro(vtkICCapturingSource,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);   
   /*! This is a singleton pattern New.  There will only be ONE
   reference to a vtkOutputWindow object per process.  Clients that

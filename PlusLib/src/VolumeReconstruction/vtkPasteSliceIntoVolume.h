@@ -101,7 +101,7 @@ public:
   };
 
   static vtkPasteSliceIntoVolume *New();
-  vtkTypeRevisionMacro(vtkPasteSliceIntoVolume, vtkObject);
+  vtkTypeMacro(vtkPasteSliceIntoVolume, vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   /*!

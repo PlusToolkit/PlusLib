@@ -43,7 +43,7 @@ class vtkDataCollectionExport vtkMmfVideoSource : public vtkPlusDevice
 
 public:
   static vtkMmfVideoSource *New();
-  vtkTypeRevisionMacro(vtkMmfVideoSource, vtkPlusDevice);
+  vtkTypeMacro(vtkMmfVideoSource, vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   virtual void SetRequestedDeviceId(unsigned int deviceId);  

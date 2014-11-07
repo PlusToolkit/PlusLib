@@ -45,7 +45,7 @@ public:
   };
 
   static vtkPlusBuffer *New();
-  vtkTypeRevisionMacro(vtkPlusBuffer,vtkObject);
+  vtkTypeMacro(vtkPlusBuffer,vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /*!

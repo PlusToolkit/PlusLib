@@ -22,7 +22,7 @@ class vtkDataCollectionExport vtkVirtualSwitcher : public vtkPlusDevice
 {
 public:
   static vtkVirtualSwitcher *New();
-  vtkTypeRevisionMacro(vtkVirtualSwitcher, vtkPlusDevice);
+  vtkTypeMacro(vtkVirtualSwitcher, vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /*!

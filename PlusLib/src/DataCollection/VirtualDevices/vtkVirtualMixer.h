@@ -23,7 +23,7 @@ class vtkDataCollectionExport vtkVirtualMixer : public vtkPlusDevice
 {
 public:
   static vtkVirtualMixer *New();
-  vtkTypeRevisionMacro(vtkVirtualMixer,vtkPlusDevice);
+  vtkTypeMacro(vtkVirtualMixer,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Answer if device is a tracker */

@@ -160,7 +160,6 @@ private:
 }; 
 
 //-----------------------------------------------------------------------------
-vtkCxxRevisionMacro(vtkProbeCalibrationOptimizerAlgo, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkProbeCalibrationOptimizerAlgo);
 
 //-----------------------------------------------------------------------------

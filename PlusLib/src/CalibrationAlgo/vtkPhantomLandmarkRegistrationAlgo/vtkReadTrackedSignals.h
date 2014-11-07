@@ -23,7 +23,7 @@ class vtkCalibrationAlgoExport vtkReadTrackedSignals: public vtkObject
 {
 public:
   static vtkReadTrackedSignals* New();
-  vtkTypeRevisionMacro(vtkReadTrackedSignals, vtkObject);
+  vtkTypeMacro(vtkReadTrackedSignals, vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent); 
  
   /*! Sets the input US video frames */  

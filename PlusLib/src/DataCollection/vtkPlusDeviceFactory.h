@@ -26,7 +26,7 @@ class vtkDataCollectionExport vtkPlusDeviceFactory : public vtkObject
 {
 public:
   static vtkPlusDeviceFactory *New();
-  vtkTypeRevisionMacro(vtkPlusDeviceFactory, vtkObject);
+  vtkTypeMacro(vtkPlusDeviceFactory, vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Print all supported devices with SDK version number */

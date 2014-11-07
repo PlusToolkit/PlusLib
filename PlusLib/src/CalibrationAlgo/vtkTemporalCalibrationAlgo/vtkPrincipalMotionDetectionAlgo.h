@@ -21,7 +21,7 @@ class vtkPrincipalMotionDetectionAlgo: public vtkObject
 {
 public:
   static vtkPrincipalMotionDetectionAlgo* New();
-  vtkTypeRevisionMacro(vtkPrincipalMotionDetectionAlgo, vtkObject);
+  vtkTypeMacro(vtkPrincipalMotionDetectionAlgo, vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent); 
  
   /*! Sets the input US video frames */  

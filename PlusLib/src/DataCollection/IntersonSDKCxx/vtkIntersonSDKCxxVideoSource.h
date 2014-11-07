@@ -37,7 +37,7 @@ class vtkDataCollectionExport vtkIntersonSDKCxxVideoSource : public vtkPlusDevic
 {
 public:
   static vtkIntersonSDKCxxVideoSource *New();
-  vtkTypeRevisionMacro(vtkIntersonSDKCxxVideoSource,vtkPlusDevice);
+  vtkTypeMacro(vtkIntersonSDKCxxVideoSource,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);   
 
   virtual bool IsTracker() const { return false; }

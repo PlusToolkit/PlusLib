@@ -26,7 +26,7 @@ class vtkDataCollectionExport vtkVirtualVolumeReconstructor : public vtkPlusDevi
 {
 public:
   static vtkVirtualVolumeReconstructor *New();
-  vtkTypeRevisionMacro(vtkVirtualVolumeReconstructor, vtkPlusDevice);
+  vtkTypeMacro(vtkVirtualVolumeReconstructor, vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /*!

@@ -17,7 +17,6 @@
 #include "vtkVariantArray.h"
 
 //----------------------------------------------------------------------------
-vtkCxxRevisionMacro(vtkCenterOfRotationCalibAlgo, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkCenterOfRotationCalibAlgo); 
 
 //----------------------------------------------------------------------------

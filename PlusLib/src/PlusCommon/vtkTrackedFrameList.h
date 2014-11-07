@@ -46,7 +46,7 @@ public:
   }; 
 
   static vtkTrackedFrameList *New();
-  vtkTypeRevisionMacro(vtkTrackedFrameList, vtkObject);
+  vtkTypeMacro(vtkTrackedFrameList, vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent); 
 
   /*!

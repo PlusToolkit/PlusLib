@@ -19,7 +19,6 @@
 #include "TrackedFrame.h"
 
 //-----------------------------------------------------------------------------
-vtkCxxRevisionMacro(vtkPrincipalMotionDetectionAlgo, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkPrincipalMotionDetectionAlgo);
 
 //-----------------------------------------------------------------------------

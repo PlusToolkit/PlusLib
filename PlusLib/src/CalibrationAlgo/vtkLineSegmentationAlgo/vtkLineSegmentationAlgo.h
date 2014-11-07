@@ -36,7 +36,7 @@ public:
   typedef itk::Image<CharPixelType, 2> CharImageType;
 
   static vtkLineSegmentationAlgo* New();
-  vtkTypeRevisionMacro(vtkLineSegmentationAlgo, vtkObject);
+  vtkTypeMacro(vtkLineSegmentationAlgo, vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent); 
  
   /*!

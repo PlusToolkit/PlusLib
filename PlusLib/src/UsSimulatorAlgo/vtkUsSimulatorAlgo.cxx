@@ -39,7 +39,6 @@ See License.txt for details.
 
 //-----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkUsSimulatorAlgo, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkUsSimulatorAlgo);
 
 //-----------------------------------------------------------------------------

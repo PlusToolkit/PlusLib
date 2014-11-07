@@ -33,7 +33,7 @@ class vtkCalibrationAlgoExport vtkProbeCalibrationAlgo : public vtkObject
 {
 public:
   static vtkProbeCalibrationAlgo *New();
-  vtkTypeRevisionMacro(vtkProbeCalibrationAlgo, vtkObject);
+  vtkTypeMacro(vtkProbeCalibrationAlgo, vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent); 
 
   /*!

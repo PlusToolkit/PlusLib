@@ -41,7 +41,7 @@ class vtkXMLDataElement;
 class vtkCalibrationAlgoExport vtkPivotCalibrationAlgo : public vtkObject
 {
 public:
-  vtkTypeRevisionMacro(vtkPivotCalibrationAlgo,vtkObject);
+  vtkTypeMacro(vtkPivotCalibrationAlgo,vtkObject);
   static vtkPivotCalibrationAlgo *New();
 
   /*!

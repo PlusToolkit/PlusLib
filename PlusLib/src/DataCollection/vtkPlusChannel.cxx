@@ -16,7 +16,6 @@ See License.txt for details.
 
 //----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkPlusChannel, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkPlusChannel);
 
 //----------------------------------------------------------------------------

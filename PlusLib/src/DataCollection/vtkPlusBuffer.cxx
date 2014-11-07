@@ -22,7 +22,6 @@ See License.txt for details.
 static const double NEGLIGIBLE_TIME_DIFFERENCE=0.00001; // in seconds, used for comparing between exact timestamps
 static const double ANGLE_INTERPOLATION_WARNING_THRESHOLD_DEG=10; // if the interpolated orientation differs from both the interpolated orientation by more than this threshold then display a warning
 
-vtkCxxRevisionMacro(vtkPlusBuffer, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkPlusBuffer);
 
 #define LOCAL_LOG_ERROR(msg) \

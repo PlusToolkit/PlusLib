@@ -20,7 +20,6 @@ See License.txt for details.
 
 //-----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkPhantomLinearObjectRegistrationAlgo, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkPhantomLinearObjectRegistrationAlgo);
 
 std::string vtkPhantomLinearObjectRegistrationAlgo::ConfigurationElementName = "vtkPhantomLinearObjectRegistrationAlgo";

@@ -26,7 +26,6 @@
 #include "vnl/vnl_cross.h"  
 
 //----------------------------------------------------------------------------
-vtkCxxRevisionMacro(vtkBrachyStepperPhantomRegistrationAlgo, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkBrachyStepperPhantomRegistrationAlgo); 
 
 vtkCxxSetObjectMacro(vtkBrachyStepperPhantomRegistrationAlgo, TransformRepository, vtkTransformRepository);

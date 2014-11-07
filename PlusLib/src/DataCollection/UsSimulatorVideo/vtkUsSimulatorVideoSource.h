@@ -24,7 +24,7 @@ class vtkDataCollectionExport vtkUsSimulatorVideoSource;
 class vtkDataCollectionExport vtkUsSimulatorVideoSource : public vtkPlusDevice
 {
 public:
-  vtkTypeRevisionMacro(vtkUsSimulatorVideoSource,vtkPlusDevice);
+  vtkTypeMacro(vtkUsSimulatorVideoSource,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);   
   static vtkUsSimulatorVideoSource* New();
 

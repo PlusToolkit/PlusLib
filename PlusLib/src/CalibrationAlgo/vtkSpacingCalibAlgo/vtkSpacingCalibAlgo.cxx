@@ -19,7 +19,6 @@
 #include "vtkOrderStatistics.h" 
 
 //----------------------------------------------------------------------------
-vtkCxxRevisionMacro(vtkSpacingCalibAlgo, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkSpacingCalibAlgo); 
 
 //----------------------------------------------------------------------------

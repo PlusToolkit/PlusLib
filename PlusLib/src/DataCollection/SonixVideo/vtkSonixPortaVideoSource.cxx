@@ -58,7 +58,6 @@ and The University of Western Ontario)
 #pragma warning (pop)
 #endif
 
-vtkCxxRevisionMacro(vtkSonixPortaVideoSource, "$Revision: 1.0$");
 //vtkStandardNewMacro(vtkWin32VideoSource);
 //----------------------------------------------------------------------------
 // Needed when we don't use the vtkStandardNewMacro.

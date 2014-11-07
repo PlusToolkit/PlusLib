@@ -33,7 +33,6 @@ See License.txt for details.
 static const int MIN_NUMBER_OF_VALID_CALIBRATION_FRAMES=10; // minimum number of successfully calibrated frames required for calibration
 static const double DEFAULT_ERROR_CONFIDENCE_INTERVAL=0.95; // this fraction of the data is taken into account when computing mean and standard deviation in the final calibration error report
 
-vtkCxxRevisionMacro(vtkProbeCalibrationAlgo, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkProbeCalibrationAlgo);
 
 //----------------------------------------------------------------------------

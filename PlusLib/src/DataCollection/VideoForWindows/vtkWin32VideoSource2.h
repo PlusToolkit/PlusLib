@@ -45,7 +45,7 @@ class vtkDataCollectionExport vtkWin32VideoSource2 : public vtkPlusDevice
 {
 public:
   static vtkWin32VideoSource2 *New();
-  vtkTypeRevisionMacro(vtkWin32VideoSource2,vtkPlusDevice);
+  vtkTypeMacro(vtkWin32VideoSource2,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Request a particular frame size */

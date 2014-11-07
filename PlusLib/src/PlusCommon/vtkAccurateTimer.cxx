@@ -21,7 +21,6 @@ double vtkAccurateTimer::SystemStartTime=0;
 double vtkAccurateTimer::UniversalStartTime=0;
 
 //----------------------------------------------------------------------------
-vtkCxxRevisionMacro(vtkAccurateTimer, "$Revision: 1.0 $");
 vtkInstantiatorNewMacro(vtkAccurateTimer);
 
 //----------------------------------------------------------------------------
