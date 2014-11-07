@@ -26,7 +26,7 @@ class vtkPolyDataMapper;
 class vtkDisplayableObject : public vtkObject
 {
 public:
-	vtkTypeRevisionMacro(vtkDisplayableObject,vtkObject);
+	vtkTypeMacro(vtkDisplayableObject,vtkObject);
   static vtkDisplayableObject *New() { return NULL; };
 
   /*!
@@ -107,7 +107,7 @@ protected:
 class vtkDisplayableImage : public vtkDisplayableObject
 {
 public:
-	vtkTypeRevisionMacro(vtkDisplayableImage,vtkDisplayableObject);
+	vtkTypeMacro(vtkDisplayableImage,vtkDisplayableObject);
 
 	static vtkDisplayableImage *New();
 
@@ -137,7 +137,7 @@ protected:
 class vtkDisplayableAxes : public vtkDisplayableObject
 {
 public:
-	vtkTypeRevisionMacro(vtkDisplayableAxes,vtkDisplayableObject);
+	vtkTypeMacro(vtkDisplayableAxes,vtkDisplayableObject);
 
 	static vtkDisplayableAxes *New();
 
@@ -170,7 +170,7 @@ protected:
 class vtkDisplayablePolyData : public vtkDisplayableObject
 {
 public:
-	vtkTypeRevisionMacro(vtkDisplayablePolyData,vtkDisplayableObject);
+	vtkTypeMacro(vtkDisplayablePolyData,vtkDisplayableObject);
 
   static vtkDisplayablePolyData *New();
 
@@ -219,7 +219,7 @@ protected:
 class vtkDisplayableModel : public vtkDisplayablePolyData
 {
 public:
-	vtkTypeRevisionMacro(vtkDisplayableModel,vtkDisplayablePolyData);
+	vtkTypeMacro(vtkDisplayableModel,vtkDisplayablePolyData);
 
   static vtkDisplayableModel *New();
 

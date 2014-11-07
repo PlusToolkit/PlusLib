@@ -1,18 +1,8 @@
-/*=========================================================================
-
-  Program:   Open IGT Link -- Example for Tracking Data Server
-  Module:    $RCSfile: $
-  Language:  C++
-  Date:      $Date: $
-  Version:   $Revision: $
-
-  Copyright (c) Insight Software Consortium. All rights reserved.
-
-  This software is distributed WITHOUT ANY WARRANTY; without even
-  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-  PURPOSE.  See the above copyright notices for more information.
-
-=========================================================================*/
+/*=Plus=header=begin======================================================
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
+=========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
 

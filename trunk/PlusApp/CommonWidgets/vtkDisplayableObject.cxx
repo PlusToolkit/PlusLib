@@ -22,8 +22,6 @@ See License.txt for details.
 
 //-----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkDisplayableObject, "$Revision: 1.0$");
-
 vtkCxxSetObjectMacro(vtkDisplayableObject, Actor, vtkProp3D);
 
 //----------------------------------------------------------------------------
@@ -113,7 +111,6 @@ PlusStatus vtkDisplayableObject::ReadConfiguration(vtkXMLDataElement* aConfig)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkDisplayableImage, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkDisplayableImage);
 
 //-----------------------------------------------------------------------------
@@ -175,7 +172,6 @@ double vtkDisplayableImage::GetOpacity()
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkDisplayableAxes, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkDisplayableAxes);
 
 //-----------------------------------------------------------------------------
@@ -249,7 +245,6 @@ void vtkDisplayableAxes::SetObjectCoordinateFrame(const char* objectCoordinateFr
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkDisplayablePolyData, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkDisplayablePolyData);
 
 //-----------------------------------------------------------------------------
@@ -416,7 +411,6 @@ PlusStatus vtkDisplayablePolyData::AppendPolyData(vtkPolyData* aPolyData)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkDisplayableModel, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkDisplayableModel);
 
 //-----------------------------------------------------------------------------
