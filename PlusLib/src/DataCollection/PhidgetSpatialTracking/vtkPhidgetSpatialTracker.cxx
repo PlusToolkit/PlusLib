@@ -23,6 +23,8 @@ See License.txt for details.
 
 #include <phidget21.h>
 
+static const int SERIAL_NUMBER_UNDEFINED = -1;
+
 vtkStandardNewMacro(vtkPhidgetSpatialTracker);
 
 class PhidgetSpatialCallbackClass
@@ -32,9 +34,10 @@ class PhidgetSpatialCallbackClass
   //callback that will run if the Spatial is attached to the computer
   static int CCONV AttachHandler(CPhidgetHandle spatial, void *trackerPtr)
   {
-    int serialNo;
+    int serialNo = 0;
     CPhidget_getSerialNumber(spatial, &serialNo);
-    LOG_DEBUG("Phidget spatial sensor attached: " << serialNo);
+    vtkPhidgetSpatialTracker* tracker=(vtkPhidgetSpatialTracker*)trackerPtr;
+    LOG_DEBUG("Phidget spatial sensor attached to device "<<tracker->GetDeviceId()<<". Serial number: " << serialNo);
     return 0;
   }
 
@@ -221,6 +224,7 @@ class PhidgetSpatialCallbackClass
 vtkPhidgetSpatialTracker::vtkPhidgetSpatialTracker()
 { 
   this->SpatialDeviceHandle = NULL;
+  this->SerialNumber = SERIAL_NUMBER_UNDEFINED;
   this->TrackerTimeToSystemTimeSec = 0;
   this->TrackerTimeToSystemTimeComputed = false;
   this->ZeroGyroscopeOnConnect = false;
@@ -365,7 +369,7 @@ PlusStatus vtkPhidgetSpatialTracker::InternalConnect()
   this->TrackerTimeToSystemTimeComputed = false;
 
   //open the spatial object for device connections
-  CPhidget_open((CPhidgetHandle)this->SpatialDeviceHandle, -1);
+  CPhidget_open((CPhidgetHandle)this->SpatialDeviceHandle, this->SerialNumber);
 
   //get the program to wait for a spatial device to be attached
   LOG_DEBUG("Waiting for phidget spatial device to be attached...");
@@ -374,8 +378,23 @@ PlusStatus vtkPhidgetSpatialTracker::InternalConnect()
   {
     const char *err=NULL;
     CPhidget_getErrorDescription(result, &err);
-    LOG_ERROR( "Couldn't initialize vtkPhidgetSpatialTracker: Problem waiting for attachment (" << err << ")");
+    if (this->SerialNumber==SERIAL_NUMBER_UNDEFINED)
+    {
+      LOG_ERROR("Device "<<this->GetDeviceId()<<" cannot connect to PhidgetSpatial hardware device (serial number: any). Problem waiting for attachment (" << err << ")");
+    }
+    else
+    {
+      LOG_ERROR("Device "<<this->GetDeviceId()<<" cannot connect to PhidgetSpatial hardware device (serial number: "<<this->SerialNumber<<"). Problem waiting for attachment (" << err << ")");
+    }
     return PLUS_FAIL;
+  }
+
+  if (this->SerialNumber==SERIAL_NUMBER_UNDEFINED)
+  {
+    // The user has not specified a serial number, so let him know which device we are actually connected to
+    int serialNo = 0;
+    CPhidget_getSerialNumber((CPhidgetHandle)this->SpatialDeviceHandle, &serialNo);
+    LOG_INFO("Phidget spatial sensor attached to device "<<this->GetDeviceId()<<". Serial number: " << serialNo);
   }
 
   //Set the data rate for the spatial events
@@ -455,7 +474,9 @@ PlusStatus vtkPhidgetSpatialTracker::ReadConfiguration(vtkXMLDataElement* rootCo
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
-  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ZeroGyroscopeOnConnect, deviceConfig);  
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ZeroGyroscopeOnConnect, deviceConfig);
+
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, SerialNumber, deviceConfig);
 
   int tiltSensorWestAxisIndex=0; 
   if ( deviceConfig->GetScalarAttribute("TiltSensorWestAxisIndex", tiltSensorWestAxisIndex ) ) 
@@ -574,6 +595,11 @@ PlusStatus vtkPhidgetSpatialTracker::WriteConfiguration(vtkXMLDataElement* rootC
   if (this->ZeroGyroscopeOnConnect)
   {
     deviceConfig->SetAttribute("ZeroGyroscopeOnConnect","TRUE");
+  }
+
+  if (this->SerialNumber != SERIAL_NUMBER_UNDEFINED)
+  {
+    deviceConfig->SetIntAttribute("SerialNumber", this->SerialNumber);
   }
 
   if (this->TiltSensorTool)
