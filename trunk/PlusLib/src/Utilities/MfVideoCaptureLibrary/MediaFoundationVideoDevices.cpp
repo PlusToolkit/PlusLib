@@ -120,7 +120,7 @@ namespace MfVideoCapture
 
   //----------------------------------------------------------------------------
 
-  int MediaFoundationVideoDevices::GetCount()
+  unsigned int MediaFoundationVideoDevices::GetCount()
   {
     return Devices.size();
   }

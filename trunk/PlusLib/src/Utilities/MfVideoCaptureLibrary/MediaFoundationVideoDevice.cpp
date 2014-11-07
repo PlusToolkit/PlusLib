@@ -353,7 +353,7 @@ namespace MfVideoCapture
 
   //----------------------------------------------------------------------------
 
-  int MediaFoundationVideoDevice::GetCountFormats() const
+  unsigned int MediaFoundationVideoDevice::GetCountFormats() const
   {
     return CurrentFormats.size();
   }
