@@ -34,7 +34,7 @@ namespace MfVideoCapture
     long InitDevices(IMFAttributes *pAttributes);
     static MediaFoundationVideoDevices& GetInstance();
     MediaFoundationVideoDevice *GetDevice(unsigned int i);
-    int GetCount();
+    unsigned int GetCount();
     void ClearDevices();
 
   private:

@@ -66,7 +66,7 @@ namespace MfVideoCapture
     wchar_t *GetName();
     bool Start();
     bool Stop();
-    int GetCountFormats() const;
+    unsigned int GetCountFormats() const;
     unsigned int GetWidth() const;
     unsigned int GetHeight() const;
     unsigned int GetFrameRate() const;
