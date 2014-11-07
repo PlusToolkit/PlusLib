@@ -39,7 +39,7 @@ class vtkPlusOpenIGTLinkExport vtkPlusIgtlMessageCommon: public vtkObject
 public:
   
   static vtkPlusIgtlMessageCommon *New();
-  vtkTypeRevisionMacro(vtkPlusIgtlMessageCommon,vtkObject);
+  vtkTypeMacro(vtkPlusIgtlMessageCommon,vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Pack tracked frame message from tracked frame */ 

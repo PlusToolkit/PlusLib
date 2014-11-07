@@ -28,7 +28,7 @@ class vtkPlusOpenIGTLinkExport vtkIGTLMessageQueue
 public:
 
   static vtkIGTLMessageQueue *New();
-  vtkTypeRevisionMacro( vtkIGTLMessageQueue,vtkObject );
+  vtkTypeMacro( vtkIGTLMessageQueue,vtkObject );
 
   void PrintSelf(ostream& os, vtkIndent indent);
 

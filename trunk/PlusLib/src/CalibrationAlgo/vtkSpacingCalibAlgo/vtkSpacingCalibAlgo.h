@@ -27,7 +27,7 @@ class vtkCalibrationAlgoExport vtkSpacingCalibAlgo : public vtkObject
 public:
 
   static vtkSpacingCalibAlgo *New();
-  vtkTypeRevisionMacro(vtkSpacingCalibAlgo , vtkObject);
+  vtkTypeMacro(vtkSpacingCalibAlgo , vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent); 
 
   /*!

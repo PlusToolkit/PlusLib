@@ -32,7 +32,7 @@ Attributes:
 class vtkDataCollectionExport vtkSavedDataSource : public vtkPlusDevice
 {
 public:
-  vtkTypeRevisionMacro(vtkSavedDataSource,vtkPlusDevice);
+  vtkTypeMacro(vtkSavedDataSource,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);   
   static vtkSavedDataSource* New();
 

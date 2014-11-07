@@ -15,7 +15,6 @@ See License.txt for details.
 #include "vtkPlusBuffer.h"
 #include "vtksys/SystemTools.hxx"
 
-vtkCxxRevisionMacro(vtkEpiphanVideoSource, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkEpiphanVideoSource);
 
 //----------------------------------------------------------------------------

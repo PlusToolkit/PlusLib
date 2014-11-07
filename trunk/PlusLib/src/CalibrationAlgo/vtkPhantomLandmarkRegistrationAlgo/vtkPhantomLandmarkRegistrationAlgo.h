@@ -28,7 +28,7 @@ class vtkXMLDataElement;
 class vtkCalibrationAlgoExport vtkPhantomLandmarkRegistrationAlgo : public vtkObject
 {
 public:
-  vtkTypeRevisionMacro(vtkPhantomLandmarkRegistrationAlgo,vtkObject);
+  vtkTypeMacro(vtkPhantomLandmarkRegistrationAlgo,vtkObject);
   static vtkPhantomLandmarkRegistrationAlgo *New();
 
 public:

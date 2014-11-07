@@ -13,7 +13,6 @@ See License.txt for details.
 
 //----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkVirtualMixer, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkVirtualMixer);
 
 //----------------------------------------------------------------------------

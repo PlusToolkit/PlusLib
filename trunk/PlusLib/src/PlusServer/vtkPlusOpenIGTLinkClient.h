@@ -33,7 +33,7 @@ class vtkPlusServerExport vtkPlusOpenIGTLinkClient : public vtkObject
 public:
   
   static vtkPlusOpenIGTLinkClient *New();
-  vtkTypeRevisionMacro( vtkPlusOpenIGTLinkClient, vtkObject );
+  vtkTypeMacro( vtkPlusOpenIGTLinkClient, vtkObject );
   virtual void PrintSelf( ostream& os, vtkIndent indent );
   
   vtkSetMacro( ServerPort, int );

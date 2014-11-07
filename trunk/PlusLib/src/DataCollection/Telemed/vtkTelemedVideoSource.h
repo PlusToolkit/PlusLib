@@ -29,7 +29,7 @@ class vtkDataCollectionExport vtkTelemedVideoSource : public vtkPlusDevice
 public:
 
   static vtkTelemedVideoSource *New();
-  vtkTypeRevisionMacro(vtkTelemedVideoSource,vtkPlusDevice);
+  vtkTypeMacro(vtkTelemedVideoSource,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
 
 

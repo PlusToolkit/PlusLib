@@ -28,7 +28,6 @@ See License.txt for details.
 
 //----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkBkProFocusCameraLinkVideoSource, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkBkProFocusCameraLinkVideoSource);
 //----------------------------------------------------------------------------
 

@@ -48,7 +48,7 @@ class vtkVolumeReconstructionExport vtkVolumeReconstructor : public vtkImageAlgo
 public:
 
   static vtkVolumeReconstructor *New();
-  vtkTypeRevisionMacro(vtkVolumeReconstructor, vtkImageAlgorithm);
+  vtkTypeMacro(vtkVolumeReconstructor, vtkImageAlgorithm);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   vtkGetMacro(SkipInterval,int);

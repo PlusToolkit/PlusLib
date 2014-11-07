@@ -18,7 +18,6 @@
 
 //-----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkPhantomLandmarkRegistrationAlgo, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkPhantomLandmarkRegistrationAlgo);
 
 std::string vtkPhantomLandmarkRegistrationAlgo::ConfigurationElementName = "vtkPhantomLandmarkRegistrationAlgo";

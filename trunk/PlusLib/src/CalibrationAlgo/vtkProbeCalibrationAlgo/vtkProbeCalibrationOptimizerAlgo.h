@@ -46,7 +46,7 @@ public:
     MINIMIZE_DISTANCE_OF_ALL_WIRES_IN_2D
   };  
 
-  vtkTypeRevisionMacro(vtkProbeCalibrationOptimizerAlgo,vtkObject);
+  vtkTypeMacro(vtkProbeCalibrationOptimizerAlgo,vtkObject);
   static vtkProbeCalibrationOptimizerAlgo *New();
 
   PlusStatus ReadConfiguration( vtkXMLDataElement* aConfig );

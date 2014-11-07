@@ -29,7 +29,6 @@
 
 #include "metaImage.h"
 
-vtkCxxRevisionMacro(vtkVolumeReconstructor, "$Revisions: 1.0 $");
 vtkStandardNewMacro(vtkVolumeReconstructor);
 
 //----------------------------------------------------------------------------

@@ -17,7 +17,6 @@ See License.txt for details.
 
 //----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkVirtualDiscCapture, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkVirtualDiscCapture);
 
 static const int MAX_ALLOWED_RECORDING_LAG_SEC = 3.0; // if the recording lags more than this then it'll skip frames to catch up

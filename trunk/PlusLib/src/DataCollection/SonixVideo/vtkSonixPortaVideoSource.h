@@ -69,7 +69,7 @@ public:
 */ 
 class vtkDataCollectionExport vtkSonixPortaVideoSource : public vtkPlusDevice {
 
-  vtkTypeRevisionMacro( vtkSonixPortaVideoSource, vtkPlusDevice );
+  vtkTypeMacro( vtkSonixPortaVideoSource, vtkPlusDevice );
   void PrintSelf( ostream &os, vtkIndent indent );
 
   /*! This is a singleton pattern New.  There will only be ONE

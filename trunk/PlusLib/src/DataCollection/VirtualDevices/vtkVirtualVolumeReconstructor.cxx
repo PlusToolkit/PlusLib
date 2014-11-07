@@ -19,7 +19,6 @@ See License.txt for details.
 
 //----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkVirtualVolumeReconstructor, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkVirtualVolumeReconstructor);
 
 static const int MAX_ALLOWED_RECONSTRUCTION_LAG_SEC = 3.0; // if the reconstruction lags more than this then it'll skip frames to catch up

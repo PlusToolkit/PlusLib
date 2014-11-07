@@ -54,7 +54,6 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkPasteSliceIntoVolumeHelperUnoptimized.h"
 #include "vtkPasteSliceIntoVolumeHelperOptimized.h"
 
-vtkCxxRevisionMacro(vtkPasteSliceIntoVolume, "$Revisions: 1.0 $");
 vtkStandardNewMacro(vtkPasteSliceIntoVolume);
 
 struct InsertSliceThreadFunctionInfoStruct

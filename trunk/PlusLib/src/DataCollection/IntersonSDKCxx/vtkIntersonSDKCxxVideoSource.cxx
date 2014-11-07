@@ -32,7 +32,6 @@ typedef IntersonCxx::Controls::HWControls HWControlsType;
 typedef IntersonCxx::IntersonClass        IntersonClassType;
 
 //----------------------------------------------------------------------------
-vtkCxxRevisionMacro(vtkIntersonSDKCxxVideoSource, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkIntersonSDKCxxVideoSource);
 
 //----------------------------------------------------------------------------

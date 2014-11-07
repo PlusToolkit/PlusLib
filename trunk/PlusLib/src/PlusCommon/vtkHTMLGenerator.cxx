@@ -12,7 +12,6 @@
 #include "vtkVariant.h"
 
 //----------------------------------------------------------------------------
-vtkCxxRevisionMacro(vtkHTMLGenerator, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkHTMLGenerator);
 
 //----------------------------------------------------------------------------

@@ -20,7 +20,7 @@ class vtkDataCollectionExport vtkEpiphanVideoSource : public vtkPlusDevice
 {
 public:
   static vtkEpiphanVideoSource *New();
-  vtkTypeRevisionMacro(vtkEpiphanVideoSource,vtkPlusDevice);
+  vtkTypeMacro(vtkEpiphanVideoSource,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);   
 
   virtual bool IsTracker() const { return false; }

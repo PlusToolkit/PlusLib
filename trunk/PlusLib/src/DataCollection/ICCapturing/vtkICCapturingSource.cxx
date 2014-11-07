@@ -25,7 +25,6 @@ See License.txt for details.
 #include <string>
 
 
-vtkCxxRevisionMacro(vtkICCapturingSource, "$Revision: 1.0$");
 
 vtkICCapturingSource* vtkICCapturingSource::Instance = 0;
 vtkICCapturingSourceCleanup vtkICCapturingSource::Cleanup;

@@ -16,7 +16,6 @@
 #include "vtkMath.h"
 #include "vtksys/SystemTools.hxx"
 
-vtkCxxRevisionMacro(vtkPivotCalibrationAlgo, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkPivotCalibrationAlgo);
 
 //-----------------------------------------------------------------------------

@@ -31,7 +31,7 @@ class vtkPlusOpenIGTLinkExport vtkPlusIgtlMessageFactory: public vtkObject
 {
 public:
   static vtkPlusIgtlMessageFactory *New();
-  vtkTypeRevisionMacro(vtkPlusIgtlMessageFactory,vtkObject);
+  vtkTypeMacro(vtkPlusIgtlMessageFactory,vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Function pointer for storing New() static methods of igtl::MessageBase classes */ 

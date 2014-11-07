@@ -25,7 +25,7 @@ class vtkDataCollectionExport vtkVirtualDiscCapture : public vtkPlusDevice
 {
 public:
   static vtkVirtualDiscCapture *New();
-  vtkTypeRevisionMacro(vtkVirtualDiscCapture, vtkPlusDevice);
+  vtkTypeMacro(vtkVirtualDiscCapture, vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Read main configuration from xml data */

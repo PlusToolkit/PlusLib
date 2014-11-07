@@ -40,7 +40,6 @@ static const char OFFLINE_TESTING_FILENAME[]="c:\\Users\\lasso\\Downloads\\bktes
 #include "UseCaseStructs.h"
 
 
-vtkCxxRevisionMacro(vtkBkProFocusOemVideoSource, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkBkProFocusOemVideoSource);
 
 class vtkBkProFocusOemVideoSource::vtkInternal

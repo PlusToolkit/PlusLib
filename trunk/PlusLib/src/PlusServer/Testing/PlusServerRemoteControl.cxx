@@ -41,7 +41,7 @@ class vtkPlusOpenIGTLinkClientWithTransformLogging : public vtkPlusOpenIGTLinkCl
 public:
 
   static vtkPlusOpenIGTLinkClientWithTransformLogging *New();
-  vtkTypeRevisionMacro( vtkPlusOpenIGTLinkClientWithTransformLogging, vtkPlusOpenIGTLinkClient );
+  vtkTypeMacro( vtkPlusOpenIGTLinkClientWithTransformLogging, vtkPlusOpenIGTLinkClient );
 
   bool OnMessageReceived(igtl::MessageHeader::Pointer messageHeader)
   {
@@ -83,7 +83,6 @@ private:
 };
 
 vtkStandardNewMacro( vtkPlusOpenIGTLinkClientWithTransformLogging ); 
-vtkCxxRevisionMacro( vtkPlusOpenIGTLinkClientWithTransformLogging, "$Revision: 1.0 $" );
 
 // Utility functions for sending commands
 

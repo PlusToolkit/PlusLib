@@ -24,7 +24,7 @@ class vtkRfProcessingAlgoExport vtkRfProcessor : public vtkObject
 {
 public:
   static vtkRfProcessor *New();
-  vtkTypeRevisionMacro(vtkRfProcessor , vtkObject);
+  vtkTypeMacro(vtkRfProcessor , vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent); 
 
   /*! Set the input RF data

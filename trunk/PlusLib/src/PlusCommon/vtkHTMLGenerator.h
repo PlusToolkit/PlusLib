@@ -34,7 +34,7 @@ public:
   }; 
 
   static vtkHTMLGenerator* New();
-  vtkTypeRevisionMacro(vtkHTMLGenerator,vtkObject);
+  vtkTypeMacro(vtkHTMLGenerator,vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent); 
 
   /*! Write the report to html file. Create file in the output directory, including the application start time in the filename. */

@@ -55,7 +55,7 @@ public:
     
 public:
   static vtkPlusDevice* New();
-  vtkTypeRevisionMacro(vtkPlusDevice, vtkImageAlgorithm);
+  vtkTypeMacro(vtkPlusDevice, vtkImageAlgorithm);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   static const char* BMODE_PORT_NAME;

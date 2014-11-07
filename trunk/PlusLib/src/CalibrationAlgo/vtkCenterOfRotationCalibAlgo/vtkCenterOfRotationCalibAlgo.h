@@ -53,7 +53,7 @@ class vtkCalibrationAlgoExport vtkCenterOfRotationCalibAlgo : public vtkObject
 public:
 
   static vtkCenterOfRotationCalibAlgo *New();
-  vtkTypeRevisionMacro(vtkCenterOfRotationCalibAlgo , vtkObject);
+  vtkTypeMacro(vtkCenterOfRotationCalibAlgo , vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent); 
 
   /*!

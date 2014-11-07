@@ -34,7 +34,7 @@ public:
 
 public:
   static vtkPlusChannel *New();
-  vtkTypeRevisionMacro(vtkPlusChannel, vtkObject);
+  vtkTypeMacro(vtkPlusChannel, vtkObject);
 
   /*!
     Parse the XML, read the details about the stream

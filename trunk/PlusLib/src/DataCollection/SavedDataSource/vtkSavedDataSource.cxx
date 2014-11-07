@@ -15,7 +15,6 @@ See License.txt for details.
 #include "vtkTrackedFrameList.h"
 #include "vtksys/SystemTools.hxx"
 
-vtkCxxRevisionMacro(vtkSavedDataSource, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkSavedDataSource);
 
 //----------------------------------------------------------------------------

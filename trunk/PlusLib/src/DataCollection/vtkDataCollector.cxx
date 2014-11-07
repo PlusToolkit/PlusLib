@@ -20,7 +20,6 @@ See License.txt for details.
 
 //----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkDataCollector, "$Revision: 2.0$");
 vtkStandardNewMacro(vtkDataCollector);
 
 //----------------------------------------------------------------------------

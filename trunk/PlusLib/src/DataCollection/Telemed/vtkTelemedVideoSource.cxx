@@ -17,9 +17,7 @@ See License.txt for details.
 #include "vtkPlusBuffer.h"
 
 
-vtkCxxRevisionMacro(vtkTelemedVideoSource, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkTelemedVideoSource); // Corresponds to the implementation of : static vtkTelemedVideoSource *New();  (in .h file)
-
 
 
 //----------------------------------------------------------------------------

@@ -12,7 +12,6 @@
 
 //----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkVirtualSwitcher, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkVirtualSwitcher);
 
 const int FRAME_COUNT_BEFORE_INACTIVE = 25;

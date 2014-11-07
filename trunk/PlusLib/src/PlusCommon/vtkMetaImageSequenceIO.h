@@ -28,7 +28,7 @@ class vtkPlusCommonExport vtkMetaImageSequenceIO : public vtkObject
 public:
 
   static vtkMetaImageSequenceIO *New();
-  vtkTypeRevisionMacro(vtkMetaImageSequenceIO, vtkObject);
+  vtkTypeMacro(vtkMetaImageSequenceIO, vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Set the TrackedFrameList where the images are stored */

@@ -231,7 +231,6 @@ STDMETHODIMP MmfVideoSourceReader::OnReadSample( HRESULT hrStatus, DWORD dwStrea
 
 //----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkMmfVideoSource, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkMmfVideoSource);
 
 //----------------------------------------------------------------------------

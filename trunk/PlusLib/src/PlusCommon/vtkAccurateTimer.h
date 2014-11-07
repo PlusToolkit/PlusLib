@@ -38,7 +38,7 @@ public:
 class vtkPlusCommonExport vtkAccurateTimer : public vtkObject
 {
 public: 
-  vtkTypeRevisionMacro(vtkAccurateTimer,vtkObject);
+  vtkTypeMacro(vtkAccurateTimer,vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent); 
 
   /*!

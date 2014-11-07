@@ -23,7 +23,6 @@ See License.txt for details.
 #define OEM_ID_INTERSON 0x00
 #define TOLERANCE 0.001
 
-vtkCxxRevisionMacro(vtkIntersonVideoSource, "$Revision: 1.0$");
 vtkStandardNewMacro(vtkIntersonVideoSource);
 
 class vtkIntersonVideoSource::vtkInternal

@@ -32,7 +32,7 @@ class vtkXMLDataElement;
 class vtkCalibrationAlgoExport vtkPhantomLinearObjectRegistrationAlgo : public vtkObject
 {
 public:
-  vtkTypeRevisionMacro(vtkPhantomLinearObjectRegistrationAlgo,vtkObject);
+  vtkTypeMacro(vtkPhantomLinearObjectRegistrationAlgo,vtkObject);
   static vtkPhantomLinearObjectRegistrationAlgo *New();
 
 public:

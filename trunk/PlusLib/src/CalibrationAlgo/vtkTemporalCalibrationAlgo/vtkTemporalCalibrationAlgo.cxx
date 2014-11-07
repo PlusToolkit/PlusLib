@@ -21,7 +21,6 @@
 
 //-----------------------------------------------------------------------------
 
-vtkCxxRevisionMacro(vtkTemporalCalibrationAlgo, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkTemporalCalibrationAlgo);
 
 //-----------------------------------------------------------------------------

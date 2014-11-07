@@ -20,7 +20,6 @@ See License.txt for details.
 
 static const int CLIENT_SOCKET_TIMEOUT_MSEC = 500; 
 
-vtkCxxRevisionMacro( vtkPlusOpenIGTLinkClient, "$Revision: 1.0 $" );
 vtkStandardNewMacro( vtkPlusOpenIGTLinkClient ); 
 
 //----------------------------------------------------------------------------

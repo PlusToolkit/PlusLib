@@ -18,8 +18,6 @@ See License.txt for details.
 
 
 vtkStandardNewMacro( vtkIGTLMessageQueue );
-vtkCxxRevisionMacro( vtkIGTLMessageQueue, "$Revision: 1 $" );
-
 
 //----------------------------------------------------------------------------
 void vtkIGTLMessageQueue::PrintSelf(ostream& os, vtkIndent indent)
