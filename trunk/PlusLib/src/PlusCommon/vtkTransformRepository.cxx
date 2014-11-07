@@ -170,7 +170,7 @@ PlusStatus vtkTransformRepository::SetTransforms(TrackedFrame& trackedFrame)
 
     if ( this->SetTransform(*it, matrix, status == FIELD_OK ) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to set transform to repository: " << trName ); 
+      LOG_ERROR("Failed to set transform to repository: " << trName );
       numberOfErrors++; 
       continue; 
     }

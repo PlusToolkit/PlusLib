@@ -92,6 +92,12 @@ public:
 
   vtkSetMacro(ZeroGyroscopeOnConnect, bool);
 
+  /*!
+    Serial number of the hardware device that will be connected
+  */
+  vtkSetMacro(SerialNumber, int);
+  vtkGetMacro(SerialNumber, int);
+
   friend class PhidgetSpatialCallbackClass;
 
 protected:
@@ -128,6 +134,10 @@ private:  // Variables.
 
   void* SpatialDeviceHandle;
 
+  // Device-specific identifier that can be used to choose a particular device when multiple devices are connected
+  // If the default value (-1) is kept then it connects to the first available device.
+  int SerialNumber;
+
   unsigned int FrameNumber;
   double TrackerTimeToSystemTimeSec; // time_System = time_Tracker + TrackerTimeToSystemTimeSec
   bool TrackerTimeToSystemTimeComputed; // the time offset is always computed when the first frame is received after start tracking  
@@ -155,7 +165,6 @@ private:  // Variables.
   AhrsAlgo* FilteredTiltSensorAhrsAlgo;
 
   AhrsAlgo* AhrsAlgo;
-
 
   /*!
     If AhrsUseMagnetometer enabled (a ..._MARG algorithm is chosen) then heading will be estimated using magnetometer data.

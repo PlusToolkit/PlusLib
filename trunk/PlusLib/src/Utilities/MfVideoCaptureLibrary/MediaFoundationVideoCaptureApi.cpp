@@ -318,7 +318,7 @@ namespace MfVideoCapture
   {
     MediaFoundationVideoDevices *VDS = &MediaFoundationVideoDevices::GetInstance();
 
-    for(int i = 0; i < VDS->GetCount(); i++)
+    for(unsigned int i = 0; i < VDS->GetCount(); i++)
     {
       CloseDevice(i);
     }

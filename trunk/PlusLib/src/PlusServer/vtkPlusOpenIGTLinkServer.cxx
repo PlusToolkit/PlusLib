@@ -28,6 +28,12 @@ static const double DELAY_ON_SENDING_ERROR_SEC = 0.02;
 static const double DELAY_ON_NO_NEW_FRAMES_SEC = 0.005; 
 static const int CLIENT_SOCKET_TIMEOUT_MSEC = 500; 
 
+//----------------------------------------------------------------------------
+// If a frame cannot be retrieved from the device buffers (because it was overwritten by new frames)
+// then we skip a SAMPLING_SKIPPING_MARGIN_SEC long period to allow the application to catch up.
+// This time should be long enough to comfortably retrieve a frame from the buffer.
+static const double SAMPLING_SKIPPING_MARGIN_SEC=0.1;
+
 vtkStandardNewMacro( vtkPlusOpenIGTLinkServer ); 
 
 vtkCxxSetObjectMacro(vtkPlusOpenIGTLinkServer, TransformRepository, vtkTransformRepository);
@@ -429,7 +435,7 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
         if (self->LastSentTrackedFrameTimestamp<oldestDataTimestamp)
         {
           LOG_INFO("OpenIGTLink broadcasting started. No data was available between "<<self->LastSentTrackedFrameTimestamp<<"-"<<oldestDataTimestamp<<"sec, therefore no data were broadcasted during this time period.");
-          self->LastSentTrackedFrameTimestamp=oldestDataTimestamp;
+          self->LastSentTrackedFrameTimestamp=oldestDataTimestamp+SAMPLING_SKIPPING_MARGIN_SEC;
         }
         if ( self->BroadcastChannel->GetTrackedFrameList(self->LastSentTrackedFrameTimestamp, trackedFrameList, numberOfFramesToGet) != PLUS_SUCCESS )
         {

@@ -299,7 +299,7 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
   }
   else
   {
-    LOG_DEBUG("Unable to find source \"" << this->GetSourceId() << "\" buffer size in source element. Using default buffer size: "<<this->GetBuffer()->GetBufferSize());
+    LOG_DEBUG("Buffer size is not defined in source element \"" << this->GetSourceId() << "\". Using default buffer size: "<<this->GetBuffer()->GetBufferSize());
   }
 
   int averagedItemsForFiltering = 0;
@@ -309,7 +309,7 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
   }
   else
   {
-    LOG_DEBUG("Unable to find AveragedItemsForFiltering attribute in source element. Using default value.");
+    LOG_DEBUG("AveragedItemsForFiltering is not defined in source element \"" << this->GetSourceId() << "\". Using default value: "<<this->GetBuffer()->GetAveragedItemsForFiltering());
   }
 
   std::string descName;

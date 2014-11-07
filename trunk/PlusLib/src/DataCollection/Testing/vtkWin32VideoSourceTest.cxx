@@ -89,8 +89,8 @@ int main(int argc, char **argv)
 
   if (showDialogs)
   {
-    frameGrabber->VideoFormatDialog();
     frameGrabber->VideoSourceDialog();
+    frameGrabber->VideoFormatDialog();
   }
 
   if ( frameGrabber->GetConnected() )
