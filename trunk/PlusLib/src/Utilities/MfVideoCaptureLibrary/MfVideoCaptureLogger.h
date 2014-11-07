@@ -1,7 +1,7 @@
 #ifndef __MfVideoCaptureLogger_H__
 #define __MfVideoCaptureLogger_H__ 
 
-#include <strstream>
+#include <sstream>
 
 class MfVideoCaptureLogger
 {

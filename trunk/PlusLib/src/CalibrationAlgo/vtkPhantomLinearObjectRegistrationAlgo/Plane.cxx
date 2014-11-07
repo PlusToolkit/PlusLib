@@ -62,7 +62,7 @@ void Plane::Translate( std::vector<double> vector )
 
 std::string Plane::ToXMLString() const
 {
-  std::stringstream xmlstring;
+  std::ostringstream xmlstring;
 
   xmlstring << "  <Plane";
   xmlstring << " Name=\"" << this->Name << "\"";

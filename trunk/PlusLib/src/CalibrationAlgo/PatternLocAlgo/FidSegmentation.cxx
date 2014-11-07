@@ -1092,7 +1092,7 @@ void FidSegmentation::WritePossibleFiducialOverlayImage(const std::vector<FidDot
       possibleFiducials->SetPixel(pixelLocation,pixelValue); 
     }
   } 
-  std::ostrstream possibleFiducialsImageFilename; 
+  std::ostringstream possibleFiducialsImageFilename; 
   possibleFiducialsImageFilename << namePrefix << std::setw(3) << std::setfill('0') << frameIndex << ".bmp" << std::ends; 
 
   SetPossibleFiducialsImageFilename(possibleFiducialsImageFilename.str()); 

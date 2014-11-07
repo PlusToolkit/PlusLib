@@ -32,7 +32,7 @@ See License.txt for details.
 
 #define LOCAL_LOG_ERROR(msg) \
 { \
-  std::ostrstream msgStream; \
+  std::ostringstream msgStream; \
   if( this->DeviceId == NULL ) \
   { \
     msgStream << " " << msg << std::ends; \
@@ -43,11 +43,10 @@ See License.txt for details.
   } \
   std::string finalStr(msgStream.str()); \
   LOG_ERROR(finalStr); \
-  msgStream.rdbuf()->freeze(0); \
 }
 #define LOCAL_LOG_WARNING(msg) \
 { \
-  std::ostrstream msgStream; \
+  std::ostringstream msgStream; \
   if( this->DeviceId == NULL ) \
 { \
   msgStream << " " << msg << std::ends; \
@@ -58,11 +57,10 @@ See License.txt for details.
 } \
   std::string finalStr(msgStream.str()); \
   LOG_WARNING(finalStr); \
-  msgStream.rdbuf()->freeze(0); \
 }
 #define LOCAL_LOG_INFO(msg) \
 { \
-  std::ostrstream msgStream; \
+  std::ostringstream msgStream; \
   if( this->DeviceId == NULL ) \
 { \
   msgStream << " " << msg << std::ends; \
@@ -73,11 +71,10 @@ See License.txt for details.
 } \
   std::string finalStr(msgStream.str()); \
   LOG_INFO(finalStr); \
-  msgStream.rdbuf()->freeze(0); \
 }
 #define LOCAL_LOG_DEBUG(msg) \
 { \
-  std::ostrstream msgStream; \
+  std::ostringstream msgStream; \
   if( this->DeviceId == NULL ) \
 { \
   msgStream << " " << msg << std::ends; \
@@ -88,11 +85,10 @@ See License.txt for details.
 } \
   std::string finalStr(msgStream.str()); \
   LOG_DEBUG(finalStr); \
-  msgStream.rdbuf()->freeze(0); \
 }
 #define LOCAL_LOG_TRACE(msg) \
 { \
-  std::ostrstream msgStream; \
+  std::ostringstream msgStream; \
   if( this->DeviceId == NULL ) \
 { \
   msgStream << " " << msg << std::ends; \
@@ -103,7 +99,6 @@ See License.txt for details.
 } \
   std::string finalStr(msgStream.str()); \
   LOG_TRACE(finalStr); \
-  msgStream.rdbuf()->freeze(0); \
 }
 
 
@@ -1871,10 +1866,8 @@ PlusStatus vtkPlusDevice::BuildParameterIndexList(const ChannelContainer& channe
     std::string value;
     if( (*it)->GetCustomAttribute(std::string(vtkPlusDevice::DEPTH_SWITCH_ATTRIBUTE_NAME), value) == PLUS_SUCCESS )
     {
-      std::stringstream ss;
-      ss << value;
-      double depth;
-      ss >> depth;
+      double depth = 0.0;
+      PlusCommon::StringToDouble(value.c_str(), depth);
       depthList.push_back(depth);
     }
 
@@ -1910,9 +1903,7 @@ PlusStatus vtkPlusDevice::BuildParameterIndexList(const ChannelContainer& channe
     std::string value;
     if( (*it)->GetCustomAttribute(std::string(vtkPlusDevice::DEPTH_SWITCH_ATTRIBUTE_NAME), value) == PLUS_SUCCESS )
     {
-      std::stringstream ss;
-      ss << value;
-      ss >> key->Depth;
+      PlusCommon::StringToDouble(value.c_str(), key->Depth);
     }
     else if( depthList.size() > 0)
     {

@@ -26,7 +26,7 @@ vtkStandardNewMacro(vtkPlusBuffer);
 
 #define LOCAL_LOG_ERROR(msg) \
 { \
-  std::ostrstream msgStream; \
+  std::ostringstream msgStream; \
   if( this->DescriptiveName == NULL ) \
   { \
     msgStream << " " << msg << std::ends; \
@@ -37,11 +37,10 @@ vtkStandardNewMacro(vtkPlusBuffer);
   } \
   std::string finalStr(msgStream.str()); \
   LOG_ERROR(finalStr); \
-  msgStream.rdbuf()->freeze(0); \
 }
 #define LOCAL_LOG_WARNING(msg) \
 { \
-  std::ostrstream msgStream; \
+  std::ostringstream msgStream; \
   if( this->DescriptiveName == NULL ) \
 { \
   msgStream << " " << msg << std::ends; \
@@ -52,11 +51,10 @@ vtkStandardNewMacro(vtkPlusBuffer);
 } \
   std::string finalStr(msgStream.str()); \
   LOG_WARNING(finalStr); \
-  msgStream.rdbuf()->freeze(0); \
 }
 #define LOCAL_LOG_DEBUG(msg) \
 { \
-  std::ostrstream msgStream; \
+  std::ostringstream msgStream; \
   if( this->DescriptiveName == NULL ) \
 { \
   msgStream << " " << msg << std::ends; \
@@ -67,7 +65,6 @@ vtkStandardNewMacro(vtkPlusBuffer);
 } \
   std::string finalStr(msgStream.str()); \
   LOG_DEBUG(finalStr); \
-  msgStream.rdbuf()->freeze(0); \
 }
 
 //----------------------------------------------------------------------------

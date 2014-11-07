@@ -195,7 +195,7 @@ std::string vtkAccurateTimer::GetDateAndTimeString(CurrentDateTimeFormat details
   // Get millisecond as well
   long milliseconds = floor((currentTime-floor(currentTime))*1000.0);  
           
-  std::ostrstream mSecStream; 
+  std::ostringstream mSecStream; 
   mSecStream << timeStrSec << "." << std::setw(3) << std::setfill('0') << milliseconds << std::ends;
 
   return mSecStream.str();

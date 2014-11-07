@@ -205,7 +205,7 @@ void PointObservationBuffer::Filter( LinearObject* object, int filterWidth )
 
 std::string PointObservationBuffer::ToXMLString() const
 {
-  std::stringstream xmlstring;
+  std::ostringstream xmlstring;
 
   for ( int i = 0; i < this->Size(); i++ )
   {

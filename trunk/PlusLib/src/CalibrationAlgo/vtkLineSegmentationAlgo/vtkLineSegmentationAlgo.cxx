@@ -685,7 +685,7 @@ void vtkLineSegmentationAlgo::SaveIntermediateImage(int frameNumber, CharImageTy
     }
   }
 
-  std::ostrstream rgbImageFilename;
+  std::ostringstream rgbImageFilename;
   if (!IntermediateFilesOutputDirectory.empty())
   {
     rgbImageFilename << IntermediateFilesOutputDirectory << "/";

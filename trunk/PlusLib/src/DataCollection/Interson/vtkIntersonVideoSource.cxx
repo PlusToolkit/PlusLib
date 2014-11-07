@@ -675,7 +675,7 @@ PlusStatus vtkIntersonVideoSource::FreezeDevice(bool freeze)
 //----------------------------------------------------------------------------
 std::string vtkIntersonVideoSource::GetSdkVersion()
 {
-  std::ostrstream versionString;
+  std::ostringstream versionString;
   versionString << "Interson Bmode DLL v"<<bmDLLVer()<<", USB Probe DLL v"<<usbDLLVer()<< std::ends;
   return versionString.str();
 }

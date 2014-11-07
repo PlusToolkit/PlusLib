@@ -712,7 +712,7 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader()
   {
     this->NumberOfScalarComponents=this->TrackedFrameList->GetNumberOfScalarComponents();
   }
-  std::stringstream ss;
+  std::ostringstream ss;
   ss << this->NumberOfScalarComponents;
   SetCustomString("ElementNumberOfChannels", ss.str().c_str());
 

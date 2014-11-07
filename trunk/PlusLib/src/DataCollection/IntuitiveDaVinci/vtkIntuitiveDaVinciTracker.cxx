@@ -316,7 +316,7 @@ void vtkIntuitiveDaVinciTracker::StreamCallback(void)
 		vtkMatrix4x4::Invert(transformMatrix, transformMatrix);
 	}
 
-	std::ostrstream transformStream;
+	std::ostringstream transformStream;
 	transformMatrix->Print(transformStream);
 	LOG_TRACE("Updating toolname: " << toolName << " with transform:\n\t" << transformStream << "\n");
 

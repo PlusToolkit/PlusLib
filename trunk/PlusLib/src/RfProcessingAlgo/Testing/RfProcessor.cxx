@@ -166,7 +166,7 @@ int main(int argc, char **argv)
     }
 
     vtkSmartPointer<vtkMetaImageSequenceIO> outputImgSeqFileWriter = vtkSmartPointer<vtkMetaImageSequenceIO>::New();
-    std::stringstream ss;
+    std::ostringstream ss;
     std::string path = vtksys::SystemTools::GetFilenamePath(outputImgFile);
     if( !path.empty() )
     {

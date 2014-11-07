@@ -122,7 +122,7 @@ std::vector<double> Line::GetOrthogonalNormal2()
 
 std::string Line::ToXMLString() const
 {
-  std::stringstream xmlstring;
+  std::ostringstream xmlstring;
 
   xmlstring << "  <Line";
   xmlstring << " Name=\"" << this->Name << "\"";

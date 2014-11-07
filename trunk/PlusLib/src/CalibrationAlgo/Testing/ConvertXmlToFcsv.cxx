@@ -7,7 +7,7 @@
 #include "PlusConfigure.h"
 #include <iostream>
 #include <fstream> 
-#include <strstream>
+#include <sstream>
 #include <limits>
 
 #include "vtksys/CommandLineArguments.hxx"

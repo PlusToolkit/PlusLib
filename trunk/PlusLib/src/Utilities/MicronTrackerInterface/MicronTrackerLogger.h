@@ -1,7 +1,7 @@
 #ifndef __MICRONTRACKERLOGGER_H__
 #define __MICRONTRACKERLOGGER_H__ 
 
-#include <strstream>
+#include <sstream>
 
 class MicronTrackerLogger
 {

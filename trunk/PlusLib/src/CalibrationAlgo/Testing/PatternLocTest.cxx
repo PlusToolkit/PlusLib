@@ -7,7 +7,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include <iostream>
 #include <fstream> 
-#include <strstream>
+#include <sstream>
 #include "PatternLocResultFile.h"
 
 #include "FidPatternRecognition.h"
@@ -52,7 +52,7 @@ void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream 
   {
     LOG_DEBUG("Frame: "<<currentFrameIndex);
 
-    std::ostrstream possibleFiducialsImageFilename; 
+    std::ostringstream possibleFiducialsImageFilename; 
     possibleFiducialsImageFilename << inputTestcaseName << std::setw(3) << std::setfill('0') << currentFrameIndex << ".bmp" << std::ends; 
 
     PatternRecognitionResult segResults;
@@ -92,8 +92,6 @@ void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream 
       }
       outFileFidPositions << std::endl;
     }
-
-    possibleFiducialsImageFilename.rdbuf()->freeze(0); 
 
     UsFidSegResultFile::WriteSegmentationResults(outFile, segResults, inputTestcaseName, currentFrameIndex, inputImageSequenceFileName);
 

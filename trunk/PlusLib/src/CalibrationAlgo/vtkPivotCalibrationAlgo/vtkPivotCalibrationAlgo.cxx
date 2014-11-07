@@ -265,7 +265,7 @@ std::string vtkPivotCalibrationAlgo::GetPivotPointToMarkerTranslationString( dou
     return "";
   }
 
-  std::ostrstream s;
+  std::ostringstream s;
   s << std::fixed << std::setprecision(aPrecision)
     << this->PivotPointToMarkerTransformMatrix->GetElement(0,3) 
     << " x " << this->PivotPointToMarkerTransformMatrix->GetElement(1,3)

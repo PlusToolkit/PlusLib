@@ -178,7 +178,7 @@ std::string vtkPlusCommand::GetReplyDeviceName()
 //----------------------------------------------------------------------------
 std::string vtkPlusCommand::GenerateCommandDeviceName(const std::string &uid)
 {
-  std::stringstream ss;
+  std::ostringstream ss;
   ss << DEVICE_NAME_COMMAND;
   if( !uid.empty() )
   {
@@ -190,7 +190,7 @@ std::string vtkPlusCommand::GenerateCommandDeviceName(const std::string &uid)
 //----------------------------------------------------------------------------
 std::string vtkPlusCommand::GenerateReplyDeviceName(const std::string &uid)
 {
-  std::stringstream ss;
+  std::ostringstream ss;
   ss << DEVICE_NAME_REPLY;
   if( !uid.empty() )
   {

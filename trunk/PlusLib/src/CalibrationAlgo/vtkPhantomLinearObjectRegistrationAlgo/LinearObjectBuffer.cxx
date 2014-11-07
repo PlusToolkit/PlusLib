@@ -211,7 +211,7 @@ std::vector<double> LinearObjectBuffer::CalculateCentroid()
 
 std::string LinearObjectBuffer::ToXMLString() const
 {
-  std::stringstream xmlstring;
+  std::ostringstream xmlstring;
 
   xmlstring << "<Geometry>" << std::endl;
   for ( int i = 0; i < this->Size(); i++ )
