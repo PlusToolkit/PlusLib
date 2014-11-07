@@ -111,13 +111,13 @@ PlusStatus vtkChRoboticsTracker::InternalConnect()
 
   if (!this->Serial->Open())
   {
-    LOG_ERROR("Cannot open serial port "<<strComPort);
+    LOG_ERROR("Cannot open serial port "<<strComPort.str());
     return PLUS_FAIL;
   }
 
   if (!this->Serial->IsHandleAlive())  
   {  
-    LOG_ERROR("COM port handle is not alive "<<strComPort);
+    LOG_ERROR("COM port handle is not alive "<<strComPort.str());
     return PLUS_FAIL; 
   }
 

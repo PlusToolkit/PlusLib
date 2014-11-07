@@ -1572,7 +1572,7 @@ PlusStatus vtkMetaImageSequenceIO::UpdateFieldInImageHeader(const char* fieldNam
       int paddingCharactersNeeded=lineStr.size()-newLineStr.str().size(); // need to add padding whitespace characters to fully replace the old line 
       if (paddingCharactersNeeded<0)
       {
-        LOG_ERROR("Cannot update line in image header (the new string '"<<newLineStr<<"' is longer than the current string '"<<lineStr<<"')");
+        LOG_ERROR("Cannot update line in image header (the new string '"<<newLineStr.str()<<"' is longer than the current string '"<<lineStr<<"')");
         fclose( stream );
         return PLUS_FAIL;
       }

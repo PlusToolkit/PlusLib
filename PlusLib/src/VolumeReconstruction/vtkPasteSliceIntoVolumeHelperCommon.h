@@ -339,8 +339,8 @@ static int vtkTrilinearInterpolation(F *point,
   \param clipRectangleSize = {x, y} size of the clipping rectangle in the image, in pixels
 */
 void GetClipExtent(int clipExt[6],
-                       vtkFloatingPointType inOrigin[3],
-                       vtkFloatingPointType inSpacing[3],
+                       double inOrigin[3],
+                       double inSpacing[3],
                        const int inExt[6],
                        double clipRectangleOrigin[2],
                        double clipRectangleSize[2])
