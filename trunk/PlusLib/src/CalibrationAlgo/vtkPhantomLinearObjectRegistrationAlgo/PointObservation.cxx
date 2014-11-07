@@ -58,7 +58,7 @@ std::string PointObservation
   xmlstring << " TimeStampNSec=\"" << 0 << "\"";
   xmlstring << " type=\"transform\"";
   xmlstring << " DeviceName=\"" << "Pointer" << "\"";
-  xmlstring << " transform=\"" << matrixstring << "\"";
+  xmlstring << " transform=\"" << matrixstring.str() << "\"";
   xmlstring << " />" << std::endl;
 
   return xmlstring.str();

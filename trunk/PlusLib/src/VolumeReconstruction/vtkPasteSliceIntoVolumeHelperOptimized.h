@@ -796,9 +796,9 @@ static void vtkOptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* in
   double fanRadiusStop = insertionParams->fanRadiusStop;
 
   // slice spacing and origin
-  vtkFloatingPointType inSpacing[3];  
+  double inSpacing[3];  
   inData->GetSpacing(inSpacing);
-  vtkFloatingPointType inOrigin[3];
+  double inOrigin[3];
   inData->GetOrigin(inOrigin);
 
   // number of pixels in the x and y directions between the fan origin and the slice origin  
