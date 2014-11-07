@@ -148,7 +148,7 @@ std::vector<double> LinearObject::Multiply( double c, std::vector<double> vector
 
 std::string LinearObject::VectorToString( std::vector<double> vector )
 {
-  std::stringstream s;
+  std::ostringstream s;
 
   for ( unsigned int i = 0; i < vector.size(); i++ )
   {

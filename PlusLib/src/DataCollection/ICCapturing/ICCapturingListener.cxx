@@ -33,7 +33,7 @@ void ICCapturingListener::overlayCallback( Grabber& caller, smart_ptr<OverlayBit
 {
   if( pBitmap->getEnable() == true ) // Draw only, if the overlay bitmap is enabled.
   {
-    std::stringstream ss;
+    std::ostringstream ss;
     ss << MediaSampleDesc.FrameNumber << " ";
     pBitmap->drawText( RGB(255,0,0), 0, 0, ss.str().c_str() );
   }
@@ -71,7 +71,7 @@ void ICCapturingListener::saveImage( smart_ptr<MemBuffer> pBuffer, DWORD currFra
 {
   if( currFrame < m_BufferWritten.size() )
   {
-    std::stringstream ss;
+    std::ostringstream ss;
     ss << "image" << currFrame << ".bmp";
     saveToFileBMP( *pBuffer, ss.str().c_str() );
     m_BufferWritten.at( currFrame ) = true;

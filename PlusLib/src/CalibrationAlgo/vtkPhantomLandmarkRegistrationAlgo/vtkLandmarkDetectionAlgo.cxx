@@ -408,7 +408,7 @@ std::string vtkLandmarkDetectionAlgo::GetDetectedLandmarksString( double aPrecis
 {
   if (this->DetectedLandmarkPoints_Reference->GetNumberOfPoints()>0)
   {
-    std::ostrstream s;
+    std::ostringstream s;
     double landmarkDetected_Reference[4] = {0,0,0,1};
     s << std::fixed << std::setprecision(aPrecision);
     for (int id =0; id<this->DetectedLandmarkPoints_Reference->GetNumberOfPoints();id++)

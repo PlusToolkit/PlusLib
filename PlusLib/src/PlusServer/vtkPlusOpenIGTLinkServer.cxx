@@ -599,7 +599,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
               self->PreviousCommands[client.ClientId].push_back(uid);
             }
           }
-          std::stringstream ss;
+          std::ostringstream ss;
           ss << "Received command from device " << deviceNameStr;
           if( !uid.empty() )
           {

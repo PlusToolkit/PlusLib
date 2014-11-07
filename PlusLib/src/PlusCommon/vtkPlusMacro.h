@@ -38,7 +38,6 @@
     vtkmsg << "Debug: In " __FILE__ ", line " << __LINE__ << "\n"                   \
     << self->GetClassName() << " (" << self << "): " x  << "\n\n";                  \
     vtkOutputWindowDisplayDebugText(vtkmsg.str());                                  \
-    vtkmsg.rdbuf()->freeze(0);                                                      \
     }                                                                               \
   }
 #endif

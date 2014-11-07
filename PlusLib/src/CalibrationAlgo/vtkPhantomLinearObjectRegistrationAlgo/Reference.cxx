@@ -48,7 +48,7 @@ void Reference::Translate( std::vector<double> vector )
 
 std::string Reference::ToXMLString() const
 {
-  std::stringstream xmlstring;
+  std::ostringstream xmlstring;
 
   xmlstring << "  <Reference";
   xmlstring << " Name=\"" << this->Name << "\"";

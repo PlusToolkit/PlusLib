@@ -306,9 +306,8 @@ PlusStatus ExecuteUpdateTransform(vtkPlusOpenIGTLinkClient* client, const std::s
   vtkSmartPointer<vtkPlusUpdateTransformCommand> cmd = vtkSmartPointer<vtkPlusUpdateTransformCommand>::New();
   cmd->SetNameToUpdateTransform();
   cmd->SetTransformName(transformName.c_str());
-  double value;
-  std::stringstream ss(transformError);
-  ss >> value;
+  double value = 0.0;
+  PlusCommon::StringToDouble(transformError.c_str(), value);
   cmd->SetTransformError(value);
   cmd->SetTransformDate(transformDate.c_str());
   cmd->SetTransformPersistent(transformPersistent.compare("TRUE") == 0 );
@@ -324,8 +323,7 @@ PlusStatus ExecuteUpdateTransform(vtkPlusOpenIGTLinkClient* client, const std::s
   {
     for (int j = 0; j < 4; j++)
     {
-      std::stringstream stream(elems[i*4 + j]);
-      stream >> value;
+      PlusCommon::StringToDouble((elems[i*4 + j]).c_str(), value);
       transformValueMatrix->SetElement(i, j, value);
     }
   }

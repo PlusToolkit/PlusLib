@@ -14,7 +14,7 @@
 #include "vtkPlusLogger.h"
 #include "vtkPlusMacro.h"
 #include "vtksys/SystemTools.hxx"
-#include <strstream>
+#include <sstream>
 #include <list>
 
 enum PlusStatus
@@ -51,50 +51,44 @@ enum PlusImagingMode
 
 #define LOG_ERROR(msg) \
   { \
-  std::ostrstream msgStream; \
+  std::ostringstream msgStream; \
   msgStream << msg << std::ends; \
-  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_ERROR, msgStream.str(), __FILE__, __LINE__); \
-  msgStream.rdbuf()->freeze(0); \
+  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_ERROR, msgStream.str().c_str(), __FILE__, __LINE__); \
   }  
 
 #define LOG_WARNING(msg) \
   { \
-  std::ostrstream msgStream; \
+  std::ostringstream msgStream; \
   msgStream << msg << std::ends; \
-  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_WARNING, msgStream.str(), __FILE__, __LINE__); \
-  msgStream.rdbuf()->freeze(0); \
+  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_WARNING, msgStream.str().c_str(), __FILE__, __LINE__); \
   }
     
 #define LOG_INFO(msg) \
   { \
-  std::ostrstream msgStream; \
+  std::ostringstream msgStream; \
   msgStream << msg << std::ends; \
-  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_INFO, msgStream.str(), __FILE__, __LINE__); \
-  msgStream.rdbuf()->freeze(0); \
+  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_INFO, msgStream.str().c_str(), __FILE__, __LINE__); \
   }
   
 #define LOG_DEBUG(msg) \
   { \
-  std::ostrstream msgStream; \
+  std::ostringstream msgStream; \
   msgStream << msg << std::ends; \
-  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_DEBUG, msgStream.str(), __FILE__, __LINE__); \
-  msgStream.rdbuf()->freeze(0); \
+  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_DEBUG, msgStream.str().c_str(), __FILE__, __LINE__); \
   }  
   
 #define LOG_TRACE(msg) \
   { \
-  std::ostrstream msgStream; \
+  std::ostringstream msgStream; \
   msgStream << msg << std::ends; \
-  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_TRACE, msgStream.str(), __FILE__, __LINE__); \
-  msgStream.rdbuf()->freeze(0); \
+  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_TRACE, msgStream.str().c_str(), __FILE__, __LINE__); \
   }
 
 #define LOG_DYNAMIC(msg, logLevel) \
 { \
-  std::ostrstream msgStream; \
+  std::ostringstream msgStream; \
   msgStream << msg << std::ends; \
-  vtkPlusLogger::Instance()->LogMessage(logLevel, msgStream.str(), __FILE__, __LINE__); \
-  msgStream.rdbuf()->freeze(0); \
+  vtkPlusLogger::Instance()->LogMessage(logLevel, msgStream.str().c_str(), __FILE__, __LINE__); \
   }
   
 /////////////////////////////////////////////////////////////////// 

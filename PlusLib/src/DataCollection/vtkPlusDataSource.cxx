@@ -401,7 +401,7 @@ void vtkPlusDataSource::SetType( DataSourceType aType )
 //-----------------------------------------------------------------------------
 std::string vtkPlusDataSource::GetTransformName() const
 {
-  std::stringstream ss;
+  std::ostringstream ss;
   ss << this->SourceId << "To" << this->ReferenceCoordinateFrameName;
   return ss.str();
 }

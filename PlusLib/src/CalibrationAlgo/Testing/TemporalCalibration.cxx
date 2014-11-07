@@ -346,7 +346,7 @@ int main(int argc, char **argv)
   LOG_INFO("Max calibration error: " << calibResult.maxCalibrationError);
 
   // Write results to file
-  std::ostrstream trackerLagOutputFilename;
+  std::ostringstream trackerLagOutputFilename;
   trackerLagOutputFilename << intermediateFileOutputDirectory << "/TemporalCalibrationResults.xml" << std::ends;
   WriteCalibrationResultToFile(trackerLagOutputFilename.str(), calibResult);
   

@@ -455,7 +455,7 @@ void FidLabeling::FindPattern()
   LOG_DEBUG("Number of candidate lines: "<<numberOfCandidateLines);  
   for (int lineIndex=0; lineIndex<numberOfCandidateLines; lineIndex++)
   {
-    std::ostrstream linePermutationStr; 
+    std::ostringstream linePermutationStr; 
     linePermutationStr.clear();
     std::vector<int> *pointIndices=maxPointsLines[lineIndex].GetPoints();
     for (int pointIndex=0; pointIndex<pointIndices->size(); pointIndex++)
@@ -509,7 +509,7 @@ void FidLabeling::FindPattern()
     }
 
 #ifdef DEBUG_LABELING
-    std::ostrstream linePermutationStr; 
+    std::ostringstream linePermutationStr; 
     for (int lineIndex=0; lineIndex<numberOfLines; lineIndex++)
     {
       if (lineIndex>0)

@@ -46,7 +46,7 @@ void Point::Translate( std::vector<double> vector )
 
 std::string Point::ToXMLString() const
 {
-  std::stringstream xmlstring;
+  std::ostringstream xmlstring;
 
   xmlstring << "  <Point";
   xmlstring << " Name=\"" << this->Name << "\"";

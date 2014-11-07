@@ -46,8 +46,8 @@ void PointObservation
 std::string PointObservation
 ::ToXMLString()
 {
-  std::stringstream xmlstring;
-  std::stringstream matrixstring;
+  std::ostringstream xmlstring;
+  std::ostringstream matrixstring;
   matrixstring << "0 0 0 " << this->Observation.at(0) << " ";
   matrixstring << "0 0 0 " << this->Observation.at(1) << " ";
   matrixstring << "0 0 0 " << this->Observation.at(2) << " ";

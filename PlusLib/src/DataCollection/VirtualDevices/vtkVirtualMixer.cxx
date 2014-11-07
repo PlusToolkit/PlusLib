@@ -58,7 +58,7 @@ PlusStatus vtkVirtualMixer::ReadConfiguration( vtkXMLDataElement* rootConfigElem
   {
     LOG_WARNING("vtkVirtualMixer device " << this->GetDeviceId() << " does not have any output channels");
     vtkSmartPointer<vtkPlusChannel> aChannel = vtkSmartPointer<vtkPlusChannel>::New();
-    std::stringstream ss;
+    std::ostringstream ss;
     ss << "aMixerId_" << vtkAccurateTimer::GetSystemTime();
     aChannel->SetChannelId(ss.str().c_str());
     this->AddOutputChannel(aChannel);

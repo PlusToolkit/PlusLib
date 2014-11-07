@@ -236,7 +236,8 @@ PlusStatus vtkWin32VideoSource2::InternalConnect()
   wc.style = CS_HREDRAW|CS_VREDRAW;
   wc.cbClsExtra = sizeof(void *);
   wc.cbWndExtra = 0;
-
+  
+  std::string windowNameStr;
   bool registrationSuccessful=false;
   const int MAX_WINDOW_CLASS_REGISTRATION_ATTEMPTS=32;
   for (int i = 1; i <= MAX_WINDOW_CLASS_REGISTRATION_ATTEMPTS; i++)
@@ -248,9 +249,10 @@ PlusStatus vtkWin32VideoSource2::InternalConnect()
       break;
     }
     // try with a slightly different name at each registration attempt   
-    std::ostrstream windowName;
+    std::ostringstream windowName;
     windowName << "VTKVideo " << i << std::ends;
-    wc.lpszClassName = windowName.str();
+    windowNameStr = windowName.str();
+    wc.lpszClassName = windowNameStr.c_str();
   }
   if (!registrationSuccessful)
   {

@@ -325,7 +325,7 @@ PlusStatus vtk3dConnexionTracker::CreateCaptureWindow()
       break;
     }
     // try with a slightly different name at each registration attempt   
-    std::ostrstream windowName;
+    std::ostringstream windowName;
     windowName << CAPTURE_WINDOW_CLASS_NAME_PREFIX << " " << i << std::ends;
     this->CaptureWindowClassName=windowName.str();
     wc.lpszClassName = this->CaptureWindowClassName.c_str();
