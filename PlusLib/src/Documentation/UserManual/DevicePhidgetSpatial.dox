@@ -25,7 +25,7 @@ If magnetic fields are nearby the sensor have non-negligible effect then compass
 
 - \xmlAtt \ref DeviceType "Type" = \c "PhidgetSpatial" \RequiredAtt
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125} 
-- \xmlAtt \b SerialNumber If specified then connection is made to the devices that has a matching SerialNumber. Useful if multiple devices are connected to the computer. If the value is 0 then connections is made to the first available device and the serial number is logged. \OptionalAtt{-1}
+- \xmlAtt \b SerialNumber If specified then connection is made to the devices that has a matching SerialNumber. Useful if multiple devices are connected to the computer. If the value is -1 then connections is made to the first available device (and the serial number of the connected device is logged as INFO). \OptionalAtt{-1}
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
 
