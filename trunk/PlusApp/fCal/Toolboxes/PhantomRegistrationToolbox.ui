@@ -307,7 +307,7 @@
            </size>
           </property>
           <property name="text">
-           <string>Start Pivot Detection</string>
+           <string>Start Landmark Detection</string>
           </property>
          </widget>
         </item>

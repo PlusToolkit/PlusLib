@@ -37,21 +37,21 @@ The tool state box can be detached so that it is visible during all steps by cli
 
 Notes:
 - The tip of the stylus must remain stationary relative to the Reference marker on the phantom, therefore it is advisable to place the stylus tip on the phantom surface (or place the stylus tip anywhere and make sure that the phantom does not move during the stylus calibration).
-- The startup timer allows some time to move the stylus tip to the intended position after the button is clicked. It is safe to move the stylus tip while the timer is on but the tip should remain stationary after the timer is elapsed. The startup time can be adjusted by the FreeHandStartupDelaySec attribute of the configuration file.
+- The startup timer allows some time to move the stylus tip to the intended position after the button is clicked. It is safe to move the stylus tip while the timer is on but the tip should remain stationary after the timer is elapsed. The startup time can be adjusted by the \c FreeHandStartupDelaySec attribute of the configuration file.
 
 \section SystemCalibrationPhantomRegistration Phantom Registration
 
 Prerequisites: Stylus calibration performed
 
-1. Click "Start Pivot Detection"
-2. Place the tip of the calibrated stylus on the phantom at the first landmark's divot point and slowly swivel the stylus until it is detected. Alternatively, place the tip of the stylus at the indicated point and keep it there while clicking "Record Point".
+1. Click "Start Landmark Detection"
+2. Place the tip of the calibrated stylus on the phantom at the first landmark point and slowly swivel the stylus until it is detected. Alternatively, place the tip of the stylus at the indicated point and keep it there while clicking "Record Point".
 3. Repeat the previous step for each landmark (in the order specified in the configuration file, typically from #1 to #8) until all landmark points are recorded. All recorded points are shown in green, the next expected point position (available only if a few points have been recorded already) are shown in orange.
 
 See demo video at: http://youtu.be/6Oi8baLmRNY
 
 Notes:
 - If you have selected a wrong point, click "Undo" to remove the last added landmark point a click "Reset" button to start from the beginning.
-- You can get better phantom registration error by reducing PivotThresholdMm attribute (in the pivot detection element of the configuration file) but the stylus swivel has to be done more slowly and carefully, and detection may take longer. PivotThresholdMm has to be considerably larger than the pivot calibration error.
+- You can get better phantom registration error by reducing \c StylusTipMaximumDisplacementThresholdMm attribute (in the \c vtkPhantomLandmarkRegistrationAlgo element of the configuration file) but the stylus swivel has to be done more slowly and carefully, and detection may take longer. \c StylusTipMaximumDisplacementThresholdMm has to be considerably larger (usually three times bigger works fine) than the stylus calibration error.
 - A small window on the left will indicate the points that are to be selected on the phantom. The content of this window can be rotated and zoomed using the mouse.
 
 \section SystemCalibrationTemporalCalibration Temporal Calibration
