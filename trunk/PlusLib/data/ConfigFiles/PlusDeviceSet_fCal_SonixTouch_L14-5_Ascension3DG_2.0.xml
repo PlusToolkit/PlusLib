@@ -1,10 +1,8 @@
 <PlusConfiguration version="2.3">
-
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
       Name="fCal: SonixTouch US (L14-5 probe) + Ascension3DG tracker (Probe, Reference, Stylus) - fCal Phantom 2.0"
       Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." />
-
     <Device
       Id="TrackerDevice" 
       Type="Ascension3DG" 
@@ -24,7 +22,6 @@
         </OutputChannel>
       </OutputChannels>
     </Device>
-
     <Device
       Id="VideoDevice"
       Type="SonixVideo" 
@@ -38,7 +35,6 @@
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video"/>
       </OutputChannels>
     </Device>
-
     <Device 
       Id="TrackedVideoDevice" 
       Type="VirtualMixer" >
@@ -50,9 +46,7 @@
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>
     </Device>
-    
   </DataCollection>
-
   <CoordinateDefinitions>
     <Transform From="Image" To="TransducerOriginPixel"
       Matrix="1 0 0 -410
@@ -61,7 +55,6 @@
               0 0 0 1"
       Date="2011.12.06 17:57:00" Error="0.0" />    
   </CoordinateDefinitions> 
-
   <Rendering WorldCoordinateFrame="Reference">
     <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" Id="ProbeModel"
       File="Probe_L14-5_38.stl"
@@ -88,8 +81,7 @@
         0 0 0 1" />
     <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
   </Rendering>
-
-  <Segmentation
+<Segmentation
     ApproximateSpacingMmPerPixel="0.078"
     MorphologicalOpeningCircleRadiusMm="0.27"
     MorphologicalOpeningBarSizeMm="2.0"
@@ -105,10 +97,7 @@
     CollinearPointsMaxDistanceFromLineMm="0.6"
     UseOriginalImageIntensityForDotIntensityScore="FALSE"
     NumberOfMaximumFiducialPointCandidates="20"
-  />
-
-
-  <PhantomDefinition>
+  />  <PhantomDefinition>
     <Description
       Name="fCAL"
       Type="Multi-N"
@@ -165,11 +154,9 @@
       </References>
     </Geometry>
   </PhantomDefinition>
-
-  <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
+<VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
     ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
     Interpolation="LINEAR" Optimization="FULL" CompoundingMode="MEAN" FillHoles="OFF" />
-
   <fCal
     PhantomModelId="PhantomModel"
     ReconstructedVolumeId="Volume"
@@ -200,7 +187,7 @@
     ReferenceCoordinateFrame="Reference"
     StylusTipCoordinateFrame="StylusTip" 
     DetectionTimeSec="1.0"
-    PivotThresholdMm="1.8" />
+    StylusTipMaximumDisplacementThresholdMm="1.8" />
 
   <vtkProbeCalibrationAlgo
     ImageCoordinateFrame="Image"
