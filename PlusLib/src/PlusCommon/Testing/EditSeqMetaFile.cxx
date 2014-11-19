@@ -484,7 +484,6 @@ int main(int argc, char **argv)
     break;
   case REMOVE_IMAGE_DATA: 
     {
-      // Remove image data from file, keep only the transforms information. TODO It is actually done when writing the file might be better to change
       if (RemoveImageData(trackedFrameList)!=PLUS_SUCCESS)
       {
         LOG_ERROR("There is no tracked list");
@@ -606,7 +605,6 @@ int main(int argc, char **argv)
 
   if(REMOVE_IMAGE_DATA==operation)
   {
-    //TODO The image removing is actually done here would be better to change this. 
     writer->SetUseCompression(false);
     if (writer->WriteOnlyTrackerData()!=PLUS_SUCCESS)
     {
@@ -1029,7 +1027,6 @@ PlusStatus CropRectangle(vtkTrackedFrameList* trackedFrameList, const std::vecto
 
 PlusStatus RemoveImageData( vtkTrackedFrameList* trackedFrameList)
 {
-  //TODO The removing is actually done when writing, would be better to do it here 
   if ( trackedFrameList == NULL )
   {
     LOG_ERROR("Tracked frame list is NULL!"); 
