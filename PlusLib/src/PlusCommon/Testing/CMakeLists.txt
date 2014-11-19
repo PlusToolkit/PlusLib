@@ -123,7 +123,7 @@ SET_TESTS_PROPERTIES( EditSeqMetaFileCropImageRectangleCompareToBaselineTest PRO
 ADD_TEST(NAME EditSeqMetaFileRemoveImageData
   COMMAND $<TARGET_FILE:EditSeqMetaFile>
   --operation=REMOVE_IMAGE_DATA 
-  --source-seq-file=${TestDataDir}\UsSimulatorOutputSpinePhantom2CurvilinearBaseline.mha  
+  --source-seq-file=${TestDataDir}/UsSimulatorOutputSpinePhantom2CurvilinearBaseline.mha  
   --output-seq-file=UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUS.mha
   --verbose=3
   )
