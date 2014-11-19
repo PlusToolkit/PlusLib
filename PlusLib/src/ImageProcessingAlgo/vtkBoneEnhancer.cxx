@@ -140,7 +140,7 @@ PlusStatus vtkBoneEnhancer::ProcessFrame(TrackedFrame* inputFrame, TrackedFrame*
   vtkImageData* inputVtkImage = inputImage->GetImage();
 
   // Generate output image
-  this->Thresholder->SetInputData(inputVtkImage);
+  this->Thresholder->SetInputData_vtk5compatible(inputVtkImage);
   this->Thresholder->Update();
 
   if (this->ScanConverter.GetPointer()!=NULL)
