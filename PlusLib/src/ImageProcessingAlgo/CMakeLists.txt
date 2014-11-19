@@ -1,5 +1,7 @@
 # Sources
-SET (RfProcessingAlgo_SRCS
+SET (ImageProcessingAlgo_SRCS
+    vtkTrackedFrameProcessor.cxx
+    vtkBoneEnhancer.cxx
     vtkRfToBrightnessConvert.cxx
     vtkUsScanConvert.cxx 
     vtkUsScanConvertLinear.cxx 
@@ -7,9 +9,11 @@ SET (RfProcessingAlgo_SRCS
     vtkRfProcessor.cxx
     )
 
-SET (RfProcessingAlgo_HDRS)
+SET (ImageProcessingAlgo_HDRS)
 if (WIN32)    
-  SET (RfProcessingAlgo_HDRS
+  SET (ImageProcessingAlgo_HDRS
+    vtkTrackedFrameProcessor.h
+    vtkBoneEnhancer.h
     vtkRfToBrightnessConvert.h 
     vtkUsScanConvert.h
     vtkUsScanConvertLinear.h 
@@ -18,26 +22,26 @@ if (WIN32)
     )
 endif (WIN32)
 
-SET (RfProcessingAlgo_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "" FORCE)
+SET (ImageProcessingAlgo_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Build the library
 
-SET (RfProcessingAlgo_LIBS
+SET (ImageProcessingAlgo_LIBS
   vtkPlusCommon
   )
 
-INCLUDE_DIRECTORIES( ${RfProcessingAlgo_INCLUDE_DIRS} )
-GENERATE_EXPORT_DIRECTIVE_FILE(vtkRfProcessingAlgo)
-ADD_LIBRARY(vtkRfProcessingAlgo ${RfProcessingAlgo_SRCS} ${RfProcessingAlgo_HDRS})
-TARGET_LINK_LIBRARIES(vtkRfProcessingAlgo ${RfProcessingAlgo_LIBS})
+INCLUDE_DIRECTORIES( ${ImageProcessingAlgo_INCLUDE_DIRS} )
+GENERATE_EXPORT_DIRECTIVE_FILE(vtkImageProcessingAlgo)
+ADD_LIBRARY(vtkImageProcessingAlgo ${ImageProcessingAlgo_SRCS} ${ImageProcessingAlgo_HDRS})
+TARGET_LINK_LIBRARIES(vtkImageProcessingAlgo ${ImageProcessingAlgo_LIBS})
 
 # --------------------------------------------------------------------------
 # Set external MS project
-SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkRfProcessingAlgo CACHE INTERNAL "" FORCE)
+SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkImageProcessingAlgo CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkRfProcessingAlgo vtkRfProcessingAlgo;"${PlusLib_BINARY_DIR}/src/RfProcessingAlgo/vtkRfProcessingAlgo.vcproj";vtkPlusCommon CACHE INTERNAL "" FORCE)
+SET(vcProj_vtkImageProcessingAlgo vtkImageProcessingAlgo;"${PlusLib_BINARY_DIR}/src/ImageProcessingAlgo/vtkImageProcessingAlgo.vcproj";vtkPlusCommon CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 IF (BUILD_TESTING)
@@ -48,7 +52,7 @@ ENDIF (BUILD_TESTING)
 # Install
 #
 
-INSTALL(TARGETS vtkRfProcessingAlgo
+INSTALL(TARGETS vtkImageProcessingAlgo
   RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   LIBRARY DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   )

@@ -347,7 +347,7 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usIm
     return PLUS_FAIL; 
   }
 
-  if ( !this->CheckFrameFormat(frameSizeInPx, pixelType, imageType, numberOfScalarComponents) )
+  if (!this->CheckFrameFormat(frameSizeInPx, pixelType, imageType, numberOfScalarComponents) )
   {
     LOG_ERROR( "vtkPlusBuffer: Unable to add frame to video buffer - frame format doesn't match!"); 
     return PLUS_FAIL; 

@@ -19,7 +19,7 @@ SET (UsSimulatorAlgo_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BI
 
 SET (UsSimulatorAlgo_LIBS
   vtkPlusCommon
-  vtkRfProcessingAlgo 
+  vtkImageProcessingAlgo
   )     
 
 INCLUDE_DIRECTORIES( ${UsSimulatorAlgo_INCLUDE_DIRS} )

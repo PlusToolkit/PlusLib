@@ -2,13 +2,13 @@ SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 ADD_EXECUTABLE(RfProcessor RfProcessor.cxx )
-TARGET_LINK_LIBRARIES(RfProcessor vtkRfProcessingAlgo ${VTK_LIBRARIES} )
+TARGET_LINK_LIBRARIES(RfProcessor vtkImageProcessingAlgo ${VTK_LIBRARIES} )
 GENERATE_HELP_DOC(RfProcessor)
 
 # --------------------------------------------------------------------------
 ADD_TEST(vtkRfToBrightnessConvertRunTest
   ${EXECUTABLE_OUTPUT_PATH}/RfProcessor
-  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_RfProcessingAlgoCurvilinearTest.xml
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_ImageProcessingAlgoCurvilinearTest.xml
   --rf-file=${TestDataDir}/UltrasonixCurvilinearRfData.mha
   --output-img-file=outputUltrasonixCurvilinearBrightnessData.mha 
   --operation=BRIGHTNESS_CONVERT
@@ -25,7 +25,7 @@ SET_TESTS_PROPERTIES(vtkRfToBrightnessConvertCompareToBaselineTest PROPERTIES DE
 # --------------------------------------------------------------------------
 ADD_TEST(vtkUsScanConvertCurvilinearRunTest
   ${EXECUTABLE_OUTPUT_PATH}/RfProcessor
-  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_RfProcessingAlgoCurvilinearTest.xml
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_ImageProcessingAlgoCurvilinearTest.xml
   --rf-file=${TestDataDir}/UltrasonixCurvilinearRfData.mha
   --output-img-file=outputUltrasonixCurvilinearScanConvertedData.mha 
   --operation=BRIGHTNESS_SCAN_CONVERT
@@ -42,7 +42,7 @@ SET_TESTS_PROPERTIES(vtkUsScanConvertCurvilinearCompareToBaselineTest PROPERTIES
 # --------------------------------------------------------------------------
 ADD_TEST(vtkUsScanConvertLinearRunTest
   ${EXECUTABLE_OUTPUT_PATH}/RfProcessor
-  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_RfProcessingAlgoLinearTest.xml
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_ImageProcessingAlgoLinearTest.xml
   --rf-file=${TestDataDir}/UltrasonixLinearRfData.mha
   --output-img-file=outputUltrasonixLinearScanConvertedData.mha 
   --operation=BRIGHTNESS_SCAN_CONVERT
@@ -75,13 +75,13 @@ SET_TESTS_PROPERTIES(vtkUsScanConvertBkCurvilinearCompareToBaselineTest PROPERTI
 
 #---------------------------------------------------------------------------
 ADD_EXECUTABLE(DrawScanLines DrawScanLines.cxx )
-TARGET_LINK_LIBRARIES(DrawScanLines vtkRfProcessingAlgo )
+TARGET_LINK_LIBRARIES(DrawScanLines vtkImageProcessingAlgo )
 GENERATE_HELP_DOC(DrawScanLines)
 
 # --------------------------------------------------------------------------
 ADD_TEST(DrawScanLinesCurvilinearRunTest
   ${EXECUTABLE_OUTPUT_PATH}/DrawScanLines
-  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_RfProcessingAlgoCurvilinearTest.xml
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_ImageProcessingAlgoCurvilinearTest.xml
   --source-seq-file=${TestDataDir}/UltrasonixCurvilinearScanConvertedData.mha
   --output-seq-file=UltrasonixCurvilinearScanConvertedDataWithScanlines.mha
   )
@@ -97,7 +97,7 @@ SET_TESTS_PROPERTIES( DrawScanLinesCurvilinearRunTest PROPERTIES FAIL_REGULAR_EX
 # --------------------------------------------------------------------------
 ADD_TEST(DrawScanLinesLinearRunTest
   ${EXECUTABLE_OUTPUT_PATH}/DrawScanLines
-  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_RfProcessingAlgoLinearTest.xml
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_ImageProcessingAlgoLinearTest.xml
   --source-seq-file=${TestDataDir}/UltrasonixLinearScanConvertedData.mha
   --output-seq-file=UltrasonixLinearScanConvertedDataWithScanlines.mha
   )

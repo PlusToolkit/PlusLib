@@ -7,7 +7,7 @@
 #ifndef __vtkRfToBrightnessConvert_h
 #define __vtkRfToBrightnessConvert_h
 
-#include "vtkRfProcessingAlgoExport.h"
+#include "vtkImageProcessingAlgoExport.h"
 #include "vtkThreadedImageAlgorithm.h"
 #include "PlusVideoFrame.h" // for US_IMAGE_TYPE
 
@@ -32,9 +32,9 @@ range (16 bits).
 The input image type must be VTK_SHORT (signed 16-bit) and the output image type
 is always VTK_UNSIGNED_CHAR (unsigned 8-bit).
 
-\ingroup PlusLibRfProcessingAlgo
+\ingroup PlusLibImageProcessingAlgo
 */ 
-class vtkRfProcessingAlgoExport vtkRfToBrightnessConvert : public vtkThreadedImageAlgorithm
+class vtkImageProcessingAlgoExport vtkRfToBrightnessConvert : public vtkThreadedImageAlgorithm
 {
 public:
   static vtkRfToBrightnessConvert *New();

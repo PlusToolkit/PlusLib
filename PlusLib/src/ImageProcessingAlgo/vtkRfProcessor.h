@@ -7,20 +7,19 @@
 #ifndef __vtkRfProcessor_h
 #define __vtkRfProcessor_h
 
-#include "vtkRfProcessingAlgoExport.h"
+#include "vtkImageProcessingAlgoExport.h"
 #include "PlusVideoFrame.h" // for US_IMAGE_TYPE
 
 class vtkRfToBrightnessConvert;
 class vtkUsScanConvert;
-class vtkImageCast;
 class vtkImageData;
 
 /*!
   \class vtkRfProcessor 
   \brief Convenience class to combine multiple algorithms to compute a displayable B-mode frame from RF data
-  \ingroup PlusLibRfProcessingAlgo
+  \ingroup PlusLibImageProcessingAlgo
 */ 
-class vtkRfProcessingAlgoExport vtkRfProcessor : public vtkObject
+class vtkImageProcessingAlgoExport vtkRfProcessor : public vtkObject
 {
 public:
   static vtkRfProcessor *New();
@@ -63,8 +62,6 @@ protected:
 
   vtkUsScanConvert* ScanConverter;  
   std::vector<vtkUsScanConvert*> AvailableScanConverters;  
-
-  vtkImageCast* ImageCaster;
 
   static const char* RF_PROCESSOR_TAG_NAME;
 }; 

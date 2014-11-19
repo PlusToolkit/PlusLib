@@ -7,7 +7,7 @@ See License.txt for details.
 #ifndef __vtkUsScanConvertLinear_h
 #define __vtkUsScanConvertLinear_h
 
-#include "vtkRfProcessingAlgoExport.h"
+#include "vtkImageProcessingAlgoExport.h"
 #include "vtkUsScanConvert.h"
 
 class vtkAlgorithmOutput;
@@ -17,9 +17,9 @@ class vtkImageData;
 /*!
 \class vtkUsScanConvertLinear
 \brief This class performs scan conversion from scan lines for curvilinear probes
-\ingroup PlusLibRfProcessingAlgo
+\ingroup PlusLibImageProcessingAlgo
 */ 
-class vtkRfProcessingAlgoExport vtkUsScanConvertLinear : public vtkUsScanConvert
+class vtkImageProcessingAlgoExport vtkUsScanConvertLinear : public vtkUsScanConvert
 {
 public:
   static vtkUsScanConvertLinear *New();
