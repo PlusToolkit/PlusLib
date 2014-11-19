@@ -34,6 +34,7 @@ enum OperationType
   MERGE,
   FILL_IMAGE_RECTANGLE,
   CROP,
+  REMOVE_IMAGE_DATA,
   DECIMATE,
   NO_OPERATION
 }; 
@@ -70,6 +71,7 @@ PlusStatus ConvertStringToMatrix( std::string &strMatrix, vtkMatrix4x4* matrix);
 PlusStatus AddTransform( vtkTrackedFrameList* trackedFrameList, std::string transformNameToAdd, std::string deviceSetConfigurationFileName );
 PlusStatus FillRectangle( vtkTrackedFrameList* trackedFrameList, const std::vector<int> &fillRectOrigin, const std::vector<int> &fillRectSize, int fillGrayLevel);
 PlusStatus CropRectangle( vtkTrackedFrameList* trackedFrameList, const std::vector<int> &cropRectOrigin, const std::vector<int> &cropRectSize);
+PlusStatus RemoveImageData( vtkTrackedFrameList* trackedFrameList);
 
 const char* FIELD_VALUE_FRAME_SCALAR="{frame-scalar}"; 
 const char* FIELD_VALUE_FRAME_TRANSFORM="{frame-transform}"; 
@@ -187,6 +189,10 @@ int main(int argc, char **argv)
     std::cout << "- CROP: Crop a rectangle in the image (useful for cropping b-mode image from the data obtained via frame-grabber)." << std::endl;
     std::cout << "  FILL_IMAGE_RECTANGLE and CROP require specification of the rectangle (e.g., --rect-origin 12 34 --rect-size 56 78)" << std::endl;
 
+    std::cout << "- REMOVE_IMAGE_DATA: Remove image data from a meta file that has both image and tracker data, and keep only the tracker data." << std::endl;
+
+
+
     return EXIT_SUCCESS; 
   }
 
@@ -259,6 +265,10 @@ int main(int argc, char **argv)
   else if ( STRCASECMP(strOperation.c_str(), "CROP" ) == 0 )
   {
     operation = CROP; 
+  }
+  else if ( STRCASECMP(strOperation.c_str(), "REMOVE_IMAGE_DATA" ) == 0 )
+  {
+    operation = REMOVE_IMAGE_DATA; 
   }
   else
   {
@@ -472,6 +482,16 @@ int main(int argc, char **argv)
       }
     }
     break;
+  case REMOVE_IMAGE_DATA: 
+    {
+      // Remove image data from file, keep only the transforms information. TODO It is actually done when writing the file might be better to change
+      if (RemoveImageData(trackedFrameList)!=PLUS_SUCCESS)
+      {
+        LOG_ERROR("There is no tracked list");
+        return EXIT_FAILURE;
+      }
+    }
+    break;
   default: 
     {
       LOG_WARNING("Unknown operation is specified"); 
@@ -583,13 +603,27 @@ int main(int argc, char **argv)
   vtkSmartPointer<vtkMetaImageSequenceIO> writer=vtkSmartPointer<vtkMetaImageSequenceIO>::New();      
   writer->SetFileName(outputFileName.c_str());
   writer->SetTrackedFrameList(trackedFrameList); 
-  writer->SetUseCompression(useCompression);
 
-  if (writer->Write() != PLUS_SUCCESS)
-  {    
-    LOG_ERROR("Couldn't write sequence metafile: " <<  outputFileName ); 
-    return EXIT_FAILURE;
-  }  
+  if(REMOVE_IMAGE_DATA==operation)
+  {
+    //TODO The image removing is actually done here would be better to change this. 
+    writer->SetUseCompression(false);
+    if (writer->WriteOnlyTrackerData()!=PLUS_SUCCESS)
+    {
+      LOG_ERROR("Couldn't write tracking data to the sequence metafile: " << outputFileName ); 
+      return PLUS_FAIL;
+    }
+  }
+  else
+  {
+    writer->SetUseCompression(useCompression);
+    if (writer->Write() != PLUS_SUCCESS)
+    {    
+      LOG_ERROR("Couldn't write sequence metafile: " <<  outputFileName ); 
+      return EXIT_FAILURE;
+    }  
+  }
+
 
   LOG_INFO("Sequence metafile editing was successful!"); 
   return EXIT_SUCCESS; 
@@ -990,3 +1024,18 @@ PlusStatus CropRectangle(vtkTrackedFrameList* trackedFrameList, const std::vecto
 
   return PLUS_SUCCESS; 
 }
+
+
+
+PlusStatus RemoveImageData( vtkTrackedFrameList* trackedFrameList)
+{
+  //TODO The removing is actually done when writing, would be better to do it here 
+  if ( trackedFrameList == NULL )
+  {
+    LOG_ERROR("Tracked frame list is NULL!"); 
+    return PLUS_FAIL; 
+  }
+  return PLUS_SUCCESS; 
+}
+
+

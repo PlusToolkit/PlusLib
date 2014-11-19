@@ -120,6 +120,24 @@ ADD_TEST(EditSeqMetaFileCropImageRectangleCompareToBaselineTest
   )
 SET_TESTS_PROPERTIES( EditSeqMetaFileCropImageRectangleCompareToBaselineTest PROPERTIES DEPENDS EditSeqMetaFileCropImageRectangle )
 
+ADD_TEST(NAME EditSeqMetaFileRemoveImageData
+  COMMAND $<TARGET_FILE:EditSeqMetaFile>
+  --operation=REMOVE_IMAGE_DATA 
+  --source-seq-file=${TestDataDir}\UsSimulatorOutputSpinePhantom2CurvilinearBaseline.mha  
+  --output-seq-file=UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUS.mha
+  --verbose=3
+  )
+SET_TESTS_PROPERTIES( EditSeqMetaFileRemoveImageData PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+ADD_TEST(EditSeqMetaFileRemoveImageDataCompareToBaselineTest
+  ${CMAKE_COMMAND} -E compare_files 
+   ${TEST_OUTPUT_PATH}/UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUS.mha
+   ${TestDataDir}/UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUS.mha
+  )
+SET_TESTS_PROPERTIES( EditSeqMetaFileRemoveImageDataCompareToBaselineTest PROPERTIES DEPENDS EditSeqMetaFileRemoveImageData )
+
+
+
 # --------------------------------------------------------------------------
 # Install
 #

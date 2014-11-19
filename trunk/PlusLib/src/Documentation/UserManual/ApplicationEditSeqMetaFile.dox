@@ -18,7 +18,7 @@ This is a command-line tool for editing sequence metafiles. Operations include d
 ## Uncompress a sequence metafile
 
     EditSeqMetafile.exe --source-seq-file=[inputFilePath] --output-seq-file=[outputFilePath]
-    
+
 ## Trim a long sequence
 
 Create a small test data file from the first 24 frames of a tracked ultrasound metafile:
@@ -30,6 +30,14 @@ Create a small test data file from the first 24 frames of a tracked ultrasound m
 Anonymization of sequences that contain patient information burnt into the pixels is enabled by the FILL_IMAGE_RECTANGLE operation, e.g.,
 
     EditSeqMetaFile --operation=FILL_IMAGE_RECTANGLE --fill-rect-origin 52 25 --fill-rect-size 260 25 --fill-gray-level=20 --source-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.mha --output-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Anonymized.mha
+
+## Remove image data from meta file, keep only the transforms
+
+Saves only the tracker data from a meta file that has both tracker and image data.
+
+    EditSeqMetaFile --operation=REMOVE_IMAGE_DATA --source-seq-file=[inputFilePath] --output-seq-file=[outputFilePath]
+
+
 
 Input image:
 \image html ApplicationEditSeqMetaFileNonAnonymized.png

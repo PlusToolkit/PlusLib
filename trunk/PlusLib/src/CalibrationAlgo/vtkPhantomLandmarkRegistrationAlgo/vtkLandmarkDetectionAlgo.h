@@ -59,10 +59,10 @@ public:
   /*! Set Device acquisition rate ([samples/sec]). This is required to determine the minimum number of stylus tip poses required for detecting a point. */
   PlusStatus SetAcquisitionRate(double acquisitionRateSamplesPerSec);
 
-  /*! Set size of the time window used for sample averaging (default 1/3 [s]). Higher value makes the algorithm more robust (by tolerating more outliers) but may become less accurate. */
+  /*! Set size of the time window used for sample averaging (default 0.2 [s]). Higher value makes the algorithm more robust (by tolerating more outliers) but may become less accurate. */
   PlusStatus SetFilterWindowTimeSec(double filterWindowTimeSec);
 
-  /*! Set the minimum time the stylus tip has to be at a fixed position to detect a landmark point (default 2 [s]).*/
+  /*! Set the minimum time the stylus tip has to be at a fixed position to detect a landmark point (default 1 [s]).*/
   PlusStatus SetDetectionTimeSec(double detectionTimeSec);
   /*! 
     Set the stylus shaft(a point 10 cm above the stylus tip) threshold is used to decide if the stylus is pivoting or static. During the detection time a point in the stylus shaft updates 
@@ -138,9 +138,9 @@ protected:
   vtkPoints* DetectedLandmarkPoints_Reference;
   /*! Device acquisition rate. By default is zero so for the algorithm to work it HAS to be set.*/
   double AcquisitionRate;
-  /*! Filter window time (default 1/3 [s]).*/
+  /*! Filter window time (default 0.2 [s]).*/
   double FilterWindowTimeSec;
-  /*! Detection time (default 2 [s]).*/
+  /*! Detection time (default 1 [s]).*/
   double DetectionTimeSec;
   /*! 
     Stylus shaft(a point 10 cm above the stylus tip) threshold is used to decide if the stylus is pivoting or static. During the detection time a point in the stylus shaft updates 

@@ -176,7 +176,7 @@ protected:
   */
   virtual PlusStatus WriteCompressedImagePixelsToFile(FILE *outputFileStream, int &compressedDataSize);
    /*! 
-    Writes the compressed pixel data directly into file. It seems to work with compression but was not tested!!!
+    Writes the compressed pixel data directly into file. It seems to work with compression but was not tested.
     The compression is performed in chunks, so no excessive memory is used for the compression.
     \param outputFileStream the file stream where the compressed pixel data will be written to
     \param compressedDataSize returns the size of the total compressed data that is written to the file.
