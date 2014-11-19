@@ -34,11 +34,6 @@ public:
   /*! Get ultrasound simulator */
   vtkGetObjectMacro(UsSimulator, vtkUsSimulatorAlgo); 
 
-  /*! Set ultrasound simulator */
-  vtkSetObjectMacro(Tracker, vtkPlusDevice); 
-  /*! Get ultrasound simulator */
-  vtkGetObjectMacro(Tracker, vtkPlusDevice); 
-
   /*! Verify the device is correctly configured */
   virtual PlusStatus NotifyConfigured();
 
@@ -66,9 +61,6 @@ protected:
 protected:
   /*! Ultrasound simulator */
   vtkUsSimulatorAlgo* UsSimulator;
-
-  /*! Tracker used in the simulator */
-  vtkPlusDevice* Tracker;
 
   /* Timestamp of the last tracking item that has been processed already */
   double LastProcessedTrackingDataTimestamp;

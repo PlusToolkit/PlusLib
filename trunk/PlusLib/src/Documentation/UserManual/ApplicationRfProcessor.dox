@@ -8,7 +8,7 @@ See detailed description of conversion parameters on the \ref AlgorithmRfProcess
 
 \section ApplicationRfProcessorExamples Examples
 
-    RfProcessor --config-file=PlusConfiguration_RfProcessingAlgoTest.xml --rf-file=UltrasonixCurvilinearRfData.mha --output-img-file=outputUltrasonixCurvilinearBrightnessData.mha
+    RfProcessor --config-file=PlusConfiguration_ImageProcessingAlgoTest.xml --rf-file=UltrasonixCurvilinearRfData.mha --output-img-file=outputUltrasonixCurvilinearBrightnessData.mha
 
 \section ApplicationRfProcessorHelp Command-line parameters reference
 

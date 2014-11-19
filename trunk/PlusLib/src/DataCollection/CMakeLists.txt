@@ -42,6 +42,7 @@ SET (DataCollection_SRCS
   VirtualDevices/vtkVirtualSwitcher.cxx
   VirtualDevices/vtkVirtualDiscCapture.cxx 
   VirtualDevices/vtkVirtualVolumeReconstructor.cxx
+  ImageProcessor/vtkImageProcessorVideoSource.cxx
   SerialLine.cxx
   itkFcsvReader.cxx
   itkFcsvWriter.cxx
@@ -65,6 +66,7 @@ if (WIN32)
     VirtualDevices/vtkVirtualSwitcher.h
     VirtualDevices/vtkVirtualDiscCapture.h
     VirtualDevices/vtkVirtualVolumeReconstructor.h
+    ImageProcessor/vtkImageProcessorVideoSource.h
     SerialLine.h
     itkFcsvReader.h
     itkFcsvWriter.h
@@ -81,6 +83,7 @@ SET (DataCollection_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/FakeTracking 
+  ${CMAKE_CURRENT_SOURCE_DIR}/ImageProcessor
   ${CMAKE_CURRENT_SOURCE_DIR}/SavedDataSource 
   ${CMAKE_CURRENT_SOURCE_DIR}/UsSimulatorVideo 
   ${CMAKE_CURRENT_SOURCE_DIR}/VirtualDevices  
@@ -814,7 +817,7 @@ SET (DataCollection_LIBS ${DataCollection_LIBS}
   ${ITK_LIBRARIES}
   vtkUsSimulatorAlgo
   vtkVolumeReconstruction
-  vtkRfProcessingAlgo
+  vtkImageProcessingAlgo
   ) 
   
 SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
@@ -831,7 +834,7 @@ TARGET_LINK_LIBRARIES(vtkDataCollection ${DataCollection_LIBS})
 SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkDataCollection CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkDataCollection vtkDataCollection;"${PlusLib_BINARY_DIR}/src/DataCollection/vtkDataCollection.vcproj";vtkPlusCommon;vtkUsSimulatorAlgo;vtkRfProcessingAlgo CACHE INTERNAL "" FORCE)
+SET(vcProj_vtkDataCollection vtkDataCollection;"${PlusLib_BINARY_DIR}/src/DataCollection/vtkDataCollection.vcproj";vtkPlusCommon;vtkUsSimulatorAlgo;vtkImageProcessingAlgo CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Copy external libraries to PLUS_EXECUTABLE_OUTPUT_PATH

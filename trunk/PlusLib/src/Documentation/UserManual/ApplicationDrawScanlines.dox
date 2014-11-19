@@ -8,7 +8,7 @@ Scan line parameters are read from ScanConversion element of the device set conf
 
 \section ApplicationDrawScanLinesExamples Examples
 
-    DrawScanlines --config-file=PlusConfiguration_RfProcessingAlgoTest.xml --config-file=PlusDeviceSet_RfProcessingAlgoCurvilinearTest.xml --source-seq-file=UltrasonixCurvilinearScanConvertedData.mha --output-seq-file=UltrasonixCurvilinearScanConvertedDataWithScanlines.mha
+    DrawScanlines --config-file=PlusConfiguration_ImageProcessingAlgoTest.xml --config-file=PlusDeviceSet_ImageProcessingAlgoCurvilinearTest.xml --source-seq-file=UltrasonixCurvilinearScanConvertedData.mha --output-seq-file=UltrasonixCurvilinearScanConvertedDataWithScanlines.mha
 
 \section ApplicationDrawScanLinesHelp Command-line parameters reference
 

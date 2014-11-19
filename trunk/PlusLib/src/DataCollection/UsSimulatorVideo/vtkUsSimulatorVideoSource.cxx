@@ -19,7 +19,6 @@ vtkStandardNewMacro(vtkUsSimulatorVideoSource);
 //----------------------------------------------------------------------------
 vtkUsSimulatorVideoSource::vtkUsSimulatorVideoSource()
 : UsSimulator(NULL)
-, Tracker(NULL)
 , LastProcessedTrackingDataTimestamp(0)
 , GracePeriodLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG)
 {
@@ -45,7 +44,6 @@ vtkUsSimulatorVideoSource::~vtkUsSimulatorVideoSource()
     this->Disconnect();
   }
 
-  this->SetTracker(NULL);
   this->SetUsSimulator(NULL);
 }
 
@@ -180,6 +178,8 @@ PlusStatus vtkUsSimulatorVideoSource::InternalConnect()
     return PLUS_FAIL;
   }
   aSource->GetBuffer()->SetFrameSize(frameSize);
+  
+  this->LastProcessedTrackingDataTimestamp = 0;
 
   return PLUS_SUCCESS;
 }
@@ -221,7 +221,6 @@ PlusStatus vtkUsSimulatorVideoSource::NotifyConfigured()
   if( this->OutputChannels.size() > 1 )
   {
     LOG_WARNING("vtkUsSimulatorVideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
-    return PLUS_FAIL;
   }
 
   if( this->OutputChannels.empty() )
