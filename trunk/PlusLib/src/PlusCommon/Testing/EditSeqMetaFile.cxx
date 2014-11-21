@@ -71,7 +71,6 @@ PlusStatus ConvertStringToMatrix( std::string &strMatrix, vtkMatrix4x4* matrix);
 PlusStatus AddTransform( vtkTrackedFrameList* trackedFrameList, std::string transformNameToAdd, std::string deviceSetConfigurationFileName );
 PlusStatus FillRectangle( vtkTrackedFrameList* trackedFrameList, const std::vector<int> &fillRectOrigin, const std::vector<int> &fillRectSize, int fillGrayLevel);
 PlusStatus CropRectangle( vtkTrackedFrameList* trackedFrameList, const std::vector<int> &cropRectOrigin, const std::vector<int> &cropRectSize);
-PlusStatus RemoveImageData( vtkTrackedFrameList* trackedFrameList);
 
 const char* FIELD_VALUE_FRAME_SCALAR="{frame-scalar}"; 
 const char* FIELD_VALUE_FRAME_TRANSFORM="{frame-transform}"; 
@@ -482,15 +481,7 @@ int main(int argc, char **argv)
       }
     }
     break;
-  case REMOVE_IMAGE_DATA: 
-    {
-      if (RemoveImageData(trackedFrameList)!=PLUS_SUCCESS)
-      {
-        LOG_ERROR("There is no tracked list");
-        return EXIT_FAILURE;
-      }
-    }
-    break;
+  //Case REMOVE_IMAGE_DATA is not done since it does not require changing trackedFrameList 
   default: 
     {
       LOG_WARNING("Unknown operation is specified"); 
@@ -1024,15 +1015,5 @@ PlusStatus CropRectangle(vtkTrackedFrameList* trackedFrameList, const std::vecto
 }
 
 
-
-PlusStatus RemoveImageData( vtkTrackedFrameList* trackedFrameList)
-{
-  if ( trackedFrameList == NULL )
-  {
-    LOG_ERROR("Tracked frame list is NULL!"); 
-    return PLUS_FAIL; 
-  }
-  return PLUS_SUCCESS; 
-}
 
 
