@@ -481,6 +481,11 @@ int main(int argc, char **argv)
       }
     }
     break;
+  case REMOVE_IMAGE_DATA: 
+    {
+      LOG_DEBUG("It is remove when writing");
+    }
+    break;
   //Case REMOVE_IMAGE_DATA is not done since it does not require changing trackedFrameList 
   default: 
     {
