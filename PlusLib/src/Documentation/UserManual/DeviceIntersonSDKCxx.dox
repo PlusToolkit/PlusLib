@@ -9,7 +9,7 @@
 - Currently not included in any standard package. Supported on 32-bit Windows systems.
 
 \section IntersonSDKCxxInstallation Installation
-- Requires SDK provided by Interson for compilation and USB drivers provided by Interson for running (otherwise Plus application will not start due to missing WDAPI1010.dll).
+- Requires SDK provided by Interson for compilation and USB drivers provided by Interson for running (otherwise Plus application will not start due to missing Interson.dll).
 
 \section IntersonSDKCxxConfigSettings Device configuration settings
 
