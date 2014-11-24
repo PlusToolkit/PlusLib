@@ -481,12 +481,9 @@ int main(int argc, char **argv)
       }
     }
     break;
-  case REMOVE_IMAGE_DATA: 
-    {
-      LOG_DEBUG("It is remove when writing");
-    }
+  case REMOVE_IMAGE_DATA:
+    // No processing is needed, image data is removed when writing the output 
     break;
-  //Case REMOVE_IMAGE_DATA is not done since it does not require changing trackedFrameList 
   default: 
     {
       LOG_WARNING("Unknown operation is specified"); 
