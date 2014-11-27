@@ -1,0 +1,29 @@
+<PlusConfiguration version="2.3">
+  <DataCollection StartupDelaySec="1.0">
+    <Device
+      Id="VideoDevice"
+      Type="IntersonSDKCxxVideo" 
+      DynRangeDb="0.4" 
+      FrequencyMhz="3.75" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UN" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video">
+          <RfProcessing>
+            <ScanConversion 
+              TransducerName="GP 3.5MHz"
+              TransducerGeometry="CURVILINEAR"
+              RadiusStartMm="12.4"
+              RadiusStopMm="117.5"
+              ThetaStartDeg="-45.0"
+              ThetaStopDeg="45.0"
+              OutputImageSizePixel="800 600"
+              TransducerCenterPixel="400 50"
+              OutputImageSpacingMmPerPixel="0.20 0.20" /> 
+          </RfProcessing>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+  </DataCollection>
+</PlusConfiguration>

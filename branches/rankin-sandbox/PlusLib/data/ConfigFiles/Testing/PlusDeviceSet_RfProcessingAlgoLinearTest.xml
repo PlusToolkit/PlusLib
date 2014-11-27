@@ -1,0 +1,23 @@
+<PlusConfiguration version="2.2">
+  <DataCollection>  
+    <Device>
+      <OutputChannels>
+        <OutputChannel Id="ScanConvertOutput">
+          <RfProcessing>
+            <RfToBrightnessConversion 
+              NumberOfHilbertFilterCoeffs="32.0" 
+              BrightnessScale="20.0" />
+            <ScanConversion 
+              TransducerName="Ultrasonix_L9-4/38"
+              TransducerGeometry="LINEAR"
+              ImagingDepthMm="55.0"
+              TransducerWidthMm="38.0"
+              OutputImageSizePixel="260 400"
+              TransducerCenterPixel="120 12"
+              OutputImageSpacingMmPerPixel="0.2 0.2" />
+          </RfProcessing>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+  </DataCollection>        
+</PlusConfiguration>

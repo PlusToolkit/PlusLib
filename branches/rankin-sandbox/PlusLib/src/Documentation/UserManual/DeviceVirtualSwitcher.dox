@@ -1,0 +1,17 @@
+/*!
+\page DeviceVirtualSwitcher Virtual Switcher
+
+\section VirtualSwitcherSupportedPlatforms Included in packages
+- \ref PackageWin32
+- \ref PackageWin64
+- \ref PackageWin32Embedded
+- \ref PackageMacOs
+- \ref PackageLinux
+
+\section VirtualSwitcherConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "VirtualSwitcher" \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{50} 
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+
+*/

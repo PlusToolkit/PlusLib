@@ -1,0 +1,281 @@
+<PlusConfiguration version="2.3">
+
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="PlusServer: Vascular needle insertion simulation"
+      Description="Usage:
+* Install 3D Slicer and its SlicerIGT extension (http://www.slicer.org).
+* Load the SimulatedUltrasound_Scene.mrb scene file (it is in the configuration directory) into 3D Slicer.
+* Change the ProbeToTracker and NeedleToTracker transforms in 3D Slicer to simulate probe and needle movement.
+
+Tool positions are received through OpenIGTLink, simulated images are broadcasted through OpenIGTLink. ProbeToTracker, ReferenceToTracker, NeedleToTracker transforms has to be provided as an input by an OpenIGTLink server.
+To use with Ascension tracker instead of a simulated tracker: enable the Ascension3DG device and disable the OpenIGTLinkTracker device. Ports: 1 Probe, 2 Reference, 3 Stylus."
+    />
+    
+    <!--
+      For getting transforms from 3D Slicer through OpenIGTLink
+      (Slicer requires UseReceivedTimestamps="false", UseLastTransformsOnReceiveTimeout="true")
+    -->
+    <Device
+      Id="TrackerDevice"
+      Type="OpenIGTLinkTracker"
+      MessageType="TRANSFORM"
+      ServerAddress="127.0.0.1"
+      ServerPort="18946"
+      IgtlMessageCrcCheckEnabled="true"
+      UseReceivedTimestamps="false"
+      UseLastTransformsOnReceiveTimeout="true"
+      LocalTimeOffset="0.0"
+      ToolReferenceFrame="Tracker" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Probe"  />
+        <DataSource Type="Tool" Id="Reference"  />
+        <DataSource Type="Tool" Id="Needle"  />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream">
+          <DataSource Id="Probe" />
+          <DataSource Id="Reference" />
+          <DataSource Id="Needle"/>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>    
+    <!-- For getting transforms from an Ascension tracker -->
+    <!--
+    <Device
+      Id="TrackerDevice" 
+      Type="Ascension3DG" 
+      LocalTimeOffsetSec="0.0" 
+      FilterAcWideNotch="1"
+      ToolReferenceFrame="Tracker" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Probe" PortName="0"  />
+        <DataSource Type="Tool" Id="Reference" PortName="1"  />
+        <DataSource Type="Tool" Id="Needle" PortName="2"  />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream" >
+          <DataSource Id="Probe"/>
+          <DataSource Id="Reference"/>
+          <DataSource Id="Needle"/>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+    -->
+
+    <!-- For getting images from the US simulator -->
+    <Device
+      Id="VideoDevice"
+      Type="UsSimulator"
+      LocalTimeOffsetSec="0.0"
+      AcquisitionRate="15" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" />  
+      </DataSources>      
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+      </InputChannels>
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>      
+      <vtkUsSimulatorAlgo
+        ImageCoordinateFrame="Image"
+        ReferenceCoordinateFrame="Reference"
+        IncomingIntensityMwPerCm2="300"
+        BrightnessConversionGamma="0.2"
+        BrighntessConversionOffset="30"
+        NumberOfScanlines="128"
+        NumberOfSamplesPerScanline="1000"
+        NoiseAmplitude="5.0"
+        NoiseFrequency="2.5 3.5 1"
+        NoisePhase="50 20 0"        
+        >
+        <SpatialModel
+          Name="Air"
+          DensityKgPerM3="1.2"
+          SoundVelocityMPerSec="343"
+          AttenuationCoefficientDbPerCmMhz="100.0"
+          BackscatterDiffuseReflectionCoefficient="0.1"
+          SurfaceReflectionIntensityDecayDbPerMm="50"
+        />
+        <SpatialModel
+          Name="GelBlock"
+          ObjectCoordinateFrame="Reference"
+          ModelFile="SimulatedUltrasound_GelBlockModel_Reference.stl"
+          DensityKgPerM3="910"
+          SoundVelocityMPerSec="1540"
+          AttenuationCoefficientDbPerCmMhz="3.0"
+          BackscatterDiffuseReflectionCoefficient="0.1"
+          SurfaceSpecularReflectionCoefficient="0.1"
+          SurfaceDiffuseReflectionCoefficient="0.0"
+          TransducerSpatialModelMaxOverlapMm="50"
+        />        
+        <SpatialModel
+          Name="Vessel"
+          ObjectCoordinateFrame="Reference"
+          ModelFile="SimulatedUltrasound_VesselModel_Reference.stl"
+          ModelToObjectTransform="
+            1 0 0 0
+            0 1 0 0
+            0 0 1 0
+            0 0 0 1"
+          DensityKgPerM3="1800"
+          SoundVelocityMPerSec="2000"
+          AttenuationCoefficientDbPerCmMhz="0.0001"
+          BackscatterDiffuseReflectionCoefficient="0.03"          
+          SurfaceSpecularReflectionCoefficient="0.1"
+          SurfaceDiffuseReflectionCoefficient="0.0"
+        />
+        <SpatialModel
+          Name="Needle"
+          ObjectCoordinateFrame="NeedleTip"
+          ModelFile="SimulatedUltrasound_NeedleModel_NeedleTip.stl"
+          ModelToObjectTransform="
+            1 0 0 0
+            0 1 0 0
+            0 0 1 0
+            0 0 0 1"
+          DensityKgPerM3="2000"
+          SoundVelocityMPerSec="2000"      
+          AttenuationCoefficientDbPerCmMhz="8.0"
+          BackscatterDiffuseReflectionCoefficient="0.2"
+          SurfaceSpecularReflectionCoefficient="0.1"
+          SurfaceDiffuseReflectionCoefficient="0.0"
+          SurfaceReflectionIntensityDecayDbPerMm="5"
+        />
+        <RfProcessing>
+          <ScanConversion
+            TransducerName="Ultrasonix_L9-4/38"
+            TransducerGeometry="LINEAR"
+            ImagingDepthMm="60.0"
+            TransducerWidthMm="40.0"
+            OutputImageSizePixel="820 616"
+            TransducerCenterPixel="410 0"
+            OutputImageSpacingMmPerPixel="0.084 0.087"/>
+          <!-- Example for a curvilinear transducer: -->
+          <xScanConversion
+            TransducerName="Ultrasonix_C5-2/60"
+            TransducerGeometry="CURVILINEAR"
+            RadiusStartMm="60.0"
+            RadiusStopMm="120.0"
+            ThetaStartDeg="-28.0"
+            ThetaStopDeg="28.0"
+            TransducerCenterPixel="410 100"
+            OutputImageSizePixel="820 616"
+            OutputImageSpacingMmPerPixel="0.084 0.087" />
+        </RfProcessing>
+      </vtkUsSimulatorAlgo>
+
+    </Device>
+
+    <!-- For getting images from a real US system -->    
+    <!--
+    <Device
+      Id="VideoDevice"
+      Type="SonixVideo" 
+      AcquisitionRate="30" 
+      LocalTimeOffsetSec="0.0"
+      IP="localhost" 
+      Depth="50" 
+      CompressionStatus="0"
+      SoundVelocity="1500">
+      <DataSources>
+        <DataSource
+          Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" 
+          />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video"/>
+      </OutputChannels>
+    </Device>
+    -->
+    
+    <Device 
+      Id="TrackedVideoDevice" 
+      Type="VirtualMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="VideoStream" />
+      </InputChannels>
+      
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream"/>
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="RecordingTest.mha"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="TrackedVideoStream" />
+      </InputChannels>
+    </Device>
+
+    <Device
+      Id="VolumeReconstructorDevice"
+      Type="VirtualVolumeReconstructor"
+      OutputVolDeviceName="RecVol_Reference">
+      <InputChannels>
+        <InputChannel Id="TrackedVideoStream" />
+      </InputChannels>
+      <VolumeReconstruction
+        ImageCoordinateFrame="Image" ReferenceCoordinateFrame="Reference"
+        Interpolation="LINEAR" Optimization="NONE" CompoundingMode="MEAN" FillHoles="ON" NumberOfThreads="2"
+        ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
+        OutputOrigin="60 -10 -15" OutputExtent="0 334 0 396 0 542" OutputSpacing="0.15 0.15 0.15" >
+        <HoleFilling>
+          <HoleFillingElement
+            Type="STICK"     
+            StickLengthLimit="9"
+            NumberOfSticksToUse="1" />
+        </HoleFilling>
+      </VolumeReconstruction>
+    </Device>
+    
+  </DataCollection>
+
+  <PlusOpenIGTLinkServer
+    MaxNumberOfIgtlMessagesToSend="10"
+    MaxTimeSpentWithProcessingMs="50"
+    ListeningPort="18944"
+    SendValidTransformsOnly="true"
+    OutputChannelId="TrackedVideoStream" >
+    <DefaultClientInfo>
+      <MessageTypes>
+        <Message Type="IMAGE" />
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames>
+        <Transform Name="ProbeToReference" />
+        <Transform Name="NeedleTipToReference" />        
+      </TransformNames>
+    <ImageNames>
+      <Image Name="Image" EmbeddedTransformToFrame="Reference" />
+    </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+  <CoordinateDefinitions>
+    <Transform From="NeedleTip" To="Needle"
+      Matrix="
+         1 0 0 0
+         0 1 0 0
+         0 0 1 0
+         0 0 0 1" />	
+    <Transform From="Image" To="Probe"
+      Matrix="
+        -0.00228039 0.0860508 -0.00121134 52.5973
+        -0.0860501 -0.00229763 -0.00122624 35.9178
+        -0.00125802 0.0011783 0.0860722 16.3705
+        0 0 0 1"
+      Error="0.582721" Date="2012.02.06 17:57:00" />
+    <Transform From="Image" To="TransducerOriginPixel"
+      Matrix="1 0 0 -410
+              0 1 0 5
+              0 0 1 0
+              0 0 0 1" />    
+  </CoordinateDefinitions> 
+
+</PlusConfiguration>

@@ -1,0 +1,98 @@
+<PlusConfiguration version="2.1">
+
+  <DataCollection StartupDelaySec="1.0">
+    <DeviceSet 
+      Name="TEST PlusServer remote control using OpenIGTLink commands, no hardware is needed" 
+      Description="Read data from file and stream it through OpenIGTLink. Can be used to test commands, such as start/stop recording and reconstruct volume" />
+      
+    <Device
+      Id="TrackedVideoDevice"
+      Type="SavedDataSource"
+      SequenceMetafile="NwirePhantomFreehandCropped.mha"
+      UseData="IMAGE_AND_TRANSFORM"
+      UseOriginalTimestamps="FALSE"
+      AcquisitionRate="3.0"
+      RepeatEnabled="TRUE">
+      <DataSources>
+        <DataSource Type="Video" Id="Video"  />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="OpenIGTTrackedVideoRecordingTest.mha"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="TrackedVideoStream" />
+      </InputChannels>
+    </Device>
+
+    <Device
+      Id="VolumeReconstructorDevice"
+      Type="VirtualVolumeReconstructor">
+      <InputChannels>
+        <InputChannel Id="TrackedVideoStream" />
+      </InputChannels>
+      <VolumeReconstruction
+        ImageCoordinateFrame="Image" ReferenceCoordinateFrame="Reference"
+        Interpolation="LINEAR" Optimization="NONE" CompoundingMode="MEAN" FillHoles="OFF" NumberOfThreads="2"
+        ClipRectangleOrigin="0 0" ClipRectangleSize="200 150" OutputOrigin="-10 -128 -36" OutputExtent="0 20 0 15 0 12" OutputSpacing="1.0 1.0 1.0" />
+    </Device>
+
+    </DataCollection>
+
+  <CoordinateDefinitions>
+    <Transform From="Image" To="TransducerOriginPixel"
+      Matrix="1 0 0 -410 0 1 0 5 0 0 1 0 0 0 0 1"
+      Date="2011.12.06 17:57:00" />
+    <Transform From="Phantom" To="Reference" Matrix="1 0 0 0  0 1 0 0  0 0 1 0 0 0 0 1" Error="0.0" />
+    <!-- Image was cropped with a rectangle origin (335, 285), size (200, 150). The original non-cropped image is renamed to ImageFull. Therefore, transform between the cropped image (Image) and the original image (ImageFull) is the following: -->
+    <Transform From="Image" To="ImageFull"
+      Matrix="
+        1 0 0 335
+        0 1 0 285
+        0 0 1 0
+        0 0 0 1" />
+    <Transform From="ImageFull" To="Probe"
+      Matrix="
+        -0.0094 -0.0739 -0.0028 -103.5322
+        0.0774 -0.0076 -0.0049 -43.1227
+        0.0046 -0.0032 0.0760 -93.3
+        0 0 0 1"
+      Error="0.508027" Date="2011.08.19 14:11:53" />
+    <Transform From="StylusTip" To="Stylus"
+      Matrix="
+        1 0 0 203.772
+        0 1 0 -12.283
+        0 0 1 1.17469
+        0 0 0 1"
+      Error="0.582721" Date="012712_152030"
+    />        
+  </CoordinateDefinitions>   
+  
+  <PlusOpenIGTLinkServer
+    MaxNumberOfIgtlMessagesToSend="10"
+    MaxTimeSpentWithProcessingMs="50"
+    ListeningPort="18944"
+    SendValidTransformsOnly="true" 
+    OutputChannelId="TrackedVideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="ProbeToReference" /> 
+        <Transform Name="StylusTipToReference" />
+      </TransformNames>
+    <ImageNames>
+      <Image Name="Image" EmbeddedTransformToFrame="Reference" />
+    </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+  
+</PlusConfiguration>
