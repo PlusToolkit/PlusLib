@@ -26,12 +26,12 @@ MODEL_TABLE_ROW(
 MODEL_TABLE_ROW(
   ID "MarkerHolder_120mm-even_short"
   DESCRIPTION "Holder for visible-light printed black&white optical tracker markers (such as MicronTracker)."
-  PRINTABLE_FILES "TrackingFixtures/MarkerHolder_120mm-even_long.stl" "TrackingFixtures/Marker_01-04.pdf"
+  PRINTABLE_FILES "TrackingFixtures/MarkerHolder_120mm-even_short.stl" "TrackingFixtures/Marker_01-04.pdf"
   )
 MODEL_TABLE_ROW(
   ID "MarkerHolder_120mm-odd_short"
   DESCRIPTION "Holder for visible-light printed black&white optical tracker markers (such as MicronTracker)."
-  PRINTABLE_FILES "TrackingFixtures/MarkerHolder_120mm-odd_long.stl" "TrackingFixtures/Marker_01-04.pdf"
+  PRINTABLE_FILES "TrackingFixtures/MarkerHolder_120mm-odd_short.stl" "TrackingFixtures/Marker_01-04.pdf"
   )
 MODEL_TABLE_END()
 
@@ -48,7 +48,7 @@ MODEL_TABLE_ROW(
   ID "SPL40-1.0"
   IMAGE_FILE "SimProbeLinear/SPL40-1.0.png"
   PRINTABLE_FILES "SimProbeLinear/SPL40-1.0.stl"  
-  EDIT_LINK "${PLUS_MODEL_CATALOG_URL}/SimProbeLinear"
+  EDIT_LINK "${CATALOG_URL}/SimProbeLinear"
   DESCRIPTION "Simulated 40mm wide linear ultrasound probe."
   )
 MODEL_TABLE_END()
@@ -58,7 +58,7 @@ MODEL_TABLE_ROW(
   ID "fCal-2.0"
   IMAGE_FILE "fCalPhantom/fCal_2/PhantomDefinition_fCal_2.0_Wiring_2.0.png"
   PRINTABLE_FILES "fCalPhantom/fCal_2/fCal_2.0.stl"
-  EDIT_LINK "${PLUS_MODEL_CATALOG_URL}/fCalPhantom/fCal_2"
+  EDIT_LINK "${CATALOG_URL}/fCalPhantom/fCal_2"
   DESCRIPTION "Phantom for freehand spatial ultrasound calibration for shallow depth (up to 9 cm)."
   )
 MODEL_TABLE_ROW(
@@ -70,7 +70,7 @@ MODEL_TABLE_ROW(
     "fCalPhantom/fCal_3/fCal_3.1_front.stl"
     "fCalPhantom/fCal_3/fCal_3.1_left.stl"
     "fCalPhantom/fCal_3/fCal_3.1_spacer.stl"
-  EDIT_LINK "${PLUS_MODEL_CATALOG_URL}/fCalPhantom/fCal_3"
+  EDIT_LINK "${CATALOG_URL}/fCalPhantom/fCal_3"
   DESCRIPTION "Phantom for freehand spatial ultrasound calibration for deep structures (up to 30 cm)."
   )
 MODEL_TABLE_END()  

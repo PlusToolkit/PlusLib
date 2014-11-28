@@ -24,8 +24,8 @@ FIND_FILE(Subversion_SVN_EXECUTABLE svn${CMAKE_EXECUMODEL_TABLE_SUFFIX}
   )
 FIND_PACKAGE(Subversion REQUIRED)
 
-Subversion_WC_INFO("${CMAKE_CURRENT_SOURCE_DIR}" PlusModelCatalog)
-SET(PLUS_MODEL_CATALOG_URL "https://www.assembla.com/code/plus/subversion/nodes/${PlusModelCatalog_WC_REVISION}/trunk/PlusModelCatalog")
+Subversion_WC_INFO("${CMAKE_CURRENT_SOURCE_DIR}" PlusCatalog)
+SET(CATALOG_URL "https://www.assembla.com/code/plus/subversion/nodes/${PlusCatalog_WC_REVISION}/trunk/PlusModelCatalog")
 SET(HTML_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/html")
 
 INCLUDE(CatalogHtmlWriterMacros.cmake)
