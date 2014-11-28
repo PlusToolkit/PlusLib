@@ -33,13 +33,10 @@ MODEL_TABLE_ROW(
   DESCRIPTION "Holder for visible-light printed black&white optical tracker markers (such as MicronTracker)."
   PRINTABLE_FILES "TrackingFixtures/MarkerHolder_120mm-odd_short.stl" "TrackingFixtures/Marker_01-04.pdf"
   )
-
 # Add remaining experimental tools
-FOREACH(MODELFILE
- CauteryHolder_1.0 MarkerHolder_120mm_Stickable_1.0 MarkerHolder_120mm_Winged_1.0 MarkerHolder_120mm-Short_2.0 NeedleClip-Assembly_1.1 NeedleClip-Assembly_1.5mm_2.0 NeedleGrabberFlappy-Assembly_1.0 NeedleGrabber-SensorBagHolder_1.0 NeedleHubClip-Assembly_1.5mm_1.0 OrientationsLR_1.0 Plug-L_60mm_3.0 SensorHolder_Wing_1.0 SensorHolder-GlueHoles-Ordered_2mm_1.0 SensorHolder-Ordered_2mm_1.0 SensorHolder-Ordered-HolesInterface_2mm_1.0 Stylus_Candycane_1.0 Stylus_Candycane_70mm_1.0)
+FOREACH(MODELFILE CauteryHolder_1.0 MarkerHolder_120mm_Stickable_1.0 MarkerHolder_120mm_Winged_1.0 MarkerHolder_120mm-Short_2.0 NeedleClip-Assembly_1.1 NeedleClip-Assembly_1.5mm_2.0 NeedleHubClip-Assembly_1.5mm_1.0 NeedleGrabberFlappy-Assembly_1.0 NeedleGrabber-SensorBagHolder_1.0 OrientationsLR_1.0 Plug-L_60mm_3.0 SensorHolder_Wing_1.0 SensorHolder-GlueHoles-Ordered_2mm_1.0 SensorHolder-Ordered_2mm_1.0 SensorHolder-Ordered-HolesInterface_2mm_1.0)
   MODEL_TABLE_ROW(ID ${MODELFILE} DESCRIPTION "Experimental") 
 ENDFOREACH()
-  
 MODEL_TABLE_END()
 
 MODEL_TABLE_START("Tools" "See below a list of tools for tracking, calibration, and simulation.")
@@ -51,6 +48,10 @@ MODEL_TABLE_ROW(
   ID "Stylus_100mm"
   DESCRIPTION "Pointer tool with built-in sensor holder. 100mm long, sharp tip."
   )
+# Add remaining experimental tools
+FOREACH(MODELFILE Stylus_Candycane_1.0 Stylus_Candycane_70mm_1.0)
+  MODEL_TABLE_ROW(ID ${MODELFILE} DESCRIPTION "Experimental") 
+ENDFOREACH()
 MODEL_TABLE_ROW(
   ID "SPL40-1.0"
   PRINTABLE_FILES "SimProbeLinear/SPL40-1.0.stl"  
