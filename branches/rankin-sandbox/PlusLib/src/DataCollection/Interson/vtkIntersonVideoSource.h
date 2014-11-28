@@ -40,8 +40,6 @@ public:
 
   virtual std::string GetSdkVersion();
 
-  vtkUsImagingParameters* ImagingParameters;
-
   void SetSectorPercent(double value) { this->ImagingParameters->SetSectorPercent(value); }
   void SetIntensity(int value) { this->ImagingParameters->SetIntensity(value); }
   void SetContrast(int value) { this->ImagingParameters->SetContrast(value); }
@@ -122,6 +120,8 @@ protected:
   // For internal storage of additional variables (to minimize the number of included headers)
   class vtkInternal;
   vtkInternal* Internal;
+
+  vtkUsImagingParameters* ImagingParameters;
 
   bool Interpolate;
   bool BidirectionalScan;

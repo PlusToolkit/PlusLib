@@ -21,6 +21,7 @@ Siddharth Vikal (Queen's University, Kingston, Ontario, Canada)
 
 #include "vtkPlusDevice.h"
 
+class vtkUsImagingParameters;
 class ulterius;
 class uDataDesc;
 enum uData;
@@ -269,25 +270,31 @@ protected:
 
   vtkSetMacro(DetectDepthSwitching, bool);
   vtkSetMacro(DetectPlaneSwitching, bool);  
-  vtkSetMacro(SoundVelocity, int);
 
   ulterius* Ult;
 
-  int Frequency;
-  int Depth;
-  int Sector; 
-  int Gain; 
-  int DynRange; 
-  int Zoom; 
+  /*
+  * FrequencyMhz
+  * DepthMm
+  * SectorPercent
+  * GainPercent[initialgain, midgain, fargain] -- only initialgain used
+  * Intensity
+  * Contrast
+  * DynRangeDb
+  * ZoomFactor
+  * SoundVelocity
+  */
+  vtkUsImagingParameters* ImagingParameters;
+
   int AcquisitionDataType;
   int ImagingMode;
   int OutputFormat;
-  int CompressionStatus; 
+  int CompressionStatus;
   int Timeout;
   int ConnectionSetupDelayMs;
   int SharedMemoryStatus;
   RfAcquisitionModeType RfAcquisitionMode;
-  int SoundVelocity;
+  
   bool DetectDepthSwitching;
   bool DetectPlaneSwitching;
 

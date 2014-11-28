@@ -202,7 +202,7 @@ vtkIntersonVideoSource::vtkIntersonVideoSource()
 
   this->RequireImageOrientationInConfiguration = true;
 
-  this->ImagingParameters = new vtkUsImagingParameters(this);
+  this->ImagingParameters = vtkUsImagingParameters::New();
   this->ClockDivider = 1;
   this->PulseFrequencyDivider = 2;
 
@@ -235,6 +235,8 @@ vtkIntersonVideoSource::~vtkIntersonVideoSource()
   {
     this->Disconnect();
   }
+
+  this->ImagingParameters->Delete();
 
   delete this->Internal;
   this->Internal=NULL;
@@ -325,7 +327,7 @@ PlusStatus vtkIntersonVideoSource::InternalConnect()
   // set the display window depth for this probe
   usbSetWindowDepth(this->Internal->ProbeHandle, this->ImageSize[1]);
   // set the assumed velocity (m/s)
-  double soundVelocity = -1 ;
+  int soundVelocity = -1;
   this->ImagingParameters->GetSoundVelocity(soundVelocity);
   if (soundVelocity>0)
   {

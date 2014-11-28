@@ -8,30 +8,33 @@ See License.txt for details.
 The following copyright notice is applicable to parts of this file:
 Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada
 All rights reserved.
-Authors include: Danielle Pace
-(Robarts Research Institute and The University of Western Ontario)
+Authors include:
+Danielle Pace (Robarts Research Institute and The University of Western Ontario)
 Siddharth Vikal (Queen's University, Kingston, Ontario, Canada)
 =========================================================================*/  
 
+// PLUS includes
 #include "vtkImageData.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkMultiThreader.h"
 #include "vtkObjectFactory.h"
+#include "vtkPlusBuffer.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusBuffer.h"
 #include "vtkSonixVideoSource.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkTimerLog.h"
 #include "vtkUnsignedCharArray.h"
 #include "vtkUsImagingParameters.h"
+
+// VTK includes
 #include "vtksys/SystemTools.hxx"
 
-#include "ulterius.h"
-#include "ulterius_def.h"
+// Ulterius SDK includes
 #include "ImagingModes.h" // Ulterius imaging modes
 
+// System includes
 #include <ctype.h>
 
 // because of warnings in windows header push and pop the warning level
@@ -77,14 +80,7 @@ static const int CONNECT_RETRY_DELAY_SEC=1.0;
 //----------------------------------------------------------------------------
 vtkSonixVideoSource::vtkSonixVideoSource()
 : SonixIP(NULL)
-, Frequency(-1)
-, Depth(-1)
-, Sector(-1)
-, Gain(-1)
-, DynRange(-1)
-, Zoom(-1)
 , Timeout(-1)
-, SoundVelocity(-1)
 , ConnectionSetupDelayMs(3000)
 , CompressionStatus(0)
 , AcquisitionDataType(udtBPost)
@@ -108,12 +104,16 @@ vtkSonixVideoSource::vtkSonixVideoSource()
     LOG_WARNING("There is already an active vtkSonixVideoSource device. Ultrasonix SDK only supports one connection at a time, so the existing device is now deactivated and the newly created class is activated instead.");
   }
   vtkSonixVideoSource::ActiveSonixDevice = this;
+
+  this->ImagingParameters = vtkUsImagingParameters::New();
 }
 
 //----------------------------------------------------------------------------
 vtkSonixVideoSource::~vtkSonixVideoSource()
 {
   vtkSonixVideoSource::ActiveSonixDevice = NULL;
+
+  this->ImagingParameters->Delete();
 
   this->SetSonixIP(NULL);
   delete this->Ult;
@@ -134,8 +134,8 @@ void vtkSonixVideoSource::PrintSelf(ostream& os, vtkIndent indent)
   this->Superclass::PrintSelf(os,indent);
 
   os << indent << "Imaging mode: " << this->ImagingMode << "\n";
-  os << indent << "Frequency: " << this->Frequency << "MHz\n";
 
+  this->ImagingParameters->PrintSelf(os, indent);
 }
 
 //----------------------------------------------------------------------------
@@ -448,14 +448,16 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
 
     // Set up imaging parameters
     // Parameter value <0 means that the parameter should be kept unchanged
-    if (this->Frequency >= 0 && SetFrequency(this->Frequency) != PLUS_SUCCESS) { continue; }
-    if (this->Depth >= 0 && SetDepth(this->Depth) != PLUS_SUCCESS) { continue; }
-    if (this->Sector >= 0 && SetSector(this->Sector) != PLUS_SUCCESS) { continue; }
-    if (this->Gain >= 0 && SetGain(this->Gain) != PLUS_SUCCESS) { continue; }
-    if (this->DynRange >= 0 && SetDynRange(this->DynRange) != PLUS_SUCCESS) { continue; }
-    if (this->Zoom >= 0 && SetZoom(this->Zoom) != PLUS_SUCCESS) { continue; }
-    if (this->CompressionStatus >= 0 && SetCompressionStatus(this->CompressionStatus) != PLUS_SUCCESS) { continue; }    
-    if (this->SoundVelocity > 0 && this->SetParamValue( "soundvelocity", this->SoundVelocity, this->SoundVelocity ) != PLUS_SUCCESS )
+    if (this->ImagingParameters->GetFrequencyMhz() >= 0 && SetFrequency(this->ImagingParameters->GetFrequencyMhz()) != PLUS_SUCCESS) { continue; }
+    if (this->ImagingParameters->GetDepthMm() >= 0 && SetDepth(this->ImagingParameters->GetDepthMm()) != PLUS_SUCCESS) { continue; }
+    if (this->ImagingParameters->GetSectorPercent() >= 0 && SetSector(this->ImagingParameters->GetSectorPercent()) != PLUS_SUCCESS) { continue; }
+    double gainPercent[3]; this->ImagingParameters->GetGainPercent(gainPercent);
+    if (gainPercent[0] >= 0 && SetGain(gainPercent[0]) != PLUS_SUCCESS) { continue; }
+    if (this->ImagingParameters->GetDynRangeDb() >= 0 && SetDynRange(this->ImagingParameters->GetDynRangeDb()) != PLUS_SUCCESS) { continue; }
+    if (this->ImagingParameters->GetZoomFactor() >= 0 && SetZoom(this->ImagingParameters->GetZoomFactor()) != PLUS_SUCCESS) { continue; }
+    if (this->CompressionStatus >= 0 && SetCompressionStatus(this->CompressionStatus) != PLUS_SUCCESS) { continue; }
+    int soundVelocity; this->ImagingParameters->GetSoundVelocity(soundVelocity);
+    if (soundVelocity > 0 && this->SetParamValue("soundvelocity", soundVelocity, soundVelocity) != PLUS_SUCCESS )
     {
       continue;
     }
@@ -557,16 +559,12 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigE
   // if both attributes, build [plane, depth]->channel lookup table
   // if one, build [attr]->channel lookup table
 
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Sector, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Gain, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, DynRange, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Zoom, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Frequency, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, CompressionStatus, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, SharedMemoryStatus, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Timeout, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, SoundVelocity, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ConnectionSetupDelayMs, deviceConfig);
+
+  this->ImagingParameters->ReadConfiguration(deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -574,16 +572,16 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigE
 //-----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::WriteConfiguration(vtkXMLDataElement* rootConfig)
 {
-  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(imageAcquisitionConfig, rootConfig);
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfig);
 
   if (this->ImagingMode == BMode)
   {
-    imageAcquisitionConfig->SetAttribute("ImagingMode", "BMode");
+    deviceConfig->SetAttribute("ImagingMode", "BMode");
   }
 #if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6) // RF acquisition mode is not supported on Ultrasonix SDK 6.x and above - see https://www.assembla.com/spaces/plus/tickets/489-add-rf-image-acquisition-support-on-ulterius-6-x
   else if (this->ImagingMode == RfMode)
   {
-    imageAcquisitionConfig->SetAttribute("ImagingMode", "RfMode");
+    deviceConfig->SetAttribute("ImagingMode", "RfMode");
   }
 #endif
   else
@@ -591,16 +589,12 @@ PlusStatus vtkSonixVideoSource::WriteConfiguration(vtkXMLDataElement* rootConfig
     LOG_ERROR("Saving of unsupported ImagingMode requested!");
   }
 
-  imageAcquisitionConfig->SetAttribute("IP", this->SonixIP);
-  imageAcquisitionConfig->SetIntAttribute("Depth", this->Depth);
-  imageAcquisitionConfig->SetIntAttribute("Sector", this->Sector);
-  imageAcquisitionConfig->SetIntAttribute("Gain", this->Gain);
-  imageAcquisitionConfig->SetIntAttribute("DynRange", this->DynRange);
-  imageAcquisitionConfig->SetIntAttribute("Zoom", this->Zoom);
-  imageAcquisitionConfig->SetIntAttribute("Frequency", this->Frequency);
-  imageAcquisitionConfig->SetIntAttribute("CompressionStatus", this->CompressionStatus);
-  imageAcquisitionConfig->SetIntAttribute("Timeout", this->Timeout);
-  imageAcquisitionConfig->SetDoubleAttribute("ConnectionSetupDelayMs", this->ConnectionSetupDelayMs);
+  deviceConfig->SetAttribute("IP", this->SonixIP);
+  deviceConfig->SetDoubleAttribute("CompressionStatus", this->CompressionStatus);
+  deviceConfig->SetDoubleAttribute("Timeout", this->Timeout);
+  deviceConfig->SetDoubleAttribute("ConnectionSetupDelayMs", this->ConnectionSetupDelayMs);
+
+  this->ImagingParameters->WriteConfiguration(deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -656,7 +650,13 @@ PlusStatus vtkSonixVideoSource::GetParamValue(char* paramId, int& paramValue, in
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::SetFrequency(int aFrequency)
 {
-  return SetParamValue("b-freq", aFrequency, this->Frequency);
+  int validatedValue;
+  PlusStatus result = SetParamValue("b-freq", aFrequency, validatedValue);
+  if( result == PLUS_SUCCESS )
+  {
+    this->ImagingParameters->SetFrequencyMhz(aFrequency);
+  }
+  return result;
 }
 
 //----------------------------------------------------------------------------
@@ -668,7 +668,15 @@ PlusStatus vtkSonixVideoSource::GetFrequency(int& aFrequency)
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::SetDepth(int aDepth)
 {
-  return SetParamValue("b-depth", aDepth, this->Depth);
+  int validatedValue;
+  PlusStatus result = SetParamValue("b-depth", aDepth, validatedValue);
+  if( result == PLUS_SUCCESS )
+  {
+    // Double to int
+    double freq = ROUND(validatedValue);
+    this->ImagingParameters->SetDepthMm(validatedValue);
+  }
+  return result;
 }
 
 //----------------------------------------------------------------------------
