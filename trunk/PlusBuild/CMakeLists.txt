@@ -73,6 +73,7 @@ OPTION(PLUSBUILD_USE_3DSlicer "Use 3D Slicer and it's external projects (like IT
 OPTION(PLUSBUILD_USE_OpenIGTLink "Use OpenIGTLink" ON)
 OPTION(PLUSBUILD_BUILD_SHARED_LIBS "Build shared libs" ON)
 OPTION(PLUSBUILD_BUILD_PLUSAPP "Build PlusApp applications" ON)
+OPTION(PLUSBUILD_BUILD_PLUSMODELCATALOG "Build Plus Model Catalog" OFF)
 
 # Documentation
 option(PLUSBUILD_DOCUMENTATION "Build Plus documentation (Doxygen)." OFF)
@@ -382,9 +383,10 @@ IF( PLUS_USE_INTERSONSDKCXX_VIDEO AND NOT IntersonSDKCxx_DIR )
 ENDIF()
 
 SET(PlusApp_DEPENDENCIES PlusLib)
+SET(PlusModelCatalog_DEPENDENCIES PlusLib)
 
 #------------------------------------------------------------------------------
-# Set up project for PlusLib and PlusApp
+# Set up project for PlusLib, PlusApp, and PlusModelCatalog
 #------------------------------------------------------------------------------
 
 INCLUDE(External_PlusLib.cmake)
@@ -392,6 +394,10 @@ INCLUDE(External_PlusLib.cmake)
 IF(PLUSBUILD_BUILD_PLUSAPP) 
   INCLUDE(External_PlusApp.cmake)
 ENDIF(PLUSBUILD_BUILD_PLUSAPP)    
+
+IF(PLUSBUILD_BUILD_PLUSMODELCATALOG) 
+  INCLUDE(External_PlusModelCatalog.cmake)
+ENDIF(PLUSBUILD_BUILD_PLUSMODELCATALOG)    
 
 #-----------------------------------------------------------------------------
 # Generate convenience files for automatic update build and test
