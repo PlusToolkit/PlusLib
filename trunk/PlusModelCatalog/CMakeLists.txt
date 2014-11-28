@@ -30,3 +30,16 @@ SET(HTML_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/html")
 
 INCLUDE(CatalogHtmlWriterMacros.cmake)
 INCLUDE(CatalogContents.cmake)
+
+# The solution has to be re-built each time when the contents is modified,
+# create a convenience batch file that performs this.
+STRING(TOUPPER ${CMAKE_MAKE_PROGRAM} MAKE_PROGRAM_UPPERCASE)
+IF (${MAKE_PROGRAM_UPPERCASE} MATCHES "MSBUILD")
+  SET(IS_MAKE_PROGRAM_MSBUILD TRUE)
+ELSE()
+  SET(IS_MAKE_PROGRAM_MSBUILD FALSE)
+ENDIF()
+CONFIGURE_FILE(
+  CreateModelCatalog.bat.in
+  ${CMAKE_CURRENT_BINARY_DIR}/CreateModelCatalog.bat
+  )
