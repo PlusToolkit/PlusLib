@@ -37,7 +37,17 @@ Currently contains the following items
 class vtkDataCollectionExport vtkUsImagingParameters : public vtkObject
 {
   typedef std::map<std::string, std::string> ParameterNameMap;
-  typedef std::map<std::string, bool> ParameterValidityMap;
+  typedef std::map<std::string, bool> ParameterSetMap;
+public:
+  static const char* KEY_FREQUENCY;
+  static const char* KEY_DEPTH;
+  static const char* KEY_DYNRANGE;
+  static const char* KEY_GAIN;
+  static const char* KEY_INTENSITY;
+  static const char* KEY_CONTRAST;
+  static const char* KEY_SECTOR;
+  static const char* KEY_ZOOM;
+  static const char* KEY_SOUNDVELOCITY;
 
 public:
   static vtkUsImagingParameters* New();
@@ -56,6 +66,19 @@ public:
     \param deviceConfig the XML element of the device
     */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* deviceConfig);
+
+  /*!
+    Request a stored value by key name
+    \param paramName the key value to retrieve
+    \param outputValue the output variable to write to
+    */
+  PlusStatus GetValue(const char* paramName, double& outputValue);
+  /*!
+    Set a stored value by key name
+    \param paramName the key value to retrieve
+    \param aValue the value to write
+    */
+  PlusStatus SetValue(const char* paramName, double aValue);
 
   /*! Set ultrasound transmitter frequency (MHz) */
   PlusStatus SetFrequencyMhz(double aFrequencyMhz);
@@ -183,7 +206,7 @@ protected:
   virtual ~vtkUsImagingParameters();
 
   ParameterNameMap ParameterValues;
-  ParameterValidityMap ParameterValidity;
+  ParameterSetMap ParameterSet;
 };
 
 #endif

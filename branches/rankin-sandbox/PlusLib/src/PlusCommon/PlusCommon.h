@@ -44,7 +44,7 @@ enum PlusImagingMode
 #endif
 
 /* Define round function */
-#define ROUND(x) (if(x>0){static_cast<int>(floor( x + 0.5 ))}else{static_cast<int>(ceil( x - 0.5 ))})
+#define ROUND(x) (x<0?ceil((x)-0.5):floor((x)+0.5))
 
 ///////////////////////////////////////////////////////////////////
 // Logging

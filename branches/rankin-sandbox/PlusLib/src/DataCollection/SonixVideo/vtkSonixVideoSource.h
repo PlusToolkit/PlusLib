@@ -253,10 +253,18 @@ protected:
   /*! For internal use only */
   PlusStatus AddFrameToBuffer(void * data, int type, int sz, bool cine, int frmnum);
 
-  /*! For internal use only */
-  PlusStatus SetParamValue(char* paramId, int paramValue, int &validatedParamValue);
-  /*! For internal use only */
-  PlusStatus GetParamValue(char* paramId, int& paramValue, int &validatedParamValue);
+  /*! For internal use only 
+    \param paramId ultrasonix api string to identify this parameter
+    \param paramValue the value to set
+    \param paramName the vtkUsImagingParameter key associated with this value
+    */
+  PlusStatus SetParamValue(char* paramId, int paramValue, const char* paramName);
+  /*! For internal use only 
+    \param paramId ultrasonix api string to identify this parameter
+    \param paramValue the value to get
+    \param paramName the vtkUsImagingParameter key associated with this value
+    */
+  PlusStatus GetParamValue(char* paramId, int& paramValue, const char* paramName);
 
   bool HasDataType( uData aValue );
   bool WantDataType( uData aValue );

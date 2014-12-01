@@ -456,8 +456,7 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
     if (this->ImagingParameters->GetDynRangeDb() >= 0 && SetDynRange(this->ImagingParameters->GetDynRangeDb()) != PLUS_SUCCESS) { continue; }
     if (this->ImagingParameters->GetZoomFactor() >= 0 && SetZoom(this->ImagingParameters->GetZoomFactor()) != PLUS_SUCCESS) { continue; }
     if (this->CompressionStatus >= 0 && SetCompressionStatus(this->CompressionStatus) != PLUS_SUCCESS) { continue; }
-    int soundVelocity; this->ImagingParameters->GetSoundVelocity(soundVelocity);
-    if (soundVelocity > 0 && this->SetParamValue("soundvelocity", soundVelocity, soundVelocity) != PLUS_SUCCESS )
+    if (this->ImagingParameters->GetSoundVelocity() > 0 && this->SetParamValue("soundvelocity", this->ImagingParameters->GetSoundVelocity(), vtkUsImagingParameters::KEY_SOUNDVELOCITY) != PLUS_SUCCESS )
     {
       continue;
     }
@@ -611,12 +610,12 @@ std::string vtkSonixVideoSource::GetLastUlteriusError()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSonixVideoSource::SetParamValue(char* paramId, int paramValue, int &validatedParamValue)
+PlusStatus vtkSonixVideoSource::SetParamValue(char* paramId, int paramValue, const char* paramName)
 {
   if (!this->UlteriusConnected)
   {
     // Connection has not been established yet. Parameter value will be set upon connection.
-    validatedParamValue=paramValue;
+    this->ImagingParameters->SetValue(paramName, paramValue);
     return PLUS_SUCCESS;
   }
   if (!this->Ult->setParamValue(paramId, paramValue))
@@ -624,17 +623,19 @@ PlusStatus vtkSonixVideoSource::SetParamValue(char* paramId, int paramValue, int
     LOG_ERROR("vtkSonixVideoSource::SetParamValue failed (paramId="<<paramId<<", paramValue="<<paramValue<<") "<<GetLastUlteriusError());
     return PLUS_FAIL;
   }
-  validatedParamValue=paramValue;
+  this->ImagingParameters->SetValue(paramName, paramValue);
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSonixVideoSource::GetParamValue(char* paramId, int& paramValue, int &validatedParamValue)
+PlusStatus vtkSonixVideoSource::GetParamValue(char* paramId, int& paramValue, const char* paramName)
 {
   if (!this->UlteriusConnected)
   {
     // Connection has not been established yet. Returned the cached value.
-    paramValue=validatedParamValue;
+    double value;
+    this->ImagingParameters->GetValue(paramName, value);
+    paramValue = ROUND(value);
     return PLUS_SUCCESS;
   }
   paramValue=-1;
@@ -643,94 +644,80 @@ PlusStatus vtkSonixVideoSource::GetParamValue(char* paramId, int& paramValue, in
     LOG_ERROR("vtkSonixVideoSource::GetParamValue failed (paramId="<<paramId<<", paramValue="<<paramValue<<") "<<GetLastUlteriusError());
     return PLUS_FAIL;
   }
-  validatedParamValue=paramValue;
+  this->ImagingParameters->SetValue(paramName, paramValue);
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::SetFrequency(int aFrequency)
 {
-  int validatedValue;
-  PlusStatus result = SetParamValue("b-freq", aFrequency, validatedValue);
-  if( result == PLUS_SUCCESS )
-  {
-    this->ImagingParameters->SetFrequencyMhz(aFrequency);
-  }
-  return result;
+  return SetParamValue("b-freq", aFrequency, vtkUsImagingParameters::KEY_FREQUENCY);
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::GetFrequency(int& aFrequency)
 {
-  return GetParamValue("b-freq", aFrequency, this->Frequency);
+  return GetParamValue("b-freq", aFrequency, vtkUsImagingParameters::KEY_FREQUENCY);
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::SetDepth(int aDepth)
 {
-  int validatedValue;
-  PlusStatus result = SetParamValue("b-depth", aDepth, validatedValue);
-  if( result == PLUS_SUCCESS )
-  {
-    // Double to int
-    double freq = ROUND(validatedValue);
-    this->ImagingParameters->SetDepthMm(validatedValue);
-  }
-  return result;
+  return SetParamValue("b-depth", aDepth, vtkUsImagingParameters::KEY_DEPTH);
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::GetDepth(int& aDepth)
 {
-  return GetParamValue("b-depth", aDepth, this->Depth);
+  return GetParamValue("b-depth", aDepth, vtkUsImagingParameters::KEY_DEPTH);
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::SetGain(int aGain)
 {
-  return SetParamValue("b-gain", aGain, this->Gain);
+  return SetParamValue("b-gain", aGain, vtkUsImagingParameters::KEY_GAIN);
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::GetGain(int& aGain)
 {
-  return GetParamValue("b-gain", aGain, this->Gain);
+  return GetParamValue("b-gain", aGain, vtkUsImagingParameters::KEY_GAIN);
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::SetDynRange(int aDynRange)
 {
-  return SetParamValue("b-dynamic range", aDynRange, this->DynRange);
+  return SetParamValue("b-dynamic range", aDynRange, vtkUsImagingParameters::KEY_DYNRANGE);
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::GetDynRange(int& aDynRange)
 {
-  return GetParamValue("b-dynamic range", aDynRange, this->DynRange);
+  return GetParamValue("b-dynamic range", aDynRange, vtkUsImagingParameters::KEY_DYNRANGE);
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::SetZoom(int aZoom)
 {
-  return SetParamValue("b-initial zoom", aZoom, this->Zoom);
+  return SetParamValue("b-initial zoom", aZoom, vtkUsImagingParameters::KEY_ZOOM);
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::GetZoom(int& aZoom)
 {
-  return GetParamValue("b-initial zoom", aZoom, this->Zoom);
+  return GetParamValue("b-initial zoom", aZoom, vtkUsImagingParameters::KEY_ZOOM);
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::SetSector(int aSector)
 {
-  return SetParamValue("sector", aSector, this->Sector);
+  return SetParamValue("sector", aSector, vtkUsImagingParameters::KEY_SECTOR);
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::GetSector(int& aSector)
 {
-  return GetParamValue("sector", aSector, this->Sector);
+  return GetParamValue("sector", aSector, vtkUsImagingParameters::KEY_SECTOR);
 }
 
 //----------------------------------------------------------------------------
