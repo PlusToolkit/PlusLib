@@ -137,6 +137,8 @@ ADD_TEST(EditSeqMetaFileRemoveImageDataCompareToBaselineTest
 SET_TESTS_PROPERTIES( EditSeqMetaFileRemoveImageDataCompareToBaselineTest PROPERTIES DEPENDS EditSeqMetaFileRemoveImageData )
 
 
+ADD_EXECUTABLE(ModelRenderer ModelRenderer.cxx )
+TARGET_LINK_LIBRARIES(ModelRenderer vtkPlusCommon )
 
 # --------------------------------------------------------------------------
 # Install
