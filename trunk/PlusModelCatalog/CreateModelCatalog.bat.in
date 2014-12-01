@@ -37,5 +37,6 @@ ECHO PlusModelCatalog is available at: ${CMAKE_CURRENT_BINARY_DIR}/html
 exit /b 0
 
 :fail
-ECHO Failed to generate PlusModelCatalog
+ECHO Failed to generate PlusModelCatalog:
+type CreateModelCatalog.log 
 exit /b 1
