@@ -33,6 +33,22 @@ MODEL_TABLE_ROW(
   DESCRIPTION "Holder for visible-light printed black&white optical tracker markers (such as MicronTracker)."
   PRINTABLE_FILES "TrackingFixtures/MarkerHolder_120mm-odd_short.stl" "TrackingFixtures/Marker_01-04.pdf"
   )
+MODEL_TABLE_ROW(
+  ID "CauteryHolder"
+  DESCRIPTION "Clamps to a tubular shaped tool, e.g. electrocauterizer. For clamp tightening use hex-head cap screw, M6 thread, 30 mm long with a matching wing nut. For assembly with SensorHolder-Ordered-HolesInterface use hex-head cap screw M4 thread, with any matching nut."
+  )
+MODEL_TABLE_ROW(
+  ID "NeedleClip-Assembly_1.5mm"
+  DESCRIPTION "Clamps to a needle of 1.5 mm diameter through a sterile bag."
+  )
+MODEL_TABLE_ROW(
+  ID "SensorHolder-Ordered_2mm"
+  DESCRIPTION "Holds either a Model 800 Ascension EM sensor, or another PLUS fixture, e.g. for holding MicronTracker markers. This part is frequently part of an assembly, but can also be used by itself."
+  )
+MODEL_TABLE_ROW(
+  ID "OrientationsLR"
+  DESCRIPTION "This is the most simple reference sensor holder to be used on patients. In a certain surgical setting (e.g. when stuck on the chest) this defines the patient orientation. This allows saving virtual camera positions."
+  )
 # Add remaining experimental tools
 FOREACH(MODELFILE CauteryHolder_1.0 MarkerHolder_120mm_Stickable_1.0 MarkerHolder_120mm_Winged_1.0 MarkerHolder_120mm-Short_2.0 NeedleClip-Assembly_1.1 NeedleClip-Assembly_1.5mm_2.0 NeedleHubClip-Assembly_1.5mm_1.0 NeedleGrabberFlappy-Assembly_1.0 NeedleGrabber-SensorBagHolder_1.0 OrientationsLR_1.0 Plug-L_60mm_3.0 SensorHolder_Wing_1.0 SensorHolder-GlueHoles-Ordered_2mm_1.0 SensorHolder-Ordered_2mm_1.0 SensorHolder-Ordered-HolesInterface_2mm_1.0)
   MODEL_TABLE_ROW(ID ${MODELFILE} DESCRIPTION "Experimental") 
