@@ -38,6 +38,7 @@ class vtkDataCollectionExport vtkUsImagingParameters : public vtkObject
 {
   typedef std::map<std::string, std::string> ParameterNameMap;
   typedef std::map<std::string, bool> ParameterSetMap;
+
 public:
   static const char* KEY_FREQUENCY;
   static const char* KEY_DEPTH;
@@ -67,6 +68,10 @@ public:
     */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* deviceConfig);
 
+  /*!
+    Copy the values from another imaging parameters
+    */
+  virtual PlusStatus DeepCopy(const vtkUsImagingParameters& otherParameters);
   /*!
     Request a stored value by key name
     \param paramName the key value to retrieve

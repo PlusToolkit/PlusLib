@@ -35,11 +35,11 @@ See License.txt for details.
   std::ostringstream msgStream; \
   if( this->DeviceId == NULL ) \
   { \
-    msgStream << " " << msg << std::ends; \
+  msgStream << " " << msg << std::ends; \
   } \
   else \
   { \
-    msgStream << this->DeviceId << ": " << msg << std::ends; \
+  msgStream << this->DeviceId << ": " << msg << std::ends; \
   } \
   std::string finalStr(msgStream.str()); \
   LOG_ERROR(finalStr); \
@@ -193,7 +193,7 @@ vtkPlusDevice::~vtkPlusDevice()
   DELETE_IF_NOT_NULL(this->Threader);
 
   DELETE_IF_NOT_NULL(this->UpdateMutex);
-  
+
   LOCAL_LOG_TRACE("vtkPlusDevice::~vtkPlusDevice() completed");
 }
 
@@ -1464,11 +1464,11 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
   this->CurrentStreamBufferItem->GetFrame().GetFrameSize(frameSize);
   data->SetExtent(0,frameSize[0]-1,0,frameSize[1]-1,0,0);
 #if (VTK_MAJOR_VERSION < 6)
-    data->SetScalarType(plusBuffer->GetPixelType());
-    data->SetNumberOfScalarComponents(plusBuffer->GetNumberOfScalarComponents()); 
-    data->AllocateScalars();
+  data->SetScalarType(plusBuffer->GetPixelType());
+  data->SetNumberOfScalarComponents(plusBuffer->GetNumberOfScalarComponents()); 
+  data->AllocateScalars();
 #else
-    data->AllocateScalars(plusBuffer->GetPixelType(), plusBuffer->GetNumberOfScalarComponents());
+  data->AllocateScalars(plusBuffer->GetPixelType(), plusBuffer->GetNumberOfScalarComponents());
 #endif
   unsigned char *outPtr = (unsigned char *)data->GetScalarPointer();
   memcpy( outPtr, sourcePtr, bytesToCopy);
@@ -2036,5 +2036,13 @@ PlusStatus vtkPlusDevice::GetImageMetaData(PlusCommon::ImageMetaDataList& imageM
 PlusStatus vtkPlusDevice::GetImage(const std::string& requestedImageId, std::string& assignedImageId, const std::string& imageReferencFrameName, vtkImageData* imageData, vtkMatrix4x4* ijkToReferenceTransform)
 {
   LOCAL_LOG_ERROR("vtkPlusDevice::GetImage is not implemented");
+  return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::ApplyImagingParameters(const vtkUsImagingParameters& newImagingParameters)
+{
+  LOCAL_LOG_INFO("vtkPlusDevice::ApplyImagingParameters called on vtkPlusDevice directly. Child class should override if desired.");
+
   return PLUS_FAIL;
 }

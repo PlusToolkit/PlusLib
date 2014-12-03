@@ -332,7 +332,7 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
   bool initializationCompleted=false;
   while (!initializationCompleted)
   {   
-    if (this->UlteriusConnected)
+    if ( this->GetConnected() )
     {
       // a previous connection setup attempt failed after connection has been made, so
       // disconnect before trying to connect again
@@ -612,7 +612,7 @@ std::string vtkSonixVideoSource::GetLastUlteriusError()
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::SetParamValue(char* paramId, int paramValue, const char* paramName)
 {
-  if (!this->UlteriusConnected)
+  if (!this->GetConnected())
   {
     // Connection has not been established yet. Parameter value will be set upon connection.
     this->ImagingParameters->SetValue(paramName, paramValue);
@@ -630,7 +630,7 @@ PlusStatus vtkSonixVideoSource::SetParamValue(char* paramId, int paramValue, con
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::GetParamValue(char* paramId, int& paramValue, const char* paramName)
 {
-  if (!this->UlteriusConnected)
+  if (!this->GetConnected())
   {
     // Connection has not been established yet. Returned the cached value.
     double value;
@@ -721,9 +721,21 @@ PlusStatus vtkSonixVideoSource::GetSector(int& aSector)
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkSonixVideoSource::SetSoundVelocity(int aSoundVelocity)
+{
+  return SetParamValue("soundvelocity", aSoundVelocity, vtkUsImagingParameters::KEY_SOUNDVELOCITY)
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixVideoSource::GetSoundVelocity(int& aSoundVelocity)
+{
+  return GetParamValue("soundvelocity", aSoundVelocity, vtkUsImagingParameters::KEY_SOUNDVELOCITY);
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::SetCompressionStatus(int aCompressionStatus)
 {
-  if (!this->UlteriusConnected)
+  if (!this->GetConnected())
   {
     // Connection has not been established yet. Parameter value will be set upon connection.
     this->CompressionStatus=aCompressionStatus;
@@ -741,7 +753,7 @@ PlusStatus vtkSonixVideoSource::SetCompressionStatus(int aCompressionStatus)
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::GetCompressionStatus(int& aCompressionStatus)
 {
-  if (!this->UlteriusConnected)
+  if (!this->GetConnected())
   {
     // Connection has not been established yet. Parameter value will be set upon connection.
     aCompressionStatus=this->CompressionStatus;
@@ -755,7 +767,7 @@ PlusStatus vtkSonixVideoSource::GetCompressionStatus(int& aCompressionStatus)
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::SetTimeout(int aTimeout)
 {
-  if (!this->UlteriusConnected)
+  if (!this->GetConnected())
   {
     // Connection has not been established yet. Parameter value will be set upon connection.
     this->Timeout=aTimeout;
@@ -774,7 +786,7 @@ PlusStatus vtkSonixVideoSource::SetTimeout(int aTimeout)
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::SetAcquisitionDataType(int aAcquisitionDataType)
 {
-  if (!this->UlteriusConnected)
+  if (!this->GetConnected())
   {
     // Connection has not been established yet. Parameter value will be set upon connection.
     this->AcquisitionDataType=aAcquisitionDataType;
@@ -798,7 +810,7 @@ PlusStatus vtkSonixVideoSource::SetAcquisitionDataType(int aAcquisitionDataType)
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::GetAcquisitionDataType(int &acquisitionDataType)
 {
-  if (!this->UlteriusConnected)
+  if (!this->GetConnected())
   {
     // Connection has not been established yet. Parameter value will be set upon connection.
     acquisitionDataType=this->AcquisitionDataType;
@@ -812,7 +824,7 @@ PlusStatus vtkSonixVideoSource::GetAcquisitionDataType(int &acquisitionDataType)
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::SetImagingMode(int mode)
 {
-  if (!this->UlteriusConnected)
+  if (!this->GetConnected())
   {
     // Connection has not been established yet. Parameter value will be set upon connection.
     this->ImagingMode=mode;
@@ -830,7 +842,7 @@ PlusStatus vtkSonixVideoSource::SetImagingMode(int mode)
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::GetImagingMode(int & mode)
 {
-  if (!this->UlteriusConnected)
+  if (!this->GetConnected())
   {
     // Connection has not been established yet. Parameter value will be set upon connection.
     mode=this->ImagingMode;
@@ -844,7 +856,7 @@ PlusStatus vtkSonixVideoSource::GetImagingMode(int & mode)
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::PrintListOfImagingParameters()
 {
-  if (!this->UlteriusConnected)
+  if (!this->GetConnected())
   {
     LOG_ERROR("vtkSonixVideoSource::PrintListOfParameters failed: not connected");
     return PLUS_FAIL;
@@ -862,7 +874,7 @@ PlusStatus vtkSonixVideoSource::PrintListOfImagingParameters()
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::GetDisplayedFrameRate(int &aFrameRate)
 {
-  if (!this->UlteriusConnected)
+  if (!this->GetConnected())
   {
     LOG_ERROR("vtkSonixVideoSource::GetDisplayedFrameRate failed: not connected");
     return PLUS_FAIL;
@@ -879,7 +891,7 @@ PlusStatus vtkSonixVideoSource::GetDisplayedFrameRate(int &aFrameRate)
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::SetRFDecimation(int decimation)
 {
-  if (!this->UlteriusConnected)
+  if (!this->GetConnected())
   {
     LOG_ERROR("vtkSonixVideoSource::SetRFDecimation failed: not connected");
     return PLUS_FAIL;
@@ -895,7 +907,7 @@ PlusStatus vtkSonixVideoSource::SetRFDecimation(int decimation)
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::SetPPFilter(int filterIndex)
 {
-  if (!this->UlteriusConnected)
+  if (!this->GetConnected())
   {
     LOG_ERROR("vtkSonixVideoSource::SetPPFilter failed: not connected");
     return PLUS_FAIL;
@@ -911,7 +923,7 @@ PlusStatus vtkSonixVideoSource::SetPPFilter(int filterIndex)
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::SetFrameRateLimit(int frLimit)
 {
-  if (!this->UlteriusConnected)
+  if (!this->GetConnected())
   {
     LOG_ERROR("vtkSonixVideoSource::SetFrameRateLimit failed: not connected");
     return PLUS_FAIL;
@@ -927,7 +939,7 @@ PlusStatus vtkSonixVideoSource::SetFrameRateLimit(int frLimit)
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::SetRfAcquisitionMode(RfAcquisitionModeType mode)
 {
-  if (!this->UlteriusConnected)
+  if (!this->GetConnected())
   {
     // Connection has not been established yet. Parameter value will be set upon connection.
     this->RfAcquisitionMode = mode; 
@@ -945,7 +957,7 @@ PlusStatus vtkSonixVideoSource::SetRfAcquisitionMode(RfAcquisitionModeType mode)
 PlusStatus vtkSonixVideoSource::GetRfAcquisitionMode(RfAcquisitionModeType & mode)
 {
   int iMode = this->RfAcquisitionMode; 
-  if (this->UlteriusConnected)
+  if (this->GetConnected())
   {
     if (!this->Ult->getParamValue("rf-mode", iMode))
     {
@@ -989,7 +1001,7 @@ PlusStatus vtkSonixVideoSource::InternalUpdate()
   }
 
   // TODO : future fix, make this smart to detect changed mode, activate appropriate stream
-  if( this->UlteriusConnected )
+  if( this->GetConnected() )
   {
     int mode;
     if( this->GetImagingMode(mode) != PLUS_SUCCESS )
@@ -1131,4 +1143,64 @@ PlusStatus vtkSonixVideoSource::GetRequestedImagingDataTypeFromSources(int &requ
     requestedImagingDataType |= vtkUsImagingParameters::DataTypeRF;
   }
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+void vtkSonixVideoSource::ApplyImagingParameters()
+{
+  double value;
+  if( this->ImagingParameters->GetFrequencyMhz(value) == PLUS_SUCCESS )
+  {
+    this->SetFrequency(ROUND(value));
+  }
+  if( this->ImagingParameters->GetDepthMm(value) == PLUS_SUCCESS )
+  {
+    this->SetDepth(ROUND(value));
+  }
+  if( this->ImagingParameters->GetSectorPercent(value) == PLUS_SUCCESS )
+  {
+    this->SetSector(ROUND(value));
+  }
+  double valueArray[3];
+  if( this->ImagingParameters->GetGainPercent(valueArray) == PLUS_SUCCESS )
+  {
+    this->SetGain(ROUND(valueArray[0]));
+  }
+  if( this->ImagingParameters->GetDynRangeDb(value) == PLUS_SUCCESS )
+  {
+    this->SetDynRange(ROUND(value));
+  }
+  if( this->ImagingParameters->GetZoomFactor(value) == PLUS_SUCCESS )
+  {
+    this->SetZoom(ROUND(value));
+  }
+  if( this->ImagingParameters->GetZoomFactor(value) == PLUS_SUCCESS )
+  {
+    this->SetZoom(ROUND(value));
+  }
+  int iValue;
+  if( this->ImagingParameters->GetSoundVelocity(iValue) == PLUS_SUCCESS )
+  {
+    this->SetSoundVelocity(iValue);
+  }
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixVideoSource::ApplyNewImagingParameters(const vtkUsImagingParameters& newImagingParameters)
+{
+  this->ImagingParameters->DeepCopy(newImagingParameters);
+
+  if( this->GetConnected() )
+  {
+    this->ApplyImagingParameters();
+    return PLUS_SUCCESS;
+  }
+
+  return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+int vtkSonixVideoSource::GetConnected()
+{
+  return this->UlteriusConnected ? 1 : 0;
 }

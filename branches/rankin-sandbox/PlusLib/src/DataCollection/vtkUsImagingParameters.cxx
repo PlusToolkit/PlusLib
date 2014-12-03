@@ -541,3 +541,19 @@ PlusStatus vtkUsImagingParameters::SetValue(const char* paramName, double aValue
 
   return PLUS_FAIL;
 }
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::DeepCopy(const vtkUsImagingParameters& otherParameters)
+{
+  for( ParameterNameMap::const_iterator it = otherParameters.ParameterValues.begin(); it != otherParameters.ParameterValues.end(); ++it )
+  {
+    this->ParameterValues[it->first] = it->second;
+  }
+
+  for( ParameterSetMap::const_iterator it = otherParameters.ParameterSet.begin(); it != otherParameters.ParameterSet.end(); ++it )
+  {
+    this->ParameterSet[it->first] = it->second;
+  }
+
+  return PLUS_SUCCESS;
+}

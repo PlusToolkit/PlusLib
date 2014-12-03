@@ -16,6 +16,7 @@ See License.txt for details.
 #include "vtkImageAlgorithm.h"
 #include "vtkMultiThreader.h"
 #include "vtkPlusDeviceTypes.h"
+#include "vtkUsImagingParameters.h"
 
 #include <string>
 
@@ -111,6 +112,11 @@ public:
 
   /*! Return the reference frame */
   static PlusStatus GetToolReferenceFrameFromTrackedFrame(TrackedFrame& aFrame, std::string &aToolReferenceFrameName);
+
+  /*! Receive new imaging parameters and apply them to this device
+  \param newImagingParameters the new parameters to apply to the device
+  */
+  virtual PlusStatus ApplyNewImagingParameters(const vtkUsImagingParameters& newImagingParameters);
 
   /*! 
   Get the buffer that is used to hold the data

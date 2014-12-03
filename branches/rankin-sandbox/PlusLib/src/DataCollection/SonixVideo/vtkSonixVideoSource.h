@@ -105,8 +105,19 @@ public:
   /*! Get the CompressionStatus to 0 for compression off, 1 for compression on. */
   PlusStatus GetCompressionStatus(int& aCompressionStatus);
 
+  /*! Set the sound velocity */
+  PlusStatus SetSoundVelocity(int aSoundVelocity);
+  /*! Get the sound velocity */
+  PlusStatus GetSoundVelocity(int& aSoundVelocity);
+
   /*! Set the Timeout (ms) value for network function calls. */
   PlusStatus SetTimeout(int aTimeout);
+
+  /*!
+  Apply the given parameters to the connected sonix device
+  \param newImagingParameters new imaging parameters to apply
+  */
+  virtual PlusStatus ApplyNewImagingParameters(const vtkUsImagingParameters& newImagingParameters);
   
   /*!
     Request a particular data type from sonix machine by means of a bitmask.
@@ -192,6 +203,9 @@ public:
   /*! Set RF decimation. This requires ultrerius be connected. */
   PlusStatus SetRFDecimation(int decimation);
 
+  /*! Override the default connected query */
+  virtual int GetConnected();
+
   /*! Set speckle reduction filter (filterIndex: 0=off,1,2). This requires ultrerius be connected.  */
   PlusStatus SetPPFilter(int filterIndex);
 
@@ -229,6 +243,9 @@ protected:
 
   /*! Get the last error string returned by Ulterius */
   std::string GetLastUlteriusError();
+
+  /*! Apply imaging parameters to the ultrasonix device */
+  void ApplyImagingParameters();
 
   ////////////////////////
 
