@@ -2040,9 +2040,9 @@ PlusStatus vtkPlusDevice::GetImage(const std::string& requestedImageId, std::str
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::ApplyImagingParameters(const vtkUsImagingParameters& newImagingParameters)
+PlusStatus vtkPlusDevice::ApplyNewImagingParameters(const vtkUsImagingParameters& newImagingParameters)
 {
-  LOCAL_LOG_INFO("vtkPlusDevice::ApplyImagingParameters called on vtkPlusDevice directly. Child class should override if desired.");
+  LOCAL_LOG_INFO("vtkPlusDevice::ApplyNewImagingParameters called on vtkPlusDevice directly. Child class should override if desired.");
 
   return PLUS_FAIL;
 }

@@ -723,7 +723,7 @@ PlusStatus vtkSonixVideoSource::GetSector(int& aSector)
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::SetSoundVelocity(int aSoundVelocity)
 {
-  return SetParamValue("soundvelocity", aSoundVelocity, vtkUsImagingParameters::KEY_SOUNDVELOCITY)
+  return SetParamValue("soundvelocity", aSoundVelocity, vtkUsImagingParameters::KEY_SOUNDVELOCITY);
 }
 
 //----------------------------------------------------------------------------
