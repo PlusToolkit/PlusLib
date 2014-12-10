@@ -68,19 +68,21 @@ public:
 
 
   //----------------------------------------------------------------------------
-  void vtkIntersonVideoSource::vtkInternal::CreateLinearTGC(int initialTGC, int midTGC, int farTGC)
+  void vtkIntersonVideoSource::vtkInternal::CreateLinearTGC(double gain[3])
   {
-
     /*  A linear TGC function is created. The initial point is initialTGC, then is linear until the
-	middle point (midTGC) and then linear until the maximum depth where the compensationis equal to farTGC*/
+    middle point (midTGC) and then linear until the maximum depth where the compensationis equal to farTGC*/
+    double initialTGC = gain[0];
+    double midTGC = gain[1];
+    double farTGC = gain[2];
 
     int tgc[samplesPerLine]={0};
     double firstSlope = (double) (midTGC-initialTGC ) / (samplesPerLine/2);
-	  double secondSlope = (double) (farTGC-midTGC ) / (samplesPerLine/2);
+    double secondSlope = (double) (farTGC-midTGC ) / (samplesPerLine/2);
     for (int x = 0; x < samplesPerLine/2; x++)
     {
       tgc[x] = (int) (firstSlope * (double) x) + initialTGC;
-	    tgc[samplesPerLine/2 +x] = (int) (secondSlope * (double) x) + midTGC;
+      tgc[samplesPerLine/2 +x] = (int) (secondSlope * (double) x) + midTGC;
     }
     bmSetTGC(tgc);
   }
@@ -169,28 +171,32 @@ public:
     }
   }
 
-//----------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
   void CreateLUT(BYTE lut[], int Brightness, int Contrast, int Level, int Window)
   {
 
-	int center = Window / 2;				// center of window
+    int center = Window / 2;				// center of window
     int left = Level - center;				// left of window
     int right = Level + center;				// right of window
-   for (int x=0; x <= 255; x++) 
-   {
-     int y = (int) ((float)Contrast/256.0f * (float)(x-128) + Brightness);
-     if (y<left)
-     {
-       y=0;
-     }
-     else if (y>right)
-     {
-       y=255;
-     }
-     lut[x] = y;
-   }
+    for (int x=0; x <= 255; x++) 
+    {
+      int y = (int) ((float)Contrast/256.0f * (float)(x-128) + Brightness);
+      if (y<left)
+      {
+        y=0;
+      }
+      else if (y>right)
+      {
+        y=255;
+      }
+      lut[x] = y;
+    }
   }
 };
+
+//----------------------------------------------------------------------------
+
+const int vtkIntersonVideoSource::MAXIMUM_TGC_DB = 512;
 
 //----------------------------------------------------------------------------
 vtkIntersonVideoSource::vtkIntersonVideoSource()
@@ -206,14 +212,16 @@ vtkIntersonVideoSource::vtkIntersonVideoSource()
   this->ClockDivider = 1;
   this->PulseFrequencyDivider = 2;
 
-  this->Brightness = 128; //192
-  this->Contrast = 256; //128
+  this->ImagingParameters->SetIntensity(128.0);
+  this->ImagingParameters->SetContrast(256.0);
   this->LutCenter = 128; //192
   this->LutWindow = 256; //128
 
-  this->InitialGain =-128;
-  this->MidGain=-128;
-  this->FarGain=-128;
+  double gain[3];
+  gain[0] = -128;
+  gain[1] = -128;
+  gain[2] = -128;
+  this->ImagingParameters->SetGainPercent(gain);
 
   this->ImageSize[0]=800;
   this->ImageSize[1]=512;
@@ -327,18 +335,8 @@ PlusStatus vtkIntersonVideoSource::InternalConnect()
   // set the display window depth for this probe
   usbSetWindowDepth(this->Internal->ProbeHandle, this->ImageSize[1]);
   // set the assumed velocity (m/s)
-  int soundVelocity = -1;
-  this->ImagingParameters->GetSoundVelocity(soundVelocity);
-  if (soundVelocity>0)
-  {
-    usbSetVelocity(this->Internal->ProbeHandle, soundVelocity );
-  }
-  double depth = -1;
-  this->ImagingParameters->GetDepthMm(depth);
-  if (depth>0)
-  {
-    this->SetDepthMmDevice(depth);
-  }
+  this->SetSoundVelocityDevice(this->ImagingParameters->GetSoundVelocity());
+  this->SetDepthMmDevice(this->ImagingParameters->GetDepthMm());
   //this->SetProbeFrequency(5000);
 
   // Setup the display offsets now that we have the probe and DISPLAY data
@@ -374,7 +372,7 @@ PlusStatus vtkIntersonVideoSource::InternalConnect()
     LOG_ERROR("Unable to retrieve the video source in the IntersonVideo device.");
     return PLUS_FAIL;
   }
-  
+
   // Clear buffer on connect because the new frames that we will acquire might have a different size 
   aSource->GetBuffer()->Clear();
   aSource->GetBuffer()->SetPixelType( VTK_UNSIGNED_CHAR );  
@@ -430,21 +428,8 @@ PlusStatus vtkIntersonVideoSource::InternalConnect()
     this->SetGainPercentDevice(gain);
   }
 
-  BYTE lut[256];
-  double intensity=-1;
-  double contrast = -1;
-  this->ImagingParameters->GetIntensity(intensity);
-  this->ImagingParameters->GetContrast(contrast);
-  if (intensity >=0)
-  {
-	  this->Brightness = (int)intensity;
-  }
-  if (contrast >=0)
-  {
-	  this->Contrast = (int)contrast;
-  }
-  this->Internal->CreateLUT(lut, this->Brightness, this->Contrast, this->LutCenter, this->LutWindow);
-  bmCreatebLUT(lut);
+  this->CreateLUT();
+
   //this->Internal->CreateLinearTGC(this->MinTGC,this->MaxTGC );
   //bmTurnOnTGC();
   return PLUS_SUCCESS;
@@ -518,7 +503,7 @@ PlusStatus vtkIntersonVideoSource::WaitForFrame()
     LOG_ERROR("USB: Unknown USB error: "<<usbErrorCode);
     break;
   } 
-    
+
   return PLUS_SUCCESS;
 }
 
@@ -569,22 +554,22 @@ PlusStatus vtkIntersonVideoSource::InternalUpdate()
     GetProbeNameDevice(probeName);
 
     LOG_INFO("Frame size: " << frameSizeInPx[0] << "x" << frameSizeInPx[1]
-      << ", pixel type: " << vtkImageScalarTypeNameMacro(aSource->GetBuffer()->GetPixelType())
-	    << ", probe sample frequency (Hz): " << usbProbeSampleFrequency(this->Internal->ProbeHandle)
-	    << ", probe name: " << probeName
-	    << ", display zoom: " << bmDisplayZoom()
-	    << ", probe depth scale (mm/sample):" << depthScale
+    << ", pixel type: " << vtkImageScalarTypeNameMacro(aSource->GetBuffer()->GetPixelType())
+      << ", probe sample frequency (Hz): " << usbProbeSampleFrequency(this->Internal->ProbeHandle)
+      << ", probe name: " << probeName
+      << ", display zoom: " << bmDisplayZoom()
+      << ", probe depth scale (mm/sample):" << depthScale
       << ", device image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetPortImageOrientation())
       << ", buffer image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetBuffer()->GetImageOrientation()));
   }
-  
+
   TrackedFrame::FieldMapType customFields;
 
   if (this->EnableProbeButtonMonitoring)
   {
-	  std::ostringstream probeButtonPressCountString;
+    std::ostringstream probeButtonPressCountString;
     probeButtonPressCountString << this->ProbeButtonPressCount;
-	  customFields["ProbeButtonToDummyTransform"] =  std::string("1 0 0 ") + probeButtonPressCountString.str() + " 0 1 0 0 0 0 1 0 0 0 0 1";
+    customFields["ProbeButtonToDummyTransform"] =  std::string("1 0 0 ") + probeButtonPressCountString.str() + " 0 1 0 0 0 0 1 0 0 0 0 1";
     customFields["ProbeButtonToDummyTransformStatus"] = "OK";
   }
 
@@ -607,13 +592,9 @@ PlusStatus vtkIntersonVideoSource::ReadConfiguration(vtkXMLDataElement* rootConf
 
   XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ImageSize, deviceConfig);
 
-  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, GainPercent, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Intensity, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Contrast, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DepthMm, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SoundVelocity, deviceConfig);
-
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableProbeButtonMonitoring, deviceConfig);
+
+  this->ImagingParameters->ReadConfiguration(deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -624,6 +605,8 @@ PlusStatus vtkIntersonVideoSource::WriteConfiguration(vtkXMLDataElement* rootCon
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
 
   deviceConfig->SetAttribute("EnableProbeButtonMonitoring", this->EnableProbeButtonMonitoring?"true":"false");
+
+  this->ImagingParameters->WriteConfiguration(deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -690,6 +673,7 @@ PlusStatus vtkIntersonVideoSource::SetDisplayZoomDevice(double zoom)
     LOG_ERROR("vtkIntersonVideoSource::SetDisplayZoomDevice failed: device not connected");
     return PLUS_FAIL;
   }
+  this->SetZoomFactor(zoom);
   bmSetDisplayZoom(zoom); 
   LOG_TRACE("New zoom is " << bmDisplayZoom()); 
   return PLUS_SUCCESS;
@@ -717,6 +701,7 @@ PlusStatus vtkIntersonVideoSource::SetProbeFrequencyDevice(double freq)
     LOG_ERROR("vtkIntersonVideoSource::SetProbeFrequencyDevice failed: device not connected");
     return PLUS_FAIL;
   }
+  this->SetFrequencyMhz(freq);
   usbSetProbeFrequency(freq);
   return PLUS_SUCCESS;
 }
@@ -756,11 +741,19 @@ PlusStatus vtkIntersonVideoSource::SetDepthMm(double depthMm)
 //----------------------------------------------------------------------------
 PlusStatus vtkIntersonVideoSource::SetDepthMmDevice(double depthMm)
 {
-  if (this->Internal->ProbeHandle==NULL)
+  if (this->Internal->ProbeHandle==NULL )
   {
     LOG_ERROR("vtkIntersonVideoSource::SetDepthMmDevice failed: device not connected");
     return PLUS_FAIL;
   }
+
+  if( depthMm <= 0 )
+  {
+    LOG_ERROR("Invalid depth sent: " << depthMm );
+    return PLUS_FAIL;
+  }
+
+  this->SetDepthMm(depthMm);
 
   // to be implemented
   std::vector< std::pair<double,double> > allowedModes;
@@ -852,49 +845,47 @@ PlusStatus vtkIntersonVideoSource::SetGainPercentDevice(double gainPercent[3])
     LOG_ERROR("vtkIntersonVideoSource::SetGainPercentDevice failed: device not connected");
     return PLUS_FAIL;
   }
-  SetGainPercent(gainPercent);
+  this->SetGainPercent(gainPercent);
   /* The following commented code is useful when using an RF probe with an analog TGC control.
   It sets the value, in dB, for the gain at the  last sample taken.   */
-	/*
-	  initialGain = usbInitialGain();
-      midGain = usbMidGain();
-      farGain = usbFarGain();
-      usbSetInitialGain(this->InitialGain);
-      usbSetMidGain(this->MidGain);
-      usbSetFarGain(this->FarGain);
-      initialGain = usbInitialGain();
-      midGain = usbMidGain();
-      farGain = usbFarGain();
-     */
+  /*
+  initialGain = usbInitialGain();
+  midGain = usbMidGain();
+  farGain = usbFarGain();
+  usbSetInitialGain(this->InitialGain);
+  usbSetMidGain(this->MidGain);
+  usbSetFarGain(this->FarGain);
+  initialGain = usbInitialGain();
+  midGain = usbMidGain();
+  farGain = usbFarGain();
+  */
   /* If the above code is executed the gain values are changed but it has no effect on the image. Probably it is beacause the probe
   does not have analog TGC control.
   The code below sets a linear TGC curve based on three values (initial, middle and end) of the curve.*/
-
-  double maximumTGC=512; 
+  double gain[3];
   if (gainPercent[0]>=0 && gainPercent[1]>=0 && gainPercent[2]>=0)
   {
-	  this->InitialGain = -255 + gainPercent[0] * maximumTGC /100 ;
-	  this->MidGain = -255 + gainPercent[1] * maximumTGC /100 ;
-    this->FarGain = -255 + gainPercent[2] * maximumTGC /100 ;
+    gain[0] = -255 + gainPercent[0] * MAXIMUM_TGC_DB /100 ;
+    gain[1] = -255 + gainPercent[1] * MAXIMUM_TGC_DB /100 ;
+    gain[2] = -255 + gainPercent[2] * MAXIMUM_TGC_DB /100 ;
   }
 
-  this->Internal->CreateLinearTGC(this->InitialGain,this->MidGain,this->FarGain); 
+  this->Internal->CreateLinearTGC(gain); 
 
   bmTurnOnTGC();
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkIntersonVideoSource::SetZoomFactor(double gainPercent)
+PlusStatus vtkIntersonVideoSource::SetZoomFactor(double zoomFactor)
 {
-	// to be implemented
+  this->ImagingParameters->SetZoomFactor(zoomFactor);
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkIntersonVideoSource::GetProbeAllowedModes(std::vector< std::pair<double,double> > &allowedModes)
 {
-  
   double clockDivider = usbClockDivider();	
   double sampleFrequency = usbProbeSampleFrequency(this->Internal->ProbeHandle);
   double divider = usbPulseFrequency();
@@ -902,156 +893,156 @@ PlusStatus vtkIntersonVideoSource::GetProbeAllowedModes(std::vector< std::pair<d
   std::pair<double,double> pair;
   is24MHz = usbProbeAllowedModes(this->Internal->ProbeHandle) & P24MHZ; 
   if (is24MHz & CLKDIV1) { 
-	  // now we know the 24 MHz pulse frequency is good and 3 cm mode is good 
-	  LOG_INFO("24 Mhz pulse frequency and 3 cm depth is an allowed mode for this probe");	  
-	  pair.first = 24;
-	  pair.second = 3;
-	  allowedModes.push_back(pair);
+    // now we know the 24 MHz pulse frequency is good and 3 cm mode is good 
+    LOG_INFO("24 Mhz pulse frequency and 3 cm depth is an allowed mode for this probe");	  
+    pair.first = 24;
+    pair.second = 3;
+    allowedModes.push_back(pair);
   }
   if (is24MHz & CLKDIV2) { 
-	  // now we know the 24 MHz pulse frequency is good and 6 cm mode is good 
-	  LOG_INFO("24 Mhz pulse frequency and 6 cm depth is an allwoed mode for this probe");
+    // now we know the 24 MHz pulse frequency is good and 6 cm mode is good 
+    LOG_INFO("24 Mhz pulse frequency and 6 cm depth is an allwoed mode for this probe");
   }
   if (is24MHz & CLKDIV3) { 
-	  // now we know the 24 MHz pulse frequency is good and 9 cm mode is good 
-	  LOG_INFO("24 Mhz pulse frequency and 9 cm depth is an allwoed mode for this probe");
+    // now we know the 24 MHz pulse frequency is good and 9 cm mode is good 
+    LOG_INFO("24 Mhz pulse frequency and 9 cm depth is an allwoed mode for this probe");
   }
   if (is24MHz & CLKDIV4) { 
-	  // now we know the 24 MHz pulse frequency is good and 12 cm mode is good 
-	  LOG_INFO("24 Mhz pulse frequency and 12 cm depth is an allowed mode for this probe");
+    // now we know the 24 MHz pulse frequency is good and 12 cm mode is good 
+    LOG_INFO("24 Mhz pulse frequency and 12 cm depth is an allowed mode for this probe");
   }
 
   is15MHz = usbProbeAllowedModes(this->Internal->ProbeHandle) & P15MHZ; 
   if (is15MHz & CLKDIV1) { 
-	  // now we know the 15 MHz pulse frequency is good and 5 cm mode is good 
-	  LOG_INFO("15 Mhz pulse frequency and 5 cm depth is an allowed mode for this probe");
+    // now we know the 15 MHz pulse frequency is good and 5 cm mode is good 
+    LOG_INFO("15 Mhz pulse frequency and 5 cm depth is an allowed mode for this probe");
   }
   if (is15MHz & CLKDIV2) { 
-	  // now we know the 15 MHz pulse frequency is good and 10 cm mode is good 
-	  LOG_INFO("15 Mhz pulse frequency and 10 cm depth is an allowed mode for this probe");
+    // now we know the 15 MHz pulse frequency is good and 10 cm mode is good 
+    LOG_INFO("15 Mhz pulse frequency and 10 cm depth is an allowed mode for this probe");
   }
   if (is15MHz & CLKDIV3) { 
-	  // now we know the 15 MHz pulse frequency is good and 15 cm mode is good 
-	  LOG_INFO("15 Mhz pulse frequency and 15 cm depth is an allowed mode for this probe");
+    // now we know the 15 MHz pulse frequency is good and 15 cm mode is good 
+    LOG_INFO("15 Mhz pulse frequency and 15 cm depth is an allowed mode for this probe");
   }
   if (is15MHz & CLKDIV4) { 
-	  // now we know the 15 MHz pulse frequency is good and 20 cm mode is good 
-	  LOG_INFO("15 Mhz pulse frequency and 20 cm depth is an allowed mode for this probe");
+    // now we know the 15 MHz pulse frequency is good and 20 cm mode is good 
+    LOG_INFO("15 Mhz pulse frequency and 20 cm depth is an allowed mode for this probe");
   }
 
   is12MHz = usbProbeAllowedModes(this->Internal->ProbeHandle) & P12MHZ; 
   if (is12MHz & CLKDIV1) { 
-	  // now we know the 12 MHz pulse frequency is good and 5 cm mode is good 
-	  LOG_INFO("12 Mhz pulse frequency and 5 cm depth is an allowed mode for this probe");
+    // now we know the 12 MHz pulse frequency is good and 5 cm mode is good 
+    LOG_INFO("12 Mhz pulse frequency and 5 cm depth is an allowed mode for this probe");
   }
   if (is12MHz & CLKDIV2) { 
-	  // now we know the 12 MHz pulse frequency is good and 10 cm mode is good 
-	  LOG_INFO("12 Mhz pulse frequency and 10 cm depth is an allowed mode for this probe");
+    // now we know the 12 MHz pulse frequency is good and 10 cm mode is good 
+    LOG_INFO("12 Mhz pulse frequency and 10 cm depth is an allowed mode for this probe");
   }
   if (is12MHz & CLKDIV3) { 
-	  // now we know the 12 MHz pulse frequency is good and 15 cm mode is good 
-	  LOG_INFO("12 Mhz pulse frequency and 15 cm depth is an allowed mode for this probe");
+    // now we know the 12 MHz pulse frequency is good and 15 cm mode is good 
+    LOG_INFO("12 Mhz pulse frequency and 15 cm depth is an allowed mode for this probe");
   }
   if (is12MHz & CLKDIV4) { 
-	  // now we know the 12 MHz pulse frequency is good and 20 cm mode is good 
-	  LOG_INFO("12 Mhz pulse frequency and 20 cm depth is an allowed mode for this probe");
+    // now we know the 12 MHz pulse frequency is good and 20 cm mode is good 
+    LOG_INFO("12 Mhz pulse frequency and 20 cm depth is an allowed mode for this probe");
   }
   is8MHz = usbProbeAllowedModes(this->Internal->ProbeHandle) & P8MHZ; 
   if (is8MHz & CLKDIV1) { 
-	  // now we know the 8 MHz pulse frequency is good and 3 cm mode is good 
-	  LOG_INFO("8 Mhz pulse frequency and 3 cm depth is an allowed mode for this probe");
+    // now we know the 8 MHz pulse frequency is good and 3 cm mode is good 
+    LOG_INFO("8 Mhz pulse frequency and 3 cm depth is an allowed mode for this probe");
   }
   if (is8MHz & CLKDIV2) { 
-	  // now we know the 8 MHz pulse frequency is good and 6 cm mode is good 
-	  LOG_INFO("8 Mhz pulse frequency and 6 cm depth is an allowed mode for this probe");
+    // now we know the 8 MHz pulse frequency is good and 6 cm mode is good 
+    LOG_INFO("8 Mhz pulse frequency and 6 cm depth is an allowed mode for this probe");
   }
   if (is8MHz & CLKDIV3) { 
-	  // now we know the 8 MHz pulse frequency is good and 9 cm mode is good 
-	  LOG_INFO("8 Mhz pulse frequency and 9 cm depth is an allowed mode for this probe");
+    // now we know the 8 MHz pulse frequency is good and 9 cm mode is good 
+    LOG_INFO("8 Mhz pulse frequency and 9 cm depth is an allowed mode for this probe");
   }
   if (is8MHz & CLKDIV4) { 
-	  // now we know the 8 MHz pulse frequency is good and 12 cm mode is good 
-	  LOG_INFO("8 Mhz pulse frequency and 12 cm depth is an allowed mode for this probe");
+    // now we know the 8 MHz pulse frequency is good and 12 cm mode is good 
+    LOG_INFO("8 Mhz pulse frequency and 12 cm depth is an allowed mode for this probe");
   }
   is7_5MHz = usbProbeAllowedModes(this->Internal->ProbeHandle) & P7_5MHZ; 
   if (is7_5MHz & CLKDIV1) { 
-	  // now we know the 7.5 MHz pulse frequency is good and 5 cm mode is good 
-	  LOG_INFO("7.5 Mhz pulse frequency and 5 cm depth is an allowed mode for this probe");
+    // now we know the 7.5 MHz pulse frequency is good and 5 cm mode is good 
+    LOG_INFO("7.5 Mhz pulse frequency and 5 cm depth is an allowed mode for this probe");
   }
   if (is7_5MHz & CLKDIV2) { 
-	  // now we know the 7.5 MHz pulse frequency is good and 10 cm mode is good 
-	  LOG_INFO("7.5 Mhz pulse frequency and 10 cm depth is an allowed mode for this probe");
+    // now we know the 7.5 MHz pulse frequency is good and 10 cm mode is good 
+    LOG_INFO("7.5 Mhz pulse frequency and 10 cm depth is an allowed mode for this probe");
   }
   if (is7_5MHz & CLKDIV3) { 
-	  // now we know the 7.5 MHz pulse frequency is good and 15 cm mode is good 
-	  LOG_INFO("7.5 Mhz pulse frequency and 15 cm depth is an allowed mode for this probe");
+    // now we know the 7.5 MHz pulse frequency is good and 15 cm mode is good 
+    LOG_INFO("7.5 Mhz pulse frequency and 15 cm depth is an allowed mode for this probe");
   }
   if (is7_5MHz & CLKDIV4) { 
-	  // now we know the 7.5 MHz pulse frequency is good and 20 cm mode is good 
-	  LOG_INFO("7.5 Mhz pulse frequency and 20 cm depth is an allowed mode for this probe");
+    // now we know the 7.5 MHz pulse frequency is good and 20 cm mode is good 
+    LOG_INFO("7.5 Mhz pulse frequency and 20 cm depth is an allowed mode for this probe");
   }
   is6MHz = usbProbeAllowedModes(this->Internal->ProbeHandle) & P6MHZ; 
   if (is6MHz & CLKDIV1) { 
-	  // now we know the 6 MHz pulse frequency is good and 3 cm mode is good 
-	  LOG_INFO("6 Mhz pulse frequency and 3 cm depth is an allowed mode for this probe");
+    // now we know the 6 MHz pulse frequency is good and 3 cm mode is good 
+    LOG_INFO("6 Mhz pulse frequency and 3 cm depth is an allowed mode for this probe");
   }
   if (is6MHz & CLKDIV2) { 
-	  // now we know the 6 MHz pulse frequency is good and 6 cm mode is good 
-	  LOG_INFO("6 Mhz pulse frequency and 6 cm depth is an allowed mode for this probe");
+    // now we know the 6 MHz pulse frequency is good and 6 cm mode is good 
+    LOG_INFO("6 Mhz pulse frequency and 6 cm depth is an allowed mode for this probe");
   }
   if (is6MHz & CLKDIV3) { 
-	  // now we know the 6 MHz pulse frequency is good and 9 cm mode is good
-	  LOG_INFO("6 Mhz pulse frequency and 9 cm depth is an allowed mode for this probe");
+    // now we know the 6 MHz pulse frequency is good and 9 cm mode is good
+    LOG_INFO("6 Mhz pulse frequency and 9 cm depth is an allowed mode for this probe");
   }
   if (is6MHz & CLKDIV4) { 
-	  // now we know the 6 MHz pulse frequency is good and 12 cm mode is good 
-	  LOG_INFO("6 Mhz pulse frequency and 12 cm depth is an allowed mode for this probe");
+    // now we know the 6 MHz pulse frequency is good and 12 cm mode is good 
+    LOG_INFO("6 Mhz pulse frequency and 12 cm depth is an allowed mode for this probe");
   }
   is5MHz = usbProbeAllowedModes(this->Internal->ProbeHandle) & P5MHZ; 
   if (is5MHz & CLKDIV1) { 
-	  // now we know the 5 MHz pulse frequency is good and 5 cm mode is good 
-	  LOG_INFO("5 Mhz pulse frequency and 5 cm depth is an allowed mode for this probe");
+    // now we know the 5 MHz pulse frequency is good and 5 cm mode is good 
+    LOG_INFO("5 Mhz pulse frequency and 5 cm depth is an allowed mode for this probe");
   }
   if (is5MHz & CLKDIV2) { 
-	  // now we know the 5 MHz pulse frequency is good and 10 cm mode is good 
-	  LOG_INFO("5 Mhz pulse frequency and 10 cm depth is an allowed mode for this probe");
+    // now we know the 5 MHz pulse frequency is good and 10 cm mode is good 
+    LOG_INFO("5 Mhz pulse frequency and 10 cm depth is an allowed mode for this probe");
   }
   if (is5MHz & CLKDIV3) { 
-	  // now we know the 5 MHz pulse frequency is good and 15 cm mode is good 
-	  LOG_INFO("5 Mhz pulse frequency and 15 cm depth is an allowed mode for this probe");
+    // now we know the 5 MHz pulse frequency is good and 15 cm mode is good 
+    LOG_INFO("5 Mhz pulse frequency and 15 cm depth is an allowed mode for this probe");
   }
   if (is5MHz & CLKDIV4) { 
-	  // now we know the 5 MHz pulse frequency is good and 20 cm mode is good 
-	  LOG_INFO("5 Mhz pulse frequency and 20 cm depth is an allowed mode for this probe");
+    // now we know the 5 MHz pulse frequency is good and 20 cm mode is good 
+    LOG_INFO("5 Mhz pulse frequency and 20 cm depth is an allowed mode for this probe");
   }
   is3_75MHz = usbProbeAllowedModes(this->Internal->ProbeHandle) & P3_75MHZ; 
   if (is3_75MHz & CLKDIV1) { 
-	  // now we know the 3.75 MHz pulse frequency is good and 5 cm mode is good 
-	  LOG_INFO("3.75 Mhz pulse frequency and 5 cm depth is an allowed mode for this probe");
-	  pair.first = 3.75;
-	  pair.second = 5;
-	  allowedModes.push_back(pair);
+    // now we know the 3.75 MHz pulse frequency is good and 5 cm mode is good 
+    LOG_INFO("3.75 Mhz pulse frequency and 5 cm depth is an allowed mode for this probe");
+    pair.first = 3.75;
+    pair.second = 5;
+    allowedModes.push_back(pair);
   }
   if (is3_75MHz & CLKDIV2) { 
-	  // now we know the 3.75 MHz pulse frequency is good and 10 cm mode is good 
-	  LOG_INFO("3.75 Mhz pulse frequency and 10 cm depth is an allowed mode for this probe");
-	  pair.first = 3.75;
-	  pair.second = 10;
-	  allowedModes.push_back(pair);
+    // now we know the 3.75 MHz pulse frequency is good and 10 cm mode is good 
+    LOG_INFO("3.75 Mhz pulse frequency and 10 cm depth is an allowed mode for this probe");
+    pair.first = 3.75;
+    pair.second = 10;
+    allowedModes.push_back(pair);
   }
   if (is3_75MHz & CLKDIV3) { 
-	  // now we know the 3.75 MHz pulse frequency is good and 15 cm mode is good
-	  pair.first = 3.75;
-	  pair.second = 15;
-	  allowedModes.push_back(pair);
-	  LOG_INFO("3.75 Mhz pulse frequency and 15 cm depth is an allowed mode for this probe");
+    // now we know the 3.75 MHz pulse frequency is good and 15 cm mode is good
+    pair.first = 3.75;
+    pair.second = 15;
+    allowedModes.push_back(pair);
+    LOG_INFO("3.75 Mhz pulse frequency and 15 cm depth is an allowed mode for this probe");
   }
   if (is3_75MHz & CLKDIV4) { 
-	  // now we know the 3.75 MHz pulse frequency is good and 20 cm mode is good
-	  pair.first = 3.75;
-	  pair.second = 20;
-	  allowedModes.push_back(pair);
-	  LOG_INFO("3.75 Mhz pulse frequency and 20 cm depth is an allowed mode for this probe");
+    // now we know the 3.75 MHz pulse frequency is good and 20 cm mode is good
+    pair.first = 3.75;
+    pair.second = 20;
+    allowedModes.push_back(pair);
+    LOG_INFO("3.75 Mhz pulse frequency and 20 cm depth is an allowed mode for this probe");
   }
   //allowedModes = usbProbeAllowedModes(this->Internal->ProbeHandle);
   //LOG_TRACE("Allowed modes are" << allowedModes); 
@@ -1083,4 +1074,108 @@ PlusStatus vtkIntersonVideoSource::GetProbeNameDevice(std::string& probeName)
   probeName=probeNamePrintable;
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkIntersonVideoSource::ApplyNewImagingParameters(const vtkUsImagingParameters& newImagingParameters)
+{
+  if( this->ImagingParameters->DeepCopy(newImagingParameters) == PLUS_FAIL )
+  {
+    LOG_ERROR("Unable to deep copy new imaging parameters.");
+    return PLUS_FAIL;
+  }
+
+  if( this->ImagingParameters->IsSet(vtkUsImagingParameters::KEY_DEPTH) && this->SetDepthMmDevice(this->ImagingParameters->GetDepthMm()) == PLUS_FAIL )
+  {
+    return PLUS_FAIL;
+  }
+  if( this->ImagingParameters->IsSet(vtkUsImagingParameters::KEY_FREQUENCY) && this->SetProbeFrequencyDevice(this->ImagingParameters->GetFrequencyMhz()) == PLUS_FAIL )
+  {
+    return PLUS_FAIL;
+  }
+  double gain[3];
+  this->ImagingParameters->GetGainPercent(gain);
+  if( this->ImagingParameters->IsSet(vtkUsImagingParameters::KEY_GAIN) && this->SetGainPercentDevice(gain) == PLUS_FAIL )
+  {
+    return PLUS_FAIL;
+  }
+  if( this->ImagingParameters->IsSet(vtkUsImagingParameters::KEY_INTENSITY) && this->ImagingParameters->IsSet(vtkUsImagingParameters::KEY_CONTRAST) && this->CreateLUT() == PLUS_FAIL)
+  {
+    return PLUS_FAIL;
+  }
+  if( this->ImagingParameters->IsSet(vtkUsImagingParameters::KEY_ZOOM) && this->SetDisplayZoomDevice(this->ImagingParameters->GetZoomFactor()) == PLUS_FAIL )
+  {
+    return PLUS_FAIL;
+  }
+  if( this->ImagingParameters->IsSet(vtkUsImagingParameters::KEY_SOUNDVELOCITY) && this->SetSoundVelocityDevice(this->ImagingParameters->GetSoundVelocity()) == PLUS_FAIL)
+  {
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkIntersonVideoSource::SetSoundVelocity(double aVel)
+{
+  return this->ImagingParameters->SetSoundVelocity(aVel);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkIntersonVideoSource::SetSoundVelocityDevice(double aVel)
+{
+  if (this->Internal->ProbeHandle==NULL)
+  {
+    LOG_ERROR("vtkIntersonVideoSource::SetGainPercentDevice failed: device not connected");
+    return PLUS_FAIL;
+  }
+
+  if ( aVel <= 0 )
+  {
+    LOG_ERROR("Invalid sound velocity sent: " << aVel);
+    return PLUS_FAIL;
+  }
+  this->SetSoundVelocity(aVel);
+  usbSetVelocity(this->Internal->ProbeHandle, aVel );
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkIntersonVideoSource::CreateLUT()
+{
+  BYTE lut[256];
+  double intensity=-1;
+  double contrast = -1;
+  this->ImagingParameters->GetIntensity(intensity);
+  this->ImagingParameters->GetContrast(contrast);
+  if( intensity < 0 ) intensity = 256.0;
+  if( contrast < 0 ) contrast = 256.0;
+  this->Internal->CreateLUT(lut, intensity, contrast, this->LutCenter, this->LutWindow);
+  bmCreatebLUT(lut);
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkIntersonVideoSource::SetIntensity(int value)
+{
+  return this->ImagingParameters->SetIntensity(value);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkIntersonVideoSource::SetContrast(int value)
+{
+  return this->ImagingParameters->SetContrast(value);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkIntersonVideoSource::SetDynRangeDb(double value)
+{
+  return this->ImagingParameters->SetDynRangeDb(value);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkIntersonVideoSource::SetSectorPercent(double value)
+{
+  return this->ImagingParameters->SetSectorPercent(value);
 }

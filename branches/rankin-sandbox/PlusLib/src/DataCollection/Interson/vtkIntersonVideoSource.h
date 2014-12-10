@@ -23,6 +23,7 @@
 */
 class vtkDataCollectionExport vtkIntersonVideoSource : public vtkPlusDevice
 {
+  static const int MAXIMUM_TGC_DB;
 public:
   static vtkIntersonVideoSource *New();
   vtkTypeMacro(vtkIntersonVideoSource,vtkPlusDevice);
@@ -40,11 +41,16 @@ public:
 
   virtual std::string GetSdkVersion();
 
-  void SetSectorPercent(double value) { this->ImagingParameters->SetSectorPercent(value); }
-  void SetIntensity(int value) { this->ImagingParameters->SetIntensity(value); }
-  void SetContrast(int value) { this->ImagingParameters->SetContrast(value); }
-  void SetDynRangeDb(double value) { this->ImagingParameters->SetDynRangeDb(value); }
-  void SetSoundVelocity(double value) { this->ImagingParameters->SetSoundVelocity(value); }
+  /*! Set the view sector in the parameters */
+  PlusStatus SetSectorPercent(double value);
+  /*! Set the intensity in the parameters */
+  PlusStatus SetIntensity(int value);
+  /*! Set the contrast in the parameters */
+  PlusStatus SetContrast(int value);
+  /*! Set the dynamic range in the parameters */
+  PlusStatus SetDynRangeDb(double value);
+  /*! Set the speed of sound in the parameters */
+  PlusStatus SetSoundVelocity(double aVel);
 
   vtkGetMacro(EnableProbeButtonMonitoring, bool);
   vtkSetMacro(EnableProbeButtonMonitoring, bool);
@@ -57,6 +63,7 @@ protected:
 
   /*! Device-specific connect */
   virtual PlusStatus InternalConnect();
+
 
   /*! Device-specific disconnect */
   virtual PlusStatus InternalDisconnect();
@@ -76,14 +83,12 @@ protected:
 
   PlusStatus WaitForFrame();
 
-  PlusStatus SetDisplayZoomDevice(double zoom);
-
   PlusStatus GetSampleFrequencyDevice(double& aFreq);
 
-  /* Set the desired probe frequency in Hz. The resulting probe speed will be approximately the value specified */
-  PlusStatus SetProbeFrequencyDevice(double aFreq);
-
   PlusStatus GetProbeVelocityDevice(double& aVel);
+  
+  /*! Set the speed of sound for the device */
+  PlusStatus SetSoundVelocityDevice(double aVel);
 
   /* Represents the depth, in pixels, the display window will be. This defaults to 512 pixels for newly initialized probes.*/
   PlusStatus SetWindowDepthDevice(int height);
@@ -91,7 +96,7 @@ protected:
   /* Set the probe depth in mm */
   PlusStatus SetDepthMm(double depthMm);
 
-  /* Set the probe depth in mm */
+  /* Set the probe depth in mm in the device */
   PlusStatus SetDepthMmDevice(double depthMm);
 
   /* Set the image size */
@@ -100,13 +105,18 @@ protected:
   /* Set the frquency in Mhz */
   PlusStatus SetFrequencyMhz(double freq);
 
+  /* Set the desired probe frequency in Hz. The resulting probe speed will be approximately the value specified */
+  PlusStatus SetProbeFrequencyDevice(double aFreq);
+
   /* Set the gain in percent */
   PlusStatus SetGainPercent(double gainPercent[3]);
   /* Set the gain in percent in the device */
   PlusStatus SetGainPercentDevice(double gainPercent[3]);
 
-  /* Set the zom factor. */
+  /* Set the zoom factor. */
   PlusStatus SetZoomFactor(double gainPercent);
+  /* Set the zoom factor in the device. */
+  PlusStatus SetDisplayZoomDevice(double zoom);
 
   /* Each probe has a defined set of allowed modes. 
   These modes are combinations of pulse frequency and sample rate that yield acceptable results
@@ -116,6 +126,14 @@ protected:
 
   /*! Get probe name from the device */
   PlusStatus GetProbeNameDevice(std::string& probeName);
+
+  /*! Receive new imaging parameters and apply them to this device
+  \param newImagingParameters the new parameters to apply to the device
+  */
+  virtual PlusStatus ApplyNewImagingParameters(const vtkUsImagingParameters& newImagingParameters);
+
+  /*! Create a new lookup table */
+  PlusStatus CreateLUT();
 
   // For internal storage of additional variables (to minimize the number of included headers)
   class vtkInternal;
@@ -129,19 +147,12 @@ protected:
 
   int ClockDivider;
   double ClockFrequencyMHz;
-  double SoundVelocity;
   int PulseFrequencyDivider;
 
-  int Brightness;
-  int Contrast;
   double LutCenter;
   double LutWindow;
   int ImageSize[2];
   double PulseVoltage;
-
-  double InitialGain;
-  double MidGain;
-  double FarGain;
 
   // ProbeButtonPressCount is incremented each time the button on the probe is pressed
   // The value is available in the output channel in the translation component of the ProbeButtonToDummyTransform

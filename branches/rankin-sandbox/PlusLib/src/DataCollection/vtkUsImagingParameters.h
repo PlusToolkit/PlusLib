@@ -72,6 +72,7 @@ public:
     Copy the values from another imaging parameters
     */
   virtual PlusStatus DeepCopy(const vtkUsImagingParameters& otherParameters);
+
   /*!
     Request a stored value by key name
     \param paramName the key value to retrieve
@@ -84,6 +85,11 @@ public:
     \param aValue the value to write
     */
   PlusStatus SetValue(const char* paramName, double aValue);
+  /*!
+    Request the status of a member
+    \param paramName the key value to retrieve
+    */
+  bool IsSet(const char* paramName);
 
   /*! Set ultrasound transmitter frequency (MHz) */
   PlusStatus SetFrequencyMhz(double aFrequencyMhz);

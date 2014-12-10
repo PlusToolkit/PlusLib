@@ -462,7 +462,7 @@ PlusStatus vtkUsImagingParameters::ReadConfiguration(vtkXMLDataElement* deviceCo
 
   if( parameterList == NULL )
   {
-    LOG_ERROR("Unable to locate UsImagingParameters tag in device config. Unable to read imaging parameters.");
+    LOG_ERROR("Unable to locate UsImagingParameters tag in device config. Unable to read imaging parameters. Device defaults will probably be used.");
     return PLUS_FAIL;
   }
 
@@ -513,8 +513,32 @@ PlusStatus vtkUsImagingParameters::WriteConfiguration(vtkXMLDataElement* deviceC
 }
 
 //-----------------------------------------------------------------------------
+bool vtkUsImagingParameters::IsSet(const char* paramName)
+{
+  if( paramName == NULL )
+  {
+    LOG_ERROR("NULL param name sent as parameter. Cannot perform lookup.");
+    return false;
+  }
+
+  if( this->ParameterSet.find(paramName) != this->ParameterSet.end() )
+  {
+    return this->ParameterSet[paramName];
+  }
+
+  LOG_ERROR("Invalid key request sent to vtkUsImagingParameters::IsSet -- " << paramName);
+  return false;
+}
+
+//-----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::GetValue(const char* paramName, double& outputValue)
 {
+  if( paramName == NULL )
+  {
+    LOG_ERROR("NULL param name sent as parameter. Cannot perform lookup.");
+    return PLUS_FAIL;
+  }
+
   if( this->ParameterValues.find(paramName) != this->ParameterValues.end() && this->ParameterSet[paramName] == true)
   {
     std::stringstream ss;
