@@ -655,3 +655,48 @@ PlusStatus vtkDataCollector::GetChannel( vtkPlusChannel* &aChannel, const std::s
   aChannel = NULL;
   return PLUS_FAIL;
 }
+
+//----------------------------------------------------------------------------
+PlusStatus vtkDataCollector::ApplyNewImagingParametersToAllDevices(const vtkUsImagingParameters& newImagingParameters)
+{
+  for( DeviceCollectionConstIterator it = this->Devices.begin(); it != this->Devices.end(); ++it )
+  {
+    vtkPlusDevice* device = *it;
+    if( device->ApplyNewImagingParameters(newImagingParameters) == PLUS_FAIL )
+    {
+      LOG_ERROR("Unable to apply new imaging parameters to: " << device->GetDeviceId());
+      continue;
+    }
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkDataCollector::ApplyNewImagingParametersToDevice(const std::string& deviceId, const vtkUsImagingParameters& newImagingParameters)
+{
+  vtkPlusDevice* device;
+  if( this->GetDevice(device, deviceId) == PLUS_FAIL )
+  {
+    LOG_ERROR("Unable to find device: " << deviceId);
+    return PLUS_FAIL;
+  }
+
+  return device->ApplyNewImagingParameters(newImagingParameters);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkDataCollector::ApplyNewImagingParametersToOnlyImagingDevices(const vtkUsImagingParameters& newImagingParameters)
+{
+  for( DeviceCollectionConstIterator it = this->Devices.begin(); it != this->Devices.end(); ++it )
+  {
+    vtkPlusDevice* device = *it;
+    if( !device->IsTracker() && device->ApplyNewImagingParameters(newImagingParameters) == PLUS_FAIL )
+    {
+      LOG_ERROR("Unable to apply new imaging parameters to: " << device->GetDeviceId());
+      continue;
+    }
+  }
+
+  return PLUS_SUCCESS;
+}

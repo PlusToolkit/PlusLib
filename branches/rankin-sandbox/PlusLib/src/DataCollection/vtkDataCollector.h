@@ -12,6 +12,7 @@ See License.txt for details.
 #include "PlusCommon.h"
 #include "vtkObject.h"
 #include "vtkPlusDeviceTypes.h"
+#include "vtkUsImagingParameters.h"
 
 class TrackedFrame;
 class vtkTrackedFrameList;
@@ -115,7 +116,20 @@ public:
     \param aTimestamp The oldest timestamp we search for in the buffer. If -1 get all frames in the time range since the most recent timestamp. Out parameter - changed to timestamp of last added frame
     \param aTrackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
   */
-  virtual PlusStatus GetVideoData(vtkPlusChannel* aRequestedChannel, double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList); 
+  virtual PlusStatus GetVideoData(vtkPlusChannel* aRequestedChannel, double& aTimestamp, vtkTrackedFrameList* aTrackedFrameList);
+
+  /*!
+    Apply new imaging parameters to all connected devices (will only apply to devices that have overwritten the callback function)
+  */
+  PlusStatus ApplyNewImagingParametersToAllDevices(const vtkUsImagingParameters& newImagingParameters);
+  /*!
+    Apply new imaging parameters to all connected imaging devices (will only apply to devices that have overwritten the callback function)
+  */
+  PlusStatus ApplyNewImagingParametersToOnlyImagingDevices(const vtkUsImagingParameters& newImagingParameters);
+  /*!
+    Apply new imaging parameters to the requested device
+  */
+  PlusStatus ApplyNewImagingParametersToDevice(const std::string& deviceId, const vtkUsImagingParameters& newImagingParameters);
 
   /*
   * Functions to manage the currently active stream mixers
