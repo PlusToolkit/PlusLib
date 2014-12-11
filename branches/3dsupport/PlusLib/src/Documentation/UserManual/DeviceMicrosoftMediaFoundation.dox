@@ -1,0 +1,38 @@
+/*!
+\page DeviceMicrosoftMediaFoundation Microsoft Media Foundation compatible imaging device
+
+\section MicrosoftMediaFoundationSupportedHwDevices Supported hardware devices
+Any compatible frame grabbers and webcams through Microsoft Media Foundation interface.
+
+\section MicrosoftMediaFoundationSupportedPlatforms Included in packages
+- \ref PackageWin32
+- \ref PackageWin64
+
+\section MicrosoftMediaFoundationInstallation Installation
+
+Media foundation require Microsoft Windows SDK 7.1 or later. Download <a href="http://www.microsoft.com/en-us/download/details.aspx?id=8279">here</a>
+
+\section MicrosoftMediaFoundationConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "MmfVideo" \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+
+- \xmlAtt \b FrameSize Size of the video frame. \OptionalAtt{640 480}
+- \xmlAtt \b VideoFormat It specifies the video subtype format. All the available formats are described <a href="http://msdn.microsoft.com/en-us/library/windows/desktop/aa370819(v=vs.85).aspx">here.</a> \OptionalAtt{YUY2}
+- \xmlAtt \b CaptureDeviceId \OptionalAtt{0}
+
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
+    - \xmlAtt \ref ImageType Color image acquisition is supported by setting the imaging device's common attribute \c ImageType="RGB_COLOR". \OptionalAtt{BRIGHTNESS}
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+
+\section MicrosoftMediaFoundationExampleConfigFile Example configuration file PlusDeviceSet_Server_MmfColorVideoCapture.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_MmfColorVideoCapture.xml"
+
+
+
+*/

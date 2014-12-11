@@ -1,0 +1,39 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Plus toolkit - printable 3D models catalog</title>
+    <style type="text/css" >
+      body, h1, h2
+      {
+        font-family: Helvetica, Geneva, Arial, SunSans-Regular, sans-serif;
+      }        
+      th
+      {
+        font-weight: bold;
+      }    
+      table, th, td
+      {
+        border: 1px solid black;
+        border-collapse: collapse;
+      }
+      td.image
+      {
+        width: 100px
+      }
+      img.model
+      {
+        width: 200px;
+      }      
+      table
+      {
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body >
+    <h1>Plus toolkit - printable 3D models catalog</h1>
+    Catalog of printable 3D models of tools and tracking fixtures.
+    ${PAGE_BODY}
+  </body>
+</html>

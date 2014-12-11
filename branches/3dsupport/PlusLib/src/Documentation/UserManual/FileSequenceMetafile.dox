@@ -1,0 +1,51 @@
+/**
+
+\page FileSequenceMetafile Sequence Metafile
+
+Plus uses the standard MetaIO image format with some additional custom fields to store all the acquired image data and transforms corresponding to each frame.
+
+There are two variants of the file format:
+- With .mha extension: Single file containing the header and the image data. The advantage is that all the acquired data is stored in one file. However, it is not convenient to edit the header with a text editor (the file is large and the text editor may corrupt the image data if it modifies the CR/LF line endings) 
+- With .mhd extension: separate file for the header (.mhd) and for the image data (typically .raw or .zraw) file. Safe and convenient to edit the header, but the data is stored in two separate files.
+
+\section FileSequenceMetafileFieldFormat Field format
+- Fields are defined as: [FieldName] = [FieldValue]
+- Frame fields store data that are specific to a single frame, defined as: Seq_Frame[FrameIndex]_[SeqFieldName] = [FieldValue]. FrameIndex of the first frame is 0.
+- Transforms are typically stored for each frame (in frame fields) as described on the \ref TransformationMatrix definition page
+
+\section FileSequenceMetafileFieldDefinitions Field definitions 
+- ObjectType: Type of the MetaIO object. Must be \c Image. This must be the first field in the file. 
+- NDims: Number of dimensions in the image. Must be \c 3.
+- BinaryData: Defines if the data is encoded in binary format. Must be \c True.
+- BinaryDataByteOrderMSB: Defines byte ordering. Must be \c False. 
+- CompressedData: Defines if the data is compressed or not (using zlib). Compression can decrease the file size to 10-20% of the original, but some programs may not be able to read compressed files. Can be \c True or \c False.
+- TransformMatrix: Used by the MetaIO image file format to store the orientation of the image axes. This field is not used by Plus and kept only for compatibility with other software, as the orientation is defined per frame. Typical value is 1 0 0 0 1 0 0 0 1.
+- Offset: Used by the MetaIO image file format to store the origin of the image. This field is not used by Plus and kept only for compatibility with other software, as the image origin is defined per frame. Typical value is 0 0 0.
+- CenterOfRotation: Used by the MetaIO image file format to store the point around the image is rotated. This field is not used by Plus and kept only for compatibility with other software, as the orientation is defined per frame. Typical value is 0 0 0.
+- AnatomicalOrientation: Used by the MetaIO image file format to store anatomical orientation of the image. This field is not used by Plus and kept only for compatibility with other software. Typical value is \c RAI (which corresponds to \c LPS orientation in DICOM).
+- ElementSpacing: Used by the MetaIO image file format to store the point around the image is rotated. This field is not used by Plus and kept only for compatibility with other software, as the spacing is defined per frame. Typical value is 1 1 1.
+- UltrasoundImageOrientation: orientation of the image data as defined on the \ref UltrasoundImageOrientation page.
+- UltrasoundImageType: encoding of the pixel data.
+  - \c BRIGHTNESS is the default value, which means that it is a B-mode image. RF waveform can be stored in multiple ways.
+  - \c RF_I_LINE_Q_LINE means RF data is IQ encoded and all the I values of a scanline stored in one row, then the Q values of the same scanline stored in the next row (IIIIIII..., QQQQQQ...., IIIIIII..., QQQQQQ....).
+  - \c RF_IQ_LINE means RF data is IQ encoded and all the IQ value pairs are stored subsequently for each sample (IQIQIQ....., IQIQIQIQ.....) - this is the storage format used by BK scanners.
+  - \c RF_REAL means that real values are stored (RRRRR..., RRRRR...), RF conversion is performed by computing the 90-degree phase shifted signal by Hilbert transform.
+- Seq_Frame[FrameIndex]_FrameNumber: frame number (specified by the tracker device)
+- Seq_Frame[FrameIndex]_UnfilteredTimestamp: Time when the image frame has been acquired, in seconds. The 0 timestamp typically corresponds to the application start time. 
+- Seq_Frame[FrameIndex]_Timestamp: Similar to Seq_Frame[FrameIndex]_UnfilteredTimestamp, but with a temporal filtering. The filtering reduces the jitter caused by acquiring data on a non-real-time operating system. This timestamp is supposed to be more accurate then the unfiltered. 
+- Seq_Frame[FrameIndex]_[TransformName]TransformStatus: transform status. Its value is \c OK if the Seq_Frame [FrameIndex]_[TransformName]Transform is valid. Otherwise its value is \c INVALID. 
+  - Example: Seq_Frame0000_ToolToTrackerTransform = -0.208747 -0.972904 0.0993168 229.828 0.481211 -0.190655 -0.855521 -44.6484 0.851242 -0.130739 0.50794 -25.0031 0 0 0 1 
+- ElementDataFile: Location of the image data. For *.mha files it must be \c LOCAL, which means that the pixel data is stored in the same file, right after this field. For *.mhd files it must contain a file name, where the image data is stored. This must be the last field in the file (all data after this field assumed to belong to the image data, therefore those fields that defined after it will be ignored and will cause a shift in the image data).
+
+\section FileSequenceMetafileMatlab Reading/writing in Matlab
+
+Use mha_read_transforms.m, mha_read_volume.m, and mha_write_volume.m functions, available from:
+
+https://subversion.assembla.com/svn/plus/trunk/sandbox/MatlabUtils/
+
+\section FileSequenceMetafileCompression Compression
+
+Image data can be stored in a compressed way to conserve disk space, without any image quality degradation.
+Use the \ref ApplicationEditSeqMetaFile tool to compress/uncompress image data.
+
+*/
