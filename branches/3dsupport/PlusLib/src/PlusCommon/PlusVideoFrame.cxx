@@ -189,7 +189,7 @@ PlusVideoFrame& PlusVideoFrame::operator=(PlusVideoFrame const&videoItem)
   // Copy the pixels. Don't use image duplicator, because that wouldn't reuse the existing buffer
   if ( videoItem.GetFrameSizeInBytes() > 0)
   {
-    int frameSize[2] = {0,0};
+    int frameSize[3] = {0,0,0};
     videoItem.GetFrameSize(frameSize);
 
     if ( this->AllocateFrame(frameSize, videoItem.GetVTKScalarPixelType(), videoItem.GetNumberOfScalarComponents()) != PLUS_SUCCESS )
@@ -283,10 +283,10 @@ unsigned long PlusVideoFrame::GetFrameSizeInBytes() const
   {
     return 0;
   }
-  int frameSize[2] = {0,0};
+  int frameSize[3] = {0,0,0};
   this->GetFrameSize(frameSize);
 
-  if( frameSize[0] <= 0 || frameSize[1] <= 0 )
+  if( frameSize[0] <= 0 || frameSize[1] <= 0 || frameSize[2] <= 0 )
   {
     return 0;
   }
@@ -296,7 +296,7 @@ unsigned long PlusVideoFrame::GetFrameSizeInBytes() const
   {
     LOG_ERROR("Unsupported scalar size: " << bytesPerScalar << " bytes/scalar component");
   }
-  unsigned long frameSizeInBytes = frameSize[0] * frameSize[1] * bytesPerScalar * this->GetNumberOfScalarComponents();
+  unsigned long frameSizeInBytes = frameSize[0] * frameSize[1] * frameSize[2] * bytesPerScalar * this->GetNumberOfScalarComponents();
   return frameSizeInBytes; 
 }
 
@@ -310,7 +310,7 @@ PlusStatus PlusVideoFrame::DeepCopyFrom(vtkImageData* frame)
   }
 
   int* frameExtent = frame->GetExtent(); 
-  int frameSize[2] = {( frameExtent[1] - frameExtent[0] + 1 ), ( frameExtent[3] - frameExtent[2] + 1 ) }; 
+  int frameSize[3] = {( frameExtent[1] - frameExtent[0] + 1 ), ( frameExtent[3] - frameExtent[2] + 1 ), ( frameExtent[5] - frameExtent[4] + 1 ) }; 
 
   if ( this->AllocateFrame(frameSize, frame->GetScalarType(), frame->GetNumberOfScalarComponents()) != PLUS_SUCCESS )
   {

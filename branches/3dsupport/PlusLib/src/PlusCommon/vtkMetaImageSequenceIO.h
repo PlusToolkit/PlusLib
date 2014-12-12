@@ -59,13 +59,13 @@ public:
   vtkSetMacro(ImageOrientationInMemory, US_IMAGE_ORIENTATION);
 
   /*! Write object contents into file */
-  virtual PlusStatus Write(bool trackerOnly=false);
+  virtual PlusStatus Write(bool removeImageData=false);
 
   /*! Read file contents into the object */
   virtual PlusStatus Read();
 
   /*! Prepare the sequence for writing */
-  virtual PlusStatus PrepareHeader(bool trackerOnly=false);
+  virtual PlusStatus PrepareHeader(bool removeImageData=false);
 
   /*! 
     Append the frames in tracked frame list to the header, if the onlyTrackerData flag is true it will not save
@@ -136,10 +136,10 @@ protected:
   virtual PlusStatus ReadImagePixels();
 
   /*! Write all the fields to the metaimage file header */
-  virtual PlusStatus OpenImageHeader(bool trackerOnly=false);
+  virtual PlusStatus OpenImageHeader(bool removeImageData=false);
 
   /*! Write pixel data to the metaimage */
-  virtual PlusStatus WriteImagePixels(const std::string& aFilename, bool forceAppend = false, bool trackerOnly=false);
+  virtual PlusStatus WriteImagePixels(const std::string& aFilename, bool forceAppend = false, bool removeImageData=false);
 
   /*! 
     Convenience function that extends the tracked frame list (if needed) to make sure
@@ -163,7 +163,7 @@ protected:
     \param outputFileStream the file stream where the compressed pixel data will be written to
     \param compressedDataSize returns the size of the total compressed data that is written to the file.
   */
-  virtual PlusStatus WriteCompressedImagePixelsToFile(FILE *outputFileStream, int &compressedDataSize, bool trackerOnly=false);
+  virtual PlusStatus WriteCompressedImagePixelsToFile(FILE *outputFileStream, int &compressedDataSize, bool removeImageData=false);
 
   /*! Copy from file A to B */
   virtual PlusStatus MoveDataInFiles(const std::string& sourceFilename, const std::string& destFilename, bool append);
