@@ -210,7 +210,7 @@ PlusStatus vtkLineSegmentationAlgo::ComputeVideoPositionMetric()
       continue;
     }
     CharImageType::Pointer localImage = CharImageType::New(); 
-    PlusVideoFrame::DeepCopyVtkImageToItkImage<CharPixelType>(trackedFrame->GetImageData()->GetImage(), localImage);
+    PlusVideoFrame::DeepCopyVtkVolumeToItkImage<CharPixelType>(trackedFrame->GetImageData()->GetImage(), localImage);
     if(localImage.IsNull())
     {
       // Dropped frame

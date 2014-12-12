@@ -36,7 +36,7 @@ enum US_IMAGE_ORIENTATION
   US_IMG_ORIENT_FM, /*!< image x axis = far transducer axis, image y axis = marked transducer axis (usually for RF frames)*/
   US_IMG_ORIENT_NM, /*!< image x axis = near transducer axis, image y axis = marked transducer axis (usually for RF frames)*/  
   US_IMG_ORIENT_LAST   /*!< just a placeholder for range checking, this must be the last defined orientation item */  
-}; 
+};
 
 /*!
 \enum US_IMAGE_TYPE
@@ -71,6 +71,7 @@ public:
     FlipInfoType() : hFlip(false), vFlip(false), doubleColumn(false), doubleRow(false) {};
     bool hFlip; // flip the image horizontally (pixel columns are reordered)
     bool vFlip; // flip the image vertically (pixel rows are reordered)
+    bool zFlip; // flip the image in depth
     bool doubleColumn; // keep pairs of pixel columns together (for RF_IQ_LINE encoded images)
     bool doubleRow; // keep pairs of pixel rows together (for RF_I_LINE_Q_LINE encoded images)
   };
@@ -88,9 +89,9 @@ public:
   PlusVideoFrame& operator=(PlusVideoFrame const&videoItem); 
 
   /*! Allocate memory for the image. The image object must be already created. */
-  static PlusStatus AllocateFrame(vtkImageData* image, const int imageSize[2], PlusCommon::VTKScalarPixelType vtkScalarPixelType, int numberOfScalarComponents); 
+  static PlusStatus AllocateFrame(vtkImageData* image, const int imageSize[3], PlusCommon::VTKScalarPixelType vtkScalarPixelType, int numberOfScalarComponents); 
   /*! Allocate memory for the image. */
-  PlusStatus AllocateFrame(const int imageSize[2], PlusCommon::VTKScalarPixelType vtkScalarPixelType, int numberOfScalarComponents); 
+  PlusStatus AllocateFrame(const int imageSize[3], PlusCommon::VTKScalarPixelType vtkScalarPixelType, int numberOfScalarComponents); 
 
   /*! Return the pixel type using VTK enums. */
   PlusCommon::VTKScalarPixelType GetVTKScalarPixelType() const;
@@ -144,7 +145,7 @@ public:
   static int GetNumberOfBytesPerScalar(PlusCommon::VTKScalarPixelType pixelType);
 
   /*! Get the dimensions of the frame in pixels */
-  PlusStatus GetFrameSize(int frameSize[2]) const;
+  PlusStatus GetFrameSize(int frameSize[3]) const;
 
   /*! Get the pointer to the pixel buffer */
   void* GetScalarPointer() const;
@@ -180,10 +181,10 @@ public:
   static PlusStatus GetOrientedImage( vtkImageData* inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_TYPE inUsImageType, US_IMAGE_ORIENTATION outUsImageOrientation, vtkImageData* outUsOrientedImage ); 
 
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, PlusCommon::VTKScalarPixelType inUsImagePixelType, int numberOfScalarComponents, const int frameSizeInPx[2], US_IMAGE_ORIENTATION outUsImageOrientation, vtkImageData* outUsOrientedImage); 
+  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, PlusCommon::VTKScalarPixelType inUsImagePixelType, int numberOfScalarComponents, const int frameSizeInPx[3], US_IMAGE_ORIENTATION outUsImageOrientation, vtkImageData* outUsOrientedImage); 
 
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, PlusCommon::VTKScalarPixelType inUsImagePixelType, int numberOfScalarComponents, const int frameSizeInPx[2], US_IMAGE_ORIENTATION outUsImageOrientation, PlusVideoFrame &outBufferItem);
+  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, PlusCommon::VTKScalarPixelType inUsImagePixelType, int numberOfScalarComponents, const int frameSizeInPx[3], US_IMAGE_ORIENTATION outUsImageOrientation, PlusVideoFrame &outBufferItem);
 
   static PlusStatus GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1, US_IMAGE_TYPE usImageType1, US_IMAGE_ORIENTATION usImageOrientation2, FlipInfoType& flipInfo);
 
@@ -202,8 +203,10 @@ public:
   /*! Fill the actual image data with black pixels (0) */
   PlusStatus FillBlank();
 
-  /*! Convert vtkImageData to itkImage */
-  template<typename ScalarType> static PlusStatus DeepCopyVtkImageToItkImage(vtkImageData* inFrame, typename itk::Image< ScalarType, 2 >::Pointer outFrame);
+  /*! Convert 3D vtkImageData to 3D itkImage */
+  template<typename ScalarType> static PlusStatus DeepCopyVtkVolumeToItkVolume(vtkImageData* inFrame, typename itk::Image< ScalarType, 3 >::Pointer outFrame);
+  /*! Convert 2D/3D vtkImageData to 2D itkImage (take only first slice if 3D) */
+  template<typename ScalarType> static PlusStatus DeepCopyVtkVolumeToItkImage(vtkImageData* inFrame, typename itk::Image< ScalarType, 2 >::Pointer outFrame);
 
 protected:
   

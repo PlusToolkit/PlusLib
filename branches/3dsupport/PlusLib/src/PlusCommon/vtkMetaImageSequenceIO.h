@@ -34,7 +34,11 @@ public:
   /*! Set the TrackedFrameList where the images are stored */
   virtual void SetTrackedFrameList(vtkTrackedFrameList *trackedFrameList);
   /*! Get the TrackedFrameList where the images are stored */
-  vtkGetObjectMacro(TrackedFrameList, vtkTrackedFrameList); 
+  vtkGetObjectMacro(TrackedFrameList, vtkTrackedFrameList);
+
+  /*! Accessors to control 2D Dims output */
+  vtkSetMacro(Output2DDataWithZDimensionIncluded, bool);
+  vtkGetMacro(Output2DDataWithZDimensionIncluded, bool);
 
   /*!
     Set/get the ultrasound image orientation for file storage (as the result of writing).
@@ -159,7 +163,7 @@ protected:
   virtual void CreateTrackedFrameIfNonExisting(unsigned int frameNumber);
   
   /*! Get the largest possible image size in the tracked frame list */
-  virtual void GetMaximumImageDimensions(int maxFrameSize[2]); 
+  virtual void GetMaximumImageDimensions(int maxFrameSize[3]); 
 
   /*! Get full path to the file for storing the pixel data */
   std::string GetPixelDataFilePath();
@@ -214,12 +218,14 @@ private:
   int NumberOfScalarComponents;
   /*! Number of image dimensions. Only 2 (single frame) or 3 (sequence of frames) are supported. */
   int NumberOfDimensions;
-  /*! Frame size (first two elements) and number of frames (last element) */
-  int Dimensions[3];
+  /*! Frame size (first three elements) and number of frames (last element) */
+  int Dimensions[4];
   /*! Current frame offset, this is used to build up frames one addition at a time */
-  int m_CurrentFrameOffset;
+  int CurrentFrameOffset;
+  /*! If 2D data, boolean to determine if we should write out in the form X Y Nfr (false) or X Y 1 Nfr (true) */
+  bool Output2DDataWithZDimensionIncluded;
   /*! Total bytes written */
-  unsigned long long m_TotalBytesWritten;
+  unsigned long long TotalBytesWritten;
 
   /*! 
     Image orientation in memory is always MF for B-mode, but when reading/writing a file then
