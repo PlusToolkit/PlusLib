@@ -598,7 +598,7 @@ int main(int argc, char **argv)
 
   if(REMOVE_IMAGE_DATA==operation)
   {
-    writer->SetUseCompression(false);
+    writer->SetUseCompression(useCompression);
     if (writer->Write(true)!=PLUS_SUCCESS)
     {
       LOG_ERROR("Couldn't write tracking data to the sequence metafile: " << outputFileName ); 

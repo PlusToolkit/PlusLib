@@ -136,6 +136,22 @@ ADD_TEST(EditSeqMetaFileRemoveImageDataCompareToBaselineTest
   )
 SET_TESTS_PROPERTIES( EditSeqMetaFileRemoveImageDataCompareToBaselineTest PROPERTIES DEPENDS EditSeqMetaFileRemoveImageData )
 
+ADD_TEST(NAME EditSeqMetaFileRemoveImageDataCompressed
+  COMMAND $<TARGET_FILE:EditSeqMetaFile>
+  --operation=REMOVE_IMAGE_DATA
+  --source-seq-file=${TestDataDir}/UsSimulatorOutputSpinePhantom2CurvilinearBaseline.mha  
+  --output-seq-file=UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUSCompressed.mha
+  --use-compression
+  --verbose=3
+  )
+SET_TESTS_PROPERTIES( EditSeqMetaFileRemoveImageDataCompressed PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+ADD_TEST(EditSeqMetaFileRemoveImageDataCompressedCompareToBaselineTest
+  ${CMAKE_COMMAND} -E compare_files 
+   ${TEST_OUTPUT_PATH}/UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUSCompressed.mha
+   ${TestDataDir}/UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUSCompressed.mha
+  )
+SET_TESTS_PROPERTIES( EditSeqMetaFileRemoveImageDataCompressedCompareToBaselineTest PROPERTIES DEPENDS EditSeqMetaFileRemoveImageDataCompressed )
 
 ADD_EXECUTABLE(ModelRenderer ModelRenderer.cxx )
 TARGET_LINK_LIBRARIES(ModelRenderer vtkPlusCommon )
