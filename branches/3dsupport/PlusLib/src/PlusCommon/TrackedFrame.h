@@ -105,7 +105,7 @@ public:
   int* GetFrameSize(); 
 
   /*! Get tracked frame size in pixels */
-  void GetFrameSize(int dim[2]);
+  void GetFrameSize(int dim[3]);
 
   /*! Get tracked frame pixel size in bits (scalar size * number of scalar components) */
   int GetNumberOfBitsPerScalar();
@@ -164,7 +164,7 @@ protected:
 
   FieldMapType CustomFrameFields;
 
-  int FrameSize[2]; 
+  int FrameSize[3]; 
 
   /*! Stores segmented fiducial point pixel coordinates */
   vtkPoints* FiducialPointsCoordinatePx; 

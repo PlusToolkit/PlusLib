@@ -430,30 +430,15 @@ PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequ
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTrackedFrameList::SaveToSequenceMetafile(const char* filename, bool useCompression /*=true*/)
+PlusStatus vtkTrackedFrameList::SaveToSequenceMetafile(const char* filename, bool useCompression /*=true*/, bool removeImageData /*=false*/)
 {
   vtkSmartPointer<vtkMetaImageSequenceIO> writer=vtkSmartPointer<vtkMetaImageSequenceIO>::New();
   writer->SetUseCompression(useCompression);
   writer->SetFileName(filename);
   writer->SetTrackedFrameList(this);
-  if (writer->Write()!=PLUS_SUCCESS)
+  if (writer->Write(removeImageData)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Couldn't write sequence metafile: " <<  filename); 
-    return PLUS_FAIL;
-  }
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkTrackedFrameList::SaveTrackerDataOnlyToSequenceMetafile(const char* filename, bool useCompression /*=true*/)
-{
-  vtkSmartPointer<vtkMetaImageSequenceIO> writer=vtkSmartPointer<vtkMetaImageSequenceIO>::New();
-  writer->SetUseCompression(useCompression);
-  writer->SetFileName(filename);
-  writer->SetTrackedFrameList(this);
-  if (writer->WriteOnlyTrackerData()!=PLUS_SUCCESS)
-  {
-    LOG_ERROR("Couldn't write tracking data to the sequence metafile: " <<  filename); 
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
