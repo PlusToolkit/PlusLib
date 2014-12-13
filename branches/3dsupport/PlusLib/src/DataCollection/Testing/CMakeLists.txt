@@ -305,6 +305,12 @@ IF (PLUS_USE_MMF_VIDEO)
 
 ENDIF (PLUS_USE_MMF_VIDEO)
 
+#***************************  vtkPhilips3DProbeVideoSource.cxx ***************************
+IF (PLUS_USE_PHILIPS_3D_ULTRASOUND)
+message("TODO : datacollection/testing/cmakelists.txt line 310 : complete me")
+ENDIF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
+
+
 #***************************  vtkEpiphanVideoSourceTest.cxx ***************************
 IF (PLUS_USE_EPIPHAN)
   ADD_EXECUTABLE(vtkEpiphanVideoSourceTest vtkEpiphanVideoSourceTest.cxx )
