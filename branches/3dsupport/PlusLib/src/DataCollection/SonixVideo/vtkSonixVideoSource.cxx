@@ -1108,7 +1108,7 @@ PlusStatus vtkSonixVideoSource::ConfigureVideoSource( uData aValue )
     LOG_ERROR("Unsupported Ulterius bit depth: " << aDataDescriptor.ss);
     return PLUS_FAIL;
   }
-  this->SetFrameSize( *aSource, aDataDescriptor.w, aDataDescriptor.h);
+  this->SetFrameSize( *aSource, aDataDescriptor.w, aDataDescriptor.h, 1 );
 
   return PLUS_SUCCESS;
 }

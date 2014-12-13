@@ -490,7 +490,7 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
 			LOG_ERROR("vtkSonixPortaVideoSource constructor: not enough memory for ImageBuffer" );
 		}
 
-    if( !this->SetFrameSize( *aSource, this->PortaBModeWidth, this->PortaBModeHeight )  )
+    if( !this->SetFrameSize( *aSource, this->PortaBModeWidth, this->PortaBModeHeight, 1 )  )
     {
       LOG_ERROR("Initializer: can not set the frame size" );
     }

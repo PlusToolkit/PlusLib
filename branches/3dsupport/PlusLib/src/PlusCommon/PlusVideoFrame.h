@@ -68,7 +68,7 @@ class vtkPlusCommonExport PlusVideoFrame
 public:
   struct FlipInfoType
   {
-    FlipInfoType() : hFlip(false), vFlip(false), doubleColumn(false), doubleRow(false) {};
+    FlipInfoType() : hFlip(false), vFlip(false), zFlip(false), doubleColumn(false), doubleRow(false) {};
     bool hFlip; // flip the image horizontally (pixel columns are reordered)
     bool vFlip; // flip the image vertically (pixel rows are reordered)
     bool zFlip; // flip the image in depth

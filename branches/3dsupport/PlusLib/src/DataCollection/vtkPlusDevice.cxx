@@ -1477,36 +1477,37 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::SetFrameSize(vtkPlusDataSource& aSource, int x, int y)
+PlusStatus vtkPlusDevice::SetFrameSize(vtkPlusDataSource& aSource, int x, int y, int z)
 {
-  LOCAL_LOG_TRACE("vtkPlusDevice::SetFrameSize(" << x << ", " << y << ")");
+  LOCAL_LOG_TRACE("vtkPlusDevice::SetFrameSize(" << x << ", " << y << ", " << z << ")");
 
   int* frameSize = aSource.GetBuffer()->GetFrameSize();
 
   if (x == frameSize[0] &&
-    y == frameSize[1] )
+    y == frameSize[1] &&
+    z == frameSize[2])
   {
     return PLUS_SUCCESS;
   }
 
-  if (x < 1 || y < 1)
+  if (x < 1 || y < 1 || z < 1)
   {
     LOCAL_LOG_ERROR("SetFrameSize: Illegal frame size");
     return PLUS_FAIL;
   }
 
-  aSource.GetBuffer()->SetFrameSize(x,y); 
+  aSource.GetBuffer()->SetFrameSize(x,y,z); 
 
   aSource.Modified();
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetFrameSize(vtkPlusChannel& aChannel, int &x, int &y)
+PlusStatus vtkPlusDevice::GetFrameSize(vtkPlusChannel& aChannel, int &x, int &y, int &z)
 {
   LOCAL_LOG_TRACE("vtkPlusDevice::GetFrameSize");
 
-  int dim[2];
+  int dim[3];
   if( this->GetFrameSize(aChannel, dim) != PLUS_SUCCESS )
   {
     LOCAL_LOG_ERROR("Unable to get frame size from the device.");
@@ -1514,12 +1515,13 @@ PlusStatus vtkPlusDevice::GetFrameSize(vtkPlusChannel& aChannel, int &x, int &y)
   }
   x = dim[0];
   y = dim[1];
+  z = dim[2];
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetFrameSize(vtkPlusChannel& aChannel, int dim[2])
+PlusStatus vtkPlusDevice::GetFrameSize(vtkPlusChannel& aChannel, int dim[3])
 {
   LOCAL_LOG_TRACE("vtkPlusDevice::GetFrameSize");
 

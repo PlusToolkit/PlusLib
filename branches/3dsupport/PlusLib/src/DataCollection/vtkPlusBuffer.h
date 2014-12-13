@@ -184,13 +184,13 @@ public:
   bool GetTimeStampReporting();
 
   /*! Set the frame size in pixel  */
-  PlusStatus SetFrameSize(int x, int y); 
+  PlusStatus SetFrameSize(int x, int y, int z); 
   /*! Set the frame size in pixel  */
-  PlusStatus SetFrameSize(int frameSize[2]); 
+  PlusStatus SetFrameSize(int frameSize[3]); 
   /*! Get the frame size in pixel  */
   virtual int* GetFrameSize();
-  virtual PlusStatus GetFrameSize(int &_arg1, int &_arg2);
-  virtual PlusStatus GetFrameSize (int _arg[2]);
+  virtual PlusStatus GetFrameSize(int &_arg1, int &_arg2, int &_arg3);
+  virtual PlusStatus GetFrameSize (int _arg[3]);
 
   /*! Set the pixel type */
   PlusStatus SetPixelType(PlusCommon::VTKScalarPixelType pixelType); 
@@ -241,7 +241,7 @@ protected:
     Compares frame format with new frame imaging parameters.
     \return true if current buffer frame format matches the method arguments, otherwise false
   */
-  virtual bool CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::VTKScalarPixelType pixelType, US_IMAGE_TYPE imgType, int numberOfScalarComponents );
+  virtual bool CheckFrameFormat( const int frameSizeInPx[3], PlusCommon::VTKScalarPixelType pixelType, US_IMAGE_TYPE imgType, int numberOfScalarComponents );
 
   /*! Returns the two buffer items that are closest previous and next buffer items relative to the specified time. itemA is the closest item */
   PlusStatus GetPrevNextBufferItemFromTime(double time, StreamBufferItem& itemA, StreamBufferItem& itemB);
@@ -260,7 +260,7 @@ protected:
   virtual ItemStatus GetStreamBufferItemFromClosestTime( double time, StreamBufferItem* bufferItem);
 
   /*! Image frame size in pixel */
-  int FrameSize[2]; 
+  int FrameSize[3]; 
   
   /*! Image pixel type */
   PlusCommon::VTKScalarPixelType PixelType;

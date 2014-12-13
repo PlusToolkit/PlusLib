@@ -996,7 +996,7 @@ void vtkImageVisualizer::SetChannel(vtkPlusChannel *channel)
 
   if( this->SelectedChannel != NULL && this->SelectedChannel->GetBrightnessOutput() != NULL )
   {
-    this->ImageActor->SetInputData_vtk5compatible( this->SelectedChannel->GetBrightnessOutput() );
+    this->SetInputData(this->SelectedChannel->GetBrightnessOutput());
     this->ImageActor->VisibilityOn();
   }
   else

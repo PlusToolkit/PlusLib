@@ -673,7 +673,7 @@ PlusStatus vtkWin32VideoSource2::SetFrameSize(int x, int y)
     LOG_ERROR(this->GetDeviceId() << ": Unable to retrieve video source.");
     return PLUS_FAIL;
   }
-  if (this->Superclass::SetFrameSize(*aSource, x, y)!=PLUS_SUCCESS)
+  if (this->Superclass::SetFrameSize(*aSource, x, y, 1)!=PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
@@ -794,11 +794,11 @@ PlusStatus vtkWin32VideoSource2::UpdateFrameBuffer()
     LOG_ERROR("Unable to access video source in vtkWin32VideoSource2. Critical failure.");
     return PLUS_FAIL;
   }
-  aSource->GetBuffer()->SetFrameSize(width, height);
+  aSource->GetBuffer()->SetFrameSize(width, height,1);
   aSource->GetBuffer()->SetPixelType(pixelType);
   aSource->GetBuffer()->SetNumberOfScalarComponents(numberOfScalarComponents);
 
-  int frameSize[2]={width, height};
+  int frameSize[3]={width, height,1};
   this->UncompressedVideoFrame.AllocateFrame(frameSize,pixelType,numberOfScalarComponents);
 
   return PLUS_SUCCESS;
