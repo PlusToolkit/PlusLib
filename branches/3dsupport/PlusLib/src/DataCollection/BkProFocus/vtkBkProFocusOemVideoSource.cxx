@@ -314,7 +314,7 @@ PlusStatus vtkBkProFocusOemVideoSource::InternalUpdate()
     int frameSizeInPix[2]={frameExtent[1]-frameExtent[0]+1, frameExtent[3]-frameExtent[2]+1};
     aSource->GetBuffer()->SetPixelType(this->Internal->DecodedImageFrame->GetScalarType());
     aSource->GetBuffer()->SetImageType(US_IMG_BRIGHTNESS);
-    aSource->GetBuffer()->SetFrameSize( frameSizeInPix[0], frameSizeInPix[1] );
+    aSource->GetBuffer()->SetFrameSize( frameSizeInPix[0], frameSizeInPix[1], 1 );
     aSource->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
 
     LOG_INFO("Frame size: " << frameSizeInPix[0] << "x" << frameSizeInPix[1]

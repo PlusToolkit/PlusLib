@@ -376,7 +376,7 @@ PlusStatus vtkIntersonVideoSource::InternalConnect()
   // Clear buffer on connect because the new frames that we will acquire might have a different size 
   aSource->GetBuffer()->Clear();
   aSource->GetBuffer()->SetPixelType( VTK_UNSIGNED_CHAR );  
-  aSource->GetBuffer()->SetFrameSize(this->ImageSize[0], this->ImageSize[1]); 
+  aSource->GetBuffer()->SetFrameSize(this->ImageSize[0], this->ImageSize[1], 1); 
 
   HINSTANCE hInst = GetModuleHandle(NULL);
 
