@@ -978,7 +978,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteCompressedImagePixelsToFile(FILE *output
     
     if( !removeImageData )
     {
-      this->TrackedFrameList->GetTrackedFrame(frameNumber);
+      trackedFrame = this->TrackedFrameList->GetTrackedFrame(frameNumber);
       if (trackedFrame==NULL)
       {
         LOG_ERROR("Cannot access frame "<<frameNumber<<" while trying to writing compress data into file");
