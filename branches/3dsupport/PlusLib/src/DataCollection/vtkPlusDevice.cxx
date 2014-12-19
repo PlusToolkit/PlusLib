@@ -518,7 +518,7 @@ PlusStatus vtkPlusDevice::WriteToMetafile( const char* filename, bool useCompres
     //Create fake image 
     TrackedFrame trackedFrame;
     PlusVideoFrame videoFrame;
-    int frameSize[2] = {1,1};
+    int frameSize[3] = {1,1,1};
     // Don't waste space, create a greyscale image
     videoFrame.AllocateFrame(frameSize, VTK_UNSIGNED_CHAR, 1);
     trackedFrame.SetImageData(videoFrame);
@@ -1417,8 +1417,8 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
   {
     LOCAL_LOG_DEBUG("Cannot request data from video source, the video buffer is empty or does not exist!");
     vtkImageData *data = vtkImageData::SafeDownCast(this->GetOutputDataObject(0));
-    int frameSize[2]={plusBuffer->GetFrameSize()[0], plusBuffer->GetFrameSize()[1] };
-    data->SetExtent(0,frameSize[0]-1,0,frameSize[1]-1,0,0);
+    int frameSize[3] = { plusBuffer->GetFrameSize()[0], plusBuffer->GetFrameSize()[1], plusBuffer->GetFrameSize()[2] };
+    data->SetExtent(0,frameSize[0]-1,0,frameSize[1]-1,frameSize[2]-1,0);
 
 #if (VTK_MAJOR_VERSION < 6)
     data->SetScalarType(plusBuffer->GetPixelType());
@@ -1460,9 +1460,9 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
   // The whole image buffer is copied, regardless of the UPDATE_EXTENT value to make the copying implementation simpler
   // For a more efficient implementation, we should only update the requested part of the image.
   vtkImageData *data = vtkImageData::SafeDownCast(this->GetOutputDataObject(0));
-  int frameSize[2]={0,0};
+  int frameSize[3]={0,0,0};
   this->CurrentStreamBufferItem->GetFrame().GetFrameSize(frameSize);
-  data->SetExtent(0,frameSize[0]-1,0,frameSize[1]-1,0,0);
+  data->SetExtent(0,frameSize[0]-1,0,frameSize[1]-1,frameSize[2]-1,0);
 #if (VTK_MAJOR_VERSION < 6)
     data->SetScalarType(plusBuffer->GetPixelType());
     data->SetNumberOfScalarComponents(plusBuffer->GetNumberOfScalarComponents()); 

@@ -811,22 +811,36 @@ ENDIF (PLUS_USE_TELEMED_VIDEO)
 # Philips ie33 3d ultrasound support
 
 IF (PLUS_USE_PHILIPS_3D_ULTRASOUND)
-SET (DataCollection_SRCS ${DataCollection_SRCS}
+  SET (DataCollection_SRCS ${DataCollection_SRCS}
     Philips3D/vtkPhilips3DProbeVideoSource.cxx 
+	Philips3D/vtkIEEListener.cxx 
     )
-    
+
   IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
       Philips3D/vtkPhilips3DProbeVideoSource.h
+	  Philips3D/vtkIEEListener.h
       )
   ENDIF (WIN32)
+
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/Philips3D
+	${Philips_INCLUDE_DIRS}
     CACHE INTERNAL "" FORCE)
-  
-  #SET (DataCollection_LIBS ${DataCollection_LIBS} Philips3D )
-ENDIF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
 
+  SET( DataCollection_LIBS ${DataCollection_LIBS}
+    ${Philips_LIBRARY_DIR}/PipelineComDll${CMAKE_STATIC_LIBRARY_SUFFIX}
+	${Philips_LIBRARY_DIR}/3DData${CMAKE_STATIC_LIBRARY_SUFFIX}
+	${Philips_LIBRARY_DIR}/3DUtil${CMAKE_STATIC_LIBRARY_SUFFIX}
+  )
+
+  SET ( External_Libraries_Install ${External_Libraries_Install}
+    ${Philips_BINARY_DIRS}/PipelineComDll${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${Philips_BINARY_DIRS}/3DData${CMAKE_SHARED_LIBRARY_SUFFIX}
+	${Philips_BINARY_DIRS}/3DUtil${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+
+ENDIF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
 
 # --------------------------------------------------------------------------
 # Build the library

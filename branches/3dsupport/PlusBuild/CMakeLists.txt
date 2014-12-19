@@ -348,6 +348,16 @@ IF ( PLUS_USE_TELEMED_VIDEO )
   ENDIF()
 ENDIF()
 
+IF ( PLUS_USE_PHILIPS_3D_ULTRASOUND )
+    SET (PLUS_Philips_MAJOR_VERSION 1 CACHE STRING "Set Philips library major version (version: [major].[minor].[patch])")
+    SET (PLUS_Philips_MINOR_VERSION 0 CACHE STRING "Set Philips library minor version (version: [major].[minor].[patch])")
+    SET (PLUS_Philips_PATCH_VERSION 0 CACHE STRING "Set Philips library patch version (version: [major].[minor].[patch])")
+    FIND_PACKAGE(Philips)
+    IF( NOT PHILIPS_FOUND )
+      MESSAGE( FATAL_ERROR "In order to use the Philips ie33 ultrasound system, the requisite DLLs must be made available. Please verify configuration or turn off PLUS_USE_PHILIPS_3D_ULTRASOUND.")
+    ENDIF()
+ENDIF()
+
 
 #------------------------------------------------------------------------------
 # Specify target dependencies

@@ -268,7 +268,7 @@ PlusStatus vtkWin32VideoSource2::InternalConnect()
   }
 
   // set up the parent window, but don't show it
-  int frameSize[2]={0,0};
+  int frameSize[3]={0,0,0};
   vtkPlusDataSource* aSource(NULL);
   if( this->GetFirstActiveVideoSource(aSource) != PLUS_SUCCESS )
   {
@@ -540,7 +540,7 @@ PlusStatus vtkWin32VideoSource2::AddFrameToBuffer(void* lpVideoHeader)
 
   unsigned char* outputPixelsPtr=(unsigned char*)this->UncompressedVideoFrame.GetScalarPointer();
 
-  int outputFrameSize[2]={0,0};
+  int outputFrameSize[3]={0,0,0};
   this->UncompressedVideoFrame.GetFrameSize(outputFrameSize);
 
   if (PixelCodec::ConvertToGray(inputCompression, outputFrameSize[0], outputFrameSize[1], inputPixelsPtr, outputPixelsPtr)!=PLUS_SUCCESS)

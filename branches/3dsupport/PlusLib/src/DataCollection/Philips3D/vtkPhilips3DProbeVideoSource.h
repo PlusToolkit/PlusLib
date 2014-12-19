@@ -10,6 +10,9 @@ See License.txt for details.
 #include "vtkDataCollectionExport.h"
 
 #include "vtkPlusDevice.h"
+#include "StreamMgr.h"
+
+class vtkIEEListener;
 
 /*!
 \class vtkPhilips3DProbeVideoSource
@@ -40,19 +43,32 @@ protected:
   /*! Destructor */
   virtual ~vtkPhilips3DProbeVideoSource();
 
+  /*! Callback function when a new frame is ready to be added */
+  void CallbackAddFrame(vtkImageData* imageData);
+
   /*! Connect to device */
   virtual PlusStatus InternalConnect();
 
   /*! Disconnect from device */
   virtual PlusStatus InternalDisconnect();
 
-  /*! The internal function which actually does the grab.  */
-  PlusStatus InternalUpdate();
+  /*! Class for receiving streaming 3D Data */
+  vtkIEEListener* Listener;
+
+  /*! The current frame number */
+  unsigned long FrameNumber;
+
+  /*! IP Address of the Philips machine*/
+  std::string IPAddress;
+
+  /*! Port of the Philips machine */
+  int Port;
 
 private:
-  static vtkPhilips3DProbeVideoSource* Instance;
   vtkPhilips3DProbeVideoSource(const vtkPhilips3DProbeVideoSource&);  // Not implemented.
   void operator=(const vtkPhilips3DProbeVideoSource&);  // Not implemented.
+  static vtkPhilips3DProbeVideoSource* ActiveDevice;
+  static bool StreamCallback(_int64 id, SClient3DArray *ed, SClient3DArray *cd);
 };
 
 #endif

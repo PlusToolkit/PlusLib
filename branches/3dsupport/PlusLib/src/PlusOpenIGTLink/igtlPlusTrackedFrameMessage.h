@@ -57,7 +57,7 @@ protected:
       headersize += sizeof(igtl_uint16);  // m_ScalarType
       headersize += sizeof(igtl_uint16);   // m_NumberOfComponents
       headersize += sizeof(igtl_uint16);  // m_ImageType
-      headersize += sizeof(igtl_uint16) * 2;  // m_FrameSize[2]
+      headersize += sizeof(igtl_uint16) * 3;  // m_FrameSize[3]
       headersize += sizeof(igtl_uint32);  // m_ImageDataSizeInBytes
       headersize += sizeof(igtl_uint32);  // m_XmlDataSizeInBytes
 
@@ -83,7 +83,7 @@ protected:
     igtl_uint16 m_ScalarType;      /* scalar type                     */
     igtl_uint16 m_NumberOfComponents; /* number of scalar components */
     igtl_uint16 m_ImageType;          /* image type */
-    igtl_uint16 m_FrameSize[2];    /* entire image volume size */
+    igtl_uint16 m_FrameSize[3];    /* entire image volume size */
     igtl_uint32 m_ImageDataSizeInBytes; 
     igtl_uint32 m_XmlDataSizeInBytes; 
   };
