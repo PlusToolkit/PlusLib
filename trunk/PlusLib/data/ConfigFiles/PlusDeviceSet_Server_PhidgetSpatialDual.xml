@@ -1,0 +1,123 @@
+<PlusConfiguration version="2.1">
+
+  <DataCollection StartupDelaySec="1.0">
+    <DeviceSet 
+      Name="PlusServer: Two PhidgetSpatial MARG sensors" 
+      Description="Broadcasting tool tracking data through OpenIGTLink
+Keep the device stationary for 2 seconds after connect for accurate gyroscope initialization."
+    />
+
+    <Device
+      Id="TrackerDevice1"
+      Type="PhidgetSpatial"
+      SerialNumber="301972"
+      AhrsAlgorithm="MADGWICK_MARG"
+      AhrsAlgorithmGain="1.5"
+      TiltSensorWestAxisIndex="1"
+      FilteredTiltSensorAhrsAlgorithm="MADGWICK_IMU"
+      FilteredTiltSensorAhrsAlgorithmGain="0.01"
+      FilteredTiltSensorWestAxisIndex="1"      
+      ToolReferenceFrame="Tracker1"
+      CompassCorrectionParameters="0.49026 0.03030 0.10908 0.07023 1.93337 1.89759 2.28821 -0.02134 -0.01850 -0.02074 -0.00840 -0.02184 -0.01021" >
+      <DataSources>
+        <DataSource Type="Tool" Id="OrientationSensor1" PortName="OrientationSensor" />    
+        <DataSource Type="Tool" Id="TiltSensor1" PortName="TiltSensor" />
+        <DataSource Type="Tool" Id="FilteredTiltSensor1" PortName="FilteredTiltSensor" />
+        <DataSource Type="Tool" Id="Accelerometer1" PortName="Accelerometer" />
+        <DataSource Type="Tool" Id="Gyroscope1" PortName="Gyroscope" />
+        <DataSource Type="Tool" Id="Magnetometer1" PortName="Magnetometer" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream1" >
+          <DataSource Id="OrientationSensor1"/>
+          <DataSource Id="TiltSensor1"/>
+          <DataSource Id="FilteredTiltSensor1"/>
+          <DataSource Id="Accelerometer1"/>
+          <DataSource Id="Gyroscope1"/>
+          <DataSource Id="Magnetometer1"/>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="TrackerDevice2"
+      Type="PhidgetSpatial"
+      SerialNumber="302015"
+      AhrsAlgorithm="MADGWICK_MARG"
+      AhrsAlgorithmGain="1.5"
+      TiltSensorWestAxisIndex="1"
+      FilteredTiltSensorAhrsAlgorithm="MADGWICK_IMU"
+      FilteredTiltSensorAhrsAlgorithmGain="0.01"
+      FilteredTiltSensorWestAxisIndex="1"      
+      ToolReferenceFrame="Tracker2"
+      CompassCorrectionParameters="0.50939 0.03866 -0.00058 -0.08270 1.88082 1.82094 2.18761 -0.00339 -0.02558 -0.00330 -0.00168 -0.02977 -0.00198" >
+      <DataSources>
+        <DataSource Type="Tool" Id="OrientationSensor2" PortName="OrientationSensor" />    
+        <DataSource Type="Tool" Id="TiltSensor2" PortName="TiltSensor" />
+        <DataSource Type="Tool" Id="FilteredTiltSensor2" PortName="FilteredTiltSensor" />
+        <DataSource Type="Tool" Id="Accelerometer2" PortName="Accelerometer" />
+        <DataSource Type="Tool" Id="Gyroscope2" PortName="Gyroscope" />
+        <DataSource Type="Tool" Id="Magnetometer2" PortName="Magnetometer" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream2" >
+          <DataSource Id="OrientationSensor2"/>
+          <DataSource Id="TiltSensor2"/>
+          <DataSource Id="FilteredTiltSensor2"/>
+          <DataSource Id="Accelerometer2"/>
+          <DataSource Id="Gyroscope2"/>
+          <DataSource Id="Magnetometer2"/>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+
+    <Device 
+      Id="CombinedTracker" 
+      Type="VirtualMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream1" />
+        <InputChannel Id="TrackerStream2" />
+      </InputChannels>
+      <OutputChannels>
+        <OutputChannel Id="CombinedTrackerStream"/>
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="RecordingTest.mha"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="CombinedTrackerStream" />
+      </InputChannels>
+    </Device>    
+  </DataCollection>
+  
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    OutputChannelId="CombinedTrackerStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="OrientationSensor1ToTracker1" /> 
+        <Transform Name="TiltSensor1ToTracker1" /> 
+        <Transform Name="FilteredTiltSensor1ToTracker1" /> 
+        <xTransform Name="Accelerometer1ToTracker1" /> 
+        <xTransform Name="Gyroscope1ToTracker1" /> 
+        <xTransform Name="Magnetometer1ToTracker1" /> 
+        <Transform Name="OrientationSensor2ToTracker2" /> 
+        <Transform Name="TiltSensor2ToTracker2" /> 
+        <Transform Name="FilteredTiltSensor2ToTracker2" /> 
+        <xTransform Name="Accelerometer2ToTracker2" /> 
+        <xTransform Name="Gyroscope2ToTracker2" /> 
+        <xTransform Name="Magnetometer2ToTracker2" />
+      </TransformNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+  
+</PlusConfiguration>

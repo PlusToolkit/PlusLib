@@ -262,6 +262,11 @@ vtkPhidgetSpatialTracker::vtkPhidgetSpatialTracker()
 
   this->AcquisitionRate = 125; // set to the maximum speed by default
   
+  for (int i=0; i<PHIDGET_NUMBER_OF_COMPASS_CORRECTION_PARAMETERS; i++)
+  {
+    this->CompassCorrectionParameters[i]=0;
+  }
+
   // No need for StartThreadForInternalUpdates, as we are notified about each new frame through a callback function
 }
 
@@ -351,18 +356,14 @@ PlusStatus vtkPhidgetSpatialTracker::InternalConnect()
   this->OrientationSensorTool = NULL;
   GetToolByPortName("OrientationSensor", this->OrientationSensorTool);
 
-  // TODO: verify tool definition
+
+
+
+
+
 
   //Create the communicator object to the PhidgetSpatial device
   CPhidgetSpatial_create((CPhidgetSpatialHandle*)(&this->SpatialDeviceHandle));
-
-  //Set the handlers to be run when the device is plugged in or opened from software, unplugged or closed from software, or generates an error.
-  CPhidget_set_OnAttach_Handler((CPhidgetHandle)this->SpatialDeviceHandle, PhidgetSpatialCallbackClass::AttachHandler, this);
-  CPhidget_set_OnDetach_Handler((CPhidgetHandle)this->SpatialDeviceHandle, PhidgetSpatialCallbackClass::DetachHandler, this);
-  CPhidget_set_OnError_Handler((CPhidgetHandle)this->SpatialDeviceHandle, PhidgetSpatialCallbackClass::ErrorHandler, this);
-
-  //Registers a callback that will run according to the set data rate that will return the spatial data changes
-  CPhidgetSpatial_set_OnSpatialData_Handler((CPhidgetSpatialHandle)this->SpatialDeviceHandle, PhidgetSpatialCallbackClass::SpatialDataHandler, this);
 
   //This will initiate the SystemTime (time reference in Plus) to TrackerTime (time reference of the internal clock of the device) offset computation
   this->TrackerTimeToSystemTimeSec = 0;
@@ -411,10 +412,36 @@ PlusStatus vtkPhidgetSpatialTracker::InternalConnect()
   CPhidgetSpatial_setDataRate((CPhidgetSpatialHandle)this->SpatialDeviceHandle, userDataRateMsec);
   LOG_DEBUG("DataRate (msec):" << userDataRateMsec);
 
-  // To set compass correction parameters:
-  //  CPhidgetSpatial_setCompassCorrectionParameters((CPhidgetSpatialHandle)this->SpatialDeviceHandle, 0.648435, 0.002954, -0.024140, 0.002182, 1.520509, 1.530625, 1.575390, -0.002039, 0.003182, -0.001966, -0.013848, 0.003168, -0.014385);
-  // To reset compass correction parameters:
-  //  CPhidgetSpatial_resetCompassCorrectionParameters((CPhidgetSpatialHandle)this->SpatialDeviceHandle);
+  // Set compass correction parameters  
+  if (this->IsCompassCorrectionParametersDefined())
+  {
+    if (PHIDGET_NUMBER_OF_COMPASS_CORRECTION_PARAMETERS==13) // we expect exactly 13 parameters here
+    {
+      double magField = this->CompassCorrectionParameters[0];
+      double offset0 = this->CompassCorrectionParameters[1];
+      double offset1 = this->CompassCorrectionParameters[2];
+      double offset2 = this->CompassCorrectionParameters[3];
+      double gain0 = this->CompassCorrectionParameters[4];
+      double gain1 = this->CompassCorrectionParameters[5];
+      double gain2 = this->CompassCorrectionParameters[6];
+      double T0 = this->CompassCorrectionParameters[7];
+      double T1 = this->CompassCorrectionParameters[8];
+      double T2 = this->CompassCorrectionParameters[9];
+      double T3 = this->CompassCorrectionParameters[10];
+      double T4 = this->CompassCorrectionParameters[11];
+      double T5 = this->CompassCorrectionParameters[12];
+      CPhidgetSpatial_setCompassCorrectionParameters((CPhidgetSpatialHandle)this->SpatialDeviceHandle,
+        magField, offset0, offset1, offset2, gain0, gain1,gain2, T0, T1, T2, T3, T4, T5);
+    }
+    else
+    {
+      LOG_ERROR("Failed to set compass correction parameters: 13 parameters were expected");
+    }
+  }
+  else
+  {
+    LOG_DEBUG("No compass correction parameters are specified");
+  }
 
   if (this->ZeroGyroscopeOnConnect)
   {
@@ -426,6 +453,14 @@ PlusStatus vtkPhidgetSpatialTracker::InternalConnect()
   this->AhrsAlgo->SetGain(this->AhrsAlgorithmGain[0], this->AhrsAlgorithmGain[1]);
   this->FilteredTiltSensorAhrsAlgo->SetSampleFreqHz(1000.0/userDataRateMsec);
   this->FilteredTiltSensorAhrsAlgo->SetGain(this->FilteredTiltSensorAhrsAlgorithmGain[0], this->FilteredTiltSensorAhrsAlgorithmGain[1]);
+
+  //Set the handlers to be run when the device is plugged in or opened from software, unplugged or closed from software, or generates an error.
+  CPhidget_set_OnAttach_Handler((CPhidgetHandle)this->SpatialDeviceHandle, PhidgetSpatialCallbackClass::AttachHandler, this);
+  CPhidget_set_OnDetach_Handler((CPhidgetHandle)this->SpatialDeviceHandle, PhidgetSpatialCallbackClass::DetachHandler, this);
+  CPhidget_set_OnError_Handler((CPhidgetHandle)this->SpatialDeviceHandle, PhidgetSpatialCallbackClass::ErrorHandler, this);
+
+  //Registers a callback that will run according to the set data rate that will return the spatial data changes
+  CPhidgetSpatial_set_OnSpatialData_Handler((CPhidgetSpatialHandle)this->SpatialDeviceHandle, PhidgetSpatialCallbackClass::SpatialDataHandler, this);
 
   return PLUS_SUCCESS; 
 }
@@ -584,6 +619,8 @@ PlusStatus vtkPhidgetSpatialTracker::ReadConfiguration(vtkXMLDataElement* rootCo
     }
   }
 
+  XML_READ_VECTOR_ATTRIBUTE_EXACT_OPTIONAL(double, PHIDGET_NUMBER_OF_COMPASS_CORRECTION_PARAMETERS, CompassCorrectionParameters, deviceConfig);
+
   return PLUS_SUCCESS;
 }
 
@@ -674,6 +711,15 @@ PlusStatus vtkPhidgetSpatialTracker::WriteConfiguration(vtkXMLDataElement* rootC
     }    
   }
 
+  if (IsCompassCorrectionParametersDefined())
+  {
+    deviceConfig->SetVectorAttribute( "CompassCorrectionParameters", PHIDGET_NUMBER_OF_COMPASS_CORRECTION_PARAMETERS, this->CompassCorrectionParameters );
+  }
+  else
+  {
+    deviceConfig->RemoveAttribute( "CompassCorrectionParameters" );
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -712,3 +758,16 @@ void vtkPhidgetSpatialTracker::Get3x3RotMatrixFromIMUQuat(double rotMatrix[3][3]
   return;
 }
 */
+
+//----------------------------------------------------------------------------
+bool vtkPhidgetSpatialTracker::IsCompassCorrectionParametersDefined()
+{
+  for (int i=0; i<PHIDGET_NUMBER_OF_COMPASS_CORRECTION_PARAMETERS; i++)
+  {
+    if (this->CompassCorrectionParameters[i]!=0)
+    {
+      return true;
+    }
+  }
+  return false;
+}

@@ -24,8 +24,8 @@ There are commercial systems that provide tracking video and image data through 
 - \xmlAtt \b ImageMessageEmbeddedTransformName If IMAGE message is received and this attribute is defined then
   the transform embedded in the message will be recorded as a transform, with the specified name
   (e.g., "ImageToReference"). If the attribute is not defined then the embedded transform is ignored.
-  If the message type is not IMAGE then the attribute is ignored. \OptionalAtt{" "}
-- \xmlAtt \b MessageType The device will request this message type from the remote server. If the MessageType is not specified then the default message type will be used (specified in the remote server) \OptionalAtt{" "}
+  If the message type is not IMAGE then the attribute is ignored. \OptionalAtt{ }
+- \xmlAtt \b MessageType The device will request this message type from the remote server. If the MessageType is not specified then the default message type will be used (specified in the remote server) \OptionalAtt{ }
   - \c IMAGE Request sending only image data in IMAGE OpenIGTLink messages.
   - \c TRACKEDFRAME Request sending image+tracking data in TRACKEDFRAME OpenIGTLink messages.
 - \xmlAtt \b IgtlMessageCrcCheckEnabled Enable CRC check on the received OpenIGTLink messages ( \c true or \c false). \OptionalAtt{false}

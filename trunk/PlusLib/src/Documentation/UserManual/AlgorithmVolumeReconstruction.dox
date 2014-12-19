@@ -50,12 +50,12 @@ voxel that has not been assigned any intensity value in the distribution step.
 - \xmlElem \anchor ElementVolumeReconstruction \b VolumeReconstruction  
   - \xmlAtt \b ReferenceCoordinateFrame Defines the Reference coordinate system name: the volume will be reconstructed in this coordinate system
     (the volume axes are parallel to the Reference coordinate system axes and the volume origin position is defined in the Reference coordinate system).
-    If not defined then the coordinate system name has to be specified by other means before starting a reconstruction. \OptionalAtt{" "}
+    If not defined then the coordinate system name has to be specified by other means before starting a reconstruction. \OptionalAtt{ }
   - \xmlAtt \b ImageCoordinateFrame Defines the image coordinate system name: it corresponds to the 2D frame of the image data in the tracked frame.
-    If not defined then the coordinate system name has to be specified by other means before starting a reconstruction. \OptionalAtt{" "} \OptionalAtt{" "}
+    If not defined then the coordinate system name has to be specified by other means before starting a reconstruction. \OptionalAtt{ } \OptionalAtt{ }
   - \xmlAtt \b OutputSpacing Output image resolution for each dimension of the reconstructed volume. Vector of 3 numbers, separated by spaces.\RequiredAtt
   - \xmlAtt \b OutputOrigin Is output image origin position vector for each dimension of the reconstructed volume. Vector of 3 numbers, separated by spaces. \OptionalAtt{0 0 0}
-  - \xmlAtt \b OutputExtent Defines the size of the reconstructed volume.  Vector of 6 numbers (x start, x end, y start, y end, z start, z end), separated by spaces. Usually the start values are 0, end values are the intended size - 1.\OptionalAtt{" "}
+  - \xmlAtt \b OutputExtent Defines the size of the reconstructed volume.  Vector of 6 numbers (x start, x end, y start, y end, z start, z end), separated by spaces. Usually the start values are 0, end values are the intended size - 1.\OptionalAtt{ }
   - \xmlAtt \b ClipRectangleOrigin Crop rectangle origin of the frame (in pixels). See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{0 0}
   - \xmlAtt \b ClipRectangleSize Crop rectangle size of the frame (in pixels). If it is \c "0 0" then the whole frame will be captured. See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{0 0}
   - \xmlAtt \b FanAnglesDeg Two-element vector containing the angles of the two straight edge of the fan, in degrees. If both angles are 0 then no fan clipping is performed. See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{0 0}
