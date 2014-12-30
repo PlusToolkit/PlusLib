@@ -530,7 +530,7 @@ PlusStatus vtkMetaImageSequenceIO::Write(bool removeImageData /* =false*/ )
     return PLUS_FAIL;
   }
 
-  if (WriteImagePixels(this->TempImageFileName, false, removeImageData) != PLUS_SUCCESS)
+  if ( this->WriteImagePixels(this->TempImageFileName, false, removeImageData) != PLUS_SUCCESS )
   {
     return PLUS_FAIL;
   }
@@ -543,7 +543,7 @@ PlusStatus vtkMetaImageSequenceIO::Write(bool removeImageData /* =false*/ )
 //----------------------------------------------------------------------------
 void vtkMetaImageSequenceIO::CreateTrackedFrameIfNonExisting(unsigned int frameNumber)
 {
-  if (frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames())
+  if ( frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames() )
   {
     // frame is already created
     return;
@@ -608,13 +608,13 @@ PlusStatus vtkMetaImageSequenceIO::Read()
 {
   this->TrackedFrameList->Clear();
 
-  if (ReadImageHeader()!=PLUS_SUCCESS)
+  if ( this->ReadImageHeader() != PLUS_SUCCESS )
   {
     LOG_ERROR("Could not load header from file: " << this->FileName);
     return PLUS_FAIL;
   }
 
-  if (ReadImagePixels()!=PLUS_SUCCESS)
+  if ( this->ReadImagePixels() != PLUS_SUCCESS )
   {
     return PLUS_FAIL;
   }
@@ -637,7 +637,7 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader(bool removeImageData /*=false
 
   // Override fields
   const char* nDims("3");
-  if( isData3D || (!isData3D && Output2DDataWithZDimensionIncluded) )
+  if( isData3D || (!isData3D && this->Output2DDataWithZDimensionIncluded) )
   {
     nDims = "4";
   }
@@ -694,7 +694,7 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader(bool removeImageData /*=false
   this->Dimensions[2]=frameSize[2];
   this->Dimensions[3]=this->TrackedFrameList->GetNumberOfTrackedFrames();
   dimSizeStr << this->Dimensions[0] << " " << this->Dimensions[1] << " ";
-  if( isData3D || (!isData3D && Output2DDataWithZDimensionIncluded) )
+  if( isData3D || (!isData3D && this->Output2DDataWithZDimensionIncluded) )
   {
     dimSizeStr << this->Dimensions[2] << " ";
   }
@@ -762,10 +762,10 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader(bool removeImageData /*=false
   const char* objType = "ObjectType = Image\n";
   fputs(objType, stream);
   TotalBytesWritten += strlen(objType);
-  const char* nDimsField = "NDims = 3\n";
+
   std::stringstream nDimsFieldStream;
   nDimsFieldStream << "NDims = ";
-  if( !isData3D && Output2DDataWithZDimensionIncluded )
+  if( isData3D || !isData3D && this->Output2DDataWithZDimensionIncluded )
   {
     nDimsFieldStream << this->NumberOfDimensions;
   }
@@ -921,7 +921,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels(const std::string& aFilename
     LOG_ERROR("Unable to append images when compression is used. You must write uncompressed and then post-compress.");
     return PLUS_FAIL;
   }
-  if ( FileOpen( &stream, aFilename.c_str(), fileOpenMode.c_str() ) != PLUS_SUCCESS )
+  if ( this->FileOpen( &stream, aFilename.c_str(), fileOpenMode.c_str() ) != PLUS_SUCCESS )
   {
     LOG_ERROR("The file " << aFilename << " could not be opened for writing");
     return PLUS_FAIL;
@@ -934,7 +934,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels(const std::string& aFilename
   }
 
   PlusStatus result = PLUS_SUCCESS;
-  if (!GetUseCompression())
+  if ( !GetUseCompression() )
   {
     // Create a blank frame if we have to write an invalid frame to metafile 
     PlusVideoFrame blankFrame; 
