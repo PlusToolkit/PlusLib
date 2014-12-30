@@ -42,6 +42,11 @@ Recommended values:
 
 - \xmlAtt \b AhrsAlgorithmGain Gain values used by the AHRS algorithm (Mahony: first parameter is proportional, second is integral gain; Madgwick: only the first parAhrsAlgorithmGain but for the filtered tool. \OptionalAtt{1.5 0.0}
 - \xmlAtt \b FilteredTiltSensorAhrsAlgorithmGain  Same as \b AhrsAlgorithmGain but for the filtered tool. \OptionalAtt{1.5 0.0}
+- \xmlAtt \b CompassCorrectionParameters Sets correction parameters for the magnetometer sensor. This is for filtering out hard and soft iron offsets, and scaling the output to match the local field strength. These parameters can be obtained from the compass calibration program provided by Phidgets Inc (http://www.phidgets.com/docs/Compass_Primer). The following 13 parameter values are have to be provided (separated by spaces): \OptionalAtt{ }
+  - magField: The reference field to use. Generally, use the local expected field strength, or 1.0.
+  - offset0,1,2: Applies offset to the compass data in axes 0,1,2.
+  - gain0,1,2: Applies gain corrections in axes 0,1,2.
+  - T0,1,2,3,4,5: Applies corrections for non-orthogonality of the ellipsoid.
 
 - \xmlElem \ref DataSources One \c DataSource child element for each sensor. \RequiredAtt
    - \xmlElem \ref DataSource \RequiredAtt

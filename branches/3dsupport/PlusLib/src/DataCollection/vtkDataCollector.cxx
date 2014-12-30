@@ -115,7 +115,11 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
       continue;
     }
     device->SetDataCollector(this);
-    device->ReadConfiguration(aConfig);
+    if (device->ReadConfiguration(aConfig)!=PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to read parameters of device: " << deviceElement->GetAttribute("Id") << " (type: "<<deviceElement->GetAttribute("Type")<<")");
+      return PLUS_FAIL;
+    }
     Devices.push_back(device);
   }
 
