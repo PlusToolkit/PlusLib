@@ -283,10 +283,11 @@ PlusStatus vtkImageVisualizer::UpdateCameraPose()
   }
 
   // Calculate image center
-  int dimensions[2]={0,0};
+  int dimensions[3]={0,0,0};
   this->SelectedChannel->GetBrightnessFrameSize(dimensions);
   double imageCenterX = dimensions[0] / 2.0;
   double imageCenterY = dimensions[1] / 2.0;
+  double imageCenterZ = dimensions[2] / 2.0;
 
   // Set up camera
   vtkSmartPointer<vtkCamera> imageCamera = vtkSmartPointer<vtkCamera>::New(); 
@@ -366,7 +367,7 @@ PlusStatus vtkImageVisualizer::UpdateCameraPose()
     break;
   }
 
-  if( UpdateScreenAlignedActors() != PLUS_SUCCESS )
+  if( this->UpdateScreenAlignedActors() != PLUS_SUCCESS )
   {
     LOG_ERROR("Error during alignment of screen-aligned actors.");
     return PLUS_FAIL;
@@ -460,6 +461,14 @@ void vtkImageVisualizer::SetInputData(vtkImageData* aImage )
   LOG_TRACE("vtkImageVisualizer::SetInputData");
 
   this->GetImageActor()->SetInputData_vtk5compatible(aImage);
+
+  int dims[3] = {0,0,0};
+  aImage->GetDimensions(dims);
+  if( dims[2] > 1 )
+  {
+    // Arbitrarily set to center, maybe create functionality to change this later
+    this->GetImageActor()->SetZSlice(dims[2]/2);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -558,7 +567,7 @@ PlusStatus vtkImageVisualizer::UpdateScreenAlignedActors()
     return PLUS_SUCCESS;
   }
 
-  int dimensions[2]={0};
+  int dimensions[3]={0,0,0};
   this->SelectedChannel->GetBrightnessFrameSize(dimensions);    
 
   vtkCollectionSimpleIterator pit;

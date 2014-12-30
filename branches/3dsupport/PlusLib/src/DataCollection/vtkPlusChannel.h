@@ -69,7 +69,7 @@ public:
   vtkImageData* GetBrightnessOutput();
 
   /*! Return the dimensions of the brightness frame size */
-  PlusStatus GetBrightnessFrameSize(int aDim[2]);
+  PlusStatus GetBrightnessFrameSize(int aDim[3]);
   
   /*!
     Get the timestamp master tool. The timestamp master tool determines the sampling times
@@ -159,7 +159,7 @@ protected:
   vtkRfProcessor* RfProcessor;
   vtkImageData* BlankImage;
   StreamBufferItem BrightnessOutputTrackedFrame;
-  int BrightnessFrameSize[2];
+  int BrightnessFrameSize[3];
 
   /*! If true then RF processing parameters will be saved into the config file */
   bool SaveRfProcessingParameters;
