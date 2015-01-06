@@ -43,3 +43,15 @@ CONFIGURE_FILE(
   CreateModelCatalog.bat.in
   ${CMAKE_CURRENT_BINARY_DIR}/CreateModelCatalog.bat
   )
+# Batch file for build with dashboard submission
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.bat.in 
+  ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.bat
+  )
+
+# --------------------------------------------------------------------------
+# Testing
+#
+
+# Required for dashboard submission  
+INCLUDE(CTest)
