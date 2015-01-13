@@ -34,7 +34,7 @@ vtkIEEListener::vtkIEEListener()
 //----------------------------------------------------------------------------
 vtkIEEListener::~vtkIEEListener()
 {
-  delete StreamManager;
+  //delete StreamManager;
 }
 
 //----------------------------------------------------------------------------
@@ -42,19 +42,21 @@ PlusStatus vtkIEEListener::Connect(CLIENT_POSTSCANCONVERT_CALLBACK callback)
 {
   if( this->MachineName.empty() || this->Port <= 0 )
   {
-    LOG_ERROR("MachineName not set or invalid port: " << this->MachineName << "::" << this->Port );
+    LOG_ERROR("MachineName not set or invalid port: " << this->MachineName << ":" << this->Port );
     return PLUS_FAIL;
   }
   if( !StreamManager->Initialize() )
   {
-    LOG_INFO("Failed to initialize:");
+    LOG_ERROR("Failed to initialize:");
     return PLUS_FAIL;
   }
 
   StreamManager->RegisterCallback(callback);
 
-  if(StreamManager->Start((char*)this->MachineName.c_str(), this->Port) < 0)
+  HRESULT resultCode = StreamManager->Start((char*)this->MachineName.c_str(), this->Port);
+  if( resultCode < 0)
   {
+    LOG_ERROR("Unable to connect to Philips system at " << this->MachineName << ":" << this->Port << ". Error code: " << std::hex << resultCode);
     return PLUS_FAIL;
   }
   else

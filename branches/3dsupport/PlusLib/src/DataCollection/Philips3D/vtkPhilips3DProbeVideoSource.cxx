@@ -71,11 +71,18 @@ bool vtkPhilips3DProbeVideoSource::StreamCallback(_int64 id, SClient3DArray *ed,
     streamedImageData->SetExtent(0, extents[0]-1, 0, extents[1]-1, 0, extents[2]-1);
     streamedImageData->SetOrigin(origin);
     streamedImageData->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+
+    vtkPlusDataSource* videoSource(NULL);
+    vtkPhilips3DProbeVideoSource::ActiveDevice->GetFirstActiveVideoSource(videoSource);
+    videoSource->GetBuffer()->SetFrameSize(extents[0], extents[1], extents[2]);
+    videoSource->GetBuffer()->SetPixelType(VTK_UNSIGNED_CHAR);
+    videoSource->GetBuffer()->SetNumberOfScalarComponents(1);
   }
   else
   {
     int dimensions[3] = {0,0,0};
     streamedImageData->GetDimensions(dimensions);
+
     if( dimensions[0] != extents[0] || dimensions[1] != extents[1] || dimensions[2] != extents[2] )
     {
       LOG_ERROR("Dimensions of new frame do not match dimensions of previous frames. Cannot add frame to buffer.");
@@ -125,14 +132,14 @@ vtkPhilips3DProbeVideoSource::vtkPhilips3DProbeVideoSource()
 //----------------------------------------------------------------------------
 vtkPhilips3DProbeVideoSource::~vtkPhilips3DProbeVideoSource()
 { 
-  vtkPhilips3DProbeVideoSource::ActiveDevice = NULL;
-
   if ( this->Connected )
   {
     this->Disconnect();
   }
 
   this->Listener->Delete();
+
+  vtkPhilips3DProbeVideoSource::ActiveDevice = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -150,7 +157,11 @@ PlusStatus vtkPhilips3DProbeVideoSource::InternalConnect()
 
   this->Listener->SetMachineName(this->IPAddress);
   this->Listener->SetPortNumber(this->Port);
-  this->Listener->Connect(&vtkPhilips3DProbeVideoSource::StreamCallback);
+  if( this->Listener->Connect(&vtkPhilips3DProbeVideoSource::StreamCallback) == PLUS_FAIL )
+  {
+    LOG_ERROR("Unable to connect to Philips device.");
+    return PLUS_FAIL;
+  }
 
   return PLUS_SUCCESS;
 }

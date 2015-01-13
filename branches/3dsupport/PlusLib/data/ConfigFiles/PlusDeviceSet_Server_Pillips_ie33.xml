@@ -7,7 +7,7 @@
     <Device
       Id="VideoDevice" 
       Type="ie33Video" 
-	  IPAddress="129.100.44.8"
+	  IP="129.100.44.8"
 	  Port="4013" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />

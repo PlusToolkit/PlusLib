@@ -349,6 +349,10 @@ IF ( PLUS_USE_TELEMED_VIDEO )
 ENDIF()
 
 IF (PLUS_USE_PHILIPS_3D_ULTRASOUND)
+  IF(NOT CMAKE_HOST_WIN32)
+	# Philips is windows only
+	MESSAGE( FATAL_ERROR "Philips SDK is only available for Windows.")
+  ENDIF(NOT CMAKE_HOST_WIN32)
   IF(PLUS_USE_ULTRASONIX_VIDEO)
 	# Ultrasonix contains its own libmmd.dll which does not support all the functionality needed for the philips probe
 	# They both cannot be enabled at the same time.
@@ -360,7 +364,9 @@ IF (PLUS_USE_PHILIPS_3D_ULTRASOUND)
     FIND_PACKAGE(Philips)
     IF( NOT PHILIPS_FOUND )
       MESSAGE( FATAL_ERROR "In order to use the Philips ie33 ultrasound system, the requisite DLLs must be made available. Please verify configuration or turn off PLUS_USE_PHILIPS_3D_ULTRASOUND.")
-    ENDIF(PHILIPS_FOUND)
+    ENDIF(NOT PHILIPS_FOUND)
+	message( "To use the Philips devices you must:" )
+	message( "1. Register '${CMAKE_CURRENT_BINARY_DIR}/bin/Debug|Release/Stream3d.dll'. If you are using a 32-bit OS, this can be done by running 'regsvr32 Stream3d.dll' in command line. If you are using a 64-bit OS, this can be done by the following procedure. Open the command line in administrator mode (Right click on cmd, choose 'Run as administrator'). Go to directory 'C:/Windows/SysWow64'. Run the regsvr32 command in SysWow64." )
   ENDIF(PLUS_USE_ULTRASONIX_VIDEO)
 ENDIF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
 
