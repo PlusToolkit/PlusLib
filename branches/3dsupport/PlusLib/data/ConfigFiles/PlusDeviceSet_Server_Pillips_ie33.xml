@@ -2,8 +2,8 @@
 
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
-      Name="PlusServer: Philips ie33 3D Probe"
-      Description="Broadcasting acquired video through OpenIGTLink" />
+      Name="PlusServer: Philips IE33 3D Probe"
+      Description="Broadcasting acquired 3D ultrasound video acquired on the Philips IE33 system through OpenIGTLink" />
     <Device
       Id="VideoDevice" 
       Type="ie33Video" 
