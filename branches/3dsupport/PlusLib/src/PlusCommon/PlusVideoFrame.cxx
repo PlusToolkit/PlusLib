@@ -558,6 +558,7 @@ PlusStatus PlusVideoFrame::GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1,
 
   flipInfo.hFlip=false;
   flipInfo.vFlip=false;
+  flipInfo.zFlip=false;
   if ( usImageOrientation1 == US_IMG_ORIENT_XX ) 
   {
     LOG_ERROR("Failed to determine the necessary image flip - unknown input image orientation 1"); 
@@ -574,6 +575,7 @@ PlusStatus PlusVideoFrame::GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1,
     // no flip
     return PLUS_SUCCESS;
   }
+  // TODO : determine when to zflip
   if ((usImageOrientation1==US_IMG_ORIENT_UF && usImageOrientation2==US_IMG_ORIENT_MF)||
     (usImageOrientation1==US_IMG_ORIENT_MF && usImageOrientation2==US_IMG_ORIENT_UF)||
     (usImageOrientation1==US_IMG_ORIENT_UN && usImageOrientation2==US_IMG_ORIENT_MN)||
@@ -585,7 +587,6 @@ PlusStatus PlusVideoFrame::GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1,
   {
     // flip x
     flipInfo.hFlip=true;
-    flipInfo.vFlip=false;
     return PLUS_SUCCESS;
   }
   if ((usImageOrientation1==US_IMG_ORIENT_UF && usImageOrientation2==US_IMG_ORIENT_UN)||
@@ -598,7 +599,6 @@ PlusStatus PlusVideoFrame::GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1,
     (usImageOrientation1==US_IMG_ORIENT_NM && usImageOrientation2==US_IMG_ORIENT_NU))
   {
     // flip y
-    flipInfo.hFlip=false;
     flipInfo.vFlip=true;
     return PLUS_SUCCESS;
   }
