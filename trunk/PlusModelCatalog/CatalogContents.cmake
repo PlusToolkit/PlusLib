@@ -46,6 +46,10 @@ MODEL_TABLE_ROW(
   DESCRIPTION "Holds either a Model 800 Ascension EM sensor, or another PLUS fixture, e.g. for holding MicronTracker markers. This part is frequently part of an assembly, but can also be used by itself."
   )
 MODEL_TABLE_ROW(
+  ID "SensorHolder_1.0"
+  DESCRIPTION "New sensor holder design. This will replace SensorHolder-Ordered_2mm_1.0 eventually. Holds either a Model 800 Ascension EM sensor, or another PLUS fixture, e.g. for holding MicronTracker markers. This part is frequently part of an assembly, but can also be used by itself."
+  )
+MODEL_TABLE_ROW(
   ID "OrientationsLR_1.0"
   DESCRIPTION "This is the most simple reference sensor holder to be used on patients. In a certain surgical setting (e.g. when stuck on the chest) this defines the patient orientation. This allows saving virtual camera positions."
   )
