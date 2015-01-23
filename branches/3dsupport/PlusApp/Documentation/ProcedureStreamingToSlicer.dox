@@ -10,7 +10,7 @@
 
 # Show live images in 3D Slicer
 - In the Windows start menu in the <em>Plus Applications ...</em> folder open <em>Plus Server</em>
-- Choose your device set that describes according to your imaging device, for example use <em>PlusServer: Media Foundation video capture device</em> for image acquisition from a webcam. Optionally click on the small edit icon on the left side of the device selector to customize the imaging parameters.
+- Choose your device set that describes according to your imaging device, for example use <em>PlusServer: Media Foundation video capture device</em> or <em>PlusServer: Video for Windows video capture device</em> for image acquisition from a webcam. Optionally click on the small edit icon on the left side of the device selector to customize the imaging parameters.
 - Click <em>Connect</em>
 - In the Windows start menu in the <em>Slicer ... </em> folder open <em>Slicer</em>
 - Open the <em>OpenIGTLinkIF</em> module and click on the \c + button to create a new connection and click on the <em>Active checkbox</em> to start receiving data
