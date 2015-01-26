@@ -22,6 +22,9 @@
 namespace igtl
 {
 
+// This command prevents 4-byte alignment in the struct (which enables m_FrameSize[3])
+#pragma pack(1)     /* For 1-byte boundary in memory */
+
 /*! 
   \class PlusTrackedFrameMessage 
   \brief IGTL message helper class for tracked frame messages
@@ -30,10 +33,10 @@ namespace igtl
 class vtkPlusOpenIGTLinkExport PlusTrackedFrameMessage: public MessageBase
 {
 public:
-  typedef PlusTrackedFrameMessage                 Self;
-  typedef MessageBase                    Superclass;
-  typedef SmartPointer<Self>             Pointer;
-  typedef SmartPointer<const Self>       ConstPointer;
+  typedef PlusTrackedFrameMessage         Self;
+  typedef MessageBase                     Superclass;
+  typedef SmartPointer<Self>              Pointer;
+  typedef SmartPointer<const Self>        ConstPointer;
 
   igtlTypeMacro( igtl::PlusTrackedFrameMessage, igtl::MessageBase );
   igtlNewMacro( igtl::PlusTrackedFrameMessage );
@@ -73,7 +76,8 @@ protected:
         m_NumberOfComponents = BYTE_SWAP_INT16(m_NumberOfComponents);
         m_ImageType = BYTE_SWAP_INT16(m_ImageType);
         m_FrameSize[0] = BYTE_SWAP_INT16(m_FrameSize[0]); 
-        m_FrameSize[1] = BYTE_SWAP_INT16(m_FrameSize[1]); 
+        m_FrameSize[1] = BYTE_SWAP_INT16(m_FrameSize[1]);
+        m_FrameSize[2] = BYTE_SWAP_INT16(m_FrameSize[2]);
         m_ImageDataSizeInBytes = BYTE_SWAP_INT32(m_ImageDataSizeInBytes);
         m_XmlDataSizeInBytes = BYTE_SWAP_INT32(m_XmlDataSizeInBytes);
       }
@@ -101,6 +105,7 @@ protected:
   MessageHeader m_MessageHeader; 
 };
 
+#pragma pack()
 
 } // namespace igtl
 
