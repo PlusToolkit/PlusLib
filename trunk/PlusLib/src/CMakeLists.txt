@@ -47,7 +47,10 @@ OPTION(BUILD_SHARED_LIBS "Build with shared libraries." ${VTK_BUILD_SHARED_LIBS}
 
 # --------------------------------------------------------------------------
 # Configure output paths for libraries and executables.
-# 
+#
+IF(NOT DEFINED PLUS_EXECUTABLE_OUTPUT_PATH)
+  SET(PLUS_EXECUTABLE_OUTPUT_PATH "${PlusLib_BINARY_DIR}/bin")
+ENDIF()
 SET(LIBRARY_OUTPUT_PATH  ${PLUS_EXECUTABLE_OUTPUT_PATH} CACHE PATH "Single output directory for building all libraries." FORCE)
 SET(EXECUTABLE_OUTPUT_PATH ${PLUS_EXECUTABLE_OUTPUT_PATH} CACHE PATH "Single output directory for building all executables." FORCE)
 SET(INCLUDES_OUTPUT_PATH ${PLUS_EXECUTABLE_OUTPUT_PATH} CACHE PATH "Single output directory for all include files" FORCE)
