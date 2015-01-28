@@ -17,7 +17,9 @@ See License.txt for details.
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
+#include "vtkTrackedFrameList.h"
 #include "vtkSavedDataSource.h"
+#include "vtkVirtualMixer.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
 
@@ -66,8 +68,9 @@ int main(int argc, char **argv)
     LOG_ERROR("Configuration incorrect for vtkDataCollectorTest1.");
     exit( EXIT_FAILURE );
   }
-  vtkPlusDevice* videoDevice = NULL;
-  vtkPlusDevice* trackerDevice = NULL;
+  vtkPlusDevice* videoDevice(NULL);
+  vtkPlusDevice* trackerDevice(NULL);
+  vtkPlusDevice* trackedVideoDevice(NULL);
 
   if( dataCollector->GetDevice(videoDevice, "VideoDevice") != PLUS_SUCCESS )
   {
@@ -93,6 +96,18 @@ int main(int argc, char **argv)
     exit( EXIT_FAILURE );
   }
 
+  if( dataCollector->GetDevice(trackedVideoDevice, "TrackedVideoDevice") != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to locate the device with Id=\"TrackedVideoDevice\". Check config file.");
+    exit(EXIT_FAILURE);
+  }
+  vtkVirtualMixer* mixer = dynamic_cast<vtkVirtualMixer*>(trackedVideoDevice);
+  if( mixer == NULL )
+  {
+    LOG_ERROR( "Unable to cast tracked video device to vtkVirtualMixer" );
+    exit( EXIT_FAILURE );
+  }
+
   if ( dataCollector->Connect() != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to connect to devices!" ); 
@@ -102,6 +117,17 @@ int main(int argc, char **argv)
   if ( dataCollector->Start() != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to start data collection!" ); 
+    exit( EXIT_FAILURE );
+  }
+
+  // Wait an amount of time to enable some data collection to happen
+  Sleep(5000);
+
+  vtkSmartPointer<vtkTrackedFrameList> frameList = vtkSmartPointer<vtkTrackedFrameList>::New();
+  double timestamp(0.0);
+  if( mixer->GetChannel()->GetTrackedFrameList(timestamp, frameList, 20) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to retrieve frames from virtual mixer.");
     exit( EXIT_FAILURE );
   }
 

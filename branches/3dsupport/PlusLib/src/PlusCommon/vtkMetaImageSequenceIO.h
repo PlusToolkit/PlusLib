@@ -67,6 +67,11 @@ public:
   /*! Prepare the sequence for writing */
   virtual PlusStatus PrepareHeader(bool removeImageData=false);
 
+  /*! Update the number of frames in the header 
+      This is used primarly by vtkVirtualDiscCapture to update the final tally of frames, as it continually appends new frames to the file
+  */
+  virtual PlusStatus OverwriteNumberOfFramesInHeader(int numberOfFrames, bool removeImageData=false);
+
   /*! 
     Append the frames in tracked frame list to the header, if the onlyTrackerData flag is true it will not save
     in the header the image data related fields. 

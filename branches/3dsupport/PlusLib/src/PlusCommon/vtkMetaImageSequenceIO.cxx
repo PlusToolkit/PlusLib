@@ -687,20 +687,8 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader(bool removeImageData /*=false
     }
   }
 
-  // DimSize
-  std::ostringstream dimSizeStr; 
-  this->Dimensions[0]=frameSize[0];
-  this->Dimensions[1]=frameSize[1];
-  this->Dimensions[2]=frameSize[2];
-  this->Dimensions[3]=this->TrackedFrameList->GetNumberOfTrackedFrames();
-  dimSizeStr << this->Dimensions[0] << " " << this->Dimensions[1] << " ";
-  if( isData3D || (!isData3D && this->Output2DDataWithZDimensionIncluded) )
-  {
-    dimSizeStr << this->Dimensions[2] << " ";
-  }
-  dimSizeStr << this->Dimensions[3];
-  dimSizeStr << "                              ";  // add spaces so that later the field can be updated with larger values
-  SetCustomString("DimSize", dimSizeStr.str().c_str());  
+  // Update NDims and Dims fields in header
+  this->OverwriteNumberOfFramesInHeader(this->TrackedFrameList->GetNumberOfTrackedFrames(), removeImageData);
 
   // PixelType
   if (this->TrackedFrameList->IsContainingValidImageData())
@@ -761,7 +749,7 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader(bool removeImageData /*=false
   // The header shall start with these two fields
   const char* objType = "ObjectType = Image\n";
   fputs(objType, stream);
-  TotalBytesWritten += strlen(objType);
+  this->TotalBytesWritten += strlen(objType);
 
   std::stringstream nDimsFieldStream;
   nDimsFieldStream << "NDims = ";
@@ -775,7 +763,7 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader(bool removeImageData /*=false
   }
   nDimsFieldStream << "\n";
   fputs(nDimsFieldStream.str().c_str(), stream);
-  TotalBytesWritten += strlen(nDims);
+  this->TotalBytesWritten += strlen(nDims);
 
   std::vector<std::string> fieldNames;
   this->TrackedFrameList->GetCustomFieldNameList(fieldNames);
@@ -786,7 +774,7 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader(bool removeImageData /*=false
     if (it->compare("ElementDataFile")==0) continue; // this must be the last element
     std::string field=(*it)+" = "+GetCustomString(it->c_str())+"\n";
     fputs(field.c_str(), stream);
-    TotalBytesWritten += field.length();
+    this->TotalBytesWritten += field.length();
   }
 
   fclose(stream);
@@ -1581,5 +1569,41 @@ PlusStatus vtkMetaImageSequenceIO::MoveDataInFiles(const std::string& sourceFile
       LOG_WARNING("Unable to remove the file: " << sourceFilename);
     }
   }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkMetaImageSequenceIO::OverwriteNumberOfFramesInHeader(int numberOfFrames, bool removeImageData)
+{
+  // First, is this 2D or 3D?
+  bool isData3D = (this->TrackedFrameList->GetTrackedFrame(0)->GetFrameSize()[2] > 1);
+
+  int frameSize[3] = {0,0,0};
+  if( !removeImageData )
+  {
+    this->GetMaximumImageDimensions(frameSize); 
+  }
+  else
+  {
+    frameSize[0] = 1;
+    frameSize[1] = 1;
+    frameSize[2] = 1;
+  }
+
+  // DimSize
+  std::ostringstream dimSizeStr; 
+  this->Dimensions[0]=frameSize[0];
+  this->Dimensions[1]=frameSize[1];
+  this->Dimensions[2]=frameSize[2];
+  this->Dimensions[3]=numberOfFrames;
+  dimSizeStr << this->Dimensions[0] << " " << this->Dimensions[1] << " ";
+  if( isData3D || (!isData3D && this->Output2DDataWithZDimensionIncluded) )
+  {
+    dimSizeStr << this->Dimensions[2] << " ";
+  }
+  dimSizeStr << this->Dimensions[3];
+  dimSizeStr << "                              ";  // add spaces so that later the field can be updated with larger values
+  this->SetCustomString("DimSize", dimSizeStr.str().c_str());
+
   return PLUS_SUCCESS;
 }
