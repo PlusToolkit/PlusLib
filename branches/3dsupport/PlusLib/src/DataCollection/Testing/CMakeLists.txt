@@ -66,7 +66,7 @@ TARGET_LINK_LIBRARIES(vtk3DDataCollectorTest1 vtkDataCollection )
 ADD_TEST(vtk3DDataCollectorTest1 
   ${EXECUTABLE_OUTPUT_PATH}/vtk3DDataCollectorTest1
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_3DSavedDataset.xml
-  --rendering-off
+  --verbose=3
   )
 SET_TESTS_PROPERTIES( vtk3DDataCollectorTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
