@@ -60,6 +60,16 @@ ADD_TEST(vtkDataCollectorTest2
   )
 SET_TESTS_PROPERTIES( vtkDataCollectorTest2 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
+#***************************  vtk3DDataCollectorTest1 ***************************
+ADD_EXECUTABLE(vtk3DDataCollectorTest1 vtk3DDataCollectorTest1.cxx)
+TARGET_LINK_LIBRARIES(vtk3DDataCollectorTest1 vtkDataCollection )
+ADD_TEST(vtk3DDataCollectorTest1 
+  ${EXECUTABLE_OUTPUT_PATH}/vtk3DDataCollectorTest1
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_3DSavedDataset.xml
+  --rendering-off
+  )
+SET_TESTS_PROPERTIES( vtk3DDataCollectorTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
 #***************************  vtkDataCollectorVideoAcqTest ***************************
 ADD_EXECUTABLE(vtkDataCollectorVideoAcqTest vtkDataCollectorVideoAcqTest.cxx)
 TARGET_LINK_LIBRARIES(vtkDataCollectorVideoAcqTest vtkDataCollection )
@@ -153,6 +163,19 @@ IF (PLUS_USE_ULTRASONIX_VIDEO AND PLUS_TEST_ULTRASONIX)
   )
   SET_TESTS_PROPERTIES( vtkSonixVideoSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF (PLUS_USE_ULTRASONIX_VIDEO AND PLUS_TEST_ULTRASONIX)
+
+#***************************  vtkPhilips3DProbeVideoSourceTest1.cxx ***************************
+IF (PLUS_USE_PHILIPS_3D_ULTRASOUND AND PLUS_TEST_PHILIPS_3D_ULTRASOUND)
+  ADD_EXECUTABLE(vtkPhilips3DProbeVideoSourceTest1 vtkPhilips3DProbeVideoSourceTest1.cxx )
+  TARGET_LINK_LIBRARIES(vtkPhilips3DProbeVideoSourceTest1 vtkDataCollection vtkPlusCommon)
+  ADD_TEST(vtkPhilips3DProbeVideoSourceTest1 
+  ${EXECUTABLE_OUTPUT_PATH}/vtkPhilips3DProbeVideoSourceTest1
+    --rendering-off 
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_PhilipsVideoSourceTest.xml
+    --philips-ip=${PLUS_TEST_PHILIPS_3D_ULTRASOUND_IP_ADDRESS}
+  )
+  SET_TESTS_PROPERTIES( vtkPhilips3DProbeVideoSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+ENDIF (PLUS_USE_PHILIPS_3D_ULTRASOUND AND PLUS_TEST_PHILIPS_3D_ULTRASOUND)
 
 #***************************  vtkIntersonSDKCxxVideoSourceTest.cxx ***************************
 IF (PLUS_USE_INTERSONSDKCXX_VIDEO)
