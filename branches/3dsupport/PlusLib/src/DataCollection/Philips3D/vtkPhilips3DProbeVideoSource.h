@@ -37,6 +37,14 @@ public:
   /*! Perform any completion tasks once configured */
   virtual PlusStatus NotifyConfigured();
 
+  /*! Set IP Address */
+  void SetIPAddress(const std::string& ipAddress);
+  /*! Get IP Address */
+  std::string GetIPAddress() const;
+
+  vtkGetMacro(Port, int);
+  vtkSetMacro(Port, int);
+
 protected:
   /*! Constructor */
   vtkPhilips3DProbeVideoSource();

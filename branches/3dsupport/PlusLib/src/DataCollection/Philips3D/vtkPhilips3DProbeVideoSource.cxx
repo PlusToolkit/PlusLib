@@ -285,3 +285,15 @@ void vtkPhilips3DProbeVideoSource::CallbackAddFrame(vtkImageData* imageData)
   }
   this->FrameNumber++;
 }
+
+//----------------------------------------------------------------------------
+void vtkPhilips3DProbeVideoSource::SetIPAddress(const std::string& ipAddress)
+{
+  this->IPAddress = ipAddress;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkPhilips3DProbeVideoSource::GetIPAddress() const
+{
+  return this->IPAddress;
+}
