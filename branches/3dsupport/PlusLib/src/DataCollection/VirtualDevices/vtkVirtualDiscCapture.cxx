@@ -220,7 +220,7 @@ PlusStatus vtkVirtualDiscCapture::CloseFile(const char* aFilename)
     this->WriteFrames(true);
   }
 
-  Writer->OverwriteNumberOfFramesInHeader(this->TotalFramesRecorded, false);
+  Writer->OverwriteNumberOfFramesInHeader(this->TotalFramesRecorded);
   Writer->UpdateFieldInImageHeader("DimSize");
   Writer->FinalizeHeader();
 

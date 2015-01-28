@@ -69,8 +69,10 @@ public:
 
   /*! Update the number of frames in the header 
       This is used primarly by vtkVirtualDiscCapture to update the final tally of frames, as it continually appends new frames to the file
+      /param numberOfFrames the new number of frames to write
+      /param addPadding this should only be true if this is the first time this function is called, which typically happens in OpenImageHeader
   */
-  virtual PlusStatus OverwriteNumberOfFramesInHeader(int numberOfFrames, bool removeImageData=false);
+  virtual PlusStatus OverwriteNumberOfFramesInHeader(int numberOfFrames, bool addPadding=false);
 
   /*! 
     Append the frames in tracked frame list to the header, if the onlyTrackerData flag is true it will not save

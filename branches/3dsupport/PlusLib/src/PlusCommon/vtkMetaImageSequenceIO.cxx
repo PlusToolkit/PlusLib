@@ -669,6 +669,12 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader(bool removeImageData /*=false
     frameSize[2] = 1;
   }
 
+  // Set the dimensions of the data to be written
+  this->Dimensions[0]=frameSize[0];
+  this->Dimensions[1]=frameSize[1];
+  this->Dimensions[2]=frameSize[2];
+  this->Dimensions[3]=this->TrackedFrameList->GetNumberOfTrackedFrames();
+
   if( !removeImageData )
   {
     // Make sure the frame size is the same for each valid image 
@@ -688,7 +694,7 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader(bool removeImageData /*=false
   }
 
   // Update NDims and Dims fields in header
-  this->OverwriteNumberOfFramesInHeader(this->TrackedFrameList->GetNumberOfTrackedFrames(), removeImageData);
+  this->OverwriteNumberOfFramesInHeader(this->TrackedFrameList->GetNumberOfTrackedFrames(), true);
 
   // PixelType
   if (this->TrackedFrameList->IsContainingValidImageData())
@@ -1573,28 +1579,11 @@ PlusStatus vtkMetaImageSequenceIO::MoveDataInFiles(const std::string& sourceFile
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMetaImageSequenceIO::OverwriteNumberOfFramesInHeader(int numberOfFrames, bool removeImageData)
+PlusStatus vtkMetaImageSequenceIO::OverwriteNumberOfFramesInHeader(int numberOfFrames, bool addPadding)
 {
-  // First, is this 2D or 3D?
-  bool isData3D = (this->TrackedFrameList->GetTrackedFrame(0)->GetFrameSize()[2] > 1);
+  bool isData3D = this->Dimensions[2] > 1;
 
-  int frameSize[3] = {0,0,0};
-  if( !removeImageData )
-  {
-    this->GetMaximumImageDimensions(frameSize); 
-  }
-  else
-  {
-    frameSize[0] = 1;
-    frameSize[1] = 1;
-    frameSize[2] = 1;
-  }
-
-  // DimSize
-  std::ostringstream dimSizeStr; 
-  this->Dimensions[0]=frameSize[0];
-  this->Dimensions[1]=frameSize[1];
-  this->Dimensions[2]=frameSize[2];
+  std::stringstream dimSizeStr;
   this->Dimensions[3]=numberOfFrames;
   dimSizeStr << this->Dimensions[0] << " " << this->Dimensions[1] << " ";
   if( isData3D || (!isData3D && this->Output2DDataWithZDimensionIncluded) )
@@ -1602,7 +1591,10 @@ PlusStatus vtkMetaImageSequenceIO::OverwriteNumberOfFramesInHeader(int numberOfF
     dimSizeStr << this->Dimensions[2] << " ";
   }
   dimSizeStr << this->Dimensions[3];
-  dimSizeStr << "                              ";  // add spaces so that later the field can be updated with larger values
+  if( addPadding )
+  {
+    dimSizeStr << "                              ";  // add spaces so that later the field can be updated with larger values
+  }
   this->SetCustomString("DimSize", dimSizeStr.str().c_str());
 
   return PLUS_SUCCESS;
