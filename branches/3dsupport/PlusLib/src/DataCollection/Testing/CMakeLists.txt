@@ -71,6 +71,9 @@ ADD_TEST(vtk3DDataCollectorTest1
   --mean=25.243336787840136 
   --median=0 
   --standard-deviation=57.955927672415285
+  --xDimension=112
+  --yDimension=48
+  --zDimension=112
   --verbose=3
   )
 SET_TESTS_PROPERTIES( vtk3DDataCollectorTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )

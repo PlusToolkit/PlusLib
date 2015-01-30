@@ -30,6 +30,7 @@ int main(int argc, char **argv)
 {
   std::string inputConfigFileName;
   double minExpected(-1.0), maxExpected(-1.0), meanExpected(-1.0), stdDevExpected(-1.0), medianExpected(-1.0);
+  double xDimension(-1.0), yDimension(-1.0), zDimension(-1.0);
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
@@ -41,6 +42,9 @@ int main(int argc, char **argv)
   args.AddArgument("--mean", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &meanExpected, "Mean pixel value expected.");
   args.AddArgument("--standard-deviation", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &stdDevExpected, "Standard deviation from the mean expected.");
   args.AddArgument("--median", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &medianExpected, "Median pixel value expected.");
+  args.AddArgument("--xDimension", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &xDimension, "Expected size of the data in the X dimension.");
+  args.AddArgument("--yDimension", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &yDimension, "Expected size of the data in the Y dimension.");
+  args.AddArgument("--zDimension", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &zDimension, "Expected size of the data in the Z dimension.");
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
 
   if ( !args.Parse() )
@@ -81,6 +85,21 @@ int main(int argc, char **argv)
   if( medianExpected == -1.0 )
   {
     LOG_ERROR("median is required");
+    exit(EXIT_FAILURE);
+  }
+  if( xDimension == -1.0 )
+  {
+    LOG_ERROR("xDimension is required");
+    exit(EXIT_FAILURE);
+  }
+  if( yDimension == -1.0 )
+  {
+    LOG_ERROR("yDimension is required");
+    exit(EXIT_FAILURE);
+  }
+  if( zDimension == -1.0 )
+  {
+    LOG_ERROR("zDimension is required");
     exit(EXIT_FAILURE);
   }
 
@@ -167,6 +186,16 @@ int main(int argc, char **argv)
   }
 
   vtkImageData* data = frameList->GetTrackedFrame(9)->GetImageData()->GetImage(); // Get the 10th frame's image data
+
+  int dimensions[3];
+  data->GetDimensions(dimensions);
+
+  if( xDimension != dimensions[0] || yDimension != dimensions[1] || zDimension != dimensions[2] )
+  {
+    LOG_ERROR("Dimensions don't match. Got [" << dimensions[0] << "," << dimensions[1] << "," << dimensions[2] << "]. Expected [" << xDimension << "," << yDimension << "," << zDimension << "]");
+    exit(EXIT_FAILURE);
+  }
+
 
   vtkSmartPointer<vtkImageHistogramStatistics> stats = vtkSmartPointer<vtkImageHistogramStatistics>::New();
   stats->SetInputDataObject(data);
