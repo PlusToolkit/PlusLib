@@ -79,7 +79,6 @@ int main(int argc, char* argv[])
   if (!inputPhilipsIp.empty())
   {
     philipsDevice->SetIPAddress(inputPhilipsIp.c_str());
-    philipsDevice->SetPort(4013); // Always 4013
   }
 
   if ( philipsDevice->Connect() != PLUS_SUCCESS ) 
