@@ -166,7 +166,8 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
   
-  if ( printHelp ) 
+  ///////////////////////////////////////////////////////////////////
+  if( argc == 1 || printHelp )
   {
     std::cout << args.GetHelp() << std::endl;
     std::cout << std::endl << "Operations: " << std::endl << std::endl; 
@@ -197,7 +198,8 @@ int main(int argc, char **argv)
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);  
 
-  ///////////////////////////////////////////////////////////////////
+
+
   // Check command line arguments 
   if ( inputFileName.empty() && inputFileNames.empty() )
   {

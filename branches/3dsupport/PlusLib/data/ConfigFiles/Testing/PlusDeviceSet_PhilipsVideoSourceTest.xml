@@ -2,12 +2,12 @@
   <DataCollection StartupDelaySec="1.0">
     <Device
       Id="VideoDevice"
-      Type="SonixVideo" 
+      Type="ie33Video" 
       AcquisitionRate="30" 
-      LocalTimeOffsetSec="-0.2976"
-      IP="130.15.7.20" >
+      IP="129.100.44.8"
+	  Port="4013" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="MF" />
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" />
       </DataSources>
       <OutputChannels>		
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />		

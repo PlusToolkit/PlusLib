@@ -12,13 +12,17 @@
       AcquisitionRate="10"
       LocalTimeOffsetSec="0.0"
       ToolReferenceFrame="Tracker" 
-      SequenceMetafile="3DNwirePhantomFreehand.mha" >
+      SequenceMetafile="3DTankWallCaptureCompressed.mha" >
       <DataSources>
         <DataSource Type="Tool" Id="Probe"  />
+		<DataSource Type="Tool" Id="Reference"  />
+		<DataSource Type="Tool" Id="Stylus"  />
       </DataSources>      
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
           <DataSource Id="Probe"/>
+		  <DataSource Id="Reference"/>
+		  <DataSource Id="Stylus"/>
         </OutputChannel>
       </OutputChannels>
     </Device>
@@ -29,7 +33,7 @@
       UseData="IMAGE"
       AcquisitionRate="10" 
       LocalTimeOffsetSec="0.0" 
-      SequenceMetafile="3DNwirePhantomFreehand.mha" >
+      SequenceMetafile="3DTankWallCaptureCompressed.mha" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />
       </DataSources>      

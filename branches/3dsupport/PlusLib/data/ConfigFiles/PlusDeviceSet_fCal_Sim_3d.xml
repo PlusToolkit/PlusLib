@@ -8,7 +8,7 @@
     <Device
       Id="TrackedVideoDevice"
       Type="SavedDataSource"      
-      SequenceMetafile="fCal_Test_3d.mha"
+      SequenceMetafile="3DTankWallCaptureCompressed.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE" >
@@ -19,17 +19,6 @@
         <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
     </Device>
-    
-    <Device
-      Id="CaptureDevice"
-      Type="VirtualDiscCapture"
-      BaseFilename="RecordingTest.mha"
-      EnableCapturing="FALSE" >
-      <InputChannels>
-        <InputChannel Id="TrackedVideoStream" />
-      </InputChannels>
-    </Device>
-
   </DataCollection>
 
   <CoordinateDefinitions>
@@ -41,6 +30,13 @@
         0  0  0  1"
        Date="2011.12.06 17:57:00"/>
     <Transform From="Phantom" To="Reference"
+      Matrix="
+        -0.0167397  -0.0153548  -0.999742  15.6642
+        -0.999834  0.0075107  0.0166258  -25.3628
+        0.00725347  0.999854  -0.015478  -40.7799
+        0  0  0  1"
+       Error="0.660751" Date="091112_152716"/>
+	<Transform From="Image" To="Reference"
       Matrix="
         -0.0167397  -0.0153548  -0.999742  15.6642
         -0.999834  0.0075107  0.0166258  -25.3628
