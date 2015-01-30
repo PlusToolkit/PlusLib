@@ -66,6 +66,11 @@ TARGET_LINK_LIBRARIES(vtk3DDataCollectorTest1 vtkDataCollection )
 ADD_TEST(vtk3DDataCollectorTest1 
   ${EXECUTABLE_OUTPUT_PATH}/vtk3DDataCollectorTest1
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_3DSavedDataset.xml
+  --minimum=0 
+  --maximum=255 
+  --mean=25.243336787840136 
+  --median=0 
+  --standard-deviation=57.955927672415285
   --verbose=3
   )
 SET_TESTS_PROPERTIES( vtk3DDataCollectorTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -327,12 +332,6 @@ IF (PLUS_USE_MMF_VIDEO)
   ENDIF(PLUS_TEST_MMF_VIDEO)
 
 ENDIF (PLUS_USE_MMF_VIDEO)
-
-#***************************  vtkPhilips3DProbeVideoSource.cxx ***************************
-IF (PLUS_USE_PHILIPS_3D_ULTRASOUND)
-message("TODO : datacollection/testing/cmakelists.txt line 310 : complete me")
-ENDIF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
-
 
 #***************************  vtkEpiphanVideoSourceTest.cxx ***************************
 IF (PLUS_USE_EPIPHAN)

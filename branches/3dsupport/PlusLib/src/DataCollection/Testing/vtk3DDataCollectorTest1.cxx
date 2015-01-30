@@ -11,14 +11,17 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "TrackedFrame.h"
+#include "itkMath.h"
 #include "vtkDataCollector.h"
 #include "vtkImageData.h" 
+#include "vtkImageHistogramStatistics.h"
 #include "vtkMatrix4x4.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
-#include "vtkTrackedFrameList.h"
 #include "vtkSavedDataSource.h"
+#include "vtkTrackedFrameList.h"
+#include "vtkTrivialProducer.h"
 #include "vtkVirtualMixer.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
@@ -26,13 +29,18 @@ See License.txt for details.
 int main(int argc, char **argv)
 {
   std::string inputConfigFileName;
-
+  double minExpected(-1.0), maxExpected(-1.0), meanExpected(-1.0), stdDevExpected(-1.0), medianExpected(-1.0);
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Name of the input configuration file.");
+  args.AddArgument("--minimum", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &minExpected, "Minimum pixel value expected.");
+  args.AddArgument("--maximum", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &maxExpected, "Maximum pixel value expected.");
+  args.AddArgument("--mean", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &meanExpected, "Mean pixel value expected.");
+  args.AddArgument("--standard-deviation", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &stdDevExpected, "Standard deviation from the mean expected.");
+  args.AddArgument("--median", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &medianExpected, "Median pixel value expected.");
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
 
   if ( !args.Parse() )
@@ -46,9 +54,35 @@ int main(int argc, char **argv)
 
   if (inputConfigFileName.empty())
   {
-    std::cerr << "input-config-file-name is required" << std::endl;
+    LOG_ERROR("input-config-file-name is required");
     exit(EXIT_FAILURE);
-  }  
+  }
+
+  if( minExpected == -1.0 )
+  {
+    LOG_ERROR("minimum is required");
+    exit(EXIT_FAILURE);
+  }
+  if( maxExpected == -1.0 )
+  {
+    LOG_ERROR("maximum is required");
+    exit(EXIT_FAILURE);
+  }
+  if( meanExpected == -1.0 )
+  {
+    LOG_ERROR("mean is required");
+    exit(EXIT_FAILURE);
+  }
+  if( stdDevExpected == -1.0 )
+  {
+    LOG_ERROR("standard-deviation is required");
+    exit(EXIT_FAILURE);
+  }
+  if( medianExpected == -1.0 )
+  {
+    LOG_ERROR("median is required");
+    exit(EXIT_FAILURE);
+  }
 
   ///////////////
 
@@ -121,19 +155,69 @@ int main(int argc, char **argv)
   }
 
   // Wait an amount of time to enable some data collection to happen
-  Sleep(5000);
+  Sleep(1000);
 
   vtkSmartPointer<vtkTrackedFrameList> frameList = vtkSmartPointer<vtkTrackedFrameList>::New();
   double timestamp(0.0);
+  mixer->GetChannel()->GetOldestTimestamp(timestamp);
   if( mixer->GetChannel()->GetTrackedFrameList(timestamp, frameList, 20) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve frames from virtual mixer.");
     exit( EXIT_FAILURE );
   }
 
+  vtkImageData* data = frameList->GetTrackedFrame(9)->GetImageData()->GetImage(); // Get the 10th frame's image data
+
+  vtkSmartPointer<vtkImageHistogramStatistics> stats = vtkSmartPointer<vtkImageHistogramStatistics>::New();
+  stats->SetInputDataObject(data);
+  stats->GenerateHistogramImageOff();
+  stats->Update();
+
+  double minVal = stats->GetMinimum();
+  double maxVal = stats->GetMaximum();
+  double meanVal = stats->GetMean();
+  double median = stats->GetMedian();
+  double stdDev = stats->GetStandardDeviation();
+
+  int numErrors(0);
+  if( !itk::Math::FloatAlmostEqual<double>(minVal, minExpected) )
+  {
+    LOG_ERROR("Min values don't match. Got: " << minVal << ". Expected: " << minExpected);
+    numErrors++;
+  }
+
+  if( !itk::Math::FloatAlmostEqual<double>(maxVal, maxExpected) )
+  {
+    LOG_ERROR("Max values don't match. Got: " << maxVal << ". Expected: " << maxExpected);
+    numErrors++;
+  }
+
+  if( !itk::Math::FloatAlmostEqual<double>(meanVal, meanExpected) )
+  {
+    LOG_ERROR("Mean values don't match. Got: " << meanVal << ". Expected: " << meanExpected);
+    numErrors++;
+  }
+
+  if( !itk::Math::FloatAlmostEqual<double>(median, medianExpected) )
+  {
+    LOG_ERROR("Median values don't match. Got: " << median << ". Expected: " << medianExpected);
+    numErrors++;
+  }
+
+  if( !itk::Math::FloatAlmostEqual<double>(stdDev, stdDevExpected) )
+  {
+    LOG_ERROR("Standard deviation values don't match. Got: " << stdDev << ". Expected: " << stdDevExpected);
+    numErrors++;
+  }
+
   dataCollector->Disconnect();
 
-  std::cout << "vtk3DDataCollectorTest1 completed successfully!" << std::endl;
+  if( numErrors > 0 )
+  {
+    return EXIT_FAILURE;
+  }
+
+  LOG_INFO("vtk3DDataCollectorTest1 completed successfully!");
   return EXIT_SUCCESS; 
 
 }
