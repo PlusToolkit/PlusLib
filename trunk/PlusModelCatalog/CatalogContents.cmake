@@ -30,7 +30,7 @@ MODEL_TABLE_ROW(
   DESCRIPTION "Clamps to a tubular shaped tool, e.g. electrocauterizer. For clamp tightening use hex-head cap screw, M6 thread, 30 mm long with a matching wing nut. For assembly with SensorHolder-Ordered-HolesInterface use hex-head cap screw M4 thread, with any matching nut."
   )
 MODEL_TABLE_ROW(
-  ID "NeedleClip-Assembly_1.5mm_1.1"
+  ID "NeedleClip-Assembly_1.5mm_2.0"
   DESCRIPTION "Clamps to a needle of 1.5 mm diameter through a sterile bag."
   )
 MODEL_TABLE_ROW(
@@ -46,7 +46,7 @@ MODEL_TABLE_ROW(
   DESCRIPTION "This is the most simple reference sensor holder to be used on patients. In a certain surgical setting (e.g. when stuck on the chest) this defines the patient orientation. This allows saving virtual camera positions."
   )
 # Add remaining experimental tools
-FOREACH(MODELFILE MarkerHolder_120mm_Stickable_1.0 MarkerHolder_120mm_Winged_1.0 MarkerHolder_120mm-Short_2.0 NeedleClip-Assembly_1.5mm_2.0 NeedleGrabberFlappy-Assembly_1.0 Plug-L_60mm_3.0 SensorHolder_Wing_1.0 SensorHolder-GlueHoles-Ordered_2mm_1.0 SensorHolder-Ordered-HolesInterface_2mm_1.0)
+FOREACH(MODELFILE MarkerHolder_120mm_Winged_1.0 MarkerHolder_120mm-Short_2.0 NeedleGrabberFlappy-Assembly_1.0 Plug-L_60mm_3.0 SensorHolder_Wing_1.0 SensorHolder-GlueHoles-Ordered_2mm_1.0 SensorHolder-Ordered-HolesInterface_2mm_1.0)
   MODEL_TABLE_ROW(ID ${MODELFILE} DESCRIPTION "Experimental") 
 ENDFOREACH()
 MODEL_TABLE_END()
