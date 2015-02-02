@@ -257,6 +257,9 @@ public:
   /*! Set the selected channel */
   void SetSelectedChannel(vtkPlusChannel* aChannel);
 
+  /*! Set the slice number in the image visualizer */
+  void SetSliceNumber(int number);
+
 protected slots:
   /*!
   * Forward any updates to members that require it

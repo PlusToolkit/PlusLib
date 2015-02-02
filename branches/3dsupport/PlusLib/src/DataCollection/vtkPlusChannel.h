@@ -49,6 +49,7 @@ public:
   PlusStatus GetVideoSource( vtkPlusDataSource*& aVideoSource ) const;
   void SetVideoSource( vtkPlusDataSource* aSource );
   bool HasVideoSource() const;
+  bool IsVideoSource3D() const;
 
   int ToolCount() const { return this->Tools.size(); }
   PlusStatus AddTool(vtkPlusDataSource* aTool );

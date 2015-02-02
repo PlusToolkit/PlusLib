@@ -14,6 +14,7 @@ See License.txt for details.
 #include "vtkRenderWindow.h"
 #include "vtkSphereSource.h"
 #include "vtkTextProperty.h"
+#include "vtkImageSliceMapper.h"
 
 //-----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkImageVisualizer);
@@ -81,6 +82,8 @@ vtkImageVisualizer::vtkImageVisualizer()
   // Create image actor
   vtkSmartPointer<vtkImageActor> imageActor = vtkSmartPointer<vtkImageActor>::New();
   this->SetImageActor(imageActor);
+
+  this->ImageMapper = vtkImageSliceMapper::SafeDownCast(this->ImageActor->GetMapper());
 
   // Add actors to the renderer
   this->CanvasRenderer->AddActor(this->ResultActor);
@@ -461,14 +464,6 @@ void vtkImageVisualizer::SetInputData(vtkImageData* aImage )
   LOG_TRACE("vtkImageVisualizer::SetInputData");
 
   this->GetImageActor()->SetInputData_vtk5compatible(aImage);
-
-  int dims[3] = {0,0,0};
-  aImage->GetDimensions(dims);
-  if( dims[2] > 1 )
-  {
-    // Arbitrarily set to center, maybe create functionality to change this later
-    this->GetImageActor()->SetZSlice(dims[2]/2);
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1012,5 +1007,14 @@ void vtkImageVisualizer::SetChannel(vtkPlusChannel *channel)
   {
     LOG_DEBUG("No video in the selected channel. Hiding image visualization.");
     this->ImageActor->VisibilityOff();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void vtkImageVisualizer::SetSliceNumber(int number)
+{
+  if( number >= this->ImageMapper->GetSliceNumberMinValue() && number <= this->ImageMapper->GetSliceNumberMaxValue() )
+  {
+    this->ImageMapper->SetSliceNumber(number);
   }
 }

@@ -225,6 +225,11 @@ protected:
     void UpdateGUI();
 
     /*!
+    * Update the slicer number UI based on channel data
+    */
+    void UpdateSliceNumberUI();
+
+    /*!
     * Slot handling show devices combobox state change
     */
     void ShowDevicesToggled();
@@ -243,6 +248,16 @@ protected:
     * Activate a certain device
     */
     void ChannelSelected(vtkPlusChannel* aChannel);
+
+    /*!
+    * Update the requested slice number
+    */
+    void SliceNumberSliderChanged(int number);
+
+    /*!
+    * Update the requested slice number
+    */
+    void SliceNumberSpinBoxChanged(int number);
 
     /*!
     * Resize event handler

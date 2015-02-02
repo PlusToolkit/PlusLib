@@ -15,6 +15,8 @@ See License.txt for details.
 #include "TemporalCalibrationToolbox.h"
 #include "VolumeReconstructionToolbox.h"
 #include "fCalMainWindow.h"
+#include "vtkPlusBuffer.h"
+#include "vtkPlusDataSource.h"
 #include "vtkRenderWindow.h"
 #include "vtkVirtualDiscCapture.h"
 #include "vtkVirtualMixer.h"
@@ -155,6 +157,8 @@ void fCalMainWindow::Initialize()
   connect( ui.toolbox, SIGNAL( currentChanged(int) ), this, SLOT( CurrentToolboxChanged(int) ) );
   connect( ui.pushButton_SaveConfiguration, SIGNAL( clicked() ), this, SLOT( SaveDeviceSetConfiguration() ) );
   connect( m_UiRefreshTimer, SIGNAL( timeout() ), this, SLOT( UpdateGUI() ) );
+  connect( ui.horizontalSlider_SliceNumber, SIGNAL( valueChanged(int) ), this, SLOT(SliceNumberSliderChanged(int) ) );
+  connect( ui.spinBox_SliceNumber, SIGNAL( valueChanged(int) ), this, SLOT(SliceNumberSpinBoxChanged(int) ) );
 
   // Tell the object visualizer to show orientation markers
   m_ShowOrientationMarkerAction->setChecked(true);
@@ -902,10 +906,73 @@ void fCalMainWindow::SetSelectedChannel( vtkPlusChannel* aChannel )
   this->GetVisualizationController()->SetSelectedChannel(aChannel);
 
   this->m_ToolboxList[m_ActiveToolbox]->SetDisplayAccordingToState();
+
+  this->UpdateSliceNumberUI();
 }
 
 //-----------------------------------------------------------------------------
 void fCalMainWindow::SetStatusIconMaxMessageCount( int count )
 {
   this->m_StatusIcon->SetMaxMessageCount(count);
+}
+
+//-----------------------------------------------------------------------------
+void fCalMainWindow::SliceNumberSliderChanged(int number)
+{
+  this->ui.spinBox_SliceNumber->setValue(number);
+  this->GetVisualizationController()->SetSliceNumber(number);
+}
+
+//-----------------------------------------------------------------------------
+void fCalMainWindow::SliceNumberSpinBoxChanged(int number)
+{
+  this->ui.horizontalSlider_SliceNumber->setValue(number);
+  this->GetVisualizationController()->SetSliceNumber(number);
+}
+
+//-----------------------------------------------------------------------------
+void fCalMainWindow::UpdateSliceNumberUI()
+{
+  if( this->GetSelectedChannel() && this->GetSelectedChannel()->IsVideoSource3D() && this->GetVisualizationController() )
+  {
+    this->ui.label_SliceNumber->setEnabled(true);
+    this->ui.horizontalSlider_SliceNumber->setEnabled(true);
+    this->ui.spinBox_SliceNumber->setEnabled(true);
+
+    vtkPlusDataSource* source;
+    this->GetSelectedChannel()->GetVideoSource(source);
+    if( source->GetBuffer()->GetNumberOfItems() > 0 )
+    {
+      int dims[3] = {0,0,0};
+      StreamBufferItem item;
+      source->GetBuffer()->GetLatestStreamBufferItem(&item);
+      item.GetFrame().GetImage()->GetDimensions(dims);
+      this->ui.spinBox_SliceNumber->setValue(0);
+      this->ui.spinBox_SliceNumber->setMinimum(0);
+      this->ui.spinBox_SliceNumber->setMaximum(dims[2]);
+      this->ui.spinBox_SliceNumber->setSingleStep(1);
+      this->ui.horizontalSlider_SliceNumber->setValue(0);
+      this->ui.horizontalSlider_SliceNumber->setMinimum(0);
+      this->ui.horizontalSlider_SliceNumber->setMaximum(dims[2]);
+      this->ui.horizontalSlider_SliceNumber->setTickInterval(1);
+      this->GetVisualizationController()->SetSliceNumber(0);
+    }
+    else
+    {
+      // fire single shot to check again soon
+      QTimer::singleShot(250, this, SLOT(UpdateSliceNumberUI()));
+    }
+  }
+  else
+  {
+    this->ui.label_SliceNumber->setEnabled(false);
+    this->ui.horizontalSlider_SliceNumber->setEnabled(false);
+    this->ui.horizontalSlider_SliceNumber->setMaximum(0);
+    this->ui.horizontalSlider_SliceNumber->setMinimum(0);
+    this->ui.horizontalSlider_SliceNumber->setValue(0);
+    this->ui.spinBox_SliceNumber->setEnabled(false);
+    this->ui.spinBox_SliceNumber->setValue(0);
+    this->ui.spinBox_SliceNumber->setMaximum(0);
+    this->ui.spinBox_SliceNumber->setMinimum(0);
+  }
 }

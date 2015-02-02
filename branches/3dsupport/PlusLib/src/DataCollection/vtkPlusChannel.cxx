@@ -1547,3 +1547,33 @@ PlusStatus vtkPlusChannel::GenerateDataAcquisitionReport(vtkHTMLGenerator* htmlR
 
   return PLUS_SUCCESS; 
 }
+
+//-----------------------------------------------------------------------------
+bool vtkPlusChannel::IsVideoSource3D() const
+{
+  if( this->HasVideoSource() )
+  {
+    vtkPlusDataSource* source(NULL);
+    this->GetVideoSource(source);
+    if( source->GetBuffer()->GetNumberOfItems() <= 0 )
+    {
+      return false;
+    }
+    StreamBufferItem item;
+    source->GetBuffer()->GetLatestStreamBufferItem(&item);
+    int dims[3] = {0,0,0};
+    item.GetFrame().GetImage()->GetDimensions(dims);
+    if( dims[2] > 1 )
+    {
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
+  else
+  {
+    return false;
+  }
+}

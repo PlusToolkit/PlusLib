@@ -964,3 +964,12 @@ void vtkVisualizationController::SetSelectedChannel( vtkPlusChannel* aChannel )
     this->GetPerspectiveVisualizer()->SetChannel(aChannel);
   }
 }
+
+//-----------------------------------------------------------------------------
+void vtkVisualizationController::SetSliceNumber(int number)
+{
+  if( this->ImageVisualizer != NULL )
+  {
+    this->GetImageVisualizer()->SetSliceNumber(number);
+  }
+}
