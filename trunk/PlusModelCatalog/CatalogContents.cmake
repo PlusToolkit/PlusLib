@@ -2,10 +2,6 @@ MODEL_CATALOG_START()
 
 MODEL_TABLE_START("Tracking fixtures" "See below a list of fixtures that can be used for mounting tracker markers (both optical and electromagnetic) on various tools and objects.")
 MODEL_TABLE_ROW(
-  ID "SensorHolder"
-  DESCRIPTION "Clip to mount a MarkerHolder or 8mm Ascension EM sensor to an object. Smallest size."
-  )
-MODEL_TABLE_ROW(
   ID "SensorHolder-Wing"
   DESCRIPTION "Clip to mount a MarkerHolder or 8mm Ascension EM sensor to an object. With a wing to make it easier to fix it by glue or screws."
   )
