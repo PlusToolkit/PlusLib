@@ -19,9 +19,10 @@
 #include "PlusConfigure.h"
 #include "vtkCallbackCommand.h"
 #include "vtkImageData.h"
+#include "vtkPhilips3DProbeVideoSource.h"
 #include "vtkPlusBuffer.h"
 #include "vtkPlusChannel.h"
-#include "vtkPhilips3DProbeVideoSource.h"
+#include "vtkTrackedFrameList.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include <stdlib.h>
@@ -30,10 +31,7 @@
 
 int main(int argc, char* argv[])
 {
-  bool printHelp(false); 
-  bool renderingOff(false);
-  bool renderingAsPlot(false);
-  bool printParams(false);
+  bool printHelp(false);
   std::string inputConfigFileName;
   std::string inputPhilipsIp;
 
@@ -45,7 +43,6 @@ int main(int argc, char* argv[])
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Config file containing the device configuration.");
   args.AddArgument("--philips-ip", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputPhilipsIp, "IP address of the Philips scanner (overrides the IP address parameter defined in the config file).");
-  args.AddArgument("--print-params", vtksys::CommandLineArguments::NO_ARGUMENT, &printParams, "Print all the supported imaging parameters (for diagnostic purposes only).");	
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level 1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
   if ( !args.Parse() )
@@ -78,7 +75,7 @@ int main(int argc, char* argv[])
 
   if (!inputPhilipsIp.empty())
   {
-    philipsDevice->SetIPAddress(inputPhilipsIp.c_str());
+    philipsDevice->SetIPAddress(inputPhilipsIp);
   }
 
   if ( philipsDevice->Connect() != PLUS_SUCCESS ) 
@@ -91,7 +88,15 @@ int main(int argc, char* argv[])
 
   // just run the recording for  a few seconds then exit
   LOG_DEBUG("Rendering disabled. Wait for just a few seconds to acquire data before exiting");
-  Sleep(5000); // no need to use accurate timer, it's just an approximate delay
+  Sleep(3000); // no need to use accurate timer, it's just an approximate delay
+
+  vtkSmartPointer<vtkTrackedFrameList> frameList = vtkSmartPointer<vtkTrackedFrameList>::New();
+  vtkPlusChannel* channel = *philipsDevice->GetOutputChannelsStart();
+
+  double oldTimestamp(0.0);
+  channel->GetOldestTimestamp(oldTimestamp);
+  channel->GetTrackedFrameList(oldTimestamp, frameList, 30);
+
   philipsDevice->StopRecording(); 
   philipsDevice->Disconnect();
 
