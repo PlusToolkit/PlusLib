@@ -46,7 +46,7 @@ MODEL_TABLE_ROW(
   DESCRIPTION "This is the most simple reference sensor holder to be used on patients. In a certain surgical setting (e.g. when stuck on the chest) this defines the patient orientation. This allows saving virtual camera positions."
   )
 # Add remaining experimental tools
-FOREACH(MODELFILE MarkerHolder_120mm_Winged_1.0 MarkerHolder_120mm-Short_2.0 NeedleGrabberFlappy-Assembly_1.0 Plug-L_60mm_3.0 SensorHolder_Wing_1.0 SensorHolder-GlueHoles-Ordered_2mm_1.0 SensorHolder-Ordered-HolesInterface_2mm_1.0)
+FOREACH(MODELFILE MarkerHolder_120mm_Winged_1.0 MarkerHolder_120mm-Short_2.0 NeedleGrabberFlappy-Assembly_1.0 Plug-L_60mm_3.0 SensorHolder-GlueHoles-Ordered_2mm_1.0 SensorHolder-Ordered-HolesInterface_2mm_1.0)
   MODEL_TABLE_ROW(ID ${MODELFILE} DESCRIPTION "Experimental") 
 ENDFOREACH()
 MODEL_TABLE_END()
