@@ -78,7 +78,7 @@ public:
   void SetInputData( vtkImageData* aImage );
 
   /* Set the slice number of the data */
-  void SetSliceNumber(int number);
+  PlusStatus SetSliceNumber(int number);
 
   void SetResultPolyData(vtkPolyData* aResultPolyData );
 

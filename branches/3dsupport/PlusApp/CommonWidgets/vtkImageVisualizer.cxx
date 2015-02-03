@@ -1011,10 +1011,12 @@ void vtkImageVisualizer::SetChannel(vtkPlusChannel *channel)
 }
 
 //-----------------------------------------------------------------------------
-void vtkImageVisualizer::SetSliceNumber(int number)
+PlusStatus vtkImageVisualizer::SetSliceNumber(int number)
 {
   if( number >= this->ImageMapper->GetSliceNumberMinValue() && number <= this->ImageMapper->GetSliceNumberMaxValue() )
   {
     this->ImageMapper->SetSliceNumber(number);
+    return PLUS_SUCCESS;
   }
+  return PLUS_FAIL;
 }

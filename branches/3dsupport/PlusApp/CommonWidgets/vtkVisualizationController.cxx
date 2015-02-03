@@ -965,4 +965,8 @@ void vtkVisualizationController::SetSliceNumber(int number)
   {
     this->GetImageVisualizer()->SetSliceNumber(number);
   }
+  if( this->PerspectiveVisualizer != NULL )
+  {
+    this->GetPerspectiveVisualizer()->SetSliceNumber(number);
+  }
 }
