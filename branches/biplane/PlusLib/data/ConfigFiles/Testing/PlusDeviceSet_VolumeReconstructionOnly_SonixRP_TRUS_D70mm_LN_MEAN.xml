@@ -1,0 +1,39 @@
+<PlusConfiguration version="2.1">
+
+  <!--
+    This configuration is for volume reconstruction from US image slices recorded with
+    Sonix RP machine, TRUS probe.
+    Image geometry: depth = 70mm, zoom = 100%.
+  -->
+
+  <CoordinateDefinitions>
+    <Transform From="Image" To="Probe" 
+    Matrix="-0.00157821  0.0785919   -0.00803285  15.3978 
+            -0.0839128   0.00372697   0.0153803   49.5705 
+             0.0159024   0.00714276   0.0803604   -8.63446 
+             0           0            0            1"
+      Error="1.68149" Date="022312_110631"
+    />
+    <Transform From="Phantom" To="Reference"
+      Matrix="-0.0263954   0.0123051   -0.999576    11.9823 
+               0.0167829   0.999789     0.0118645  -37.1153 
+               0.999511   -0.0164626   -0.0265963  -85.3543 
+               0           0            0            1" 
+      Error="1.87619" Date="022312_110322"
+    />
+  </CoordinateDefinitions>
+
+  <VolumeReconstruction OutputSpacing="0.5 0.5 0.5" 
+    ClipRectangleOrigin="192 16" ClipRectangleSize="420 580"
+    FanAnglesDeg="-45 45" FanOriginPixel="380 20" FanRadiusStartPixel="120" FanRadiusStopPixel="360" 
+    Interpolation="LINEAR" Optimization="FULL"
+    CompoundingMode="MEAN" FillHoles="ON" NumberOfThreads="1">
+    <HoleFilling>
+      <HoleFillingElement
+        Type="STICK"     
+        StickLengthLimit="9"
+        NumberOfSticksToUse="1" />
+    </HoleFilling>
+  </VolumeReconstruction>
+
+</PlusConfiguration>

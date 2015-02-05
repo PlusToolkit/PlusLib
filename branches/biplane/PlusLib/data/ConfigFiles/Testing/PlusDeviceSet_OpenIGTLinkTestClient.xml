@@ -1,0 +1,20 @@
+<PlusConfiguration version="2.1">
+    <DataCollection>            
+      <Device
+        Id="OpenIGTLinkVideoSenderDevice"
+        Type="OpenIGTLinkVideo"        
+        MessageType="TrackedFrame"
+        ServerAddress="127.0.0.1"
+        ServerPort="18944"
+        IgtlMessageCrcCheckEnabled="false"
+        ImageMessageEmbeddedTransformName="Image2ToTracker"
+        AcquisitionRate="30" >
+        <DataSources>
+          <DataSource Type="Video" Id="Video" BufferSize="50" PortUsImageOrientation="MF" />
+        </DataSources>
+        <OutputChannels>
+          <OutputChannel Id="TrackedVideoSenderStream" VideoDataSourceId="Video" />
+        </OutputChannels>
+      </Device>    
+    </DataCollection>  
+</PlusConfiguration>
