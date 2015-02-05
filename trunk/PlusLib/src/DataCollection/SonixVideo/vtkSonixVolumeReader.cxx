@@ -82,7 +82,7 @@ PlusStatus vtkSonixVolumeReader::GenerateTrackedFrameFromSonixVolume(const char*
   int sampleSizeInBytes = hdr.ss/8; 
   int numberOfFrames = hdr.frames; 
   int frameSizeInBytes = hdr.w * hdr.h * sampleSizeInBytes;
-  int frameSize[2]={hdr.w, hdr.h};
+  int frameSize[3]={hdr.w, hdr.h,1};
 
   // Custom frame fields
   std::ostringstream strDataType; 
@@ -122,6 +122,7 @@ PlusStatus vtkSonixVolumeReader::GenerateTrackedFrameFromSonixVolume(const char*
   {
     frameSize[0]=hdr.h; // number of data points recorded for one crystal (vectors)
     frameSize[1]=hdr.w; // number of transducer crystals (samples)
+    frameSize[2]=1; // only 1 slice
   }
 
   // Pointer to data from file 

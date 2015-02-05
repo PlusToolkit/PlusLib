@@ -166,7 +166,8 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
   
-  if ( printHelp ) 
+  ///////////////////////////////////////////////////////////////////
+  if( argc == 1 || printHelp )
   {
     std::cout << args.GetHelp() << std::endl;
     std::cout << std::endl << "Operations: " << std::endl << std::endl; 
@@ -197,7 +198,8 @@ int main(int argc, char **argv)
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);  
 
-  ///////////////////////////////////////////////////////////////////
+
+
   // Check command line arguments 
   if ( inputFileName.empty() && inputFileNames.empty() )
   {
@@ -894,7 +896,7 @@ PlusStatus FillRectangle(vtkTrackedFrameList* trackedFrameList, const std::vecto
   {
     TrackedFrame* trackedFrame = trackedFrameList->GetTrackedFrame(i); 
     PlusVideoFrame* videoFrame = trackedFrame->GetImageData();
-    int frameSize[2]={0,0};
+    int frameSize[3]={0,0,0};
     if (videoFrame == NULL || videoFrame->GetFrameSize(frameSize)!=PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to retrieve pixel data from frame "<<i<<". Fill rectangle failed.");
@@ -965,7 +967,7 @@ PlusStatus CropRectangle(vtkTrackedFrameList* trackedFrameList, const std::vecto
     TrackedFrame *trackedFrame = trackedFrameList->GetTrackedFrame(i); 
     PlusVideoFrame* videoFrame = trackedFrame->GetImageData();
 
-    int frameSize[2]={0,0};
+    int frameSize[3]={0,0,0};
     if (videoFrame == NULL || videoFrame->GetFrameSize(frameSize)!=PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to retrieve pixel data from frame "<<i<<". Crop rectangle failed.");

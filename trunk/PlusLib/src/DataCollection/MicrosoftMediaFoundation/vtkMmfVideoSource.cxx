@@ -424,7 +424,7 @@ PlusStatus vtkMmfVideoSource::UpdateFrameSize()
 {
   if( this->MmfSourceReader->CaptureSourceReader != NULL )
   {
-    int currentFrameSize[2] = {0,0};
+    int currentFrameSize[3] = {0,0,0};
     vtkPlusDataSource* videoSource(NULL);
     this->GetFirstActiveVideoSource(videoSource);
     videoSource->GetBuffer()->GetFrameSize(currentFrameSize);
@@ -559,7 +559,7 @@ PlusStatus vtkMmfVideoSource::AddFrame(unsigned char* bufferData)
     return PLUS_SUCCESS;
   }
 
-  int frameSize[2]={0,0};
+  int frameSize[3]={0,0,0};
   vtkPlusDataSource* videoSource(NULL);
   if( this->GetFirstActiveVideoSource(videoSource) != PLUS_SUCCESS )
   {

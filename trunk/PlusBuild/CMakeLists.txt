@@ -157,6 +157,13 @@ OPTION(PLUS_USE_PHIDGET_SPATIAL_TRACKER "Provide support for the Phidget Spatial
 OPTION(PLUS_USE_3dConnexion_TRACKER "Provide support for the 3dConnexion 3d mouse" OFF)
 OPTION(PLUS_USE_STEALTHLINK "Provide support for the Medtronick StealthLink Server" OFF)
 OPTION(PLUS_USE_IntuitiveDaVinci "Provide support for the da Vinci Surgical System" OFF)
+OPTION(PLUS_USE_PHILIPS_3D_ULTRASOUND "Provide support for the Philips ie33 3D ultrasound probe" OFF)
+IF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
+  OPTION(PLUS_TEST_PHILIPS_3D_ULTRASOUND "Enable testing of acquisition from Philips 3D ultrasound systems. Enable this only if a Philips device is accessible from this computer. " OFF)  
+ENDIF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
+IF (PLUS_TEST_PHILIPS_3D_ULTRASOUND)
+  SET (PLUS_TEST_PHILIPS_3D_ULTRASOUND_IP_ADDRESS "129.100.44.8" CACHE STRING "IP address of the Philips scanner that is used during testing")
+ENDIF(PLUS_TEST_PHILIPS_3D_ULTRASOUND)
 
 # Other
 
@@ -346,6 +353,28 @@ IF ( PLUS_USE_TELEMED_VIDEO )
     MESSAGE( FATAL_ERROR "This project requires Telemed SDK for supporting the Telemed ultrasound probes. One of the components is missing. Please verify configuration or turn off PLUS_USE_TELEMED_VIDEO.")
   ENDIF()
 ENDIF()
+
+IF (PLUS_USE_PHILIPS_3D_ULTRASOUND)
+  IF(NOT CMAKE_HOST_WIN32)
+	# Philips is windows only
+	MESSAGE( FATAL_ERROR "Philips SDK is only available for Windows.")
+  ENDIF(NOT CMAKE_HOST_WIN32)
+  IF(PLUS_USE_ULTRASONIX_VIDEO)
+	# Ultrasonix contains its own libmmd.dll which does not support all the functionality needed for the philips probe
+	# They both cannot be enabled at the same time.
+	MESSAGE( FATAL_ERROR "Plus cannot enable both Ultrasonix and Philips devices due to .dll conflicts in their respective SDK packages.")
+  ELSE(PLUS_USE_ULTRASONIX_VIDEO)
+    SET (PLUS_Philips_MAJOR_VERSION 1 CACHE STRING "Set Philips library major version (version: [major].[minor].[patch])")
+    SET (PLUS_Philips_MINOR_VERSION 0 CACHE STRING "Set Philips library minor version (version: [major].[minor].[patch])")
+    SET (PLUS_Philips_PATCH_VERSION 0 CACHE STRING "Set Philips library patch version (version: [major].[minor].[patch])")
+    FIND_PACKAGE(Philips)
+    IF( NOT PHILIPS_FOUND )
+      MESSAGE( FATAL_ERROR "In order to use the Philips ie33 ultrasound system, the requisite DLLs must be made available. Please verify configuration or turn off PLUS_USE_PHILIPS_3D_ULTRASOUND.")
+    ENDIF(NOT PHILIPS_FOUND)
+	message( "To use the Philips devices you must:" )
+	message( "1. Register '${CMAKE_CURRENT_BINARY_DIR}/bin/Debug|Release/Stream3d.dll'. If you are using a 32-bit OS, this can be done by running 'regsvr32 Stream3d.dll' in command line. If you are using a 64-bit OS, this can be done by the following procedure. Open the command line in administrator mode (Right click on cmd, choose 'Run as administrator'). Go to directory 'C:/Windows/SysWow64'. Run the regsvr32 command in SysWow64." )
+  ENDIF(PLUS_USE_ULTRASONIX_VIDEO)
+ENDIF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
 
 
 #------------------------------------------------------------------------------

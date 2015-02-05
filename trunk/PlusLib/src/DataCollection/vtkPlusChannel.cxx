@@ -36,11 +36,12 @@ vtkPlusChannel::vtkPlusChannel(void)
   // Default size for brightness frame
   this->BrightnessFrameSize[0] = 640;
   this->BrightnessFrameSize[1] = 480;
+  this->BrightnessFrameSize[2] = 1;
 
   this->TimestampMasterTool=NULL;
   
   // Create a blank image, it will be used as output if frames are not available
-  this->BlankImage->SetExtent( 0, this->BrightnessFrameSize[0] -1, 0, this->BrightnessFrameSize[1] - 1, 0, 0);
+  this->BlankImage->SetExtent( 0, this->BrightnessFrameSize[0] - 1, 0, this->BrightnessFrameSize[1] - 1, 0, this->BrightnessFrameSize[2] - 1);
 #if (VTK_MAJOR_VERSION < 6)
   this->BlankImage->SetScalarTypeToUnsignedChar();
   this->BlankImage->SetNumberOfScalarComponents(1); 
@@ -49,7 +50,7 @@ vtkPlusChannel::vtkPlusChannel(void)
   this->BlankImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
 #endif
   
-  unsigned long memorysize = this->BrightnessFrameSize[0] * this->BrightnessFrameSize[1] * this->BlankImage->GetScalarSize(); 
+  unsigned long memorysize = this->BrightnessFrameSize[0] * this->BrightnessFrameSize[1] * this->BrightnessFrameSize[2] * this->BlankImage->GetScalarSize(); 
   memset(this->BlankImage->GetScalarPointer(), 0, memorysize);
 }
 
@@ -1394,10 +1395,11 @@ double vtkPlusChannel::GetClosestTrackedFrameTimestampByTime(double time)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::GetBrightnessFrameSize(int aDim[2])
+PlusStatus vtkPlusChannel::GetBrightnessFrameSize(int aDim[3])
 {
   aDim[0]=this->BrightnessFrameSize[0];
   aDim[1]=this->BrightnessFrameSize[1];
+  aDim[2]=this->BrightnessFrameSize[2];
 
   return PLUS_SUCCESS;
 }
@@ -1442,6 +1444,7 @@ vtkImageData* vtkPlusChannel::GetBrightnessOutput()
   int *resultExtent = resultImage->GetExtent();
   this->BrightnessFrameSize[0] = resultExtent[1] - resultExtent[0]+1;
   this->BrightnessFrameSize[1] = resultExtent[3] - resultExtent[2]+1;
+  this->BrightnessFrameSize[2] = resultExtent[5] - resultExtent[4]+1;
 
   return resultImage;
 }
@@ -1543,4 +1546,34 @@ PlusStatus vtkPlusChannel::GenerateDataAcquisitionReport(vtkHTMLGenerator* htmlR
   }
 
   return PLUS_SUCCESS; 
+}
+
+//-----------------------------------------------------------------------------
+bool vtkPlusChannel::IsVideoSource3D() const
+{
+  if( this->HasVideoSource() )
+  {
+    vtkPlusDataSource* source(NULL);
+    this->GetVideoSource(source);
+    if( source->GetBuffer()->GetNumberOfItems() <= 0 )
+    {
+      return false;
+    }
+    StreamBufferItem item;
+    source->GetBuffer()->GetLatestStreamBufferItem(&item);
+    int dims[3] = {0,0,0};
+    item.GetFrame().GetImage()->GetDimensions(dims);
+    if( dims[2] > 1 )
+    {
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
+  else
+  {
+    return false;
+  }
 }

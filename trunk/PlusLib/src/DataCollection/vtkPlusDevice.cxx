@@ -518,7 +518,7 @@ PlusStatus vtkPlusDevice::WriteToMetafile( const char* filename, bool useCompres
     //Create fake image 
     TrackedFrame trackedFrame;
     PlusVideoFrame videoFrame;
-    int frameSize[2] = {1,1};
+    int frameSize[3] = {1,1,1};
     // Don't waste space, create a greyscale image
     videoFrame.AllocateFrame(frameSize, VTK_UNSIGNED_CHAR, 1);
     trackedFrame.SetImageData(videoFrame);
@@ -1417,8 +1417,8 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
   {
     LOCAL_LOG_DEBUG("Cannot request data from video source, the video buffer is empty or does not exist!");
     vtkImageData *data = vtkImageData::SafeDownCast(this->GetOutputDataObject(0));
-    int frameSize[2]={plusBuffer->GetFrameSize()[0], plusBuffer->GetFrameSize()[1] };
-    data->SetExtent(0,frameSize[0]-1,0,frameSize[1]-1,0,0);
+    int frameSize[3] = { plusBuffer->GetFrameSize()[0], plusBuffer->GetFrameSize()[1], plusBuffer->GetFrameSize()[2] };
+    data->SetExtent(0, frameSize[0]-1, 0, frameSize[1]-1, 0, frameSize[2]-1);
 
 #if (VTK_MAJOR_VERSION < 6)
     data->SetScalarType(plusBuffer->GetPixelType());
@@ -1460,9 +1460,10 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
   // The whole image buffer is copied, regardless of the UPDATE_EXTENT value to make the copying implementation simpler
   // For a more efficient implementation, we should only update the requested part of the image.
   vtkImageData *data = vtkImageData::SafeDownCast(this->GetOutputDataObject(0));
-  int frameSize[2]={0,0};
+  int frameSize[3]={0,0,0};
   this->CurrentStreamBufferItem->GetFrame().GetFrameSize(frameSize);
-  data->SetExtent(0,frameSize[0]-1,0,frameSize[1]-1,0,0);
+  data->SetExtent(0, frameSize[0]-1, 0, frameSize[1]-1, 0, frameSize[2]-1);
+
 #if (VTK_MAJOR_VERSION < 6)
     data->SetScalarType(plusBuffer->GetPixelType());
     data->SetNumberOfScalarComponents(plusBuffer->GetNumberOfScalarComponents()); 
@@ -1477,36 +1478,43 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::SetFrameSize(vtkPlusDataSource& aSource, int x, int y)
+PlusStatus vtkPlusDevice::SetFrameSize(vtkPlusDataSource& aSource, int x, int y, int z)
 {
-  LOCAL_LOG_TRACE("vtkPlusDevice::SetFrameSize(" << x << ", " << y << ")");
+  LOCAL_LOG_TRACE("vtkPlusDevice::SetFrameSize(" << x << ", " << y << ", " << z << ")");
 
   int* frameSize = aSource.GetBuffer()->GetFrameSize();
 
   if (x == frameSize[0] &&
-    y == frameSize[1] )
+    y == frameSize[1] &&
+    z == frameSize[2])
   {
     return PLUS_SUCCESS;
   }
 
-  if (x < 1 || y < 1)
+  if( x != 0 && y != 0 && z==0 )
+  {
+    LOCAL_LOG_WARNING("Single slice images should have a dimension of z=1");
+    z=1;
+  }
+
+  if (x < 1 || y < 1 || z < 1)
   {
     LOCAL_LOG_ERROR("SetFrameSize: Illegal frame size");
     return PLUS_FAIL;
   }
 
-  aSource.GetBuffer()->SetFrameSize(x,y); 
+  aSource.GetBuffer()->SetFrameSize(x,y,z); 
 
   aSource.Modified();
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetFrameSize(vtkPlusChannel& aChannel, int &x, int &y)
+PlusStatus vtkPlusDevice::GetFrameSize(vtkPlusChannel& aChannel, int &x, int &y, int &z)
 {
   LOCAL_LOG_TRACE("vtkPlusDevice::GetFrameSize");
 
-  int dim[2];
+  int dim[3];
   if( this->GetFrameSize(aChannel, dim) != PLUS_SUCCESS )
   {
     LOCAL_LOG_ERROR("Unable to get frame size from the device.");
@@ -1514,12 +1522,13 @@ PlusStatus vtkPlusDevice::GetFrameSize(vtkPlusChannel& aChannel, int &x, int &y)
   }
   x = dim[0];
   y = dim[1];
+  z = dim[2];
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetFrameSize(vtkPlusChannel& aChannel, int dim[2])
+PlusStatus vtkPlusDevice::GetFrameSize(vtkPlusChannel& aChannel, int dim[3])
 {
   LOCAL_LOG_TRACE("vtkPlusDevice::GetFrameSize");
 

@@ -14,6 +14,7 @@ See License.txt for details.
 #include "vtkRenderWindow.h"
 #include "vtkSphereSource.h"
 #include "vtkTextProperty.h"
+#include "vtkImageSliceMapper.h"
 
 //-----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkImageVisualizer);
@@ -81,6 +82,8 @@ vtkImageVisualizer::vtkImageVisualizer()
   // Create image actor
   vtkSmartPointer<vtkImageActor> imageActor = vtkSmartPointer<vtkImageActor>::New();
   this->SetImageActor(imageActor);
+
+  this->ImageMapper = vtkImageSliceMapper::SafeDownCast(this->ImageActor->GetMapper());
 
   // Add actors to the renderer
   this->CanvasRenderer->AddActor(this->ResultActor);
@@ -283,10 +286,11 @@ PlusStatus vtkImageVisualizer::UpdateCameraPose()
   }
 
   // Calculate image center
-  int dimensions[2]={0,0};
+  int dimensions[3]={0,0,0};
   this->SelectedChannel->GetBrightnessFrameSize(dimensions);
   double imageCenterX = dimensions[0] / 2.0;
   double imageCenterY = dimensions[1] / 2.0;
+  double imageCenterZ = dimensions[2] / 2.0;
 
   // Set up camera
   vtkSmartPointer<vtkCamera> imageCamera = vtkSmartPointer<vtkCamera>::New(); 
@@ -366,7 +370,7 @@ PlusStatus vtkImageVisualizer::UpdateCameraPose()
     break;
   }
 
-  if( UpdateScreenAlignedActors() != PLUS_SUCCESS )
+  if( this->UpdateScreenAlignedActors() != PLUS_SUCCESS )
   {
     LOG_ERROR("Error during alignment of screen-aligned actors.");
     return PLUS_FAIL;
@@ -558,7 +562,7 @@ PlusStatus vtkImageVisualizer::UpdateScreenAlignedActors()
     return PLUS_SUCCESS;
   }
 
-  int dimensions[2]={0};
+  int dimensions[3]={0,0,0};
   this->SelectedChannel->GetBrightnessFrameSize(dimensions);    
 
   vtkCollectionSimpleIterator pit;
@@ -996,7 +1000,7 @@ void vtkImageVisualizer::SetChannel(vtkPlusChannel *channel)
 
   if( this->SelectedChannel != NULL && this->SelectedChannel->GetBrightnessOutput() != NULL )
   {
-    this->ImageActor->SetInputData_vtk5compatible( this->SelectedChannel->GetBrightnessOutput() );
+    this->SetInputData_vtk5compatible(this->SelectedChannel->GetBrightnessOutput());
     this->ImageActor->VisibilityOn();
   }
   else
@@ -1004,4 +1008,15 @@ void vtkImageVisualizer::SetChannel(vtkPlusChannel *channel)
     LOG_DEBUG("No video in the selected channel. Hiding image visualization.");
     this->ImageActor->VisibilityOff();
   }
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkImageVisualizer::SetSliceNumber(int number)
+{
+  if( number >= this->ImageMapper->GetSliceNumberMinValue() && number <= this->ImageMapper->GetSliceNumberMaxValue() )
+  {
+    this->ImageMapper->SetSliceNumber(number);
+    return PLUS_SUCCESS;
+  }
+  return PLUS_FAIL;
 }

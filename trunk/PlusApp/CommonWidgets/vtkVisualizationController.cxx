@@ -402,16 +402,16 @@ PlusStatus vtkVisualizationController::SetScreenRightDownAxesOrientation( US_IMA
 
 PlusStatus vtkVisualizationController::Update()
 {
-  if( this->PerspectiveVisualizer != NULL && CurrentMode == DISPLAY_MODE_3D)
+  if( this->PerspectiveVisualizer != NULL && CurrentMode == DISPLAY_MODE_3D )
   {
     this->PerspectiveVisualizer->Update();
   }
 
   // Force update of the brightness image in the DataCollector,
   // because it is the image that the image actors show
-  if( this->SelectedChannel != NULL && this->GetImageActor() != NULL )
+  if( this->SelectedChannel != NULL && this->GetImageActor() != NULL)
   {
-    this->GetImageActor()->SetInputData_vtk5compatible( this->SelectedChannel->GetBrightnessOutput() );
+    this->GetImageActor()->SetInputData_vtk5compatible(this->SelectedChannel->GetBrightnessOutput());
   }
 
   return PLUS_SUCCESS;
@@ -955,5 +955,18 @@ void vtkVisualizationController::SetSelectedChannel( vtkPlusChannel* aChannel )
   if( this->PerspectiveVisualizer != NULL )
   {
     this->GetPerspectiveVisualizer()->SetChannel(aChannel);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void vtkVisualizationController::SetSliceNumber(int number)
+{
+  if( this->ImageVisualizer != NULL )
+  {
+    this->GetImageVisualizer()->SetSliceNumber(number);
+  }
+  if( this->PerspectiveVisualizer != NULL )
+  {
+    this->GetPerspectiveVisualizer()->SetSliceNumber(number);
   }
 }

@@ -1,3 +1,9 @@
+/*=Plus=header=begin======================================================
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
+=========================================================Plus=header=end*/
+
 #include "PlusConfigure.h"
 #include "PlusMath.h"
 #include "TrackedFrame.h"
@@ -21,8 +27,9 @@ const int FLOATING_POINT_PRECISION=16; // Number of digits used when writing tra
 TrackedFrame::TrackedFrame()
 {
   this->Timestamp = 0; 
-  this->FrameSize[0] = 0; 
-  this->FrameSize[1] = 0; 
+  this->FrameSize[0] = 0;
+  this->FrameSize[1] = 0;
+  this->FrameSize[2] = 0;
   this->FiducialPointsCoordinatePx = NULL; 
 }
 
@@ -37,7 +44,8 @@ TrackedFrame::TrackedFrame(const TrackedFrame& frame)
 {
   this->Timestamp = 0; 
   this->FrameSize[0] = 0; 
-  this->FrameSize[1] = 0; 
+  this->FrameSize[1] = 0;
+  this->FrameSize[2] = 0;
   this->FiducialPointsCoordinatePx = NULL; 
 
   *this = frame; 
@@ -56,7 +64,8 @@ TrackedFrame& TrackedFrame::operator=(TrackedFrame const&trackedFrame)
   this->ImageData = trackedFrame.ImageData; 
   this->Timestamp = trackedFrame.Timestamp;
   this->FrameSize[0] = trackedFrame.FrameSize[0]; 
-  this->FrameSize[1] = trackedFrame.FrameSize[1]; 
+  this->FrameSize[1] = trackedFrame.FrameSize[1];
+  this->FrameSize[2] = trackedFrame.FrameSize[2];
   this->SetFiducialPointsCoordinatePx(trackedFrame.FiducialPointsCoordinatePx);
 
   return *this;
@@ -92,7 +101,7 @@ PlusStatus TrackedFrame::PrintToXML(vtkXMLDataElement* trackedFrame)
   {
     trackedFrame->SetIntAttribute("NumberOfBits", this->GetNumberOfBitsPerScalar() ); 
     trackedFrame->SetIntAttribute("NumberOfScalarComponents", this->GetNumberOfScalarComponents() ); 
-    trackedFrame->SetVectorAttribute("FrameSize", 2, this->GetFrameSize()); 
+    trackedFrame->SetVectorAttribute("FrameSize", 3, this->GetFrameSize()); 
   }
   for ( FieldMapType::const_iterator it = this->CustomFrameFields.begin(); it != this->CustomFrameFields.end(); it++) 
   {
@@ -227,11 +236,12 @@ int* TrackedFrame::GetFrameSize()
 }
 
 //----------------------------------------------------------------------------
-void TrackedFrame::GetFrameSize(int dim[2])
+void TrackedFrame::GetFrameSize(int dim[3])
 {
   this->ImageData.GetFrameSize(this->FrameSize);
   dim[0] = this->FrameSize[0];
   dim[1] = this->FrameSize[1];
+  dim[2] = this->FrameSize[2];
 }
 
 //----------------------------------------------------------------------------

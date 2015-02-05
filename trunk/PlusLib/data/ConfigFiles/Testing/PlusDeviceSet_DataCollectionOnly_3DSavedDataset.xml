@@ -1,0 +1,57 @@
+<PlusConfiguration version="2.1">
+
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="TEST Tracking and 3D video data is read from sequence metafile." 
+      Description="Test configuration file for vtkDataCollectorTest to use saved dataset. The SequenceMetafile names should be defined either from command line argument or from configuration file!" />
+
+    <Device
+      Id="TrackerDevice"
+      Type="SavedDataSource"
+      UseData="TRANSFORM"      
+      AcquisitionRate="10"
+      LocalTimeOffsetSec="0.0"
+      ToolReferenceFrame="Tracker" 
+      SequenceMetafile="3DTankWallCaptureCompressed.mha" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Probe"  />
+		<DataSource Type="Tool" Id="Reference"  />
+		<DataSource Type="Tool" Id="Stylus"  />
+      </DataSources>      
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream">
+          <DataSource Id="Probe"/>
+		  <DataSource Id="Reference"/>
+		  <DataSource Id="Stylus"/>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="VideoDevice"
+      Type="SavedDataSource" 
+      UseData="IMAGE"
+      AcquisitionRate="10" 
+      LocalTimeOffsetSec="0.0" 
+      SequenceMetafile="3DTankWallCaptureCompressed.mha" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />
+      </DataSources>      
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+    
+    <Device Id="TrackedVideoDevice" Type="VirtualMixer">
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="VideoStream" />
+      </InputChannels>
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream"/>
+      </OutputChannels>
+    </Device>
+    
+  </DataCollection>
+
+</PlusConfiguration>

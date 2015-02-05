@@ -80,7 +80,7 @@ public:
   virtual bool IsTracker() const { return false; }
   virtual bool IsVirtual() const { return true; }
 
-  virtual std::string GetOutputFileName() { return vtkPlusConfig::GetInstance()->GetOutputPath(m_CurrentFilename); };
+  virtual std::string GetOutputFileName() { return vtkPlusConfig::GetInstance()->GetOutputPath(CurrentFilename); };
 
 protected:
   virtual PlusStatus ClearRecordedFrames();
@@ -112,16 +112,16 @@ protected:
   virtual ~vtkVirtualDiscCapture();
 
   /*! Recorded tracked frame list */
-  vtkTrackedFrameList* m_RecordedFrames;
+  vtkTrackedFrameList* RecordedFrames;
 
   /*! Timestamp of last recorded frame (only frames that have more recent timestamp will be added) */
-  double m_LastAlreadyRecordedFrameTimestamp;
+  double LastAlreadyRecordedFrameTimestamp;
 
   /*! Desired timestamp of the next frame to be recorded */
-  double m_NextFrameToBeRecordedTimestamp;
+  double NextFrameToBeRecordedTimestamp;
 
   /*! Frame rate of the sampling */
-  const int m_SamplingFrameRate;
+  const int SamplingFrameRate;
 
   /*! Requested frame rate (frames per second) */
   double RequestedFrameRate;
@@ -135,24 +135,24 @@ protected:
     those that were acquired in a different recording segment) will not be taken into account in the actual
     frame rate computation.
   */
-  int m_FirstFrameIndexInThisSegment;
+  int FirstFrameIndexInThisSegment;
 
   /* Time waited in update */
-  double m_TimeWaited;
-  double m_LastUpdateTime;
+  double TimeWaited;
+  double LastUpdateTime;
 
   /*! File to write */
-  std::string m_CurrentFilename;
+  std::string CurrentFilename;
   std::string BaseFilename;
 
   /*! Meta sequence to write to */
-  vtkMetaImageSequenceIO* m_Writer;
+  vtkMetaImageSequenceIO* Writer;
 
   /*! When closing the file, re-read the data from file, and write it compressed */
   bool EnableFileCompression;
 
   /*! Preparing the header requires image data already collected, this flag makes the header preparation wait until valid data is collected */
-  bool m_HeaderPrepared;
+  bool IsHeaderPrepared;
 
   /*! Record the number of frames captured */
   long int TotalFramesRecorded;  // hard drive will probably fill up before a regular int is hit, but still...

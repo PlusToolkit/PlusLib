@@ -19,6 +19,7 @@ OPTION (PLUS_USE_INTERSONSDKCXX_VIDEO "Provide support Interson SDK 1.X with C++
 OPTION (PLUS_USE_TELEMED_VIDEO "Provide support for the Telemed ultrasound probes" OFF)
 OPTION(PLUS_USE_STEALTHLINK "Provide support for the Medtronick StealthLink Server" OFF)
 OPTION(PLUS_USE_IntuitiveDaVinci "Enable the tracking of the da Vinci Surgical System. Enable this only if you have a da Vinci that is accessible from this computer." OFF)
+OPTION(PLUS_USE_PHILIPS_3D_ULTRASOUND "Provide support for the Philips ie33 3D ultrasound probe system." OFF)
 OPTION (PLUS_TEST_BKPROFOCUS "Enable testing of acquisition from BK ProFocus ultrasound systems. Enable this only if a BK ProFocus device is connected to this computer." OFF)
 OPTION (PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
 IF (PLUS_TEST_ULTRASONIX)
@@ -807,6 +808,45 @@ IF (PLUS_USE_TELEMED_VIDEO)
 
 ENDIF (PLUS_USE_TELEMED_VIDEO)
 
+# --------------------------------------------------------------------------
+# Philips ie33 3d ultrasound support
+
+IF (PLUS_USE_PHILIPS_3D_ULTRASOUND)
+  IF(PLUS_USE_ULTRASONIX_VIDEO)
+	# Ultrasonix contains its own libmmd.dll which does not support all the functionality needed for the philips probe
+	# They both cannot be enabled at the same time.
+	MESSAGE( FATAL_ERROR "Plus cannot enable both Ultrasonix and Philips devices due to .dll conflicts in their respective SDK packages.")
+  ELSE(PLUS_USE_ULTRASONIX_VIDEO)
+    SET (DataCollection_SRCS ${DataCollection_SRCS}
+      Philips3D/vtkPhilips3DProbeVideoSource.cxx 
+      Philips3D/vtkIEEListener.cxx 
+      )
+
+    IF (WIN32)  
+      SET (DataCollection_HDRS ${DataCollection_HDRS}
+        Philips3D/vtkPhilips3DProbeVideoSource.h
+	    Philips3D/vtkIEEListener.h
+        )
+    ENDIF (WIN32)
+
+    SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
+      ${CMAKE_CURRENT_SOURCE_DIR}/Philips3D
+      ${Philips_INCLUDE_DIRS}
+      CACHE INTERNAL "" FORCE)
+
+    SET( DataCollection_LIBS ${DataCollection_LIBS}
+      ${Philips_LIBRARY_DIR}/PipelineComDll${CMAKE_STATIC_LIBRARY_SUFFIX}
+	  ${Philips_LIBRARY_DIR}/3DData${CMAKE_STATIC_LIBRARY_SUFFIX}
+	  ${Philips_LIBRARY_DIR}/3DUtil${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
+  
+    FILE(GLOB PHILIPS_SDK_SHARED_LIBRARIES "${Philips_BINARY_DIRS}/[^.]*${CMAKE_SHARED_LIBRARY_SUFFIX}")
+
+    SET ( External_Libraries_Install ${External_Libraries_Install}
+      ${PHILIPS_SDK_SHARED_LIBRARIES}
+      )
+  ENDIF(PLUS_USE_ULTRASONIX_VIDEO)
+ENDIF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
 
 # --------------------------------------------------------------------------
 # Build the library

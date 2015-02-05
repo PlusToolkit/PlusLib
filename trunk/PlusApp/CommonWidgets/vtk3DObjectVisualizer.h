@@ -21,6 +21,8 @@
 
 //-----------------------------------------------------------------------------
 
+class vtkImageSliceMapper;
+
 /*! \class vtk3DObjectVisualizer 
  * \brief Class that manages the displaying of a 3D object visualization in a QT canvas element
  * \ingroup PlusAppCommonWidgets
@@ -65,6 +67,11 @@ public:
   PlusStatus SetVolumeMapper( vtkPolyDataMapper* aContourMapper );
 
   PlusStatus SetDataCollector();
+
+  /*! Set the slice number
+  * \param sliceNumber the slice number to display
+  */
+  PlusStatus SetSliceNumber(int number);
 
   /*!
   * Set the volume actor color
@@ -164,6 +171,9 @@ protected:
 
   /*! Actor for displaying the input points in 3D */
   vtkActor* InputActor;
+
+  /*! Slice mapper to enable slice selection */
+  vtkImageSliceMapper* ImageMapper;
 
   /*! Glyph producer for result */
   vtkGlyph3D* InputGlyph;
