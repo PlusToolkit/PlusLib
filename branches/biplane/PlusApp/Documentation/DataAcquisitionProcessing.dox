@@ -1,0 +1,13 @@
+/**
+
+\page DataAcquisitionProcessing Data acquisition and processing
+
+- \subpage ProcedureTrackedUltrasoundRecording
+- \subpage ProcedureVolumeReconstruction
+- \subpage ProcedureStreamingToSlicer
+- \subpage ProcedureUltrasoundSimulation
+
+- \subpage ApplicationPlusServer
+
+
+*/
