@@ -71,9 +71,10 @@ vtkMetaImageSequenceIO::vtkMetaImageSequenceIO()
 , IsPixelDataBinary(true)
 , PixelType(VTK_VOID)
 , NumberOfScalarComponents(1)
-, NumberOfDimensions(3)
-, m_CurrentFrameOffset(0)
-, m_TotalBytesWritten(0)
+, NumberOfDimensions(4)
+, CurrentFrameOffset(0)
+, Output2DDataWithZDimensionIncluded(false)
+, TotalBytesWritten(0)
 , ImageOrientationInFile(US_IMG_ORIENT_XX)
 , ImageOrientationInMemory(US_IMG_ORIENT_XX)
 , ImageType(US_IMG_TYPE_XX)
@@ -82,6 +83,7 @@ vtkMetaImageSequenceIO::vtkMetaImageSequenceIO()
   this->Dimensions[0]=0;
   this->Dimensions[1]=0;
   this->Dimensions[2]=0;
+  this->Dimensions[3]=0;
 } 
 
 //----------------------------------------------------------------------------
@@ -93,10 +95,10 @@ vtkMetaImageSequenceIO::~vtkMetaImageSequenceIO()
 //----------------------------------------------------------------------------
 PlusStatus vtkMetaImageSequenceIO::DeleteCustomFrameString(int frameNumber, const char* fieldName)
 {
-  TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(frameNumber);
+  TrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame(frameNumber);
   if (trackedFrame==NULL)
   {
-    LOG_ERROR("Cannot access frame "<<frameNumber);
+    LOG_ERROR("Cannot access frame " << frameNumber);
     return PLUS_FAIL;
   }
   
@@ -111,7 +113,7 @@ PlusStatus vtkMetaImageSequenceIO::SetCustomFrameString(int frameNumber, const c
     LOG_ERROR("Invalid field name or value");
     return PLUS_FAIL;
   }
-  CreateTrackedFrameIfNonExisting(frameNumber);
+  this->CreateTrackedFrameIfNonExisting(frameNumber);
   TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(frameNumber);
   if (trackedFrame==NULL)
   {
@@ -159,7 +161,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
   // open in binary mode because we determine the start of the image buffer also during this read
   if ( FileOpen(&stream, this->FileName.c_str(), "rb" ) != PLUS_SUCCESS )
   {
-    LOG_ERROR("The file "<<this->FileName<<" could not be opened for reading");
+    LOG_ERROR("The file " << this->FileName << " could not be opened for reading");
     return PLUS_FAIL;
   }
 
@@ -171,14 +173,14 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
 
     // Split line into name and value
     size_t equalSignFound;
-    equalSignFound=lineStr.find_first_of("=");
+    equalSignFound = lineStr.find_first_of("=");
     if (equalSignFound==std::string::npos)
     {
-      LOG_WARNING("Parsing line failed, equal sign is missing ("<<lineStr<<")");
+      LOG_WARNING("Parsing line failed, equal sign is missing (" << lineStr << ")");
       continue;
     }
-    std::string name=lineStr.substr(0,equalSignFound);
-    std::string value=lineStr.substr(equalSignFound+1);
+    std::string name = lineStr.substr(0,equalSignFound);
+    std::string value = lineStr.substr(equalSignFound+1);
 
     // trim spaces from the left and right
     PlusCommon::Trim(name);
@@ -190,10 +192,10 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
       SetCustomString(name.c_str(), value.c_str());
 
       // Arrived to ElementDataFile, this is the last element
-      if (name.compare(SEQMETA_FIELD_ELEMENT_DATA_FILE)==0)
+      if (name.compare(SEQMETA_FIELD_ELEMENT_DATA_FILE) == 0)
       {
         this->PixelDataFileName=value;
-        if (value.compare(SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL)==0)
+        if (value.compare(SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL) == 0)
         {
           // pixel data stored locally
           this->PixelDataFileOffset=FTELL(stream);
@@ -215,26 +217,26 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
 
       // Split line into name and value
       size_t underscoreFound;
-      underscoreFound=name.find_first_of("_");
-      if (underscoreFound==std::string::npos)
+      underscoreFound = name.find_first_of("_");
+      if (underscoreFound == std::string::npos)
       {
         LOG_WARNING("Parsing line failed, underscore is missing from frame field name ("<<lineStr<<")");
         continue;
       }
-      std::string frameNumberStr=name.substr(0,underscoreFound); // 0000
-      std::string frameFieldName=name.substr(underscoreFound+1); // CustomTransform
+      std::string frameNumberStr = name.substr(0, underscoreFound); // 0000
+      std::string frameFieldName = name.substr(underscoreFound+1); // CustomTransform
 
       int frameNumber=0;
-      if (PlusCommon::StringToInt(frameNumberStr.c_str(),frameNumber)!=PLUS_SUCCESS)
+      if (PlusCommon::StringToInt(frameNumberStr.c_str(), frameNumber)!=PLUS_SUCCESS)
       {
-        LOG_WARNING("Parsing line failed, cannot get frame number from frame field ("<<lineStr<<")");
+        LOG_WARNING("Parsing line failed, cannot get frame number from frame field (" << lineStr << ")");
         continue;
       }
       SetCustomFrameString(frameNumber, frameFieldName.c_str(), value.c_str());
 
       if (ferror(stream))
       {
-        LOG_ERROR("Error reading the file "<<this->FileName);
+        LOG_ERROR("Error reading the file " << this->FileName);
         break;
       }
       if (feof(stream))
@@ -296,15 +298,16 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
   int nDims=3;
   if (PlusCommon::StringToInt(this->TrackedFrameList->GetCustomString("NDims"), nDims)==PLUS_SUCCESS)
   {
-    if (nDims!=2 && nDims!=3)
+    if (nDims!=2 && nDims!=3 && nDims!=4)
     {
-      LOG_ERROR("Invalid dimension (shall be 2 or 3): "<<nDims);
+      LOG_ERROR("Invalid dimension (shall be 2 or 3 or 4): "<<nDims);
       return PLUS_FAIL;
     }
   }
   this->NumberOfDimensions=nDims;  
 
-  this->ImageOrientationInFile = PlusVideoFrame::GetUsImageOrientationFromString(GetCustomString(SEQMETA_FIELD_US_IMG_ORIENT)); 
+  std::string imgOrientStr = std::string(GetCustomString(SEQMETA_FIELD_US_IMG_ORIENT));
+  this->ImageOrientationInFile = PlusVideoFrame::GetUsImageOrientationFromString( imgOrientStr.c_str() ); 
 
   const char* imgTypeStr=GetCustomString(SEQMETA_FIELD_US_IMG_TYPE);
   if (imgTypeStr==NULL)
@@ -317,16 +320,43 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
     this->ImageType = PlusVideoFrame::GetUsImageTypeFromString(imgTypeStr);
   }
 
-  std::istringstream issDimSize(this->TrackedFrameList->GetCustomString("DimSize")); // DimSize = 640 480 567
-  for(int i=0; i<3; i++)
+  std::istringstream issDimSize(this->TrackedFrameList->GetCustomString("DimSize")); // DimSize = 640 480 567, DimSize = 640 480 40 567
+  int dimSize(0);
+  for(int i=0; i < this->NumberOfDimensions - 1; i++) // do not iterate over last dimension, it is time!
   {
-    int dimSize=0;
-    if (i<this->NumberOfDimensions)
-    {
-      issDimSize >> dimSize;    
-    }
+    issDimSize >> dimSize;
     this->Dimensions[i]=dimSize;
-  } 
+  }
+  if( this->Dimensions[0] > 0 && this->Dimensions[1] > 0 && this->Dimensions[2] <= 0 )
+  {
+    // If the dimensions came from the file in the form X Y Nfr
+    // then we would have Dimensions = {X, Y, 0, Nfr} which would break all the things
+    // so set the 0 to 1
+    this->Dimensions[2] = 1;
+  }
+
+  // The last dimension depends on the image orientation from the file...
+  // If the orientation specifies that the data is 3D (3-letter acronym)
+  // then pretend as if there is a hidden 1 in 3-dim files
+  // So 
+  // NDims=3
+  // DimSize=630 480 567
+  // is treated as
+  // NDims=4
+  // DimSize=630 480 567 1
+  // ...
+  // NDims=4
+  // DimSize=630 480 567 35 is unaffected
+  issDimSize >> dimSize;
+  if( nDims == 3 && imgOrientStr.length() == 3 )
+  {
+    this->Dimensions[2] = dimSize;
+    this->Dimensions[3] = 1;
+  }
+  else
+  {
+    this->Dimensions[3] = dimSize;
+  }
 
   // If no specific image orientation is requested then determine it automatically from the image type
   // B-mode: MF
@@ -337,23 +367,24 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
     {
     case US_IMG_BRIGHTNESS:
     case US_IMG_RGB_COLOR:
-      SetImageOrientationInMemory(US_IMG_ORIENT_MF);
+      this->SetImageOrientationInMemory(US_IMG_ORIENT_MF);
       break;
     case US_IMG_RF_I_LINE_Q_LINE:
     case US_IMG_RF_IQ_LINE:
     case US_IMG_RF_REAL:
-      SetImageOrientationInMemory(US_IMG_ORIENT_FM);
+      this->SetImageOrientationInMemory(US_IMG_ORIENT_FM);
       break;
     default:
-      if (this->Dimensions[0]==0 && this->Dimensions[0]==0)
+      if (this->Dimensions[0]==0 && this->Dimensions[1]==0 && this->Dimensions[2]==0)
       {
         LOG_DEBUG("Only tracking data is available in the metafile");
       }
       else
       {
-        LOG_WARNING("Cannot determine image orientation automatically, unknown image type "<<(imgTypeStr?imgTypeStr:"(undefined)")<<", use the same orientation in memory as in the file");
+        LOG_WARNING("Cannot determine image orientation automatically, unknown image type " << 
+          (imgTypeStr ? imgTypeStr : "(undefined)") << ", use the same orientation in memory as in the file");
       }
-      SetImageOrientationInMemory(this->ImageOrientationInFile);
+      this->SetImageOrientationInMemory(this->ImageOrientationInFile);
     }
   }
 
@@ -364,11 +395,11 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
 // Read the spacing and dimensions of the image.
 PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
 { 
-  int frameCount=this->Dimensions[2];
+  int frameCount=this->Dimensions[3];
   unsigned int frameSizeInBytes=0;
-  if (this->Dimensions[0]>0 && this->Dimensions[1]>0)
+  if (this->Dimensions[0]>0 && this->Dimensions[1]>0 && this->Dimensions[2]>0)
   {
-    frameSizeInBytes=this->Dimensions[0]*this->Dimensions[1]*PlusVideoFrame::GetNumberOfBytesPerScalar(this->PixelType)*this->NumberOfScalarComponents;
+    frameSizeInBytes=this->Dimensions[0]*this->Dimensions[1]*this->Dimensions[2]*PlusVideoFrame::GetNumberOfBytesPerScalar(this->PixelType)*this->NumberOfScalarComponents;
   }
 
   if (frameSizeInBytes==0)
@@ -522,7 +553,7 @@ PlusStatus vtkMetaImageSequenceIO::Write(bool removeImageData /* =false*/ )
     return PLUS_FAIL;
   }
 
-  if (WriteImagePixels(this->TempImageFileName, false, removeImageData) != PLUS_SUCCESS)
+  if ( this->WriteImagePixels(this->TempImageFileName, false, removeImageData) != PLUS_SUCCESS )
   {
     return PLUS_FAIL;
   }
@@ -535,7 +566,7 @@ PlusStatus vtkMetaImageSequenceIO::Write(bool removeImageData /* =false*/ )
 //----------------------------------------------------------------------------
 void vtkMetaImageSequenceIO::CreateTrackedFrameIfNonExisting(unsigned int frameNumber)
 {
-  if (frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames())
+  if ( frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames() )
   {
     // frame is already created
     return;
@@ -600,13 +631,13 @@ PlusStatus vtkMetaImageSequenceIO::Read()
 {
   this->TrackedFrameList->Clear();
 
-  if (ReadImageHeader()!=PLUS_SUCCESS)
+  if ( this->ReadImageHeader() != PLUS_SUCCESS )
   {
     LOG_ERROR("Could not load header from file: " << this->FileName);
     return PLUS_FAIL;
   }
 
-  if (ReadImagePixels()!=PLUS_SUCCESS)
+  if ( this->ReadImagePixels() != PLUS_SUCCESS )
   {
     return PLUS_FAIL;
   }
@@ -618,8 +649,22 @@ PlusStatus vtkMetaImageSequenceIO::Read()
 * Assumes SetFileName has been called with a valid file name. */
 PlusStatus vtkMetaImageSequenceIO::OpenImageHeader(bool removeImageData /*=false*/)
 {
+  if( this->TrackedFrameList->GetNumberOfTrackedFrames() == 0 )
+  {
+    LOG_ERROR("No frames in frame list, unable to query a frame for meta information.");
+    return PLUS_FAIL;
+  }
+
+  // First, is this 2D or 3D?
+  bool isData3D = (this->TrackedFrameList->GetTrackedFrame(0)->GetFrameSize()[2] > 1);
+
   // Override fields
-  SetCustomString("NDims", "3");
+  const char* nDims("3");
+  if( isData3D || (!isData3D && this->Output2DDataWithZDimensionIncluded) )
+  {
+    nDims = "4";
+  }
+  SetCustomString("NDims", nDims);
   SetCustomString("BinaryData", "True");
   SetCustomString("BinaryDataByteOrderMSB", "False");
 
@@ -635,7 +680,7 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader(bool removeImageData /*=false
     SetCustomString("CompressedDataSize", NULL);
   }
 
-  int frameSize[2] = {0,0};
+  int frameSize[3] = {0,0,0};
   if( !removeImageData )
   {
     this->GetMaximumImageDimensions(frameSize); 
@@ -644,7 +689,14 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader(bool removeImageData /*=false
   {
     frameSize[0] = 1;
     frameSize[1] = 1;
+    frameSize[2] = 1;
   }
+
+  // Set the dimensions of the data to be written
+  this->Dimensions[0]=frameSize[0];
+  this->Dimensions[1]=frameSize[1];
+  this->Dimensions[2]=frameSize[2];
+  this->Dimensions[3]=this->TrackedFrameList->GetNumberOfTrackedFrames();
 
   if( !removeImageData )
   {
@@ -655,26 +707,20 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader(bool removeImageData /*=false
     {
       int * currFrameSize = this->TrackedFrameList->GetTrackedFrame(frameNumber)->GetFrameSize(); 
       if ( this->TrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData()->IsImageValid() 
-        && ( frameSize[0] != currFrameSize[0] || frameSize[1] != currFrameSize[1] )  )
+        && ( frameSize[0] != currFrameSize[0] || frameSize[1] != currFrameSize[1] || frameSize[2] != currFrameSize[2])  )
       {
-        LOG_ERROR("Frame size mismatch: expected size (" << frameSize[0] << "x" << frameSize[1] 
-        << ") differ from actual size (" << currFrameSize[0] << "x" << currFrameSize[1] << ") for frame #" << frameNumber); 
+        LOG_ERROR("Frame size mismatch: expected size (" << frameSize[0] << "x" << frameSize[1] << "x" << frameSize[2]
+        << ") differ from actual size (" << currFrameSize[0] << "x" << currFrameSize[1] << "x" << currFrameSize[2] << ") for frame #" << frameNumber); 
         return PLUS_FAIL; 
       }
     }
   }
 
-  // DimSize
-  std::ostringstream dimSizeStr;
-  this->Dimensions[0]=frameSize[0];
-  this->Dimensions[1]=frameSize[1];
-  this->Dimensions[2]=this->TrackedFrameList->GetNumberOfTrackedFrames();
-  dimSizeStr << this->Dimensions[0] << " " << this->Dimensions[1] << " " << this->Dimensions[2];
-  dimSizeStr << "                              ";  // add spaces so that later the field can be updated with larger values
-  SetCustomString("DimSize", dimSizeStr.str().c_str());  
+  // Update NDims and Dims fields in header
+  this->OverwriteNumberOfFramesInHeader(this->TrackedFrameList->GetNumberOfTrackedFrames(), true);
 
   // PixelType
-  if ( this->TrackedFrameList->IsContainingValidImageData() )
+  if (this->TrackedFrameList->IsContainingValidImageData())
   {
     this->PixelType=this->TrackedFrameList->GetPixelType();
     if ( this->PixelType == VTK_VOID )
@@ -690,7 +736,7 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader(bool removeImageData /*=false
   // ElementNumberOfChannels
   if (!removeImageData)
   {
-    if (this->TrackedFrameList->IsContainingValidImageData())
+    if( this->TrackedFrameList->IsContainingValidImageData() )
     {
       this->NumberOfScalarComponents=this->TrackedFrameList->GetNumberOfScalarComponents();
     }
@@ -717,6 +763,7 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader(bool removeImageData /*=false
   if (GetCustomString("TransformMatrix")==NULL) { SetCustomString("TransformMatrix", "1 0 0 0 1 0 0 0 1"); }
   if (GetCustomString("Offset")==NULL) { SetCustomString("Offset", "0 0 0"); }
   if (GetCustomString("CenterOfRotation")==NULL) { SetCustomString("CenterOfRotation", "0 0 0"); }
+  // TODO : does element spacing need to be 4d for ... 3d+t?
   if (GetCustomString("ElementSpacing")==NULL) { SetCustomString("ElementSpacing", "1 1 1"); }
   if (GetCustomString("AnatomicalOrientation")==NULL) { SetCustomString("AnatomicalOrientation", "RAI"); }
 
@@ -731,10 +778,21 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader(bool removeImageData /*=false
   // The header shall start with these two fields
   const char* objType = "ObjectType = Image\n";
   fputs(objType, stream);
-  m_TotalBytesWritten += strlen(objType);
-  const char* nDims = "NDims = 3\n";
-  fputs(nDims, stream);
-  m_TotalBytesWritten += strlen(nDims);
+  this->TotalBytesWritten += strlen(objType);
+
+  std::stringstream nDimsFieldStream;
+  nDimsFieldStream << "NDims = ";
+  if( isData3D || !isData3D && this->Output2DDataWithZDimensionIncluded )
+  {
+    nDimsFieldStream << this->NumberOfDimensions;
+  }
+  else
+  {
+    nDimsFieldStream << this->NumberOfDimensions - 1;
+  }
+  nDimsFieldStream << "\n";
+  fputs(nDimsFieldStream.str().c_str(), stream);
+  this->TotalBytesWritten += strlen(nDims);
 
   std::vector<std::string> fieldNames;
   this->TrackedFrameList->GetCustomFieldNameList(fieldNames);
@@ -745,7 +803,7 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader(bool removeImageData /*=false
     if (it->compare("ElementDataFile")==0) continue; // this must be the last element
     std::string field=(*it)+" = "+GetCustomString(it->c_str())+"\n";
     fputs(field.c_str(), stream);
-    m_TotalBytesWritten += field.length();
+    this->TotalBytesWritten += field.length();
   }
 
   fclose(stream);
@@ -754,7 +812,7 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader(bool removeImageData /*=false
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMetaImageSequenceIO::AppendImagesToHeader(bool onlyTrackerData/* = false*/)
+PlusStatus vtkMetaImageSequenceIO::AppendImagesToHeader(bool removeImageData/* = false*/)
 {
   FILE *stream=NULL;
   // open in binary mode because we determine the start of the image buffer also during this read
@@ -765,10 +823,10 @@ PlusStatus vtkMetaImageSequenceIO::AppendImagesToHeader(bool onlyTrackerData/* =
   }
 
   // Write frame fields (Seq_Frame0000_... = ...)
-  for (unsigned int frameNumber = m_CurrentFrameOffset; frameNumber < this->TrackedFrameList->GetNumberOfTrackedFrames() + m_CurrentFrameOffset; frameNumber++)
+  for (unsigned int frameNumber = CurrentFrameOffset; frameNumber < this->TrackedFrameList->GetNumberOfTrackedFrames() + CurrentFrameOffset; frameNumber++)
   {
     LOG_DEBUG("Writing frame "<<frameNumber);
-    unsigned int adjustedFrameNumber = frameNumber - m_CurrentFrameOffset;
+    unsigned int adjustedFrameNumber = frameNumber - CurrentFrameOffset;
     TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(adjustedFrameNumber);
 
     std::ostringstream frameIndexStr; 
@@ -781,10 +839,10 @@ PlusStatus vtkMetaImageSequenceIO::AppendImagesToHeader(bool onlyTrackerData/* =
     {
       std::string field=SEQMETA_FIELD_FRAME_FIELD_PREFIX + frameIndexStr.str() + "_" + (*it) + " = " + trackedFrame->GetCustomFrameField(it->c_str()) + "\n";
       fputs(field.c_str(), stream);
-      m_TotalBytesWritten += field.length();
+      TotalBytesWritten += field.length();
     }
     //Only write this field if the image is saved. If only the tracking pose is kept do not save this field to the header
-    if(!onlyTrackerData)
+    if(!removeImageData)
     {
       // Add image status field 
       std::string imageStatus("OK"); 
@@ -794,7 +852,7 @@ PlusStatus vtkMetaImageSequenceIO::AppendImagesToHeader(bool onlyTrackerData/* =
       }
       std::string imgStatusField=SEQMETA_FIELD_FRAME_FIELD_PREFIX + frameIndexStr.str() + "_" + SEQMETA_FIELD_IMG_STATUS + " = " + imageStatus + "\n";
       fputs(imgStatusField.c_str(), stream);
-      m_TotalBytesWritten += imgStatusField.length();
+      TotalBytesWritten += imgStatusField.length();
     }
   }
 
@@ -822,7 +880,7 @@ PlusStatus vtkMetaImageSequenceIO::FinalizeHeader()
 
   std::string elem = "ElementDataFile = "+this->PixelDataFileName+"\n";
   fputs(elem.c_str(), stream);
-  m_TotalBytesWritten += elem.size();
+  TotalBytesWritten += elem.size();
   
   fclose(stream);
 
@@ -830,10 +888,11 @@ PlusStatus vtkMetaImageSequenceIO::FinalizeHeader()
 }
 
 //----------------------------------------------------------------------------
-void vtkMetaImageSequenceIO::GetMaximumImageDimensions(int maxFrameSize[2])
+void vtkMetaImageSequenceIO::GetMaximumImageDimensions(int maxFrameSize[3])
 {
   maxFrameSize[0]=0;
   maxFrameSize[1]=0;
+  maxFrameSize[2]=0;
 
   for (unsigned int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
   {
@@ -846,6 +905,11 @@ void vtkMetaImageSequenceIO::GetMaximumImageDimensions(int maxFrameSize[2])
     if ( maxFrameSize[1] < currFrameSize[1] )
     {
       maxFrameSize[1] = currFrameSize[1]; 
+    }
+
+    if( maxFrameSize[2] < currFrameSize[2] )
+    {
+      maxFrameSize[2] = currFrameSize[2];
     }
   }
 }
@@ -874,7 +938,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels(const std::string& aFilename
     LOG_ERROR("Unable to append images when compression is used. You must write uncompressed and then post-compress.");
     return PLUS_FAIL;
   }
-  if ( FileOpen( &stream, aFilename.c_str(), fileOpenMode.c_str() ) != PLUS_SUCCESS )
+  if ( this->FileOpen( &stream, aFilename.c_str(), fileOpenMode.c_str() ) != PLUS_SUCCESS )
   {
     LOG_ERROR("The file " << aFilename << " could not be opened for writing");
     return PLUS_FAIL;
@@ -887,7 +951,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels(const std::string& aFilename
   }
 
   PlusStatus result = PLUS_SUCCESS;
-  if (!GetUseCompression())
+  if ( !GetUseCompression() )
   {
     // Create a blank frame if we have to write an invalid frame to metafile 
     PlusVideoFrame blankFrame; 
@@ -914,7 +978,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels(const std::string& aFilename
       {
         LOG_ERROR("Unable to write entire frame to file.");
       }
-      m_TotalBytesWritten += result;
+      TotalBytesWritten += result;
     }
   }
   else
@@ -924,7 +988,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels(const std::string& aFilename
     result = WriteCompressedImagePixelsToFile(stream, compressedDataSize, removeImageData);
     if( result == PLUS_SUCCESS )
     {
-      m_TotalBytesWritten += compressedDataSize;
+      TotalBytesWritten += compressedDataSize;
     }
     std::ostringstream compressedDataSizeStr; 
     compressedDataSizeStr << compressedDataSize; 
@@ -935,7 +999,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels(const std::string& aFilename
 
   if( result == PLUS_SUCCESS )
   {
-    m_CurrentFrameOffset += TrackedFrameList->GetNumberOfTrackedFrames();
+    CurrentFrameOffset += TrackedFrameList->GetNumberOfTrackedFrames();
   }
   return result;
 }
@@ -1446,8 +1510,8 @@ PlusStatus vtkMetaImageSequenceIO::Close()
   this->TempHeaderFileName.clear();
   this->TempImageFileName.clear();
 
-  m_CurrentFrameOffset = 0;
-  m_TotalBytesWritten = 0;
+  CurrentFrameOffset = 0;
+  TotalBytesWritten = 0;
 
   return PLUS_SUCCESS;
 }
@@ -1534,5 +1598,27 @@ PlusStatus vtkMetaImageSequenceIO::MoveDataInFiles(const std::string& sourceFile
       LOG_WARNING("Unable to remove the file: " << sourceFilename);
     }
   }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkMetaImageSequenceIO::OverwriteNumberOfFramesInHeader(int numberOfFrames, bool addPadding)
+{
+  bool isData3D = this->Dimensions[2] > 1;
+
+  std::stringstream dimSizeStr;
+  this->Dimensions[3]=numberOfFrames;
+  dimSizeStr << this->Dimensions[0] << " " << this->Dimensions[1] << " ";
+  if( isData3D || (!isData3D && this->Output2DDataWithZDimensionIncluded) )
+  {
+    dimSizeStr << this->Dimensions[2] << " ";
+  }
+  dimSizeStr << this->Dimensions[3];
+  if( addPadding )
+  {
+    dimSizeStr << "                              ";  // add spaces so that later the field can be updated with larger values
+  }
+  this->SetCustomString("DimSize", dimSizeStr.str().c_str());
+
   return PLUS_SUCCESS;
 }

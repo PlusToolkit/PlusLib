@@ -238,7 +238,7 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
 
   vtkPlusDataSource* aSource = sources[0];
 
-  int frameSize[2] = {0,0};
+  int frameSize[3] = {0,0,0};
   aSource->GetBuffer()->GetFrameSize(frameSize);
   int frameBufferBytesPerPixel = aSource->GetBuffer()->GetNumberOfBytesPerPixel(); 
   const int frameSizeInBytes = frameSize[0] * frameSize[1] * frameBufferBytesPerPixel; 
@@ -1108,7 +1108,7 @@ PlusStatus vtkSonixVideoSource::ConfigureVideoSource( uData aValue )
     LOG_ERROR("Unsupported Ulterius bit depth: " << aDataDescriptor.ss);
     return PLUS_FAIL;
   }
-  this->SetFrameSize( *aSource, aDataDescriptor.w, aDataDescriptor.h);
+  this->SetFrameSize( *aSource, aDataDescriptor.w, aDataDescriptor.h, 1 );
 
   return PLUS_SUCCESS;
 }

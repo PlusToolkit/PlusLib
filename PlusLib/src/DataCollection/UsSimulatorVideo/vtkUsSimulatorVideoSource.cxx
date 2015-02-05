@@ -171,7 +171,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalConnect()
   // Set to default MF internal image orientation
   aSource->SetPortImageOrientation(US_IMG_ORIENT_MF);
   aSource->GetBuffer()->Clear();
-  int frameSize[2]={0,0};
+  int frameSize[3]={0,0,0};
   if (this->UsSimulator->GetFrameSize(frameSize)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to initialize buffer, frame size is unknown");

@@ -235,7 +235,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
     }
   }
   vtkSmartPointer< vtkTransform > vtkToIgtTransform = vtkSmartPointer< vtkTransform >::New();
-  vtkToIgtTransform->Translate( imageSizePixels[ 0 ] / 2.0, imageSizePixels[ 1 ] / 2.0, 0.0 );
+  vtkToIgtTransform->Translate( imageSizePixels[ 0 ] / 2.0, imageSizePixels[ 1 ] / 2.0, imageSizePixels[ 2 ] / 2.0 );
   vtkSmartPointer< vtkMatrix4x4 > convertedMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
   vtkMatrix4x4::Multiply4x4( vtkMatrix, vtkToIgtTransform->GetMatrix(), convertedMatrix );
   for ( int row = 0; row < 4; ++ row )

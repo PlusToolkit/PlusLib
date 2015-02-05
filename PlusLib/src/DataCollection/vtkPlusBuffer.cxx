@@ -181,7 +181,7 @@ vtkPlusBuffer::vtkPlusBuffer()
 , MaxAllowedTimeDifference(0.5)
 , DescriptiveName(NULL)
 {
-  this->FrameSize[0] = this->FrameSize[1] = 0;
+  this->FrameSize[0] = this->FrameSize[1] = this->FrameSize[2] = 0;
 
   // 150 is a reasonable default value, it means that we keep the last 5 secods of acquired data @30fps
   // (and last 2.5 seconds @60fps). It should be enough to have all the needed data available and
@@ -203,7 +203,7 @@ vtkPlusBuffer::~vtkPlusBuffer()
 void vtkPlusBuffer::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
-  os << indent << "Frame size in pixel: " << this->GetFrameSize()[0] << "   " << this->GetFrameSize()[1] << std::endl; 
+  os << indent << "Frame size in pixel: " << this->GetFrameSize()[0] << "   " << this->GetFrameSize()[1] << "   " << this->GetFrameSize()[2] << std::endl; 
   os << indent << "Scalar pixel type: " << vtkImageScalarTypeNameMacro(this->GetPixelType()) << std::endl; 
   os << indent << "Image type: " << PlusVideoFrame::GetStringFromUsImageType(this->GetImageType()) << std::endl; 
   os << indent << "Image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(this->GetImageOrientation()) << std::endl; 
@@ -269,7 +269,7 @@ PlusStatus vtkPlusBuffer::SetBufferSize(int bufsize)
   {
     result = PLUS_FAIL;
   }
-  if (AllocateMemoryForFrames() != PLUS_SUCCESS)
+  if (this->AllocateMemoryForFrames() != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
@@ -278,14 +278,15 @@ PlusStatus vtkPlusBuffer::SetBufferSize(int bufsize)
 }
 
 //----------------------------------------------------------------------------
-bool vtkPlusBuffer::CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::VTKScalarPixelType pixelType, US_IMAGE_TYPE imgType, int numberOfScalarComponents)
+bool vtkPlusBuffer::CheckFrameFormat( const int frameSizeInPx[3], PlusCommon::VTKScalarPixelType pixelType, US_IMAGE_TYPE imgType, int numberOfScalarComponents)
 {
   // don't add a frame if it doesn't match the buffer frame format
   if (frameSizeInPx[0] != this->GetFrameSize()[0]||
-    frameSizeInPx[1] != this->GetFrameSize()[1] )
+    frameSizeInPx[1] != this->GetFrameSize()[1] ||
+    frameSizeInPx[2] != this->GetFrameSize()[2] )
   {
     LOCAL_LOG_WARNING("Frame format and buffer frame format does not match (expected frame size: " << this->GetFrameSize()[0] 
-    << "x" << this->GetFrameSize()[1] << "  received: " << frameSizeInPx[0] << "x" << frameSizeInPx[1] << ")!"); 
+    << "x" << this->GetFrameSize()[1] << "x" << this->GetFrameSize()[2] << "  received: " << frameSizeInPx[0] << "x" << frameSizeInPx[1] << "x" << frameSizeInPx[2] <<")!"); 
     return false;
   }
 
@@ -313,7 +314,7 @@ bool vtkPlusBuffer::CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::VT
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, 
-                                        const int frameSizeInPx[2], PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, int  numberOfBytesToSkip, long frameNumber,  
+                                        const int frameSizeInPx[3], PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, int  numberOfBytesToSkip, long frameNumber,  
                                         double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
                                         const TrackedFrame::FieldMapType* customFields /*=NULL*/)
 {
@@ -371,14 +372,15 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usIm
     return PLUS_FAIL; 
   }
 
-  int receivedFrameSize[2]={0,0};
+  int receivedFrameSize[3]={0,0,0};
   newObjectInBuffer->GetFrame().GetFrameSize(receivedFrameSize); 
 
   if ( frameSizeInPx[0] != receivedFrameSize[0] 
-  || frameSizeInPx[1] != receivedFrameSize[1] )
+  || frameSizeInPx[1] != receivedFrameSize[1] 
+  || frameSizeInPx[2] != receivedFrameSize[2])
   {
-    LOCAL_LOG_ERROR("Input frame size is different from buffer frame size (input: " << frameSizeInPx[0] << "x" << frameSizeInPx[1]
-    << ",   buffer: " << receivedFrameSize[0] << "x" << receivedFrameSize[1] << ")!"); 
+    LOCAL_LOG_ERROR("Input frame size is different from buffer frame size (input: " << frameSizeInPx[0] << "x" << frameSizeInPx[1] << "x" << frameSizeInPx[2]
+    << ",   buffer: " << receivedFrameSize[0] << "x" << receivedFrameSize[1] << "x" << receivedFrameSize[2] << ")!"); 
     return PLUS_FAIL; 
   }
 
@@ -457,7 +459,7 @@ PlusStatus vtkPlusBuffer::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usIm
   }
 
   const int* frameExtent = mfOrientedImage->GetExtent(); 
-  const int frameSize[2] = {(frameExtent[1] - frameExtent[0] + 1), (frameExtent[3] - frameExtent[2] + 1)}; 
+  const int frameSize[3] = {(frameExtent[1] - frameExtent[0] + 1), (frameExtent[3] - frameExtent[2] + 1), (frameExtent[5] - frameExtent[4] + 1)}; 
   return this->AddItem( reinterpret_cast<unsigned char*>(mfOrientedImage->GetScalarPointer()), this->ImageOrientation, frameSize, frame->GetScalarType(), this->NumberOfScalarComponents, this->ImageType, 0, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields); 
 }
 
@@ -496,7 +498,7 @@ PlusStatus vtkPlusBuffer::AddItem(const PlusVideoFrame* frame, long frameNumber,
   }
 
   unsigned char* pixelBufferPointer = static_cast<unsigned char*>(frame->GetScalarPointer()); 
-  int frameSize[2]={0,0};
+  int frameSize[3]={0,0,0};
   frame->GetFrameSize(frameSize);    
 
   return this->AddItem(pixelBufferPointer, frame->GetImageOrientation(), frameSize, frame->GetVTKScalarPixelType(), this->GetNumberOfScalarComponents(), frame->GetImageType(), 0 /* no skip*/, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields);  
@@ -673,7 +675,7 @@ void vtkPlusBuffer::DeepCopy(vtkPlusBuffer* buffer)
   LOG_TRACE("vtkPlusBuffer::DeepCopy");
 
   this->StreamBuffer->DeepCopy( buffer->StreamBuffer ); 
-  if( buffer->GetFrameSize()[0] != -1 && buffer->GetFrameSize()[1] != -1 )
+  if( buffer->GetFrameSize()[0] != -1 && buffer->GetFrameSize()[1] != -1 && buffer->GetFrameSize()[2] != -1)
   {
     this->SetFrameSize(buffer->GetFrameSize()); 
   }
@@ -691,27 +693,33 @@ void vtkPlusBuffer::Clear()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusBuffer::SetFrameSize(int x, int y)
+PlusStatus vtkPlusBuffer::SetFrameSize(int x, int y, int z)
 {
-  if (x<0 || y<0)
+  if (x<0 || y<0 || z<0)
   {
-    LOCAL_LOG_ERROR("Invalid frame size requested: " << x << ", " << y);
+    LOCAL_LOG_ERROR("Invalid frame size requested: " << x << ", " << y << ", " << z);
     return PLUS_FAIL;
   }
-  if (this->FrameSize[0]==x && this->FrameSize[1]==y)
+  if( x != 0 && y != 0 && z==0 )
+  {
+    LOCAL_LOG_WARNING("Single slice images should have a dimension of z=1");
+    z=1;
+  }
+  if (this->FrameSize[0]==x && this->FrameSize[1]==y && this->FrameSize[2]==z)
   {
     // no change
     return PLUS_SUCCESS;
   }
   this->FrameSize[0]=x;
   this->FrameSize[1]=y;
+  this->FrameSize[2]=z;
   return AllocateMemoryForFrames();
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusBuffer::SetFrameSize(int frameSize[2])
+PlusStatus vtkPlusBuffer::SetFrameSize(int frameSize[3])
 {
-  return SetFrameSize(frameSize[0], frameSize[1]);
+  return SetFrameSize(frameSize[0], frameSize[1], frameSize[2]);
 }
 
 //----------------------------------------------------------------------------
@@ -782,7 +790,7 @@ PlusStatus vtkPlusBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *so
   const int numberOfVideoFrames = sourceTrackedFrameList->GetNumberOfTrackedFrames(); 
   LOCAL_LOG_DEBUG("CopyImagesFromTrackedFrameList will copy "<< numberOfVideoFrames<< " frames"); 
 
-  int frameSize[2]={0,0};
+  int frameSize[3]={0,0,0};
   sourceTrackedFrameList->GetTrackedFrame(0)->GetImageData()->GetFrameSize(frameSize);
   this->SetFrameSize(frameSize); 
   this->SetPixelType(sourceTrackedFrameList->GetTrackedFrame(0)->GetImageData()->GetVTKScalarPixelType());
@@ -1469,16 +1477,17 @@ PlusStatus vtkPlusBuffer::CopyTransformFromTrackedFrameList(vtkTrackedFrameList 
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusBuffer::GetFrameSize( int _arg[2] )
+PlusStatus vtkPlusBuffer::GetFrameSize( int _arg[3] )
 {
-  return this->GetFrameSize(_arg[0], _arg[1]);
+  return this->GetFrameSize(_arg[0], _arg[1], _arg[2]);
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusBuffer::GetFrameSize(int &_arg1, int &_arg2)
+PlusStatus vtkPlusBuffer::GetFrameSize(int &_arg1, int &_arg2, int &_arg3)
 {
   _arg1 = this->FrameSize[0];
   _arg2 = this->FrameSize[1];
+  _arg3 = this->FrameSize[2];
 
   return PLUS_SUCCESS;
 }

@@ -430,13 +430,13 @@ PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequ
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTrackedFrameList::SaveToSequenceMetafile(const char* filename, bool useCompression /*=true*/, bool trackerOnly /*=false*/)
+PlusStatus vtkTrackedFrameList::SaveToSequenceMetafile(const char* filename, bool useCompression /*=true*/, bool removeImageData /*=false*/)
 {
   vtkSmartPointer<vtkMetaImageSequenceIO> writer=vtkSmartPointer<vtkMetaImageSequenceIO>::New();
   writer->SetUseCompression(useCompression);
   writer->SetFileName(filename);
   writer->SetTrackedFrameList(this);
-  if (writer->Write(trackerOnly)!=PLUS_SUCCESS)
+  if (writer->Write(removeImageData)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Couldn't write sequence metafile: " <<  filename); 
     return PLUS_FAIL;

@@ -216,3 +216,9 @@ bool vtkVirtualMixer::IsResettable()
 
   return false;
 }
+
+//----------------------------------------------------------------------------
+vtkPlusChannel* vtkVirtualMixer::GetChannel() const
+{
+  return this->OutputChannels[0];
+}

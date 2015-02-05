@@ -79,7 +79,6 @@ See License.txt for details.
 #endif
 #endif
 
-
 #ifdef PLUS_USE_ICCAPTURING_VIDEO
 #include "vtkICCapturingSource.h"
 #endif
@@ -107,6 +106,10 @@ See License.txt for details.
 
 #ifdef PLUS_USE_IntuitiveDaVinci
 #include "..\IntuitiveDaVinci\vtkIntuitiveDaVinciTracker.h"
+#endif
+
+#ifdef PLUS_USE_PHILIPS_3D_ULTRASOUND
+#include "vtkPhilips3DProbeVideoSource.h"
 #endif
 
 //----------------------------------------------------------------------------
@@ -194,6 +197,10 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
 
 #ifdef PLUS_USE_IntuitiveDaVinci
   DeviceTypes["IntuitiveDaVinci"]=(PointerToDevice)&vtkIntuitiveDaVinciTracker::New;
+#endif
+
+#ifdef PLUS_USE_PHILIPS_3D_ULTRASOUND
+  DeviceTypes["ie33Video"]=(PointerToDevice)&vtkPhilips3DProbeVideoSource::New;
 #endif
 
   // Virtual Devices

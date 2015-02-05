@@ -315,23 +315,23 @@ public:
   the device may either refuse a request for an illegal frame size or
   automatically choose a new frame size.
   */
-  virtual PlusStatus SetFrameSize(vtkPlusDataSource& aSource, int x, int y);
+  virtual PlusStatus SetFrameSize(vtkPlusDataSource& aSource, int x, int y,  int z);
 
   /*!
   Set the full-frame size.  This must be an allowed size for the device,
   the device may either refuse a request for an illegal frame size or
   automatically choose a new frame size.
   */
-  virtual PlusStatus SetFrameSize(vtkPlusDataSource& aSource, int dim[2]) { return this->SetFrameSize(aSource, dim[0], dim[1]); };
+  virtual PlusStatus SetFrameSize(vtkPlusDataSource& aSource, int dim[3]) { return this->SetFrameSize(aSource, dim[0], dim[1], dim[3]); };
 
   /*! Get the full-frame size */
   //virtual int* GetFrameSize();
 
   /*! Get the full-frame size */
-  virtual PlusStatus GetFrameSize(vtkPlusChannel& aChannel, int &x, int &y);
+  virtual PlusStatus GetFrameSize(vtkPlusChannel& aChannel, int &x, int &y, int &z);
 
   /*! Get the full-frame size */
-  virtual PlusStatus GetFrameSize(vtkPlusChannel& aChannel, int dim[2]);
+  virtual PlusStatus GetFrameSize(vtkPlusChannel& aChannel, int dim[3]);
 
   /*! Set the pixel type (char, unsigned short, ...) */
   virtual PlusStatus SetPixelType(vtkPlusChannel& aChannel, PlusCommon::VTKScalarPixelType pixelType);

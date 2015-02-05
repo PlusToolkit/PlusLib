@@ -93,14 +93,14 @@ public:
   bool HasValidTransformData() const { return ValidTransformData; }
   bool HasValidVideoData() const 
   { 
-    int frameSize[2] = {0,0};
+    int frameSize[3] = {0,0,0};
     if( Frame.GetFrameSize(frameSize) != PLUS_SUCCESS)
     { 
       return false;
     }
     else
     {
-      return frameSize[0] > 0 && frameSize[1] > 0;
+      return frameSize[0] > 0 && frameSize[1] > 0 && frameSize[2] > 0;
     }
   }
 
