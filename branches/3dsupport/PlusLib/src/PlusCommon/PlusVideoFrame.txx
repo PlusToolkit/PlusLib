@@ -40,11 +40,11 @@ template<typename ScalarType> PlusStatus PlusVideoFrame::DeepCopyVtkVolumeToItkV
 
   double width = extent[1] - extent[0] + 1; 
   double height = extent[3] - extent[2] + 1;
-  double depth = extent[5] - extent[4] + 1;
+  double thickness = extent[5] - extent[4] + 1;
   typename itk::Image< ScalarType, 3 >::SizeType size;
   size[0] = width;
   size[1] = height;
-  size[2] = depth;
+  size[2] = thickness;
   typename itk::Image< ScalarType, 3 >::IndexType start;
   start[0]=0;
   start[1]=0;
@@ -91,13 +91,18 @@ template<typename ScalarType> PlusStatus PlusVideoFrame::DeepCopyVtkVolumeToItkI
     return PLUS_FAIL;
   }
 
+  int extent[6]={0,0,0,0,0,0}; 
+  inFrame->GetExtent(extent);
+  
+  if( extent[5]-extent[4] > 1 )
+  {
+	LOG_WARNING("3D volume sent in to PlusVideoFrame::DeepCopyVtkVolumeToItkImage. Only first slice will be copied.");
+  }
+
   // convert vtkImageData to itkImage 
   vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New(); 
   imageExport->SetInputData_vtk5compatible(inFrame); 
   imageExport->Update(); 
-
-  int extent[6]={0,0,0,0,0,0}; 
-  inFrame->GetExtent(extent); 
 
   double width = extent[1] - extent[0] + 1; 
   double height = extent[3] - extent[2] + 1;

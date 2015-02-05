@@ -1418,7 +1418,7 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
     LOCAL_LOG_DEBUG("Cannot request data from video source, the video buffer is empty or does not exist!");
     vtkImageData *data = vtkImageData::SafeDownCast(this->GetOutputDataObject(0));
     int frameSize[3] = { plusBuffer->GetFrameSize()[0], plusBuffer->GetFrameSize()[1], plusBuffer->GetFrameSize()[2] };
-    data->SetExtent(0,frameSize[0]-1,0,frameSize[1]-1,frameSize[2]-1,0);
+    data->SetExtent(0, frameSize[0]-1, 0, frameSize[1]-1, 0, frameSize[2]-1);
 
 #if (VTK_MAJOR_VERSION < 6)
     data->SetScalarType(plusBuffer->GetPixelType());
@@ -1462,7 +1462,8 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
   vtkImageData *data = vtkImageData::SafeDownCast(this->GetOutputDataObject(0));
   int frameSize[3]={0,0,0};
   this->CurrentStreamBufferItem->GetFrame().GetFrameSize(frameSize);
-  data->SetExtent(0,frameSize[0]-1,0,frameSize[1]-1,frameSize[2]-1,0);
+  data->SetExtent(0, frameSize[0]-1, 0, frameSize[1]-1, 0, frameSize[2]-1);
+
 #if (VTK_MAJOR_VERSION < 6)
     data->SetScalarType(plusBuffer->GetPixelType());
     data->SetNumberOfScalarComponents(plusBuffer->GetNumberOfScalarComponents()); 
@@ -1488,6 +1489,12 @@ PlusStatus vtkPlusDevice::SetFrameSize(vtkPlusDataSource& aSource, int x, int y,
     z == frameSize[2])
   {
     return PLUS_SUCCESS;
+  }
+
+  if( x != 0 && y != 0 && z==0 )
+  {
+    LOCAL_LOG_WARNING("Single slice images should have a dimension of z=1");
+    z=1;
   }
 
   if (x < 1 || y < 1 || z < 1)

@@ -95,10 +95,10 @@ vtkMetaImageSequenceIO::~vtkMetaImageSequenceIO()
 //----------------------------------------------------------------------------
 PlusStatus vtkMetaImageSequenceIO::DeleteCustomFrameString(int frameNumber, const char* fieldName)
 {
-  TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(frameNumber);
+  TrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame(frameNumber);
   if (trackedFrame==NULL)
   {
-    LOG_ERROR("Cannot access frame "<<frameNumber);
+    LOG_ERROR("Cannot access frame " << frameNumber);
     return PLUS_FAIL;
   }
   
@@ -113,7 +113,7 @@ PlusStatus vtkMetaImageSequenceIO::SetCustomFrameString(int frameNumber, const c
     LOG_ERROR("Invalid field name or value");
     return PLUS_FAIL;
   }
-  CreateTrackedFrameIfNonExisting(frameNumber);
+  this->CreateTrackedFrameIfNonExisting(frameNumber);
   TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(frameNumber);
   if (trackedFrame==NULL)
   {
@@ -161,7 +161,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
   // open in binary mode because we determine the start of the image buffer also during this read
   if ( FileOpen(&stream, this->FileName.c_str(), "rb" ) != PLUS_SUCCESS )
   {
-    LOG_ERROR("The file "<<this->FileName<<" could not be opened for reading");
+    LOG_ERROR("The file " << this->FileName << " could not be opened for reading");
     return PLUS_FAIL;
   }
 
@@ -173,14 +173,14 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
 
     // Split line into name and value
     size_t equalSignFound;
-    equalSignFound=lineStr.find_first_of("=");
+    equalSignFound = lineStr.find_first_of("=");
     if (equalSignFound==std::string::npos)
     {
-      LOG_WARNING("Parsing line failed, equal sign is missing ("<<lineStr<<")");
+      LOG_WARNING("Parsing line failed, equal sign is missing (" << lineStr << ")");
       continue;
     }
-    std::string name=lineStr.substr(0,equalSignFound);
-    std::string value=lineStr.substr(equalSignFound+1);
+    std::string name = lineStr.substr(0,equalSignFound);
+    std::string value = lineStr.substr(equalSignFound+1);
 
     // trim spaces from the left and right
     PlusCommon::Trim(name);
@@ -192,10 +192,10 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
       SetCustomString(name.c_str(), value.c_str());
 
       // Arrived to ElementDataFile, this is the last element
-      if (name.compare(SEQMETA_FIELD_ELEMENT_DATA_FILE)==0)
+      if (name.compare(SEQMETA_FIELD_ELEMENT_DATA_FILE) == 0)
       {
         this->PixelDataFileName=value;
-        if (value.compare(SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL)==0)
+        if (value.compare(SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL) == 0)
         {
           // pixel data stored locally
           this->PixelDataFileOffset=FTELL(stream);
@@ -217,26 +217,26 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
 
       // Split line into name and value
       size_t underscoreFound;
-      underscoreFound=name.find_first_of("_");
-      if (underscoreFound==std::string::npos)
+      underscoreFound = name.find_first_of("_");
+      if (underscoreFound == std::string::npos)
       {
         LOG_WARNING("Parsing line failed, underscore is missing from frame field name ("<<lineStr<<")");
         continue;
       }
-      std::string frameNumberStr=name.substr(0,underscoreFound); // 0000
-      std::string frameFieldName=name.substr(underscoreFound+1); // CustomTransform
+      std::string frameNumberStr = name.substr(0, underscoreFound); // 0000
+      std::string frameFieldName = name.substr(underscoreFound+1); // CustomTransform
 
       int frameNumber=0;
-      if (PlusCommon::StringToInt(frameNumberStr.c_str(),frameNumber)!=PLUS_SUCCESS)
+      if (PlusCommon::StringToInt(frameNumberStr.c_str(), frameNumber)!=PLUS_SUCCESS)
       {
-        LOG_WARNING("Parsing line failed, cannot get frame number from frame field ("<<lineStr<<")");
+        LOG_WARNING("Parsing line failed, cannot get frame number from frame field (" << lineStr << ")");
         continue;
       }
       SetCustomFrameString(frameNumber, frameFieldName.c_str(), value.c_str());
 
       if (ferror(stream))
       {
-        LOG_ERROR("Error reading the file "<<this->FileName);
+        LOG_ERROR("Error reading the file " << this->FileName);
         break;
       }
       if (feof(stream))
@@ -308,6 +308,23 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
 
   this->ImageOrientationInFile = PlusVideoFrame::GetUsImageOrientationFromString(GetCustomString(SEQMETA_FIELD_US_IMG_ORIENT)); 
 
+  // TODO : determine if x y z is 2d+t or single 3d slice based on image orientation
+  if( nDims == 3 && 
+      ( 
+        (this->ImageOrientationInFile==US_IMG_ORIENT_MFA) || 
+        (this->ImageOrientationInFile==US_IMG_ORIENT_MFD) || 
+        (this->ImageOrientationInFile==US_IMG_ORIENT_UFA) || 
+        (this->ImageOrientationInFile==US_IMG_ORIENT_UFD) || 
+        (this->ImageOrientationInFile==US_IMG_ORIENT_MNA) || 
+        (this->ImageOrientationInFile==US_IMG_ORIENT_MND) || 
+        (this->ImageOrientationInFile==US_IMG_ORIENT_UNA) || 
+        (this->ImageOrientationInFile==US_IMG_ORIENT_UND)
+        )
+    )
+  {
+    this->Dimensions[3] = 1;
+  }
+
   const char* imgTypeStr=GetCustomString(SEQMETA_FIELD_US_IMG_TYPE);
   if (imgTypeStr==NULL)
   {
@@ -319,7 +336,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
     this->ImageType = PlusVideoFrame::GetUsImageTypeFromString(imgTypeStr);
   }
 
-  std::istringstream issDimSize(this->TrackedFrameList->GetCustomString("DimSize")); // DimSize = 640 480 567
+  std::istringstream issDimSize(this->TrackedFrameList->GetCustomString("DimSize")); // DimSize = 640 480 567, DimSize = 640 480 40 567
   int dimSize(0);
   for(int i=0; i < this->NumberOfDimensions - 1; i++) // do not iterate over last dimension, it is time!
   {
@@ -333,8 +350,40 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
     // so set the 0 to 1
     this->Dimensions[2] = 1;
   }
-  issDimSize >> dimSize;  // this will be the last dimension, which is time, which goes in this->Dimensions[3] regardless of data dimensionality
-  this->Dimensions[3] = dimSize;
+
+  // The last dimension depends on the image orientation from the file...
+  // If the orientation specifies that the data is 3D (3-letter acronym)
+  // then pretend as if there is a hidden 1 in 3-dim files
+  // So 
+  // NDims=3
+  // DimSize=630 480 567
+  // is treated as
+  // NDims=4
+  // DimSize=630 480 567 1
+  // ...
+  // NDims=4
+  // DimSize=630 480 567 35 is unaffected
+  issDimSize >> dimSize;
+  if( nDims == 3 && 
+      ( 
+        (this->ImageOrientationInFile==US_IMG_ORIENT_MFA) || 
+        (this->ImageOrientationInFile==US_IMG_ORIENT_MFD) || 
+        (this->ImageOrientationInFile==US_IMG_ORIENT_UFA) || 
+        (this->ImageOrientationInFile==US_IMG_ORIENT_UFD) || 
+        (this->ImageOrientationInFile==US_IMG_ORIENT_MNA) || 
+        (this->ImageOrientationInFile==US_IMG_ORIENT_MND) || 
+        (this->ImageOrientationInFile==US_IMG_ORIENT_UNA) || 
+        (this->ImageOrientationInFile==US_IMG_ORIENT_UND)
+      )
+    )
+  {
+    this->Dimensions[2] = dimSize;
+    this->Dimensions[3] = 1;
+  }
+  else
+  {
+    this->Dimensions[3] = dimSize;
+  }
 
   // If no specific image orientation is requested then determine it automatically from the image type
   // B-mode: MF
@@ -345,12 +394,12 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
     {
     case US_IMG_BRIGHTNESS:
     case US_IMG_RGB_COLOR:
-      SetImageOrientationInMemory(US_IMG_ORIENT_MF);
+      this->SetImageOrientationInMemory(US_IMG_ORIENT_MF);
       break;
     case US_IMG_RF_I_LINE_Q_LINE:
     case US_IMG_RF_IQ_LINE:
     case US_IMG_RF_REAL:
-      SetImageOrientationInMemory(US_IMG_ORIENT_FM);
+      this->SetImageOrientationInMemory(US_IMG_ORIENT_FM);
       break;
     default:
       if (this->Dimensions[0]==0 && this->Dimensions[1]==0 && this->Dimensions[2]==0)
@@ -359,9 +408,10 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
       }
       else
       {
-        LOG_WARNING("Cannot determine image orientation automatically, unknown image type "<<(imgTypeStr?imgTypeStr:"(undefined)")<<", use the same orientation in memory as in the file");
+        LOG_WARNING("Cannot determine image orientation automatically, unknown image type " << 
+          (imgTypeStr ? imgTypeStr : "(undefined)") << ", use the same orientation in memory as in the file");
       }
-      SetImageOrientationInMemory(this->ImageOrientationInFile);
+      this->SetImageOrientationInMemory(this->ImageOrientationInFile);
     }
   }
 

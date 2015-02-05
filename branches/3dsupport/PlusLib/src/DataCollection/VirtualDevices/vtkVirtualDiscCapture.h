@@ -135,7 +135,7 @@ protected:
     those that were acquired in a different recording segment) will not be taken into account in the actual
     frame rate computation.
   */
-  int m_FirstFrameIndexInThisSegment;
+  int FirstFrameIndexInThisSegment;
 
   /* Time waited in update */
   double TimeWaited;

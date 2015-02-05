@@ -700,6 +700,11 @@ PlusStatus vtkPlusBuffer::SetFrameSize(int x, int y, int z)
     LOCAL_LOG_ERROR("Invalid frame size requested: " << x << ", " << y << ", " << z);
     return PLUS_FAIL;
   }
+  if( x != 0 && y != 0 && z==0 )
+  {
+    LOCAL_LOG_WARNING("Single slice images should have a dimension of z=1");
+    z=1;
+  }
   if (this->FrameSize[0]==x && this->FrameSize[1]==y && this->FrameSize[2]==z)
   {
     // no change

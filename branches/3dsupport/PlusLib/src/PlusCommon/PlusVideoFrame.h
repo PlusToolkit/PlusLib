@@ -21,16 +21,25 @@ class vtkImageData;
 The ultrasound image axes are defined as follows:
 \li x axis: points towards the x coordinate increase direction
 \li y axis: points towards the y coordinate increase direction
-The image orientation can be defined by specifying which transducer axis corresponds to the x and y image axes, respectively.
+\li z axis: points towards the z coordinate increase direction
+The image orientation can be defined by specifying which transducer axis corresponds to the x, y and z image axes, respectively.
 \ingroup PlusLibCommon
 */
 enum US_IMAGE_ORIENTATION
 {
   US_IMG_ORIENT_XX,  /*!< undefined */
   US_IMG_ORIENT_UF, /*!< image x axis = unmarked transducer axis, image y axis = far transducer axis */
+  US_IMG_ORIENT_UFD = US_IMG_ORIENT_UF, /*!< image x axis = unmarked transducer axis, image y axis = far transducer axis, image z axis = descending transducer axis */
+  US_IMG_ORIENT_UFA, /*!< image x axis = unmarked transducer axis, image y axis = far transducer axis, image z axis = ascending transducer axis */
   US_IMG_ORIENT_UN, /*!< image x axis = unmarked transducer axis, image y axis = near transducer axis */
+  US_IMG_ORIENT_UNA = US_IMG_ORIENT_UN, /*!< image x axis = unmarked transducer axis, image y axis = near transducer axis, image z axis = ascending transducer axis */
+  US_IMG_ORIENT_UND, /*!< image x axis = unmarked transducer axis, image y axis = near transducer axis, image z axis = descending transducer axis */
   US_IMG_ORIENT_MF, /*!< image x axis = marked transducer axis, image y axis = far transducer axis */
+  US_IMG_ORIENT_MFA = US_IMG_ORIENT_MF, /*!< image x axis = marked transducer axis, image y axis = far transducer axis, image z axis = ascending transducer axis */
+  US_IMG_ORIENT_MFD, /*!< image x axis = marked transducer axis, image y axis = far transducer axis, image z axis = descending transducer axis */
   US_IMG_ORIENT_MN, /*!< image x axis = marked transducer axis, image y axis = near transducer axis */
+  US_IMG_ORIENT_MND = US_IMG_ORIENT_MN, /*!< image x axis = marked transducer axis, image y axis = near transducer axis, image z axis = descending transducer axis */
+  US_IMG_ORIENT_MNA, /*!< image x axis = marked transducer axis, image y axis = near transducer axis, image z axis = ascending transducer axis */
   US_IMG_ORIENT_FU, /*!< image x axis = far transducer axis, image y axis = unmarked transducer axis (usually for RF frames)*/
   US_IMG_ORIENT_NU, /*!< image x axis = near transducer axis, image y axis = unmarked transducer axis (usually for RF frames)*/
   US_IMG_ORIENT_FM, /*!< image x axis = far transducer axis, image y axis = marked transducer axis (usually for RF frames)*/
@@ -68,10 +77,10 @@ class vtkPlusCommonExport PlusVideoFrame
 public:
   struct FlipInfoType
   {
-    FlipInfoType() : hFlip(false), vFlip(false), zFlip(false), doubleColumn(false), doubleRow(false) {};
+    FlipInfoType() : hFlip(false), vFlip(false), pFlip(false), doubleColumn(false), doubleRow(false) {};
     bool hFlip; // flip the image horizontally (pixel columns are reordered)
     bool vFlip; // flip the image vertically (pixel rows are reordered)
-    bool zFlip; // flip the image in depth
+    bool pFlip; // flip the image proximally (pixel slices are reordered)
     bool doubleColumn; // keep pairs of pixel columns together (for RF_IQ_LINE encoded images)
     bool doubleRow; // keep pairs of pixel rows together (for RF_I_LINE_Q_LINE encoded images)
   };

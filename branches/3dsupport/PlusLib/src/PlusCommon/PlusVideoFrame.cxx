@@ -46,7 +46,7 @@ namespace
       }
     }
 
-    if (!flipInfo.hFlip && flipInfo.vFlip)
+    if (!flipInfo.hFlip && flipInfo.vFlip && !flipInfo.pFlip)
     {
       // flip Y    
       ScalarType* inputPixel = (ScalarType*)inBuff;
@@ -60,7 +60,7 @@ namespace
         outputPixel -= (width * numberOfScalarComponents);
       }
     }
-    else if (flipInfo.hFlip && !flipInfo.vFlip)
+    else if (flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.pFlip)
     {
       // flip X    
       if (flipInfo.doubleColumn)
@@ -107,7 +107,7 @@ namespace
         }
       }
     }
-    else if (flipInfo.hFlip && flipInfo.vFlip)
+    else if (flipInfo.hFlip && flipInfo.vFlip && !flipInfo.pFlip)
     {
       // flip X and Y
       if (flipInfo.doubleColumn)
@@ -145,6 +145,11 @@ namespace
           outputPixel -= numberOfScalarComponents;
         }
       }
+    }
+    else
+    {
+      // TODO : implement slice reordering
+      LOG_ERROR("Reorienting images along Z direction not implemented.");
     }
 
     return PLUS_SUCCESS;
@@ -241,9 +246,9 @@ PlusStatus PlusVideoFrame::AllocateFrame(vtkImageData* image, const int imageSiz
   {
     int imageExtents[6] = {0,0,0,0,0,0};
     image->GetExtent(imageExtents);
-    if (imageSize[0] == imageExtents[1]-1 &&
-      imageSize[1] == imageExtents[3]-1 &&
-      imageSize[2] == imageExtents[5]-1 &&
+    if (imageSize[0] == imageExtents[1]-imageExtents[0] &&
+      imageSize[1] == imageExtents[3]-imageExtents[2] &&
+      imageSize[2] == imageExtents[5]-imageExtents[4] &&
       image->GetScalarType() == pixType &&
       image->GetNumberOfScalarComponents() == numberOfScalarComponents)
     {
@@ -434,6 +439,38 @@ US_IMAGE_ORIENTATION PlusVideoFrame::GetUsImageOrientationFromString( const char
   {
     imgOrientation = US_IMG_ORIENT_MN; 
   }
+  else if ( STRCASECMP(imgOrientationStr, "UFA" ) == 0 )
+  {
+    imgOrientation = US_IMG_ORIENT_UFA; 
+  }
+  else if ( STRCASECMP(imgOrientationStr, "UNA" ) == 0 )
+  {
+    imgOrientation = US_IMG_ORIENT_UNA; 
+  }
+  else if ( STRCASECMP(imgOrientationStr, "MFA" ) == 0 )
+  {
+    imgOrientation = US_IMG_ORIENT_MFA; 
+  }
+  else if ( STRCASECMP(imgOrientationStr, "MNA" ) == 0 )
+  {
+    imgOrientation = US_IMG_ORIENT_MNA; 
+  }
+  else if ( STRCASECMP(imgOrientationStr, "UFD" ) == 0 )
+  {
+    imgOrientation = US_IMG_ORIENT_UFD; 
+  }
+  else if ( STRCASECMP(imgOrientationStr, "UND" ) == 0 )
+  {
+    imgOrientation = US_IMG_ORIENT_UND; 
+  }
+  else if ( STRCASECMP(imgOrientationStr, "MFD" ) == 0 )
+  {
+    imgOrientation = US_IMG_ORIENT_MFD; 
+  }
+  else if ( STRCASECMP(imgOrientationStr, "MND" ) == 0 )
+  {
+    imgOrientation = US_IMG_ORIENT_MND; 
+  }
   else if ( STRCASECMP(imgOrientationStr, "FU" ) == 0 )
   {
     imgOrientation = US_IMG_ORIENT_FU; 
@@ -556,9 +593,9 @@ PlusStatus PlusVideoFrame::GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1,
     }
   }
 
-  flipInfo.hFlip=false;
-  flipInfo.vFlip=false;
-  flipInfo.zFlip=false;
+  flipInfo.hFlip=false; // horizontal
+  flipInfo.vFlip=false; // vertical
+  flipInfo.pFlip=false; // proximal
   if ( usImageOrientation1 == US_IMG_ORIENT_XX ) 
   {
     LOG_ERROR("Failed to determine the necessary image flip - unknown input image orientation 1"); 
@@ -575,51 +612,103 @@ PlusStatus PlusVideoFrame::GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1,
     // no flip
     return PLUS_SUCCESS;
   }
-  // TODO : determine when to zflip
-  if ((usImageOrientation1==US_IMG_ORIENT_UF && usImageOrientation2==US_IMG_ORIENT_MF)||
-    (usImageOrientation1==US_IMG_ORIENT_MF && usImageOrientation2==US_IMG_ORIENT_UF)||
-    (usImageOrientation1==US_IMG_ORIENT_UN && usImageOrientation2==US_IMG_ORIENT_MN)||
-    (usImageOrientation1==US_IMG_ORIENT_MN && usImageOrientation2==US_IMG_ORIENT_UN)||
-    (usImageOrientation1==US_IMG_ORIENT_FU && usImageOrientation2==US_IMG_ORIENT_NU)||
-    (usImageOrientation1==US_IMG_ORIENT_NU && usImageOrientation2==US_IMG_ORIENT_FU)||
-    (usImageOrientation1==US_IMG_ORIENT_FM && usImageOrientation2==US_IMG_ORIENT_NM)||
-    (usImageOrientation1==US_IMG_ORIENT_NM && usImageOrientation2==US_IMG_ORIENT_FM))
+
+  if( (usImageOrientation1==US_IMG_ORIENT_UF && usImageOrientation2==US_IMG_ORIENT_MF) ||
+      (usImageOrientation1==US_IMG_ORIENT_MF && usImageOrientation2==US_IMG_ORIENT_UF) ||
+      (usImageOrientation1==US_IMG_ORIENT_UN && usImageOrientation2==US_IMG_ORIENT_MN) ||
+      (usImageOrientation1==US_IMG_ORIENT_MN && usImageOrientation2==US_IMG_ORIENT_UN) ||
+      (usImageOrientation1==US_IMG_ORIENT_FU && usImageOrientation2==US_IMG_ORIENT_NU) ||
+      (usImageOrientation1==US_IMG_ORIENT_NU && usImageOrientation2==US_IMG_ORIENT_FU) ||
+      (usImageOrientation1==US_IMG_ORIENT_FM && usImageOrientation2==US_IMG_ORIENT_NM) ||
+      (usImageOrientation1==US_IMG_ORIENT_NM && usImageOrientation2==US_IMG_ORIENT_FM)
+    )
   {
     // flip x
     flipInfo.hFlip=true;
     return PLUS_SUCCESS;
   }
-  if ((usImageOrientation1==US_IMG_ORIENT_UF && usImageOrientation2==US_IMG_ORIENT_UN)||
-    (usImageOrientation1==US_IMG_ORIENT_MF && usImageOrientation2==US_IMG_ORIENT_MN)||
-    (usImageOrientation1==US_IMG_ORIENT_UN && usImageOrientation2==US_IMG_ORIENT_UF)||
-    (usImageOrientation1==US_IMG_ORIENT_MN && usImageOrientation2==US_IMG_ORIENT_MF)||
-    (usImageOrientation1==US_IMG_ORIENT_FU && usImageOrientation2==US_IMG_ORIENT_FM)||
-    (usImageOrientation1==US_IMG_ORIENT_NU && usImageOrientation2==US_IMG_ORIENT_NM)||
-    (usImageOrientation1==US_IMG_ORIENT_FM && usImageOrientation2==US_IMG_ORIENT_FU)||
-    (usImageOrientation1==US_IMG_ORIENT_NM && usImageOrientation2==US_IMG_ORIENT_NU))
+  if( (usImageOrientation1==US_IMG_ORIENT_UF && usImageOrientation2==US_IMG_ORIENT_UN) ||
+      (usImageOrientation1==US_IMG_ORIENT_MF && usImageOrientation2==US_IMG_ORIENT_MN) ||
+      (usImageOrientation1==US_IMG_ORIENT_UN && usImageOrientation2==US_IMG_ORIENT_UF) ||
+      (usImageOrientation1==US_IMG_ORIENT_MN && usImageOrientation2==US_IMG_ORIENT_MF) ||
+      (usImageOrientation1==US_IMG_ORIENT_FU && usImageOrientation2==US_IMG_ORIENT_FM) ||
+      (usImageOrientation1==US_IMG_ORIENT_NU && usImageOrientation2==US_IMG_ORIENT_NM) ||
+      (usImageOrientation1==US_IMG_ORIENT_FM && usImageOrientation2==US_IMG_ORIENT_FU) ||
+      (usImageOrientation1==US_IMG_ORIENT_NM && usImageOrientation2==US_IMG_ORIENT_NU)
+    )
   {
     // flip y
     flipInfo.vFlip=true;
     return PLUS_SUCCESS;
   }
-  if ((usImageOrientation1==US_IMG_ORIENT_UF && usImageOrientation2==US_IMG_ORIENT_MN)||
-    (usImageOrientation1==US_IMG_ORIENT_MF && usImageOrientation2==US_IMG_ORIENT_UN)||
-    (usImageOrientation1==US_IMG_ORIENT_UN && usImageOrientation2==US_IMG_ORIENT_MF)||
-    (usImageOrientation1==US_IMG_ORIENT_MN && usImageOrientation2==US_IMG_ORIENT_UF)||
-    (usImageOrientation1==US_IMG_ORIENT_FU && usImageOrientation2==US_IMG_ORIENT_NM)||
-    (usImageOrientation1==US_IMG_ORIENT_NU && usImageOrientation2==US_IMG_ORIENT_FM)||
-    (usImageOrientation1==US_IMG_ORIENT_FM && usImageOrientation2==US_IMG_ORIENT_NU)||
-    (usImageOrientation1==US_IMG_ORIENT_NM && usImageOrientation2==US_IMG_ORIENT_FU))
+  if( (usImageOrientation1==US_IMG_ORIENT_UFA && usImageOrientation2==US_IMG_ORIENT_UFD) ||
+      (usImageOrientation1==US_IMG_ORIENT_UFD && usImageOrientation2==US_IMG_ORIENT_UFA) ||
+      (usImageOrientation1==US_IMG_ORIENT_MFA && usImageOrientation2==US_IMG_ORIENT_MFD) ||
+      (usImageOrientation1==US_IMG_ORIENT_MFD && usImageOrientation2==US_IMG_ORIENT_MFA) ||
+      (usImageOrientation1==US_IMG_ORIENT_UNA && usImageOrientation2==US_IMG_ORIENT_UND) ||
+      (usImageOrientation1==US_IMG_ORIENT_UND && usImageOrientation2==US_IMG_ORIENT_UNA) ||
+      (usImageOrientation1==US_IMG_ORIENT_MNA && usImageOrientation2==US_IMG_ORIENT_MND) ||
+      (usImageOrientation1==US_IMG_ORIENT_MND && usImageOrientation2==US_IMG_ORIENT_MNA)
+    )
+  {
+    // flip z
+    flipInfo.pFlip=true;
+    return PLUS_SUCCESS;
+  }
+  if( (usImageOrientation1==US_IMG_ORIENT_UF && usImageOrientation2==US_IMG_ORIENT_MN) ||
+      (usImageOrientation1==US_IMG_ORIENT_MF && usImageOrientation2==US_IMG_ORIENT_UN) ||
+      (usImageOrientation1==US_IMG_ORIENT_UN && usImageOrientation2==US_IMG_ORIENT_MF) ||
+      (usImageOrientation1==US_IMG_ORIENT_MN && usImageOrientation2==US_IMG_ORIENT_UF) ||
+      (usImageOrientation1==US_IMG_ORIENT_FU && usImageOrientation2==US_IMG_ORIENT_NM) ||
+      (usImageOrientation1==US_IMG_ORIENT_NU && usImageOrientation2==US_IMG_ORIENT_FM) ||
+      (usImageOrientation1==US_IMG_ORIENT_FM && usImageOrientation2==US_IMG_ORIENT_NU) ||
+      (usImageOrientation1==US_IMG_ORIENT_NM && usImageOrientation2==US_IMG_ORIENT_FU)
+    )
   {
     // flip xy
     flipInfo.hFlip=true;
     flipInfo.vFlip=true;
     return PLUS_SUCCESS;
   }
+  if( (usImageOrientation1==US_IMG_ORIENT_UFA && usImageOrientation2==US_IMG_ORIENT_MFD) ||
+      (usImageOrientation1==US_IMG_ORIENT_MFD && usImageOrientation2==US_IMG_ORIENT_UFA) ||
+      (usImageOrientation1==US_IMG_ORIENT_UNA && usImageOrientation2==US_IMG_ORIENT_MND) ||
+      (usImageOrientation1==US_IMG_ORIENT_MND && usImageOrientation2==US_IMG_ORIENT_UNA)
+    )
+  {
+    // flip xz
+    flipInfo.hFlip=true;
+    flipInfo.pFlip=true;
+    return PLUS_SUCCESS;
+  }
+  if( 
+      (usImageOrientation1==US_IMG_ORIENT_UFA && usImageOrientation2==US_IMG_ORIENT_UND) ||
+      (usImageOrientation1==US_IMG_ORIENT_UND && usImageOrientation2==US_IMG_ORIENT_UFA) ||
+      (usImageOrientation1==US_IMG_ORIENT_MFA && usImageOrientation2==US_IMG_ORIENT_MND) ||
+      (usImageOrientation1==US_IMG_ORIENT_MND && usImageOrientation2==US_IMG_ORIENT_MFA)
+    )
+  {
+    // flip yz
+    flipInfo.vFlip=true;
+    flipInfo.pFlip=true;
+    return PLUS_SUCCESS;
+  }
+  if( 
+    (usImageOrientation1==US_IMG_ORIENT_UFA && usImageOrientation2==US_IMG_ORIENT_MND) ||
+    (usImageOrientation1==US_IMG_ORIENT_MND && usImageOrientation2==US_IMG_ORIENT_UFA)
+    )
+  {
+    // flip xyz
+    flipInfo.hFlip=true;
+    flipInfo.vFlip=true;
+    flipInfo.pFlip=true;
+    return PLUS_SUCCESS;
+  } 
+
   assert(0);
-  LOG_ERROR("Image orientation conversion between orientations "<<GetStringFromUsImageOrientation(usImageOrientation1)
-    <<" and "<<GetStringFromUsImageOrientation(usImageOrientation2)
-    <<" is not supported (image transpose is not allowed, only reordering of rows and/or columns");
+  LOG_ERROR("Image orientation conversion between orientations " << PlusVideoFrame::GetStringFromUsImageOrientation(usImageOrientation1)
+    << " and " << PlusVideoFrame::GetStringFromUsImageOrientation(usImageOrientation2)
+    << " is not supported. Only reordering of rows, columns and slices.");
   return PLUS_FAIL;
 }
 
@@ -639,12 +728,13 @@ PlusStatus PlusVideoFrame::GetOrientedImage( vtkImageData* inUsImage, US_IMAGE_O
   }
 
   FlipInfoType flipInfo;
-  if (GetFlipAxes(inUsImageOrientation, inUsImageType, outUsImageOrientation, flipInfo) != PLUS_SUCCESS)
+  if ( PlusVideoFrame::GetFlipAxes(inUsImageOrientation, inUsImageType, outUsImageOrientation, flipInfo) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Failed to convert image data to the requested orientation, from " << GetStringFromUsImageOrientation(inUsImageOrientation) << " to " << GetStringFromUsImageOrientation(outUsImageOrientation));
+    LOG_ERROR("Failed to convert image data to the requested orientation, from " << PlusVideoFrame::GetStringFromUsImageOrientation(inUsImageOrientation) << 
+      " to " << PlusVideoFrame::GetStringFromUsImageOrientation(outUsImageOrientation));
     return PLUS_FAIL;
   }
-  if ( !flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.zFlip )
+  if ( !flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.pFlip )
   {
     // no flip
     outUsOrientedImage->ShallowCopy( inUsImage ); 
@@ -739,13 +829,14 @@ PlusStatus PlusVideoFrame::GetOrientedImage(  unsigned char* imageDataPtr,
   memcpy(inUsImage->GetScalarPointer(), imageDataPtr, frameSizeInPx[0]*frameSizeInPx[1]*frameSizeInPx[2]*PlusVideoFrame::GetNumberOfBytesPerScalar(pixType)*numberOfScalarComponents);
 
   FlipInfoType flipInfo;
-  if (GetFlipAxes(inUsImageOrientation, inUsImageType, outUsImageOrientation, flipInfo) != PLUS_SUCCESS)
+  if ( PlusVideoFrame::GetFlipAxes(inUsImageOrientation, inUsImageType, outUsImageOrientation, flipInfo) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to convert image data to the requested orientation, from " << GetStringFromUsImageOrientation(inUsImageOrientation) << " to " << GetStringFromUsImageOrientation(outUsImageOrientation));
     DELETE_IF_NOT_NULL(inUsImage);
     return PLUS_FAIL;
   }
-  if ( !flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.zFlip )
+
+  if ( !flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.pFlip )
   {
     // no flip
     outUsOrientedImage->DeepCopy(inUsImage);
