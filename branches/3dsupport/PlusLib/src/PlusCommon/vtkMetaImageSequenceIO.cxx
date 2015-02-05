@@ -306,24 +306,8 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
   }
   this->NumberOfDimensions=nDims;  
 
-  this->ImageOrientationInFile = PlusVideoFrame::GetUsImageOrientationFromString(GetCustomString(SEQMETA_FIELD_US_IMG_ORIENT)); 
-
-  // TODO : determine if x y z is 2d+t or single 3d slice based on image orientation
-  if( nDims == 3 && 
-      ( 
-        (this->ImageOrientationInFile==US_IMG_ORIENT_MFA) || 
-        (this->ImageOrientationInFile==US_IMG_ORIENT_MFD) || 
-        (this->ImageOrientationInFile==US_IMG_ORIENT_UFA) || 
-        (this->ImageOrientationInFile==US_IMG_ORIENT_UFD) || 
-        (this->ImageOrientationInFile==US_IMG_ORIENT_MNA) || 
-        (this->ImageOrientationInFile==US_IMG_ORIENT_MND) || 
-        (this->ImageOrientationInFile==US_IMG_ORIENT_UNA) || 
-        (this->ImageOrientationInFile==US_IMG_ORIENT_UND)
-        )
-    )
-  {
-    this->Dimensions[3] = 1;
-  }
+  std::string imgOrientStr = std::string(GetCustomString(SEQMETA_FIELD_US_IMG_ORIENT));
+  this->ImageOrientationInFile = PlusVideoFrame::GetUsImageOrientationFromString( imgOrientStr.c_str() ); 
 
   const char* imgTypeStr=GetCustomString(SEQMETA_FIELD_US_IMG_TYPE);
   if (imgTypeStr==NULL)
@@ -364,18 +348,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
   // NDims=4
   // DimSize=630 480 567 35 is unaffected
   issDimSize >> dimSize;
-  if( nDims == 3 && 
-      ( 
-        (this->ImageOrientationInFile==US_IMG_ORIENT_MFA) || 
-        (this->ImageOrientationInFile==US_IMG_ORIENT_MFD) || 
-        (this->ImageOrientationInFile==US_IMG_ORIENT_UFA) || 
-        (this->ImageOrientationInFile==US_IMG_ORIENT_UFD) || 
-        (this->ImageOrientationInFile==US_IMG_ORIENT_MNA) || 
-        (this->ImageOrientationInFile==US_IMG_ORIENT_MND) || 
-        (this->ImageOrientationInFile==US_IMG_ORIENT_UNA) || 
-        (this->ImageOrientationInFile==US_IMG_ORIENT_UND)
-      )
-    )
+  if( nDims == 3 && imgOrientStr.length() == 3 )
   {
     this->Dimensions[2] = dimSize;
     this->Dimensions[3] = 1;

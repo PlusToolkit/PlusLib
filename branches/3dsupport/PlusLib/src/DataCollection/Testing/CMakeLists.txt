@@ -178,9 +178,9 @@ IF (PLUS_USE_PHILIPS_3D_ULTRASOUND AND PLUS_TEST_PHILIPS_3D_ULTRASOUND)
   TARGET_LINK_LIBRARIES(vtkPhilips3DProbeVideoSourceTest1 vtkDataCollection vtkPlusCommon)
   ADD_TEST(vtkPhilips3DProbeVideoSourceTest1 
   ${EXECUTABLE_OUTPUT_PATH}/vtkPhilips3DProbeVideoSourceTest1
-    --rendering-off 
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_PhilipsVideoSourceTest.xml
     --philips-ip=${PLUS_TEST_PHILIPS_3D_ULTRASOUND_IP_ADDRESS}
+	--verbose=3
   )
   SET_TESTS_PROPERTIES( vtkPhilips3DProbeVideoSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF (PLUS_USE_PHILIPS_3D_ULTRASOUND AND PLUS_TEST_PHILIPS_3D_ULTRASOUND)
