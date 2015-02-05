@@ -46,7 +46,7 @@ namespace
       }
     }
 
-    if (!flipInfo.hFlip && flipInfo.vFlip && !flipInfo.pFlip)
+    if (!flipInfo.hFlip && flipInfo.vFlip && !flipInfo.eFlip)
     {
       // flip Y    
       ScalarType* inputPixel = (ScalarType*)inBuff;
@@ -60,7 +60,7 @@ namespace
         outputPixel -= (width * numberOfScalarComponents);
       }
     }
-    else if (flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.pFlip)
+    else if (flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.eFlip)
     {
       // flip X    
       if (flipInfo.doubleColumn)
@@ -107,7 +107,7 @@ namespace
         }
       }
     }
-    else if (flipInfo.hFlip && flipInfo.vFlip && !flipInfo.pFlip)
+    else if (flipInfo.hFlip && flipInfo.vFlip && !flipInfo.eFlip)
     {
       // flip X and Y
       if (flipInfo.doubleColumn)
@@ -595,7 +595,7 @@ PlusStatus PlusVideoFrame::GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1,
 
   flipInfo.hFlip=false; // horizontal
   flipInfo.vFlip=false; // vertical
-  flipInfo.pFlip=false; // proximal
+  flipInfo.eFlip=false; // elevational
   if ( usImageOrientation1 == US_IMG_ORIENT_XX ) 
   {
     LOG_ERROR("Failed to determine the necessary image flip - unknown input image orientation 1"); 
@@ -652,7 +652,7 @@ PlusStatus PlusVideoFrame::GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1,
     )
   {
     // flip z
-    flipInfo.pFlip=true;
+    flipInfo.eFlip=true;
     return PLUS_SUCCESS;
   }
   if( (usImageOrientation1==US_IMG_ORIENT_UF && usImageOrientation2==US_IMG_ORIENT_MN) ||
@@ -678,7 +678,7 @@ PlusStatus PlusVideoFrame::GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1,
   {
     // flip xz
     flipInfo.hFlip=true;
-    flipInfo.pFlip=true;
+    flipInfo.eFlip=true;
     return PLUS_SUCCESS;
   }
   if( 
@@ -690,7 +690,7 @@ PlusStatus PlusVideoFrame::GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1,
   {
     // flip yz
     flipInfo.vFlip=true;
-    flipInfo.pFlip=true;
+    flipInfo.eFlip=true;
     return PLUS_SUCCESS;
   }
   if( 
@@ -701,7 +701,7 @@ PlusStatus PlusVideoFrame::GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1,
     // flip xyz
     flipInfo.hFlip=true;
     flipInfo.vFlip=true;
-    flipInfo.pFlip=true;
+    flipInfo.eFlip=true;
     return PLUS_SUCCESS;
   } 
 
@@ -734,7 +734,7 @@ PlusStatus PlusVideoFrame::GetOrientedImage( vtkImageData* inUsImage, US_IMAGE_O
       " to " << PlusVideoFrame::GetStringFromUsImageOrientation(outUsImageOrientation));
     return PLUS_FAIL;
   }
-  if ( !flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.pFlip )
+  if ( !flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.eFlip )
   {
     // no flip
     outUsOrientedImage->ShallowCopy( inUsImage ); 
@@ -836,7 +836,7 @@ PlusStatus PlusVideoFrame::GetOrientedImage(  unsigned char* imageDataPtr,
     return PLUS_FAIL;
   }
 
-  if ( !flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.pFlip )
+  if ( !flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.eFlip )
   {
     // no flip
     outUsOrientedImage->DeepCopy(inUsImage);
