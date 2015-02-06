@@ -174,7 +174,11 @@ int main(int argc, char **argv)
   }
 
   // Wait an amount of time to enable some data collection to happen
-  Sleep(1000);
+#ifdef _WIN32
+  Sleep(1*1000);
+#else
+  usleep(1 * 1000000);
+#endif
 
   vtkSmartPointer<vtkTrackedFrameList> frameList = vtkSmartPointer<vtkTrackedFrameList>::New();
   double timestamp(0.0);

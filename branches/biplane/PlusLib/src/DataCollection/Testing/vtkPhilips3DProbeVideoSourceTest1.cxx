@@ -88,7 +88,11 @@ int main(int argc, char* argv[])
 
   // just run the recording for  a few seconds then exit
   LOG_DEBUG("Rendering disabled. Wait for just a few seconds to acquire data before exiting");
-  Sleep(3000); // no need to use accurate timer, it's just an approximate delay
+#ifdef _WIN32
+  Sleep(3*1000);
+#else
+  usleep(3 * 1000000);
+#endif
 
   vtkSmartPointer<vtkTrackedFrameList> frameList = vtkSmartPointer<vtkTrackedFrameList>::New();
   vtkPlusChannel* channel = *philipsDevice->GetOutputChannelsStart();
