@@ -47,6 +47,14 @@ The data collector component acquires data from several physical or software dev
           - \c US_IMG_ORIENT_NU image \c x axis = near transducer axis, image \c y axis = unmarked transducer axis (usually for RF frames).
           - \c US_IMG_ORIENT_FM image \c x axis = far transducer axis, image \c y axis = marked transducer axis (usually for RF frames).
           - \c US_IMG_ORIENT_NM image \c x axis = near transducer axis, image \c y axis = marked transducer axis (usually for RF frames).
+          - \c US_IMG_ORIENT_UFA image same as 2D counterpart, with third axis in ascending direction
+          - \c US_IMG_ORIENT_UNA image same as 2D counterpart, with third axis in ascending direction
+          - \c US_IMG_ORIENT_MFA image same as 2D counterpart, with third axis in ascending direction
+          - \c US_IMG_ORIENT_MNA image same as 2D counterpart, with third axis in ascending direction
+          - \c US_IMG_ORIENT_UFD image same as 2D counterpart, with third axis in descending direction
+          - \c US_IMG_ORIENT_UND image same as 2D counterpart, with third axis in descending direction
+          - \c US_IMG_ORIENT_MFD image same as 2D counterpart, with third axis in descending direction
+          - \c US_IMG_ORIENT_MND image same as 2D counterpart, with third axis in descending direction
         - \xmlAtt \b ImageType \anchor ImageType . The image type(B-mode, RF, ...) provided by the video source.
           - \c BRIGHTNESS B-mode image.
           - \c RF_REAL RF-mode image, signal is stored as a series of real values.
