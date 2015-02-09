@@ -9,8 +9,8 @@ and image acquisition hardware/software settings. When a transducer is calibrate
 is determined), the calibration is valid for one particular image orientation, therefore it is important to be able to exactly
 identify the current image orientation.
 
-Plus defines the image orientation using a two-letter acronym, the first and second letter specify the transducer principal
-axes directions corresponding to the +x and +y directions in the image coordinate system, respectively.
+Plus defines the image orientation using a two or three letter acronym, the first and second letter specify the transducer principal
+axes directions corresponding to the +x and +y directions in the image coordinate system, respectively. The third letter is only defined for three-dimensional probes and represents the +z direction in the image coordinate system.
 
 \section UltrasoundImageOrientationTransducerAxes Transducer axes definition
 

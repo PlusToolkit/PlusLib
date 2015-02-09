@@ -542,7 +542,7 @@ double vtkPlusDataSource::GetStartTime()
 //-----------------------------------------------------------------------------
 int vtkPlusDataSource::GetNumberOfItems()
 {
-  return this->GetNumberOfItems();
+  return this->GetBuffer()->GetNumberOfItems();
 }
 
 //-----------------------------------------------------------------------------
@@ -626,7 +626,7 @@ ItemStatus vtkPlusDataSource::GetTimeStamp(BufferItemUidType uid, double& timest
 //-----------------------------------------------------------------------------
 void vtkPlusDataSource::SetLocalTimeOffsetSec(double offsetSec)
 {
-  return this->SetLocalTimeOffsetSec(offsetSec);
+  return this->GetBuffer()->SetLocalTimeOffsetSec(offsetSec);
 }
 
 //-----------------------------------------------------------------------------
