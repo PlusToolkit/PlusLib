@@ -538,12 +538,10 @@ PlusStatus vtkWin32VideoSource2::AddFrameToBuffer(void* lpVideoHeader)
 
   unsigned char *inputPixelsPtr = lpVHdr->lpData;
 
-  unsigned char* outputPixelsPtr=(unsigned char*)this->UncompressedVideoFrame.GetScalarPointer();
-
   int outputFrameSize[3]={0,0,0};
   this->UncompressedVideoFrame.GetFrameSize(outputFrameSize);
 
-  if (PixelCodec::ConvertToGray(inputCompression, outputFrameSize[0], outputFrameSize[1], inputPixelsPtr, outputPixelsPtr)!=PLUS_SUCCESS)
+  if ( PixelCodec::ConvertToGray(inputCompression, outputFrameSize[0], outputFrameSize[1], inputPixelsPtr, (unsigned char*)this->UncompressedVideoFrame.GetScalarPointer()) != PLUS_SUCCESS)
   {
     LOG_ERROR("Error while decoding the grabbed image");
     return PLUS_FAIL;

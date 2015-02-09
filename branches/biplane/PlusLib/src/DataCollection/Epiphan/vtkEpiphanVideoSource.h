@@ -11,6 +11,8 @@
 
 #include "vtkPlusDevice.h"
 
+#include "v2u_defs.h"
+
 /*!
   \class vtkEpiphanVideoSource 
   \brief Class for providing video input interfaces between VTK and Epiphan frame grabber device
@@ -65,6 +67,11 @@ public:
   */
   vtkGetVector2Macro(ClipRectangleOrigin,int);
 
+  /*!
+    Perform any completion tasks once configured
+  */
+  virtual PlusStatus NotifyConfigured();
+
 protected:
   /*! Constructor */
   vtkEpiphanVideoSource();
@@ -100,6 +107,9 @@ protected:
 
   /*! Frame size of the captured image */
   int FrameSize[2];
+
+  /*! Dimensions to request from framegrabber */
+  V2URect* CropRectangle;
 
 private:
   vtkEpiphanVideoSource(const vtkEpiphanVideoSource&);  // Not implemented.

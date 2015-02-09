@@ -199,7 +199,11 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
 
   for( DeviceCollectionIterator it = this->Devices.begin(); it != this->Devices.end(); ++it )
   {
-    (*it)->NotifyConfigured();
+    if( (*it)->NotifyConfigured() != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Device: " << (*it)->GetDeviceId() << " reports incorrect configuration. Please verify configuration.");
+      return PLUS_FAIL;
+    }
   }
 
   return PLUS_SUCCESS;
