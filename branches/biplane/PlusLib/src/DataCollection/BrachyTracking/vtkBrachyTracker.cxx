@@ -596,7 +596,7 @@ PlusStatus vtkBrachyTracker::GetLatestStepperEncoderValues( double &probePositio
     return PLUS_FAIL; 
   }
 
-  if (encoderTool->GetBuffer()->GetNumberOfItems()<1)
+  if (encoderTool->GetNumberOfItems()<1)
   {
     LOG_DEBUG("The buffer is empty"); // do not report as an error, it may be normal after a buffer clear
     probePosition=0.0;
@@ -605,7 +605,7 @@ PlusStatus vtkBrachyTracker::GetLatestStepperEncoderValues( double &probePositio
     status=TOOL_MISSING;
     return PLUS_SUCCESS;
   }
-  BufferItemUidType latestUid = encoderTool->GetBuffer()->GetLatestItemUidInBuffer(); 
+  BufferItemUidType latestUid = encoderTool->GetLatestItemUidInBuffer(); 
 
   return vtkBrachyTracker::GetStepperEncoderValues(latestUid, probePosition, probeRotation, templatePosition, status);
 }
@@ -628,7 +628,7 @@ PlusStatus vtkBrachyTracker::GetStepperEncoderValues( BufferItemUidType uid, dou
   }
 
   StreamBufferItem bufferItem; 
-  if ( encoderTool->GetBuffer()->GetStreamBufferItem(uid, &bufferItem) != ITEM_OK )
+  if ( encoderTool->GetStreamBufferItem(uid, &bufferItem) != ITEM_OK )
   {
     LOG_ERROR("Failed to get stepper encoder values from buffer by UID: " << uid ); 
     return PLUS_FAIL; 
@@ -667,7 +667,7 @@ PlusStatus vtkBrachyTracker::GetStepperEncoderValues( double timestamp, double &
   }
 
   BufferItemUidType uid(0); 
-  if ( encoderTool->GetBuffer()->GetItemUidFromTime(timestamp, uid) != ITEM_OK )
+  if ( encoderTool->GetItemUidFromTime(timestamp, uid) != ITEM_OK )
   {
     LOG_ERROR("Failed to get stepper encoder values from buffer by time: " << std::fixed << timestamp ); 
     return PLUS_FAIL; 
@@ -700,7 +700,7 @@ PlusStatus vtkBrachyTracker::GetProbeHomeToProbeTransform( BufferItemUidType uid
   }
 
   StreamBufferItem bufferItem; 
-  if ( probeTool->GetBuffer()->GetStreamBufferItem(uid, &bufferItem) != ITEM_OK )
+  if ( probeTool->GetStreamBufferItem(uid, &bufferItem) != ITEM_OK )
   {
     LOG_ERROR("Failed to get probe home to probe transform by UID: " << uid); 
     return PLUS_FAIL; 
@@ -734,7 +734,7 @@ PlusStatus vtkBrachyTracker::GetProbeHomeToProbeTransform( double timestamp, vtk
   }
 
   BufferItemUidType uid(0); 
-  if ( probeTool->GetBuffer()->GetItemUidFromTime(timestamp, uid) != ITEM_OK )
+  if ( probeTool->GetItemUidFromTime(timestamp, uid) != ITEM_OK )
   {
     LOG_ERROR("Failed to get probe home to probe transform by timestamp: " << std::fixed << timestamp);
     PLUS_FAIL; 
@@ -767,7 +767,7 @@ PlusStatus vtkBrachyTracker::GetTemplateHomeToTemplateTransform( BufferItemUidTy
   }
 
   StreamBufferItem bufferItem; 
-  if ( templateTool->GetBuffer()->GetStreamBufferItem(uid, &bufferItem) != ITEM_OK )
+  if ( templateTool->GetStreamBufferItem(uid, &bufferItem) != ITEM_OK )
   {
     LOG_ERROR("Failed to get template home to template transform by UID: " << uid); 
     return PLUS_FAIL; 
@@ -801,7 +801,7 @@ PlusStatus vtkBrachyTracker::GetTemplateHomeToTemplateTransform( double timestam
   }
 
   BufferItemUidType uid(0); 
-  if ( templateTool->GetBuffer()->GetItemUidFromTime(timestamp, uid) != ITEM_OK )
+  if ( templateTool->GetItemUidFromTime(timestamp, uid) != ITEM_OK )
   {
     LOG_ERROR("Failed to get template home to template transform by timestamp: " << std::fixed << timestamp);
     return PLUS_FAIL; 
@@ -834,7 +834,7 @@ PlusStatus vtkBrachyTracker::GetRawEncoderValuesTransform( BufferItemUidType uid
   }
 
   StreamBufferItem bufferItem; 
-  if ( encoderTool->GetBuffer()->GetStreamBufferItem(uid, &bufferItem) != ITEM_OK )
+  if ( encoderTool->GetStreamBufferItem(uid, &bufferItem) != ITEM_OK )
   {
     LOG_ERROR("Failed to get raw encoder values transform from buffer by UID: " << uid ); 
     return PLUS_FAIL;
@@ -869,7 +869,7 @@ PlusStatus vtkBrachyTracker::GetRawEncoderValuesTransform( double timestamp, vtk
   }
 
   BufferItemUidType uid(0); 
-  if ( encoderTool->GetBuffer()->GetItemUidFromTime(timestamp, uid) != ITEM_OK )
+  if ( encoderTool->GetItemUidFromTime(timestamp, uid) != ITEM_OK )
   {
     LOG_ERROR("Failed to get raw encoder values transform by timestamp: " << std::fixed << timestamp);
     return PLUS_FAIL; 

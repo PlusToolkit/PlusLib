@@ -74,9 +74,9 @@ bool vtkPhilips3DProbeVideoSource::StreamCallback(_int64 id, SClient3DArray *ed,
 
     vtkPlusDataSource* videoSource(NULL);
     vtkPhilips3DProbeVideoSource::ActiveDevice->GetFirstActiveVideoSource(videoSource);
-    videoSource->GetBuffer()->SetFrameSize(extents[0], extents[1], extents[2]);
-    videoSource->GetBuffer()->SetPixelType(VTK_UNSIGNED_CHAR);
-    videoSource->GetBuffer()->SetNumberOfScalarComponents(1);
+    videoSource->SetFrameSize(extents[0], extents[1], extents[2]);
+    videoSource->SetPixelType(VTK_UNSIGNED_CHAR);
+    videoSource->SetNumberOfScalarComponents(1);
   }
   else
   {
@@ -278,7 +278,7 @@ void vtkPhilips3DProbeVideoSource::CallbackAddFrame(vtkImageData* imageData)
     LOG_ERROR("Unable to find video source. Cannot add new frame.");
     return;
   }
-  if( videoSource->GetBuffer()->AddItem(imageData, videoSource->GetPortImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber) != PLUS_SUCCESS )
+  if( videoSource->AddItem(imageData, videoSource->GetImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to add item to buffer.");
     return;

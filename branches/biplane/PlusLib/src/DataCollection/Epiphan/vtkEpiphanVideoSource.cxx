@@ -143,10 +143,10 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
     }
     else
     {
-      US_IMAGE_TYPE imageType = aSource->GetBuffer()->GetImageType();
-      aSource->GetBuffer()->SetPixelType(VTK_UNSIGNED_CHAR);
-      aSource->GetBuffer()->SetNumberOfScalarComponents(imageType == US_IMG_RGB_COLOR ? 3 : 1);
-      aSource->GetBuffer()->SetFrameSize(this->FrameSize);
+      US_IMAGE_TYPE imageType = aSource->GetImageType();
+      aSource->SetPixelType(VTK_UNSIGNED_CHAR);
+      aSource->SetNumberOfScalarComponents(imageType == US_IMG_RGB_COLOR ? 3 : 1);
+      aSource->SetFrameSize(this->FrameSize);
     }
 
   return PLUS_SUCCESS;
@@ -215,7 +215,7 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
     // If someone ever wants RGB8 or YUY2 (etc...) this line will have to be changed
     // to support any future video format choices
     // ReadConfiguration will probably need a new flag to tell this line what to do
-    V2U_UINT32 videoFormat = (aSource->GetBuffer()->GetImageType() == US_IMG_RGB_COLOR ? V2U_GRABFRAME_FORMAT_RGB24 : V2U_GRABFRAME_FORMAT_Y8);
+    V2U_UINT32 videoFormat = (aSource->GetImageType() == US_IMG_RGB_COLOR ? V2U_GRABFRAME_FORMAT_RGB24 : V2U_GRABFRAME_FORMAT_Y8);
 
     frame = FrmGrab_Frame( (FrmGrabber*)this->FrameGrabber, videoFormat, this->CropRectangle );
 
@@ -234,11 +234,11 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
     }
 
     int numberOfScalarComponents(1);
-    if( aSource->GetBuffer()->GetImageType() == US_IMG_RGB_COLOR )
+    if( aSource->GetImageType() == US_IMG_RGB_COLOR )
     {
       numberOfScalarComponents = 3;
     }
-    if( aSource->GetBuffer()->AddItem(frame->pixbuf, aSource->GetPortImageOrientation(), this->FrameSize, VTK_UNSIGNED_CHAR, numberOfScalarComponents, aSource->GetBuffer()->GetImageType(), 0, this->FrameNumber) != PLUS_SUCCESS )
+    if( aSource->AddItem(frame->pixbuf, aSource->GetImageOrientation(), this->FrameSize, VTK_UNSIGNED_CHAR, numberOfScalarComponents, aSource->GetImageType(), 0, this->FrameNumber) != PLUS_SUCCESS )
     {
       LOG_ERROR("Error adding item to video source " << aSource->GetSourceId() << " on channel " << this->OutputChannels[0]->GetChannelId() );
       return PLUS_FAIL;

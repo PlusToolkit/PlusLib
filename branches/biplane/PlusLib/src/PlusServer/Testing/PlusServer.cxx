@@ -205,7 +205,7 @@ PlusStatus ConnectClients( int listeningPort, std::vector< vtkSmartPointer<vtkOp
     }
     client->SetBufferSize( *aChannel, 10 ); 
     client->SetMessageType( "TrackedFrame" ); 
-    aSource->SetPortImageOrientation( US_IMG_ORIENT_MF );
+    aSource->SetImageOrientation( US_IMG_ORIENT_MF );
 
     if ( client->Connect() != PLUS_SUCCESS )
     {

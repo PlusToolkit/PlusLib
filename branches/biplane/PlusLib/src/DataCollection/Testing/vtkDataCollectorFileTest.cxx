@@ -140,7 +140,7 @@ int main( int argc, char** argv )
   }
   vtkPlusDataSource* aSource=NULL;
   aChannel->GetVideoSource(aSource);
-  double recordingStartTime=aSource->GetBuffer()->GetStartTime();
+  double recordingStartTime=aSource->GetStartTime();
   double timestampOfFirstFrameInFile=218.188043;
   double timeOffset=timestampOfFirstFrameInFile-recordingStartTime;
 

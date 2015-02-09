@@ -109,7 +109,7 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalUpdate()
   }
 
   // If the buffer is empty, set the pixel type and frame size to the first received properties 
-  if ( aSource->GetBuffer()->GetNumberOfItems() == 0 )
+  if ( aSource->GetNumberOfItems() == 0 )
   {
     PlusVideoFrame* videoFrame=trackedFrame.GetImageData();
     if (videoFrame==NULL)
@@ -117,13 +117,13 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalUpdate()
       LOG_ERROR("Invalid video frame received, cannot use it to initialize the video buffer");
       return PLUS_FAIL;
     }
-    aSource->GetBuffer()->SetPixelType( videoFrame->GetVTKScalarPixelType() );
-    aSource->GetBuffer()->SetNumberOfScalarComponents( videoFrame->GetNumberOfScalarComponents() );
-    aSource->GetBuffer()->SetImageType( videoFrame->GetImageType() );
-    aSource->GetBuffer()->SetFrameSize( trackedFrame.GetFrameSize() );
+    aSource->SetPixelType( videoFrame->GetVTKScalarPixelType() );
+    aSource->SetNumberOfScalarComponents( videoFrame->GetNumberOfScalarComponents() );
+    aSource->SetImageType( videoFrame->GetImageType() );
+    aSource->SetFrameSize( trackedFrame.GetFrameSize() );
   }
   TrackedFrame::FieldMapType customFields=trackedFrame.GetCustomFields();
-  PlusStatus status = aSource->GetBuffer()->AddItem( trackedFrame.GetImageData(), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &customFields); 
+  PlusStatus status = aSource->AddItem( trackedFrame.GetImageData(), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &customFields); 
   this->Modified();
 
   return status;

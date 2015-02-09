@@ -424,7 +424,7 @@ PlusStatus vtkDataCollector::DumpBuffersToDirectory( const char * aDirectory )
         LOG_ERROR("Unable to retrieve the video source in the device.");
         return PLUS_FAIL;
       }
-      aSource->GetBuffer()->WriteToMetafile( outputDeviceBufferSequenceFileName.c_str(), false); 
+      aSource->WriteToMetafile( outputDeviceBufferSequenceFileName.c_str(), false); 
     }
   }
 
@@ -469,26 +469,19 @@ PlusStatus vtkDataCollector::GetTrackingData(vtkPlusChannel* aRequestedChannel, 
     return PLUS_FAIL; 
   }
 
-  vtkPlusBuffer* trackerBuffer = firstActiveTool->GetBuffer(); 
-  if ( trackerBuffer == NULL )
-  {
-    LOG_ERROR("Unable to get tracked frame list - Failed to get first active tool!"); 
-    return PLUS_FAIL; 
-  }
-
-  if ( trackerBuffer->GetNumberOfItems()==0 )
+  if ( firstActiveTool->GetNumberOfItems()==0 )
   {
     LOG_DEBUG("vtkDataCollector::GetTrackingData: the tracking buffer is empty, no items will be returned"); 
     return PLUS_SUCCESS;
   }
 
   PlusStatus status = PLUS_SUCCESS;
-  BufferItemUidType oldestItemUid = trackerBuffer->GetOldestItemUidInBuffer();
-  BufferItemUidType latestItemUid = trackerBuffer->GetLatestItemUidInBuffer();
+  BufferItemUidType oldestItemUid = firstActiveTool->GetOldestItemUidInBuffer();
+  BufferItemUidType latestItemUid = firstActiveTool->GetLatestItemUidInBuffer();
   for (BufferItemUidType itemUid = oldestItemUid; itemUid <= latestItemUid; ++itemUid)
   {
     double itemTimestamp=0;
-    if (trackerBuffer->GetTimeStamp(itemUid, itemTimestamp)!=ITEM_OK)
+    if (firstActiveTool->GetTimeStamp(itemUid, itemTimestamp)!=ITEM_OK)
     {
       // probably the buffer item is not available anymore
       continue;
@@ -530,19 +523,19 @@ PlusStatus vtkDataCollector::GetVideoData(vtkPlusChannel* aRequestedChannel, dou
 
   // If the buffer is empty then don't display an error just return without adding any items to the output tracked frame list
   vtkPlusDataSource* aSource(NULL);
-  if ( aRequestedChannel->GetVideoSource(aSource) == PLUS_SUCCESS && aSource->GetBuffer()->GetNumberOfItems()==0 )
+  if ( aRequestedChannel->GetVideoSource(aSource) == PLUS_SUCCESS && aSource->GetNumberOfItems()==0 )
   {
     LOG_DEBUG("vtkDataCollector::GetVideoData: the video buffer is empty, no items will be returned"); 
     return PLUS_SUCCESS;
   }
 
   PlusStatus status = PLUS_SUCCESS;
-  BufferItemUidType oldestItemUid=aSource->GetBuffer()->GetOldestItemUidInBuffer();
-  BufferItemUidType latestItemUid=aSource->GetBuffer()->GetLatestItemUidInBuffer();
-  for (BufferItemUidType itemUid=oldestItemUid; itemUid<=latestItemUid; ++itemUid)
+  BufferItemUidType oldestItemUid = aSource->GetOldestItemUidInBuffer();
+  BufferItemUidType latestItemUid = aSource->GetLatestItemUidInBuffer();
+  for (BufferItemUidType itemUid = oldestItemUid; itemUid <= latestItemUid; ++itemUid)
   {
     double itemTimestamp=0;
-    if (aSource->GetBuffer()->GetTimeStamp(itemUid, itemTimestamp)!=ITEM_OK)
+    if (aSource->GetTimeStamp(itemUid, itemTimestamp)!=ITEM_OK)
     {
       // probably the buffer item is not available anymore
       continue;
@@ -556,7 +549,7 @@ PlusStatus vtkDataCollector::GetVideoData(vtkPlusChannel* aRequestedChannel, dou
     // Get tracked frame from buffer
     TrackedFrame trackedFrame; 
     StreamBufferItem currentStreamBufferItem; 
-    if ( aSource->GetBuffer()->GetStreamBufferItem(itemUid, &currentStreamBufferItem) != ITEM_OK )
+    if ( aSource->GetStreamBufferItem(itemUid, &currentStreamBufferItem) != ITEM_OK )
     {
       LOG_ERROR("Couldn't get video buffer item by frame UID: " << itemUid); 
       return PLUS_FAIL; 

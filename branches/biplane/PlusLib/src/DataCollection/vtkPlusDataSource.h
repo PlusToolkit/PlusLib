@@ -15,8 +15,8 @@
 #define __vtkPlusDataSource_h
 
 #include "vtkDataCollectionExport.h"
-
 #include "vtkObject.h"
+#include "vtkPlusBuffer.h"
 #include "vtkPlusDevice.h"
 
 /*!
@@ -60,8 +60,129 @@ public:
   therefore it must be unique */
   PlusStatus SetPortName(const char* portName);
 
-  /*! Get the buffer */
-  virtual vtkPlusBuffer* GetBuffer() const { return this->Buffer; }
+  /*! Set the image type. Does not convert the pixel values. */
+  PlusStatus SetImageType(US_IMAGE_TYPE imageType); 
+  /*! Get the image type (B-mode, RF, ...) */
+  US_IMAGE_TYPE GetImageType();
+
+  /*! Set the frame size in pixel  */
+  PlusStatus SetFrameSize(int x, int y, int z); 
+  /*! Set the frame size in pixel  */
+  PlusStatus SetFrameSize(int frameSize[3]); 
+  /*! Get the frame size in pixel  */
+  virtual int* GetFrameSize();
+  virtual PlusStatus GetFrameSize(int &_arg1, int &_arg2, int &_arg3);
+  virtual PlusStatus GetFrameSize (int _arg[3]);
+
+  /*! Set recording start time */
+  virtual void SetStartTime( double startTime ); 
+  /*! Get recording start time */
+  virtual double GetStartTime(); 
+
+  /*! Get the number of items in the buffer */
+  virtual int GetNumberOfItems();
+
+  /*! Get the index assigned by the data acquisition system (usually a counter) from the buffer by frame UID. */
+  virtual ItemStatus GetIndex(const BufferItemUidType uid, unsigned long &index);
+
+  /*!
+    Get the frame rate from the buffer based on the number of frames in the buffer and the elapsed time.
+    Ideal frame rate shows the mean of the frame periods in the buffer based on the frame 
+    number difference (aka the device frame rate).
+    If framePeriodStdevSecPtr is not null, then the standard deviation of the frame period is computed as well (in seconds) and
+    stored at the specified address.
+  */
+  virtual double GetFrameRate( bool ideal = false, double *framePeriodStdevSecPtr=NULL);
+
+  /*! Get buffer item unique ID */
+  virtual BufferItemUidType GetOldestItemUidInBuffer();
+  virtual BufferItemUidType GetLatestItemUidInBuffer();
+  virtual ItemStatus GetItemUidFromTime(double time, BufferItemUidType& uid);
+
+  /*! Get a frame with the specified frame uid from the buffer */
+  virtual ItemStatus GetStreamBufferItem(BufferItemUidType uid, StreamBufferItem* bufferItem);
+  /*! Get the most recent frame from the buffer */
+  virtual ItemStatus GetLatestStreamBufferItem(StreamBufferItem* bufferItem);
+  /*! Get the oldest frame from buffer */
+  virtual ItemStatus GetOldestStreamBufferItem(StreamBufferItem* bufferItem);
+  /*! Get a frame that was acquired at the specified time from buffer */
+  virtual ItemStatus GetStreamBufferItemFromTime( double time, StreamBufferItem* bufferItem, vtkPlusBuffer::DataItemTemporalInterpolationType interpolation);
+
+  /*! Make a copy of the buffer */
+  virtual PlusStatus DeepCopyBufferTo(vtkPlusBuffer& bufferToFill);
+
+  /*! Clear buffer (set the buffer pointer to the first element) */
+  virtual void Clear();
+
+  /*! Dump the current state of the video buffer to metafile */
+  virtual PlusStatus WriteToMetafile( const char* filename, bool useCompression = false ); 
+
+  /*! Get the table report of the timestamped buffer  */
+  virtual PlusStatus GetTimeStampReportTable(vtkTable* timeStampReportTable); 
+
+  /*! If TimeStampReporting is enabled then all filtered and unfiltered timestamp values will be saved in a table for diagnostic purposes. */
+  void SetTimeStampReporting(bool enable);
+  /*! If TimeStampReporting is enabled then all filtered and unfiltered timestamp values will be saved in a table for diagnostic purposes. */
+  bool GetTimeStampReporting();
+
+  /*!
+    Set the size of the buffer, i.e. the maximum number of
+    video frames that it will hold.  The default is 30.
+  */
+  virtual PlusStatus SetBufferSize(int n);
+  /*! Get the size of the buffer */
+  virtual int GetBufferSize(); 
+
+  /*! Get latest timestamp in the buffer */
+  virtual ItemStatus GetLatestTimeStamp( double& latestTimestamp );  
+
+  /*! Get oldest timestamp in the buffer */
+  virtual ItemStatus GetOldestTimeStamp( double& oldestTimestamp );  
+
+  /*! Get video buffer item timestamp */
+  virtual ItemStatus GetTimeStamp( BufferItemUidType uid, double& timestamp);
+
+  /*! Set the local time offset in seconds (global = local + offset) */
+  virtual void SetLocalTimeOffsetSec(double offsetSec);
+  /*! Get the local time offset in seconds (global = local + offset) */
+  virtual double GetLocalTimeOffsetSec();
+
+  /*!
+    Add a frame plus a timestamp to the buffer with frame index.
+    If the timestamp is  less than or equal to the previous timestamp,
+    or if the frame's format doesn't match the buffer's frame format,
+    then the frame is not added to the buffer.
+  */
+  virtual PlusStatus AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, US_IMAGE_TYPE imageType, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
+    double filteredTimestamp=UNDEFINED_TIMESTAMP, const TrackedFrame::FieldMapType* customFields = NULL); 
+
+  /*!
+    Add a frame plus a timestamp to the buffer with frame index.
+    If the timestamp is  less than or equal to the previous timestamp,
+    or if the frame's format doesn't match the buffer's frame format,
+    then the frame is not added to the buffer.
+  */
+  virtual PlusStatus AddItem(const PlusVideoFrame* frame, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
+    double filteredTimestamp=UNDEFINED_TIMESTAMP, const TrackedFrame::FieldMapType* customFields = NULL); 
+
+  /*!
+    Add a frame plus a timestamp to the buffer with frame index.
+    Additionally an optional field name&value can be added,
+    which will be saved as a custom field of the added item.
+    If the timestamp is  less than or equal to the previous timestamp,
+    or if the frame's format doesn't match the buffer's frame format,
+    then the frame is not added to the buffer.
+  */
+  virtual PlusStatus AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, const int frameSizeInPx[3], PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, 
+    int  numberOfBytesToSkip, long   frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, double filteredTimestamp=UNDEFINED_TIMESTAMP, 
+    const TrackedFrame::FieldMapType* customFields = NULL);
+
+    /*!
+    Add a matrix plus status to the list, with an exactly known timestamp value (e.g., provided by a high-precision hardware timer).
+    If the timestamp is less than or equal to the previous timestamp, then nothing  will be done.
+    If filteredTiemstamp argument is undefined then the filtered timestamp will be computed from the input unfiltered timestamp.
+  */
+  PlusStatus AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp=UNDEFINED_TIMESTAMP);
 
   /*! Get the device which owns this source. */
   // TODO : consider a re-design of this idea
@@ -71,8 +192,26 @@ public:
   /*! Get port name. Port name is used to identify the tool among all the tools provided by the tracker device. */
   vtkGetStringMacro(PortName);
 
-  vtkGetMacro(PortImageOrientation, US_IMAGE_ORIENTATION);
-  vtkSetMacro(PortImageOrientation, US_IMAGE_ORIENTATION);
+  /*! Set the pixel type */
+  PlusStatus SetPixelType(PlusCommon::VTKScalarPixelType pixelType); 
+  /*! Get the pixel type */
+  virtual PlusCommon::VTKScalarPixelType GetPixelType();
+
+  /*! Set the number of scalar components */
+  PlusStatus SetNumberOfScalarComponents(int numberOfScalarComponents); 
+  /*! Get the number of scalar components*/
+  virtual int GetNumberOfScalarComponents();
+
+    /*!
+    Get the number of bytes per pixel
+    It is the number of bytes per scalar multiplied by the number of scalar components.
+  */
+  int GetNumberOfBytesPerPixel();
+
+  /*! Set the image orientation (MF, MN, ...). Does not reorder the pixels. */
+  PlusStatus SetImageOrientation(US_IMAGE_ORIENTATION imageOrientation); 
+  /*! Get the image orientation (MF, MN, ...) */
+  virtual US_IMAGE_ORIENTATION GetImageOrientation();
 
   /*! Get type: vidoe or tool. */
   DataSourceType GetType() const;
@@ -102,6 +241,10 @@ public:
 
   /*! Make this tracker into a copy of another tracker. You should lock both of the tracker buffers before doing this. */
   void DeepCopy(vtkPlusDataSource *source);
+
+protected:
+  /*! Access the data buffer */
+  virtual vtkPlusBuffer* GetBuffer();
 
 protected:
   vtkPlusDataSource();

@@ -427,17 +427,17 @@ PlusStatus vtkMmfVideoSource::UpdateFrameSize()
     int currentFrameSize[3] = {0,0,0};
     vtkPlusDataSource* videoSource(NULL);
     this->GetFirstActiveVideoSource(videoSource);
-    videoSource->GetBuffer()->GetFrameSize(currentFrameSize);
+    videoSource->GetFrameSize(currentFrameSize);
     if( currentFrameSize[0] != this->ActiveVideoFormat.FrameSize[0] || currentFrameSize[1] != this->ActiveVideoFormat.FrameSize[1] )
     {
       currentFrameSize[0] = this->ActiveVideoFormat.FrameSize[0];
       currentFrameSize[1] = this->ActiveVideoFormat.FrameSize[1];
-      videoSource->GetBuffer()->SetFrameSize(currentFrameSize);
-      videoSource->GetBuffer()->SetPixelType(VTK_UNSIGNED_CHAR);
-      int numberOfScalarComponents = (videoSource->GetBuffer()->GetImageType() == US_IMG_RGB_COLOR ? 3 : 1);
-      videoSource->GetBuffer()->SetNumberOfScalarComponents(numberOfScalarComponents);
-      this->UncompressedVideoFrame.SetImageType(videoSource->GetBuffer()->GetImageType());
-      this->UncompressedVideoFrame.SetImageOrientation(videoSource->GetPortImageOrientation());
+      videoSource->SetFrameSize(currentFrameSize);
+      videoSource->SetPixelType(VTK_UNSIGNED_CHAR);
+      int numberOfScalarComponents = (videoSource->GetImageType() == US_IMG_RGB_COLOR ? 3 : 1);
+      videoSource->SetNumberOfScalarComponents(numberOfScalarComponents);
+      this->UncompressedVideoFrame.SetImageType(videoSource->GetImageType());
+      this->UncompressedVideoFrame.SetImageOrientation(videoSource->GetImageOrientation());
       this->UncompressedVideoFrame.AllocateFrame(currentFrameSize, VTK_UNSIGNED_CHAR, numberOfScalarComponents);
     }
   }
@@ -565,7 +565,7 @@ PlusStatus vtkMmfVideoSource::AddFrame(unsigned char* bufferData)
   {
     return PLUS_FAIL;
   }
-  videoSource->GetBuffer()->GetFrameSize(frameSize);
+  videoSource->GetFrameSize(frameSize);
 
   PlusStatus decodingStatus(PLUS_SUCCESS);
   PixelCodec::PixelEncoding encoding(PixelCodec::PixelEncoding_ERROR);
@@ -587,7 +587,7 @@ PlusStatus vtkMmfVideoSource::AddFrame(unsigned char* bufferData)
     return PLUS_FAIL;
   }
 
-  if( videoSource->GetBuffer()->GetImageType() == US_IMG_RGB_COLOR )
+  if( videoSource->GetImageType() == US_IMG_RGB_COLOR )
   {
     decodingStatus = PixelCodec::ConvertToBmp24(PixelCodec::ComponentOrder_RGB, encoding, frameSize[0], frameSize[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetScalarPointer());
   }
@@ -609,7 +609,7 @@ PlusStatus vtkMmfVideoSource::AddFrame(unsigned char* bufferData)
     LOG_ERROR("Unable to retrieve the video source in the media foundation capture device.");
     return PLUS_FAIL;
   }
-  PlusStatus status = aSource->GetBuffer()->AddItem(&this->UncompressedVideoFrame, this->FrameIndex); 
+  PlusStatus status = aSource->AddItem(&this->UncompressedVideoFrame, this->FrameIndex); 
 
   this->Modified();
   return status;
