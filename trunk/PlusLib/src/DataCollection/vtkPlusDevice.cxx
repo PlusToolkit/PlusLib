@@ -1373,7 +1373,7 @@ int vtkPlusDevice::RequestInformation(vtkInformation * vtkNotUsed(request),
     return 0;
   }
 
-  int extent[6] = {0, frameSize[0] - 1, 0, frameSize[1] - 1, 0, 0 };
+  int extent[6] = {0, frameSize[0] - 1, 0, frameSize[1] - 1, 0, frameSize[2]-1};
   outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),extent,6);
 
   // Set the origin and spacing. The video source provides raw pixel output,
@@ -1499,7 +1499,7 @@ PlusStatus vtkPlusDevice::SetFrameSize(vtkPlusDataSource& aSource, int x, int y,
 
   if (x < 1 || y < 1 || z < 1)
   {
-    LOCAL_LOG_ERROR("SetFrameSize: Illegal frame size");
+    LOCAL_LOG_ERROR("SetFrameSize: Illegal frame size "<<x<<"x"<<y<<"x"<<z);
     return PLUS_FAIL;
   }
 

@@ -181,7 +181,9 @@ vtkPlusBuffer::vtkPlusBuffer()
 , MaxAllowedTimeDifference(0.5)
 , DescriptiveName(NULL)
 {
-  this->FrameSize[0] = this->FrameSize[1] = this->FrameSize[2] = 0;
+  this->FrameSize[0] = 0;
+  this->FrameSize[1] = 0;
+  this->FrameSize[2] = 1; // by default we assume we have a single-slice image
 
   // 150 is a reasonable default value, it means that we keep the last 5 secods of acquired data @30fps
   // (and last 2.5 seconds @60fps). It should be enough to have all the needed data available and

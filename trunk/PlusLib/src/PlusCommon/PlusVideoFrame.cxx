@@ -242,13 +242,18 @@ PlusStatus PlusVideoFrame::FillBlank()
 //----------------------------------------------------------------------------
 PlusStatus PlusVideoFrame::AllocateFrame(vtkImageData* image, const int imageSize[3], PlusCommon::VTKScalarPixelType pixType, int numberOfScalarComponents)
 {  
+  if (imageSize[0]>0 && imageSize[1]>0 && imageSize[2]==0)
+  {
+    LOG_WARNING("Single slice images should have a dimension of z=1");
+  }
+
   if ( image != NULL )
   {
     int imageExtents[6] = {0,0,0,0,0,0};
     image->GetExtent(imageExtents);
-    if (imageSize[0] == imageExtents[1]-imageExtents[0] &&
-      imageSize[1] == imageExtents[3]-imageExtents[2] &&
-      imageSize[2] == imageExtents[5]-imageExtents[4] &&
+    if (imageSize[0] == imageExtents[1]-imageExtents[0]+1 &&
+      imageSize[1] == imageExtents[3]-imageExtents[2]+1 &&
+      imageSize[2] == imageExtents[5]-imageExtents[4]+1 &&
       image->GetScalarType() == pixType &&
       image->GetNumberOfScalarComponents() == numberOfScalarComponents)
     {
@@ -813,9 +818,9 @@ PlusStatus PlusVideoFrame::GetOrientedImage(  unsigned char* imageDataPtr,
 
   int outExtents[6] = {0,0,0,0,0,0};
   outUsOrientedImage->GetExtent(outExtents);
-  if ( !(frameSizeInPx[0]-1 == outExtents[1] &&
-    frameSizeInPx[1]-1 == outExtents[3] &&
-    frameSizeInPx[2]-1 == outExtents[5] &&
+  if ( !(frameSizeInPx[0] == outExtents[1]-outExtents[0]+1 &&
+    frameSizeInPx[1] == outExtents[3]-outExtents[2]+1 &&
+    frameSizeInPx[2] == outExtents[5]-outExtents[4]+1 &&
     outUsOrientedImage->GetScalarType() == pixType &&
     outUsOrientedImage->GetNumberOfScalarComponents() == numberOfScalarComponents) )
   {
@@ -866,15 +871,15 @@ PlusStatus PlusVideoFrame::FlipImage(vtkImageData* inUsImage, const PlusVideoFra
   int extents[6] = {0,0,0,0,0,0};
   inUsImage->GetExtent(extents);
   int frameSize[3] = {0,0,0};
-  frameSize[0] = extents[1]-1;
-  frameSize[1] = extents[3]-1;
-  frameSize[2] = extents[5]-1;
+  frameSize[0] = extents[1]-extents[0]+1;
+  frameSize[1] = extents[3]-extents[2]+1;
+  frameSize[2] = extents[5]-extents[4]+1;
   PlusVideoFrame::AllocateFrame(outUsOrientedImage, frameSize, inUsImage->GetScalarType(), inUsImage->GetNumberOfScalarComponents());
 
   outUsOrientedImage->GetExtent(extents);
-  int width = extents[1] - extents[0];
-  int height = extents[3] - extents[2];
-  int depth = extents[5] - extents[4];
+  int width=extents[1]-extents[0]+1;
+  int height=extents[3]-extents[2]+1;
+  int depth=extents[5]-extents[4]+1;
   switch(outUsOrientedImage->GetScalarType())
   {
   case VTK_UNSIGNED_CHAR: return FlipImageGeneric<vtkTypeUInt8>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, outUsOrientedImage->GetScalarPointer());
