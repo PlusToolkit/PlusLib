@@ -29,7 +29,7 @@ TrackedFrame::TrackedFrame()
   this->Timestamp = 0; 
   this->FrameSize[0] = 0;
   this->FrameSize[1] = 0;
-  this->FrameSize[2] = 0;
+  this->FrameSize[2] = 1; // single-slice frame by default
   this->FiducialPointsCoordinatePx = NULL; 
 }
 
@@ -45,7 +45,7 @@ TrackedFrame::TrackedFrame(const TrackedFrame& frame)
   this->Timestamp = 0; 
   this->FrameSize[0] = 0; 
   this->FrameSize[1] = 0;
-  this->FrameSize[2] = 0;
+  this->FrameSize[2] = 1; // single-slice frame by default
   this->FiducialPointsCoordinatePx = NULL; 
 
   *this = frame; 

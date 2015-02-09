@@ -85,7 +85,7 @@ protected:
 
   PlusStatus UpdateFrameSize();
 
-  PlusStatus AddFrame(unsigned char* bufferData);  
+  PlusStatus AddFrame(unsigned char* bufferData, DWORD bufferSize);
 
   std::string GetCaptureDeviceName(unsigned int deviceId);
 

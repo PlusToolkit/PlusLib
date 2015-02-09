@@ -170,6 +170,20 @@ STDMETHODIMP MmfVideoSourceReader::OnReadSample( HRESULT hrStatus, DWORD dwStrea
     {
       LOG_ERROR("Cannot get current media type");
     }
+
+    // Check the image size, as it may be different from what we requested (even if setup does not give any error).
+    // Mostly happens when the native resolution has a different aspect ration (e.g., 640x480 is requested but actually 640x360 is received).
+    // The check has to be done here, the media type is not yet available at InternalConnect time.
+    UINT32 actualWidth=0;
+    UINT32 actualHeight=0;
+    ::MFGetAttributeSize(pType, MF_MT_FRAME_SIZE, &actualWidth, &actualHeight);
+    if (actualWidth!=this->PlusDevice->ActiveVideoFormat.FrameSize[0] ||
+      actualHeight!=this->PlusDevice->ActiveVideoFormat.FrameSize[1])
+    {
+      LOG_ERROR("Unexpected frame size: "<<actualWidth<<"x"<<actualHeight<<" (expected: "<<this->PlusDevice->ActiveVideoFormat.FrameSize[0]<<"x"<<this->PlusDevice->ActiveVideoFormat.FrameSize[1]<<")"); 
+      return S_FALSE;
+    }
+
     // Check the pixel type, as it may be different from what we requested (even if setup does not give any error).
     // Mostly happens for larger resolutions (e.g., when requesting webcam feed at 1280x720 with YUY then we get MJPG).
     // The check has to be done here, the media type is not yet available at InternalConnect time.
@@ -205,7 +219,7 @@ STDMETHODIMP MmfVideoSourceReader::OnReadSample( HRESULT hrStatus, DWORD dwStrea
     HRESULT hr = aBuffer->Lock(&bufferData, &maxLength, &currentLength);
     if( SUCCEEDED(hr) ) 
     {
-      this->PlusDevice->AddFrame(bufferData);
+      this->PlusDevice->AddFrame(bufferData, currentLength);
       aBuffer->Unlock();
     }  
     else
@@ -424,14 +438,15 @@ PlusStatus vtkMmfVideoSource::UpdateFrameSize()
 {
   if( this->MmfSourceReader->CaptureSourceReader != NULL )
   {
-    int currentFrameSize[3] = {0,0,0};
     vtkPlusDataSource* videoSource(NULL);
     this->GetFirstActiveVideoSource(videoSource);
+    int currentFrameSize[3] = {0,0,1};
     videoSource->GetBuffer()->GetFrameSize(currentFrameSize);
-    if( currentFrameSize[0] != this->ActiveVideoFormat.FrameSize[0] || currentFrameSize[1] != this->ActiveVideoFormat.FrameSize[1] )
+    if( currentFrameSize[0] != this->ActiveVideoFormat.FrameSize[0] || currentFrameSize[1] != this->ActiveVideoFormat.FrameSize[1] || currentFrameSize[2] != 1 )
     {
       currentFrameSize[0] = this->ActiveVideoFormat.FrameSize[0];
       currentFrameSize[1] = this->ActiveVideoFormat.FrameSize[1];
+      currentFrameSize[2] = 1;
       videoSource->GetBuffer()->SetFrameSize(currentFrameSize);
       videoSource->GetBuffer()->SetPixelType(VTK_UNSIGNED_CHAR);
       int numberOfScalarComponents = (videoSource->GetBuffer()->GetImageType() == US_IMG_RGB_COLOR ? 3 : 1);
@@ -551,7 +566,7 @@ std::string vtkMmfVideoSource::GetActiveDeviceName()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMmfVideoSource::AddFrame(unsigned char* bufferData)
+PlusStatus vtkMmfVideoSource::AddFrame(unsigned char* bufferData, DWORD bufferSize)
 {
   if (!this->Recording)
   {
@@ -571,6 +586,11 @@ PlusStatus vtkMmfVideoSource::AddFrame(unsigned char* bufferData)
   PixelCodec::PixelEncoding encoding(PixelCodec::PixelEncoding_ERROR);
   if (this->ActiveVideoFormat.PixelFormatName.compare("YUY2") == 0)
   {
+    if (bufferSize<frameSize[0]*frameSize[1]*2)
+    {
+      LOG_ERROR("Failed to decode pixel data from YUY2 due to buffer size mismatch");
+      return PLUS_FAIL;
+    }
     encoding = PixelCodec::PixelEncoding_YUY2;
   }
   else if (this->ActiveVideoFormat.PixelFormatName.compare("MJPG") == 0 )
@@ -579,6 +599,11 @@ PlusStatus vtkMmfVideoSource::AddFrame(unsigned char* bufferData)
   }
   else if (this->ActiveVideoFormat.PixelFormatName.compare("RGB24") == 0 )
   {
+    if (bufferSize<frameSize[0]*frameSize[1]*3)
+    {
+      LOG_ERROR("Failed to decode pixel data from RGB24 due to buffer size mismatch");
+      return PLUS_FAIL;
+    }
     encoding = PixelCodec::PixelEncoding_BMP;
   }
   else
