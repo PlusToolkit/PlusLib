@@ -6,11 +6,16 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "vtkMatrix4x4.h"
-#include "vtkPlusDataSource.h"
 #include "vtkPlusBuffer.h"
+#include "vtkPlusDataSource.h"
 #include "vtkTransform.h"
 
 vtkStandardNewMacro(vtkPlusDataSource);
+
+namespace
+{
+  const int NO_CLIPPING = 0;
+}
 
 //----------------------------------------------------------------------------
 vtkPlusDataSource::vtkPlusDataSource()
@@ -23,6 +28,13 @@ vtkPlusDataSource::vtkPlusDataSource()
 , ReferenceCoordinateFrameName(NULL)
 , Buffer(vtkPlusBuffer::New())
 {
+  this->ClipRectangleOrigin[0] = 0;
+  this->ClipRectangleOrigin[1] = 0;
+  this->ClipRectangleOrigin[2] = 0;
+
+  this->ClipRectangleSize[0] = NO_CLIPPING;
+  this->ClipRectangleSize[1] = NO_CLIPPING;
+  this->ClipRectangleSize[2] = NO_CLIPPING;
 }
 
 //----------------------------------------------------------------------------
@@ -120,14 +132,14 @@ PlusStatus vtkPlusDataSource::SetSourceId(const char* aSourceId)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::SetReferenceName(const char* referenceName)
+PlusStatus vtkPlusDataSource::SetReferenceCoordinateFrameName(const char* referenceCoordinateName)
 {
-  if ( this->ReferenceCoordinateFrameName == NULL && referenceName == NULL) 
+  if ( this->ReferenceCoordinateFrameName == NULL && referenceCoordinateName == NULL) 
   { 
     return PLUS_SUCCESS;
   } 
 
-  if ( this->ReferenceCoordinateFrameName && referenceName && ( STRCASECMP(this->ReferenceCoordinateFrameName, referenceName) == 0 ) ) 
+  if ( this->ReferenceCoordinateFrameName && referenceCoordinateName && ( STRCASECMP(this->ReferenceCoordinateFrameName, referenceCoordinateName) == 0 ) ) 
   { 
     return PLUS_SUCCESS;
   } 
@@ -139,12 +151,12 @@ PlusStatus vtkPlusDataSource::SetReferenceName(const char* referenceName)
     return PLUS_FAIL; 
   }
 
-  if (referenceName!=NULL)
+  if (referenceCoordinateName!=NULL)
   {
     // Copy string  (based on vtkSetStringMacro in vtkSetGet.h)
-    size_t n = strlen(referenceName) + 1; 
+    size_t n = strlen(referenceCoordinateName) + 1; 
     char *cp1 =  new char[n]; 
-    const char *cp2 = (referenceName); 
+    const char *cp2 = (referenceCoordinateName); 
     this->ReferenceCoordinateFrameName = cp1;
     do { *cp1++ = *cp2++; } while ( --n ); 
   }
@@ -194,7 +206,7 @@ void vtkPlusDataSource::DeepCopy(vtkPlusDataSource *aSource)
 
   this->SetSourceId( aSource->GetSourceId() ); 
   this->SetType( aSource->GetType() );
-  this->SetReferenceName( aSource->GetReferenceCoordinateFrameName() );
+  this->SetReferenceCoordinateFrameName( aSource->GetReferenceCoordinateFrameName() );
 
   this->Buffer->DeepCopy( aSource->GetBuffer() );
 
@@ -285,6 +297,10 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
         this->GetBuffer()->SetImageType(US_IMG_RF_REAL);
       }
     }
+
+    // clipping parameters
+    XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleOrigin, sourceElement);
+    XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleSize, sourceElement);
   }
   else
   {
@@ -325,6 +341,22 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
   }
   this->GetBuffer()->SetDescriptiveName(descName.c_str());
 
+  // Read custom properties
+  for( int i = 0; i < sourceElement->GetNumberOfNestedElements(); ++i )
+  {
+    if( STRCASECMP(sourceElement->GetNestedElement(i)->GetName(), "CustomProperties") == 0 )
+    {
+      vtkXMLDataElement* customPropertiesElement = sourceElement->GetNestedElement(i);
+
+      for( int j = 0; j < customPropertiesElement->GetNumberOfNestedElements(); ++j )
+      {
+        vtkXMLDataElement* customPropertyElement = customPropertiesElement->GetNestedElement(j);
+        this->CustomProperties[customPropertyElement->GetName()] = customPropertyElement->GetCharacterData();
+      }
+      break;
+    }
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -356,7 +388,25 @@ PlusStatus vtkPlusDataSource::WriteConfiguration( vtkXMLDataElement* aSourceElem
     aSourceElement->SetIntAttribute("AveragedItemsForFiltering", this->GetBuffer()->GetAveragedItemsForFiltering());
   }
 
-  // TODO: write custom properties
+  // Write custom properties
+  if( this->CustomProperties.size() > 0 )
+  {
+    vtkSmartPointer<vtkXMLDataElement> customPropertiesElement = vtkSmartPointer<vtkXMLDataElement>::New();
+    customPropertiesElement->SetName("CustomProperties");
+
+    for( CustomPropertyMapIterator it = this->CustomProperties.begin(); it != this->CustomProperties.end(); ++it )
+    {
+      vtkSmartPointer<vtkXMLDataElement> customPropertyElement = vtkSmartPointer<vtkXMLDataElement>::New();
+      customPropertyElement->SetName(it->first.c_str());
+      customPropertyElement->SetCharacterData(it->second.c_str(), it->second.length());
+      customPropertiesElement->AddNestedElement(customPropertyElement);
+    }
+
+    aSourceElement->AddNestedElement(customPropertiesElement);
+  }
+
+  aSourceElement->SetVectorAttribute("ClipRectangleOrigin", 2, this->GetClipRectangleOrigin());
+  aSourceElement->SetVectorAttribute("ClipRectangleSize", 2, this->GetClipRectangleSize());
 
   return PLUS_SUCCESS;
 }
@@ -427,19 +477,19 @@ void vtkPlusDataSource::SetCustomProperty(const std::string& propertyName, const
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusDataSource::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, US_IMAGE_TYPE imageType, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const TrackedFrame::FieldMapType* customFields /*= NULL*/)
 {
-  return this->GetBuffer()->AddItem(frame, usImageOrientation, imageType, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields);
+  return this->GetBuffer()->AddItem(frame, usImageOrientation, imageType, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields, this->ClipRectangleOrigin, this->ClipRectangleSize);
 }
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusDataSource::AddItem(const PlusVideoFrame* frame, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const TrackedFrame::FieldMapType* customFields /*= NULL*/)
 {
-  return this->GetBuffer()->AddItem(frame, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields);
+  return this->GetBuffer()->AddItem(frame, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields, this->ClipRectangleOrigin, this->ClipRectangleSize);
 }
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusDataSource::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const int frameSizeInPx[3], PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const TrackedFrame::FieldMapType* customFields /*= NULL*/)
 {
-  return this->GetBuffer()->AddItem(imageDataPtr, usImageOrientation, frameSizeInPx, pixelType, numberOfScalarComponents, imageType, numberOfBytesToSkip, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields);
+  return this->GetBuffer()->AddItem(imageDataPtr, usImageOrientation, frameSizeInPx, pixelType, numberOfScalarComponents, imageType, numberOfBytesToSkip, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields, this->ClipRectangleOrigin, this->ClipRectangleSize);
 }
 
 //-----------------------------------------------------------------------------

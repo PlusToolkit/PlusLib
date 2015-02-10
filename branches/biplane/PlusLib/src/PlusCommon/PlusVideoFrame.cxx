@@ -713,7 +713,13 @@ PlusStatus PlusVideoFrame::GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1,
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::GetOrientedImage( vtkImageData* inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_TYPE inUsImageType, US_IMAGE_ORIENTATION outUsImageOrientation, vtkImageData* outUsOrientedImage )
+PlusStatus PlusVideoFrame::GetOrientedImage( vtkImageData* inUsImage, 
+                                            US_IMAGE_ORIENTATION inUsImageOrientation, 
+                                            US_IMAGE_TYPE inUsImageType, 
+                                            US_IMAGE_ORIENTATION outUsImageOrientation, 
+                                            vtkImageData* outUsOrientedImage,
+                                            int* clipRectangleOrigin /*=NULL*/, 
+                                            int* clipRectangleSize /*=NULL*/ )
 {
   if ( inUsImage == NULL )
   {
@@ -741,6 +747,7 @@ PlusStatus PlusVideoFrame::GetOrientedImage( vtkImageData* inUsImage, US_IMAGE_O
     return PLUS_SUCCESS; 
   }
 
+  // TODO : out oriented image better match clip size
   int outWidth = outUsOrientedImage->GetExtent()[1] - outUsOrientedImage->GetExtent()[0];
   int inWidth = inUsImage->GetExtent()[1] - inUsImage->GetExtent()[0];
   int outHeight = outUsOrientedImage->GetExtent()[3] - outUsOrientedImage->GetExtent()[2];
@@ -773,13 +780,13 @@ PlusStatus PlusVideoFrame::GetOrientedImage( vtkImageData* inUsImage, US_IMAGE_O
   switch (numberOfBytesPerScalar)
   {
   case 1:
-    status=FlipImageGeneric<vtkTypeUInt8>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, outUsOrientedImage->GetScalarPointer());
+    status = FlipImageGeneric<vtkTypeUInt8>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, outUsOrientedImage->GetScalarPointer());
     break;
   case 2:
-    status=FlipImageGeneric<vtkTypeUInt16>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, outUsOrientedImage->GetScalarPointer());
+    status = FlipImageGeneric<vtkTypeUInt16>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, outUsOrientedImage->GetScalarPointer());
     break;
   case 4:
-    status=FlipImageGeneric<vtkTypeUInt32>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, outUsOrientedImage->GetScalarPointer());
+    status = FlipImageGeneric<vtkTypeUInt32>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, outUsOrientedImage->GetScalarPointer());
     break;
   default:
     LOG_ERROR("Unsupported bit depth: "<<numberOfBytesPerScalar<<" bytes per scalar");
@@ -795,10 +802,10 @@ PlusStatus PlusVideoFrame::GetOrientedImage(  unsigned char* imageDataPtr,
                                             int numberOfScalarComponents,  
                                             const int    frameSizeInPx[3],
                                             US_IMAGE_ORIENTATION  outUsImageOrientation, 
-                                            vtkImageData* outUsOrientedImage
-                                            )
+                                            vtkImageData* outUsOrientedImage,
+                                            int* clipRectangleOrigin /*=NULL*/, 
+                                            int* clipRectangleSize /*=NULL*/)
 {
-
   if ( imageDataPtr == NULL )
   {
     LOG_ERROR("Failed to convert image data to MF orientation - input image is null!"); 
@@ -811,6 +818,7 @@ PlusStatus PlusVideoFrame::GetOrientedImage(  unsigned char* imageDataPtr,
     return PLUS_FAIL; 
   }
 
+  // TODO : out oriented image better match clip size
   int outExtents[6] = {0,0,0,0,0,0};
   outUsOrientedImage->GetExtent(outExtents);
   if ( !(frameSizeInPx[0]-1 == outExtents[1] &&
@@ -844,15 +852,26 @@ PlusStatus PlusVideoFrame::GetOrientedImage(  unsigned char* imageDataPtr,
     return PLUS_SUCCESS; 
   }
 
-  PlusStatus result = PlusVideoFrame::GetOrientedImage(inUsImage, inUsImageOrientation, inUsImageType, outUsImageOrientation, outUsOrientedImage); 
+  PlusStatus result = PlusVideoFrame::GetOrientedImage(inUsImage, inUsImageOrientation, inUsImageType, 
+    outUsImageOrientation, outUsOrientedImage, clipRectangleOrigin, clipRectangleSize); 
   DELETE_IF_NOT_NULL(inUsImage);
   return result;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, PlusCommon::VTKScalarPixelType pixType, int numberOfScalarComponents, const int frameSizeInPx[3], US_IMAGE_ORIENTATION outUsImageOrientation, PlusVideoFrame &outBufferItem)
+PlusStatus PlusVideoFrame::GetOrientedImage( unsigned char* imageDataPtr, 
+                                            US_IMAGE_ORIENTATION  inUsImageOrientation, 
+                                            US_IMAGE_TYPE inUsImageType, 
+                                            PlusCommon::VTKScalarPixelType pixType, 
+                                            int numberOfScalarComponents, 
+                                            const int frameSizeInPx[3], 
+                                            US_IMAGE_ORIENTATION outUsImageOrientation, 
+                                            PlusVideoFrame &outBufferItem,
+                                            int* clipRectangleOrigin /*=NULL*/, 
+                                            int* clipRectangleSize /*=NULL*/)
 {
-  return PlusVideoFrame::GetOrientedImage(imageDataPtr, inUsImageOrientation, inUsImageType, pixType, numberOfScalarComponents, frameSizeInPx, outUsImageOrientation, outBufferItem.GetImage());
+  return PlusVideoFrame::GetOrientedImage(imageDataPtr, inUsImageOrientation, inUsImageType, pixType, 
+    numberOfScalarComponents, frameSizeInPx, outUsImageOrientation, outBufferItem.GetImage(), clipRectangleOrigin, clipRectangleSize);
 }
 
 //----------------------------------------------------------------------------

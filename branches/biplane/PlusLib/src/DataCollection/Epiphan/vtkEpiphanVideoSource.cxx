@@ -280,7 +280,7 @@ PlusStatus vtkEpiphanVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfi
     LOG_DEBUG("Epiphan device location is not specified in the configuration");
   }
 
-  // clipping parameters
+  // Epiphan hardware clipping parameters
   XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleOrigin, deviceConfig);
   XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleSize, deviceConfig);
 
@@ -298,7 +298,7 @@ PlusStatus vtkEpiphanVideoSource::WriteConfiguration(vtkXMLDataElement* rootConf
   // SerialNumber is an obsolete attribute, the information is stored now in GrabberLocation
   XML_REMOVE_ATTRIBUTE(imageAcquisitionConfig, "SerialNumber");
 
-  // clipping parameters
+  // Epiphan hardware clipping parameters
   imageAcquisitionConfig->SetVectorAttribute("ClipRectangleOrigin", 2, this->GetClipRectangleOrigin());
   imageAcquisitionConfig->SetVectorAttribute("ClipRectangleSize", 2, this->GetClipRectangleSize());
 

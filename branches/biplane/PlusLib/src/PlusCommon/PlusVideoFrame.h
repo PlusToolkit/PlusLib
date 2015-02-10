@@ -187,13 +187,37 @@ public:
   static PlusStatus ReadImageFromFile( PlusVideoFrame &frame, const char* fileName); 
 
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( vtkImageData* inUsImage, US_IMAGE_ORIENTATION inUsImageOrientation, US_IMAGE_TYPE inUsImageType, US_IMAGE_ORIENTATION outUsImageOrientation, vtkImageData* outUsOrientedImage ); 
+  static PlusStatus GetOrientedImage( vtkImageData* inUsImage, 
+    US_IMAGE_ORIENTATION inUsImageOrientation, 
+    US_IMAGE_TYPE inUsImageType, 
+    US_IMAGE_ORIENTATION outUsImageOrientation, 
+    vtkImageData* outUsOrientedImage,
+    int* clipRectangleOrigin = NULL,
+    int* clipRectangleSize = NULL); 
 
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, PlusCommon::VTKScalarPixelType inUsImagePixelType, int numberOfScalarComponents, const int frameSizeInPx[3], US_IMAGE_ORIENTATION outUsImageOrientation, vtkImageData* outUsOrientedImage); 
+  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, 
+    US_IMAGE_ORIENTATION  inUsImageOrientation, 
+    US_IMAGE_TYPE inUsImageType, 
+    PlusCommon::VTKScalarPixelType inUsImagePixelType, 
+    int numberOfScalarComponents, 
+    const int frameSizeInPx[3], 
+    US_IMAGE_ORIENTATION outUsImageOrientation, 
+    vtkImageData* outUsOrientedImage,
+    int* clipRectangleOrigin = NULL,
+    int* clipRectangleSize = NULL); 
 
   /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, US_IMAGE_ORIENTATION  inUsImageOrientation, US_IMAGE_TYPE inUsImageType, PlusCommon::VTKScalarPixelType inUsImagePixelType, int numberOfScalarComponents, const int frameSizeInPx[3], US_IMAGE_ORIENTATION outUsImageOrientation, PlusVideoFrame &outBufferItem);
+  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, 
+    US_IMAGE_ORIENTATION  inUsImageOrientation, 
+    US_IMAGE_TYPE inUsImageType, 
+    PlusCommon::VTKScalarPixelType inUsImagePixelType, 
+    int numberOfScalarComponents, 
+    const int frameSizeInPx[3], 
+    US_IMAGE_ORIENTATION outUsImageOrientation, 
+    PlusVideoFrame &outBufferItem,
+    int* clipRectangleOrigin = NULL,
+    int* clipRectangleSize = NULL);
 
   static PlusStatus GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1, US_IMAGE_TYPE usImageType1, US_IMAGE_ORIENTATION usImageOrientation2, FlipInfoType& flipInfo);
 

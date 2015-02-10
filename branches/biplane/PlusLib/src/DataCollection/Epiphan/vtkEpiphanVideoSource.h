@@ -93,10 +93,10 @@ protected:
   /*! The internal function which actually does the grab.  */
   PlusStatus InternalUpdate();
 
-  /*! Crop rectangle origin for the grabber (in pixels) */
+  /*! Crop rectangle origin for the grabber (in pixels, done in hardware) */
   int ClipRectangleOrigin[2];
 
-  /*! Crop rectangle size for the grabber (in pixels). If it is (0,0) then the whole frame will be captured. */
+  /*! Crop rectangle size for the grabber (in pixels, done in hardware). If it is (0,0) then the whole frame will be captured. */
   int ClipRectangleSize[2];
 
   /*! String to specify the framegrabber to connect to (auto-detection is attempted if unspecified) */

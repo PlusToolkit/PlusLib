@@ -27,6 +27,7 @@
 */
 
 class vtkPlusBuffer;
+
 enum DataSourceType
 {
   DATA_SOURCE_TYPE_NONE,
@@ -36,6 +37,10 @@ enum DataSourceType
 
 class vtkDataCollectionExport vtkPlusDataSource : public vtkObject
 {
+  typedef std::map< std::string, std::string > CustomPropertyMap;
+  typedef CustomPropertyMap::iterator CustomPropertyMapIterator;
+  typedef CustomPropertyMap::const_iterator CustomPropertyMapConstIterator;
+
 public:
 
   static vtkPlusDataSource *New();
@@ -44,15 +49,21 @@ public:
 
   /*! Read main configuration from xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* toolElement, bool requirePortNameInSourceConfiguration = false, bool requireImageOrientationInChannelConfiguration = false, const char* aDescriptiveNameForBuffer = NULL); 
+  /*! Write main configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* toolElement); 
+  /*! WriteCompactConfiguration is called when a channel is populating its tool data source links, most usages should call WriteConfiguration */
   virtual PlusStatus WriteCompactConfiguration(vtkXMLDataElement* toolElement); 
 
   /*! Set source Id. SourceId is used to identify the data source among all the data sources provided by the device 
   therefore it must be unique */
   PlusStatus SetSourceId(const char* toolSourceId);
+  /*! Get source id */
+  vtkGetStringMacro(SourceId);
 
   /*! Set reference name. Reference name is used to convey context about the coordinate frame that the tool is based */
-  PlusStatus SetReferenceName(const char* referenceName);
+  PlusStatus SetReferenceCoordinateFrameName(const char* referenceName);
+  /*! Get the reference coordinate frame name */
+  vtkGetStringMacro(ReferenceCoordinateFrameName);
 
   std::string GetTransformName() const;
 
@@ -220,18 +231,12 @@ public:
   /*! Get the frame number (some devices have frame numbering, otherwise just increment if new frame received) */
   vtkGetMacro(FrameNumber, unsigned long);
   vtkSetMacro(FrameNumber, unsigned long);
-
-  /*! Get source id */
-  vtkGetStringMacro(SourceId); 
-  /*! Get the reference coordinate frame name */
-  vtkGetStringMacro(ReferenceCoordinateFrameName);
     
   /*!
     Get a custom property string.
     If the property is not defined then an empty string is returned.
   */
   std::string GetCustomProperty(const std::string& propertyName);
-
   /*!
     Set a custom property string.
     Custom properties are useful because custom information can be stored for each tool
@@ -245,6 +250,29 @@ public:
 protected:
   /*! Access the data buffer */
   virtual vtkPlusBuffer* GetBuffer();
+
+  /*!
+    Set the clip rectangle size to apply to the image in pixel coordinates.
+    If the ClipRectangleSize is (0,0) then the values are ignored and the whole frame is captured.
+    Width of the ClipRectangle typically have to be a multiple of 4.
+  */
+  vtkSetVector2Macro(ClipRectangleSize,int);
+  /*!
+    Get the clip rectangle size to apply to the image in pixel coordinates.
+    If the ClipRectangleSize is (0,0) then the values are ignored and the whole frame is captured.
+  */
+  vtkGetVector2Macro(ClipRectangleSize,int);
+
+  /*!
+    Set the clip rectangle origin to apply to the image in pixel coordinates.
+    If the ClipRectangleSize is (0,0) then the whole frame is captured.
+  */
+  vtkSetVector2Macro(ClipRectangleOrigin,int);
+  /*!
+    Get the clip rectangle origin to apply to the image in pixel coordinates.
+    If the ClipRectangleSize is (0,0) then the whole frame is captured.
+  */
+  vtkGetVector2Macro(ClipRectangleOrigin,int);
 
 protected:
   vtkPlusDataSource();
@@ -265,7 +293,12 @@ protected:
 
   vtkPlusBuffer* Buffer;
 
-  std::map< std::string, std::string > CustomProperties;
+  CustomPropertyMap CustomProperties;
+
+  /*! Crop rectangle origin for this data source */
+  int ClipRectangleOrigin[3];
+  /*! Crop rectangle size for this data source */
+  int ClipRectangleSize[3];
 
 private:
   vtkPlusDataSource(const vtkPlusDataSource&);
