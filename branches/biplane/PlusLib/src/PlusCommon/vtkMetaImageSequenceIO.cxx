@@ -496,7 +496,9 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
       LOG_ERROR("Cannot allocate memory for frame "<<frameNumber);
       numberOfErrors++;
       continue;
-    }    
+    }
+    int clipRectOrigin[3]={PlusVideoFrame::NO_CLIP, PlusVideoFrame::NO_CLIP, PlusVideoFrame::NO_CLIP};
+    int clipRectSize[3]={PlusVideoFrame::NO_CLIP, PlusVideoFrame::NO_CLIP, PlusVideoFrame::NO_CLIP};
     if (!this->UseCompression)
     {
       FilePositionOffsetType offset=PixelDataFileOffset+frameNumber*frameSizeInBytes;
@@ -506,7 +508,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
         //LOG_ERROR("Could not read "<<frameSizeInBytes<<" bytes from "<<GetPixelDataFilePath());
         //numberOfErrors++;
       }
-      if ( PlusVideoFrame::GetOrientedImage(&(pixelBuffer[0]), this->ImageOrientationInFile, this->ImageType, this->PixelType, this->NumberOfScalarComponents, this->Dimensions, this->ImageOrientationInMemory, *trackedFrame->GetImageData()) != PLUS_SUCCESS )
+      if ( PlusVideoFrame::GetOrientedClippedImage(&(pixelBuffer[0]), this->ImageOrientationInFile, this->ImageType, this->PixelType, this->NumberOfScalarComponents, this->Dimensions, this->ImageOrientationInMemory, *trackedFrame->GetImageData(), clipRectOrigin, clipRectSize) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get oriented image from sequence metafile (frame number: " << frameNumber << ")!"); 
         numberOfErrors++;
@@ -515,7 +517,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
     }
     else
     {
-      if ( PlusVideoFrame::GetOrientedImage(&(allFramesPixelBuffer[0])+frameNumber*frameSizeInBytes, this->ImageOrientationInFile, this->ImageType, this->PixelType, this->NumberOfScalarComponents, this->Dimensions, this->ImageOrientationInMemory, *trackedFrame->GetImageData()) != PLUS_SUCCESS )
+      if ( PlusVideoFrame::GetOrientedClippedImage(&(allFramesPixelBuffer[0])+frameNumber*frameSizeInBytes, this->ImageOrientationInFile, this->ImageType, this->PixelType, this->NumberOfScalarComponents, this->Dimensions, this->ImageOrientationInMemory, *trackedFrame->GetImageData(), clipRectOrigin, clipRectSize) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get oriented image from sequence metafile (frame number: " << frameNumber << ")!"); 
         numberOfErrors++;

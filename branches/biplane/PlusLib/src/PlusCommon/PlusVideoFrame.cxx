@@ -24,9 +24,10 @@ namespace
 {
   //----------------------------------------------------------------------------
   template<class ScalarType>
-  PlusStatus FlipImageGeneric(void* inBuff, int numberOfScalarComponents, int width, int height, int depth, const PlusVideoFrame::FlipInfoType& flipInfo, void* outBuff)
+  PlusStatus FlipClipImageGeneric(void* inBuff, int numberOfScalarComponents, int width, int height, int depth, 
+    const PlusVideoFrame::FlipInfoType& flipInfo, const int clipRectangleOrigin[3], const int clipRectangleSize[3], void* outBuff)
   {
-    // TODO : determine how to do flipz
+    // TODO : determine how to do eFlip
     if (flipInfo.doubleRow)
     {
       if (height%2 != 0)
@@ -713,13 +714,13 @@ PlusStatus PlusVideoFrame::GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1,
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::GetOrientedImage( vtkImageData* inUsImage, 
+PlusStatus PlusVideoFrame::GetOrientedClippedImage( vtkImageData* inUsImage, 
                                             US_IMAGE_ORIENTATION inUsImageOrientation, 
                                             US_IMAGE_TYPE inUsImageType, 
                                             US_IMAGE_ORIENTATION outUsImageOrientation, 
                                             vtkImageData* outUsOrientedImage,
-                                            int* clipRectangleOrigin /*=NULL*/, 
-                                            int* clipRectangleSize /*=NULL*/ )
+                                            const int clipRectangleOrigin[3], 
+                                            const int clipRectangleSize[3])
 {
   if ( inUsImage == NULL )
   {
@@ -748,14 +749,12 @@ PlusStatus PlusVideoFrame::GetOrientedImage( vtkImageData* inUsImage,
   }
 
   // TODO : out oriented image better match clip size
-  int outWidth = outUsOrientedImage->GetExtent()[1] - outUsOrientedImage->GetExtent()[0];
-  int inWidth = inUsImage->GetExtent()[1] - inUsImage->GetExtent()[0];
-  int outHeight = outUsOrientedImage->GetExtent()[3] - outUsOrientedImage->GetExtent()[2];
-  int inHeight = inUsImage->GetExtent()[3] - inUsImage->GetExtent()[2];
-  int outDepth = outUsOrientedImage->GetExtent()[5] - outUsOrientedImage->GetExtent()[4];
-  int inDepth = inUsImage->GetExtent()[5] - inUsImage->GetExtent()[4];
-
-  if( outHeight != inHeight || outWidth != inWidth || outDepth != inDepth || outUsOrientedImage->GetScalarType() != inUsImage->GetScalarType() || outUsOrientedImage->GetNumberOfScalarComponents() != inUsImage->GetNumberOfScalarComponents() )
+  int outDimensions[3]={0,0,0};
+  int inDimensions[3]={0,0,0};
+  outUsOrientedImage->GetDimensions(outDimensions);
+  inUsImage->GetDimensions(inDimensions);
+  
+  if( outDimensions[0] != inDimensions[0] || outDimensions[1] != inDimensions[1] || outDimensions[2] != inDimensions[2] || outUsOrientedImage->GetScalarType() != inUsImage->GetScalarType() || outUsOrientedImage->GetNumberOfScalarComponents() != inUsImage->GetNumberOfScalarComponents() )
   {
     // Allocate the output image
     outUsOrientedImage->SetExtent(inUsImage->GetExtent());
@@ -770,23 +769,17 @@ PlusStatus PlusVideoFrame::GetOrientedImage( vtkImageData* inUsImage,
 
   int numberOfBytesPerScalar = PlusVideoFrame::GetNumberOfBytesPerScalar(inUsImage->GetScalarType());
 
-  int extent[6]={0,0,0,0,0,0}; 
-  inUsImage->GetExtent(extent); 
-  double width = extent[1] - extent[0] + 1; 
-  double height = extent[3] - extent[2] + 1;
-  double depth = extent[5] - extent[4] + 1;
-
   PlusStatus status(PLUS_FAIL);
   switch (numberOfBytesPerScalar)
   {
   case 1:
-    status = FlipImageGeneric<vtkTypeUInt8>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, outUsOrientedImage->GetScalarPointer());
+    status = FlipClipImageGeneric<vtkTypeUInt8>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), inDimensions[0], inDimensions[1], inDimensions[2], flipInfo, clipRectangleOrigin, clipRectangleSize, outUsOrientedImage->GetScalarPointer());
     break;
   case 2:
-    status = FlipImageGeneric<vtkTypeUInt16>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, outUsOrientedImage->GetScalarPointer());
+    status = FlipClipImageGeneric<vtkTypeUInt16>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), inDimensions[0], inDimensions[1], inDimensions[2], flipInfo, clipRectangleOrigin, clipRectangleSize, outUsOrientedImage->GetScalarPointer());
     break;
   case 4:
-    status = FlipImageGeneric<vtkTypeUInt32>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, outUsOrientedImage->GetScalarPointer());
+    status = FlipClipImageGeneric<vtkTypeUInt32>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), inDimensions[0], inDimensions[1], inDimensions[2], flipInfo, clipRectangleOrigin, clipRectangleSize, outUsOrientedImage->GetScalarPointer());
     break;
   default:
     LOG_ERROR("Unsupported bit depth: "<<numberOfBytesPerScalar<<" bytes per scalar");
@@ -795,16 +788,16 @@ PlusStatus PlusVideoFrame::GetOrientedImage( vtkImageData* inUsImage,
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::GetOrientedImage(  unsigned char* imageDataPtr,                               
+PlusStatus PlusVideoFrame::GetOrientedClippedImage(  unsigned char* imageDataPtr,                               
                                             US_IMAGE_ORIENTATION  inUsImageOrientation, 
                                             US_IMAGE_TYPE inUsImageType, 
                                             PlusCommon::VTKScalarPixelType pixType,
                                             int numberOfScalarComponents,  
-                                            const int    frameSizeInPx[3],
+                                            const int frameSizeInPx[3],
                                             US_IMAGE_ORIENTATION  outUsImageOrientation, 
                                             vtkImageData* outUsOrientedImage,
-                                            int* clipRectangleOrigin /*=NULL*/, 
-                                            int* clipRectangleSize /*=NULL*/)
+                                            const int clipRectangleOrigin[3], 
+                                            const int clipRectangleSize[3])
 {
   if ( imageDataPtr == NULL )
   {
@@ -852,14 +845,14 @@ PlusStatus PlusVideoFrame::GetOrientedImage(  unsigned char* imageDataPtr,
     return PLUS_SUCCESS; 
   }
 
-  PlusStatus result = PlusVideoFrame::GetOrientedImage(inUsImage, inUsImageOrientation, inUsImageType, 
+  PlusStatus result = PlusVideoFrame::GetOrientedClippedImage(inUsImage, inUsImageOrientation, inUsImageType, 
     outUsImageOrientation, outUsOrientedImage, clipRectangleOrigin, clipRectangleSize); 
   DELETE_IF_NOT_NULL(inUsImage);
   return result;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::GetOrientedImage( unsigned char* imageDataPtr, 
+PlusStatus PlusVideoFrame::GetOrientedClippedImage( unsigned char* imageDataPtr, 
                                             US_IMAGE_ORIENTATION  inUsImageOrientation, 
                                             US_IMAGE_TYPE inUsImageType, 
                                             PlusCommon::VTKScalarPixelType pixType, 
@@ -867,15 +860,19 @@ PlusStatus PlusVideoFrame::GetOrientedImage( unsigned char* imageDataPtr,
                                             const int frameSizeInPx[3], 
                                             US_IMAGE_ORIENTATION outUsImageOrientation, 
                                             PlusVideoFrame &outBufferItem,
-                                            int* clipRectangleOrigin /*=NULL*/, 
-                                            int* clipRectangleSize /*=NULL*/)
+                                            const int clipRectangleOrigin[3], 
+                                            const int clipRectangleSize[3])
 {
-  return PlusVideoFrame::GetOrientedImage(imageDataPtr, inUsImageOrientation, inUsImageType, pixType, 
+  return PlusVideoFrame::GetOrientedClippedImage(imageDataPtr, inUsImageOrientation, inUsImageType, pixType, 
     numberOfScalarComponents, frameSizeInPx, outUsImageOrientation, outBufferItem.GetImage(), clipRectangleOrigin, clipRectangleSize);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::FlipImage(vtkImageData* inUsImage, const PlusVideoFrame::FlipInfoType& flipInfo, vtkImageData* outUsOrientedImage)
+PlusStatus PlusVideoFrame::FlipClipImage(vtkImageData* inUsImage, 
+                                         const PlusVideoFrame::FlipInfoType& flipInfo,
+                                         const int clipRectangleOrigin[3], 
+                                         const int clipRectangleSize[3], 
+                                         vtkImageData* outUsOrientedImage)
 {
   if( outUsOrientedImage == NULL )
   {
@@ -896,16 +893,16 @@ PlusStatus PlusVideoFrame::FlipImage(vtkImageData* inUsImage, const PlusVideoFra
   int depth = extents[5] - extents[4];
   switch(outUsOrientedImage->GetScalarType())
   {
-  case VTK_UNSIGNED_CHAR: return FlipImageGeneric<vtkTypeUInt8>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, outUsOrientedImage->GetScalarPointer());
-  case VTK_CHAR: return FlipImageGeneric<vtkTypeInt8>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, outUsOrientedImage->GetScalarPointer());
-  case VTK_UNSIGNED_SHORT: return FlipImageGeneric<vtkTypeUInt16>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, outUsOrientedImage->GetScalarPointer());
-  case VTK_SHORT: return FlipImageGeneric<vtkTypeInt16>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, outUsOrientedImage->GetScalarPointer());
-  case VTK_UNSIGNED_INT: return FlipImageGeneric<vtkTypeUInt32>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, outUsOrientedImage->GetScalarPointer());
-  case VTK_INT: return FlipImageGeneric<vtkTypeInt32>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, outUsOrientedImage->GetScalarPointer());
-  case VTK_UNSIGNED_LONG: return FlipImageGeneric<unsigned long>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, outUsOrientedImage->GetScalarPointer());
-  case VTK_LONG: return FlipImageGeneric<long>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, outUsOrientedImage->GetScalarPointer());
-  case VTK_FLOAT: return FlipImageGeneric<vtkTypeFloat32>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, outUsOrientedImage->GetScalarPointer());
-  case VTK_DOUBLE: return FlipImageGeneric<vtkTypeFloat64>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, outUsOrientedImage->GetScalarPointer());
+  case VTK_UNSIGNED_CHAR: return FlipClipImageGeneric<vtkTypeUInt8>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, clipRectangleOrigin, clipRectangleSize, outUsOrientedImage->GetScalarPointer());
+  case VTK_CHAR: return FlipClipImageGeneric<vtkTypeInt8>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, clipRectangleOrigin, clipRectangleSize, outUsOrientedImage->GetScalarPointer());
+  case VTK_UNSIGNED_SHORT: return FlipClipImageGeneric<vtkTypeUInt16>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, clipRectangleOrigin, clipRectangleSize, outUsOrientedImage->GetScalarPointer());
+  case VTK_SHORT: return FlipClipImageGeneric<vtkTypeInt16>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, clipRectangleOrigin, clipRectangleSize, outUsOrientedImage->GetScalarPointer());
+  case VTK_UNSIGNED_INT: return FlipClipImageGeneric<vtkTypeUInt32>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, clipRectangleOrigin, clipRectangleSize, outUsOrientedImage->GetScalarPointer());
+  case VTK_INT: return FlipClipImageGeneric<vtkTypeInt32>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, clipRectangleOrigin, clipRectangleSize, outUsOrientedImage->GetScalarPointer());
+  case VTK_UNSIGNED_LONG: return FlipClipImageGeneric<unsigned long>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, clipRectangleOrigin, clipRectangleSize, outUsOrientedImage->GetScalarPointer());
+  case VTK_LONG: return FlipClipImageGeneric<long>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, clipRectangleOrigin, clipRectangleSize, outUsOrientedImage->GetScalarPointer());
+  case VTK_FLOAT: return FlipClipImageGeneric<vtkTypeFloat32>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, clipRectangleOrigin, clipRectangleSize, outUsOrientedImage->GetScalarPointer());
+  case VTK_DOUBLE: return FlipClipImageGeneric<vtkTypeFloat64>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), width, height, depth, flipInfo, clipRectangleOrigin, clipRectangleSize, outUsOrientedImage->GetScalarPointer());
   default:
     LOG_ERROR("Unknown pixel type. Cannot re-orient image.");
     return PLUS_FAIL;

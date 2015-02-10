@@ -320,12 +320,12 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr,
                                   int numberOfScalarComponents,
                                   US_IMAGE_TYPE imageType,
                                   int numberOfBytesToSkip,
-                                  long frameNumber,  
+                                  long frameNumber,
+                                  const int clipRectangleOrigin[3],
+                                  const int clipRectangleSize[3],
                                   double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, 
                                   double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
-                                  const TrackedFrame::FieldMapType* customFields /*=NULL*/,
-                                  int* clipRectangleOrigin /*=NULL*/,
-                                  int* clipRectangleSize /*=NULL*/)
+                                  const TrackedFrame::FieldMapType* customFields /*=NULL*/)
 {
   if (unfilteredTimestamp == UNDEFINED_TIMESTAMP)
   {
@@ -400,7 +400,7 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr,
   unsigned char* byteImageDataPtr=reinterpret_cast<unsigned char*>(imageDataPtr);
   byteImageDataPtr += numberOfBytesToSkip; 
 
-  if (PlusVideoFrame::GetOrientedImage(byteImageDataPtr, usImageOrientation, imageType, pixelType, numberOfScalarComponents, frameSizeInPx, this->ImageOrientation, newObjectInBuffer->GetFrame(), clipRectangleOrigin, clipRectangleSize) != PLUS_SUCCESS)
+  if (PlusVideoFrame::GetOrientedClippedImage(byteImageDataPtr, usImageOrientation, imageType, pixelType, numberOfScalarComponents, frameSizeInPx, this->ImageOrientation, newObjectInBuffer->GetFrame(), clipRectangleOrigin, clipRectangleSize) != PLUS_SUCCESS)
   {
     LOCAL_LOG_ERROR("Failed to convert input US image to the requested orientation!"); 
     return PLUS_FAIL; 
@@ -434,11 +434,11 @@ PlusStatus vtkPlusBuffer::AddItem(vtkImageData* frame,
                                   US_IMAGE_ORIENTATION usImageOrientation, 
                                   US_IMAGE_TYPE imageType, 
                                   long frameNumber, 
+                                  const int clipRectangleOrigin[3],
+                                  const int clipRectangleSize[3],
                                   double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
                                   double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
-                                  const TrackedFrame::FieldMapType* customFields /*=NULL*/,
-                                  int* clipRectangleOrigin /*=NULL*/, 
-                                  int* clipRectangleSize /*=NULL*/)
+                                  const TrackedFrame::FieldMapType* customFields /*=NULL*/)
 {
   if ( frame == NULL )
   {
@@ -446,51 +446,19 @@ PlusStatus vtkPlusBuffer::AddItem(vtkImageData* frame,
     return PLUS_FAIL; 
   }
 
-  if (unfilteredTimestamp==UNDEFINED_TIMESTAMP)
-  {
-    unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
-  }
-
-  if (filteredTimestamp==UNDEFINED_TIMESTAMP)
-  {
-    bool filteredTimestampProbablyValid=true;
-    if ( this->StreamBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp, filteredTimestampProbablyValid) != PLUS_SUCCESS )
-    {
-      LOCAL_LOG_WARNING("Failed to create filtered timestamp for video buffer item with item index: " << frameNumber ); 
-      return PLUS_FAIL; 
-    }
-    if (!filteredTimestampProbablyValid)
-    {
-      LOG_INFO("Filtered timestamp is probably invalid for video buffer item with item index=" << frameNumber << ", time="<<unfilteredTimestamp<<". The item may have been tagged with an inaccurate timestamp, therefore it will not be recorded." ); 
-      return PLUS_SUCCESS;
-    }
-  }
-  else
-  {
-    this->StreamBuffer->AddToTimeStampReport(frameNumber, unfilteredTimestamp, filteredTimestamp);
-  }
-
-  // TODO : why is this done, when it's done again in the final AddItem call?
-  vtkSmartPointer<vtkImageData> mfOrientedClippedImage = vtkSmartPointer<vtkImageData>::New(); 
-  if ( PlusVideoFrame::GetOrientedImage(frame, usImageOrientation, imageType, this->ImageOrientation, mfOrientedClippedImage, clipRectangleOrigin, clipRectangleSize) != PLUS_SUCCESS )
-  {
-    LOCAL_LOG_ERROR("Failed to add video item to buffer: couldn't get requested reoriented frame!"); 
-    return PLUS_FAIL; 
-  }
-
-  const int* frameExtent = mfOrientedClippedImage->GetExtent(); 
+  const int* frameExtent = frame->GetExtent(); 
   const int frameSize[3] = {(frameExtent[1] - frameExtent[0] + 1), (frameExtent[3] - frameExtent[2] + 1), (frameExtent[5] - frameExtent[4] + 1)}; 
-  return this->AddItem( reinterpret_cast<unsigned char*>(mfOrientedClippedImage->GetScalarPointer()), this->ImageOrientation, frameSize, frame->GetScalarType(), this->NumberOfScalarComponents, this->ImageType, 0, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields); 
+  return this->AddItem( reinterpret_cast<unsigned char*>(frame->GetScalarPointer()), usImageOrientation, frameSize, frame->GetScalarType(), frame->GetNumberOfScalarComponents(), imageType, 0, frameNumber, clipRectangleOrigin, clipRectangleSize, unfilteredTimestamp, filteredTimestamp, customFields); 
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusBuffer::AddItem(const PlusVideoFrame* frame, 
-                                  long frameNumber, 
+                                  long frameNumber,
+                                  const int clipRectangleOrigin[3],
+                                  const int clipRectangleSize[3], 
                                   double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, 
                                   double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
-                                  const TrackedFrame::FieldMapType* customFields /*=NULL*/,
-                                  int* clipRectangleOrigin /*=NULL*/, 
-                                  int* clipRectangleSize /*=NULL*/)
+                                  const TrackedFrame::FieldMapType* customFields /*=NULL*/)
 {
   if ( frame == NULL )
   {
@@ -498,34 +466,7 @@ PlusStatus vtkPlusBuffer::AddItem(const PlusVideoFrame* frame,
     return PLUS_FAIL; 
   }
 
-  if (unfilteredTimestamp == UNDEFINED_TIMESTAMP)
-  {
-    unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
-  }
-
-  if (filteredTimestamp == UNDEFINED_TIMESTAMP)
-  {
-    bool filteredTimestampProbablyValid=true;
-    if ( this->StreamBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp, filteredTimestampProbablyValid) != PLUS_SUCCESS )
-    {
-      LOCAL_LOG_WARNING("Failed to create filtered timestamp for video buffer item with item index: " << frameNumber ); 
-      return PLUS_FAIL; 
-    }
-    if ( !filteredTimestampProbablyValid )
-    {
-      LOG_INFO("Filtered timestamp is probably invalid for video buffer item with item index=" << frameNumber << ", time="<<unfilteredTimestamp<<". The item may have been tagged with an inaccurate timestamp, therefore it will not be recorded." ); 
-      return PLUS_SUCCESS;
-    }
-  }
-  else
-  {
-    this->StreamBuffer->AddToTimeStampReport(frameNumber, unfilteredTimestamp, filteredTimestamp);
-  }
-
-  int frameSize[3]={0,0,0};
-  frame->GetFrameSize(frameSize);    
-
-  return this->AddItem(frame->GetScalarPointer(), frame->GetImageOrientation(), frameSize, frame->GetVTKScalarPixelType(), this->GetNumberOfScalarComponents(), frame->GetImageType(), 0 /* no skip*/, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields, clipRectangleOrigin, clipRectangleSize);  
+  return this->AddItem(frame->GetImage(), frame->GetImageOrientation(), frame->GetImageType(), frameNumber, clipRectangleOrigin, clipRectangleSize, unfilteredTimestamp, filteredTimestamp, customFields);  
 }
 
 //----------------------------------------------------------------------------
@@ -922,24 +863,26 @@ PlusStatus vtkPlusBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *so
       LOCAL_LOG_ERROR("Unable to read FrameNumber field of frame #" << frameNumber); 
       numberOfErrors++; 
       continue; 
-    }   
+    }
 
+    int clipRectOrigin[3]={PlusVideoFrame::NO_CLIP, PlusVideoFrame::NO_CLIP, PlusVideoFrame::NO_CLIP};
+    int clipRectSize[3]={PlusVideoFrame::NO_CLIP, PlusVideoFrame::NO_CLIP, PlusVideoFrame::NO_CLIP};
     switch (timestampFiltering)
     {
     case READ_FILTERED_AND_UNFILTERED_TIMESTAMPS:
-      if ( this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), frmnum, unfilteredtimestamp, timestamp, &customFields) != PLUS_SUCCESS )
+      if ( this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), frmnum, clipRectOrigin, clipRectSize, unfilteredtimestamp, timestamp, &customFields) != PLUS_SUCCESS )
       {
         LOCAL_LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber ); 
       }
       break;
     case READ_UNFILTERED_COMPUTE_FILTERED_TIMESTAMPS:
-      if ( this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), frmnum, unfilteredtimestamp, UNDEFINED_TIMESTAMP, &customFields) != PLUS_SUCCESS )
+      if ( this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), frmnum, clipRectOrigin, clipRectSize, unfilteredtimestamp, UNDEFINED_TIMESTAMP, &customFields) != PLUS_SUCCESS )
       {
         LOCAL_LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber ); 
       }
       break;
     case READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS:
-      if ( this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), frmnum, timestamp, timestamp, &customFields) != PLUS_SUCCESS )
+      if ( this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), frmnum, clipRectOrigin, clipRectSize, timestamp, timestamp, &customFields) != PLUS_SUCCESS )
       {
         LOCAL_LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber ); 
       }

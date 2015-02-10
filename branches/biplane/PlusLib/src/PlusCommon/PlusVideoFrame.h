@@ -75,6 +75,8 @@ functions to get/set its content from ITK and VTK images and byte arrays.
 class vtkPlusCommonExport PlusVideoFrame
 {
 public:
+  static const int NO_CLIP = -1;
+
   struct FlipInfoType
   {
     FlipInfoType() : hFlip(false), vFlip(false), eFlip(false), doubleColumn(false), doubleRow(false) {};
@@ -186,17 +188,17 @@ public:
   /*! Read unsigned char type image file to PlusVideoFrame */
   static PlusStatus ReadImageFromFile( PlusVideoFrame &frame, const char* fileName); 
 
-  /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( vtkImageData* inUsImage, 
+  /*! Convert oriented image to MF oriented ultrasound image and perform any requested clipping */
+  static PlusStatus GetOrientedClippedImage( vtkImageData* inUsImage, 
     US_IMAGE_ORIENTATION inUsImageOrientation, 
     US_IMAGE_TYPE inUsImageType, 
     US_IMAGE_ORIENTATION outUsImageOrientation, 
     vtkImageData* outUsOrientedImage,
-    int* clipRectangleOrigin = NULL,
-    int* clipRectangleSize = NULL); 
+    const int clipRectangleOrigin[3], 
+    const int clipRectangleSize[3]); 
 
-  /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, 
+  /*! Convert oriented image to MF oriented ultrasound image and perform any requested clipping*/
+  static PlusStatus GetOrientedClippedImage( unsigned char* imageDataPtr, 
     US_IMAGE_ORIENTATION  inUsImageOrientation, 
     US_IMAGE_TYPE inUsImageType, 
     PlusCommon::VTKScalarPixelType inUsImagePixelType, 
@@ -204,11 +206,11 @@ public:
     const int frameSizeInPx[3], 
     US_IMAGE_ORIENTATION outUsImageOrientation, 
     vtkImageData* outUsOrientedImage,
-    int* clipRectangleOrigin = NULL,
-    int* clipRectangleSize = NULL); 
+    const int clipRectangleOrigin[3], 
+    const int clipRectangleSize[3]); 
 
-  /*! Convert oriented image to MF oriented ultrasound image */
-  static PlusStatus GetOrientedImage( unsigned char* imageDataPtr, 
+  /*! Convert oriented image to MF oriented ultrasound image and perform any requested clipping*/
+  static PlusStatus GetOrientedClippedImage( unsigned char* imageDataPtr, 
     US_IMAGE_ORIENTATION  inUsImageOrientation, 
     US_IMAGE_TYPE inUsImageType, 
     PlusCommon::VTKScalarPixelType inUsImagePixelType, 
@@ -216,16 +218,15 @@ public:
     const int frameSizeInPx[3], 
     US_IMAGE_ORIENTATION outUsImageOrientation, 
     PlusVideoFrame &outBufferItem,
-    int* clipRectangleOrigin = NULL,
-    int* clipRectangleSize = NULL);
+    const int clipRectangleOrigin[3], 
+    const int clipRectangleSize[3]);
 
   static PlusStatus GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1, US_IMAGE_TYPE usImageType1, US_IMAGE_ORIENTATION usImageOrientation2, FlipInfoType& flipInfo);
 
   /*! 
   Flip a 2D image along one or two axes. This is a performance optimized version of flipping that does not use ITK filters 
-  \param doubleRow If this flag is set to true then pairs of rows are kept together. This is needed for flipping RF images with US_IMG_RF_I_LINE_Q_LINE encoding, where one scanline is encoded as a pair of I and Q lines in the image. 
   */
-  static PlusStatus FlipImage(vtkImageData* inUsImage, const FlipInfoType& flipInfo, vtkImageData* outUsOrientedImage);
+  static PlusStatus FlipClipImage(vtkImageData* inUsImage, const FlipInfoType& flipInfo, const int clipRectangleOrigin[3], const int clipRectangleSize[3], vtkImageData* outUsOrientedImage);
 
   /*! Return true if the image data is valid (e.g. not NULL) */
   bool IsImageValid() const

@@ -477,19 +477,19 @@ void vtkPlusDataSource::SetCustomProperty(const std::string& propertyName, const
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusDataSource::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, US_IMAGE_TYPE imageType, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const TrackedFrame::FieldMapType* customFields /*= NULL*/)
 {
-  return this->GetBuffer()->AddItem(frame, usImageOrientation, imageType, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields, this->ClipRectangleOrigin, this->ClipRectangleSize);
+  return this->GetBuffer()->AddItem(frame, usImageOrientation, imageType, frameNumber, this->ClipRectangleOrigin, this->ClipRectangleSize, unfilteredTimestamp, filteredTimestamp, customFields);
 }
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusDataSource::AddItem(const PlusVideoFrame* frame, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const TrackedFrame::FieldMapType* customFields /*= NULL*/)
 {
-  return this->GetBuffer()->AddItem(frame, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields, this->ClipRectangleOrigin, this->ClipRectangleSize);
+  return this->GetBuffer()->AddItem(frame, frameNumber, this->ClipRectangleOrigin, this->ClipRectangleSize, unfilteredTimestamp, filteredTimestamp, customFields);
 }
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusDataSource::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const int frameSizeInPx[3], PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const TrackedFrame::FieldMapType* customFields /*= NULL*/)
 {
-  return this->GetBuffer()->AddItem(imageDataPtr, usImageOrientation, frameSizeInPx, pixelType, numberOfScalarComponents, imageType, numberOfBytesToSkip, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields, this->ClipRectangleOrigin, this->ClipRectangleSize);
+  return this->GetBuffer()->AddItem(imageDataPtr, usImageOrientation, frameSizeInPx, pixelType, numberOfScalarComponents, imageType, numberOfBytesToSkip, frameNumber, this->ClipRectangleOrigin, this->ClipRectangleSize, unfilteredTimestamp, filteredTimestamp, customFields);
 }
 
 //-----------------------------------------------------------------------------
