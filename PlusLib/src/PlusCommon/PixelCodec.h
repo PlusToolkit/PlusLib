@@ -47,7 +47,8 @@ public:
   {
     PixelEncoding_ERROR,
     PixelEncoding_YUY2,
-    PixelEncoding_BMP,
+    PixelEncoding_RGB24,
+    PixelEncoding_BGR24,
     PixelEncoding_MJPG
   };
 
@@ -69,7 +70,8 @@ public:
   {
     switch (inputCompression)
     {  
-    case PixelEncoding_BMP: return true;
+    case PixelEncoding_RGB24: return true;
+    case PixelEncoding_BGR24: return true;
     case PixelEncoding_YUY2: return true;
     case PixelEncoding_MJPG: return true;
     default:
@@ -100,8 +102,11 @@ public:
   {    
     switch(inputCompression)
     {
-    case PixelEncoding_BMP:
-      return "BMP";
+    case PixelEncoding_RGB24:
+      return "RGB24";
+      break;
+    case PixelEncoding_BGR24:
+      return "BGR24";
       break;
     case PixelEncoding_YUY2:
       return "YUY2";
@@ -143,7 +148,8 @@ public:
   {
     switch (inputCompression)
     {
-    case PixelEncoding_BMP:
+    case PixelEncoding_RGB24:
+    case PixelEncoding_BGR24:
       // decode the grabbed image to the requested output image type
       Rgb24ToGray(width, height, s, d);
       break;
@@ -152,7 +158,7 @@ public:
       Yuv422pToGray(width, height, s, d);
       break;
     case PixelEncoding_MJPG:
-      // TODO
+      LOG_ERROR("MJPG to grayscale conversion is not yet supported");
       break;
     default:
       LOG_ERROR("Unknown compression type: "<<inputCompression);
@@ -166,22 +172,53 @@ public:
   {
     switch (inputCompression)
     {
-    case PixelEncoding_BMP:
-      // Nothing to do, copy out
-      memcpy(d, s, width*height*3);
-      return PLUS_SUCCESS;
+    case PixelEncoding_RGB24:
+      if (outputOrdering==ComponentOrder_RGB)
+      {
+        // Nothing to do, copy out
+        memcpy(d, s, width*height*3);
+      }
+      else
+      {
+        RgbBgrSwap(width, height, s, d);
+      }
+      break;
+    case PixelEncoding_BGR24:
+      if (outputOrdering==ComponentOrder_BGR)
+      {
+        // Nothing to do, copy out
+        memcpy(d, s, width*height*3);
+      }
+      else
+      {
+        RgbBgrSwap(width, height, s, d);
+      }
       break;
     case PixelEncoding_YUY2:
       // decode the grabbed image to the requested output image type
       return Yuv422pToBmp24(outputOrdering, width, height, s, d);
       break;
     case PixelEncoding_MJPG:
+      return MjpgToRgb24(outputOrdering, width, height, s, d);
       break;
     default:
       LOG_ERROR("Unknown compression type: " << inputCompression);
       return PLUS_FAIL;
     }
     return PLUS_SUCCESS;
+  }
+
+ //----------------------------------------------------------------------------
+  static inline void RgbBgrSwap(int width, int height, unsigned char *s,unsigned char *d)
+  {
+    int totalLen=width*height;
+    for (int i=0; i<totalLen; i++)
+    {
+      *(d++)=s[2];
+      *(d++)=s[1];
+      *(d++)=s[0];
+      s+=3;
+    }
   }
 
   //----------------------------------------------------------------------------
@@ -246,6 +283,13 @@ public:
     rgb[0] = (outputOrdering == ComponentOrder_BGR ? B : R);
     rgb[1] = G;
     rgb[2] = (outputOrdering == ComponentOrder_BGR ? R : B);
+  }
+
+  //----------------------------------------------------------------------------
+  static PlusStatus MjpgToRgb24(ComponentOrdering outputOrdering, int width, int height, unsigned char *s,unsigned char *d)
+  {
+    LOG_ERROR("MJPEG not supported yet");
+    return PLUS_FAIL;
   }
 
   //----------------------------------------------------------------------------
