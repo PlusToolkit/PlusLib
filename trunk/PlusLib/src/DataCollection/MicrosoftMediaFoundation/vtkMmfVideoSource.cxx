@@ -604,7 +604,7 @@ PlusStatus vtkMmfVideoSource::AddFrame(unsigned char* bufferData, DWORD bufferSi
       LOG_ERROR("Failed to decode pixel data from RGB24 due to buffer size mismatch");
       return PLUS_FAIL;
     }
-    encoding = PixelCodec::PixelEncoding_BMP;
+    encoding = PixelCodec::PixelEncoding_BGR24;
   }
   else
   {
