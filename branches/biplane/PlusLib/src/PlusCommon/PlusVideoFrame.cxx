@@ -24,25 +24,25 @@ namespace
 {
   //----------------------------------------------------------------------------
   template<class ScalarType>
-  PlusStatus FlipClipImageGeneric(void* inBuff, int numberOfScalarComponents, int width, int height, int depth, 
+  PlusStatus FlipClipImageGeneric(void* inBuff, int numberOfScalarComponents, int inputWidth, int inputHeight, int inputDepth, 
     const PlusVideoFrame::FlipInfoType& flipInfo, const int clipRectangleOrigin[3], const int clipRectangleSize[3], void* outBuff)
   {
     // TODO : determine how to do eFlip
     if (flipInfo.doubleRow)
     {
-      if (height%2 != 0)
+      if (inputHeight%2 != 0)
       {
-        LOG_ERROR("Cannot flip image with pairs of rows kept together, as number of rows is odd ("<<height<<")");
+        LOG_ERROR("Cannot flip image with pairs of rows kept together, as number of rows is odd ("<<inputHeight<<")");
         return PLUS_FAIL;
       }
-      width*=2;
-      height/=2;
+      inputWidth*=2;
+      inputHeight/=2;
     }
     if (flipInfo.doubleColumn)
     {
-      if (width%2 != 0)
+      if (inputWidth%2 != 0)
       {
-        LOG_ERROR("Cannot flip image with pairs of columns kept together, as number of columns is odd ("<<width<<")");
+        LOG_ERROR("Cannot flip image with pairs of columns kept together, as number of columns is odd ("<<inputWidth<<")");
         return PLUS_FAIL;
       }
     }
@@ -52,13 +52,13 @@ namespace
       // flip Y    
       ScalarType* inputPixel = (ScalarType*)inBuff;
       // Set the target position pointer to the first pixel of the last row
-      ScalarType* outputPixel = (ScalarType*)outBuff + width*numberOfScalarComponents*(height-1);
+      ScalarType* outputPixel = (ScalarType*)outBuff + inputWidth*numberOfScalarComponents*(inputHeight-1);
       // Copy the image row-by-row, reversing the row order
-      for (int y=height; y>0; y--)
+      for (int y=inputHeight; y>0; y--)
       {
-        memcpy(outputPixel, inputPixel, width * sizeof(ScalarType) * numberOfScalarComponents);
-        inputPixel += (width * numberOfScalarComponents);
-        outputPixel -= (width * numberOfScalarComponents);
+        memcpy(outputPixel, inputPixel, inputWidth * sizeof(ScalarType) * numberOfScalarComponents);
+        inputPixel += (inputWidth * numberOfScalarComponents);
+        outputPixel -= (inputWidth * numberOfScalarComponents);
       }
     }
     else if (flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.eFlip)
@@ -68,11 +68,11 @@ namespace
       {
         ScalarType* inputPixel = (ScalarType*)inBuff;
         // Set the target position pointer to the last pixel of the first row
-        ScalarType* outputPixel = (ScalarType*)outBuff + width*numberOfScalarComponents - 2*numberOfScalarComponents;
+        ScalarType* outputPixel = (ScalarType*)outBuff + inputWidth*numberOfScalarComponents - 2*numberOfScalarComponents;
         // Copy the image row-by-row, reversing the pixel order in each row
-        for (int y = height; y > 0; y--)
+        for (int y = inputHeight; y > 0; y--)
         {
-          for (int x = width/2; x > 0; x--)
+          for (int x = inputWidth/2; x > 0; x--)
           {
             // For each scalar, copy it
             for( int s = 0; s < numberOfScalarComponents; ++s)
@@ -83,18 +83,18 @@ namespace
             inputPixel += 2*numberOfScalarComponents;
             outputPixel -= 2*numberOfScalarComponents;
           }
-          outputPixel += 2*width*numberOfScalarComponents;
+          outputPixel += 2*inputWidth*numberOfScalarComponents;
         }
       }
       else
       {
         ScalarType* inputPixel = (ScalarType*)inBuff;
         // Set the target position pointer to the last pixel of the first row
-        ScalarType* outputPixel = (ScalarType*)outBuff + width*numberOfScalarComponents - 1*numberOfScalarComponents;
+        ScalarType* outputPixel = (ScalarType*)outBuff + inputWidth*numberOfScalarComponents - 1*numberOfScalarComponents;
         // Copy the image row-by-row, reversing the pixel order in each row
-        for (int y = height; y > 0; y--)
+        for (int y = inputHeight; y > 0; y--)
         {
-          for (int x = width; x > 0; x--)
+          for (int x = inputWidth; x > 0; x--)
           {
             // For each scalar, copy it
             for( int s = 0; s < numberOfScalarComponents; ++s)
@@ -104,7 +104,7 @@ namespace
             inputPixel += numberOfScalarComponents;
             outputPixel -= numberOfScalarComponents;
           }
-          outputPixel += 2*width*numberOfScalarComponents;
+          outputPixel += 2*inputWidth*numberOfScalarComponents;
         }
       }
     }
@@ -115,9 +115,9 @@ namespace
       {
         ScalarType* inputPixel = (ScalarType*)inBuff;
         // Set the target position pointer to the last pixel
-        ScalarType* outputPixel = (ScalarType*)outBuff + height*width*numberOfScalarComponents - 1*numberOfScalarComponents;
+        ScalarType* outputPixel = (ScalarType*)outBuff + inputHeight*inputWidth*numberOfScalarComponents - 1*numberOfScalarComponents;
         // Copy the image pixelpair-by-pixelpair, reversing the pixel order
-        for (int p = width*height/2; p > 0; p--)
+        for (int p = inputWidth*inputHeight/2; p > 0; p--)
         {
           // For each scalar, copy it
           for( int s = 0; s < numberOfScalarComponents; ++s)
@@ -133,9 +133,9 @@ namespace
       {
         ScalarType* inputPixel = (ScalarType*)inBuff;
         // Set the target position pointer to the last pixel
-        ScalarType* outputPixel = (ScalarType*)outBuff + height*width*numberOfScalarComponents - 1*numberOfScalarComponents;
+        ScalarType* outputPixel = (ScalarType*)outBuff + inputHeight*inputWidth*numberOfScalarComponents - 1*numberOfScalarComponents;
         // Copy the image pixel-by-pixel, reversing the pixel order
-        for (int p = width*height; p > 0; p--)
+        for (int p = inputWidth*inputHeight; p > 0; p--)
         {
           // For each scalar, copy it
           for( int s = 0; s < numberOfScalarComponents; ++s)
@@ -456,6 +456,10 @@ US_IMAGE_ORIENTATION PlusVideoFrame::GetUsImageOrientationFromString( const char
   {
     imgOrientation = US_IMG_ORIENT_MNA; 
   }
+  else if ( STRCASECMP(imgOrientationStr, "AMF" ) == 0 )
+  {
+    imgOrientation = US_IMG_ORIENT_AMF; 
+  }
   else if ( STRCASECMP(imgOrientationStr, "UFD" ) == 0 )
   {
     imgOrientation = US_IMG_ORIENT_UFD; 
@@ -497,14 +501,19 @@ const char* PlusVideoFrame::GetStringFromUsImageOrientation(US_IMAGE_ORIENTATION
 {
   switch (imgOrientation)
   {
-  case US_IMG_ORIENT_MF: return "MF";
-  case US_IMG_ORIENT_MN: return "MN";
-  case US_IMG_ORIENT_UF: return "UF";
-  case US_IMG_ORIENT_UN: return "UN";
   case US_IMG_ORIENT_FM: return "FM";
   case US_IMG_ORIENT_NM: return "NM";
   case US_IMG_ORIENT_FU: return "FU";
   case US_IMG_ORIENT_NU: return "NU";
+  case US_IMG_ORIENT_UFA: return "UFA"; 
+  case US_IMG_ORIENT_UNA: return "UNA"; 
+  case US_IMG_ORIENT_MFA: return "MFA"; 
+  case US_IMG_ORIENT_MNA: return "MNA"; 
+  case US_IMG_ORIENT_AMF: return "AMF"; 
+  case US_IMG_ORIENT_UFD: return "UFD"; 
+  case US_IMG_ORIENT_UND: return "UND"; 
+  case US_IMG_ORIENT_MFD: return "MFD"; 
+  case US_IMG_ORIENT_MND: return "MND"; 
   default:
     return "XX";
   }
@@ -597,6 +606,7 @@ PlusStatus PlusVideoFrame::GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1,
   flipInfo.hFlip=false; // horizontal
   flipInfo.vFlip=false; // vertical
   flipInfo.eFlip=false; // elevational
+  flipInfo.KIJToIJKTranspose=false; // no transpose
   if ( usImageOrientation1 == US_IMG_ORIENT_XX ) 
   {
     LOG_ERROR("Failed to determine the necessary image flip - unknown input image orientation 1"); 
@@ -704,7 +714,15 @@ PlusStatus PlusVideoFrame::GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1,
     flipInfo.vFlip=true;
     flipInfo.eFlip=true;
     return PLUS_SUCCESS;
-  } 
+  }
+  if(
+    (usImageOrientation1==US_IMG_ORIENT_AMF && usImageOrientation2==US_IMG_ORIENT_MFA) ||
+    (usImageOrientation1==US_IMG_ORIENT_MFA && usImageOrientation2==US_IMG_ORIENT_AMF)
+    )
+  {
+    // Tranpose J KI images to K IJ images
+    flipInfo.KIJToIJKTranspose=true;
+  }
 
   assert(0);
   LOG_ERROR("Image orientation conversion between orientations " << PlusVideoFrame::GetStringFromUsImageOrientation(usImageOrientation1)
@@ -741,97 +759,72 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage( vtkImageData* inUsImage,
       " to " << PlusVideoFrame::GetStringFromUsImageOrientation(outUsImageOrientation));
     return PLUS_FAIL;
   }
-  if ( !flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.eFlip )
+  if ( !flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.eFlip && !flipInfo.KIJToIJKTranspose)
   {
-    // no flip
+    // no flip or transpose
     outUsOrientedImage->ShallowCopy( inUsImage ); 
     return PLUS_SUCCESS; 
   }
   
-  int outputDimensions[3]={0,0,0};
-  int finalClipSize[3]={clipRectangleSize[0], clipRectangleSize[1], clipRectangleSize[2]};
-
-  if( clipRectangleSize[0] == NO_CLIP || clipRectangleSize[1] == NO_CLIP || clipRectangleSize[2] == NO_CLIP )
-  {
-    int inDimensions[3]={0,0,0};
-    outUsOrientedImage->GetDimensions(outputDimensions);
-    inUsImage->GetDimensions(inDimensions);
-
-    if( outputDimensions[0] != inDimensions[0] || outputDimensions[1] != inDimensions[1] || outputDimensions[2] != inDimensions[2] || outUsOrientedImage->GetScalarType() != inUsImage->GetScalarType() || outUsOrientedImage->GetNumberOfScalarComponents() != inUsImage->GetNumberOfScalarComponents() )
-    {
-      // Allocate the output image
-      outUsOrientedImage->SetExtent(inUsImage->GetExtent());
-#if (VTK_MAJOR_VERSION < 6)
-      outUsOrientedImage->SetScalarType(inUsImage->GetScalarType());
-      outUsOrientedImage->SetNumberOfScalarComponents(inUsImage->GetNumberOfScalarComponents());
-      outUsOrientedImage->AllocateScalars(); 
-#else
-      outUsOrientedImage->AllocateScalars(inUsImage->GetScalarType(), inUsImage->GetNumberOfScalarComponents());
-#endif
-      outputDimensions[0]=inDimensions[0];
-      outputDimensions[1]=inDimensions[1];
-      outputDimensions[2]=inDimensions[2];
-    }
-  }
-  else
+  // Validate output image is correct dimensions to receive final oriented and/or clipped result
+  int inputDimensions[3]={0,0,0};  
+  inUsImage->GetDimensions(inputDimensions);
+  int finalClipOrigin[3] = {clipRectangleOrigin[0], clipRectangleOrigin[1], clipRectangleOrigin[2]};
+  int finalClipSize[3] = {clipRectangleSize[0], clipRectangleSize[1], clipRectangleSize[2]};
+  int finalOutputSize[3] = {inputDimensions[0], inputDimensions[1], inputDimensions[2]};
+  if( clipRectangleSize[0] != NO_CLIP && clipRectangleSize[1] != NO_CLIP && clipRectangleSize[2] != NO_CLIP )
   {
     // Clipping requested, validate that source image is bigger than requested clip size
     int inExtents[6]={0,0,0,0,0,0};
     inUsImage->GetExtent(inExtents);
 
-    if( (clipRectangleOrigin[0] >= inExtents[0] && clipRectangleOrigin[0] < inExtents[1]) &&
-      (clipRectangleOrigin[1] >= inExtents[2] && clipRectangleOrigin[2] < inExtents[3]) &&  // Verify that the origin is within the image
-      (clipRectangleOrigin[1] >= inExtents[4] && clipRectangleOrigin[2] < inExtents[5]) &&
+    if( !(  // If the clipping parameters are not valid, output a warning and remove clipping behavior
+          (clipRectangleOrigin[0] >= inExtents[0] && clipRectangleOrigin[0] < inExtents[1]) &&
+          (clipRectangleOrigin[1] >= inExtents[2] && clipRectangleOrigin[2] < inExtents[3]) &&  // Verify that the origin is within the image
+          (clipRectangleOrigin[1] >= inExtents[4] && clipRectangleOrigin[2] < inExtents[5]) &&
 
-      (clipRectangleOrigin[0]+clipRectangleSize[0] < inExtents[1]) &&
-      (clipRectangleOrigin[1]+clipRectangleSize[1] < inExtents[3]) && // Verify that the extent of the clipping falls within the image
-      (clipRectangleOrigin[2]+clipRectangleSize[2] < inExtents[5])
-      )
-    {
-      // TODO : only allocate the output image if it doesnt match
-      // Allocate the output image
-      outUsOrientedImage->SetExtent(0, clipRectangleSize[0], 0, clipRectangleSize[1], 0, clipRectangleSize[2]);
-#if (VTK_MAJOR_VERSION < 6)
-      outUsOrientedImage->SetScalarType(inUsImage->GetScalarType());
-      outUsOrientedImage->SetNumberOfScalarComponents(inUsImage->GetNumberOfScalarComponents());
-      outUsOrientedImage->AllocateScalars(); 
-#else
-      outUsOrientedImage->AllocateScalars(inUsImage->GetScalarType(), inUsImage->GetNumberOfScalarComponents());
-#endif
-
-      outputDimensions[0] = clipRectangleSize[0];
-      outputDimensions[1] = clipRectangleSize[1];
-      outputDimensions[2] = clipRectangleSize[2];
-    }
-    else
+          (clipRectangleOrigin[0]+clipRectangleSize[0] < inExtents[1]) &&
+          (clipRectangleOrigin[1]+clipRectangleSize[1] < inExtents[3]) && // Verify that the extent of the clipping falls within the image
+          (clipRectangleOrigin[2]+clipRectangleSize[2] < inExtents[5]) 
+      )  )
     {
       LOG_WARNING("Clipping information cannot fit within the original image. No clipping will be performed. Origin=[" << clipRectangleOrigin[0] << "," << clipRectangleOrigin[1] << "," << clipRectangleOrigin[2] <<
         "]. Size=[" << clipRectangleSize[0] << "," << clipRectangleSize[1] << "," << clipRectangleSize[2] << "].");
 
+      finalClipOrigin[0] = 0;
+      finalClipOrigin[1] = 0;
+      finalClipOrigin[2] = 0;
       finalClipSize[0] = NO_CLIP;
       finalClipSize[1] = NO_CLIP;
       finalClipSize[2] = NO_CLIP;
-
-      int inDimensions[3]={0,0,0};
-      outUsOrientedImage->GetDimensions(outputDimensions);
-      inUsImage->GetDimensions(inDimensions);
-
-      if( outputDimensions[0] != inDimensions[0] || outputDimensions[1] != inDimensions[1] || outputDimensions[2] != inDimensions[2] || outUsOrientedImage->GetScalarType() != inUsImage->GetScalarType() || outUsOrientedImage->GetNumberOfScalarComponents() != inUsImage->GetNumberOfScalarComponents() )
-      {
-        // Allocate the output image
-        outUsOrientedImage->SetExtent(inUsImage->GetExtent());
-#if (VTK_MAJOR_VERSION < 6)
-        outUsOrientedImage->SetScalarType(inUsImage->GetScalarType());
-        outUsOrientedImage->SetNumberOfScalarComponents(inUsImage->GetNumberOfScalarComponents());
-        outUsOrientedImage->AllocateScalars(); 
-#else
-        outUsOrientedImage->AllocateScalars(inUsImage->GetScalarType(), inUsImage->GetNumberOfScalarComponents());
-#endif
-        outputDimensions[0]=inDimensions[0];
-        outputDimensions[1]=inDimensions[1];
-        outputDimensions[2]=inDimensions[2];
-      }
+      finalOutputSize[0] = inputDimensions[0];
+      finalOutputSize[1] = inputDimensions[1];
+      finalOutputSize[2] = inputDimensions[2];
     }
+    else
+    {
+      // Clip parameters are good, set the final output size to be the clipped size
+      finalOutputSize[0] = clipRectangleSize[0];
+      finalOutputSize[1] = clipRectangleSize[1];
+      finalOutputSize[2] = clipRectangleSize[2];
+    }
+  }
+
+  int outDimensions[3]={0,0,0};
+  outUsOrientedImage->GetDimensions(outDimensions);
+
+  // Update the output image if the dimensions don't match the final clip size (which might be the same as the input image)
+  if( outDimensions[0] != finalOutputSize[0] || outDimensions[1] != finalOutputSize[1] || outDimensions[2] != finalOutputSize[2] || outUsOrientedImage->GetScalarType() != inUsImage->GetScalarType() || outUsOrientedImage->GetNumberOfScalarComponents() != inUsImage->GetNumberOfScalarComponents() )
+  {
+    // Allocate the output image
+    outUsOrientedImage->SetExtent(0, finalOutputSize[0], 0, finalOutputSize[1], 0, finalOutputSize[2]);
+#if (VTK_MAJOR_VERSION < 6)
+    outUsOrientedImage->SetScalarType(inUsImage->GetScalarType());
+    outUsOrientedImage->SetNumberOfScalarComponents(inUsImage->GetNumberOfScalarComponents());
+    outUsOrientedImage->AllocateScalars(); 
+#else
+    outUsOrientedImage->AllocateScalars(inUsImage->GetScalarType(), inUsImage->GetNumberOfScalarComponents());
+#endif
   }
 
   int numberOfBytesPerScalar = PlusVideoFrame::GetNumberOfBytesPerScalar(inUsImage->GetScalarType());
@@ -840,16 +833,16 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage( vtkImageData* inUsImage,
   switch (numberOfBytesPerScalar)
   {
   case 1:
-    status = FlipClipImageGeneric<vtkTypeUInt8>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), outputDimensions[0], outputDimensions[1], outputDimensions[2], flipInfo, clipRectangleOrigin, finalClipSize, outUsOrientedImage->GetScalarPointer());
+    status = FlipClipImageGeneric<vtkTypeUInt8>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), inputDimensions[0], inputDimensions[1], inputDimensions[2], flipInfo, finalClipOrigin, finalClipSize, outUsOrientedImage->GetScalarPointer());
     break;
   case 2:
-    status = FlipClipImageGeneric<vtkTypeUInt16>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), outputDimensions[0], outputDimensions[1], outputDimensions[2], flipInfo, clipRectangleOrigin, finalClipSize, outUsOrientedImage->GetScalarPointer());
+    status = FlipClipImageGeneric<vtkTypeUInt16>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), inputDimensions[0], inputDimensions[1], inputDimensions[2], flipInfo, finalClipOrigin, finalClipSize, outUsOrientedImage->GetScalarPointer());
     break;
   case 4:
-    status = FlipClipImageGeneric<vtkTypeUInt32>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), outputDimensions[0], outputDimensions[1], outputDimensions[2], flipInfo, clipRectangleOrigin, finalClipSize, outUsOrientedImage->GetScalarPointer());
+    status = FlipClipImageGeneric<vtkTypeUInt32>(inUsImage->GetScalarPointer(), inUsImage->GetNumberOfScalarComponents(), inputDimensions[0], inputDimensions[1], inputDimensions[2], flipInfo, clipRectangleOrigin, finalClipSize, outUsOrientedImage->GetScalarPointer());
     break;
   default:
-    LOG_ERROR("Unsupported bit depth: "<<numberOfBytesPerScalar<<" bytes per scalar");
+    LOG_ERROR("Unsupported bit depth: " << numberOfBytesPerScalar << " bytes per scalar");
   }
   return status;
 }
@@ -860,7 +853,7 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage(  unsigned char* imageDataPtr
                                             US_IMAGE_TYPE inUsImageType, 
                                             PlusCommon::VTKScalarPixelType pixType,
                                             int numberOfScalarComponents,  
-                                            const int frameSizeInPx[3],
+                                            const int inputFrameSizeInPx[3],
                                             US_IMAGE_ORIENTATION  outUsImageOrientation, 
                                             vtkImageData* outUsOrientedImage,
                                             const int clipRectangleOrigin[3], 
@@ -878,23 +871,65 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage(  unsigned char* imageDataPtr
     return PLUS_FAIL; 
   }
 
-  // TODO : out oriented image better match clip size
-  int outExtents[6] = {0,0,0,0,0,0};
-  outUsOrientedImage->GetExtent(outExtents);
-  if ( !(frameSizeInPx[0]-1 == outExtents[1] &&
-    frameSizeInPx[1]-1 == outExtents[3] &&
-    frameSizeInPx[2]-1 == outExtents[5] &&
-    outUsOrientedImage->GetScalarType() == pixType &&
-    outUsOrientedImage->GetNumberOfScalarComponents() == numberOfScalarComponents) )
+  // Validate output image is correct dimensions to receive final oriented and/or clipped result
+  int finalClipOrigin[3] = {clipRectangleOrigin[0], clipRectangleOrigin[1], clipRectangleOrigin[2]};
+  int finalClipSize[3] = {clipRectangleSize[0], clipRectangleSize[1], clipRectangleSize[2]};
+  int finalOutputSize[3] = {inputFrameSizeInPx[0], inputFrameSizeInPx[1], inputFrameSizeInPx[2]};
+  if( clipRectangleSize[0] != NO_CLIP && clipRectangleSize[1] != NO_CLIP && clipRectangleSize[2] != NO_CLIP )
+  {
+    // Clipping requested, validate that source image is bigger than requested clip size
+    int inExtents[6] = {0, inputFrameSizeInPx[0], 0, inputFrameSizeInPx[1], 0, inputFrameSizeInPx[2]};
+
+    if( !(  // If the clipping parameters are not valid, output a warning and remove clipping behavior
+      (clipRectangleOrigin[0] >= inExtents[0] && clipRectangleOrigin[0] < inExtents[1]) &&
+      (clipRectangleOrigin[1] >= inExtents[2] && clipRectangleOrigin[2] < inExtents[3]) &&  // Verify that the origin is within the image
+      (clipRectangleOrigin[1] >= inExtents[4] && clipRectangleOrigin[2] < inExtents[5]) &&
+
+      (clipRectangleOrigin[0]+clipRectangleSize[0] < inExtents[1]) &&
+      (clipRectangleOrigin[1]+clipRectangleSize[1] < inExtents[3]) && // Verify that the extent of the clipping falls within the image
+      (clipRectangleOrigin[2]+clipRectangleSize[2] < inExtents[5]) 
+      )  )
+    {
+      LOG_WARNING("Clipping information cannot fit within the original image. No clipping will be performed. Origin=[" << clipRectangleOrigin[0] << "," << clipRectangleOrigin[1] << "," << clipRectangleOrigin[2] <<
+        "]. Size=[" << clipRectangleSize[0] << "," << clipRectangleSize[1] << "," << clipRectangleSize[2] << "].");
+
+      finalClipOrigin[0] = 0;
+      finalClipOrigin[1] = 0;
+      finalClipOrigin[2] = 0;
+      finalClipSize[0] = NO_CLIP;
+      finalClipSize[1] = NO_CLIP;
+      finalClipSize[2] = NO_CLIP;
+    }
+    else
+    {
+      // Clip parameters are good, set the final output size to be the clipped size
+      finalOutputSize[0] = clipRectangleSize[0];
+      finalOutputSize[1] = clipRectangleSize[1];
+      finalOutputSize[2] = clipRectangleSize[2];
+    }
+  }
+
+  int outDimensions[3]={0,0,0};
+  outUsOrientedImage->GetDimensions(outDimensions);
+
+  // Update the output image if the dimensions don't match the final output size (which might be either clipped or unclipped)
+  if( outDimensions[0] != finalOutputSize[0] || outDimensions[1] != finalOutputSize[1] || outDimensions[2] != finalOutputSize[2] || outUsOrientedImage->GetScalarType() != pixType || outUsOrientedImage->GetNumberOfScalarComponents() != numberOfScalarComponents )
   {
     // Allocate the output image
-    PlusVideoFrame::AllocateFrame(outUsOrientedImage, frameSizeInPx, pixType, numberOfScalarComponents);
+    outUsOrientedImage->SetExtent(0, finalClipSize[0], 0, finalClipSize[1], 0, finalClipSize[2]);
+#if (VTK_MAJOR_VERSION < 6)
+    outUsOrientedImage->SetScalarType(pixType);
+    outUsOrientedImage->SetNumberOfScalarComponents(numberOfScalarComponents);
+    outUsOrientedImage->AllocateScalars(); 
+#else
+    outUsOrientedImage->AllocateScalars(pixType, numberOfScalarComponents);
+#endif
   }
 
   vtkImageData* inUsImage = vtkImageData::New();
-  PlusVideoFrame::AllocateFrame(inUsImage, frameSizeInPx, outUsOrientedImage->GetScalarType(), outUsOrientedImage->GetNumberOfScalarComponents());
+  PlusVideoFrame::AllocateFrame(inUsImage, inputFrameSizeInPx, outUsOrientedImage->GetScalarType(), outUsOrientedImage->GetNumberOfScalarComponents());
   
-  memcpy(inUsImage->GetScalarPointer(), imageDataPtr, frameSizeInPx[0]*frameSizeInPx[1]*frameSizeInPx[2]*PlusVideoFrame::GetNumberOfBytesPerScalar(pixType)*numberOfScalarComponents);
+  memcpy(inUsImage->GetScalarPointer(), imageDataPtr, inputFrameSizeInPx[0]*inputFrameSizeInPx[1]*inputFrameSizeInPx[2]*PlusVideoFrame::GetNumberOfBytesPerScalar(pixType)*numberOfScalarComponents);
 
   FlipInfoType flipInfo;
   if ( PlusVideoFrame::GetFlipAxes(inUsImageOrientation, inUsImageType, outUsImageOrientation, flipInfo) != PLUS_SUCCESS )
@@ -904,7 +939,7 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage(  unsigned char* imageDataPtr
     return PLUS_FAIL;
   }
 
-  if ( !flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.eFlip )
+  if ( !flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.eFlip && !flipInfo.KIJToIJKTranspose )
   {
     // no flip
     outUsOrientedImage->DeepCopy(inUsImage);
@@ -913,7 +948,7 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage(  unsigned char* imageDataPtr
   }
 
   PlusStatus result = PlusVideoFrame::GetOrientedClippedImage(inUsImage, inUsImageOrientation, inUsImageType, 
-    outUsImageOrientation, outUsOrientedImage, clipRectangleOrigin, clipRectangleSize); 
+    outUsImageOrientation, outUsOrientedImage, finalClipOrigin, finalClipSize); 
   DELETE_IF_NOT_NULL(inUsImage);
   return result;
 }
