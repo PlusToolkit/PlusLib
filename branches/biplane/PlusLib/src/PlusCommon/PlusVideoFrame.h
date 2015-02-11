@@ -188,7 +188,15 @@ public:
   /*! Read unsigned char type image file to PlusVideoFrame */
   static PlusStatus ReadImageFromFile( PlusVideoFrame &frame, const char* fileName); 
 
-  /*! Convert oriented image to MF oriented ultrasound image and perform any requested clipping */
+  /*! Convert oriented image to MF oriented ultrasound image and perform any requested clipping
+  \param inUsImage the source image to analyze for possible clipping and reorienting
+  \param inUsImageOrientation the orientation of the source image
+  \param inUsImageType the image type of the source image
+  \param outUsImageOrientation the desired output orientation
+  \param outUsOrientedImage the output image to populate with clipped and oriented data
+  \param clipRectangleOrigin the clipping origin relative to the inUsImage data origin
+  \param clipRectangleSize the size of the clipping space, a value of NO_CLIP in either [0],[1] or [2] indicates no clipping performed
+  */
   static PlusStatus GetOrientedClippedImage( vtkImageData* inUsImage, 
     US_IMAGE_ORIENTATION inUsImageOrientation, 
     US_IMAGE_TYPE inUsImageType, 
@@ -197,7 +205,18 @@ public:
     const int clipRectangleOrigin[3], 
     const int clipRectangleSize[3]); 
 
-  /*! Convert oriented image to MF oriented ultrasound image and perform any requested clipping*/
+  /*! Convert oriented image to MF oriented ultrasound image and perform any requested clipping
+  \param imageDataPtr the source data to analyze for possible clipping and reorienting
+  \param inUsImageOrientation the orientation of the source image
+  \param inUsImageType the image type of the source image
+  \param inUsImagePixelType the pixel type of the source image
+  \param numberOfScalarComponents the number of scalar components of the source image (1=bw, 3=rgb)
+  \param frameSizeInPx the frame size of the source image
+  \param outUsImageOrientation the desired output orientation
+  \param outUsOrientedImage the output image to populate with clipped and oriented data
+  \param clipRectangleOrigin the clipping origin relative to the inUsImage data origin
+  \param clipRectangleSize the size of the clipping space, a value of NO_CLIP in either [0],[1] or [2] indicates no clipping performed
+  */
   static PlusStatus GetOrientedClippedImage( unsigned char* imageDataPtr, 
     US_IMAGE_ORIENTATION  inUsImageOrientation, 
     US_IMAGE_TYPE inUsImageType, 
@@ -209,7 +228,18 @@ public:
     const int clipRectangleOrigin[3], 
     const int clipRectangleSize[3]); 
 
-  /*! Convert oriented image to MF oriented ultrasound image and perform any requested clipping*/
+  /*! Convert oriented image to MF oriented ultrasound image and perform any requested clipping
+  \param imageDataPtr the source data to analyze for possible clipping and reorienting
+  \param inUsImageOrientation the orientation of the source image
+  \param inUsImageType the image type of the source image
+  \param inUsImagePixelType the pixel type of the source image
+  \param numberOfScalarComponents the number of scalar components of the source image (1=bw, 3=rgb)
+  \param frameSizeInPx the frame size of the source image
+  \param outUsImageOrientation the desired output orientation
+  \param outBufferItem the output video frame to populate with clipped and oriented data
+  \param clipRectangleOrigin the clipping origin relative to the inUsImage data origin
+  \param clipRectangleSize the size of the clipping space, a value of NO_CLIP in either [0],[1] or [2] indicates no clipping performed
+  */
   static PlusStatus GetOrientedClippedImage( unsigned char* imageDataPtr, 
     US_IMAGE_ORIENTATION  inUsImageOrientation, 
     US_IMAGE_TYPE inUsImageType, 
@@ -225,6 +255,8 @@ public:
 
   /*! 
   Flip a 2D image along one or two axes. This is a performance optimized version of flipping that does not use ITK filters 
+  \param clipRectangleOrigin the clipping origin relative to the inUsImage data origin
+  \param clipRectangleSize the size of the clipping space, a value of NO_CLIP in either [0],[1] or [2] indicates no clipping performed
   */
   static PlusStatus FlipClipImage(vtkImageData* inUsImage, const FlipInfoType& flipInfo, const int clipRectangleOrigin[3], const int clipRectangleSize[3], vtkImageData* outUsOrientedImage);
 
