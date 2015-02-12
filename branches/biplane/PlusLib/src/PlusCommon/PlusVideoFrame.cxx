@@ -174,7 +174,28 @@ namespace
     }
     else if( !flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.eFlip && flipInfo.tranpose == PlusVideoFrame::TRANSPOSE_KIJtoIJK)
     {
-      
+      // Transpose an image in KIJ layout to IJK layout
+      ScalarType* inputPixel = (ScalarType*)inBuff;
+      // Set the target position pointer to the first pixel
+      ScalarType* outputPixel = (ScalarType*)outBuff;
+      // Copy the image column->row, each column from the next image
+      for(int z = 0; z < inputDepth; ++z)
+      {
+        for(int y = 0; y < inputHeight; ++y)
+        {
+          for (int x = 0; x < inputWidth; ++x)
+          {
+            // For each scalar, copy it
+            for( int s = 0; s < numberOfScalarComponents; ++s)
+            {
+              *(outputPixel+s) = *(inputPixel+s);
+            }
+            // TODO : determine correct output pixel offset as per notebook
+            outputPixel = (ScalarType*)(outBuff + );
+            inputPixel += numberOfScalarComponents;
+          }
+        }        
+      }
     }
     else
     {      
