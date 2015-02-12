@@ -10,7 +10,6 @@
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
-#include "vtkPlusDeviceTypes.h"
 #include "vtkPlusBuffer.h"
 #include "vtkTimerLog.h"
 #include "vtkXMLUtilities.h"
