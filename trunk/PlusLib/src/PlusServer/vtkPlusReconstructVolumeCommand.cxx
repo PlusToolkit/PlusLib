@@ -15,6 +15,7 @@ See License.txt for details.
 #include "vtkTransformRepository.h"
 #include "vtkVolumeReconstructor.h"
 #include "vtkVirtualVolumeReconstructor.h"
+#include <float.h> // for DBL_MAX
 
 #define UNDEFINED_VALUE DBL_MAX
 
