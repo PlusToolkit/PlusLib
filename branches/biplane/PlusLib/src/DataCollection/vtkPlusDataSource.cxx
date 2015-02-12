@@ -12,11 +12,6 @@ See License.txt for details.
 
 vtkStandardNewMacro(vtkPlusDataSource);
 
-namespace
-{
-  const int NO_CLIPPING = 0;
-}
-
 //----------------------------------------------------------------------------
 vtkPlusDataSource::vtkPlusDataSource()
 : Device(NULL)
@@ -32,9 +27,9 @@ vtkPlusDataSource::vtkPlusDataSource()
   this->ClipRectangleOrigin[1] = 0;
   this->ClipRectangleOrigin[2] = 0;
 
-  this->ClipRectangleSize[0] = NO_CLIPPING;
-  this->ClipRectangleSize[1] = NO_CLIPPING;
-  this->ClipRectangleSize[2] = NO_CLIPPING;
+  this->ClipRectangleSize[0] = PlusVideoFrame::NO_CLIP;
+  this->ClipRectangleSize[1] = PlusVideoFrame::NO_CLIP;
+  this->ClipRectangleSize[2] = PlusVideoFrame::NO_CLIP;
 }
 
 //----------------------------------------------------------------------------

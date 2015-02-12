@@ -83,6 +83,7 @@ public:
     TRANSPOSE_NONE,
     TRANSPOSE_KIJtoIJK
   };
+  static std::string TransposeToString(TransposeType type);
 
   struct FlipInfoType
   {
