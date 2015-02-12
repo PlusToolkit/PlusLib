@@ -47,7 +47,7 @@ Common attributes:
 
 Ulterius interface specific Device attributes:
 - \xmlAtt \ref DeviceType "Type" = \c "SonixVideo" \RequiredAtt
-- \xmlAtt \b IP Host name or IP address of the Ultrasonix host machine. \RequiredAtt
+- \xmlAtt \b IP Host name or IP address of the Ultrasonix host machine. If Plus runs on the Ultrasound system then the 127.0.0.1 address can be used.\RequiredAtt
 - \xmlAtt \b Sector Sector \c [%] of B-mode ultrasound; valid range: 0-100. \OptionalAtt{-1}
 - \xmlAtt \b DynRange DynRange \c [dB] of B-mode ultrasound. \OptionalAtt{-1}
 - \xmlAtt \b CompressionStatus When imaging with the EC59 probe, if compression is disabled (\b CompressionStatus \c ="0"), then a lot of BMode frames are lost. The reason for this is the fact that scan-conversion is performed on the CPU. Set \b CompressionStatus \c ="1" to prevent frame loss. \OptionalAtt{0}
