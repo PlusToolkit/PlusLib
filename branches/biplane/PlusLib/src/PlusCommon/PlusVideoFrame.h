@@ -78,13 +78,19 @@ class vtkPlusCommonExport PlusVideoFrame
 public:
   static const int NO_CLIP = -1;
 
+  enum TransposeType
+  {
+    TRANSPOSE_NONE,
+    TRANSPOSE_KIJtoIJK
+  };
+
   struct FlipInfoType
   {
-    FlipInfoType() : hFlip(false), vFlip(false), eFlip(false), KIJToIJKTranspose(false), doubleColumn(false), doubleRow(false) {};
+    FlipInfoType() : hFlip(false), vFlip(false), eFlip(false), tranpose(TRANSPOSE_NONE), doubleColumn(false), doubleRow(false) {};
     bool hFlip; // flip the image horizontally (pixel columns are reordered)
     bool vFlip; // flip the image vertically (pixel rows are reordered)
     bool eFlip; // flip the image elevationally (pixel slices are reordered)
-    bool KIJToIJKTranspose; // transpose images from KIJ -> IJK
+    TransposeType tranpose; // transpose images
     bool doubleColumn; // keep pairs of pixel columns together (for RF_IQ_LINE encoded images)
     bool doubleRow; // keep pairs of pixel rows together (for RF_I_LINE_Q_LINE encoded images)
   };

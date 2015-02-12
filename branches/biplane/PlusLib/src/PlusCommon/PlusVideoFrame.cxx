@@ -606,7 +606,7 @@ PlusStatus PlusVideoFrame::GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1,
   flipInfo.hFlip=false; // horizontal
   flipInfo.vFlip=false; // vertical
   flipInfo.eFlip=false; // elevational
-  flipInfo.KIJToIJKTranspose=false; // no transpose
+  flipInfo.tranpose=TRANSPOSE_NONE; // no transpose
   if ( usImageOrientation1 == US_IMG_ORIENT_XX ) 
   {
     LOG_ERROR("Failed to determine the necessary image flip - unknown input image orientation 1"); 
@@ -721,7 +721,7 @@ PlusStatus PlusVideoFrame::GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1,
     )
   {
     // Tranpose J KI images to K IJ images
-    flipInfo.KIJToIJKTranspose=true;
+    flipInfo.tranpose=TRANSPOSE_KIJtoIJK;
   }
 
   assert(0);
@@ -759,7 +759,7 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage( vtkImageData* inUsImage,
       " to " << PlusVideoFrame::GetStringFromUsImageOrientation(outUsImageOrientation));
     return PLUS_FAIL;
   }
-  if ( !flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.eFlip && !flipInfo.KIJToIJKTranspose)
+  if ( !flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.eFlip && flipInfo.tranpose == TRANSPOSE_NONE)
   {
     // no flip or transpose
     outUsOrientedImage->ShallowCopy( inUsImage ); 
@@ -939,7 +939,7 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage(  unsigned char* imageDataPtr
     return PLUS_FAIL;
   }
 
-  if ( !flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.eFlip && !flipInfo.KIJToIJKTranspose )
+  if ( !flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.eFlip && flipInfo.tranpose == TRANSPOSE_NONE )
   {
     // no flip
     outUsOrientedImage->DeepCopy(inUsImage);
