@@ -10,7 +10,7 @@
 #include "PlusConfigure.h"
 #include "vtkDataCollectionExport.h"
 
-#include "StreamBufferItem.H"
+#include "StreamBufferItem.h"
 #include "vtkDataObject.h"
 #include "vtkRfProcessor.h"
 
