@@ -10,9 +10,9 @@
 #include "vtkPlusCommonExport.h"
 
 #include "itkImageIOBase.h"
-//#include "vtkOutputWindow.h"
 #include "vtkPlusLogger.h"
 #include "vtkPlusMacro.h"
+#include "vtkRecursiveCriticalSection.h"
 #include "vtksys/SystemTools.hxx"
 #include <sstream>
 #include <list>
@@ -79,9 +79,12 @@ enum PlusImagingMode
   
 #define LOG_TRACE(msg) \
   { \
-  std::ostringstream msgStream; \
-  msgStream << msg << std::ends; \
-  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_TRACE, msgStream.str().c_str(), __FILE__, __LINE__); \
+    if (vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE) \
+    { \
+      std::ostringstream msgStream; \
+      msgStream << msg << std::ends; \
+      vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_TRACE, msgStream.str().c_str(), __FILE__, __LINE__); \
+    } \
   }
 
 #define LOG_DYNAMIC(msg, logLevel) \

@@ -1,23 +1,21 @@
+/*=Plus=header=begin======================================================
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
+=========================================================Plus=header=end*/
+
+#include "PlusConfigure.h"
+#include "vtkTimestampedCircularBuffer.h"
+
 #include "vtkDoubleArray.h"
 #include "vtkRecursiveCriticalSection.h"
 #include "vtkTable.h"
 #include "vtkVariantArray.h"
 
-template<class BufferItemType>
-vtkTimestampedCircularBuffer<BufferItemType>* vtkTimestampedCircularBuffer<BufferItemType>::New()
-{
-  vtkObject* ret = vtkObjectFactory::CreateInstance(typeid(vtkTimestampedCircularBuffer<BufferItemType>).name());
-  if(ret)
-    {
-    return static_cast<vtkTimestampedCircularBuffer<BufferItemType>*>(ret);
-    }
-  return new vtkTimestampedCircularBuffer<BufferItemType>();
-}
-
+vtkStandardNewMacro(vtkTimestampedCircularBuffer);
 
 //----------------------------------------------------------------------------
-template<class BufferItemType>
-vtkTimestampedCircularBuffer<BufferItemType>::vtkTimestampedCircularBuffer()
+vtkTimestampedCircularBuffer::vtkTimestampedCircularBuffer()
 {
   this->BufferItemContainer.resize(0); 
   this->Mutex = vtkRecursiveCriticalSection::New();
@@ -47,8 +45,7 @@ vtkTimestampedCircularBuffer<BufferItemType>::vtkTimestampedCircularBuffer()
 }
 
 //----------------------------------------------------------------------------
-template<class BufferItemType>
-vtkTimestampedCircularBuffer<BufferItemType>::~vtkTimestampedCircularBuffer()
+vtkTimestampedCircularBuffer::~vtkTimestampedCircularBuffer()
 { 
   this->BufferItemContainer.clear(); 
 
@@ -68,8 +65,7 @@ vtkTimestampedCircularBuffer<BufferItemType>::~vtkTimestampedCircularBuffer()
 }
 
 //----------------------------------------------------------------------------
-template<class BufferItemType>
-void vtkTimestampedCircularBuffer<BufferItemType>::PrintSelf(ostream& os, vtkIndent indent)
+void vtkTimestampedCircularBuffer::PrintSelf(ostream& os, vtkIndent indent)
 {
   //this->Superclass::PrintSelf(os,indent);
 
@@ -78,29 +74,13 @@ void vtkTimestampedCircularBuffer<BufferItemType>::PrintSelf(ostream& os, vtkInd
   os << indent << "CurrentTimeStamp: " << this->CurrentTimeStamp << "\n";
   os << indent << "Local time offset: " << this->LocalTimeOffsetSec << "\n";
   os << indent << "Latest Item Uid: " << this->LatestItemUid << "\n";
-
 }
 
 //----------------------------------------------------------------------------
-template<class BufferItemType>
-void vtkTimestampedCircularBuffer<BufferItemType>::Lock()
-{   
-  //PRTL_CRITICAL_SECTION critSec=PRTL_CRITICAL_SECTION(((char*)&(this->Mutex))+0xEC);
-  this->Mutex->Lock();
-}
-
-//----------------------------------------------------------------------------
-template<class BufferItemType>
-void vtkTimestampedCircularBuffer<BufferItemType>::Unlock()
+PlusStatus vtkTimestampedCircularBuffer::PrepareForNewItem(const double timestamp, BufferItemUidType& newFrameUid, int& bufferIndex)
 {
-  //PRTL_CRITICAL_SECTION critSec=PRTL_CRITICAL_SECTION(((char*)&(this->Mutex))+0xEC);
-  this->Mutex->Unlock();
-}
+  PlusLockGuard< vtkTimestampedCircularBuffer > bufferGuardedLock(this);
 
-//----------------------------------------------------------------------------
-template<class BufferItemType>
-PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::PrepareForNewItem(const double timestamp, BufferItemUidType& newFrameUid, int& bufferIndex)
-{
   if ( timestamp <= this->CurrentTimeStamp )
   {
     LOG_DEBUG("Need to skip newly added frame - new timestamp ("<< std::fixed << timestamp << ") is not newer than the last one (" << this->CurrentTimeStamp << ")!"); 
@@ -108,7 +88,6 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::PrepareForNewItem(const
   }
 
   // Increase frame unique ID
-  this->Lock();
   newFrameUid = ++this->LatestItemUid; 
   bufferIndex = this->WritePointer; 
   this->CurrentTimeStamp = timestamp; 
@@ -123,41 +102,33 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::PrepareForNewItem(const
   {
     this->WritePointer = 0; 
   }
-  this->Unlock(); 
 
   return PLUS_SUCCESS; 
 }
 
 //----------------------------------------------------------------------------
-template<class BufferItemType>
-int vtkTimestampedCircularBuffer<BufferItemType>::GetBufferSize()
-{
-  return this->BufferItemContainer.size();
-}
-//----------------------------------------------------------------------------
 // Sets the buffer size, and copies the maximum number of the most current old
 // frames and timestamps
-template<class BufferItemType>
-PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::SetBufferSize(int bufsize)
+PlusStatus vtkTimestampedCircularBuffer::SetBufferSize(int bufsize)
 {
   if (bufsize < 0)
   {
     LOG_ERROR("SetBufferSize: invalid buffer size");
     return PLUS_FAIL;
   }
+  
+  PlusLockGuard< vtkTimestampedCircularBuffer > bufferGuardedLock(this);
 
   if (bufsize == this->GetBufferSize() && bufsize != 0)
   {
     return PLUS_SUCCESS;
   }
 
-  this->Lock(); 
-
   if ( this->GetBufferSize() == 0 )
   {
     for ( int i = 0; i < bufsize; i++ )
     {
-      BufferItemType emptyBufferItem; 
+      StreamBufferItem emptyBufferItem; 
       this->BufferItemContainer.push_back(emptyBufferItem); 
     }
     this->WritePointer = 0;
@@ -167,11 +138,11 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::SetBufferSize(int bufsi
   // if the new buffer is bigger than the old buffer
   else if ( this->GetBufferSize() < bufsize )
   {
-    typename std::deque<BufferItemType>::iterator it = this->BufferItemContainer.begin() + this->WritePointer; 
+    std::deque<StreamBufferItem>::iterator it = this->BufferItemContainer.begin() + this->WritePointer; 
     const int numberOfNewBufferObjects = bufsize - this->GetBufferSize(); 
     for ( int i = 0; i < numberOfNewBufferObjects; ++i )
     {
-      BufferItemType emptyBufferItem;
+      StreamBufferItem emptyBufferItem;
       it = this->BufferItemContainer.insert(it, emptyBufferItem); 
     }
   }
@@ -181,7 +152,7 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::SetBufferSize(int bufsi
     // delete the oldest buffer objects 
     for (int i = 0; i < this->GetBufferSize() - bufsize; ++i)
     {
-      typename std::deque<BufferItemType>::iterator it = this->BufferItemContainer.begin() + this->WritePointer; 
+      std::deque<StreamBufferItem>::iterator it = this->BufferItemContainer.begin() + this->WritePointer; 
       this->BufferItemContainer.erase(it); 
       if ( this->WritePointer >= this->GetBufferSize() )
       {
@@ -195,98 +166,42 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::SetBufferSize(int bufsi
   {
     this->NumberOfItems = this->GetBufferSize();
   }
-  
-  this->Unlock(); 
 
   this->Modified();
-  
+
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-template<class BufferItemType>
-ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetFrameStatus(const BufferItemUidType uid )
-{
-  if ( uid < this->GetOldestItemUidInBuffer() ) 
-  {
-    return ITEM_NOT_AVAILABLE_ANYMORE; 
-  }
-  else if ( uid > this->GetLatestItemUidInBuffer() )
-  {
-    return ITEM_NOT_AVAILABLE_YET; 
-  }
-  else
-  {
-    return ITEM_OK;
-  }
-}
-
-//----------------------------------------------------------------------------
-template<class BufferItemType>
-ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetItemUidFromBufferIndex( const int bufferIndex, BufferItemUidType &uid )
-{
-  if (this->GetBufferSize() <= 0 
-    || bufferIndex >= this->GetBufferSize() 
-    || bufferIndex < 0 )
-  {
-    LOG_ERROR("Unable to get item UID from buffer index! Buffer index is not valid (bufferIndex="
-      << bufferIndex << ", bufferSize=" << this->GetBufferSize() << ")." );
-    uid = 0;
-  }
-  else
-  {
-    this->Lock();
-    uid = this->BufferItemContainer[bufferIndex].GetUid();
-    this->Unlock();
-  }
-
-  return this->GetFrameStatus(uid);
-}
-
-//----------------------------------------------------------------------------
-template<class BufferItemType>
-ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetBufferIndex( const BufferItemUidType uid, int& bufferIndex )
-{
-  bufferIndex = -1; 
-  
-  // check the status before we get the buffer index 
-  ItemStatus currentStatus = this->GetFrameStatus( uid ); 
-  if ( currentStatus != ITEM_OK )
+ItemStatus vtkTimestampedCircularBuffer::GetBufferItemPointerFromUid(const BufferItemUidType uid, StreamBufferItem* &itemPtr) 
+{ 
+  // the caller must have locked the buffer
+  BufferItemUidType oldestUid = this->LatestItemUid - (this->NumberOfItems - 1);
+  if ( uid < oldestUid ) 
   {
     LOG_WARNING("Buffer item is not in the buffer (Uid: " << uid << ")!"); 
-    return currentStatus; 
+    itemPtr = NULL;
+    return ITEM_NOT_AVAILABLE_ANYMORE;
   }
-  
-  bufferIndex = (this->WritePointer - 1) - (this->GetLatestItemUidInBuffer() - uid); 
-  
+  else if ( uid > this->LatestItemUid )
+  {
+    LOG_WARNING("Buffer item is not in the buffer (Uid: " << uid << ")!"); 
+    itemPtr = NULL;
+    return ITEM_NOT_AVAILABLE_YET;
+  }
+  int bufferIndex = (this->WritePointer - 1) - (this->LatestItemUid - uid);  
   if ( bufferIndex < 0 )
   {
-    bufferIndex += this->GetBufferSize(); 
+    bufferIndex += this->BufferItemContainer.size();
   }
-  
-  // return with the current status of the frame 
-  return this->GetFrameStatus( uid ); 
+  itemPtr = &this->BufferItemContainer[bufferIndex];
+  return ITEM_OK;
 }
 
 //----------------------------------------------------------------------------
-template<class BufferItemType>
-BufferItemType* vtkTimestampedCircularBuffer<BufferItemType>::GetBufferItemFromUid(const BufferItemUidType uid) 
+StreamBufferItem* vtkTimestampedCircularBuffer::GetBufferItemPointerFromBufferIndex(const int bufferIndex) 
 { 
-  int bufferIndex(0); 
-  ItemStatus status = this->GetBufferIndex(uid, bufferIndex); 
-  if ( status != ITEM_OK )
-  {
-    LOG_WARNING("Buffer item is not in the buffer (Uid: " << uid << ")!"); 
-    return NULL; 
-  }
-  
-  return this->GetBufferItemFromBufferIndex(bufferIndex); 
-}
-
-//----------------------------------------------------------------------------
-template<class BufferItemType>
-BufferItemType* vtkTimestampedCircularBuffer<BufferItemType>::GetBufferItemFromBufferIndex(const int bufferIndex) 
-{ 
+  // the caller must have locked the buffer
   if (this->GetBufferSize() <= 0 
     || bufferIndex >= this->GetBufferSize() 
     || bufferIndex < 0 )
@@ -294,126 +209,107 @@ BufferItemType* vtkTimestampedCircularBuffer<BufferItemType>::GetBufferItemFromB
     LOG_ERROR("Failed to get buffer item with buffer index - index is out of range (bufferIndex: " << bufferIndex << ")."); 
     return NULL;
   }
-
   return &this->BufferItemContainer[bufferIndex]; 
 }
 
 //----------------------------------------------------------------------------
-template<class BufferItemType>
-ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetFilteredTimeStamp(const BufferItemUidType uid, double &filteredTimestamp)
+ItemStatus vtkTimestampedCircularBuffer::GetFilteredTimeStamp(const BufferItemUidType uid, double &filteredTimestamp)
 {
-  if (this->NumberOfItems == 0)
+  PlusLockGuard< vtkTimestampedCircularBuffer > bufferGuardedLock(this);
+  StreamBufferItem* itemPtr = NULL;
+  ItemStatus status = GetBufferItemPointerFromUid(uid, itemPtr);
+  if ( status!=ITEM_OK ) 
   {
-    filteredTimestamp = 0.0; 
-    return ITEM_NOT_AVAILABLE_YET;
+    filteredTimestamp = 0;
+    return status;
   }
-
-  ItemStatus status = this->GetFrameStatus( uid ); 
-  if ( status != ITEM_OK )
-  {
-    filteredTimestamp = 0.0; 
-    return status; 
-  }
-
-  int bufferIndex(0); 
-  status = this->GetBufferIndex( uid, bufferIndex ); 
-
-  if ( status != ITEM_OK )
-  {
-    LOG_WARNING("Buffer item is not in the buffer (Uid: " << uid << ")!"); 
-    return status; 
-  }
-
-  filteredTimestamp = this->BufferItemContainer[bufferIndex].GetFilteredTimestamp(this->LocalTimeOffsetSec); 
-
-  // Check the status again to make sure the writer didn't change it
-  status = this->GetFrameStatus( uid );
-  if ( status != ITEM_OK )
-  {
-    LOG_WARNING("Buffer item is not in the buffer (Uid: " << uid << ")!"); 
-  }
-
+  filteredTimestamp = itemPtr->GetFilteredTimestamp(this->LocalTimeOffsetSec);
   return status;
 }
 
 //----------------------------------------------------------------------------
-template<class BufferItemType>
-ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetUnfilteredTimeStamp(const BufferItemUidType uid, double &unfilteredTimestamp)
+ItemStatus vtkTimestampedCircularBuffer::GetUnfilteredTimeStamp(const BufferItemUidType uid, double &unfilteredTimestamp)
 { 
-  ItemStatus status = this->GetFrameStatus( uid ); 
-  if ( status != ITEM_OK )
+  PlusLockGuard< vtkTimestampedCircularBuffer > bufferGuardedLock(this);
+  StreamBufferItem* itemPtr = NULL;
+  ItemStatus status = GetBufferItemPointerFromUid(uid, itemPtr);
+  if ( status!=ITEM_OK ) 
   {
-    unfilteredTimestamp = 0.0; 
-    return status; 
+    unfilteredTimestamp = 0;
+    return status;
   }
+  unfilteredTimestamp = itemPtr->GetUnfilteredTimestamp(this->LocalTimeOffsetSec);
+  return status;
+}
 
-  int bufferIndex(0); 
-  status = this->GetBufferIndex( uid, bufferIndex ); 
-  
-  if ( status != ITEM_OK )
+//----------------------------------------------------------------------------
+bool vtkTimestampedCircularBuffer::GetLatestItemHasValidVideoData()
+{ 
+  PlusLockGuard< vtkTimestampedCircularBuffer > bufferGuardedLock(this);
+  if (this->NumberOfItems<1)
   {
-    LOG_WARNING("Buffer item is not in the buffer (Uid: " << uid << ")!"); 
-    return status; 
+    return false;
   }
-  
-  unfilteredTimestamp = this->BufferItemContainer[bufferIndex].GetUnfilteredTimestamp(this->LocalTimeOffsetSec); 
-  
-  // Check the status again to make sure the writer didn't change it
-  return this->GetFrameStatus( uid );
+  int latestItemBufferIndex = (this->WritePointer>0) ? (this->WritePointer - 1) : (this->BufferItemContainer.size()-1);
+  return this->BufferItemContainer[latestItemBufferIndex].HasValidVideoData();
+}
+
+//----------------------------------------------------------------------------
+bool vtkTimestampedCircularBuffer::GetLatestItemHasValidTransformData()
+{ 
+  PlusLockGuard< vtkTimestampedCircularBuffer > bufferGuardedLock(this);
+  if (this->NumberOfItems<1)
+  {
+    return false;
+  }
+  int latestItemBufferIndex = (this->WritePointer>0) ? (this->WritePointer - 1) : (this->BufferItemContainer.size()-1);
+  return this->BufferItemContainer[latestItemBufferIndex].HasValidTransformData();
+}
+
+//----------------------------------------------------------------------------
+ItemStatus vtkTimestampedCircularBuffer::GetIndex(const BufferItemUidType uid, unsigned long &index)
+{ 
+  PlusLockGuard< vtkTimestampedCircularBuffer > bufferGuardedLock(this);
+  StreamBufferItem* itemPtr = NULL;
+  ItemStatus status = GetBufferItemPointerFromUid(uid, itemPtr);
+  if ( status!=ITEM_OK ) 
+  {
+    index = 0;
+    return status;
+  }
+  index = itemPtr->GetIndex();
+  return status;
 }
 
 
 //----------------------------------------------------------------------------
-template<class BufferItemType>
-ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetIndex(const BufferItemUidType uid, unsigned long &index)
-{ 
-  ItemStatus status = this->GetFrameStatus( uid ); 
-  if ( status != ITEM_OK )
-  {
-    index = 0; 
-    return status; 
-  }
-
-  int bufferIndex(0); 
-  status = this->GetBufferIndex( uid, bufferIndex ); 
-  
-  if ( status != ITEM_OK )
-  {
-    LOG_WARNING("Buffer item is not in the buffer (Uid: " << uid << ")!"); 
-    return status; 
-  }
-  
-  index = this->BufferItemContainer[bufferIndex].GetIndex(); 
-  
-  // Check the status again to make sure the writer didn't change it
-  return this->GetFrameStatus( uid );
-}
-
-
-//----------------------------------------------------------------------------
-template<class BufferItemType>
-ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetBufferIndexFromTime(const double time, int& bufferIndex )
+ItemStatus vtkTimestampedCircularBuffer::GetBufferIndexFromTime(const double time, int& bufferIndex )
 {
-  BufferItemUidType itemUid(0); 
-  ItemStatus itemStatus = this->GetItemUidFromTime(time, itemUid); 
+  PlusLockGuard< vtkTimestampedCircularBuffer > bufferGuardedLock(this);
+  bufferIndex = -1;
 
+  BufferItemUidType itemUid=0;
+  ItemStatus itemStatus = this->GetItemUidFromTime(time, itemUid); 
   if ( itemStatus != ITEM_OK )
   {
     LOG_WARNING("Buffer item is not in the buffer (time: " << std::fixed << time << ")!"); 
     return itemStatus; 
-  }
+  } 
   
-  return this->GetBufferIndex( itemUid, bufferIndex ); 
+  bufferIndex = (this->WritePointer - 1) - (this->LatestItemUid - itemUid);
+  if ( bufferIndex < 0 )
+  {
+    bufferIndex += this->BufferItemContainer.size();
+  }
+  return ITEM_OK;
 }
-
 
 //----------------------------------------------------------------------------
 // do a simple divide-and-conquer search for the transform
 // that best matches the given timestamp
-template<class BufferItemType>
-ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetItemUidFromTime(const double time, BufferItemUidType& uid )
+ItemStatus vtkTimestampedCircularBuffer::GetItemUidFromTime(const double time, BufferItemUidType& uid )
 {
-  PlusLockGuard< vtkTimestampedCircularBuffer<BufferItemType> > bufferGuardedLock(this);
+  PlusLockGuard< vtkTimestampedCircularBuffer > bufferGuardedLock(this);
 
   if (this->NumberOfItems==1)
   {
@@ -422,26 +318,25 @@ ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetItemUidFromTime(cons
     return ITEM_OK;
   }
 
-  BufferItemUidType lo = this->GetOldestItemUidInBuffer();
-  BufferItemUidType hi = this->GetLatestItemUidInBuffer();
+  BufferItemUidType lo = this->LatestItemUid - (this->NumberOfItems - 1); // oldest item UID
+  BufferItemUidType hi = this->LatestItemUid; // latest item UID
 
-  double tlo(0); 
   // minimum time
-  ItemStatus loStatus = this->GetTimeStamp(lo, tlo); 
-  if ( loStatus != ITEM_OK )
+  // This method is called often, therefore instead of calling this->GetTimeStamp(lo, tlo) we perform low-level operations to get the timestamp
+  int loBufferIndex = (this->WritePointer - 1) - (this->LatestItemUid - lo);  
+  if ( loBufferIndex < 0 )
   {
-    LOG_WARNING("Unable to get lo timestamp for frame UID: " << lo ); 
-    return loStatus; 
+    loBufferIndex += this->BufferItemContainer.size();
   }
+  double tlo = this->BufferItemContainer[loBufferIndex].GetFilteredTimestamp(this->LocalTimeOffsetSec);
 
-  double thi(0); 
-  // maximum time
-  ItemStatus hiStatus = this->GetTimeStamp(hi, thi); 
-  if ( hiStatus != ITEM_OK )
+  // This method is called often, therefore instead of calling this->GetTimeStamp(hi, thi) we perform low-level operations to get the timestamp
+  int hiBufferIndex = (this->WritePointer - 1) - (this->LatestItemUid - hi);  
+  if ( hiBufferIndex < 0 )
   {
-    LOG_WARNING("Unable to get hi timestamp for frame UID: " << hi ); 
-    return hiStatus; 
-  } 
+    hiBufferIndex += this->BufferItemContainer.size();
+  }
+  double thi = this->BufferItemContainer[hiBufferIndex].GetFilteredTimestamp(this->LocalTimeOffsetSec);
 
   // If the timestamp is slightly out of range then still accept it
   // (due to errors in conversions there could be slight differences)
@@ -471,13 +366,14 @@ ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetItemUidFromTime(cons
     }
 
     int mid = (lo+hi)/2;
-    double tmid(0);
-    ItemStatus midStatus = this->GetTimeStamp(mid, tmid); 
-    if ( midStatus != ITEM_OK )
+
+    // This is a hot loop, therefore instead of calling this->GetTimeStamp(mid, tmid) we perform low-level operations to get the timestamp
+    int midBufferIndex = (this->WritePointer - 1) - (this->LatestItemUid - mid);  
+    if ( midBufferIndex < 0 )
     {
-      LOG_WARNING("Unable to get mid timestamp for frame UID: " << tmid ); 
-      return midStatus; 
+      midBufferIndex += this->BufferItemContainer.size();
     }
+    double tmid = this->BufferItemContainer[midBufferIndex].GetFilteredTimestamp(this->LocalTimeOffsetSec);
 
     if (time < tmid)
     {
@@ -494,8 +390,7 @@ ItemStatus vtkTimestampedCircularBuffer<BufferItemType>::GetItemUidFromTime(cons
 }
 
 //----------------------------------------------------------------------------
-template<class BufferItemType>
-void vtkTimestampedCircularBuffer<BufferItemType>::DeepCopy(vtkTimestampedCircularBuffer<BufferItemType>* buffer)
+void vtkTimestampedCircularBuffer::DeepCopy(vtkTimestampedCircularBuffer* buffer)
 {
   buffer->Lock(); 
   this->Lock(); 
@@ -517,8 +412,7 @@ void vtkTimestampedCircularBuffer<BufferItemType>::DeepCopy(vtkTimestampedCircul
 }
 
 //----------------------------------------------------------------------------
-template<class BufferItemType>
-void vtkTimestampedCircularBuffer<BufferItemType>::Clear()
+void vtkTimestampedCircularBuffer::Clear()
 {
   this->Lock(); 
   this->WritePointer = 0; 
@@ -529,8 +423,7 @@ void vtkTimestampedCircularBuffer<BufferItemType>::Clear()
 }
 
 //----------------------------------------------------------------------------
-template<class BufferItemType>
-double vtkTimestampedCircularBuffer<BufferItemType>::GetFrameRate(bool ideal /*=false*/, double *framePeriodStdevSecPtr /* =NULL */)
+double vtkTimestampedCircularBuffer::GetFrameRate(bool ideal /*=false*/, double *framePeriodStdevSecPtr /* =NULL */)
 {
   // TODO: Start the frame rate computation from the latest frame UID with using a few seconds of items in the buffer
   bool cannotComputeIdealFrameRateDueToInvalidFrameNumbers=false;
@@ -628,8 +521,7 @@ double vtkTimestampedCircularBuffer<BufferItemType>::GetFrameRate(bool ideal /*=
 //----------------------------------------------------------------------------
 // for accurate timing of the frame: an exponential moving average
 // is computed to smooth out the jitter in the times that are returned by the system clock:
-template<class BufferItemType>
-PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStampForItem(unsigned long itemIndex, double inUnfilteredTimestamp, double &outFilteredTimestamp, bool &filteredTimestampProbablyValid)
+PlusStatus vtkTimestampedCircularBuffer::CreateFilteredTimeStampForItem(unsigned long itemIndex, double inUnfilteredTimestamp, double &outFilteredTimestamp, bool &filteredTimestampProbablyValid)
 {
   this->Lock();   
   filteredTimestampProbablyValid=true;
@@ -732,10 +624,8 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::CreateFilteredTimeStamp
 }
 
 //----------------------------------------------------------------------------
-template<class BufferItemType>
-PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::GetTimeStampReportTable(vtkTable* timeStampReportTable)
+PlusStatus vtkTimestampedCircularBuffer::GetTimeStampReportTable(vtkTable* timeStampReportTable)
 {
-
   if ( timeStampReportTable == NULL )
   {
       LOG_ERROR("Failed to get timestamp report table from buffer - input table is NULL!"); 
@@ -756,8 +646,7 @@ PlusStatus vtkTimestampedCircularBuffer<BufferItemType>::GetTimeStampReportTable
 }
 
 //----------------------------------------------------------------------------
-template<class BufferItemType>
-void vtkTimestampedCircularBuffer<BufferItemType>::AddToTimeStampReport(unsigned long itemIndex, double unfilteredTimestamp, double filteredTimestamp)
+void vtkTimestampedCircularBuffer::AddToTimeStampReport(unsigned long itemIndex, double unfilteredTimestamp, double filteredTimestamp)
 {
   if (!this->TimeStampReporting)
   {

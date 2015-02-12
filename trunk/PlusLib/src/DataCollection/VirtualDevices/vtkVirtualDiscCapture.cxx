@@ -590,6 +590,7 @@ PlusStatus vtkVirtualDiscCapture::TakeSnapshot()
   }
 
   // Add tracked frame to the list
+  // Snapshots are triggered manually, so the additional copying in AddTrackedFrame compared to TakeTrackedFrame is not relevant.
   if (this->RecordedFrames->AddTrackedFrame(&trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS)
   {
     LOG_WARNING(this->GetDeviceId() << ": Frame could not be added because validation failed!");

@@ -11,9 +11,11 @@ See License.txt for details.
 
 #include "PlusCommon.h"
 #include "vtkObject.h"
-#include "vtkPlusDeviceTypes.h"
+#include "vtkPlusDevice.h"
 
 class TrackedFrame;
+class vtkPlusChannel;
+
 class vtkTrackedFrameList;
 class vtkXMLDataElement;
 
