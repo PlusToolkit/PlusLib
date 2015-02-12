@@ -11,6 +11,7 @@ See License.txt for details.
 #include "vtkDataCollectionExport.h"
 
 #include "PlusCommon.h"
+#include "vtkStdString.h"
 #include "StreamBufferItem.h"
 #include "TrackedFrame.h"
 
