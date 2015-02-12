@@ -8,6 +8,7 @@
 #define __vtkTimestampedCircularBuffer_h
 
 #include "PlusConfigure.h"
+#include "StreamBufferItem.h"
 #include "vtkObject.h"
 #include "vtkTypeTemplate.h"
 #include <deque>
@@ -20,12 +21,6 @@
 class vtkRecursiveCriticalSection;
 class vtkTable;
 
-#ifdef _WIN32
-  typedef unsigned __int64 BufferItemUidType;
-#else
-  typedef unsigned long long BufferItemUidType;
-#endif
-
 /*!
   Constant value used for indicating that a timestamp has an unknown value.
   It can be used to indicate that the timestamp has to be generated from the current time.
@@ -33,119 +28,6 @@ class vtkTable;
 
 enum ItemStatus { ITEM_OK, ITEM_NOT_AVAILABLE_YET, ITEM_NOT_AVAILABLE_ANYMORE, ITEM_UNKNOWN_ERROR };
 
-/*!
-  \class TimestampedBufferItem
-  \brief This class stores an object (such as an image or transform) with a timestamp. This object can be stored in a timestamped buffer.
-  \ingroup PlusLibCommon
-*/
-class TimestampedBufferItem
-{
-public:
-  typedef std::map<std::string, std::string> FieldMapType;
-
-  /*! Get timestamp for the current buffer item in global time (global = local + offset) */
-  double GetTimestamp( double localTimeOffsetSec) { return this->GetFilteredTimestamp(localTimeOffsetSec); }
-  
-  /*! Get filtered timestamp in global time (global = local + offset) */
-  double GetFilteredTimestamp( double localTimeOffsetSec) { return this->FilteredTimeStamp + localTimeOffsetSec; }
-  
-  /*! Set filtered timestamp */
-  void SetFilteredTimestamp( double filteredTimestamp) { this->FilteredTimeStamp = filteredTimestamp; }
-
-  /*! Get unfiltered timestamp in global time (global = local + offset) */
-  double GetUnfilteredTimestamp( double localTimeOffsetSec) { return this->UnfilteredTimeStamp + localTimeOffsetSec; }
-  
-  /*! Set unfiltered timestamp */
-  void SetUnfilteredTimestamp( double unfilteredTimestamp) { this->UnfilteredTimeStamp = unfilteredTimestamp; }
-
-  /*!
-    Set/get index assigned by the data acquisition system (usually a counter)
-    If frames are skipped then the counter should be increased by the number of skipped frames, therefore
-    the index difference between subsequent frames be more than 1.
-  */
-  unsigned long GetIndex() { return this->Index; }; 
-  void SetIndex(unsigned long index) { this->Index = index; }; 
-
-  /*! Set/get unique identifier assigned by the storage buffer */
-  BufferItemUidType GetUid() { return this->Uid; }; 
-  void SetUid(BufferItemUidType uid) { this->Uid = uid; }; 
-
-  /*! Set custom frame field */
-  void SetCustomFrameField(std::string fieldName, std::string fieldValue) { this->CustomFrameFields[fieldName] = fieldValue; }
-
-  /*! Get custom frame field value */ 
-  const char* GetCustomFrameField(const char* fieldName)
-  {
-    if (fieldName == NULL )
-    {
-      LOG_ERROR("Unable to get custom frame field: field name is NULL!"); 
-      return NULL; 
-    }
-
-    FieldMapType::iterator fieldIterator; 
-    fieldIterator = this->CustomFrameFields.find(fieldName); 
-    if ( fieldIterator != this->CustomFrameFields.end() )
-    {
-      return fieldIterator->second.c_str(); 
-    }
-    return NULL; 
-  }
-  /*! Get custom frame field map */
-  FieldMapType& GetCustomFrameFieldMap()
-  {
-    return this->CustomFrameFields;
-  }
-  /*! Delete custom frame field */
-  PlusStatus DeleteCustomFrameField( const char* fieldName )
-  {
-    if ( fieldName == NULL )
-    {
-      LOG_DEBUG("Failed to delete custom frame field - field name is NULL!"); 
-      return PLUS_FAIL; 
-    }
-
-    FieldMapType::iterator field = this->CustomFrameFields.find(fieldName); 
-    if ( field != this->CustomFrameFields.end() )
-    {
-      this->CustomFrameFields.erase(field); 
-      return PLUS_SUCCESS; 
-    }
-    LOG_DEBUG("Failed to delete custom frame field - could find field " << fieldName ); 
-    return PLUS_FAIL; 
-  }
-
-
-protected: 
-  TimestampedBufferItem() 
-  { 
-    this->FilteredTimeStamp = 0;  
-    this->UnfilteredTimeStamp = 0;  
-    this->Index = 0;  
-    this->Uid = 0; 
-  }; 
-
-  ~TimestampedBufferItem() {}; 
-
-  TimestampedBufferItem(const TimestampedBufferItem& timestampedBufferItem)
-  {
-    this->FilteredTimeStamp = timestampedBufferItem.FilteredTimeStamp; 
-    this->UnfilteredTimeStamp = timestampedBufferItem.UnfilteredTimeStamp; 
-    this->Index = timestampedBufferItem.Index; 
-    this->Uid = timestampedBufferItem.Uid; 
-  }
-
-  double FilteredTimeStamp;
-  double UnfilteredTimeStamp;
-
-  /*! index assigned by the data acuiqisition system (usually a counter) */
-  unsigned long Index; 
-
-  /*! unique identifier assigned by the storage buffer, it is guaranteed to increase monotonously, by one for each frame that is added to the buffer*/
-  BufferItemUidType Uid; 
-
-  /*! Custom frame fields */
-  FieldMapType CustomFrameFields;
-}; 
 
 /*!
   \class vtkTimestampedCircularBuffer
@@ -153,11 +35,10 @@ protected:
   It provides element retrieval based on timestamp, temporal filtering and interpolation, etc.
   \ingroup PlusLibCommon
 */
-template <typename BufferItemType>
-class vtkTimestampedCircularBuffer: public vtkTypeTemplate<vtkTimestampedCircularBuffer<BufferItemType>, vtkObject>
+class vtkTimestampedCircularBuffer: public vtkObject
 {
 public:  
-  static vtkTimestampedCircularBuffer<BufferItemType> *New();
+  static vtkTimestampedCircularBuffer *New();
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /*!
@@ -165,7 +46,7 @@ public:
    video frames that it will hold.  The default is 30.
   */
   virtual PlusStatus SetBufferSize(int n);
-  virtual int GetBufferSize(); 
+  virtual inline int GetBufferSize() { return this->BufferItemContainer.size(); }; 
 
   /*!
     Get the number of items in the list (this is not the same as
@@ -181,9 +62,6 @@ public:
   */
   virtual ItemStatus GetItemUidFromTime(const double time, BufferItemUidType& uid );
 
-  /*! Get frame UID from buffer index */
-  virtual ItemStatus GetItemUidFromBufferIndex(const int bufferIndex, BufferItemUidType &uid ); 
-
   /*! Get the most recent frame UID that is already in the buffer */
   virtual BufferItemUidType GetLatestItemUidInBuffer() 
   { 
@@ -198,14 +76,11 @@ public:
   { 
     this->Lock(); 
     // LatestItemUid - ( NumberOfItems - 1 ) is the oldest element in the buffer
-    BufferItemUidType oldestUid = ( this->GetLatestItemUidInBuffer() - (this->NumberOfItems - 1) ); 
+    BufferItemUidType oldestUid = this->LatestItemUid - (this->NumberOfItems - 1);
     this->Unlock();
     return oldestUid; 
   } 
   
-  /*! Get frame status by frame UID  */
-  virtual ItemStatus GetFrameStatus(const BufferItemUidType uid ); 
-
   /*! Get timestamp by frame UID associated with the buffer item  */
   virtual ItemStatus GetLatestTimeStamp(double &timestamp)
   {
@@ -218,15 +93,19 @@ public:
     // therefore we need to retrieve its UID and timestamp within a single lock
     this->Lock(); 
     // LatestItemUid - ( NumberOfItems - 1 ) is the oldest element in the buffer
-    BufferItemUidType uid = ( this->LatestItemUid - (this->NumberOfItems - 1) );
-    ItemStatus status = this->GetTimeStamp(this->GetOldestItemUidInBuffer(), timestamp);
+    BufferItemUidType oldestUid = ( this->LatestItemUid - (this->NumberOfItems - 1) );
+    ItemStatus status = this->GetTimeStamp(oldestUid, timestamp);
     this->Unlock();
     return status;
   }
 
   virtual ItemStatus GetTimeStamp(const BufferItemUidType uid, double &timestamp) { return this->GetFilteredTimeStamp(uid, timestamp); }
   virtual ItemStatus GetFilteredTimeStamp(const BufferItemUidType uid, double &filteredTimestamp); 
-  virtual ItemStatus GetUnfilteredTimeStamp(const BufferItemUidType uid, double &unfilteredTimestamp); 
+  virtual ItemStatus GetUnfilteredTimeStamp(const BufferItemUidType uid, double &unfilteredTimestamp);
+  
+  virtual bool GetLatestItemHasValidVideoData();
+  virtual bool GetLatestItemHasValidTransformData();
+
 
   /*! Get the index assigned by the data acuiqisition system (usually a counter) from the buffer by frame UID. */
   virtual ItemStatus GetIndex(const BufferItemUidType uid, unsigned long &index); 
@@ -241,7 +120,7 @@ public:
     Make this buffer into a copy of another buffer.  You should
     Lock both of the buffers before doing this.
   */
-  virtual void DeepCopy(vtkTimestampedCircularBuffer<BufferItemType>* buffer); 
+  virtual void DeepCopy(vtkTimestampedCircularBuffer* buffer); 
 
   /*!  Set the local time offset in seconds (global = local + offset) */
   vtkSetMacro(LocalTimeOffsetSec, double); 
@@ -267,24 +146,25 @@ public:
     the data in the buffer if the buffer is being used from multiple
     threads.  
   */
-  virtual void Lock();
+  inline void Lock() { this->Mutex->Lock(); };
   /*!
     Unlock the buffer: this should be done before changing or accessing
     the data in the buffer if the buffer is being used from multiple
     threads.  
   */
-  virtual void Unlock();
+  inline void Unlock() { this->Mutex->Unlock(); };
 
   /*!
     Get next writable buffer object
     INTERNAL USE ONLY! Need to lock buffer until we use the buffer index 
   */
-  virtual BufferItemType* GetBufferItemFromBufferIndex(const int bufferIndex); 
+  virtual StreamBufferItem* GetBufferItemPointerFromBufferIndex(const int bufferIndex); 
+
   /*!
     Get next writable buffer object
     INTERNAL USE ONLY! Need to lock buffer until we use the buffer index 
   */
-  virtual BufferItemType* GetBufferItemFromUid(const BufferItemUidType uid); 
+  virtual ItemStatus GetBufferItemPointerFromUid(const BufferItemUidType uid, StreamBufferItem* &itemPtr);
 
   virtual PlusStatus PrepareForNewItem(const double timestamp, BufferItemUidType& newFrameUid, int& bufferIndex); 
 
@@ -330,12 +210,6 @@ protected:
   vtkTimestampedCircularBuffer();
   ~vtkTimestampedCircularBuffer();
 
-  /*!
-    Get buffer index by frame UID - internal use only, the buffer should be locked 
-    Returns buffer index if the ItemStatus is ITEM_OK, otherwise -1; 
-  */
-  virtual ItemStatus GetBufferIndex( BufferItemUidType uid, int& bufferIndex ); 
-
 protected:
   vtkRecursiveCriticalSection *Mutex;
 
@@ -355,7 +229,7 @@ protected:
   */
   BufferItemUidType LatestItemUid; 
   
-  std::deque<BufferItemType> BufferItemContainer; 
+  std::deque<StreamBufferItem> BufferItemContainer; 
 
   /*! Matrix used for storing the last number of AveragedItemsForFiltering frame index */
   vnl_vector<double> FilterContainerIndexVector; 
@@ -406,7 +280,5 @@ private:
   vtkTimestampedCircularBuffer(const vtkTimestampedCircularBuffer&);
   void operator=(const vtkTimestampedCircularBuffer&);
 };
-
-#include "vtkTimestampedCircularBuffer.txx"
 
 #endif

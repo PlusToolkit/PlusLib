@@ -64,6 +64,9 @@ public:
   /*! Add tracked frame to container. If the frame is invalid then it may not actually add it to the list. */
   virtual PlusStatus AddTrackedFrame(TrackedFrame *trackedFrame, InvalidFrameAction action = ADD_INVALID_FRAME_AND_REPORT_ERROR); 
 
+  /*! Add tracked frame to container by taking ownership of the passed pointer. If the frame is invalid then it may not actually add it to the list (it will be deleted immediately). */
+  virtual PlusStatus TakeTrackedFrame(TrackedFrame *trackedFrame, InvalidFrameAction action = ADD_INVALID_FRAME_AND_REPORT_ERROR); 
+
   /*! Add all frames from a tracked frame list to the container. It adds all invalid frames as well, but an error is reported. */
   virtual PlusStatus AddTrackedFrameList(vtkTrackedFrameList* inTrackedFrameList, InvalidFrameAction action = ADD_INVALID_FRAME_AND_REPORT_ERROR); 
 

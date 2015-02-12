@@ -11,11 +11,12 @@ See License.txt for details.
 #include "vtkDataCollectionExport.h"
 
 #include "PlusCommon.h"
+#include "StreamBufferItem.h"
 #include "TrackedFrame.h"
 
 #include "vtkImageAlgorithm.h"
 #include "vtkMultiThreader.h"
-#include "vtkPlusDeviceTypes.h"
+#include "vtkPlusChannel.h"
 
 #include <string>
 
@@ -23,9 +24,25 @@ class TrackedFrame;
 class vtkDataCollector;
 class vtkHTMLGenerator;
 class vtkPlusBuffer;
-class vtkPlusChannel;
 class vtkPlusDataSource;
 class vtkXMLDataElement;
+class vtkPlusDevice;
+
+typedef std::vector<vtkPlusChannel*> ChannelContainer;
+typedef ChannelContainer::const_iterator ChannelContainerConstIterator;
+typedef ChannelContainer::iterator ChannelContainerIterator;
+
+typedef std::vector<vtkPlusBuffer*> StreamBufferContainer;
+typedef StreamBufferContainer::const_iterator StreamBufferContainerConstIterator;
+typedef StreamBufferContainer::iterator StreamBufferContainerIterator;
+
+typedef std::map<int, vtkPlusBuffer*> StreamBufferMapContainer;
+typedef StreamBufferMapContainer::const_iterator StreamBufferMapContainerConstIterator;
+typedef StreamBufferMapContainer::iterator StreamBufferMapContainerIterator;
+
+typedef std::vector<vtkPlusDevice*> DeviceCollection;
+typedef std::vector<vtkPlusDevice*>::iterator DeviceCollectionIterator;
+typedef std::vector<vtkPlusDevice*>::const_iterator DeviceCollectionConstIterator;
 
 /*!
 \class vtkPlusDevice 

@@ -25,8 +25,6 @@ if (WIN32)
     WindowsAccurateTimer.h
     vtkPlusLogger.h
     vtkHTMLGenerator.h
-    vtkTimestampedCircularBuffer.h
-    vtkTimestampedCircularBuffer.txx
     vtkPlusConfig.h
 	vtkPlusMacro.h
     PlusMath.h
@@ -38,6 +36,7 @@ if (WIN32)
     vtkMetaImageSequenceIO.h
     vtkRecursiveCriticalSection.h
     vtkToolAxesActor.h
+    PixelCodec.h
     )
 endif (WIN32)  
 

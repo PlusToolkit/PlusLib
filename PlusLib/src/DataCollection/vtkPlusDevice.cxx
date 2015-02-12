@@ -574,6 +574,7 @@ PlusStatus vtkPlusDevice::WriteToMetafile( const char* filename, bool useCompres
     }
 
     // Add tracked frame to the list
+    // This is a debugging/test function, so the additional copying in AddTrackedFrame compared to TakeTrackedFrame is not relevant.
     trackedFrameList->AddTrackedFrame(&trackedFrame); 
   }
 

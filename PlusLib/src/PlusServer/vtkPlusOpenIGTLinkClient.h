@@ -15,6 +15,7 @@
 #include "vtkObject.h"
 #include "vtkPlusCommand.h"
 
+#include <deque>
 #include <string>
 
 class vtkMultiThreader; 

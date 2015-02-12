@@ -18,6 +18,9 @@ Authors include: Danielle Pace
 
 #include "vtkDataCollectionExport.h"
 
+#include "vtkRecursiveCriticalSection.h"
+#include "vtkSmartPointer.h"
+
 #include "PlusVideoFrame.h"
 #include "vtkPlusDevice.h"
 

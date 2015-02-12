@@ -37,11 +37,13 @@ compares the results to a baseline
 #include "vtkChartXY.h"
 #include "vtkContextScene.h"
 #include "vtkContextView.h"
+#include "vtkDoubleArray.h"
 #include "vtkWindowToImageFilter.h"
 #include "vtkRenderer.h"
 #include "vtkPNGWriter.h"
 #include "vtkPlot.h"
 #include "vtkRenderWindow.h"
+#include "vtkTable.h"
 
 #include "vtkReadTrackedSignals.h"
 #include "vtkLandmarkDetectionAlgo.h"
