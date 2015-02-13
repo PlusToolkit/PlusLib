@@ -190,8 +190,8 @@ namespace
             {
               *(outputPixel+s) = *(inputPixel+s);
             }
-            // TODO : determine correct output pixel offset as per notebook
-            outputPixel = (ScalarType*)(outBuff + );
+            // Determine correct output pixel offset as per notebook
+            outputPixel = (ScalarType*)(outBuff) + x*imageIncrement + y*pixelIncrement + z*rowIncrement;
             inputPixel += numberOfScalarComponents;
           }
         }        
