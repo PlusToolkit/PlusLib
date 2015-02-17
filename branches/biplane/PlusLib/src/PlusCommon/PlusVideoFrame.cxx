@@ -145,6 +145,7 @@ namespace
               inputPixel += pixelIncrement;
               outputPixel -= pixelIncrement;
             }
+            // todo : this is wrong, this is flip x and y
             outputPixel -= (inputWidth-finalClipSize[0])*pixelIncrement;
             inputPixel += (inputWidth-finalClipSize[0])*pixelIncrement;
           }
@@ -158,21 +159,25 @@ namespace
       {
         ScalarType* inputPixel = (ScalarType*)inBuff;
 
-        for(int z = inputDepth; z > 0; z--)
+        for(int z = finalClipOrigin[2]; z < finalClipOrigin[2]+finalClipSize[2]; z++)
         {
           // Set the target position pointer to the last pixel of each image
-          ScalarType* outputPixel = (ScalarType*)outBuff + imageIncrement*z + inputHeight*inputWidth*numberOfScalarComponents - 1*numberOfScalarComponents;
-          // Copy the image pixelpair-by-pixelpair, reversing the pixel order
-          for (int p = inputWidth*inputHeight/2; p > 0; p--)
+          ScalarType* outputPixel = (ScalarType*)outBuff + imageIncrement*z + finalClipOrigin[1]+finalClipSize[1]*rowIncrement + (finalClipOrigin[0]+finalClipSize[0]-1)*2*pixelIncrement;
+          // Copy the image pixel-by-pixel, reversing the pixel order
+          for (int y = finalClipOrigin[1]; y < finalClipOrigin[1]+finalClipSize[1]; y++)
           {
-            // For each scalar, copy it
-            for( int s = 0; s < numberOfScalarComponents; ++s)
+            for (int x = finalClipOrigin[0]; x < finalClipOrigin[0]+finalClipSize[0]; x++)
             {
-              *(outputPixel - 1*numberOfScalarComponents + s) = *(inputPixel + s);
-              *(outputPixel + s) = *(inputPixel + 1*numberOfScalarComponents + s);
+              // For each scalar, copy it
+              for( int s = 0; s < numberOfScalarComponents; ++s)
+              {
+                *(outputPixel+s) = *(inputPixel+s);
+              }
+              inputPixel += 2*pixelIncrement;
+              outputPixel -= 2*pixelIncrement;
             }
-            inputPixel += 2*numberOfScalarComponents;
-            outputPixel -= 2*numberOfScalarComponents;
+            inputPixel += (inputWidth-finalClipSize[0])*2*pixelIncrement;
+            outputPixel -= (inputWidth-finalClipSize[0])*2*pixelIncrement;
           }
         }
       }
@@ -180,20 +185,25 @@ namespace
       {
         ScalarType* inputPixel = (ScalarType*)inBuff;
 
-        for(int z = inputDepth; z > 0; z--)
+        for(int z = finalClipOrigin[2]; z < finalClipOrigin[2]+finalClipSize[2]; z++)
         {
           // Set the target position pointer to the last pixel of each image
-          ScalarType* outputPixel = (ScalarType*)outBuff + imageIncrement*z + inputHeight*inputWidth*numberOfScalarComponents - 1*numberOfScalarComponents;
+          ScalarType* outputPixel = (ScalarType*)outBuff + imageIncrement*z + finalClipOrigin[1]+finalClipSize[1]*rowIncrement + (finalClipOrigin[0]+finalClipSize[0]-1)*pixelIncrement;
           // Copy the image pixel-by-pixel, reversing the pixel order
-          for (int p = inputWidth*inputHeight; p > 0; p--)
+          for (int y = finalClipOrigin[1]; y < finalClipOrigin[1]+finalClipSize[1]; y++)
           {
-            // For each scalar, copy it
-            for( int s = 0; s < numberOfScalarComponents; ++s)
+            for (int x = finalClipOrigin[0]; x < finalClipOrigin[0]+finalClipSize[0]; x++)
             {
-              *(outputPixel+s) = *(inputPixel+s);
+              // For each scalar, copy it
+              for( int s = 0; s < numberOfScalarComponents; ++s)
+              {
+                *(outputPixel+s) = *(inputPixel+s);
+              }
+              inputPixel += pixelIncrement;
+              outputPixel -= pixelIncrement;
             }
-            inputPixel += numberOfScalarComponents;
-            outputPixel -= numberOfScalarComponents;
+            inputPixel += (inputWidth-finalClipSize[0])*pixelIncrement;
+            outputPixel -= (inputWidth-finalClipSize[0])*pixelIncrement;
           }
         }
       }
