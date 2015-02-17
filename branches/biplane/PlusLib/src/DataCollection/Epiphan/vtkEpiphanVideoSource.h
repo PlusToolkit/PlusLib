@@ -108,6 +108,9 @@ protected:
   /*! Frame size of the captured image, third dimension is set to 1*/
   int FrameSize[3];
 
+  /*! The type of image to capture from the hardware */
+  US_IMAGE_TYPE CaptureImageType;
+
   /*! Dimensions to request from framegrabber */
   V2URect* CropRectangle;
 

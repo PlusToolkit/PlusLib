@@ -241,35 +241,36 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
 
   V2U_GrabFrame2 * frame = NULL;
 
-  vtkPlusDataSource* aSource(NULL);
-  if( this->GetFirstVideoSource(aSource) != PLUS_SUCCESS )
+
+  // If someone ever wants RGB8 or YUY2 (etc...) this line will have to be changed
+  // to support any future video format choices
+  // ReadConfiguration will probably need a new flag to tell this line what to do
+  V2U_UINT32 videoFormat = (this->CaptureImageType == US_IMG_RGB_COLOR ? V2U_GRABFRAME_FORMAT_RGB24 : V2U_GRABFRAME_FORMAT_Y8);
+
+  frame = FrmGrab_Frame( (FrmGrabber*)this->FrameGrabber, videoFormat, this->CropRectangle );
+
+  if (frame == NULL)
   {
-    LOG_ERROR("Unable to retrieve the video source in the Epiphan device on channel " << this->OutputChannels[0]->GetChannelId());
+    LOG_WARNING("Frame not captured for video format: " << videoFormat);
     return PLUS_FAIL;
   }
-  else
+
+  if ( frame->crop.width != this->FrameSize[0] || frame->crop.height != this->FrameSize[1])
   {
-    // If someone ever wants RGB8 or YUY2 (etc...) this line will have to be changed
-    // to support any future video format choices
-    // ReadConfiguration will probably need a new flag to tell this line what to do
-    V2U_UINT32 videoFormat = (aSource->GetImageType() == US_IMG_RGB_COLOR ? V2U_GRABFRAME_FORMAT_RGB24 : V2U_GRABFRAME_FORMAT_Y8);
+    LOG_ERROR("Image size received from Epiphan (" << frame->crop.width << "x" << frame->crop.height << ") does not match the clip rectangle size (" <<
+      this->FrameSize[0] << "x" << this->FrameSize[1] << ")");
+    FrmGrab_Release( (FrmGrabber*)this->FrameGrabber, frame );
+    return PLUS_FAIL;
+  }
 
-    frame = FrmGrab_Frame( (FrmGrabber*)this->FrameGrabber, videoFormat, this->CropRectangle );
-
-    if (frame == NULL)
+  vtkPlusDataSource* aSource(NULL);
+  for( int i = 0; i < this->GetNumberOfVideoSources(); ++i )
+  {
+    if( this->GetVideoSourceByIndex(i, aSource) != PLUS_SUCCESS )
     {
-      LOG_WARNING("Frame not captured for video format: " << videoFormat);
+      LOG_ERROR("Unable to retrieve the video source in the Epiphan device on channel " << (*this->OutputChannels.begin())->GetChannelId());
       return PLUS_FAIL;
     }
-
-    if ( frame->crop.width != this->FrameSize[0] || frame->crop.height != this->FrameSize[1])
-    {
-      LOG_ERROR("Image size received from Epiphan (" << frame->crop.width << "x" << frame->crop.height << ") does not match the clip rectangle size (" <<
-        this->FrameSize[0] << "x" << this->FrameSize[1] << ")");
-      FrmGrab_Release( (FrmGrabber*)this->FrameGrabber, frame );
-      return PLUS_FAIL;
-    }
-
     int numberOfScalarComponents(1);
     if( aSource->GetImageType() == US_IMG_RGB_COLOR )
     {
@@ -277,16 +278,16 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
     }
     if( aSource->AddItem(frame->pixbuf, aSource->GetImageOrientation(), this->FrameSize, VTK_UNSIGNED_CHAR, numberOfScalarComponents, aSource->GetImageType(), 0, this->FrameNumber) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Error adding item to video source " << aSource->GetSourceId() << " on channel " << this->OutputChannels[0]->GetChannelId() );
+      LOG_ERROR("Error adding item to video source " << aSource->GetSourceId() << " on channel " << (*this->OutputChannels.begin())->GetChannelId() );
       return PLUS_FAIL;
     }
     else
     {
       this->Modified();
     }
-
-    FrmGrab_Release( (FrmGrabber*)this->FrameGrabber, frame );
   }
+
+  FrmGrab_Release( (FrmGrabber*)this->FrameGrabber, frame );
 
   this->FrameNumber++;
 
@@ -355,6 +356,21 @@ PlusStatus vtkEpiphanVideoSource::NotifyConfigured()
   {
     LOG_ERROR("Epiphan is incorrectly configured. Unable to access video data sources.");
     return PLUS_FAIL;
+  }
+
+  this->CaptureImageType = videoSource->GetImageType();
+  for( int i = 0; i < this->GetNumberOfVideoSources(); ++i )
+  {
+    if( this->GetVideoSourceByIndex(i, videoSource) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to retrieve the video source in the Epiphan device on channel " << (*this->OutputChannels.begin())->GetChannelId());
+      return PLUS_FAIL;
+    }
+    if( videoSource->GetImageType() != this->CaptureImageType )
+    {
+      LOG_ERROR("Conflicting image types in data sources. Please confirm matching image types.");
+      return PLUS_FAIL;
+    }
   }
 
   if (this->ClipRectangleSize[0] > 0 && this->ClipRectangleSize[1] > 0)
