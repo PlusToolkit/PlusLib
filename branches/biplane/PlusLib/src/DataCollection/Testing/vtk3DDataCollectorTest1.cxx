@@ -21,7 +21,6 @@ See License.txt for details.
 #include "vtkPlusDevice.h"
 #include "vtkSavedDataSource.h"
 #include "vtkTrackedFrameList.h"
-#include "vtkTrivialProducer.h"
 #include "vtkVirtualMixer.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"

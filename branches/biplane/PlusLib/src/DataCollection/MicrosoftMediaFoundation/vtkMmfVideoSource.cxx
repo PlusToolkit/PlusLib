@@ -426,7 +426,7 @@ PlusStatus vtkMmfVideoSource::UpdateFrameSize()
   {
     int currentFrameSize[3] = {0,0,0};
     vtkPlusDataSource* videoSource(NULL);
-    this->GetFirstActiveVideoSource(videoSource);
+    this->GetFirstVideoSource(videoSource);
     videoSource->GetFrameSize(currentFrameSize);
     if( currentFrameSize[0] != this->ActiveVideoFormat.FrameSize[0] || currentFrameSize[1] != this->ActiveVideoFormat.FrameSize[1] )
     {
@@ -561,7 +561,7 @@ PlusStatus vtkMmfVideoSource::AddFrame(unsigned char* bufferData)
 
   int frameSize[3]={0,0,0};
   vtkPlusDataSource* videoSource(NULL);
-  if( this->GetFirstActiveVideoSource(videoSource) != PLUS_SUCCESS )
+  if( this->GetFirstVideoSource(videoSource) != PLUS_SUCCESS )
   {
     return PLUS_FAIL;
   }
@@ -604,7 +604,7 @@ PlusStatus vtkMmfVideoSource::AddFrame(unsigned char* bufferData)
 
   this->FrameIndex++;
   vtkPlusDataSource* aSource(NULL);
-  if( this->GetFirstActiveVideoSource(aSource) != PLUS_SUCCESS )
+  if( this->GetFirstVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source in the media foundation capture device.");
     return PLUS_FAIL;

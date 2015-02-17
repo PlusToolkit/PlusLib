@@ -865,8 +865,8 @@ PlusStatus vtkPlusBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *so
       continue; 
     }
 
-    int clipRectOrigin[3]={PlusVideoFrame::NO_CLIP, PlusVideoFrame::NO_CLIP, PlusVideoFrame::NO_CLIP};
-    int clipRectSize[3]={PlusVideoFrame::NO_CLIP, PlusVideoFrame::NO_CLIP, PlusVideoFrame::NO_CLIP};
+    int clipRectOrigin[3]={PlusCommon::NO_CLIP, PlusCommon::NO_CLIP, PlusCommon::NO_CLIP};
+    int clipRectSize[3]={PlusCommon::NO_CLIP, PlusCommon::NO_CLIP, PlusCommon::NO_CLIP};
     switch (timestampFiltering)
     {
     case READ_FILTERED_AND_UNFILTERED_TIMESTAMPS:

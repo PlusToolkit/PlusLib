@@ -497,8 +497,8 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
       numberOfErrors++;
       continue;
     }
-    int clipRectOrigin[3]={PlusVideoFrame::NO_CLIP, PlusVideoFrame::NO_CLIP, PlusVideoFrame::NO_CLIP};
-    int clipRectSize[3]={PlusVideoFrame::NO_CLIP, PlusVideoFrame::NO_CLIP, PlusVideoFrame::NO_CLIP};
+    int clipRectOrigin[3]={PlusCommon::NO_CLIP, PlusCommon::NO_CLIP, PlusCommon::NO_CLIP};
+    int clipRectSize[3]={PlusCommon::NO_CLIP, PlusCommon::NO_CLIP, PlusCommon::NO_CLIP};
     if (!this->UseCompression)
     {
       FilePositionOffsetType offset=PixelDataFileOffset+frameNumber*frameSizeInBytes;

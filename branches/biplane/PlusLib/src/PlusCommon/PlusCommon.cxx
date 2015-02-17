@@ -294,7 +294,7 @@ PlusStatus PlusCommon::PrintXML(ostream& os, vtkIndent indent, vtkXMLDataElement
 
   // If there are many attributes then print each of them in separate lines to improve readability
   bool printEachAttributeInNewLine=elem->GetNumberOfAttributes()>5;
-  
+
   for(int i=0;i < elem->GetNumberOfAttributes();++i)
   {
     std::string attName=elem->GetAttributeName(i);
@@ -461,4 +461,17 @@ void PlusCommon::SplitStringIntoTokens(const std::string &s, char delim, std::ve
   {
     elems.push_back(item);
   }
+}
+
+//-------------------------------------------------------
+vtkPlusCommonExport bool PlusCommon::IsClippingRequested(const int clipOrigin[3], const int clipSize[3])
+{
+  return ( 
+    clipOrigin[0] != PlusCommon::NO_CLIP &&
+    clipOrigin[1] != PlusCommon::NO_CLIP &&
+    clipOrigin[2] != PlusCommon::NO_CLIP &&
+    clipSize[1] != PlusCommon::NO_CLIP &&
+    clipSize[1] != PlusCommon::NO_CLIP &&
+    clipSize[1] != PlusCommon::NO_CLIP
+    );
 }

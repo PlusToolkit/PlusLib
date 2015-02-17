@@ -183,11 +183,14 @@ public:
   /*! Get number of images */
   int GetNumberOfTools() const;
 
-  /*! Get the image object for the specified image name */
+  /*! Get the video source for the specified source name */
   PlusStatus GetVideoSource(const char* aSourceId, vtkPlusDataSource*& aVideoSource);
 
+  /*! Get the video source for the specified source index */
+  PlusStatus GetVideoSourceByIndex(const int index, vtkPlusDataSource*& aVideoSource);
+
   /*! Get the first active image object */
-  PlusStatus GetFirstActiveVideoSource(vtkPlusDataSource*& anImage); 
+  PlusStatus GetFirstVideoSource(vtkPlusDataSource*& anImage); 
 
   /*! Get the beginning of the image iterator */
   DataSourceContainerConstIterator GetVideoIteratorBegin() const; 

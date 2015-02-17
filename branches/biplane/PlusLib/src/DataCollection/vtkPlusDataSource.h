@@ -247,6 +247,18 @@ public:
   /*! Make this tracker into a copy of another tracker. You should lock both of the tracker buffers before doing this. */
   void DeepCopy(vtkPlusDataSource *source);
 
+  /*!
+    Get the clip rectangle size to apply to the image in pixel coordinates.
+    If the ClipRectangleSize is (0,0) then the values are ignored and the whole frame is captured.
+  */
+  vtkGetVector3Macro(ClipRectangleSize,int);
+
+  /*!
+    Get the clip rectangle origin to apply to the image in pixel coordinates.
+    If the ClipRectangleSize is (0,0) then the whole frame is captured.
+  */
+  vtkGetVector3Macro(ClipRectangleOrigin,int);
+
 protected:
   /*! Access the data buffer */
   virtual vtkPlusBuffer* GetBuffer();
@@ -256,23 +268,13 @@ protected:
     If the ClipRectangleSize is (0,0) then the values are ignored and the whole frame is captured.
     Width of the ClipRectangle typically have to be a multiple of 4.
   */
-  vtkSetVector2Macro(ClipRectangleSize,int);
-  /*!
-    Get the clip rectangle size to apply to the image in pixel coordinates.
-    If the ClipRectangleSize is (0,0) then the values are ignored and the whole frame is captured.
-  */
-  vtkGetVector2Macro(ClipRectangleSize,int);
+  vtkSetVector3Macro(ClipRectangleSize,int);
 
   /*!
     Set the clip rectangle origin to apply to the image in pixel coordinates.
     If the ClipRectangleSize is (0,0) then the whole frame is captured.
   */
-  vtkSetVector2Macro(ClipRectangleOrigin,int);
-  /*!
-    Get the clip rectangle origin to apply to the image in pixel coordinates.
-    If the ClipRectangleSize is (0,0) then the whole frame is captured.
-  */
-  vtkGetVector2Macro(ClipRectangleOrigin,int);
+  vtkSetVector3Macro(ClipRectangleOrigin,int);
 
 protected:
   vtkPlusDataSource();

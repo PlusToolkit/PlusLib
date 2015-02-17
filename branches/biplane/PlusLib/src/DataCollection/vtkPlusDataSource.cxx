@@ -23,13 +23,13 @@ vtkPlusDataSource::vtkPlusDataSource()
 , ReferenceCoordinateFrameName(NULL)
 , Buffer(vtkPlusBuffer::New())
 {
-  this->ClipRectangleOrigin[0] = 0;
-  this->ClipRectangleOrigin[1] = 0;
-  this->ClipRectangleOrigin[2] = 0;
+  this->ClipRectangleOrigin[0] = PlusCommon::NO_CLIP;
+  this->ClipRectangleOrigin[1] = PlusCommon::NO_CLIP;
+  this->ClipRectangleOrigin[2] = PlusCommon::NO_CLIP;
 
-  this->ClipRectangleSize[0] = PlusVideoFrame::NO_CLIP;
-  this->ClipRectangleSize[1] = PlusVideoFrame::NO_CLIP;
-  this->ClipRectangleSize[2] = PlusVideoFrame::NO_CLIP;
+  this->ClipRectangleSize[0] = PlusCommon::NO_CLIP;
+  this->ClipRectangleSize[1] = PlusCommon::NO_CLIP;
+  this->ClipRectangleSize[2] = PlusCommon::NO_CLIP;
 }
 
 //----------------------------------------------------------------------------
@@ -294,8 +294,8 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
     }
 
     // clipping parameters
-    XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleOrigin, sourceElement);
-    XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleSize, sourceElement);
+    XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 3, ClipRectangleOrigin, sourceElement);
+    XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 3, ClipRectangleSize, sourceElement);
   }
   else
   {
@@ -400,8 +400,8 @@ PlusStatus vtkPlusDataSource::WriteConfiguration( vtkXMLDataElement* aSourceElem
     aSourceElement->AddNestedElement(customPropertiesElement);
   }
 
-  aSourceElement->SetVectorAttribute("ClipRectangleOrigin", 2, this->GetClipRectangleOrigin());
-  aSourceElement->SetVectorAttribute("ClipRectangleSize", 2, this->GetClipRectangleSize());
+  aSourceElement->SetVectorAttribute("ClipRectangleOrigin", 3, this->GetClipRectangleOrigin());
+  aSourceElement->SetVectorAttribute("ClipRectangleSize", 3, this->GetClipRectangleSize());
 
   return PLUS_SUCCESS;
 }

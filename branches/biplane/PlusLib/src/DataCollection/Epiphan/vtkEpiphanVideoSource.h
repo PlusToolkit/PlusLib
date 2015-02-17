@@ -105,8 +105,8 @@ protected:
   /*! Epiphan Pointer to the grabber */
   void* FrameGrabber;
 
-  /*! Frame size of the captured image */
-  int FrameSize[2];
+  /*! Frame size of the captured image, third dimension is set to 1*/
+  int FrameSize[3];
 
   /*! Dimensions to request from framegrabber */
   V2URect* CropRectangle;

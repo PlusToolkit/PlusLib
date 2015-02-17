@@ -1726,7 +1726,7 @@ PlusStatus vtkPlusDevice::AddVideo( vtkPlusDataSource* aVideo )
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetFirstActiveVideoSource(vtkPlusDataSource*& aVideoSource)
+PlusStatus vtkPlusDevice::GetFirstVideoSource(vtkPlusDataSource*& aVideoSource)
 {
   if ( this->VideoSources.size() == 0 )
   {
@@ -1755,6 +1755,25 @@ PlusStatus vtkPlusDevice::GetVideoSource(const char* aSourceId, vtkPlusDataSourc
   }
 
   return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::GetVideoSourceByIndex(const int index, vtkPlusDataSource*& aVideoSource)
+{
+  if ( index < 0 || index > this->VideoSources.size() )
+  {
+    LOCAL_LOG_ERROR("Failed to get video source, index is outside of range.");
+    aVideoSource = NULL;
+    return PLUS_FAIL; 
+  }
+
+  DataSourceContainerIterator it = this->VideoSources.begin();
+  for( int i = 0 ; i < index; ++i )
+  {
+    ++it;
+  }
+  aVideoSource = it->second;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------

@@ -27,6 +27,10 @@ vtkEpiphanVideoSource::vtkEpiphanVideoSource()
   this->ClipRectangleSize[0]=0;
   this->ClipRectangleSize[1]=0;
 
+  this->FrameSize[0]=0;
+  this->FrameSize[1]=0;
+  this->FrameSize[2]=1;
+
   this->RequireImageOrientationInConfiguration = true;
 
   // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
@@ -128,17 +132,19 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
     if (this->ClipRectangleOrigin[0]+this->ClipRectangleSize[0]>vm.width || this->ClipRectangleOrigin[1]+this->ClipRectangleSize[1]>vm.height)
     {
       LOG_ERROR("Invalid clip rectangle: rectangle does not fit into the image. Clip rectangle origin: ("<<this->ClipRectangleOrigin[0]<<","<<this->ClipRectangleOrigin[1]
-        <<"), size: "<<this->ClipRectangleSize[0]<<","<<this->ClipRectangleSize[1]<<". Image size: "<<vm.width<<"x"<<vm.height);
+      <<"), size: "<<this->ClipRectangleSize[0]<<","<<this->ClipRectangleSize[1]<<". Image size: "<<vm.width<<"x"<<vm.height);
       return PLUS_FAIL;
     }
     this->FrameSize[0] = this->ClipRectangleSize[0];
     this->FrameSize[1] = this->ClipRectangleSize[1];
   }
 
+  if( this->GetNumberOfVideoSources() == 1 )
+  {
     vtkPlusDataSource* aSource(NULL);
-    if( this->GetFirstActiveVideoSource(aSource) != PLUS_SUCCESS )
+    if( this->GetFirstVideoSource(aSource) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Unable to retrieve the video source in the Epiphan device on channel " << this->OutputChannels[0]->GetChannelId());
+      LOG_ERROR("Unable to retrieve the video source in the Epiphan device on channel " << (*this->OutputChannels.begin())->GetChannelId());
       return PLUS_FAIL;
     }
     else
@@ -148,6 +154,37 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
       aSource->SetNumberOfScalarComponents(imageType == US_IMG_RGB_COLOR ? 3 : 1);
       aSource->SetFrameSize(this->FrameSize);
     }
+  }
+  else
+  {
+    // Can only be 1 or 2, so we must have two video sources, most likely for biplane configuration
+    vtkPlusDataSource* aSource(NULL);
+    for( int i = 0; i < this->GetNumberOfVideoSources(); ++i )
+    {
+      if( this->GetVideoSourceByIndex(i, aSource) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Unable to retrieve the video source in the Epiphan device on channel " << (*this->OutputChannels.begin())->GetChannelId());
+        return PLUS_FAIL;
+      }
+
+      US_IMAGE_TYPE imageType = aSource->GetImageType();
+      aSource->SetPixelType(VTK_UNSIGNED_CHAR);
+      aSource->SetNumberOfScalarComponents(imageType == US_IMG_RGB_COLOR ? 3 : 1);
+
+      int clipOrigin[3] = {PlusCommon::NO_CLIP, PlusCommon::NO_CLIP, PlusCommon::NO_CLIP};
+      int clipSize[3] = {PlusCommon::NO_CLIP, PlusCommon::NO_CLIP, PlusCommon::NO_CLIP};
+      aSource->GetClipRectangleOrigin(clipOrigin);
+      aSource->GetClipRectangleSize(clipSize);
+      if( PlusCommon::IsClippingRequested(clipOrigin, clipSize) )
+      {
+        aSource->SetFrameSize(clipSize);
+      }
+      else
+      {
+        aSource->SetFrameSize(this->FrameSize);
+      }
+    }
+  }
 
   return PLUS_SUCCESS;
 }
@@ -205,7 +242,7 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
   V2U_GrabFrame2 * frame = NULL;
 
   vtkPlusDataSource* aSource(NULL);
-  if( this->GetFirstActiveVideoSource(aSource) != PLUS_SUCCESS )
+  if( this->GetFirstVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source in the Epiphan device on channel " << this->OutputChannels[0]->GetChannelId());
     return PLUS_FAIL;
@@ -294,7 +331,7 @@ PlusStatus vtkEpiphanVideoSource::WriteConfiguration(vtkXMLDataElement* rootConf
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(imageAcquisitionConfig, rootConfigElement);
 
   XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_NULL(GrabberLocation, imageAcquisitionConfig);
-  
+
   // SerialNumber is an obsolete attribute, the information is stored now in GrabberLocation
   XML_REMOVE_ATTRIBUTE(imageAcquisitionConfig, "SerialNumber");
 
@@ -309,9 +346,14 @@ PlusStatus vtkEpiphanVideoSource::WriteConfiguration(vtkXMLDataElement* rootConf
 PlusStatus vtkEpiphanVideoSource::NotifyConfigured()
 {
   vtkPlusDataSource* videoSource(NULL);
-  if( this->OutputChannels.size() != 1 && this->GetFirstActiveVideoSource(videoSource) != PLUS_SUCCESS )
+  if( this->OutputChannels.size() == 1 && this->GetFirstVideoSource(videoSource) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Epiphan can only have one output channel with exactly one valid video source.");
+    LOG_ERROR("Epiphan is incorrectly configured. Unable to access video data source.");
+    return PLUS_FAIL;
+  }
+  else if( this->OutputChannels.size() == 2 && this->GetVideoSourceByIndex(0, videoSource) != PLUS_SUCCESS && this->GetVideoSourceByIndex(1, videoSource) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Epiphan is incorrectly configured. Unable to access video data sources.");
     return PLUS_FAIL;
   }
 

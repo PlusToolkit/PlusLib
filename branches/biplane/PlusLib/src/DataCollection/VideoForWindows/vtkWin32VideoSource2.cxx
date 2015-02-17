@@ -270,7 +270,7 @@ PlusStatus vtkWin32VideoSource2::InternalConnect()
   // set up the parent window, but don't show it
   int frameSize[3]={0,0,0};
   vtkPlusDataSource* aSource(NULL);
-  if( this->GetFirstActiveVideoSource(aSource) != PLUS_SUCCESS )
+  if( this->GetFirstVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source in the Win32Video device.");
     return PLUS_FAIL;
@@ -549,7 +549,7 @@ PlusStatus vtkWin32VideoSource2::AddFrameToBuffer(void* lpVideoHeader)
 
   this->FrameIndex++;
   vtkPlusDataSource* aSource(NULL);
-  if( this->GetFirstActiveVideoSource(aSource) != PLUS_SUCCESS )
+  if( this->GetFirstVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source in the Win32Video device.");
     return PLUS_FAIL;
@@ -666,7 +666,7 @@ PlusStatus vtkWin32VideoSource2::VideoSourceDialog()
 PlusStatus vtkWin32VideoSource2::SetFrameSize(int x, int y)
 {
   vtkPlusDataSource* aSource(NULL);
-  if( this->GetFirstActiveVideoSource(aSource) != PLUS_SUCCESS )
+  if( this->GetFirstVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR(this->GetDeviceId() << ": Unable to retrieve video source.");
     return PLUS_FAIL;
@@ -787,7 +787,7 @@ PlusStatus vtkWin32VideoSource2::UpdateFrameBuffer()
   int numberOfScalarComponents=1;
 
   vtkPlusDataSource* aSource(NULL);
-  if( this->GetFirstActiveVideoSource(aSource) != PLUS_SUCCESS )
+  if( this->GetFirstVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to access video source in vtkWin32VideoSource2. Critical failure.");
     return PLUS_FAIL;

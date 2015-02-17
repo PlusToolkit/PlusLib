@@ -67,8 +67,8 @@ enum US_IMAGE_TYPE
 /*!
 \class PlusVideoFrame 
 \brief Store images in a variety of pixel formats
-An ITK image can only store a certain pixel type.
-This class can store an ITK image with any pixel type and has convenient
+A VTK image can only store a certain pixel type.
+This class can store a VTK image with any pixel type and has convenient
 functions to get/set its content from ITK and VTK images and byte arrays.
 \ingroup PlusLibPlusCommon
 \sa vtkPlusDataBufferItem
@@ -76,8 +76,6 @@ functions to get/set its content from ITK and VTK images and byte arrays.
 class vtkPlusCommonExport PlusVideoFrame
 {
 public:
-  static const int NO_CLIP = -1;
-
   enum TransposeType
   {
     TRANSPOSE_NONE,

@@ -8,11 +8,13 @@ See License.txt for details.
 #include "PlusVideoFrame.h"
 #include "itkImageBase.h"
 #include "vtkBMPReader.h"
+#include "vtkExtractVOI.h"
 #include "vtkImageData.h"
 #include "vtkImageReader.h"
 #include "vtkObjectFactory.h"
 #include "vtkPNMReader.h"
 #include "vtkTIFFReader.h"
+#include "vtkTrivialProducer.h"
 
 #ifdef PLUS_USE_OpenIGTLink
 #include "igtlImageMessage.h"
@@ -813,11 +815,30 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage( vtkImageData* inUsImage,
       " to " << PlusVideoFrame::GetStringFromUsImageOrientation(outUsImageOrientation));
     return PLUS_FAIL;
   }
-  if ( !flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.eFlip && flipInfo.tranpose == TRANSPOSE_NONE)
+  if ( !flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.eFlip && flipInfo.tranpose == TRANSPOSE_NONE )
   {
-    // no flip or transpose
-    outUsOrientedImage->ShallowCopy( inUsImage ); 
-    return PLUS_SUCCESS; 
+    if( PlusCommon::IsClippingRequested(clipRectangleOrigin, clipRectangleSize) )
+    {
+      // No flip or transpose, but clipping requested, let vtk do the heavy lifting
+      vtkSmartPointer<vtkExtractVOI> extract = vtkSmartPointer<vtkExtractVOI>::New();
+      vtkSmartPointer<vtkTrivialProducer> tp = vtkSmartPointer<vtkTrivialProducer>::New();
+      tp->SetOutput(inUsImage);
+      extract->SetInputConnection(tp->GetOutputPort());
+      extract->SetVOI(
+        clipRectangleOrigin[0], clipRectangleOrigin[0]+clipRectangleSize[0],
+        clipRectangleOrigin[1], clipRectangleOrigin[1]+clipRectangleSize[1],
+        clipRectangleOrigin[2], clipRectangleOrigin[2]+clipRectangleSize[2]
+        );
+      extract->SetOutput(outUsOrientedImage);
+      extract->Update();
+      return PLUS_SUCCESS;
+    }
+    else
+    {
+      // no flip, clip or transpose
+      outUsOrientedImage->ShallowCopy( inUsImage ); 
+      return PLUS_SUCCESS; 
+    }
   }
   
   // Validate output image is correct dimensions to receive final oriented and/or clipped result
@@ -826,7 +847,7 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage( vtkImageData* inUsImage,
   int finalClipOrigin[3] = {clipRectangleOrigin[0], clipRectangleOrigin[1], clipRectangleOrigin[2]};
   int finalClipSize[3] = {clipRectangleSize[0], clipRectangleSize[1], clipRectangleSize[2]};
   int finalOutputSize[3] = {inputDimensions[0], inputDimensions[1], inputDimensions[2]};
-  if( clipRectangleSize[0] != NO_CLIP && clipRectangleSize[1] != NO_CLIP && clipRectangleSize[2] != NO_CLIP )
+  if( PlusCommon::IsClippingRequested(clipRectangleOrigin, clipRectangleSize) )
   {
     // Clipping requested, validate that source image is bigger than requested clip size
     int inExtents[6]={0,0,0,0,0,0};
@@ -848,9 +869,9 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage( vtkImageData* inUsImage,
       finalClipOrigin[0] = 0;
       finalClipOrigin[1] = 0;
       finalClipOrigin[2] = 0;
-      finalClipSize[0] = NO_CLIP;
-      finalClipSize[1] = NO_CLIP;
-      finalClipSize[2] = NO_CLIP;
+      finalClipSize[0] = PlusCommon::NO_CLIP;
+      finalClipSize[1] = PlusCommon::NO_CLIP;
+      finalClipSize[2] = PlusCommon::NO_CLIP;
       finalOutputSize[0] = inputDimensions[0];
       finalOutputSize[1] = inputDimensions[1];
       finalOutputSize[2] = inputDimensions[2];
@@ -929,7 +950,7 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage(  unsigned char* imageDataPtr
   int finalClipOrigin[3] = {clipRectangleOrigin[0], clipRectangleOrigin[1], clipRectangleOrigin[2]};
   int finalClipSize[3] = {clipRectangleSize[0], clipRectangleSize[1], clipRectangleSize[2]};
   int finalOutputSize[3] = {inputFrameSizeInPx[0], inputFrameSizeInPx[1], inputFrameSizeInPx[2]};
-  if( clipRectangleSize[0] != NO_CLIP && clipRectangleSize[1] != NO_CLIP && clipRectangleSize[2] != NO_CLIP )
+  if( PlusCommon::IsClippingRequested(clipRectangleOrigin, clipRectangleSize) )
   {
     // Clipping requested, validate that source image is bigger than requested clip size
     int inExtents[6] = {0, inputFrameSizeInPx[0], 0, inputFrameSizeInPx[1], 0, inputFrameSizeInPx[2]};
@@ -950,9 +971,9 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage(  unsigned char* imageDataPtr
       finalClipOrigin[0] = 0;
       finalClipOrigin[1] = 0;
       finalClipOrigin[2] = 0;
-      finalClipSize[0] = NO_CLIP;
-      finalClipSize[1] = NO_CLIP;
-      finalClipSize[2] = NO_CLIP;
+      finalClipSize[0] = PlusCommon::NO_CLIP;
+      finalClipSize[1] = PlusCommon::NO_CLIP;
+      finalClipSize[2] = PlusCommon::NO_CLIP;
     }
     else
     {
@@ -984,22 +1005,6 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage(  unsigned char* imageDataPtr
   PlusVideoFrame::AllocateFrame(inUsImage, inputFrameSizeInPx, outUsOrientedImage->GetScalarType(), outUsOrientedImage->GetNumberOfScalarComponents());
   
   memcpy(inUsImage->GetScalarPointer(), imageDataPtr, inputFrameSizeInPx[0]*inputFrameSizeInPx[1]*inputFrameSizeInPx[2]*PlusVideoFrame::GetNumberOfBytesPerScalar(pixType)*numberOfScalarComponents);
-
-  FlipInfoType flipInfo;
-  if ( PlusVideoFrame::GetFlipAxes(inUsImageOrientation, inUsImageType, outUsImageOrientation, flipInfo) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to convert image data to the requested orientation, from " << GetStringFromUsImageOrientation(inUsImageOrientation) << " to " << GetStringFromUsImageOrientation(outUsImageOrientation));
-    DELETE_IF_NOT_NULL(inUsImage);
-    return PLUS_FAIL;
-  }
-
-  if ( !flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.eFlip && flipInfo.tranpose == TRANSPOSE_NONE )
-  {
-    // no flip
-    outUsOrientedImage->DeepCopy(inUsImage);
-    DELETE_IF_NOT_NULL(inUsImage);
-    return PLUS_SUCCESS; 
-  }
 
   PlusStatus result = PlusVideoFrame::GetOrientedClippedImage(inUsImage, inUsImageOrientation, inUsImageType, 
     outUsImageOrientation, outUsOrientedImage, finalClipOrigin, finalClipSize); 
