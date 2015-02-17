@@ -67,17 +67,6 @@ int main( int argc, char** argv )
     std::cout << args.GetHelp() << std::endl;
     exit(EXIT_SUCCESS);
   }
-
-  vtkSmartPointer<vtkImageData> indata = vtkSmartPointer<vtkImageData>::New();
-  indata->SetDimensions(100,100,10);
-  indata->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-  PlusVideoFrame::FlipInfoType flip;
-  int or[3] = {0,0,0};
-  int si[3] = {100,100,10};
-  vtkSmartPointer<vtkImageData> outdata = vtkSmartPointer<vtkImageData>::New();
-  outdata->SetDimensions(100,100,10);
-  outdata->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-  PlusVideoFrame::FlipClipImage(indata, flip, or, si, outdata);
   
   vtkPlusLogger::Instance()->SetLogLevel( verboseLevel );
 
