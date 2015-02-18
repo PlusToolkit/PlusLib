@@ -103,8 +103,8 @@ namespace
 
         for(int z = finalClipOrigin[2]; z < finalClipOrigin[2]+finalClipSize[2]; z++)
         {
-          // Set the target position pointer to the last pixel of the first row of each image
-          ScalarType* outputPixel = (ScalarType*)outBuff + imageIncrement*z + finalClipSize[0]*2*pixelIncrement - 2*pixelIncrement;
+          // Set the target position pointer to the last unclipped pixel of the first unclipped row of each image
+          ScalarType* outputPixel = (ScalarType*)outBuff + imageIncrement*z + (finalClipOrigin[0]+finalClipSize[0]-1)*2*pixelIncrement;
           // Copy the image row-by-row, reversing the pixel order in each row
           for (int y = finalClipOrigin[1]; y < finalClipOrigin[1]+finalClipSize[1]; y++)
           {
@@ -130,8 +130,8 @@ namespace
 
         for(int z = finalClipOrigin[2]; z < finalClipOrigin[2]+finalClipSize[2]; z++)
         {
-          // Set the target position pointer to the last pixel of the first row of each image
-          ScalarType* outputPixel = (ScalarType*)outBuff + imageIncrement*z + finalClipSize[0]*pixelIncrement - 1*pixelIncrement;
+          // Set the target position pointer to the last unclipped pixel of the first unclipped row of each image
+          ScalarType* outputPixel = (ScalarType*)outBuff + imageIncrement*z + (finalClipOrigin[0]+finalClipSize[0]-1)*pixelIncrement;
           // Copy the image row-by-row, reversing the pixel order in each row
           for (int y = finalClipOrigin[1]; y < finalClipOrigin[1]+finalClipSize[1]; y++)
           {
@@ -161,8 +161,8 @@ namespace
 
         for(int z = finalClipOrigin[2]; z < finalClipOrigin[2]+finalClipSize[2]; z++)
         {
-          // Set the target position pointer to the last pixel of each image
-          ScalarType* outputPixel = (ScalarType*)outBuff + imageIncrement*z + finalClipOrigin[1]+finalClipSize[1]*rowIncrement + (finalClipOrigin[0]+finalClipSize[0]-1)*2*pixelIncrement;
+          // Set the target position pointer to the last unclipped pixel of each image
+          ScalarType* outputPixel = (ScalarType*)outBuff + imageIncrement*z + (finalClipOrigin[1]+finalClipSize[1])*rowIncrement + (finalClipOrigin[0]+finalClipSize[0]-1)*2*pixelIncrement;
           // Copy the image pixel-by-pixel, reversing the pixel order
           for (int y = finalClipOrigin[1]; y < finalClipOrigin[1]+finalClipSize[1]; y++)
           {
@@ -187,8 +187,8 @@ namespace
 
         for(int z = finalClipOrigin[2]; z < finalClipOrigin[2]+finalClipSize[2]; z++)
         {
-          // Set the target position pointer to the last pixel of each image
-          ScalarType* outputPixel = (ScalarType*)outBuff + imageIncrement*z + finalClipOrigin[1]+finalClipSize[1]*rowIncrement + (finalClipOrigin[0]+finalClipSize[0]-1)*pixelIncrement;
+          // Set the target position pointer to the last unclipped pixel of each image
+          ScalarType* outputPixel = (ScalarType*)outBuff + imageIncrement*z + (finalClipOrigin[1]+finalClipSize[1])*rowIncrement + (finalClipOrigin[0]+finalClipSize[0]-1)*pixelIncrement;
           // Copy the image pixel-by-pixel, reversing the pixel order
           for (int y = finalClipOrigin[1]; y < finalClipOrigin[1]+finalClipSize[1]; y++)
           {
@@ -215,6 +215,7 @@ namespace
       // Set the target position pointer to the first pixel of the last image
       ScalarType* outputPixel = (ScalarType*)outBuff + inputDepth*imageIncrement;
       // Copy the image image-by-image, reversing the image order
+      // Todo : cant do this in one big memcopy, do it row by row
       for(int z = inputDepth; z > 0; z--)
       {
         memcpy(outputPixel, inputPixel, imageIncrement*sizeof(ScalarType) );
