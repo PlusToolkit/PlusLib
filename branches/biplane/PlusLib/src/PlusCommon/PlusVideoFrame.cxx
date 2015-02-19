@@ -32,6 +32,7 @@ namespace
     // 1 based dimensions
     int dims[3]={0,0,0};
     inputImage->GetDimensions(dims);
+    // 0 based dimensions
     int inputWidth(dims[0]);
     int inputHeight(dims[1]);
     int inputDepth(dims[2]);
@@ -39,9 +40,9 @@ namespace
     void * inBuff = inputImage->GetScalarPointer();
     void * outBuff = outputImage->GetScalarPointer();
     int pixelIncrement(0);
-    int rowIncrement(0);
-    int imageIncrement(0);
-    inputImage->GetIncrements(pixelIncrement, rowIncrement, imageIncrement);
+    int inputRowIncrement(0);
+    int inputImageIncrement(0);
+    inputImage->GetIncrements(pixelIncrement, inputRowIncrement, inputImageIncrement);
 
     int finalClipOrigin[3]={clipRectangleOrigin[0], clipRectangleOrigin[1], clipRectangleOrigin[2]};
     int finalClipSize[3]={clipRectangleSize[0], clipRectangleSize[1], clipRectangleSize[2]};
@@ -77,20 +78,27 @@ namespace
       }
     }
 
+    int outputRowIncrement(finalClipSize[0]*pixelIncrement);
+    int outputImageIncrement(finalClipSize[1]*outputRowIncrement);
+    int outputDepth(finalClipSize[2]);
+    int outputHeight(finalClipSize[1]);
+    int outputWidth(finalClipSize[0]);
+
     if (!flipInfo.hFlip && flipInfo.vFlip && !flipInfo.eFlip && flipInfo.tranpose == PlusVideoFrame::TRANSPOSE_NONE)
     {
       // flip Y
-      ScalarType* inputPixel = (ScalarType*)inBuff;
-      for(int z = finalClipOrigin[2]; z < finalClipOrigin[2]+finalClipSize[2]; z++)
+      for(int z = 0; z < finalClipSize[2]; z++)
       {
-        // Set the target position pointer to the first unclipped pixel of the last unclipped row of each image
-        ScalarType* outputPixel = (ScalarType*)outBuff + imageIncrement*z + (finalClipOrigin[1]+finalClipSize[1]-1)*rowIncrement + finalClipOrigin[0]*pixelIncrement;
+        // Set the input position to be the first unclipped pixel in the input image
+        ScalarType* inputPixel = (ScalarType*)inBuff + inputImageIncrement*z + finalClipOrigin[0]*pixelIncrement;
+        // Set the target position pointer to the first pixel of the last row of each output image
+        ScalarType* outputPixel = (ScalarType*)outBuff + outputImageIncrement*z + ( (outputHeight-1) - 1 )*outputRowIncrement;
         // Copy the image row-by-row, reversing the row order
-        for (int y = 0; y < finalClipSize[1]; y++)
+        for (int y = 0; y < outputHeight; y++)
         {
-          memcpy(outputPixel, inputPixel, finalClipSize[0]*pixelIncrement);
-          inputPixel += rowIncrement;
-          outputPixel -= rowIncrement;
+          memcpy(outputPixel, inputPixel, outputWidth*pixelIncrement);
+          inputPixel += inputRowIncrement;
+          outputPixel -= outputRowIncrement;
         }
       }
     }
@@ -99,16 +107,17 @@ namespace
       // flip X
       if (flipInfo.doubleColumn)
       {
-        ScalarType* inputPixel = (ScalarType*)inBuff;
-
-        for(int z = finalClipOrigin[2]; z < finalClipOrigin[2]+finalClipSize[2]; z++)
+        // flip X double column
+        for(int z = 0; z < finalClipSize[2]; z++)
         {
-          // Set the target position pointer to the last unclipped pixel of the first unclipped row of each image
-          ScalarType* outputPixel = (ScalarType*)outBuff + imageIncrement*z + (finalClipOrigin[0]+finalClipSize[0]-1)*2*pixelIncrement;
+          // Set the input position to be the first unclipped pixel in the input image
+          ScalarType* inputPixel = (ScalarType*)inBuff + inputImageIncrement*z + finalClipOrigin[0]*2*pixelIncrement;
+          // Set the target position pointer to the last pixel of the first row of each output image
+          ScalarType* outputPixel = (ScalarType*)outBuff + outputImageIncrement*z + (outputWidth-1)*2*pixelIncrement - 2*pixelIncrement;
           // Copy the image row-by-row, reversing the pixel order in each row
-          for (int y = finalClipOrigin[1]; y < finalClipOrigin[1]+finalClipSize[1]; y++)
+          for (int y = 0; y < outputHeight; y++)
           {
-            for (int x = finalClipOrigin[0]; x < finalClipOrigin[0]+finalClipSize[0]; x++)
+            for (int x = 0; x < outputWidth; x++)
             {
               // For each scalar, copy it
               for( int s = 0; s < numberOfScalarComponents; ++s)
@@ -119,23 +128,26 @@ namespace
               inputPixel += 2*pixelIncrement;
               outputPixel -= 2*pixelIncrement;
             }
-            outputPixel -= (inputWidth-finalClipSize[0])*2*pixelIncrement;
+            // bring the output back to the end of the next row
+            outputPixel += 2*outputRowIncrement;
+            // wrap the input to the beginning of the next clipped row
             inputPixel += (inputWidth-finalClipSize[0])*2*pixelIncrement;
           }
         }
       }
       else
       {
-        ScalarType* inputPixel = (ScalarType*)inBuff;
-
-        for(int z = finalClipOrigin[2]; z < finalClipOrigin[2]+finalClipSize[2]; z++)
+        // flip X single column
+        for(int z = 0; z < finalClipSize[2]; z++)
         {
-          // Set the target position pointer to the last unclipped pixel of the first unclipped row of each image
-          ScalarType* outputPixel = (ScalarType*)outBuff + imageIncrement*z + (finalClipOrigin[0]+finalClipSize[0]-1)*pixelIncrement;
+          // Set the input position to be the first unclipped pixel in the input image
+          ScalarType* inputPixel = (ScalarType*)inBuff + inputImageIncrement*z + finalClipOrigin[0]*pixelIncrement;
+          // Set the target position pointer to the last pixel of the first row of each output image
+          ScalarType* outputPixel = (ScalarType*)outBuff + outputImageIncrement*z + (outputWidth-1)*pixelIncrement - 1*pixelIncrement;
           // Copy the image row-by-row, reversing the pixel order in each row
-          for (int y = finalClipOrigin[1]; y < finalClipOrigin[1]+finalClipSize[1]; y++)
+          for (int y = 0; y < outputHeight; y++)
           {
-            for (int x = finalClipOrigin[0]; x < finalClipOrigin[0]+finalClipSize[0]; x++)
+            for (int x = 0; x < outputWidth; x++)
             {
               // For each scalar, copy it
               for( int s = 0; s < numberOfScalarComponents; ++s)
@@ -145,8 +157,9 @@ namespace
               inputPixel += pixelIncrement;
               outputPixel -= pixelIncrement;
             }
-            // todo : this is wrong, this is flip x and y
-            outputPixel -= (inputWidth-finalClipSize[0])*pixelIncrement;
+            // bring the output back to the end of the next row
+            outputPixel += 2*outputRowIncrement;
+            // wrap the input to the beginning of the next clipped row
             inputPixel += (inputWidth-finalClipSize[0])*pixelIncrement;
           }
         }
@@ -157,16 +170,17 @@ namespace
       // flip X and Y
       if (flipInfo.doubleColumn)
       {
-        ScalarType* inputPixel = (ScalarType*)inBuff;
-
-        for(int z = finalClipOrigin[2]; z < finalClipOrigin[2]+finalClipSize[2]; z++)
+        // flip X and Y double column
+        for(int z = 0; z < finalClipSize[2]; z++)
         {
-          // Set the target position pointer to the last unclipped pixel of each image
-          ScalarType* outputPixel = (ScalarType*)outBuff + imageIncrement*z + (finalClipOrigin[1]+finalClipSize[1])*rowIncrement + (finalClipOrigin[0]+finalClipSize[0]-1)*2*pixelIncrement;
+          // Set the input position to be the first unclipped pixel in the input image
+          ScalarType* inputPixel = (ScalarType*)inBuff + inputImageIncrement*z + finalClipOrigin[0]*2*pixelIncrement;;
+          // Set the target position pointer to the last pixel of each output image
+          ScalarType* outputPixel = (ScalarType*)outBuff + outputImageIncrement*(z+1) - 2*pixelIncrement;
           // Copy the image pixel-by-pixel, reversing the pixel order
-          for (int y = finalClipOrigin[1]; y < finalClipOrigin[1]+finalClipSize[1]; y++)
+          for (int y = 0; y < outputHeight; y++)
           {
-            for (int x = finalClipOrigin[0]; x < finalClipOrigin[0]+finalClipSize[0]; x++)
+            for (int x = 0; x < outputWidth; x++)
             {
               // For each scalar, copy it
               for( int s = 0; s < numberOfScalarComponents; ++s)
@@ -176,23 +190,24 @@ namespace
               inputPixel += 2*pixelIncrement;
               outputPixel -= 2*pixelIncrement;
             }
+            // wrap the input to the beginning of the next clipped row
             inputPixel += (inputWidth-finalClipSize[0])*2*pixelIncrement;
-            outputPixel -= (inputWidth-finalClipSize[0])*2*pixelIncrement;
           }
         }
       }
       else
       {
-        ScalarType* inputPixel = (ScalarType*)inBuff;
-
-        for(int z = finalClipOrigin[2]; z < finalClipOrigin[2]+finalClipSize[2]; z++)
+        // flip X and Y single column
+        for(int z = 0; z < finalClipSize[2]; z++)
         {
-          // Set the target position pointer to the last unclipped pixel of each image
-          ScalarType* outputPixel = (ScalarType*)outBuff + imageIncrement*z + (finalClipOrigin[1]+finalClipSize[1])*rowIncrement + (finalClipOrigin[0]+finalClipSize[0]-1)*pixelIncrement;
+          // Set the input position to be the first unclipped pixel in the input image
+          ScalarType* inputPixel = (ScalarType*)inBuff + inputImageIncrement*z + finalClipOrigin[0]*pixelIncrement;
+          // Set the target position pointer to the last pixel of each output image
+          ScalarType* outputPixel = (ScalarType*)outBuff + outputImageIncrement*(z+1) - 1*pixelIncrement;
           // Copy the image pixel-by-pixel, reversing the pixel order
-          for (int y = finalClipOrigin[1]; y < finalClipOrigin[1]+finalClipSize[1]; y++)
+          for (int y = 0; y < outputHeight; y++)
           {
-            for (int x = finalClipOrigin[0]; x < finalClipOrigin[0]+finalClipSize[0]; x++)
+            for (int x = 0; x < outputWidth; x++)
             {
               // For each scalar, copy it
               for( int s = 0; s < numberOfScalarComponents; ++s)
@@ -202,8 +217,8 @@ namespace
               inputPixel += pixelIncrement;
               outputPixel -= pixelIncrement;
             }
+            // wrap the input to the beginning of the next clipped row
             inputPixel += (inputWidth-finalClipSize[0])*pixelIncrement;
-            outputPixel -= (inputWidth-finalClipSize[0])*pixelIncrement;
           }
         }
       }
@@ -211,16 +226,20 @@ namespace
     else if( !flipInfo.hFlip && !flipInfo.vFlip && flipInfo.eFlip && flipInfo.tranpose == PlusVideoFrame::TRANSPOSE_NONE )
     {
       // flip Z
-      ScalarType* inputPixel = (ScalarType*)inBuff;
-      // Set the target position pointer to the first pixel of the last image
-      ScalarType* outputPixel = (ScalarType*)outBuff + inputDepth*imageIncrement;
-      // Copy the image image-by-image, reversing the image order
-      // Todo : cant do this in one big memcopy, do it row by row
-      for(int z = inputDepth; z > 0; z--)
+      for(int z = outputDepth-1; z >= 0; z--)
       {
-        memcpy(outputPixel, inputPixel, imageIncrement*sizeof(ScalarType) );
-        inputPixel += imageIncrement;
-        outputPixel -= imageIncrement;
+        // Set the input position to the first unclipped pixel
+        ScalarType* inputPixel = (ScalarType*)inBuff + finalClipOrigin[0]*pixelIncrement;
+        // Set the target position pointer to the first pixel of the each image
+        ScalarType* outputPixel = (ScalarType*)outBuff + z*outputImageIncrement;
+
+        // Copy the image row-by-row
+        for (int y = 0; y < outputHeight; y++)
+        {
+          memcpy(outputPixel, inputPixel, outputRowIncrement);
+          inputPixel += inputRowIncrement;
+          outputPixel += outputRowIncrement;
+        }
       }
     }
     else if( !flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.eFlip && flipInfo.tranpose == PlusVideoFrame::TRANSPOSE_KIJtoIJK)
@@ -242,7 +261,7 @@ namespace
               *(outputPixel+s) = *(inputPixel+s);
             }
             // Determine correct output pixel offset as per notebook
-            outputPixel = (ScalarType*)(outBuff) + x*imageIncrement + y*pixelIncrement + z*rowIncrement;
+            outputPixel = (ScalarType*)(outBuff) + x*inputImageIncrement + y*pixelIncrement + z*inputRowIncrement;
             inputPixel += numberOfScalarComponents;
           }
         }        
