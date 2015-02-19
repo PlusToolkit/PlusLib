@@ -218,7 +218,7 @@ public:
   \param inUsImageType the image type of the source image
   \param inUsImagePixelType the pixel type of the source image
   \param numberOfScalarComponents the number of scalar components of the source image (1=bw, 3=rgb)
-  \param frameSizeInPx the frame size of the source image
+  \param inputFrameSizeInPx the frame size of the source image
   \param outUsImageOrientation the desired output orientation
   \param outUsOrientedImage the output image to populate with clipped and oriented data
   \param clipRectangleOrigin the clipping origin relative to the inUsImage data origin
@@ -229,7 +229,7 @@ public:
     US_IMAGE_TYPE inUsImageType, 
     PlusCommon::VTKScalarPixelType inUsImagePixelType, 
     int numberOfScalarComponents, 
-    const int frameSizeInPx[3], 
+    const int inputFrameSizeInPx[3], 
     US_IMAGE_ORIENTATION outUsImageOrientation, 
     vtkImageData* outUsOrientedImage,
     const int clipRectangleOrigin[3], 
@@ -241,7 +241,7 @@ public:
   \param inUsImageType the image type of the source image
   \param inUsImagePixelType the pixel type of the source image
   \param numberOfScalarComponents the number of scalar components of the source image (1=bw, 3=rgb)
-  \param frameSizeInPx the frame size of the source image
+  \param inputFrameSizeInPx the frame size of the source image
   \param outUsImageOrientation the desired output orientation
   \param outBufferItem the output video frame to populate with clipped and oriented data
   \param clipRectangleOrigin the clipping origin relative to the inUsImage data origin
@@ -252,7 +252,7 @@ public:
     US_IMAGE_TYPE inUsImageType, 
     PlusCommon::VTKScalarPixelType inUsImagePixelType, 
     int numberOfScalarComponents, 
-    const int frameSizeInPx[3], 
+    const int inputFrameSizeInPx[3], 
     US_IMAGE_ORIENTATION outUsImageOrientation, 
     PlusVideoFrame &outBufferItem,
     const int clipRectangleOrigin[3], 

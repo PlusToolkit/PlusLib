@@ -482,7 +482,6 @@ PlusStatus vtkSavedDataSource::InternalConnectVideo(vtkTrackedFrameList* savedDa
       LOG_ERROR(this->GetDeviceId() << ": Unable to retrieve video source.");
       return PLUS_FAIL;
     }
-    aSource->SetImageOrientation(US_IMG_ORIENT_MF);
   }
   else
   {
@@ -495,7 +494,7 @@ PlusStatus vtkSavedDataSource::InternalConnectVideo(vtkTrackedFrameList* savedDa
     return PLUS_FAIL; 
   }
 
-  this->GetOutputDataSource()->SetFrameSize(savedDataBuffer->GetTrackedFrame(0)->GetFrameSize());
+  this->GetOutputDataSource()->SetFrameSize(savedDataBuffer->GetTrackedFrame(0)->GetFrameSize(), true);
 
   this->GetOutputDataSource()->SetNumberOfScalarComponents(savedDataBuffer->GetTrackedFrame(0)->GetNumberOfScalarComponents());
 
@@ -508,7 +507,6 @@ PlusStatus vtkSavedDataSource::InternalConnectVideo(vtkTrackedFrameList* savedDa
   this->LocalVideoBuffer->SetLocalTimeOffsetSec(0.0); // the time offset is copied from the output, so reset it to 0
 
   // Fill local video buffer
-
   this->LocalVideoBuffer->CopyImagesFromTrackedFrameList(savedDataBuffer, vtkPlusBuffer::READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS, this->UseAllFrameFields); 
   savedDataBuffer->Clear(); 
 

@@ -97,7 +97,7 @@ public:
   */
   virtual PlusStatus AddItem(void* imageDataPtr, 
     US_IMAGE_ORIENTATION  usImageOrientation, 
-    const int frameSizeInPx[3], 
+    const int inputFrameSizeInPx[3], 
     PlusCommon::VTKScalarPixelType pixelType, 
     int numberOfScalarComponents, 
     US_IMAGE_TYPE imageType, 

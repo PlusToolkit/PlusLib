@@ -500,14 +500,22 @@ PlusStatus vtkPlusDataSource::SetImageType(US_IMAGE_TYPE imageType)
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::SetFrameSize(int x, int y, int z)
+PlusStatus vtkPlusDataSource::SetFrameSize(int x, int y, int z, bool ignoreClip /* = false */)
 {
+  if( !ignoreClip && PlusCommon::IsClippingRequested(this->ClipRectangleOrigin, this->ClipRectangleSize) )
+  {
+    return this->GetBuffer()->SetFrameSize(this->ClipRectangleSize[0], this->ClipRectangleSize[1], this->ClipRectangleSize[2]);
+  }
   return this->GetBuffer()->SetFrameSize(x, y, z);
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::SetFrameSize(int frameSize[3])
+PlusStatus vtkPlusDataSource::SetFrameSize(int frameSize[3], bool ignoreClip /* = false */)
 {
+  if( !ignoreClip && PlusCommon::IsClippingRequested(this->ClipRectangleOrigin, this->ClipRectangleSize) )
+  {
+    return this->GetBuffer()->SetFrameSize(this->ClipRectangleSize);
+  }
   return this->GetBuffer()->SetFrameSize(frameSize);
 }
 

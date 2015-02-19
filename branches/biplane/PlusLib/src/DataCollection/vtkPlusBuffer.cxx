@@ -315,7 +315,7 @@ bool vtkPlusBuffer::CheckFrameFormat( const int frameSizeInPx[3], PlusCommon::VT
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr, 
                                   US_IMAGE_ORIENTATION usImageOrientation, 
-                                  const int frameSizeInPx[3],
+                                  const int inputFrameSizeInPx[3],
                                   PlusCommon::VTKScalarPixelType pixelType,
                                   int numberOfScalarComponents,
                                   US_IMAGE_TYPE imageType,
@@ -358,11 +358,20 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr,
     return PLUS_FAIL; 
   }
 
-  if ( !this->CheckFrameFormat(frameSizeInPx, pixelType, imageType, numberOfScalarComponents) )
+  int outputFrameSizeInPx[3] = {inputFrameSizeInPx[0], inputFrameSizeInPx[1], inputFrameSizeInPx[2]};
+  if( PlusCommon::IsClippingRequested(clipRectangleOrigin, clipRectangleSize) )
+  {
+    outputFrameSizeInPx[0] = clipRectangleSize[0];
+    outputFrameSizeInPx[1] = clipRectangleSize[1];
+    outputFrameSizeInPx[2] = clipRectangleSize[2];
+  }
+
+  if ( !this->CheckFrameFormat(outputFrameSizeInPx, pixelType, imageType, numberOfScalarComponents) )
   {
     LOG_ERROR( "vtkPlusBuffer: Unable to add frame to video buffer - frame format doesn't match!"); 
     return PLUS_FAIL; 
   }
+
 
   int bufferIndex(0); 
   BufferItemUidType itemUid; 
@@ -385,12 +394,12 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr,
   int receivedFrameSize[3]={0,0,0};
   newObjectInBuffer->GetFrame().GetFrameSize(receivedFrameSize); 
 
-  if ( frameSizeInPx[0] != receivedFrameSize[0] 
-  || frameSizeInPx[1] != receivedFrameSize[1] 
-  || frameSizeInPx[2] != receivedFrameSize[2])
+  if ( outputFrameSizeInPx[0] != receivedFrameSize[0] 
+  || outputFrameSizeInPx[1] != receivedFrameSize[1] 
+  || outputFrameSizeInPx[2] != receivedFrameSize[2])
   {
     LOCAL_LOG_ERROR("Input frame size is different from buffer frame size (input: " << 
-      frameSizeInPx[0] << "x" << frameSizeInPx[1] << "x" << frameSizeInPx[2] << 
+      outputFrameSizeInPx[0] << "x" << outputFrameSizeInPx[1] << "x" << outputFrameSizeInPx[2] << 
       ",   buffer: " << 
       receivedFrameSize[0] << "x" << receivedFrameSize[1] << "x" << receivedFrameSize[2] << ")!"); 
     return PLUS_FAIL; 
@@ -400,7 +409,7 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr,
   unsigned char* byteImageDataPtr=reinterpret_cast<unsigned char*>(imageDataPtr);
   byteImageDataPtr += numberOfBytesToSkip; 
 
-  if (PlusVideoFrame::GetOrientedClippedImage(byteImageDataPtr, usImageOrientation, imageType, pixelType, numberOfScalarComponents, frameSizeInPx, this->ImageOrientation, newObjectInBuffer->GetFrame(), clipRectangleOrigin, clipRectangleSize) != PLUS_SUCCESS)
+  if (PlusVideoFrame::GetOrientedClippedImage(byteImageDataPtr, usImageOrientation, imageType, pixelType, numberOfScalarComponents, inputFrameSizeInPx, this->ImageOrientation, newObjectInBuffer->GetFrame(), clipRectangleOrigin, clipRectangleSize) != PLUS_SUCCESS)
   {
     LOCAL_LOG_ERROR("Failed to convert input US image to the requested orientation!"); 
     return PLUS_FAIL; 

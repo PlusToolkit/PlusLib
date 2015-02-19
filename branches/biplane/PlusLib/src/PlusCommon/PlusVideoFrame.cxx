@@ -564,11 +564,7 @@ PlusStatus PlusVideoFrame::GetFrameSize(int frameSize[3]) const
     return PLUS_FAIL;
   }
 
-  int extents[6] = {0,0,0,0,0,0};
-  this->Image->GetExtent(extents);
-  frameSize[0] = extents[1] - extents[0] + 1; 
-  frameSize[1] = extents[3] - extents[2] + 1;
-  frameSize[2] = extents[5] - extents[4] + 1;
+  this->Image->GetDimensions(frameSize);
 
   return PLUS_SUCCESS;
 }
@@ -936,9 +932,9 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage( vtkImageData* inUsImage,
       tp->SetOutput(inUsImage);
       extract->SetInputConnection(tp->GetOutputPort());
       extract->SetVOI(
-        clipRectangleOrigin[0], clipRectangleOrigin[0]+clipRectangleSize[0],
-        clipRectangleOrigin[1], clipRectangleOrigin[1]+clipRectangleSize[1],
-        clipRectangleOrigin[2], clipRectangleOrigin[2]+clipRectangleSize[2]
+        clipRectangleOrigin[0], clipRectangleOrigin[0]+clipRectangleSize[0]-1,
+        clipRectangleOrigin[1], clipRectangleOrigin[1]+clipRectangleSize[1]-1,
+        clipRectangleOrigin[2], clipRectangleOrigin[2]+clipRectangleSize[2]-1
       );
       extract->SetOutput(outUsOrientedImage);
       extract->Update();
@@ -969,17 +965,17 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage( vtkImageData* inUsImage,
       (clipRectangleOrigin[1] >= inExtents[2] && clipRectangleOrigin[2] < inExtents[3]) &&  // Verify that the origin is within the image
       (clipRectangleOrigin[1] >= inExtents[4] && clipRectangleOrigin[2] < inExtents[5]) &&
 
-      (clipRectangleOrigin[0]+clipRectangleSize[0] < inExtents[1]) &&
-      (clipRectangleOrigin[1]+clipRectangleSize[1] < inExtents[3]) && // Verify that the extent of the clipping falls within the image
-      (clipRectangleOrigin[2]+clipRectangleSize[2] < inExtents[5]) 
+      (clipRectangleOrigin[0]+clipRectangleSize[0]-1 < inExtents[1]) &&
+      (clipRectangleOrigin[1]+clipRectangleSize[1]-1 < inExtents[3]) && // Verify that the extent of the clipping falls within the image
+      (clipRectangleOrigin[2]+clipRectangleSize[2]-1 < inExtents[5]) 
       )  )
     {
       LOG_WARNING("Clipping information cannot fit within the original image. No clipping will be performed. Origin=[" << clipRectangleOrigin[0] << "," << clipRectangleOrigin[1] << "," << clipRectangleOrigin[2] <<
         "]. Size=[" << clipRectangleSize[0] << "," << clipRectangleSize[1] << "," << clipRectangleSize[2] << "].");
 
-      finalClipOrigin[0] = 0;
-      finalClipOrigin[1] = 0;
-      finalClipOrigin[2] = 0;
+      finalClipOrigin[0] = PlusCommon::NO_CLIP;
+      finalClipOrigin[1] = PlusCommon::NO_CLIP;
+      finalClipOrigin[2] = PlusCommon::NO_CLIP;
       finalClipSize[0] = PlusCommon::NO_CLIP;
       finalClipSize[1] = PlusCommon::NO_CLIP;
       finalClipSize[2] = PlusCommon::NO_CLIP;
@@ -1071,20 +1067,23 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage(  unsigned char* imageDataPtr
       (clipRectangleOrigin[1] >= inExtents[2] && clipRectangleOrigin[2] < inExtents[3]) &&  // Verify that the origin is within the image
       (clipRectangleOrigin[1] >= inExtents[4] && clipRectangleOrigin[2] < inExtents[5]) &&
 
-      (clipRectangleOrigin[0]+clipRectangleSize[0] < inExtents[1]) &&
-      (clipRectangleOrigin[1]+clipRectangleSize[1] < inExtents[3]) && // Verify that the extent of the clipping falls within the image
-      (clipRectangleOrigin[2]+clipRectangleSize[2] < inExtents[5]) 
+      (clipRectangleOrigin[0]+clipRectangleSize[0]-1 < inExtents[1]) &&
+      (clipRectangleOrigin[1]+clipRectangleSize[1]-1 < inExtents[3]) && // Verify that the extent of the clipping falls within the image
+      (clipRectangleOrigin[2]+clipRectangleSize[2]-1 < inExtents[5]) 
       )  )
     {
       LOG_WARNING("Clipping information cannot fit within the original image. No clipping will be performed. Origin=[" << clipRectangleOrigin[0] << "," << clipRectangleOrigin[1] << "," << clipRectangleOrigin[2] <<
         "]. Size=[" << clipRectangleSize[0] << "," << clipRectangleSize[1] << "," << clipRectangleSize[2] << "].");
 
-      finalClipOrigin[0] = 0;
-      finalClipOrigin[1] = 0;
-      finalClipOrigin[2] = 0;
+      finalClipOrigin[0] = PlusCommon::NO_CLIP;
+      finalClipOrigin[1] = PlusCommon::NO_CLIP;
+      finalClipOrigin[2] = PlusCommon::NO_CLIP;
       finalClipSize[0] = PlusCommon::NO_CLIP;
       finalClipSize[1] = PlusCommon::NO_CLIP;
       finalClipSize[2] = PlusCommon::NO_CLIP;
+      finalOutputSize[0] = inputFrameSizeInPx[0];
+      finalOutputSize[1] = inputFrameSizeInPx[1];
+      finalOutputSize[2] = inputFrameSizeInPx[2];
     }
     else
     {
@@ -1129,14 +1128,14 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage( unsigned char* imageDataPtr,
                                                    US_IMAGE_TYPE inUsImageType, 
                                                    PlusCommon::VTKScalarPixelType pixType, 
                                                    int numberOfScalarComponents, 
-                                                   const int frameSizeInPx[3], 
+                                                   const int inputFrameSizeInPx[3], 
                                                    US_IMAGE_ORIENTATION outUsImageOrientation, 
                                                    PlusVideoFrame &outBufferItem,
                                                    const int clipRectangleOrigin[3], 
                                                    const int clipRectangleSize[3])
 {
   return PlusVideoFrame::GetOrientedClippedImage(imageDataPtr, inUsImageOrientation, inUsImageType, pixType, 
-    numberOfScalarComponents, frameSizeInPx, outUsImageOrientation, outBufferItem.GetImage(), clipRectangleOrigin, clipRectangleSize);
+    numberOfScalarComponents, inputFrameSizeInPx, outUsImageOrientation, outBufferItem.GetImage(), clipRectangleOrigin, clipRectangleSize);
 }
 
 //----------------------------------------------------------------------------
@@ -1183,12 +1182,15 @@ PlusStatus PlusVideoFrame::FlipClipImage(vtkImageData* inUsImage,
       LOG_WARNING("Clipping information cannot fit within the original image. No clipping will be performed. Origin=[" << clipRectangleOrigin[0] << "," << clipRectangleOrigin[1] << "," << clipRectangleOrigin[2] <<
         "]. Size=[" << clipRectangleSize[0] << "," << clipRectangleSize[1] << "," << clipRectangleSize[2] << "].");
 
-      finalClipOrigin[0] = 0;
-      finalClipOrigin[1] = 0;
-      finalClipOrigin[2] = 0;
+      finalClipOrigin[0] = PlusCommon::NO_CLIP;
+      finalClipOrigin[1] = PlusCommon::NO_CLIP;
+      finalClipOrigin[2] = PlusCommon::NO_CLIP;
       finalClipSize[0] = PlusCommon::NO_CLIP;
       finalClipSize[1] = PlusCommon::NO_CLIP;
       finalClipSize[2] = PlusCommon::NO_CLIP;
+      finalOutputSize[0] = inputDimensions[0];
+      finalOutputSize[1] = inputDimensions[1];
+      finalOutputSize[2] = inputDimensions[2];
     }
     else
     {

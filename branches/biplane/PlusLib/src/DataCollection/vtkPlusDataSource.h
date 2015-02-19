@@ -77,9 +77,9 @@ public:
   US_IMAGE_TYPE GetImageType();
 
   /*! Set the frame size in pixel  */
-  PlusStatus SetFrameSize(int x, int y, int z); 
+  PlusStatus SetFrameSize(int x, int y, int z, bool ignoreClip=false); 
   /*! Set the frame size in pixel  */
-  PlusStatus SetFrameSize(int frameSize[3]); 
+  PlusStatus SetFrameSize(int frameSize[3], bool ignoreClip=false); 
   /*! Get the frame size in pixel  */
   virtual int* GetFrameSize();
   virtual PlusStatus GetFrameSize(int &_arg1, int &_arg2, int &_arg3);

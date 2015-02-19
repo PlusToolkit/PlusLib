@@ -170,19 +170,7 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
       US_IMAGE_TYPE imageType = aSource->GetImageType();
       aSource->SetPixelType(VTK_UNSIGNED_CHAR);
       aSource->SetNumberOfScalarComponents(imageType == US_IMG_RGB_COLOR ? 3 : 1);
-
-      int clipOrigin[3] = {PlusCommon::NO_CLIP, PlusCommon::NO_CLIP, PlusCommon::NO_CLIP};
-      int clipSize[3] = {PlusCommon::NO_CLIP, PlusCommon::NO_CLIP, PlusCommon::NO_CLIP};
-      aSource->GetClipRectangleOrigin(clipOrigin);
-      aSource->GetClipRectangleSize(clipSize);
-      if( PlusCommon::IsClippingRequested(clipOrigin, clipSize) )
-      {
-        aSource->SetFrameSize(clipSize);
-      }
-      else
-      {
-        aSource->SetFrameSize(this->FrameSize);
-      }
+      aSource->SetFrameSize(this->FrameSize);
     }
   }
 
