@@ -226,10 +226,12 @@ namespace
     else if( !flipInfo.hFlip && !flipInfo.vFlip && flipInfo.eFlip && flipInfo.tranpose == PlusVideoFrame::TRANSPOSE_NONE )
     {
       // flip Z
+
+      // Set the input position to the first unclipped pixel
+      ScalarType* inputPixel = (ScalarType*)inBuff + finalClipOrigin[0]*pixelIncrement;
+
       for(int z = outputDepth-1; z >= 0; z--)
       {
-        // Set the input position to the first unclipped pixel
-        ScalarType* inputPixel = (ScalarType*)inBuff + finalClipOrigin[0]*pixelIncrement;
         // Set the target position pointer to the first pixel of the each image
         ScalarType* outputPixel = (ScalarType*)outBuff + z*outputImageIncrement;
 
