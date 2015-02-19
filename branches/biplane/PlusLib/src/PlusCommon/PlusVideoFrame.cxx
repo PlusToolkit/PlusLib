@@ -960,15 +960,7 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage( vtkImageData* inUsImage,
     int inExtents[6]={0,0,0,0,0,0};
     inUsImage->GetExtent(inExtents);
 
-    if( !(  // If the clipping parameters are not valid, output a warning and remove clipping behavior
-      (clipRectangleOrigin[0] >= inExtents[0] && clipRectangleOrigin[0] <= inExtents[1]) &&
-      (clipRectangleOrigin[1] >= inExtents[2] && clipRectangleOrigin[1] <= inExtents[3]) &&  // Verify that the origin is within the image
-      (clipRectangleOrigin[2] >= inExtents[4] && clipRectangleOrigin[2] <= inExtents[5]) &&
-
-      (clipRectangleOrigin[0]+clipRectangleSize[0]-1 <= inExtents[1]) &&
-      (clipRectangleOrigin[1]+clipRectangleSize[1]-1 <= inExtents[3]) && // Verify that the extent of the clipping falls within the image
-      (clipRectangleOrigin[2]+clipRectangleSize[2]-1 <= inExtents[5]) 
-      )  )
+    if( !PlusCommon::IsClippingWithinExtents(clipRectangleOrigin, clipRectangleSize, inExtents)  )
     {
       LOG_WARNING("Clipping information cannot fit within the original image. No clipping will be performed. Origin=[" << clipRectangleOrigin[0] << "," << clipRectangleOrigin[1] << "," << clipRectangleOrigin[2] <<
         "]. Size=[" << clipRectangleSize[0] << "," << clipRectangleSize[1] << "," << clipRectangleSize[2] << "].");
@@ -1062,15 +1054,7 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage(  unsigned char* imageDataPtr
     // Clipping requested, validate that source image is bigger than requested clip size
     int inExtents[6] = {0, inputFrameSizeInPx[0], 0, inputFrameSizeInPx[1], 0, inputFrameSizeInPx[2]};
 
-    if( !(  // If the clipping parameters are not valid, output a warning and remove clipping behavior
-      (clipRectangleOrigin[0] >= inExtents[0] && clipRectangleOrigin[0] <= inExtents[1]) &&
-      (clipRectangleOrigin[1] >= inExtents[2] && clipRectangleOrigin[1] <= inExtents[3]) &&  // Verify that the origin is within the image
-      (clipRectangleOrigin[2] >= inExtents[4] && clipRectangleOrigin[2] <= inExtents[5]) &&
-
-      (clipRectangleOrigin[0]+clipRectangleSize[0]-1 <= inExtents[1]) &&
-      (clipRectangleOrigin[1]+clipRectangleSize[1]-1 <= inExtents[3]) && // Verify that the extent of the clipping falls within the image
-      (clipRectangleOrigin[2]+clipRectangleSize[2]-1 <= inExtents[5]) 
-      )  )
+    if( !PlusCommon::IsClippingWithinExtents(clipRectangleOrigin, clipRectangleSize, inExtents) )
     {
       LOG_WARNING("Clipping information cannot fit within the original image. No clipping will be performed. Origin=[" << clipRectangleOrigin[0] << "," << clipRectangleOrigin[1] << "," << clipRectangleOrigin[2] <<
         "]. Size=[" << clipRectangleSize[0] << "," << clipRectangleSize[1] << "," << clipRectangleSize[2] << "].");
@@ -1169,15 +1153,7 @@ PlusStatus PlusVideoFrame::FlipClipImage(vtkImageData* inUsImage,
     inUsImage->GetExtent(inExtents);
 
     // Clipping requested, validate that source image is bigger than requested clip size
-    if( !(  // If the clipping parameters are not valid, output a warning and remove clipping behavior
-      (clipRectangleOrigin[0] >= inExtents[0] && clipRectangleOrigin[0] <= inExtents[1]) &&
-      (clipRectangleOrigin[1] >= inExtents[2] && clipRectangleOrigin[1] <= inExtents[3]) &&  // Verify that the origin is within the image
-      (clipRectangleOrigin[2] >= inExtents[4] && clipRectangleOrigin[2] <= inExtents[5]) &&
-
-      (clipRectangleOrigin[0]+clipRectangleSize[0]-1 <= inExtents[1]) &&
-      (clipRectangleOrigin[1]+clipRectangleSize[1]-1 <= inExtents[3]) && // Verify that the extent of the clipping falls within the image
-      (clipRectangleOrigin[2]+clipRectangleSize[2]-1 <= inExtents[5]) 
-      )  )
+    if( !PlusCommon::IsClippingWithinExtents(clipRectangleOrigin, clipRectangleSize, inExtents)  )
     {
       LOG_WARNING("Clipping information cannot fit within the original image. No clipping will be performed. Origin=[" << clipRectangleOrigin[0] << "," << clipRectangleOrigin[1] << "," << clipRectangleOrigin[2] <<
         "]. Size=[" << clipRectangleSize[0] << "," << clipRectangleSize[1] << "," << clipRectangleSize[2] << "].");

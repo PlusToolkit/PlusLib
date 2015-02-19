@@ -218,6 +218,7 @@ namespace PlusCommon
 
   static const int NO_CLIP = -1;
   vtkPlusCommonExport bool IsClippingRequested(const int clipOrigin[3], const int clipSize[3]);
+  vtkPlusCommonExport bool IsClippingWithinExtents(const int clipOrigin[3], const int clipSize[3], const int extents[6]);
 
   vtkPlusCommonExport void SplitStringIntoTokens(const std::string &s, char delim, std::vector<std::string> &elems);
 
