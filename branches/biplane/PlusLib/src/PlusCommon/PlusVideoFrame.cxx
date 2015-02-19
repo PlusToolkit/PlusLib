@@ -247,26 +247,67 @@ namespace
     else if( !flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.eFlip && flipInfo.tranpose == PlusVideoFrame::TRANSPOSE_KIJtoIJK)
     {
       // Transpose an image in KIJ layout to IJK layout
-      ScalarType* inputPixel = (ScalarType*)inBuff;
-      // Set the target position pointer to the first pixel
-      ScalarType* outputPixel = (ScalarType*)outBuff;
-      // Copy the image column->row, each column from the next image
-      for(int z = 0; z < inputDepth; ++z)
+      if (flipInfo.doubleColumn)
       {
-        for(int y = 0; y < inputHeight; ++y)
+        // Transpose an image in KIJ layout to IJK layout double column
+
+        // Set the input position to the first unclipped pixel
+        ScalarType* inputPixel = (ScalarType*)inBuff + finalClipOrigin[0]*2*pixelIncrement;
+        // Copy the image column->row, each column from the next image
+        for(int z = 0; z < outputDepth; ++z)
         {
-          for (int x = 0; x < inputWidth; ++x)
+          for(int y = 0; y < outputHeight; ++y)
           {
-            // For each scalar, copy it
-            for( int s = 0; s < numberOfScalarComponents; ++s)
+            for (int x = 0; x < outputWidth; ++x)
             {
-              *(outputPixel+s) = *(inputPixel+s);
+              // Set the target position pointer to the correct output pixel offset
+              // ZXY -> XYZ
+              ScalarType* outputPixel = (ScalarType*)(outBuff) + x*outputImageIncrement + y*2*pixelIncrement + z*outputRowIncrement;
+
+              // For each scalar, copy it
+              for( int s = 0; s < numberOfScalarComponents; ++s)
+              {
+                *(outputPixel+s) = *(inputPixel+s);
+              }
+              inputPixel += 2*pixelIncrement;
             }
-            // Determine correct output pixel offset as per notebook
-            outputPixel = (ScalarType*)(outBuff) + x*inputImageIncrement + y*pixelIncrement + z*inputRowIncrement;
-            inputPixel += numberOfScalarComponents;
+            // wrap the input to the beginning of the next row's unclipped pixel
+            inputPixel += (inputWidth-finalClipSize[0])*2*pixelIncrement;
           }
-        }        
+          // wrap the input to the beginning of the next image's unclipped row
+          inputPixel += (inputHeight-finalClipSize[1])*inputRowIncrement;
+        }
+      }
+      else
+      {
+        // Transpose an image in KIJ layout to IJK layout single column
+
+        // Set the input position to the first unclipped pixel
+        ScalarType* inputPixel = (ScalarType*)inBuff + finalClipOrigin[0]*pixelIncrement;
+        // Copy the image column->row, each column from the next image
+        for(int z = 0; z < outputDepth; ++z)
+        {
+          for(int y = 0; y < outputHeight; ++y)
+          {
+            for (int x = 0; x < outputWidth; ++x)
+            {
+              // Set the target position pointer to the correct output pixel offset
+              // ZXY -> XYZ
+              ScalarType* outputPixel = (ScalarType*)(outBuff) + x*outputImageIncrement + y*pixelIncrement + z*outputRowIncrement;
+
+              // For each scalar, copy it
+              for( int s = 0; s < numberOfScalarComponents; ++s)
+              {
+                *(outputPixel+s) = *(inputPixel+s);
+              }
+              inputPixel += pixelIncrement;
+            }
+            // wrap the input to the beginning of the next row's unclipped pixel
+            inputPixel += (inputWidth-finalClipSize[0])*pixelIncrement;
+          }
+          // wrap the input to the beginning of the next image's unclipped row
+          inputPixel += (inputHeight-finalClipSize[1])*inputRowIncrement;
+        }
       }
     }
     else
