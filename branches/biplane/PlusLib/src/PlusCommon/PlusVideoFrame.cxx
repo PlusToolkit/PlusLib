@@ -108,12 +108,12 @@ namespace
       if (flipInfo.doubleColumn)
       {
         // flip X double column
-        for(int z = 0; z < finalClipSize[2]; z++)
+        for(int z = 0; z < outputDepth; z++)
         {
           // Set the input position to be the first unclipped pixel in the input image
           ScalarType* inputPixel = (ScalarType*)inBuff + inputImageIncrement*z + finalClipOrigin[0]*2*pixelIncrement;
           // Set the target position pointer to the last pixel of the first row of each output image
-          ScalarType* outputPixel = (ScalarType*)outBuff + outputImageIncrement*z + (outputWidth-1)*2*pixelIncrement - 2*pixelIncrement;
+          ScalarType* outputPixel = (ScalarType*)outBuff + outputImageIncrement*z + outputWidth*2*pixelIncrement - 2*pixelIncrement;
           // Copy the image row-by-row, reversing the pixel order in each row
           for (int y = 0; y < outputHeight; y++)
           {
@@ -138,12 +138,12 @@ namespace
       else
       {
         // flip X single column
-        for(int z = 0; z < finalClipSize[2]; z++)
+        for(int z = 0; z < outputDepth; z++)
         {
           // Set the input position to be the first unclipped pixel in the input image
           ScalarType* inputPixel = (ScalarType*)inBuff + inputImageIncrement*z + finalClipOrigin[0]*pixelIncrement;
           // Set the target position pointer to the last pixel of the first row of each output image
-          ScalarType* outputPixel = (ScalarType*)outBuff + outputImageIncrement*z + (outputWidth-1)*pixelIncrement - 1*pixelIncrement;
+          ScalarType* outputPixel = (ScalarType*)outBuff + outputImageIncrement*z + outputWidth*pixelIncrement - 1*pixelIncrement;
           // Copy the image row-by-row, reversing the pixel order in each row
           for (int y = 0; y < outputHeight; y++)
           {
@@ -171,7 +171,7 @@ namespace
       if (flipInfo.doubleColumn)
       {
         // flip X and Y double column
-        for(int z = 0; z < finalClipSize[2]; z++)
+        for(int z = 0; z < outputDepth; z++)
         {
           // Set the input position to be the first unclipped pixel in the input image
           ScalarType* inputPixel = (ScalarType*)inBuff + inputImageIncrement*z + finalClipOrigin[0]*2*pixelIncrement;;
@@ -198,7 +198,7 @@ namespace
       else
       {
         // flip X and Y single column
-        for(int z = 0; z < finalClipSize[2]; z++)
+        for(int z = 0; z < outputDepth; z++)
         {
           // Set the input position to be the first unclipped pixel in the input image
           ScalarType* inputPixel = (ScalarType*)inBuff + inputImageIncrement*z + finalClipOrigin[0]*pixelIncrement;
