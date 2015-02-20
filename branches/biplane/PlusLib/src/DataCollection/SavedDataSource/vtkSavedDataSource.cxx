@@ -512,7 +512,8 @@ PlusStatus vtkSavedDataSource::InternalConnectVideo(vtkTrackedFrameList* savedDa
 
   this->GetOutputDataSource()->Clear();
   this->GetOutputDataSource()->SetFrameSize( this->LocalVideoBuffer->GetFrameSize() ); 
-  this->GetOutputDataSource()->SetPixelType( this->LocalVideoBuffer->GetPixelType() ); 
+  this->GetOutputDataSource()->SetPixelType( this->LocalVideoBuffer->GetPixelType() );
+  this->GetOutputDataSource()->SetImageOrientation(US_IMG_ORIENT_MN);
 
   return PLUS_SUCCESS; 
 }

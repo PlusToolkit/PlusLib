@@ -87,12 +87,12 @@ namespace
     if (!flipInfo.hFlip && flipInfo.vFlip && !flipInfo.eFlip && flipInfo.tranpose == PlusVideoFrame::TRANSPOSE_NONE)
     {
       // flip Y
-      for(int z = 0; z < finalClipSize[2]; z++)
+      for(int z = 0; z < outputDepth; z++)
       {
         // Set the input position to be the first unclipped pixel in the input image
         ScalarType* inputPixel = (ScalarType*)inBuff + inputImageIncrement*z + finalClipOrigin[0]*pixelIncrement;
         // Set the target position pointer to the first pixel of the last row of each output image
-        ScalarType* outputPixel = (ScalarType*)outBuff + outputImageIncrement*z + ( (outputHeight-1) - 1 )*outputRowIncrement;
+        ScalarType* outputPixel = (ScalarType*)outBuff + outputImageIncrement*z + ( outputHeight - 1 )*outputRowIncrement;
         // Copy the image row-by-row, reversing the row order
         for (int y = 0; y < outputHeight; y++)
         {
