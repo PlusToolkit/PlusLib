@@ -33,7 +33,7 @@
       </DataSources>      
       <OutputChannels>
         <OutputChannel Id="LeftVideoStream" VideoDataSourceId="LeftVideo" />
-        <OutputChannel Id="RightVideoStream" VideoDataSourceId="RightLeftVideo" />
+        <OutputChannel Id="RightVideoStream" VideoDataSourceId="RightVideo" />
       </OutputChannels>
     </Device>
     
