@@ -838,11 +838,9 @@ int vtkPlusOpenIGTLinkServer::GetNumberOfConnectedClients()
 }
 
 //------------------------------------------------------------------------------
-PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfigurationData, const char* aFilename)
+PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* serverElement, const char* aFilename)
 {
   LOG_TRACE("vtkPlusOpenIGTLinkServer::ReadConfiguration");
-
-  XML_FIND_NESTED_ELEMENT_REQUIRED(plusOpenIGTLinkServerConfig, aConfigurationData, "PlusOpenIGTLinkServer");
 
   if( aFilename == NULL )
   {
@@ -851,15 +849,15 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfi
   }
   this->SetConfigFilename(aFilename);
 
-  XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, ListeningPort, plusOpenIGTLinkServerConfig);
-  XML_READ_STRING_ATTRIBUTE_REQUIRED(OutputChannelId, plusOpenIGTLinkServerConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, MissingInputGracePeriodSec, plusOpenIGTLinkServerConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, MaxTimeSpentWithProcessingMs, plusOpenIGTLinkServerConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, MaxNumberOfIgtlMessagesToSend, plusOpenIGTLinkServerConfig);
-  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(SendValidTransformsOnly, plusOpenIGTLinkServerConfig);
-  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(IgtlMessageCrcCheckEnabled, plusOpenIGTLinkServerConfig);
+  XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, ListeningPort, serverElement);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(OutputChannelId, serverElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, MissingInputGracePeriodSec, serverElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, MaxTimeSpentWithProcessingMs, serverElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, MaxNumberOfIgtlMessagesToSend, serverElement);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(SendValidTransformsOnly, serverElement);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(IgtlMessageCrcCheckEnabled, serverElement);
 
-  vtkXMLDataElement* defaultClientInfo = plusOpenIGTLinkServerConfig->FindNestedElementWithName("DefaultClientInfo"); 
+  vtkXMLDataElement* defaultClientInfo = serverElement->FindNestedElementWithName("DefaultClientInfo"); 
   if ( defaultClientInfo != NULL )
   {
     // Get message types
@@ -986,72 +984,23 @@ bool vtkPlusOpenIGTLinkServer::HasGracePeriodExpired()
 }
 
 //------------------------------------------------------------------------------
-PlusStatus vtkPlusOpenIGTLinkServer::Start(const std::string &inputConfigFileName)
+PlusStatus vtkPlusOpenIGTLinkServer::Start(vtkDataCollector* dataCollector, vtkTransformRepository* transformRepository, vtkXMLDataElement* serverElement, const std::string& configFilePath)
 {
-  // Read main configuration file
-  std::string configFilePath=inputConfigFileName;
-  if (!vtksys::SystemTools::FileExists(configFilePath.c_str(), true))
+  if( serverElement == NULL )
   {
-    configFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(inputConfigFileName);
-    if (!vtksys::SystemTools::FileExists(configFilePath.c_str(), true))
-    {
-      LOG_ERROR("Reading device set configuration file failed: "<<inputConfigFileName<<" does not exist in the current directory or in "<<vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory());
-      return PLUS_FAIL;      
-    }
-  }
-  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(configFilePath.c_str()));
-  if (configRootElement == NULL)
-  {
-    LOG_ERROR("Reading device set configuration file failed: syntax error in "<<inputConfigFileName);
+    LOG_ERROR("NULL configuration sent to vtkPlusOpenIGTLinkServer::Start. Unable to start PlusServer.");
     return PLUS_FAIL;
   }
 
-  // Print configuration file contents for debugging purposes
-  LOG_DEBUG("Device set configuration is read from file: " << inputConfigFileName);
-  std::ostringstream xmlFileContents; 
-  PlusCommon::PrintXML(xmlFileContents, vtkIndent(1), configRootElement);
-  LOG_DEBUG("Device set configuration file contents: " << std::endl << xmlFileContents.str());
-
-  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
-
-  // Create data collector instance 
-  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New();
-  if ( dataCollector->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Datacollector failed to read configuration"); 
-    return PLUS_FAIL;
-  }
-
-  // Create transform repository instance 
-  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
-  if ( transformRepository->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Transform repository failed to read configuration"); 
-    return PLUS_FAIL;
-  }
-
-  LOG_DEBUG( "Initializing data collector... " );
-  if ( dataCollector->Connect() != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Datacollector failed to connect to devices"); 
-    return PLUS_FAIL;
-  }
-
-  if ( dataCollector->Start() != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Datacollector failed to start"); 
-    return PLUS_FAIL;
-  }
-
-  SetDataCollector( dataCollector );
-  if ( ReadConfiguration(configRootElement, configFilePath.c_str()) != PLUS_SUCCESS )
+  this->SetDataCollector( dataCollector );
+  if ( this->ReadConfiguration(serverElement, configFilePath.c_str()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read PlusOpenIGTLinkServer configuration"); 
     return PLUS_FAIL;
   }
 
-  SetTransformRepository( transformRepository ); 
-  if ( StartOpenIGTLinkService() != PLUS_SUCCESS )
+  this->SetTransformRepository( transformRepository ); 
+  if ( this->StartOpenIGTLinkService() != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to start Plus OpenIGTLink server"); 
     return PLUS_FAIL;
@@ -1070,11 +1019,6 @@ PlusStatus vtkPlusOpenIGTLinkServer::Stop()
     status=PLUS_FAIL;
   }
 
-  if (this->GetDataCollector())
-  {
-    this->GetDataCollector()->Stop();
-    this->GetDataCollector()->Disconnect();
-  }
   SetDataCollector(NULL);
 
   SetTransformRepository(NULL);

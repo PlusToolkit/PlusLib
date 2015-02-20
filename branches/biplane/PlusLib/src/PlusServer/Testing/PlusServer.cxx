@@ -77,13 +77,80 @@ int main( int argc, char** argv )
     exit(EXIT_FAILURE); 
   }
 
-  // Create Plus OpenIGTLink server.
-  LOG_DEBUG( "Initializing Plus OpenIGTLink server... " );
-  vtkSmartPointer< vtkPlusOpenIGTLinkServer > server = vtkSmartPointer< vtkPlusOpenIGTLinkServer >::New();
-  if (server->Start(inputConfigFileName)!=PLUS_SUCCESS)
+  // Read main configuration file
+  std::string configFilePath=inputConfigFileName;
+  if (!vtksys::SystemTools::FileExists(configFilePath.c_str(), true))
   {
-    LOG_ERROR("Failed to start OpenIGTLink server");
-    exit(EXIT_FAILURE);
+    configFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(inputConfigFileName);
+    if (!vtksys::SystemTools::FileExists(configFilePath.c_str(), true))
+    {
+      LOG_ERROR("Reading device set configuration file failed: "<<inputConfigFileName<<" does not exist in the current directory or in "<<vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory());
+       exit(EXIT_FAILURE);
+    }
+  }
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(configFilePath.c_str()));
+  if (configRootElement == NULL)
+  {
+    LOG_ERROR("Reading device set configuration file failed: syntax error in "<<inputConfigFileName);
+     exit(EXIT_FAILURE);
+  }
+
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
+
+  // Print configuration file contents for debugging purposes
+  LOG_DEBUG("Device set configuration is read from file: " << inputConfigFileName);
+  std::ostringstream xmlFileContents; 
+  PlusCommon::PrintXML(xmlFileContents, vtkIndent(1), configRootElement);
+  LOG_DEBUG("Device set configuration file contents: " << std::endl << xmlFileContents.str());
+
+  // Create data collector instance 
+  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New();
+  if ( dataCollector->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Datacollector failed to read configuration"); 
+    return PLUS_FAIL;
+  }
+
+  // Create transform repository instance 
+  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
+  if ( transformRepository->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Transform repository failed to read configuration"); 
+    return PLUS_FAIL;
+  }
+
+  LOG_DEBUG( "Initializing data collector... " );
+  if ( dataCollector->Connect() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Datacollector failed to connect to devices"); 
+    return PLUS_FAIL;
+  }
+
+  if ( dataCollector->Start() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Datacollector failed to start"); 
+    return PLUS_FAIL;
+  }
+
+  std::vector<vtkPlusOpenIGTLinkServer*> serverList;
+  for( int i = 0; i < configRootElement->GetNumberOfNestedElements(); ++i )
+  {
+    vtkXMLDataElement* serverElement = configRootElement->GetNestedElement(i);
+    if( STRCASECMP(serverElement->GetName(), "PlusOpenIGTLinkServer") != 0 )
+    {
+      continue;
+    }
+
+    // This is a PlusServer tag, let's create it
+    vtkSmartPointer<vtkPlusOpenIGTLinkServer> server = vtkSmartPointer<vtkPlusOpenIGTLinkServer>::New();
+    // Create Plus OpenIGTLink server.
+    LOG_DEBUG( "Initializing Plus OpenIGTLink server... " );
+    if (server->Start(dataCollector, transformRepository, serverElement, configFilePath) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to start OpenIGTLink server");
+      exit(EXIT_FAILURE);
+    }
+    serverList.push_back(server);
   }
 
   double startTime = vtkAccurateTimer::GetSystemTime(); 
@@ -92,21 +159,23 @@ int main( int argc, char** argv )
   std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSource> > testClientList; 
   if ( !testingConfigFileName.empty() )
   {
+    // During testing, there is only one instance of PlusServer, so we can acess serverList[0] directly
+
     vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
     if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, testingConfigFileName.c_str())==PLUS_FAIL)
     {  
       LOG_ERROR("Unable to read test configuration from file " << testingConfigFileName.c_str()); 
       DisconnectClients( testClientList );
-      server->Stop(); 
+      serverList[0]->Stop(); 
       exit(EXIT_FAILURE);      
     }
 
     // Connect clients to server 
-    if ( ConnectClients( server->GetListeningPort(), testClientList, numOfTestClientsToConnect, configRootElement ) != PLUS_SUCCESS )
+    if ( ConnectClients( serverList[0]->GetListeningPort(), testClientList, numOfTestClientsToConnect, configRootElement ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to connect clients to PlusServer!"); 
       DisconnectClients( testClientList );
-      server->Stop(); 
+      serverList[0]->Stop(); 
       exit(EXIT_FAILURE);
     }
     vtkAccurateTimer::Delay( 1.0 ); // make sure the threads have some time to connect regardless of the specified runTimeSec
@@ -123,12 +192,14 @@ int main( int argc, char** argv )
 
   // Run server until requested 
   const double commandQueuePollIntervalSec=0.010;
-  while ( ((vtkAccurateTimer::GetSystemTime() < startTime + runTimeSec) || neverStop)
-    && (!stopRequested) )
+  while ( (neverStop || (vtkAccurateTimer::GetSystemTime() < startTime + runTimeSec)) && !stopRequested )
   {
-    server->ProcessPendingCommands();
-    // Need to process messages while waiting because some devices (such as the vtkWin32VideoSource2) require event processing
-    vtkAccurateTimer::DelayWithEventProcessing(commandQueuePollIntervalSec);
+    for( std::vector<vtkPlusOpenIGTLinkServer*>::iterator it = serverList.begin(); it != serverList.end(); ++it )
+    {
+      (*it)->ProcessPendingCommands();
+      // Need to process messages while waiting because some devices (such as the vtkWin32VideoSource2) require event processing
+      vtkAccurateTimer::DelayWithEventProcessing(commandQueuePollIntervalSec);
+    }
   }
 
   // *************************** Testing **************************
@@ -136,13 +207,13 @@ int main( int argc, char** argv )
   {
     LOG_INFO("Requested testing time elapsed");
     // make sure all the clients are still connected 
-    int numOfActuallyConnectedClients=server->GetNumberOfConnectedClients();
+    int numOfActuallyConnectedClients=serverList[0]->GetNumberOfConnectedClients();
     if ( numOfActuallyConnectedClients != numOfTestClientsToConnect )
     {
       LOG_ERROR("Number of connected clients to PlusServer doesn't match the requirements (" 
         << numOfActuallyConnectedClients << " out of " << numOfTestClientsToConnect << ")."); 
       DisconnectClients( testClientList );
-      server->Stop(); 
+      serverList[0]->Stop(); 
       exit(EXIT_FAILURE);
     }
 
@@ -151,15 +222,17 @@ int main( int argc, char** argv )
     if ( DisconnectClients( testClientList ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to disconnect clients from PlusServer!"); 
-      server->Stop(); 
+      serverList[0]->Stop(); 
       exit(EXIT_FAILURE);
     }
     LOG_INFO("Clients are disconnected");
   }
   // *************************** End of testing **************************
 
-
-  server->Stop();
+  for( std::vector<vtkPlusOpenIGTLinkServer*>::iterator it = serverList.begin(); it != serverList.end(); ++it )
+  {
+    (*it)->Stop();
+  }
   
   if ( !testingConfigFileName.empty() )
   {

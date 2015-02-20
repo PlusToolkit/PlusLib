@@ -53,15 +53,15 @@ public:
   virtual void PrintSelf( ostream& os, vtkIndent indent );
   
 
-  /*! Configures and starts the server from the provided device set configuration file */
-  PlusStatus Start(const std::string &inputConfigFileName);
+  /*! Configures and starts the server from the provided PlusOpenIGTLinkServer XML element */
+  PlusStatus Start(vtkDataCollector* dataCollector, vtkTransformRepository* transformRepository, vtkXMLDataElement* serverElement, const std::string& configFilePath);
 
   /*! Configures and starts the server from the provided device set configuration file */
   PlusStatus Stop();
 
 
   /*! Read the configuration file in XML format and set up the devices */
-  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* aDataCollectionConfig, const char* aFilename ); 
+  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* serverElement, const char* aFilename ); 
 
   /*! Set server listening port */ 
   vtkSetMacro( ListeningPort, int );
