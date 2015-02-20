@@ -9,7 +9,8 @@
       Type="AuroraTracker"
       SerialPort="3"
       BaudRate="115200"
-      LocalTimeOffsetSec="0.0">
+      LocalTimeOffsetSec="0.0"
+      ToolReferenceFrame="Tracker">
       <DataSources>
         <DataSource Type="Tool" Id="Probe" PortName="0" />
         <DataSource Type="Tool" Id="Reference" PortName="1" />
