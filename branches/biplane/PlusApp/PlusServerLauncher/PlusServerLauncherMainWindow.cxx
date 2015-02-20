@@ -7,8 +7,10 @@
 #include "DeviceSetSelectorWidget.h"
 #include "PlusServerLauncherMainWindow.h"
 #include "StatusIcon.h"
+#include "vtkDataCollector.h"
 #include "vtkPlusDeviceFactory.h"
 #include "vtkPlusOpenIGTLinkServer.h"
+#include "vtkTransformRepository.h"
 #include <QIcon>
 #include <QKeyEvent>
 #include <QTimer>
@@ -129,19 +131,117 @@ void PlusServerLauncherMainWindow::connectToDevicesByConfigFile(std::string aCon
   if (STRCASECMP(aConfigFile.c_str(), "") == 0)
   {
     m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
+
+    m_DataCollector->Stop();
+
+    m_DataCollector->Delete();
+    m_DataCollector = NULL;
+
+    m_TransformRepository->Delete();
+    m_TransformRepository = NULL;
+
+    m_Server->Delete();
+    m_Server = NULL;
     return; 
   }
 
   // Connect
-  // Start server 
+  // Read main configuration file
+  std::string configFilePath=aConfigFile;
+  if (!vtksys::SystemTools::FileExists(configFilePath.c_str(), true))
+  {
+    configFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(aConfigFile);
+    if (!vtksys::SystemTools::FileExists(configFilePath.c_str(), true))
+    {
+      LOG_ERROR("Reading device set configuration file failed: "<<aConfigFile<<" does not exist in the current directory or in "<<vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory());
+      return;
+    }
+  }
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(configFilePath.c_str()));
+  if (configRootElement == NULL)
+  {
+    LOG_ERROR("Reading device set configuration file failed: syntax error in "<<aConfigFile);
+    return;
+  }
+
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
+
+  // Print configuration file contents for debugging purposes
+  LOG_DEBUG("Device set configuration is read from file: " << aConfigFile);
+  std::ostringstream xmlFileContents; 
+  PlusCommon::PrintXML(xmlFileContents, vtkIndent(1), configRootElement);
+  LOG_DEBUG("Device set configuration file contents: " << std::endl << xmlFileContents.str());
+
+  // Create data collector instance 
+  m_DataCollector = vtkDataCollector::New();
+  if ( m_DataCollector->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Datacollector failed to read configuration"); 
+    m_DataCollector->Delete();
+    m_DataCollector = NULL;
+    return;
+  }
+
+  // Create transform repository instance 
+  m_TransformRepository = vtkTransformRepository::New(); 
+  if ( m_TransformRepository->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Transform repository failed to read configuration"); 
+    m_TransformRepository->Delete();
+    m_TransformRepository = NULL;
+    m_DataCollector->Delete();
+    m_DataCollector = NULL;
+    return;
+  }
+
+  LOG_DEBUG( "Initializing data collector... " );
+  if ( m_DataCollector->Connect() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Datacollector failed to connect to devices"); 
+    m_TransformRepository->Delete();
+    m_TransformRepository = NULL;
+    m_DataCollector->Delete();
+    m_DataCollector = NULL;
+    return;
+  }
+
+  if ( m_DataCollector->Start() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Datacollector failed to start"); 
+    m_TransformRepository->Delete();
+    m_TransformRepository = NULL;
+    m_DataCollector->Delete();
+    m_DataCollector = NULL;
+    return;
+  }
+
+  if (configRootElement == NULL)
+  {
+    LOG_ERROR("Invalid device set configuration: unable to find required PlusOpenIGTLinkServer element");
+    return;
+  }
+  vtkXMLDataElement* serverElement = configRootElement->FindNestedElementWithName("PlusOpenIGTLinkServer"); 
+  if (serverElement == NULL)
+  {
+    LOG_ERROR("Unable to find required PlusOpenIGTLinkServer element in device set configuration"); 
+    return;
+  }
+
+  // Start server
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
   m_Server = vtkPlusOpenIGTLinkServer::New();
-  PlusStatus status=m_Server->Start(aConfigFile) ;
+  PlusStatus status=m_Server->Start(m_DataCollector, m_TransformRepository, serverElement, configFilePath) ;
   QApplication::restoreOverrideCursor();
   if ( status != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to start the server"); 
     m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
+    m_TransformRepository->Delete();
+    m_TransformRepository = NULL;
+    m_DataCollector->Delete();
+    m_DataCollector = NULL;
+    m_Server->Delete();
+    m_Server = NULL;
     return; 
   }
   m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);

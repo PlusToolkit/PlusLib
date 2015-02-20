@@ -13,6 +13,8 @@
 
 class DeviceSetSelectorWidget;
 class vtkPlusOpenIGTLinkServer;
+class vtkDataCollector;
+class vtkTransformRepository;
 
 //-----------------------------------------------------------------------------
 
@@ -55,6 +57,12 @@ protected:
 
   /*! PlusServer instance that is responsible for all data collection and network transfer */
   vtkPlusOpenIGTLinkServer* m_Server;
+
+  /*! Data collector */
+  vtkDataCollector* m_DataCollector;
+
+  /*! Transform repository */
+  vtkTransformRepository* m_TransformRepository;
 
   /*! Timer that refreshes the UI */
   QTimer* m_ProcessPendingCommandsTimer; 
