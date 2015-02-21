@@ -149,10 +149,10 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
       }
     }
   }
+  
   if( !outputChannelFound )
   {
-    LOG_ERROR("No output channels defined. Unable to locate any for data collection.");
-    return PLUS_FAIL;
+    LOG_WARNING("No output channels defined. Unable to locate any for data collection.");
   }
 
   // Connect any and all input streams to their corresponding output streams

@@ -46,6 +46,16 @@ OPTION(BUILD_SHARED_LIBS "Build with shared libraries." ${VTK_BUILD_SHARED_LIBS}
 # OPTION (BUILD_SLICER_MODULE "Build project as Slicer module" OFF)
 
 # --------------------------------------------------------------------------
+# Use accurate or simple timer protocol
+# 
+# DevPartnerStudio performance profiler hangs if the accurate timer
+# is used.If USE_SIMPLE_TIMER is defined then the accurate timer is
+# bypassed. It should only be enabled for performance profiling.
+
+OPTION(PLUS_USE_SIMPLE_TIMER "Use simple timer (not very accurate but more compatible with performance profilers)" OFF)
+MARK_AS_ADVANCED(PLUS_USE_SIMPLE_TIMER)
+
+# --------------------------------------------------------------------------
 # Configure output paths for libraries and executables.
 #
 IF(NOT DEFINED PLUS_EXECUTABLE_OUTPUT_PATH)

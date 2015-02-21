@@ -325,12 +325,14 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
   // If we didn't find any channel then return
   if( aChannel == NULL )
   {
-    LOG_ERROR("There are no channels to broadcast. Check configuration.");
-    return NULL;
+    LOG_WARNING("There are no channels to broadcast. Only command processing is available.");
   }
 
   self->BroadcastChannel = aChannel;
-  self->BroadcastChannel->GetMostRecentTimestamp(self->LastSentTrackedFrameTimestamp);
+  if (self->BroadcastChannel)
+  {
+    self->BroadcastChannel->GetMostRecentTimestamp(self->LastSentTrackedFrameTimestamp);
+  }
 
   double elapsedTimeSinceLastPacketSentSec = 0; 
   while ( self->ConnectionActive.first && self->DataSenderActive.first )
@@ -421,28 +423,30 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
     // Maximize the number of frames to send
     numberOfFramesToGet = std::min(numberOfFramesToGet, self->MaxNumberOfIgtlMessagesToSend); 
 
-    trackedFrameList->Clear();
-    if ( ( self->BroadcastChannel->HasVideoSource() && !self->BroadcastChannel->GetVideoDataAvailable())
-      || (!self->BroadcastChannel->HasVideoSource() && !self->BroadcastChannel->GetTrackingDataAvailable()) )
+    if (self->BroadcastChannel!=NULL)
     {
-      LOG_DYNAMIC("No data is broadcasted, as no data is available yet.", self->GracePeriodLogLevel); 
-    }
-    else
-    {
-      double oldestDataTimestamp=0;
-      if (self->BroadcastChannel->GetOldestTimestamp(oldestDataTimestamp)==PLUS_SUCCESS)
+      if ( ( self->BroadcastChannel->HasVideoSource() && !self->BroadcastChannel->GetVideoDataAvailable())
+        || (!self->BroadcastChannel->HasVideoSource() && !self->BroadcastChannel->GetTrackingDataAvailable()) )
       {
-        if (self->LastSentTrackedFrameTimestamp<oldestDataTimestamp)
+        LOG_DYNAMIC("No data is broadcasted, as no data is available yet.", self->GracePeriodLogLevel); 
+      }
+      else
+      {
+        double oldestDataTimestamp=0;
+        if (self->BroadcastChannel->GetOldestTimestamp(oldestDataTimestamp)==PLUS_SUCCESS)
         {
-          LOG_INFO("OpenIGTLink broadcasting started. No data was available between "<<self->LastSentTrackedFrameTimestamp<<"-"<<oldestDataTimestamp<<"sec, therefore no data were broadcasted during this time period.");
-          self->LastSentTrackedFrameTimestamp=oldestDataTimestamp+SAMPLING_SKIPPING_MARGIN_SEC;
-        }
-        if ( self->BroadcastChannel->GetTrackedFrameList(self->LastSentTrackedFrameTimestamp, trackedFrameList, numberOfFramesToGet) != PLUS_SUCCESS )
-        {
-          LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << self->LastSentTrackedFrameTimestamp ); 
-          vtkAccurateTimer::Delay(DELAY_ON_SENDING_ERROR_SEC); 
-        }
-      }      
+          if (self->LastSentTrackedFrameTimestamp<oldestDataTimestamp)
+          {
+            LOG_INFO("OpenIGTLink broadcasting started. No data was available between "<<self->LastSentTrackedFrameTimestamp<<"-"<<oldestDataTimestamp<<"sec, therefore no data were broadcasted during this time period.");
+            self->LastSentTrackedFrameTimestamp=oldestDataTimestamp+SAMPLING_SKIPPING_MARGIN_SEC;
+          }
+          if ( self->BroadcastChannel->GetTrackedFrameList(self->LastSentTrackedFrameTimestamp, trackedFrameList, numberOfFramesToGet) != PLUS_SUCCESS )
+          {
+            LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << self->LastSentTrackedFrameTimestamp ); 
+            vtkAccurateTimer::Delay(DELAY_ON_SENDING_ERROR_SEC); 
+          }
+        }      
+      }
     }
 
     // There is no new frame in the buffer
@@ -825,7 +829,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::KeepAlive()
 
   } // clientIterator
 
-  LOG_DEBUG("Keep alive packet sent to clients..."); 
+  LOG_TRACE("Keep alive packet sent to clients..."); 
   return ( numberOfErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL );
 }
 

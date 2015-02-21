@@ -14,6 +14,7 @@
 
 \section SonixVideoInstallation Installation
 
+- If tracking does not work (you get "No BIRDs were found anywhere" or similar error) make sure that all the Ultrasonix Exam software features that use SonixGPS are disabled (in Administration / Licenses).
 - If tracking does not work then try to copy the Ascension tracker DLL file (ATC3DG.dll) from the Ultrasonix exam software directory to the Plus directory (as the DLL version that is shipped with Plus may not match the installed tracker hardware/software version).
 - The Ultrasonix L14-5 linear probe does not work well with the NDI Aurora electromagnetic tracker. If the L14 probe is stationary, we can get consistent readings, but if the probe is moving, the tracking is not stable at all.  We know there is a big piece of aluminium inside L14-5. Thus I would advise not to use Aurora with Ultrasonix probe at this time. (Reported by Elvis Chen, Feb 29, 2012) Note that Ascension electromagnetic trackers work just fine even if they are very close to the transducer.
 - The B-mode image processing (scan conversion, de-speckle filtering, etc.) is performed in the CPU. If higher frame rates are needed and speckle is tolerable then it is advisable to turn off de-speckle filtering.

@@ -107,11 +107,18 @@ void vtkAccurateTimer::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkAccurateTimer::Delay(double sec)
 {
+#ifndef PLUS_USE_SIMPLE_TIMER
+  // Use accurate timer
 #ifdef _WIN32
   WindowsAccurateTimer* timer = WindowsAccurateTimer::Instance();
   timer->Wait( sec * 1000 ); 
 #else
-  vtksys::SystemTools::Delay( sec * 1000 ); 
+  vtksys::SystemTools::Delay( sec * 1000 );
+#endif
+#else // PLUS_USE_SIMPLE_TIMER
+  // Use simple timer
+  vtksys::SystemTools::Delay( sec * 1000 );
+  return;
 #endif
 }
 

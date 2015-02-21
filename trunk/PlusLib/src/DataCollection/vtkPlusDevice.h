@@ -417,6 +417,12 @@ public:
   */
   virtual PlusStatus GetImage(const std::string& requestedImageId, std::string& assignedImageId,const std::string& imageReferencFrameName, vtkImageData* imageData, vtkMatrix4x4* ijkToReferenceTransform);
 
+  /*!
+    Send text message to the device. If a non-NULL pointer is passed as textReceived
+    then the device waits for a response and returns it in textReceived.
+  */
+  virtual PlusStatus SendText(const std::string& textToSend, std::string* textReceived);
+
 protected:
   static void *vtkDataCaptureThread(vtkMultiThreader::ThreadInfo *data);
 
