@@ -44,4 +44,7 @@
 - \subpage DeviceVirtualMixer
 - \subpage DeviceVirtualSwitcher
 
+\par Other data acquisition devices
+- \subpage DeviceGenericSerial
+
 */
