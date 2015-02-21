@@ -15,6 +15,7 @@ See License.txt for details.
 #include "vtkVirtualDiscCapture.h"
 #include "vtkVirtualVolumeReconstructor.h"
 #include "vtkImageProcessorVideoSource.h"
+#include "vtkGenericSerialDevice.h"
 
 //----------------------------------------------------------------------------
 // Tracker devices
@@ -158,6 +159,7 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
   DeviceTypes["SavedDataSource"]=(PointerToDevice)&vtkSavedDataSource::New; 
   DeviceTypes["UsSimulator"]=(PointerToDevice)&vtkUsSimulatorVideoSource::New;
   DeviceTypes["ImageProcessor"]=(PointerToDevice)&vtkImageProcessorVideoSource::New;
+  DeviceTypes["GenericSerialDevice"]=(PointerToDevice)&vtkGenericSerialDevice::New;
   DeviceTypes["NoiseVideo"]=(PointerToDevice)&vtkPlusDevice::New; 
 #ifdef PLUS_USE_OpenIGTLink
   DeviceTypes["OpenIGTLinkVideo"]=(PointerToDevice)&vtkOpenIGTLinkVideoSource::New; 

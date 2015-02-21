@@ -14,6 +14,7 @@ See License.txt for details.
 #include "vtkPlusReconstructVolumeCommand.h"
 #include "vtkPlusRequestIdsCommand.h"
 #include "vtkPlusSaveConfigCommand.h"
+#include "vtkPlusSendTextCommand.h"
 #include "vtkPlusStartStopRecordingCommand.h"
 #include "vtkPlusUpdateTransformCommand.h"
 #ifdef PLUS_USE_STEALTHLINK
@@ -344,6 +345,18 @@ PlusStatus ExecuteSaveConfig(vtkPlusOpenIGTLinkClient* client, const std::string
 }
 
 //----------------------------------------------------------------------------
+PlusStatus ExecuteSendText(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId, const std::string &text, bool responseExpected)
+{
+  vtkSmartPointer<vtkPlusSendTextCommand> cmd = vtkSmartPointer<vtkPlusSendTextCommand>::New();
+  cmd->SetNameToSendText();
+  cmd->SetText(text.c_str());
+  cmd->SetDeviceId(deviceId.c_str());
+  cmd->SetResponseExpected(responseExpected);
+  PrintCommand(cmd);
+  return client->SendCommand(cmd);
+}
+
+//----------------------------------------------------------------------------
 PlusStatus PrintReply(vtkPlusOpenIGTLinkClient* client)
 {
   std::string reply;
@@ -534,7 +547,9 @@ int main( int argc, char** argv )
   std::string transformValue;
   std::string dicomOutputDirectory;
   std::string volumeEmbeddedTransformToFrame;
+  std::string text;
   bool keepReceivedDicomFiles = false;
+  bool responseExpected = false;
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
   bool keepConnected=false;
   std::string serverConfigFileName;
@@ -547,11 +562,12 @@ int main( int argc, char** argv )
   args.AddArgument( "--port", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverPort, "Port address of the OpenIGTLink server (default: 18944)" );
   args.AddArgument( "--command", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &command, 
     "Command name to be executed on the server (START_ACQUISITION, STOP_ACQUISITION, SUSPEND_ACQUISITION, RESUME_ACQUISITION, \
-    RECONSTRUCT, START_RECONSTRUCTION, SUSPEND_RECONSTRUCTION, RESUME_RECONSTRUCTION, STOP_RECONSTRUCTION, GET_RECONSTRUCTION_SNAPSHOT, GET_CHANNEL_IDS, GET_DEVICE_IDS, GET_EXAM_DATA)" );
+    RECONSTRUCT, START_RECONSTRUCTION, SUSPEND_RECONSTRUCTION, RESUME_RECONSTRUCTION, STOP_RECONSTRUCTION, GET_RECONSTRUCTION_SNAPSHOT, GET_CHANNEL_IDS, GET_DEVICE_IDS, GET_EXAM_DATA, SEND_TEXT)" );
   args.AddArgument( "--device", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceId, "ID of the controlled device (optional, default: first VirtualStreamCapture or VirtualVolumeReconstructor device). In case of GET_DEVICE_IDS it is not an ID but a device type." );
   args.AddArgument( "--input-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFilename, "File name of the input, used for RECONSTRUCT command" );
   args.AddArgument( "--output-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFilename, "File name of the output, used for START command (optional, default: 'PlusServerRecording.mha' for acquisition, no output for volume reconstruction)" );
   args.AddArgument( "--output-image-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputImageName, "OpenIGTLink device name of the reconstructed file (optional, default: image is not sent)" );
+  args.AddArgument( "--text", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &text, "Text to be sent to the device" );
   args.AddArgument( "--transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformName, "The name of the transform to update. Form=[From]To[To]Transform" );
   args.AddArgument( "--transform-date", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformDate, "The date of the transform to update." );
   args.AddArgument( "--transform-error", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformError, "The error of the transform to update." );
@@ -562,6 +578,7 @@ int main( int argc, char** argv )
   args.AddArgument( "--dicom-directory", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &dicomOutputDirectory, "The folder directory for the dicom images acquired from the StealthLink Server");
   args.AddArgument( "--volumeEmbeddedTransformToFrame", vtksys::CommandLineArguments::EQUAL_ARGUMENT,&volumeEmbeddedTransformToFrame, "The reference frame in which the dicom image will be represented. Ex: RAS,LPS,Reference,Tracker etc");
   args.AddArgument( "--keepReceivedDicomFiles", vtksys::CommandLineArguments::NO_ARGUMENT, &keepReceivedDicomFiles, "Keep the dicom files in the designated folder after having acquired them from the server");
+  args.AddArgument( "--response-expected", vtksys::CommandLineArguments::NO_ARGUMENT, &responseExpected, "Wait for a response after sending text");
   args.AddArgument( "--server-config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverConfigFileName, "Starts a PlusServer instance with the provided config file. When this process exits, the server is stopped." );
   args.AddArgument( "--run-tests", vtksys::CommandLineArguments::NO_ARGUMENT, &runTests, "Test execution of all remote control commands. Requires a running PlusServer, which can be launched by --server-config-file");
 
@@ -630,6 +647,7 @@ int main( int argc, char** argv )
     else if (STRCASECMP(command.c_str(),"GET_DEVICE_IDS")==0) { commandExecutionStatus = ExecuteGetDeviceIds(client, deviceId /* actually a device type */); }
     else if (STRCASECMP(command.c_str(), "UPDATE_TRANSFORM")==0) { commandExecutionStatus = ExecuteUpdateTransform(client, transformName, transformValue, transformError, transformDate, transformPersistent); }
     else if (STRCASECMP(command.c_str(), "SAVE_CONFIG")==0) { commandExecutionStatus = ExecuteSaveConfig(client, outputFilename); }
+    else if (STRCASECMP(command.c_str(), "SEND_TEXT")==0) { commandExecutionStatus = ExecuteSendText(client, deviceId, text, responseExpected); }
     else if (STRCASECMP(command.c_str(), "GET_EXAM_DATA")==0)
     {
 #ifdef PLUS_USE_STEALTHLINK

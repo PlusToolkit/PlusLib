@@ -11,6 +11,7 @@ SET (PlusServer_SRCS
   vtkPlusRequestIdsCommand.cxx 
   vtkPlusUpdateTransformCommand.cxx 
   vtkPlusSaveConfigCommand.cxx 
+  vtkPlusSendTextCommand.cxx
   vtkPlusGetImageCommand.cxx
   )
 
@@ -26,6 +27,7 @@ IF (WIN32)
     vtkPlusRequestIdsCommand.h 
     vtkPlusUpdateTransformCommand.h 
     vtkPlusSaveConfigCommand.h 
+    vtkPlusSendTextCommand.h
     vtkPlusGetImageCommand.h
     )
 ENDIF (WIN32)

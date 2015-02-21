@@ -2048,3 +2048,10 @@ PlusStatus vtkPlusDevice::GetImage(const std::string& requestedImageId, std::str
   LOCAL_LOG_ERROR("vtkPlusDevice::GetImage is not implemented");
   return PLUS_FAIL;
 }
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::SendText(const std::string& textToSend, std::string* textReceived)
+{
+  LOCAL_LOG_ERROR("vtkPlusDevice::SendText is not implemented");
+  return PLUS_FAIL;
+}
