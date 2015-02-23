@@ -114,7 +114,7 @@ int main( int argc, char** argv )
   }
   // *************************** End of testing **************************
 
-  std::cout << "Press Ctrl-C to quit:" << std::endl;
+  LOG_INFO("Press Ctrl-C to quit.");
 
   // Set up signal catching
   signal(SIGINT, SignalInterruptHandler);

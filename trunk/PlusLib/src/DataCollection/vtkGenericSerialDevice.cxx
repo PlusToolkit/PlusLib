@@ -166,14 +166,20 @@ PlusStatus vtkGenericSerialDevice::InternalUpdate()
   // Either update or send commands - but not simultaneously
   PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
 
+  // Determine the maximum time to spend in the loop (acquisition time period, but maximum 1 sec)
+  double maxReadTimeSec = (this->AcquisitionRate < 1.0) ? 1.0 : 1/this->AcquisitionRate;
+  double startTime = vtkAccurateTimer::GetSystemTime();
   while (this->Serial->GetNumberOfBytesAvailableForReading()>0)
   { 
     std::string textReceived;
     ReceiveResponse(textReceived);
     LOG_DEBUG("Received from Serial device: "<<textReceived);
-    // TODO: queue response
+    if (vtkAccurateTimer::GetSystemTime()-startTime>maxReadTimeSec)
+    {
+      // force exit from the loop if continuously receiving data
+      break;
+    }
   }
-
   return PLUS_SUCCESS;
 }
 

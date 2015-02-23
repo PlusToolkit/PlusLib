@@ -20,7 +20,9 @@
 \class SerialLine
 \brief Class for reading and writing data through the serial (RS-232) port
 
-\sa CSerialCommHelper
+The class currently only works on Windows. If serial communication is needed on other platforms then
+sample code can be found in src\Utilities\ndicapi\ndicapi_serial.* or at https://github.com/wjwwood/serial.
+
 \ingroup PlusLibDataCollection
 */
 
@@ -46,10 +48,16 @@ public:
   /*! Close serial port */ 
   void Close();
 
-  /*! Write data to the serial port */ 
-  int Write(const BYTE data);
+  /*! Write data to the serial port. Returns the number of writes actually written. */
+  int Write(const BYTE* data, int numberOfBytesToWrite);
 
-  /*! Read data from the serial port */ 
+  /*! Write a single byte to the serial port. Returns true if successful. */
+  bool Write(const BYTE data);
+
+  /*! Read data from the serial port. Returns the number of writes actually read. */
+  int Read(BYTE *data, int maxNumberOfBytesToRead);
+
+  /*! Read a single byte from the serial port. Returns true if successful. */ 
   bool Read(BYTE &data);
 
   /*! Set the serial port name e.g. COM1 */ 
@@ -82,9 +90,6 @@ private:
   DWORD m_SerialPortSpeed;
   int m_MaxReplyTime;
   int UpdateSerialBuffer();
-#ifdef _WIN32
-  OVERLAPPED m_osReadWrite;
-#endif
 };
 
 #endif 
