@@ -1098,13 +1098,17 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
     {
       LOG_WARNING("OpenIGTLink STRING message device name is empty");
     }
-    std::string replyStr;
-    replyStr += std::string("<CommandReply")
-      +" Status=\"" + (stringResponse->GetStatus() == PLUS_SUCCESS ? "SUCCESS" : "FAIL") + "\""
-      +" Message=\"" + stringResponse->GetMessage() + "\"" 
-      += " />";
-    igtlMessage->SetString(replyStr.c_str());
-    LOG_DEBUG("Command response: "<<replyStr);
+    std::ostringstream replyStr;
+    replyStr << "<CommandReply";
+    replyStr << " Status=\"" << (stringResponse->GetStatus() == PLUS_SUCCESS ? "SUCCESS" : "FAIL") << "\"";
+    replyStr << " Message=\"";
+    // Write to XML, encoding special characters, such as " ' \ < > &
+    vtkXMLUtilities::EncodeString(stringResponse->GetMessage().c_str(), VTK_ENCODING_NONE, replyStr, VTK_ENCODING_NONE, 1 /* encode special characters */ );
+    replyStr << "\"";
+    replyStr << " />";
+
+    igtlMessage->SetString(replyStr.str().c_str());
+    LOG_DEBUG("Command response: "<<replyStr.str());
     return igtlMessage.GetPointer();
   }
 
