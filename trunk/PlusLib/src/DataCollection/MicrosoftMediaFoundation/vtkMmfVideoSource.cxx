@@ -386,8 +386,23 @@ PlusStatus vtkMmfVideoSource::InternalStartRecording()
 
     attr->Release();
 
-    MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().StartRecording(this->ActiveVideoFormat.DeviceId);
+    std::string videoFormat = MF_VIDEO_FORMAT_PREFIX + this->RequestedVideoFormat.PixelFormatName;
+    std::wstring videoFormatWStr(videoFormat.begin(), videoFormat.end());
 
+    IMFMediaType *pDecodeType = NULL;
+    hr = MFCreateMediaType(&pDecodeType);
+    hr = pDecodeType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
+    hr = pDecodeType->SetGUID(MF_MT_SUBTYPE, MfVideoCapture::FormatReader::GUIDFromString(videoFormatWStr));
+
+    hr = this->MmfSourceReader->CaptureSourceReader->SetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, NULL, pDecodeType);
+    if ( FAILED(hr) )
+    {
+      LOG_WARNING("Unable to set SourceReader output to requested format: " << this->RequestedVideoFormat.PixelFormatName
+                  << ". Using device default.");
+    }
+    SafeRelease(&pDecodeType);
+    
+    MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().StartRecording(this->ActiveVideoFormat.DeviceId);
     this->MmfSourceReader->CaptureSourceReader->ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, NULL, NULL, NULL, NULL);
   }
   else
