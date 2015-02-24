@@ -204,6 +204,7 @@ PlusVideoFrame& PlusVideoFrame::operator=(PlusVideoFrame const&videoItem)
     else
     {
       memcpy(this->GetScalarPointer(), videoItem.GetScalarPointer(), this->GetFrameSizeInBytes() ); 
+      this->Image->Modified();
     }
   }
 
