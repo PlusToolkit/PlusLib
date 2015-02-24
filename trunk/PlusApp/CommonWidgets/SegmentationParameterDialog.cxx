@@ -190,7 +190,7 @@ public:
       // Compute world coordinates
       int* canvasSize;
       canvasSize = m_ParentDialog->GetCanvasRenderer()->GetRenderWindow()->GetSize();
-      int imageDimensions[2];
+      int imageDimensions[3]={0,0,1};
       m_ParentDialog->GetFrameSize(imageDimensions);
 
       double offsetXMonitor = 0.0;
@@ -438,7 +438,7 @@ public:
       // Compute world coordinates
       int* canvasSize;
       canvasSize = m_ParentDialog->GetCanvasRenderer()->GetRenderWindow()->GetSize();
-      int imageDimensions[3];
+      int imageDimensions[3]={0,0,1};
       m_ParentDialog->GetFrameSize(imageDimensions);
 
       double offsetXMonitor = 0.0;
@@ -496,13 +496,13 @@ public:
         LOG_DEBUG("Move - pixel: (" << x << ", " << y << "), world: (" << xWorld << ", " << yWorld << ")");
 
         // Get the positions of all handles
-        double horizontalLeftPosition[3];
+        double horizontalLeftPosition[3]={0,0,0};
         m_HorizontalLeftHandleSource->GetCenter(horizontalLeftPosition);
-        double horizontalRightPosition[3];
+        double horizontalRightPosition[3]={0,0,0};
         m_HorizontalRightHandleSource->GetCenter(horizontalRightPosition);
-        double verticalTopPosition[3];
+        double verticalTopPosition[3]={0,0,0};
         m_VerticalTopHandleSource->GetCenter(verticalTopPosition);
-        double verticalBottomPosition[3];
+        double verticalBottomPosition[3]={0,0,0};
         m_VerticalBottomHandleSource->GetCenter(verticalBottomPosition);
 
         double xWorldWithOffset = xWorld + m_ClickOffsetFromCenterOfSource.first;
@@ -719,7 +719,7 @@ protected:
     // Get offsets (distance between the canvas edge and the image) and reference lengths
     int* canvasSize;
     canvasSize = m_ParentDialog->GetCanvasRenderer()->GetRenderWindow()->GetSize();
-    int imageDimensions[2];
+    int imageDimensions[3]={0,0,1};
     m_ParentDialog->GetFrameSize(imageDimensions);
 
     double offsetXImage = 0.0;
@@ -1557,7 +1557,7 @@ double SegmentationParameterDialog::GetSpacingReferenceHeight()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus SegmentationParameterDialog::GetFrameSize(int aImageDimensions[2])
+PlusStatus SegmentationParameterDialog::GetFrameSize(int aImageDimensions[3])
 {
   LOG_TRACE("SegmentationParameterDialog::GetFrameSize");
 
