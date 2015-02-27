@@ -319,6 +319,9 @@ protected:
   /*! Reference to the canvas */
   QVTKWidget* Canvas;
 
+  /*! Renderer to use when there is nothing to show */
+  vtkRenderer* BlankRenderer;
+
   /*! Timer for acquisition */
   QTimer*	AcquisitionTimer;
 
