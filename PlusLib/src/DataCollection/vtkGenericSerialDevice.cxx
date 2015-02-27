@@ -173,7 +173,7 @@ PlusStatus vtkGenericSerialDevice::InternalUpdate()
   { 
     std::string textReceived;
     ReceiveResponse(textReceived);
-    LOG_DEBUG("Received from Serial device: "<<textReceived);
+    LOG_DEBUG("Received from serial device without request: "<<textReceived);
     if (vtkAccurateTimer::GetSystemTime()-startTime>maxReadTimeSec)
     {
       // force exit from the loop if continuously receiving data
@@ -185,7 +185,7 @@ PlusStatus vtkGenericSerialDevice::InternalUpdate()
 
 
 //-------------------------------------------------------------------------
-PlusStatus vtkGenericSerialDevice::SendText(const std::string& textToSend, std::string* textReceived)
+PlusStatus vtkGenericSerialDevice::SendText(const std::string& textToSend, std::string* textReceived/*=NULL*/)
 {
   LOG_DEBUG("Send to Serial device: "<<textToSend);
   
@@ -219,8 +219,8 @@ PlusStatus vtkGenericSerialDevice::SendText(const std::string& textToSend, std::
       }
       *textReceived+=line;
     }
+    LOG_DEBUG("Received from serial device: "<<(*textReceived));
   }
-  LOG_DEBUG("Received from Serial device: "<<(*textReceived));
   return PLUS_SUCCESS;
 }
 
@@ -262,7 +262,7 @@ PlusStatus vtkGenericSerialDevice::ReceiveResponse(std::string& textReceived)
       if (vtkAccurateTimer::GetSystemTime()-startTime>this->MaximumReplyDurationSec)
       {
         // waiting time expired
-        LOG_ERROR("Failed to read from serial line");
+        LOG_ERROR("Failed to read complete line from serial device. Received: "<<textReceived);
         return PLUS_FAIL;
       }
     }
