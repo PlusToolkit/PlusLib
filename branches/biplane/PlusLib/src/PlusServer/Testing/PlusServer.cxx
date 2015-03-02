@@ -187,6 +187,7 @@ int main( int argc, char** argv )
 
   // Set up signal catching
   signal(SIGINT, SignalInterruptHandler);
+  signal(SIGTERM, SignalInterruptHandler);
 
   bool neverStop = (runTimeSec==0.0);
 

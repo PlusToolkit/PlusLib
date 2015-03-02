@@ -19,7 +19,7 @@
 PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent, Qt::WFlags flags, bool autoConnect)
   : QDialog(parent, flags|Qt::WindowMinimizeButtonHint)
   , m_DeviceSetSelectorWidget(NULL)
-  , m_Server(NULL)
+  , m_CurrentServerInstance(NULL)
 {
   setWindowIcon(QPixmap( ":/icons/Resources/icon_ConnectLarge.png" ));
 
@@ -45,11 +45,6 @@ PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent, Qt::
   mainGrid->addWidget(m_DeviceSetSelectorWidget, 0, 0);
   mainGrid->addWidget(statusIcon, 1, 0, Qt::AlignRight);
   this->setLayout(mainGrid);
-
-  // Set up timer for processing pending commands
-  m_ProcessPendingCommandsTimer = new QTimer(this);
-  connect( m_ProcessPendingCommandsTimer, SIGNAL( timeout() ), this, SLOT( processPendingCommands() ) );
-  m_ProcessPendingCommandsTimer->start(50);
 
   // Log basic info (Plus version, supported devices)
   std::string strPlusLibVersion = std::string(" Software version: ") + PlusCommon::GetPlusLibVersionString(); 
@@ -81,18 +76,12 @@ PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent, Qt::
 //-----------------------------------------------------------------------------
 PlusServerLauncherMainWindow::~PlusServerLauncherMainWindow()
 {
-  if ( m_ProcessPendingCommandsTimer != NULL )
+  if ( m_CurrentServerInstance != NULL )
   {
-    m_ProcessPendingCommandsTimer->stop(); 
-    delete m_ProcessPendingCommandsTimer; 
-    m_ProcessPendingCommandsTimer = NULL; 
-  } 
-
-  if ( m_Server != NULL )
-  {
-    m_Server->Stop();
-    m_Server->Delete();
-    m_Server = NULL; 
+    m_CurrentServerInstance->terminate();
+    m_CurrentServerInstance->waitForFinished(-1);
+    delete m_CurrentServerInstance;
+    m_CurrentServerInstance = NULL;
   }
 
   if ( m_DeviceSetSelectorWidget != NULL )
@@ -103,27 +92,26 @@ PlusServerLauncherMainWindow::~PlusServerLauncherMainWindow()
 }
 
 //-----------------------------------------------------------------------------
-void PlusServerLauncherMainWindow::processPendingCommands()
-{
-  if (m_Server!=NULL)
-  {
-    // Process commands that we've received from the data receiver thread
-    // and put command responses into the queue for the data sending thread
-    m_Server->ProcessPendingCommands();
-  }
-}
-
-//-----------------------------------------------------------------------------
 void PlusServerLauncherMainWindow::connectToDevicesByConfigFile(std::string aConfigFile)
 {
   LOG_INFO("Connect using configuration file: " << aConfigFile);
 
   // Either a connect or disconnect, we always start from a clean slate: delete any previously active servers
-  if ( m_Server != NULL )
+  if ( m_CurrentServerInstance != NULL )
   {
-    m_Server->Stop();
-    m_Server->Delete();
-    m_Server=NULL;
+    disconnect(m_CurrentServerInstance, SIGNAL(readyReadStandardOutput()), this, SLOT(stdOutMsgReceived()));
+    disconnect(m_CurrentServerInstance, SIGNAL(readyReadStandardError()), this, SLOT(stdErrMsgReceived()));
+    disconnect(m_CurrentServerInstance, SIGNAL(error()), this, SLOT(errorReceived()));
+#ifdef _WIN32
+    struct _PROCESS_INFORMATION *procInfo = m_CurrentServerInstance->pid();
+    DWORD pid = procInfo->dwProcessId;
+    GenerateConsoleCtrlEvent(CTRL_C_EVENT, pid);
+#else
+    m_CurrentServerInstance->terminate();
+#endif
+    m_CurrentServerInstance->waitForFinished(-1);
+    delete m_CurrentServerInstance;
+    m_CurrentServerInstance = NULL;
   }
 
   // Disconnect
@@ -131,121 +119,31 @@ void PlusServerLauncherMainWindow::connectToDevicesByConfigFile(std::string aCon
   if (STRCASECMP(aConfigFile.c_str(), "") == 0)
   {
     m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
-
-    m_DataCollector->Stop();
-
-    m_DataCollector->Delete();
-    m_DataCollector = NULL;
-
-    m_TransformRepository->Delete();
-    m_TransformRepository = NULL;
-
-    m_Server->Delete();
-    m_Server = NULL;
     return; 
   }
 
   // Connect
-  // Read main configuration file
-  std::string configFilePath=aConfigFile;
-  if (!vtksys::SystemTools::FileExists(configFilePath.c_str(), true))
-  {
-    configFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(aConfigFile);
-    if (!vtksys::SystemTools::FileExists(configFilePath.c_str(), true))
-    {
-      LOG_ERROR("Reading device set configuration file failed: "<<aConfigFile<<" does not exist in the current directory or in "<<vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory());
-      return;
-    }
-  }
-  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(configFilePath.c_str()));
-  if (configRootElement == NULL)
-  {
-    LOG_ERROR("Reading device set configuration file failed: syntax error in "<<aConfigFile);
-    return;
-  }
-
-  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
-
-  // Print configuration file contents for debugging purposes
-  LOG_DEBUG("Device set configuration is read from file: " << aConfigFile);
-  std::ostringstream xmlFileContents; 
-  PlusCommon::PrintXML(xmlFileContents, vtkIndent(1), configRootElement);
-  LOG_DEBUG("Device set configuration file contents: " << std::endl << xmlFileContents.str());
-
-  // Create data collector instance 
-  m_DataCollector = vtkDataCollector::New();
-  if ( m_DataCollector->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Datacollector failed to read configuration"); 
-    m_DataCollector->Delete();
-    m_DataCollector = NULL;
-    return;
-  }
-
-  // Create transform repository instance 
-  m_TransformRepository = vtkTransformRepository::New(); 
-  if ( m_TransformRepository->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Transform repository failed to read configuration"); 
-    m_TransformRepository->Delete();
-    m_TransformRepository = NULL;
-    m_DataCollector->Delete();
-    m_DataCollector = NULL;
-    return;
-  }
-
-  LOG_DEBUG( "Initializing data collector... " );
-  if ( m_DataCollector->Connect() != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Datacollector failed to connect to devices"); 
-    m_TransformRepository->Delete();
-    m_TransformRepository = NULL;
-    m_DataCollector->Delete();
-    m_DataCollector = NULL;
-    return;
-  }
-
-  if ( m_DataCollector->Start() != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Datacollector failed to start"); 
-    m_TransformRepository->Delete();
-    m_TransformRepository = NULL;
-    m_DataCollector->Delete();
-    m_DataCollector = NULL;
-    return;
-  }
-
-  if (configRootElement == NULL)
-  {
-    LOG_ERROR("Invalid device set configuration: unable to find required PlusOpenIGTLinkServer element");
-    return;
-  }
-  vtkXMLDataElement* serverElement = configRootElement->FindNestedElementWithName("PlusOpenIGTLinkServer"); 
-  if (serverElement == NULL)
-  {
-    LOG_ERROR("Unable to find required PlusOpenIGTLinkServer element in device set configuration"); 
-    return;
-  }
 
   // Start server
-  QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-  m_Server = vtkPlusOpenIGTLinkServer::New();
-  PlusStatus status=m_Server->Start(m_DataCollector, m_TransformRepository, serverElement, configFilePath) ;
-  QApplication::restoreOverrideCursor();
-  if ( status != PLUS_SUCCESS )
+  m_CurrentServerInstance = new QProcess();
+  std::string plusServerExecutable = vtkPlusConfig::GetInstance()->GetPlusExecutablePath("PlusServer");
+  std::string plusServerLocation = vtksys::SystemTools::GetFilenamePath(plusServerExecutable);
+  m_CurrentServerInstance->setWorkingDirectory(QString(plusServerLocation.c_str()));
+  connect(m_CurrentServerInstance, SIGNAL(readyReadStandardOutput()), this, SLOT(stdOutMsgReceived()));
+  connect(m_CurrentServerInstance, SIGNAL(readyReadStandardError()), this, SLOT(stdErrMsgReceived()));
+  connect(m_CurrentServerInstance, SIGNAL(error()), this, SLOT(errorReceived()));
+  QString arg = QString("--config-file=\"").append(QString(aConfigFile.c_str())).append("\"");
+  m_CurrentServerInstance->start(QString(plusServerExecutable.c_str()).append(" ").append(arg).append(" --verbose=3"));
+  m_CurrentServerInstance->waitForFinished(500);
+  if( m_CurrentServerInstance->state() == QProcess::Running )
   {
-    LOG_ERROR("Failed to start the server"); 
-    m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
-    m_TransformRepository->Delete();
-    m_TransformRepository = NULL;
-    m_DataCollector->Delete();
-    m_DataCollector = NULL;
-    m_Server->Delete();
-    m_Server = NULL;
-    return; 
+    m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
+    vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
   }
-  m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
-  vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
+  else
+  {
+    m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -260,4 +158,34 @@ void PlusServerLauncherMainWindow::keyPressEvent(QKeyEvent *e)
   {
     showMinimized();
   }
+}
+
+//-----------------------------------------------------------------------------
+void PlusServerLauncherMainWindow::stdOutMsgReceived()
+{
+  QByteArray strData = m_CurrentServerInstance->readAllStandardOutput();
+  // Strip the preceding INFO text
+  std::string output = std::string(strData);
+  int vertBarPos = 0;
+  for( int i = 0; i < 2; i++ )//looking for the third one (start counting from 0)
+    vertBarPos = output.find_first_of( '|', vertBarPos + 1 );
+  LOG_INFO(output.substr(vertBarPos+1));
+}
+
+//-----------------------------------------------------------------------------
+void PlusServerLauncherMainWindow::stdErrMsgReceived()
+{
+  QByteArray strData = m_CurrentServerInstance->readAllStandardError();
+  // Strip the preceding ERROR text
+  std::string output = std::string(strData);
+  int vertBarPos = 0;
+  for( int i = 0; i < 2; i++ )//looking for the third one (start counting from 0)
+    vertBarPos = output.find_first_of( '|', vertBarPos + 1 );
+  LOG_ERROR(output.substr(vertBarPos+1));
+}
+
+//-----------------------------------------------------------------------------
+void PlusServerLauncherMainWindow::errorReceived()
+{
+  m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
 }
