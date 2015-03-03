@@ -95,8 +95,6 @@ PlusServerLauncherMainWindow::~PlusServerLauncherMainWindow()
 //-----------------------------------------------------------------------------
 void PlusServerLauncherMainWindow::connectToDevicesByConfigFile(std::string aConfigFile)
 {
-  LOG_INFO("Connect using configuration file: " << aConfigFile);
-
   // Either a connect or disconnect, we always start from a clean slate: delete any previously active servers
   if ( m_CurrentServerInstance != NULL )
   {
@@ -113,11 +111,14 @@ void PlusServerLauncherMainWindow::connectToDevicesByConfigFile(std::string aCon
 
   // Disconnect
   // Empty parameter string means disconnect from device
-  if (STRCASECMP(aConfigFile.c_str(), "") == 0)
+  if ( aConfigFile.empty() )
   {
+    LOG_INFO("Successfully disconnected.");
     m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
     return; 
   }
+
+  LOG_INFO("Connect using configuration file: " << aConfigFile);
 
   // Connect
 
@@ -135,6 +136,7 @@ void PlusServerLauncherMainWindow::connectToDevicesByConfigFile(std::string aCon
   if( m_CurrentServerInstance->state() == QProcess::Running )
   {
     m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
+    LOG_INFO("Server starting...");
     vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
   }
   else
@@ -166,25 +168,27 @@ void PlusServerLauncherMainWindow::stdOutMsgReceived()
   int vertBarPos = 0;
   for( int i = 0; i < 2; i++ )//looking for the third one (start counting from 0)
     vertBarPos = output.find_first_of( '|', vertBarPos + 1 );
-  LOG_INFO(output.substr(vertBarPos+1));
+
+  LOG_INFO_PREFIX(output.substr(vertBarPos+1), "SERVER");
 }
 
 //-----------------------------------------------------------------------------
 void PlusServerLauncherMainWindow::stdErrMsgReceived()
 {
   QByteArray strData = m_CurrentServerInstance->readAllStandardError();
-  // Strip the preceding ERROR text
+  // Strip the preceding ERROR/WARNING text
   std::string output = std::string(strData);
   int vertBarPos = 0;
   for( int i = 0; i < 2; i++ )//looking for the third one (start counting from 0)
     vertBarPos = output.find_first_of( '|', vertBarPos + 1 );
+
   if( output.find("|WARNING|") == 0 )
   {
-    LOG_WARNING(output.substr(vertBarPos+1));
+    LOG_WARNING_PREFIX(output.substr(vertBarPos+1), "SERVER");
   }
   else
   {
-    LOG_ERROR(output.substr(vertBarPos+1));
+    LOG_ERROR_PREFIX(output.substr(vertBarPos+1), "SERVER");
   }
 }
 

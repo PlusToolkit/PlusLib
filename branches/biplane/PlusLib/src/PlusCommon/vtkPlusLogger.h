@@ -129,8 +129,9 @@ public:
     \param msg Text of the log message
     \param fileName Name of the file where the message comes from
     \param lineNumber Line number within the file where the message comes from
+    \param optionalPrefix a prefix to append after the timestamp, but before the logged message
   */
-  void LogMessage(LogLevelType level, const char *msg, const char* fileName, int lineNumber); 
+  void LogMessage(LogLevelType level, const char *msg, const char* fileName, int lineNumber, const char* optionalPrefix = NULL); 
   
   /*! Get the current log level. Messages that has a higher level than the current log level are ignored. */
   int GetLogLevel();  
