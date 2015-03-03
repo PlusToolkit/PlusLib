@@ -178,7 +178,14 @@ void PlusServerLauncherMainWindow::stdErrMsgReceived()
   int vertBarPos = 0;
   for( int i = 0; i < 2; i++ )//looking for the third one (start counting from 0)
     vertBarPos = output.find_first_of( '|', vertBarPos + 1 );
-  LOG_ERROR(output.substr(vertBarPos+1));
+  if( output.find("|WARNING|") == 0 )
+  {
+    LOG_WARNING(output.substr(vertBarPos+1));
+  }
+  else
+  {
+    LOG_ERROR(output.substr(vertBarPos+1));
+  }
 }
 
 //-----------------------------------------------------------------------------
