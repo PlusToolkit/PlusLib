@@ -11,6 +11,7 @@ If testing enabled this program tests Plus server and Plus client. The communica
 happens between two threads. In real life, it happens between two programs.
 */ 
 
+#include "PlusCommon.h"
 #include "PlusConfigure.h"
 #include "vtkDataCollector.h"
 #include "vtkOpenIGTLinkVideoSource.h"
@@ -35,6 +36,36 @@ PlusStatus DisconnectClients( std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSo
 void SignalInterruptHandler(int s);
 static bool stopRequested = false;
 
+namespace
+{
+  bool HandleAsyncStdin()
+  {
+    std::string command;
+#ifndef WIN32
+    pollfd cinfd[1];
+    // Theoretically this should always be 0, but one fileno call isn't going to hurt, and if
+    // we try to run somewhere that stdin isn't fd 0 then it will still just work
+    cinfd[0].fd = fileno(stdin);
+    cinfd[0].events = POLLIN;
+#else
+    HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
+#endif
+
+#ifndef WIN32
+    if (poll(cinfd, 1, 1000))
+#else
+    if (WaitForSingleObject(h, 0) == WAIT_OBJECT_0)
+#endif
+    {
+      getline(cin, command);
+      if( command.compare(PlusCommon::KILL_COMMAND) == 0 )
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+}
 int main( int argc, char** argv )
 {
   // Check command line arguments.
@@ -200,8 +231,13 @@ int main( int argc, char** argv )
       (*it)->ProcessPendingCommands();
       // Need to process messages while waiting because some devices (such as the vtkWin32VideoSource2) require event processing
       vtkAccurateTimer::DelayWithEventProcessing(commandQueuePollIntervalSec);
+
+      // Async processing of stdin to deal with kill command from PlusServerLauncher
+      stopRequested = stopRequested || HandleAsyncStdin();
     }
   }
+    
+  
 
   // *************************** Testing **************************
   if ( !testingConfigFileName.empty() )

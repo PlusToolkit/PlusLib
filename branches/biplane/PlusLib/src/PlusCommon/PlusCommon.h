@@ -149,6 +149,8 @@ namespace PlusCommon
   typedef int VTKScalarPixelType;
   typedef int IGTLScalarPixelType; 
 
+  static const char* KILL_COMMAND = "KILL_REQUESTED";
+
   //----------------------------------------------------------------------------
   /*! Quick and robust string to int conversion */
   template<class T>

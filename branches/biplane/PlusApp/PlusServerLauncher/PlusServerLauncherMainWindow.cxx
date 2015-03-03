@@ -5,6 +5,7 @@
 =========================================================Plus=header=end*/ 
 
 #include "DeviceSetSelectorWidget.h"
+#include "PlusCommon.h"
 #include "PlusServerLauncherMainWindow.h"
 #include "StatusIcon.h"
 #include "vtkDataCollector.h"
@@ -102,13 +103,9 @@ void PlusServerLauncherMainWindow::connectToDevicesByConfigFile(std::string aCon
     disconnect(m_CurrentServerInstance, SIGNAL(readyReadStandardOutput()), this, SLOT(stdOutMsgReceived()));
     disconnect(m_CurrentServerInstance, SIGNAL(readyReadStandardError()), this, SLOT(stdErrMsgReceived()));
     disconnect(m_CurrentServerInstance, SIGNAL(error()), this, SLOT(errorReceived()));
-#ifdef _WIN32
-    struct _PROCESS_INFORMATION *procInfo = m_CurrentServerInstance->pid();
-    DWORD pid = procInfo->dwProcessId;
-    GenerateConsoleCtrlEvent(CTRL_C_EVENT, pid);
-#else
-    m_CurrentServerInstance->terminate();
-#endif
+    std::stringstream ss;
+    ss << PlusCommon::KILL_COMMAND << "\n";
+    m_CurrentServerInstance->write(ss.str().c_str());
     m_CurrentServerInstance->waitForFinished(-1);
     delete m_CurrentServerInstance;
     m_CurrentServerInstance = NULL;
