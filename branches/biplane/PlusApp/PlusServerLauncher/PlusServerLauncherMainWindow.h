@@ -55,6 +55,8 @@ protected slots:
 
   void errorReceived();
 
+  void serverExecutableFinished(int returnCode, QProcess::ExitStatus status);
+
 protected:
   /*! Device set selector widget */
   DeviceSetSelectorWidget* m_DeviceSetSelectorWidget;

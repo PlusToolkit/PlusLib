@@ -100,11 +100,17 @@ void PlusServerLauncherMainWindow::connectToDevicesByConfigFile(std::string aCon
   {
     disconnect(m_CurrentServerInstance, SIGNAL(readyReadStandardOutput()), this, SLOT(stdOutMsgReceived()));
     disconnect(m_CurrentServerInstance, SIGNAL(readyReadStandardError()), this, SLOT(stdErrMsgReceived()));
-    disconnect(m_CurrentServerInstance, SIGNAL(error()), this, SLOT(errorReceived()));
     std::stringstream ss;
     ss << PlusCommon::KILL_COMMAND << "\n";
     m_CurrentServerInstance->write(ss.str().c_str());
+    if( m_CurrentServerInstance->state() == QProcess::Running )
+    {
+      LOG_INFO("Terminate request sent successfully.");
+    }
     m_CurrentServerInstance->waitForFinished(-1);
+    LOG_INFO("Server cleaned up successfully.");
+    disconnect(m_CurrentServerInstance, SIGNAL(error()), this, SLOT(errorReceived()));
+    disconnect(m_CurrentServerInstance, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(serverExecutableFinished(int, QProcess::ExitStatus)));
     delete m_CurrentServerInstance;
     m_CurrentServerInstance = NULL;
   }
@@ -113,7 +119,6 @@ void PlusServerLauncherMainWindow::connectToDevicesByConfigFile(std::string aCon
   // Empty parameter string means disconnect from device
   if ( aConfigFile.empty() )
   {
-    LOG_INFO("Successfully disconnected.");
     m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
     return; 
   }
@@ -130,6 +135,7 @@ void PlusServerLauncherMainWindow::connectToDevicesByConfigFile(std::string aCon
   connect(m_CurrentServerInstance, SIGNAL(readyReadStandardOutput()), this, SLOT(stdOutMsgReceived()));
   connect(m_CurrentServerInstance, SIGNAL(readyReadStandardError()), this, SLOT(stdErrMsgReceived()));
   connect(m_CurrentServerInstance, SIGNAL(error()), this, SLOT(errorReceived()));
+  connect(m_CurrentServerInstance, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(serverExecutableFinished(int, QProcess::ExitStatus)));
   QString arg = QString("--config-file=\"").append(QString(aConfigFile.c_str())).append("\"");
   m_CurrentServerInstance->start(QString(plusServerExecutable.c_str()).append(" ").append(arg).append(" --verbose=3"));
   m_CurrentServerInstance->waitForFinished(500);
@@ -196,4 +202,14 @@ void PlusServerLauncherMainWindow::stdErrMsgReceived()
 void PlusServerLauncherMainWindow::errorReceived()
 {
   m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
+}
+
+//-----------------------------------------------------------------------------
+void PlusServerLauncherMainWindow::serverExecutableFinished(int returnCode, QProcess::ExitStatus status)
+{
+  if( returnCode != 0 )
+  {
+    LOG_ERROR("Server exited abnormally. Return code: " << returnCode);
+    this->connectToDevicesByConfigFile("");
+  }
 }
