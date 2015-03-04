@@ -34,7 +34,12 @@ PlusStatus DisconnectClients( std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSo
 // Forward declare signal handler
 void SignalInterruptHandler(int s);
 static bool stopRequested = false;
+#ifdef _WIN32
+HWND GetConsoleHwnd(void);
+void CheckConsoleWindowCloseRequested(HWND consoleHwnd);
+#endif
 
+//-----------------------------------------------------------------------------
 int main( int argc, char** argv )
 {
   // Check command line arguments.
@@ -118,6 +123,9 @@ int main( int argc, char** argv )
 
   // Set up signal catching
   signal(SIGINT, SignalInterruptHandler);
+#ifdef _WIN32
+  HWND consoleHwnd=GetConsoleHwnd();
+#endif
 
   bool neverStop = (runTimeSec==0.0);
 
@@ -127,6 +135,11 @@ int main( int argc, char** argv )
     && (!stopRequested) )
   {
     server->ProcessPendingCommands();
+#ifdef _WIN32
+    // Check if received message that requested process termination (non-Windows systems always use signals).
+    // Need to do it before processing messages.
+    CheckConsoleWindowCloseRequested(consoleHwnd);
+#endif
     // Need to process messages while waiting because some devices (such as the vtkWin32VideoSource2) require event processing
     vtkAccurateTimer::DelayWithEventProcessing(commandQueuePollIntervalSec);
   }
@@ -262,3 +275,44 @@ void SignalInterruptHandler(int s)
   LOG_INFO("Stop requested...");
   stopRequested = true;
 }
+
+#ifdef _WIN32
+//-----------------------------------------------------------------------------
+// Get the window handle of the console window
+// (needed for capturing WM_CLOSE event on Windows because Qt cannot send SIGINT
+// on Windows)
+// Source: http://support.microsoft.com/kb/124103
+HWND GetConsoleHwnd(void)
+{
+  #define MY_BUFSIZE 1024 // Buffer size for console window titles.
+  HWND hwndFound;         // This is what is returned to the caller.
+  char pszNewWindowTitle[MY_BUFSIZE]; // Contains fabricated WindowTitle.
+  char pszOldWindowTitle[MY_BUFSIZE]; // Contains original WindowTitle.
+  // Fetch current window title.
+  GetConsoleTitle(pszOldWindowTitle, MY_BUFSIZE);
+  // Format a "unique" NewWindowTitle.
+  wsprintf(pszNewWindowTitle,"%d/%d", GetTickCount(), GetCurrentProcessId());
+  // Change current window title.
+  SetConsoleTitle(pszNewWindowTitle);
+  // Ensure window title has been updated.
+  Sleep(40);
+  // Look for NewWindowTitle.
+  hwndFound=FindWindow(NULL, pszNewWindowTitle);
+  // Restore original window title.
+  SetConsoleTitle(pszOldWindowTitle);
+  return(hwndFound);
+}
+
+//-----------------------------------------------------------------------------
+// On Windows Qt cannot send SIGINT signal to indicate that the process should exit (ctrl-c),
+// it can only send WM_CLOSE message to all of its windows. Therefore, we check for WM_CLOSE
+// messages and stop if we receive one.
+void CheckConsoleWindowCloseRequested(HWND consoleHwnd)
+{
+  MSG Msg;
+  if (PeekMessage(&Msg, consoleHwnd, WM_CLOSE, WM_CLOSE, PM_NOREMOVE))
+  {
+    stopRequested = true;
+  }
+}
+#endif
