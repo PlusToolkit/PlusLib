@@ -421,7 +421,7 @@ public:
     Send text message to the device. If a non-NULL pointer is passed as textReceived
     then the device waits for a response and returns it in textReceived.
   */
-  virtual PlusStatus SendText(const std::string& textToSend, std::string* textReceived);
+  virtual PlusStatus SendText(const std::string& textToSend, std::string* textReceived=NULL);
 
 protected:
   static void *vtkDataCaptureThread(vtkMultiThreader::ThreadInfo *data);
