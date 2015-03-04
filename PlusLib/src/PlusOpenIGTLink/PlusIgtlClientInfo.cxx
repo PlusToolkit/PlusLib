@@ -59,6 +59,7 @@ void PlusIgtlClientInfo::ShallowCopy(const PlusIgtlClientInfo& clientInfo)
   this->IgtlMessageTypes = clientInfo.IgtlMessageTypes; 
   this->ImageStreams = clientInfo.ImageStreams; 
   this->TransformNames = clientInfo.TransformNames; 
+  this->StringNames = clientInfo.StringNames; 
 }
 
 //----------------------------------------------------------------------------
@@ -66,19 +67,31 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData( const char* strXmlData 
 {
   if ( strXmlData == NULL )
   {
-    LOG_ERROR("Failed to set ClientInfo - input xml data string is NULL!" ); 
+    LOG_ERROR("Failed to set ClientInfo - input xml data string is invalid" ); 
     return PLUS_FAIL; 
   }
 
-  PlusIgtlClientInfo clientInfo; 
-
   vtkSmartPointer<vtkXMLDataElement> xmldata = vtkSmartPointer<vtkXMLDataElement>::Take( vtkXMLUtilities::ReadElementFromString(strXmlData) );
+  if ( xmldata == NULL )
+  {
+    LOG_ERROR("Failed to set ClientInfo - invalid xml data string: "<<strXmlData); 
+    return PLUS_FAIL; 
+  }
 
+  return SetClientInfoFromXmlData(xmldata);
+}
+
+
+//----------------------------------------------------------------------------
+PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData( vtkXMLDataElement* xmldata )
+{
   if ( xmldata == NULL )
   {
     LOG_ERROR("Failed to set ClientInfo - invalid xml data string!"); 
     return PLUS_FAIL; 
   }
+
+  PlusIgtlClientInfo clientInfo;
 
   // Get message types
   vtkXMLDataElement* messageTypes = xmldata->FindNestedElementWithName("MessageTypes"); 
@@ -157,6 +170,27 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData( const char* strXmlData 
     }
   }
 
+  // Get string names
+  vtkXMLDataElement* stringNames = xmldata->FindNestedElementWithName("StringNames"); 
+  if ( stringNames != NULL )
+  {
+    for ( int i = 0; i < stringNames->GetNumberOfNestedElements(); ++i )
+    {
+      const char* string = stringNames->GetNestedElement(i)->GetName(); 
+      if ( string == NULL || STRCASECMP( string, "String") != 0 )
+      {
+        continue; 
+      }
+      const char* name = stringNames->GetNestedElement(i)->GetAttribute("Name"); 
+      if (name==NULL)
+      {
+        LOG_WARNING("In StringNames child element #"<<i<<" definition is incomplete: required Name attribute is missing");
+        continue;
+      }
+      clientInfo.StringNames.push_back(name); 
+    }
+  }
+
   // Copy over the new client info 
   (*this) = clientInfo; 
 
@@ -200,6 +234,22 @@ void PlusIgtlClientInfo::GetClientInfoInXmlData( std::string& strXmlData )
   }
   xmldata->AddNestedElement( transformNames ); 
 
+  vtkSmartPointer<vtkXMLDataElement> stringNames = vtkSmartPointer<vtkXMLDataElement>::New(); 
+  stringNames->SetName("StringNames"); 
+  for ( unsigned int i = 0; i < StringNames.size(); ++i )
+  {
+    if ( StringNames[i].empty() )
+    {
+      LOG_ERROR("Failed to add string name to client info - string name is empty"); 
+      continue; 
+    }
+    vtkSmartPointer<vtkXMLDataElement> stringElem = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    stringElem->SetName("String");
+    stringElem->SetAttribute("Name", StringNames[i].c_str() ); 
+    stringNames->AddNestedElement(stringElem);
+  }
+  xmldata->AddNestedElement( stringNames ); 
+  
   vtkSmartPointer<vtkXMLDataElement> imageNames = vtkSmartPointer<vtkXMLDataElement>::New(); 
   imageNames->SetName("ImageNames"); 
   for ( unsigned int i = 0; i < ImageStreams.size(); ++i )

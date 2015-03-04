@@ -68,7 +68,8 @@ public:
   \param transformRepository Transform repository used for computing the selected transforms 
   */ 
   PlusStatus PackMessages(const std::vector<std::string>& igtlMessageTypes, std::vector<igtl::MessageBase::Pointer>& igtMessages, TrackedFrame& trackedFrame, 
-    std::vector<PlusTransformName>& transformNames, std::vector<PlusIgtlClientInfo::ImageStream>& imageStreams, bool packValidTransformsOnly, vtkTransformRepository* transformRepository=NULL); 
+    const std::vector<PlusTransformName>& transformNames, const std::vector<PlusIgtlClientInfo::ImageStream>& imageStreams, const std::vector<std::string>& stringNames, 
+    bool packValidTransformsOnly, vtkTransformRepository* transformRepository=NULL); 
 
 protected:
   vtkPlusIgtlMessageFactory();

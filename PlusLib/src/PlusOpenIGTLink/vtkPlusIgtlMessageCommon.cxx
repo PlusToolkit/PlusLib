@@ -654,3 +654,24 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackPositionMessage(igtl::MessageHeader::
   return PLUS_SUCCESS; 
 }
 
+//-------------------------------------------------------------------------------
+// static 
+PlusStatus vtkPlusIgtlMessageCommon::PackStringMessage( igtl::StringMessage::Pointer stringMessage, const char* stringName, const char* stringValue, double timestamp)
+{
+  if ( stringMessage.IsNull() )
+  {
+    LOG_ERROR("Failed to pack string message - input string message is NULL"); ;
+    return PLUS_FAIL; 
+  }
+
+  igtl::TimeStamp::Pointer igtlTime = igtl::TimeStamp::New();
+  igtlTime->SetTime( timestamp );
+
+  stringMessage->SetString( stringValue ); // assume default encoding
+  stringMessage->SetTimeStamp( igtlTime );
+  stringMessage->SetDeviceName( stringName );
+  stringMessage->Pack();
+  
+  return PLUS_SUCCESS; 
+}
+

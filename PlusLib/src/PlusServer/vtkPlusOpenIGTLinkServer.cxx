@@ -121,34 +121,44 @@ PlusStatus vtkPlusOpenIGTLinkServer::StartOpenIGTLinkService()
     this->DataReceiverThreadId = this->Threader->SpawnThread( (vtkThreadFunctionType)&DataReceiverThread, this );
   }
 
-  if ( !this->DefaultIgtlMessageTypes.empty() )
+  if ( !this->DefaultClientInfo.IgtlMessageTypes.empty() )
   {
     std::ostringstream messageTypes;
-    for ( int i = 0; i < this->DefaultIgtlMessageTypes.size(); ++i )
+    for ( int i = 0; i < this->DefaultClientInfo.IgtlMessageTypes.size(); ++i )
     {
-      messageTypes << this->DefaultIgtlMessageTypes[i] << " "; 
+      messageTypes << this->DefaultClientInfo.IgtlMessageTypes[i] << " "; 
     }
     LOG_INFO("Server default message types to send: " << messageTypes.str() ); 
   }
 
-  if ( !this->DefaultTransformNames.empty() )
+  if ( !this->DefaultClientInfo.TransformNames.empty() )
   {
     std::ostringstream transformNames;
-    for ( int i = 0; i < this->DefaultTransformNames.size(); ++i )
+    for ( int i = 0; i < this->DefaultClientInfo.TransformNames.size(); ++i )
     {
       std::string tn; 
-      this->DefaultTransformNames[i].GetTransformName(tn); 
+      this->DefaultClientInfo.TransformNames[i].GetTransformName(tn); 
       transformNames << tn << " "; 
     }
     LOG_INFO("Server default transform names to send: " << transformNames.str() ); 
   }
 
-  if ( !this->DefaultImageStreams.empty() )
+  if ( !this->DefaultClientInfo.StringNames.empty() )
+  {
+    std::ostringstream stringNames;
+    for ( int i = 0; i < this->DefaultClientInfo.StringNames.size(); ++i )
+    {
+      stringNames << this->DefaultClientInfo.StringNames[i] << " "; 
+    }
+    LOG_INFO("Server default string names to send: " << stringNames.str() ); 
+  }
+
+  if ( !this->DefaultClientInfo.ImageStreams.empty() )
   {
     std::ostringstream imageNames;
-    for ( int i = 0; i < this->DefaultImageStreams.size(); ++i )
+    for ( int i = 0; i < this->DefaultClientInfo.ImageStreams.size(); ++i )
     {
-      imageNames << this->DefaultImageStreams[i].Name << " (EmbeddedTransformToFrame: " << this->DefaultImageStreams[i].EmbeddedTransformToFrame << ") "; 
+      imageNames << this->DefaultClientInfo.ImageStreams[i].Name << " (EmbeddedTransformToFrame: " << this->DefaultClientInfo.ImageStreams[i].EmbeddedTransformToFrame << ") "; 
     }
     LOG_INFO("Server default images to send: " << imageNames.str() ); 
   }
@@ -408,7 +418,7 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
       }
     }
 
-    // Send image/tracking data
+    // Send image/tracking/string data
 
     vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
     double startTimeSec = vtkAccurateTimer::GetSystemTime();
@@ -700,28 +710,35 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
     std::vector<igtl::MessageBase::Pointer>::iterator igtlMessageIterator; 
 
     // Set message types 
-    std::vector<std::string> messageTypes = this->DefaultIgtlMessageTypes; 
+    std::vector<std::string> messageTypes = this->DefaultClientInfo.IgtlMessageTypes; 
     if ( !client.IgtlMessageTypes.empty() )
     {
       messageTypes = client.IgtlMessageTypes; 
     }
 
     // Set transform names 
-    std::vector<PlusTransformName> transformNames = this->DefaultTransformNames; 
+    std::vector<PlusTransformName> transformNames = this->DefaultClientInfo.TransformNames; 
     if ( !client.TransformNames.empty() )
     {
       transformNames = client.TransformNames; 
     }
 
     // Set image transform names
-    std::vector<PlusIgtlClientInfo::ImageStream> imageStreams = this->DefaultImageStreams; 
+    std::vector<PlusIgtlClientInfo::ImageStream> imageStreams = this->DefaultClientInfo.ImageStreams; 
     if ( !client.ImageStreams.empty() )
     {
       imageStreams = client.ImageStreams; 
     }
 
+    // Set string names
+    std::vector<std::string> stringNames = this->DefaultClientInfo.StringNames;
+    if ( !client.StringNames.empty() )
+    {
+      stringNames = client.StringNames; 
+    }
+
     vtkSmartPointer<vtkPlusIgtlMessageFactory> igtlMessageFactory = vtkSmartPointer<vtkPlusIgtlMessageFactory>::New(); 
-    if ( igtlMessageFactory->PackMessages( messageTypes, igtlMessages, trackedFrame, transformNames, imageStreams, this->SendValidTransformsOnly, this->TransformRepository ) != PLUS_SUCCESS )
+    if ( igtlMessageFactory->PackMessages( messageTypes, igtlMessages, trackedFrame, transformNames, imageStreams, stringNames, this->SendValidTransformsOnly, this->TransformRepository ) != PLUS_SUCCESS )
     {
       LOG_WARNING("Failed to pack all IGT messages"); 
     }
@@ -863,87 +880,17 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* aConfi
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(SendValidTransformsOnly, plusOpenIGTLinkServerConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(IgtlMessageCrcCheckEnabled, plusOpenIGTLinkServerConfig);
 
+  this->DefaultClientInfo.IgtlMessageTypes.clear();
+  this->DefaultClientInfo.TransformNames.clear();
+  this->DefaultClientInfo.ImageStreams.clear();
+  this->DefaultClientInfo.StringNames.clear();
+
   vtkXMLDataElement* defaultClientInfo = plusOpenIGTLinkServerConfig->FindNestedElementWithName("DefaultClientInfo"); 
   if ( defaultClientInfo != NULL )
   {
-    // Get message types
-    vtkXMLDataElement* messageTypes = defaultClientInfo->FindNestedElementWithName("MessageTypes"); 
-    if ( messageTypes != NULL )
+    if (this->DefaultClientInfo.SetClientInfoFromXmlData(defaultClientInfo)!=PLUS_SUCCESS)
     {
-      for ( int i = 0; i < messageTypes->GetNumberOfNestedElements(); ++i )
-      {
-        const char* name = messageTypes->GetNestedElement(i)->GetName(); 
-        if ( name == NULL || STRCASECMP( name, "Message") != 0 )
-        {
-          continue; 
-        }
-        const char* type = messageTypes->GetNestedElement(i)->GetAttribute("Type"); 
-        if ( type != NULL )
-        {
-          this->DefaultIgtlMessageTypes.push_back(type); 
-        }
-      } 
-    }
-
-    // Get transform names
-    vtkXMLDataElement* transformNames = defaultClientInfo->FindNestedElementWithName("TransformNames"); 
-    if ( transformNames != NULL )
-    {
-      for ( int i = 0; i < transformNames->GetNumberOfNestedElements(); ++i )
-      {
-        const char* transform = transformNames->GetNestedElement(i)->GetName(); 
-        if ( transform == NULL || STRCASECMP( transform, "Transform") != 0 )
-        {
-          continue; 
-        }
-        const char* name = transformNames->GetNestedElement(i)->GetAttribute("Name"); 
-        if (name==NULL)
-        {
-          LOG_WARNING("In TransformNames child Transform #"<<i<<" definition is incomplete: required Name attribute is missing");
-          continue;
-        }
-        PlusTransformName tName; 
-        if ( tName.SetTransformName(name) != PLUS_SUCCESS )
-        {
-          LOG_WARNING( "Invalid transform name: " << name ); 
-          continue; 
-        }
-        this->DefaultTransformNames.push_back(tName);
-      } // transformNames
-    }
-
-    // Get image names
-    vtkXMLDataElement* imageNames = defaultClientInfo->FindNestedElementWithName( "ImageNames" );
-    if ( imageNames != NULL )
-    {
-      for ( int i = 0; i < imageNames->GetNumberOfNestedElements(); ++ i )
-      {
-        const char* image = imageNames->GetNestedElement( i )->GetName();
-        if ( image == NULL  ||  STRCASECMP( image, "Image" ) != 0 )
-        {
-          continue;
-        }
-
-        const char* name = imageNames->GetNestedElement( i )->GetAttribute( "Name" );
-        if ( name == NULL )
-        {
-          LOG_WARNING("Name attribute of ImageNames/Image element is missing. This element will be ignored.");
-          continue;
-        }
-
-        const char* embeddedTransformToFrame = imageNames->GetNestedElement( i )->GetAttribute( "EmbeddedTransformToFrame" );
-        if ( embeddedTransformToFrame == NULL )
-        {
-          LOG_WARNING("EmbeddedTransformToFrame attribute of ImageNames/Image element is missing. This element will be ignored.");
-          continue;
-        }
-
-        PlusIgtlClientInfo::ImageStream imageStream; 
-        imageStream.Name = name;
-        imageStream.EmbeddedTransformToFrame = embeddedTransformToFrame; 
-        this->DefaultImageStreams.push_back(imageStream);
-
-      }
+      return PLUS_FAIL;
     }
   }
 

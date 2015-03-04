@@ -21,6 +21,7 @@ See License.txt for details.
 #include "igtlPositionMessage.h"
 #include "igtlPlusTrackedFrameMessage.h"
 #include "igtlPlusUsMessage.h"
+#include "igtlStringMessage.h"
 
 class vtkXMLDataElement; 
 class TrackedFrame; 
@@ -81,6 +82,10 @@ public:
   /*! Unpack position message */ 
   static PlusStatus UnpackPositionMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket, 
     float position[3], std::string& positionName, double& timestamp, int crccheck );
+
+  /*! Pack string message */ 
+  static PlusStatus PackStringMessage( igtl::StringMessage::Pointer stringMessage, const char* stringName, const char* stringValue, double timestamp);
+
 
   /*! Generate igtl::Matrix4x4 with the selected transform name from the transform repository */ 
   static PlusStatus GetIgtlMatrix(igtl::Matrix4x4& igtlMatrix, vtkTransformRepository* transformRepository, PlusTransformName& transformName); 
