@@ -371,18 +371,21 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
 		this->CurrentMotorAngle = - this->StartMotorAngle + (frameIndexOneVolume - 1) * this->MotorRotationPerStepDeg * (double)this->StepPerFrame;
   }
 
-	std::ostringstream frameNumber;
+  std::ostringstream frameNumber;
   frameNumber << frameIndexOneVolume;
   std::ostringstream volumeIndex;
   volumeIndex << this->VolumeIndex;
+  std::ostringstream motorAngle;
+  volumeIndex << this->CurrentMotorAngle;
 
-  TrackedFrame::FieldMapType customFields; 
+  TrackedFrame::FieldMapType customFields;
   customFields["FrameNumber"] = frameNumber.str(); 
   customFields["MotorToMotorRotatedTransform"] = this->GetMotorToMotorRotatedTransform( this->CurrentMotorAngle );
   customFields["MotorToMotorRotatedTransformStatus"] = "OK";
-
-	customFields["DummyToIndexTransform"] =  volumeIndex.str() + " " + frameNumber.str() + " 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
-  customFields["DummyToIndexTransformStatus"] = "OK";
+  customFields["DummyToIndexTransform"] =  volumeIndex.str() + " " + frameNumber.str() + " 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"; // kept only for backward compatibility, replaced by VolumeIndex string field
+  customFields["DummyToIndexTransformStatus"] = "OK"; // kept only for backward compatibility, replaced by VolumeIndex string field
+  customFields["VolumeIndex"] =  volumeIndex.str();
+  customFields["MotorAngleDeg"] = motorAngle.str();
 
   PlusStatus status = aSource->GetBuffer()->AddItem(deviceDataPtr, aSource->GetPortImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, numberOfBytesToSkip, id, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields); 
 

@@ -101,6 +101,11 @@
       <ImageNames>
         <Image Name="Image" EmbeddedTransformToFrame="Ras" />
       </ImageNames>
+      <StringNames>
+        <String Name="FrameNumber" />
+        <String Name="VolumeIndex" />
+        <String Name="MotorAngleDeg" />
+      </StringNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>
 

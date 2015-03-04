@@ -47,7 +47,10 @@ public:
   }; 
 
   /*! Deserialize client info data from string xml data */ 
-  PlusStatus SetClientInfoFromXmlData( const char* strXmlData ); 
+  PlusStatus SetClientInfoFromXmlData( const char* strXmlData );
+
+  /*! Deserialize client info data from xml data */ 
+  PlusStatus SetClientInfoFromXmlData( vtkXMLDataElement* xmldata );
   
   /*! Serialize client info data to xml data and return in string */ 
   void GetClientInfoInXmlData( std::string& strXmlData ); 
@@ -63,6 +66,9 @@ public:
 
   /*! Transform names to send with igt transform, position message */ 
   std::vector<PlusTransformName> TransformNames;
+
+  /*! String field names to send with igt STRING message */ 
+  std::vector< std::string > StringNames;
 
   /*! Transform names to send with igt image message */ 
   std::vector<ImageStream> ImageStreams; 
