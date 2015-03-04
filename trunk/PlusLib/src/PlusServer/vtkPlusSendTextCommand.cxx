@@ -18,6 +18,7 @@ vtkPlusSendTextCommand::vtkPlusSendTextCommand()
 : DeviceId(NULL)
 , Text(NULL)
 , ResponseText(NULL)
+, ResponseExpected(true)
 {
   // It handles only one command, set its name by default
   this->SetName(SEND_TEXT_CMD);
