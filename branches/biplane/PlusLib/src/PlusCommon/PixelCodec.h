@@ -47,7 +47,8 @@ public:
   {
     PixelEncoding_ERROR,
     PixelEncoding_YUY2,
-    PixelEncoding_BMP,
+    PixelEncoding_RGB24,
+    PixelEncoding_BGR24,
     PixelEncoding_MJPG
   };
 
@@ -69,7 +70,8 @@ public:
   {
     switch (inputCompression)
     {  
-    case PixelEncoding_BMP: return true;
+    case PixelEncoding_RGB24: return true;
+    case PixelEncoding_BGR24: return true;
     case PixelEncoding_YUY2: return true;
     case PixelEncoding_MJPG: return true;
     default:
@@ -100,8 +102,11 @@ public:
   {    
     switch(inputCompression)
     {
-    case PixelEncoding_BMP:
-      return "BMP";
+    case PixelEncoding_RGB24:
+      return "RGB24";
+      break;
+    case PixelEncoding_BGR24:
+      return "BGR24";
       break;
     case PixelEncoding_YUY2:
       return "YUY2";
@@ -143,7 +148,8 @@ public:
   {
     switch (inputCompression)
     {
-    case PixelEncoding_BMP:
+    case PixelEncoding_RGB24:
+    case PixelEncoding_BGR24:
       // decode the grabbed image to the requested output image type
       Rgb24ToGray(width, height, s, d);
       break;
@@ -152,7 +158,7 @@ public:
       Yuv422pToGray(width, height, s, d);
       break;
     case PixelEncoding_MJPG:
-      // TODO
+      LOG_ERROR("MJPG to grayscale conversion is not yet supported");
       break;
     default:
       LOG_ERROR("Unknown compression type: "<<inputCompression);
@@ -166,22 +172,53 @@ public:
   {
     switch (inputCompression)
     {
-    case PixelEncoding_BMP:
-      // Nothing to do, copy out
-      memcpy(d, s, width*height*3);
-      return PLUS_SUCCESS;
+    case PixelEncoding_RGB24:
+      if (outputOrdering==ComponentOrder_RGB)
+      {
+        // Nothing to do, copy out
+        memcpy(d, s, width*height*3);
+      }
+      else
+      {
+        RgbBgrSwap(width, height, s, d);
+      }
+      break;
+    case PixelEncoding_BGR24:
+      if (outputOrdering==ComponentOrder_BGR)
+      {
+        // Nothing to do, copy out
+        memcpy(d, s, width*height*3);
+      }
+      else
+      {
+        RgbBgrSwap(width, height, s, d);
+      }
       break;
     case PixelEncoding_YUY2:
       // decode the grabbed image to the requested output image type
       return Yuv422pToBmp24(outputOrdering, width, height, s, d);
       break;
     case PixelEncoding_MJPG:
+      return MjpgToRgb24(outputOrdering, width, height, s, d);
       break;
     default:
       LOG_ERROR("Unknown compression type: " << inputCompression);
       return PLUS_FAIL;
     }
     return PLUS_SUCCESS;
+  }
+
+ //----------------------------------------------------------------------------
+  static inline void RgbBgrSwap(int width, int height, unsigned char *s,unsigned char *d)
+  {
+    int totalLen=width*height;
+    for (int i=0; i<totalLen; i++)
+    {
+      *(d++)=s[2];
+      *(d++)=s[1];
+      *(d++)=s[0];
+      s+=3;
+    }
   }
 
   //----------------------------------------------------------------------------
@@ -249,6 +286,13 @@ public:
   }
 
   //----------------------------------------------------------------------------
+  static PlusStatus MjpgToRgb24(ComponentOrdering outputOrdering, int width, int height, unsigned char *s,unsigned char *d)
+  {
+    LOG_ERROR("MJPEG is not supported yet");
+    return PLUS_FAIL;
+  }
+
+  //----------------------------------------------------------------------------
   /*!
   YUY2 conversion to RGB24.
   YUY2 coding is typically used for webcams
@@ -256,7 +300,6 @@ public:
   */
   static PlusStatus Yuv422pToBmp24(ComponentOrdering outputOrdering, int width, int height, unsigned char *s,unsigned char *d)
   {
-    int i;
     unsigned char *p_dest;
     unsigned char y1, u, y2, v;
     int Y1, Y2, U, V;
@@ -268,38 +311,77 @@ public:
     unsigned long srcIndex = 0;
     unsigned long dstIndex = 0;
 
-    for(i = 0 ; i < size ; i++)
+    if (outputOrdering == ComponentOrder_BGR)
     {
-      y1 = s[srcIndex];
-      u = s[srcIndex+ 1];
-      y2 = s[srcIndex+ 2];
-      v = s[srcIndex+ 3];
+      for(int i = 0 ; i < size ; i++)
+      {
+        y1 = s[srcIndex];
+        u = s[srcIndex+ 1];
+        y2 = s[srcIndex+ 2];
+        v = s[srcIndex+ 3];
 
-      Y1 = ICCIRY(y1);
-      U = ICCIRUV(u - 128);
-      Y2 = ICCIRY(y2);
-      V = ICCIRUV(v - 128);
+        Y1 = ICCIRY(y1);
+        U = ICCIRUV(u - 128);
+        Y2 = ICCIRY(y2);
+        V = ICCIRUV(v - 128);
 
-      r = CLIP(GET_R_FROM_YUV(Y1, U, V));
-      g = CLIP(GET_G_FROM_YUV(Y1, U, V));
-      b = CLIP(GET_B_FROM_YUV(Y1, U, V));
+        r = CLIP(GET_R_FROM_YUV(Y1, U, V));
+        g = CLIP(GET_G_FROM_YUV(Y1, U, V));
+        b = CLIP(GET_B_FROM_YUV(Y1, U, V));
 
-      p_dest[dstIndex] = (outputOrdering == ComponentOrder_BGR ? b : r);
-      p_dest[dstIndex + 1] = g;
-      p_dest[dstIndex + 2] = (outputOrdering == ComponentOrder_BGR ? r : b);
+        p_dest[dstIndex] = b;
+        p_dest[dstIndex + 1] = g;
+        p_dest[dstIndex + 2] = r;
 
-      dstIndex += 3;
+        dstIndex += 3;
 
-      r = CLIP(GET_R_FROM_YUV(Y2, U, V));
-      g = CLIP(GET_G_FROM_YUV(Y2, U, V));
-      b = CLIP(GET_B_FROM_YUV(Y2, U, V));
+        r = CLIP(GET_R_FROM_YUV(Y2, U, V));
+        g = CLIP(GET_G_FROM_YUV(Y2, U, V));
+        b = CLIP(GET_B_FROM_YUV(Y2, U, V));
 
-      p_dest[dstIndex] = (outputOrdering == ComponentOrder_BGR ? b : r);
-      p_dest[dstIndex + 1] = g;
-      p_dest[dstIndex + 2] = (outputOrdering == ComponentOrder_BGR ? r : b);
+        p_dest[dstIndex] = b;
+        p_dest[dstIndex + 1] = g;
+        p_dest[dstIndex + 2] = r;
 
-      dstIndex += 3;
-      srcIndex += 4;
+        dstIndex += 3;
+        srcIndex += 4;
+      }
+    }
+    else
+    {
+      for(int i = 0 ; i < size ; i++)
+      {
+        y1 = s[srcIndex];
+        u = s[srcIndex+ 1];
+        y2 = s[srcIndex+ 2];
+        v = s[srcIndex+ 3];
+
+        Y1 = ICCIRY(y1);
+        U = ICCIRUV(u - 128);
+        Y2 = ICCIRY(y2);
+        V = ICCIRUV(v - 128);
+
+        r = CLIP(GET_R_FROM_YUV(Y1, U, V));
+        g = CLIP(GET_G_FROM_YUV(Y1, U, V));
+        b = CLIP(GET_B_FROM_YUV(Y1, U, V));
+
+        p_dest[dstIndex] = r;
+        p_dest[dstIndex + 1] = g;
+        p_dest[dstIndex + 2] = b;
+
+        dstIndex += 3;
+
+        r = CLIP(GET_R_FROM_YUV(Y2, U, V));
+        g = CLIP(GET_G_FROM_YUV(Y2, U, V));
+        b = CLIP(GET_B_FROM_YUV(Y2, U, V));
+
+        p_dest[dstIndex] = r;
+        p_dest[dstIndex + 1] = g;
+        p_dest[dstIndex + 2] = b;
+
+        dstIndex += 3;
+        srcIndex += 4;
+      }
     }
 
     return PLUS_SUCCESS;

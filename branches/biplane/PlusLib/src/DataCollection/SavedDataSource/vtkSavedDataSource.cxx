@@ -108,7 +108,15 @@ PlusStatus vtkSavedDataSource::InternalUpdateOriginalTimestamp(BufferItemUidType
     else
     {
       currentLoopIndex=floor(elapsedTime/loopTime);
-      currentFrameTime_Local = this->LoopStartTime_Local + elapsedTime - loopTime*currentLoopIndex;    
+      currentFrameTime_Local = this->LoopStartTime_Local + elapsedTime - loopTime*currentLoopIndex;
+      double latestTimestamp_Local=0;
+      GetLocalBuffer()->GetLatestTimeStamp(latestTimestamp_Local);
+      if (currentFrameTime_Local > latestTimestamp_Local)
+      {
+        // hold the last frame after the end of the buffer
+        // (one frame period was added at the end of the buffer for displaying the last frame)
+        currentFrameTime_Local = latestTimestamp_Local;
+      }
     }
 
     // Get the uid of the frame that has been most recently acquired

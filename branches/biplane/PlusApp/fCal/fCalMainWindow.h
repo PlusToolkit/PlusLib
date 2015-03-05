@@ -9,7 +9,6 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "ui_fCalMainWindow.h"
-#include "vtkPlusDeviceTypes.h"
 #include <QtGui/QMainWindow>
 
 class AbstractToolbox;

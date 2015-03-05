@@ -36,7 +36,10 @@ SET (DataCollection_SRCS
   vtkPlusDevice.cxx
   vtkPlusChannel.cxx
   vtkPlusDeviceFactory.cxx
-  vtkPlusDataSource.cxx 
+  vtkPlusDataSource.cxx
+  vtkTimestampedCircularBuffer.cxx
+  StreamBufferItem.cxx
+  vtkGenericSerialDevice.cxx
   FakeTracking/vtkFakeTracker.cxx   
   SavedDataSource/vtkSavedDataSource.cxx 
   VirtualDevices/vtkVirtualMixer.cxx
@@ -57,10 +60,12 @@ if (WIN32)
   SET (DataCollection_HDRS
     vtkDataCollector.h 
     vtkPlusDevice.h
-    vtkPlusDeviceTypes.h 
     vtkPlusChannel.h
     vtkPlusDeviceFactory.h
     vtkPlusDataSource.h
+    vtkTimestampedCircularBuffer.h 
+    StreamBufferItem.h
+    vtkGenericSerialDevice.h
     FakeTracking/vtkFakeTracker.h
     SavedDataSource/vtkSavedDataSource.h 
     VirtualDevices/vtkVirtualMixer.h

@@ -3,14 +3,14 @@
 
 Temporal calibration algorithms estimate time offset between data streams acquired by different devices.
 
-For example, imaging data and position tracking data is typically acquired by different hardware devices, therefore the time delay
-between data acquisition and reception time in Plus may be different. This time difference can be up to
-300-400ms (depending on the hardware devices, data acquisition settings, computer hardware, connection type, network or CPU load, ...).
+Time difference between a hardware device acquires data and Plus receives the data is slightly different in each device.
+This time difference can be up to a few hundred milliseconds (depending on the hardware devices, data acquisition settings,
+computer hardware, connection type, network or CPU load, ...).
 
 Hardware devices often do not provide an accurate timestamp for the acquisition of each frame, and even if they do,
-the time reference (clock) of the various hardware devices are typically not synchronized. Therefore, Plus records the timestamp
-when it receives the data, applies timestamp filtering to reduce the effect of varying transmission delay, and applies
-a device-specific time offset value.
+the time reference (clock) of the various hardware devices are typically not synchronized. To compensate for these inaccuracies
+and temporally synchronize data streams, Plus allows estimation and compensation of fixed time delays and can provide timestamp jitter
+filtering.
 
 # Time offset estimation
 
@@ -22,12 +22,12 @@ under these conditions. When an image stream is used the data assumed to be coll
 Furthermore, it is assumed that the probe is undergoing periodic motion in the direction perpendicular to the
 plane's face (e.g., moving the probe in a repeating up-and-down fashion while imaging the bottom of a water bath).   
 The first step of the algorithm is the computation of a normalized position signal from each data stream.
-
+ 
 Time offset can be computed between two devices at a time (using either tracking of imaging data). If there are more
 devices then each device has to be included in at least one temporal calibration.
 
 Notes:
-- The time offset is then determined by computing the time offset that leads to the highest correlation between the two signals.
+- The time offset is determined by computing the time offset that leads to the highest correlation between the two signals.
   For the correlation computation the moving signal is linearly interpolated at the time positions
   where the fixed signal is known. As the acquisition rate of imaging data is typically lower than the acquisition rate
   of tracking data, it is preferable to use video as fixed signal and tracker as moving signal.

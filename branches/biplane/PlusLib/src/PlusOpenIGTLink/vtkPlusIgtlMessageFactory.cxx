@@ -40,6 +40,7 @@ vtkPlusIgtlMessageFactory::vtkPlusIgtlMessageFactory()
   this->AddMessageType("TRACKEDFRAME", (PointerToMessageBaseNew)&igtl::PlusTrackedFrameMessage::New); 
   this->AddMessageType("USMESSAGE", (PointerToMessageBaseNew)&igtl::PlusUsMessage::New); 
   this->AddMessageType("STATUS", (PointerToMessageBaseNew)&igtl::StatusMessage::New); 
+  this->AddMessageType("STRING", (PointerToMessageBaseNew)&igtl::StringMessage::New); 
 }
 
 //----------------------------------------------------------------------------
@@ -125,7 +126,8 @@ PlusStatus vtkPlusIgtlMessageFactory::CreateInstance(const char* aIgtlMessageTyp
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const std::vector<std::string>& igtlMessageTypes, std::vector<igtl::MessageBase::Pointer>& igtlMessages, TrackedFrame& trackedFrame, 
-    std::vector<PlusTransformName>& transformNames, std::vector<PlusIgtlClientInfo::ImageStream>& imageStreams, bool packValidTransformsOnly, vtkTransformRepository* transformRepository/*=NULL*/)
+    const std::vector<PlusTransformName>& transformNames, const std::vector<PlusIgtlClientInfo::ImageStream>& imageStreams, const std::vector<std::string>& stringNames,
+    bool packValidTransformsOnly, vtkTransformRepository* transformRepository/*=NULL*/)
 {
   int numberOfErrors = 0; 
   igtlMessages.clear(); 
@@ -149,7 +151,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const std::vector<std::string
     // Image message 
     if ( STRCASECMP(messageType.c_str(), "IMAGE") == 0 )
     {
-      for ( std::vector<PlusIgtlClientInfo::ImageStream>::iterator imageStreamIterator = imageStreams.begin(); imageStreamIterator != imageStreams.end(); ++imageStreamIterator)
+      for ( std::vector<PlusIgtlClientInfo::ImageStream>::const_iterator imageStreamIterator = imageStreams.begin(); imageStreamIterator != imageStreams.end(); ++imageStreamIterator)
       {
         PlusIgtlClientInfo::ImageStream imageStream = (*imageStreamIterator);
         
@@ -180,7 +182,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const std::vector<std::string
     // Transform message 
     else if (STRCASECMP(messageType.c_str(), "TRANSFORM") == 0 )
     {
-      for ( std::vector<PlusTransformName>::iterator transformNameIterator = transformNames.begin(); transformNameIterator != transformNames.end(); ++transformNameIterator)
+      for ( std::vector<PlusTransformName>::const_iterator transformNameIterator = transformNames.begin(); transformNameIterator != transformNames.end(); ++transformNameIterator)
       {
         PlusTransformName transformName = (*transformNameIterator);
         bool isValid = false;
@@ -204,7 +206,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const std::vector<std::string
     // Position message 
     else if ( STRCASECMP(messageType.c_str(), "POSITION") == 0 )
     {
-      for ( std::vector<PlusTransformName>::iterator transformNameIterator = transformNames.begin(); transformNameIterator != transformNames.end(); ++transformNameIterator)
+      for ( std::vector<PlusTransformName>::const_iterator transformNameIterator = transformNames.begin(); transformNameIterator != transformNames.end(); ++transformNameIterator)
       {
         PlusTransformName transformName = (*transformNameIterator);
         igtl::Matrix4x4 igtlMatrix; 
@@ -239,6 +241,24 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const std::vector<std::string
         continue;
       }
       igtlMessages.push_back(igtlMessage); 
+    }
+    // String message 
+    else if (STRCASECMP(messageType.c_str(), "STRING") == 0 )
+    {
+      for ( std::vector< std::string >::const_iterator stringNameIterator = stringNames.begin(); stringNameIterator != stringNames.end(); ++stringNameIterator)
+      {
+        const char* stringName = stringNameIterator->c_str();
+        const char* stringValue = trackedFrame.GetCustomFrameField(stringName);
+        if (stringValue==NULL)
+        {
+          // no value is available, do not send anything
+          continue;
+        }
+        igtl::StringMessage::Pointer stringMessage = igtl::StringMessage::New(); 
+        stringMessage->Copy( dynamic_cast<igtl::StringMessage*>(igtlMessage.GetPointer()) );
+        vtkPlusIgtlMessageCommon::PackStringMessage( stringMessage, stringName, stringValue, trackedFrame.GetTimestamp() );
+        igtlMessages.push_back( dynamic_cast<igtl::MessageBase*>(stringMessage.GetPointer()) ); 
+      }
     }
     else
     {

@@ -8,7 +8,7 @@ See License.txt for details.
 #define __vtk3dConnexionTracker_h
 
 #include "vtkDataCollectionExport.h"
-
+#include "vtkRecursiveCriticalSection.h"
 #include "vtkPlusDevice.h"
 
 class vtkPlusBuffer;

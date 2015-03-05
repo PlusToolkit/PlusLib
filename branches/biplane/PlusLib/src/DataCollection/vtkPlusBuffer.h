@@ -17,9 +17,10 @@ See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
 #include "PlusConfigure.h"
 #include "vtkDataCollectionExport.h"
 
+#include "StreamBufferItem.h"
 #include "TrackedFrame.h"
 #include "vtkObject.h"
-#include "vtkPlusDeviceTypes.h"
+#include "vtkTimestampedCircularBuffer.h"
 
 class vtkPlusDevice;
 enum ToolStatus;
@@ -131,14 +132,17 @@ public:
   /*! Get oldest timestamp in the buffer */
   virtual ItemStatus GetOldestTimeStamp( double& oldestTimestamp );  
 
-  /*! Get video buffer item timestamp */
+  /*! Get buffer item timestamp */
   virtual ItemStatus GetTimeStamp( BufferItemUidType uid, double& timestamp); 
+
+  /*! Returns true if the latest item contains valid video data */
+  virtual bool GetLatestItemHasValidVideoData();
+
+  /*! Returns true if the latest item contains valid transform data */
+  virtual bool GetLatestItemHasValidTransformData();
 
   /*! Get the index assigned by the data acquisition system (usually a counter) from the buffer by frame UID. */
   virtual ItemStatus GetIndex(const BufferItemUidType uid, unsigned long &index);
-
-  /*! Get frame UID from buffer index */
-  virtual ItemStatus GetItemUidFromBufferIndex(const int bufferIndex, BufferItemUidType &uid );  
 
   /*!
     Given a timestamp, compute the nearest buffer index 
@@ -299,7 +303,7 @@ protected:
   /*! Image orientation (MF, MN, ...) */
   US_IMAGE_ORIENTATION ImageOrientation; 
 
-  typedef vtkTimestampedCircularBuffer<StreamBufferItem> StreamItemCircularBuffer;
+  typedef vtkTimestampedCircularBuffer StreamItemCircularBuffer;
   /*! Timestamped circular buffer that stores the last N frames */
   StreamItemCircularBuffer* StreamBuffer; 
 

@@ -165,6 +165,41 @@ PlusStatus vtkTrackedFrameList::AddTrackedFrame(TrackedFrame *trackedFrame, Inva
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkTrackedFrameList::TakeTrackedFrame(TrackedFrame *trackedFrame, InvalidFrameAction action /*=ADD_INVALID_FRAME_AND_REPORT_ERROR*/ )
+{
+  bool isFrameValid = true; 
+  if ( action != ADD_INVALID_FRAME )
+  {
+    isFrameValid = this->ValidateData(trackedFrame); 
+  }
+  if ( !isFrameValid )
+  {
+    switch(action)
+    {
+    case ADD_INVALID_FRAME_AND_REPORT_ERROR: 
+      LOG_ERROR("Validation failed on frame, the frame is added to the list anyway");
+      break; 
+    case ADD_INVALID_FRAME: 
+      LOG_DEBUG("Validation failed on frame, the frame is added to the list anyway");
+      break;
+    case SKIP_INVALID_FRAME_AND_REPORT_ERROR: 
+      LOG_ERROR("Validation failed on frame, the frame is ignored");
+      delete trackedFrame;
+      return PLUS_FAIL;
+    case SKIP_INVALID_FRAME: 
+      LOG_DEBUG("Validation failed on frame, the frame is ignored");
+      delete trackedFrame;
+      return PLUS_SUCCESS; 
+    }
+  }
+
+  // Make a copy and add frame to the list 
+  this->TrackedFrameList.push_back(trackedFrame); 
+  return PLUS_SUCCESS; 
+}
+
+
+//----------------------------------------------------------------------------
 bool vtkTrackedFrameList::ValidateData(TrackedFrame* trackedFrame )
 {
   if ( this->ValidationRequirements == 0 )

@@ -149,10 +149,10 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
       }
     }
   }
+  
   if( !outputChannelFound )
   {
-    LOG_ERROR("No output channels defined. Unable to locate any for data collection.");
-    return PLUS_FAIL;
+    LOG_WARNING("No output channels defined. Unable to locate any for data collection.");
   }
 
   // Connect any and all input streams to their corresponding output streams
@@ -493,14 +493,14 @@ PlusStatus vtkDataCollector::GetTrackingData(vtkPlusChannel* aRequestedChannel, 
     }
     aTimestampFrom = itemTimestamp;
     // Get tracked frame from buffer
-    TrackedFrame trackedFrame; 
-    if ( aRequestedChannel->GetTrackedFrame(itemTimestamp, trackedFrame, false /* get tracking data only */ ) != PLUS_SUCCESS )
+    TrackedFrame* trackedFrame = new TrackedFrame;
+    if ( aRequestedChannel->GetTrackedFrame(itemTimestamp, *trackedFrame, false /* get tracking data only */ ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to get tracking data by time: " << std::fixed << itemTimestamp ); 
       status=PLUS_FAIL;
     }
     // Add tracked frame to the list 
-    if ( aTrackedFrameList->AddTrackedFrame(&trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
+    if ( aTrackedFrameList->TakeTrackedFrame(trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to add tracking data to the list!" ); 
       status=PLUS_FAIL; 
@@ -547,29 +547,29 @@ PlusStatus vtkDataCollector::GetVideoData(vtkPlusChannel* aRequestedChannel, dou
     }
     aTimestampFrom=itemTimestamp;
     // Get tracked frame from buffer
-    TrackedFrame trackedFrame; 
+    TrackedFrame* trackedFrame = new TrackedFrame;
     StreamBufferItem currentStreamBufferItem; 
     if ( aSource->GetStreamBufferItem(itemUid, &currentStreamBufferItem) != ITEM_OK )
     {
-      LOG_ERROR("Couldn't get video buffer item by frame UID: " << itemUid); 
+      LOG_ERROR("Couldn't get video buffer item by frame UID: " << itemUid);
+      delete trackedFrame;
       return PLUS_FAIL; 
     }
 
     // Copy frame 
-    PlusVideoFrame frame = currentStreamBufferItem.GetFrame(); 
-    trackedFrame.SetImageData(frame);
-    trackedFrame.SetTimestamp(itemTimestamp);
+    trackedFrame->SetImageData(currentStreamBufferItem.GetFrame());
+    trackedFrame->SetTimestamp(itemTimestamp);
 
     // Copy all custom fields
     StreamBufferItem::FieldMapType fieldMap = currentStreamBufferItem.GetCustomFrameFieldMap();
     StreamBufferItem::FieldMapType::iterator fieldIterator;
     for (fieldIterator = fieldMap.begin(); fieldIterator != fieldMap.end(); fieldIterator++)
     {
-      trackedFrame.SetCustomFrameField((*fieldIterator).first, (*fieldIterator).second);
+      trackedFrame->SetCustomFrameField((*fieldIterator).first, (*fieldIterator).second);
     }
 
     // Add tracked frame to the list 
-    if ( aTrackedFrameList->AddTrackedFrame(&trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
+    if ( aTrackedFrameList->TakeTrackedFrame(trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to add video data to the list!" ); 
       status=PLUS_FAIL; 

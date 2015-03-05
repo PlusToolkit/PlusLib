@@ -12,8 +12,7 @@ See License.txt for details.
 #include "PlusCommon.h"
 #include "itkImage.h"
 #include "vtkImageExport.h"
-
-class vtkImageData;
+#include "vtkImageData.h"
 
 /*!
 \enum US_IMAGE_ORIENTATION
@@ -270,7 +269,16 @@ public:
   /*! Return true if the image data is valid (e.g. not NULL) */
   bool IsImageValid() const
   {
-    return this->Image != NULL;
+    if (this->Image==NULL)
+    {
+      return false;
+    }
+    const int* extent = this->Image->GetExtent();
+    if (extent[0]>extent[1] || extent[2]>extent[3] || extent[4]>extent[5])
+    {
+      return false;
+    }
+    return true;
   }
 
   /*! Fill the actual image data with black pixels (0) */

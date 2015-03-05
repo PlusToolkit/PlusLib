@@ -100,9 +100,7 @@ void PlusServerLauncherMainWindow::connectToDevicesByConfigFile(std::string aCon
   {
     disconnect(m_CurrentServerInstance, SIGNAL(readyReadStandardOutput()), this, SLOT(stdOutMsgReceived()));
     disconnect(m_CurrentServerInstance, SIGNAL(readyReadStandardError()), this, SLOT(stdErrMsgReceived()));
-    std::stringstream ss;
-    ss << PlusCommon::KILL_COMMAND << "\n";
-    m_CurrentServerInstance->write(ss.str().c_str());
+    m_CurrentServerInstance->terminate();
     if( m_CurrentServerInstance->state() == QProcess::Running )
     {
       LOG_INFO("Terminate request sent successfully.");
@@ -119,6 +117,7 @@ void PlusServerLauncherMainWindow::connectToDevicesByConfigFile(std::string aCon
   // Empty parameter string means disconnect from device
   if ( aConfigFile.empty() )
   {
+    LOG_INFO("Disconnect request successful.");
     m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
     return; 
   }

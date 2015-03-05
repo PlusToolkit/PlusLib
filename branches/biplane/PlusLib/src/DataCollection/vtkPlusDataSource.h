@@ -110,6 +110,12 @@ public:
   virtual BufferItemUidType GetLatestItemUidInBuffer();
   virtual ItemStatus GetItemUidFromTime(double time, BufferItemUidType& uid);
 
+  /*! Returns true if the latest item contains valid video data */
+  virtual bool GetLatestItemHasValidVideoData();
+
+  /*! Returns true if the latest item contains valid transform data */
+  virtual bool GetLatestItemHasValidTransformData();
+
   /*! Get a frame with the specified frame uid from the buffer */
   virtual ItemStatus GetStreamBufferItem(BufferItemUidType uid, StreamBufferItem* bufferItem);
   /*! Get the most recent frame from the buffer */

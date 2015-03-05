@@ -157,6 +157,9 @@ PlusServerRemoteControl.exe --command=GET_EXAM_DATA --device=StealthLinkDevice -
   - \xmlAtt volumeEmbeddedTransformToFrame: Specify in which coordinate system the volume will be represented. Example: Ras, Reference, Tracker, or any other coordinate system defined in PLUS (The default value is Ras)
   - \xmlAtt dicomDirectory: The directory where the dicom images will be stored. (The default value is the same as PLUS output directory)
   - \xmlAtt keepReceivedDicomFiles: StealthLink sends the volume as dicom images. Leave this if you want to keep the dicom files in your computer's directory. (The default value is false, as in the files will be deleted after volume has been created)
+- SendText: sends text to the device. This command can only be used for GenericSerialDevice. Returns the command response received from the serial device.
+  - \xmlAtt DeviceId: Device ID of the GenericSerialDevice \RequiredAtt
+  - \xmlAtt Text: String to be sent to the serial device \RequiredAtt
 
 \subsection PlusServerCommandsOpenIGTLinkRemoteExecSlicerApi OpenIGTLinkRemoteExec Slicer module API
 

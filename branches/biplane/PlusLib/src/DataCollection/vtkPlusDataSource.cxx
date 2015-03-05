@@ -628,6 +628,18 @@ ItemStatus vtkPlusDataSource::GetItemUidFromTime(double time, BufferItemUidType&
 }
 
 //-----------------------------------------------------------------------------
+bool vtkPlusDataSource::GetLatestItemHasValidVideoData()
+{
+  return this->GetBuffer()->GetLatestItemHasValidVideoData();
+}
+
+//-----------------------------------------------------------------------------
+bool vtkPlusDataSource::GetLatestItemHasValidTransformData()
+{
+  return this->GetBuffer()->GetLatestItemHasValidTransformData();
+}
+
+//-----------------------------------------------------------------------------
 ItemStatus vtkPlusDataSource::GetStreamBufferItem(BufferItemUidType uid, StreamBufferItem* bufferItem)
 {
   return this->GetBuffer()->GetStreamBufferItem(uid, bufferItem);

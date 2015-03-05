@@ -208,30 +208,6 @@ PlusStatus vtkPlusChannel::WriteConfiguration( vtkXMLDataElement* aChannelElemen
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::GetVideoSource( vtkPlusDataSource*& aVideoSource )
-{
-  if( this->HasVideoSource() )
-  {
-    aVideoSource = this->VideoSource;
-    return PLUS_SUCCESS;
-  }
-
-  return PLUS_FAIL;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::GetVideoSource( vtkPlusDataSource*& aVideoSource ) const
-{
-  if( this->HasVideoSource() )
-  {
-    aVideoSource = this->VideoSource;
-    return PLUS_SUCCESS;
-  }
-
-  return PLUS_FAIL;
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkPlusChannel::GetTool(vtkPlusDataSource*& aTool, const char* toolSourceId )
 {
   if( toolSourceId == NULL )
@@ -250,30 +226,6 @@ PlusStatus vtkPlusChannel::GetTool(vtkPlusDataSource*& aTool, const char* toolSo
   }
 
   return PLUS_FAIL;
-}
-
-//----------------------------------------------------------------------------
-DataSourceContainerConstIterator vtkPlusChannel::GetToolsStartConstIterator() const
-{
-  return this->Tools.begin();
-}
-
-//----------------------------------------------------------------------------
-DataSourceContainerConstIterator vtkPlusChannel::GetToolsEndConstIterator() const
-{
-  return this->Tools.end();
-}
-
-//----------------------------------------------------------------------------
-DataSourceContainerIterator vtkPlusChannel::GetToolsStartIterator()
-{
-  return this->Tools.begin();
-}
-
-//----------------------------------------------------------------------------
-DataSourceContainerIterator vtkPlusChannel::GetToolsEndIterator()
-{
-  return this->Tools.end();
 }
 
 //----------------------------------------------------------------------------
@@ -406,12 +358,6 @@ void vtkPlusChannel::ShallowCopy( const vtkPlusChannel& aChannel )
 }
 
 //----------------------------------------------------------------------------
-bool vtkPlusChannel::HasVideoSource() const
-{
-  return this->VideoSource != NULL;
-}
-
-//----------------------------------------------------------------------------
 void vtkPlusChannel::SetVideoSource( vtkPlusDataSource* aSource )
 {
   this->VideoSource = aSource;
@@ -453,7 +399,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrame( double timestamp, TrackedFrame& aTra
       return PLUS_FAIL; 
     }
 
-    StreamBufferItem CurrentStreamBufferItem; 
+    StreamBufferItem CurrentStreamBufferItem;
     if ( this->VideoSource->GetStreamBufferItem(frameUID, &CurrentStreamBufferItem) != ITEM_OK )
     {
       LOG_ERROR("Couldn't get video buffer item by frame UID: " << frameUID); 
@@ -561,7 +507,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrame( double timestamp, TrackedFrame& aTra
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusChannel::GetTrackedFrame(TrackedFrame* trackedFrame)
 {
-  LOG_TRACE("vtkPlusDevice::GetTrackedFrame - TrackedFrame"); 
+  //LOG_TRACE("vtkPlusDevice::GetTrackedFrame - TrackedFrame"); 
 
   double mostRecentFrameTimestamp(0);
   if (this->GetMostRecentTimestamp(mostRecentFrameTimestamp) != PLUS_SUCCESS) 
@@ -766,25 +712,26 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList( double& aTimestampOfLastFrameAlr
 
   for (int i=0; i<numberOfFramesToAdd; ++i)
   {
-    // Get tracked frame from buffer
-    TrackedFrame trackedFrame; 
-
     // Only add this frame if it has not been already added
     if ( timestampFrom > aTimestampOfLastFrameAlreadyGot || aTimestampOfLastFrameAlreadyGot == UNDEFINED_TIMESTAMP)
     {
-      if ( this->GetTrackedFrame(timestampFrom, trackedFrame) != PLUS_SUCCESS )
+      // Get tracked frame from buffer
+      TrackedFrame* trackedFrame = new TrackedFrame;
+
+      if ( this->GetTrackedFrame(timestampFrom, *trackedFrame) != PLUS_SUCCESS )
       {
+        delete trackedFrame;
         LOG_ERROR("Unable to get tracked frame by time: " << std::fixed << timestampFrom ); 
         return PLUS_FAIL;
       }
 
       // Add tracked frame to the list 
-      if ( aTrackedFrameList->AddTrackedFrame(&trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
+      aTimestampOfLastFrameAlreadyGot=trackedFrame->GetTimestamp();
+      if ( aTrackedFrameList->TakeTrackedFrame(trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
       {
         LOG_ERROR("Unable to add tracked frame to the list!" ); 
         return PLUS_FAIL; 
       }
-      aTimestampOfLastFrameAlreadyGot=trackedFrame.GetTimestamp();
     }
 
     // Get next timestamp
@@ -905,15 +852,16 @@ PlusStatus vtkPlusChannel::GetTrackedFrameListSampled(double &aTimestampOfLastFr
       continue;
     }
     // Get tracked frame from buffer (actually copies pixel and field data)
-    TrackedFrame trackedFrame; 
-    if ( GetTrackedFrame(closestTimestamp, trackedFrame) != PLUS_SUCCESS )
+    TrackedFrame* trackedFrame = new TrackedFrame;
+    if ( GetTrackedFrame(closestTimestamp, *trackedFrame) != PLUS_SUCCESS )
     {
       LOG_WARNING("vtkPlusChannel::GetTrackedFrameListSampled: Unable retrieve frame from the devices for time: " << std::fixed << aTimestampOfNextFrameToBeAdded <<", probably the item is not available in the buffers anymore. Frames may be lost."); 
+      delete trackedFrame;
       continue;
     }
-    aTimestampOfLastFrameAlreadyGot=trackedFrame.GetTimestamp();
+    aTimestampOfLastFrameAlreadyGot=trackedFrame->GetTimestamp();
     // Add tracked frame to the list 
-    if ( aTrackedFrameList->AddTrackedFrame(&trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
+    if ( aTrackedFrameList->TakeTrackedFrame(trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
     {
       LOG_ERROR("vtkPlusChannel::GetTrackedFrameListSampled: Unable to add tracked frame to the list" ); 
       status=PLUS_FAIL; 
@@ -927,7 +875,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrameListSampled(double &aTimestampOfLastFr
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusChannel::GetOldestTimestamp(double &ts)
 {
-  LOG_TRACE("vtkPlusChannel::GetOldestTimestamp"); 
+  //LOG_TRACE("vtkPlusChannel::GetOldestTimestamp"); 
   ts=0;
 
   // ********************* video timestamp **********************
@@ -1010,7 +958,7 @@ PlusStatus vtkPlusChannel::GetOldestTimestamp(double &ts)
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusChannel::GetMostRecentTimestamp(double &ts)
 {
-  LOG_TRACE("vtkPlusChannel::GetMostRecentTimestamp"); 
+  //LOG_TRACE("vtkPlusChannel::GetMostRecentTimestamp");
   ts=0;
 
   double latestVideoTimestamp(0); 
@@ -1170,12 +1118,7 @@ bool vtkPlusChannel::GetTrackingDataAvailable()
   vtkPlusDataSource* aSource = NULL;
   if( this->HasVideoSource() && this->GetVideoSource(aSource) == PLUS_SUCCESS )
   {
-    if (aSource->GetNumberOfItems()<1)
-    {
-      return false;
-    }
-    StreamBufferItem item;
-    if( aSource->GetLatestStreamBufferItem(&item) == ITEM_OK && item.HasValidTransformData() )
+    if (aSource->GetLatestItemHasValidTransformData())
     {
       return true;
     }
@@ -1185,16 +1128,7 @@ bool vtkPlusChannel::GetTrackingDataAvailable()
   for( DataSourceContainerConstIterator toolIt = this->GetToolsStartConstIterator(); toolIt != this->GetToolsEndConstIterator(); ++toolIt)
   {
     vtkPlusDataSource* tool = toolIt->second;
-    StreamBufferItem item;
-    if (tool->GetNumberOfItems()<1)
-    {
-      continue;
-    }
-    if( tool->GetLatestStreamBufferItem(&item) != ITEM_OK )
-    {
-      continue;
-    }
-    if( item.HasValidTransformData() )
+    if (tool->GetLatestItemHasValidTransformData())
     {
       return true;
     }
@@ -1206,21 +1140,12 @@ bool vtkPlusChannel::GetTrackingDataAvailable()
 //----------------------------------------------------------------------------
 bool vtkPlusChannel::GetVideoDataAvailable()
 {
-  if( !this->HasVideoSource() )
-  {
-    return false;
-  }
   vtkPlusDataSource* aSource = NULL;
   if (this->GetVideoSource(aSource) != PLUS_SUCCESS )
   {
     return false;
   }
-  StreamBufferItem item;
-  if( aSource->GetLatestStreamBufferItem(&item) != ITEM_OK)
-  {
-    return false;
-  }
-  return item.HasValidVideoData();
+  return aSource->GetLatestItemHasValidVideoData();
 }
 
 //----------------------------------------------------------------------------
@@ -1262,25 +1187,25 @@ PlusStatus vtkPlusChannel::GetTimestampMasterTool(vtkPlusDataSource*& aTool)
 //----------------------------------------------------------------------------
 int vtkPlusChannel::GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, double aTimestampTo)
 {
-  LOG_TRACE("vtkPlusChannel::GetNumberOfFramesBetweenTimestamps(" << aTimestampFrom << ", " << aTimestampTo << ")");
+  //LOG_TRACE("vtkPlusChannel::GetNumberOfFramesBetweenTimestamps(" << aTimestampFrom << ", " << aTimestampTo << ")");
 
   int numberOfFrames = 0;
 
   if ( this->GetVideoDataAvailable() )
   {
-    StreamBufferItem vFromItem; 
-    if (this->VideoSource->GetStreamBufferItemFromTime(aTimestampFrom, &vFromItem, vtkPlusBuffer::CLOSEST_TIME) != ITEM_OK )
+    BufferItemUidType fromItemUid(0);
+    if (this->VideoSource->GetItemUidFromTime(aTimestampFrom, fromItemUid) != ITEM_OK) 
     {
       return 0;
     }
 
-    StreamBufferItem vToItem; 
-    if (this->VideoSource->GetStreamBufferItemFromTime(aTimestampTo, &vToItem, vtkPlusBuffer::CLOSEST_TIME) != ITEM_OK )
+    BufferItemUidType toItemUid(0);
+    if (this->VideoSource->GetItemUidFromTime(aTimestampTo, toItemUid) != ITEM_OK) 
     {
       return 0;
     }
 
-    numberOfFrames = abs((int)(vToItem.GetUid() - vFromItem.GetUid()));
+    numberOfFrames = abs((int)(toItemUid - fromItemUid));
   }
   else if ( this->GetTrackingEnabled() )
   {
@@ -1291,21 +1216,19 @@ int vtkPlusChannel::GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, do
       return PLUS_FAIL; 
     }
 
-    // vtkPlusBuffer::INTERPOLATED will give the closest item UID  
-    StreamBufferItem tFromItem; 
-    if (masterTool->GetStreamBufferItemFromTime(aTimestampFrom, &tFromItem, vtkPlusBuffer::INTERPOLATED) != ITEM_OK )
-    {
-      return 0;
-    } 
-
-    // vtkPlusBuffer::INTERPOLATED will give the closest item UID 
-    StreamBufferItem tToItem; 
-    if (masterTool->GetStreamBufferItemFromTime(aTimestampTo, &tToItem, vtkPlusBuffer::INTERPOLATED) != ITEM_OK )
+    BufferItemUidType fromItemUid(0);
+    if (masterTool->GetItemUidFromTime(aTimestampFrom, fromItemUid) != ITEM_OK) 
     {
       return 0;
     }
 
-    numberOfFrames = abs((int)(tToItem.GetUid() - tFromItem.GetUid())); 
+    BufferItemUidType toItemUid(0);
+    if (masterTool->GetItemUidFromTime(aTimestampTo, toItemUid) != ITEM_OK) 
+    {
+      return 0;
+    }
+
+    numberOfFrames = abs((int)(toItemUid - fromItemUid));
   }
 
   return numberOfFrames + 1;

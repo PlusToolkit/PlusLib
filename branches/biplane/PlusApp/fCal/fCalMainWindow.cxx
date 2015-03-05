@@ -145,7 +145,10 @@ void fCalMainWindow::Initialize()
   m_VisualizationController->SetCanvas(ui.canvas);
 
   // Hide it until we have something to show
-  ui.canvas->setVisible(false);
+  ui.canvas->setVisible(true);
+  ui.label_SliceNumber->setVisible(false);
+  ui.horizontalSlider_SliceNumber->setVisible(false);
+  ui.spinBox_SliceNumber->setVisible(false);
 
   // Create toolboxes
   CreateToolboxes();
@@ -936,8 +939,11 @@ void fCalMainWindow::UpdateSliceNumberUI()
   if( this->GetSelectedChannel() && this->GetSelectedChannel()->IsVideoSource3D() && this->GetVisualizationController() )
   {
     this->ui.label_SliceNumber->setEnabled(true);
+    this->ui.label_SliceNumber->setVisible(true);
     this->ui.horizontalSlider_SliceNumber->setEnabled(true);
+    this->ui.horizontalSlider_SliceNumber->setVisible(true);
     this->ui.spinBox_SliceNumber->setEnabled(true);
+    this->ui.spinBox_SliceNumber->setVisible(true);
 
     vtkPlusDataSource* source;
     this->GetSelectedChannel()->GetVideoSource(source);
@@ -966,11 +972,14 @@ void fCalMainWindow::UpdateSliceNumberUI()
   else
   {
     this->ui.label_SliceNumber->setEnabled(false);
+    this->ui.label_SliceNumber->setVisible(false);
     this->ui.horizontalSlider_SliceNumber->setEnabled(false);
+    this->ui.horizontalSlider_SliceNumber->setVisible(false);
     this->ui.horizontalSlider_SliceNumber->setMaximum(0);
     this->ui.horizontalSlider_SliceNumber->setMinimum(0);
     this->ui.horizontalSlider_SliceNumber->setValue(0);
     this->ui.spinBox_SliceNumber->setEnabled(false);
+    this->ui.spinBox_SliceNumber->setVisible(false);
     this->ui.spinBox_SliceNumber->setValue(0);
     this->ui.spinBox_SliceNumber->setMaximum(0);
     this->ui.spinBox_SliceNumber->setMinimum(0);

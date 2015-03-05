@@ -46,6 +46,16 @@ OPTION(BUILD_SHARED_LIBS "Build with shared libraries." ${VTK_BUILD_SHARED_LIBS}
 # OPTION (BUILD_SLICER_MODULE "Build project as Slicer module" OFF)
 
 # --------------------------------------------------------------------------
+# Use accurate or simple timer protocol
+# 
+# DevPartnerStudio performance profiler hangs if the accurate timer
+# is used.If USE_SIMPLE_TIMER is defined then the accurate timer is
+# bypassed. It should only be enabled for performance profiling.
+
+OPTION(PLUS_USE_SIMPLE_TIMER "Use simple timer (not very accurate but more compatible with performance profilers)" OFF)
+MARK_AS_ADVANCED(PLUS_USE_SIMPLE_TIMER)
+
+# --------------------------------------------------------------------------
 # Configure output paths for libraries and executables.
 #
 IF(NOT DEFINED PLUS_EXECUTABLE_OUTPUT_PATH)
@@ -256,14 +266,17 @@ mark_as_advanced(BUILD_DOCUMENTATION)
  
 if(BUILD_DOCUMENTATION)
 
+  SET(PROGWIN64 "PROGRAMFILES")
+  SET(PROGWIN32 "PROGRAMFILES(X86)")
+
   # Try to detect GraphViz path (CMake's Doxygen package finder only tries some obsolete paths on Windows)
   find_program(DOXYGEN_DOT_EXECUTABLE
     NAMES dot
     PATHS
-      "$ENV{ProgramFiles}/Graphviz2.38/bin"
-      "$ENV{ProgramFiles(x86)}/Graphviz2.38/bin"
-      "$ENV{ProgramFiles}/Graphviz2.34/bin"
-      "$ENV{ProgramFiles(x86)}/Graphviz2.34/bin"
+      "$ENV{${PROGWIN32}}/Graphviz2.38/bin"
+      "$ENV{${PROGWIN64}}/Graphviz2.38/bin"
+      "$ENV{${PROGWIN32}}/Graphviz2.34/bin"
+      "$ENV{${PROGWIN64}}/Graphviz2.34/bin"
     DOC "Graphviz Dot tool for using Doxygen"
     NO_SYSTEM_ENVIRONMENT_PATH
   )

@@ -372,6 +372,7 @@ PlusVideoFrame& PlusVideoFrame::operator=(PlusVideoFrame const&videoItem)
     else
     {
       memcpy(this->GetScalarPointer(), videoItem.GetScalarPointer(), this->GetFrameSizeInBytes() ); 
+      this->Image->Modified();
     }
   }
 
@@ -410,13 +411,18 @@ PlusStatus PlusVideoFrame::FillBlank()
 //----------------------------------------------------------------------------
 PlusStatus PlusVideoFrame::AllocateFrame(vtkImageData* image, const int imageSize[3], PlusCommon::VTKScalarPixelType pixType, int numberOfScalarComponents)
 {  
+  if (imageSize[0]>0 && imageSize[1]>0 && imageSize[2]==0)
+  {
+    LOG_WARNING("Single slice images should have a dimension of z=1");
+  }
+
   if ( image != NULL )
   {
     int imageExtents[6] = {0,0,0,0,0,0};
     image->GetExtent(imageExtents);
-    if (imageSize[0] == imageExtents[1]-imageExtents[0] &&
-      imageSize[1] == imageExtents[3]-imageExtents[2] &&
-      imageSize[2] == imageExtents[5]-imageExtents[4] &&
+    if (imageSize[0] == imageExtents[1]-imageExtents[0]+1 &&
+      imageSize[1] == imageExtents[3]-imageExtents[2]+1 &&
+      imageSize[2] == imageExtents[5]-imageExtents[4]+1 &&
       image->GetScalarType() == pixType &&
       image->GetNumberOfScalarComponents() == numberOfScalarComponents)
     {

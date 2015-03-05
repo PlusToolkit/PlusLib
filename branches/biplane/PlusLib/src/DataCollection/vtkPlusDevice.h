@@ -11,11 +11,13 @@ See License.txt for details.
 #include "vtkDataCollectionExport.h"
 
 #include "PlusCommon.h"
+#include "vtkStdString.h"
+#include "StreamBufferItem.h"
 #include "TrackedFrame.h"
 
 #include "vtkImageAlgorithm.h"
 #include "vtkMultiThreader.h"
-#include "vtkPlusDeviceTypes.h"
+#include "vtkPlusChannel.h"
 
 #include <string>
 
@@ -23,9 +25,25 @@ class TrackedFrame;
 class vtkDataCollector;
 class vtkHTMLGenerator;
 class vtkPlusBuffer;
-class vtkPlusChannel;
 class vtkPlusDataSource;
 class vtkXMLDataElement;
+class vtkPlusDevice;
+
+typedef std::vector<vtkPlusChannel*> ChannelContainer;
+typedef ChannelContainer::const_iterator ChannelContainerConstIterator;
+typedef ChannelContainer::iterator ChannelContainerIterator;
+
+typedef std::vector<vtkPlusBuffer*> StreamBufferContainer;
+typedef StreamBufferContainer::const_iterator StreamBufferContainerConstIterator;
+typedef StreamBufferContainer::iterator StreamBufferContainerIterator;
+
+typedef std::map<int, vtkPlusBuffer*> StreamBufferMapContainer;
+typedef StreamBufferMapContainer::const_iterator StreamBufferMapContainerConstIterator;
+typedef StreamBufferMapContainer::iterator StreamBufferMapContainerIterator;
+
+typedef std::vector<vtkPlusDevice*> DeviceCollection;
+typedef std::vector<vtkPlusDevice*>::iterator DeviceCollectionIterator;
+typedef std::vector<vtkPlusDevice*>::const_iterator DeviceCollectionConstIterator;
 
 /*!
 \class vtkPlusDevice 
@@ -401,6 +419,12 @@ public:
     If requestedImageId is not empty then assignedImageId is the same as the requestedImageId.
   */
   virtual PlusStatus GetImage(const std::string& requestedImageId, std::string& assignedImageId,const std::string& imageReferencFrameName, vtkImageData* imageData, vtkMatrix4x4* ijkToReferenceTransform);
+
+  /*!
+    Send text message to the device. If a non-NULL pointer is passed as textReceived
+    then the device waits for a response and returns it in textReceived.
+  */
+  virtual PlusStatus SendText(const std::string& textToSend, std::string* textReceived=NULL);
 
 protected:
   static void *vtkDataCaptureThread(vtkMultiThreader::ThreadInfo *data);

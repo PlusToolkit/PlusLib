@@ -574,6 +574,7 @@ PlusStatus vtkPlusDevice::WriteToMetafile( const char* filename, bool useCompres
     }
 
     // Add tracked frame to the list
+    // This is a debugging/test function, so the additional copying in AddTrackedFrame compared to TakeTrackedFrame is not relevant.
     trackedFrameList->AddTrackedFrame(&trackedFrame); 
   }
 
@@ -1371,7 +1372,7 @@ int vtkPlusDevice::RequestInformation(vtkInformation * vtkNotUsed(request),
     return 0;
   }
 
-  int extent[6] = {0, frameSize[0] - 1, 0, frameSize[1] - 1, 0, 0 };
+  int extent[6] = {0, frameSize[0] - 1, 0, frameSize[1] - 1, 0, frameSize[2]-1};
   outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),extent,6);
 
   // Set the origin and spacing. The video source provides raw pixel output,
@@ -1496,7 +1497,7 @@ PlusStatus vtkPlusDevice::SetFrameSize(vtkPlusDataSource& aSource, int x, int y,
 
   if (x < 1 || y < 1 || z < 1)
   {
-    LOCAL_LOG_ERROR("SetFrameSize: Illegal frame size");
+    LOCAL_LOG_ERROR("SetFrameSize: Illegal frame size "<<x<<"x"<<y<<"x"<<z);
     return PLUS_FAIL;
   }
 
@@ -2061,5 +2062,12 @@ PlusStatus vtkPlusDevice::GetImageMetaData(PlusCommon::ImageMetaDataList& imageM
 PlusStatus vtkPlusDevice::GetImage(const std::string& requestedImageId, std::string& assignedImageId, const std::string& imageReferencFrameName, vtkImageData* imageData, vtkMatrix4x4* ijkToReferenceTransform)
 {
   LOCAL_LOG_ERROR("vtkPlusDevice::GetImage is not implemented");
+  return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::SendText(const std::string& textToSend, std::string* textReceived/*=NULL*/)
+{
+  LOCAL_LOG_ERROR("vtkPlusDevice::SendText is not implemented");
   return PLUS_FAIL;
 }

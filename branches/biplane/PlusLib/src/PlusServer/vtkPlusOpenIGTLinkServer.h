@@ -208,21 +208,11 @@ private:
   bool SendValidTransformsOnly;
 
   /*! 
-  Default IGT message types used for sending data to clients. 
-  Used only if the client didn't set IGT message types (can be set from config file)
+  Default IGT client info used for sending data to clients. 
+  Used only if the client didn't set IGT message types and transform/image/string names.
+  The default client info can be set in the devices set config file in the DefaultClientInfo element.
   */
-  std::vector<std::string> DefaultIgtlMessageTypes; 
-
-  /*! 
-  Default transform names used for sending igt transform and position messages. 
-  Used only if the client didn't set transform names (can be set from config file)
-  */ 
-  std::vector<PlusTransformName> DefaultTransformNames;
-  
-  /*! Default transform names used for sending igt image message. 
-  Used only if the client didn't set image transform name (can be set from config file)
-  */
-  std::vector<PlusIgtlClientInfo::ImageStream> DefaultImageStreams; 
+  PlusIgtlClientInfo DefaultClientInfo;
 
   /*! Flag for IGTL CRC check */ 
   bool IgtlMessageCrcCheckEnabled; 

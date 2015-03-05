@@ -77,6 +77,12 @@ vtkVisualizationController::vtkVisualizationController()
   perspectiveVisualizer->SetInputPolyData(this->InputPolyData);
   this->SetPerspectiveVisualizer(perspectiveVisualizer);
 
+  // Set up blank renderer
+  this->BlankRenderer = vtkRenderer::New();
+  this->BlankRenderer->SetBackground(0.1, 0.1, 0.1);
+  this->BlankRenderer->SetBackground2(0.4, 0.4, 0.4);
+  this->BlankRenderer->SetGradientBackground(true);
+
   connect( this->AcquisitionTimer, SIGNAL( timeout() ), this, SLOT( Update() ) );
 }
 
@@ -108,6 +114,14 @@ vtkVisualizationController::~vtkVisualizationController()
 
   this->SetImageVisualizer(NULL);
   this->SetPerspectiveVisualizer(NULL);
+
+  // Set up blank renderer
+  if (this->BlankRenderer != NULL)
+  {
+    this->BlankRenderer->Delete();
+    this->BlankRenderer = NULL;
+  }
+
 }
 
 //-----------------------------------------------------------------------------
@@ -230,6 +244,10 @@ PlusStatus vtkVisualizationController::SetVisualizationMode( DISPLAY_MODE aMode 
       return PLUS_FAIL;
     }
 
+    if( this->BlankRenderer != NULL && this->GetCanvas()->GetRenderWindow()->HasRenderer(this->BlankRenderer) )
+    {
+      this->GetCanvas()->GetRenderWindow()->RemoveRenderer(this->BlankRenderer);
+    }
     if( this->ImageVisualizer != NULL && this->GetCanvas()->GetRenderWindow()->HasRenderer(this->ImageVisualizer->GetCanvasRenderer()) )
     {
       this->GetCanvas()->GetRenderWindow()->RemoveRenderer(this->ImageVisualizer->GetCanvasRenderer());
@@ -249,11 +267,13 @@ PlusStatus vtkVisualizationController::SetVisualizationMode( DISPLAY_MODE aMode 
 
     // Disable camera movements
     this->GetCanvas()->GetRenderWindow()->GetInteractor()->RemoveAllObservers();
-    // Show the canvas
-    this->GetCanvas()->setVisible(true);
   }
   else if ( aMode == DISPLAY_MODE_3D )
   {
+    if( this->BlankRenderer != NULL && this->GetCanvas()->GetRenderWindow()->HasRenderer(this->BlankRenderer) )
+    {
+      this->GetCanvas()->GetRenderWindow()->RemoveRenderer(this->BlankRenderer);
+    }
     if( this->ImageVisualizer != NULL && this->GetCanvas()->GetRenderWindow()->HasRenderer(this->ImageVisualizer->GetCanvasRenderer()) )
     {
       this->GetCanvas()->GetRenderWindow()->RemoveRenderer(this->ImageVisualizer->GetCanvasRenderer());
@@ -271,8 +291,6 @@ PlusStatus vtkVisualizationController::SetVisualizationMode( DISPLAY_MODE aMode 
 
     // Enable camera movements
     this->GetCanvas()->GetRenderWindow()->GetInteractor()->SetInteractorStyle(vtkInteractorStyleTrackballCamera::New());
-    // Show the canvas
-    this->GetCanvas()->setVisible(true);
   }
   else
   {
@@ -668,10 +686,7 @@ PlusStatus vtkVisualizationController::HideRenderer()
     this->GetCanvas()->GetRenderWindow()->RemoveRenderer(ImageVisualizer->GetCanvasRenderer());
   }
 
-  if( this->GetCanvas()->isVisible() )
-  {
-    this->GetCanvas()->setVisible(false);
-  }
+  this->GetCanvas()->GetRenderWindow()->AddRenderer(this->BlankRenderer);  
 
   this->CurrentMode = DISPLAY_MODE_NONE;
 
