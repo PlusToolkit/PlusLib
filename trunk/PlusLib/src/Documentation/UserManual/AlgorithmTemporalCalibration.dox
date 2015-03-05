@@ -27,7 +27,7 @@ Time offset can be computed between two devices at a time (using either tracking
 devices then each device has to be included in at least one temporal calibration.
 
 Notes:
-- The time offset is then determined by computing the time offset that leads to the highest correlation between the two signals.
+- The time offset is determined by computing the time offset that leads to the highest correlation between the two signals.
   For the correlation computation the moving signal is linearly interpolated at the time positions
   where the fixed signal is known. As the acquisition rate of imaging data is typically lower than the acquisition rate
   of tracking data, it is preferable to use video as fixed signal and tracker as moving signal.
