@@ -81,6 +81,12 @@ MODEL_TABLE_ROW(
   DESCRIPTION "Phantom for freehand spatial ultrasound calibration for shallow depth (up to 9 cm)."
   )
 MODEL_TABLE_ROW(
+  ID "fCal-2.1"
+  PRINTABLE_FILES "fCalPhantom/fCal_2/fCal_2.1.stl"
+  EDIT_LINK "${CATALOG_URL}/fCalPhantom/fCal_2"
+  DESCRIPTION "Phantom for freehand spatial ultrasound calibration for shallow depth (up to 9 cm)."
+  )
+MODEL_TABLE_ROW(
   ID "fCal-3.1"
   IMAGE_FILE "fCalPhantom/fCal_3/fCal3.1.png"
   PRINTABLE_FILES
