@@ -868,11 +868,16 @@ PlusStatus AddTransform( vtkTrackedFrameList* trackedFrameList, std::string tran
     vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
     if ( transformRepository->GetTransform(transformName, transformMatrix, &valid) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to get transform " << transformNameToAdd << " from tracked frame " << i);
-      continue;
+      LOG_WARNING("Failed to get transform " << transformNameToAdd << " from tracked frame " << i);
+      transformMatrix->Identity();
+      trackedFrame->SetCustomFrameTransform(transformName, transformMatrix);
+      trackedFrame->SetCustomFrameTransformStatus(transformName, FIELD_INVALID);
     }
-
-    trackedFrame->SetCustomFrameTransform(transformName, transformMatrix);
+    else
+    {
+      trackedFrame->SetCustomFrameTransform(transformName, transformMatrix);
+      trackedFrame->SetCustomFrameTransformStatus(transformName, FIELD_OK);
+    }
   }
 
   return PLUS_SUCCESS; 
