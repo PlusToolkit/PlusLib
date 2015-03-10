@@ -99,8 +99,8 @@ namespace MfVideoCapture
         for(UINT32 i = 0; i < count; i++)
         {
           MediaFoundationVideoDevice *vd = new MediaFoundationVideoDevice;
-          vd->ReadDeviceInfo(ppDevices[i], i);
-          Devices.push_back(vd);    
+          if (SUCCEEDED(vd->ReadDeviceInfo(ppDevices[i], i)))
+            Devices.push_back(vd);
 
           SafeRelease(&ppDevices[i]);
         }
