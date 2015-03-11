@@ -9,7 +9,7 @@ This is a command-line tool for editing sequence metafiles. Operations include d
 
 ## Generate sequence metafile that contains ImageToReference transforms
 
-    EditSeqMetaFile.exe --operation=ADD_TRANSFORM --add-transform=ImageToReference --config-file=PlusConfiguration_SpinePhantomFreehandReconstructionOnly.xml --source-seq-file=SpinePhantomFreehand.mha --output-seq-file=test.mha
+    EditSeqMetaFile.exe --operation=ADD_TRANSFORM --add-transform=ImageToReference --config-file=PlusDeviceSet_fCal_Sim_VolumeReconstruction.xml  --source-seq-file=fCal_Test_Calibration_3NWires_fCal2.0.mha --output-seq-file=test.mha
 
 ## Compress a sequence metafile
 

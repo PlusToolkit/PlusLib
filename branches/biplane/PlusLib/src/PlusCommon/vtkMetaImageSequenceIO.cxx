@@ -343,15 +343,15 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
   // DimSize=630 480 567
   // is treated as
   // NDims=4
-  // DimSize=630 480 567 1
+  // DimSize=630 480 1 567
   // ...
   // NDims=4
   // DimSize=630 480 567 35 is unaffected
   issDimSize >> dimSize;
   if( nDims == 3 && imgOrientStr.length() == 3 )
   {
-    this->Dimensions[2] = dimSize;
-    this->Dimensions[3] = 1;
+    this->Dimensions[2] = 1;
+    this->Dimensions[3] = dimSize;
   }
   else
   {
