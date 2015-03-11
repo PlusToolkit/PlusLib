@@ -39,9 +39,9 @@ namespace
 
     void * inBuff = inputImage->GetScalarPointer();
     void * outBuff = outputImage->GetScalarPointer();
-    int pixelIncrement(0);
-    int inputRowIncrement(0);
-    int inputImageIncrement(0);
+    vtkIdType pixelIncrement(0);
+    vtkIdType inputRowIncrement(0);
+    vtkIdType inputImageIncrement(0);
     inputImage->GetIncrements(pixelIncrement, inputRowIncrement, inputImageIncrement);
 
     int finalClipOrigin[3]={clipRectangleOrigin[0], clipRectangleOrigin[1], clipRectangleOrigin[2]};
