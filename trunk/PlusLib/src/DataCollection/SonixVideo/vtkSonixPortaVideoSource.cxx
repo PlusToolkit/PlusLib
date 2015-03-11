@@ -480,7 +480,7 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
     }
 
     vtkPlusDataSource* aSource(NULL);
-    if( this->GetFirstActiveVideoSource(aSource) != PLUS_SUCCESS )
+    if( this->GetFirstVideoSource(aSource) != PLUS_SUCCESS )
     {
       LOG_ERROR(this->GetDeviceId() << ": Unable to retrieve video source.");
       return PLUS_FAIL;
