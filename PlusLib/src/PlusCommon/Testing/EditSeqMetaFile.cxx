@@ -265,6 +265,12 @@ int main(int argc, char **argv)
   }
   else if ( STRCASECMP(strOperation.c_str(), "CROP" ) == 0 )
   {
+    if( rectOriginPix.size() != 2 && rectOriginPix.size() != 3 &&
+      rectSizePix.size() != 2 && rectSizePix.size() != 3 )
+    {
+      LOG_ERROR("--rect-origin and --rect-size must be of the form --rect-origin X Y <Z> and --rect-size I J <K>")
+        return EXIT_FAILURE;
+    }
     operation = CROP; 
   }
   else if ( STRCASECMP(strOperation.c_str(), "REMOVE_IMAGE_DATA" ) == 0 )
@@ -955,16 +961,14 @@ PlusStatus CropRectangle(vtkTrackedFrameList* trackedFrameList, const std::vecto
     LOG_ERROR("Tracked frame list is NULL!"); 
     return PLUS_FAIL; 
   }
-  if (cropRectOrigin.size()!=2 || cropRectSize.size()!=2)
-  {
-    LOG_ERROR("Fill rectangle origin or size is not specified correctly");
-    return PLUS_FAIL;
-  }
+  int rectOrigin[3] = {cropRectOrigin[0], cropRectOrigin[1], cropRectOrigin.size() == 3 ? cropRectOrigin[2] : 0};
+  int rectSize[3] = {cropRectSize[0], cropRectSize[1], cropRectSize.size() == 3 ? cropRectSize[2] : 1};
 
   vtkSmartPointer<vtkMatrix4x4> tfmMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   tfmMatrix->Identity();
-  tfmMatrix->SetElement(0,3,-cropRectOrigin[0]);
-  tfmMatrix->SetElement(1,3,-cropRectOrigin[1]);
+  tfmMatrix->SetElement(0,3,-rectOrigin[0]);
+  tfmMatrix->SetElement(1,3,-rectOrigin[1]);
+  tfmMatrix->SetElement(2,3,-rectOrigin[2]);
   PlusTransformName imageToCroppedImage("Image","CroppedImage");
 
   for ( unsigned int i = 0; i < trackedFrameList->GetNumberOfTrackedFrames(); ++i )
@@ -977,44 +981,12 @@ PlusStatus CropRectangle(vtkTrackedFrameList* trackedFrameList, const std::vecto
     {
       LOG_ERROR("Failed to retrieve pixel data from frame "<<i<<". Crop rectangle failed.");
       continue;
-    }       
-    if (cropRectOrigin[0]<0 || cropRectOrigin[0]>=frameSize[0] ||
-      cropRectOrigin[1]<0 || cropRectOrigin[1]>=frameSize[1])
-    {
-      LOG_ERROR("Invalid crop rectangle origin is specified ("<<cropRectOrigin[0]<<", "<<cropRectOrigin[1]<<"). The image size is ("
-        <<frameSize[0]<<", "<<frameSize[1]<<").");
-      continue;
     }
-    if (cropRectSize[0]<=0 || cropRectOrigin[0]+cropRectSize[0]>frameSize[0] ||
-      cropRectSize[1]<=0 || cropRectOrigin[1]+cropRectSize[1]>frameSize[1])
-    {
-      LOG_ERROR("Invalid crop rectangle size is specified ("<<cropRectSize[0]<<", "<<cropRectSize[1]<<"). The specified fill rectangle origin is ("
-        <<cropRectOrigin[0]<<", "<<cropRectOrigin[1]<<") and the image size is ("<<frameSize[0]<<", "<<frameSize[1]<<").");
-      continue;
-    }
-    if (videoFrame->GetVTKScalarPixelType()!=VTK_UNSIGNED_CHAR)
-    {
-      LOG_ERROR("Fill rectangle is supported only for B-mode images (unsigned char type)");
-      continue;
-    }
-
-    int cropImageExtent[6] = {0, cropRectSize[0]-1, 0, cropRectSize[1]-1, 0, 0};
-    vtkSmartPointer<vtkImageData> croppedImage = vtkSmartPointer<vtkImageData>::New();
-    croppedImage->SetExtent(cropImageExtent);
-#if (VTK_MAJOR_VERSION < 6)
-    croppedImage->SetScalarTypeToUnsignedChar();
-    croppedImage->SetNumberOfScalarComponents(1);
-    croppedImage->AllocateScalars();
-#else
-    croppedImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-#endif
     
-    for(int y=0;y<cropRectSize[1];y++)
-    {
-      memcpy(static_cast<unsigned char*>(croppedImage->GetScalarPointer())+y*cropRectSize[0], 
-        static_cast<unsigned char*>(videoFrame->GetScalarPointer())+(cropRectOrigin[1]+y)*frameSize[0]+cropRectOrigin[0], 
-        cropRectSize[0]);
-    }
+    vtkSmartPointer<vtkImageData> croppedImage = vtkSmartPointer<vtkImageData>::New();
+
+    PlusVideoFrame::FlipInfoType flipInfo;
+    PlusVideoFrame::FlipClipImage(videoFrame->GetImage(), flipInfo, rectOrigin, rectSize, croppedImage);
     videoFrame->DeepCopyFrom(croppedImage);
     trackedFrame->SetCustomFrameTransform(imageToCroppedImage, tfmMatrix);
     trackedFrame->SetCustomFrameTransformStatus(imageToCroppedImage, FIELD_OK);
