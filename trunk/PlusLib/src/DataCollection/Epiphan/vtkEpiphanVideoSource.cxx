@@ -20,11 +20,16 @@ vtkStandardNewMacro(vtkEpiphanVideoSource);
 //----------------------------------------------------------------------------
 vtkEpiphanVideoSource::vtkEpiphanVideoSource()
 : GrabberLocation(NULL)
+, CropRectangle(NULL)
 {
   this->ClipRectangleOrigin[0]=0;
   this->ClipRectangleOrigin[1]=0;
   this->ClipRectangleSize[0]=0;
   this->ClipRectangleSize[1]=0;
+
+  this->FrameSize[0]=0;
+  this->FrameSize[1]=0;
+  this->FrameSize[2]=1;
 
   this->RequireImageOrientationInConfiguration = true;
 
@@ -45,6 +50,12 @@ vtkEpiphanVideoSource::~vtkEpiphanVideoSource()
   {
     FrmGrab_Deinit();
     this->FrameGrabber = NULL;
+  }
+
+  if( this->CropRectangle != NULL )
+  {
+    delete this->CropRectangle;
+    this->CropRectangle = NULL;
   }
 }
 
@@ -121,27 +132,45 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
     if (this->ClipRectangleOrigin[0]+this->ClipRectangleSize[0]>vm.width || this->ClipRectangleOrigin[1]+this->ClipRectangleSize[1]>vm.height)
     {
       LOG_ERROR("Invalid clip rectangle: rectangle does not fit into the image. Clip rectangle origin: ("<<this->ClipRectangleOrigin[0]<<","<<this->ClipRectangleOrigin[1]
-        <<"), size: "<<this->ClipRectangleSize[0]<<","<<this->ClipRectangleSize[1]<<". Image size: "<<vm.width<<"x"<<vm.height);
+      <<"), size: "<<this->ClipRectangleSize[0]<<","<<this->ClipRectangleSize[1]<<". Image size: "<<vm.width<<"x"<<vm.height);
       return PLUS_FAIL;
     }
     this->FrameSize[0] = this->ClipRectangleSize[0];
     this->FrameSize[1] = this->ClipRectangleSize[1];
   }
 
-  for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it )
+  if( this->GetNumberOfVideoSources() == 1 )
   {
     vtkPlusDataSource* aSource(NULL);
-    if( (*it)->GetVideoSource(aSource) != PLUS_SUCCESS )
+    if( this->GetFirstVideoSource(aSource) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Unable to retrieve the video source in the Epiphan device on channel " << (*it)->GetChannelId());
+      LOG_ERROR("Unable to retrieve the video source in the Epiphan device on channel " << (*this->OutputChannels.begin())->GetChannelId());
       return PLUS_FAIL;
     }
     else
     {
-      US_IMAGE_TYPE imageType = aSource->GetBuffer()->GetImageType();
-      aSource->GetBuffer()->SetPixelType(VTK_UNSIGNED_CHAR);
-      aSource->GetBuffer()->SetNumberOfScalarComponents(imageType == US_IMG_RGB_COLOR ? 3 : 1);
-      aSource->GetBuffer()->SetFrameSize(this->FrameSize);
+      US_IMAGE_TYPE imageType = aSource->GetImageType();
+      aSource->SetPixelType(VTK_UNSIGNED_CHAR);
+      aSource->SetNumberOfScalarComponents(imageType == US_IMG_RGB_COLOR ? 3 : 1);
+      aSource->SetFrameSize(this->FrameSize);
+    }
+  }
+  else
+  {
+    // Can only be 1 or 2, so we must have two video sources, most likely for biplane configuration
+    vtkPlusDataSource* aSource(NULL);
+    for( int i = 0; i < this->GetNumberOfVideoSources(); ++i )
+    {
+      if( this->GetVideoSourceByIndex(i, aSource) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Unable to retrieve the video source in the Epiphan device on channel " << (*this->OutputChannels.begin())->GetChannelId());
+        return PLUS_FAIL;
+      }
+
+      US_IMAGE_TYPE imageType = aSource->GetImageType();
+      aSource->SetPixelType(VTK_UNSIGNED_CHAR);
+      aSource->SetNumberOfScalarComponents(imageType == US_IMG_RGB_COLOR ? 3 : 1);
+      aSource->SetFrameSize(this->FrameSize);
     }
   }
 
@@ -200,66 +229,53 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
 
   V2U_GrabFrame2 * frame = NULL;
 
-  V2URect *cropRect=NULL;
-  if (this->ClipRectangleSize[0]>0 && this->ClipRectangleSize[1]>0)
+
+  // If someone ever wants RGB8 or YUY2 (etc...) this line will have to be changed
+  // to support any future video format choices
+  // ReadConfiguration will probably need a new flag to tell this line what to do
+  V2U_UINT32 videoFormat = (this->CaptureImageType == US_IMG_RGB_COLOR ? V2U_GRABFRAME_FORMAT_RGB24 : V2U_GRABFRAME_FORMAT_Y8);
+
+  frame = FrmGrab_Frame( (FrmGrabber*)this->FrameGrabber, videoFormat, this->CropRectangle );
+
+  if (frame == NULL)
   {
-    cropRect=new V2URect;
-    cropRect->x = this->ClipRectangleOrigin[0];
-    cropRect->y = this->ClipRectangleOrigin[1];
-    cropRect->width = this->ClipRectangleSize[0];
-    cropRect->height = this->ClipRectangleSize[1];
+    LOG_WARNING("Frame not captured for video format: " << videoFormat);
+    return PLUS_FAIL;
+  }
+
+  if ( frame->crop.width != this->FrameSize[0] || frame->crop.height != this->FrameSize[1])
+  {
+    LOG_ERROR("Image size received from Epiphan (" << frame->crop.width << "x" << frame->crop.height << ") does not match the clip rectangle size (" <<
+      this->FrameSize[0] << "x" << this->FrameSize[1] << ")");
+    FrmGrab_Release( (FrmGrabber*)this->FrameGrabber, frame );
+    return PLUS_FAIL;
   }
 
   vtkPlusDataSource* aSource(NULL);
-  for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it )
+  for( int i = 0; i < this->GetNumberOfVideoSources(); ++i )
   {
-    if( (*it)->GetVideoSource(aSource) != PLUS_SUCCESS )
+    if( this->GetVideoSourceByIndex(i, aSource) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Unable to retrieve the video source in the Epiphan device on channel " << (*it)->GetChannelId());
+      LOG_ERROR("Unable to retrieve the video source in the Epiphan device on channel " << (*this->OutputChannels.begin())->GetChannelId());
+      return PLUS_FAIL;
+    }
+    int numberOfScalarComponents(1);
+    if( aSource->GetImageType() == US_IMG_RGB_COLOR )
+    {
+      numberOfScalarComponents = 3;
+    }
+    if( aSource->AddItem(frame->pixbuf, aSource->GetImageOrientation(), this->FrameSize, VTK_UNSIGNED_CHAR, numberOfScalarComponents, aSource->GetImageType(), 0, this->FrameNumber) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Error adding item to video source " << aSource->GetSourceId() << " on channel " << (*this->OutputChannels.begin())->GetChannelId() );
       return PLUS_FAIL;
     }
     else
     {
-      // If someone ever wants RGB8 or YUY2 (etc...) this line will have to be changed
-      // to support any future video format choices
-      // ReadConfiguration will probably need a new flag to tell this line what to do
-      V2U_UINT32 videoFormat = (aSource->GetBuffer()->GetImageType() == US_IMG_RGB_COLOR ? V2U_GRABFRAME_FORMAT_RGB24 : V2U_GRABFRAME_FORMAT_Y8);
-
-      frame = FrmGrab_Frame((FrmGrabber*)this->FrameGrabber, videoFormat, cropRect);
-
-      if (frame == NULL)
-      {
-        LOG_WARNING("Frame not captured for video format: " << videoFormat);
-        continue;
-      }
-
-      if (frame->crop.width!=this->FrameSize[0] || frame->crop.height!=this->FrameSize[1])
-      {
-        LOG_ERROR("Image size received from Epiphan ("<<frame->crop.width<<"x"<<frame->crop.height<<") does not match the clip rectangle size ("<<this->FrameSize[0]<<"x"<<this->FrameSize[1]<<")");
-        return PLUS_FAIL;
-      }
-
-      int numberOfScalarComponents(1);
-      if( aSource->GetBuffer()->GetImageType() == US_IMG_RGB_COLOR )
-      {
-        numberOfScalarComponents = 3;
-      }
-      if( aSource->GetBuffer()->AddItem(frame->pixbuf, aSource->GetPortImageOrientation(), this->FrameSize, VTK_UNSIGNED_CHAR, numberOfScalarComponents, aSource->GetBuffer()->GetImageType(), 0, this->FrameNumber) != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Error adding item to video source " << aSource->GetSourceId() << " on channel " << (*it)->GetChannelId() );
-        return PLUS_FAIL;
-      }
-      else
-      {
-        this->Modified();
-      }
-
-      FrmGrab_Release((FrmGrabber*)this->FrameGrabber, frame);
+      this->Modified();
     }
   }
 
-  delete cropRect;
-  cropRect = NULL;
+  FrmGrab_Release( (FrmGrabber*)this->FrameGrabber, frame );
 
   this->FrameNumber++;
 
@@ -290,7 +306,7 @@ PlusStatus vtkEpiphanVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfi
     LOG_DEBUG("Epiphan device location is not specified in the configuration");
   }
 
-  // clipping parameters
+  // Epiphan hardware clipping parameters
   XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleOrigin, deviceConfig);
   XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleSize, deviceConfig);
 
@@ -304,13 +320,55 @@ PlusStatus vtkEpiphanVideoSource::WriteConfiguration(vtkXMLDataElement* rootConf
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(imageAcquisitionConfig, rootConfigElement);
 
   XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_NULL(GrabberLocation, imageAcquisitionConfig);
-  
+
   // SerialNumber is an obsolete attribute, the information is stored now in GrabberLocation
   XML_REMOVE_ATTRIBUTE(imageAcquisitionConfig, "SerialNumber");
 
-  // clipping parameters
+  // Epiphan hardware clipping parameters
   imageAcquisitionConfig->SetVectorAttribute("ClipRectangleOrigin", 2, this->GetClipRectangleOrigin());
   imageAcquisitionConfig->SetVectorAttribute("ClipRectangleSize", 2, this->GetClipRectangleSize());
+
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkEpiphanVideoSource::NotifyConfigured()
+{
+  vtkPlusDataSource* videoSource(NULL);
+  if( this->OutputChannels.size() == 1 && this->GetFirstVideoSource(videoSource) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Epiphan is incorrectly configured. Unable to access video data source.");
+    return PLUS_FAIL;
+  }
+  else if( this->OutputChannels.size() == 2 && this->GetVideoSourceByIndex(0, videoSource) != PLUS_SUCCESS && this->GetVideoSourceByIndex(1, videoSource) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Epiphan is incorrectly configured. Unable to access video data sources.");
+    return PLUS_FAIL;
+  }
+
+  this->CaptureImageType = videoSource->GetImageType();
+  for( int i = 0; i < this->GetNumberOfVideoSources(); ++i )
+  {
+    if( this->GetVideoSourceByIndex(i, videoSource) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to retrieve the video source in the Epiphan device on channel " << (*this->OutputChannels.begin())->GetChannelId());
+      return PLUS_FAIL;
+    }
+    if( videoSource->GetImageType() != this->CaptureImageType )
+    {
+      LOG_ERROR("Conflicting image types in data sources. Please confirm matching image types.");
+      return PLUS_FAIL;
+    }
+  }
+
+  if (this->ClipRectangleSize[0] > 0 && this->ClipRectangleSize[1] > 0)
+  {
+    this->CropRectangle = new V2URect;
+    this->CropRectangle->x = this->ClipRectangleOrigin[0];
+    this->CropRectangle->y = this->ClipRectangleOrigin[1];
+    this->CropRectangle->width = this->ClipRectangleSize[0];
+    this->CropRectangle->height = this->ClipRectangleSize[1];
+  }
 
   return PLUS_SUCCESS;
 }

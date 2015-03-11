@@ -409,7 +409,7 @@ void vtkPlusDevice::SetToolsBufferSize( int aBufferSize )
   LOCAL_LOG_TRACE("vtkPlusDevice::SetToolsBufferSize(" << aBufferSize << ")" ); 
   for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
-    it->second->GetBuffer()->SetBufferSize( aBufferSize ); 
+    it->second->SetBufferSize( aBufferSize ); 
   }
 }
 
@@ -419,13 +419,13 @@ void vtkPlusDevice::SetLocalTimeOffsetSec( double aTimeOffsetSec )
   for( DataSourceContainerIterator it = this->VideoSources.begin(); it != this->VideoSources.end(); ++it )
   {
     vtkPlusDataSource* image = it->second;
-    image->GetBuffer()->SetLocalTimeOffsetSec(aTimeOffsetSec);
+    image->SetLocalTimeOffsetSec(aTimeOffsetSec);
   }
   // local tools
   for( DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it )
   {
     vtkPlusDataSource* tool = it->second;
-    tool->GetBuffer()->SetLocalTimeOffsetSec(aTimeOffsetSec);
+    tool->SetLocalTimeOffsetSec(aTimeOffsetSec);
   }
   this->LocalTimeOffsetSec = aTimeOffsetSec;
 }
@@ -500,9 +500,9 @@ PlusStatus vtkPlusDevice::WriteToMetafile( const char* filename, bool useCompres
   int numberOfItems(-1); 
   for ( DataSourceContainerConstIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
   {
-    if ( numberOfItems < 0 || numberOfItems > it->second->GetBuffer()->GetNumberOfItems() )
+    if ( numberOfItems < 0 || numberOfItems > it->second->GetNumberOfItems() )
     {
-      numberOfItems = it->second->GetBuffer()->GetNumberOfItems(); 
+      numberOfItems = it->second->GetNumberOfItems(); 
     }
   }
 
@@ -524,15 +524,15 @@ PlusStatus vtkPlusDevice::WriteToMetafile( const char* filename, bool useCompres
     trackedFrame.SetImageData(videoFrame);
 
     StreamBufferItem bufferItem; 
-    BufferItemUidType uid = firstActiveTool->GetBuffer()->GetOldestItemUidInBuffer() + i; 
+    BufferItemUidType uid = firstActiveTool->GetOldestItemUidInBuffer() + i; 
 
-    if ( firstActiveTool->GetBuffer()->GetStreamBufferItem(uid, &bufferItem) != ITEM_OK )
+    if ( firstActiveTool->GetStreamBufferItem(uid, &bufferItem) != ITEM_OK )
     {
       LOCAL_LOG_ERROR("Failed to get tracker buffer item with UID: " << uid ); 
       continue; 
     }
 
-    const double frameTimestamp = bufferItem.GetFilteredTimestamp(firstActiveTool->GetBuffer()->GetLocalTimeOffsetSec()); 
+    const double frameTimestamp = bufferItem.GetFilteredTimestamp(firstActiveTool->GetLocalTimeOffsetSec()); 
 
     // Add main source timestamp
     std::ostringstream timestampFieldValue; 
@@ -541,7 +541,7 @@ PlusStatus vtkPlusDevice::WriteToMetafile( const char* filename, bool useCompres
 
     // Add main source unfiltered timestamp
     std::ostringstream unfilteredtimestampFieldValue; 
-    unfilteredtimestampFieldValue << std::fixed << bufferItem.GetUnfilteredTimestamp(firstActiveTool->GetBuffer()->GetLocalTimeOffsetSec()); 
+    unfilteredtimestampFieldValue << std::fixed << bufferItem.GetUnfilteredTimestamp(firstActiveTool->GetLocalTimeOffsetSec()); 
     trackedFrame.SetCustomFrameField("UnfilteredTimestamp", unfilteredtimestampFieldValue.str()); 
 
     // Add main source frameNumber
@@ -553,7 +553,7 @@ PlusStatus vtkPlusDevice::WriteToMetafile( const char* filename, bool useCompres
     for ( DataSourceContainerConstIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
     {
       StreamBufferItem toolBufferItem; 
-      if ( it->second->GetBuffer()->GetStreamBufferItemFromTime( frameTimestamp, &toolBufferItem, vtkPlusBuffer::EXACT_TIME ) != ITEM_OK )
+      if ( it->second->GetStreamBufferItemFromTime( frameTimestamp, &toolBufferItem, vtkPlusBuffer::EXACT_TIME ) != ITEM_OK )
       {
         LOCAL_LOG_ERROR("Failed to get tracker buffer item from time: " << std::fixed << frameTimestamp ); 
         continue; 
@@ -788,7 +788,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
       vtkSmartPointer<vtkPlusDataSource> aDataSource = vtkSmartPointer<vtkPlusDataSource>::New(); 
       if( dataSourceElement->GetAttribute("Type") != NULL && STRCASECMP(dataSourceElement->GetAttribute("Type"), "Tool") == 0 )
       {
-        aDataSource->SetReferenceName(this->ToolReferenceFrameName);
+        aDataSource->SetReferenceCoordinateFrameName(this->ToolReferenceFrameName);
 
         if ( aDataSource->ReadConfiguration(dataSourceElement, this->RequirePortNameInDeviceSetConfiguration, this->RequireImageOrientationInConfiguration, this->GetDeviceId() ) != PLUS_SUCCESS )
         {
@@ -1132,7 +1132,7 @@ PlusStatus vtkPlusDevice::GetBufferSize( vtkPlusChannel& aChannel, int& outVal, 
       return PLUS_FAIL;
     }
 
-    outVal = aSource->GetBuffer()->GetBufferSize();
+    outVal = aSource->GetBufferSize();
     return PLUS_SUCCESS;
   }
 
@@ -1140,7 +1140,7 @@ PlusStatus vtkPlusDevice::GetBufferSize( vtkPlusChannel& aChannel, int& outVal, 
   {
     if( STRCASECMP(it->second->GetSourceId(), toolSourceId) == 0 )
     {
-      outVal = it->second->GetBuffer()->GetBufferSize();
+      outVal = it->second->GetBufferSize();
       return PLUS_SUCCESS;
     }
   }
@@ -1173,7 +1173,7 @@ PlusStatus vtkPlusDevice::SetBufferSize( vtkPlusChannel& aChannel, int FrameBuff
     }
 
     // update the buffer size
-    if ( aSource->GetBuffer()->SetBufferSize(FrameBufferSize) != PLUS_SUCCESS )
+    if ( aSource->SetBufferSize(FrameBufferSize) != PLUS_SUCCESS )
     {
       LOCAL_LOG_ERROR("Failed to set buffer size!");
       return PLUS_FAIL;
@@ -1185,7 +1185,7 @@ PlusStatus vtkPlusDevice::SetBufferSize( vtkPlusChannel& aChannel, int FrameBuff
   {
     if( STRCASECMP(it->second->GetSourceId(), toolSourceId) == 0 )
     {
-      it->second->GetBuffer()->SetBufferSize(FrameBufferSize);
+      it->second->SetBufferSize(FrameBufferSize);
     }
   }
   return PLUS_SUCCESS;
@@ -1196,12 +1196,12 @@ void vtkPlusDevice::SetStartTime( double startTime )
 {
   for ( DataSourceContainerConstIterator it = this->GetVideoIteratorBegin(); it != this->GetVideoIteratorEnd(); ++it)
   {
-    it->second->GetBuffer()->SetStartTime(startTime); 
+    it->second->SetStartTime(startTime); 
   }
 
   for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
-    it->second->GetBuffer()->SetStartTime(startTime); 
+    it->second->SetStartTime(startTime); 
   }
 }
 
@@ -1214,13 +1214,13 @@ double vtkPlusDevice::GetStartTime()
   double numberOfBuffers(0); 
   for ( DataSourceContainerConstIterator it = this->GetVideoIteratorBegin(); it != this->GetVideoIteratorEnd(); ++it)
   {
-    sumStartTime += it->second->GetBuffer()->GetStartTime(); 
+    sumStartTime += it->second->GetStartTime(); 
     numberOfBuffers++; 
   }
 
   for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
-    sumStartTime += it->second->GetBuffer()->GetStartTime(); 
+    sumStartTime += it->second->GetStartTime(); 
     numberOfBuffers++; 
   }
 
@@ -1250,11 +1250,11 @@ void vtkPlusDevice::ClearAllBuffers()
 {
   for ( DataSourceContainerConstIterator it = this->GetVideoIteratorBegin(); it != this->GetVideoIteratorEnd(); ++it)
   {
-    it->second->GetBuffer()->Clear(); 
+    it->second->Clear(); 
   }
   for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
-    it->second->GetBuffer()->Clear(); 
+    it->second->Clear(); 
   }
 }
 
@@ -1302,8 +1302,7 @@ PlusStatus vtkPlusDevice::ToolTimeStampedUpdateWithoutFiltering(const char* aToo
 
   // This function is for devices has no frame numbering, just auto increment tool frame number if new frame received
   unsigned long frameNumber = tool->GetFrameNumber() + 1 ; 
-  vtkPlusBuffer* buffer = tool->GetBuffer();
-  PlusStatus bufferStatus = buffer->AddTimeStampedItem(matrix, status, frameNumber, unfilteredtimestamp, filteredtimestamp);
+  PlusStatus bufferStatus = tool->AddTimeStampedItem(matrix, status, frameNumber, unfilteredtimestamp, filteredtimestamp);
   tool->SetFrameNumber(frameNumber); 
 
   return bufferStatus; 
@@ -1330,8 +1329,7 @@ PlusStatus vtkPlusDevice::ToolTimeStampedUpdate(const char* aToolSourceId, vtkMa
     return PLUS_FAIL; 
   }
 
-  vtkPlusBuffer* buffer = tool->GetBuffer();
-  PlusStatus bufferStatus = buffer->AddTimeStampedItem(matrix, status, frameNumber, unfilteredtimestamp);
+  PlusStatus bufferStatus = tool->AddTimeStampedItem(matrix, status, frameNumber, unfilteredtimestamp);
   tool->SetFrameNumber(frameNumber); 
 
   return bufferStatus; 
@@ -1367,7 +1365,7 @@ int vtkPlusDevice::RequestInformation(vtkInformation * vtkNotUsed(request),
     return 0;
   }
 
-  int* frameSize=aSource->GetBuffer()->GetFrameSize();
+  int* frameSize=aSource->GetFrameSize();
   if (frameSize[0]<0||frameSize[1]<0)
   {
     // no frame is available yet
@@ -1385,7 +1383,7 @@ int vtkPlusDevice::RequestInformation(vtkInformation * vtkNotUsed(request),
   outInfo->Set(vtkDataObject::ORIGIN(),origin,3);
 
   // set default data type - unsigned char and number of components 1
-  vtkDataObject::SetPointDataActiveScalarInfo(outInfo, aSource->GetBuffer()->GetPixelType(), 1);
+  vtkDataObject::SetPointDataActiveScalarInfo(outInfo, aSource->GetPixelType(), 1);
 
   return 1;
 }
@@ -1413,20 +1411,19 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
     return 1;
   }
 
-  vtkPlusBuffer * plusBuffer = aSource->GetBuffer();
-  if ( plusBuffer == NULL || plusBuffer->GetNumberOfItems() < 1 )
+  if ( aSource->GetNumberOfItems() < 1 )
   {
     LOCAL_LOG_DEBUG("Cannot request data from video source, the video buffer is empty or does not exist!");
     vtkImageData *data = vtkImageData::SafeDownCast(this->GetOutputDataObject(0));
-    int frameSize[3] = { plusBuffer->GetFrameSize()[0], plusBuffer->GetFrameSize()[1], plusBuffer->GetFrameSize()[2] };
+    int frameSize[3] = { aSource->GetFrameSize()[0], aSource->GetFrameSize()[1], aSource->GetFrameSize()[2] };
     data->SetExtent(0, frameSize[0]-1, 0, frameSize[1]-1, 0, frameSize[2]-1);
 
 #if (VTK_MAJOR_VERSION < 6)
-    data->SetScalarType(plusBuffer->GetPixelType());
-    data->SetNumberOfScalarComponents(plusBuffer->GetNumberOfScalarComponents()); 
+    data->SetScalarType(aSource->GetPixelType());
+    data->SetNumberOfScalarComponents(aSource->GetNumberOfScalarComponents()); 
     data->AllocateScalars();
 #else
-    data->AllocateScalars(plusBuffer->GetPixelType(), plusBuffer->GetNumberOfScalarComponents());
+    data->AllocateScalars(aSource->GetPixelType(), aSource->GetNumberOfScalarComponents());
 #endif
 
     return 1;
@@ -1434,7 +1431,7 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
 
   if (this->UpdateWithDesiredTimestamp && this->DesiredTimestamp != -1)
   {
-    ItemStatus itemStatus = plusBuffer->GetStreamBufferItemFromTime(this->DesiredTimestamp, this->CurrentStreamBufferItem, vtkPlusBuffer::EXACT_TIME);
+    ItemStatus itemStatus = aSource->GetStreamBufferItemFromTime(this->DesiredTimestamp, this->CurrentStreamBufferItem, vtkPlusBuffer::EXACT_TIME);
     if ( itemStatus != ITEM_OK )
     {
       LOCAL_LOG_ERROR("Unable to copy video data to the requested output!");
@@ -1444,7 +1441,7 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
   else
   {
     // get the most recent frame if we are not updating with the desired timestamp
-    ItemStatus itemStatus = plusBuffer->GetLatestStreamBufferItem(this->CurrentStreamBufferItem);
+    ItemStatus itemStatus = aSource->GetLatestStreamBufferItem(this->CurrentStreamBufferItem);
     if ( itemStatus != ITEM_OK )
     {
       LOCAL_LOG_ERROR("Unable to copy video data to the requested output!");
@@ -1452,8 +1449,8 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
     }
   }
 
-  this->FrameTimeStamp = this->CurrentStreamBufferItem->GetTimestamp( plusBuffer->GetLocalTimeOffsetSec() );
-  this->TimestampClosestToDesired = this->CurrentStreamBufferItem->GetTimestamp( plusBuffer->GetLocalTimeOffsetSec() );
+  this->FrameTimeStamp = this->CurrentStreamBufferItem->GetTimestamp( aSource->GetLocalTimeOffsetSec() );
+  this->TimestampClosestToDesired = this->CurrentStreamBufferItem->GetTimestamp( aSource->GetLocalTimeOffsetSec() );
 
   void* sourcePtr=this->CurrentStreamBufferItem->GetFrame().GetScalarPointer();
   int bytesToCopy=this->CurrentStreamBufferItem->GetFrame().GetFrameSizeInBytes();
@@ -1466,11 +1463,11 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
   data->SetExtent(0, frameSize[0]-1, 0, frameSize[1]-1, 0, frameSize[2]-1);
 
 #if (VTK_MAJOR_VERSION < 6)
-    data->SetScalarType(plusBuffer->GetPixelType());
-    data->SetNumberOfScalarComponents(plusBuffer->GetNumberOfScalarComponents()); 
+    data->SetScalarType(aSource->GetPixelType());
+    data->SetNumberOfScalarComponents(aSource->GetNumberOfScalarComponents()); 
     data->AllocateScalars();
 #else
-    data->AllocateScalars(plusBuffer->GetPixelType(), plusBuffer->GetNumberOfScalarComponents());
+    data->AllocateScalars(aSource->GetPixelType(), aSource->GetNumberOfScalarComponents());
 #endif
   unsigned char *outPtr = (unsigned char *)data->GetScalarPointer();
   memcpy( outPtr, sourcePtr, bytesToCopy);
@@ -1483,7 +1480,7 @@ PlusStatus vtkPlusDevice::SetFrameSize(vtkPlusDataSource& aSource, int x, int y,
 {
   LOCAL_LOG_TRACE("vtkPlusDevice::SetFrameSize(" << x << ", " << y << ", " << z << ")");
 
-  int* frameSize = aSource.GetBuffer()->GetFrameSize();
+  int* frameSize = aSource.GetFrameSize();
 
   if (x == frameSize[0] &&
     y == frameSize[1] &&
@@ -1504,7 +1501,7 @@ PlusStatus vtkPlusDevice::SetFrameSize(vtkPlusDataSource& aSource, int x, int y,
     return PLUS_FAIL;
   }
 
-  aSource.GetBuffer()->SetFrameSize(x,y,z); 
+  aSource.SetFrameSize(x,y,z); 
 
   aSource.Modified();
   return PLUS_SUCCESS;
@@ -1540,7 +1537,7 @@ PlusStatus vtkPlusDevice::GetFrameSize(vtkPlusChannel& aChannel, int dim[3])
     return PLUS_FAIL;
   }
 
-  return aSource->GetBuffer()->GetFrameSize(dim);
+  return aSource->GetFrameSize(dim);
 }
 
 //----------------------------------------------------------------------------
@@ -1555,7 +1552,7 @@ PlusStatus vtkPlusDevice::SetPixelType(vtkPlusChannel& aChannel, PlusCommon::VTK
     return PLUS_FAIL;
   }
 
-  return aSource->GetBuffer()->SetPixelType(pixelType);
+  return aSource->SetPixelType(pixelType);
 }
 
 //----------------------------------------------------------------------------
@@ -1570,7 +1567,7 @@ PlusCommon::VTKScalarPixelType vtkPlusDevice::GetPixelType(vtkPlusChannel& aChan
     return VTK_VOID;
   }
 
-  return aSource->GetBuffer()->GetPixelType();
+  return aSource->GetPixelType();
 }
 
 //----------------------------------------------------------------------------
@@ -1583,7 +1580,7 @@ US_IMAGE_TYPE vtkPlusDevice::GetImageType(vtkPlusChannel& aChannel)
     return US_IMG_TYPE_XX;
   }
 
-  return aSource->GetBuffer()->GetImageType();
+  return aSource->GetImageType();
 }
 
 //----------------------------------------------------------------------------
@@ -1595,7 +1592,7 @@ PlusStatus vtkPlusDevice::SetImageType(vtkPlusChannel& aChannel, US_IMAGE_TYPE i
     LOCAL_LOG_ERROR("Unable to retrieve the video source.");
     return PLUS_FAIL;
   }
-  return aSource->GetBuffer()->SetImageType(imageType);
+  return aSource->SetImageType(imageType);
 }
 
 //----------------------------------------------------------------------------
@@ -1730,7 +1727,7 @@ PlusStatus vtkPlusDevice::AddVideo( vtkPlusDataSource* aVideo )
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetFirstActiveVideoSource(vtkPlusDataSource*& aVideoSource)
+PlusStatus vtkPlusDevice::GetFirstVideoSource(vtkPlusDataSource*& aVideoSource)
 {
   if ( this->VideoSources.size() == 0 )
   {
@@ -1759,6 +1756,25 @@ PlusStatus vtkPlusDevice::GetVideoSource(const char* aSourceId, vtkPlusDataSourc
   }
 
   return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::GetVideoSourceByIndex(const int index, vtkPlusDataSource*& aVideoSource)
+{
+  if ( index < 0 || index > this->VideoSources.size() )
+  {
+    LOCAL_LOG_ERROR("Failed to get video source, index is outside of range.");
+    aVideoSource = NULL;
+    return PLUS_FAIL; 
+  }
+
+  DataSourceContainerIterator it = this->VideoSources.begin();
+  for( int i = 0 ; i < index; ++i )
+  {
+    ++it;
+  }
+  aVideoSource = it->second;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -1994,12 +2010,12 @@ PlusStatus vtkPlusDevice::CreateDefaultOutputChannel(bool addSource/*=true*/)
   {
     // Create an output video stream for this channel
     vtkPlusDataSource* aDataSource = vtkPlusDataSource::New();     
-    if ( aDataSource->GetBuffer()->SetBufferSize(30) != PLUS_SUCCESS )
+    if ( aDataSource->SetBufferSize(30) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to set video buffer size!"); 
       return PLUS_FAIL;
     }
-    aDataSource->SetPortImageOrientation(US_IMG_ORIENT_MN);
+    aDataSource->SetImageOrientation(US_IMG_ORIENT_MN);
     if( aDataSource->SetSourceId("Video") != PLUS_SUCCESS )
     {
       return PLUS_FAIL;

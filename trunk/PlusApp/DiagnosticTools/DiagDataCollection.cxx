@@ -122,12 +122,12 @@ int main(int argc, char **argv)
     vtkPlusDataSource* videoSource=NULL;
     if( (*acqChannelIt)->GetVideoSource(videoSource) == PLUS_SUCCESS && videoSource != NULL )
     {
-      videoSource->GetBuffer()->SetTimeStampReporting(true);
+      videoSource->SetTimeStampReporting(true);
     }
     for (DataSourceContainerConstIterator it = (*acqChannelIt)->GetToolsStartIterator(); it != (*acqChannelIt)->GetToolsEndIterator(); ++it)
     {
       vtkPlusDataSource* tool = it->second;
-      tool->GetBuffer()->SetTimeStampReporting(true);
+      tool->SetTimeStampReporting(true);
     }
   }
 
@@ -169,10 +169,10 @@ int main(int argc, char **argv)
     if( (*acqChannelIt)->GetVideoSource(videoSource) == PLUS_SUCCESS && videoSource != NULL )
     {
       double realVideoFramePeriodStdevSec=0;
-      double realVideoFrameRate = videoSource->GetBuffer()->GetFrameRate(false, &realVideoFramePeriodStdevSec);
-      double idealVideoFrameRate = videoSource->GetBuffer()->GetFrameRate(true);
-      int numOfItems = videoSource->GetBuffer()->GetNumberOfItems();
-      int bufferSize = videoSource->GetBuffer()->GetBufferSize();
+      double realVideoFrameRate = videoSource->GetFrameRate(false, &realVideoFramePeriodStdevSec);
+      double idealVideoFrameRate = videoSource->GetFrameRate(true);
+      int numOfItems = videoSource->GetNumberOfItems();
+      int bufferSize = videoSource->GetBufferSize();
 
       LOG_INFO("Nominal video frame rate: " << idealVideoFrameRate << "fps");
       LOG_INFO("Actual video frame rate: " << realVideoFrameRate << "fps (frame period stdev: "<<realVideoFramePeriodStdevSec*1000.0<<"ms)");
@@ -182,22 +182,22 @@ int main(int argc, char **argv)
       // Check if the same item index (usually "frame number") is stored in multiple items. It may mean too frequent data reading from a tracking device
       int numberOfNonUniqueFrames=0;
       int numberOfValidFrames=0;
-      for ( BufferItemUidType frameUid = videoSource->GetBuffer()->GetOldestItemUidInBuffer(); frameUid <= videoSource->GetBuffer()->GetLatestItemUidInBuffer(); ++frameUid )
+      for ( BufferItemUidType frameUid = videoSource->GetOldestItemUidInBuffer(); frameUid <= videoSource->GetLatestItemUidInBuffer(); ++frameUid )
       {
         double time(0);
-        if ( videoSource->GetBuffer()->GetTimeStamp(frameUid, time) != ITEM_OK ) { continue; }
+        if ( videoSource->GetTimeStamp(frameUid, time) != ITEM_OK ) { continue; }
         unsigned long framenum(0);
-        if ( videoSource->GetBuffer()->GetIndex(frameUid, framenum) != ITEM_OK) { continue; }
+        if ( videoSource->GetIndex(frameUid, framenum) != ITEM_OK) { continue; }
         numberOfValidFrames++;
-        if (frameUid == videoSource->GetBuffer()->GetOldestItemUidInBuffer())
+        if (frameUid == videoSource->GetOldestItemUidInBuffer())
         {
           // no previous frame
           continue;
         }
         double prevtime(0);
-        if ( videoSource->GetBuffer()->GetTimeStamp(frameUid - 1, prevtime) != ITEM_OK ) { continue; }
+        if ( videoSource->GetTimeStamp(frameUid - 1, prevtime) != ITEM_OK ) { continue; }
         unsigned long prevframenum(0);
-        if ( videoSource->GetBuffer()->GetIndex(frameUid - 1, prevframenum) != ITEM_OK) { continue; }
+        if ( videoSource->GetIndex(frameUid - 1, prevframenum) != ITEM_OK) { continue; }
         if (framenum == prevframenum)
         {
           // the same frame number was set for different frame indexes; this should not happen
@@ -216,7 +216,7 @@ int main(int argc, char **argv)
       std::string outputVideoBufferSequenceFileName = vtkPlusConfig::GetInstance()->GetOutputPath(outputSequenceFileNamePrefix
         + "-" + (*acqChannelIt)->GetChannelId() + "-" + videoSource->GetSourceId() + ".mha" );
       LOG_INFO("Write video buffer to " << outputVideoBufferSequenceFileName);
-      videoSource->GetBuffer()->WriteToMetafile( outputVideoBufferSequenceFileName.c_str(), false);
+      videoSource->WriteToMetafile( outputVideoBufferSequenceFileName.c_str(), false);
     }
 
     // Tracker tools
@@ -224,11 +224,11 @@ int main(int argc, char **argv)
     {
       vtkPlusDataSource* tool = it->second;
 
-      int numOfItems = tool->GetBuffer()->GetNumberOfItems();
-      int bufferSize = tool->GetBuffer()->GetBufferSize();
+      int numOfItems = tool->GetNumberOfItems();
+      int bufferSize = tool->GetBufferSize();
       double realFramePeriodStdevSec=0;
-      double realFrameRate = tool->GetBuffer()->GetFrameRate(false, &realFramePeriodStdevSec);
-      double idealFrameRate = tool->GetBuffer()->GetFrameRate(true);
+      double realFrameRate = tool->GetFrameRate(false, &realFramePeriodStdevSec);
+      double idealFrameRate = tool->GetFrameRate(true);
       LOG_INFO("------------------ " << tool->GetSourceId() << " ---------------------");
       LOG_INFO("Tracker tool " << tool->GetSourceId() <<  " actual sampling frequency: " << realFrameRate << "fps (sampling period stdev: "<<realFramePeriodStdevSec*1000.0<<"ms)");
       LOG_INFO("Tracker tool " << tool->GetSourceId() <<  " nominal sampling frequency: " << idealFrameRate << "fps");
@@ -238,22 +238,22 @@ int main(int argc, char **argv)
       // Check if the same item index (usually "frame number") is stored in multiple items. It may mean too frequent data reading from a tracking device
       int numberOfNonUniqueFrames=0;
       int numberOfValidFrames=0;
-      for ( BufferItemUidType frameUid = tool->GetBuffer()->GetOldestItemUidInBuffer(); frameUid <= tool->GetBuffer()->GetLatestItemUidInBuffer(); ++frameUid )
+      for ( BufferItemUidType frameUid = tool->GetOldestItemUidInBuffer(); frameUid <= tool->GetLatestItemUidInBuffer(); ++frameUid )
       {
         double time(0);
-        if ( tool->GetBuffer()->GetTimeStamp(frameUid, time) != ITEM_OK ) { continue; }
+        if ( tool->GetTimeStamp(frameUid, time) != ITEM_OK ) { continue; }
         unsigned long framenum(0);
-        if ( tool->GetBuffer()->GetIndex(frameUid, framenum) != ITEM_OK) { continue; }
+        if ( tool->GetIndex(frameUid, framenum) != ITEM_OK) { continue; }
         numberOfValidFrames++;
-        if (frameUid == tool->GetBuffer()->GetOldestItemUidInBuffer())
+        if (frameUid == tool->GetOldestItemUidInBuffer())
         {
           // no previous frame
           continue;
         }
         double prevtime(0);
-        if ( tool->GetBuffer()->GetTimeStamp(frameUid - 1, prevtime) != ITEM_OK ) { continue; }
+        if ( tool->GetTimeStamp(frameUid - 1, prevtime) != ITEM_OK ) { continue; }
         unsigned long prevframenum(0);
-        if ( tool->GetBuffer()->GetIndex(frameUid - 1, prevframenum) != ITEM_OK) { continue; }
+        if ( tool->GetIndex(frameUid - 1, prevframenum) != ITEM_OK) { continue; }
         if (framenum == prevframenum)
         {
           // the same frame number was set for different frame indexes; this should not happen
@@ -271,7 +271,7 @@ int main(int argc, char **argv)
       std::string outputTrackerBufferSequenceFileName = vtkPlusConfig::GetInstance()->GetOutputPath(outputSequenceFileNamePrefix
         + "-" + (*acqChannelIt)->GetChannelId() + "-" + tool->GetSourceId() + ".mha" );
       LOG_INFO("Write tracker buffer to " << outputTrackerBufferSequenceFileName);
-      tool->GetBuffer()->WriteToMetafile( outputTrackerBufferSequenceFileName.c_str(), false);
+      tool->WriteToMetafile( outputTrackerBufferSequenceFileName.c_str(), false);
     }
 
     // Add info to data acq report

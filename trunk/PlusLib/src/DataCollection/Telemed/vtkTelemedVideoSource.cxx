@@ -170,17 +170,17 @@ PlusStatus vtkTelemedVideoSource::InternalUpdate()
   int frameSizeInPx[2]={frameWidth,frameHeight};
 
   // If the buffer is empty, set the pixel type and frame size to the first received properties
-  if ( aSource->GetBuffer()->GetNumberOfItems() == 0 )
+  if ( aSource->GetNumberOfItems() == 0 )
   {
     LOG_DEBUG("Set up image buffer for Telemed");
-    aSource->GetBuffer()->SetPixelType(VTK_UNSIGNED_CHAR);
-    aSource->GetBuffer()->SetImageType(US_IMG_BRIGHTNESS);
-    aSource->GetBuffer()->SetFrameSize(frameSizeInPx);
-    aSource->GetBuffer()->SetImageOrientation(orientation);
+    aSource->SetPixelType(VTK_UNSIGNED_CHAR);
+    aSource->SetImageType(US_IMG_BRIGHTNESS);
+    aSource->SetFrameSize(frameSizeInPx);
+    aSource->SetImageOrientation(orientation);
   }
 
   // Add the frame to the stream buffer
-  PlusStatus status = aSource->GetBuffer()->AddItem(mono, orientation, frameSizeInPx,
+  PlusStatus status = aSource->AddItem(mono, orientation, frameSizeInPx,
                                                     VTK_UNSIGNED_CHAR, 1,US_IMG_BRIGHTNESS, 0, this->FrameNumber,
                                                     UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, NULL);
   this->Modified();

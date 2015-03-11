@@ -292,7 +292,7 @@ int main(int argc, char* argv[])
     LOG_ERROR("Unable to retrieve the video source.");
     exit(EXIT_FAILURE);
   }
-  aSource->SetPortImageOrientation( US_IMG_ORIENT_UF );
+  aSource->SetImageOrientation( US_IMG_ORIENT_UF );
 
   if ( portaGrabber->Connect()!=PLUS_SUCCESS ) 
   {

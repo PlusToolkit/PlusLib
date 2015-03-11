@@ -10,9 +10,12 @@
 #include "PlusConfigure.h"
 
 #include <QDialog>
+#include <QProcess>
 
 class DeviceSetSelectorWidget;
 class vtkPlusOpenIGTLinkServer;
+class vtkDataCollector;
+class vtkTransformRepository;
 
 //-----------------------------------------------------------------------------
 
@@ -43,21 +46,23 @@ protected slots:
   */
   void connectToDevicesByConfigFile(std::string);
 
-  /*! Processes pending OpenIGTLink command requests and sends responses */
-	void processPendingCommands();
-
   /*! Called whenever a key is pressed while the windows is active, used for intercepting the ESC key */
   void keyPressEvent(QKeyEvent *e);
+
+  void stdOutMsgReceived();
+
+  void stdErrMsgReceived();
+
+  void errorReceived();
+
+  void serverExecutableFinished(int returnCode, QProcess::ExitStatus status);
 
 protected:
   /*! Device set selector widget */
   DeviceSetSelectorWidget* m_DeviceSetSelectorWidget;
 
   /*! PlusServer instance that is responsible for all data collection and network transfer */
-  vtkPlusOpenIGTLinkServer* m_Server;
-
-  /*! Timer that refreshes the UI */
-  QTimer* m_ProcessPendingCommandsTimer; 
+  QProcess* m_CurrentServerInstance;
 };
 
 #endif // __PlusServerLauncherMainWindow_h

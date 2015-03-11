@@ -118,8 +118,8 @@ protected:
   /*! Get local tracker buffer */
   vtkPlusBuffer* GetLocalTrackerBuffer(); 
 
-  /*! Get the output buffer (the video buffer or the first active tool buffer of the current stream) */
-  vtkPlusBuffer* GetOutputBuffer();
+  /*! Get the output data source (the video buffer or the first active tool buffer of the current stream) */
+  vtkPlusDataSource* GetOutputDataSource();
 
   /*! 
     Get local tracker buffer, it returns tracker buffer if the output is a tracker stream, and 

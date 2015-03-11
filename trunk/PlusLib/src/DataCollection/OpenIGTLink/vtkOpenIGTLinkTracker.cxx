@@ -146,11 +146,11 @@ PlusStatus vtkOpenIGTLinkTracker::StoreMostRecentTransformValues(double unfilter
   {
     vtkSmartPointer<vtkMatrix4x4> toolMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
     // retrieve latest transform value from the buffer
-    if (it->second->GetBuffer()->GetNumberOfItems()>0)
+    if (it->second->GetNumberOfItems()>0)
     {
-      BufferItemUidType latestItemUid = it->second->GetBuffer()->GetLatestItemUidInBuffer();
+      BufferItemUidType latestItemUid = it->second->GetLatestItemUidInBuffer();
       StreamBufferItem item; 
-      if ( it->second->GetBuffer()->GetStreamBufferItem(latestItemUid, &item) == ITEM_OK )
+      if ( it->second->GetStreamBufferItem(latestItemUid, &item) == ITEM_OK )
       {
         if (item.GetUnfilteredTimestamp(this->GetLocalTimeOffsetSec()) >= unfilteredTimestamp)
         {

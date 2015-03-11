@@ -947,11 +947,11 @@ void fCalMainWindow::UpdateSliceNumberUI()
 
     vtkPlusDataSource* source;
     this->GetSelectedChannel()->GetVideoSource(source);
-    if( source->GetBuffer()->GetNumberOfItems() > 0 )
+    if( source->GetNumberOfItems() > 0 )
     {
       int dims[3] = {0,0,0};
       StreamBufferItem item;
-      source->GetBuffer()->GetLatestStreamBufferItem(&item);
+      source->GetLatestStreamBufferItem(&item);
       item.GetFrame().GetImage()->GetDimensions(dims);
       this->ui.spinBox_SliceNumber->setValue(0);
       this->ui.spinBox_SliceNumber->setMinimum(0);

@@ -270,12 +270,12 @@ PlusStatus vtkWin32VideoSource2::InternalConnect()
   // set up the parent window, but don't show it
   int frameSize[3]={0,0,0};
   vtkPlusDataSource* aSource(NULL);
-  if( this->GetFirstActiveVideoSource(aSource) != PLUS_SUCCESS )
+  if( this->GetFirstVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source in the Win32Video device.");
     return PLUS_FAIL;
   }
-  aSource->GetBuffer()->GetFrameSize(frameSize);
+  aSource->GetFrameSize(frameSize);
 
   this->Internal->ParentWnd = CreateWindow(this->WndClassName,"Plus video capture window", style, 0, 0, 
     frameSize[0]+2*GetSystemMetrics(SM_CXFIXEDFRAME),
@@ -538,12 +538,10 @@ PlusStatus vtkWin32VideoSource2::AddFrameToBuffer(void* lpVideoHeader)
 
   unsigned char *inputPixelsPtr = lpVHdr->lpData;
 
-  unsigned char* outputPixelsPtr=(unsigned char*)this->UncompressedVideoFrame.GetScalarPointer();
-
   int outputFrameSize[3]={0,0,0};
   this->UncompressedVideoFrame.GetFrameSize(outputFrameSize);
 
-  if (PixelCodec::ConvertToGray(inputCompression, outputFrameSize[0], outputFrameSize[1], inputPixelsPtr, outputPixelsPtr)!=PLUS_SUCCESS)
+  if ( PixelCodec::ConvertToGray(inputCompression, outputFrameSize[0], outputFrameSize[1], inputPixelsPtr, (unsigned char*)this->UncompressedVideoFrame.GetScalarPointer()) != PLUS_SUCCESS)
   {
     LOG_ERROR("Error while decoding the grabbed image");
     return PLUS_FAIL;
@@ -551,14 +549,14 @@ PlusStatus vtkWin32VideoSource2::AddFrameToBuffer(void* lpVideoHeader)
 
   this->FrameIndex++;
   vtkPlusDataSource* aSource(NULL);
-  if( this->GetFirstActiveVideoSource(aSource) != PLUS_SUCCESS )
+  if( this->GetFirstVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve the video source in the Win32Video device.");
     return PLUS_FAIL;
   }
-  double indexTime = aSource->GetBuffer()->GetStartTime() + 0.001 * lpVHdr->dwTimeCaptured;
-  this->UncompressedVideoFrame.SetImageOrientation(aSource->GetPortImageOrientation());
-  PlusStatus status = aSource->GetBuffer()->AddItem(&this->UncompressedVideoFrame, this->FrameIndex, indexTime, indexTime); 
+  double indexTime = aSource->GetStartTime() + 0.001 * lpVHdr->dwTimeCaptured;
+  this->UncompressedVideoFrame.SetImageOrientation(aSource->GetImageOrientation());
+  PlusStatus status = aSource->AddItem(&this->UncompressedVideoFrame, this->FrameIndex, indexTime, indexTime); 
 
   this->Modified();
   return status;
@@ -668,7 +666,7 @@ PlusStatus vtkWin32VideoSource2::VideoSourceDialog()
 PlusStatus vtkWin32VideoSource2::SetFrameSize(int x, int y)
 {
   vtkPlusDataSource* aSource(NULL);
-  if( this->GetFirstActiveVideoSource(aSource) != PLUS_SUCCESS )
+  if( this->GetFirstVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR(this->GetDeviceId() << ": Unable to retrieve video source.");
     return PLUS_FAIL;
@@ -759,7 +757,7 @@ PlusStatus vtkWin32VideoSource2::SetOutputFormat(int format)
     }
     else
     {
-      aSource->GetBuffer()->SetPixelType(VTK_UNSIGNED_CHAR);
+      aSource->SetPixelType(VTK_UNSIGNED_CHAR);
     }
   }
 
@@ -789,14 +787,14 @@ PlusStatus vtkWin32VideoSource2::UpdateFrameBuffer()
   int numberOfScalarComponents=1;
 
   vtkPlusDataSource* aSource(NULL);
-  if( this->GetFirstActiveVideoSource(aSource) != PLUS_SUCCESS )
+  if( this->GetFirstVideoSource(aSource) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to access video source in vtkWin32VideoSource2. Critical failure.");
     return PLUS_FAIL;
   }
-  aSource->GetBuffer()->SetFrameSize(width, height,1);
-  aSource->GetBuffer()->SetPixelType(pixelType);
-  aSource->GetBuffer()->SetNumberOfScalarComponents(numberOfScalarComponents);
+  aSource->SetFrameSize(width, height,1);
+  aSource->SetPixelType(pixelType);
+  aSource->SetNumberOfScalarComponents(numberOfScalarComponents);
 
   int frameSize[3]={width, height,1};
   this->UncompressedVideoFrame.AllocateFrame(frameSize,pixelType,numberOfScalarComponents);

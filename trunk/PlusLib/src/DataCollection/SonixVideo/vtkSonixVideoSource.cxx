@@ -239,8 +239,8 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
   vtkPlusDataSource* aSource = sources[0];
 
   int frameSize[3] = {0,0,0};
-  aSource->GetBuffer()->GetFrameSize(frameSize);
-  int frameBufferBytesPerPixel = aSource->GetBuffer()->GetNumberOfBytesPerPixel(); 
+  aSource->GetFrameSize(frameSize);
+  int frameBufferBytesPerPixel = aSource->GetNumberOfBytesPerPixel(); 
   const int frameSizeInBytes = frameSize[0] * frameSize[1] * frameBufferBytesPerPixel; 
 
   // for frame containing FC (frame count) in the beginning for data coming from cine, jump 2 bytes
@@ -275,7 +275,7 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
   // get the pointer to actual incoming data on to a local pointer
   unsigned char *deviceDataPtr = static_cast<unsigned char*>(dataPtr);
 
-  PlusStatus status = aSource->GetBuffer()->AddItem(deviceDataPtr, aSource->GetPortImageOrientation(), frameSize, pixelType, 1, imgType, numberOfBytesToSkip, this->FrameNumber); 
+  PlusStatus status = aSource->AddItem(deviceDataPtr, aSource->GetImageOrientation(), frameSize, pixelType, 1, imgType, numberOfBytesToSkip, this->FrameNumber); 
   this->Modified(); 
 
   return status;
@@ -1088,15 +1088,15 @@ PlusStatus vtkSonixVideoSource::ConfigureVideoSource( uData aValue )
   switch (aDataDescriptor.ss)
   {
   case 8:
-    aSource->GetBuffer()->SetPixelType( VTK_UNSIGNED_CHAR );
-    aSource->GetBuffer()->SetImageType( US_IMG_BRIGHTNESS );
-    aSource->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
+    aSource->SetPixelType( VTK_UNSIGNED_CHAR );
+    aSource->SetImageType( US_IMG_BRIGHTNESS );
+    aSource->SetImageOrientation(US_IMG_ORIENT_MF);
     break;
   case 16:
-    aSource->GetBuffer()->SetPixelType( VTK_SHORT );
-    aSource->GetBuffer()->SetImageType( US_IMG_RF_I_LINE_Q_LINE );
+    aSource->SetPixelType( VTK_SHORT );
+    aSource->SetImageType( US_IMG_RF_I_LINE_Q_LINE );
     // RF data is stored line-by-line, therefore set the storage buffer to FM orientation
-    aSource->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_FM);
+    aSource->SetImageOrientation(US_IMG_ORIENT_FM);
     // Swap w/h: in case of RF image acquisition the DataDescriptor.h is the width and the DataDescriptor.w is the height
     {
       int tmp = aDataDescriptor.h;

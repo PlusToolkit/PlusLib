@@ -142,8 +142,8 @@ PlusStatus vtkUsSimulatorVideoSource::InternalUpdate()
     return PLUS_FAIL;
   }
 
-  PlusStatus status = aSource->GetBuffer()->AddItem(
-    this->UsSimulator->GetOutput(), aSource->GetPortImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber, latestTrackerTimestamp, latestTrackerTimestamp);
+  PlusStatus status = aSource->AddItem(
+    this->UsSimulator->GetOutput(), aSource->GetImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber, latestTrackerTimestamp, latestTrackerTimestamp);
 
   this->Modified();
   return status;
@@ -169,15 +169,15 @@ PlusStatus vtkUsSimulatorVideoSource::InternalConnect()
   }
 
   // Set to default MF internal image orientation
-  aSource->SetPortImageOrientation(US_IMG_ORIENT_MF);
-  aSource->GetBuffer()->Clear();
+  aSource->SetImageOrientation(US_IMG_ORIENT_MF);
+  aSource->Clear();
   int frameSize[3]={0,0,0};
   if (this->UsSimulator->GetFrameSize(frameSize)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to initialize buffer, frame size is unknown");
     return PLUS_FAIL;
   }
-  aSource->GetBuffer()->SetFrameSize(frameSize);
+  aSource->SetFrameSize(frameSize);
   
   this->LastProcessedTrackingDataTimestamp = 0;
 
