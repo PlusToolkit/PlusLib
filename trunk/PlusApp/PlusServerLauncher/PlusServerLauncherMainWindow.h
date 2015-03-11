@@ -53,11 +53,18 @@ protected slots:
 
   void stdErrMsgReceived();
 
-  void errorReceived();
+  void errorReceived(QProcess::ProcessError);
 
   void serverExecutableFinished(int returnCode, QProcess::ExitStatus status);
 
 protected:
+
+  /*! Start server process, connect outputs to logger. Returns with true on success. */
+  bool startServer(QString& configFilePath);
+
+  /*! Stop server process, disconnect outputs. Returns with true on success (shutdown on request was successful, without forcing). */
+  bool stopServer();
+
   /*! Device set selector widget */
   DeviceSetSelectorWidget* m_DeviceSetSelectorWidget;
 

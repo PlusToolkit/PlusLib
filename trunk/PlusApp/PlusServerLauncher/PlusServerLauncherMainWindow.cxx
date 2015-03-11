@@ -77,13 +77,7 @@ PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent, Qt::
 //-----------------------------------------------------------------------------
 PlusServerLauncherMainWindow::~PlusServerLauncherMainWindow()
 {
-  if ( m_CurrentServerInstance != NULL )
-  {
-    m_CurrentServerInstance->terminate();
-    m_CurrentServerInstance->waitForFinished(-1);
-    delete m_CurrentServerInstance;
-    m_CurrentServerInstance = NULL;
-  }
+  stopServer(); // deletes m_CurrentServerInstance
 
   if ( m_DeviceSetSelectorWidget != NULL )
   {
@@ -93,31 +87,91 @@ PlusServerLauncherMainWindow::~PlusServerLauncherMainWindow()
 }
 
 //-----------------------------------------------------------------------------
+bool PlusServerLauncherMainWindow::startServer(QString& configFilePath)
+{
+  if (m_CurrentServerInstance!=NULL)
+  {
+    stopServer();
+  }
+
+  m_CurrentServerInstance = new QProcess();
+  std::string plusServerExecutable = vtkPlusConfig::GetInstance()->GetPlusExecutablePath("PlusServer");
+  std::string plusServerLocation = vtksys::SystemTools::GetFilenamePath(plusServerExecutable);
+  m_CurrentServerInstance->setWorkingDirectory(QString(plusServerLocation.c_str()));
+  connect(m_CurrentServerInstance, SIGNAL(readyReadStandardOutput()), this, SLOT(stdOutMsgReceived()));
+  connect(m_CurrentServerInstance, SIGNAL(readyReadStandardError()), this, SLOT(stdErrMsgReceived()));
+  connect(m_CurrentServerInstance, SIGNAL(error(QProcess::ProcessError)), this, SLOT(errorReceived(QProcess::ProcessError)));
+  connect(m_CurrentServerInstance, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(serverExecutableFinished(int, QProcess::ExitStatus)));
+  QString arg = QString("--config-file=\"").append(configFilePath).append("\"");
+  m_CurrentServerInstance->start(QString(plusServerExecutable.c_str()).append(" ").append(arg).append(" --verbose=3"));
+  m_CurrentServerInstance->waitForFinished(500);
+  if( m_CurrentServerInstance->state() == QProcess::Running )
+  {
+    LOG_INFO("Server process started successfully");
+    return true;
+  }
+  else
+  {
+    LOG_ERROR("Failed to start server process");
+    return false;
+  }
+}
+
+//-----------------------------------------------------------------------------
+bool PlusServerLauncherMainWindow::stopServer()
+{
+  if (m_CurrentServerInstance==NULL)
+  {
+    // already stopped
+    return true;
+  }
+  disconnect(m_CurrentServerInstance, SIGNAL(readyReadStandardOutput()), this, SLOT(stdOutMsgReceived()));
+  disconnect(m_CurrentServerInstance, SIGNAL(readyReadStandardError()), this, SLOT(stdErrMsgReceived()));
+  m_CurrentServerInstance->terminate();
+  if( m_CurrentServerInstance->state() == QProcess::Running )
+  {
+    LOG_INFO("Server process stop request sent successfully");
+  }
+  bool forcedShutdown=false;
+  const int totalTimeoutSec=15;
+  const double retryDelayTimeoutSec=0.3;
+  double timePassedSec=0;
+  while (!m_CurrentServerInstance->waitForFinished(retryDelayTimeoutSec*1000))
+  {
+    m_CurrentServerInstance->terminate(); // in release mode on Windows the first terminate request may go unnoticed
+    timePassedSec+=retryDelayTimeoutSec;
+    if (timePassedSec>totalTimeoutSec)
+    {
+      // graceful termination was not successful, force the process to quit
+      LOG_INFO("Server process did not stop on request for "<<timePassedSec<<" seconds, force it to quit now");
+      m_CurrentServerInstance->kill();
+      forcedShutdown=true;
+      break;
+    }
+  }
+  LOG_INFO("Server process stopped successfully");
+  disconnect(m_CurrentServerInstance, SIGNAL(error(QProcess::ProcessError)), this, SLOT(errorReceived()));
+  disconnect(m_CurrentServerInstance, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(serverExecutableFinished(int, QProcess::ExitStatus)));
+  delete m_CurrentServerInstance;
+  m_CurrentServerInstance = NULL;
+  return (!forcedShutdown);
+}
+
+
+//-----------------------------------------------------------------------------
 void PlusServerLauncherMainWindow::connectToDevicesByConfigFile(std::string aConfigFile)
 {
   // Either a connect or disconnect, we always start from a clean slate: delete any previously active servers
   if ( m_CurrentServerInstance != NULL )
   {
-    disconnect(m_CurrentServerInstance, SIGNAL(readyReadStandardOutput()), this, SLOT(stdOutMsgReceived()));
-    disconnect(m_CurrentServerInstance, SIGNAL(readyReadStandardError()), this, SLOT(stdErrMsgReceived()));
-    m_CurrentServerInstance->terminate();
-    if( m_CurrentServerInstance->state() == QProcess::Running )
-    {
-      LOG_INFO("Terminate request sent successfully.");
-    }
-    m_CurrentServerInstance->waitForFinished(-1);
-    LOG_INFO("Server cleaned up successfully.");
-    disconnect(m_CurrentServerInstance, SIGNAL(error()), this, SLOT(errorReceived()));
-    disconnect(m_CurrentServerInstance, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(serverExecutableFinished(int, QProcess::ExitStatus)));
-    delete m_CurrentServerInstance;
-    m_CurrentServerInstance = NULL;
+    stopServer();
   }
 
   // Disconnect
   // Empty parameter string means disconnect from device
   if ( aConfigFile.empty() )
   {
-    LOG_INFO("Disconnect request successful.");
+    LOG_INFO("Disconnect request successful");
     m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
     return; 
   }
@@ -125,23 +179,9 @@ void PlusServerLauncherMainWindow::connectToDevicesByConfigFile(std::string aCon
   LOG_INFO("Connect using configuration file: " << aConfigFile);
 
   // Connect
-
-  // Start server
-  m_CurrentServerInstance = new QProcess();
-  std::string plusServerExecutable = vtkPlusConfig::GetInstance()->GetPlusExecutablePath("PlusServer");
-  std::string plusServerLocation = vtksys::SystemTools::GetFilenamePath(plusServerExecutable);
-  m_CurrentServerInstance->setWorkingDirectory(QString(plusServerLocation.c_str()));
-  connect(m_CurrentServerInstance, SIGNAL(readyReadStandardOutput()), this, SLOT(stdOutMsgReceived()));
-  connect(m_CurrentServerInstance, SIGNAL(readyReadStandardError()), this, SLOT(stdErrMsgReceived()));
-  connect(m_CurrentServerInstance, SIGNAL(error()), this, SLOT(errorReceived()));
-  connect(m_CurrentServerInstance, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(serverExecutableFinished(int, QProcess::ExitStatus)));
-  QString arg = QString("--config-file=\"").append(QString(aConfigFile.c_str())).append("\"");
-  m_CurrentServerInstance->start(QString(plusServerExecutable.c_str()).append(" ").append(arg).append(" --verbose=3"));
-  m_CurrentServerInstance->waitForFinished(500);
-  if( m_CurrentServerInstance->state() == QProcess::Running )
+  if(startServer(QString(aConfigFile.c_str())))
   {
     m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
-    LOG_INFO("Server starting...");
     vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
   }
   else
@@ -198,8 +238,21 @@ void PlusServerLauncherMainWindow::stdErrMsgReceived()
 }
 
 //-----------------------------------------------------------------------------
-void PlusServerLauncherMainWindow::errorReceived()
+void PlusServerLauncherMainWindow::errorReceived(QProcess::ProcessError errorCode)
 {
+  const char* errorString="unknown";
+  switch (errorCode)
+  {
+    case QProcess::FailedToStart: errorString="FailedToStart"; break;
+    case QProcess::Crashed: errorString="Crashed"; break;
+    case QProcess::Timedout: errorString="Timedout"; break;
+    case QProcess::WriteError: errorString="WriteError"; break;
+    case QProcess::ReadError: errorString="ReadError"; break;
+    case QProcess::UnknownError:
+    default:
+      errorString="UnknownError";
+  }
+  LOG_ERROR("Server process error: "<<errorString);
   m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
 }
 
