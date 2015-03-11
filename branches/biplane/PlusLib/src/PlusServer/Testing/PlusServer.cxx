@@ -36,7 +36,7 @@ PlusStatus DisconnectClients( std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSo
 void SignalInterruptHandler(int s);
 static bool stopRequested = false;
 #ifdef _WIN32
-HWND GetConsoleHwnd(void);
+HWND GetConsoleHwnd();
 void CheckConsoleWindowCloseRequested(HWND consoleHwnd);
 #endif
 
@@ -358,22 +358,22 @@ void SignalInterruptHandler(int s)
 // (needed for capturing WM_CLOSE event on Windows because Qt cannot send SIGINT
 // on Windows)
 // Source: http://support.microsoft.com/kb/124103
-HWND GetConsoleHwnd(void)
+HWND GetConsoleHwnd()
 {
-  #define MY_BUFSIZE 1024 // Buffer size for console window titles.
+  const int TITLE_BUFFER_SIZE(1024); // Buffer size for console window titles.
   HWND hwndFound;         // This is what is returned to the caller.
-  char pszNewWindowTitle[MY_BUFSIZE]; // Contains fabricated WindowTitle.
-  char pszOldWindowTitle[MY_BUFSIZE]; // Contains original WindowTitle.
+  std::stringstream newWindowTitle; // Contains fabricated WindowTitle.
+  char pszOldWindowTitle[TITLE_BUFFER_SIZE]; // Contains original WindowTitle.
   // Fetch current window title.
-  GetConsoleTitle(pszOldWindowTitle, MY_BUFSIZE);
+  GetConsoleTitle(pszOldWindowTitle, TITLE_BUFFER_SIZE);
   // Format a "unique" NewWindowTitle.
-  wsprintf(pszNewWindowTitle,"%d/%d", GetTickCount(), GetCurrentProcessId());
+  newWindowTitle << GetTickCount() << "/" << GetCurrentProcessId();
   // Change current window title.
-  SetConsoleTitle(pszNewWindowTitle);
+  SetConsoleTitle(newWindowTitle.str().c_str());
   // Ensure window title has been updated.
   Sleep(40);
   // Look for NewWindowTitle.
-  hwndFound=FindWindow(NULL, pszNewWindowTitle);
+  hwndFound=FindWindow(NULL, newWindowTitle.str().c_str());
   // Restore original window title.
   SetConsoleTitle(pszOldWindowTitle);
   return(hwndFound);
