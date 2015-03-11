@@ -282,7 +282,7 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* 
   // Either pad out the log or add the optional prefix and pad
   if( optionalPrefix != NULL )
   {
-    log << optionalPrefix << "| ";
+    log << optionalPrefix << "> ";
   }
   else
   {
