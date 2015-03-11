@@ -320,7 +320,7 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
     LOG_ERROR("Unable to retrieve the video source in the SonixPorta device.");
     return PLUS_FAIL;
   }
-  int frameBufferBytesPerPixel = aSource->GetBuffer()->GetNumberOfBytesPerPixel(); 
+  int frameBufferBytesPerPixel = aSource->GetNumberOfBytesPerPixel(); 
   const int frameSizeInBytes = frameSize[0] * frameSize[1] * frameBufferBytesPerPixel; 
 
   // for frame containing FC (frame count) in the beginning for data coming from cine, jump 2 bytes
@@ -387,7 +387,7 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
   customFields["VolumeIndex"] =  volumeIndex.str();
   customFields["MotorAngleDeg"] = motorAngle.str();
 
-  PlusStatus status = aSource->GetBuffer()->AddItem(deviceDataPtr, aSource->GetPortImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, numberOfBytesToSkip, id, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields); 
+  PlusStatus status = aSource->AddItem(deviceDataPtr, aSource->GetImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, numberOfBytesToSkip, id, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields); 
 
   this->Modified();
   return status;

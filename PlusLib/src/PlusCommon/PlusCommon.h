@@ -93,6 +93,48 @@ enum PlusImagingMode
   msgStream << msg << std::ends; \
   vtkPlusLogger::Instance()->LogMessage(logLevel, msgStream.str().c_str(), __FILE__, __LINE__); \
   }
+
+#define LOG_ERROR_PREFIX(msg, prefix) \
+{ \
+  std::ostringstream msgStream; \
+  msgStream << msg << std::ends; \
+  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_ERROR, msgStream.str().c_str(), __FILE__, __LINE__, prefix); \
+  }  
+
+#define LOG_WARNING_PREFIX(msg, prefix) \
+{ \
+  std::ostringstream msgStream; \
+  msgStream << msg << std::ends; \
+  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_WARNING, msgStream.str().c_str(), __FILE__, __LINE__, prefix); \
+  }
+
+#define LOG_INFO_PREFIX(msg, prefix) \
+{ \
+  std::ostringstream msgStream; \
+  msgStream << msg << std::ends; \
+  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_INFO, msgStream.str().c_str(), __FILE__, __LINE__, prefix); \
+  }
+
+#define LOG_DEBUG_PREFIX(msg, prefix) \
+{ \
+  std::ostringstream msgStream; \
+  msgStream << msg << std::ends; \
+  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_DEBUG, msgStream.str().c_str(), __FILE__, __LINE__, prefix); \
+  }  
+
+#define LOG_TRACE_PREFIX(msg, prefix) \
+{ \
+  std::ostringstream msgStream; \
+  msgStream << msg << std::ends; \
+  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_TRACE, msgStream.str().c_str(), __FILE__, __LINE__, prefix); \
+  }
+
+#define LOG_DYNAMIC_PREFIX(msg, prefix, logLevel) \
+{ \
+  std::ostringstream msgStream; \
+  msgStream << msg << std::ends; \
+  vtkPlusLogger::Instance()->LogMessage(logLevel, msgStream.str().c_str(), __FILE__, __LINE__, prefix); \
+  }
   
 /////////////////////////////////////////////////////////////////// 
 
@@ -218,6 +260,10 @@ namespace PlusCommon
     }
     return PLUS_SUCCESS;
   }
+
+  static const int NO_CLIP = -1;
+  vtkPlusCommonExport bool IsClippingRequested(const int clipOrigin[3], const int clipSize[3]);
+  vtkPlusCommonExport bool IsClippingWithinExtents(const int clipOrigin[3], const int clipSize[3], const int extents[6]);
 
   vtkPlusCommonExport void SplitStringIntoTokens(const std::string &s, char delim, std::vector<std::string> &elems);
 

@@ -294,7 +294,7 @@ PlusStatus PlusCommon::PrintXML(ostream& os, vtkIndent indent, vtkXMLDataElement
 
   // If there are many attributes then print each of them in separate lines to improve readability
   bool printEachAttributeInNewLine=elem->GetNumberOfAttributes()>5;
-  
+
   for(int i=0;i < elem->GetNumberOfAttributes();++i)
   {
     std::string attName=elem->GetAttributeName(i);
@@ -461,4 +461,29 @@ void PlusCommon::SplitStringIntoTokens(const std::string &s, char delim, std::ve
   {
     elems.push_back(item);
   }
+}
+
+//-------------------------------------------------------
+bool PlusCommon::IsClippingRequested(const int clipOrigin[3], const int clipSize[3])
+{
+  return ( 
+    clipOrigin[0] != PlusCommon::NO_CLIP &&
+    clipOrigin[1] != PlusCommon::NO_CLIP &&
+    clipOrigin[2] != PlusCommon::NO_CLIP &&
+    clipSize[1] != PlusCommon::NO_CLIP &&
+    clipSize[1] != PlusCommon::NO_CLIP &&
+    clipSize[1] != PlusCommon::NO_CLIP
+    );
+}
+
+//-------------------------------------------------------
+bool PlusCommon::IsClippingWithinExtents(const int clipOrigin[3], const int clipSize[3], const int extents[6])
+{
+  return (clipOrigin[0] >= extents[0] && clipOrigin[0] <= extents[1]) &&
+    (clipOrigin[1] >= extents[2] && clipOrigin[1] <= extents[3]) &&  // Verify that the origin is within the image
+    (clipOrigin[2] >= extents[4] && clipOrigin[2] <= extents[5]) &&
+
+    (clipOrigin[0]+clipSize[0]-1 <= extents[1]) &&
+    (clipOrigin[1]+clipSize[1]-1 <= extents[3]) && // Verify that the extent of the clipping falls within the image
+    (clipOrigin[2]+clipSize[2]-1 <= extents[5]);
 }

@@ -140,8 +140,7 @@ int main(int argc, char **argv)
     exit( EXIT_FAILURE );
   }
 
-  videobuffer->DeepCopy(aSource->GetBuffer());
-
+  aSource->DeepCopyBufferTo(*videobuffer);
 
   vtkSmartPointer<vtkPlusDevice> tracker = vtkSmartPointer<vtkPlusDevice>::New(); 
   if ( trackerDevice != NULL )

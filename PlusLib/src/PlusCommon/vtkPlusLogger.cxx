@@ -239,7 +239,7 @@ std::string vtkPlusLogger::GetLogFileName()
 }
 
 //-------------------------------------------------------
-void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* fileName, int lineNumber)
+void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* fileName, int lineNumber, const char* optionalPrefix)
 {
   if (m_LogLevel < level)
   {
@@ -277,9 +277,20 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* 
 
   // Add timestamp to the log message
   double currentTime = vtkAccurateTimer::GetSystemTime(); 
-  log << "|" << std::fixed << std::setw(10) << std::right << std::setfill('0') << currentTime
-    << "| " << msg
-    << "|in " << fileName << "(" << lineNumber << ")"; // add filename and line number
+  log << "|" << std::fixed << std::setw(10) << std::right << std::setfill('0') << currentTime << "|";
+
+  // Either pad out the log or add the optional prefix and pad
+  if( optionalPrefix != NULL )
+  {
+    log << optionalPrefix << "| ";
+  }
+  else
+  {
+    log << " ";
+  }
+
+  // Add the message to the log
+  log << msg << "|in " << fileName << "(" << lineNumber << ")"; // add filename and line number
 
   {
     PlusLockGuard<vtkRecursiveCriticalSection> critSectionGuard(this->m_CriticalSection);

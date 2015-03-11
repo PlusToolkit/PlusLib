@@ -61,28 +61,53 @@ public:
     Add a frame plus a timestamp to the buffer with frame index.
     If the timestamp is  less than or equal to the previous timestamp,
     or if the frame's format doesn't match the buffer's frame format,
-    then the frame is not added to the buffer.
+    then the frame is not added to the buffer. If a clip rectangle is defined
+    then only that portion of the frame is extracted.
   */
-  virtual PlusStatus AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, US_IMAGE_TYPE imageType, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
-    double filteredTimestamp=UNDEFINED_TIMESTAMP, const TrackedFrame::FieldMapType* customFields = NULL); 
+  virtual PlusStatus AddItem(vtkImageData* frame, 
+    US_IMAGE_ORIENTATION usImageOrientation, 
+    US_IMAGE_TYPE imageType, 
+    long frameNumber, 
+    const int clipRectangleOrigin[3],
+    const int clipRectangleSize[3],
+    double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
+    double filteredTimestamp=UNDEFINED_TIMESTAMP, 
+    const TrackedFrame::FieldMapType* customFields = NULL); 
   /*!
     Add a frame plus a timestamp to the buffer with frame index.
     If the timestamp is  less than or equal to the previous timestamp,
     or if the frame's format doesn't match the buffer's frame format,
-    then the frame is not added to the buffer.
+    then the frame is not added to the buffer. If a clip rectangle is defined
+    then only that portion of the frame is extracted.
   */
-  virtual PlusStatus AddItem(const PlusVideoFrame* frame, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
-    double filteredTimestamp=UNDEFINED_TIMESTAMP, const TrackedFrame::FieldMapType* customFields = NULL); 
+  virtual PlusStatus AddItem(const PlusVideoFrame* frame, 
+    long frameNumber, 
+    const int clipRectangleOrigin[3],
+    const int clipRectangleSize[3],
+    double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
+    double filteredTimestamp=UNDEFINED_TIMESTAMP, 
+    const TrackedFrame::FieldMapType* customFields = NULL); 
   /*!
     Add a frame plus a timestamp to the buffer with frame index.
     Additionally an optional field name&value can be added,
     which will be saved as a custom field of the added item.
     If the timestamp is  less than or equal to the previous timestamp,
     or if the frame's format doesn't match the buffer's frame format,
-    then the frame is not added to the buffer.
+    then the frame is not added to the buffer. If a clip rectangle is defined
+    then only that portion of the image is extracted.
   */
-  virtual PlusStatus AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, const int frameSizeInPx[3], PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, 
-    int  numberOfBytesToSkip, long   frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, double filteredTimestamp=UNDEFINED_TIMESTAMP, 
+  virtual PlusStatus AddItem(void* imageDataPtr, 
+    US_IMAGE_ORIENTATION  usImageOrientation, 
+    const int inputFrameSizeInPx[3], 
+    PlusCommon::VTKScalarPixelType pixelType, 
+    int numberOfScalarComponents, 
+    US_IMAGE_TYPE imageType, 
+    int  numberOfBytesToSkip, 
+    long frameNumber, 
+    const int clipRectangleOrigin[3],
+    const int clipRectangleSize[3],
+    double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
+    double filteredTimestamp=UNDEFINED_TIMESTAMP, 
     const TrackedFrame::FieldMapType* customFields = NULL);
 
   /*!

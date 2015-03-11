@@ -11,6 +11,8 @@
 
 #include "vtkPlusDevice.h"
 
+#include "v2u_defs.h"
+
 /*!
   \class vtkEpiphanVideoSource 
   \brief Class for providing video input interfaces between VTK and Epiphan frame grabber device
@@ -65,6 +67,11 @@ public:
   */
   vtkGetVector2Macro(ClipRectangleOrigin,int);
 
+  /*!
+    Perform any completion tasks once configured
+  */
+  virtual PlusStatus NotifyConfigured();
+
 protected:
   /*! Constructor */
   vtkEpiphanVideoSource();
@@ -86,10 +93,10 @@ protected:
   /*! The internal function which actually does the grab.  */
   PlusStatus InternalUpdate();
 
-  /*! Crop rectangle origin for the grabber (in pixels) */
+  /*! Crop rectangle origin for the grabber (in pixels, done in hardware) */
   int ClipRectangleOrigin[2];
 
-  /*! Crop rectangle size for the grabber (in pixels). If it is (0,0) then the whole frame will be captured. */
+  /*! Crop rectangle size for the grabber (in pixels, done in hardware). If it is (0,0) then the whole frame will be captured. */
   int ClipRectangleSize[2];
 
   /*! String to specify the framegrabber to connect to (auto-detection is attempted if unspecified) */
@@ -98,8 +105,14 @@ protected:
   /*! Epiphan Pointer to the grabber */
   void* FrameGrabber;
 
-  /*! Frame size of the captured image */
-  int FrameSize[2];
+  /*! Frame size of the captured image, third dimension is set to 1*/
+  int FrameSize[3];
+
+  /*! The type of image to capture from the hardware */
+  US_IMAGE_TYPE CaptureImageType;
+
+  /*! Dimensions to request from framegrabber */
+  V2URect* CropRectangle;
 
 private:
   vtkEpiphanVideoSource(const vtkEpiphanVideoSource&);  // Not implemented.
