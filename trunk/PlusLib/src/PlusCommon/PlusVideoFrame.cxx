@@ -1200,6 +1200,32 @@ PlusStatus PlusVideoFrame::FlipClipImage(vtkImageData* inUsImage,
 #endif
   }
 
+  if ( !flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.eFlip && flipInfo.tranpose == TRANSPOSE_NONE )
+  {
+    if( PlusCommon::IsClippingRequested(clipRectangleOrigin, clipRectangleSize) )
+    {
+      // No flip or transpose, but clipping requested, let vtk do the heavy lifting
+      vtkSmartPointer<vtkExtractVOI> extract = vtkSmartPointer<vtkExtractVOI>::New();
+      vtkSmartPointer<vtkTrivialProducer> tp = vtkSmartPointer<vtkTrivialProducer>::New();
+      tp->SetOutput(inUsImage);
+      extract->SetInputConnection(tp->GetOutputPort());
+      extract->SetVOI(
+        clipRectangleOrigin[0], clipRectangleOrigin[0]+clipRectangleSize[0]-1,
+        clipRectangleOrigin[1], clipRectangleOrigin[1]+clipRectangleSize[1]-1,
+        clipRectangleOrigin[2], clipRectangleOrigin[2]+clipRectangleSize[2]-1
+        );
+      extract->SetOutput(outUsOrientedImage);
+      extract->Update();
+      return PLUS_SUCCESS;
+    }
+    else
+    {
+      // no flip, clip or transpose
+      outUsOrientedImage->ShallowCopy( inUsImage ); 
+      return PLUS_SUCCESS; 
+    }
+  }
+
   switch(outUsOrientedImage->GetScalarType())
   {
   case VTK_UNSIGNED_CHAR: return FlipClipImageGeneric<vtkTypeUInt8>(inUsImage, flipInfo, clipRectangleOrigin, clipRectangleSize, outUsOrientedImage);
