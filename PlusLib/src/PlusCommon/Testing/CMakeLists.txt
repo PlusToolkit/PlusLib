@@ -120,6 +120,29 @@ ADD_TEST(EditSeqMetaFileCropImageRectangleCompareToBaselineTest
   )
 SET_TESTS_PROPERTIES( EditSeqMetaFileCropImageRectangleCompareToBaselineTest PROPERTIES DEPENDS EditSeqMetaFileCropImageRectangle )
 
+#--------------------------------------------------------------------------------------------
+ADD_TEST(NAME EditSeqMetaFileCropImageRectangleFlipX
+  COMMAND $<TARGET_FILE:EditSeqMetaFile>
+  --operation=CROP
+  --flipX
+  --rect-origin 52 25
+  --rect-size 260 25
+  --source-seq-file=${TEST_OUTPUT_PATH}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.mha 
+  --output-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Cropped_FlipX.mha 
+  --use-compression
+  --verbose=3
+  )
+SET_TESTS_PROPERTIES( EditSeqMetaFileCropImageRectangleFlipX PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )  
+SET_TESTS_PROPERTIES( EditSeqMetaFileCropImageRectangleFlipX PROPERTIES DEPENDS EditSeqMetaFileTrim)
+
+ADD_TEST(EditSeqMetaFileCropImageRectangleFlipXCompareToBaselineTest
+  ${CMAKE_COMMAND} -E compare_files 
+   ${TEST_OUTPUT_PATH}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Cropped_FlipX.mha
+   ${TestDataDir}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Cropped_FlipX.mha
+  )
+SET_TESTS_PROPERTIES( EditSeqMetaFileCropImageRectangleFlipXCompareToBaselineTest PROPERTIES DEPENDS EditSeqMetaFileCropImageRectangleFlipX )
+
+#--------------------------------------------------------------------------------------------
 ADD_TEST(NAME EditSeqMetaFileRemoveImageData
   COMMAND $<TARGET_FILE:EditSeqMetaFile>
   --operation=REMOVE_IMAGE_DATA 
@@ -136,6 +159,7 @@ ADD_TEST(EditSeqMetaFileRemoveImageDataCompareToBaselineTest
   )
 SET_TESTS_PROPERTIES( EditSeqMetaFileRemoveImageDataCompareToBaselineTest PROPERTIES DEPENDS EditSeqMetaFileRemoveImageData )
 
+#--------------------------------------------------------------------------------------------
 ADD_TEST(NAME EditSeqMetaFileRemoveImageDataCompressed
   COMMAND $<TARGET_FILE:EditSeqMetaFile>
   --operation=REMOVE_IMAGE_DATA
@@ -153,6 +177,7 @@ ADD_TEST(EditSeqMetaFileRemoveImageDataCompressedCompareToBaselineTest
   )
 SET_TESTS_PROPERTIES( EditSeqMetaFileRemoveImageDataCompressedCompareToBaselineTest PROPERTIES DEPENDS EditSeqMetaFileRemoveImageDataCompressed )
 
+#--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(ModelRenderer ModelRenderer.cxx )
 TARGET_LINK_LIBRARIES(ModelRenderer vtkPlusCommon )
 

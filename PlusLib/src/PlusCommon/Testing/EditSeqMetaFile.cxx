@@ -70,7 +70,7 @@ PlusStatus DeleteFrameField( vtkTrackedFrameList* trackedFrameList, std::string 
 PlusStatus ConvertStringToMatrix( std::string &strMatrix, vtkMatrix4x4* matrix); 
 PlusStatus AddTransform( vtkTrackedFrameList* trackedFrameList, std::string transformNameToAdd, std::string deviceSetConfigurationFileName );
 PlusStatus FillRectangle( vtkTrackedFrameList* trackedFrameList, const std::vector<int> &fillRectOrigin, const std::vector<int> &fillRectSize, int fillGrayLevel);
-PlusStatus CropRectangle( vtkTrackedFrameList* trackedFrameList, const std::vector<int> &cropRectOrigin, const std::vector<int> &cropRectSize);
+PlusStatus CropRectangle( vtkTrackedFrameList* trackedFrameList, PlusVideoFrame::FlipInfoType& flipInfo, const std::vector<int> &cropRectOrigin, const std::vector<int> &cropRectSize);
 
 const char* FIELD_VALUE_FRAME_SCALAR="{frame-scalar}"; 
 const char* FIELD_VALUE_FRAME_TRANSFORM="{frame-transform}"; 
@@ -119,6 +119,10 @@ int main(int argc, char **argv)
   std::vector<int> rectSizePix; // Fill/crop rectangle size in MF coordinate frame, in pixels
   int fillGrayLevel=0; // Rectangle fill color
 
+  bool flipX(false);
+  bool flipY(false);
+  bool flipZ(false);
+
   args.Initialize(argc, argv);
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
@@ -157,6 +161,9 @@ int main(int argc, char **argv)
 
   args.AddArgument("--rect-origin", vtksys::CommandLineArguments::MULTI_ARGUMENT, &rectOriginPix, "Fill or crop rectangle top-left corner position in MF coordinate frame, in pixels. Required for FILL_IMAGE_RECTANGLE and CROP operations.");
   args.AddArgument("--rect-size", vtksys::CommandLineArguments::MULTI_ARGUMENT, &rectSizePix, "Fill or crop rectangle size in MF coordinate frame, in pixels. Required for FILL_IMAGE_RECTANGLE and CROP operations.");
+  args.AddArgument("--flipX", vtksys::CommandLineArguments::NO_ARGUMENT, &flipX, "Flip image along X axis.");
+  args.AddArgument("--flipY", vtksys::CommandLineArguments::NO_ARGUMENT, &flipY, "Flip image along Y axis.");
+  args.AddArgument("--flipZ", vtksys::CommandLineArguments::NO_ARGUMENT, &flipZ, "Flip image along Z axis.");
   args.AddArgument("--fill-gray-level", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &fillGrayLevel, "Rectangle fill gray level. 0 = black, 255 = white. (Default: 0)");  
 
   if ( !args.Parse() )
@@ -482,7 +489,11 @@ int main(int argc, char **argv)
   case CROP: 
     {
       // Crop a rectangular region from the image
-      if (CropRectangle(trackedFrameList,rectOriginPix,rectSizePix)!=PLUS_SUCCESS)
+      PlusVideoFrame::FlipInfoType flipInfo;
+      flipInfo.hFlip = flipX;
+      flipInfo.vFlip = flipY;
+      flipInfo.eFlip = flipZ;
+      if (CropRectangle(trackedFrameList,flipInfo,rectOriginPix,rectSizePix)!=PLUS_SUCCESS)
       {
         LOG_ERROR("Failed to fill rectangle");
         return EXIT_FAILURE;
@@ -954,7 +965,7 @@ PlusStatus FillRectangle(vtkTrackedFrameList* trackedFrameList, const std::vecto
 }
 
 //-------------------------------------------------------
-PlusStatus CropRectangle(vtkTrackedFrameList* trackedFrameList, const std::vector<int> &cropRectOrigin, const std::vector<int> &cropRectSize)
+PlusStatus CropRectangle(vtkTrackedFrameList* trackedFrameList, PlusVideoFrame::FlipInfoType& flipInfo, const std::vector<int> &cropRectOrigin, const std::vector<int> &cropRectSize)
 {
   if ( trackedFrameList == NULL )
   {
@@ -985,7 +996,6 @@ PlusStatus CropRectangle(vtkTrackedFrameList* trackedFrameList, const std::vecto
     
     vtkSmartPointer<vtkImageData> croppedImage = vtkSmartPointer<vtkImageData>::New();
 
-    PlusVideoFrame::FlipInfoType flipInfo;
     PlusVideoFrame::FlipClipImage(videoFrame->GetImage(), flipInfo, rectOrigin, rectSize, croppedImage);
     videoFrame->DeepCopyFrom(croppedImage);
     trackedFrame->SetCustomFrameTransform(imageToCroppedImage, tfmMatrix);
