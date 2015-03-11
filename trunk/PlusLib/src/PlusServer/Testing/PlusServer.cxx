@@ -361,7 +361,6 @@ void SignalInterruptHandler(int s)
 HWND GetConsoleHwnd()
 {
   const int TITLE_BUFFER_SIZE(1024); // Buffer size for console window titles.
-  HWND hwndFound;         // This is what is returned to the caller.
   std::stringstream newWindowTitle; // Contains fabricated WindowTitle.
   char pszOldWindowTitle[TITLE_BUFFER_SIZE]; // Contains original WindowTitle.
   // Fetch current window title.
@@ -373,7 +372,7 @@ HWND GetConsoleHwnd()
   // Ensure window title has been updated.
   Sleep(40);
   // Look for NewWindowTitle.
-  hwndFound=FindWindow(NULL, newWindowTitle.str().c_str());
+  HWND hwndFound=FindWindow(NULL, newWindowTitle.str().c_str());
   // Restore original window title.
   SetConsoleTitle(pszOldWindowTitle);
   return(hwndFound);
