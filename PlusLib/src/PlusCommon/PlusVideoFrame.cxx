@@ -281,6 +281,11 @@ namespace
       else
       {
         // Transpose an image in KIJ layout to IJK layout single column
+        // Need to adjust output dimensions to match transposed axes
+        int temp = outputWidth;
+        outputWidth = outputHeight;
+        outputHeight = outputDepth;
+        outputDepth = temp;
 
         // Set the input position to the first unclipped pixel
         ScalarType* inputPixel = (ScalarType*)inBuff + finalClipOrigin[0]*pixelIncrement;
@@ -891,6 +896,7 @@ PlusStatus PlusVideoFrame::GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1,
   {
     // Tranpose J KI images to K IJ images
     flipInfo.tranpose=TRANSPOSE_KIJtoIJK;
+    return PLUS_SUCCESS;
   }
 
   assert(0);

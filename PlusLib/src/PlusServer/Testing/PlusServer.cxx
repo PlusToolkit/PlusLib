@@ -255,6 +255,8 @@ int main( int argc, char** argv )
     LOG_INFO("Test is successfully completed");
   }
 
+  LOG_INFO("Shutdown successful.");
+
   return EXIT_SUCCESS;
 }
 
