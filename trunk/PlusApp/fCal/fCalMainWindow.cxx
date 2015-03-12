@@ -955,11 +955,11 @@ void fCalMainWindow::UpdateSliceNumberUI()
       item.GetFrame().GetImage()->GetDimensions(dims);
       this->ui.spinBox_SliceNumber->setValue(0);
       this->ui.spinBox_SliceNumber->setMinimum(0);
-      this->ui.spinBox_SliceNumber->setMaximum(dims[2]);
+      this->ui.spinBox_SliceNumber->setMaximum(dims[2]-1);
       this->ui.spinBox_SliceNumber->setSingleStep(1);
       this->ui.horizontalSlider_SliceNumber->setValue(0);
       this->ui.horizontalSlider_SliceNumber->setMinimum(0);
-      this->ui.horizontalSlider_SliceNumber->setMaximum(dims[2]);
+      this->ui.horizontalSlider_SliceNumber->setMaximum(dims[2]-1);
       this->ui.horizontalSlider_SliceNumber->setTickInterval(1);
       this->GetVisualizationController()->SetSliceNumber(0);
     }

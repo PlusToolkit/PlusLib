@@ -143,7 +143,7 @@ bool PlusServerLauncherMainWindow::stopServer()
     if (timePassedSec>totalTimeoutSec)
     {
       // graceful termination was not successful, force the process to quit
-      LOG_INFO("Server process did not stop on request for "<<timePassedSec<<" seconds, force it to quit now");
+      LOG_WARNING("Server process did not stop on request for "<<timePassedSec<<" seconds, force it to quit now");
       m_CurrentServerInstance->kill();
       forcedShutdown=true;
       break;
