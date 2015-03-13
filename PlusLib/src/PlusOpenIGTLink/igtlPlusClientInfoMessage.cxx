@@ -29,7 +29,7 @@ PlusClientInfoMessage::~PlusClientInfoMessage()
 //----------------------------------------------------------------------------
 void PlusClientInfoMessage::SetClientInfo( const PlusIgtlClientInfo& clientInfo ) 
 {
-  this->m_ClientInfo.ShallowCopy(clientInfo); 
+  this->m_ClientInfo=clientInfo;
   std::string clientInfoXmlData; 
   this->m_ClientInfo.GetClientInfoInXmlData(clientInfoXmlData); 
   this->SetString(clientInfoXmlData); 
@@ -38,12 +38,10 @@ void PlusClientInfoMessage::SetClientInfo( const PlusIgtlClientInfo& clientInfo 
 //----------------------------------------------------------------------------
 PlusIgtlClientInfo PlusClientInfoMessage::GetClientInfo()
 {
-  PlusIgtlClientInfo clientInfo;   
-  if ( clientInfo.SetClientInfoFromXmlData(this->GetString()) != PLUS_SUCCESS )
+  if ( this->m_ClientInfo.SetClientInfoFromXmlData(this->GetString()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to set Plus client info from received message!"); 
   }
-  this->m_ClientInfo.ShallowCopy(clientInfo); 
   return this->m_ClientInfo;
 }
 
