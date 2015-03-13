@@ -70,6 +70,7 @@ vtkNDITracker::vtkNDITracker()
   this->IsDeviceTracking = 0;
   this->SerialPort = -1; // default is to probe
   this->BaudRate = 9600;
+  this->MeasurementVolumeNumber = 0; // keep default volume
 
   this->LastFrameNumber=0;
 
@@ -263,6 +264,41 @@ PlusStatus vtkNDITracker::InternalConnect()
     ndiClose(this->Device);
     this->Device = 0;
     return PLUS_FAIL;
+  }
+
+  if (this->MeasurementVolumeNumber!=0)
+  {
+    const char* volumeSelectCommandReply=ndiCommand(this->Device,"VSEL:%d",this->MeasurementVolumeNumber);
+    errnum = ndiGetError(this->Device);
+    if (errnum) 
+    {
+      LOG_ERROR("Failed to set measurement volume "<<this->MeasurementVolumeNumber<<": "<<ndiErrorString(errnum));
+
+      const unsigned char MODE_GET_VOLUMES_LIST = 0x03; // list of volumes available
+      const char* volumeListCommandReply=ndiCommand(this->Device,"SFLIST:%02X",MODE_GET_VOLUMES_LIST);
+      errnum = ndiGetError(this->Device);
+      if (errnum || volumeListCommandReply==NULL)
+      {
+        LOG_ERROR("Failed to retrieve list of available volumes: "<<ndiErrorString(errnum));
+      }
+      else
+      {
+        LogVolumeList(volumeListCommandReply, 0, vtkPlusLogger::LOG_LEVEL_INFO);
+      }
+      ndiClose(this->Device);
+      this->Device = 0;
+      return PLUS_FAIL;
+    }
+    else
+    {
+      const unsigned char MODE_GET_VOLUMES_LIST = 0x03; // list of volumes available
+      const char* volumeListCommandReply=ndiCommand(this->Device,"SFLIST:%02X",MODE_GET_VOLUMES_LIST);
+      errnum = ndiGetError(this->Device);
+      if (!errnum || volumeListCommandReply!=NULL)
+      {
+        LogVolumeList(volumeListCommandReply, this->MeasurementVolumeNumber, vtkPlusLogger::LOG_LEVEL_DEBUG);
+      }
+    }
   }
 
   // get information about the device
@@ -905,6 +941,7 @@ PlusStatus vtkNDITracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement
 
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, SerialPort, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, BaudRate, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, MeasurementVolumeNumber, deviceConfig);
 
   XML_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
 
@@ -984,5 +1021,57 @@ PlusStatus vtkNDITracker::WriteConfiguration(vtkXMLDataElement* rootConfig)
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(trackerConfig, rootConfig);
   trackerConfig->SetIntAttribute("SerialPort", this->SerialPort);
   trackerConfig->SetIntAttribute("BaudRate", this->BaudRate );
+  trackerConfig->SetIntAttribute("MeasurementVolumeNumber", this->MeasurementVolumeNumber );
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+void vtkNDITracker::LogVolumeList(const char* ndiVolumeListCommandReply, int selectedVolume, vtkPlusLogger::LogLevelType logLevel)
+{
+  unsigned long numberOfVolumes = ndiHexToUnsignedLong(ndiVolumeListCommandReply, 1);
+  if (selectedVolume==0)
+  {
+    LOG_DYNAMIC("Number of available measurement volumes: "<<numberOfVolumes, logLevel);
+  }
+  for (int volIndex=0; volIndex<numberOfVolumes; volIndex++)
+  {
+    if (selectedVolume>0 && selectedVolume!=volIndex+1)
+    {
+      continue;
+    }
+    LOG_DYNAMIC("Measurement volume "<<volIndex+1, logLevel);
+    const char* volDescriptor = ndiVolumeListCommandReply+1+volIndex*74;
+
+    std::string shapeType;
+    switch (volDescriptor[0])
+    {
+    case '9': shapeType="Cube volume"; break;
+    case 'A': shapeType="Dome volume"; break;
+    default: shapeType="unknown";
+    }
+    LOG_DYNAMIC(" Shape type: "<<shapeType<<" ("<<volDescriptor[0]<<")", logLevel);
+
+    LOG_DYNAMIC(" D1 (minimum x value) = "<<ndiSignedToLong(volDescriptor+1, 7)/100, logLevel);
+    LOG_DYNAMIC(" D2 (maximum x value) = "<<ndiSignedToLong(volDescriptor+8, 7)/100, logLevel);
+    LOG_DYNAMIC(" D3 (minimum y value) = "<<ndiSignedToLong(volDescriptor+15, 7)/100, logLevel);
+    LOG_DYNAMIC(" D4 (maximum y value) = "<<ndiSignedToLong(volDescriptor+22, 7)/100, logLevel);
+    LOG_DYNAMIC(" D5 (minimum z value) = "<<ndiSignedToLong(volDescriptor+29, 7)/100, logLevel);
+    LOG_DYNAMIC(" D6 (maximum z value) = "<<ndiSignedToLong(volDescriptor+36, 7)/100, logLevel);
+    LOG_DYNAMIC(" D7 (reserved) = "<<ndiSignedToLong(volDescriptor+43, 7)/100, logLevel);
+    LOG_DYNAMIC(" D8 (reserved) = "<<ndiSignedToLong(volDescriptor+50, 7)/100, logLevel);
+    LOG_DYNAMIC(" D9 (reserved) = "<<ndiSignedToLong(volDescriptor+57, 7)/100, logLevel);
+    LOG_DYNAMIC(" D10 (reserved) = "<<ndiSignedToLong(volDescriptor+64, 7)/100, logLevel);
+
+    LOG_DYNAMIC(" Reserved: "<<volDescriptor[71], logLevel);
+
+    std::string metalResistant;
+    switch (volDescriptor[72])
+    {
+    case '0': metalResistant="no information"; break;
+    case '1': metalResistant="metal resistant"; break;
+    case '2': metalResistant="not metal resistant"; break;
+    default: metalResistant="unknown";
+    }
+    LOG_DYNAMIC(" Metal resistant: "<<metalResistant<<" ("<<volDescriptor[72]<<")", logLevel);
+  }
 }

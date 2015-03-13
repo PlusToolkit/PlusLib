@@ -151,6 +151,16 @@ public:
   vtkGetMacro(BaudRate, int);
 
   /*!
+    Measurement volume number. It can be used for defining volume type (dome, cube) and size.
+    Default is 0, which means that the default volume is used.
+    First valid volume number is 1.
+    If an invalid value is set (for example -1) then a list of available volumes is logged.
+    See VSEL command in the NDI API documentation for details.
+  */
+  vtkSetMacro(MeasurementVolumeNumber, int);
+  vtkGetMacro(MeasurementVolumeNumber, int);  
+
+  /*!
     Get an update from the tracking system and push the new transforms
     to the tools.  This should only be used within vtkTracker.cxx.
   */
@@ -237,6 +247,9 @@ protected:
   */
   void DisableToolPorts();
 
+  /*! Parse and log available volume list response */
+  void LogVolumeList(const char* ndiVolumeListCommandReply, int selectedVolume, vtkPlusLogger::LogLevelType logLevel);
+
   /*! Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
   unsigned long LastFrameNumber;
 
@@ -247,6 +260,8 @@ protected:
   int SerialPort; 
   int BaudRate;
   int IsDeviceTracking;
+
+  int MeasurementVolumeNumber;
 
   typedef std::map<std::string, NdiToolDescriptor> NdiToolDescriptorsType;
   /*! Maps Plus tool source IDs to NDI tool descriptors */
