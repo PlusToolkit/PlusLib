@@ -125,8 +125,7 @@ PlusStatus vtkPlusIgtlMessageFactory::CreateInstance(const char* aIgtlMessageTyp
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const std::vector<std::string>& igtlMessageTypes, std::vector<igtl::MessageBase::Pointer>& igtlMessages, TrackedFrame& trackedFrame, 
-    const std::vector<PlusTransformName>& transformNames, const std::vector<PlusIgtlClientInfo::ImageStream>& imageStreams, const std::vector<std::string>& stringNames,
+PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& clientInfo, std::vector<igtl::MessageBase::Pointer>& igtlMessages, TrackedFrame& trackedFrame,
     bool packValidTransformsOnly, vtkTransformRepository* transformRepository/*=NULL*/)
 {
   int numberOfErrors = 0; 
@@ -137,7 +136,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const std::vector<std::string
     transformRepository->SetTransforms(trackedFrame); 
   }
 
-  for ( std::vector<std::string>::const_iterator messageTypeIterator = igtlMessageTypes.begin(); messageTypeIterator != igtlMessageTypes.end(); ++ messageTypeIterator )
+  for ( std::vector<std::string>::const_iterator messageTypeIterator = clientInfo.IgtlMessageTypes.begin(); messageTypeIterator != clientInfo.IgtlMessageTypes.end(); ++ messageTypeIterator )
   {
     std::string messageType = (*messageTypeIterator); 
     igtl::MessageBase::Pointer igtlMessage = NULL; 
@@ -151,7 +150,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const std::vector<std::string
     // Image message 
     if ( STRCASECMP(messageType.c_str(), "IMAGE") == 0 )
     {
-      for ( std::vector<PlusIgtlClientInfo::ImageStream>::const_iterator imageStreamIterator = imageStreams.begin(); imageStreamIterator != imageStreams.end(); ++imageStreamIterator)
+      for ( std::vector<PlusIgtlClientInfo::ImageStream>::const_iterator imageStreamIterator = clientInfo.ImageStreams.begin(); imageStreamIterator != clientInfo.ImageStreams.end(); ++imageStreamIterator)
       {
         PlusIgtlClientInfo::ImageStream imageStream = (*imageStreamIterator);
         
@@ -182,7 +181,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const std::vector<std::string
     // Transform message 
     else if (STRCASECMP(messageType.c_str(), "TRANSFORM") == 0 )
     {
-      for ( std::vector<PlusTransformName>::const_iterator transformNameIterator = transformNames.begin(); transformNameIterator != transformNames.end(); ++transformNameIterator)
+      for ( std::vector<PlusTransformName>::const_iterator transformNameIterator = clientInfo.TransformNames.begin(); transformNameIterator != clientInfo.TransformNames.end(); ++transformNameIterator)
       {
         PlusTransformName transformName = (*transformNameIterator);
         bool isValid = false;
@@ -206,7 +205,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const std::vector<std::string
     // Position message 
     else if ( STRCASECMP(messageType.c_str(), "POSITION") == 0 )
     {
-      for ( std::vector<PlusTransformName>::const_iterator transformNameIterator = transformNames.begin(); transformNameIterator != transformNames.end(); ++transformNameIterator)
+      for ( std::vector<PlusTransformName>::const_iterator transformNameIterator = clientInfo.TransformNames.begin(); transformNameIterator != clientInfo.TransformNames.end(); ++transformNameIterator)
       {
         PlusTransformName transformName = (*transformNameIterator);
         igtl::Matrix4x4 igtlMatrix; 
@@ -245,7 +244,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const std::vector<std::string
     // String message 
     else if (STRCASECMP(messageType.c_str(), "STRING") == 0 )
     {
-      for ( std::vector< std::string >::const_iterator stringNameIterator = stringNames.begin(); stringNameIterator != stringNames.end(); ++stringNameIterator)
+      for ( std::vector< std::string >::const_iterator stringNameIterator = clientInfo.StringNames.begin(); stringNameIterator != clientInfo.StringNames.end(); ++stringNameIterator)
       {
         const char* stringName = stringNameIterator->c_str();
         const char* stringValue = trackedFrame.GetCustomFrameField(stringName);

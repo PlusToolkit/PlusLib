@@ -6,62 +6,6 @@ See License.txt for details.
 
 #include "PlusIgtlClientInfo.h"
 
-int PlusIgtlClientInfo::ClientIdCounter=1;
-
-
-//----------------------------------------------------------------------------
-PlusIgtlClientInfo::PlusIgtlClientInfo()
-{
-  this->ClientSocket = NULL; 
-  this->ClientId=ClientIdCounter;
-  this->ClientIdCounter++;  
-}
-
-//----------------------------------------------------------------------------
-PlusIgtlClientInfo::~PlusIgtlClientInfo()
-{
-
-}
-
-//----------------------------------------------------------------------------
-PlusIgtlClientInfo::PlusIgtlClientInfo(const PlusIgtlClientInfo& clientInfo)
-{
-  this->ClientSocket = NULL;
-  this->ClientId=ClientIdCounter;
-  this->ClientIdCounter++;  
-  *this = clientInfo; 
-}
-
-//----------------------------------------------------------------------------
-PlusIgtlClientInfo& PlusIgtlClientInfo::operator=(PlusIgtlClientInfo const& clientInfo)
-{
-  // Handle self-assignment
-  if (this == &clientInfo)
-  {
-    return *this;
-  }
-  
-  if ( this->ClientSocket.IsNull() )
-  {
-    this->ClientSocket = igtl::ClientSocket::New(); 
-  }
-
-  this->ClientSocket = clientInfo.ClientSocket; 
-  this->ClientId = clientInfo.ClientId;
-
-  this->ShallowCopy(clientInfo); 
-  return *this;
-}
-
-//----------------------------------------------------------------------------
-void PlusIgtlClientInfo::ShallowCopy(const PlusIgtlClientInfo& clientInfo)
-{
-  this->IgtlMessageTypes = clientInfo.IgtlMessageTypes; 
-  this->ImageStreams = clientInfo.ImageStreams; 
-  this->TransformNames = clientInfo.TransformNames; 
-  this->StringNames = clientInfo.StringNames; 
-}
-
 //----------------------------------------------------------------------------
 PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData( const char* strXmlData )
 {
@@ -265,4 +209,80 @@ void PlusIgtlClientInfo::GetClientInfoInXmlData( std::string& strXmlData )
   std::ostringstream os; 
   PlusCommon::PrintXML(os, vtkIndent(0), xmldata); 
   strXmlData = os.str(); 
+}
+
+//----------------------------------------------------------------------------
+void PlusIgtlClientInfo::PrintSelf(ostream& os, vtkIndent indent)
+{
+  os << indent << "Message types: ";
+  if ( !this->IgtlMessageTypes.empty() )
+  {
+    for ( int i = 0; i < this->IgtlMessageTypes.size(); ++i )
+    {
+      if (i>0)
+      {
+        os << ", ";
+      }
+      os << this->IgtlMessageTypes[i]; 
+    }
+  }
+  else
+  {
+    os << "(none)";
+  }
+
+  os << ". Transforms: ";
+  if ( !this->TransformNames.empty() )
+  {
+    for ( int i = 0; i < this->TransformNames.size(); ++i )
+    {
+      if (i>0)
+      {
+        os << ", ";
+      }
+      std::string tn;
+      this->TransformNames[i].GetTransformName(tn); 
+      os << tn;
+    }
+  }
+  else
+  {
+    os << "(none)";
+  }
+
+  os << ". Strings: ";
+  if ( !this->StringNames.empty() )
+  {
+    std::ostringstream stringNames;
+    for ( int i = 0; i < this->StringNames.size(); ++i )
+    {
+      if (i>0)
+      {
+        os << ", ";
+      }
+      os << this->StringNames[i]; 
+    }
+  }
+  else
+  {
+    os << "(none)";
+  }
+
+  os << ". Images: "; 
+  if ( !this->ImageStreams.empty() )
+  {
+    std::ostringstream imageNames;
+    for ( int i = 0; i < this->ImageStreams.size(); ++i )
+    {
+      if (i>0)
+      {
+        os << ", ";
+      }
+      os << this->ImageStreams[i].Name << " (EmbeddedTransformToFrame: " << this->ImageStreams[i].EmbeddedTransformToFrame << ")"; 
+    }
+  }
+  else
+  {
+    os << "(none)";
+  }
 }
