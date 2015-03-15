@@ -19,7 +19,7 @@ PointSetExtractor.exe --config-file=PlusDeviceSet_NwirePhantomFreehand_vtkVolume
 
 Output: tube
 ~~~
-PointSetExtractor.exe --config-file-name=PlusDeviceSet_NwirePhantomFreehand_vtkVolumeReconstructorTest2.xml --source-seq-file=NwirePhantomFreehand.mha --output-surface-file=output.stl --reference-name=Tracker --stylus-name=Probe --add-tube --display
+PointSetExtractor.exe --config-file=PlusDeviceSet_NwirePhantomFreehand_vtkVolumeReconstructorTest2.xml --source-seq-file=NwirePhantomFreehand.mha --output-surface-file=output.stl --reference-name=Tracker --stylus-name=Probe --add-tube --display
 ~~~
 \image html ApplicationPointSetExtractorTube.png
 
