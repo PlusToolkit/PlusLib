@@ -59,13 +59,13 @@ public:
   vtkSetMacro(ImageOrientationInMemory, US_IMAGE_ORIENTATION);
 
   /*! Write object contents into file */
-  virtual PlusStatus Write(bool removeImageData=false);
+  virtual PlusStatus Write();
 
   /*! Read file contents into the object */
   virtual PlusStatus Read();
 
   /*! Prepare the sequence for writing */
-  virtual PlusStatus PrepareHeader(bool removeImageData=false);
+  virtual PlusStatus PrepareHeader();
 
   /*! Update the number of frames in the header 
       This is used primarly by vtkVirtualDiscCapture to update the final tally of frames, as it continually appends new frames to the file
@@ -78,7 +78,7 @@ public:
     Append the frames in tracked frame list to the header, if the onlyTrackerData flag is true it will not save
     in the header the image data related fields. 
   */
-  virtual PlusStatus AppendImagesToHeader(bool onlyTrackerData = false);
+  virtual PlusStatus AppendImagesToHeader();
 
   /*! Finalize the header */
   virtual PlusStatus FinalizeHeader();
@@ -117,6 +117,14 @@ public:
   /*! Return the dimensions of the sequence */
   vtkGetMacro(Dimensions, int*);
 
+  /*! Flag to enable/disable writing of image data */
+  vtkGetMacro(EnableImageDataWrite, bool);
+  /*! Flag to enable/disable writing of image data */
+  vtkSetMacro(EnableImageDataWrite, bool);
+  /*! Flag to enable/disable writing of image data */
+  vtkBooleanMacro(EnableImageDataWrite, bool);
+
+
 protected:
   vtkMetaImageSequenceIO();
   virtual ~vtkMetaImageSequenceIO();
@@ -143,10 +151,10 @@ protected:
   virtual PlusStatus ReadImagePixels();
 
   /*! Write all the fields to the metaimage file header */
-  virtual PlusStatus OpenImageHeader(bool removeImageData=false);
+  virtual PlusStatus OpenImageHeader();
 
   /*! Write pixel data to the metaimage */
-  virtual PlusStatus WriteImagePixels(const std::string& aFilename, bool forceAppend = false, bool removeImageData=false);
+  virtual PlusStatus WriteImagePixels(const std::string& aFilename, bool forceAppend = false);
 
   /*! 
     Convenience function that extends the tracked frame list (if needed) to make sure
@@ -170,7 +178,7 @@ protected:
     \param outputFileStream the file stream where the compressed pixel data will be written to
     \param compressedDataSize returns the size of the total compressed data that is written to the file.
   */
-  virtual PlusStatus WriteCompressedImagePixelsToFile(FILE *outputFileStream, int &compressedDataSize, bool removeImageData=false);
+  virtual PlusStatus WriteCompressedImagePixelsToFile(FILE *outputFileStream, int &compressedDataSize);
 
   /*! Copy from file A to B */
   virtual PlusStatus MoveDataInFiles(const std::string& sourceFilename, const std::string& destFilename, bool append);
@@ -195,6 +203,7 @@ private:
   std::string TempImageFileName;
   /*! Enable/disable zlib compression of pixel data */
   bool UseCompression;
+  bool EnableImageDataWrite;
   /*! ASCII or binary */
   bool IsPixelDataBinary;
   /*! Integer/float, short/long, signed/unsigned */
