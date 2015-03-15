@@ -618,20 +618,14 @@ int main(int argc, char **argv)
 
   if(REMOVE_IMAGE_DATA==operation)
   {
-    if (writer->Write(true)!=PLUS_SUCCESS)
-    {
-      LOG_ERROR("Couldn't write tracking data to the sequence metafile: " << outputFileName ); 
-      return PLUS_FAIL;
-    }
+    writer->SetEnableImageDataWrite(false);
   }
-  else
-  {
-    if (writer->Write() != PLUS_SUCCESS)
-    {    
-      LOG_ERROR("Couldn't write sequence metafile: " <<  outputFileName ); 
-      return EXIT_FAILURE;
-    }  
-  }
+
+  if (writer->Write() != PLUS_SUCCESS)
+  {    
+    LOG_ERROR("Couldn't write sequence metafile: " <<  outputFileName ); 
+    return EXIT_FAILURE;
+  }  
 
 
   LOG_INFO("Sequence metafile editing was successful!"); 

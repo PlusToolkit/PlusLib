@@ -471,7 +471,8 @@ PlusStatus vtkTrackedFrameList::SaveToSequenceMetafile(const char* filename, boo
   writer->SetUseCompression(useCompression);
   writer->SetFileName(filename);
   writer->SetTrackedFrameList(this);
-  if (writer->Write(removeImageData)!=PLUS_SUCCESS)
+  writer->SetEnableImageDataWrite(!removeImageData);
+  if (writer->Write()!=PLUS_SUCCESS)
   {
     LOG_ERROR("Couldn't write sequence metafile: " <<  filename); 
     return PLUS_FAIL;
