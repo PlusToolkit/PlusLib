@@ -614,10 +614,10 @@ int main(int argc, char **argv)
   vtkSmartPointer<vtkMetaImageSequenceIO> writer=vtkSmartPointer<vtkMetaImageSequenceIO>::New();      
   writer->SetFileName(outputFileName.c_str());
   writer->SetTrackedFrameList(trackedFrameList); 
+  writer->SetUseCompression(useCompression);
 
   if(REMOVE_IMAGE_DATA==operation)
   {
-    writer->SetUseCompression(useCompression);
     if (writer->Write(true)!=PLUS_SUCCESS)
     {
       LOG_ERROR("Couldn't write tracking data to the sequence metafile: " << outputFileName ); 
@@ -626,7 +626,6 @@ int main(int argc, char **argv)
   }
   else
   {
-    writer->SetUseCompression(useCompression);
     if (writer->Write() != PLUS_SUCCESS)
     {    
       LOG_ERROR("Couldn't write sequence metafile: " <<  outputFileName ); 

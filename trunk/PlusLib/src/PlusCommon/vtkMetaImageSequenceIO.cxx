@@ -683,15 +683,9 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader(bool removeImageData /*=false
   }
 
   int frameSize[3] = {0,0,0};
-  if( !removeImageData )
+  if( this->TrackedFrameList->IsContainingValidImageData() && !removeImageData )
   {
     this->GetMaximumImageDimensions(frameSize); 
-  }
-  else
-  {
-    frameSize[0] = 1;
-    frameSize[1] = 1;
-    frameSize[2] = 1;
   }
 
   // Set the dimensions of the data to be written
@@ -700,7 +694,7 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader(bool removeImageData /*=false
   this->Dimensions[2]=frameSize[2];
   this->Dimensions[3]=this->TrackedFrameList->GetNumberOfTrackedFrames();
 
-  if( !removeImageData )
+  if( this->TrackedFrameList->IsContainingValidImageData() && !removeImageData )
   {
     // Make sure the frame size is the same for each valid image 
     // If it's needed, we can use the largest frame size for each frame and copy the image data row by row 
@@ -736,7 +730,7 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader(bool removeImageData /*=false
   SetCustomString("ElementType", pixelTypeStr.c_str());  // pixel type (a.k.a component type) is stored in the ElementType element
 
   // ElementNumberOfChannels
-  if (!removeImageData)
+  if (this->TrackedFrameList->IsContainingValidImageData() && !removeImageData)
   {
     if( this->TrackedFrameList->IsContainingValidImageData() )
     {
@@ -748,14 +742,14 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader(bool removeImageData /*=false
   }
 
   // Image orientation
-  if( !removeImageData )
+  if( this->TrackedFrameList->IsContainingValidImageData() && !removeImageData )
   {
     std::string orientationStr=PlusVideoFrame::GetStringFromUsImageOrientation(this->ImageOrientationInFile);
     SetCustomString(SEQMETA_FIELD_US_IMG_ORIENT, orientationStr.c_str());
   }
 
   // Image type
-  if( !removeImageData )
+  if( this->TrackedFrameList->IsContainingValidImageData() && !removeImageData )
   {
     std::string typeStr=PlusVideoFrame::GetStringFromUsImageType(this->ImageType);
     SetCustomString(SEQMETA_FIELD_US_IMG_TYPE, typeStr.c_str());
@@ -844,7 +838,7 @@ PlusStatus vtkMetaImageSequenceIO::AppendImagesToHeader(bool removeImageData/* =
       TotalBytesWritten += field.length();
     }
     //Only write this field if the image is saved. If only the tracking pose is kept do not save this field to the header
-    if(!removeImageData)
+    if(this->TrackedFrameList->IsContainingValidImageData() && !removeImageData)
     {
       // Add image status field 
       std::string imageStatus("OK"); 
@@ -919,7 +913,12 @@ void vtkMetaImageSequenceIO::GetMaximumImageDimensions(int maxFrameSize[3])
 //----------------------------------------------------------------------------
 PlusStatus vtkMetaImageSequenceIO::WriteImagePixels(const std::string& aFilename, bool forceAppend /* = false */, bool removeImageData /* = false */)
 {
-  if (!removeImageData && this->TrackedFrameList->IsContainingValidImageData() && this->ImageOrientationInFile!=this->TrackedFrameList->GetImageOrientation())
+  if (!this->TrackedFrameList->IsContainingValidImageData() || removeImageData)
+  {
+    // nothing to write
+    return PLUS_SUCCESS;
+  }
+  if (this->ImageOrientationInFile!=this->TrackedFrameList->GetImageOrientation())
   {
     // Reordering of the frames is not implemented, so return with an error
     LOG_ERROR("Saving of images is supported only in the same orientation as currently in the memory");
@@ -970,7 +969,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteImagePixels(const std::string& aFilename
       TrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame(frameNumber);
 
       PlusVideoFrame* videoFrame = &blankFrame;
-      if ( !removeImageData && trackedFrame->GetImageData()->IsImageValid() ) 
+      if ( trackedFrame->GetImageData()->IsImageValid() && !removeImageData ) 
       {
         videoFrame = trackedFrame->GetImageData(); 
       }
@@ -1042,7 +1041,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteCompressedImagePixelsToFile(FILE *output
   {
     TrackedFrame* trackedFrame(NULL);
     
-    if( !removeImageData )
+    if( trackedFrame->GetImageData()->IsImageValid() && !removeImageData )
     {
       trackedFrame = this->TrackedFrameList->GetTrackedFrame(frameNumber);
       if (trackedFrame==NULL)
@@ -1054,7 +1053,7 @@ PlusStatus vtkMetaImageSequenceIO::WriteCompressedImagePixelsToFile(FILE *output
     }
 
     PlusVideoFrame* videoFrame = &blankFrame;
-    if( !removeImageData )
+    if( trackedFrame->GetImageData()->IsImageValid() && !removeImageData )
     {
       if ( trackedFrame->GetImageData()->IsImageValid() ) 
       {
@@ -1396,7 +1395,7 @@ PlusStatus vtkMetaImageSequenceIO::FileOpen(FILE **stream, const char* filename,
 //----------------------------------------------------------------------------
 PlusStatus vtkMetaImageSequenceIO::PrepareHeader(bool removeImageData /*= false*/)
 {
-  if (!removeImageData && this->TrackedFrameList->IsContainingValidImageData())
+  if (this->TrackedFrameList->IsContainingValidImageData() && !removeImageData)
   {
     if (this->ImageOrientationInFile==US_IMG_ORIENT_XX)
     {
