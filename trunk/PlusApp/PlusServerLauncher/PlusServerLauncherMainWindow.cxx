@@ -127,29 +127,32 @@ bool PlusServerLauncherMainWindow::stopServer()
   }
   disconnect(m_CurrentServerInstance, SIGNAL(readyReadStandardOutput()), this, SLOT(stdOutMsgReceived()));
   disconnect(m_CurrentServerInstance, SIGNAL(readyReadStandardError()), this, SLOT(stdErrMsgReceived()));
-  m_CurrentServerInstance->terminate();
+  bool forcedShutdown=false;
   if( m_CurrentServerInstance->state() == QProcess::Running )
   {
-    LOG_INFO("Server process stop request sent successfully");
-  }
-  bool forcedShutdown=false;
-  const int totalTimeoutSec=15;
-  const double retryDelayTimeoutSec=0.3;
-  double timePassedSec=0;
-  while (!m_CurrentServerInstance->waitForFinished(retryDelayTimeoutSec*1000))
-  {
-    m_CurrentServerInstance->terminate(); // in release mode on Windows the first terminate request may go unnoticed
-    timePassedSec+=retryDelayTimeoutSec;
-    if (timePassedSec>totalTimeoutSec)
+    m_CurrentServerInstance->terminate();
+    if( m_CurrentServerInstance->state() == QProcess::Running )
     {
-      // graceful termination was not successful, force the process to quit
-      LOG_WARNING("Server process did not stop on request for "<<timePassedSec<<" seconds, force it to quit now");
-      m_CurrentServerInstance->kill();
-      forcedShutdown=true;
-      break;
+      LOG_INFO("Server process stop request sent successfully");
     }
+    const int totalTimeoutSec=15;
+    const double retryDelayTimeoutSec=0.3;
+    double timePassedSec=0;
+    while (!m_CurrentServerInstance->waitForFinished(retryDelayTimeoutSec*1000))
+    {
+      m_CurrentServerInstance->terminate(); // in release mode on Windows the first terminate request may go unnoticed
+      timePassedSec+=retryDelayTimeoutSec;
+      if (timePassedSec>totalTimeoutSec)
+      {
+        // graceful termination was not successful, force the process to quit
+        LOG_WARNING("Server process did not stop on request for "<<timePassedSec<<" seconds, force it to quit now");
+        m_CurrentServerInstance->kill();
+        forcedShutdown=true;
+        break;
+      }
+    }
+    LOG_INFO("Server process stopped successfully");
   }
-  LOG_INFO("Server process stopped successfully");
   disconnect(m_CurrentServerInstance, SIGNAL(error(QProcess::ProcessError)), this, SLOT(errorReceived()));
   disconnect(m_CurrentServerInstance, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(serverExecutableFinished(int, QProcess::ExitStatus)));
   delete m_CurrentServerInstance;
