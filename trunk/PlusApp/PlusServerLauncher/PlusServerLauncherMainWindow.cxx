@@ -127,6 +127,8 @@ bool PlusServerLauncherMainWindow::stopServer()
   }
   disconnect(m_CurrentServerInstance, SIGNAL(readyReadStandardOutput()), this, SLOT(stdOutMsgReceived()));
   disconnect(m_CurrentServerInstance, SIGNAL(readyReadStandardError()), this, SLOT(stdErrMsgReceived()));
+  disconnect(m_CurrentServerInstance, SIGNAL(error(QProcess::ProcessError)), this, SLOT(errorReceived()));
+  disconnect(m_CurrentServerInstance, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(serverExecutableFinished(int, QProcess::ExitStatus)));
   bool forcedShutdown=false;
   if( m_CurrentServerInstance->state() == QProcess::Running )
   {
@@ -153,8 +155,6 @@ bool PlusServerLauncherMainWindow::stopServer()
     }
     LOG_INFO("Server process stopped successfully");
   }
-  disconnect(m_CurrentServerInstance, SIGNAL(error(QProcess::ProcessError)), this, SLOT(errorReceived()));
-  disconnect(m_CurrentServerInstance, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(serverExecutableFinished(int, QProcess::ExitStatus)));
   delete m_CurrentServerInstance;
   m_CurrentServerInstance = NULL;
   return (!forcedShutdown);
@@ -262,9 +262,7 @@ void PlusServerLauncherMainWindow::errorReceived(QProcess::ProcessError errorCod
 //-----------------------------------------------------------------------------
 void PlusServerLauncherMainWindow::serverExecutableFinished(int returnCode, QProcess::ExitStatus status)
 {
-  if( returnCode != 0 )
-  {
-    LOG_ERROR("Server exited abnormally. Return code: " << returnCode);
-    this->connectToDevicesByConfigFile("");
-  }
+  LOG_ERROR("Server stopped unexpectedly. Return code: " << returnCode);
+  this->connectToDevicesByConfigFile("");
+  m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
 }
