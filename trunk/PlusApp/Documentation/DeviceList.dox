@@ -44,7 +44,7 @@
 - \subpage DeviceVirtualMixer
 - \subpage DeviceVirtualSwitcher
 
-\par Other data acquisition devices
-- \subpage DeviceGenericSerial
+\par Other data acquisition and control devices
+- \subpage DeviceGenericSerial - such as Arduino microcontroller
 
 */
