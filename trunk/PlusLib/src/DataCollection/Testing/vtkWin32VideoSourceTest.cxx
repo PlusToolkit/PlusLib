@@ -10,7 +10,6 @@
 #include "vtkImageData.h"
 #include "vtkImageViewer2.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusBuffer.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"

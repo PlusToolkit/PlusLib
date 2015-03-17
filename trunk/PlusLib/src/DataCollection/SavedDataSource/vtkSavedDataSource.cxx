@@ -477,7 +477,7 @@ PlusStatus vtkSavedDataSource::InternalConnectVideo(vtkTrackedFrameList* savedDa
   if (savedDataBuffer->GetImageType()==US_IMG_BRIGHTNESS || savedDataBuffer->GetImageType()==US_IMG_RGB_COLOR)
   {
     // Brightness images will be imported into MF orientation
-    this->GetOutputDataSource()->SetImageOrientation(US_IMG_ORIENT_MF);
+    this->GetOutputDataSource()->SetInputImageOrientation(US_IMG_ORIENT_MF);
     if( this->OutputChannels.empty() )
     {
       LOG_ERROR("No output channels defined" );
@@ -494,9 +494,9 @@ PlusStatus vtkSavedDataSource::InternalConnectVideo(vtkTrackedFrameList* savedDa
   else
   {
     // RF data is stored line-by-line, therefore set the storage buffer to FM orientation
-    this->GetOutputDataSource()->SetImageOrientation(US_IMG_ORIENT_FM);
+    this->GetOutputDataSource()->SetInputImageOrientation(US_IMG_ORIENT_FM);
   }
-  if ( this->GetOutputDataSource()->SetImageOrientation( savedDataBuffer->GetImageOrientation() ) != PLUS_SUCCESS )
+  if ( this->GetOutputDataSource()->SetInputImageOrientation( savedDataBuffer->GetImageOrientation() ) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to set video iamge orientation"); 
     return PLUS_FAIL; 

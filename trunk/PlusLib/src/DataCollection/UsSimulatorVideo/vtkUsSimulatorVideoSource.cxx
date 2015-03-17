@@ -7,7 +7,6 @@
 #include "PlusConfigure.h"
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
-#include "vtkPlusBuffer.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
@@ -143,7 +142,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalUpdate()
   }
 
   PlusStatus status = aSource->AddItem(
-    this->UsSimulator->GetOutput(), aSource->GetImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber, latestTrackerTimestamp, latestTrackerTimestamp);
+    this->UsSimulator->GetOutput(), aSource->GetInputImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber, latestTrackerTimestamp, latestTrackerTimestamp);
 
   this->Modified();
   return status;
@@ -169,7 +168,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalConnect()
   }
 
   // Set to default MF internal image orientation
-  aSource->SetImageOrientation(US_IMG_ORIENT_MF);
+  aSource->SetInputImageOrientation(US_IMG_ORIENT_MF);
   aSource->Clear();
   int frameSize[3]={0,0,0};
   if (this->UsSimulator->GetFrameSize(frameSize)!=PLUS_SUCCESS)

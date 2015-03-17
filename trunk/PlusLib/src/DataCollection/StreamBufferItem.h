@@ -19,7 +19,6 @@ See License.txt for details.
 class vtkMatrix4x4;
 class vtkPlusDevice;
 class vtkPlusChannel;
-class vtkPlusBuffer;
 class vtkPlusDataSource;
 class vtkPlusDataSource;
 class vtkVirtualMixer;

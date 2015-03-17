@@ -12,7 +12,6 @@ See License.txt for details.
 #include "igtlTransformMessage.h"
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
-#include "vtkPlusBuffer.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusIgtlMessageCommon.h"
 

@@ -14,11 +14,8 @@ See License.txt for details.
 
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusBuffer.h"
-
 
 vtkStandardNewMacro(vtkTelemedVideoSource); // Corresponds to the implementation of : static vtkTelemedVideoSource *New();  (in .h file)
-
 
 //----------------------------------------------------------------------------
 vtkTelemedVideoSource::vtkTelemedVideoSource()
@@ -176,7 +173,7 @@ PlusStatus vtkTelemedVideoSource::InternalUpdate()
     aSource->SetPixelType(VTK_UNSIGNED_CHAR);
     aSource->SetImageType(US_IMG_BRIGHTNESS);
     aSource->SetFrameSize(frameSizeInPx);
-    aSource->SetImageOrientation(orientation);
+    aSource->SetInputImageOrientation(orientation);
   }
 
   // Add the frame to the stream buffer

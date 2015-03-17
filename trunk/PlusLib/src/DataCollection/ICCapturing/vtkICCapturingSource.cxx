@@ -14,7 +14,6 @@ See License.txt for details.
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusBuffer.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtksys/SystemTools.hxx"
 #include <tisudshl.h>
@@ -213,12 +212,12 @@ PlusStatus vtkICCapturingSource::AddFrameToBuffer(unsigned char * dataPtr, unsig
       clippedFramePixelPtr+=this->ClipRectangleSize[0];
       fullFramePixelPtr+=frameSize[0];
     }
-    status = aSource->AddItem(&(this->ClippedImageBuffer[0]), aSource->GetImageOrientation(), this->ClipRectangleSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
+    status = aSource->AddItem(&(this->ClippedImageBuffer[0]), aSource->GetInputImageOrientation(), this->ClipRectangleSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
   }
   else
   {
     // No clipping
-    status = aSource->AddItem(dataPtr, aSource->GetImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
+    status = aSource->AddItem(dataPtr, aSource->GetInputImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
   }
   this->Modified();
 

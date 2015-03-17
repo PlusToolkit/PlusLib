@@ -8,7 +8,6 @@ See License.txt for details.
 #include "vtkVirtualVolumeReconstructor.h"
 #include "TrackedFrame.h"
 #include "vtkObjectFactory.h"
-#include "vtkPlusBuffer.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkTrackedFrameList.h"

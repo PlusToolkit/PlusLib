@@ -19,7 +19,6 @@ static const char OFFLINE_TESTING_FILENAME[]="c:\\Users\\lasso\\Downloads\\bktes
 
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusBuffer.h"
 #include "PixelCodec.h"
 
 #include <stdlib.h>
@@ -315,14 +314,14 @@ PlusStatus vtkBkProFocusOemVideoSource::InternalUpdate()
     aSource->SetPixelType(this->Internal->DecodedImageFrame->GetScalarType());
     aSource->SetImageType(US_IMG_BRIGHTNESS);
     aSource->SetFrameSize( frameSizeInPix[0], frameSizeInPix[1], 1 );
-    aSource->SetImageOrientation(US_IMG_ORIENT_MF);
+    aSource->SetInputImageOrientation(US_IMG_ORIENT_MF);
 
     LOG_INFO("Frame size: " << frameSizeInPix[0] << "x" << frameSizeInPix[1]
       << ", pixel type: " << vtkImageScalarTypeNameMacro(this->Internal->DecodedImageFrame->GetScalarType())
-      << ", buffer image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetImageOrientation()));
+      << ", buffer image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation()));
 
   } 
-  if( aSource->AddItem(this->Internal->DecodedImageFrame, aSource->GetImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber) != PLUS_SUCCESS )
+  if( aSource->AddItem(this->Internal->DecodedImageFrame, aSource->GetInputImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber) != PLUS_SUCCESS )
   {
     LOG_ERROR("Error adding item to video source " << aSource->GetSourceId() << " on channel " << this->Internal->Channel->GetChannelId() );
     return PLUS_FAIL;

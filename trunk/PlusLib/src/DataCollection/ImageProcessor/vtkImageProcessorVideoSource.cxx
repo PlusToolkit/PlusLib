@@ -9,7 +9,6 @@ See License.txt for details.
 #include "TrackedFrame.h"
 #include "vtkBoneEnhancer.h"
 #include "vtkObjectFactory.h"
-#include "vtkPlusBuffer.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkTrackedFrameList.h"

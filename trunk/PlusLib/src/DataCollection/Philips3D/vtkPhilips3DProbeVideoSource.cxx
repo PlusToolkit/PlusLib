@@ -17,7 +17,6 @@ Authors include:
 #include "PlusConfigure.h"
 #include "vtkObjectFactory.h"
 #include "vtkPhilips3DProbeVideoSource.h"
-#include "vtkPlusBuffer.h"
 #include "vtkPlusDataSource.h"
 
 // Philips API includes

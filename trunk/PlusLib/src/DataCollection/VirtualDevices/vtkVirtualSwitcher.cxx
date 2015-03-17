@@ -6,7 +6,6 @@
 
 #include "PlusConfigure.h"
 #include "vtkObjectFactory.h"
-#include "vtkPlusBuffer.h"
 #include "vtkPlusDataSource.h"
 #include "vtkVirtualSwitcher.h"
 

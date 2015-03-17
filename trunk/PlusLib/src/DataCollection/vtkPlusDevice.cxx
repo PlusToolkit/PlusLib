@@ -2015,7 +2015,7 @@ PlusStatus vtkPlusDevice::CreateDefaultOutputChannel(bool addSource/*=true*/)
       LOG_ERROR("Failed to set video buffer size!"); 
       return PLUS_FAIL;
     }
-    aDataSource->SetImageOrientation(US_IMG_ORIENT_MN);
+    aDataSource->SetInputImageOrientation(US_IMG_ORIENT_MN);
     if( aDataSource->SetSourceId("Video") != PLUS_SUCCESS )
     {
       return PLUS_FAIL;

@@ -16,7 +16,6 @@ Authors include: Adam Rankin
 #include "PlusConfigure.h"
 #include "vtkMmfVideoSource.h"
 #include "vtkObjectFactory.h"
-#include "vtkPlusBuffer.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 
@@ -466,7 +465,7 @@ PlusStatus vtkMmfVideoSource::UpdateFrameSize()
       int numberOfScalarComponents = (videoSource->GetImageType() == US_IMG_RGB_COLOR ? 3 : 1);
       videoSource->SetNumberOfScalarComponents(numberOfScalarComponents);
       this->UncompressedVideoFrame.SetImageType(videoSource->GetImageType());
-      this->UncompressedVideoFrame.SetImageOrientation(videoSource->GetImageOrientation());
+      this->UncompressedVideoFrame.SetImageOrientation(videoSource->GetInputImageOrientation());
       this->UncompressedVideoFrame.AllocateFrame(currentFrameSize, VTK_UNSIGNED_CHAR, numberOfScalarComponents);
     }
   }

@@ -20,7 +20,6 @@ writes the buffer to a metafile and displays the live transform in a 3D view.
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
-#include "vtkPlusBuffer.h"
 #include "PlusMath.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"

@@ -11,7 +11,6 @@ See License.txt for details.
 #include "vtkImageViewer.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusBuffer.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkSmartPointer.h"
 #include "vtkSonixVideoSource.h"

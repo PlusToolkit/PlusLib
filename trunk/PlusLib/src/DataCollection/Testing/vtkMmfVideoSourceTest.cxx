@@ -8,7 +8,6 @@ See License.txt for details.
 #include "vtkCommand.h"
 #include "vtkImageData.h"
 #include "vtkImageViewer2.h"
-#include "vtkPlusBuffer.h"
 #include "vtkMmfVideoSource.h"
 #include "vtkPlusDataSource.h"
 #include "vtkRenderWindowInteractor.h"

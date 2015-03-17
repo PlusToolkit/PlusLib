@@ -11,7 +11,6 @@ See License.txt for details.
 
 #include "vtkPlusDevice.h"
 
-class vtkPlusBuffer;
 class SerialLine;
 
 /*!
