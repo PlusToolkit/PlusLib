@@ -15,7 +15,6 @@ See License.txt for details.
 #include "TemporalCalibrationToolbox.h"
 #include "VolumeReconstructionToolbox.h"
 #include "fCalMainWindow.h"
-#include "vtkPlusBuffer.h"
 #include "vtkPlusDataSource.h"
 #include "vtkRenderWindow.h"
 #include "vtkVirtualDiscCapture.h"

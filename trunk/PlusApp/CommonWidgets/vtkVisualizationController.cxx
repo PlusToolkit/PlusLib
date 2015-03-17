@@ -10,7 +10,6 @@ See License.txt for details.
 #include "vtkInteractorStyleTrackballCamera.h"
 #include "vtkMath.h"
 #include "vtkPlusDevice.h"
-#include "vtkPlusBuffer.h" // Only for dumping buffers
 #include "vtkProperty.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
