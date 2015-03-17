@@ -12,7 +12,6 @@ See License.txt for details.
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "PixelCodec.h"
-#include "vtkPlusBuffer.h"
 #include "vtksys/SystemTools.hxx"
 
 vtkStandardNewMacro(vtkEpiphanVideoSource);
@@ -264,7 +263,7 @@ PlusStatus vtkEpiphanVideoSource::InternalUpdate()
     {
       numberOfScalarComponents = 3;
     }
-    if( aSource->AddItem(frame->pixbuf, aSource->GetImageOrientation(), this->FrameSize, VTK_UNSIGNED_CHAR, numberOfScalarComponents, aSource->GetImageType(), 0, this->FrameNumber) != PLUS_SUCCESS )
+    if( aSource->AddItem(frame->pixbuf, aSource->GetInputImageOrientation(), this->FrameSize, VTK_UNSIGNED_CHAR, numberOfScalarComponents, aSource->GetImageType(), 0, this->FrameNumber) != PLUS_SUCCESS )
     {
       LOG_ERROR("Error adding item to video source " << aSource->GetSourceId() << " on channel " << (*this->OutputChannels.begin())->GetChannelId() );
       return PLUS_FAIL;

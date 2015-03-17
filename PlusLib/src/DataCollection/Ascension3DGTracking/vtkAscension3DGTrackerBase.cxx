@@ -8,7 +8,6 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
-#include "vtkPlusBuffer.h"
 #include "vtkPlusDataSource.h"
 #include "vtkTransform.h"
 #include "vtkXMLDataElement.h"
@@ -29,7 +28,6 @@ typedef DOUBLE_POSITION_ANGLES_MATRIX_QUATERNION_TIME_Q_BUTTON_RECORD AscensionR
 //-------------------------------------------------------------------------
 vtkAscension3DGTrackerBase::vtkAscension3DGTrackerBase()
 {
-  this->LocalTrackerBuffer = NULL;
   this->AscensionRecordBuffer = NULL; 
 
   this->TransmitterAttached = false;
@@ -59,12 +57,6 @@ vtkAscension3DGTrackerBase::~vtkAscension3DGTrackerBase()
   {
     delete this->AscensionRecordBuffer;
     this->AscensionRecordBuffer = NULL;
-  }
-
-  if ( this->LocalTrackerBuffer != NULL )
-  {
-    this->LocalTrackerBuffer->Delete();
-    this->LocalTrackerBuffer = NULL;
   }
 }
 

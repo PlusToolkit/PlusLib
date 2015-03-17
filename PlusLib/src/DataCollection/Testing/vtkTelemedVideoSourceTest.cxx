@@ -28,7 +28,6 @@
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkPlot.h"
-#include "vtkPlusBuffer.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"

@@ -16,7 +16,6 @@ See License.txt for details.
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusBuffer.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkTransform.h"
 #include "vtkXMLDataElement.h"

@@ -12,7 +12,6 @@ See License.txt for details.
 
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusBuffer.h"
 
 #include "vtkUSImagingParameters.h"
 
@@ -558,7 +557,7 @@ PlusStatus vtkIntersonVideoSource::InternalUpdate()
     aSource->SetPixelType(VTK_UNSIGNED_CHAR);
     aSource->SetImageType(US_IMG_BRIGHTNESS);
     aSource->SetFrameSize( frameSizeInPx );
-    aSource->SetImageOrientation(US_IMG_ORIENT_MF);
+    aSource->SetInputImageOrientation(US_IMG_ORIENT_MF);
 
     float depthScale = -1;
     usbProbeDepthScale(this->Internal->ProbeHandle,&depthScale);
@@ -572,7 +571,7 @@ PlusStatus vtkIntersonVideoSource::InternalUpdate()
 	    << ", probe name: " << probeName
 	    << ", display zoom: " << bmDisplayZoom()
 	    << ", probe depth scale (mm/sample):" << depthScale
-      << ", buffer image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetImageOrientation()) );
+      << ", buffer image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation()) );
   }
   
   TrackedFrame::FieldMapType customFields;
@@ -585,7 +584,7 @@ PlusStatus vtkIntersonVideoSource::InternalUpdate()
     customFields["ProbeButtonToDummyTransformStatus"] = "OK";
   }
 
-  if( aSource->AddItem((void*)&(this->Internal->MemoryBitmapBuffer[0]), aSource->GetImageOrientation(),
+  if( aSource->AddItem((void*)&(this->Internal->MemoryBitmapBuffer[0]), aSource->GetInputImageOrientation(),
     frameSizeInPx, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields) != PLUS_SUCCESS )
   {
     LOG_ERROR("Error adding item to video source " << aSource->GetSourceId());

@@ -16,7 +16,7 @@ vtkStandardNewMacro(vtkPlusDataSource);
 vtkPlusDataSource::vtkPlusDataSource()
 : Device(NULL)
 , PortName(NULL)
-, PortImageOrientation(US_IMG_ORIENT_XX)
+, InputImageOrientation(US_IMG_ORIENT_XX) // a.k.a. PortUsImageOrientation, PortImageOrientation
 , Type(DATA_SOURCE_TYPE_NONE)
 , FrameNumber(0)
 , SourceId(NULL)
@@ -257,8 +257,8 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
     if ( usImageOrientation != NULL )
     {
       LOG_INFO("Selected US image orientation: " << usImageOrientation );
-      this->SetImageOrientation( PlusVideoFrame::GetUsImageOrientationFromString(usImageOrientation) );
-      if ( this->GetImageOrientation() == US_IMG_ORIENT_XX )
+      this->SetInputImageOrientation( PlusVideoFrame::GetUsImageOrientationFromString(usImageOrientation) );
+      if ( this->GetInputImageOrientation() == US_IMG_ORIENT_XX )
       {
         LOG_ERROR("Video image orientation is undefined - please set PortUsImageOrientation in the source configuration");
       }
@@ -555,10 +555,11 @@ vtkPlusBuffer* vtkPlusDataSource::GetBuffer()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::SetImageOrientation(US_IMAGE_ORIENTATION imageOrientation)
+PlusStatus vtkPlusDataSource::SetInputImageOrientation(US_IMAGE_ORIENTATION imageOrientation)
 {
-  this->PortImageOrientation = imageOrientation;
-  // Set the buffer orientation to MF of FM depending on B-mode or Rf
+  this->InputImageOrientation = imageOrientation;
+  // Orientation of the images in the buffer is standardized (MF(A) for B-mode images, FM for RF-mode images).
+  // We set up the this standard image orientation based on the orientation of the input data.
   if( imageOrientation >= US_IMG_ORIENT_UF && imageOrientation <= US_IMG_ORIENT_MNA )
   {
     return this->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
@@ -570,9 +571,15 @@ PlusStatus vtkPlusDataSource::SetImageOrientation(US_IMAGE_ORIENTATION imageOrie
 }
 
 //-----------------------------------------------------------------------------
-US_IMAGE_ORIENTATION vtkPlusDataSource::GetImageOrientation()
+US_IMAGE_ORIENTATION vtkPlusDataSource::GetOutputImageOrientation()
 {
-  return this->PortImageOrientation;
+  return this->GetBuffer()->GetImageOrientation();
+}
+
+//-----------------------------------------------------------------------------
+US_IMAGE_ORIENTATION vtkPlusDataSource::GetInputImageOrientation()
+{
+  return this->InputImageOrientation;
 }
 
 //-----------------------------------------------------------------------------

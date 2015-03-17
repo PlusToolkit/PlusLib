@@ -225,10 +225,21 @@ public:
   */
   int GetNumberOfBytesPerPixel();
 
-  /*! Set the image orientation (MF, MN, ...). Does not reorder the pixels. */
-  PlusStatus SetImageOrientation(US_IMAGE_ORIENTATION imageOrientation); 
-  /*! Get the image orientation (MF, MN, ...) */
-  virtual US_IMAGE_ORIENTATION GetImageOrientation();
+  /*!
+    Set the image orientation of the input data (MF, MN, ...).
+    The internal buffer's image orientation and the output is always the standard MF (for B-mode) or FM (for RF-mode),
+    so the input images are reoriented as needed when AddItem(...) is called.
+    This method is necessary for initializing the storage buffers and also serves as a convenient storage for the
+    image orientation of the hardware device.
+  */
+  PlusStatus SetInputImageOrientation(US_IMAGE_ORIENTATION imageOrientation); 
+  /*!
+    Get the image orientation of the input data (MF, MN, ...).
+    The internal buffer's image orientation and the output is always the standard MF (for B-mode) or FM (for RF-mode).
+  */
+  virtual US_IMAGE_ORIENTATION GetInputImageOrientation();
+  
+  virtual US_IMAGE_ORIENTATION GetOutputImageOrientation();
 
   /*! Get type: vidoe or tool. */
   DataSourceType GetType() const;
@@ -290,7 +301,7 @@ protected:
 
   char *PortName;
   /*! The orientation of the image outputted by the device */
-  US_IMAGE_ORIENTATION PortImageOrientation; 
+  US_IMAGE_ORIENTATION InputImageOrientation; 
 
   DataSourceType Type;
 

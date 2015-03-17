@@ -11,7 +11,6 @@ See License.txt for details.
 #include "vtkRecursiveCriticalSection.h"
 #include "vtkPlusDevice.h"
 
-class vtkPlusBuffer;
 class vtkPlusDataSource;
 class vtkMatrix4x4;
 

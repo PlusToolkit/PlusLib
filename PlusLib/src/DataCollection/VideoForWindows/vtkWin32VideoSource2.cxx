@@ -15,7 +15,6 @@ Authors include: Danielle Pace
 #include "PixelCodec.h"
 #include "PlusConfigure.h"
 #include "vtkObjectFactory.h"
-#include "vtkPlusBuffer.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkUnsignedCharArray.h"
@@ -555,7 +554,7 @@ PlusStatus vtkWin32VideoSource2::AddFrameToBuffer(void* lpVideoHeader)
     return PLUS_FAIL;
   }
   double indexTime = aSource->GetStartTime() + 0.001 * lpVHdr->dwTimeCaptured;
-  this->UncompressedVideoFrame.SetImageOrientation(aSource->GetImageOrientation());
+  this->UncompressedVideoFrame.SetImageOrientation(aSource->GetInputImageOrientation());
   PlusStatus status = aSource->AddItem(&this->UncompressedVideoFrame, this->FrameIndex, indexTime, indexTime); 
 
   this->Modified();

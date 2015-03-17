@@ -20,7 +20,6 @@ Siddharth Vikal (Queen's University, Kingston, Ontario, Canada)
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusBuffer.h"
 #include "vtkSonixVideoSource.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkTimerLog.h"
@@ -275,7 +274,7 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
   // get the pointer to actual incoming data on to a local pointer
   unsigned char *deviceDataPtr = static_cast<unsigned char*>(dataPtr);
 
-  PlusStatus status = aSource->AddItem(deviceDataPtr, aSource->GetImageOrientation(), frameSize, pixelType, 1, imgType, numberOfBytesToSkip, this->FrameNumber); 
+  PlusStatus status = aSource->AddItem(deviceDataPtr, aSource->GetInputImageOrientation(), frameSize, pixelType, 1, imgType, numberOfBytesToSkip, this->FrameNumber); 
   this->Modified(); 
 
   return status;
@@ -1090,13 +1089,13 @@ PlusStatus vtkSonixVideoSource::ConfigureVideoSource( uData aValue )
   case 8:
     aSource->SetPixelType( VTK_UNSIGNED_CHAR );
     aSource->SetImageType( US_IMG_BRIGHTNESS );
-    aSource->SetImageOrientation(US_IMG_ORIENT_MF);
+    aSource->SetInputImageOrientation(US_IMG_ORIENT_MF);
     break;
   case 16:
     aSource->SetPixelType( VTK_SHORT );
     aSource->SetImageType( US_IMG_RF_I_LINE_Q_LINE );
     // RF data is stored line-by-line, therefore set the storage buffer to FM orientation
-    aSource->SetImageOrientation(US_IMG_ORIENT_FM);
+    aSource->SetInputImageOrientation(US_IMG_ORIENT_FM);
     // Swap w/h: in case of RF image acquisition the DataDescriptor.h is the width and the DataDescriptor.w is the height
     {
       int tmp = aDataDescriptor.h;

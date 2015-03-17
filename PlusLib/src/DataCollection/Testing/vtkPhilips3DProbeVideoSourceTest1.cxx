@@ -20,7 +20,6 @@
 #include "vtkCallbackCommand.h"
 #include "vtkImageData.h"
 #include "vtkPhilips3DProbeVideoSource.h"
-#include "vtkPlusBuffer.h"
 #include "vtkPlusChannel.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkXMLUtilities.h"

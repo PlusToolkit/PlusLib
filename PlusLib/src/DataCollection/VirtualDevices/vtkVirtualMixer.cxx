@@ -6,7 +6,6 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "vtkObjectFactory.h"
-#include "vtkPlusBuffer.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkVirtualMixer.h"
