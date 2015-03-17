@@ -86,7 +86,7 @@ Using OpenIGTLink messages \c GET_IMGMETA and \c GET_IMAGE(from a slicer client 
 - \c GET_IMGMETA plus will receive all the image meta data information from all of the connected devices and send it through openigtlink
 - \c GET_IMAGE will send the volume and the orientation and position in Ras coordinate system.This system should be defined in the configuration file.
  
-\section StealthLinkExampleConfigFile Example configuration file PlusDeviceSet_Server_SonixTouch_L14-5_Porta.xml PlusDeviceSet_Server_StealthLinkTracker.xml
+\section StealthLinkExampleConfigFile Example configuration file PlusDeviceSet_Server_StealthLinkTracker.xml
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_StealthLinkTracker.xml"
 
