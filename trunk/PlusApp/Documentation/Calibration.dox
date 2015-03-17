@@ -26,7 +26,7 @@ is essential if data is acquired while tracked tools are moving, because then an
 
 # Calibration using SlicerIGT modules
 
-<a href="www.slicerigt.org">SlicerIGT</a> extension of 3D Slicer contains a number of spatial calibration modules that allow
+<a href="http://www.slicerigt.org">SlicerIGT</a> extension of 3D Slicer contains a number of spatial calibration modules that allow
 computing transforms and using them in Plus.
 
 */
