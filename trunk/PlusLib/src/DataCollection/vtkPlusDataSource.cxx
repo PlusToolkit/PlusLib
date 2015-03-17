@@ -558,7 +558,15 @@ vtkPlusBuffer* vtkPlusDataSource::GetBuffer()
 PlusStatus vtkPlusDataSource::SetImageOrientation(US_IMAGE_ORIENTATION imageOrientation)
 {
   this->PortImageOrientation = imageOrientation;
-  return this->GetBuffer()->SetImageOrientation(imageOrientation);
+  // Set the buffer orientation to MF of FM depending on B-mode or Rf
+  if( imageOrientation >= US_IMG_ORIENT_UF && imageOrientation <= US_IMG_ORIENT_MNA )
+  {
+    return this->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
+  }
+  else
+  {
+    return this->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_FM);
+  }
 }
 
 //-----------------------------------------------------------------------------
