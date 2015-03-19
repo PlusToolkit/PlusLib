@@ -103,7 +103,7 @@ bool PlusServerLauncherMainWindow::startServer(QString& configFilePath)
   connect(m_CurrentServerInstance, SIGNAL(error(QProcess::ProcessError)), this, SLOT(errorReceived(QProcess::ProcessError)));
   connect(m_CurrentServerInstance, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(serverExecutableFinished(int, QProcess::ExitStatus)));
   QString arg = QString("--config-file=\"").append(configFilePath).append("\"");
-  m_CurrentServerInstance->start(QString(plusServerExecutable.c_str()).append(" ").append(arg).append(" --verbose=3"));
+  m_CurrentServerInstance->start(QString("\"").append(plusServerExecutable.c_str()).append("\" ").append(arg).append(" --verbose=3"));
   m_CurrentServerInstance->waitForFinished(500);
   if( m_CurrentServerInstance->state() == QProcess::Running )
   {
