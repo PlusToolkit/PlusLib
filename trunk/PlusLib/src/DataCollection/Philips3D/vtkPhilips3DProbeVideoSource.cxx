@@ -277,7 +277,7 @@ void vtkPhilips3DProbeVideoSource::CallbackAddFrame(vtkImageData* imageData)
     LOG_ERROR("Unable to find video source. Cannot add new frame.");
     return;
   }
-  if( videoSource->AddItem(imageData, videoSource->GetImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber) != PLUS_SUCCESS )
+  if( videoSource->AddItem(imageData, videoSource->GetInputImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to add item to buffer.");
     return;
