@@ -88,14 +88,11 @@ namespace MfVideoCapture
 
     if (SUCCEEDED(hr))
     {
-      MediaFoundationVideoDevices *vDs = &MediaFoundationVideoDevices::GetInstance();
-
-      hr = vDs->InitDevices(pAttributes);
+      hr = MediaFoundationVideoDevices::GetInstance().InitDevices(pAttributes);
     }	
     else
     {
       LOG_ERROR("MEDIA FOUNDATION: The access to the video cameras denied.");
-
     }
 
     SafeRelease(&pAttributes);

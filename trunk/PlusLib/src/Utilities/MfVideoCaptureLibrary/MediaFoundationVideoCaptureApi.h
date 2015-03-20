@@ -32,6 +32,8 @@ namespace MfVideoCapture
   class MediaType
   {
   public:
+    DWORD StreamId;
+
     unsigned int MF_MT_FRAME_SIZE;
     unsigned int height;
     unsigned int width;
@@ -83,27 +85,36 @@ namespace MfVideoCapture
   };
 
   // Structure for collecting info about 17 parameters of current video device
-  class CaptureDeviceParameters
+  struct CaptureDeviceParameters
   {
-  public:
-    Parameter Brightness;
-    Parameter Contrast;
-    Parameter Hue;
-    Parameter Saturation;
-    Parameter Sharpness;
-    Parameter Gamma;
-    Parameter ColorEnable;
-    Parameter WhiteBalance;
-    Parameter BacklightCompensation;
-    Parameter Gain;
+    enum VideoProcParameters
+    {
+      Brightness,
+      Contrast,
+      Hue,
+      Saturation,
+      Sharpness,
+      Gamma,
+      ColorEnable,
+      WhiteBalance,
+      BacklightCompensation,
+      Gain,
+      NUMBER_OF_VIDEO_PROC_PARAMETERS
+    };
+    Parameter VideoProcParameters[NUMBER_OF_VIDEO_PROC_PARAMETERS];
 
-    Parameter Pan;
-    Parameter Tilt;
-    Parameter Roll;
-    Parameter Zoom;
-    Parameter Exposure;
-    Parameter Iris;
-    Parameter Focus;
+    enum CameraControlParameters
+    {
+      Pan,
+      Tilt,
+      Roll,
+      Zoom,
+      Exposure,
+      Iris,
+      Focus,
+      NUMBER_OF_CAMERA_CONTROL_PARAMETERS
+    };
+    Parameter CameraControlParameters[NUMBER_OF_CAMERA_CONTROL_PARAMETERS];
   };
 
   /// The only visible class for controlling of video devices in format singleton
@@ -114,10 +125,10 @@ namespace MfVideoCapture
     static MediaFoundationVideoCaptureApi& GetInstance(); 
 
     // Closing video device with deviceID
-    void CloseDevice(unsigned int deviceID);
+    bool CloseDevice(unsigned int deviceID);
 
     // Setting callback function for emergency events(for example: removing video device with deviceID) with userData
-    void SetEmergencyStopEvent(unsigned int deviceID, void *userData, void(*func)(int, void *));
+    bool SetEmergencyStopEvent(unsigned int deviceID, void *userData, void(*func)(int, void *));
 
     // Closing all devices
     void CloseAllDevices();
@@ -132,7 +143,7 @@ namespace MfVideoCapture
     CaptureDeviceParameters GetParameters(unsigned int deviceID);
 
     // Setting of parametrs of video device with deviceID
-    void SetParameters(unsigned int deviceID, CaptureDeviceParameters parametrs);
+    bool SetParameters(unsigned int deviceID, CaptureDeviceParameters parametrs);
 
     // List any existing capture devices
     unsigned int ListDevices();
@@ -141,7 +152,7 @@ namespace MfVideoCapture
     void GetDeviceNames(std::vector< std::wstring > &deviceNames);
 
     // Getting numbers of formats, which are supported by videodevice with deviceID
-    unsigned int GetFormatCount(unsigned int deviceID);
+    unsigned int GetNumberOfFormats(unsigned int deviceID, unsigned int streamIndex);
 
     // Get active format for the given device
     unsigned int GetDeviceActiveFormat(unsigned int deviceID);
@@ -162,10 +173,13 @@ namespace MfVideoCapture
     IMFMediaSource *GetMediaSource(unsigned int deviceID);
 
     // Getting format with id, which is supported by videodevice with deviceID 
-    MediaType GetFormat(unsigned int deviceID, int unsigned id);
+    MediaType GetFormat(unsigned int deviceID, unsigned int streamIndex, unsigned int formatIndex);
+
+     // Getting number of streams provided by videodevice with deviceID 
+    int GetNumberOfStreams(unsigned int deviceID);
 
     // Checking of existence of the suitable video devices
-    bool AreDevicesAccessable() const;
+    bool AreDevicesAccessible() const;
 
     // Checking of using the videodevice with deviceID
     bool IsDeviceSetup(unsigned int deviceID);
@@ -177,10 +191,10 @@ namespace MfVideoCapture
     bool IsDeviceRawDataSource(unsigned int deviceID);
 
     // Initialization of video device with deviceID by media type with id
-    bool SetupDevice(unsigned int deviceID, unsigned int id = 0);
+    bool SetupDevice(unsigned int deviceID, unsigned int streamIndex, unsigned int formatIndex = 0);
 
     // Initialization of video device with deviceID by width w, height h, fps idealFramerate and subtype
-    bool SetupDevice(unsigned int deviceID, unsigned int w, unsigned int h, unsigned int idealFramerate = 30, GUID subtype = MFVideoFormat_YUY2);
+    bool SetupDevice(unsigned int deviceID, unsigned int streamIndex, unsigned int w, unsigned int h, unsigned int idealFramerate = 30, GUID subtype = MFVideoFormat_YUY2);
 
   private:
     bool AccessToDevices;

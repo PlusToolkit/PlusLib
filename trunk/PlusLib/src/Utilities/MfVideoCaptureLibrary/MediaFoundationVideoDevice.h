@@ -30,11 +30,6 @@ struct IMFMediaSource;
 struct IMFMediaType;
 struct IMFAttributes;
 
-typedef std::vector<int> VectorOfTypeIDs;
-typedef std::map<std::wstring, VectorOfTypeIDs> SubTypeNameToIdsMap;
-typedef std::map<uint64_t, SubTypeNameToIdsMap> FrameRateToSubTypeMap;
-typedef std::map<uint64_t, FrameRateToSubTypeMap> FrameSizeToFrameRateMap;
-
 typedef void(*emergencyStopEventCallback)(int, void *);
 
 namespace MfVideoCapture
@@ -66,14 +61,15 @@ namespace MfVideoCapture
     wchar_t *GetName();
     bool Start();
     bool Stop();
-    unsigned int GetCountFormats() const;
+    unsigned int GetNumberOfFormats(unsigned int streamIndex) const;
     unsigned int GetWidth() const;
     unsigned int GetHeight() const;
     unsigned int GetFrameRate() const;
-    MediaType GetFormat(unsigned int id) const;
+    MediaType GetFormat(unsigned int streamIndex, unsigned int id) const;
+    int GetNumberOfStreams() const;
     unsigned int GetActiveType() const;
-    bool SetupDevice(unsigned int w, unsigned int h, unsigned int idealFramerate = 0, GUID subtype = MFVideoFormat_YUY2);
-    bool SetupDevice(unsigned int id);
+    bool SetupDevice(unsigned int streamIndex, unsigned int w, unsigned int h, unsigned int idealFramerate = 0, GUID subtype = MFVideoFormat_YUY2);
+    bool SetupDevice(unsigned int streamIndex, unsigned int formatIndex);
     bool IsDeviceSetup() const;
     bool IsDeviceMediaSource() const;
     bool IsDeviceRawDataSource() const;
@@ -81,9 +77,8 @@ namespace MfVideoCapture
 
   protected:
     long EnumerateCaptureFormats(IMFMediaSource *pSource);
-    long SetDeviceFormat(IMFMediaSource *pSource, unsigned long dwFormatIndex);
-    void BuildLibraryofTypes();
-    int FindType(unsigned int size, unsigned int frameRate = 0, GUID subtype = MFVideoFormat_YUY2, MFVideoInterlaceMode interlaceMode=MFVideoInterlace_Progressive);  
+    long SetDeviceFormat(IMFMediaSource *pSource, DWORD streamIndex, DWORD dwFormatIndex);
+    bool FindType(unsigned int& formatIndex, unsigned int streamIndex, unsigned int w, unsigned int h, unsigned int frameRate = 0, GUID subtype = MFVideoFormat_YUY2);
     long ResetDevice(IMFActivate *pActivate);
     long InitDevice();
     long CheckDevice(IMFAttributes *pAttributes, IMFActivate **pDevice);
@@ -99,8 +94,7 @@ namespace MfVideoCapture
     CaptureDeviceParameters PreviousParameters;
     unsigned int DeviceIndex;
     unsigned int ActiveType;
-    FrameSizeToFrameRateMap CaptureFormats;
-    std::vector<MediaType> CurrentFormats;
+    std::vector< std::vector<MediaType> > CurrentFormats; // list of formats for each stream (mediatype[streamIndex][formatIndex])
     void *UserData;
   };
 }

@@ -40,6 +40,7 @@ class vtkDataCollectionExport vtkMmfVideoSource : public vtkPlusDevice
   struct VideoFormat
   {
     unsigned int DeviceId;
+    unsigned int StreamIndex;
     int FrameSize[2];
     std::string PixelFormatName; // e.g., YUY2    
   };
