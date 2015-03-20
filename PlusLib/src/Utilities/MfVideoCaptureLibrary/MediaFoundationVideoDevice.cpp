@@ -26,7 +26,6 @@ The "videoInput" library has been adapted to fit within a namespace.
 #include <string.h>
 
 //----------------------------------------------------------------------------
-
 namespace
 {
   template <class T> void SafeRelease(T **ppT)
@@ -40,7 +39,6 @@ namespace
 }
 
 //----------------------------------------------------------------------------
-
 namespace MfVideoCapture
 {
   MediaFoundationVideoDevice::MediaFoundationVideoDevice(void)
@@ -59,49 +57,48 @@ namespace MfVideoCapture
   }
 
   //----------------------------------------------------------------------------
-
-  void MediaFoundationVideoDevice::SetParameters(CaptureDeviceParameters Parameters)
+  void MediaFoundationVideoDevice::SetParameters(CaptureDeviceParameters newParameters)
   {
-    if(IsSetup)
+    if(!this->IsSetup)
     {
-      if(Source)
-      {
-        unsigned int shift = sizeof(Parameter);
-        Parameter *pParameter = (Parameter *)(&Parameters);
-        Parameter *pPrevParameter = (Parameter *)(&PreviousParameters);
-
-        IAMVideoProcAmp *pProcAmp = NULL;
-        HRESULT hr = Source->QueryInterface(IID_PPV_ARGS(&pProcAmp));
-
-        if (SUCCEEDED(hr))
-        {
-          for(unsigned int i = 0; i < 10; i++)
-          {
-            if(pPrevParameter[i].CurrentValue != pParameter[i].CurrentValue || pPrevParameter[i].Flag != pParameter[i].Flag)
-              hr = pProcAmp->Set(VideoProcAmp_Brightness + i, pParameter[i].CurrentValue, pParameter[i].Flag);
-
-          }
-
-          pProcAmp->Release();
-        }
-
-        IAMCameraControl *pProcControl = NULL;
-        hr = Source->QueryInterface(IID_PPV_ARGS(&pProcControl));
-
-        if (SUCCEEDED(hr))
-        {
-          for(unsigned int i = 0; i < 7; i++)
-          {
-            if(pPrevParameter[10 + i].CurrentValue != pParameter[10 + i].CurrentValue || pPrevParameter[10 + i].Flag != pParameter[10 + i].Flag)
-              hr = pProcControl->Set(CameraControl_Pan+i, pParameter[10 + i].CurrentValue, pParameter[10 + i].Flag);          
-          }
-
-          pProcControl->Release();
-        }
-
-        PreviousParameters = Parameters;
-      }
+      LOG_ERROR("MediaFoundationVideoDevice::SetParameters failed: device is not set up");
+      return;
     }
+    if(this->Source==NULL)
+    {
+      LOG_ERROR("MediaFoundationVideoDevice::SetParameters failed: invalid source");
+      return;
+    }
+
+    IAMVideoProcAmp *pProcAmp = NULL;
+    HRESULT hr = this->Source->QueryInterface(IID_PPV_ARGS(&pProcAmp));
+    if (SUCCEEDED(hr))
+    {
+      for(unsigned int i = 0; i < CaptureDeviceParameters::NUMBER_OF_VIDEO_PROC_PARAMETERS; i++)
+      {
+        if(this->PreviousParameters.VideoProcParameters[i].CurrentValue != newParameters.VideoProcParameters[i].CurrentValue || this->PreviousParameters.VideoProcParameters[i].Flag != newParameters.VideoProcParameters[i].Flag)
+        {
+          hr = pProcAmp->Set(VideoProcAmp_Brightness + i, newParameters.VideoProcParameters[i].CurrentValue, newParameters.VideoProcParameters[i].Flag);
+        }
+      }
+      pProcAmp->Release();
+    }
+
+    IAMCameraControl *pProcControl = NULL;
+    hr = this->Source->QueryInterface(IID_PPV_ARGS(&pProcControl));
+    if (SUCCEEDED(hr))
+    {
+      for(unsigned int i = 0; i < CaptureDeviceParameters::NUMBER_OF_CAMERA_CONTROL_PARAMETERS; i++)
+      {
+        if(this->PreviousParameters.CameraControlParameters[i].CurrentValue != newParameters.CameraControlParameters[i].CurrentValue || this->PreviousParameters.CameraControlParameters[i].Flag != newParameters.CameraControlParameters[i].Flag)
+        {
+          hr = pProcControl->Set(CameraControl_Pan+i, newParameters.CameraControlParameters[i].CurrentValue, newParameters.CameraControlParameters[i].Flag);          
+        }
+      }
+      pProcControl->Release();
+    }
+
+    this->PreviousParameters = newParameters;
   }
 
   //----------------------------------------------------------------------------
@@ -110,98 +107,84 @@ namespace MfVideoCapture
   {
     CaptureDeviceParameters out;
 
-    if(IsSetup)
+    if(!this->IsSetup)
     {
-      if(Source)
+      LOG_ERROR("MediaFoundationVideoDevice::SetParameters failed: device is not set up");
+      return out;
+    }
+    if(this->Source==NULL)
+    {
+      LOG_ERROR("MediaFoundationVideoDevice::SetParameters failed: invalid source");
+      return out;
+    }
+    IAMVideoProcAmp *pProcAmp = NULL;
+    HRESULT hr = this->Source->QueryInterface(IID_PPV_ARGS(&pProcAmp));
+    if (SUCCEEDED(hr))
+    {
+      for(unsigned int i = 0; i < CaptureDeviceParameters::NUMBER_OF_VIDEO_PROC_PARAMETERS; i++)
       {
-        unsigned int shift = sizeof(Parameter);
-        Parameter *pParameter = (Parameter *)(&out);
-        IAMVideoProcAmp *pProcAmp = NULL;
-        HRESULT hr = Source->QueryInterface(IID_PPV_ARGS(&pProcAmp));
-
+        Parameter temp;
+        hr = pProcAmp->GetRange(VideoProcAmp_Brightness+i, &temp.Min, &temp.Max, &temp.Step, &temp.Default, &temp.Flag);
         if (SUCCEEDED(hr))
         {
-          for(unsigned int i = 0; i < 10; i++)
-          {
-            Parameter temp;
-
-            hr = pProcAmp->GetRange(VideoProcAmp_Brightness+i, &temp.Min, &temp.Max, &temp.Step, &temp.Default, &temp.Flag);
-
-            if (SUCCEEDED(hr))
-            {
-              temp.CurrentValue = temp.Default;
-              pParameter[i] = temp;
-            }
-          }
-
-          pProcAmp->Release();
-        }
-
-        IAMCameraControl *pProcControl = NULL;
-        hr = Source->QueryInterface(IID_PPV_ARGS(&pProcControl));
-
-        if (SUCCEEDED(hr))
-        {
-          for(unsigned int i = 0; i < 7; i++)
-          {
-            Parameter temp;
-
-            hr = pProcControl->GetRange(CameraControl_Pan+i, &temp.Min, &temp.Max, &temp.Step, &temp.Default, &temp.Flag);
-
-            if (SUCCEEDED(hr))
-            {
-              temp.CurrentValue = temp.Default;
-              pParameter[10 + i] = temp;
-            }
-          }
-
-          pProcControl->Release();
+          temp.CurrentValue = temp.Default;
+          out.VideoProcParameters[i] = temp;
         }
       }
+      pProcAmp->Release();
     }
 
+    IAMCameraControl *pProcControl = NULL;
+    hr = this->Source->QueryInterface(IID_PPV_ARGS(&pProcControl));
+
+    if (SUCCEEDED(hr))
+    {
+      for(unsigned int i = 0; i < CaptureDeviceParameters::NUMBER_OF_CAMERA_CONTROL_PARAMETERS; i++)
+      {
+        Parameter temp;
+        hr = pProcControl->GetRange(CameraControl_Pan+i, &temp.Min, &temp.Max, &temp.Step, &temp.Default, &temp.Flag);
+        if (SUCCEEDED(hr))
+        {
+          temp.CurrentValue = temp.Default;
+          out.CameraControlParameters[i] = temp;
+        }
+      }
+      pProcControl->Release();
+    }
     return out;
   }
 
   //----------------------------------------------------------------------------
-
   long MediaFoundationVideoDevice::ResetDevice(IMFActivate *pActivate)
   {
     HRESULT hr = -1;
 
-    CurrentFormats.clear();
+    this->CurrentFormats.clear();
 
-    if(FriendlyName)
-      CoTaskMemFree(FriendlyName);
-
-    FriendlyName = NULL;
+    if(this->FriendlyName)
+    {
+      CoTaskMemFree(this->FriendlyName);
+    }
+    this->FriendlyName = NULL;
 
     if(pActivate)
     {    
+      hr = pActivate->GetAllocatedString(MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME, &this->FriendlyName, NULL);
+
       IMFMediaSource *pSource = NULL;
-
-      hr = pActivate->GetAllocatedString(
-        MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME,
-        &FriendlyName,
-        NULL
-        );
-
-
-      hr = pActivate->ActivateObject(
-        __uuidof(IMFMediaSource),
-        (void**)&pSource
-        );
-
+      hr = pActivate->ActivateObject(__uuidof(IMFMediaSource),(void**)&pSource);
       EnumerateCaptureFormats(pSource);
-      BuildLibraryofTypes();
 
       SafeRelease(&pSource);
 
       if(FAILED(hr))  
       {      
-        FriendlyName = NULL;
-
-        LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": IMFMediaSource interface cannot be created.");
+        if(this->FriendlyName)
+        {
+          CoTaskMemFree(this->FriendlyName);
+        }
+        this->FriendlyName = NULL;
+        LOG_ERROR("VIDEODEVICE " << this->DeviceIndex << ": IMFMediaSource interface cannot be created.");
       }
     }
 
@@ -209,375 +192,314 @@ namespace MfVideoCapture
   }
 
   //----------------------------------------------------------------------------
-
-  long MediaFoundationVideoDevice::ReadDeviceInfo(IMFActivate *pActivate, unsigned int Num)
+  long MediaFoundationVideoDevice::ReadDeviceInfo(IMFActivate *pActivate, unsigned int num)
   {
-    HRESULT hr = -1;
-    DeviceIndex = Num;
-
-    hr = ResetDevice(pActivate);
-
+    this->DeviceIndex = num;
+    HRESULT hr = ResetDevice(pActivate);
     return hr;
   }
 
   //----------------------------------------------------------------------------
-
   long MediaFoundationVideoDevice::CheckDevice(IMFAttributes *pAttributes, IMFActivate **pDevice)
   {
     HRESULT hr = S_OK;
-    IMFActivate **ppDevices = NULL;
-    UINT32 count;
-    wchar_t *newFriendlyName = NULL;
+    *pDevice = NULL;
 
-    hr = MFEnumDeviceSources(pAttributes, &ppDevices, &count);
+    IMFActivate **ppDevices = NULL;
+    UINT32 count=0;
+    if (SUCCEEDED(hr))
+    {
+      hr = MFEnumDeviceSources(pAttributes, &ppDevices, &count);
+      if (SUCCEEDED(hr))
+      {
+        if (count <= 0)
+        {
+          LOG_ERROR("MediaFoundationVideoDevice::CheckDevice failed: No devices available");
+          hr = S_FALSE;
+        }
+        else if (this->DeviceIndex >= count)
+        {
+          LOG_ERROR("MediaFoundationVideoDevice::CheckDevice failed: Device index " << this->DeviceIndex << " is of current device is out of the range of availalbe devices (0.."<<count-1<<")");
+          hr = S_FALSE;
+        }
+      }
+      else
+      {
+        LOG_ERROR("MediaFoundationVideoDevice::CheckDevice failed: List of DeviceSources cannot be enumerated.");
+      }
+    }
 
     if (SUCCEEDED(hr))
     {
-      if(count > 0)
+      wchar_t *newFriendlyName = NULL;
+      hr = ppDevices[this->DeviceIndex]->GetAllocatedString(MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME, &newFriendlyName, NULL);
+      if (SUCCEEDED(hr))
       {
-        if(count > DeviceIndex)
-        {      
-          hr = ppDevices[DeviceIndex]->GetAllocatedString(
-            MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME,
-            &newFriendlyName,
-            NULL
-            );
-
-          if (SUCCEEDED(hr))
-          {
-            if(wcscmp(newFriendlyName, FriendlyName) != 0)
-            {
-              LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": Chosen device cannot be found.");
-              hr = -1;
-              pDevice = NULL;
-            }
-            else
-            {
-              *pDevice = ppDevices[DeviceIndex];
-              (*pDevice)->AddRef();
-            }
-          }
-          else
-          {
-            LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": Name of device cannot be gotten.");
-          }
-        }
-        else
+        if(wcscmp(newFriendlyName, this->FriendlyName) != 0)
         {
-          LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": Number of devices more than corrent number of the device.");
-          hr = -1;
+          LOG_ERROR("MediaFoundationVideoDevice::CheckDevice failed: Device index " << this->DeviceIndex << " name is not found");
+          hr = S_FALSE;
         }
-
-        for(UINT32 i = 0; i < count; i++)
-        {
-          SafeRelease(&ppDevices[i]);
-        }
-
-        SafeRelease(ppDevices);
       }
       else
-        hr = -1;
-    }
-    else
-    {
-      LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": List of DeviceSources cannot be enumerated.");
+      {
+        LOG_ERROR("MediaFoundationVideoDevice::CheckDevice failed: Device index " << this->DeviceIndex << " name of device cannot be retrieved");
+      }
     }
 
+    if (SUCCEEDED(hr))
+    {
+      *pDevice = ppDevices[this->DeviceIndex];
+      (*pDevice)->AddRef();
+    }
+
+    for(UINT32 i = 0; i < count; i++)
+    {
+      SafeRelease(&ppDevices[i]);
+    }
+    SafeRelease(ppDevices);
     return hr;
   }
 
   //----------------------------------------------------------------------------
-
   long MediaFoundationVideoDevice::InitDevice()
   {
-    HRESULT hr = -1;
+    HRESULT hr = S_OK;
     IMFAttributes *pAttributes = NULL;
-    IMFActivate * vd_pActivate= NULL;
+    IMFActivate * vd_pActivate = NULL;
     CoInitialize(NULL);
-
-    hr = MFCreateAttributes(&pAttributes, 1);
 
     if (SUCCEEDED(hr))
     {
-      hr = pAttributes->SetGUID(
-        MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
-        MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID
-        );
-    }  
-
+      hr = MFCreateAttributes(&pAttributes, 1);
+    }
+    if (SUCCEEDED(hr))
+    {
+      hr = pAttributes->SetGUID(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
+      if (!SUCCEEDED(hr))
+      {
+        LOG_ERROR("MediaFoundationVideoDevice::InitDevice failed: device  " << this->DeviceIndex << ": The attribute of the capture device cannot be retrieved");
+      }
+    }
     if (SUCCEEDED(hr))
     {
       hr = CheckDevice(pAttributes, &vd_pActivate);
-
       if (SUCCEEDED(hr) && vd_pActivate)
       {
-        SafeRelease(&Source);
-
-        hr = vd_pActivate->ActivateObject(
-          __uuidof(IMFMediaSource),
-          (void**)&Source
-          );
-
-        if (SUCCEEDED(hr))
-        {
-
-        }
-
+        SafeRelease(&this->Source);
+        hr = vd_pActivate->ActivateObject(__uuidof(IMFMediaSource), (void**)&this->Source);
         SafeRelease(&vd_pActivate);
       }
       else
       {
-        LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": Cannot activate device.");
+        LOG_ERROR("MediaFoundationVideoDevice::InitDevice failed: device  " << this->DeviceIndex << ": Cannot activate device");
       }
-    }  
-    else
-    {
-      LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": The attribute of the capture device cannot be retrieved.");
     }
-
     SafeRelease(&pAttributes);
-
     return hr;
   }
+  //----------------------------------------------------------------------------
+  int MediaFoundationVideoDevice::GetNumberOfStreams() const
+  {
+    return this->CurrentFormats.size();
+  }
 
   //----------------------------------------------------------------------------
-  MediaType MediaFoundationVideoDevice::GetFormat(unsigned int id) const
+  MediaType MediaFoundationVideoDevice::GetFormat(unsigned int streamIndex, unsigned int formatIndex) const
   {
-    if(id < CurrentFormats.size())
+    if(streamIndex >= this->CurrentFormats.size())
     {
-      return CurrentFormats[id];
+      return MediaType();
     }
-    else return MediaType();
-
+    if (formatIndex >= this->CurrentFormats[streamIndex].size())
+    {
+      return MediaType();
+    }
+    return this->CurrentFormats[streamIndex][formatIndex];
   }
 
   //----------------------------------------------------------------------------
-
-  unsigned int MediaFoundationVideoDevice::GetCountFormats() const
+  unsigned int MediaFoundationVideoDevice::GetNumberOfFormats(unsigned int streamIndex) const
   {
-    return CurrentFormats.size();
+    if(streamIndex >= this->CurrentFormats.size())
+    {
+      return 0;
+    }
+    return this->CurrentFormats[streamIndex].size();
   }
 
   //----------------------------------------------------------------------------
-
   void MediaFoundationVideoDevice::SetEmergencyStopEvent(void *userData, void(*func)(int, void *))
   {
-    StopEventCallbackFunc = func;
-    UserData = userData;
+    this->StopEventCallbackFunc = func;
+    this->UserData = userData;
   }
 
   //----------------------------------------------------------------------------
-
   void MediaFoundationVideoDevice::CloseDevice()
   {    
-    if(IsSetup)
+    if(!this->IsSetup)
     {
-      IsSetup = false;
-      this->Stop();
-
-      SafeRelease(&Source);
-
-      LockOut = OpenLock;  
-
-      LOG_DEBUG("VIDEODEVICE " << DeviceIndex << ": Device is stopped.");
+      return;
     }
+    this->IsSetup = false;
+    Stop();
+    SafeRelease(&this->Source);
+    this->LockOut = OpenLock;
+    LOG_DEBUG("MediaFoundationVideoDevice::CloseDevice: Device " << this->DeviceIndex << " is stopped");
   }
 
   //----------------------------------------------------------------------------
-
   bool MediaFoundationVideoDevice::Start()
   {
-    if( this->Source != NULL && IsSetup )
+    if (!this->IsSetup)
     {
-      IMFPresentationDescriptor *pPD = NULL;
-
-      HRESULT hr = Source->CreatePresentationDescriptor(&pPD);
-      if (FAILED(hr))
-      {
-        return false;
-      }
-
-      Source->Start(pPD, NULL, NULL);
-
-      SafeRelease(&pPD);
-      return true;
+      LOG_ERROR("MediaFoundationVideoDevice::Start failed: not set up");
+      return false;
     }
-    return false;
+    if (this->Source == NULL)
+    {
+      LOG_ERROR("MediaFoundationVideoDevice::Start failed: invalid source");
+      return false;
+    }
+
+    IMFPresentationDescriptor *pPD = NULL;
+    HRESULT hr = this->Source->CreatePresentationDescriptor(&pPD);
+
+    if (SUCCEEDED(hr))
+    {
+      this->Source->Start(pPD, NULL, NULL);
+    }
+
+    SafeRelease(&pPD);
+    return SUCCEEDED(hr);
   }
 
   //----------------------------------------------------------------------------
-
   bool MediaFoundationVideoDevice::Stop()
   {
-    if( this->Source != NULL && IsSetup )
+    if (!this->IsSetup)
     {
-      Source->Stop();
-      return true;
+      LOG_ERROR("MediaFoundationVideoDevice::Stop failed: not set up");
+      return false;
     }
-    return false;
+    if (this->Source == NULL)
+    {
+      LOG_ERROR("MediaFoundationVideoDevice::Stop failed: invalid source");
+      return false;
+    }
+    this->Source->Stop();
+    return true;
   }
 
   //----------------------------------------------------------------------------
-
   unsigned int MediaFoundationVideoDevice::GetWidth() const
   {
-    if(IsSetup)
-      return Width;
-    else
+    if (!this->IsSetup)
+    {
+      LOG_ERROR("MediaFoundationVideoDevice::GetWidth failed: not set up");
       return 0;
+    }
+    return this->Width;
   }
 
   //----------------------------------------------------------------------------
-
   unsigned int MediaFoundationVideoDevice::GetHeight() const
   {
-    if(IsSetup)
-      return Height;
-    else 
+    if (!this->IsSetup)
+    {
+      LOG_ERROR("MediaFoundationVideoDevice::GetHeight failed: not set up");
       return 0;
+    }
+    return this->Height;
   }
 
   //----------------------------------------------------------------------------
-
   unsigned int MediaFoundationVideoDevice::GetFrameRate() const
   {
-    if(IsSetup)
-      return FrameRate;
-    else
+    if (!this->IsSetup)
+    {
+      LOG_ERROR("MediaFoundationVideoDevice::GetFrameRate failed: not set up");
       return 0;
+    }
+    return this->FrameRate;
   }
 
   //----------------------------------------------------------------------------
-
   IMFMediaSource *MediaFoundationVideoDevice::GetMediaSource()
   {
-    IMFMediaSource *out = NULL;
-
-    if(LockOut == OpenLock)
+    if(this->LockOut != OpenLock)
     {
-      LockOut = MediaSourceLock;      
-
-      out = Source;
+      LOG_ERROR("MediaFoundationVideoDevice::GetMediaSource failed: locked");
+      return NULL;
     }
-
-    return out;
+    this->LockOut = MediaSourceLock;      
+    return this->Source;
   }
 
   //----------------------------------------------------------------------------
-
-  int MediaFoundationVideoDevice::FindType(unsigned int size, unsigned int frameRate, GUID subtype, MFVideoInterlaceMode interlaceMode)
-  {  
-    if(CaptureFormats.size() == 0)
-      return 0;
-
-    FrameRateToSubTypeMap rateToSubType;
-    if( CaptureFormats.find(size) == CaptureFormats.end() )
+  bool MediaFoundationVideoDevice::FindType(unsigned int& foundFormatIndex, unsigned int streamIndex, unsigned int w, unsigned int h, unsigned int frameRate, GUID subtype)
+  {
+    if (streamIndex >= this->CurrentFormats.size())
     {
-      return -1;
+      LOG_ERROR("MediaFoundationVideoDevice::FindType failed: stream "<<streamIndex<<" is not available (number of available streams: "<<this->CurrentFormats.size()<<")");
+      return false;
     }
-    else
+    if (frameRate==0)
     {
-      rateToSubType = CaptureFormats[size];
-    }
-
-    if(rateToSubType.size() == 0)
-      return -1;
-    
-    SubTypeNameToIdsMap nameToIdsMaxFrameRate;
-
-    if(frameRate == 0)
-    {
-      // find the format with the maximum frame rate
-      UINT64 frameRateMax = 0;
-      FrameRateToSubTypeMap::iterator f = rateToSubType.begin();
-      for(; f != rateToSubType.end(); f++)
-      {
-        if((*f).first >= frameRateMax)
-        {
-          frameRateMax = (*f).first;
-
-          nameToIdsMaxFrameRate = (*f).second;
-        }
-      }
-    }
-    else
-    {
-      // find the format that is the closest to the requested frame rate
-      FrameRateToSubTypeMap::iterator f = rateToSubType.begin();
-      int frameRateDifferenceMin = -1;
-
-      for(; f != rateToSubType.end(); f++)
-      {
-        int frameRateDifference=static_cast<int>((*f).first)-frameRate;
-        if ( (frameRateDifferenceMin<0) || (frameRateDifference<frameRateDifferenceMin) )
-        {
-          frameRateDifferenceMin = frameRateDifference;
-          nameToIdsMaxFrameRate = (*f).second;
-        }
-      }
-    }
-
-    if(nameToIdsMaxFrameRate.size() == 0)
-    {
-      LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": No pixel formats available.");
-      return -1;
+      // get the maximum available frame rate
+      frameRate=10000;
     }
 
     std::wstring subtypeName = FormatReader::StringFromGUID(subtype);
 
-    VectorOfTypeIDs idList;
-    FrameRateToSubTypeMap::iterator selectedSubtype;
-    if( nameToIdsMaxFrameRate.find(subtypeName) == nameToIdsMaxFrameRate.end() )
+    // find the smallest frame rate that is at least as high as the requested (otherwise get the highest available frame rate)
+    int formatIndex=0;
+    int bestFrameRateDifferenceComparedToRequested = -1-frameRate;
+    int bestFormatIndex=-1;
+    for (std::vector<MediaType>::iterator typeIt=this->CurrentFormats[streamIndex].begin(); typeIt!=this->CurrentFormats[streamIndex].end(); ++typeIt)
     {
-      LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": Requested pixel format not available. Defaulting to first available.");
-      idList = nameToIdsMaxFrameRate.begin()->second;
+      if (typeIt->width==w && typeIt->height==h && typeIt->MF_MT_SUBTYPEName==subtypeName)
+      {
+        int frameRateDifferenceComparedToRequested = (int)typeIt->MF_MT_FRAME_RATE-(int)frameRate;
+        if (frameRateDifferenceComparedToRequested==0)
+        {
+          // the frame rate is matched exactly, we cannot get better than this
+          foundFormatIndex = formatIndex;
+          return true;
+        }
+        else if (frameRateDifferenceComparedToRequested>0)
+        {
+          // frame rate is higher than requested, if this one is closer, then use this
+          if (frameRateDifferenceComparedToRequested<bestFrameRateDifferenceComparedToRequested || bestFrameRateDifferenceComparedToRequested<0)
+          {
+            bestFormatIndex = formatIndex;
+            bestFrameRateDifferenceComparedToRequested = frameRateDifferenceComparedToRequested;
+          }
+        }
+        else
+        {
+          // lower frame rate than needed, choose the highest frame rate
+          if (bestFrameRateDifferenceComparedToRequested<0 && frameRateDifferenceComparedToRequested>bestFrameRateDifferenceComparedToRequested)
+          {
+            bestFormatIndex = formatIndex;
+            bestFrameRateDifferenceComparedToRequested = frameRateDifferenceComparedToRequested;
+          }
+        }
+      }
+      formatIndex++;
     }
-    else
+    if (bestFormatIndex<0)
     {
-      idList = nameToIdsMaxFrameRate[subtypeName];
+      foundFormatIndex=0;
+      return false;
     }
-
-    if(idList.size() == 0)
-    {
-      LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": List of IDs has not been populated.");
-      return -1;
-    }
-
-    return idList[0];
-
+    foundFormatIndex = bestFormatIndex;
+    return true;
   }
 
   //----------------------------------------------------------------------------
-
-  void MediaFoundationVideoDevice::BuildLibraryofTypes()
-  {
-    unsigned int size;
-    unsigned int framerate;
-    int count = 0;
-
-    for(std::vector<MediaType>::iterator i = CurrentFormats.begin(); i != CurrentFormats.end(); ++i)
-    {
-      size = (*i).MF_MT_FRAME_SIZE;
-
-      framerate = (*i).MF_MT_FRAME_RATE;
-
-      FrameRateToSubTypeMap rateToSubType = CaptureFormats[size];
-      SubTypeNameToIdsMap nameToId = rateToSubType[framerate];
-      std::wstring subTypeName = (*i).MF_MT_SUBTYPEName;
-      VectorOfTypeIDs idList = nameToId[subTypeName];
-
-      idList.push_back(count);
-      nameToId[subTypeName] = idList;
-      rateToSubType[framerate] = nameToId;
-      CaptureFormats[size] = rateToSubType;
-
-      count++;
-    }
-  }
-
-  //----------------------------------------------------------------------------
-
-  long MediaFoundationVideoDevice::SetDeviceFormat(IMFMediaSource *pSource, unsigned long  dwFormatIndex)
+  long MediaFoundationVideoDevice::SetDeviceFormat(IMFMediaSource *pSource, DWORD streamIndex, DWORD dwFormatIndex)
   {
     IMFPresentationDescriptor *pPD = NULL;
     IMFStreamDescriptor *pSD = NULL;
@@ -590,11 +512,20 @@ namespace MfVideoCapture
       goto done;
     }
 
-    BOOL fSelected;
-    hr = pPD->GetStreamDescriptorByIndex(0, &fSelected, &pSD);
+    BOOL fSelected=false;
+    hr = pPD->GetStreamDescriptorByIndex(streamIndex, &fSelected, &pSD);
     if (FAILED(hr))
     {
       goto done;
+    }
+    if (!fSelected)
+    {
+      hr = pPD->SelectStream(streamIndex);
+      if (FAILED(hr))
+      {
+        LOG_ERROR("Failed to select stream "<<streamIndex);
+        goto done;
+      }
     }
 
     hr = pSD->GetMediaTypeHandler(&pHandler);
@@ -603,7 +534,7 @@ namespace MfVideoCapture
       goto done;
     }
 
-    hr = pHandler->GetMediaTypeByIndex((DWORD)dwFormatIndex, &pType);
+    hr = pHandler->GetMediaTypeByIndex(dwFormatIndex, &pType);
     if (FAILED(hr))
     {
       goto done;
@@ -620,111 +551,89 @@ done:
   }
 
   //----------------------------------------------------------------------------
-
   bool MediaFoundationVideoDevice::IsDeviceSetup() const
   {
-    return IsSetup;
+    return this->IsSetup;
   }
 
   //----------------------------------------------------------------------------
-
   bool MediaFoundationVideoDevice::IsDeviceMediaSource() const
   {
-    if(LockOut == MediaSourceLock) return true;
-
-    return false;
+    return (this->LockOut == MediaSourceLock);
   }
 
   //----------------------------------------------------------------------------
-
   bool MediaFoundationVideoDevice::IsDeviceRawDataSource() const
   {
-    if(LockOut == RawDataLock) return true;
-
-    return false;
+    return (this->LockOut == RawDataLock);
   }
 
   //----------------------------------------------------------------------------
-
-  bool MediaFoundationVideoDevice::SetupDevice(unsigned int id)
+  bool MediaFoundationVideoDevice::SetupDevice(unsigned int streamIndex, unsigned int formatIndex)
   {  
-    if(!IsSetup)
+    if(this->IsSetup)
     {
-      HRESULT hr = -1;
-
-      hr = InitDevice();
-
-      if(SUCCEEDED(hr))
-      {      
-        Width = CurrentFormats[id].width; 
-        Height = CurrentFormats[id].height;
-        FrameRate = CurrentFormats[id].MF_MT_FRAME_RATE;
-        hr = SetDeviceFormat(Source, (DWORD) id);
-        IsSetup = (SUCCEEDED(hr));
-
-        if(IsSetup)
-        {
-          LOG_DEBUG("VIDEODEVICE " << DeviceIndex << ": Device is setup.");
-        }
-        PreviousParameters = GetParameters();
-        this->ActiveType = id;
-        return IsSetup;
-      }
-      else
-      {
-        LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": Interface IMFMediaSource cannot be retrieved.");
-        return false;
-      }
-    }
-    else
-    {
-      LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": Device is already setup.");
-      return false;
-    }  
-  }
-
-  //----------------------------------------------------------------------------
-
-  bool MediaFoundationVideoDevice::SetupDevice(unsigned int w, unsigned int h, unsigned int idealFramerate, GUID subtype)
-  {  
-    int id = FindType(w * h, idealFramerate, subtype);
-
-    if( id == -1 )
-    {
-      LOG_ERROR("VIDEODEVICE " << DeviceIndex << ": Cannot find the requested type.");
+      LOG_ERROR("MediaFoundationVideoDevice::SetupDevice failed: device " << this->DeviceIndex << " is already set up");
       return false;
     }
 
-    return SetupDevice(id);
+    HRESULT hr = InitDevice();
+    if(FAILED(hr))
+    {
+      LOG_ERROR("MediaFoundationVideoDevice::SetupDevice failed: device " << this->DeviceIndex << " interface IMFMediaSource cannot be retrieved");
+      return false;
+    }
+
+    this->Width = this->CurrentFormats[streamIndex][formatIndex].width; 
+    this->Height = this->CurrentFormats[streamIndex][formatIndex].height;
+    this->FrameRate = this->CurrentFormats[streamIndex][formatIndex].MF_MT_FRAME_RATE;
+    hr = SetDeviceFormat(this->Source, (DWORD)streamIndex, (DWORD) formatIndex);
+    this->IsSetup = (SUCCEEDED(hr));
+    if(this->IsSetup)
+    {
+      LOG_DEBUG("MediaFoundationVideoDevice::SetupDevice: device " << this->DeviceIndex << " device is setup");
+    }
+    this->PreviousParameters = GetParameters();
+    this->ActiveType = formatIndex;
+    return this->IsSetup;
   }
 
   //----------------------------------------------------------------------------
+  bool MediaFoundationVideoDevice::SetupDevice(unsigned int streamIndex, unsigned int w, unsigned int h, unsigned int idealFramerate, GUID subtype)
+  {
+    unsigned int formatIndex = 0;
+    if(!FindType(formatIndex, streamIndex, w, h, idealFramerate, subtype))
+    {
+      LOG_ERROR("MediaFoundationVideoDevice::SetupDevice failed: device " << this->DeviceIndex << ": Cannot find the requested type");
+      return false;
+    }
+    return SetupDevice(streamIndex, formatIndex);
+  }
 
+  //----------------------------------------------------------------------------
   wchar_t *MediaFoundationVideoDevice::GetName()
   {
-    return FriendlyName;
+    return this->FriendlyName;
   }
 
   //----------------------------------------------------------------------------
-
   MediaFoundationVideoDevice::~MediaFoundationVideoDevice(void)
   {    
     CloseDevice();
-
-    SafeRelease(&Source);
-
-    if(FriendlyName)
-      CoTaskMemFree(FriendlyName);
+    SafeRelease(&this->Source);
+    if(this->FriendlyName)
+    {
+      CoTaskMemFree(this->FriendlyName);
+    }
+    this->FriendlyName = NULL;
   }
 
   //----------------------------------------------------------------------------
-
   long MediaFoundationVideoDevice::EnumerateCaptureFormats(IMFMediaSource *pSource)
   {
     IMFPresentationDescriptor *pPD = NULL;
     IMFStreamDescriptor *pSD = NULL;
     IMFMediaTypeHandler *pHandler = NULL;
-    IMFMediaType *pType = NULL;
 
     HRESULT hr=-1;
     if (pSource==NULL)
@@ -738,52 +647,63 @@ done:
       goto done;
     }
 
-    BOOL fSelected;
-    hr = pPD->GetStreamDescriptorByIndex(0, &fSelected, &pSD);
+    DWORD descriptorCount = 0;
+    hr = pPD->GetStreamDescriptorCount(&descriptorCount);
     if (FAILED(hr))
     {
       goto done;
     }
 
-    hr = pSD->GetMediaTypeHandler(&pHandler);
-    if (FAILED(hr))
+    for (DWORD streamIndex = 0; streamIndex<descriptorCount; streamIndex++)
     {
-      goto done;
-    }
+      std::vector<MediaType> formats;
 
-    DWORD cTypes = 0;
-    hr = pHandler->GetMediaTypeCount(&cTypes);
-    if (FAILED(hr))
-    {
-      goto done;
-    }
-
-    for (DWORD i = 0; i < cTypes; i++)
-    {
-      hr = pHandler->GetMediaTypeByIndex(i, &pType);
-
+      BOOL fSelected = false;
+      hr = pPD->GetStreamDescriptorByIndex(streamIndex, &fSelected, &pSD);
       if (FAILED(hr))
       {
         goto done;
       }
-
-      MediaType MT = FormatReader::Read(pType);
-
-      CurrentFormats.push_back(MT);
-
-      SafeRelease(&pType);
+      DWORD streamId=0;
+      hr = pSD->GetStreamIdentifier(&streamId);
+      if (FAILED(hr))
+      {
+        goto done;
+      }
+      hr = pSD->GetMediaTypeHandler(&pHandler);
+      if (FAILED(hr))
+      {
+        goto done;
+      }
+      DWORD cTypes = 0;
+      hr = pHandler->GetMediaTypeCount(&cTypes);
+      if (FAILED(hr))
+      {
+        continue;
+      }
+      for (DWORD i = 0; i < cTypes; i++)
+      {
+        IMFMediaType *pType = NULL;
+        hr = pHandler->GetMediaTypeByIndex(i, &pType);
+        if (SUCCEEDED(hr))
+        {
+          MediaType mt = FormatReader::Read(pType);\
+          mt.StreamId = streamId;
+          formats.push_back(mt);
+        }
+        SafeRelease(&pType);
+      }
+      this->CurrentFormats.push_back(formats);
     }
 
 done:
     SafeRelease(&pPD);
     SafeRelease(&pSD);
     SafeRelease(&pHandler);
-    SafeRelease(&pType);
     return hr;
   }
 
   //----------------------------------------------------------------------------
-
   unsigned int MediaFoundationVideoDevice::GetActiveType() const
   {
     return this->ActiveType;

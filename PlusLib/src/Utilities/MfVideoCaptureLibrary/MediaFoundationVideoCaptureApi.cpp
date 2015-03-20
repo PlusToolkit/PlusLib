@@ -23,7 +23,6 @@ The "videoInput" library has been adapted to fit within a namespace.
 #include "MfVideoCaptureLoggerMacros.h"
 
 //----------------------------------------------------------------------------
-
 namespace
 {
   template <class T> void SafeRelease(T *ppT)
@@ -37,11 +36,29 @@ namespace
 }
 
 //----------------------------------------------------------------------------
+#define GET_VIDEO_DEVICE_RETURN_IF_FAILED(videoDevice, deviceId, methodName, returnValueOnFail) \
+  if(!this->AccessToDevices) \
+  { \
+    LOG_ERROR(methodName "failed: devices are not accessible"); \
+    return returnValueOnFail; \
+  } \
+  MediaFoundationVideoDevice *videoDevice = MediaFoundationVideoDevices::GetInstance().GetDevice(deviceID); \
+  if (videoDevice==NULL) \
+  { \
+    LOG_ERROR(methodName "failed: failed to get video device "<<deviceID); \
+    return returnValueOnFail; \
+  } \
+  if(videoDevice==NULL) \
+  { \
+    LOG_ERROR(methodName "failed: video device is invalid "<<deviceID); \
+    return returnValueOnFail; \
+  }
 
+
+//----------------------------------------------------------------------------
 namespace MfVideoCapture
 {
   //----------------------------------------------------------------------------
-
   Parameter::Parameter()
   {
     CurrentValue = 0;
@@ -53,24 +70,19 @@ namespace MfVideoCapture
   }
 
   //----------------------------------------------------------------------------
-
   MediaType::MediaType()
   {
     Clear();
   }
 
   //----------------------------------------------------------------------------
-
   MediaType::~MediaType()
   {
-    Clear();
   }
 
   //----------------------------------------------------------------------------
-
   void MediaType::Clear()
   {
-
     MF_MT_FRAME_SIZE = 0;
     height = 0;
     width = 0;
@@ -92,525 +104,250 @@ namespace MfVideoCapture
     MF_MT_INTERLACE_MODE = 0;
     MF_MT_FRAME_RATE_RANGE_MAX = 0;
     MF_MT_FRAME_RATE_RANGE_MAX_low = 0;
-
     memset(&MF_MT_MAJOR_TYPE, 0, sizeof(GUID));
     memset(&MF_MT_AM_FORMAT_TYPE, 0, sizeof(GUID));
     memset(&MF_MT_SUBTYPE, 0, sizeof(GUID));
   }
 
   //----------------------------------------------------------------------------
-
   MediaFoundationVideoCaptureApi::MediaFoundationVideoCaptureApi(void): AccessToDevices(false)
   {
-    LOG_INFO("***** VIDEOINPUT LIBRARY - 2013 (Author: Evgeny Pereguda) *****");
-
+    LOG_DEBUG("MediaFoundationVideoCaptureApi init start");
     UpdateListOfDevices();
-
-    if(!AccessToDevices)
-      LOG_ERROR("INITIALIZATION: There are not any suitable video devices.");
+    if(!this->AccessToDevices)
+    {
+      LOG_ERROR("MediaFoundationVideoCaptureApi failed: no compatible video devices found");
+    }
   }
 
   //----------------------------------------------------------------------------
-
   void MediaFoundationVideoCaptureApi::UpdateListOfDevices()
   {
-    MediaFoundationCaptureLibrary *MF = &MediaFoundationCaptureLibrary::GetInstance();
-
-    AccessToDevices = MF->BuildListOfDevices();
-
-    if(!AccessToDevices)
+    this->AccessToDevices = MediaFoundationCaptureLibrary::GetInstance().BuildListOfDevices();
+    if(!this->AccessToDevices)
     {
-      LOG_ERROR("UPDATING: There is not any suitable video device.");
+      LOG_ERROR("MediaFoundationVideoCaptureApi::UpdateListOfDevices failed: no compatible video devices found");
     }
   }
 
   //----------------------------------------------------------------------------
-
   MediaFoundationVideoCaptureApi::~MediaFoundationVideoCaptureApi(void)
   {
-    LOG_INFO("***** CLOSE VIDEOINPUT LIBRARY - 2013 *****");
+    LOG_DEBUG("MediaFoundationVideoCaptureApi closed");
   }
 
   //----------------------------------------------------------------------------
-
   IMFMediaSource *MediaFoundationVideoCaptureApi::GetMediaSource(unsigned int deviceID)
   {
-    if(AccessToDevices)
+    GET_VIDEO_DEVICE_RETURN_IF_FAILED(videoDevice, deviceId, "MediaFoundationVideoCaptureApi::GetMediaSource", NULL);
+    IMFMediaSource *out = videoDevice->GetMediaSource();
+    if(out==NULL)
     {
-      MediaFoundationVideoDevices *VDS = &MediaFoundationVideoDevices::GetInstance();
-      MediaFoundationVideoDevice * VD = VDS->GetDevice(deviceID);
-
-      if(VD)
-      {
-        IMFMediaSource *out = VD->GetMediaSource();
-
-        if(!out)
-          LOG_ERROR("VideoDevice " << deviceID << ": There is not any suitable IMFMediaSource interface.");
-
-        return out;
-      }
+      LOG_ERROR("VideoDevice " << deviceID << ": There is not any suitable IMFMediaSource interface.");
     }
-    else
-    {
-      LOG_ERROR("VIDEODEVICE(s): There is not any suitable video device.");
-    }
-
-    return NULL;
+    return out;
   }
 
   //----------------------------------------------------------------------------
-
-  bool MediaFoundationVideoCaptureApi::SetupDevice(unsigned int deviceID, unsigned int id)
+  bool MediaFoundationVideoCaptureApi::SetupDevice(unsigned int deviceID, unsigned int streamIndex, unsigned int formatIndex)
   {
-    if(AccessToDevices)
+    GET_VIDEO_DEVICE_RETURN_IF_FAILED(videoDevice, deviceId, "MediaFoundationVideoCaptureApi::SetupDevice", NULL);
+    bool out = videoDevice->SetupDevice(streamIndex, formatIndex);
+    if(!out)
     {
-      MediaFoundationVideoDevices *VDS = &MediaFoundationVideoDevices::GetInstance();
-      MediaFoundationVideoDevice * VD = VDS->GetDevice(deviceID);
-
-      if(VD)
-      {
-        bool out = VD->SetupDevice(id);
-
-        if(!out)
-          LOG_ERROR("VIDEODEVICE " << deviceID << ": This device cannot be started.");
-
-        return out;
-      }
+      LOG_ERROR("VideoDevice " << deviceID << ": This device cannot be started.");
     }
-    else
-    {
-      LOG_ERROR("VIDEODEVICE(s): There are not any suitable video devices.");
-    }
-
-    return false;
+    return out;
   }
 
   //----------------------------------------------------------------------------
-
-  bool MediaFoundationVideoCaptureApi::SetupDevice(unsigned int deviceID, unsigned int w, unsigned int h, unsigned int idealFramerate, GUID subtype)
+  bool MediaFoundationVideoCaptureApi::SetupDevice(unsigned int deviceID, unsigned int streamIndex, unsigned int w, unsigned int h, unsigned int idealFramerate, GUID subtype)
   {
-    if(AccessToDevices)
+    GET_VIDEO_DEVICE_RETURN_IF_FAILED(videoDevice, deviceId, "MediaFoundationVideoCaptureApi::SetupDevice", NULL);
+    bool out = videoDevice->SetupDevice(streamIndex, w, h, idealFramerate, subtype);
+    if(!out)
     {
-      MediaFoundationVideoDevices *VDS = &MediaFoundationVideoDevices::GetInstance();
-      MediaFoundationVideoDevice * VD = VDS->GetDevice(deviceID);
-
-      if(VD)
-      {
-        bool out = VD->SetupDevice(w, h, idealFramerate, subtype);
-
-        if(!out)
-          LOG_ERROR("VIDEODEVICE " << deviceID << ": this device cannot be started.");
-
-        return out;
-      }
+      LOG_ERROR("VideoDevice " << deviceID << ": This device cannot be started.");
     }
-    else
-    {
-      LOG_ERROR("VIDEODEVICE(s): There are not any suitable video devices.");
-    }
-
-    return false;
+    return out;
   }
-
+  
   //----------------------------------------------------------------------------
-
-  MediaType MediaFoundationVideoCaptureApi::GetFormat(unsigned int deviceID, unsigned int id)
+  MediaType MediaFoundationVideoCaptureApi::GetFormat(unsigned int deviceID, unsigned int streamIndex, unsigned int formatIndex)
   {
-    if(AccessToDevices)
-    {
-      MediaFoundationVideoDevices *VDS = &MediaFoundationVideoDevices::GetInstance();
-      MediaFoundationVideoDevice * VD = VDS->GetDevice(deviceID);
+    GET_VIDEO_DEVICE_RETURN_IF_FAILED(videoDevice, deviceId, "MediaFoundationVideoCaptureApi::GetFormat", MediaType());
+    return videoDevice->GetFormat(streamIndex, formatIndex);
+  }
 
-      if(VD)    
-        return VD->GetFormat(id);
-    }
-    else
-    {
-      LOG_ERROR("VIDEODEVICE(s): There are not any suitable video devices.");
-    }
-
-    return MediaType();
+    //----------------------------------------------------------------------------
+  int MediaFoundationVideoCaptureApi::GetNumberOfStreams(unsigned int deviceID)
+  {
+    GET_VIDEO_DEVICE_RETURN_IF_FAILED(videoDevice, deviceId, "MediaFoundationVideoCaptureApi::GetNumberOfStreams", 0);
+    return videoDevice->GetNumberOfStreams();
   }
 
   //----------------------------------------------------------------------------
-
   bool MediaFoundationVideoCaptureApi::IsDeviceSetup(unsigned int deviceID)
   {
-    if(AccessToDevices)
-    {
-      MediaFoundationVideoDevices *VDS = &MediaFoundationVideoDevices::GetInstance();
-      MediaFoundationVideoDevice * VD = VDS->GetDevice(deviceID);
-
-      if(VD)
-        return VD->IsDeviceSetup();
-    }
-    else
-    {
-      LOG_ERROR("VIDEODEVICE(s): There are not any suitable video devices.");
-    }
-
-    return false;
+    GET_VIDEO_DEVICE_RETURN_IF_FAILED(videoDevice, deviceId, "MediaFoundationVideoCaptureApi::IsDeviceSetup", false);
+    return videoDevice->IsDeviceSetup();
   }
 
   //----------------------------------------------------------------------------
-
   bool MediaFoundationVideoCaptureApi::IsDeviceMediaSource(unsigned int deviceID)
   {
-    if(AccessToDevices)
-    {
-      MediaFoundationVideoDevices *VDS = &MediaFoundationVideoDevices::GetInstance();
-      MediaFoundationVideoDevice * VD = VDS->GetDevice(deviceID);
-
-      if(VD)
-        return VD->IsDeviceMediaSource();
-    }
-    else
-    {
-      LOG_ERROR("VIDEODEVICE(s): There are not any suitable video devices.");
-    }
-
-    return false;
+    GET_VIDEO_DEVICE_RETURN_IF_FAILED(videoDevice, deviceId, "MediaFoundationVideoCaptureApi::IsDeviceMediaSource", false);
+    return videoDevice->IsDeviceMediaSource();
   }
 
   //----------------------------------------------------------------------------
-
   bool MediaFoundationVideoCaptureApi::IsDeviceRawDataSource(unsigned int deviceID)
   {
-    if(AccessToDevices)
-    {
-      MediaFoundationVideoDevices *VDS = &MediaFoundationVideoDevices::GetInstance();
-      MediaFoundationVideoDevice * VD = VDS->GetDevice(deviceID);
-
-      if(VD)
-        return VD->IsDeviceRawDataSource();
-    }
-    else
-    {
-      LOG_ERROR("VIDEODEVICE(s): There are not any suitable video devices.");
-    }
-
-    return false;
+    GET_VIDEO_DEVICE_RETURN_IF_FAILED(videoDevice, deviceId, "MediaFoundationVideoCaptureApi::IsDeviceRawDataSource", false);
+    return videoDevice->IsDeviceRawDataSource();
   }
 
   //----------------------------------------------------------------------------
-
-  unsigned int MediaFoundationVideoCaptureApi::GetFormatCount(unsigned int deviceID)
+  unsigned int MediaFoundationVideoCaptureApi::GetNumberOfFormats(unsigned int deviceID, unsigned int streamIndex)
   {
-    if(AccessToDevices)
-    {
-      MediaFoundationVideoDevices *VDS = &MediaFoundationVideoDevices::GetInstance();
-      MediaFoundationVideoDevice * VD = VDS->GetDevice(deviceID);
-
-      if(VD)
-        return VD->GetCountFormats();
-    }
-    else
-    {
-      LOG_ERROR("VIDEODEVICE(s): There are not any suitable video devices.");
-    }
-
-    return 0;
+    GET_VIDEO_DEVICE_RETURN_IF_FAILED(videoDevice, deviceId, "MediaFoundationVideoCaptureApi::GetFormatCount", false);
+    return videoDevice->GetNumberOfFormats(streamIndex);
   }
 
   //----------------------------------------------------------------------------
-
   void MediaFoundationVideoCaptureApi::CloseAllDevices()
   {
-    MediaFoundationVideoDevices *VDS = &MediaFoundationVideoDevices::GetInstance();
-
-    for(unsigned int i = 0; i < VDS->GetCount(); i++)
+    unsigned int numberOfDevices = MediaFoundationVideoDevices::GetInstance().GetCount();
+    for(unsigned int i = 0; i < numberOfDevices; i++)
     {
       CloseDevice(i);
     }
   }
 
   //----------------------------------------------------------------------------
-
-  void MediaFoundationVideoCaptureApi::SetParameters(unsigned int deviceID, CaptureDeviceParameters parametrs)
+  bool MediaFoundationVideoCaptureApi::SetParameters(unsigned int deviceID, CaptureDeviceParameters parameters)
   {
-    if(AccessToDevices)
-    {
-      MediaFoundationVideoDevices *VDS = &MediaFoundationVideoDevices::GetInstance();
-
-      MediaFoundationVideoDevice *VD = VDS->GetDevice(deviceID);
-
-      if(VD)
-        VD->SetParameters(parametrs);
-    }
-    else
-    {
-      LOG_ERROR("VIDEODEVICE(s): There are not any suitable video devices.");
-    }
+    GET_VIDEO_DEVICE_RETURN_IF_FAILED(videoDevice, deviceId, "MediaFoundationVideoCaptureApi::SetParameters", false);
+    videoDevice->SetParameters(parameters);
+    return true;
   }
 
   //----------------------------------------------------------------------------
-
   CaptureDeviceParameters MediaFoundationVideoCaptureApi::GetParameters(unsigned int deviceID)
   {
-    CaptureDeviceParameters out;
-
-    if(AccessToDevices)
-    {
-      MediaFoundationVideoDevices *VDS = &MediaFoundationVideoDevices::GetInstance();
-      MediaFoundationVideoDevice *VD = VDS->GetDevice(deviceID);
-
-      if(VD)
-        out = VD->GetParameters();
-    }
-    else
-    {
-      LOG_ERROR("VIDEODEVICE(s): There are not any suitable video devices.");
-    }
-
-    return out;
+    GET_VIDEO_DEVICE_RETURN_IF_FAILED(videoDevice, deviceId, "MediaFoundationVideoCaptureApi::GetParameters", CaptureDeviceParameters());
+    return videoDevice->GetParameters();
   }
 
   //----------------------------------------------------------------------------
-
-  void MediaFoundationVideoCaptureApi::CloseDevice(unsigned int deviceID)
+  bool MediaFoundationVideoCaptureApi::CloseDevice(unsigned int deviceID)
   {
-    if(AccessToDevices)
-    {
-      MediaFoundationVideoDevices *VDS = &MediaFoundationVideoDevices::GetInstance();
-      MediaFoundationVideoDevice *VD = VDS->GetDevice(deviceID);
-
-      if(VD)
-        VD->CloseDevice();
-    }
-    else
-    {
-      LOG_ERROR("VIDEODEVICE(s): There are not any suitable video devices.");
-    }
+    GET_VIDEO_DEVICE_RETURN_IF_FAILED(videoDevice, deviceId, "MediaFoundationVideoCaptureApi::CloseDevice", false);
+    videoDevice->CloseDevice();
+    return true;
   }
 
   //----------------------------------------------------------------------------
-
   unsigned int MediaFoundationVideoCaptureApi::GetWidth(unsigned int deviceID)
   {
-    if(AccessToDevices)
-    {
-      MediaFoundationVideoDevices *VDS = &MediaFoundationVideoDevices::GetInstance();
-      MediaFoundationVideoDevice * VD = VDS->GetDevice(deviceID);
-
-      if(VD)  
-        return VD->GetWidth();
-    }
-    else
-    {
-      LOG_ERROR("VIDEODEVICE(s): There are not any suitable video devices.");
-    }
-
-    return 0;
+    GET_VIDEO_DEVICE_RETURN_IF_FAILED(videoDevice, deviceId, "MediaFoundationVideoCaptureApi::GetWidth", 0);
+    return videoDevice->GetWidth();
   }
 
   //----------------------------------------------------------------------------
-
   unsigned int MediaFoundationVideoCaptureApi::GetHeight(unsigned int deviceID)
   {
-    if(AccessToDevices)
-    {
-      MediaFoundationVideoDevices *VDS = &MediaFoundationVideoDevices::GetInstance();
-      MediaFoundationVideoDevice * VD = VDS->GetDevice(deviceID);
-
-      if(VD)
-        return VD->GetHeight();
-    }
-    else
-    {
-      LOG_ERROR("VIDEODEVICE(s): There are not any suitable video devices.");
-    }
-
-    return 0;
+    GET_VIDEO_DEVICE_RETURN_IF_FAILED(videoDevice, deviceId, "MediaFoundationVideoCaptureApi::GetHeight", 0);
+    return videoDevice->GetHeight();
   }
 
   //----------------------------------------------------------------------------
-
   unsigned int MediaFoundationVideoCaptureApi::GetFrameRate(unsigned int deviceID)
   {
-    if(AccessToDevices)
-    {
-      MediaFoundationVideoDevices *VDS = &MediaFoundationVideoDevices::GetInstance();
-      MediaFoundationVideoDevice * VD = VDS->GetDevice(deviceID);
-
-      if(VD)
-        return VD->GetFrameRate();
-    }
-    else
-    {
-      LOG_ERROR("VIDEODEVICE(s): There are not any suitable video devices.");
-    }
-
-    return 0;
+    GET_VIDEO_DEVICE_RETURN_IF_FAILED(videoDevice, deviceId, "MediaFoundationVideoCaptureApi::GetFrameRate", 0);
+    return videoDevice->GetFrameRate();
   }
 
   //----------------------------------------------------------------------------
-
   wchar_t *MediaFoundationVideoCaptureApi::GetCaptureDeviceName(unsigned int deviceID)
   {
-    if(AccessToDevices)
-    {
-      MediaFoundationVideoDevices *VDS = &MediaFoundationVideoDevices::GetInstance();
-      MediaFoundationVideoDevice * VD = VDS->GetDevice(deviceID);
-
-      if(VD)
-        return VD->GetName();
-    }
-    else
-    {
-      LOG_ERROR("VIDEODEVICE(s): There are not any suitable video devices.");
-    }
-
-    return L"Empty";
+    GET_VIDEO_DEVICE_RETURN_IF_FAILED(videoDevice, deviceId, "MediaFoundationVideoCaptureApi::GetCaptureDeviceName", L"Empty");
+    return videoDevice->GetName();
   }
 
   //----------------------------------------------------------------------------
-
   unsigned int MediaFoundationVideoCaptureApi::ListDevices()
   {
-    int out = 0;
-
-    if(AccessToDevices)
+    if (!this->AccessToDevices)
     {
-      MediaFoundationVideoDevices *VDS = &MediaFoundationVideoDevices::GetInstance();
-      out = VDS->GetCount();
-
-      LOG_INFO("VIDEOINPUT SPY MODE!");
-      LOG_INFO("SETUP: Looking For Capture Devices.");
-
-      for(int i = 0; i < out; i++)
-      {
-        LOG_INFO("SETUP: " << i << ", " << GetCaptureDeviceName(i) << ".");
-      }
-
-      LOG_INFO("SETUP: " << out << " Device(s) found.");
-
+      LOG_ERROR("MediaFoundationVideoCaptureApi::ListDevices failed: no devices found");
+      return 0;
     }
-    else
+    unsigned int numberOfDevices = MediaFoundationVideoDevices::GetInstance().GetCount();
+    for(unsigned int i = 0; i < numberOfDevices; i++)
     {
-      LOG_ERROR("VIDEODEVICE(s): There are not any suitable video devices.");
+      LOG_INFO("Device " << i << ": " << GetCaptureDeviceName(i));
     }
-
-    return out;
+    return numberOfDevices;
   }
 
   //----------------------------------------------------------------------------
-
   void MediaFoundationVideoCaptureApi::GetDeviceNames(std::vector< std::wstring > &deviceNames)
   {
     deviceNames.clear();
-
-    if(AccessToDevices)
+    if (!this->AccessToDevices)
     {
-      MediaFoundationVideoDevices *VDS = &MediaFoundationVideoDevices::GetInstance();
-      int out = VDS->GetCount();
-      for(int i = 0; i < out; i++)
-      {
-        std::wstring deviceName=GetCaptureDeviceName(i);
-        deviceNames.push_back(deviceName);
-      }
+      LOG_ERROR("MediaFoundationVideoCaptureApi::GetDeviceNames failed: no devices found");
+      return;
     }
-    else
+    unsigned int numberOfDevices = MediaFoundationVideoDevices::GetInstance().GetCount();
+    for(unsigned int i = 0; i < numberOfDevices; i++)
     {
-      LOG_ERROR("VIDEODEVICE(s): There are not any suitable video devices.");
+      std::wstring deviceName=GetCaptureDeviceName(i);
+      deviceNames.push_back(deviceName);
     }
-
   }
 
   //----------------------------------------------------------------------------
-
   MediaFoundationVideoCaptureApi& MediaFoundationVideoCaptureApi::GetInstance() 
   {
     static MediaFoundationVideoCaptureApi instance;
-
     return instance;
   }
 
   //----------------------------------------------------------------------------
-
-  bool MediaFoundationVideoCaptureApi::AreDevicesAccessable() const
+  bool MediaFoundationVideoCaptureApi::AreDevicesAccessible() const
   {
     return AccessToDevices;
   }
 
   //----------------------------------------------------------------------------
-
-  void MediaFoundationVideoCaptureApi::SetEmergencyStopEvent(unsigned int deviceID, void *userData, void(*func)(int, void *))
+  bool MediaFoundationVideoCaptureApi::SetEmergencyStopEvent(unsigned int deviceID, void *userData, void(*func)(int, void *))
   {
-    if(AccessToDevices)
-    {
-      if(func)
-      {
-        MediaFoundationVideoDevices *VDS = &MediaFoundationVideoDevices::GetInstance();
-        MediaFoundationVideoDevice * VD = VDS->GetDevice(deviceID);
-
-        if(VD)  
-          VD->SetEmergencyStopEvent(userData, func);
-      }
-    }
-    else
-    {
-      LOG_ERROR("VIDEODEVICE(s): There are not any suitable video devices.");
-    }
+    GET_VIDEO_DEVICE_RETURN_IF_FAILED(videoDevice, deviceId, "MediaFoundationVideoCaptureApi::SetEmergencyStopEvent", false);
+    videoDevice->SetEmergencyStopEvent(userData, func);
+    return true;
   }
 
   //----------------------------------------------------------------------------
-
   unsigned int MediaFoundationVideoCaptureApi::GetDeviceActiveFormat( unsigned int deviceID )
   {
-    if(AccessToDevices)
-    {
-      MediaFoundationVideoDevices *VDS = &MediaFoundationVideoDevices::GetInstance();
-      MediaFoundationVideoDevice * VD = VDS->GetDevice(deviceID);
-
-      if(VD)
-        return VD->GetActiveType();
-    }
-    else
-    {
-      LOG_ERROR("VIDEODEVICE(s): There are not any suitable video devices.");
-    }
-
-    return -1;
+    GET_VIDEO_DEVICE_RETURN_IF_FAILED(videoDevice, deviceId, "MediaFoundationVideoCaptureApi::GetDeviceActiveFormat", -1);
+    return videoDevice->GetActiveType();
   }
 
   //----------------------------------------------------------------------------
-
   bool MediaFoundationVideoCaptureApi::StartRecording( unsigned int deviceID )
   {
-    if(AccessToDevices)
-    {
-      MediaFoundationVideoDevices *VDS = &MediaFoundationVideoDevices::GetInstance();
-      MediaFoundationVideoDevice * VD = VDS->GetDevice(deviceID);
-
-      if(VD)
-        return VD->Start();
-    }
-    else
-    {
-      LOG_ERROR("VIDEODEVICE(s): There are not any suitable video devices.");
-    }
-
-    return false;
+    GET_VIDEO_DEVICE_RETURN_IF_FAILED(videoDevice, deviceId, "MediaFoundationVideoCaptureApi::StartRecording", false);
+    return videoDevice->Start();
   }
 
   //----------------------------------------------------------------------------
-
   bool MediaFoundationVideoCaptureApi::StopRecording( unsigned int deviceID )
   {
-    if(AccessToDevices)
-    {
-      MediaFoundationVideoDevices *VDS = &MediaFoundationVideoDevices::GetInstance();
-      MediaFoundationVideoDevice * VD = VDS->GetDevice(deviceID);
-
-      if(VD)
-        return VD->Stop();
-    }
-    else
-    {
-      LOG_ERROR("VIDEODEVICE(s): There are not any suitable video devices.");
-    }
-
-    return false;
+    GET_VIDEO_DEVICE_RETURN_IF_FAILED(videoDevice, deviceId, "MediaFoundationVideoCaptureApi::StopRecording", false);
+    return videoDevice->Stop();
   }
 
 }
