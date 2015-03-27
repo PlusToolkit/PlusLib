@@ -30,6 +30,8 @@ class MmfVideoSourceReader;
   \class vtkMmfVideoSource 
   \brief Microsoft media foundation video digitizer
 
+  Media foundation require Microsoft Windows SDK 7.1 or later. Download <a href="http://www.microsoft.com/en-us/download/details.aspx?id=8279">here</a>
+
   \sa vtkPlusDevice
   \ingroup PlusLibDataCollection
 */ 
