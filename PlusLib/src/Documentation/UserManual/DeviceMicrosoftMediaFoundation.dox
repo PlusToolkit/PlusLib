@@ -10,7 +10,10 @@ Any compatible frame grabbers and webcams through Microsoft Media Foundation int
 
 \section MicrosoftMediaFoundationInstallation Installation
 
-Media foundation require Microsoft Windows SDK 7.1 or later. Download <a href="http://www.microsoft.com/en-us/download/details.aspx?id=8279">here</a>
+Media foundation require Microsoft Windows 7 or later.
+
+If your framegrabber uses a "crossbar" for switching between multiple inputs (e.g., composite, s-video) then you may need to connect to your device through a virtual camera software (such as http://splitcamera.com/ or https://manycam.com/). It is recommended to upgrade to a more recent UVC 1.1 compatible device (http://en.wikipedia.org/wiki/USB_video_device_class) or use
+\ref DeviceICCapturing or \ref DeviceEpiphan imaging devices that Plus has built-in native support for.
 
 \section MicrosoftMediaFoundationConfigSettings Device configuration settings
 
