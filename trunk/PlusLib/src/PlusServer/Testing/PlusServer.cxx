@@ -11,8 +11,8 @@ If testing enabled this program tests Plus server and Plus client. The communica
 happens between two threads. In real life, it happens between two programs.
 */ 
 
-#include "PlusCommon.h"
 #include "PlusConfigure.h"
+#include "PlusCommon.h"
 #include "vtkDataCollector.h"
 #include "vtkOpenIGTLinkVideoSource.h"
 #include "vtkPlusBuffer.h"
@@ -36,7 +36,6 @@ PlusStatus DisconnectClients( std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSo
 void SignalInterruptHandler(int s);
 static bool stopRequested = false;
 #ifdef _WIN32
-HWND GetConsoleHwnd();
 void CheckConsoleWindowCloseRequested(HWND consoleHwnd);
 #endif
 
@@ -194,7 +193,7 @@ int main( int argc, char** argv )
   // Set up signal catching
   signal(SIGINT, SignalInterruptHandler);
 #ifdef _WIN32
-  HWND consoleHwnd=GetConsoleHwnd();
+  HWND consoleHwnd=GetConsoleWindow();
 #endif
 
   bool neverStop = (runTimeSec==0.0);
@@ -355,31 +354,6 @@ void SignalInterruptHandler(int s)
 }
 
 #ifdef _WIN32
-//-----------------------------------------------------------------------------
-// Get the window handle of the console window
-// (needed for capturing WM_CLOSE event on Windows because Qt cannot send SIGINT
-// on Windows)
-// Source: http://support.microsoft.com/kb/124103
-HWND GetConsoleHwnd()
-{
-  const int TITLE_BUFFER_SIZE(1024); // Buffer size for console window titles.
-  std::stringstream newWindowTitle; // Contains fabricated WindowTitle.
-  char pszOldWindowTitle[TITLE_BUFFER_SIZE]; // Contains original WindowTitle.
-  // Fetch current window title.
-  GetConsoleTitle(pszOldWindowTitle, TITLE_BUFFER_SIZE);
-  // Format a "unique" NewWindowTitle.
-  newWindowTitle << GetTickCount() << "/" << GetCurrentProcessId();
-  // Change current window title.
-  SetConsoleTitle(newWindowTitle.str().c_str());
-  // Ensure window title has been updated.
-  Sleep(40);
-  // Look for NewWindowTitle.
-  HWND hwndFound=FindWindow(NULL, newWindowTitle.str().c_str());
-  // Restore original window title.
-  SetConsoleTitle(pszOldWindowTitle);
-  return(hwndFound);
-}
-
 //-----------------------------------------------------------------------------
 // On Windows Qt cannot send SIGINT signal to indicate that the process should exit (ctrl-c),
 // it can only send WM_CLOSE message to all of its windows. Therefore, we check for WM_CLOSE
