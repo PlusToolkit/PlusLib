@@ -360,10 +360,16 @@ void SignalInterruptHandler(int s)
 // messages and stop if we receive one.
 void CheckConsoleWindowCloseRequested(HWND consoleHwnd)
 {
-  MSG Msg;
-  if (PeekMessage(&Msg, consoleHwnd, WM_CLOSE, WM_CLOSE, PM_NOREMOVE))
+  MSG msg;
+  if (PeekMessage(&msg, 0, WM_CLOSE, WM_CLOSE, PM_NOREMOVE))
   {
-    stopRequested = true;
+    // Qt usually sends WM_CLOSE with a proper (non-NULL) HWND when calling QProcess::terminate()
+    // the launched application. However, on WindowsXP embedded we receive a NULL as HWND, so
+    // accept that, too.
+    if (msg.hwnd==NULL || msg.hwnd==consoleHwnd)
+    {
+      stopRequested = true;
+    }
   }
 }
 #endif
