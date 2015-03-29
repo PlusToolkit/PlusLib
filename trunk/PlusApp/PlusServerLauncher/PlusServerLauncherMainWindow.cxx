@@ -103,8 +103,9 @@ bool PlusServerLauncherMainWindow::startServer(QString& configFilePath)
   connect(m_CurrentServerInstance, SIGNAL(readyReadStandardError()), this, SLOT(stdErrMsgReceived()));
   connect(m_CurrentServerInstance, SIGNAL(error(QProcess::ProcessError)), this, SLOT(errorReceived(QProcess::ProcessError)));
   connect(m_CurrentServerInstance, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(serverExecutableFinished(int, QProcess::ExitStatus)));
-  QString arg = QString("--config-file=\"").append(configFilePath).append("\"");
-  m_CurrentServerInstance->start(QString("\"").append(plusServerExecutable.c_str()).append("\" ").append(arg).append(" --verbose=3"));
+  QString cmdLine = QString("\"%1\" --config-file=\"%2\" --verbose=%3").arg(plusServerExecutable.c_str()).arg(configFilePath).arg(vtkPlusLogger::Instance()->GetLogLevel());
+  LOG_INFO("Server process command line: "<<cmdLine.toLatin1().constData());
+  m_CurrentServerInstance->start(cmdLine);
   m_CurrentServerInstance->waitForFinished(500);
   if( m_CurrentServerInstance->state() == QProcess::Running )
   {
