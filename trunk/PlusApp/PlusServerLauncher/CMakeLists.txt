@@ -63,7 +63,6 @@ ENDIF()
 
 ADD_EXECUTABLE( PlusServerLauncher ${APP_MODE} ${PlusServerLauncher_SRCS} ${PlusServerLauncher_UI_HDRS} ${PlusServerLauncher_QT_UI_Headers} ${PlusServerLauncher_QT_UI_Headers} ${PlusServerLauncher_QT_MOC_Files} ${PlusServerLauncher_QT_MOC_UI_Files} ${PlusServerLauncher_QT_RCC_Files})
 TARGET_LINK_LIBRARIES( PlusServerLauncher ${VTK_LIBRARIES} ${PlusServerLauncher_LIBS} )
-GENERATE_HELP_DOC(PlusServerLauncher)
 
 # --------------------------------------------------------------------------
 # Install

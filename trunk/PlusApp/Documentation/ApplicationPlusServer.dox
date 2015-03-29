@@ -42,6 +42,21 @@ Launch the command-line-only version of PlusServer (no graphical user interface)
 
     PlusServer --config-file=PlusServer.xml
 
+~~~
+
+  --config-file=opt                   Configuration file name
+
+  --connect                           Automatically connect after the
+                                      application is started
+
+  --device-set-configuration-dir=opt  Device set configuration directory path
+
+  --help                              Print this help.
+
+  --verbose=opt                       Verbose level (1=error only, 2=warning,
+                                      3=info, 4=debug)
+~~~
+ 
 \section ApplicationPlusServerConfigSettings Configuration settings
 
 - \xmlElem \b PlusOpenIGTLinkServer
