@@ -59,6 +59,8 @@ protected slots:
 
 protected:
 
+  void sendServerOutputToLogger(const QByteArray &strData, vtkPlusLogger::LogLevelType defaultLogLevel);
+
   /*! Start server process, connect outputs to logger. Returns with true on success. */
   bool startServer(QString& configFilePath);
 

@@ -14,6 +14,7 @@
 #include "vtkTransformRepository.h"
 #include <QIcon>
 #include <QKeyEvent>
+#include <QStringList>
 #include <QTimer>
 
 //-----------------------------------------------------------------------------
@@ -197,13 +198,62 @@ void PlusServerLauncherMainWindow::connectToDevicesByConfigFile(std::string aCon
 void PlusServerLauncherMainWindow::keyPressEvent(QKeyEvent *e)
 {
   // If ESC key is pressed don't quit the application, just minimize
-  if(e->key() != Qt::Key_Escape)
+  if(e->key() == Qt::Key_Escape)
   {
-    QDialog::keyPressEvent(e);
+    showMinimized();
   }
   else
   {
-    showMinimized();
+    QDialog::keyPressEvent(e);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void PlusServerLauncherMainWindow::sendServerOutputToLogger(const QByteArray &strData, vtkPlusLogger::LogLevelType defaultLogLevel)
+{
+  QString logString(strData);
+  QStringList logLines = logString.split("\n");
+  foreach (const QString &logLine, logLines)
+  {
+    // Log line: time|level|timeoffset|message|location
+    const int numberOfFieldsPerLogLine = 5;
+    QStringList logFields = logLine.split('|');
+    QString updatedLogLine;
+    vtkPlusLogger::LogLevelType logLevel = defaultLogLevel;
+    if (logFields.size() == numberOfFieldsPerLogLine)
+    {
+      // Try matching log level, starting with the most frquently used levels
+      if (logFields[1]=="DEBUG")
+      {
+        logLevel = vtkPlusLogger::LOG_LEVEL_DEBUG;
+      }
+      else if (logFields[1]=="INFO")
+      {
+        logLevel = vtkPlusLogger::LOG_LEVEL_INFO;
+      }
+      else if (logFields[1]=="WARNING")
+      {
+        logLevel = vtkPlusLogger::LOG_LEVEL_WARNING;
+      }
+      else if (logFields[1]=="ERROR")
+      {
+        logLevel = vtkPlusLogger::LOG_LEVEL_ERROR;
+      }
+      else if (logFields[1]=="TRACE")
+      {
+        logLevel = vtkPlusLogger::LOG_LEVEL_TRACE;
+      }
+      logFields.pop_front(); // strip time
+      logFields.pop_front(); // strip level
+      logFields.pop_front(); // strip timeOffset
+      updatedLogLine = logFields.join(";");
+    }
+    else
+    {
+      // cannot parse this line, log as is
+      updatedLogLine = logLine;
+    }
+    vtkPlusLogger::Instance()->LogMessage(logLevel, updatedLogLine.toLatin1().constData(), "PlusServerLauncher", 0, "SERVER");
   }
 }
 
@@ -211,33 +261,14 @@ void PlusServerLauncherMainWindow::keyPressEvent(QKeyEvent *e)
 void PlusServerLauncherMainWindow::stdOutMsgReceived()
 {
   QByteArray strData = m_CurrentServerInstance->readAllStandardOutput();
-  // Strip the preceding INFO text
-  std::string output = std::string(strData);
-  int vertBarPos = 0;
-  for( int i = 0; i < 2; i++ )//looking for the third one (start counting from 0)
-    vertBarPos = output.find_first_of( '|', vertBarPos + 1 );
-
-  LOG_INFO_PREFIX(output.substr(vertBarPos+1), "SERVER");
+  sendServerOutputToLogger(strData, vtkPlusLogger::LOG_LEVEL_INFO);
 }
 
 //-----------------------------------------------------------------------------
 void PlusServerLauncherMainWindow::stdErrMsgReceived()
 {
   QByteArray strData = m_CurrentServerInstance->readAllStandardError();
-  // Strip the preceding ERROR/WARNING text
-  std::string output = std::string(strData);
-  int vertBarPos = 0;
-  for( int i = 0; i < 2; i++ )//looking for the third one (start counting from 0)
-    vertBarPos = output.find_first_of( '|', vertBarPos + 1 );
-
-  if( output.find("|WARNING|") == 0 )
-  {
-    LOG_WARNING_PREFIX(output.substr(vertBarPos+1), "SERVER");
-  }
-  else
-  {
-    LOG_ERROR_PREFIX(output.substr(vertBarPos+1), "SERVER");
-  }
+  sendServerOutputToLogger(strData, vtkPlusLogger::LOG_LEVEL_ERROR);
 }
 
 //-----------------------------------------------------------------------------
