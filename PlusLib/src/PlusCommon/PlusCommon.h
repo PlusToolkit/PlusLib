@@ -93,48 +93,6 @@ enum PlusImagingMode
   msgStream << msg << std::ends; \
   vtkPlusLogger::Instance()->LogMessage(logLevel, msgStream.str().c_str(), __FILE__, __LINE__); \
   }
-
-#define LOG_ERROR_PREFIX(msg, prefix) \
-{ \
-  std::ostringstream msgStream; \
-  msgStream << msg << std::ends; \
-  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_ERROR, msgStream.str().c_str(), __FILE__, __LINE__, prefix); \
-  }  
-
-#define LOG_WARNING_PREFIX(msg, prefix) \
-{ \
-  std::ostringstream msgStream; \
-  msgStream << msg << std::ends; \
-  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_WARNING, msgStream.str().c_str(), __FILE__, __LINE__, prefix); \
-  }
-
-#define LOG_INFO_PREFIX(msg, prefix) \
-{ \
-  std::ostringstream msgStream; \
-  msgStream << msg << std::ends; \
-  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_INFO, msgStream.str().c_str(), __FILE__, __LINE__, prefix); \
-  }
-
-#define LOG_DEBUG_PREFIX(msg, prefix) \
-{ \
-  std::ostringstream msgStream; \
-  msgStream << msg << std::ends; \
-  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_DEBUG, msgStream.str().c_str(), __FILE__, __LINE__, prefix); \
-  }  
-
-#define LOG_TRACE_PREFIX(msg, prefix) \
-{ \
-  std::ostringstream msgStream; \
-  msgStream << msg << std::ends; \
-  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_TRACE, msgStream.str().c_str(), __FILE__, __LINE__, prefix); \
-  }
-
-#define LOG_DYNAMIC_PREFIX(msg, prefix, logLevel) \
-{ \
-  std::ostringstream msgStream; \
-  msgStream << msg << std::ends; \
-  vtkPlusLogger::Instance()->LogMessage(logLevel, msgStream.str().c_str(), __FILE__, __LINE__, prefix); \
-  }
   
 /////////////////////////////////////////////////////////////////// 
 
