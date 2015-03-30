@@ -77,11 +77,11 @@ public:
 
   /*! Pack position message from tracked frame */ 
   static PlusStatus PackPositionMessage(igtl::PositionMessage::Pointer positionMessage, PlusTransformName& transformName, 
-    igtl::Matrix4x4& igtlMatrix, double timestamp ); 
+    float position[3], float quaternion[4], double timestamp ); 
 
   /*! Unpack position message */ 
   static PlusStatus UnpackPositionMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket, 
-    float position[3], std::string& positionName, double& timestamp, int crccheck );
+    vtkMatrix4x4* transformMatrix, std::string& transformName, double& timestamp, int crccheck );
 
   /*! Pack string message */ 
   static PlusStatus PackStringMessage( igtl::StringMessage::Pointer stringMessage, const char* stringName, const char* stringValue, double timestamp);

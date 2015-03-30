@@ -211,9 +211,13 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
         igtl::Matrix4x4 igtlMatrix; 
         vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, transformRepository, transformName);
 
+        float position[3]={igtlMatrix[0][3], igtlMatrix[1][3], igtlMatrix[2][3]};
+        float quaternion[4]={0,0,0,1};
+        igtl::MatrixToQuaternion( igtlMatrix, quaternion );
+
         igtl::PositionMessage::Pointer positionMessage = igtl::PositionMessage::New(); 
         positionMessage->Copy( dynamic_cast<igtl::PositionMessage*>(igtlMessage.GetPointer()) );
-        vtkPlusIgtlMessageCommon::PackPositionMessage( positionMessage, transformName, igtlMatrix, trackedFrame.GetTimestamp() );
+        vtkPlusIgtlMessageCommon::PackPositionMessage( positionMessage, transformName, position, quaternion, trackedFrame.GetTimestamp() );
         igtlMessages.push_back( dynamic_cast<igtl::MessageBase*>(positionMessage.GetPointer()) ); 
       }
     }
