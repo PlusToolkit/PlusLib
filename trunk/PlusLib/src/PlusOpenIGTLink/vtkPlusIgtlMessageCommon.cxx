@@ -581,7 +581,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTransformMessage(igtl::MessageHeader:
 //----------------------------------------------------------------------------
 // static 
 PlusStatus vtkPlusIgtlMessageCommon::PackPositionMessage(igtl::PositionMessage::Pointer positionMessage, PlusTransformName& transformName, 
-                                                           igtl::Matrix4x4& igtlMatrix, double timestamp )
+                                                           float position[3], float quaternion[4], double timestamp )
 {
   if ( positionMessage.IsNull() )
   {
@@ -595,7 +595,8 @@ PlusStatus vtkPlusIgtlMessageCommon::PackPositionMessage(igtl::PositionMessage::
   std::string strTransformName;
   transformName.GetTransformName( strTransformName );
 
-  positionMessage->SetPosition( igtlMatrix[0][3], igtlMatrix[1][3], igtlMatrix[2][3] );
+  positionMessage->SetPosition( position );
+  positionMessage->SetQuaternion( quaternion );
   positionMessage->SetTimeStamp( igtlTime );
   positionMessage->SetDeviceName( strTransformName.c_str() );
   positionMessage->Pack();
@@ -606,7 +607,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackPositionMessage(igtl::PositionMessage::
 //----------------------------------------------------------------------------
 // static 
 PlusStatus vtkPlusIgtlMessageCommon::UnpackPositionMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket, 
-                                                            float position[3], std::string& positionName, double& timestamp, int crccheck )
+                                                            vtkMatrix4x4* transformMatrix, std::string& transformName, double& timestamp, int crccheck )
 {
   if ( headerMsg.IsNull() )
   {
@@ -620,9 +621,9 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackPositionMessage(igtl::MessageHeader::
     return PLUS_FAIL; 
   }
 
-  if ( position == NULL )
+  if ( transformMatrix == NULL )
   {
-    LOG_ERROR("Unable to unpack position message - position is NULL!"); 
+    LOG_ERROR("Unable to unpack position message - transformMatrix is NULL!"); 
     return PLUS_FAIL; 
   }
 
@@ -641,7 +642,21 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackPositionMessage(igtl::MessageHeader::
   }
 
   // if CRC check is OK. Read position data.
+  float position[3]={0};
   posMsg->GetPosition(position);
+
+  float quaternion[4]={0,0,0,1};
+  posMsg->GetQuaternion(quaternion);
+
+  // Orientation
+  igtl::Matrix4x4 igtlMatrix;
+  igtl::IdentityMatrix(igtlMatrix);
+  igtl::QuaternionToMatrix( quaternion, igtlMatrix );
+
+  // Position
+  transformMatrix->SetElement(0,3, igtlMatrix[0][3]); 
+  transformMatrix->SetElement(1,3, igtlMatrix[1][3]); 
+  transformMatrix->SetElement(2,3, igtlMatrix[2][3]); 
 
   // Get timestamp 
   igtl::TimeStamp::Pointer igtlTimestamp = igtl::TimeStamp::New(); 
@@ -649,7 +664,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackPositionMessage(igtl::MessageHeader::
   timestamp = igtlTimestamp->GetTimeStamp();  
 
   // Get transform name 
-  positionName = posMsg->GetDeviceName(); 
+  transformName = posMsg->GetDeviceName(); 
 
   return PLUS_SUCCESS; 
 }
