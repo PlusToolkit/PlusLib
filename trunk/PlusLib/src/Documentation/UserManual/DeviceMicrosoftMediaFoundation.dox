@@ -2,7 +2,7 @@
 \page DeviceMicrosoftMediaFoundation Microsoft Media Foundation compatible imaging device
 
 \section MicrosoftMediaFoundationSupportedHwDevices Supported hardware devices
-Any compatible frame grabbers and webcams through Microsoft Media Foundation interface.
+Any compatible frame grabbers, surgical microscopes (for example Zeiss Pentero), endoscopes, webcams, etc. through Microsoft Media Foundation interface.
 
 \section MicrosoftMediaFoundationSupportedPlatforms Included in packages
 - \ref PackageWin32
