@@ -9,6 +9,8 @@ See License.txt for details.
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkSmartPointer.h"
 
+#include "vtkRecursiveCriticalSection.h"
+
 static double DOUBLE_THRESHOLD=0.0001; 
 
 PlusStatus TestValidTransformName( std::string from, std::string to)
@@ -69,6 +71,7 @@ PlusStatus TestInvalidTransformName( std::string from, std::string to)
 
   return PLUS_SUCCESS; 
 }
+
 int main(int argc, char **argv)
 {
   bool printHelp(false);
@@ -160,6 +163,20 @@ int main(int argc, char **argv)
   if ( TestInvalidTransformName("ToTol","TolTo") != PLUS_SUCCESS ) { exit(EXIT_FAILURE); }
   if ( TestInvalidTransformName("TolTo","ToTol") != PLUS_SUCCESS ) { exit(EXIT_FAILURE); }
   if ( TestInvalidTransformName("to","to") != PLUS_SUCCESS ) { exit(EXIT_FAILURE); }
+
+  LOG_INFO("Test recursive critical section");
+  vtkRecursiveCriticalSection* critSec = vtkRecursiveCriticalSection::New();
+  LOG_INFO(" Lock");
+  critSec->Lock();
+  LOG_INFO(" Lock again");
+  critSec->Lock();
+  LOG_INFO(" Unlock");
+  critSec->Unlock();
+  LOG_INFO(" Unlock again");
+  critSec->Unlock();
+  LOG_INFO(" Delete");
+  critSec->Delete();
+  LOG_INFO(" Done");
 
   LOG_INFO("Test finished successfully!"); 
   return EXIT_SUCCESS; 
