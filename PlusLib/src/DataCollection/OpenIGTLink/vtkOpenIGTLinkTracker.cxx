@@ -270,16 +270,11 @@ PlusStatus vtkOpenIGTLinkTracker::ProcessTransformMessage(igtl::MessageHeader::P
   }
   else if (strcmp(headerMsg->GetDeviceType(), "POSITION") == 0)
   {
-    float position[3] = {0}; 
-    if ( vtkPlusIgtlMessageCommon::UnpackPositionMessage(headerMsg, this->ClientSocket.GetPointer(), position, igtlTransformName, unfilteredTimestampUtc, this->IgtlMessageCrcCheckEnabled) != PLUS_SUCCESS )
+    if ( vtkPlusIgtlMessageCommon::UnpackPositionMessage(headerMsg, this->ClientSocket.GetPointer(), toolMatrix, igtlTransformName, unfilteredTimestampUtc, this->IgtlMessageCrcCheckEnabled) != PLUS_SUCCESS )
     {
       LOG_ERROR("Couldn't receive position message from server!"); 
       return PLUS_FAIL;
     }
-    toolMatrix->Identity(); 
-    toolMatrix->SetElement(0,3, position[0]); 
-    toolMatrix->SetElement(1,3, position[1]); 
-    toolMatrix->SetElement(2,3, position[2]); 
   }
   else
   {
