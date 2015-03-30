@@ -65,7 +65,7 @@ void DisplayMessage(QString msg, QString detail, bool isError)
 
   // Set width to half of screen size
   QRect rec = QApplication::desktop()->screenGeometry();
-  QSpacerItem* horizontalSpacer = new QSpacerItem(rec.width()/2, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+  QSpacerItem* horizontalSpacer = new QSpacerItem(0.5*rec.width(), 0, QSizePolicy::Minimum, QSizePolicy::Fixed);
   QGridLayout* layout = (QGridLayout*)msgBox.layout();
   layout->addItem(horizontalSpacer, layout->rowCount(), 0, 1, layout->columnCount());
 
@@ -136,19 +136,26 @@ int appMain(int argc, char *argv[])
 
 	  if ( !cmdargs.Parse() )
 	  {
-      QString msg("Problem parsing arguments. PlusServer cannot start.");
+      QString cmdArgsString;
+      for (int i=0; i<argc; i++)
+      {
+        cmdArgsString.append(argv[i]);
+        cmdArgsString.append(" ");
+      }
+      QString msg = QString("<html><b>Problem parsing command-line argument [%1]: %2</b><p>Complete command line:<br>%3</html>").arg(cmdargs.GetLastArgument()+1).arg(argv[cmdargs.GetLastArgument()+1]).arg(cmdArgsString);
       QString details;
-      details.append("Help:\n");
+      details.append("Command-line options:\n");
       details.append(cmdargs.GetHelp());
 		  DisplayMessage(msg, details, true);
 		  exit(EXIT_FAILURE);
 	  }
 
-    if ( printHelp ) 
+    if ( printHelp )
     {
       QString msg;
-      msg.append("Help:\n");
+      msg.append("<html><b>Command-line options:</b><p><pre>");
       msg.append(cmdargs.GetHelp());
+      msg.append("</pre></html>");
       QString details;
 		  DisplayMessage(msg, details, false);
       exit(EXIT_SUCCESS); 
@@ -180,6 +187,7 @@ int appMain(int argc, char *argv[])
 
 #ifdef _WIN32
 
+// TODO: remove these two functions when VTK is updated to a version that contains vtksys::Encoding
 size_t vtksys_Encoding_wcstombs(char* dest, const wchar_t* str, size_t n)
 {
   if(str == 0)
@@ -188,7 +196,6 @@ size_t vtksys_Encoding_wcstombs(char* dest, const wchar_t* str, size_t n)
     }
   return WideCharToMultiByte(CP_ACP, 0, str, -1, dest, (int)n, NULL, NULL) - 1;
 }
-
 vtksys_stl::string vtksys_Encoding_ToNarrow(const vtksys_stl::wstring& wcstr)
 {
   vtksys_stl::string str;
@@ -212,7 +219,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
   // CommandLineToArgvW has no narrow-character version, so we get the arguments in wide strings
   // and then convert to regular string.
-  int argc;
+  int argc=0;
   LPWSTR* argvStringW = CommandLineToArgvW(GetCommandLineW(), &argc);
 
   std::vector< const char* > argv(argc); // usual const char** array used in main() functions
@@ -228,9 +235,12 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
   return appMain(argc, const_cast< char** >(&argv[0]));
 }
+
 #else
+
 int main(int argc, char *argv[])
 {
   return appMain(argc, argv);
 }
+
 #endif
