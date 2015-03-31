@@ -474,31 +474,9 @@ PlusStatus vtkSavedDataSource::InternalConnectVideo(vtkTrackedFrameList* savedDa
     LOG_ERROR("Failed to set video buffer image type"); 
     return PLUS_FAIL; 
   }
-  if (savedDataBuffer->GetImageType()==US_IMG_BRIGHTNESS || savedDataBuffer->GetImageType()==US_IMG_RGB_COLOR)
-  {
-    // Brightness images will be imported into MF orientation
-    this->GetOutputDataSource()->SetInputImageOrientation(US_IMG_ORIENT_MF);
-    if( this->OutputChannels.empty() )
-    {
-      LOG_ERROR("No output channels defined" );
-      return PLUS_FAIL;
-    }
-    vtkPlusChannel* outputChannel=this->OutputChannels[0];
-    vtkPlusDataSource* aSource(NULL);
-    if (outputChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
-    {
-      LOG_ERROR(this->GetDeviceId() << ": Unable to retrieve video source.");
-      return PLUS_FAIL;
-    }
-  }
-  else
-  {
-    // RF data is stored line-by-line, therefore set the storage buffer to FM orientation
-    this->GetOutputDataSource()->SetInputImageOrientation(US_IMG_ORIENT_FM);
-  }
   if ( this->GetOutputDataSource()->SetInputImageOrientation( savedDataBuffer->GetImageOrientation() ) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to set video iamge orientation"); 
+    LOG_ERROR("Failed to set video image orientation"); 
     return PLUS_FAIL; 
   }
 

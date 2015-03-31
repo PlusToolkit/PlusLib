@@ -1089,13 +1089,13 @@ PlusStatus vtkSonixVideoSource::ConfigureVideoSource( uData aValue )
   case 8:
     aSource->SetPixelType( VTK_UNSIGNED_CHAR );
     aSource->SetImageType( US_IMG_BRIGHTNESS );
-    aSource->SetInputImageOrientation(US_IMG_ORIENT_MF);
+    aSource->SetOutputImageOrientation(US_IMG_ORIENT_MF);
     break;
   case 16:
     aSource->SetPixelType( VTK_SHORT );
     aSource->SetImageType( US_IMG_RF_I_LINE_Q_LINE );
     // RF data is stored line-by-line, therefore set the storage buffer to FM orientation
-    aSource->SetInputImageOrientation(US_IMG_ORIENT_FM);
+    aSource->SetOutputImageOrientation(US_IMG_ORIENT_FM);
     // Swap w/h: in case of RF image acquisition the DataDescriptor.h is the width and the DataDescriptor.w is the height
     {
       int tmp = aDataDescriptor.h;

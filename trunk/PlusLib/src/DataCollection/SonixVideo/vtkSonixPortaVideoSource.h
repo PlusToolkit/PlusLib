@@ -22,7 +22,7 @@ Authors include: Elvis Chen (Queen's University)
 
 class vtkDataCollectionExport vtkSonixPortaVideoSource;
 class porta;
-class probeInfo;
+struct probeInfo;
 
 /*!
 \class vtkSonixPortaVideoSourceCleanup 
