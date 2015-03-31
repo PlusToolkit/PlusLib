@@ -560,14 +560,32 @@ PlusStatus vtkPlusDataSource::SetInputImageOrientation(US_IMAGE_ORIENTATION imag
   this->InputImageOrientation = imageOrientation;
   // Orientation of the images in the buffer is standardized (MF(A) for B-mode images, FM for RF-mode images).
   // We set up the this standard image orientation based on the orientation of the input data.
-  if( imageOrientation >= US_IMG_ORIENT_UF && imageOrientation <= US_IMG_ORIENT_MNA )
+  if( imageOrientation <= US_IMG_ORIENT_XX || imageOrientation >= US_IMG_ORIENT_LAST)
   {
-    return this->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
+    LOG_ERROR("vtkPlusDataSource::SetInputImageOrientation failed: invalid image orientation received");
+    return PLUS_FAIL;
+  }
+  if( imageOrientation <= US_IMG_ORIENT_FU )
+  {
+    // B-mode or non-ultrasound
+    return SetOutputImageOrientation(US_IMG_ORIENT_MF);
   }
   else
   {
-    return this->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_FM);
+    // RF-mode
+    return SetOutputImageOrientation(US_IMG_ORIENT_FM);
   }
+}
+
+PlusStatus vtkPlusDataSource::SetOutputImageOrientation(US_IMAGE_ORIENTATION imageOrientation)
+{
+  if (imageOrientation!=US_IMG_ORIENT_MF && imageOrientation!=US_IMG_ORIENT_FM)
+  {
+    LOG_ERROR("vtkPlusDataSource::SetOutputImageOrientation failed: only standard MF and FM orientations are allowed, got "
+      << PlusVideoFrame::GetStringFromUsImageOrientation(imageOrientation));
+    return PLUS_FAIL;
+  }
+  return this->GetBuffer()->SetImageOrientation(imageOrientation);
 }
 
 //-----------------------------------------------------------------------------

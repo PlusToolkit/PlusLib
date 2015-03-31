@@ -167,8 +167,8 @@ PlusStatus vtkUsSimulatorVideoSource::InternalConnect()
     return PLUS_FAIL;
   }
 
-  // Set to default MF internal image orientation
-  aSource->SetInputImageOrientation(US_IMG_ORIENT_MF);
+  // Set to default MF output image orientation
+  aSource->SetOutputImageOrientation(US_IMG_ORIENT_MF);
   aSource->Clear();
   int frameSize[3]={0,0,0};
   if (this->UsSimulator->GetFrameSize(frameSize)!=PLUS_SUCCESS)

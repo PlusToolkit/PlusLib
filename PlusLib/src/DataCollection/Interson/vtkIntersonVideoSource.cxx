@@ -557,7 +557,6 @@ PlusStatus vtkIntersonVideoSource::InternalUpdate()
     aSource->SetPixelType(VTK_UNSIGNED_CHAR);
     aSource->SetImageType(US_IMG_BRIGHTNESS);
     aSource->SetFrameSize( frameSizeInPx );
-    aSource->SetInputImageOrientation(US_IMG_ORIENT_MF);
 
     float depthScale = -1;
     usbProbeDepthScale(this->Internal->ProbeHandle,&depthScale);

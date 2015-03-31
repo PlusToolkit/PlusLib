@@ -623,12 +623,12 @@ void vtkBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr, co
     if (imageType==US_IMG_BRIGHTNESS)
     {
       // Store B-mode images in MF orientation
-      aSource->SetInputImageOrientation(US_IMG_ORIENT_MF);
+      aSource->SetOutputImageOrientation(US_IMG_ORIENT_MF);
     }
     else
     {
       // RF data is stored line-by-line, therefore set the temporary storage buffer to FM orientation
-      aSource->SetInputImageOrientation(US_IMG_ORIENT_FM);
+      aSource->SetOutputImageOrientation(US_IMG_ORIENT_FM);
     }
     LOG_INFO("Frame size: " << frameSizeInPix[0] << "x" << frameSizeInPix[1]
     << ", pixel type: " << vtkImageScalarTypeNameMacro(pixelType)

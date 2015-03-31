@@ -426,7 +426,6 @@ PlusStatus StartPlusServerProcess(const std::string& configFile, vtksysProcess* 
 
     LOG_INFO("Start PlusServer..." );
     vtksysProcess_Execute(processPtr);
-    vtkAccurateTimer::DelayWithEventProcessing(3.0);
     LOG_DEBUG("PlusServer started" );
 
     return PLUS_SUCCESS;
@@ -619,7 +618,7 @@ int main( int argc, char** argv )
   }
   client->SetServerHost(serverHost.c_str());
   client->SetServerPort(serverPort);
-  if (client->Connect()==PLUS_FAIL)
+  if (client->Connect(15.0)==PLUS_FAIL)
   {
     LOG_ERROR("Failed to connect to server at "<<serverHost<<":"<<serverPort);
     StopPlusServerProcess(plusServerProcess);

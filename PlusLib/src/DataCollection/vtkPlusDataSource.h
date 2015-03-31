@@ -232,13 +232,18 @@ public:
     This method is necessary for initializing the storage buffers and also serves as a convenient storage for the
     image orientation of the hardware device.
   */
-  PlusStatus SetInputImageOrientation(US_IMAGE_ORIENTATION imageOrientation); 
+  virtual PlusStatus SetInputImageOrientation(US_IMAGE_ORIENTATION imageOrientation); 
   /*!
     Get the image orientation of the input data (MF, MN, ...).
     The internal buffer's image orientation and the output is always the standard MF (for B-mode) or FM (for RF-mode).
   */
   virtual US_IMAGE_ORIENTATION GetInputImageOrientation();
   
+  /*!
+    Set the image orientation of the internal buffer.
+    It has to be MF for all imaging modes except RF (for that the orientation has to be FM).
+  */
+  virtual PlusStatus SetOutputImageOrientation(US_IMAGE_ORIENTATION imageOrientation);
   virtual US_IMAGE_ORIENTATION GetOutputImageOrientation();
 
   /*! Get type: vidoe or tool. */

@@ -21,7 +21,8 @@ vtkStandardNewMacro(vtkTelemedVideoSource); // Corresponds to the implementation
 vtkTelemedVideoSource::vtkTelemedVideoSource()
 {
   device = new TelemedUltrasound();
-  StartThreadForInternalUpdates=true;
+  this->RequireImageOrientationInConfiguration = true;
+  this->StartThreadForInternalUpdates = true;
   CreateDefaultOutputChannel(true);
 }
 
@@ -163,7 +164,6 @@ PlusStatus vtkTelemedVideoSource::InternalUpdate()
     return PLUS_FAIL;
   }
 
-  US_IMAGE_ORIENTATION orientation = US_IMG_ORIENT_UN;
   int frameSizeInPx[2]={frameWidth,frameHeight};
 
   // If the buffer is empty, set the pixel type and frame size to the first received properties
@@ -173,7 +173,7 @@ PlusStatus vtkTelemedVideoSource::InternalUpdate()
     aSource->SetPixelType(VTK_UNSIGNED_CHAR);
     aSource->SetImageType(US_IMG_BRIGHTNESS);
     aSource->SetFrameSize(frameSizeInPx);
-    aSource->SetInputImageOrientation(orientation);
+    aSource->SetOutputImageOrientation(US_IMG_ORIENT_MF);
   }
 
   // Add the frame to the stream buffer
