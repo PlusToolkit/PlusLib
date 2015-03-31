@@ -14,8 +14,12 @@
 #include "vtkTransformRepository.h"
 #include <QIcon>
 #include <QKeyEvent>
+#include <QtNetwork/QHostAddress>
+#include <QtNetwork/QHostInfo>
+#include <QtNetwork/QNetworkInterface>
 #include <QStringList>
 #include <QTimer>
+
 
 //-----------------------------------------------------------------------------
 PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent, Qt::WFlags flags, bool autoConnect)
@@ -72,6 +76,17 @@ PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent, Qt::
         showMinimized();
       }
     }    
+  }
+
+  LOG_INFO("Server host name: "<<QHostInfo::localHostName().toLatin1().constData()<<" (domain: "<<QHostInfo::localDomainName().toLatin1().constData()<<")");
+   
+  QList<QHostAddress> list = QNetworkInterface::allAddresses();
+  for(int hostIndex=0; hostIndex<list.count(); hostIndex++)
+  {
+    if(list[hostIndex].protocol() == QAbstractSocket::IPv4Protocol )
+    {
+      LOG_INFO("Server IP address ["<<hostIndex<<"]: "<<list[hostIndex].toString().toLatin1().constData());
+    }
   }
 }
 
