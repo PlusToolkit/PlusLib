@@ -22,7 +22,13 @@ Authors include: Elvis Chen (Queen's University)
 
 class vtkDataCollectionExport vtkSonixPortaVideoSource;
 class porta;
+
+#if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6)
+class probeInfo;
+#else
 struct probeInfo;
+#endif
+
 
 /*!
 \class vtkSonixPortaVideoSourceCleanup 
