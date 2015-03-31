@@ -78,16 +78,26 @@ PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent, Qt::
     }    
   }
 
-  LOG_INFO("Server host name: "<<QHostInfo::localHostName().toLatin1().constData()<<" (domain: "<<QHostInfo::localDomainName().toLatin1().constData()<<")");
-   
+  // Log server host name, domain, and IP addresses
+  LOG_INFO("Server host name: "<<QHostInfo::localHostName().toLatin1().constData());
+  if (!QHostInfo::localDomainName().isEmpty())
+  {
+    LOG_INFO("Server host domain: "<<QHostInfo::localDomainName().toLatin1().constData());
+  }
+  QString ipAddresses;
   QList<QHostAddress> list = QNetworkInterface::allAddresses();
   for(int hostIndex=0; hostIndex<list.count(); hostIndex++)
   {
     if(list[hostIndex].protocol() == QAbstractSocket::IPv4Protocol )
     {
-      LOG_INFO("Server IP address ["<<hostIndex<<"]: "<<list[hostIndex].toString().toLatin1().constData());
+      if (!ipAddresses.isEmpty())
+      {
+        ipAddresses.append(",  ");
+      }
+      ipAddresses.append(list[hostIndex].toString());
     }
   }
+  LOG_INFO("Server IP addresses: "<<ipAddresses.toLatin1().constData());
 }
 
 //-----------------------------------------------------------------------------
