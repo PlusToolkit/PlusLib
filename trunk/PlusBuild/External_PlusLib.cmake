@@ -124,7 +124,7 @@ IF ( PLUS_USE_TELEMED_VIDEO )
       MESSAGE( FATAL_ERROR "This project requires Windows SDK for supporting the Telemed ultrasound probes. One of the components is missing. Please verify configuration or turn off PLUS_USE_TELEMED_VIDEO.")
     ENDIF()
     SET(PLUSBUILD_ADDITIONAL_SDK_ARGS ${PLUSBUILD_ADDITIONAL_SDK_ARGS}
-      -DTELEMED_INCLUDE_DIR:PATH=${INTERSON_INCLUDE_DIR}
+      -DTELEMED_INCLUDE_DIR:PATH=${TELEMED_INCLUDE_DIR}
       -DWINDOWSSDK_LATEST_DIR:PATH=${WINDOWSSDK_LATEST_DIR}
       )
 ENDIF()
