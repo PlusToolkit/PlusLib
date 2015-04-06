@@ -797,13 +797,8 @@ IF (PLUS_USE_TELEMED_VIDEO)
   ENDIF (WIN32)
 
   # Find Telemed SDK include directory
-  FIND_PATH( ECHOBLASTER_INCLUDE_DIR usgfw.h HINTS "${TELEMED_SDK_DIR}/include/USGFWSDK/include")
-  IF(NOT ECHOBLASTER_INCLUDE_DIR)
-    MESSAGE( SEND_ERROR "Please specify the Telemed SDK include directory in the variable ECHOBLASTER_INCLUDE_DIR, or turn off PLUS_USE_TELEMED_VIDEO. \nFYI, this directory should contain among others files : usgfw.h and multfreq.h")
-  ENDIF()
-
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
-    ${ECHOBLASTER_INCLUDE_DIR}
+    ${TELEMED_INCLUDE_DIR}
     ${WINDOWSSDK_LATEST_DIR}/Include
     )
   SET (DataCollection_LIBS ${DataCollection_LIBS}
@@ -830,7 +825,7 @@ IF (PLUS_USE_PHILIPS_3D_ULTRASOUND)
     IF (WIN32)  
       SET (DataCollection_HDRS ${DataCollection_HDRS}
         Philips3D/vtkPhilips3DProbeVideoSource.h
-	    Philips3D/vtkIEEListener.h
+        Philips3D/vtkIEEListener.h
         )
     ENDIF (WIN32)
 
@@ -841,8 +836,8 @@ IF (PLUS_USE_PHILIPS_3D_ULTRASOUND)
 
     SET( DataCollection_LIBS ${DataCollection_LIBS}
       ${Philips_LIBRARY_DIR}/PipelineComDll${CMAKE_STATIC_LIBRARY_SUFFIX}
-	  ${Philips_LIBRARY_DIR}/3DData${CMAKE_STATIC_LIBRARY_SUFFIX}
-	  ${Philips_LIBRARY_DIR}/3DUtil${CMAKE_STATIC_LIBRARY_SUFFIX}
+      ${Philips_LIBRARY_DIR}/3DData${CMAKE_STATIC_LIBRARY_SUFFIX}
+      ${Philips_LIBRARY_DIR}/3DUtil${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
   
     FILE(GLOB PHILIPS_SDK_SHARED_LIBRARIES "${Philips_BINARY_DIRS}/[^.]*${CMAKE_SHARED_LIBRARY_SUFFIX}")
