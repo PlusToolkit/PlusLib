@@ -47,6 +47,7 @@ int main(int argc, char **argv)
   bool showDialogs(false);
   std::vector<int> frameSize;
   int deviceId=0;
+  int streamIndex=0;
   std::string pixelFormatName;
   bool listDevices=false;
   bool listVideoFormats=false;
@@ -59,6 +60,7 @@ int main(int argc, char **argv)
   args.AddArgument("--list-devices", vtksys::CommandLineArguments::NO_ARGUMENT, &listDevices, "Show the list of available devices and exit");
   args.AddArgument("--list-video-formats", vtksys::CommandLineArguments::NO_ARGUMENT, &listVideoFormats, "Show the list of supported video formats for the selected device and exit");  
   args.AddArgument("--device-id", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceId, "Capture device ID (default: 0)");
+  args.AddArgument("--stream-index", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &streamIndex, "Stream index (default=0; see --list-devices for available streams");
   args.AddArgument("--frame-size", vtksys::CommandLineArguments::MULTI_ARGUMENT, &frameSize, "Requested frame size from the capture device");
   args.AddArgument("--video-format", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &pixelFormatName, "Requested video format (YUY2, ...)");
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
@@ -100,6 +102,8 @@ int main(int argc, char **argv)
   {
     frameGrabber->SetRequestedVideoFormat(pixelFormatName);
   }
+
+  frameGrabber->SetRequestedStreamIndex(streamIndex);
 
   if (!frameSize.empty())
   {
