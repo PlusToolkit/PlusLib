@@ -54,6 +54,7 @@ public:
 
   virtual void SetRequestedDeviceId(unsigned int deviceId);  
   virtual void SetRequestedVideoFormat(const std::string& pixelFormatName);
+  virtual void SetRequestedStreamIndex(unsigned int streamIndex);
   virtual void SetRequestedFrameSize(int frameSize[2]);
   
   std::string GetRequestedDeviceName();

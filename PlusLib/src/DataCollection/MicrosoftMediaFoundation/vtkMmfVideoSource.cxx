@@ -533,6 +533,11 @@ void vtkMmfVideoSource::SetRequestedVideoFormat(const std::string& pixelFormatNa
   this->RequestedVideoFormat.PixelFormatName = pixelFormatName;
 }
 
+void vtkMmfVideoSource::SetRequestedStreamIndex(unsigned int streamIndex)
+{
+  this->RequestedVideoFormat.StreamIndex = (DWORD)streamIndex;
+}
+
 //----------------------------------------------------------------------------
 void vtkMmfVideoSource::SetRequestedFrameSize(int frameSize[2])
 {
