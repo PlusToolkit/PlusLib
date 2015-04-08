@@ -459,7 +459,8 @@ namespace MfVideoCapture
     int bestFormatIndex=-1;
     for (std::vector<MediaType>::iterator typeIt=this->CurrentFormats[streamIndex].begin(); typeIt!=this->CurrentFormats[streamIndex].end(); ++typeIt)
     {
-      if (typeIt->width==w && typeIt->height==h && typeIt->MF_MT_SUBTYPEName==subtypeName)
+      // Note: we do not check the stream type here. It may be possible to match the requested type via a SourceReader later.
+      if (typeIt->width==w && typeIt->height==h)
       {
         int frameRateDifferenceComparedToRequested = (int)typeIt->MF_MT_FRAME_RATE-(int)frameRate;
         if (frameRateDifferenceComparedToRequested==0)
