@@ -164,7 +164,7 @@ PlusStatus vtkTelemedVideoSource::InternalUpdate()
     return PLUS_FAIL;
   }
 
-  int frameSizeInPx[2]={frameWidth,frameHeight};
+  int frameSizeInPx[3]={frameWidth,frameHeight,1};
 
   // If the buffer is empty, set the pixel type and frame size to the first received properties
   if ( aSource->GetNumberOfItems() == 0 )
