@@ -45,7 +45,7 @@ PURPOSE.  See the above copyright notices for more information.
 
 // DirectShow SDK
 #include <dshow.h>
-#include <qedit.h>    // to declarate sample grabber
+#include "qedit.h"    // to declarate sample grabber
 
 #define MAX_DEVICE_COMMANDS 16
 
