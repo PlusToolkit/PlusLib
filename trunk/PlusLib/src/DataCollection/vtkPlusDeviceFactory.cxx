@@ -97,6 +97,10 @@ See License.txt for details.
 #include "Telemed\vtkTelemedVideoSource.h"
 #endif
 
+#ifdef PLUS_USE_THORLABS_VIDEO
+#include "ThorLabs\vtkThorLabsVideoSource.h"
+#endif
+
 #ifdef PLUS_USE_OpenIGTLink
 #include "vtkOpenIGTLinkVideoSource.h"
 #endif
@@ -192,6 +196,9 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
 #endif 
 #ifdef PLUS_USE_TELEMED_VIDEO
   DeviceTypes["TelemedVideo"]=(PointerToDevice)&vtkTelemedVideoSource::New;
+#endif
+#ifdef PLUS_USE_THORLABS_VIDEO
+  DeviceTypes["ThorLabsVideo"]=(PointerToDevice)&vtkThorLabsVideoSource::New;
 #endif
 #ifdef PLUS_USE_EPIPHAN
   DeviceTypes["Epiphan"]=(PointerToDevice)&vtkEpiphanVideoSource::New; 

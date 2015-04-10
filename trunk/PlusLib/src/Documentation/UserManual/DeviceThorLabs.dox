@@ -1,0 +1,32 @@
+/*!
+\page DeviceThorLabs ThorLabs compact spectrometer
+
+\section ThorLabsSupportedHwDevices Supported hardware devices
+
+ThorLabs compact CCD Spectrometers.
+
+Manufacturer's website: http://www.thorlabs.com/newgrouppage9.cfm?objectgroup_id=3482
+
+\section ThorLabsSupportedPlatforms Included in packages
+
+\section ThorLabsInstallation Installation
+
+Thorlabs "full installer for our GUI control software for our OSA and CCD spectrometers" has to be installed.
+
+\section ThorLabsConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "ThorLabsVideo" \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \ref IntegrationTimeSec \OptionalAtt{0.05}
+
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+
+\section ThorLabsExampleConfigFile Example configuration file PlusDeviceSet_Server_ThorLabsVideoCapture.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_ThorLabsVideoCapture.xml"
+
+*/

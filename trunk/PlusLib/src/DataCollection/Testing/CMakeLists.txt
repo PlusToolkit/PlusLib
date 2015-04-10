@@ -292,6 +292,17 @@ IF (PLUS_USE_TELEMED_VIDEO)
   SET_TESTS_PROPERTIES( vtkTelemedVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF (PLUS_USE_TELEMED_VIDEO)
 
+#***************************  vtkThorLabsVideoSourceTest.cxx ***************************
+IF (PLUS_USE_THORLABS_VIDEO)
+  ADD_EXECUTABLE(vtkThorLabsVideoSourceTest vtkThorLabsVideoSourceTest.cxx )
+  TARGET_LINK_LIBRARIES(vtkThorLabsVideoSourceTest vtkDataCollection )
+  ADD_TEST(vtkThorLabsVideoSourceTest
+    ${EXECUTABLE_OUTPUT_PATH}/vtkThorLabsVideoSourceTest
+    --rendering-off
+    )
+  SET_TESTS_PROPERTIES( vtkThorLabsVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+ENDIF (PLUS_USE_THORLABS_VIDEO)
+
 #************************  vtkSonixPortaVideoSourceTest.cxx ************************
 IF (PLUS_USE_ULTRASONIX_VIDEO)
   ADD_EXECUTABLE(vtkSonixPortaVideoSourceTest vtkSonixPortaVideoSourceTest.cxx )

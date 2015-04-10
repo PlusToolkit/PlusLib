@@ -17,6 +17,7 @@ OPTION (PLUS_USE_EPIPHAN "Provide support for the Epiphan" OFF)
 OPTION (PLUS_USE_INTERSON_VIDEO "Provide support Interson USB ultrasound probes" OFF)
 OPTION (PLUS_USE_INTERSONSDKCXX_VIDEO "Provide support Interson SDK 1.X with C++ Wrapper USB ultrasound probes" OFF)
 OPTION (PLUS_USE_TELEMED_VIDEO "Provide support for the Telemed ultrasound probes" OFF)
+OPTION (PLUS_USE_THORLABS_VIDEO "Provide support for the ThorLabs compact spectrometers" OFF)
 OPTION(PLUS_USE_STEALTHLINK "Provide support for the Medtronick StealthLink Server" OFF)
 OPTION(PLUS_USE_IntuitiveDaVinci "Enable the tracking of the da Vinci Surgical System. Enable this only if you have a da Vinci that is accessible from this computer." OFF)
 OPTION(PLUS_USE_PHILIPS_3D_ULTRASOUND "Provide support for the Philips ie33 3D ultrasound probe system." OFF)
@@ -807,6 +808,31 @@ IF (PLUS_USE_TELEMED_VIDEO)
     )
 
 ENDIF (PLUS_USE_TELEMED_VIDEO)
+
+# --------------------------------------------------------------------------
+# Thorlabs support
+
+IF (PLUS_USE_THORLABS_VIDEO)
+
+  SET (DataCollection_SRCS ${DataCollection_SRCS}
+    ThorLabs/vtkThorLabsVideoSource.cxx
+    )
+  IF (WIN32)
+    SET (DataCollection_HDRS ${DataCollection_HDRS}
+      ThorLabs/vtkThorLabsVideoSource.h
+      )
+  ENDIF (WIN32)
+
+  SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/ThorLabs  
+    ${THORLABS_INCLUDE_DIR}
+    )
+  SET (DataCollection_LIBS ${DataCollection_LIBS} 
+    ${THORLABS_LIBRARY_DIR}/TLCCS_32${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${THORLABS_LIBRARY_DIR}/visa32${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
+
+ENDIF (PLUS_USE_THORLABS_VIDEO)
 
 # --------------------------------------------------------------------------
 # Philips ie33 3d ultrasound support
