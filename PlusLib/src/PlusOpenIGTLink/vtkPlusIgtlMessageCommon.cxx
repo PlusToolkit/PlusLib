@@ -185,7 +185,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
     return PLUS_FAIL; 
   }
 
-   if ( !trackedFrame.GetImageData()->IsImageValid() )
+  if ( !trackedFrame.GetImageData()->IsImageValid() )
   {
     LOG_WARNING("Unable to send image message - image data is NOT valid!"); 
     return PLUS_FAIL; 
@@ -213,6 +213,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
   imageMessage->SetSpacing( spacingFloat );
   imageMessage->SetNumComponents( numScalarComponents );
   imageMessage->SetScalarType( scalarType );
+  imageMessage->SetEndian(igtl_is_little_endian() ? igtl::ImageMessage::ENDIAN_LITTLE : igtl::ImageMessage::ENDIAN_BIG);
   imageMessage->SetSubVolume( subSizePixels, subOffset );
   imageMessage->AllocateScalars();
 

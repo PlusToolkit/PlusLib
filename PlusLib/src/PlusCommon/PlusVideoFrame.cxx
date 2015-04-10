@@ -476,7 +476,7 @@ unsigned long PlusVideoFrame::GetFrameSizeInBytes() const
   }
 
   int bytesPerScalar = GetNumberOfBytesPerScalar(); 
-  if (bytesPerScalar != 1 && bytesPerScalar != 2 && bytesPerScalar != 4)
+  if (bytesPerScalar != 1 && bytesPerScalar != 2 && bytesPerScalar != 4 && bytesPerScalar != 8)
   {
     LOG_ERROR("Unsupported scalar size: " << bytesPerScalar << " bytes/scalar component");
   }
@@ -1026,6 +1026,9 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage( vtkImageData* inUsImage,
     break;
   case 4:
     status = FlipClipImageGeneric<vtkTypeUInt32>(inUsImage, flipInfo, finalClipOrigin, finalClipSize, outUsOrientedImage);
+    break;
+  case 8:
+    status = FlipClipImageGeneric<vtkTypeUInt64>(inUsImage, flipInfo, finalClipOrigin, finalClipSize, outUsOrientedImage);
     break;
   default:
     LOG_ERROR("Unsupported bit depth: " << numberOfBytesPerScalar << " bytes per scalar");
