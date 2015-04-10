@@ -144,6 +144,7 @@ OPTION(PLUS_USE_EPIPHAN "Provide support for the Epiphan framegrabber device" OF
 OPTION(PLUS_USE_INTERSON_VIDEO "Provide support for the Interson USB ultrasound probes" OFF)
 OPTION(PLUS_USE_INTERSONSDKCXX_VIDEO "Provide support for the Interson SDK 1.X with C++ Wrapper USB ultrasound probes" OFF)
 OPTION(PLUS_USE_TELEMED_VIDEO "Provide support for the Telemed ultrasound probes" OFF)
+OPTION(PLUS_USE_THORLABS_VIDEO "Provide support for the ThorLabs Compact Spectrometers" OFF)
 
 # Tracking hardware
 
@@ -351,6 +352,13 @@ IF ( PLUS_USE_TELEMED_VIDEO )
   FIND_PACKAGE (Telemed)
   IF ( NOT TELEMED_FOUND )
     MESSAGE( FATAL_ERROR "This project requires Telemed SDK for supporting the Telemed ultrasound probes. One of the components is missing. Please verify configuration or turn off PLUS_USE_TELEMED_VIDEO.")
+  ENDIF()
+ENDIF()
+
+IF ( PLUS_USE_THORLABS_VIDEO )
+  FIND_PACKAGE (ThorLabs)
+  IF ( NOT THORLABS_FOUND )
+    MESSAGE( FATAL_ERROR "This project requires ThorLabs CCS VISA  SDK for supporting the ThorLabs devices. One of the components is missing. Please verify configuration or turn off PLUS_USE_THORLABS_VIDEO.")
   ENDIF()
 ENDIF()
 
