@@ -45,6 +45,7 @@
 - \subpage DeviceVirtualSwitcher
 
 \par Other data acquisition and control devices
+- \subpage DeviceThorLabs
 - \subpage DeviceGenericSerial - such as Arduino microcontroller
 
 */
