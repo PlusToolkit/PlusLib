@@ -170,6 +170,8 @@ ENDIF(PLUS_TEST_PHILIPS_3D_ULTRASOUND)
 
 OPTION (PLUSAPP_TEST_GUI "Enable Sikuli GUI tests" ON)
 
+SET(PLUSAPP_PACKAGE_EDITION "" CACHE STRING "Specifies a name that refers to the combination of hardware devices the created install package supports. The name is added to the package filename.") 
+
 #-----------------------------------------------------------------------------
 # Warnings for incompatible build options
 #-----------------------------------------------------------------------------
