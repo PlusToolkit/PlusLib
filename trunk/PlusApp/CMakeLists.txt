@@ -27,8 +27,10 @@ SET(PLUSAPP_VERSION_PATCH ${PLUSLIB_VERSION_PATCH})
 SET(PLUSAPP_VERSION ${PLUSAPP_VERSION_MAJOR}.${PLUSAPP_VERSION_MINOR}.${PLUSAPP_VERSION_PATCH})
 SET(PLUSAPP_REVISION ${PLUSLIB_REVISION})
 
+SET(PLUSAPP_PACKAGE_EDITION "" CACHE STRING "Specifies a name that refers to the combination of hardware devices the created install package supports. The name is added to the package filename.") 
+
 MESSAGE(STATUS "PlusApp version: ${PLUSAPP_VERSION}" )
-       
+     
 # --------------------------------------------------------------------------
 # Testing
 #
