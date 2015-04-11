@@ -9,16 +9,23 @@ Manufacturer's website: http://www.thorlabs.com/newgrouppage9.cfm?objectgroup_id
 
 \section ThorLabsSupportedPlatforms Included in packages
 
+- \ref PackageThorLabs
+
 \section ThorLabsInstallation Installation
 
 Thorlabs "full installer for our GUI control software for our OSA and CCD spectrometers" has to be installed.
+
+\section ThorLabsOutput Output
+
+The device provides its output as an image. The pixels of the image are double-precision floating point numbers.
+The first row of the image contains wavelength values in nm. The second row of the image contains intensity values.
 
 \section ThorLabsConfigSettings Device configuration settings
 
 - \xmlAtt \ref DeviceType "Type" = \c "ThorLabsVideo" \RequiredAtt
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
-- \xmlAtt \ref IntegrationTimeSec \OptionalAtt{0.05}
+- \xmlAtt \ref \b IntegrationTimeSec Sensor integration time. Longer time makes the sensor more sensitive and reduces the measurement noise, at the cost of increased acquisition time and higher chance of saturation at higher intensities. \OptionalAtt{0.05}
 
 - \xmlElem \ref DataSources Exactly one \c DataSource child element is required \RequiredAtt
    - \xmlElem \ref DataSource \RequiredAtt
