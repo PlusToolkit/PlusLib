@@ -8,7 +8,7 @@
       Id="VideoDevice" 
       Type="ThorLabsVideo" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" xPortUsImageOrientation="MF" />
+        <DataSource Type="Video" Id="Video" />
       </DataSources>      
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
