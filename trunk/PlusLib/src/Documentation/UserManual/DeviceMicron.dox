@@ -7,7 +7,10 @@
 
 \section MicronSupportedPlatforms Included in packages
 - \ref PackageWin32
-- \ref PackageWin32Embedded
+- \ref PackageInterson
+- \ref PackageBk
+- \ref PackageStealthLink
+- \ref PackageThorLabs
 
 The device manufacturer supports additional platforms. On request, Plus toolkit will be extended to support this device on other platforms, too.
 

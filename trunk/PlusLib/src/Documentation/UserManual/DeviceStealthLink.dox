@@ -16,6 +16,8 @@ Nomenclature:
 
 \section StealthLinkSupportedPlatforms Included in packages
 
+- \ref PackageStealthLink
+
 This device is not included in any of the standard packages, as it requires StealthLink library from Medtronic.
 If the StealthLink library is obtained from Medtronic then Plus have to be built with the StealthLink option enabled as described at https://www.assembla.com/spaces/plus/wiki/Windows_Build_Instructions.
 The device is tested on Windows, but should also work on other platforms.
