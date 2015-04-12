@@ -13,6 +13,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 
 #include <QWidget>
+#include <QTime>
 
 class vtkPivotCalibrationAlgo;
 class vtkMatrix4x4;
@@ -71,14 +72,11 @@ public:
 
 protected slots:
 
-  /*! Start the delay startup timer*/
-  void StartDelayTimer();
-
-  /*! Delay before startup calibration*/
-  void DelayStartup();
-
   /*! Stop calibration */
   void Stop();
+
+  /*! Start/Stop calibration button is pressed */
+  void OnStartStop();
 
   /*!
   * Slot handling change of stylus calibration number of points
@@ -89,7 +87,7 @@ protected slots:
   /*!
   * Acquire stylus position and add it to the algorithm (called by the acquisition timer in object visualizer)
   */
-  void AddStylusPositionToCalibration();
+  void OnDataAcquired();
 
 protected:
 
@@ -107,12 +105,6 @@ protected:
   /*! Delay time before start acquisition [s] */
   int                        m_FreeHandStartupDelaySec;
 
-  /*! Current time delayed before the acquisition [s] */
-  int                        m_StartupDelayRemainingTimeSec;
-
-  /*! Timer before start acquisition*/
-  QTimer*                    m_StartupDelayTimer;
-
   /*! Number of points acquired so far */
   int                        m_CurrentPointNumber;
 
@@ -122,6 +114,8 @@ protected:
   /*! Previous stylus to reference transform matrix to determine the difference at each point acquisition */
   vtkMatrix4x4*             m_PreviousStylusToReferenceTransformMatrix;
 
+  /*! Measures elapsed calibration startup delay */
+  QTime                     m_CalibrationStartupDelayStartTime;
 protected:
   Ui::StylusCalibrationToolbox ui;
 

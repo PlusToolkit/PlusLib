@@ -493,7 +493,7 @@ PlusStatus vtkVisualizationController::GetTransformTranslationString(PlusTransfo
   }
 
   std::stringstream ss;
-  ss << std::fixed << transformMatrix->GetElement(0,3) << " " << transformMatrix->GetElement(1,3) << " " << transformMatrix->GetElement(2,3);
+  ss << std::fixed << std::setprecision(1) << transformMatrix->GetElement(0,3) << " " << transformMatrix->GetElement(1,3) << " " << transformMatrix->GetElement(2,3);
 
   aTransformTranslationString = ss.str();
 

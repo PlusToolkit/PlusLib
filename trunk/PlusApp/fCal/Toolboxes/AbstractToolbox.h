@@ -7,6 +7,8 @@
 #ifndef __AbstractToolbox_h
 #define __AbstractToolbox_h
 
+#include <QApplication>
+
 class fCalMainWindow;
 
 //-----------------------------------------------------------------------------
@@ -33,6 +35,7 @@ public:
   /*! \brief Constructor */
   AbstractToolbox(fCalMainWindow* aParentMainWindow)
   {
+    m_BusyCursorSet = false;
     m_ParentMainWindow = aParentMainWindow;
     m_State = ToolboxState_Uninitialized;
   };
@@ -75,12 +78,29 @@ public:
   */
   ToolboxState GetState() { return m_State; };
 
+  void SetBusyCursor(bool busy)
+  {
+    if (!busy && m_BusyCursorSet)
+    {
+      QApplication::restoreOverrideCursor();
+      m_BusyCursorSet = false;
+    }
+    else if (busy && !m_BusyCursorSet)
+    {
+      QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+      m_BusyCursorSet = true;
+    }
+  }
+
 protected:
   //! Main window object
   fCalMainWindow* m_ParentMainWindow;
 
   //! Toolbox state
   ToolboxState    m_State;
+
+  //! Helper for setting busy cursor instead of push/pop its state
+  bool m_BusyCursorSet;
 };
 
 #endif
