@@ -9,6 +9,8 @@
 
 \section BkProFocusSupportedPlatforms Included in packages
 
+- \ref PackageBk
+
 - This device is not included in any of the standard packages, as it requires license from BK.
 - If the license is obtained from BK then Plus have to be built with PLUS_USE_BKPROFOCUS_VIDEO and optionally with PLUS_USE_BKPROFOCUS_CAMERALINK configuration options enabled as described at https://www.assembla.com/spaces/plus/wiki/Windows_Build_Instructions.
 - The device is tested on Windows, but may also work on other platforms.
