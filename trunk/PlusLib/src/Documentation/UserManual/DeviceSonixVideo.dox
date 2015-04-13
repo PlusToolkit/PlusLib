@@ -49,6 +49,8 @@ Common attributes:
       - \xmlAtt \ref ImageType \OptionalAtt{BRIGHTNESS}
       - \xmlAtt \ref BufferSize \OptionalAtt{150}
       - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+      - \xmlAtt \ref ClipRectangleOrigin \OptionalAtt{0 0 0}
+      - \xmlAtt \ref ClipRectangleSize \OptionalAtt{0 0 0}
 
 Ulterius interface specific Device attributes:
 - \xmlAtt \ref DeviceType "Type" = \c "SonixVideo" \RequiredAtt

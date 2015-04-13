@@ -41,7 +41,6 @@
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 
-
 \section D3dConnexionUseCases Use cases
 
 \subsection D3dConnexionUsageSlicer Usage in 3D Slicer
