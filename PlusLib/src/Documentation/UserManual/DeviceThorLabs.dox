@@ -31,7 +31,13 @@ The first row of the image contains wavelength values in nm. The second row of t
    - \xmlElem \ref DataSource \RequiredAtt
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+    - \xmlAtt \ref ClipRectangleOrigin Three integer values. Specify if only a part of the spectrum should be acquired. First parameter specifies the starting point of the spectrum, in sensor index value (between 0 and the number of sensor pixel elements). Second parameter is 0 if wavelength values will be included, 1 if wavelength values will be excluded. Third parameter must be 0.\OptionalAtt{0 0 0}
+    - \xmlAtt \ref ClipRectangleSize Three integer values. Specify if only a part of the spectrum should be acquired. First parameter specifies the size of the acquired spectrum, in sensor index value (between 1 and the number of sensor pixel elements). Second parameter is 1 if only wavelength or intensity values will be included, 2 if both wavelength and intensity values will be included. Third parameter must be 1. If all parameters are zero (default) then no clipping is performed.\OptionalAtt{0 0 0}
 
+\section ThorLabsExampleConfigFileClippingExample Example for clipping the acquired spectrum
+
+
+    
 \section ThorLabsExampleConfigFile Example configuration file PlusDeviceSet_Server_ThorLabsVideoCapture.xml
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_ThorLabsVideoCapture.xml"

@@ -31,6 +31,13 @@ For hardware-free testing and simulation purposes, any previous recording (saved
   - \c "TRANSFORM" The device provides a tracker stream
   - \c "IMAGE_AND_TRANSFORM"  The device provides a video stream with tracking data added as fields
 
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+    - \xmlAtt \ref ClipRectangleOrigin \OptionalAtt{0 0 0}
+    - \xmlAtt \ref ClipRectangleSize \OptionalAtt{0 0 0}
 
 \section SavedDataSourceExampleConfigFileSimple Example configuration file for simple replay of all image and transform data - PlusDeviceSet_Server_Sim_NwirePhantom.xml
 

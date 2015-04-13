@@ -46,6 +46,8 @@ There are commercial systems that provide tracking video and image data through 
     - \xmlAtt \ref ImageType \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+    - \xmlAtt \ref ClipRectangleOrigin \OptionalAtt{0 0 0}
+    - \xmlAtt \ref ClipRectangleSize \OptionalAtt{0 0 0}
 
 \section OpenIGTLinkVideoExampleConfigFile Example configuration file PlusDeviceSet_OpenIGTLinkVideoSource.xml
 

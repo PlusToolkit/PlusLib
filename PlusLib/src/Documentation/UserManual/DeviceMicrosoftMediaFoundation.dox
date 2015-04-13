@@ -36,6 +36,8 @@ If your framegrabber uses a "crossbar" for switching between multiple inputs (e.
     - \xmlAtt \ref ImageType Color image acquisition is supported by setting the imaging device's common attribute \c ImageType="RGB_COLOR". \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+    - \xmlAtt \ref ClipRectangleOrigin \OptionalAtt{0 0 0}
+    - \xmlAtt \ref ClipRectangleSize \OptionalAtt{0 0 0}
 
 \section MicrosoftMediaFoundationExampleConfigFile Example configuration file PlusDeviceSet_Server_MmfColorVideoCapture.xml
 

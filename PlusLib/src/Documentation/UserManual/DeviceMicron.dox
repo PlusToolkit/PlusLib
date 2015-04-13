@@ -32,7 +32,6 @@ The device manufacturer supports additional platforms. On request, Plus toolkit 
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 
-
 \section MicronExampleConfigFile Example configuration file PlusDeviceSet_Server_MicronTracker.xml
 
 
