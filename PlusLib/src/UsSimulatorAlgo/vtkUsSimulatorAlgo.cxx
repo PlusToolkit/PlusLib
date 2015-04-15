@@ -427,7 +427,7 @@ PlusStatus vtkUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkUsSimulatorAlgo::GetFrameSize(int frameSize[2])
+PlusStatus vtkUsSimulatorAlgo::GetFrameSize(int frameSize[3])
 {
   vtkUsScanConvert* scanConverter=this->RfProcessor->GetScanConverter();
   if (scanConverter==NULL)
@@ -436,5 +436,6 @@ PlusStatus vtkUsSimulatorAlgo::GetFrameSize(int frameSize[2])
     return PLUS_FAIL;
   }
   scanConverter->GetOutputImageSizePixel(frameSize);
+  frameSize[2] = 1; // currently the simulator always provides 2D images
   return PLUS_SUCCESS;
 }
