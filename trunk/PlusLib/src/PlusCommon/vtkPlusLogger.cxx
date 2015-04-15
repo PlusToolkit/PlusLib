@@ -193,6 +193,26 @@ int vtkPlusLogger::GetLogLevel()
 }
 
 //-------------------------------------------------------
+std::string vtkPlusLogger::GetLogLevelString()
+{
+  switch (m_LogLevel)
+  {
+  case LOG_LEVEL_ERROR:
+    return "ERROR";
+  case LOG_LEVEL_WARNING:
+    return "WARNING";
+  case LOG_LEVEL_INFO:
+    return "INFO";
+  case LOG_LEVEL_DEBUG:
+    return "DEBUG";
+  case LOG_LEVEL_TRACE:
+    return "TRACE";
+  default:
+    return "UNDEFINED";
+  }
+}
+
+//-------------------------------------------------------
 void vtkPlusLogger::SetLogLevel(int logLevel) 
 { 
   if (logLevel==LOG_LEVEL_UNDEFINED)

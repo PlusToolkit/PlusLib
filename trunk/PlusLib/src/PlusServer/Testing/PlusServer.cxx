@@ -82,7 +82,7 @@ int main( int argc, char** argv )
     exit(EXIT_FAILURE); 
   }
 
-  LOG_INFO("Logging at level " << vtkPlusLogger::Instance()->GetLogLevel() << " to file: " << vtkPlusLogger::Instance()->GetLogFileName());
+  LOG_INFO("Logging at level " << vtkPlusLogger::Instance()->GetLogLevel() << " (" << vtkPlusLogger::Instance()->GetLogLevelString() << ") to file: " << vtkPlusLogger::Instance()->GetLogFileName());
 
   // Read main configuration file
   std::string configFilePath=inputConfigFileName;
