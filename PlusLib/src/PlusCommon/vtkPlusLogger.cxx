@@ -310,7 +310,7 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* 
   }
 
   // Add the message to the log
-  log << msg << "|in " << fileName << "(" << lineNumber << ")"; // add filename and line number
+  log << msg << "| in " << fileName << "(" << lineNumber << ")"; // add filename and line number
 
   {
     PlusLockGuard<vtkRecursiveCriticalSection> critSectionGuard(this->m_CriticalSection);
