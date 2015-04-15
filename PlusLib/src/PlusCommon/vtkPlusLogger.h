@@ -134,7 +134,9 @@ public:
   void LogMessage(LogLevelType level, const char *msg, const char* fileName, int lineNumber, const char* optionalPrefix = NULL); 
   
   /*! Get the current log level. Messages that has a higher level than the current log level are ignored. */
-  int GetLogLevel();  
+  int GetLogLevel();
+  /*! Get the current log level. Messages that has a higher level than the current log level are ignored. */
+  std::string GetLogLevelString();
   /*! Set the current log level. Messages that has a higher level than the current log level are ignored. */
   void SetLogLevel(int logLevel);
 
