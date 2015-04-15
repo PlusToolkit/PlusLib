@@ -97,6 +97,9 @@ PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent, Qt::
       ipAddresses.append(list[hostIndex].toString());
     }
   }
+
+  m_DeviceSetSelectorWidget->SetConnectButtonText(QString("Launch Server"));
+
   LOG_INFO("Server IP addresses: "<<ipAddresses.toLatin1().constData());
 }
 
@@ -203,6 +206,7 @@ void PlusServerLauncherMainWindow::connectToDevicesByConfigFile(std::string aCon
   {
     LOG_INFO("Disconnect request successful");
     m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
+    m_DeviceSetSelectorWidget->SetConnectButtonText(QString("Launch Server"));
     return; 
   }
 
@@ -212,11 +216,13 @@ void PlusServerLauncherMainWindow::connectToDevicesByConfigFile(std::string aCon
   if(startServer(QString(aConfigFile.c_str())))
   {
     m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
+    m_DeviceSetSelectorWidget->SetConnectButtonText(QString("Stop Server"));
     vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
   }
   else
   {
     m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
+    m_DeviceSetSelectorWidget->SetConnectButtonText(QString("Launch Server"));
   }
 }
 

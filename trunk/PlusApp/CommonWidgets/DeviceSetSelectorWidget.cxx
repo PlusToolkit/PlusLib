@@ -171,7 +171,7 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
   m_ConnectionSuccessful = aConnectionSuccessful;
 
   // If connect button has been pushed
-  if (ui.pushButton_Connect->text() == "Connect")
+  if ( !ui.pushButton_Connect->property("connected").toBool() )
   {
     if (m_ConnectionSuccessful)
     {
@@ -187,6 +187,8 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
 
       // Set last used device set config file
       vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationFileName(ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex(), FileNameRole).toString().toLatin1().constData());
+
+      ui.pushButton_Connect->setProperty("connected", QVariant(true));
     }
     else
     {
@@ -198,6 +200,7 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
   { // If disconnect button has been pushed
     if ( !m_ConnectionSuccessful )
     {
+      ui.pushButton_Connect->setProperty("connected", QVariant(false));
       ui.pushButton_Connect->setText(tr("Connect"));
       ui.comboBox_DeviceSet->setEnabled(true);
 
@@ -440,4 +443,11 @@ void DeviceSetSelectorWidget::ResetTrackerButtonClicked()
 void DeviceSetSelectorWidget::ShowResetTrackerButton( bool aValue )
 {
   ui.pushButton_ResetTracker->setVisible(aValue);
+}
+
+//-----------------------------------------------------------------------------
+
+void DeviceSetSelectorWidget::SetConnectButtonText(QString text)
+{
+  ui.pushButton_Connect->setText(text);
 }

@@ -66,6 +66,11 @@ public:
   */
   void ShowResetTrackerButton(bool aValue);
 
+  /*!
+  * Provide access to the Connect push button text
+  */
+  void SetConnectButtonText(QString text);
+
 signals:
   /*!
   * Emmitted when configuration directory is changed (notifies application)
