@@ -247,6 +247,9 @@ void PlusServerLauncherMainWindow::sendServerOutputToLogger(const QByteArray &st
   QStringList logLines = logString.split("\n");
   foreach (const QString &logLine, logLines)
   {
+    if( logLine.isEmpty() )
+      continue;
+
     // Log line: time|level|timeoffset|message|location
     const int numberOfFieldsPerLogLine = 5;
     QStringList logFields = logLine.split('|');
