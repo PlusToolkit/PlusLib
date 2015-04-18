@@ -670,7 +670,7 @@ PlusStatus vtkWin32VideoSource2::SetFrameSize(int x, int y)
     LOG_ERROR(this->GetDeviceId() << ": Unable to retrieve video source.");
     return PLUS_FAIL;
   }
-  if (this->Superclass::SetFrameSize(*aSource, x, y, 1)!=PLUS_SUCCESS)
+  if (this->Superclass::SetInputFrameSize(*aSource, x, y, 1)!=PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
