@@ -480,7 +480,7 @@ PlusStatus vtkSavedDataSource::InternalConnectVideo(vtkTrackedFrameList* savedDa
     return PLUS_FAIL; 
   }
 
-  this->GetOutputDataSource()->SetFrameSize(savedDataBuffer->GetTrackedFrame(0)->GetFrameSize(), true);
+  this->GetOutputDataSource()->SetInputFrameSize(savedDataBuffer->GetTrackedFrame(0)->GetFrameSize());
 
   this->GetOutputDataSource()->SetNumberOfScalarComponents(savedDataBuffer->GetTrackedFrame(0)->GetNumberOfScalarComponents());
 
@@ -497,7 +497,7 @@ PlusStatus vtkSavedDataSource::InternalConnectVideo(vtkTrackedFrameList* savedDa
   savedDataBuffer->Clear(); 
 
   this->GetOutputDataSource()->Clear();
-  this->GetOutputDataSource()->SetFrameSize( this->LocalVideoBuffer->GetFrameSize() ); 
+  this->GetOutputDataSource()->SetInputFrameSize( this->LocalVideoBuffer->GetFrameSize() ); 
   this->GetOutputDataSource()->SetPixelType( this->LocalVideoBuffer->GetPixelType() );
 
   return PLUS_SUCCESS; 

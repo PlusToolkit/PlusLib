@@ -456,12 +456,12 @@ PlusStatus vtkMmfVideoSource::UpdateFrameSize()
     int currentFrameSize[3] = {0,0,1};
     vtkPlusDataSource* videoSource(NULL);
     this->GetFirstVideoSource(videoSource);
-    videoSource->GetFrameSize(currentFrameSize);
+    videoSource->GetInputFrameSize(currentFrameSize);
     if( currentFrameSize[0] != this->ActiveVideoFormat.FrameSize[0] || currentFrameSize[1] != this->ActiveVideoFormat.FrameSize[1] || currentFrameSize[2] != 1 )
     {
       currentFrameSize[0] = this->ActiveVideoFormat.FrameSize[0];
       currentFrameSize[1] = this->ActiveVideoFormat.FrameSize[1];
-      videoSource->SetFrameSize(currentFrameSize);
+      videoSource->SetInputFrameSize(currentFrameSize);
       videoSource->SetPixelType(VTK_UNSIGNED_CHAR);
       int numberOfScalarComponents = (videoSource->GetImageType() == US_IMG_RGB_COLOR ? 3 : 1);
       videoSource->SetNumberOfScalarComponents(numberOfScalarComponents);
@@ -618,7 +618,7 @@ PlusStatus vtkMmfVideoSource::AddFrame(unsigned char* bufferData, DWORD bufferSi
   {
     return PLUS_FAIL;
   }
-  videoSource->GetFrameSize(frameSize);
+  videoSource->GetInputFrameSize(frameSize);
 
   PlusStatus decodingStatus(PLUS_SUCCESS);
   PixelCodec::PixelEncoding encoding(PixelCodec::PixelEncoding_ERROR);

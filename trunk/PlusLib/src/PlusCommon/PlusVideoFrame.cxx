@@ -10,6 +10,7 @@ See License.txt for details.
 #include "vtkBMPReader.h"
 #include "vtkExtractVOI.h"
 #include "vtkImageData.h"
+#include "vtkImageImport.h"
 #include "vtkImageReader.h"
 #include "vtkObjectFactory.h"
 #include "vtkPNMReader.h"
@@ -90,7 +91,8 @@ namespace
       for(int z = 0; z < outputDepth; z++)
       {
         // Set the input position to be the first unclipped pixel in the input image
-        ScalarType* inputPixel = (ScalarType*)inBuff + inputImageIncrement*z + finalClipOrigin[0]*pixelIncrement;
+        ScalarType* inputPixel = (ScalarType*)inBuff + (finalClipOrigin[2]+z)*inputImageIncrement + finalClipOrigin[1]*inputRowIncrement + finalClipOrigin[0]*pixelIncrement;
+
         // Set the target position pointer to the first pixel of the last row of each output image
         ScalarType* outputPixel = (ScalarType*)outBuff + outputImageIncrement*z + ( outputHeight - 1 )*outputRowIncrement;
         // Copy the image row-by-row, reversing the row order
@@ -111,7 +113,8 @@ namespace
         for(int z = 0; z < outputDepth; z++)
         {
           // Set the input position to be the first unclipped pixel in the input image
-          ScalarType* inputPixel = (ScalarType*)inBuff + inputImageIncrement*z + finalClipOrigin[0]*2*pixelIncrement;
+          ScalarType* inputPixel = (ScalarType*)inBuff + (finalClipOrigin[2]+z)*inputImageIncrement + finalClipOrigin[1]*inputRowIncrement + finalClipOrigin[0]*2*pixelIncrement;
+
           // Set the target position pointer to the last pixel of the first row of each output image
           ScalarType* outputPixel = (ScalarType*)outBuff + outputImageIncrement*z + outputWidth*2*pixelIncrement - 2*pixelIncrement;
           // Copy the image row-by-row, reversing the pixel order in each row
@@ -141,9 +144,10 @@ namespace
         for(int z = 0; z < outputDepth; z++)
         {
           // Set the input position to be the first unclipped pixel in the input image
-          ScalarType* inputPixel = (ScalarType*)inBuff + inputImageIncrement*z + finalClipOrigin[0]*pixelIncrement;
+          ScalarType* inputPixel = (ScalarType*)inBuff + (finalClipOrigin[2]+z)*inputImageIncrement + finalClipOrigin[1]*inputRowIncrement + finalClipOrigin[0]*pixelIncrement;
+
           // Set the target position pointer to the last pixel of the first row of each output image
-          ScalarType* outputPixel = (ScalarType*)outBuff + outputImageIncrement*z + outputWidth*pixelIncrement - 1*pixelIncrement;
+          ScalarType* outputPixel = (ScalarType*)outBuff + z*outputImageIncrement + (outputWidth-1)*pixelIncrement;
           // Copy the image row-by-row, reversing the pixel order in each row
           for (int y = 0; y < outputHeight; y++)
           {
@@ -174,7 +178,8 @@ namespace
         for(int z = 0; z < outputDepth; z++)
         {
           // Set the input position to be the first unclipped pixel in the input image
-          ScalarType* inputPixel = (ScalarType*)inBuff + inputImageIncrement*z + finalClipOrigin[0]*2*pixelIncrement;;
+          ScalarType* inputPixel = (ScalarType*)inBuff + (finalClipOrigin[2]+z)*inputImageIncrement + finalClipOrigin[1]*inputRowIncrement + finalClipOrigin[0]*2*pixelIncrement;
+
           // Set the target position pointer to the last pixel of each output image
           ScalarType* outputPixel = (ScalarType*)outBuff + outputImageIncrement*(z+1) - 2*pixelIncrement;
           // Copy the image pixel-by-pixel, reversing the pixel order
@@ -201,7 +206,8 @@ namespace
         for(int z = 0; z < outputDepth; z++)
         {
           // Set the input position to be the first unclipped pixel in the input image
-          ScalarType* inputPixel = (ScalarType*)inBuff + inputImageIncrement*z + finalClipOrigin[0]*pixelIncrement;
+          ScalarType* inputPixel = (ScalarType*)inBuff + (finalClipOrigin[2]+z)*inputImageIncrement + finalClipOrigin[1]*inputRowIncrement + finalClipOrigin[0]*pixelIncrement;
+
           // Set the target position pointer to the last pixel of each output image
           ScalarType* outputPixel = (ScalarType*)outBuff + outputImageIncrement*(z+1) - 1*pixelIncrement;
           // Copy the image pixel-by-pixel, reversing the pixel order
@@ -228,7 +234,7 @@ namespace
       // flip Z
 
       // Set the input position to the first unclipped pixel
-      ScalarType* inputPixel = (ScalarType*)inBuff + finalClipOrigin[0]*pixelIncrement;
+      ScalarType* inputPixel = (ScalarType*)inBuff + finalClipOrigin[2]*inputImageIncrement + finalClipOrigin[1]*inputRowIncrement + finalClipOrigin[0]*pixelIncrement;
 
       for(int z = outputDepth-1; z >= 0; z--)
       {
@@ -252,7 +258,8 @@ namespace
         // Transpose an image in KIJ layout to IJK layout double column
 
         // Set the input position to the first unclipped pixel
-        ScalarType* inputPixel = (ScalarType*)inBuff + finalClipOrigin[0]*2*pixelIncrement;
+        ScalarType* inputPixel = (ScalarType*)inBuff + finalClipOrigin[2]*inputImageIncrement + finalClipOrigin[1]*inputRowIncrement + finalClipOrigin[0]*2*pixelIncrement;
+
         // Copy the image column->row, each column from the next image
         for(int z = 0; z < outputDepth; ++z)
         {
@@ -288,7 +295,8 @@ namespace
         outputDepth = temp;
 
         // Set the input position to the first unclipped pixel
-        ScalarType* inputPixel = (ScalarType*)inBuff + finalClipOrigin[0]*pixelIncrement;
+        ScalarType* inputPixel = (ScalarType*)inBuff + finalClipOrigin[2]*inputImageIncrement + finalClipOrigin[1]*inputRowIncrement + finalClipOrigin[0]*pixelIncrement;
+
         // Copy the image column->row, each column from the next image
         for(int z = 0; z < outputDepth; ++z)
         {
@@ -955,7 +963,7 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage( vtkImageData* inUsImage,
     else
     {
       // no flip, clip or transpose
-      outUsOrientedImage->ShallowCopy( inUsImage ); 
+      outUsOrientedImage->DeepCopy( inUsImage ); 
       return PLUS_SUCCESS; 
     }
   }
@@ -1037,6 +1045,16 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage( vtkImageData* inUsImage,
 }
 
 //----------------------------------------------------------------------------
+// vtkImageImport logs a warning if the image size is (1,1,1) because it thinks
+// the whole extent is not set. Avoid the warning by specifying the extent using
+// a callback
+int* WholeExtentCallback_1_1_1(void*)
+{
+  static int defaultextent[6] = {0,0,0,0,0,0};
+  return defaultextent;
+}
+
+//----------------------------------------------------------------------------
 PlusStatus PlusVideoFrame::GetOrientedClippedImage(  unsigned char* imageDataPtr,                               
                                                    US_IMAGE_ORIENTATION  inUsImageOrientation, 
                                                    US_IMAGE_TYPE inUsImageType, 
@@ -1110,14 +1128,28 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage(  unsigned char* imageDataPtr
 #endif
   }
 
-  vtkImageData* inUsImage = vtkImageData::New();
-  PlusVideoFrame::AllocateFrame(inUsImage, inputFrameSizeInPx, outUsOrientedImage->GetScalarType(), outUsOrientedImage->GetNumberOfScalarComponents());
+  // Create a VTK image out of a buffer without copying the pixel data
+  vtkSmartPointer<vtkImageImport> inUsImage = vtkSmartPointer<vtkImageImport>::New();
+  inUsImage->SetImportVoidPointer(imageDataPtr);
 
-  memcpy(inUsImage->GetScalarPointer(), imageDataPtr, inputFrameSizeInPx[0]*inputFrameSizeInPx[1]*inputFrameSizeInPx[2]*PlusVideoFrame::GetNumberOfBytesPerScalar(pixType)*numberOfScalarComponents);
+  // Avoid warning if image size is (1,1,1)
+  if (inputFrameSizeInPx[0]==1 && inputFrameSizeInPx[1]==1 && inputFrameSizeInPx[2]==1)
+  {
+    inUsImage->SetWholeExtentCallback(WholeExtentCallback_1_1_1);
+  }
+  else
+  {
+    inUsImage->SetWholeExtent(0, inputFrameSizeInPx[0]-1, 0, inputFrameSizeInPx[1]-1, 0, inputFrameSizeInPx[2]-1);
+  }
 
-  PlusStatus result = PlusVideoFrame::GetOrientedClippedImage(inUsImage, inUsImageOrientation, inUsImageType, 
+  inUsImage->SetDataExtent(0, inputFrameSizeInPx[0]-1, 0, inputFrameSizeInPx[1]-1, 0, inputFrameSizeInPx[2]-1);
+  inUsImage->SetDataScalarType(outUsOrientedImage->GetScalarType());
+  inUsImage->SetNumberOfScalarComponents(outUsOrientedImage->GetNumberOfScalarComponents());
+  inUsImage->Update();
+
+  PlusStatus result = PlusVideoFrame::GetOrientedClippedImage(inUsImage->GetOutput(), inUsImageOrientation, inUsImageType, 
     outUsImageOrientation, outUsOrientedImage, finalClipOrigin, finalClipSize); 
-  DELETE_IF_NOT_NULL(inUsImage);
+
   return result;
 }
 
@@ -1230,7 +1262,7 @@ PlusStatus PlusVideoFrame::FlipClipImage(vtkImageData* inUsImage,
     else
     {
       // no flip, clip or transpose
-      outUsOrientedImage->ShallowCopy( inUsImage ); 
+      outUsOrientedImage->DeepCopy( inUsImage ); 
       return PLUS_SUCCESS; 
     }
   }

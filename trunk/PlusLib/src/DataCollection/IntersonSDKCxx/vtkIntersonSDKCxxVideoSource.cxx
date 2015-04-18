@@ -372,7 +372,7 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
       {
       source->SetPixelType( VTK_SHORT );  
       source->SetImageType( US_IMG_RF_REAL );
-      source->SetFrameSize( Scan2DClassType::MAX_RFSAMPLES, Scan2DClassType::MAX_VECTORS ); 
+      source->SetInputFrameSize( Scan2DClassType::MAX_RFSAMPLES, Scan2DClassType::MAX_VECTORS ); 
       source->SetOutputImageOrientation( US_IMG_ORIENT_FU );
       LOG_INFO("RF Pixel type: " << vtkImageScalarTypeNameMacro( source->GetPixelType() )
             << ", device image orientation: "
@@ -405,13 +405,13 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
           {
           int outputExtent[6];
           scanConverter->GetOutputImageExtent( outputExtent );
-          source->SetFrameSize( outputExtent[1] - outputExtent[0] + 1,
+          source->SetInputFrameSize( outputExtent[1] - outputExtent[0] + 1,
                                     outputExtent[3] - outputExtent[2] + 1 );
           }
         }
       else
         {
-        source->SetFrameSize( Scan2DClassType::MAX_RFSAMPLES, Scan2DClassType::MAX_VECTORS ); 
+        source->SetInputFrameSize( Scan2DClassType::MAX_RFSAMPLES, Scan2DClassType::MAX_VECTORS ); 
         source->SetOutputImageOrientation( US_IMG_ORIENT_FU );
         }
       LOG_INFO("BMode Pixel type: " << vtkImageScalarTypeNameMacro( source->GetPixelType() )
@@ -450,7 +450,7 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
           source->SetOutputImageOrientation( US_IMG_ORIENT_UF );
           int outputExtent[6];
           scanConverter->GetOutputImageExtent( outputExtent );
-          source->SetFrameSize( outputExtent[1] - outputExtent[0] + 1,
+          source->SetInputFrameSize( outputExtent[1] - outputExtent[0] + 1,
                                     outputExtent[3] - outputExtent[2] + 1 );
           }
         else
@@ -461,7 +461,7 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
         }
       else
         {
-        source->SetFrameSize( Scan2DClassType::MAX_SAMPLES, Scan2DClassType::MAX_VECTORS ); 
+        source->SetInputFrameSize( Scan2DClassType::MAX_SAMPLES, Scan2DClassType::MAX_VECTORS ); 
         source->SetOutputImageOrientation( US_IMG_ORIENT_FU );
         }
       }

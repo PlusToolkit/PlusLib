@@ -76,14 +76,20 @@ public:
   /*! Get the image type (B-mode, RF, ...) */
   US_IMAGE_TYPE GetImageType();
 
-  /*! Set the frame size in pixel  */
-  PlusStatus SetFrameSize(int x, int y, int z, bool ignoreClip=false); 
-  /*! Set the frame size in pixel  */
-  PlusStatus SetFrameSize(int frameSize[3], bool ignoreClip=false); 
-  /*! Get the frame size in pixel  */
-  virtual int* GetFrameSize();
-  virtual PlusStatus GetFrameSize(int &_arg1, int &_arg2, int &_arg3);
-  virtual PlusStatus GetFrameSize (int _arg[3]);
+  /*! Set the non-clipped input frame size in pixel  */
+  PlusStatus SetInputFrameSize(int x, int y, int z/*, bool ignoreClip=false*/); 
+  /*! Set the non-clipped input frame size in pixel  */
+  PlusStatus SetInputFrameSize(int frameSize[3]/*, bool ignoreClip=false*/); 
+  /*! Get the input frame size in pixel  */
+  vtkGetVector3Macro(InputFrameSize,int);
+
+  /*! 
+	Get the oputput frame size in pixel. If no clipping rectangle is set then the output
+	frame size is the clipping rectangle size; otherwise it is the input frame size
+  */
+  virtual int* GetOutputFrameSize();
+  virtual PlusStatus GetOutputFrameSize(int &_arg1, int &_arg2, int &_arg3);
+  virtual PlusStatus GetOutputFrameSize (int _arg[3]);
 
   /*! Set recording start time */
   virtual void SetStartTime( double startTime ); 
@@ -281,10 +287,6 @@ public:
   */
   vtkGetVector3Macro(ClipRectangleOrigin,int);
 
-protected:
-  /*! Access the data buffer */
-  virtual vtkPlusBuffer* GetBuffer();
-
   /*!
     Set the clip rectangle size to apply to the image in pixel coordinates.
     If the ClipRectangleSize is (0,0) then the values are ignored and the whole frame is captured.
@@ -297,6 +299,10 @@ protected:
     If the ClipRectangleSize is (0,0) then the whole frame is captured.
   */
   vtkSetVector3Macro(ClipRectangleOrigin,int);
+
+protected:
+  /*! Access the data buffer */
+  virtual vtkPlusBuffer* GetBuffer();
 
 protected:
   vtkPlusDataSource();
@@ -323,6 +329,8 @@ protected:
   int ClipRectangleOrigin[3];
   /*! Crop rectangle size for this data source */
   int ClipRectangleSize[3];
+
+  int InputFrameSize[3];
 
 private:
   vtkPlusDataSource(const vtkPlusDataSource&);

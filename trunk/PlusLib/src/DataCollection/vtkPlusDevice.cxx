@@ -1365,7 +1365,7 @@ int vtkPlusDevice::RequestInformation(vtkInformation * vtkNotUsed(request),
     return 0;
   }
 
-  int* frameSize=aSource->GetFrameSize();
+  int* frameSize=aSource->GetOutputFrameSize();
   if (frameSize[0]<0||frameSize[1]<0)
   {
     // no frame is available yet
@@ -1415,7 +1415,8 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
   {
     LOCAL_LOG_DEBUG("Cannot request data from video source, the video buffer is empty or does not exist!");
     vtkImageData *data = vtkImageData::SafeDownCast(this->GetOutputDataObject(0));
-    int frameSize[3] = { aSource->GetFrameSize()[0], aSource->GetFrameSize()[1], aSource->GetFrameSize()[2] };
+	int frameSize[3]={0,0,0};
+	aSource->GetOutputFrameSize(frameSize);
     data->SetExtent(0, frameSize[0]-1, 0, frameSize[1]-1, 0, frameSize[2]-1);
 
 #if (VTK_MAJOR_VERSION < 6)
@@ -1476,12 +1477,11 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::SetFrameSize(vtkPlusDataSource& aSource, int x, int y, int z)
+PlusStatus vtkPlusDevice::SetInputFrameSize(vtkPlusDataSource& aSource, int x, int y, int z)
 {
-  LOCAL_LOG_TRACE("vtkPlusDevice::SetFrameSize(" << x << ", " << y << ", " << z << ")");
+  LOCAL_LOG_TRACE("vtkPlusDevice::SetInputFrameSize(" << x << ", " << y << ", " << z << ")");
 
-  int* frameSize = aSource.GetFrameSize();
-
+  int* frameSize = aSource.GetInputFrameSize();
   if (x == frameSize[0] &&
     y == frameSize[1] &&
     z == frameSize[2])
@@ -1497,23 +1497,23 @@ PlusStatus vtkPlusDevice::SetFrameSize(vtkPlusDataSource& aSource, int x, int y,
 
   if (x < 1 || y < 1 || z < 1)
   {
-    LOCAL_LOG_ERROR("SetFrameSize: Illegal frame size "<<x<<"x"<<y<<"x"<<z);
+    LOCAL_LOG_ERROR("SetInputFrameSize: Illegal frame size "<<x<<"x"<<y<<"x"<<z);
     return PLUS_FAIL;
   }
 
-  aSource.SetFrameSize(x,y,z); 
+  aSource.SetInputFrameSize(x,y,z); 
 
   aSource.Modified();
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetFrameSize(vtkPlusChannel& aChannel, int &x, int &y, int &z)
+PlusStatus vtkPlusDevice::GetOutputFrameSize(vtkPlusChannel& aChannel, int &x, int &y, int &z)
 {
-  LOCAL_LOG_TRACE("vtkPlusDevice::GetFrameSize");
+  LOCAL_LOG_TRACE("vtkPlusDevice::GetOutputFrameSize");
 
-  int dim[3];
-  if( this->GetFrameSize(aChannel, dim) != PLUS_SUCCESS )
+  int dim[3] = {0,0,0};
+  if( this->GetOutputFrameSize(aChannel, dim) != PLUS_SUCCESS )
   {
     LOCAL_LOG_ERROR("Unable to get frame size from the device.");
     return PLUS_FAIL;
@@ -1526,9 +1526,9 @@ PlusStatus vtkPlusDevice::GetFrameSize(vtkPlusChannel& aChannel, int &x, int &y,
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetFrameSize(vtkPlusChannel& aChannel, int dim[3])
+PlusStatus vtkPlusDevice::GetOutputFrameSize(vtkPlusChannel& aChannel, int dim[3])
 {
-  LOCAL_LOG_TRACE("vtkPlusDevice::GetFrameSize");
+  LOCAL_LOG_TRACE("vtkPlusDevice::GetOutputFrameSize");
 
   vtkPlusDataSource* aSource(NULL);
   if( aChannel.GetVideoSource(aSource) != PLUS_SUCCESS )
@@ -1537,7 +1537,41 @@ PlusStatus vtkPlusDevice::GetFrameSize(vtkPlusChannel& aChannel, int dim[3])
     return PLUS_FAIL;
   }
 
-  return aSource->GetFrameSize(dim);
+  return aSource->GetOutputFrameSize(dim);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::GetInputFrameSize(vtkPlusChannel& aChannel, int &x, int &y, int &z)
+{
+  LOCAL_LOG_TRACE("vtkPlusDevice::GetInputFrameSize");
+
+  int dim[3] = {0,0,0};
+  if( this->GetInputFrameSize(aChannel, dim) != PLUS_SUCCESS )
+  {
+    LOCAL_LOG_ERROR("Unable to get frame size from the device.");
+    return PLUS_FAIL;
+  }
+  x = dim[0];
+  y = dim[1];
+  z = dim[2];
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::GetInputFrameSize(vtkPlusChannel& aChannel, int dim[3])
+{
+  LOCAL_LOG_TRACE("vtkPlusDevice::GetInputFrameSize");
+
+  vtkPlusDataSource* aSource(NULL);
+  if( aChannel.GetVideoSource(aSource) != PLUS_SUCCESS )
+  {
+    LOCAL_LOG_ERROR("Unable to retrieve the video source.");
+    return PLUS_FAIL;
+  }
+
+  aSource->GetInputFrameSize(dim);
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------

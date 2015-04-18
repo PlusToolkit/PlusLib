@@ -319,12 +319,12 @@ PlusStatus vtkICCapturingSource::InternalConnect()
   if( (this->ClipRectangleSize[0] > 0) && (this->ClipRectangleSize[1] > 0) )
   {
     LimitClippingToValidRegion(frameSize);
-    aSource->SetFrameSize(this->ClipRectangleSize);
+    aSource->SetInputFrameSize(this->ClipRectangleSize);
   }
   else
   {
     // No clipping
-    aSource->SetFrameSize(frameSize); 
+    aSource->SetInputFrameSize(frameSize); 
   }
 
   if ( this->GetInputChannel() == NULL || !static_cast<DShowLib::Grabber*>(FrameGrabber)->setInputChannel( this->GetInputChannel() ) ) 
@@ -537,7 +537,7 @@ void vtkICCapturingSource::ParseDShowLibVideoFormatString(const char* videoForma
 
   // Parsing successful, save results
   this->SetVideoFormat(splitVideoFormatFrameSize[0].c_str());
-  this->SetFrameSize(frameSizeX, frameSizeY);
+  this->SetInputFrameSize(frameSizeX, frameSizeY);
 }
 
 

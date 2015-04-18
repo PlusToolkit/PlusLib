@@ -8,7 +8,8 @@
     <Device
       Id="VideoDevice"
       Type="SonixVideo" 
-      AcquisitionRate="30" 
+      AcquisitionRate="30"
+	  EnableAutoClip="TRUE"
       IP="127.0.0.1" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF"  />

@@ -375,7 +375,7 @@ PlusStatus vtkIntersonVideoSource::InternalConnect()
   // Clear buffer on connect because the new frames that we will acquire might have a different size 
   aSource->Clear();
   aSource->SetPixelType( VTK_UNSIGNED_CHAR );  
-  aSource->SetFrameSize(this->ImageSize[0], this->ImageSize[1], 1); 
+  aSource->SetInputFrameSize(this->ImageSize[0], this->ImageSize[1], 1); 
 
   HINSTANCE hInst = GetModuleHandle(NULL);
 
@@ -556,7 +556,7 @@ PlusStatus vtkIntersonVideoSource::InternalUpdate()
     LOG_DEBUG("Set up image buffer for Interson");
     aSource->SetPixelType(VTK_UNSIGNED_CHAR);
     aSource->SetImageType(US_IMG_BRIGHTNESS);
-    aSource->SetFrameSize( frameSizeInPx );
+    aSource->SetInputFrameSize( frameSizeInPx );
 
     float depthScale = -1;
     usbProbeDepthScale(this->Internal->ProbeHandle,&depthScale);

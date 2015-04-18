@@ -93,6 +93,7 @@ vtkSonixVideoSource::vtkSonixVideoSource()
 , SharedMemoryStatus(0)
 , DetectDepthSwitching(false)
 , DetectPlaneSwitching(false)
+, EnableAutoClip(false)
 {
   this->Ult = new ulterius;
   this->SetSonixIP("127.0.0.1");
@@ -238,7 +239,7 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
   vtkPlusDataSource* aSource = sources[0];
 
   int frameSize[3] = {0,0,0};
-  aSource->GetFrameSize(frameSize);
+  aSource->GetInputFrameSize(frameSize);
   int frameBufferBytesPerPixel = aSource->GetNumberOfBytesPerPixel(); 
   const int frameSizeInBytes = frameSize[0] * frameSize[1] * frameBufferBytesPerPixel; 
 
@@ -552,6 +553,8 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigE
 
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(DetectPlaneSwitching, deviceConfig);
 
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableAutoClip, deviceConfig);
+
   // TODO : if depth or plane switching, build lookup table
   // if both attributes, build [plane, depth]->channel lookup table
   // if one, build [attr]->channel lookup table
@@ -600,6 +603,8 @@ PlusStatus vtkSonixVideoSource::WriteConfiguration(vtkXMLDataElement* rootConfig
   imageAcquisitionConfig->SetIntAttribute("CompressionStatus", this->CompressionStatus);
   imageAcquisitionConfig->SetIntAttribute("Timeout", this->Timeout);
   imageAcquisitionConfig->SetDoubleAttribute("ConnectionSetupDelayMs", this->ConnectionSetupDelayMs);
+  
+  XML_WRITE_BOOL_ATTRIBUTE(EnableAutoClip, imageAcquisitionConfig);
 
   return PLUS_SUCCESS;
 }
@@ -1097,17 +1102,30 @@ PlusStatus vtkSonixVideoSource::ConfigureVideoSource( uData aValue )
     // RF data is stored line-by-line, therefore set the storage buffer to FM orientation
     aSource->SetOutputImageOrientation(US_IMG_ORIENT_FM);
     // Swap w/h: in case of RF image acquisition the DataDescriptor.h is the width and the DataDescriptor.w is the height
-    {
-      int tmp = aDataDescriptor.h;
-      aDataDescriptor.h = aDataDescriptor.w;
-      aDataDescriptor.w = tmp;
-    }
+    std::swap(aDataDescriptor.h,aDataDescriptor.w);
+    std::swap(aDataDescriptor.roi.ulx, aDataDescriptor.roi.uly);
+    std::swap(aDataDescriptor.roi.urx, aDataDescriptor.roi.ury);
+    std::swap(aDataDescriptor.roi.blx, aDataDescriptor.roi.bly);
+    std::swap(aDataDescriptor.roi.brx, aDataDescriptor.roi.bry);
     break;
   default:
     LOG_ERROR("Unsupported Ulterius bit depth: " << aDataDescriptor.ss);
     return PLUS_FAIL;
   }
-  this->SetFrameSize( *aSource, aDataDescriptor.w, aDataDescriptor.h, 1 );
+
+  if (this->EnableAutoClip)
+  {
+    int clipRectangleOrigin[3] = {0,0,0};
+    clipRectangleOrigin[0] = std::min(aDataDescriptor.roi.ulx, aDataDescriptor.roi.blx);
+    clipRectangleOrigin[1] = std::min(aDataDescriptor.roi.uly, aDataDescriptor.roi.ury);
+    int clipRectangleSize[3] = {0,0,1};
+    clipRectangleSize[0] = std::max(aDataDescriptor.roi.urx-aDataDescriptor.roi.ulx, aDataDescriptor.roi.brx-aDataDescriptor.roi.blx);
+    clipRectangleSize[1] = std::max(aDataDescriptor.roi.bly-aDataDescriptor.roi.uly, aDataDescriptor.roi.bry-aDataDescriptor.roi.ury);
+	aSource->SetClipRectangleOrigin(clipRectangleOrigin);
+	aSource->SetClipRectangleSize(clipRectangleSize);
+  }
+
+  this->SetInputFrameSize( *aSource, aDataDescriptor.w, aDataDescriptor.h, 1 );
 
   return PLUS_SUCCESS;
 }

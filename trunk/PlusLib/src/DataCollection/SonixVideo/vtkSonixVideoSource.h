@@ -205,6 +205,10 @@ public:
 
   virtual bool IsTracker() const { return false; }
 
+  /*! Set clip rectangle origin and size according to the ROI provided by the ultrasound system */
+  vtkSetMacro(EnableAutoClip, bool);
+  vtkGetMacro(EnableAutoClip, bool);
+
 protected:
   vtkSonixVideoSource();
   virtual ~vtkSonixVideoSource();
@@ -300,6 +304,8 @@ protected:
     but the connection initialization (setup of requested imaging parameters, etc.) may fail.
   */
   bool UlteriusConnected;
+
+  bool EnableAutoClip;
     
 private:
   static bool vtkSonixVideoSourceNewFrameCallback(void * data, int type, int sz, bool cine, int frmnum);

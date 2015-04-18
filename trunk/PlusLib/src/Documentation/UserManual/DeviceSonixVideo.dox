@@ -58,11 +58,14 @@ Ulterius interface specific Device attributes:
 - \xmlAtt \b Sector Sector \c [%] of B-mode ultrasound; valid range: 0-100. \OptionalAtt{-1}
 - \xmlAtt \b DynRange DynRange \c [dB] of B-mode ultrasound. \OptionalAtt{-1}
 - \xmlAtt \b CompressionStatus When imaging with the EC59 probe, if compression is disabled (\b CompressionStatus \c ="0"), then a lot of BMode frames are lost. The reason for this is the fact that scan-conversion is performed on the CPU. Set \b CompressionStatus \c ="1" to prevent frame loss. \OptionalAtt{0}
-- \xmlAtt \b SharedMemoryStatus When this flag is enabled and local access is used the TCP is bypasssed.\OptionalAtt{0}
+- \xmlAtt \b SharedMemoryStatus When this flag is enabled ("1") and local access is used the TCP is bypasssed.\OptionalAtt{0}
 - \xmlAtt \b SoundVelocity The speed of sound \c [m/s]. \OptionalAtt{-1}
 - \xmlAtt \b ConnectionSetupDelayMs Time required for setting up the connection. The value depends on the probe type, typical values are between 2000-3000 \c [ms]. \OptionalAtt{3000}
 - \xmlAtt \b DetectDepthSwitching Flag to read the depth attribute for each output channel. (Experimental) \OptionalAtt{false}
 - \xmlAtt \b DetectPlaneSwitching Flag to read the plane of each output channel. (Experimental) \OptionalAtt{false}
+- \xmlAtt \b EnableAutoClip Automatically clip the image to the region of interest specified by the ultrasound system. \OptionalAtt{FALSE}
+  - TRUE: Image will be clipped to the region of interest that was specified at the time when the connection to the device was established. The image size depends on the imaging depth.
+  - FALSE: Regardless of imaging depth, zoom, etc. settings, the image size is always the same. Black border appears outside the region of interest.
 
 Porta interface specific Device attributes:
 - \xmlAtt \ref DeviceType "Type" = \c "SonixPortaVideo" \RequiredAtt
