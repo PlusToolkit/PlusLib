@@ -470,9 +470,9 @@ bool PlusCommon::IsClippingRequested(const int clipOrigin[3], const int clipSize
     clipOrigin[0] != PlusCommon::NO_CLIP &&
     clipOrigin[1] != PlusCommon::NO_CLIP &&
     clipOrigin[2] != PlusCommon::NO_CLIP &&
+    clipSize[0] != PlusCommon::NO_CLIP &&
     clipSize[1] != PlusCommon::NO_CLIP &&
-    clipSize[1] != PlusCommon::NO_CLIP &&
-    clipSize[1] != PlusCommon::NO_CLIP
+    clipSize[2] != PlusCommon::NO_CLIP
     );
 }
 

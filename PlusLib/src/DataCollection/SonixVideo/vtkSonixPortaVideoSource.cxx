@@ -312,7 +312,7 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
   vtkPlusChannel* outputChannel=this->OutputChannels[0];
 
   int frameSize[3] = {0,0,0};
-  this->GetFrameSize(*outputChannel, frameSize);
+  this->GetInputFrameSize(*outputChannel, frameSize);
   vtkPlusDataSource* aSource(NULL);
   if( outputChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
   {
@@ -492,7 +492,7 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
 			LOG_ERROR("vtkSonixPortaVideoSource constructor: not enough memory for ImageBuffer" );
 		}
 
-    if( !this->SetFrameSize( *aSource, this->PortaBModeWidth, this->PortaBModeHeight, 1 )  )
+    if( !this->SetInputFrameSize( *aSource, this->PortaBModeWidth, this->PortaBModeHeight, 1 )  )
     {
       LOG_ERROR("Initializer: can not set the frame size" );
     }

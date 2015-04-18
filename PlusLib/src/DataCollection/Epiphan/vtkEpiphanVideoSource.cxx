@@ -151,7 +151,7 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
       US_IMAGE_TYPE imageType = aSource->GetImageType();
       aSource->SetPixelType(VTK_UNSIGNED_CHAR);
       aSource->SetNumberOfScalarComponents(imageType == US_IMG_RGB_COLOR ? 3 : 1);
-      aSource->SetFrameSize(this->FrameSize);
+      aSource->SetInputFrameSize(this->FrameSize);
     }
   }
   else
@@ -169,7 +169,7 @@ PlusStatus vtkEpiphanVideoSource::InternalConnect()
       US_IMAGE_TYPE imageType = aSource->GetImageType();
       aSource->SetPixelType(VTK_UNSIGNED_CHAR);
       aSource->SetNumberOfScalarComponents(imageType == US_IMG_RGB_COLOR ? 3 : 1);
-      aSource->SetFrameSize(this->FrameSize);
+      aSource->SetInputFrameSize(this->FrameSize);
     }
   }
 

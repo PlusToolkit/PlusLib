@@ -119,7 +119,7 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalUpdate()
     aSource->SetPixelType( videoFrame->GetVTKScalarPixelType() );
     aSource->SetNumberOfScalarComponents( videoFrame->GetNumberOfScalarComponents() );
     aSource->SetImageType( videoFrame->GetImageType() );
-    aSource->SetFrameSize( trackedFrame.GetFrameSize() );
+    aSource->SetInputFrameSize( trackedFrame.GetFrameSize() );
   }
   TrackedFrame::FieldMapType customFields=trackedFrame.GetCustomFields();
   PlusStatus status = aSource->AddItem( trackedFrame.GetImageData(), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &customFields); 

@@ -313,7 +313,7 @@ PlusStatus vtkBkProFocusOemVideoSource::InternalUpdate()
     int frameSizeInPix[2]={frameExtent[1]-frameExtent[0]+1, frameExtent[3]-frameExtent[2]+1};
     aSource->SetPixelType(this->Internal->DecodedImageFrame->GetScalarType());
     aSource->SetImageType(US_IMG_BRIGHTNESS);
-    aSource->SetFrameSize( frameSizeInPix[0], frameSizeInPix[1], 1 );
+    aSource->SetInputFrameSize( frameSizeInPix[0], frameSizeInPix[1], 1 );
 
     LOG_INFO("Frame size: " << frameSizeInPix[0] << "x" << frameSizeInPix[1]
       << ", pixel type: " << vtkImageScalarTypeNameMacro(this->Internal->DecodedImageFrame->GetScalarType())

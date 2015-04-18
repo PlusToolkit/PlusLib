@@ -30,6 +30,10 @@ vtkPlusDataSource::vtkPlusDataSource()
   this->ClipRectangleSize[0] = PlusCommon::NO_CLIP;
   this->ClipRectangleSize[1] = PlusCommon::NO_CLIP;
   this->ClipRectangleSize[2] = PlusCommon::NO_CLIP;
+
+  this->InputFrameSize[0] = 0;
+  this->InputFrameSize[1] = 0;
+  this->InputFrameSize[2] = 1;
 }
 
 //----------------------------------------------------------------------------
@@ -500,50 +504,60 @@ PlusStatus vtkPlusDataSource::SetImageType(US_IMAGE_TYPE imageType)
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::SetFrameSize(int x, int y, int z, bool ignoreClip /* = false */)
+PlusStatus vtkPlusDataSource::SetInputFrameSize(int x, int y, int z/*, bool ignoreClip /* = false */)
 {
+  this->InputFrameSize[0] = x;
+  this->InputFrameSize[1] = y;
+  this->InputFrameSize[2] = z;
+  /*if(ignoreClip)
+  {
+    return this->GetBuffer()->SetFrameSize(x, y, z);
+  }*/
+  
   int extents[6] = {0, x-1, 0, y-1, 0, z-1};
-  if( !ignoreClip && 
-    PlusCommon::IsClippingRequested(this->ClipRectangleOrigin, this->ClipRectangleSize) && 
-    PlusCommon::IsClippingWithinExtents(this->ClipRectangleOrigin, this->ClipRectangleSize, extents) )
+  if(PlusCommon::IsClippingRequested(this->ClipRectangleOrigin, this->ClipRectangleSize))
   {
-    return this->GetBuffer()->SetFrameSize(this->ClipRectangleSize[0], this->ClipRectangleSize[1], this->ClipRectangleSize[2]);
-  }
-  // TODO : if clipping is requested but fails, this is the place to determine the appropriate behavior...
-  // then we can set frame size, cliprectorigin and cliprectsize to the new calculated values
-  // for now, disable clipping
-  if( !ignoreClip )
-  {
-    this->ClipRectangleOrigin[0] = PlusCommon::NO_CLIP;
-    this->ClipRectangleOrigin[1] = PlusCommon::NO_CLIP;
-    this->ClipRectangleOrigin[2] = PlusCommon::NO_CLIP;
-    this->ClipRectangleSize[0] = PlusCommon::NO_CLIP;
-    this->ClipRectangleSize[1] = PlusCommon::NO_CLIP;
-    this->ClipRectangleSize[2] = PlusCommon::NO_CLIP;
+    if (PlusCommon::IsClippingWithinExtents(this->ClipRectangleOrigin, this->ClipRectangleSize, extents))
+    {
+      return this->GetBuffer()->SetFrameSize(this->ClipRectangleSize[0], this->ClipRectangleSize[1], this->ClipRectangleSize[2]);
+    }
+    else
+    {
+      LOG_WARNING("Clipping information cannot fit within the original image extents ["<<extents[0]<<","<<extents[1]<<","
+        <<extents[2]<<","<<extents[3]<<","<<extents[4]<<","<<extents[5]<<"]. No clipping will be performed."
+        <<" Origin=[" << this->ClipRectangleOrigin[0] << "," << this->ClipRectangleOrigin[1] << "," << this->ClipRectangleOrigin[2] << "]."
+        <<" Size=[" << this->ClipRectangleSize[0] << "," << this->ClipRectangleSize[1] << "," << this->ClipRectangleSize[2] << "].");
+      this->ClipRectangleOrigin[0] = PlusCommon::NO_CLIP;
+      this->ClipRectangleOrigin[1] = PlusCommon::NO_CLIP;
+      this->ClipRectangleOrigin[2] = PlusCommon::NO_CLIP;
+      this->ClipRectangleSize[0] = PlusCommon::NO_CLIP;
+      this->ClipRectangleSize[1] = PlusCommon::NO_CLIP;
+      this->ClipRectangleSize[2] = PlusCommon::NO_CLIP;
+    }
   }
   return this->GetBuffer()->SetFrameSize(x, y, z);
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::SetFrameSize(int frameSize[3], bool ignoreClip /* = false */)
+PlusStatus vtkPlusDataSource::SetInputFrameSize(int frameSize[3]/*, bool ignoreClip /* = false */)
 {
-  return this->SetFrameSize(frameSize[0], frameSize[1], frameSize[2], ignoreClip);
+  return this->SetInputFrameSize(frameSize[0], frameSize[1], frameSize[2]/*, ignoreClip*/);
 }
 
 //-----------------------------------------------------------------------------
-int* vtkPlusDataSource::GetFrameSize()
+int* vtkPlusDataSource::GetOutputFrameSize()
 {
   return this->GetBuffer()->GetFrameSize();
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::GetFrameSize(int &_arg1, int &_arg2, int &_arg3)
+PlusStatus vtkPlusDataSource::GetOutputFrameSize(int &_arg1, int &_arg2, int &_arg3)
 {
   return this->GetBuffer()->GetFrameSize(_arg1, _arg2, _arg3);
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::GetFrameSize(int _arg[3])
+PlusStatus vtkPlusDataSource::GetOutputFrameSize(int _arg[3])
 {
   return this->GetBuffer()->GetFrameSize(_arg);
 }

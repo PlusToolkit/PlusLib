@@ -145,7 +145,7 @@ PlusStatus vtkThorLabsVideoSource::InternalConnect()
     return PLUS_FAIL;
   }
 
-  aSource->SetFrameSize(TLCCS_NUM_PIXELS, 2, 1);
+  aSource->SetInputFrameSize(TLCCS_NUM_PIXELS, 2, 1);
   aSource->SetPixelType(VTK_DOUBLE);
   aSource->SetNumberOfScalarComponents(1);
 

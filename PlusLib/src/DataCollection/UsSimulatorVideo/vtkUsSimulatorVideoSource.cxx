@@ -176,7 +176,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalConnect()
     LOG_ERROR("Failed to initialize buffer, frame size is unknown");
     return PLUS_FAIL;
   }
-  aSource->SetFrameSize(frameSize);
+  aSource->SetInputFrameSize(frameSize);
   
   this->LastProcessedTrackingDataTimestamp = 0;
 

@@ -124,7 +124,7 @@ int main(int argc, char **argv)
     LOG_ERROR("Unable to retrieve the video source.");
     exit(EXIT_FAILURE);
   }
-  viewer->SetSize(videoSource->GetFrameSize()[0], videoSource->GetFrameSize()[1]); 
+  viewer->SetSize(videoSource->GetOutputFrameSize()[0], videoSource->GetOutputFrameSize()[1]); 
 
   viewer->SetInputConnection(frameGrabber->GetOutputPort()); 
 

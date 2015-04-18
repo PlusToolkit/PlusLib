@@ -51,7 +51,7 @@ bool vtkPhilips3DProbeVideoSource::StreamCallback(_int64 id, SClient3DArray *ed,
     return false;
   }
 
-  int extents[3] = {ed->width_padded, ed->height_padded, ed->depth_padded};
+  int dimensions[3] = {ed->width_padded, ed->height_padded, ed->depth_padded};
 
   /*
   * This is way smaller than what Qlab reports. Perhaps the streaming volume
@@ -67,34 +67,31 @@ bool vtkPhilips3DProbeVideoSource::StreamCallback(_int64 id, SClient3DArray *ed,
 
     streamedImageData = vtkImageData::New();
     streamedImageData->SetSpacing(spacing);
-    streamedImageData->SetExtent(0, extents[0]-1, 0, extents[1]-1, 0, extents[2]-1);
+    streamedImageData->SetExtent(0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1);
     streamedImageData->SetOrigin(origin);
     streamedImageData->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
 
     vtkPlusDataSource* videoSource(NULL);
     vtkPhilips3DProbeVideoSource::ActiveDevice->GetFirstVideoSource(videoSource);
-    videoSource->SetFrameSize(extents[0], extents[1], extents[2]);
+    videoSource->SetInputFrameSize(dimensions[0], dimensions[1], dimensions[2]);
     videoSource->SetPixelType(VTK_UNSIGNED_CHAR);
     videoSource->SetNumberOfScalarComponents(1);
   }
   else
   {
-    int dimensions[3] = {0,0,0};
-    streamedImageData->GetDimensions(dimensions);
+    int streamedDimensions[3] = {0,0,0};
+    streamedImageData->GetDimensions(streamedDimensions);
 
-    if( dimensions[0] != extents[0] || dimensions[1] != extents[1] || dimensions[2] != extents[2] )
+    if( dimensions[0] != streamedDimensions[0] || dimensions[1] != streamedDimensions[1] || dimensions[2] != streamedDimensions[2] )
     {
       LOG_ERROR("Dimensions of new frame do not match dimensions of previous frames. Cannot add frame to buffer.");
       return false;
     }
   }
 
-  unsigned char *src;
-  unsigned char *dst;
-  size_t size = extents[0]*extents[1]*extents[2];
-  src = ed->pData;
-
-  dst = (unsigned char*)streamedImageData->GetScalarPointer();
+  size_t size = dimensions[0]*dimensions[1]*dimensions[2];
+  unsigned char *src = ed->pData;
+  unsigned char *dst = (unsigned char*)streamedImageData->GetScalarPointer();
 
   memcpy((void*)dst, (void*)src, size);
 

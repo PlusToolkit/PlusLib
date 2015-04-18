@@ -274,7 +274,7 @@ PlusStatus vtkWin32VideoSource2::InternalConnect()
     LOG_ERROR("Unable to retrieve the video source in the Win32Video device.");
     return PLUS_FAIL;
   }
-  aSource->GetFrameSize(frameSize);
+  aSource->GetInputFrameSize(frameSize);
 
   this->Internal->ParentWnd = CreateWindow(this->WndClassName,"Plus video capture window", style, 0, 0, 
     frameSize[0]+2*GetSystemMetrics(SM_CXFIXEDFRAME),
@@ -791,7 +791,7 @@ PlusStatus vtkWin32VideoSource2::UpdateFrameBuffer()
     LOG_ERROR("Unable to access video source in vtkWin32VideoSource2. Critical failure.");
     return PLUS_FAIL;
   }
-  aSource->SetFrameSize(width, height,1);
+  aSource->SetInputFrameSize(width, height,1);
   aSource->SetPixelType(pixelType);
   aSource->SetNumberOfScalarComponents(numberOfScalarComponents);
 

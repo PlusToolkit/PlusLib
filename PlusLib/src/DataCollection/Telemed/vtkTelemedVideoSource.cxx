@@ -172,7 +172,7 @@ PlusStatus vtkTelemedVideoSource::InternalUpdate()
     LOG_DEBUG("Set up image buffer for Telemed");
     aSource->SetPixelType(VTK_UNSIGNED_CHAR);
     aSource->SetImageType(US_IMG_BRIGHTNESS);
-    aSource->SetFrameSize(frameSizeInPx);
+    aSource->SetInputFrameSize(frameSizeInPx);
     aSource->SetOutputImageOrientation(US_IMG_ORIENT_MF);
   }
 
