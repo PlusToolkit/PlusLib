@@ -135,7 +135,9 @@ bool PlusServerLauncherMainWindow::startServer(QString& configFilePath)
   LOG_INFO("Server process command line: "<<cmdLine.toLatin1().constData());
   m_CurrentServerInstance->start(cmdLine);
   m_CurrentServerInstance->waitForFinished(500);
-  if( m_CurrentServerInstance->state() == QProcess::Running )
+  // During waitForFinished an error signal may be emitted, which may delete m_CurrentServerInstance,
+  // therefore we need to check if m_CurrentServerInstance is still not NULL
+  if( m_CurrentServerInstance && m_CurrentServerInstance->state() == QProcess::Running )
   {
     LOG_INFO("Server process started successfully");
     return true;
