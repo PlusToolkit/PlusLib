@@ -537,7 +537,7 @@ void vtkICCapturingSource::ParseDShowLibVideoFormatString(const char* videoForma
 
   // Parsing successful, save results
   this->SetVideoFormat(splitVideoFormatFrameSize[0].c_str());
-  this->SetInputFrameSize(frameSizeX, frameSizeY);
+  this->SetFrameSize(frameSizeX, frameSizeY);
 }
 
 
