@@ -206,8 +206,12 @@ public:
   virtual bool IsTracker() const { return false; }
 
   /*! Set clip rectangle origin and size according to the ROI provided by the ultrasound system */
-  vtkSetMacro(EnableAutoClip, bool);
-  vtkGetMacro(EnableAutoClip, bool);
+  vtkSetMacro(AutoClipEnabled, bool);
+  vtkGetMacro(AutoClipEnabled, bool);
+
+  /*! Add image geometry (depth, spacing, transducer origin) to the output */
+  vtkSetMacro(ImageGeometryOutputEnabled, bool);
+  vtkGetMacro(ImageGeometryOutputEnabled, bool);
 
 protected:
   vtkSonixVideoSource();
@@ -256,9 +260,7 @@ protected:
   /*! For internal use only */
   PlusStatus AddFrameToBuffer(void * data, int type, int sz, bool cine, int frmnum);
 
-  /*! For internal use only */
   PlusStatus SetParamValue(char* paramId, int paramValue, int &validatedParamValue);
-  /*! For internal use only */
   PlusStatus GetParamValue(char* paramId, int& paramValue, int &validatedParamValue);
 
   bool HasDataType( uData aValue );
@@ -294,6 +296,13 @@ protected:
   int SoundVelocity;
   bool DetectDepthSwitching;
   bool DetectPlaneSwitching;
+  
+  /*! Indicates that current depth, spacing, transducer origin has to be queried */
+  bool ImageGeometryChanged;
+
+  double CurrentDepthMm;
+  double CurrentPixelSpacingMm[2];
+  int CurrentTransducerOriginPixels[2];
 
   char *SonixIP;
 
@@ -305,7 +314,8 @@ protected:
   */
   bool UlteriusConnected;
 
-  bool EnableAutoClip;
+  bool AutoClipEnabled;
+  bool ImageGeometryOutputEnabled;
     
 private:
   static bool vtkSonixVideoSourceNewFrameCallback(void * data, int type, int sz, bool cine, int frmnum);

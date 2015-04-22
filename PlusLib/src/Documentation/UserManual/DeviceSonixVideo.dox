@@ -66,6 +66,7 @@ Ulterius interface specific Device attributes:
 - \xmlAtt \b EnableAutoClip Automatically clip the image to the region of interest specified by the ultrasound system. \OptionalAtt{FALSE}
   - TRUE: Image will be clipped to the region of interest that was specified at the time when the connection to the device was established. The image size depends on the imaging depth.
   - FALSE: Regardless of imaging depth, zoom, etc. settings, the image size is always the same. Black border appears outside the region of interest.
+- \xmlAtt \b ImageGeometryOutputEnabled Add image geometry information (depth, spacing, transducer origin) to the output. When imaging depth is changed then usually transducer origin position and pixel spacing is changed as a result. SonixVideo can provide depth, pixel spacing, and transducer origin (position of the center transducer element in the image, in pixels) information as custom frame fields that can be broadcasted through OpenIGTLink as STRING messages, using the names "DepthMm", "PixelSpacingMm", and "TransducerOriginPix" (see \ref SonixVideoExampleConfigFileUlterius).\OptionalAtt{FALSE}
 
 Porta interface specific Device attributes:
 - \xmlAtt \ref DeviceType "Type" = \c "SonixPortaVideo" \RequiredAtt
@@ -82,7 +83,7 @@ Porta interface specific Device attributes:
 - \xmlAtt \b PortaLicensePath Path to the licenses text file. \RequiredAtt
 - \xmlAtt \b PortaFirmwarePath Path to the Porta Firmware directory. \RequiredAtt
 
-Depth switching (experimental)
+\section SonixDepthSwitching Depth switching (experimental)
 
 Plus allows using different spatial calibration parameters when the imaging depth and/or imaging probe is changed. To enable mode switching, plane switching and/or depth switching, for each output channel you must define one or more of:
 - ProbeId: BPC, L14-5, more to come
