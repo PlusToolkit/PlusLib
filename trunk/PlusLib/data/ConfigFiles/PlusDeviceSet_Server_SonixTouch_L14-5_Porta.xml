@@ -93,6 +93,7 @@
       <MessageTypes> 
         <Message Type="IMAGE" />
         <Message Type="TRANSFORM" />
+        <Message Type="STRING" />
       </MessageTypes>
       <TransformNames> 
         <Transform Name="MotorToRas" />

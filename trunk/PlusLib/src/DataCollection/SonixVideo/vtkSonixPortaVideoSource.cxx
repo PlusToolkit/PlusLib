@@ -375,7 +375,7 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
   std::ostringstream volumeIndex;
   volumeIndex << this->VolumeIndex;
   std::ostringstream motorAngle;
-  volumeIndex << this->CurrentMotorAngle;
+  motorAngle << this->CurrentMotorAngle;
 
   TrackedFrame::FieldMapType customFields;
   customFields["FrameNumber"] = frameNumber.str(); 

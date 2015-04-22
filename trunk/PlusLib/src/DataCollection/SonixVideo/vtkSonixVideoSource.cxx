@@ -93,11 +93,20 @@ vtkSonixVideoSource::vtkSonixVideoSource()
 , SharedMemoryStatus(0)
 , DetectDepthSwitching(false)
 , DetectPlaneSwitching(false)
-, EnableAutoClip(false)
+, AutoClipEnabled(false)
+, ImageGeometryOutputEnabled(false)
+, CurrentDepthMm(-1)
+, ImageGeometryChanged(false)
 {
   this->Ult = new ulterius;
   this->SetSonixIP("127.0.0.1");
   this->StartThreadForInternalUpdates = false;
+
+  this->CurrentTransducerOriginPixels[0]=-1;
+  this->CurrentTransducerOriginPixels[1]=-1;
+
+  this->CurrentPixelSpacingMm[0]=-1;
+  this->CurrentPixelSpacingMm[1]=-1;
 
   this->RequireImageOrientationInConfiguration = true;
   
@@ -175,6 +184,9 @@ bool vtkSonixVideoSource::vtkSonixVideoSourceParamCallback( void * paramId, int 
 
   if( STRCASECMP(paramName, "b-depth") == 0 )
   {
+    // we cannot query parameter values here, so just set a flag
+    // and get the value when getting the frame
+    vtkSonixVideoSource::ActiveSonixDevice->ImageGeometryChanged = true;
     return true;
   }
   else if ( STRCASECMP(paramName, "probe id") == 0 )
@@ -272,10 +284,61 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
     return PLUS_FAIL; 
   }
 
+  if (this->ImageGeometryChanged)
+  {
+    this->ImageGeometryChanged = false;
+    int currentDepth=-1;
+    if (!vtkSonixVideoSource::ActiveSonixDevice->Ult->getParamValue("b-depth", currentDepth))
+    {
+      LOG_WARNING("Failed to retrieve b-depth parameter");
+    }
+    uPoint currentPixelSpacingMicron;
+    currentPixelSpacingMicron.x=-1;
+    currentPixelSpacingMicron.y=-1;
+    if (!vtkSonixVideoSource::ActiveSonixDevice->Ult->getParamValue("microns", currentPixelSpacingMicron))
+    {
+      LOG_WARNING("Failed to retrieve bb-microns parameter");
+    }
+    uPoint currentTransducerOriginPixels;
+    currentTransducerOriginPixels.x=-1;
+    currentTransducerOriginPixels.y=-1;
+    if (!vtkSonixVideoSource::ActiveSonixDevice->Ult->getParamValue("origin", currentTransducerOriginPixels))
+    {
+      LOG_WARNING("Failed to retrieve bb-origin parameter");
+    }
+
+    this->CurrentDepthMm = currentDepth;
+
+    this->CurrentPixelSpacingMm[0] = 0.001*currentPixelSpacingMicron.x;
+    this->CurrentPixelSpacingMm[1] = 0.001*currentPixelSpacingMicron.y;
+
+    int *clipRectangleOrigin = aSource->GetClipRectangleOrigin();
+    this->CurrentTransducerOriginPixels[0] = currentTransducerOriginPixels.x-clipRectangleOrigin[0];
+    this->CurrentTransducerOriginPixels[1] = currentTransducerOriginPixels.y-clipRectangleOrigin[1];
+  }
+
+  TrackedFrame::FieldMapType customFields;
+
+  if (this->ImageGeometryOutputEnabled)
+  {
+    std::ostringstream depthStr;
+    depthStr << this->CurrentDepthMm;
+    customFields["DepthMm"] = depthStr.str();
+
+    std::ostringstream pixelSpacingStr;
+    pixelSpacingStr << this->CurrentPixelSpacingMm[0] << " " << this->CurrentPixelSpacingMm[1];
+    customFields["PixelSpacingMm"] = pixelSpacingStr.str();
+
+    std::ostringstream transducerOriginStr;
+    transducerOriginStr << this->CurrentTransducerOriginPixels[0] << " " << this->CurrentTransducerOriginPixels[1];
+    customFields["TransducerOriginPix"] = transducerOriginStr.str(); // "TransducerOriginPixels" would be over the 20-char limit of OpenIGTLink device name
+  }
+
   // get the pointer to actual incoming data on to a local pointer
   unsigned char *deviceDataPtr = static_cast<unsigned char*>(dataPtr);
 
-  PlusStatus status = aSource->AddItem(deviceDataPtr, aSource->GetInputImageOrientation(), frameSize, pixelType, 1, imgType, numberOfBytesToSkip, this->FrameNumber); 
+  PlusStatus status = aSource->AddItem(deviceDataPtr, aSource->GetInputImageOrientation(), frameSize, pixelType, 1, imgType, numberOfBytesToSkip, this->FrameNumber,
+    UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields);
   this->Modified(); 
 
   return status;
@@ -483,7 +546,8 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
     this->Ult->setParamCallback(vtkSonixVideoSourceParamCallback);
 
     initializationCompleted = true;
-  } 
+    this->ImageGeometryChanged = true; // trigger an initial update of geometry info
+  }
 
   LOG_DEBUG("Successfully connected to sonix video device");
   return PLUS_SUCCESS; 
@@ -553,7 +617,8 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigE
 
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(DetectPlaneSwitching, deviceConfig);
 
-  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableAutoClip, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(AutoClipEnabled, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ImageGeometryOutputEnabled, deviceConfig);
 
   // TODO : if depth or plane switching, build lookup table
   // if both attributes, build [plane, depth]->channel lookup table
@@ -604,7 +669,8 @@ PlusStatus vtkSonixVideoSource::WriteConfiguration(vtkXMLDataElement* rootConfig
   imageAcquisitionConfig->SetIntAttribute("Timeout", this->Timeout);
   imageAcquisitionConfig->SetDoubleAttribute("ConnectionSetupDelayMs", this->ConnectionSetupDelayMs);
   
-  XML_WRITE_BOOL_ATTRIBUTE(EnableAutoClip, imageAcquisitionConfig);
+  XML_WRITE_BOOL_ATTRIBUTE(AutoClipEnabled, imageAcquisitionConfig);
+  XML_WRITE_BOOL_ATTRIBUTE(ImageGeometryOutputEnabled, imageAcquisitionConfig);
 
   return PLUS_SUCCESS;
 }
@@ -1113,7 +1179,7 @@ PlusStatus vtkSonixVideoSource::ConfigureVideoSource( uData aValue )
     return PLUS_FAIL;
   }
 
-  if (this->EnableAutoClip)
+  if (this->AutoClipEnabled)
   {
     int clipRectangleOrigin[3] = {0,0,0};
     clipRectangleOrigin[0] = std::min(aDataDescriptor.roi.ulx, aDataDescriptor.roi.blx);
@@ -1121,8 +1187,8 @@ PlusStatus vtkSonixVideoSource::ConfigureVideoSource( uData aValue )
     int clipRectangleSize[3] = {0,0,1};
     clipRectangleSize[0] = std::max(aDataDescriptor.roi.urx-aDataDescriptor.roi.ulx, aDataDescriptor.roi.brx-aDataDescriptor.roi.blx);
     clipRectangleSize[1] = std::max(aDataDescriptor.roi.bly-aDataDescriptor.roi.uly, aDataDescriptor.roi.bry-aDataDescriptor.roi.ury);
-	aSource->SetClipRectangleOrigin(clipRectangleOrigin);
-	aSource->SetClipRectangleSize(clipRectangleSize);
+    aSource->SetClipRectangleOrigin(clipRectangleOrigin);
+    aSource->SetClipRectangleSize(clipRectangleSize);
   }
 
   this->SetInputFrameSize( *aSource, aDataDescriptor.w, aDataDescriptor.h, 1 );
