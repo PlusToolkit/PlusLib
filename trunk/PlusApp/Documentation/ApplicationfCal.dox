@@ -196,32 +196,32 @@ This is probably caused by inaccurate stylus or phantom calibration. If you use 
 \section ApplicationfCalConfigSettings Configuration settings
 
 - \xmlElem \b fCal
-  - \xmlAtt PhantomModelId
-  - \xmlAtt ReconstructedVolumeId
-  - \xmlAtt TransducerModelId
-  - \xmlAtt StylusModelId
-  - \xmlAtt ImageDisplayableObjectId
-  - \xmlAtt NumberOfCalibrationImagesToAcquire
-  - \xmlAtt NumberOfValidationImagesToAcquire
-  - \xmlAtt NumberOfStylusCalibrationPointsToAcquire
-  - \xmlAtt RecordingIntervalMs
-  - \xmlAtt MaxTimeSpentWithProcessingMs
-  - \xmlAtt ImageCoordinateFrame
-  - \xmlAtt ProbeCoordinateFrame
-  - \xmlAtt ReferenceCoordinateFrame
-  - \xmlAtt TransducerOriginCoordinateFrame
-  - \xmlAtt TransducerOriginPixelCoordinateFrame
-  - \xmlAtt TemporalCalibrationDurationSec
-  - \xmlAtt DefaultSelectedChannelId
-  - \xmlAtt FreeHandStartupDelaySec Specifies the delay between clicking a button to start a calibration step and the time of start collecting data. The delay allows a single person to operate fCal and handle the instruments.
+  - \xmlAtt \b PhantomModelId
+  - \xmlAtt \b ReconstructedVolumeId
+  - \xmlAtt \b TransducerModelId
+  - \xmlAtt \b StylusModelId
+  - \xmlAtt \b ImageDisplayableObjectId
+  - \xmlAtt \b NumberOfCalibrationImagesToAcquire
+  - \xmlAtt \b NumberOfValidationImagesToAcquire
+  - \xmlAtt \b NumberOfStylusCalibrationPointsToAcquire
+  - \xmlAtt \b RecordingIntervalMs
+  - \xmlAtt \b MaxTimeSpentWithProcessingMs
+  - \xmlAtt \b ImageCoordinateFrame
+  - \xmlAtt \b ProbeCoordinateFrame
+  - \xmlAtt \b ReferenceCoordinateFrame
+  - \xmlAtt \b TransducerOriginCoordinateFrame
+  - \xmlAtt \b TransducerOriginPixelCoordinateFrame
+  - \xmlAtt \b TemporalCalibrationDurationSec
+  - \xmlAtt \b DefaultSelectedChannelId Specifies which channel fCal uses for data input. The channel should contain both video and tracking data, which is most commonly called "TrackedVideoStream". The current channel can be changed in the user interface by clickin on the "objects" icon and then default selected channel can be 
+  - \xmlAtt \b FreeHandStartupDelaySec Specifies the delay between clicking a button to start a calibration step and the time of start collecting data. The delay allows a single person to operate fCal and handle the instruments.
 - \xmlElem \b Rendering Objects for the visualizer common widget to render (used in fCal)
-  - \xmlAtt WorldCoordinateFrame: Name  of the rendering world coordinate frame (e.g. "Reference")
+  - \xmlAtt \b WorldCoordinateFrame Name  of the rendering world coordinate frame (e.g. "Reference")
   - \xmlElem \b DisplayableObject 
-    - \xmlAtt Id: Unique name to identify this displayable object, used in other configuration sections
-    - \xmlAtt Type: Type of the displayable object. Can be Model, Image, Axes, and PolyData.
-    - \xmlAtt ObjectCoordinateFrame: Name of the object coordinate frame (e.g. "StylusTip")
-    - \xmlAtt File: STL model file name (only for the 'Model' type)    
-    - \xmlAtt ModelToObjectTransform: Matrix transforming the model to the proper position (where we want its origin to appear) (only for the 'Model' type)
+    - \xmlAtt \b Id Unique name to identify this displayable object, used in other configuration sections
+    - \xmlAtt \b Type Type of the displayable object. Can be Model, Image, Axes, and PolyData.
+    - \xmlAtt \b ObjectCoordinateFrame Name of the object coordinate frame (e.g. "StylusTip")
+    - \xmlAtt \b File STL model file name (only for the 'Model' type)    
+    - \xmlAtt \b ModelToObjectTransform Matrix transforming the model to the proper position (where we want its origin to appear) (only for the 'Model' type)
 
 \section ApplicationfCalExampleConfigFile Example configuration file PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_2.0.xml
 

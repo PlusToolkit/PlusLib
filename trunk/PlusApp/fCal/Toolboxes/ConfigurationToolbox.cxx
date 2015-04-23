@@ -655,7 +655,7 @@ PlusStatus ConfigurationToolbox::SelectChannel(vtkPlusChannel*& aChannel, vtkXML
       if( aDevice->OutputChannelCount() > 0 )
       {
         aChannel = *(aDevice->GetOutputChannelsStart());
-        LOG_WARNING("No default channel selected, first channel found is now active: "<<aChannel->GetChannelId());
+        LOG_WARNING("No default channel selected (DefaultSelectedChannelId attribute of fCal element is not specified). First channel found is now active: "<<aChannel->GetChannelId());
         return PLUS_SUCCESS;
       }
     }
