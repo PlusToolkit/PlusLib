@@ -21,7 +21,7 @@ vtkOpenIGTLinkDevice::vtkOpenIGTLinkDevice()
 : MessageType(NULL)
 , ServerAddress(NULL)
 , ServerPort(-1)
-, NumberOfRetryAttempts(10)
+, NumberOfRetryAttempts(3) // try a few times, but adding of data items is blocked while trying to reconnect, so don't make it too long
 , DelayBetweenRetryAttemptsSec(0.100) // there is already a delay with a CLIENT_SOCKET_TIMEOUT_MSEC timeout, so we just add a little extra idle delay
 , IgtlMessageCrcCheckEnabled(0)
 , ClientSocket(igtl::ClientSocket::New())
@@ -206,7 +206,7 @@ void vtkOpenIGTLinkDevice::OnReceiveTimeout()
 void vtkOpenIGTLinkDevice::ReceiveMessageHeaderWithErrorHandling(igtl::MessageHeader::Pointer &headerMsg)
 {
   PlusStatus socketStatus=ReceiveMessageHeader(headerMsg);
-  if (socketStatus==PLUS_FAIL)
+  if (socketStatus==PLUS_FAIL || !this->ClientSocket->GetConnected())
   {
     // There is a socket error
     if (this->GetReconnectOnReceiveTimeout())

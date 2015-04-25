@@ -93,7 +93,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalUpdate()
   }
   if (trackingFrames->GetNumberOfTrackedFrames() < 1)
   {
-    LOG_DYNAMIC("Simulated US image is not generated, as no tracking data is available. Device ID: " << this->GetDeviceId(), this->GracePeriodLogLevel ); 
+    LOG_DYNAMIC("Simulated US image generation is skipped, as as no updated tracking data has become available since the last generated image (at "<<this->LastProcessedTrackingDataTimestamp<<"). Probably the tracker device acquisition rate is lower than the simulator acquisition rate. Device ID: " << this->GetDeviceId(), this->GracePeriodLogLevel );
     return PLUS_FAIL;
   }
   TrackedFrame* trackedFrame = trackingFrames->GetTrackedFrame(0);
