@@ -11,6 +11,7 @@
       AcquisitionRate="30"
       AutoClipEnabled="TRUE"
       ImageGeometryOutputEnabled="TRUE"
+      ImageToTransducerTransformName="ImageToTransducer"
       IP="127.0.0.1" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF"  />
@@ -51,7 +52,7 @@
         <Message Type="STRING" />
       </MessageTypes>
       <ImageNames>
-        <Image Name="Image" EmbeddedTransformToFrame="Reference" />
+        <Image Name="Image" EmbeddedTransformToFrame="Transducer" />
       </ImageNames>
       <StringNames>
         <String Name="DepthMm" />

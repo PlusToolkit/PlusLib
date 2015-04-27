@@ -97,6 +97,7 @@ vtkSonixVideoSource::vtkSonixVideoSource()
 , ImageGeometryOutputEnabled(false)
 , CurrentDepthMm(-1)
 , ImageGeometryChanged(false)
+, ImageToTransducerTransformName(NULL)
 {
   this->Ult = new ulterius;
   this->SetSonixIP("127.0.0.1");
@@ -127,6 +128,7 @@ vtkSonixVideoSource::~vtkSonixVideoSource()
   this->SetSonixIP(NULL);
   delete this->Ult;
   this->Ult = NULL;
+  this->SetImageToTransducerTransformName(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -332,6 +334,17 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
     std::ostringstream transducerOriginStr;
     transducerOriginStr << this->CurrentTransducerOriginPixels[0] << " " << this->CurrentTransducerOriginPixels[1];
     customFields["TransducerOriginPix"] = transducerOriginStr.str(); // "TransducerOriginPixels" would be over the 20-char limit of OpenIGTLink device name
+  }
+  if (this->ImageToTransducerTransformName!=NULL && strlen(this->ImageToTransducerTransformName)>0)
+  {
+    std::ostringstream imageToTransducerTransformStr;
+    double zPixelSpacingMm = (this->CurrentPixelSpacingMm[0]+this->CurrentPixelSpacingMm[1])/2.0; // set to non-zero to keep the matrix as a 3D-3D transformation
+    imageToTransducerTransformStr << this->CurrentPixelSpacingMm[0] << " 0 0 " << -1.0*this->CurrentTransducerOriginPixels[0]*this->CurrentPixelSpacingMm[0];
+    imageToTransducerTransformStr << " 0 " << this->CurrentPixelSpacingMm[1] << " 0 " << -1.0*this->CurrentTransducerOriginPixels[1]*this->CurrentPixelSpacingMm[1];
+    imageToTransducerTransformStr << " 0 0 " << zPixelSpacingMm << " 0";
+    imageToTransducerTransformStr << " 0 0 0 1";
+    customFields["ImageToTransducerTransform"] = imageToTransducerTransformStr.str();
+    customFields["ImageToTransducerTransformStatus"] = "OK";
   }
 
   // get the pointer to actual incoming data on to a local pointer
@@ -619,6 +632,7 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigE
 
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(AutoClipEnabled, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ImageGeometryOutputEnabled, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(ImageToTransducerTransformName, deviceConfig);
 
   // TODO : if depth or plane switching, build lookup table
   // if both attributes, build [plane, depth]->channel lookup table
@@ -671,6 +685,7 @@ PlusStatus vtkSonixVideoSource::WriteConfiguration(vtkXMLDataElement* rootConfig
   
   XML_WRITE_BOOL_ATTRIBUTE(AutoClipEnabled, imageAcquisitionConfig);
   XML_WRITE_BOOL_ATTRIBUTE(ImageGeometryOutputEnabled, imageAcquisitionConfig);
+  XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_NULL(ImageToTransducerTransformName, imageAcquisitionConfig);
 
   return PLUS_SUCCESS;
 }
