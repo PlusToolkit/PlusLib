@@ -213,6 +213,16 @@ public:
   vtkSetMacro(ImageGeometryOutputEnabled, bool);
   vtkGetMacro(ImageGeometryOutputEnabled, bool);
 
+  /*!
+    If non-NULL then ImageToTransducer transform is added as a custom field to the image data with the specified name.
+    The Transducer coordinate system origin is in the center of the transducer crystal array,
+    x axis direction is towards marked side, y axis direction is towards sound propagation direction,
+    and z direction is cross product of x and y, unit is mm. Elevational pixel spacing is set as the mean of the
+    lateral and axial pixel spacing.
+  */
+  vtkGetStringMacro(ImageToTransducerTransformName);
+  vtkSetStringMacro(ImageToTransducerTransformName);
+
 protected:
   vtkSonixVideoSource();
   virtual ~vtkSonixVideoSource();
@@ -316,6 +326,8 @@ protected:
 
   bool AutoClipEnabled;
   bool ImageGeometryOutputEnabled;
+  
+  char* ImageToTransducerTransformName;
     
 private:
   static bool vtkSonixVideoSourceNewFrameCallback(void * data, int type, int sz, bool cine, int frmnum);
