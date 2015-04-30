@@ -21,7 +21,7 @@ public:
   inline void setHandle(mtHandle h){m_handle = h; };
   
   void add(mtHandle val);
-  void remove(int idx);
+  void remove(mtHandle idx);
   int count();
   mtHandle itemI(int idx);
   double itemD(int idx);
