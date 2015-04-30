@@ -35,6 +35,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include <Control.h>
 #include <usgfw.h>
 #include <usgfw2.h>
+//#include "Usgfw2_h.h"
 #include <multfreq.h>
 #include <usgscanb.h>
 #include <usgscanm.h>
@@ -97,9 +98,8 @@ public:
   void SetPowerValue(int PowerPerCent);
   void SetDynRangeValue(int DynRangeValue);
 
-  // To add these function, we have to include Usgfw2_h.h, which is not in the include dir of the Usgfw SDK. It's situated in samples_cpp_vs2005\save_to_file\sample
-  //void GetDepth(double nDepthValue);
-  //double SetDepth();
+  //void SetDepth(long nDepthValue);
+  //long GetDepth();
 
 /*
 // B-mode command handler
@@ -160,8 +160,6 @@ protected:
   HRESULT CreateChain(IFilterGraph* pFilterGraph, IPin *pSourcePin, CBaseFiltersArray *pIntFiltersArray);
 
   // maybe use Usgfw2Lib:: before IUsgDepth
-
-  // To add depth, we have to include Usgfw2_h.h, which is not in the include dir of the Usgfw SDK. It's situated in samples_cpp_vs2005\save_to_file\sample
   //IUsgDepth* m_pDepth;
   IUsgBFormatControl* m_pFormatB;
   IUltrasonicPower* m_pUsgPower;

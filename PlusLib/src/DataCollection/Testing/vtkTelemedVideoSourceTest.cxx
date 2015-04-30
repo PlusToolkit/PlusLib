@@ -304,7 +304,7 @@ int main(int argc, char* argv[])
   }
   if(gainPercent != -1)
   {
-    TelemedDevice->SetGainValue(gainPercent);
+    TelemedDevice->SetGainPercent(gainPercent);
   }
   if(frequencyMhz != -1)
   {
