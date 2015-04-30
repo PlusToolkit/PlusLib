@@ -57,12 +57,16 @@ public:
 
 /*********** PARAMETERS *************/
 
-  /*! Set the Gain value, in percent*/
-  void SetGainValue(int GainPerCent);
+  /*! Set the Depth value, in millimeters */
+  void SetDepthMm(long DepthMm);
+  /*! Set the Gain value, in percent */
+  void SetGainPercent(int GainPerCent);
   /*! Set the Power value, in percent */
-  void SetPowerValue(int PowerPerCent);
-  /*! Set the Dynamic Range value, in dB. Supported values are : 38, 44, 50, 56, 62, 68, 74, 80*/
-  void SetDynRangeValue(int DynRangeValue);
+  void SetPowerPercent(int PowerPerCent);
+  /*! Set the Dynamic Range value, in dB. Supported values are : 38, 44, 50, 56, 62, 68, 74, 80 */
+  void SetDynRangeDb(int DynRangeValue);
+  /*! Set the frequency in megahertz */
+  void SetFrequencyMhz(int FrequencyMhz);
 
 protected:
 
@@ -78,6 +82,11 @@ protected:
   PlusStatus InternalDisconnect();
 
   TelemedUltrasound *device;
+  int FrequencyMhz;
+  int DynRangeValue;
+  int PowerPerCent;
+  int GainPerCent;
+  long DepthMm;
 
 private:
 

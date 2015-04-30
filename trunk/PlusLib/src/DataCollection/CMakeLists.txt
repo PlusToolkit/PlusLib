@@ -783,17 +783,28 @@ ENDIF (PLUS_USE_INTERSONSDKCXX_VIDEO)
 # Telemed support
 
 IF (PLUS_USE_TELEMED_VIDEO)
-
+  # ADD_CUSTOM_COMMAND(OUTPUT 
+	# Telemed/Usgfw2_h.h
+	# Telemed/dlldata.c
+	# Telemed/Usgfw2_i.c
+	# Telemed/Usgfw2_p.c
+    # COMMAND midl.exe /out ./Telemed /header Usgfw2_h.h /no_robust ${TELEMED_INCLUDE_DIR}/Usgfw2.idl
+  # )
+  
   SET (DataCollection_SRCS ${DataCollection_SRCS}
     Telemed/vtkTelemedVideoSource.cxx
     Telemed/TelemedUltrasound.cxx
     Telemed/DeviceFilter.cxx
+	# Telemed/dlldata.c
+	# Telemed/Usgfw2_i.c
+	# Telemed/Usgfw2_p.c
     )
   IF (WIN32)
     SET (DataCollection_HDRS ${DataCollection_HDRS}
       Telemed/vtkTelemedVideoSource.h
       Telemed/TelemedUltrasound.h
       Telemed/DeviceFilter.h
+	  # Telemed/Usgfw2_h.h
       )
   ENDIF (WIN32)
 
@@ -801,6 +812,7 @@ IF (PLUS_USE_TELEMED_VIDEO)
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
     ${TELEMED_INCLUDE_DIR}
     ${WINDOWSSDK_LATEST_DIR}/Include
+	# ${CMAKE_CURRENT_BINARY_DIR}/Telemed
     )
   SET (DataCollection_LIBS ${DataCollection_LIBS}
     strmiids

@@ -220,7 +220,7 @@ void TelemedUltrasound::OnNewBeamformer()
 
 /**
 *  method enumerates all probes in the system
-*  and adds new beamformers in the list
+*  and adds new probes in the list
 */
 void TelemedUltrasound::OnNewProbe()
 {
@@ -1180,6 +1180,21 @@ void TelemedUltrasound::InitializeObjects()
       std::cout << "Failed3" << std::endl;
     }
 
+	// multifrequency library
+    hr = CoCreateInstance(CLSID_UsgProbeFrequency, NULL, CLSCTX_INPROC_SERVER, IID_IUsgProbeFrequency,(LPVOID*)&m_pProbeFreq);
+    if(hr != S_OK)
+    {
+      m_pProbeFreq = NULL;
+      std::cout << "m_pProbeFreq Failed" << std::endl;
+    }
+
+    //hr = CoCreateInstance(CLSID_UsgDepth, NULL, CLSCTX_INPROC_SERVER, IID_IUsgDepth,(LPVOID*)&m_pDepth);
+    //if(hr != S_OK)
+    //{
+    //  m_pProbeFreq = NULL;
+    //  std::cout << "m_pProbeFreq Failed" << std::endl;
+    //}
+
     // video renderer for B-mode
     /*hr = CoCreateInstance(CLSID_VideoRenderer,NULL,CLSCTX_INPROC_SERVER,IID_IBaseFilter,(LPVOID*)&pBaseFilter);
     if(hr == S_OK)
@@ -1232,17 +1247,7 @@ void TelemedUltrasound::InitializeObjects()
     {
     std::cout << "Failed5" << std::endl;
     }
-
-    // multifrequency library
-    hr = CoCreateInstance(CLSID_UsgProbeFrequency, NULL, CLSCTX_INPROC_SERVER, IID_IUsgProbeFrequency,(LPVOID*)&m_pProbeFreq);
-    if(hr != S_OK)
-    {
-    m_pProbeFreq = NULL;
-    std::cout << "m_pProbeFreq Failed" << std::endl;
-    }
-    */
-
-
+	*/
   } while(false);
 
   // create sample grabber callback
@@ -2244,27 +2249,26 @@ void TelemedUltrasound::SetDynRangeValue(int DynRangeValue)
   }
 }
 
-// To add these function, we have to include Usgfw2_h.h, which is not in the include dir of the Usgfw SDK. It's situated in samples_cpp_vs2005\save_to_file\sample
-
-//void TelemedUltrasound::SetDepth(double nDepthValue)
+//void TelemedUltrasound::SetDepth(long nDepthValue)
 //{
+//  this->QueryInterfaceFromChain(IID_IUsgDepth,(LPVOID*)&m_pDepth);
+//
 //  HRESULT hr = m_pDepth->put_Current(nDepthValue);
 //  if(hr != S_OK)
 //  {
-//    std::cout<<"Impossible to set Depth"<<std::endl;
-//    break;
+//    std::cerr<<"Impossible to set Depth"<<std::endl;
 //  }
 //}
 //
-//double TelemedUltrasound::GetDepth()
+//long TelemedUltrasound::GetDepth()
 //{
-//  double *nDepthValue;
-//  HRESULT hr = m_pDepth->get_Current(nDepthValue);
+//  this->QueryInterfaceFromChain(IID_IUsgDepth,(LPVOID*)&m_pDepth);
+//
+//  long nDepthValue;
+//  HRESULT hr = m_pDepth->get_Current(&nDepthValue);
 //  if(hr != S_OK)
 //  {
-//    std::cout<<"Impossible to get Depth"<<std::endl;
-//    break;
+//    std::cerr<<"Impossible to get Depth"<<std::endl;
 //  }
-//  return *nDepthValue;
+//  return nDepthValue;
 //}
-

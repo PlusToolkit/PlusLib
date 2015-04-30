@@ -24,6 +24,11 @@ vtkTelemedVideoSource::vtkTelemedVideoSource()
   this->RequireImageOrientationInConfiguration = true;
   this->StartThreadForInternalUpdates = true;
   CreateDefaultOutputChannel(true);
+  FrequencyMhz=5;
+  DynRangeValue=80;
+  PowerPerCent=60;
+  GainPerCent=70;
+  DepthMm=50;
 }
 
 //----------------------------------------------------------------------------
@@ -42,15 +47,25 @@ void vtkTelemedVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 PlusStatus vtkTelemedVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   LOG_TRACE("vtkTelemedVideoSource::ReadConfiguration");
-  //XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  vtkXMLDataElement* dataCollection = rootConfigElement->FindNestedElementWithName("DataCollection");
+  vtkXMLDataElement* deviceConfig = dataCollection->FindNestedElementWithNameAndAttribute("Device", "Type", "TelemedVideo");
+  if (deviceConfig == NULL)
+  {
+    LOG_ERROR("Internal error: If TelemedVideo device node does not exist in the configuration file, why is this method invoked?");
+    return PLUS_FAIL;
+  }
+
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, DynRangeDb, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, GainPercent, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, PowerPercent, deviceConfig);  
+  
+  //XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DepthMm, deviceConfig);
+  //XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FrequencyMhz, deviceConfig);
 
   //XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ImageSize, deviceConfig);
-
-  //XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, GainPercent, deviceConfig);
   //XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Intensity, deviceConfig);
   //XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Contrast, deviceConfig);
-  //XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DepthMm, deviceConfig);
-  //XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SoundVelocity, deviceConfig);
+  //XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SoundVelocity, deviceConfig);  
 
   return PLUS_SUCCESS;
 }
@@ -68,10 +83,11 @@ PlusStatus vtkTelemedVideoSource::WriteConfiguration(vtkXMLDataElement* rootConf
 PlusStatus vtkTelemedVideoSource::Connect()
 {
   PlusStatus status = InternalConnect();
-  // Test Values
-  device->SetPowerValue(100);   //%
-  device->SetGainValue(100);    //%
-  device->SetDynRangeValue(80); //dB
+  //device->SetDepth(this->DepthMm);
+  device->SetPowerValue(this->PowerPerCent);   //%
+  device->SetGainValue(this->GainPerCent);    //%
+  device->SetDynRangeValue(this->DynRangeValue); //dB
+  this->SetFrequencyMhz(this->FrequencyMhz);
 
   return status;
 }
@@ -192,19 +208,42 @@ PlusStatus vtkTelemedVideoSource::InternalUpdate()
 /*********** PARAMETERS *************/
 
 //----------------------------------------------------------------------------
-void vtkTelemedVideoSource::SetGainValue(int GainPerCent)
+void vtkTelemedVideoSource::SetDepthMm(long DepthMm)
 {
-  this->device->SetGainValue(GainPerCent);
+  this->DepthMm=DepthMm;
+  //if (this->Connected)
+  //  this->device->SetDepth(DepthMm);
 }
 
 //----------------------------------------------------------------------------
-void vtkTelemedVideoSource::SetPowerValue(int PowerPerCent)
+void vtkTelemedVideoSource::SetGainPercent(int GainPerCent)
 {
-  this->device->SetPowerValue(PowerPerCent);
+  this->GainPerCent=GainPerCent;
+  if (this->Connected)
+    this->device->SetGainValue(GainPerCent);
 }
 
 //----------------------------------------------------------------------------
-void vtkTelemedVideoSource::SetDynRangeValue(int DynRangeValue)
+void vtkTelemedVideoSource::SetPowerPercent(int PowerPerCent)
 {
-  this->device->SetDynRangeValue(DynRangeValue);
+  this->PowerPerCent=PowerPerCent;
+  if (this->Connected)
+    this->device->SetPowerValue(PowerPerCent);
+}
+
+//----------------------------------------------------------------------------
+void vtkTelemedVideoSource::SetDynRangeDb(int DynRangeValue)
+{
+  this->DynRangeValue=DynRangeValue;
+  if (this->Connected)
+	this->device->SetDynRangeValue(DynRangeValue);
+}
+
+void vtkTelemedVideoSource::SetFrequencyMhz(int FrequencyMhz)
+{
+  this->FrequencyMhz=FrequencyMhz;
+  if (this->Connected) //enumerate frequencies, then set the closest one
+  {
+	//this->device->SetFreqIndex(0);
+  }
 }
