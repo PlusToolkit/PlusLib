@@ -48,7 +48,7 @@ void Collection::add(mtHandle val)
 
 /****************************/
 /** Remove an item from the collection */
-void Collection::remove(mtHandle idx)
+void Collection::remove(int idx)
 {
   Collection_Remove(this->m_handle, idx);
 }
@@ -63,7 +63,7 @@ int Collection::count()
 
 /****************************/
 /** Returns the integer item  of index  idx in the collection  */
-int Collection::itemI(int idx)
+mtHandle Collection::itemI(int idx)
 {
   mtHandle hResult = 0;
   double dblResult = 0;
