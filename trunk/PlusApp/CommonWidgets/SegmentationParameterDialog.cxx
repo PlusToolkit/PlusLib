@@ -41,11 +41,9 @@ See License.txt for details.
 
 static const int HANDLE_SIZE = 8;
 
-void CreateNewHandleActor(vtkActor* &actor, vtkSphereSource* &source, double r, double g, double b)
+void SetupHandleActor(vtkActor* actor, vtkSphereSource* source, double r, double g, double b)
 {
-  actor = vtkActor::New();
   vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  source = vtkSphereSource::New();
   source->SetRadius(HANDLE_SIZE);
   mapper->SetInputConnection(source->GetOutputPort());
   actor->SetMapper(mapper);
@@ -75,7 +73,8 @@ public:
 
     m_ParentDialog = aParentDialog;
 
-    if (InitializeVisualization() != PLUS_SUCCESS) {
+    if (InitializeVisualization() != PLUS_SUCCESS)
+    {
       LOG_ERROR("Initializing visualization failed!");
       return;
     }
@@ -111,8 +110,8 @@ protected:
   */
   vtkSegmentationParameterDialogModeHandlerBase()
   {
+    m_ActorCollection = vtkSmartPointer<vtkActorCollection>::New();
     m_ParentDialog = NULL;
-    m_ActorCollection = NULL;
   }
 
   //----------------------------------------------------------------------
@@ -121,10 +120,6 @@ protected:
   */
   virtual ~vtkSegmentationParameterDialogModeHandlerBase()
   {
-    if (m_ActorCollection != NULL) {
-      m_ActorCollection->Delete();
-      m_ActorCollection = NULL;
-    }
   }
 
   /*!
@@ -137,12 +132,42 @@ protected:
   */
   virtual PlusStatus ColorActors() = 0;
 
+  // Compute world coordinates from screen coordinates
+  virtual void GetEventPositionWorld(int* eventPosition, double* eventPosition_World)
+  {
+    int* canvasSize = m_ParentDialog->GetCanvasRenderer()->GetRenderWindow()->GetSize();
+    int imageDimensions[3]={0,0,1};
+    m_ParentDialog->GetFrameSize(imageDimensions);
+
+    double offsetXMonitor = 0.0;
+    double offsetYMonitor = 0.0;
+    double monitorPerImageScaling = 0.0;
+    if ((double)canvasSize[0] / (double)canvasSize[1] > (double)imageDimensions[0] / (double)imageDimensions[1])
+    {
+      monitorPerImageScaling = (double)canvasSize[1] / (double)imageDimensions[1];
+      offsetXMonitor = ((double)canvasSize[0] - ((double)imageDimensions[0] * monitorPerImageScaling)) / 2.0;
+    }
+    else
+    {
+      monitorPerImageScaling = (double)canvasSize[0] / (double)imageDimensions[0];
+      offsetYMonitor = ((double)canvasSize[1] - ((double)imageDimensions[1] * monitorPerImageScaling)) / 2.0;
+    }
+
+    eventPosition_World[0] = ((double)eventPosition[0] - offsetXMonitor) / monitorPerImageScaling;
+    eventPosition_World[1] = ((double)canvasSize[1] - (double)eventPosition[1] - offsetYMonitor) / monitorPerImageScaling;
+  }
+
+
+
 protected:
   //! Parent segmentation parameter dialog
   SegmentationParameterDialog*  m_ParentDialog;
 
   //! Actor collection for the current mode
-  vtkActorCollection*           m_ActorCollection;
+  vtkSmartPointer<vtkActorCollection> m_ActorCollection;
+
+  /*! Pair to store the offset of the click from the center of the desired source */
+  double m_ClickOffsetFromCenterOfSource[2];
 };
 
 //----------------------------------------------------------------------
@@ -183,83 +208,71 @@ public:
     vtkRenderWindowInteractor* interactor = dynamic_cast<vtkRenderWindowInteractor*>(caller);
     if (interactor && m_ParentDialog)
     {
-      int x = 0;
-      int y = 0;
-      interactor->GetEventPosition(x, y);
-
-      // Compute world coordinates
-      int* canvasSize;
-      canvasSize = m_ParentDialog->GetCanvasRenderer()->GetRenderWindow()->GetSize();
-      int imageDimensions[3]={0,0,1};
-      m_ParentDialog->GetFrameSize(imageDimensions);
-
-      double offsetXMonitor = 0.0;
-      double offsetYMonitor = 0.0;
-      double monitorPerImageScaling = 0.0;
-      if ((double)canvasSize[0] / (double)canvasSize[1] > (double)imageDimensions[0] / (double)imageDimensions[1]) {
-        monitorPerImageScaling = (double)canvasSize[1] / (double)imageDimensions[1];
-        offsetXMonitor = ((double)canvasSize[0] - ((double)imageDimensions[0] * monitorPerImageScaling)) / 2.0;
-      } else {
-        monitorPerImageScaling = (double)canvasSize[0] / (double)imageDimensions[0];
-        offsetYMonitor = ((double)canvasSize[1] - ((double)imageDimensions[1] * monitorPerImageScaling)) / 2.0;
-      }
-
-      double xWorld = ((double)x - offsetXMonitor) / monitorPerImageScaling;
-      double yWorld = ((double)canvasSize[1] - (double)y - offsetYMonitor) / monitorPerImageScaling;
+      int eventPosition[2] = {0};
+      interactor->GetEventPosition(eventPosition);
+      double eventPosition_World[2] = {0};
+      GetEventPositionWorld(eventPosition, eventPosition_World);
 
       // Handle events
       if (vtkCommand::LeftButtonPressEvent == eventId)
       {
-        LOG_DEBUG("Press - pixel: (" << x << ", " << y << "), world: (" << xWorld << ", " << yWorld << ")");
+        LOG_DEBUG("Press - pixel: (" << eventPosition[0] << ", " << eventPosition[1] << "), world: (" << eventPosition_World[0] << ", " << eventPosition_World[1] << ")");
 
         vtkRenderer* renderer = m_ParentDialog->GetCanvasRenderer();
         vtkPropPicker* picker = dynamic_cast<vtkPropPicker*>(renderer->GetRenderWindow()->GetInteractor()->GetPicker());
 
-        if (picker && picker->Pick(x, y, 0.0, renderer) > 0) {
-          if (picker->GetActor() == m_TopLeftHandleActor) {
+        if (picker && picker->Pick(eventPosition[0], eventPosition[1], 0.0, renderer) > 0)
+        {
+          if (picker->GetActor() == m_TopLeftHandleActor)
+          {
             m_TopLeftHandlePicked = true;
-            m_ClickOffsetFromCenterOfSource.first = m_TopLeftHandleSource->GetCenter()[0] - xWorld;
-            m_ClickOffsetFromCenterOfSource.second = m_TopLeftHandleSource->GetCenter()[1] - yWorld;
-          } else if (picker->GetActor() == m_BottomRightHandleActor) {
+            m_ClickOffsetFromCenterOfSource[0] = m_TopLeftHandleSource->GetCenter()[0] - eventPosition_World[0];
+            m_ClickOffsetFromCenterOfSource[1] = m_TopLeftHandleSource->GetCenter()[1] - eventPosition_World[1];
+          }
+          else if (picker->GetActor() == m_BottomRightHandleActor)
+          {
             m_BottomRightHandlePicked = true;
-            m_ClickOffsetFromCenterOfSource.first = m_BottomRightHandleActor->GetCenter()[0] - xWorld;
-            m_ClickOffsetFromCenterOfSource.second = m_BottomRightHandleActor->GetCenter()[1] - yWorld;
+            m_ClickOffsetFromCenterOfSource[0] = m_BottomRightHandleActor->GetCenter()[0] - eventPosition_World[0];
+            m_ClickOffsetFromCenterOfSource[1] = m_BottomRightHandleActor->GetCenter()[1] - eventPosition_World[1];
           }
           else
           {
-            m_ClickOffsetFromCenterOfSource.first = 0.0;
-            m_ClickOffsetFromCenterOfSource.second = 0.0;
+            m_ClickOffsetFromCenterOfSource[0] = 0.0;
+            m_ClickOffsetFromCenterOfSource[1] = 0.0;
           }
         }
       }
       else if ((vtkCommand::MouseMoveEvent == eventId) && (m_TopLeftHandlePicked || m_BottomRightHandlePicked))
       {
-        LOG_DEBUG("Move - pixel: (" << x << ", " << y << "), world: (" << xWorld << ", " << yWorld << ")");
+        LOG_DEBUG("Move - pixel: (" << eventPosition[0] << ", " << eventPosition[1] << "), world: (" << eventPosition_World[0] << ", " << eventPosition_World[1] << ")");
 
         int newXMin = -1;
         int newYMin = -1;
         int newXMax = -1;
         int newYMax = -1;
 
-        if (m_TopLeftHandlePicked) {
-          newXMin = (int)(xWorld + 0.5 + m_ClickOffsetFromCenterOfSource.first);
-          newYMin = (int)(yWorld + 0.5 + m_ClickOffsetFromCenterOfSource.second);
-        } else if (m_BottomRightHandlePicked) {
-          newXMax = (int)(xWorld + 0.5 + m_ClickOffsetFromCenterOfSource.first);
-          newYMax = (int)(yWorld + 0.5 + m_ClickOffsetFromCenterOfSource.second);
+        if (m_TopLeftHandlePicked)
+        {
+          newXMin = (int)(eventPosition_World[0] + 0.5 + m_ClickOffsetFromCenterOfSource[0]);
+          newYMin = (int)(eventPosition_World[1] + 0.5 + m_ClickOffsetFromCenterOfSource[1]);
+        }
+        else if (m_BottomRightHandlePicked)
+        {
+          newXMax = (int)(eventPosition_World[0] + 0.5 + m_ClickOffsetFromCenterOfSource[0]);
+          newYMax = (int)(eventPosition_World[1] + 0.5 + m_ClickOffsetFromCenterOfSource[1]);
         }
 
         m_ParentDialog->SetROI(newXMin, newYMin, newXMax, newYMax);
       }
       else if (vtkCommand::LeftButtonReleaseEvent == eventId)
       {
-        LOG_DEBUG("Release - pixel: (" << x << ", " << y << "), world: (" << xWorld << ", " << yWorld << ")");
+        LOG_DEBUG("Release - pixel: (" << eventPosition[0] << ", " << eventPosition[1] << "), world: (" << eventPosition_World[0] << ", " << eventPosition_World[1] << ")");
 
         m_TopLeftHandlePicked = false;
         m_BottomRightHandlePicked = false;
 
-        m_ClickOffsetFromCenterOfSource.first = 0.0;
-        m_ClickOffsetFromCenterOfSource.second = 0.0;
+        m_ClickOffsetFromCenterOfSource[0] = 0.0;
+        m_ClickOffsetFromCenterOfSource[1] = 0.0;
       }
     }
   }
@@ -295,10 +308,10 @@ private:
   vtkROIModeHandler()
     : vtkSegmentationParameterDialogModeHandlerBase()
   {
-    m_TopLeftHandleActor = NULL;
-    m_BottomRightHandleActor = NULL;
-    m_TopLeftHandleSource = NULL;
-    m_BottomRightHandleSource = NULL;
+    m_TopLeftHandleActor = vtkSmartPointer<vtkActor>::New();
+    m_BottomRightHandleActor = vtkSmartPointer<vtkActor>::New();
+    m_TopLeftHandleSource = vtkSmartPointer<vtkSphereSource>::New();
+    m_BottomRightHandleSource = vtkSmartPointer<vtkSphereSource>::New();
     m_TopLeftHandlePicked = false;
     m_BottomRightHandlePicked = false;
   }
@@ -309,25 +322,6 @@ private:
   */
   virtual ~vtkROIModeHandler()
   {
-    if (m_TopLeftHandleActor != NULL) {
-      m_TopLeftHandleActor->Delete();
-      m_TopLeftHandleActor = NULL;
-    }
-
-    if (m_BottomRightHandleActor != NULL) {
-      m_BottomRightHandleActor->Delete();
-      m_BottomRightHandleActor = NULL;
-    }
-
-    if (m_TopLeftHandleSource != NULL) {
-      m_TopLeftHandleSource->Delete();
-      m_TopLeftHandleSource = NULL;
-    }
-
-    if (m_BottomRightHandleSource != NULL) {
-      m_BottomRightHandleSource->Delete();
-      m_BottomRightHandleSource = NULL;
-    }
   }
 
 protected:
@@ -341,21 +335,16 @@ protected:
     LOG_TRACE("vtkROIModeHandler::InitializeVisualization");
 
     // Create actors
-    m_ActorCollection = vtkActorCollection::New();
-
-    CreateNewHandleActor(m_TopLeftHandleActor, m_TopLeftHandleSource, vtkImageVisualizer::ROI_COLOR[0],  vtkImageVisualizer::ROI_COLOR[1], vtkImageVisualizer:: ROI_COLOR[2]);
+    SetupHandleActor(m_TopLeftHandleActor, m_TopLeftHandleSource, vtkImageVisualizer::ROI_COLOR[0],  vtkImageVisualizer::ROI_COLOR[1], vtkImageVisualizer:: ROI_COLOR[2]);
     m_ActorCollection->AddItem(m_TopLeftHandleActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_TopLeftHandleActor);
 
-    CreateNewHandleActor(m_BottomRightHandleActor, m_BottomRightHandleSource, vtkImageVisualizer::ROI_COLOR[0],  vtkImageVisualizer::ROI_COLOR[1],  vtkImageVisualizer::ROI_COLOR[2]);
+    SetupHandleActor(m_BottomRightHandleActor, m_BottomRightHandleSource, vtkImageVisualizer::ROI_COLOR[0],  vtkImageVisualizer::ROI_COLOR[1],  vtkImageVisualizer::ROI_COLOR[2]);
     m_ActorCollection->AddItem(m_BottomRightHandleActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_BottomRightHandleActor);
 
     // Draw current (input) ROI
-    if ( DrawROI() != PLUS_SUCCESS ) {
-      LOG_ERROR("ROI drawing failed!");
-      return PLUS_FAIL;
-    }
+    DrawROI();
 
     return PLUS_SUCCESS;
   }
@@ -367,34 +356,29 @@ protected:
   PlusStatus ColorActors()
   {
     LOG_TRACE("vtkROIModeHandler::ColorActors");
-
     m_TopLeftHandleActor->GetProperty()->SetColor(1.0, 0.0, 0.5);
     m_BottomRightHandleActor->GetProperty()->SetColor(1.0, 0.0, 0.5);
-
     return PLUS_SUCCESS;
   }
 
 private:
   //! Actor of top left corner handle
-  vtkActor*                     m_TopLeftHandleActor;
+  vtkSmartPointer<vtkActor> m_TopLeftHandleActor;
 
   //! Actor of bottom right corner handle
-  vtkActor*                     m_BottomRightHandleActor;
+  vtkSmartPointer<vtkActor> m_BottomRightHandleActor;
 
   //! Sphere source of the top left corner handle (direct access needed to move it around)
-  vtkSphereSource*              m_TopLeftHandleSource;
+  vtkSmartPointer<vtkSphereSource> m_TopLeftHandleSource;
 
   //! Sphere source of the bottom right corner handle (direct access needed to move it around)
-  vtkSphereSource*              m_BottomRightHandleSource;
+  vtkSmartPointer<vtkSphereSource> m_BottomRightHandleSource;
 
   //! Flag indicating if top left corner handle is picked
-  bool                          m_TopLeftHandlePicked;
+  bool m_TopLeftHandlePicked;
 
   //! Flag indicating if bottom right corner handle is picked
-  bool                          m_BottomRightHandlePicked;
-
-  /*! Pair to store the offset of the click from the center of the desired source */
-  std::pair<double, double>     m_ClickOffsetFromCenterOfSource;
+  bool m_BottomRightHandlePicked;
 };
 
 //----------------------------------------------------------------------
@@ -431,69 +415,55 @@ public:
     vtkRenderWindowInteractor* interactor = dynamic_cast<vtkRenderWindowInteractor*>(caller);
     if (interactor && m_ParentDialog)
     {
-      int x = 0;
-      int y = 0;
-      interactor->GetEventPosition(x, y);
-
-      // Compute world coordinates
-      int* canvasSize;
-      canvasSize = m_ParentDialog->GetCanvasRenderer()->GetRenderWindow()->GetSize();
-      int imageDimensions[3]={0,0,1};
-      m_ParentDialog->GetFrameSize(imageDimensions);
-
-      double offsetXMonitor = 0.0;
-      double offsetYMonitor = 0.0;
-      double monitorPerImageScaling = 0.0;
-      if ((double)canvasSize[0] / (double)canvasSize[1] > (double)imageDimensions[0] / (double)imageDimensions[1]) {
-        monitorPerImageScaling = (double)canvasSize[1] / (double)imageDimensions[1];
-        offsetXMonitor = ((double)canvasSize[0] - ((double)imageDimensions[0] * monitorPerImageScaling)) / 2.0;
-      } else {
-        monitorPerImageScaling = (double)canvasSize[0] / (double)imageDimensions[0];
-        offsetYMonitor = ((double)canvasSize[1] - ((double)imageDimensions[1] * monitorPerImageScaling)) / 2.0;
-      }
-
-      double xWorld = ((double)x - offsetXMonitor) / monitorPerImageScaling;
-      double yWorld = ((double)canvasSize[1] - (double)y - offsetYMonitor) / monitorPerImageScaling;
+      int eventPosition[2] = {0};
+      interactor->GetEventPosition(eventPosition);
+      double eventPosition_World[2] = {0};
+      GetEventPositionWorld(eventPosition, eventPosition_World);
 
       // Handle events
       if (vtkCommand::LeftButtonPressEvent == eventId)
       {
-        LOG_DEBUG("Press - pixel: (" << x << ", " << y << "), world: (" << xWorld << ", " << yWorld << ")");
+        LOG_DEBUG("Press - pixel: (" << eventPosition[0] << ", " << eventPosition[1] << "), world: (" << eventPosition_World[0] << ", " << eventPosition_World[1] << ")");
 
         vtkRenderer* renderer = m_ParentDialog->GetCanvasRenderer();
         vtkPropPicker* picker = dynamic_cast<vtkPropPicker*>(renderer->GetRenderWindow()->GetInteractor()->GetPicker());
 
-        if (picker && picker->Pick(x, y, 0.0, renderer) > 0) {
-          if (picker->GetActor() == m_HorizontalLeftHandleActor) {
+        if (picker && picker->Pick(eventPosition[0], eventPosition[1], 0.0, renderer) > 0)
+        {
+          if (picker->GetActor() == m_HorizontalLeftHandleActor)
+          {
             m_HorizontalLeftHandlePicked = true;
-            m_ClickOffsetFromCenterOfSource.first = m_HorizontalLeftHandleSource->GetCenter()[0] - xWorld;
-            m_ClickOffsetFromCenterOfSource.second = m_HorizontalLeftHandleSource->GetCenter()[1] - yWorld;
+            m_ClickOffsetFromCenterOfSource[0] = m_HorizontalLeftHandleSource->GetCenter()[0] - eventPosition_World[0];
+            m_ClickOffsetFromCenterOfSource[1] = m_HorizontalLeftHandleSource->GetCenter()[1] - eventPosition_World[1];
           } 
-          else if (picker->GetActor() == m_HorizontalRightHandleActor) {
+          else if (picker->GetActor() == m_HorizontalRightHandleActor)
+          {
             m_HorizontalRightHandlePicked = true;
-            m_ClickOffsetFromCenterOfSource.first = m_HorizontalRightHandleSource->GetCenter()[0] - xWorld;
-            m_ClickOffsetFromCenterOfSource.second = m_HorizontalRightHandleSource->GetCenter()[1] - yWorld;
+            m_ClickOffsetFromCenterOfSource[0] = m_HorizontalRightHandleSource->GetCenter()[0] - eventPosition_World[0];
+            m_ClickOffsetFromCenterOfSource[1] = m_HorizontalRightHandleSource->GetCenter()[1] - eventPosition_World[1];
           } 
-          else if (picker->GetActor() == m_VerticalTopHandleActor) {
+          else if (picker->GetActor() == m_VerticalTopHandleActor)
+          {
             m_VerticalTopHandlePicked = true;
-            m_ClickOffsetFromCenterOfSource.first = m_VerticalTopHandleSource->GetCenter()[0] - xWorld;
-            m_ClickOffsetFromCenterOfSource.second = m_VerticalTopHandleSource->GetCenter()[1] - yWorld;
+            m_ClickOffsetFromCenterOfSource[0] = m_VerticalTopHandleSource->GetCenter()[0] - eventPosition_World[0];
+            m_ClickOffsetFromCenterOfSource[1] = m_VerticalTopHandleSource->GetCenter()[1] - eventPosition_World[1];
           } 
-          else if (picker->GetActor() == m_VerticalBottomHandleActor) {
+          else if (picker->GetActor() == m_VerticalBottomHandleActor)
+          {
             m_VerticalBottomHandlePicked = true;
-            m_ClickOffsetFromCenterOfSource.first = m_VerticalBottomHandleSource->GetCenter()[0] - xWorld;
-            m_ClickOffsetFromCenterOfSource.second = m_VerticalBottomHandleSource->GetCenter()[1] - yWorld;
+            m_ClickOffsetFromCenterOfSource[0] = m_VerticalBottomHandleSource->GetCenter()[0] - eventPosition_World[0];
+            m_ClickOffsetFromCenterOfSource[1] = m_VerticalBottomHandleSource->GetCenter()[1] - eventPosition_World[1];
           }
           else
           {
-            m_ClickOffsetFromCenterOfSource.first = 0.0;
-            m_ClickOffsetFromCenterOfSource.second = 0.0;
+            m_ClickOffsetFromCenterOfSource[0] = 0.0;
+            m_ClickOffsetFromCenterOfSource[1] = 0.0;
           }
         }
       }
       else if ((vtkCommand::MouseMoveEvent == eventId) && (m_HorizontalLeftHandlePicked || m_HorizontalRightHandlePicked || m_VerticalTopHandlePicked || m_VerticalBottomHandlePicked))
       {
-        LOG_DEBUG("Move - pixel: (" << x << ", " << y << "), world: (" << xWorld << ", " << yWorld << ")");
+        LOG_DEBUG("Move - pixel: (" << eventPosition[0] << ", " << eventPosition[1] << "), world: (" << eventPosition_World[0] << ", " << eventPosition_World[1] << ")");
 
         // Get the positions of all handles
         double horizontalLeftPosition[3]={0,0,0};
@@ -505,33 +475,41 @@ public:
         double verticalBottomPosition[3]={0,0,0};
         m_VerticalBottomHandleSource->GetCenter(verticalBottomPosition);
 
-        double xWorldWithOffset = xWorld + m_ClickOffsetFromCenterOfSource.first;
-        double yWorldWithOffset = yWorld + m_ClickOffsetFromCenterOfSource.second;
+        double xWorldWithOffset = eventPosition_World[0] + m_ClickOffsetFromCenterOfSource[0];
+        double yWorldWithOffset = eventPosition_World[1] + m_ClickOffsetFromCenterOfSource[1];
 
         // Change position of the picked handle
-        if (m_HorizontalLeftHandlePicked) {
-          if (xWorld < horizontalRightPosition[0] - 10.0) {
+        if (m_HorizontalLeftHandlePicked)
+        {
+          if (eventPosition_World[0] < horizontalRightPosition[0] - 10.0)
+          {
             m_HorizontalLeftHandleSource->SetCenter(xWorldWithOffset, yWorldWithOffset, -0.5);
             m_HorizontalLineSource->SetPoint1(xWorldWithOffset, yWorldWithOffset, -0.5);
           }
           m_HorizontalLeftHandleSource->GetCenter(horizontalLeftPosition);
         } 
-        else if (m_HorizontalRightHandlePicked) {
-          if (xWorld > horizontalLeftPosition[0] + 10.0) {
+        else if (m_HorizontalRightHandlePicked)
+        {
+          if (eventPosition_World[0] > horizontalLeftPosition[0] + 10.0)
+          {
             m_HorizontalRightHandleSource->SetCenter(xWorldWithOffset, yWorldWithOffset, -0.5);
             m_HorizontalLineSource->SetPoint2(xWorldWithOffset, yWorldWithOffset, -0.5);
           }
           m_HorizontalRightHandleSource->GetCenter(horizontalRightPosition);
         } 
-        else if (m_VerticalTopHandlePicked) {
-          if (yWorld < verticalBottomPosition[1] - 10.0) {
+        else if (m_VerticalTopHandlePicked)
+        {
+          if (eventPosition_World[1] < verticalBottomPosition[1] - 10.0)
+          {
             m_VerticalTopHandleSource->SetCenter(xWorldWithOffset, yWorldWithOffset, -0.5);
             m_VerticalLineSource->SetPoint1(xWorldWithOffset, yWorldWithOffset, -0.5);
           }
           m_VerticalTopHandleSource->GetCenter(verticalTopPosition);
         } 
-        else if (m_VerticalBottomHandlePicked) {
-          if (yWorld > verticalTopPosition[1] + 10.0) {
+        else if (m_VerticalBottomHandlePicked)
+        {
+          if (eventPosition_World[1] > verticalTopPosition[1] + 10.0)
+          {
             m_VerticalBottomHandleSource->SetCenter(xWorldWithOffset, yWorldWithOffset, -0.5);
             m_VerticalLineSource->SetPoint2(xWorldWithOffset, yWorldWithOffset, -0.5);
           }
@@ -544,22 +522,23 @@ public:
 
         m_LineLengthSumImagePixel = horizontalLength + verticalLength;
 
-        if (horizontalLength > 0 && verticalLength > 0) {
+        if (horizontalLength > 0 && verticalLength > 0)
+        {
           m_ParentDialog->ComputeSpacingFromMeasuredLengthSum();
         }
 
       }
       else if (vtkCommand::LeftButtonReleaseEvent == eventId)
       {
-        LOG_DEBUG("Release - pixel: (" << x << ", " << y << "), world: (" << xWorld << ", " << yWorld << ")");
+        LOG_DEBUG("Release - pixel: (" << eventPosition[0] << ", " << eventPosition[1] << "), world: (" << eventPosition_World[0] << ", " << eventPosition_World[1] << ")");
 
         m_HorizontalLeftHandlePicked = false;
         m_HorizontalRightHandlePicked = false;
         m_VerticalTopHandlePicked = false;
         m_VerticalBottomHandlePicked = false;
 
-        m_ClickOffsetFromCenterOfSource.first = 0.0;
-        m_ClickOffsetFromCenterOfSource.second = 0.0;
+        m_ClickOffsetFromCenterOfSource[0] = 0.0;
+        m_ClickOffsetFromCenterOfSource[1] = 0.0;
       }
     }
   }
@@ -583,22 +562,22 @@ private:
   vtkSpacingModeHandler()
     : vtkSegmentationParameterDialogModeHandlerBase()
   {
-    m_HorizontalLeftHandleActor = NULL;
-    m_HorizontalRightHandleActor = NULL;
-    m_VerticalTopHandleActor = NULL;
-    m_VerticalBottomHandleActor = NULL;
-    m_HorizontalLineActor = NULL;
-    m_VerticalLineActor = NULL;
-    m_HorizontalLeftHandleSource = NULL;
-    m_HorizontalRightHandleSource = NULL;
-    m_VerticalTopHandleSource = NULL;
-    m_VerticalBottomHandleSource = NULL;
+    m_HorizontalLeftHandleActor = vtkSmartPointer<vtkActor>::New();
+    m_HorizontalRightHandleActor = vtkSmartPointer<vtkActor>::New();
+    m_VerticalTopHandleActor = vtkSmartPointer<vtkActor>::New();
+    m_VerticalBottomHandleActor = vtkSmartPointer<vtkActor>::New();
+    m_HorizontalLineActor = vtkSmartPointer<vtkActor>::New();
+    m_VerticalLineActor = vtkSmartPointer<vtkActor>::New();
+    m_HorizontalLeftHandleSource = vtkSmartPointer<vtkSphereSource>::New();
+    m_HorizontalRightHandleSource = vtkSmartPointer<vtkSphereSource>::New();
+    m_VerticalTopHandleSource = vtkSmartPointer<vtkSphereSource>::New();
+    m_VerticalBottomHandleSource = vtkSmartPointer<vtkSphereSource>::New();
     m_HorizontalLeftHandlePicked = false;
     m_HorizontalRightHandlePicked = false;
     m_VerticalTopHandlePicked = false;
     m_VerticalBottomHandlePicked = false;
-    m_HorizontalLineSource = NULL;
-    m_VerticalLineSource = NULL;
+    m_HorizontalLineSource = vtkSmartPointer<vtkLineSource>::New();
+    m_VerticalLineSource = vtkSmartPointer<vtkLineSource>::New();
     m_LineLengthSumImagePixel = 0.0;
   }
 
@@ -608,65 +587,6 @@ private:
   */
   virtual ~vtkSpacingModeHandler()
   {
-    if (m_HorizontalLeftHandleActor != NULL) {
-      m_HorizontalLeftHandleActor->Delete();
-      m_HorizontalLeftHandleActor = NULL;
-    }
-
-    if (m_HorizontalRightHandleActor != NULL) {
-      m_HorizontalRightHandleActor->Delete();
-      m_HorizontalRightHandleActor = NULL;
-    }
-
-    if (m_VerticalTopHandleActor != NULL) {
-      m_VerticalTopHandleActor->Delete();
-      m_VerticalTopHandleActor = NULL;
-    }
-
-    if (m_VerticalBottomHandleActor != NULL) {
-      m_VerticalBottomHandleActor->Delete();
-      m_VerticalBottomHandleActor = NULL;
-    }
-
-    if (m_HorizontalLineActor != NULL) {
-      m_HorizontalLineActor->Delete();
-      m_HorizontalLineActor = NULL;
-    }
-
-    if (m_VerticalLineActor != NULL) {
-      m_VerticalLineActor->Delete();
-      m_VerticalLineActor = NULL;
-    }
-
-    if (m_HorizontalLeftHandleSource != NULL) {
-      m_HorizontalLeftHandleSource->Delete();
-      m_HorizontalLeftHandleSource = NULL;
-    }
-
-    if (m_HorizontalRightHandleSource != NULL) {
-      m_HorizontalRightHandleSource->Delete();
-      m_HorizontalRightHandleSource = NULL;
-    }
-
-    if (m_VerticalTopHandleSource != NULL) {
-      m_VerticalTopHandleSource->Delete();
-      m_VerticalTopHandleSource = NULL;
-    }
-
-    if (m_VerticalBottomHandleSource != NULL) {
-      m_VerticalBottomHandleSource->Delete();
-      m_VerticalBottomHandleSource = NULL;
-    }
-
-    if (m_VerticalLineSource != NULL) {
-      m_VerticalLineSource->Delete();
-      m_VerticalLineSource = NULL;
-    }
-
-    if (m_VerticalBottomHandleSource != NULL) {
-      m_VerticalBottomHandleSource->Delete();
-      m_VerticalBottomHandleSource = NULL;
-    }
   }
 
 protected:
@@ -700,19 +620,19 @@ protected:
     m_ActorCollection->AddItem(m_VerticalLineActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_VerticalLineActor);
 
-    CreateNewHandleActor(m_HorizontalLeftHandleActor, m_HorizontalLeftHandleSource, 0.0, 0.8, 0.0);
+    SetupHandleActor(m_HorizontalLeftHandleActor, m_HorizontalLeftHandleSource, 0.0, 0.8, 0.0);
     m_ActorCollection->AddItem(m_HorizontalLeftHandleActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_HorizontalLeftHandleActor);
 
-    CreateNewHandleActor(m_HorizontalRightHandleActor, m_HorizontalRightHandleSource, 0.0, 0.8, 0.0);
+    SetupHandleActor(m_HorizontalRightHandleActor, m_HorizontalRightHandleSource, 0.0, 0.8, 0.0);
     m_ActorCollection->AddItem(m_HorizontalRightHandleActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_HorizontalRightHandleActor);
 
-    CreateNewHandleActor(m_VerticalTopHandleActor, m_VerticalTopHandleSource, 0.0, 0.0, 1.0);
+    SetupHandleActor(m_VerticalTopHandleActor, m_VerticalTopHandleSource, 0.0, 0.0, 1.0);
     m_ActorCollection->AddItem(m_VerticalTopHandleActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_VerticalTopHandleActor);
 
-    CreateNewHandleActor(m_VerticalBottomHandleActor, m_VerticalBottomHandleSource, 0.0, 0.0, 1.0);
+    SetupHandleActor(m_VerticalBottomHandleActor, m_VerticalBottomHandleSource, 0.0, 0.0, 1.0);
     m_ActorCollection->AddItem(m_VerticalBottomHandleActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_VerticalBottomHandleActor);
 
@@ -779,58 +699,55 @@ protected:
 
 private:
   //! Actor of left handle of the horizontal line
-  vtkActor*                     m_HorizontalLeftHandleActor;
+  vtkSmartPointer<vtkActor> m_HorizontalLeftHandleActor;
 
   //! Actor of right handle of the horizontal line
-  vtkActor*                     m_HorizontalRightHandleActor;
+  vtkSmartPointer<vtkActor> m_HorizontalRightHandleActor;
 
   //! Actor of left handle of the vertical line
-  vtkActor*                     m_VerticalTopHandleActor;
+  vtkSmartPointer<vtkActor> m_VerticalTopHandleActor;
 
   //! Actor of the horizontal line
-  vtkActor*                     m_HorizontalLineActor;
+  vtkSmartPointer<vtkActor> m_HorizontalLineActor;
 
   //! Actor of the vertical line
-  vtkActor*                     m_VerticalLineActor;
+  vtkSmartPointer<vtkActor> m_VerticalLineActor;
 
   //! Actor of right handle of the vertical line
-  vtkActor*                     m_VerticalBottomHandleActor;
+  vtkSmartPointer<vtkActor> m_VerticalBottomHandleActor;
 
   //! Cube source of the left handle of the horizontal line (direct access needed to move it around)
-  vtkSphereSource*                m_HorizontalLeftHandleSource;
+  vtkSmartPointer<vtkSphereSource> m_HorizontalLeftHandleSource;
 
   //! Cube source of the right handle of the horizontal line (direct access needed to move it around)
-  vtkSphereSource*                m_HorizontalRightHandleSource;
+  vtkSmartPointer<vtkSphereSource> m_HorizontalRightHandleSource;
 
   //! Cube source of the left handle of the vertical line (direct access needed to move it around)
-  vtkSphereSource*                m_VerticalTopHandleSource;
+  vtkSmartPointer<vtkSphereSource> m_VerticalTopHandleSource;
 
   //! Cube source of the right handle of the vertical line (direct access needed to move it around)
-  vtkSphereSource*                m_VerticalBottomHandleSource;
+  vtkSmartPointer<vtkSphereSource> m_VerticalBottomHandleSource;
 
   //! Line source of horizontal line
-  vtkLineSource*                m_HorizontalLineSource;
+  vtkSmartPointer<vtkLineSource> m_HorizontalLineSource;
 
   //! Line source of vertical line
-  vtkLineSource*                m_VerticalLineSource;
+  vtkSmartPointer<vtkLineSource> m_VerticalLineSource;
 
   //! Flag indicating if horizontal left handle is picked
-  bool                          m_HorizontalLeftHandlePicked;
+  bool m_HorizontalLeftHandlePicked;
 
   //! Flag indicating if horizontal right handle is picked
-  bool                          m_HorizontalRightHandlePicked;
+  bool m_HorizontalRightHandlePicked;
 
   //! Flag indicating if vertical left handle is picked
-  bool                          m_VerticalTopHandlePicked;
+  bool m_VerticalTopHandlePicked;
 
   //! Flag indicating if vertical right handle is picked
-  bool                          m_VerticalBottomHandlePicked;
+  bool m_VerticalBottomHandlePicked;
 
   //! Summed line length in pixel value
-  double                        m_LineLengthSumImagePixel;
-
-  /*! Pair to store the offset of the click from the center of the desired source */
-  std::pair<double, double>     m_ClickOffsetFromCenterOfSource;
+  double m_LineLengthSumImagePixel;
 };
 
 //-----------------------------------------------------------------------------
@@ -1071,10 +988,7 @@ PlusStatus SegmentationParameterDialog::ReadConfiguration()
   if ( segmentationParameters->GetVectorAttribute("ClipRectangleOrigin", 2, clipOrigin) && 
     segmentationParameters->GetVectorAttribute("ClipRectangleSize", 2, clipSize) )
   {
-    ui.spinBox_XMin->setValue(clipOrigin[0]);
-    ui.spinBox_YMin->setValue(clipOrigin[1]);
-    ui.spinBox_XMax->setValue(clipOrigin[0] + clipSize[0]);
-    ui.spinBox_YMax->setValue(clipOrigin[1] + clipSize[1]);
+    SetROI(clipOrigin[0],clipOrigin[1], clipOrigin[0] + clipSize[0], clipOrigin[1] + clipSize[1]);
   }
   else
   {
@@ -1572,21 +1486,66 @@ PlusStatus SegmentationParameterDialog::SetROI(int aXMin, int aYMin, int aXMax, 
 {
   LOG_TRACE("SegmentationParameterDialog::SetROI(" << aXMin << ", " << aYMin << ", " << aXMax << ", " << aYMax << ")");
 
-  if (aXMin > 0) {
-    ui.spinBox_XMin->setValue(aXMin);
+  // Get valid values form the algorithm
+  int validXMin = -1;
+  int validYMin = -1;
+  int validXMax = -1;
+  int validYMax = -1;
+  m_PatternRecognition->GetFidSegmentation()->GetRegionOfInterest(validXMin, validYMin, validXMax, validYMax);
+
+  // Update requested values
+  if (aXMin > 0)
+  {
+    validXMin = aXMin;
   }
-  if (aYMin > 0) {
-    ui.spinBox_YMin->setValue(aYMin);
+  if (aYMin > 0)
+  {
+    validYMin = aYMin;
   }
-  if (aXMax > 0) {
-    ui.spinBox_XMax->setValue(aXMax);
+  if (aXMax > 0)
+  {
+    validXMax = aXMax;
   }
-  if (aYMax > 0) {
-    ui.spinBox_YMax->setValue(aYMax);
+  if (aYMax > 0)
+  {
+    validYMax = aYMax;
   }
 
-  m_PatternRecognition->GetFidSegmentation()->SetRegionOfInterest(aXMin, aYMin, aXMax, aYMax);
-  m_ImageVisualizer->SetROIBounds(aXMin, aXMax, aYMin, aYMax);
+  m_PatternRecognition->GetFidSegmentation()->SetRegionOfInterest(validXMin, validYMin, validXMax, validYMax);
+  
+  // Validate the set region of interest (e.g., the image is padded with the opening bar size)
+  // but only if a valid frame size is already set (otherwise we could overwrite the region of interest
+  // if the region is initialized before the frame size)
+  int* frameSize = m_PatternRecognition->GetFidSegmentation()->GetFrameSize();
+  if (frameSize[0]>0 && frameSize[1]>0)
+  {
+    m_PatternRecognition->GetFidSegmentation()->ValidateRegionOfInterest();
+  }
+
+  m_PatternRecognition->GetFidSegmentation()->GetRegionOfInterest(validXMin, validYMin, validXMax, validYMax);
+
+  // Update spinboxes
+  ui.spinBox_XMin->blockSignals(true);
+  ui.spinBox_YMin->blockSignals(true);
+  ui.spinBox_XMax->blockSignals(true);
+  ui.spinBox_YMax->blockSignals(true);
+  ui.spinBox_XMin->setValue(validXMin);
+  ui.spinBox_YMin->setValue(validYMin);
+  ui.spinBox_XMax->setValue(validXMax);
+  ui.spinBox_YMax->setValue(validYMax);
+  ui.spinBox_XMin->blockSignals(false);
+  ui.spinBox_YMin->blockSignals(false);
+  ui.spinBox_XMax->blockSignals(false);
+  ui.spinBox_YMax->blockSignals(false);
+
+  // Update displayed rectangle
+  m_ImageVisualizer->SetROIBounds(validXMin, validXMax, validYMin, validYMax);
+
+  // Update displayed handle
+  if (m_ROIModeHandler != NULL)
+  {
+    m_ROIModeHandler->DrawROI();
+  }
 
   return PLUS_SUCCESS;
 }
@@ -1597,10 +1556,7 @@ PlusStatus SegmentationParameterDialog::GetROI(int &aXMin, int &aYMin, int &aXMa
 {
   LOG_TRACE("SegmentationParameterDialog::GetROI");
 
-  aXMin = ui.spinBox_XMin->value();
-  aYMin = ui.spinBox_YMin->value();
-  aXMax = ui.spinBox_XMax->value();
-  aYMax = ui.spinBox_YMax->value();
+  m_PatternRecognition->GetFidSegmentation()->GetRegionOfInterest(aXMin, aYMin, aXMax, aYMax);
 
   return PLUS_SUCCESS;
 }
@@ -1610,23 +1566,7 @@ PlusStatus SegmentationParameterDialog::GetROI(int &aXMin, int &aYMin, int &aXMa
 void SegmentationParameterDialog::ROIXMinChanged(int aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::ROIXMinChanged(" << aValue << ")");
-
-  if (aValue > m_PatternRecognition->GetFidSegmentation()->GetMorphologicalOpeningBarSizePx()) {
-    if (m_ROIModeHandler != NULL) {
-      if (m_ROIModeHandler->DrawROI() != PLUS_SUCCESS) {
-        LOG_ERROR("Draw ROI failed!");
-      }
-    }
-
-    if (m_PatternRecognition->GetFidSegmentation()->GetFrameSize()[0] > 0) {
-      m_PatternRecognition->GetFidSegmentation()->SetRegionOfInterest(aValue, -1, -1, -1);
-      m_ImageVisualizer->SetROIBounds(aValue, -1, -1, -1);
-    }
-  } else {
-    ui.spinBox_XMin->blockSignals(true);
-    ui.spinBox_XMin->setValue(m_PatternRecognition->GetFidSegmentation()->GetMorphologicalOpeningBarSizePx());
-    ui.spinBox_XMin->blockSignals(false);
-  }
+  SetROI(aValue, -1, -1, -1);
 }
 
 //-----------------------------------------------------------------------------
@@ -1634,23 +1574,7 @@ void SegmentationParameterDialog::ROIXMinChanged(int aValue)
 void SegmentationParameterDialog::ROIYMinChanged(int aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::ROIYMinChanged(" << aValue << ")");
-
-  if (aValue > m_PatternRecognition->GetFidSegmentation()->GetMorphologicalOpeningBarSizePx()) {
-    if (m_ROIModeHandler != NULL) {
-      if (m_ROIModeHandler->DrawROI() != PLUS_SUCCESS) {
-        LOG_ERROR("Draw ROI failed!");
-      }
-    }
-
-    if (m_PatternRecognition->GetFidSegmentation()->GetFrameSize()[1] > 0) {
-      m_PatternRecognition->GetFidSegmentation()->SetRegionOfInterest(-1, aValue, -1, -1);
-      m_ImageVisualizer->SetROIBounds(-1, -1, aValue, -1);
-    }
-  } else {
-    ui.spinBox_YMin->blockSignals(true);
-    ui.spinBox_YMin->setValue(m_PatternRecognition->GetFidSegmentation()->GetMorphologicalOpeningBarSizePx());
-    ui.spinBox_YMin->blockSignals(false);
-  }
+  SetROI(-1, aValue, -1, -1);
 }
 
 //-----------------------------------------------------------------------------
@@ -1658,25 +1582,7 @@ void SegmentationParameterDialog::ROIYMinChanged(int aValue)
 void SegmentationParameterDialog::ROIXMaxChanged(int aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::ROIXMaxChanged(" << aValue << ")");
-
-  if (m_PatternRecognition->GetFidSegmentation()->GetFrameSize()[0] <= 0) {
-    return;
-  }
-
-  if (aValue < m_PatternRecognition->GetFidSegmentation()->GetFrameSize()[0] - m_PatternRecognition->GetFidSegmentation()->GetMorphologicalOpeningBarSizePx()) {
-    if (m_ROIModeHandler != NULL) {
-      if (m_ROIModeHandler->DrawROI() != PLUS_SUCCESS) {
-        LOG_ERROR("Draw ROI failed!");
-      }
-    }
-
-    m_PatternRecognition->GetFidSegmentation()->SetRegionOfInterest(-1, -1, aValue, -1);
-    m_ImageVisualizer->SetROIBounds(-1, aValue, -1, -1);
-  } else {
-    ui.spinBox_XMax->blockSignals(true);
-    ui.spinBox_XMax->setValue(m_PatternRecognition->GetFidSegmentation()->GetFrameSize()[0] - m_PatternRecognition->GetFidSegmentation()->GetMorphologicalOpeningBarSizePx() - 1);
-    ui.spinBox_XMax->blockSignals(false);
-  }
+  SetROI(-1, -1, aValue, -1);
 }
 
 //-----------------------------------------------------------------------------
@@ -1684,25 +1590,7 @@ void SegmentationParameterDialog::ROIXMaxChanged(int aValue)
 void SegmentationParameterDialog::ROIYMaxChanged(int aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::ROIYMaxChanged(" << aValue << ")");
-
-  if (m_PatternRecognition->GetFidSegmentation()->GetFrameSize()[1] <= 0) {
-    return;
-  }
-
-  if (aValue < m_PatternRecognition->GetFidSegmentation()->GetFrameSize()[1] - m_PatternRecognition->GetFidSegmentation()->GetMorphologicalOpeningBarSizePx()) {
-    if (m_ROIModeHandler != NULL) {
-      if (m_ROIModeHandler->DrawROI() != PLUS_SUCCESS) {
-        LOG_ERROR("Draw ROI failed!");
-      }
-    }
-
-    m_PatternRecognition->GetFidSegmentation()->SetRegionOfInterest(-1, -1, -1, aValue);
-    m_ImageVisualizer->SetROIBounds(-1, -1, -1, aValue);
-  } else {
-    ui.spinBox_YMax->blockSignals(true);
-    ui.spinBox_YMax->setValue(m_PatternRecognition->GetFidSegmentation()->GetFrameSize()[1] - m_PatternRecognition->GetFidSegmentation()->GetMorphologicalOpeningBarSizePx() - 1);
-    ui.spinBox_YMax->blockSignals(false);
-  }
+  SetROI(-1, -1, -1, aValue);
 }
 
 //-----------------------------------------------------------------------------
@@ -1710,7 +1598,6 @@ void SegmentationParameterDialog::ROIYMaxChanged(int aValue)
 void SegmentationParameterDialog::ReferenceWidthChanged(int aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::ReferenceWidthChanged(" << aValue << ")");
-
   ComputeSpacingFromMeasuredLengthSum();
 }
 
@@ -1719,7 +1606,6 @@ void SegmentationParameterDialog::ReferenceWidthChanged(int aValue)
 void SegmentationParameterDialog::ReferenceHeightChanged(int aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::ReferenceHeightChanged(" << aValue << ")");
-
   ComputeSpacingFromMeasuredLengthSum();
 }
 
@@ -1728,7 +1614,6 @@ void SegmentationParameterDialog::ReferenceHeightChanged(int aValue)
 void SegmentationParameterDialog::OpeningCircleRadiusChanged(double aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::OpeningCircleRadiusChanged(" << aValue << ")");
-
   m_PatternRecognition->GetFidSegmentation()->SetMorphologicalOpeningCircleRadiusMm(aValue);
   m_PatternRecognition->GetFidSegmentation()->UpdateParameters();
 }
@@ -1740,6 +1625,9 @@ void SegmentationParameterDialog::OpeningBarSizeChanged(double aValue)
   LOG_TRACE("SegmentationParameterDialog::OpeningBarSizeChanged(" << aValue << ")");
 
   m_PatternRecognition->GetFidSegmentation()->SetMorphologicalOpeningBarSizeMm(aValue);
+
+  // Update the region of interest (as the opening bar size determines the maximum ROI size)
+  SetROI(-1,-1,-1,-1);
 }
 
 //-----------------------------------------------------------------------------
@@ -1747,7 +1635,6 @@ void SegmentationParameterDialog::OpeningBarSizeChanged(double aValue)
 void SegmentationParameterDialog::LinePairDistanceErrorChanged(double aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::LinePairDistanceErrorChanged(" << aValue << ")");
-
   m_PatternRecognition->GetFidLabeling()->SetMaxLinePairDistanceErrorPercent(aValue);
 }
 
@@ -1756,7 +1643,6 @@ void SegmentationParameterDialog::LinePairDistanceErrorChanged(double aValue)
 void SegmentationParameterDialog::AngleDifferenceChanged(double aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::AngleDifferenceChanged(" << aValue << ")");
-
   m_PatternRecognition->GetFidLabeling()->SetMaxAngleDifferenceDegrees(aValue);
 }
 
@@ -1765,7 +1651,6 @@ void SegmentationParameterDialog::AngleDifferenceChanged(double aValue)
 void SegmentationParameterDialog::MinThetaChanged(double aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::MinThetaChanged(" << aValue << ")");
-
   m_PatternRecognition->GetFidLineFinder()->SetMinThetaDegrees(aValue);
   m_PatternRecognition->GetFidLabeling()->SetMinThetaDeg(aValue);
 }
@@ -1775,7 +1660,6 @@ void SegmentationParameterDialog::MinThetaChanged(double aValue)
 void SegmentationParameterDialog::MaxThetaChanged(double aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::MaxThetaChanged(" << aValue << ")");
-
   m_PatternRecognition->GetFidLineFinder()->SetMaxThetaDegrees(aValue);
   m_PatternRecognition->GetFidLabeling()->SetMaxThetaDeg(aValue);
 }
@@ -1785,7 +1669,6 @@ void SegmentationParameterDialog::MaxThetaChanged(double aValue)
 void SegmentationParameterDialog::AngleToleranceChanged(double aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::AngleToleranceChanged(" << aValue << ")");
-
   m_PatternRecognition->GetFidLabeling()->SetAngleToleranceDeg(aValue);
 }
 
@@ -1794,7 +1677,6 @@ void SegmentationParameterDialog::AngleToleranceChanged(double aValue)
 void SegmentationParameterDialog::CollinearPointsMaxDistanceFromLineChanged(double aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::CollinearPointsMaxDistanceFromLineChanged(" << aValue << ")");
-
   m_PatternRecognition->GetFidLineFinder()->SetCollinearPointsMaxDistanceFromLineMm(aValue);
 }
 
@@ -1803,7 +1685,6 @@ void SegmentationParameterDialog::CollinearPointsMaxDistanceFromLineChanged(doub
 void SegmentationParameterDialog::ImageThresholdChanged(double aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::ImageThresholdChanged(" << aValue << ")");
-
   m_PatternRecognition->GetFidSegmentation()->SetThresholdImagePercent(aValue);
 }
 
@@ -1812,7 +1693,6 @@ void SegmentationParameterDialog::ImageThresholdChanged(double aValue)
 void SegmentationParameterDialog::MaxLineShiftMmChanged(double aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::MaxLineShiftMmChanged(" << aValue << ")");
-
   m_PatternRecognition->GetFidLabeling()->SetMaxLineShiftMm(aValue);
 }
 
@@ -1821,7 +1701,6 @@ void SegmentationParameterDialog::MaxLineShiftMmChanged(double aValue)
 void SegmentationParameterDialog::MaxCandidatesChanged(double aValue)
 {
   LOG_TRACE("SegmentationParameterDialog::MaxCandidatesChanged(" << aValue << ")");
-
   m_PatternRecognition->SetNumberOfMaximumFiducialPointCandidates(aValue);
 }
 
@@ -1830,7 +1709,5 @@ void SegmentationParameterDialog::MaxCandidatesChanged(double aValue)
 void SegmentationParameterDialog::OriginalIntensityForDotsToggled(bool aOn)
 {
   LOG_TRACE("SegmentationParameterDialog::OriginalIntensityForDotsToggled(" << (aOn?"true":"false") << ")");
-
   m_PatternRecognition->GetFidSegmentation()->SetUseOriginalImageIntensityForDotIntensityScore(aOn);
 }
-
