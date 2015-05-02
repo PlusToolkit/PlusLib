@@ -60,8 +60,12 @@ MODEL_TABLE_ROW(
   ID "Stylus_100mm"
   DESCRIPTION "Pointer tool with built-in sensor holder. 100mm long, sharp tip."
   )
+MODEL_TABLE_ROW(
+  ID "Stylus_Candycane_100mm_WithHolder"
+  DESCRIPTION "Pointer tool with built-in sensor holder. 100mm long, curved tip for ultrasound calibration."
+  )  
 # Add remaining experimental tools
-FOREACH(MODELFILE Stylus_Candycane_1.0 Stylus_Candycane_70mm_1.0)
+FOREACH(MODELFILE Stylus_Candycane_70mm_1.0)
   MODEL_TABLE_ROW(ID ${MODELFILE} DESCRIPTION "Experimental") 
 ENDFOREACH()
 MODEL_TABLE_ROW(
