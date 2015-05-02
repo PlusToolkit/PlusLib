@@ -179,6 +179,10 @@
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
     TemporalCalibrationDurationSec="10"
+    FixedChannelId="VideoStream" 
+    FixedSourceId="Video"
+    MovingChannelId="TrackerStream"
+    MovingSourceId="ProbeToTracker"
     DefaultSelectedChannelId="TrackedVideoStream"
     />
 

@@ -32,7 +32,8 @@
       Type="SonixVideo" 
       AcquisitionRate="30" 
       LocalTimeOffsetSec="-0.2976"
-      IP="127.0.0.1" >
+      IP="127.0.0.1"
+      AutoClipEnabled="TRUE" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF"  />
       </DataSources>
@@ -165,6 +166,10 @@
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
     TemporalCalibrationDurationSec="10"
+    FixedChannelId="VideoStream" 
+    FixedSourceId="Video"
+    MovingChannelId="TrackerStream"
+    MovingSourceId="ProbeToTracker"
     DefaultSelectedChannelId="TrackedVideoStream" />
 
   <vtkPivotCalibrationAlgo

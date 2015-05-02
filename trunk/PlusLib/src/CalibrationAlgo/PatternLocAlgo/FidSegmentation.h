@@ -188,6 +188,9 @@ class vtkCalibrationAlgoExport FidSegmentation
     /*! Set the region of interest in the image */
     void  SetRegionOfInterest(int xMin, int yMin, int xMax, int yMax);
 
+    /*! Validates the region of interest that was set for the image and returns it */
+    void  GetRegionOfInterest(int &xMin, int &yMin, int &xMax, int &yMax);
+
     /*! Set the threshold of the image, this is a percent value */
     void  SetThresholdImagePercent(double value) { m_ThresholdImagePercent = value; };
 
@@ -196,7 +199,7 @@ class vtkCalibrationAlgoExport FidSegmentation
 
   protected:
     int                   m_FrameSize[2];
-    int                   m_RegionOfInterest[4];
+    int                   m_RegionOfInterest[4]; // xmin, ymin; xmax, ymax
     bool                  m_UseOriginalImageIntensityForDotIntensityScore;
 
     int                   m_NumberOfMaximumFiducialPointCandidates;

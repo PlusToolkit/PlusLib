@@ -232,7 +232,7 @@ void FidSegmentation::SetFrameSize(int frameSize[2])
   m_UnalteredImage = new FidSegmentation::PixelType[size];
 
   // Set ROI to the largest possible if not already set
-  if ((m_RegionOfInterest[0] == -1) && (m_RegionOfInterest[1] == -1) && (m_RegionOfInterest[2] == -1) && (m_RegionOfInterest[3] == -1))
+  if ((m_RegionOfInterest[0]<0) || (m_RegionOfInterest[1]<0) || (m_RegionOfInterest[2]<0) || (m_RegionOfInterest[3]<0))
   {
     int barSize = GetMorphologicalOpeningBarSizePx();
     m_RegionOfInterest[0] = barSize+1;
@@ -1341,6 +1341,15 @@ void FidSegmentation::MorphologicalOperations()
   // Constraint ROI according to the morphological bar size
   ValidateRegionOfInterest();
 
+  if (m_RegionOfInterest[0]<0 || m_RegionOfInterest[1]<0 ||
+    m_RegionOfInterest[2]<=0 || m_RegionOfInterest[3]<=0 ||
+    m_RegionOfInterest[0]>=m_RegionOfInterest[2] ||
+    m_RegionOfInterest[1]>=m_RegionOfInterest[3])
+  {
+    // the image is empty, nothing to process
+    return;
+  }
+
   // Morphological operations with a stick-like structuring element
   if(m_DebugOutput) 
   {
@@ -1462,25 +1471,73 @@ void FidSegmentation::ValidateRegionOfInterest()
 
   int barSize = GetMorphologicalOpeningBarSizePx();
 
+  if (m_FrameSize[0]<barSize*2+1 || m_FrameSize[1]<barSize*2+1)
+  {
+    // image is too small
+    m_RegionOfInterest[0] = 0;
+    m_RegionOfInterest[1] = 0;
+    m_RegionOfInterest[2] = 0;
+    m_RegionOfInterest[3] = 0;
+    return;
+  }
+
+  if(m_RegionOfInterest[0] > m_RegionOfInterest[2])
+  {
+    std::swap(m_RegionOfInterest[0],m_RegionOfInterest[2]);
+  }
+  if(m_RegionOfInterest[1] > m_RegionOfInterest[3])
+  {
+    std::swap(m_RegionOfInterest[1], m_RegionOfInterest[3]);
+  }
+
+  // xmin
   if(m_RegionOfInterest[0] - barSize <= 0)
   {
     m_RegionOfInterest[0] = barSize+1;
   }
-
-  if(m_RegionOfInterest[1] - barSize <= 0)
+  if(m_RegionOfInterest[0] + barSize >= m_FrameSize[0])
   {
-    m_RegionOfInterest[1] = barSize+1;
+    m_RegionOfInterest[0] = m_FrameSize[0]-barSize-1;
   }
 
+  // xmax
+  if(m_RegionOfInterest[2] < m_RegionOfInterest[0])
+  {
+    m_RegionOfInterest[2] = m_RegionOfInterest[0];
+  }
   if(m_RegionOfInterest[2] + barSize >= m_FrameSize[0])
   {
     m_RegionOfInterest[2] = m_FrameSize[0]-barSize-1;
   }
 
+  // ymin
+  if(m_RegionOfInterest[1] - barSize <= 0)
+  {
+    m_RegionOfInterest[1] = barSize+1;
+  }
+  if(m_RegionOfInterest[1] + barSize >= m_FrameSize[1])
+  {
+    m_RegionOfInterest[1] = m_FrameSize[1]-barSize-1;
+  }
+
+  // ymax
+  if(m_RegionOfInterest[3] < m_RegionOfInterest[1])
+  {
+    m_RegionOfInterest[3] = m_RegionOfInterest[1];
+  }
   if(m_RegionOfInterest[3] + barSize >= m_FrameSize[1])
   {
     m_RegionOfInterest[3] = m_FrameSize[1]-barSize-1;
   }
+}
+
+//-----------------------------------------------------------------------------
+void FidSegmentation::GetRegionOfInterest(int &xMin, int &yMin, int &xMax, int &yMax)
+{
+  xMin = m_RegionOfInterest[0];
+  yMin = m_RegionOfInterest[1];
+  xMax = m_RegionOfInterest[2];
+  yMax = m_RegionOfInterest[3];
 }
 
 //-----------------------------------------------------------------------------

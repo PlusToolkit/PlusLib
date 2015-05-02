@@ -48,6 +48,10 @@ vtkStylusCalibrationTest uses this configuration" />
     ReferenceCoordinateFrame="Reference"
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+    FixedChannelId="VideoStream" 
+    FixedSourceId="Video"
+    MovingChannelId="TrackerStream"
+    MovingSourceId="ProbeToTracker"
     DefaultSelectedChannelId="TrackerStream" />
 
   <vtkPivotCalibrationAlgo
