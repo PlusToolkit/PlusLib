@@ -77,9 +77,9 @@ public:
   US_IMAGE_TYPE GetImageType();
 
   /*! Set the non-clipped input frame size in pixel  */
-  PlusStatus SetInputFrameSize(int x, int y, int z/*, bool ignoreClip=false*/); 
+  PlusStatus SetInputFrameSize(int x, int y, int z); 
   /*! Set the non-clipped input frame size in pixel  */
-  PlusStatus SetInputFrameSize(int frameSize[3]/*, bool ignoreClip=false*/); 
+  PlusStatus SetInputFrameSize(int frameSize[3]); 
   /*! Get the input frame size in pixel  */
   vtkGetVector3Macro(InputFrameSize,int);
 

@@ -109,9 +109,9 @@ PlusStatus vtkTimestampedCircularBuffer::PrepareForNewItem(const double timestam
 //----------------------------------------------------------------------------
 // Sets the buffer size, and copies the maximum number of the most current old
 // frames and timestamps
-PlusStatus vtkTimestampedCircularBuffer::SetBufferSize(int bufsize)
+PlusStatus vtkTimestampedCircularBuffer::SetBufferSize(int newBufferSize)
 {
-  if (bufsize < 0)
+  if (newBufferSize < 0)
   {
     LOG_ERROR("SetBufferSize: invalid buffer size");
     return PLUS_FAIL;
@@ -119,14 +119,14 @@ PlusStatus vtkTimestampedCircularBuffer::SetBufferSize(int bufsize)
   
   PlusLockGuard< vtkTimestampedCircularBuffer > bufferGuardedLock(this);
 
-  if (bufsize == this->GetBufferSize() && bufsize != 0)
+  if (newBufferSize == this->GetBufferSize() && newBufferSize != 0)
   {
     return PLUS_SUCCESS;
   }
 
   if ( this->GetBufferSize() == 0 )
   {
-    for ( int i = 0; i < bufsize; i++ )
+    for ( int i = 0; i < newBufferSize; i++ )
     {
       StreamBufferItem emptyBufferItem; 
       this->BufferItemContainer.push_back(emptyBufferItem); 
@@ -136,10 +136,10 @@ PlusStatus vtkTimestampedCircularBuffer::SetBufferSize(int bufsize)
     this->CurrentTimeStamp = 0.0;
   }
   // if the new buffer is bigger than the old buffer
-  else if ( this->GetBufferSize() < bufsize )
+  else if ( this->GetBufferSize() < newBufferSize )
   {
     std::deque<StreamBufferItem>::iterator it = this->BufferItemContainer.begin() + this->WritePointer; 
-    const int numberOfNewBufferObjects = bufsize - this->GetBufferSize(); 
+    const int numberOfNewBufferObjects = newBufferSize - this->GetBufferSize(); 
     for ( int i = 0; i < numberOfNewBufferObjects; ++i )
     {
       StreamBufferItem emptyBufferItem;
@@ -147,10 +147,11 @@ PlusStatus vtkTimestampedCircularBuffer::SetBufferSize(int bufsize)
     }
   }
   // if the new buffer is smaller than the old buffer
-  else if ( this->GetBufferSize() > bufsize )
+  else if ( this->GetBufferSize() > newBufferSize )
   {
-    // delete the oldest buffer objects 
-    for (int i = 0; i < this->GetBufferSize() - bufsize; ++i)
+    // delete the oldest buffer objects
+    int oldBufferSize = this->GetBufferSize();
+    for (int i = 0; i < oldBufferSize - newBufferSize; ++i)
     {
       std::deque<StreamBufferItem>::iterator it = this->BufferItemContainer.begin() + this->WritePointer; 
       this->BufferItemContainer.erase(it); 

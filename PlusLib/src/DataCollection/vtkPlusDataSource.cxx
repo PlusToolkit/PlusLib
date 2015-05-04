@@ -5,6 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
+#include "PlusVideoFrame.h"
 #include "vtkMatrix4x4.h"
 #include "vtkPlusBuffer.h"
 #include "vtkPlusDataSource.h"
@@ -504,22 +505,22 @@ PlusStatus vtkPlusDataSource::SetImageType(US_IMAGE_TYPE imageType)
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::SetInputFrameSize(int x, int y, int z/*, bool ignoreClip /* = false */)
+PlusStatus vtkPlusDataSource::SetInputFrameSize(int x, int y, int z)
 {
   this->InputFrameSize[0] = x;
   this->InputFrameSize[1] = y;
   this->InputFrameSize[2] = z;
-  /*if(ignoreClip)
-  {
-    return this->GetBuffer()->SetFrameSize(x, y, z);
-  }*/
-  
+
+  int outputFrameSizeInPx[3] = {x,y,z};
+
   int extents[6] = {0, x-1, 0, y-1, 0, z-1};
   if(PlusCommon::IsClippingRequested(this->ClipRectangleOrigin, this->ClipRectangleSize))
   {
     if (PlusCommon::IsClippingWithinExtents(this->ClipRectangleOrigin, this->ClipRectangleSize, extents))
     {
-      return this->GetBuffer()->SetFrameSize(this->ClipRectangleSize[0], this->ClipRectangleSize[1], this->ClipRectangleSize[2]);
+      outputFrameSizeInPx[0] = this->ClipRectangleSize[0];
+      outputFrameSizeInPx[1] = this->ClipRectangleSize[1];
+      outputFrameSizeInPx[2] = this->ClipRectangleSize[2];
     }
     else
     {
@@ -535,13 +536,30 @@ PlusStatus vtkPlusDataSource::SetInputFrameSize(int x, int y, int z/*, bool igno
       this->ClipRectangleSize[2] = PlusCommon::NO_CLIP;
     }
   }
-  return this->GetBuffer()->SetFrameSize(x, y, z);
+
+  PlusVideoFrame::FlipInfoType flipInfo;
+  if ( PlusVideoFrame::GetFlipAxes(this->InputImageOrientation, this->GetBuffer()->GetImageType(), this->GetBuffer()->GetImageOrientation(), flipInfo) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to convert image data to the requested orientation, from " << PlusVideoFrame::GetStringFromUsImageOrientation(this->InputImageOrientation) << 
+      " to " << PlusVideoFrame::GetStringFromUsImageOrientation(this->GetBuffer()->GetImageOrientation()));
+    return PLUS_FAIL;
+  }
+
+  if( flipInfo.tranpose == PlusVideoFrame::TRANSPOSE_IJKtoKIJ )
+  {
+    int temp = outputFrameSizeInPx[0];
+    outputFrameSizeInPx[0] = outputFrameSizeInPx[2];
+    outputFrameSizeInPx[2] = outputFrameSizeInPx[1];
+    outputFrameSizeInPx[1] = temp;
+  }
+
+  return this->GetBuffer()->SetFrameSize(outputFrameSizeInPx[0], outputFrameSizeInPx[1], outputFrameSizeInPx[2]);
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::SetInputFrameSize(int frameSize[3]/*, bool ignoreClip /* = false */)
+PlusStatus vtkPlusDataSource::SetInputFrameSize(int frameSize[3])
 {
-  return this->SetInputFrameSize(frameSize[0], frameSize[1], frameSize[2]/*, ignoreClip*/);
+  return this->SetInputFrameSize(frameSize[0], frameSize[1], frameSize[2]);
 }
 
 //-----------------------------------------------------------------------------
@@ -591,6 +609,7 @@ PlusStatus vtkPlusDataSource::SetInputImageOrientation(US_IMAGE_ORIENTATION imag
   }
 }
 
+//-----------------------------------------------------------------------------
 PlusStatus vtkPlusDataSource::SetOutputImageOrientation(US_IMAGE_ORIENTATION imageOrientation)
 {
   if (imageOrientation!=US_IMG_ORIENT_MF && imageOrientation!=US_IMG_ORIENT_FM)

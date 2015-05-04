@@ -498,8 +498,18 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
       numberOfErrors++;
       continue;
     }
+
     int clipRectOrigin[3]={PlusCommon::NO_CLIP, PlusCommon::NO_CLIP, PlusCommon::NO_CLIP};
     int clipRectSize[3]={PlusCommon::NO_CLIP, PlusCommon::NO_CLIP, PlusCommon::NO_CLIP};
+
+    PlusVideoFrame::FlipInfoType flipInfo;
+    if ( PlusVideoFrame::GetFlipAxes(this->ImageOrientationInFile, this->ImageType, this->ImageOrientationInMemory, flipInfo) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to convert image data to the requested orientation, from " << PlusVideoFrame::GetStringFromUsImageOrientation(this->ImageOrientationInFile) << 
+        " to " << PlusVideoFrame::GetStringFromUsImageOrientation(this->ImageOrientationInMemory));
+      return PLUS_FAIL;
+    }
+
     if (!this->UseCompression)
     {
       FilePositionOffsetType offset=PixelDataFileOffset+frameNumber*frameSizeInBytes;
@@ -509,7 +519,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
         //LOG_ERROR("Could not read "<<frameSizeInBytes<<" bytes from "<<GetPixelDataFilePath());
         //numberOfErrors++;
       }
-      if ( PlusVideoFrame::GetOrientedClippedImage(&(pixelBuffer[0]), this->ImageOrientationInFile, this->ImageType, this->PixelType, this->NumberOfScalarComponents, this->Dimensions, this->ImageOrientationInMemory, *trackedFrame->GetImageData(), clipRectOrigin, clipRectSize) != PLUS_SUCCESS )
+      if ( PlusVideoFrame::GetOrientedClippedImage(&(pixelBuffer[0]), flipInfo, this->ImageType, this->PixelType, this->NumberOfScalarComponents, this->Dimensions, *trackedFrame->GetImageData(), clipRectOrigin, clipRectSize) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get oriented image from sequence metafile (frame number: " << frameNumber << ")!"); 
         numberOfErrors++;
@@ -518,7 +528,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
     }
     else
     {
-      if ( PlusVideoFrame::GetOrientedClippedImage(&(allFramesPixelBuffer[0])+frameNumber*frameSizeInBytes, this->ImageOrientationInFile, this->ImageType, this->PixelType, this->NumberOfScalarComponents, this->Dimensions, this->ImageOrientationInMemory, *trackedFrame->GetImageData(), clipRectOrigin, clipRectSize) != PLUS_SUCCESS )
+      if ( PlusVideoFrame::GetOrientedClippedImage(&(allFramesPixelBuffer[0])+frameNumber*frameSizeInBytes, flipInfo, this->ImageType, this->PixelType, this->NumberOfScalarComponents, this->Dimensions, *trackedFrame->GetImageData(), clipRectOrigin, clipRectSize) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get oriented image from sequence metafile (frame number: " << frameNumber << ")!"); 
         numberOfErrors++;

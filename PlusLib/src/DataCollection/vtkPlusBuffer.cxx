@@ -258,12 +258,29 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr,
     return PLUS_FAIL; 
   }
 
+  PlusVideoFrame::FlipInfoType flipInfo;
+  if ( PlusVideoFrame::GetFlipAxes(usImageOrientation, imageType, this->ImageOrientation, flipInfo) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to convert image data to the requested orientation, from " << PlusVideoFrame::GetStringFromUsImageOrientation(usImageOrientation) << 
+      " to " << PlusVideoFrame::GetStringFromUsImageOrientation(this->ImageOrientation));
+    return PLUS_FAIL;
+  }
+
+  // Calculate the output frame size to validate that buffer is correctly setup
   int outputFrameSizeInPx[3] = {inputFrameSizeInPx[0], inputFrameSizeInPx[1], inputFrameSizeInPx[2]};
   if( PlusCommon::IsClippingRequested(clipRectangleOrigin, clipRectangleSize) )
   {
     outputFrameSizeInPx[0] = clipRectangleSize[0];
     outputFrameSizeInPx[1] = clipRectangleSize[1];
     outputFrameSizeInPx[2] = clipRectangleSize[2];
+  }
+
+  if( flipInfo.tranpose == PlusVideoFrame::TRANSPOSE_IJKtoKIJ )
+  {
+    int temp = outputFrameSizeInPx[0];
+    outputFrameSizeInPx[0] = outputFrameSizeInPx[2];
+    outputFrameSizeInPx[2] = outputFrameSizeInPx[1];
+    outputFrameSizeInPx[1] = temp;
   }
 
   if ( !this->CheckFrameFormat(outputFrameSizeInPx, pixelType, imageType, numberOfScalarComponents) )
@@ -309,7 +326,7 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr,
   unsigned char* byteImageDataPtr=reinterpret_cast<unsigned char*>(imageDataPtr);
   byteImageDataPtr += numberOfBytesToSkip; 
 
-  if (PlusVideoFrame::GetOrientedClippedImage(byteImageDataPtr, usImageOrientation, imageType, pixelType, numberOfScalarComponents, inputFrameSizeInPx, this->ImageOrientation, newObjectInBuffer->GetFrame(), clipRectangleOrigin, clipRectangleSize) != PLUS_SUCCESS)
+  if (PlusVideoFrame::GetOrientedClippedImage(byteImageDataPtr, flipInfo, imageType, pixelType, numberOfScalarComponents, inputFrameSizeInPx, newObjectInBuffer->GetFrame(), clipRectangleOrigin, clipRectangleSize) != PLUS_SUCCESS)
   {
     LOCAL_LOG_ERROR("Failed to convert input US image to the requested orientation!"); 
     return PLUS_FAIL; 
@@ -625,6 +642,10 @@ PlusStatus vtkPlusBuffer::SetImageOrientation(US_IMAGE_ORIENTATION imgOrientatio
     return PLUS_FAIL;
   }
   this->ImageOrientation=imgOrientation;
+  for ( int frameNumber = 0; frameNumber < this->StreamBuffer->GetBufferSize(); frameNumber++ )
+  {
+    this->StreamBuffer->GetBufferItemPointerFromBufferIndex(frameNumber)->GetFrame().SetImageOrientation(imgOrientation);
+  }
   return PLUS_SUCCESS;
 }
 
