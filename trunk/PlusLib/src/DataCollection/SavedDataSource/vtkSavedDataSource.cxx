@@ -487,6 +487,7 @@ PlusStatus vtkSavedDataSource::InternalConnectVideo(vtkTrackedFrameList* savedDa
   // Set up a new local buffer
   DeleteLocalBuffers();
   this->LocalVideoBuffer = vtkPlusBuffer::New();
+  this->LocalVideoBuffer->SetImageOrientation(savedDataBuffer->GetImageOrientation());
   
   // Copy all the settings from the video buffer 
   this->GetOutputDataSource()->DeepCopyBufferTo(*this->LocalVideoBuffer);
@@ -816,7 +817,7 @@ vtkPlusBuffer* vtkSavedDataSource::GetLocalBuffer()
     buff=GetLocalTrackerBuffer();
     break;
   default:
-    LOG_ERROR("Unkown stream type: "<<this->SimulatedStream);
+    LOG_ERROR("Unknown stream type: "<<this->SimulatedStream);
   }
   if (buff==NULL)
   {

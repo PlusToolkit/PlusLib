@@ -61,6 +61,7 @@ ADD_TEST(vtkDataCollectorTest2
 SET_TESTS_PROPERTIES( vtkDataCollectorTest2 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #***************************  vtk3DDataCollectorTest1 ***************************
+IF (PLUS_USE_MMF_VIDEO AND PLUS_TEST_MMF_VIDEO)
 ADD_EXECUTABLE(vtk3DDataCollectorTest1 vtk3DDataCollectorTest1.cxx)
 TARGET_LINK_LIBRARIES(vtk3DDataCollectorTest1 vtkDataCollection )
 ADD_TEST(vtk3DDataCollectorTest1 
@@ -72,11 +73,12 @@ ADD_TEST(vtk3DDataCollectorTest1
   --median=0 
   --standard-deviation=57.955927672415285
   --xDimension=112
-  --yDimension=48
-  --zDimension=112
+  --yDimension=112
+  --zDimension=48
   --verbose=3
   )
 SET_TESTS_PROPERTIES( vtk3DDataCollectorTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+ENDIF(PLUS_USE_MMF_VIDEO AND PLUS_TEST_MMF_VIDEO)
 
 #***************************  vtkDataCollectorVideoAcqTest ***************************
 ADD_EXECUTABLE(vtkDataCollectorVideoAcqTest vtkDataCollectorVideoAcqTest.cxx)
