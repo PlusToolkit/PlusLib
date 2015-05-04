@@ -260,7 +260,7 @@ namespace
         // Copy the image column->row, each column from the next image
         for(int z = 0; z < outputWidth; ++z)
         {
-          for (int y = 0; y < outputDepth; ++y)
+          for(int y = 0; y < outputDepth; ++y)
           {
             for(int x = 0; x < outputHeight; ++x)
             {
@@ -290,7 +290,7 @@ namespace
 
         for(int z = 0; z < outputWidth; ++z)
         {
-          for (int y = 0; y < outputDepth; ++y)
+          for(int y = 0; y < outputDepth; ++y)
           {
             for(int x = 0; x < outputHeight; ++x)
             {
