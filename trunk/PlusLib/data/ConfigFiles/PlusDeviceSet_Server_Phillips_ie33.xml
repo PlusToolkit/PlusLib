@@ -10,7 +10,7 @@
 	  IP="129.100.44.8"
 	  Port="4013" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="AMF"  />
       </DataSources>      
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />

@@ -68,10 +68,15 @@ namespace
       // TODO : I don't think this is correct if transposition is happening... double check
       inputWidth*=2;
       outputWidth*=2;
-      localClipRectangleSize[0]*=2;
+      
       inputHeight/=2;
       outputHeight/=2;
+
+      localClipRectangleSize[0]*=2;
       localClipRectangleSize[1]/=2;
+
+      inputRowIncrement*=2;
+      outputRowIncrement*=2;
     }
     if (flipInfo.doubleColumn)
     {
