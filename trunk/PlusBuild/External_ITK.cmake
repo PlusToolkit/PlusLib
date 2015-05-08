@@ -35,7 +35,7 @@ ELSE(ITK_DIR)
 
   # ITK has not been built yet, so download and build it as an external project
   SET (ITKv4_REPOSITORY ${GIT_PROTOCOL}://itk.org/ITK.git)
-  SET (ITKv4_GIT_TAG 1866ef42887df677a6197ad11ed0ef6e9b239567) #2013-04-03 
+  SET (ITKv4_GIT_TAG 8d58556089399c11d51795d46d6b17c355af95dc) #v4.7.2 from 2015-04-30
 
   SET (PLUS_ITK_SRC_DIR "${CMAKE_BINARY_DIR}/itk")
   SET (PLUS_ITK_DIR "${CMAKE_BINARY_DIR}/itk-bin" CACHE INTERNAL "Path to store itk binaries")
