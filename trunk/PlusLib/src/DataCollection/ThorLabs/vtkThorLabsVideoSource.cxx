@@ -197,7 +197,7 @@ PlusStatus vtkThorLabsVideoSource::InternalUpdate()
     vtkPlusDataSource* aSource(NULL);
     if( this->GetFirstVideoSource(aSource) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Unable to retrieve the video source in the Win32Video device.");
+      LOG_ERROR("Unable to retrieve the video source in the ThorLabs device.");
       return PLUS_FAIL;
     }
     this->FrameIndex++;
@@ -238,6 +238,20 @@ PlusStatus vtkThorLabsVideoSource::NotifyConfigured()
     LOG_ERROR("No output channels defined for ThorLabs video source. Cannot proceed." );
     this->CorrectlyConfigured = false;
     return PLUS_FAIL;
+  }
+
+  vtkPlusDataSource* aSource(NULL);
+  if( this->GetFirstVideoSource(aSource) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to retrieve the video source in the ThorLabs device.");
+    return PLUS_FAIL;
+  }
+
+  // If input image orientation is not set (it is not required) then
+  // set it to MF by default
+  if (aSource->GetInputImageOrientation()==US_IMG_ORIENT_XX)
+  {
+    aSource->SetInputImageOrientation(US_IMG_ORIENT_MF);
   }
 
   return PLUS_SUCCESS;
