@@ -127,7 +127,7 @@ int main( int argc, char** argv )
       clipRectangleOrigin[1]=clipRectangleOriginInConfig[1];
     }
     int* clipRectangleSizeInConfig=reconstructor->GetClipRectangleSize();
-    if (clipRectangleSizeInConfig!=NULL && clipRectangleSizeInConfig[0]>=0 && clipRectangleSizeInConfig[1]>=0)
+    if (clipRectangleSizeInConfig!=NULL && clipRectangleSizeInConfig[0]>0 && clipRectangleSizeInConfig[1]>0)
     {
       clipRectangleSize[0]=clipRectangleSizeInConfig[0];
       clipRectangleSize[1]=clipRectangleSizeInConfig[1];
