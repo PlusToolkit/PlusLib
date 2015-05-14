@@ -619,7 +619,7 @@ void vtkBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr, co
     LOG_DEBUG("Set up BK ProFocus image buffer");
     aSource->SetPixelType(pixelType);      
     aSource->SetImageType(imageType);
-    aSource->SetInputFrameSize( frameSizeInPix[0], frameSizeInPix[1] );
+    aSource->SetInputFrameSize( frameSizeInPix[0], frameSizeInPix[1], 1 );
     if (imageType==US_IMG_BRIGHTNESS)
     {
       // Store B-mode images in MF orientation

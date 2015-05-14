@@ -312,7 +312,7 @@ PlusStatus vtkICCapturingSource::InternalConnect()
   }
   aSource->SetPixelType( VTK_UNSIGNED_CHAR );  
 
-  int frameSize[2]={0,0};
+  int frameSize[3]={0,0,1};
   frameSize[0]=static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxX();
   frameSize[1]=static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxY();
 
