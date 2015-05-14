@@ -548,7 +548,7 @@ PlusStatus vtkIntersonVideoSource::InternalUpdate()
     return PLUS_FAIL;
   }
 
-  int frameSizeInPx[2]={this->ImageSize[0],this->ImageSize[1]};
+  int frameSizeInPx[3]={this->ImageSize[0],this->ImageSize[1], 1};
 
   // If the buffer is empty, set the pixel type and frame size to the first received properties 
   if ( aSource->GetNumberOfItems() == 0 )
