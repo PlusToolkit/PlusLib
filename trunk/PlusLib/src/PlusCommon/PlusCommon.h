@@ -14,6 +14,8 @@
 #include "vtkPlusMacro.h"
 #include "vtkRecursiveCriticalSection.h"
 #include "vtksys/SystemTools.hxx"
+
+#include <float.h> // for DBL_MAX
 #include <sstream>
 #include <list>
 
