@@ -116,7 +116,7 @@ PlusServerLauncherMainWindow::~PlusServerLauncherMainWindow()
 }
 
 //-----------------------------------------------------------------------------
-bool PlusServerLauncherMainWindow::startServer(QString& configFilePath)
+bool PlusServerLauncherMainWindow::startServer(const QString& configFilePath)
 {
   if (m_CurrentServerInstance!=NULL)
   {

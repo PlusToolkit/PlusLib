@@ -62,7 +62,7 @@ protected:
   void sendServerOutputToLogger(const QByteArray &strData, vtkPlusLogger::LogLevelType defaultLogLevel);
 
   /*! Start server process, connect outputs to logger. Returns with true on success. */
-  bool startServer(QString& configFilePath);
+  bool startServer(const QString& configFilePath);
 
   /*! Stop server process, disconnect outputs. Returns with true on success (shutdown on request was successful, without forcing). */
   bool stopServer();
