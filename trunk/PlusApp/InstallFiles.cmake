@@ -168,6 +168,8 @@ IF(PLUS_USE_ULTRASONIX_VIDEO)
       ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_2.0.xml
       ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_3.0.xml
       ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_L1.4.xml
+      ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_Server_SonixTouch_L14-5_Ascension3DG.xml
+      ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_Server_SonixTouch_C5-2_Ascension3DG.xml
       )
   ENDIF(PLUS_USE_Ascension3DG)
 ENDIF(PLUS_USE_ULTRASONIX_VIDEO)
