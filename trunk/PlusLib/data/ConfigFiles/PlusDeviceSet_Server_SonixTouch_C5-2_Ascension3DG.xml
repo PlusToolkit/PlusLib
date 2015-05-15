@@ -29,7 +29,8 @@
       AcquisitionRate="30" 
       LocalTimeOffsetSec="-0.2976"
       IP="127.0.0.1"
-      AutoClipEnabled="TRUE" >
+      AutoClipEnabled="TRUE"
+      ImageToTransducerTransformName="ImageToTransducer" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF"  />
       </DataSources>
@@ -65,7 +66,7 @@
     MaxTimeSpentWithProcessingMs="50" 
     ListeningPort="18944" 
     SendValidTransformsOnly="true" 
-    OutputChannelId="VideoStream" > 
+    OutputChannelId="TrackedVideoStream" > 
     <DefaultClientInfo> 
       <MessageTypes> 
         <Message Type="IMAGE" />
