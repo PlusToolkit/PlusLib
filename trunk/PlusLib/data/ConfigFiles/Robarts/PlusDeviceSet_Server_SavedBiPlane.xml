@@ -1,40 +1,59 @@
  <PlusConfiguration version="2.1">
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
-      Name="PlusServer: Epiphan bi-plane + NDI Aurora"
+      Name="PlusServer: Saved bi-plane + Saved Tracker"
       Description="Broadcasting acquired video through OpenIGTLink"
     />
     <Device
       Id="TrackerDevice"
-      Type="AuroraTracker"
-      SerialPort="3"
-      BaudRate="115200"
+      Type="SavedDataSource"
+      UseData="TRANSFORM"      
+      AcquisitionRate="10"
       LocalTimeOffsetSec="0.0"
-      ToolReferenceFrame="Tracker">
+      ToolReferenceFrame="Tracker" 
+	  ReplayEnabled="TRUE"
+      SequenceMetafile="fCal_Test_Calibration_3NWires_fCal2.0.mha" >
       <DataSources>
-        <DataSource Type="Tool" Id="Probe" PortName="0" />
-        <DataSource Type="Tool" Id="Reference" PortName="1" />
-        <DataSource Type="Tool" Id="Stylus" PortName="2" />
-      </DataSources>
+        <DataSource Type="Tool" Id="Probe"  />
+		<DataSource Type="Tool" Id="Reference"  />
+      </DataSources>      
       <OutputChannels>
-        <OutputChannel Id="TrackerStream" >
+        <OutputChannel Id="TrackerStream">
           <DataSource Id="Probe"/>
-          <DataSource Id="Reference"/>
-          <DataSource Id="Stylus"/>
+		  <DataSource Id="Reference"/>
         </OutputChannel>
       </OutputChannels>
     </Device>
 
     <Device
-      Id="VideoDevice" 
-      Type="Epiphan" >
+      Id="LeftVideoDevice"
+      Type="SavedDataSource" 
+      UseData="IMAGE"
+	  ReplayEnabled="TRUE"
+      AcquisitionRate="10" 
+      LocalTimeOffsetSec="0.0" 
+      SequenceMetafile="fCal_Test_Calibration_3NWires_fCal2.0.mha" >
       <DataSources>
-        <DataSource Type="Video" Id="LeftVideo" PortUsImageOrientation="MF" ClipRectangleOrigin="285 0 0" ClipRectangleSize="460 1050 1" />
-        <DataSource Type="Video" Id="RightVideo" PortUsImageOrientation="MF" ClipRectangleOrigin="735 0 0" ClipRectangleSize="460 1050 1" />
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />
       </DataSources>      
       <OutputChannels>
-        <OutputChannel Id="LeftVideoStream" VideoDataSourceId="LeftVideo" />
-        <OutputChannel Id="RightVideoStream" VideoDataSourceId="RightVideo" />
+        <OutputChannel Id="LeftVideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+	
+	<Device
+      Id="RightVideoDevice"
+      Type="SavedDataSource" 
+      UseData="IMAGE"
+	  ReplayEnabled="TRUE"
+      AcquisitionRate="10" 
+      LocalTimeOffsetSec="0.0" 
+      SequenceMetafile="fCal_Test_Calibration_3NWires_fCal2.0.mha" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />
+      </DataSources>      
+      <OutputChannels>
+        <OutputChannel Id="RightVideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
     </Device>
     
@@ -93,7 +112,6 @@
       <TransformNames> 
         <Transform Name="ProbeToTracker" /> 
         <Transform Name="ReferenceToTracker" />
-        <Transform Name="StylusToTracker" />
       </TransformNames>
       <ImageNames>
         <Image Name="LeftImage" EmbeddedTransformToFrame="Reference" />
