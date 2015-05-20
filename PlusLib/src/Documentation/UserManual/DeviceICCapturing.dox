@@ -30,8 +30,6 @@ Supported model: DFG/USB2pro analog frame grabbers with USB interface
 - \xmlAtt \b FrameSize Requested size of the video frame. \OptionalAtt{640 480}
 - \xmlAtt \b InputChannel Name of the IC capturing device input channel (e.g. \c "01 Video: SVideo"). \RequiredAtt
 - \xmlAtt \b ICBufferSize Number of frames the IC capturing device should store in a temporary buffer. \OptionalAtt{50}
-- \xmlAtt \b ClipRectangleOrigin Deprecated, kept for backward compatibility only. Replaced by the same attribute in DataSources. \OptionalAtt{0 0}
-- \xmlAtt \b ClipRectangleSize Deprecated, kept for backward compatibility only. Replaced by the same attribute in DataSources. \OptionalAtt{0 0}
 
 - \xmlElem \ref DataSources Exactly one \c DataSource child element is required \RequiredAtt
    - \xmlElem \ref DataSource \RequiredAtt
