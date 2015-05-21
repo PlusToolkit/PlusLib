@@ -226,28 +226,68 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
   // Convert VTK transform to IGTL transform.
   // VTK and Plus: corner image origin
   // OpenIGTLink image message: center image origin
-  
-  vtkSmartPointer< vtkMatrix4x4 > vtkMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
+ 
+  int *isize = imageSizePixels;
+  double *spacing = imageSpacingMm;
+  vtkSmartPointer< vtkMatrix4x4 > rtimgTransform = vtkSmartPointer< vtkMatrix4x4 >::New();
   for ( int row = 0; row < 4; ++ row )
   {
     for ( int col = 0; col < 4; ++ col )
     {
-      vtkMatrix->SetElement( row, col, igtlMatrix[ row ][ col ] );
+      rtimgTransform->SetElement( row, col, igtlMatrix[ row ][ col ] );
     }
   }
-  vtkSmartPointer< vtkTransform > vtkToIgtTransform = vtkSmartPointer< vtkTransform >::New();
-  vtkToIgtTransform->Translate( imageSizePixels[ 0 ] / 2.0, imageSizePixels[ 1 ] / 2.0, imageSizePixels[ 2 ] / 2.0 );
-  vtkSmartPointer< vtkMatrix4x4 > convertedMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
-  vtkMatrix4x4::Multiply4x4( vtkMatrix, vtkToIgtTransform->GetMatrix(), convertedMatrix );
-  for ( int row = 0; row < 4; ++ row )
-  {
-    for ( int col = 0; col < 4; ++ col )
-    {
-      igtlMatrix[ row ][ col ] = convertedMatrix->GetElement( row, col );
-    }
-  }  
-  
-  imageMessage->SetMatrix( igtlMatrix );
+
+  ////// Adopted from OpenIGTLinkIF\MRML\vtkIGTLToMRMLImage.cxx
+
+  float ntx = rtimgTransform->Element[0][0] / (float)spacing[0];
+  float nty = rtimgTransform->Element[1][0] / (float)spacing[0];
+  float ntz = rtimgTransform->Element[2][0] / (float)spacing[0];
+  float nsx = rtimgTransform->Element[0][1] / (float)spacing[1];
+  float nsy = rtimgTransform->Element[1][1] / (float)spacing[1];
+  float nsz = rtimgTransform->Element[2][1] / (float)spacing[1];
+  float nnx = rtimgTransform->Element[0][2] / (float)spacing[2];
+  float nny = rtimgTransform->Element[1][2] / (float)spacing[2];
+  float nnz = rtimgTransform->Element[2][2] / (float)spacing[2];
+  float px  = rtimgTransform->Element[0][3];
+  float py  = rtimgTransform->Element[1][3];
+  float pz  = rtimgTransform->Element[2][3];
+
+  // Shift the center
+  // NOTE: The center of the image should be shifted due to different
+  // definitions of image origin between VTK (Slicer) and OpenIGTLink;
+  // OpenIGTLink image has its origin at the center, while VTK image
+  // has one at the corner.
+
+  float hfovi = (float)spacing[0] * (float)(isize[0]-1) / 2.0;
+  float hfovj = (float)spacing[1] * (float)(isize[1]-1) / 2.0;
+  float hfovk = (float)spacing[2] * (float)(isize[2]-1) / 2.0;
+
+  float cx = ntx * hfovi + nsx * hfovj + nnx * hfovk;
+  float cy = nty * hfovi + nsy * hfovj + nny * hfovk;
+  float cz = ntz * hfovi + nsz * hfovj + nnz * hfovk;
+
+  px = px + cx;
+  py = py + cy;
+  pz = pz + cz;
+
+  igtl::Matrix4x4 matrix; // Image origin and orientation matrix
+  matrix[0][0] = ntx;
+  matrix[1][0] = nty;
+  matrix[2][0] = ntz;
+  matrix[0][1] = nsx;
+  matrix[1][1] = nsy;
+  matrix[2][1] = nsz;
+  matrix[0][2] = nnx;
+  matrix[1][2] = nny;
+  matrix[2][2] = nnz;
+  matrix[0][3] = px;
+  matrix[1][3] = py;
+  matrix[2][3] = pz;
+
+  //////
+
+  imageMessage->SetMatrix( matrix );
   imageMessage->SetTimeStamp( igtlFrameTime );
 
   imageMessage->Pack();
@@ -382,7 +422,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage( igtl::ImageMessage::Point
 
   memcpy(igtlImagePointer, vtkImagePointer, imageMessage->GetImageSize());  
 
-  ////// Code is similar to the conversion done in 3D Slicer: vtkIGTLToMRMLImage.cxx 
+  ////// Adopted from OpenIGTLinkIF\MRML\vtkIGTLToMRMLImage.cxx
 
   vtkSmartPointer<vtkMatrix4x4> ijkToVolumeTransform = vtkSmartPointer<vtkMatrix4x4>::New();    
   ijkToVolumeTransform->Identity();
