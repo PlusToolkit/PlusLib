@@ -119,7 +119,7 @@ transducerToProbe = [[transducerX_Probe, transducerY_Probe, transducerZ_Probe, t
 
 Example use:
 
-<pre>
+<BLOCKQUOTE>
 %% Get TransducerToProbe transform matrix in Plus-compatible format
 
 % Transforms provided by Ultrasonix (http://www.ultrasonix.com/wikisonix/index.php/GPS_Data_Collection)
@@ -137,11 +137,11 @@ ImageToProbe = TransducerToProbeLinear * ImageToTransducer
 % By Plus
 ImageToProbePlus = [0.00222042	0.0866475	0.000440035	13.1131; -0.0889464	0.00184866	-0.00957158	33.8075; -0.0097339	-0.000233354	0.0875636	1.58554; 0	0	0	1]
 
-</pre>
+</BLOCKQUOTE>
 
 Results:
 
-<pre>
+<BLOCKQUOTE>
 TransducerToProbeLinear =
 
     0.0018    0.9477   -0.0175   14.8449
@@ -170,7 +170,7 @@ ImageToProbePlus =
    -0.0889    0.0018   -0.0096   33.8075
    -0.0097   -0.0002    0.0876    1.5855
          0         0         0    1.0000
-</pre>
+</BLOCKQUOTE>
 
 \section SonixDepthSwitching Depth switching (experimental)
 
