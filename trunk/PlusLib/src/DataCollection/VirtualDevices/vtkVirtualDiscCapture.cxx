@@ -27,7 +27,6 @@ vtkVirtualDiscCapture::vtkVirtualDiscCapture()
 , RecordedFrames(vtkTrackedFrameList::New())
 , LastAlreadyRecordedFrameTimestamp(UNDEFINED_TIMESTAMP)
 , NextFrameToBeRecordedTimestamp(0.0)
-, SamplingFrameRate(8)
 , RequestedFrameRate(0.0)
 , ActualFrameRate(0.0)
 , FirstFrameIndexInThisSegment(0)
@@ -43,6 +42,7 @@ vtkVirtualDiscCapture::vtkVirtualDiscCapture()
 , WriterAccessMutex(vtkSmartPointer<vtkRecursiveCriticalSection>::New())
 , GracePeriodLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG)
 {
+  this->AcquisitionRate=10.0;
   this->MissingInputGracePeriodSec=2.0;
   this->RecordedFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP); 
 
@@ -106,26 +106,6 @@ PlusStatus vtkVirtualDiscCapture::WriteConfiguration( vtkXMLDataElement* rootCon
 //----------------------------------------------------------------------------
 PlusStatus vtkVirtualDiscCapture::InternalConnect()
 {
-  bool lowestRateKnown=false;
-  double lowestRate=30; // just a usual value (FPS)
-  for( ChannelContainerConstIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
-  {
-    vtkPlusChannel* anInputStream = (*it);
-    if( anInputStream->GetOwnerDevice()->GetAcquisitionRate() < lowestRate || !lowestRateKnown)
-    {
-      lowestRate = anInputStream->GetOwnerDevice()->GetAcquisitionRate();
-      lowestRateKnown=true;
-    }
-  }
-  if (lowestRateKnown)
-  {
-    this->AcquisitionRate = lowestRate;
-  }
-  else
-  {
-    LOG_WARNING("vtkVirtualDiscCapture acquisition rate is not known");
-  }
-
   if ( OpenFile() != PLUS_SUCCESS )
   {
     return PLUS_FAIL;
@@ -262,6 +242,16 @@ PlusStatus vtkVirtualDiscCapture::InternalUpdate()
     return PLUS_SUCCESS;
   }
 
+  double samplingPeriodSec = 0.1;
+  if (this->AcquisitionRate > 0)
+  {
+    samplingPeriodSec = 1.0 / this->AcquisitionRate;
+  }
+  else
+  {
+    LOG_WARNING("AcquisitionRate value is invalid " << this->AcquisitionRate << ". Use default sampling period of " << samplingPeriodSec << " sec");
+  }
+
   if( this->LastUpdateTime == 0.0 )
   {
     this->LastUpdateTime = vtkAccurateTimer::GetSystemTime();
@@ -274,7 +264,7 @@ PlusStatus vtkVirtualDiscCapture::InternalUpdate()
 
   this->TimeWaited += startTimeSec - LastUpdateTime;
 
-  if( this->TimeWaited < GetSamplingPeriodSec() )
+  if( this->TimeWaited < samplingPeriodSec )
   {
     // Nothing to do yet
     return PLUS_SUCCESS;
@@ -282,7 +272,7 @@ PlusStatus vtkVirtualDiscCapture::InternalUpdate()
 
   this->TimeWaited = 0.0;
 
-  double maxProcessingTimeSec = GetSamplingPeriodSec() * 2.0; // put a hard limit on the max processing time to make sure the application remains responsive during recording
+  double maxProcessingTimeSec = samplingPeriodSec * 2.0; // put a hard limit on the max processing time to make sure the application remains responsive during recording
   double requestedFramePeriodSec = 0.1;
   if (this->RequestedFrameRate > 0)
   {
@@ -328,15 +318,27 @@ PlusStatus vtkVirtualDiscCapture::InternalUpdate()
 
   // Check whether the recording needed more time than the sampling interval
   double recordingTimeSec = vtkAccurateTimer::GetSystemTime() - startTimeSec;
-  if (recordingTimeSec > GetSamplingPeriodSec())
+  if (recordingTimeSec > samplingPeriodSec)
   {
-    LOG_WARNING("Recording of frames takes too long time (" << recordingTimeSec << "sec instead of the allocated " << GetSamplingPeriodSec() << "sec). This can cause slow-down of the application and non-uniform sampling. Reduce the acquisition rate or sampling rate to resolve the problem.");
+    LOG_WARNING("Recording of frames takes too long time (" << recordingTimeSec << "sec instead of the allocated " << samplingPeriodSec << "sec). This can cause slow-down of the application and non-uniform sampling. Reduce the acquisition rate or sampling rate to resolve the problem.");
   }
 
-  double recordingLagSec = vtkAccurateTimer::GetSystemTime() - this->NextFrameToBeRecordedTimestamp;
+  double currentSystemTime = vtkAccurateTimer::GetSystemTime();
+  double recordingLagSec =  currentSystemTime - this->NextFrameToBeRecordedTimestamp;
   if (recordingLagSec > MAX_ALLOWED_RECORDING_LAG_SEC)
   {
-    LOG_ERROR("Recording cannot keep up with the acquisition. Skip " << recordingLagSec << " seconds of the data stream to catch up.");
+    double acquisitionLagSec = recordingLagSec;
+    double latestInputTimestamp = this->NextFrameToBeRecordedTimestamp;
+    if (GetLatestInputItemTimestamp(latestInputTimestamp)==PLUS_SUCCESS)
+    {
+      acquisitionLagSec = currentSystemTime - latestInputTimestamp;
+    }
+    if (acquisitionLagSec < MAX_ALLOWED_RECORDING_LAG_SEC)
+    {
+      // Frames are available (because acquisitionLagSec < MAX_ALLOWED_RECORDING_LAG_SEC) but recording is falling behind
+      // (because acquisitionLagSec < MAX_ALLOWED_RECORDING_LAG_SEC)
+      LOG_ERROR("Recording cannot keep up with the acquisition. Skip " << recordingLagSec << " seconds of the data stream to catch up.");
+    }
     this->NextFrameToBeRecordedTimestamp = vtkAccurateTimer::GetSystemTime();
   }
 
@@ -424,29 +426,6 @@ void vtkVirtualDiscCapture::InternalWriteOutputChannels( vtkXMLDataElement* root
 }
 
 //-----------------------------------------------------------------------------
-double vtkVirtualDiscCapture::GetMaximumFrameRate()
-{
-  LOG_TRACE("vtkVirtualDiscCapture::GetMaximumFrameRate");
-
-  return this->GetAcquisitionRate();
-}
-
-//-----------------------------------------------------------------------------
-double vtkVirtualDiscCapture::GetSamplingPeriodSec()
-{
-  double samplingPeriodSec = 0.1;
-  if (this->SamplingFrameRate > 0)
-  {
-    samplingPeriodSec = 1.0 / this->SamplingFrameRate;
-  }
-  else
-  {
-    LOG_WARNING("m_SamplingFrameRate value is invalid " << this->SamplingFrameRate << ". Use default sampling period of " << samplingPeriodSec << " sec");
-  }
-  return samplingPeriodSec;
-}
-
-//-----------------------------------------------------------------------------
 void vtkVirtualDiscCapture::SetEnableCapturing( bool aValue )
 {
   this->EnableCapturing = aValue;
@@ -460,32 +439,6 @@ void vtkVirtualDiscCapture::SetEnableCapturing( bool aValue )
     this->FirstFrameIndexInThisSegment = 0.0;
     this->RecordingStartTime = vtkAccurateTimer::GetSystemTime(); // reset the starting time for the grace period
   }
-}
-
-//-----------------------------------------------------------------------------
-void vtkVirtualDiscCapture::SetRequestedFrameRate( double aValue )
-{
-  LOG_TRACE("vtkVirtualDiscCapture::SetRequestedFrameRate(" << aValue << ")"); 
-
-  double maxFrameRate = this->GetMaximumFrameRate();
-
-  if( aValue > maxFrameRate )
-  {
-    aValue = maxFrameRate;
-  }
-  this->RequestedFrameRate = aValue;
-
-  LOG_DEBUG("vtkVirtualDiscCapture requested frame rate changed to " << this->RequestedFrameRate );
-}
-
-//-----------------------------------------------------------------------------
-double vtkVirtualDiscCapture::GetAcquisitionRate() const
-{
-  if( this->InputChannels.size() <= 0 )
-  {
-    return VIRTUAL_DEVICE_FRAME_RATE;
-  }
-  return this->InputChannels[0]->GetOwnerDevice()->GetAcquisitionRate();
 }
 
 //-----------------------------------------------------------------------------
@@ -592,13 +545,13 @@ PlusStatus vtkVirtualDiscCapture::TakeSnapshot()
   // Snapshots are triggered manually, so the additional copying in AddTrackedFrame compared to TakeTrackedFrame is not relevant.
   if (this->RecordedFrames->AddTrackedFrame(&trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS)
   {
-    LOG_WARNING(this->GetDeviceId() << ": Frame could not be added because validation failed!");
+    LOG_WARNING(this->GetDeviceId() << ": Frame could not be added because validation failed");
     return PLUS_FAIL;
   }
   
   if( this->WriteFrames() != PLUS_SUCCESS )
   {
-    LOG_ERROR(this->GetDeviceId() << ": Unable to write frames while taking a snapshot.");
+    LOG_ERROR(this->GetDeviceId() << ": Failed to write snapshot frame");
     return PLUS_FAIL;
   }
 
@@ -614,8 +567,8 @@ PlusStatus vtkVirtualDiscCapture::WriteFrames(bool force)
   {
     if( this->Writer->PrepareHeader() != PLUS_SUCCESS )
     {
-      LOG_ERROR("Unable to prepare header.");
-      this->Disconnect();
+      LOG_ERROR("Unable to prepare header");
+      this->StopRecording();
       return PLUS_FAIL;
     }
     this->IsHeaderPrepared = true;
@@ -658,13 +611,13 @@ PlusStatus vtkVirtualDiscCapture::WriteFrames(bool force)
     if( this->Writer->AppendImagesToHeader() != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to append image data to header.");
-      this->Disconnect();
+      this->StopRecording();
       return PLUS_FAIL;
     }
     if( this->Writer->AppendImages() != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to append images. Stopping recording at timestamp: " << LastAlreadyRecordedFrameTimestamp );
-      this->Disconnect();
+      this->StopRecording();
       return PLUS_FAIL;
     }
 
@@ -704,4 +657,15 @@ PlusStatus vtkVirtualDiscCapture::GetInputTrackedFrameListSampled( double &lastA
   }
 
   return this->OutputChannels[0]->GetTrackedFrameListSampled(lastAlreadyRecordedFrameTimestamp, nextFrameToBeRecordedTimestamp, recordedFrames, requestedFramePeriodSec, maxProcessingTimeSec);
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkVirtualDiscCapture::GetLatestInputItemTimestamp(double &timestamp)
+{
+  if( this->OutputChannels.empty() )
+  {
+    LOG_ERROR("No output channels defined" );
+    return PLUS_FAIL;
+  }
+  return this->OutputChannels[0]->GetLatestTimestamp(timestamp);
 }

@@ -180,8 +180,12 @@ protected:
   */
   virtual PlusStatus WriteCompressedImagePixelsToFile(FILE *outputFileStream, int &compressedDataSize);
 
-  /*! Copy from file A to B */
-  virtual PlusStatus MoveDataInFiles(const std::string& sourceFilename, const std::string& destFilename, bool append);
+  /*! Append content of source file to the end of destination file and then delete source file */
+  virtual PlusStatus AppendFile(const std::string& sourceFilename, const std::string& destFilename);
+
+  /*! Rename file */
+  virtual PlusStatus RenameFile(const char* oldname, const char* newname);
+
 private:
 
 #ifdef _WIN32

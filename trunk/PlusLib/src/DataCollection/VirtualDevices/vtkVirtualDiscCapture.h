@@ -40,8 +40,6 @@ public:
 
   virtual bool HasUnsavedData() const;
 
-  virtual double GetAcquisitionRate() const;
-
   /*! Open the output file for writing */
   virtual PlusStatus OpenFile(const char* aFilename = NULL);
 
@@ -63,7 +61,7 @@ public:
   */
   virtual void InternalWriteOutputChannels(vtkXMLDataElement* rootXMLElement);
 
-  void SetRequestedFrameRate(double aValue);
+  vtkSetMacro(RequestedFrameRate, double);
   vtkGetMacro(RequestedFrameRate, double);
 
   vtkGetMacro(ActualFrameRate, double);
@@ -94,16 +92,11 @@ protected:
 
   virtual bool IsFrameBuffered() const;
 
-  virtual PlusStatus WriteFrames(bool force = false);
-
   /*!
-  * Get the maximum frame rate from the video source. If there is none then the tracker
-  * \return Maximum frame rate
+    Copy frames to memory buffer or disk.
+    If force flag is true then data is written to disk immediately.
   */
-  double GetMaximumFrameRate();
-
-  /*! Get the sampling period length (in seconds). Frames are copied from the devices to the data collection buffer once in every sampling period. */
-  double GetSamplingPeriodSec();
+  virtual PlusStatus WriteFrames(bool force = false);
 
   /*! Read the sequence metafile, re-write it with compression */
   PlusStatus CompressFile();
@@ -120,10 +113,11 @@ protected:
   /*! Desired timestamp of the next frame to be recorded */
   double NextFrameToBeRecordedTimestamp;
 
-  /*! Frame rate of the sampling */
-  const int SamplingFrameRate;
-
-  /*! Requested frame rate (frames per second) */
+  /*!
+    Requested frame rate (frames per second)
+    If the input data source provides data at a higher rate then frames will be skipped.
+    If the input data has lower frame rate then requested then all the frames in the input data will be recorded.
+  */
   double RequestedFrameRate;
 
   /*! Actual frame rate (frames per second) */
@@ -168,6 +162,7 @@ protected:
 
   PlusStatus GetInputTrackedFrame(TrackedFrame* aFrame);
   PlusStatus GetInputTrackedFrameListSampled(double &lastAlreadyRecordedFrameTimestamp, double &nextFrameToBeRecordedTimestamp, vtkTrackedFrameList* recordedFrames, double requestedFramePeriodSec, double maxProcessingTimeSec);
+  PlusStatus GetLatestInputItemTimestamp(double &timestamp);
 
 private:
   vtkVirtualDiscCapture(const vtkVirtualDiscCapture&);  // Not implemented.

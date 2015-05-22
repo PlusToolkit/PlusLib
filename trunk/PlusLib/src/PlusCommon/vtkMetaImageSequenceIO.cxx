@@ -1445,7 +1445,7 @@ PlusStatus vtkMetaImageSequenceIO::PrepareHeader()
   if( this->TempHeaderFileName.empty())
   {
     std::string tempFilename;
-    if( PlusCommon::CreateTemporaryFilename(tempFilename, "") != PLUS_SUCCESS )
+    if( PlusCommon::CreateTemporaryFilename(tempFilename, vtkPlusConfig::GetInstance()->GetOutputDirectory()) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to create temporary header file. Check write access.");
       return PLUS_FAIL;
@@ -1456,7 +1456,7 @@ PlusStatus vtkMetaImageSequenceIO::PrepareHeader()
   if( this->TempImageFileName.empty() )
   {
     std::string tempFilename;
-    if( PlusCommon::CreateTemporaryFilename(tempFilename, "") != PLUS_SUCCESS )
+    if( PlusCommon::CreateTemporaryFilename(tempFilename, vtkPlusConfig::GetInstance()->GetOutputDirectory()) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to create temporary image file. Check write access.");
       return PLUS_FAIL;
@@ -1514,18 +1514,19 @@ PlusStatus vtkMetaImageSequenceIO::Close()
 
   std::string headerFullPath = vtkPlusConfig::GetInstance()->GetOutputPath(this->FileName);
 
-  // Move header to final file
-  MoveDataInFiles(this->TempHeaderFileName, headerFullPath.c_str(), false);
-  // Copy image to final file (or data file if .mhd)
+  // Rename header to final filename
+  RenameFile(this->TempHeaderFileName.c_str(), headerFullPath.c_str());
+
   if( STRCASECMP(SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL, this->PixelDataFileName.c_str()) == 0 )
   {
-    MoveDataInFiles(this->TempImageFileName, headerFullPath.c_str(), true);
+    // Append image to final file (mha)
+    AppendFile(this->TempImageFileName, headerFullPath.c_str());
   }
   else
   {
+    // Rename image to final filename (mhd+raw)
     std::string pixFullPath = vtkPlusConfig::GetInstance()->GetOutputPath(this->PixelDataFileName);
-
-    MoveDataInFiles(this->TempImageFileName, pixFullPath.c_str(), false);
+    RenameFile(this->TempImageFileName.c_str(), pixFullPath.c_str());
   }
 
   this->TempHeaderFileName.clear();
@@ -1584,40 +1585,33 @@ PlusStatus vtkMetaImageSequenceIO::SetFileName( const char* aFilename )
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMetaImageSequenceIO::MoveDataInFiles(const std::string& sourceFilename, const std::string& destFilename, bool append)
+PlusStatus vtkMetaImageSequenceIO::AppendFile(const std::string& sourceFilename, const std::string& destFilename)
 {
-  size_t len = 0 ;
-  const int BUFFER_SIZE = 1024;
-  char buffer[BUFFER_SIZE];
-  memset(buffer, 0, BUFFER_SIZE);
   FILE* in = fopen( sourceFilename.c_str(), "rb" ) ;
   FILE* out = NULL;
-  if( !append )
-  {
-    out = fopen( destFilename.c_str(), "wb" ) ;
-  }
-  else
-  {
-    out = fopen( destFilename.c_str(), "ab+");
-  }
+  out = fopen( destFilename.c_str(), "ab+");
   if( in == NULL || out == NULL )
   {
-    LOG_ERROR( "An error occurred while moving data from " << sourceFilename << " to " << destFilename) ;
+    LOG_ERROR( "An error occurred while appending data from " << sourceFilename << " to " << destFilename) ;
     return PLUS_FAIL;
   }
   else
   {
+    const int BUFFER_SIZE = 32000;
+    char *buffer = new char[BUFFER_SIZE];
+    size_t len = 0 ;
     while( (len = fread( buffer, 1, BUFFER_SIZE, in)) > 0 )
     {
       fwrite( buffer, 1, len, out ) ;
       memset(buffer, 0, BUFFER_SIZE);
     }
-    fclose(in) ;
-    fclose(out) ;
+    fclose(in);
+    fclose(out);
     if( !itksys::SystemTools::RemoveFile(sourceFilename.c_str()) )
     {
-      LOG_WARNING("Unable to remove the file: " << sourceFilename);
+      LOG_WARNING("Unable to remove the file " << sourceFilename << " after append is completed");
     }
+    delete[] buffer;
   }
   return PLUS_SUCCESS;
 }
@@ -1642,4 +1636,56 @@ PlusStatus vtkMetaImageSequenceIO::OverwriteNumberOfFramesInHeader(int numberOfF
   this->SetCustomString("DimSize", dimSizeStr.str().c_str());
 
   return PLUS_SUCCESS;
+}
+
+
+//----------------------------------------------------------------------------
+PlusStatus vtkMetaImageSequenceIO::RenameFile(const char* oldname, const char* newname)
+{
+  // Adopted from CMake's cmSystemTools.cxx
+  bool success = false;
+#ifdef _WIN32
+  // On Windows the move functions will not replace existing files. Check if the destination exists.
+  if (itksys::SystemTools::FileExists( newname, true))
+  {
+    // The destination exists.  We have to replace it carefully.  The
+    // MoveFileEx function does what we need but is not available on
+    // Win9x.
+    OSVERSIONINFO osv;
+    DWORD attrs;
+
+    // Make sure the destination is not read only.
+    attrs = GetFileAttributes(newname);
+    if(attrs & FILE_ATTRIBUTE_READONLY)
+    {
+      SetFileAttributes(newname, attrs & ~FILE_ATTRIBUTE_READONLY);
+    }
+
+    // Check the windows version number.
+    osv.dwOSVersionInfoSize = sizeof(osv);
+    GetVersionEx(&osv);
+    if(osv.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS)
+    {
+      // This is Win9x.  There is no MoveFileEx implementation.  We
+      // cannot quite rename the file atomically.  Just delete the
+      // destination and then move the file.
+      DeleteFile(newname);
+      success = (MoveFile(oldname, newname)!=0);
+    }
+    else
+    {
+      // This is not Win9x.  Use the MoveFileEx implementation.
+      success = (MoveFileEx(oldname, newname, MOVEFILE_REPLACE_EXISTING)!=0);
+    }
+  }
+  else
+  {
+    // The destination does not exist.  Just move the file.
+    success = (MoveFile(oldname, newname)!=0);
+  }
+#else
+  /* On UNIX we have an OS-provided call to do this atomically.  */
+  success = (rename(oldname, newname) == 0);
+#endif
+  return success ? PLUS_SUCCESS : PLUS_FAIL;
 }

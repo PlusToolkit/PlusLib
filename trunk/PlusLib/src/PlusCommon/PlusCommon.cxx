@@ -203,7 +203,7 @@ PlusStatus PlusCommon::CreateTemporaryFilename( std::string& aString, const std:
     }
 
     // Get full output file path
-    UINT uRetVal = GetTempFileName(path.c_str(), "", 0, candidateFilename);  // buffer for name
+    UINT uRetVal = GetTempFileName(path.c_str(), "tmp", 0, candidateFilename);  // buffer for name
     if( uRetVal == ERROR_BUFFER_OVERFLOW )
     {
       if( vtksys::SystemTools::FileExists(candidateFilename) )
