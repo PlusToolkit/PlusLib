@@ -27,7 +27,6 @@
 - \xmlAtt \b DepthMm Set the depth [mm] of B-mode ultrasound \OptionalAtt{-1}
 
 - \xmlAtt \b SoundVelocity The speed of sound \c [m/s]. \OptionalAtt{1540}
-- \xmlAtt \b DynRangeDb Dynamic Range \c [dB] of B-mode ultrasound. \OptionalAtt{-1}
 - \xmlAtt \b FrequencyMhz ultrasound transmitter frequency \c [MHz].\OptionalAtt{-1}
 - \xmlAtt \b EnableProbeButtonMonitoring controls if probe button press count should be included in the output channel in the first translation component of the \c ProbeButtonToDummyTransform. The value is incremented each time the physical button on the probe is pressed.\OptionalAtt{FALSE}.
   - \c FALSE Probe button press count is not included in the output.
