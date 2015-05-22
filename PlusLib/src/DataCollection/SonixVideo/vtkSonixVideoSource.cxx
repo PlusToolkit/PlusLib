@@ -463,6 +463,32 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
       continue;
     }
 
+    // Set up imaging parameters
+    // Parameter value <0 means that the parameter should be kept unchanged
+    if (this->Frequency >= 0 && SetFrequency(this->Frequency) != PLUS_SUCCESS) { continue; }
+    if (this->Depth >= 0 && SetDepth(this->Depth) != PLUS_SUCCESS) { continue; }
+    if (this->Sector >= 0 && SetSector(this->Sector) != PLUS_SUCCESS) { continue; }
+    if (this->Gain >= 0 && SetGain(this->Gain) != PLUS_SUCCESS) { continue; }
+    if (this->DynRange >= 0 && SetDynRange(this->DynRange) != PLUS_SUCCESS) { continue; }
+    if (this->Zoom >= 0 && SetZoom(this->Zoom) != PLUS_SUCCESS) { continue; }
+    if (this->CompressionStatus >= 0 && SetCompressionStatus(this->CompressionStatus) != PLUS_SUCCESS) { continue; }    
+    if (this->SoundVelocity > 0 && this->SetParamValue( "soundvelocity", this->SoundVelocity, this->SoundVelocity ) != PLUS_SUCCESS )
+    {
+      continue;
+    }
+
+    if (this->AcquisitionRate<=0)
+    {
+      // AcquisitionRate has not been specified, set it to match the frame rate
+      int aFrameRate=10;
+      if ( this->Ult->getParamValue("frame rate", aFrameRate) )
+      {
+        this->AcquisitionRate=aFrameRate;        
+      }
+    }
+
+    Ult->setSharedMemoryStatus( this->SharedMemoryStatus );
+
 #if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6)
     // RF acquisition mode is always enabled on Ultrasonix SDK 6.x and above, so we only need to change it if it's an earlier SDK version
     if ( this->ImagingMode == RfMode )
@@ -485,6 +511,10 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
       }
     }
 #endif
+
+    // Wait for the depth change to take effect before calling ConfigureVideoSource()
+    // (it is especially important if auto clipping is enabled because then we need accurate frame size)
+    Sleep(1000);
 
     // Configure video sources
     if( this->WantDataType(udtBPost))
@@ -521,32 +551,6 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
       LOG_ERROR("Setting AcquisitionDataType failed: couldn't request the data aquisition type " << this->AcquisitionDataType << ", " << GetLastUlteriusError());
       return PLUS_FAIL;
     }
-
-    // Set up imaging parameters
-    // Parameter value <0 means that the parameter should be kept unchanged
-    if (this->Frequency >= 0 && SetFrequency(this->Frequency) != PLUS_SUCCESS) { continue; }
-    if (this->Depth >= 0 && SetDepth(this->Depth) != PLUS_SUCCESS) { continue; }
-    if (this->Sector >= 0 && SetSector(this->Sector) != PLUS_SUCCESS) { continue; }
-    if (this->Gain >= 0 && SetGain(this->Gain) != PLUS_SUCCESS) { continue; }
-    if (this->DynRange >= 0 && SetDynRange(this->DynRange) != PLUS_SUCCESS) { continue; }
-    if (this->Zoom >= 0 && SetZoom(this->Zoom) != PLUS_SUCCESS) { continue; }
-    if (this->CompressionStatus >= 0 && SetCompressionStatus(this->CompressionStatus) != PLUS_SUCCESS) { continue; }    
-    if (this->SoundVelocity > 0 && this->SetParamValue( "soundvelocity", this->SoundVelocity, this->SoundVelocity ) != PLUS_SUCCESS )
-    {
-      continue;
-    }
-
-    if (this->AcquisitionRate<=0)
-    {
-      // AcquisitionRate has not been specified, set it to match the frame rate
-      int aFrameRate=10;
-      if ( this->Ult->getParamValue("frame rate", aFrameRate) )
-      {
-        this->AcquisitionRate=aFrameRate;        
-      }
-    }
-
-    Ult->setSharedMemoryStatus( this->SharedMemoryStatus );
 
     // Set callback and timeout for receiving new frames
     this->Ult->setCallback(vtkSonixVideoSourceNewFrameCallback);
