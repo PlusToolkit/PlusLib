@@ -1,101 +1,58 @@
  <PlusConfiguration version="2.1">
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
-      Name="PlusServer: Saved bi-plane + Saved Tracker"
+      Name="PlusServer: Saved bi-plane"
       Description="Broadcasting acquired video through OpenIGTLink"
     />
-    <Device
-      Id="TrackerDevice"
-      Type="SavedDataSource"
-      UseData="TRANSFORM"      
-      AcquisitionRate="10"
-      LocalTimeOffsetSec="0.0"
-      ToolReferenceFrame="Tracker" 
-	  ReplayEnabled="TRUE"
-      SequenceMetafile="fCal_Test_Calibration_3NWires_fCal2.0.mha" >
-      <DataSources>
-        <DataSource Type="Tool" Id="Probe"  />
-		<DataSource Type="Tool" Id="Reference"  />
-      </DataSources>      
-      <OutputChannels>
-        <OutputChannel Id="TrackerStream">
-          <DataSource Id="Probe"/>
-		  <DataSource Id="Reference"/>
-        </OutputChannel>
-      </OutputChannels>
-    </Device>
 
     <Device
       Id="LeftVideoDevice"
       Type="SavedDataSource" 
-      UseData="IMAGE"
+      UseData="IMAGE_AND_TRANSFORM"
 	  ReplayEnabled="TRUE"
       AcquisitionRate="10" 
       LocalTimeOffsetSec="0.0" 
-      SequenceMetafile="fCal_Test_Calibration_3NWires_fCal2.0.mha" >
+      SequenceMetafile="ie33_biplane_LeftCaptureDevice_compressed.mha" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />
       </DataSources>      
       <OutputChannels>
-        <OutputChannel Id="LeftVideoStream" VideoDataSourceId="Video" />
+        <OutputChannel Id="LeftTrackedVideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
     </Device>
 	
 	<Device
       Id="RightVideoDevice"
       Type="SavedDataSource" 
-      UseData="IMAGE"
+      UseData="IMAGE_AND_TRANSFORM"
 	  ReplayEnabled="TRUE"
       AcquisitionRate="10" 
       LocalTimeOffsetSec="0.0" 
-      SequenceMetafile="fCal_Test_Calibration_3NWires_fCal2.0.mha" >
+      SequenceMetafile="ie33_biplane_RightCaptureDevice_compressed.mha" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />
       </DataSources>      
       <OutputChannels>
-        <OutputChannel Id="RightVideoStream" VideoDataSourceId="Video" />
+        <OutputChannel Id="RightTrackedVideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
     </Device>
-    
-    <Device 
-      Id="LeftTrackedVideoDevice" 
-      Type="VirtualMixer" >
-      <InputChannels>
-        <InputChannel Id="TrackerStream" />
-        <InputChannel Id="LeftVideoStream" />
-      </InputChannels>
-      <OutputChannels>
-        <OutputChannel Id="LeftTrackedVideoStream"/>
-      </OutputChannels>
-    </Device>
-
-    <Device 
-      Id="RightTrackedVideoDevice" 
-      Type="VirtualMixer" >
-      <InputChannels>
-        <InputChannel Id="TrackerStream" />
-        <InputChannel Id="RightVideoStream" />
-      </InputChannels>
-      <OutputChannels>
-        <OutputChannel Id="RightTrackedVideoStream"/>
-      </OutputChannels>
-    </Device>
-
   </DataCollection>
 
   <CoordinateDefinitions>
-    <Transform From="LeftImage" To="Reference"
+    <Transform From="LeftImage" To="Probe"
       Matrix="
-        1 0 0 0
-        0 1 0 0
-        0 0 1 0        
-        0 0 0 1" />
-    <Transform From="RightImage" To="Reference"
+        0.166006	-0.0944847	-0.00445761	-14.9463
+        0.0903257	0.17565	-0.014166	-86.5863
+        0.0104134	0.0106585	0.193937	0.637663
+        0	0	0	1"
+       Error="1.17562" Date="052015_132620" />
+    <Transform From="RightImage" To="Probe"
       Matrix="
-        1 0 0 0
-        0 1 0 0
-        0 0 1 0        
-        0 0 0 1" />
+        0.000388924	-0.0858653	0.179408	19.1744
+        0.015382	0.181241	0.0844275	-70.6487
+        -0.195113	0.0147178	0.00701358	50.1871
+        0	0	0	1"
+       Error="1.00906" Date="052015_132903" />
   </CoordinateDefinitions>
   
   <PlusOpenIGTLinkServer 
