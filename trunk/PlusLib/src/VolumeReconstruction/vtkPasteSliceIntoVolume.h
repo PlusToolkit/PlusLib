@@ -251,7 +251,7 @@ public:
     Set the interpolation mode
     LINEAR:           Each pixel is distributed into the surrounding eight voxels using trilinear interpolation weights.
                       Resists noise, but is slower and may introduce blurring.
-    NEAREST_NEIGHBOR: Each pixel is inserted only into the spatially nereast voxel.
+    NEAREST_NEIGHBOR: Each pixel is inserted only into the spatially nearest voxel.
                       Faster, but is susceptible to noise. (default)
   */
   vtkSetMacro(InterpolationMode,InterpolationType);
@@ -300,6 +300,16 @@ public:
   /*! DEPRECATED - use CompoundingMode instead! */
   const char *GetCalculationAsString(CalculationTypeDeprecated calcEnum);
 
+  /*!
+    Pixels that have lower brightness value than this threshold value will not be inserted into the volume.
+    If value is NO_PIXEL_REJECTION then no pixels will be rejected based on intensity value (slightly faster
+    than setting a value that is lower than all pixel values).
+  */
+  vtkSetMacro(PixelRejectionThreshold, double);
+  vtkGetMacro(PixelRejectionThreshold, double);
+  bool IsPixelRejectionEnabled();
+  void SetPixelRejectionDisabled();
+  
 protected:
   vtkPasteSliceIntoVolume();
   ~vtkPasteSliceIntoVolume();
@@ -342,6 +352,8 @@ protected:
   // Multithreading
   vtkMultiThreader *Threader;
   int NumberOfThreads;
+  
+  double PixelRejectionThreshold;
   
 private:
   vtkPasteSliceIntoVolume(const vtkPasteSliceIntoVolume&);

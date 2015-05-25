@@ -187,6 +187,10 @@ public:
   void SetFanAnglesAutoDetectBrightnessThreshold(double threshold);
   void SetFanAnglesAutoDetectFilterRadiusPixel(int radiusPixel);
 
+  /*! Pixels that have lower brightness value than this threshold value will not be inserted into the volume */
+  void SetPixelRejectionThreshold(double threshold);
+  double GetPixelRejectionThreshold();
+  
 protected: 
   vtkVolumeReconstructor();
   virtual ~vtkVolumeReconstructor();
@@ -230,7 +234,7 @@ protected:
     If EnableFanAngleAutoDetect is disabled then these values will be used as fan angles.
   */
   double FanAnglesDeg[2];
-
+  
 private: 
   vtkVolumeReconstructor(const vtkVolumeReconstructor&);  // Not implemented.
   void operator=(const vtkVolumeReconstructor&);  // Not implemented.

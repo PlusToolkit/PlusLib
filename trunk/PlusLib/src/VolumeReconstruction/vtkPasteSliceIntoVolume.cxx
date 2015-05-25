@@ -51,6 +51,7 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkXMLDataElement.h"
 
 #include "vtkPasteSliceIntoVolume.h"
+#include "vtkPasteSliceIntoVolumeHelperCommon.h"
 #include "vtkPasteSliceIntoVolumeHelperUnoptimized.h"
 #include "vtkPasteSliceIntoVolumeHelperOptimized.h"
 
@@ -65,6 +66,7 @@ struct InsertSliceThreadFunctionInfoStruct
   vtkPasteSliceIntoVolume::OptimizationType Optimization;
   vtkPasteSliceIntoVolume::InterpolationType InterpolationMode;
   vtkPasteSliceIntoVolume::CompoundingType CompoundingMode;
+  double PixelRejectionThreshold;
 
   double ClipRectangleOrigin[2];
   double ClipRectangleSize[2];
@@ -126,6 +128,8 @@ vtkPasteSliceIntoVolume::vtkPasteSliceIntoVolume()
   // deprecated reconstruction options
   this->Compounding = -1;
   this->Calculation = UNDEFINED_CALCULATION;
+  
+  SetPixelRejectionDisabled();
 }
 
 //----------------------------------------------------------------------------
@@ -337,6 +341,8 @@ PlusStatus vtkPasteSliceIntoVolume::InsertSlice(vtkImageData *image, vtkMatrix4x
   str.FanRadiusStart=this->FanRadiusStart;
   str.FanRadiusStop=this->FanRadiusStop;
 
+  str.PixelRejectionThreshold=this->PixelRejectionThreshold;
+
   if (this->NumberOfThreads>0)
   {
     this->Threader->SetNumberOfThreads(this->NumberOfThreads);
@@ -455,6 +461,7 @@ VTK_THREAD_RETURN_TYPE vtkPasteSliceIntoVolume::InsertSliceThreadFunction( void 
   insertionParams.interpolationMode = str->InterpolationMode;
   insertionParams.outData = outData;
   insertionParams.outPtr = outPtr;
+  insertionParams.pixelRejectionThreshold = str->PixelRejectionThreshold;
   // the matrix will be set once we know more about the optimization level
 
   if (str->Optimization == FULL_OPTIMIZATION)
@@ -756,4 +763,16 @@ const char* vtkPasteSliceIntoVolume::GetOptimizationModeAsString(OptimizationTyp
 bool vtkPasteSliceIntoVolume::FanClippingApplied()
 {
   return this->FanAnglesDeg[0] != 0.0 || this->FanAnglesDeg[1] != 0.0;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPasteSliceIntoVolume::IsPixelRejectionEnabled()
+{
+  return PixelRejectionEnabled(this->PixelRejectionThreshold);
+}
+
+//----------------------------------------------------------------------------
+void vtkPasteSliceIntoVolume::SetPixelRejectionDisabled()
+{
+  this->PixelRejectionThreshold = PIXEL_REJECTION_DISABLED;
 }

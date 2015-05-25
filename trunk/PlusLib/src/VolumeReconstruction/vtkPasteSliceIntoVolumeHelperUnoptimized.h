@@ -294,6 +294,13 @@ static void vtkUnoptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* 
     return;
   }
 
+  bool pixelRejectionEnabled = PixelRejectionEnabled(insertionParams->pixelRejectionThreshold);
+  double pixelRejectionThresholdSumAllComponents = 0;
+  if (pixelRejectionEnabled)
+  {
+    pixelRejectionThresholdSumAllComponents = insertionParams->pixelRejectionThreshold * numscalars;
+  }
+
   // Loop through  slice pixels in the input extent and put them into the output volume
   // the resulting point in the output volume (outPoint) from a point in the input slice
   // (inpoint)
@@ -313,6 +320,21 @@ static void vtkUnoptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* 
           // outside the clipping rectangle
           continue;
         }
+
+        if (pixelRejectionEnabled)
+        {
+          double inPixelSumAllComponents = 0;
+          for (int i = numscalars-1; i>=0; i--)
+          {
+            inPixelSumAllComponents+=inPtr[i];
+          }
+          if (inPixelSumAllComponents<pixelRejectionThresholdSumAllComponents)
+          {
+            // too dark, skip this pixel
+            inPtr += numscalars;
+            continue;
+          }
+        }        
 
         // check if we are within the clipping fan
         if ( fanClippingEnabled )
