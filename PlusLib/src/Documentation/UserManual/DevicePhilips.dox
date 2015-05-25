@@ -34,7 +34,7 @@ This device is not included in any of the standard packages, as it requires acce
     - \xmlAtt \ref ClipRectangleOrigin \OptionalAtt{0 0 0}
     - \xmlAtt \ref ClipRectangleSize \OptionalAtt{0 0 0}
 
-\section PhilipsExampleConfigFile Example configuration file PlusDeviceSet_Server_Phillips_ie33.xml
+\section PhilipsExampleConfigFile Example configuration file PlusDeviceSet_Server_Philips_ie33.xml
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_Phillips_ie33.xml"
 
