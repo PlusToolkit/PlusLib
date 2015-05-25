@@ -89,6 +89,7 @@ afterward. This resulted in unwanted and clearly-wrong artifacts.
 #include "PlusConfigure.h"
 
 #include "PlusMath.h"
+#include "float.h" // for DBL_MAX
 
 class vtkImageData;
 
@@ -96,6 +97,10 @@ class vtkImageData;
 #define ACCUMULATION_MULTIPLIER 256
 #define ACCUMULATION_MAXIMUM 65535
 #define ACCUMULATION_THRESHOLD 65279 // calculate manually to possibly save on computation time
+
+#define PIXEL_REJECTION_DISABLED (-DBL_MAX)
+
+bool PixelRejectionEnabled(double threshold) { return threshold > PIXEL_REJECTION_DISABLED+DBL_MIN*200; }
 
 /*!
   These are the parameters that are supplied to any given "InsertSlice" function, whether it be
@@ -127,6 +132,8 @@ struct vtkPasteSliceIntoVolumeInsertSliceParams
   double* fanOrigin; // array size 2, in the input image physical coordinate system
   double fanRadiusStart; // in the input image physical coordinate system
   double fanRadiusStop; // in the input image physical coordinate system
+
+  double pixelRejectionThreshold;
 };
 
 
