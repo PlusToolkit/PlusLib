@@ -1,0 +1,40 @@
+/*!
+\page DeviceTelemed Telemed USB ultrasound systems
+
+\section TelemedSupportedHwDevices Supported hardware devices
+
+- This device is used for image acquisition from Telemed ultrasound systems.
+- Tested only with MicrUs devices (http://www.pcultrasound.com/products/micrus/index.html) but other Telemed devices should be compatible, too.
+- Link to manufacturer's website: http://www.pcultrasound.com
+
+\section TelemedSupportedPlatforms Included in packages
+- \ref PackageTelemed
+
+\section TelemedInstallation Installation
+
+- Requires drivers provided by Telemed for running (otherwise Plus application will not start).
+- It is recommended to run the Telemed imaging software while connecting to the device using Plus.
+
+\section TelemedConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "TelemedVideo" \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+
+- \xmlAtt \b DynRangeDb Dynamic Range \c [dB] of B-mode ultrasound. \OptionalAtt{ }
+- \xmlAtt \b GainPercent Is the gain percentage of B-mode ultrasound; it sets the linear TGC curve based on three values (initial, middle and far). These values are specified as a percentage vector and each has a valid range: 0-100. \OptionalAtt{ }
+- \xmlAtt \b PowerPercent Power to be used for imaging, as a percentage of maximum available power. Valid range is 0-100. \OptionalAtt{ }
+
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+    - \xmlAtt \ref ClipRectangleOrigin \OptionalAtt{0 0 0}
+    - \xmlAtt \ref ClipRectangleSize \OptionalAtt{0 0 0}
+
+\section TelemedExampleConfigFile Example configuration file PlusDeviceSet_Server_TelemedVideoCapture.xml 
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_TelemedVideoCapture.xml"
+
+*/

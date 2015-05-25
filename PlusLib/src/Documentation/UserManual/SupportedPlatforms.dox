@@ -20,6 +20,11 @@ Package to be used for connecting to Interson USB ultrasound probes on 32/64-bit
 Requires Interson USB probe drivers installed (otherwise Plus applications will fail to start).
 Executables are 32-bit applications.
 
+\section PackageTelemed Telemed Windows 32 bits
+Package to be used for connecting to Telemed USB ultrasound probes on 32/64-bit, Windows 7 and Windows 8 systems.
+Requires Telemed drivers installed (otherwise Plus applications will fail to start).
+Executables are 32-bit applications.
+
 \section PackageBk BK Windows 32 bits
 Package to be used for connecting to BK ultrasound systems on 32/64-bit, Windows 7 and Windows 8 systems.
 Requires BK OEM interface license.
