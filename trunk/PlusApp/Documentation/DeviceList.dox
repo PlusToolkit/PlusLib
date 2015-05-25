@@ -4,9 +4,11 @@
 
 \par Ultrasound systems
 - \subpage DeviceSonixVideo
+- \subpage DeviceTelemed
 - \subpage DeviceInterson
 - \subpage DeviceIntersonSDKCxx
 - \subpage DeviceBkProFocus
+- \subpage DevicePhilips
 
 \par Framegrabbers and cameras
 - \subpage DeviceEpiphan
