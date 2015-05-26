@@ -193,7 +193,7 @@ PlusStatus vtkTelemedVideoSource::InternalUpdate()
   }
 
   // Add the frame to the stream buffer
-  PlusStatus status = aSource->AddItem(mono, US_IMG_ORIENT_MF, frameSizeInPx,
+  PlusStatus status = aSource->AddItem(mono, aSource->GetInputImageOrientation(), frameSizeInPx,
                                                     VTK_UNSIGNED_CHAR, 1,US_IMG_BRIGHTNESS, 0, this->FrameNumber,
                                                     UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, NULL);
   this->Modified();
