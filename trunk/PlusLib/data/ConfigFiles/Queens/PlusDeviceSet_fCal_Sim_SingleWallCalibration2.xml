@@ -36,12 +36,7 @@
         0	0	1	-14
         0	0	0	1" />
     <DisplayableObject Type="Model" ObjectCoordinateFrame="Tracker" Id="Volume"/>
-    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel" File="Stylus_Example.stl"
-      ModelToObjectTransform="
-        1	0	0	-210
-        0	1	0	0
-        0	0	1	0
-        0	0	0	1" />
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel" File="Stylus_Example.stl" />
     <DisplayableObject
       Id="PhantomModel"
       Type="Model"

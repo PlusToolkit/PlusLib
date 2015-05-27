@@ -264,9 +264,9 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
     return ++numberOfFailures;
   }
   
-  vtkSmartPointer<vtkMatrix4x4> transformCurrent = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  vtkSmartPointer<vtkMatrix4x4> stylusTipToStylusTransformCurrent = vtkSmartPointer<vtkMatrix4x4>::New(); 
   double currentError(0); 
-  if ( vtkPlusConfig::GetInstance()->ReadTransformToCoordinateDefinition(currentRootElem, stylusTipCoordinateFrame, stylusCoordinateFrame, transformCurrent, &currentError) != PLUS_SUCCESS )
+  if ( vtkPlusConfig::GetInstance()->ReadTransformToCoordinateDefinition(currentRootElem, stylusTipCoordinateFrame, stylusCoordinateFrame, stylusTipToStylusTransformCurrent, &currentError) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read current pivot calibration result from configuration file!"); 
     return ++numberOfFailures;
@@ -280,28 +280,28 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
     return ++numberOfFailures;
   }
 
-  vtkSmartPointer<vtkMatrix4x4> transformBaseline = vtkSmartPointer<vtkMatrix4x4>::New(); 
+  vtkSmartPointer<vtkMatrix4x4> stylusTipToStylusTransformBaseline = vtkSmartPointer<vtkMatrix4x4>::New(); 
   double baselineError(0); 
-  if ( vtkPlusConfig::GetInstance()->ReadTransformToCoordinateDefinition(baselineRootElem, stylusTipCoordinateFrame, stylusCoordinateFrame, transformBaseline, &baselineError) != PLUS_SUCCESS )
+  if ( vtkPlusConfig::GetInstance()->ReadTransformToCoordinateDefinition(baselineRootElem, stylusTipCoordinateFrame, stylusCoordinateFrame, stylusTipToStylusTransformBaseline, &baselineError) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read current stylus calibration result from configuration file!"); 
     return ++numberOfFailures;
   }
 
   // Compare the transforms
-  double posDiff = PlusMath::GetPositionDifference(transformCurrent, transformBaseline); 
-  double rotDiff = PlusMath::GetOrientationDifference(transformCurrent, transformBaseline); 
+  double posDiff = PlusMath::GetPositionDifference(stylusTipToStylusTransformCurrent, stylusTipToStylusTransformBaseline); 
+  double rotDiff = PlusMath::GetOrientationDifference(stylusTipToStylusTransformCurrent, stylusTipToStylusTransformBaseline); 
 
   std::ostringstream currentTransform; 
-  transformCurrent->PrintSelf(currentTransform, vtkIndent(0));
+  stylusTipToStylusTransformCurrent->PrintSelf(currentTransform, vtkIndent(0));
   std::ostringstream baselineTransform; 
-  transformBaseline->PrintSelf(baselineTransform, vtkIndent(0));
+  stylusTipToStylusTransformBaseline->PrintSelf(baselineTransform, vtkIndent(0));
 
   if ( posDiff > TRANSLATION_ERROR_THRESHOLD)
   {
     LOG_ERROR("Transform mismatch: translation difference is " <<posDiff<< ", maximum allowed is "<<TRANSLATION_ERROR_THRESHOLD);
-    LOG_INFO("Current transform: " << currentTransform.str());
-    LOG_INFO("Baseline transform: " << baselineTransform.str());
+    LOG_INFO("Current StylusTipToStylus transform: " << currentTransform.str());
+    LOG_INFO("Baseline StylusTipToStylus transform: " << baselineTransform.str());
     numberOfFailures++;
   }
 

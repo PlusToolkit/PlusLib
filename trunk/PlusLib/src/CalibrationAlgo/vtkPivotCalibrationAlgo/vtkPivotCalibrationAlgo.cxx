@@ -182,20 +182,20 @@ PlusStatus vtkPivotCalibrationAlgo::DoPivotCalibration(vtkTransformRepository* a
   pivotPointToMarkerTransformMatrix->SetElement(2,3,z);
 
   // Compute tool orientation
-  // X axis: from the pivot point to the marker is on the X axis of the tool
-  double pivotPointToMarkerTransformX[3]={x,y,z};
-  vtkMath::Normalize(pivotPointToMarkerTransformX);
-  pivotPointToMarkerTransformMatrix->SetElement(0,0,pivotPointToMarkerTransformX[0]);
-  pivotPointToMarkerTransformMatrix->SetElement(1,0,pivotPointToMarkerTransformX[1]);
-  pivotPointToMarkerTransformMatrix->SetElement(2,0,pivotPointToMarkerTransformX[2]);
+  // Z axis: from the pivot point to the marker is on the -Z axis of the tool
+  double pivotPointToMarkerTransformZ[3]={x,y,z};
+  vtkMath::Normalize(pivotPointToMarkerTransformZ);
+  pivotPointToMarkerTransformMatrix->SetElement(0,2,pivotPointToMarkerTransformZ[0]);
+  pivotPointToMarkerTransformMatrix->SetElement(1,2,pivotPointToMarkerTransformZ[1]);
+  pivotPointToMarkerTransformMatrix->SetElement(2,2,pivotPointToMarkerTransformZ[2]);
 
-  // Z axis: orthogonal to tool's X axis and the marker's Y axis
-  double pivotPointToMarkerTransformZ[3]={0,0,0};
-  // Use the unitY vector as pivotPointToMarkerTransformY vector, unless unitY is parallel to pivotPointToMarkerTransformX.
-  // If unitY is parallel to pivotPointToMarkerTransformX then use the unitZ vector as pivotPointToMarkerTransformY.
+  // Y axis: orthogonal to tool's Z axis and the marker's X axis
+  double pivotPointToMarkerTransformY[3]={0,0,0};
+  // Use the unitX vector as pivotPointToMarkerTransformX vector, unless unitX is parallel to pivotPointToMarkerTransformZ.
+  // If unitX is parallel to pivotPointToMarkerTransformZ then use the unitY vector as pivotPointToMarkerTransformX.
 
-  double unitY[3]={0,1,0};  
-  double angle = acos(vtkMath::Dot(pivotPointToMarkerTransformX,unitY));
+  double unitX[3]={1,0,0};  
+  double angle = acos(vtkMath::Dot(pivotPointToMarkerTransformZ,unitX));
   // Normalize between -pi/2 .. +pi/2
   if (angle>vtkMath::Pi()/2)
   {
@@ -207,30 +207,30 @@ PlusStatus vtkPivotCalibrationAlgo::DoPivotCalibration(vtkTransformRepository* a
   }
   if (fabs(angle)*180.0/vtkMath::Pi()>20.0) 
   {
-    // unitY is not parallel to pivotPointToMarkerTransformX
-    vtkMath::Cross(pivotPointToMarkerTransformX, unitY, pivotPointToMarkerTransformZ);
-    LOG_DEBUG("Use unitY");
+    // unitX is not parallel to pivotPointToMarkerTransformZ
+    vtkMath::Cross(pivotPointToMarkerTransformZ, unitX, pivotPointToMarkerTransformY);
+    LOG_DEBUG("Use unitX");
   }
   else
   {
-    // unitY is parallel to pivotPointToMarkerTransformX
-    // use the unitZ instead
-    double unitZ[3]={0,0,1};
-    vtkMath::Cross(pivotPointToMarkerTransformX, unitZ, pivotPointToMarkerTransformZ);    
-    LOG_DEBUG("Use unitZ");
+    // unitX is parallel to pivotPointToMarkerTransformZ
+    // use the unitY instead
+    double unitY[3]={0,1,0};
+    vtkMath::Cross(pivotPointToMarkerTransformZ, unitY, pivotPointToMarkerTransformY);
+    LOG_DEBUG("Use unitY");
   }
-  vtkMath::Normalize(pivotPointToMarkerTransformZ);
-  pivotPointToMarkerTransformMatrix->SetElement(0,2,pivotPointToMarkerTransformZ[0]);
-  pivotPointToMarkerTransformMatrix->SetElement(1,2,pivotPointToMarkerTransformZ[1]);
-  pivotPointToMarkerTransformMatrix->SetElement(2,2,pivotPointToMarkerTransformZ[2]);
-
-  // Y axis: orthogonal to tool's Z axis and X axis
-  double pivotPointToMarkerTransformY[3]={0,0,0};
-  vtkMath::Cross(pivotPointToMarkerTransformZ, pivotPointToMarkerTransformX, pivotPointToMarkerTransformY);
   vtkMath::Normalize(pivotPointToMarkerTransformY);
   pivotPointToMarkerTransformMatrix->SetElement(0,1,pivotPointToMarkerTransformY[0]);
   pivotPointToMarkerTransformMatrix->SetElement(1,1,pivotPointToMarkerTransformY[1]);
   pivotPointToMarkerTransformMatrix->SetElement(2,1,pivotPointToMarkerTransformY[2]);
+
+  // X axis: orthogonal to tool's Y axis and Z axis
+  double pivotPointToMarkerTransformX[3]={0,0,0};
+  vtkMath::Cross(pivotPointToMarkerTransformY, pivotPointToMarkerTransformZ, pivotPointToMarkerTransformX);
+  vtkMath::Normalize(pivotPointToMarkerTransformX);
+  pivotPointToMarkerTransformMatrix->SetElement(0,0,pivotPointToMarkerTransformX[0]);
+  pivotPointToMarkerTransformMatrix->SetElement(1,0,pivotPointToMarkerTransformX[1]);
+  pivotPointToMarkerTransformMatrix->SetElement(2,0,pivotPointToMarkerTransformX[2]);
 
   this->SetPivotPointToMarkerTransformMatrix(pivotPointToMarkerTransformMatrix);
 
