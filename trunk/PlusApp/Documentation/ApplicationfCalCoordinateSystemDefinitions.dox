@@ -16,7 +16,7 @@ Probe     | \ref CoordinateSystemDefinitions "see common coordinate systems desc
 StylusTip | \ref CoordinateSystemDefinitions "see common coordinate systems description" | - |  -
 Image     | \ref CoordinateSystemDefinitions "see common coordinate systems description" | - |  -
 
-Overview of coordinate systems:
+Coordinate systems overview sketch (3D Slicer compatible interactive 3D model of the figure below is available <a href="https://subversion.assembla.com/svn/plus/trunk/doc/specifications/CoordinateSystems/CoordinateSystems.mrb" target="_blank">here</a>):
 
 \image html CoordinateSystemDefinitionsfCal.png
 
