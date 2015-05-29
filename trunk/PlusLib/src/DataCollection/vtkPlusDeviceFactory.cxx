@@ -110,7 +110,7 @@ See License.txt for details.
 #endif
 
 #ifdef PLUS_USE_IntuitiveDaVinci
-#include "..\IntuitiveDaVinci\vtkIntuitiveDaVinciTracker.h"
+#include "vtkIntuitiveDaVinciTracker.h"
 #endif
 
 #ifdef PLUS_USE_PHILIPS_3D_ULTRASOUND
