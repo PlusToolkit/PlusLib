@@ -24,6 +24,7 @@ class vtkImageImport;
 
   \ingroup PlusLibDataCollection
 */
+
 class vtkDataCollectionExport vtkTelemedVideoSource : public vtkPlusDevice
 {
 public:
@@ -37,14 +38,6 @@ public:
   PlusStatus ReadConfiguration(vtkXMLDataElement* config);
   /*! Write configuration to xml data */
   PlusStatus WriteConfiguration(vtkXMLDataElement* config);
-
-  /*! Connect to device. Connection is needed for recording or single frame acquisition */
-  PlusStatus Connect();
-
-  /*!  Disconnect from device.
-  This method must be called before application exit, or else the
-  application might hang during exit.  */
-  PlusStatus Disconnect();
 
   /*! Manage device frozen state */
   PlusStatus FreezeDevice(bool freeze);
@@ -68,6 +61,11 @@ public:
   /*! Set the frequency in megahertz */
   void SetFrequencyMhz(int FrequencyMhz);
 
+  /*! Verify the device is correctly configured */
+  virtual PlusStatus NotifyConfigured();
+
+  virtual std::string GetSdkVersion();
+
 protected:
 
   /*! Constructor */
@@ -81,12 +79,14 @@ protected:
   /*! Device-specific disconnect */
   PlusStatus InternalDisconnect();
 
-  TelemedUltrasound *device;
+  TelemedUltrasound *Device;
   int FrequencyMhz;
   int DynRangeValue;
   int PowerPerCent;
   int GainPerCent;
   long DepthMm;
+
+  PlusVideoFrame UncompressedVideoFrame;
 
 private:
 

@@ -812,7 +812,7 @@ IF (PLUS_USE_TELEMED_VIDEO)
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
     ${TELEMED_INCLUDE_DIR}
     ${WINDOWSSDK_LATEST_DIR}/Include
-	# ${CMAKE_CURRENT_BINARY_DIR}/Telemed
+    ${CMAKE_CURRENT_SOURCE_DIR}/Telemed
     )
   SET (DataCollection_LIBS ${DataCollection_LIBS}
     strmiids

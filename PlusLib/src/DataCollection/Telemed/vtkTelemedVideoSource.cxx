@@ -5,6 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 
+
 #include "vtkTelemedVideoSource.h"
 #include "PlusConfigure.h"
 
@@ -14,27 +15,28 @@ See License.txt for details.
 
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
+#include "PixelCodec.h"
 
 vtkStandardNewMacro(vtkTelemedVideoSource); // Corresponds to the implementation of : static vtkTelemedVideoSource *New();  (in .h file)
 
 //----------------------------------------------------------------------------
 vtkTelemedVideoSource::vtkTelemedVideoSource()
+: FrequencyMhz(5)
+, DynRangeValue(80)
+, PowerPerCent(60)
+, GainPerCent(70)
+, DepthMm(50)
 {
-  device = new TelemedUltrasound();
+  this->Device = new TelemedUltrasound();
   this->RequireImageOrientationInConfiguration = true;
   this->StartThreadForInternalUpdates = true;
-  CreateDefaultOutputChannel(true);
-  FrequencyMhz=5;
-  DynRangeValue=80;
-  PowerPerCent=60;
-  GainPerCent=70;
-  DepthMm=50;
 }
 
 //----------------------------------------------------------------------------
 vtkTelemedVideoSource::~vtkTelemedVideoSource()
 {
-  device->~TelemedUltrasound();
+  delete this->Device;
+  this->Device=NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -47,13 +49,7 @@ void vtkTelemedVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 PlusStatus vtkTelemedVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   LOG_TRACE("vtkTelemedVideoSource::ReadConfiguration");
-  vtkXMLDataElement* dataCollection = rootConfigElement->FindNestedElementWithName("DataCollection");
-  vtkXMLDataElement* deviceConfig = dataCollection->FindNestedElementWithNameAndAttribute("Device", "Type", "TelemedVideo");
-  if (deviceConfig == NULL)
-  {
-    LOG_ERROR("Internal error: If TelemedVideo device node does not exist in the configuration file, why is this method invoked?");
-    return PLUS_FAIL;
-  }
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, DynRangeDb, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, GainPercent, deviceConfig);
@@ -78,34 +74,11 @@ PlusStatus vtkTelemedVideoSource::WriteConfiguration(vtkXMLDataElement* rootConf
   return PLUS_SUCCESS;
 }
 
-//----------------------------------------------------------------------------
-/*! Connect to device. Connection is needed for recording or single frame acquisition */
-PlusStatus vtkTelemedVideoSource::Connect()
-{
-  PlusStatus status = InternalConnect();
-  //device->SetDepth(this->DepthMm);
-  device->SetPowerValue(this->PowerPerCent);   //%
-  device->SetGainValue(this->GainPerCent);    //%
-  device->SetDynRangeValue(this->DynRangeValue); //dB
-  this->SetFrequencyMhz(this->FrequencyMhz);
-
-  return status;
-}
-
-//----------------------------------------------------------------------------
-/*!  Disconnect from device.
-This method must be called before application exit, or else the
-application might hang during exit.  */
-PlusStatus vtkTelemedVideoSource::Disconnect()
-{
-  return InternalDisconnect();
-}
-
 
 //----------------------------------------------------------------------------
 PlusStatus vtkTelemedVideoSource::FreezeDevice(bool freeze)
 {
-  device->FreezeDevice(freeze);
+  this->Device->FreezeDevice(freeze);
   return PLUS_SUCCESS;
 }
 
@@ -113,16 +86,16 @@ PlusStatus vtkTelemedVideoSource::FreezeDevice(bool freeze)
 //----------------------------------------------------------------------------
 PlusStatus vtkTelemedVideoSource::InternalConnect()
 {
-  if(device->Initialize())
+  if(!this->Device->Initialize())
   {
-    this->Connected=1;
-    return PLUS_SUCCESS;
-  }
-  else
-  {
-    this->Connected=0;
+    LOG_ERROR("vtkTelemedVideoSource device initialization failed");
     return PLUS_FAIL;
   }
+  this->Device->SetPowerValue(this->PowerPerCent);   //%
+  this->Device->SetGainValue(this->GainPerCent);    //%
+  this->Device->SetDynRangeValue(this->DynRangeValue); //dB
+  this->SetFrequencyMhz(this->FrequencyMhz);
+  return PLUS_SUCCESS;
 }
 
 
@@ -130,7 +103,7 @@ PlusStatus vtkTelemedVideoSource::InternalConnect()
 PlusStatus vtkTelemedVideoSource::InternalDisconnect()
 {
   LOG_DEBUG("Disconnect from Telemed");
-  if(device->Finalize())
+  if(this->Device->Finalize())
   {
     return PLUS_SUCCESS;
   }
@@ -147,30 +120,37 @@ PlusStatus vtkTelemedVideoSource::InternalUpdate()
   LOG_TRACE( "vtkTelemedVideoSource::InternalUpdate" );
   if (!this->Recording)
   {
-    std::cout<<"Recording variable is false"<<std::endl; // drop the frame, we are not recording data now
+    // drop the frame, we are not recording data now
     return PLUS_SUCCESS;
   }
 
   // Capture one frame from the Telemed device
-  unsigned char * rawFrame = this->device->CaptureFrame();
-  int bufferSize=this->device->GetBufferSize();
-  int frameWidth=this->device->GetFrameWidth();
-  int frameHeight=this->device->GetFrameHeight();
-  int frameDepth=bufferSize/(frameWidth*frameHeight);
-
-  if(rawFrame == NULL)
+  unsigned char* bufferData = this->Device->CaptureFrame();
+  if(bufferData == NULL)
   {
-    std::cout<<"No frame received by the device"<<std::endl;
+    LOG_ERROR("No frame received by the device");
     return PLUS_FAIL;
   }
 
-  unsigned char * mono = new unsigned char[frameWidth*frameHeight];
-  for(int i=0;i<bufferSize/3;i=i++)
-  {
-    mono[i]=rawFrame[3*i];
-  }
-
   this->FrameNumber++;
+
+  int frameWidth=this->Device->GetFrameWidth();
+  int frameHeight=this->Device->GetFrameHeight();
+  int bufferSize=this->Device->GetBufferSize();
+  if (frameWidth*frameHeight==0)
+  {
+    LOG_ERROR("Failed to retrieve valid frame size (got "<<frameWidth<<"x"<<frameHeight);
+    return PLUS_FAIL;
+  }
+  int numberOfScalarComponents=bufferSize/(frameWidth*frameHeight);
+  if (numberOfScalarComponents!=3)
+  {
+    LOG_ERROR("Unexpected number of scalar components: "<<numberOfScalarComponents);
+    return PLUS_FAIL;
+  }
+  PixelCodec::PixelEncoding encoding = PixelCodec::PixelEncoding_BGR24;
+
+  int frameSizeInPix[3]={frameWidth,frameHeight,1};
 
   // Retrieve the video source in Telemed device
   vtkPlusDataSource* aSource=NULL;
@@ -180,26 +160,40 @@ PlusStatus vtkTelemedVideoSource::InternalUpdate()
     return PLUS_FAIL;
   }
 
-  int frameSizeInPx[3]={frameWidth,frameHeight,1};
-
   // If the buffer is empty, set the pixel type and frame size to the first received properties
   if ( aSource->GetNumberOfItems() == 0 )
   {
     LOG_DEBUG("Set up image buffer for Telemed");
     aSource->SetPixelType(VTK_UNSIGNED_CHAR);
     aSource->SetImageType(US_IMG_BRIGHTNESS);
-    aSource->SetInputFrameSize(frameSizeInPx);
-    aSource->SetOutputImageOrientation(US_IMG_ORIENT_MF);
+    aSource->SetInputFrameSize(frameSizeInPix);
+    LOG_DEBUG("Frame size: " << frameSizeInPix[0] << "x" << frameSizeInPix[1]
+      << ", pixel type: " << vtkImageScalarTypeNameMacro(aSource->GetPixelType())
+      << ", buffer image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation()));
+    this->UncompressedVideoFrame.SetImageType(aSource->GetImageType());
+    this->UncompressedVideoFrame.SetImageOrientation(aSource->GetInputImageOrientation());
+  }
+
+  PlusStatus decodingStatus=PLUS_FAIL;
+  if( aSource->GetImageType() == US_IMG_RGB_COLOR )
+  {
+    this->UncompressedVideoFrame.AllocateFrame(frameSizeInPix, VTK_UNSIGNED_CHAR, 3);
+    decodingStatus = PixelCodec::ConvertToBmp24(PixelCodec::ComponentOrder_RGB, encoding, frameSizeInPix[0], frameSizeInPix[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetScalarPointer());
+  }
+  else
+  {
+    this->UncompressedVideoFrame.AllocateFrame(frameSizeInPix, VTK_UNSIGNED_CHAR, 1);
+    decodingStatus = PixelCodec::ConvertToGray(encoding, frameSizeInPix[0], frameSizeInPix[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetScalarPointer());
+  }
+  if (decodingStatus != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Error while decoding the grabbed image");
+    return PLUS_FAIL;
   }
 
   // Add the frame to the stream buffer
-  PlusStatus status = aSource->AddItem(mono, aSource->GetInputImageOrientation(), frameSizeInPx,
-                                                    VTK_UNSIGNED_CHAR, 1,US_IMG_BRIGHTNESS, 0, this->FrameNumber,
-                                                    UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, NULL);
+  PlusStatus status = aSource->AddItem(&this->UncompressedVideoFrame, this->FrameNumber);
   this->Modified();
-
-  delete rawFrame;
-  delete mono;
 
   return status;
 }
@@ -212,7 +206,7 @@ void vtkTelemedVideoSource::SetDepthMm(long DepthMm)
 {
   this->DepthMm=DepthMm;
   //if (this->Connected)
-  //  this->device->SetDepth(DepthMm);
+  //  this->Device->SetDepth(DepthMm);
 }
 
 //----------------------------------------------------------------------------
@@ -220,7 +214,7 @@ void vtkTelemedVideoSource::SetGainPercent(int GainPerCent)
 {
   this->GainPerCent=GainPerCent;
   if (this->Connected)
-    this->device->SetGainValue(GainPerCent);
+    this->Device->SetGainValue(GainPerCent);
 }
 
 //----------------------------------------------------------------------------
@@ -228,7 +222,7 @@ void vtkTelemedVideoSource::SetPowerPercent(int PowerPerCent)
 {
   this->PowerPerCent=PowerPerCent;
   if (this->Connected)
-    this->device->SetPowerValue(PowerPerCent);
+    this->Device->SetPowerValue(PowerPerCent);
 }
 
 //----------------------------------------------------------------------------
@@ -236,7 +230,7 @@ void vtkTelemedVideoSource::SetDynRangeDb(int DynRangeValue)
 {
   this->DynRangeValue=DynRangeValue;
   if (this->Connected)
-	this->device->SetDynRangeValue(DynRangeValue);
+	this->Device->SetDynRangeValue(DynRangeValue);
 }
 
 void vtkTelemedVideoSource::SetFrequencyMhz(int FrequencyMhz)
@@ -244,6 +238,32 @@ void vtkTelemedVideoSource::SetFrequencyMhz(int FrequencyMhz)
   this->FrequencyMhz=FrequencyMhz;
   if (this->Connected) //enumerate frequencies, then set the closest one
   {
-	//this->device->SetFreqIndex(0);
+	//this->Device->SetFreqIndex(0);
   }
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTelemedVideoSource::NotifyConfigured()
+{
+  if( this->OutputChannels.size() > 1 )
+  {
+    LOG_WARNING("vtkTelemedVideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
+  }
+
+  if( this->OutputChannels.empty() )
+  {
+    LOG_ERROR("No output channels defined for vtkTelemedVideoSource. Cannot proceed." );
+    this->CorrectlyConfigured = false;
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkTelemedVideoSource::GetSdkVersion()
+{
+  std::ostringstream versionString;
+  versionString << "Telemed version unknown" << std::ends; 
+  return versionString.str();
 }

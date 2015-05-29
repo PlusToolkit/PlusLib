@@ -22,7 +22,7 @@ PURPOSE.  See the above copyright notices for more information.
 =========================================================================*/
 
 
-
+#include "PlusConfigure.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -71,7 +71,6 @@ TelemedUltrasound::TelemedUltrasound()
   m_nContrast = 0;
   m_pProbeFreq = NULL;
   m_nCurrentFrequency = -1;
-  m_BufferSize = 0;
   m_FrameHeight = 0;
   m_FrameWidth = 0;
   CoInitialize(NULL);
@@ -1000,7 +999,7 @@ bool TelemedUltrasound::AssignProbe(DeviceFilter &deviceFilter)
   else
   {
     m_nScanMode = b_mode;
-    Pause();
+    Run();
   }
 
   // now we are trying to initialize multifrequency library
@@ -1072,7 +1071,7 @@ bool TelemedUltrasound::AssignProbe(DeviceFilter &deviceFilter)
     }
   } while(false);
 
-  m_fFreeze = true;
+  m_fFreeze = false;
 
   return fRetValue;
 }
@@ -1619,14 +1618,25 @@ unsigned char* TelemedUltrasound::CaptureFrame()
 
     //Allocate the array and call the method a second time to copy the buffer:
 
-    unsigned char *pBuffer = new unsigned char[cbBuffer];
-    if (!pBuffer)
-    {
-      std::cout << "CaptureFrame() : Cannot allocate buffer (" << cbBuffer << ")" << std::endl;
-      // Out of memory. Return an error code.
-    }
+    if (m_FrameBuffer.size()!=cbBuffer)
 
-    hr = pSampleGrabber->GetCurrentBuffer(&cbBuffer, (long*)pBuffer);
+    {
+      m_FrameBuffer.resize(cbBuffer);
+
+    }
+    unsigned char *pBuffer = NULL;
+    if (!m_FrameBuffer.empty())
+    {
+      pBuffer = &(m_FrameBuffer[0]);
+    }
+    if (pBuffer == NULL)
+    {
+      //LOG_ERROR("TelemedUltrasound::CaptureFrame failed: memory allocation of " << cbBuffer << " bytes failed");
+    }
+    else
+    {
+      hr = pSampleGrabber->GetCurrentBuffer(&cbBuffer, (long*)pBuffer);
+    }
 
 /*
     unsigned char *tab;
@@ -1689,7 +1699,6 @@ unsigned char* TelemedUltrasound::CaptureFrame()
       return NULL;// VFW_E_INVALIDMEDIATYPE;
     }
 
-    m_BufferSize = cbBuffer;
     m_FrameHeight = pVih->bmiHeader.biHeight;
     m_FrameWidth = pVih->bmiHeader.biWidth;
 

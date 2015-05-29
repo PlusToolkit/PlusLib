@@ -15,8 +15,9 @@
   \todo This is a test todo
   \ingroup PlusLibDataCollection
 */
-#include "../Telemed/vtkTelemedVideoSource.h"
 #include "PlusConfigure.h"
+#include "vtkTelemedVideoSource.h"
+#include "vtkPlusDataSource.h"
 #include "vtkCallbackCommand.h"
 #include "vtkChartXY.h"
 #include "vtkCommand.h"
@@ -311,8 +312,15 @@ int main(int argc, char* argv[])
     // TODO : Set the Frequency (in MHz) on the device
   }
 
-  // Already put in the vtkTelemedVideoSource constructor, so don't need it
-  //TelemedDevice->CreateDefaultOutputChannel(true);
+  TelemedDevice->CreateDefaultOutputChannel(true);
+
+  vtkPlusDataSource* videoSource=NULL;
+  if (TelemedDevice->GetFirstActiveOutputVideoSource(videoSource) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to retrieve the video source.");
+    exit(EXIT_FAILURE);
+  }
+  videoSource->SetInputImageOrientation(US_IMG_ORIENT_UN);
 
   DisplayMode displayMode=SHOW_IMAGE;
   //DisplayMode displayMode=SHOW_PLOT;

@@ -85,7 +85,7 @@ public:
   bool IsFreezed();
   void FreezeDevice(bool freeze);
 
-  unsigned long GetBufferSize() {return m_BufferSize;}
+  unsigned long GetBufferSize() {return m_FrameBuffer.size();}
   unsigned int GetFrameHeight() {return m_FrameHeight;}
   unsigned int GetFrameWidth() {return m_FrameWidth;}
 
@@ -127,7 +127,7 @@ protected:
   HRESULT QueryInterfaceFromChain(REFIID iid, void** ppvObject);
   void InitializeObjects();
 
-  unsigned long m_BufferSize;
+  std::vector<unsigned char> m_FrameBuffer;
   unsigned int m_FrameHeight;
   unsigned int m_FrameWidth;
 
