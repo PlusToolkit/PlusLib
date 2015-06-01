@@ -4,10 +4,9 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-
+#include "PlusConfigure.h"
 
 #include "vtkTelemedVideoSource.h"
-#include "PlusConfigure.h"
 
 #include "vtkImageData.h"
 #include "vtkImageImport.h"
@@ -25,8 +24,12 @@ vtkTelemedVideoSource::vtkTelemedVideoSource()
 , DynRangeValue(80)
 , PowerPerCent(60)
 , GainPerCent(70)
-, DepthMm(50)
+, DepthMm(60)
 {
+  this->FrameSize[0]=1024;
+  this->FrameSize[1]=768;
+  this->FrameSize[2]=1; // just in case if the frame size is passed to a method that expects a 3D frame size
+
   this->Device = new TelemedUltrasound();
   this->RequireImageOrientationInConfiguration = true;
   this->StartThreadForInternalUpdates = true;
@@ -50,17 +53,14 @@ PlusStatus vtkTelemedVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfi
 {
   LOG_TRACE("vtkTelemedVideoSource::ReadConfiguration");
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, FrameSize, deviceConfig);
 
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DepthMm, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FrequencyMhz, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, DynRangeDb, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, GainPercent, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, PowerPercent, deviceConfig);  
-  
-  //XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DepthMm, deviceConfig);
-  //XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FrequencyMhz, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, PowerPercent, deviceConfig);
 
-  //XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ImageSize, deviceConfig);
-  //XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Intensity, deviceConfig);
-  //XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Contrast, deviceConfig);
   //XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SoundVelocity, deviceConfig);  
 
   return PLUS_SUCCESS;
@@ -86,15 +86,17 @@ PlusStatus vtkTelemedVideoSource::FreezeDevice(bool freeze)
 //----------------------------------------------------------------------------
 PlusStatus vtkTelemedVideoSource::InternalConnect()
 {
-  if(!this->Device->Initialize())
+  this->Device->SetMaximumFrameSize(this->FrameSize);
+  if(this->Device->Connect()!=PLUS_SUCCESS)
   {
     LOG_ERROR("vtkTelemedVideoSource device initialization failed");
     return PLUS_FAIL;
   }
-  this->Device->SetPowerValue(this->PowerPerCent);   //%
-  this->Device->SetGainValue(this->GainPerCent);    //%
-  this->Device->SetDynRangeValue(this->DynRangeValue); //dB
-  this->SetFrequencyMhz(this->FrequencyMhz);
+//  this->Device->SetPowerValue(this->PowerPerCent);   //%
+//  this->Device->SetGainValue(this->GainPerCent);    //%
+//  this->Device->SetDynRangeValue(this->DynRangeValue); //dB
+//  this->SetFrequencyMhz(this->FrequencyMhz);
+  this->Device->SetDepthMm(this->DepthMm);
   return PLUS_SUCCESS;
 }
 
@@ -103,16 +105,9 @@ PlusStatus vtkTelemedVideoSource::InternalConnect()
 PlusStatus vtkTelemedVideoSource::InternalDisconnect()
 {
   LOG_DEBUG("Disconnect from Telemed");
-  if(this->Device->Finalize())
-  {
-    return PLUS_SUCCESS;
-  }
-  else
-  {
-    return PLUS_FAIL;
-  }
+  this->Device->Disconnect();
+  return PLUS_SUCCESS;
 }
-
 
 //----------------------------------------------------------------------------
 PlusStatus vtkTelemedVideoSource::InternalUpdate()
@@ -143,12 +138,24 @@ PlusStatus vtkTelemedVideoSource::InternalUpdate()
     return PLUS_FAIL;
   }
   int numberOfScalarComponents=bufferSize/(frameWidth*frameHeight);
-  if (numberOfScalarComponents!=3)
+
+  PixelCodec::PixelEncoding encoding = PixelCodec::PixelEncoding_BGR24;
+  PixelCodec::ComponentOrdering componentOrdering = PixelCodec::ComponentOrder_RGB;
+  if (numberOfScalarComponents==3)
+  {
+    encoding = PixelCodec::PixelEncoding_BGR24;
+    componentOrdering = PixelCodec::ComponentOrder_RGB;
+  }
+  else if (numberOfScalarComponents==4)
+  {
+    encoding = PixelCodec::PixelEncoding_RGBA32;
+    componentOrdering = PixelCodec::ComponentOrder_RGBA;
+  }
+  else
   {
     LOG_ERROR("Unexpected number of scalar components: "<<numberOfScalarComponents);
     return PLUS_FAIL;
   }
-  PixelCodec::PixelEncoding encoding = PixelCodec::PixelEncoding_BGR24;
 
   int frameSizeInPix[3]={frameWidth,frameHeight,1};
 
@@ -178,7 +185,7 @@ PlusStatus vtkTelemedVideoSource::InternalUpdate()
   if( aSource->GetImageType() == US_IMG_RGB_COLOR )
   {
     this->UncompressedVideoFrame.AllocateFrame(frameSizeInPix, VTK_UNSIGNED_CHAR, 3);
-    decodingStatus = PixelCodec::ConvertToBmp24(PixelCodec::ComponentOrder_RGB, encoding, frameSizeInPix[0], frameSizeInPix[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetScalarPointer());
+    decodingStatus = PixelCodec::ConvertToBmp24(componentOrdering, encoding, frameSizeInPix[0], frameSizeInPix[1], bufferData, (unsigned char*)this->UncompressedVideoFrame.GetScalarPointer());
   }
   else
   {
@@ -205,32 +212,39 @@ PlusStatus vtkTelemedVideoSource::InternalUpdate()
 void vtkTelemedVideoSource::SetDepthMm(long DepthMm)
 {
   this->DepthMm=DepthMm;
-  //if (this->Connected)
-  //  this->Device->SetDepth(DepthMm);
+  if (this->Connected)
+  {
+    this->Device->SetDepthMm(DepthMm);
+  }
 }
 
 //----------------------------------------------------------------------------
 void vtkTelemedVideoSource::SetGainPercent(int GainPerCent)
 {
   this->GainPerCent=GainPerCent;
-  if (this->Connected)
+/*  if (this->Connected)
     this->Device->SetGainValue(GainPerCent);
+    */
 }
 
 //----------------------------------------------------------------------------
 void vtkTelemedVideoSource::SetPowerPercent(int PowerPerCent)
 {
   this->PowerPerCent=PowerPerCent;
+  /*
   if (this->Connected)
     this->Device->SetPowerValue(PowerPerCent);
+    */
 }
 
 //----------------------------------------------------------------------------
 void vtkTelemedVideoSource::SetDynRangeDb(int DynRangeValue)
 {
   this->DynRangeValue=DynRangeValue;
+  /*
   if (this->Connected)
 	this->Device->SetDynRangeValue(DynRangeValue);
+  */
 }
 
 void vtkTelemedVideoSource::SetFrequencyMhz(int FrequencyMhz)
@@ -266,4 +280,12 @@ std::string vtkTelemedVideoSource::GetSdkVersion()
   std::ostringstream versionString;
   versionString << "Telemed version unknown" << std::ends; 
   return versionString.str();
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTelemedVideoSource::SetFrameSize(int frameSize[2])
+{
+  this->FrameSize[0]=frameSize[0];
+  this->FrameSize[1]=frameSize[1];
+  return PLUS_SUCCESS;
 }

@@ -66,6 +66,9 @@ public:
 
   virtual std::string GetSdkVersion();
 
+    /*! Request a particular frame size */
+  virtual PlusStatus SetFrameSize(int frameSize[2]);
+
 protected:
 
   /*! Constructor */
@@ -87,6 +90,8 @@ protected:
   long DepthMm;
 
   PlusVideoFrame UncompressedVideoFrame;
+
+  int FrameSize[3];
 
 private:
 
