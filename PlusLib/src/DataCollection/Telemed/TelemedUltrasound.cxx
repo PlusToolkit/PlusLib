@@ -19,20 +19,26 @@ TelemedUltrasound::TelemedUltrasound()
 {
   this->ImageWindowHandle = NULL;
 
-  m_MaximumFrameSize[0] = 1024;
-  m_MaximumFrameSize[1] = 768;
+  m_FrameSize[0] = 0;
+  m_FrameSize[1] = 0;
+
+  m_MaximumFrameSize[0] = 512;
+  m_MaximumFrameSize[1] = 512;
 
   m_refCount = 0;
-  m_usg_wnd = NULL;
   m_usgfw2 = NULL;
   m_data_view = NULL;
   m_probe = NULL;
   m_mixer_control = NULL;
   m_depth_ctrl = NULL;
+  m_b_power_ctrl = NULL;
   m_b_gain_ctrl = NULL;
+  m_b_dynrange_ctrl = NULL;
   m_b_frequency_ctrl = NULL;
   m_usg_control_change_cpnt = NULL;
   m_usg_control_change_cpnt_cookie = 0;
+  m_usg_device_change_cpnt = NULL;
+  m_usg_device_change_cpnt_cookie = 0;
 
   CoInitialize(NULL);
 }
@@ -40,7 +46,7 @@ TelemedUltrasound::TelemedUltrasound()
 //----------------------------------------------------------------------------
 TelemedUltrasound::~TelemedUltrasound()
 {
-  ReleaseUsgControls(true);
+  Disconnect(); // just in case it was forgot to be called
   CoUninitialize();
 }
 
@@ -272,8 +278,8 @@ unsigned char* TelemedUltrasound::CaptureFrame()
     }
     h = abs(pbmi->bmiHeader.biHeight);
     pitch = BYTESPERLINE(abs(pbmi->bmiHeader.biWidth), pbmi->bmiHeader.biBitCount);
-    m_FrameWidth = abs(pbmi->bmiHeader.biWidth);
-    m_FrameHeight = abs(pbmi->bmiHeader.biHeight);
+    m_FrameSize[0] = abs(pbmi->bmiHeader.biWidth);
+    m_FrameSize[1] = abs(pbmi->bmiHeader.biHeight);
     free(pbmi);
   }
 
@@ -452,9 +458,8 @@ void TelemedUltrasound::CreateUsgControls()
     // set B scanning mode
     m_data_view->put_ScanMode(SCAN_MODE_B);
 
-    m_usg_wnd = this->ImageWindowHandle;
     // set ultrasound output window (panel)
-    m_mixer_control->SetOutputWindow((LONG)m_usg_wnd);
+    m_mixer_control->SetOutputWindow((LONG)this->ImageWindowHandle);
 
     tagRECT rect1;
     rect1.left = 0;
@@ -481,6 +486,14 @@ void TelemedUltrasound::CreateUsgControls()
     else
       m_depth_ctrl = NULL;
 
+    // create power control
+    tmp_obj = NULL;
+    CreateUsgControl( m_data_view, IID_IUsgPower, SCAN_MODE_B, 0, (void**)&tmp_obj );
+    if (tmp_obj != NULL)
+      m_b_power_ctrl = (IUsgPower*)tmp_obj;
+    else
+      m_b_power_ctrl = NULL;
+
     // create B mode gain control
     tmp_obj = NULL;
     CreateUsgControl( m_data_view, IID_IUsgGain, SCAN_MODE_B, 0, (void**)&tmp_obj );
@@ -488,6 +501,14 @@ void TelemedUltrasound::CreateUsgControls()
       m_b_gain_ctrl = (IUsgGain*)tmp_obj;
     else
       m_b_gain_ctrl = NULL;
+
+    // create B mode dynamic range control
+    tmp_obj = NULL;
+    CreateUsgControl( m_data_view, IID_IUsgDynamicRange, SCAN_MODE_B, 0, (void**)&tmp_obj );
+    if (tmp_obj != NULL)
+      m_b_dynrange_ctrl = (IUsgDynamicRange*)tmp_obj;
+    else
+      m_b_dynrange_ctrl = NULL;
 
     // create B mode frequency control
     tmp_obj = NULL;
@@ -824,9 +845,10 @@ HRESULT TelemedUltrasound::Invoke(DISPID dispIdMember, const IID &riid, LCID lci
 //----------------------------------------------------------------------------
 void TelemedUltrasound::ReleaseUsgControls(bool release_usgfw2)
 {
-  m_usg_wnd = NULL;
   if (m_data_view != NULL)
+  {
     m_data_view->put_ScanState(SCAN_STATE_STOP);
+  }
   if (m_usg_control_change_cpnt != NULL)
   {
     m_usg_control_change_cpnt->Unadvise(m_usg_control_change_cpnt_cookie);
@@ -834,7 +856,9 @@ void TelemedUltrasound::ReleaseUsgControls(bool release_usgfw2)
     SAFE_RELEASE(m_usg_control_change_cpnt);
   }
   SAFE_RELEASE(m_depth_ctrl);
+  SAFE_RELEASE(m_b_power_ctrl);
   SAFE_RELEASE(m_b_gain_ctrl);
+  SAFE_RELEASE(m_b_dynrange_ctrl);
   SAFE_RELEASE(m_b_frequency_ctrl);
   SAFE_RELEASE(m_mixer_control);
   SAFE_RELEASE(m_data_view);
@@ -851,66 +875,25 @@ void TelemedUltrasound::ReleaseUsgControls(bool release_usgfw2)
     SAFE_RELEASE(m_usgfw2);
   }
 
-} // void TelemedUltrasound::ReleaseUsgControls
-
-//----------------------------------------------------------------------------
-long TelemedUltrasound::GetDepth()
-{
-  if (m_depth_ctrl == NULL) return 0;
-  LONG val;
-  std::string str;
-  m_depth_ctrl->get_Current(&val);
-  return val;
 }
 
 //----------------------------------------------------------------------------
-void TelemedUltrasound::DepthSetPrevNext(int dir)
+PlusStatus TelemedUltrasound::GetDepthMm(double &depthMm)
 {
-  if (m_depth_ctrl == NULL) return;
-
-  LONG val_cur;
-  LONG val_idx;
-  LONG val_count;
-
-  m_depth_ctrl->get_Current(&val_cur);
-  val_idx = -1;
-
-  IUsgValues* usg_values = NULL;
-  m_depth_ctrl->get_Values(&usg_values);
-  if (usg_values == NULL) return;
-
-  usg_values->get_Count(&val_count);
-
-  for (LONG i1=0; i1<val_count; i1++)
+  if (m_depth_ctrl == NULL)
   {
-    VARIANT item;
-    LONG val;
-    usg_values->Item(i1, &item);
-    val = item.lVal;
-    if ( val_cur == val )
-      val_idx = i1;
-    VariantClear(&item);
+    LOG_ERROR("TelemedUltrasound::GetDepthMm failed: not connected to device");
+    return PLUS_FAIL;
   }
-
-  if (val_idx >= 0)
+  LONG val;
+  if (m_depth_ctrl->get_Current(&val) != S_OK)
   {
-    val_idx += dir;
-    if ( (val_idx >= 0) && (val_idx < val_count) )
-    {
-      VARIANT item;
-      usg_values->Item(val_idx, &item);
-      val_cur = item.lVal;
-      LONG val;
-      m_depth_ctrl->get_Current(&val);
-      if (val != val_cur)
-        m_depth_ctrl->put_Current(val_cur);
-      VariantClear(&item);
-    }
+    LOG_ERROR("TelemedUltrasound::GetDepthMm failed: failed to retrieve parameter value");
+    return PLUS_FAIL;
   }
-
-  SAFE_RELEASE(usg_values);
-
-} // void TelemedUltrasound::DepthSetPrevNext
+  depthMm = val;
+  return PLUS_SUCCESS;
+}
 
 //----------------------------------------------------------------------------
 PlusStatus TelemedUltrasound::SetDepthMm(double depthMm)
@@ -922,7 +905,12 @@ PlusStatus TelemedUltrasound::SetDepthMm(double depthMm)
   }
 
   LONG currentDepthMm=0;
-  m_depth_ctrl->get_Current(&currentDepthMm);
+  if (m_depth_ctrl->get_Current(&currentDepthMm) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::SetDepthMm failed: failed to get value from device");
+    return PLUS_FAIL;
+  }
+
   if (fabs(depthMm-currentDepthMm)>0.1)
   {
     currentDepthMm = depthMm;
@@ -932,34 +920,54 @@ PlusStatus TelemedUltrasound::SetDepthMm(double depthMm)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus TelemedUltrasound::GetBModeFrequency(double &freqMHz, bool& thi)
+PlusStatus TelemedUltrasound::GetFrequencyMhz(double &freqMhz)
 {
-  if (m_b_frequency_ctrl == NULL) return PLUS_FAIL;
+  if (m_b_frequency_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::GetFrequencyMHz failed: not connected to device");
+    return PLUS_FAIL;
+  }
   FREQUENCY3 val;
-  m_b_frequency_ctrl->get_Current(&val);
-  freqMHz = (double)(val.nFrequency)/1000000.0;
-  thi = (val.nThiMode == THI_MODE2);
+  if (m_b_frequency_ctrl->get_Current(&val) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::GetFrequencyMHz failed: failed to retrieve parameter value");
+    return PLUS_FAIL;
+  }
+  freqMhz = (double)(val.nFrequency)/1000000.0;
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void TelemedUltrasound::B_FrequencySetPrevNext(int dir)
+PlusStatus TelemedUltrasound::SetFrequencyMhz(double freqMhz)
 {
-  if (m_b_frequency_ctrl == NULL) return;
+  if (m_b_frequency_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::SetFrequencyMHz failed: not connected to device");
+    return PLUS_FAIL;
+  }
 
   FREQUENCY3 val_cur;
-  LONG val_idx;
-  LONG val_count;
-
   m_b_frequency_ctrl->get_Current(&val_cur);
-  val_idx	= -1;
+  
+  int val_requested_nFrequency = freqMhz*1000000.0;
+  if (val_cur.nFrequency==val_requested_nFrequency)
+  {
+    return PLUS_SUCCESS;
+  }
 
   IUsgValues* usg_values = NULL;
   m_b_frequency_ctrl->get_Values(&usg_values);
-  if (usg_values == NULL) return;
+  if (usg_values == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::SetFrequencyMHz failed: failed to retrieve valid parameter values");
+    return PLUS_FAIL;
+  }
 
+  // Find the closest item
+  LONG val_closest_index = -1;
+  LONG val_closest_nFrequency = 0;
+  LONG val_count = 0;
   usg_values->get_Count(&val_count);
-
   for (LONG i1=0; i1<val_count; i1++)
   {
     VARIANT item;
@@ -968,101 +976,147 @@ void TelemedUltrasound::B_FrequencySetPrevNext(int dir)
     {
       FREQUENCY3 val;
       val = *((FREQUENCY3*)item.pvRecord);
-      if ( (val_cur.nFrequency == val.nFrequency) && (val_cur.nThiMode == val.nThiMode) )
-        val_idx = i1;
+      if ((val_cur.nThiMode == val.nThiMode) &&
+        (val_closest_index<0 || abs(val.nFrequency-val_requested_nFrequency)<abs(val_closest_nFrequency-val_requested_nFrequency)))
+      {
+        // found a value that is more similar to the requested one
+        val_closest_index = i1;
+        val_closest_nFrequency = val.nFrequency;
+      }
     }
     VariantClear(&item);
   }
 
-  if (val_idx >= 0)
+  // Set the closest item
+  PlusStatus status=PLUS_SUCCESS;
+  if (val_closest_index >= 0)
   {
-    val_idx += dir;
-    if ( (val_idx >= 0) && (val_idx < val_count) )
+    VARIANT item;
+    usg_values->Item( val_closest_index, &item );
+    if (item.vt == VT_RECORD)
     {
-      VARIANT item;
-      usg_values->Item( val_idx, &item );
-      if (item.vt == VT_RECORD)
-        val_cur = *((FREQUENCY3*)item.pvRecord);
-
-      FREQUENCY3 val;
-      m_b_frequency_ctrl->get_Current(&val);
-
-      if ( (val.nFrequency != val_cur.nFrequency) || (val.nThiMode == val_cur.nThiMode) )
-        m_b_frequency_ctrl->put_Current(val_cur);
-
-      VariantClear(&item);
+      val_cur = *((FREQUENCY3*)item.pvRecord);
     }
-  }
-
-  SAFE_RELEASE(usg_values);
-
-} // void TelemedUltrasound::B_FrequencySetPrevNext
-
-//----------------------------------------------------------------------------
-void TelemedUltrasound::B_GainSetByIdx(int idx)
-{
-  if (m_b_gain_ctrl == NULL) return;
-
-  LONG val_cur;
-  LONG val_count;
-
-  m_b_gain_ctrl->get_Current(&val_cur);
-
-  IUsgValues* usg_values = NULL;
-  m_b_gain_ctrl->get_Values(&usg_values);
-  if (usg_values == NULL) return;
-
-  usg_values->get_Count(&val_count);
-
-  if (idx >= val_count) idx = val_count - 1;
-  if (idx < 0) idx = 0;
-
-  if ( (idx >= 0) && (idx < val_count) )
-  {
-    VARIANT item;
-    usg_values->Item( idx, &item );
-    val_cur = item.lVal;
-    LONG val;
-    m_b_gain_ctrl->get_Current(&val);
-    if (val != val_cur)
-      m_b_gain_ctrl->put_Current(val_cur);
+    m_b_frequency_ctrl->put_Current(val_cur);
     VariantClear(&item);
   }
-
-  SAFE_RELEASE(usg_values);
-
-} // void TelemedUltrasound::B_GainSetByIdx
-
-//----------------------------------------------------------------------------
-PlusStatus TelemedUltrasound::GetBModeGain(long &val_cur, long &val_idx, long &val_count)
-{
-  if (m_b_gain_ctrl == NULL) return PLUS_FAIL;
-
-  m_b_gain_ctrl->get_Current(&val_cur);
-  val_idx	= -1;
-
-  IUsgValues* usg_values = NULL;
-  m_b_gain_ctrl->get_Values(&usg_values);
-  if (usg_values == NULL) return PLUS_FAIL;
-
-  usg_values->get_Count(&val_count);
-
-  for (LONG i1=0; i1<val_count; i1++)
+  else
   {
-    VARIANT item;
-    LONG val;
-    usg_values->Item(i1, &item);
-    val = item.lVal;
-    if ( val_cur == val )
-      val_idx = i1;
-    VariantClear(&item);
+    LOG_ERROR("TelemedUltrasound::SetFrequencyMHz failed: failed to find a suitable frequency setting");
+    status=PLUS_FAIL;
   }
 
   SAFE_RELEASE(usg_values);
+  return status;
+}
 
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::SetGainPercent(double gainPercent)
+{
+  if (m_b_gain_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::GainPercent failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  LONG currentGainPercent=0;
+  m_b_gain_ctrl->get_Current(&currentGainPercent);
+  if (fabs(gainPercent-currentGainPercent)>0.1)
+  {
+    currentGainPercent = gainPercent;
+    m_b_gain_ctrl->put_Current(currentGainPercent);
+  }
   return PLUS_SUCCESS;
+}
 
-} // void TelemedUltrasound::B_GainUpdateGUI
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::GetGainPercent(double &gainPercent)
+{
+  if (m_b_gain_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::GainPercent failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  LONG currentGainPercent=0;
+  if (m_depth_ctrl->get_Current(&currentGainPercent) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::GainPercent failed: failed to get value from device");
+    return PLUS_FAIL;
+  }
+  gainPercent = currentGainPercent;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::SetPowerPercent(double powerPercent)
+{
+  if (m_b_power_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::PowerPercent failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  LONG currentPowerPercent=0;
+  m_b_power_ctrl->get_Current(&currentPowerPercent);
+  if (fabs(powerPercent-currentPowerPercent)>0.1)
+  {
+    currentPowerPercent = powerPercent;
+    m_b_power_ctrl->put_Current(currentPowerPercent);
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::GetPowerPercent(double &powerPercent)
+{
+  if (m_b_power_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::PowerPercent failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  LONG currentPowerPercent=0;
+  if (m_b_power_ctrl->get_Current(&currentPowerPercent) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::PowerPercent failed: failed to get value from device");
+    return PLUS_FAIL;
+  }
+  powerPercent = currentPowerPercent;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::SetDynRangeDb(double dynRangeDb)
+{
+  if (m_b_power_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::DynRangeDb failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  LONG currentDynRangeDb=0;
+  m_b_dynrange_ctrl->get_Current(&currentDynRangeDb);
+  if (fabs(dynRangeDb-currentDynRangeDb)>0.1)
+  {
+    currentDynRangeDb = dynRangeDb;
+    m_b_dynrange_ctrl->put_Current(currentDynRangeDb);
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus TelemedUltrasound::GetDynRangeDb(double &dynRangeDb)
+{
+  if (m_b_power_ctrl == NULL)
+  {
+    LOG_ERROR("TelemedUltrasound::DynRangeDb failed: not connected to hardware interface");
+    return PLUS_FAIL;
+  }
+  LONG currentDynRangeDb=0;
+  if (m_b_dynrange_ctrl->get_Current(&currentDynRangeDb) != S_OK)
+  {
+    LOG_ERROR("TelemedUltrasound::DynRangeDb failed: failed to get value from device");
+    return PLUS_FAIL;
+  }
+  dynRangeDb = currentDynRangeDb;
+  return PLUS_SUCCESS;
+}
 
 // NOTE.
 // Here we assume that is used one beamformer with one probe connector.

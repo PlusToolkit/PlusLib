@@ -794,17 +794,15 @@ IF (PLUS_USE_TELEMED_VIDEO)
   SET (DataCollection_SRCS ${DataCollection_SRCS}
     Telemed/vtkTelemedVideoSource.cxx
     Telemed/TelemedUltrasound.cxx
-    Telemed/DeviceFilter.cxx
-	# Telemed/dlldata.c
-	# Telemed/Usgfw2_i.c
-	# Telemed/Usgfw2_p.c
+    Telemed/Usgfw2_i.c
+    Telemed/Usgfw2_p.c
+    Telemed/dlldata.c
     )
   IF (WIN32)
     SET (DataCollection_HDRS ${DataCollection_HDRS}
       Telemed/vtkTelemedVideoSource.h
       Telemed/TelemedUltrasound.h
-      Telemed/DeviceFilter.h
-	  # Telemed/Usgfw2_h.h
+      Telemed/Usgfw2_h.h
       )
   ENDIF (WIN32)
 
@@ -813,10 +811,6 @@ IF (PLUS_USE_TELEMED_VIDEO)
     ${TELEMED_INCLUDE_DIR}
     ${WINDOWSSDK_LATEST_DIR}/Include
     ${CMAKE_CURRENT_SOURCE_DIR}/Telemed
-    )
-  SET (DataCollection_LIBS ${DataCollection_LIBS}
-    strmiids
-    comsuppw
     )
 
 ENDIF (PLUS_USE_TELEMED_VIDEO)

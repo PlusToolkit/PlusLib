@@ -472,10 +472,7 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
     if (this->DynRange >= 0 && SetDynRange(this->DynRange) != PLUS_SUCCESS) { continue; }
     if (this->Zoom >= 0 && SetZoom(this->Zoom) != PLUS_SUCCESS) { continue; }
     if (this->CompressionStatus >= 0 && SetCompressionStatus(this->CompressionStatus) != PLUS_SUCCESS) { continue; }    
-    if (this->SoundVelocity > 0 && this->SetParamValue( "soundvelocity", this->SoundVelocity, this->SoundVelocity ) != PLUS_SUCCESS )
-    {
-      continue;
-    }
+    if (this->SoundVelocity > 0 && this->SetParamValue( "soundvelocity", this->SoundVelocity, this->SoundVelocity ) != PLUS_SUCCESS ) { continue; }
 
     if (this->AcquisitionRate<=0)
     {

@@ -13,6 +13,7 @@
 #include "vtkPlusDevice.h"
 
 class vtkImageImport;
+class vtkUsImagingParameters;
 
 /*!
   \class vtkTelemedVideoSource
@@ -48,18 +49,30 @@ public:
   /*! Get an update from the tracking system and push the new transforms to the tools. This function is called by the tracker thread.*/
   PlusStatus InternalUpdate();
 
-/*********** PARAMETERS *************/
+  /*! Set ultrasound transmitter frequency (MHz) */
+  PlusStatus SetFrequencyMhz(double aFrequencyMhz);
+  /*! Get ultrasound transmitter frequency (MHz) */
+  PlusStatus GetFrequencyMhz(double& aFrequencyMhz);
 
-  /*! Set the Depth value, in millimeters */
-  void SetDepthMm(long DepthMm);
-  /*! Set the Gain value, in percent */
-  void SetGainPercent(int GainPerCent);
-  /*! Set the Power value, in percent */
-  void SetPowerPercent(int PowerPerCent);
-  /*! Set the Dynamic Range value, in dB. Supported values are : 38, 44, 50, 56, 62, 68, 74, 80 */
-  void SetDynRangeDb(int DynRangeValue);
-  /*! Set the frequency in megahertz */
-  void SetFrequencyMhz(int FrequencyMhz);
+  /*! Set the imaging depth of B-mode ultrasound (mm) */
+  PlusStatus SetDepthMm(double aDepthMm);
+  /*! Get the imaging depth of B-mode ultrasound (mm) */
+  PlusStatus GetDepthMm(double& aDepthMm);
+
+  /*! Set the gain percentage of B-mode ultrasound (valid range: 0-100) */
+  PlusStatus SetGainPercent(double aGainPercent);
+  /*! Get the gain percentage of B-mode ultrasound (valid range: 0-100) */
+  PlusStatus GetGainPercent(double& aGainPercent);
+
+  /*! Set the dynamic range of B-mode ultrasound (dB)*/
+  PlusStatus SetDynRangeDb(double aDynamicRange);
+  /*! Get the dynamic range of B-mode ultrasound (dB)*/
+  PlusStatus GetDynRangeDb(double& aDynamicRange);
+
+  /*! Set the imaging power of B-mode ultrasound as percentage of maximum power (valid range: 0-100) */
+  PlusStatus SetPowerPercent(double aGainPercent);
+  /*! Get the imaging power of B-mode ultrasound as percentage of maximum power (valid range: 0-100) */
+  PlusStatus GetPowerPercent(double& aGainPercent);
 
   /*! Verify the device is correctly configured */
   virtual PlusStatus NotifyConfigured();
@@ -83,15 +96,17 @@ protected:
   PlusStatus InternalDisconnect();
 
   TelemedUltrasound *Device;
-  int FrequencyMhz;
-  int DynRangeValue;
-  int PowerPerCent;
-  int GainPerCent;
-  long DepthMm;
+  bool ConnectedToDevice;
 
   PlusVideoFrame UncompressedVideoFrame;
 
   int FrameSize[3];
+
+  double FrequencyMhz;
+  double DepthMm;
+  double GainPercent;
+  double DynRangeDb;
+  double PowerPercent;
 
 private:
 
