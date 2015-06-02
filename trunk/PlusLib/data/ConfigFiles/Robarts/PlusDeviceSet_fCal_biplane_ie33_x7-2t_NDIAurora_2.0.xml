@@ -27,8 +27,8 @@
       Id="VideoDevice" 
       Type="Epiphan" >
       <DataSources>
-        <DataSource Type="Video" Id="LeftVideo" PortUsImageOrientation="MF" ClipRectangleOrigin="285 0 0" ClipRectangleSize="460 1050 1" />
-        <DataSource Type="Video" Id="RightVideo" PortUsImageOrientation="MF" ClipRectangleOrigin="735 0 0" ClipRectangleSize="460 1050 1" />
+        <DataSource Type="Video" Id="LeftVideo" PortUsImageOrientation="MF" ClipRectangleOrigin="280 360 0" ClipRectangleSize="470 490 1" />
+        <DataSource Type="Video" Id="RightVideo" PortUsImageOrientation="MF" ClipRectangleOrigin="750 360 0" ClipRectangleSize="470 490 1" />
       </DataSources>      
       <OutputChannels>
         <OutputChannel Id="LeftVideoStream" VideoDataSourceId="LeftVideo" />
@@ -197,7 +197,7 @@
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
     TemporalCalibrationDurationSec="10"
-    DefaultSelectedChannelId="TrackedVideoStream" />
+    DefaultSelectedChannelId="RightTrackedVideoStream" />
 
   <vtkPivotCalibrationAlgo ObjectMarkerCoordinateFrame="Stylus" ReferenceCoordinateFrame="Reference" ObjectPivotPointCoordinateFrame="StylusTip" />
 
