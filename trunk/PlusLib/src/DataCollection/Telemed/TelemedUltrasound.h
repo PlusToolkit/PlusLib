@@ -8,18 +8,6 @@
 #define TelemedUltrasound_h
 
 #include "Usgfw2_h.h"
-/*
-#include <initguid.h>
-#include <strmif.h>
-#include <Control.h>
-#include <usgfw.h>
-#include <usgfw2.h>
-//#include "Usgfw2_h.h"
-#include <multfreq.h>
-#include <usgscanb.h>
-#include <usgscanm.h>
-#include "DeviceFilter.h"
-*/
 
 #include <vector>
 
@@ -35,32 +23,43 @@ public:
 
   unsigned char* CaptureFrame();
   unsigned long GetBufferSize() {return m_FrameBuffer.size();}
-  unsigned int GetFrameHeight() {return m_FrameHeight;}
-  unsigned int GetFrameWidth() {return m_FrameWidth;}
-
-  void FreezeDevice(bool freeze);
-
-  PlusStatus SetDepthMm(double depthMm);
+  void GetFrameSize(int* frameSize) { frameSize[0]=m_FrameSize[0]; frameSize[1]=m_FrameSize[1];}
 
   /*! Must be called before connect to take effect */
   void SetMaximumFrameSize(int maxFrameSize[2]);
 
+  void FreezeDevice(bool freeze);
+
+  PlusStatus SetDepthMm(double depthMm);
+  PlusStatus GetDepthMm(double &depthMm);
+
+  PlusStatus SetGainPercent(double gainPercent);
+  PlusStatus GetGainPercent(double &gainPercent);
+
+  PlusStatus SetPowerPercent(double powerPercent);
+  PlusStatus GetPowerPercent(double &powerPercent);
+
+  PlusStatus SetDynRangeDb(double dynRangeDb);
+  PlusStatus GetDynRangeDb(double &dynRangeDb);
+
+	PlusStatus GetFrequencyMhz(double &freqMHz);
+  PlusStatus SetFrequencyMhz(double freqMHz);
+
 protected:
 
   std::vector<unsigned char> m_FrameBuffer;
-  unsigned int m_FrameHeight;
-  unsigned int m_FrameWidth;
-
+  int m_FrameSize[2];
   int m_MaximumFrameSize[2];
 
 private:
-	HWND m_usg_wnd;
 	IUsgfw2* m_usgfw2;
 	IUsgDataView* m_data_view;
 	IProbe* m_probe;
 	IUsgMixerControl* m_mixer_control;
 	IUsgDepth* m_depth_ctrl;
+  IUsgPower* m_b_power_ctrl;
 	IUsgGain* m_b_gain_ctrl;
+  IUsgDynamicRange* m_b_dynrange_ctrl;
 	IUsgProbeFrequency3* m_b_frequency_ctrl;
 
 	IConnectionPoint* m_usg_device_change_cpnt; // connection point for device change events
@@ -75,27 +74,14 @@ private:
 	long GetDepth();
 	void DepthSetPrevNext(int dir);
 
-  // thi = tissue harmonic imaging
-	PlusStatus GetBModeFrequency(double &freqMHz, bool& thi);
-	void B_FrequencySetPrevNext(int dir);
-
-	PlusStatus GetBModeGain(long &val_cur, long &val_idx, long &val_count);
-	void B_GainSetByIdx(int idx);
-
   LPCWSTR GetInterfaceNameByGuid(BSTR ctrlGUID);
   LPCWSTR GetModeNameById(LONG scanMode);
 
 private:
-//	DWORD m_create_usg_controls_thread_id;
-//	HANDLE m_create_usg_controls_thread;
-
     HWND ImageWindowHandle;
     HBITMAP DataHandle;
     std::vector<unsigned char> MemoryBitmapBuffer;
     BITMAP Bitmap;
-    BITMAPINFO	BitmapInfo;
-    BYTE *RfDataBuffer;
-    static const int samplesPerLine = 2048;
 
 public:
 	void CreateUsgControls();
@@ -128,10 +114,5 @@ public:
  
 
 };
-
-
-#define RELEASE_INTERFACE(pObj) \
-  if(pObj) {\
-  pObj->Release(); pObj = NULL;}
 
 #endif //TelemedUltrasound

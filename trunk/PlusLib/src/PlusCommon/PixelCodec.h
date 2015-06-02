@@ -40,6 +40,7 @@ public:
   enum ComponentOrdering
   {
     ComponentOrder_RGB,
+    ComponentOrder_RGBA,
     ComponentOrder_BGR
   };
 
@@ -49,6 +50,7 @@ public:
     PixelEncoding_YUY2,
     PixelEncoding_RGB24,
     PixelEncoding_BGR24,
+    PixelEncoding_RGBA32,
     PixelEncoding_MJPG
   };
 
@@ -72,6 +74,7 @@ public:
     {  
     case PixelEncoding_RGB24: return true;
     case PixelEncoding_BGR24: return true;
+    case PixelEncoding_RGBA32: return true;
     case PixelEncoding_YUY2: return true;
     case PixelEncoding_MJPG: return true;
     default:
@@ -83,7 +86,7 @@ public:
   static std::string GetCompressionModeAsString(int inputCompression)
   {    
     char fourccHex[16]={0};
-    sprintf(fourccHex,"0x%08x",inputCompression);
+    sprintf_s(fourccHex,"0x%08x",inputCompression);
     std::string fourcc="????";
     for (int i = 0; i < 4; i++)
     {
@@ -107,6 +110,9 @@ public:
       break;
     case PixelEncoding_BGR24:
       return "BGR24";
+      break;
+    case PixelEncoding_RGBA32:
+      return "RGBA32";
       break;
     case PixelEncoding_YUY2:
       return "YUY2";
@@ -153,6 +159,10 @@ public:
       // decode the grabbed image to the requested output image type
       Rgb24ToGray(width, height, s, d);
       break;
+    case PixelEncoding_RGBA32:
+      // decode the grabbed image to the requested output image type
+      Rgba32ToGray(width, height, s, d);
+      break;
     case PixelEncoding_YUY2:
       // decode the grabbed image to the requested output image type
       Yuv422pToGray(width, height, s, d);
@@ -194,6 +204,16 @@ public:
         RgbBgrSwap(width, height, s, d);
       }
       break;
+    case PixelEncoding_RGBA32:
+      if (outputOrdering==ComponentOrder_RGBA)
+      {
+        Rgba32ToRgb24(width, height, s, d);
+      }
+      else
+      {
+        Rgba32ToBgr24(width, height, s, d);
+      }
+      break;
     case PixelEncoding_YUY2:
       // decode the grabbed image to the requested output image type
       return Yuv422pToBmp24(outputOrdering, width, height, s, d);
@@ -208,7 +228,7 @@ public:
     return PLUS_SUCCESS;
   }
 
- //----------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
   static inline void RgbBgrSwap(int width, int height, unsigned char *s,unsigned char *d)
   {
     int totalLen=width*height;
@@ -220,6 +240,32 @@ public:
       s+=3;
     }
   }
+  
+  //----------------------------------------------------------------------------
+  static inline void Rgba32ToBgr24(int width, int height, unsigned char *s,unsigned char *d)
+  {
+    int totalLen=width*height;
+    for (int i=0; i<totalLen; i++)
+    {
+      *(d++)=s[2];
+      *(d++)=s[1];
+      *(d++)=s[0];
+      s+=4; // ignore alpha channel
+    }
+  }
+  
+  //----------------------------------------------------------------------------
+  static inline void Rgba32ToRgb24(int width, int height, unsigned char *s,unsigned char *d)
+  {
+    int totalLen=width*height;
+    for (int i=0; i<totalLen; i++)
+    {
+      *(d++)=*(s++);
+      *(d++)=*(s++);
+      *(d++)=*(s++);
+      s++; // ignore alpha channel
+    }
+  }  
 
   //----------------------------------------------------------------------------
   /*!
@@ -237,6 +283,23 @@ public:
       s+=3;
     }
   } 
+
+  //----------------------------------------------------------------------------
+  /*!
+  Convert from RGBA32 to grayscale
+  Note that this method computes the intensity (simple averaging of the RGB components).
+  This is not equivalent with the perceived luminance of color images (e.g., 0.21R + 0.72G + 0.07B or 0.30R + 0.59G + 0.11B)
+  */
+  static inline void Rgba32ToGray(int width, int height, unsigned char *s,unsigned char *d)
+  {
+    int totalLen=width*height;
+    for (int i=0; i<totalLen; i++)
+    {
+      *d=((unsigned short)(s[0])+s[1]+s[2])/3;
+      d++;
+      s+=4;
+    }
+  }
 
   //----------------------------------------------------------------------------
   /*! Conversion from YUV to RGB space
