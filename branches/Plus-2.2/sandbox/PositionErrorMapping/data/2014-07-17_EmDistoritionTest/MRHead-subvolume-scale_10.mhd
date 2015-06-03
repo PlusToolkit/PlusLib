@@ -1,0 +1,13 @@
+ObjectType = Image
+NDims = 3
+BinaryData = True
+BinaryDataByteOrderMSB = False
+CompressedData = False
+TransformMatrix = -1 0 0 0 -1 0 0 0 1
+Offset = -116.286 229.622 -335.765
+CenterOfRotation = 0 0 0
+AnatomicalOrientation = LPI
+ElementSpacing = 10 10 10
+DimSize = 38 51 33
+ElementType = MET_SHORT
+ElementDataFile = MRHead-subvolume-scale_10.raw

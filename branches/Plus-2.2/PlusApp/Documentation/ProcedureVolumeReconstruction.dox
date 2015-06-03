@@ -1,0 +1,23 @@
+/**
+
+\page ProcedureVolumeReconstruction Volume reconstruction
+
+Volume reconstruction is the process of creating a 3D volume from many 2D image slices.
+Parameters of the volume reconstruction algorithm are described on the \ref AlgorithmVolumeReconstruction page.
+
+\section ProcedureVolumeReconstructionCommandLine Volume reconstruction using command-line application
+
+Use the \ref ApplicationVolumeReconstructor application.
+
+\section ProcedureVolumeReconstructionSlicer Volume reconstruction in 3D Slicer
+
+Use the <a href="http://wiki.slicer.org/slicerWiki/index.php/Documentation/Nightly/Modules/PlusRemote">PlusRemote</a> module in 3D Slicer, avaiable in the SlicerIGT extension.
+
+\section ProcedureVolumeReconstructionfCal Volume reconstruction using fCal
+
+\ref ApplicationfCal offers a graphical user interface to collect tracked ultrasound data
+and perform volume reconstruction. Currently fCal offers only very limited, simplified
+visualization (shows an isosurface corresponding to a single, hardcoded threshold value),
+so it is recommended to save the volume into a (.mha) file and visualize it in 3DSlicer.
+
+*/

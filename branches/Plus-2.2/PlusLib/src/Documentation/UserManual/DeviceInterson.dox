@@ -1,0 +1,48 @@
+/*!
+\page DeviceInterson Interson USB ultrasound systems (old SDK)
+
+\section IntersonSupportedHwDevices Supported hardware devices
+
+- This device is used for image acquisition from Interson USB ultrasound systems with \c SeeMore probes with the C++ (old) interface. Probes with .NET interface should be used with \ref DeviceIntersonSDKCxx.
+- Link to manufacturer's website: http://www.interson.com/products/seemore-153-usb-probes
+
+\section IntersonSupportedPlatforms Included in packages
+- \ref PackageInterson
+
+\section IntersonInstallation Installation
+
+- Requires SDK provided by Interson for compilation and USB drivers provided by Interson for running (otherwise Plus application will not start due to missing WDAPI1010.dll).
+- Limitations: imaging parameters are hardcoded, makeing them configurable is a work in progress, see details in <a href="https://www.assembla.com/spaces/plus/tickets/866">#866 </a>, <a href="https://www.assembla.com/spaces/plus/tickets/867">#867 </a> and <a href="https://www.assembla.com/spaces/plus/tickets/868">#868 </a>
+
+\section IntersonConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "IntersonVideo" \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+
+- \xmlAtt \b ImageSize Image size in pixels \OptionalAtt{800 512}
+- \xmlAtt \b GainPercent Is the gain percentage of B-mode ultrasound; it sets the linear TGC curve based on three values (initial, middle and far). These values are specified as a percentage vector and each has a valid range: 0-100. \OptionalAtt{25 25 25}
+- \xmlAtt \b Intensity Is the intensity of B-mode ultrasound that is used to create the LUT. \OptionalAtt{128}
+- \xmlAtt \b Contrast Is the contrast of B-mode ultrasound that is used to create the LUT. \OptionalAtt{256}
+- \xmlAtt \b DepthMm Set the depth [mm] of B-mode ultrasound \OptionalAtt{-1}
+
+- \xmlAtt \b SoundVelocity The speed of sound \c [m/s]. \OptionalAtt{1540}
+- \xmlAtt \b FrequencyMhz ultrasound transmitter frequency \c [MHz].\OptionalAtt{-1}
+- \xmlAtt \b EnableProbeButtonMonitoring controls if probe button press count should be included in the output channel in the first translation component of the \c ProbeButtonToDummyTransform. The value is incremented each time the physical button on the probe is pressed.\OptionalAtt{FALSE}.
+  - \c FALSE Probe button press count is not included in the output.
+  - \c TRUE Probe button press count is included in the output.
+
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
+    - \xmlAtt \ref ImageType Supported imaging modes: B-mode \OptionalAtt{BRIGHTNESS}
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+    - \xmlAtt \ref ClipRectangleOrigin \OptionalAtt{0 0 0}
+    - \xmlAtt \ref ClipRectangleSize \OptionalAtt{0 0 0}
+
+\section IntersonExampleConfigFile Example configuration file PlusDeviceSet_Server_IntersonVideoCapture_WithParameters.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_IntersonVideoCapture_WithParameters.xml"
+
+*/

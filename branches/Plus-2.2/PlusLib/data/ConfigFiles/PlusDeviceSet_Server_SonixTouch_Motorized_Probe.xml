@@ -1,0 +1,107 @@
+ <PlusConfiguration version="2.1">
+
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="PlusServer: Ultrasonix ultrasound imaging device using Porta."
+      Description="Broadcasting ultrasound images acquired from the Ultrasonix system through OpenIGTLink. Update PortaFirmwarePath, PortaSettingPath, PortaLicensePath, PortaLUTPath attributes in the device set configuration file. PlusServer has to run on the Ultrasonix PC."
+    />
+    <Device
+      Id="VideoDevice"
+      Type="SonixPortaVideo" 
+      LocalTimeOffsetSec="0"
+	  PortaBModeWidth="284"
+	  PortaBModeHeight="200"
+      Depth="70" 
+      Gain="50" 
+      Frequency="3.3" 
+	  FramePerVolume="113"
+	  StepPerFrame="4"
+      PortaFirmwarePath="D:/Users/Mikael/sdk574/porta/fw/"
+      PortaSettingPath="D:/Users/Mikael/sdk574/porta/dat/"
+      PortaLicensePath="D:/Ultrasonix Settings/"
+      PortaLUTPath="D:/Ultrasonix Settings/LUTS/"
+      USM="4"
+      PCI="3"
+      HighVoltage="0"
+      Channels="64"
+      >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" BufferSize="100" AveragedItemsForFiltering="20" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" /> 
+      </OutputChannels>
+    </Device>
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+	  RequestedFrameRate="100"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="VideoStream" />
+      </InputChannels>
+    </Device>
+	
+	<Device
+      Id="VolumeReconstructorDevice"
+      Type="VirtualVolumeReconstructor"
+      OutputVolDeviceName="RecVolFromPlus">
+      <InputChannels>
+        <InputChannel Id="VideoStream" />
+      </InputChannels>
+      <VolumeReconstruction
+        ImageCoordinateFrame="Image" ReferenceCoordinateFrame="RAS"
+        Optimization="FULL" Compounding="On" FillHoles="On"
+		Interpolation="NEAREST_NEIGHBOR" Calculation="WEIGHTED_AVERAGE" NumberOfThreads="4"    
+		FanAngles="-39.4802 39.4802" FanOrigin="139 -53" FanDepth="250" 
+		OutputOrigin="-55 -110 -62" OutputExtent="0 220 0 180 0 248" OutputSpacing="0.5 0.5 0.5">
+		<HoleFilling>
+			<HoleFillingElement Type="GAUSSIAN" Size="3" Stdev="0.6667" MinimumKnownVoxelsRatio="0.1" />
+		</HoleFilling>
+	  </VolumeReconstruction>
+    </Device>
+  </DataCollection>
+
+  <CoordinateDefinitions>
+	<Transform From="Transducer" To="Image"
+      Matrix="
+        2.299	0		0		139
+        0		1.923	0		33
+        0		0		1		0
+        0		0		0		1" />
+	<Transform From="MotorRotated" To="Transducer"
+      Matrix="
+        1	0	0	0
+        0	1	0	-27.25
+        0	0	1	0
+        0	0	0	1" />	
+	<Transform From="RAS" To="Motor"
+		Matrix="
+		0	0	1	0
+		0	-1	0	0
+		1	0	0	0
+		0	0	0	1" />		
+  </CoordinateDefinitions>
+  
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="VideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+		<Message Type="TRANSFORM" />
+      </MessageTypes>
+	  <TransformNames> 
+		<Transform Name="MotorToRAS" />
+		<Transform Name="DummyToIndex" />
+      </TransformNames>
+      <ImageNames>
+        <Image Name="Image" EmbeddedTransformToFrame="RAS" />
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+</PlusConfiguration>

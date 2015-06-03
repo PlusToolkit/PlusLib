@@ -1,0 +1,291 @@
+ObjectType = Image
+NDims = 3
+AnatomicalOrientation = RAI
+BinaryData = True
+BinaryDataByteOrderMSB = False
+CenterOfRotation = 0 0 0
+CompressedData = True
+CompressedDataSize = 20002            
+DimSize = 200 150 20                              
+ElementNumberOfChannels = 1
+ElementSpacing = 1 1 1
+ElementType = MET_UCHAR
+Offset = 0 0 0
+TransformMatrix = 1 0 0 0 1 0 0 0 1
+UltrasoundImageOrientation = MFA
+UltrasoundImageType = BRIGHTNESS
+Seq_Frame0000_ImageToCroppedImageTransform = 1 0 0 -335 0 1 0 -285 0 0 1 0 0 0 0 1
+Seq_Frame0000_ImageToCroppedImageTransformStatus = OK
+Seq_Frame0000_ProbeToTrackerTransform = 0.956683 -0.263308 0.124204 -190.886 0.269031 0.962616 -0.0315089 -98.0911 -0.111264 0.0635588 0.991756 -1949.07 0 0 0 1
+Seq_Frame0000_ProbeToTrackerTransformStatus = OK
+Seq_Frame0000_ReferenceToTrackerTransform = 0.260287 0.964665 0.0408926 -208.632 -0.96117 0.262899 -0.0838866 -115.511 -0.0916731 -0.0174702 0.995636 -1992.7 0 0 0 1
+Seq_Frame0000_ReferenceToTrackerTransformStatus = OK
+Seq_Frame0000_StylusToTrackerTransform = 1 -8.43482e-005 0.000190641 0.370779 8.39344e-005 1 0.000146179 0.316166 -0.00019069 -0.000146138 1 -0.0640528 0 0 0 1
+Seq_Frame0000_StylusToTrackerTransformStatus = INVALID
+Seq_Frame0000_Timestamp = 345.627957
+Seq_Frame0000_ImageStatus = OK
+Seq_Frame0001_ImageToCroppedImageTransform = 1 0 0 -335 0 1 0 -285 0 0 1 0 0 0 0 1
+Seq_Frame0001_ImageToCroppedImageTransformStatus = OK
+Seq_Frame0001_ProbeToTrackerTransform = 0.956528 -0.263235 0.125549 -190.803 0.268591 0.962861 -0.0275255 -97.8538 -0.113641 0.0600503 0.991706 -1948.58 0 0 0 1
+Seq_Frame0001_ProbeToTrackerTransformStatus = OK
+Seq_Frame0001_ReferenceToTrackerTransform = 0.260551 0.964577 0.0412892 -208.472 -0.961186 0.26318 -0.0828114 -115.45 -0.0907445 -0.01811 0.99571 -1992.9 0 0 0 1
+Seq_Frame0001_ReferenceToTrackerTransformStatus = OK
+Seq_Frame0001_StylusToTrackerTransform = 1 -5.08888e-006 -2.22994e-006 -0.00693169 6.06615e-006 1 -2.04216e-006 -0.00120625 2.32828e-006 1.97883e-006 1 -0.00549236 0 0 0 1
+Seq_Frame0001_StylusToTrackerTransformStatus = INVALID
+Seq_Frame0001_Timestamp = 345.706100
+Seq_Frame0001_ImageStatus = OK
+Seq_Frame0002_ImageToCroppedImageTransform = 1 0 0 -335 0 1 0 -285 0 0 1 0 0 0 0 1
+Seq_Frame0002_ImageToCroppedImageTransformStatus = OK
+Seq_Frame0002_ProbeToTrackerTransform = 0.956557 -0.262389 0.127083 -190.783 0.267513 0.963235 -0.0247812 -97.6599 -0.115909 0.057701 0.991582 -1948.06 0 0 0 1
+Seq_Frame0002_ProbeToTrackerTransformStatus = OK
+Seq_Frame0002_ReferenceToTrackerTransform = 0.261997 0.964286 0.0388513 -208.762 -0.960821 0.264405 -0.0831394 -115.433 -0.0904427 -0.0155469 0.99578 -1992.78 0 0 0 1
+Seq_Frame0002_ReferenceToTrackerTransformStatus = OK
+Seq_Frame0002_StylusToTrackerTransform = 0.999999 0.000132613 0.00033463 0.715387 -0.000133216 0.999999 0.000188003 0.370974 -0.000334591 -0.000188155 1 -0.132825 0 0 0 1
+Seq_Frame0002_StylusToTrackerTransformStatus = INVALID
+Seq_Frame0002_Timestamp = 345.863471
+Seq_Frame0002_ImageStatus = OK
+Seq_Frame0003_ImageToCroppedImageTransform = 1 0 0 -335 0 1 0 -285 0 0 1 0 0 0 0 1
+Seq_Frame0003_ImageToCroppedImageTransformStatus = OK
+Seq_Frame0003_ProbeToTrackerTransform = 0.955505 -0.265015 0.12953 -190.701 0.270009 0.962599 -0.0223236 -97.7304 -0.118769 0.0563047 0.991325 -1947.25 0 0 0 1
+Seq_Frame0003_ProbeToTrackerTransformStatus = OK
+Seq_Frame0003_ReferenceToTrackerTransform = 0.262491 0.964191 0.0378715 -208.852 -0.960723 0.264807 -0.0829968 -115.596 -0.0900534 -0.0145981 0.99583 -1992.7 0 0 0 1
+Seq_Frame0003_ReferenceToTrackerTransformStatus = OK
+Seq_Frame0003_StylusToTrackerTransform = 1 -0.000173251 -0.00041463 -0.905388 0.000173669 1 -0.000536642 -1.0475 0.000414737 0.000536509 1 0.192489 0 0 0 1
+Seq_Frame0003_StylusToTrackerTransformStatus = INVALID
+Seq_Frame0003_Timestamp = 345.940886
+Seq_Frame0003_ImageStatus = OK
+Seq_Frame0004_ImageToCroppedImageTransform = 1 0 0 -335 0 1 0 -285 0 0 1 0 0 0 0 1
+Seq_Frame0004_ImageToCroppedImageTransformStatus = OK
+Seq_Frame0004_ProbeToTrackerTransform = 0.95546 -0.264357 0.131195 -190.597 0.269023 0.962948 -0.018887 -97.3921 -0.121341 0.0533404 0.991177 -1946.86 0 0 0 1
+Seq_Frame0004_ProbeToTrackerTransformStatus = OK
+Seq_Frame0004_ReferenceToTrackerTransform = 0.261013 0.964549 0.0389628 -208.685 -0.960994 0.263451 -0.084164 -115.618 -0.0914451 -0.015475 0.99569 -1992.75 0 0 0 1
+Seq_Frame0004_ReferenceToTrackerTransformStatus = OK
+Seq_Frame0004_StylusToTrackerTransform = 1 -1.20087e-005 5.73177e-005 0.120778 1.19163e-005 1 0.00017133 0.347475 -5.72481e-005 -0.000171286 1 -0.0363932 0 0 0 1
+Seq_Frame0004_StylusToTrackerTransformStatus = INVALID
+Seq_Frame0004_Timestamp = 346.019029
+Seq_Frame0004_ImageStatus = OK
+Seq_Frame0005_ImageToCroppedImageTransform = 1 0 0 -335 0 1 0 -285 0 0 1 0 0 0 0 1
+Seq_Frame0005_ImageToCroppedImageTransformStatus = OK
+Seq_Frame0005_ProbeToTrackerTransform = 0.955557 -0.263695 0.13182 -190.547 0.268118 0.963242 -0.0166871 -97.2026 -0.122575 0.0512888 0.991134 -1946.68 0 0 0 1
+Seq_Frame0005_ProbeToTrackerTransformStatus = OK
+Seq_Frame0005_ReferenceToTrackerTransform = 0.264129 0.963818 0.0359369 -209.115 -0.96046 0.266245 -0.0814213 -115.301 -0.0880433 -0.0130102 0.996032 -1992.85 0 0 0 1
+Seq_Frame0005_ReferenceToTrackerTransformStatus = OK
+Seq_Frame0005_StylusToTrackerTransform = 1 -0.000172634 0.000135915 0.248169 0.000172944 0.999999 -0.000174145 -0.314489 -0.000135811 0.000174053 1 -0.00261295 0 0 0 1
+Seq_Frame0005_StylusToTrackerTransformStatus = INVALID
+Seq_Frame0005_Timestamp = 346.176714
+Seq_Frame0005_ImageStatus = OK
+Seq_Frame0006_ImageToCroppedImageTransform = 1 0 0 -335 0 1 0 -285 0 0 1 0 0 0 0 1
+Seq_Frame0006_ImageToCroppedImageTransformStatus = OK
+Seq_Frame0006_ProbeToTrackerTransform = 0.955282 -0.264687 0.131823 -190.451 0.26886 0.963068 -0.0146046 -97.0604 -0.123089 0.0493934 0.991166 -1946.47 0 0 0 1
+Seq_Frame0006_ProbeToTrackerTransformStatus = OK
+Seq_Frame0006_ReferenceToTrackerTransform = 0.26195 0.964458 0.0346768 -208.999 -0.961177 0.263951 -0.0804261 -115.414 -0.0867206 -0.0122629 0.996157 -1992.85 0 0 0 1
+Seq_Frame0006_ReferenceToTrackerTransformStatus = OK
+Seq_Frame0006_StylusToTrackerTransform = 1 6.93924e-005 -0.000225378 -0.442809 -6.88057e-005 1 -5.30325e-005 -0.111582 0.000225421 5.30701e-005 1 0.0592377 0 0 0 1
+Seq_Frame0006_StylusToTrackerTransformStatus = INVALID
+Seq_Frame0006_Timestamp = 346.253971
+Seq_Frame0006_ImageStatus = OK
+Seq_Frame0007_ImageToCroppedImageTransform = 1 0 0 -335 0 1 0 -285 0 0 1 0 0 0 0 1
+Seq_Frame0007_ImageToCroppedImageTransformStatus = OK
+Seq_Frame0007_ProbeToTrackerTransform = 0.954258 -0.267355 0.133844 -190.269 0.271339 0.962408 -0.0121259 -96.9245 -0.125571 0.0478883 0.990928 -1946.14 0 0 0 1
+Seq_Frame0007_ProbeToTrackerTransformStatus = OK
+Seq_Frame0007_ReferenceToTrackerTransform = 0.262665 0.964197 0.0364986 -209.03 -0.960209 0.264925 -0.0883996 -115.584 -0.0949039 -0.0118268 0.995416 -1992.57 0 0 0 1
+Seq_Frame0007_ReferenceToTrackerTransformStatus = OK
+Seq_Frame0007_StylusToTrackerTransform = 1 2.24745e-005 -0.000112918 -0.241047 -2.26542e-005 1 -4.23921e-005 -0.0927032 0.000112819 4.23524e-005 1 0.0221943 0 0 0 1
+Seq_Frame0007_StylusToTrackerTransformStatus = INVALID
+Seq_Frame0007_Timestamp = 346.410471
+Seq_Frame0007_ImageStatus = OK
+Seq_Frame0008_ImageToCroppedImageTransform = 1 0 0 -335 0 1 0 -285 0 0 1 0 0 0 0 1
+Seq_Frame0008_ImageToCroppedImageTransformStatus = OK
+Seq_Frame0008_ProbeToTrackerTransform = 0.953881 -0.268296 0.134633 -190.206 0.272071 0.962224 -0.0101241 -96.7768 -0.126832 0.046287 0.990844 -1945.91 0 0 0 1
+Seq_Frame0008_ProbeToTrackerTransformStatus = OK
+Seq_Frame0008_ReferenceToTrackerTransform = 0.262293 0.964368 0.0345765 -209.065 -0.960812 0.26432 -0.0835196 -115.38 -0.0896829 -0.011315 0.995906 -1992.8 0 0 0 1
+Seq_Frame0008_ReferenceToTrackerTransformStatus = OK
+Seq_Frame0008_StylusToTrackerTransform = 0.999999 0.000141058 2.44619e-005 0.0680764 -0.000141672 0.999999 0.00141273 2.83739 -2.42842e-005 -0.00141282 0.999999 -0.230439 0 0 0 1
+Seq_Frame0008_StylusToTrackerTransformStatus = INVALID
+Seq_Frame0008_Timestamp = 346.487714
+Seq_Frame0008_ImageStatus = OK
+Seq_Frame0009_ImageToCroppedImageTransform = 1 0 0 -335 0 1 0 -285 0 0 1 0 0 0 0 1
+Seq_Frame0009_ImageToCroppedImageTransformStatus = OK
+Seq_Frame0009_ProbeToTrackerTransform = 0.954202 -0.267484 0.133981 -190.299 0.271119 0.962501 -0.00932624 -96.7758 -0.126462 0.0452238 0.99094 -1945.76 0 0 0 1
+Seq_Frame0009_ProbeToTrackerTransformStatus = OK
+Seq_Frame0009_ReferenceToTrackerTransform = 0.261742 0.964569 0.033125 -209.136 -0.961304 0.263604 -0.0800442 -115.283 -0.08594 -0.0108923 0.996241 -1992.93 0 0 0 1
+Seq_Frame0009_ReferenceToTrackerTransformStatus = OK
+Seq_Frame0009_StylusToTrackerTransform = 1 -8.38286e-006 7.33177e-006 0.0141538 7.31128e-006 1 7.56794e-006 0.0170484 -7.4003e-006 -7.6245e-006 1 0.00335954 0 0 0 1
+Seq_Frame0009_StylusToTrackerTransformStatus = INVALID
+Seq_Frame0009_Timestamp = 346.564929
+Seq_Frame0009_ImageStatus = OK
+Seq_Frame0010_ImageToCroppedImageTransform = 1 0 0 -335 0 1 0 -285 0 0 1 0 0 0 0 1
+Seq_Frame0010_ImageToCroppedImageTransformStatus = OK
+Seq_Frame0010_ProbeToTrackerTransform = 0.953495 -0.269526 0.134913 -190.176 0.273015 0.961979 -0.00771147 -96.8541 -0.127705 0.0441862 0.990828 -1945.32 0 0 0 1
+Seq_Frame0010_ProbeToTrackerTransformStatus = OK
+Seq_Frame0010_ReferenceToTrackerTransform = 0.260186 0.964887 0.0359937 -208.929 -0.961051 0.262389 -0.0867957 -115.687 -0.0931924 -0.0120088 0.995576 -1992.64 0 0 0 1
+Seq_Frame0010_ReferenceToTrackerTransformStatus = OK
+Seq_Frame0010_StylusToTrackerTransform = 1 -9.097e-005 -4.11296e-005 -0.0979202 9.05099e-005 1 4.43543e-005 0.116405 4.10174e-005 -4.4319e-005 1 0.00127124 0 0 0 1
+Seq_Frame0010_StylusToTrackerTransformStatus = INVALID
+Seq_Frame0010_Timestamp = 346.722429
+Seq_Frame0010_ImageStatus = OK
+Seq_Frame0011_ImageToCroppedImageTransform = 1 0 0 -335 0 1 0 -285 0 0 1 0 0 0 0 1
+Seq_Frame0011_ImageToCroppedImageTransformStatus = OK
+Seq_Frame0011_ProbeToTrackerTransform = 0.953662 -0.268862 0.135061 -190.205 0.272316 0.962179 -0.00742639 -96.992 -0.127956 0.0438615 0.990809 -1945.11 0 0 0 1
+Seq_Frame0011_ProbeToTrackerTransformStatus = OK
+Seq_Frame0011_ReferenceToTrackerTransform = 0.261563 0.964488 0.036699 -208.93 -0.960731 0.263817 -0.0859985 -115.791 -0.0926264 -0.0127638 0.995619 -1992.7 0 0 0 1
+Seq_Frame0011_ReferenceToTrackerTransformStatus = OK
+Seq_Frame0011_StylusToTrackerTransform = 1 0.000246578 -0.0001832 -0.329176 -0.000245948 1 -0.000503951 -1.05191 0.000183137 0.000504045 1 0.132071 0 0 0 1
+Seq_Frame0011_StylusToTrackerTransformStatus = INVALID
+Seq_Frame0011_Timestamp = 346.800057
+Seq_Frame0011_ImageStatus = OK
+Seq_Frame0012_ImageToCroppedImageTransform = 1 0 0 -335 0 1 0 -285 0 0 1 0 0 0 0 1
+Seq_Frame0012_ImageToCroppedImageTransformStatus = OK
+Seq_Frame0012_ProbeToTrackerTransform = 0.953332 -0.269242 0.136622 -190.099 0.272516 0.962136 -0.00549485 -96.8344 -0.12997 0.0424701 0.990608 -1944.71 0 0 0 1
+Seq_Frame0012_ProbeToTrackerTransformStatus = OK
+Seq_Frame0012_ReferenceToTrackerTransform = 0.261597 0.96459 0.0336535 -209.099 -0.961121 0.263533 -0.0824418 -115.622 -0.0883914 -0.0107785 0.996027 -1992.85 0 0 0 1
+Seq_Frame0012_ReferenceToTrackerTransformStatus = OK
+Seq_Frame0012_StylusToTrackerTransform = 1 4.12233e-006 -2.12408e-005 -0.0463964 -3.48716e-006 1 -5.37005e-005 -0.110406 2.12848e-005 5.37899e-005 0.999999 0.0132904 0 0 0 1
+Seq_Frame0012_StylusToTrackerTransformStatus = INVALID
+Seq_Frame0012_Timestamp = 346.955414
+Seq_Frame0012_ImageStatus = OK
+Seq_Frame0013_ImageToCroppedImageTransform = 1 0 0 -335 0 1 0 -285 0 0 1 0 0 0 0 1
+Seq_Frame0013_ImageToCroppedImageTransformStatus = OK
+Seq_Frame0013_ProbeToTrackerTransform = 0.953494 -0.268764 0.136439 -190.108 0.271897 0.962316 -0.0045207 -96.6231 -0.130081 0.0414077 0.990638 -1944.6 0 0 0 1
+Seq_Frame0013_ProbeToTrackerTransformStatus = OK
+Seq_Frame0013_ReferenceToTrackerTransform = 0.260873 0.964809 0.0330121 -209.057 -0.961299 0.262758 -0.0828388 -115.501 -0.0885978 -0.0101241 0.996016 -1992.91 0 0 0 1
+Seq_Frame0013_ReferenceToTrackerTransformStatus = OK
+Seq_Frame0013_StylusToTrackerTransform = 1 -4.16886e-005 9.10917e-005 0.184284 4.11018e-005 1 8.75517e-005 0.181086 -9.11178e-005 -8.75683e-005 1 -0.024987 0 0 0 1
+Seq_Frame0013_StylusToTrackerTransformStatus = INVALID
+Seq_Frame0013_Timestamp = 347.032871
+Seq_Frame0013_ImageStatus = OK
+Seq_Frame0014_ImageToCroppedImageTransform = 1 0 0 -335 0 1 0 -285 0 0 1 0 0 0 0 1
+Seq_Frame0014_ImageToCroppedImageTransformStatus = OK
+Seq_Frame0014_ProbeToTrackerTransform = 0.953189 -0.26927 0.137568 -190.034 0.272148 0.962253 -0.00220535 -96.4015 -0.131782 0.0395411 0.990491 -1944.37 0 0 0 1
+Seq_Frame0014_ProbeToTrackerTransformStatus = OK
+Seq_Frame0014_ReferenceToTrackerTransform = 0.261316 0.964688 0.0330248 -209.112 -0.961372 0.263178 -0.0806323 -115.27 -0.0864765 -0.0106786 0.996197 -1993.04 0 0 0 1
+Seq_Frame0014_ReferenceToTrackerTransformStatus = OK
+Seq_Frame0014_StylusToTrackerTransform = 1 -1.88528e-005 -9.42127e-005 -0.192541 1.85134e-005 1 -0.000252701 -0.502413 9.4151e-005 0.000252676 1 0.0555361 0 0 0 1
+Seq_Frame0014_StylusToTrackerTransformStatus = INVALID
+Seq_Frame0014_Timestamp = 347.111414
+Seq_Frame0014_ImageStatus = OK
+Seq_Frame0015_ImageToCroppedImageTransform = 1 0 0 -335 0 1 0 -285 0 0 1 0 0 0 0 1
+Seq_Frame0015_ImageToCroppedImageTransformStatus = OK
+Seq_Frame0015_ProbeToTrackerTransform = 0.952939 -0.269984 0.137901 -190.012 0.272529 0.962148 0.000446788 -96.2932 -0.132802 0.0371563 0.990446 -1943.86 0 0 0 1
+Seq_Frame0015_ProbeToTrackerTransformStatus = OK
+Seq_Frame0015_ReferenceToTrackerTransform = 0.262925 0.964219 0.0339545 -209.184 -0.960619 0.264898 -0.0839065 -115.301 -0.0898987 -0.0105562 0.995895 -1992.83 0 0 0 1
+Seq_Frame0015_ReferenceToTrackerTransformStatus = OK
+Seq_Frame0015_StylusToTrackerTransform = 1 -0.000183278 7.35687e-005 0.130303 0.000183659 1 5.88357e-005 0.157608 -7.35579e-005 -5.87913e-005 1 -0.0288582 0 0 0 1
+Seq_Frame0015_StylusToTrackerTransformStatus = INVALID
+Seq_Frame0015_Timestamp = 347.267386
+Seq_Frame0015_ImageStatus = OK
+Seq_Frame0016_ImageToCroppedImageTransform = 1 0 0 -335 0 1 0 -285 0 0 1 0 0 0 0 1
+Seq_Frame0016_ImageToCroppedImageTransformStatus = OK
+Seq_Frame0016_ProbeToTrackerTransform = 0.952827 -0.270193 0.138259 -190.033 0.272615 0.962122 0.00147136 -96.3232 -0.13342 0.0362898 0.990395 -1943.6 0 0 0 1
+Seq_Frame0016_ProbeToTrackerTransformStatus = OK
+Seq_Frame0016_ReferenceToTrackerTransform = 0.262119 0.964501 0.032103 -209.25 -0.96089 0.263929 -0.083853 -115.396 -0.0893493 -0.00886796 0.995961 -1992.77 0 0 0 1
+Seq_Frame0016_ReferenceToTrackerTransformStatus = OK
+Seq_Frame0016_StylusToTrackerTransform = 1 -1.61072e-006 3.65398e-007 0.000223244 1.59241e-006 0.999999 -1.6297e-005 -0.0326544 -3.86971e-007 1.62507e-005 1 0.00532425 0 0 0 1
+Seq_Frame0016_StylusToTrackerTransformStatus = INVALID
+Seq_Frame0016_Timestamp = 347.345200
+Seq_Frame0016_ImageStatus = OK
+Seq_Frame0017_ImageToCroppedImageTransform = 1 0 0 -335 0 1 0 -285 0 0 1 0 0 0 0 1
+Seq_Frame0017_ImageToCroppedImageTransformStatus = OK
+Seq_Frame0017_ProbeToTrackerTransform = 0.952982 -0.269589 0.138378 -190.1 0.271753 0.962362 0.00337042 -96.3262 -0.134078 0.0343926 0.990374 -1943.09 0 0 0 1
+Seq_Frame0017_ProbeToTrackerTransformStatus = OK
+Seq_Frame0017_ReferenceToTrackerTransform = 0.26257 0.964422 0.0307868 -209.367 -0.961032 0.26424 -0.0812136 -115.378 -0.0864592 -0.00826285 0.996221 -1992.86 0 0 0 1
+Seq_Frame0017_ReferenceToTrackerTransformStatus = OK
+Seq_Frame0017_StylusToTrackerTransform = 1 -0.000355541 -0.000153919 -0.383616 0.000355739 1 -0.000538715 -0.997997 0.000154152 0.000538595 1 0.126267 0 0 0 1
+Seq_Frame0017_StylusToTrackerTransformStatus = INVALID
+Seq_Frame0017_Timestamp = 347.501086
+Seq_Frame0017_ImageStatus = OK
+Seq_Frame0018_ImageToCroppedImageTransform = 1 0 0 -335 0 1 0 -285 0 0 1 0 0 0 0 1
+Seq_Frame0018_ImageToCroppedImageTransformStatus = OK
+Seq_Frame0018_ProbeToTrackerTransform = 0.952607 -0.270418 0.139333 -190.007 0.272369 0.962178 0.00523917 -96.211 -0.135481 0.032959 0.990232 -1942.83 0 0 0 1
+Seq_Frame0018_ProbeToTrackerTransformStatus = OK
+Seq_Frame0018_ReferenceToTrackerTransform = 0.262515 0.964438 0.0307526 -209.361 -0.960965 0.26419 -0.0821565 -115.356 -0.0873594 -0.00798481 0.996145 -1992.81 0 0 0 1
+Seq_Frame0018_ReferenceToTrackerTransformStatus = OK
+Seq_Frame0018_StylusToTrackerTransform = 1 0.000229794 1.74703e-005 0.0750161 -0.000228959 1 0.000492332 0.938557 -1.72712e-005 -0.000492299 1 -0.0737818 0 0 0 1
+Seq_Frame0018_StylusToTrackerTransformStatus = INVALID
+Seq_Frame0018_Timestamp = 347.579371
+Seq_Frame0018_ImageStatus = OK
+Seq_Frame0019_ImageToCroppedImageTransform = 1 0 0 -335 0 1 0 -285 0 0 1 0 0 0 0 1
+Seq_Frame0019_ImageToCroppedImageTransformStatus = OK
+Seq_Frame0019_ProbeToTrackerTransform = 0.952419 -0.270982 0.139519 -189.989 0.272804 0.96205 0.0062689 -96.1501 -0.135922 0.0320906 0.9902 -1942.62 0 0 0 1
+Seq_Frame0019_ProbeToTrackerTransformStatus = OK
+Seq_Frame0019_ReferenceToTrackerTransform = 0.262353 0.964445 0.0318772 -209.228 -0.960819 0.264143 -0.0840011 -115.397 -0.0894346 -0.00859032 0.995956 -1992.79 0 0 0 1
+Seq_Frame0019_ReferenceToTrackerTransformStatus = OK
+Seq_Frame0019_StylusToTrackerTransform = 1 -8.66741e-005 -8.15804e-005 -0.169587 8.72308e-005 1 0.00019277 0.396414 8.15039e-005 -0.000192771 1 -0.0172912 0 0 0 1
+Seq_Frame0019_StylusToTrackerTransformStatus = INVALID
+Seq_Frame0019_Timestamp = 347.658686
+Seq_Frame0019_ImageStatus = OK
+ElementDataFile = LOCAL
+xœìİu`wş?~Öfvvgİw#»qww$„àîîîîR¼…R(VÜİ-¸÷@Áµwıv6Ğ–+íõî~ß3wÏÇYOşx¿îı~ÍLÈ¼æY¥
+  p_(	_{ÿ9­uñ	Œ²KÈÈÉJŠöu’‹¾öºş"_ "‚”j\kµê=bâ´Ù,\0ÎÌÉcwkœãï¢ó¾ö:ÿ_DR´\¥µx„¤õœ¼dÓşã'OŸ<~`ç¦5«V¬X±|Ñäõ¢]h¶Ÿ8_HP2•ÎÉ3,­A¯)?lÚw´øÂÍ{÷®_<qhßŞ}û÷íøiî ÆÉ>f%Qù¿ÿÊëıöc%"%rÁÉİ?*«a×áÓ-_»ûÜ{wn^9êøÑCöîX·pX³´ ‹‚dïğuˆ¥
+­ÙÙÍ'$>«v³N}™·şøùKçÏ*>vxÿ®?ÎÔ(ÙÏ¢ Äÿk/øğøöë-SˆÆ`qõğJÊ©U¯Q»AsÖì;qúÜ™‡÷nıaÊ€–YA6-`é™ràñ˜=!ì­®TëÌ®öRâ’r‹º_´ùĞ±½kNìİ47Â¦&Ù\ÄGÌáKh™B­3¹x„EEGF%çÕ)lÕ¥só:™Ñ~®Z	kÔç*ÛD"•©ôNVO?O«³ÕÓËÃêâê¬—‹EØŒO˜0IId*­Şh6›ôj™X$ä3Çîk¯ì_ÅcZ^BË*Z¥ Åö*¾ö’ş=gæxÑ´T,bõåéÏÙ/]Ç-’
+¸ºL!vlŠÀÅ¾                   Vâ‰HBèx1Q@Ñ4É‘·À?G¨m!ÉUkd¥fäå×©“_3;Ö[/qëµW±%"'¿VAçÑÓçı°vûCû·®˜7²CÍ(7%äÀÛ¯|Råä•T­q1³-[¹zÕÚmG.Ü~PzûüŞ¥£[e»hRûQcóã)•KpzƒNƒ'/X¾vóö½ûöï?xèÈñ³×KKKÜº´ïûá­r#½œ´rŠğY»'ö–¦äFÿÌÖ£~ØsªäÚ’ó§ŠŸ<{éúİ²'Oİ<µeNß¢Ô@g­\BŠ|ÖÂ¥õ«Úyêú“×KËÊïß¸|şÌÙsK®]+9sâğÖE#[ç†Új¥L*&„ö¾çÎ«Â#”¶Øz½¿;z³ìÉÓ'Kï\¿zåâ©cGö¯_8¦[ƒŒ›I«Q«•4Å¼®ÏÚ:µwr£±›ÎŞ~TQñ¬¢üî…›×ü0kt&Y!®:…Œ–Ò4-!…,>V	h[|ış?ß|XşüÙÃ»—Mé×¶Q?'M‰Å$I"ŒNdÖøÂAË].9µó»ê¥GùYõ
+Z"&D"!ƒeØ¿Ì&½ÇLÑ½EÍw“N%—ˆ+÷k3 B™“_xLtˆ§Y§±÷5S…À1ÚÅãŞ_HR‰TB‘öãÄâËì?Ç…•§‰åWÙÎ±z&                         ø·ñ%W©TJM„˜"…<'¥ø"‰Î=$>³fAƒ¢†ÍÚuéŞµS›fMÖJ
+öu3Ê8’™Ê„İIõ¾I]G/X³»øbÉåó'9|`ÿ¾=;~šÙ«N„™bó<ı'ö#$ËûÍúéĞ¥{O=-pçÚ•’+7îÜ¿wåÀÂ5Bì~­Ìè”è}R
+{M]ºqï©**=¸}ûNiÙ“Š§Oî]Ò??È ªğY½-<GÌXiñK¬Ónà”v½qïŞ½;Ê>şìYÅ½ã?icÕH™aô¯½Ö?ã¹¤X¢u‰Ëªß}ÊŠİÇÏ—ÜzPa¯£âQÉ–i]kGÚ´4Áò™UŞ/i}”D¦6{„g5ğÍºçn?~ş¬ìÆ±µS:åúh±ˆ½éµ¿²-fÈ–)…–i=¢sŠúÍß°ÿäé«gô+JöÑK„¬ŞŠ_1["¨Ü)-Wl!Yº>¨[£¬ ³LÄêÆøœ#BÑ‘kIIìäz[P|ZzR´¿IÌî¾øO""ìDB!)UiÕ4—2_?qd3Âñ‰ú{b¯…ëõU>Ós¾
+                    `åz£Åæî¤×ÌÎ6w«ECn½,J£"ÃrZtêÖwØøßÌ×¿MİÔ«NN±>-•/”Lm°X}¢²u:²ŸQó—¯ß{úê½7Oo›?¤En¤§E#Ù[	O@HUz‹[Pr~Ë>ã,]¶lùŠ5¶í>tâüÕ;˜lÎ‡WMîZ;ÆË¤¦ÉÊÀ¸¯½æ/ŠiÅÍ/ªj›ÑK¶9uæÌéSö:w¡äÊÛÊŸ>{RzõÀŠ‰kÆøZMjå¨äk¯ùø„T©³¸X}SZM^½ëğ™Ë7î?|pïöí[Ìßn];{`ë¦Õ³‡´Ì‹òtÖ+¥•òµı<‚¢j­Î5¬zçië½z·ìÙÓŠ²‡÷îÜ¸rşÄşMKfŒìÑ(71ÌÇ¾´˜Éğck8'_À¬MlÉğıÎãç¯=xşúíË§î^>¹oÃ¢‰}›WO÷·_‚U´˜}¶de	Q½çn+¾xûñ‹7¯Ÿ—–øiöğ.«Æø»9TL‡Ì»«°#u¾™mÆ¯:xîFéóç¥Åk¿Ö±~f„‡Ù QTf½ò92:Á—»ÅÕí:aùş“§n™×¯ ŞÏfÖ)e±È1ÀÂ¡xNÂ->¿e!#ú´¬•èjÔÈÅ•A©\)àW„ÂâáåéîbPÊhÊÑØ¬½óı5‰(>·âwşJ                         øŠx"‰Bk0š:•LBp!"î‹x"ÚèœS#¿vİºõëÖN÷t2êNnnÉê!¤ßIñDr‹Bfİ†L˜½díæÍk–-œ1jğÀ};7Î·é¤ìıfÀÇä>‘#]$(…Ù?©VÓ½_´y×];·mİ¾sçÆ¥“{¥‡yZÔ4ÅÒU_("%´\©V«”r™Lcñ‰Ï©]Ø°íğÅvìÚÍØ¹yÅÌ~3#ıœ¤Q~<@HPrµÎhq±¹¹»»{xù…Æ¦$'et›ºjï¡ƒöíÙ½sİÂáÍs¢|œ”Ä×^ï²ï‡½ÉÅİ70$4<2*:::**&©jã^Ó×;wîô±ı[–Mh—îí¢•²ùúÅ³W"¦5&›oHdl|BBbBB|lLLljíNã–î8|hÇŠ)]óãmF…˜Íe0xB’V\Ü}Ã˜Jâãâìÿ’”]Ğ¾ßÈ±CÚÔˆòñ°¤ììŒÏ0ßÔPê-VïàH{	ññL-Ñ±ÉY¹9iñ¡¾î6›Õ¤`oo|†'`6ÅÕ;˜é‘˜Ø˜¨ˆ° ?OW“ŞäìbVSl?U¿°/©BçìaoøğˆˆğĞ ?£F&¥ÕZ¥”SÏ(öã%Qhôf«§_`P€¯»‹cĞŞ~{dímüñ"±T®Ò™œ,&RÂÁ>á9î)R¹\&%¹’'üÇ˜/V~             à«úoø%O 	¼zñ§ø„XLI(×ëà…JÁW/ş˜€$…üÿß3ÿW    ÿ)Ÿ“?mğÅ
+³wXxXdBrjZzjbL¨‹fétÍoñù)•'”hİB“2«æ7í1jò”i3gÏ5¡_Ë	şfZX‡ÅŞ)>“Ÿ¨µxF%çÔjĞ¦ß˜i³gÏ˜:kÉOwìİ»o÷ÆCše9+%JL:2ÖØY	Ÿ UZ£-8­°ËĞ)üiÍêU+V¬\½Ê^Æ¾C‡öoY>{X‹4o½B.—ÑRŠ$X›( ä
+­5ªNÏË·ìÚ³gÏîÛ·nÛ¶mçŞƒGÚ¹lRŸVùI¾&ÊQ‰DL°5—“!Ry$7:oí®={÷î=pğğÑã'Š<R|xÓŒîrãC¼­½ZYY{s9íNjªu›±áĞ‰Å'Ï\¼zóæµËÅûölÿa\çúÙIq‘A^.µœ–T+Ç÷ñ¥®Im¦l,¾XríÆíûÊîo^¾ø›ÑİUKMHˆör5iäÒñGp¬İ*Ì†èƒk÷½éÔû*WÜ;³eÑ„¾­ëç¦$&ÄD„ù{ÛÌGL*‹÷ÂOéı3šš·íò£§OË¯ìœ?¸MıY)ñ1A¾^n.&Œ	…äÀ°
+¡ñLl<|éÁ+÷ï—^9¶]­ô„Ø˜èP?w‹Q£ ™ŒmvoÅGÚè›ÚtÈü•k×¯İ§(7)&*2ÔßÃÙ‘»Ëâkíïïä¢îÃÆŒÚ¥0#&<,$ÀËE'³ù†ñe„Ö'.;¿~İª©ñá~¾N:%%àX<±Æêãëëes²¸8[ô*	wÇ·b‰D,–Ğ2&µö¿à÷øcu                        `_àˆ¸dï$÷_âH&ÓŒF½ÎN¯×*iŠ$D)•Ñb}v/VX¼Bb“Ó22sªæd¥%'$¤Úÿ²V½:91ŞF9Åê˜2Ş'|!3xF¤×jØ¢MçŞCF;nÒÔ™Wü´bî°6yqAÎ•TÄÒJë!)3zGeÔnÚ¡Çi?nŞwøÈ‘#GOœ*>´yÑ˜ÎòÓ#|œUkëà„öÖ&Åv”LëŸ[·¨I»As7¾]^ñäñã²[§6ÌÜ­Uİd?£œ`k“8ê°W!‘Ò4-“)´N^ÁQñ©U:M\¡üùó§ïŸİ0½w‹º™‘Z)››İQ3#)—+j½ÙÙÔpèÒı—îÜ»qzÛÂáíëeFxRJÌæ/0i¼"Ç8*‘Û©ŒŞIúMY¸dÁØîMêTµ)X{¤~ƒÉG&Ä””Ù¦¹Bí˜^Ø¶C»æêä$†ûZ¤_{‰•cS(©½GìÅÈí¢wKËÊÍËËˆğ0Ê…_{}ÓñöJ˜†—ÉhZ*‘›¼B£ãâ¢üÌ4wÊ`T^ƒÅöZ¤R‰˜¢5À`_«ce0x|G-$iX‰½Á¨¥Ùzÿ'˜0	˜œQû•Ì~káÂ…
+             ş÷pã«úÿŒ#$‡Ë/$~ÄüşŸóéµÿç
+    €ãø‚b&#
+¥BNKH›§„¾€Ç‰i…J­58ÙÜİ=<<™¨;£F!aõ¸ÓGÌ´ˆ ¤2…Z«7¹Ø<<==Ü=Âb3ª×®S3+ÆÏYC‹…•¡¯,şŠçxQ]ªÔ[\İ½ı#R3RÓrë6iÙ¶SÏÁfÍ™Ğ«A’·	‹XhY¥Š€KFğŒÚÍ»¸`å†µK—­Ù´mçîCÅ'ö¯Û*ÓÏ$'…BÁ§J¾öz¿HH)ôN®^aiuÛŸ·áà‰Sg/^¿WVñìÙóò»W/œØ½tL³_‹JBˆ•°´)ÓZlŞ!ÉõºÏØpúVYÅã²²ÇÏ^¾zıæÕËG%‡ÖÌİ­(ÅÏÅ ²,!kÏODkLf“ÉÅ'¡Áàe‡/ß)ñÊ^ÂÛwïŞ¿}öèÚ‘•ãÚ×JpR+T:BìfaÌˆ,%W)h…Á;©á¥ûÏ]½÷ø…½Š?xû¢üîÙÍ3:fú˜ô]¹Ò~åemUxL)B¥õHj>æÇ]ÇN]ºyÿÉ«wö2ß;¹yŞ F‰îZ¹L*a†nHö–Áà1÷7BP­ûìõ{_ºùğéë·o+.o3¸yVˆ«VAKÄ$A0½ÁÚ~%Pxeuš¶fÏ‘Ó—nÜXöğÆÑeƒ‹’ƒ\5L2—Ì´-¹qŸÉ?nİyèüõ÷}×3Û[+grÂEÜ)ÂvKªß¾ïˆI³¯Ù²lX£$OÄ±\û#i¡Â—ß²s÷=ºw,Œ·)˜14&Íùk¯ë_'ÖûÄfæåççÆúèÊÇ)VÁ Ô®~~Îjâk¯ä?ÅQñEh-                        üsùµ—ñúü*ú¨rNÒ}É©y$Ç×ä
+¥J¥V«UJ…Âñ—ZVÍ„¥r¦@DÉ”Z½ÑdqvµÙlnîîŞ~ş~^V“F.uLì±»”Ê–`âÔ(™Jk0;¹zø‡2ÂÂÃB½mƒV)“B6×QÙ¡X¦5[=}üƒ£Rrj7jÕ¾}ë¦U“B½¬®ÎfÌ›ÍeT©¬B ˆH™ÖÉİ/4&)£jİ–f­İtß†ÅcZW‹ósQSì{«êŠHZ¥wr÷LÌ®Ózè¢ı7*^¿,=µfÊ€nÚ6/Èq’³9/µÊÇI©Bïdu÷òŠÊl:xÉá¥n•œÜ½fÙÒc»ÖwS²–ÒQ‰½¥Îl¿T¹{úE×ê1{Ë‰ÏÙşÓÒùc;æ'úh‚İçªSŠÈU*…L¦u©Ù´ëğ¹kwn_³`TÇz©á~Vƒ‚âHP§#t›B‘ÔèŸ\½a‡ş£§Lß¯ifD` Ÿ›NF±¼?~õé
+Ì§EzõíÕ±uÓzÙñaLl*ÇòF÷³#ušwèÒ¥]‹Fõrc|œÔb®Íß3x„Òš˜]£v½‚‚üœX_³Œ­ÑçÿŒPáìîgQpµ;¥2˜Lf‹QCs=Ä–Ï§u             ø‹ğK@     øÿ3äÄ
++Ã98ËÅ” ŠD¤X,¦b’àPÀÚ§±A:–/¦¤´\¥Ñj5*¹„äH!•ƒ$2¥J©TëF“ÅÉÕÍÓÓÍY¯ 8ÇìAÑ*­Ñâêæåàïëëâg3©˜^¶·3ÍH’­Ô™­^!aááQ1±qñññ	‰‰ñQÁ¾6£RBÙÁë$Ä­Ğ9y„GÇ¦dW­V³Aó6»vïÑ¥uQµX_g½RR¥Èâ2x!aGJT.!YEO_ôã†ı'ŠÙ¿mõ¢é#:×‹uÓ0Éœöşgs‡ğH¹Fo0¹x†¤Ôí4vÑ†=ÇÎ•ÜzøôİßşöóëÛ‡–jW-Ø$—Ò4ÅêıJu6ÿğØ„”œ‚öÃfş¸óÄùK×î”>}óóßÿş·/oî›Ù6#À¬°_|Õ
+))`k|±ÒäæŸY£A›ó¶—Ü)}xÿÁ£'/ŞÚëøğòÑå}‹D¹ªer•Jn¿ğ~íõşAë\¼Ãc’«5ì4rÑö#§¯Ü-+\^şäÙË·ï^–]9´vj§ªAÊ~c'ÙÒ)’é-VïğôÂî“–mÛwøÔÅë·–•–>z\vçÌî'tÊ1IY{œ>' $Zï¤üöVlİsøä…Ë×®_-¹tşÄæÙı›f)6ÿ#m	Éi6à›U;Ÿ½tùÜÑk¾Ö(9ÀL9TC s
+Éj2páÖGíß°lŞ˜öYrc~r®Óyô¼kV/[8¡kÍ`ùµWôïÈm±u::løÀu#-Ô×^Ï¿M 5eÖoŞªeaV˜‹‚“gªŸR»Æ§¥Ä…y¨9<ÄhÇ'i…J­’!…                        rŞ[èøöcj•ÇÑ<[II¤4-WéM‹Ù Q*2æß*•j­VAq",Ç·—!¡åJµÁÙ3(*!%=#=#;·ZõZu‹š4kRX-ŞßE+—RlTd†¾IJ*SjÍnA	¹u
+‹Š6ëĞkè”Å«×oÜ¸rÎˆù±¾6‹^A±<:ÕñI¦k`b^ıf­Zµjßoü·›œ;òÈ¾­KÇwÊö°èÕr	«·„	„t| D"×[ã²j6iÙuôÂu{:uüÀÎuó‡4Kós2µ2ÖgÙ:’l"‰ÊhóKIÏÊo;hÒ‚ÕÛöìŞôİ¨Nõ³¢}]tr±ıröµ—ú§~ÉR*³»o`HTjõmz6á›Ycû¶+ª–ä¬àFˆŸãfÁã3;âêå—Q³¨e›6í»víØ¦YQ­O5gÂF<>!Uœl¾‘Ù…­:vëÑ½}ÓÂº52"=4ÜÊéä	Å
+ÙÉÙÅ#4)¯°EûMkf¥ÅÚ4Çf\yB"WkfWßÈø¤ôìôØğ?„µßuøÌWš˜ºH¥
+­ÉÙÍÃİêlRKÄbN<˜|æÓ'³˜¯f‘E°û–ñg¸ú¸                    \Çé÷Xy•ó)!4f(‚c…ğ"RLI*No0èµ*Z,b^æF!AH,U¨õ&‹‹»—·_`Hhh¯›««»·§“Z"bq0§³©L®PiÎ6wOïÀèÌÚ[wîÖ¹u£:5j6kÙ¤vj°³‚dõÌ€£
+…Æ`v¶ù„Ä¦æÔ,hÖyÈ¬U;+¹|xåœi'L;¬[Ãô@'%«£±øB‚¢Z³{p|F^İæ]‡ÍZ±ãPñù«÷Ÿ½}ûğÔŸÏ™>apûš1Ş›gjxÌtƒLë˜U»EáÓØzâÊ­[wî?¬xõêéİSfïÙº ;>ĞfP²~úO$Ó{DçÔkÙÆê£7Ë+½yÿşıÛWÏÊïßº°k~ß†‘¾NJ’ÉÎ"™É'¾z‹¾Ó×Ÿ+{óóßşşóÏï—?¸}íÒ‰S;UµĞFá“
+£{XfÃ¾³w^­xûáoo_V”Ş*9wbëÜ>õâ¼´$7ªpRj—Ü¶ã–î¿^ñ¼ôú…³§‹O\9¢(Æ™fsW|‰PîQ½İĞæO=|üÜåËfôÊRq­
+¡ñŠ¯Z» ~İ:;õ2¸gÃxÉ×^Ó¿…'’›¼ı¢r
+7¬ï*åâvØñE”L©1¸xF%Æº(85û[<ûı],Ëô'‹EÃÑüZ†ã§!3ÅÈöqñõ·n                       €ÿC\µÿEeş ¥HJh…R¥ÑRŠ D¤Loqv2*)nÄÄ9> 
+Eb™Ælõò
+	ŒIÊ©×²SCz4©ëcÖ(iJÄòŸÊ)|{´Æâ—˜œ^µ ıˆù–”ïX:®]õX7³–åA£Ux!$*“›_htl\RNƒnSÖœ¸õèIEÙ­ã+G5ÍˆôvwÖËI«›ˆ÷éÃr“gPT\RVAéëNŞ{Rñäşéµ“;ÖLŒŠğ0+I–-†cfO"S]½#«54{íÁ3Ç7ÍØº 7)*ÈËjÑrc®²²)-Ó8$V/jÛwüÜEßÎ;°gÛZ±^f5-f{£ÂBRZ®µ†fÖmÖ±ßaCú÷îÙ©iN°EÉú€çßpdV‹)‰LkÏ.jßkà ~İ;·kœëmàÊ0¾ƒı>""H’¤fÿ¸ìü†ÍZ4ª›—™ênPH¹5«[öLR­k@\FvfJBtˆ»7Áß©ÌH¶?¢ØïŠ6wg£F)—Š¹ñdòE<&¨^Èµm                     €ÿ—‡Ğ*gÏ„B‘ûZ¥
+ŸSL•ÓZAŠ)J"¥iZ*“”Êâài’¬ßÇl“€)ÛKiœ¼#²ŠZ4iP;79!­zQË6Íë&ykÙœÏYåc‚S‚„–+u.	yMúÏúioñ…«¬œ9nüÄIS&êQë¦bu`ªc†QD)´÷€ˆÄœ‚v&,ÜxøìµG/ß¿}|~Ë÷sgÍ˜4¼kÃÌ0Wv§Æ1u2½- 6»°ıĞ¹ë\¼~ıÆ­»å¯>üüöÉ•İßêTT«jj”¯“ŠíÓ¥<Xåâ•R£ÅÀ…».—¿ùÛÏ?x÷îı»woİ;±|t‹ì0w£’±¾Í«ğ„2“wXbõ–ƒ¿İ}ùÉû¿ÿíïÿğşİ›7¯_Ü0µk^ AÂîÿO(Õ:û%ô^¸ïÆógöãÍ«—/_ß1¥U†¯^Ìş­ø„Ç'•®‘ùİ&­:~ûÑƒ[ºıäñµÓ['Ù¸˜Ê#Ô^©zš4eì î]†}¿yıw#šÄZÄ_{]ÿ:mH¬V§n^ZJn“>c'mfåJk|OÈ´ggg›_lµ¢fu¢©¯½¢“ãŞn¿µ+œƒ"C<Œ\ëß¨|ÜÙŸ²Œnª_8~æàî                        ğ×ğv"ù8|Ï‰i…J­Ö™œ¬î^Ş^VîÌ)ñ>åÄ‘b©RïduóğŒLÎkÒ}øøQ:Uó3K90¬ôqLLLI$rÅ38*>)5§^«>­Û±kÇšÅ3†¶/¨–åëj2êÙœ[™?h¯BJËuÖÀ˜Ôì¼üúÍ»\°éà‰cÇØ»é‡™c‡ìŞ¼nµ”po‹Šbë9c
+a!¥2µÑ-(6­Zízuóë4í7{ó‰3çN;|`ÿ®ßëİª ;ÂM+aï$¸#¬°÷‡Dir÷OMKIˆKkĞgê»Î\8öÄ‘ƒ;WOê\?3:ÀfT°9¶2EÑŞ%R•Éæí™ZØcüâç/_8}lÿæoGµ¯ïÇâ3õL¿‹e“‹›—_@xJ½ıFÏZ¾yÏ­?-Ú<İÏ(s#v”éJ®5¹ºyxùøøEf¶ï9hÈĞÁ}»5Ïqf÷—>ÃìI«ôF“Ùb6;{†%gæV¯Y5%ÒÏEÃ©QpûQHJdJ•J¥”Ëd*ÙÕf5étjŠÅÍıeL¼0“fË ˜ì0_Øá\¿Å<®ğ9ÑØ                      ¿Å!äôİU„R½Õ'ÀßÓY+å@’âç˜Q±Lmró‰J«Q¿°NN¤MÉ¡:xö…5¦FÓN}útïŞwğĞ¾]ºôêÓ³]A¢§šÍÓL¿r„Ø
+Å*[tîSWí?uúĞÖõë×,=aÄÀíæÅû™9Ä[%,5‡ä¶ûÃ¶Ãï<zúüÑ¥=+¾ÿvB×&õëÕ­‘î¦•²wJîf>ƒÒ‡_~àâÍÊ+>VzùÈÖeSz5©—•äÊ…*ìx"¹% §ÇçŸ}xÿöÙãGwo^:¶cÕ‚qİåÅZJ)W&³D
+×ğİæ¼ûêÃÏo^ß¿nå¢©ÛÔM±i%^öwF%ûeJå‘ÜlÄ¢İ7_¾{z÷ìöïGwª—ãk¢9tµ­Â‹“rs`F³A³×í?~xû’‘mòâü•$×æày‚R˜ƒsš÷9fäĞ!İS\t2’{#|!!QZü“ê¶ïİ»sËy	¾”³£Ÿ³bß‘ÀÄœZ5³b˜CÅÍI9{‹Pr£ÕËÇ×××ÓIC\ëOì=âøª‚Q¯¢IUÿ	@(´o‹˜àv                        ÿOñ„$%¥iZ¡R)•*…”S­_Â‰ej½Éââ—SØºC»¦uÒ‚-R–ğø„Tepru÷	O/è6}ãÉK'¶ÌÚºzB€E.¬RE(–PLæ{÷ˆ)Á	i¯Ãèâá\§ëÔu'n–•?*9¼~şØ¾í
+3ãââcC=Œ
+Š²v–ìcH¬ĞY¬~|·ÿúãŠŠû7.Ÿ>º{Õ¼1zvjR-Ê]'eó,ÙÇ:„„X*·7ˆ³Gp|NÓ¶_-{^QQñ¤üNñÆ¹#ûth”â$c÷|âÇş°"¡åJ•Ş”Ö ÷ÜV¼xù¬ìÆÁec:7ª‘ì¢$Y]†ÃÇB(‰T*•ıRöµ¶øÖ“ŠÒ’ıßo_X-9ÔMM|íEş%L@'ÁDòJ¤*‹BnQ·I‹×oßºzÎÀæ9Q~nf.ì†CeF²˜²W"‘½c²ê4iÛ¡cÇy‘îz9%&83‚ü1Z˜ARrÉÅİ7$<ÄÇYÃµ/¡8BÄS‘}odJµBÌ™øï7>ı'_wE                      ÿkxBŠ–Ñ±ˆµƒLÿ”€ (Jmõ³êåœ‹Œ«REâ’’›““™˜™“•â¦£Eœ™à‹ÕN±u{L]²rõÚŸ–~3¼s£Úµ
+ŠêåÆù;)9—Ê…Á=4!·Q÷ÑsWí,¾òàÉÓ²›ÇVOêÒ°NœÄ`w“JÂæ9†½™ÚÉ7®F«Ó—¬Ú¸ÿtÉÍO^¼~S~qç¢1R‚¬FFE³¾Ó¤T®q
+Hk6ôû}W”?~ü¸¬¼ìŞõsG·ÿ0¾G“Ì`WJ!%Ù^E&° t¾m&­;uÿåû¯Ü¾rşØÎå³Ft)LµéåR±ˆ½ã£Ÿ#õÁy'®<rûé›÷¯^>¶nr·FÕSBlz%s¾öêş:¾ÔZ½Ó¤ŸNÜxğğÎåƒ«¦v¯çmRËYßÜÿH(s
+ËiÖêÂ%ß;{\Ÿ–µâ<t4Éîù×/È“j6ëÒop¿.­W²*I‘€ƒÃeö{ Õ?<>§AÇšäÅXí÷®4÷çD´ÎÅİ72%§zõŒ0«FÂÅCÅà´Jgqóòöö²d$›?9ğçbZ¡RkM&­ŒkW©Ïñ¤„¶ÿ¨ÁÑÆø¯P                       ÿ#ø‡†İşˆ€ d
+•Zg²¸¸yy{¹9éäÜˆêû_$UéÍ.6ïàèÌF½'Ìœ:²KQN¤M!üÚûñD¥ŞbõŒËk;nå±›¥¯ŸØ8«w£ªñ>F¹Lc4ê¹1ŸÈR¥ŞÉÍ?¾N¯ù{o¾xûşeùÍ“»×.š5®‡fEµÓÃ=Œ
+L‹òøB1­ÔÜÃóºÍ;øàÕû7o^¿xö´ôÆñ­?ÌÚ!?ÖSK±¾
+Gl*“lIRrc`¾‹İ~õîÃ‡÷ïßVÜ:´rÆĞõS-2.ôŠ£P(+¬)m'ştªìÕûŸ?¼­¸´sáĞvõ2"<ô	Iş,ÌßŒfƒæl»PşúÍ‹;{lV=9ÂÛ aÿ¡ªô)"Y(ÖzDå6î9ú›ÅË–ÎÕ¥~F˜›^Ê…3õï—-«œıb²j7hÜ¨°z’¿IÊ±Å_Â9±Õ:“‹‡Ÿ¿M/ãJtío|Šuc¿€‘b'                      `RhtZ•”ıƒL€/Vètƒ-8&!:È¦¥Ø?Yö(sx^Ó¶íZ7kP56<.³FÍìX?‹œàÎ†ğ)[xzA·ëö+>qpÓ‚¡­kffçUÏIrUq"/U@*LÑ5Ú?má¦c—n•>}ıöÅÍ=4ÌNNˆôuÖHÙÇ'h¥R¥wÍlØgö¦ƒ'Î–Ü¼Súøé‹WOï¯Ñ»AŠ¿“‚
+lâ´J¥6z%6üÃñG¯ß¾~VşàAéı§÷oünL×¢´@‹B,äs"¯ŒÇ'¶¤–6\zşóß~~UvıRñÎ5ßOÜ¶Vœ—ğ¹QC ³&4öã©'ïşùÕÃKÇ¶-Ñ4=ÔÃ #X>Ã§L¡ÕÛù~ïå»w¯œÚ³æ›5C-\+‚Á#µ>Iõ»9ïÛE§hY#Æ¦"8sœ~ƒGé½ãr[÷<zÌÀ65c=U"Va'<Cs
+ZwîĞ,?ÎÅ~¿àf|RmquóOÎLòs’q1»¶_,×ÍÎ6OO
+%¢h¥Fo2¨i=~_HR´TÌöG)                      €ÿaŸ¢°¸‹/°ŠDö¿$%•Éå´DÌ(ËÀQ2•Îhq¶zúúøyºÙÜ¬ÎFB*qh' e³Õ;86£n›>ÃG>dpŸ«Åû»ê5*)„ˆÁwöíkÍ6¿ğÄêmÇ.ÛáÎƒ{WOXÿÍ€¦Õ’c#l&­Z© Åì?f±Lïêå•Ù¨ïìÍÇ¯ŞypÿÆ¥S{WM8p`÷µ’İj.„[ò)•ÙÕÍfõŒÌï=kñ…’«WJ.œØ¿uÓÆu‹ÆwÈµURNŒ)Ú[D"WĞ2ƒFóá‹¶>}îâ…âcGîXıÍà9¡6£Z&æÈLsëà%æ°İ¦­Úºkß+—.š;}LïÆ™¡n&5ÍÏü‚ÇÑï¤½ÆN™:npÿÃ†öï\”bÓÑû
+/ tn~ÑU‹×¯™›™êé¤áRfêG<Ÿ]½<­67WW›‹æD‹ÿıt‘E
+„„–Ùï_{=                      À9<ÇûG²¾„'"A)–H¥'ÿH©Bc´ú†F„ø{¹»š:•LBrhèO(QéÎş±9Uk5jÛ¹s›¢¼Ä³V%£¶ú1	:‹›OPx\z^A³V­ºŒ;öŒiÓ§MÙ¯]ıŒ0“JÊúCÅ'&øÜ¢&~»nûÎíÛwí=rñŞƒ’C—ÌÕ«iµ¸ WM²~êD@›ük·:kåîÓ%·nß¾û¨âéÓ§åw/Ù±rF¿¦91¾Î*ŠãX‰Î;¡^·I+ö_¼YöôÅ«·>¼-;·›	mS'#ÂC+fy_|Dh½¢s›˜¿åèùk÷–U<ù´ìÚ¾eºÔI
+¶éhÎ„Æ	¤æ ÌÂ.–ï.¾xıÆõë×¯œØºxB×šÑ>§üD
+[Dvƒ.£¿İ°ïğÎ5KæNÔ¹I_“Œ`}sĞxÆæ5ï9tÌ¸±#úwïØ¶Y½œh/-Å™õ‰@aM/hÕ¾]ëV­[5/Ì‰	tÓÉÄ¸Fı¾ÄèŸ˜[«nêÕjTM´”4ÅúûŞ—ğ)Õ?211*ÈÇ¦WÈ¤b‘€s›áÀ#•&›·¯§EA2ßLpq3x"©ZoĞ)¥¤ã_á	Nö                      Àÿîç¥2x‘X"“+”j­Vo4[Lj	çÒáx| )¹Æäêé˜S·Q«¶mæ%†ùº(D_{yÏ^†Ø^†Å349¯~‹Nƒg,Û¸sû¦•ßÍÑ±~f´Ÿ³J,’b‚ådß!–ĞJ£Gxj­&M[}ôÚƒ»7.œØ¿mÕ‚±}Û7È÷õòó÷2ËØág¯ƒ¤$R™Êì–\µ^óî£l<qíÁíkW.Ÿ>¼cÃòÉíª§$&Æ[Õ,OñãÛÛC,S2­«x\bfí–}&,üiçñ’Û7¯]<±yRã”¨ğ £Œ`õ~Tùô…
+‘De´z†F§v2eÑÆ#—®^=½}N×ì`oO//›AÊ‘ÙQŸ 5N~a	yÍzš¹xãşı«§vËö¶ÙÜ\2Î\ºìwJ¡w¶¹{$ä·ì9hÔØ‘½›å„8«
+9>6ğ|æv¨ÖŒ®ş	Õê5,ª•èï¤ ì§îk/ì_Æ0!èRJ¢0¸úz›¸ìüe<ŸoÔrô>7x                      ş]<37'à3o×3¸12óG”ÊÉÓ×ÛjTJH‘ÈQÏ×^Ö_Å'¤FÿØ¤Ôœµª¥'§fååçWMrÑHIÊà	„"JcŠNÌ)ê5så–='NX=u`·íÚ¶(ÈŠô2*Ä˜Ãâ	Š–|’êu¿l×‰ó×î—UT”[7±s£‚Z™16ƒ\Ì /¾XíœVĞ¡ÿøk÷.¹q÷ÑÓo^—_Ú¶pLçÚIA®öCÅö Ş*^­{lAŸYë\¼zíæ½Ò‡Ê—?.½´oÙäŞ<õ2.d¾:Rx]¢
+ú»ûâ½G¥÷ïŞ¿ûêÅKçnš3¸uõh7%âÀ‰rĞ–Ğš}¿ß{şö£'O+—^;¾ñÛ‰Ãz4Î±¬ŸıO¬óMo=aõ‘K7ï—=~xyß²I½Z5)ÈsUr¨Š*Ì†8E]zàÜÕ·n\Ø³d|&ÕÍ4‡BÂ?iÃZ~àÜåÅ;êmUS"†ÏóÄú êİg­ß¹mÅôµ£¬
+BÈÁ*¤Î7µ°Cßş=Zä…›H'	xSPZ­zù¡Î2û¤şO$7{úûZõ2–óáŸâ3ŸR ¸^ƒÇÙ¶                       øK¸<Šñ3Ê Sª”*•V§ÓëµJ™Œ¦Ødù%ö:$2­Ùæ“Q£A«Î½zwoß¬~ô0W%Å¥¨8_HÊu®¾ÉÕ›t6gãéÛ¥w/Øøãœá­ÒC<M2‚CÈö¡uVÿ˜œÂÖ=Æ,9pëé›7ÏŞºp|Ç’1]›7ÈOµHEA°v”ÇP
+“Ghrµ¢nÓ¶\yòæí«Ç¥·/ß¹féÂo¦LÔ,-ØÛjRÓÄ×^è?Åœ-©Bkñ­×{Ş–“×îŞ¾yõÒ…3'O;slÇ’!Ó#|\t2ö×áˆPä”10§íèo×í?]Rréâ¥’ËÏY;¾eZ€U¯`y†í'+¡£ò;›ùÃÆİ‡ŠÏ^8j×Òñí3}ô
+nÌ‡;TVB*œBr[ö5åÛ{îß¹rZüP£˜í-ş9æS"B±BgöŒ¬Ú¬ÇĞ±“§NÔ*Û_ËÆø=@DŠ%èÜú×Í÷0ĞÜèŒ/â
+'¯ÀĞ0?É­Cõ{‚’p*L                      şoñvBëg¯¾ˆ'Q´B¥Rëf'‹^%“pf*î|±ÊÅ/2112(46='73)Ò×E'—ÚPj‰¨İ±ÿˆ±ãFõïØ¬i››×¯ïï¢åH<¾€ 5&g·ğÆ“6¸xõÆ•âm‹Gwiİ¶uƒêi‘FfüŠe0¡¯2KXÃçm/)ñúıÛ'—7OîX¿zNFb¤Ÿ‹šâJhœHáœ\·Ïüµ{/•¿~÷öÃÛ‡Ç—n_/3&ÀjÒÊ	NìE¾Ì%$£aÑs×»r¿ìIÅÓ'K¬š5¬mµp7½”;‘BµwZ³¡ßm9VrÿÁı{÷îß¿sıôÖ¹§ú¤gª¨R…Ğù¥6¼xçéëÜ½}ãúµŞ2;È,#„\iŒ*\N¿´†}¿YwèÂ­‡åe÷¯oœ3°Q¼MÉ… äßPj— {!Ó–ï8væbÉÅÃkfö­í$áĞ‰úˆTÛÂÒÚ›½jË¶+æn“é«sf\÷WJåìŸP£qÛn}ìÕªfŒ''Ë°×¡48Ù|BbSÒ’¢‚ÜuîOÿO(QjíO¶NN.ÎZZLpãäËìê!ää6                       üÏâñ9<Ìğ/ %2¥Z«×ë&gW7/OW=-üÚëúW1!w2Ùê—Q³aÇ~#Ç9|hïVÕ£¼ÌrUÃã	ZmöI¬Z¿Ã¨%{.?zşä~Éñ?NéÛ,+Ğ,	)¥ZA³?J‘™kW=Ã“r
+Úÿn÷•'oß¾yñøî…ƒ¿ŸÔ£~R oHlLˆ—YI²½*|!Q™İƒ’êtšğãşwËŸ¿|öèÖ…“‡¶®X0¡w«F…Õ“CÜ4HğãÙ›]DĞkXN³³Öì=uáÊk—.\¼pzÿê©};µª—ìªàL¯ğ	©Ú90¥~÷‰‹7ì?wıÎÃòÛ'×NíÛ¦~Õ¤Pw-—R:¤Lç™Û°Ç„ï·Ÿ¹Wñäæ¡e£Û×I‹
+ô0rëBÌ43Û ßw{.Ş--Ù3¿waf|¸·™c)>‘h<“‹z›·zëO3ú·¬èªâ`f*Óó´KD^‹ıútm]75Ø¦£E_{Qÿ.©qOÉN‹ò±()ögmÿ))•Ößü                      àkâ1¾ö"ş]<>øJPRZ*‹„>÷Já“r£›§›Í30""ÈÃ¬¢ÅÜ	S¬Ä#¡5;?vP—æêÔ®]+'>Øİ¬âPœ"O k\½cšMÛyùÎís;¾Ö¶^µì¬Ô˜ ‹ZÂ™¤2ÂY£YçA3×Ÿ.}ñöİûç%&wkP-56ØÍ¬WÓªà´ÚÖ°×ÄE¾úğåûŸßW\Ø²plÏÆYáîš$D¨‚ÇÉœB«µ>ı®ƒ'.^»ó ¬ìî©Ís·+¬‘ä¤ ¹r ªJ÷´6“V8s±äêÍ›7o”o_6kxû¼Hog&÷k/ï¯"ÔÖÈÆ.ÙséÖí›·®—œ?±ãÂ‘­²Ír’Ca©UÄÿŒæ#—î»p»ôÑ½ëgïÚøãô^u#åb!‡ª`öÃU«ë”Õ/İ¸uõÔ¦ïfOØ43È"gÿøgø³_lµ¦}§.ßuôØ§n_˜—è­å\@§€ÒºøEeÔkÓ{è¨Qƒº5¯ëeÑÈÙÿeßÒZ‹{`lvÆÍ›ÖIòsRJÅœ¹{ÿÏ~Ô;y…ÆÄÅE‡û»(I.>Ú~$ $
+½“‹E§sköû÷ø"±”ædˆğpö@                      ükx|P("‘ˆ I1%¡HNF‘1!wbZ©ÕLNV›»§‡ÍêêlÒÈ(‚cÕğìuÈu›wPLZ¢v½úì×½]“üÔ@'¥XÀãñ…B'F’íBÈ´7ÿ¨´Ú-ÌŞxäâ•K'÷®ÿaæÀ¦ÙaÎJ™Ú`¶54Áşy_$U™½ÂSó[^°óâ£Wïß½~r÷â¡Mßoœ–Z½NíÜ„ g%&“™Ñdk@b~Çq+ß|üòÍëî\9»{nŸ]zöìÒ¼j˜‹‚#±BJaôˆ¬Ş~ìÒ}—Ë_¼x^QzóÌ®¦9rÄ€õ<Ô©ÃÑñ´Á+¦nÏi+÷»yïî‡ÖÌ8¼OÇ&ùé¡Î\
+å	„´9(«Ù°%¯>xp·äĞcôîÚº07ÚCÃ‰şøÄ~%´YÍûO[}´äÊ©­óGõëŞ¾QÕ(Å¥2­OZQ·q‹7ìØºbÆ jeÆ9Ë8•Ä[‰G™Âjt<bè >mëf%D¸¤cë}bÒ3Sb‚ü¼=]ÜŠEşG"©B)—pà>                      ÿ×x<Ÿ/àó¹(Åb‰„S2µF«Q2)eœ+„GĞÿˆè¨°àˆØÄ„?«N*âÒ OJiµgB~Ë~“ÌÛµaõœììôØ 'ŒàÊd	[üSÛö4nîº“÷JÏ¯ŸĞ¡VJtX —ÍÙ  Ø¿!|1­vò‹J¯İzğÌÅkvŸ8{¹ôõû·eg×Oïß²^µŒ/½L,°~;x¤ÊâU­y¿)Ë÷½zëNéãç¯_?{pnëÜ!][ÕLvRö—aßJéQ·ïÜMÅ×–•—=*+{xÿÆ©uZUK‹´é¹2­Ä#5	…½§¯-¾Sñ¬âáë%mÛ§n¬§A!¥HTÁô‡1,¿ÇÔåoT¼yó¢ôêé[éP;Æ•K“¡U˜se©Únì²C·*^¿ª¸~hÍÜ±}ZVt•q '~‹Ğú¦Ök7ì»=WË>¾y`ñˆN«G:s­Š*U2§ÔZÍûL[¹sÿ¶¥»ÕKğÖK8ö±ŸÒZı£²tè;xpÿ®MªF¸*¸¯ı{<R¡wòN©Õ°qı¼”pwŒäV‡ÿŠ'¢·€ğğ O‹VÆ™Iü/Iå*•JÁ‰èù?'$I‚O ÿ'¤                      ¸'Š–_{!ÿ	&‡“KdJ­ÑÙİ7(<:>>*Ğİ¨“2š¦Ä¤˜¢Äì×É~%(©Bçì^§e¯ÑS¦M3|HïmZ6ª[»võŒ(?wW‹Q#§„¬~`ÎIÉ4¯Èì†=&.Ûw¶äÊ…ã{ÖığíÂ…Ì×½NBDh€·Í(g÷X/³$%U=Â3;\°õ\é³go;´cË–í»÷ïZ5®yj§‹^A‰X]H¦?(ZeòM®İaÄ·[O]¿{÷Ö•³Ç)¹uûÒ¾ïúÕ	òs·¨%¬ÕâñE¤T¡5»…f70í‡{Ü·çĞû+Ş»j|ëœH_›I)f÷n|d/E,×¹ú%ä·î3bÒ´o,ş~éO›Ö/›9¨Iz«FÊîæøOH©,Á‰5·iÓª}·}FLİ¯mıŒP¹èk¯í_Ã'äzWŸØÔô´¤¤œúÍÛ´i^/#Ì¦æÆ‘ú¥48Yİ½|¼İ­!‰9UsÒ¢9”Âû+>!SëM³Q¯ÓêŒÎV7W£œõ—©/â	ÅR¹Œ–P”Äş1%æÌĞû?r¤Ô|¾€éçó                      ÀÿJ¡V+i‚ƒÙ^UµÑl6zÎìîäë¢"¹Tkr§ğôšEmûĞµeİŒ„¤Ô”Äp/Í•¡‘Lg6™<Bc2Z_¼fûÁcGv¬˜Ù¿qv\x°Ÿ§“Z"äÂDOb	ÊhÜcğş&.ÛsîÚíûÜ<³gÙ˜–ÙÑAŞ6“šâF”9¦pàü{>UrçşÃ‡åÏ_<¾²wÑà¢Ô7ƒR&áFŸ‹T>y}—<íöí;÷–>¸uıÆõ{¿Ñ2;ÔU+—ÛË`÷ÈñG±6 Şè-î=~öôñ£·.ß³éÇı›f™i‚ I'6£
+Ÿ”›ƒó‡®;_úüõ«å·NíÛ¾nÁˆÎ2ƒM§æ­D´9$¿ÿÒã÷^¼}÷æÑ•ã»~œÔ¹v
+3NÉ‰ãôÄà›ÖzÊæó¥OÊî_?·wé‚HŒâÈyú¡tÊh1zé¶½û÷ï\5¹cn ‰æJWü–€R:¦v2qúôñ[åú©N5Æ¯”ÚÙ/*-¯vıú5âÜTÜ¸]|Aot¶¹»è’£»ñ	O "Bd¯‚Óe8ğşŠ                       ø×ğxÿ¯Óóx|¾@("H±DJËär™”	Hå	©^öÿÏù}ÅIIƒ‹‡_` ¯‡ÍÕ™PÖiµ•L"&	BÈşYS)Uê½#2ë·ï;tØÁ{wnÙ¸¨^Õ”„øØè¨ˆ`›YC“‚¯½Ô?Ç+¥4z„¦vŸ²¦øvùƒ+'öìÜ±nÑÔ±ã&O; CÃ)¡FÛóí…DR­5(¥ ë”µ§¼xıúeÅƒ[×KNîİ¼aÓ¶MK'u­ã¡—‘,¯ƒ©DHÒ‹Ja¯i?¾Zúøé“ÇËKïÜ¸råò¹Ãæô«n–°üX}ÄcÎ–É;®NçñK¶¹tçş½;×Ï=pğÀ®Sû4É
+2r¤Ê@^‰Ú-¶fëS¿ÿiÓö½ön_³dÎ¸ŞM«Çû¥\)£ŠcRT˜ıR
+»œ1oáœ™ó/š9¨MAn| ·BSùB)Õ{Çæ¶î1hä„ißLÙ>?-.ÌÏUKq©Gü6!5øÆfæå×oÖ®CÓ¼?7›ÍEÇ™îø„yF2½Õ74**"ÄÛ¬R(å7SS+Ÿö.–g…                      ü[ø¡PÈÑX,¾`ˆ)Š’He2ZBr+øïHZ©Ñ;y…DÇ'Ä{Û,zµBÊ 2¾@$‘*³I©2{EWmÔ¢Eã†MZµnÙ¸vF¤E#³ïË‡Cy„Lï–œWØºs¯~ızui×eÔâM{ön[6}dÿ®Ú4Ì	sÓË)‚íe(…Ñ#&¿Ã°ùÛN\¾yûJñ¾}Ç¯>|õ¦üäOsÆôn]/=ÈY-±}T—'’¨]jwºæÀÙk½|õúyEyùãÇ·Nmû~rÿÖuÒBœ„@ÀòÜ8>3Ù’^ØmâÒm‡Ïß|òêíûïŞ½~zóÔ¾µ3{5¬–ëo–
+¸0è.R{Äå·é7nşš½§¯—¿z÷áç¯ïŸÙ±|zŸúqşîÎ:ÎLR¿œvÃ¦ÿ°õğ¹k^¼ığşÅı“k§t«ï©WÒb¶w÷oZ¿ì¶£¬Úzôâİ'/ß¾)»¼mV§ªa6˜íÍıxrÏ¤ºFÌÛpğü­‡–ì™Û-×_Ïä¶s©
+Ÿv‰Îo?báöâsg®Ò¥f¨IÂ±ÇJ"…-ºVûÁ“ç}7oÒ öµ"iN–ÁìˆsPR^QsûãH~’—šàTc|†O*.®.NFÅ½Æ                       €Ï0Ãd|“7J"®Nó2“s„˜¢Z‹{`TRJrlM'“i­^nf£^§ÑhTrŠƒ±<¾H,ÓYlşq5Ûœ4Éw3Ç5fäˆ1£û·oP#+=%6ØÓYG“ì®…9SBRa°úÅäµ»òÈõGOÊïİºZrîô‰Ã»6,9¬k³:™1V­”İ™qLkE”\oH*ºâTéËwo_¿zñüIÙƒ{woZ7±[‹úUS¢|Í
+JÄîáó…ö‘Ê5Öø¦ã×Ÿ¾÷ôÅËW/_½zıêùãÒëGWŒïTæ®³},“9X"’’*^ñ…ıç¬Ù}øä¥[åO>«({p½xÃôNÕÂÜÍ*âk/ó/¨¼ìR2S@j½öƒ&Íù~Í3·Ü»}íôöyı‹’¼
+Ší»ñÓ%öJÔWßèœFİGÎüvÕ®#‡·}?¶[£ÜH«šå½ñ[<G›Hh…ÎÅ'*§Q§!3¾?uD·¢´ 3ÍîKÕ?àU†ˆ“b1%7xÇäÖmÜ¢Eav˜MË•3õ¦¡HD$¥4yGÅE»éelÏÛş"GlªP¢±Xm®fç‚_‡'‹9Õ                       „' $R	)âV3ŸDJä:‹Q£Ë•*­ÉÅÃ7Ğßİ çR,–€TZÒŠ:õ:zä}{vjVP«F^Õ¬x_#Í•ô>PfôMjĞcüÂŸvŸ(¹Wş´â~ñO“»7ªU53!Äª‘Bş×^âŸ±$æÿgöÎï?gíÓWnÜ~P^ñâõû·Ï.¯Ù(36$ÀÏËYCl‡á	ÅLø·jıï;ëá£GeeO_¼~÷áo^^Û<¾yzˆ›Y+#ÙŞäJ®Öj”[rÇÅgŸ¾ÿşå“G=~şöı»Ç—7Nh•î«—rbœOÊ5£K@VçïN=yóîı›WÏ—=zx¯äğòqíóBLRÖÇÖ~"¤µÏˆ¬Fƒ—Ÿ.{óáı‡ÿ¯½;ŠêÊÃ ¾½Ş¾½Ò4Ğ@7› Ğ,Í&"""(Q1ˆEÅD%* f\Æ¨¨¤Üˆ±4ZFEqÆÅq·Îe‚dd@@Ì¼Mß–2šÉ¤´æ{Sßïµ_Î¿î9·û¡¿óõ<nk¼]zxcvR¸‡J@0»´ö%¾Xéì?rÒÜüƒeuÿ|ÒÕVwıÔ¾‹Ób¼UBÖñ!Rƒâg-ß~ètÙ²/w¯ı`r´VÄ’õB¤Ğ{†ÄO“»lÕŠi	Á®J6ÕÖşŒKÊµÏ!–K€¯»£%dÃKê×Ğw<X_ÁJ¹LJÑ×n°tÚóŸÏ¾£ñ*N¿^                      À@²ı±ÂÊU:{R)W¨Ô
+±Çyésæãp8\¾Hªu›œ>w~nîü9YY™3“ãÂü|}|}¼İövÆ÷“q8!¨]ıcRm/>{¹´ôÒ¹Ó'şR´wçöÍ+ó²¦MiñvÖHŞ4jK—
+$vN¾1éëÿ|ãşƒæÆ†ú†ºÚšêª[_Û‘¿<wö»c‡ú8)EŒÈ¾E?ë¶+œÆå©|ØÕÓÛİİÕÕÙñã£Ug÷,Éœ’`q‘1¿kÍÖk)¢† qÙŸ»PŞĞş¤§ïioOOGÓ£ëf¶ø8KY¢;l	.O$Óy†$¤å¬Ù²»øòİë½—>]0Öß ¢˜»îg„' eZƒÇà°¸ÉY‹
+–Ş®kj¨()\ş^¼¯FÌcüÃègK›	)…Fïâá5.s}qÙ­›¥Çw­Ìˆ÷Ó‘\6<~ÏssB±ÔNgˆM]°aÏŞÂ‚¼©#ı¥ì
+g>?&ôMrGßğø)³çÏ›áã¬°i
+š-üGX‡*İ‚£ãGŠ¶¸«Ií©úƒŒTêİÜz;’5'üWY'ˆH’á×\¼ëcõ³                      €ÿëÿ[ÎáSJÎÁÁ^­ ØT2jc]¼Î+4vBJRÂˆÈ° @‹Å<È ‘˜ üOªu3LÎ\ºõÈÅ«ß}÷Í…«Îœ˜mñ1¨)ÆÏÑ_İÅ¡ÑIËvŸ»ZÙø¨³çigİ¹íLŠ‹ğ79(%tù“áp"! (—ğ”%…Ç.|[~ûN}s»uŒ'-×¬Îæã¢‘‰I¦·ßqx”R«Óª-SÖ¾\~»ªöÎıÆæ–Ö¶‡;½û£Œ„ •˜İw„Hi:,6å¯ßkº§¶¦¦æûï+o]9±keæøP£JÌgöêGˆÔ¦à	“æ¬şìBmËÖIªn]ÿêÈæ…“†zéU+¦°âŠµ^–˜ñéyï?³ªººâÛÓ‡
+×-šõv¸‡VÆ¦¨—ÒyxgÎêÂC%çÏ(Ú³iÙ¼i	{{"¹6\±ÆuHTRæâ?®]¿bŞ¬ô)ñ!^N…õ`ôÊŞõ¬;5.991ÊìitqÔÙIYÙ–jÄiPõˆÉÑN*•ˆéğ$K÷/pE¥Z­ ù<—Ë¥»Y9†MÿôŒ                      üÎpx¤Bçê9$8<Ìäïíê VH¥Š’)är	)`zÏ¨‡à‰ö¦ÀÑ3–n+:uæÔGöïX»4'ûı©Éã†yT$ó'ápù”Ö<æ½•»ÿz³¾­ıÇ¶Öæ{•×Ï/>vêä¡mKg&XÜ5,hŒãpy"…! !#ÿ@imkgwoww÷“ÎÇ-wk*¯•ìü0%ÂƒÅwt¯¥PîèûnÎÇ.İmúìß?=ëëëízT_qvÿÆÅS‡{©„lÈÙØ‘hÜÌÃÇÏÌÛğùÅª–Ç]=Ïúº~¨º¸/?kâ0oh —øšèòWRj§s2ÄN_uøú½-í+Jö¬ÍN0)ø½¾×ek±’”L©óŒJ[¶óØååe%Ÿÿiõ‚icB2æ¿«^ { ùë(jÓĞÔ%[÷>R´k]Ş¬‰#-Şä@/îp—¦Š$ã³W­Ë_‘7{ê„˜@WóK‘ÿ=Š@æ8xøÄï§§&Fš4bmªWpørÃà°È¨a!ƒô
+Æ÷lÿÁ—jìÔr’Ï†oß`+²EÄ                      ~¸<>Åi!’ÛŒînN™u-eLoôğ5˜ıÍ!á‘ÑÑá~®*ø¤Æh—4sî¢5[v~²uuîìé)ãÇÄ»k(Vtßq¤X,7%Î^³çÄ…ËWÊ«j<¸sñÓœwF„ú{9«¥BætÒéI¥6†&çl*şºª¾¹­ãÉÓŸõı«îË&Gúûz™œÔŸñi:§'’:Iœ¿åhYuSKkk{GWÏÓŞ®|óIÆ¨ o7½Z*`Ã¦"xb­WdòÂûÏİnnmmij¬¿w·úêÉ9ñ^Õ)|J7(:må“×êZZ¶6ß¯¼r¶hCöÛAÎRÃÛw_Aä†¤…›‹¿*¯{ØÖô÷KEòÒâ-nv$ŸË–‡aCåI
+ö©¸[]Z´iNœÙS/·u[ôÒŞÁ—è“ò6ï;züğ¶E)aÎ2RÈgİoÑgÒûÅ§/^ñá¼ÔaF…ˆÏc×zÁúÒ²÷‰5flŒÙIÂesx’ /Ñëí52Ö¤íÿ'‚ËeÃ7                     €ÿ %}¥ú

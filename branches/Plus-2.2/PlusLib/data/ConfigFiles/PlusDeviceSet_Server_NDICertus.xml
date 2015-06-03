@@ -1,0 +1,55 @@
+<PlusConfiguration version="2.1">
+
+  <DataCollection StartupDelaySec="1.0">
+    <DeviceSet 
+      Name="PlusServer: NDI Certus tracker"
+      Description="Broadcasting tool tracking data through OpenIGTLink
+Tracking a single needle.
+The computer needs to be on the same local network as Certus SCU unit. The needle has to be plugged into the first slot"
+    />
+    <Device
+      Id="TrackerDevice"
+      Type="CertusTracker"      
+      ToolReferenceFrame="Tracker" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Probe" PortName="0" />
+        <DataSource Type="Tool" Id="Reference" PortName="1" />
+        <DataSource Type="Tool" Id="Stylus" PortName="2" />
+        <DataSource Type="Tool" Id="Needle" PortName="3" />
+      </DataSources>
+      <OutputChannels>
+      <OutputChannel Id="TrackerStream" >
+        <DataSource Id="Probe"/>
+        <DataSource Id="Reference"/>
+        <DataSource Id="Stylus"/>
+      </OutputChannel>
+      </OutputChannels>
+    </Device>
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="RecordingTest.mha"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+      </InputChannels>
+    </Device>
+  </DataCollection>
+
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="TrackerStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="NeedleToTracker" />
+      </TransformNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+</PlusConfiguration>

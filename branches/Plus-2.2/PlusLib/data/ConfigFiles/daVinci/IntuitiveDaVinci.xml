@@ -1,0 +1,48 @@
+<PlusConfiguration version="2.1">
+  <DataCollection StartupDelaySec="1.0">
+    <DeviceSet 
+      Name="PlusServer: da Vinci" 
+      Description="Broadcasting tool tracking data through TCP/IP connection and ISI API."
+    />
+    <Device
+      Id="TrackerDevice"
+      Type="IntuitiveDaVinci" 
+      ToolReferenceFrame="ISI_ECM_TIP"
+	  IpAddr="10.0.0.5"
+	  Password="">
+      <DataSources>
+        <DataSource Type="Tool" Id="ISI_PSM1_TIP" PortName="ISI_PSM1_TIP"/>
+        <DataSource Type="Tool" Id="ISI_PSM2_TIP" PortName="ISI_PSM2_TIP"/>
+        <DataSource Type="Tool" Id="ISI_EYE_FRAME" PortName="ISI_EYE_FRAME"/>
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream" >		  
+          <DataSource  Id="ISI_PSM1_TIP" />
+          <DataSource  Id="ISI_PSM2_TIP" />
+          <DataSource  Id="ISI_EYE_FRAME" />
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="RecordingTest.mha"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+      </InputChannels>
+    </Device>    
+  </DataCollection>
+  
+    <PlusOpenIGTLinkServer
+        MaxNumberOfIgtlMessagesToSend="10"
+        MaxTimeSpentWithProcessingMs="50"
+        ListeningPort="18944"
+        SendValidTransformsOnly="true"
+        OutputChannelId="TrackerStream" >
+        <DefaultClientInfo>
+        </DefaultClientInfo>
+    </PlusOpenIGTLinkServer>
+
+</PlusConfiguration>

@@ -1,0 +1,233 @@
+/**
+
+\page ApplicationfCal Freehand tracked ultrasound calibration application (fCal)
+
+This algorithm computes transformation between a phantom object coordinate system (Phantom) and the coordinate
+system of tracking marker attached to the object (Reference) by point matching. Point coordinates are defined
+in the Phantom coordinate system and coordinates of the same points are also acquired in the Reference
+coordinate system by using a tracked stylus (StylusTip).
+
+\section SystemCalibrationTutorials Tutorials
+- <a href="https://subversion.assembla.com/svn/plus/trunk/doc/tutorials/PlusTutorialfCalCalibrationProcess.pptx">Performing tracked
+ultrasound probe calibration using fCal</a>, see also the <a href="http://www.youtube.com/watch?v=lx9GbPupBxA">video tutorial</a> 
+- <a href="https://subversion.assembla.com/svn/plus/trunk/doc/tutorials/PlusTutorialBuildingfCalPrintedPhantom.pptx">
+How to build an fCal calibration phantom using 3D printer</a>
+- <a href="https://subversion.assembla.com/svn/plus/trunk/doc/tutorials/PlusTutorialBuildingfCalLegoPhantom.pdf">
+How to build an fCal calibration phantom from Lego bricks</a>
+
+\subpage ApplicationfCalCoordinateSystemDefinitions
+
+\section SystemCalibrationConfiguration Configuration
+1. Select the Device set from the Ultrasound display and then select fcal from the options that appear.
+2. Open a command session from within the directory where fCal.exe is kept and enter "fCal.exe" in the command line
+(you can also just double-click on fCal.exe).
+3. Select the configuration file corresponding to your hardware setup
+4. Optionally edit the configuration file (to change IP address, port numbers, etc.)
+5. Click Connect
+6. Wait for all of the devices to connect
+7. Check that the instruments (Probe and Stylus) can be seen by the camera. This can be done by looking within the
+interface for a small box on the left that will either say "missing" or "OK".
+The tool state box can be detached so that it is visible during all steps by clicking on the little button in its corner.
+
+\section SystemCalibrationStylusCalibration Stylus Calibration
+
+1. Click "Start"
+2. Before the startup timer elapses move the stylus tip into a chosen position. Make sure to not move the tip of the stylus after the timer elapsed.
+3. Swivel the stylus while keeping the tip at the same position until all the points have been collected. Slower movement and larger swivel angle range gives more accurate calibration.
+
+Notes:
+- The tip of the stylus must remain stationary relative to the Reference marker on the phantom, therefore it is advisable to place the stylus tip on the phantom surface (or place the stylus tip anywhere and make sure that the phantom does not move during the stylus calibration).
+- The startup timer allows some time to move the stylus tip to the intended position after the button is clicked. It is safe to move the stylus tip while the timer is on but the tip should remain stationary after the timer is elapsed. The startup time can be adjusted by the \c FreeHandStartupDelaySec attribute of the configuration file.
+- Some trackers (especially electromagnetic trackers) measure the position less accurately when the tool is moved or rotated quickly, therefore it is advisable to pivot the stylus slowly if the calibration error is high.
+
+\section SystemCalibrationPhantomRegistration Phantom Registration
+
+Prerequisites: Stylus calibration performed
+
+1. Click "Start Landmark Detection"
+2. Place the tip of the calibrated stylus on the phantom at the first landmark point and slowly swivel the stylus until it is detected. Alternatively, place the tip of the stylus at the indicated point and keep it there while clicking "Record Point".
+3. Repeat the previous step for each landmark (in the order specified in the configuration file, typically from #1 to #8) until all landmark points are recorded. All recorded points are shown in green, the next expected point position (available only if a few points have been recorded already) are shown in orange.
+
+See demo video at: http://youtu.be/6Oi8baLmRNY
+
+Notes:
+- If you have selected a wrong point, click "Undo" to remove the last added landmark point a click "Reset" button to start from the beginning.
+- You can get better phantom registration error by reducing \c StylusTipMaximumDisplacementThresholdMm attribute (in the \c vtkPhantomLandmarkRegistrationAlgo element of the configuration file) but the stylus swivel has to be done more slowly and carefully, and detection may take longer. \c StylusTipMaximumDisplacementThresholdMm has to be considerably larger (usually three times bigger works fine) than the stylus calibration error.
+- A small window on the left will indicate the points that are to be selected on the phantom. The content of this window can be rotated and zoomed using the mouse.
+- Some trackers (especially electromagnetic trackers) measure the position less accurately when the tool is moved or rotated quickly, therefore it is advisable to pivot the stylus slowly if the calibration error is high.
+
+\section SystemCalibrationTemporalCalibration Temporal Calibration
+
+1. Click "Start"
+2. Start moving the tracked ultrasound transducer up-and-down with a periodic motion along a line, while imaging the bottom of the water tank (see more details at \ref AlgorithmTemporalCalibration). Make sure that the periodic motion pattern starts before the startup timer is elapsed.
+3. Continue the periodic motion until the calibration completes.
+3. Click "Show plots" to verify that the motion was periodic and after time offset compensation the position signals are aligned accurately.
+
+See demo video at: http://www.youtube.com/watch?v=cZq_ZAxA49c
+
+\section SystemCalibrationSpatialCalibration Spatial Calibration
+
+Prerequisites: Stylus calibration, Phantom calibration, Temporal calibration performed
+
+For calibration of curvilinear transducers the speed of sound setting in the ultrasound system shall match
+the actual speed of sound in the liquid where the calibration is performed in (otherwise the image will be
+distorted after scan conversion). Either set the speed of sound to in the ultrasound machine (to about 1490m/s, 
+corresponding to speed of sound in room temperature water), or use a mixture in that the speed of sound is 1540m/s
+(the typical speed in soft tissue, assumed by most ultrasound imaging systems). 9% by volume mixture of ethylene
+glycol and water, degassed, could be a suitable mixture - see Goldstein et al. "Design of Quality Assurance for
+Sonographic Prostate Brachytherapy Needle Guides", 2002.
+
+1. Click "Start"
+2. Move the transducer into a position where all the phantom wires are visible. Green dots should appear over the wire points in the image, which indicates that the wire positions are successully detected.
+3. Keep the probe approximately orthogonal to the wires to have optimal image quality and move it slowly. There is no need to tilt or rotate the probe, only translate between the front and back face of the phantom and optionally move slightly up&down and left&right so that the fiducial positions throughout the calibration are distributed over the region of interest that will later be used for imaging.
+4. Once the calibration has been done, the result transformation matrix and the errors appear in the toolbox, and the Show devices checkbox becomes enabled
+5. Check Show devices to see the devices in 3D
+6. You can save the results by clicking the Save results button 
+
+Notes:
+- If green dots do not appear, then cancel the calibration by clicking on Cancel button, and bring up the Segmentation parameter dialog by pressing the edit icon (next to the Segmentation parameters import button):
+  1. Press Freeze button if the image shows all the wires (it seems suitable for segmentation)
+  2. Check if initial spacing is correct. For giving a hint on image spacing to fCal, select the checkbox next to spacing. It will give you two rulers, a green (G) and a blue (B). You can manually enter two known distances that appear on the image, one horizontal and one vertical. Then set the visual rulers on the image to represent these distances. You can do this by dragging the end points of the ruler.
+  3. It's usually a good idea to unfreeze the image at this point and play with the "Gain" setting on your ultrasound machine to find the optimal value when dots (wires) on the image are all visible but not too large.
+  4. If wires are still not recognized, you can freeze the image again, and change the other segmentation parameters. The first goal is to find all the candidates (red dots). If the wires are detected as candidates (they are red), the next step is the pattern recognition (make them green). When green dots appear on the wires in the parameter editor, then unfreeze, return to the Freehand Calibration tab and see if the segmentation is good enough on the other images.
+
+\section SystemCalibrationfCalSimulation Running fCal in simulation mode (for testing only)
+
+Start fCal by executing fCal.exe
+After startup, the Configuration toolbox appears.
+
+\subsection SystemCalibrationStylusCalibrationSim Stylus calibration
+1. Select the Device set named "TEST Simulation mode for Stylus calibration" from the drop-down box and click Connect
+2. Switch to Stylus calibration toolbox by clicking its tab on the left side of the application window
+3. Click Start button
+The simulation begins, the acquired points appear on the canvas on the right side as small blue dots. The green bar on the bottom shows the progress.
+When all the points are aquired, the calibration runs, and the results appear in the toolbox. Also the stylus tip appears on the canvas as a green sphere, and the stylus is displayed. It moves around as the simulator feeds the new positions to it.
+4. The results can be saved by clicking on Save results button as a new XML file
+
+Go back to the Configuration toolbox and click Disconnect to make the new connection possible.
+
+\subsection SystemCalibrationPhantomRegistrationSim Phantom registration
+1. Select the Device set named "TEST Simulation mode for Phantom registration" from the drop-down box and click Connect
+2. Switch to Phantom registration toolbox by clicking its tab on the left side of the application window
+The phantom appears in the 3D window in the middle of the toolbox
+It can be rotated (left click and drag), zoomed (right click and drag or mouse wheel) and moved around (middle button + drag). The red dot shows the first landmark to record.
+3. Click record point
+The first recorded landmark appears along with the stylus on the main canvas in the right side of the screen.
+4. Continue clicking on Record point button
+After the 3rd recorded point, the phantom registration runs on the already acquired data and it appears on its approximate position. It will move slightly when additional points are recorded.
+(Click Undo to make the last point disappear or Reset to start over)
+5. After the 8th recorded point, the Save results button becomes active, clicking on which the result can be saved in a new XML file
+
+Go back to the Configuration toolbox and click Disconnect to make the new connection possible.
+
+\subsection SystemCalibrationSpatialCalibrationSim Spatial calibration
+1. Select the Device set named "Saved dataset for both video and tracking (fCal)" from the drop-down box and click Connect
+2. Switch to Freehand calibration toolbox by clicking on its tab on the left side of the application window
+The video source shows up in the main canvas
+(By clicking the Edit segmentation parameters button - the "edit-like" button in the line of Segmentation parameters - a dialog appears in which the segmentation parameters can be changed)
+3. Click Start button to start calibration
+The calibration begins, the segmented points appear as green dots on the image. The green bar on the bottom shows the progress.
+When it finishes, the result matrix and the errors are displayed on the toolbox.
+4. Show devices checkbox becomes enabled. Clicking on it changes display mode so the tools are displayed in the main canvas instead of the image
+5.The results can be saved by clicking on Save results button as a new XML file
+
+\section SystemCalibrationFaq Frequently asked questions
+
+\subsection SystemCalibrationFaqCalibPhantomVersions What are the differences between the different calibration phantom versions?
+
+fCal-2.x is recommended for small field of view (up to about 10cm imaging depth). fCal-3.x is recommended for larger field of view.
+See more information at \ref AlgorithmProbeCalibrationPhantomDefinition .
+
+\subsection SystemCalibrationFaqLargeStylusCalibrationError I get large (>1mm) stylus calibration error - what's wrong?
+
+Typical stylus calibration error is typically less than 0.5mm. If you have higher error then check the followings:
+
+- The tip of the stylus shall be sharp and should not move at all during pivoting
+- The stylus shall be rotated in as large angle range as possible
+- The stylus should not be moved quickly because most for trackers accuracy is lower if the tracked object is moving too quickly
+- The pose marker should not be farther than a couple of centimeters from the tip of the stylus
+- If an electromagnetic tracker is used then the pose marker on the stylus and the reference pose marker shall be well within the working range of the field generator and there should be no metallic object nearby that could cause field distortion
+
+\subsection SystemCalibrationFaqLargeProbeCalibrationError I get large (>2-3mm) probe spatial calibration error - what's wrong?
+
+Typical calibration error is 0.8-1.5mm, which can go down to <0.5mm with an optimal setup.
+
+If you have larger error check the followings:
+- Image orientation: If error is larger than 5mm then incorrectly specified image orientation is the most probable root cause. How to verify the image orientation: the M and F arrows in the segmentation parameter dialog box should point to the marked and far side of the image. If not correct then you have to set the correct image orientation in the configuration file (by modifying the PortUsImageOrientation="MF" to MN, UF, or UN). 
+- Wiring: loose wires, wires not in the correct holes, wire positions are incorrectly specified. Verify wire positions: touch each wire with the stylus and check if the 3D model of the stylus touches the wire lines on screen.
+- Inaccurate phantom registration: Verify phantom registration accurate: touch the phantom surface with the stylus and check if the 3D model of the stylus touches the 3D model of the phantom on screen.
+- Optimize image acquisition to avoid incorrect fiducial segmentations: Fiducial line intersection points should appear as small circular-shaped blobs and the rest of the image should be almost black. Decrease the dynamic range to improve contrast. Decrease gain and increase threshold to make the background as dark as possible and to make the fiducial line intersections as small as possible, while being still detectable by the segmentation algorithm. Reduce reflections by slightly changing the transducer angle or putting sound absorbing material in the water container (such as rubber or sponge). Keep the transducer's axial (direction of sound travel) axis orthogonal to the wires for optimal reflection from the wires. If the intersection blobs are not circular then set the focal point distance(s) of the transducer to match the depth of the fiducial wires. If two or more candidate fiducials (red points) appear at a wire position in the image then try to increase the MorphologicalOpeningBarSizeMm value (to something between 2.0mm - 10.0mm).
+- Temporal calibration: perform temporal calibration. If you suspect that your temporal calibration is inaccurate (you don't have accurate time offset value between the image and tracking information) then move the transducer slowly to reduce the effect of potential temporal misalignment (you may reduce the frame rate to prevent collecting too many similar frames)
+- Some trackers (especially electromagnetic trackers) measure the position less accurately when the tool is moved or rotated quickly, therefore it is advisable to move the probe slowly if the calibration error is high.
+- Tracking accuracy: Electromagnetic tracking accuracy decreases as you take the sensor farther from the transmitter and may be also impacted by nearby metallic objects.  Make sure your sensors are all close to the transmitter during calibration. With the Ascension3DG tracker the ideal distance is at 10-15 cm (has an error about 1 mm), while at 25-30 cm the error is about 2-3 mm (depending on the sensor size).
+- Probe orientation: make sure that the probe orientation is correct (for fCal_2.x_Wiring_1.x the marked side of the probe shall be close to the A1 point). The wire numbers are shown in fCal during spatial calibration and in the segmentation parameter setting dialog box, which can help in verification of the correct orientation. To verify the probe orientation: touch a w1 wire with your finger => your finger should appear near w1 wire on the US image. If your finger appears at a different wire (and you are sure that the image orientation is set correctly) then you do not keep the marked side of the probe on the w1 wire's side - in this case simply rotate the probe by 180 deg (and keep it in this orientation while collecting the calibration data). #435 will enable automatic detection of the probe orientation.
+- Try moving the sensor closer to the transducer tip. This reduces the lever arm effect and may reduce the calibration error.
+- Make sure that the wires in the phantom cover the area where you want to achieve good accuracy (e.g., if you need good accuracy at 3-5cm distance from the transducer then have your calibration wires at 2, 4, and 6 cm from the transducer).
+- Use more N wires (e.g., 3 N-wires) and increase the distance between them to reduce the out-of-plane rotation error. The fCal-2.x phantom is designed for linear transducers and shallow imaging depth (up to 5-10cm), while fCal-3.x phantom is designed for deeper imaging (10-20cm) with curvilinear probes.
+- You may try an alternative calibration method: pointer-based calibration requires only a tracked pointer and less calibration steps (see description at www.slicerigt.org and <a href="https://onedrive.live.com/view.aspx?cid=7230D4DEC6058018&resid=7230D4DEC6058018%213712&app=PowerPoint&authkey=%21AGQkSCZOwjVYXw8">detailed tutorial here</a>). Advantage of the pointer-based calibration is that it does not require a calibration phantom (and avoids all potential errors related to phantom fabrication and registration), but disadvantage is that it requires manual detection of the pointer tip (which requires experience often not easy to do accurately, it takes more time than automatic detection, and because of this typically just a couple of points are used for calibration in contrast to the hundreds of points used when points are detected automatically).
+
+\subsection SystemCalibrationFaqImageToProbeNotOrthogonal The axes of the ImageToProbeTransform (calibration matrix) are not orthogonal
+
+The probe calibration algorithm determines the ImageToProbeTransform axes independently, therefore if there is an error in the calibration procedure then the computed coordinate axes may not be orthogonal.
+
+How to detect: when the computed axes are not orthogonal fCal displays a warning message and the "User image to probe transform matrix orthogonality test failed" warning message is logged.
+
+Root cause: most frequently the root cause of the problem is that the phantom description does not match the actual phantom geometry (the wire positions in the phantom are not the same as the actual wire positions) or it may be caused by having a large number of fiducial line intersection point detection errors (the calibration algorithm can remove a limited number of outliers if they are very different from the true positions and the outliers are less than about 5-10% of the data).
+
+Resolution:
+1. Check that the phantom description matches the actual phantom wiring
+2. Check that the fiducial line intersection points are correctly detected on the images. Adjust the segmentation parameters, if necessary.
+3. Performs all the checks listed in the "I get large (>2-3mm) calibration error..." section
+
+Plus can enforce the ImageToProbe matrix to be orthogonal. To enable this feature, add two attributes to the vtkProbeCalibrationAlgo element: OptimizationMethod="2D" and IsotropicPixelSpacing="TRUE". Set IsotropicPixelSpacing to false if you use a linear probe and you calibrate in a liquid in that the speed of sound is not the same as the setting in the ultrasound scanner (e.g., speed of sound in water is about 1490m/s, speed of sound by default on most ultrasound scanners is set to 1540m/s).
+
+\subsection SystemCalibrationFaqNoPointsDuringStylusCalibration No points can be collected during stylus calibration
+
+If the stylus has been calibrated already (e.g., with the NDI toolviewer) then the stylus position remains the same when the stylus is pivoted around its tip. The stylus calibration method requires unique positions, therefore the algorithm will not work if it is attempted to apply on an already calibrated stylus.
+
+If the stylus has been already calibrated outside PLUS then just add the following calibration matrix to the CoordinateDefinitions element in the device set configuration file:
+
+    <Transform From="StylusTip" To="Stylus" Matrix="1 0 0 0   0 1 0 0   0 0 1 0   0 0 0 1" /> 
+
+then in fCal simply skip the stylus calibration step.
+
+\subsection SystemCalibrationFaqLateralCalibrationError There is a misalignment along the M-U (marked-unmarked) axis after spatial calibration
+
+This is probably caused by inaccurate stylus or phantom calibration. If you use an electromagnetic tracker then place the sensor as close to the needle tip as possible. If possible, use a thick needle (with a sensor near the tip of the needle) as stylus.
+
+
+\section ApplicationfCalConfigSettings Configuration settings
+
+- \xmlElem \b fCal
+  - \xmlAtt \b PhantomModelId
+  - \xmlAtt \b ReconstructedVolumeId
+  - \xmlAtt \b TransducerModelId
+  - \xmlAtt \b StylusModelId
+  - \xmlAtt \b ImageDisplayableObjectId
+  - \xmlAtt \b NumberOfCalibrationImagesToAcquire
+  - \xmlAtt \b NumberOfValidationImagesToAcquire
+  - \xmlAtt \b NumberOfStylusCalibrationPointsToAcquire
+  - \xmlAtt \b RecordingIntervalMs
+  - \xmlAtt \b MaxTimeSpentWithProcessingMs
+  - \xmlAtt \b ImageCoordinateFrame
+  - \xmlAtt \b ProbeCoordinateFrame
+  - \xmlAtt \b ReferenceCoordinateFrame
+  - \xmlAtt \b TransducerOriginCoordinateFrame
+  - \xmlAtt \b TransducerOriginPixelCoordinateFrame
+  - \xmlAtt \b TemporalCalibrationDurationSec
+  - \xmlAtt \b DefaultSelectedChannelId Specifies which channel fCal uses for data input. The channel should contain both video and tracking data, which is most commonly called "TrackedVideoStream". The current channel can be changed in the user interface by clickin on the "objects" icon and then default selected channel can be 
+  - \xmlAtt \b FreeHandStartupDelaySec Specifies the delay between clicking a button to start a calibration step and the time of start collecting data. The delay allows a single person to operate fCal and handle the instruments.
+- \xmlElem \b Rendering Objects for the visualizer common widget to render (used in fCal)
+  - \xmlAtt \b WorldCoordinateFrame Name  of the rendering world coordinate frame (e.g. "Reference")
+  - \xmlElem \b DisplayableObject 
+    - \xmlAtt \b Id Unique name to identify this displayable object, used in other configuration sections
+    - \xmlAtt \b Type Type of the displayable object. Can be Model, Image, Axes, and PolyData.
+    - \xmlAtt \b ObjectCoordinateFrame Name of the object coordinate frame (e.g. "StylusTip")
+    - \xmlAtt \b File STL model file name (only for the 'Model' type)    
+    - \xmlAtt \b ModelToObjectTransform Matrix transforming the model to the proper position (where we want its origin to appear) (only for the 'Model' type)
+
+\section ApplicationfCalExampleConfigFile Example configuration file PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_2.0.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_2.0.xml"
+
+*/

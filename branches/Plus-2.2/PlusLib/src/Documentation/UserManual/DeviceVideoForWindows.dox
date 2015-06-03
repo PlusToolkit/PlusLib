@@ -1,0 +1,43 @@
+/*!
+\page DeviceVideoForWindows Video for Windows compatible imaging device
+
+\section VideoForWindowsSupportedHwDevices Supported hardware devices
+
+This device is deprecated, use MmfVideo device instead.
+
+Compatible frame grabbers and webcams through Video for Windows interface.
+
+Limitations: currently only certain color modes are supported, minor additional conversion routines may be needed for some devices.
+
+\section VideoForWindowsSupportedPlatforms Included in packages
+- \ref PackageWin32
+- \ref PackageWin64
+- \ref PackageUltrasonixWin32
+- \ref PackageInterson
+- \ref PackageBk
+- \ref PackageStealthLink
+- \ref PackageThorLabs
+
+\section VideoForWindowsInstallation Installation
+
+
+\section VideoForWindowsConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "VFWVideo" \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
+    - \xmlAtt \ref ImageType \OptionalAtt{BRIGHTNESS}
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+    - \xmlAtt \ref ClipRectangleOrigin \OptionalAtt{0 0 0}
+    - \xmlAtt \ref ClipRectangleSize \OptionalAtt{0 0 0}
+
+\section VideoForWindowsExampleConfigFile Example configuration file PlusDeviceSet_Server_VfwVideoCapture.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_VfwVideoCapture.xml"
+
+*/

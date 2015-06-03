@@ -1,0 +1,25 @@
+/*!
+\page ApplicationTemporalCalibration Temporal calibration application (TemporalCalibration)
+
+TemporalCalibration is for computing time offset between channels.
+It can be useful for advanced testing and tuning of the temporal calibration parameters.
+
+How to use:
+1. Record a tracked US sequence of an object that will produce a line in each US frame
+  1. During the recording the probe should undergo translational periodic motion and minimal rotational motion (e.g. moving the probe vertically up-and-down while imaging the bottom of a water bath)
+  2. It is recommended to acquire raw (not paired, synchronized) imaging and tracking data (add a separate recording device for each input channel)
+2. Run TemporalCalibration executable. For example, assume a tracker raw buffer called named "trackerRawBuffer.mha," and a video raw buffer named "videoRawBuffer.mha." To calculate the time by which the tracker data stream lags the video data stream (i.e. the time offset), the following call could be made:
+
+\section ApplicationTemporalCalibrationExamples Examples
+
+~~~
+TemporalCalibration --fixed-seq-file=RawVideoBuffer.mha --moving-seq-file=RawTrackerBuffer.mha --moving-probe-to-reference-transform=ProbeToReference --sampling-resolution-sec=0.001 --plot-results --save-intermediate-images --verbose=4
+~~~
+
+In the above call, a 0.001 second (default) sampling resolution is used; the final pre- and post-aligned video and tracker metric signals are plotted; and, intermediate images--namely scanlines and detected lines--are stored.  
+
+\section ApplicationTemporalCalibrationHelp Command-line parameters reference
+
+\verbinclude "TemporalCalibrationHelp.txt"
+
+*/

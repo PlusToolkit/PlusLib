@@ -1,0 +1,113 @@
+/**
+
+\page ProcedureTrackedUltrasoundRecording Tracked ultrasound recording
+
+\section ProcedureTrackedUltrasoundRecordingGeneral General instructions
+- Start the fCal application (fCal.exe)
+- Select the device set, connect
+- Verify that the system is properly calibrated and the image depth is correct (e.g., by using a stylus and an image: verify that the stylus tip appears on the US image as a bright spot at exactly the same location as the stylus tip of the displayed surface model)
+- Switch to the "Capturing" tab
+- Click "Snapshot" to acquire a single frame / click "Record" to acquire a sequence of image frames
+- Click Save to save the acquired frames into a file
+
+\section ProcedureTrackedUltrasoundRecordingTips Tips & tricks
+
+- For easier triggering of point acquisition for phantom registration or starting/stopping calibration or capturing, we use a foot pedal. More specifically this model:
+http://www.scythe-usa.com/product/input/008/usbfootswitch_detail.html 
+
+\section ProcedureTrackedUltrasoundRecordingRfAcquisition RF data acquisition
+
+Currently RF acquisition is supported for Ultrasonix scanners (through the Ulterius interface) and BK Medical ProFocus scanners (through CameraLink interface).
+
+When RF data is acquired in fCal a very simple RF->B-mode image conversion is performed and the converted B-mode image is displayed on the screen. The definition of scan conversion parameters are defined in UltrasoundImageOrientation.pptx.
+
+Note that currently only data collection is implemented in fCal, calibration is only supported in B-mode image acquisition mode.
+
+\subsection ProcedureTrackedUltrasoundRecordingRfAcquisitionUltrasonix Ultrasonix
+
+\subsubsection ProcedureTrackedUltrasoundRecordingRfAcquisitionUltrasonixTesting Testing the RF acquisition
+
+The simplest way to test if RF acquisition works is by running the following test:
+vtkSonixVideoSourceTest1.exe --sonix-ip=130.15.7.20 --acq-mode=rf
+
+If the system is not in research mode or there is a popup window displayed in the Ultrasonix exam software then it may not be possible to switch into RF acquisition mode. Before attempting to acquire RF data in Plus test if you can actually acquire RF data in the exam software (you may need to click on the Research touchscreen button, RF touchscreen button and press the Update/RightMouse physical button to enable RF acquisition).
+
+\subsubsection ProcedureTrackedUltrasoundRecordingRfAcquisitionUltrasonixAcquiring Acquiring tracked RF data
+
+In the DataCollection and RfProcessing elements set the following attributes and child elements:
+
+    <Device
+      ...
+      Type="SonixVideo" 
+      ...
+      CompressionStatus="0" >
+      <DataSources>
+        <DataSource Type="Video" Id="BModeVideo" PortName="B" PortUsImageOrientation="MF" BufferSize="100" AveragedItemsForFiltering="20" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="BModeVideoStream" VideoDataSourceId="BModeVideo" >
+          <RfProcessing>
+            <RfToBrightnessConversion 
+              NumberOfHilbertFilterCoeffs="32.0" 
+              BrightnessScale="20.0" />
+            <ScanConversion 
+              TransducerName="Ultrasonix_BPC8-4/10"
+              TransducerGeometry="CURVILINEAR"
+              RadiusStartMm="10.0"
+              RadiusStopMm="82.0"
+              ThetaStartDeg="-75.0"
+              ThetaStopDeg="75.0"
+              OutputImageStartDepthMm="-3.0"
+              OutputImageSizePixel="820 616"
+              OutputImageSpacingMmPerPixel="0.15 0.15" />
+          </RfProcessing>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+
+It may be necessary to push the Update button on the ultrasound machine (the one that acts as roght mouse click in research mode; a spot with two arrows around it).
+
+\subsection ProcedureTrackedUltrasoundRecordingRfAcquisitionBk BK Medical
+
+\subsubsection ProcedureTrackedUltrasoundRecordingRfAcquisitionBkTesting Testing the RF acquisition
+
+The simplest way to test if RF acquisition works is by running the following test:
+vtkBkProFocusVideoSourceTest.exe --ini-file=BkSettings/IniFile.ini --show-bmode --show-sapera
+
+\subsubsection ProcedureTrackedUltrasoundRecordingRfAcquisitionBkAcquisring Acquiring tracked RF data
+
+In the DataCollection and RfProcessing elements set the following attributes and child elements:
+
+    <DataCollection ...>
+      <Device 
+          Id="VideoDevice"
+          Type="BkProFocus"
+          IniFileName="BkSettings/IniFile.ini"
+          AcquisitionRate="30"
+          LocalTimeOffsetSec="0" >
+          <DataSources>
+            <DataSource Type="Video" Id="Video" BufferSize="100" AveragedItemsForFiltering="20" UsImageOrientation="FM" />
+          </DataSources>
+          <OutputChannels>
+            <OutputChannel Id="VideoStream" VideoDataSourceId="Video"  >
+              <RfProcessing>
+                <RfToBrightnessConversion 
+                  NumberOfHilbertFilterCoeffs="32.0" 
+                  BrightnessScale="20.0" />
+                <ScanConversion 
+                  TransducerName="BK_8848-axial"
+                  TransducerGeometry="CURVILINEAR"
+                  RadiusStartMm="10.0"
+                  RadiusStopMm="60.0"
+                  ThetaStartDeg="-70.0"
+                  ThetaStopDeg="70.0"
+                  OutputImageStartDepthMm="2.0"
+                  OutputImageSizePixel="600 400"
+                  OutputImageSpacingMmPerPixel="0.15 0.15" /> 
+              </RfProcessing>
+            </OutputChannel>
+          </OutputChannels>
+        </Device>
+    </DataCollection>
+
+*/

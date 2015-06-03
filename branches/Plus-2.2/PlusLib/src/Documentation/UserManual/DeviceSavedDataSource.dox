@@ -1,0 +1,50 @@
+/*!
+\page DeviceSavedDataSource Replay recorded data from file
+
+\section SavedDataSourceSupportedHwDevices Supported hardware devices
+
+For hardware-free testing and simulation purposes, any previous recording (saved into a sequence metafile) can be replayed as a live acquisition
+
+\section SavedDataSourceSupportedPlatforms Included in packages
+- \ref PackageWin32
+- \ref PackageWin64
+- \ref PackageUltrasonixWin32
+- \ref PackageInterson
+- \ref PackageBk
+- \ref PackageStealthLink
+- \ref PackageThorLabs
+- \ref PackageMacOs
+- \ref PackageLinux
+
+\section SavedDataSourceConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "SavedDataSource" \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{10}
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
+
+- \xmlAtt \b SequenceMetafile Name of input sequence metafile with path to tracking buffer data. \RequiredAtt
+- \xmlAtt \b RepeatEnabled  Flag to enable saved dataset looping. If it's enabled, the video source will continuously play saved data (starts playing from the beginning when the end is reached). \OptionalAtt{false}
+- \xmlAtt \b UseOriginalTimestamps  Flag to read the timestamps from the file and use them in the output (instead of the current time). \OptionalAtt{false}
+- \xmlAtt \b UseData Three types of data that can be used: \OptionalAtt{IMAGE}
+  - \c "IMAGE" The device provides a video stream
+  - \c "TRANSFORM" The device provides a tracker stream
+  - \c "IMAGE_AND_TRANSFORM"  The device provides a video stream with tracking data added as fields
+
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+    - \xmlAtt \ref ClipRectangleOrigin \OptionalAtt{0 0 0}
+    - \xmlAtt \ref ClipRectangleSize \OptionalAtt{0 0 0}
+
+\section SavedDataSourceExampleConfigFileSimple Example configuration file for simple replay of all image and transform data - PlusDeviceSet_Server_Sim_NwirePhantom.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_Sim_NwirePhantom.xml"
+
+\section SavedDataSourceExampleConfigFileSeparateImagingTracking Example configuration file for replaying imaging and tracking data separately - PlusDeviceSet_DataCollectionOnly_SavedDataset.xml
+
+\include "data/ConfigFiles/Testing/PlusDeviceSet_DataCollectionOnly_SavedDataset.xml"
+
+*/

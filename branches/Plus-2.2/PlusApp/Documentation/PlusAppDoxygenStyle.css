@@ -1,0 +1,45 @@
+BODY,H1,H2,H3,H4,H5,H6,P,CENTER,TD,TH,UL,DL,DIV {
+  font-family: Geneva, Arial, Helvetica, sans-serif;
+}
+BODY,TD {
+  font-size: 110%;
+  font-weight: bold
+}
+H1 {
+  /*text-align: center;*/
+  font-size: 105%;
+  font-weight: bold
+}
+H2 {
+  font-size: 103%;
+  font-weight: bold;
+  font-style: italic
+}
+H3 {
+  font-size: 100%;
+}
+
+div.image
+{ 
+  /*position:inherit;*/
+  /*top:0px;*/
+  /*left:5px;*/
+  text-align: left;
+  display:inline
+}
+div.image img[src="required.png"]{ 
+  /*position:relative;*/
+  width:14px; 
+  height: 14px;
+}
+div.image img[src="optional.png"]{ 
+  position:relative;
+  width:8px; 
+  height: 8px;
+  bottom:4px;
+}
+div.caption{ 
+  text-align: left;
+  display:inline;
+  font-weight:normal
+}
