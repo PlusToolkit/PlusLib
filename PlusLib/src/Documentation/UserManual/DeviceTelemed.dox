@@ -21,6 +21,7 @@
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 
+- \xmlAtt \b FrameSize Maximum size of an image frame in pixels. The image is scaled so that image vertically fills the specified rectangle size, therefore if the frame size is too narrow (first component is too small) then the two sides of the image may be clipped; if the frame is too wide then there will be solid filled stripes on the left and right sides. If larger values are specified then a higher-resolution image is created. \OptionalAtt{512 512}
 - \xmlAtt \b DepthMm Set the depth [mm] of B-mode ultrasound. If not specified (or value is <0) then the current value is kept. \OptionalAtt{ }
 - \xmlAtt \b FrequencyMhz ultrasound transmitter frequency. If not specified (or value is <0) then the current value is kept. \c [MHz].\OptionalAtt{-1}
 - \xmlAtt \b DynRangeDb Dynamic Range \c [dB] of B-mode ultrasound. If not specified (or value is <0) then the current value is kept. \OptionalAtt{ }
