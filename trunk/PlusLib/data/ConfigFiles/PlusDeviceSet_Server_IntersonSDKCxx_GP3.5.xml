@@ -8,7 +8,7 @@
     <Device
       Id="VideoDevice"
       Type="IntersonSDKCxxVideo" 
-      PulseVoltage="20"
+      PulseVoltage="1"
       AcquisitionRate="12"
       DynRangeDb="0.4" 
       FrequencyMhz="5.0" >
@@ -21,13 +21,13 @@
             <ScanConversion 
               TransducerName="GP3.5"
               TransducerGeometry="CURVILINEAR"
-              RadiusStartMm="12.4"
-              RadiusStopMm="117.5"
+              RadiusStartMm="32.8"
+              RadiusStopMm="139.0"
               ThetaStartDeg="-45.0"
               ThetaStopDeg="45.0"
-              OutputImageSizePixel="800 600"
-              TransducerCenterPixel="400 50"
-              OutputImageSpacingMmPerPixel="0.20 0.20" /> 
+              OutputImageSizePixel="512 512"
+              TransducerCenterPixel="256 17"
+              OutputImageSpacingMmPerPixel="0.156 0.156" /> 
           </RfProcessing>
         </OutputChannel>
       </OutputChannels>

@@ -6,7 +6,7 @@
       DynRangeDb="-1" 
       FrequencyMhz="-1" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="FU" />
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="MF" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />

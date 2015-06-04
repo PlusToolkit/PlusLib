@@ -227,6 +227,7 @@ vtkIntersonSDKCxxVideoSource::vtkIntersonSDKCxxVideoSource():
   this->StartThreadForInternalUpdates = false;
 
   this->RequireImageOrientationInConfiguration = true;
+  this->RequirePortNameInDeviceSetConfiguration = true;
 
   this->ImagingParameters = new vtkUsImagingParameters(this);
 }
@@ -372,8 +373,10 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
       {
       source->SetPixelType( VTK_SHORT );  
       source->SetImageType( US_IMG_RF_REAL );
-      source->SetInputFrameSize( Scan2DClassType::MAX_RFSAMPLES, Scan2DClassType::MAX_VECTORS, 1 ); 
-      source->SetOutputImageOrientation( US_IMG_ORIENT_FU );
+      source->SetOutputImageOrientation( US_IMG_ORIENT_FM );
+      source->SetInputFrameSize( Scan2DClassType::MAX_RFSAMPLES,
+                                 Scan2DClassType::MAX_VECTORS,
+                                 1 ); 
       LOG_INFO("RF Pixel type: " << vtkImageScalarTypeNameMacro( source->GetPixelType() )
             << ", device image orientation: "
               << PlusVideoFrame::GetStringFromUsImageOrientation( source->GetInputImageOrientation() )
@@ -383,6 +386,7 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
 
     if( !bmodeSources.empty() )
       {
+      LOG_INFO("BMode souces are not empty!!");
       source = bmodeSources[0];
       channel = this->Internal->GetSourceChannel( source );
       if( channel == NULL )
@@ -399,7 +403,7 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
       if( rfProcessor != NULL )
         {
         channel->SetSaveRfProcessingParameters(true); // RF processing parameters were used, make sure they will be saved into the config file
-        source->SetOutputImageOrientation( US_IMG_ORIENT_UF );
+        source->SetOutputImageOrientation( US_IMG_ORIENT_MF );
         vtkUsScanConvert * scanConverter = rfProcessor->GetScanConverter();
         if( scanConverter != NULL )
           {
@@ -407,15 +411,17 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
           scanConverter->GetOutputImageExtent( outputExtent );
           source->SetInputFrameSize( outputExtent[1] - outputExtent[0] + 1,
                                      outputExtent[3] - outputExtent[2] + 1,
-                                     outputExtent[4] - outputExtent[4] + 1,);
+                                     1 );
           }
         }
       else
         {
-        source->SetInputFrameSize( Scan2DClassType::MAX_RFSAMPLES, Scan2DClassType::MAX_VECTORS, 1 );
-        source->SetOutputImageOrientation( US_IMG_ORIENT_FU );
+        source->SetOutputImageOrientation( US_IMG_ORIENT_FM );
+        source->SetInputFrameSize( Scan2DClassType::MAX_RFSAMPLES,
+                                   Scan2DClassType::MAX_VECTORS,
+                                   1 ); 
         }
-      LOG_INFO("BMode Pixel type: " << vtkImageScalarTypeNameMacro( source->GetPixelType() )
+      LOG_INFO("Pixel type: " << vtkImageScalarTypeNameMacro( source->GetPixelType() )
             << ", device image orientation: "
               << PlusVideoFrame::GetStringFromUsImageOrientation( source->GetInputImageOrientation() )
             << ", buffer image orientation: "
@@ -448,12 +454,12 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
         if( scanConverter != NULL )
           {
           channel->SetSaveRfProcessingParameters(true); // RF processing parameters were used, make sure they will be saved into the config file
-          source->SetOutputImageOrientation( US_IMG_ORIENT_UF );
+          source->SetOutputImageOrientation( US_IMG_ORIENT_MF );
           int outputExtent[6];
           scanConverter->GetOutputImageExtent( outputExtent );
           source->SetInputFrameSize( outputExtent[1] - outputExtent[0] + 1,
                                      outputExtent[3] - outputExtent[2] + 1,
-                                     outputExtent[5] - outputExtent[4] + 1);
+                                     1 );
           }
         else
           {
@@ -463,12 +469,14 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
         }
       else
         {
-        source->SetInputFrameSize( Scan2DClassType::MAX_SAMPLES, Scan2DClassType::MAX_VECTORS, 1 );
-        source->SetOutputImageOrientation( US_IMG_ORIENT_FU );
+        source->SetOutputImageOrientation( US_IMG_ORIENT_MF );
+        source->SetInputFrameSize( Scan2DClassType::MAX_SAMPLES,
+                                   Scan2DClassType::MAX_VECTORS,
+                                   1 ); 
         }
       }
   
-    LOG_INFO("Pixel type: " << vtkImageScalarTypeNameMacro( source->GetPixelType() )
+    LOG_INFO("BMode Pixel type: " << vtkImageScalarTypeNameMacro( source->GetPixelType() )
           << ", device image orientation: "
             << PlusVideoFrame::GetStringFromUsImageOrientation( source->GetInputImageOrientation() )
           << ", buffer image orientation: "

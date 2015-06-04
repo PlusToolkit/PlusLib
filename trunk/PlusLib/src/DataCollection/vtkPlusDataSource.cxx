@@ -541,7 +541,8 @@ PlusStatus vtkPlusDataSource::SetInputFrameSize(int x, int y, int z)
   if ( PlusVideoFrame::GetFlipAxes(this->InputImageOrientation, this->GetBuffer()->GetImageType(), this->GetBuffer()->GetImageOrientation(), flipInfo) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to convert image data to the requested orientation, from " << PlusVideoFrame::GetStringFromUsImageOrientation(this->InputImageOrientation) << 
-      " to " << PlusVideoFrame::GetStringFromUsImageOrientation(this->GetBuffer()->GetImageOrientation()));
+      " to " << PlusVideoFrame::GetStringFromUsImageOrientation(this->GetBuffer()->GetImageOrientation()) <<
+      " for a buffer of type " << PlusVideoFrame::GetStringFromUsImageType(this->GetBuffer()->GetImageType()));
     return PLUS_FAIL;
   }
 
