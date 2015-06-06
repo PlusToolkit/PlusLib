@@ -97,7 +97,7 @@ PlusStatus vtkVirtualDiscCapture::ReadConfiguration( vtkXMLDataElement* rootConf
 PlusStatus vtkVirtualDiscCapture::WriteConfiguration( vtkXMLDataElement* rootConfig)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceElement, rootConfig);
-  deviceElement->SetAttribute("EnableCapture", this->EnableCapturing ? "TRUE" : "FALSE" );
+  deviceElement->SetAttribute("EnableCapturing", this->EnableCapturing ? "TRUE" : "FALSE" );
   deviceElement->SetDoubleAttribute("RequestedFrameRate", this->GetRequestedFrameRate() );
   return PLUS_SUCCESS;
 }
