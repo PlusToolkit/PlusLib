@@ -145,7 +145,7 @@ GENERATE_HELP_DOC(DrawClipRegion)
 # --------------------------------------------------------------------------
 ADD_TEST(DrawClipRegionRunTest
   ${EXECUTABLE_OUTPUT_PATH}/DrawClipRegion
-  --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_SonixTablet_C5-2_NDIPolaris_fCal3.xml
+  --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_Ultrasonix_C5-2_NDIPolaris_fCal3.xml
   --source-seq-file=${TestDataDir}/SpinePhantomPartialSurfaceContact.mha
   --output-seq-file=outputSpinePhantomPartialSurfaceContactWithClipRegion.mha
   )

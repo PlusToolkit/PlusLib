@@ -1,6 +1,6 @@
 <PlusConfiguration version="2.3" PlusRevision="Plus-2.1.2.3381 - Win32">
   <DataCollection StartupDelaySec="1">
-    <DeviceSet Name="fCal: Bi-plane ie33 (x7-27 probe) + NDI Aurora tracker (Probe, Reference, Stylus) - fCal Phantom 2.0" Description="NDI Aurora sensors should be plugged in to the SCU mounted on SonixTouch in the following order: 1 Reference (fCal), 2 Probe, 3 Stylus." />
+    <DeviceSet Name="fCal: Bi-plane ie33 (x7-27 probe) + NDI Aurora tracker (Probe, Reference, Stylus) - fCal Phantom 2.0" Description="NDI Aurora sensors should be plugged in the following order: 1 Reference (fCal), 2 Probe, 3 Stylus." />
     <Device
       Id="TrackerDevice"
       Type="AuroraTracker"

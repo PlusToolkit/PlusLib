@@ -2,8 +2,8 @@
 
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet
-      Name="PlusServer: SonixTouch US (C5-2 probe) + Ascension3DG tracker (Probe, Reference, Stylus)"
-      Description="Broadcasting ultrasound images acquired from the Ultrasonix system through OpenIGTLink. If PlusServer does not run on the Ultrasonix PC then update the IP attribute in the Device element with the Ultrasonix PC's IP address. Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." />
+      Name="PlusServer: Ultrasonix US (C5-2/60 GPS probe) + Ascension3DG tracker (Probe, Reference, Stylus) - calibrated"
+      Description="Broadcasting ultrasound images acquired from the Ultrasonix system through OpenIGTLink. Probe is spatially calibrated for any imaging depth. If PlusServer does not run on the Ultrasonix PC then update the IP attribute in the Device element with the Ultrasonix PC's IP address. Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on Ultrasonix US in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." />
     <Device
       Id="TrackerDevice" 
       Type="Ascension3DG" 
@@ -48,6 +48,37 @@
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>
+    </Device>
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="Recording.mhd"
+      EnableCapturing="FALSE"
+      RequestedFrameRate="15" >
+      <InputChannels>
+        <InputChannel Id="TrackedVideoStream" />
+      </InputChannels>
+    </Device>
+    <Device
+      Id="VolumeReconstructorDevice"
+      Type="VirtualVolumeReconstructor"
+      OutputVolDeviceName="Volume_Reference"
+      EnableReconstruction="FALSE" >
+      <InputChannels>
+        <InputChannel Id="TrackedVideoStream" />
+      </InputChannels>
+      <VolumeReconstruction
+        ImageCoordinateFrame="Image" ReferenceCoordinateFrame="Reference"
+        CompoundingMode="MEAN" Interpolation="LINEAR"
+        Optimization="FULL" NumberOfThreads="2"
+        ClipRectangleOrigin="0 0" ClipRectangleSize="820 616" PixelRejectionThreshold="1"
+        OutputSpacing="0.5 0.5 0.5"
+        FillHoles="ON" >
+        <HoleFilling>
+          <HoleFillingElement Type="GAUSSIAN" Size="5" Stdev="0.6667" MinimumKnownVoxelsRatio="0.50001" />
+          <HoleFillingElement Type="STICK" StickLengthLimit="9" NumberOfSticksToUse="1" />
+        </HoleFilling>
+      </VolumeReconstruction>
     </Device>
   </DataCollection>
 

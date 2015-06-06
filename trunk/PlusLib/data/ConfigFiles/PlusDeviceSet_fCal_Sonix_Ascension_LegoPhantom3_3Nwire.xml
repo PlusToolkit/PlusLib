@@ -2,8 +2,8 @@
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
-      Name="SonixTablet and Ascension3DG with Lego Phantom 3.0 and 3-Nwire deep configuration" 
-      Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." 
+      Name="Ultrasonix US and Ascension3DG with Lego Phantom 3.0 and 3-Nwire deep configuration" 
+      Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on Ultrasonix US in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." 
     />
     <Device 
       Id="TrackerDevice" 

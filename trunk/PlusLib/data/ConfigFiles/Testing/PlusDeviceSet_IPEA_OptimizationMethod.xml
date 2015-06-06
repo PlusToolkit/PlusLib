@@ -2,8 +2,8 @@
 
   <DataCollection StartupDelaySec="1">
     <DeviceSet 
-      Name="SonixTouch + PolarisTracker IPEA" 
-      Description="SonixTouch + PolarisTracker + Stylus Calibration + fCal 2.0 phantom, L14-5 linear transducer at 15cm depth" />    
+      Name="Ultrasonix US + PolarisTracker IPEA" 
+      Description="Ultrasonix US + PolarisTracker + Stylus Calibration + fCal 2.0 phantom, L14-5 linear transducer at 15cm depth" />    
     
     <Device
       Id="TrackedVideoDevice"

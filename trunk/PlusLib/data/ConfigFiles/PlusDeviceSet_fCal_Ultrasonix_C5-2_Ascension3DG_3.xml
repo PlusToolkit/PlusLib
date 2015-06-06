@@ -2,20 +2,19 @@
 
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
-      Name="fCal: SonixTouch US (C5 -2 probe) + PolarisTracker tracker (Probe, Reference, Stylus) - fCal Phantom 3.0"
-      Description="PolarisTracker sensors should be plugged in to the PolarisTracker DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." />
+      Name="fCal: Ultrasonix US (C5 -2 probe) + Ascension3DG tracker (Probe, Reference, Stylus) - fCal Phantom 3.0"
+      Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on Ultrasonix US in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." />
 
     <Device
-      Id="TrackerDevice"
-      Type="PolarisTracker"
-      SerialPort="3"
-      BaudRate="115200"
-      LocalTimeOffsetSec="0.0"
+      Id="TrackerDevice" 
+      Type="Ascension3DG" 
+      LocalTimeOffsetSec="0.0" 
+      FilterAcWideNotch="1"
       ToolReferenceFrame="Tracker" >
-      <DataSources>
-        <DataSource Type="Tool" Id="Probe" RomFile="NdiToolDefinitions/8700339.rom" />
-        <DataSource Type="Tool" Id="Stylus" RomFile="NdiToolDefinitions/8700340.rom" />
-        <DataSource Type="Tool" Id="Reference" RomFile="NdiToolDefinitions/8700449.rom" />
+     <DataSources>
+        <DataSource Type="Tool" BufferSize="500" Id="Probe" PortName="0" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" BufferSize="500" Id="Reference" PortName="1" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" BufferSize="500" Id="Stylus" PortName="2" AveragedItemsForFiltering="20" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
@@ -146,8 +145,6 @@
 
   <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
     ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
-    FanOriginPixel="410 -140" FanAnglesDeg="-28 28" FanRadiusStartPixel="200" FanRadiusStopPixel="735"
-    EnableFanAnglesAutoDetect="TRUE" FanAnglesAutoDetectBrightnessThreshold="10"
     Interpolation="LINEAR" Optimization="FULL" CompoundingMode="MEAN" FillHoles="OFF"
   />
 
