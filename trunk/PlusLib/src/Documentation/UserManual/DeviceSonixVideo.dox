@@ -178,11 +178,11 @@ If you did not specify the global parameters above, Plus will attempt to configu
     
 \section SonixVideoExampleConfigFileUlterius Example configuration file for B-mode acquisition using Ulterius interface
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_SonixTouch_L14-5.xml"
+\include "data/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_L14-5.xml"
 
 \section SonixVideoExampleConfigFilePorta Example configuration file for B-mode acquisition using Porta interface
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_SonixTouch_L14-5_Porta.xml"
+\include "data/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_L14-5_Porta.xml"
 
 \section SonixVideoExampleConfigFileRf Example configuration file for dual B-mode and RF-mode acquisition using Ulterius interface
 
@@ -192,6 +192,6 @@ If you did not specify the global parameters above, Plus will attempt to configu
 
 The calibration remains valid even if the imaging depth is changed.
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_SonixTouch_L14-5_Ascension3DG.xml"
+\include "data/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_L14-5_Ascension3DG_calibrated.xml"
 
 */

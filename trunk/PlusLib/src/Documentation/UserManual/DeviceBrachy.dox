@@ -56,9 +56,4 @@ http://www.civco.com/mmi/products/brachytherapy/Steppers.htm
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 
-
-\section BrachyExampleConfigFile Example configuration file PlusDeviceSet_iCal_SonixTouch_CivcoStepper_1.0.xml
-
-\include "data/ConfigFiles/Queens/PlusDeviceSet_iCal_SonixTouch_CivcoStepper_1.0.xml"
-
 */

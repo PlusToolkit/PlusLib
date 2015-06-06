@@ -21,8 +21,8 @@
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
 
-\section VirtualMixerExampleConfigFile Example configuration file PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_2.0.xml
+\section VirtualMixerExampleConfigFile Example configuration file PlusDeviceSet_fCal_Ultrasonix_L14-5_Ascension3DG_2.0.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_2.0.xml"
+\include "data/ConfigFiles/PlusDeviceSet_fCal_Ultrasonix_L14-5_Ascension3DG_2.0.xml"
 
 */
