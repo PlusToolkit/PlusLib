@@ -140,19 +140,19 @@ int main( int argc, char** argv )
   vtkPlusDataSource* aSource=NULL;
   aChannel->GetVideoSource(aSource);
   double recordingStartTime=aSource->GetStartTime();
-  double timestampOfFirstFrameInFile=218.188043;
+  double timestampOfFirstFrameInFile=2572.905343;
   double timeOffset=timestampOfFirstFrameInFile-recordingStartTime;
 
   // Frame 0001
-  aChannel->GetTrackedFrame(218.792613-timeOffset, trackedFrame);
+  aChannel->GetTrackedFrame(2572.983529-timeOffset, trackedFrame);
   transformRepository->SetTransforms(trackedFrame);
   
-  if (CompareTransform(referenceToTrackerTransformName, transformRepository, -292.088, 60.4261, -1762.41)!=PLUS_SUCCESS)
+  if (CompareTransform(referenceToTrackerTransformName, transformRepository, 338.415, -68.1145, -24.7944)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Test failed on frame 1");
     compareStatus=PLUS_FAIL;
   }
-  if (CompareTransform(probeToTrackerTransformName, transformRepository, -275.514, 82.2319, -1701.99)!=PLUS_SUCCESS)
+  if (CompareTransform(probeToTrackerTransformName, transformRepository, 284.39, -37.1955, -13.1199)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Test failed on frame 1");
     compareStatus=PLUS_FAIL;
@@ -166,23 +166,23 @@ int main( int argc, char** argv )
     stylusToTrackerTransformName.GetTransformName(transformNameStr);
     LOG_ERROR("Test failed on frame 1: unable to get transform " << transformNameStr);
   }
-  if ( valid )
+  if ( !valid )
   {
     std::string transformNameStr;
     stylusToTrackerTransformName.GetTransformName(transformNameStr);
-    LOG_ERROR("Test failed on frame 1: Valid transform received, while non-valid transform was expected for " << transformNameStr);
+    LOG_ERROR("Test failed on frame 1: Invalid transform received, while valid transform was expected for " << transformNameStr);
   }
 
   // Frame 0013
-  aChannel->GetTrackedFrame(222.619279-timeOffset, trackedFrame);
+  aChannel->GetTrackedFrame(2573.921586-timeOffset, trackedFrame);
   transformRepository->SetTransforms(trackedFrame);
 
-  if (CompareTransform(referenceToTrackerTransformName, transformRepository, -292.056, 60.6586, -1762.65)!=PLUS_SUCCESS)
+  if (CompareTransform(referenceToTrackerTransformName, transformRepository, 338.658, -68.523, -24.9476)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Test failed on frame 13");
     compareStatus=PLUS_FAIL;
   }
-  if (CompareTransform(probeToTrackerTransformName, transformRepository, -276.011, 82.2448, -1708.45)!=PLUS_SUCCESS)
+  if (CompareTransform(probeToTrackerTransformName, transformRepository, 284.863, -34.9189, -13.0288)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Test failed on frame 13");
     compareStatus=PLUS_FAIL;
@@ -194,11 +194,11 @@ int main( int argc, char** argv )
     stylusToTrackerTransformName.GetTransformName(transformNameStr);
     LOG_ERROR("Test failed on frame 13: unable to get transform " << transformNameStr);
   }
-  if ( valid )
+  if ( !valid )
   {
     std::string transformNameStr;
     stylusToTrackerTransformName.GetTransformName(transformNameStr);
-    LOG_ERROR("Test failed on frame 13: Valid transform received, while non-valid transform was expected for " << transformNameStr);
+    LOG_ERROR("Test failed on frame 13: Invalid transform received, while valid transform was expected for " << transformNameStr);
   }
 
   dataCollector->Stop();
