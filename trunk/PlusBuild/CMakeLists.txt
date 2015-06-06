@@ -79,13 +79,15 @@ OPTION(PLUSBUILD_BUILD_PLUSMODELCATALOG "Build Plus Model Catalog" OFF)
 option(PLUSBUILD_DOCUMENTATION "Build Plus documentation (Doxygen)." OFF)
 if(PLUSBUILD_DOCUMENTATION)
   # Try to detect GraphViz path (CMake's Doxygen package finder only tries some obsolete paths on Windows)
+  # Parentheses is not permitted due to CMP0053
+  SET(PROGRAMFILESX86 "ProgramFiles(x86)")
   find_program(DOXYGEN_DOT_EXECUTABLE
     NAMES dot
     PATHS
       "$ENV{ProgramFiles}/Graphviz2.38/bin"
-      "$ENV{ProgramFiles(x86)}/Graphviz2.38/bin"
+      "$ENV{${PROGRAMFILESX86}}/Graphviz2.38/bin"
       "$ENV{ProgramFiles}/Graphviz2.34/bin"
-      "$ENV{ProgramFiles(x86)}/Graphviz2.34/bin"
+      "$ENV{${PROGRAMFILESX86}}/Graphviz2.34/bin"
     DOC "Graphviz Dot tool for using Doxygen"
     NO_SYSTEM_ENVIRONMENT_PATH
   )
