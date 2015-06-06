@@ -88,7 +88,7 @@ PlusStatus vtkVirtualVolumeReconstructor::WriteConfiguration( vtkXMLDataElement*
   deviceElement->SetAttribute("OutputVolDeviceName",this->OutputVolDeviceName);
 
   PlusLockGuard<vtkRecursiveCriticalSection> writerLock(this->VolumeReconstructorAccessMutex);
-  this->VolumeReconstructor->WriteConfiguration(deviceElement->FindNestedElementWithName("VolumeReconstruction"));
+  this->VolumeReconstructor->WriteConfiguration(deviceElement);
 
   return PLUS_SUCCESS;
 }

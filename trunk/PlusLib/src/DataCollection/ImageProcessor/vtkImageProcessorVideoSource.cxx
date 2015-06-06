@@ -126,7 +126,7 @@ PlusStatus vtkImageProcessorVideoSource::ReadConfiguration( vtkXMLDataElement* r
 PlusStatus vtkImageProcessorVideoSource::WriteConfiguration( vtkXMLDataElement* rootConfig)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceElement, rootConfig);
-  deviceElement->SetAttribute("EnableCapture", this->EnableProcessing ? "TRUE" : "FALSE" );
+  deviceElement->SetAttribute("EnableCapturing", this->EnableProcessing ? "TRUE" : "FALSE" );
   
   // Write processor elements
   if (this->ProcessorAlgorithm!=NULL)
