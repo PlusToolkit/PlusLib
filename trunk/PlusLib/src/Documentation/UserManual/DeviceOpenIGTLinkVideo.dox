@@ -5,21 +5,6 @@
 Any compatible video device through <a href="http://openigtlink.org/"> OpenIGTLink interface</a>. 
 There are commercial systems that provide tracking video and image data through OpenIGTLink, such as BrainLab, Siemens MRI scanners
 
-
-\section OpenIGTLinkVideoSupportedPlatforms Included in packages
-- \ref PackageWin32
-- \ref PackageWin64
-- \ref PackageUltrasonixWin32
-- \ref PackageInterson
-- \ref PackageBk
-- \ref PackageStealthLink
-- \ref PackageThorLabs
-- \ref PackageMacOs
-- \ref PackageLinux
-
-\section OpenIGTLinkVideoInstallation Installation
-
-
 \section OpenIGTLinkVideoConfigSettings Device configuration settings
 
 - \xmlAtt \ref DeviceType "Type" = \c "OpenIGTLinkVideo" \RequiredAtt

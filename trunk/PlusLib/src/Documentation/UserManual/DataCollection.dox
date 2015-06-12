@@ -16,12 +16,12 @@ The data collector component acquires data from several physical or software dev
 
 \section DataCollectionHowTo How to write the DataCollection section of the configuration file
 
-The best way to get started is to find example configuration file(s) for the hardware device(s) that you would like to use. There are simple example configuration files in the installation package in the \c Config directory: \c PlusDeviceSet_Server_(some-hardware-device).xml. In the device set selector in Plus applications these configurations appear as \c "PlusServer: (some-hardware-device) device". Try to connect to each of device one-by-one and verify if the data collection is successful (no error messages in the log, data sent through OpenIGTLink is visualized correctly in 3D Slicer/SlicerIGT - www.slicerigt.org).
+The best way to get started is to find example configuration file(s) for the hardware device(s) that you would like to use. There are simple example configuration files in the installation package in the \c Config directory: \c PlusDeviceSet_Server_(some-hardware-device).xml. In the device set selector in Plus applications these configurations appear as \c "PlusServer: (some-hardware-device) device". Try to connect to each of device one-by-one and verify if the data collection is successful (no error messages in the log, data sent through OpenIGTLink is visualized correctly in <a href="http://www.slicerigt.org">3D Slicer/SlicerIGT</a>).
 
 To collect data from multiple devices:
 - Add \c Device elements of all used hardware devices into the \c DataCollection element in the configuration file
 - Add a \ref DeviceVirtualMixer device to fuse the output channel of multiple devices into a single output channel. The mixer resamples and interpolates all input data streams in a common time reference.
-- Use the output channel of the \ref DeviceVirtualMixer device in other devices (such as \ref DeviceVirtualDiscCapture and \ref DeviceVirtualVolumeReconstruction) and in applications (for example: in \c fCal element's \c DefaultSelectedChannelId attribute; \c PlusOpenIGTLinkServer element's \c OutputChannelId attribute)
+- Use the output channel of the \ref DeviceVirtualMixer device in other devices (such as \ref DeviceVirtualDiscCapture and \ref DeviceVirtualVolumeReconstructor) and in applications (for example: in \c fCal element's \c DefaultSelectedChannelId attribute; \c PlusOpenIGTLinkServer element's \c OutputChannelId attribute)
 
 \section DataCollectionConfigSettings Configuration settings
 

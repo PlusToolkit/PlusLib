@@ -1,16 +1,9 @@
 /*!
 \page DeviceVirtualDiscCapture Virtual Disc Capture
 
-\section VirtualDiscCaptureSupportedPlatforms Included in packages
-- \ref PackageWin32
-- \ref PackageWin64
-- \ref PackageUltrasonixWin32
-- \ref PackageInterson
-- \ref PackageBk
-- \ref PackageStealthLink
-- \ref PackageThorLabs
-- \ref PackageMacOs
-- \ref PackageLinux
+This device allows writing acquired data to disk. Data can be recorded in memory and written to disk (for short, high-throughput acquisitions) or directly written to disk (for continuous acquisition of large amount of data, requires fast disk access for high-throughput acquisition).
+
+The file is saved as \ref FileSequenceMetafile format. If single file output format is used (file extension is .mha) or compression is enabled then stopping of the recording may take some time (as temporary recording output has to be compressed and/or merged into one file). If multiple long sequences have to be recorded then use the header+data file format (.mhd extension of the filename) and disable compression: in this case a the disc capture device can start a new acquisition immediately after stoppinh the previous recording.
 
 \section VirtualDiscCaptureConfigSettings Device configuration settings
 
