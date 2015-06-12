@@ -14,20 +14,6 @@
   - In the configuration section for OpenIGTLinkTracker Device, set \b MessageType \c ="TDATA" and \b ReconnectOnReceiveTimeout \c ="false" (to avoid reconnects, as BrainLab asks for manual confirmation on each connect request)
   - See ConfigFiles/BWH directory for example configurations using BrainLab tracking.
 
-\section OpenIGTLinkSupportedPlatforms Included in packages
-- \ref PackageWin32
-- \ref PackageWin64
-- \ref PackageUltrasonixWin32
-- \ref PackageInterson
-- \ref PackageBk
-- \ref PackageStealthLink
-- \ref PackageThorLabs
-- \ref PackageMacOs
-- \ref PackageLinux
-
-\section OpenIGTLinkInstallation Installation
-
-
 \section OpenIGTLinkConfigSettings Device configuration settings
 
 - \xmlAtt \ref DeviceType "Type" = \c "OpenIGTLinkTracker" \RequiredAtt

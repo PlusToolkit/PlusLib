@@ -1,19 +1,6 @@
 /*!
 \page DeviceVirtualMixer Virtual Mixer
 
-\section VirtualMixerSupportedPlatforms Included in packages
-- \ref PackageWin32
-- \ref PackageWin64
-- \ref PackageUltrasonixWin32
-- \ref PackageInterson
-- \ref PackageBk
-- \ref PackageStealthLink
-- \ref PackageThorLabs
-- \ref PackageMacOs
-- \ref PackageLinux
-
-\section VirtualMixerInstallation Overview
-
 This device can merge video and tracking data from multiple input channels into output channel(s). An output channel may contain a video stream from any of the input streams and tracking data from any input streams.
 
 All input data is resampled at common time points. The sampling time points are defined by the timestamps of the video stream (if the output channel contains a video stream) or the first tool defined in the output channel (if the output channel does not contain video).
