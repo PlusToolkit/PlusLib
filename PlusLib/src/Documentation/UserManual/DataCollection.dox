@@ -20,7 +20,7 @@ The best way to get started is to find example configuration file(s) for the har
 
 To collect data from multiple devices:
 - Add \c Device elements of all used hardware devices into the \c DataCollection element in the configuration file
-- Add a \ref DeviceVirtualMixer device to fuse the output channel of multiple devices into a single output channel. The mixer resamples and interpolates all input data streams in a common time reference.
+- Add a \ref DeviceVirtualMixer device to create a channel that contains information from the output of all hardware devices. Most often one mixer device is sufficient, but in case multiple different channels have to be constructed with different contents, multiple mixer devices can be added.
 - Use the output channel of the \ref DeviceVirtualMixer device in other devices (such as \ref DeviceVirtualDiscCapture and \ref DeviceVirtualVolumeReconstructor) and in applications (for example: in \c fCal element's \c DefaultSelectedChannelId attribute; \c PlusOpenIGTLinkServer element's \c OutputChannelId attribute)
 
 \section DataCollectionConfigSettings Configuration settings
