@@ -14,6 +14,15 @@ The data collector component acquires data from several physical or software dev
 - Output channel: Devices usually provide data to other devices or to algorithms through an output channel. An output channel contains a circular buffer that stores the last N data items of all associated streams, which typically allows algorithms to access the data acquired in the last few seconds.
 - Input channel: A device may receive data from another device. This is specified by listing the data provider device's output channel(s) as input channel(s) in the data receiver device. One device can receive data from multiple other devices and one output channel can be connected to multiple device's input channel.
 
+\section DataCollectionHowTo How to write the DataCollection section of the configuration file
+
+The best way to get started is to find example configuration file(s) for the hardware device(s) that you would like to use. There are simple example configuration files in the installation package in the \c Config directory: \c PlusDeviceSet_Server_(some-hardware-device).xml. In the device set selector in Plus applications these configurations appear as \c "PlusServer: (some-hardware-device) device". Try to connect to each of device one-by-one and verify if the data collection is successful (no error messages in the log, data sent through OpenIGTLink is visualized correctly in 3D Slicer/SlicerIGT - www.slicerigt.org).
+
+To collect data from multiple devices:
+- Add \c Device elements of all used hardware devices into the \c DataCollection element in the configuration file
+- Add a \ref DeviceVirtualMixer device to fuse the output channel of multiple devices into a single output channel. The mixer resamples and interpolates all input data streams in a common time reference.
+- Use the output channel of the \ref DeviceVirtualMixer device in other devices (such as \ref DeviceVirtualDiscCapture and \ref DeviceVirtualVolumeReconstruction) and in applications (for example: in \c fCal element's \c DefaultSelectedChannelId attribute; \c PlusOpenIGTLinkServer element's \c OutputChannelId attribute)
+
 \section DataCollectionConfigSettings Configuration settings
 
 - \xmlElem \b DataCollection
