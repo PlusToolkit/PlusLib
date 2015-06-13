@@ -32,8 +32,6 @@ vtkVirtualVolumeReconstructor::vtkVirtualVolumeReconstructor()
 , m_NextFrameToBeRecordedTimestamp(0.0)
 , m_SamplingFrameRate(8)
 , RequestedFrameRate(0.0)
-, ActualFrameRate(0.0)
-, m_FirstFrameIndexInThisSegment(0.0)
 , m_TimeWaited(0.0)
 , m_LastUpdateTime(0.0)
 , TotalFramesRecorded(0)
@@ -265,7 +263,6 @@ void vtkVirtualVolumeReconstructor::SetEnableReconstruction( bool aValue )
     m_TimeWaited = 0.0;
     m_LastAlreadyRecordedFrameTimestamp = UNDEFINED_TIMESTAMP;
     m_NextFrameToBeRecordedTimestamp = 0.0;
-    m_FirstFrameIndexInThisSegment = 0.0;
     this->EnableReconstruction = true;
   }
   else

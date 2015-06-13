@@ -92,6 +92,9 @@ public:
   /*! Close the sequence */
   virtual PlusStatus Close();
 
+  /*! Close the sequence without saving anything (temporary files are deleted) */
+  virtual PlusStatus Discard();
+
   /*! Check if this class can read the specified file */
   virtual bool CanReadFile(const char*);
 
