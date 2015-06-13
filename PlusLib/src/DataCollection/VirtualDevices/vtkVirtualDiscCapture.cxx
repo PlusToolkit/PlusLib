@@ -18,7 +18,8 @@ See License.txt for details.
 
 vtkStandardNewMacro(vtkVirtualDiscCapture);
 
-static const int MAX_ALLOWED_RECORDING_LAG_SEC = 3.0; // if the recording lags more than this then it'll skip frames to catch up
+static const double WARNING_RECORDING_LAG_SEC = 1.0; // if the recording lags more than this then a warning mesage will be displayed
+static const double MAX_ALLOWED_RECORDING_LAG_SEC = 3.0; // if the recording lags more than this then it'll skip frames to catch up
 static const int DISABLE_FRAME_BUFFER = -1;
 
 //----------------------------------------------------------------------------
@@ -302,6 +303,32 @@ PlusStatus vtkVirtualDiscCapture::InternalUpdate()
   }  
   int nbFramesAfter = this->RecordedFrames->GetNumberOfTrackedFrames();
 
+  // Compute the average frame rate from the ratio of recently acquired frames
+  int frame1Index = this->RecordedFrames->GetNumberOfTrackedFrames() - 1; // index of the latest frame
+  int frame2Index = frame1Index - this->RequestedFrameRate * 5.0 - 1; // index of an earlier acquired frame (go back by approximately 5 seconds + one frame)
+  if (frame2Index < this->FirstFrameIndexInThisSegment)
+  {
+    // make sure we stay in the current recording segment
+    frame2Index = this->FirstFrameIndexInThisSegment;
+  }
+  if (frame1Index > frame2Index)
+  {   
+    TrackedFrame* frame1 = this->RecordedFrames->GetTrackedFrame(frame1Index);
+    TrackedFrame* frame2 = this->RecordedFrames->GetTrackedFrame(frame2Index);
+    if (frame1 != NULL && frame2 != NULL)
+    {
+      double frameTimeDiff = frame1->GetTimestamp() - frame2->GetTimestamp();
+      if (frameTimeDiff > 0)
+      {
+        this->ActualFrameRate = (frame1Index - frame2Index) / frameTimeDiff;
+      }
+      else
+      {
+        this->ActualFrameRate = 0;
+      }
+    }    
+  }
+
   if( this->WriteFrames() != PLUS_SUCCESS )
   {
     LOG_ERROR(this->GetDeviceId() << ": Unable to write " << nbFramesAfter - nbFramesBefore << " frames.");
@@ -315,16 +342,19 @@ PlusStatus vtkVirtualDiscCapture::InternalUpdate()
     // We haven't received any data so far
     LOG_DYNAMIC("No input data available to capture thread. Waiting until input data arrives.", this->GracePeriodLogLevel);
   }
-
+  
   // Check whether the recording needed more time than the sampling interval
   double recordingTimeSec = vtkAccurateTimer::GetSystemTime() - startTimeSec;
-  if (recordingTimeSec > samplingPeriodSec)
-  {
-    LOG_WARNING("Recording of frames takes too long time (" << recordingTimeSec << "sec instead of the allocated " << samplingPeriodSec << "sec). This can cause slow-down of the application and non-uniform sampling. Reduce the acquisition rate or sampling rate to resolve the problem.");
-  }
-
   double currentSystemTime = vtkAccurateTimer::GetSystemTime();
   double recordingLagSec =  currentSystemTime - this->NextFrameToBeRecordedTimestamp;
+
+  if (recordingTimeSec > samplingPeriodSec)
+  {
+    // Log too long recording as warning only if the recording is falling behind
+    vtkPlusLogger::LogLevelType logLevel = (recordingLagSec > WARNING_RECORDING_LAG_SEC ? vtkPlusLogger::LOG_LEVEL_WARNING : vtkPlusLogger::LOG_LEVEL_DEBUG);
+    LOG_DYNAMIC("Recording of frames takes too long time (" << recordingTimeSec << "sec instead of the allocated " << samplingPeriodSec << "sec, recording lags by "<<recordingLagSec<<"sec). This can cause slow-down of the application and non-uniform sampling. Reduce the acquisition rate or sampling rate to resolve the problem.", logLevel);
+  }
+
   if (recordingLagSec > MAX_ALLOWED_RECORDING_LAG_SEC)
   {
     double acquisitionLagSec = recordingLagSec;
@@ -341,9 +371,9 @@ PlusStatus vtkVirtualDiscCapture::InternalUpdate()
     }
     this->NextFrameToBeRecordedTimestamp = vtkAccurateTimer::GetSystemTime();
   }
-
+  
   this->LastUpdateTime = vtkAccurateTimer::GetSystemTime();
-
+  
   return PLUS_SUCCESS;
 }
 
@@ -430,13 +460,13 @@ void vtkVirtualDiscCapture::SetEnableCapturing( bool aValue )
 {
   this->EnableCapturing = aValue;
 
-  if( aValue )
+  if(this->EnableCapturing)
   {
     this->LastUpdateTime = 0.0;
     this->TimeWaited = 0.0;
     this->LastAlreadyRecordedFrameTimestamp = UNDEFINED_TIMESTAMP;
     this->NextFrameToBeRecordedTimestamp = 0.0;
-    this->FirstFrameIndexInThisSegment = 0.0;
+    this->FirstFrameIndexInThisSegment = this->RecordedFrames->GetNumberOfTrackedFrames();
     this->RecordingStartTime = vtkAccurateTimer::GetSystemTime(); // reset the starting time for the grace period
   }
 }
@@ -451,31 +481,13 @@ PlusStatus vtkVirtualDiscCapture::Reset()
 
     if( this->IsHeaderPrepared )
     {
-      // Change the filename to a temporary filename
-      std::string tempFilename;
-      if( PlusCommon::CreateTemporaryFilename(tempFilename, "") != PLUS_SUCCESS )
-      {
-        LOG_ERROR("Unable to create temporary file. Check write access.");
-      }
-      else
-      {
-        // Risky, file with extension ".mha" might exist... no way to use windows utility to change extension
-        // In reality, probably will never be an issue
-        std::string mhaFilename(tempFilename);
-        mhaFilename.replace(mhaFilename.end()-3, mhaFilename.end(), "mha");
-        this->Writer->SetFileName(mhaFilename.c_str());
-
-        this->Writer->Close();
-
-        vtksys::SystemTools::RemoveFile(tempFilename.c_str());
-        vtksys::SystemTools::RemoveFile(mhaFilename.c_str());
-      }
+      this->Writer->Discard();
     }
 
     this->ClearRecordedFrames();
     this->Writer->GetTrackedFrameList()->Clear();
     this->IsHeaderPrepared = false;
-    TotalFramesRecorded = 0;
+    this->TotalFramesRecorded = 0;
   }
 
   if( this->OpenFile() != PLUS_SUCCESS )
@@ -572,32 +584,6 @@ PlusStatus vtkVirtualDiscCapture::WriteFrames(bool force)
       return PLUS_FAIL;
     }
     this->IsHeaderPrepared = true;
-  }
-
-  // Compute the average frame rate from the ratio of recently acquired frames
-  int frame1Index = this->RecordedFrames->GetNumberOfTrackedFrames() - 1; // index of the latest frame
-  int frame2Index = frame1Index - this->RequestedFrameRate * 5.0 - 1; // index of an earlier acquired frame (go back by approximately 5 seconds + one frame)
-  if (frame2Index < this->FirstFrameIndexInThisSegment)
-  {
-    // make sure we stay in the current recording segment
-    frame2Index = this->FirstFrameIndexInThisSegment;
-  }
-  if (frame1Index > frame2Index)
-  {   
-    TrackedFrame* frame1 = this->RecordedFrames->GetTrackedFrame(frame1Index);
-    TrackedFrame* frame2 = this->RecordedFrames->GetTrackedFrame(frame2Index);
-    if (frame1 != NULL && frame2 != NULL)
-    {
-      double frameTimeDiff = frame1->GetTimestamp() - frame2->GetTimestamp();
-      if (frameTimeDiff > 0)
-      {
-        this->ActualFrameRate = (frame1Index - frame2Index) / frameTimeDiff;
-      }
-      else
-      {
-        this->ActualFrameRate = 0;
-      }
-    }    
   }
 
   if( this->RecordedFrames->GetNumberOfTrackedFrames() == 0 )

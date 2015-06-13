@@ -107,8 +107,6 @@ protected:
   void SetRequestedFrameRate(double aValue);
   vtkGetMacro(RequestedFrameRate, double);
 
-  vtkGetMacro(ActualFrameRate, double);
-
   virtual vtkDataCollector* GetDataCollector() { return this->DataCollector; }
 
   virtual bool IsTracker() const { return false; }
@@ -118,14 +116,6 @@ protected:
   virtual PlusStatus InternalDisconnect();
 
   PlusStatus AddFrames(vtkTrackedFrameList* trackedFrameList);
-
-  vtkSetMacro(ActualFrameRate, double);
-
-  /*!
-  * Get the maximum frame rate from the video source. If there is none then the tracker
-  * \return Maximum frame rate
-  */
-  double GetMaximumFrameRate();
 
   /*! Get the sampling period length (in seconds). Frames are copied from the devices to the data collection buffer once in every sampling period. */
   double GetSamplingPeriodSec();
@@ -144,18 +134,7 @@ protected:
 
   /*! Requested frame rate (frames per second) */
   double RequestedFrameRate;
-
-  /*! Actual frame rate (frames per second) */
-  double ActualFrameRate;
   
-  /*!
-    Frame index of the first frame that is recorded in this segment (since pressed the record button).
-    It is used when estimating the actual frame rate: frames that are acquired before this frame index (i.e.,
-    those that were acquired in a different recording segment) will not be taken into account in the actual
-    frame rate computation.
-  */
-  int m_FirstFrameIndexInThisSegment;
-
   /* Time waited in update */
   double m_TimeWaited;
   double m_LastUpdateTime;

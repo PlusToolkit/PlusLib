@@ -1539,6 +1539,22 @@ PlusStatus vtkMetaImageSequenceIO::Close()
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkMetaImageSequenceIO::Discard()
+{
+  vtksys::SystemTools::RemoveFile(this->TempHeaderFileName.c_str());
+  vtksys::SystemTools::RemoveFile(this->TempImageFileName.c_str());
+
+  this->TempHeaderFileName.clear();
+  this->TempImageFileName.clear();
+
+  CurrentFrameOffset = 0;
+  TotalBytesWritten = 0;
+
+  return PLUS_SUCCESS;
+}
+
+
+//----------------------------------------------------------------------------
 PlusStatus vtkMetaImageSequenceIO::SetFileName( const char* aFilename )
 {
   this->FileName.clear();
