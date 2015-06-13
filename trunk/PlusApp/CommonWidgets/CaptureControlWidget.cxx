@@ -73,7 +73,7 @@ double CaptureControlWidget::GetMaximumFrameRate() const
     return 0.0;
   }
 
-  return m_Device->GetAcquisitionRate();
+  return m_Device->GetRequestedFrameRate();
 }
 
 //-----------------------------------------------------------------------------
@@ -289,7 +289,17 @@ void CaptureControlWidget::SaveFile()
   // Stop recording
   m_Device->SetEnableCapturing(false);
 
-  std::string fileName=vtkPlusConfig::GetInstance()->GetOutputPath( std::string("TrackedImageSequence_")+m_Device->GetDeviceId()+"_"+vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S")+".mha" );
+  std::string baseFileName=m_Device->GetBaseFilename();
+  if (baseFileName.empty())
+  {
+    baseFileName=std::string("TrackedImageSequence_")+m_Device->GetDeviceId();
+  }
+  std::string fileName=vtkPlusConfig::GetInstance()->GetOutputPath(
+    vtksys::SystemTools::GetFilenamePath(baseFileName)+
+    vtksys::SystemTools::GetFilenameWithoutLastExtension(baseFileName)+"_"+
+    vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S")+
+    vtksys::SystemTools::GetFilenameLastExtension(baseFileName)
+    );
  
   std::string message;
   if( this->WriteToFile(QString(fileName.c_str())) != PLUS_FAIL )
@@ -319,6 +329,8 @@ void CaptureControlWidget::Clear()
   std::string aMessage("Successfully cleared data for device: ");
   aMessage += this->m_Device->GetDeviceId();
   this->SendStatusMessage(aMessage);
+
+  LOG_INFO("Captured tracked frame list was discarded");
 }
 
 //-----------------------------------------------------------------------------
