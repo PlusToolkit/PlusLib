@@ -5,7 +5,8 @@
 
 - Supported models: Ultrasonix SonixRP, SonixMDP, SonixTouch, SonixTablet, etc.
 - As all models use the same research interface, there is no difference in using Plus with any of the Ultrasonix scanner models (e.g., a sample config file for SonixRP works well for a SonixMDP scanner). However, the ultrasound firmware and Exam software on the scanner has to match the Ultrasonix SDK version that Plus uses. Plus with Ultrasonix SDK 5.7.x works through Ulterius interface with Exam software 5.7.x-6.0.2. Plus with Ultrasonix SDK 6.1.x works through Ulterius interface with Exam software 6.0.7 and later. Use the \ref ApplicationPlusVersion to find out which Ultrasonix SDK version is used by Plus.
-- Supported interfaces: Ulterius and Porta. 
+- If a probe with built-in tracking sensor is used (L14-5/38 GPS or C5-2/60 GPS) then Plus can use the probe calibration information provided by the manufacturer. Select the configuration file: "PlusServer: Ultrasonix US ... - calibrated".
+- Supported interfaces: Ulterius and Porta.
 - Link to manufacturer's website: http://www.analogicultrasound.com/ultrasonix
 
 \section SonixVideoSupportedPlatforms Included in packages
@@ -35,11 +36,11 @@ Common attributes:
 - \xmlElem \ref Device
   - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
   - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
-  - \xmlAtt \b Depth Depth \c [mm] of B-mode ultrasound. If not specified then the current setting is used. \OptionalAtt{-1}
-  - \xmlAtt \b Gain Gain \c [%] of B-mode ultrasound; valid range: 0-100. If not specified then the current setting is used.\OptionalAtt{-1}
-  - \xmlAtt \b Zoom Zoom \c [%] of B-mode ultrasound; valid range: 0-100. If not specified then the current setting is used. \OptionalAtt{-1}
-  - \xmlAtt \b Frequency Ultrasound transmitter frequency \c [MHz] If not specified then the current setting is used.\OptionalAtt{-1}
-  - \xmlAtt \b Timeout Timeout \c [ms] for receiving new frames by network function calls. If not specified then the current setting is used. \OptionalAtt{-1}
+  - \xmlAtt \b Depth Depth \c [mm] of B-mode ultrasound. If not specified then the current setting is used. \OptionalAtt{ }
+  - \xmlAtt \b Gain Gain \c [%] of B-mode ultrasound; valid range: 0-100. If not specified then the current setting is used.\OptionalAtt{ }
+  - \xmlAtt \b Zoom Zoom \c [%] of B-mode ultrasound; valid range: 0-100. If not specified then the current setting is used. \OptionalAtt{ }
+  - \xmlAtt \b Frequency Ultrasound transmitter frequency \c [MHz] If not specified then the current setting is used.\OptionalAtt{ }
+  - \xmlAtt \b Timeout Timeout \c [ms] for receiving new frames by network function calls. If not specified then the current setting is used. \OptionalAtt{ }
   - \xmlElem \ref DataSources Multiple \c DataSource child elements are allowed, one for each data type (\c PortName indicates the data type) \RequiredAtt
     - \xmlElem \ref DataSource \RequiredAtt
       - \xmlAtt \ref PortName \RequiredAtt
@@ -54,20 +55,20 @@ Common attributes:
 
 Ulterius interface specific Device attributes:
 - \xmlAtt \ref DeviceType "Type" = \c "SonixVideo" \RequiredAtt
-- \xmlAtt \b IP Host name or IP address of the Ultrasonix host machine. If Plus runs on the Ultrasound system then the 127.0.0.1 address can be used.\RequiredAtt
-- \xmlAtt \b Sector Sector \c [%] of B-mode ultrasound; valid range: 0-100. \OptionalAtt{-1}
-- \xmlAtt \b DynRange DynRange \c [dB] of B-mode ultrasound. \OptionalAtt{-1}
-- \xmlAtt \b CompressionStatus When imaging with the EC59 probe, if compression is disabled (\b CompressionStatus \c ="0"), then a lot of BMode frames are lost. The reason for this is the fact that scan-conversion is performed on the CPU. Set \b CompressionStatus \c ="1" to prevent frame loss. \OptionalAtt{0}
-- \xmlAtt \b SharedMemoryStatus When this flag is enabled ("1") and local access is used the TCP is bypasssed.\OptionalAtt{0}
-- \xmlAtt \b SoundVelocity The speed of sound \c [m/s]. \OptionalAtt{-1}
-- \xmlAtt \b ConnectionSetupDelayMs Time required for setting up the connection. The value depends on the probe type, typical values are between 2000-3000 \c [ms]. \OptionalAtt{3000}
-- \xmlAtt \b DetectDepthSwitching Flag to read the depth attribute for each output channel. (Experimental) \OptionalAtt{false}
-- \xmlAtt \b DetectPlaneSwitching Flag to read the plane of each output channel. (Experimental) \OptionalAtt{false}
+- \xmlAtt \b IP Host name or IP address of the Ultrasound system. If Plus runs on the Ultrasound system then the 127.0.0.1 address can be used. \RequiredAtt
 - \xmlAtt \b AutoClipEnabled Automatically clip the image to the region of interest specified by the ultrasound system. \OptionalAtt{FALSE}
   - TRUE: Image will be clipped to the region of interest that was specified at the time when the connection to the device was established. The image size depends on the imaging depth.
   - FALSE: Regardless of imaging depth, zoom, etc. settings, the image size is always the same. Black border appears outside the region of interest.
+- \xmlAtt \b ImageToTransducerTransformName If specified then Image To Transducer transform is added as a custom field to the image data with the specified name (see \ref CommonCoordinateSystems). Recommended value "ImageToTransducer". If the TransducerToProbe constant transform is specified in the configuration file then this transform allows automatic computation of the ImageToProbe transform at any imaging depth. \OptionalAtt{ }
+- \xmlAtt \b SoundVelocity The speed of sound \c [m/s].  The minimum and maximum allowed value is specified on the Ultrasound computer, in the Exam software directory in the imaging.set.xml" file (the parameter is "soundvelocity"). If an out of range value is specified in the configuration file then the Ultrasound system will ignore it. If the attribute is not specified then the current setting is kept.  \OptionalAtt{ }
+- \xmlAtt \b DynRange DynRange \c [dB] of B-mode ultrasound. If not specified the current value is kept. \OptionalAtt{ }
+- \xmlAtt \b Sector Sector \c [%] of B-mode ultrasound; valid range: 0-100. If not specified the current value is kept. \OptionalAtt{ }
+- \xmlAtt \b CompressionStatus When imaging with the EC59 probe, if compression is disabled (\b CompressionStatus \c ="0"), then a lot of BMode frames are lost. The reason for this is the fact that scan-conversion is performed on the CPU. Set \b CompressionStatus \c ="1" to prevent frame loss. \OptionalAtt{0}
+- \xmlAtt \b SharedMemoryStatus When this flag is enabled ("1") and local access is used the TCP is bypasssed.\OptionalAtt{0}
+- \xmlAtt \b ConnectionSetupDelayMs Time required for setting up the connection. The value depends on the probe type, typical values are between 2000-3000 \c [ms]. \OptionalAtt{3000}
 - \xmlAtt \b ImageGeometryOutputEnabled Add image geometry information (depth, spacing, transducer origin) to the output. When imaging depth is changed then usually transducer origin position and pixel spacing is changed as a result. SonixVideo can provide depth, pixel spacing, and transducer origin (position of the center transducer element in the image, in pixels) information as custom frame fields that can be broadcasted through OpenIGTLink as STRING messages, using the names "DepthMm", "PixelSpacingMm", and "TransducerOriginPix" (see \ref SonixVideoExampleConfigFileUlterius).\OptionalAtt{FALSE}
-- \xmlAtt \b ImageToTransducerTransformName If specified then Image To Transducer transform is added as a custom field to the image data with the specified name (see \ref CommonCoordinateSystems). Recommended value "ImageToTransducer". \OptionalAtt{ }
+- \xmlAtt \b DetectDepthSwitching Flag to read the depth attribute for each output channel. (Experimental) \OptionalAtt{FALSE}
+- \xmlAtt \b DetectPlaneSwitching Flag to read the plane of each output channel. (Experimental) \OptionalAtt{FALSE}
 
 Porta interface specific Device attributes:
 - \xmlAtt \ref DeviceType "Type" = \c "SonixPortaVideo" \RequiredAtt
@@ -83,6 +84,26 @@ Porta interface specific Device attributes:
 - \xmlAtt \b PortaSettingPath Path to the Porta Setting directory. \RequiredAtt
 - \xmlAtt \b PortaLicensePath Path to the licenses text file. \RequiredAtt
 - \xmlAtt \b PortaFirmwarePath Path to the Porta Firmware directory. \RequiredAtt
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_L14-5_Ascension3DG_calibrated.xml"
+
+\section SonixVideoExampleConfigFileUltrasonixSpatialCalibrationC5 Example configuration file for tracked ultrasound acquisition using calibration matrix provided by Ultrasonix for C5-2/60 GPS probe
+
+The calibration remains valid even if the imaging depth is changed.
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_C5-2_Ascension3DG_calibrated.xml"
+    
+\section SonixVideoExampleConfigFileUlterius Example configuration file for B-mode acquisition using Ulterius interface
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_L14-5.xml"
+
+\section SonixVideoExampleConfigFilePorta Example configuration file for B-mode acquisition using Porta interface
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_L14-5_Porta.xml"
+
+\section SonixVideoExampleConfigFileRf Example configuration file for dual B-mode and RF-mode acquisition using Ulterius interface
+
+\include "data/ConfigFiles/Testing/PlusDeviceSet_DataCollectionOnly_SonixVideo_FakeTracker_DualMode.xml"
 
 \section SonixVideoUltrasonixSpatialCalibration Using calibration matrices provided by Ultrasonix
 
@@ -175,23 +196,9 @@ Plus allows using different spatial calibration parameters when the imaging dept
 
 If you change to a parameter that is not supported by your configuration (ie.: a depth you didn't specify) the data collection will stop!
 If you did not specify the global parameters above, Plus will attempt to configure the Sonix hardware with the parameters from the first output channel.
-    
-\section SonixVideoExampleConfigFileUlterius Example configuration file for B-mode acquisition using Ulterius interface
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_L14-5.xml"
-
-\section SonixVideoExampleConfigFilePorta Example configuration file for B-mode acquisition using Porta interface
-
-\include "data/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_L14-5_Porta.xml"
-
-\section SonixVideoExampleConfigFileRf Example configuration file for dual B-mode and RF-mode acquisition using Ulterius interface
-
-\include "data/ConfigFiles/Testing/PlusDeviceSet_DataCollectionOnly_SonixVideo_FakeTracker_DualMode.xml"
-
-\section SonixVideoExampleConfigFileUltrasonixSpatialCalibration Example configuration file for tracked ultrasound acquisition using calibration matrix provided by Ultrasonix
+\section SonixVideoExampleConfigFileUltrasonixSpatialCalibrationL14 Example configuration file for tracked ultrasound acquisition using calibration matrix provided by Ultrasonix for L14-5/38 GPS probe
 
 The calibration remains valid even if the imaging depth is changed.
-
-\include "data/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_L14-5_Ascension3DG_calibrated.xml"
 
 */
