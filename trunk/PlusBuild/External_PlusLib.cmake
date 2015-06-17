@@ -215,6 +215,7 @@ ExternalProject_Add(PlusLib
     ${PLUSBUILD_ADDITIONAL_SDK_ARGS}
 
   #--Build step-----------------
+  BUILD_ALWAYS 1
   #--Install step-----------------
   INSTALL_COMMAND ""
   DEPENDS ${PlusLib_DEPENDENCIES}

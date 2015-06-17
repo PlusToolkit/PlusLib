@@ -42,6 +42,7 @@ ExternalProject_Add(PlusApp
     -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
     ${PLUSBUILD_ADDITIONAL_SDK_ARGS}
   #--Build step-----------------
+  BUILD_ALWAYS 1
   #--Install step-----------------
   INSTALL_COMMAND ""
   DEPENDS ${PlusApp_DEPENDENCIES}
