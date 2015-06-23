@@ -29,6 +29,7 @@
 \par Inertial measurement units
 - \subpage DevicePhidgetSpatial
 - \subpage DeviceChRobotics
+- \subpage DeviceMicrochip
 
 \par Other tracking devices
 - \subpage DeviceOpenIGTLinkTracker
