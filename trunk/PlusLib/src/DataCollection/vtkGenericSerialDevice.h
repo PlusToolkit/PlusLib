@@ -93,15 +93,18 @@ protected:
   /*! Wait until the serial device makes some data available for reading but maximum up to ReplyTImeoutSec */
   virtual bool WaitForResponse();
 
+  /*! Serial (RS232) line connection */
+  SerialLine* Serial;
+
+  /*! Mutex instance for sharing the serial line between update thread and command execution thread */ 
+  vtkSmartPointer<vtkRecursiveCriticalSection> Mutex;
+
 private:  // Functions.
 
   vtkGenericSerialDevice( const vtkGenericSerialDevice& );
   void operator=( const vtkGenericSerialDevice& );
 
 private:  // Variables.
-
-  /*! Serial (RS232) line connection */
-  SerialLine* Serial;
 
   /*! Used COM port number for serial communication (ComPort: 1 => Port name: "COM1")*/
   unsigned long SerialPort; 
@@ -121,8 +124,6 @@ private:  // Variables.
   /*! Maximum time to wait for the device to finish replying */
   double MaximumReplyDurationSec;
 
-  /*! Mutex instance for sharing the serial line between update thread and command execution thread */ 
-  vtkSmartPointer<vtkRecursiveCriticalSection> Mutex;
 };
 
 #endif
