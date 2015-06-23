@@ -355,6 +355,20 @@ ENDIF( PLUS_USE_3dConnexion_TRACKER )
     CACHE INTERNAL "" FORCE)
 
 #--------------------------------------------------------------------------
+# Microchip MARG sensor (magnetometer, accelerometer, gyroscope)
+        
+  SET (DataCollection_SRCS ${DataCollection_SRCS} 
+    MicrochipTracking/vtkMicrochipTracker.cxx
+    )
+  if (WIN32)  
+    SET (DataCollection_HDRS ${DataCollection_HDRS} MicrochipTracking/vtkMicrochipTracker.h )
+  endif (WIN32)
+  
+  SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
+    ${CMAKE_CURRENT_SOURCE_DIR}/MicrochipTracking
+    CACHE INTERNAL "" FORCE)
+    
+#--------------------------------------------------------------------------
 # OpenIGTLink 
 
 IF( PLUS_USE_OpenIGTLink )

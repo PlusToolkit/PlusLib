@@ -50,6 +50,7 @@ See License.txt for details.
 #endif
 #include "vtkFakeTracker.h"
 #include "vtkChRoboticsTracker.h"
+#include "vtkMicrochipTracker.h"
 #ifdef PLUS_USE_3dConnexion_TRACKER
   // 3dConnexion tracker is supported on Windows only
   #include "vtk3dConnexionTracker.h"
@@ -127,6 +128,8 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
 {
   DeviceTypes["FakeTracker"]=(PointerToDevice)&vtkFakeTracker::New; 
   DeviceTypes["ChRobotics"]=(PointerToDevice)&vtkChRoboticsTracker::New; 
+  DeviceTypes["Microchip"]=(PointerToDevice)&vtkMicrochipTracker::New;
+  
 #ifdef PLUS_USE_3dConnexion_TRACKER
   // 3dConnexion tracker is supported on Windows only
   DeviceTypes["3dConnexion"]=(PointerToDevice)&vtk3dConnexionTracker::New; 
