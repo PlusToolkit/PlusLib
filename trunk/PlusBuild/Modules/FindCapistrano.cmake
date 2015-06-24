@@ -35,7 +35,7 @@ FIND_PATH(Capistrano_BINARY_DIR BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
   
 FIND_PATH(Capistrano_WIN32_BINARY_DIR USBprobe32${CMAKE_SHARED_LIBRARY_SUFFIX}
   PATH_SUFFIXES 
-    "lib"
+    "bin"
   DOC "Path to Capistrano 32-bit binary directory (contains 32-bit USBprobe.dll)"
   PATHS ${Capistrano_PATH_HINTS}
   NO_DEFAULT_PATH # avoid finding installed DLLs in the system folders
@@ -43,7 +43,7 @@ FIND_PATH(Capistrano_WIN32_BINARY_DIR USBprobe32${CMAKE_SHARED_LIBRARY_SUFFIX}
 
 FIND_PATH(Capistrano_WIN64_BINARY_DIR USBprobe${CMAKE_SHARED_LIBRARY_SUFFIX}
   PATH_SUFFIXES 
-    "lib/x64"
+    "bin/x64"
   DOC "Path to Capistrano 64-bit binary directory (contains 64-bit USBprobe.dll)"
   PATHS ${Capistrano_PATH_HINTS}
   NO_DEFAULT_PATH # avoid finding installed DLLs in the system folders
