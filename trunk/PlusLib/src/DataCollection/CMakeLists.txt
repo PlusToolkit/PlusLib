@@ -14,6 +14,7 @@ OPTION (PLUS_USE_BKPROFOCUS_CAMERALINK "Provide support for BK ProFocus ultrasou
 OPTION (PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber device" OFF)
 OPTION (PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
 OPTION (PLUS_USE_EPIPHAN "Provide support for the Epiphan" OFF)
+OPTION (PLUS_USE_CAPISTRANO_VIDEO "Provide support Capistrano Labs USB ultrasound probes" OFF)
 OPTION (PLUS_USE_INTERSON_VIDEO "Provide support Interson USB ultrasound probes" OFF)
 OPTION (PLUS_USE_INTERSONSDKCXX_VIDEO "Provide support Interson SDK 1.X with C++ Wrapper USB ultrasound probes" OFF)
 OPTION (PLUS_USE_TELEMED_VIDEO "Provide support for the Telemed ultrasound probes" OFF)
@@ -720,6 +721,47 @@ IF (PLUS_USE_EPIPHAN)
     ${EPIPHAN_BINARY_DIR}/frmgrab${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
 ENDIF (PLUS_USE_EPIPHAN)
+
+# --------------------------------------------------------------------------
+# Capistrano Labs support
+
+IF (PLUS_USE_CAPISTRANO_VIDEO)
+  SET (DataCollection_SRCS ${DataCollection_SRCS} 
+    Capistrano/vtkCapistranoVideoSource.cxx
+    )
+  if (WIN32)  
+    SET (DataCollection_HDRS ${DataCollection_HDRS}
+      Capistrano/vtkCapistranoVideoSource.h
+      )
+  endif (WIN32)
+  SET (DataCollection_LIBS ${DataCollection_LIBS} 
+    ${CAPISTRANO_LIBRARY_DIR}/BmodeDLL${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${CAPISTRANO_LIBRARY_DIR}/USBprobeDLL${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
+  SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}     
+    ${CAPISTRANO_INCLUDE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/Capistrano
+    )          
+  IF( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+    SET ( External_Libraries_Install ${External_Libraries_Install}
+      ${CAPISTRANO_WIN64_BINARY_DIR}/USBprobe${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${CAPISTRANO_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+    SET ( External_Libraries_Debug ${External_Libraries_Debug}
+      ${CAPISTRANO_WIN64_BINARY_DIR}/USBprobe${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${CAPISTRANO_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+  ELSE()
+      SET ( External_Libraries_Install ${External_Libraries_Install}
+      ${CAPISTRANO_WIN32_BINARY_DIR}/USBprobe32${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${CAPISTRANO_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+    SET ( External_Libraries_Debug ${External_Libraries_Debug}
+      ${CAPISTRANO_WIN32_BINARY_DIR}/USBprobe32${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${CAPISTRANO_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+  ENDIF()
+ENDIF (PLUS_USE_CAPISTRANO_VIDEO)
 
 # --------------------------------------------------------------------------
 # Interson support
