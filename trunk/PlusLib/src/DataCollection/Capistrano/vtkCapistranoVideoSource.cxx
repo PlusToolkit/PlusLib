@@ -7,3 +7,21 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkCapistranoVideoSource.h"
 
+vtkStandardNewMacro(vtkCapistranoVideoSource);
+
+//----------------------------------------------------------------------------
+vtkCapistranoVideoSource::vtkCapistranoVideoSource()
+{
+}
+
+//----------------------------------------------------------------------------
+vtkCapistranoVideoSource::~vtkCapistranoVideoSource()
+{
+}
+
+//----------------------------------------------------------------------------
+void vtkCapistranoVideoSource::PrintSelf(ostream& os, vtkIndent indent)
+{
+  this->Superclass::PrintSelf(os,indent);
+}
+

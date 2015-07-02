@@ -277,6 +277,17 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
   SET_TESTS_PROPERTIES( vtkSonixVolumeReaderTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 
+#***************************  vtkCapistranoVideoSourceTest.cxx ***************************
+IF (PLUS_USE_CAPISTRANO_VIDEO)
+  ADD_EXECUTABLE(vtkCapistranoVideoSourceTest vtkCapistranoVideoSourceTest.cxx )
+  TARGET_LINK_LIBRARIES(vtkCapistranoVideoSourceTest vtkDataCollection ) 
+  ADD_TEST(NAME vtkCapistranoVideoSourceTest 
+    COMMAND $<TARGET_FILE:vtkCapistranoVideoSourceTest>
+    --rendering-off 
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_CapistranoSDKCxxVideoSourceTest.xml
+  )
+ENDIF (PLUS_USE_CAPISTRANO_VIDEO)
+
 #***************************  vtkIntersonVideoSourceTest.cxx ***************************
 IF (PLUS_USE_INTERSON_VIDEO)
   ADD_EXECUTABLE(vtkIntersonVideoSourceTest vtkIntersonVideoSourceTest.cxx )
