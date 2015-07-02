@@ -85,3 +85,19 @@ std::string vtkCapistranoVideoSource::GetSdkVersion()
   return versionString.str();
 }
 
+//----------------------------------------------------------------------------
+PlusStatus vtkCapistranoVideoSource::InternalConnect()
+{
+  LOG_TRACE( "vtkCapistranoVideoSource::InternalConnect" );
+
+  LOG_DEBUG( "Capistrano BMode DLL version: " << bmDLLVer()
+              << ", USB Probe DLL version: " << usbDLLVer());
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkCapistranoVideoSource::InternalDisconnect()
+{
+  LOG_DEBUG("Disconnect from Capistrano");
+}

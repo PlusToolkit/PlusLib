@@ -45,6 +45,12 @@ protected:
   vtkCapistranoVideoSource();
   ~vtkCapistranoVideoSource();
 
+  /*! Device-specific connect */
+  virtual PlusStatus InternalConnect();
+
+  /*! Device-specific disconnect */
+  virtual PlusStatus InternalDisconnect();
+
 private:
   vtkCapistranoVideoSource(const vtkCapistranoVideoSource &); // Not implemented
   void operator=(const vtkCapistranoVideoSource &); // Not implemented

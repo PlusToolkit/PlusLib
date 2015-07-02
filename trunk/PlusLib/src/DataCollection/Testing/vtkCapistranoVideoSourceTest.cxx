@@ -113,17 +113,15 @@ int main(int argc, char* argv[])
     capistranoDevice->ReadConfiguration(configRootElement);
   }
   
-  capistranoDevice->CreateDefaultOutputChannel();
-
   LOG_INFO("SDK version: " << capistranoDevice->GetSdkVersion());
 
-/*
   if ( capistranoDevice->Connect() != PLUS_SUCCESS ) 
   {
     LOG_ERROR( "Unable to connect to Capistrano Labs probe" ); 
     exit(EXIT_FAILURE); 
   }
 
+/*
   if (printParams)
   {
     LOG_INFO("List of supported imaging parameters:");
