@@ -111,6 +111,16 @@ PlusStatus vtkCapistranoVideoSource::InternalConnect()
   //usbSetProbeAttachCallback(&ProbeAttached);
   //usbSetProbeDetachCallback(&ProbeDetached);
 
+  char errorStatus[256] = {0};
+  errorStatus[0] = 0;
+  ULONG status = usbFindProbes(errorStatus);
+  LOG_DEBUG("Find USB probes: status=" << status);
+  if(status != ERROR_SUCCESS)
+    {
+    LOG_ERROR("Capistrano finding probes failed: " << errorStatus);
+    return PLUS_FAIL;
+    }
+
   return PLUS_SUCCESS;
 }
 
