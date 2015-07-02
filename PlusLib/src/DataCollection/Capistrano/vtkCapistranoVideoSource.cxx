@@ -54,3 +54,22 @@ PlusStatus vtkCapistranoVideoSource::WriteConfiguration(vtkXMLDataElement* rootC
 
   return PLUS_SUCCESS;
 }
+
+//----------------------------------------------------------------------------
+PlusStatus vtkCapistranoVideoSource::NotifyConfigured()
+{
+  if( this->OutputChannels.size() > 1 )
+  {
+    LOG_WARNING("vtkCapistranoVideoSource is expecting at most one output channel and there are " << this->OutputChannels.size() << " channels.");
+  }
+
+  if( this->OutputChannels.empty() )
+  {
+    LOG_ERROR("No output channels defined for vtkCapistranoVideoSource. Cannot proceed." );
+    this->CorrectlyConfigured = false;
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}
+

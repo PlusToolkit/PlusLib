@@ -113,36 +113,12 @@ int main(int argc, char* argv[])
     capistranoDevice->ReadConfiguration(configRootElement);
   }
   
-/*
   capistranoDevice->CreateDefaultOutputChannel();
 
-  DisplayMode displayMode=SHOW_IMAGE; 
-  
-  if (STRCASECMP(acqMode.c_str(), "B")==0)
+/*
+  if ( capistranoDevice->Connect() != PLUS_SUCCESS ) 
   {
-    LOG_DEBUG("Acquisition mode: B");
-    //capistranoDevice->SetImagingMode(BMode);
-    //capistranoDevice->SetAcquisitionDataType(udtBPost);
-    displayMode=SHOW_IMAGE;
-  }
-  else if (STRCASECMP(acqMode.c_str(), "RF")==0)
-  {
-    LOG_DEBUG("Acquisition mode: RF");
-    //capistranoDevice->SetImagingMode(RfMode);
-    //capistranoDevice->SetAcquisitionDataType(udtRF);
-    displayMode=SHOW_PLOT;
-  }
-  else
-  {
-    LOG_ERROR("Unsupported AcquisitionDataType requested: "<<acqMode);
-    exit(EXIT_FAILURE);
-  }
-
-//DisplayMode displayMode=SHOW_PLOT;
-
-  if ( capistranoDevice->Connect()!=PLUS_SUCCESS ) 
-  {
-    //LOG_ERROR( "Unable to connect to Sonix RP machine at: " << capistranoDevice->GetSonixIP() ); 
+    LOG_ERROR( "Unable to connect to Capistrano Labs probe" ); 
     exit(EXIT_FAILURE); 
   }
 
