@@ -36,6 +36,9 @@ public:
   /*! Write configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);    
 
+  /*! Verify the device is correctly configured */
+  virtual PlusStatus NotifyConfigured();
+
 protected:
   vtkCapistranoVideoSource();
   ~vtkCapistranoVideoSource();
