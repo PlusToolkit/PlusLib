@@ -29,6 +29,13 @@ public:
 
   void PrintSelf(ostream& os, vtkIndent indent);   
 
+  virtual bool IsTracker() const { return false; }
+
+  /*! Read configuration from xml data */  
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  /*! Write configuration to xml data */
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);    
+
 protected:
   vtkCapistranoVideoSource();
   ~vtkCapistranoVideoSource();

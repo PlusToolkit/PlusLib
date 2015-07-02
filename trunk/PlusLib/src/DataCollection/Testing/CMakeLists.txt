@@ -284,7 +284,7 @@ IF (PLUS_USE_CAPISTRANO_VIDEO)
   ADD_TEST(NAME vtkCapistranoVideoSourceTest 
     COMMAND $<TARGET_FILE:vtkCapistranoVideoSourceTest>
     --rendering-off 
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_CapistranoSDKCxxVideoSourceTest.xml
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_CapistranoVideoSourceTest.xml
   )
 ENDIF (PLUS_USE_CAPISTRANO_VIDEO)
 
