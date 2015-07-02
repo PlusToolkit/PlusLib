@@ -115,6 +115,8 @@ int main(int argc, char* argv[])
   
   capistranoDevice->CreateDefaultOutputChannel();
 
+  LOG_INFO("SDK version: " << capistranoDevice->GetSdkVersion());
+
 /*
   if ( capistranoDevice->Connect() != PLUS_SUCCESS ) 
   {

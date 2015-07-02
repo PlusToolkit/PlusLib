@@ -7,6 +7,9 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkCapistranoVideoSource.h"
 
+#include "usbprobedll_net.h"
+#include "BmodeDLL.h"
+
 vtkStandardNewMacro(vtkCapistranoVideoSource);
 
 //----------------------------------------------------------------------------
@@ -71,5 +74,14 @@ PlusStatus vtkCapistranoVideoSource::NotifyConfigured()
   }
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkCapistranoVideoSource::GetSdkVersion()
+{
+  std::ostringstream versionString;
+  versionString << "Capistrano BMode DLL version: " << bmDLLVer()
+                << ", USB Probe DLL version: " << usbDLLVer() << std::ends;
+  return versionString.str();
 }
 
