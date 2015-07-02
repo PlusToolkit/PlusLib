@@ -86,12 +86,30 @@ std::string vtkCapistranoVideoSource::GetSdkVersion()
 }
 
 //----------------------------------------------------------------------------
+int CALLBACK ProbeAttached()
+{
+  LOG_INFO("Probe attached");
+  return 0;
+}
+
+//----------------------------------------------------------------------------
+int CALLBACK ProbeDetached()
+{
+  LOG_INFO("Probe detached");
+  return 0;
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkCapistranoVideoSource::InternalConnect()
 {
   LOG_TRACE( "vtkCapistranoVideoSource::InternalConnect" );
 
   LOG_DEBUG( "Capistrano BMode DLL version: " << bmDLLVer()
               << ", USB Probe DLL version: " << usbDLLVer());
+
+  // These are commented out of usbprobedll_net.h in cSDK2013.
+  //usbSetProbeAttachCallback(&ProbeAttached);
+  //usbSetProbeDetachCallback(&ProbeDetached);
 
   return PLUS_SUCCESS;
 }
