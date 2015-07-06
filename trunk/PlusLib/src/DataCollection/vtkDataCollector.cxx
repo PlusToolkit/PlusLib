@@ -65,6 +65,13 @@ PlusStatus vtkDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
     return PLUS_FAIL; 
   }
 
+  if( this->Devices.size() > 0 )
+  {
+    // ReadConfiguration is being called for the n-th time
+    LOG_ERROR("Repeated calls of vtkDataCollector::ReadConfiguration are not permitted. Delete the data collector and re-create to connect to a different config file.");
+    return PLUS_FAIL;
+  }
+
   vtkXMLDataElement* dataCollectionElement = aConfig->FindNestedElementWithName("DataCollection");
 
   if (dataCollectionElement == NULL)
@@ -394,10 +401,16 @@ PlusStatus vtkDataCollector::GetDevices( DeviceCollection &OutVector ) const
 }
 
 //----------------------------------------------------------------------------
+bool vtkDataCollector::GetStarted() const
+{
+  return this->Started;
+}
+
+//----------------------------------------------------------------------------
 
 bool vtkDataCollector::GetConnected() const
 {
-  return Connected;
+  return this->Connected;
 }
 
 //----------------------------------------------------------------------------
