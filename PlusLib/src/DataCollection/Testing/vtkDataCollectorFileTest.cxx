@@ -101,7 +101,7 @@ int main( int argc, char** argv )
   dataCollector->Connect();
   dataCollector->Start();
 
-  if (! dataCollector->GetConnected())
+  if ( !dataCollector->GetConnected() )
   {
     LOG_ERROR("Unable to start data collection!"); 
     return 1;
