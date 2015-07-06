@@ -9,7 +9,7 @@
       Id="VideoDevice"
       Type="SavedDataSource" 
       UseData="IMAGE_AND_TRANSFORM"
-	  ReplayEnabled="TRUE"
+      RepeatEnabled="TRUE"
       AcquisitionRate="10" 
       LocalTimeOffsetSec="0.0" 
       SequenceMetafile="ie33_NDIAurora_Probe_Stylus_compressed.mha" >
