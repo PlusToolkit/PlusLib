@@ -30,6 +30,13 @@
         0.0104134	0.0106585	0.193937	0.637663
         0	0	0	1"
        Error="1.17562" Date="052015_132620" />
+    <Transform From="StylusTip" To="Stylus"
+      Matrix="
+        0.999941	0	0.0108402	0.857485
+        -3.45131e-005	0.999995	0.00318361	0.25183
+        -0.0108402	-0.0031838	0.999936	79.097
+        0	0	0	1"
+       Error="0.452058" Date="070715_152553" />
   </CoordinateDefinitions>
   
   <PlusOpenIGTLinkServer 
@@ -46,7 +53,7 @@
       <TransformNames> 
         <Transform Name="ProbeToTracker" /> 
         <Transform Name="ReferenceToTracker" />
-		<Transform Name="StylusToTracker" />
+        <Transform Name="StylusTipToTracker" />
       </TransformNames>
       <ImageNames>
         <Image Name="Image" EmbeddedTransformToFrame="Reference" />
