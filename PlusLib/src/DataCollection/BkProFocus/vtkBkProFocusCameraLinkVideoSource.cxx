@@ -25,6 +25,8 @@ See License.txt for details.
 #include "SaperaViewDataReceiver.h"
 #include "TcpClient.h"
 
+#include "vtkMath.h"
+
 //----------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkBkProFocusCameraLinkVideoSource);
@@ -529,9 +531,10 @@ void vtkBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr, co
   PlusLockGuard<vtkRecursiveCriticalSection> critSectionGuard(this->UpdateMutex);
 
   // we may need to overwrite these, so create a copy that will be used internally
-  int frameSizeInPix[2] = {
+  int frameSizeInPix[3] = {
     inputFrameSizeInPix[0],
-    inputFrameSizeInPix[1]
+    inputFrameSizeInPix[1],
+    1
   };
 
   LOG_TRACE("New frame received: " << frameSizeInPix[0] << "x" << frameSizeInPix[1]
