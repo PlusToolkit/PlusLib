@@ -1020,6 +1020,7 @@ INSTALL(FILES ${External_Libraries_Install}
 INSTALL(TARGETS vtkDataCollection
   RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   LIBRARY DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  ARCHIVE DESTINATION bin CONFIGURATIONS Release COMPONENT Development
   )
   
 # --------------------------------------------------------------------------

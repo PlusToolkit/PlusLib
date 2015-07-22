@@ -53,6 +53,7 @@ SET(vcProj_vtkVolumeReconstruction vtkVolumeReconstruction;"${PlusLib_BINARY_DIR
 INSTALL(TARGETS vtkVolumeReconstruction
   RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   LIBRARY DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  ARCHIVE DESTINATION bin CONFIGURATIONS Release COMPONENT Development
   )
 
 # --------------------------------------------------------------------------
