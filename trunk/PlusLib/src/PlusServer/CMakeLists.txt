@@ -69,6 +69,7 @@ SET(vcProj_vtkPlusServer vtkPlusServer;"${PlusLib_BINARY_DIR}/src/PlusServer/vtk
 INSTALL(TARGETS vtkPlusServer
   RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   LIBRARY DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  ARCHIVE DESTINATION bin CONFIGURATIONS Release COMPONENT Development
   )
   
 # --------------------------------------------------------------------------

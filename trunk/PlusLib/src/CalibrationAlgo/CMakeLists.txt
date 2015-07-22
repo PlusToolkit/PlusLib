@@ -114,6 +114,7 @@ SET(vcProj_vtkCalibrationAlgo vtkCalibrationAlgo;"${PlusLib_BINARY_DIR}/src/Cali
 INSTALL(TARGETS vtkCalibrationAlgo
   RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   LIBRARY DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  ARCHIVE DESTINATION bin CONFIGURATIONS Release COMPONENT Development
   )
 
 # --------------------------------------------------------------------------
