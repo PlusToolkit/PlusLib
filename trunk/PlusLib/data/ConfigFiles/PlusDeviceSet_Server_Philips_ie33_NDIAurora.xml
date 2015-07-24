@@ -2,7 +2,7 @@
 
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
-      Name="PlusServer: Philips IE33 3D Probe"
+      Name="PlusServer: Philips IE33 3D Probe + NDI Aurora (Probe, Reference, Stylus)"
       Description="Broadcasting acquired 3D ultrasound video acquired on the Philips IE33 system through OpenIGTLink with NDI Aurora tracking" />
 	 <Device
       Id="TrackerDevice"
@@ -11,7 +11,7 @@
       AcquisitionRate="50"
       LocalTimeOffsetSec="0.0"
       ToolReferenceFrame="Tracker"
-      BaudRate="9600">
+      BaudRate="115200">
       <DataSources>
         <DataSource Type="Tool" Id="Probe" BufferSize="500" PortName="1" AveragedItemsForFiltering="20" />
         <DataSource Type="Tool" Id="Reference" BufferSize="500" PortName="0" AveragedItemsForFiltering="20" />
