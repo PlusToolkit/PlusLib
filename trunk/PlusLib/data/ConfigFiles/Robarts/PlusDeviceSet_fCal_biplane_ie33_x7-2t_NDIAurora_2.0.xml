@@ -4,11 +4,11 @@
     <Device
       Id="TrackerDevice"
       Type="AuroraTracker"
-      SerialPort="6"
+      SerialPort="3"
       AcquisitionRate="50"
       LocalTimeOffsetSec="0.0"
       ToolReferenceFrame="Tracker"
-      BaudRate="9600">
+      BaudRate="115200">
       <DataSources>
         <DataSource Type="Tool" Id="Probe" BufferSize="500" PortName="1" AveragedItemsForFiltering="20" />
         <DataSource Type="Tool" Id="Reference" BufferSize="500" PortName="0" AveragedItemsForFiltering="20" />
