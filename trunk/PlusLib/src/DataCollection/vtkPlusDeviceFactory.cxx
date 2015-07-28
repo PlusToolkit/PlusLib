@@ -45,6 +45,9 @@ See License.txt for details.
 #ifdef PLUS_USE_Ascension3DGm
 #include "vtkAscension3DGmTracker.h"
 #endif
+#ifdef PLUS_USE_OPTIMET_CONOPROBE
+#include "vtkOptimetConoprobeTracker.h"
+#endif 
 #ifdef PLUS_USE_PHIDGET_SPATIAL_TRACKER
 #include "vtkPhidgetSpatialTracker.h"
 #endif
@@ -170,6 +173,9 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
   DeviceTypes["NoiseVideo"]=(PointerToDevice)&vtkPlusDevice::New; 
 #ifdef PLUS_USE_OpenIGTLink
   DeviceTypes["OpenIGTLinkVideo"]=(PointerToDevice)&vtkOpenIGTLinkVideoSource::New; 
+#endif
+#ifdef PLUS_USE_OPTIMET_CONOPROBE
+  DeviceTypes["OptimetConoProbe"]=(PointerToDevice)&vtkOptimetConoprobeTracker::New; 
 #endif
 #ifdef PLUS_USE_ULTRASONIX_VIDEO
   DeviceTypes["SonixVideo"]=(PointerToDevice)&vtkSonixVideoSource::New; 

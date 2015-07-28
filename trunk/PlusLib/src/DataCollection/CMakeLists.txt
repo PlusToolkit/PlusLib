@@ -1,5 +1,6 @@
 # --------------------------------------------------------------------------
 # Options
+OPTION (PLUS_USE_OPTIMET_CONOPROBE "Provide support for the Optimet ConoProbe" OFF)
 OPTION (PLUS_USE_POLARIS "Provide support for the NDI Polaris and Aurora" OFF)
 OPTION (PLUS_USE_CERTUS "Provide support for the NDI Certus" OFF)
 OPTION (PLUS_USE_MICRONTRACKER "Provide support for the Claron MicronTracker" OFF)
@@ -97,10 +98,46 @@ SET (DataCollection_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/VirtualDevices  
   CACHE INTERNAL "" FORCE)
 
+# --------------------------------------------------------------------------
+# Optimet ConoProbe support
+IF (PLUS_USE_OPTIMET_CONOPROBE)
+    SET (DataCollection_SRCS ${DataCollection_SRCS} 
+      Optimet/vtkOptimetConoProbeTracker.cxx
+      )
+        
+    SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} ${OPTIMETSMART32SDK_INCLUDE_DIR} CACHE INTERNAL "" FORCE )
+  
+    IF (WIN32)  
+      SET (DataCollection_HDRS ${DataCollection_HDRS}
+        Optimet/vtkOptimetConoProbeTracker.h
+        )
+    ENDIF (WIN32)
+    
+    SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
+      ${CMAKE_CURRENT_SOURCE_DIR}/Optimet 
+      CACHE INTERNAL "" FORCE)
+               
+	IF( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+    # 64-bit
+		SET (DataCollection_LIBS ${DataCollection_LIBS}
+		${OPTIMETSMART32SDK_64BIT_LIBRARY}
+		)
+		SET ( External_Libraries_Install ${External_Libraries_Install}
+		${OPTIMETSMART32SDK_64BIT_BINARY_DIR}/Smart32${CMAKE_SHARED_LIBRARY_SUFFIX}
+		)
+	ELSE()
+    # 32-bit
+		SET (DataCollection_LIBS ${DataCollection_LIBS}
+		${OPTIMETSMART32SDK_32BIT_LIBRARY}
+		)
+		SET ( External_Libraries_Install ${External_Libraries_Install}
+		${OPTIMETSMART32SDK_32BIT_BINARY_DIR}/Smart32${CMAKE_SHARED_LIBRARY_SUFFIX}
+		)
+  ENDIF()        
+ENDIF (PLUS_USE_OPTIMET_CONOPROBE)
 
 # --------------------------------------------------------------------------
 # NDI Certus support
-
 IF (PLUS_USE_CERTUS)
     SET (DataCollection_SRCS ${DataCollection_SRCS} 
       NDICertusTracking/vtkNDICertusTracker.cxx

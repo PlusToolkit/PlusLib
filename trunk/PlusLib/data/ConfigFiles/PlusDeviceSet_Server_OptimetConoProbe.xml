@@ -1,0 +1,46 @@
+<PlusConfiguration version="2.1">
+
+  <DataCollection StartupDelaySec="1.0">
+    <DeviceSet 
+      Name="PlusServer: OptimetConoprobe"
+      Description="Broadcasting distance data through OpenIGTLink."
+    />
+    
+    <Device
+      Id="TrackerDevice" 
+      Type="OptimetConoProbe"
+      ToolReferenceFrame="Tracker"
+      AcquisitionRate="100"
+      DelayBetweenMeasurements="1" 
+      Frequency="1000" 
+      CoarseLaserPower="13"
+      FineLaserPower="0">
+      <DataSources>
+        <DataSource Type="Tool" Id="Distance" PortName="Distance" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream">
+          <DataSource Id="Distance" />
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+
+  </DataCollection>
+
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="TrackerStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="DistanceToTracker" />
+      </TransformNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+</PlusConfiguration>

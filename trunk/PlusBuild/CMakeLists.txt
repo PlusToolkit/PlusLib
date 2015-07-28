@@ -153,7 +153,7 @@ OPTION(PLUS_USE_TELEMED_VIDEO "Provide support for the Telemed ultrasound probes
 OPTION(PLUS_USE_THORLABS_VIDEO "Provide support for the ThorLabs Compact Spectrometers" OFF)
 
 # Tracking hardware
-
+OPTION(PLUS_USE_OPTIMET_CONOPROBE "Provide support for the Optimet ConoProbe" OFF)
 OPTION(PLUS_USE_POLARIS "Provide support for the NDI POLARIS and AURORA" OFF)
 OPTION(PLUS_USE_CERTUS "Provide support for the NDI Certus" OFF)
 OPTION(PLUS_USE_MICRONTRACKER "Provide support for the Claron MicronTracker" OFF)
@@ -305,6 +305,13 @@ ENDIF(PLUSBUILD_USE_OpenIGTLink)
 IF ( PLUS_USE_BKPROFOCUS_VIDEO )
   INCLUDE(External_GrabbieLib.cmake)
 ENDIF()
+
+IF ( PLUS_USE_OPTIMET_CONOPROBE )
+  FIND_PACKAGE (OPTIMETSMART32SDK)
+  IF ( NOT OPTIMETSMART32SDK_FOUND)
+    MESSAGE( FATAL_ERROR "This project requires the Optimet Smart 32 SDK for ConoProbe tracking. One of the components is missing. Please verify configuration or turn off PLUS_USE_OPTIMET_CONOPROBE.")
+  ENDIF()
+ENDIF() 
 
 IF ( PLUS_USE_CERTUS )
   FIND_PACKAGE (NDIOAPI)
