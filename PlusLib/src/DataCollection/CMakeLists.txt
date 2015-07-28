@@ -1,5 +1,6 @@
 # --------------------------------------------------------------------------
 # Options
+OPTION(PLUS_USE_OPTITRACK "Provide support for the OptiTrack tracking system" OFF)
 OPTION (PLUS_USE_OPTIMET_CONOPROBE "Provide support for the Optimet ConoProbe" OFF)
 OPTION (PLUS_USE_POLARIS "Provide support for the NDI Polaris and Aurora" OFF)
 OPTION (PLUS_USE_CERTUS "Provide support for the NDI Certus" OFF)
@@ -97,6 +98,44 @@ SET (DataCollection_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/UsSimulatorVideo 
   ${CMAKE_CURRENT_SOURCE_DIR}/VirtualDevices  
   CACHE INTERNAL "" FORCE)
+
+# --------------------------------------------------------------------------
+# OptiTrack support
+IF (PLUS_USE_OPTITRACK)
+    SET (DataCollection_SRCS ${DataCollection_SRCS} 
+      OptiTrack/vtkOptiTrackTracker.cxx
+      )
+        
+    SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} ${TRACKINGTOOLS_INCLUDE_DIR} CACHE INTERNAL "" FORCE )
+  
+    IF (WIN32)  
+      SET (DataCollection_HDRS ${DataCollection_HDRS}
+        OptiTrack/vtkOptiTrackTracker.h
+        )
+    ENDIF (WIN32)
+    
+    SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
+         ${CMAKE_CURRENT_SOURCE_DIR}/OptiTrack 
+         CACHE INTERNAL "" FORCE)
+      
+    IF( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+    # 64-bit
+		SET (DataCollection_LIBS ${DataCollection_LIBS}
+		${TRACKINGTOOLS_64_BIT_LIBRARY}
+		)
+		SET ( External_Libraries_Install ${External_Libraries_Install}
+		${TRACKINGTOOLS_BINARY_DIR}/NPTrackingToolsx64${CMAKE_SHARED_LIBRARY_SUFFIX}
+		)
+	ELSE()
+    # 32-bit
+		SET (DataCollection_LIBS ${DataCollection_LIBS}
+		${TRACKINGTOOLS_32_BIT_LIBRARY}
+		)
+		SET ( External_Libraries_Install ${External_Libraries_Install}
+		${TRACKINGTOOLS_BINARY_DIR}/NPTrackingTools${CMAKE_SHARED_LIBRARY_SUFFIX}
+		)
+  ENDIF()   
+ENDIF (PLUS_USE_OPTITRACK)
 
 # --------------------------------------------------------------------------
 # Optimet ConoProbe support
