@@ -5,11 +5,15 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 /*=========================================================================
-Date: 
-July 2015
+Date: July 2015
 Authors include:
-* Mikael Brudfors (Laboratorio de Imagen Médica, Unidad de Medicina y Cirugía Experimental, Hospital General Universitario)
-* Laura Sanz (Laboratorio de Imagen Médica, Unidad de Medicina y Cirugía Experimental, Hospital General Universitario)
+- Mikael Brudfors* 
+- Laura Sanz*
+- Veronica García*
+- Eugenio Marinetto*
+- David García
+- Javier Pascau*
+*Laboratorio de Imagen Medica, Hospital Gregorio Maranon - http://image.hggm.es/
 =========================================================================*/  
 
 #include "PlusConfigure.h"
