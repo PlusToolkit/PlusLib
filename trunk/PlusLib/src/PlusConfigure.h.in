@@ -34,9 +34,8 @@
 #cmakedefine BUILD_SHARED_LIBS
 
 #ifndef BUILD_SHARED_LIBS
-
   #define VTKSLICER_STATIC
-
+  #define PlusLib_STATIC
 #endif
 
 #define PLUSLIB_VERSION "@PLUSLIB_VERSION@"

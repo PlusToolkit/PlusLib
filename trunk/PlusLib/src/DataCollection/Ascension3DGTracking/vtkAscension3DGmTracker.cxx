@@ -1,5 +1,7 @@
 // medSAFE
 
+#include "PlusConfigure.h"
+
 #include "vtkAscension3DGmTracker.h"
 
 #include "ATC3DGm.h"

@@ -1,5 +1,7 @@
 // trakSTAR
 
+#include "PlusConfigure.h"
+
 #include "vtkAscension3DGTracker.h"
 
 #include "ATC3DG.h"

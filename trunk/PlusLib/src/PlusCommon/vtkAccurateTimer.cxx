@@ -4,6 +4,7 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
+#include "PlusConfigure.h"
 #include "vtkAccurateTimer.h"
 #include "vtkObjectFactory.h"
 #include "vtkTimerLog.h"
