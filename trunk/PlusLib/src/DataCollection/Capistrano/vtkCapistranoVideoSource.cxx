@@ -112,14 +112,24 @@ PlusStatus vtkCapistranoVideoSource::InternalConnect()
   //usbSetProbeDetachCallback(&ProbeDetached);
 
   char errorStatus[256] = {0};
-  errorStatus[0] = 0;
-  ULONG status = usbFindProbes(errorStatus);
-  LOG_DEBUG("Find USB probes: status=" << status);
+  const ULONG status = usbFindProbes(errorStatus);
+  LOG_DEBUG("Find USB probes status:" << status);
   if(status != ERROR_SUCCESS)
     {
     LOG_ERROR("Capistrano finding probes failed: " << errorStatus);
     return PLUS_FAIL;
     }
+
+  const int winYSize = 800;
+  const double sos = 1540.;
+  usbInitializeProbes(winYSize, sos);
+
+  // Whether we collect one or two frames per motor sweep.
+  usbSetUnidirectionalMode();
+  usbSetBidirectionalMode();
+
+  // Turn on USB data synchronization checking
+  usbTurnOnSync();
 
   return PLUS_SUCCESS;
 }
