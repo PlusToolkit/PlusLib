@@ -142,8 +142,10 @@ PlusStatus vtkOptimetConoProbeTracker::InternalUpdate()
 
 	  vtkSmartPointer<vtkTransform> DistanceToTrackerTransform = vtkSmartPointer<vtkTransform>::New();
     DistanceToTrackerTransform->Identity();
-    DistanceToTrackerTransform->Translate(measurement.Distance, measurement.Snr, 0); 
-	
+    
+    // Get distance (mm), Signal-to-noise ratio (%) and the Total
+    DistanceToTrackerTransform->Translate(measurement.Distance, measurement.Snr / 10, measurement.Total); 
+		
 	  unsigned long frameNumber = this->DistanceTool->GetFrameNumber() + 1 ;
 	  PlusTransformName name("Distance", this->GetToolReferenceFrameName());
     const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
