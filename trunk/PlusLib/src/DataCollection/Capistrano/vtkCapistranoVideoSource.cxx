@@ -126,7 +126,7 @@ PlusStatus vtkCapistranoVideoSource::InternalConnect()
 
   // Whether we collect one or two frames per motor sweep.
   usbSetUnidirectionalMode();
-  usbSetBidirectionalMode();
+  //usbSetBidirectionalMode();
 
   // Turn on USB data synchronization checking
   usbTurnOnSync();
