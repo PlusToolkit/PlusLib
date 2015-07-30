@@ -298,9 +298,46 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
       }
     }
 
-    // clipping parameters
-    XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 3, ClipRectangleOrigin, sourceElement);
-    XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 3, ClipRectangleSize, sourceElement);
+    // Clipping parameters:
+    // Users may forget that images are 3D and provide clipping coordinates and size in 2D only.
+    // Detect this and set correct values in the third component.
+    int tmpValue[3]={0}; // 3 so that we can see if only 2 components could be successfully read
+    int clipRectangleOriginComponents = sourceElement->GetVectorAttribute("ClipRectangleOrigin", 3, tmpValue);
+    if (clipRectangleOriginComponents==2)
+    {
+      // Only 2D data is provided
+      XML_READ_VECTOR_ATTRIBUTE_EXACT_OPTIONAL(int, 2, ClipRectangleOrigin, sourceElement);
+      if (this->ClipRectangleOrigin[0] == PlusCommon::NO_CLIP || this->ClipRectangleOrigin[1] == PlusCommon::NO_CLIP)
+      {
+        this->ClipRectangleOrigin[2] = PlusCommon::NO_CLIP;
+      }
+      else
+      {
+        this->ClipRectangleOrigin[2] = 0;
+      }
+    }
+    else
+    {
+      XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 3, ClipRectangleOrigin, sourceElement);
+    }
+    int clipRectangleSizeComponents = sourceElement->GetVectorAttribute("ClipRectangleSize", 3, tmpValue);
+    if (clipRectangleSizeComponents==2)
+    {
+      // Only 2D data is provided
+      XML_READ_VECTOR_ATTRIBUTE_EXACT_OPTIONAL(int, 2, ClipRectangleSize, sourceElement);
+      if (this->ClipRectangleSize[0] == PlusCommon::NO_CLIP || this->ClipRectangleSize[1] == PlusCommon::NO_CLIP)
+      {
+        this->ClipRectangleSize[2] = PlusCommon::NO_CLIP;
+      }
+      else
+      {
+        this->ClipRectangleSize[2] = 1;
+      }
+    }
+    else
+    {
+      XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 3, ClipRectangleSize, sourceElement);
+    }
   }
   else
   {
@@ -405,8 +442,11 @@ PlusStatus vtkPlusDataSource::WriteConfiguration( vtkXMLDataElement* aSourceElem
     aSourceElement->AddNestedElement(customPropertiesElement);
   }
 
-  aSourceElement->SetVectorAttribute("ClipRectangleOrigin", 3, this->GetClipRectangleOrigin());
-  aSourceElement->SetVectorAttribute("ClipRectangleSize", 3, this->GetClipRectangleSize());
+  if (PlusCommon::IsClippingRequested(this->ClipRectangleOrigin, this->ClipRectangleSize))
+  {
+    aSourceElement->SetVectorAttribute("ClipRectangleOrigin", 3, this->GetClipRectangleOrigin());
+    aSourceElement->SetVectorAttribute("ClipRectangleSize", 3, this->GetClipRectangleSize());
+  }
 
   return PLUS_SUCCESS;
 }

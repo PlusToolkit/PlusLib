@@ -70,8 +70,8 @@ To collect data from multiple devices:
           - \c RF_IQ_LINE RF-mode image, signal is stored as a series of I and Q samples in a line(I1, Q1, I2, Q2, ...).
           - \c RF_I_LINE_Q_LINE RF-mode image, signal is stored as a series of I samples in a line, then Q samples in the next line(I1, I2, ..., Q1, Q2, ...).
           - \c RGB_COLOR RGB24 color image.
-        - \xmlAtt \b ClipRectangleOrigin \anchor ClipRectangleOrigin Clipping rectangle origin for the grabber (in pixels). \OptionalAtt{0 0 0}
-        - \xmlAtt \b ClipRectangleSize \anchor ClipRectangleSize Clipping rectangle size for the grabber (in pixels). If it is \c "0 0 0" then no clipping will be performed. \OptionalAtt{0 0 0}
+        - \xmlAtt \b ClipRectangleOrigin \anchor ClipRectangleOrigin Clipping rectangle origin for the grabber (in pixels). The first pixel position is "0 0 0" If any of the values is -1 then no clipping will be performed. For two-dimensional images the third component may be omitted. \OptionalAtt{-1 -1 -1}
+        - \xmlAtt \b ClipRectangleSize \anchor ClipRectangleSize Clipping rectangle size for the grabber (in pixels). If any of the values is -1 then no clipping will be performed. For two-dimensional images the third component may be omitted. \OptionalAtt{-1 -1 -1}
     - \xmlElem \b OutputChannels \anchor OutputChannels List of output channels that the device provides. Most devices require the specification of a single output channel.
       - \xmlElem \b OutputChannel \anchor OutputChannel
         - \xmlAtt \b Id Identifier of the OutputChannel. Must be a unique name across all devices. \RequiredAtt
