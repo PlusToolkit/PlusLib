@@ -30,7 +30,7 @@
   - \c true Timestamp in the OpenIGTLink message header is used as acquisition time for the item. If the remote server is on a different computer then the clocks of the remote server computer and the computer that runs PlusServer must be accurately synchronized (e.g., using NTP). 
   - \c false Time of receiving the message is used as timestamp. Variable network delays may cause jitter in the timestamps.
 - \xmlAtt \b ReconnectOnReceiveTimeout If this option is enabled and the server becomes unresponsive then the device tries to reconnect repeatedly ( \c true or \c false). It is usually desirable, because it makes the connection more robust, however in cases where server reconnection requires user approval (e.g., in BrainLab systems) it may be more convenient to turn this feature off. \OptionalAtt{true}
-- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" The device checks for new available messages on the remove server at this rate.\OptionalAtt{30} 
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" The device checks for new available messages on the remote server at this rate. In case of TRANSFORM or POSITIOn messages, the acquisition rate should be equal or higher than the rate the server sends the data, otherwise the data is queued in the socket and arrives with a long delay.\OptionalAtt{30}
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 
 \section OpenIGTLinkExampleConfigFile Example configuration file PlusDeviceSet_Server_NDICertus.xml PlusDeviceSet_OpenIGTLinkTracker_TDATA.xml
