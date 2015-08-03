@@ -131,6 +131,19 @@ PlusStatus vtkCapistranoVideoSource::InternalConnect()
   // Turn on USB data synchronization checking
   usbTurnOnSync();
 
+  const int numberOfAttachedProbes = usbNumberAttachedProbes();
+  LOG_DEBUG("Number of attached probes: " << numberOfAttachedProbes);
+  if(numberOfAttachedProbes == 0)
+    {
+    LOG_ERROR("No Interson probes are attached");
+    return PLUS_FAIL;
+    }
+  if(numberOfAttachedProbes > 1)
+    {
+    LOG_WARNING("Multiple Interson probes are attached, using the first one");
+    }
+
+
   return PLUS_SUCCESS;
 }
 
