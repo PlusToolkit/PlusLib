@@ -143,6 +143,8 @@ PlusStatus vtkCapistranoVideoSource::InternalConnect()
     LOG_WARNING("Multiple Interson probes are attached, using the first one");
     }
 
+  // With 80 MHz board oscillator, the sample rate is 40 MHz
+  usbSetSampleClockDivider(2);
 
   return PLUS_SUCCESS;
 }
