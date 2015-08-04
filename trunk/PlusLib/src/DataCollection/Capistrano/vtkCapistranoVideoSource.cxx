@@ -15,6 +15,8 @@ vtkStandardNewMacro(vtkCapistranoVideoSource);
 //----------------------------------------------------------------------------
 vtkCapistranoVideoSource::vtkCapistranoVideoSource()
 {
+  this->ImageSize[0]=800;
+  this->ImageSize[1]=512;
 }
 
 //----------------------------------------------------------------------------
@@ -33,19 +35,21 @@ PlusStatus vtkCapistranoVideoSource::ReadConfiguration(vtkXMLDataElement* config
 {
   LOG_TRACE("vtkCapistranoVideoSource::ReadConfiguration"); 
   if ( config == NULL )
-  {
+    {
     LOG_ERROR("Unable to configure Capistrano video source! (XML data element is NULL)"); 
     return PLUS_FAIL; 
-  }
+    }
 
   Superclass::ReadConfiguration(config); 
 
   vtkXMLDataElement* deviceConfig = this->FindThisDeviceElement(config);
   if (deviceConfig == NULL) 
-  {
+    {
     LOG_ERROR("Unable to find ImageAcquisition element in configuration XML structure!");
     return PLUS_FAIL;
-  }
+    }
+
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ImageSize, deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -54,6 +58,8 @@ PlusStatus vtkCapistranoVideoSource::ReadConfiguration(vtkXMLDataElement* config
 PlusStatus vtkCapistranoVideoSource::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
+
+  deviceConfig->SetVectorAttribute("ImageSize", 2, this->ImageSize);
 
   return PLUS_SUCCESS;
 }
@@ -146,6 +152,13 @@ PlusStatus vtkCapistranoVideoSource::InternalConnect()
   // With 80 MHz board oscillator, the sample rate is 40 MHz
   usbSetSampleClockDivider(2);
 
+  HANDLE display = bmInitializeDisplay(this->ImageSize[0] * this->ImageSize[1]);
+  if (display == NULL)
+    {
+    LOG_ERROR("Could not initialize the display");
+    return PLUS_FAIL;
+    }
+
   return PLUS_SUCCESS;
 }
 
@@ -153,4 +166,14 @@ PlusStatus vtkCapistranoVideoSource::InternalConnect()
 PlusStatus vtkCapistranoVideoSource::InternalDisconnect()
 {
   LOG_DEBUG("Disconnect from Capistrano");
+
+  bmCloseDisplay();
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkCapistranoVideoSource::SetImageSize(int imageSize[2])
+{
+  this->ImageSize[0] = imageSize[0];
+  this->ImageSize[1] = imageSize[1];
+  return PLUS_SUCCESS;
 }

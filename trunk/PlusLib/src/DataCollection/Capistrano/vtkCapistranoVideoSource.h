@@ -41,6 +41,9 @@ public:
 
   virtual std::string GetSdkVersion();
 
+  /* Set the image size */
+  PlusStatus SetImageSize(int imageSize[2]);
+
 protected:
   vtkCapistranoVideoSource();
   ~vtkCapistranoVideoSource();
@@ -50,6 +53,8 @@ protected:
 
   /*! Device-specific disconnect */
   virtual PlusStatus InternalDisconnect();
+
+  int ImageSize[2];
 
 private:
   vtkCapistranoVideoSource(const vtkCapistranoVideoSource &); // Not implemented

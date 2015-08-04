@@ -2,7 +2,8 @@
   <DataCollection StartupDelaySec="1.0">
     <Device
       Id="VideoDevice"
-      Type="CapistranoVideo" >
+      Type="CapistranoVideo"
+      ImageSize="400 256">
       <DataSources>
         <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="MF" />
       </DataSources>
