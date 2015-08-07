@@ -13,7 +13,7 @@
       AcquisitionRate="12"
       FrequencyMhz="3.50" >
       <DataSources>
-        <DataSource Type="Video" Id="BmodeVideo" PortName="B" PortUsImageOrientation="UF" />
+        <DataSource Type="Video" Id="BmodeVideo" PortName="B" PortUsImageOrientation="UN" />
         <DataSource Type="Video" Id="RfVideo" PortName="Rf" PortUsImageOrientation="FU" />
       </DataSources>
       <OutputChannels>
