@@ -13,7 +13,7 @@
       DynRangeDb="0.4" 
       FrequencyMhz="5.0" >
       <DataSources>
-        <DataSource Type="Video" Id="BmodeVideo" PortName="B" PortUsImageOrientation="UN" />
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" >
