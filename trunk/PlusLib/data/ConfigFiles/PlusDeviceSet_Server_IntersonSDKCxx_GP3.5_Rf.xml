@@ -1,6 +1,6 @@
 <PlusConfiguration version="2.3">
 
-  <DataCollection StartupDelaySec="1.0">
+  <DataCollection StartupDelaySec="5.0">
     <DeviceSet 
       Name="PlusServer: Interson USB ultrasound device with Interson SDK, RF."
       Description="Broadcasting acquired video through OpenIGTLink"
