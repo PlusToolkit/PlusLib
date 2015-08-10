@@ -1,0 +1,42 @@
+/*!
+\page DeviceOptimetConoProbe Optimet ConoProbe single-point measuring sensor 
+
+\section OptimetConoProbeSupportedHwDevices Supported hardware devices
+
+- The ConoProbe is a robust optical sensor for high precision distance, 2D profiles and 3D measurements
+- Link to manufacturer's website: http://www.optimet.com/index.php
+
+\section OptimetConoProbeSupportedPlatforms Included in packages
+- \ref At the moment none.
+
+The device manufacturer supports additional platforms. On request, Plus toolkit will be extended to support this device on other platforms, too.
+
+\section OptimetConoProbeInstallation Installation
+- Need to install the Smart32 SDK from <a href="http://www.optimet.com/smart32-sdk.php">here</a>.
+
+\section OptimetConoProbeConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "OptimetConoProbe" \RequiredAtt
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{100}
+- \xmlAtt \b DelayBetweenMeasurements The time between successive measurements in micro seconds. \OptionalAtt{1}
+- \xmlAtt \b Frequency The measurement working frequency. \OptionalAtt{1000}
+- \xmlAtt \b CoarseLaserPower The measurement coarse laser power. \OptionalAtt{13}
+- \xmlAtt \b FineLaserPower The measurement fine laser power. \OptionalAtt{0}
+
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortName \RequiredAtt
+     - \c Distance Raw sensor measurement. The values are stored in the translation part of the transformation matrix: Distance, Snr and Total. The rotation part is identity.
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+    
+\section OptimetConoProbeExampleConfigFile Example configuration file PlusDeviceSet_Server_OptimetConoProbe.xml
+
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_OptimetConoProbe.xml" 
+
+
+
+*/
