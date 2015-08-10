@@ -3,13 +3,14 @@
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
       Name="PlusServer: OptimetConoprobe"
-      Description="Broadcasting distance data through OpenIGTLink."
+      Description="Broadcasting single-point distance data through OpenIGTLink."
     />
     
     <Device
       Id="TrackerDevice" 
       Type="OptimetConoProbe"
       ToolReferenceFrame="Tracker"
+      LocalTimeOffsetSec="0"
       AcquisitionRate="100"
       DelayBetweenMeasurements="1" 
       Frequency="1000" 
