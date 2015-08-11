@@ -12,9 +12,54 @@ See License.txt for details.
 
 vtkStandardNewMacro(vtkCapistranoVideoSource);
 
+class vtkCapistranoVideoSource::vtkInternal
+{
+public:
+  vtkCapistranoVideoSource * External;
+  bmBITMAPINFO BitmapInfo;
+
+  //----------------------------------------------------------------------------
+  vtkCapistranoVideoSource::vtkInternal::vtkInternal(vtkCapistranoVideoSource * external):
+    External( external )
+  {
+  }
+
+  //----------------------------------------------------------------------------
+  PlusStatus vtkCapistranoVideoSource::vtkInternal::InitializeDIB(int imageSize[2])
+  {
+    this->BitmapInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    this->BitmapInfo.bmiHeader.biWidth = imageSize[0];
+    this->BitmapInfo.bmiHeader.biHeight = -imageSize[1];
+    this->BitmapInfo.bmiHeader.biPlanes = 1;
+    this->BitmapInfo.bmiHeader.biBitCount = 8;
+    this->BitmapInfo.bmiHeader.biCompression = 0;
+    this->BitmapInfo.bmiHeader.biXPelsPerMeter = 0;
+    this->BitmapInfo.bmiHeader.biYPelsPerMeter = 0;
+    this->BitmapInfo.bmiHeader.biClrUsed = 0;
+    this->BitmapInfo.bmiHeader.biClrImportant = 0;
+
+    // Compute the number of bytes in the array of color  
+    // indices and store the result in biSizeImage.  
+    // The width must be DWORD aligned unless the bitmap is RLE compressed. 
+    this->BitmapInfo.bmiHeader.biSizeImage = ((imageSize[0]*8+31)&~31)/8 * imageSize[1]; 
+
+    for( int i = 0; i < 256; ++i )
+    {
+      this->BitmapInfo.bmiColors[i].rgbRed = i;
+      this->BitmapInfo.bmiColors[i].rgbBlue = i;
+      this->BitmapInfo.bmiColors[i].rgbGreen = i;
+      this->BitmapInfo.bmiColors[i].rgbReserved = 0;
+    }
+
+    return PLUS_SUCCESS;
+  }
+};
+
 //----------------------------------------------------------------------------
 vtkCapistranoVideoSource::vtkCapistranoVideoSource()
 {
+  this->Internal = new vtkInternal(this);
+
   this->ImageSize[0]=800;
   this->ImageSize[1]=512;
 }
@@ -22,6 +67,13 @@ vtkCapistranoVideoSource::vtkCapistranoVideoSource()
 //----------------------------------------------------------------------------
 vtkCapistranoVideoSource::~vtkCapistranoVideoSource()
 {
+  if( !this->Connected )
+    {
+    this->Disconnect();
+    }
+
+  delete this->Internal;
+  this->Internal=NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -158,6 +210,8 @@ PlusStatus vtkCapistranoVideoSource::InternalConnect()
     LOG_ERROR("Could not initialize the display");
     return PLUS_FAIL;
     }
+
+  this->Internal->InitializeDIB(this->ImageSize);
 
   return PLUS_SUCCESS;
 }

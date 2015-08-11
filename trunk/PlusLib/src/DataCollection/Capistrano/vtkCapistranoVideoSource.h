@@ -59,6 +59,10 @@ protected:
 private:
   vtkCapistranoVideoSource(const vtkCapistranoVideoSource &); // Not implemented
   void operator=(const vtkCapistranoVideoSource &); // Not implemented
+
+  // For internal storage of additional variables (to minimize the number of included headers)
+  class vtkInternal;
+  vtkInternal * Internal;
 };
 
 #endif
