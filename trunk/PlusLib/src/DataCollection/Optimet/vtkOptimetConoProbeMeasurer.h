@@ -4,15 +4,15 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#ifndef __vtkOptimetConoprobeTracker_h
-#define __vtkOptimetConoprobeTracker_h
+#ifndef __vtkOptimetConoprobeMeasurer_h
+#define __vtkOptimetConoprobeMeasurer_h
 
 #include "vtkDataCollectionExport.h"
 
 #include "vtkPlusDevice.h"
 
 /*!
-\class vtkOptimetConoProbeTracker 
+\class vtkOptimetConoProbeMeasurer 
 \brief Interface for the Optimet ConoProbe
 
 This class talks with Optimet ConoProbe over the Optimet Smart32 SDK
@@ -24,12 +24,12 @@ Requires PLUS_USE_OPTIMET_CONOPROBE option in CMake.
 
 class ISmart;
 
-class vtkDataCollectionExport vtkOptimetConoProbeTracker : public vtkPlusDevice
+class vtkDataCollectionExport vtkOptimetConoProbeMeasurer : public vtkPlusDevice
 {
 public:
 
-  static vtkOptimetConoProbeTracker *New();
-  vtkTypeMacro( vtkOptimetConoProbeTracker,vtkPlusDevice );
+  static vtkOptimetConoProbeMeasurer *New();
+  vtkTypeMacro( vtkOptimetConoProbeMeasurer,vtkPlusDevice );
   void PrintSelf( ostream& os, vtkIndent indent );
 
   virtual bool IsTracker() const { return true; }
@@ -51,23 +51,23 @@ public:
 
 protected:
 
-  vtkOptimetConoProbeTracker();
-  ~vtkOptimetConoProbeTracker();
+  vtkOptimetConoProbeMeasurer();
+  ~vtkOptimetConoProbeMeasurer();
 
   /*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking, at 9600 Baud. */
   PlusStatus InternalUpdate();
 
 private:  // Functions.
 
-  vtkOptimetConoProbeTracker( const vtkOptimetConoProbeTracker& );
-  void operator=( const vtkOptimetConoProbeTracker& );
+  vtkOptimetConoProbeMeasurer( const vtkOptimetConoProbeMeasurer& );
+  void operator=( const vtkOptimetConoProbeMeasurer& );
 
   /*! Get composite laser power. */
   unsigned short GetCompositeLaserPower();  
 
 private:  // Variables.
 
-	vtkPlusDataSource* DistanceTool;	
+	vtkPlusDataSource* MeasurementTool;	
 
   /*! ConoProbe device handle. */
   ISmart* ConoProbe;

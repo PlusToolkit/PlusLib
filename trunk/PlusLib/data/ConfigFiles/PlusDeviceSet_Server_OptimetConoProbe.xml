@@ -7,9 +7,9 @@
     />
     
     <Device
-      Id="TrackerDevice" 
+      Id="MeasurerDevice" 
       Type="OptimetConoProbe"
-      ToolReferenceFrame="Tracker"
+      ToolReferenceFrame="Measurer"
       LocalTimeOffsetSec="0"
       AcquisitionRate="100"
       DelayBetweenMeasurements="1" 
@@ -17,11 +17,11 @@
       CoarseLaserPower="13"
       FineLaserPower="0">
       <DataSources>
-        <DataSource Type="Tool" Id="Distance" PortName="Distance" />
+        <DataSource Type="Tool" Id="Measurement" PortName="Measurement" />
       </DataSources>
       <OutputChannels>
-        <OutputChannel Id="TrackerStream">
-          <DataSource Id="Distance" />
+        <OutputChannel Id="MeasurerStream">
+          <DataSource Id="Measurement" />
         </OutputChannel>
       </OutputChannels>
     </Device>
@@ -33,13 +33,13 @@
     MaxTimeSpentWithProcessingMs="50" 
     ListeningPort="18944" 
     SendValidTransformsOnly="true" 
-    OutputChannelId="TrackerStream" > 
+    OutputChannelId="MeasurerStream" > 
     <DefaultClientInfo> 
       <MessageTypes> 
         <Message Type="TRANSFORM" />
       </MessageTypes>
       <TransformNames> 
-        <Transform Name="DistanceToTracker" />
+        <Transform Name="MeasurementToMeasurer" />
       </TransformNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>
