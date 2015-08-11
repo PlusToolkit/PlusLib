@@ -46,7 +46,7 @@ See License.txt for details.
 #include "vtkAscension3DGmTracker.h"
 #endif
 #ifdef PLUS_USE_OPTIMET_CONOPROBE
-#include "vtkOptimetConoprobeTracker.h"
+#include "vtkOptimetConoProbeMeasurer.h"
 #endif 
 #ifdef PLUS_USE_OPTITRACK
 #include "vtkOptiTrackTracker.h"
@@ -178,7 +178,7 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
   DeviceTypes["OpenIGTLinkVideo"]=(PointerToDevice)&vtkOpenIGTLinkVideoSource::New; 
 #endif
 #ifdef PLUS_USE_OPTIMET_CONOPROBE
-  DeviceTypes["OptimetConoProbe"]=(PointerToDevice)&vtkOptimetConoProbeTracker::New; 
+  DeviceTypes["OptimetConoProbe"]=(PointerToDevice)&vtkOptimetConoProbeMeasurer::New; 
 #endif 
 #ifdef PLUS_USE_OPTITRACK
   DeviceTypes["OptiTrack"]=(PointerToDevice)&vtkOptiTrackTracker::New; 

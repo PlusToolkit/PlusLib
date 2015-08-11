@@ -141,14 +141,14 @@ ENDIF (PLUS_USE_OPTITRACK)
 # Optimet ConoProbe support
 IF (PLUS_USE_OPTIMET_CONOPROBE)
     SET (DataCollection_SRCS ${DataCollection_SRCS} 
-      Optimet/vtkOptimetConoProbeTracker.cxx
+      Optimet/vtkOptimetConoProbeMeasurer.cxx
       )
         
     SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} ${OPTIMETSMART32SDK_INCLUDE_DIR} CACHE INTERNAL "" FORCE )
   
     IF (WIN32)  
       SET (DataCollection_HDRS ${DataCollection_HDRS}
-        Optimet/vtkOptimetConoProbeTracker.h
+        Optimet/vtkOptimetConoProbeMeasurer.h
         )
     ENDIF (WIN32)
     

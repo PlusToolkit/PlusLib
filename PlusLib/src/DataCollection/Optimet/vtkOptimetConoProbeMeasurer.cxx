@@ -15,7 +15,7 @@ Authors include:
 =========================================================================*/  
 
 #include "PlusConfigure.h"
-#include "vtkOptimetConoProbeTracker.h"
+#include "vtkOptimetConoProbeMeasurer.h"
 
 #include "PlusMath.h"
 #include "vtkMath.h"
@@ -34,12 +34,12 @@ Authors include:
 
 #include <Smart32Interface.h>
 
-vtkStandardNewMacro(vtkOptimetConoProbeTracker);
+vtkStandardNewMacro(vtkOptimetConoProbeMeasurer);
 
 //-----------------------------------------------------------------------
-vtkOptimetConoProbeTracker::vtkOptimetConoProbeTracker()
+vtkOptimetConoProbeMeasurer::vtkOptimetConoProbeMeasurer()
 { 
-  this->DistanceTool = NULL;
+  this->MeasurementTool = NULL;
 
   this->RequirePortNameInDeviceSetConfiguration = true;
 
@@ -55,9 +55,9 @@ vtkOptimetConoProbeTracker::vtkOptimetConoProbeTracker()
 }
 
 //-------------------------------------------------------------------------
-vtkOptimetConoProbeTracker::~vtkOptimetConoProbeTracker() 
+vtkOptimetConoProbeMeasurer::~vtkOptimetConoProbeMeasurer() 
 {
-  this->DistanceTool = NULL;
+  this->MeasurementTool = NULL;
   if (this->ConoProbe)
   {
     ISmart::Destroy(this->ConoProbe);
@@ -66,15 +66,15 @@ vtkOptimetConoProbeTracker::~vtkOptimetConoProbeTracker()
 }
 
 //-------------------------------------------------------------------------
-void vtkOptimetConoProbeTracker::PrintSelf( ostream& os, vtkIndent indent )
+void vtkOptimetConoProbeMeasurer::PrintSelf( ostream& os, vtkIndent indent )
 {
   Superclass::PrintSelf( os, indent );
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkOptimetConoProbeTracker::InternalConnect()
+PlusStatus vtkOptimetConoProbeMeasurer::InternalConnect()
 {
-  LOG_TRACE( "vtkOptimetConoProbeTracker::Connect" ); 
+  LOG_TRACE( "vtkOptimetConoProbeMeasurer::Connect" ); 
 
   this->ConoProbe = ISmart::Create();
   try
@@ -99,18 +99,18 @@ PlusStatus vtkOptimetConoProbeTracker::InternalConnect()
     return PLUS_FAIL;
   }
 
-	this->DistanceTool = NULL;
-	GetToolByPortName("Distance", this->DistanceTool);
+	this->MeasurementTool = NULL;
+	GetToolByPortName("Measurement", this->MeasurementTool);
 
 	LOG_DEBUG("Successfully connected to ConoProbe device");
 	return PLUS_SUCCESS;
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkOptimetConoProbeTracker::InternalDisconnect()
+PlusStatus vtkOptimetConoProbeMeasurer::InternalDisconnect()
 {
-  LOG_TRACE( "vtkOptimetConoProbeTracker::InternalDisconnect" ); 
-  this->DistanceTool = NULL;
+  LOG_TRACE( "vtkOptimetConoProbeMeasurer::InternalDisconnect" ); 
+  this->MeasurementTool = NULL;
   if (this->ConoProbe)
   {
     ISmart::Destroy(this->ConoProbe);
@@ -120,16 +120,16 @@ PlusStatus vtkOptimetConoProbeTracker::InternalDisconnect()
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkOptimetConoProbeTracker::InternalUpdate()
+PlusStatus vtkOptimetConoProbeMeasurer::InternalUpdate()
 {     
-  LOG_TRACE( "vtkOptimetConoProbeTracker::InternalUpdate" ); 
+  LOG_TRACE( "vtkOptimetConoProbeMeasurer::InternalUpdate" ); 
   
-  if (this->DistanceTool != NULL)
+  if (this->MeasurementTool != NULL)
   {
     Measurement measurement;
     try
     {
-      // Get ConoProbe measurement and write to DistanceToTrackerTransform
+      // Get ConoProbe measurement and write to MeasurementToMeasurerTransform
 	    measurement = this->ConoProbe->GetSingleMeasurement();  
     }
     catch (const SmartException& e)
@@ -142,23 +142,23 @@ PlusStatus vtkOptimetConoProbeTracker::InternalUpdate()
       LOG_WARNING(e.MessageType());
     }
 
-	  vtkSmartPointer<vtkTransform> DistanceToTrackerTransform = vtkSmartPointer<vtkTransform>::New();
-    DistanceToTrackerTransform->Identity();
+	  vtkSmartPointer<vtkTransform> MeasurementToMeasurerTransform = vtkSmartPointer<vtkTransform>::New();
+    MeasurementToMeasurerTransform->Identity();
     
     // Get distance (mm), Signal-to-noise ratio (%) and the Total
-    DistanceToTrackerTransform->Translate(measurement.Distance, measurement.Snr / 10, measurement.Total); 
+    MeasurementToMeasurerTransform->Translate(measurement.Distance, measurement.Snr / 10, measurement.Total); 
 		
-	  unsigned long frameNumber = this->DistanceTool->GetFrameNumber() + 1 ;
-	  PlusTransformName name("Distance", this->GetToolReferenceFrameName());
+	  unsigned long frameNumber = this->MeasurementTool->GetFrameNumber() + 1 ;
+	  PlusTransformName name("Measurement", this->GetToolReferenceFrameName());
     const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
-	  this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), DistanceToTrackerTransform->GetMatrix(), ToolStatus::TOOL_OK, frameNumber, unfilteredTimestamp);
+	  this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), MeasurementToMeasurerTransform->GetMatrix(), ToolStatus::TOOL_OK, frameNumber, unfilteredTimestamp);
   }
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkOptimetConoProbeTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
+PlusStatus vtkOptimetConoProbeMeasurer::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
@@ -198,7 +198,7 @@ PlusStatus vtkOptimetConoProbeTracker::ReadConfiguration(vtkXMLDataElement* root
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkOptimetConoProbeTracker::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
+PlusStatus vtkOptimetConoProbeMeasurer::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
 
@@ -211,13 +211,13 @@ PlusStatus vtkOptimetConoProbeTracker::WriteConfiguration(vtkXMLDataElement* roo
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkOptimetConoProbeTracker::SetFrequency(int frequency)
+PlusStatus vtkOptimetConoProbeMeasurer::SetFrequency(int frequency)
 {
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-unsigned short vtkOptimetConoProbeTracker::GetCompositeLaserPower()
+unsigned short vtkOptimetConoProbeMeasurer::GetCompositeLaserPower()
 {
   unsigned short compositeLaserPower = this->CoarseLaserPower;
 	compositeLaserPower <<= 6;
