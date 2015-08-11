@@ -178,7 +178,7 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
   DeviceTypes["OpenIGTLinkVideo"]=(PointerToDevice)&vtkOpenIGTLinkVideoSource::New; 
 #endif
 #ifdef PLUS_USE_OPTIMET_CONOPROBE
-  DeviceTypes["OptimetConoProbe"]=(PointerToDevice)&vtkOptimetConoprobeTracker::New; 
+  DeviceTypes["OptimetConoProbe"]=(PointerToDevice)&vtkOptimetConoProbeTracker::New; 
 #endif 
 #ifdef PLUS_USE_OPTITRACK
   DeviceTypes["OptiTrack"]=(PointerToDevice)&vtkOptiTrackTracker::New; 
