@@ -206,6 +206,9 @@ IF(PLUSBUILD_BUILD_PLUSAPP AND NOT PLUSBUILD_USE_3DSlicer)
       "C:/Qt/4.7.4/bin"
       "../Qt/4.7.4/bin"
       "../../Qt/4.7.4/bin"
+      "C:/Qt/4.8.7/bin"
+      "../Qt/4.8.7/bin"
+      "../../Qt/4.8.7/bin"
     )
   FIND_PACKAGE(Qt4)
   IF ( NOT QT4_FOUND)
