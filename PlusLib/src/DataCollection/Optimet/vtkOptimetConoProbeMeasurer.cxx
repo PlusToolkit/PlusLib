@@ -35,12 +35,12 @@ vtkOptimetConoProbeMeasurer::vtkOptimetConoProbeMeasurer()
 
   // ConoProbe specific
   this->ConoProbe = NULL;
-  this->LensOriginPosition[0] = 1.0;
-  this->LensOriginPosition[1] = 1.0;
-  this->LensOriginPosition[2] = 1.0;
-  this->LensOriginPosition[3] = 1.0;
-  this->LensOriginPosition[4] = 1.0;
-  this->LensOriginPosition[5] = 1.0;
+  this->LensOriginAlignment[0] = 1.0;
+  this->LensOriginAlignment[1] = 1.0;
+  this->LensOriginAlignment[2] = 1.0;
+  this->LensOriginAlignment[3] = 1.0;
+  this->LensOriginAlignment[4] = 1.0;
+  this->LensOriginAlignment[5] = 1.0;
   this->DelayBetweenMeasurements = 1;
   this->Frequency= 1000;
   this->CoarseLaserPower = 13;
@@ -94,11 +94,11 @@ PlusStatus vtkOptimetConoProbeMeasurer::InternalConnect()
     return PLUS_FAIL;
   }
 
-	this->MeasurementTool = NULL;
-	GetToolByPortName("Measurement", this->MeasurementTool);
+  this->MeasurementTool = NULL;
+ GetToolByPortName("Measurement", this->MeasurementTool);
 
-	LOG_DEBUG("Successfully connected to ConoProbe device");
-	return PLUS_SUCCESS;
+ LOG_DEBUG("Successfully connected to ConoProbe device");
+ return PLUS_SUCCESS;
 }
 
 //-------------------------------------------------------------------------
@@ -137,24 +137,32 @@ PlusStatus vtkOptimetConoProbeMeasurer::InternalUpdate()
       LOG_WARNING(e.MessageType());
     }
 
+	// Get distance (mm), Snr (%), Total, and set correct lens origin parameters
 	double d = measurement.Distance;
-	double dx = this->LensOriginPosition[0];
-	double dy = this->LensOriginPosition[1];
-	double dz = this->LensOriginPosition[2];
-	double lx = this->LensOriginPosition[3];
-	double ly = this->LensOriginPosition[4];
-	double lz = this->LensOriginPosition[5];
+	double snr = measurement.Snr / 10;
+	double total = measurement.Total;
+	double dx = this->LensOriginAlignment[0];
+	double dy = this->LensOriginAlignment[1];
+	double dz = this->LensOriginAlignment[2];
+	double lx = this->LensOriginAlignment[3];
+	double ly = this->LensOriginAlignment[4];
+	double lz = this->LensOriginAlignment[5];
 
-	vtkSmartPointer<vtkTransform> MeasurementToMeasurerTransform = vtkSmartPointer<vtkTransform>::New();
-    MeasurementToMeasurerTransform->Identity();
-    
-    // Get distance (mm), Signal-to-noise ratio (%) and the Total
-	MeasurementToMeasurerTransform->Translate(dx * d + lx, dy * d + ly, dz * d + lz);  // (measurement.Distance, measurement.Snr / 10, measurement.Total)
-		
+	// Create transforms
+	vtkSmartPointer<vtkTransform> measurementToMeasurerTransform = vtkSmartPointer<vtkTransform>::New();
+	measurementToMeasurerTransform->Translate(dx * d + lx, dy * d + ly, dz * d + lz);
+	vtkSmartPointer<vtkTransform> parametersToMeasurerTransform = vtkSmartPointer<vtkTransform>::New();
+	parametersToMeasurerTransform->Translate(d, snr, total);
+
+	// Create frame number and time stamp
 	unsigned long frameNumber = this->MeasurementTool->GetFrameNumber() + 1 ;
+	const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
+
+	// Send transforms
 	PlusTransformName name("Measurement", this->GetToolReferenceFrameName());
-    const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
-	this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), MeasurementToMeasurerTransform->GetMatrix(), ToolStatus::TOOL_OK, frameNumber, unfilteredTimestamp);
+	this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), measurementToMeasurerTransform->GetMatrix(), ToolStatus::TOOL_OK, frameNumber, unfilteredTimestamp);
+	PlusTransformName parameters("Parameters", this->GetToolReferenceFrameName());
+	this->ToolTimeStampedUpdate(parameters.GetTransformName().c_str(), parametersToMeasurerTransform->GetMatrix(), ToolStatus::TOOL_OK, frameNumber, unfilteredTimestamp);
   }
 
   return PLUS_SUCCESS;
@@ -165,16 +173,16 @@ PlusStatus vtkOptimetConoProbeMeasurer::ReadConfiguration(vtkXMLDataElement* roo
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
-  double lensOriginPosition[6];
-  if (deviceConfig->GetVectorAttribute("LensOriginPosition", 6, lensOriginPosition))
+  double lensOriginAlignment[6];
+  if (deviceConfig->GetVectorAttribute("LensOriginAlignment", 6, lensOriginAlignment))
   {
 	{
-		this->LensOriginPosition[0] = lensOriginPosition[0];
-		this->LensOriginPosition[1] = lensOriginPosition[1];
-		this->LensOriginPosition[2] = lensOriginPosition[2];
-		this->LensOriginPosition[3] = lensOriginPosition[3];
-		this->LensOriginPosition[4] = lensOriginPosition[4];
-		this->LensOriginPosition[5] = lensOriginPosition[5];
+		this->LensOriginAlignment[0] = lensOriginAlignment[0];
+		this->LensOriginAlignment[1] = lensOriginAlignment[1];
+		this->LensOriginAlignment[2] = lensOriginAlignment[2];
+		this->LensOriginAlignment[3] = lensOriginAlignment[3];
+		this->LensOriginAlignment[4] = lensOriginAlignment[4];
+		this->LensOriginAlignment[5] = lensOriginAlignment[5];
 	}
   }
 

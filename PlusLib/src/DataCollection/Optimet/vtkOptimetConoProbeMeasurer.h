@@ -83,8 +83,8 @@ private:  // Variables.
   /*! ConoProbe device handle. */
   ISmart* ConoProbe;
 
-  /*! Defines the position of the lens origin w.r.t. the tracking tool */
-  double LensOriginPosition[6];
+  /*! Defines the position of the lens origin w.r.t. a tracking tool */
+  double LensOriginAlignment[6];
 
   /*! Delay between measurements. */
   UINT16 DelayBetweenMeasurements;
