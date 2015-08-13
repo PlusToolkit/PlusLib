@@ -12,9 +12,9 @@
       ToolReferenceFrame="Measurer"
       LocalTimeOffsetSec="0"
       AcquisitionRate="100"
-      LensOriginPosition="1.0 1.0 1.0 1.0 1.0 1.0"
+      LensOriginAlignment="1.0 1.0 1.0 0.0 0.0 0.0"
       DelayBetweenMeasurements="1" 
-      Frequency="1000" 
+      Frequency="100" 
       CoarseLaserPower="13"
       FineLaserPower="0">
       <DataSources>
