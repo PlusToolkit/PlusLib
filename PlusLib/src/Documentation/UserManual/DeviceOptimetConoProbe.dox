@@ -20,6 +20,7 @@ The device manufacturer supports additional platforms. On request, Plus toolkit 
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{100}
+- \xmlAtt \b LensOriginPosition Defines the position of the lens origin w.r.t. the tracking tool. Defined as the unit vector (dx, dy, dz) pointing in the direction of the laser beam and the translation from the tracking tool origin to the lens origin (lx, ly, lz): [dx, dy, dz, lx, ly, lz]. \OptionalAtt{1.0 1.0 1.0 1.0 1.0 1.0}
 - \xmlAtt \b DelayBetweenMeasurements The time between successive measurements in micro seconds. \OptionalAtt{1}
 - \xmlAtt \b Frequency The measurement working frequency. \OptionalAtt{1000}
 - \xmlAtt \b CoarseLaserPower The measurement coarse laser power. \OptionalAtt{13}

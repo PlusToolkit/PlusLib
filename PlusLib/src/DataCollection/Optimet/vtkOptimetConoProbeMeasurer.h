@@ -4,8 +4,19 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#ifndef __vtkOptimetConoprobeMeasurer_h
-#define __vtkOptimetConoprobeMeasurer_h
+/*=========================================================================
+Date: Ag 2015
+Authors include:
+- Mikael Brudfors [*] brudfors@hggm.es
+- Laura Sanz [*] lsanz@hggm.es
+- Veronica Garcia [*][ç] vgarcia@hggm.es
+- Javier Pascau [*][ç] jpascau@hggm.es
+[*] Laboratorio de Imagen Medica, Hospital Gregorio Maranon - http://image.hggm.es/
+[ç] Departamento de Bioingeniería e Ingeniería Aeroespacial. Universidad Carlos III de Madrid
+=========================================================================*/
+
+#ifndef __vtkOptimetConoProbeMeasurer_h
+#define __vtkOptimetConoProbeMeasurer_h
 
 #include "vtkDataCollectionExport.h"
 
@@ -67,10 +78,13 @@ private:  // Functions.
 
 private:  // Variables.
 
-	vtkPlusDataSource* MeasurementTool;	
+  vtkPlusDataSource* MeasurementTool;	
 
   /*! ConoProbe device handle. */
   ISmart* ConoProbe;
+
+  /*! Defines the position of the lens origin w.r.t. the tracking tool */
+  double LensOriginPosition[6];
 
   /*! Delay between measurements. */
   UINT16 DelayBetweenMeasurements;
