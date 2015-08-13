@@ -36,7 +36,6 @@
 - \subpage DeviceOpenIGTLinkTracker
 - \subpage DeviceBrachy
 - \subpage Device3dConnexion
-- \subpage DeviceOptimetConoProbe
 
 \par Simulators
 - \subpage DeviceSavedDataSource
@@ -52,5 +51,6 @@
 \par Other data acquisition and control devices
 - \subpage DeviceThorLabs
 - \subpage DeviceGenericSerial - such as Arduino microcontroller
+- \subpage DeviceOptimetConoProbe
 
 */

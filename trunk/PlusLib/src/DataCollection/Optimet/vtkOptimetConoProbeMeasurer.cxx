@@ -4,16 +4,6 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-/*=========================================================================
-Date: July 2015
-Authors include:
-- Mikael Brudfors* 
-- Laura Sanz*
-- Veronica García*
-- Javier Pascau*
-*Laboratorio de Imagen Medica, Hospital Gregorio Maranon - http://image.hggm.es/
-=========================================================================*/  
-
 #include "PlusConfigure.h"
 #include "vtkOptimetConoProbeMeasurer.h"
 
@@ -40,12 +30,17 @@ vtkStandardNewMacro(vtkOptimetConoProbeMeasurer);
 vtkOptimetConoProbeMeasurer::vtkOptimetConoProbeMeasurer()
 { 
   this->MeasurementTool = NULL;
-
   this->RequirePortNameInDeviceSetConfiguration = true;
+  this->AcquisitionRate = 100;
 
   // ConoProbe specific
   this->ConoProbe = NULL;
-  this->AcquisitionRate = 100;
+  this->LensOriginPosition[0] = 1.0;
+  this->LensOriginPosition[1] = 1.0;
+  this->LensOriginPosition[2] = 1.0;
+  this->LensOriginPosition[3] = 1.0;
+  this->LensOriginPosition[4] = 1.0;
+  this->LensOriginPosition[5] = 1.0;
   this->DelayBetweenMeasurements = 1;
   this->Frequency= 1000;
   this->CoarseLaserPower = 13;
@@ -142,16 +137,24 @@ PlusStatus vtkOptimetConoProbeMeasurer::InternalUpdate()
       LOG_WARNING(e.MessageType());
     }
 
-	  vtkSmartPointer<vtkTransform> MeasurementToMeasurerTransform = vtkSmartPointer<vtkTransform>::New();
+	double d = measurement.Distance;
+	double dx = this->LensOriginPosition[0];
+	double dy = this->LensOriginPosition[1];
+	double dz = this->LensOriginPosition[2];
+	double lx = this->LensOriginPosition[3];
+	double ly = this->LensOriginPosition[4];
+	double lz = this->LensOriginPosition[5];
+
+	vtkSmartPointer<vtkTransform> MeasurementToMeasurerTransform = vtkSmartPointer<vtkTransform>::New();
     MeasurementToMeasurerTransform->Identity();
     
     // Get distance (mm), Signal-to-noise ratio (%) and the Total
-    MeasurementToMeasurerTransform->Translate(measurement.Distance, measurement.Snr / 10, measurement.Total); 
+	MeasurementToMeasurerTransform->Translate(dx * d + lx, dy * d + ly, dz * d + lz);  // (measurement.Distance, measurement.Snr / 10, measurement.Total)
 		
-	  unsigned long frameNumber = this->MeasurementTool->GetFrameNumber() + 1 ;
-	  PlusTransformName name("Measurement", this->GetToolReferenceFrameName());
+	unsigned long frameNumber = this->MeasurementTool->GetFrameNumber() + 1 ;
+	PlusTransformName name("Measurement", this->GetToolReferenceFrameName());
     const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
-	  this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), MeasurementToMeasurerTransform->GetMatrix(), ToolStatus::TOOL_OK, frameNumber, unfilteredTimestamp);
+	this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), MeasurementToMeasurerTransform->GetMatrix(), ToolStatus::TOOL_OK, frameNumber, unfilteredTimestamp);
   }
 
   return PLUS_SUCCESS;
@@ -161,6 +164,19 @@ PlusStatus vtkOptimetConoProbeMeasurer::InternalUpdate()
 PlusStatus vtkOptimetConoProbeMeasurer::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+
+  double lensOriginPosition[6];
+  if (deviceConfig->GetVectorAttribute("LensOriginPosition", 6, lensOriginPosition))
+  {
+	{
+		this->LensOriginPosition[0] = lensOriginPosition[0];
+		this->LensOriginPosition[1] = lensOriginPosition[1];
+		this->LensOriginPosition[2] = lensOriginPosition[2];
+		this->LensOriginPosition[3] = lensOriginPosition[3];
+		this->LensOriginPosition[4] = lensOriginPosition[4];
+		this->LensOriginPosition[5] = lensOriginPosition[5];
+	}
+  }
 
   int delayBetweenMeasurements = 0; 
   if ( deviceConfig->GetScalarAttribute("DelayBetweenMeasurements", delayBetweenMeasurements ) ) 
