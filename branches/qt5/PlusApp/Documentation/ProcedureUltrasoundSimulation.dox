@@ -1,0 +1,30 @@
+/**
+
+\page ProcedureUltrasoundSimulation Ultrasound simulation
+
+See detailed description of the algorithm parameters at the \ref DeviceUsSimulator device page.
+
+\section UsSimulatorExample Example
+
+- Download the following files from https://subversion.assembla.com/svn/plus/trunk/PlusLib/data/ConfigFiles/
+  - PlusDeviceSet_Server_SimulatedUltrasound_3DSlicer.xml 
+  - GelBlockModel_Reference.stl
+  - NeedleModel_NeedleTip.stl
+  - VesselModel_Reference.stl 
+  - Test_PlusConfiguration_SimulatedUS.mrb
+- <a href="http://download.slicer.org/">Download</a> and install the latest nightly build of 3D Slicer and the SlicerIGT extension
+- Load the <em>Test_PlusConfiguration_SimulatedUS.mrb</em> file into 3D Slicer
+- Open a Plus applications command prompt and run
+
+    PlusServer.exe --config-file=Test_PlusConfiguration_SimulatedUS.xml
+    
+- In Slicer go to the <em>Transforms</em> module and modify the <em>ProbeToTracker</em> and <em>NeedleToTracker</em> transforms
+
+<a href="http://www.youtube.com/watch?v=2Oc_tCu_uzs"> Watch on Youtube</a>.
+
+\image html VascularUsSimScreenshot.png 
+
+Related publications
+http://perk.cs.queensu.ca/contents/opensource-surface-meshbased-ultrasoundguided-spinal-intervention-simulator
+
+*/

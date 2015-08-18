@@ -1,0 +1,56 @@
+/**
+
+\page Devices List of devices
+
+\par Ultrasound systems
+- \subpage DeviceSonixVideo
+- \subpage DeviceTelemed
+- \subpage DeviceInterson
+- \subpage DeviceIntersonSDKCxx
+- \subpage DeviceCapistrano
+- \subpage DeviceBkProFocus
+- \subpage DevicePhilips
+
+\par Framegrabbers and cameras
+- \subpage DeviceEpiphan
+- \subpage DeviceICCapturing
+- \subpage DeviceMicrosoftMediaFoundation
+- \subpage DeviceVideoForWindows
+
+\par Other imaging devices
+- \subpage DeviceOpenIGTLinkVideo
+
+\par Generic pose tracking devices
+- \subpage DeviceAscension3DG
+- \subpage DeviceMicron
+- \subpage DevicePolaris
+- \subpage DeviceNDICertus
+- \subpage DeviceStealthLink
+
+\par Inertial measurement units
+- \subpage DevicePhidgetSpatial
+- \subpage DeviceChRobotics
+- \subpage DeviceMicrochip
+
+\par Other tracking devices
+- \subpage DeviceOpenIGTLinkTracker
+- \subpage DeviceBrachy
+- \subpage Device3dConnexion
+
+\par Simulators
+- \subpage DeviceSavedDataSource
+- \subpage DeviceUsSimulator
+- \subpage DeviceFake
+
+\par Data processors
+- \subpage DeviceVirtualDiscCapture
+- \subpage DeviceVirtualVolumeReconstructor
+- \subpage DeviceVirtualMixer
+- \subpage DeviceVirtualSwitcher
+
+\par Other data acquisition and control devices
+- \subpage DeviceThorLabs
+- \subpage DeviceGenericSerial - such as Arduino microcontroller
+- \subpage DeviceOptimetConoProbe
+
+*/
