@@ -1,0 +1,65 @@
+ <PlusConfiguration version="2.1">
+
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="PlusServer: Ultrasonix ultrasound imaging device"
+      Description="Broadcasting ultrasound images acquired from the Ultrasonix system through OpenIGTLink. If PlusServer does not run on the Ultrasonix PC then update the IP attribute in the Device element with the Ultrasonix PC's IP address."
+    />
+    <Device
+      Id="VideoDevice"
+      Type="SonixVideo" 
+      AcquisitionRate="30"
+      AutoClipEnabled="TRUE"
+      ImageGeometryOutputEnabled="TRUE"
+      ImageToTransducerTransformName="ImageToTransducer"
+      IP="127.0.0.1" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF"  />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="RecordingTest.mha"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="VideoStream" />
+      </InputChannels>
+    </Device>
+  </DataCollection>
+
+  <CoordinateDefinitions>
+    <Transform From="Image" To="Reference"
+      Matrix="
+        0.2 0.0 0.0 0.0
+        0.0 0.2 0.0 0.0
+        0.0 0.0 0.2 0.0        
+        0 0 0 1" />
+  </CoordinateDefinitions>
+  
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="VideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+        <Message Type="STRING" />
+      </MessageTypes>
+      <ImageNames>
+        <Image Name="Image" EmbeddedTransformToFrame="Transducer" />
+      </ImageNames>
+      <StringNames>
+        <String Name="DepthMm" />
+        <String Name="PixelSpacingMm" />
+        <String Name="TransducerOriginPix" />
+      </StringNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+</PlusConfiguration>

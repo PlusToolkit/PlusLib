@@ -1,0 +1,55 @@
+/*!
+\page DeviceEpiphan Epiphan frame grabber
+
+\section EpiphanSupportedHwDevices Supported hardware devices
+
+- Recommended model for analog capture: <a href="http://www.epiphan.com/products/frame-grabbers/vga2usb-lr/">VGA2USB-LR</a>. The basic VGA2USB model is not suitable for most applications, because it provides interlaced output at a very low frame rate.
+
+- Link to manufacturer's website: http://www.epiphan.com/.
+
+\section EpiphanSupportedPlatforms Included in packages
+
+- \ref PackageWin32
+- \ref PackageWin64
+- \ref PackageUltrasonixWin32
+- \ref PackageInterson
+- \ref PackageBk
+- \ref PackageStealthLink
+- \ref PackageThorLabs
+- \ref PackageMacOs
+- \ref PackageLinux
+
+The device manufacturer supports additional platforms. On request, Plus toolkit will be extended to support this device on other platforms, too.
+
+\section EpiphanInstallation Installation
+
+Need to install the drivers and software from <a href="http://www.epiphan.com/products/frame-grabbers/vga2usb-lr/download/"> VGA2USB-LR download</a>.
+
+
+\section EpiphanConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "Epiphan" \RequiredAtt
+
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
+- \xmlAtt \b SerialNumber it is an optional parameter to set the \c ID of the preferred a frame grabber device (if multiple devices are connected). SerialNumber is kept for backward compatibility only. Serial number or other address should be specified in the GrabberLocation attribute.
+- \xmlAtt \b ClipRectangleOrigin and \b ClipRectangleSize define a screen region to capture information from, the clip rectangle width has to be typically a mulitple of 4 (e.g., \b ClipRectangleOrigin \c ="20 40" \b ClipRectangleSize \c ="512 512" ). If the \b ClipRectangleSize \c ="0 0" then the values are ignored and the whole frame is captured. \OptionalAtt{0 0}
+- \xmlAtt \b GrabberLocation it is used to choose a specific epiphan device (in the format local:[SERIAL], net:[ADDRESS[:PORT]], sn:SERIAL, id:INDEX). If nothing is specified then the auto-detection is attempted. \OptionalAtt{NULL}
+
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
+    - \xmlAtt \ref ImageType. Color image acquisition is supported by setting the imaging device's common attribute \c ImageType="RGB_COLOR" as shown in the Epiphan Color Video Capture example. \OptionalAtt{BRIGHTNESS}
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+    - \xmlAtt \ref ClipRectangleOrigin Software clipping, applied on top of the hardware clipping region. \OptionalAtt{0 0 0}
+    - \xmlAtt \ref ClipRectangleSize Software clipping, applied on top of the hardware clipping region. \OptionalAtt{0 0 0}    
+
+\section EpiphanExampleConfigFile Example configuration file PlusDeviceSet_Server_EpiphanVideoCapture.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_EpiphanVideoCapture.xml"
+
+\par Epiphan Color Video Capture Example configuration file PlusDeviceSet_Server_EpiphanColorVideoCapture.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_EpiphanColorVideoCapture.xml"
+
+*/>

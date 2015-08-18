@@ -1,0 +1,72 @@
+<PlusConfiguration version="2.3"> 
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="PlusServer: Medtronic StealthLink tracker"
+      Description="Broadcasting tool tracking data through OpenIGTLink
+Tools: Stylus (Passive Planar, Blunt) , Reference (Small Passive Cranial Frame)" 
+    />
+    <Device
+      Id="SLD"
+      Type="StealthLinkTracker"
+      ServerAddress="130.15.7.88"
+      ServerPort="6996"
+      RegistrationUpdatePeriod="0.0"
+      ToolReferenceFrame="Tracker" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Stylus" PortName="Passive Planar, Blunt" />
+        <DataSource Type="Tool" Id="NProbe" 	 PortName="Navigus Probe" />
+        <DataSource Type="Tool" Id="TProbe" 	 PortName="Touch-n-Go Probe" />
+        <DataSource Type="Tool" Id="Reference" PortName="Small Passive Cranial Frame" />
+        <DataSource Type="Tool" Id="Ras" 	    PortName="RasRegistration" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream">
+          <DataSource  Id="NProbe" />
+          <DataSource  Id="TProbe" />
+          <DataSource  Id="Stylus" />
+          <DataSource  Id="Reference" />
+          <DataSource  Id="Ras" />
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="RecordingTest.mha"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+      </InputChannels>
+    </Device>
+  </DataCollection>
+  
+  <CoordinateDefinitions>
+    <Transform From="Ras" To="Lps"
+      Matrix="
+        -1  0  0  0
+         0 -1  0  0
+         0  0  1  0        
+         0  0  0  1" />
+  </CoordinateDefinitions>  
+  
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    OutputChannelId="TrackerStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="StylusToTracker" />
+        <Transform Name="ReferenceToTracker" />
+        <Transform Name="RasToReference"  />
+        <Transform Name="StylusToReference"  />
+        <Transform Name="NProbeToReference"  />
+        <Transform Name="TProbeToReference"  />
+      </TransformNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+</PlusConfiguration>

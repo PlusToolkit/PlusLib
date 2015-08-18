@@ -1,0 +1,16 @@
+<PlusConfiguration version="2.3">
+  <DataCollection StartupDelaySec="1.0">
+    <Device
+      Id="VideoDevice"
+      Type="IntersonSDKCxxVideo" 
+      DynRangeDb="-1" 
+      FrequencyMhz="-1" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="MF" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+  </DataCollection>
+</PlusConfiguration>

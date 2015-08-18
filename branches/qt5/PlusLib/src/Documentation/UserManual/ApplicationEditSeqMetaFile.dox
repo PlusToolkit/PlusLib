@@ -1,0 +1,54 @@
+/*!
+\page ApplicationEditSeqMetaFile Sequence metafile editor (EditSeqMetaFile)
+
+\tableofcontents
+
+This is a command-line tool for editing sequence metafiles. Operations include deleting frames from a file (TRIM command), merging sequence metafiles (MERGE command), adding/deleting/changing data fields (..._FIELD_... commands), compress/uncompress the image data (--use-compression switch).
+
+\section ApplicationEditSeqMetaFileExamples Examples
+
+## Generate sequence metafile that contains ImageToReference transforms
+
+    EditSeqMetaFile.exe --operation=ADD_TRANSFORM --add-transform=ImageToReference --config-file=PlusDeviceSet_fCal_Sim_VolumeReconstruction.xml  --source-seq-file=fCal_Test_Calibration_3NWires_fCal2.0.mha --output-seq-file=test.mha
+
+## Compress a sequence metafile
+
+    EditSeqMetafile.exe --source-seq-file=[inputFilePath] --output-seq-file=[outputFilePath] --use-compression
+
+## Uncompress a sequence metafile
+
+    EditSeqMetafile.exe --source-seq-file=[inputFilePath] --output-seq-file=[outputFilePath]
+
+## Trim a long sequence
+
+Create a small test data file from the first 24 frames of a tracked ultrasound metafile:
+
+    EditSeqMetaFile --operation=TRIM --first-frame-index=0 --last-frame-index=23 --source-seq-file=e:\data\AdultScoliosis-T2.mha --output-seq-file=e:\data\AdultScoliosis-T2-24frames.mha
+
+## Use fill image rectangle for anonymization
+
+Anonymization of sequences that contain patient information burnt into the pixels is enabled by the FILL_IMAGE_RECTANGLE operation, e.g.,
+
+    EditSeqMetaFile --operation=FILL_IMAGE_RECTANGLE --fill-rect-origin 52 25 --fill-rect-size 260 25 --fill-gray-level=20 --source-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.mha --output-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Anonymized.mha
+
+Input image:
+\image html ApplicationEditSeqMetaFileNonAnonymized.png
+Image after fill rectangle operation:
+\image html ApplicationEditSeqMetaFileAnonymized.png
+    
+## Remove image data from meta file, keep only the transforms
+
+Saves only the tracker data from a meta file that has both tracker and image data.
+
+    EditSeqMetaFile --operation=REMOVE_IMAGE_DATA --source-seq-file=[inputFilePath] --output-seq-file=[outputFilePath]
+
+## Add a constant transform to each frame
+
+    EditSeqMetaFile --operation=UPDATE_FRAME_FIELD_VALUE --source-seq-file=[inputFilePath] --output-seq-file=[outputFilePathTmp] --updated-field-name="StylusTipToStylusTransform" --updated-field-value="1  0  0  182.18    0  1  0  0.0744143    0  0  1  14.3197    0  0  0  1"
+    EditSeqMetaFile --operation=UPDATE_FRAME_FIELD_VALUE --source-seq-file=[outputFilePathTmp] --output-seq-file=[outputFilePath] --updated-field-name="StylusTipToStylusTransformStatus" --updated-field-value="OK"
+
+\section ApplicationEditSeqMetaFileHelp Command-line parameters reference
+
+\verbinclude "EditSeqMetaFileHelp.txt"
+
+*/

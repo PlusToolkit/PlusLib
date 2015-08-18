@@ -1,0 +1,42 @@
+<PlusConfiguration version="2.1">
+
+  <DataCollection StartupDelaySec="1.0">
+    <DeviceSet 
+      Name="PlusServer: OptiTrack"
+      Description="Broadcasting tracking data through OpenIGTLink."
+    />
+    
+    <Device
+      Id="TrackerDevice" 
+      Type="OptiTrack"
+      ToolReferenceFrame="Tracker"
+      AcquisitionRate="100">
+      <DataSources>
+        <DataSource Type="Tool" Id="Stylus" PortName="Stylus" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream">
+          <DataSource Id="Stylus" />
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+
+  </DataCollection>
+
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="TrackerStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="StylusToTracker" />
+      </TransformNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+</PlusConfiguration>

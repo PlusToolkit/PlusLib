@@ -1,0 +1,78 @@
+<PlusConfiguration version="2.3">
+
+  <DataCollection StartupDelaySec="5.0">
+    <DeviceSet 
+      Name="PlusServer: Interson USB ultrasound device with Interson SDK, RF."
+      Description="Broadcasting acquired video through OpenIGTLink"
+    />
+    <Device
+      Id="VideoDevice"
+      Type="IntersonSDKCxxVideo" 
+      RfDecimation="1"
+      PulseVoltage="40"
+      AcquisitionRate="12"
+      FrequencyMhz="3.50" >
+      <DataSources>
+        <DataSource Type="Video" Id="BmodeVideo" PortName="B" PortUsImageOrientation="UF" />
+        <DataSource Type="Video" Id="RfVideo" PortName="Rf" PortUsImageOrientation="FU" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="BmodeVideoStream" VideoDataSourceId="BmodeVideo">
+          <RfProcessing>
+            <RfToBrightnessConversion 
+              NumberOfHilbertFilterCoeffs="32.0" 
+              BrightnessScale="20.0" />
+            <ScanConversion 
+              TransducerName="GP 3.5MHz"
+              TransducerGeometry="CURVILINEAR"
+              RadiusStartMm="70.0"
+              RadiusStopMm="175.1"
+              ThetaStartDeg="-45.0"
+              ThetaStopDeg="45.0"
+              OutputImageSizePixel="800 600"
+              TransducerCenterPixel="400 50"
+              OutputImageSpacingMmPerPixel="0.20 0.20" /> 
+          </RfProcessing>
+        </OutputChannel>
+        <OutputChannel Id="RfVideoStream" VideoDataSourceId="RfVideo" />
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="IntersonRf.mha"
+      RequestedFrameRate="12"
+      EnableCapturing="TRUE" >
+      <InputChannels>
+        <InputChannel Id="RfVideoStream" />
+      </InputChannels>
+    </Device>
+  </DataCollection>
+
+  <CoordinateDefinitions>
+    <Transform From="Image" To="Reference"
+      Matrix="
+        0.2 0.0 0.0 0.0
+        0.0 0.2 0.0 0.0
+        0.0 0.0 0.2 0.0        
+        0 0 0 1" />
+  </CoordinateDefinitions>
+  
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="BmodeVideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+      </MessageTypes>
+      <ImageNames>
+        <Image Name="Image" EmbeddedTransformToFrame="Reference" />
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+</PlusConfiguration>

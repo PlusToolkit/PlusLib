@@ -1,0 +1,12 @@
+/*!
+\page DeviceVirtualSwitcher Virtual Switcher
+
+This is an experimental device to allow sending the content of one of the input channels to the output channel.
+
+\section VirtualSwitcherConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "VirtualSwitcher" \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{50} 
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+
+*/

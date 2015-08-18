@@ -1,0 +1,47 @@
+/**
+
+\page AlgorithmPhantomRegistration Phantom registration algorithm
+
+\section AlgorithmPhantomLandmarkRegistration Phantom registration using landmarks
+
+This algorithm computes transformation between a phantom object coordinate system (Phantom) and the coordinate system of tracking marker attached to the object (Reference) by point matching. Point coordinates are defined in the Phantom coordinate system and coordinates of the same points are also acquired in the Reference coordinate system by using a tracked stylus (StylusTip). To detect and select points in the Reference coordinate system the landmark detection algorithm can be used by detecting the stylus tip point when the tracked stylus is swiveling.
+
+\subsection PhantomLandmarkRegistrationConfigSettings Configuration settings
+
+- \xmlElem \b vtkPhantomLandmarkRegistrationAlgo
+  - \xmlAtt PhantomCoordinateFrame \RequiredAtt
+  - \xmlAtt ReferenceCoordinateFrame \RequiredAtt
+  - \xmlAtt StylusTipCoordinateFrame \RequiredAtt
+  - \xmlAtt AcquisitionRate\OptionalAtt{20}
+  - \xmlAtt FilterWindowTimeSec \OptionalAtt{0.2}
+  - \xmlAtt DetectionTimeSec \OptionalAtt{1.0}
+  - \xmlAtt StylusShaftMinimumDisplacementThresholdMm \OptionalAtt{30}
+  - \xmlAtt StylusTipMaximumDisplacementThresholdMm \OptionalAtt{1.5}
+
+- \xmlElem \b PhantomDefinition
+  - \xmlElem \b Geometry
+    - \xmlElem \b Landmarks \RequiredAtt
+
+
+
+\section AlgorithmPhantomLinearObjectRegistration Phantom registration using linear object features
+
+This is an \b experimental algorithm that can use linear features (points, lines, and surfaces) to register a phantom to an attached tracker marker.
+
+\subsection PhantomLinearObjectRegistrationConfigSettings Configuration settings
+
+- \xmlElem \b vtkPhantomLinearObjectRegistrationAlgo
+  - \xmlAtt PhantomCoordinateFrame \RequiredAtt
+  - \xmlAtt ReferenceCoordinateFrame \RequiredAtt
+  - \xmlAtt StylusTipCoordinateFrame \RequiredAtt
+
+- \xmlElem \b PhantomDefinition
+  - \xmlElem \b Geometry
+    - \xmlElem \b Planes \RequiredAtt
+    - \xmlElem \b References \RequiredAtt
+
+\section AlgorithmPhantomRegistrationExampleConfigFile Example configuration file PlusDeviceSet_fCal_Ultrasonix_L14-5_Ascension3DG_2.0.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_fCal_Ultrasonix_L14-5_Ascension3DG_2.0.xml"
+
+*/

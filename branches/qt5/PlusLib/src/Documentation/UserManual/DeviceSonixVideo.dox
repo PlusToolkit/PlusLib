@@ -1,0 +1,204 @@
+/*!
+\page DeviceSonixVideo Ultrasonix ultrasound systems
+
+\section SonixVideoSupportedHwDevices Supported hardware devices
+
+- Supported models: Ultrasonix SonixRP, SonixMDP, SonixTouch, SonixTablet, etc.
+- As all models use the same research interface, there is no difference in using Plus with any of the Ultrasonix scanner models (e.g., a sample config file for SonixRP works well for a SonixMDP scanner). However, the ultrasound firmware and Exam software on the scanner has to match the Ultrasonix SDK version that Plus uses. Plus with Ultrasonix SDK 5.7.x works through Ulterius interface with Exam software 5.7.x-6.0.2. Plus with Ultrasonix SDK 6.1.x works through Ulterius interface with Exam software 6.0.7 and later. Use the \ref ApplicationPlusVersion to find out which Ultrasonix SDK version is used by Plus.
+- If a probe with built-in tracking sensor is used (L14-5/38 GPS or C5-2/60 GPS) then Plus can use the probe calibration information provided by the manufacturer. Select the configuration file: "PlusServer: Ultrasonix US ... - calibrated".
+- Supported interfaces: Ulterius and Porta.
+- Link to manufacturer's website: http://www.analogicultrasound.com/ultrasonix
+
+\section SonixVideoSupportedPlatforms Included in packages
+- \ref PackageWin32
+- \ref PackageUltrasonixWin32
+- \ref PackageInterson
+- \ref PackageBk
+- \ref PackageStealthLink
+- \ref PackageThorLabs
+
+\section SonixVideoInstallation Installation
+
+- If tracking does not work (you get "No BIRDs were found anywhere" or similar error) make sure that all the Ultrasonix Exam software features that use SonixGPS are disabled (in Administration / Licenses).
+- If tracking does not work then try to copy the Ascension tracker DLL file (ATC3DG.dll) from the Ultrasonix exam software directory to the Plus directory (as the DLL version that is shipped with Plus may not match the installed tracker hardware/software version).
+- The Ultrasonix L14-5 linear probe does not work well with the NDI Aurora electromagnetic tracker. If the L14 probe is stationary, we can get consistent readings, but if the probe is moving, the tracking is not stable at all.  We know there is a big piece of aluminium inside L14-5. Thus I would advise not to use Aurora with Ultrasonix probe at this time. (Reported by Elvis Chen, Feb 29, 2012) Note that Ascension electromagnetic trackers work just fine even if they are very close to the transducer.
+- The B-mode image processing (scan conversion, de-speckle filtering, etc.) is performed in the CPU. If higher frame rates are needed and speckle is tolerable then it is advisable to turn off de-speckle filtering.
+- If there is horizontal striping/repetition of image contents (typically occurs in water tank), then set the number of focal points to 1. It usually removes the artifact. (Reported by Andras Lasso, Nov 15, 2012; Exam software version 5.7)
+- Ulterius interface (SonixVideo device): Requires the Ultrasonix Exam software to be running. Plus may run either on the Ultrasonix system or on a different computer (with network connection to the Ultrasonix system).
+- Porta interface (SonixPortaVideo device): Plus must run on the Ultrasonix system and the Exam software must not be running. Controlling of the motorized probe is supported. 3D/4D probe has to be connected to port-0
+
+Notes:
+- When the "Current exam has not been assigned to a patient. would you like to assign the exam to a patient record?" dialog box is displayed then the freeze button is unable to unfreeze the image acquisition on the ultrasound machine. Close the dialog box and press the freeze button to enable image acquisition.
+
+\section SonixVideoConfigSettings Device configuration settings
+
+Common attributes:
+- \xmlElem \ref Device
+  - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
+  - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+  - \xmlAtt \b Depth Depth \c [mm] of B-mode ultrasound. If not specified then the current setting is used. \OptionalAtt{ }
+  - \xmlAtt \b Gain Gain \c [%] of B-mode ultrasound; valid range: 0-100. If not specified then the current setting is used.\OptionalAtt{ }
+  - \xmlAtt \b Zoom Zoom \c [%] of B-mode ultrasound; valid range: 0-100. If not specified then the current setting is used. \OptionalAtt{ }
+  - \xmlAtt \b Frequency Ultrasound transmitter frequency \c [MHz] If not specified then the current setting is used.\OptionalAtt{ }
+  - \xmlAtt \b Timeout Timeout \c [ms] for receiving new frames by network function calls. If not specified then the current setting is used. \OptionalAtt{ }
+  - \xmlElem \ref DataSources Multiple \c DataSource child elements are allowed, one for each data type (\c PortName indicates the data type) \RequiredAtt
+    - \xmlElem \ref DataSource \RequiredAtt
+      - \xmlAtt \ref PortName \RequiredAtt
+        - \c B B-mode image data
+        - \c Rf RF data
+      - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
+      - \xmlAtt \ref ImageType \OptionalAtt{BRIGHTNESS}
+      - \xmlAtt \ref BufferSize \OptionalAtt{150}
+      - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+      - \xmlAtt \ref ClipRectangleOrigin \OptionalAtt{0 0 0}
+      - \xmlAtt \ref ClipRectangleSize \OptionalAtt{0 0 0}
+
+Ulterius interface specific Device attributes:
+- \xmlAtt \ref DeviceType "Type" = \c "SonixVideo" \RequiredAtt
+- \xmlAtt \b IP Host name or IP address of the Ultrasound system. If Plus runs on the Ultrasound system then the 127.0.0.1 address can be used. \RequiredAtt
+- \xmlAtt \b AutoClipEnabled Automatically clip the image to the region of interest specified by the ultrasound system. \OptionalAtt{FALSE}
+  - TRUE: Image will be clipped to the region of interest that was specified at the time when the connection to the device was established. The image size depends on the imaging depth.
+  - FALSE: Regardless of imaging depth, zoom, etc. settings, the image size is always the same. Black border appears outside the region of interest.
+- \xmlAtt \b ImageToTransducerTransformName If specified then Image To Transducer transform is added as a custom field to the image data with the specified name (see \ref CommonCoordinateSystems). Recommended value "ImageToTransducer". If the TransducerToProbe constant transform is specified in the configuration file then this transform allows automatic computation of the ImageToProbe transform at any imaging depth. \OptionalAtt{ }
+- \xmlAtt \b SoundVelocity The speed of sound \c [m/s].  The minimum and maximum allowed value is specified on the Ultrasound computer, in the Exam software directory in the imaging.set.xml" file (the parameter is "soundvelocity"). If an out of range value is specified in the configuration file then the Ultrasound system will ignore it. If the attribute is not specified then the current setting is kept.  \OptionalAtt{ }
+- \xmlAtt \b DynRange DynRange \c [dB] of B-mode ultrasound. If not specified the current value is kept. \OptionalAtt{ }
+- \xmlAtt \b Sector Sector \c [%] of B-mode ultrasound; valid range: 0-100. If not specified the current value is kept. \OptionalAtt{ }
+- \xmlAtt \b CompressionStatus When imaging with the EC59 probe, if compression is disabled (\b CompressionStatus \c ="0"), then a lot of BMode frames are lost. The reason for this is the fact that scan-conversion is performed on the CPU. Set \b CompressionStatus \c ="1" to prevent frame loss. \OptionalAtt{0}
+- \xmlAtt \b SharedMemoryStatus When this flag is enabled ("1") and local access is used the TCP is bypasssed.\OptionalAtt{0}
+- \xmlAtt \b ConnectionSetupDelayMs Time required for setting up the connection. The value depends on the probe type, typical values are between 2000-3000 \c [ms]. \OptionalAtt{3000}
+- \xmlAtt \b ImageGeometryOutputEnabled Add image geometry information (depth, spacing, transducer origin) to the output. When imaging depth is changed then usually transducer origin position and pixel spacing is changed as a result. SonixVideo can provide depth, pixel spacing, and transducer origin (position of the center transducer element in the image, in pixels) information as custom frame fields that can be broadcasted through OpenIGTLink as STRING messages, using the names "DepthMm", "PixelSpacingMm", and "TransducerOriginPix" (see \ref SonixVideoExampleConfigFileUlterius).\OptionalAtt{FALSE}
+- \xmlAtt \b DetectDepthSwitching Flag to read the depth attribute for each output channel. (Experimental) \OptionalAtt{FALSE}
+- \xmlAtt \b DetectPlaneSwitching Flag to read the plane of each output channel. (Experimental) \OptionalAtt{FALSE}
+
+Porta interface specific Device attributes:
+- \xmlAtt \ref DeviceType "Type" = \c "SonixPortaVideo" \RequiredAtt
+- \xmlAtt \b ImagingMode Only BMode supported. \OptionalAtt{BMode}
+- \xmlAtt \b FramePerVolume Number of frames that will acquired in one sweep of the motor. Range: 3-125 (always odd as there always is a central frame). \OptionalAtt{80} 
+- \xmlAtt \b BModeFrameSize Size of the BMode frame buffer \c [pixels] \OptionalAtt{ 480 436 }
+- \xmlAtt \b StepPerFrame The number of steps the motor will move while acuqiring a single frame. Range: 2, 4, 8, 16, 32. \OptionalAtt{4}
+- \xmlAtt \b Usm Porta initialization parameter \RequiredAtt
+- \xmlAtt \b Pci Porta initialization parameter \RequiredAtt
+- \xmlAtt \b HighVoltage Porta initialization parameter \RequiredAtt
+- \xmlAtt \b Channels Porta initialization parameter \RequiredAtt
+- \xmlAtt \b PortaLUTPath Path to the Porta LUT directory.\RequiredAtt
+- \xmlAtt \b PortaSettingPath Path to the Porta Setting directory. \RequiredAtt
+- \xmlAtt \b PortaLicensePath Path to the licenses text file. \RequiredAtt
+- \xmlAtt \b PortaFirmwarePath Path to the Porta Firmware directory. \RequiredAtt
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_L14-5_Ascension3DG_calibrated.xml"
+
+\section SonixVideoExampleConfigFileUltrasonixSpatialCalibrationC5 Example configuration file for tracked ultrasound acquisition using calibration matrix provided by Ultrasonix for C5-2/60 GPS probe
+
+The calibration remains valid even if the imaging depth is changed.
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_C5-2_Ascension3DG_calibrated.xml"
+    
+\section SonixVideoExampleConfigFileUlterius Example configuration file for B-mode acquisition using Ulterius interface
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_L14-5.xml"
+
+\section SonixVideoExampleConfigFilePorta Example configuration file for B-mode acquisition using Porta interface
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_L14-5_Porta.xml"
+
+\section SonixVideoExampleConfigFileRf Example configuration file for dual B-mode and RF-mode acquisition using Ulterius interface
+
+\include "data/ConfigFiles/Testing/PlusDeviceSet_DataCollectionOnly_SonixVideo_FakeTracker_DualMode.xml"
+
+\section SonixVideoUltrasonixSpatialCalibration Using calibration matrices provided by Ultrasonix
+
+Ultrasonix provides calibration matrices for its GPS probes:
+http://www.ultrasonix.com/wikisonix/index.php/GPS_Data_Collection
+
+TransducerToProbe transform matrix in Plus-compatible format can be determined using these computations (script executable in Matlab):
+
+    function transducerToProbe = getTransducerToProbeTransform(transducerToProbeUltrasonix)
+    % Get TransducerToProbeTransform matrix from Ultrasonix probe calibration matrix
+
+    % Ultrasonix uses [1yx] coordinates (first column is origin, second column is Y axis, third column is X axis)
+
+    % Transducer's origin in the Probe sensor coordinate system
+    transducerOrigin_Probe = [transducerToProbeUltrasonix(1,1); transducerToProbeUltrasonix(2,1); transducerToProbeUltrasonix(3,1)];
+
+    % Transducer's X, Y, Z axes in the Probe sensor coordinate system:
+    % (Plus's transducer X coordinate system axis points to M direction, while
+    % in Ultrasonix it is the opposite, U direction, therefore the minus sign
+    % at the transducerX_Probe computation)
+    transducerX_Probe = -[transducerToProbeUltrasonix(1,3); transducerToProbeUltrasonix(2,3); transducerToProbeUltrasonix(3,3)];
+    transducerY_Probe = [transducerToProbeUltrasonix(1,2); transducerToProbeUltrasonix(2,2); transducerToProbeUltrasonix(3,2)];
+
+    % We do not want the TransducerToProbe matrix to be a projection matrix
+    % because that cannot be inverted and cannot be used for rendering 3D
+    % objects (a projection matrix would flatten everything to the image plane).
+    % Therefore, we compute the Z axis as the cross product of the X and Y vector.
+    transducerZ_Probe = cross(transducerX_Probe, transducerY_Probe);
+    transducerZ_Probe = transducerZ_Probe/norm(transducerZ_Probe);
+
+    transducerToProbe = [[transducerX_Probe, transducerY_Probe, transducerZ_Probe, transducerOrigin_Probe]; 0 0 0 1];
+
+Example use:
+
+    %% Get TransducerToProbe transform matrix in Plus-compatible format
+
+    % Transforms provided by Ultrasonix (http://www.ultrasonix.com/wikisonix/index.php/GPS_Data_Collection)
+    TransducerToProbeLinear = getTransducerToProbeTransform([ 14.8449 0.9477 -0.0018; 15.0061	0.0016	1.00; 0.1638	0.0166	0.0052 ])
+    TransducerToProbeConvex = getTransducerToProbeTransform([ -29.7558 0.9433 -0.0034; -0.087 0.0033 1.00; -0.7053 0.0132 -0.0087])
+
+    %% Example for computing spatial calibration
+
+    % ImageToTransducer is provided by Plus if ImageToTransducerTransformName is specified:
+    ImageToTransducer = [0.087 0 0 -19.401; 0 0.087 0 -0; 0 0 0.087 0; 0 0 0 1];
+
+    % Compute the ImageToProbe transform matrix:
+    ImageToProbe = TransducerToProbeLinear * ImageToTransducer
+
+    % By Plus
+    ImageToProbePlus = [0.00222042	0.0866475	0.000440035	13.1131; -0.0889464	0.00184866	-0.00957158	33.8075; -0.0097339	-0.000233354	0.0875636	1.58554; 0	0	0	1]
+
+Results:
+
+    TransducerToProbeLinear =
+
+        0.0018    0.9477   -0.0175   14.8449
+       -1.0000    0.0016   -0.0052   15.0061
+       -0.0052    0.0166    0.9998    0.1638
+             0         0         0    1.0000
+
+    TransducerToProbeConvex =
+
+        0.0034    0.9433   -0.0140  -29.7558
+       -1.0000    0.0033    0.0087   -0.0870
+        0.0087    0.0132    0.9999   -0.7053
+             0         0         0    1.0000
+
+
+    ImageToProbe =
+
+        0.0002    0.0824   -0.0015   14.8100
+       -0.0870    0.0001   -0.0005   34.4071
+       -0.0005    0.0014    0.0870    0.2647
+             0         0         0    1.0000
+
+    ImageToProbePlus =
+
+        0.0022    0.0866    0.0004   13.1131
+       -0.0889    0.0018   -0.0096   33.8075
+       -0.0097   -0.0002    0.0876    1.5855
+             0         0         0    1.0000
+
+
+\section SonixDepthSwitching Depth switching (experimental)
+
+Plus allows using different spatial calibration parameters when the imaging depth and/or imaging probe is changed. To enable mode switching, plane switching and/or depth switching, for each output channel you must define one or more of:
+- ProbeId: BPC, L14-5, more to come
+- PortName: B, Rf
+- Depth: supported by your device, ex: 4, 4.5, etc. (in cm)
+
+If you change to a parameter that is not supported by your configuration (ie.: a depth you didn't specify) the data collection will stop!
+If you did not specify the global parameters above, Plus will attempt to configure the Sonix hardware with the parameters from the first output channel.
+
+\section SonixVideoExampleConfigFileUltrasonixSpatialCalibrationL14 Example configuration file for tracked ultrasound acquisition using calibration matrix provided by Ultrasonix for L14-5/38 GPS probe
+
+The calibration remains valid even if the imaging depth is changed.
+
+*/

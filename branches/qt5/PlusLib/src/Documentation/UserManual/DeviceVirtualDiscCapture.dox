@@ -1,0 +1,26 @@
+/*!
+\page DeviceVirtualDiscCapture Virtual Disc Capture
+
+This device allows writing acquired data to disk. Data can be recorded in memory and written to disk (for short, high-throughput acquisitions) or directly written to disk (for continuous acquisition of large amount of data, requires fast disk access for high-throughput acquisition).
+
+The file is saved as \ref FileSequenceMetafile format. If single file output format is used (file extension is .mha) or compression is enabled then stopping of the recording may take some time (as temporary recording output has to be compressed and/or merged into one file). If multiple long sequences have to be recorded then use the header+data file format (.mhd extension of the filename) and disable compression: in this case a the disc capture device can start a new acquisition immediately after stoppinh the previous recording.
+
+\section VirtualDiscCaptureConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "VirtualDiscCapture" \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" defines how frequently the device copies frames from the input data source to the disk. \OptionalAtt{10}
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+
+- \xmlAtt \b BaseFilename File to write, path relative to output directory. \OptionalAtt{TrackedImageSequence.mha}
+- \xmlAtt \b EnableFileCompression Flag to re-read the data from file and write it compressed, when closing the file. \OptionalAtt{false}
+ - Warning! capturing is done uncompressed, beware file limits on old FAT32 disks (4GB maximum file size)
+ - Compression is performed after capturing uncompressed data: at the end of capturing the device will close the uncompressed streamed file, then re-save it compressed when the recording is completed. This saving may take long time if the uncompressed data is several gigabytes then the compression may take minutes. If long sequences are acquired then it is advisable to disable compression during data collection and instead compress the data later with the EditSeqMetaFile utility.
+- \xmlAtt \b EnableCapturing Enable capturing when device is connected (without a request to start capturing) \OptionalAtt{false}
+- \xmlAtt \b RequestedFrameRate Requested frame rate for recording [frames/second]. If the input data source provides data at a higher rate then frames will be skipped. If the input data has lower frame rate then requested then all the frames in the input data will be recorded.\OptionalAtt{15.0}
+- \xmlAtt \b FrameBufferSize Number of frames stored in memory before dumping to file. Increases memory need but allows higher recording frame rate (writing to memory is faster than to disk). By default it is disabled (frames are written directly to disk). \OptionalAtt{-1}
+
+\section VirtualDiscCaptureExampleConfigFile Example configuration file PlusDeviceSet_Server_Sim_NwirePhantom.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_Sim_NwirePhantom.xml"
+
+*/
