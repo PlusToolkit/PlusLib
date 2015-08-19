@@ -110,17 +110,23 @@ SET_TESTS_PROPERTIES( vtkUsScanConvertLinearRunTest PROPERTIES FAIL_REGULAR_EXPR
 #SET_TESTS_PROPERTIES(vtkUsScanConvertLinearCompareToBaselineTest PROPERTIES DEPENDS vtkUsScanConvertLinearRunTest)
 
 #---------------------------------------------------------------------------
-ADD_EXECUTABLE(EnhanceBone EnhanceBone.cxx )
-TARGET_LINK_LIBRARIES(EnhanceBone vtkImageProcessingAlgo )
-GENERATE_HELP_DOC(EnhanceBone)
-
+IF (PLUS_USE_INTEL_MKL)
+  ADD_EXECUTABLE(EnhanceBone EnhanceBone.cxx )
+  TARGET_LINK_LIBRARIES(EnhanceBone vtkImageProcessingAlgo )
+  GENERATE_HELP_DOC(EnhanceBone)
+ENDIF (PLUS_USE_INTEL_MKL)
 
 # --------------------------------------------------------------------------
+SET (INSTALL_TARGETS
+  RfProcessor
+  DrawScanLines
+  )
+IF (PLUS_USE_INTEL_MKL)
+  SET (INSTALL_TARGETS ${INSTALL_TARGETS} EnhanceBone )
+ENDIF (PLUS_USE_INTEL_MKL)
+
 INSTALL(
-  TARGETS
-    RfProcessor
-    DrawScanLines
-    EnhanceBone
+  TARGETS ${INSTALL_TARGETS}
   RUNTIME
   DESTINATION bin
   CONFIGURATIONS Release
