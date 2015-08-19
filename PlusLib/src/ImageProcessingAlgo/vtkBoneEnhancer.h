@@ -13,7 +13,11 @@
 
 class vtkImageCast;
 class vtkImageData;
+#ifdef PLUS_USE_INTEL_MKL
 class vtkForoughiBoneSurfaceProbability;
+#else
+class vtkImageThreshold;  
+#endif
 class vtkUsScanConvert;
 
 /*!
@@ -55,10 +59,13 @@ protected:
   void DrawScanLines(vtkUsScanConvert* scanConverter, vtkImageData* imageData);
   
   vtkSmartPointer<vtkUsScanConvert> ScanConverter;
+#ifdef PLUS_USE_INTEL_MKL
   vtkSmartPointer<vtkForoughiBoneSurfaceProbability> BoneSurfaceFilter;
-
   vtkSmartPointer<vtkImageCast> CastToDouble;
   vtkSmartPointer<vtkImageCast> CastToUnsignedChar;
+#else
+  vtkSmartPointer<vtkImageThreshold> Thresholder;
+#endif
 
 }; 
 
