@@ -1,0 +1,185 @@
+/**
+
+\page PlusServerCommands PlusServer commands
+
+\section PlusServerCommandsRemoteControlExample Remote control example
+
+\subsection PlusServerCommandsRemoteControlExampleServer Server setup
+
+- Start PlusServer:
+~~~~~~~~~~~~~~~~~~~~~
+PlusServer.exe --config-file=..\..\PlusLib\data\ConfigFiles\Testing\PlusConfiguration_OpenIGTLinkCommandsTest.xml
+~~~~~~~~~~~~~~~~~~~~~
+
+\subsection PlusServerCommandsRemoteControlExampleClient Control the server using the example client in Plus
+
+\subsubsection PlusServerCommandsRemoteControlExampleClientSimple Example: simple test commands
+- `PlusServerRemoteControl.exe --command=GET_CHANNEL_IDS`
+  - PlusServer log:  `<Command Name="RequestChannelIDs" />`
+  - PlusServerRemoteControl reply data: `TrackedVideoStream`
+- `PlusServerRemoteControl.exe --command=START_ACQUISITION`
+  - PlusServer log:  `<Command Name="StartRecording"/>`
+  - PlusServerRemoteControl reply data: `VirtualStreamCapture (CaptureDevice) StartRecording completed successfully`
+- `PlusServerRemoteControl.exe --command=STOP_ACQUISITION`
+  - PlusServer log:  `<Command Name="StopRecording" OutputFilename="PlusServerRecording.mha" />`
+  - PlusServerRemoteControl reply data:  `VirtualStreamCapture (CaptureDevice) StopRecording completed successfully`
+- `PlusServerRemoteControl.exe --command=GET_EXAM_DATA --volumeEmbeddedTransformToFrame="Reference"`
+  - PlusServer log: `<Command Name="ExamData" VolumeEmbeddedTransformToFrame="Reference"`
+  - PlusServerRemoteControl reply data: `"Volume sending completed successfully, volume sent as: SLD-001" `
+
+\subsubsection PlusServerCommandsRemoteControlExampleClientVolumeReconstruction Example: volume reconstruction in batch mode (acquiring all frames then reconstruct volume at once)
+
+If `--output-file` is specified then the reconstructed volume will be written to file. If output-image-name is specified then the reconstructed volume will be sent through OpenIGTLink. 
+~~~~~~~~~~~~~~~~~~~~~
+PlusServerRemoteControl.exe --command=START_ACQUISITION
+timeout /t 10
+PlusServerRemoteControl.exe --command=STOP_ACQUISITION
+PlusServerRemoteControl.exe --command=RECONSTRUCT --output-file=recvol.mha --output-image-name=recvol_Reference
+~~~~~~~~~~~~~~~~~~~~~
+
+\subsubsection PlusServerCommandsRemoteControlExampleClientVolumeReconstructionSnapshot Example: live volume reconstruction with intermediate snapshots
+~~~~~~~~~~~~~~~~~~~~~
+PlusServerRemoteControl.exe --command=START_RECONSTRUCTION
+PlusServerRemoteControl.exe --command=GET_RECONSTRUCTION_SNAPSHOT --output-image-name=recvol_Reference
+PlusServerRemoteControl.exe --command=SUSPEND_RECONSTRUCTION
+@echo Please start volume rendering of the sent volume
+timeout /t 10
+PlusServerRemoteControl.exe --command=RESUME_RECONSTRUCTION
+PlusServerRemoteControl.exe --command=GET_RECONSTRUCTION_SNAPSHOT --output-image-name=recvol_Reference
+PlusServerRemoteControl.exe --command=GET_RECONSTRUCTION_SNAPSHOT --output-image-name=recvol_Reference
+PlusServerRemoteControl.exe --command=GET_RECONSTRUCTION_SNAPSHOT --output-image-name=recvol_Reference
+PlusServerRemoteControl.exe --command=GET_RECONSTRUCTION_SNAPSHOT --output-image-name=recvol_Reference
+PlusServerRemoteControl.exe --command=GET_RECONSTRUCTION_SNAPSHOT --output-image-name=recvol_Reference
+PlusServerRemoteControl.exe --command=GET_RECONSTRUCTION_SNAPSHOT --output-image-name=recvol_Reference
+PlusServerRemoteControl.exe --command=GET_RECONSTRUCTION_SNAPSHOT --output-image-name=recvol_Reference
+PlusServerRemoteControl.exe --command=GET_RECONSTRUCTION_SNAPSHOT --output-image-name=recvol_Reference
+PlusServerRemoteControl.exe --command=GET_RECONSTRUCTION_SNAPSHOT --output-image-name=recvol_Reference
+PlusServerRemoteControl.exe --command=GET_RECONSTRUCTION_SNAPSHOT --output-image-name=recvol_Reference
+PlusServerRemoteControl.exe --command=STOP_RECONSTRUCTION --output-image-name=recvol_Reference
+~~~~~~~~~~~~~~~~~~~~~
+
+\subsubsection PlusServerCommandsRemoteControlExampleClientStealth Example: Acquiring exam image data from StealthStation
+~~~~~~~~~~~~~~~~~~~~~
+PlusServerRemoteControl.exe --command=GET_EXAM_DATA --device=StealthLinkDevice
+PlusServerRemoteControl.exe --command=GET_EXAM_DATA --device=StealthLinkDevice -keepReceivedDicomFiles --volumeEmbeddedTransformToFrame= "Reference" --dicom-directory="C:/StealthLinkOutput"
+~~~~~~~~~~~~~~~~~~~~~
+
+\subsubsection PlusServerCommandsRemoteControl3DSlicer Control the server from 3D Slicer
+
+- In the OpenIGTLinkIF module in Slicer create a new connection, set as client, check Active
+- Set up slice visualization with VolumeResliceDriver
+- Control PlusServer using the OpenIGTLinkRemote module in Slicer: paste the XML strings below into the Command Console's Command box and click "Send command"
+
+~~~~~~~~~~~~~~~~~~~~~
+<Command Name="RequestChannelIds" />
+<Command Name="RequestDeviceIds" DeviceType="VirtualVolumeReconstructor" />
+<Command Name="StartRecording" OutputFilename="PlusServerRecording.mha" />
+<Command Name="StopRecording" />
+<Command Name="ReconstructVolume" InputSeqFilename="PlusServerRecording.mha" OutputVolDeviceName="recvol_Reference" />
+<Command Name="StartVolumeReconstruction" VolumeReconstructorDeviceId="VolumeReconstructorDevice" />
+<Command Name="SuspendVolumeReconstruction" VolumeReconstructorDeviceId="VolumeReconstructorDevice" />
+<Command Name="ResumeVolumeReconstruction" VolumeReconstructorDeviceId="VolumeReconstructorDevice" />
+<Command Name="GetVolumeReconstructionSnapshot" VolumeReconstructorDeviceId="VolumeReconstructorDevice" OutputVolDeviceName="recvol_Reference" />
+<Command Name="StopVolumeReconstruction" VolumeReconstructorDeviceId="VolumeReconstructorDevice" OutputVolDeviceName="recvol_Reference" OutputVolFilename="recvol_Reference.mha"/>
+~~~~~~~~~~~~~~~~~~~~~
+
+\section PlusServerCommandsOpenIGTLinkRemoteExec OpenIGTLinkRemoteExec interface specification
+
+\subsection PlusServerCommandsOpenIGTLinkRemoteExecCommand Command
+
+- Message type: `STRING`
+- Device name: `CMD_`commandUid 
+- Contents: an XML element with the name `Command` and the following attributes:
+  - `Name`: command name, defined by the user
+  - Custom parameters: attributes and/or child elements
+- Example:
+~~~~~~~~~~~~~~~~~~~~~
+<Command Name="StartRecording" ... custom parameters ... />
+~~~~~~~~~~~~~~~~~~~~~
+
+\subsection PlusServerCommandsOpenIGTLinkRemoteExecCommandReply Command reply
+
+- Message type: `STRING`
+- Device name: `ACK_`commandUid (the commandUid matches the command's UID)
+- Contents: an XML element with the name `CommandReply` and the following attributes:
+  - `Status`: `SUCCESS` or `FAIL`
+  - Custom parameters: attributes and/or child elements
+- Example:
+~~~~~~~~~~~~~~~~~~~~~
+<CommandReply Status="SUCCESS" Message="StartRecording completed successfully" ... other custom parameters ... />
+~~~~~~~~~~~~~~~~~~~~~
+
+\subsection PlusServerCommandsOpenIGTLinkRemoteExecCommands Commands
+
+- RequestChannelIds: returns a list of available channel IDs
+- RequestDeviceIds: returns a list of available device IDs
+  - \xmlAtt DeviceType: restrict the returned list of devices to a specific type (VirtualDiscCapture, VirtualVolumeReconstructor, etc.)
+- StartRecording: starts recording to file
+  - \xmlAtt CaptureDeviceId \RequiredAtt
+  - \xmlAtt OutputFilename
+- StopRecording: stops recording to file
+  - \xmlAtt CaptureDeviceId \RequiredAtt
+  - \xmlAtt OutputFilename: overrides the value that was defined in StartRecording
+- ReconstructVolume: reconstruct a volume from a file and writes the result to a file and/or sends through OpenIGTLink; sets OutputOrigin and OutputExtent so that all the frames fit
+  - \xmlAtt VolumeReconstructorDeviceId: name of the volume reconstructor device that contains the reconstruction parameters (if not specified then the first volume reconstructor device will be used)
+  - \xmlAtt InputSeqFilename: name of the input sequence metafile name that contains the list of frames \RequiredAtt
+  - \xmlAtt OutputVolFilename: name of the output volume file name (optional)
+  - \xmlAtt OutputVolDeviceName: name of the OpenIGTLink device for the IMAGE message (optional)
+- StartVolumeReconstruction: start adding acquired frames to the volume
+  - \xmlAtt VolumeReconstructorDeviceId: name of the volume reconstructor device that contains the reconstruction parameters and defines the input data (if not specified then the first volume reconstructor device will be used)
+  - \xmlAtt OutputVolFilename: name of the output volume file name (optional, if saving of the reconstructed volume to file is not needed or the value is already set)
+  - \xmlAtt OutputVolDeviceName: name of the OpenIGTLink device for the IMAGE message (optional, if sending of the reconstructed volume is not needed or the value is already set)
+  - \xmlAtt OutputSpacing: spacing of the output volume, 3 floating point values in the reference coordinate system (example: "0.3 0.3 0.3") (optional, if already set)
+  - \xmlAtt OutputOrigin: origin of the output volume, 3 floating point values in the reference coordinate system (example: "-15.0 -20.0 40.0") (optional, if already set)
+  - \xmlAtt OutputExtent: extent in voxels, 6 integer values, in voxel coordinates of the output volume: iStart, iStop, jStart, jStop, kStart, kStop (for example"0 150 0 180 0 200"); typically the start values are 0, and the stop values are dimension-1 (optional, if already set)
+- SuspendVolumeReconstruction: suspend adding acquired frames to the volume
+  - \xmlAtt VolumeReconstructorDeviceId: name of the volume reconstructor device (optional, if not specified then the first volume reconstructor device will be used)
+- ResumeVolumeReconstruction: resume adding acquired frames to the volume
+  - \xmlAtt VolumeReconstructorDeviceId: name of the volume reconstructor device (optional, if not specified then the first volume reconstructor device will be used)
+- StopVolumeReconstruction: stop adding acquired frames to the volume, finalize reconstruction, and save/send the results.
+  - \xmlAtt VolumeReconstructorDeviceId: name of the volume reconstructor device (optional, if not specified then the first volume reconstructor device will be used)
+  - \xmlAtt OutputVolFilename: name of the output volume file name (optional)
+  - \xmlAtt OutputVolDeviceName: name of the OpenIGTLink device for the IMAGE message (optional)
+- GetVolumeReconstructionSnapshot: request a snapshot of the live reconstruction result to be saved/sent.
+  - \xmlAtt VolumeReconstructorDeviceId: name of the volume reconstructor device (if not specified then the first volume reconstructor device will be used)
+  - \xmlAtt OutputVolFilename: name of the output volume file name (optional, if saving of the reconstructed volume to file is not needed or the value is already set)
+  - \xmlAtt OutputVolDeviceName: name of the OpenIGTLink device for the IMAGE message (optional, if sending of the reconstructed volume is not needed or the value is already set)
+  - \xmlAtt ApplyHoleFilling: if FALSE then holes will not be filled (optional, default: TRUE)
+- UpdateTransform: updates a transform in the transform repository
+  - \xmlAtt TransformName: transform name in CoordinateSystem1ToCoordinateSystem2 format
+  - \xmlAtt TransformValue: 4x4 matrix, separated by spaces
+  - \xmlAtt TransformPersistent: TRUE (default) or FALSE; if FALSE then the transform will not be saved in the device set config file
+  - \xmlAtt TransformError: any >=0 value, currently the value is just stored, not used by algorithms
+  - \xmlAtt TransformDate: date of the transform in any string format, just for reference
+- SaveConfig: save the config file
+  - \xmlAtt Filename: target filename, if not specified then the current device set configuration file will be updated
+- GetExamData: acquire the current image from the StealthStation. This command can only be used for stealthlink connection.
+  - \xmlAtt volumeEmbeddedTransformToFrame: Specify in which coordinate system the volume will be represented. Example: Ras, Reference, Tracker, or any other coordinate system defined in PLUS (The default value is Ras)
+  - \xmlAtt dicomDirectory: The directory where the dicom images will be stored. (The default value is the same as PLUS output directory)
+  - \xmlAtt keepReceivedDicomFiles: StealthLink sends the volume as dicom images. Leave this if you want to keep the dicom files in your computer's directory. (The default value is false, as in the files will be deleted after volume has been created)
+- SendText: sends text to the device. This command can only be used for GenericSerialDevice. Returns the command response received from the serial device.
+  - \xmlAtt DeviceId: Device ID of the GenericSerialDevice \RequiredAtt
+  - \xmlAtt Text: String to be sent to the serial device \RequiredAtt
+
+\subsection PlusServerCommandsOpenIGTLinkRemoteExecSlicerApi OpenIGTLinkRemoteExec Slicer module API
+
+Basic API:
+~~~~~~~~~~~~~~~~~~~~~
+status predefined values: REXEC_COMMAND_SUCCESS, REXEC_COMMAND_FAIL, REXEC_COMMAND_PROCESSING
+int commandId=remoteExecLogic->ExecuteCommand(myConnectorNode, "StartRecording");
+int status=remoteExecLogic->GetCommandReply(commandId);
+~~~~~~~~~~~~~~~~~~~~~
+
+Advanced calls:
+~~~~~~~~~~~~~~~~~~~~~
+int commandId=remoteExecLogic->ExecuteCommand(myConnectorNode, "StartRecording", customParamsXmlDataElement);
+int status=remoteExecLogic->GetCommandReply(commandId, customResultsXmlDataElement);
+remoteExecLogic->GetCommandNode(commandId);
+remoteExecLogic->GetCommandReplyNode(commandId);
+~~~~~~~~~~~~~~~~~~~~~
+
+A new pair of command and reply node is created for each call.
+
+If the caller does not need the command and reply node anymore than the caller has to delete them.
+    
+*/

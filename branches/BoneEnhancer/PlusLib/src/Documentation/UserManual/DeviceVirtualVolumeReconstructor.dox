@@ -1,0 +1,26 @@
+/*!
+\page DeviceVirtualVolumeReconstructor Virtual Volume Reconstructor
+
+Inserts tracked frames into a volume
+
+\section DeviceVirtualVolumeReconstructorConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "VirtualVolumeReconstructor" \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \b EnableReconstruction Flag that enables adding frames to the volume. If enabled then reconstruction is automatically started on connection. \OptionalAtt{false}
+- \xmlAtt \b OutputVolFilename If specified, the reconstructed volume will be saved into this filename \OptionalAtt{ }
+- \xmlAtt \b OutputVolDeviceName If specified, the reconstructed volume will be sent to the remote control client through OpenIGTLink, using this device name. \OptionalAtt{ }
+- \xmlElem \ref ElementVolumeReconstruction
+
+\section DeviceVirtualVolumeReconstructorExampleConfigFile Example configuration files
+
+PlusDeviceSet_Server_Sim_NwirePhantom.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_Sim_NwirePhantom.xml"
+
+PlusDeviceSet_OpenIGTLinkCommandsTest.xml
+
+\include "data/ConfigFiles/Testing/PlusDeviceSet_OpenIGTLinkCommandsTest.xml"
+
+*/

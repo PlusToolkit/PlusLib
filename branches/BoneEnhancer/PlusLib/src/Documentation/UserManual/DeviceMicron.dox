@@ -1,0 +1,46 @@
+/*!
+\page DeviceMicron Claron MicronTracker optical pose tracker
+
+\section MicronSupportedHwDevices Supported hardware devices
+
+- Link to manufacturer's website: http://www.clarontech.com/microntracker.php
+
+\section MicronSupportedPlatforms Included in packages
+- \ref PackageWin32
+- \ref PackageInterson
+- \ref PackageBk
+- \ref PackageStealthLink
+- \ref PackageThorLabs
+
+The device manufacturer supports additional platforms. On request, Plus toolkit will be extended to support this device on other platforms, too.
+
+\section MicronInstallation Installation
+- Each tool is identified by its unique marker pattern - by the number and relative position of the constituting "x-marks".
+  MicronTracker's CPPDemo tool (included in the MicronTracker software package) can identify a marker and
+  create a marker descriptor "template" file. All the template files must be placed into the "TemplateDirectory" specified in the configuration file.
+- If Plus does not find any tool then run CPPDemo and verify that the marker is in the field of view and recognizable.
+- The 1394 interface that your computer already has may not work with the camera. If the MicronTracker demo programs don't work then use the interface card that came with your MicronTracker package.
+
+\section MicronConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "MicronTracker" \RequiredAtt
+- \xmlAtt \b IniFile \c ="MicronTracker.ini" Path to the initialization file.  Relative to \ref FileApplicationConfiguration "DeviceSetConfigurationDirectory". \RequiredAtt
+- \xmlAtt \b TemplateDirectory \c ="Markers" Path to the directory that contains the marker files. Relative to \ref FileApplicationConfiguration "DeviceSetConfigurationDirectory". \OptionalAtt{DeviceSetConfigurationDirectory}
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{20}
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
+
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortName Name of the template file that describes the marker's geometry. The file is typically created by CPPDemo.\RequiredAtt
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+
+\section MicronExampleConfigFile Example configuration file PlusDeviceSet_Server_MicronTracker.xml
+
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_MicronTracker.xml" 
+
+
+
+*/

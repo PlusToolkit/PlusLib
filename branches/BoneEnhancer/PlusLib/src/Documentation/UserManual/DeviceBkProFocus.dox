@@ -1,0 +1,72 @@
+/*!
+\page DeviceBkProFocus BK ultrasound systems
+
+\section BkProFocusSupportedHwDevices Supported hardware devices
+
+- BK ProFocus, FlexFocus, and various other BK ultrasound imaging devices.
+- Image acquisition is available through both the OEM interface (TCP/IP) and CameraLink interface (high-speed interface for RF data acquisition).
+- Link to manufacturer's website: http://www.bkmed.com/systems_en.htm
+
+\section BkProFocusSupportedPlatforms Included in packages
+
+- \ref PackageBk
+
+- This device is not included in any of the standard packages, as it requires license from BK.
+- If the license is obtained from BK then Plus have to be built with PLUS_USE_BKPROFOCUS_VIDEO and optionally with PLUS_USE_BKPROFOCUS_CAMERALINK configuration options enabled as described at https://www.assembla.com/spaces/plus/wiki/Windows_Build_Instructions.
+- The device is tested on Windows, but may also work on other platforms.
+
+\section BkProFocusInstallation Installation
+
+- B-mode image acquisition through the OEM interface has some limitations, see <a href="https://www.assembla.com/spaces/plus/tickets/753">#753</a> and <a href="https://www.assembla.com/spaces/plus/tickets/754">#754</a>. The responsiveness of the BK scanner software may be impacted if images are acquired continuously at a frame rate higher than a few frames per second.
+- RF acquisition through TeledyneDalsa CameraLink interface card is supported, using Sapera API.
+  - B-mode acquisition (using the internal RF->B-mode conversion algorithm) is available for the BK 8848 transducer (http://www.bkmed.com/8848_en.htm).
+  - Need to install the DALSA Sapera package, otherwise the applications will not start because of missing the SapClassBasic72.dll. This dll can only be used with 64-bit Plus build on 64-bit OS and 32-bit Plus build on a 32-bit OS. Therefore the bitness of the Plus package shall match the bitness of the operating system.
+
+\section BkProFocusConfigSettings Device configuration settings
+
+\subsection BkProFocusOem OEM interface
+- \xmlAtt \ref DeviceType "Type" = \c "BkProFocusOem" \RequiredAtt
+
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate". Image retrieval may slow down the exam software, so keep the frame rate low by default \OptionalAtt{1}
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+
+- \xmlAtt \b IniFileName. INI file name. Is the name of the BK ini file that stores connection and acquisition settings.
+  If a relative path is specified then it is relative to the device set configuration directory.
+  See an example \ref inifile "INI file" below. \RequiredAtt
+
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
+  - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
+    - \xmlAtt \ref ImageType \OptionalAtt{BRIGHTNESS}
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+    - \xmlAtt \ref ClipRectangleOrigin \OptionalAtt{0 0 0}
+    - \xmlAtt \ref ClipRectangleSize \OptionalAtt{0 0 0}
+
+\subsection BkProFocusOemCam RF acquisition through the CameraLink interface
+
+- \xmlAtt \ref DeviceType "Type" = \c "BkProFocus" \RequiredAtt 
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125}
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \b IniFileName INI file name of the BK ini file that stores connection and acquisition settings. If a relative path is specified then it is relative to the device set configuration directory. See an example \ref inifile "INI file" below. \RequiredAtt 
+- \xmlAtt \b ImagingMode Set what kind of images are sent to the video source. The default is RF mode, when the raw RF data is recorded. Applications (e.g., fCal) may still be able to show a B-mode image for monitoring the acquisition by performing the brightness conversion and scan conversion internally. Other imaging modes are not yet supported. \OptionalAtt{RfMode}
+  - \c BMode
+  - \c RfMode Acquire RF mode data. For previewing B-mode images during acquisition, add an \ref AlgorithmRfProcessing "RfProcessing" child element to the \c OutputChannel.
+- \xmlAtt \b SubscribeScanPlane Enable support for dynamic scan plane switching on 8848 probes ( \c true or \c false). \OptionalAtt{false}
+- \xmlElem \ref DataSources
+  - \xmlElem \ref DataSource There must be one child element. \RequiredAtt
+    - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
+    - \xmlAtt \ref ImageType \OptionalAtt{BRIGHTNESS}
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+
+\anchor inifile
+\section ExampleIniFile Example INI file
+
+\include "data/ConfigFiles/BkSettings/IniFile.ini"
+
+\section BkProFocusExampleConfigFile Example configuration file PlusDeviceSet_fCal_BkProFocus_OpenIGTLinkTracker.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_fCal_BkProFocus_OpenIGTLinkTracker.xml"
+
+*/

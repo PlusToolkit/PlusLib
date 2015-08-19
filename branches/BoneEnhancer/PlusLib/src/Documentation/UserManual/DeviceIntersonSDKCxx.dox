@@ -1,0 +1,43 @@
+/*!
+\page DeviceIntersonSDKCxx Interson USB ultrasound systems (new SDK)
+
+\section IntersonSDKCxxSupportedHwDevices Supported hardware devices
+- This device is used for image acquisition from Interson USB ultrasound systems with \c SeeMore probes with the .NET (new) interface. Probes with old C++ interface should be used with \ref DeviceInterson.
+- Link to manufacturer's website: http://www.interson.com/products/seemore-153-usb-probes
+
+\section IntersonSDKCxxSupportedPlatforms Included in packages
+- Currently not included in any standard package. Supported on 32-bit Windows systems.
+
+\section IntersonSDKCxxInstallation Installation
+- Requires SDK provided by Interson for compilation and USB drivers provided by Interson for running (otherwise Plus application will not start due to missing Interson.dll).
+
+\section IntersonSDKCxxConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "IntersonVideoSDKCxx" \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \b DynRangeDb Dynamic Range \c [dB] of B-mode ultrasound. \OptionalAtt{-1}
+- \xmlAtt \b FrequencyMhz Ultrasound transmitter frequency \c [MHz].\OptionalAtt{-1}
+- \xmlAtt \b PulseVoltage Set the excitation pulse voltage in volts. \c [MHz].\OptionalAtt{30}
+- \xmlAtt \b RfDecimation Set whether the RF decimator is used. If value is "1" then the sampling rate is halved, but the imaged depth is doubled.\OptionalAtt{0}
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
+  - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
+    - \xmlAtt \ref ImageType Supported imaging modes: B-mode \OptionalAtt{BRIGHTNESS}
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+    - \xmlAtt \ref ClipRectangleOrigin \OptionalAtt{0 0 0}
+    - \xmlAtt \ref ClipRectangleSize \OptionalAtt{0 0 0}
+- \xmlElem \ref OutputChannels
+  - \xmlElem \ref OutputChannel
+    - \xmlElem \ref AlgorithmRfProcessing "RfProcessing" Required if scan-converted B-mode image output is needed.
+
+\section IntersonSDKCxxExampleConfigFileBMode Example configuration file for B-mode image acquisition PlusDeviceSet_Server_IntersonSDKCxx_GP3.5.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_IntersonSDKCxx_GP3.5.xml"
+
+\section IntersonSDKCxxExampleConfigFileBAndRfMode Example configuration file for simultaneous B-mode and RF-mode image acquisition PlusDeviceSet_Server_IntersonSDKCxx_GP3.5_Rf.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_IntersonSDKCxx_GP3.5_Rf.xml" 
+
+*/

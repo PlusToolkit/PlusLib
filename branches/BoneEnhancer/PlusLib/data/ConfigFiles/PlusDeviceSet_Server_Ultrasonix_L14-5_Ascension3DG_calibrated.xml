@@ -1,0 +1,117 @@
+ <PlusConfiguration version="2.1">
+
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet
+      Name="PlusServer: Ultrasonix US (L14-5/38 GPS probe) + Ascension3DG tracker (Probe, Reference, Stylus) - calibrated"
+      Description="Broadcasting ultrasound images acquired from the Ultrasonix system through OpenIGTLink. Probe is spatially calibrated for any imaging depth. If PlusServer does not run on the Ultrasonix PC then update the IP attribute in the Device element with the Ultrasonix PC's IP address. Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on Ultrasonix US in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." />
+    <Device
+      Id="TrackerDevice" 
+      Type="Ascension3DG" 
+      LocalTimeOffsetSec="0.0" 
+      FilterAcWideNotch="1"
+      ToolReferenceFrame="Tracker" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Probe" PortName="0"  />
+        <DataSource Type="Tool" Id="Reference" PortName="1"  />
+        <DataSource Type="Tool" Id="Stylus" PortName="2"  />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream" >
+          <DataSource Id="Probe"/>
+          <DataSource Id="Reference"/>
+          <DataSource Id="Stylus"/>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+    <Device
+      Id="VideoDevice"
+      Type="SonixVideo" 
+      AcquisitionRate="30" 
+      LocalTimeOffsetSec="-0.2976"
+      IP="127.0.0.1"
+      AutoClipEnabled="TRUE"
+      ImageToTransducerTransformName="ImageToTransducer" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF"  />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video"/>
+      </OutputChannels>
+    </Device>
+    <Device 
+      Id="TrackedVideoDevice" 
+      Type="VirtualMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="VideoStream" />
+      </InputChannels>
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream"/>
+      </OutputChannels>
+    </Device>
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="Recording.mhd"
+      EnableCapturing="FALSE"
+      RequestedFrameRate="15" >
+      <InputChannels>
+        <InputChannel Id="TrackedVideoStream" />
+      </InputChannels>
+    </Device>
+    <Device
+      Id="VolumeReconstructorDevice"
+      Type="VirtualVolumeReconstructor"
+      OutputVolDeviceName="Volume_Reference"
+      EnableReconstruction="FALSE" >
+      <InputChannels>
+        <InputChannel Id="TrackedVideoStream" />
+      </InputChannels>
+      <VolumeReconstruction
+        ImageCoordinateFrame="Image" ReferenceCoordinateFrame="Reference"
+        CompoundingMode="MEAN" Interpolation="LINEAR"
+        Optimization="FULL" NumberOfThreads="2"
+        ClipRectangleOrigin="0 0" ClipRectangleSize="820 616" PixelRejectionThreshold="1"
+        OutputSpacing="0.5 0.5 0.5"
+        FillHoles="ON" >
+        <HoleFilling>
+          <HoleFillingElement Type="GAUSSIAN" Size="5" Stdev="0.6667" MinimumKnownVoxelsRatio="0.50001" />
+          <HoleFillingElement Type="STICK" StickLengthLimit="9" NumberOfSticksToUse="1" />
+        </HoleFilling>
+      </VolumeReconstruction>
+    </Device>
+  </DataCollection>
+
+  <CoordinateDefinitions>
+    <!-- TransducerToProbe transform matrix is computed from calibration matrices provided by Ultrasonix for linear GPS probe -->
+    <Transform From="Transducer" To="Probe"
+      Matrix="
+        0.0018    0.9477   -0.0175   14.8449
+       -1.0000    0.0016   -0.0052   15.0061
+       -0.0052    0.0166    0.9998    0.1638
+             0         0         0    1.0000" />
+  </CoordinateDefinitions>
+  
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="TrackedVideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="ProbeToReference" />
+        <Transform Name="StylusToReference" />
+        <Transform Name="ReferenceToTracker" />
+      </TransformNames>
+      <ImageNames>
+        <Image Name="Image" EmbeddedTransformToFrame="Reference" />
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+</PlusConfiguration>

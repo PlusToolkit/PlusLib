@@ -1,0 +1,44 @@
+<PhantomDefinition>
+  <Description
+    Name="fCAL"
+    Type="Multi-N"
+    Version="2.1"
+    WiringVersion="2.0"
+    Institution="Queen's University PerkLab"
+  />
+      <Geometry>
+      <Pattern Type="NWire">
+        <Wire Name="7:G1_g1" EndPointFront="30.0 0.0 0.0" EndPointBack="30.0 0.0 40.0" />
+        <Wire Name="8:L1_h1" EndPointFront="55.0 0.0 0.0" EndPointBack="35.0 0.0 40.0" />
+        <Wire Name="9:M1_m1" EndPointFront="60.0 0.0 0.0" EndPointBack="60.0 0.0 40.0" />
+      </Pattern>
+      <Pattern Type="NWire">
+        <Wire Name="4:G3_g3" EndPointFront="30.0 10.0 0.0" EndPointBack="30.0 10.0 40.0" />
+        <Wire Name="5:H3_l3" EndPointFront="35.0 10.0 0.0" EndPointBack="55.0 10.0 40.0" />
+        <Wire Name="6:M3_m3" EndPointFront="60.0 10.0 0.0" EndPointBack="60.0 10.0 40.0" />
+      </Pattern>
+      <Pattern Type="NWire">
+        <Wire Name="1:H5_h5" EndPointFront="35.0 20.0 0.0" EndPointBack="35.0 20.0 40.0" />
+        <Wire Name="2:L5_i5" EndPointFront="55.0 20.0 0.0" EndPointBack="40.0 20.0 40.0" />
+        <Wire Name="3:M5_m5" EndPointFront="60.0 20.0 0.0" EndPointBack="60.0 20.0 40.0" />
+      </Pattern>
+      <Landmarks>
+        <Landmark Name="#1"  Position="-32.53 -5.25 45.0" />
+        <Landmark Name="#2"  Position="-32.53 -5.25  5.0" />
+        <Landmark Name="#3"  Position="-32.53 19.75 -5.0" />
+        <Landmark Name="#4"  Position="-32.53 19.75 45.0" />        
+        <Landmark Name="#5"  Position="105.47 -5.25 -5.0" />
+        <Landmark Name="#6"  Position="105.47 -5.25 45.0" />
+        <Landmark Name="#7"  Position="105.47 14.75 -5.0" />
+        <Landmark Name="#8"  Position="105.47 19.75 45.0" />
+        <Landmark Name="#9"  Position=" -3.53 -9.25 45.0" />
+        <Landmark Name="#10" Position=" 41.47 -9.25 45.0" />
+        <Landmark Name="#11" Position=" 86.47 -9.25 45.0" />
+        <Landmark Name="#12" Position=" 96.47 -9.25 30.0" />        
+        <Landmark Name="#13" Position=" 86.47 -9.25 -5.0" />
+        <Landmark Name="#14" Position=" 21.47 -9.25 -5.0" />
+        <Landmark Name="#15" Position=" -3.53 -9.25 -5.0" />
+        <Landmark Name="#16" Position="-13.53 -9.25 10.0" />
+      </Landmarks>
+    </Geometry>
+</PhantomDefinition>

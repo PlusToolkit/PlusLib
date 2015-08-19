@@ -1,0 +1,125 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
+// This file stores values determined during CMake configuration and
+// includes commonly needed header files.
+// This file has to be the first include in Plus cxx files.
+
+#ifndef __PlusConfigure_h
+#define __PlusConfigure_h
+
+#ifdef _WIN32_WINNT
+#undef _WIN32_WINNT
+#endif
+#define _WIN32_WINNT @RUNTIME_MINIMUM_WINDOWS_VERSION@
+
+// disable warnings for sprintf
+#define _CRT_SECURE_NO_WARNINGS
+// disable warnings for std::copy
+#define _SCL_SECURE_NO_WARNINGS
+
+#if defined(_WIN32) && !defined(VTKSLICER_STATIC)
+  #pragma warning ( disable : 4275 )
+#endif
+
+#if defined(_MSC_VER)
+  #pragma warning ( disable : 4786 )
+#endif
+
+#cmakedefine PLUS_USE_OpenIGTLink
+
+#cmakedefine BUILD_SHARED_LIBS
+
+#ifndef BUILD_SHARED_LIBS
+  #define VTKSLICER_STATIC
+  #define PlusLib_STATIC
+#endif
+
+#define PLUSLIB_VERSION "@PLUSLIB_VERSION@"
+#define PLUSLIB_VERSION_MAJOR @PLUSLIB_VERSION_MAJOR@
+#define PLUSLIB_VERSION_MINOR @PLUSLIB_VERSION_MINOR@
+#define PLUSLIB_VERSION_PATCH @PLUSLIB_VERSION_PATCH@
+#define DATA_PATH "${DATA_PATH}"
+
+// OpenIGTLink does not define version in header file
+// therefore we need to add the version information in Plus
+#define OPENIGTLINK_VERSION_MAJOR @OpenIGTLink_VERSION_MAJOR@
+#define OPENIGTLINK_VERSION_MINOR @OpenIGTLink_VERSION_MINOR@
+#define OPENIGTLINK_VERSION_PATCH @OpenIGTLink_VERSION_PATCH@
+#define OPENIGTLINK_VERSION "@OpenIGTLink_VERSION_MAJOR@.@OpenIGTLink_VERSION_MINOR@.@OpenIGTLink_VERSION_PATCH@"
+
+// For VTK 6 and later include the header file that defines
+// VTK version (VTK_MAJOR_VERSION, VTK_MINOR_VERSION, etc.)
+// In earlier VTK releases, the version information was included
+// in vtkConfigure.h, therefore no additional include was needed.
+#if (@VTK_MAJOR_VERSION@ >= 6)  
+  #include "vtkVersionMacros.h"
+#endif
+
+// filter->SetInput was renamed to filter->SetInputData in VTK6
+// The SetInputData_vtk5compatible macro can be used with both VTK5 and VTK6.
+// When VTK5 support will be dropped this macro should be removed.
+#if (VTK_MAJOR_VERSION < 6)
+  #define SetInputData_vtk5compatible SetInput
+#else
+  #define SetInputData_vtk5compatible SetInputData
+#endif
+
+#cmakedefine PLUS_USE_3dConnexion_TRACKER
+#cmakedefine PLUS_USE_Ascension3DG
+#cmakedefine PLUS_USE_Ascension3DGm
+
+#cmakedefine PLUS_USE_BKPROFOCUS_CAMERALINK
+#cmakedefine PLUS_USE_BKPROFOCUS_VIDEO
+#cmakedefine PLUS_TEST_BKPROFOCUS
+#cmakedefine PLUS_USE_BRACHY_TRACKER
+#cmakedefine PLUS_USE_CERTUS
+#cmakedefine PLUS_USE_EPIPHAN
+#cmakedefine PLUS_USE_ICCAPTURING_VIDEO
+#cmakedefine PLUS_USE_CAPISTRANO_VIDEO
+#cmakedefine PLUS_USE_INTERSON_VIDEO
+#cmakedefine PLUS_USE_INTERSONSDKCXX_VIDEO
+#cmakedefine PLUS_USE_MICRONTRACKER
+#cmakedefine PLUS_USE_MMF_VIDEO
+#cmakedefine PLUS_USE_TELEMED_VIDEO
+#cmakedefine PLUS_USE_OPTITRACK
+#cmakedefine PLUS_USE_OPTIMET_CONOPROBE
+#cmakedefine PLUS_USE_THORLABS_VIDEO
+#cmakedefine PLUS_USE_PHIDGET_SPATIAL_TRACKER
+#cmakedefine PLUS_USE_POLARIS
+#cmakedefine PLUS_USE_ULTRASONIX_VIDEO
+#cmakedefine PLUS_USE_VFW_VIDEO
+#cmakedefine PLUS_USE_STEALTHLINK
+#cmakedefine PLUS_USE_IntuitiveDaVinci
+#cmakedefine PLUS_USE_PHILIPS_3D_ULTRASOUND
+
+#cmakedefine PLUS_USE_SIMPLE_TIMER
+
+#define PLUS_ULTRASONIX_SDK_MAJOR_VERSION @PLUS_ULTRASONIX_SDK_MAJOR_VERSION@
+#define PLUS_ULTRASONIX_SDK_MINOR_VERSION @PLUS_ULTRASONIX_SDK_MINOR_VERSION@
+#define PLUS_ULTRASONIX_SDK_PATCH_VERSION @PLUS_ULTRASONIX_SDK_PATCH_VERSION@
+
+#undef DO_CALIBRATION_FILE_CALCULATIONS
+
+//High tolerance defined for to use in calibration tests in order to pass under linux (see #590)
+#define LINUXTOLERANCE 0.5
+#define LINUXTOLERANCEPERCENT 8
+
+// Frequently needed STL includes
+#include <strstream>
+#include <iostream>
+
+// Frequently needed VTK includes
+#include "vtkSmartPointer.h"
+#include "vtkObjectFactory.h"
+
+// Frequently needed Plus includes
+#include "vtkAccurateTimer.h"
+#include "PlusCommon.h"
+#include "vtkPlusLogger.h"
+#include "vtkPlusConfig.h"
+ 
+#endif // __PlusConfigure_h

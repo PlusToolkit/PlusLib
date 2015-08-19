@@ -1,0 +1,63 @@
+ <PlusConfiguration version="2.1">
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="PlusServer: Saved 3D with NDI Aurora Probe+Reference+Stylus"
+      Description="Broadcasting acquired video through OpenIGTLink"
+    />
+
+    <Device
+      Id="VideoDevice"
+      Type="SavedDataSource" 
+      UseData="IMAGE_AND_TRANSFORM"
+      RepeatEnabled="TRUE"
+      AcquisitionRate="10" 
+      LocalTimeOffsetSec="0.0" 
+      SequenceMetafile="ie33_NDIAurora_Probe_Stylus_compressed.mha" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />
+      </DataSources>      
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+  </DataCollection>
+
+  <CoordinateDefinitions>
+    <Transform From="Image" To="Probe"
+      Matrix="
+        0.166006	-0.0944847	-0.00445761	-14.9463
+        0.0903257	0.17565	-0.014166	-86.5863
+        0.0104134	0.0106585	0.193937	0.637663
+        0	0	0	1"
+       Error="1.17562" Date="052015_132620" />
+    <Transform From="StylusTip" To="Stylus"
+      Matrix="
+        0.999941	0	0.0108402	0.857485
+        -3.45131e-005	0.999995	0.00318361	0.25183
+        -0.0108402	-0.0031838	0.999936	79.097
+        0	0	0	1"
+       Error="0.452058" Date="070715_152553" />
+  </CoordinateDefinitions>
+  
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="TrackedVideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="ProbeToTracker" /> 
+        <Transform Name="ReferenceToTracker" />
+        <Transform Name="StylusTipToTracker" />
+      </TransformNames>
+      <ImageNames>
+        <Image Name="Image" EmbeddedTransformToFrame="Reference" />
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+</PlusConfiguration>

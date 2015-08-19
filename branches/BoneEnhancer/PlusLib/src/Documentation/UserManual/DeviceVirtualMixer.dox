@@ -1,0 +1,21 @@
+/*!
+\page DeviceVirtualMixer Virtual Mixer
+
+This device can merge video and tracking data from multiple input channels into output channel(s). An output channel may contain a video stream from any of the input streams and tracking data from any input streams.
+
+All input data is resampled at common time points. The sampling time points are defined by the timestamps of the video stream (if the output channel contains a video stream) or the first tool defined in the output channel (if the output channel does not contain video).
+
+The mixer device is typically used for assigning position data to each image frame or create a single data channel that contains tracking data from multiple pose tracking devices.
+
+\section VirtualMixerConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "VirtualMixer" \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{50} 
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
+
+\section VirtualMixerExampleConfigFile Example configuration file PlusDeviceSet_fCal_Ultrasonix_L14-5_Ascension3DG_2.0.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_fCal_Ultrasonix_L14-5_Ascension3DG_2.0.xml"
+
+*/
