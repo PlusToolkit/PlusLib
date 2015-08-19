@@ -30,7 +30,7 @@ public:
   * \param aParent parent
   * \param aFlags widget flag
   */
-  SegmentationParameterDialogTest(QWidget *parent = 0, Qt::WFlags flags = 0);
+  SegmentationParameterDialogTest(QWidget *parent = 0, Qt::WindowFlags flags = 0);
 
   /*!
   * Destructor

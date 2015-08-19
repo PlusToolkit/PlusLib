@@ -12,7 +12,7 @@
 
 //-----------------------------------------------------------------------------
 
-ToolStateDisplayWidget::ToolStateDisplayWidget(QWidget* aParent, Qt::WFlags aFlags)
+ToolStateDisplayWidget::ToolStateDisplayWidget(QWidget* aParent, Qt::WindowFlags aFlags)
   : QWidget(aParent, aFlags)
   , m_SelectedChannel(NULL)
   , m_Initialized(false)

@@ -1,7 +1,9 @@
 PROJECT(PlusServerLauncher)
 
-FIND_PACKAGE(Qt4 REQUIRED)
-INCLUDE(${QT_USE_FILE})
+IF( ${QT_MAJOR_VERSION} EQUAL 4 )
+  FIND_PACKAGE(Qt4 REQUIRED)
+  INCLUDE(${QT_USE_FILE})
+ENDIF()
 
 # --------------------------------------------------------------------------
 # Sources
@@ -31,11 +33,22 @@ SET (PlusServerLauncher_QT_Resources
 
 # --------------------------------------------------------------------------
 # Qt specific commands
-
-QT4_WRAP_CPP( PlusServerLauncher_QT_MOC_Files ${PlusServerLauncher_UI_HDRS} )
-QT4_WRAP_UI( PlusServerLauncher_QT_UI_Headers ${PlusServerLauncher_UI_SRCS} )
-QT4_WRAP_CPP( PlusServerLauncher_QT_MOC_UI_Files ${PlusServerLauncher_QT_UI_Headers} )
-QT4_ADD_RESOURCES( PlusServerLauncher_QT_RCC_Files ${PlusServerLauncher_QT_Resources} )
+IF( ${QT_MAJOR_VERSION} EQUAL 5 )
+  qt5_wrap_cpp( PlusServerLauncher_QT_MOC_Files ${PlusServerLauncher_UI_HDRS} )
+  qt5_wrap_ui( PlusServerLauncher_QT_UI_Headers ${PlusServerLauncher_UI_SRCS} )
+  qt5_wrap_cpp( PlusServerLauncher_QT_MOC_UI_Files ${PlusServerLauncher_QT_UI_Headers} )
+  qt5_add_resources(PlusServerLauncher_QT_RCC_Files, ${PlusServerLauncher_QT_Resources} )
+  
+  INCLUDE_DIRECTORIES(${Qt5Widgets_INCLUDES})
+  ADD_DEFINITIONS(${Qt5Widgets_DEFINITIONS})
+  
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
+ELSE(${QT_MAJOR_VERSION} EQUAL 5)
+  QT4_WRAP_CPP( PlusServerLauncher_QT_MOC_Files ${PlusServerLauncher_UI_HDRS} ) 
+  QT4_WRAP_UI( PlusServerLauncher_QT_UI_Headers ${PlusServerLauncher_UI_SRCS} )
+  QT4_WRAP_CPP( PlusServerLauncher_QT_MOC_UI_Files ${PlusServerLauncher_QT_UI_Headers} )
+  QT4_ADD_RESOURCES( PlusServerLauncher_QT_RCC_Files ${PlusServerLauncher_QT_Resources} )
+ENDIF(${QT_MAJOR_VERSION} EQUAL 5)
 
 SOURCE_GROUP("Generated Files" FILES ${PlusServerLauncher_QT_MOC_Files} ${PlusServerLauncher_QT_UI_Headers} ${PlusServerLauncher_QT_MOC_UI_Files} ${PlusServerLauncher_QT_RCC_Files})
 SOURCE_GROUP("UI Files" FILES ${PlusServerLauncher_UI_SRCS})

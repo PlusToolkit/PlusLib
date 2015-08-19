@@ -30,7 +30,7 @@ public:
 	* \param aParent parent
 	* \param aFlags widget flag
 	*/
-	ToolStateDisplayWidget(QWidget* aParent = 0, Qt::WFlags aFlags = 0);
+	ToolStateDisplayWidget(QWidget* aParent = 0, Qt::WindowFlags aFlags = 0);
 
 	/*!
 	* Destructor

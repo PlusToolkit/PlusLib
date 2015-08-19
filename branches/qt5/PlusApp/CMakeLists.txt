@@ -130,31 +130,30 @@ INCLUDE (${CMAKE_CURRENT_SOURCE_DIR}/CPackConfig.cmake)
 # Qt
 # 
 SET(CMAKE_AUTOMOC ON)
-
+# As moc files are generated in the binary dir, tell CMake
+  # to always look for includes there:
+SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 FIND_PACKAGE(Qt4 QUIET)
 IF ( NOT QT4_FOUND )
   GET_FILENAME_COMPONENT(QT_BIN_FOLDER ${QT_QMAKE_EXECUTABLE} DIRECTORY)
   GET_FILENAME_COMPONENT(CMAKE_PREFIX_PATH ${QT_BIN_FOLDER} DIRECTORY)
-  FIND_PACKAGE(Qt5Widgets)
+  FIND_PACKAGE(Qt5Widgets QUIET)
 
-  get_cmake_property(_variableNames VARIABLES)
-  foreach (_variableName ${_variableNames})
-    message(STATUS "${_variableName}=${${_variableName}}")
-  endforeach()
+  #get_cmake_property(_variableNames VARIABLES)
+  #foreach (_variableName ${_variableNames})
+    #message(STATUS "${_variableName}=${${_variableName}}")
+  #endforeach()
 
   IF ( NOT Qt5Gui_FOUND )
     MESSAGE( FATAL_ERROR "This project requires Qt4 or Qt5 for building PlusApp. These components are missing. Please verify configuration by selecting QT_QMAKE_EXECUTABLE or turn off PLUSBUILD_BUILD_PLUSAPP option.")
   ENDIF()
-
-  SET(QT_MAJOR_VERSION ${Qt5Widgets_VERSION_MAJOR})
-  SET(QT_BINARY_DIR ${QT_BIN_FOLDER})
+  
   SET(QT_LIBRARIES ${Qt5Widgets_LIBRARIES})
-  SET(QT_INCLUDE_DIRS ${Qt5Widgets_INCLUDE_DIRS})
-  INCLUDE(${QT_USE_FILE})
+  SET(QT_MAJOR_VERSION ${Qt5Widgets_VERSION_MAJOR})
 ELSE()
-  SET(QT_USE_QT3SUPPORT FALSE) 
   INCLUDE(${QT_USE_FILE})
+  SET(QT_USE_QT3SUPPORT FALSE) 
 ENDIF()
 
 # --------------------------------------------------------------------------
@@ -272,6 +271,10 @@ configure_file(
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.sh.in 
   ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.sh
+  )
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/PlusAppConfigure.h.in 
+  ${CMAKE_CURRENT_BINARY_DIR}/PlusAppConfigure.h
   )
 #-----------------------------------------------------------------------------
 # Install files 

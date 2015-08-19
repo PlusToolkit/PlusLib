@@ -34,7 +34,7 @@ public:
     \param aParent parent
     \param aFlags widget flag
   */
-  PlusServerLauncherMainWindow(QWidget *parent = 0, Qt::WFlags flags = 0, bool autoConnect=false);
+  PlusServerLauncherMainWindow(QWidget *parent = 0, Qt::WindowFlags flags = 0, bool autoConnect=false);
 
   /*! Destructor */
   ~PlusServerLauncherMainWindow();

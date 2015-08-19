@@ -25,7 +25,7 @@ const char PHANTOM_WIRES_MODEL_ID[]="PhantomWiresModel";
 
 //-----------------------------------------------------------------------------
 
-ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags)
+ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags)
 : AbstractToolbox(aParentMainWindow)
 , QWidget(aParentMainWindow, aFlags)
 , m_ToolStatePopOutWindow(NULL)

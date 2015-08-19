@@ -16,7 +16,7 @@
 // TODO: uncomment this when VTK is updated to a version that contains vtksys::Encoding
 //#include "vtksys/Encoding.hxx"
 
-#include <QtGui/QApplication>
+#include <QApplication>
 #include <QDesktopWidget>
 #include <QGridLayout>
 #include <QMessageBox>

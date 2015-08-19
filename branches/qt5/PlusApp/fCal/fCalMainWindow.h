@@ -9,7 +9,7 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "ui_fCalMainWindow.h"
-#include <QtGui/QMainWindow>
+#include <QMainWindow>
 
 class AbstractToolbox;
 class QCustomAction;
@@ -52,7 +52,7 @@ public:
   * \param aParent parent
   * \param aFlags widget flag
   */
-  fCalMainWindow(QWidget *parent = 0, Qt::WFlags flags = 0);
+  fCalMainWindow(QWidget *parent = 0, Qt::WindowFlags flags = 0);
 
   /*!
   * Destructor

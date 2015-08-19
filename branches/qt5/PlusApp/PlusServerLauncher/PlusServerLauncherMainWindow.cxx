@@ -22,7 +22,7 @@
 
 
 //-----------------------------------------------------------------------------
-PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent, Qt::WFlags flags, bool autoConnect)
+PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent, Qt::WindowFlags flags, bool autoConnect)
   : QDialog(parent, flags|Qt::WindowMinimizeButtonHint)
   , m_DeviceSetSelectorWidget(NULL)
   , m_CurrentServerInstance(NULL)

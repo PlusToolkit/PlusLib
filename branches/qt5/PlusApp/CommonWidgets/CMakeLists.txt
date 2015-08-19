@@ -1,8 +1,13 @@
 PROJECT(CommonWidgets)
 
-FIND_PACKAGE(Qt4 REQUIRED)
-SET(QT_USE_QTXML TRUE)
-INCLUDE(${QT_USE_FILE})
+IF( ${QT_MAJOR_VERSION} EQUAL 4 )
+  FIND_PACKAGE(Qt4 REQUIRED)
+  SET(QT_USE_QTXML TRUE)
+  INCLUDE(${QT_USE_FILE})
+ELSE()
+  FIND_PACKAGE(Qt5Xml QUIET)
+  SET(QT_LIBRARIES ${QT_LIBRARIES} ${Qt5Xml_LIBRARIES})
+ENDIF()
 
 # --------------------------------------------------------------------------
 # Sources
@@ -54,17 +59,26 @@ SET( QT_Resources
 
 # --------------------------------------------------------------------------
 # Qt specific commands
-
-QT4_WRAP_CPP( QT_MOC_Files ${CommonWidgets_UI_HDRS} ) 
-QT4_WRAP_UI( QT_UI_Headers ${CommonWidgets_UI_SRCS} )
-QT4_WRAP_CPP( QT_MOC_UI_Files ${QT_UI_Headers} )
-QT4_ADD_RESOURCES( QT_RCC_Files ${QT_Resources} )
+IF( ${QT_MAJOR_VERSION} EQUAL 5 )
+  qt5_wrap_cpp( QT_MOC_Files ${CommonWidgets_UI_HDRS} )
+  qt5_wrap_ui( QT_UI_Headers ${CommonWidgets_UI_SRCS} )
+  qt5_wrap_cpp( QT_MOC_UI_Files ${QT_UI_Headers} )
+  qt5_add_resources(QT_RCC_Files, ${QT_Resources} )
+  
+  INCLUDE_DIRECTORIES(${Qt5Widgets_INCLUDES})
+  ADD_DEFINITIONS(${Qt5Widgets_DEFINITIONS})
+ELSE(${QT_MAJOR_VERSION} EQUAL 5)
+  QT4_WRAP_CPP( QT_MOC_Files ${CommonWidgets_UI_HDRS} ) 
+  QT4_WRAP_UI( QT_UI_Headers ${CommonWidgets_UI_SRCS} )
+  QT4_WRAP_CPP( QT_MOC_UI_Files ${QT_UI_Headers} )
+  QT4_ADD_RESOURCES( QT_RCC_Files ${QT_Resources} )
+ENDIF(${QT_MAJOR_VERSION} EQUAL 5)
 
 SOURCE_GROUP("Generated Files" FILES ${QT_MOC_Files} ${QT_UI_Headers} ${QT_MOC_UI_Files} ${QT_RCC_Files})
 SOURCE_GROUP("UI Files" FILES ${CommonWidgets_UI_SRCS})
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 
 # Treat wchar_t as built-in type - makes shell executes possible
 if (WIN32)
