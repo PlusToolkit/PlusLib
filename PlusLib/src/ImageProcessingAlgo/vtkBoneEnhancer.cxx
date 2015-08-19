@@ -8,11 +8,11 @@ See License.txt for details.
 #include "PlusMath.h"
 #include "TrackedFrame.h"
 #include "vtkBoneEnhancer.h"
-#include "vtkImageThreshold.h"
+#include "vtkForoughiBoneSurfaceProbability.h"
 #include "vtkObjectFactory.h"
-#include "vtkTrackedFrameList.h"
 #include "vtkUsScanConvertCurvilinear.h"
 #include "vtkUsScanConvertLinear.h"
+#include "vtkImageCast.h"
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkBoneEnhancer);
@@ -20,11 +20,15 @@ vtkStandardNewMacro(vtkBoneEnhancer);
 
 //----------------------------------------------------------------------------
 vtkBoneEnhancer::vtkBoneEnhancer()
-: Thresholder(vtkSmartPointer<vtkImageThreshold>::New())
+: BoneSurfaceFilter(vtkSmartPointer<vtkForoughiBoneSurfaceProbability>::New())
+, CastToDouble(vtkSmartPointer<vtkImageCast>::New())
+, CastToUnsignedChar(vtkSmartPointer<vtkImageCast>::New())
 {
-  this->SetThreshold(128);
-  this->Thresholder->SetInValue(20);
-  this->Thresholder->SetOutValue(200);
+  this->CastToDouble->SetOutputScalarTypeToDouble();
+  this->CastToUnsignedChar->SetOutputScalarTypeToUnsignedChar();
+
+  this->BoneSurfaceFilter->SetInputConnection(this->CastToDouble->GetOutputPort());
+  this->CastToUnsignedChar->SetInputConnection(this->BoneSurfaceFilter->GetOutputPort());
 }
 
 //----------------------------------------------------------------------------
@@ -86,13 +90,14 @@ PlusStatus vtkBoneEnhancer::WriteConfiguration(vtkXMLDataElement* processingElem
 //-----------------------------------------------------------------------------
 void vtkBoneEnhancer::SetThreshold(double threshold)
 {
-  this->Thresholder->ThresholdByLower(threshold);
+  //this->Thresholder->ThresholdByLower(threshold);
 }
 
 //-----------------------------------------------------------------------------
 double vtkBoneEnhancer::GetThreshold()
 {
-  return this->Thresholder->GetLowerThreshold();
+  //return this->Thresholder->GetLowerThreshold();
+  return 0;
 }
 
 //----------------------------------------------------------------------------
@@ -137,24 +142,12 @@ PlusStatus vtkBoneEnhancer::ProcessFrame(TrackedFrame* inputFrame, TrackedFrame*
 {
   // Get input image
   PlusVideoFrame* inputImage = inputFrame->GetImageData();
-  vtkImageData* inputVtkImage = inputImage->GetImage();
 
-  // Generate output image
-  this->Thresholder->SetInputData_vtk5compatible(inputVtkImage);
-  this->Thresholder->Update();
+  this->CastToDouble->SetInputData_vtk5compatible(inputImage->GetImage());
+  this->CastToUnsignedChar->Update();
 
-  if (this->ScanConverter.GetPointer()!=NULL)
-  {
-    const int numOfScanlines = 50; // number of scanlines
-    const int numOfSamplesPerScanline = 100; // number of dots drawn per scanline
-    int rfImageExtent[6] = {0,numOfSamplesPerScanline-1,0,numOfScanlines-1,0,0};
-    this->ScanConverter->SetInputImageExtent(rfImageExtent);
-    DrawScanLines(this->ScanConverter, this->Thresholder->GetOutput());
-  }
-
-  // Write output image
   PlusVideoFrame* outputImage = outputFrame->GetImageData();
-  outputImage->DeepCopyFrom(this->Thresholder->GetOutput());
+  outputImage->DeepCopyFrom(this->CastToUnsignedChar->GetOutput());
 
   return PLUS_SUCCESS;
 }
