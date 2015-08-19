@@ -511,6 +511,18 @@ PlusStatus PlusVideoFrame::DeepCopyFrom(vtkImageData* frame)
 }
 
 //----------------------------------------------------------------------------
+PlusStatus PlusVideoFrame::ShallowCopyFrom(vtkImageData* frame)
+{
+  if ( frame == NULL )
+  {
+    LOG_ERROR("Failed to shallow copy from vtk image data - input frame is NULL!"); 
+    return PLUS_FAIL; 
+  }
+  this->Image->ShallowCopy(frame);
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 int PlusVideoFrame::GetNumberOfBytesPerScalar() const
 {
   return PlusVideoFrame::GetNumberOfBytesPerScalar(GetVTKScalarPixelType());
