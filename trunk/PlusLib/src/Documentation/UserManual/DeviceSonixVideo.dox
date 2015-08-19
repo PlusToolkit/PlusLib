@@ -75,15 +75,15 @@ Porta interface specific Device attributes:
 - \xmlAtt \b ImagingMode Only BMode supported. \OptionalAtt{BMode}
 - \xmlAtt \b FramePerVolume Number of frames that will acquired in one sweep of the motor. Range: 3-125 (always odd as there always is a central frame). \OptionalAtt{80} 
 - \xmlAtt \b BModeFrameSize Size of the BMode frame buffer \c [pixels] \OptionalAtt{ 480 436 }
-- \xmlAtt \b StepPerFrame The number of steps the motor will move while acuqiring a single frame. Range: 2, 4, 8, 16, 32. \OptionalAtt{4}
-- \xmlAtt \b Usm Porta initialization parameter \RequiredAtt
-- \xmlAtt \b Pci Porta initialization parameter \RequiredAtt
-- \xmlAtt \b HighVoltage Porta initialization parameter \RequiredAtt
-- \xmlAtt \b Channels Porta initialization parameter \RequiredAtt
-- \xmlAtt \b PortaLUTPath Path to the Porta LUT directory.\RequiredAtt
-- \xmlAtt \b PortaSettingPath Path to the Porta Setting directory. \RequiredAtt
-- \xmlAtt \b PortaLicensePath Path to the licenses text file. \RequiredAtt
-- \xmlAtt \b PortaFirmwarePath Path to the Porta Firmware directory. \RequiredAtt
+- \xmlAtt \b StepPerFrame The number of steps the motor will move while acquiring a single frame. Range: 2, 4, 8, 16, 32. Larger value results in faster scanning. \OptionalAtt{4}
+- \xmlAtt \b Usm Ultrasound module version. Typical values: 2, 3, 4. If an incorrect value is set then Porta initialization will fail, therefore the Usm and Pci values can be determined by trial and error. \RequiredAtt
+- \xmlAtt \b Pci PCI card version.  Typical values: 2, 3, 4. If an incorrect value is set then Porta initialization will fail, therefore the Usm and Pci values can be determined by trial and error. \RequiredAtt
+- \xmlAtt \b HighVoltage Set it to 1 in case of a high-voltage board is used (only for Usm="2"), otherwise set it to 0. \RequiredAtt
+- \xmlAtt \b Channels Porta initialization parameter. Typical value is "64". \RequiredAtt
+- \xmlAtt \b PortaLUTPath Path to the Porta LUT directory. Typical value: "D:/Ultrasonix Settings/LUTS/" \RequiredAtt
+- \xmlAtt \b PortaSettingPath Path to the Porta Setting directory. Example value: "D:/sdk/porta/dat/" \RequiredAtt
+- \xmlAtt \b PortaLicensePath Path to the licenses text file. Example value: "D:/Ultrasonix Settings/" \RequiredAtt
+- \xmlAtt \b PortaFirmwarePath Path to the Porta Firmware directory. Example value: "D:/sdk/porta/fw/" \RequiredAtt
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_L14-5_Ascension3DG_calibrated.xml"
 
