@@ -27,7 +27,7 @@ SET(CPACK_NSIS_INSTALL_ROOT "$PROFILE")
 SET(CPACK_NSIS_DEFINES ${CPACK_NSIS_DEFINES} "RequestExecutionLevel user")
 
 SET(CPACK_PACKAGE_EXECUTABLES 
-  "PlusServerLauncher" "Plus server"
+  "PlusServerLauncher" "Plus Server Launcher"
   "fCal" "Free-hand calibration (fCal)"
   )
 
@@ -69,18 +69,18 @@ ELSE(EXISTS "${VTK_DIR}/CMakeCache.txt")
 ENDIF(EXISTS "${VTK_DIR}/CMakeCache.txt")
 
 IF(EXISTS "${ITK_DIR}/CMakeCache.txt")
-	SET(ITK_USE_REVIEW OFF)
-	SET(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${ITK_DIR};ITK;RuntimeLibraries;/") 
+  SET(ITK_USE_REVIEW OFF)
+  SET(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${ITK_DIR};ITK;RuntimeLibraries;/") 
 ELSE(EXISTS "${ITK_DIR}/CMakeCache.txt")
   MESSAGE(WARNING "Unable to set ITK_DIR for package generation!")
 ENDIF(EXISTS "${ITK_DIR}/CMakeCache.txt")
 
 IF ( PLUS_USE_OpenIGTLink )
-	IF(EXISTS "${OpenIGTLink_DIR}/CMakeCache.txt")
-		SET(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${OpenIGTLink_DIR};OpenIGTLink;RuntimeLibraries;/")
-	ELSE(EXISTS "${OpenIGTLink_DIR}/CMakeCache.txt")
-		MESSAGE(WARNING "Unable to set OpenIGTLink_DIR for package generation!")
-	ENDIF(EXISTS "${OpenIGTLink_DIR}/CMakeCache.txt")
+  IF(EXISTS "${OpenIGTLink_DIR}/CMakeCache.txt")
+    SET(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${OpenIGTLink_DIR};OpenIGTLink;RuntimeLibraries;/")
+  ELSE(EXISTS "${OpenIGTLink_DIR}/CMakeCache.txt")
+    MESSAGE(WARNING "Unable to set OpenIGTLink_DIR for package generation!")
+  ENDIF(EXISTS "${OpenIGTLink_DIR}/CMakeCache.txt")
 ENDIF (PLUS_USE_OpenIGTLink)
 
 #-----------------------------------------------------------------------------

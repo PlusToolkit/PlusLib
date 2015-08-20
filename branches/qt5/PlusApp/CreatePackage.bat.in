@@ -37,8 +37,10 @@ exit /b 0
 
 :BUILDFAILED
 ECHO ERROR: Build failed...
+pause
 exit /b 1
 
 :PACKAGINGFAILED
 ECHO ERROR: Package generation failed...
+pause
 exit /b 2
