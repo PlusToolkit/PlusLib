@@ -219,30 +219,20 @@ PlusStatus vtkImageProcessorVideoSource::InternalUpdate()
   {
     if (this->LastProcessedInputDataTimestamp < oldestTrackingTimestamp)
     {
-      LOG_INFO("Simulated US image generation started. No tracking data was available between " << this->LastProcessedInputDataTimestamp << "-" << oldestTrackingTimestamp <<
-        "sec, therefore no simulated images were generated during this time period.");
+      LOG_INFO("Processed image generation started. No tracking data was available between " << this->LastProcessedInputDataTimestamp << "-" << oldestTrackingTimestamp <<
+        "sec, therefore no processed images were generated during this time period.");
       this->LastProcessedInputDataTimestamp = oldestTrackingTimestamp;
     }
   }
-  vtkSmartPointer<vtkTrackedFrameList> trackingFrames = vtkSmartPointer<vtkTrackedFrameList>::New();  
-  if ( this->InputChannels[0]->GetTrackedFrameList(this->LastProcessedInputDataTimestamp, trackingFrames, 1) != PLUS_SUCCESS )
+  TrackedFrame trackedFrame;
+  if ( this->InputChannels[0]->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Error while getting tracked frame list. Last recorded timestamp: " << std::fixed << this->LastProcessedInputDataTimestamp << ". Device ID: " << this->GetDeviceId() ); 
+    LOG_ERROR("Error while getting latest tracked frame. Last recorded timestamp: " << std::fixed << this->LastProcessedInputDataTimestamp << ". Device ID: " << this->GetDeviceId() ); 
     this->LastProcessedInputDataTimestamp = vtkAccurateTimer::GetSystemTime(); // forget about the past, try to add frames that are acquired from now on
     return PLUS_FAIL;
   }
-  if (trackingFrames->GetNumberOfTrackedFrames() < 1)
-  {
-    LOG_TRACE("Processed data is not generated, as no data is available. Device ID: " << this->GetDeviceId()); 
-    return PLUS_FAIL;
-  }
-  TrackedFrame* trackedFrame = trackingFrames->GetTrackedFrame(0);
-  if (trackedFrame == NULL)
-  {
-    LOG_ERROR("Error while getting tracked frame from data collector. Last recorded timestamp: " << std::fixed << this->LastProcessedInputDataTimestamp << ". Device ID: " << this->GetDeviceId() ); 
-    return PLUS_FAIL;
-  }
 
+  LOG_TRACE("Image to be processed: timestamp="<<trackedFrame.GetTimestamp());
   
   if( this->OutputChannels.empty() )
   {
@@ -253,8 +243,16 @@ PlusStatus vtkImageProcessorVideoSource::InternalUpdate()
   double latestFrameAlreadyAddedTimestamp=0;
   outputChannel->GetMostRecentTimestamp(latestFrameAlreadyAddedTimestamp);
 
-  this->ProcessorAlgorithm->SetInputFrames(trackingFrames);
+  double frameTimestamp = trackedFrame.GetTimestamp();
+  if (latestFrameAlreadyAddedTimestamp>=frameTimestamp)
+  {
+    // processed data has been already generated for this timestamp
+    return PLUS_SUCCESS;
+  }
 
+  vtkSmartPointer<vtkTrackedFrameList> trackingFrames = vtkSmartPointer<vtkTrackedFrameList>::New();
+  trackingFrames->AddTrackedFrame(&trackedFrame);
+  this->ProcessorAlgorithm->SetInputFrames(trackingFrames);
   if (this->ProcessorAlgorithm->Update()!=PLUS_SUCCESS)
   {
     return PLUS_FAIL;
@@ -263,52 +261,42 @@ PlusStatus vtkImageProcessorVideoSource::InternalUpdate()
   vtkPlusDataSource* aSource(NULL);
   if( outputChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Unable to retrieve the video source in the USSimulator device.");
+    LOG_ERROR("Unable to retrieve the video source in the image processor device.");
     return PLUS_FAIL;
   }
 
   PlusStatus status = PLUS_SUCCESS;
 
   vtkTrackedFrameList* processedFrames = this->ProcessorAlgorithm->GetOutputFrames();
-  if (processedFrames==NULL)
+  if (processedFrames==NULL || processedFrames->GetNumberOfTrackedFrames()<1)
   {
-    LOG_ERROR("Failed to retrieve processed frames");
+    LOG_ERROR("Failed to retrieve processed frame");
     return PLUS_FAIL;
   }
 
-  for (int i=0; i<processedFrames->GetNumberOfTrackedFrames(); i++)
+  TrackedFrame* processedTrackedFrame = processedFrames->GetTrackedFrame(0);
+  // Generate unique frame number (not used for filtering, so the actual increment value does not matter)
+  this->FrameNumber++;
+
+  // If the buffer is empty, set the pixel type and frame size to the first received properties 
+  if ( aSource->GetNumberOfItems() == 0 )
   {
-    TrackedFrame* trackedFrame = processedFrames->GetTrackedFrame(i);
-    // Generate unique frame number (not used for filtering, so the actual increment value does not matter)
-    this->FrameNumber++;
-    // Get latest tracker timestamp
-    double frameTimestamp = trackedFrame->GetTimestamp();
-    if (latestFrameAlreadyAddedTimestamp>=frameTimestamp)
+    PlusVideoFrame* videoFrame=processedTrackedFrame->GetImageData();
+    if (videoFrame==NULL)
     {
-      // processed data has been already generated for this timestamp
-      continue;
+      LOG_ERROR("Invalid video frame received, cannot use it to initialize the video buffer");
+      return PLUS_FAIL;
     }
+    aSource->SetPixelType( videoFrame->GetVTKScalarPixelType() );
+    aSource->SetNumberOfScalarComponents( videoFrame->GetNumberOfScalarComponents() );
+    aSource->SetImageType( videoFrame->GetImageType() );
+    aSource->SetInputFrameSize( processedTrackedFrame->GetFrameSize() );
+  }
 
-    // If the buffer is empty, set the pixel type and frame size to the first received properties 
-    if ( aSource->GetNumberOfItems() == 0 )
-    {
-      PlusVideoFrame* videoFrame=trackedFrame->GetImageData();
-      if (videoFrame==NULL)
-      {
-        LOG_ERROR("Invalid video frame received, cannot use it to initialize the video buffer");
-        return PLUS_FAIL;
-      }
-      aSource->SetPixelType( videoFrame->GetVTKScalarPixelType() );
-      aSource->SetNumberOfScalarComponents( videoFrame->GetNumberOfScalarComponents() );
-      aSource->SetImageType( videoFrame->GetImageType() );
-      aSource->SetInputFrameSize( trackedFrame->GetFrameSize() );
-    }
-
-    TrackedFrame::FieldMapType customFields=trackedFrame->GetCustomFields();
-    if (aSource->AddItem(trackedFrame->GetImageData(), this->FrameNumber, frameTimestamp, frameTimestamp, &customFields)!=PLUS_SUCCESS)
-    {
-      status = PLUS_FAIL;
-    }
+  TrackedFrame::FieldMapType customFields=processedTrackedFrame->GetCustomFields();
+  if (aSource->AddItem(processedTrackedFrame->GetImageData(), this->FrameNumber, frameTimestamp, frameTimestamp, &customFields)!=PLUS_SUCCESS)
+  {
+    status = PLUS_FAIL;
   }
 
   this->Modified();

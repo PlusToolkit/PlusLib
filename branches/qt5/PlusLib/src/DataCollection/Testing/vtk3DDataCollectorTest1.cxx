@@ -25,6 +25,8 @@ See License.txt for details.
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
 
+static const double FLOAT_COMPARISON_TOLERANCE=1e-4;
+
 int main(int argc, char **argv)
 {
   std::string inputConfigFileName;
@@ -212,31 +214,31 @@ int main(int argc, char **argv)
   double stdDev = stats->GetStandardDeviation();
 
   int numErrors(0);
-  if( !itk::Math::FloatAlmostEqual<double>(minVal, minExpected) )
+  if( !itk::Math::FloatAlmostEqual<double>(minVal, minExpected, 4, FLOAT_COMPARISON_TOLERANCE) )
   {
     LOG_ERROR("Min values don't match. Got: " << minVal << ". Expected: " << minExpected);
     numErrors++;
   }
 
-  if( !itk::Math::FloatAlmostEqual<double>(maxVal, maxExpected) )
+  if( !itk::Math::FloatAlmostEqual<double>(maxVal, maxExpected, 4, 5.0) ) // tolerance set based on variance of data reported on dashboard
   {
     LOG_ERROR("Max values don't match. Got: " << maxVal << ". Expected: " << maxExpected);
     numErrors++;
   }
 
-  if( !itk::Math::FloatAlmostEqual<double>(meanVal, meanExpected) )
+  if( !itk::Math::FloatAlmostEqual<double>(meanVal, meanExpected, 4, 0.3) ) // tolerance set based on variance of data reported on dashboard
   {
     LOG_ERROR("Mean values don't match. Got: " << meanVal << ". Expected: " << meanExpected);
     numErrors++;
   }
 
-  if( !itk::Math::FloatAlmostEqual<double>(median, medianExpected) )
+  if( !itk::Math::FloatAlmostEqual<double>(median, medianExpected, 4, FLOAT_COMPARISON_TOLERANCE) )
   {
     LOG_ERROR("Median values don't match. Got: " << median << ". Expected: " << medianExpected);
     numErrors++;
   }
 
-  if( !itk::Math::FloatAlmostEqual<double>(stdDev, stdDevExpected) )
+  if( !itk::Math::FloatAlmostEqual<double>(stdDev, stdDevExpected, 4, 0.2) ) // tolerance set based on variance of data reported on dashboard
   {
     LOG_ERROR("Standard deviation values don't match. Got: " << stdDev << ". Expected: " << stdDevExpected);
     numErrors++;

@@ -11,9 +11,13 @@
 #include "vtkSmartPointer.h"
 #include "vtkTrackedFrameProcessor.h"
 
+class vtkImageCast;
 class vtkImageData;
-class vtkImageThreshold;
-class vtkTrackedFrameList;
+#ifdef PLUS_USE_INTEL_MKL
+class vtkForoughiBoneSurfaceProbability;
+#else
+class vtkImageThreshold;  
+#endif
 class vtkUsScanConvert;
 
 /*!
@@ -54,8 +58,15 @@ protected:
   /*! Draws scanlines on the image - for testing and debugging */
   void DrawScanLines(vtkUsScanConvert* scanConverter, vtkImageData* imageData);
   
-  vtkSmartPointer<vtkImageThreshold> Thresholder;
   vtkSmartPointer<vtkUsScanConvert> ScanConverter;
+#ifdef PLUS_USE_INTEL_MKL
+  vtkSmartPointer<vtkForoughiBoneSurfaceProbability> BoneSurfaceFilter;
+  vtkSmartPointer<vtkImageCast> CastToDouble;
+  vtkSmartPointer<vtkImageCast> CastToUnsignedChar;
+#else
+  vtkSmartPointer<vtkImageThreshold> Thresholder;
+#endif
+
 }; 
 
 #endif

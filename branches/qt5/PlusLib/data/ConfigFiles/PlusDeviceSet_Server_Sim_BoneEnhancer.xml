@@ -53,7 +53,7 @@
         <InputChannel Id="TrackedVideoStream" />
       </InputChannels>
     </Device>
-    <Device
+    <xDevice
       Id="VolumeReconstructorDevice"
       Type="VirtualVolumeReconstructor"
       OutputVolDeviceName="RecVol_Reference">
@@ -65,12 +65,25 @@
         Interpolation="LINEAR" Optimization="NONE" CompoundingMode="MEAN" FillHoles="OFF" NumberOfThreads="2"
         ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
         OutputOrigin="-15 -15 30" OutputExtent="0 300 0 300 0 300" OutputSpacing="0.15 0.15 0.15" />
+    </xDevice>
+    <Device
+      Id="VolumeBoneReconstructorDevice"
+      Type="VirtualVolumeReconstructor"
+      OutputVolDeviceName="RecVol_Reference">
+      <InputChannels>
+        <InputChannel Id="TrackedBoneVideoStream" />
+      </InputChannels>
+      <VolumeReconstruction
+        ImageCoordinateFrame="Image" ReferenceCoordinateFrame="Reference"
+        Interpolation="LINEAR" Optimization="NONE" CompoundingMode="MEAN" FillHoles="OFF" NumberOfThreads="2"
+        ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
+        OutputOrigin="-15 -15 30" OutputExtent="0 300 0 300 0 300" OutputSpacing="0.15 0.15 0.15" />
     </Device>
   </DataCollection>
     
   <PlusOpenIGTLinkServer 
     MaxNumberOfIgtlMessagesToSend="1" 
-    MaxTimeSpentWithProcessingMs="50" 
+    MaxTimeSpentWithProcessingMs="250" 
     ListeningPort="18944" 
     SendValidTransformsOnly="true" 
     OutputChannelId="TrackedBoneVideoStream" > 
@@ -89,6 +102,23 @@
     </ImageNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>
+
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="250" 
+    ListeningPort="18945" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="TrackedVideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+      </MessageTypes>
+    <ImageNames>
+      <Image Name="Image" EmbeddedTransformToFrame="Raw" />
+    </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
   
   <CoordinateDefinitions>
     <Transform From="Image" To="TransducerOriginPixel"
@@ -119,6 +149,12 @@
         0     0       0.08  0
         0     0       0     1"
       Error="0.582721" Date="012712_152030" />
+    <Transform From="Raw" To="Reference"
+      Matrix="
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        0 0 0 1" />
   </CoordinateDefinitions> 
     
 </PlusConfiguration>

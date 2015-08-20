@@ -19,10 +19,12 @@
       FineLaserPower="0">
       <DataSources>
         <DataSource Type="Tool" Id="Measurement" PortName="Measurement" />
+        <DataSource Type="Tool" Id="Parameters" PortName="Parameters" />        
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="MeasurerStream">
           <DataSource Id="Measurement" />
+          <DataSource Id="Parameters" />
         </OutputChannel>
       </OutputChannels>
     </Device>
@@ -41,6 +43,7 @@
       </MessageTypes>
       <TransformNames> 
         <Transform Name="MeasurementToMeasurer" />
+        <Transform Name="ParametersToMeasurer" />        
       </TransformNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>

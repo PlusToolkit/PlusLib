@@ -55,6 +55,8 @@ OPTION(BUILD_SHARED_LIBS "Build with shared libraries." ${VTK_BUILD_SHARED_LIBS}
 OPTION(PLUS_USE_SIMPLE_TIMER "Use simple timer (not very accurate but more compatible with performance profilers)" OFF)
 MARK_AS_ADVANCED(PLUS_USE_SIMPLE_TIMER)
 
+OPTION(PLUS_USE_INTEL_MKL "Use the Intel MKL library (only for image processing)" OFF)
+
 # --------------------------------------------------------------------------
 # Configure output paths for libraries and executables.
 #

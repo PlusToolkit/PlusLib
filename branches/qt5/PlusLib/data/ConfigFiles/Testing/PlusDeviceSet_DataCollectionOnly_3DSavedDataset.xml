@@ -12,11 +12,11 @@
       AcquisitionRate="10"
       LocalTimeOffsetSec="0.0"
       ToolReferenceFrame="Tracker" 
-      SequenceMetafile="3DTankWallCaptureCompressed.mha" >
+      SequenceMetafile="ie33_NDIAurora_Probe_Stylus_compressed.mha" >
       <DataSources>
         <DataSource Type="Tool" Id="Probe"  />
-		<DataSource Type="Tool" Id="Reference"  />
-		<DataSource Type="Tool" Id="Stylus"  />
+        <DataSource Type="Tool" Id="Reference"  />
+        <DataSource Type="Tool" Id="Stylus"  />
       </DataSources>      
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
@@ -33,7 +33,7 @@
       UseData="IMAGE"
       AcquisitionRate="10" 
       LocalTimeOffsetSec="0.0" 
-      SequenceMetafile="3DTankWallCaptureCompressed.mha" >
+      SequenceMetafile="ie33_NDIAurora_Probe_Stylus_compressed.mha" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />
       </DataSources>      

@@ -179,6 +179,9 @@ public:
   /*! Sets the pixel buffer content by copying pixel data from a vtkImageData object.*/
   PlusStatus DeepCopyFrom(vtkImageData* frame);
 
+  /*! Sets the pixel buffer content by copying pixel data from a vtkImageData object.*/
+  PlusStatus ShallowCopyFrom(vtkImageData* frame);
+
   /*! Get US_IMAGE_ORIENTATION enum value from string */
   static US_IMAGE_ORIENTATION GetUsImageOrientationFromString( const char* imgOrientationStr ); 
 
