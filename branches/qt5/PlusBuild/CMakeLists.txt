@@ -200,8 +200,6 @@ SET (PLUS_EXECUTABLE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/bin")
 # Qt - Let's check if a valid version of Qt is available
 #-----------------------------------------------------------------------------
 IF(PLUSBUILD_BUILD_PLUSAPP AND NOT PLUSBUILD_USE_3DSlicer) 
-  SET(CMAKE_AUTOMOC ON)
-
   FIND_FILE(QT_QMAKE_EXECUTABLE qmake${CMAKE_EXECUTABLE_SUFFIX} 
     PATH
       $ENV{QTDIR}
@@ -214,25 +212,21 @@ IF(PLUSBUILD_BUILD_PLUSAPP AND NOT PLUSBUILD_USE_3DSlicer)
     )
   FIND_PACKAGE(Qt4 QUIET)
   IF ( NOT QT4_FOUND )
-      GET_FILENAME_COMPONENT(QT_BIN_FOLDER ${QT_QMAKE_EXECUTABLE} DIRECTORY)
-      GET_FILENAME_COMPONENT(CMAKE_PREFIX_PATH ${QT_BIN_FOLDER} DIRECTORY)
+    GET_FILENAME_COMPONENT(QT_BIN_FOLDER ${QT_QMAKE_EXECUTABLE} DIRECTORY)
+    GET_FILENAME_COMPONENT(CMAKE_PREFIX_PATH ${QT_BIN_FOLDER} DIRECTORY)
 
-      FIND_PACKAGE(Qt5Widgets)
+    FIND_PACKAGE(Qt5Widgets)
 
-      #get_cmake_property(_variableNames VARIABLES)
-      #foreach (_variableName ${_variableNames})
-        #message(STATUS "${_variableName}=${${_variableName}}")
-      #endforeach()
+    #get_cmake_property(_variableNames VARIABLES)
+    #foreach (_variableName ${_variableNames})
+      #message(STATUS "${_variableName}=${${_variableName}}")
+    #endforeach()
 
-      IF ( NOT Qt5Gui_FOUND )
-        MESSAGE( FATAL_ERROR "This project requires Qt4 or Qt5 for building PlusApp. These components are missing. Please verify configuration by selecting QT_QMAKE_EXECUTABLE or turn off PLUSBUILD_BUILD_PLUSAPP option.")
-      ENDIF()
-      SET(QT_MAJOR_VERSION ${Qt5Widgets_VERSION_MAJOR})
-      SET(QT_BINARY_DIR ${QT_BIN_FOLDER})
-      INCLUDE(${QT_USE_FILE})
-  ELSE()
-    SET(QT_USE_QT3SUPPORT FALSE) 
-    INCLUDE(${QT_USE_FILE})
+    IF ( NOT Qt5Gui_FOUND )
+      MESSAGE( FATAL_ERROR "This project requires Qt4 or Qt5 for building PlusApp. These components are missing. Please verify configuration by selecting QT_QMAKE_EXECUTABLE or turn off PLUSBUILD_BUILD_PLUSAPP option.")
+    ENDIF()
+    SET(QT_VERSION_MAJOR ${Qt5Widgets_VERSION_MAJOR})
+    SET(QT_BINARY_DIR ${QT_BIN_FOLDER})
   ENDIF()
 
 ENDIF(PLUSBUILD_BUILD_PLUSAPP AND NOT PLUSBUILD_USE_3DSlicer) 

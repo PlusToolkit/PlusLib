@@ -1,10 +1,5 @@
 PROJECT(fCal)
 
-IF( ${QT_MAJOR_VERSION} EQUAL 4 )
-  FIND_PACKAGE(Qt4 REQUIRED)
-  INCLUDE(${QT_USE_FILE})
-ENDIF()
-
 # --------------------------------------------------------------------------
 # Sources
 
@@ -58,25 +53,20 @@ SET (fCal_QT_Resources
 
 # --------------------------------------------------------------------------
 # Qt specific commands
-IF( ${QT_MAJOR_VERSION} EQUAL 5 )
-  qt5_wrap_cpp( fCal_QT_MOC_Files ${fCal_UI_HDRS} )
-  qt5_wrap_ui( fCal_QT_UI_Headers ${fCal_UI_SRCS} )
-  qt5_wrap_cpp( fCal_QT_MOC_UI_Files ${fCal_QT_UI_Headers} )
-  qt5_add_resources(fCal_QT_RCC_Files, ${fCal_QT_Resources} )
-  
+IF( ${QT_VERSION_MAJOR} EQUAL 5 )
+  FIND_PACKAGE(Qt5Widgets REQUIRED)
+
   INCLUDE_DIRECTORIES(${Qt5Widgets_INCLUDES})
   ADD_DEFINITIONS(${Qt5Widgets_DEFINITIONS})
-  
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
-ELSE(${QT_MAJOR_VERSION} EQUAL 5)
-  QT4_WRAP_CPP( fCal_QT_MOC_Files ${fCal_UI_HDRS} ) 
-  QT4_WRAP_UI( fCal_QT_UI_Headers ${fCal_UI_SRCS} )
-  QT4_WRAP_CPP( fCal_QT_MOC_UI_Files ${fCal_QT_UI_Headers} )
-  QT4_ADD_RESOURCES( fCal_QT_RCC_Files ${fCal_QT_Resources} )
-ENDIF(${QT_MAJOR_VERSION} EQUAL 5)
 
-SOURCE_GROUP("Generated Files" FILES ${fCal_QT_MOC_Files} ${fCal_QT_UI_Headers} ${fCal_QT_MOC_UI_Files} ${fCal_QT_RCC_Files})
-SOURCE_GROUP("UI Files" FILES ${fCal_UI_SRCS})
+  SET(QT_LIBRARIES ${Qt5Widgets_LIBRARIES} ${Qt5Core_QTMAIN_LIBRARIES})
+ELSE(${QT_VERSION_MAJOR} EQUAL 5)
+  FIND_PACKAGE(Qt4 REQUIRED)
+  INCLUDE(${QT_USE_FILE})
+  
+  INCLUDE_DIRECTORIES(${Qt4_INCLUDES})
+  ADD_DEFINITIONS(${Qt4_DEFINITIONS})
+ENDIF(${QT_VERSION_MAJOR} EQUAL 5)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
@@ -104,7 +94,7 @@ IF (PLUS_USE_OpenIGTLink)
   SET (fCal_LIBS ${fCal_LIBS} OpenIGTLink)
 ENDIF(PLUS_USE_OpenIGTLink)
 
-ADD_EXECUTABLE( fCal MACOSX_BUNDLE ${fCal_SRCS} ${fCal_UI_HDRS} ${fCal_QT_UI_Headers} ${fCal_QT_UI_Headers} ${fCal_QT_MOC_Files} ${fCal_QT_MOC_UI_Files} ${fCal_QT_RCC_Files})
+ADD_EXECUTABLE( fCal MACOSX_BUNDLE ${fCal_SRCS} ${fCal_UI_HDRS} ${fCal_UI_SRCS} ${fCal_QT_Resources})
 TARGET_LINK_LIBRARIES( fCal  ${VTK_LIBRARIES} ${fCal_LIBS} )
 
 # --------------------------------------------------------------------------

@@ -1,28 +1,22 @@
-IF( ${QT_MAJOR_VERSION} EQUAL 4 )
-  FIND_PACKAGE(Qt4 REQUIRED)
-  INCLUDE(${QT_USE_FILE})
-ENDIF()
-
 SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 # --------------------------------------------------------------------------
 # SegmentationParameterDialogTest
-IF( ${QT_MAJOR_VERSION} EQUAL 5 )
-  qt5_wrap_cpp( SegmentationParameterDialogTest_QT_MOC_Files SegmentationParameterDialogTest.h )
-  qt5_add_resources( SegmentationParameterDialogTest_QT_RCC_Files ${PlusApp_SOURCE_DIR}/CommonWidgets/CommonWidgets.qrc )
-  
-  INCLUDE_DIRECTORIES(${Qt5Widgets_INCLUDES})
-  ADD_DEFINITIONS(${Qt5Widgets_DEFINITIONS})
-  # Executables fail to build with Qt 5 in the default configuration
-  # without -fPIE. We add that here.
-  SET(CMAKE_CXX_FLAGS "${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
-ELSE( ${QT_MAJOR_VERSION} EQUAL 5 )
-  QT4_WRAP_CPP( SegmentationParameterDialogTest_QT_MOC_Files SegmentationParameterDialogTest.h )
-  QT4_ADD_RESOURCES( SegmentationParameterDialogTest_QT_RCC_Files ${PlusApp_SOURCE_DIR}/CommonWidgets/CommonWidgets.qrc )
-ENDIF( ${QT_MAJOR_VERSION} EQUAL 5 )
+# Qt specific commands
+IF( ${QT_VERSION_MAJOR} EQUAL 5 )
+  FIND_PACKAGE(Qt5 COMPONENTS Widgets REQUIRED)
 
-SOURCE_GROUP("Generated Files" FILES ${SegmentationParameterDialogTest_QT_MOC_Files} ${SegmentationParameterDialogTest_QT_RCC_Files})
+  SET(QT_LIBRARIES ${Qt5Widgets_LIBRARIES})
+  ADD_DEFINITIONS(${Qt5Widgets_DEFINITIONS})
+ELSE(${QT_VERSION_MAJOR} EQUAL 5)
+  FIND_PACKAGE(Qt4 REQUIRED)
+  INCLUDE(${QT_USE_FILE})
+
+  INCLUDE_DIRECTORIES(${QT_INCLUDES})
+  ADD_DEFINITIONS(${QT_DEFINITIONS})
+
+ENDIF(${QT_VERSION_MAJOR} EQUAL 5)
 
 INCLUDE_DIRECTORIES(${PlusApp_BINARY_DIR}/CommonWidgets)
 INCLUDE_DIRECTORIES(${PlusApp_SOURCE_DIR}/CommonWidgets)
@@ -43,8 +37,7 @@ ADD_EXECUTABLE(
   SegmentationParameterDialogTestMain.cxx
   SegmentationParameterDialogTest.cxx
   SegmentationParameterDialogTest.h
-  ${SegmentationParameterDialogTest_QT_MOC_Files}
-  ${SegmentationParameterDialogTest_QT_RCC_Files}
+  ${PlusApp_SOURCE_DIR}/CommonWidgets/CommonWidgets.qrc
   )
   
 TARGET_LINK_LIBRARIES(SegmentationParameterDialogTest ${SegmentationParameterDialogTest_LIBS})
@@ -62,22 +55,21 @@ ENDIF(PLUSAPP_INSTALL_BIN_DIR)
 
 # --------------------------------------------------------------------------
 # ToolStateDisplayWidgetTest
+# --------------------------------------------------------------------------
+# Qt specific commands
+IF( ${QT_VERSION_MAJOR} EQUAL 5 )
+  FIND_PACKAGE(Qt5 COMPONENTS Widgets REQUIRED)
 
-IF( ${QT_MAJOR_VERSION} EQUAL 5 )
-  qt5_wrap_cpp( ToolStateDisplayWidgetTest_QT_MOC_Files ToolStateDisplayWidgetTest.h )
-  qt5_add_resources( ToolStateDisplayWidgetTest_QT_RCC_Files ${PlusApp_SOURCE_DIR}/CommonWidgets/CommonWidgets.qrc )
-  
-  INCLUDE_DIRECTORIES(${Qt5Widgets_INCLUDES})
+  SET(QT_LIBRARIES ${Qt5Widgets_LIBRARIES})
   ADD_DEFINITIONS(${Qt5Widgets_DEFINITIONS})
-  # Executables fail to build with Qt 5 in the default configuration
-  # without -fPIE. We add that here.
-  SET(CMAKE_CXX_FLAGS "${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
-ELSE( ${QT_MAJOR_VERSION} EQUAL 5 )
-  QT4_WRAP_CPP( ToolStateDisplayWidgetTest_QT_MOC_Files ToolStateDisplayWidgetTest.h )
-  QT4_ADD_RESOURCES( ToolStateDisplayWidgetTest_QT_RCC_Files ${PlusApp_SOURCE_DIR}/CommonWidgets/CommonWidgets.qrc )
-ENDIF( ${QT_MAJOR_VERSION} EQUAL 5 )
+ELSE(${QT_VERSION_MAJOR} EQUAL 5)
+  FIND_PACKAGE(Qt4 REQUIRED)
+  INCLUDE(${QT_USE_FILE})
 
-SOURCE_GROUP("Generated Files" FILES ${ToolStateDisplayWidgetTest_QT_MOC_Files} ${ToolStateDisplayWidgetTest_QT_RCC_Files})
+  INCLUDE_DIRECTORIES(${QT_INCLUDES})
+  ADD_DEFINITIONS(${QT_DEFINITIONS})
+
+ENDIF(${QT_VERSION_MAJOR} EQUAL 5)
 
 INCLUDE_DIRECTORIES(${PlusApp_BINARY_DIR}/CommonWidgets)
 INCLUDE_DIRECTORIES(${PlusApp_SOURCE_DIR}/CommonWidgets)
@@ -97,8 +89,7 @@ ADD_EXECUTABLE(
   ToolStateDisplayWidgetTestMain.cxx
   ToolStateDisplayWidgetTest.cxx
   ToolStateDisplayWidgetTest.h
-  ${ToolStateDisplayWidgetTest_QT_MOC_Files}
-  ${ToolStateDisplayWidgetTest_QT_RCC_Files}
+  ${PlusApp_SOURCE_DIR}/CommonWidgets/CommonWidgets.qrc
   )
   
 TARGET_LINK_LIBRARIES(ToolStateDisplayWidgetTest ${ToolStateDisplayWidgetTest_LIBS})
