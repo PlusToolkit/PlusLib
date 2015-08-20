@@ -86,7 +86,7 @@ ELSE(VTK_DIR)
         -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
         -DQT_QMAKE_EXECUTABLE:FILEPATH=${QT_QMAKE_EXECUTABLE}
         -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
-        -DVTK_QT_VERSION:STRING=${QT_MAJOR_VERSION}
+        -DVTK_QT_VERSION:STRING=${QT_VERSION_MAJOR}
         -DCMAKE_PREFIX_PATH:STRING=${CMAKE_PREFIX_PATH}
     #--Build step-----------------
     #--Install step-----------------
