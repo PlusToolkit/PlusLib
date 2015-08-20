@@ -68,7 +68,7 @@ PlusStatus DecimateSequenceMetafile( vtkTrackedFrameList* trackedFrameList, unsi
 PlusStatus UpdateFrameFieldValue( FrameFieldUpdate& fieldUpdate ); 
 PlusStatus DeleteFrameField( vtkTrackedFrameList* trackedFrameList, std::string fieldName ); 
 PlusStatus ConvertStringToMatrix( std::string &strMatrix, vtkMatrix4x4* matrix); 
-PlusStatus AddTransform( vtkTrackedFrameList* trackedFrameList, std::string transformNameToAdd, std::string deviceSetConfigurationFileName );
+PlusStatus AddTransform( vtkTrackedFrameList* trackedFrameList, std::vector<std::string> transformNamesToAdd, std::string deviceSetConfigurationFileName );
 PlusStatus FillRectangle( vtkTrackedFrameList* trackedFrameList, const std::vector<int> &fillRectOrigin, const std::vector<int> &fillRectSize, int fillGrayLevel);
 PlusStatus CropRectangle( vtkTrackedFrameList* trackedFrameList, PlusVideoFrame::FlipInfoType& flipInfo, const std::vector<int> &cropRectOrigin, const std::vector<int> &cropRectSize);
 
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
 
   std::string strUpdatedReferenceTransformName; 
 
-  std::string transformNameToAdd;  // Name of the transform to add to each frame
+  std::string transformNamesToAdd;  // Name of the transform to add to each frame
   std::string deviceSetConfigurationFileName; // Used device set configuration file path and name
 
   std::vector<int> rectOriginPix; // Fill/crop rectangle top-left corner position in MF coordinate frame, in pixels
@@ -156,7 +156,7 @@ int main(int argc, char **argv)
   args.AddArgument("--use-compression", vtksys::CommandLineArguments::NO_ARGUMENT, &useCompression, "Compress sequence metafile images.");  
   args.AddArgument("--increment-timestamps", vtksys::CommandLineArguments::NO_ARGUMENT, &incrementTimestamps, "Increment timestamps in the order of the input-file-names");  
 
-  args.AddArgument("--add-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformNameToAdd, "Name of the transform to add to each frame (eg. 'StylusTipToTracker')");  
+  args.AddArgument("--add-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformNamesToAdd, "Name of the transform to add to each frame (e.g., StylusTipToTracker); multiple transforms can be added separated by a comma (e.g., StylusTipToReference,ProbeToReference)");  
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceSetConfigurationFileName, "Used device set configuration file path and name");  
 
   args.AddArgument("--rect-origin", vtksys::CommandLineArguments::MULTI_ARGUMENT, &rectOriginPix, "Fill or crop rectangle top-left corner position in MF coordinate frame, in pixels. Required for FILL_IMAGE_RECTANGLE and CROP operations.");
@@ -468,10 +468,12 @@ int main(int argc, char **argv)
   case ADD_TRANSFORM: 
     {
       // Add transform
-      LOG_INFO("Add transform '" << transformNameToAdd << "' using device set configuration file '" << deviceSetConfigurationFileName << "'"); 
-      if ( AddTransform(trackedFrameList, transformNameToAdd, deviceSetConfigurationFileName ) != PLUS_SUCCESS )
+      LOG_INFO("Add transform '" << transformNamesToAdd << "' using device set configuration file '" << deviceSetConfigurationFileName << "'"); 
+      std::vector<std::string> transformNamesList;
+      PlusCommon::SplitStringIntoTokens(transformNamesToAdd, ',', transformNamesList);
+      if ( AddTransform(trackedFrameList, transformNamesList, deviceSetConfigurationFileName ) != PLUS_SUCCESS )
       {
-        LOG_ERROR("Failed to add transform '" << transformNameToAdd << "' using device set configuration file '" << deviceSetConfigurationFileName << "'"); 
+        LOG_ERROR("Failed to add transform '" << transformNamesToAdd << "' using device set configuration file '" << deviceSetConfigurationFileName << "'"); 
         return EXIT_FAILURE; 
       }
     }
@@ -824,23 +826,23 @@ PlusStatus ConvertStringToMatrix(std::string& strMatrix, vtkMatrix4x4* matrix)
 }
 
 //-------------------------------------------------------
-PlusStatus AddTransform( vtkTrackedFrameList* trackedFrameList, std::string transformNameToAdd, std::string deviceSetConfigurationFileName )
+PlusStatus AddTransform( vtkTrackedFrameList* trackedFrameList, std::vector<std::string> transformNamesToAdd, std::string deviceSetConfigurationFileName )
 {
   if ( trackedFrameList == NULL )
   {
-    LOG_ERROR("Tracked frame list is NULL!"); 
+    LOG_ERROR("Tracked frame list is invalid");
     return PLUS_FAIL; 
   }
 
-  if ( transformNameToAdd.empty() )
+  if ( transformNamesToAdd.empty() )
   {
-    LOG_ERROR("Added transform name is empty!"); 
+    LOG_ERROR("No transform names are specified to be added"); 
     return PLUS_FAIL; 
   }
 
   if ( deviceSetConfigurationFileName.empty() )
   {
-    LOG_ERROR("Used device set configuration file name is empty!"); 
+    LOG_ERROR("Used device set configuration file name is empty"); 
     return PLUS_FAIL; 
   }
 
@@ -851,10 +853,6 @@ PlusStatus AddTransform( vtkTrackedFrameList* trackedFrameList, std::string tran
     LOG_ERROR("Unable to read configuration from file " << deviceSetConfigurationFileName.c_str()); 
     return PLUS_FAIL;
   }  
-
-  // Create transform name
-  PlusTransformName transformName;
-  transformName.SetTransformName(transformNameToAdd.c_str());
 
   for ( unsigned int i = 0; i < trackedFrameList->GetNumberOfTrackedFrames(); ++i )
   {
@@ -873,20 +871,27 @@ PlusStatus AddTransform( vtkTrackedFrameList* trackedFrameList, std::string tran
       return PLUS_FAIL;
     }
 
-    // Get transform matrix
-    bool valid = false;
-    vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-    if ( transformRepository->GetTransform(transformName, transformMatrix, &valid) != PLUS_SUCCESS )
+    for (std::vector<std::string>::iterator transformNameToAddIt=transformNamesToAdd.begin(); transformNameToAddIt!=transformNamesToAdd.end(); ++transformNameToAddIt)
     {
-      LOG_WARNING("Failed to get transform " << transformNameToAdd << " from tracked frame " << i);
-      transformMatrix->Identity();
-      trackedFrame->SetCustomFrameTransform(transformName, transformMatrix);
-      trackedFrame->SetCustomFrameTransformStatus(transformName, FIELD_INVALID);
-    }
-    else
-    {
-      trackedFrame->SetCustomFrameTransform(transformName, transformMatrix);
-      trackedFrame->SetCustomFrameTransformStatus(transformName, FIELD_OK);
+      // Create transform name
+      PlusTransformName transformName;
+      transformName.SetTransformName(transformNameToAddIt->c_str());
+
+      // Get transform matrix
+      bool valid = false;
+      vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+      if ( transformRepository->GetTransform(transformName, transformMatrix, &valid) != PLUS_SUCCESS )
+      {
+        LOG_WARNING("Failed to get transform " << (*transformNameToAddIt) << " from tracked frame " << i);
+        transformMatrix->Identity();
+        trackedFrame->SetCustomFrameTransform(transformName, transformMatrix);
+        trackedFrame->SetCustomFrameTransformStatus(transformName, FIELD_INVALID);
+      }
+      else
+      {
+        trackedFrame->SetCustomFrameTransform(transformName, transformMatrix);
+        trackedFrame->SetCustomFrameTransformStatus(transformName, FIELD_OK);
+      }
     }
   }
 
