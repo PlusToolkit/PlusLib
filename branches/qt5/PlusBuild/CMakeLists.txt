@@ -210,12 +210,15 @@ IF(PLUSBUILD_BUILD_PLUSAPP AND NOT PLUSBUILD_USE_3DSlicer)
       "../Qt/4.8.7/bin"
       "../../Qt/4.8.7/bin"
     )
+
   FIND_PACKAGE(Qt4 QUIET)
   IF ( NOT QT4_FOUND )
-    GET_FILENAME_COMPONENT(QT_BIN_FOLDER ${QT_QMAKE_EXECUTABLE} DIRECTORY)
-    GET_FILENAME_COMPONENT(CMAKE_PREFIX_PATH ${QT_BIN_FOLDER} DIRECTORY)
+    IF(EXISTS ${QT_QMAKE_EXECUTABLE} )
+      GET_FILENAME_COMPONENT(QT_BINARY_DIR ${QT_QMAKE_EXECUTABLE} DIRECTORY)
+      GET_FILENAME_COMPONENT(CMAKE_PREFIX_PATH ${QT_BINARY_DIR} DIRECTORY)
+    ENDIF()
 
-    FIND_PACKAGE(Qt5Widgets)
+    FIND_PACKAGE(Qt5Widgets QUIET)
 
     #get_cmake_property(_variableNames VARIABLES)
     #foreach (_variableName ${_variableNames})
@@ -226,9 +229,7 @@ IF(PLUSBUILD_BUILD_PLUSAPP AND NOT PLUSBUILD_USE_3DSlicer)
       MESSAGE( FATAL_ERROR "This project requires Qt4 or Qt5 for building PlusApp. These components are missing. Please verify configuration by selecting QT_QMAKE_EXECUTABLE or turn off PLUSBUILD_BUILD_PLUSAPP option.")
     ENDIF()
     SET(QT_VERSION_MAJOR ${Qt5Widgets_VERSION_MAJOR})
-    SET(QT_BINARY_DIR ${QT_BIN_FOLDER})
   ENDIF()
-
 ENDIF(PLUSBUILD_BUILD_PLUSAPP AND NOT PLUSBUILD_USE_3DSlicer) 
 
 #-----------------------------------------------------------------------------
