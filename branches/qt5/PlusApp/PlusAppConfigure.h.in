@@ -1,0 +1,16 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
+// This file stores values determined during CMake configuration and
+// includes commonly needed header files.
+// This file has to be the first include in Plus cxx files.
+
+#ifndef __PlusAppConfigure_h
+#define __PlusAppConfigure_h
+
+#cmakedefine QT_MAJOR_VERSION
+ 
+#endif // __PlusAppConfigure_h
