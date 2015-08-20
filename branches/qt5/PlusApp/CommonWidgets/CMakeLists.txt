@@ -53,10 +53,6 @@ SET( QT_Resources
 IF( ${QT_VERSION_MAJOR} EQUAL 5 )
   FIND_PACKAGE(Qt5 COMPONENTS Xml Widgets REQUIRED)
 
-  get_cmake_property(_variableNames VARIABLES)
-  foreach (_variableName ${_variableNames})
-    message(STATUS "${_variableName}=${${_variableName}}")
-  endforeach()
   SET(QT_LIBRARIES ${QT_LIBRARIES} ${Qt5Xml_LIBRARIES})
   ADD_DEFINITIONS(${Qt5Widgets_DEFINITIONS} ${Qt5Xml_DEFINITIONS})
 
@@ -66,6 +62,7 @@ IF( ${QT_VERSION_MAJOR} EQUAL 5 )
 
 ELSE(${QT_VERSION_MAJOR} EQUAL 5)
   FIND_PACKAGE(Qt4 REQUIRED)
+  SET(QT_USE_QTXML TRUE)
   INCLUDE(${QT_USE_FILE})
 
   INCLUDE_DIRECTORIES(${QT_INCLUDES})
