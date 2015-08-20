@@ -158,24 +158,17 @@ IF (PLUS_USE_OPTIMET_CONOPROBE)
     SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
       ${CMAKE_CURRENT_SOURCE_DIR}/Optimet 
       CACHE INTERNAL "" FORCE)
-               
-	IF( CMAKE_SIZEOF_VOID_P EQUAL 8 )
-    # 64-bit
-		SET (DataCollection_LIBS ${DataCollection_LIBS}
-		${OPTIMETSMART32SDK_64BIT_LIBRARY}
-		)
-		SET ( External_Libraries_Install ${External_Libraries_Install}
-		${OPTIMETSMART32SDK_64BIT_BINARY_DIR}/Smart32${CMAKE_SHARED_LIBRARY_SUFFIX}
-		)
-	ELSE()
-    # 32-bit
-		SET (DataCollection_LIBS ${DataCollection_LIBS}
-		${OPTIMETSMART32SDK_32BIT_LIBRARY}
-		)
-		SET ( External_Libraries_Install ${External_Libraries_Install}
-		${OPTIMETSMART32SDK_32BIT_BINARY_DIR}/Smart32${CMAKE_SHARED_LIBRARY_SUFFIX}
-		)
-  ENDIF()        
+      
+	SET (DataCollection_LIBS ${DataCollection_LIBS}
+	${OPTIMETSMART32SDK_LIBRARY}
+	)
+
+	SET ( External_Libraries_Install ${External_Libraries_Install}
+	${OPTIMETSMART32SDK_BINARY_DIR}/Smart32${CMAKE_SHARED_LIBRARY_SUFFIX}
+	)
+	SET ( External_Libraries_Install ${External_Libraries_Install}
+	${OPTIMETSMART32SDK_BINARY_DIR}/NewProbeDialog${CMAKE_SHARED_LIBRARY_SUFFIX}
+	)
 ENDIF (PLUS_USE_OPTIMET_CONOPROBE)
 
 # --------------------------------------------------------------------------

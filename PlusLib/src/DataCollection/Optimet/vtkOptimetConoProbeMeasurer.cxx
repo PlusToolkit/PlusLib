@@ -241,6 +241,34 @@ PlusStatus vtkOptimetConoProbeMeasurer::SetFrequency(int frequency)
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkOptimetConoProbeMeasurer::ShowProbeDialog()
+{
+  ProbeDialogParams p;
+  ProbeDialogResult r;
+
+  ZeroMemory(&p, sizeof (ProbeDialogParams));
+  ZeroMemory(&r, sizeof (ProbeDialogResult));
+
+  p.DlgProc = NULL;
+  p.Units = MMUnits;
+  p.Power = this->CoarseLaserPower;
+  p.FinePower = this->FineLaserPower;
+  p.Frequency = this->Frequency;
+  p.DlgProc = NULL;
+
+  try
+  {
+	ISmart::ShowProbeDialog(&this->ConoProbe, 1, &p, &r);
+  }
+  catch (const SmartException& e)
+  {
+	LOG_ERROR(e.ErrorString());
+	return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 unsigned short vtkOptimetConoProbeMeasurer::GetCompositeLaserPower()
 {
   unsigned short compositeLaserPower = this->CoarseLaserPower;
