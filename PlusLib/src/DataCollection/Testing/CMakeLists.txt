@@ -68,10 +68,10 @@ ADD_TEST(vtk3DDataCollectorTest1
   ${EXECUTABLE_OUTPUT_PATH}/vtk3DDataCollectorTest1
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_3DSavedDataset.xml
   --minimum=0 
-  --maximum=255 
-  --mean=25.243336787840136 
-  --median=0 
-  --standard-deviation=57.955927672415285
+  --maximum=253
+  --mean=8.08658
+  --median=0
+  --standard-deviation=21.6785
   --xDimension=112
   --yDimension=112
   --zDimension=48
