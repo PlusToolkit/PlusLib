@@ -4,7 +4,7 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-/*=========================================================================
+/*========================================================================
 Date: Ag 2015
 Authors include:
 - Mikael Brudfors [*] brudfors@hggm.es
@@ -13,7 +13,7 @@ Authors include:
 - Javier Pascau [*][ç] jpascau@hggm.es
 [*] Laboratorio de Imagen Medica, Hospital Gregorio Maranon - http://image.hggm.es/
 [ç] Departamento de Bioingeniería e Ingeniería Aeroespacial. Universidad Carlos III de Madrid
-=========================================================================*/
+==========================================================================*/
 
 #ifndef __vtkOptimetConoProbeMeasurer_h
 #define __vtkOptimetConoProbeMeasurer_h
@@ -59,6 +59,9 @@ public:
 
   /*! Set frequency. */
   PlusStatus SetFrequency(int frequency);
+
+  /*! Opens the Probe Dialog. */
+  PlusStatus ShowProbeDialog();
 
 protected:
 
