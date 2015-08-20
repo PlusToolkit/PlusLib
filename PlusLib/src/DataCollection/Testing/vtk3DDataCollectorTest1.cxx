@@ -220,13 +220,13 @@ int main(int argc, char **argv)
     numErrors++;
   }
 
-  if( !itk::Math::FloatAlmostEqual<double>(maxVal, maxExpected, 4, FLOAT_COMPARISON_TOLERANCE) )
+  if( !itk::Math::FloatAlmostEqual<double>(maxVal, maxExpected, 4, 5.0) ) // tolerance set based on variance of data reported on dashboard
   {
     LOG_ERROR("Max values don't match. Got: " << maxVal << ". Expected: " << maxExpected);
     numErrors++;
   }
 
-  if( !itk::Math::FloatAlmostEqual<double>(meanVal, meanExpected, 4, FLOAT_COMPARISON_TOLERANCE) )
+  if( !itk::Math::FloatAlmostEqual<double>(meanVal, meanExpected, 4, 0.3) ) // tolerance set based on variance of data reported on dashboard
   {
     LOG_ERROR("Mean values don't match. Got: " << meanVal << ". Expected: " << meanExpected);
     numErrors++;
@@ -238,7 +238,7 @@ int main(int argc, char **argv)
     numErrors++;
   }
 
-  if( !itk::Math::FloatAlmostEqual<double>(stdDev, stdDevExpected, 4, FLOAT_COMPARISON_TOLERANCE) )
+  if( !itk::Math::FloatAlmostEqual<double>(stdDev, stdDevExpected, 4, 0.2) ) // tolerance set based on variance of data reported on dashboard
   {
     LOG_ERROR("Standard deviation values don't match. Got: " << stdDev << ". Expected: " << stdDevExpected);
     numErrors++;
