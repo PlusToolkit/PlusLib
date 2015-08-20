@@ -11,6 +11,10 @@ This is a command-line tool for editing sequence metafiles. Operations include d
 
     EditSeqMetaFile.exe --operation=ADD_TRANSFORM --add-transform=ImageToReference --config-file=PlusDeviceSet_fCal_Sim_VolumeReconstruction.xml  --source-seq-file=fCal_Test_Calibration_3NWires_fCal2.0.mha --output-seq-file=test.mha
 
+Multiple transforms can be added, the names are separated by commas (do not add spaces):
+
+    EditSeqMetafile --operation=ADD_TRANSFORM --add-transform=ImageToReference,ProbeToReference,TrackerToReference --source-seq-file=fCal_Test_Calibration_3NWires_fCal2.0.mha --output-seq-file=test.mha
+    
 ## Compress a sequence metafile
 
     EditSeqMetafile.exe --source-seq-file=[inputFilePath] --output-seq-file=[outputFilePath] --use-compression
