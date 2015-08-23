@@ -8,28 +8,29 @@
     <Device
       Id="VideoDevice"
       Type="SavedDataSource" 
-      UseData="IMAGE_AND_TRANSFORM"
-      RepeatEnabled="TRUE"
+      UseData="TRANSFORM"
+	  UseOriginalTimestamps="TRUE"
+      RepeatEnabled="FALSE"
+      ToolReferenceFrame="Tracker"
       AcquisitionRate="10" 
       LocalTimeOffsetSec="0.0" 
-      SequenceMetafile="ie33_NDIAurora_Probe_Stylus_compressed.mha" >
+      SequenceFile="F:\ExperimentalData\MitralValveInsertions\conventional biplane-xplanepreset-Novice1-trial1-18cm-JM.mha" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />
-      </DataSources>      
+        <DataSource Type="Tool" Id="Probe" />
+        <DataSource Type="Tool" Id="Reference" />
+        <DataSource Type="Tool" Id="Stylus" />
+      </DataSources>
       <OutputChannels>
-        <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
+        <OutputChannel Id="TrackerStream" >
+          <DataSource Id="Probe"/>
+          <DataSource Id="Reference"/>
+          <DataSource Id="Stylus"/>
+        </OutputChannel>
       </OutputChannels>
     </Device>
   </DataCollection>
 
   <CoordinateDefinitions>
-    <Transform From="Image" To="Probe"
-      Matrix="
-        0.166006	-0.0944847	-0.00445761	-14.9463
-        0.0903257	0.17565	-0.014166	-86.5863
-        0.0104134	0.0106585	0.193937	0.637663
-        0	0	0	1"
-       Error="1.17562" Date="052015_132620" />
     <Transform From="StylusTip" To="Stylus"
       Matrix="
         0.999941	0	0.0108402	0.857485
@@ -44,20 +45,19 @@
     MaxTimeSpentWithProcessingMs="50" 
     ListeningPort="18944" 
     SendValidTransformsOnly="true" 
-    OutputChannelId="TrackedVideoStream" > 
+    OutputChannelId="TrackerStream" > 
     <DefaultClientInfo> 
       <MessageTypes> 
-        <Message Type="IMAGE" />
         <Message Type="TRANSFORM" />
       </MessageTypes>
       <TransformNames> 
         <Transform Name="ProbeToTracker" /> 
         <Transform Name="ReferenceToTracker" />
+		<Transform Name="StylusToTracker" />
+		<Transform Name="StylusToReference" />
         <Transform Name="StylusTipToTracker" />
+		<Transform Name="StylusTipToReference" />
       </TransformNames>
-      <ImageNames>
-        <Image Name="Image" EmbeddedTransformToFrame="Reference" />
-      </ImageNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>
 </PlusConfiguration>

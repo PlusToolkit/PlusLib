@@ -8,7 +8,7 @@
     <Device
       Id="TrackedVideoDevice"
       Type="SavedDataSource"      
-      SequenceMetafile="FreehandCalibration3NWires_fCal2.0_Depth15_1.mha"
+      SequenceFile="FreehandCalibration3NWires_fCal2.0_Depth15_1.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE">

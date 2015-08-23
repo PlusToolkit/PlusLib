@@ -4,20 +4,18 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "VolumeReconstructionToolbox.h"
-
-#include "fCalMainWindow.h"
-#include "vtkVisualizationController.h"
 #include "CapturingToolbox.h"
-
-#include <QFileDialog>
-
-#include "vtkVolumeReconstructor.h"
+#include "VolumeReconstructionToolbox.h"
+#include "fCalMainWindow.h"
+#include "vtkImageData.h"
 #include "vtkMarchingContourFilter.h"
 #include "vtkPolyDataMapper.h"
-#include "vtkXMLUtilities.h"
+#include "vtkSequenceIOCommon.h"
 #include "vtkTrackedFrameList.h"
-#include "vtkImageData.h"
+#include "vtkVisualizationController.h"
+#include "vtkVolumeReconstructor.h"
+#include "vtkXMLUtilities.h"
+#include <QFileDialog>
 
 //-----------------------------------------------------------------------------
 
@@ -397,7 +395,7 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
       imageFileNameIndex = ui.comboBox_InputImage->currentIndex();
     }
     trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-    if (trackedFrameList->ReadFromSequenceMetafile( m_ImageFileNames.at( imageFileNameIndex ).toLatin1().constData() ) != PLUS_SUCCESS)
+    if( vtkSequenceIOCommon::Read(m_ImageFileNames.at( imageFileNameIndex ).toLatin1().constData(), trackedFrameList) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to load input image file!");
       return PLUS_FAIL;

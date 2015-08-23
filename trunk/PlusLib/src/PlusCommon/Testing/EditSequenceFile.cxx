@@ -5,21 +5,19 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-
 #include "PlusMath.h"
-#include "vtkTransformRepository.h"
 #include "TrackedFrame.h"
+#include "vtkImageData.h"
+#include "vtkMatrix4x4.h"
+#include "vtkSequenceIOCommon.h"
+#include "vtkSmartPointer.h"
 #include "vtkTrackedFrameList.h" 
-#include "vtkMetaImageSequenceIO.h"
-
+#include "vtkTransform.h"
+#include "vtkTransformRepository.h"
+#include "vtkXMLDataElement.h"
+#include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtksys/RegularExpression.hxx"
-#include "vtkImageData.h"
-#include "vtkSmartPointer.h"
-#include "vtkTransform.h"
-#include "vtkMatrix4x4.h"
-#include "vtkXMLUtilities.h"
-#include "vtkXMLDataElement.h"
 
 enum OperationType
 {
@@ -63,8 +61,8 @@ public:
   vtkMatrix4x4* FrameTransformIncrement; 
 }; 
 
-PlusStatus TrimSequenceMetafile( vtkTrackedFrameList* trackedFrameList, unsigned int firstFrameIndex, unsigned int lastFrameIndex ); 
-PlusStatus DecimateSequenceMetafile( vtkTrackedFrameList* trackedFrameList, unsigned int decimationFactor); 
+PlusStatus TrimSequenceFile( vtkTrackedFrameList* trackedFrameList, int firstFrameIndex, int lastFrameIndex ); 
+PlusStatus DecimateSequenceFile( vtkTrackedFrameList* trackedFrameList, unsigned int decimationFactor); 
 PlusStatus UpdateFrameFieldValue( FrameFieldUpdate& fieldUpdate ); 
 PlusStatus DeleteFrameField( vtkTrackedFrameList* trackedFrameList, std::string fieldName ); 
 PlusStatus ConvertStringToMatrix( std::string &strMatrix, vtkMatrix4x4* matrix); 
@@ -82,22 +80,22 @@ int main(int argc, char **argv)
   int verboseLevel(vtkPlusLogger::LOG_LEVEL_UNDEFINED);
   vtksys::CommandLineArguments args;
 
-  std::string inputFileName; // Sequence metafile name with path to edit 
-  std::vector<std::string> inputFileNames; // Sequence metafile name list with path to edit 
-  std::string outputFileName; // Sequence metafile name with path to save the result
+  std::string inputFileName; // Sequence file name with path to edit 
+  std::vector<std::string> inputFileNames; // Sequence file name list with path to edit 
+  std::string outputFileName; // Sequence file name with path to save the result
   std::string strOperation; 
   OperationType operation; 
   bool useCompression = false; 
   bool incrementTimestamps = false; 
 
-  int firstFrameIndex = -1; // First frame index used for trimming the sequence metafile.
-  int lastFrameIndex = -1; // Last frame index used for trimming the sequence metafile.
+  int firstFrameIndex = -1; // First frame index used for trimming the sequence file.
+  int lastFrameIndex = -1; // Last frame index used for trimming the sequence file.
 
   std::string fieldName; // Field name to edit
   std::string updatedFieldName;  // Updated field name after edit
   std::string updatedFieldValue;  // Updated field value after edit
 
-  int frameScalarDecimalDigits = 5;  // Number of digits saved for frame field value into sequence metafile (Default: 5)
+  int frameScalarDecimalDigits = 5;  // Number of digits saved for frame field value into sequence file (Default: 5)
 
   double frameScalarStart = 0.0;  // Frame scalar field value starting index (Default: 0.0)
   double frameScalarIncrement = 1.0;  // Frame scalar field value increment (Default: 1.0)
@@ -127,15 +125,15 @@ int main(int argc, char **argv)
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
 
-  args.AddArgument("--source-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFileName, "Input sequence metafile name with path to edit");  
-  args.AddArgument("--source-seq-files", vtksys::CommandLineArguments::MULTI_ARGUMENT, &inputFileNames, "Input sequence metafile name list with path to edit");  
-  args.AddArgument("--output-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFileName, "Output sequence metafile name with path to save the result");  
+  args.AddArgument("--source-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFileName, "Input sequence file name with path to edit");  
+  args.AddArgument("--source-seq-files", vtksys::CommandLineArguments::MULTI_ARGUMENT, &inputFileNames, "Input sequence file name list with path to edit");  
+  args.AddArgument("--output-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFileName, "Output sequence file name with path to save the result");  
 
   args.AddArgument("--operation", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strOperation, "Operation to modify sequence file. See available operations below." );  
 
   // Trimming parameters 
-  args.AddArgument("--first-frame-index", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &firstFrameIndex, "First frame index used for trimming the sequence metafile. Index of the first frame of the sequence is 0.");  
-  args.AddArgument("--last-frame-index", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &lastFrameIndex, "Last frame index used for trimming the sequence metafile.");  
+  args.AddArgument("--first-frame-index", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &firstFrameIndex, "First frame index used for trimming the sequence file. Index of the first frame of the sequence is 0.");  
+  args.AddArgument("--last-frame-index", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &lastFrameIndex, "Last frame index used for trimming the sequence file.");  
 
   // Decimation parameters
   args.AddArgument("--decimation-factor", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &decimationFactor, "Used for DECIMATE operation, where every N-th frame is kept. This parameter specifies N (Default: 2)");
@@ -146,14 +144,14 @@ int main(int argc, char **argv)
   
   args.AddArgument("--frame-scalar-start", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frameScalarStart, "Frame scalar field value starting index (Default: 0.0)");  
   args.AddArgument("--frame-scalar-increment", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frameScalarIncrement, "Frame scalar field value increment (Default: 1.0)");  
-  args.AddArgument("--frame-scalar-decimal-digits", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frameScalarDecimalDigits, "Number of digits saved for frame scalar field value into sequence metafile (Default: 5)");  
+  args.AddArgument("--frame-scalar-decimal-digits", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frameScalarDecimalDigits, "Number of digits saved for frame scalar field value into sequence file (Default: 5)");  
 
   args.AddArgument("--frame-transform-start", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strFrameTransformStart, "Frame transform field starting 4x4 transform matrix (Default: identity)");  
   args.AddArgument("--frame-transform-increment", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strFrameTransformIncrement, "Frame transform increment 4x4 transform matrix (Default: identity)");  
  
-  args.AddArgument("--update-reference-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strUpdatedReferenceTransformName, "Set the reference transform name to update old metafiles by changing all ToolToReference transforms to ToolToTracker transform.");  
+  args.AddArgument("--update-reference-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strUpdatedReferenceTransformName, "Set the reference transform name to update old files by changing all ToolToReference transforms to ToolToTracker transform.");  
  
-  args.AddArgument("--use-compression", vtksys::CommandLineArguments::NO_ARGUMENT, &useCompression, "Compress sequence metafile images.");  
+  args.AddArgument("--use-compression", vtksys::CommandLineArguments::NO_ARGUMENT, &useCompression, "Compress sequence file images.");  
   args.AddArgument("--increment-timestamps", vtksys::CommandLineArguments::NO_ARGUMENT, &incrementTimestamps, "Increment timestamps in the order of the input-file-names");  
 
   args.AddArgument("--add-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformNamesToAdd, "Name of the transform to add to each frame (e.g., StylusTipToTracker); multiple transforms can be added separated by a comma (e.g., StylusTipToReference,ProbeToReference)");  
@@ -188,9 +186,9 @@ int main(int argc, char **argv)
     std::cout << "- DELETE_FIELD: delete field with name specified." << std::endl; 
     std::cout << "- ADD_TRANSFORM: add specified transform." << std::endl; 
 
-    std::cout << "- TRIM: Trim sequence metafile." << std::endl;
-    std::cout << "- DECIMATE: Keep every N-th frame of the sequence metafile." << std::endl;
-    std::cout << "- MERGE: Merge multiple sequence metafiles into one. Set input files with the --source-seq-files parameter." << std::endl; 
+    std::cout << "- TRIM: Trim sequence file." << std::endl;
+    std::cout << "- DECIMATE: Keep every N-th frame of the sequence file." << std::endl;
+    std::cout << "- MERGE: Merge multiple sequence files into one. Set input files with the --source-seq-files parameter." << std::endl; 
     
     std::cout << "- FILL_IMAGE_RECTANGLE: Fill a rectangle in the image (useful for removing patient data from sequences)." << std::endl;
     std::cout << "- CROP: Crop a rectangle in the image (useful for cropping b-mode image from the data obtained via frame-grabber)." << std::endl;
@@ -198,14 +196,10 @@ int main(int argc, char **argv)
 
     std::cout << "- REMOVE_IMAGE_DATA: Remove image data from a meta file that has both image and tracker data, and keep only the tracker data." << std::endl;
 
-
-
     return EXIT_SUCCESS; 
   }
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);  
-
-
 
   // Check command line arguments 
   if ( inputFileName.empty() && inputFileNames.empty() )
@@ -307,6 +301,7 @@ int main(int argc, char **argv)
   // Read input files 
 
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+  vtkSmartPointer<vtkTrackedFrameList> timestampFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
 
   if ( !inputFileName.empty() )
   {
@@ -317,20 +312,17 @@ int main(int argc, char **argv)
   double lastTimestamp = 0; 
   for ( unsigned int i = 0; i < inputFileNames.size(); i++ )
   {
-    vtkSmartPointer<vtkMetaImageSequenceIO> reader = vtkSmartPointer<vtkMetaImageSequenceIO>::New();        
-    reader->SetFileName(inputFileNames[i].c_str());
+    LOG_INFO("Read input sequence file: " << inputFileNames[i] ); 
 
-    LOG_INFO("Read input sequence metafile: " << inputFileNames[i] ); 
-
-    if (reader->Read()!=PLUS_SUCCESS)
+    if (vtkSequenceIOCommon::Read(inputFileNames[i], timestampFrameList) != PLUS_SUCCESS)
     {    
-      LOG_ERROR("Couldn't read sequence metafile: " <<  inputFileName ); 
+      LOG_ERROR("Couldn't read sequence file: " <<  inputFileName ); 
       return EXIT_FAILURE;
     }  
 
     if ( incrementTimestamps )
     {
-      vtkTrackedFrameList * tfList = reader->GetTrackedFrameList(); 
+      vtkTrackedFrameList * tfList = timestampFrameList; 
       for ( unsigned int f = 0; f < tfList->GetNumberOfTrackedFrames(); ++f )
       {
         TrackedFrame * tf = tfList->GetTrackedFrame(f); 
@@ -340,7 +332,7 @@ int main(int argc, char **argv)
       lastTimestamp = tfList->GetTrackedFrame(tfList->GetNumberOfTrackedFrames() - 1 )->GetTimestamp();
     }
 
-    if ( trackedFrameList->AddTrackedFrameList(reader->GetTrackedFrameList()) != PLUS_SUCCESS )
+    if ( trackedFrameList->AddTrackedFrameList(timestampFrameList) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to append tracked frame list!");
       return EXIT_SUCCESS; 
@@ -361,18 +353,18 @@ int main(int argc, char **argv)
     break; 
   case TRIM: 
     {
-      if ( TrimSequenceMetafile( trackedFrameList, firstFrameIndex, lastFrameIndex ) != PLUS_SUCCESS )
+      if ( TrimSequenceFile( trackedFrameList, firstFrameIndex, lastFrameIndex ) != PLUS_SUCCESS )
       {
-        LOG_ERROR("Failed to trim sequence metafile");
+        LOG_ERROR("Failed to trim sequence file");
         return EXIT_FAILURE; 
       }
     }
     break; 
   case DECIMATE: 
     {
-      if ( DecimateSequenceMetafile( trackedFrameList, decimationFactor ) != PLUS_SUCCESS )
+      if ( DecimateSequenceFile( trackedFrameList, decimationFactor ) != PLUS_SUCCESS )
       {
-        LOG_ERROR("Failed to decimate sequence metafile"); 
+        LOG_ERROR("Failed to decimate sequence file"); 
         return EXIT_FAILURE; 
       }
     }
@@ -514,7 +506,7 @@ int main(int argc, char **argv)
 
 
   //////////////////////////////////////////////////////////////////
-  // Convert metafiles to the new metafile format 
+  // Convert files to the new file format 
 
   if ( !strUpdatedReferenceTransformName.empty() )
   {
@@ -573,7 +565,7 @@ int main(int argc, char **argv)
 
         // Update the name to ToolToTracker
         PlusTransformName toolToTracker(transformNameList[n].From().c_str(), "Tracker"); 
-        // Set the new custom transoform
+        // Set the new custom transform
         if ( trackedFrame->SetCustomFrameTransform(toolToTracker, toolToTrackerTransform->GetMatrix()) != PLUS_SUCCESS )
         {
           std::string strTransformName; 
@@ -610,34 +602,28 @@ int main(int argc, char **argv)
   }
 
   ///////////////////////////////////////////////////////////////////
-  // Save output file to metafile 
+  // Save output file to file 
 
-  LOG_INFO("Save output sequence metafile to: " << outputFileName ); 
-  vtkSmartPointer<vtkMetaImageSequenceIO> writer=vtkSmartPointer<vtkMetaImageSequenceIO>::New();      
-  writer->SetFileName(outputFileName.c_str());
-  writer->SetTrackedFrameList(trackedFrameList); 
-  writer->SetUseCompression(useCompression);
-
-  if(REMOVE_IMAGE_DATA==operation)
+  LOG_INFO("Save output sequence file to: " << outputFileName );
+  if( vtkSequenceIOCommon::Write(outputFileName, trackedFrameList, trackedFrameList->GetImageOrientation(), useCompression, operation != REMOVE_IMAGE_DATA) != PLUS_SUCCESS )
   {
-    writer->SetEnableImageDataWrite(false);
+    LOG_ERROR("Couldn't write sequence file: " <<  outputFileName ); 
+    return EXIT_FAILURE;
   }
 
-  if (writer->Write() != PLUS_SUCCESS)
-  {    
-    LOG_ERROR("Couldn't write sequence metafile: " <<  outputFileName ); 
-    return EXIT_FAILURE;
-  }  
-
-
-  LOG_INFO("Sequence metafile editing was successful!"); 
+  LOG_INFO("Sequence file editing was successful!"); 
   return EXIT_SUCCESS; 
 }
 
 //-------------------------------------------------------
-PlusStatus TrimSequenceMetafile( vtkTrackedFrameList* aTrackedFrameList, unsigned int aFirstFrameIndex, unsigned int aLastFrameIndex )
+PlusStatus TrimSequenceFile( vtkTrackedFrameList* aTrackedFrameList, int aFirstFrameIndex, int aLastFrameIndex )
 {
-  LOG_INFO("Trim sequence metafile from frame #: " << aFirstFrameIndex << " to frame #" << aLastFrameIndex ); 
+  if ( aFirstFrameIndex < 0 )
+  {
+    // Default to first frame
+    aFirstFrameIndex = 0;
+  }
+  LOG_INFO("Trim sequence file from frame #: " << aFirstFrameIndex << " to frame #" << aLastFrameIndex ); 
   if ( aFirstFrameIndex < 0 || aLastFrameIndex >= aTrackedFrameList->GetNumberOfTrackedFrames() || aFirstFrameIndex > aLastFrameIndex)
   {
     LOG_ERROR("Invalid input range: (" << aFirstFrameIndex << ", " << aLastFrameIndex << ")" << " Permitted range within (0, " << aTrackedFrameList->GetNumberOfTrackedFrames() - 1 << ")");
@@ -658,9 +644,9 @@ PlusStatus TrimSequenceMetafile( vtkTrackedFrameList* aTrackedFrameList, unsigne
 }
 
 //-------------------------------------------------------
-PlusStatus DecimateSequenceMetafile( vtkTrackedFrameList* aTrackedFrameList, unsigned int decimationFactor)
+PlusStatus DecimateSequenceFile( vtkTrackedFrameList* aTrackedFrameList, unsigned int decimationFactor)
 {
-  LOG_INFO("Decimate sequence metafile: keep 1 frame out of every " << decimationFactor << " frames"); 
+  LOG_INFO("Decimate sequence file: keep 1 frame out of every " << decimationFactor << " frames"); 
   if (decimationFactor < 2)
   {
     LOG_ERROR("Invalid decimation factor: "<<decimationFactor<<". It must be an integer larger or equal than 2.");

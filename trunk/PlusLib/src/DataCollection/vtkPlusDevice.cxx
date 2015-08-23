@@ -9,8 +9,6 @@ See License.txt for details.
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkMatrix4x4.h"
-#include "vtkMetaImageReader.h"
-#include "vtkMetaImageWriter.h"
 #include "vtkMultiThreader.h" 
 #include "vtkObjectFactory.h"
 #include "vtkPlusBuffer.h"
@@ -18,6 +16,7 @@ See License.txt for details.
 #include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
 #include "vtkRecursiveCriticalSection.h"
+#include "vtkSequenceIOCommon.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkWindows.h"
@@ -579,7 +578,7 @@ PlusStatus vtkPlusDevice::WriteToMetafile( const char* filename, bool useCompres
   }
 
   // Save tracked frames to metafile
-  if ( trackedFrameList->SaveToSequenceMetafile(filename, useCompression) != PLUS_SUCCESS )
+  if( vtkSequenceIOCommon::Write(filename, trackedFrameList, trackedFrameList->GetImageOrientation(), useCompression) != PLUS_SUCCESS )
   {
     LOCAL_LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
     return PLUS_FAIL;

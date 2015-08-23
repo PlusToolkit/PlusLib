@@ -17,12 +17,12 @@ class vtkDataCollectionExport vtkSavedDataSource;
 
 /*!
 \class vtkSavedDataSource 
-\brief Class for providing VTK video input interface from sequence metafile
+\brief Class for providing VTK video input interface from sequence file
 \ingroup PlusLibDataCollection
 
 Attributes:
-\li SequenceMetafile: source file to read the image/transform data from
-\li UseData: specifies what data to be use from the source metafile (IMAGE|IMAGE_AND_TRANSFORM|TRANSFORM)
+\li SequenceFile: source file to read the image/transform data from
+\li UseData: specifies what data to be use from the source file (IMAGE|IMAGE_AND_TRANSFORM|TRANSFORM)
 \li RepeatEnabled: if true then the sequence is played repeateadly (TRUE|FALSE)
 \li UseOriginalTimestamps: if true then the original timestamps (recorded originally in the source file) 
   will be replayed exactly, otherwise only the timestamp difference will be replayed exactly, 
@@ -42,9 +42,9 @@ public:
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
   /*! Set SequenceMetafile name with path with tracking buffer data  */
-  vtkSetStringMacro(SequenceMetafile);
+  vtkSetStringMacro(SequenceFile);
   /*! Get SequenceMetafile name with path with tracking buffer data  */
-  vtkGetStringMacro(SequenceMetafile);
+  vtkGetStringMacro(SequenceFile);
 
   /*! Set the time range of the loaded buffer that will be replayed */
   void SetLoopTimeRange(double loopStartTime, double loopStopTime); 
@@ -133,8 +133,8 @@ protected:
   /*! Byte alignment of each row in the framebuffer */
   int FrameBufferRowAlignment;
 
-  /*! Name of input sequence metafile */
-  char* SequenceMetafile;
+  /*! Name of input sequence file */
+  char* SequenceFile;
 
   /*! Flag to to enable saved dataset looping. If it's enabled, the video source will continuously play saved data (starts playing from the beginning when the end is reached). */
   bool RepeatEnabled; 
