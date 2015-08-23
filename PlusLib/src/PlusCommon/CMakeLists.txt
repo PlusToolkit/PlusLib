@@ -13,6 +13,8 @@ SET (PlusCommon_SRCS
   vtkTrackedFrameList.cxx
   TrackedFrame.cxx
   vtkMetaImageSequenceIO.cxx
+  vtkNrrdSequenceIO.cxx
+  vtkSequenceIOCommon.cxx
   vtkRecursiveCriticalSection.cxx
   vtkToolAxesActor.cxx
   )
@@ -26,14 +28,17 @@ if (WIN32)
     vtkPlusLogger.h
     vtkHTMLGenerator.h
     vtkPlusConfig.h
-	vtkPlusMacro.h
+    vtkPlusMacro.h
     PlusMath.h
     vtkTransformRepository.h
     vtkTrackedFrameList.h
     TrackedFrame.h
     PlusVideoFrame.h
-	PlusVideoFrame.txx
+    PlusVideoFrame.txx
     vtkMetaImageSequenceIO.h
+    vtkNrrdSequenceIO.h
+    vtkSequenceIOCommon.h
+    vtkSequenceIOBase.h
     vtkRecursiveCriticalSection.h
     vtkToolAxesActor.h
     PixelCodec.h
