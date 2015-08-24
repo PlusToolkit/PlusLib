@@ -159,16 +159,16 @@ IF (PLUS_USE_OPTIMET_CONOPROBE)
       ${CMAKE_CURRENT_SOURCE_DIR}/Optimet 
       CACHE INTERNAL "" FORCE)
       
-	SET (DataCollection_LIBS ${DataCollection_LIBS}
-	${OPTIMETSMART32SDK_LIBRARY}
-	)
+    SET (DataCollection_LIBS ${DataCollection_LIBS}
+    ${OPTIMETSMART32SDK_LIBRARY}
+    )
 
-	SET ( External_Libraries_Install ${External_Libraries_Install}
-	${OPTIMETSMART32SDK_BINARY_DIR}/Smart32${CMAKE_SHARED_LIBRARY_SUFFIX}
-	)
-	SET ( External_Libraries_Install ${External_Libraries_Install}
-	${OPTIMETSMART32SDK_BINARY_DIR}/NewProbeDialog${CMAKE_SHARED_LIBRARY_SUFFIX}
-	)
+    SET ( External_Libraries_Install ${External_Libraries_Install}
+    ${OPTIMETSMART32SDK_BINARY_DIR}/Smart32${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+    SET ( External_Libraries_Install ${External_Libraries_Install}
+    ${OPTIMETSMART32SDK_BINARY_DIR}/NewProbeDialog${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
 ENDIF (PLUS_USE_OPTIMET_CONOPROBE)
 
 # --------------------------------------------------------------------------
