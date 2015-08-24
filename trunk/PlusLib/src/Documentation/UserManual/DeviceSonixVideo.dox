@@ -39,8 +39,7 @@ Common attributes:
   - \xmlAtt \b Depth Depth \c [mm] of B-mode ultrasound. If not specified then the current setting is used. \OptionalAtt{ }
   - \xmlAtt \b Gain Gain \c [%] of B-mode ultrasound; valid range: 0-100. If not specified then the current setting is used.\OptionalAtt{ }
   - \xmlAtt \b Zoom Zoom \c [%] of B-mode ultrasound; valid range: 0-100. If not specified then the current setting is used. \OptionalAtt{ }
-  - \xmlAtt \b Frequency Ultrasound transmitter frequency \c [MHz] If not specified then the current setting is used.\OptionalAtt{ }
-  - \xmlAtt \b Timeout Timeout \c [ms] for receiving new frames by network function calls. If not specified then the current setting is used. \OptionalAtt{ }
+  - \xmlAtt \b Frequency Ultrasound transmitter frequency \c [Hz] If not specified then the current setting is used.\OptionalAtt{ }
   - \xmlElem \ref DataSources Multiple \c DataSource child elements are allowed, one for each data type (\c PortName indicates the data type) \RequiredAtt
     - \xmlElem \ref DataSource \RequiredAtt
       - \xmlAtt \ref PortName \RequiredAtt
@@ -56,6 +55,7 @@ Common attributes:
 Ulterius interface specific Device attributes:
 - \xmlAtt \ref DeviceType "Type" = \c "SonixVideo" \RequiredAtt
 - \xmlAtt \b IP Host name or IP address of the Ultrasound system. If Plus runs on the Ultrasound system then the 127.0.0.1 address can be used. \RequiredAtt
+- \xmlAtt \b Timeout Timeout \c [ms] for receiving new frames by network function calls. If not specified then the current setting is used. \OptionalAtt{ }
 - \xmlAtt \b AutoClipEnabled Automatically clip the image to the region of interest specified by the ultrasound system. \OptionalAtt{FALSE}
   - TRUE: Image will be clipped to the region of interest that was specified at the time when the connection to the device was established. The image size depends on the imaging depth.
   - FALSE: Regardless of imaging depth, zoom, etc. settings, the image size is always the same. Black border appears outside the region of interest.
@@ -72,14 +72,12 @@ Ulterius interface specific Device attributes:
 
 Porta interface specific Device attributes:
 - \xmlAtt \ref DeviceType "Type" = \c "SonixPortaVideo" \RequiredAtt
-- \xmlAtt \b ImagingMode Only BMode supported. \OptionalAtt{BMode}
-- \xmlAtt \b FramePerVolume Number of frames that will acquired in one sweep of the motor. Range: 3-125 (always odd as there always is a central frame). \OptionalAtt{80} 
-- \xmlAtt \b BModeFrameSize Size of the BMode frame buffer \c [pixels] \OptionalAtt{ 480 436 }
-- \xmlAtt \b StepPerFrame The number of steps the motor will move while acquiring a single frame. Range: 2, 4, 8, 16, 32. Larger value results in faster scanning. \OptionalAtt{4}
 - \xmlAtt \b Usm Ultrasound module version. Typical values: 2, 3, 4. If an incorrect value is set then Porta initialization will fail, therefore the Usm and Pci values can be determined by trial and error. \RequiredAtt
 - \xmlAtt \b Pci PCI card version.  Typical values: 2, 3, 4. If an incorrect value is set then Porta initialization will fail, therefore the Usm and Pci values can be determined by trial and error. \RequiredAtt
-- \xmlAtt \b HighVoltage Set it to 1 in case of a high-voltage board is used (only for Usm="2"), otherwise set it to 0. \RequiredAtt
-- \xmlAtt \b Channels Porta initialization parameter. Typical value is "64". \RequiredAtt
+- \xmlAtt \b ImagingMode Only BMode supported. \OptionalAtt{BMode}
+- \xmlAtt \b FramePerVolume Number of frames that will acquired in one sweep of the motor. Range: 3-125 (always odd as there always is a central frame). \OptionalAtt{ } 
+- \xmlAtt \b StepPerFrame The number of steps the motor will move while acquiring a single frame. Range: 2, 4, 8, 16, 32. Larger value results in faster scanning. \OptionalAtt{ }
+- \xmlAtt \b BModeFrameSize Size of the BMode frame buffer \c [pixels] \OptionalAtt{ 480 436 }
 - \xmlAtt \b PortaLUTPath Path to the Porta LUT directory. Typical value: "D:/Ultrasonix Settings/LUTS/" \RequiredAtt
 - \xmlAtt \b PortaSettingPath Path to the Porta Setting directory. Example value: "D:/sdk/porta/dat/" \RequiredAtt
 - \xmlAtt \b PortaLicensePath Path to the licenses text file. Example value: "D:/Ultrasonix Settings/" \RequiredAtt
