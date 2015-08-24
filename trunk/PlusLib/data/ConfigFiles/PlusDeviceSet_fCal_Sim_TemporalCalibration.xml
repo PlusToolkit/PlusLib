@@ -11,7 +11,7 @@
       UseData="TRANSFORM"
       AcquisitionRate="10"
       LocalTimeOffsetSec="0.0"
-      SequenceFile="WaterTankBottomTranslationTrackerBuffer-trimmed.mha"
+      SequenceMetafile="WaterTankBottomTranslationTrackerBuffer-trimmed.mha"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE"
       ToolReferenceFrame="Tracker" >
@@ -35,7 +35,7 @@
       UseData="IMAGE"
       AcquisitionRate="10" 
       LocalTimeOffsetSec="0.0" 
-      SequenceFile="WaterTankBottomTranslationVideoBuffer.mha"
+      SequenceMetafile="WaterTankBottomTranslationVideoBuffer.mha"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE" >
       <DataSources>

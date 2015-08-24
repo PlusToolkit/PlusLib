@@ -77,16 +77,10 @@ public:
   virtual unsigned int GetNumberOfTrackedFrames() { return this->TrackedFrameList.size(); } 
 
   /*! Save the tracked data to sequence metafile */
-  PlusStatus SaveToSequenceMetafile(const std::string& filename, US_IMAGE_ORIENTATION orientationInFile=US_IMG_ORIENT_MF, bool useCompression = true, bool enableImageDataWrite = true);
+  PlusStatus SaveToSequenceMetafile(const char* filename, bool useCompression = true, bool removeImageData = false);
 
   /*! Read the tracked data from sequence metafile */
-  virtual PlusStatus ReadFromSequenceMetafile(const std::string& trackedSequenceDataFileName);
-
-  /*! Save the tracked data to Nrrd file */
-  PlusStatus SaveToNrrdFile(const std::string& filename, US_IMAGE_ORIENTATION orientationInFile=US_IMG_ORIENT_MF, bool useCompression = true, bool enableImageDataWrite = true);
-
-  /*! Read the tracked data from Nrrd file */
-  virtual PlusStatus ReadFromNrrdFile(const std::string& trackedSequenceDataFileName);
+  virtual PlusStatus ReadFromSequenceMetafile(const char* trackedSequenceDataFileName); 
 
   /*! Get the tracked frame list */
   TrackedFrameListType GetTrackedFrameList() { return this->TrackedFrameList; }

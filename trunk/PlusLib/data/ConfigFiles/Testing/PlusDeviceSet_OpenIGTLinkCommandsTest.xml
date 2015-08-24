@@ -8,7 +8,7 @@
     <Device
       Id="TrackedVideoDevice"
       Type="SavedDataSource"
-      SequenceFile="NwirePhantomFreehandCropped.mha"
+      SequenceMetafile="NwirePhantomFreehandCropped.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="FALSE"
       AcquisitionRate="3.0"

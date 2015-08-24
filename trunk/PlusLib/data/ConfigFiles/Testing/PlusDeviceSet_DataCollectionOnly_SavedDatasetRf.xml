@@ -11,7 +11,7 @@
       UseData="TRANSFORM"      
       AcquisitionRate="10"
       LocalTimeOffsetSec="0.0"
-      SequenceFile="NwirePhantomFreehand.mha" >
+      SequenceMetafile="NwirePhantomFreehand.mha" >
       <DataSources>
         <DataSource Type="Tool" Id="Probe"  />
       </DataSources>      
@@ -28,7 +28,7 @@
       UseData="IMAGE"
       AcquisitionRate="10" 
       LocalTimeOffsetSec="0.0" 
-      SequenceFile="UltrasonixCurvilinearRfData.mha" >
+      SequenceMetafile="UltrasonixCurvilinearRfData.mha" >
       <DataSources>
         <DataSource Type="Video" Id="Video"  />
       </DataSources>      

@@ -7,7 +7,7 @@
     <Device
       Id="TrackedVideoDevice"
       Type="SavedDataSource"
-      SequenceFile="ie33_NDIAurora_Probe_Stylus_compressed.mha"
+      SequenceMetafile="ie33_NDIAurora_Probe_Stylus_compressed.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE" >

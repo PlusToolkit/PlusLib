@@ -592,13 +592,13 @@ void vtkMetaImageSequenceIO::CreateTrackedFrameIfNonExisting(unsigned int frameN
 }
 
 //----------------------------------------------------------------------------
-bool vtkMetaImageSequenceIO::CanReadFile(const std::string& filename)
+bool vtkMetaImageSequenceIO::CanReadFile(const char*)
 {
   FILE *stream=NULL;
   // open in binary mode because we determine the start of the image buffer also during this read
-  if ( vtkMetaImageSequenceIO::FileOpen( &stream, filename.c_str(), "rb" ) != PLUS_SUCCESS )
+  if ( FileOpen( &stream, this->FileName.c_str(), "rb" ) != PLUS_SUCCESS )
   {
-    LOG_DEBUG("The file "<<filename<<" could not be opened for reading");
+    LOG_DEBUG("The file "<<this->FileName<<" could not be opened for reading");
     return false;
   }
   char line[MAX_LINE_LENGTH+1]={0};
@@ -619,7 +619,7 @@ bool vtkMetaImageSequenceIO::CanReadFile(const std::string& filename)
     return false;
   }
   std::string name=lineStr.substr(0,equalSignFound);
-  std::string value=lineStr.substr(equalSignFound+1);
+  std::string value=lineStr.substr(equalSignFound);
 
   // trim spaces from the left and right
   PlusCommon::Trim(name);
@@ -637,18 +637,6 @@ bool vtkMetaImageSequenceIO::CanReadFile(const std::string& filename)
   }
 
   return true;
-}
-
-//----------------------------------------------------------------------------
-bool vtkMetaImageSequenceIO::CanWriteFile(const std::string& filename)
-{
-  if( vtksys::SystemTools::GetFilenameExtension(filename).compare(".mha") == 0 ||
-    vtksys::SystemTools::GetFilenameExtension(filename).compare(".mhd") == 0)
-  {
-    return true;
-  }
-
-  return false;
 }
 
 //----------------------------------------------------------------------------
@@ -1567,12 +1555,12 @@ PlusStatus vtkMetaImageSequenceIO::Discard()
 
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMetaImageSequenceIO::SetFileName( const std::string& aFilename )
+PlusStatus vtkMetaImageSequenceIO::SetFileName( const char* aFilename )
 {
   this->FileName.clear();
   this->PixelDataFileName.clear();
 
-  if( aFilename.empty() )
+  if( aFilename == NULL )
   {
     LOG_ERROR("Invalid metaimage file name");
   }

@@ -4,19 +4,20 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "FidPatternRecognition.h"
-#include "PatternLocResultFile.h"
 #include "PlusConfigure.h"
-#include "TrackedFrame.h"
-#include "vtkSequenceIOCommon.h"
-#include "vtkSmartPointer.h"
-#include "vtkTrackedFrameList.h"
+#include <iostream>
+#include <fstream> 
+#include <sstream>
+#include "PatternLocResultFile.h"
+
+#include "FidPatternRecognition.h"
+
+#include "vtksys/CommandLineArguments.hxx"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
-#include "vtksys/CommandLineArguments.hxx"
-#include <fstream> 
-#include <iostream>
-#include <sstream>
+#include "vtkSmartPointer.h"
+#include "TrackedFrame.h"
+#include "vtkTrackedFrameList.h"
 
 ///////////////////////////////////////////////////////////////////
 // Other constants
@@ -422,7 +423,7 @@ int main(int argc, char **argv)
   LOG_INFO("Read from metafile");
   std::string inputImageSequencePath=inputTestDataDir+"/"+inputImageSequenceFileName;
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  if( vtkSequenceIOCommon::Read(inputImageSequencePath, trackedFrameList) != PLUS_SUCCESS )
+  if ( trackedFrameList->ReadFromSequenceMetafile(inputImageSequencePath.c_str()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read sequence metafile: " << inputImageSequencePath); 
     return EXIT_FAILURE;

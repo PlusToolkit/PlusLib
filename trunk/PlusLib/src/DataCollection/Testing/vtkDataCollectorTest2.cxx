@@ -92,7 +92,7 @@ int main(int argc, char **argv)
       LOG_ERROR( "Unable to cast device to vtkSavedDataSource." );
       exit( EXIT_FAILURE );
     }
-    videoSource->SetSequenceFile(inputVideoBufferMetafile.c_str()); 
+    videoSource->SetSequenceMetafile(inputVideoBufferMetafile.c_str()); 
   }
 
   if ( !inputTrackerBufferMetafile.empty() )
@@ -108,7 +108,7 @@ int main(int argc, char **argv)
       LOG_ERROR( "Unable to cast tracker to vtkSavedDataSource" );
       exit( EXIT_FAILURE );
     }
-    tracker->SetSequenceFile(inputTrackerBufferMetafile.c_str()); 
+    tracker->SetSequenceMetafile(inputTrackerBufferMetafile.c_str()); 
   }
 
   if ( dataCollector->Connect() != PLUS_SUCCESS )

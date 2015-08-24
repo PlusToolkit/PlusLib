@@ -10,7 +10,7 @@
       UseData="TRANSFORM"
       AcquisitionRate="15"
       LocalTimeOffsetSec="0.0"
-      SequenceFile="EightLandmarkPointsTrackedForPhantomRegistration.mha"
+      SequenceMetafile="EightLandmarkPointsTrackedForPhantomRegistration.mha"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE"
       ToolReferenceFrame="Tracker" >

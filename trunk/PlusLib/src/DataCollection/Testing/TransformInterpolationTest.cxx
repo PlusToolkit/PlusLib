@@ -9,9 +9,8 @@
 #include "vtkHTMLGenerator.h"
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
-#include "vtkPlusBuffer.h"
 #include "vtkPlusDevice.h"
-#include "vtkSequenceIOCommon.h"
+#include "vtkPlusBuffer.h"
 #include "vtkTrackedFrameList.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtksys/SystemTools.hxx"
@@ -64,7 +63,7 @@ int main(int argc, char **argv)
   // Read buffer 
   LOG_INFO("Reading tracker meta file..."); 
   vtkSmartPointer<vtkTrackedFrameList> trackerFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  if( vtkSequenceIOCommon::Read(inputMetafile, trackerFrameList) != PLUS_SUCCESS )
+  if ( trackerFrameList->ReadFromSequenceMetafile(inputMetafile.c_str()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read sequence metafile from file: " << inputMetafile ); 
   }

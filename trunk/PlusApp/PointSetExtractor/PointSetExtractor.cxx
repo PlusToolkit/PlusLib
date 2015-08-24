@@ -16,7 +16,9 @@
 */ 
 
 #include "PlusConfigure.h"
-#include "TrackedFrame.h"
+
+#include <vtksys/CommandLineArguments.hxx>
+
 #include "vtkActor.h"
 #include "vtkAppendPolyData.h"
 #include "vtkCamera.h"
@@ -30,18 +32,18 @@
 #include "vtkPolyDataMapper.h"
 #include "vtkPolyDataNormals.h"
 #include "vtkProperty.h"
+#include "vtkRenderer.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
-#include "vtkRenderer.h"
-#include "vtkSTLWriter.h"
-#include "vtkSequenceIOCommon.h"
 #include "vtkSphereSource.h"
-#include "vtkTrackedFrameList.h"
-#include "vtkTransformRepository.h"
+#include "vtkSTLWriter.h"
 #include "vtkTriangleFilter.h"
 #include "vtkTubeFilter.h"
 #include "vtkXMLUtilities.h"
-#include <vtksys/CommandLineArguments.hxx>
+
+#include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
+#include "vtkTransformRepository.h"
 
 int main(int argc, char **argv)
 {
@@ -109,7 +111,7 @@ int main(int argc, char **argv)
 
   LOG_INFO("Read input file...");
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-  if( vtkSequenceIOCommon::Read(inputSequenceFileName, trackedFrameList) != PLUS_SUCCESS )
+  if ( trackedFrameList->ReadFromSequenceMetafile(inputSequenceFileName.c_str()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read tracked pose sequence metafile: " << inputSequenceFileName);
     return EXIT_FAILURE;

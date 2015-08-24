@@ -5,15 +5,17 @@
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
+
+#include "vtksys/CommandLineArguments.hxx"
+
 #include "TrackedFrame.h"
+
 #include "vtkImageData.h"
 #include "vtkMatrix4x4.h"
-#include "vtkSequenceIOCommon.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkTransformRepository.h"
 #include "vtkVolumeReconstructor.h"
 #include "vtkXMLUtilities.h"
-#include "vtksys/CommandLineArguments.hxx"
 
 int main (int argc, char* argv[])
 { 
@@ -140,11 +142,7 @@ int main (int argc, char* argv[])
   // Read image sequence
   LOG_INFO("Reading image sequence " << inputImgSeqFileName );
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  if( vtkSequenceIOCommon::Read(inputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Unable to load input sequences file.");
-    exit(EXIT_FAILURE);
-  }
+  trackedFrameList->ReadFromSequenceMetafile(inputImgSeqFileName.c_str()); 
 
   // Reconstruct volume 
   PlusTransformName imageToReferenceTransformName;

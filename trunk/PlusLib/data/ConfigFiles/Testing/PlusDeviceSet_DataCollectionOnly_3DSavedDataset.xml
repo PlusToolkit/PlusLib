@@ -12,7 +12,7 @@
       AcquisitionRate="10"
       LocalTimeOffsetSec="0.0"
       ToolReferenceFrame="Tracker" 
-      SequenceFile="ie33_NDIAurora_Probe_Stylus_compressed.mha" >
+      SequenceMetafile="ie33_NDIAurora_Probe_Stylus_compressed.mha" >
       <DataSources>
         <DataSource Type="Tool" Id="Probe"  />
         <DataSource Type="Tool" Id="Reference"  />
@@ -33,7 +33,7 @@
       UseData="IMAGE"
       AcquisitionRate="10" 
       LocalTimeOffsetSec="0.0" 
-      SequenceFile="ie33_NDIAurora_Probe_Stylus_compressed.mha" >
+      SequenceMetafile="ie33_NDIAurora_Probe_Stylus_compressed.mha" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />
       </DataSources>      

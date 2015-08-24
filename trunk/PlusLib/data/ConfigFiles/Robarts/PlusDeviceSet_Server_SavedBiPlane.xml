@@ -12,7 +12,7 @@
 	  ReplayEnabled="TRUE"
       AcquisitionRate="10" 
       LocalTimeOffsetSec="0.0" 
-      SequenceFile="ie33_biplane_LeftCaptureDevice_compressed.mha" >
+      SequenceMetafile="ie33_biplane_LeftCaptureDevice_compressed.mha" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />
       </DataSources>      
@@ -28,7 +28,7 @@
 	  ReplayEnabled="TRUE"
       AcquisitionRate="10" 
       LocalTimeOffsetSec="0.0" 
-      SequenceFile="ie33_biplane_RightCaptureDevice_compressed.mha" >
+      SequenceMetafile="ie33_biplane_RightCaptureDevice_compressed.mha" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />
       </DataSources>      
