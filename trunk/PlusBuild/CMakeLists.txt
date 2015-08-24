@@ -3,7 +3,7 @@ PROJECT(PlusBuild)
 # Configure the build to work (although with limited functionalities) if only
 # src directory of the repository is available
 # 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.11)
 IF(COMMAND cmake_policy)
   cmake_policy(SET CMP0003 NEW)
 ENDIF(COMMAND cmake_policy)
@@ -62,12 +62,12 @@ ENDIF()
 # Determine the operating system to set default values accordingly
 SET (ENABLED_BY_DEFAULT_ON_WINDOWS_ONLY OFF)
 SET (ENABLED_BY_DEFAULT_ON_WINDOWS32_ONLY OFF)
-if (CMAKE_HOST_WIN32)	
+if (CMAKE_HOST_WIN32)
   SET (ENABLED_BY_DEFAULT_ON_WINDOWS_ONLY ON)
   if (NOT CMAKE_CL_64)
     SET (ENABLED_BY_DEFAULT_ON_WINDOWS32_ONLY ON)
   endif ()
-endif (CMAKE_HOST_WIN32)	  
+endif (CMAKE_HOST_WIN32)
 
 OPTION(PLUSBUILD_USE_3DSlicer "Use 3D Slicer and it's external projects (like ITK, VTK, OpenIGTLink)" OFF)
 OPTION(PLUSBUILD_USE_OpenIGTLink "Use OpenIGTLink" ON)
@@ -210,13 +210,26 @@ IF(PLUSBUILD_BUILD_PLUSAPP AND NOT PLUSBUILD_USE_3DSlicer)
       "../Qt/4.8.7/bin"
       "../../Qt/4.8.7/bin"
     )
-  FIND_PACKAGE(Qt4)
-  IF ( NOT QT4_FOUND)
-      MESSAGE( FATAL_ERROR "This project requires Qt4 for building PlusApp. One of these components is missing. Please verify configuration by selecting QT_QMAKE_EXECUTABLE or turn off PLUSBUILD_BUILD_PLUSAPP option.")
-  ENDIF()  
-  
-  SET(QT_USE_QT3SUPPORT FALSE) 
-  INCLUDE(${QT_USE_FILE})
+
+  FIND_PACKAGE(Qt4 QUIET)
+  IF ( NOT QT4_FOUND )
+    IF(EXISTS ${QT_QMAKE_EXECUTABLE} )
+      GET_FILENAME_COMPONENT(QT_BINARY_DIR ${QT_QMAKE_EXECUTABLE} DIRECTORY)
+      GET_FILENAME_COMPONENT(CMAKE_PREFIX_PATH ${QT_BINARY_DIR} DIRECTORY)
+    ENDIF()
+
+    FIND_PACKAGE(Qt5Widgets QUIET)
+
+    #get_cmake_property(_variableNames VARIABLES)
+    #foreach (_variableName ${_variableNames})
+      #message(STATUS "${_variableName}=${${_variableName}}")
+    #endforeach()
+
+    IF ( NOT Qt5Gui_FOUND )
+      MESSAGE( FATAL_ERROR "This project requires Qt4 or Qt5 for building PlusApp. These components are missing. Please verify configuration by selecting QT_QMAKE_EXECUTABLE or turn off PLUSBUILD_BUILD_PLUSAPP option.")
+    ENDIF()
+    SET(QT_VERSION_MAJOR ${Qt5Widgets_VERSION_MAJOR})
+  ENDIF()
 ENDIF(PLUSBUILD_BUILD_PLUSAPP AND NOT PLUSBUILD_USE_3DSlicer) 
 
 #-----------------------------------------------------------------------------
@@ -396,13 +409,13 @@ ENDIF()
 
 IF (PLUS_USE_PHILIPS_3D_ULTRASOUND)
   IF(NOT CMAKE_HOST_WIN32)
-	# Philips is windows only
-	MESSAGE( FATAL_ERROR "Philips SDK is only available for Windows.")
+    # Philips is windows only
+    MESSAGE( FATAL_ERROR "Philips SDK is only available for Windows.")
   ENDIF(NOT CMAKE_HOST_WIN32)
   IF(PLUS_USE_ULTRASONIX_VIDEO)
-	# Ultrasonix contains its own libmmd.dll which does not support all the functionality needed for the philips probe
-	# They both cannot be enabled at the same time.
-	MESSAGE( FATAL_ERROR "Plus cannot enable both Ultrasonix and Philips devices due to .dll conflicts in their respective SDK packages.")
+    # Ultrasonix contains its own libmmd.dll which does not support all the functionality needed for the philips probe
+    # They both cannot be enabled at the same time.
+    MESSAGE( FATAL_ERROR "Plus cannot enable both Ultrasonix and Philips devices due to .dll conflicts in their respective SDK packages.")
   ELSE(PLUS_USE_ULTRASONIX_VIDEO)
     SET (PLUS_Philips_MAJOR_VERSION 1 CACHE STRING "Set Philips library major version (version: [major].[minor].[patch])")
     SET (PLUS_Philips_MINOR_VERSION 0 CACHE STRING "Set Philips library minor version (version: [major].[minor].[patch])")
@@ -411,8 +424,8 @@ IF (PLUS_USE_PHILIPS_3D_ULTRASOUND)
     IF( NOT PHILIPS_FOUND )
       MESSAGE( FATAL_ERROR "In order to use the Philips ie33 ultrasound system, the requisite DLLs must be made available. Please verify configuration or turn off PLUS_USE_PHILIPS_3D_ULTRASOUND.")
     ENDIF(NOT PHILIPS_FOUND)
-	message( "To use the Philips devices you must:" )
-	message( "1. Register '${CMAKE_CURRENT_BINARY_DIR}/bin/Debug|Release/Stream3d.dll'. If you are using a 32-bit OS, this can be done by running 'regsvr32 Stream3d.dll' in command line. If you are using a 64-bit OS, this can be done by the following procedure. Open the command line in administrator mode (Right click on cmd, choose 'Run as administrator'). Go to directory 'C:/Windows/SysWow64'. Run the regsvr32 command in SysWow64." )
+      MESSAGE( STATUS "To use the Philips devices you must:" )
+      MESSAGE( STATUS "1. Register '${CMAKE_CURRENT_BINARY_DIR}/bin/Debug|Release/Stream3d.dll'. If you are using a 32-bit OS, this can be done by running 'regsvr32 Stream3d.dll' in command line. If you are using a 64-bit OS, this can be done by the following procedure. Open the command line in administrator mode (Right click on cmd, choose 'Run as administrator'). Go to directory 'C:/Windows/SysWow64'. Run the regsvr32 command in SysWow64." )
   ENDIF(PLUS_USE_ULTRASONIX_VIDEO)
 ENDIF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
 

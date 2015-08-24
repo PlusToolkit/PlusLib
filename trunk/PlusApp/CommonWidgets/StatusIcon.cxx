@@ -22,7 +22,7 @@ namespace
 }
 //-----------------------------------------------------------------------------
 
-StatusIcon::StatusIcon(QWidget* aParent, Qt::WFlags aFlags)
+StatusIcon::StatusIcon(QWidget* aParent, Qt::WindowFlags aFlags)
   : QWidget(aParent, aFlags)
   , m_Level(vtkPlusLogger::LOG_LEVEL_INFO)
   , m_DotLabel(NULL)
@@ -299,6 +299,6 @@ void vtkDisplayMessageCallback::Execute( vtkObject *caller, unsigned long eventI
   {
     char* callDataChars = reinterpret_cast<char*>(callData);
 
-    emit AddMessage(QString::fromAscii(callDataChars));
+    emit AddMessage(QString::fromLatin1(callDataChars));
   }
 }

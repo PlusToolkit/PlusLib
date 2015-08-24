@@ -23,7 +23,7 @@ See License.txt for details.
 static const int MAX_ALLOWED_RECORDING_LAG_SEC = 3.0; // if the recording lags more than this then it'll skip frames to catch up
 
 //-----------------------------------------------------------------------------
-CapturingToolbox::CapturingToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags)
+CapturingToolbox::CapturingToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags)
 : AbstractToolbox(aParentMainWindow)
 , QWidget(aParentMainWindow, aFlags)
 , m_RecordedFrames(NULL)

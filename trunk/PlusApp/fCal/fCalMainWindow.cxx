@@ -28,7 +28,7 @@ See License.txt for details.
 
 //-----------------------------------------------------------------------------
 
-fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WFlags flags)
+fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WindowFlags flags)
 : QMainWindow(parent, flags)
 , m_StatusBarLabel(NULL)
 , m_StatusBarProgress(NULL)
@@ -836,7 +836,7 @@ void fCalMainWindow::BuildChannelMenu()
       vtkPlusChannel* aChannel = *channelIter;
       std::stringstream ss;
       ss << device->GetDeviceId() << " : " << aChannel->GetChannelId();
-      QCustomAction* action = new QCustomAction(QString::fromAscii(ss.str().c_str()), ui.pushButton_ShowDevices, false, aChannel);
+      QCustomAction* action = new QCustomAction(QString::fromLatin1(ss.str().c_str()), ui.pushButton_ShowDevices, false, aChannel);
       action->setCheckable(true);
       action->setDisabled(numChannels == 1);
       vtkPlusChannel* currentChannel(NULL);

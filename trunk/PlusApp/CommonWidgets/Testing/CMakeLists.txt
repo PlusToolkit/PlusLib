@@ -1,19 +1,25 @@
-FIND_PACKAGE(Qt4 REQUIRED)
-INCLUDE(${QT_USE_FILE})
-
 SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 # --------------------------------------------------------------------------
 # SegmentationParameterDialogTest
+# Qt specific commands
+IF( ${QT_VERSION_MAJOR} EQUAL 5 )
+  FIND_PACKAGE(Qt5 COMPONENTS Widgets REQUIRED)
 
-QT4_WRAP_CPP( SegmentationParameterDialogTest_QT_MOC_Files SegmentationParameterDialogTest.h )			  
-QT4_ADD_RESOURCES( SegmentationParameterDialogTest_QT_RCC_Files ${PlusApp_SOURCE_DIR}/CommonWidgets/CommonWidgets.qrc )
+  SET(QT_LIBRARIES ${Qt5Widgets_LIBRARIES})
+  ADD_DEFINITIONS(${Qt5Widgets_DEFINITIONS})
+ELSE(${QT_VERSION_MAJOR} EQUAL 5)
+  FIND_PACKAGE(Qt4 REQUIRED)
+  INCLUDE(${QT_USE_FILE})
 
-SOURCE_GROUP("Generated Files" FILES ${SegmentationParameterDialogTest_QT_MOC_Files} ${SegmentationParameterDialogTest_QT_RCC_Files})
+  INCLUDE_DIRECTORIES(${QT_INCLUDES})
+  ADD_DEFINITIONS(${QT_DEFINITIONS})
 
-include_directories(${PlusApp_BINARY_DIR}/CommonWidgets)
-include_directories(${PlusApp_SOURCE_DIR}/CommonWidgets)
+ENDIF(${QT_VERSION_MAJOR} EQUAL 5)
+
+INCLUDE_DIRECTORIES(${PlusApp_BINARY_DIR}/CommonWidgets)
+INCLUDE_DIRECTORIES(${PlusApp_SOURCE_DIR}/CommonWidgets)
 
 #--------------------------------------------------------------------------------------------
   
@@ -31,8 +37,7 @@ ADD_EXECUTABLE(
   SegmentationParameterDialogTestMain.cxx
   SegmentationParameterDialogTest.cxx
   SegmentationParameterDialogTest.h
-  ${SegmentationParameterDialogTest_QT_MOC_Files}
-  ${SegmentationParameterDialogTest_QT_RCC_Files}
+  ${PlusApp_SOURCE_DIR}/CommonWidgets/CommonWidgets.qrc
   )
   
 TARGET_LINK_LIBRARIES(SegmentationParameterDialogTest ${SegmentationParameterDialogTest_LIBS})
@@ -50,14 +55,24 @@ ENDIF(PLUSAPP_INSTALL_BIN_DIR)
 
 # --------------------------------------------------------------------------
 # ToolStateDisplayWidgetTest
+# --------------------------------------------------------------------------
+# Qt specific commands
+IF( ${QT_VERSION_MAJOR} EQUAL 5 )
+  FIND_PACKAGE(Qt5 COMPONENTS Widgets REQUIRED)
 
-QT4_WRAP_CPP( ToolStateDisplayWidgetTest_QT_MOC_Files ToolStateDisplayWidgetTest.h )			  
-QT4_ADD_RESOURCES( ToolStateDisplayWidgetTest_QT_RCC_Files ${PlusApp_SOURCE_DIR}/CommonWidgets/CommonWidgets.qrc )
+  SET(QT_LIBRARIES ${Qt5Widgets_LIBRARIES})
+  ADD_DEFINITIONS(${Qt5Widgets_DEFINITIONS})
+ELSE(${QT_VERSION_MAJOR} EQUAL 5)
+  FIND_PACKAGE(Qt4 REQUIRED)
+  INCLUDE(${QT_USE_FILE})
 
-SOURCE_GROUP("Generated Files" FILES ${ToolStateDisplayWidgetTest_QT_MOC_Files} ${ToolStateDisplayWidgetTest_QT_RCC_Files})
+  INCLUDE_DIRECTORIES(${QT_INCLUDES})
+  ADD_DEFINITIONS(${QT_DEFINITIONS})
 
-include_directories(${PlusApp_BINARY_DIR}/CommonWidgets)
-include_directories(${PlusApp_SOURCE_DIR}/CommonWidgets)
+ENDIF(${QT_VERSION_MAJOR} EQUAL 5)
+
+INCLUDE_DIRECTORIES(${PlusApp_BINARY_DIR}/CommonWidgets)
+INCLUDE_DIRECTORIES(${PlusApp_SOURCE_DIR}/CommonWidgets)
 
 #--------------------------------------------------------------------------------------------
   
@@ -74,8 +89,7 @@ ADD_EXECUTABLE(
   ToolStateDisplayWidgetTestMain.cxx
   ToolStateDisplayWidgetTest.cxx
   ToolStateDisplayWidgetTest.h
-  ${ToolStateDisplayWidgetTest_QT_MOC_Files}
-  ${ToolStateDisplayWidgetTest_QT_RCC_Files}
+  ${PlusApp_SOURCE_DIR}/CommonWidgets/CommonWidgets.qrc
   )
   
 TARGET_LINK_LIBRARIES(ToolStateDisplayWidgetTest ${ToolStateDisplayWidgetTest_LIBS})

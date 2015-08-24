@@ -17,7 +17,7 @@ See License.txt for details.
 #include "vtkMatrix4x4.h"
 
 //-----------------------------------------------------------------------------
-StylusCalibrationToolbox::StylusCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags)
+StylusCalibrationToolbox::StylusCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags)
 : AbstractToolbox(aParentMainWindow)
 , QWidget(aParentMainWindow, aFlags)
 , m_NumberOfPoints(200)

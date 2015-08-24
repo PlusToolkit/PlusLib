@@ -22,7 +22,7 @@ See License.txt for details.
 
 //-----------------------------------------------------------------------------
 
-SpatialCalibrationToolbox::SpatialCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags)
+SpatialCalibrationToolbox::SpatialCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags)
   : AbstractToolbox(aParentMainWindow)
   , QWidget(aParentMainWindow, aFlags)
   , m_CancelRequest(false)

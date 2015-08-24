@@ -15,7 +15,7 @@
 
 //-----------------------------------------------------------------------------
 
-SegmentationParameterDialogTest::SegmentationParameterDialogTest(QWidget *parent, Qt::WFlags flags)
+SegmentationParameterDialogTest::SegmentationParameterDialogTest(QWidget *parent, Qt::WindowFlags flags)
   : QDialog(parent, flags)
   , m_DeviceSetSelectorWidget(NULL)
   , m_DataCollector(NULL)
