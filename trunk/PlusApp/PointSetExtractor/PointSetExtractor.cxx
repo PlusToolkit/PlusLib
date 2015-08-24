@@ -95,11 +95,6 @@ int main(int argc, char **argv)
 		exit(EXIT_SUCCESS); 
 
 	}
-	if (inputConfigFileName.empty())
-	{
-		std::cerr << "--config-file is required" << std::endl;
-		exit(EXIT_FAILURE);
-	}
   if (inputSequenceFileName.empty())
 	{
 		std::cerr << "input-seq-file-name is required" << std::endl;
