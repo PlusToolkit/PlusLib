@@ -25,14 +25,12 @@ Authors include:
 /*!
 \class vtkOptimetConoProbeMeasurer 
 \brief Interface for the Optimet ConoProbe
-
 This class talks with Optimet ConoProbe over the Optimet Smart32 SDK
-
 Requires PLUS_USE_OPTIMET_CONOPROBE option in CMake.
-
 \ingroup PlusLibDataCollection
 */
 
+class vtkMultiThreader;
 class ISmart;
 
 class vtkDataCollectionExport vtkOptimetConoProbeMeasurer : public vtkPlusDevice
@@ -57,11 +55,14 @@ public:
   /*! Write configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
-  /*! Set frequency. */
-  PlusStatus SetFrequency(int frequency);
+  /*! ... */
+  PlusStatus Start();
 
-  /*! Opens the Probe Dialog. */
-  PlusStatus ShowProbeDialog();
+  /*! ... */
+  PlusStatus Stop();
+
+  vtkSetMacro(LaserPower, UINT16);
+  vtkSetMacro(Frequency, UINT16);
 
 protected:
 
@@ -72,12 +73,14 @@ protected:
   PlusStatus InternalUpdate();
 
 private:  // Functions.
-
   vtkOptimetConoProbeMeasurer( const vtkOptimetConoProbeMeasurer& );
   void operator=( const vtkOptimetConoProbeMeasurer& );
 
   /*! Get composite laser power. */
-  unsigned short GetCompositeLaserPower();  
+  unsigned short CalculateCompositeLaserPower(UINT16 coarseLaserPower, UINT16 fineLaserPower);
+
+  /*! Opens the Probe Dialog. */
+  static void* ProbeDialogThread(void* ptr);
 
 private:  // Variables.
 
@@ -95,11 +98,23 @@ private:  // Variables.
   /*! Frequency. */
   UINT16 Frequency;
 
+  /*! Laser Power. */
+  UINT16 LaserPower;
+
   /*! Coarse laser power. */
   unsigned short CoarseLaserPower;
 
   /*! Fine laser power. */
   unsigned short FineLaserPower;
+
+  /*! ... */
+  vtkMultiThreader* Thread;
+
+  /*! ... */
+  int ThreadID;
+
+  /*! ... */
+  bool ProbeDialogOpen;
 };
 
 #endif
