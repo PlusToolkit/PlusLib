@@ -13,7 +13,6 @@
 #pragma warning ( disable : 4786 )
 #endif 
 
-#include "vtkSequenceIOBase.h"
 #include "PlusVideoFrame.h" // for US_IMAGE_ORIENTATION
 
 class vtkTrackedFrameList;
@@ -24,12 +23,12 @@ class TrackedFrame;
   \brief Read and write MetaImage file with a sequence of frames, with additional information for each frame
   \ingroup PlusLibCommon
 */
-class vtkPlusCommonExport vtkMetaImageSequenceIO : public vtkSequenceIOBase
+class vtkPlusCommonExport vtkMetaImageSequenceIO : public vtkObject
 {
 public:
 
   static vtkMetaImageSequenceIO *New();
-  vtkTypeMacro(vtkMetaImageSequenceIO, vtkSequenceIOBase);
+  vtkTypeMacro(vtkMetaImageSequenceIO, vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Set the TrackedFrameList where the images are stored */
@@ -97,22 +96,19 @@ public:
   virtual PlusStatus Discard();
 
   /*! Check if this class can read the specified file */
-  static bool CanReadFile(const std::string& filename);
-
-  /*! Check if this class can write the specified file */
-  static bool CanWriteFile(const std::string& filename);
+  virtual bool CanReadFile(const char*);
 
   /*! Returns a pointer to a single frame */
   virtual TrackedFrame* GetTrackedFrame(int frameNumber);
 
   /*! Update a field in the image header with its current value */
-  virtual PlusStatus UpdateFieldInImageHeader(const char* fieldName);
+  PlusStatus UpdateFieldInImageHeader(const char* fieldName);
 
   /*!
     Set input/output file name. The file contains only the image header in case of
     MHD images and the full image (including pixel data) in case of MHA images.
   */
-  virtual PlusStatus SetFileName(const std::string& aFilename);
+  virtual PlusStatus SetFileName(const char* aFilename);
 
   /*! Flag to enable/disable compression of image data */
   vtkGetMacro(UseCompression, bool);
@@ -137,7 +133,7 @@ protected:
   virtual ~vtkMetaImageSequenceIO();
 
   /*! Opens a file. Doesn't log error if it fails because it may be expected. */
-  static PlusStatus FileOpen(FILE **stream, const char* filename, const char* flags);
+  PlusStatus FileOpen(FILE **stream, const char* filename, const char* flags);
 
   /*! Set a custom string field value for a specific frame */
   PlusStatus SetCustomFrameString(int frameNumber, const char* fieldName,  const char* fieldValue);

@@ -9,7 +9,6 @@
 #include "vtkImageData.h"
 #include "vtkMatrix4x4.h"
 #include "vtkMetaImageSequenceIO.h"
-#include "vtkNrrdSequenceIO.h"
 #include "vtkObjectFactory.h"
 #include "vtkTrackedFrameList.h" 
 #include "vtkTransformRepository.h"
@@ -439,24 +438,7 @@ int vtkTrackedFrameList::GetNumberOfBitsPerPixel()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTrackedFrameList::SaveToSequenceMetafile(const std::string& filename, US_IMAGE_ORIENTATION orientationInFile /*= US_IMG_ORIENT_MF*/, bool useCompression /*=true*/, bool enableImageDataWrite /*=true*/)
-{
-  vtkSmartPointer<vtkMetaImageSequenceIO> writer=vtkSmartPointer<vtkMetaImageSequenceIO>::New();
-  writer->SetUseCompression(useCompression);
-  writer->SetFileName(filename);
-  writer->SetImageOrientationInFile(orientationInFile);
-  writer->SetTrackedFrameList(this);
-  writer->SetEnableImageDataWrite(enableImageDataWrite);
-  if (writer->Write()!=PLUS_SUCCESS)
-  {
-    LOG_ERROR("Couldn't write sequence metafile: " <<  filename); 
-    return PLUS_FAIL;
-  }
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const std::string& trackedSequenceDataFileName)
+PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequenceDataFileName)
 {
   std::string trackedSequenceDataFilePath=trackedSequenceDataFileName;
 
@@ -483,43 +465,16 @@ PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const std::string& trac
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTrackedFrameList::SaveToNrrdFile(const std::string& filename, US_IMAGE_ORIENTATION orientationInFile /*= US_IMG_ORIENT_MF*/, bool useCompression /*= true*/, bool enableImageDataWrite /*= true*/)
+PlusStatus vtkTrackedFrameList::SaveToSequenceMetafile(const char* filename, bool useCompression /*=true*/, bool removeImageData /*=false*/)
 {
-  vtkSmartPointer<vtkNrrdSequenceIO> writer = vtkSmartPointer<vtkNrrdSequenceIO>::New();
+  vtkSmartPointer<vtkMetaImageSequenceIO> writer=vtkSmartPointer<vtkMetaImageSequenceIO>::New();
   writer->SetUseCompression(useCompression);
   writer->SetFileName(filename);
-  writer->SetImageOrientationInFile(orientationInFile);
   writer->SetTrackedFrameList(this);
-  writer->SetEnableImageDataWrite(enableImageDataWrite);
-  if (writer->Write() != PLUS_SUCCESS)
+  writer->SetEnableImageDataWrite(!removeImageData);
+  if (writer->Write()!=PLUS_SUCCESS)
   {
-    LOG_ERROR("Couldn't write Nrrd file: " <<  filename); 
-    return PLUS_FAIL;
-  }
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkTrackedFrameList::ReadFromNrrdFile(const std::string& trackedSequenceDataFileName)
-{
-  std::string trackedSequenceDataFilePath(trackedSequenceDataFileName);
-
-  // If file is not found in the current directory then try to find it in the image directory, too
-  if (!vtksys::SystemTools::FileExists(trackedSequenceDataFilePath.c_str(), true))
-  {
-    if (vtkPlusConfig::GetInstance()->FindImagePath(trackedSequenceDataFileName, trackedSequenceDataFilePath)==PLUS_FAIL)
-    {
-      LOG_ERROR("Cannot find sequence metafile: "<<trackedSequenceDataFileName);
-      return PLUS_FAIL;      
-    }
-  }
-
-  vtkSmartPointer<vtkNrrdSequenceIO> reader = vtkSmartPointer<vtkNrrdSequenceIO>::New();
-  reader->SetFileName(trackedSequenceDataFilePath.c_str());
-  reader->SetTrackedFrameList(this);
-  if (reader->Read() != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Couldn't read Nrrd file: " <<  trackedSequenceDataFileName ); 
+    LOG_ERROR("Couldn't write sequence metafile: " <<  filename); 
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;

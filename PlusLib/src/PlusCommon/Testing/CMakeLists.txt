@@ -53,13 +53,13 @@ ADD_TEST(vtkTransformRepositoryTest
 # checked for the presence of ERROR or WARNING string
 
 #--------------------------------------------------------------------------------------------
-ADD_EXECUTABLE(EditSequenceFile EditSequenceFile.cxx )
-TARGET_LINK_LIBRARIES(EditSequenceFile vtkPlusCommon )
-GENERATE_HELP_DOC(EditSequenceFile)
+ADD_EXECUTABLE(EditSeqMetaFile EditSeqMetaFile.cxx )
+TARGET_LINK_LIBRARIES(EditSeqMetaFile vtkPlusCommon )
+GENERATE_HELP_DOC(EditSeqMetaFile)
 
 #--------------------------------------------------------------------------------------------
-ADD_TEST(NAME EditSequenceFileTrim
-  COMMAND $<TARGET_FILE:EditSequenceFile>
+ADD_TEST(NAME EditSeqMetaFileTrim
+  COMMAND $<TARGET_FILE:EditSeqMetaFile>
   --operation=TRIM
   --first-frame-index=0
   --last-frame-index=5
@@ -68,18 +68,18 @@ ADD_TEST(NAME EditSequenceFileTrim
   --use-compression
   --verbose=3
   )
-SET_TESTS_PROPERTIES( EditSequenceFileTrim PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )  
+SET_TESTS_PROPERTIES( EditSeqMetaFileTrim PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )  
 
-ADD_TEST(EditSequenceFileTrimCompareToBaselineTest
+ADD_TEST(EditSeqMetaFileTrimCompareToBaselineTest
   ${CMAKE_COMMAND} -E compare_files 
    ${TEST_OUTPUT_PATH}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.mha
    ${TestDataDir}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.mha
   )
-SET_TESTS_PROPERTIES( EditSequenceFileTrimCompareToBaselineTest PROPERTIES DEPENDS EditSequenceFileTrim )
+SET_TESTS_PROPERTIES( EditSeqMetaFileTrimCompareToBaselineTest PROPERTIES DEPENDS EditSeqMetaFileTrim )
 
 #--------------------------------------------------------------------------------------------
-ADD_TEST(NAME EditSequenceFileFillImageRectangle
-  COMMAND $<TARGET_FILE:EditSequenceFile>
+ADD_TEST(NAME EditSeqMetaFileFillImageRectangle
+  COMMAND $<TARGET_FILE:EditSeqMetaFile>
   --operation=FILL_IMAGE_RECTANGLE
   --rect-origin 52 25
   --rect-size 260 25
@@ -89,19 +89,19 @@ ADD_TEST(NAME EditSequenceFileFillImageRectangle
   --use-compression
   --verbose=3
   )
-SET_TESTS_PROPERTIES( EditSequenceFileFillImageRectangle PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )  
-SET_TESTS_PROPERTIES( EditSequenceFileFillImageRectangle PROPERTIES DEPENDS EditSequenceFileTrim)
+SET_TESTS_PROPERTIES( EditSeqMetaFileFillImageRectangle PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )  
+SET_TESTS_PROPERTIES( EditSeqMetaFileFillImageRectangle PROPERTIES DEPENDS EditSeqMetaFileTrim)
 
-ADD_TEST(EditSequenceFileFillImageRectangleCompareToBaselineTest
+ADD_TEST(EditSeqMetaFileFillImageRectangleCompareToBaselineTest
   ${CMAKE_COMMAND} -E compare_files 
    ${TEST_OUTPUT_PATH}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Anonymized.mha
    ${TestDataDir}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Anonymized.mha
   )
-SET_TESTS_PROPERTIES( EditSequenceFileFillImageRectangleCompareToBaselineTest PROPERTIES DEPENDS EditSequenceFileFillImageRectangle )
+SET_TESTS_PROPERTIES( EditSeqMetaFileFillImageRectangleCompareToBaselineTest PROPERTIES DEPENDS EditSeqMetaFileFillImageRectangle )
 
 #--------------------------------------------------------------------------------------------
-ADD_TEST(NAME EditSequenceFileCropImageRectangle
-  COMMAND $<TARGET_FILE:EditSequenceFile>
+ADD_TEST(NAME EditSeqMetaFileCropImageRectangle
+  COMMAND $<TARGET_FILE:EditSeqMetaFile>
   --operation=CROP
   --rect-origin 52 25
   --rect-size 260 25
@@ -110,19 +110,19 @@ ADD_TEST(NAME EditSequenceFileCropImageRectangle
   --use-compression
   --verbose=3
   )
-SET_TESTS_PROPERTIES( EditSequenceFileCropImageRectangle PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )  
-SET_TESTS_PROPERTIES( EditSequenceFileCropImageRectangle PROPERTIES DEPENDS EditSequenceFileTrim)
+SET_TESTS_PROPERTIES( EditSeqMetaFileCropImageRectangle PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )  
+SET_TESTS_PROPERTIES( EditSeqMetaFileCropImageRectangle PROPERTIES DEPENDS EditSeqMetaFileTrim)
 
-ADD_TEST(EditSequenceFileCropImageRectangleCompareToBaselineTest
+ADD_TEST(EditSeqMetaFileCropImageRectangleCompareToBaselineTest
   ${CMAKE_COMMAND} -E compare_files 
    ${TEST_OUTPUT_PATH}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_PatientCropped.mha
    ${TestDataDir}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_PatientCropped.mha
   )
-SET_TESTS_PROPERTIES( EditSequenceFileCropImageRectangleCompareToBaselineTest PROPERTIES DEPENDS EditSequenceFileCropImageRectangle )
+SET_TESTS_PROPERTIES( EditSeqMetaFileCropImageRectangleCompareToBaselineTest PROPERTIES DEPENDS EditSeqMetaFileCropImageRectangle )
 
 #--------------------------------------------------------------------------------------------
-ADD_TEST(NAME EditSequenceFileCropImageRectangleFlipX
-  COMMAND $<TARGET_FILE:EditSequenceFile>
+ADD_TEST(NAME EditSeqMetaFileCropImageRectangleFlipX
+  COMMAND $<TARGET_FILE:EditSeqMetaFile>
   --operation=CROP
   --flipX
   --rect-origin 52 25
@@ -132,50 +132,50 @@ ADD_TEST(NAME EditSequenceFileCropImageRectangleFlipX
   --use-compression
   --verbose=3
   )
-SET_TESTS_PROPERTIES( EditSequenceFileCropImageRectangleFlipX PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )  
-SET_TESTS_PROPERTIES( EditSequenceFileCropImageRectangleFlipX PROPERTIES DEPENDS EditSequenceFileTrim)
+SET_TESTS_PROPERTIES( EditSeqMetaFileCropImageRectangleFlipX PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )  
+SET_TESTS_PROPERTIES( EditSeqMetaFileCropImageRectangleFlipX PROPERTIES DEPENDS EditSeqMetaFileTrim)
 
-ADD_TEST(EditSequenceFileCropImageRectangleFlipXCompareToBaselineTest
+ADD_TEST(EditSeqMetaFileCropImageRectangleFlipXCompareToBaselineTest
   ${CMAKE_COMMAND} -E compare_files 
    ${TEST_OUTPUT_PATH}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Cropped_FlipX.mha
    ${TestDataDir}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Cropped_FlipX.mha
   )
-SET_TESTS_PROPERTIES( EditSequenceFileCropImageRectangleFlipXCompareToBaselineTest PROPERTIES DEPENDS EditSequenceFileCropImageRectangleFlipX )
+SET_TESTS_PROPERTIES( EditSeqMetaFileCropImageRectangleFlipXCompareToBaselineTest PROPERTIES DEPENDS EditSeqMetaFileCropImageRectangleFlipX )
 
 #--------------------------------------------------------------------------------------------
-ADD_TEST(NAME EditSequenceFileRemoveImageData
-  COMMAND $<TARGET_FILE:EditSequenceFile>
+ADD_TEST(NAME EditSeqMetaFileRemoveImageData
+  COMMAND $<TARGET_FILE:EditSeqMetaFile>
   --operation=REMOVE_IMAGE_DATA 
   --source-seq-file=${TestDataDir}/UsSimulatorOutputSpinePhantom2CurvilinearBaseline.mha  
   --output-seq-file=UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUS.mha
   --verbose=3
   )
-SET_TESTS_PROPERTIES( EditSequenceFileRemoveImageData PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES( EditSeqMetaFileRemoveImageData PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-ADD_TEST(EditSequenceFileRemoveImageDataCompareToBaselineTest
+ADD_TEST(EditSeqMetaFileRemoveImageDataCompareToBaselineTest
   ${CMAKE_COMMAND} -E compare_files 
    ${TEST_OUTPUT_PATH}/UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUS.mha
    ${TestDataDir}/UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUS.mha
   )
-SET_TESTS_PROPERTIES( EditSequenceFileRemoveImageDataCompareToBaselineTest PROPERTIES DEPENDS EditSequenceFileRemoveImageData )
+SET_TESTS_PROPERTIES( EditSeqMetaFileRemoveImageDataCompareToBaselineTest PROPERTIES DEPENDS EditSeqMetaFileRemoveImageData )
 
 #--------------------------------------------------------------------------------------------
-ADD_TEST(NAME EditSequenceFileRemoveImageDataCompressed
-  COMMAND $<TARGET_FILE:EditSequenceFile>
+ADD_TEST(NAME EditSeqMetaFileRemoveImageDataCompressed
+  COMMAND $<TARGET_FILE:EditSeqMetaFile>
   --operation=REMOVE_IMAGE_DATA
   --source-seq-file=${TestDataDir}/UsSimulatorOutputSpinePhantom2CurvilinearBaseline.mha  
   --output-seq-file=UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUSCompressed.mha
   --use-compression
   --verbose=3
   )
-SET_TESTS_PROPERTIES( EditSequenceFileRemoveImageDataCompressed PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES( EditSeqMetaFileRemoveImageDataCompressed PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-ADD_TEST(EditSequenceFileRemoveImageDataCompressedCompareToBaselineTest
+ADD_TEST(EditSeqMetaFileRemoveImageDataCompressedCompareToBaselineTest
   ${CMAKE_COMMAND} -E compare_files 
    ${TEST_OUTPUT_PATH}/UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUSCompressed.mha
    ${TestDataDir}/UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUSCompressed.mha
   )
-SET_TESTS_PROPERTIES( EditSequenceFileRemoveImageDataCompressedCompareToBaselineTest PROPERTIES DEPENDS EditSequenceFileRemoveImageDataCompressed )
+SET_TESTS_PROPERTIES( EditSeqMetaFileRemoveImageDataCompressedCompareToBaselineTest PROPERTIES DEPENDS EditSeqMetaFileRemoveImageDataCompressed )
 
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(ModelRenderer ModelRenderer.cxx )
@@ -187,7 +187,7 @@ TARGET_LINK_LIBRARIES(ModelRenderer vtkPlusCommon )
 
 INSTALL(
   TARGETS
-    EditSequenceFile
+    EditSeqMetaFile
     AccurateTimerTest
   DESTINATION bin
   COMPONENT RuntimeExecutables

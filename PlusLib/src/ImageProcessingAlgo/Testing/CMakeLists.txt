@@ -11,7 +11,6 @@ ADD_TEST(vtkRfToBrightnessConvertRunTest
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_RfProcessingAlgoCurvilinearTest.xml
   --rf-file=${TestDataDir}/UltrasonixCurvilinearRfData.mha
   --output-img-file=outputUltrasonixCurvilinearBrightnessData.mha 
-  --use-compression=false
   --operation=BRIGHTNESS_CONVERT
   )
 SET_TESTS_PROPERTIES( vtkRfToBrightnessConvertRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -29,7 +28,6 @@ ADD_TEST(vtkUsScanConvertCurvilinearRunTest
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_RfProcessingAlgoCurvilinearTest.xml
   --rf-file=${TestDataDir}/UltrasonixCurvilinearRfData.mha
   --output-img-file=outputUltrasonixCurvilinearScanConvertedData.mha 
-  --use-compression=false
   --operation=BRIGHTNESS_SCAN_CONVERT
   )
 SET_TESTS_PROPERTIES( vtkUsScanConvertCurvilinearRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -48,7 +46,6 @@ ADD_TEST(vtkUsScanConvertLinearRunTest
   --rf-file=${TestDataDir}/UltrasonixLinearRfData.mha
   --output-img-file=outputUltrasonixLinearScanConvertedData.mha 
   --operation=BRIGHTNESS_SCAN_CONVERT
-  --use-compression=false
   )
 SET_TESTS_PROPERTIES( vtkUsScanConvertLinearRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -66,7 +63,6 @@ ADD_TEST(vtkUsScanConvertBkCurvilinearRunTest
   --rf-file=${TestDataDir}/BkCurvilinearRfData.mhd
   --output-img-file=outputBkCurvilinearScanConvertedData.mha 
   --operation=BRIGHTNESS_SCAN_CONVERT
-  --use-compression=false
   )
 SET_TESTS_PROPERTIES( vtkUsScanConvertBkCurvilinearRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 

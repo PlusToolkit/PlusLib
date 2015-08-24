@@ -7,11 +7,10 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkImageData.h"
 #include "vtkMatrix4x4.h"
-#include "vtkSequenceIOCommon.h"
 #include "vtkObjectFactory.h"
-#include "vtkPlusBuffer.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
+#include "vtkPlusBuffer.h"
 #include "vtkSavedDataSource.h"
 #include "vtkTrackedFrameList.h"
 #include "vtksys/SystemTools.hxx"
@@ -23,7 +22,7 @@ vtkSavedDataSource::vtkSavedDataSource()
 {
   this->FrameBufferRowAlignment = 1;
   this->LocalVideoBuffer = NULL;
-  this->SequenceFile = NULL; 
+  this->SequenceMetafile = NULL; 
   this->RepeatEnabled = false; 
   this->LoopStartTime_Local = 0.0; 
   this->LoopStopTime_Local = 0.0; 
@@ -356,9 +355,9 @@ PlusStatus vtkSavedDataSource::InternalUpdateCurrentTimestamp(BufferItemUidType 
 PlusStatus vtkSavedDataSource::Probe()
 {
   LOG_TRACE("vtkSavedDataSource::Probe"); 
-  if ( !vtksys::SystemTools::FileExists(this->GetSequenceFile(), true) )
+  if ( !vtksys::SystemTools::FileExists(this->GetSequenceMetafile(), true) )
   {
-    LOG_ERROR("vtkSavedDataSource Probe failed: Unable to find sequence file!"); 
+    LOG_ERROR("vtkSavedDataSource Probe failed: Unable to find sequence metafile!"); 
     return PLUS_FAIL; 
   }
   return PLUS_SUCCESS; 
@@ -369,21 +368,25 @@ PlusStatus vtkSavedDataSource::InternalConnect()
 {
   LOG_TRACE("vtkSavedDataSource::InternalConnect"); 
 
-  if (this->SequenceFile==NULL)
+  if (this->SequenceMetafile==NULL)
   {
     LOG_ERROR("Unable to connect to saved data video source: Unable to read sequence metafile. No filename is specified."); 
     return PLUS_FAIL; 
   }
-  if ( !vtksys::SystemTools::FileExists(this->SequenceFile, true) )
+  if ( !vtksys::SystemTools::FileExists(this->SequenceMetafile, true) )
   {
-    LOG_ERROR("Unable to connect to saved data video source: Unable to read sequence metafile: "<<this->SequenceFile); 
+    LOG_ERROR("Unable to connect to saved data video source: Unable to read sequence metafile: "<<this->SequenceMetafile); 
     return PLUS_FAIL; 
   }
 
   vtkSmartPointer<vtkTrackedFrameList> savedDataBuffer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
 
-  // Read sequence file into tracked frame list
-  vtkSequenceIOCommon::Read(std::string(this->SequenceFile), savedDataBuffer);
+  // Read metafile
+  if ( savedDataBuffer->ReadFromSequenceMetafile(this->SequenceMetafile) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to read video buffer from sequence metafile: "<<this->SequenceMetafile); 
+    return PLUS_FAIL; 
+  }
 
   if ( savedDataBuffer->GetNumberOfTrackedFrames() < 1 ) 
   {
@@ -576,24 +579,24 @@ PlusStatus vtkSavedDataSource::ReadConfiguration(vtkXMLDataElement* rootConfigEl
   LOG_TRACE("vtkSavedDataSource::ReadConfiguration"); 
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(SequenceFile, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(SequenceMetafile, deviceConfig);
   std::string foundAbsoluteImagePath;
-  if (vtkPlusConfig::GetInstance()->FindImagePath(this->SequenceFile, foundAbsoluteImagePath) == PLUS_SUCCESS)
+  if (vtkPlusConfig::GetInstance()->FindImagePath(this->SequenceMetafile, foundAbsoluteImagePath) == PLUS_SUCCESS)
   {
-    this->SetSequenceFile(foundAbsoluteImagePath.c_str());
+    this->SetSequenceMetafile(foundAbsoluteImagePath.c_str());
   }
   else
   {
-    std::string seqFileTrim = PlusCommon::Trim(this->SequenceFile);
+    std::string seqMetaFileTrim = PlusCommon::Trim(this->SequenceMetafile);
     std::string foundAbsoluteImagePath;
-    if (vtkPlusConfig::GetInstance()->FindImagePath(seqFileTrim, foundAbsoluteImagePath) == PLUS_SUCCESS)
+    if (vtkPlusConfig::GetInstance()->FindImagePath(seqMetaFileTrim, foundAbsoluteImagePath) == PLUS_SUCCESS)
     {
-      this->SetSequenceFile(foundAbsoluteImagePath.c_str());
-      LOG_WARNING("Filename contains unexpected characters at beginning or end of string. Please correct. Filename: " << this->SequenceFile);
+      this->SetSequenceMetafile(foundAbsoluteImagePath.c_str());
+      LOG_WARNING("Filename contains unexpected characters at beginning or end of string. Please correct. Filename: " << this->SequenceMetafile);
     }
     else
     {
-      LOG_ERROR("Unable to locate file: " << this->SequenceFile << ". Please verify location on disk.");
+      LOG_ERROR("Unable to locate file: " << this->SequenceMetafile << ". Please verify location on disk.");
       return PLUS_FAIL;
     }
   }
@@ -634,7 +637,8 @@ PlusStatus vtkSavedDataSource::WriteConfiguration(vtkXMLDataElement* rootConfig)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(imageAcquisitionConfig, rootConfig);
   
-  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_NULL(SequenceFile, imageAcquisitionConfig);
+  imageAcquisitionConfig->SetAttribute("SequenceMetafile", this->SequenceMetafile);
+
   XML_WRITE_BOOL_ATTRIBUTE(RepeatEnabled, imageAcquisitionConfig);
   XML_WRITE_BOOL_ATTRIBUTE(UseOriginalTimestamps, imageAcquisitionConfig);
 

@@ -11,15 +11,14 @@ compares the results to a baseline
 */ 
 
 #include "PlusConfigure.h"
-#include "PlusMath.h"
-#include "vtkLineSegmentationAlgo.h"
-#include "vtkMath.h"
-#include "vtkSequenceIOCommon.h"
-#include "vtkTrackedFrameList.h"
-#include "vtkXMLDataElement.h"
-#include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtksys/SystemTools.hxx"
+#include "vtkMath.h"
+#include "vtkXMLDataElement.h"
+#include "vtkXMLUtilities.h"
+#include "vtkTrackedFrameList.h"
+#include "vtkLineSegmentationAlgo.h"
+#include "PlusMath.h"
 
 const double MAX_ORIGIN_DISTANCE_PIXEL=10;
 const double MAX_LINE_ANGLE_DIFFERENCE_DEG=3;
@@ -251,7 +250,7 @@ int main(int argc, char **argv)
 
   LOG_DEBUG("Read input sequence");
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  if ( vtkSequenceIOCommon::Read(inputSequenceMetafile, trackedFrameList) != PLUS_SUCCESS )
+  if ( trackedFrameList->ReadFromSequenceMetafile(inputSequenceMetafile.c_str()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read sequence metafile: " << inputSequenceMetafile); 
     return EXIT_FAILURE;

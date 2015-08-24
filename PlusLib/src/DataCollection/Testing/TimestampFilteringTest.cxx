@@ -11,11 +11,10 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "PlusPlotter.h"
-#include "vtkHTMLGenerator.h"
-#include "vtkPlusBuffer.h"
-#include "vtkSequenceIOCommon.h"
-#include "vtkTrackedFrameList.h"
 #include "vtksys/CommandLineArguments.hxx"
+#include "vtkPlusBuffer.h"
+#include "vtkHTMLGenerator.h"
+#include "vtkTrackedFrameList.h"
 #include "vtksys/SystemTools.hxx"
 
 
@@ -76,7 +75,7 @@ int main(int argc, char **argv)
   // Read buffer 
   LOG_INFO("Reading meta file..."); 
   vtkSmartPointer<vtkTrackedFrameList> trackerFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  if( vtkSequenceIOCommon::Read(inputMetafile, trackerFrameList) != PLUS_SUCCESS )
+  if ( trackerFrameList->ReadFromSequenceMetafile(inputMetafile.c_str()) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read sequence metafile from file: " << inputMetafile ); 
   }

@@ -5,13 +5,13 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
+#include "vtkVirtualDiscCapture.h"
 #include "TrackedFrame.h"
+#include "vtkMetaImageSequenceIO.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkSequenceIOCommon.h"
 #include "vtkTrackedFrameList.h"
-#include "vtkVirtualDiscCapture.h"
 #include "vtksys/SystemTools.hxx"
 
 //----------------------------------------------------------------------------
@@ -34,7 +34,7 @@ vtkVirtualDiscCapture::vtkVirtualDiscCapture()
 , TimeWaited(0.0)
 , LastUpdateTime(0.0)
 , BaseFilename("TrackedImageSequence.mha")
-, Writer(NULL)
+, Writer(vtkMetaImageSequenceIO::New())
 , EnableFileCompression(false)
 , IsHeaderPrepared(false)
 , TotalFramesRecorded(0)
@@ -150,13 +150,16 @@ PlusStatus vtkVirtualDiscCapture::OpenFile(const char* aFilename)
   PlusLockGuard<vtkRecursiveCriticalSection> writerLock(this->WriterAccessMutex);
 
   // Because this virtual device continually appends data to the file, we cannot do live compression
+  this->Writer->SetUseCompression(false);
+  this->Writer->SetTrackedFrameList(this->RecordedFrames);
+
   if( aFilename == NULL || strlen(aFilename) == 0 )
   {
     std::string filenameRoot = vtksys::SystemTools::GetFilenameWithoutExtension(this->BaseFilename);
     std::string ext = vtksys::SystemTools::GetFilenameExtension(this->BaseFilename);
     if( ext.empty() )
     {
-      ext = ".nrrd";
+      ext = ".mha";
     }
     this->CurrentFilename = filenameRoot + "_" + vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S") + ext;
     aFilename = this->CurrentFilename.c_str();
@@ -166,9 +169,6 @@ PlusStatus vtkVirtualDiscCapture::OpenFile(const char* aFilename)
     this->CurrentFilename = aFilename;
   }
 
-  this->Writer = vtkSequenceIOCommon::CreateSequenceHandlerForFile(aFilename);
-  this->Writer->SetUseCompression(false);
-  this->Writer->SetTrackedFrameList(this->RecordedFrames);
   // Need to set the filename before finalizing header, because the pixel data file name depends on the file extension
   this->Writer->SetFileName(aFilename);
 
@@ -381,18 +381,25 @@ PlusStatus vtkVirtualDiscCapture::InternalUpdate()
 
 PlusStatus vtkVirtualDiscCapture::CompressFile()
 {
+  vtkSmartPointer<vtkMetaImageSequenceIO> reader = vtkSmartPointer<vtkMetaImageSequenceIO>::New();
   std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(this->BaseFilename);
-  vtkSmartPointer<vtkTrackedFrameList> frameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-  LOG_DEBUG("Read input sequence metafile: " << fullPath ); 
-  if( vtkSequenceIOCommon::Read(fullPath, frameList) != PLUS_SUCCESS )
-  {    
-    LOG_ERROR("Couldn't read sequence file: " <<  fullPath ); 
-    return PLUS_FAIL;
-  }
+  reader->SetFileName(fullPath.c_str());
 
-  if( vtkSequenceIOCommon::Write(fullPath, frameList, frameList->GetImageOrientation(), true) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Couldn't write sequence file: " <<  fullPath ); 
+  LOG_DEBUG("Read input sequence metafile: " << fullPath ); 
+
+  if (reader->Read() != PLUS_SUCCESS)
+  {    
+    LOG_ERROR("Couldn't read sequence metafile: " <<  fullPath ); 
+    return PLUS_FAIL;
+  }  
+
+  // Now write to disc using compression
+  reader->SetUseCompression(true);
+  reader->SetFileName(fullPath.c_str());
+
+  if (reader->Write() != PLUS_SUCCESS)
+  {    
+    LOG_ERROR("Couldn't write sequence metafile: " <<  fullPath ); 
     return PLUS_FAIL;
   }
 

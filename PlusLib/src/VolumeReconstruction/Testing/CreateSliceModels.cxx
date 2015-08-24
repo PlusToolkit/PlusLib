@@ -26,11 +26,10 @@
 #include "vtkTransformPolyDataFilter.h"
 #include "vtkXMLUtilities.h"
 
-#include "TrackedFrame.h"
-#include "vtkSequenceIOCommon.h"
 #include "vtkTrackedFrameList.h"
-#include "vtkTransformRepository.h"
+#include "TrackedFrame.h"
 #include "vtkVolumeReconstructor.h"
+#include "vtkTransformRepository.h"
 
 
 int main( int argc, char** argv )
@@ -83,11 +82,7 @@ int main( int argc, char** argv )
   // Read input tracked ultrasound data.
   LOG_DEBUG("Reading input... ");
   vtkSmartPointer< vtkTrackedFrameList > trackedFrameList = vtkSmartPointer< vtkTrackedFrameList >::New(); 
-  if( vtkSequenceIOCommon::Read(inputMetaFilename, trackedFrameList) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Unable to load input sequences file.");
-    exit(EXIT_FAILURE);
-  }
+  trackedFrameList->ReadFromSequenceMetafile( inputMetaFilename.c_str() );
   LOG_DEBUG("Reading input done.");
   LOG_DEBUG("Number of frames: " << trackedFrameList->GetNumberOfTrackedFrames());
 

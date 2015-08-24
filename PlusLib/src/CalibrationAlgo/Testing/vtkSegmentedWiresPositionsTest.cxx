@@ -4,19 +4,21 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include "FidPatternRecognition.h"
 #include "PlusConfigure.h"
-#include "TrackedFrame.h"
-#include "vtkCommand.h"
-#include "vtkMath.h"
-#include "vtkMatrix4x4.h"
-#include "vtkSequenceIOCommon.h"
+
 #include "vtkSmartPointer.h"
-#include "vtkTrackedFrameList.h"
-#include "vtkTransform.h"
+#include "vtkCommand.h"
 #include "vtksys/CommandLineArguments.hxx" 
-#include <iostream>
+#include "vtkMatrix4x4.h"
+#include "vtkTransform.h"
+#include "vtkMath.h"
+#include "TrackedFrame.h"
+#include "vtkTrackedFrameList.h"
+
+#include "FidPatternRecognition.h"
+
 #include <stdlib.h>
+#include <iostream>
 
 ///////////////////////////////////////////////////////////////////
 
@@ -63,7 +65,7 @@ int main (int argc, char* argv[])
 
   LOG_INFO( "Reading sequence meta file");  
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  if( vtkSequenceIOCommon::Read(inputSequenceMetafile, trackedFrameList) != PLUS_SUCCESS )
+  if ( trackedFrameList->ReadFromSequenceMetafile(inputSequenceMetafile.c_str()) != PLUS_SUCCESS )
   {
       LOG_ERROR("Failed to read sequence metafile: " << inputSequenceMetafile); 
       return EXIT_FAILURE;

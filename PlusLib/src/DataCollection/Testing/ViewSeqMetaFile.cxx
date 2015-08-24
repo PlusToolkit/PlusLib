@@ -5,33 +5,35 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "TrackedFrame.h"
-#include "vtkActorCollection.h"
-#include "vtkCallbackCommand.h"
-#include "vtkCollectionIterator.h"
-#include "vtkCommand.h"
-#include "vtkImageActor.h"
-#include "vtkImageData.h"
-#include "vtkImageImport.h"
-#include "vtkImageViewer2.h"
-#include "vtkMatrix4x4.h"
-#include "vtkProp.h"
-#include "vtkRenderWindow.h"
-#include "vtkRenderWindow.h"
-#include "vtkRenderWindowInteractor.h"
-#include "vtkRenderer.h"
-#include "vtkRenderer.h"
-#include "vtkSequenceIOCommon.h"
+#include "vtksys/CommandLineArguments.hxx"
+#include <iomanip>
+
 #include "vtkSmartPointer.h"
+#include "vtkXMLUtilities.h"
+#include "vtkMatrix4x4.h"
+#include "vtkRenderWindowInteractor.h"
+#include "vtkRenderWindow.h"
+#include "vtkRenderer.h"
+#include "vtkRenderer.h"
+#include "vtkImageViewer2.h"
+#include "vtkCallbackCommand.h"
+#include "vtkCommand.h"
 #include "vtkTextActor.h"
 #include "vtkTextActor3D.h"
 #include "vtkTextProperty.h"
-#include "vtkTrackedFrameList.h"
 #include "vtkTransform.h"
+#include "vtkImageData.h"
+#include "vtkRenderWindow.h"
+#include "vtkActorCollection.h"
+#include "vtkCollectionIterator.h"
+#include "vtkImageActor.h"
+#include "vtkImageImport.h"
+#include "vtkProp.h"
+
+#include "vtkMetaImageSequenceIO.h"
+#include "vtkTrackedFrameList.h"
 #include "vtkTransformRepository.h"
-#include "vtkXMLUtilities.h"
-#include "vtksys/CommandLineArguments.hxx"
-#include <iomanip>
+#include "TrackedFrame.h"
 
 ///////////////////////////////////////////////////////////////////
 
@@ -193,11 +195,7 @@ int main(int argc, char **argv)
   LOG_DEBUG("Reading input... ");
   vtkSmartPointer< vtkTrackedFrameList > trackedFrameList = vtkSmartPointer< vtkTrackedFrameList >::New(); 
   // Orientation is XX so that the orientation of the trackedFrameList will match the orientation defined in the file
-  if( vtkSequenceIOCommon::Read(inputMetaFilename, trackedFrameList) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Unable to load input sequences file.");
-    return EXIT_FAILURE; 
-  }
+  trackedFrameList->ReadFromSequenceMetafile( inputMetaFilename.c_str() );
   LOG_DEBUG("Reading input done.");
   LOG_DEBUG("Number of frames: " << trackedFrameList->GetNumberOfTrackedFrames());
 

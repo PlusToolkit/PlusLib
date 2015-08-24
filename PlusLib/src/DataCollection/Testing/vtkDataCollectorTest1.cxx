@@ -185,7 +185,7 @@ int main(int argc, char **argv)
       LOG_ERROR( "Unable to cast video source to vtkSavedDataSource." );
       exit( EXIT_FAILURE );
     }
-    videoSource->SetSequenceFile(inputVideoBufferMetafile.c_str()); 
+    videoSource->SetSequenceMetafile(inputVideoBufferMetafile.c_str()); 
     videoSource->SetRepeatEnabled(inputRepeat); 
   }
 #ifdef PLUS_USE_ULTRASONIX_VIDEO
@@ -219,7 +219,7 @@ int main(int argc, char **argv)
       LOG_ERROR( "Unable to cast tracker to vtkSavedDataSource" );
       exit( EXIT_FAILURE );
     }
-    tracker->SetSequenceFile(inputTrackerBufferMetafile.c_str()); 
+    tracker->SetSequenceMetafile(inputTrackerBufferMetafile.c_str()); 
     tracker->SetRepeatEnabled(inputRepeat); 
   }
 
