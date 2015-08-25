@@ -49,8 +49,9 @@ vtkOptimetConoProbeMeasurer::vtkOptimetConoProbeMeasurer()
   this->FineLaserPower = 0;
   this->ProbeDialogOpen = false;
   this->LaserPower = 0;
+  this->LensProperties = new _Lens;
 
-  // Thread
+  // Threading stuff
   this->Thread = vtkMultiThreader::New();
   this->ThreadID = -1;
 
@@ -72,6 +73,8 @@ vtkOptimetConoProbeMeasurer::~vtkOptimetConoProbeMeasurer()
     ISmart::Destroy(this->ConoProbe);
     this->ConoProbe = NULL;
   }
+
+  delete this->LensProperties;
 }
 
 //-------------------------------------------------------------------------
@@ -102,6 +105,7 @@ PlusStatus vtkOptimetConoProbeMeasurer::InternalConnect()
 	// Set acquisition parameters
 	  this->ConoProbe->SetAcquisitionParams(AcquisitionMode::TimeAcquisitionMode, this->Frequency, this->CalculateCompositeLaserPower(this->CoarseLaserPower, this->FineLaserPower), this->DelayBetweenMeasurements);
 	  this->SetLaserPower(this->CalculateCompositeLaserPower(this->CoarseLaserPower, this->FineLaserPower));
+	  this->ConoProbe->GetLens(this->ConoProbe->GetActiveLensIndex(), this->LensProperties);
   }
   catch (const SmartException& e)
   {
@@ -172,7 +176,7 @@ PlusStatus vtkOptimetConoProbeMeasurer::InternalUpdate()
 		measurementToMeasurerTransform->Translate(dx * d + lx, dy * d + ly, dz * d + lz);
 		double params[16]{ d, snr, total, 0.0,
 						   this->Frequency, this->LaserPower, 0.0, 0.0,
-				           0.0, 0.0, 0.0, 0.0,
+						   this->LensProperties->DistanceMin, this->LensProperties->DistanceMax, 0.0, 0.0,
 					       0.0, 0.0, 0.0, 0.0, };
 		parametersToMeasurerTransform->SetMatrix(params);
 	}
