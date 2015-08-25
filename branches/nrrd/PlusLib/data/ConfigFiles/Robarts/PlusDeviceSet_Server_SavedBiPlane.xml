@@ -1,0 +1,101 @@
+ <PlusConfiguration version="2.1">
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="PlusServer: Saved bi-plane"
+      Description="Broadcasting acquired video through OpenIGTLink"
+    />
+
+    <Device
+      Id="LeftVideoDevice"
+      Type="SavedDataSource" 
+      UseData="IMAGE_AND_TRANSFORM"
+	  ReplayEnabled="TRUE"
+      AcquisitionRate="10" 
+      LocalTimeOffsetSec="0.0" 
+      SequenceMetafile="ie33_biplane_LeftCaptureDevice_compressed.mha" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />
+      </DataSources>      
+      <OutputChannels>
+        <OutputChannel Id="LeftTrackedVideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+	
+	<Device
+      Id="RightVideoDevice"
+      Type="SavedDataSource" 
+      UseData="IMAGE_AND_TRANSFORM"
+	  ReplayEnabled="TRUE"
+      AcquisitionRate="10" 
+      LocalTimeOffsetSec="0.0" 
+      SequenceMetafile="ie33_biplane_RightCaptureDevice_compressed.mha" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />
+      </DataSources>      
+      <OutputChannels>
+        <OutputChannel Id="RightTrackedVideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+  </DataCollection>
+
+  <CoordinateDefinitions>
+    <Transform From="LeftImage" To="Probe"
+      Matrix="
+        0.166006	-0.0944847	-0.00445761	-14.9463
+        0.0903257	0.17565	-0.014166	-86.5863
+        0.0104134	0.0106585	0.193937	0.637663
+        0	0	0	1"
+       Error="1.17562" Date="052015_132620" />
+    <Transform From="RightImage" To="Probe"
+      Matrix="
+        0.000388924	-0.0858653	0.179408	19.1744
+        0.015382	0.181241	0.0844275	-70.6487
+        -0.195113	0.0147178	0.00701358	50.1871
+        0	0	0	1"
+       Error="1.00906" Date="052015_132903" />
+  </CoordinateDefinitions>
+  
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="LeftTrackedVideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="ProbeToTracker" /> 
+        <Transform Name="ReferenceToTracker" />
+      </TransformNames>
+      <ImageNames>
+        <Image Name="LeftImage" EmbeddedTransformToFrame="Reference" />
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+  
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18945" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="RightTrackedVideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="ProbeToTracker" /> 
+        <Transform Name="ReferenceToTracker" />
+        <Transform Name="StylusToTracker" />
+      </TransformNames>
+      <ImageNames>
+        <Image Name="RightImage" EmbeddedTransformToFrame="Reference" />
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+</PlusConfiguration>

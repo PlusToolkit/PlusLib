@@ -1,0 +1,60 @@
+/**
+
+\page Configuration Configuration
+
+\section ConfigurationDeviceSet Device set configuration
+
+The toolkit can be used with a wide range of hardware and software devices in various configurations, without making any software changes.
+All configurable parameters are specified in a \ref FileDeviceSetConfiguration which describe the used devices, connection between devices,
+algorithms that operate on data provided by devices, and applications that use devices and algorithms.
+
+Writing the correct configuration file is essential and it is important to devote sufficient time and attention to this task. The description
+on this page and the provided examples should help in creating the configuration file, but in case of any problems
+\ref Questions "post a question on the message board" and you will very likely to get an answer within a few hours.
+
+\subsection FileDeviceSetConfiguration Device set configuration file
+
+This XML configuration file describes all inputs that are needed by any Plus application. This file defines
+the device set, that is used in course of acquisition, the coordinate frames, the segmentation parameters,
+the phantom definition (properties, geometry, registration), and data elements for algorithms and applications.
+The file contains the following XML elements:
+
+- \xmlElem \b PlusConfiguration
+  - \xmlAtt Version Major Plus toolkit version the configuration file is compatible with
+  - \xmlAtt PlusRevision Detailed Plus toolkit version that created the configuration file
+  - \xmlElem \subpage DataCollection Definition of all devices used for collecting and processing data. See \subpage Devices page for a list of supported devices.
+  - \xmlElem \subpage CoordinateSystemDefinitions List of fixed transforms
+  - Application elements
+    - \xmlElem \ref ApplicationfCalConfigSettings "Freehand calibration (fCal) settings"
+    - \xmlElem \ref ApplicationPlusServerConfigSettings "Plus server settings"
+  - Algorithm elements
+    - \xmlElem \subpage AlgorithmProbeCalibration
+    - \xmlElem \subpage AlgorithmPhantomRegistration
+    - \xmlElem \subpage AlgorithmPivotCalibration
+    - \xmlElem \subpage AlgorithmTemporalCalibration
+    - \xmlElem \subpage AlgorithmVolumeReconstruction
+    - \xmlElem \subpage AlgorithmRfProcessing
+
+\section ConfigurationApplication Application configuration
+
+Some settings can be set commonly for all applications and device set configurations,
+such as directories, last used device set, and preferred text editor application.
+These settings are described in the <em>application configuration file</em>.
+
+\subsection FileApplicationConfiguration Application configuration file
+
+The file name is PlusConfig.xml and it is loaded from the directory where the executable file is located. If the file does not exist, the application creates one with the default values.
+
+The application configuration file is an XML file with the following root element:
+- \xmlElem \b PlusConfig
+  - \xmlAtt \b LogLevel Logging level. See more information on the \subpage FileLog page.
+    - \c 1 (ERROR) Only errors are logged
+    - \c 2 (WARNING) Only errors and warnings are logged
+    - \c 3 (DEBUG) Errors, warnings, and debugging information are logged. Useful for developers and troubleshooting.
+    - \c 4 (TRACE) Errors, warnings, and detailed debugging information are logged. Large amount of data may be generated, even if the application is idle. Useful for developers and troubleshooting.
+  - \xmlAtt \b DeviceSetConfigurationDirectory Device set configuration files will be searched relative to this directory (if an absolute path is defined then this directory is ignored).
+  - \xmlAtt \b ImageDirectory Sequence metafiles (.mha, .mhd files) will be searched relative to this directory.
+  - \xmlAtt \b ModelDirectory Model files (.stl files) will be searched relative to this directory.
+  - \xmlAtt \b ScriptsDirectory Directory of scripts that application may need.
+
+*/

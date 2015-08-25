@@ -1,0 +1,48 @@
+/*!
+\page DeviceMicrosoftMediaFoundation Microsoft Media Foundation compatible imaging device
+
+\section MicrosoftMediaFoundationSupportedHwDevices Supported hardware devices
+Any compatible frame grabbers, surgical microscopes (for example Zeiss Pentero), endoscopes, webcams, etc. through Microsoft Media Foundation interface.
+
+\section MicrosoftMediaFoundationSupportedPlatforms Included in packages
+- \ref PackageWin32
+- \ref PackageWin64
+- \ref PackageInterson
+- \ref PackageBk
+- \ref PackageStealthLink
+- \ref PackageThorLabs
+
+\section MicrosoftMediaFoundationInstallation Installation
+
+Media foundation require Microsoft Windows 7 or later.
+
+If your framegrabber uses a "crossbar" for switching between multiple inputs (e.g., composite, s-video) then you may need to connect to your device through a virtual camera software (such as http://splitcamera.com/ or https://manycam.com/). It is recommended to upgrade to a more recent UVC 1.1 compatible device (http://en.wikipedia.org/wiki/USB_video_device_class) or use
+\ref DeviceICCapturing or \ref DeviceEpiphan imaging devices that Plus has built-in native support for.
+
+\section MicrosoftMediaFoundationConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "MmfVideo" \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+
+- \xmlAtt \b FrameSize Size of the video frame. \OptionalAtt{640 480}
+- \xmlAtt \b VideoFormat It specifies the video subtype format. All the available formats are described <a href="http://msdn.microsoft.com/en-us/library/windows/desktop/aa370819(v=vs.85).aspx">here.</a> \OptionalAtt{YUY2}
+- \xmlAtt \b CaptureDeviceId Identifier of the capture device. The first device id is 0. \OptionalAtt{0}
+- \xmlAtt \b CaptureStreamIndex Index of the output stream of the device. The first stream index is 0.\OptionalAtt{0}
+
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
+    - \xmlAtt \ref ImageType Color image acquisition is supported by setting the imaging device's common attribute \c ImageType="RGB_COLOR". \OptionalAtt{BRIGHTNESS}
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+    - \xmlAtt \ref ClipRectangleOrigin \OptionalAtt{0 0 0}
+    - \xmlAtt \ref ClipRectangleSize \OptionalAtt{0 0 0}
+
+\section MicrosoftMediaFoundationExampleConfigFile Example configuration file PlusDeviceSet_Server_MmfColorVideoCapture.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_MmfColorVideoCapture.xml"
+
+
+
+*/

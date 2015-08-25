@@ -1,0 +1,53 @@
+/*!
+\page DeviceOpenIGTLinkVideo Any OpenIGTLink compatible imaging device
+
+\section OpenIGTLinkVideoSupportedHwDevices Supported hardware devices
+Any compatible video device through <a href="http://openigtlink.org/"> OpenIGTLink interface</a>. 
+There are commercial systems that provide tracking video and image data through OpenIGTLink, such as BrainLab, Siemens MRI scanners
+
+\section OpenIGTLinkVideoConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "OpenIGTLinkVideo" \RequiredAtt
+- \xmlAtt \b ServerAddress Host name or IP address of the OpenIGTLink server that sends the data to this device. \RequiredAtt
+- \xmlAtt \b ServerPort Port of the OpenIGTLink server that sends the data to this device. \RequiredAtt
+- \xmlAtt \b ImageMessageEmbeddedTransformName If IMAGE message is received and this attribute is defined then
+  the transform embedded in the message will be recorded as a transform, with the specified name
+  (e.g., "ImageToReference"). If the attribute is not defined then the embedded transform is ignored.
+  If the message type is not IMAGE then the attribute is ignored. \OptionalAtt{ }
+- \xmlAtt \b MessageType The device will request this message type from the remote server. If the MessageType is not specified then the default message type will be used (specified in the remote server) \OptionalAtt{ }
+  - \c IMAGE Request sending only image data in IMAGE OpenIGTLink messages.
+  - \c TRACKEDFRAME Request sending image+tracking data in TRACKEDFRAME OpenIGTLink messages.
+- \xmlAtt \b IgtlMessageCrcCheckEnabled Enable CRC check on the received OpenIGTLink messages ( \c true or \c false). \OptionalAtt{false}
+- \xmlAtt \b UseReceivedTimestamps Use the timestamps that are stored in the OpenIGTLink messages. \OptionalAtt{true}
+  - \c true Timestamp in the OpenIGTLink message header is used as acquisition time for the item. If the remote server is on a different computer then the clocks of the remote server computer and the computer that runs PlusServer must be accurately synchronized (e.g., using NTP). 
+  - \c false Time of receiving the message is used as timestamp. Variable network delays may cause jitter in the timestamps.
+- \xmlAtt \b ReconnectOnReceiveTimeout If this option is enabled and the server becomes unresponsive then the device tries to reconnect repeatedly ( \c true or \c false). It is usually desirable, because it makes the connection more robust, however in cases where server reconnection requires user approval it may be more convenient to turn this feature off. \OptionalAtt{true}
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" The device checks for new available messages on the remove server at this rate.\OptionalAtt{30} 
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
+    - \xmlAtt \ref ImageType \OptionalAtt{BRIGHTNESS}
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+    - \xmlAtt \ref ClipRectangleOrigin \OptionalAtt{0 0 0}
+    - \xmlAtt \ref ClipRectangleSize \OptionalAtt{0 0 0}
+
+\section OpenIGTLinkVideoExampleConfigFile Example configuration file PlusDeviceSet_OpenIGTLinkVideoSource.xml
+
+\include "data/ConfigFiles/Testing/PlusDeviceSet_OpenIGTLinkVideoSource.xml"
+
+This device can be used for transferring tracked video data to another computer for processing, recording, and broadcasting. This is useful in the following cases:
+- the computer where the data is acquired is not fast enough (for example, if frames are skipped during volume reconstruction: "Volume reconstruction cannot keep up with the acquisition. Skip ... seconds of the data stream to catch up.")
+- 32-bit devices are used or a 32-bit computer is used for data acquisition, but high-resolution volume reconstruction requires 64-bit memory space
+
+Example configuration file for data acquisition and sending (it acquires data from a file and forwards it through OpenIGTLink TRACKEDFRAME message to the processing server):
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_Sim_NwirePhantomTrackedFrameAcquisition.xml"
+
+Example configuration file for data receiving and processing (it acquires data from the acquisition server and allows recording, volume reconstruction, and broadcasting of IMAGE and TRANSFORM messages):
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_Sim_NwirePhantomTrackedFrameProcessing.xml"
+
+*/

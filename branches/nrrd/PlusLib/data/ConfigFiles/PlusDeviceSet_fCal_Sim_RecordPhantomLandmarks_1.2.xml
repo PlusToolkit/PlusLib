@@ -1,0 +1,116 @@
+<PlusConfiguration version="2.1">
+
+  <DataCollection StartupDelaySec="1.0">
+    <DeviceSet 
+      Name="fCal: Simulation mode for Phantom registration" 
+      Description="Fake tracker in 'Record phantom landmarks' mode. This configuration can be used for testing fCal and also used by the automatic test vtkPhantomRegistrationTest." />
+    <Device
+      Id="TrackerDevice"
+      Type="FakeTracker"
+      AcquisitionRate="20"
+      Mode="RecordPhantomLandmarks"
+      ToolReferenceFrame="Tracker" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Reference"  PortName="0" />
+        <DataSource Type="Tool" Id="Stylus"  PortName="1" />
+      </DataSources> 
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream">
+          <DataSource Id="Reference" />
+          <DataSource Id="Stylus" />
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+  </DataCollection> 
+
+  <CoordinateDefinitions>
+    <Transform From="Reference" To="Tracker"
+      Matrix="0 -1 0 300.0
+              1 0 0 400.0
+              0 0 1 700.0
+              0 0 0 1"
+      Date="2011.12.01 11:57:00" />
+    <Transform From="StylusTip" To="Stylus"
+      Matrix="1 0 0 210.0
+              0 1 0 0
+              0 0 1 0
+              0 0 0 1"
+      Date="2011.12.01 17:22:12" />
+  </CoordinateDefinitions>
+
+  <Rendering WorldCoordinateFrame="Reference">
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel" File="Stylus_Example.stl" />
+    <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
+      Opacity="0.6"
+      File="fCal_1.2.stl"
+      ModelToObjectTransform="
+        1 0 0 -25.0
+        0 0 -1 45.0
+        0 1 0 -5.0
+        0 0 0 1" />
+  </Rendering>
+
+  <PhantomDefinition>
+    <Description
+      Name="fCAL"
+      Type="Multi-N"
+      Version="1.0"
+      WiringVersion="1.0"
+      Institution="Queen's University PerkLab" />
+    <Geometry>
+      <Pattern Type="NWire">
+        <Wire Name="1:E3_e3" EndPointFront="20.0 0.0 5.0" EndPointBack="20.0 40.0 5.0" />
+        <Wire Name="2:F3_j3" EndPointFront="25.0 0.0 5.0" EndPointBack="45.0 40.0 5.0" />
+        <Wire Name="3:K3_k3" EndPointFront="50.0 0.0 5.0" EndPointBack="50.0 40.0 5.0" />
+      </Pattern>
+      <Pattern Type="NWire">
+        <Wire Name="4:E4_e4" EndPointFront="20.0 0.0 0.0" EndPointBack="20.0 40.0 0.0" />
+        <Wire Name="5:J4_f4" EndPointFront="45.0 0.0 0.0" EndPointBack="25.0 40.0 0.0" />
+        <Wire Name="6:K4_k4" EndPointFront="50.0 0.0 0.0" EndPointBack="50.0 40.0 0.0" />
+      </Pattern>
+      <Landmarks>
+        <Landmark Name="#1" Position="95.0 5.0 15.0" />
+        <Landmark Name="#2" Position="95.0 40.0 15.0" />
+        <Landmark Name="#3" Position="95.0 40.0 0.0" />
+        <Landmark Name="#4" Position="95.0 0.0 0.0" />
+        <Landmark Name="#5" Position="-25.0 40.0 15.0" />
+        <Landmark Name="#6" Position="-25.0 0.0 10.0" />
+        <Landmark Name="#7" Position="-25.0 0.0 0.0" />
+        <Landmark Name="#8" Position="-25.0 40.0 0.0" />
+      </Landmarks>
+    </Geometry>
+  </PhantomDefinition>
+
+  <fCal
+    PhantomModelId="PhantomModel"
+    TransducerModelId="ProbeModel"
+    StylusModelId="StylusModel"
+    ImageDisplayableObjectId="LiveImage"
+    NumberOfStylusCalibrationPointsToAcquire="200"
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Probe"
+    ReferenceCoordinateFrame="Reference"
+    TransducerOriginCoordinateFrame="TransducerOrigin"
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+    FixedChannelId="VideoStream" 
+    FixedSourceId="Video"
+    MovingChannelId="TrackerStream"
+    MovingSourceId="ProbeToTracker"
+    DefaultSelectedChannelId="TrackerStream" />
+  
+  <vtkPivotCalibrationAlgo
+    ObjectMarkerCoordinateFrame="Stylus"
+    ReferenceCoordinateFrame="Reference"
+    ObjectPivotPointCoordinateFrame="StylusTip" />
+  
+  <vtkPhantomLandmarkRegistrationAlgo
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+    StylusTipCoordinateFrame="StylusTip" />
+  
+  <vtkPhantomLinearObjectRegistrationAlgo
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+    StylusTipCoordinateFrame="StylusTip" />
+
+</PlusConfiguration>

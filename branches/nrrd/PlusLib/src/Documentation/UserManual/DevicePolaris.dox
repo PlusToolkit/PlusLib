@@ -1,0 +1,52 @@
+/*!
+\page DevicePolaris NDI Polaris and Aurora pose trackers
+
+\section PolarisSupportedHwDevices Supported hardware devices
+Any NDI tracking device is supported that uses the common API, such as <a href="http://www.ndigital.com/medical/products/polaris-family/"> Polaris </a> optical and <a href="http://www.ndigital.com/medical/products/aurora/"> Aurora </a> electromagnetic pose trackers.
+
+\section PolarisSupportedPlatforms Included in packages
+- \ref PackageWin32
+- \ref PackageWin64
+- \ref PackageUltrasonixWin32
+- \ref PackageInterson
+- \ref PackageBk
+- \ref PackageStealthLink
+- \ref PackageThorLabs
+- \ref PackageMacOs
+- \ref PackageLinux
+
+\section PolarisInstallation Installation
+
+- If USB connection is used then drivers should be installed to allow the computer to connect to the system control unit (SCU).
+- If you have just turned on the tracker and attempt to use it right away, you may get the error message "command is invalid while in current mode"; wait for the leftmost LED on the position sensor to stop flashing and try again.
+
+\section PolarisConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "PolarisTracker" \RequiredAtt or \ref DeviceType "Type" = \c "AuroraTracker" \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{50} 
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
+
+- \b SerialPort parameter must correlate to the com port number used by the NDI Polaris Spectra SCU Port. This port number was determined during driver installation, to check its value go to control panel->Device Manager->Ports(COM&LPT) and you should see an icon labelled NDI Polaris Spectra SCU Port(COMx), with x representing the COM port number you need to specify in the config file. If \b SerialPort \c = -1, then probe the first 20 serial ports. \OptionalAtt{-1}
+- \b BaudRate specifies the speed of the COM port, the recommended value is 115200. Valid values: <tt> 9600, 14400, 19200, 38400, 5760, 115200, 921600, 1228739 </tt>\OptionalAtt{9600}
+- \xmlAtt \b MeasurementVolumeNumber Measurement volume number. It can be used for defining volume type (dome, cube) and size. First valid volume number is 1. 0 means that the default volume is used. If an invalid value is set (for example -1) then the list of available volumes is logged. See VSEL command in the NDI API documentation for details.\OptionalAtt{0}
+
+- \xmlElem \ref DataSources
+  - \xmlElem \ref DataSource there must be one child tool element \RequiredAtt
+    - \xmlAtt \b Type = \c "Tool" \RequiredAtt
+    - \xmlAtt \b Id A string that identifies the tool element. \RequiredAtt
+    - \xmlAtt \ref PortName For wired tools only (should not be defined for wireless tools). Contains the port number, starting from 0 (e.g., name of the first port is "0", name of the second port is "1") \OptionalAtt{ }
+    - \xmlAtt \b RomFile For wireless tools only (should not be defined for wired tools). Name of the tool definition file (*.rom file). The file location is relative to the configuration file location. Standard tool rom files are available on the NDI Polaris Spectra Tool Kit cd in the Tool Definition Files folder. If a PortName is specified too it will be ignored. \OptionalAtt{ }
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+
+\section PolarisExampleConfigFile Example configuration file Polaris PlusDeviceSet_Server_NDIAurora_NDIPolaris.xml 
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_NDIPolaris.xml"
+
+\section PolarisExampleConfigFileB Example configuration file Aurora PlusDeviceSet_Server_NDIAurora_NDIPolaris.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_NDIAurora_NDIPolaris.xml"
+
+
+*/

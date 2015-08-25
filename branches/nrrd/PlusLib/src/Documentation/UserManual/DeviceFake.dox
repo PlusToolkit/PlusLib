@@ -1,0 +1,36 @@
+/*!
+\page DeviceFake Fake tracking system as a simulator
+Simulates a fake tracking system with tools that have predetermined behavior. This allows someone who doesn't have access to a tracking system to test code that relies on having one active.
+
+\section FakeConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "Fake" \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
+
+- \xmlAtt \b Mode The possible modes have different simulation behaviour: \OptionalAtt{Undefined}
+
+  - \c Default Spins the tools around different axis to fake movement
+  - \c SmoothMove 
+  - \c PivotCalibration Moves around a stylus with the tip fixed to a position
+  - \c RecordPhantomLandmarks Touches some positions with 1 sec difference
+  - \c ToolState Changes the state of the tool from time to time
+
+- \xmlElem \b PhantomDefinition: \RequiredAtt if \b Mode = \c "RecordPhantomLandmarks".
+  - \xmlElem \b Geometry or \b Landmarks
+    - \xmlAtt \b Position Landmark 3D position specified as a vector \c "0.0,0.0,0.0"
+
+- \xmlElem \ref DataSources One \c DataSource child element for each tool. \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortName \RequiredAtt
+      - \c 0 Reference
+      - \c 1 Stylus
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+
+\section FakeExampleConfigFile Example configuration file PlusDeviceSet_FakeTracker_ToolState.xml
+
+\include "data/ConfigFiles/Testing/PlusDeviceSet_FakeTracker_ToolState.xml"
+
+*/

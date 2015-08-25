@@ -1,0 +1,199 @@
+<PlusConfiguration version="2.3">
+
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="fCal: Ultrasonix US (C5 -2 probe) + PolarisTracker tracker (Probe, Reference, Stylus) - fCal Phantom 3.0"
+      Description="PolarisTracker sensors should be plugged in to the PolarisTracker DriveBay mounted on Ultrasonix US in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." />
+
+    <Device
+      Id="TrackerDevice"
+      Type="PolarisTracker"
+      SerialPort="3"
+      BaudRate="115200"
+      LocalTimeOffsetSec="0.0"
+      ToolReferenceFrame="Tracker" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Probe" RomFile="NdiToolDefinitions/8700339.rom" />
+        <DataSource Type="Tool" Id="Stylus" RomFile="NdiToolDefinitions/8700340.rom" />
+        <DataSource Type="Tool" Id="Reference" RomFile="NdiToolDefinitions/8700449.rom" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream" >
+          <DataSource Id="Probe"/>
+          <DataSource Id="Reference"/>
+          <DataSource Id="Stylus"/>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="VideoDevice"
+      Type="SonixVideo" 
+      AcquisitionRate="30" 
+      LocalTimeOffsetSec="0"
+      IP="127.0.0.1"
+      AutoClipEnabled="TRUE" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF"  />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video"/>
+      </OutputChannels>
+    </Device>
+
+    <Device 
+      Id="TrackedVideoDevice" 
+      Type="VirtualMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="VideoStream" />
+      </InputChannels>
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream"/>
+      </OutputChannels>
+    </Device>
+    
+  </DataCollection>
+
+
+  <CoordinateDefinitions>
+    <Transform From="Image" To="TransducerOriginPixel"
+      Matrix="1 0 0 -410
+              0 1 0 5
+              0 0 1 0
+              0 0 0 1"
+      Date="2011.12.06 17:57:00" Error="0.0" />    
+  </CoordinateDefinitions> 
+
+  <Rendering WorldCoordinateFrame="Reference">
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="TransducerOrigin" Id="ProbeModel"
+      File="Probe_C5-2_60.stl"
+      ModelToObjectTransform="
+        -1 0 0 29.7
+        0 -1 0 1.5
+        0 0 1 -14
+        0 0 0 1" />
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel" File="Stylus_Example.stl" />
+    <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
+      Opacity="0.6"
+      File="fCal_3.1.stl"
+      ModelToObjectTransform="
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        0 0 0 1" />
+    <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
+  </Rendering>
+
+  <Segmentation
+    ApproximateSpacingMmPerPixel="0.078"
+    MorphologicalOpeningCircleRadiusMm="0.27"
+    MorphologicalOpeningBarSizeMm="2.0"
+    ClipRectangleOrigin="27 27" 
+    ClipRectangleSize="766 562" 
+    MaxLinePairDistanceErrorPercent="10"
+    AngleToleranceDegrees="10"
+    MaxAngleDifferenceDegrees="10"
+    MinThetaDegrees="-70"
+    MaxThetaDegrees="70"
+    MaxLineShiftMm="10.0"
+    ThresholdImagePercent="10"
+    CollinearPointsMaxDistanceFromLineMm="0.6"
+    UseOriginalImageIntensityForDotIntensityScore="FALSE"
+    NumberOfMaximumFiducialPointCandidates="20" />
+
+  <PhantomDefinition>
+    <Description
+      Name="fCAL"
+      Type="Triple-N"
+      Version="3.0"
+      WiringVersion="1.0"
+      Institution="Queen's University PerkLab" />
+   <Geometry>      
+      <Pattern Type="NWire">
+        <Wire Name="7:G6_g6" EndPointFront="20.0 0.0 -20.0" EndPointBack="20.0 40.0 -20.0" />
+        <Wire Name="8:J6_g6" EndPointFront="50.0 0.0 -20.0" EndPointBack="20.0 40.0 -20.0" />
+        <Wire Name="9:J6_j6" EndPointFront="50.0 0.0 -20.0" EndPointBack="50.0 40.0 -20.0" />
+      </Pattern>
+      <Pattern Type="NWire">
+        <Wire Name="4:G7_g7" EndPointFront="20.0 0.0 -30.0" EndPointBack="20.0 40.0 -30.0" />
+        <Wire Name="5:G7_j7" EndPointFront="20.0 0.0 -30.0" EndPointBack="50.0 40.0 -30.0" />
+        <Wire Name="6:J7_j7" EndPointFront="50.0 0.0 -30.0" EndPointBack="50.0 40.0 -30.0" />
+      </Pattern>
+      <Pattern Type="NWire">
+        <Wire Name="1:H8_h8" EndPointFront="30.0 0.0 -40.0" EndPointBack="30.0 40.0 -40.0" />
+        <Wire Name="2:J8_h8" EndPointFront="50.0 0.0 -40.0" EndPointBack="30.0 40.0 -40.0" />
+        <Wire Name="3:J8_j8" EndPointFront="50.0 0.0 -40.0" EndPointBack="50.0 40.0 -40.0" />
+      </Pattern>
+      <Landmarks>
+        <Landmark Name="#1" Position="145.5 -5.0 15.5"/>
+        <Landmark Name="#2" Position="145.5 -5.0 -39.5"/>
+        <Landmark Name="#3" Position="145.1 -5.0 -114.5"/>
+        <Landmark Name="#4" Position="145.1 45.0 20.5"/>
+        <Landmark Name="#5" Position="145.1 45.0 -9.5"/>
+        <Landmark Name="#6" Position="145.1 45.0 -114.5"/>
+        <Landmark Name="#7" Position="-73.0 45.0 20.5"/>
+        <Landmark Name="#8" Position="-73.0 45.0 -9.5"/>
+        <Landmark Name="#9" Position="-73.0 45.0 -114.5"/>
+        <Landmark Name="#10" Position="-73.0 -5.0 20.5"/>
+        <Landmark Name="#11" Position="-73.0 -5.0 -39.5"/>
+        <Landmark Name="#12" Position="-73.4 -5.0 -104.5"/>
+      </Landmarks>
+    </Geometry>
+  </PhantomDefinition>
+
+
+  <VolumeReconstruction OutputSpacing="0.5 0.5 0.5"
+    ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
+    FanOriginPixel="410 -140" FanAnglesDeg="-28 28" FanRadiusStartPixel="200" FanRadiusStopPixel="735"
+    EnableFanAnglesAutoDetect="TRUE" FanAnglesAutoDetectBrightnessThreshold="10"
+    Interpolation="LINEAR" Optimization="FULL" CompoundingMode="MEAN" FillHoles="OFF"
+  />
+
+
+    <fCal
+    PhantomModelId="PhantomModel"
+    TransducerModelId="ProbeModel"
+    StylusModelId="StylusModel"
+    ImageDisplayableObjectId="LiveImage"
+    NumberOfCalibrationImagesToAcquire="200"
+    NumberOfValidationImagesToAcquire="100"
+    NumberOfStylusCalibrationPointsToAcquire="200"
+    RecordingIntervalMs="100"
+    MaxTimeSpentWithProcessingMs="70"
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Probe"
+    ReferenceCoordinateFrame="Reference"
+    TransducerOriginCoordinateFrame="TransducerOrigin"
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+    TemporalCalibrationDurationSec="10"
+    FixedChannelId="VideoStream" 
+    FixedSourceId="Video"
+    MovingChannelId="TrackerStream"
+    MovingSourceId="ProbeToTracker"
+    DefaultSelectedChannelId="TrackedVideoStream" />
+
+  <vtkPivotCalibrationAlgo
+    ObjectMarkerCoordinateFrame="Stylus"
+    ReferenceCoordinateFrame="Reference"
+    ObjectPivotPointCoordinateFrame="StylusTip" />
+
+  <vtkPhantomLandmarkRegistrationAlgo
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+    StylusTipCoordinateFrame="StylusTip" />
+  
+  <vtkPhantomLinearObjectRegistrationAlgo
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference"
+    StylusTipCoordinateFrame="StylusTip" />
+
+  <vtkProbeCalibrationAlgo
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Probe"
+    PhantomCoordinateFrame="Phantom"
+    ReferenceCoordinateFrame="Reference" />
+
+
+</PlusConfiguration>

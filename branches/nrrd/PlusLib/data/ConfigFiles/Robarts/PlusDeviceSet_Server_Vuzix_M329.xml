@@ -1,0 +1,96 @@
+<PlusConfiguration version="2.3" PlusRevision="Plus-2.1.2.3381 - Win32">
+  <DataCollection StartupDelaySec="1">
+    <DeviceSet Name="PlusServer: Stream Vuzix goggles left and right eye over OpenIGTLink" Description="Vuzix model 329 support over OpenIGTLink" />
+    <Device
+      Id="LeftVideoDevice" 
+      Type="MmfVideo" 
+      FrameSize="640 480"
+      VideoFormat="YUY2"
+      CaptureDeviceId="0" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" ImageType="RGB_COLOR"  />
+      </DataSources>      
+      <OutputChannels>
+        <OutputChannel Id="LeftVideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+
+	<Device
+      Id="RightVideoDevice" 
+      Type="MmfVideo" 
+      FrameSize="640 480"
+      VideoFormat="YUY2"
+      CaptureDeviceId="1" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF" ImageType="RGB_COLOR"  />
+      </DataSources>      
+      <OutputChannels>
+        <OutputChannel Id="RightVideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+  </DataCollection>
+ 
+  <CoordinateDefinitions>
+    <Transform From="Image" To="TransducerOriginPixel"
+      Matrix="
+        1	0	0	-410
+        0	1	0	5
+        0	0	1	0
+        0	0	0	1"
+       Date="2011.12.06 17:57:00" />
+	<Transform From="LeftImage" To="Reference"
+      Matrix="
+        1	0	0	0
+        0	1	0	0
+        0	0	1	0
+        0	0	0	1"
+       Date="2011.12.06 17:57:00" />
+	   <Transform From="RightImage" To="Reference"
+      Matrix="
+        1	0	0	0
+        0	1	0	0
+        0	0	1	0
+        0	0	0	1"
+       Date="2011.12.06 17:57:00" />
+    <Transform From="TransducerOriginPixel" To="TransducerOrigin"
+      Matrix="
+        0.220843	0	0	0
+        0	0.225815	0	0
+        0	0	0.223331	0
+        0	0	0	1"
+       Date="050715_173545" />
+  </CoordinateDefinitions>
+
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="LeftVideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+      </MessageTypes>
+      <ImageNames>
+        <Image Name="LeftImage" EmbeddedTransformToFrame="Reference" />
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+  
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18945" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="RightVideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+      </MessageTypes>
+      <ImageNames>
+        <Image Name="RightImage" EmbeddedTransformToFrame="Reference" />
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+</PlusConfiguration>

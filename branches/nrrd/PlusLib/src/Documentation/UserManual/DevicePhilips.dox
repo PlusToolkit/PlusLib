@@ -1,0 +1,41 @@
+/*!
+\page DevicePhilips Philips ultrasound systems
+
+This class acquires 4D (3D+t) image data from Philips ultrasound systems.
+
+\section PhilipsSupportedHwDevices Supported hardware devices
+
+- Philips ie33 3D ultrasound imaging devices.
+- Link to manufacturer's website: http://www.healthcare.philips.com/main/products/ultrasound/systems/ie33/
+
+\section PhilipsSupportedPlatforms Included in packages
+
+This device is not included in any of the standard packages, as it requires access to research interface from Philips.
+
+- \ref PackagePhilips
+
+- This device is not included in any of the standard packages, as it requires license from BK.
+- If the license is obtained from BK then Plus have to be built with PLUS_USE_Philips_VIDEO and optionally with PLUS_USE_Philips_CAMERALINK configuration options enabled as described at https://www.assembla.com/spaces/plus/wiki/Windows_Build_Instructions.
+- The device is tested on Windows, but may also work on other platforms.
+
+\section PhilipsConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "ie33Video" \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+
+- \xmlAtt \b IP Network address of the ultrasound system \RequiredAtt
+
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortUsImageOrientation. Only "AMF" is supported. \RequiredAtt
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+    - \xmlAtt \ref ClipRectangleOrigin \OptionalAtt{0 0 0}
+    - \xmlAtt \ref ClipRectangleSize \OptionalAtt{0 0 0}
+
+\section PhilipsExampleConfigFile Example configuration file PlusDeviceSet_Server_Philips_ie33.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_Phillips_ie33.xml"
+
+*/

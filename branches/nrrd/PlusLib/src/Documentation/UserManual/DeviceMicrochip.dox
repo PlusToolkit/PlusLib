@@ -1,0 +1,44 @@
+/*!
+\page DeviceMicrochip Microchip MM7150 magnetic, angular rate, and gravity (MARG) sensor
+
+\section MicrochipSupportedHwDevices Supported hardware devices
+
+- Link to manufacturer's website: http://www.microchip.com/wwwProducts/Devices.aspx?product=MM7150
+
+\section MicrochipSupportedPlatforms Included in packages
+
+- \ref PackageWin32
+- \ref PackageWin64
+- \ref PackageUltrasonixWin32
+- \ref PackageInterson
+- \ref PackageBk
+- \ref PackageStealthLink
+- \ref PackageThorLabs
+
+\section MicrochipInstallation Installation
+
+- Switch the sensor to orientation mode
+- Make sure the serial port number matches the COM port number the device is connected to
+
+\section MicrochipConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "Microchip" \RequiredAtt
+
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{20}
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
+
+- \xmlAtt \b SerialPort Used COM port number for serial communication (ComPort: 1 => Port name: "COM1"). \OptionalAtt{5}
+- \xmlAtt \b BaudRate Baud rate for serial communication. \OptionalAtt{115200}
+
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortName = \c "OrientationSensor" \RequiredAtt
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+
+\section MicrochipExampleConfigFile Example configuration file PlusDeviceSet_Server_Microchip.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_Microchip.xml"
+
+*/

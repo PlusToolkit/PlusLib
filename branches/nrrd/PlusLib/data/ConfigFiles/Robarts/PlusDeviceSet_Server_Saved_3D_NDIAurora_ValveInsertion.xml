@@ -1,0 +1,60 @@
+ <PlusConfiguration version="2.1">
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="PlusServer: Saved Mitral Valve Insertion - 3D with NDI Aurora Probe+Reference+Stylus"
+      Description="Broadcasting acquired video through OpenIGTLink"
+    />
+
+    <Device
+      Id="VideoDevice"
+      Type="SavedDataSource" 
+      UseData="IMAGE_AND_TRANSFORM"
+      RepeatEnabled="TRUE"
+      AcquisitionRate="10" 
+      LocalTimeOffsetSec="0.0" 
+      SequenceMetafile="iE33_NDIAurora_BeatingHeartPhantom_MitralValveInsertion.mha" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />
+      </DataSources>      
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+  </DataCollection>
+
+  <CoordinateDefinitions>
+    <Transform From="Image" To="Probe"
+      Matrix="1.22974 -0.217859 -0.170841 30.6641 
+              0.223972 1.24008 0.0308146 -58.0717 
+              0.162745 -0.0604176 1.24851 8.75495 
+              0 0 0 1 "
+       Error="2.46123" Date="081315_131842" />
+    <Transform From="StylusTip" To="Stylus"
+      Matrix="
+        0.994215	0	0.107408	1.15469
+        0.0246084	0.9734	-0.227785	-2.4488
+        -0.104551	0.22911	0.967769	10.404
+        0	0	0	1"
+       Error="0.456238" Date="082015_141018" />
+  </CoordinateDefinitions>
+  
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="TrackedVideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="StylusTipToReference" />
+      </TransformNames>
+      <ImageNames>
+        <Image Name="Image" EmbeddedTransformToFrame="Reference" />
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+</PlusConfiguration>

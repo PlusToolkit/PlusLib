@@ -1,0 +1,48 @@
+/*!
+\page DeviceGenericSerial Generic serial device
+
+This device communicates with external hardware using serial (RS-232) connection
+It does not collect tracking or image data, only allows sending and receiving data
+using OpenIGTLink commands (see \ref PlusServerCommands).
+
+A (customizable) newline string is appended after each sent command and the device listens
+for reponse that is terminated by the same newline string.
+
+
+\section GenericSerialSupportedHwDevices Supported hardware devices
+
+- Any device communicating through serial (RS-232) interface.
+
+\section GenericSerialSupportedPlatforms Included in packages
+
+- \ref PackageWin32
+- \ref PackageWin64
+- \ref PackageUltrasonixWin32
+- \ref PackageInterson
+- \ref PackageBk
+- \ref PackageStealthLink
+- \ref PackageThorLabs
+
+\section GenericSerialInstallation Installation
+
+- Connect the device to the serial port. Make sure communication speed matches the setting in the configuration file.
+- If a USB to serial converter is used then the port number can be obtained (and modified, if needed) in the Device Manager.
+
+\section GenericSerialConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "GenericSerial" \RequiredAtt
+
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" Defines how frequently Plus should read data sent by the serial device \OptionalAtt{10}
+- \xmlAtt \b SerialPort Used COM port number for serial communication (ComPort: 1 => Port name: "COM1"). \RequiredAtt
+- \xmlAtt \b BaudRate Baud rate for serial communication. \OptionalAtt{9600}
+- \xmlAtt \b MaximumReplyDelaySec Maximum time to wait for the device to start replying. \OptionalAtt{0.100}
+- \xmlAtt \b MaximumReplyDurationSec Maximum time to wait for the device to finish replying.  \OptionalAtt{0.300}
+- \xmlAtt \b LineEnding Line ending character(s). Used when sending and receiving text to the device. Each character encoded as 2-digit hexadecimal, separated by spaces. For example: CR line ending is "0d", CR/LF line ending is "0d 0a"\OptionalAtt{0d}
+
+- \xmlElem \ref DataSources No \c DataSource should be defined
+
+\section GenericSerialExampleConfigFile Example configuration file PlusDeviceSet_Server_GenericSerial.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_GenericSerial.xml"
+
+*/

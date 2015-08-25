@@ -1,0 +1,111 @@
+/*!
+\page ApplicationPlusServer PlusServer application
+
+PlusServer is an application that runs Plus functions and sends acquired data to remote
+clients through <a hfref="http://openigtlink.org/">OpenIGTLink</a> connection. Typical example is to use Plus for acquiring tracked
+ultrasound image slices and send them for real-time visualization to 3D Slicer.
+
+The server supports continuous data acquisition and sending and also on-request starting/stopping
+of recording, volume reconstruction, updating of transforms, saving of the modified device set
+configuration file, etc. Requests are received through OpenIGTLink commands. See more details at \subpage PlusServerCommands .
+
+\section ApplicationPlusServerUsage Usage
+
+The most convenient way to launch PlusServer is to install Plus Applications package and run
+the Plus Server from the start menu. Then select a configuration file (e.g.,
+"PlusServer: Replay fCal phantom scan ...") and click Connect.
+
+\image html ApplicationPlusServerLauncher.png
+
+\subsection ApplicationPlusServerUsageVisualization Visualization of acquired data
+
+To visualize the images and transforms broadcasted by the PlusServer use an application such as 3D Slicer:
+
+- Install and start 3D Slicer
+- Create a new connection in the OpenIGTLinkIF module: client, default port name (18944), and set it Active
+- Go to the Transforms module to see the transforms
+- Choose an input image in the slice viewer window to see the live image
+
+\subsection ApplicationPlusServerUsageCommandLine Command-line usage
+
+PlusServer can be also started from the command-line. The list of available command-line parameters are printed if the --help parameter is specified.
+
+Launch the server with the last used device set and connect:
+
+    PlusServerLauncher --connect
+
+Launch the server with a specified device set and connect:
+
+    PlusServerLauncher --connect --config-file=PlusDeviceSet_Server_Sim_NwirePhantom.xml
+
+Launch the command-line-only version of PlusServer (no graphical user interface):
+
+    PlusServer --config-file=PlusServer.xml
+
+~~~
+
+  --config-file=opt                   Configuration file name
+
+  --connect                           Automatically connect after the
+                                      application is started
+
+  --device-set-configuration-dir=opt  Device set configuration directory path
+
+  --help                              Print this help.
+
+  --verbose=opt                       Verbose level (1=error only, 2=warning,
+                                      3=info, 4=debug)
+~~~
+ 
+\section ApplicationPlusServerConfigSettings Configuration settings
+
+- \xmlElem \b PlusOpenIGTLinkServer
+  - \xmlAtt ListeningPort Port number where the server listens for incoming connections. Typical value is 18944. \RequiredAtt
+  - \xmlAtt OutputChannelId Name of the channel to get the data from. Must match the \c Id attribute value of one of the \c OutputChannel elements in a device. \RequiredAtt
+  - \xmlAtt MaxNumberOfIgtlMessagesToSend Maximum number of messages to send to clients at each update. \OptionalAtt{100}
+  - \xmlAtt MaxTimeSpentWithProcessingMs Maximum time spent with sending messages to clients at each update. \OptionalAtt{50}
+  - \xmlAtt MissingInputGracePeriodSec This value defines for how long after initiating connection a the server should not report missing inputs as error. After the grace period expires, the server will report missing inputs as errors or warnings. \OptionalAtt{0}
+  - \xmlAtt SendValidTransformsOnly If \c TRUE then only valid transforms will be sent. If \c FALSE then invalid messages are sent, too (if a transform is invalid then an identity matrix will be sent). \OptionalAtt{TRUE}
+  - \xmlAtt IgtlMessageCrcCheckEnabled If \c TRUE then incoming OpenIGTLink messages are only accepted if their CRC is valid. If \c FALSE then CRC is not checked. \OptionalAtt{FALSE}
+  - \xmlElem \b DefaultClientInfo
+    - \xmlElem \b MessageTypes
+      - \xmlElem \b Message
+        - \xmlAtt Type
+          - \c IMAGE: standard OpenIGTLink message type, stores 3D image data (can be a single slice, includes position and orientation)
+          - \c TRANSFORM:  standard OpenIGTLink message type, stores 3D pose (position and orientation) data
+          - \c POSITION:  standard OpenIGTLink message type, stores 3D position data
+          - \c TRACKEDFRAME: Plus tracked ultrasound frame, stores all frame fields (tool transforms, statuses, etc.)
+          - \c USMESSAGE: <a href="https://musiic.lcsr.jhu.edu/Main_Page">MUSiiC</a> tracked ultrasound frame, stores additional imaging information, such as transmit and sampling frequency, line density, steering angle
+          - \c STRING: standard OpenIGTLink message type, stores a simple character string
+    - \xmlElem \b TransformNames
+      - \xmlElem \b Transform
+          - \xmlAtt Name
+    - \xmlElem \b StringNames
+      - \xmlElem \b String Name of the custom frame string that is sent as a STRING message. Any frame field (Timestamp, any status message, any custom frame fields) can be specified here.
+    - \xmlElem \b ImageNames
+      - \xmlElem \b Image
+          - \xmlAtt Name Name of the image stream. It also defines the "From" frame of the transform embedded in the IGTL image message.
+          - \xmlAtt EmbeddedTransformToFrame "To" frame of the transform embedded in the IGTL image message
+
+This is an example element that needs to be added to the PLUS configuration xml file to use PlusServer:
+
+    <PlusOpenIGTLinkServer 
+      MaxNumberOfIgtlMessagesToSend="10" 
+      MaxTimeSpentWithProcessingMs="50" 
+      ListeningPort="18944" 
+      MissingInputGracePeriodSec="5.0"
+      SendValidTransformsOnly="TRUE" 
+      OutputChannelId="SomeValidChannel" > 
+      <DefaultClientInfo> 
+        <MessageTypes> 
+          <Message Type="IMAGE" />
+          <Message Type="TRANSFORM" />
+        </MessageTypes>
+        <TransformNames>
+          <Transform Name="StylusTipToReference" /> 
+          <Transform Name="ProbeToReference" /> 
+        </TransformNames>
+      </DefaultClientInfo>
+    </PlusOpenIGTLinkServer>
+
+*/

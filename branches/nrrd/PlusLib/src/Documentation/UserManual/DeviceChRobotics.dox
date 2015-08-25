@@ -1,0 +1,48 @@
+/*!
+\page DeviceChRobotics CHRobotics CHR-UM6 magnetic, angular rate, and gravity (MARG) sensor
+
+\section ChRoboticsSupportedHwDevices Supported hardware devices
+
+- Link to manufacturer's website: http://www.chrobotics.com/shop/orientation-sensor-um6
+
+\section ChRoboticsSupportedPlatforms Included in packages
+
+- \ref PackageWin32
+- \ref PackageWin64
+- \ref PackageUltrasonixWin32
+- \ref PackageInterson
+- \ref PackageBk
+- \ref PackageStealthLink
+- \ref PackageThorLabs
+
+\section ChRoboticsInstallation Installation
+
+- Contains accelerometer, gyroscope, and magnetometer sensors, each with 3 DOF.
+- Small (few centimeters by few centimeters), low-cost (about $200) device.
+- Sensor fusion algorithm is integrated into the device.
+- Need to enable the following options in the firmware: "Broadcast" and "Euler Output".
+- Gyroscope bias correction may (depending on settings in the Firmware) be performed automatically when powering up the device. Therefore after the powering the device it shall be kept stationary for a few seconds.
+
+\section ChRoboticsConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "ChRobotics" \RequiredAtt
+
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{20}
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
+
+- \xmlAtt \b SerialPort Used COM port number for serial communication (ComPort: 1 => Port name: "COM1"). \OptionalAtt{5}
+- \xmlAtt \b BaudRate Baud rate for serial communication. \OptionalAtt{115200}
+- \xmlAtt \b FirmwareDirectory Directory path containing the XML files that describes the device firmware (available registers, calibration, etc.). The path can be relative to the configuration directory. \OptionalAtt{Absolute path of the executable}
+
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortName = \c "OrientationSensor" \RequiredAtt
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+
+\section ChRoboticsExampleConfigFile Example configuration file PlusDeviceSet_Server_ChRobotics.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_ChRobotics.xml"
+
+*/

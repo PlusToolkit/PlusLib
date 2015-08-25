@@ -1,0 +1,33 @@
+/**
+
+\page ProcedureStreamingToSlicer Streaming of live images and tracking data to 3D Slicer
+
+# Installation
+
+- <a href="https://www.assembla.com/wiki/show/plus/Downloads">Download and install the latest PlusApp release</a>
+- <a href="http://download.slicer.org/">Download and Install 3D Slicer (64-bit nightly build is recommended)</a>
+- Install the SlicerIGT extension in 3D Slicer
+
+# Show live images in 3D Slicer
+- In the Windows start menu in the <em>Plus Applications ...</em> folder open <em>Plus Server</em>
+- Choose your device set that describes according to your imaging device, for example use <em>PlusServer: Media Foundation video capture device</em> or <em>PlusServer: Video for Windows video capture device</em> for image acquisition from a webcam. Optionally click on the small edit icon on the left side of the device selector to customize the imaging parameters.
+- Click <em>Connect</em>
+- In the Windows start menu in the <em>Slicer ... </em> folder open <em>Slicer</em>
+- Open the <em>OpenIGTLinkIF</em> module and click on the \c + button to create a new connection and click on the <em>Active checkbox</em> to start receiving data
+- Open the <em>View Controllers</em> module and select <em>Image_Reference</em> in the listbox in the background image selector listbox (in the red slice's section, on the right side of the orientation selection listbox that shows <em>Axial</em>)
+- Open the <em>VolumeResliceDriver</em> module (if you don't see it, install the <em>SlicerIGT</em> extension), choose <em>Image_Reference</em> to drive the red slice and set the mode to <em>Transverse</em>
+
+# Show tracked tools in 3D Slicer
+- In the Windows start menu in the <em>Plus Applications ...</em> folder open <em>Plus Server</em>
+- Choose your device set that describes according to your imaging device, for example use <em>PlusServer: Replay fCal phantom...</em> device set for replaying a pre-recorded tracking data sequence. If you have access to a tracker you can connect a tracking device set (e.g., <em>PlusServer: Ascension3DG tracker</em>, <em>PlusServer: NDI Aurora tracker</em>, <em>PlusServer: Claron MicronTracker tracker</em>) and click on the small edit icon on the left side of the device selector to customize its parameters.
+- Click <em>Connect</em>
+- In the Windows start menu in the <em>Slicer ... </em> folder open <em>Slicer</em>
+- Open the <em>OpenIGTLinkIF</em> module and click on the \c + button to create a new connection and click on the <em>Active checkbox</em> to start receiving data
+- In the <em>I/O Configuration</em> section in the data tree open <em>IGTLConnector</em>, open <em>IN</em>, then click on the eye icon on the right side for the tools that you want to see in the 3D view
+- If you have STL models of your tools then you can load them into Slicer and assign the corresponding transform in the <em>Transforms</em> module
+
+# More information
+- <a href="http://www.slicerigt.org/">SlicerIGT: tools in 3D Slicer for implementing image-guided intervention systems</a>
+- <a href="http://www.slicer.org/slicerWiki/index.php/Documentation/Nightly/Modules/OpenIGTLinkIF">Description and tutorial about OpenIGTLinkIF in 3D Slicer</a>
+
+*/

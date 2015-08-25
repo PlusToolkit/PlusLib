@@ -1,0 +1,83 @@
+/*!
+
+\page DataCollection Data collection
+
+The data collector component acquires data from several physical or software devices simultaneously and processes and combines the acquired data.
+
+\subpage Devices page lists all the supported hardware and software devices. Configuration settings section below describes common device attributes.
+
+\section DataCollectionDefinitions Definitions
+
+- Device: An independent data acquisition or processing element. Each device has its own processing thread that runs in parallel with other devices and responsible for reading data from its inputs and providing data on its outputs.
+- Data source: Provides a single stream of data items, a stream can either consists of a sequence of transforms (tracker stream) or a sequence of two-dimensional images (video stream). The stream also contain metadata for each item: a timestamp and status (if the item is valid or not).
+- Channel: Bundles the output of multiple data sources. One channel can contain up to one video stream and any number of tracker streams.
+- Output channel: Devices usually provide data to other devices or to algorithms through an output channel. An output channel contains a circular buffer that stores the last N data items of all associated streams, which typically allows algorithms to access the data acquired in the last few seconds.
+- Input channel: A device may receive data from another device. This is specified by listing the data provider device's output channel(s) as input channel(s) in the data receiver device. One device can receive data from multiple other devices and one output channel can be connected to multiple device's input channel.
+
+\section DataCollectionHowTo How to write the DataCollection section of the configuration file
+
+The best way to get started is to find example configuration file(s) for the hardware device(s) that you would like to use. There are simple example configuration files in the installation package in the \c Config directory: \c PlusDeviceSet_Server_(some-hardware-device).xml. In the device set selector in Plus applications these configurations appear as \c "PlusServer: (some-hardware-device) device". Try to connect to each of device one-by-one and verify if the data collection is successful (no error messages in the log, data sent through OpenIGTLink is visualized correctly in <a href="http://www.slicerigt.org">3D Slicer/SlicerIGT</a>).
+
+To collect data from multiple devices:
+- Add \c Device elements of all used hardware devices into the \c DataCollection element in the configuration file
+- Add a \ref DeviceVirtualMixer device to create a channel that contains information from the output of all hardware devices. Most often one mixer device is sufficient, but in case multiple different channels have to be constructed with different contents, multiple mixer devices can be added.
+- Use the output channel of the \ref DeviceVirtualMixer device in other devices (such as \ref DeviceVirtualDiscCapture and \ref DeviceVirtualVolumeReconstructor) and in applications (for example: in \c fCal element's \c DefaultSelectedChannelId attribute; \c PlusOpenIGTLinkServer element's \c OutputChannelId attribute)
+
+\section DataCollectionConfigSettings Configuration settings
+
+- \xmlElem \b DataCollection
+  - \xmlAtt \b StartupDelaySec The data collector waits for this amount of time before reporting that connection is established. This delay makes sure that all devices are fully initialized before the application starts to use them.
+  - \xmlElem \b DeviceSet
+    - \xmlAtt \b Name Device set name as it appears in the menu where the user can select it.
+    - \xmlAtt \b Description More detailed description about the device set.
+  - \xmlElem \anchor Device \b Device See \subpage Devices page for a list of available devices. There can be multiple elements, each describes a physical or software device.
+    - \xmlAtt \b Type \anchor DeviceType . Defines the name of device type used.
+    - \xmlAtt \b AcquisitionRate \anchor DeviceAcquisitionRate . Defines how many frames the device should acquire in a second. Depending on capabilities of the device the actual frame rate may differ from this requested frame rate. Optional, default is specified by the device.
+    - \xmlAtt \b LocalTimeOffsetSec \anchor LocalTimeOffsetSec . This value allows for compensating time lag of the data acquisition of the device. The value is typically determined by temporal calibration. Global time (common for all devices in the process) is computed from the device's local time (timestamps provided by the device) as: GlobalTime = LocalTime + LocalTimeOffset. Therefore, if local time is the time when the process receives the data from a device and it takes 0.5 sec for the device to acquire data and send to the process then the LocalTimeOffsetSec value will be -0.5. Optional. Default value is 0 sec.
+    - \xmlAtt \b MissingInputGracePeriodSec \anchor MissingInputGracePeriodSec . This value defines for how long after initiating connection a device should not report missing inputs as error. After the grace period expires, the device will report missing inputs as errors or warnings. The value is typically used by devices that uses the output of other devices, such as disc capture or ultrasound simulator. Optional. Default is specified by the device.
+    - \xmlAtt \b ToolReferenceFrame \anchor ToolReferenceFrame . Reference frame name of the tools. Required for tracking devices.
+    - \xmlAtt \b ReportUnknownToolsOnce \anchor ReportUnknownToolsOnce When data recording is attempted for an unknown tool it will be reported as an error on each attempt if this flag is FALSE. Othwerwise it is reported only once after each Connect.
+    - \xmlElem \b InputChannels. List of input channels that the device requires (each input channel is connected to the output channel of another device).
+      - \xmlElem \b InputChannel
+        - \xmlAtt \b Id Identifier of the an OutputChannel of another device \RequiredAtt
+    - \xmlElem \b DataSources \anchor DataSources . List of data streams that the device generates (e.g., by reading from a hardware device) and may provide on its output channels.
+      - \xmlElem \b DataSource \anchor DataSource . Each data source corresponds to a tracked tool or imaging source. Attributes include:
+        - \xmlAtt \b Id \anchor DataSourceId . Identifier of the tool or image stream. For a tracking tool the transform name is constructed from this identifier as \em Id To \em ToolReferenceFrame. \RequiredAtt
+        - \xmlAtt \b Type \anchor DataSourceType . Type of the data source. Can be \c Tool or \c Video. \RequiredAtt
+        - \xmlAtt \b BufferSize \anchor BufferSize . Specifies how many most recent data items the device should keep in memory. It is advisable to keep in memory at least the data that is acquired in the last couple of seconds, to allow synchronized retrieving of data from various devices with slightly different time offsets at the same time. The buffer also helps avoiding data loss when temporarily the process is busy with computations or input/output operations. Too high value results in large memory areas allocated to these buffers, thus reducing available memory for other operations, such as volume reconstruct. Required. Minimum recommended value is 5 times AcquisitionRate (last 5 sec data is kept in memory).
+        - \xmlAtt \b AveragedItemsForFiltering \anchor AveragedItemsForFiltering . Number of items used for timestamp jitter reduction filtering. Timestamp jitter filtering is only used if the device does not provide timestamps and so the data collector applies timestamps when it receives the data.
+        - \xmlAtt \b PortName \anchor PortName . Port name is used to identify the tool among all the tools provided by the device.
+        - \xmlAtt \b PortUsImageOrientation \anchor PortUsImageOrientation . The orientation of the image outputted by the device. See detailed description at \subpage UltrasoundImageOrientation.
+          - \c US_IMG_ORIENT_UF image \c x axis = unmarked transducer axis, image \c y axis = far transducer axis.
+          - \c US_IMG_ORIENT_UN image \c x axis = unmarked transducer axis, image \c y axis = near transducer axis.
+          - \c US_IMG_ORIENT_MF image \c x axis = marked transducer axis, image \c y axis = far transducer axis.
+          - \c US_IMG_ORIENT_MN image \c x axis = marked transducer axis, image \c y axis = near transducer axis.
+          - \c US_IMG_ORIENT_FU image \c x axis = far transducer axis, image \c y axis = unmarked transducer axis (usually for RF frames).
+          - \c US_IMG_ORIENT_NU image \c x axis = near transducer axis, image \c y axis = unmarked transducer axis (usually for RF frames).
+          - \c US_IMG_ORIENT_FM image \c x axis = far transducer axis, image \c y axis = marked transducer axis (usually for RF frames).
+          - \c US_IMG_ORIENT_NM image \c x axis = near transducer axis, image \c y axis = marked transducer axis (usually for RF frames).
+          - \c US_IMG_ORIENT_UFA image same as 2D counterpart, with third axis in ascending direction
+          - \c US_IMG_ORIENT_UNA image same as 2D counterpart, with third axis in ascending direction
+          - \c US_IMG_ORIENT_MFA image same as 2D counterpart, with third axis in ascending direction
+          - \c US_IMG_ORIENT_MNA image same as 2D counterpart, with third axis in ascending direction
+          - \c US_IMG_ORIENT_UFD image same as 2D counterpart, with third axis in descending direction
+          - \c US_IMG_ORIENT_UND image same as 2D counterpart, with third axis in descending direction
+          - \c US_IMG_ORIENT_MFD image same as 2D counterpart, with third axis in descending direction
+          - \c US_IMG_ORIENT_MND image same as 2D counterpart, with third axis in descending direction
+        - \xmlAtt \b ImageType \anchor ImageType . The image type(B-mode, RF, ...) provided by the video source.
+          - \c BRIGHTNESS B-mode image.
+          - \c RF_REAL RF-mode image, signal is stored as a series of real values.
+          - \c RF_IQ_LINE RF-mode image, signal is stored as a series of I and Q samples in a line(I1, Q1, I2, Q2, ...).
+          - \c RF_I_LINE_Q_LINE RF-mode image, signal is stored as a series of I samples in a line, then Q samples in the next line(I1, I2, ..., Q1, Q2, ...).
+          - \c RGB_COLOR RGB24 color image.
+        - \xmlAtt \b ClipRectangleOrigin \anchor ClipRectangleOrigin Clipping rectangle origin for the grabber (in pixels). The first pixel position is "0 0 0" If any of the values is -1 then no clipping will be performed. For two-dimensional images the third component may be omitted. \OptionalAtt{-1 -1 -1}
+        - \xmlAtt \b ClipRectangleSize \anchor ClipRectangleSize Clipping rectangle size for the grabber (in pixels). If any of the values is -1 then no clipping will be performed. For two-dimensional images the third component may be omitted. \OptionalAtt{-1 -1 -1}
+    - \xmlElem \b OutputChannels \anchor OutputChannels List of output channels that the device provides. Most devices require the specification of a single output channel.
+      - \xmlElem \b OutputChannel \anchor OutputChannel
+        - \xmlAtt \b Id Identifier of the OutputChannel. Must be a unique name across all devices. \RequiredAtt
+        - \xmlAtt \b VideoDataSourceId Identifier of the video \c DataSource that will be included in the output.
+          - \xmlElem \b DataSource An element for each tracking tool to be included in the output.
+            - \xmlAtt \b Id Identifier of the tool \c DataSource.
+        - \xmlElem \ref AlgorithmRfProcessing "RfProcessing" For ultrasound imaging devices that are capable of acquiring RF data. If this element is specified then the output of the channel will be the processed RF image.
+        
+*/
