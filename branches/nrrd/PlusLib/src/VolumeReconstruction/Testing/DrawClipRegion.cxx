@@ -1,16 +1,15 @@
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
 
-#include "vtkSmartPointer.h"
-#include "vtkMetaImageReader.h"
-#include "vtkXMLUtilities.h"
-#include "vtkTrackedFrameList.h"
-#include "vtkImageData.h"
-#include "vtkMetaImageWriter.h"
-#include "vtkVolumeReconstructor.h"
 #include "PlusVideoFrame.h"
 #include "TrackedFrame.h"
+#include "vtkImageData.h"
 #include "vtkMath.h"
+#include "vtkSequenceIOCommon.h"
+#include "vtkSmartPointer.h"
+#include "vtkTrackedFrameList.h"
+#include "vtkVolumeReconstructor.h"
+#include "vtkXMLUtilities.h"
 
 float DRAWING_COLOR = 255;
 
@@ -183,7 +182,11 @@ int main(int argc, char** argv)
 
   // Read the image sequence
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-  trackedFrameList->ReadFromSequenceMetafile(inputImgSeqFileName.c_str());
+  if( vtkSequenceIOCommon::Read(inputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to load input sequences file.");
+    exit(EXIT_FAILURE);
+  }
 
   // For reading the configuration file
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
@@ -227,7 +230,11 @@ int main(int argc, char** argv)
     }
     outputImgSeqFileName = inputImgSeqFileName + "-Scanlines.mha";
   }
-  trackedFrameList->SaveToSequenceMetafile(outputImgSeqFileName.c_str());
+  if( vtkSequenceIOCommon::Write(outputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
+  {
+    //Error has already been logged
+    return EXIT_FAILURE;
+  }
   LOG_INFO("Writing to "<<outputImgSeqFileName<<" complete.");
 
   return EXIT_SUCCESS;

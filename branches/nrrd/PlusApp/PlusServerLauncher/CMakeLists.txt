@@ -49,10 +49,11 @@ INCLUDE_DIRECTORIES(${PlusApp_SOURCE_DIR}/CommonWidgets)
 # --------------------------------------------------------------------------
 # Build the library
 
-SET (PlusServerLauncher_LIBS
+SET (PlusServerLauncher_LIBS 
+    ${PlusServerLauncher_LIBS} 
     ${QT_LIBRARIES} 
     CommonWidgets
-    vtkDataCollection # to be able to list of supported devices
+    vtkPlusServer    
     )
 
 SET (APP_MODE "")

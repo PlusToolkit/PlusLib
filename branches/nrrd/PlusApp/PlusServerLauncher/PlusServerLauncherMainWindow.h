@@ -13,6 +13,7 @@
 #include <QProcess>
 
 class DeviceSetSelectorWidget;
+class vtkPlusOpenIGTLinkServer;
 class vtkDataCollector;
 class vtkTransformRepository;
 

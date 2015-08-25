@@ -7,11 +7,10 @@
 #ifndef __vtkLineSegmentationAlgo_h
 #define __vtkLineSegmentationAlgo_h
 
+#include "itkImage.h"
 #include "vtkCalibrationAlgoExport.h"
-
-#include <deque>
-
 #include "vtkObject.h"
+#include <deque>
 
 class vtkTrackedFrameList;
 

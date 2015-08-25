@@ -8,11 +8,10 @@ See License.txt for details.
 #define __vtkVirtualDiscCapture_h
 
 #include "vtkDataCollectionExport.h"
-
 #include "vtkPlusDevice.h"
+#include "vtkSequenceIOBase.h"
 #include <string>
 
-class vtkMetaImageSequenceIO;
 class vtkTrackedFrameList;
 
 /*!
@@ -139,8 +138,8 @@ protected:
   std::string CurrentFilename;
   std::string BaseFilename;
 
-  /*! Meta sequence to write to */
-  vtkMetaImageSequenceIO* Writer;
+  /*! Sequence writer to write to */
+  vtkSequenceIOBase* Writer;
 
   /*! When closing the file, re-read the data from file, and write it compressed */
   bool EnableFileCompression;
