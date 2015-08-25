@@ -5,7 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 /*========================================================================
-Date: Ag 2015
+Date: Aug. 2015
 Authors include:
 - Mikael Brudfors [*] brudfors@hggm.es
 - Laura Sanz [*] lsanz@hggm.es
@@ -30,8 +30,10 @@ Requires PLUS_USE_OPTIMET_CONOPROBE option in CMake.
 \ingroup PlusLibDataCollection
 */
 
-class vtkMultiThreader;
+
 class ISmart;
+class _Lens;
+class vtkMultiThreader;
 
 class vtkDataCollectionExport vtkOptimetConoProbeMeasurer : public vtkPlusDevice
 {
@@ -55,10 +57,10 @@ public:
   /*! Write configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
-  /*! ... */
+  /*! Starts the ProbeDialogThread */
   PlusStatus Start();
 
-  /*! ... */
+  /*! Stops the ProbeDialogThread */
   PlusStatus Stop();
 
   vtkSetMacro(LaserPower, UINT16);
@@ -107,14 +109,17 @@ private:  // Variables.
   /*! Fine laser power. */
   unsigned short FineLaserPower;
 
-  /*! ... */
+  /*! Thread running the Probe Dialog. */
   vtkMultiThreader* Thread;
 
-  /*! ... */
+  /*! ThreadID of the tread running the Probe Dialog. */
   int ThreadID;
 
-  /*! ... */
+  /*! True when the Probe Dialog is open. */
   bool ProbeDialogOpen;
+
+  /*! Lens object holding the lens properties of the ConoProbe. */
+  _Lens* LensProperties;
 };
 
 #endif
