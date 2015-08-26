@@ -1479,7 +1479,7 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::SetInputFrameSize(vtkPlusDataSource& aSource, int x, int y, int z)
 {
-  LOCAL_LOG_TRACE("vtkPlusDevice::SetInputFrameSize(" << x << ", " << y << ", " << z << ")");
+  //LOCAL_LOG_TRACE("vtkPlusDevice::SetInputFrameSize(" << x << ", " << y << ", " << z << ")");
 
   int* frameSize = aSource.GetInputFrameSize();
   if (x == frameSize[0] &&

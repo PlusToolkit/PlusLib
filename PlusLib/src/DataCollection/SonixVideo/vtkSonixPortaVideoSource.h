@@ -166,9 +166,6 @@ class vtkDataCollectionExport vtkSonixPortaVideoSource : public vtkPlusDevice {
   /*! Get the number of frames per volume */
   PlusStatus GetStepPerFrame(int& aStepPerFrame);
   
-  /*! Set the BMode frame size in pixels. */
-  vtkSetVector2Macro(BModeFrameSize,int);
-
   //void SetImagingMode(int mode){ImagingMode = mode;};
   //void GetImagingMode(int & mode){mode = ImagingMode;};
 
@@ -291,12 +288,6 @@ private:
   /*! The B-mode iamge height */
   int PortaBModeHeight;
 
-  /*! 1 if the probe has been selected, 0 otherwise */
-  int PortaProbeSelected;
-
-  /*! 1 if the PortaImageMode has been set in the hardware, 0 otherwise */
-  int PortaModeSelected;
-
   /*! name of the probe */
   char *PortaProbeName;
 
@@ -315,12 +306,6 @@ private:
   /*! Size of the Cine buffer */
   int PortaCineSize;
     
-  /*! Size of the BMode frame buffer in pixels */
-  int BModeFrameSize[2];
-
-  /*! storage for sonix frame buffer */
-  unsigned char *BModeFrameBuffer; 
-
   /*! the number of frames that will acquired in one sweep of the motor */
   int FramePerVolume;
   
@@ -345,17 +330,10 @@ private:
   /*! Index keeping track of which frame belongs to which volume */
   int VolumeIndex;
 
-	/*! Keeping track in which direction the probe moves */
-	bool IncrementVolumeIndexClockwise;
-	bool IncrementVolumeIndexCounterClockwise;
+  /*! Keeping track in which direction the probe moves */
+  bool IncrementVolumeIndexClockwise;
 
-	bool RequireFrameBufferSizeInDeviceSetConfiguration;
-  bool RequireAcquisitionRateInDeviceSetConfiguration;
-  bool RequireAveragedItemsForFilteringInDeviceSetConfiguration;
-  bool RequireLocalTimeOffsetSecInDeviceSetConfiguration;
-  bool RequireUsImageOrientationInDeviceSetConfiguration;
-  bool RequireRfElementInDeviceSetConfiguration;
-	unsigned char* ImageBuffer;
+  unsigned char* ImageBuffer;
 };
 
 #endif // of __VTKSONIXPORTAVIDEOSOURCE_H__
