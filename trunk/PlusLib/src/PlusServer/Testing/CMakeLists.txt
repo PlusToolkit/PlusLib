@@ -24,7 +24,8 @@ IF (PLUS_USE_OpenIGTLink )
     --server-config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_OpenIGTLinkCommandsTest.xml
     --run-tests
     )
-  SET_TESTS_PROPERTIES( PlusServerOpenIGTLinkCommandsTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  # The timeout of 90 is added because this test does not seem to exit properly on Linux
+  SET_TESTS_PROPERTIES( PlusServerOpenIGTLinkCommandsTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" TIMEOUT 90)
 
 ENDIF (PLUS_USE_OpenIGTLink )
  
