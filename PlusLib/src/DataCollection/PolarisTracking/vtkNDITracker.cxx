@@ -545,13 +545,13 @@ PlusStatus vtkNDITracker::EnableToolPorts()
     }
   }
 
-  // Set wireless port handles and send SROM files to tracker
+  // Set port handles and send SROM files to tracker
   // We need to do this before initializing and enabling
   // the ports waiting to be initialized.
   for (NdiToolDescriptorsType::iterator toolDescriptorIt=this->NdiToolDescriptors.begin(); toolDescriptorIt!=this->NdiToolDescriptors.end(); ++toolDescriptorIt)
   {
-    if (toolDescriptorIt->second.WiredPortNumber == -1) //wireless tool
-    {  
+    if (toolDescriptorIt->second.VirtualSROM != NULL) // wireless tool (or wired tool with virtual rom)
+	{  
       if (this->UpdatePortHandle(toolDescriptorIt->second)!=PLUS_SUCCESS)
       {
         LOG_ERROR("Failed to determine NDI port handle for tool "<<toolDescriptorIt->first);
@@ -623,7 +623,7 @@ PlusStatus vtkNDITracker::EnableToolPorts()
   // splitters (two 5-DOF tools with one connector) only appear after the tool is enabled.
   for (NdiToolDescriptorsType::iterator toolDescriptorIt=this->NdiToolDescriptors.begin(); toolDescriptorIt!=this->NdiToolDescriptors.end(); ++toolDescriptorIt)
   {
-    if (toolDescriptorIt->second.WiredPortNumber >= 0) //wired tool
+	  if (toolDescriptorIt->second.WiredPortNumber >= 0 && toolDescriptorIt->second.VirtualSROM == 0) //wired tool, no virtual rom
     {
       if (this->UpdatePortHandle(toolDescriptorIt->second)!=PLUS_SUCCESS)
       {
@@ -974,39 +974,31 @@ PlusStatus vtkNDITracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement
     }
 
     int wiredPortNumber = -1;
-    const char* portName = toolDataElement->GetAttribute("PortName"); 
-    if ( portName != NULL ) 
+    if ( toolDataElement->GetAttribute("PortName") != NULL )
     {
-      wiredPortNumber = atoi(portName);
-      if (wiredPortNumber < 0)
+      if (!toolDataElement->GetScalarAttribute("PortName", wiredPortNumber))
       {
-        LOG_WARNING("NDI wired tool's port number has to be >=0");
+        LOG_WARNING("NDI wired tool's PortName attribute has to be an integer >=0");
         continue;
       }
     }
-
-    const char* romFileName = toolDataElement->GetAttribute("RomFile");
 
     NdiToolDescriptor toolDescriptor;
     toolDescriptor.PortEnabled=false;
     toolDescriptor.PortHandle=0;
     toolDescriptor.VirtualSROM=NULL;
-    toolDescriptor.WiredPortNumber=-1;
+    toolDescriptor.WiredPortNumber=wiredPortNumber;
 
+    const char* romFileName = toolDataElement->GetAttribute("RomFile");
     if (romFileName)
     {
-      // Passive (wireless) tool
+      // Passive (wireless) tool or wired tool with virtual rom
       if (wiredPortNumber>=0)
       {
-        LOG_WARNING("NDI PortName and RomFile are both specified for tool "<<toolSourceId<<". The tool is assumed to be passive (wireless) and the PortName attribute is ignored");
+        LOG_WARNING("NDI PortName and RomFile are both specified for tool "<<toolSourceId<<". Assuming broken wired rom, using virtual rom instead");
       }
       std::string romFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(romFileName);
       this->ReadSromFromFile(toolDescriptor, romFilePath.c_str());
-    }
-    else
-    {
-      // Active (wired) tool
-      toolDescriptor.WiredPortNumber = wiredPortNumber;
     }
 
     this->NdiToolDescriptors[toolSourceId]=toolDescriptor;
