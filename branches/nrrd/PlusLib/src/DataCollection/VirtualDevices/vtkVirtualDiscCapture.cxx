@@ -35,7 +35,7 @@ vtkVirtualDiscCapture::vtkVirtualDiscCapture()
 , LastUpdateTime(0.0)
 , BaseFilename("TrackedImageSequence.mha")
 , Writer(NULL)
-, EnableFileCompression(false)
+, EnableFileCompression(true)
 , IsHeaderPrepared(false)
 , TotalFramesRecorded(0)
 , EnableCapturing(false)
@@ -43,7 +43,7 @@ vtkVirtualDiscCapture::vtkVirtualDiscCapture()
 , WriterAccessMutex(vtkSmartPointer<vtkRecursiveCriticalSection>::New())
 , GracePeriodLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG)
 {
-  this->AcquisitionRate=10.0;
+  this->AcquisitionRate=30.0;
   this->MissingInputGracePeriodSec=2.0;
   this->RecordedFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP); 
 
@@ -131,7 +131,7 @@ PlusStatus vtkVirtualDiscCapture::InternalDisconnect()
       this->Disconnect();
       return PLUS_FAIL;
     }
-    if( this->Writer->AppendImages() != PLUS_SUCCESS )
+    if( this->Writer->WriteImages() != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to append images. Stopping recording at timestamp: " << this->LastAlreadyRecordedFrameTimestamp );
       this->Disconnect();
@@ -168,7 +168,7 @@ PlusStatus vtkVirtualDiscCapture::OpenFile(const char* aFilename)
   }
 
   this->Writer = vtkSequenceIOCommon::CreateSequenceHandlerForFile(aFilename);
-  this->Writer->SetUseCompression(false);
+  this->Writer->SetUseCompression(this->EnableFileCompression);
   this->Writer->SetTrackedFrameList(this->RecordedFrames);
   // Need to set the filename before finalizing header, because the pixel data file name depends on the file extension
   this->Writer->SetFileName(aFilename);
@@ -212,15 +212,6 @@ PlusStatus vtkVirtualDiscCapture::CloseFile(const char* aFilename)
   std::string filename = vtksys::SystemTools::GetFilenameWithoutExtension(fullPath); 
   std::string configFileName = path + "/" + filename + "_config.xml";
   PlusCommon::PrintXML(configFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
-
-  if( this->EnableFileCompression )
-  {
-    if( this->CompressFile() != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to compress file.");
-      return PLUS_FAIL;
-    }
-  }
 
   this->IsHeaderPrepared = false;
   this->TotalFramesRecorded = 0;
@@ -375,28 +366,6 @@ PlusStatus vtkVirtualDiscCapture::InternalUpdate()
   
   this->LastUpdateTime = vtkAccurateTimer::GetSystemTime();
   
-  return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus vtkVirtualDiscCapture::CompressFile()
-{
-  std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(this->BaseFilename);
-  vtkSmartPointer<vtkTrackedFrameList> frameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-  LOG_DEBUG("Read input sequence metafile: " << fullPath ); 
-  if( vtkSequenceIOCommon::Read(fullPath, frameList) != PLUS_SUCCESS )
-  {    
-    LOG_ERROR("Couldn't read sequence file: " <<  fullPath ); 
-    return PLUS_FAIL;
-  }
-
-  if( vtkSequenceIOCommon::Write(fullPath, frameList, frameList->GetImageOrientation(), true) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Couldn't write sequence file: " <<  fullPath ); 
-    return PLUS_FAIL;
-  }
-
   return PLUS_SUCCESS;
 }
 
@@ -594,7 +563,7 @@ PlusStatus vtkVirtualDiscCapture::WriteFrames(bool force)
       this->StopRecording();
       return PLUS_FAIL;
     }
-    if( this->Writer->AppendImages() != PLUS_SUCCESS )
+    if( this->Writer->WriteImages() != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to append images. Stopping recording at timestamp: " << LastAlreadyRecordedFrameTimestamp );
       this->StopRecording();

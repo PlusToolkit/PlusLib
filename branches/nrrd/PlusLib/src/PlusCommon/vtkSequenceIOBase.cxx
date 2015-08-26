@@ -22,6 +22,7 @@ vtkCxxSetObjectMacro(vtkSequenceIOBase, TrackedFrameList, vtkTrackedFrameList);
 vtkSequenceIOBase::vtkSequenceIOBase()
   : TrackedFrameList(vtkTrackedFrameList::New())
   , UseCompression(false)
+  , CompressedBytesWritten(0)
   , EnableImageDataWrite(true)
   , PixelType(VTK_VOID)
   , NumberOfScalarComponents(1)
@@ -33,6 +34,7 @@ vtkSequenceIOBase::vtkSequenceIOBase()
   , ImageType(US_IMG_TYPE_XX)
   , PixelDataFileOffset(0)
   , PixelDataFileName("")
+  , OutputImageFileHandle(NULL)
 {
   this->Dimensions[0]=1;
   this->Dimensions[1]=1;
@@ -142,6 +144,66 @@ void vtkSequenceIOBase::CreateTrackedFrameIfNonExisting(unsigned int frameNumber
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkSequenceIOBase::PrepareHeader()
+{
+  if (this->EnableImageDataWrite && this->TrackedFrameList->IsContainingValidImageData())
+  {
+    if (this->ImageOrientationInFile==US_IMG_ORIENT_XX)
+    {
+      // No specific orientation is requested, so just use the same as in the memory
+      this->ImageOrientationInFile=this->TrackedFrameList->GetImageOrientation();
+    }  
+    if (this->ImageOrientationInFile!=this->TrackedFrameList->GetImageOrientation())
+    {
+      // Reordering of the frames is not implemented, so just save the images as they are in the memory
+      LOG_WARNING("Saving of images is supported only in the same orientation as currently in the memory");
+      this->ImageOrientationInFile=this->TrackedFrameList->GetImageOrientation();
+    }
+
+    if (this->ImageType == US_IMG_TYPE_XX)
+    {
+      // No specific type is requested, so just use the same as in the memory
+      this->ImageType = this->TrackedFrameList->GetImageType();
+    }
+    if (this->ImageType!=this->TrackedFrameList->GetImageType())
+    {
+      // Reordering of the frames is not implemented, so just save the images as they are in the memory
+      LOG_WARNING("Saving of images is supported only in the same type as currently in the memory");
+      this->ImageType=this->TrackedFrameList->GetImageType();
+    }
+  }
+
+  if( this->TempHeaderFileName.empty())
+  {
+    std::string tempFilename;
+    if( PlusCommon::CreateTemporaryFilename(tempFilename, vtkPlusConfig::GetInstance()->GetOutputDirectory()) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to create temporary header file. Check write access.");
+      return PLUS_FAIL;
+    }
+    this->TempHeaderFileName=tempFilename;
+  }
+
+  if( this->TempImageFileName.empty() )
+  {
+    std::string tempFilename;
+    if( PlusCommon::CreateTemporaryFilename(tempFilename, vtkPlusConfig::GetInstance()->GetOutputDirectory()) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unable to create temporary image file. Check write access.");
+      return PLUS_FAIL;
+    }
+    this->TempImageFileName=tempFilename;
+  }
+
+  if ( this->OpenImageHeader() != PLUS_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
+
+  return this->PrepareImageFile();
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkSequenceIOBase::Write()
 {
   if( this->PrepareHeader() != PLUS_SUCCESS )
@@ -160,29 +222,12 @@ PlusStatus vtkSequenceIOBase::Write()
     return PLUS_FAIL;
   }
 
-  if ( this->WriteImagePixels(this->TempImageFileName, false) != PLUS_SUCCESS )
+  if ( this->WriteImages() != PLUS_SUCCESS )
   {
     return PLUS_FAIL;
   }
 
   this->Close();
-
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkSequenceIOBase::AppendImages()
-{
-  if( UseCompression )
-  {
-    LOG_ERROR("Unable to append images if compression is selected.");
-    return PLUS_FAIL;
-  }
-
-  if (this->WriteImagePixels(this->TempImageFileName, true) != PLUS_SUCCESS)
-  {
-    return PLUS_FAIL;
-  }
 
   return PLUS_SUCCESS;
 }
@@ -225,8 +270,83 @@ PlusStatus vtkSequenceIOBase::Close()
 
   CurrentFrameOffset = 0;
   TotalBytesWritten = 0;
+  CompressedBytesWritten = 0;
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSequenceIOBase::WriteImages()
+{
+  if (this->EnableImageDataWrite && this->TrackedFrameList->IsContainingValidImageData() && this->ImageOrientationInFile!=this->TrackedFrameList->GetImageOrientation())
+  {
+    // Reordering of the frames is not implemented, so return with an error
+    LOG_ERROR("Saving of images is supported only in the same orientation as currently in the memory");
+    return PLUS_FAIL;
+  }
+
+  bool imageDataAvailable = (this->Dimensions[0]>0 && this->Dimensions[1]>0 && this->Dimensions[2]>0);
+
+  if ( this->PixelType == VTK_VOID )
+  {
+    // If the pixel type was not defined, define it to UCHAR
+    this->PixelType = VTK_UNSIGNED_CHAR; 
+  }
+
+  PlusStatus result = PLUS_SUCCESS;
+  if ( !GetUseCompression() )
+  {
+    if (imageDataAvailable)
+    {
+      // Create a blank frame if we have to write an invalid frame to sequence file 
+      PlusVideoFrame blankFrame; 
+      if ( blankFrame.AllocateFrame(this->Dimensions, this->PixelType, this->NumberOfScalarComponents)!=PLUS_SUCCESS)
+      {
+        LOG_ERROR("Failed to allocate space for blank image."); 
+        return PLUS_FAIL; 
+      }
+      blankFrame.FillBlank(); 
+
+      // not compressed
+      for (unsigned int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
+      {
+        TrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame(frameNumber);
+
+        PlusVideoFrame* videoFrame = &blankFrame;
+        if ( this->EnableImageDataWrite && trackedFrame->GetImageData()->IsImageValid() ) 
+        {
+          videoFrame = trackedFrame->GetImageData(); 
+        }
+
+        unsigned long result = fwrite(videoFrame->GetScalarPointer(), 1, videoFrame->GetFrameSizeInBytes(), this->OutputImageFileHandle);
+        if( result != videoFrame->GetFrameSizeInBytes() )
+        {
+          LOG_ERROR("Unable to write entire frame to file.");
+        }
+        TotalBytesWritten += result;
+      }
+    }
+  }
+  else
+  {
+    // compressed
+    int compressedDataSize=0;
+    if (imageDataAvailable)
+    {
+      result = WriteCompressedImagePixelsToFile(compressedDataSize);
+      if( result == PLUS_SUCCESS )
+      {
+        TotalBytesWritten += compressedDataSize;
+        this->CompressedBytesWritten += compressedDataSize;
+      }
+    }
+  }
+
+  if( result == PLUS_SUCCESS )
+  {
+    CurrentFrameOffset += TrackedFrameList->GetNumberOfTrackedFrames();
+  }
+  return result;
 }
 
 //----------------------------------------------------------------------------

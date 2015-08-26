@@ -12,13 +12,24 @@
       RepeatEnabled="TRUE"
       AcquisitionRate="30"
       LocalTimeOffsetSec="0.0" 
-      SequenceFile="D:\ExperimentalData\MitralValveInsertions\3d-14cm-live3dpreset-Novice1-trial1-3d-JM.mha" >
+      SequenceFile="iE33_NDIAurora_BeatingHeartPhantom_MitralValveInsertion.mha" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />
       </DataSources>      
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
+    </Device>
+	
+	<Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="RecordingTest.mha"
+	  EnableFileCompression="TRUE"
+      EnableCapturing="TRUE" >
+      <InputChannels>
+        <InputChannel Id="TrackedVideoStream" />
+      </InputChannels>
     </Device>
   </DataCollection>
 

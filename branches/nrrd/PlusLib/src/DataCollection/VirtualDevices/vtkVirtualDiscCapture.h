@@ -97,9 +97,6 @@ protected:
   */
   virtual PlusStatus WriteFrames(bool force = false);
 
-  /*! Read the sequence metafile, re-write it with compression */
-  PlusStatus CompressFile();
-
   vtkVirtualDiscCapture();
   virtual ~vtkVirtualDiscCapture();
 

@@ -14,10 +14,9 @@
 #endif 
 
 #include "vtkSequenceIOBase.h"
+#include "itkzlib/zutil.h"
 
 class vtkTrackedFrameList;
-
-struct gz_stream;
 
 /*!
   \class vtkNrrdSequenceIO
@@ -44,9 +43,6 @@ public:
   vtkTypeMacro(vtkNrrdSequenceIO, vtkSequenceIOBase);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
-  /*! Prepare the sequence for writing */
-  virtual PlusStatus PrepareHeader();
-
   /*! Update the number of frames in the header 
       This is used primarily by vtkVirtualDiscCapture to update the final tally of frames, as it continually appends new frames to the file
       /param numberOfFrames the new number of frames to write
@@ -63,8 +59,8 @@ public:
   /*! Finalize the header */
   virtual PlusStatus FinalizeHeader();
 
-  /*! Write images to disc, compression allowed */
-  virtual PlusStatus WriteImages();
+  /*! Close the sequence */
+  virtual PlusStatus Close();
 
   /*! Check if this class can read the specified file */
   static bool CanReadFile(const std::string& filename);
@@ -94,24 +90,23 @@ protected:
   /*! Read pixel data from the image */
   virtual PlusStatus ReadImagePixels();
 
+  /*! Prepare the image file for writing */
+  virtual PlusStatus PrepareImageFile();
+
   /*! Write all the fields to the image file header */
   virtual PlusStatus OpenImageHeader();
 
-  /*! Write pixel data to the image */
-  virtual PlusStatus WriteImagePixels(const std::string& aFilename, bool forceAppend = false);
+  /*! 
+    Writes the compressed pixel data directly into file. 
+    The compression is performed in chunks, so no excessive memory is used for the compression.
+    \param compressedDataSize returns the size of the total compressed data that is written to the file.
+  */
+  virtual PlusStatus WriteCompressedImagePixelsToFile(int &compressedDataSize);
 
   /*! Conversion between ITK and METAIO pixel types */
   PlusStatus ConvertNrrdTypeToVtkPixelType(const std::string &elementTypeStr, PlusCommon::VTKScalarPixelType &vtkPixelType);
   /*! Conversion between ITK and METAIO pixel types */
   PlusStatus ConvertVtkPixelTypeToNrrdType(PlusCommon::VTKScalarPixelType vtkPixelType, std::string &elementTypeStr);
-
-  /*! 
-    Writes the compressed pixel data directly into file. 
-    The compression is performed in chunks, so no excessive memory is used for the compression.
-    \param aFilename the file where the compressed pixel data will be written to
-    \param compressedDataSize returns the size of the total compressed data that is written to the file.
-  */
-  virtual PlusStatus WriteCompressedImagePixelsToFile(const std::string& aFilename, int &compressedDataSize);
 
   /*! Return the size of a file */
   static FilePositionOffsetType GetFileSize(const std::string& filename);
@@ -125,6 +120,9 @@ protected:
 private:    
   /*! Nrrd encoding type */
   NrrdEncoding Encoding;
+
+  /*! file handle for the compression stream */
+  gzFile CompressionStream;
   
 protected:
   vtkNrrdSequenceIO(const vtkNrrdSequenceIO&); //purposely not implemented

@@ -14,6 +14,7 @@
 #endif 
 
 #include "vtkSequenceIOBase.h"
+#include "itk_zlib.h"
 
 class vtkTrackedFrameList;
 
@@ -33,9 +34,6 @@ public:
   vtkSetMacro(Output2DDataWithZDimensionIncluded, bool);
   vtkGetMacro(Output2DDataWithZDimensionIncluded, bool);
 
-  /*! Prepare the sequence for writing */
-  virtual PlusStatus PrepareHeader();
-
   /*! Update the number of frames in the header 
       This is used primarly by vtkVirtualDiscCapture to update the final tally of frames, as it continually appends new frames to the file
       /param numberOfFrames the new number of frames to write
@@ -51,9 +49,6 @@ public:
 
   /*! Finalize the header */
   virtual PlusStatus FinalizeHeader();
-
-  /*! Write images to disc, compression allowed */
-  virtual PlusStatus WriteImages();
 
   /*! Close the sequence */
   virtual PlusStatus Close();
@@ -86,30 +81,32 @@ protected:
   /*! Read pixel data from the metaimage */
   virtual PlusStatus ReadImagePixels();
 
+  /*! Prepare the image file for writing */
+  virtual PlusStatus PrepareImageFile();
+
   /*! Write all the fields to the metaimage file header */
   virtual PlusStatus OpenImageHeader();
 
-  /*! Write pixel data to the metaimage */
-  virtual PlusStatus WriteImagePixels(const std::string& aFilename, bool forceAppend = false);
+  /*! 
+    Writes the compressed pixel data directly into file. 
+    The compression is performed in chunks, so no excessive memory is used for the compression.
+    \param aFilename the file where the compressed pixel data will be written to
+    \param compressedDataSize returns the size of the total compressed data that is written to the file.
+  */
+  virtual PlusStatus WriteCompressedImagePixelsToFile(int &compressedDataSize);
 
   /*! Conversion between ITK and METAIO pixel types */
   PlusStatus ConvertMetaElementTypeToVtkPixelType(const std::string &elementTypeStr, PlusCommon::VTKScalarPixelType &vtkPixelType);
   /*! Conversion between ITK and METAIO pixel types */
   PlusStatus ConvertVtkPixelTypeToMetaElementType(PlusCommon::VTKScalarPixelType vtkPixelType, std::string &elementTypeStr);
 
-  /*! 
-    Writes the compressed pixel data directly into file. 
-    The compression is performed in chunks, so no excessive memory is used for the compression.
-    \param outputFileStream the file stream where the compressed pixel data will be written to
-    \param compressedDataSize returns the size of the total compressed data that is written to the file.
-  */
-  virtual PlusStatus WriteCompressedImagePixelsToFile(FILE *outputFileStream, int &compressedDataSize);
-
 private:
   /*! ASCII or binary */
   bool IsPixelDataBinary;
   /*! If 2D data, boolean to determine if we should write out in the form X Y Nfr (false) or X Y 1 Nfr (true) */
   bool Output2DDataWithZDimensionIncluded;
+  /*! compression stream handle for compression streaming */
+  z_stream CompressionStream;
 
 protected:
   vtkMetaImageSequenceIO(const vtkMetaImageSequenceIO&); //purposely not implemented

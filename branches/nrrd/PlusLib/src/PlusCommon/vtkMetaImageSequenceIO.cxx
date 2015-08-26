@@ -1,26 +1,25 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "itk_zlib.h"
 #include "itksys/SystemTools.hxx"
 #include "vtkMetaImageSequenceIO.h"
 #include <iomanip>
 #include <iostream>
 
-  
+
 #ifdef _WIN32
-  #define FSEEK _fseeki64
-  #define FTELL _ftelli64
+#define FSEEK _fseeki64
+#define FTELL _ftelli64
 #else
-  #define FSEEK fseek
-  #define FTELL ftell
+#define FSEEK fseek
+#define FTELL ftell
 #endif
 
-    
+
 
 // Size of MetaIO fields, in bytes (adopted from metaTypes.h)
 enum
@@ -36,12 +35,12 @@ enum
 };
 static const unsigned char MET_ValueTypeSize[MET_NUM_VALUE_TYPES] = 
 {
-   0, 1, 1, 1, 2,
-   2, 4, 4, 4, 4,
-   8, 8, 4, 8, 1,
-   1, 1, 2, 2, 4,
-   4, 4, 4, 8, 8,
-   4, 8, 4, 0 
+  0, 1, 1, 1, 2,
+  2, 4, 4, 4, 4,
+  8, 8, 4, 8, 1,
+  1, 1, 2, 2, 4,
+  4, 4, 4, 8, 8,
+  4, 8, 4, 0 
 };
 
 
@@ -58,6 +57,7 @@ static const char* SEQMETA_FIELD_US_IMG_TYPE = "UltrasoundImageType";
 static const char* SEQMETA_FIELD_ELEMENT_DATA_FILE = "ElementDataFile"; 
 static const char* SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL = "LOCAL";
 static const char* SEQMETA_FIELD_DIMSIZE = "DimSize";
+static const char* SEQMETA_FIELD_COMPRESSED_DATA_SIZE = "CompressedDataSize";
 
 static std::string SEQMETA_FIELD_FRAME_FIELD_PREFIX = "Seq_Frame"; 
 static std::string SEQMETA_FIELD_IMG_STATUS = "ImageStatus"; 
@@ -201,7 +201,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImageHeader()
     LOG_ERROR("Failed to read "<<this->FileName<<". Only binary pixel data (BinaryData=true) reading is supported.");
     return PLUS_FAIL;
   }
-  
+
   if(this->TrackedFrameList->GetCustomString("CompressedData")!=NULL
     && STRCASECMP(this->TrackedFrameList->GetCustomString("CompressedData"),"true")==0)
   {
@@ -348,7 +348,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
     LOG_ERROR("The file "<<GetPixelDataFilePath()<<" could not be opened for reading");
     return PLUS_FAIL;
   }
-  
+
   std::vector<unsigned char> allFramesPixelBuffer;
   if (this->UseCompression)
   {    
@@ -366,7 +366,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
     }
 
     unsigned int allFramesCompressedPixelBufferSize=0;
-    PlusCommon::StringToInt(this->TrackedFrameList->GetCustomString("CompressedDataSize"), allFramesCompressedPixelBufferSize);
+    PlusCommon::StringToInt(this->TrackedFrameList->GetCustomString(SEQMETA_FIELD_COMPRESSED_DATA_SIZE), allFramesCompressedPixelBufferSize);
     std::vector<unsigned char> allFramesCompressedPixelBuffer;
     allFramesCompressedPixelBuffer.resize(allFramesCompressedPixelBufferSize);
 
@@ -391,7 +391,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
       fclose( stream );
       return PLUS_FAIL;
     }
- 
+
   }
 
   std::vector<unsigned char> pixelBuffer;
@@ -400,7 +400,7 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
   {
     CreateTrackedFrameIfNonExisting(frameNumber);    
     TrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(frameNumber);    
-    
+
     // Allocate frame only if it is valid 
     const char* imgStatus = trackedFrame->GetCustomFrameField(SEQMETA_FIELD_IMG_STATUS.c_str()); 
     if ( imgStatus != NULL  ) // Found the image status field 
@@ -414,8 +414,8 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
 
       if ( STRCASECMP(strImgStatus.c_str(), "OK") != 0 )// Image status _not_ OK 
       {
-      LOG_DEBUG("Frame #" << frameNumber << " image data is invalid, no need to allocate data in the tracked frame list."); 
-      continue; 
+        LOG_DEBUG("Frame #" << frameNumber << " image data is invalid, no need to allocate data in the tracked frame list."); 
+        continue; 
       }
     }
 
@@ -476,6 +476,31 @@ PlusStatus vtkMetaImageSequenceIO::ReadImagePixels()
 
   return PLUS_SUCCESS;
 } 
+
+//----------------------------------------------------------------------------
+PlusStatus vtkMetaImageSequenceIO::PrepareImageFile()
+{
+  if( this->GetUseCompression() )
+  {
+    // use the default memory allocation routines
+    this->CompressionStream.zalloc = Z_NULL;
+    this->CompressionStream.zfree = Z_NULL;
+    this->CompressionStream.opaque = Z_NULL;
+    int ret=deflateInit(&this->CompressionStream, Z_DEFAULT_COMPRESSION);
+    if (ret!=Z_OK)
+    {
+      LOG_ERROR("Image compression initialization failed (errorCode="<<ret<<")");
+      return PLUS_FAIL;
+    }
+  }
+  if( FileOpen(&this->OutputImageFileHandle, this->TempImageFileName.c_str(), "ab+") != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to open output stream for writing.");
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}
 
 //----------------------------------------------------------------------------
 bool vtkMetaImageSequenceIO::CanReadFile(const std::string& filename)
@@ -565,12 +590,12 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader()
   if (GetUseCompression())
   {
     SetCustomString("CompressedData", "True");
-    SetCustomString("CompressedDataSize", "0                "); // add spaces so that later the field can be updated with larger values
+    SetCustomString(SEQMETA_FIELD_COMPRESSED_DATA_SIZE, "0                "); // add spaces so that later the field can be updated with larger values
   }
   else
   {
     SetCustomString("CompressedData", "False");
-    SetCustomString("CompressedDataSize", NULL);
+    SetCustomString(SEQMETA_FIELD_COMPRESSED_DATA_SIZE, NULL);
   }
 
   int frameSize[3] = {0,0,0};
@@ -779,132 +804,19 @@ PlusStatus vtkMetaImageSequenceIO::FinalizeHeader()
   std::string elem = "ElementDataFile = "+dataFileStr+"\n";
   fputs(elem.c_str(), stream);
   TotalBytesWritten += elem.size();
-  
+
   fclose(stream);
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMetaImageSequenceIO::WriteImagePixels(const std::string& aFilename, bool forceAppend /* = false */)
-{
-  if (this->EnableImageDataWrite && this->TrackedFrameList->IsContainingValidImageData() && this->ImageOrientationInFile!=this->TrackedFrameList->GetImageOrientation())
-  {
-    // Reordering of the frames is not implemented, so return with an error
-    LOG_ERROR("Saving of images is supported only in the same orientation as currently in the memory");
-    return PLUS_FAIL;
-  }
-
-  bool imageDataAvailable = (this->Dimensions[0]>0 && this->Dimensions[1]>0 && this->Dimensions[2]>0);
-
-  FILE *stream=NULL;
-
-  std::string fileOpenMode="wb"; // w (write, existing file is destroyed), b (binary)
-  if ( forceAppend && !GetUseCompression())
-  {
-    // Pixel data is stored locally in the header file (MHA file), so we append the image data to an existing file
-    // Or this sequence is being written to in chunks
-    fileOpenMode="ab+"; // a+ (append to the end of the file), b (binary)
-  }
-  else if( forceAppend && GetUseCompression())
-  {
-    LOG_ERROR("Unable to append images when compression is used. You must write uncompressed and then post-compress.");
-    return PLUS_FAIL;
-  }
-  if ( this->FileOpen( &stream, aFilename.c_str(), fileOpenMode.c_str() ) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("The file " << aFilename << " could not be opened for writing");
-    return PLUS_FAIL;
-  }
-
-  if ( this->PixelType == VTK_VOID )
-  {
-    // If the pixel type was not defined, define it to UCHAR
-    this->PixelType = VTK_UNSIGNED_CHAR; 
-  }
-
-  PlusStatus result = PLUS_SUCCESS;
-  if ( !GetUseCompression() )
-  {
-    if (imageDataAvailable)
-    {
-      // Create a blank frame if we have to write an invalid frame to metafile 
-      PlusVideoFrame blankFrame; 
-      if ( blankFrame.AllocateFrame(this->Dimensions, this->PixelType, this->NumberOfScalarComponents)!=PLUS_SUCCESS)
-      {
-        LOG_ERROR("Failed to allocate space for blank image."); 
-        return PLUS_FAIL; 
-      }
-      blankFrame.FillBlank(); 
-
-      // not compressed
-      for (unsigned int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
-      {
-        TrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame(frameNumber);
-
-        PlusVideoFrame* videoFrame = &blankFrame;
-        if ( this->EnableImageDataWrite && trackedFrame->GetImageData()->IsImageValid() ) 
-        {
-          videoFrame = trackedFrame->GetImageData(); 
-        }
-
-        unsigned long result = fwrite(videoFrame->GetScalarPointer(), 1, videoFrame->GetFrameSizeInBytes(), stream);
-        if( result != videoFrame->GetFrameSizeInBytes() )
-        {
-          LOG_ERROR("Unable to write entire frame to file.");
-        }
-        TotalBytesWritten += result;
-      }
-    }
-  }
-  else
-  {
-    // compressed
-    int compressedDataSize=0;
-    if (imageDataAvailable)
-    {
-      result = WriteCompressedImagePixelsToFile(stream, compressedDataSize);
-      if( result == PLUS_SUCCESS )
-      {
-        TotalBytesWritten += compressedDataSize;
-      }
-    }
-    std::ostringstream compressedDataSizeStr; 
-    compressedDataSizeStr << compressedDataSize; 
-    SetCustomString("CompressedDataSize", compressedDataSizeStr.str().c_str());
-  }
-
-  fclose(stream);
-
-  if( result == PLUS_SUCCESS )
-  {
-    CurrentFrameOffset += TrackedFrameList->GetNumberOfTrackedFrames();
-  }
-  return result;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkMetaImageSequenceIO::WriteCompressedImagePixelsToFile(FILE *outputFileStream, int &compressedDataSize)
+PlusStatus vtkMetaImageSequenceIO::WriteCompressedImagePixelsToFile(int &compressedDataSize)
 {
   LOG_DEBUG("Writing compressed pixel data into file started");
 
   compressedDataSize=0;
-
-  const int outputBufferSize=16384; // can be any number, just picked a value from a zlib example
-  unsigned char outputBuffer[outputBufferSize];
-
-  z_stream strm; // stream describing the compression state
-
-  // use the default memory allocation routines
-  strm.zalloc = Z_NULL;
-  strm.zfree = Z_NULL;
-  strm.opaque = Z_NULL;
-  int ret=deflateInit(&strm, Z_DEFAULT_COMPRESSION);
-  if (ret!=Z_OK)
-  {
-    LOG_ERROR("Image compression initialization failed (errorCode="<<ret<<")");
-    return PLUS_FAIL;
-  }
+  unsigned char outputBuffer[Z_BUFSIZE];
 
   // Create a blank frame if we have to write an invalid frame to metafile 
   PlusVideoFrame blankFrame; 
@@ -918,29 +830,29 @@ PlusStatus vtkMetaImageSequenceIO::WriteCompressedImagePixelsToFile(FILE *output
   for (unsigned int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
   {
     TrackedFrame* trackedFrame(NULL);
-    
+
     if( this->EnableImageDataWrite )
     {
-    trackedFrame = this->TrackedFrameList->GetTrackedFrame(frameNumber);
-    if (trackedFrame==NULL)
-    {
-      LOG_ERROR("Cannot access frame "<<frameNumber<<" while trying to writing compress data into file");
-      deflateEnd(&strm);
-      return PLUS_FAIL;
-    }
+      trackedFrame = this->TrackedFrameList->GetTrackedFrame(frameNumber);
+      if (trackedFrame==NULL)
+      {
+        LOG_ERROR("Cannot access frame "<<frameNumber<<" while trying to writing compress data into file");
+        deflateEnd(&this->CompressionStream);
+        return PLUS_FAIL;
+      }
     }
 
     PlusVideoFrame* videoFrame = &blankFrame;
     if( this->EnableImageDataWrite )
     {
-    if ( trackedFrame->GetImageData()->IsImageValid() ) 
-    {
-      videoFrame = trackedFrame->GetImageData(); 
-    }
+      if ( trackedFrame->GetImageData()->IsImageValid() ) 
+      {
+        videoFrame = trackedFrame->GetImageData(); 
+      }
     }
 
-    strm.next_in = (Bytef*)videoFrame->GetScalarPointer();
-    strm.avail_in = videoFrame->GetFrameSizeInBytes();
+    this->CompressionStream.next_in = (Bytef*)videoFrame->GetScalarPointer();
+    this->CompressionStream.avail_in = videoFrame->GetFrameSizeInBytes();
 
     // Note: it's possible to request to consume all inputs and delete all history after each frame writing to allow random access
     int flush = (frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames()-1) ? Z_NO_FLUSH : Z_FINISH;
@@ -949,47 +861,40 @@ PlusStatus vtkMetaImageSequenceIO::WriteCompressedImagePixelsToFile(FILE *output
     // compression if all of source has been read in
     do
     {
-      strm.avail_out = outputBufferSize;
-      strm.next_out = outputBuffer;
+      this->CompressionStream.avail_out = Z_BUFSIZE;
+      this->CompressionStream.next_out = outputBuffer;
 
-      ret = deflate(&strm, flush);    /* no bad return value */
+      int ret = deflate(&this->CompressionStream, flush);    /* no bad return value */
       if (ret == Z_STREAM_ERROR)
       {
         // state clobbered
         LOG_ERROR("Zlib state became invalid during the compression process (errorCode="<<ret<<")");
-        deflateEnd(&strm); // clean up
+        deflateEnd(&this->CompressionStream); // clean up
         return PLUS_FAIL;
       }
 
-      size_t numberOfBytesReadyForWriting = outputBufferSize - strm.avail_out;
-      if (fwrite(outputBuffer, 1, numberOfBytesReadyForWriting, outputFileStream) != numberOfBytesReadyForWriting || ferror(outputFileStream))
+      size_t numberOfBytesReadyForWriting = Z_BUFSIZE - this->CompressionStream.avail_out;
+      if (fwrite(outputBuffer, 1, numberOfBytesReadyForWriting, this->OutputImageFileHandle) != numberOfBytesReadyForWriting || ferror(this->OutputImageFileHandle))
       {
         LOG_ERROR("Error writing compressed data into file");
-        deflateEnd(&strm); // clean up
+        deflateEnd(&this->CompressionStream); // clean up
         return PLUS_FAIL;
       }
       compressedDataSize+=numberOfBytesReadyForWriting;
 
-    } while (strm.avail_out == 0);
+    } while (this->CompressionStream.avail_out == 0);
 
-    if (strm.avail_in != 0)
+    if (this->CompressionStream.avail_in != 0)
     {
       // state clobbered (by now all input should have been consumed)
       LOG_ERROR("Zlib state became invalid during the compression process");
-      deflateEnd(&strm); // clean up
+      deflateEnd(&this->CompressionStream); // clean up
       return PLUS_FAIL;
     }
   }
 
-  deflateEnd(&strm); // clean up
-
   LOG_DEBUG("Writing compressed pixel data into file completed");
 
-  if (ret != Z_STREAM_END)
-  {
-    LOG_ERROR("Error occurred during compressing image data into file");
-    return PLUS_FAIL;
-  }
   return PLUS_SUCCESS;
 }
 
@@ -1126,7 +1031,7 @@ PlusStatus vtkMetaImageSequenceIO::ConvertVtkPixelTypeToMetaElementType(PlusComm
     "MET_FLOAT",
     "MET_DOUBLE",
   };
-  
+
   PlusCommon::VTKScalarPixelType testedPixelType=VTK_VOID;
   for (unsigned int i=0; i<sizeof(metaElementTypes); i++)
   {    
@@ -1236,88 +1141,22 @@ const char* vtkMetaImageSequenceIO::GetDimensionSizeString()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkMetaImageSequenceIO::PrepareHeader()
-{
-  if (this->EnableImageDataWrite && this->TrackedFrameList->IsContainingValidImageData())
-  {
-    if (this->ImageOrientationInFile==US_IMG_ORIENT_XX)
-    {
-      // No specific orientation is requested, so just use the same as in the memory
-      this->ImageOrientationInFile=this->TrackedFrameList->GetImageOrientation();
-    }  
-    if (this->ImageOrientationInFile!=this->TrackedFrameList->GetImageOrientation())
-    {
-      // Reordering of the frames is not implemented, so just save the images as they are in the memory
-      LOG_WARNING("Saving of images is supported only in the same orientation as currently in the memory");
-      this->ImageOrientationInFile=this->TrackedFrameList->GetImageOrientation();
-    }
-    SetCustomString(SEQMETA_FIELD_US_IMG_ORIENT, PlusVideoFrame::GetStringFromUsImageOrientation(this->ImageOrientationInFile));
-
-    if (this->ImageType == US_IMG_TYPE_XX)
-    {
-      // No specific type is requested, so just use the same as in the memory
-      this->ImageType = this->TrackedFrameList->GetImageType();
-    }
-    if (this->ImageType!=this->TrackedFrameList->GetImageType())
-    {
-      // Reordering of the frames is not implemented, so just save the images as they are in the memory
-      LOG_WARNING("Saving of images is supported only in the same type as currently in the memory");
-      this->ImageType=this->TrackedFrameList->GetImageType();
-    }
-  }
-
-  if( this->TempHeaderFileName.empty())
-  {
-    std::string tempFilename;
-    if( PlusCommon::CreateTemporaryFilename(tempFilename, vtkPlusConfig::GetInstance()->GetOutputDirectory()) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to create temporary header file. Check write access.");
-      return PLUS_FAIL;
-    }
-    this->TempHeaderFileName=tempFilename;
-  }
-
-  if( this->TempImageFileName.empty() )
-  {
-    std::string tempFilename;
-    if( PlusCommon::CreateTemporaryFilename(tempFilename, vtkPlusConfig::GetInstance()->GetOutputDirectory()) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to create temporary image file. Check write access.");
-      return PLUS_FAIL;
-    }
-    this->TempImageFileName=tempFilename;
-  }
-
-  if ( this->OpenImageHeader() != PLUS_SUCCESS)
-  {
-    return PLUS_FAIL;
-  }
-
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkMetaImageSequenceIO::WriteImages()
-{
-  if (WriteImagePixels(this->TempImageFileName, false) != PLUS_SUCCESS)
-  {
-    return PLUS_FAIL;
-  }
-
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkMetaImageSequenceIO::Close()
 {
   // Update fields that are known only at the end of the processing
-  if (GetUseCompression())
+  if ( this->GetUseCompression() )
   {
-    if (UpdateFieldInImageHeader("CompressedDataSize")!=PLUS_SUCCESS)
+    std::stringstream ss;
+    ss << this->CompressedBytesWritten;
+    this->SetCustomString(SEQMETA_FIELD_COMPRESSED_DATA_SIZE, ss.str().c_str());
+    if (UpdateFieldInImageHeader(SEQMETA_FIELD_COMPRESSED_DATA_SIZE)!=PLUS_SUCCESS)
     {
       return PLUS_FAIL;
     }
+    deflateEnd(&this->CompressionStream); // clean up
   }
+
+  fclose(this->OutputImageFileHandle);
 
   return Superclass::Close();
 }
@@ -1332,7 +1171,7 @@ PlusStatus vtkMetaImageSequenceIO::SetFileName( const std::string& aFilename )
   {
     LOG_ERROR("Invalid metaimage file name");
   }
-  
+
   this->FileName = aFilename;
   // Trim whitespace and " characters from the beginning and end of the filename
   this->FileName.erase(this->FileName.find_last_not_of(" \"\t\r\n")+1);

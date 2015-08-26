@@ -15,6 +15,14 @@
 class vtkTrackedFrameList;
 class TrackedFrame;
 
+#ifndef Z_BUFSIZE
+#  ifdef MAXSEG_64K
+#    define Z_BUFSIZE 4096 /* minimize memory usage for 16-bit DOS */
+#  else
+#    define Z_BUFSIZE 16384
+#  endif
+#endif
+
 /*!
   \class vtkSequenceIOBase
   \brief Class to abstract away specific sequence file read/write details
@@ -31,8 +39,8 @@ public:
   /*! Read file contents into the object */
   virtual PlusStatus Read();
 
-  /*! Append image data to the sequence, compression not allowed */
-  virtual PlusStatus AppendImages();
+  /*! Write images to disc, compression allowed */
+  virtual PlusStatus WriteImages();
 
   /*! 
     Append the frames in tracked frame list to the header, if the onlyTrackerData flag is true it will not save
@@ -92,7 +100,7 @@ public:
   virtual PlusStatus Discard();
 
   /*! Prepare the sequence for writing */
-  virtual PlusStatus PrepareHeader() = 0;
+  virtual PlusStatus PrepareHeader();
 
   /*! Return the string that represents the dimensional sizes */
   virtual const char* GetDimensionSizeString() = 0;
@@ -121,14 +129,24 @@ protected:
   /*! Read pixel data from the image */
   virtual PlusStatus ReadImagePixels()=0;
 
+  /*! Write all the fields to the sequence file header */
+  virtual PlusStatus OpenImageHeader()=0;
+
+  /*! Prepare the image file for writing */
+  virtual PlusStatus PrepareImageFile()=0;
+
   /*! Rename file */
   virtual PlusStatus RenameFile(const char* oldname, const char* newname);
 
-  /*! Write pixel data to the metaimage */
-  virtual PlusStatus WriteImagePixels(const std::string& aFilename, bool forceAppend=false) = 0;
-
   /*! Append content of source file to the end of destination file and then delete source file */
   virtual PlusStatus AppendFile(const std::string& sourceFilename, const std::string& destFilename);
+
+  /*! 
+    Writes the compressed pixel data directly into file. 
+    The compression is performed in chunks, so no excessive memory is used for the compression.
+    \param compressedDataSize returns the size of the total compressed data that is written to the file.
+  */
+  virtual PlusStatus WriteCompressedImagePixelsToFile(int &compressedDataSize) = 0;
 
   /*! Opens a file. Doesn't log error if it fails because it may be expected. */
   static PlusStatus FileOpen(FILE **stream, const char* filename, const char* flags);
@@ -177,6 +195,8 @@ protected:
   std::string TempImageFileName;
   /*! Enable/disable zlib compression of pixel data */
   bool UseCompression;
+  /*! Buffered compressed data size */
+  unsigned long long CompressedBytesWritten;
   /*! Whether to enable pixel writing */
   bool EnableImageDataWrite;
   /*! Integer/float, short/long, signed/unsigned */
@@ -212,6 +232,8 @@ protected:
   FilePositionOffsetType PixelDataFileOffset;
   /*! File name where the pixel data is stored */
   std::string PixelDataFileName;
+  /*! file handle for image output */
+  FILE* OutputImageFileHandle;
 
 protected:
   vtkSequenceIOBase();

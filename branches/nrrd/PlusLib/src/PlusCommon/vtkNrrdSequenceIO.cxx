@@ -5,7 +5,6 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "itk_zlib.h"
 #include "itksys/SystemTools.hxx"
 #include "vtkNrrdReader.h"
 #include "vtkNrrdSequenceIO.h"
@@ -43,7 +42,6 @@ vtkStandardNewMacro(vtkNrrdSequenceIO);
 
 namespace
 {
-  #include "itkzlib/zutil.h"
 
 #define ALLOC(size) malloc(size)
 #define TRYFREE(p) {if (p) free(p);}
@@ -762,6 +760,31 @@ PlusStatus vtkNrrdSequenceIO::ReadImagePixels()
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkNrrdSequenceIO::PrepareImageFile()
+{
+  if( this->GetUseCompression() )
+  {
+    this->CompressionStream = gzopen(this->TempImageFileName.c_str(), "ab+");
+
+    int error;
+    gzerror(this->CompressionStream, &error);
+
+    if( error != Z_OK )
+    {
+      LOG_ERROR("Unable to open compressed file for writing.");
+      return PLUS_FAIL;
+    }
+  }
+  else if( FileOpen(&this->OutputImageFileHandle, this->TempImageFileName.c_str(), "ab+") != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to open output stream for writing.");
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 bool vtkNrrdSequenceIO::CanReadFile(const std::string& filename)
 {
   vtkSmartPointer<vtkNrrdReader> reader = vtkSmartPointer<vtkNrrdReader>::New();
@@ -1029,107 +1052,26 @@ PlusStatus vtkNrrdSequenceIO::FinalizeHeader()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkNrrdSequenceIO::WriteImagePixels(const std::string& aFilename, bool forceAppend /* = false */)
+PlusStatus vtkNrrdSequenceIO::Close()
 {
-  if (this->EnableImageDataWrite && this->TrackedFrameList->IsContainingValidImageData() && this->ImageOrientationInFile!=this->TrackedFrameList->GetImageOrientation())
+  if( this->GetUseCompression() )
   {
-    // Reordering of the frames is not implemented, so return with an error
-    LOG_ERROR("Saving of images is supported only in the same orientation as currently in the memory");
-    return PLUS_FAIL;
-  }
-
-  bool imageDataAvailable = (this->Dimensions[0]>0 && this->Dimensions[1]>0 && this->Dimensions[2]>0);
-
-  std::string fileOpenMode="wb"; // w (write, existing file is destroyed), b (binary)
-  if ( forceAppend && !GetUseCompression())
-  {
-    // Pixel data is stored locally in the header file (NRRD file), so we append the image data to an existing file
-    // Or this sequence is being written to in chunks
-    fileOpenMode="ab+"; // a+ (append to the end of the file), b (binary)
-  }
-  else if( forceAppend && GetUseCompression())
-  {
-    LOG_ERROR("Unable to append images when compression is used. You must write uncompressed and then post-compress.");
-    return PLUS_FAIL;
-  }
-
-  if ( this->PixelType == VTK_VOID )
-  {
-    // If the pixel type was not defined, define it to UCHAR
-    this->PixelType = VTK_UNSIGNED_CHAR; 
-  }
-
-  PlusStatus result = PLUS_SUCCESS;
-  if ( !GetUseCompression() )
-  {
-    FILE *stream = NULL;
-    if ( this->FileOpen( &stream, aFilename.c_str(), fileOpenMode.c_str() ) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("The file " << aFilename << " could not be opened for writing");
-      return PLUS_FAIL;
-    }
-
-    if (imageDataAvailable)
-    {
-      // Create a blank frame if we have to write an invalid frame to file 
-      PlusVideoFrame blankFrame; 
-      if ( blankFrame.AllocateFrame(this->Dimensions, this->PixelType, this->NumberOfScalarComponents)!=PLUS_SUCCESS)
-      {
-        LOG_ERROR("Failed to allocate space for blank image."); 
-        return PLUS_FAIL; 
-      }
-      blankFrame.FillBlank(); 
-
-      // not compressed
-      for (unsigned int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
-      {
-        TrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame(frameNumber);
-
-        PlusVideoFrame* videoFrame = &blankFrame;
-        if ( this->EnableImageDataWrite && trackedFrame->GetImageData()->IsImageValid() ) 
-        {
-          videoFrame = trackedFrame->GetImageData(); 
-        }
-
-        unsigned long result = fwrite(videoFrame->GetScalarPointer(), 1, videoFrame->GetFrameSizeInBytes(), stream);
-        if( result != videoFrame->GetFrameSizeInBytes() )
-        {
-          LOG_ERROR("Unable to write entire frame to file.");
-        }
-        TotalBytesWritten += result;
-      }
-    }
-
-    fclose(stream);
+    gzclose(this->CompressionStream);
   }
   else
   {
-    // compressed
-    int compressedDataSize=0;
-    if (imageDataAvailable)
-    {
-      result = WriteCompressedImagePixelsToFile(aFilename, compressedDataSize);
-      if( result == PLUS_SUCCESS )
-      {
-        TotalBytesWritten += compressedDataSize;
-      }
-    }
+    fclose(this->OutputImageFileHandle);
   }
 
-  if( result == PLUS_SUCCESS )
-  {
-    CurrentFrameOffset += TrackedFrameList->GetNumberOfTrackedFrames();
-  }
-  return result;
+  return Superclass::Close();
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkNrrdSequenceIO::WriteCompressedImagePixelsToFile(const std::string& aFilename, int& compressedDataSize)
+PlusStatus vtkNrrdSequenceIO::WriteCompressedImagePixelsToFile(int& compressedDataSize)
 {
   LOG_DEBUG("Writing compressed pixel data into file started");
 
   compressedDataSize=0;
-  gzFile stream = gz_open_offset(aFilename.c_str(), "wb", -1, this->TotalBytesWritten);
 
   // Create a blank frame if we have to write an invalid frame to file 
   PlusVideoFrame blankFrame; 
@@ -1150,7 +1092,7 @@ PlusStatus vtkNrrdSequenceIO::WriteCompressedImagePixelsToFile(const std::string
       if (trackedFrame==NULL)
       {
         LOG_ERROR("Cannot access frame "<<frameNumber<<" while trying to writing compress data into file");
-        gzclose(stream);
+        gzclose(this->CompressionStream);
         return PLUS_FAIL;
       }
     }
@@ -1165,24 +1107,22 @@ PlusStatus vtkNrrdSequenceIO::WriteCompressedImagePixelsToFile(const std::string
     }
 
     size_t numberOfBytesReadyForWriting = videoFrame->GetFrameSizeInBytes();
-    if ( gzwrite(stream, (Bytef*)videoFrame->GetScalarPointer(), numberOfBytesReadyForWriting) != numberOfBytesReadyForWriting )
+    if ( gzwrite(this->CompressionStream, (Bytef*)videoFrame->GetScalarPointer(), numberOfBytesReadyForWriting) != numberOfBytesReadyForWriting )
     {
       LOG_ERROR("Error writing compressed data into file");
-      gzclose(stream);
+      gzclose(this->CompressionStream);
       return PLUS_FAIL;
     }
     int errnum;
-    gzerror(stream, &errnum);
+    gzerror(this->CompressionStream, &errnum);
     if( errnum != Z_OK )
     {
       LOG_ERROR("Error writing compressed data into file. errnum: " <<errnum);
-      gzclose(stream);
+      gzclose(this->CompressionStream);
       return PLUS_FAIL;
     }
     compressedDataSize+=numberOfBytesReadyForWriting;
   }
-
-  gzclose(stream);
 
   LOG_DEBUG("Writing compressed pixel data into file completed");
 
@@ -1406,77 +1346,6 @@ PlusStatus vtkNrrdSequenceIO::UpdateFieldInImageHeader(const char* fieldName)
 const char* vtkNrrdSequenceIO::GetDimensionSizeString()
 {
   return SEQUENCE_FIELD_SIZES;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkNrrdSequenceIO::PrepareHeader()
-{
-  if (this->EnableImageDataWrite && this->TrackedFrameList->IsContainingValidImageData())
-  {
-    if (this->ImageOrientationInFile==US_IMG_ORIENT_XX)
-    {
-      // No specific orientation is requested, so just use the same as in the memory
-      this->ImageOrientationInFile=this->TrackedFrameList->GetImageOrientation();
-    }  
-    if (this->ImageOrientationInFile!=this->TrackedFrameList->GetImageOrientation())
-    {
-      // Reordering of the frames is not implemented, so just save the images as they are in the memory
-      LOG_WARNING("Saving of images is supported only in the same orientation as currently in the memory");
-      this->ImageOrientationInFile=this->TrackedFrameList->GetImageOrientation();
-    }
-
-    if (this->ImageType == US_IMG_TYPE_XX)
-    {
-      // No specific type is requested, so just use the same as in the memory
-      this->ImageType = this->TrackedFrameList->GetImageType();
-    }
-    if (this->ImageType!=this->TrackedFrameList->GetImageType())
-    {
-      // Reordering of the frames is not implemented, so just save the images as they are in the memory
-      LOG_WARNING("Saving of images is supported only in the same type as currently in the memory");
-      this->ImageType=this->TrackedFrameList->GetImageType();
-    }
-  }
-
-  if( this->TempHeaderFileName.empty())
-  {
-    std::string tempFilename;
-    if( PlusCommon::CreateTemporaryFilename(tempFilename, vtkPlusConfig::GetInstance()->GetOutputDirectory()) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to create temporary header file. Check write access.");
-      return PLUS_FAIL;
-    }
-    this->TempHeaderFileName=tempFilename;
-  }
-
-  if( this->TempImageFileName.empty() )
-  {
-    std::string tempFilename;
-    if( PlusCommon::CreateTemporaryFilename(tempFilename, vtkPlusConfig::GetInstance()->GetOutputDirectory()) != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to create temporary image file. Check write access.");
-      return PLUS_FAIL;
-    }
-    this->TempImageFileName=tempFilename;
-  }
-
-  if ( this->OpenImageHeader() != PLUS_SUCCESS)
-  {
-    return PLUS_FAIL;
-  }
-
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkNrrdSequenceIO::WriteImages()
-{
-  if (WriteImagePixels(this->TempImageFileName, false) != PLUS_SUCCESS)
-  {
-    return PLUS_FAIL;
-  }
-
-  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
