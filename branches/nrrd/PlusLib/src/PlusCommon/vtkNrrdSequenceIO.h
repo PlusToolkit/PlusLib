@@ -74,6 +74,9 @@ public:
   /*! Return the string that represents the dimensional sizes */
   virtual const char* GetDimensionSizeString();
 
+  /*! Return the string that represents the dimensional sizes */
+  virtual const char* GetDimensionKindsString();
+
   /*!
     Set input/output file name. The file contains only the image header in case of
     nhdr images and the full image (including pixel data) in case of nrrd images.

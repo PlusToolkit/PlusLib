@@ -65,6 +65,9 @@ public:
   /*! Return the string that represents the dimensional sizes */
   virtual const char* GetDimensionSizeString();
 
+    /*! Return NULL */
+  virtual const char* GetDimensionKindsString(){return NULL;}
+
   /*!
     Set input/output file name. The file contains only the image header in case of
     MHD images and the full image (including pixel data) in case of MHA images.

@@ -816,7 +816,22 @@ PlusStatus vtkMetaImageSequenceIO::WriteCompressedImagePixelsToFile(int &compres
   LOG_DEBUG("Writing compressed pixel data into file started");
 
   compressedDataSize=0;
-  unsigned char outputBuffer[Z_BUFSIZE];
+
+  const int outputBufferSize=16384; // can be any number, just picked a value from a zlib example
+  unsigned char outputBuffer[outputBufferSize];
+
+  z_stream strm; // stream describing the compression state
+
+  // use the default memory allocation routines
+  strm.zalloc = Z_NULL;
+  strm.zfree = Z_NULL;
+  strm.opaque = Z_NULL;
+  int ret=deflateInit(&strm, Z_DEFAULT_COMPRESSION);
+  if (ret!=Z_OK)
+  {
+    LOG_ERROR("Image compression initialization failed (errorCode="<<ret<<")");
+    return PLUS_FAIL;
+  }
 
   // Create a blank frame if we have to write an invalid frame to metafile 
   PlusVideoFrame blankFrame; 
@@ -830,29 +845,29 @@ PlusStatus vtkMetaImageSequenceIO::WriteCompressedImagePixelsToFile(int &compres
   for (unsigned int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
   {
     TrackedFrame* trackedFrame(NULL);
-
+    
     if( this->EnableImageDataWrite )
     {
-      trackedFrame = this->TrackedFrameList->GetTrackedFrame(frameNumber);
-      if (trackedFrame==NULL)
-      {
-        LOG_ERROR("Cannot access frame "<<frameNumber<<" while trying to writing compress data into file");
-        deflateEnd(&this->CompressionStream);
-        return PLUS_FAIL;
-      }
+    trackedFrame = this->TrackedFrameList->GetTrackedFrame(frameNumber);
+    if (trackedFrame==NULL)
+    {
+      LOG_ERROR("Cannot access frame "<<frameNumber<<" while trying to writing compress data into file");
+      deflateEnd(&strm);
+      return PLUS_FAIL;
+    }
     }
 
     PlusVideoFrame* videoFrame = &blankFrame;
     if( this->EnableImageDataWrite )
     {
-      if ( trackedFrame->GetImageData()->IsImageValid() ) 
-      {
-        videoFrame = trackedFrame->GetImageData(); 
-      }
+    if ( trackedFrame->GetImageData()->IsImageValid() ) 
+    {
+      videoFrame = trackedFrame->GetImageData(); 
+    }
     }
 
-    this->CompressionStream.next_in = (Bytef*)videoFrame->GetScalarPointer();
-    this->CompressionStream.avail_in = videoFrame->GetFrameSizeInBytes();
+    strm.next_in = (Bytef*)videoFrame->GetScalarPointer();
+    strm.avail_in = videoFrame->GetFrameSizeInBytes();
 
     // Note: it's possible to request to consume all inputs and delete all history after each frame writing to allow random access
     int flush = (frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames()-1) ? Z_NO_FLUSH : Z_FINISH;
@@ -861,40 +876,47 @@ PlusStatus vtkMetaImageSequenceIO::WriteCompressedImagePixelsToFile(int &compres
     // compression if all of source has been read in
     do
     {
-      this->CompressionStream.avail_out = Z_BUFSIZE;
-      this->CompressionStream.next_out = outputBuffer;
+      strm.avail_out = outputBufferSize;
+      strm.next_out = outputBuffer;
 
-      int ret = deflate(&this->CompressionStream, flush);    /* no bad return value */
+      ret = deflate(&strm, flush);    /* no bad return value */
       if (ret == Z_STREAM_ERROR)
       {
         // state clobbered
         LOG_ERROR("Zlib state became invalid during the compression process (errorCode="<<ret<<")");
-        deflateEnd(&this->CompressionStream); // clean up
+        deflateEnd(&strm); // clean up
         return PLUS_FAIL;
       }
 
-      size_t numberOfBytesReadyForWriting = Z_BUFSIZE - this->CompressionStream.avail_out;
+      size_t numberOfBytesReadyForWriting = outputBufferSize - strm.avail_out;
       if (fwrite(outputBuffer, 1, numberOfBytesReadyForWriting, this->OutputImageFileHandle) != numberOfBytesReadyForWriting || ferror(this->OutputImageFileHandle))
       {
         LOG_ERROR("Error writing compressed data into file");
-        deflateEnd(&this->CompressionStream); // clean up
+        deflateEnd(&strm); // clean up
         return PLUS_FAIL;
       }
       compressedDataSize+=numberOfBytesReadyForWriting;
 
-    } while (this->CompressionStream.avail_out == 0);
+    } while (strm.avail_out == 0);
 
-    if (this->CompressionStream.avail_in != 0)
+    if (strm.avail_in != 0)
     {
       // state clobbered (by now all input should have been consumed)
       LOG_ERROR("Zlib state became invalid during the compression process");
-      deflateEnd(&this->CompressionStream); // clean up
+      deflateEnd(&strm); // clean up
       return PLUS_FAIL;
     }
   }
 
+  deflateEnd(&strm); // clean up
+
   LOG_DEBUG("Writing compressed pixel data into file completed");
 
+  if (ret != Z_STREAM_END)
+  {
+    LOG_ERROR("Error occurred during compressing image data into file");
+    return PLUS_FAIL;
+  }
   return PLUS_SUCCESS;
 }
 
@@ -1052,6 +1074,11 @@ PlusStatus vtkMetaImageSequenceIO::ConvertVtkPixelTypeToMetaElementType(PlusComm
 //----------------------------------------------------------------------------
 PlusStatus vtkMetaImageSequenceIO::UpdateFieldInImageHeader(const char* fieldName)
 {
+  if( fieldName == NULL )
+  {
+    return PLUS_SUCCESS;
+  }
+
   if (this->TempHeaderFileName.empty())
   {
     LOG_ERROR("Cannot update file header, filename is invalid");

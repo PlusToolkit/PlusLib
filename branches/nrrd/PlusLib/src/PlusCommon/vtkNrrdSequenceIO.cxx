@@ -1223,6 +1223,11 @@ PlusStatus vtkNrrdSequenceIO::ConvertVtkPixelTypeToNrrdType(PlusCommon::VTKScala
 //----------------------------------------------------------------------------
 PlusStatus vtkNrrdSequenceIO::UpdateFieldInImageHeader(const char* fieldName)
 {
+  if( fieldName == NULL )
+  {
+    return PLUS_SUCCESS;
+  }
+
   if (this->TempHeaderFileName.empty())
   {
     LOG_ERROR("Cannot update file header, filename is invalid");
@@ -1277,7 +1282,7 @@ PlusStatus vtkNrrdSequenceIO::UpdateFieldInImageHeader(const char* fieldName)
       std::ostringstream newLineStr; 
       newLineStr << name << ":" << (isKeyValue ? "=" : " ");
 
-      std::istringstream iss(value);
+      std::istringstream iss(GetCustomString(name.c_str()));
       std::vector<std::string> tokens;
       std::copy(std::istream_iterator<std::string>(iss),std::istream_iterator<std::string>(),std::back_inserter(tokens));
 
@@ -1303,7 +1308,7 @@ PlusStatus vtkNrrdSequenceIO::UpdateFieldInImageHeader(const char* fieldName)
       std::string lastToken(*(tokens.end()-1));
 
       // need to add padding whitespace characters to fully replace the old line 
-      int paddingCharactersNeeded = lineStr.size()-newLineStr.str().size()-lastToken.length(); 
+      int paddingCharactersNeeded = lineStr.size()-newLineStr.str().size()-lastToken.length()-1; 
       for (int i=0; i<paddingCharactersNeeded; i++)
       {        
         newLineStr << " ";
@@ -1346,6 +1351,12 @@ PlusStatus vtkNrrdSequenceIO::UpdateFieldInImageHeader(const char* fieldName)
 const char* vtkNrrdSequenceIO::GetDimensionSizeString()
 {
   return SEQUENCE_FIELD_SIZES;
+}
+
+//----------------------------------------------------------------------------
+const char* vtkNrrdSequenceIO::GetDimensionKindsString()
+{
+  return SEQUENCE_FIELD_KINDS;
 }
 
 //----------------------------------------------------------------------------

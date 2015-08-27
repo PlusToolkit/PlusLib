@@ -6,6 +6,7 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "TrackedFrame.h"
+#include "vtkMetaImageSequenceIO.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
@@ -159,11 +160,24 @@ PlusStatus vtkVirtualDiscCapture::OpenFile(const char* aFilename)
       // default to nrrd
       ext = ".nrrd";
     }
+    else if( vtkMetaImageSequenceIO::CanWriteFile(this->BaseFilename) && this->GetEnableFileCompression() )
+    {
+      // they've requested mhd/mha with compression, no can do, yet
+      LOG_WARNING("Compressed streaming of metaimage file requested. This is not supported. Reverting to nrrd.");
+      ext = ".nrrd";
+    }
     this->CurrentFilename = filenameRoot + "_" + vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S") + ext;
     aFilename = this->CurrentFilename.c_str();
   }
   else
   {
+    if( vtkMetaImageSequenceIO::CanWriteFile(aFilename) && this->GetEnableFileCompression() )
+    {
+      // they've requested mhd/mha with compression, no can do, yet
+      LOG_WARNING("Compressed streaming of metaimage file requested. This is not supported. Reverting to nrrd.");
+      std::string filename(aFilename);
+      filename.replace(filename.end()-4, filename.end(), ".nrrd");
+    }
     this->CurrentFilename = aFilename;
   }
 
@@ -203,6 +217,7 @@ PlusStatus vtkVirtualDiscCapture::CloseFile(const char* aFilename)
   
   this->Writer->OverwriteNumberOfFramesInHeader(this->TotalFramesRecorded);
   this->Writer->UpdateFieldInImageHeader( this->Writer->GetDimensionSizeString() );
+  this->Writer->UpdateFieldInImageHeader( this->Writer->GetDimensionKindsString() );
   this->Writer->FinalizeHeader();
 
   this->Writer->Close();

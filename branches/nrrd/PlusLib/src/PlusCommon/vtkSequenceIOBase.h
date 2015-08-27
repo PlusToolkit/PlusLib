@@ -105,6 +105,11 @@ public:
   /*! Return the string that represents the dimensional sizes */
   virtual const char* GetDimensionSizeString() = 0;
 
+  /*! Return the string that represents the dimensional sizes 
+    This only actually exists for the nrrd writer, so in the MHA writer we return NULL
+    */
+  virtual const char* GetDimensionKindsString() = 0;
+
   /*! Flag to enable/disable compression of image data */
   vtkGetMacro(UseCompression, bool);
   /*! Flag to enable/disable compression of image data */
