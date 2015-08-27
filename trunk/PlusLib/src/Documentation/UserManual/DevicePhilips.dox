@@ -5,7 +5,7 @@ This class acquires 4D (3D+t) image data from Philips ultrasound systems.
 
 \section PhilipsSupportedHwDevices Supported hardware devices
 
-- Philips ie33 3D ultrasound imaging devices.
+- Philips iE33 3D ultrasound imaging devices.
 - Link to manufacturer's website: http://www.healthcare.philips.com/main/products/ultrasound/systems/ie33/
 
 \section PhilipsSupportedPlatforms Included in packages
@@ -20,11 +20,20 @@ This device is not included in any of the standard packages, as it requires acce
 
 \section PhilipsConfigSettings Device configuration settings
 
-- \xmlAtt \ref DeviceType "Type" = \c "ie33Video" \RequiredAtt
+- \xmlAtt \ref DeviceType "Type" = \c "iE33Video" \RequiredAtt
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 
-- \xmlAtt \b IP Network address of the ultrasound system \RequiredAtt
+- \xmlAtt \b IPAddress Network address of the ultrasound system \RequiredAtt
+- \xmlAtt \b Port Network port of the ultrasound system \OptionalAtt{4013}
+- \xmlAtt \b ForceZQuantize Parameter sent to the Philips stream manager OptionalAtt{false}
+- \xmlAtt \b ResolutionFactor Parameter sent to the Philips stream manager OptionalAtt{2.5}
+- \xmlAtt \b IntegerZ Parameter sent to the Philips stream manager OptionalAtt{true}
+- \xmlAtt \b Isotropic Parameter sent to the Philips stream manager OptionalAtt{false}
+- \xmlAtt \b QuantizeDim Parameter sent to the Philips stream manager OptionalAtt{true}
+- \xmlAtt \b ZDecimation Parameter sent to the Philips stream manager OptionalAtt{2}
+- \xmlAtt \b Set4PtFIR Parameter sent to the Philips stream manager OptionalAtt{true}
+- \xmlAtt \b LatAndElevSmoothingIndex Parameter sent to the Philips stream manager OptionalAtt{4}
 
 - \xmlElem \ref DataSources Exactly one \c DataSource child element is required \RequiredAtt
    - \xmlElem \ref DataSource \RequiredAtt

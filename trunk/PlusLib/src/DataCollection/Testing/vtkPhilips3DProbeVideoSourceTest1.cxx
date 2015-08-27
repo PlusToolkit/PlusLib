@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
 
   if (!inputPhilipsIp.empty())
   {
-    philipsDevice->SetIPAddress(inputPhilipsIp);
+    philipsDevice->SetIPAddress(inputPhilipsIp.c_str());
   }
 
   if ( philipsDevice->Connect() != PLUS_SUCCESS ) 
