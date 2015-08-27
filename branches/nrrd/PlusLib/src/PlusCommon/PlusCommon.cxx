@@ -173,19 +173,13 @@ PlusStatus PlusCommon::CreateTemporaryFilename( std::string& aString, const std:
   aString = "";
   int maxRetryCount = 50;
   int tryCount = 0;
-
-#ifdef _WIN32
-  char candidateFilename[MAX_PATH]="";
-#else
-  char candidateFilename[L_tmpnam]="";
-#endif
-
   while( tryCount < maxRetryCount)
   {
     tryCount++;
 
 #ifdef _WIN32
     // Get output directory
+    char candidateFilename[MAX_PATH]="";
     std::string path;
     if( !anOutputDirectory.empty() )
     {
@@ -222,26 +216,28 @@ PlusStatus PlusCommon::CreateTemporaryFilename( std::string& aString, const std:
     aString = candidateFilename;
     return PLUS_SUCCESS;
 #else
-    tmpnam(candidateFilename);
+    char candidateFilenameBuffer[L_tmpnam]="";
+    char* candidateFilename = tmpnam(candidateFilenameBuffer);
 
-    if( !vtksys::SystemTools::FileExists(candidateFilename) )
+    if( vtksys::SystemTools::FileExists(candidateFilename) )
     {
-      ofstream aFile(candidateFilename);
-      if( aFile.is_open() )
-      {
-        aFile.close();
-        vtksys::SystemTools::RemoveFile(candidateFilename);
-        aString = candidateFilename;
-        return PLUS_SUCCESS;
-      }
-      else
-      {
-        LOG_WARNING("Cannot write to temp file " << candidateFilename << " check write permissions of output directory.");
-      }
+      continue;
     }
+    ofstream aFile(candidateFilename);
+    if( !aFile.is_open() )
+    {
+      LOG_WARNING("Cannot write to temp file " << candidateFilename << " check write permissions of output directory.");
+      continue;
+    }
+    
+    aFile.close();
+    vtksys::SystemTools::RemoveFile(candidateFilename);
+    aString = candidateFilename;
+    return PLUS_SUCCESS;
 #endif
   }
 
+  LOG_ERROR("PlusCommon::CreateTemporaryFilename failed to generate a temporary file name");
   return PLUS_FAIL;
 }
 

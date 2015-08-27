@@ -147,29 +147,28 @@ vtkSonixPortaVideoSource::vtkSonixPortaVideoSource()
 	this->PortaBModeHeight = 436;
 	this->ImageBuffer = 0;
   this->ImagingMode = (int)BMode;
-  this->PortaProbeSelected = 0;
-  this->PortaModeSelected = 0;
-  this->PortaProbeName = 0;
-  this->PortaSettingPath = 0;
-  this->PortaLicensePath = 0;
-  this->PortaFirmwarePath = 0;
-  this->PortaLUTPath = 0;
+  this->PortaProbeName = NULL;
+  this->PortaSettingPath = NULL;
+  this->PortaLicensePath = NULL;
+  this->PortaFirmwarePath = NULL;
+  this->PortaLUTPath = NULL;
   this->PortaCineSize = 256 * 1024 * 1024; // defaults to 245MB of Cine
   this->FirstCallToAddFrameToBuffer = true;
   this->CurrentMotorAngle = 0;
   this->StartMotorAngle = 0;
+  this->MotorRotationPerStepDeg = 0;
   this->VolumeIndex = 0;
-	this->IncrementVolumeIndexClockwise = false;
-	this->IncrementVolumeIndexCounterClockwise = true;
+  this->IncrementVolumeIndexClockwise = false;
+
+  this->FramePerVolume = -1;
+  this->StepPerFrame = -1;
+
+  this->Zoom = -1;
+  this->Depth = -1;
+  this->Frequency = -1;
+  this->Gain = -1;
 
   this->RequireImageOrientationInConfiguration = true;
-  this->RequireFrameBufferSizeInDeviceSetConfiguration = true;
-  this->RequireAcquisitionRateInDeviceSetConfiguration = false;
-  this->RequireAveragedItemsForFilteringInDeviceSetConfiguration = false;
-  this->RequireLocalTimeOffsetSecInDeviceSetConfiguration = false;
-  this->RequireUsImageOrientationInDeviceSetConfiguration = true;
-  this->RequireRfElementInDeviceSetConfiguration = false;
-
   // No need for StartThreadForInternalUpdates, as we are notified about each new frame through a callback function
 }
 
@@ -333,6 +332,11 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
     this->FirstCallToAddFrameToBuffer = false;
   }
 
+  if( this->ImageBuffer == NULL )
+  {
+    LOG_ERROR("vtkSonixPortaVideoSource::AddFrameToBuffer failed: no image buffer is allocated" );
+    return PLUS_FAIL;
+  }
   this->Porta->getBwImage( 0, this->ImageBuffer, false );
 
   // get the pointer to the actual incoming data onto a local pointer
@@ -351,23 +355,21 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id )
   }
   if ( frameIndexTwoVolumes <=  this->FramePerVolume )
   {
-		if ( this->IncrementVolumeIndexCounterClockwise )
-		{
-			++this->VolumeIndex;
-			this->IncrementVolumeIndexCounterClockwise = false;
-			this->IncrementVolumeIndexClockwise = true;
-		}
-		this->CurrentMotorAngle = this->StartMotorAngle - (frameIndexOneVolume - 1) * this->MotorRotationPerStepDeg * (double)this->StepPerFrame;
-	}
+    if ( !this->IncrementVolumeIndexClockwise )
+    {
+      ++this->VolumeIndex;
+      this->IncrementVolumeIndexClockwise = true;
+    }
+    this->CurrentMotorAngle = this->StartMotorAngle - (frameIndexOneVolume - 1) * this->MotorRotationPerStepDeg * (double)this->StepPerFrame;
+  }
   else
   {
-		if ( this->IncrementVolumeIndexClockwise )
-		{
-			++this->VolumeIndex;
-			this->IncrementVolumeIndexCounterClockwise = true;
-			this->IncrementVolumeIndexClockwise = false;
-		}
-		this->CurrentMotorAngle = - this->StartMotorAngle + (frameIndexOneVolume - 1) * this->MotorRotationPerStepDeg * (double)this->StepPerFrame;
+    if ( this->IncrementVolumeIndexClockwise )
+    {
+      ++this->VolumeIndex;
+      this->IncrementVolumeIndexClockwise = false;
+    }
+    this->CurrentMotorAngle = - this->StartMotorAngle + (frameIndexOneVolume - 1) * this->MotorRotationPerStepDeg * (double)this->StepPerFrame;
   }
 
   std::ostringstream frameNumber;
@@ -417,14 +419,17 @@ std::string vtkSonixPortaVideoSource::GetMotorToMotorRotatedTransform( double an
 //----------------------------------------------------------------------------
 PlusStatus vtkSonixPortaVideoSource::InternalConnect() 
 {
+  LOG_INFO("Logging at level " << vtkPlusLogger::Instance()->GetLogLevel() << " (" << vtkPlusLogger::Instance()->GetLogLevelString() << ") to file: " << vtkPlusLogger::Instance()->GetLogFileName());
+  LOG_TRACE("InternalConnect start");
   if ( this->PortaSettingPath == 0 ||
     this->PortaFirmwarePath == 0 ||
+    this->PortaLicensePath == 0 ||
     this->PortaLUTPath == 0 ) 
   {
-    LOG_ERROR("One of the Porta paths has not been set" );
+    LOG_ERROR("One of the Porta paths has not been set (check PortaSettingPath, PortaFirmwarePath, PortaLicensePath, PortaLUTPath attributes)" );
     return PLUS_FAIL;
   }
-
+  LOG_INFO("Parameters checked");
   LOG_TRACE("Some info on the initializaton" << this->Usm << " " << this->Pci );
   if ( !this->Porta->init( this->PortaCineSize,
     this->PortaFirmwarePath,
@@ -442,6 +447,7 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
   }
 
   this->Connected = true;
+  this->FirstCallToAddFrameToBuffer = true;
 
   // select the probe
   int code=0;
@@ -498,7 +504,6 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
     }
 
     // now we have successfully selected the probe
-    this->PortaProbeSelected = 1;
   }
 
   // this is from propello
@@ -515,7 +520,6 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
   }
 
   // successfully set to bmode
-  this->PortaModeSelected = 1;
 
   SetFrequency(this->Frequency);
   SetDepth(this->Depth);

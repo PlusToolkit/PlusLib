@@ -36,7 +36,7 @@ Any NDI tracking device is supported that uses the common API, such as <a href="
     - \xmlAtt \b Type = \c "Tool" \RequiredAtt
     - \xmlAtt \b Id A string that identifies the tool element. \RequiredAtt
     - \xmlAtt \ref PortName For wired tools only (should not be defined for wireless tools). Contains the port number, starting from 0 (e.g., name of the first port is "0", name of the second port is "1") \OptionalAtt{ }
-    - \xmlAtt \b RomFile For wireless tools only (should not be defined for wired tools). Name of the tool definition file (*.rom file). The file location is relative to the configuration file location. Standard tool rom files are available on the NDI Polaris Spectra Tool Kit cd in the Tool Definition Files folder. If a PortName is specified too it will be ignored. \OptionalAtt{ }
+    - \xmlAtt \b RomFile For wireless tools only (should not be defined for wired tools, unless the ROM content in the tool has to be overridden). Name of the tool definition file (*.rom file). The file location is relative to the configuration file location. Standard tool rom files are available on the NDI Polaris Spectra Tool Kit cd in the Tool Definition Files folder. \OptionalAtt{ }
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 
