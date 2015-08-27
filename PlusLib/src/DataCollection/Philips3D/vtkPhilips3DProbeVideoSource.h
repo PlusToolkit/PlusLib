@@ -37,13 +37,36 @@ public:
   /*! Perform any completion tasks once configured */
   virtual PlusStatus NotifyConfigured();
 
-  /*! Set IP Address */
-  void SetIPAddress(const std::string& ipAddress);
-  /*! Get IP Address */
-  std::string GetIPAddress() const;
-
   vtkGetMacro(Port, int);
   vtkSetMacro(Port, int);
+
+  vtkGetStringMacro(IPAddress);
+  vtkSetStringMacro(IPAddress);
+
+  vtkSetMacro(ForceZQuantize, bool);
+  vtkGetMacro(ForceZQuantize, bool);
+
+  vtkSetMacro(ResolutionFactor, double);
+  vtkGetMacro(ResolutionFactor, double);
+
+  vtkSetMacro(IntegerZ, bool);
+  vtkGetMacro(IntegerZ, bool);
+
+  vtkSetMacro(Isotropic, bool);
+  vtkGetMacro(Isotropic, bool);
+
+  vtkSetMacro(QuantizeDim, bool);
+  vtkGetMacro(QuantizeDim, bool);
+
+  vtkSetMacro(ZDecimation, int);
+  vtkGetMacro(ZDecimation, int);
+
+  vtkSetMacro(Set4PtFIR, bool);
+  vtkGetMacro(Set4PtFIR, bool);
+
+  vtkSetMacro(LatAndElevSmoothingIndex, int);
+  vtkGetMacro(LatAndElevSmoothingIndex, int);
+
 
 protected:
   /*! Constructor */
@@ -67,10 +90,27 @@ protected:
   unsigned long FrameNumber;
 
   /*! IP Address of the Philips machine*/
-  std::string IPAddress;
+  char* IPAddress;
 
   /*! Port of the Philips machine */
   int Port;
+
+  /*! Parameter to pass to the Philips stream manager */
+  bool ForceZQuantize;
+  /*! Parameter to pass to the Philips stream manager */
+  double ResolutionFactor;
+  /*! Parameter to pass to the Philips stream manager */
+  bool IntegerZ;
+  /*! Parameter to pass to the Philips stream manager */
+  bool Isotropic;
+  /*! Parameter to pass to the Philips stream manager */
+  bool QuantizeDim;
+  /*! Parameter to pass to the Philips stream manager */
+  int ZDecimation;
+  /*! Parameter to pass to the Philips stream manager */
+  bool Set4PtFIR;
+  /*! Parameter to pass to the Philips stream manager */
+  int LatAndElevSmoothingIndex;
 
 private:
   vtkPhilips3DProbeVideoSource(const vtkPhilips3DProbeVideoSource&);  // Not implemented.

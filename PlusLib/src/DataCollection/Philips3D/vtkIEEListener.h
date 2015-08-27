@@ -16,8 +16,9 @@ class vtkDataCollectionExport vtkIEEListener : public vtkObject
 {
 public:
   vtkTypeMacro(vtkIEEListener, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);   
+  void PrintSelf(ostream& os, vtkIndent indent);
   static vtkIEEListener* New();
+  static vtkIEEListener* New(bool forceZQuantize, double resolutionFactor, bool integerZ, bool isotropic, bool quantizeDim, int zDecimation, bool set4PtFIR, int latAndElevSmoothingIndex);
 
   void SetMachineName(const std::string& machineName);
   void SetPortNumber(unsigned int port);
@@ -37,6 +38,7 @@ public:
 
 protected:
   vtkIEEListener();
+  vtkIEEListener(bool forceZQuantize, double resolutionFactor, bool integerZ, bool isotropic, bool quantizeDim, int zDecimation, bool set4PtFIR, int latAndElevSmoothingIndex);
   ~vtkIEEListener();
 
 protected:
@@ -46,8 +48,8 @@ protected:
   bool Connected;
 
 private:
-  vtkIEEListener(const vtkIEEListener&);  // Not implemented.
-  void operator=(const vtkIEEListener&);  // Not implemented.
+  vtkIEEListener(const vtkIEEListener&);
+  void operator=(const vtkIEEListener&);
 };
 
 #endif //__IEEListener_h
