@@ -8,7 +8,7 @@ See License.txt for details.
 #include "TrackedFrame.h"
 #include "vtkImageData.h" 
 #include "vtkRfProcessor.h"
-#include "vtkSequenceIOCommon.h"
+#include "vtkSequenceIO.h"
 #include "vtkSmartPointer.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkTransform.h"
@@ -79,7 +79,7 @@ int main(int argc, char **argv)
   LOG_DEBUG("Reading input meta file..."); 
   // frameList it will contain initially the RF data and the image data will be replaced by the processed output
   vtkSmartPointer< vtkTrackedFrameList > frameList = vtkSmartPointer< vtkTrackedFrameList >::New();
-  if( vtkSequenceIOCommon::Read(inputRfFile, frameList) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Read(inputRfFile, frameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to load input sequences file.");
     exit(EXIT_FAILURE);
@@ -186,7 +186,7 @@ int main(int argc, char **argv)
       ss << vtksys::SystemTools::GetFilenameWithoutExtension(outputImgFile) << "_OutputChannel_" << i << vtksys::SystemTools::GetFilenameExtension(outputImgFile);
     }
 
-    if( vtkSequenceIOCommon::Write(ss.str(), frameList, frameList->GetImageOrientation(), useCompression) != PLUS_SUCCESS )
+    if( vtkSequenceIO::Write(ss.str(), frameList, frameList->GetImageOrientation(), useCompression) != PLUS_SUCCESS )
     {
       // Error has already been logged
       exit(EXIT_FAILURE);

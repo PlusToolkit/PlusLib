@@ -5,7 +5,7 @@
 #include "TrackedFrame.h"
 #include "vtkImageData.h"
 #include "vtkMath.h"
-#include "vtkSequenceIOCommon.h"
+#include "vtkSequenceIO.h"
 #include "vtkSmartPointer.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkVolumeReconstructor.h"
@@ -182,7 +182,7 @@ int main(int argc, char** argv)
 
   // Read the image sequence
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-  if( vtkSequenceIOCommon::Read(inputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Read(inputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to load input sequences file.");
     exit(EXIT_FAILURE);
@@ -228,9 +228,9 @@ int main(int argc, char** argv)
     {
       inputImgSeqFileName = inputImgSeqFileName.substr(0,extensionDot);
     }
-    outputImgSeqFileName = inputImgSeqFileName + "-Scanlines.mha";
+    outputImgSeqFileName = inputImgSeqFileName + "-Scanlines.nrrd";
   }
-  if( vtkSequenceIOCommon::Write(outputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Write(outputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
   {
     //Error has already been logged
     return EXIT_FAILURE;

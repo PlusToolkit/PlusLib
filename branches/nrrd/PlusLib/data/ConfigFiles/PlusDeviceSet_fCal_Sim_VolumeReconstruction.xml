@@ -20,7 +20,7 @@
       Id="CaptureDevice"
       Type="VirtualDiscCapture"
       BaseFilename="RecordingTest.mha"
-      EnableCapturing="FALSE"
+      EnableCapturingOnStart="FALSE"
       RequestedFrameRate="30">
       <InputChannels>
         <InputChannel Id="TrackedVideoStream"/>

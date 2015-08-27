@@ -32,7 +32,8 @@ compares the results to a baseline
 #include "vtkRenderWindow.h"
 #include "vtkRenderer.h"
 #include "vtkSavedDataSource.h"
-#include "vtkSequenceIOCommon.h"
+#include "vtkSequenceIO.h"
+#include "vtkMetaImageSequenceIO.h"
 #include "vtkSmartPointer.h"
 #include "vtkTable.h"
 #include "vtkTrackedFrameList.h"
@@ -288,7 +289,7 @@ int main (int argc, char* argv[])
   int numberFiles = 0;
   vtkSmartPointer<vtkDirectory> myDir = vtkSmartPointer<vtkDirectory>::New();
 
-  if(extension==".mha")
+  if( vtkMetaImageSequenceIO::CanReadFile(inputTrackedStylusTipSequence) )
   {
     LOG_INFO("Only one sequence"<<extension);
     numberFiles=1;
@@ -312,15 +313,15 @@ int main (int argc, char* argv[])
       fileString += "\\";
       fileString += myDir->GetFile(i);
     }
-    extension = vtksys::SystemTools::GetFilenameExtension(fileString);
-    if(extension==".mha")
+    //extension = vtksys::SystemTools::GetFilenameExtension(fileString);
+    if( vtkMetaImageSequenceIO::CanReadFile(fileString) )
     {
       vtkSmartPointer<vtkTrackedFrameList> trackedStylusTipFrames = vtkSmartPointer<vtkTrackedFrameList>::New();
       if( !fileString.empty() )
       {
         trackedStylusTipFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK);
         LOG_INFO("Read stylus tracker data from " << fileString);
-        if( vtkSequenceIOCommon::Read(fileString, trackedStylusTipFrames) != PLUS_SUCCESS )
+        if( vtkSequenceIO::Read(fileString, trackedStylusTipFrames) != PLUS_SUCCESS )
         {
           LOG_ERROR("Failed to read stylus data from sequence metafile: " << fileString << ". Exiting...");
           exit(EXIT_FAILURE);

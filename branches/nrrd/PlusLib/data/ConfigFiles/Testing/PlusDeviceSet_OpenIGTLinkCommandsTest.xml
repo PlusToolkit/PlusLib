@@ -25,7 +25,7 @@
       Id="CaptureDevice"
       Type="VirtualDiscCapture"
       BaseFilename="OpenIGTTrackedVideoRecordingTest.mha"
-      EnableCapturing="FALSE" >
+      EnableCapturingOnStart="FALSE" >
       <InputChannels>
         <InputChannel Id="TrackedVideoStream" />
       </InputChannels>

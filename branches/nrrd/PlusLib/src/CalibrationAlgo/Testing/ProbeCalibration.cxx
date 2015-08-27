@@ -18,7 +18,7 @@ compares the results to a baseline
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
 #include "vtkProbeCalibrationAlgo.h"
-#include "vtkSequenceIOCommon.h"
+#include "vtkSequenceIO.h"
 #include "vtkSmartPointer.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkTransform.h"
@@ -122,7 +122,7 @@ int main (int argc, char* argv[])
   // Load and segment calibration image
   LOG_INFO("Read calibration sequence file..."); 
   vtkSmartPointer<vtkTrackedFrameList> calibrationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-  if( vtkSequenceIOCommon::Read(inputCalibrationSeqMetafile, calibrationTrackedFrameList) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Read(inputCalibrationSeqMetafile, calibrationTrackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Reading calibration images from '" << inputCalibrationSeqMetafile << "' failed!"); 
     return EXIT_FAILURE;
@@ -143,7 +143,7 @@ int main (int argc, char* argv[])
     // Load and segment validation image
     LOG_INFO("Read validation sequence file..."); 
     vtkSmartPointer<vtkTrackedFrameList> validationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-    if( vtkSequenceIOCommon::Read(inputValidationSeqMetafile, validationTrackedFrameList) != PLUS_SUCCESS )
+    if( vtkSequenceIO::Read(inputValidationSeqMetafile, validationTrackedFrameList) != PLUS_SUCCESS )
     {
       LOG_ERROR("Reading validation images from '" << inputValidationSeqMetafile << "' failed!"); 
       return EXIT_FAILURE;

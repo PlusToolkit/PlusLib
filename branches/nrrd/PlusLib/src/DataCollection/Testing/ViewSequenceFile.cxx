@@ -21,7 +21,7 @@ See License.txt for details.
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
 #include "vtkRenderer.h"
-#include "vtkSequenceIOCommon.h"
+#include "vtkSequenceIO.h"
 #include "vtkSmartPointer.h"
 #include "vtkTextActor.h"
 #include "vtkTextActor3D.h"
@@ -193,7 +193,7 @@ int main(int argc, char **argv)
   LOG_DEBUG("Reading input... ");
   vtkSmartPointer< vtkTrackedFrameList > trackedFrameList = vtkSmartPointer< vtkTrackedFrameList >::New(); 
   // Orientation is XX so that the orientation of the trackedFrameList will match the orientation defined in the file
-  if( vtkSequenceIOCommon::Read(inputSequenceFilename, trackedFrameList) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Read(inputSequenceFilename, trackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to load input sequences file.");
     return EXIT_FAILURE; 

@@ -7,7 +7,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkImageData.h"
 #include "vtkMatrix4x4.h"
-#include "vtkSequenceIOCommon.h"
+#include "vtkSequenceIO.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusBuffer.h"
 #include "vtkPlusChannel.h"
@@ -383,7 +383,7 @@ PlusStatus vtkSavedDataSource::InternalConnect()
   vtkSmartPointer<vtkTrackedFrameList> savedDataBuffer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
 
   // Read sequence file into tracked frame list
-  vtkSequenceIOCommon::Read(std::string(this->SequenceFile), savedDataBuffer);
+  vtkSequenceIO::Read(std::string(this->SequenceFile), savedDataBuffer);
 
   if ( savedDataBuffer->GetNumberOfTrackedFrames() < 1 ) 
   {

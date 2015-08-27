@@ -4,8 +4,8 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
-#ifndef __vtkSequenceIOCommon_h
-#define __vtkSequenceIOCommon_h
+#ifndef __vtkSequenceIO_h
+#define __vtkSequenceIO_h
 
 #include "PlusCommon.h"
 #include "PlusVideoFrame.h"
@@ -15,11 +15,11 @@
 class vtkTrackedFrameList;
 
 /*!
-  \class vtkSequenceIOCommon
+  \class vtkSequenceIO
   \brief Class to abstract away specific sequence file read/write details
   \ingroup PlusLibCommon
 */
-class vtkPlusCommonExport vtkSequenceIOCommon : public vtkObject
+class vtkPlusCommonExport vtkSequenceIO : public vtkObject
 {
 public:
   /*! Write object contents into file */
@@ -32,8 +32,8 @@ public:
   static vtkSequenceIOBase* CreateSequenceHandlerForFile(const std::string& filename);
 
 protected:
-  vtkSequenceIOCommon();
-  virtual ~vtkSequenceIOCommon();
+  vtkSequenceIO();
+  virtual ~vtkSequenceIO();
 };
 
-#endif // __vtkSequenceIOCommon_h 
+#endif // __vtkSequenceIO_h 

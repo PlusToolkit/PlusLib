@@ -15,7 +15,7 @@ See License.txt for details.
 #include "vtkObjectFactory.h"
 #include "vtkPlusBuffer.h"
 #include "vtkPlusDevice.h"
-#include "vtkSequenceIOCommon.h"
+#include "vtkSequenceIO.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkUnsignedLongLongArray.h"
 
@@ -810,9 +810,9 @@ PlusStatus vtkPlusBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *so
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusBuffer::WriteToMetafile( const char* filename, bool useCompression /*=false*/ )
+PlusStatus vtkPlusBuffer::WriteToSequenceFile( const char* filename, bool useCompression /*=false*/ )
 {
-  LOG_TRACE("vtkPlusBuffer::WriteToMetafile");
+  LOG_TRACE("vtkPlusBuffer::WriteToSequenceFile");
 
   const int numberOfFrames = this->GetNumberOfItems();
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
@@ -863,7 +863,7 @@ PlusStatus vtkPlusBuffer::WriteToMetafile( const char* filename, bool useCompres
   }
 
   // Save tracked frames to metafile
-  if( vtkSequenceIOCommon::Write(filename, trackedFrameList, trackedFrameList->GetImageOrientation(), useCompression) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Write(filename, trackedFrameList, trackedFrameList->GetImageOrientation(), useCompression) != PLUS_SUCCESS )
   {
     LOCAL_LOG_ERROR("Failed to save tracked frames to sequence metafile!");
     return PLUS_FAIL;

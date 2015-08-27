@@ -9,7 +9,7 @@ See License.txt for details.
 #include "TrackedFrame.h"
 #include "vtkImageData.h"
 #include "vtkMatrix4x4.h"
-#include "vtkSequenceIOCommon.h"
+#include "vtkSequenceIO.h"
 #include "vtkSmartPointer.h"
 #include "vtkTrackedFrameList.h" 
 #include "vtkTransform.h"
@@ -314,7 +314,7 @@ int main(int argc, char **argv)
   {
     LOG_INFO("Read input sequence file: " << inputFileNames[i] ); 
 
-    if (vtkSequenceIOCommon::Read(inputFileNames[i], timestampFrameList) != PLUS_SUCCESS)
+    if (vtkSequenceIO::Read(inputFileNames[i], timestampFrameList) != PLUS_SUCCESS)
     {    
       LOG_ERROR("Couldn't read sequence file: " <<  inputFileName ); 
       return EXIT_FAILURE;
@@ -605,7 +605,7 @@ int main(int argc, char **argv)
   // Save output file to file 
 
   LOG_INFO("Save output sequence file to: " << outputFileName );
-  if( vtkSequenceIOCommon::Write(outputFileName, trackedFrameList, trackedFrameList->GetImageOrientation(), useCompression, operation != REMOVE_IMAGE_DATA) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Write(outputFileName, trackedFrameList, trackedFrameList->GetImageOrientation(), useCompression, operation != REMOVE_IMAGE_DATA) != PLUS_SUCCESS )
   {
     LOG_ERROR("Couldn't write sequence file: " <<  outputFileName ); 
     return EXIT_FAILURE;

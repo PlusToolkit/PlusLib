@@ -15,7 +15,7 @@ SET (PlusCommon_SRCS
   vtkMetaImageSequenceIO.cxx
   vtkNrrdSequenceIO.cxx
   vtkSequenceIOBase.cxx
-  vtkSequenceIOCommon.cxx
+  vtkSequenceIO.cxx
   vtkRecursiveCriticalSection.cxx
   vtkToolAxesActor.cxx
   )
@@ -38,7 +38,7 @@ if (WIN32)
     PlusVideoFrame.txx
     vtkMetaImageSequenceIO.h
     vtkNrrdSequenceIO.h
-    vtkSequenceIOCommon.h
+    vtkSequenceIO.h
     vtkSequenceIOBase.h
     vtkRecursiveCriticalSection.h
     vtkToolAxesActor.h

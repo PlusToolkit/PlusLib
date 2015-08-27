@@ -10,7 +10,7 @@ See License.txt for details.
 #include "VolumeReconstructionToolbox.h"
 #include "fCalMainWindow.h"
 #include "vtkPlusDevice.h" // Only to get maximum frame rate in device mode
-#include "vtkSequenceIOCommon.h"
+#include "vtkSequenceIO.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkVisualizationController.h"
 #include "vtksys/SystemTools.hxx"
@@ -511,7 +511,7 @@ void CapturingToolbox::WriteToFile( const QString& aFilename )
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
   // Actual saving
-  if( vtkSequenceIOCommon::Write(aFilename.toLatin1().constData(), m_RecordedFrames) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Write(aFilename.toLatin1().constData(), m_RecordedFrames) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
     return;

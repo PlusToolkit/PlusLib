@@ -72,6 +72,9 @@ public:
   vtkGetMacro(EnableFileCompression, bool);
   vtkSetMacro(EnableFileCompression, bool);
 
+  vtkSetMacro(EnableCapturingOnStart, bool);
+  vtkGetMacro(EnableCapturingOnStart, bool);
+
   virtual vtkDataCollector* GetDataCollector() { return this->DataCollector; }
 
   virtual bool IsTracker() const { return false; }
@@ -147,6 +150,10 @@ protected:
   /*! Record the number of frames captured */
   long int TotalFramesRecorded;  // hard drive will probably fill up before a regular int is hit, but still...
 
+  /*! Whether to start capturing on connect */
+  bool EnableCapturingOnStart;
+
+  /*! Internal flag to control capturing */
   bool EnableCapturing;
 
   int FrameBufferSize;

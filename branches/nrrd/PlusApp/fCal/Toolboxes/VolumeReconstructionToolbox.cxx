@@ -10,7 +10,7 @@ See License.txt for details.
 #include "vtkImageData.h"
 #include "vtkMarchingContourFilter.h"
 #include "vtkPolyDataMapper.h"
-#include "vtkSequenceIOCommon.h"
+#include "vtkSequenceIO.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkVisualizationController.h"
 #include "vtkVolumeReconstructor.h"
@@ -395,7 +395,7 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
       imageFileNameIndex = ui.comboBox_InputImage->currentIndex();
     }
     trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-    if( vtkSequenceIOCommon::Read(m_ImageFileNames.at( imageFileNameIndex ).toLatin1().constData(), trackedFrameList) != PLUS_SUCCESS )
+    if( vtkSequenceIO::Read(m_ImageFileNames.at( imageFileNameIndex ).toLatin1().constData(), trackedFrameList) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to load input image file!");
       return PLUS_FAIL;

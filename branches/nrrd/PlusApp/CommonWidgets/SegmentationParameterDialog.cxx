@@ -29,7 +29,7 @@ See License.txt for details.
 #include "vtkProperty.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderer.h"
-#include "vtkSequenceIOCommon.h"
+#include "vtkSequenceIO.h"
 #include "vtkSphereSource.h"
 #include "vtkTextActor3D.h"
 #include "vtkTextProperty.h"
@@ -1360,7 +1360,7 @@ void SegmentationParameterDialog::ExportImage()
 
   std::string fileName = vtkPlusConfig::GetInstance()->GetImagePath(
     std::string("SegmentationParameterDialog_ExportedImage_")+vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S.mha") );
-  if( vtkSequenceIOCommon::Write(fileName, trackedFrameList) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Write(fileName, trackedFrameList) != PLUS_SUCCESS )
   {
     QMessageBox::information(this, tr("Image exported"),
       QString("Image exported as sequence file as %1").arg(fileName.c_str()));

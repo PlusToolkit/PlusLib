@@ -10,7 +10,7 @@
 #include "vtkImageData.h"
 #include "vtkImageDifference.h"
 #include "vtkImageExtractComponents.h"
-#include "vtkSequenceIOCommon.h"
+#include "vtkSequenceIO.h"
 #include "vtkSmartPointer.h"
 #include "vtkSonixVolumeReader.h"
 #include "vtkTrackedFrameList.h" 
@@ -74,7 +74,7 @@ int main (int argc, char* argv[])
   {
     std::string path = vtkPlusConfig::GetInstance()->GetOutputPath(outputFileName); 
     LOG_INFO("Save tracked frames to " << path);
-    if( vtkSequenceIOCommon::Write(path, sonixVolumeData, sonixVolumeData->GetImageOrientation(), false) != PLUS_SUCCESS )
+    if( vtkSequenceIO::Write(path, sonixVolumeData, sonixVolumeData->GetImageOrientation(), false) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to save sonix volume to " << path); 
     }

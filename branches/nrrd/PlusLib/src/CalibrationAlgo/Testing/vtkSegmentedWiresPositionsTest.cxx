@@ -10,7 +10,7 @@
 #include "vtkCommand.h"
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
-#include "vtkSequenceIOCommon.h"
+#include "vtkSequenceIO.h"
 #include "vtkSmartPointer.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkTransform.h"
@@ -63,7 +63,7 @@ int main (int argc, char* argv[])
 
   LOG_INFO( "Reading sequence meta file");  
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  if( vtkSequenceIOCommon::Read(inputSequenceMetafile, trackedFrameList) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Read(inputSequenceMetafile, trackedFrameList) != PLUS_SUCCESS )
   {
       LOG_ERROR("Failed to read sequence metafile: " << inputSequenceMetafile); 
       return EXIT_FAILURE;

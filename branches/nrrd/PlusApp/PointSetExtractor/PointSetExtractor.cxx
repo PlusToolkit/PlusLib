@@ -34,7 +34,7 @@
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
 #include "vtkSTLWriter.h"
-#include "vtkSequenceIOCommon.h"
+#include "vtkSequenceIO.h"
 #include "vtkSphereSource.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkTransformRepository.h"
@@ -104,7 +104,7 @@ int main(int argc, char **argv)
 
   LOG_INFO("Read input file...");
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-  if( vtkSequenceIOCommon::Read(inputSequenceFileName, trackedFrameList) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Read(inputSequenceFileName, trackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read tracked pose sequence metafile: " << inputSequenceFileName);
     return EXIT_FAILURE;

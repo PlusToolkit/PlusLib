@@ -13,7 +13,7 @@ See License.txt for details.
 #include "vtkMatrix4x4.h"
 #include "vtkPointData.h"
 #include "vtkSTLWriter.h"
-#include "vtkSequenceIOCommon.h"
+#include "vtkSequenceIO.h"
 #include "vtkSmartPointer.h"
 #include "vtkTimerLog.h"
 #include "vtkTrackedFrameList.h"
@@ -224,7 +224,7 @@ int main(int argc, char **argv)
   // Read transformations data 
   LOG_DEBUG("Reading input meta file..."); 
   vtkSmartPointer< vtkTrackedFrameList > trackedFrameList = vtkSmartPointer< vtkTrackedFrameList >::New();         
-  if( vtkSequenceIOCommon::Read(inputTransformsFile, trackedFrameList) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Read(inputTransformsFile, trackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to load input sequences file.");
     exit(EXIT_FAILURE);
@@ -340,7 +340,7 @@ int main(int argc, char **argv)
     timeElapsedPerFrameSec.push_back(endTimeSec-startTimeSec); 
   }
 
-  if( vtkSequenceIOCommon::Write(outputUsImageFile, trackedFrameList, trackedFrameList->GetImageOrientation(), useCompression) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Write(outputUsImageFile, trackedFrameList, trackedFrameList->GetImageOrientation(), useCompression) != PLUS_SUCCESS )
   {
     // Error has already been logged
     return EXIT_FAILURE;

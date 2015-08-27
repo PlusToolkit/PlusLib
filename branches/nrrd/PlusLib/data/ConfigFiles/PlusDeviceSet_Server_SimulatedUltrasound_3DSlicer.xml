@@ -207,7 +207,7 @@ To use with Ascension tracker instead of a simulated tracker: enable the Ascensi
       Id="CaptureDevice"
       Type="VirtualDiscCapture"
       BaseFilename="RecordingTest.mha"
-      EnableCapturing="FALSE" >
+      EnableCapturingOnStart="FALSE" >
       <InputChannels>
         <InputChannel Id="TrackedVideoStream" />
       </InputChannels>

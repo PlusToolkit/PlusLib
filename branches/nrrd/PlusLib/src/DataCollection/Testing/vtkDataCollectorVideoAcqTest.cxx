@@ -89,7 +89,7 @@ int main(int argc, char **argv)
     aSource->DeepCopyBufferTo(*buffer);
 
     LOG_INFO("write video buffer to " << outputVideoBufferSequenceFileName);
-    buffer->WriteToMetafile(outputVideoBufferSequenceFileName.c_str(), true); 
+    buffer->WriteToSequenceFile(outputVideoBufferSequenceFileName.c_str(), true); 
 
     buffer->Delete(); 
 

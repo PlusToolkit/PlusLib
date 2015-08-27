@@ -8,7 +8,7 @@ See License.txt for details.
 #include "PatternLocResultFile.h"
 #include "PlusConfigure.h"
 #include "TrackedFrame.h"
-#include "vtkSequenceIOCommon.h"
+#include "vtkSequenceIO.h"
 #include "vtkSmartPointer.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkXMLDataElement.h"
@@ -422,7 +422,7 @@ int main(int argc, char **argv)
   LOG_INFO("Read from metafile");
   std::string inputImageSequencePath=inputTestDataDir+"/"+inputImageSequenceFileName;
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  if( vtkSequenceIOCommon::Read(inputImageSequencePath, trackedFrameList) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Read(inputImageSequencePath, trackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read sequence metafile: " << inputImageSequencePath); 
     return EXIT_FAILURE;

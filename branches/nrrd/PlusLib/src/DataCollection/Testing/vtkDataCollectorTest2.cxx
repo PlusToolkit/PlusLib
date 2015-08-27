@@ -27,8 +27,8 @@ int main(int argc, char **argv)
   int numberOfFailures(0); 
   std::string inputConfigFileName;
   double inputAcqTimeLength(20);
-  std::string outputTrackerBufferSequenceFileName("TrackerBufferMetafile.mha"); 
-  std::string outputVideoBufferSequenceFileName("VideoBufferMetafile.mha"); 
+  std::string outputTrackerBufferSequenceFileName("TrackerBufferMetafile.nrrd"); 
+  std::string outputVideoBufferSequenceFileName("VideoBufferMetafile.nrrd"); 
   std::string inputVideoBufferMetafile;
   std::string inputTrackerBufferMetafile;
   bool outputCompressed(true);
@@ -153,14 +153,14 @@ int main(int argc, char **argv)
   {
     std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(outputVideoBufferSequenceFileName);
     LOG_INFO("Write video buffer to " << fullPath);
-    videobuffer->WriteToMetafile(fullPath.c_str(), outputCompressed); 
+    videobuffer->WriteToSequenceFile(fullPath.c_str(), outputCompressed); 
   }
 
   if ( trackerDevice != NULL )
   {
     std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(outputTrackerBufferSequenceFileName);
     LOG_INFO("Write tracker buffer to " << fullPath );
-    tracker->WriteToMetafile(fullPath.c_str(), outputCompressed); 
+    tracker->WriteToSequenceFile(fullPath.c_str(), outputCompressed); 
   }
 
 

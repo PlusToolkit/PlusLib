@@ -16,7 +16,7 @@ and compares the results to a baseline
 #include "vtkDataCollector.h"
 #include "vtkMatrix4x4.h"
 #include "vtkMinimalStandardRandomSequence.h"
-#include "vtkSequenceIOCommon.h"
+#include "vtkSequenceIO.h"
 #include "vtkPhantomLandmarkRegistrationAlgo.h"
 #include "vtkPivotDetectionAlgo.h"
 #include "vtkPlusChannel.h"
@@ -94,7 +94,7 @@ int main (int argc, char* argv[])
   }
 
   LOG_INFO("Read stylus tracker data from " << inputTrackedStylusTipSequenceMetafile);
-  if( vtkSequenceIOCommon::Read(inputTrackedStylusTipSequenceMetafile, trackedStylusTipFrames) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Read(inputTrackedStylusTipSequenceMetafile, trackedStylusTipFrames) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read stylus data from sequence metafile: " << inputTrackedStylusTipSequenceMetafile << ". Exiting...");
     exit(EXIT_FAILURE);

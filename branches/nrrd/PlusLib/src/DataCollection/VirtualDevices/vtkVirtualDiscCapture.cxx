@@ -10,7 +10,7 @@ See License.txt for details.
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkSequenceIOCommon.h"
+#include "vtkSequenceIO.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkVirtualDiscCapture.h"
 #include "vtksys/SystemTools.hxx"
@@ -34,12 +34,13 @@ vtkVirtualDiscCapture::vtkVirtualDiscCapture()
 , FirstFrameIndexInThisSegment(0)
 , TimeWaited(0.0)
 , LastUpdateTime(0.0)
-, BaseFilename("TrackedImageSequence.mha")
+, BaseFilename("TrackedImageSequence.nrrd")
 , Writer(NULL)
 , EnableFileCompression(true)
 , IsHeaderPrepared(false)
 , TotalFramesRecorded(0)
 , EnableCapturing(false)
+, EnableCapturingOnStart(false)
 , FrameBufferSize(DISABLE_FRAME_BUFFER)
 , WriterAccessMutex(vtkSmartPointer<vtkRecursiveCriticalSection>::New())
 , GracePeriodLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG)
@@ -85,7 +86,7 @@ PlusStatus vtkVirtualDiscCapture::ReadConfiguration( vtkXMLDataElement* rootConf
 
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(BaseFilename, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableFileCompression, deviceConfig);
-  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableCapturing, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableCapturingOnStart, deviceConfig);
 
   this->SetRequestedFrameRate(15.0); // default
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, RequestedFrameRate, deviceConfig);
@@ -111,6 +112,11 @@ PlusStatus vtkVirtualDiscCapture::InternalConnect()
   if ( OpenFile() != PLUS_SUCCESS )
   {
     return PLUS_FAIL;
+  }
+
+  if( this->GetEnableCapturingOnStart() )
+  {
+    this->SetEnableCapturing(true);
   }
 
   this->LastUpdateTime = vtkAccurateTimer::GetSystemTime();
@@ -181,7 +187,7 @@ PlusStatus vtkVirtualDiscCapture::OpenFile(const char* aFilename)
     this->CurrentFilename = aFilename;
   }
 
-  this->Writer = vtkSequenceIOCommon::CreateSequenceHandlerForFile(aFilename);
+  this->Writer = vtkSequenceIO::CreateSequenceHandlerForFile(aFilename);
   this->Writer->SetUseCompression(this->EnableFileCompression);
   this->Writer->SetTrackedFrameList(this->RecordedFrames);
   // Need to set the filename before finalizing header, because the pixel data file name depends on the file extension

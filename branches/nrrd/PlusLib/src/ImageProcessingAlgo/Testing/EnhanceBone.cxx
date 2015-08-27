@@ -12,7 +12,7 @@ See License.txt for details.
 #include "vtkImageData.h"
 #include "vtkMetaImageReader.h"
 #include "vtkMetaImageWriter.h"
-#include "vtkSequenceIOCommon.h"
+#include "vtkSequenceIO.h"
 #include "vtkSmartPointer.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkXMLUtilities.h"
@@ -61,7 +61,7 @@ int main(int argc, char** argv)
 
   // Read the image sequence
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-  if( vtkSequenceIOCommon::Read(inputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Read(inputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to read sequence file: " << inputImgSeqFileName);
     exit(EXIT_FAILURE);
@@ -100,9 +100,9 @@ int main(int argc, char** argv)
     {
       inputImgSeqFileName = inputImgSeqFileName.substr(0,extensionDot);
     }
-    outputImgSeqFileName = inputImgSeqFileName + "-Bones.mha";
+    outputImgSeqFileName = inputImgSeqFileName + "-Bones.nrrd";
   }
-  if( vtkSequenceIOCommon::Write(outputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Write(outputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to save output volume to " << outputImgSeqFileName); 
     return EXIT_FAILURE;

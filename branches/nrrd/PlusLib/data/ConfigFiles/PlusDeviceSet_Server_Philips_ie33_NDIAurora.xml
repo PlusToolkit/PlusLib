@@ -55,7 +55,7 @@
       Id="CaptureDevice"
       Type="VirtualDiscCapture"
       BaseFilename="ie33Philips3DCapture.mha"
-      EnableCapturing="FALSE" >
+      EnableCapturingOnStart="FALSE" >
       <InputChannels>
         <InputChannel Id="TrackedVideoStream" />
       </InputChannels>

@@ -6,11 +6,11 @@
 
 #include "vtkMetaImageSequenceIO.h"
 #include "vtkNrrdSequenceIO.h"
-#include "vtkSequenceIOCommon.h"
+#include "vtkSequenceIO.h"
 #include "vtkTrackedFrameList.h"
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSequenceIOCommon::Write(const std::string& filename, vtkTrackedFrameList* frameList, US_IMAGE_ORIENTATION orientationInFile/*=US_IMG_ORIENT_MF*/, bool useCompression/*=true*/, bool enableImageDataWrite/*=true*/)
+PlusStatus vtkSequenceIO::Write(const std::string& filename, vtkTrackedFrameList* frameList, US_IMAGE_ORIENTATION orientationInFile/*=US_IMG_ORIENT_MF*/, bool useCompression/*=true*/, bool enableImageDataWrite/*=true*/)
 {
   if( vtksys::SystemTools::FileExists(filename) )
   {
@@ -45,7 +45,7 @@ PlusStatus vtkSequenceIOCommon::Write(const std::string& filename, vtkTrackedFra
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSequenceIOCommon::Read(const std::string& filename, vtkTrackedFrameList* frameList)
+PlusStatus vtkSequenceIO::Read(const std::string& filename, vtkTrackedFrameList* frameList)
 {
   if( !vtksys::SystemTools::FileExists(filename) )
   {
@@ -81,7 +81,7 @@ PlusStatus vtkSequenceIOCommon::Read(const std::string& filename, vtkTrackedFram
   return PLUS_FAIL;
 }
 
-vtkSequenceIOBase* vtkSequenceIOCommon::CreateSequenceHandlerForFile(const std::string& filename)
+vtkSequenceIOBase* vtkSequenceIO::CreateSequenceHandlerForFile(const std::string& filename)
 {
   // Parse sequence filename to determine if it's metafile or NRRD
   if( vtkNrrdSequenceIO::CanWriteFile(filename) )

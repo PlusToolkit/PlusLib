@@ -20,7 +20,7 @@ See License.txt for details.
 #include "vtkMath.h"
 #include "vtkMatrix3x3.h"
 #include "vtkPointData.h"
-#include "vtkSequenceIOCommon.h"
+#include "vtkSequenceIO.h"
 #include "vtkSmartPointer.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkTransform.h"
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
   // Read transformations data 
   LOG_DEBUG("Reading input meta file..."); 
   vtkSmartPointer< vtkTrackedFrameList > frameList = vtkSmartPointer< vtkTrackedFrameList >::New();
-  if( vtkSequenceIOCommon::Read(inputImgFile, frameList) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Read(inputImgFile, frameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to load input sequences file.");
     return EXIT_FAILURE;
@@ -170,7 +170,7 @@ int main(int argc, char **argv)
     frame->SetCustomFrameTransformStatus(PlusTransformName("FilteredTiltSensor",trackerReferenceFrame),FIELD_OK);
   }
 
-  if( vtkSequenceIOCommon::Write(outputImgFile, frameList, US_IMG_ORIENT_XX) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Write(outputImgFile, frameList, US_IMG_ORIENT_XX) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to load input sequences file.");
     return EXIT_FAILURE;
@@ -182,7 +182,7 @@ int main(int argc, char **argv)
       // Read transformations data 
       LOG_DEBUG("Reading baseline meta file..."); 
       vtkSmartPointer< vtkTrackedFrameList > baselineFrameList = vtkSmartPointer< vtkTrackedFrameList >::New();
-      if( vtkSequenceIOCommon::Read(baselineImgFile, baselineFrameList) != PLUS_SUCCESS )
+      if( vtkSequenceIO::Read(baselineImgFile, baselineFrameList) != PLUS_SUCCESS )
       {
         LOG_ERROR("Unable to load input sequences file.");
         return EXIT_FAILURE;

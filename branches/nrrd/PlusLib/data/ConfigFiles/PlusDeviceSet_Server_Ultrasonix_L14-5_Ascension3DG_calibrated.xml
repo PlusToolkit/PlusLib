@@ -53,7 +53,7 @@
       Id="CaptureDevice"
       Type="VirtualDiscCapture"
       BaseFilename="Recording.mhd"
-      EnableCapturing="FALSE"
+      EnableCapturingOnStart="FALSE"
       RequestedFrameRate="15" >
       <InputChannels>
         <InputChannel Id="TrackedVideoStream" />

@@ -15,7 +15,7 @@
 #include "PlusPlotter.h"
 #include "vtkCenterOfRotationCalibAlgo.h"
 #include "vtkHTMLGenerator.h"
-#include "vtkSequenceIOCommon.h"
+#include "vtkSequenceIO.h"
 #include "vtkSpacingCalibAlgo.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
@@ -88,7 +88,7 @@ int main(int argc, char **argv)
   LOG_INFO("Read center of rotation data from metafile...");
 
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  if( vtkSequenceIOCommon::Read(inputSequenceMetafile, trackedFrameList) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Read(inputSequenceMetafile, trackedFrameList) != PLUS_SUCCESS )
   {
       LOG_ERROR("Failed to read sequence metafile: " << inputSequenceMetafile); 
       return EXIT_FAILURE;

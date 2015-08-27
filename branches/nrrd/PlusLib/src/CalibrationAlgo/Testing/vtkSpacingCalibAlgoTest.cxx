@@ -13,7 +13,7 @@
 #include "FidPatternRecognition.h"
 #include "PlusConfigure.h"
 #include "vtkHTMLGenerator.h"
-#include "vtkSequenceIOCommon.h"
+#include "vtkSequenceIO.h"
 #include "vtkSpacingCalibAlgo.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
@@ -90,7 +90,7 @@ int main(int argc, char **argv)
   {
     LOG_INFO("Reading " << inputSequenceMetafiles[i] << " ..."); 
     vtkSmartPointer<vtkTrackedFrameList> tfList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-    if( vtkSequenceIOCommon::Read(inputSequenceMetafiles[i], tfList) != PLUS_SUCCESS )
+    if( vtkSequenceIO::Read(inputSequenceMetafiles[i], tfList) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to read sequence metafile: " << inputSequenceMetafiles[i]); 
       return EXIT_FAILURE;

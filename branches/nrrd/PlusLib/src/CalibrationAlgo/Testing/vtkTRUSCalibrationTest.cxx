@@ -18,7 +18,7 @@
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
 #include "vtkProbeCalibrationAlgo.h"
-#include "vtkSequenceIOCommon.h"
+#include "vtkSequenceIO.h"
 #include "vtkSpacingCalibAlgo.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkTransformRepository.h"
@@ -85,7 +85,7 @@ int main (int argc, char* argv[])
 
   LOG_INFO("Reading probe rotation data from sequence metafile..."); 
   vtkSmartPointer<vtkTrackedFrameList> probeRotationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  if( vtkSequenceIOCommon::Read(inputProbeRotationSeqMetafile, probeRotationTrackedFrameList) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Read(inputProbeRotationSeqMetafile, probeRotationTrackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read sequence metafile: " << inputProbeRotationSeqMetafile); 
     return EXIT_FAILURE;
@@ -162,7 +162,7 @@ int main (int argc, char* argv[])
 
   // Load and segment validation tracked frame list
   vtkSmartPointer<vtkTrackedFrameList> validationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-  if( vtkSequenceIOCommon::Read(inputValidationSeqMetafile, validationTrackedFrameList) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Read(inputValidationSeqMetafile, validationTrackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read tracked frames from sequence metafile from: " << inputValidationSeqMetafile ); 
     return EXIT_FAILURE; 
@@ -177,7 +177,7 @@ int main (int argc, char* argv[])
 
   // Load and segment calibration tracked frame list
   vtkSmartPointer<vtkTrackedFrameList> calibrationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-  if( vtkSequenceIOCommon::Read(inputCalibrationSeqMetafile, calibrationTrackedFrameList) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Read(inputCalibrationSeqMetafile, calibrationTrackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read tracked frames from sequence metafile from: " << inputCalibrationSeqMetafile ); 
     return EXIT_FAILURE; 
