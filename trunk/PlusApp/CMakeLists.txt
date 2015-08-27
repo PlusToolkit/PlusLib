@@ -209,9 +209,10 @@ IF (BUILD_DOCUMENTATION)
         NO_SYSTEM_ENVIRONMENT_PATH
       )
   ENDIF(NOT PLUSLIB_BUILD_DOCUMENTATION)
-  
-  ADD_SUBDIRECTORY(Documentation)
+
 ENDIF (BUILD_DOCUMENTATION)
+
+ADD_SUBDIRECTORY(Documentation)
 
 #-----------------------------------------------------------------------------
 # Include PlusLib MS projects 
