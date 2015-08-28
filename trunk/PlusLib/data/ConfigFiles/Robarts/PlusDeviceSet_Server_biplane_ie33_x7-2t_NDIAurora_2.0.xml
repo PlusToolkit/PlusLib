@@ -1,0 +1,179 @@
+<PlusConfiguration version="2.3" PlusRevision="Plus-2.1.2.3381 - Win32">
+  <DataCollection StartupDelaySec="1">
+    <DeviceSet Name="PlusServer: Bi-plane ie33 (x7-27 probe) + NDI Aurora tracker (Reference, Probe, Stylus) - 18cm - fCal Phantom 2.0" Description="NDI Aurora sensors should be plugged in the following order: 1 Reference, 2 Probe, 3 Stylus." />
+    <Device
+      Id="TrackerDevice"
+      Type="AuroraTracker"
+      SerialPort="6"
+      AcquisitionRate="50"
+      LocalTimeOffsetSec="0.0"
+      ToolReferenceFrame="Tracker"
+      BaudRate="115200">
+      <DataSources>
+        <DataSource Type="Tool" Id="Reference" BufferSize="500" PortName="0" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" Id="Probe" BufferSize="500" PortName="1" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" Id="Stylus" BufferSize="500" PortName="2" AveragedItemsForFiltering="20" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream">
+          <DataSource Id="Probe" />
+          <DataSource Id="Reference" />
+          <DataSource Id="Stylus" />
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="VideoDevice" 
+      Type="Epiphan" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"/>
+        <DataSource Type="Video" Id="LeftVideo" PortUsImageOrientation="MF" ClipRectangleOrigin="280 360 0" ClipRectangleSize="470 490 1"/>
+        <DataSource Type="Video" Id="RightVideo" PortUsImageOrientation="MF" ClipRectangleOrigin="750 360 0" ClipRectangleSize="470 490 1"/>
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+        <OutputChannel Id="LeftVideoStream" VideoDataSourceId="LeftVideo" />
+        <OutputChannel Id="RightVideoStream" VideoDataSourceId="RightVideo" />
+      </OutputChannels>
+    </Device>
+    
+    <Device 
+      Id="LeftTrackedVideoDevice" 
+      Type="VirtualMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="LeftVideoStream" />
+      </InputChannels>
+      <OutputChannels>
+        <OutputChannel Id="LeftTrackedVideoStream"/>
+      </OutputChannels>
+    </Device>
+
+    <Device 
+      Id="RightTrackedVideoDevice" 
+      Type="VirtualMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="RightVideoStream" />
+      </InputChannels>
+      <OutputChannels>
+        <OutputChannel Id="RightTrackedVideoStream"/>
+      </OutputChannels>
+    </Device>
+
+    <Device 
+      Id="TrackedVideoDevice" 
+      Type="VirtualMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="VideoStream" />
+      </InputChannels>
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream"/>
+      </OutputChannels>
+    </Device>
+
+
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="ie33Philips3DCapture.mha"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="TrackedVideoStream" />
+      </InputChannels>
+    </Device>
+  </DataCollection>
+ 
+  <CoordinateDefinitions>
+    <Transform From="Image" To="Probe"
+      Matrix="
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        0	0	0	1"
+       Error="1.17562" Date="052015_132620" />
+    <Transform From="LeftImage" To="Probe"
+      Matrix="
+        0.0648964 0.346119 -0.0591459 -4.12987 
+-0.350372 0.0677961 0.0123022 93.7518 
+0.023154 0.0557985 0.351935 1.8232 
+0 0 0 1 "
+       Error="1.17562" Date="052015_132620" />
+    <Transform From="RightImage" To="Probe"
+      Matrix="
+        0.0570575 0.350279 0.0552308 -4.64662 
+-0.00782805 0.0571717 -0.354501 13.5738 
+-0.35452 0.0551125 0.0167166 89.4997 
+0 0 0 1 "
+       Error="1.00906" Date="052015_132903" />
+    <Transform From="StylusTip" To="Stylus"
+      Matrix="
+        0.999594	0	-0.0284841	-0.305774
+        -0.0042307	0.988908	-0.148468	-1.59379
+        0.0281681	0.148529	0.988507	10.6115
+        0	0	0	1"
+       Error="0.287287" Date="082315_112217" />
+  </CoordinateDefinitions>
+
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="TrackedVideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="StylusTipToReference" /> 
+      </TransformNames>
+      <ImageNames>
+        <Image Name="Image" EmbeddedTransformToFrame="Reference" />
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18945" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="LeftTrackedVideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+         <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="StylusTipToReference" /> 
+      </TransformNames>
+      <ImageNames>
+        <Image Name="LeftImage" EmbeddedTransformToFrame="Reference" />
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+  
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18946" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="RightTrackedVideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="StylusTipToReference" />
+      </TransformNames>
+      <ImageNames>
+        <Image Name="RightImage" EmbeddedTransformToFrame="Reference" />
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+</PlusConfiguration>

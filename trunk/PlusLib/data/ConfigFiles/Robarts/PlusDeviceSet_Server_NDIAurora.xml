@@ -1,0 +1,66 @@
+<PlusConfiguration version="2.1">
+
+  <DataCollection StartupDelaySec="1.0">
+    <DeviceSet 
+      Name="PlusServer: NDI Aurora tracker"
+      Description="Broadcasting tool tracking data through OpenIGTLink
+Tracking a single needle.
+The computer needs to be on the same local network as Aurora SCU unit. The needle has to be plugged into the first slot"
+    />
+    <Device
+      Id="TrackerDevice" 
+      Type="AuroraTracker"
+      SerialPort="6"
+      BaudRate="115200"
+      ToolReferenceFrame="Tracker" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Reference" PortName="0" />
+        <DataSource Type="Tool" Id="Probe" PortName="1" />
+        <DataSource Type="Tool" Id="Stylus" PortName="2" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream">
+          <DataSource Id="Reference" />
+          <DataSource Id="Stylus" />
+          <DataSource Id="Probe" />
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="ie33Philips3DCapture.mha"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+      </InputChannels>
+    </Device>
+  </DataCollection>
+  
+  <CoordinateDefinitions>
+    <Transform From="StylusTip" To="Stylus"
+      Matrix="
+        0.999594	0	-0.0284841	-0.305774
+        -0.0042307	0.988908	-0.148468	-1.59379
+        0.0281681	0.148529	0.988507	10.6115
+        0	0	0	1"
+       Error="0.287287" Date="082315_112217" />
+  </CoordinateDefinitions>
+
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="TrackerStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="StylusTipToReference" />
+      </TransformNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+</PlusConfiguration>
