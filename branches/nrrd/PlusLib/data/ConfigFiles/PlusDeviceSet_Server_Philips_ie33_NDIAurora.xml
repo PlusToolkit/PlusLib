@@ -28,7 +28,7 @@
 
     <Device
       Id="VideoDevice" 
-      Type="ie33Video" 
+      Type="iE33Video" 
 	  IP="129.100.44.8"
 	  Port="4013" >
       <DataSources>

@@ -20,6 +20,10 @@ Authors include:
 //----------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkIEEListener);
+vtkIEEListener* vtkIEEListener::New(bool forceZQuantize, double resolutionFactor, bool integerZ, bool isotropic, bool quantizeDim, int zDecimation, bool set4PtFIR, int latAndElevSmoothingIndex)
+{
+  return new vtkIEEListener(forceZQuantize, resolutionFactor, integerZ, isotropic, quantizeDim, zDecimation, set4PtFIR, latAndElevSmoothingIndex);
+}
 
 //----------------------------------------------------------------------------
 vtkIEEListener::vtkIEEListener()
@@ -32,9 +36,18 @@ vtkIEEListener::vtkIEEListener()
 }
 
 //----------------------------------------------------------------------------
+vtkIEEListener::vtkIEEListener(bool forceZQuantize, double resolutionFactor, bool integerZ, bool isotropic, bool quantizeDim, int zDecimation, bool set4PtFIR, int latAndElevSmoothingIndex)
+  : vtkObject()
+  , StreamManager(new CStreamMgr(forceZQuantize, resolutionFactor, integerZ, isotropic, quantizeDim, zDecimation, set4PtFIR, latAndElevSmoothingIndex))
+  , MachineName("")
+  , Port(4013)
+  , Connected(false)
+{
+}
+
+//----------------------------------------------------------------------------
 vtkIEEListener::~vtkIEEListener()
 {
-  //delete StreamManager;
 }
 
 //----------------------------------------------------------------------------
@@ -76,8 +89,6 @@ PlusStatus vtkIEEListener::Disconnect()
 
     LOG_INFO("Shutdown stream:");
     StreamManager->Shutdown();
-
-    LOG_INFO("Delete streamMgr:");
 
     this->Connected = false;
     return PLUS_SUCCESS;

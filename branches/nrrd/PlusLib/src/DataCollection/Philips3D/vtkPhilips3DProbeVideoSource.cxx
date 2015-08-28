@@ -106,10 +106,18 @@ vtkStandardNewMacro(vtkPhilips3DProbeVideoSource);
 
 //----------------------------------------------------------------------------
 vtkPhilips3DProbeVideoSource::vtkPhilips3DProbeVideoSource()
-: Listener(vtkIEEListener::New())
+: Listener(NULL)
 , FrameNumber(0)
 , IPAddress("")
 , Port(-1)
+, ForceZQuantize(false)
+, ResolutionFactor(2.5)
+, IntegerZ(true)
+, Isotropic(false)
+, QuantizeDim(true)
+, ZDecimation(2)
+, Set4PtFIR(true)
+, LatAndElevSmoothingIndex(4)
 {
   // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
   this->StartThreadForInternalUpdates = true;
@@ -133,7 +141,11 @@ vtkPhilips3DProbeVideoSource::~vtkPhilips3DProbeVideoSource()
     this->Disconnect();
   }
 
-  this->Listener->Delete();
+  if( this->Listener )
+  {
+    this->Listener->Delete();
+    this->Listener = NULL;
+  }
 
   vtkPhilips3DProbeVideoSource::ActiveDevice = NULL;
 }
@@ -143,7 +155,10 @@ void vtkPhilips3DProbeVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
-  this->Listener->PrintSelf(os, indent);
+  if( this->Listener )
+  {
+    this->Listener->PrintSelf(os, indent);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -151,6 +166,7 @@ PlusStatus vtkPhilips3DProbeVideoSource::InternalConnect()
 {
   LOG_TRACE("vtkPhilips3DProbeVideoSource::InternalConnect");
 
+  this->Listener = vtkIEEListener::New(this->ForceZQuantize, this->ResolutionFactor, this->IntegerZ, this->Isotropic, this->QuantizeDim, this->ZDecimation, this->Set4PtFIR, this->LatAndElevSmoothingIndex);
   this->Listener->SetMachineName(this->IPAddress);
   this->Listener->SetPortNumber(this->Port);
   if( this->Listener->Connect(&vtkPhilips3DProbeVideoSource::StreamCallback) == PLUS_FAIL )
@@ -184,31 +200,29 @@ PlusStatus vtkPhilips3DProbeVideoSource::ReadConfiguration(vtkXMLDataElement* ro
   LOG_TRACE("vtkPhilips3DProbeVideoSource::ReadConfiguration");
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
-  if( deviceConfig->GetScalarAttribute("Port", this->Port) != 1 || this->Port <= 0)
-  {
-    LOG_ERROR("Unable to find port in Philips ie33 configuration or invalid port selected.");
-    return PLUS_FAIL;
-  }
-
-  const char* IP = deviceConfig->GetAttribute("IP");
-  if( IP == NULL )
-  {
-    LOG_ERROR("Unable to find Philips ie33 IP in config file. Please check configuration.");
-    return PLUS_FAIL;
-  }
+  XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, Port, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(IPAddress, deviceConfig);
 #ifdef _WIN32
   struct in_addr address;
-  int result = InetPton(AF_INET, IP, &address);
+  int result = InetPton(AF_INET, this->IPAddress, &address);
 #else
   struct sockaddr_in address;
-  int result = inet_pton(AF_INET, IP, &(address.sin_addr));
+  int result = inet_pton(AF_INET, this->IPAddress, &(address.sin_addr));
 #endif 
   if( result != 1 )
   {
-    LOG_ERROR("Improperly formatted IP address. Please confirm formatting in config file.");
+    LOG_ERROR("Improperly formatted IPAddress. Please confirm formatting in config file.");
     return PLUS_FAIL;
   }
-  this->IPAddress = std::string(IP);
+
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ForceZQuantize, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ResolutionFactor, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(IntegerZ, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(Isotropic, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(QuantizeDim, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, ZDecimation, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(Set4PtFIR, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, LatAndElevSmoothingIndex, deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -219,9 +233,17 @@ PlusStatus vtkPhilips3DProbeVideoSource::WriteConfiguration(vtkXMLDataElement* r
   LOG_TRACE("vtkPhilips3DProbeVideoSource::WriteConfiguration");
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfig);
 
-  deviceConfig->SetAttribute("IP", this->IPAddress.c_str());
+  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_NULL(IPAddress, deviceConfig);
   deviceConfig->SetIntAttribute("Port", this->Port);
 
+  deviceConfig->SetDoubleAttribute("ResolutionFactor", this->ResolutionFactor);
+  deviceConfig->SetIntAttribute("ZDecimation", this->ZDecimation);
+  deviceConfig->SetIntAttribute("LatAndElevSmoothingIndex", this->LatAndElevSmoothingIndex);
+  XML_WRITE_BOOL_ATTRIBUTE(ForceZQuantize, deviceConfig);
+  XML_WRITE_BOOL_ATTRIBUTE(IntegerZ, deviceConfig);
+  XML_WRITE_BOOL_ATTRIBUTE(Isotropic, deviceConfig);
+  XML_WRITE_BOOL_ATTRIBUTE(QuantizeDim, deviceConfig);
+  XML_WRITE_BOOL_ATTRIBUTE(Set4PtFIR, deviceConfig);
   return PLUS_SUCCESS;
 }
 
@@ -250,7 +272,7 @@ PlusStatus vtkPhilips3DProbeVideoSource::NotifyConfigured()
     return PLUS_FAIL;
   }
 
-  if( this->IPAddress.empty() || this->Port <= 0 )
+  if( STRCASECMP(this->IPAddress, "") == 0 || this->Port <= 0 )
   {
     this->SetCorrectlyConfigured(false);
     return PLUS_FAIL;
@@ -280,16 +302,4 @@ void vtkPhilips3DProbeVideoSource::CallbackAddFrame(vtkImageData* imageData)
     return;
   }
   this->FrameNumber++;
-}
-
-//----------------------------------------------------------------------------
-void vtkPhilips3DProbeVideoSource::SetIPAddress(const std::string& ipAddress)
-{
-  this->IPAddress = ipAddress;
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPhilips3DProbeVideoSource::GetIPAddress() const
-{
-  return this->IPAddress;
 }

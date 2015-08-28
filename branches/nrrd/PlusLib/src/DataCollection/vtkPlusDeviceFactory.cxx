@@ -224,7 +224,7 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
 #endif
 
 #ifdef PLUS_USE_PHILIPS_3D_ULTRASOUND
-  DeviceTypes["ie33Video"]=(PointerToDevice)&vtkPhilips3DProbeVideoSource::New;
+  DeviceTypes["iE33Video"]=(PointerToDevice)&vtkPhilips3DProbeVideoSource::New;
 #endif
 
   // Virtual Devices

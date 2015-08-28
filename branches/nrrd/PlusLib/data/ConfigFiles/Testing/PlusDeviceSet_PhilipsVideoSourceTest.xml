@@ -2,7 +2,7 @@
   <DataCollection StartupDelaySec="1.0">
     <Device
       Id="VideoDevice"
-      Type="ie33Video" 
+      Type="iE33Video" 
       AcquisitionRate="30" 
       IP="129.100.44.8"
 	  Port="4013" >
