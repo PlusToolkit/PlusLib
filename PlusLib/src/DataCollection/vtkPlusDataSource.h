@@ -138,7 +138,7 @@ public:
   virtual void Clear();
 
   /*! Dump the current state of the video buffer to metafile */
-  virtual PlusStatus WriteToMetafile( const char* filename, bool useCompression = false ); 
+  virtual PlusStatus WriteToSequenceFile( const char* filename, bool useCompression = false ); 
 
   /*! Get the table report of the timestamped buffer  */
   virtual PlusStatus GetTimeStampReportTable(vtkTable* timeStampReportTable); 

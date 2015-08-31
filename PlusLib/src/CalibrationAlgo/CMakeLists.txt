@@ -89,10 +89,7 @@ SET (CalibrationAlgo_INCLUDE_DIRS
 SET (CalibrationAlgo_LIBS 
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
-#  itkvnl
-#  itkvnl_algo
   vtkPlusCommon
-#  vtkDataCollection
   )
 
 INCLUDE_DIRECTORIES( ${CalibrationAlgo_INCLUDE_DIRS} )

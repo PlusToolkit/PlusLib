@@ -5,35 +5,33 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "vtksys/CommandLineArguments.hxx"
-#include <iomanip>
-
-#include "vtkSmartPointer.h"
-#include "vtkXMLUtilities.h"
-#include "vtkMatrix4x4.h"
-#include "vtkRenderWindowInteractor.h"
-#include "vtkRenderWindow.h"
-#include "vtkRenderer.h"
-#include "vtkRenderer.h"
-#include "vtkImageViewer2.h"
+#include "TrackedFrame.h"
+#include "vtkActorCollection.h"
 #include "vtkCallbackCommand.h"
+#include "vtkCollectionIterator.h"
 #include "vtkCommand.h"
+#include "vtkImageActor.h"
+#include "vtkImageData.h"
+#include "vtkImageImport.h"
+#include "vtkImageViewer2.h"
+#include "vtkMatrix4x4.h"
+#include "vtkProp.h"
+#include "vtkRenderWindow.h"
+#include "vtkRenderWindow.h"
+#include "vtkRenderWindowInteractor.h"
+#include "vtkRenderer.h"
+#include "vtkRenderer.h"
+#include "vtkSequenceIO.h"
+#include "vtkSmartPointer.h"
 #include "vtkTextActor.h"
 #include "vtkTextActor3D.h"
 #include "vtkTextProperty.h"
-#include "vtkTransform.h"
-#include "vtkImageData.h"
-#include "vtkRenderWindow.h"
-#include "vtkActorCollection.h"
-#include "vtkCollectionIterator.h"
-#include "vtkImageActor.h"
-#include "vtkImageImport.h"
-#include "vtkProp.h"
-
-#include "vtkMetaImageSequenceIO.h"
 #include "vtkTrackedFrameList.h"
+#include "vtkTransform.h"
 #include "vtkTransformRepository.h"
-#include "TrackedFrame.h"
+#include "vtkXMLUtilities.h"
+#include "vtksys/CommandLineArguments.hxx"
+#include <iomanip>
 
 ///////////////////////////////////////////////////////////////////
 
@@ -138,7 +136,7 @@ protected:
 int main(int argc, char **argv)
 {
   bool printHelp(false);
-  std::string inputMetaFilename;
+  std::string inputSequenceFilename;
   std::string inputConfigFileName; 
   std::string outputModelFilename; 
   std::string imageToReferenceTransformNameStr;
@@ -150,7 +148,7 @@ int main(int argc, char **argv)
   args.Initialize(argc, argv);
 
   args.AddArgument("--image-to-reference-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &imageToReferenceTransformNameStr, "Transform name used for displaying the slices");  
-  args.AddArgument("--source-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMetaFilename, "Tracked ultrasound recorded by Plus (e.g., by the TrackedUltrasoundCapturing application) in a sequence metafile (.mha)");
+  args.AddArgument("--source-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSequenceFilename, "Tracked ultrasound recorded by Plus (e.g., by the TrackedUltrasoundCapturing application) in a sequence file (.mha/.nrrd)");
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Config file containing coordinate system definitions");
   args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run in test mode, without rendering.");  
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
@@ -171,7 +169,7 @@ int main(int argc, char **argv)
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-  if (inputMetaFilename.empty())
+  if (inputSequenceFilename.empty())
   {
     std::cerr << "--source-seq-file is required" << std::endl;
     exit(EXIT_FAILURE);
@@ -195,7 +193,11 @@ int main(int argc, char **argv)
   LOG_DEBUG("Reading input... ");
   vtkSmartPointer< vtkTrackedFrameList > trackedFrameList = vtkSmartPointer< vtkTrackedFrameList >::New(); 
   // Orientation is XX so that the orientation of the trackedFrameList will match the orientation defined in the file
-  trackedFrameList->ReadFromSequenceMetafile( inputMetaFilename.c_str() );
+  if( vtkSequenceIO::Read(inputSequenceFilename, trackedFrameList) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to load input sequences file.");
+    return EXIT_FAILURE; 
+  }
   LOG_DEBUG("Reading input done.");
   LOG_DEBUG("Number of frames: " << trackedFrameList->GetNumberOfTrackedFrames());
 

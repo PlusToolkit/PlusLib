@@ -13,40 +13,39 @@ compares the results to a baseline
 #include "PlusConfigure.h"
 #include "PlusMath.h"
 #include "TrackedFrame.h"
-#include "vtkDataCollector.h"
-#include "vtkSavedDataSource.h"
-#include "vtkMath.h"
-#include "vtkMatrix4x4.h"
-#include "vtkPhantomLandmarkRegistrationAlgo.h"
-#include "vtkPlusChannel.h"
-#include "vtkPlusConfig.h"
-#include "vtkSmartPointer.h"
-#include "vtkTrackedFrameList.h"
-#include "vtkTransform.h"
-#include "vtkTransformRepository.h"
-#include "vtkXMLDataElement.h"
-#include "vtkXMLUtilities.h"
-#include "vtksys/CommandLineArguments.hxx" 
-#include "vtksys/SystemTools.hxx"
-#include "vtkDirectory.h"
-
-#include <iostream>
-#include <stdlib.h>
-
 #include "vtkAxis.h"
 #include "vtkChartXY.h"
 #include "vtkContextScene.h"
 #include "vtkContextView.h"
+#include "vtkDataCollector.h"
+#include "vtkDirectory.h"
 #include "vtkDoubleArray.h"
-#include "vtkWindowToImageFilter.h"
-#include "vtkRenderer.h"
-#include "vtkPNGWriter.h"
-#include "vtkPlot.h"
-#include "vtkRenderWindow.h"
-#include "vtkTable.h"
-
-#include "vtkReadTrackedSignals.h"
 #include "vtkLandmarkDetectionAlgo.h"
+#include "vtkMath.h"
+#include "vtkMatrix4x4.h"
+#include "vtkPNGWriter.h"
+#include "vtkPhantomLandmarkRegistrationAlgo.h"
+#include "vtkPlot.h"
+#include "vtkPlusChannel.h"
+#include "vtkPlusConfig.h"
+#include "vtkReadTrackedSignals.h"
+#include "vtkRenderWindow.h"
+#include "vtkRenderer.h"
+#include "vtkSavedDataSource.h"
+#include "vtkSequenceIO.h"
+#include "vtkMetaImageSequenceIO.h"
+#include "vtkSmartPointer.h"
+#include "vtkTable.h"
+#include "vtkTrackedFrameList.h"
+#include "vtkTransform.h"
+#include "vtkTransformRepository.h"
+#include "vtkWindowToImageFilter.h"
+#include "vtkXMLDataElement.h"
+#include "vtkXMLUtilities.h"
+#include "vtksys/CommandLineArguments.hxx" 
+#include "vtksys/SystemTools.hxx"
+#include <iostream>
+#include <stdlib.h>
 
 ///////////////////////////////////////////////////////////////////
 const double ERROR_THRESHOLD_MM = 0.1; // error threshold
@@ -290,7 +289,7 @@ int main (int argc, char* argv[])
   int numberFiles = 0;
   vtkSmartPointer<vtkDirectory> myDir = vtkSmartPointer<vtkDirectory>::New();
 
-  if(extension==".mha")
+  if( vtkMetaImageSequenceIO::CanReadFile(inputTrackedStylusTipSequence) )
   {
     LOG_INFO("Only one sequence"<<extension);
     numberFiles=1;
@@ -314,15 +313,15 @@ int main (int argc, char* argv[])
       fileString += "\\";
       fileString += myDir->GetFile(i);
     }
-    extension = vtksys::SystemTools::GetFilenameExtension(fileString);
-    if(extension==".mha")
+    //extension = vtksys::SystemTools::GetFilenameExtension(fileString);
+    if( vtkMetaImageSequenceIO::CanReadFile(fileString) )
     {
       vtkSmartPointer<vtkTrackedFrameList> trackedStylusTipFrames = vtkSmartPointer<vtkTrackedFrameList>::New();
       if( !fileString.empty() )
       {
         trackedStylusTipFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK);
         LOG_INFO("Read stylus tracker data from " << fileString);
-        if ( trackedStylusTipFrames->ReadFromSequenceMetafile(fileString.c_str()) != PLUS_SUCCESS )
+        if( vtkSequenceIO::Read(fileString, trackedStylusTipFrames) != PLUS_SUCCESS )
         {
           LOG_ERROR("Failed to read stylus data from sequence metafile: " << fileString << ". Exiting...");
           exit(EXIT_FAILURE);

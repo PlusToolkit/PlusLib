@@ -259,7 +259,6 @@ public:
       return PLUS_FAIL; \
     } \
   }
-
   
 // Read a string attribute (with the same name as the class member variable) and save it to a class member variable.
 // If attribute not found then the member is not modified but a warning is logged.

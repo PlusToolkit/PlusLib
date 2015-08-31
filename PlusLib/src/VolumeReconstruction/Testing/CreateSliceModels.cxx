@@ -26,10 +26,11 @@
 #include "vtkTransformPolyDataFilter.h"
 #include "vtkXMLUtilities.h"
 
-#include "vtkTrackedFrameList.h"
 #include "TrackedFrame.h"
-#include "vtkVolumeReconstructor.h"
+#include "vtkSequenceIO.h"
+#include "vtkTrackedFrameList.h"
 #include "vtkTransformRepository.h"
+#include "vtkVolumeReconstructor.h"
 
 
 int main( int argc, char** argv )
@@ -46,7 +47,7 @@ int main( int argc, char** argv )
   args.Initialize(argc, argv);
 
   args.AddArgument("--image-to-reference-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &imageToReferenceTransformNameStr, "Image to reference transform name used for creating slice models");  
-  args.AddArgument("--source-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMetaFilename, "Tracked ultrasound recorded by Plus (e.g., by the TrackedUltrasoundCapturing application) in a sequence metafile (.mha)");
+  args.AddArgument("--source-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputMetaFilename, "Tracked ultrasound recorded by Plus (e.g., by the TrackedUltrasoundCapturing application) in a sequence file (.mha/.nrrd)");
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Config file used for volume reconstrucion. It contains the probe calibration matrix, the ImageToTool transform (.xml) ");
   args.AddArgument("--output-model-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputModelFilename, "A 3D model file that contains rectangles corresponding to each US image slice (.vtk)");
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
@@ -82,7 +83,11 @@ int main( int argc, char** argv )
   // Read input tracked ultrasound data.
   LOG_DEBUG("Reading input... ");
   vtkSmartPointer< vtkTrackedFrameList > trackedFrameList = vtkSmartPointer< vtkTrackedFrameList >::New(); 
-  trackedFrameList->ReadFromSequenceMetafile( inputMetaFilename.c_str() );
+  if( vtkSequenceIO::Read(inputMetaFilename, trackedFrameList) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to load input sequences file.");
+    exit(EXIT_FAILURE);
+  }
   LOG_DEBUG("Reading input done.");
   LOG_DEBUG("Number of frames: " << trackedFrameList->GetNumberOfTrackedFrames());
 

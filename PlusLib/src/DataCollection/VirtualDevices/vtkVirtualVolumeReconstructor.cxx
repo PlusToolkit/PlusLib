@@ -5,15 +5,15 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "vtkVirtualVolumeReconstructor.h"
 #include "TrackedFrame.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
+#include "vtkSequenceIO.h"
 #include "vtkTrackedFrameList.h"
-#include "vtkVolumeReconstructor.h"
 #include "vtkTransformRepository.h"
-
+#include "vtkVirtualVolumeReconstructor.h"
+#include "vtkVolumeReconstructor.h"
 #include "vtksys/SystemTools.hxx"
 
 //----------------------------------------------------------------------------
@@ -318,7 +318,7 @@ PlusStatus vtkVirtualVolumeReconstructor::GetReconstructedVolumeFromFile(const c
   }
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
   std::string inputImageSeqFileFullPath=vtkPlusConfig::GetInstance()->GetOutputPath(inputSeqFilename);
-  if (trackedFrameList->ReadFromSequenceMetafile(inputImageSeqFileFullPath.c_str())==PLUS_FAIL)
+  if( vtkSequenceIO::Read(inputImageSeqFileFullPath, trackedFrameList) != PLUS_SUCCESS )
   {    
     errorMessage="Volume reconstruction failed, unable to open input file specified in InputSeqFilename"+inputImageSeqFileFullPath;
     LOG_INFO(errorMessage);

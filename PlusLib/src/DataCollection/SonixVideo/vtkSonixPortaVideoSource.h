@@ -132,6 +132,17 @@ class vtkDataCollectionExport vtkSonixPortaVideoSource : public vtkPlusDevice {
   /*! Get PCI initialization parameter */
   vtkGetMacro(Pci, int);
 
+  /*! Set HighVoltage initialization parameter */
+  vtkSetMacro(HighVoltage, int);
+  /*! Get HighVoltage initialization parameter */
+  vtkGetMacro(HighVoltage, int);
+
+  /*! Set Channels initialization parameter */
+  vtkSetMacro(Channels, int);
+  /*! Get Channels initialization parameter */
+  vtkGetMacro(Channels, int);
+
+
   /*! Get/Set the look-up table path name */
   vtkSetStringMacro(PortaLicensePath); 
   vtkGetStringMacro(PortaLicensePath); 
@@ -166,17 +177,8 @@ class vtkDataCollectionExport vtkSonixPortaVideoSource : public vtkPlusDevice {
   /*! Get the number of frames per volume */
   PlusStatus GetStepPerFrame(int& aStepPerFrame);
   
-  //void SetImagingMode(int mode){ImagingMode = mode;};
-  //void GetImagingMode(int & mode){mode = ImagingMode;};
-
-  vtkSetMacro(ImagingMode, int);
-  vtkGetMacro(ImagingMode, int);
-
-  vtkSetMacro(PortaBModeWidth, int);
-  vtkGetMacro(PortaBModeWidth, int);
-
-  vtkSetMacro(PortaBModeHeight, int);
-  vtkGetMacro(PortaBModeHeight, int);
+  void SetImagingMode(int mode){ImagingMode = mode;};
+  void GetImagingMode(int & mode){mode = ImagingMode;};
   
   /*! set the CineSize, defaults to 256MB, size in bytes */
   void SetPortaCineSize( int size );
@@ -217,6 +219,7 @@ protected:
   /*! Connect to device */
   virtual PlusStatus InternalConnect();
 
+
   /*! Disconnect from device */
   virtual PlusStatus InternalDisconnect();
 
@@ -232,7 +235,6 @@ protected:
   
   /*! Pointer to the hardware. Only required for SDK versions prior to 6.0 */  
   porta* Porta;
-  bool PortaConnected;
 
   /*! Imaging parameters */
   int Depth;
@@ -241,10 +243,13 @@ protected:
   int Zoom;   
 
   int ImagingMode;
+  int Timeout; 
 
   /*! Porta initialization parameters */
   int Usm;
   int Pci;
+  int HighVoltage;
+  int Channels;
   
   /*! for internal use only */
   PlusStatus AddFrameToBuffer( void *param, int id );

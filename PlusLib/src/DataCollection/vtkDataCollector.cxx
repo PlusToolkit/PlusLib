@@ -426,7 +426,7 @@ PlusStatus vtkDataCollector::DumpBuffersToDirectory( const char * aDirectory )
   {
     vtkPlusDevice* device = *it;
 
-    std::string outputDeviceBufferSequenceFileName = vtkPlusConfig::GetInstance()->GetOutputPath( std::string("BufferDump_")+device->GetDeviceId()+"_"+dateAndTime+".mha" );
+    std::string outputDeviceBufferSequenceFileName = vtkPlusConfig::GetInstance()->GetOutputPath( std::string("BufferDump_")+device->GetDeviceId()+"_"+dateAndTime+".nrrd" );
 
     LOG_INFO("Write device buffer to " << outputDeviceBufferSequenceFileName);
     vtkPlusDataSource* aSource(NULL);
@@ -437,7 +437,7 @@ PlusStatus vtkDataCollector::DumpBuffersToDirectory( const char * aDirectory )
         LOG_ERROR("Unable to retrieve the video source in the device.");
         return PLUS_FAIL;
       }
-      aSource->WriteToMetafile( outputDeviceBufferSequenceFileName.c_str(), false); 
+      aSource->WriteToSequenceFile( outputDeviceBufferSequenceFileName.c_str(), false); 
     }
   }
 

@@ -119,7 +119,7 @@ PlusStatus ExecuteStopAcquisition(vtkPlusOpenIGTLinkClient* client, const std::s
   cmd->SetNameToStop();
   if (outputFilename.empty())
   {
-    outputFilename="PlusServerRecording.mha";
+    outputFilename="PlusServerRecording.nrrd";
   }
   cmd->SetOutputFilename(outputFilename.c_str());
   if ( !deviceId.empty() )
@@ -454,15 +454,15 @@ void StopPlusServerProcess(vtksysProcess* &processPtr)
 PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client)
 {
   const char captureDeviceId[]="CaptureDevice";
-  const char capturingOutputFileName[]="OpenIGTTrackedVideoRecordingTest.mha";
+  const char capturingOutputFileName[]="OpenIGTTrackedVideoRecordingTest.nrrd";
 
   const char volumeReconstructionDeviceId[]="VolumeReconstructorDevice";
   const char* batchReconstructionInputFileName=capturingOutputFileName;
-  const char batchReconstructionOutputFileName[]="VolumeReconstructedBatch.mha";
+  const char batchReconstructionOutputFileName[]="VolumeReconstructedBatch.nrrd";
   const char batchReconstructionOutputImageName[]="VolumeReconstructedBatch";
-  const char snapshotReconstructionOutputFileName[]="VolumeReconstructedSnapshot.mha";
+  const char snapshotReconstructionOutputFileName[]="VolumeReconstructedSnapshot.nrrd";
   const char snapshotReconstructionOutputImageName[]="VolumeReconstructedSnapshot";
-  const char liveReconstructionOutputFileName[]="VolumeReconstructedLive.mha";
+  const char liveReconstructionOutputFileName[]="VolumeReconstructedLive.nrrd";
   const char liveReconstructionOutputImageName[]="VolumeReconstructedLive";
 
   // Basic commands
@@ -536,7 +536,7 @@ int main( int argc, char** argv )
   int serverPort = 18944;
   std::string command;
   std::string deviceId;
-  std::string inputFilename="PlusServerRecording.mha";
+  std::string inputFilename="PlusServerRecording.nrrd";
   std::string outputFilename;
   std::string outputImageName;
   std::string transformName;
@@ -564,7 +564,7 @@ int main( int argc, char** argv )
     RECONSTRUCT, START_RECONSTRUCTION, SUSPEND_RECONSTRUCTION, RESUME_RECONSTRUCTION, STOP_RECONSTRUCTION, GET_RECONSTRUCTION_SNAPSHOT, GET_CHANNEL_IDS, GET_DEVICE_IDS, GET_EXAM_DATA, SEND_TEXT)" );
   args.AddArgument( "--device", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceId, "ID of the controlled device (optional, default: first VirtualStreamCapture or VirtualVolumeReconstructor device). In case of GET_DEVICE_IDS it is not an ID but a device type." );
   args.AddArgument( "--input-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFilename, "File name of the input, used for RECONSTRUCT command" );
-  args.AddArgument( "--output-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFilename, "File name of the output, used for START command (optional, default: 'PlusServerRecording.mha' for acquisition, no output for volume reconstruction)" );
+  args.AddArgument( "--output-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFilename, "File name of the output, used for START command (optional, default: 'PlusServerRecording.nrrd' for acquisition, no output for volume reconstruction)" );
   args.AddArgument( "--output-image-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputImageName, "OpenIGTLink device name of the reconstructed file (optional, default: image is not sent)" );
   args.AddArgument( "--text", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &text, "Text to be sent to the device" );
   args.AddArgument( "--transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformName, "The name of the transform to update. Form=[From]To[To]Transform" );
