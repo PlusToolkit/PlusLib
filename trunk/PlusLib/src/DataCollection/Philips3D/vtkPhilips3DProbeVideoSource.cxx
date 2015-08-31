@@ -195,6 +195,12 @@ PlusStatus vtkPhilips3DProbeVideoSource::InternalDisconnect()
 }
 
 //-----------------------------------------------------------------------------
+PlusStatus vtkPhilips3DProbeVideoSource::InternalUpdate()
+{
+  LOG_INFO( this->Listener->IsConnected() );
+}
+
+//-----------------------------------------------------------------------------
 PlusStatus vtkPhilips3DProbeVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   LOG_TRACE("vtkPhilips3DProbeVideoSource::ReadConfiguration");

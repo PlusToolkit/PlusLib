@@ -83,6 +83,13 @@ protected:
   /*! Disconnect from device */
   virtual PlusStatus InternalDisconnect();
 
+  /*! InternalUpdate continually checks the connection
+   When the iE33 is switched off of 3D mode, the connection doesn't die, it simply stops receiving a callback.
+   When the iE33 is switched back, the callbacks don't resume.
+   This function checks for long delays between frames and attempts to regain the connection if it detects a timeout.
+   */
+  virtual PlusStatus InternalUpdate();
+
   /*! Class for receiving streaming 3D Data */
   vtkIEEListener* Listener;
 
