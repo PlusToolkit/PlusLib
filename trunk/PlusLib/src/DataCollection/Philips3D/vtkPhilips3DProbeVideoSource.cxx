@@ -40,6 +40,11 @@ vtkPhilips3DProbeVideoSource* vtkPhilips3DProbeVideoSource::ActiveDevice = NULL;
 namespace
 {
   vtkImageData* streamedImageData = NULL;
+  static double LastValidTimestamp(0);
+  static double LastRetryTime(0);
+
+  const double TIMEOUT = 1.0; // 1 seconds;
+  const double RETRY_TIMER = 0.5; // 1/2 second
 }
 
 //----------------------------------------------------------------------------
@@ -96,6 +101,8 @@ bool vtkPhilips3DProbeVideoSource::StreamCallback(_int64 id, SClient3DArray *ed,
   memcpy((void*)dst, (void*)src, size);
 
   vtkPhilips3DProbeVideoSource::ActiveDevice->CallbackAddFrame(streamedImageData);
+
+  LastValidTimestamp = vtkAccurateTimer::GetSystemTime();
 
   return true;
 }
@@ -197,7 +204,31 @@ PlusStatus vtkPhilips3DProbeVideoSource::InternalDisconnect()
 //-----------------------------------------------------------------------------
 PlusStatus vtkPhilips3DProbeVideoSource::InternalUpdate()
 {
-  LOG_INFO( this->Listener->IsConnected() );
+  if( this->Listener->IsConnected() )
+  {
+    // Listener thinks it's connected, let's check for timeouts
+    if( vtkAccurateTimer::GetSystemTime() - LastValidTimestamp >= TIMEOUT )
+    {
+      LOG_INFO("Philips iE33: 3D mode timeout disconnected. Did you switch to another mode?");
+      // Don't call a full disconnect because that stops the InternalUpdate loop
+      // Only disconnect the listener and periodically try again
+      this->Listener->Disconnect();
+      LastRetryTime = vtkAccurateTimer::GetSystemTime();
+    }
+  }
+  else if( vtkAccurateTimer::GetSystemTime() - LastRetryTime >= RETRY_TIMER )
+  {
+    LOG_INFO("Philips iE33: Retrying connection to 3D mode.");
+    // Retry connection if it's time
+    LastRetryTime = vtkAccurateTimer::GetSystemTime();
+    if( this->Listener->Connect(&vtkPhilips3DProbeVideoSource::StreamCallback, vtkPlusLogger::LOG_LEVEL_WARNING) )
+    {
+      LOG_INFO("Philips iE33: Connection successfully re-established.");
+      LastValidTimestamp = vtkAccurateTimer::GetSystemTime();
+    }
+  }
+
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
