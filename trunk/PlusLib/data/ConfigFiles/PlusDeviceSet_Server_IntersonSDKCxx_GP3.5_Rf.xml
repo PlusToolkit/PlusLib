@@ -43,7 +43,7 @@
       Type="VirtualDiscCapture"
       BaseFilename="IntersonRf.mha"
       RequestedFrameRate="12"
-      EnableCapturing="TRUE" >
+      EnableCapturingOnStart="TRUE" >
       <InputChannels>
         <InputChannel Id="RfVideoStream" />
       </InputChannels>

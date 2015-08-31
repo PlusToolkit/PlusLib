@@ -29,7 +29,7 @@ Tools: Probe (1b), Reference (TTBlock), Stylus (2b) tools"
       Id="CaptureDevice"
       Type="VirtualDiscCapture"
       BaseFilename="RecordingTest.mha"
-      EnableCapturing="FALSE" >
+      EnableCapturingOnStart="FALSE" >
       <InputChannels>
         <InputChannel Id="TrackerStream" />
       </InputChannels>

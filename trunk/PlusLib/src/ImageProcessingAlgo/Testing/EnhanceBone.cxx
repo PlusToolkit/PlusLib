@@ -1,16 +1,22 @@
-#include "PlusConfigure.h"
-#include "vtksys/CommandLineArguments.hxx"
+/*=Plus=header=begin======================================================
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
+=========================================================Plus=header=end*/ 
 
-#include "vtkForoughiBoneSurfaceProbability.h"
-#include "vtkSmartPointer.h"
-#include "vtkMetaImageReader.h"
-#include "vtkXMLUtilities.h"
-#include "vtkTrackedFrameList.h"
-#include "vtkImageCast.h"
-#include "vtkImageData.h"
-#include "vtkMetaImageWriter.h"
+#include "PlusConfigure.h"
 #include "PlusVideoFrame.h"
 #include "TrackedFrame.h"
+#include "vtkForoughiBoneSurfaceProbability.h"
+#include "vtkImageCast.h"
+#include "vtkImageData.h"
+#include "vtkMetaImageReader.h"
+#include "vtkMetaImageWriter.h"
+#include "vtkSequenceIO.h"
+#include "vtkSmartPointer.h"
+#include "vtkTrackedFrameList.h"
+#include "vtkXMLUtilities.h"
+#include "vtksys/CommandLineArguments.hxx"
 
 //----------------------------------------------------------------------------
 int main(int argc, char** argv)
@@ -30,7 +36,7 @@ int main(int argc, char** argv)
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
 
-  // Fail if arguements can't be parsed
+  // Fail if arguments can't be parsed
   if (!args.Parse())
   {
     std::cerr << "Error parsing arguments." << std::endl;
@@ -55,7 +61,11 @@ int main(int argc, char** argv)
 
   // Read the image sequence
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-  trackedFrameList->ReadFromSequenceMetafile(inputImgSeqFileName.c_str());
+  if( vtkSequenceIO::Read(inputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to read sequence file: " << inputImgSeqFileName);
+    exit(EXIT_FAILURE);
+  }
 
   vtkSmartPointer<vtkImageCast> castToDouble = vtkSmartPointer<vtkImageCast>::New();
   castToDouble->SetOutputScalarTypeToDouble();
@@ -90,9 +100,13 @@ int main(int argc, char** argv)
     {
       inputImgSeqFileName = inputImgSeqFileName.substr(0,extensionDot);
     }
-    outputImgSeqFileName = inputImgSeqFileName + "-Bones.mha";
+    outputImgSeqFileName = inputImgSeqFileName + "-Bones.nrrd";
   }
-  trackedFrameList->SaveToSequenceMetafile(outputImgSeqFileName.c_str());
+  if( vtkSequenceIO::Write(outputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Failed to save output volume to " << outputImgSeqFileName); 
+    return EXIT_FAILURE;
+  }
   LOG_INFO("Writing to "<<outputImgSeqFileName<<" complete.");
 
   return EXIT_SUCCESS;

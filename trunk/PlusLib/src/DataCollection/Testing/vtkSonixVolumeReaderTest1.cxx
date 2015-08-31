@@ -5,18 +5,19 @@
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
+#include "PlusVideoFrame.h"
+#include "TrackedFrame.h" 
+#include "vtkImageData.h"
+#include "vtkImageDifference.h"
+#include "vtkImageExtractComponents.h"
+#include "vtkSequenceIO.h"
+#include "vtkSmartPointer.h"
+#include "vtkSonixVolumeReader.h"
+#include "vtkTrackedFrameList.h" 
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtksys/SystemTools.hxx"
-#include "vtkSonixVolumeReader.h"
-#include "vtkImageDifference.h"
-#include "vtkSmartPointer.h"
-#include "vtkImageExtractComponents.h"
-#include "PlusVideoFrame.h"
-#include "vtkImageData.h"
-#include "vtkTrackedFrameList.h" 
-#include "TrackedFrame.h" 
-#include <stdlib.h>
 #include <iostream>
+#include <stdlib.h>
 
 int main (int argc, char* argv[])
 { 
@@ -72,8 +73,8 @@ int main (int argc, char* argv[])
   if ( !outputFileName.empty() )
   {
     std::string path = vtkPlusConfig::GetInstance()->GetOutputPath(outputFileName); 
-    LOG_INFO("Save tracked frames to " << path); 
-    if ( sonixVolumeData->SaveToSequenceMetafile(path.c_str(), false /*no compression*/) != PLUS_SUCCESS )
+    LOG_INFO("Save tracked frames to " << path);
+    if( vtkSequenceIO::Write(path, sonixVolumeData, sonixVolumeData->GetImageOrientation(), false) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to save sonix volume to " << path); 
     }

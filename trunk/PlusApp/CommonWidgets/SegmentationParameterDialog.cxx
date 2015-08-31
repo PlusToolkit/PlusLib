@@ -29,6 +29,7 @@ See License.txt for details.
 #include "vtkProperty.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderer.h"
+#include "vtkSequenceIO.h"
 #include "vtkSphereSource.h"
 #include "vtkTextActor3D.h"
 #include "vtkTextProperty.h"
@@ -1357,12 +1358,12 @@ void SegmentationParameterDialog::ExportImage()
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
   trackedFrameList->AddTrackedFrame(&m_Frame);
 
-  std::string metafileName = vtkPlusConfig::GetInstance()->GetImagePath(
+  std::string fileName = vtkPlusConfig::GetInstance()->GetImagePath(
     std::string("SegmentationParameterDialog_ExportedImage_")+vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S.mha") );
-  if (trackedFrameList->SaveToSequenceMetafile(metafileName.c_str(), false) == PLUS_SUCCESS)
+  if( vtkSequenceIO::Write(fileName, trackedFrameList) != PLUS_SUCCESS )
   {
     QMessageBox::information(this, tr("Image exported"),
-      QString("Image exported as metafile as %1").arg(metafileName.c_str()));
+      QString("Image exported as sequence file as %1").arg(fileName.c_str()));
 
     // Write the current state into the device set configuration XML
     if (m_DataCollector->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
@@ -1372,14 +1373,14 @@ void SegmentationParameterDialog::ExportImage()
     else
     {
       // Save config file next to the tracked frame list
-      std::string configFileName = vtkPlusConfig::GetInstance()->GetImagePath(metafileName + "_Config.xml");
+      std::string configFileName = vtkPlusConfig::GetInstance()->GetImagePath(fileName + "_Config.xml");
       PlusCommon::PrintXML(configFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
     }
   }
   else
   {
     QMessageBox::critical(this, tr("Image export failed"),
-      QString("Image export failed to metafile %1").arg(metafileName.c_str()));
+      QString("Image export failed to sequence file %1").arg(fileName.c_str()));
   }
 }
 

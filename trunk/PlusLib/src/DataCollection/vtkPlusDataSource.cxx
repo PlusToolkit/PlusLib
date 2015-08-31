@@ -837,9 +837,9 @@ bool vtkPlusDataSource::GetTimeStampReporting()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::WriteToMetafile(const char* filename, bool useCompression /*= false */)
+PlusStatus vtkPlusDataSource::WriteToSequenceFile(const char* filename, bool useCompression /*= false */)
 {
-  return this->GetBuffer()->WriteToMetafile(filename, useCompression);
+  return this->GetBuffer()->WriteToSequenceFile(filename, useCompression);
 }
 
 //-----------------------------------------------------------------------------

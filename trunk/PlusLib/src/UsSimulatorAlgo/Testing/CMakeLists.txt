@@ -9,6 +9,7 @@ ADD_TEST(vtkUsSimulatorAlgoRunTestLinear
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_UsSimulatorAlgoTestLinear.xml
   --transforms-seq-file=${TestDataDir}/SpinePhantom2Freehand.mha
   --output-us-img-file=simulatorOutputLinear.mha 
+  --use-compression=false
   )
 SET_TESTS_PROPERTIES( vtkUsSimulatorAlgoRunTestLinear PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -24,6 +25,7 @@ ADD_TEST(vtkUsSimulatorAlgoRunTestCurvilinear
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_UsSimulatorAlgoTestCurvilinear.xml
   --transforms-seq-file=${TestDataDir}/SpinePhantom2Freehand.mha
   --output-us-img-file=simulatorOutputCurvilinear.mha 
+  --use-compression=false
   )
 SET_TESTS_PROPERTIES( vtkUsSimulatorAlgoRunTestCurvilinear PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 

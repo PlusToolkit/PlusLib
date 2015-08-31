@@ -32,7 +32,7 @@
     <Device
       Id="VideoDevice"
       Type="SavedDataSource"
-      SequenceMetafile="fCal_Test_Calibration.mha"
+      SequenceFile="fCal_Test_Calibration.mha"
       UseData="IMAGE"
       UseOriginalTimestamps="FALSE"
       RepeatEnabled="TRUE">

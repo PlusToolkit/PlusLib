@@ -8,11 +8,10 @@ See License.txt for details.
 #define __vtkVirtualDiscCapture_h
 
 #include "vtkDataCollectionExport.h"
-
 #include "vtkPlusDevice.h"
+#include "vtkSequenceIOBase.h"
 #include <string>
 
-class vtkMetaImageSequenceIO;
 class vtkTrackedFrameList;
 
 /*!
@@ -73,6 +72,9 @@ public:
   vtkGetMacro(EnableFileCompression, bool);
   vtkSetMacro(EnableFileCompression, bool);
 
+  vtkSetMacro(EnableCapturingOnStart, bool);
+  vtkGetMacro(EnableCapturingOnStart, bool);
+
   virtual vtkDataCollector* GetDataCollector() { return this->DataCollector; }
 
   virtual bool IsTracker() const { return false; }
@@ -97,9 +99,6 @@ protected:
     If force flag is true then data is written to disk immediately.
   */
   virtual PlusStatus WriteFrames(bool force = false);
-
-  /*! Read the sequence metafile, re-write it with compression */
-  PlusStatus CompressFile();
 
   vtkVirtualDiscCapture();
   virtual ~vtkVirtualDiscCapture();
@@ -139,8 +138,8 @@ protected:
   std::string CurrentFilename;
   std::string BaseFilename;
 
-  /*! Meta sequence to write to */
-  vtkMetaImageSequenceIO* Writer;
+  /*! Sequence writer to write to */
+  vtkSequenceIOBase* Writer;
 
   /*! When closing the file, re-read the data from file, and write it compressed */
   bool EnableFileCompression;
@@ -151,6 +150,10 @@ protected:
   /*! Record the number of frames captured */
   long int TotalFramesRecorded;  // hard drive will probably fill up before a regular int is hit, but still...
 
+  /*! Whether to start capturing on connect */
+  bool EnableCapturingOnStart;
+
+  /*! Internal flag to control capturing */
   bool EnableCapturing;
 
   int FrameBufferSize;

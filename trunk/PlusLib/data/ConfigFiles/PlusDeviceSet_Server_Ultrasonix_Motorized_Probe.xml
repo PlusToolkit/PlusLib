@@ -36,7 +36,7 @@
       Id="CaptureDevice"
       Type="VirtualDiscCapture"
 	  RequestedFrameRate="100"
-      EnableCapturing="FALSE" >
+      EnableCapturingOnStart="FALSE" >
       <InputChannels>
         <InputChannel Id="VideoStream" />
       </InputChannels>

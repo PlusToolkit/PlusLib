@@ -413,7 +413,7 @@ int main(int argc, char **argv)
     tracker->DeepCopy(aDevice);
     std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(outputTrackerBufferSequenceFileName);
     LOG_INFO("Write tracker to " << fullPath);
-    tracker->WriteToMetafile(fullPath.c_str(), true); 
+    tracker->WriteToSequenceFile(fullPath.c_str(), true); 
   }
 
   std::cout << "Test completed successfully!" << std::endl;

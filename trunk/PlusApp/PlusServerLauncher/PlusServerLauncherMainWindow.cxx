@@ -10,6 +10,7 @@
 #include "StatusIcon.h"
 #include "vtkDataCollector.h"
 #include "vtkPlusDeviceFactory.h"
+#include "vtkPlusOpenIGTLinkServer.h"
 #include "vtkTransformRepository.h"
 #include <QIcon>
 #include <QKeyEvent>

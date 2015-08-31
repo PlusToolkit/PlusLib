@@ -10,25 +10,23 @@ See License.txt for details.
 *
 */
 
-#include "PlusConfigure.h"
-#include "vtksys/CommandLineArguments.hxx"
-
-#include <iomanip>
-#include <iostream>
-
-#include "vtkSmartPointer.h"
-#include "vtkMetaImageSequenceIO.h"
-#include "vtkTrackedFrameList.h"
-#include "TrackedFrame.h"
-#include "vtkTransform.h"
-#include "vtkImageData.h" 
-#include "vtkPointData.h"
-#include "vtkMath.h"
-#include "vtkMatrix3x3.h"
 #include "AhrsAlgo.h"
 #include "MadgwickAhrsAlgo.h"
 #include "MahonyAhrsAlgo.h"
+#include "PlusConfigure.h"
 #include "PlusMath.h"
+#include "TrackedFrame.h"
+#include "vtkImageData.h" 
+#include "vtkMath.h"
+#include "vtkMatrix3x3.h"
+#include "vtkPointData.h"
+#include "vtkSequenceIO.h"
+#include "vtkSmartPointer.h"
+#include "vtkTrackedFrameList.h"
+#include "vtkTransform.h"
+#include "vtksys/CommandLineArguments.hxx"
+#include <iomanip>
+#include <iostream>
 
 // Define tolerance used for comparing double numbers.
 // There are relatively large differences between results computed by different compiler versions.
@@ -96,7 +94,11 @@ int main(int argc, char **argv)
   // Read transformations data 
   LOG_DEBUG("Reading input meta file..."); 
   vtkSmartPointer< vtkTrackedFrameList > frameList = vtkSmartPointer< vtkTrackedFrameList >::New();
-  frameList->ReadFromSequenceMetafile( inputImgFile.c_str() );
+  if( vtkSequenceIO::Read(inputImgFile, frameList) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to load input sequences file.");
+    return EXIT_FAILURE;
+  }
   LOG_DEBUG("Reading input file completed"); 
 
 
@@ -168,11 +170,11 @@ int main(int argc, char **argv)
     frame->SetCustomFrameTransformStatus(PlusTransformName("FilteredTiltSensor",trackerReferenceFrame),FIELD_OK);
   }
 
-  vtkSmartPointer<vtkMetaImageSequenceIO> outputImgSeqFileWriter = vtkSmartPointer<vtkMetaImageSequenceIO>::New(); 
-  outputImgSeqFileWriter->SetFileName(outputImgFile.c_str()); 
-  outputImgSeqFileWriter->SetTrackedFrameList(frameList);   
-  outputImgSeqFileWriter->SetImageOrientationInFile(US_IMG_ORIENT_XX);
-  outputImgSeqFileWriter->Write(); 
+  if( vtkSequenceIO::Write(outputImgFile, frameList, US_IMG_ORIENT_XX) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to load input sequences file.");
+    return EXIT_FAILURE;
+  }
   
   //baseline image should be provided for testing only
   if (!baselineImgFile.empty())
@@ -180,7 +182,11 @@ int main(int argc, char **argv)
       // Read transformations data 
       LOG_DEBUG("Reading baseline meta file..."); 
       vtkSmartPointer< vtkTrackedFrameList > baselineFrameList = vtkSmartPointer< vtkTrackedFrameList >::New();
-      baselineFrameList->ReadFromSequenceMetafile( baselineImgFile.c_str() );
+      if( vtkSequenceIO::Read(baselineImgFile, baselineFrameList) != PLUS_SUCCESS )
+      {
+        LOG_ERROR("Unable to load input sequences file.");
+        return EXIT_FAILURE;
+      }
       LOG_DEBUG("Reading baseline file completed"); 
 
       int numberOfErrors = 0;

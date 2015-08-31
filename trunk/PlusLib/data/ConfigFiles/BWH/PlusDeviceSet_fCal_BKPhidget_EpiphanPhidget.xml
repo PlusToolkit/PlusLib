@@ -97,7 +97,7 @@
       Id="EpiphanCaptureDevice"
       Type="VirtualDiscCapture"
       BaseFilename="TrackedEpiphanRecording.mha"
-      EnableCapturing="FALSE" >
+      EnableCapturingOnStart="FALSE" >
       <InputChannels>
         <InputChannel Id="EpiphanTrackedVideoStream" />
       </InputChannels>
@@ -107,7 +107,7 @@
       Id="BKCaptureDevice"
       Type="VirtualDiscCapture"
       BaseFilename="TrackedBKRecording.mha"
-      EnableCapturing="FALSE" >
+      EnableCapturingOnStart="FALSE" >
       <InputChannels>
         <InputChannel Id="BKTrackedVideoStream" />
       </InputChannels>

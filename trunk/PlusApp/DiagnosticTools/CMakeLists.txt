@@ -13,17 +13,17 @@ GENERATE_HELP_DOC(DiagDataCollection)
 
 #-------------------------------------------------------------------------------------------- 
 
-IF (PLUS_USE_OpenIGTLink)
 SET (TRACKINGDATASERVER_LIBS
   ${VTK_LIBRARIES}
   vtkPlusCommon
-  OpenIGTLink
   )
+IF (PLUS_USE_OpenIGTLink)
+  SET (TRACKINGDATASERVER_LIBS ${TRACKINGDATASERVER_LIBS} OpenIGTLink)
+ENDIF(PLUS_USE_OpenIGTLink)
+
 ADD_EXECUTABLE(TrackingDataServer TrackingDataServer.cxx)
 TARGET_LINK_LIBRARIES(TrackingDataServer ${TRACKINGDATASERVER_LIBS})
 GENERATE_HELP_DOC(TrackingDataServer)
-ENDIF(PLUS_USE_OpenIGTLink)
-
 
 #-------------------------------------------------------------------------------------------- 
 # Install

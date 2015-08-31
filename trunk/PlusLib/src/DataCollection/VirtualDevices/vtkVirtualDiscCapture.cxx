@@ -5,13 +5,14 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "vtkVirtualDiscCapture.h"
 #include "TrackedFrame.h"
 #include "vtkMetaImageSequenceIO.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
+#include "vtkSequenceIO.h"
 #include "vtkTrackedFrameList.h"
+#include "vtkVirtualDiscCapture.h"
 #include "vtksys/SystemTools.hxx"
 
 //----------------------------------------------------------------------------
@@ -33,17 +34,18 @@ vtkVirtualDiscCapture::vtkVirtualDiscCapture()
 , FirstFrameIndexInThisSegment(0)
 , TimeWaited(0.0)
 , LastUpdateTime(0.0)
-, BaseFilename("TrackedImageSequence.mha")
-, Writer(vtkMetaImageSequenceIO::New())
-, EnableFileCompression(false)
+, BaseFilename("TrackedImageSequence.nrrd")
+, Writer(NULL)
+, EnableFileCompression(true)
 , IsHeaderPrepared(false)
 , TotalFramesRecorded(0)
 , EnableCapturing(false)
+, EnableCapturingOnStart(false)
 , FrameBufferSize(DISABLE_FRAME_BUFFER)
 , WriterAccessMutex(vtkSmartPointer<vtkRecursiveCriticalSection>::New())
 , GracePeriodLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG)
 {
-  this->AcquisitionRate=10.0;
+  this->AcquisitionRate=30.0;
   this->MissingInputGracePeriodSec=2.0;
   this->RecordedFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP); 
 
@@ -84,7 +86,7 @@ PlusStatus vtkVirtualDiscCapture::ReadConfiguration( vtkXMLDataElement* rootConf
 
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(BaseFilename, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableFileCompression, deviceConfig);
-  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableCapturing, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableCapturingOnStart, deviceConfig);
 
   this->SetRequestedFrameRate(15.0); // default
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, RequestedFrameRate, deviceConfig);
@@ -112,6 +114,11 @@ PlusStatus vtkVirtualDiscCapture::InternalConnect()
     return PLUS_FAIL;
   }
 
+  if( this->GetEnableCapturingOnStart() )
+  {
+    this->SetEnableCapturing(true);
+  }
+
   this->LastUpdateTime = vtkAccurateTimer::GetSystemTime();
 
   return PLUS_SUCCESS;
@@ -131,7 +138,7 @@ PlusStatus vtkVirtualDiscCapture::InternalDisconnect()
       this->Disconnect();
       return PLUS_FAIL;
     }
-    if( this->Writer->AppendImages() != PLUS_SUCCESS )
+    if( this->Writer->WriteImages() != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to append images. Stopping recording at timestamp: " << this->LastAlreadyRecordedFrameTimestamp );
       this->Disconnect();
@@ -150,25 +157,39 @@ PlusStatus vtkVirtualDiscCapture::OpenFile(const char* aFilename)
   PlusLockGuard<vtkRecursiveCriticalSection> writerLock(this->WriterAccessMutex);
 
   // Because this virtual device continually appends data to the file, we cannot do live compression
-  this->Writer->SetUseCompression(false);
-  this->Writer->SetTrackedFrameList(this->RecordedFrames);
-
   if( aFilename == NULL || strlen(aFilename) == 0 )
   {
     std::string filenameRoot = vtksys::SystemTools::GetFilenameWithoutExtension(this->BaseFilename);
     std::string ext = vtksys::SystemTools::GetFilenameExtension(this->BaseFilename);
     if( ext.empty() )
     {
-      ext = ".mha";
+      // default to nrrd
+      ext = ".nrrd";
+    }
+    else if( vtkMetaImageSequenceIO::CanWriteFile(this->BaseFilename) && this->GetEnableFileCompression() )
+    {
+      // they've requested mhd/mha with compression, no can do, yet
+      LOG_WARNING("Compressed streaming of metaimage file requested. This is not supported. Reverting to nrrd.");
+      ext = ".nrrd";
     }
     this->CurrentFilename = filenameRoot + "_" + vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S") + ext;
     aFilename = this->CurrentFilename.c_str();
   }
   else
   {
+    if( vtkMetaImageSequenceIO::CanWriteFile(aFilename) && this->GetEnableFileCompression() )
+    {
+      // they've requested mhd/mha with compression, no can do, yet
+      LOG_WARNING("Compressed streaming of metaimage file requested. This is not supported. Reverting to nrrd.");
+      std::string filename(aFilename);
+      filename.replace(filename.end()-4, filename.end(), ".nrrd");
+    }
     this->CurrentFilename = aFilename;
   }
 
+  this->Writer = vtkSequenceIO::CreateSequenceHandlerForFile(aFilename);
+  this->Writer->SetUseCompression(this->EnableFileCompression);
+  this->Writer->SetTrackedFrameList(this->RecordedFrames);
   // Need to set the filename before finalizing header, because the pixel data file name depends on the file extension
   this->Writer->SetFileName(aFilename);
 
@@ -199,9 +220,10 @@ PlusStatus vtkVirtualDiscCapture::CloseFile(const char* aFilename)
   {
     this->WriteFrames(true);
   }
-
+  
   this->Writer->OverwriteNumberOfFramesInHeader(this->TotalFramesRecorded);
-  this->Writer->UpdateFieldInImageHeader("DimSize");
+  this->Writer->UpdateFieldInImageHeader( this->Writer->GetDimensionSizeString() );
+  this->Writer->UpdateFieldInImageHeader( this->Writer->GetDimensionKindsString() );
   this->Writer->FinalizeHeader();
 
   this->Writer->Close();
@@ -211,15 +233,6 @@ PlusStatus vtkVirtualDiscCapture::CloseFile(const char* aFilename)
   std::string filename = vtksys::SystemTools::GetFilenameWithoutExtension(fullPath); 
   std::string configFileName = path + "/" + filename + "_config.xml";
   PlusCommon::PrintXML(configFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
-
-  if( this->EnableFileCompression )
-  {
-    if( this->CompressFile() != PLUS_SUCCESS )
-    {
-      LOG_ERROR("Unable to compress file.");
-      return PLUS_FAIL;
-    }
-  }
 
   this->IsHeaderPrepared = false;
   this->TotalFramesRecorded = 0;
@@ -374,35 +387,6 @@ PlusStatus vtkVirtualDiscCapture::InternalUpdate()
   
   this->LastUpdateTime = vtkAccurateTimer::GetSystemTime();
   
-  return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-
-PlusStatus vtkVirtualDiscCapture::CompressFile()
-{
-  vtkSmartPointer<vtkMetaImageSequenceIO> reader = vtkSmartPointer<vtkMetaImageSequenceIO>::New();
-  std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(this->BaseFilename);
-  reader->SetFileName(fullPath.c_str());
-
-  LOG_DEBUG("Read input sequence metafile: " << fullPath ); 
-
-  if (reader->Read() != PLUS_SUCCESS)
-  {    
-    LOG_ERROR("Couldn't read sequence metafile: " <<  fullPath ); 
-    return PLUS_FAIL;
-  }  
-
-  // Now write to disc using compression
-  reader->SetUseCompression(true);
-  reader->SetFileName(fullPath.c_str());
-
-  if (reader->Write() != PLUS_SUCCESS)
-  {    
-    LOG_ERROR("Couldn't write sequence metafile: " <<  fullPath ); 
-    return PLUS_FAIL;
-  }
-
   return PLUS_SUCCESS;
 }
 
@@ -600,7 +584,7 @@ PlusStatus vtkVirtualDiscCapture::WriteFrames(bool force)
       this->StopRecording();
       return PLUS_FAIL;
     }
-    if( this->Writer->AppendImages() != PLUS_SUCCESS )
+    if( this->Writer->WriteImages() != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to append images. Stopping recording at timestamp: " << LastAlreadyRecordedFrameTimestamp );
       this->StopRecording();

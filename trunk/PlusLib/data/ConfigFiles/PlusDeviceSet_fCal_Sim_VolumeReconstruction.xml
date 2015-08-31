@@ -5,7 +5,7 @@
     <Device
       Id="TrackedVideoDevice"
       Type="SavedDataSource"
-      SequenceMetafile="fCal_Test_Calibration_3NWires_fCal2.0.mha"
+      SequenceFile="fCal_Test_Calibration_3NWires_fCal2.0.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE">
@@ -20,7 +20,7 @@
       Id="CaptureDevice"
       Type="VirtualDiscCapture"
       BaseFilename="RecordingTest.mha"
-      EnableCapturing="FALSE"
+      EnableCapturingOnStart="FALSE"
       RequestedFrameRate="30">
       <InputChannels>
         <InputChannel Id="TrackedVideoStream"/>

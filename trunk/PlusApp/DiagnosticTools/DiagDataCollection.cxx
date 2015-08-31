@@ -215,7 +215,7 @@ int main(int argc, char **argv)
       std::string outputVideoBufferSequenceFileName = vtkPlusConfig::GetInstance()->GetOutputPath(outputSequenceFileNamePrefix
         + "-" + (*acqChannelIt)->GetChannelId() + "-" + videoSource->GetSourceId() + ".mha" );
       LOG_INFO("Write video buffer to " << outputVideoBufferSequenceFileName);
-      videoSource->WriteToMetafile( outputVideoBufferSequenceFileName.c_str(), false);
+      videoSource->WriteToSequenceFile( outputVideoBufferSequenceFileName.c_str(), false);
     }
 
     // Tracker tools
@@ -270,7 +270,7 @@ int main(int argc, char **argv)
       std::string outputTrackerBufferSequenceFileName = vtkPlusConfig::GetInstance()->GetOutputPath(outputSequenceFileNamePrefix
         + "-" + (*acqChannelIt)->GetChannelId() + "-" + tool->GetSourceId() + ".mha" );
       LOG_INFO("Write tracker buffer to " << outputTrackerBufferSequenceFileName);
-      tool->WriteToMetafile( outputTrackerBufferSequenceFileName.c_str(), false);
+      tool->WriteToSequenceFile( outputTrackerBufferSequenceFileName.c_str(), false);
     }
 
     // Add info to data acq report

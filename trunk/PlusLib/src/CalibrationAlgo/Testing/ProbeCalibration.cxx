@@ -10,27 +10,26 @@ See License.txt for details.
 compares the results to a baseline
 */ 
 
+#include "FidPatternRecognition.h"
 #include "PlusConfigure.h"
 #include "PlusMath.h"
-#include "vtkProbeCalibrationAlgo.h"
-#include "vtkTransformRepository.h"
-#include "FidPatternRecognition.h"
-
-#include "vtkSmartPointer.h"
-#include "vtkCommand.h"
 #include "vtkCallbackCommand.h"
+#include "vtkCommand.h"
+#include "vtkMath.h"
+#include "vtkMatrix4x4.h"
+#include "vtkProbeCalibrationAlgo.h"
+#include "vtkSequenceIO.h"
+#include "vtkSmartPointer.h"
+#include "vtkTrackedFrameList.h"
+#include "vtkTransform.h"
+#include "vtkTransformRepository.h"
+#include "vtkTransformRepository.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx" 
 #include "vtksys/SystemTools.hxx"
-#include "vtkMatrix4x4.h"
-#include "vtkTransform.h"
-#include "vtkTransformRepository.h"
-#include "vtkMath.h"
-#include "vtkTrackedFrameList.h"
-
-#include <stdlib.h>
 #include <iostream>
+#include <stdlib.h>
 
 #ifndef _WIN32
 const double ERROR_THRESHOLD = LINUXTOLERANCEPERCENT;
@@ -123,7 +122,7 @@ int main (int argc, char* argv[])
   // Load and segment calibration image
   LOG_INFO("Read calibration sequence file..."); 
   vtkSmartPointer<vtkTrackedFrameList> calibrationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-  if (calibrationTrackedFrameList->ReadFromSequenceMetafile(inputCalibrationSeqMetafile.c_str()) != PLUS_SUCCESS)
+  if( vtkSequenceIO::Read(inputCalibrationSeqMetafile, calibrationTrackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Reading calibration images from '" << inputCalibrationSeqMetafile << "' failed!"); 
     return EXIT_FAILURE;
@@ -144,7 +143,7 @@ int main (int argc, char* argv[])
     // Load and segment validation image
     LOG_INFO("Read validation sequence file..."); 
     vtkSmartPointer<vtkTrackedFrameList> validationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-    if (validationTrackedFrameList->ReadFromSequenceMetafile(inputValidationSeqMetafile.c_str()) != PLUS_SUCCESS)
+    if( vtkSequenceIO::Read(inputValidationSeqMetafile, validationTrackedFrameList) != PLUS_SUCCESS )
     {
       LOG_ERROR("Reading validation images from '" << inputValidationSeqMetafile << "' failed!"); 
       return EXIT_FAILURE;
