@@ -1282,9 +1282,8 @@ PlusStatus vtkNrrdSequenceIO::UpdateFieldInImageHeader(const char* fieldName)
       std::ostringstream newLineStr; 
       newLineStr << name << ":" << (isKeyValue ? "=" : " ");
 
-      std::istringstream iss(GetCustomString(name.c_str()));
       std::vector<std::string> tokens;
-      std::copy(std::istream_iterator<std::string>(iss),std::istream_iterator<std::string>(),std::back_inserter(tokens));
+      PlusCommon::SplitStringIntoTokens(GetCustomString(name.c_str()), ' ', tokens);
 
       if(tokens.size() == 1)
       {
