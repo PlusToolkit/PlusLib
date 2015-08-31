@@ -7,10 +7,10 @@ See License.txt for details.
 #ifndef __IEEListener_h
 #define __IEEListener_h
 
-#include "vtkDataCollectionExport.h"
-
-#include "vtkObject.h"
 #include "StreamMgr.h"
+#include "vtkDataCollectionExport.h"
+#include "vtkObject.h"
+#include "vtkPlusLogger.h"
 
 class vtkDataCollectionExport vtkIEEListener : public vtkObject
 {
@@ -27,7 +27,7 @@ public:
     Connect to a streaming ie33 device
     \param callback the function to call when new data
   */
-  PlusStatus Connect(CLIENT_POSTSCANCONVERT_CALLBACK callback);
+  PlusStatus Connect(CLIENT_POSTSCANCONVERT_CALLBACK callback, vtkPlusLogger::LogLevelType logType = vtkPlusLogger::LOG_LEVEL_ERROR);
   /*!
     Disconnect from the ie33 device
   */
