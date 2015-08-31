@@ -451,17 +451,12 @@ std::string PlusCommon::GetPlusLibVersionString()
 //-------------------------------------------------------
 void PlusCommon::SplitStringIntoTokens(const std::string &s, char delim, std::vector<std::string> &elems)
 {
-#if defined(_MSC_VER) && _MSC_VER >= 1700
-  std::istringstream iss(s);
-  std::copy(std::istream_iterator<std::string>(iss),std::istream_iterator<std::string>(),std::back_inserter(elems));
-#else
   std::istringstream ss(s);
   std::string item;
   while (std::getline(ss, item, delim))
   {
     elems.push_back(item);
   }
-#endif
 }
 
 //-------------------------------------------------------
