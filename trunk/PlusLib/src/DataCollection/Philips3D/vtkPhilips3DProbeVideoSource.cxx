@@ -108,7 +108,7 @@ vtkStandardNewMacro(vtkPhilips3DProbeVideoSource);
 vtkPhilips3DProbeVideoSource::vtkPhilips3DProbeVideoSource()
 : Listener(NULL)
 , FrameNumber(0)
-, IPAddress("")
+, IPAddress(NULL)
 , Port(-1)
 , ForceZQuantize(false)
 , ResolutionFactor(2.5)
