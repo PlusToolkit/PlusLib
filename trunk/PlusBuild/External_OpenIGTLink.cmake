@@ -35,6 +35,7 @@ ELSE(OpenIGTLink_DIR)
   ExternalProject_Add( OpenIGTLink
     SOURCE_DIR "${PLUS_OpenIGTLink_SRC_DIR}"
     BINARY_DIR "${PLUS_OpenIGTLink_DIR}"
+    "${PLUSBUILD_EXTERNAL_PROJECT_CUSTOM_COMMANDS}"
     #--Download step--------------
     GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/openigtlink/OpenIGTLink.git"
     GIT_TAG "849b434b4b45a28e3955adf4ba1f3ececd51581e"

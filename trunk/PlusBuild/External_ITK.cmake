@@ -42,6 +42,7 @@ ELSE(ITK_DIR)
   ExternalProject_Add( itk
     SOURCE_DIR "${PLUS_ITK_SRC_DIR}"
     BINARY_DIR "${PLUS_ITK_DIR}"
+    "${PLUSBUILD_EXTERNAL_PROJECT_CUSTOM_COMMANDS}"
     #--Download step--------------
     GIT_REPOSITORY "${ITKv4_REPOSITORY}"
     GIT_TAG "${ITKv4_GIT_TAG}"

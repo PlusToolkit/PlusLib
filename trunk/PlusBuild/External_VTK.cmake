@@ -73,6 +73,7 @@ ELSE(VTK_DIR)
   ExternalProject_Add( vtk
     SOURCE_DIR "${PLUS_VTK_SRC_DIR}"
     BINARY_DIR "${PLUS_VTK_DIR}"
+    "${PLUSBUILD_EXTERNAL_PROJECT_CUSTOM_COMMANDS}"
     #--Download step--------------
     GIT_REPOSITORY "${GIT_PROTOCOL}://${VTK_GIT_REPOSITORY}"
     GIT_TAG ${VTK_GIT_TAG}

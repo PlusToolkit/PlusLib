@@ -18,47 +18,62 @@ IF( WIN32 )
   STRING(SUBSTRING ${CMAKE_BINARY_DIR} 0 2 CMAKE_BINARY_DRIVE_LETTER)
 ENDIF( WIN32)
 
-#-----------------------------------------------------------------------------
-# SVN - Let's check if a valid version of SVN is available
-#-----------------------------------------------------------------------------
-# Need subversion for the automatic update of the repository
-MARK_AS_ADVANCED(CLEAR Subversion_SVN_EXECUTABLE)
-FIND_FILE(Subversion_SVN_EXECUTABLE svn${CMAKE_EXECUTABLE_SUFFIX} 
-  PATHS 
+OPTION(PLUSBUILD_OFFLINE_BUILD "Build Plus without internet connection. All libraries must be downloaded and updated manually." OFF)
+MARK_AS_ADVANCED(PLUSBUILD_OFFLINE_BUILD)
+
+IF (PLUSBUILD_OFFLINE_BUILD)
+
+  # Set an empty download and update command for external projects
+  SET(PLUSBUILD_EXTERNAL_PROJECT_CUSTOM_COMMANDS DOWNLOAD_COMMAND "" UPDATE_COMMAND "" )
+
+ELSE(PLUSBUILD_OFFLINE_BUILD)
+
+  # Don't change the default download command
+  SET(PLUSBUILD_EXTERNAL_PROJECT_CUSTOM_COMMANDS)
+
+  #-----------------------------------------------------------------------------
+  # SVN - Let's check if a valid version of SVN is available
+  #-----------------------------------------------------------------------------
+  # Need subversion for the automatic update of the repository
+  MARK_AS_ADVANCED(CLEAR Subversion_SVN_EXECUTABLE)
+  FIND_FILE(Subversion_SVN_EXECUTABLE svn${CMAKE_EXECUTABLE_SUFFIX} 
+    PATHS 
     "c:/Program Files/TortoiseSVN/bin/"
     "c:/Program Files/SlikSvn/bin/"
-  )
-FIND_PACKAGE(Subversion REQUIRED)
+    )
+  FIND_PACKAGE(Subversion REQUIRED)
 
-#-----------------------------------------------------------------------------
-# ASSEMBLA - Set username and password for assembla 
-# Anonymous user name for Plus assembla server: https://subversion.assembla.com/svn/plus/
-#-----------------------------------------------------------------------------
-SET(PLUSBUILD_ASSEMBLA_USERNAME "perklab_anonymous" )
-SET(PLUSBUILD_ASSEMBLA_PASSWORD "anonymous" )
+  #-----------------------------------------------------------------------------
+  # ASSEMBLA - Set username and password for assembla 
+  # Anonymous user name for Plus assembla server: https://subversion.assembla.com/svn/plus/
+  #-----------------------------------------------------------------------------
+  SET(PLUSBUILD_ASSEMBLA_USERNAME "perklab_anonymous" )
+  SET(PLUSBUILD_ASSEMBLA_PASSWORD "anonymous" )
 
-#-----------------------------------------------------------------------------
-# GIT - Let's check if a valid version of GIT is available
-#-----------------------------------------------------------------------------
-# Need Git for the automatic update of the repository
+  #-----------------------------------------------------------------------------
+  # GIT - Let's check if a valid version of GIT is available
+  #-----------------------------------------------------------------------------
+  # Need Git for the automatic update of the repository
 
-OPTION(PLUSBUILD_USE_GIT_PROTOCOL "If behind a firewall turn this off to use http instead." ON)
+  OPTION(PLUSBUILD_USE_GIT_PROTOCOL "If behind a firewall turn this off to use http instead." ON)
 
-SET(GIT_PROTOCOL "git")
-IF(NOT PLUSBUILD_USE_GIT_PROTOCOL)
-  SET(GIT_PROTOCOL "http")
-ENDIF()
+  SET(GIT_PROTOCOL "git")
+  IF(NOT PLUSBUILD_USE_GIT_PROTOCOL)
+    SET(GIT_PROTOCOL "http")
+  ENDIF()
 
-MARK_AS_ADVANCED(CLEAR GIT_EXECUTABLE)
-FIND_FILE(GIT_EXECUTABLE git${CMAKE_EXECUTABLE_SUFFIX} 
-  PATHS 
-    "c:/Program Files/Git/bin/"
-    "c:/Program Files (x86)/Git/bin/"
-  )
-FIND_PACKAGE(Git)
-IF(NOT GIT_FOUND)
-  MESSAGE(FATAL_ERROR "error: Install Git and try to re-configure")
-ENDIF() 
+  MARK_AS_ADVANCED(CLEAR GIT_EXECUTABLE)
+  FIND_FILE(GIT_EXECUTABLE git${CMAKE_EXECUTABLE_SUFFIX} 
+    PATHS 
+      "c:/Program Files/Git/bin/"
+      "c:/Program Files (x86)/Git/bin/"
+    )
+  FIND_PACKAGE(Git)
+  IF(NOT GIT_FOUND)
+    MESSAGE(FATAL_ERROR "error: Install Git and try to re-configure")
+  ENDIF() 
+
+ENDIF (PLUSBUILD_OFFLINE_BUILD)
 
 #-----------------------------------------------------------------------------
 # Options to control build process
@@ -126,10 +141,12 @@ OPTION(PLUS_USE_ULTRASONIX_VIDEO "Provide support for the Ultrasonix ultrasound 
 SET (PLUS_ULTRASONIX_SDK_MAJOR_VERSION 5 CACHE STRING "Set Ultrasonix SDK major version (version: [major].[minor].[patch])")
 SET (PLUS_ULTRASONIX_SDK_MINOR_VERSION 7 CACHE STRING "Set Ultrasonix SDK minor version (version: [major].[minor].[patch])")
 SET (PLUS_ULTRASONIX_SDK_PATCH_VERSION 4 CACHE STRING "Set Ultrasonix SDK patch version (version: [major].[minor].[patch])")
-OPTION(PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer. " OFF)  
-IF (PLUS_TEST_ULTRASONIX)
-  SET (PLUS_TEST_ULTRASONIX_IP_ADDRESS "130.15.7.24" CACHE STRING "IP address of the Ultrasonix scanner that is used during testing")
-ENDIF()
+IF (PLUS_USE_ULTRASONIX_VIDEO)
+  OPTION(PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer. " OFF)  
+  IF (PLUS_TEST_ULTRASONIX)
+    SET (PLUS_TEST_ULTRASONIX_IP_ADDRESS "130.15.7.24" CACHE STRING "IP address of the Ultrasonix scanner that is used during testing")
+  ENDIF()
+ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 
 OPTION(PLUS_USE_BKPROFOCUS_VIDEO "Provide support for BK ProFocus ultrasound systems through the OEM (TCP/IP) interface" OFF)
 IF (PLUS_USE_BKPROFOCUS_VIDEO)
@@ -155,6 +172,9 @@ OPTION(PLUS_USE_CAPISTRANO_VIDEO "Provide support for the Capistrano Labs USB ul
 OPTION(PLUS_USE_INTERSON_VIDEO "Provide support for the Interson USB ultrasound probes" OFF)
 OPTION(PLUS_USE_INTERSONSDKCXX_VIDEO "Provide support for the Interson SDK 1.X with C++ Wrapper USB ultrasound probes" OFF)
 OPTION(PLUS_USE_TELEMED_VIDEO "Provide support for the Telemed ultrasound probes" OFF)
+IF (PLUS_USE_TELEMED_VIDEO)
+  OPTION(PLUS_TEST_TELEMED "Enable testing of acquisition from Telemed ultrasound systems. Enable this only if a Telemed device is connected to this computer. " OFF)  
+ENDIF (PLUS_USE_TELEMED_VIDEO)
 OPTION(PLUS_USE_THORLABS_VIDEO "Provide support for the ThorLabs Compact Spectrometers" OFF)
 
 # Tracking hardware
@@ -489,9 +509,9 @@ configure_file(
   ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.bat
   )
 configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.sh.in 
-        ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.sh
-        )
+  ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.sh.in 
+  ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.sh
+  )
 
 STRING(REPLACE "/" "\\" PLUSBUILD_BIN_DIR_WIN "${CMAKE_BINARY_DIR}") 
 configure_file(
@@ -499,6 +519,6 @@ configure_file(
   ${CMAKE_CURRENT_BINARY_DIR}/PlusBuildAndTest.bat
   )
 configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/PlusBuildAndTest.sh.in 
-        ${CMAKE_CURRENT_BINARY_DIR}/PlusBuildAndTest.sh
-        )
+  ${CMAKE_CURRENT_SOURCE_DIR}/PlusBuildAndTest.sh.in 
+  ${CMAKE_CURRENT_BINARY_DIR}/PlusBuildAndTest.sh
+  )
