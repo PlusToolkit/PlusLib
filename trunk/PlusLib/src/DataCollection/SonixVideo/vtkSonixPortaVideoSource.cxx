@@ -362,10 +362,6 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id, bool
       LOG_WARNING("Failed to retrieve pixel spacing from Porta");
     }
 
-    //portaL int portaGetPixelCoordinates(int index, int line, int sample, int& xOut, int& yOut, int bColor, int addAngle = 0);
-//portaL int portaGetUltrasoundCoordinates(int index, int x, int y, int& xOut, int& yOut, int bColor, int addAngle = 0);
-//portaL int portaGetROI(int index, int* xOut, int* yOut);
-
     int line=this->ProbeInformation->elements/2; // middle transducer element
     int sample=0; // transducer surface
     int currentTransducerOriginPixels[2]={-1,-1};
