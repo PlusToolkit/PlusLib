@@ -74,7 +74,13 @@ bool vtkPhilips3DProbeVideoSource::StreamCallback(_int64 id, SClient3DArray *ed,
     streamedImageData->SetSpacing(spacing);
     streamedImageData->SetExtent(0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1);
     streamedImageData->SetOrigin(origin);
+#if VTK_MAJOR_VERSION > 5
     streamedImageData->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+#else
+    streamedImageData->SetScalarTypeToUnsignedChar();
+    streamedImageData->SetNumberOfScalarComponents(1);
+    streamedImageData->AllocateScalars();
+#endif
 
     vtkPlusDataSource* videoSource(NULL);
     vtkPhilips3DProbeVideoSource::ActiveDevice->GetFirstVideoSource(videoSource);
