@@ -12,7 +12,12 @@ SET(CMAKE_MODULE_PATH
   ${CMAKE_CURRENT_SOURCE_DIR}/Modules
   ${CMAKE_MODULE_PATH}
   )
- 
+
+IF( WIN32 )
+  # Get the drive letter for windows scripts
+  STRING(SUBSTRING ${CMAKE_BINARY_DIR} 0 2 CMAKE_BINARY_DRIVE_LETTER)
+ENDIF( WIN32)
+
 #-----------------------------------------------------------------------------
 # SVN - Let's check if a valid version of SVN is available
 #-----------------------------------------------------------------------------
@@ -219,11 +224,6 @@ IF(PLUSBUILD_BUILD_PLUSAPP AND NOT PLUSBUILD_USE_3DSlicer)
     ENDIF()
 
     FIND_PACKAGE(Qt5Widgets QUIET)
-
-    #get_cmake_property(_variableNames VARIABLES)
-    #foreach (_variableName ${_variableNames})
-      #message(STATUS "${_variableName}=${${_variableName}}")
-    #endforeach()
 
     IF ( NOT Qt5Gui_FOUND )
       MESSAGE( FATAL_ERROR "This project requires Qt4 or Qt5 for building PlusApp. These components are missing. Please verify configuration by selecting QT_QMAKE_EXECUTABLE or turn off PLUSBUILD_BUILD_PLUSAPP option.")

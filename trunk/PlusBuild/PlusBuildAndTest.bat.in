@@ -9,6 +9,9 @@ REM if "%1" == "-N" goto nightly
 REM if "%1" == "-C" goto continuous
 REM if "%1" == "-I" goto individual
 
+@REM Switch to the correct drive
+${CMAKE_BINARY_DRIVE_LETTER}
+
 @REM Run PlusBuild tests 
 @REM Run PlusLib tests 
 cd "${CMAKE_CURRENT_BINARY_DIR}"
