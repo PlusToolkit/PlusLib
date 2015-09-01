@@ -365,7 +365,6 @@ PlusStatus vtkSonixPortaVideoSource::AddFrameToBuffer( void *param, int id, bool
     int line=this->ProbeInformation->elements/2; // middle transducer element
     int sample=0; // transducer surface
     int currentTransducerOriginPixels[2]={-1,-1};
-    //if (!this->Porta->getParamP("origin", currentTransducerOriginPixels))
     if (!this->Porta->getPixelCoordinates(this->DisplayIndex, line, sample, currentTransducerOriginPixels[0], currentTransducerOriginPixels[1], false))
     {
       LOG_WARNING("Failed to retrieve transducer origin parameter from Porta");
