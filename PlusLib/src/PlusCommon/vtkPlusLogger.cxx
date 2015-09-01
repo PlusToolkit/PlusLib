@@ -171,7 +171,12 @@ vtkPlusLogger* vtkPlusLogger::Instance()
       return m_pInstance;
     }
 
-    m_pInstance = new vtkPlusLogger; 
+    vtkPlusLogger* newLoggerInstance = new vtkPlusLogger;
+    // lock the instance even before making it available to make sure the instance is fully
+    // initialized before anybody uses it
+    PlusLockGuard<vtkRecursiveCriticalSection> critSectionGuard(newLoggerInstance->m_CriticalSection);
+    m_pInstance = newLoggerInstance;
+
     vtkPlusConfig::GetInstance(); // set the log file name from the XML config
     std::string strPlusLibVersion = std::string("Software version: ") + 
       PlusCommon::GetPlusLibVersionString(); 
