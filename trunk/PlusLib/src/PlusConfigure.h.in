@@ -111,7 +111,7 @@
 #define LINUXTOLERANCEPERCENT 8
 
 // Frequently needed STL includes
-#include <strstream>
+#include <sstream>
 #include <iostream>
 
 // Frequently needed VTK includes
