@@ -65,13 +65,18 @@ CONFIGURE_FILE(
 # --------------------------------------------------------------------------
 # Find SVN for revision information status and automatic update of the repository
 #
-FIND_PACKAGE(Subversion)
-IF(Subversion_FOUND)
-  Subversion_WC_INFO(${CMAKE_CURRENT_SOURCE_DIR} PLUSAPP_SVN_INFO)
-  MESSAGE(STATUS "Current revision is ${PLUSAPP_SVN_INFO_WC_REVISION}") 
-  SET(PLUSAPP_REVISION ${PLUSAPP_SVN_INFO_WC_REVISION})
-ENDIF(Subversion_FOUND) 
-SET( PLUSAPP_SVN_EXECUTABLE ${Subversion_SVN_EXECUTABLE} )
+
+IF (PLUSAPP_OFFLINE_BUILD)
+  SET(PLUSAPP_REVISION 0)
+ELSE(PLUSAPP_OFFLINE_BUILD)
+  FIND_PACKAGE(Subversion)
+  IF(Subversion_FOUND)
+    Subversion_WC_INFO(${CMAKE_CURRENT_SOURCE_DIR} PLUSAPP_SVN_INFO)
+    MESSAGE(STATUS "Current revision is ${PLUSAPP_SVN_INFO_WC_REVISION}") 
+    SET(PLUSAPP_REVISION ${PLUSAPP_SVN_INFO_WC_REVISION})
+  ENDIF(Subversion_FOUND) 
+  SET( PLUSAPP_SVN_EXECUTABLE ${Subversion_SVN_EXECUTABLE} )
+ENDIF(PLUSAPP_OFFLINE_BUILD)
 
 # Standard CMake option for building libraries shared or static by default.
 OPTION(BUILD_SHARED_LIBS
