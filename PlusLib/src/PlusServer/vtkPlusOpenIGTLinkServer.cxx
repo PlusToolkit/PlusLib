@@ -240,9 +240,17 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
       break;
     }
   }
-  // The requested channel ID is not found, try to find any channel in any device
   if( aChannel == NULL )
   {
+    // The requested channel ID is not found
+    if (self->GetOutputChannelId() && strlen(self->GetOutputChannelId())>0)
+    {
+      // the user explicitly requested a specific channel, but none was found by that name
+      // this is an error
+      LOG_ERROR("Unable to start data sending. OutputChannelId not found: "<<self->GetOutputChannelId());
+      return NULL;
+    }
+    // the user did not specify any channel, so just use the first channel that can be found in any device
     for( DeviceCollectionIterator it = aCollection.begin(); it != aCollection.end(); ++it )
     {
       aDevice = *it;
