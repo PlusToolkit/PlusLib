@@ -43,15 +43,18 @@ OPTION(BUILD_TESTING
 # Testing
 #
 
-# Need subversion for the automatic update of the repository
-find_package(Subversion)
-IF(Subversion_FOUND)
-  Subversion_WC_INFO(${CMAKE_CURRENT_SOURCE_DIR} PLUSLIB_SVN_INFO)
-  MESSAGE(STATUS "Current revision is ${PLUSLIB_SVN_INFO_WC_REVISION}") 
-  SET(PLUSLIB_REVISION ${PLUSLIB_SVN_INFO_WC_REVISION})
-ENDIF(Subversion_FOUND)
-
-SET( PLUSLIB_SVN_EXECUTABLE ${Subversion_SVN_EXECUTABLE} )
+IF (PLUS_OFFLINE_BUILD)
+  SET(PLUSLIB_REVISION "x")
+ELSE(PLUS_OFFLINE_BUILD)
+  # Need subversion for the automatic update of the repository
+  find_package(Subversion)
+  IF(Subversion_FOUND)
+    Subversion_WC_INFO(${CMAKE_CURRENT_SOURCE_DIR} PLUSLIB_SVN_INFO)
+    MESSAGE(STATUS "Current revision is ${PLUSLIB_SVN_INFO_WC_REVISION}") 
+    SET(PLUSLIB_REVISION ${PLUSLIB_SVN_INFO_WC_REVISION})
+  ENDIF(Subversion_FOUND)
+  SET( PLUSLIB_SVN_EXECUTABLE ${Subversion_SVN_EXECUTABLE} )
+ENDIF(PLUS_OFFLINE_BUILD)
 
 INCLUDE(CTest)
 
