@@ -27,8 +27,13 @@ int main(int argc, char **argv)
   int numberOfFailures(0); 
   std::string inputConfigFileName;
   double inputAcqTimeLength(20);
+#if VTK_MAJOR_VERSION > 5
   std::string outputTrackerBufferSequenceFileName("TrackerBufferMetafile.nrrd"); 
   std::string outputVideoBufferSequenceFileName("VideoBufferMetafile.nrrd"); 
+#else
+  std::string outputTrackerBufferSequenceFileName("TrackerBufferMetafile.mha"); 
+  std::string outputVideoBufferSequenceFileName("VideoBufferMetafile.mha"); 
+#endif
   std::string inputVideoBufferMetafile;
   std::string inputTrackerBufferMetafile;
   bool outputCompressed(true);
