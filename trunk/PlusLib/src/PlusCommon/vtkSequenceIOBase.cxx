@@ -249,10 +249,10 @@ PlusStatus vtkSequenceIOBase::Close()
   {
     // Rename image to final filename (header+data file)
     std::string pixFullPath;
-    if( !vtksys::SystemTools::FileIsFullPath(this->PixelDataFileName) )
+    if( !vtksys::SystemTools::FileIsFullPath(this->PixelDataFileName.c_str()) )
     {
       std::vector<std::string> pathElements;
-      vtksys::SystemTools::SplitPath(headerFullPath, pathElements);
+      vtksys::SystemTools::SplitPath(headerFullPath.c_str(), pathElements);
       pathElements.erase(pathElements.end()-1);
       pathElements.push_back(this->PixelDataFileName);
       pixFullPath = vtksys::SystemTools::JoinPath(pathElements);

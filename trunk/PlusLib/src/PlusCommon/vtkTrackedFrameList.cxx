@@ -9,7 +9,9 @@
 #include "vtkImageData.h"
 #include "vtkMatrix4x4.h"
 #include "vtkMetaImageSequenceIO.h"
+#if VTK_MAJOR_VERSION > 5
 #include "vtkNrrdSequenceIO.h"
+#endif
 #include "vtkObjectFactory.h"
 #include "vtkTrackedFrameList.h" 
 #include "vtkTransformRepository.h"
@@ -480,6 +482,7 @@ PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const std::string& trac
   return PLUS_SUCCESS;
 }
 
+#if VTK_MAJOR_VERSION > 5
 //----------------------------------------------------------------------------
 PlusStatus vtkTrackedFrameList::SaveToNrrdFile(const std::string& filename, US_IMAGE_ORIENTATION orientationInFile /*= US_IMG_ORIENT_MF*/, bool useCompression /*= true*/, bool enableImageDataWrite /*= true*/)
 {
@@ -522,6 +525,7 @@ PlusStatus vtkTrackedFrameList::ReadFromNrrdFile(const std::string& trackedSeque
   }
   return PLUS_SUCCESS;
 }
+#endif
 
 //-----------------------------------------------------------------------------
 PlusCommon::VTKScalarPixelType vtkTrackedFrameList::GetPixelType()
