@@ -78,38 +78,40 @@ ADD_TEST(EditSequenceFileTrimCompareToBaselineTest
 SET_TESTS_PROPERTIES( EditSequenceFileTrimCompareToBaselineTest PROPERTIES DEPENDS EditSequenceFileTrim )
 
 #--------------------------------------------------------------------------------------------
-ADD_TEST(NAME EditSequenceFileReadWriteNrrd
-  COMMAND $<TARGET_FILE:EditSequenceFile>
-  --source-seq-file=${TestDataDir}/NrrdSample.nrrd 
-  --output-seq-file=NrrdSample.nrrd 
-  --use-compression
-  --verbose=3
-  )
-SET_TESTS_PROPERTIES( EditSequenceFileReadWriteNrrd PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+IF (VTK_MAJOR_VERSION GREATER 5)
+  ADD_TEST(NAME EditSequenceFileReadWriteNrrd
+    COMMAND $<TARGET_FILE:EditSequenceFile>
+    --source-seq-file=${TestDataDir}/NrrdSample.nrrd 
+    --output-seq-file=NrrdSample.nrrd 
+    --use-compression
+    --verbose=3
+    )
+  SET_TESTS_PROPERTIES( EditSequenceFileReadWriteNrrd PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-ADD_TEST(EditSequenceFileReadWriteNrrdCompareToBaselineTest
-  ${CMAKE_COMMAND} -E compare_files 
-   ${TEST_OUTPUT_PATH}/NrrdSample.nrrd
-   ${TestDataDir}/NrrdSample.nrrd
-  )
-SET_TESTS_PROPERTIES( EditSequenceFileReadWriteNrrdCompareToBaselineTest PROPERTIES DEPENDS EditSequenceFileReadWriteNrrd )
+  ADD_TEST(EditSequenceFileReadWriteNrrdCompareToBaselineTest
+     ${CMAKE_COMMAND} -E compare_files 
+     ${TEST_OUTPUT_PATH}/NrrdSample.nrrd
+     ${TestDataDir}/NrrdSample.nrrd
+    )
+  SET_TESTS_PROPERTIES( EditSequenceFileReadWriteNrrdCompareToBaselineTest PROPERTIES DEPENDS EditSequenceFileReadWriteNrrd )
 
-#--------------------------------------------------------------------------------------------
-ADD_TEST(NAME EditSequenceFileReadWriteColorNrrd
-  COMMAND $<TARGET_FILE:EditSequenceFile>
-  --source-seq-file=${TestDataDir}/ColorNrrdSample.nrrd 
-  --output-seq-file=ColorNrrdSample.nrrd 
-  --use-compression
-  --verbose=3
-  )
-SET_TESTS_PROPERTIES( EditSequenceFileReadWriteColorNrrd PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  #--------------------------------------------------------------------------------------------
+  ADD_TEST(NAME EditSequenceFileReadWriteColorNrrd
+    COMMAND $<TARGET_FILE:EditSequenceFile>
+    --source-seq-file=${TestDataDir}/ColorNrrdSample.nrrd 
+    --output-seq-file=ColorNrrdSample.nrrd 
+    --use-compression
+    --verbose=3
+    )
+  SET_TESTS_PROPERTIES( EditSequenceFileReadWriteColorNrrd PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-ADD_TEST(EditSequenceFileReadWriteColorNrrdCompareToBaselineTest
-  ${CMAKE_COMMAND} -E compare_files 
-   ${TEST_OUTPUT_PATH}/ColorNrrdSample.nrrd
-   ${TestDataDir}/ColorNrrdSample.nrrd
-  )
-SET_TESTS_PROPERTIES( EditSequenceFileReadWriteColorNrrdCompareToBaselineTest PROPERTIES DEPENDS EditSequenceFileReadWriteColorNrrd )
+  ADD_TEST(EditSequenceFileReadWriteColorNrrdCompareToBaselineTest
+     ${CMAKE_COMMAND} -E compare_files 
+     ${TEST_OUTPUT_PATH}/ColorNrrdSample.nrrd
+     ${TestDataDir}/ColorNrrdSample.nrrd
+    )
+  SET_TESTS_PROPERTIES( EditSequenceFileReadWriteColorNrrdCompareToBaselineTest PROPERTIES DEPENDS EditSequenceFileReadWriteColorNrrd )
+ENDIF( VTK_MAJOR_VERSION GREATER 5)
 
 #--------------------------------------------------------------------------------------------
 ADD_TEST(NAME EditSequenceFileFillImageRectangle
