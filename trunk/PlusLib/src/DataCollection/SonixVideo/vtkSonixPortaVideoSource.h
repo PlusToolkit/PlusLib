@@ -132,17 +132,6 @@ class vtkDataCollectionExport vtkSonixPortaVideoSource : public vtkPlusDevice {
   /*! Get PCI initialization parameter */
   vtkGetMacro(Pci, int);
 
-  /*! Set HighVoltage initialization parameter */
-  vtkSetMacro(HighVoltage, int);
-  /*! Get HighVoltage initialization parameter */
-  vtkGetMacro(HighVoltage, int);
-
-  /*! Set Channels initialization parameter */
-  vtkSetMacro(Channels, int);
-  /*! Get Channels initialization parameter */
-  vtkGetMacro(Channels, int);
-
-
   /*! Get/Set the look-up table path name */
   vtkSetStringMacro(PortaLicensePath); 
   vtkGetStringMacro(PortaLicensePath); 
@@ -171,43 +160,45 @@ class vtkDataCollectionExport vtkSonixPortaVideoSource : public vtkPlusDevice {
   PlusStatus SetFramePerVolume(int aFramePerVolume);
   /*! Get the number of frames per volume */
   PlusStatus GetFramePerVolume(int& aFramePerVolume);
-  
+
   /*! Set the number of frames per volume */
   PlusStatus SetStepPerFrame(int aStepPerFrame);
   /*! Get the number of frames per volume */
   PlusStatus GetStepPerFrame(int& aStepPerFrame);
-  
-  void SetImagingMode(int mode){ImagingMode = mode;};
-  void GetImagingMode(int & mode){mode = ImagingMode;};
+
+  /*! Set field of view by adjusting the motor range (in degrees) */
+  PlusStatus SetMotorRotationRangeDeg(double fovDeg);
+  /*! Get field of view by adjusting the motor range (in degrees) */
+  PlusStatus GetMotorRotationRangeDeg(double& fovDeg);
+
+  vtkSetMacro(ImagingMode, int);
+  vtkGetMacro(ImagingMode, int);
+
+  vtkSetMacro(PortaBModeWidth, int);
+  vtkGetMacro(PortaBModeWidth, int);
+
+  vtkSetMacro(PortaBModeHeight, int);
+  vtkGetMacro(PortaBModeHeight, int);
   
   /*! set the CineSize, defaults to 256MB, size in bytes */
   void SetPortaCineSize( int size );
 
-  /*! Set the start position */
-  PlusStatus SetPortaMotorStartPosition(int aMotorStartPosition);
-  /*! Get the Gain (%) of B-mode ultrasound; valid range: 0-100 */
-  PlusStatus GetPortaMotorStartPosition(int& aMotorStartPosition);
-
-  /*! Set the start position */
-  void SetPortaMotorStartPosition( double v );
-  
-  /*! Return the start position */
-  double GetPortaMotorStartPosition();
-  
-  /*! Go to the start position */
-  double GoToPortaMotorStartPosition();
-  
-  /*! Moves the motor a certain angle from the home position */
-  double GoToPosition( double angle );
-  
-  /*! Moves the motor clockwise or counter-clockwise by one half-step. */
-  double StepPortaMotor( bool cw, int steps );
-  
-  /*! Return the current motor position */
-  double GetPortaMotorPosition();
-
   /*! Return current frame rate as reported by Porta */
   int GetPortaFrameRate();
+
+  /*! Set clip rectangle origin and size according to the ROI provided by the ultrasound system */
+  vtkSetMacro(AutoClipEnabled, bool);
+  vtkGetMacro(AutoClipEnabled, bool);
+
+  /*!
+    If non-NULL then ImageToTransducer transform is added as a custom field to the image data with the specified name.
+    The Transducer coordinate system origin is in the center of the transducer crystal array,
+    x axis direction is towards marked side, y axis direction is towards sound propagation direction,
+    and z direction is cross product of x and y, unit is mm. Elevational pixel spacing is set as the mean of the
+    lateral and axial pixel spacing.
+  */
+  vtkGetStringMacro(ImageToTransducerTransformName);
+  vtkSetStringMacro(ImageToTransducerTransformName);
 
   /*! Verify the device is correctly configured */
   virtual PlusStatus NotifyConfigured();
@@ -218,7 +209,6 @@ protected:
 
   /*! Connect to device */
   virtual PlusStatus InternalConnect();
-
 
   /*! Disconnect from device */
   virtual PlusStatus InternalDisconnect();
@@ -235,6 +225,7 @@ protected:
   
   /*! Pointer to the hardware. Only required for SDK versions prior to 6.0 */  
   porta* Porta;
+  bool PortaConnected;
 
   /*! Imaging parameters */
   int Depth;
@@ -243,16 +234,30 @@ protected:
   int Zoom;   
 
   int ImagingMode;
-  int Timeout; 
 
   /*! Porta initialization parameters */
   int Usm;
   int Pci;
-  int HighVoltage;
-  int Channels;
   
+  /*!
+    Porta can provide output on multiple virtual displays.
+    This index identifies the one that this device uses.
+  */
+  int DisplayIndex;
+
+  /*! Indicates that current depth, spacing, transducer origin has to be queried */
+  bool ImageGeometryChanged;
+
+  double CurrentDepthMm;
+  double CurrentPixelSpacingMm[2];
+  int CurrentTransducerOriginPixels[2];
+
+  bool AutoClipEnabled;
+  
+  char* ImageToTransducerTransformName;
+
   /*! for internal use only */
-  PlusStatus AddFrameToBuffer( void *param, int id );
+  PlusStatus AddFrameToBuffer( void *param, int id, bool motorRotationCcw, int motorStepCount );
 
   /*! For internal use only */
   PlusStatus SetParamValue(char* paramId, int paramValue, int &validatedParamValue);
@@ -311,32 +316,35 @@ private:
   /*! Size of the Cine buffer */
   int PortaCineSize;
     
-  /*! the number of frames that will acquired in one sweep of the motor */
+  /*! The number of frames that will acquired in one sweep of the motor. Controls the volume's field of view on SDK-5.x. */
   int FramePerVolume;
   
-  /*!  The number of steps the motor will move while acuqiring a single frame */
+  /*! Controls the volume field of view on SDK-6.x. */
+  double MotorRotationRangeDeg;
+
+  /*!  The number of steps the motor will move while acuqiring a single frame. Controls the speed. */
   int StepPerFrame;
 
   /*! Probe information */
   probeInfo* ProbeInformation;
 
-  /*! Motor rotation per step (in degrees) */
+  /*! Motor rotation per step (in degrees). Computed from probe descriptor. */
   double MotorRotationPerStepDeg;
+
+  /*! Motor rotation start angle (in degrees). Computed from probe descriptor and number of frames per volume. */
+  double MotorRotationStartAngleDeg;
 
   /*! Set to false after first call to AddFramToBuffer */
   bool FirstCallToAddFrameToBuffer;
 
-  /*! Initial angle of the motor where it is positioned at the edge of the user defined field of view */
-  double StartMotorAngle;
-
-  /*! Current angle of the motor */
-  double CurrentMotorAngle;
-
   /*! Index keeping track of which frame belongs to which volume */
   int VolumeIndex;
 
-  /*! Keeping track in which direction the probe moves */
-  bool IncrementVolumeIndexClockwise;
+  /*! Index keeping track of number of frames in the current volume. */
+  int FrameIndexInVolume;
+
+  /*!  Last motor rotation direction. Stored to detect when the motor turns back and starts a new volume. */
+  bool LastRotationCcw;
 
   unsigned char* ImageBuffer;
 };
