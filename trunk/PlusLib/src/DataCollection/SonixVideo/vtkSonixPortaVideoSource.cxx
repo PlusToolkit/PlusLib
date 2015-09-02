@@ -568,7 +568,7 @@ PlusStatus vtkSonixPortaVideoSource::InternalConnect()
   // running prior to the call to portaInitMode, the function will try to restart
   // imaging at the end of the call, but the custom displays are not initialized
   // yet - Ali B, Apr 2014
-  int isRunning = portaIsImaging();
+  int isRunning = this->Porta->isImaging();
   if (isRunning)
   {
       this->Porta->stopImage();
