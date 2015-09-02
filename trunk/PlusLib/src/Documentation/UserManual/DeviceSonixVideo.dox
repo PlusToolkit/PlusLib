@@ -97,9 +97,9 @@ The calibration remains valid even if the imaging depth is changed.
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_L14-5.xml"
 
-\section SonixVideoExampleConfigFilePorta Example configuration file for B-mode acquisition using Porta interface
+\section SonixVideoExampleConfigFilePorta Example configuration file for 3D B-mode acquisition by a motorized probe using Porta interface
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_L14-5_Porta.xml"
+\include "data/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_4DL14-5_Porta_calibrated.xml"
 
 \section SonixVideoExampleConfigFileRf Example configuration file for dual B-mode and RF-mode acquisition using Ulterius interface
 
