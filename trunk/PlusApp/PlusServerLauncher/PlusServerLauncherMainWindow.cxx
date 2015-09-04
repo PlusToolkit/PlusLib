@@ -150,7 +150,11 @@ bool PlusServerLauncherMainWindow::startServer(const QString& configFilePath)
   connect(m_CurrentServerInstance, SIGNAL(readyReadStandardError()), this, SLOT(stdErrMsgReceived()));
   connect(m_CurrentServerInstance, SIGNAL(error(QProcess::ProcessError)), this, SLOT(errorReceived(QProcess::ProcessError)));
   connect(m_CurrentServerInstance, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(serverExecutableFinished(int, QProcess::ExitStatus)));
+#if QT_VERSION >> 16 == 4
+  QString cmdLine = QString("\"%1\" --config-file=\"%2\" --verbose=%3").arg(plusServerExecutable.c_str()).arg(configFilePath).arg(m_ComboBox_LogLevel->itemData(m_ComboBox_LogLevel->currentIndex()).toInt());
+#else if QT_VERSION >> 16 == 5
   QString cmdLine = QString("\"%1\" --config-file=\"%2\" --verbose=%3").arg(plusServerExecutable.c_str()).arg(configFilePath).arg(m_ComboBox_LogLevel->currentData().toInt());
+#endif
   LOG_INFO("Server process command line: "<<cmdLine.toLatin1().constData());
   m_CurrentServerInstance->start(cmdLine);
   m_CurrentServerInstance->waitForFinished(500);
