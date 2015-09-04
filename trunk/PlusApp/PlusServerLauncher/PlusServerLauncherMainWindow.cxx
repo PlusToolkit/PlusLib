@@ -14,6 +14,7 @@
 #include "vtkTransformRepository.h"
 #include <QIcon>
 #include <QKeyEvent>
+#include <QComboBox>
 #include <QtNetwork/QHostAddress>
 #include <QtNetwork/QHostInfo>
 #include <QtNetwork/QNetworkInterface>
@@ -44,12 +45,17 @@ PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent, Qt::
   // (it should be enough, as all the messages are available in log files anyway)
   statusIcon->SetMaxMessageCount(3000);
 
+  // Put the status icon in a frame with the log level selector
+  QFrame* frame = new QFrame();
+  QHBoxLayout* hboxLayout = new QHBoxLayout(frame);
+  hboxLayout->setDirection(QHBoxLayout::RightToLeft);
+
   // Insert widgets into placeholders
   QGridLayout* mainGrid = new QGridLayout(this);
   mainGrid->setMargin(4);
-  mainGrid->setSpacing(4);
   mainGrid->addWidget(m_DeviceSetSelectorWidget, 0, 0);
-  mainGrid->addWidget(statusIcon, 1, 0, Qt::AlignRight);
+  hboxLayout->addWidget(statusIcon);
+  mainGrid->addWidget(frame, 2, 0);
   this->setLayout(mainGrid);
 
   // Log basic info (Plus version, supported devices)
@@ -60,6 +66,19 @@ PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent, Qt::
   std::ostringstream supportedDevices; 
   deviceFactory->PrintAvailableDevices(supportedDevices, vtkIndent()); 
   LOG_INFO(supportedDevices.str());
+
+  this->m_ComboBox_LogLevel = new QComboBox();
+  this->m_ComboBox_LogLevel->addItem("Error", QVariant(vtkPlusLogger::LOG_LEVEL_ERROR));
+  this->m_ComboBox_LogLevel->addItem("Warning", QVariant(vtkPlusLogger::LOG_LEVEL_WARNING));
+  this->m_ComboBox_LogLevel->addItem("Info", QVariant(vtkPlusLogger::LOG_LEVEL_INFO));
+  this->m_ComboBox_LogLevel->addItem("Debug", QVariant(vtkPlusLogger::LOG_LEVEL_DEBUG));
+  this->m_ComboBox_LogLevel->addItem("Trace", QVariant(vtkPlusLogger::LOG_LEVEL_TRACE));
+  hboxLayout->addWidget(this->m_ComboBox_LogLevel);
+  this->m_ComboBox_LogLevel->setCurrentIndex(vtkPlusLogger::LOG_LEVEL_WARNING);
+
+  QLabel* logLevelLabel = new QLabel("PlusServer Log Level: ");
+  hboxLayout->addWidget(logLevelLabel);
+  hboxLayout->addStretch(1);
 
   if (autoConnect)
   {
@@ -131,7 +150,7 @@ bool PlusServerLauncherMainWindow::startServer(const QString& configFilePath)
   connect(m_CurrentServerInstance, SIGNAL(readyReadStandardError()), this, SLOT(stdErrMsgReceived()));
   connect(m_CurrentServerInstance, SIGNAL(error(QProcess::ProcessError)), this, SLOT(errorReceived(QProcess::ProcessError)));
   connect(m_CurrentServerInstance, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(serverExecutableFinished(int, QProcess::ExitStatus)));
-  QString cmdLine = QString("\"%1\" --config-file=\"%2\" --verbose=%3").arg(plusServerExecutable.c_str()).arg(configFilePath).arg(vtkPlusLogger::Instance()->GetLogLevel());
+  QString cmdLine = QString("\"%1\" --config-file=\"%2\" --verbose=%3").arg(plusServerExecutable.c_str()).arg(configFilePath).arg(m_ComboBox_LogLevel->currentData().toInt());
   LOG_INFO("Server process command line: "<<cmdLine.toLatin1().constData());
   m_CurrentServerInstance->start(cmdLine);
   m_CurrentServerInstance->waitForFinished(500);
@@ -140,6 +159,7 @@ bool PlusServerLauncherMainWindow::startServer(const QString& configFilePath)
   if( m_CurrentServerInstance && m_CurrentServerInstance->state() == QProcess::Running )
   {
     LOG_INFO("Server process started successfully");
+    m_ComboBox_LogLevel->setEnabled(false);
     return true;
   }
   else
@@ -186,6 +206,7 @@ bool PlusServerLauncherMainWindow::stopServer()
       }
     }
     LOG_INFO("Server process stopped successfully");
+    m_ComboBox_LogLevel->setEnabled(true);
   }
   delete m_CurrentServerInstance;
   m_CurrentServerInstance = NULL;

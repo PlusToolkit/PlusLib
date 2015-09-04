@@ -16,6 +16,8 @@ class DeviceSetSelectorWidget;
 class vtkPlusOpenIGTLinkServer;
 class vtkDataCollector;
 class vtkTransformRepository;
+class QComboBox;
+class QWidget;
 
 //-----------------------------------------------------------------------------
 
@@ -69,6 +71,9 @@ protected:
 
   /*! Device set selector widget */
   DeviceSetSelectorWidget* m_DeviceSetSelectorWidget;
+
+  /*! Combo box for holding the desired log level */
+  QComboBox* m_ComboBox_LogLevel;
 
   /*! PlusServer instance that is responsible for all data collection and network transfer */
   QProcess* m_CurrentServerInstance;
