@@ -74,7 +74,14 @@ PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent, Qt::
   this->m_ComboBox_LogLevel->addItem("Debug", QVariant(vtkPlusLogger::LOG_LEVEL_DEBUG));
   this->m_ComboBox_LogLevel->addItem("Trace", QVariant(vtkPlusLogger::LOG_LEVEL_TRACE));
   hboxLayout->addWidget(this->m_ComboBox_LogLevel);
-  this->m_ComboBox_LogLevel->setCurrentIndex(vtkPlusLogger::LOG_LEVEL_WARNING);
+  if( autoConnect )
+  {
+    this->m_ComboBox_LogLevel->setCurrentIndex(this->m_ComboBox_LogLevel->findData(QVariant(vtkPlusLogger::Instance()->GetLogLevel())));
+  }
+  else
+  {
+    this->m_ComboBox_LogLevel->setCurrentIndex(this->m_ComboBox_LogLevel->findData(QVariant(vtkPlusLogger::LOG_LEVEL_INFO)));
+  }
 
   QLabel* logLevelLabel = new QLabel("PlusServer Log Level: ");
   hboxLayout->addWidget(logLevelLabel);
