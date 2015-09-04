@@ -58,7 +58,8 @@ public:
   double FrameScalarIncrement; 
   int FrameScalarDecimalDigits; 
   vtkMatrix4x4* FrameTransformStart; 
-  vtkMatrix4x4* FrameTransformIncrement; 
+  vtkMatrix4x4* FrameTransformIncrement;
+  std::string FrameTransformIndexFieldName;
 }; 
 
 PlusStatus TrimSequenceFile( vtkTrackedFrameList* trackedFrameList, int firstFrameIndex, int lastFrameIndex ); 
@@ -108,6 +109,8 @@ int main(int argc, char **argv)
   std::string strFrameTransformIncrement; // Frame transform increment 4x4 transform matrix
   vtkSmartPointer<vtkMatrix4x4> frameTransformIncrement = vtkSmartPointer<vtkMatrix4x4>::New();  // Frame transform increment 4x4 transform matrix
 
+  std::string strFrameTransformIndexFieldName;
+
   std::string strUpdatedReferenceTransformName; 
 
   std::string transformNamesToAdd;  // Name of the transform to add to each frame
@@ -147,7 +150,8 @@ int main(int argc, char **argv)
   args.AddArgument("--frame-scalar-decimal-digits", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frameScalarDecimalDigits, "Number of digits saved for frame scalar field value into sequence file (Default: 5)");  
 
   args.AddArgument("--frame-transform-start", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strFrameTransformStart, "Frame transform field starting 4x4 transform matrix (Default: identity)");  
-  args.AddArgument("--frame-transform-increment", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strFrameTransformIncrement, "Frame transform increment 4x4 transform matrix (Default: identity)");  
+  args.AddArgument("--frame-transform-increment", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strFrameTransformIncrement, "Frame transform increment 4x4 transform matrix (Default: identity)");
+  args.AddArgument("--frame-transform-index-field-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strFrameTransformIndexFieldName, "If specified then increment is applied as many times as the value of this field");
  
   args.AddArgument("--update-reference-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strUpdatedReferenceTransformName, "Set the reference transform name to update old files by changing all ToolToReference transforms to ToolToTracker transform.");  
  
@@ -395,6 +399,7 @@ int main(int argc, char **argv)
       fieldUpdate.FrameScalarStart = frameScalarStart; 
       fieldUpdate.FrameTransformStart = frameTransformStart; 
       fieldUpdate.FrameTransformIncrement = frameTransformIncrement; 
+      fieldUpdate.FrameTransformIndexFieldName = strFrameTransformIndexFieldName;
 
       if ( UpdateFrameFieldValue( fieldUpdate ) != PLUS_SUCCESS )
       {
@@ -762,17 +767,40 @@ PlusStatus UpdateFrameFieldValue( FrameFieldUpdate& fieldUpdate )
       { // Update it as a transform variable 
 
         double transformMatrix[16]={0}; 
-        vtkMatrix4x4::DeepCopy(transformMatrix, frameTransform->GetMatrix()); 
+        if (fieldUpdate.FrameTransformIndexFieldName.empty())
+        {
+          vtkMatrix4x4::DeepCopy(transformMatrix, frameTransform->GetMatrix());
+        }
+        else
+        {
+          const char* frameIndexStr = trackedFrame->GetCustomFrameField(fieldUpdate.FrameTransformIndexFieldName.c_str());
+          int frameIndex = 0;
+          if (PlusCommon::StringToInt<int>(frameIndexStr, frameIndex)!=PLUS_SUCCESS)
+          {
+            LOG_ERROR("Cannot retrieve frame index from value "<<frameIndexStr);
+          }
+          vtkSmartPointer<vtkMatrix4x4> cumulativeTransform = vtkSmartPointer<vtkMatrix4x4>::New();
+          cumulativeTransform->DeepCopy(fieldUpdate.FrameTransformStart);
+          for (int i=0; i<frameIndex; i++)
+          {
+            vtkMatrix4x4::Multiply4x4(fieldUpdate.FrameTransformIncrement, cumulativeTransform, cumulativeTransform);
+          }
+          vtkMatrix4x4::DeepCopy(transformMatrix, cumulativeTransform);
+
+        }
+
         std::ostringstream strTransform; 
         strTransform  << std::fixed << std::setprecision(fieldUpdate.FrameScalarDecimalDigits) 
           << transformMatrix[0]  << " " << transformMatrix[1]  << " " << transformMatrix[2]  << " " << transformMatrix[3]  << " " 
           << transformMatrix[4]  << " " << transformMatrix[5]  << " " << transformMatrix[6]  << " " << transformMatrix[7]  << " " 
           << transformMatrix[8]  << " " << transformMatrix[9]  << " " << transformMatrix[10] << " " << transformMatrix[11] << " " 
           << transformMatrix[12] << " " << transformMatrix[13] << " " << transformMatrix[14] << " " << transformMatrix[15] << " "; 
-
         trackedFrame->SetCustomFrameField(fieldName.c_str(), strTransform.str().c_str() ); 
         
-        frameTransform->Concatenate(fieldUpdate.FrameTransformIncrement); 
+        if (fieldUpdate.FrameTransformIndexFieldName.empty())
+        {
+          frameTransform->Concatenate(fieldUpdate.FrameTransformIncrement);
+        }
 
       }
       else // Update only as a string value 
