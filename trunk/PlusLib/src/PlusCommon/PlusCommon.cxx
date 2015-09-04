@@ -216,8 +216,10 @@ PlusStatus PlusCommon::CreateTemporaryFilename( std::string& aString, const std:
     aString = candidateFilename;
     return PLUS_SUCCESS;
 #else
-    char candidateFilenameBuffer[L_tmpnam]="";
-    char* candidateFilename = tmpnam(candidateFilenameBuffer);
+    char candidateFilenameBuffer[32];
+    memset(candidateFilenameBuffer, 0, sizeof(candidateFilenameBuffer));
+    strncpy(candidateFilenameBuffer, "/tmp/plusTmpFile-XXXXXX", 23);
+    char* candidateFilename = mktemp(candidateFilenameBuffer);
 
     if( vtksys::SystemTools::FileExists(candidateFilename) )
     {
