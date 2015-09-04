@@ -14,9 +14,9 @@ This device is not included in any of the standard packages, as it requires acce
 
 - \ref PackagePhilips
 
-- This device is not included in any of the standard packages, as it requires license from BK.
-- If the license is obtained from BK then Plus have to be built with PLUS_USE_Philips_VIDEO and optionally with PLUS_USE_Philips_CAMERALINK configuration options enabled as described at https://www.assembla.com/spaces/plus/wiki/Windows_Build_Instructions.
-- The device is tested on Windows, but may also work on other platforms.
+- This device is not included in any of the standard packages, as it requires the Philips API, which is not available publicly.
+- If the software is obtained from Philips then Plus have to be built with PLUS_USE_PHILIPS_3D_ULTRASOUND.
+- The device is for Windows only.
 
 \section PhilipsConfigSettings Device configuration settings
 
