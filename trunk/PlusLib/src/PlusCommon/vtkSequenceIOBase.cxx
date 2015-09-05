@@ -238,7 +238,7 @@ PlusStatus vtkSequenceIOBase::Close()
   std::string headerFullPath = vtkPlusConfig::GetInstance()->GetOutputPath(this->FileName);
 
   // Rename header to final filename
-  RenameFile(this->TempHeaderFileName.c_str(), headerFullPath.c_str());
+  MoveFile(this->TempHeaderFileName.c_str(), headerFullPath.c_str());
 
   if( this->PixelDataFileName.empty() )
   {
@@ -262,7 +262,7 @@ PlusStatus vtkSequenceIOBase::Close()
       pixFullPath = vtkPlusConfig::GetInstance()->GetOutputPath(this->PixelDataFileName);
     }
      
-    RenameFile(this->TempImageFileName.c_str(), pixFullPath.c_str());
+    MoveFile(this->TempImageFileName.c_str(), pixFullPath.c_str());
   }
 
   this->TempHeaderFileName.clear();
@@ -350,7 +350,7 @@ PlusStatus vtkSequenceIOBase::WriteImages()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSequenceIOBase::RenameFile(const char* oldname, const char* newname)
+PlusStatus vtkSequenceIOBase::MoveFile(const char* oldname, const char* newname)
 {
   // Adopted from CMake's cmSystemTools.cxx
   bool success = false;
@@ -394,8 +394,11 @@ PlusStatus vtkSequenceIOBase::RenameFile(const char* oldname, const char* newnam
     success = (MoveFile(oldname, newname)!=0);
   }
 #else
-  /* On UNIX we have an OS-provided call to do this atomically.  */
-  success = (rename(oldname, newname) == 0);
+  if( !vtksys::SystemTools::CopyFileAlways(oldname, newname) )
+  {
+	  return PLUS_FAIL;
+  }
+  vtksys::SystemTools::RemoveFile(oldname);
 #endif
   return success ? PLUS_SUCCESS : PLUS_FAIL;
 }

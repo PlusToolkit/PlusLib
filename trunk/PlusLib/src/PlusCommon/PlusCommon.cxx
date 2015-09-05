@@ -35,12 +35,12 @@ bool PlusTransformName::IsValid() const
 {
   if ( this->m_From.empty() )
   {
-    return false; 
+    return false;
   }
 
   if ( this->m_To.empty() )
   {
-    return false; 
+    return false;
   }
 
   return true; 
@@ -54,8 +54,8 @@ PlusStatus PlusTransformName::SetTransformName(const char* aTransformName)
 
   if ( aTransformName == NULL )
   {
-    LOG_ERROR("Failed to set transform name if it's NULL"); 
-    return PLUS_FAIL; 
+    LOG_ERROR("Failed to set transform name if it's NULL");
+    return PLUS_FAIL;
   }
 
   std::string transformNameStr(aTransformName);
@@ -81,26 +81,26 @@ PlusStatus PlusTransformName::SetTransformName(const char* aTransformName)
 
   if ( numOfMatch != 1 )
   {
-    LOG_ERROR("Unable to parse transform name, there are " << numOfMatch 
-      << " matching 'To' phrases in the transform name '" << aTransformName << "', while exactly one allowed."); 
-    return PLUS_FAIL; 
+    LOG_ERROR("Unable to parse transform name, there are " << numOfMatch
+              << " matching 'To' phrases in the transform name '" << aTransformName << "', while exactly one allowed.");
+    return PLUS_FAIL;
   }
 
   // Find <FrameFrom>To<FrameTo> matches 
   if ( posTo == std::string::npos )
   {
     LOG_ERROR("Failed to set transform name - unable to find 'To' in '" << aTransformName << "'!");
-    return PLUS_FAIL; 
+    return PLUS_FAIL;
   }
   else if ( posTo == 0 )
   {
     LOG_ERROR("Failed to set transform name - no coordinate frame name before 'To' in '" << aTransformName << "'!");
-    return PLUS_FAIL; 
+    return PLUS_FAIL;
   }
   else if ( posTo == transformNameStr.length()-2 )
   {
     LOG_ERROR("Failed to set transform name - no coordinate frame name after 'To' in '" << aTransformName << "'!");
-    return PLUS_FAIL; 
+    return PLUS_FAIL;
   }
 
   // Set coordinate frame names 
@@ -117,14 +117,14 @@ PlusStatus PlusTransformName::GetTransformName(std::string& aTransformName) cons
 {
   if ( this->m_From.empty() )
   {
-    LOG_ERROR("Failed to get transform name - 'From' transform name is empty"); 
-    return PLUS_FAIL; 
+    LOG_ERROR("Failed to get transform name - 'From' transform name is empty");
+    return PLUS_FAIL;
   }
 
   if ( this->m_To.empty() )
   {
-    LOG_ERROR("Failed to get transform name - 'To' transform name is empty"); 
-    return PLUS_FAIL; 
+    LOG_ERROR("Failed to get transform name - 'To' transform name is empty");
+    return PLUS_FAIL;
   }
 
   aTransformName =( this->m_From + std::string("To") + this->m_To); 
@@ -216,6 +216,16 @@ PlusStatus PlusCommon::CreateTemporaryFilename( std::string& aString, const std:
     aString = candidateFilename;
     return PLUS_SUCCESS;
 #else
+    std::string path;
+    if( !anOutputDirectory.empty() )
+    {
+      path = vtksys::SystemTools::GetRealPath(anOutputDirectory.c_str());
+    }
+    else
+    {
+      path = std::string(P_tmpdir);
+    }
+
     char candidateFilenameBuffer[32];
     memset(candidateFilenameBuffer, 0, sizeof(candidateFilenameBuffer));
     strncpy(candidateFilenameBuffer, "/tmp/plusTmpFile-XXXXXX", 23);
@@ -231,7 +241,7 @@ PlusStatus PlusCommon::CreateTemporaryFilename( std::string& aString, const std:
       LOG_WARNING("Cannot write to temp file " << candidateFilename << " check write permissions of output directory.");
       continue;
     }
-    
+
     aFile.close();
     vtksys::SystemTools::RemoveFile(candidateFilename);
     aString = candidateFilename;
@@ -268,12 +278,12 @@ void PrintWithEscapedData(ostream& os, const char* data)
   {
     switch(data[i])
     {
-    case '&': os << "&amp;"; break;
-    case '<': os << "&lt;"; break;
-    case '>': os << "&gt;"; break;
-    case '"': os << "&quot;"; break;
-    case '\'': os << "&apos;"; break;
-    default: os << data[i];
+      case '&': os << "&amp;"; break;
+      case '<': os << "&lt;"; break;
+      case '>': os << "&gt;"; break;
+      case '"': os << "&quot;"; break;
+      case '\'': os << "&apos;"; break;
+      default: os << data[i];
     }
   }
 }
@@ -465,23 +475,23 @@ void PlusCommon::SplitStringIntoTokens(const std::string &s, char delim, std::ve
 bool PlusCommon::IsClippingRequested(const int clipOrigin[3], const int clipSize[3])
 {
   return ( 
-    clipOrigin[0] != PlusCommon::NO_CLIP &&
-    clipOrigin[1] != PlusCommon::NO_CLIP &&
-    clipOrigin[2] != PlusCommon::NO_CLIP &&
-    clipSize[0] != PlusCommon::NO_CLIP &&
-    clipSize[1] != PlusCommon::NO_CLIP &&
-    clipSize[2] != PlusCommon::NO_CLIP
-    );
+      clipOrigin[0] != PlusCommon::NO_CLIP &&
+      clipOrigin[1] != PlusCommon::NO_CLIP &&
+      clipOrigin[2] != PlusCommon::NO_CLIP &&
+      clipSize[0] != PlusCommon::NO_CLIP &&
+      clipSize[1] != PlusCommon::NO_CLIP &&
+      clipSize[2] != PlusCommon::NO_CLIP
+  );
 }
 
 //-------------------------------------------------------
 bool PlusCommon::IsClippingWithinExtents(const int clipOrigin[3], const int clipSize[3], const int extents[6])
 {
   return (clipOrigin[0] >= extents[0] && clipOrigin[0] <= extents[1]) &&
-    (clipOrigin[1] >= extents[2] && clipOrigin[1] <= extents[3]) &&  // Verify that the origin is within the image
-    (clipOrigin[2] >= extents[4] && clipOrigin[2] <= extents[5]) &&
+      (clipOrigin[1] >= extents[2] && clipOrigin[1] <= extents[3]) &&  // Verify that the origin is within the image
+      (clipOrigin[2] >= extents[4] && clipOrigin[2] <= extents[5]) &&
 
-    (clipOrigin[0]+clipSize[0]-1 <= extents[1]) &&
-    (clipOrigin[1]+clipSize[1]-1 <= extents[3]) && // Verify that the extent of the clipping falls within the image
-    (clipOrigin[2]+clipSize[2]-1 <= extents[5]);
+      (clipOrigin[0]+clipSize[0]-1 <= extents[1]) &&
+      (clipOrigin[1]+clipSize[1]-1 <= extents[3]) && // Verify that the extent of the clipping falls within the image
+      (clipOrigin[2]+clipSize[2]-1 <= extents[5]);
 }
