@@ -140,8 +140,8 @@ protected:
   /*! Prepare the image file for writing */
   virtual PlusStatus PrepareImageFile()=0;
 
-  /*! Rename file */
-  virtual PlusStatus RenameFile(const char* oldname, const char* newname);
+  /*! Move file */
+  virtual PlusStatus MoveFile(const char* oldname, const char* newname);
 
   /*! Append content of source file to the end of destination file and then delete source file */
   virtual PlusStatus AppendFile(const std::string& sourceFilename, const std::string& destFilename);
