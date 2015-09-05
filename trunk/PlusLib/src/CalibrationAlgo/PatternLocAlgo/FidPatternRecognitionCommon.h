@@ -29,28 +29,28 @@ public:
   static bool PositionLessThan( std::vector<FidDot>::iterator b1, std::vector<FidDot>::iterator b2 );
 
   /*! Set the x coordinate of the dot */
-  void SetX(double value) { m_X = value; };
+  void SetX(double value);
 
   /*! Get the x coordinate of the dot */
-  double GetX() const { return m_X; };
+  double GetX() const;
 
   /*! Set the y coordinate of the dot */
-  void  SetY(double value) { m_Y = value; };
+  void  SetY(double value);
 
   /*! Get the y coordinate of the dot */
-  double GetY() const { return m_Y; };
+  double GetY() const;
 
   /*! Set the intensity of the dot */
-  void SetDotIntensity(double value) { m_DotIntensity = value; };
+  void SetDotIntensity(double value);
 
   /*! Get the intensity of the dot */
-  double GetDotIntensity() const { return m_DotIntensity; };
+  double GetDotIntensity() const;
 
   /*! Get Euclidean distance from another point */
   double GetDistanceFrom(FidDot &d);
 
   /*! Compare two dots, coordinate-wise */
-  bool operator== (const FidDot& data) const { return (m_X == data.m_X && m_Y == data.m_Y) ; }
+  bool operator== (const FidDot& data) const;
 
 protected:
   double  m_X;
@@ -85,57 +85,60 @@ public:
   \param aIndex is the index in the dots vector of the line
   \param aValue is the index of the dot in the general vector of dots
   */
-  void SetPoint(int aIndex, int aValue) { m_Points[aIndex] = aValue; };
+  void SetPoint(int aIndex, int aValue);
 
   /*! Get the point of the line that has index aIndex */
-  int  GetPoint(int aIndex) const { return m_Points[aIndex]; };
+  int  GetPoint(int aIndex) const;
 
-  /*! Get the vector of dots making the line */
-  const std::vector<int>&  GetPoints() const { return m_Points; };
+  /*! Get the number of points making the line */
+  int GetNumberOfPoints() const;
 
   /*! Set the intensity of the line, which is the sum of its dots intensity */
-  void SetIntensity(double value) { m_Intensity = value; };
+  void SetIntensity(double value);
 
   /*! Get the intensity of the line, which is the sum of its dots intensity */
-  double GetIntensity() const { return m_Intensity; };
+  double GetIntensity() const;
 
   /*! Set the length of the line */
-  void SetLength(double value) { m_Length = value; };
+  void SetLength(double value);
 
   /*! Get the length of the line */
-  double GetLength() const { return m_Length; };
+  double GetLength() const { return Length; };
 
   /*! Set the direction vector that defines the line */
-  void SetDirectionVector(int aIndex, double aValue) { m_DirectionVector[aIndex] = aValue; };
+  void SetDirectionVector(int aIndex, double aValue);
 
   /*! Get the direction vector that defines the line */
-  const double*  GetDirectionVector() const { return m_DirectionVector; };
+  const double*  GetDirectionVector() const;
 
   /*! Set the start point index of the line. It is an index in the m_DotsVector */
-  void  SetStartPointIndex(int index) { m_StartPointIndex = index; };
+  void  SetStartPointIndex(int index);
 
   /*! Get the start point index of the line. It is an index in the m_DotsVector */
-  int GetStartPointIndex() const { return m_StartPointIndex; };
+  int GetStartPointIndex() const;
 
   /*! Set the other end point of the line. It is the index of the end point in the m_DotsVector */
-  void SetEndPointIndex(int index) { m_EndPointIndex = index; };
+  void SetEndPointIndex(int index);
 
   /*! Get the other end point of the line. It is the index of the end point in the m_DotsVector */
-  int GetEndPointIndex() const { return m_EndPointIndex; };
+  int GetEndPointIndex() const;
 
   /*! Resize the points vector */
-  void ResizePoints( int aNewSize ) { m_Points.resize(aNewSize); }
+  void ResizePoints( int aNewSize );
 
   /*! Add a point to the line */
-  void AddPoint( int aPoint ) { m_Points.push_back(aPoint); }
+  void AddPoint( int aPoint );
 
 protected:
-  std::vector<int>  m_Points; // indices of points that make up the line
-  double            m_Intensity;
-  double            m_Length;
-  double            m_DirectionVector[2];
-  int               m_StartPointIndex;//index of startpoint of the line, all the other line points are towards the positive m_DirectionVector direction from this point
-  int               m_EndPointIndex;//Index of the endpoint of the line
+  /*! indices of points that make up the line */
+  std::vector<int>  Points;
+  double            Intensity;
+  double            Length;
+  double            DirectionVector[2];
+  /// index of start point of the line, all the other line points are towards the positive m_DirectionVector direction from this point
+  int               StartPointIndex;
+  /// Index of the endpoint of the line
+  int               EndPointIndex;
 };
 
 //-----------------------------------------------------------------------------
@@ -165,8 +168,10 @@ public:
   virtual ~FidPattern() { };
 
   std::vector<FidWire> Wires;
-  std::vector<double> DistanceToOriginMm; //These distances are in mm.
-  std::vector<double> DistanceToOriginToleranceMm; //These tolerances are in mm.
+  /// These distances are in mm.
+  std::vector<double>  DistanceToOriginMm;
+  /// These tolerances are in mm.
+  std::vector<double>  DistanceToOriginToleranceMm;
 };
 
 //-----------------------------------------------------------------------------
@@ -181,8 +186,8 @@ class vtkCalibrationAlgoExport NWire : public FidPattern
 public:
   virtual ~NWire() { };
 
-  double  IntersectPosW12[3];
-  double  IntersectPosW32[3];
+  double IntersectPosW12[3];
+  double IntersectPosW32[3];
 };
 
 //-----------------------------------------------------------------------------
@@ -208,59 +213,58 @@ class vtkCalibrationAlgoExport PatternRecognitionResult
 {
 public:
   PatternRecognitionResult();
-  virtual ~PatternRecognitionResult();
 
   /*! Clear the classe attributes once they are not needed anymore */
   void Clear();
 
   /*! Set the m_DotsFound to true if the algorithm found the corresponding dots, to false otherwise */
-  void SetDotsFound(bool value) { m_DotsFound = value; };
+  void SetDotsFound(bool value);
 
   /*! Get m_DotsFound */
-  bool GetDotsFound() { return m_DotsFound; };
+  bool GetDotsFound();
 
   /*! Set the coordinates of the found dots */
-  void SetFoundDotsCoordinateValue(std::vector< std::vector<double> > value) { m_FoundDotsCoordinateValue = value; };
+  void SetFoundDotsCoordinateValue(std::vector< std::vector<double> > value);
 
   /*! Get the coordinates of the found dots */
-  std::vector< std::vector<double> >&  GetFoundDotsCoordinateValue() { return m_FoundDotsCoordinateValue; };
+  std::vector< std::vector<double> >&  GetFoundDotsCoordinateValue();
 
   /*! Set the cumulate intensity of all dots in the pattern */
-  void SetIntensity(double value) { m_Intensity = value; };
+  void SetIntensity(double value) { Intensity = value; };
 
   /*! Get the cumulate intensity of all dots in the pattern */
-  double GetIntensity() const { return m_Intensity; };
+  double GetIntensity() const { return Intensity; };
 
   /*! Set the number of candidate points that have been found */
-  void SetNumDots(double value) { m_NumDots = value; };
+  void SetNumDots(double value) { NumDots = value; };
 
   /*! Get the number of candidate points that have been found */
-  double GetNumDots() const { return m_NumDots; };
+  double GetNumDots() const { return NumDots; };
 
   /*! Set the dots that are considered candidates */
-  void SetCandidateFidValues(std::vector<FidDot> value) { m_CandidateFidValues = value; };
+  void SetCandidateFidValues(std::vector<FidDot> value);
 
   /*! Get the dots that are considered candidates */
-  const std::vector<FidDot>& GetCandidateFidValues() const { return m_CandidateFidValues; };
+  const std::vector<FidDot>& GetCandidateFidValues() const;
 
 protected:
   /*! True if the dots are found, false otherwise. */
-  bool m_DotsFound;
+  bool DotsFound;
 
   /*! X and Y values of found dots. */
-  std::vector< std::vector<double> >  m_FoundDotsCoordinateValue;
+  std::vector< std::vector<double> >  FoundDotsCoordinateValue;
 
   /*! The combined intensity of the dots. This is the sum of the pixel
   values after the morphological operations, with the pixel values on the
   range 0-1.  A good intensity score is over 100. A bad one (but still
   valid) is below 25. */
-  double m_Intensity;
+  double Intensity;
 
   /*! number of possible fiducial points */
-  double m_NumDots; 
+  double NumDots; 
 
   /*! pointer to the fiducial candidates coordinates */
-  std::vector<FidDot>  m_CandidateFidValues; 
+  std::vector<FidDot>  CandidateFidValues; 
 };
 
 #endif //_FIDUCIAL_ALGORITHM_COMMON_H

@@ -216,7 +216,7 @@ FidLine FidLabeling::SortPointsByDistanceFromStartPoint(FidLine& fiducials)
   std::vector<std::vector<double> > temporaryLine;
   FidDot startPointIndex = m_DotsVector[fiducials.GetStartPointIndex()];
 
-  for(unsigned int i=0 ; i<fiducials.GetPoints().size() ; i++)
+  for(unsigned int i=0 ; i<fiducials.GetNumberOfPoints() ; i++)
   {
     std::vector<double> temp;
     FidDot point = m_DotsVector[fiducials.GetPoint(i)];
@@ -230,7 +230,7 @@ FidLine FidLabeling::SortPointsByDistanceFromStartPoint(FidLine& fiducials)
 
   FidLine resultLine = fiducials;
 
-  for(unsigned int i=0 ; i<fiducials.GetPoints().size() ; i++)
+  for(unsigned int i=0 ; i<fiducials.GetNumberOfPoints() ; i++)
   {
     resultLine.SetPoint(i,temporaryLine[i][0]);
   }
@@ -351,7 +351,7 @@ void FidLabeling::UpdateNWiresResults(std::vector<FidLine*>& resultLines)
 
   for (int line=0; line<numberOfLines; ++line)
   {
-    for(unsigned int i=0 ; i<resultLines[line]->GetPoints().size() ; i++)
+    for(unsigned int i=0 ; i<resultLines[line]->GetNumberOfPoints() ; i++)
     {
       LabelingResults result;
       result.x = m_DotsVector[resultLines[line]->GetPoint(i)].GetX();
@@ -384,7 +384,7 @@ void FidLabeling::UpdateCirsResults(const FidLine& resultLine1, const FidLine& r
   std::vector<double> dotCoords;
   std::vector< std::vector<double> > foundDotsCoordinateValues = m_FoundDotsCoordinateValue;
 
-  for(unsigned int i=0 ; i<resultLine1.GetPoints().size() ; i++)
+  for(unsigned int i=0 ; i<resultLine1.GetNumberOfPoints() ; i++)
   {
     LabelingResults result;
     result.x = m_DotsVector[resultLine1.GetPoint(i)].GetX();
@@ -399,7 +399,7 @@ void FidLabeling::UpdateCirsResults(const FidLine& resultLine1, const FidLine& r
   }
   intensity += resultLine1.GetIntensity();
 
-  for(unsigned int i=0 ; i<resultLine2.GetPoints().size() ; i++)
+  for(unsigned int i=0 ; i<resultLine2.GetNumberOfPoints() ; i++)
   {
     LabelingResults result;
     result.x = m_DotsVector[resultLine2.GetPoint(i)].GetX();
@@ -414,7 +414,7 @@ void FidLabeling::UpdateCirsResults(const FidLine& resultLine1, const FidLine& r
   }
   intensity += resultLine2.GetIntensity();
 
-  for(unsigned int i=0 ; i<resultLine3.GetPoints().size() ; i++)
+  for(unsigned int i=0 ; i<resultLine3.GetNumberOfPoints() ; i++)
   {
     LabelingResults result;
     result.x = m_DotsVector[resultLine3.GetPoint(i)].GetX();
@@ -706,16 +706,16 @@ void FidLabeling::SortRightToLeft( FidLine& line )
 {
   //LOG_TRACE("FidLabeling::SortRightToLeft");
 
-  std::vector<std::vector<FidDot>::iterator> pointsIterator(line.GetPoints().size());
+  std::vector<std::vector<FidDot>::iterator> pointsIterator(line.GetNumberOfPoints());
 
-  for (unsigned int i=0; i<line.GetPoints().size() ; i++)
+  for (unsigned int i=0; i<line.GetNumberOfPoints() ; i++)
   {
     pointsIterator[i] = m_DotsVector.begin() + line.GetPoint(i);
   }
 
   std::sort(pointsIterator.begin(), pointsIterator.end(), FidDot::PositionLessThan);
 
-  for (unsigned int i=0; i<line.GetPoints().size(); i++)
+  for (unsigned int i=0; i<line.GetNumberOfPoints(); i++)
   {
     line.SetPoint(i, pointsIterator[i] - m_DotsVector.begin());
   }

@@ -4,22 +4,19 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include "PlusConfigure.h"
-
 #include "FidPatternRecognitionCommon.h"
+#include "PlusConfigure.h"
 #include "vtkMath.h"
 
 //-----------------------------------------------------------------------------
-
 PatternRecognitionResult::PatternRecognitionResult()
+  : DotsFound(false)
+  , Intensity(-1)
+  , NumDots(-1)
 {
-  this->m_DotsFound = false;
-  this->m_Intensity = -1;
-  this->m_NumDots = -1;
 }
 
 //-----------------------------------------------------------------------------
-
 double FidLine::ComputeAngleRad(const FidLine& line)
 {
   //atan2 return the angle between the line and the x-axis from -Pi to Pi
@@ -28,7 +25,6 @@ double FidLine::ComputeAngleRad(const FidLine& line)
 }
 
 //-----------------------------------------------------------------------------
-
 double FidLine::ComputeAngleRad(const FidLine& line1, const FidLine& line2)
 {
   // a * b = |a| * |b| * cos(alpha)
@@ -49,8 +45,91 @@ double FidLine::ComputeAngleRad(const FidLine& line1, const FidLine& line2)
 }
 
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+void FidLine::SetPoint(int aIndex, int aValue)
+{
+  Points[aIndex] = aValue;
+}
 
+//----------------------------------------------------------------------------
+int FidLine::GetPoint(int aIndex) const
+{
+  return Points[aIndex];
+}
+
+//----------------------------------------------------------------------------
+int FidLine::GetNumberOfPoints() const
+{
+  return Points.size();
+}
+
+//----------------------------------------------------------------------------
+void FidLine::SetIntensity(double value)
+{
+  Intensity = value;
+}
+
+//----------------------------------------------------------------------------
+double FidLine::GetIntensity() const
+{
+  return Intensity;
+}
+
+//----------------------------------------------------------------------------
+void FidLine::SetLength(double value)
+{
+  Length = value;
+}
+
+//----------------------------------------------------------------------------
+void FidLine::SetDirectionVector(int aIndex, double aValue)
+{
+  DirectionVector[aIndex] = aValue;
+}
+
+//----------------------------------------------------------------------------
+const double* FidLine::GetDirectionVector() const
+{
+  return DirectionVector;
+}
+
+//----------------------------------------------------------------------------
+void FidLine::SetStartPointIndex(int index)
+{
+  StartPointIndex = index;
+}
+
+//----------------------------------------------------------------------------
+int FidLine::GetStartPointIndex() const
+{
+  return StartPointIndex;
+}
+
+//----------------------------------------------------------------------------
+void FidLine::SetEndPointIndex(int index)
+{
+  EndPointIndex = index;
+}
+
+//----------------------------------------------------------------------------
+int FidLine::GetEndPointIndex() const
+{
+  return EndPointIndex;
+}
+
+//----------------------------------------------------------------------------
+void FidLine::ResizePoints(int aNewSize)
+{
+  Points.resize(aNewSize);
+}
+
+//----------------------------------------------------------------------------
+void FidLine::AddPoint(int aPoint)
+{
+  Points.push_back(aPoint);
+}
+
+//-----------------------------------------------------------------------------
 bool FidDot::IntensityLessThan( const FidDot &dot1, const FidDot &dot2 )
 {
   /* Use > to get descending. */
@@ -58,11 +137,46 @@ bool FidDot::IntensityLessThan( const FidDot &dot1, const FidDot &dot2 )
 }
 
 //-----------------------------------------------------------------------------
-
 bool FidDot::PositionLessThan( std::vector<FidDot>::iterator b1, std::vector<FidDot>::iterator b2 )
 {
   /* Use > to get descending. */
   return b1->GetX() > b2->GetX();
+}
+
+//----------------------------------------------------------------------------
+void FidDot::SetX(double value)
+{
+  m_X = value;
+}
+
+//----------------------------------------------------------------------------
+double FidDot::GetX() const
+{
+  return m_X;
+}
+
+//----------------------------------------------------------------------------
+void FidDot::SetY(double value)
+{
+  m_Y = value;
+}
+
+//----------------------------------------------------------------------------
+double FidDot::GetY() const
+{
+  return m_Y;
+}
+
+//----------------------------------------------------------------------------
+void FidDot::SetDotIntensity(double value)
+{
+  m_DotIntensity = value;
+}
+
+//----------------------------------------------------------------------------
+double FidDot::GetDotIntensity() const
+{
+  return m_DotIntensity;
 }
 
 //-----------------------------------------------------------------------------
@@ -71,8 +185,13 @@ double  FidDot::GetDistanceFrom(FidDot &d)
   return sqrt((m_X-d.m_X)*(m_X-d.m_X)+(m_Y-d.m_Y)*(m_Y-d.m_Y)); 
 }
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+bool FidDot::operator==(const FidDot& data) const
+{
+  return (m_X == data.m_X && m_Y == data.m_Y) ;
+}
 
+//-----------------------------------------------------------------------------
 bool FidLine::lessThan(const FidLine& line1, const FidLine& line2)
 {
   /* Use > to get descending. */
@@ -80,11 +199,10 @@ bool FidLine::lessThan(const FidLine& line1, const FidLine& line2)
 }
 
 //-----------------------------------------------------------------------------
-
 bool FidLine::compareLines(const FidLine& line1, const FidLine& line2)
 {
   //make sure the lines are not the same, dot-wise
-  for (unsigned int i=0; i<line1.GetPoints().size(); i++)
+  for (unsigned int i=0; i<line1.GetNumberOfPoints(); i++)
   {
     if ( line1.GetPoint(i) < line2.GetPoint(i) )
     {
@@ -99,21 +217,47 @@ bool FidLine::compareLines(const FidLine& line1, const FidLine& line2)
 }
 
 //-----------------------------------------------------------------------------
-
 void PatternRecognitionResult::Clear()
 {
-  m_DotsFound = false;
-  m_Intensity = -1;
-  m_FoundDotsCoordinateValue.clear();
-  m_NumDots = 1;
-  m_CandidateFidValues.clear(); 
+  DotsFound = false;
+  Intensity = -1;
+  FoundDotsCoordinateValue.clear();
+  NumDots = 1;
+  CandidateFidValues.clear(); 
 }
 
-//-----------------------------------------------------------------------------
-
-PatternRecognitionResult::~PatternRecognitionResult()
+//----------------------------------------------------------------------------
+void PatternRecognitionResult::SetDotsFound(bool value)
 {
-
+  DotsFound = value;
 }
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+bool PatternRecognitionResult::GetDotsFound()
+{
+  return DotsFound;
+}
+
+//----------------------------------------------------------------------------
+void PatternRecognitionResult::SetFoundDotsCoordinateValue(std::vector< std::vector<double> > value)
+{
+  FoundDotsCoordinateValue = value;
+}
+
+//----------------------------------------------------------------------------
+std::vector< std::vector<double> >& PatternRecognitionResult::GetFoundDotsCoordinateValue()
+{
+  return FoundDotsCoordinateValue;
+}
+
+//----------------------------------------------------------------------------
+void PatternRecognitionResult::SetCandidateFidValues(std::vector<FidDot> value)
+{
+  CandidateFidValues = value;
+}
+
+//----------------------------------------------------------------------------
+const std::vector<FidDot>& PatternRecognitionResult::GetCandidateFidValues() const
+{
+  return CandidateFidValues;
+}
