@@ -80,7 +80,11 @@ int main(int argc, char **argv)
 
   vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
 
-  dataCollector->ReadConfiguration( configRootElement );  
+  if( dataCollector->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to configure data collector in configuration file specified by: " << inputConfigFileName );
+    exit(EXIT_FAILURE);
+  }
   vtkPlusDevice* videoDevice = NULL;
   vtkPlusDevice* trackerDevice = NULL;
 

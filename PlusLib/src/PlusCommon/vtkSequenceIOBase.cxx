@@ -238,7 +238,9 @@ PlusStatus vtkSequenceIOBase::Close()
   std::string headerFullPath = vtkPlusConfig::GetInstance()->GetOutputPath(this->FileName);
 
   // Rename header to final filename
-  MoveFile(this->TempHeaderFileName.c_str(), headerFullPath.c_str());
+  MoveFileInternal(this->TempHeaderFileName.c_str(), headerFullPath.c_str());
+
+  LOG_DEBUG("Moved file from: " << this->TempHeaderFileName << " to " << headerFullPath);
 
   if( this->PixelDataFileName.empty() )
   {
@@ -262,7 +264,7 @@ PlusStatus vtkSequenceIOBase::Close()
       pixFullPath = vtkPlusConfig::GetInstance()->GetOutputPath(this->PixelDataFileName);
     }
      
-    MoveFile(this->TempImageFileName.c_str(), pixFullPath.c_str());
+    MoveFileInternal(this->TempImageFileName.c_str(), pixFullPath.c_str());
   }
 
   this->TempHeaderFileName.clear();
@@ -350,13 +352,13 @@ PlusStatus vtkSequenceIOBase::WriteImages()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkSequenceIOBase::MoveFile(const char* oldname, const char* newname)
+PlusStatus vtkSequenceIOBase::MoveFileInternal(const char* oldname, const char* newname)
 {
   // Adopted from CMake's cmSystemTools.cxx
   bool success = false;
 #ifdef _WIN32
   // On Windows the move functions will not replace existing files. Check if the destination exists.
-  if (vtksys::SystemTools::FileExists( newname, true))
+  if (vtksys::SystemTools::FileExists(newname, true))
   {
     // The destination exists.  We have to replace it carefully.  The
     // MoveFileEx function does what we need but is not available on

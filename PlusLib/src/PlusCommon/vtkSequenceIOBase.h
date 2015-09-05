@@ -141,7 +141,7 @@ protected:
   virtual PlusStatus PrepareImageFile()=0;
 
   /*! Move file */
-  virtual PlusStatus MoveFile(const char* oldname, const char* newname);
+  virtual PlusStatus MoveFileInternal(const char* oldname, const char* newname);
 
   /*! Append content of source file to the end of destination file and then delete source file */
   virtual PlusStatus AppendFile(const std::string& sourceFilename, const std::string& destFilename);

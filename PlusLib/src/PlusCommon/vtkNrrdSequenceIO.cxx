@@ -340,6 +340,7 @@ namespace
 vtkNrrdSequenceIO::vtkNrrdSequenceIO()
   : vtkSequenceIOBase()
   , Encoding(NRRD_ENCODING_RAW)
+  , CompressionStream(NULL)
 {
 } 
 
