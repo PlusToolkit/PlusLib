@@ -278,7 +278,7 @@ double FidLineFinder::ComputeAngleRad( const FidDot& dot1, const FidDot& dot2 )
 
 void FidLineFinder::ComputeLine( FidLine& line )
 {
-  if (line.GetPoints().size()<1)
+  if (line.GetNumberOfPoints() < 1)
   {
     LOG_WARNING("Cannot compute parameters for an empty line");
     return;
@@ -287,7 +287,7 @@ void FidLineFinder::ComputeLine( FidLine& line )
   // Compute line intensity
   std::vector<int> pointNum;
   double lineIntensity = 0;
-  for (int i=0; i<line.GetPoints().size(); i++)
+  for (int i=0; i<line.GetNumberOfPoints(); i++)
   {
     pointNum.push_back(line.GetPoint(i));
     lineIntensity += m_DotsVector[pointNum[i]].GetDotIntensity();
@@ -295,7 +295,7 @@ void FidLineFinder::ComputeLine( FidLine& line )
   line.SetIntensity(lineIntensity);
 
   //Computing the line start point, end point, and length
-  if (line.GetPoints().size()==1)
+  if (line.GetNumberOfPoints()==1)
   {
     line.SetStartPointIndex(line.GetPoint(0));
     line.SetEndPointIndex(line.GetPoint(0));
@@ -306,7 +306,7 @@ void FidLineFinder::ComputeLine( FidLine& line )
     line.SetStartPointIndex(line.GetPoint(0));
     // Choose the start point to be the one with the largest X position (closest to the marked side of the probe)
     int largestXposition = m_DotsVector[line.GetPoint(0)].GetX();
-    for(int i=0; i<line.GetPoints().size(); i++)
+    for(int i=0; i<line.GetNumberOfPoints(); i++)
     {
       double currentXposition=m_DotsVector[line.GetPoint(i)].GetX();
       if (currentXposition>largestXposition)
@@ -317,7 +317,7 @@ void FidLineFinder::ComputeLine( FidLine& line )
     }
     // Search for the end of the line (the point that is farthest from the start point
     int maxDistance = 0;
-    for(int i=0; i<line.GetPoints().size(); i++)
+    for(int i=0; i<line.GetNumberOfPoints(); i++)
     {
       double currentDistance = m_DotsVector[line.GetStartPointIndex()].GetDistanceFrom(m_DotsVector[line.GetPoint(i)]);
       if(currentDistance > maxDistance)
@@ -328,7 +328,7 @@ void FidLineFinder::ComputeLine( FidLine& line )
     }
     // Make sure that the start point is the farthest point from the endpoint
     maxDistance = 0;    
-    for(int i=0; i<line.GetPoints().size(); i++)
+    for(int i=0; i<line.GetNumberOfPoints(); i++)
     {
       double currentDistance = m_DotsVector[line.GetEndPointIndex()].GetDistanceFrom(m_DotsVector[line.GetPoint(i)]);
       if(currentDistance > maxDistance)
@@ -341,7 +341,7 @@ void FidLineFinder::ComputeLine( FidLine& line )
   }
 
   // Compute the line normal
-  if(line.GetPoints().size() > 2)//separating cases: 2-points lines and n-points lines, way simpler for 2-points lines
+  if(line.GetNumberOfPoints() > 2)//separating cases: 2-points lines and n-points lines, way simpler for 2-points lines
   {
     //computing the line equation c + n1*x + n2*y = 0
     std::vector<double> x;
@@ -349,9 +349,9 @@ void FidLineFinder::ComputeLine( FidLine& line )
 
     double n1, n2, c;
 
-    vnl_matrix<double> A(line.GetPoints().size(),3,1);
+    vnl_matrix<double> A(line.GetNumberOfPoints(),3,1);
 
-    for (int i=0; i<line.GetPoints().size(); i++)
+    for (int i=0; i<line.GetNumberOfPoints(); i++)
     {
       x.push_back(m_DotsVector[pointNum[i]].GetX());
       y.push_back(m_DotsVector[pointNum[i]].GetY());
@@ -529,7 +529,7 @@ void FidLineFinder::FindLinesNPoints()
           std::vector<int> candidatesIndex;
           bool checkDuplicateFlag = false;//assume there is no duplicate
 
-          for( int previousPoints=0 ; previousPoints < currentShorterPointsLine.GetPoints().size() ; previousPoints++ )
+          for( int previousPoints=0 ; previousPoints < currentShorterPointsLine.GetNumberOfPoints() ; previousPoints++ )
           {
             candidatesIndex.push_back(currentShorterPointsLine.GetPoint(previousPoints));
             if(candidatesIndex[previousPoints] == b3)
