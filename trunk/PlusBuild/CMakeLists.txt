@@ -13,11 +13,6 @@ SET(CMAKE_MODULE_PATH
   ${CMAKE_MODULE_PATH}
   )
 
-IF( WIN32 )
-  # Get the drive letter for windows scripts
-  STRING(SUBSTRING ${CMAKE_BINARY_DIR} 0 2 CMAKE_BINARY_DRIVE_LETTER)
-ENDIF( WIN32)
-
 OPTION(PLUSBUILD_OFFLINE_BUILD "Build Plus without internet connection. All libraries must be downloaded and updated manually." OFF)
 MARK_AS_ADVANCED(PLUSBUILD_OFFLINE_BUILD)
 
