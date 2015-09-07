@@ -101,7 +101,10 @@ PlusStatus vtkVirtualDiscCapture::WriteConfiguration( vtkXMLDataElement* rootCon
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceElement, rootConfig);
   deviceElement->SetAttribute("EnableCapturing", this->EnableCapturing ? "TRUE" : "FALSE" );
+  deviceElement->SetAttribute("EnableFileCompression", this->EnableFileCompression ? "TRUE" : "FALSE");
+  deviceElement->SetAttribute("EnableCaptureOnStart", this->EnableCapturingOnStart ? "TRUE" : "FALSE");
   deviceElement->SetDoubleAttribute("RequestedFrameRate", this->GetRequestedFrameRate() );
+
   return PLUS_SUCCESS;
 }
 
@@ -169,8 +172,8 @@ PlusStatus vtkVirtualDiscCapture::OpenFile(const char* aFilename)
     else if( vtkMetaImageSequenceIO::CanWriteFile(this->BaseFilename) && this->GetEnableFileCompression() )
     {
       // they've requested mhd/mha with compression, no can do, yet
-      LOG_WARNING("Compressed streaming of metaimage file requested. This is not supported. Reverting to nrrd.");
-      ext = ".nrrd";
+      LOG_WARNING("Compressed streaming of metaimage file requested. This is not supported. Reverting to uncompressed mha.");
+      this->SetEnableFileCompression(false);
     }
     this->CurrentFilename = filenameRoot + "_" + vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S") + ext;
     aFilename = this->CurrentFilename.c_str();
@@ -180,9 +183,8 @@ PlusStatus vtkVirtualDiscCapture::OpenFile(const char* aFilename)
     if( vtkMetaImageSequenceIO::CanWriteFile(aFilename) && this->GetEnableFileCompression() )
     {
       // they've requested mhd/mha with compression, no can do, yet
-      LOG_WARNING("Compressed streaming of metaimage file requested. This is not supported. Reverting to nrrd.");
-      std::string filename(aFilename);
-      filename.replace(filename.end()-4, filename.end(), ".nrrd");
+      LOG_WARNING("Compressed streaming of metaimage file requested. This is not supported. Reverting to uncompressed mha.");
+      this->SetEnableFileCompression(false);
     }
     this->CurrentFilename = aFilename;
   }
