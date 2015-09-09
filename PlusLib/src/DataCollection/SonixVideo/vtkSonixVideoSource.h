@@ -111,21 +111,21 @@ public:
     Request a particular data type from sonix machine by means of a bitmask.
     The mask must be applied before any data can be acquired via realtime imaging or cine retrieval
 
-    udtScreen = 0x00000001,   // Screen
-    udtBPre = 0x00000002,     // B Pre Scan Converted
-    udtBPost = 0x00000004,    // B Post Scan Converted (8 bit)
-    udtBPost32 = 0x00000008,  // B Post Scan Converted (32 bit)
-    udtRF = 0x00000010,       // RF
-    udtMPre = 0x00000020,     // M Pre Scan Converted
-    udtMPost = 0x00000040,    // M Post Scan Converted
-    udtPWRF = 0x00000080,     // PW RF
+    udtScreen = 0x00000001,           // Screen
+    udtBPre = 0x00000002,             // B Pre Scan Converted
+    udtBPost = 0x00000004,            // B Post Scan Converted (8 bit)
+    udtBPost32 = 0x00000008,          // B Post Scan Converted (32 bit)
+    udtRF = 0x00000010,               // RF
+    udtMPre = 0x00000020,             // M Pre Scan Converted
+    udtMPost = 0x00000040,            // M Post Scan Converted
+    udtPWRF = 0x00000080,             // PW RF
     udtPWSpectrum = 0x00000100,           
     udtColorRF = 0x00000200,              
     udtColorCombined = 0x00000400,
     udtColorVelocityVariance = 0x00000800,
-    udtElastoCombined = 0x00002000, // Elasto + B-image (32 bit)
-    udtElastoOverlay = 0x00004000,  // Elasto Overlay (8 bit)
-    udtElastoPre = 0x00008000,      // Elasto Pre Scan Coverted (8 bit)
+    udtElastoCombined = 0x00002000,   // Elasto + B-image (32 bit)
+    udtElastoOverlay = 0x00004000,    // Elasto Overlay (8 bit)
+    udtElastoPre = 0x00008000,        // Elasto Pre Scan Coverted (8 bit)
     udtECG = 0x00010000,
     udtGPS = 0x00020000,
     udtPNG = 0x10000000
