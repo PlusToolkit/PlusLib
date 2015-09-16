@@ -33,9 +33,9 @@ ELSE(OpenIGTLink_DIR)
   SET (PLUS_OpenIGTLink_SRC_DIR "${CMAKE_BINARY_DIR}/OpenIGTLink")
   SET (PLUS_OpenIGTLink_DIR "${CMAKE_BINARY_DIR}/OpenIGTLink-bin" CACHE INTERNAL "Path to store OpenIGTLink binaries")
   ExternalProject_Add( OpenIGTLink
+    "${PLUSBUILD_EXTERNAL_PROJECT_CUSTOM_COMMANDS}"
     SOURCE_DIR "${PLUS_OpenIGTLink_SRC_DIR}"
     BINARY_DIR "${PLUS_OpenIGTLink_DIR}"
-    "${PLUSBUILD_EXTERNAL_PROJECT_CUSTOM_COMMANDS}"
     #--Download step--------------
     GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/openigtlink/OpenIGTLink.git"
     GIT_TAG "849b434b4b45a28e3955adf4ba1f3ececd51581e"
