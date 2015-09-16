@@ -30,15 +30,19 @@ MODEL_TABLE_ROW(
   DESCRIPTION "Clamps to a tubular shaped tool, e.g. electrocauterizer. For clamp tightening use hex-head cap screw, M6 thread, 30 mm long with a matching wing nut. For assembly with SensorHolder-Ordered-HolesInterface use hex-head cap screw M4 thread, with any matching nut."
   )
 MODEL_TABLE_ROW(
-  ID "NeedleClip-Assembly_1.5mm_2.0"
-  DESCRIPTION "Clamps to a needle of 1.5 mm diameter through a sterile bag."
+  ID "NeedleClip-Assembly_16-20G"
+  DESCRIPTION "Clamps to a needle of size 16-20 G through a sterile bag."
   )
 MODEL_TABLE_ROW(
-  ID "SensorHolder-Ordered_2mm_1.0"
-  DESCRIPTION "Holds either a Model 800 Ascension EM sensor, or another PLUS fixture, e.g. for holding MicronTracker markers. This part is frequently part of an assembly, but can also be used by itself."
+  ID "Telemed-MicrUs-L12-SensorHolder.STL"
+  IMAGE_FILE "TrackingFixtures/Telemed-MicrUs-L12-SensorHolder.png"
+  PRINTABLE_FILES
+    "TrackingFixtures/TelemedHolder_L12_MarkedSide.STL"
+    "TrackingFixtures/TelemedHolder-L12_UnmarkedSide.STL"
+  DESCRIPTION "Parts for tracking Telemed MicrUs L12 ultrasound probe"
   )
 MODEL_TABLE_ROW(
-  ID "SensorHolder_1.0"
+  ID "SensorHolder_2.0"
   DESCRIPTION "New sensor holder design. This will replace SensorHolder-Ordered_2mm_1.0 eventually. Holds either a Model 800 Ascension EM sensor, or another PLUS fixture, e.g. for holding MicronTracker markers. This part is frequently part of an assembly, but can also be used by itself."
   )
 MODEL_TABLE_ROW(
