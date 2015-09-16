@@ -26,7 +26,21 @@ IF(VTK_DIR)
         )
   ENDIF()
   SET (PLUS_VTK_DIR "${VTK_DIR}" CACHE INTERNAL "Path to store vtk binaries")
-    
+
+  MESSAGE(ERROR "support: ${vtkGUISupportQt_LOADED}")
+
+  IF(PLUSBUILD_BUILD_PLUSAPP)
+    IF (${VTK_MAJOR_VERSION} VERSION_LESS 6)
+      IF (NOT VTK_USE_QT)
+        MESSAGE( SEND_ERROR "You have to build VTK with VTK_USE_QT flag ON if you need to use PLUSBUILD_BUILD_PLUSAPP.")
+      ENDIF (NOT VTK_USE_QT)
+    ELSE()
+      IF (NOT TARGET vtkGUISupportQt)
+        MESSAGE( SEND_ERROR "You have to build VTK with VTK_USE_QT flag ON if you need to use PLUSBUILD_BUILD_PLUSAPP.")
+      ENDIF()
+    ENDIF()
+  ENDIF()
+
 ELSE(VTK_DIR)
 
   # VTK has not been built yet, so download and build it as an external project

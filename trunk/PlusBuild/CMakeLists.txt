@@ -319,13 +319,7 @@ IF ( PLUSBUILD_USE_3DSlicer )
   
   # Qt might have been found earlier, run find_package to reset all the QT_... CMake variables
   FIND_PACKAGE(Qt4)
-  
-  IF(PLUSBUILD_BUILD_PLUSAPP) 
-    IF (NOT VTK_USE_QT)
-      MESSAGE( SEND_ERROR "You have to build VTK with VTK_USE_QT flag ON if you need to use PLUSBUILD_BUILD_PLUSAPP.")
-    ENDIF (NOT VTK_USE_QT)
-  ENDIF(PLUSBUILD_BUILD_PLUSAPP)    
-  
+
 ENDIF ( PLUSBUILD_USE_3DSlicer )
 
 INCLUDE(External_VTK.cmake)
