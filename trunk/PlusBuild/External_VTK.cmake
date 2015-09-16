@@ -27,8 +27,6 @@ IF(VTK_DIR)
   ENDIF()
   SET (PLUS_VTK_DIR "${VTK_DIR}" CACHE INTERNAL "Path to store vtk binaries")
 
-  MESSAGE(ERROR "support: ${vtkGUISupportQt_LOADED}")
-
   IF(PLUSBUILD_BUILD_PLUSAPP)
     IF (${VTK_MAJOR_VERSION} VERSION_LESS 6)
       IF (NOT VTK_USE_QT)
