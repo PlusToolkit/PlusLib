@@ -145,6 +145,22 @@ namespace
 #  define F_OPEN(name, mode) fopen((name), (mode))
 #endif
 
+#ifdef NO_ERRNO_H
+#   ifdef _WIN32_WCE
+      /* The Microsoft C Run-Time Library for Windows CE doesn't have
+       * errno.  We define it as a global variable to simplify porting.
+       * Its value is always 0 and should not be used.  We rename it to
+       * avoid conflict with other libraries that use the same workaround.
+       */
+#     define errno z_errno
+#   endif
+    extern int errno;
+#else
+#  ifndef _WIN32_WCE
+#    include <errno.h>
+#  endif
+#endif
+
   /* gzip flag byte */
 #define ASCII_FLAG   0x01 /* bit 0 set: file probably ascii text */
 #define HEAD_CRC     0x02 /* bit 1 set: header CRC present */
@@ -226,7 +242,7 @@ namespace
   /* ===========================================================================
   Read a byte from a gz_stream; update next_in and avail_in. Return EOF
   for end of file.
-  IN assertion: the stream s has been sucessfully opened for reading.
+  IN assertion: the stream s has been successfully opened for reading.
   */
   static int get_byte(gz_stream * s)
   {
