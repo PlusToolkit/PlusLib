@@ -14,7 +14,7 @@
 #endif 
 
 #include "vtkSequenceIOBase.h"
-#include "itkzlib/zutil.h"
+#include "vtk_zlib.h"
 
 class vtkTrackedFrameList;
 
