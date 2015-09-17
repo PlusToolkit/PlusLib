@@ -64,17 +64,17 @@ public:
     Set spacing of the output data in Reference coordinate system.
     This is required to be set, otherwise the reconstructed volume will be empty.
   */
-  vtkSetVector3Macro(OutputSpacing, vtkFloatingPointType);
+  vtkSetVector3Macro(OutputSpacing, double);
   /*! Get spacing of the output data in Reference coordinate system  */
-  vtkGetVector3Macro(OutputSpacing, vtkFloatingPointType);
+  vtkGetVector3Macro(OutputSpacing, double);
 
   /*!
     Set origin of the output data in Reference coordinate system.
     This is required to be set, otherwise the reconstructed volume will be empty.
   */
-  vtkSetVector3Macro(OutputOrigin, vtkFloatingPointType);
+  vtkSetVector3Macro(OutputOrigin, double);
   /*! Get origin of the output data in Reference coordinate system  */
-  vtkGetVector3Macro(OutputOrigin, vtkFloatingPointType);
+  vtkGetVector3Macro(OutputOrigin, double);
 
   /*!
     Set extent of the output data in Reference coordinate system.
@@ -112,8 +112,8 @@ private:
   char* VolumeReconstructorDeviceId;
 
   // Output image position and size
-  vtkFloatingPointType OutputOrigin[3];
-  vtkFloatingPointType OutputSpacing[3];
+  double OutputOrigin[3];
+  double OutputSpacing[3];
   int OutputExtent[6];
 
   bool ApplyHoleFilling;
