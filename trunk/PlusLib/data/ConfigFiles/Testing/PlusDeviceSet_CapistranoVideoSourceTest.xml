@@ -1,9 +1,28 @@
+<!-- 
+	Description: 
+ -->
 <PlusConfiguration version="2.3">
   <DataCollection StartupDelaySec="1.0">
     <Device
       Id="VideoDevice"
       Type="CapistranoVideo"
-      ImageSize="400 256">
+	  UpdateParameters="TRUE"
+	  BidirectionalMode="FALSE"
+	  CineBuffers="32"
+	  PluserFrequency="35.0"
+	  PluserVoltage="50.0"
+	  SpeedOfSound="1532"
+	  ScanDepth="3.6"
+	  Interpolate="TRUE"
+	  AverageMode="FALSE"
+	  BModeViewOption="4"
+	  ImageSize="800 640"
+	  Intensity="110"
+	  Contrast="230"
+	  ZoomFactor="1.0"
+	  LutCenter="110"
+	  LutWindow="230"
+	  GainPercent="50 60 80">
       <DataSources>
         <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="MF" />
       </DataSources>
@@ -13,3 +32,4 @@
     </Device>
   </DataCollection>
 </PlusConfiguration>
+
