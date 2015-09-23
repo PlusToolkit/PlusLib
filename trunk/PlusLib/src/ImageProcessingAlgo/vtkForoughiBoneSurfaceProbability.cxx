@@ -74,7 +74,13 @@ void vtkForoughiBoneSurfaceProbability::SimpleExecute(vtkImageData* input, vtkIm
 {
   // Allocate output image
   output->SetExtent(input->GetExtent());
+#if (VTK_MAJOR_VERSION < 6)
+  output->SetScalarType( input->GetScalarType() );
+  output->SetNumberOfScalarComponents( input->GetNumberOfScalarComponents() );
+  output->AllocateScalars();
+#else
   output->AllocateScalars(input->GetScalarType(), input->GetNumberOfScalarComponents());
+#endif
 
   int* inputExtent = input->GetExtent();
   if (inputExtent[1]-inputExtent[0]!=this->FrameSize[0] || inputExtent[3]-inputExtent[2]!=this->FrameSize[1])
