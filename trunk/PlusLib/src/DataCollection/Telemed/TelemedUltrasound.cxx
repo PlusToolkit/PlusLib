@@ -470,11 +470,11 @@ void TelemedUltrasound::CreateUsgControls()
     // set ultrasound output rectangle
     m_mixer_control->SetOutputRect(&rect1);
 
-    // set background color that surrounds ultrasound image to blue
+    // set background color that surrounds ultrasound image to black
     tagPALETTEENTRY clr1;
     clr1.peRed		= 0;
     clr1.peGreen	= 0;
-    clr1.peBlue		= 255;
+    clr1.peBlue		= 0;
     clr1.peFlags	= 0;
     m_mixer_control->put_BkColor(clr1);
 
