@@ -83,10 +83,10 @@ void vtkForoughiBoneSurfaceProbability::SimpleExecute(vtkImageData* input, vtkIm
 #endif
 
   int* inputExtent = input->GetExtent();
-  if (inputExtent[1]-inputExtent[0]!=this->FrameSize[0] || inputExtent[3]-inputExtent[2]!=this->FrameSize[1])
+  if ((inputExtent[1]-inputExtent[0]+1)!=this->FrameSize[0] || (inputExtent[3]-inputExtent[2]+1)!=this->FrameSize[1])
   {
-    this->FrameSize[0] = inputExtent[1]-inputExtent[0];
-    this->FrameSize[1] = inputExtent[3]-inputExtent[2];
+    this->FrameSize[0] = inputExtent[1]-inputExtent[0]+1;
+    this->FrameSize[1] = inputExtent[3]-inputExtent[2]+1;
     this->KernelUpdateRequested = true;
   }
   if (this->KernelUpdateRequested)
