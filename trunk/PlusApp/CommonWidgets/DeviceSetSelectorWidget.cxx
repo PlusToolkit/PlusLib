@@ -6,9 +6,10 @@ See License.txt for details.
 
 #include "DeviceSetSelectorWidget.h"
 
-#include <QFileDialog>
-#include <QMessageBox>
 #include <QDomDocument>
+#include <QFileDialog>
+#include <QMenu>
+#include <QMessageBox>
 
 #ifdef _WIN32
 #include "Shellapi.h"
@@ -23,17 +24,26 @@ enum DataItemRoles
 //-----------------------------------------------------------------------------
 
 DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
-: QWidget(aParent)
-, m_ConnectionSuccessful(false)
+  : QWidget(aParent)
+  , m_ConnectionSuccessful(false)
 {
   ui.setupUi(this);
 
   connect( ui.pushButton_OpenConfigurationDirectory, SIGNAL( clicked() ), this, SLOT( OpenConfigurationDirectory() ) );
   connect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeConnect() ) );
   connect( ui.pushButton_RefreshFolder, SIGNAL( clicked() ), this, SLOT( RefreshFolder() ) );
-  connect( ui.pushButton_EditConfiguration, SIGNAL( clicked() ), this, SLOT( EditConfiguration() ) );
+  //connect( ui.pushButton_EditConfiguration, SIGNAL( clicked() ), this, SLOT( EditConfiguration() ) );
   connect( ui.comboBox_DeviceSet, SIGNAL( currentIndexChanged(int) ), this, SLOT( DeviceSetSelected(int) ) );
   connect( ui.pushButton_ResetTracker, SIGNAL( clicked() ), this, SLOT( ResetTrackerButtonClicked() ) );
+
+  this->m_EditorSelectAction = new QAction("Select Editor", this);
+  connect( m_EditorSelectAction, SIGNAL( triggered() ), this, SLOT(SelectEditor()) );
+  this->m_EditFileAction = new QAction("Edit Configuration File", this);
+  connect( m_EditFileAction, SIGNAL( triggered() ), this, SLOT(EditConfiguration()) );
+  this->m_EditMenu = new QMenu(this);
+  this->m_EditMenu->addAction(m_EditFileAction);
+  this->m_EditMenu->addAction(m_EditorSelectAction);
+  ui.pushButton_EditConfiguration->setMenu(this->m_EditMenu);
 
   ui.pushButton_ResetTracker->setVisible(false);
 
@@ -44,6 +54,21 @@ DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
 
 DeviceSetSelectorWidget::~DeviceSetSelectorWidget()
 {
+  if( this->m_EditMenu)
+  {
+    delete this->m_EditMenu;
+    m_EditMenu = NULL;
+  }
+  if( this->m_EditFileAction)
+  {
+    delete this->m_EditFileAction;
+    m_EditFileAction = NULL;
+  }
+  if( this->m_EditorSelectAction)
+  {
+    delete this->m_EditorSelectAction;
+    m_EditorSelectAction = NULL;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -258,7 +283,7 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 
   while (filesIterator.hasNext())
   {
-    
+
     QString fileName = QDir::toNativeSeparators(QString(configDir.absoluteFilePath(filesIterator.next())));
     QString extension = fileName.mid(fileName.lastIndexOf("."));
     if( extension.compare(QString(".xml")) != 0 )
@@ -427,6 +452,20 @@ void DeviceSetSelectorWidget::EditConfiguration()
 #else
   LOG_ERROR("Opening configuration files from the program is not supported on this platform.");
 #endif
+}
+
+//-----------------------------------------------------------------------------
+void DeviceSetSelectorWidget::SelectEditor()
+{
+  // File open dialog for selecting editor application
+  QString filter = QString( tr( "Executables ( *.exe );;" ) );
+  QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Select XML editor application" ) ), "", filter);
+  if (fileName.isNull()) {
+    return;
+  }
+
+  vtkPlusConfig::GetInstance()->SetEditorApplicationExecutable(fileName.toLatin1().constData());
+  vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 }
 
 //-----------------------------------------------------------------------------

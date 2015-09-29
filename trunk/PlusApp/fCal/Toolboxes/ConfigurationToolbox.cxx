@@ -50,7 +50,6 @@ ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, Qt
   connect( m_DeviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( ConnectToDevicesByConfigFile(std::string) ) );
   connect( ui.pushButton_PopOut, SIGNAL( toggled(bool) ), this, SLOT( PopOutToggled(bool) ) );
   connect( ui.comboBox_LogLevel, SIGNAL( currentIndexChanged(int) ), this, SLOT( LogLevelChanged(int) ) );
-  connect( ui.pushButton_SelectEditorApplicationExecutable, SIGNAL( clicked() ), this, SLOT( SelectEditorApplicationExecutable() ) );
   connect( m_DeviceSetSelectorWidget, SIGNAL( ResetTracker() ), this, SLOT( ResetTracker() ) );
   connect( ui.pushButton_SelectImageDirectory, SIGNAL( clicked() ), this, SLOT( SelectImageDirectory() ) );
 
@@ -75,10 +74,8 @@ ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, Qt
   ui.comboBox_LogLevel->setCurrentIndex(vtkPlusLogger::Instance()->GetLogLevel() - 1);
   ui.comboBox_LogLevel->blockSignals(false);
 
-  ui.lineEdit_EditorApplicationExecutable->setText( QDir::toNativeSeparators(QString(vtkPlusConfig::GetInstance()->GetEditorApplicationExecutable())) );
   ui.lineEdit_ImageDirectory->setText( QDir::toNativeSeparators(QString(vtkPlusConfig::GetInstance()->GetImageDirectory().c_str())) );
 
-  m_LastEditorLocation = QString("C:");
   m_LastImageDirectoryLocation = vtkPlusConfig::GetInstance()->GetImageDirectory().c_str();
 }
 
@@ -361,27 +358,6 @@ void ConfigurationToolbox::LogLevelChanged(int aLevel)
   LOG_INFO("Log level changed to: " << ui.comboBox_LogLevel->currentText().toLatin1().constData() << " (" << aLevel+1 << ")" );
 
   vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
-}
-
-//-----------------------------------------------------------------------------
-
-void ConfigurationToolbox::SelectEditorApplicationExecutable()
-{
-  LOG_TRACE("ConfigurationToolbox::SelectEditorApplicationExecutable");
-
-  // File open dialog for selecting phantom definition xml
-  QString filter = QString( tr( "Executables ( *.exe );;" ) );
-  QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Select XML editor application" ) ), m_LastEditorLocation, filter);
-  if (fileName.isNull()) {
-    return;
-  }
-
-  m_LastEditorLocation = fileName.mid(0, fileName.lastIndexOf('/'));
-
-  vtkPlusConfig::GetInstance()->SetEditorApplicationExecutable(fileName.toLatin1().constData());
-  vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
-
-  ui.lineEdit_EditorApplicationExecutable->setText(fileName);
 }
 
 //-----------------------------------------------------------------------------

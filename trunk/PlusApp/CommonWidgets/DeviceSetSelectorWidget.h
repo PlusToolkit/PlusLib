@@ -13,6 +13,8 @@ See License.txt for details.
 
 #include <QWidget>
 #include <QString>
+#include <QAction>
+#include <QMenu>
 
 //-----------------------------------------------------------------------------
 
@@ -131,9 +133,14 @@ protected:
     void RefreshFolder();
 
     /*!
-    * Called when Edit configuration button is clicked - opens currently selected configuration in editor application
+    * Called when Edit configuration button is left-clicked - opens currently selected configuration in editor application
     */
     void EditConfiguration();
+
+    /*!
+    * Called when Edit configuration button is right-clicked and action is selected
+    */
+    void SelectEditor();
 
     /*
     * Reset tracker button has been pushed
@@ -143,6 +150,11 @@ protected:
 protected:
   /*! Configuration directory path */
   QString	m_ConfigurationDirectory;
+
+  /*! Action triggered when button right-clicked */
+  QAction* m_EditorSelectAction;
+  QAction* m_EditFileAction;
+  QMenu* m_EditMenu;
 
   /*! Flag telling whether connection has been successful */
   bool	  m_ConnectionSuccessful;
