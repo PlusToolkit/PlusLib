@@ -277,7 +277,6 @@ void PlusServerLauncherMainWindow::keyPressEvent(QKeyEvent *e)
 //-----------------------------------------------------------------------------
 void PlusServerLauncherMainWindow::sendServerOutputToLogger(const QByteArray &strData, vtkPlusLogger::LogLevelType defaultLogLevel)
 {
-  std::string stringData(strData.toStdString());
   QString logString(strData);
 #if _WIN32
   QStringList logLines = logString.split("\r\n", QString::SkipEmptyParts);
