@@ -238,14 +238,15 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
       resultFilename=this->OutputFilename;
     }
     
-    long numberOfFramesRecorded=captureDevice->GetTotalFramesRecorded();    
-    if (captureDevice->CloseFile(this->OutputFilename) != PLUS_SUCCESS)
+    long numberOfFramesRecorded=captureDevice->GetTotalFramesRecorded();
+    std::string actualOutputFilename;
+    if (captureDevice->CloseFile(this->OutputFilename, &actualOutputFilename) != PLUS_SUCCESS)
     {
       this->QueueStringResponse(responseMessageBase + " failed to finalize file " + resultFilename,PLUS_FAIL);
       return PLUS_FAIL;
     }
     std::ostringstream ss;
-    ss << ", recording " << numberOfFramesRecorded <<" frames successful to file "<<resultFilename;
+    ss << ", recording " << numberOfFramesRecorded <<" frames successful to file "<<actualOutputFilename;
     this->QueueStringResponse(responseMessageBase + ss.str(),PLUS_SUCCESS);
     return PLUS_SUCCESS;
   }

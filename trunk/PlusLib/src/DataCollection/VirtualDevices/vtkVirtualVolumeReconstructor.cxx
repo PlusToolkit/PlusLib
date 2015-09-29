@@ -320,7 +320,7 @@ PlusStatus vtkVirtualVolumeReconstructor::GetReconstructedVolumeFromFile(const c
   std::string inputImageSeqFileFullPath=vtkPlusConfig::GetInstance()->GetOutputPath(inputSeqFilename);
   if( vtkSequenceIO::Read(inputImageSeqFileFullPath, trackedFrameList) != PLUS_SUCCESS )
   {    
-    errorMessage="Volume reconstruction failed, unable to open input file specified in InputSeqFilename"+inputImageSeqFileFullPath;
+    errorMessage="Volume reconstruction failed, unable to open input file specified in InputSeqFilename: "+inputImageSeqFileFullPath;
     LOG_INFO(errorMessage);
     return PLUS_FAIL;
   } 

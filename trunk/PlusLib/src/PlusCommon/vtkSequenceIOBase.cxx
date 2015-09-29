@@ -235,7 +235,7 @@ PlusStatus vtkSequenceIOBase::Write()
 //----------------------------------------------------------------------------
 PlusStatus vtkSequenceIOBase::Close()
 {
-  std::string headerFullPath = vtkPlusConfig::GetInstance()->GetOutputPath(this->FileName);
+  std::string headerFullPath = this->FileName;
 
   // Rename header to final filename
   MoveFileInternal(this->TempHeaderFileName.c_str(), headerFullPath.c_str());
@@ -250,19 +250,14 @@ PlusStatus vtkSequenceIOBase::Close()
   else
   {
     // Rename image to final filename (header+data file)
-    std::string pixFullPath;
-    if( !vtksys::SystemTools::FileIsFullPath(this->PixelDataFileName.c_str()) )
-    {
-      std::vector<std::string> pathElements;
-      vtksys::SystemTools::SplitPath(headerFullPath.c_str(), pathElements);
-      pathElements.erase(pathElements.end()-1);
-      pathElements.push_back(this->PixelDataFileName);
-      pixFullPath = vtksys::SystemTools::JoinPath(pathElements);
-    }
-    else
-    {
-      pixFullPath = vtkPlusConfig::GetInstance()->GetOutputPath(this->PixelDataFileName);
-    }
+
+    // Use the same path as the header but replace the filename
+    std::vector<std::string> pathElements;
+    vtksys::SystemTools::SplitPath(headerFullPath.c_str(), pathElements);
+    pathElements.erase(pathElements.end()-1);
+    std::string pixelDataFileNameOnly=vtksys::SystemTools::GetFilenameName(this->PixelDataFileName);
+    pathElements.push_back(pixelDataFileNameOnly);
+    std::string pixFullPath = vtksys::SystemTools::JoinPath(pathElements);
      
     MoveFileInternal(this->TempImageFileName.c_str(), pixFullPath.c_str());
   }
@@ -541,4 +536,10 @@ PlusStatus vtkSequenceIOBase::AppendFile(const std::string& sourceFilename, cons
     delete[] buffer;
   }
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkSequenceIOBase::GetFileName()
+{
+  return this->FileName;
 }

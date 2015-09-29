@@ -1221,13 +1221,27 @@ PlusStatus vtkMetaImageSequenceIO::SetFileName( const std::string& aFilename )
     {
       pixFileName+=".raw";
     }
+    
+    // Use the same path as the header but replace the filename
+    std::vector<std::string> pathElements;
+    vtksys::SystemTools::SplitPath(this->FileName.c_str(), pathElements);
+    pathElements.erase(pathElements.end()-1);
+    pathElements.push_back(pixFileName);
 
-    this->PixelDataFileName=pixFileName;
+    this->PixelDataFileName=vtksys::SystemTools::JoinPath(pathElements);
   }
   else
   {
     LOG_WARNING("Writing sequence metafile with '" << fileExt << "' extension is not supported. Using mha extension instead.");
-    this->FileName+=".mha";
+    std::string fileNameWithMhaExt=vtksys::SystemTools::GetFilenameWithoutExtension(this->FileName)+".mha";
+    
+    // Use the same path as the header but replace the filename
+    std::vector<std::string> pathElements;
+    vtksys::SystemTools::SplitPath(this->FileName.c_str(), pathElements);
+    pathElements.erase(pathElements.end()-1);
+    pathElements.push_back(fileNameWithMhaExt);
+    this->FileName=vtksys::SystemTools::JoinPath(pathElements);
+
     this->PixelDataFileName="";
   }
 

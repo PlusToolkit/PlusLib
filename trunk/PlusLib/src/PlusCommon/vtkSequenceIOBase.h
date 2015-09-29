@@ -76,6 +76,8 @@ public:
     MHD images and the full image (including pixel data) in case of MHA images.
   */
   virtual PlusStatus SetFileName(const std::string& aFilename) = 0;
+  
+  virtual std::string GetFileName();
 
   /*! Update the number of frames in the header 
       This is used primarily by vtkVirtualDiscCapture to update the final tally of frames, as it continually appends new frames to the file

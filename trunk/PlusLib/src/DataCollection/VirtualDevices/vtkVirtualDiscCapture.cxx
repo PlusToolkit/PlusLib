@@ -193,13 +193,13 @@ PlusStatus vtkVirtualDiscCapture::OpenFile(const char* aFilename)
   this->Writer->SetUseCompression(this->EnableFileCompression);
   this->Writer->SetTrackedFrameList(this->RecordedFrames);
   // Need to set the filename before finalizing header, because the pixel data file name depends on the file extension
-  this->Writer->SetFileName(aFilename);
+  this->Writer->SetFileName(vtkPlusConfig::GetInstance()->GetOutputPath(aFilename));
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualDiscCapture::CloseFile(const char* aFilename)
+PlusStatus vtkVirtualDiscCapture::CloseFile(const char* aFilename /* = NULL */, std::string* resultFilename /* = NULL */)
 {
   // Fix the header to write the correct number of frames
   PlusLockGuard<vtkRecursiveCriticalSection> writerLock(this->WriterAccessMutex);
@@ -213,7 +213,7 @@ PlusStatus vtkVirtualDiscCapture::CloseFile(const char* aFilename)
   if( aFilename != NULL && strlen(aFilename) != 0 )
   {
     // Need to set the filename before finalizing header, because the pixel data file name depends on the file extension
-    this->Writer->SetFileName(aFilename);
+    this->Writer->SetFileName(vtkPlusConfig::GetInstance()->GetOutputPath(aFilename));
     this->CurrentFilename = aFilename;
   }
 
@@ -227,6 +227,11 @@ PlusStatus vtkVirtualDiscCapture::CloseFile(const char* aFilename)
   this->Writer->UpdateFieldInImageHeader( this->Writer->GetDimensionSizeString() );
   this->Writer->UpdateFieldInImageHeader( this->Writer->GetDimensionKindsString() );
   this->Writer->FinalizeHeader();
+
+  if (resultFilename!=NULL)
+  {
+    (*resultFilename) = this->Writer->GetFileName();
+  }
 
   this->Writer->Close();
 
