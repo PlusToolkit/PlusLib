@@ -42,8 +42,12 @@ public:
   /*! Open the output file for writing */
   virtual PlusStatus OpenFile(const char* aFilename = NULL);
 
-  /*! Close the output file */
-  virtual PlusStatus CloseFile(const char* aFilename = NULL);
+  /*!
+    Close the output file.
+    resultFilename contains the full path of the actual written file name. It may be different than the requested name
+    if the requested name was not valid (for example wrong extension).
+  */
+  virtual PlusStatus CloseFile(const char* aFilename = NULL, std::string* resultFilename = NULL);
 
   virtual PlusStatus Reset();
 

@@ -454,16 +454,24 @@ void StopPlusServerProcess(vtksysProcess* &processPtr)
 PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client)
 {
   const char captureDeviceId[]="CaptureDevice";
-  const char capturingOutputFileName[]="OpenIGTTrackedVideoRecordingTest.nrrd";
+  const char capturingOutputFileName[]="OpenIGTTrackedVideoRecordingTest.mha"; // must match the extension defined in the config file
 
   const char volumeReconstructionDeviceId[]="VolumeReconstructorDevice";
   const char* batchReconstructionInputFileName=capturingOutputFileName;
-  const char batchReconstructionOutputFileName[]="VolumeReconstructedBatch.nrrd";
   const char batchReconstructionOutputImageName[]="VolumeReconstructedBatch";
-  const char snapshotReconstructionOutputFileName[]="VolumeReconstructedSnapshot.nrrd";
   const char snapshotReconstructionOutputImageName[]="VolumeReconstructedSnapshot";
-  const char liveReconstructionOutputFileName[]="VolumeReconstructedLive.nrrd";
   const char liveReconstructionOutputImageName[]="VolumeReconstructedLive";
+  
+  // There is no NRRD support in VTK5, so only use it with VTK6
+#if (VTK_MAJOR_VERSION < 6)
+  const char batchReconstructionOutputFileName[]="VolumeReconstructedBatch.mha";
+  const char snapshotReconstructionOutputFileName[]="VolumeReconstructedSnapshot.mha";
+  const char liveReconstructionOutputFileName[]="VolumeReconstructedLive.mha";
+#else
+  const char batchReconstructionOutputFileName[]="VolumeReconstructedBatch.nrrd";
+  const char snapshotReconstructionOutputFileName[]="VolumeReconstructedSnapshot.nrrd";
+  const char liveReconstructionOutputFileName[]="VolumeReconstructedLive.nrrd";
+#endif
 
   // Basic commands
   ExecuteGetChannelIds(client);
