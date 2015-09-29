@@ -277,8 +277,13 @@ void PlusServerLauncherMainWindow::keyPressEvent(QKeyEvent *e)
 //-----------------------------------------------------------------------------
 void PlusServerLauncherMainWindow::sendServerOutputToLogger(const QByteArray &strData, vtkPlusLogger::LogLevelType defaultLogLevel)
 {
+  std::string stringData(strData.toStdString());
   QString logString(strData);
-  QStringList logLines = logString.split("\n");
+#if _WIN32
+  QStringList logLines = logString.split("\r\n", QString::SkipEmptyParts);
+#else
+  QStringList logLines = logString.split("\n", QString::SkipEmptyParts);
+#endif
   foreach (const QString &logLine, logLines)
   {
     if( logLine.isEmpty() )
@@ -291,7 +296,7 @@ void PlusServerLauncherMainWindow::sendServerOutputToLogger(const QByteArray &st
     vtkPlusLogger::LogLevelType logLevel = defaultLogLevel;
     if (logFields.size() == numberOfFieldsPerLogLine)
     {
-      // Try matching log level, starting with the most frquently used levels
+      // Try matching log level, starting with the most frequently used levels
       if (logFields[1]=="DEBUG")
       {
         logLevel = vtkPlusLogger::LOG_LEVEL_DEBUG;
