@@ -513,7 +513,11 @@ bool vtkMetaImageSequenceIO::CanReadFile(const std::string& filename)
     return false;
   }
   char line[MAX_LINE_LENGTH+1]={0};
-  fgets( line, MAX_LINE_LENGTH, stream );
+  if (fgets( line, MAX_LINE_LENGTH, stream ) != line)
+  {
+    LOG_DEBUG("The file "<<filename<<" could not be opened for reading. Failed to retrieve first line.");
+    return false;
+  }
   fclose( stream );
 
   // the first line in the file should be:
