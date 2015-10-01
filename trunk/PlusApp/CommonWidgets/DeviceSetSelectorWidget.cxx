@@ -14,6 +14,8 @@ See License.txt for details.
 
 #ifdef _WIN32
 #include "Shellapi.h"
+#else
+#include <unistd.h>
 #endif
 
 enum DataItemRoles
@@ -27,6 +29,8 @@ enum DataItemRoles
 DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
   : QWidget(aParent)
   , m_ConnectionSuccessful(false)
+  , m_EditMenu(NULL)
+  , m_EditorSelectAction(NULL)
 {
   ui.setupUi(this);
 
@@ -417,13 +421,21 @@ void DeviceSetSelectorWidget::EditConfiguration()
     LOG_ERROR("Cannot edit configuration file. No configuration is selected."); 
     return;
   }
-  QString editorApplicationExecutable(vtkPlusConfig::GetInstance()->GetEditorApplicationExecutable());
+  QString editorApplicationExecutable(vtkPlusConfig::GetInstance()->GetEditorApplicationExecutable().c_str());
 
+#if _WIN32
   if (editorApplicationExecutable.right(4).compare(QString(".exe")) != 0)
   {
     LOG_ERROR("Invalid XML editor application!");
     return;
   }
+#else
+  if ( access(editorApplicationExecutable.toLatin1().constData(), X_OK))
+  {
+    LOG_ERROR("Invalid XML editor application!");
+    return;
+  }
+#endif
 
 #ifdef _WIN32
   wchar_t wcharApplication[1024];
@@ -473,7 +485,7 @@ void DeviceSetSelectorWidget::SelectEditor()
     return;
   }
 
-  vtkPlusConfig::GetInstance()->SetEditorApplicationExecutable(fileName.toLatin1().constData());
+  vtkPlusConfig::GetInstance()->SetEditorApplicationExecutable( std::string(fileName.toLatin1().constData()) );
   vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 }
 
