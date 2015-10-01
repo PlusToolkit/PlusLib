@@ -138,7 +138,12 @@ protected:
     void EditConfiguration();
 
     /*!
-    * Called when Edit configuration button is right-clicked and action is selected
+    * Called when the context menu is requested on the edit button
+    */
+    void ShowEditContextMenu(QPoint);
+
+    /*!
+    * Called when the select editor menu item is called
     */
     void SelectEditor();
 
@@ -153,7 +158,6 @@ protected:
 
   /*! Action triggered when button right-clicked */
   QAction* m_EditorSelectAction;
-  QAction* m_EditFileAction;
   QMenu* m_EditMenu;
 
   /*! Flag telling whether connection has been successful */

@@ -6,6 +6,7 @@ See License.txt for details.
 
 #include "DeviceSetSelectorWidget.h"
 
+#include <QAction>
 #include <QDomDocument>
 #include <QFileDialog>
 #include <QMenu>
@@ -29,23 +30,17 @@ DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
 {
   ui.setupUi(this);
 
+  ui.pushButton_EditConfiguration->setContextMenuPolicy(Qt::CustomContextMenu);
+
   connect( ui.pushButton_OpenConfigurationDirectory, SIGNAL( clicked() ), this, SLOT( OpenConfigurationDirectory() ) );
   connect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeConnect() ) );
   connect( ui.pushButton_RefreshFolder, SIGNAL( clicked() ), this, SLOT( RefreshFolder() ) );
-  //connect( ui.pushButton_EditConfiguration, SIGNAL( clicked() ), this, SLOT( EditConfiguration() ) );
+  connect( ui.pushButton_EditConfiguration, SIGNAL( clicked() ), this, SLOT( EditConfiguration() ) );
   connect( ui.comboBox_DeviceSet, SIGNAL( currentIndexChanged(int) ), this, SLOT( DeviceSetSelected(int) ) );
   connect( ui.pushButton_ResetTracker, SIGNAL( clicked() ), this, SLOT( ResetTrackerButtonClicked() ) );
-
-  this->m_EditorSelectAction = new QAction("Select Editor", this);
-  connect( m_EditorSelectAction, SIGNAL( triggered() ), this, SLOT(SelectEditor()) );
-  this->m_EditFileAction = new QAction("Edit Configuration File", this);
-  connect( m_EditFileAction, SIGNAL( triggered() ), this, SLOT(EditConfiguration()) );
-  this->m_EditMenu = new QMenu(this);
-  this->m_EditMenu->addAction(m_EditFileAction);
-  this->m_EditMenu->addAction(m_EditorSelectAction);
-  ui.pushButton_EditConfiguration->setMenu(this->m_EditMenu);
-
   ui.pushButton_ResetTracker->setVisible(false);
+  
+  connect( ui.pushButton_EditConfiguration, SIGNAL( customContextMenuRequested( QPoint ) ), this, SLOT( ShowEditContextMenu(QPoint) ) );
 
   SetConfigurationDirectory(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory().c_str());
 }
@@ -58,11 +53,6 @@ DeviceSetSelectorWidget::~DeviceSetSelectorWidget()
   {
     delete this->m_EditMenu;
     m_EditMenu = NULL;
-  }
-  if( this->m_EditFileAction)
-  {
-    delete this->m_EditFileAction;
-    m_EditFileAction = NULL;
   }
   if( this->m_EditorSelectAction)
   {
@@ -452,6 +442,25 @@ void DeviceSetSelectorWidget::EditConfiguration()
 #else
   LOG_ERROR("Opening configuration files from the program is not supported on this platform.");
 #endif
+}
+
+//----------------------------------------------------------------------------
+void DeviceSetSelectorWidget::ShowEditContextMenu(QPoint point)
+{
+  if( m_EditorSelectAction != NULL )
+  {
+    m_EditorSelectAction = new QAction(this);
+    m_EditorSelectAction->setText("Select Editor");
+  }
+
+  connect(m_EditorSelectAction, SIGNAL(triggered()), this, SLOT( SelectEditor() ));
+
+  if( m_EditMenu != NULL )
+  {
+    m_EditMenu = new QMenu(this);
+    m_EditMenu->addAction(m_EditorSelectAction);
+  }
+  m_EditMenu->exec(ui.pushButton_EditConfiguration->mapToGlobal(point));
 }
 
 //-----------------------------------------------------------------------------
