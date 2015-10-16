@@ -177,7 +177,10 @@ ADD_SUBDIRECTORY(CommonWidgets)
 # Build various utilities
 ADD_SUBDIRECTORY(PointSetExtractor)
 ADD_SUBDIRECTORY(SpatialSensorFusion)
-ADD_SUBDIRECTORY(PlusServerLauncher) #(Qt)
+
+IF(PLUS_USE_OpenIGTLink)
+  ADD_SUBDIRECTORY(PlusServerLauncher) #(Qt)
+ENDIF(PLUS_USE_OpenIGTLink)
 
 # --------------------------------------------------------------------------
 # Build the DiagnosticTools 
