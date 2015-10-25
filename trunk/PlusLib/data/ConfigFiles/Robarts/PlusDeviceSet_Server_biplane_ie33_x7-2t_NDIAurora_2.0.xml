@@ -1,10 +1,10 @@
 <PlusConfiguration version="2.3" PlusRevision="Plus-2.1.2.3381 - Win32">
   <DataCollection StartupDelaySec="1">
-    <DeviceSet Name="PlusServer: Bi-plane ie33 (x7-27 probe) + NDI Aurora tracker (Reference, Probe, Stylus) - 18cm - fCal Phantom 2.0" Description="NDI Aurora sensors should be plugged in the following order: 1 Reference, 2 Probe, 3 Stylus." />
+    <DeviceSet Name="PlusServer: Bi-plane ie33 (x7-27 probe) + NDI Aurora tracker (Reference, Probe, Stylus) - 14cm - fCal Phantom 2.0" Description="NDI Aurora sensors should be plugged in the following order: 1 Reference, 2 Probe, 3 Stylus." />
     <Device
       Id="TrackerDevice"
       Type="AuroraTracker"
-      SerialPort="6"
+      SerialPort="3"
       AcquisitionRate="50"
       LocalTimeOffsetSec="0.0"
       ToolReferenceFrame="Tracker"
@@ -78,7 +78,7 @@
     <Device
       Id="CaptureDevice"
       Type="VirtualDiscCapture"
-      BaseFilename="ie33Philips3DCapture.mha"
+      BaseFilename="ie33Philips_biPlaneCapture.nrrd"
       EnableCapturing="FALSE" >
       <InputChannels>
         <InputChannel Id="TrackedVideoStream" />
@@ -108,12 +108,28 @@
 -0.35452 0.0551125 0.0167166 89.4997 
 0 0 0 1 "
        Error="1.00906" Date="052015_132903" />
+    <!-- stylus tip for 3d printed neochord with jaw shut-->
     <Transform From="StylusTip" To="Stylus"
       Matrix="
-        0.999594	0	-0.0284841	-0.305774
-        -0.0042307	0.988908	-0.148468	-1.59379
-        0.0281681	0.148529	0.988507	10.6115
+        0.994215	0	0.107408	1.15469
+        0.0246084	0.9734	-0.227785	-2.4488
+        -0.104551	0.22911	0.967769	10.404
         0	0	0	1"
+       Error="0.222242" Date="102515_140600" /> 
+    <!-- stylus tip for 3d printed ball stylus 
+    <Transform From="StylusTip" To="Stylus"
+      Matrix="
+        0.999723	0	0.0235241	1.87003
+        -0.000271716	0.999933	0.0115473	0.917947
+        -0.0235225	-0.0115505	0.999657	79.4668
+        0	0	0	1"
+      Error="0.179735" Date="102515_141453" />-->
+    <Transform From="Reference" To="Ras"
+      Matrix="
+        1 0 0 0 
+        0 0 1 0 
+        0 -1 0 0 
+        0 0 0 1"
        Error="0.287287" Date="082315_112217" />
   </CoordinateDefinitions>
 
@@ -149,10 +165,10 @@
          <Message Type="TRANSFORM" />
       </MessageTypes>
       <TransformNames> 
-        <Transform Name="StylusTipToReference" /> 
+        <Transform Name="StylusTipToRas" /> 
       </TransformNames>
       <ImageNames>
-        <Image Name="LeftImage" EmbeddedTransformToFrame="Reference" />
+        <Image Name="LeftImage" EmbeddedTransformToFrame="Ras" />
       </ImageNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>
@@ -169,10 +185,10 @@
         <Message Type="TRANSFORM" />
       </MessageTypes>
       <TransformNames> 
-        <Transform Name="StylusTipToReference" />
+        <Transform Name="StylusTipToRas" />
       </TransformNames>
       <ImageNames>
-        <Image Name="RightImage" EmbeddedTransformToFrame="Reference" />
+        <Image Name="RightImage" EmbeddedTransformToFrame="Ras" />
       </ImageNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>

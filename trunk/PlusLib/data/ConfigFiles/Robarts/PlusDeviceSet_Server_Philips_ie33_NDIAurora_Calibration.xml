@@ -7,7 +7,7 @@
 	 <Device
       Id="TrackerDevice"
       Type="AuroraTracker"
-      SerialPort="6"
+      SerialPort="3"
       LocalTimeOffsetSec="0.0"
       ToolReferenceFrame="Tracker"
       BaudRate="115200">
@@ -27,8 +27,8 @@
 
     <Device
       Id="VideoDevice" 
-      Type="ie33Video" 
-	  IP="129.100.44.8"
+      Type="iE33Video" 
+	  IPAddress="129.100.44.8"
 	  Port="4013" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="AMF"  />

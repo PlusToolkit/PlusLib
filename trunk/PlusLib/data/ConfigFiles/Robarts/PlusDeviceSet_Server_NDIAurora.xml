@@ -10,7 +10,7 @@ The computer needs to be on the same local network as Aurora SCU unit. The needl
     <Device
       Id="TrackerDevice" 
       Type="AuroraTracker"
-      SerialPort="6"
+      SerialPort="3"
       BaudRate="115200"
       ToolReferenceFrame="Tracker" >
       <DataSources>
@@ -29,7 +29,7 @@ The computer needs to be on the same local network as Aurora SCU unit. The needl
     <Device
       Id="CaptureDevice"
       Type="VirtualDiscCapture"
-      BaseFilename="ie33Philips3DCapture.mha"
+      BaseFilename="ndiCapture.nrrd"
       EnableCapturing="FALSE" >
       <InputChannels>
         <InputChannel Id="TrackerStream" />
@@ -38,12 +38,20 @@ The computer needs to be on the same local network as Aurora SCU unit. The needl
   </DataCollection>
   
   <CoordinateDefinitions>
+    <!-- stylus tip for 3d printed neochord with jaw shut-->
     <Transform From="StylusTip" To="Stylus"
       Matrix="
-        0.999594	0	-0.0284841	-0.305774
-        -0.0042307	0.988908	-0.148468	-1.59379
-        0.0281681	0.148529	0.988507	10.6115
+        0.994215	0	0.107408	1.15469
+        0.0246084	0.9734	-0.227785	-2.4488
+        -0.104551	0.22911	0.967769	10.404
         0	0	0	1"
+       Error="0.222242" Date="102515_140600" />
+    <Transform From="Reference" To="Ras"
+      Matrix="
+        1 0 0 0 
+        0 0 1 0 
+        0 -1 0 0 
+        0 0 0 1"
        Error="0.287287" Date="082315_112217" />
   </CoordinateDefinitions>
 
@@ -58,7 +66,7 @@ The computer needs to be on the same local network as Aurora SCU unit. The needl
         <Message Type="TRANSFORM" />
       </MessageTypes>
       <TransformNames> 
-        <Transform Name="StylusTipToReference" />
+        <Transform Name="StylusTipToRas" />
       </TransformNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>

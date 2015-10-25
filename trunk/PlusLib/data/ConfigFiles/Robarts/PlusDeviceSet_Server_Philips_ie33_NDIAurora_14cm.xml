@@ -4,10 +4,10 @@
     <DeviceSet 
       Name="PlusServer: Philips IE33 3D Probe + NDI Aurora (Reference, Probe, Stylus) - 14cm"
       Description="Broadcasting acquired 3D ultrasound video acquired on the Philips IE33 system through OpenIGTLink with NDI Aurora tracking" />
-	 <Device
+     <Device
       Id="TrackerDevice"
       Type="AuroraTracker"
-      SerialPort="6"
+      SerialPort="3"
       LocalTimeOffsetSec="0.0"
       ToolReferenceFrame="Tracker"
       BaudRate="115200">
@@ -27,9 +27,9 @@
 
     <Device
       Id="VideoDevice" 
-      Type="ie33Video" 
-	  IP="129.100.44.8"
-	  Port="4013" >
+      Type="iE33Video" 
+      IPAddress="129.100.44.8"
+      Port="4013" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="AMF"  />
       </DataSources>      
@@ -49,11 +49,11 @@
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>
     </Device>
-	
+
     <Device
       Id="CaptureDevice"
       Type="VirtualDiscCapture"
-      BaseFilename="ie33Philips3DCapture.mha"
+      BaseFilename="ie33Philips3DCapture.nrrd"
       EnableCapturing="FALSE" >
       <InputChannels>
         <InputChannel Id="TrackedVideoStream" />
@@ -62,19 +62,41 @@
   </DataCollection>
 
   <CoordinateDefinitions>
+  <!--
     <Transform From="Image" To="Probe"
       Matrix="1.22974 -0.217859 -0.170841 30.6641 
               0.223972 1.24008 0.0308146 -58.0717 
               0.162745 -0.0604176 1.24851 8.75495 
               0 0 0 1 "
-       Error="2.46123" Date="081315_131842" />
-	   <!-- stylus tip for 3d printed neochord with jaw shut -->
+       Error="2.46123" Date="081315_131842" />-->
+	   <Transform From="Image" To="Probe"
+      Matrix="	   1.28486 -0.394721 -0.0416977 32.9051 
+0.396682 1.28186 0.0888721 -69.0705 
+0.013661 -0.0972128 1.34119 -14.6745 
+0 0 0 1  "
+       Error="2.91784" Date="081315_131842" />
+    <!-- stylus tip for 3d printed neochord with jaw shut-->
     <Transform From="StylusTip" To="Stylus"
       Matrix="
-        0.999594	0	-0.0284841	-0.305774
-        -0.0042307	0.988908	-0.148468	-1.59379
-        0.0281681	0.148529	0.988507	10.6115
+        0.994215	0	0.107408	1.15469
+        0.0246084	0.9734	-0.227785	-2.4488
+        -0.104551	0.22911	0.967769	10.404
         0	0	0	1"
+       Error="0.222242" Date="102515_140600" /> 
+    <!-- stylus tip for 3d printed ball stylus 
+    <Transform From="StylusTip" To="Stylus"
+      Matrix="
+        0.999723	0	0.0235241	1.87003
+        -0.000271716	0.999933	0.0115473	0.917947
+        -0.0235225	-0.0115505	0.999657	79.4668
+        0	0	0	1"
+      Error="0.179735" Date="102515_141453" />-->
+    <Transform From="Reference" To="Ras"
+      Matrix="
+        1 0 0 0 
+        0 0 1 0 
+        0 -1 0 0 
+        0 0 0 1"
        Error="0.287287" Date="082315_112217" />
   </CoordinateDefinitions>
   
@@ -90,11 +112,11 @@
         <Message Type="TRANSFORM" />
       </MessageTypes>
       <ImageNames>
-        <Image Name="Image" EmbeddedTransformToFrame="Reference" />
+        <Image Name="Image" EmbeddedTransformToFrame="Ras" />
       </ImageNames>
       <TransformNames>
-        <Transform Name="StylusTipToReference" />
-        <Transform Name="ProbeToReference" />
+        <Transform Name="StylusTipToRas" />
+        <Transform Name="ProbeToRas" />
       </TransformNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>
