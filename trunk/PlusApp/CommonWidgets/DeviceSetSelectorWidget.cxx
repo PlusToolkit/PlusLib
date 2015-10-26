@@ -459,7 +459,7 @@ void DeviceSetSelectorWidget::EditConfiguration()
 //----------------------------------------------------------------------------
 void DeviceSetSelectorWidget::ShowEditContextMenu(QPoint point)
 {
-  if( m_EditorSelectAction != NULL )
+  if( m_EditorSelectAction == NULL )
   {
     m_EditorSelectAction = new QAction(this);
     m_EditorSelectAction->setText("Select Editor");
@@ -467,7 +467,7 @@ void DeviceSetSelectorWidget::ShowEditContextMenu(QPoint point)
 
   connect(m_EditorSelectAction, SIGNAL(triggered()), this, SLOT( SelectEditor() ));
 
-  if( m_EditMenu != NULL )
+  if( m_EditMenu == NULL )
   {
     m_EditMenu = new QMenu(this);
     m_EditMenu->addAction(m_EditorSelectAction);
