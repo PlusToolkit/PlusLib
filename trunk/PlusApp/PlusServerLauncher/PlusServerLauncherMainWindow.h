@@ -8,8 +8,9 @@
 #define __PlusServerLauncherMainWindow_h
 
 #include "PlusConfigure.h"
+#include "ui_PlusServerLauncherMainWindow.h"
 
-#include <QDialog>
+#include <QMainWindow>
 #include <QProcess>
 
 class DeviceSetSelectorWidget;
@@ -26,7 +27,7 @@ class QWidget;
   \brief GUI application for starting an OpenIGTLink server with the selected device configuration file
   \ingroup PlusAppPlusServerLauncher
  */
-class PlusServerLauncherMainWindow : public QDialog
+class PlusServerLauncherMainWindow : public QMainWindow
 {
   Q_OBJECT
 
@@ -69,14 +70,15 @@ protected:
   /*! Stop server process, disconnect outputs. Returns with true on success (shutdown on request was successful, without forcing). */
   bool stopServer();
 
+protected:
   /*! Device set selector widget */
   DeviceSetSelectorWidget* m_DeviceSetSelectorWidget;
 
-  /*! Combo box for holding the desired log level */
-  QComboBox* m_ComboBox_LogLevel;
-
   /*! PlusServer instance that is responsible for all data collection and network transfer */
   QProcess* m_CurrentServerInstance;
+
+private:
+  Ui::PlusServerLauncherMainWindow ui;
 };
 
 #endif // __PlusServerLauncherMainWindow_h

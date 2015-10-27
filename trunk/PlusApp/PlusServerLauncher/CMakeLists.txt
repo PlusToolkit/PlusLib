@@ -20,9 +20,11 @@ SET (PlusServerLauncher_UI_HDRS
   )
 
 SET (PlusServerLauncher_UI_SRCS
+  PlusServerLauncherMainWindow.ui 
   )
 
 SET (PlusServerLauncher_QT_Resources
+  PlusServerLauncher.qrc
   ${PlusApp_SOURCE_DIR}/CommonWidgets/CommonWidgets.qrc
   )
 
