@@ -143,7 +143,7 @@ bool PlusServerLauncherMainWindow::startServer(const QString& configFilePath)
   connect(m_CurrentServerInstance, SIGNAL(error(QProcess::ProcessError)), this, SLOT(errorReceived(QProcess::ProcessError)));
   connect(m_CurrentServerInstance, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(serverExecutableFinished(int, QProcess::ExitStatus)));
 #if QT_VERSION >> 16 == 4
-  QString cmdLine = QString("\"%1\" --config-file=\"%2\" --verbose=%3").arg(plusServerExecutable.c_str()).arg(configFilePath).arg(ui.comboBox_LogLevel->itemData(m_ComboBox_LogLevel->currentIndex()).toInt());
+  QString cmdLine = QString("\"%1\" --config-file=\"%2\" --verbose=%3").arg(plusServerExecutable.c_str()).arg(configFilePath).arg(ui.comboBox_LogLevel->itemData(ui.comboBox_LogLevel->currentIndex()).toInt());
 #else if QT_VERSION >> 16 == 5
   QString cmdLine = QString("\"%1\" --config-file=\"%2\" --verbose=%3").arg(plusServerExecutable.c_str()).arg(configFilePath).arg(ui.comboBox_LogLevel->currentData().toInt());
 #endif
