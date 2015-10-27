@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "DeviceSetSelectorWidget.h"
@@ -12,15 +12,28 @@
 #include "vtkPlusDeviceFactory.h"
 #include "vtkPlusOpenIGTLinkServer.h"
 #include "vtkTransformRepository.h"
+#include <QComboBox>
 #include <QIcon>
 #include <QKeyEvent>
-#include <QComboBox>
+#include <QRegExp>
+#include <QStringList>
+#include <QTimer>
 #include <QtNetwork/QHostAddress>
 #include <QtNetwork/QHostInfo>
 #include <QtNetwork/QNetworkInterface>
-#include <QStringList>
-#include <QTimer>
+#include <algorithm>
 
+namespace
+{
+  void ReplaceStringInPlace(std::string& subject, const std::string& search,
+    const std::string& replace) {
+      size_t pos = 0;
+      while ((pos = subject.find(search, pos)) != std::string::npos) {
+        subject.replace(pos, search.length(), replace);
+        pos += replace.length();
+      }
+  }
+}
 
 //-----------------------------------------------------------------------------
 PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent, Qt::WindowFlags flags, bool autoConnect)
@@ -43,9 +56,7 @@ PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent, Qt::
   // Show only the last few thousand messages
   // (it should be enough, as all the messages are available in log files anyway)
   statusIcon->SetMaxMessageCount(3000);
-
   // Put the status icon in a frame with the log level selector
-
   ui.statusBarLayout->insertWidget(0, statusIcon);
   ui.comboBox_LogLevel->addItem("Error", QVariant(vtkPlusLogger::LOG_LEVEL_ERROR));
   ui.comboBox_LogLevel->addItem("Warning", QVariant(vtkPlusLogger::LOG_LEVEL_WARNING));
@@ -59,7 +70,9 @@ PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent, Qt::
   else
   {
     ui.comboBox_LogLevel->setCurrentIndex(ui.comboBox_LogLevel->findData(QVariant(vtkPlusLogger::LOG_LEVEL_INFO)));
+    vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_INFO);
   }
+  connect( ui.comboBox_LogLevel, SIGNAL( currentIndexChanged(int) ), this, SLOT( logLevelChanged() ) );
 
   // Insert widgets into placeholders
   ui.centralLayout->setMargin(4);
@@ -142,10 +155,15 @@ bool PlusServerLauncherMainWindow::startServer(const QString& configFilePath)
   connect(m_CurrentServerInstance, SIGNAL(readyReadStandardError()), this, SLOT(stdErrMsgReceived()));
   connect(m_CurrentServerInstance, SIGNAL(error(QProcess::ProcessError)), this, SLOT(errorReceived(QProcess::ProcessError)));
   connect(m_CurrentServerInstance, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(serverExecutableFinished(int, QProcess::ExitStatus)));
+
+  // PlusServerLauncher wants at least LOG_LEVEL_INFO to parse status information from the PlusServer executable
+  // Un-requested log entries that are captured from the PlusServer executable are parsed and dropped from output
 #if QT_VERSION >> 16 == 4
-  QString cmdLine = QString("\"%1\" --config-file=\"%2\" --verbose=%3").arg(plusServerExecutable.c_str()).arg(configFilePath).arg(ui.comboBox_LogLevel->itemData(ui.comboBox_LogLevel->currentIndex()).toInt());
+  int logLevelToPlusServer = std::max<int>(ui.comboBox_LogLevel->itemData(ui.comboBox_LogLevel->currentIndex()).toInt(), vtkPlusLogger::LOG_LEVEL_INFO);
+  QString cmdLine = QString("\"%1\" --config-file=\"%2\" --verbose=%3").arg(plusServerExecutable.c_str()).arg(configFilePath).arg(logLevelToPlusServer);
 #else if QT_VERSION >> 16 == 5
-  QString cmdLine = QString("\"%1\" --config-file=\"%2\" --verbose=%3").arg(plusServerExecutable.c_str()).arg(configFilePath).arg(ui.comboBox_LogLevel->currentData().toInt());
+  int logLevelToPlusServer = std::max<int>(ui.comboBox_LogLevel->currentData().toInt(), vtkPlusLogger::LOG_LEVEL_INFO);
+  QString cmdLine = QString("\"%1\" --config-file=\"%2\" --verbose=%3").arg(plusServerExecutable.c_str()).arg(configFilePath).arg(logLevelToPlusServer);
 #endif
   LOG_INFO("Server process command line: "<<cmdLine.toLatin1().constData());
   m_CurrentServerInstance->start(cmdLine);
@@ -206,9 +224,59 @@ bool PlusServerLauncherMainWindow::stopServer()
   }
   delete m_CurrentServerInstance;
   m_CurrentServerInstance = NULL;
+  PortList.clear();
   return (!forcedShutdown);
 }
 
+//----------------------------------------------------------------------------
+void PlusServerLauncherMainWindow::ParseContent(const std::string& message)
+{
+  // input is the format: message
+  if( message.find("Plus OpenIGTLink server started on port:") != std::string::npos )
+  {
+    int port(0);
+    std::stringstream lineNumberStr(message.substr(message.find_last_of(':')+1, message.length() - message.find_last_of(':') ));
+    lineNumberStr >> port;
+    PortList.push_back(port);
+  }
+  else if( message.find("Press Ctrl-C to quit") != std::string::npos )
+  {
+    // Server has finished spooling up, update the description text
+    std::string serverList("Server IP addresses:\n");
+
+    std::string ipAddresses;
+    QList<QHostAddress> list = QNetworkInterface::allAddresses();
+    for(int hostIndex=0; hostIndex<list.count(); hostIndex++)
+    {
+      if(list[hostIndex].protocol() == QAbstractSocket::IPv4Protocol )
+      {
+        if (!ipAddresses.empty())
+        {
+          ipAddresses.append(",  ");
+        }
+        ipAddresses.append(list[hostIndex].toString().toLatin1().constData());
+      }
+    }
+
+    serverList = serverList + ipAddresses + "\non ports:\n";
+
+    std::stringstream portList;
+    for(int portIndex=0; portIndex < PortList.size(); portIndex++)
+    {
+      if (!portList.str().empty())
+      {
+        portList << ",  ";
+      }
+      portList << PortList[portIndex];
+    }
+
+    serverList = serverList + portList.str();
+
+    m_DeviceSetSelectorWidget->SetDescriptionSuffix(QString(serverList.c_str()));
+    m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
+    m_DeviceSetSelectorWidget->SetConnectButtonText(QString("Stop Server"));
+  }
+}
 
 //-----------------------------------------------------------------------------
 void PlusServerLauncherMainWindow::connectToDevicesByConfigFile(std::string aConfigFile)
@@ -224,6 +292,7 @@ void PlusServerLauncherMainWindow::connectToDevicesByConfigFile(std::string aCon
   if ( aConfigFile.empty() )
   {
     LOG_INFO("Disconnect request successful");
+    m_DeviceSetSelectorWidget->ClearDescriptionSuffix();
     m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
     m_DeviceSetSelectorWidget->SetConnectButtonText(QString("Launch Server"));
     return; 
@@ -234,12 +303,12 @@ void PlusServerLauncherMainWindow::connectToDevicesByConfigFile(std::string aCon
   // Connect
   if(startServer(QString(aConfigFile.c_str())))
   {
-    m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
-    m_DeviceSetSelectorWidget->SetConnectButtonText(QString("Stop Server"));
+    m_DeviceSetSelectorWidget->SetConnectButtonText(QString("Launching..."));
     vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
   }
   else
   {
+    m_DeviceSetSelectorWidget->ClearDescriptionSuffix();
     m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
     m_DeviceSetSelectorWidget->SetConnectButtonText(QString("Launch Server"));
   }
@@ -260,58 +329,52 @@ void PlusServerLauncherMainWindow::keyPressEvent(QKeyEvent *e)
 }
 
 //-----------------------------------------------------------------------------
-void PlusServerLauncherMainWindow::sendServerOutputToLogger(const QByteArray &strData, vtkPlusLogger::LogLevelType defaultLogLevel)
+void PlusServerLauncherMainWindow::sendServerOutputToLogger(const QByteArray &strData)
 {
-  QString logString(strData);
-#if _WIN32
-  QStringList logLines = logString.split("\r\n", QString::SkipEmptyParts);
-#else
-  QStringList logLines = logString.split("\n", QString::SkipEmptyParts);
-#endif
-  foreach (const QString &logLine, logLines)
-  {
-    if( logLine.isEmpty() )
-      continue;
+  typedef std::vector<std::string> StringList;
 
-    // Log line: time|level|timeoffset|message|location
-    const int numberOfFieldsPerLogLine = 5;
-    QStringList logFields = logLine.split('|');
-    QString updatedLogLine;
-    vtkPlusLogger::LogLevelType logLevel = defaultLogLevel;
-    if (logFields.size() == numberOfFieldsPerLogLine)
+  QString string(strData);
+  std::string logString(string.toLatin1().constData());
+
+  if( logString.empty() )
+  {
+    return;
+  }
+
+  // De-windows-ifiy
+  ReplaceStringInPlace(logString, "\r\n", "\n");
+  StringList tokens;
+
+  if( logString.find('|') != std::string::npos )
+  {
+    PlusCommon::SplitStringIntoTokens(logString, '|', tokens, false);
+    for (int index = 0; index < tokens.size(); index+=4)
     {
-      // Try matching log level, starting with the most frequently used levels
-      if (logFields[1]=="DEBUG")
-      {
-        logLevel = vtkPlusLogger::LOG_LEVEL_DEBUG;
-      }
-      else if (logFields[1]=="INFO")
-      {
-        logLevel = vtkPlusLogger::LOG_LEVEL_INFO;
-      }
-      else if (logFields[1]=="WARNING")
-      {
-        logLevel = vtkPlusLogger::LOG_LEVEL_WARNING;
-      }
-      else if (logFields[1]=="ERROR")
-      {
-        logLevel = vtkPlusLogger::LOG_LEVEL_ERROR;
-      }
-      else if (logFields[1]=="TRACE")
-      {
-        logLevel = vtkPlusLogger::LOG_LEVEL_TRACE;
-      }
-      logFields.pop_front(); // strip time
-      logFields.pop_front(); // strip level
-      logFields.pop_front(); // strip timeOffset
-      updatedLogLine = logFields.join(";");
+      vtkPlusLogger::LogLevelType logLevel = vtkPlusLogger::GetLogLevelType(tokens[index]);
+      std::string timeStamp = tokens[index+1];
+      std::string message = tokens[index+2];
+      std::string location = tokens[index+3];
+
+      std::string file = location.substr(4, location.find_last_of('(') - 4);
+      int lineNumber(0);
+      std::stringstream lineNumberStr(location.substr(location.find_last_of('(')+1, location.find_last_of(')') - location.find_last_of('(') -1 ) );
+      lineNumberStr >> lineNumber;
+
+      // Only parse for content if the line was successfully parsed for logging
+      this->ParseContent(message);
+
+      vtkPlusLogger::Instance()->LogMessage(logLevel, message.c_str(), file.c_str(), lineNumber, "SERVER");
     }
-    else
+  }
+  else
+  {
+    PlusCommon::SplitStringIntoTokens(logString, '\n', tokens, false);
+    for (StringList::iterator it = tokens.begin(); it != tokens.end(); ++it)
     {
-      // cannot parse this line, log as is
-      updatedLogLine = logLine;
+      LOG_INFO(*it);
+      this->ParseContent(*it);
     }
-    vtkPlusLogger::Instance()->LogMessage(logLevel, updatedLogLine.toLatin1().constData(), "PlusServerLauncher", 0, "SERVER");
+    return;
   }
 }
 
@@ -319,14 +382,14 @@ void PlusServerLauncherMainWindow::sendServerOutputToLogger(const QByteArray &st
 void PlusServerLauncherMainWindow::stdOutMsgReceived()
 {
   QByteArray strData = m_CurrentServerInstance->readAllStandardOutput();
-  sendServerOutputToLogger(strData, vtkPlusLogger::LOG_LEVEL_INFO);
+  sendServerOutputToLogger(strData);
 }
 
 //-----------------------------------------------------------------------------
 void PlusServerLauncherMainWindow::stdErrMsgReceived()
 {
   QByteArray strData = m_CurrentServerInstance->readAllStandardError();
-  sendServerOutputToLogger(strData, vtkPlusLogger::LOG_LEVEL_ERROR);
+  sendServerOutputToLogger(strData);
 }
 
 //-----------------------------------------------------------------------------
@@ -335,14 +398,14 @@ void PlusServerLauncherMainWindow::errorReceived(QProcess::ProcessError errorCod
   const char* errorString="unknown";
   switch (errorCode)
   {
-    case QProcess::FailedToStart: errorString="FailedToStart"; break;
-    case QProcess::Crashed: errorString="Crashed"; break;
-    case QProcess::Timedout: errorString="Timedout"; break;
-    case QProcess::WriteError: errorString="WriteError"; break;
-    case QProcess::ReadError: errorString="ReadError"; break;
-    case QProcess::UnknownError:
-    default:
-      errorString="UnknownError";
+  case QProcess::FailedToStart: errorString="FailedToStart"; break;
+  case QProcess::Crashed: errorString="Crashed"; break;
+  case QProcess::Timedout: errorString="Timedout"; break;
+  case QProcess::WriteError: errorString="WriteError"; break;
+  case QProcess::ReadError: errorString="ReadError"; break;
+  case QProcess::UnknownError:
+  default:
+    errorString="UnknownError";
   }
   LOG_ERROR("Server process error: "<<errorString);
   m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
@@ -354,4 +417,14 @@ void PlusServerLauncherMainWindow::serverExecutableFinished(int returnCode, QPro
   LOG_ERROR("Server stopped unexpectedly. Return code: " << returnCode);
   this->connectToDevicesByConfigFile("");
   m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
+}
+
+//----------------------------------------------------------------------------
+void PlusServerLauncherMainWindow::logLevelChanged()
+{
+#if QT_VERSION >> 16 == 4
+  vtkPlusLogger::Instance()->SetLogLevel(ui.comboBox_LogLevel->itemData(ui.comboBox_LogLevel->currentIndex()).toInt());
+#else if QT_VERSION >> 16 == 5
+  vtkPlusLogger::Instance()->SetLogLevel(ui.comboBox_LogLevel->currentData().toInt());
+#endif
 }

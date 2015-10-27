@@ -122,6 +122,9 @@ public:
   /*!  Get a pointer to the single existing object instance */
   static vtkPlusLogger* Instance(); 
 
+  /*! Convert a string into a log level type */
+  static LogLevelType GetLogLevelType(const std::string& logLevelString);
+
   /*!
     Add a new message to the log. Instead of using this method directly it is advisable
     to use the convenience macros: LOG_ERROR, LOG_WARNING, LOG_INFO, LOG_DEBUG, LOG_TRACE

@@ -191,6 +191,33 @@ vtkPlusLogger* vtkPlusLogger::Instance()
   return m_pInstance;
 }
 
+//----------------------------------------------------------------------------
+vtkPlusLogger::LogLevelType vtkPlusLogger::GetLogLevelType(const std::string& logLevelString)
+{
+  if (logLevelString=="DEBUG")
+  {
+    return LOG_LEVEL_DEBUG;
+  }
+  else if (logLevelString=="INFO")
+  {
+    return LOG_LEVEL_INFO;
+  }
+  else if (logLevelString=="WARNING")
+  {
+    return LOG_LEVEL_WARNING;
+  }
+  else if (logLevelString=="ERROR")
+  {
+    return LOG_LEVEL_ERROR;
+  }
+  else if (logLevelString=="TRACE")
+  {
+    return LOG_LEVEL_TRACE;
+  }
+
+  return LOG_LEVEL_UNDEFINED;
+}
+
 //-------------------------------------------------------
 int vtkPlusLogger::GetLogLevel() 
 { 

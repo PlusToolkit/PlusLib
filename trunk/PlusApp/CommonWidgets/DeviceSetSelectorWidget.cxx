@@ -198,7 +198,9 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
       ui.comboBox_DeviceSet->setEnabled(false);
 
       ui.textEdit_Description->setTextColor(QColor(Qt::black));
-      ui.textEdit_Description->setText("Connection successful!\n\n" + ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex(), DescriptionRole).toString());
+      m_DescriptionPrefix = "Connection successful!";
+      m_DescriptionBody = ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex(), DescriptionRole).toString();
+      this->UpdateDescriptionText();
 
       // Change the function to be invoked on clicking on the now Disconnect button to InvokeDisconnect
       disconnect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeConnect() ) );
@@ -212,7 +214,9 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
     else
     {
       ui.textEdit_Description->setTextColor(QColor(Qt::darkRed));
-      ui.textEdit_Description->setText("Connection failed!\n\nPlease select another device set and try again!");
+      m_DescriptionPrefix = "Connection failed!";
+      m_DescriptionBody = "Please select another device set and try again!";
+      this->UpdateDescriptionText();
     }
   }
   else
@@ -226,7 +230,9 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
       ui.textEdit_Description->setTextColor(QColor(Qt::black));
       if( ui.comboBox_DeviceSet->currentIndex() >= 0 )
       {
-        ui.textEdit_Description->setText( ui.comboBox_DeviceSet->itemData( ui.comboBox_DeviceSet->currentIndex(), DescriptionRole).toString() );
+        m_DescriptionPrefix = "";
+        m_DescriptionBody = ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex(), DescriptionRole).toString();
+        this->UpdateDescriptionText();
       }
 
       // Change the function to be invoked on clicking on the now Connect button to InvokeConnect
@@ -392,6 +398,25 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
+void DeviceSetSelectorWidget::UpdateDescriptionText()
+{
+  QString text;
+  if( !m_DescriptionPrefix.isEmpty() )
+  {
+    text += m_DescriptionPrefix + "\n\n";
+  }
+
+  text += m_DescriptionBody;
+
+  if( !m_DescriptionSuffix.isEmpty() )
+  {
+    text += "\n\n" + m_DescriptionSuffix;
+  }
+
+  ui.textEdit_Description->setText(text);
+}
+
 //-----------------------------------------------------------------------------
 
 void DeviceSetSelectorWidget::RefreshFolder()
@@ -509,4 +534,17 @@ void DeviceSetSelectorWidget::ShowResetTrackerButton( bool aValue )
 void DeviceSetSelectorWidget::SetConnectButtonText(QString text)
 {
   ui.pushButton_Connect->setText(text);
+}
+
+//----------------------------------------------------------------------------
+void DeviceSetSelectorWidget::SetDescriptionSuffix(const QString& string)
+{
+  this->m_DescriptionSuffix = string;
+  this->UpdateDescriptionText();
+}
+
+//----------------------------------------------------------------------------
+void DeviceSetSelectorWidget::ClearDescriptionSuffix()
+{
+  this->SetDescriptionSuffix("");
 }

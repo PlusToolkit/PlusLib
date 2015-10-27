@@ -73,6 +73,16 @@ public:
   */
   void SetConnectButtonText(QString text);
 
+  /*!
+  * Allow settings of an optional suffix in the description box separated by a blank line
+  */
+  void SetDescriptionSuffix(const QString& string);
+
+  /*!
+  * Clear optional suffix in the description box separated by a blank line
+  */
+  void ClearDescriptionSuffix();
+
 signals:
   /*!
   * Emmitted when configuration directory is changed (notifies application)
@@ -97,6 +107,12 @@ signals:
   * Emits a signal to tell the tracker to reset itself
   */
   void ResetTracker();
+
+  /*! 
+  * Fill the description text box with prefix + body + suffix
+  * Newline separated if prefix or suffix is not empty
+  */
+  void UpdateDescriptionText();
 
 protected:
   /*!
@@ -162,6 +178,15 @@ protected:
 
   /*! Flag telling whether connection has been successful */
   bool	  m_ConnectionSuccessful;
+
+  /*! Prefix to the description in the main text box */
+  QString m_DescriptionPrefix;
+
+  /*! Description in the main text box */
+  QString m_DescriptionBody;
+
+  /*! Suffix to the description in the main text box */
+  QString m_DescriptionSuffix;
 
 protected:
   Ui::DeviceSetSelectorWidget ui;

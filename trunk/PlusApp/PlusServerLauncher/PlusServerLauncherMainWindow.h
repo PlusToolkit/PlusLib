@@ -60,9 +60,11 @@ protected slots:
 
   void serverExecutableFinished(int returnCode, QProcess::ExitStatus status);
 
-protected:
+  void logLevelChanged();
 
-  void sendServerOutputToLogger(const QByteArray &strData, vtkPlusLogger::LogLevelType defaultLogLevel);
+protected:
+  /*! Receive standard output or error and send it to the log */
+  void sendServerOutputToLogger(const QByteArray &strData);
 
   /*! Start server process, connect outputs to logger. Returns with true on success. */
   bool startServer(const QString& configFilePath);
@@ -70,12 +72,18 @@ protected:
   /*! Stop server process, disconnect outputs. Returns with true on success (shutdown on request was successful, without forcing). */
   bool stopServer();
 
+  /*! Parse a given log line for salient information from the PlusServer */
+  void ParseContent(const std::string& message);
+
 protected:
   /*! Device set selector widget */
   DeviceSetSelectorWidget* m_DeviceSetSelectorWidget;
 
   /*! PlusServer instance that is responsible for all data collection and network transfer */
   QProcess* m_CurrentServerInstance;
+
+  /*! List of active ports for PlusServers */
+  std::vector<int> PortList;
 
 private:
   Ui::PlusServerLauncherMainWindow ui;

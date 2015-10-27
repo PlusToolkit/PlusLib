@@ -24,9 +24,9 @@
 	<Device
       Id="CaptureDevice"
       Type="VirtualDiscCapture"
-      BaseFilename="RecordingTest.mha"
+      BaseFilename="RecordingTest.nrrd"
 	  EnableFileCompression="TRUE"
-      EnableCapturingOnStart="TRUE" >
+      EnableCapturingOnStart="FALSE" >
       <InputChannels>
         <InputChannel Id="TrackedVideoStream" />
       </InputChannels>
