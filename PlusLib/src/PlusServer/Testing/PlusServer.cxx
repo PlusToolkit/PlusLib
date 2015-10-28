@@ -110,6 +110,7 @@ int main( int argc, char** argv )
   PlusCommon::PrintXML(xmlFileContents, vtkIndent(1), configRootElement);
   LOG_DEBUG("Device set configuration file contents: " << std::endl << xmlFileContents.str());
 
+  LOG_INFO( "Server status: Reading configuration.");
   // Create data collector instance 
   vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New();
   if ( dataCollector->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
@@ -126,7 +127,7 @@ int main( int argc, char** argv )
     return PLUS_FAIL;
   }
 
-  LOG_DEBUG( "Initializing data collector... " );
+  LOG_INFO( "Server status: Connecting to devices.");
   if ( dataCollector->Connect() != PLUS_SUCCESS )
   {
     LOG_ERROR("Datacollector failed to connect to devices"); 
@@ -139,6 +140,7 @@ int main( int argc, char** argv )
     return PLUS_FAIL;
   }
 
+  LOG_INFO( "Server status: Starting servers.");
   std::vector<vtkPlusOpenIGTLinkServer*> serverList;
   for( int i = 0; i < configRootElement->GetNumberOfNestedElements(); ++i )
   {
@@ -189,7 +191,7 @@ int main( int argc, char** argv )
     LOG_INFO("Clients are connected");
   }
   // *************************** End of testing **************************
-
+  LOG_INFO("Server status: Server(s) are running.");
   LOG_INFO("Press Ctrl-C to quit.");
 
   // Set up signal catching

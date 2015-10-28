@@ -341,8 +341,13 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* 
     log << " ";
   }
 
+  log << msg;
+
   // Add the message to the log
-  log << msg << "| in " << fileName << "(" << lineNumber << ")"; // add filename and line number
+  if( fileName != NULL )
+  {
+     log << "| in " << fileName << "(" << lineNumber << ")"; // add filename and line number
+  }
 
   {
     PlusLockGuard<vtkRecursiveCriticalSection> critSectionGuard(this->m_CriticalSection);
@@ -424,6 +429,19 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* 
   }
 
   this->Flush();
+}
+
+//-------------------------------------------------------
+void vtkPlusLogger::LogMessage(LogLevelType level, const std::string& msg, const std::string& optionalPrefix /*= std::string("")*/)
+{
+  if( optionalPrefix.empty() )
+  {
+    this->LogMessage(level, msg.c_str(), NULL, -1, NULL);
+  }
+  else
+  {
+    this->LogMessage(level, msg.c_str(), NULL, -1, optionalPrefix.c_str());
+  }
 }
 
 //-------------------------------------------------------

@@ -232,8 +232,7 @@ namespace PlusCommon
   vtkPlusCommonExport PlusStatus CreateTemporaryFilename( std::string& aString, const std::string& anOutputDirectory );
 
   /*! Trim whitespace characters from the left and right */
-  vtkPlusCommonExport void Trim(std::string &str);
-  
+  vtkPlusCommonExport std::string Trim(std::string &str);
   vtkPlusCommonExport std::string Trim(const char* c);
 
   /*!
