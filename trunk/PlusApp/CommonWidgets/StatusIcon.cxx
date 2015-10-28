@@ -192,11 +192,8 @@ PlusStatus StatusIcon::ConstructMessageListWidget()
   {
     delete m_MessageListFrame;
     m_MessageListFrame = NULL;
-    delete m_MessageTextEdit;
     m_MessageTextEdit = NULL;
-    delete m_FilterLineEdit;
     m_FilterLineEdit = NULL;
-    delete m_ApplyFilterButton;
     m_ApplyFilterButton = NULL;
   }
 
