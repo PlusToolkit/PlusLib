@@ -83,6 +83,12 @@ public:
   */
   void ClearDescriptionSuffix();
 
+  /*! 
+  * Fill the description text box with prefix + body + suffix
+  * Newline separated if prefix or suffix is not empty
+  */
+  void UpdateDescriptionText();
+
 signals:
   /*!
   * Emmitted when configuration directory is changed (notifies application)
@@ -107,12 +113,6 @@ signals:
   * Emits a signal to tell the tracker to reset itself
   */
   void ResetTracker();
-
-  /*! 
-  * Fill the description text box with prefix + body + suffix
-  * Newline separated if prefix or suffix is not empty
-  */
-  void UpdateDescriptionText();
 
 protected:
   /*!
