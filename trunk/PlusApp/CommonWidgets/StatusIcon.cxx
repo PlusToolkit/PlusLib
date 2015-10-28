@@ -192,11 +192,16 @@ PlusStatus StatusIcon::ConstructMessageListWidget()
   {
     delete m_MessageListFrame;
     m_MessageListFrame = NULL;
+    delete m_MessageTextEdit;
+    m_MessageTextEdit = NULL;
+    delete m_FilterLineEdit;
+    m_FilterLineEdit = NULL;
+    delete m_ApplyFilterButton;
+    m_ApplyFilterButton = NULL;
   }
 
-  m_MessageListFrame = new QFrame(this, Qt::Tool);
+  m_MessageListFrame = new QFrame(this, Qt::Window|Qt::WindowMaximizeButtonHint|Qt::WindowCloseButtonHint);
   m_MessageListFrame->setMinimumSize(480, 480);
-  m_MessageListFrame->setMaximumSize(960, 760);
   m_MessageListFrame->resize(480, 480);
 
   if (m_MessageListFrame == NULL) {
