@@ -88,7 +88,11 @@ void StatusIcon::AddMessage(QString aInputString)
     int linesToDelete( m_MessageTextEdit->document()->lineCount()-m_MaxMessageCount*0.80 );
     m_MessageLog.erase(m_MessageLog.begin(), m_MessageLog.begin()+linesToDelete);
   }
-  this->ParseMessage(aInputString);
+
+  if( m_FilterLineEdit->text().isEmpty() || aInputString.contains(m_FilterLineEdit->text(), Qt::CaseInsensitive) )
+  {
+    this->ParseMessage(aInputString);
+  }
 }
 
 //-----------------------------------------------------------------------------
