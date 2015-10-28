@@ -134,7 +134,15 @@ public:
     \param lineNumber Line number within the file where the message comes from
     \param optionalPrefix a prefix to append after the timestamp, but before the logged message
   */
-  void LogMessage(LogLevelType level, const char *msg, const char* fileName, int lineNumber, const char* optionalPrefix = NULL); 
+  void LogMessage(LogLevelType level, const char *msg, const char* fileName, int lineNumber, const char* optionalPrefix = NULL);
+
+  /*!
+    Add a new message to the log without line number of filename
+    \param level Level of the current message
+    \param msg Text of the log message
+    \param optionalPrefix a prefix to append after the timestamp, but before the logged message
+  */
+  void LogMessage(LogLevelType level, const std::string& msg, const std::string& optionalPrefix = std::string(""));
   
   /*! Get the current log level. Messages that has a higher level than the current log level are ignored. */
   int GetLogLevel();

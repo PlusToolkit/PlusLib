@@ -255,19 +255,18 @@ PlusStatus PlusCommon::CreateTemporaryFilename( std::string& aString, const std:
 }
 
 //-------------------------------------------------------
-void PlusCommon::Trim(std::string &str)
+std::string PlusCommon::Trim(std::string &str)
 {
   str.erase(str.find_last_not_of(" \t\r\n")+1);
   str.erase(0,str.find_first_not_of(" \t\r\n"));
+
+  return str;
 }
 
 //-------------------------------------------------------
 std::string PlusCommon::Trim(const char* c)
 {
-  std::string str = c; 
-  str.erase(str.find_last_not_of(" \t\r\n")+1);
-  str.erase(0,str.find_first_not_of(" \t\r\n"));
-  return str; 
+  return PlusCommon::Trim(std::string(c));
 }
 
 //----------------------------------------------------------------------------

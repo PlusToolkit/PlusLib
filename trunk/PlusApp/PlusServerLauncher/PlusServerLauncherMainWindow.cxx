@@ -239,7 +239,7 @@ void PlusServerLauncherMainWindow::ParseContent(const std::string& message)
     lineNumberStr >> port;
     PortList.push_back(port);
   }
-  else if( message.find("Press Ctrl-C to quit") != std::string::npos )
+  else if( message.find("Server status: Server(s) are running.") != std::string::npos )
   {
     // Server has finished spooling up, update the description text
     std::string serverList("Server IP addresses:\n");
@@ -275,6 +275,11 @@ void PlusServerLauncherMainWindow::ParseContent(const std::string& message)
     m_DeviceSetSelectorWidget->SetDescriptionSuffix(QString(serverList.c_str()));
     m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
     m_DeviceSetSelectorWidget->SetConnectButtonText(QString("Stop Server"));
+  }
+  else if( message.find("Server status: ") != std::string::npos )
+  {
+    // pull off server status and display it
+    this->m_DeviceSetSelectorWidget->SetDescriptionSuffix(QString(message.c_str()));
   }
 }
 
@@ -348,6 +353,15 @@ void PlusServerLauncherMainWindow::sendServerOutputToLogger(const QByteArray &st
   if( logString.find('|') != std::string::npos )
   {
     PlusCommon::SplitStringIntoTokens(logString, '|', tokens, false);
+    // Remove empty tokens
+    for (StringList::iterator it = tokens.begin(); it != tokens.end(); ++it )
+    {
+      if( PlusCommon::Trim(*it).empty() )
+      {
+        tokens.erase(it);
+        it = tokens.begin();
+      }
+    }
     for (int index = 0; index < tokens.size(); index+=4)
     {
       vtkPlusLogger::LogLevelType logLevel = vtkPlusLogger::GetLogLevelType(tokens[index]);
@@ -371,7 +385,7 @@ void PlusServerLauncherMainWindow::sendServerOutputToLogger(const QByteArray &st
     PlusCommon::SplitStringIntoTokens(logString, '\n', tokens, false);
     for (StringList::iterator it = tokens.begin(); it != tokens.end(); ++it)
     {
-      LOG_INFO(*it);
+      vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_INFO, *it, "SERVER");
       this->ParseContent(*it);
     }
     return;
