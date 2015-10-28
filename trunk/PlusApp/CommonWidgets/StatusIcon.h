@@ -14,6 +14,7 @@
 #include <QPushButton>
 #include <QTextEdit>
 #include <QWidget>
+#include <QTimer>
 
 //-----------------------------------------------------------------------------
 
@@ -95,6 +96,11 @@ protected:
   */
   void ParseMessage(QString &aInputString);
 
+  /*!
+  * Filter the text in the message box with the text in the line edit
+  */
+  void ApplyFilter();
+
 protected slots:
   /*!
   * Create an extended context menu with the clear option
@@ -109,7 +115,17 @@ protected slots:
   /*!
   * Apply filter button was clicked
   */
-  void ApplyFilterButtonClicked();
+  void ClearFilterButtonClicked();
+
+  /*! 
+  * Detect changes in the line edit text
+  */
+  void FilterLineEditEdited(const QString&);
+
+  /*!
+  * Apply the filter if the timer expires
+  */
+  void ApplyFilterTimerFired();
 
 public slots:
   /*!
@@ -134,7 +150,9 @@ protected:
   /*! Field for filter contents */
   QLineEdit*    m_FilterLineEdit;
   /*! Button to apply the filter to the message log */
-  QPushButton*  m_ApplyFilterButton;
+  QPushButton*  m_ClearFilterButton;
+  /*! Timer to prevent rapid re-filtering */
+  QTimer        m_FilterInputTimer;
 
   /*! Tag number of the display message callback */
   unsigned long m_DisplayMessageCallbackTag;

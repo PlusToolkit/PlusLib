@@ -194,7 +194,7 @@ PlusStatus StatusIcon::ConstructMessageListWidget()
     m_MessageListFrame = NULL;
     m_MessageTextEdit = NULL;
     m_FilterLineEdit = NULL;
-    m_ApplyFilterButton = NULL;
+    m_ClearFilterButton = NULL;
   }
 
   m_MessageListFrame = new QFrame(this, Qt::Window|Qt::WindowMaximizeButtonHint|Qt::WindowCloseButtonHint);
@@ -230,13 +230,14 @@ PlusStatus StatusIcon::ConstructMessageListWidget()
   filterLayout->setDirection(QBoxLayout::RightToLeft);
   filterLayout->setContentsMargins(0,0,0,0);
   filterLayout->setSpacing(0);
-  m_ApplyFilterButton = new QPushButton("Apply");
-  filterLayout->addWidget(m_ApplyFilterButton);
-  connect(m_ApplyFilterButton, SIGNAL(clicked()), this, SLOT(ApplyFilterButtonClicked()));
+  m_ClearFilterButton = new QPushButton("Clear");
+  filterLayout->addWidget(m_ClearFilterButton);
+  connect(m_ClearFilterButton, SIGNAL(clicked()), this, SLOT(ClearFilterButtonClicked()));
   m_FilterLineEdit = new QLineEdit();
   m_FilterLineEdit->setText("");
   m_FilterLineEdit->setMinimumWidth(150);
   m_FilterLineEdit->setAlignment(Qt::AlignRight);
+  connect(m_FilterLineEdit, SIGNAL(textEdited(const QString&)), this, SLOT(FilterLineEditEdited(const QString&)));
   filterLayout->addWidget(m_FilterLineEdit);
   filterLayout->addWidget(new QLabel("Message log filter: "));
   filterLayout->addStretch(1);
@@ -245,6 +246,8 @@ PlusStatus StatusIcon::ConstructMessageListWidget()
   QTextCursor tc = m_MessageTextEdit->textCursor();
   tc.movePosition( QTextCursor::End );
   m_MessageTextEdit->setTextCursor( tc );
+
+  connect(&m_FilterInputTimer, SIGNAL(timeout()), this, SLOT(ApplyFilterTimerFired()));
 
   return PLUS_SUCCESS;
 }
@@ -317,10 +320,40 @@ void StatusIcon::ClearMessageList()
 
 //-----------------------------------------------------------------------------
 
-void StatusIcon::ApplyFilterButtonClicked()
+void StatusIcon::ApplyFilterTimerFired()
+{
+  this->ApplyFilter();
+}
+
+//-----------------------------------------------------------------------------
+
+void StatusIcon::ClearFilterButtonClicked()
 {
   // clear log
+  m_FilterLineEdit->clear();
+  this->ApplyFilter();
+}
+
+//-----------------------------------------------------------------------------
+
+void StatusIcon::FilterLineEditEdited(const QString&)
+{
+  if( m_FilterInputTimer.isActive() )
+  {
+    m_FilterInputTimer.stop();
+  }
+
+  m_FilterInputTimer.setSingleShot(true);
+  m_FilterInputTimer.start(500);
+}
+
+//-----------------------------------------------------------------------------
+
+void StatusIcon::ApplyFilter()
+{
+  // Clear the log
   m_MessageTextEdit->clear();
+
   // iterate over entire log, check for filter, if so, add message
   for( std::vector<QString>::iterator it = m_MessageLog.begin(); it != m_MessageLog.end(); ++it )
   {
