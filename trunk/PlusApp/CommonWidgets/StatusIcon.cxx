@@ -11,14 +11,16 @@
 #include <QMouseEvent>
 #include <QScrollBar>
 #include <QSizePolicy>
+#include <QVBoxLayout>
+#include <QLabel>
 
 //-----------------------------------------------------------------------------
 namespace
 {
-  const QString errorHtml = "<font color=\"#DF0000\">";
-  const QString warningHtml = "<font color=\"#FF8000\">";
-  const QString infoHtml = "<font color=\"Black\">";
-  const QString endHtml = "</font>";
+  const QString ERROR_HTML = "<font color=\"#DF0000\">";
+  const QString WARNING_HTML = "<font color=\"#FF8000\">";
+  const QString INFO_HTML = "<font color=\"Black\">";
+  const QString END_HTML = "</font>";
 }
 //-----------------------------------------------------------------------------
 
@@ -26,7 +28,7 @@ StatusIcon::StatusIcon(QWidget* aParent, Qt::WindowFlags aFlags)
   : QWidget(aParent, aFlags)
   , m_Level(vtkPlusLogger::LOG_LEVEL_INFO)
   , m_DotLabel(NULL)
-  , m_MessageListWidget(NULL)
+  , m_MessageListFrame(NULL)
   , m_MessageTextEdit(NULL)
   , m_DisplayMessageCallbackTag(0)
   , m_MaxMessageCount(vtkPlusLogger::UnlimitedLogMessages())
@@ -34,7 +36,7 @@ StatusIcon::StatusIcon(QWidget* aParent, Qt::WindowFlags aFlags)
   this->setMinimumSize(18, 16);
   this->setMaximumSize(18, 16);
   this->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
-  
+
   // Set up layout and create dot label
   QGridLayout* grid = new QGridLayout();
   grid->setSpacing(0);
@@ -77,6 +79,22 @@ StatusIcon::~StatusIcon()
 
 void StatusIcon::AddMessage(QString aInputString)
 {
+  // No matter what store the log entry to be able to reconstruct it later
+  m_MessageLog.push_back(aInputString);
+
+  if( m_MaxMessageCount != vtkPlusLogger::UnlimitedLogMessages() && m_MessageTextEdit->document()->lineCount() > m_MaxMessageCount )
+  {
+    // Clear earliest messages
+    int linesToDelete( m_MessageTextEdit->document()->lineCount()-m_MaxMessageCount*0.80 );
+    m_MessageLog.erase(m_MessageLog.begin(), m_MessageLog.begin()+linesToDelete);
+  }
+  this->ParseMessage(aInputString);
+}
+
+//-----------------------------------------------------------------------------
+
+void StatusIcon::ParseMessage(QString &aInputString)
+{
   // Parse input string and extract log level and the message
   bool ok;
   unsigned int pos = aInputString.indexOf('|');
@@ -90,26 +108,26 @@ void StatusIcon::AddMessage(QString aInputString)
 
   // Re-color dot and message text if necessary
   switch (logLevel) {
-    case vtkPlusLogger::LOG_LEVEL_ERROR:
-      if (m_Level > vtkPlusLogger::LOG_LEVEL_ERROR) {
-        m_Level = vtkPlusLogger::LOG_LEVEL_ERROR;
-        m_DotLabel->setPixmap( QPixmap( ":/icons/Resources/icon_DotRed.png" ) );
-      }
-      message = errorHtml;
-      break;
-    case vtkPlusLogger::LOG_LEVEL_WARNING:
-      if (m_Level > vtkPlusLogger::LOG_LEVEL_WARNING) {
-        m_Level = vtkPlusLogger::LOG_LEVEL_WARNING;
-        m_DotLabel->setPixmap( QPixmap( ":/icons/Resources/icon_DotOrange.png" ) );
-      }
-      message = warningHtml;
-      break;
-    default:
-      message = infoHtml;
-      break;
+  case vtkPlusLogger::LOG_LEVEL_ERROR:
+    if (m_Level > vtkPlusLogger::LOG_LEVEL_ERROR) {
+      m_Level = vtkPlusLogger::LOG_LEVEL_ERROR;
+      m_DotLabel->setPixmap( QPixmap( ":/icons/Resources/icon_DotRed.png" ) );
+    }
+    message = ERROR_HTML;
+    break;
+  case vtkPlusLogger::LOG_LEVEL_WARNING:
+    if (m_Level > vtkPlusLogger::LOG_LEVEL_WARNING) {
+      m_Level = vtkPlusLogger::LOG_LEVEL_WARNING;
+      m_DotLabel->setPixmap( QPixmap( ":/icons/Resources/icon_DotOrange.png" ) );
+    }
+    message = WARNING_HTML;
+    break;
+  default:
+    message = INFO_HTML;
+    break;
   }
 
-  message = message.append(aInputString.right( aInputString.size() - pos - 1 )).append(endHtml);
+  message = message.append(aInputString.right( aInputString.size() - pos - 1 )).append(END_HTML);
 
   if( m_MaxMessageCount != vtkPlusLogger::UnlimitedLogMessages() && m_MessageTextEdit->document()->lineCount() > m_MaxMessageCount )
   {   
@@ -154,7 +172,6 @@ void StatusIcon::AddMessage(QString aInputString)
         vScrollBar->triggerAction(QScrollBar::SliderToMaximum);
       }
     }
-    
   }
 
   m_MessageTextEdit->append(message);
@@ -167,39 +184,57 @@ PlusStatus StatusIcon::ConstructMessageListWidget()
   LOG_TRACE("ToolStateDisplayWidget::ConstructMessageListWidget"); 
 
   // (Re-)Create message list widget
-  if (m_MessageListWidget != NULL) 
+  if (m_MessageListFrame != NULL) 
   {
-    delete m_MessageListWidget;
-    m_MessageListWidget = NULL;
+    delete m_MessageListFrame;
+    m_MessageListFrame = NULL;
   }
 
-  m_MessageListWidget = new QFrame(this, Qt::Tool);
-  m_MessageListWidget->setMinimumSize(480, 480);
-  m_MessageListWidget->setMaximumSize(960, 760);
-  m_MessageListWidget->resize(480, 480);
+  m_MessageListFrame = new QFrame(this, Qt::Tool);
+  m_MessageListFrame->setMinimumSize(480, 480);
+  m_MessageListFrame->setMaximumSize(960, 760);
+  m_MessageListFrame->resize(480, 480);
 
-  if (m_MessageListWidget == NULL) {
+  if (m_MessageListFrame == NULL) {
     LOG_ERROR("Message list widget cannot be created!");
     return PLUS_FAIL;
   }
 
   // Install event filter to properly handle close
-  m_MessageListWidget->installEventFilter(this);
+  m_MessageListFrame->installEventFilter(this);
 
   // Set inner part of message list widget
-  QGridLayout* grid = new QGridLayout();
-  grid->setSpacing(0);
-  grid->setContentsMargins(0, 0, 0, 0);
-  grid->setAlignment(Qt::AlignTop);
-
-  m_MessageTextEdit = new QTextEdit(m_MessageListWidget);
+  QVBoxLayout* vbox = new QVBoxLayout(m_MessageListFrame);
+  vbox->setSpacing(0);
+  vbox->setContentsMargins(0, 0, 0, 0);
+  vbox->setAlignment(Qt::AlignTop);
+  
+  m_MessageTextEdit = new QTextEdit(m_MessageListFrame);
   m_MessageTextEdit->setWordWrapMode(QTextOption::NoWrap);
   m_MessageTextEdit->setReadOnly(true);
+  m_MessageTextEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   m_MessageTextEdit->setContextMenuPolicy(Qt::CustomContextMenu);
   connect(m_MessageTextEdit, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(CreateCustomContextMenu(const QPoint&)));
+  vbox->addWidget(m_MessageTextEdit);
 
-  grid->addWidget(m_MessageTextEdit);
-  m_MessageListWidget->setLayout(grid);
+  // Add filter controls
+  QFrame* filterFrame = new QFrame();
+  filterFrame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+  QHBoxLayout* filterLayout = new QHBoxLayout(filterFrame);
+  filterLayout->setDirection(QBoxLayout::RightToLeft);
+  filterLayout->setContentsMargins(0,0,0,0);
+  filterLayout->setSpacing(0);
+  m_ApplyFilterButton = new QPushButton("Apply");
+  filterLayout->addWidget(m_ApplyFilterButton);
+  connect(m_ApplyFilterButton, SIGNAL(clicked()), this, SLOT(ApplyFilterButtonClicked()));
+  m_FilterLineEdit = new QLineEdit();
+  m_FilterLineEdit->setText("");
+  m_FilterLineEdit->setMinimumWidth(150);
+  m_FilterLineEdit->setAlignment(Qt::AlignRight);
+  filterLayout->addWidget(m_FilterLineEdit);
+  filterLayout->addWidget(new QLabel("Message log filter: "));
+  filterLayout->addStretch(1);
+  vbox->addWidget(filterFrame);
 
   QTextCursor tc = m_MessageTextEdit->textCursor();
   tc.movePosition( QTextCursor::End );
@@ -219,7 +254,7 @@ bool StatusIcon::eventFilter(QObject *obj, QEvent *ev)
     {
       if (mouseEvent->buttons() == Qt::LeftButton) 
       {
-        if ((m_MessageListWidget == NULL) || (! m_MessageListWidget->isVisible())) 
+        if ((m_MessageListFrame == NULL) || (! m_MessageListFrame->isVisible())) 
         {
           m_Level = vtkPlusLogger::LOG_LEVEL_INFO;
           m_DotLabel->setPixmap( QPixmap( ":/icons/Resources/icon_DotGreen.png" ) );
@@ -229,21 +264,21 @@ bool StatusIcon::eventFilter(QObject *obj, QEvent *ev)
           cursor.movePosition(QTextCursor::StartOfLine);
           m_MessageTextEdit->setTextCursor(cursor);
 
-          m_MessageListWidget->move( mapToGlobal( QPoint( m_DotLabel->x() - m_MessageListWidget->width(), m_DotLabel->y() - m_MessageListWidget->height() - 40 ) ) );
-          m_MessageListWidget->show();
+          m_MessageListFrame->move( mapToGlobal( QPoint( m_DotLabel->x() - m_MessageListFrame->width(), m_DotLabel->y() - m_MessageListFrame->height() - 40 ) ) );
+          m_MessageListFrame->show();
 
         }
         else
         {
           ResetIconState();
-          m_MessageListWidget->hide();
+          m_MessageListFrame->hide();
         }
 
         return true;
       }
     }
   }
-  else if ( (obj == m_MessageListWidget) && (ev->type() == QEvent::Close) ) 
+  else if ( (obj == m_MessageListFrame) && (ev->type() == QEvent::Close) ) 
   {
     m_Level = vtkPlusLogger::LOG_LEVEL_INFO;
     m_DotLabel->setPixmap( QPixmap( ":/icons/Resources/icon_DotGreen.png" ) );
@@ -271,7 +306,24 @@ void StatusIcon::ClearMessageList()
 {
   m_MessageTextEdit->clear();
   ResetIconState();
-  m_MessageListWidget->hide();
+  m_MessageListFrame->hide();
+}
+
+//-----------------------------------------------------------------------------
+
+void StatusIcon::ApplyFilterButtonClicked()
+{
+  // clear log
+  m_MessageTextEdit->clear();
+  // iterate over entire log, check for filter, if so, add message
+  for( std::vector<QString>::iterator it = m_MessageLog.begin(); it != m_MessageLog.end(); ++it )
+  {
+    QString& entry(*it);
+    if( m_FilterLineEdit->text().isEmpty() || entry.contains(m_FilterLineEdit->text(), Qt::CaseInsensitive) )
+    {
+      this->ParseMessage(entry);
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
