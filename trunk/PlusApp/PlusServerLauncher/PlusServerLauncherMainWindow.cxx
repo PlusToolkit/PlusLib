@@ -414,8 +414,16 @@ void PlusServerLauncherMainWindow::errorReceived(QProcess::ProcessError errorCod
 //-----------------------------------------------------------------------------
 void PlusServerLauncherMainWindow::serverExecutableFinished(int returnCode, QProcess::ExitStatus status)
 {
-  LOG_ERROR("Server stopped unexpectedly. Return code: " << returnCode);
+  if( returnCode == 0 )
+  {
+    LOG_INFO("Server process terminated.");
+  }
+  else
+  {
+    LOG_ERROR("Server stopped unexpectedly. Return code: " << returnCode);
+  }
   this->connectToDevicesByConfigFile("");
+  ui.comboBox_LogLevel->setEnabled(true);
   m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
 }
 
