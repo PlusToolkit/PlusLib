@@ -266,7 +266,8 @@ std::string PlusCommon::Trim(std::string &str)
 //-------------------------------------------------------
 std::string PlusCommon::Trim(const char* c)
 {
-  return PlusCommon::Trim(std::string(c));
+  std::string str(c);
+  return PlusCommon::Trim(str);
 }
 
 //----------------------------------------------------------------------------
