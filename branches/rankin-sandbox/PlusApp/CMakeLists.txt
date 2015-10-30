@@ -1,8 +1,9 @@
  PROJECT(PlusApp)
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.11)
 IF(COMMAND CMAKE_POLICY)
   CMAKE_POLICY(SET CMP0003 NEW)
+  CMAKE_POLICY(SET CMP0020 NEW)
 ENDIF(COMMAND CMAKE_POLICY)
 
 # ------------------------------------------------------------------------
@@ -27,8 +28,10 @@ SET(PLUSAPP_VERSION_PATCH ${PLUSLIB_VERSION_PATCH})
 SET(PLUSAPP_VERSION ${PLUSAPP_VERSION_MAJOR}.${PLUSAPP_VERSION_MINOR}.${PLUSAPP_VERSION_PATCH})
 SET(PLUSAPP_REVISION ${PLUSLIB_REVISION})
 
+SET(PLUSAPP_PACKAGE_EDITION "" CACHE STRING "Specifies a name that refers to the combination of hardware devices the created install package supports. The name is added to the package filename.") 
+
 MESSAGE(STATUS "PlusApp version: ${PLUSAPP_VERSION}" )
-       
+     
 # --------------------------------------------------------------------------
 # Testing
 #
@@ -62,13 +65,18 @@ CONFIGURE_FILE(
 # --------------------------------------------------------------------------
 # Find SVN for revision information status and automatic update of the repository
 #
-FIND_PACKAGE(Subversion)
-IF(Subversion_FOUND)
-  Subversion_WC_INFO(${CMAKE_CURRENT_SOURCE_DIR} PLUSAPP_SVN_INFO)
-  MESSAGE(STATUS "Current revision is ${PLUSAPP_SVN_INFO_WC_REVISION}") 
-  SET(PLUSAPP_REVISION ${PLUSAPP_SVN_INFO_WC_REVISION})
-ENDIF(Subversion_FOUND) 
-SET( PLUSAPP_SVN_EXECUTABLE ${Subversion_SVN_EXECUTABLE} )
+
+IF (PLUSAPP_OFFLINE_BUILD)
+  SET(PLUSAPP_REVISION 0)
+ELSE(PLUSAPP_OFFLINE_BUILD)
+  FIND_PACKAGE(Subversion)
+  IF(Subversion_FOUND)
+    Subversion_WC_INFO(${CMAKE_CURRENT_SOURCE_DIR} PLUSAPP_SVN_INFO)
+    MESSAGE(STATUS "Current revision is ${PLUSAPP_SVN_INFO_WC_REVISION}") 
+    SET(PLUSAPP_REVISION ${PLUSAPP_SVN_INFO_WC_REVISION})
+  ENDIF(Subversion_FOUND) 
+  SET( PLUSAPP_SVN_EXECUTABLE ${Subversion_SVN_EXECUTABLE} )
+ENDIF(PLUSAPP_OFFLINE_BUILD)
 
 # Standard CMake option for building libraries shared or static by default.
 OPTION(BUILD_SHARED_LIBS
@@ -125,14 +133,54 @@ ENDMACRO(GENERATE_HELP_DOC)
 INCLUDE (${CMAKE_CURRENT_SOURCE_DIR}/CPackConfig.cmake) 
 
 # --------------------------------------------------------------------------
-# Build the CommonWidgets library
+# Qt
+# 
+# As moc files are generated in the binary dir, tell CMake
+  # to always look for includes there:
+SET(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+FIND_PACKAGE(Qt4 QUIET)
+
+IF ( NOT QT4_FOUND )
+  IF(EXISTS ${QT_QMAKE_EXECUTABLE} )
+    GET_FILENAME_COMPONENT(QT_BINARY_DIR ${QT_QMAKE_EXECUTABLE} DIRECTORY)
+    GET_FILENAME_COMPONENT(CMAKE_PREFIX_PATH ${QT_BINARY_DIR} DIRECTORY)
+  ENDIF()
+
+  FIND_PACKAGE(Qt5Widgets QUIET)
+
+  #get_cmake_property(_variableNames VARIABLES)
+  #foreach (_variableName ${_variableNames})
+    #message(STATUS "${_variableName}=${${_variableName}}")
+  #endforeach()
+
+  IF ( NOT Qt5Gui_FOUND )
+    MESSAGE( FATAL_ERROR "This project requires Qt4 or Qt5 for building PlusApp. These components are missing. Please verify configuration by selecting QT_QMAKE_EXECUTABLE or turn off PLUSBUILD_BUILD_PLUSAPP option.")
+  ENDIF()
+
+  SET(QT_VERSION_MAJOR ${Qt5Widgets_VERSION_MAJOR})
+ELSE()
+  INCLUDE(${QT_USE_FILE})
+ENDIF()
+
+SET(CMAKE_INCLUDE_CURRENT_DIR ON)
+# Instruct CMake to run moc automatically when needed.
+SET(CMAKE_AUTOMOC ON)
+SET(CMAKE_AUTOUIC ON)
+SET(CMAKE_AUTORCC ON)
+
+# --------------------------------------------------------------------------
+# Build the CommonWidgets library (Qt)
 ADD_SUBDIRECTORY(CommonWidgets)
 
 # --------------------------------------------------------------------------
 # Build various utilities
 ADD_SUBDIRECTORY(PointSetExtractor)
 ADD_SUBDIRECTORY(SpatialSensorFusion)
-ADD_SUBDIRECTORY(PlusServerLauncher)
+
+IF(PLUS_USE_OpenIGTLink)
+  ADD_SUBDIRECTORY(PlusServerLauncher) #(Qt)
+ENDIF(PLUS_USE_OpenIGTLink)
 
 # --------------------------------------------------------------------------
 # Build the DiagnosticTools 
@@ -169,9 +217,10 @@ IF (BUILD_DOCUMENTATION)
         NO_SYSTEM_ENVIRONMENT_PATH
       )
   ENDIF(NOT PLUSLIB_BUILD_DOCUMENTATION)
-  
-  ADD_SUBDIRECTORY(Documentation)
+
 ENDIF (BUILD_DOCUMENTATION)
+
+ADD_SUBDIRECTORY(Documentation)
 
 #-----------------------------------------------------------------------------
 # Include PlusLib MS projects 
@@ -242,5 +291,4 @@ configure_file(
   )
 #-----------------------------------------------------------------------------
 # Install files 
-INCLUDE(InstallFiles.cmake)    
-
+INCLUDE(InstallFiles.cmake)

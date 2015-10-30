@@ -171,7 +171,12 @@ vtkPlusLogger* vtkPlusLogger::Instance()
       return m_pInstance;
     }
 
-    m_pInstance = new vtkPlusLogger; 
+    vtkPlusLogger* newLoggerInstance = new vtkPlusLogger;
+    // lock the instance even before making it available to make sure the instance is fully
+    // initialized before anybody uses it
+    PlusLockGuard<vtkRecursiveCriticalSection> critSectionGuard(newLoggerInstance->m_CriticalSection);
+    m_pInstance = newLoggerInstance;
+
     vtkPlusConfig::GetInstance(); // set the log file name from the XML config
     std::string strPlusLibVersion = std::string("Software version: ") + 
       PlusCommon::GetPlusLibVersionString(); 
@@ -186,10 +191,57 @@ vtkPlusLogger* vtkPlusLogger::Instance()
   return m_pInstance;
 }
 
+//----------------------------------------------------------------------------
+vtkPlusLogger::LogLevelType vtkPlusLogger::GetLogLevelType(const std::string& logLevelString)
+{
+  if (logLevelString=="DEBUG")
+  {
+    return LOG_LEVEL_DEBUG;
+  }
+  else if (logLevelString=="INFO")
+  {
+    return LOG_LEVEL_INFO;
+  }
+  else if (logLevelString=="WARNING")
+  {
+    return LOG_LEVEL_WARNING;
+  }
+  else if (logLevelString=="ERROR")
+  {
+    return LOG_LEVEL_ERROR;
+  }
+  else if (logLevelString=="TRACE")
+  {
+    return LOG_LEVEL_TRACE;
+  }
+
+  return LOG_LEVEL_UNDEFINED;
+}
+
 //-------------------------------------------------------
 int vtkPlusLogger::GetLogLevel() 
 { 
   return m_LogLevel; 
+}
+
+//-------------------------------------------------------
+std::string vtkPlusLogger::GetLogLevelString()
+{
+  switch (m_LogLevel)
+  {
+  case LOG_LEVEL_ERROR:
+    return "ERROR";
+  case LOG_LEVEL_WARNING:
+    return "WARNING";
+  case LOG_LEVEL_INFO:
+    return "INFO";
+  case LOG_LEVEL_DEBUG:
+    return "DEBUG";
+  case LOG_LEVEL_TRACE:
+    return "TRACE";
+  default:
+    return "UNDEFINED";
+  }
 }
 
 //-------------------------------------------------------
@@ -239,7 +291,7 @@ std::string vtkPlusLogger::GetLogFileName()
 }
 
 //-------------------------------------------------------
-void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* fileName, int lineNumber)
+void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* fileName, int lineNumber, const char* optionalPrefix)
 {
   if (m_LogLevel < level)
   {
@@ -277,9 +329,25 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* 
 
   // Add timestamp to the log message
   double currentTime = vtkAccurateTimer::GetSystemTime(); 
-  log << "|" << std::fixed << std::setw(10) << std::right << std::setfill('0') << currentTime
-    << "| " << msg
-    << "|in " << fileName << "(" << lineNumber << ")"; // add filename and line number
+  log << "|" << std::fixed << std::setw(10) << std::right << std::setfill('0') << currentTime << "|";
+
+  // Either pad out the log or add the optional prefix and pad
+  if( optionalPrefix != NULL )
+  {
+    log << optionalPrefix << "> ";
+  }
+  else
+  {
+    log << " ";
+  }
+
+  log << msg;
+
+  // Add the message to the log
+  if( fileName != NULL )
+  {
+     log << "| in " << fileName << "(" << lineNumber << ")"; // add filename and line number
+  }
 
   {
     PlusLockGuard<vtkRecursiveCriticalSection> critSectionGuard(this->m_CriticalSection);
@@ -361,6 +429,19 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* 
   }
 
   this->Flush();
+}
+
+//-------------------------------------------------------
+void vtkPlusLogger::LogMessage(LogLevelType level, const std::string& msg, const std::string& optionalPrefix /*= std::string("")*/)
+{
+  if( optionalPrefix.empty() )
+  {
+    this->LogMessage(level, msg.c_str(), NULL, -1, NULL);
+  }
+  else
+  {
+    this->LogMessage(level, msg.c_str(), NULL, -1, optionalPrefix.c_str());
+  }
 }
 
 //-------------------------------------------------------

@@ -11,7 +11,6 @@ See License.txt for details.
 #include "vtkImageImport.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusBuffer.h"
 #include "vtkRfProcessor.h"
 #include "vtkUsScanConvertCurvilinear.h"
 #include "vtkUsScanConvertLinear.h"
@@ -25,6 +24,8 @@ See License.txt for details.
 #include "ParamConnectionSettings.h"
 #include "SaperaViewDataReceiver.h"
 #include "TcpClient.h"
+
+#include "vtkMath.h"
 
 //----------------------------------------------------------------------------
 
@@ -530,9 +531,10 @@ void vtkBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr, co
   PlusLockGuard<vtkRecursiveCriticalSection> critSectionGuard(this->UpdateMutex);
 
   // we may need to overwrite these, so create a copy that will be used internally
-  int frameSizeInPix[2] = {
+  int frameSizeInPix[3] = {
     inputFrameSizeInPix[0],
-    inputFrameSizeInPix[1]
+    inputFrameSizeInPix[1],
+    1
   };
 
   LOG_TRACE("New frame received: " << frameSizeInPix[0] << "x" << frameSizeInPix[1]
@@ -615,31 +617,31 @@ void vtkBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr, co
     return;
   }
   // If the buffer is empty, set the pixel type and frame size to the first received properties 
-  if ( aSource->GetBuffer()->GetNumberOfItems() == 0 )
+  if ( aSource->GetNumberOfItems() == 0 )
   {
     LOG_DEBUG("Set up BK ProFocus image buffer");
-    aSource->GetBuffer()->SetPixelType(pixelType);      
-    aSource->GetBuffer()->SetImageType(imageType);
-    aSource->GetBuffer()->SetFrameSize( frameSizeInPix[0], frameSizeInPix[1] );
+    aSource->SetPixelType(pixelType);      
+    aSource->SetImageType(imageType);
+    aSource->SetInputFrameSize( frameSizeInPix[0], frameSizeInPix[1], 1 );
     if (imageType==US_IMG_BRIGHTNESS)
     {
       // Store B-mode images in MF orientation
-      aSource->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
+      aSource->SetOutputImageOrientation(US_IMG_ORIENT_MF);
     }
     else
     {
       // RF data is stored line-by-line, therefore set the temporary storage buffer to FM orientation
-      aSource->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_FM);
+      aSource->SetOutputImageOrientation(US_IMG_ORIENT_FM);
     }
     LOG_INFO("Frame size: " << frameSizeInPix[0] << "x" << frameSizeInPix[1]
     << ", pixel type: " << vtkImageScalarTypeNameMacro(pixelType)
       << ", image type: " << PlusVideoFrame::GetStringFromUsImageType(imageType)
-      << ", device image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetPortImageOrientation())
-      << ", buffer image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetBuffer()->GetImageOrientation()));
+      << ", device image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation())
+      << ", buffer image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetOutputImageOrientation()));
 
   } 
 
-  aSource->GetBuffer()->AddItem(pixelDataPtr, aSource->GetPortImageOrientation(), frameSizeInPix, pixelType, 1, imageType, 0, this->FrameNumber);
+  aSource->AddItem(pixelDataPtr, aSource->GetInputImageOrientation(), frameSizeInPix, pixelType, 1, imageType, 0, this->FrameNumber);
   this->Modified();
   this->FrameNumber++;
 

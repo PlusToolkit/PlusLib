@@ -195,9 +195,9 @@ public:
   void SetDeviceSetConfigurationData(vtkXMLDataElement* deviceSetConfigurationData); 
 
   /*! Get editor application executable path and file name */
-  vtkGetStringMacro(EditorApplicationExecutable);
+  const std::string& GetEditorApplicationExecutable() const;
   /*! Set editor application executable path and file name */
-  vtkSetStringMacro(EditorApplicationExecutable);
+  void SetEditorApplicationExecutable(const std::string& _arg);
 
   /*! Get application start timestamp */
   std::string GetApplicationStartTimestamp();
@@ -263,7 +263,7 @@ protected:
   vtkXMLDataElement*  ApplicationConfigurationData;
 
   /*! Path and filename of the editor application executable to be used */
-  char*               EditorApplicationExecutable;
+  std::string EditorApplicationExecutable;
 
   /*! Output directory path. If relative then the base is ProgramDirectory. */
   std::string OutputDirectory;

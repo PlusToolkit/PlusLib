@@ -28,6 +28,7 @@ SET_TESTS_PROPERTIES( TimestampFilteringTest PROPERTIES FAIL_REGULAR_EXPRESSION 
 #***************************  vtkDataCollectorTest1 ***************************
 ADD_EXECUTABLE(vtkDataCollectorTest1 vtkDataCollectorTest1.cxx)
 TARGET_LINK_LIBRARIES(vtkDataCollectorTest1 vtkDataCollection )
+
 ADD_TEST(vtkDataCollectorTest1 
   ${EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorTest1
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_SavedDataset.xml 
@@ -60,6 +61,24 @@ ADD_TEST(vtkDataCollectorTest2
   )
 SET_TESTS_PROPERTIES( vtkDataCollectorTest2 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
+#***************************  vtk3DDataCollectorTest1 ***************************
+ADD_EXECUTABLE(vtk3DDataCollectorTest1 vtk3DDataCollectorTest1.cxx)
+TARGET_LINK_LIBRARIES(vtk3DDataCollectorTest1 vtkDataCollection )
+ADD_TEST(vtk3DDataCollectorTest1 
+  ${EXECUTABLE_OUTPUT_PATH}/vtk3DDataCollectorTest1
+  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_3DSavedDataset.xml
+  --minimum=0 
+  --maximum=253
+  --mean=8.08658
+  --median=0
+  --standard-deviation=21.6785
+  --xDimension=112
+  --yDimension=112
+  --zDimension=48
+  --verbose=3
+  )
+SET_TESTS_PROPERTIES( vtk3DDataCollectorTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
 #***************************  vtkDataCollectorVideoAcqTest ***************************
 ADD_EXECUTABLE(vtkDataCollectorVideoAcqTest vtkDataCollectorVideoAcqTest.cxx)
 TARGET_LINK_LIBRARIES(vtkDataCollectorVideoAcqTest vtkDataCollection )
@@ -73,9 +92,7 @@ TARGET_LINK_LIBRARIES(vtkDataCollectorVideoAcqTest vtkDataCollection )
 # ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 
 #***************************  vtkDataCollectorTest2 ***************************
-ADD_EXECUTABLE( ReplayRecordedDataTest
-  ReplayRecordedDataTest.cxx
-  )
+ADD_EXECUTABLE( ReplayRecordedDataTest ReplayRecordedDataTest.cxx )
 TARGET_LINK_LIBRARIES( ReplayRecordedDataTest vtkDataCollection ${VTK_LIBRARIES} )
 ADD_TEST( ReplayRecordedDataTest
   ${EXECUTABLE_OUTPUT_PATH}/ReplayRecordedDataTest
@@ -111,19 +128,19 @@ ADD_TEST(vtkMetaImageSequenceIOTest
   )
 SET_TESTS_PROPERTIES( vtkMetaImageSequenceIOTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
  
-#***************************  ViewSeqMetaFile  ***************************
-ADD_EXECUTABLE(ViewSeqMetaFile ViewSeqMetaFile.cxx )
-TARGET_LINK_LIBRARIES(ViewSeqMetaFile vtkDataCollection )
-GENERATE_HELP_DOC(ViewSeqMetaFile)
+#***************************  ViewSequenceFile  ***************************
+ADD_EXECUTABLE(ViewSequenceFile ViewSequenceFile.cxx )
+TARGET_LINK_LIBRARIES(ViewSequenceFile vtkDataCollection )
+GENERATE_HELP_DOC(ViewSequenceFile)
 
-ADD_TEST(ViewSeqMetaFileTest
-  ${EXECUTABLE_OUTPUT_PATH}/ViewSeqMetaFile
+ADD_TEST(ViewSequenceFileTest
+  ${EXECUTABLE_OUTPUT_PATH}/ViewSequenceFile
   --source-seq-file=${TestDataDir}/SpinePhantomFreehand.mha
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_SpinePhantomFreehandReconstructionOnly.xml
   --image-to-reference-transform=ImageToTracker
   --rendering-off
   )
-SET_TESTS_PROPERTIES( ViewSeqMetaFileTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES( ViewSequenceFileTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #***************************  itkFcsvReaderTest1.cxx ***************************
 ADD_EXECUTABLE(itkFcsvReaderTest1 itkFcsvReaderTest1.cxx )
@@ -142,17 +159,38 @@ ADD_TEST(itkFcsvWriterTest1 ${EXECUTABLE_OUTPUT_PATH}/itkFcsvWriterTest1
 SET_TESTS_PROPERTIES( itkFcsvWriterTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #***************************  vtkSonixVideoSourceTest1.cxx ***************************
-IF (PLUS_USE_ULTRASONIX_VIDEO AND PLUS_TEST_ULTRASONIX)
+IF (PLUS_USE_ULTRASONIX_VIDEO)
   ADD_EXECUTABLE(vtkSonixVideoSourceTest1 vtkSonixVideoSourceTest1.cxx )
   TARGET_LINK_LIBRARIES(vtkSonixVideoSourceTest1 vtkDataCollection vtkPlusCommon)
-  ADD_TEST(vtkSonixVideoSourceTest1 
-  ${EXECUTABLE_OUTPUT_PATH}/vtkSonixVideoSourceTest1
-    --rendering-off 
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_SonixVideoSourceTest.xml
-    --sonix-ip=${PLUS_TEST_ULTRASONIX_IP_ADDRESS}
-  )
-  SET_TESTS_PROPERTIES( vtkSonixVideoSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-ENDIF (PLUS_USE_ULTRASONIX_VIDEO AND PLUS_TEST_ULTRASONIX)
+  
+  IF (PLUS_TEST_ULTRASONIX)
+    ADD_TEST(vtkSonixVideoSourceTest1 
+    ${EXECUTABLE_OUTPUT_PATH}/vtkSonixVideoSourceTest1
+      --rendering-off 
+      --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_SonixVideoSourceTest.xml
+      --sonix-ip=${PLUS_TEST_ULTRASONIX_IP_ADDRESS}
+    )
+    SET_TESTS_PROPERTIES( vtkSonixVideoSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  ENDIF (PLUS_TEST_ULTRASONIX)
+  
+ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
+
+#***************************  vtkPhilips3DProbeVideoSourceTest1.cxx ***************************
+IF (PLUS_USE_PHILIPS_3D_ULTRASOUND)
+  ADD_EXECUTABLE(vtkPhilips3DProbeVideoSourceTest1 vtkPhilips3DProbeVideoSourceTest1.cxx )
+  TARGET_LINK_LIBRARIES(vtkPhilips3DProbeVideoSourceTest1 vtkDataCollection vtkPlusCommon)
+  
+  IF (PLUS_TEST_PHILIPS_3D_ULTRASOUND)
+    ADD_TEST(vtkPhilips3DProbeVideoSourceTest1 
+    ${EXECUTABLE_OUTPUT_PATH}/vtkPhilips3DProbeVideoSourceTest1
+      --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_PhilipsVideoSourceTest.xml
+      --philips-ip=${PLUS_TEST_PHILIPS_3D_ULTRASOUND_IP_ADDRESS}
+      --verbose=3
+    )
+    SET_TESTS_PROPERTIES( vtkPhilips3DProbeVideoSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  ENDIF (PLUS_TEST_PHILIPS_3D_ULTRASOUND)
+  
+ENDIF (PLUS_USE_PHILIPS_3D_ULTRASOUND)
 
 #***************************  vtkIntersonSDKCxxVideoSourceTest.cxx ***************************
 IF (PLUS_USE_INTERSONSDKCXX_VIDEO)
@@ -197,6 +235,7 @@ IF (PLUS_USE_BKPROFOCUS_VIDEO)
   #***************************  vtkBkProFocusOemVideoSourceTest.cxx ***************************
   ADD_EXECUTABLE(vtkBkProFocusOemVideoSourceTest vtkBkProFocusOemVideoSourceTest.cxx )
   TARGET_LINK_LIBRARIES(vtkBkProFocusOemVideoSourceTest vtkDataCollection vtkPlusCommon)
+
   IF (PLUS_TEST_BKPROFOCUS)
     ADD_TEST(vtkBkProFocusOemVideoSourceTest 
       ${EXECUTABLE_OUTPUT_PATH}/vtkBkProFocusOemVideoSourceTest
@@ -209,6 +248,7 @@ IF (PLUS_USE_BKPROFOCUS_VIDEO)
   IF (PLUS_USE_BKPROFOCUS_CAMERALINK)
     ADD_EXECUTABLE(vtkBkProFocusCameraLinkVideoSourceTest vtkBkProFocusCameraLinkVideoSourceTest.cxx )
     TARGET_LINK_LIBRARIES(vtkBkProFocusCameraLinkVideoSourceTest vtkDataCollection vtkPlusCommon)
+
     IF (PLUS_TEST_BKPROFOCUS)
       ADD_TEST(vtkBkProFocusCameraLinkVideoSourceTest 
         ${EXECUTABLE_OUTPUT_PATH}/vtkBkProFocusCameraLinkVideoSourceTest
@@ -216,6 +256,7 @@ IF (PLUS_USE_BKPROFOCUS_VIDEO)
         )
       SET_TESTS_PROPERTIES( vtkBkProFocusCameraLinkVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
     ENDIF (PLUS_TEST_BKPROFOCUS)
+
   ENDIF (PLUS_USE_BKPROFOCUS_CAMERALINK)
   
 ENDIF (PLUS_USE_BKPROFOCUS_VIDEO)
@@ -244,6 +285,17 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
   SET_TESTS_PROPERTIES( vtkSonixVolumeReaderTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 
+#***************************  vtkCapistranoVideoSourceTest.cxx ***************************
+IF (PLUS_USE_CAPISTRANO_VIDEO)
+  ADD_EXECUTABLE(vtkCapistranoVideoSourceTest vtkCapistranoVideoSourceTest.cxx )
+  TARGET_LINK_LIBRARIES(vtkCapistranoVideoSourceTest vtkDataCollection ) 
+  ADD_TEST(NAME vtkCapistranoVideoSourceTest 
+    COMMAND $<TARGET_FILE:vtkCapistranoVideoSourceTest>
+    --rendering-off 
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_CapistranoVideoSourceTest.xml
+  )
+ENDIF (PLUS_USE_CAPISTRANO_VIDEO)
+
 #***************************  vtkIntersonVideoSourceTest.cxx ***************************
 IF (PLUS_USE_INTERSON_VIDEO)
   ADD_EXECUTABLE(vtkIntersonVideoSourceTest vtkIntersonVideoSourceTest.cxx )
@@ -254,12 +306,27 @@ ENDIF (PLUS_USE_INTERSON_VIDEO)
 IF (PLUS_USE_TELEMED_VIDEO)
   ADD_EXECUTABLE(vtkTelemedVideoSourceTest vtkTelemedVideoSourceTest.cxx )
   TARGET_LINK_LIBRARIES(vtkTelemedVideoSourceTest vtkDataCollection )
-  ADD_TEST(vtkTelemedVideoSourceTest
-    ${EXECUTABLE_OUTPUT_PATH}/vtkTelemedVideoSourceTest
-    #--rendering-off
-    )
-  SET_TESTS_PROPERTIES( vtkTelemedVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+  IF (PLUS_TEST_TELEMED)
+    ADD_TEST(vtkTelemedVideoSourceTest
+      ${EXECUTABLE_OUTPUT_PATH}/vtkTelemedVideoSourceTest
+      --rendering-off
+      )
+    SET_TESTS_PROPERTIES( vtkTelemedVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  ENDIF (PLUS_TEST_TELEMED)
+
 ENDIF (PLUS_USE_TELEMED_VIDEO)
+
+#***************************  vtkThorLabsVideoSourceTest.cxx ***************************
+IF (PLUS_USE_THORLABS_VIDEO)
+  ADD_EXECUTABLE(vtkThorLabsVideoSourceTest vtkThorLabsVideoSourceTest.cxx )
+  TARGET_LINK_LIBRARIES(vtkThorLabsVideoSourceTest vtkDataCollection )
+  ADD_TEST(vtkThorLabsVideoSourceTest
+    ${EXECUTABLE_OUTPUT_PATH}/vtkThorLabsVideoSourceTest
+    --rendering-off
+    )
+  SET_TESTS_PROPERTIES( vtkThorLabsVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+ENDIF (PLUS_USE_THORLABS_VIDEO)
 
 #************************  vtkSonixPortaVideoSourceTest.cxx ************************
 IF (PLUS_USE_ULTRASONIX_VIDEO)
@@ -371,7 +438,7 @@ ENDIF( PLUS_USE_OpenIGTLink )
 INSTALL(
   TARGETS 
     PlusVersion 
-    ViewSeqMetaFile
+    ViewSequenceFile
     TrackingTest
   DESTINATION bin
   COMPONENT RuntimeExecutables

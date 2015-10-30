@@ -88,34 +88,10 @@ public:
   /*! Get the IC capturing device buffer size ( Default: 50 frame ) */
   vtkGetMacro(ICBufferSize, int);
 
-  /*! Set the frame size */
+  /*! Set the frame size that will be requested when setting the video format. Acquired image frames may be smaller if clipping is applied in the video source. */
   vtkSetVector2Macro(FrameSize,int);
-  /*! Get the frame size */
+  /*! Get the frame size requested from the framegrabber. */
   vtkGetVector2Macro(FrameSize,int);
-
-  /*!
-  Set the clip rectangle size to apply to the image in pixel coordinates.
-  If the ClipRectangleSize is (0,0) then the values are ignored and the whole frame is captured.  
-  This method has to be called before Connect().
-  */
-  vtkSetVector2Macro(ClipRectangleSize,int);
-  /*!
-  Get the clip rectangle size to apply to the image in pixel coordinates.
-  If the ClipRectangleSize is (0,0) then the values are ignored and the whole frame is captured.
-  */
-  vtkGetVector2Macro(ClipRectangleSize,int);
-
-  /*!
-  Set the clip rectangle origin to apply to the image in pixel coordinates.
-  If the ClipRectangleSize is (0,0) then the whole frame is captured.
-  This method has to be called before Connect().
-  */
-  vtkSetVector2Macro(ClipRectangleOrigin,int);
-  /*!
-  Get the clip rectangle origin to apply to the image in pixel coordinates.
-  If the ClipRectangleSize is (0,0) then the whole frame is captured.
-  */
-  vtkGetVector2Macro(ClipRectangleOrigin,int);
 
   /*! Verify the device is correctly configured */
   virtual PlusStatus NotifyConfigured();
@@ -153,9 +129,6 @@ protected:
   /*! Adds a frame to the frame buffer. Called whenever the driver notified a new frame acquisition. */
   PlusStatus AddFrameToBuffer(unsigned char * data, unsigned long size, unsigned long frameNumber);
 
-  /*! Adjust clipping region origin and size to fit inside the frame size. */
-  void LimitClippingToValidRegion(const int frameSize[2]);
-
   /*! Parse DShowLib video format string (format + frame size) and if successful set VideoFormat and FrameSize */
   void ParseDShowLibVideoFormatString(const char* videoFormatFrameSizeString);
 
@@ -184,15 +157,6 @@ protected:
   /*! Frame size of the captured image */
   int FrameSize[2];
 
-  /*! Crop rectangle origin for the grabber (in pixels) */
-  int ClipRectangleOrigin[2];
-
-  /*! Crop rectangle size for the grabber (in pixels). If it is (0,0) then the whole frame will be captured. */
-  int ClipRectangleSize[2];
-
-  /*! Helper buffer to store the image pixels when clipping is enabled */
-  std::vector<unsigned char> ClippedImageBuffer;
-
 private:
 
   static vtkICCapturingSource* Instance;
@@ -202,8 +166,3 @@ private:
 };
 
 #endif
-
-
-
-
-

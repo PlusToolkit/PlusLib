@@ -1,5 +1,7 @@
 # --------------------------------------------------------------------------
 # Options
+OPTION(PLUS_USE_OPTITRACK "Provide support for the OptiTrack tracking system" OFF)
+OPTION (PLUS_USE_OPTIMET_CONOPROBE "Provide support for the Optimet ConoProbe" OFF)
 OPTION (PLUS_USE_POLARIS "Provide support for the NDI Polaris and Aurora" OFF)
 OPTION (PLUS_USE_CERTUS "Provide support for the NDI Certus" OFF)
 OPTION (PLUS_USE_MICRONTRACKER "Provide support for the Claron MicronTracker" OFF)
@@ -14,17 +16,23 @@ OPTION (PLUS_USE_BKPROFOCUS_CAMERALINK "Provide support for BK ProFocus ultrasou
 OPTION (PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber device" OFF)
 OPTION (PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
 OPTION (PLUS_USE_EPIPHAN "Provide support for the Epiphan" OFF)
+OPTION (PLUS_USE_CAPISTRANO_VIDEO "Provide support Capistrano Labs USB ultrasound probes" OFF)
 OPTION (PLUS_USE_INTERSON_VIDEO "Provide support Interson USB ultrasound probes" OFF)
 OPTION (PLUS_USE_INTERSONSDKCXX_VIDEO "Provide support Interson SDK 1.X with C++ Wrapper USB ultrasound probes" OFF)
 OPTION (PLUS_USE_TELEMED_VIDEO "Provide support for the Telemed ultrasound probes" OFF)
+OPTION (PLUS_USE_THORLABS_VIDEO "Provide support for the ThorLabs compact spectrometers" OFF)
 OPTION(PLUS_USE_STEALTHLINK "Provide support for the Medtronick StealthLink Server" OFF)
 OPTION(PLUS_USE_IntuitiveDaVinci "Enable the tracking of the da Vinci Surgical System. Enable this only if you have a da Vinci that is accessible from this computer." OFF)
+OPTION(PLUS_USE_PHILIPS_3D_ULTRASOUND "Provide support for the Philips ie33 3D ultrasound probe system." OFF)
 OPTION (PLUS_TEST_BKPROFOCUS "Enable testing of acquisition from BK ProFocus ultrasound systems. Enable this only if a BK ProFocus device is connected to this computer." OFF)
 OPTION (PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
 IF (PLUS_TEST_ULTRASONIX)
   SET (PLUS_TEST_ULTRASONIX_IP_ADDRESS "127.0.0.1" CACHE STRING "IP address of the Ultrasonix scanner that is used during testing")
 ENDIF()
-OPTION (PLUS_TEST_MMF_VIDEO "Enable testing of acquisition from the first available Microsoft Media Foundation compatible device. Turn off if no such device is available or the first device does not have any Plus-compatible video mode." ON)
+OPTION(PLUS_USE_MMF_VIDEO "Provide support for the Microsoft Media Foundation video digitizers (requires installation of Windows Platform SDK 7.1 or later)" OFF)
+IF(PLUS_USE_MMF_VIDEO)
+  OPTION(PLUS_TEST_MMF_VIDEO "Enable testing of acquisition from MMF video device (webcam). Enable this only if an MMF device is connected to this computer." OFF)  
+ENDIF(PLUS_USE_MMF_VIDEO)
 
 SET (DataCollection_INCLUDE_DIRS "" CACHE INTERNAL "" FORCE)
 
@@ -35,7 +43,10 @@ SET (DataCollection_SRCS
   vtkPlusDevice.cxx
   vtkPlusChannel.cxx
   vtkPlusDeviceFactory.cxx
-  vtkPlusDataSource.cxx 
+  vtkPlusDataSource.cxx
+  vtkTimestampedCircularBuffer.cxx
+  StreamBufferItem.cxx
+  vtkGenericSerialDevice.cxx
   FakeTracking/vtkFakeTracker.cxx   
   SavedDataSource/vtkSavedDataSource.cxx 
   VirtualDevices/vtkVirtualMixer.cxx
@@ -56,10 +67,12 @@ if (WIN32)
   SET (DataCollection_HDRS
     vtkDataCollector.h 
     vtkPlusDevice.h
-    vtkPlusDeviceTypes.h 
     vtkPlusChannel.h
     vtkPlusDeviceFactory.h
     vtkPlusDataSource.h
+    vtkTimestampedCircularBuffer.h 
+    StreamBufferItem.h
+    vtkGenericSerialDevice.h
     FakeTracking/vtkFakeTracker.h
     SavedDataSource/vtkSavedDataSource.h 
     VirtualDevices/vtkVirtualMixer.h
@@ -89,10 +102,77 @@ SET (DataCollection_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/VirtualDevices  
   CACHE INTERNAL "" FORCE)
 
+# --------------------------------------------------------------------------
+# OptiTrack support
+IF (PLUS_USE_OPTITRACK)
+    SET (DataCollection_SRCS ${DataCollection_SRCS} 
+      OptiTrack/vtkOptiTrackTracker.cxx
+      )
+        
+    SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} ${TRACKINGTOOLS_INCLUDE_DIR} CACHE INTERNAL "" FORCE )
+  
+    IF (WIN32)  
+      SET (DataCollection_HDRS ${DataCollection_HDRS}
+        OptiTrack/vtkOptiTrackTracker.h
+        )
+    ENDIF (WIN32)
+    
+    SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
+         ${CMAKE_CURRENT_SOURCE_DIR}/OptiTrack 
+         CACHE INTERNAL "" FORCE)
+      
+    IF( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+    # 64-bit
+		SET (DataCollection_LIBS ${DataCollection_LIBS}
+		${TRACKINGTOOLS_64_BIT_LIBRARY}
+		)
+		SET ( External_Libraries_Install ${External_Libraries_Install}
+		${TRACKINGTOOLS_BINARY_DIR}/NPTrackingToolsx64${CMAKE_SHARED_LIBRARY_SUFFIX}
+		)
+	ELSE()
+    # 32-bit
+		SET (DataCollection_LIBS ${DataCollection_LIBS}
+		${TRACKINGTOOLS_32_BIT_LIBRARY}
+		)
+		SET ( External_Libraries_Install ${External_Libraries_Install}
+		${TRACKINGTOOLS_BINARY_DIR}/NPTrackingTools${CMAKE_SHARED_LIBRARY_SUFFIX}
+		)
+  ENDIF()   
+ENDIF (PLUS_USE_OPTITRACK)
+
+# --------------------------------------------------------------------------
+# Optimet ConoProbe support
+IF (PLUS_USE_OPTIMET_CONOPROBE)
+    SET (DataCollection_SRCS ${DataCollection_SRCS} 
+      Optimet/vtkOptimetConoProbeMeasurer.cxx
+      )
+        
+    SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} ${OPTIMETSMART32SDK_INCLUDE_DIR} CACHE INTERNAL "" FORCE )
+  
+    IF (WIN32)  
+      SET (DataCollection_HDRS ${DataCollection_HDRS}
+        Optimet/vtkOptimetConoProbeMeasurer.h
+        )
+    ENDIF (WIN32)
+    
+    SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
+      ${CMAKE_CURRENT_SOURCE_DIR}/Optimet 
+      CACHE INTERNAL "" FORCE)
+      
+    SET (DataCollection_LIBS ${DataCollection_LIBS}
+    ${OPTIMETSMART32SDK_LIBRARY}
+    )
+
+    SET ( External_Libraries_Install ${External_Libraries_Install}
+    ${OPTIMETSMART32SDK_BINARY_DIR}/Smart32${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+    SET ( External_Libraries_Install ${External_Libraries_Install}
+    ${OPTIMETSMART32SDK_BINARY_DIR}/NewProbeDialog${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+ENDIF (PLUS_USE_OPTIMET_CONOPROBE)
 
 # --------------------------------------------------------------------------
 # NDI Certus support
-
 IF (PLUS_USE_CERTUS)
     SET (DataCollection_SRCS ${DataCollection_SRCS} 
       NDICertusTracking/vtkNDICertusTracker.cxx
@@ -347,6 +427,20 @@ ENDIF( PLUS_USE_3dConnexion_TRACKER )
     ${CMAKE_CURRENT_SOURCE_DIR}/ChRobotics
     CACHE INTERNAL "" FORCE)
 
+#--------------------------------------------------------------------------
+# Microchip MARG sensor (magnetometer, accelerometer, gyroscope)
+        
+  SET (DataCollection_SRCS ${DataCollection_SRCS} 
+    MicrochipTracking/vtkMicrochipTracker.cxx
+    )
+  if (WIN32)  
+    SET (DataCollection_HDRS ${DataCollection_HDRS} MicrochipTracking/vtkMicrochipTracker.h )
+  endif (WIN32)
+  
+  SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
+    ${CMAKE_CURRENT_SOURCE_DIR}/MicrochipTracking
+    CACHE INTERNAL "" FORCE)
+    
 #--------------------------------------------------------------------------
 # OpenIGTLink 
 
@@ -701,6 +795,57 @@ IF (PLUS_USE_EPIPHAN)
 ENDIF (PLUS_USE_EPIPHAN)
 
 # --------------------------------------------------------------------------
+# Capistrano Labs support
+
+IF (PLUS_USE_CAPISTRANO_VIDEO)
+  SET (DataCollection_SRCS ${DataCollection_SRCS} 
+    Capistrano/vtkCapistranoVideoSource.cxx
+    )
+  if (WIN32)  
+    SET (DataCollection_HDRS ${DataCollection_HDRS}
+      Capistrano/vtkCapistranoVideoSource.h
+      )
+  endif (WIN32)
+  SET (DataCollection_LIBS ${DataCollection_LIBS} 
+    ${CAPISTRANO_LIBRARY_DIR}/BmodeDLL${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${CAPISTRANO_LIBRARY_DIR}/USBprobeDLL${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
+  SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}     
+    ${CAPISTRANO_INCLUDE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/Capistrano
+    )          
+  IF( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+    message("using 64 bit")
+    SET ( External_Libraries_Install ${External_Libraries_Install}
+      ${CAPISTRANO_WIN64_BINARY_DIR}/USBprobe${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${CAPISTRANO_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+    SET ( External_Libraries_Debug ${External_Libraries_Debug}
+      ${CAPISTRANO_WIN64_BINARY_DIR}/USBprobe${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${CAPISTRANO_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+  ELSE()
+      # Make a temporary copy and rename this file so it can be found as the
+      # expected name when the executable starts.
+      SET(_usbprobe_dll_renamed ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/USBprobe${CMAKE_SHARED_LIBRARY_SUFFIX})
+      FILE(COPY ${CAPISTRANO_WIN32_BINARY_DIR}/USBprobe32${CMAKE_SHARED_LIBRARY_SUFFIX}
+        DESTINATION ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY})
+      FILE(RENAME
+        ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/USBprobe32${CMAKE_SHARED_LIBRARY_SUFFIX}
+        ${_usbprobe_dll_renamed})
+      
+      SET ( External_Libraries_Install ${External_Libraries_Install}
+      ${_usbprobe_dll_renamed}
+      ${CAPISTRANO_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+    SET ( External_Libraries_Debug ${External_Libraries_Debug}
+      ${_usbprobe_dll_renamed}
+      ${CAPISTRANO_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+  ENDIF()
+ENDIF (PLUS_USE_CAPISTRANO_VIDEO)
+
+# --------------------------------------------------------------------------
 # Interson support
 
 IF (PLUS_USE_INTERSON_VIDEO)
@@ -776,37 +921,102 @@ ENDIF (PLUS_USE_INTERSONSDKCXX_VIDEO)
 # Telemed support
 
 IF (PLUS_USE_TELEMED_VIDEO)
-
+  # ADD_CUSTOM_COMMAND(OUTPUT 
+	# Telemed/Usgfw2_h.h
+	# Telemed/dlldata.c
+	# Telemed/Usgfw2_i.c
+	# Telemed/Usgfw2_p.c
+    # COMMAND midl.exe /out ./Telemed /header Usgfw2_h.h /no_robust ${TELEMED_INCLUDE_DIR}/Usgfw2.idl
+  # )
+  
   SET (DataCollection_SRCS ${DataCollection_SRCS}
     Telemed/vtkTelemedVideoSource.cxx
     Telemed/TelemedUltrasound.cxx
-    Telemed/DeviceFilter.cxx
+    Telemed/Usgfw2_i.c
+    Telemed/Usgfw2_p.c
+    Telemed/dlldata.c
     )
   IF (WIN32)
     SET (DataCollection_HDRS ${DataCollection_HDRS}
       Telemed/vtkTelemedVideoSource.h
       Telemed/TelemedUltrasound.h
-      Telemed/DeviceFilter.h
+      Telemed/Usgfw2_h.h
       )
   ENDIF (WIN32)
 
   # Find Telemed SDK include directory
-  FIND_PATH( ECHOBLASTER_INCLUDE_DIR usgfw.h HINTS "${TELEMED_SDK_DIR}/include/USGFWSDK/include")
-  IF(NOT ECHOBLASTER_INCLUDE_DIR)
-    MESSAGE( SEND_ERROR "Please specify the Telemed SDK include directory in the variable ECHOBLASTER_INCLUDE_DIR, or turn off PLUS_USE_TELEMED_VIDEO. \nFYI, this directory should contain among others files : usgfw.h and multfreq.h")
-  ENDIF()
-
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
-    ${ECHOBLASTER_INCLUDE_DIR}
+    ${TELEMED_INCLUDE_DIR}
     ${WINDOWSSDK_LATEST_DIR}/Include
-    )
-  SET (DataCollection_LIBS ${DataCollection_LIBS}
-    strmiids
-    comsuppw
+    ${CMAKE_CURRENT_SOURCE_DIR}/Telemed
     )
 
 ENDIF (PLUS_USE_TELEMED_VIDEO)
 
+# --------------------------------------------------------------------------
+# Thorlabs support
+
+IF (PLUS_USE_THORLABS_VIDEO)
+
+  SET (DataCollection_SRCS ${DataCollection_SRCS}
+    ThorLabs/vtkThorLabsVideoSource.cxx
+    )
+  IF (WIN32)
+    SET (DataCollection_HDRS ${DataCollection_HDRS}
+      ThorLabs/vtkThorLabsVideoSource.h
+      )
+  ENDIF (WIN32)
+
+  SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/ThorLabs  
+    ${THORLABS_INCLUDE_DIR}
+    )
+  SET (DataCollection_LIBS ${DataCollection_LIBS} 
+    ${THORLABS_LIBRARY_DIR}/TLCCS_32${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${THORLABS_LIBRARY_DIR}/visa32${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
+
+ENDIF (PLUS_USE_THORLABS_VIDEO)
+
+# --------------------------------------------------------------------------
+# Philips ie33 3d ultrasound support
+
+IF (PLUS_USE_PHILIPS_3D_ULTRASOUND)
+  IF(PLUS_USE_ULTRASONIX_VIDEO)
+	# Ultrasonix contains its own libmmd.dll which does not support all the functionality needed for the philips probe
+	# They both cannot be enabled at the same time.
+	MESSAGE( FATAL_ERROR "Plus cannot enable both Ultrasonix and Philips devices due to .dll conflicts in their respective SDK packages.")
+  ELSE(PLUS_USE_ULTRASONIX_VIDEO)
+    SET (DataCollection_SRCS ${DataCollection_SRCS}
+      Philips3D/vtkPhilips3DProbeVideoSource.cxx 
+      Philips3D/vtkIEEListener.cxx 
+      )
+
+    IF (WIN32)  
+      SET (DataCollection_HDRS ${DataCollection_HDRS}
+        Philips3D/vtkPhilips3DProbeVideoSource.h
+        Philips3D/vtkIEEListener.h
+        )
+    ENDIF (WIN32)
+
+    SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
+      ${CMAKE_CURRENT_SOURCE_DIR}/Philips3D
+      ${Philips_INCLUDE_DIRS}
+      CACHE INTERNAL "" FORCE)
+
+    SET( DataCollection_LIBS ${DataCollection_LIBS}
+      ${Philips_LIBRARY_DIR}/PipelineComDll${CMAKE_STATIC_LIBRARY_SUFFIX}
+      ${Philips_LIBRARY_DIR}/3DData${CMAKE_STATIC_LIBRARY_SUFFIX}
+      ${Philips_LIBRARY_DIR}/3DUtil${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
+  
+    FILE(GLOB PHILIPS_SDK_SHARED_LIBRARIES "${Philips_BINARY_DIRS}/[^.]*${CMAKE_SHARED_LIBRARY_SUFFIX}")
+
+    SET ( External_Libraries_Install ${External_Libraries_Install}
+      ${PHILIPS_SDK_SHARED_LIBRARIES}
+      )
+  ENDIF(PLUS_USE_ULTRASONIX_VIDEO)
+ENDIF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
 
 # --------------------------------------------------------------------------
 # Build the library
@@ -882,6 +1092,7 @@ INSTALL(FILES ${External_Libraries_Install}
 INSTALL(TARGETS vtkDataCollection
   RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   LIBRARY DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  ARCHIVE DESTINATION bin CONFIGURATIONS Release COMPONENT Development
   )
   
 # --------------------------------------------------------------------------

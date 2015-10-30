@@ -15,6 +15,7 @@ See License.txt for details.
 #include "vtkTransformRepository.h"
 #include "vtkVolumeReconstructor.h"
 #include "vtkVirtualVolumeReconstructor.h"
+#include <float.h> // for DBL_MAX
 
 #define UNDEFINED_VALUE DBL_MAX
 
@@ -385,7 +386,6 @@ PlusStatus vtkPlusReconstructVolumeCommand::ProcessImageReply(vtkImageData* volu
     // send the reconstructed volume with the reply
     LOG_DEBUG("Send image to client through OpenIGTLink");
     vtkSmartPointer<vtkPlusCommandImageResponse> imageResponse=vtkSmartPointer<vtkPlusCommandImageResponse>::New();
-    this->CommandResponseQueue.push_back(imageResponse);
     imageResponse->SetClientId(this->ClientId);
     imageResponse->SetImageName(outputVolDeviceName);
     imageResponse->SetImageData(volumeToSend);
@@ -398,6 +398,7 @@ PlusStatus vtkPlusReconstructVolumeCommand::ProcessImageReply(vtkImageData* volu
       resultMessage+=", ";
     }
     resultMessage += std::string("image sent as: ")+outputVolDeviceName;
+    this->CommandResponseQueue.push_back(imageResponse);
   }
   return status;
 }

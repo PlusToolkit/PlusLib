@@ -9,6 +9,9 @@
 #include "vtkImageData.h"
 #include "vtkMatrix4x4.h"
 #include "vtkMetaImageSequenceIO.h"
+#if VTK_MAJOR_VERSION > 5
+#include "vtkNrrdSequenceIO.h"
+#endif
 #include "vtkObjectFactory.h"
 #include "vtkTrackedFrameList.h" 
 #include "vtkTransformRepository.h"
@@ -24,8 +27,6 @@ vtkStandardNewMacro(vtkTrackedFrameList);
 //----------------------------------------------------------------------------
 vtkTrackedFrameList::vtkTrackedFrameList()
 {
-  this->CustomFields["UltrasoundImageOrientation"] = "MF"; 
-
   this->SetNumberOfUniqueFrames(5); 
 
   this->MinRequiredTranslationDifferenceMm=0.0;
@@ -163,6 +164,41 @@ PlusStatus vtkTrackedFrameList::AddTrackedFrame(TrackedFrame *trackedFrame, Inva
   this->TrackedFrameList.push_back(pTrackedFrame); 
   return PLUS_SUCCESS; 
 }
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTrackedFrameList::TakeTrackedFrame(TrackedFrame *trackedFrame, InvalidFrameAction action /*=ADD_INVALID_FRAME_AND_REPORT_ERROR*/ )
+{
+  bool isFrameValid = true; 
+  if ( action != ADD_INVALID_FRAME )
+  {
+    isFrameValid = this->ValidateData(trackedFrame); 
+  }
+  if ( !isFrameValid )
+  {
+    switch(action)
+    {
+    case ADD_INVALID_FRAME_AND_REPORT_ERROR: 
+      LOG_ERROR("Validation failed on frame, the frame is added to the list anyway");
+      break; 
+    case ADD_INVALID_FRAME: 
+      LOG_DEBUG("Validation failed on frame, the frame is added to the list anyway");
+      break;
+    case SKIP_INVALID_FRAME_AND_REPORT_ERROR: 
+      LOG_ERROR("Validation failed on frame, the frame is ignored");
+      delete trackedFrame;
+      return PLUS_FAIL;
+    case SKIP_INVALID_FRAME: 
+      LOG_DEBUG("Validation failed on frame, the frame is ignored");
+      delete trackedFrame;
+      return PLUS_SUCCESS; 
+    }
+  }
+
+  // Make a copy and add frame to the list 
+  this->TrackedFrameList.push_back(trackedFrame); 
+  return PLUS_SUCCESS; 
+}
+
 
 //----------------------------------------------------------------------------
 bool vtkTrackedFrameList::ValidateData(TrackedFrame* trackedFrame )
@@ -403,7 +439,24 @@ int vtkTrackedFrameList::GetNumberOfBitsPerPixel()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequenceDataFileName)
+PlusStatus vtkTrackedFrameList::SaveToSequenceMetafile(const std::string& filename, US_IMAGE_ORIENTATION orientationInFile /*= US_IMG_ORIENT_MF*/, bool useCompression /*=true*/, bool enableImageDataWrite /*=true*/)
+{
+  vtkSmartPointer<vtkMetaImageSequenceIO> writer=vtkSmartPointer<vtkMetaImageSequenceIO>::New();
+  writer->SetUseCompression(useCompression);
+  writer->SetFileName(filename);
+  writer->SetImageOrientationInFile(orientationInFile);
+  writer->SetTrackedFrameList(this);
+  writer->SetEnableImageDataWrite(enableImageDataWrite);
+  if (writer->Write()!=PLUS_SUCCESS)
+  {
+    LOG_ERROR("Couldn't write sequence metafile: " <<  filename); 
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const std::string& trackedSequenceDataFileName)
 {
   std::string trackedSequenceDataFilePath=trackedSequenceDataFileName;
 
@@ -429,35 +482,50 @@ PlusStatus vtkTrackedFrameList::ReadFromSequenceMetafile(const char* trackedSequ
   return PLUS_SUCCESS;
 }
 
+#if VTK_MAJOR_VERSION > 5
 //----------------------------------------------------------------------------
-PlusStatus vtkTrackedFrameList::SaveToSequenceMetafile(const char* filename, bool useCompression /*=true*/)
+PlusStatus vtkTrackedFrameList::SaveToNrrdFile(const std::string& filename, US_IMAGE_ORIENTATION orientationInFile /*= US_IMG_ORIENT_MF*/, bool useCompression /*= true*/, bool enableImageDataWrite /*= true*/)
 {
-  vtkSmartPointer<vtkMetaImageSequenceIO> writer=vtkSmartPointer<vtkMetaImageSequenceIO>::New();
+  vtkSmartPointer<vtkNrrdSequenceIO> writer = vtkSmartPointer<vtkNrrdSequenceIO>::New();
   writer->SetUseCompression(useCompression);
   writer->SetFileName(filename);
+  writer->SetImageOrientationInFile(orientationInFile);
   writer->SetTrackedFrameList(this);
-  if (writer->Write()!=PLUS_SUCCESS)
+  writer->SetEnableImageDataWrite(enableImageDataWrite);
+  if (writer->Write() != PLUS_SUCCESS)
   {
-    LOG_ERROR("Couldn't write sequence metafile: " <<  filename); 
+    LOG_ERROR("Couldn't write Nrrd file: " <<  filename); 
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkTrackedFrameList::SaveTrackerDataOnlyToSequenceMetafile(const char* filename, bool useCompression /*=true*/)
+PlusStatus vtkTrackedFrameList::ReadFromNrrdFile(const std::string& trackedSequenceDataFileName)
 {
-  vtkSmartPointer<vtkMetaImageSequenceIO> writer=vtkSmartPointer<vtkMetaImageSequenceIO>::New();
-  writer->SetUseCompression(useCompression);
-  writer->SetFileName(filename);
-  writer->SetTrackedFrameList(this);
-  if (writer->WriteOnlyTrackerData()!=PLUS_SUCCESS)
+  std::string trackedSequenceDataFilePath(trackedSequenceDataFileName);
+
+  // If file is not found in the current directory then try to find it in the image directory, too
+  if (!vtksys::SystemTools::FileExists(trackedSequenceDataFilePath.c_str(), true))
   {
-    LOG_ERROR("Couldn't write tracking data to the sequence metafile: " <<  filename); 
+    if (vtkPlusConfig::GetInstance()->FindImagePath(trackedSequenceDataFileName, trackedSequenceDataFilePath)==PLUS_FAIL)
+    {
+      LOG_ERROR("Cannot find Nrrd file: "<<trackedSequenceDataFileName);
+      return PLUS_FAIL;      
+    }
+  }
+
+  vtkSmartPointer<vtkNrrdSequenceIO> reader = vtkSmartPointer<vtkNrrdSequenceIO>::New();
+  reader->SetFileName(trackedSequenceDataFilePath.c_str());
+  reader->SetTrackedFrameList(this);
+  if (reader->Read() != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Couldn't read Nrrd file: " <<  trackedSequenceDataFileName ); 
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
 }
+#endif
 
 //-----------------------------------------------------------------------------
 PlusCommon::VTKScalarPixelType vtkTrackedFrameList::GetPixelType()

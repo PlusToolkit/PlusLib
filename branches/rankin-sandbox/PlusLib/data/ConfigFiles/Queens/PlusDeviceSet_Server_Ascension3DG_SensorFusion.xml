@@ -3,7 +3,7 @@
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
       Name="Sensor fusion tests with Ascension3DG(GPS)" 
-      Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch. Quality value is also recorded for the tracking." />
+      Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on Ultrasonix US. Quality value is also recorded for the tracking." />
     <Device
       Id="TrackerDevice" 
       Type="Ascension3DG" 

@@ -20,7 +20,6 @@ writes the buffer to a metafile and displays the live transform in a 3D view.
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
-#include "vtkPlusBuffer.h"
 #include "PlusMath.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
@@ -335,7 +334,7 @@ int main(int argc, char **argv)
     while ( acqStartTime + inputAcqTimeLength > vtkTimerLog::GetUniversalTime() )
     {
 
-      tool->GetBuffer()->GetLatestStreamBufferItem(&bufferItem); 
+      tool->GetLatestStreamBufferItem(&bufferItem); 
       if ( bufferItem.GetMatrix(matrix) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get matrix from buffer item!"); 
@@ -414,7 +413,7 @@ int main(int argc, char **argv)
     tracker->DeepCopy(aDevice);
     std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(outputTrackerBufferSequenceFileName);
     LOG_INFO("Write tracker to " << fullPath);
-    tracker->WriteToMetafile(fullPath.c_str(), true); 
+    tracker->WriteToSequenceFile(fullPath.c_str(), true); 
   }
 
   std::cout << "Test completed successfully!" << std::endl;

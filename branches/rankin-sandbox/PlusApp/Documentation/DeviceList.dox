@@ -4,9 +4,12 @@
 
 \par Ultrasound systems
 - \subpage DeviceSonixVideo
+- \subpage DeviceTelemed
 - \subpage DeviceInterson
 - \subpage DeviceIntersonSDKCxx
+- \subpage DeviceCapistrano
 - \subpage DeviceBkProFocus
+- \subpage DevicePhilips
 
 \par Framegrabbers and cameras
 - \subpage DeviceEpiphan
@@ -27,6 +30,7 @@
 \par Inertial measurement units
 - \subpage DevicePhidgetSpatial
 - \subpage DeviceChRobotics
+- \subpage DeviceMicrochip
 
 \par Other tracking devices
 - \subpage DeviceOpenIGTLinkTracker
@@ -43,5 +47,10 @@
 - \subpage DeviceVirtualVolumeReconstructor
 - \subpage DeviceVirtualMixer
 - \subpage DeviceVirtualSwitcher
+
+\par Other data acquisition and control devices
+- \subpage DeviceThorLabs
+- \subpage DeviceGenericSerial - such as Arduino microcontroller
+- \subpage DeviceOptimetConoProbe
 
 */

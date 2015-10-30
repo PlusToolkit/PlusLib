@@ -7,8 +7,8 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "TrackedFrame.h"
 #include "vtkImageData.h" 
-#include "vtkMetaImageSequenceIO.h"
 #include "vtkRfProcessor.h"
+#include "vtkSequenceIO.h"
 #include "vtkSmartPointer.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkTransform.h"
@@ -27,6 +27,7 @@ int main(int argc, char **argv)
   std::string inputConfigFileName;
   std::string outputImgFile;
   std::string operation="BRIGHTNESS_SCAN_CONVERT";
+  bool useCompression(true);
 
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
@@ -37,6 +38,7 @@ int main(int argc, char **argv)
   args.AddArgument("--rf-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputRfFile, "File name of input RF image data");
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Config file containing processing parameters");
   args.AddArgument("--output-img-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputImgFile, "File name of the generated output brightness image");
+  args.AddArgument("--use-compression", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &useCompression, "Use compression when outputting data");
   args.AddArgument("--operation", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &operation, "Processing operation to be applied on the input file (BRIGHTNESS_CONVERT, BRIGHTNESS_SCAN_CONVERT, default: BRIGHTNESS_SCAN_CONVERT");
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
 
@@ -77,7 +79,11 @@ int main(int argc, char **argv)
   LOG_DEBUG("Reading input meta file..."); 
   // frameList it will contain initially the RF data and the image data will be replaced by the processed output
   vtkSmartPointer< vtkTrackedFrameList > frameList = vtkSmartPointer< vtkTrackedFrameList >::New();
-  frameList->ReadFromSequenceMetafile( inputRfFile.c_str() );
+  if( vtkSequenceIO::Read(inputRfFile, frameList) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to load input sequences file.");
+    exit(EXIT_FAILURE);
+  }
   LOG_DEBUG("Reading input RF file completed"); 
 
   // Read config file
@@ -165,7 +171,6 @@ int main(int argc, char **argv)
       }
     }
 
-    vtkSmartPointer<vtkMetaImageSequenceIO> outputImgSeqFileWriter = vtkSmartPointer<vtkMetaImageSequenceIO>::New();
     std::ostringstream ss;
     std::string path = vtksys::SystemTools::GetFilenamePath(outputImgFile);
     if( !path.empty() )
@@ -180,10 +185,12 @@ int main(int argc, char **argv)
     {
       ss << vtksys::SystemTools::GetFilenameWithoutExtension(outputImgFile) << "_OutputChannel_" << i << vtksys::SystemTools::GetFilenameExtension(outputImgFile);
     }
-    outputImgSeqFileWriter->SetFileName(ss.str().c_str()); 
-    outputImgSeqFileWriter->SetTrackedFrameList(frameList); 
-    outputImgSeqFileWriter->SetImageOrientationInFile(frameList->GetImageOrientation());
-    outputImgSeqFileWriter->Write(); 
+
+    if( vtkSequenceIO::Write(ss.str(), frameList, frameList->GetImageOrientation(), useCompression) != PLUS_SUCCESS )
+    {
+      // Error has already been logged
+      exit(EXIT_FAILURE);
+    }
   }
 
   return EXIT_SUCCESS; 

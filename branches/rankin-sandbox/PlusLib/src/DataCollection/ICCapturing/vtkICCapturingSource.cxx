@@ -14,7 +14,6 @@ See License.txt for details.
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusBuffer.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtksys/SystemTools.hxx"
 #include <tisudshl.h>
@@ -49,11 +48,6 @@ vtkICCapturingSource::vtkICCapturingSource()
   this->FrameSize[0] = 640;
   this->FrameSize[1] = 480;
   this->InputChannel = NULL; 
-
-  this->ClipRectangleOrigin[0]=0;
-  this->ClipRectangleOrigin[1]=0;
-  this->ClipRectangleSize[0]=0;
-  this->ClipRectangleSize[1]=0;
 
   this->FrameGrabber = NULL;
   this->FrameGrabberListener = NULL; 
@@ -188,7 +182,7 @@ PlusStatus vtkICCapturingSource::AddFrameToBuffer(unsigned char * dataPtr, unsig
 
   this->FrameNumber = frameNumber; 
 
-  const int frameSize[2] = {static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxX(), static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxY()}; 
+  const int frameSize[3] = {static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxX(), static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxY(),1}; 
   int frameBufferBitsPerPixel = static_cast<DShowLib::Grabber*>(FrameGrabber)->getVideoFormat().getBitsPerPixel(); 
   if (frameBufferBitsPerPixel!=8)
   {
@@ -196,61 +190,13 @@ PlusStatus vtkICCapturingSource::AddFrameToBuffer(unsigned char * dataPtr, unsig
     return PLUS_FAIL;
   }
 
-  PlusStatus status=PLUS_SUCCESS;
-  if( (this->ClipRectangleSize[0] > 0) && (this->ClipRectangleSize[1] > 0)
-    && (this->ClipRectangleSize[0]<frameSize[0] || this->ClipRectangleSize[1]<frameSize[1]))
-  {
-    // Clipping
-    LimitClippingToValidRegion(frameSize);
-    unsigned int bufferSize=this->ClipRectangleSize[0]*this->ClipRectangleSize[1];
-    this->ClippedImageBuffer.resize(bufferSize);
-    // Copy the pixels from full frame buffer to clipped frame buffer line-by-line
-    unsigned char* fullFramePixelPtr=dataPtr+this->ClipRectangleOrigin[1]*frameSize[0]+this->ClipRectangleOrigin[0];
-    unsigned char* clippedFramePixelPtr=&(this->ClippedImageBuffer[0]);
-    for (int y=0; y<this->ClipRectangleSize[1]; y++)
-    {
-      memcpy(clippedFramePixelPtr,fullFramePixelPtr,this->ClipRectangleSize[0]);
-      clippedFramePixelPtr+=this->ClipRectangleSize[0];
-      fullFramePixelPtr+=frameSize[0];
-    }
-    status = aSource->GetBuffer()->AddItem(&(this->ClippedImageBuffer[0]), aSource->GetPortImageOrientation(), this->ClipRectangleSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
-  }
-  else
-  {
-    // No clipping
-    status = aSource->GetBuffer()->AddItem(dataPtr, aSource->GetPortImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
-  }
+  PlusStatus status = aSource->AddItem(dataPtr, aSource->GetInputImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
   this->Modified();
 
   return status;
 }
 
-//----------------------------------------------------------------------------
-void vtkICCapturingSource::LimitClippingToValidRegion(const int frameSize[2])
-{
-  if (this->ClipRectangleOrigin[0]<0 || this->ClipRectangleOrigin[1]<0
-    || this->ClipRectangleOrigin[0]>=frameSize[0] || this->ClipRectangleOrigin[1]>=frameSize[1])
-  {
-    LOG_WARNING("ClipRectangleOrigin is invalid ("<<this->ClipRectangleOrigin[0]<<", "<<this->ClipRectangleOrigin[1]<<"). The frame size is "
-      <<frameSize[0]<<"x"<<frameSize[1]<<". Using (0,0) as ClipRectangleOrigin.");
-    this->ClipRectangleOrigin[0]=0;
-    this->ClipRectangleOrigin[1]=0;
-  }
-  if (this->ClipRectangleOrigin[0]+this->ClipRectangleSize[0]>=frameSize[0])
-  {
-    // rectangle size is out of the framSize bounds, clip it to the available size
-    this->ClipRectangleSize[0]=frameSize[0]-this->ClipRectangleOrigin[0];
-    LOG_WARNING("Adjusting ClipRectangleSize x to "<<this->ClipRectangleSize[0]);
-  }
-  if (this->ClipRectangleOrigin[1]+this->ClipRectangleSize[1]>frameSize[1])
-  {
-    // rectangle size is out of the framSize bounds, clip it to the available size
-    this->ClipRectangleSize[1]=frameSize[1]-this->ClipRectangleOrigin[1];
-    LOG_WARNING("Adjusting ClipRectangleSize y to "<<this->ClipRectangleSize[1]);
-  }    
-}
-
-  
+ 
 //----------------------------------------------------------------------------
 PlusStatus vtkICCapturingSource::InternalConnect()
 {
@@ -311,22 +257,12 @@ PlusStatus vtkICCapturingSource::InternalConnect()
     LOG_ERROR("Unable to retrieve the video source in the ICCapturing device.");
     return PLUS_FAIL;
   }
-  aSource->GetBuffer()->SetPixelType( VTK_UNSIGNED_CHAR );  
+  aSource->SetPixelType( VTK_UNSIGNED_CHAR );  
 
-  int frameSize[2]={0,0};
+  int frameSize[3]={0,0,1};
   frameSize[0]=static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxX();
   frameSize[1]=static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxY();
-
-  if( (this->ClipRectangleSize[0] > 0) && (this->ClipRectangleSize[1] > 0) )
-  {
-    LimitClippingToValidRegion(frameSize);
-    aSource->GetBuffer()->SetFrameSize(this->ClipRectangleSize);
-  }
-  else
-  {
-    // No clipping
-    aSource->GetBuffer()->SetFrameSize(frameSize); 
-  }
+  aSource->SetInputFrameSize(frameSize);
 
   if ( this->GetInputChannel() == NULL || !static_cast<DShowLib::Grabber*>(FrameGrabber)->setInputChannel( this->GetInputChannel() ) ) 
   {
@@ -442,10 +378,6 @@ PlusStatus vtkICCapturingSource::ReadConfiguration(vtkXMLDataElement* rootConfig
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(InputChannel, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, ICBufferSize, deviceConfig);
 
-  // clipping parameters
-  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleOrigin, deviceConfig);
-  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleSize, deviceConfig);
-
   return PLUS_SUCCESS;
 }
 
@@ -460,10 +392,6 @@ PlusStatus vtkICCapturingSource::WriteConfiguration(vtkXMLDataElement* rootConfi
   imageAcquisitionConfig->SetVectorAttribute("FrameSize", 2, this->FrameSize);
   imageAcquisitionConfig->SetAttribute("InputChannel", this->InputChannel);
   imageAcquisitionConfig->SetIntAttribute("ICBufferSize", this->ICBufferSize);
-
-  // clipping parameters
-  imageAcquisitionConfig->SetVectorAttribute("ClipRectangleOrigin", 2, this->GetClipRectangleOrigin());
-  imageAcquisitionConfig->SetVectorAttribute("ClipRectangleSize", 2, this->GetClipRectangleSize());
 
   return PLUS_SUCCESS;
 }

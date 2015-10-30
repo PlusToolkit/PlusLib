@@ -89,10 +89,7 @@ SET (CalibrationAlgo_INCLUDE_DIRS
 SET (CalibrationAlgo_LIBS 
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
-#  itkvnl
-#  itkvnl_algo
   vtkPlusCommon
-#  vtkDataCollection
   )
 
 INCLUDE_DIRECTORIES( ${CalibrationAlgo_INCLUDE_DIRS} )
@@ -114,6 +111,7 @@ SET(vcProj_vtkCalibrationAlgo vtkCalibrationAlgo;"${PlusLib_BINARY_DIR}/src/Cali
 INSTALL(TARGETS vtkCalibrationAlgo
   RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   LIBRARY DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  ARCHIVE DESTINATION bin CONFIGURATIONS Release COMPONENT Development
   )
 
 # --------------------------------------------------------------------------

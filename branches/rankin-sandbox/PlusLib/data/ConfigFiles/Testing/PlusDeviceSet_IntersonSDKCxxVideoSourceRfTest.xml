@@ -6,7 +6,7 @@
       RfDecimation="0"
       PulseVoltage="20"
       DynRangeDb="-1" 
-      FrequencyMhz="3.75" >
+      FrequencyMhz="5.00" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortName="Rf" PortUsImageOrientation="FU" />
       </DataSources>

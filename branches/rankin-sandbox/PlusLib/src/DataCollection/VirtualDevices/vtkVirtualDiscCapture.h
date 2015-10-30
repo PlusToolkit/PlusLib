@@ -8,11 +8,10 @@ See License.txt for details.
 #define __vtkVirtualDiscCapture_h
 
 #include "vtkDataCollectionExport.h"
-
 #include "vtkPlusDevice.h"
+#include "vtkSequenceIOBase.h"
 #include <string>
 
-class vtkMetaImageSequenceIO;
 class vtkTrackedFrameList;
 
 /*!
@@ -40,13 +39,15 @@ public:
 
   virtual bool HasUnsavedData() const;
 
-  virtual double GetAcquisitionRate() const;
-
   /*! Open the output file for writing */
   virtual PlusStatus OpenFile(const char* aFilename = NULL);
 
-  /*! Close the output file */
-  virtual PlusStatus CloseFile(const char* aFilename = NULL);
+  /*!
+    Close the output file.
+    resultFilename contains the full path of the actual written file name. It may be different than the requested name
+    if the requested name was not valid (for example wrong extension).
+  */
+  virtual PlusStatus CloseFile(const char* aFilename = NULL, std::string* resultFilename = NULL);
 
   virtual PlusStatus Reset();
 
@@ -63,7 +64,7 @@ public:
   */
   virtual void InternalWriteOutputChannels(vtkXMLDataElement* rootXMLElement);
 
-  void SetRequestedFrameRate(double aValue);
+  vtkSetMacro(RequestedFrameRate, double);
   vtkGetMacro(RequestedFrameRate, double);
 
   vtkGetMacro(ActualFrameRate, double);
@@ -75,12 +76,15 @@ public:
   vtkGetMacro(EnableFileCompression, bool);
   vtkSetMacro(EnableFileCompression, bool);
 
+  vtkSetMacro(EnableCapturingOnStart, bool);
+  vtkGetMacro(EnableCapturingOnStart, bool);
+
   virtual vtkDataCollector* GetDataCollector() { return this->DataCollector; }
 
   virtual bool IsTracker() const { return false; }
   virtual bool IsVirtual() const { return true; }
 
-  virtual std::string GetOutputFileName() { return vtkPlusConfig::GetInstance()->GetOutputPath(m_CurrentFilename); };
+  virtual std::string GetOutputFileName() { return vtkPlusConfig::GetInstance()->GetOutputPath(CurrentFilename); };
 
 protected:
   virtual PlusStatus ClearRecordedFrames();
@@ -94,36 +98,29 @@ protected:
 
   virtual bool IsFrameBuffered() const;
 
-  virtual PlusStatus WriteFrames(bool force = false);
-
   /*!
-  * Get the maximum frame rate from the video source. If there is none then the tracker
-  * \return Maximum frame rate
+    Copy frames to memory buffer or disk.
+    If force flag is true then data is written to disk immediately.
   */
-  double GetMaximumFrameRate();
-
-  /*! Get the sampling period length (in seconds). Frames are copied from the devices to the data collection buffer once in every sampling period. */
-  double GetSamplingPeriodSec();
-
-  /*! Read the sequence metafile, re-write it with compression */
-  PlusStatus CompressFile();
+  virtual PlusStatus WriteFrames(bool force = false);
 
   vtkVirtualDiscCapture();
   virtual ~vtkVirtualDiscCapture();
 
   /*! Recorded tracked frame list */
-  vtkTrackedFrameList* m_RecordedFrames;
+  vtkTrackedFrameList* RecordedFrames;
 
   /*! Timestamp of last recorded frame (only frames that have more recent timestamp will be added) */
-  double m_LastAlreadyRecordedFrameTimestamp;
+  double LastAlreadyRecordedFrameTimestamp;
 
   /*! Desired timestamp of the next frame to be recorded */
-  double m_NextFrameToBeRecordedTimestamp;
+  double NextFrameToBeRecordedTimestamp;
 
-  /*! Frame rate of the sampling */
-  const int m_SamplingFrameRate;
-
-  /*! Requested frame rate (frames per second) */
+  /*!
+    Requested frame rate (frames per second)
+    If the input data source provides data at a higher rate then frames will be skipped.
+    If the input data has lower frame rate then requested then all the frames in the input data will be recorded.
+  */
   double RequestedFrameRate;
 
   /*! Actual frame rate (frames per second) */
@@ -135,28 +132,32 @@ protected:
     those that were acquired in a different recording segment) will not be taken into account in the actual
     frame rate computation.
   */
-  int m_FirstFrameIndexInThisSegment;
+  int FirstFrameIndexInThisSegment;
 
   /* Time waited in update */
-  double m_TimeWaited;
-  double m_LastUpdateTime;
+  double TimeWaited;
+  double LastUpdateTime;
 
   /*! File to write */
-  std::string m_CurrentFilename;
+  std::string CurrentFilename;
   std::string BaseFilename;
 
-  /*! Meta sequence to write to */
-  vtkMetaImageSequenceIO* m_Writer;
+  /*! Sequence writer to write to */
+  vtkSequenceIOBase* Writer;
 
   /*! When closing the file, re-read the data from file, and write it compressed */
   bool EnableFileCompression;
 
   /*! Preparing the header requires image data already collected, this flag makes the header preparation wait until valid data is collected */
-  bool m_HeaderPrepared;
+  bool IsHeaderPrepared;
 
   /*! Record the number of frames captured */
   long int TotalFramesRecorded;  // hard drive will probably fill up before a regular int is hit, but still...
 
+  /*! Whether to start capturing on connect */
+  bool EnableCapturingOnStart;
+
+  /*! Internal flag to control capturing */
   bool EnableCapturing;
 
   int FrameBufferSize;
@@ -168,6 +169,7 @@ protected:
 
   PlusStatus GetInputTrackedFrame(TrackedFrame* aFrame);
   PlusStatus GetInputTrackedFrameListSampled(double &lastAlreadyRecordedFrameTimestamp, double &nextFrameToBeRecordedTimestamp, vtkTrackedFrameList* recordedFrames, double requestedFramePeriodSec, double maxProcessingTimeSec);
+  PlusStatus GetLatestInputItemTimestamp(double &timestamp);
 
 private:
   vtkVirtualDiscCapture(const vtkVirtualDiscCapture&);  // Not implemented.

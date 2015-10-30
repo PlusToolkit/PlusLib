@@ -8,7 +8,7 @@ Tool                                         | Description
 ---------------------------------------------|--------------
 \subpage ApplicationPlusServer               | Acquire data from devices and broadcast through OpenIGTLink
 \subpage ApplicationfCal                     | Calibrate tracked ultrasound probe and tracked tools spatially and temporally
-\subpage ApplicationEditSeqMetaFile          | Edit sequence metafiles (trim, merge, compress/uncompress, etc.)
+\subpage ApplicationEditSequenceFile         | Edit sequence files (trim, merge, compress/uncompress, etc.)
 \subpage ApplicationViewSeqMetaFile          | View sequence metafile frames in 3D
 \subpage ApplicationVolumeReconstructor      | Reconstruct 3D ultrasound volume from 2D slices
 \subpage ApplicationDrawClipRegion           | Show clip rectangle and fan over ultrasound images

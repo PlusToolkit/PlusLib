@@ -6,12 +6,16 @@ See License.txt for details.
 
 #include "DeviceSetSelectorWidget.h"
 
-#include <QFileDialog>
-#include <QMessageBox>
+#include <QAction>
 #include <QDomDocument>
+#include <QFileDialog>
+#include <QMenu>
+#include <QMessageBox>
 
 #ifdef _WIN32
 #include "Shellapi.h"
+#else
+#include <unistd.h>
 #endif
 
 enum DataItemRoles
@@ -23,10 +27,14 @@ enum DataItemRoles
 //-----------------------------------------------------------------------------
 
 DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
-: QWidget(aParent)
-, m_ConnectionSuccessful(false)
+  : QWidget(aParent)
+  , m_ConnectionSuccessful(false)
+  , m_EditMenu(NULL)
+  , m_EditorSelectAction(NULL)
 {
   ui.setupUi(this);
+
+  ui.pushButton_EditConfiguration->setContextMenuPolicy(Qt::CustomContextMenu);
 
   connect( ui.pushButton_OpenConfigurationDirectory, SIGNAL( clicked() ), this, SLOT( OpenConfigurationDirectory() ) );
   connect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeConnect() ) );
@@ -34,8 +42,9 @@ DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
   connect( ui.pushButton_EditConfiguration, SIGNAL( clicked() ), this, SLOT( EditConfiguration() ) );
   connect( ui.comboBox_DeviceSet, SIGNAL( currentIndexChanged(int) ), this, SLOT( DeviceSetSelected(int) ) );
   connect( ui.pushButton_ResetTracker, SIGNAL( clicked() ), this, SLOT( ResetTrackerButtonClicked() ) );
-
   ui.pushButton_ResetTracker->setVisible(false);
+  
+  connect( ui.pushButton_EditConfiguration, SIGNAL( customContextMenuRequested( QPoint ) ), this, SLOT( ShowEditContextMenu(QPoint) ) );
 
   SetConfigurationDirectory(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory().c_str());
 }
@@ -44,6 +53,16 @@ DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
 
 DeviceSetSelectorWidget::~DeviceSetSelectorWidget()
 {
+  if( this->m_EditMenu)
+  {
+    delete this->m_EditMenu;
+    m_EditMenu = NULL;
+  }
+  if( this->m_EditorSelectAction)
+  {
+    delete this->m_EditorSelectAction;
+    m_EditorSelectAction = NULL;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -171,7 +190,7 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
   m_ConnectionSuccessful = aConnectionSuccessful;
 
   // If connect button has been pushed
-  if (ui.pushButton_Connect->text() == "Connect")
+  if ( !ui.pushButton_Connect->property("connected").toBool() )
   {
     if (m_ConnectionSuccessful)
     {
@@ -179,7 +198,9 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
       ui.comboBox_DeviceSet->setEnabled(false);
 
       ui.textEdit_Description->setTextColor(QColor(Qt::black));
-      ui.textEdit_Description->setText("Connection successful!\n\n" + ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex(), DescriptionRole).toString());
+      m_DescriptionPrefix = "Connection successful!";
+      m_DescriptionBody = ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex(), DescriptionRole).toString();
+      this->UpdateDescriptionText();
 
       // Change the function to be invoked on clicking on the now Disconnect button to InvokeDisconnect
       disconnect( ui.pushButton_Connect, SIGNAL( clicked() ), this, SLOT( InvokeConnect() ) );
@@ -187,24 +208,31 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
 
       // Set last used device set config file
       vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationFileName(ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex(), FileNameRole).toString().toLatin1().constData());
+
+      ui.pushButton_Connect->setProperty("connected", QVariant(true));
     }
     else
     {
       ui.textEdit_Description->setTextColor(QColor(Qt::darkRed));
-      ui.textEdit_Description->setText("Connection failed!\n\nPlease select another device set and try again!");
+      m_DescriptionPrefix = "Connection failed!";
+      m_DescriptionBody = "Please select another device set and try again!";
+      this->UpdateDescriptionText();
     }
   }
   else
   { // If disconnect button has been pushed
     if ( !m_ConnectionSuccessful )
     {
+      ui.pushButton_Connect->setProperty("connected", QVariant(false));
       ui.pushButton_Connect->setText(tr("Connect"));
       ui.comboBox_DeviceSet->setEnabled(true);
 
       ui.textEdit_Description->setTextColor(QColor(Qt::black));
       if( ui.comboBox_DeviceSet->currentIndex() >= 0 )
       {
-        ui.textEdit_Description->setText( ui.comboBox_DeviceSet->itemData( ui.comboBox_DeviceSet->currentIndex(), DescriptionRole).toString() );
+        m_DescriptionPrefix = "";
+        m_DescriptionBody = ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex(), DescriptionRole).toString();
+        this->UpdateDescriptionText();
       }
 
       // Change the function to be invoked on clicking on the now Connect button to InvokeConnect
@@ -255,7 +283,7 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 
   while (filesIterator.hasNext())
   {
-    
+
     QString fileName = QDir::toNativeSeparators(QString(configDir.absoluteFilePath(filesIterator.next())));
     QString extension = fileName.mid(fileName.lastIndexOf("."));
     if( extension.compare(QString(".xml")) != 0 )
@@ -370,6 +398,25 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
+void DeviceSetSelectorWidget::UpdateDescriptionText()
+{
+  QString text;
+  if( !m_DescriptionPrefix.isEmpty() )
+  {
+    text += m_DescriptionPrefix + "\n\n";
+  }
+
+  text += m_DescriptionBody;
+
+  if( !m_DescriptionSuffix.isEmpty() )
+  {
+    text += "\n\n" + m_DescriptionSuffix;
+  }
+
+  ui.textEdit_Description->setText(text);
+}
+
 //-----------------------------------------------------------------------------
 
 void DeviceSetSelectorWidget::RefreshFolder()
@@ -399,13 +446,21 @@ void DeviceSetSelectorWidget::EditConfiguration()
     LOG_ERROR("Cannot edit configuration file. No configuration is selected."); 
     return;
   }
-  QString editorApplicationExecutable(vtkPlusConfig::GetInstance()->GetEditorApplicationExecutable());
+  QString editorApplicationExecutable(vtkPlusConfig::GetInstance()->GetEditorApplicationExecutable().c_str());
 
+#if _WIN32
   if (editorApplicationExecutable.right(4).compare(QString(".exe")) != 0)
   {
     LOG_ERROR("Invalid XML editor application!");
     return;
   }
+#else
+  if ( access(editorApplicationExecutable.toLatin1().constData(), X_OK))
+  {
+    LOG_ERROR("Invalid XML editor application!");
+    return;
+  }
+#endif
 
 #ifdef _WIN32
   wchar_t wcharApplication[1024];
@@ -426,6 +481,38 @@ void DeviceSetSelectorWidget::EditConfiguration()
 #endif
 }
 
+//----------------------------------------------------------------------------
+void DeviceSetSelectorWidget::ShowEditContextMenu(QPoint point)
+{
+  if( m_EditorSelectAction == NULL )
+  {
+    m_EditorSelectAction = new QAction(this);
+    m_EditorSelectAction->setText("Select Editor");
+    connect(m_EditorSelectAction, SIGNAL(triggered()), this, SLOT( SelectEditor() ));
+  }
+
+  if( m_EditMenu == NULL )
+  {
+    m_EditMenu = new QMenu(this);
+    m_EditMenu->addAction(m_EditorSelectAction);
+  }
+  m_EditMenu->exec(ui.pushButton_EditConfiguration->mapToGlobal(point));
+}
+
+//-----------------------------------------------------------------------------
+void DeviceSetSelectorWidget::SelectEditor()
+{
+  // File open dialog for selecting editor application
+  QString filter = QString( tr( "Executables ( *.exe );;" ) );
+  QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Select XML editor application" ) ), "", filter);
+  if (fileName.isNull()) {
+    return;
+  }
+
+  vtkPlusConfig::GetInstance()->SetEditorApplicationExecutable( std::string(fileName.toLatin1().constData()) );
+  vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
+}
+
 //-----------------------------------------------------------------------------
 
 void DeviceSetSelectorWidget::ResetTrackerButtonClicked()
@@ -440,4 +527,24 @@ void DeviceSetSelectorWidget::ResetTrackerButtonClicked()
 void DeviceSetSelectorWidget::ShowResetTrackerButton( bool aValue )
 {
   ui.pushButton_ResetTracker->setVisible(aValue);
+}
+
+//-----------------------------------------------------------------------------
+
+void DeviceSetSelectorWidget::SetConnectButtonText(QString text)
+{
+  ui.pushButton_Connect->setText(text);
+}
+
+//----------------------------------------------------------------------------
+void DeviceSetSelectorWidget::SetDescriptionSuffix(const QString& string)
+{
+  this->m_DescriptionSuffix = string;
+  this->UpdateDescriptionText();
+}
+
+//----------------------------------------------------------------------------
+void DeviceSetSelectorWidget::ClearDescriptionSuffix()
+{
+  this->SetDescriptionSuffix("");
 }

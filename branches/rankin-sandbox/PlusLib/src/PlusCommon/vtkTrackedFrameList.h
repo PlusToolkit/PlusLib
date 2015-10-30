@@ -39,11 +39,6 @@ class vtkPlusCommonExport vtkTrackedFrameList : public vtkObject
 public:
   typedef std::deque<TrackedFrame*> TrackedFrameListType; 
   typedef std::map<std::string,std::string> FieldMapType; 
-  enum SEQ_METAFILE_EXTENSION
-  {
-    SEQ_METAFILE_MHA, 
-    SEQ_METAFILE_MHD
-  }; 
 
   static vtkTrackedFrameList *New();
   vtkTypeMacro(vtkTrackedFrameList, vtkObject);
@@ -64,6 +59,9 @@ public:
   /*! Add tracked frame to container. If the frame is invalid then it may not actually add it to the list. */
   virtual PlusStatus AddTrackedFrame(TrackedFrame *trackedFrame, InvalidFrameAction action = ADD_INVALID_FRAME_AND_REPORT_ERROR); 
 
+  /*! Add tracked frame to container by taking ownership of the passed pointer. If the frame is invalid then it may not actually add it to the list (it will be deleted immediately). */
+  virtual PlusStatus TakeTrackedFrame(TrackedFrame *trackedFrame, InvalidFrameAction action = ADD_INVALID_FRAME_AND_REPORT_ERROR); 
+
   /*! Add all frames from a tracked frame list to the container. It adds all invalid frames as well, but an error is reported. */
   virtual PlusStatus AddTrackedFrameList(vtkTrackedFrameList* inTrackedFrameList, InvalidFrameAction action = ADD_INVALID_FRAME_AND_REPORT_ERROR); 
 
@@ -74,13 +72,18 @@ public:
   virtual unsigned int GetNumberOfTrackedFrames() { return this->TrackedFrameList.size(); } 
 
   /*! Save the tracked data to sequence metafile */
-  PlusStatus SaveToSequenceMetafile(const char* filename, bool useCompression = true);
-
-  /*! Save the tracked data to sequence metafile */
-  PlusStatus SaveTrackerDataOnlyToSequenceMetafile(const char* filename, bool useCompression = true);
+  PlusStatus SaveToSequenceMetafile(const std::string& filename, US_IMAGE_ORIENTATION orientationInFile=US_IMG_ORIENT_MF, bool useCompression = true, bool enableImageDataWrite = true);
 
   /*! Read the tracked data from sequence metafile */
-  virtual PlusStatus ReadFromSequenceMetafile(const char* trackedSequenceDataFileName); 
+  virtual PlusStatus ReadFromSequenceMetafile(const std::string& trackedSequenceDataFileName);
+
+#if VTK_MAJOR_VERSION > 5
+  /*! Save the tracked data to Nrrd file */
+  PlusStatus SaveToNrrdFile(const std::string& filename, US_IMAGE_ORIENTATION orientationInFile=US_IMG_ORIENT_MF, bool useCompression = true, bool enableImageDataWrite = true);
+
+  /*! Read the tracked data from Nrrd file */
+  virtual PlusStatus ReadFromNrrdFile(const std::string& trackedSequenceDataFileName);
+#endif
 
   /*! Get the tracked frame list */
   TrackedFrameListType GetTrackedFrameList() { return this->TrackedFrameList; }
@@ -226,10 +229,6 @@ protected:
     \sa TrackedFrameValidationRequirements 
   */
   virtual bool ValidateData(TrackedFrame* trackedFrame); 
-
-  /*! Helper class for saving to sequence metafile */
-  template <class OutputPixelType>
-  PlusStatus SaveToSequenceMetafileGeneric(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension = SEQ_METAFILE_MHA, bool useCompression = true);
 
   bool ValidateTimestamp(TrackedFrame* trackedFrame); 
   bool ValidateTransform(TrackedFrame* trackedFrame); 

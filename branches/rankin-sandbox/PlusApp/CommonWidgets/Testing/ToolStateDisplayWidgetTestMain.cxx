@@ -7,7 +7,7 @@
 #include "vtksys/CommandLineArguments.hxx" 
 #include "vtksys/SystemTools.hxx"
 
-#include <QtGui/QApplication>
+#include <QApplication>
 #include "ToolStateDisplayWidgetTest.h"
 
 int main(int argc, char *argv[])

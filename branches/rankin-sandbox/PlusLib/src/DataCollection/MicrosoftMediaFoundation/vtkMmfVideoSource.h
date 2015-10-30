@@ -18,6 +18,9 @@ Authors include: Danielle Pace
 
 #include "vtkDataCollectionExport.h"
 
+#include "vtkRecursiveCriticalSection.h"
+#include "vtkSmartPointer.h"
+
 #include "PlusVideoFrame.h"
 #include "vtkPlusDevice.h"
 
@@ -26,6 +29,8 @@ class MmfVideoSourceReader;
 /*!
   \class vtkMmfVideoSource 
   \brief Microsoft media foundation video digitizer
+
+  Media foundation require Microsoft Windows SDK 7.1 or later. Download <a href="http://www.microsoft.com/en-us/download/details.aspx?id=8279">here</a>
 
   \sa vtkPlusDevice
   \ingroup PlusLibDataCollection
@@ -37,6 +42,7 @@ class vtkDataCollectionExport vtkMmfVideoSource : public vtkPlusDevice
   struct VideoFormat
   {
     unsigned int DeviceId;
+    unsigned int StreamIndex;
     int FrameSize[2];
     std::string PixelFormatName; // e.g., YUY2    
   };
@@ -48,6 +54,7 @@ public:
 
   virtual void SetRequestedDeviceId(unsigned int deviceId);  
   virtual void SetRequestedVideoFormat(const std::string& pixelFormatName);
+  virtual void SetRequestedStreamIndex(unsigned int streamIndex);
   virtual void SetRequestedFrameSize(int frameSize[2]);
   
   std::string GetRequestedDeviceName();
@@ -85,7 +92,7 @@ protected:
 
   PlusStatus UpdateFrameSize();
 
-  PlusStatus AddFrame(unsigned char* bufferData);  
+  PlusStatus AddFrame(unsigned char* bufferData, DWORD bufferSize);
 
   std::string GetCaptureDeviceName(unsigned int deviceId);
 

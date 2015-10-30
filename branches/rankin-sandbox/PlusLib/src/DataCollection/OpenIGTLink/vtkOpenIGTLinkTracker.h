@@ -52,13 +52,18 @@ protected:
   vtkOpenIGTLinkTracker();
   virtual ~vtkOpenIGTLinkTracker();
 
+  virtual bool IsTDataMessageType();
+
   virtual PlusStatus SendRequestedMessageTypes();
 
-  /*! Process a TRANSFORM or POSITION message (add the received transform to the buffer) */
-  PlusStatus ProcessTransformMessage(igtl::MessageHeader::Pointer headerMsg);
+  /*! Process TRANSFORM or POSITION messages (add the received transform to the buffer) */
+  PlusStatus InternalUpdateGeneral();
+
+  /*! Process a single TRANSFORM or POSITION message */
+  PlusStatus ProcessTransformMessageGeneral(bool &moreMessagesPossible);
 
   /*! Process a TDATA message (add all the received transforms to the buffers) */
-  PlusStatus ProcessTDataMessage(igtl::MessageHeader::Pointer headerMsg);
+  PlusStatus InternalUpdateTData();
 
   /*!
     Store the latest transforms again in the buffers with the provided timestamp.
@@ -66,6 +71,13 @@ protected:
     If there is a transform defined already with the same timestamp then it will not be overwritten.
   */
   PlusStatus StoreMostRecentTransformValues(double unfilteredTimestamp);
+
+  /*!
+    Store the latest transforms again in the buffers with the provided timestamp with invalid status.
+    If no transforms are defined then identity transform will be stored.
+    If there is a transform defined already with the same timestamp then it will not be overwritten.
+  */
+  PlusStatus StoreInvalidTransforms(double unfilteredTimestamp);
 
   vtkSetMacro(UseLastTransformsOnReceiveTimeout, bool);
 

@@ -1,8 +1,5 @@
 PROJECT(PlusServerLauncher)
 
-FIND_PACKAGE(Qt4 REQUIRED)
-INCLUDE(${QT_USE_FILE})
-
 # --------------------------------------------------------------------------
 # Sources
 
@@ -16,29 +13,35 @@ if (WIN32)
     ${PlusServerLauncher_SRCS}
     PlusServerLauncher.rc
     )
-endif (WIN32)	
+endif (WIN32)
 
 SET (PlusServerLauncher_UI_HDRS
   PlusServerLauncherMainWindow.h
   )
 
 SET (PlusServerLauncher_UI_SRCS
+  PlusServerLauncherMainWindow.ui 
   )
 
 SET (PlusServerLauncher_QT_Resources
+  PlusServerLauncher.qrc
   ${PlusApp_SOURCE_DIR}/CommonWidgets/CommonWidgets.qrc
   )
 
 # --------------------------------------------------------------------------
 # Qt specific commands
+IF( ${QT_VERSION_MAJOR} EQUAL 5 )
+  FIND_PACKAGE(Qt5 COMPONENTS Network Widgets REQUIRED)
 
-QT4_WRAP_CPP( PlusServerLauncher_QT_MOC_Files ${PlusServerLauncher_UI_HDRS} )
-QT4_WRAP_UI( PlusServerLauncher_QT_UI_Headers ${PlusServerLauncher_UI_SRCS} )
-QT4_WRAP_CPP( PlusServerLauncher_QT_MOC_UI_Files ${PlusServerLauncher_QT_UI_Headers} )
-QT4_ADD_RESOURCES( PlusServerLauncher_QT_RCC_Files ${PlusServerLauncher_QT_Resources} )
+  SET(QT_LIBRARIES ${QT_LIBRARIES} ${Qt5Network_LIBRARIES})
+  ADD_DEFINITIONS(${Qt5Widgets_DEFINITIONS} ${Qt5Network_DEFINITIONS})
+ELSE(${QT_VERSION_MAJOR} EQUAL 5)
+  FIND_PACKAGE(Qt4 REQUIRED)
+  INCLUDE(${QT_USE_FILE})
 
-SOURCE_GROUP("Generated Files" FILES ${PlusServerLauncher_QT_MOC_Files} ${PlusServerLauncher_QT_UI_Headers} ${PlusServerLauncher_QT_MOC_UI_Files} ${PlusServerLauncher_QT_RCC_Files})
-SOURCE_GROUP("UI Files" FILES ${PlusServerLauncher_UI_SRCS})
+  INCLUDE_DIRECTORIES(${QT_INCLUDES})
+  ADD_DEFINITIONS(${QT_DEFINITIONS})
+ENDIF(${QT_VERSION_MAJOR} EQUAL 5)
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
@@ -55,9 +58,14 @@ SET (PlusServerLauncher_LIBS
     vtkPlusServer    
     )
 
-ADD_EXECUTABLE( PlusServerLauncher ${PlusServerLauncher_SRCS} ${PlusServerLauncher_UI_HDRS} ${PlusServerLauncher_QT_UI_Headers} ${PlusServerLauncher_QT_UI_Headers} ${PlusServerLauncher_QT_MOC_Files} ${PlusServerLauncher_QT_MOC_UI_Files} ${PlusServerLauncher_QT_RCC_Files})
+SET (APP_MODE "")
+IF(${WIN32})
+  # Create a windowed application (do not show a console)
+  SET (APP_MODE "WIN32")
+ENDIF()
+
+ADD_EXECUTABLE( PlusServerLauncher ${APP_MODE} ${PlusServerLauncher_SRCS} ${PlusServerLauncher_UI_HDRS} ${PlusServerLauncher_UI_SRCS} ${PlusServerLauncher_QT_Resources})
 TARGET_LINK_LIBRARIES( PlusServerLauncher ${VTK_LIBRARIES} ${PlusServerLauncher_LIBS} )
-GENERATE_HELP_DOC(PlusServerLauncher)
 
 # --------------------------------------------------------------------------
 # Install

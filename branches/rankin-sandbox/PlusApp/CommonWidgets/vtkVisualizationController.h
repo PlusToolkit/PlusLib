@@ -257,6 +257,9 @@ public:
   /*! Set the selected channel */
   void SetSelectedChannel(vtkPlusChannel* aChannel);
 
+  /*! Set the slice number in the image visualizer */
+  void SetSliceNumber(int number);
+
 protected slots:
   /*!
   * Forward any updates to members that require it
@@ -315,6 +318,9 @@ protected:
 
   /*! Reference to the canvas */
   QVTKWidget* Canvas;
+
+  /*! Renderer to use when there is nothing to show */
+  vtkRenderer* BlankRenderer;
 
   /*! Timer for acquisition */
   QTimer*	AcquisitionTimer;

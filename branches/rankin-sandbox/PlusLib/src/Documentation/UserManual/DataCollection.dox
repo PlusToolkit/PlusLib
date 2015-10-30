@@ -14,6 +14,15 @@ The data collector component acquires data from several physical or software dev
 - Output channel: Devices usually provide data to other devices or to algorithms through an output channel. An output channel contains a circular buffer that stores the last N data items of all associated streams, which typically allows algorithms to access the data acquired in the last few seconds.
 - Input channel: A device may receive data from another device. This is specified by listing the data provider device's output channel(s) as input channel(s) in the data receiver device. One device can receive data from multiple other devices and one output channel can be connected to multiple device's input channel.
 
+\section DataCollectionHowTo How to write the DataCollection section of the configuration file
+
+The best way to get started is to find example configuration file(s) for the hardware device(s) that you would like to use. There are simple example configuration files in the installation package in the \c Config directory: \c PlusDeviceSet_Server_(some-hardware-device).xml. In the device set selector in Plus applications these configurations appear as \c "PlusServer: (some-hardware-device) device". Try to connect to each of device one-by-one and verify if the data collection is successful (no error messages in the log, data sent through OpenIGTLink is visualized correctly in <a href="http://www.slicerigt.org">3D Slicer/SlicerIGT</a>).
+
+To collect data from multiple devices:
+- Add \c Device elements of all used hardware devices into the \c DataCollection element in the configuration file
+- Add a \ref DeviceVirtualMixer device to create a channel that contains information from the output of all hardware devices. Most often one mixer device is sufficient, but in case multiple different channels have to be constructed with different contents, multiple mixer devices can be added.
+- Use the output channel of the \ref DeviceVirtualMixer device in other devices (such as \ref DeviceVirtualDiscCapture and \ref DeviceVirtualVolumeReconstructor) and in applications (for example: in \c fCal element's \c DefaultSelectedChannelId attribute; \c PlusOpenIGTLinkServer element's \c OutputChannelId attribute)
+
 \section DataCollectionConfigSettings Configuration settings
 
 - \xmlElem \b DataCollection
@@ -47,12 +56,22 @@ The data collector component acquires data from several physical or software dev
           - \c US_IMG_ORIENT_NU image \c x axis = near transducer axis, image \c y axis = unmarked transducer axis (usually for RF frames).
           - \c US_IMG_ORIENT_FM image \c x axis = far transducer axis, image \c y axis = marked transducer axis (usually for RF frames).
           - \c US_IMG_ORIENT_NM image \c x axis = near transducer axis, image \c y axis = marked transducer axis (usually for RF frames).
+          - \c US_IMG_ORIENT_UFA image same as 2D counterpart, with third axis in ascending direction
+          - \c US_IMG_ORIENT_UNA image same as 2D counterpart, with third axis in ascending direction
+          - \c US_IMG_ORIENT_MFA image same as 2D counterpart, with third axis in ascending direction
+          - \c US_IMG_ORIENT_MNA image same as 2D counterpart, with third axis in ascending direction
+          - \c US_IMG_ORIENT_UFD image same as 2D counterpart, with third axis in descending direction
+          - \c US_IMG_ORIENT_UND image same as 2D counterpart, with third axis in descending direction
+          - \c US_IMG_ORIENT_MFD image same as 2D counterpart, with third axis in descending direction
+          - \c US_IMG_ORIENT_MND image same as 2D counterpart, with third axis in descending direction
         - \xmlAtt \b ImageType \anchor ImageType . The image type(B-mode, RF, ...) provided by the video source.
           - \c BRIGHTNESS B-mode image.
           - \c RF_REAL RF-mode image, signal is stored as a series of real values.
           - \c RF_IQ_LINE RF-mode image, signal is stored as a series of I and Q samples in a line(I1, Q1, I2, Q2, ...).
           - \c RF_I_LINE_Q_LINE RF-mode image, signal is stored as a series of I samples in a line, then Q samples in the next line(I1, I2, ..., Q1, Q2, ...).
           - \c RGB_COLOR RGB24 color image.
+        - \xmlAtt \b ClipRectangleOrigin \anchor ClipRectangleOrigin Clipping rectangle origin for the grabber (in pixels). The first pixel position is "0 0 0" If any of the values is -1 then no clipping will be performed. For two-dimensional images the third component may be omitted. \OptionalAtt{-1 -1 -1}
+        - \xmlAtt \b ClipRectangleSize \anchor ClipRectangleSize Clipping rectangle size for the grabber (in pixels). If any of the values is -1 then no clipping will be performed. For two-dimensional images the third component may be omitted. \OptionalAtt{-1 -1 -1}
     - \xmlElem \b OutputChannels \anchor OutputChannels List of output channels that the device provides. Most devices require the specification of a single output channel.
       - \xmlElem \b OutputChannel \anchor OutputChannel
         - \xmlAtt \b Id Identifier of the OutputChannel. Must be a unique name across all devices. \RequiredAtt

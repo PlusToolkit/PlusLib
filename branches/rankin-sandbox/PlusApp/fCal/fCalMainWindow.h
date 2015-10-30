@@ -9,8 +9,7 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "ui_fCalMainWindow.h"
-#include "vtkPlusDeviceTypes.h"
-#include <QtGui/QMainWindow>
+#include <QMainWindow>
 
 class AbstractToolbox;
 class QCustomAction;
@@ -53,7 +52,7 @@ public:
   * \param aParent parent
   * \param aFlags widget flag
   */
-  fCalMainWindow(QWidget *parent = 0, Qt::WFlags flags = 0);
+  fCalMainWindow(QWidget *parent = 0, Qt::WindowFlags flags = 0);
 
   /*!
   * Destructor
@@ -225,6 +224,11 @@ protected:
     void UpdateGUI();
 
     /*!
+    * Update the slicer number UI based on channel data
+    */
+    void UpdateSliceNumberUI();
+
+    /*!
     * Slot handling show devices combobox state change
     */
     void ShowDevicesToggled();
@@ -243,6 +247,16 @@ protected:
     * Activate a certain device
     */
     void ChannelSelected(vtkPlusChannel* aChannel);
+
+    /*!
+    * Update the requested slice number
+    */
+    void SliceNumberSliderChanged(int number);
+
+    /*!
+    * Update the requested slice number
+    */
+    void SliceNumberSpinBoxChanged(int number);
 
     /*!
     * Resize event handler

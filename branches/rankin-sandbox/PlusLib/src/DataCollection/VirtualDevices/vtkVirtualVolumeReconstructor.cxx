@@ -5,16 +5,15 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "vtkVirtualVolumeReconstructor.h"
 #include "TrackedFrame.h"
 #include "vtkObjectFactory.h"
-#include "vtkPlusBuffer.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
+#include "vtkSequenceIO.h"
 #include "vtkTrackedFrameList.h"
-#include "vtkVolumeReconstructor.h"
 #include "vtkTransformRepository.h"
-
+#include "vtkVirtualVolumeReconstructor.h"
+#include "vtkVolumeReconstructor.h"
 #include "vtksys/SystemTools.hxx"
 
 //----------------------------------------------------------------------------
@@ -33,8 +32,6 @@ vtkVirtualVolumeReconstructor::vtkVirtualVolumeReconstructor()
 , m_NextFrameToBeRecordedTimestamp(0.0)
 , m_SamplingFrameRate(8)
 , RequestedFrameRate(0.0)
-, ActualFrameRate(0.0)
-, m_FirstFrameIndexInThisSegment(0.0)
 , m_TimeWaited(0.0)
 , m_LastUpdateTime(0.0)
 , TotalFramesRecorded(0)
@@ -89,7 +86,7 @@ PlusStatus vtkVirtualVolumeReconstructor::WriteConfiguration( vtkXMLDataElement*
   deviceElement->SetAttribute("OutputVolDeviceName",this->OutputVolDeviceName);
 
   PlusLockGuard<vtkRecursiveCriticalSection> writerLock(this->VolumeReconstructorAccessMutex);
-  this->VolumeReconstructor->WriteConfiguration(deviceElement->FindNestedElementWithName("VolumeReconstruction"));
+  this->VolumeReconstructor->WriteConfiguration(deviceElement);
 
   return PLUS_SUCCESS;
 }
@@ -266,7 +263,6 @@ void vtkVirtualVolumeReconstructor::SetEnableReconstruction( bool aValue )
     m_TimeWaited = 0.0;
     m_LastAlreadyRecordedFrameTimestamp = UNDEFINED_TIMESTAMP;
     m_NextFrameToBeRecordedTimestamp = 0.0;
-    m_FirstFrameIndexInThisSegment = 0.0;
     this->EnableReconstruction = true;
   }
   else
@@ -322,9 +318,9 @@ PlusStatus vtkVirtualVolumeReconstructor::GetReconstructedVolumeFromFile(const c
   }
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
   std::string inputImageSeqFileFullPath=vtkPlusConfig::GetInstance()->GetOutputPath(inputSeqFilename);
-  if (trackedFrameList->ReadFromSequenceMetafile(inputImageSeqFileFullPath.c_str())==PLUS_FAIL)
+  if( vtkSequenceIO::Read(inputImageSeqFileFullPath, trackedFrameList) != PLUS_SUCCESS )
   {    
-    errorMessage="Volume reconstruction failed, unable to open input file specified in InputSeqFilename"+inputImageSeqFileFullPath;
+    errorMessage="Volume reconstruction failed, unable to open input file specified in InputSeqFilename: "+inputImageSeqFileFullPath;
     LOG_INFO(errorMessage);
     return PLUS_FAIL;
   } 

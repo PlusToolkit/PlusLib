@@ -13,6 +13,8 @@ SET (PlusCommon_SRCS
   vtkTrackedFrameList.cxx
   TrackedFrame.cxx
   vtkMetaImageSequenceIO.cxx
+  vtkSequenceIOBase.cxx
+  vtkSequenceIO.cxx
   vtkRecursiveCriticalSection.cxx
   vtkToolAxesActor.cxx
   )
@@ -25,21 +27,33 @@ if (WIN32)
     WindowsAccurateTimer.h
     vtkPlusLogger.h
     vtkHTMLGenerator.h
-    vtkTimestampedCircularBuffer.h
-    vtkTimestampedCircularBuffer.txx
     vtkPlusConfig.h
-	vtkPlusMacro.h
+    vtkPlusMacro.h
     PlusMath.h
     vtkTransformRepository.h
     vtkTrackedFrameList.h
     TrackedFrame.h
     PlusVideoFrame.h
-	PlusVideoFrame.txx
+    PlusVideoFrame.txx
     vtkMetaImageSequenceIO.h
+    vtkSequenceIO.h
+    vtkSequenceIOBase.h
     vtkRecursiveCriticalSection.h
     vtkToolAxesActor.h
+    PixelCodec.h
     )
-endif (WIN32)  
+endif (WIN32)
+
+IF (VTK_MAJOR_VERSION GREATER 5)
+  SET(PlusCommon_SRCS ${PlusCommon_SRCS}
+    vtkNrrdSequenceIO.cxx
+  )
+  IF( WIN32 )
+    SET (PlusCommon_HDRS ${PlusCommon_HDRS}
+      vtkNrrdSequenceIO.h
+    )
+  ENDIF( WIN32 )
+ENDIF()
 
 SET (PlusCommon_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "" FORCE)
 
@@ -75,6 +89,7 @@ SET(vcProj_vtkPlusCommon vtkPlusCommon;"${PlusLib_BINARY_DIR}/src/PlusCommon/vtk
 INSTALL(TARGETS vtkPlusCommon
   RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   LIBRARY DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  ARCHIVE DESTINATION bin CONFIGURATIONS Release COMPONENT Development
   )
 
 # --------------------------------------------------------------------------

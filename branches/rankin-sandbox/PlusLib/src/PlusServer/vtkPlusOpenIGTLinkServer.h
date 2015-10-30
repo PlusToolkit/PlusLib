@@ -18,11 +18,37 @@
 
 class TrackedFrame; 
 class vtkDataCollector;
+class vtkPlusOpenIGTLinkServer;
 class vtkPlusChannel;
 class vtkPlusCommandProcessor;
 class vtkPlusCommandResponse;
 class vtkRecursiveCriticalSection; 
 class vtkTransformRepository; 
+
+struct ClientData
+{
+  ClientData()
+  : DataReceiverActive(std::make_pair(false,false))
+  , ClientSocket(NULL)
+  , DataReceiverThreadId(-1)
+  , ClientId(-1)
+  , Server(NULL)
+  {
+  }
+  /*! Unique client identifier. First valid value is 1. */
+  int ClientId;
+
+  /*! IGTL client socket instance */ 
+  igtl::ClientSocket::Pointer ClientSocket; 
+
+  // Active flag for thread (first: request, second: respond )
+  std::pair<bool,bool> DataReceiverActive;
+  int DataReceiverThreadId;
+
+  PlusIgtlClientInfo ClientInfo;
+
+  vtkPlusOpenIGTLinkServer* Server;
+};
 
 /*!
   \class vtkPlusOpenIGTLinkServer 
@@ -41,27 +67,21 @@ class vtkTransformRepository;
 */
 class vtkPlusServerExport vtkPlusOpenIGTLinkServer: public vtkObject
 {
-  typedef std::map< int, std::vector<std::string> > PreviousCommandIdMap;
-  typedef PreviousCommandIdMap::iterator PreviousCommandIdMapIterator;
-
-  typedef std::map< int, double> LastCommandTimestampMap;
-  typedef LastCommandTimestampMap::iterator LastCommandTimestampMapIterator;
-
 public:
   static vtkPlusOpenIGTLinkServer *New();
   vtkTypeMacro( vtkPlusOpenIGTLinkServer, vtkObject );
   virtual void PrintSelf( ostream& os, vtkIndent indent );
   
 
-  /*! Configures and starts the server from the provided device set configuration file */
-  PlusStatus Start(const std::string &inputConfigFileName);
+  /*! Configures and starts the server from the provided PlusOpenIGTLinkServer XML element */
+  PlusStatus Start(vtkDataCollector* dataCollector, vtkTransformRepository* transformRepository, vtkXMLDataElement* serverElement, const std::string& configFilePath);
 
   /*! Configures and starts the server from the provided device set configuration file */
   PlusStatus Stop();
 
 
   /*! Read the configuration file in XML format and set up the devices */
-  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* aDataCollectionConfig, const char* aFilename ); 
+  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* serverElement, const char* aFilename ); 
 
   /*! Set server listening port */ 
   vtkSetMacro( ListeningPort, int );
@@ -124,7 +144,10 @@ protected:
   igtl::MessageBase::Pointer CreateIgtlMessageFromCommandResponse(vtkPlusCommandResponse* response);
 
   /*! Send status message to clients to keep alive the connection */ 
-  virtual PlusStatus KeepAlive(); 
+  virtual void KeepAlive(); 
+
+  /*! Stops clinet's data receiving thread, closes the socket, and removes the client from the client list */
+  void DisconnectClient(int clientId);
 
   /*! Set IGTL CRC check flag (0: disabled, 1: enabled) */ 
   vtkSetMacro(IgtlMessageCrcCheckEnabled, bool); 
@@ -149,9 +172,6 @@ protected:
 
 private:
   
-  /*! Get client socket corresponding to a client ID. Used by the command processor, which identifies clients by ID. */
-  igtl::ClientSocket::Pointer GetClientSocket(int clientId);
-
   vtkPlusOpenIGTLinkServer( const vtkPlusOpenIGTLinkServer& );
   void operator=( const vtkPlusOpenIGTLinkServer& );
 
@@ -166,10 +186,7 @@ private:
 
   /*! Multithreader instance for controlling threads */ 
   vtkSmartPointer<vtkMultiThreader> Threader;
-
-  /*! Mutex instance for safe data access */ 
-  vtkSmartPointer<vtkRecursiveCriticalSection> Mutex;
-  
+ 
   /*! Server listening port */ 
   int  ListeningPort;
 
@@ -185,15 +202,16 @@ private:
   // Active flag for threads (first: request, second: respond )
   std::pair<bool,bool> ConnectionActive;
   std::pair<bool,bool> DataSenderActive;
-  std::pair<bool,bool> DataReceiverActive;
 
   // Thread IDs 
   int  ConnectionReceiverThreadId;
   int  DataSenderThreadId;
-  int  DataReceiverThreadId;
 
   /*! List of connected clients */ 
-  std::list<PlusIgtlClientInfo> IgtlClients;
+  std::list<ClientData> IgtlClients;
+
+  /*! Mutex instance for accessing client data list */ 
+  vtkSmartPointer<vtkRecursiveCriticalSection> IgtlClientsMutex;
   
   /*! Last sent tracked frame timestamp */ 
   double LastSentTrackedFrameTimestamp; 
@@ -208,21 +226,11 @@ private:
   bool SendValidTransformsOnly;
 
   /*! 
-  Default IGT message types used for sending data to clients. 
-  Used only if the client didn't set IGT message types (can be set from config file)
+  Default IGT client info used for sending data to clients. 
+  Used only if the client didn't set IGT message types and transform/image/string names.
+  The default client info can be set in the devices set config file in the DefaultClientInfo element.
   */
-  std::vector<std::string> DefaultIgtlMessageTypes; 
-
-  /*! 
-  Default transform names used for sending igt transform and position messages. 
-  Used only if the client didn't set transform names (can be set from config file)
-  */ 
-  std::vector<PlusTransformName> DefaultTransformNames;
-  
-  /*! Default transform names used for sending igt image message. 
-  Used only if the client didn't set image transform name (can be set from config file)
-  */
-  std::vector<PlusIgtlClientInfo::ImageStream> DefaultImageStreams; 
+  PlusIgtlClientInfo DefaultClientInfo;
 
   /*! Flag for IGTL CRC check */ 
   bool IgtlMessageCrcCheckEnabled; 
@@ -238,15 +246,12 @@ private:
 
   char* ConfigFilename;
 
-  /* Record the previous IDs received for all clients */
-  PreviousCommandIdMap PreviousCommands;
-
-  /* Record the last received command timestamp */
-  LastCommandTimestampMap LastCommandTimestamp;
-
   vtkPlusLogger::LogLevelType GracePeriodLogLevel;
   double MissingInputGracePeriodSec;
   double BroadcastStartTime;
+
+  /*! Counter to generate unique client IDs. Access to the counter is not protected, therefore all clients should be created from the same thread. */
+  static int ClientIdCounter;
 };
 
 

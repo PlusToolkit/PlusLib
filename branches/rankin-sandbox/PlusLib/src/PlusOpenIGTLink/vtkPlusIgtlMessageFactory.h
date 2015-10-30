@@ -60,15 +60,13 @@ public:
   /*! 
   Generate and pack IGTL messages from tracked frame
   \param packValidTransformsOnly Control whether or not to pack transform messages if they contain invalid transforms
-  \param igtlMessageTypes List of message types to generate for a client 
+  \param clientInfo Specifies list of message types and names to generate for a client.
   \param igtMessages Output list for the generated IGTL messages
   \param trackedFrame Input tracked frame data used for IGTL message generation 
-  \param transformNames List of transform names to send 
-  \param imageTransformName Image transform name used in the IGTL image message 
   \param transformRepository Transform repository used for computing the selected transforms 
   */ 
-  PlusStatus PackMessages(const std::vector<std::string>& igtlMessageTypes, std::vector<igtl::MessageBase::Pointer>& igtMessages, TrackedFrame& trackedFrame, 
-    std::vector<PlusTransformName>& transformNames, std::vector<PlusIgtlClientInfo::ImageStream>& imageStreams, bool packValidTransformsOnly, vtkTransformRepository* transformRepository=NULL); 
+  PlusStatus PackMessages(const PlusIgtlClientInfo& clientInfo, std::vector<igtl::MessageBase::Pointer>& igtMessages, TrackedFrame& trackedFrame, 
+    bool packValidTransformsOnly, vtkTransformRepository* transformRepository=NULL); 
 
 protected:
   vtkPlusIgtlMessageFactory();

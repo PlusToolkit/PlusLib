@@ -27,6 +27,7 @@ See License.txt for details.
 #include "vtkPlot.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderer.h"
+#include "vtkSequenceIO.h"
 #include "vtkTable.h"
 #include "vtkTemporalCalibrationAlgo.h"
 #include "vtkTrackedFrameList.h"
@@ -281,7 +282,7 @@ int main(int argc, char **argv)
 
   //  Read fixed frames
   LOG_DEBUG("Read fixed data from " << inputFixedSequenceMetafile);
-  if ( fixedFrames->ReadFromSequenceMetafile(inputFixedSequenceMetafile.c_str()) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Read(inputFixedSequenceMetafile, fixedFrames) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read fixed data from sequence metafile: " << inputFixedSequenceMetafile << ". Exiting...");
     exit(EXIT_FAILURE);
@@ -290,7 +291,7 @@ int main(int argc, char **argv)
 
   //  Read moving frames
   LOG_DEBUG("Read moving data from " << inputMovingSequenceMetafile);
-  if ( movingFrames->ReadFromSequenceMetafile(inputMovingSequenceMetafile.c_str()) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Read(inputMovingSequenceMetafile, movingFrames) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read moving data from sequence metafile: " << inputMovingSequenceMetafile << ". Exiting...");
     exit(EXIT_FAILURE);

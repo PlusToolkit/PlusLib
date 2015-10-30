@@ -41,6 +41,7 @@ ELSE(IntersonSDKCxx_DIR)
       -DBUILD_TESTING:BOOL=OFF
       -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
       -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
+	  -DIntersonSDK_DIR:PATH=${IntersonSDK_DIR}
     #--Build step-----------------
     #--Install step-----------------
     INSTALL_COMMAND ""

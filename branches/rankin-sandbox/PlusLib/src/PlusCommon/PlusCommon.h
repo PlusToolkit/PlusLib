@@ -10,10 +10,12 @@
 #include "vtkPlusCommonExport.h"
 
 #include "itkImageIOBase.h"
-//#include "vtkOutputWindow.h"
 #include "vtkPlusLogger.h"
 #include "vtkPlusMacro.h"
+#include "vtkRecursiveCriticalSection.h"
 #include "vtksys/SystemTools.hxx"
+
+#include <float.h> // for DBL_MAX
 #include <sstream>
 #include <list>
 
@@ -79,9 +81,12 @@ enum PlusImagingMode
   
 #define LOG_TRACE(msg) \
   { \
-  std::ostringstream msgStream; \
-  msgStream << msg << std::ends; \
-  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_TRACE, msgStream.str().c_str(), __FILE__, __LINE__); \
+    if (vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE) \
+    { \
+      std::ostringstream msgStream; \
+      msgStream << msg << std::ends; \
+      vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_TRACE, msgStream.str().c_str(), __FILE__, __LINE__); \
+    } \
   }
 
 #define LOG_DYNAMIC(msg, logLevel) \
@@ -216,13 +221,18 @@ namespace PlusCommon
     return PLUS_SUCCESS;
   }
 
-  vtkPlusCommonExport void SplitStringIntoTokens(const std::string &s, char delim, std::vector<std::string> &elems);
+  static const int NO_CLIP = -1;
+  vtkPlusCommonExport bool IsClippingRequested(const int clipOrigin[3], const int clipSize[3]);
+  vtkPlusCommonExport bool IsClippingWithinExtents(const int clipOrigin[3], const int clipSize[3], const int extents[6]);
+
+  vtkPlusCommonExport void SplitStringIntoTokens(const std::string &s, char delim, std::vector<std::string> &elems, bool keepEmptyParts=true);
+  vtkPlusCommonExport void JoinTokensIntoString(const std::vector<std::string>& elems, std::string& output);
+  vtkPlusCommonExport void JoinTokensIntoString(const std::vector<std::string>& elems, std::string& output, char separator);
 
   vtkPlusCommonExport PlusStatus CreateTemporaryFilename( std::string& aString, const std::string& anOutputDirectory );
 
   /*! Trim whitespace characters from the left and right */
-  vtkPlusCommonExport void Trim(std::string &str);
-  
+  vtkPlusCommonExport std::string Trim(std::string &str);
   vtkPlusCommonExport std::string Trim(const char* c);
 
   /*!

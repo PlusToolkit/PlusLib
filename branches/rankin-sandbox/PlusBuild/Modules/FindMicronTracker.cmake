@@ -54,9 +54,15 @@ SET( MicronTracker_PATH_HINTS ${MicronTracker_PATH_HINTS}
   "c:/Program Files/Claron Technology/MicronTracker"
   )
 
+  IF(CMAKE_HOST_WIN32 AND CMAKE_CL_64)
+    SET(PLATFORM_SUFFIX "64")
+  ELSE()
+    SET(PLATFORM_SUFFIX "")
+  ENDIF()
+  
 FIND_PATH(MicronTracker_BASE_INCLUDE_DIR MTC.h 
   PATH_SUFFIXES
-    Dist
+    Dist${PLATFORM_SUFFIX}
     inc	
   DOC "MicronTracker include directory (contains MTC.h)"
   PATHS ${MicronTracker_PATH_HINTS} 
@@ -65,7 +71,7 @@ FIND_PATH(MicronTracker_BASE_INCLUDE_DIR MTC.h
 FIND_LIBRARY(MicronTracker_BASE_LIBRARY 
   NAMES MTC${CMAKE_STATIC_LIBRARY_SUFFIX}
   PATH_SUFFIXES
-    Dist
+    Dist${PLATFORM_SUFFIX}
     lib
   DOC "Path to MicronTracker base library (MTC.lib)"
   PATHS ${MicronTracker_PATH_HINTS} 
@@ -73,7 +79,7 @@ FIND_LIBRARY(MicronTracker_BASE_LIBRARY
 
 FIND_PATH(MicronTracker_BASE_BINARY_DIR MTC${CMAKE_SHARED_LIBRARY_SUFFIX}
   PATH_SUFFIXES 
-    Dist
+    Dist${PLATFORM_SUFFIX}
     bin
   PATHS ${MicronTracker_PATH_HINTS} 
   DOC "Path to MicronTracker base shared library (MTC.dll)"

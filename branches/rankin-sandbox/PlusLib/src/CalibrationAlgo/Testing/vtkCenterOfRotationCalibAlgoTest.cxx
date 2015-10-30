@@ -10,16 +10,17 @@
   compares the results to a baseline
 */ 
 
+#include "FidPatternRecognition.h"
 #include "PlusConfigure.h"
 #include "PlusPlotter.h"
-#include "vtksys/CommandLineArguments.hxx"
-#include "vtksys/SystemTools.hxx"
+#include "vtkCenterOfRotationCalibAlgo.h"
+#include "vtkHTMLGenerator.h"
+#include "vtkSequenceIO.h"
+#include "vtkSpacingCalibAlgo.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
-#include "FidPatternRecognition.h"
-#include "vtkCenterOfRotationCalibAlgo.h"
-#include "vtkSpacingCalibAlgo.h"
-#include "vtkHTMLGenerator.h"
+#include "vtksys/CommandLineArguments.hxx"
+#include "vtksys/SystemTools.hxx"
 
 // define tolerance used for comparing double numbers
 #ifndef _WIN32
@@ -87,7 +88,7 @@ int main(int argc, char **argv)
   LOG_INFO("Read center of rotation data from metafile...");
 
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  if ( trackedFrameList->ReadFromSequenceMetafile(inputSequenceMetafile.c_str()) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Read(inputSequenceMetafile, trackedFrameList) != PLUS_SUCCESS )
   {
       LOG_ERROR("Failed to read sequence metafile: " << inputSequenceMetafile); 
       return EXIT_FAILURE;

@@ -34,9 +34,8 @@
 #cmakedefine BUILD_SHARED_LIBS
 
 #ifndef BUILD_SHARED_LIBS
-
   #define VTKSLICER_STATIC
-
+  #define PlusLib_STATIC
 #endif
 
 #define PLUSLIB_VERSION "@PLUSLIB_VERSION@"
@@ -80,16 +79,26 @@
 #cmakedefine PLUS_USE_CERTUS
 #cmakedefine PLUS_USE_EPIPHAN
 #cmakedefine PLUS_USE_ICCAPTURING_VIDEO
+#cmakedefine PLUS_USE_CAPISTRANO_VIDEO
 #cmakedefine PLUS_USE_INTERSON_VIDEO
 #cmakedefine PLUS_USE_INTERSONSDKCXX_VIDEO
 #cmakedefine PLUS_USE_MICRONTRACKER
 #cmakedefine PLUS_USE_MMF_VIDEO
+#cmakedefine PLUS_USE_TELEMED_VIDEO
+#cmakedefine PLUS_USE_OPTITRACK
+#cmakedefine PLUS_USE_OPTIMET_CONOPROBE
+#cmakedefine PLUS_USE_THORLABS_VIDEO
 #cmakedefine PLUS_USE_PHIDGET_SPATIAL_TRACKER
 #cmakedefine PLUS_USE_POLARIS
 #cmakedefine PLUS_USE_ULTRASONIX_VIDEO
 #cmakedefine PLUS_USE_VFW_VIDEO
 #cmakedefine PLUS_USE_STEALTHLINK
 #cmakedefine PLUS_USE_IntuitiveDaVinci
+#cmakedefine PLUS_USE_PHILIPS_3D_ULTRASOUND
+
+#cmakedefine PLUS_USE_SIMPLE_TIMER
+
+#cmakedefine PLUS_USE_INTEL_MKL
 
 #define PLUS_ULTRASONIX_SDK_MAJOR_VERSION @PLUS_ULTRASONIX_SDK_MAJOR_VERSION@
 #define PLUS_ULTRASONIX_SDK_MINOR_VERSION @PLUS_ULTRASONIX_SDK_MINOR_VERSION@
@@ -102,7 +111,7 @@
 #define LINUXTOLERANCEPERCENT 8
 
 // Frequently needed STL includes
-#include <strstream>
+#include <sstream>
 #include <iostream>
 
 // Frequently needed VTK includes

@@ -10,7 +10,6 @@
 #include "vtkImageData.h"
 #include "vtkImageViewer2.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusBuffer.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
@@ -125,7 +124,7 @@ int main(int argc, char **argv)
     LOG_ERROR("Unable to retrieve the video source.");
     exit(EXIT_FAILURE);
   }
-  viewer->SetSize(videoSource->GetBuffer()->GetFrameSize()[0], videoSource->GetBuffer()->GetFrameSize()[1]); 
+  viewer->SetSize(videoSource->GetOutputFrameSize()[0], videoSource->GetOutputFrameSize()[1]); 
 
   viewer->SetInputConnection(frameGrabber->GetOutputPort()); 
 

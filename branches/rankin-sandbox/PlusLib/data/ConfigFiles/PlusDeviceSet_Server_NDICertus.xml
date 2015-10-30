@@ -29,7 +29,7 @@ The computer needs to be on the same local network as Certus SCU unit. The needl
       Id="CaptureDevice"
       Type="VirtualDiscCapture"
       BaseFilename="RecordingTest.mha"
-      EnableCapturing="FALSE" >
+      EnableCapturingOnStart="FALSE" >
       <InputChannels>
         <InputChannel Id="TrackerStream" />
       </InputChannels>

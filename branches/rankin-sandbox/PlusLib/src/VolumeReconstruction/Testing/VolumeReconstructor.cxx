@@ -5,17 +5,15 @@
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-
-#include "vtksys/CommandLineArguments.hxx"
-
 #include "TrackedFrame.h"
-
 #include "vtkImageData.h"
 #include "vtkMatrix4x4.h"
+#include "vtkSequenceIO.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkTransformRepository.h"
 #include "vtkVolumeReconstructor.h"
 #include "vtkXMLUtilities.h"
+#include "vtksys/CommandLineArguments.hxx"
 
 int main (int argc, char* argv[])
 { 
@@ -40,19 +38,19 @@ int main (int argc, char* argv[])
   cmdargs.Initialize(argc, argv);
 
   cmdargs.AddArgument("--image-to-reference-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImageToReferenceTransformName, "Name of the transform to define the image slice pose relative to the reference coordinate system (e.g., ImageToReference). Note that this parameter is optional, if it is defined then it overrides the ImageCoordinateFrame and ReferenceCoordinateFrame attribute values in the configuration file.");
-  cmdargs.AddArgument("--source-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImgSeqFileName, "Input sequence metafile filename (.mha)" );
+  cmdargs.AddArgument("--source-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImgSeqFileName, "Input sequence file filename (.mha/.nrrd)" );
   cmdargs.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Input configuration file name (.xml)" );
-  cmdargs.AddArgument("--output-volume-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVolumeFileName, "Output file name of the reconstructed volume (must have .mha or .mhd extension)" );
-  cmdargs.AddArgument("--output-volume-accumulation-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVolumeAccumulationFileName, "Output file name of the accumulation of the reconstructed volume (.mha)" );
+  cmdargs.AddArgument("--output-volume-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVolumeFileName, "Output file name of the reconstructed volume (must have .mha, .mhd, .nrrd or .nhdr extension)" );
+  cmdargs.AddArgument("--output-volume-accumulation-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVolumeAccumulationFileName, "Output file name of the accumulation of the reconstructed volume (.mha/.nrrd)" );
   cmdargs.AddArgument("--output-frame-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFrameFileName, "A filename that will be used for storing the tracked image frames. Each frame will be exported individually, with the proper position and orientation in the reference coordinate system");
   cmdargs.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
   cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
 
   // Deprecated arguments (2013-07-29, #800)
   cmdargs.AddArgument("--transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImageToReferenceTransformNameDeprecated, "Image to reference transform name used for the reconstruction. DEPRECATED, use --image-to-reference-transform argument instead");
-  cmdargs.AddArgument("--img-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImgSeqFileNameDeprecated, "Input sequence metafile filename (.mha). DEPRECATED: use --source-seq-file argument instead" );
+  cmdargs.AddArgument("--img-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImgSeqFileNameDeprecated, "Input sequence file filename (.mha/.nrrd). DEPRECATED: use --source-seq-file argument instead" );
   // Deprecated argument (2014-08-15, #923)
-  cmdargs.AddArgument("--output-volume-alpha-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVolumeAlphaFileNameDeprecated, "Output file name of the alpha channel of the reconstructed volume (.mha). DEPRECATED: use --output-volume-accumulation-file argument instead" );
+  cmdargs.AddArgument("--output-volume-alpha-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVolumeAlphaFileNameDeprecated, "Output file name of the alpha channel of the reconstructed volume (.mha/.nrrd). DEPRECATED: use --output-volume-accumulation-file argument instead" );
 
   if ( !cmdargs.Parse())
   {
@@ -142,7 +140,11 @@ int main (int argc, char* argv[])
   // Read image sequence
   LOG_INFO("Reading image sequence " << inputImgSeqFileName );
   vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  trackedFrameList->ReadFromSequenceMetafile(inputImgSeqFileName.c_str()); 
+  if( vtkSequenceIO::Read(inputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to load input sequences file.");
+    exit(EXIT_FAILURE);
+  }
 
   // Reconstruct volume 
   PlusTransformName imageToReferenceTransformName;

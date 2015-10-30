@@ -15,7 +15,6 @@ See License.txt for details.
 #include "vtkSmartPointer.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusBuffer.h"
 
 void PrintLogsCallback(vtkObject* obj, unsigned long eid, void* clientdata, void* calldata); 
 
@@ -115,14 +114,14 @@ int main(int argc, char **argv)
   }
   for (int retries=0; retries<50; retries++)
   {
-    if (videoSource->GetBuffer()->GetNumberOfItems()>=1)
+    if (videoSource->GetNumberOfItems()>=1)
     {
       // a frame has been acquired
       break;
     }
     vtkAccurateTimer::Delay(0.1);
   }
-  if (videoSource->GetBuffer()->GetNumberOfItems()<1)
+  if (videoSource->GetNumberOfItems()<1)
   {
     LOG_ERROR("Frames are not received from the device for several seconds");
   }

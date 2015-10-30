@@ -1,15 +1,16 @@
 PROJECT(PlusLib)
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.11)
 if(COMMAND cmake_policy)
   cmake_policy(SET CMP0003 NEW)
+  cmake_policy(SET CMP0020 NEW)
 endif(COMMAND cmake_policy)
 
 # ------------------------------------------------------------------------
 # Set project version number 
 SET(PLUSLIB_VERSION_MAJOR "2")
-SET(PLUSLIB_VERSION_MINOR "1")
-SET(PLUSLIB_VERSION_PATCH "2")
+SET(PLUSLIB_VERSION_MINOR "3")
+SET(PLUSLIB_VERSION_PATCH "0")
 SET(PLUSLIB_VERSION ${PLUSLIB_VERSION_MAJOR}.${PLUSLIB_VERSION_MINOR}.${PLUSLIB_VERSION_PATCH})
 
 IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" ) 
@@ -42,15 +43,18 @@ OPTION(BUILD_TESTING
 # Testing
 #
 
-# Need subversion for the automatic update of the repository
-find_package(Subversion)
-IF(Subversion_FOUND)
-  Subversion_WC_INFO(${CMAKE_CURRENT_SOURCE_DIR} PLUSLIB_SVN_INFO)
-  MESSAGE(STATUS "Current revision is ${PLUSLIB_SVN_INFO_WC_REVISION}") 
-  SET(PLUSLIB_REVISION ${PLUSLIB_SVN_INFO_WC_REVISION})
-ENDIF(Subversion_FOUND)
-
-SET( PLUSLIB_SVN_EXECUTABLE ${Subversion_SVN_EXECUTABLE} )
+IF (PLUS_OFFLINE_BUILD)
+  SET(PLUSLIB_REVISION "x")
+ELSE(PLUS_OFFLINE_BUILD)
+  # Need subversion for the automatic update of the repository
+  find_package(Subversion)
+  IF(Subversion_FOUND)
+    Subversion_WC_INFO(${CMAKE_CURRENT_SOURCE_DIR} PLUSLIB_SVN_INFO)
+    MESSAGE(STATUS "Current revision is ${PLUSLIB_SVN_INFO_WC_REVISION}") 
+    SET(PLUSLIB_REVISION ${PLUSLIB_SVN_INFO_WC_REVISION})
+  ENDIF(Subversion_FOUND)
+  SET( PLUSLIB_SVN_EXECUTABLE ${Subversion_SVN_EXECUTABLE} )
+ENDIF(PLUS_OFFLINE_BUILD)
 
 INCLUDE(CTest)
 

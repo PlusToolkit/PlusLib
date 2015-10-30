@@ -11,7 +11,11 @@ http://www.civco.com/mmi/products/brachytherapy/Steppers.htm
 \section BrachySupportedPlatforms Included in packages
 - \ref PackageWin32
 - \ref PackageWin64
-- \ref PackageWin32Embedded
+- \ref PackageUltrasonixWin32
+- \ref PackageInterson
+- \ref PackageBk
+- \ref PackageStealthLink
+- \ref PackageThorLabs
 
 \section BrachyInstallation Installation
 
@@ -51,10 +55,5 @@ http://www.civco.com/mmi/products/brachytherapy/Steppers.htm
       - \c 2 Raw encoder values stored in the position component of the transform (x = probe translation, y = probe rotation, z = template translation)
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
-
-
-\section BrachyExampleConfigFile Example configuration file PlusDeviceSet_iCal_SonixTouch_CivcoStepper_1.0.xml
-
-\include "data/ConfigFiles/Queens/PlusDeviceSet_iCal_SonixTouch_CivcoStepper_1.0.xml"
 
 */

@@ -16,6 +16,8 @@ Nomenclature:
 
 \section StealthLinkSupportedPlatforms Included in packages
 
+- \ref PackageStealthLink
+
 This device is not included in any of the standard packages, as it requires StealthLink library from Medtronic.
 If the StealthLink library is obtained from Medtronic then Plus have to be built with the StealthLink option enabled as described at https://www.assembla.com/spaces/plus/wiki/Windows_Build_Instructions.
 The device is tested on Windows, but should also work on other platforms.
@@ -86,7 +88,7 @@ Using OpenIGTLink messages \c GET_IMGMETA and \c GET_IMAGE(from a slicer client 
 - \c GET_IMGMETA plus will receive all the image meta data information from all of the connected devices and send it through openigtlink
 - \c GET_IMAGE will send the volume and the orientation and position in Ras coordinate system.This system should be defined in the configuration file.
  
-\section StealthLinkExampleConfigFile Example configuration file PlusDeviceSet_Server_SonixTouch_L14-5_Porta.xml PlusDeviceSet_Server_StealthLinkTracker.xml
+\section StealthLinkExampleConfigFile Example configuration file PlusDeviceSet_Server_StealthLinkTracker.xml
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_StealthLinkTracker.xml"
 

@@ -7,14 +7,14 @@
 #ifndef STATUSICON_H
 #define STATUSICON_H
 
-#include <QWidget>
-
 #include "PlusConfigure.h"
-
-#include <QLabel>
-#include <QTextEdit>
-
 #include "vtkCallbackCommand.h"
+#include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QTextEdit>
+#include <QWidget>
+#include <QTimer>
 
 //-----------------------------------------------------------------------------
 
@@ -62,7 +62,7 @@ public:
   * \param aParent parent
   * \param aFlags widget flag
   */
-  StatusIcon(QWidget* aParent = 0, Qt::WFlags aFlags = 0);
+  StatusIcon(QWidget* aParent = 0, Qt::WindowFlags aFlags = 0);
 
   /*!
   * Destructor
@@ -91,6 +91,16 @@ protected:
   */
   void ResetIconState();
 
+  /*!
+  * Parse a message and add it to the text edit
+  */
+  void ParseMessage(QString &aInputString);
+
+  /*!
+  * Filter the text in the message box with the text in the line edit
+  */
+  void ApplyFilter();
+
 protected slots:
   /*!
   * Create an extended context menu with the clear option
@@ -101,6 +111,21 @@ protected slots:
   * Clear the message box
   */
   void ClearMessageList();
+
+  /*!
+  * Apply filter button was clicked
+  */
+  void ClearFilterButtonClicked();
+
+  /*! 
+  * Detect changes in the line edit text
+  */
+  void FilterLineEditEdited(const QString&);
+
+  /*!
+  * Apply the filter if the timer expires
+  */
+  void ApplyFilterTimerFired();
 
 public slots:
   /*!
@@ -117,13 +142,23 @@ protected:
   QLabel*       m_DotLabel;
 
   /*! Frame containing the field of messages */
-  QFrame*       m_MessageListWidget;
+  QFrame*       m_MessageListFrame;
 
   /*! Field containing the messages */
   QTextEdit*    m_MessageTextEdit;
 
+  /*! Field for filter contents */
+  QLineEdit*    m_FilterLineEdit;
+  /*! Button to apply the filter to the message log */
+  QPushButton*  m_ClearFilterButton;
+  /*! Timer to prevent rapid re-filtering */
+  QTimer        m_FilterInputTimer;
+
   /*! Tag number of the display message callback */
   unsigned long m_DisplayMessageCallbackTag;
+
+  /*! Contents of the entire log */
+  std::vector<QString> m_MessageLog;
 
   /* Allow a maximum number of messages to be logged */
   int m_MaxMessageCount;

@@ -11,7 +11,13 @@
 
 - \ref PackageWin32
 - \ref PackageWin64
-- \ref PackageWin32Embedded
+- \ref PackageUltrasonixWin32
+- \ref PackageInterson
+- \ref PackageBk
+- \ref PackageStealthLink
+- \ref PackageThorLabs
+- \ref PackageMacOs
+- \ref PackageLinux
 
 The device manufacturer supports additional platforms. On request, Plus toolkit will be extended to support this device on other platforms, too.
 
@@ -35,6 +41,8 @@ Need to install the drivers and software from <a href="http://www.epiphan.com/pr
     - \xmlAtt \ref ImageType. Color image acquisition is supported by setting the imaging device's common attribute \c ImageType="RGB_COLOR" as shown in the Epiphan Color Video Capture example. \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+    - \xmlAtt \ref ClipRectangleOrigin Software clipping, applied on top of the hardware clipping region. \OptionalAtt{0 0 0}
+    - \xmlAtt \ref ClipRectangleSize Software clipping, applied on top of the hardware clipping region. \OptionalAtt{0 0 0}    
 
 \section EpiphanExampleConfigFile Example configuration file PlusDeviceSet_Server_EpiphanVideoCapture.xml
 

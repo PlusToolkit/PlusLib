@@ -7,10 +7,11 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkImageData.h"
 #include "vtkMatrix4x4.h"
+#include "vtkSequenceIO.h"
 #include "vtkObjectFactory.h"
+#include "vtkPlusBuffer.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusBuffer.h"
 #include "vtkSavedDataSource.h"
 #include "vtkTrackedFrameList.h"
 #include "vtksys/SystemTools.hxx"
@@ -22,7 +23,7 @@ vtkSavedDataSource::vtkSavedDataSource()
 {
   this->FrameBufferRowAlignment = 1;
   this->LocalVideoBuffer = NULL;
-  this->SequenceMetafile = NULL; 
+  this->SequenceFile = NULL; 
   this->RepeatEnabled = false; 
   this->LoopStartTime_Local = 0.0; 
   this->LoopStopTime_Local = 0.0; 
@@ -87,7 +88,7 @@ PlusStatus vtkSavedDataSource::InternalUpdate()
 PlusStatus vtkSavedDataSource::InternalUpdateOriginalTimestamp(BufferItemUidType frameToBeAddedUid, int frameToBeAddedLoopIndex)
 {
   // Compute elapsed time since we started the acquisition
-  double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->GetOutputBuffer()->GetStartTime();
+  double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->GetOutputDataSource()->GetStartTime();
   double loopTime=this->LoopStopTime_Local-this->LoopStartTime_Local;
 
   const int numberOfFramesInTheLoop=this->LoopLastFrameUid-this->LoopFirstFrameUid+1;
@@ -108,7 +109,15 @@ PlusStatus vtkSavedDataSource::InternalUpdateOriginalTimestamp(BufferItemUidType
     else
     {
       currentLoopIndex=floor(elapsedTime/loopTime);
-      currentFrameTime_Local = this->LoopStartTime_Local + elapsedTime - loopTime*currentLoopIndex;    
+      currentFrameTime_Local = this->LoopStartTime_Local + elapsedTime - loopTime*currentLoopIndex;
+      double latestTimestamp_Local=0;
+      GetLocalBuffer()->GetLatestTimeStamp(latestTimestamp_Local);
+      if (currentFrameTime_Local > latestTimestamp_Local)
+      {
+        // hold the last frame after the end of the buffer
+        // (one frame period was added at the end of the buffer for displaying the last frame)
+        currentFrameTime_Local = latestTimestamp_Local;
+      }
     }
 
     // Get the uid of the frame that has been most recently acquired
@@ -159,7 +168,7 @@ PlusStatus vtkSavedDataSource::InternalUpdateOriginalTimestamp(BufferItemUidType
 
     // Compute the system time corresponding to this frame
     // Get the filtered timestamp from the buffer without any local time offset. Offset will be applied when it is copied to the output stream's buffer.
-    double filteredTimestamp=dataBufferItemToBeAdded.GetFilteredTimestamp(0.0)+frameToBeAddedLoopIndex*loopTime-this->LoopStartTime_Local+this->GetOutputBuffer()->GetStartTime();
+    double filteredTimestamp=dataBufferItemToBeAdded.GetFilteredTimestamp(0.0)+frameToBeAddedLoopIndex*loopTime-this->LoopStartTime_Local+this->GetOutputDataSource()->GetStartTime();
     double unfilteredTimestamp=filteredTimestamp; // we ignore unfiltered timestamps
 
     switch (this->SimulatedStream)
@@ -171,7 +180,7 @@ PlusStatus vtkSavedDataSource::InternalUpdateOriginalTimestamp(BufferItemUidType
         {
           fieldMap = dataBufferItemToBeAdded.GetCustomFrameFieldMap();    
         }
-        if (this->GetOutputBuffer()->AddItem(&(dataBufferItemToBeAdded.GetFrame()), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &fieldMap)==PLUS_FAIL)
+        if (this->GetOutputDataSource()->AddItem(&(dataBufferItemToBeAdded.GetFrame()), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &fieldMap)==PLUS_FAIL)
         {
           status=PLUS_FAIL;
         }  
@@ -274,7 +283,7 @@ PlusStatus vtkSavedDataSource::InternalUpdateCurrentTimestamp(BufferItemUidType 
       {
         fieldMap = dataBufferItemToBeAdded.GetCustomFrameFieldMap();    
       }        
-      if (this->GetOutputBuffer()->AddItem(&(dataBufferItemToBeAdded.GetFrame()), this->FrameNumber, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &fieldMap)!=PLUS_SUCCESS) // UNDEFINED_TIMESTAMP => use current timestamp
+      if (this->GetOutputDataSource()->AddItem(&(dataBufferItemToBeAdded.GetFrame()), this->FrameNumber, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &fieldMap)!=PLUS_SUCCESS) // UNDEFINED_TIMESTAMP => use current timestamp
       {
         status=PLUS_FAIL;
       }
@@ -347,9 +356,9 @@ PlusStatus vtkSavedDataSource::InternalUpdateCurrentTimestamp(BufferItemUidType 
 PlusStatus vtkSavedDataSource::Probe()
 {
   LOG_TRACE("vtkSavedDataSource::Probe"); 
-  if ( !vtksys::SystemTools::FileExists(this->GetSequenceMetafile(), true) )
+  if ( !vtksys::SystemTools::FileExists(this->GetSequenceFile(), true) )
   {
-    LOG_ERROR("vtkSavedDataSource Probe failed: Unable to find sequence metafile!"); 
+    LOG_ERROR("vtkSavedDataSource Probe failed: Unable to find sequence file!"); 
     return PLUS_FAIL; 
   }
   return PLUS_SUCCESS; 
@@ -360,25 +369,21 @@ PlusStatus vtkSavedDataSource::InternalConnect()
 {
   LOG_TRACE("vtkSavedDataSource::InternalConnect"); 
 
-  if (this->SequenceMetafile==NULL)
+  if (this->SequenceFile==NULL)
   {
     LOG_ERROR("Unable to connect to saved data video source: Unable to read sequence metafile. No filename is specified."); 
     return PLUS_FAIL; 
   }
-  if ( !vtksys::SystemTools::FileExists(this->SequenceMetafile, true) )
+  if ( !vtksys::SystemTools::FileExists(this->SequenceFile, true) )
   {
-    LOG_ERROR("Unable to connect to saved data video source: Unable to read sequence metafile: "<<this->SequenceMetafile); 
+    LOG_ERROR("Unable to connect to saved data video source: Unable to read sequence metafile: "<<this->SequenceFile); 
     return PLUS_FAIL; 
   }
 
   vtkSmartPointer<vtkTrackedFrameList> savedDataBuffer = vtkSmartPointer<vtkTrackedFrameList>::New(); 
 
-  // Read metafile
-  if ( savedDataBuffer->ReadFromSequenceMetafile(this->SequenceMetafile) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to read video buffer from sequence metafile: "<<this->SequenceMetafile); 
-    return PLUS_FAIL; 
-  }
+  // Read sequence file into tracked frame list
+  vtkSequenceIO::Read(std::string(this->SequenceFile), savedDataBuffer);
 
   if ( savedDataBuffer->GetNumberOfTrackedFrames() < 1 ) 
   {
@@ -456,65 +461,42 @@ PlusStatus vtkSavedDataSource::InternalConnect()
 PlusStatus vtkSavedDataSource::InternalConnectVideo(vtkTrackedFrameList* savedDataBuffer)
 {
   // Set buffer parameters based on the input tracked frame list
-  vtkPlusBuffer* outputBuffer=this->GetOutputBuffer();
-  if (outputBuffer==NULL)
+  vtkPlusDataSource* outputDataSource = this->GetOutputDataSource();
+  if (outputDataSource == NULL)
   {
     return PLUS_FAIL;
   }
-  if ( outputBuffer->SetImageType( savedDataBuffer->GetImageType() ) != PLUS_SUCCESS )
+  if ( outputDataSource->SetImageType( savedDataBuffer->GetImageType() ) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to set video buffer image type"); 
     return PLUS_FAIL; 
   }
-  if (savedDataBuffer->GetImageType()==US_IMG_BRIGHTNESS || savedDataBuffer->GetImageType()==US_IMG_RGB_COLOR)
+  if ( this->GetOutputDataSource()->SetInputImageOrientation( savedDataBuffer->GetImageOrientation() ) != PLUS_SUCCESS )
   {
-    // Brightness images will be imported into MF orientation
-    this->GetOutputBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
-    if( this->OutputChannels.empty() )
-    {
-      LOG_ERROR("No output channels defined" );
-      return PLUS_FAIL;
-    }
-    vtkPlusChannel* outputChannel=this->OutputChannels[0];
-    vtkPlusDataSource* aSource(NULL);
-    if (outputChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
-    {
-      LOG_ERROR(this->GetDeviceId() << ": Unable to retrieve video source.");
-      return PLUS_FAIL;
-    }
-    aSource->SetPortImageOrientation(US_IMG_ORIENT_MF);
-  }
-  else
-  {
-    // RF data is stored line-by-line, therefore set the storage buffer to FM orientation
-    this->GetOutputBuffer()->SetImageOrientation(US_IMG_ORIENT_FM);
-  }
-  if ( this->GetOutputBuffer()->SetImageOrientation( savedDataBuffer->GetImageOrientation() ) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to set video iamge orientation"); 
+    LOG_ERROR("Failed to set video image orientation"); 
     return PLUS_FAIL; 
   }
 
-  this->GetOutputBuffer()->SetFrameSize(savedDataBuffer->GetTrackedFrame(0)->GetFrameSize());
+  this->GetOutputDataSource()->SetInputFrameSize(savedDataBuffer->GetTrackedFrame(0)->GetFrameSize());
 
-  this->GetOutputBuffer()->SetNumberOfScalarComponents(savedDataBuffer->GetTrackedFrame(0)->GetNumberOfScalarComponents());
+  this->GetOutputDataSource()->SetNumberOfScalarComponents(savedDataBuffer->GetTrackedFrame(0)->GetNumberOfScalarComponents());
 
   // Set up a new local buffer
   DeleteLocalBuffers();
-  this->LocalVideoBuffer = vtkPlusBuffer::New(); 
+  this->LocalVideoBuffer = vtkPlusBuffer::New();
+  this->LocalVideoBuffer->SetImageOrientation(savedDataBuffer->GetImageOrientation());
   
   // Copy all the settings from the video buffer 
-  this->LocalVideoBuffer->DeepCopy( this->GetOutputBuffer() );
+  this->GetOutputDataSource()->DeepCopyBufferTo(*this->LocalVideoBuffer);
   this->LocalVideoBuffer->SetLocalTimeOffsetSec(0.0); // the time offset is copied from the output, so reset it to 0
 
   // Fill local video buffer
-
   this->LocalVideoBuffer->CopyImagesFromTrackedFrameList(savedDataBuffer, vtkPlusBuffer::READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS, this->UseAllFrameFields); 
   savedDataBuffer->Clear(); 
 
-  this->GetOutputBuffer()->Clear();
-  this->GetOutputBuffer()->SetFrameSize( this->LocalVideoBuffer->GetFrameSize() ); 
-  this->GetOutputBuffer()->SetPixelType( this->LocalVideoBuffer->GetPixelType() ); 
+  this->GetOutputDataSource()->Clear();
+  this->GetOutputDataSource()->SetInputFrameSize( this->LocalVideoBuffer->GetFrameSize() ); 
+  this->GetOutputDataSource()->SetPixelType( this->LocalVideoBuffer->GetPixelType() );
 
   return PLUS_SUCCESS; 
 }
@@ -558,11 +540,11 @@ PlusStatus vtkSavedDataSource::InternalConnectTracker(vtkTrackedFrameList* saved
       continue;
     }
     // a transform with the same name as the tool name has been found in the savedDataBuffer
-    tool->GetBuffer()->SetBufferSize( savedDataBuffer->GetNumberOfTrackedFrames() ); 
+    tool->SetBufferSize( savedDataBuffer->GetNumberOfTrackedFrames() ); 
 
     vtkSmartPointer<vtkPlusBuffer> buffer=vtkSmartPointer<vtkPlusBuffer>::New();
+    tool->DeepCopyBufferTo(*buffer);
     // Copy all the settings from the default tool buffer 
-    buffer->DeepCopy( tool->GetBuffer() );
     buffer->SetLocalTimeOffsetSec(0.0); // the time offset is copied from the output, so reset it to 0
     if (buffer->CopyTransformFromTrackedFrameList(savedDataBuffer, vtkPlusBuffer::READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS, toolTransformName)!=PLUS_SUCCESS)
     {
@@ -594,24 +576,24 @@ PlusStatus vtkSavedDataSource::ReadConfiguration(vtkXMLDataElement* rootConfigEl
   LOG_TRACE("vtkSavedDataSource::ReadConfiguration"); 
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(SequenceMetafile, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(SequenceFile, deviceConfig);
   std::string foundAbsoluteImagePath;
-  if (vtkPlusConfig::GetInstance()->FindImagePath(this->SequenceMetafile, foundAbsoluteImagePath) == PLUS_SUCCESS)
+  if (vtkPlusConfig::GetInstance()->FindImagePath(this->SequenceFile, foundAbsoluteImagePath) == PLUS_SUCCESS)
   {
-    this->SetSequenceMetafile(foundAbsoluteImagePath.c_str());
+    this->SetSequenceFile(foundAbsoluteImagePath.c_str());
   }
   else
   {
-    std::string seqMetaFileTrim = PlusCommon::Trim(this->SequenceMetafile);
+    std::string seqFileTrim = PlusCommon::Trim(this->SequenceFile);
     std::string foundAbsoluteImagePath;
-    if (vtkPlusConfig::GetInstance()->FindImagePath(seqMetaFileTrim, foundAbsoluteImagePath) == PLUS_SUCCESS)
+    if (vtkPlusConfig::GetInstance()->FindImagePath(seqFileTrim, foundAbsoluteImagePath) == PLUS_SUCCESS)
     {
-      this->SetSequenceMetafile(foundAbsoluteImagePath.c_str());
-      LOG_WARNING("Filename contains unexpected characters at beginning or end of string. Please correct. Filename: " << this->SequenceMetafile);
+      this->SetSequenceFile(foundAbsoluteImagePath.c_str());
+      LOG_WARNING("Filename contains unexpected characters at beginning or end of string. Please correct. Filename: " << this->SequenceFile);
     }
     else
     {
-      LOG_ERROR("Unable to locate file: " << this->SequenceMetafile << ". Please verify location on disk.");
+      LOG_ERROR("Unable to locate file: " << this->SequenceFile << ". Please verify location on disk.");
       return PLUS_FAIL;
     }
   }
@@ -652,8 +634,7 @@ PlusStatus vtkSavedDataSource::WriteConfiguration(vtkXMLDataElement* rootConfig)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(imageAcquisitionConfig, rootConfig);
   
-  imageAcquisitionConfig->SetAttribute("SequenceMetafile", this->SequenceMetafile);
-
+  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_NULL(SequenceFile, imageAcquisitionConfig);
   XML_WRITE_BOOL_ATTRIBUTE(RepeatEnabled, imageAcquisitionConfig);
   XML_WRITE_BOOL_ATTRIBUTE(UseOriginalTimestamps, imageAcquisitionConfig);
 
@@ -696,7 +677,7 @@ PlusStatus vtkSavedDataSource::NotifyConfigured()
   switch (this->SimulatedStream)
   {
   case VIDEO_STREAM:
-    if( this->GetOutputBuffer() == NULL )
+    if( this->GetOutputDataSource() == NULL )
     {
       LOG_ERROR("Buffer not created for vtkSavedDataSource but it is required. Check configuration.");
       this->SetCorrectlyConfigured(false);
@@ -832,7 +813,7 @@ vtkPlusBuffer* vtkSavedDataSource::GetLocalBuffer()
     buff=GetLocalTrackerBuffer();
     break;
   default:
-    LOG_ERROR("Unkown stream type: "<<this->SimulatedStream);
+    LOG_ERROR("Unknown stream type: "<<this->SimulatedStream);
   }
   if (buff==NULL)
   {
@@ -842,9 +823,9 @@ vtkPlusBuffer* vtkSavedDataSource::GetLocalBuffer()
 }
 
 //----------------------------------------------------------------------------
-vtkPlusBuffer* vtkSavedDataSource::GetOutputBuffer()
+vtkPlusDataSource* vtkSavedDataSource::GetOutputDataSource()
 {
-  vtkPlusBuffer* buff=NULL;
+  vtkPlusDataSource* aSource(NULL);
 
   if( this->OutputChannels.empty() )
   {
@@ -857,36 +838,30 @@ vtkPlusBuffer* vtkSavedDataSource::GetOutputBuffer()
   {
   case VIDEO_STREAM:
     {
-      vtkPlusDataSource* aSource(NULL);
       if( outputChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
       {
         LOG_ERROR("Unable to retrieve the video source in the SavedDataSource device.");
         return NULL;
       }
-      buff = aSource->GetBuffer();
       break;
     }
   case TRACKER_STREAM:
     {
-      vtkPlusDataSource* firstActiveTool = NULL; 
-      if ( this->GetFirstActiveTool(firstActiveTool) != PLUS_SUCCESS )
+      if ( this->GetFirstActiveTool(aSource) != PLUS_SUCCESS )
       {
-        LOG_ERROR("Failed to get local tracker buffer - there is no active tool!"); 
-      }
-      else
-      {
-        buff=firstActiveTool->GetBuffer();
+        LOG_ERROR("Failed to get local tracker buffer - there is no active tool!");
+        return NULL;
       }
     }
     break;
   default:
-    LOG_ERROR("Unknown stream type: "<<this->SimulatedStream);
+    LOG_ERROR("Unknown stream type: " << this->SimulatedStream);
   }
-  if (buff==NULL)
+  if (aSource == NULL)
   {
     LOG_WARNING("vtkSavedDataSource OutputBuffer is invalid");
   }
-  return buff;
+  return aSource;
 }
 
 //----------------------------------------------------------------------------
@@ -901,8 +876,7 @@ bool vtkSavedDataSource::IsTracker() const
   {
     vtkPlusDataSource* aSource = it->second;
     StreamBufferItem item;
-    vtkPlusBuffer* buff = aSource->GetBuffer();
-    if( buff->GetNumberOfItems() > 0 && buff->GetOldestStreamBufferItem(&item) == ITEM_OK )
+    if( aSource->GetNumberOfItems() > 0 && aSource->GetOldestStreamBufferItem(&item) == ITEM_OK )
     {
       if( item.HasValidTransformData() )
       {

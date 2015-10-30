@@ -11,10 +11,12 @@ See License.txt for details.
 
 #include "PlusCommon.h"
 #include "vtkObject.h"
-#include "vtkPlusDeviceTypes.h"
+#include "vtkPlusDevice.h"
 #include "vtkUsImagingParameters.h"
 
 class TrackedFrame;
+class vtkPlusChannel;
+
 class vtkTrackedFrameList;
 class vtkXMLDataElement;
 
@@ -65,11 +67,6 @@ public:
   application might hang during exit.
   */
   PlusStatus Disconnect();
-
-  /*
-    Is the system connected?
-  */
-  bool GetConnected() const;
 
   /*!
     Compute loop times for saved datasets (time intersection of the two buffers)
@@ -135,6 +132,16 @@ public:
   * Functions to manage the currently active stream mixers
   */
   PlusStatus GetDevices( DeviceCollection &OutVector ) const;
+
+  /*
+    Identify if the device is started or not
+  */
+  bool GetStarted() const;
+
+  /*
+    Is the system connected?
+  */
+  bool GetConnected() const;
 
   /*! Set startup delay in sec to give some time to the buffers for proper initialization */
   vtkSetMacro(StartupDelaySec, double); 

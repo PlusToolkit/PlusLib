@@ -1,0 +1,25 @@
+<PlusConfiguration version="2.1">
+
+  <DataCollection StartupDelaySec="1.0">
+    <DeviceSet 
+      Name="PlusServer: Generic serial device" 
+      Description="Send text and receive response through OpenIGTLink"
+    />
+    <Device 
+      Id="SerialDevice"
+      Type="GenericSerialDevice"
+      SerialPort="8"
+      BaudRate="9600"
+      LineEnding="0d"
+      >
+    </Device>    
+  </DataCollection>
+  
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    OutputChannelId="TrackerStream"
+    />
+  
+</PlusConfiguration>

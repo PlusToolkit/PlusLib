@@ -8,8 +8,6 @@ See License.txt for details.
 
 #include "vtkPlusDevice.h"
 
-class vtkPlusDataBuffer; 
-
 /*!
 \class vtkAscension3DGTrackerBase 
 \brief Interface for the Ascension 3DG magnetic tracker 
@@ -80,8 +78,6 @@ protected:
 
   /*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking, at 9600 Baud. */
   PlusStatus InternalStopRecording();
-
-  vtkPlusBuffer* LocalTrackerBuffer; 
 
 private:  // Definitions.
   enum {TRANSMITTER_OFF = -1};

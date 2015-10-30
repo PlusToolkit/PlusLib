@@ -34,7 +34,7 @@ public:
   * \param aParentWindow Parent main window
   * \param aFlags widget flag
   */
-  ConfigurationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags = 0);
+  ConfigurationToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags = 0);
 
   /*!
   * Destructor
@@ -117,11 +117,6 @@ signals:
     void LogLevelChanged(int aLevel);
 
     /*!
-    * Slot handling select editor application executable button click
-    */
-    void SelectEditorApplicationExecutable();
-
-    /*!
     * Pops up open directory dialog and saves the selected one as image directory. It is the directory that contains the usually used input images (to act as home for relative paths in device set configuration files)
     */
     void SelectImageDirectory();
@@ -143,9 +138,6 @@ protected:
 
   /*! Flag indicating if tool state display widget is detached */
   bool                      m_IsToolDisplayDetached;
-
-  /*! String to hold the last location of data saved */
-  QString                   m_LastEditorLocation;
 
   /*! String to hold the last location of data saved */
   QString                   m_LastImageDirectoryLocation;

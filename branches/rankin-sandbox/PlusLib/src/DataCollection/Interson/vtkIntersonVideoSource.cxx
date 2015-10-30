@@ -12,7 +12,6 @@ See License.txt for details.
 
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusBuffer.h"
 
 #include "vtkUSImagingParameters.h"
 
@@ -374,9 +373,9 @@ PlusStatus vtkIntersonVideoSource::InternalConnect()
   }
 
   // Clear buffer on connect because the new frames that we will acquire might have a different size 
-  aSource->GetBuffer()->Clear();
-  aSource->GetBuffer()->SetPixelType( VTK_UNSIGNED_CHAR );  
-  aSource->GetBuffer()->SetFrameSize(this->ImageSize[0], this->ImageSize[1]); 
+  aSource->Clear();
+  aSource->SetPixelType( VTK_UNSIGNED_CHAR );  
+  aSource->SetInputFrameSize(this->ImageSize[0], this->ImageSize[1], 1); 
 
   HINSTANCE hInst = GetModuleHandle(NULL);
 
@@ -536,16 +535,15 @@ PlusStatus vtkIntersonVideoSource::InternalUpdate()
     return PLUS_FAIL;
   }
 
-  int frameSizeInPx[2]={this->ImageSize[0],this->ImageSize[1]};
+  int frameSizeInPx[3]={this->ImageSize[0],this->ImageSize[1], 1};
 
   // If the buffer is empty, set the pixel type and frame size to the first received properties 
-  if ( aSource->GetBuffer()->GetNumberOfItems() == 0 )
+  if ( aSource->GetNumberOfItems() == 0 )
   {
     LOG_DEBUG("Set up image buffer for Interson");
-    aSource->GetBuffer()->SetPixelType(VTK_UNSIGNED_CHAR);
-    aSource->GetBuffer()->SetImageType(US_IMG_BRIGHTNESS);
-    aSource->GetBuffer()->SetFrameSize( frameSizeInPx );
-    aSource->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
+    aSource->SetPixelType(VTK_UNSIGNED_CHAR);
+    aSource->SetImageType(US_IMG_BRIGHTNESS);
+    aSource->SetInputFrameSize( frameSizeInPx );
 
     float depthScale = -1;
     usbProbeDepthScale(this->Internal->ProbeHandle,&depthScale);
@@ -554,13 +552,12 @@ PlusStatus vtkIntersonVideoSource::InternalUpdate()
     GetProbeNameDevice(probeName);
 
     LOG_INFO("Frame size: " << frameSizeInPx[0] << "x" << frameSizeInPx[1]
-    << ", pixel type: " << vtkImageScalarTypeNameMacro(aSource->GetBuffer()->GetPixelType())
-      << ", probe sample frequency (Hz): " << usbProbeSampleFrequency(this->Internal->ProbeHandle)
-      << ", probe name: " << probeName
-      << ", display zoom: " << bmDisplayZoom()
-      << ", probe depth scale (mm/sample):" << depthScale
-      << ", device image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetPortImageOrientation())
-      << ", buffer image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetBuffer()->GetImageOrientation()));
+      << ", pixel type: " << vtkImageScalarTypeNameMacro(aSource->GetPixelType())
+	    << ", probe sample frequency (Hz): " << usbProbeSampleFrequency(this->Internal->ProbeHandle)
+	    << ", probe name: " << probeName
+	    << ", display zoom: " << bmDisplayZoom()
+	    << ", probe depth scale (mm/sample):" << depthScale
+      << ", buffer image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation()) );
   }
 
   TrackedFrame::FieldMapType customFields;
@@ -573,7 +570,7 @@ PlusStatus vtkIntersonVideoSource::InternalUpdate()
     customFields["ProbeButtonToDummyTransformStatus"] = "OK";
   }
 
-  if( aSource->GetBuffer()->AddItem((void*)&(this->Internal->MemoryBitmapBuffer[0]), aSource->GetPortImageOrientation(),
+  if( aSource->AddItem((void*)&(this->Internal->MemoryBitmapBuffer[0]), aSource->GetInputImageOrientation(),
     frameSizeInPx, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields) != PLUS_SUCCESS )
   {
     LOG_ERROR("Error adding item to video source " << aSource->GetSourceId());

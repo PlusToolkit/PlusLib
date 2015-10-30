@@ -123,21 +123,21 @@ public:
     Request a particular data type from sonix machine by means of a bitmask.
     The mask must be applied before any data can be acquired via realtime imaging or cine retrieval
 
-    udtScreen = 0x00000001,   // Screen
-    udtBPre = 0x00000002,     // B Pre Scan Converted
-    udtBPost = 0x00000004,    // B Post Scan Converted (8 bit)
-    udtBPost32 = 0x00000008,  // B Post Scan Converted (32 bit)
-    udtRF = 0x00000010,       // RF
-    udtMPre = 0x00000020,     // M Pre Scan Converted
-    udtMPost = 0x00000040,    // M Post Scan Converted
-    udtPWRF = 0x00000080,     // PW RF
+    udtScreen = 0x00000001,           // Screen
+    udtBPre = 0x00000002,             // B Pre Scan Converted
+    udtBPost = 0x00000004,            // B Post Scan Converted (8 bit)
+    udtBPost32 = 0x00000008,          // B Post Scan Converted (32 bit)
+    udtRF = 0x00000010,               // RF
+    udtMPre = 0x00000020,             // M Pre Scan Converted
+    udtMPost = 0x00000040,            // M Post Scan Converted
+    udtPWRF = 0x00000080,             // PW RF
     udtPWSpectrum = 0x00000100,           
     udtColorRF = 0x00000200,              
     udtColorCombined = 0x00000400,
     udtColorVelocityVariance = 0x00000800,
-    udtElastoCombined = 0x00002000, // Elasto + B-image (32 bit)
-    udtElastoOverlay = 0x00004000,  // Elasto Overlay (8 bit)
-    udtElastoPre = 0x00008000,      // Elasto Pre Scan Coverted (8 bit)
+    udtElastoCombined = 0x00002000,   // Elasto + B-image (32 bit)
+    udtElastoOverlay = 0x00004000,    // Elasto Overlay (8 bit)
+    udtElastoPre = 0x00008000,        // Elasto Pre Scan Coverted (8 bit)
     udtECG = 0x00010000,
     udtGPS = 0x00020000,
     udtPNG = 0x10000000
@@ -219,6 +219,24 @@ public:
   virtual PlusStatus NotifyConfigured();
 
   virtual bool IsTracker() const { return false; }
+
+  /*! Set clip rectangle origin and size according to the ROI provided by the ultrasound system */
+  vtkSetMacro(AutoClipEnabled, bool);
+  vtkGetMacro(AutoClipEnabled, bool);
+
+  /*! Add image geometry (depth, spacing, transducer origin) to the output */
+  vtkSetMacro(ImageGeometryOutputEnabled, bool);
+  vtkGetMacro(ImageGeometryOutputEnabled, bool);
+
+  /*!
+    If non-NULL then ImageToTransducer transform is added as a custom field to the image data with the specified name.
+    The Transducer coordinate system origin is in the center of the transducer crystal array,
+    x axis direction is towards marked side, y axis direction is towards sound propagation direction,
+    and z direction is cross product of x and y, unit is mm. Elevational pixel spacing is set as the mean of the
+    lateral and axial pixel spacing.
+  */
+  vtkGetStringMacro(ImageToTransducerTransformName);
+  vtkSetStringMacro(ImageToTransducerTransformName);
 
 protected:
   vtkSonixVideoSource();
@@ -322,6 +340,13 @@ protected:
   
   bool DetectDepthSwitching;
   bool DetectPlaneSwitching;
+  
+  /*! Indicates that current depth, spacing, transducer origin has to be queried */
+  bool ImageGeometryChanged;
+
+  double CurrentDepthMm;
+  double CurrentPixelSpacingMm[2];
+  int CurrentTransducerOriginPixels[2];
 
   char *SonixIP;
 
@@ -332,6 +357,11 @@ protected:
     but the connection initialization (setup of requested imaging parameters, etc.) may fail.
   */
   bool UlteriusConnected;
+
+  bool AutoClipEnabled;
+  bool ImageGeometryOutputEnabled;
+  
+  char* ImageToTransducerTransformName;
     
 private:
   static bool vtkSonixVideoSourceNewFrameCallback(void * data, int type, int sz, bool cine, int frmnum);

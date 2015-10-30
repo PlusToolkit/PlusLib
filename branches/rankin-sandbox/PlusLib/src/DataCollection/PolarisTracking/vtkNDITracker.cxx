@@ -70,6 +70,7 @@ vtkNDITracker::vtkNDITracker()
   this->IsDeviceTracking = 0;
   this->SerialPort = -1; // default is to probe
   this->BaudRate = 9600;
+  this->MeasurementVolumeNumber = 0; // keep default volume
 
   this->LastFrameNumber=0;
 
@@ -263,6 +264,41 @@ PlusStatus vtkNDITracker::InternalConnect()
     ndiClose(this->Device);
     this->Device = 0;
     return PLUS_FAIL;
+  }
+
+  if (this->MeasurementVolumeNumber!=0)
+  {
+    const char* volumeSelectCommandReply=ndiCommand(this->Device,"VSEL:%d",this->MeasurementVolumeNumber);
+    errnum = ndiGetError(this->Device);
+    if (errnum) 
+    {
+      LOG_ERROR("Failed to set measurement volume "<<this->MeasurementVolumeNumber<<": "<<ndiErrorString(errnum));
+
+      const unsigned char MODE_GET_VOLUMES_LIST = 0x03; // list of volumes available
+      const char* volumeListCommandReply=ndiCommand(this->Device,"SFLIST:%02X",MODE_GET_VOLUMES_LIST);
+      errnum = ndiGetError(this->Device);
+      if (errnum || volumeListCommandReply==NULL)
+      {
+        LOG_ERROR("Failed to retrieve list of available volumes: "<<ndiErrorString(errnum));
+      }
+      else
+      {
+        LogVolumeList(volumeListCommandReply, 0, vtkPlusLogger::LOG_LEVEL_INFO);
+      }
+      ndiClose(this->Device);
+      this->Device = 0;
+      return PLUS_FAIL;
+    }
+    else
+    {
+      const unsigned char MODE_GET_VOLUMES_LIST = 0x03; // list of volumes available
+      const char* volumeListCommandReply=ndiCommand(this->Device,"SFLIST:%02X",MODE_GET_VOLUMES_LIST);
+      errnum = ndiGetError(this->Device);
+      if (!errnum || volumeListCommandReply!=NULL)
+      {
+        LogVolumeList(volumeListCommandReply, this->MeasurementVolumeNumber, vtkPlusLogger::LOG_LEVEL_DEBUG);
+      }
+    }
   }
 
   // get information about the device
@@ -509,13 +545,13 @@ PlusStatus vtkNDITracker::EnableToolPorts()
     }
   }
 
-  // Set wireless port handles and send SROM files to tracker
+  // Set port handles and send SROM files to tracker
   // We need to do this before initializing and enabling
   // the ports waiting to be initialized.
   for (NdiToolDescriptorsType::iterator toolDescriptorIt=this->NdiToolDescriptors.begin(); toolDescriptorIt!=this->NdiToolDescriptors.end(); ++toolDescriptorIt)
   {
-    if (toolDescriptorIt->second.WiredPortNumber == -1) //wireless tool
-    {  
+    if (toolDescriptorIt->second.VirtualSROM != NULL) // wireless tool (or wired tool with virtual rom)
+	{  
       if (this->UpdatePortHandle(toolDescriptorIt->second)!=PLUS_SUCCESS)
       {
         LOG_ERROR("Failed to determine NDI port handle for tool "<<toolDescriptorIt->first);
@@ -587,7 +623,7 @@ PlusStatus vtkNDITracker::EnableToolPorts()
   // splitters (two 5-DOF tools with one connector) only appear after the tool is enabled.
   for (NdiToolDescriptorsType::iterator toolDescriptorIt=this->NdiToolDescriptors.begin(); toolDescriptorIt!=this->NdiToolDescriptors.end(); ++toolDescriptorIt)
   {
-    if (toolDescriptorIt->second.WiredPortNumber >= 0) //wired tool
+	  if (toolDescriptorIt->second.WiredPortNumber >= 0 && toolDescriptorIt->second.VirtualSROM == 0) //wired tool, no virtual rom
     {
       if (this->UpdatePortHandle(toolDescriptorIt->second)!=PLUS_SUCCESS)
       {
@@ -905,6 +941,7 @@ PlusStatus vtkNDITracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement
 
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, SerialPort, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, BaudRate, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, MeasurementVolumeNumber, deviceConfig);
 
   XML_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
 
@@ -937,39 +974,31 @@ PlusStatus vtkNDITracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement
     }
 
     int wiredPortNumber = -1;
-    const char* portName = toolDataElement->GetAttribute("PortName"); 
-    if ( portName != NULL ) 
+    if ( toolDataElement->GetAttribute("PortName") != NULL )
     {
-      wiredPortNumber = atoi(portName);
-      if (wiredPortNumber < 0)
+      if (!toolDataElement->GetScalarAttribute("PortName", wiredPortNumber))
       {
-        LOG_WARNING("NDI wired tool's port number has to be >=0");
+        LOG_WARNING("NDI wired tool's PortName attribute has to be an integer >=0");
         continue;
       }
     }
-
-    const char* romFileName = toolDataElement->GetAttribute("RomFile");
 
     NdiToolDescriptor toolDescriptor;
     toolDescriptor.PortEnabled=false;
     toolDescriptor.PortHandle=0;
     toolDescriptor.VirtualSROM=NULL;
-    toolDescriptor.WiredPortNumber=-1;
+    toolDescriptor.WiredPortNumber=wiredPortNumber;
 
+    const char* romFileName = toolDataElement->GetAttribute("RomFile");
     if (romFileName)
     {
-      // Passive (wireless) tool
+      // Passive (wireless) tool or wired tool with virtual rom
       if (wiredPortNumber>=0)
       {
-        LOG_WARNING("NDI PortName and RomFile are both specified for tool "<<toolSourceId<<". The tool is assumed to be passive (wireless) and the PortName attribute is ignored");
+        LOG_WARNING("NDI PortName and RomFile are both specified for tool "<<toolSourceId<<". Assuming broken wired rom, using virtual rom instead");
       }
       std::string romFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(romFileName);
       this->ReadSromFromFile(toolDescriptor, romFilePath.c_str());
-    }
-    else
-    {
-      // Active (wired) tool
-      toolDescriptor.WiredPortNumber = wiredPortNumber;
     }
 
     this->NdiToolDescriptors[toolSourceId]=toolDescriptor;
@@ -984,5 +1013,57 @@ PlusStatus vtkNDITracker::WriteConfiguration(vtkXMLDataElement* rootConfig)
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(trackerConfig, rootConfig);
   trackerConfig->SetIntAttribute("SerialPort", this->SerialPort);
   trackerConfig->SetIntAttribute("BaudRate", this->BaudRate );
+  trackerConfig->SetIntAttribute("MeasurementVolumeNumber", this->MeasurementVolumeNumber );
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+void vtkNDITracker::LogVolumeList(const char* ndiVolumeListCommandReply, int selectedVolume, vtkPlusLogger::LogLevelType logLevel)
+{
+  unsigned long numberOfVolumes = ndiHexToUnsignedLong(ndiVolumeListCommandReply, 1);
+  if (selectedVolume==0)
+  {
+    LOG_DYNAMIC("Number of available measurement volumes: "<<numberOfVolumes, logLevel);
+  }
+  for (int volIndex=0; volIndex<numberOfVolumes; volIndex++)
+  {
+    if (selectedVolume>0 && selectedVolume!=volIndex+1)
+    {
+      continue;
+    }
+    LOG_DYNAMIC("Measurement volume "<<volIndex+1, logLevel);
+    const char* volDescriptor = ndiVolumeListCommandReply+1+volIndex*74;
+
+    std::string shapeType;
+    switch (volDescriptor[0])
+    {
+    case '9': shapeType="Cube volume"; break;
+    case 'A': shapeType="Dome volume"; break;
+    default: shapeType="unknown";
+    }
+    LOG_DYNAMIC(" Shape type: "<<shapeType<<" ("<<volDescriptor[0]<<")", logLevel);
+
+    LOG_DYNAMIC(" D1 (minimum x value) = "<<ndiSignedToLong(volDescriptor+1, 7)/100, logLevel);
+    LOG_DYNAMIC(" D2 (maximum x value) = "<<ndiSignedToLong(volDescriptor+8, 7)/100, logLevel);
+    LOG_DYNAMIC(" D3 (minimum y value) = "<<ndiSignedToLong(volDescriptor+15, 7)/100, logLevel);
+    LOG_DYNAMIC(" D4 (maximum y value) = "<<ndiSignedToLong(volDescriptor+22, 7)/100, logLevel);
+    LOG_DYNAMIC(" D5 (minimum z value) = "<<ndiSignedToLong(volDescriptor+29, 7)/100, logLevel);
+    LOG_DYNAMIC(" D6 (maximum z value) = "<<ndiSignedToLong(volDescriptor+36, 7)/100, logLevel);
+    LOG_DYNAMIC(" D7 (reserved) = "<<ndiSignedToLong(volDescriptor+43, 7)/100, logLevel);
+    LOG_DYNAMIC(" D8 (reserved) = "<<ndiSignedToLong(volDescriptor+50, 7)/100, logLevel);
+    LOG_DYNAMIC(" D9 (reserved) = "<<ndiSignedToLong(volDescriptor+57, 7)/100, logLevel);
+    LOG_DYNAMIC(" D10 (reserved) = "<<ndiSignedToLong(volDescriptor+64, 7)/100, logLevel);
+
+    LOG_DYNAMIC(" Reserved: "<<volDescriptor[71], logLevel);
+
+    std::string metalResistant;
+    switch (volDescriptor[72])
+    {
+    case '0': metalResistant="no information"; break;
+    case '1': metalResistant="metal resistant"; break;
+    case '2': metalResistant="not metal resistant"; break;
+    default: metalResistant="unknown";
+    }
+    LOG_DYNAMIC(" Metal resistant: "<<metalResistant<<" ("<<volDescriptor[72]<<")", logLevel);
+  }
 }

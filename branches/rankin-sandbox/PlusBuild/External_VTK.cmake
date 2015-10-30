@@ -26,16 +26,36 @@ IF(VTK_DIR)
         )
   ENDIF()
   SET (PLUS_VTK_DIR "${VTK_DIR}" CACHE INTERNAL "Path to store vtk binaries")
-    
-ELSE(VTK_DIR)
 
+  IF(PLUSBUILD_BUILD_PLUSAPP)
+    IF (${VTK_MAJOR_VERSION} VERSION_LESS 6)
+      IF (NOT VTK_USE_QT)
+        MESSAGE( SEND_ERROR "You have to build VTK with VTK_USE_QT flag ON if you need to use PLUSBUILD_BUILD_PLUSAPP.")
+      ENDIF (NOT VTK_USE_QT)
+    ELSE()
+      IF (NOT TARGET vtkGUISupportQt)
+        MESSAGE( SEND_ERROR "You have to build VTK with VTK_USE_QT flag ON if you need to use PLUSBUILD_BUILD_PLUSAPP.")
+      ENDIF()
+    ENDIF()
+  ENDIF()
+
+ELSE(VTK_DIR)
   # VTK has not been built yet, so download and build it as an external project
   
   OPTION(PLUSBUILD_USE_VTK6 "Plus uses VTK6 instead of VTK5" ON)
   
   IF (PLUSBUILD_USE_VTK6)
+    SET(PLUSBUILD_VTK6_MINOR_VERSION 2 CACHE STRING "Specify the minor version of VTK6 to use.")
+    MARK_AS_ADVANCED(PLUSBUILD_VTK6_MINOR_VERSION)
     SET(VTK_GIT_REPOSITORY "github.com/Slicer/VTK.git")
-    SET(VTK_GIT_TAG "c9862c52b05b44f600deab8d103281fb6a91ac5d")
+    IF(PLUSBUILD_VTK6_MINOR_VERSION EQUAL "2")
+      SET(VTK_GIT_TAG "95aea46c32ab995f3359cf6d9c5b9691e73e4ae9") #v6.2.0 from 2015-03-02
+    ELSEIF(PLUSBUILD_VTK6_MINOR_VERSION EQUAL "3")
+      SET(VTK_GIT_TAG "2684b005cb89799879467a9ea401e194537496b7") #v6.3.0 from 2015-09-01
+    ELSE()
+      #default to 6.2.0
+      SET(VTK_GIT_TAG "95aea46c32ab995f3359cf6d9c5b9691e73e4ae9") #v6.2.0 from 2015-03-02
+    ENDIF()
     SET(VTK_VERSION_SPECIFIC_ARGS
       -DCMAKE_LIBRARY_OUTPUT_DIRECTORY:STRING=${PLUS_EXECUTABLE_OUTPUT_PATH}
       -DCMAKE_RUNTIME_OUTPUT_DIRECTORY:STRING=${PLUS_EXECUTABLE_OUTPUT_PATH}
@@ -71,6 +91,7 @@ ELSE(VTK_DIR)
   SET (PLUS_VTK_SRC_DIR "${CMAKE_BINARY_DIR}/vtk")
   SET (PLUS_VTK_DIR "${CMAKE_BINARY_DIR}/vtk-bin" CACHE INTERNAL "Path to store vtk binaries")
   ExternalProject_Add( vtk
+    "${PLUSBUILD_EXTERNAL_PROJECT_CUSTOM_COMMANDS}"
     SOURCE_DIR "${PLUS_VTK_SRC_DIR}"
     BINARY_DIR "${PLUS_VTK_DIR}"
     #--Download step--------------
@@ -86,6 +107,8 @@ ELSE(VTK_DIR)
         -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
         -DQT_QMAKE_EXECUTABLE:FILEPATH=${QT_QMAKE_EXECUTABLE}
         -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
+        -DVTK_QT_VERSION:STRING=${QT_VERSION_MAJOR}
+        -DCMAKE_PREFIX_PATH:STRING=${CMAKE_PREFIX_PATH}
     #--Build step-----------------
     #--Install step-----------------
     INSTALL_COMMAND ""

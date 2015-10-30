@@ -11,7 +11,6 @@ See License.txt for details.
 
 #include "vtkPlusDevice.h"
 
-class vtkPlusBuffer; 
 class AhrsAlgo;
 
 /*!
@@ -52,6 +51,10 @@ data can be retrieved from the magnetometer. When magnetometer data is not avail
 
 \ingroup PlusLibDataCollection
 */
+
+// Number of parameters required by CPhidgetSpatial_setCompassCorrectionParameters
+#define PHIDGET_NUMBER_OF_COMPASS_CORRECTION_PARAMETERS 13
+
 class vtkDataCollectionExport vtkPhidgetSpatialTracker : public vtkPlusDevice
 {
 public:
@@ -122,6 +125,11 @@ protected:
 
   vtkSetVector2Macro(AhrsAlgorithmGain, double);
   vtkSetVector2Macro(FilteredTiltSensorAhrsAlgorithmGain, double);
+  
+  vtkSetVectorMacro(CompassCorrectionParameters, double, PHIDGET_NUMBER_OF_COMPASS_CORRECTION_PARAMETERS);
+
+  /*! Returns true if compass correction parameters are defined (any of the parameters is non-zero) */
+  bool IsCompassCorrectionParametersDefined();
 
 private:  // Functions.
 
@@ -197,7 +205,9 @@ private:  // Variables.
 
   /*! Zero the gyroscope when connecting to the device */
   bool ZeroGyroscopeOnConnect;
-  
+
+  /*! Compass calibration parameters as defined in PhidgetSpatial API (see also http://www.phidgets.com/docs/Compass_Primer). */
+  double CompassCorrectionParameters[PHIDGET_NUMBER_OF_COMPASS_CORRECTION_PARAMETERS];
 };
 
 #endif

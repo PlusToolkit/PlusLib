@@ -30,7 +30,7 @@ See License.txt for details.
 #include "vtkXMLUtilities.h"
 
 //-----------------------------------------------------------------------------
-PhantomRegistrationToolbox::PhantomRegistrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags)
+PhantomRegistrationToolbox::PhantomRegistrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags)
 : AbstractToolbox(aParentMainWindow)
 , QWidget(aParentMainWindow, aFlags)
 , m_PhantomActor(NULL)

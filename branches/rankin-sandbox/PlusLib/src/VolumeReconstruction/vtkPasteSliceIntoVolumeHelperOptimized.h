@@ -507,12 +507,34 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
                                                  int numscalars,
                                                  vtkPasteSliceIntoVolume::CompoundingType compoundingMode, 
                                                  unsigned short *accPtr,
-                                                 unsigned int *accOverflowCount)
+                                                 unsigned int *accOverflowCount,
+                                                 double pixelRejectionThreshold)
 {
+  bool pixelRejectionEnabled = PixelRejectionEnabled(pixelRejectionThreshold);
+  double pixelRejectionThresholdSumAllComponents = 0;
+  if (pixelRejectionEnabled)
+  {
+    pixelRejectionThresholdSumAllComponents = pixelRejectionThreshold * numscalars;
+  }
   switch (compoundingMode) {
   case  vtkPasteSliceIntoVolume::MEAN_COMPOUNDING_MODE :
     for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++)
     {
+      if (pixelRejectionEnabled)
+      {
+        double inPixelSumAllComponents = 0;
+        for (int i = numscalars-1; i>=0; i--)
+        {
+          inPixelSumAllComponents+=inPtr[i];
+        }
+        if (inPixelSumAllComponents<pixelRejectionThresholdSumAllComponents)
+        {
+          // too dark, skip this pixel
+          inPtr += numscalars;
+          continue;
+        }
+      }
+
       outPoint[0] = outPoint1[0] + idX*xAxis[0]; 
       outPoint[1] = outPoint1[1] + idX*xAxis[1];
       outPoint[2] = outPoint1[2] + idX*xAxis[2];
@@ -558,6 +580,21 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
   case  vtkPasteSliceIntoVolume::MAXIMUM_COMPOUNDING_MODE :
     for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++)
     {
+      if (pixelRejectionEnabled)
+      {
+        double inPixelSumAllComponents = 0;
+        for (int i = numscalars-1; i>=0; i--)
+        {
+          inPixelSumAllComponents+=inPtr[i];
+        }
+        if (inPixelSumAllComponents<pixelRejectionThresholdSumAllComponents)
+        {
+          // too dark, skip this pixel
+          inPtr += numscalars;
+          continue;
+        }
+      }
+
       outPoint[0] = outPoint1[0] + idX*xAxis[0]; 
       outPoint[1] = outPoint1[1] + idX*xAxis[1];
       outPoint[2] = outPoint1[2] + idX*xAxis[2];
@@ -589,6 +626,21 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
   case  vtkPasteSliceIntoVolume::LATEST_COMPOUNDING_MODE :
     for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++)
     {
+      if (pixelRejectionEnabled)
+      {
+        double inPixelSumAllComponents = 0;
+        for (int i = numscalars-1; i>=0; i--)
+        {
+          inPixelSumAllComponents+=inPtr[i];
+        }
+        if (inPixelSumAllComponents<pixelRejectionThresholdSumAllComponents)
+        {
+          // too dark, skip this pixel
+          inPtr += numscalars;
+          continue;
+        }
+      }
+
       outPoint[0] = outPoint1[0] + idX*xAxis[0]; 
       outPoint[1] = outPoint1[1] + idX*xAxis[1];
       outPoint[2] = outPoint1[2] + idX*xAxis[2];
@@ -640,8 +692,15 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
                                                  int numscalars,
                                                  vtkPasteSliceIntoVolume::CompoundingType compoundingMode,
                                                  unsigned short *accPtr,
-                                                 unsigned int *accOverflowCount)
+                                                 unsigned int *accOverflowCount,
+                                                 double pixelRejectionThreshold)
 {
+  bool pixelRejectionEnabled = PixelRejectionEnabled(pixelRejectionThreshold);
+  double pixelRejectionThresholdSumAllComponents = 0;
+  if (pixelRejectionEnabled)
+  {
+    pixelRejectionThresholdSumAllComponents = pixelRejectionThreshold * numscalars;
+  }
 
   outPoint[0] = outPoint1[0] + xIntersectionPixStart*xAxis[0] - outExt[0];
   outPoint[1] = outPoint1[1] + xIntersectionPixStart*xAxis[1] - outExt[2];
@@ -652,6 +711,24 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
     // Nearest-Neighbor, no extent checks, with accumulation
     for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++)
     {
+      if (pixelRejectionEnabled)
+      {
+        double inPixelSumAllComponents = 0;
+        for (int i = numscalars-1; i>=0; i--)
+        {
+          inPixelSumAllComponents+=inPtr[i];
+        }
+        if (inPixelSumAllComponents<pixelRejectionThresholdSumAllComponents)
+        {
+          // too dark, skip this pixel
+          inPtr += numscalars;
+          outPoint[0] += xAxis[0];
+          outPoint[1] += xAxis[1];
+          outPoint[2] += xAxis[2];
+          continue;
+        }
+      }
+
       int outIdX = PlusMath::Round(outPoint[0]);
       int outIdY = PlusMath::Round(outPoint[1]);
       int outIdZ = PlusMath::Round(outPoint[2]);
@@ -697,6 +774,24 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
   case  vtkPasteSliceIntoVolume::MAXIMUM_COMPOUNDING_MODE :
     for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++)
     {
+      if (pixelRejectionEnabled)
+      {
+        double inPixelSumAllComponents = 0;
+        for (int i = numscalars-1; i>=0; i--)
+        {
+          inPixelSumAllComponents+=inPtr[i];
+        }
+        if (inPixelSumAllComponents<pixelRejectionThresholdSumAllComponents)
+        {
+          // too dark, skip this pixel
+          inPtr += numscalars;
+          outPoint[0] += xAxis[0];
+          outPoint[1] += xAxis[1];
+          outPoint[2] += xAxis[2];
+          continue;
+        }
+      }
+
       int outIdX = PlusMath::Round(outPoint[0]);
       int outIdY = PlusMath::Round(outPoint[1]);
       int outIdZ = PlusMath::Round(outPoint[2]);
@@ -728,6 +823,24 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
   case  vtkPasteSliceIntoVolume::LATEST_COMPOUNDING_MODE :
     for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++)
     {
+      if (pixelRejectionEnabled)
+      {
+        double inPixelSumAllComponents = 0;
+        for (int i = numscalars-1; i>=0; i--)
+        {
+          inPixelSumAllComponents+=inPtr[i];
+        }
+        if (inPixelSumAllComponents<pixelRejectionThresholdSumAllComponents)
+        {
+          // too dark, skip this pixel
+          inPtr += numscalars;
+          outPoint[0] += xAxis[0];
+          outPoint[1] += xAxis[1];
+          outPoint[2] += xAxis[2];
+          continue;
+        }
+      }
+
       int outIdX = PlusMath::Round(outPoint[0]);
       int outIdY = PlusMath::Round(outPoint[1]);
       int outIdZ = PlusMath::Round(outPoint[2]);
@@ -879,6 +992,13 @@ static void vtkOptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* in
 
   bool fanClippingEnabled = (fanLinePixelRatioLeft != 0 || fanLinePixelRatioRight != 0);
 
+  bool pixelRejectionEnabled = PixelRejectionEnabled(insertionParams->pixelRejectionThreshold);
+  double pixelRejectionThresholdSumAllComponents = 0;
+  if (pixelRejectionEnabled)
+  {
+    pixelRejectionThresholdSumAllComponents = insertionParams->pixelRejectionThreshold * numscalars;
+  }
+
   int xIntersectionPixStart,xIntersectionPixEnd;
 
   // Loop through INPUT pixels - remember this is a 3D cube represented by the input extent
@@ -1023,6 +1143,21 @@ static void vtkOptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* in
         {
           for (int idX = xIntersectionPixStart; idX < xSkipMiddleSegmentPixStart; idX++) // for all of the x pixels within the fan before the skipped middle section
           {
+            if (pixelRejectionEnabled)
+            {
+              double inPixelSumAllComponents = 0;
+              for (int i = numscalars-1; i>=0; i--)
+              {
+                inPixelSumAllComponents+=inPtr[i];
+              }
+              if (inPixelSumAllComponents<pixelRejectionThresholdSumAllComponents)
+              {
+                // too dark, skip this pixel
+                inPtr += numscalars; // go to the next x pixel
+                continue;
+              }
+            }
+
             outPoint[0] = outPoint1[0] + idX*xAxis[0];
             outPoint[1] = outPoint1[1] + idX*xAxis[1];
             outPoint[2] = outPoint1[2] + idX*xAxis[2];
@@ -1032,6 +1167,21 @@ static void vtkOptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* in
           inPtr += numscalars * (xSkipMiddleSegmentPixEnd-xSkipMiddleSegmentPixStart+1);
           for (int idX = xSkipMiddleSegmentPixEnd+1; idX <= xIntersectionPixEnd; idX++) // for all of the x pixels within the fan after the skipped middle section
           {
+            if (pixelRejectionEnabled)
+            {
+              double inPixelSumAllComponents = 0;
+              for (int i = numscalars-1; i>=0; i--)
+              {
+                inPixelSumAllComponents+=inPtr[i];
+              }
+              if (inPixelSumAllComponents<pixelRejectionThresholdSumAllComponents)
+              {
+                // too dark, skip this pixel
+                inPtr += numscalars; // go to the next x pixel
+                continue;
+              }
+            }
+
             outPoint[0] = outPoint1[0] + idX*xAxis[0];
             outPoint[1] = outPoint1[1] + idX*xAxis[1];
             outPoint[2] = outPoint1[2] + idX*xAxis[2];
@@ -1043,6 +1193,21 @@ static void vtkOptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* in
         {
           for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++) // for all of the x pixels within the fan
           {
+            if (pixelRejectionEnabled)
+            {
+              double inPixelSumAllComponents = 0;
+              for (int i = numscalars-1; i>=0; i--)
+              {
+                inPixelSumAllComponents+=inPtr[i];
+              }
+              if (inPixelSumAllComponents<pixelRejectionThresholdSumAllComponents)
+              {
+                // too dark, skip this pixel
+                inPtr += numscalars; // go to the next x pixel
+                continue;
+              }
+            }
+
             outPoint[0] = outPoint1[0] + idX*xAxis[0];
             outPoint[1] = outPoint1[1] + idX*xAxis[1];
             outPoint[2] = outPoint1[2] + idX*xAxis[2];
@@ -1058,17 +1223,17 @@ static void vtkOptimizedInsertSlice(vtkPasteSliceIntoVolumeInsertSliceParams* in
         {
           vtkFreehand2OptimizedNNHelper(xIntersectionPixStart, xSkipMiddleSegmentPixStart-1, outPoint, outPoint1, xAxis, 
             inPtr, outPtr, outExt, outInc,
-            numscalars, compoundingMode, accPtr, accOverflowCount);
+            numscalars, compoundingMode, accPtr, accOverflowCount, insertionParams->pixelRejectionThreshold);
           inPtr += numscalars * (xSkipMiddleSegmentPixEnd-xSkipMiddleSegmentPixStart+1);
           vtkFreehand2OptimizedNNHelper(xSkipMiddleSegmentPixEnd+1, xIntersectionPixEnd, outPoint, outPoint1, xAxis, 
             inPtr, outPtr, outExt, outInc,
-            numscalars, compoundingMode, accPtr, accOverflowCount);
+            numscalars, compoundingMode, accPtr, accOverflowCount, insertionParams->pixelRejectionThreshold);
         }
         else
         {
           vtkFreehand2OptimizedNNHelper(xIntersectionPixStart, xIntersectionPixEnd, outPoint, outPoint1, xAxis, 
             inPtr, outPtr, outExt, outInc,
-            numscalars, compoundingMode, accPtr, accOverflowCount);
+            numscalars, compoundingMode, accPtr, accOverflowCount, insertionParams->pixelRejectionThreshold);
         }
       }
 

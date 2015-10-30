@@ -25,6 +25,7 @@ See License.txt for details.
 
 class vtkXMLDataElement;
 class vtkLineSource;
+class vtkImageSliceMapper;
 
 //-----------------------------------------------------------------------------
 
@@ -75,6 +76,9 @@ public:
   * \param aImage pointer to the image data to show
   */
   void SetInputData( vtkImageData* aImage );
+
+  /* Set the slice number of the data */
+  PlusStatus SetSliceNumber(int number);
 
   void SetResultPolyData(vtkPolyData* aResultPolyData );
 
@@ -221,6 +225,9 @@ protected:
 
   /*! Canvas image actor */
   vtkImageActor* ImageActor;
+
+  /*! Image slice mapper of image actor */
+  vtkImageSliceMapper* ImageMapper;
 
   /*! Polydata holding the result points (eg. stylus tip, segmented points) */
 //  vtkPolyData* ResultPolyData;

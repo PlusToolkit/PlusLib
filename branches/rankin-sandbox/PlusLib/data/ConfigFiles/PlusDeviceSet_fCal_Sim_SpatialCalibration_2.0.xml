@@ -5,10 +5,10 @@
       Name="fCal: Simulation mode for spatial calibration - fCal Phantom 2.0 - 3Nwires"
       Description="Data collector in file mode providing sequence for N-wire based freehand spatial calibration" />
 
-    <Device
+        <Device
       Id="TrackedVideoDevice"
       Type="SavedDataSource"      
-      SequenceMetafile="fCal_Test_Calibration_3NWires_fCal2.0.mha"
+      SequenceFile="fCal_Test_Calibration_3NWires_fCal2.0.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE" >
@@ -18,13 +18,13 @@
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
-    </Device>
-    
+    </Device>    
+  
     <Device
       Id="CaptureDevice"
       Type="VirtualDiscCapture"
       BaseFilename="RecordingTest.mha"
-      EnableCapturing="FALSE" >
+      EnableCapturingOnStart="FALSE" >
       <InputChannels>
         <InputChannel Id="TrackedVideoStream" />
       </InputChannels>
@@ -72,13 +72,7 @@
         0 0 1 -14
         0 0 0 1" />
     <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
-    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel"
-      File="Stylus_Example.stl"
-      ModelToObjectTransform="
-        1 0 0 -210.0
-        0 1 0 0
-        0 0 1 0
-        0 0 0 1" />
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel" File="Stylus_Example.stl" />
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
       Opacity="0.6"
       File="fCal_2.0.stl"
@@ -174,6 +168,10 @@
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
     TemporalCalibrationDurationSec="10"
+    FixedChannelId="VideoStream" 
+    FixedSourceId="Video"
+    MovingChannelId="TrackerStream"
+    MovingSourceId="ProbeToTracker"
     DefaultSelectedChannelId="TrackedVideoStream"
     FreeHandStartupDelaySec="3"  />
 

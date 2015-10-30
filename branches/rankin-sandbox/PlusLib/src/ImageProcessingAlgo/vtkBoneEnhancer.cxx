@@ -8,11 +8,15 @@ See License.txt for details.
 #include "PlusMath.h"
 #include "TrackedFrame.h"
 #include "vtkBoneEnhancer.h"
-#include "vtkImageThreshold.h"
+#ifdef PLUS_USE_INTEL_MKL
+  #include "vtkForoughiBoneSurfaceProbability.h"
+#else
+  #include "vtkImageThreshold.h"
+#endif
 #include "vtkObjectFactory.h"
-#include "vtkTrackedFrameList.h"
 #include "vtkUsScanConvertCurvilinear.h"
 #include "vtkUsScanConvertLinear.h"
+#include "vtkImageCast.h"
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkBoneEnhancer);
@@ -20,11 +24,24 @@ vtkStandardNewMacro(vtkBoneEnhancer);
 
 //----------------------------------------------------------------------------
 vtkBoneEnhancer::vtkBoneEnhancer()
+#ifdef PLUS_USE_INTEL_MKL
+: CastToDouble(vtkSmartPointer<vtkImageCast>::New())
+, CastToUnsignedChar(vtkSmartPointer<vtkImageCast>::New())
+, BoneSurfaceFilter(vtkSmartPointer<vtkForoughiBoneSurfaceProbability>::New())
+#else
 : Thresholder(vtkSmartPointer<vtkImageThreshold>::New())
+#endif
 {
+#ifdef PLUS_USE_INTEL_MKL
+  this->CastToDouble->SetOutputScalarTypeToDouble();
+  this->CastToUnsignedChar->SetOutputScalarTypeToUnsignedChar();
+  this->BoneSurfaceFilter->SetInputConnection(this->CastToDouble->GetOutputPort());
+  this->CastToUnsignedChar->SetInputConnection(this->BoneSurfaceFilter->GetOutputPort());
+#else
   this->SetThreshold(128);
   this->Thresholder->SetInValue(20);
   this->Thresholder->SetOutValue(200);
+#endif
 }
 
 //----------------------------------------------------------------------------
@@ -86,13 +103,19 @@ PlusStatus vtkBoneEnhancer::WriteConfiguration(vtkXMLDataElement* processingElem
 //-----------------------------------------------------------------------------
 void vtkBoneEnhancer::SetThreshold(double threshold)
 {
+#ifndef PLUS_USE_INTEL_MKL
   this->Thresholder->ThresholdByLower(threshold);
+#endif
 }
 
 //-----------------------------------------------------------------------------
 double vtkBoneEnhancer::GetThreshold()
 {
+#ifdef PLUS_USE_INTEL_MKL
+  return 0;
+#else
   return this->Thresholder->GetLowerThreshold();
+#endif
 }
 
 //----------------------------------------------------------------------------
@@ -137,12 +160,20 @@ PlusStatus vtkBoneEnhancer::ProcessFrame(TrackedFrame* inputFrame, TrackedFrame*
 {
   // Get input image
   PlusVideoFrame* inputImage = inputFrame->GetImageData();
-  vtkImageData* inputVtkImage = inputImage->GetImage();
-
+  
+#ifdef PLUS_USE_INTEL_MKL
   // Generate output image
-  this->Thresholder->SetInputData_vtk5compatible(inputVtkImage);
+  this->CastToDouble->SetInputData_vtk5compatible(inputImage->GetImage());
+  this->CastToUnsignedChar->Update();
+  // Write output image
+  PlusVideoFrame* outputImage = outputFrame->GetImageData();
+  outputImage->DeepCopyFrom(this->CastToUnsignedChar->GetOutput());
+#else
+  // Generate output image
+  //  1. threshold the image
+  this->Thresholder->SetInputData_vtk5compatible(inputImage->GetImage());
   this->Thresholder->Update();
-
+  //  2. draw scanlines on it
   if (this->ScanConverter.GetPointer()!=NULL)
   {
     const int numOfScanlines = 50; // number of scanlines
@@ -151,10 +182,10 @@ PlusStatus vtkBoneEnhancer::ProcessFrame(TrackedFrame* inputFrame, TrackedFrame*
     this->ScanConverter->SetInputImageExtent(rfImageExtent);
     DrawScanLines(this->ScanConverter, this->Thresholder->GetOutput());
   }
-
   // Write output image
   PlusVideoFrame* outputImage = outputFrame->GetImageData();
-  outputImage->DeepCopyFrom(this->Thresholder->GetOutput());
+  outputImage->DeepCopyFrom(this->Thresholder->GetOutput());    
+#endif
 
   return PLUS_SUCCESS;
 }

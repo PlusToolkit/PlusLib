@@ -1,9 +1,5 @@
 PROJECT(CommonWidgets)
 
-FIND_PACKAGE(Qt4 REQUIRED)
-SET(QT_USE_QTXML TRUE)
-INCLUDE(${QT_USE_FILE})
-
 # --------------------------------------------------------------------------
 # Sources
 
@@ -21,11 +17,11 @@ SET (CommonWidgets_SRCS
   QCustomAction.cxx 
   )
 
-if (WIN32)	
+if (WIN32)
   SET (CommonWidgets_SRCS
     ${CommonWidgets_SRCS}
     )
-endif (WIN32)	
+endif (WIN32)
 
 SET (CommonWidgets_UI_HDRS
     DeviceSetSelectorWidget.h
@@ -46,38 +42,48 @@ SET (CommonWidgets_UI_SRCS
   ConfigFileSaverDialog.ui
   SegmentationParameterDialog.ui
   CaptureControlWidget.ui 
-  )	
+  )
 
-SET (QT_Resources
-	CommonWidgets.qrc
-	)
-	
+SET( QT_Resources
+     CommonWidgets.qrc
+    )
+
 # --------------------------------------------------------------------------
 # Qt specific commands
+IF( ${QT_VERSION_MAJOR} EQUAL 5 )
+  FIND_PACKAGE(Qt5 COMPONENTS Xml Widgets REQUIRED)
 
-QT4_WRAP_CPP( QT_MOC_Files ${CommonWidgets_UI_HDRS} )			  
-QT4_WRAP_UI( QT_UI_Headers ${CommonWidgets_UI_SRCS} )
-QT4_WRAP_CPP( QT_MOC_UI_Files ${QT_UI_Headers} )
-QT4_ADD_RESOURCES( QT_RCC_Files ${QT_Resources} )
+  SET(QT_LIBRARIES ${QT_LIBRARIES} ${Qt5Xml_LIBRARIES})
+  ADD_DEFINITIONS(${Qt5Widgets_DEFINITIONS} ${Qt5Xml_DEFINITIONS})
 
-SOURCE_GROUP("Generated Files" FILES ${QT_MOC_Files} ${QT_UI_Headers} ${QT_MOC_UI_Files} ${QT_RCC_Files})
-SOURCE_GROUP("UI Files" FILES ${CommonWidgets_UI_SRCS})
+  IF (WIN32)
+    SET_TARGET_PROPERTIES(${TARGET} PROPERTIES COMPILE_FLAGS "/Zc:wchar_t-")
+  ENDIF (WIN32)
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+ELSE(${QT_VERSION_MAJOR} EQUAL 5)
+  FIND_PACKAGE(Qt4 REQUIRED)
+  SET(QT_USE_QTXML TRUE)
+  INCLUDE(${QT_USE_FILE})
 
-# Treat wchar_t as built-in type - makes shell executes possible
-if (WIN32)	
-  ADD_DEFINITIONS(/Zc:wchar_t-)
-endif (WIN32)	
+  INCLUDE_DIRECTORIES(${QT_INCLUDES})
+  ADD_DEFINITIONS(${QT_DEFINITIONS})
+  
+  # Treat wchar_t as built-in type - makes shell executes possible
+  IF (WIN32)
+    ADD_DEFINITIONS(/Zc:wchar_t-)
+  ENDIF (WIN32)
+ENDIF(${QT_VERSION_MAJOR} EQUAL 5)
+
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 
 # --------------------------------------------------------------------------
 # Build the library
-
 SET (CommonWidgets_LIBS 
     ${CommonWidgets_LIBS} 
     ${QT_LIBRARIES} 
     ${VTK_LIBRARIES}
+    vtkCalibrationAlgo
     vtkPlusCommon
     )
 
@@ -87,13 +93,12 @@ IF (${VTK_VERSION_MAJOR} LESS 6)
     )
 ENDIF()
 
-ADD_LIBRARY(CommonWidgets STATIC ${CommonWidgets_SRCS} ${CommonWidgets_UI_HDRS} ${QT_UI_Sources} ${QT_UI_Headers} ${QT_MOC_Files} ${QT_MOC_UI_Files} ${QT_RCC_Files})
+ADD_LIBRARY(CommonWidgets STATIC ${CommonWidgets_SRCS} ${CommonWidgets_UI_HDRS} ${CommonWidgets_UI_SRCS} ${QT_Resources})
 TARGET_LINK_LIBRARIES(CommonWidgets  ${VTK_LIBRARIES} ${CommonWidgets_LIBS})
 
 # --------------------------------------------------------------------------
 # Testing
 #
-
 IF (BUILD_TESTING)
   ADD_SUBDIRECTORY (Testing)
 ENDIF (BUILD_TESTING)

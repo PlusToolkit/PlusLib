@@ -9,7 +9,11 @@ Supported model: DFG/USB2pro analog frame grabbers with USB interface
 \section ICCapturingSupportedPlatforms Included in packages
 - \ref PackageWin32
 - \ref PackageWin64
-- \ref PackageWin32Embedded
+- \ref PackageUltrasonixWin32
+- \ref PackageInterson
+- \ref PackageBk
+- \ref PackageStealthLink
+- \ref PackageThorLabs
 
 \section ICCapturingInstallation Installation
 
@@ -26,8 +30,6 @@ Supported model: DFG/USB2pro analog frame grabbers with USB interface
 - \xmlAtt \b FrameSize Requested size of the video frame. \OptionalAtt{640 480}
 - \xmlAtt \b InputChannel Name of the IC capturing device input channel (e.g. \c "01 Video: SVideo"). \RequiredAtt
 - \xmlAtt \b ICBufferSize Number of frames the IC capturing device should store in a temporary buffer. \OptionalAtt{50}
-- \xmlAtt \b ClipRectangleOrigin Clipping rectangle origin for the grabber (in pixels). \OptionalAtt{0 0}
-- \xmlAtt \b ClipRectangleSize Clipping rectangle size for the grabber (in pixels). If it is \c "0 0" then the whole frame will be captured. \OptionalAtt{0 0}
 
 - \xmlElem \ref DataSources Exactly one \c DataSource child element is required \RequiredAtt
    - \xmlElem \ref DataSource \RequiredAtt
@@ -35,6 +37,8 @@ Supported model: DFG/USB2pro analog frame grabbers with USB interface
     - \xmlAtt \ref ImageType. Color image acquisition is supported. \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+    - \xmlAtt \ref ClipRectangleOrigin \OptionalAtt{0 0 0}
+    - \xmlAtt \ref ClipRectangleSize \OptionalAtt{0 0 0}
 
 \section ICCapturingExampleConfigFile Example configuration file PlusDeviceSet_Server_ImagingControlsVideoCapture.xml
 

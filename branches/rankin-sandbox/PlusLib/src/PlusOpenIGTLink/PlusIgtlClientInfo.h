@@ -15,26 +15,16 @@
 #include <string>
 #include <vector>
 
+class vtkPlusCommandProcessor;
+
 /*!
   \class PlusIgtlClientInfo 
   \brief This class provides client information for vtkPlusOpenIGTLinkServer
 
   \ingroup PlusLibOpenIGTLink
 */
-class vtkPlusOpenIGTLinkExport PlusIgtlClientInfo
+struct vtkPlusOpenIGTLinkExport PlusIgtlClientInfo
 {
-public:
-
-  /*! Constructor */ 
-  PlusIgtlClientInfo();
-  /*! Copy constructor */ 
-  PlusIgtlClientInfo(const PlusIgtlClientInfo& clientInfo); 
-  /*! Destructor */ 
-  virtual ~PlusIgtlClientInfo(); 
-
-  /*! Counter to generate unique client IDs. Access to the counter is not protected, therefore all clients should be created from the same thread. */
-  static int ClientIdCounter;
-
   /*! Helper struct for storing image stream and embedded transform frame names 
   IGTL image message device name: [Name]_[EmbeddedTransformToFrame]
   */ 
@@ -47,16 +37,15 @@ public:
   }; 
 
   /*! Deserialize client info data from string xml data */ 
-  PlusStatus SetClientInfoFromXmlData( const char* strXmlData ); 
+  PlusStatus SetClientInfoFromXmlData( const char* strXmlData );
+
+  /*! Deserialize client info data from xml data */ 
+  PlusStatus SetClientInfoFromXmlData( vtkXMLDataElement* xmldata );
   
   /*! Serialize client info data to xml data and return in string */ 
   void GetClientInfoInXmlData( std::string& strXmlData ); 
 
-  /*! Copy all non-pointer data */ 
-  void ShallowCopy(const PlusIgtlClientInfo& clientInfo); 
-
-  /*! IGTL client socket instance */ 
-  igtl::ClientSocket::Pointer ClientSocket; 
+  void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Message types that client expects from the server */ 
   std::vector<std::string> IgtlMessageTypes; 
@@ -64,20 +53,11 @@ public:
   /*! Transform names to send with igt transform, position message */ 
   std::vector<PlusTransformName> TransformNames;
 
+  /*! String field names to send with igt STRING message */ 
+  std::vector< std::string > StringNames;
+
   /*! Transform names to send with igt image message */ 
   std::vector<ImageStream> ImageStreams; 
-
-  /*! Unique client identifier. Cannot be 0. */   
-  int ClientId;
-
-  /*! Assignment operator */
-  PlusIgtlClientInfo& operator=(PlusIgtlClientInfo const&clientInfo); 
-
-  /*! Equality operator */
-  bool operator==(const PlusIgtlClientInfo& in) const
-  {
-    return (in.ClientSocket == this->ClientSocket ); 
-  }
 }; 
 
 #endif

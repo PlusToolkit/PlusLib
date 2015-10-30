@@ -11,6 +11,7 @@ SET (PlusServer_SRCS
   vtkPlusRequestIdsCommand.cxx 
   vtkPlusUpdateTransformCommand.cxx 
   vtkPlusSaveConfigCommand.cxx 
+  vtkPlusSendTextCommand.cxx
   vtkPlusGetImageCommand.cxx
   )
 
@@ -26,6 +27,7 @@ IF (WIN32)
     vtkPlusRequestIdsCommand.h 
     vtkPlusUpdateTransformCommand.h 
     vtkPlusSaveConfigCommand.h 
+    vtkPlusSendTextCommand.h
     vtkPlusGetImageCommand.h
     )
 ENDIF (WIN32)
@@ -36,6 +38,13 @@ IF (PLUS_USE_STEALTHLINK)
     SET (PlusServer_HDRS ${PlusServer_HDRS} vtkPlusStealthLinkCommand.h)
   ENDIF (WIN32)
 ENDIF(PLUS_USE_STEALTHLINK)
+
+IF (PLUS_USE_OPTIMET_CONOPROBE)
+  SET (PlusServer_SRCS  ${PlusServer_SRCS} vtkPlusConoProbeLinkCommand.cxx)
+  IF (WIN32)
+    SET (PlusServer_HDRS ${PlusServer_HDRS} vtkPlusConoProbeLinkCommand.h)
+  ENDIF (WIN32)
+ENDIF(PLUS_USE_OPTIMET_CONOPROBE)
 
 SET (PlusServer_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "" FORCE)
 
@@ -67,6 +76,7 @@ SET(vcProj_vtkPlusServer vtkPlusServer;"${PlusLib_BINARY_DIR}/src/PlusServer/vtk
 INSTALL(TARGETS vtkPlusServer
   RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   LIBRARY DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  ARCHIVE DESTINATION bin CONFIGURATIONS Release COMPONENT Development
   )
   
 # --------------------------------------------------------------------------

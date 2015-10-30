@@ -10,13 +10,19 @@
 #include "PlusConfigure.h"
 #include "vtkDataCollectionExport.h"
 
+#include "StreamBufferItem.h"
 #include "vtkDataObject.h"
-#include "vtkPlusDeviceTypes.h"
 #include "vtkRfProcessor.h"
 
 class TrackedFrame;
 class vtkHTMLGenerator;
+class vtkPlusDataSource;
+class vtkPlusDevice;
 class vtkTrackedFrameList;
+
+typedef std::map<std::string, vtkPlusDataSource*> DataSourceContainer;
+typedef DataSourceContainer::iterator DataSourceContainerIterator;
+typedef DataSourceContainer::const_iterator DataSourceContainerConstIterator;
 
 /*!
   \class vtkPlusChannel 
@@ -45,20 +51,25 @@ public:
   */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* aChannelElement);
 
-  PlusStatus GetVideoSource( vtkPlusDataSource*& aVideoSource );
-  PlusStatus GetVideoSource( vtkPlusDataSource*& aVideoSource ) const;
+  inline PlusStatus GetVideoSource( vtkPlusDataSource*& aVideoSource ) const
+  {
+    aVideoSource = this->VideoSource;
+    return aVideoSource!=NULL ? PLUS_SUCCESS : PLUS_FAIL;
+  }
+
   void SetVideoSource( vtkPlusDataSource* aSource );
-  bool HasVideoSource() const;
+  inline bool HasVideoSource() const { return this->VideoSource != NULL; };
+  bool IsVideoSource3D() const;
 
   int ToolCount() const { return this->Tools.size(); }
   PlusStatus AddTool(vtkPlusDataSource* aTool );
   PlusStatus RemoveTool(const char* toolSourceId);
   PlusStatus GetTool(vtkPlusDataSource*& aTool, const char* toolSourceId);
   PlusStatus RemoveTools();
-  DataSourceContainerIterator GetToolsStartIterator();
-  DataSourceContainerIterator GetToolsEndIterator();
-  DataSourceContainerConstIterator GetToolsStartConstIterator() const;
-  DataSourceContainerConstIterator GetToolsEndConstIterator() const;
+  inline DataSourceContainerIterator GetToolsStartIterator() { return this->Tools.begin(); };
+  inline DataSourceContainerIterator GetToolsEndIterator() { return this->Tools.end(); };
+  inline DataSourceContainerConstIterator GetToolsStartConstIterator() const { return this->Tools.begin(); };
+  inline DataSourceContainerConstIterator GetToolsEndConstIterator() const { return this->Tools.end(); };
 
   bool GetTrackingDataAvailable();
   bool GetVideoDataAvailable();
@@ -69,7 +80,7 @@ public:
   vtkImageData* GetBrightnessOutput();
 
   /*! Return the dimensions of the brightness frame size */
-  PlusStatus GetBrightnessFrameSize(int aDim[2]);
+  PlusStatus GetBrightnessFrameSize(int aDim[3]);
   
   /*!
     Get the timestamp master tool. The timestamp master tool determines the sampling times
@@ -159,7 +170,7 @@ protected:
   vtkRfProcessor* RfProcessor;
   vtkImageData* BlankImage;
   StreamBufferItem BrightnessOutputTrackedFrame;
-  int BrightnessFrameSize[2];
+  int BrightnessFrameSize[3];
 
   /*! If true then RF processing parameters will be saved into the config file */
   bool SaveRfProcessingParameters;

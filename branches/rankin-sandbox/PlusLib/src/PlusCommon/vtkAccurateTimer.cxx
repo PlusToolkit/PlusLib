@@ -4,6 +4,7 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
+#include "PlusConfigure.h"
 #include "vtkAccurateTimer.h"
 #include "vtkObjectFactory.h"
 #include "vtkTimerLog.h"
@@ -107,11 +108,18 @@ void vtkAccurateTimer::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkAccurateTimer::Delay(double sec)
 {
+#ifndef PLUS_USE_SIMPLE_TIMER
+  // Use accurate timer
 #ifdef _WIN32
   WindowsAccurateTimer* timer = WindowsAccurateTimer::Instance();
   timer->Wait( sec * 1000 ); 
 #else
-  vtksys::SystemTools::Delay( sec * 1000 ); 
+  vtksys::SystemTools::Delay( sec * 1000 );
+#endif
+#else // PLUS_USE_SIMPLE_TIMER
+  // Use simple timer
+  vtksys::SystemTools::Delay( sec * 1000 );
+  return;
 #endif
 }
 
@@ -196,7 +204,7 @@ std::string vtkAccurateTimer::GetDateAndTimeString(CurrentDateTimeFormat details
   long milliseconds = floor((currentTime-floor(currentTime))*1000.0);  
           
   std::ostringstream mSecStream; 
-  mSecStream << timeStrSec << "." << std::setw(3) << std::setfill('0') << milliseconds << std::ends;
+  mSecStream << timeStrSec << "." << std::setw(3) << std::setfill('0') << milliseconds;
 
   return mSecStream.str();
 }

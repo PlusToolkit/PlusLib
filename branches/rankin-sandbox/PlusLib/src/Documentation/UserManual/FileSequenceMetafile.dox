@@ -46,6 +46,6 @@ https://subversion.assembla.com/svn/plus/trunk/sandbox/MatlabUtils/
 \section FileSequenceMetafileCompression Compression
 
 Image data can be stored in a compressed way to conserve disk space, without any image quality degradation.
-Use the \ref ApplicationEditSeqMetaFile tool to compress/uncompress image data.
+Use the \ref ApplicationEditSequenceFile tool to compress/uncompress image data.
 
 */

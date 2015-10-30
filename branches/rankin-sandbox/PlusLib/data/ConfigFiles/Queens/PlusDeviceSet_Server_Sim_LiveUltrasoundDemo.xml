@@ -7,7 +7,7 @@
     <Device
       Id="TrackedVideoDevice"
       Type="SavedDataSource"
-      SequenceMetafile="FacetInPlaneInsertion.mha"
+      SequenceFile="FacetInPlaneInsertion.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="FALSE"
       RepeatEnabled="TRUE">

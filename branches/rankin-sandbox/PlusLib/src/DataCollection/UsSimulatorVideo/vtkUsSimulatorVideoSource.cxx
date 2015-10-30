@@ -7,7 +7,6 @@
 #include "PlusConfigure.h"
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
-#include "vtkPlusBuffer.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
@@ -94,7 +93,7 @@ PlusStatus vtkUsSimulatorVideoSource::InternalUpdate()
   }
   if (trackingFrames->GetNumberOfTrackedFrames() < 1)
   {
-    LOG_DYNAMIC("Simulated US image is not generated, as no tracking data is available. Device ID: " << this->GetDeviceId(), this->GracePeriodLogLevel ); 
+    LOG_DYNAMIC("Simulated US image generation is skipped, as as no updated tracking data has become available since the last generated image (at "<<this->LastProcessedTrackingDataTimestamp<<"). Probably the tracker device acquisition rate is lower than the simulator acquisition rate. Device ID: " << this->GetDeviceId(), this->GracePeriodLogLevel );
     return PLUS_FAIL;
   }
   TrackedFrame* trackedFrame = trackingFrames->GetTrackedFrame(0);
@@ -142,8 +141,8 @@ PlusStatus vtkUsSimulatorVideoSource::InternalUpdate()
     return PLUS_FAIL;
   }
 
-  PlusStatus status = aSource->GetBuffer()->AddItem(
-    this->UsSimulator->GetOutput(), aSource->GetPortImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber, latestTrackerTimestamp, latestTrackerTimestamp);
+  PlusStatus status = aSource->AddItem(
+    this->UsSimulator->GetOutput(), aSource->GetInputImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber, latestTrackerTimestamp, latestTrackerTimestamp);
 
   this->Modified();
   return status;
@@ -168,16 +167,16 @@ PlusStatus vtkUsSimulatorVideoSource::InternalConnect()
     return PLUS_FAIL;
   }
 
-  // Set to default MF internal image orientation
-  aSource->SetPortImageOrientation(US_IMG_ORIENT_MF);
-  aSource->GetBuffer()->Clear();
-  int frameSize[2]={0,0};
+  // Set to default MF output image orientation
+  aSource->SetOutputImageOrientation(US_IMG_ORIENT_MF);
+  aSource->Clear();
+  int frameSize[3]={0,0,1};
   if (this->UsSimulator->GetFrameSize(frameSize)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to initialize buffer, frame size is unknown");
     return PLUS_FAIL;
   }
-  aSource->GetBuffer()->SetFrameSize(frameSize);
+  aSource->SetInputFrameSize(frameSize);
   
   this->LastProcessedTrackingDataTimestamp = 0;
 

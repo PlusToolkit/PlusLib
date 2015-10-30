@@ -12,6 +12,7 @@ happens between two threads. In real life, it happens between two programs.
 */ 
 
 #include "PlusConfigure.h"
+#include "PlusCommon.h"
 #include "vtkDataCollector.h"
 #include "vtkOpenIGTLinkVideoSource.h"
 #include "vtkPlusBuffer.h"
@@ -34,7 +35,11 @@ PlusStatus DisconnectClients( std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSo
 // Forward declare signal handler
 void SignalInterruptHandler(int s);
 static bool stopRequested = false;
+#ifdef _WIN32
+void CheckConsoleWindowCloseRequested(HWND consoleHwnd);
+#endif
 
+//-----------------------------------------------------------------------------
 int main( int argc, char** argv )
 {
   // Check command line arguments.
@@ -77,13 +82,84 @@ int main( int argc, char** argv )
     exit(EXIT_FAILURE); 
   }
 
-  // Create Plus OpenIGTLink server.
-  LOG_DEBUG( "Initializing Plus OpenIGTLink server... " );
-  vtkSmartPointer< vtkPlusOpenIGTLinkServer > server = vtkSmartPointer< vtkPlusOpenIGTLinkServer >::New();
-  if (server->Start(inputConfigFileName)!=PLUS_SUCCESS)
+  LOG_INFO("Logging at level " << vtkPlusLogger::Instance()->GetLogLevel() << " (" << vtkPlusLogger::Instance()->GetLogLevelString() << ") to file: " << vtkPlusLogger::Instance()->GetLogFileName());
+
+  // Read main configuration file
+  std::string configFilePath=inputConfigFileName;
+  if (!vtksys::SystemTools::FileExists(configFilePath.c_str(), true))
   {
-    LOG_ERROR("Failed to start OpenIGTLink server");
-    exit(EXIT_FAILURE);
+    configFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(inputConfigFileName);
+    if (!vtksys::SystemTools::FileExists(configFilePath.c_str(), true))
+    {
+      LOG_ERROR("Reading device set configuration file failed: "<<inputConfigFileName<<" does not exist in the current directory or in "<<vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory());
+       exit(EXIT_FAILURE);
+    }
+  }
+  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(configFilePath.c_str()));
+  if (configRootElement == NULL)
+  {
+    LOG_ERROR("Reading device set configuration file failed: syntax error in "<<inputConfigFileName);
+     exit(EXIT_FAILURE);
+  }
+
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
+
+  // Print configuration file contents for debugging purposes
+  LOG_DEBUG("Device set configuration is read from file: " << inputConfigFileName);
+  std::ostringstream xmlFileContents; 
+  PlusCommon::PrintXML(xmlFileContents, vtkIndent(1), configRootElement);
+  LOG_DEBUG("Device set configuration file contents: " << std::endl << xmlFileContents.str());
+
+  LOG_INFO( "Server status: Reading configuration.");
+  // Create data collector instance 
+  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New();
+  if ( dataCollector->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Datacollector failed to read configuration"); 
+    return PLUS_FAIL;
+  }
+
+  // Create transform repository instance 
+  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
+  if ( transformRepository->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Transform repository failed to read configuration"); 
+    return PLUS_FAIL;
+  }
+
+  LOG_INFO( "Server status: Connecting to devices.");
+  if ( dataCollector->Connect() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Datacollector failed to connect to devices"); 
+    return PLUS_FAIL;
+  }
+
+  if ( dataCollector->Start() != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Datacollector failed to start"); 
+    return PLUS_FAIL;
+  }
+
+  LOG_INFO( "Server status: Starting servers.");
+  std::vector<vtkPlusOpenIGTLinkServer*> serverList;
+  for( int i = 0; i < configRootElement->GetNumberOfNestedElements(); ++i )
+  {
+    vtkXMLDataElement* serverElement = configRootElement->GetNestedElement(i);
+    if( STRCASECMP(serverElement->GetName(), "PlusOpenIGTLinkServer") != 0 )
+    {
+      continue;
+    }
+
+    // This is a PlusServer tag, let's create it
+    vtkSmartPointer<vtkPlusOpenIGTLinkServer> server = vtkSmartPointer<vtkPlusOpenIGTLinkServer>::New();
+    // Create Plus OpenIGTLink server.
+    LOG_DEBUG( "Initializing Plus OpenIGTLink server... " );
+    if (server->Start(dataCollector, transformRepository, serverElement, configFilePath) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to start OpenIGTLink server");
+      exit(EXIT_FAILURE);
+    }
+    serverList.push_back(server);
   }
 
   double startTime = vtkAccurateTimer::GetSystemTime(); 
@@ -92,57 +168,71 @@ int main( int argc, char** argv )
   std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSource> > testClientList; 
   if ( !testingConfigFileName.empty() )
   {
+    // During testing, there is only one instance of PlusServer, so we can acess serverList[0] directly
+
     vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
     if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, testingConfigFileName.c_str())==PLUS_FAIL)
     {  
       LOG_ERROR("Unable to read test configuration from file " << testingConfigFileName.c_str()); 
       DisconnectClients( testClientList );
-      server->Stop(); 
+      serverList[0]->Stop(); 
       exit(EXIT_FAILURE);      
     }
 
     // Connect clients to server 
-    if ( ConnectClients( server->GetListeningPort(), testClientList, numOfTestClientsToConnect, configRootElement ) != PLUS_SUCCESS )
+    if ( ConnectClients( serverList[0]->GetListeningPort(), testClientList, numOfTestClientsToConnect, configRootElement ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to connect clients to PlusServer!"); 
       DisconnectClients( testClientList );
-      server->Stop(); 
+      serverList[0]->Stop(); 
       exit(EXIT_FAILURE);
     }
     vtkAccurateTimer::Delay( 1.0 ); // make sure the threads have some time to connect regardless of the specified runTimeSec
     LOG_INFO("Clients are connected");
   }
   // *************************** End of testing **************************
-
-  std::cout << "Press Ctrl-C to quit:" << std::endl;
+  LOG_INFO("Server status: Server(s) are running.");
+  LOG_INFO("Press Ctrl-C to quit.");
 
   // Set up signal catching
   signal(SIGINT, SignalInterruptHandler);
+#ifdef _WIN32
+  HWND consoleHwnd=GetConsoleWindow();
+#endif
 
   bool neverStop = (runTimeSec==0.0);
 
   // Run server until requested 
   const double commandQueuePollIntervalSec=0.010;
-  while ( ((vtkAccurateTimer::GetSystemTime() < startTime + runTimeSec) || neverStop)
-    && (!stopRequested) )
+  while ( (neverStop || (vtkAccurateTimer::GetSystemTime() < startTime + runTimeSec)) && !stopRequested )
   {
-    server->ProcessPendingCommands();
+    for( std::vector<vtkPlusOpenIGTLinkServer*>::iterator it = serverList.begin(); it != serverList.end(); ++it )
+    {
+      (*it)->ProcessPendingCommands();
+    }
+#if _WIN32
+      // Check if received message that requested process termination (non-Windows systems always use signals).
+      // Need to do it before processing messages.
+      CheckConsoleWindowCloseRequested(consoleHwnd);
+#endif
     // Need to process messages while waiting because some devices (such as the vtkWin32VideoSource2) require event processing
     vtkAccurateTimer::DelayWithEventProcessing(commandQueuePollIntervalSec);
   }
+    
+  
 
   // *************************** Testing **************************
   if ( !testingConfigFileName.empty() )
   {
     LOG_INFO("Requested testing time elapsed");
     // make sure all the clients are still connected 
-    int numOfActuallyConnectedClients=server->GetNumberOfConnectedClients();
+    int numOfActuallyConnectedClients=serverList[0]->GetNumberOfConnectedClients();
     if ( numOfActuallyConnectedClients != numOfTestClientsToConnect )
     {
       LOG_ERROR("Number of connected clients to PlusServer doesn't match the requirements (" 
         << numOfActuallyConnectedClients << " out of " << numOfTestClientsToConnect << ")."); 
       DisconnectClients( testClientList );
-      server->Stop(); 
+      serverList[0]->Stop(); 
       exit(EXIT_FAILURE);
     }
 
@@ -151,20 +241,24 @@ int main( int argc, char** argv )
     if ( DisconnectClients( testClientList ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to disconnect clients from PlusServer!"); 
-      server->Stop(); 
+      serverList[0]->Stop(); 
       exit(EXIT_FAILURE);
     }
     LOG_INFO("Clients are disconnected");
   }
   // *************************** End of testing **************************
 
-
-  server->Stop();
+  for( std::vector<vtkPlusOpenIGTLinkServer*>::iterator it = serverList.begin(); it != serverList.end(); ++it )
+  {
+    (*it)->Stop();
+  }
   
   if ( !testingConfigFileName.empty() )
   {
     LOG_INFO("Test is successfully completed");
   }
+
+  LOG_INFO("Shutdown successful.");
 
   return EXIT_SUCCESS;
 }
@@ -205,7 +299,7 @@ PlusStatus ConnectClients( int listeningPort, std::vector< vtkSmartPointer<vtkOp
     }
     client->SetBufferSize( *aChannel, 10 ); 
     client->SetMessageType( "TrackedFrame" ); 
-    aSource->SetPortImageOrientation( US_IMG_ORIENT_MF );
+    aSource->SetInputImageOrientation( US_IMG_ORIENT_MF );
 
     if ( client->Connect() != PLUS_SUCCESS )
     {
@@ -262,3 +356,24 @@ void SignalInterruptHandler(int s)
   LOG_INFO("Stop requested...");
   stopRequested = true;
 }
+
+#ifdef _WIN32
+//-----------------------------------------------------------------------------
+// On Windows Qt cannot send SIGINT signal to indicate that the process should exit (ctrl-c),
+// it can only send WM_CLOSE message to all of its windows. Therefore, we check for WM_CLOSE
+// messages and stop if we receive one.
+void CheckConsoleWindowCloseRequested(HWND consoleHwnd)
+{
+  MSG msg;
+  if (PeekMessage(&msg, 0, WM_CLOSE, WM_CLOSE, PM_NOREMOVE))
+  {
+    // Qt usually sends WM_CLOSE with a proper (non-NULL) HWND when calling QProcess::terminate()
+    // the launched application. However, on WindowsXP embedded we receive a NULL as HWND, so
+    // accept that, too.
+    if (msg.hwnd==NULL || msg.hwnd==consoleHwnd)
+    {
+      stopRequested = true;
+    }
+  }
+}
+#endif

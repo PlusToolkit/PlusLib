@@ -11,11 +11,9 @@ See License.txt for details.
 #include "vtkCubeSource.h"
 #include "vtkImageData.h" 
 #include "vtkMatrix4x4.h"
-#include "vtkMetaImageSequenceIO.h"
-#include "vtkMetaImageWriter.h"
-#include "vtkMetaImageWriter.h"
 #include "vtkPointData.h"
 #include "vtkSTLWriter.h"
+#include "vtkSequenceIO.h"
 #include "vtkSmartPointer.h"
 #include "vtkTimerLog.h"
 #include "vtkTrackedFrameList.h"
@@ -175,6 +173,7 @@ int main(int argc, char **argv)
   std::string outputUsImageFile;
   std::string intersectionFile;
   bool showResults=false;
+  bool useCompression(true);
 
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
@@ -185,6 +184,7 @@ int main(int argc, char **argv)
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Config file containing the image to probe and phantom to reference transformations");
   args.AddArgument("--transforms-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformsFile, "Input file containing coordinate frames and the associated model to image transformations");
+  args.AddArgument("--use-compression", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &useCompression, "Use compression when outputting data");
   args.AddArgument("--output-us-img-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputUsImageFile, "File name of the generated output ultrasound image");
   args.AddArgument("--output-slice-model-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &intersectionFile, "Name of STL output file containing the model of all the frames (optional)");
   args.AddArgument("--show-results",vtksys::CommandLineArguments::NO_ARGUMENT, &showResults,"Show the simulated image on the screen");
@@ -224,7 +224,11 @@ int main(int argc, char **argv)
   // Read transformations data 
   LOG_DEBUG("Reading input meta file..."); 
   vtkSmartPointer< vtkTrackedFrameList > trackedFrameList = vtkSmartPointer< vtkTrackedFrameList >::New();         
-  trackedFrameList->ReadFromSequenceMetafile( inputTransformsFile.c_str() );
+  if( vtkSequenceIO::Read(inputTransformsFile, trackedFrameList) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to load input sequences file.");
+    exit(EXIT_FAILURE);
+  }
   LOG_DEBUG("Reading input meta file completed"); 
 
   // Create repository for ultrasound images correlated to the iput tracked frames
@@ -336,10 +340,11 @@ int main(int argc, char **argv)
     timeElapsedPerFrameSec.push_back(endTimeSec-startTimeSec); 
   }
 
-  vtkSmartPointer<vtkMetaImageSequenceIO> simulatedUsSequenceFileWriter = vtkSmartPointer<vtkMetaImageSequenceIO>::New(); 
-  simulatedUsSequenceFileWriter->SetFileName(outputUsImageFile.c_str()); 
-  simulatedUsSequenceFileWriter->SetTrackedFrameList(trackedFrameList); 
-  simulatedUsSequenceFileWriter->Write(); 
+  if( vtkSequenceIO::Write(outputUsImageFile, trackedFrameList, trackedFrameList->GetImageOrientation(), useCompression) != PLUS_SUCCESS )
+  {
+    // Error has already been logged
+    return EXIT_FAILURE;
+  }
 
   LOG_INFO( "Computation time for the fits frame (not included in the statistics because of BSP Tree Building, in sec): "<< timeElapsedPerFrameSec.at(0)); 
 

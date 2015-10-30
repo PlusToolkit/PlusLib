@@ -10,13 +10,6 @@
 - Both linear and curvilinear transducer geometry is supported.
 - With minor modification in the device set configuration file image acquisition can be switched to use a real ultrasound device.
 
-\section UsSimulatorSupportedPlatforms Included in packages
-- \ref PackageWin32
-- \ref PackageWin64
-- \ref PackageWin32Embedded
-- \ref PackageMacOs
-- \ref PackageLinux
-
 \section UsSimulatorConfigSettings Device configuration settings
 
 - \xmlAtt \ref DeviceType "Type" = \c "UsSimulator" \RequiredAtt
@@ -29,6 +22,8 @@
     - \xmlAtt \ref ImageType \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+    - \xmlAtt \ref ClipRectangleOrigin \OptionalAtt{0 0 0}
+    - \xmlAtt \ref ClipRectangleSize \OptionalAtt{0 0 0}
 
 \section UsSimulatorExampleConfigFile Example configuration file PlusDeviceSet_Server_SimulatedUltrasound_3DSlicer.xml
 

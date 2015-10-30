@@ -11,7 +11,7 @@
       UseData="TRANSFORM"
       AcquisitionRate="10"
       LocalTimeOffsetSec="0.0"
-      SequenceMetafile="WaterTankBottomTranslationTrackerBuffer-trimmed.mha"
+      SequenceFile="WaterTankBottomTranslationTrackerBuffer-trimmed.mha"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE"
       ToolReferenceFrame="Tracker" >
@@ -35,7 +35,7 @@
       UseData="IMAGE"
       AcquisitionRate="10" 
       LocalTimeOffsetSec="0.0" 
-      SequenceMetafile="WaterTankBottomTranslationVideoBuffer.mha"
+      SequenceFile="WaterTankBottomTranslationVideoBuffer.mha"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE" >
       <DataSources>
@@ -84,13 +84,7 @@
         0 0 1 -14
         0 0 0 1" />
     <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
-    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel"
-      File="Stylus_Example.stl"
-      ModelToObjectTransform="
-        1 0 0 -210.0
-        0 1 0 0
-        0 0 1 0
-        0 0 0 1" />
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel" File="Stylus_Example.stl" />
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
       Opacity="0.6"
       File="fCal_1.0.stl"

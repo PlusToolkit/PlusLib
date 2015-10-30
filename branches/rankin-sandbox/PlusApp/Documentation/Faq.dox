@@ -97,7 +97,7 @@ The pre-built Plus binaries usually contain the latest hardware SDK. Run PlusVer
 
 # How to generate sequence metafile that contains ImageToReference transforms
 
-Use \ref ApplicationEditSeqMetaFile - see the examples.
+Use \ref ApplicationEditSequenceFile - see the examples.
 
 \section Questions Any questions?
 

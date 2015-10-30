@@ -31,7 +31,7 @@ public:
 	* \param aParent parent
 	* \param aFlags widget flag
 	*/
-	ToolStateDisplayWidgetTest(QWidget *parent = 0, Qt::WFlags flags = 0);
+	ToolStateDisplayWidgetTest(QWidget *parent = 0, Qt::WindowFlags flags = 0);
 
 	/*!
 	* \brief Destructor

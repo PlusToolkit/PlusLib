@@ -1,0 +1,44 @@
+/*!
+\page DeviceOptimetConoProbe Optimet ConoProbe single-point measuring sensor 
+
+\section OptimetConoProbeSupportedHwDevices Supported hardware devices
+
+- The ConoProbe is a robust optical sensor for high precision distance, 2D profiles and 3D measurements
+- Link to manufacturer's website: http://www.optimet.com/index.php
+
+\section OptimetConoProbeSupportedPlatforms Included in packages
+- \ref At the moment none.
+
+The device manufacturer supports additional platforms. On request, Plus toolkit will be extended to support this device on other platforms, too.
+
+\section OptimetConoProbeInstallation Installation
+- Need to install the Smart32 SDK from <a href="http://www.optimet.com/smart32-sdk.php">here</a>.
+
+\section OptimetConoProbeConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "OptimetConoProbe" \RequiredAtt
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{100}
+- \xmlAtt \b LensOriginAlignment Defines the position of the lens origin w.r.t. a tracking tool. Defined as the unit vector (dx, dy, dz) pointing in the direction of the laser beam and the translation from the tracking tool origin to the lens origin (lx, ly, lz): [dx, dy, dz, lx, ly, lz]. \OptionalAtt{1.0 1.0 1.0 0.0 0.0 0.0}
+- \xmlAtt \b DelayBetweenMeasurements The time between successive measurements in micro seconds. \OptionalAtt{1}
+- \xmlAtt \b Frequency The measurement working frequency. \OptionalAtt{1000}
+- \xmlAtt \b CoarseLaserPower The measurement coarse laser power. \OptionalAtt{13}
+- \xmlAtt \b FineLaserPower The measurement fine laser power. \OptionalAtt{0}
+
+- \xmlElem \ref DataSources Exactly two \c DataSource child element are required. \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortName \RequiredAtt
+     - \c Measurement The measured distance, either as the raw sensor measurement in mm (in all of the translation elements of the matrix), or aligned with the lens origin (using the LensOriginAlignment parameter described above).
+     - \c Parameters Raw sensor measurements: Distance (mm), Signal-to-noise ratio (%) and Total. The values are stores in the translation part of the matrix (m(0,3) = Distance, m(1,3) = SNR, m(2,3) = Total). These values should only be used as a means of acquiring real-time parameter info.
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+    
+\section OptimetConoProbeExampleConfigFile Example configuration file PlusDeviceSet_Server_OptimetConoProbe.xml
+
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_OptimetConoProbe.xml" 
+
+
+
+*/

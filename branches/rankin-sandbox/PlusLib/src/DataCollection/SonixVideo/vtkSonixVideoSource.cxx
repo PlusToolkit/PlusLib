@@ -90,10 +90,21 @@ vtkSonixVideoSource::vtkSonixVideoSource()
 , SharedMemoryStatus(0)
 , DetectDepthSwitching(false)
 , DetectPlaneSwitching(false)
+, AutoClipEnabled(false)
+, ImageGeometryOutputEnabled(false)
+, CurrentDepthMm(-1)
+, ImageGeometryChanged(false)
+, ImageToTransducerTransformName(NULL)
 {
   this->Ult = new ulterius;
   this->SetSonixIP("127.0.0.1");
   this->StartThreadForInternalUpdates = false;
+
+  this->CurrentTransducerOriginPixels[0]=-1;
+  this->CurrentTransducerOriginPixels[1]=-1;
+
+  this->CurrentPixelSpacingMm[0]=-1;
+  this->CurrentPixelSpacingMm[1]=-1;
 
   this->RequireImageOrientationInConfiguration = true;
   
@@ -118,6 +129,7 @@ vtkSonixVideoSource::~vtkSonixVideoSource()
   this->SetSonixIP(NULL);
   delete this->Ult;
   this->Ult = NULL;
+  this->SetImageToTransducerTransformName(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -175,6 +187,9 @@ bool vtkSonixVideoSource::vtkSonixVideoSourceParamCallback( void * paramId, int 
 
   if( STRCASECMP(paramName, "b-depth") == 0 )
   {
+    // we cannot query parameter values here, so just set a flag
+    // and get the value when getting the frame
+    vtkSonixVideoSource::ActiveSonixDevice->ImageGeometryChanged = true;
     return true;
   }
   else if ( STRCASECMP(paramName, "probe id") == 0 )
@@ -195,14 +210,13 @@ bool vtkSonixVideoSource::vtkSonixVideoSourceParamCallback( void * paramId, int 
   return false;
 }
 
-
 //----------------------------------------------------------------------------
 // copy the Device Independent Bitmap from the VFW framebuffer into the
 // vtkVideoSource framebuffer (don't do the unpacking yet)
 PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz, bool cine, int frmnum)
 {
 #if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 4)
-  LOG_ERROR("Minimum required Ultasonix SDK version is 5.x");
+  LOG_ERROR("Minimum required UltraSonix SDK version is 5.x");
   return PLUS_FAIL; 
 #endif
 
@@ -238,9 +252,9 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
 
   vtkPlusDataSource* aSource = sources[0];
 
-  int frameSize[2] = {0,0};
-  aSource->GetBuffer()->GetFrameSize(frameSize);
-  int frameBufferBytesPerPixel = aSource->GetBuffer()->GetNumberOfBytesPerPixel(); 
+  int frameSize[3] = {0,0,0};
+  aSource->GetInputFrameSize(frameSize);
+  int frameBufferBytesPerPixel = aSource->GetNumberOfBytesPerPixel(); 
   const int frameSizeInBytes = frameSize[0] * frameSize[1] * frameBufferBytesPerPixel; 
 
   // for frame containing FC (frame count) in the beginning for data coming from cine, jump 2 bytes
@@ -272,10 +286,72 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
     return PLUS_FAIL; 
   }
 
+  if (this->ImageGeometryChanged)
+  {
+    this->ImageGeometryChanged = false;
+    int currentDepth=-1;
+    if (!vtkSonixVideoSource::ActiveSonixDevice->Ult->getParamValue("b-depth", currentDepth))
+    {
+      LOG_WARNING("Failed to retrieve b-depth parameter");
+    }
+    uPoint currentPixelSpacingMicron;
+    currentPixelSpacingMicron.x=-1;
+    currentPixelSpacingMicron.y=-1;
+    if (!vtkSonixVideoSource::ActiveSonixDevice->Ult->getParamValue("microns", currentPixelSpacingMicron))
+    {
+      LOG_WARNING("Failed to retrieve bb-microns parameter");
+    }
+    uPoint currentTransducerOriginPixels;
+    currentTransducerOriginPixels.x=-1;
+    currentTransducerOriginPixels.y=-1;
+    if (!vtkSonixVideoSource::ActiveSonixDevice->Ult->getParamValue("origin", currentTransducerOriginPixels))
+    {
+      LOG_WARNING("Failed to retrieve bb-origin parameter");
+    }
+
+    this->CurrentDepthMm = currentDepth;
+
+    this->CurrentPixelSpacingMm[0] = 0.001*currentPixelSpacingMicron.x;
+    this->CurrentPixelSpacingMm[1] = 0.001*currentPixelSpacingMicron.y;
+
+    int *clipRectangleOrigin = aSource->GetClipRectangleOrigin();
+    this->CurrentTransducerOriginPixels[0] = currentTransducerOriginPixels.x-clipRectangleOrigin[0];
+    this->CurrentTransducerOriginPixels[1] = currentTransducerOriginPixels.y-clipRectangleOrigin[1];
+  }
+
+  TrackedFrame::FieldMapType customFields;
+
+  if (this->ImageGeometryOutputEnabled)
+  {
+    std::ostringstream depthStr;
+    depthStr << this->CurrentDepthMm;
+    customFields["DepthMm"] = depthStr.str();
+
+    std::ostringstream pixelSpacingStr;
+    pixelSpacingStr << this->CurrentPixelSpacingMm[0] << " " << this->CurrentPixelSpacingMm[1];
+    customFields["PixelSpacingMm"] = pixelSpacingStr.str();
+
+    std::ostringstream transducerOriginStr;
+    transducerOriginStr << this->CurrentTransducerOriginPixels[0] << " " << this->CurrentTransducerOriginPixels[1];
+    customFields["TransducerOriginPix"] = transducerOriginStr.str(); // "TransducerOriginPixels" would be over the 20-char limit of OpenIGTLink device name
+  }
+  if (this->ImageToTransducerTransformName!=NULL && strlen(this->ImageToTransducerTransformName)>0)
+  {
+    std::ostringstream imageToTransducerTransformStr;
+    double zPixelSpacingMm = (this->CurrentPixelSpacingMm[0]+this->CurrentPixelSpacingMm[1])/2.0; // set to non-zero to keep the matrix as a 3D-3D transformation
+    imageToTransducerTransformStr << this->CurrentPixelSpacingMm[0] << " 0 0 " << -1.0*this->CurrentTransducerOriginPixels[0]*this->CurrentPixelSpacingMm[0];
+    imageToTransducerTransformStr << " 0 " << this->CurrentPixelSpacingMm[1] << " 0 " << -1.0*this->CurrentTransducerOriginPixels[1]*this->CurrentPixelSpacingMm[1];
+    imageToTransducerTransformStr << " 0 0 " << zPixelSpacingMm << " 0";
+    imageToTransducerTransformStr << " 0 0 0 1";
+    customFields["ImageToTransducerTransform"] = imageToTransducerTransformStr.str();
+    customFields["ImageToTransducerTransformStatus"] = "OK";
+  }
+
   // get the pointer to actual incoming data on to a local pointer
   unsigned char *deviceDataPtr = static_cast<unsigned char*>(dataPtr);
 
-  PlusStatus status = aSource->GetBuffer()->AddItem(deviceDataPtr, aSource->GetPortImageOrientation(), frameSize, pixelType, 1, imgType, numberOfBytesToSkip, this->FrameNumber); 
+  PlusStatus status = aSource->AddItem(deviceDataPtr, aSource->GetInputImageOrientation(), frameSize, pixelType, 1, imgType, numberOfBytesToSkip, this->FrameNumber,
+    UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields);
   this->Modified(); 
 
   return status;
@@ -387,6 +463,33 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
       continue;
     }
 
+    // Set up imaging parameters
+    // Parameter value <0 means that the parameter should be kept unchanged
+    if (this->ImagingParameters->GetFrequencyMhz() >= 0 && SetFrequency(this->ImagingParameters->GetFrequencyMhz()) != PLUS_SUCCESS) { continue; }
+    if (this->ImagingParameters->GetDepthMm() >= 0 && SetDepth(this->ImagingParameters->GetDepthMm()) != PLUS_SUCCESS) { continue; }
+    if (this->ImagingParameters->GetSectorPercent() >= 0 && SetSector(this->ImagingParameters->GetSectorPercent()) != PLUS_SUCCESS) { continue; }
+    double gainPercent[3]; this->ImagingParameters->GetGainPercent(gainPercent);
+    if (gainPercent[0] >= 0 && SetGain(gainPercent[0]) != PLUS_SUCCESS) { continue; }
+    if (this->ImagingParameters->GetDynRangeDb() >= 0 && SetDynRange(this->ImagingParameters->GetDynRangeDb()) != PLUS_SUCCESS) { continue; }
+    if (this->ImagingParameters->GetZoomFactor() >= 0 && SetZoom(this->ImagingParameters->GetZoomFactor()) != PLUS_SUCCESS) { continue; }
+    if (this->CompressionStatus >= 0 && SetCompressionStatus(this->CompressionStatus) != PLUS_SUCCESS) { continue; }
+    if (this->ImagingParameters->GetSoundVelocity() > 0 && this->SetParamValue("soundvelocity", this->ImagingParameters->GetSoundVelocity(), vtkUsImagingParameters::KEY_SOUNDVELOCITY) != PLUS_SUCCESS )
+    {
+      continue;
+    }
+
+    if (this->AcquisitionRate<=0)
+    {
+      // AcquisitionRate has not been specified, set it to match the frame rate
+      int aFrameRate=10;
+      if ( this->Ult->getParamValue("frame rate", aFrameRate) )
+      {
+        this->AcquisitionRate=aFrameRate;        
+      }
+    }
+
+    Ult->setSharedMemoryStatus( this->SharedMemoryStatus );
+
 #if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6)
     // RF acquisition mode is always enabled on Ultrasonix SDK 6.x and above, so we only need to change it if it's an earlier SDK version
     if ( this->ImagingMode == RfMode )
@@ -409,6 +512,10 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
       }
     }
 #endif
+
+    // Wait for the depth change to take effect before calling ConfigureVideoSource()
+    // (it is especially important if auto clipping is enabled because then we need accurate frame size)
+    Sleep(1000);
 
     // Configure video sources
     if( this->WantDataType(udtBPost))
@@ -446,33 +553,6 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
       return PLUS_FAIL;
     }
 
-    // Set up imaging parameters
-    // Parameter value <0 means that the parameter should be kept unchanged
-    if (this->ImagingParameters->GetFrequencyMhz() >= 0 && SetFrequency(this->ImagingParameters->GetFrequencyMhz()) != PLUS_SUCCESS) { continue; }
-    if (this->ImagingParameters->GetDepthMm() >= 0 && SetDepth(this->ImagingParameters->GetDepthMm()) != PLUS_SUCCESS) { continue; }
-    if (this->ImagingParameters->GetSectorPercent() >= 0 && SetSector(this->ImagingParameters->GetSectorPercent()) != PLUS_SUCCESS) { continue; }
-    double gainPercent[3]; this->ImagingParameters->GetGainPercent(gainPercent);
-    if (gainPercent[0] >= 0 && SetGain(gainPercent[0]) != PLUS_SUCCESS) { continue; }
-    if (this->ImagingParameters->GetDynRangeDb() >= 0 && SetDynRange(this->ImagingParameters->GetDynRangeDb()) != PLUS_SUCCESS) { continue; }
-    if (this->ImagingParameters->GetZoomFactor() >= 0 && SetZoom(this->ImagingParameters->GetZoomFactor()) != PLUS_SUCCESS) { continue; }
-    if (this->CompressionStatus >= 0 && SetCompressionStatus(this->CompressionStatus) != PLUS_SUCCESS) { continue; }
-    if (this->ImagingParameters->GetSoundVelocity() > 0 && this->SetParamValue("soundvelocity", this->ImagingParameters->GetSoundVelocity(), vtkUsImagingParameters::KEY_SOUNDVELOCITY) != PLUS_SUCCESS )
-    {
-      continue;
-    }
-
-    if (this->AcquisitionRate<=0)
-    {
-      // AcquisitionRate has not been specified, set it to match the frame rate
-      int aFrameRate=10;
-      if ( this->Ult->getParamValue("frame rate", aFrameRate) )
-      {
-        this->AcquisitionRate=aFrameRate;        
-      }
-    }
-
-    Ult->setSharedMemoryStatus( this->SharedMemoryStatus );
-
     // Set callback and timeout for receiving new frames
     this->Ult->setCallback(vtkSonixVideoSourceNewFrameCallback);
     if (this->Timeout >= 0 && this->SetTimeout(this->Timeout) != PLUS_SUCCESS)
@@ -484,7 +564,8 @@ PlusStatus vtkSonixVideoSource::InternalConnect()
     this->Ult->setParamCallback(vtkSonixVideoSourceParamCallback);
 
     initializationCompleted = true;
-  } 
+    this->ImageGeometryChanged = true; // trigger an initial update of geometry info
+  }
 
   LOG_DEBUG("Successfully connected to sonix video device");
   return PLUS_SUCCESS; 
@@ -554,6 +635,10 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigE
 
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(DetectPlaneSwitching, deviceConfig);
 
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(AutoClipEnabled, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ImageGeometryOutputEnabled, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(ImageToTransducerTransformName, deviceConfig);
+
   // TODO : if depth or plane switching, build lookup table
   // if both attributes, build [plane, depth]->channel lookup table
   // if one, build [attr]->channel lookup table
@@ -592,6 +677,10 @@ PlusStatus vtkSonixVideoSource::WriteConfiguration(vtkXMLDataElement* rootConfig
   deviceConfig->SetDoubleAttribute("CompressionStatus", this->CompressionStatus);
   deviceConfig->SetDoubleAttribute("Timeout", this->Timeout);
   deviceConfig->SetDoubleAttribute("ConnectionSetupDelayMs", this->ConnectionSetupDelayMs);
+  
+  XML_WRITE_BOOL_ATTRIBUTE(AutoClipEnabled, deviceConfig);
+  XML_WRITE_BOOL_ATTRIBUTE(ImageGeometryOutputEnabled, deviceConfig);
+  XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_NULL(ImageToTransducerTransformName, deviceConfig);
 
   this->ImagingParameters->WriteConfiguration(deviceConfig);
 
@@ -1095,27 +1184,40 @@ PlusStatus vtkSonixVideoSource::ConfigureVideoSource( uData aValue )
   switch (aDataDescriptor.ss)
   {
   case 8:
-    aSource->GetBuffer()->SetPixelType( VTK_UNSIGNED_CHAR );
-    aSource->GetBuffer()->SetImageType( US_IMG_BRIGHTNESS );
-    aSource->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
+    aSource->SetPixelType( VTK_UNSIGNED_CHAR );
+    aSource->SetImageType( US_IMG_BRIGHTNESS );
+    aSource->SetOutputImageOrientation(US_IMG_ORIENT_MF);
     break;
   case 16:
-    aSource->GetBuffer()->SetPixelType( VTK_SHORT );
-    aSource->GetBuffer()->SetImageType( US_IMG_RF_I_LINE_Q_LINE );
+    aSource->SetPixelType( VTK_SHORT );
+    aSource->SetImageType( US_IMG_RF_I_LINE_Q_LINE );
     // RF data is stored line-by-line, therefore set the storage buffer to FM orientation
-    aSource->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_FM);
+    aSource->SetOutputImageOrientation(US_IMG_ORIENT_FM);
     // Swap w/h: in case of RF image acquisition the DataDescriptor.h is the width and the DataDescriptor.w is the height
-    {
-      int tmp = aDataDescriptor.h;
-      aDataDescriptor.h = aDataDescriptor.w;
-      aDataDescriptor.w = tmp;
-    }
+    std::swap(aDataDescriptor.h,aDataDescriptor.w);
+    std::swap(aDataDescriptor.roi.ulx, aDataDescriptor.roi.uly);
+    std::swap(aDataDescriptor.roi.urx, aDataDescriptor.roi.ury);
+    std::swap(aDataDescriptor.roi.blx, aDataDescriptor.roi.bly);
+    std::swap(aDataDescriptor.roi.brx, aDataDescriptor.roi.bry);
     break;
   default:
     LOG_ERROR("Unsupported Ulterius bit depth: " << aDataDescriptor.ss);
     return PLUS_FAIL;
   }
-  this->SetFrameSize( *aSource, aDataDescriptor.w, aDataDescriptor.h);
+
+  if (this->AutoClipEnabled)
+  {
+    int clipRectangleOrigin[3] = {0,0,0};
+    clipRectangleOrigin[0] = std::min(aDataDescriptor.roi.ulx, aDataDescriptor.roi.blx);
+    clipRectangleOrigin[1] = std::min(aDataDescriptor.roi.uly, aDataDescriptor.roi.ury);
+    int clipRectangleSize[3] = {0,0,1};
+    clipRectangleSize[0] = std::max(aDataDescriptor.roi.urx-aDataDescriptor.roi.ulx, aDataDescriptor.roi.brx-aDataDescriptor.roi.blx);
+    clipRectangleSize[1] = std::max(aDataDescriptor.roi.bly-aDataDescriptor.roi.uly, aDataDescriptor.roi.bry-aDataDescriptor.roi.ury);
+    aSource->SetClipRectangleOrigin(clipRectangleOrigin);
+    aSource->SetClipRectangleSize(clipRectangleSize);
+  }
+
+  this->SetInputFrameSize( *aSource, aDataDescriptor.w, aDataDescriptor.h, 1 );
 
   return PLUS_SUCCESS;
 }

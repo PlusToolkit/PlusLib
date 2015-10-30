@@ -1331,7 +1331,7 @@ void MicronTrackerInterface::getFileNamesFromDirectory(std::vector<std::string> 
 #ifdef _WIN32 // Windows
     _finddata_t file; 
     std::string findPath=dir+"\\*.*";
-    long currentPosition = _findfirst(findPath.c_str(), &file); //find the first file in directory
+    intptr_t currentPosition = _findfirst(findPath.c_str(), &file); //find the first file in directory
     if (currentPosition == -1L)
     {
       return ; //end the procedure if no file is found

@@ -10,7 +10,7 @@
       UseData="TRANSFORM"
       AcquisitionRate="15"
       LocalTimeOffsetSec="0.0"
-      SequenceMetafile="EightLandmarkPointsTrackedForPhantomRegistration.mha"
+      SequenceFile="EightLandmarkPointsTrackedForPhantomRegistration.mha"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE"
       ToolReferenceFrame="Tracker" >
@@ -39,13 +39,7 @@
   </CoordinateDefinitions>
 
   <Rendering WorldCoordinateFrame="Reference">
-    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel"
-      File="Stylus_Example.stl"
-      ModelToObjectTransform="
-        1 0 0 -210.0
-        0 1 0 0
-        0 0 1 0
-        0 0 0 1" />
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel" File="Stylus_Example.stl" />
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
       Opacity="0.6"
       File="fCal_2.0.stl"
@@ -123,6 +117,10 @@
     ReferenceCoordinateFrame="Reference"
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+    FixedChannelId="VideoStream" 
+    FixedSourceId="Video"
+    MovingChannelId="TrackerStream"
+    MovingSourceId="ProbeToTracker"
     DefaultSelectedChannelId="TrackerStream" />
   
   <vtkPivotCalibrationAlgo

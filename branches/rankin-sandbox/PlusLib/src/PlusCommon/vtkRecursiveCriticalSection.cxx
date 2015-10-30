@@ -30,7 +30,6 @@ void vtkSimpleRecursiveCriticalSection::Init()
 #endif
   
 #ifdef VTK_USE_WIN32_THREADS
-  //this->MutexLock = CreateMutex( NULL, FALSE, NULL ); 
   InitializeCriticalSection(&this->CritSec);
 #endif
 
@@ -48,7 +47,6 @@ void vtkSimpleRecursiveCriticalSection::Init()
 vtkSimpleRecursiveCriticalSection::~vtkSimpleRecursiveCriticalSection()
 {
 #ifdef VTK_USE_WIN32_THREADS
-  //CloseHandle(this->MutexLock);
   DeleteCriticalSection(&this->CritSec);
 #endif
 
@@ -82,7 +80,6 @@ void vtkSimpleRecursiveCriticalSection::Unlock()
 #endif
 
 #ifdef VTK_USE_WIN32_THREADS
-  //ReleaseMutex( this->MutexLock );
   LeaveCriticalSection(&this->CritSec);
 #endif
 

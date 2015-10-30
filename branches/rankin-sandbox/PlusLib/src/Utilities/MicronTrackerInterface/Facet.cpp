@@ -118,7 +118,7 @@ bool Facet::identify(MCamera* cam, std::vector<Vector*> vectorSet, double positi
   else
     camHandle = cam->Handle();
 
-  Facet_Identify(this->m_handle, cam->Handle(), vectorHandles, vectorSet.size(),  &result);
+  Facet_Identify(this->m_handle, cam->Handle(), vectorHandles, static_cast<int>(vectorSet.size()),  &result);
   free(vectorHandles);
   return result;
 }

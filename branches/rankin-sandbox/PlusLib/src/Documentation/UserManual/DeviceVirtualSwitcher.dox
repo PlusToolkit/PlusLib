@@ -1,12 +1,7 @@
 /*!
 \page DeviceVirtualSwitcher Virtual Switcher
 
-\section VirtualSwitcherSupportedPlatforms Included in packages
-- \ref PackageWin32
-- \ref PackageWin64
-- \ref PackageWin32Embedded
-- \ref PackageMacOs
-- \ref PackageLinux
+This is an experimental device to allow sending the content of one of the input channels to the output channel.
 
 \section VirtualSwitcherConfigSettings Device configuration settings
 

@@ -15,7 +15,7 @@ See License.txt for details.
 
 //-----------------------------------------------------------------------------
 
-ToolStateDisplayWidgetTest::ToolStateDisplayWidgetTest(QWidget *parent, Qt::WFlags flags)
+ToolStateDisplayWidgetTest::ToolStateDisplayWidgetTest(QWidget *parent, Qt::WindowFlags flags)
 : QDialog(parent, flags)
 , m_DeviceSetSelectorWidget(NULL)
 , m_DataCollector(NULL)

@@ -19,7 +19,6 @@ static const char OFFLINE_TESTING_FILENAME[]="c:\\Users\\lasso\\Downloads\\bktes
 
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusBuffer.h"
 #include "PixelCodec.h"
 
 #include <stdlib.h>
@@ -307,23 +306,21 @@ PlusStatus vtkBkProFocusOemVideoSource::InternalUpdate()
     return PLUS_FAIL;
   }
   // If the buffer is empty, set the pixel type and frame size to the first received properties 
-  if ( aSource->GetBuffer()->GetNumberOfItems() == 0 )
+  if ( aSource->GetNumberOfItems() == 0 )
   {
     LOG_DEBUG("Set up BK ProFocus image buffer");
     int* frameExtent=this->Internal->DecodedImageFrame->GetExtent();
     int frameSizeInPix[2]={frameExtent[1]-frameExtent[0]+1, frameExtent[3]-frameExtent[2]+1};
-    aSource->GetBuffer()->SetPixelType(this->Internal->DecodedImageFrame->GetScalarType());
-    aSource->GetBuffer()->SetImageType(US_IMG_BRIGHTNESS);
-    aSource->GetBuffer()->SetFrameSize( frameSizeInPix[0], frameSizeInPix[1] );
-    aSource->GetBuffer()->SetImageOrientation(US_IMG_ORIENT_MF);
+    aSource->SetPixelType(this->Internal->DecodedImageFrame->GetScalarType());
+    aSource->SetImageType(US_IMG_BRIGHTNESS);
+    aSource->SetInputFrameSize( frameSizeInPix[0], frameSizeInPix[1], 1 );
 
     LOG_INFO("Frame size: " << frameSizeInPix[0] << "x" << frameSizeInPix[1]
       << ", pixel type: " << vtkImageScalarTypeNameMacro(this->Internal->DecodedImageFrame->GetScalarType())
-      << ", device image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetPortImageOrientation())
-      << ", buffer image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetBuffer()->GetImageOrientation()));
+      << ", buffer image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation()));
 
   } 
-  if( aSource->GetBuffer()->AddItem(this->Internal->DecodedImageFrame, aSource->GetPortImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber) != PLUS_SUCCESS )
+  if( aSource->AddItem(this->Internal->DecodedImageFrame, aSource->GetInputImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber) != PLUS_SUCCESS )
   {
     LOG_ERROR("Error adding item to video source " << aSource->GetSourceId() << " on channel " << this->Internal->Channel->GetChannelId() );
     return PLUS_FAIL;

@@ -28,10 +28,11 @@ class vtkXMLDataElement;
   The stylus tip position is computed by robust LSQR method, which detects and ignores outliers (that have much larger reprojection error than other points).
   
   The stylus pose is computed assuming that the marker is attached on the center of one of the stylus axes, which is often a good approximation.
-  The axis that points towards the marker is the PivotPoint coordinate system's X axis. The Y axis of the PivotPoint coordinate system is
-  aligned with the marker coordinate system's Y axis (unless the X axis of the PivotPoint coordinate system is parallel with the marker coordinate
-  system's Y axis; in this case the Y axis of the PivotPoint coordinate system is aligned with the marker coordinate system's Z axis). The Z axis
-  of the PivotPoint coordinate system is chosen to be the cross product of the X and Y axes.
+  The axis that points towards the marker is the PivotPoint coordinate system's -Z axis (so that points in front of the stylus have positive Z coordinates
+  in the PivotPoint coordinate system). The X axis of the PivotPoint coordinate system is
+  aligned with the marker coordinate system's X axis (unless the Z axis of the PivotPoint coordinate system is parallel with the marker coordinate
+  system's X axis; in this case the X axis of the PivotPoint coordinate system is aligned with the marker coordinate system's Y axis). The Y axis
+  of the PivotPoint coordinate system is chosen to be the cross product of the Z and X axes.
   
   The method detects outlier points (points that have larger than 3x error than the standard deviation) and ignores them when computing the pivot point
   coordinates and the calibration error.

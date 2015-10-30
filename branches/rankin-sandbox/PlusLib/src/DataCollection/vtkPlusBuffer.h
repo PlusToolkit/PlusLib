@@ -17,9 +17,10 @@ See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
 #include "PlusConfigure.h"
 #include "vtkDataCollectionExport.h"
 
+#include "StreamBufferItem.h"
 #include "TrackedFrame.h"
 #include "vtkObject.h"
-#include "vtkPlusDeviceTypes.h"
+#include "vtkTimestampedCircularBuffer.h"
 
 class vtkPlusDevice;
 enum ToolStatus;
@@ -60,28 +61,53 @@ public:
     Add a frame plus a timestamp to the buffer with frame index.
     If the timestamp is  less than or equal to the previous timestamp,
     or if the frame's format doesn't match the buffer's frame format,
-    then the frame is not added to the buffer.
+    then the frame is not added to the buffer. If a clip rectangle is defined
+    then only that portion of the frame is extracted.
   */
-  virtual PlusStatus AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, US_IMAGE_TYPE imageType, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
-    double filteredTimestamp=UNDEFINED_TIMESTAMP, const TrackedFrame::FieldMapType* customFields = NULL); 
+  virtual PlusStatus AddItem(vtkImageData* frame, 
+    US_IMAGE_ORIENTATION usImageOrientation, 
+    US_IMAGE_TYPE imageType, 
+    long frameNumber, 
+    const int clipRectangleOrigin[3],
+    const int clipRectangleSize[3],
+    double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
+    double filteredTimestamp=UNDEFINED_TIMESTAMP, 
+    const TrackedFrame::FieldMapType* customFields = NULL); 
   /*!
     Add a frame plus a timestamp to the buffer with frame index.
     If the timestamp is  less than or equal to the previous timestamp,
     or if the frame's format doesn't match the buffer's frame format,
-    then the frame is not added to the buffer.
+    then the frame is not added to the buffer. If a clip rectangle is defined
+    then only that portion of the frame is extracted.
   */
-  virtual PlusStatus AddItem(const PlusVideoFrame* frame, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
-    double filteredTimestamp=UNDEFINED_TIMESTAMP, const TrackedFrame::FieldMapType* customFields = NULL); 
+  virtual PlusStatus AddItem(const PlusVideoFrame* frame, 
+    long frameNumber, 
+    const int clipRectangleOrigin[3],
+    const int clipRectangleSize[3],
+    double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
+    double filteredTimestamp=UNDEFINED_TIMESTAMP, 
+    const TrackedFrame::FieldMapType* customFields = NULL); 
   /*!
     Add a frame plus a timestamp to the buffer with frame index.
     Additionally an optional field name&value can be added,
     which will be saved as a custom field of the added item.
     If the timestamp is  less than or equal to the previous timestamp,
     or if the frame's format doesn't match the buffer's frame format,
-    then the frame is not added to the buffer.
+    then the frame is not added to the buffer. If a clip rectangle is defined
+    then only that portion of the image is extracted.
   */
-  virtual PlusStatus AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, const int frameSizeInPx[2], PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, 
-    int  numberOfBytesToSkip, long   frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, double filteredTimestamp=UNDEFINED_TIMESTAMP, 
+  virtual PlusStatus AddItem(void* imageDataPtr, 
+    US_IMAGE_ORIENTATION  usImageOrientation, 
+    const int inputFrameSizeInPx[3], 
+    PlusCommon::VTKScalarPixelType pixelType, 
+    int numberOfScalarComponents, 
+    US_IMAGE_TYPE imageType, 
+    int  numberOfBytesToSkip, 
+    long frameNumber, 
+    const int clipRectangleOrigin[3],
+    const int clipRectangleSize[3],
+    double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
+    double filteredTimestamp=UNDEFINED_TIMESTAMP, 
     const TrackedFrame::FieldMapType* customFields = NULL);
 
   /*!
@@ -106,14 +132,17 @@ public:
   /*! Get oldest timestamp in the buffer */
   virtual ItemStatus GetOldestTimeStamp( double& oldestTimestamp );  
 
-  /*! Get video buffer item timestamp */
+  /*! Get buffer item timestamp */
   virtual ItemStatus GetTimeStamp( BufferItemUidType uid, double& timestamp); 
+
+  /*! Returns true if the latest item contains valid video data */
+  virtual bool GetLatestItemHasValidVideoData();
+
+  /*! Returns true if the latest item contains valid transform data */
+  virtual bool GetLatestItemHasValidTransformData();
 
   /*! Get the index assigned by the data acquisition system (usually a counter) from the buffer by frame UID. */
   virtual ItemStatus GetIndex(const BufferItemUidType uid, unsigned long &index);
-
-  /*! Get frame UID from buffer index */
-  virtual ItemStatus GetItemUidFromBufferIndex(const int bufferIndex, BufferItemUidType &uid );  
 
   /*!
     Given a timestamp, compute the nearest buffer index 
@@ -184,13 +213,13 @@ public:
   bool GetTimeStampReporting();
 
   /*! Set the frame size in pixel  */
-  PlusStatus SetFrameSize(int x, int y); 
+  PlusStatus SetFrameSize(int x, int y, int z); 
   /*! Set the frame size in pixel  */
-  PlusStatus SetFrameSize(int frameSize[2]); 
+  PlusStatus SetFrameSize(int frameSize[3]); 
   /*! Get the frame size in pixel  */
   virtual int* GetFrameSize();
-  virtual PlusStatus GetFrameSize(int &_arg1, int &_arg2);
-  virtual PlusStatus GetFrameSize (int _arg[2]);
+  virtual PlusStatus GetFrameSize(int &_arg1, int &_arg2, int &_arg3);
+  virtual PlusStatus GetFrameSize (int _arg[3]);
 
   /*! Set the pixel type */
   PlusStatus SetPixelType(PlusCommon::VTKScalarPixelType pixelType); 
@@ -225,7 +254,7 @@ public:
   PlusStatus CopyImagesFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering, bool copyCustomFrameFields);
 
   /*! Dump the current state of the video buffer to metafile */
-  virtual PlusStatus WriteToMetafile( const char* filename, bool useCompression = false ); 
+  virtual PlusStatus WriteToSequenceFile( const char* filename, bool useCompression = false ); 
 
   vtkGetStringMacro(DescriptiveName);
   vtkSetStringMacro(DescriptiveName);
@@ -241,7 +270,7 @@ protected:
     Compares frame format with new frame imaging parameters.
     \return true if current buffer frame format matches the method arguments, otherwise false
   */
-  virtual bool CheckFrameFormat( const int frameSizeInPx[2], PlusCommon::VTKScalarPixelType pixelType, US_IMAGE_TYPE imgType, int numberOfScalarComponents );
+  virtual bool CheckFrameFormat( const int frameSizeInPx[3], PlusCommon::VTKScalarPixelType pixelType, US_IMAGE_TYPE imgType, int numberOfScalarComponents );
 
   /*! Returns the two buffer items that are closest previous and next buffer items relative to the specified time. itemA is the closest item */
   PlusStatus GetPrevNextBufferItemFromTime(double time, StreamBufferItem& itemA, StreamBufferItem& itemB);
@@ -260,7 +289,7 @@ protected:
   virtual ItemStatus GetStreamBufferItemFromClosestTime( double time, StreamBufferItem* bufferItem);
 
   /*! Image frame size in pixel */
-  int FrameSize[2]; 
+  int FrameSize[3]; 
   
   /*! Image pixel type */
   PlusCommon::VTKScalarPixelType PixelType;
@@ -274,7 +303,7 @@ protected:
   /*! Image orientation (MF, MN, ...) */
   US_IMAGE_ORIENTATION ImageOrientation; 
 
-  typedef vtkTimestampedCircularBuffer<StreamBufferItem> StreamItemCircularBuffer;
+  typedef vtkTimestampedCircularBuffer StreamItemCircularBuffer;
   /*! Timestamped circular buffer that stores the last N frames */
   StreamItemCircularBuffer* StreamBuffer; 
 

@@ -26,7 +26,7 @@ vtkUsScanConvert::vtkUsScanConvert()
   this->OutputImageExtent[2]=0;
   this->OutputImageExtent[3]=799;
   this->OutputImageExtent[4]=0; // not used
-  this->OutputImageExtent[5]=1; // not used
+  this->OutputImageExtent[5]=0; // not used
   this->OutputImageSpacing[0]=0.2;
   this->OutputImageSpacing[1]=0.2;
   this->OutputImageSpacing[2]=1.0; // not used
@@ -88,7 +88,7 @@ PlusStatus vtkUsScanConvert::ReadConfiguration(vtkXMLDataElement* scanConversion
     this->OutputImageExtent[2]=0;
     this->OutputImageExtent[3]=outputImageSize[1]-1;
     this->OutputImageExtent[4]=0;
-    this->OutputImageExtent[5]=1;
+    this->OutputImageExtent[5]=0;
   }
 
   double transducerCenterPixel[2]={0};

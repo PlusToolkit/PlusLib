@@ -50,12 +50,12 @@ voxel that has not been assigned any intensity value in the distribution step.
 - \xmlElem \anchor ElementVolumeReconstruction \b VolumeReconstruction  
   - \xmlAtt \b ReferenceCoordinateFrame Defines the Reference coordinate system name: the volume will be reconstructed in this coordinate system
     (the volume axes are parallel to the Reference coordinate system axes and the volume origin position is defined in the Reference coordinate system).
-    If not defined then the coordinate system name has to be specified by other means before starting a reconstruction. \OptionalAtt{" "}
+    If not defined then the coordinate system name has to be specified by other means before starting a reconstruction. \OptionalAtt{ }
   - \xmlAtt \b ImageCoordinateFrame Defines the image coordinate system name: it corresponds to the 2D frame of the image data in the tracked frame.
-    If not defined then the coordinate system name has to be specified by other means before starting a reconstruction. \OptionalAtt{" "} \OptionalAtt{" "}
+    If not defined then the coordinate system name has to be specified by other means before starting a reconstruction. \OptionalAtt{ } \OptionalAtt{ }
   - \xmlAtt \b OutputSpacing Output image resolution for each dimension of the reconstructed volume. Vector of 3 numbers, separated by spaces.\RequiredAtt
   - \xmlAtt \b OutputOrigin Is output image origin position vector for each dimension of the reconstructed volume. Vector of 3 numbers, separated by spaces. \OptionalAtt{0 0 0}
-  - \xmlAtt \b OutputExtent Defines the size of the reconstructed volume.  Vector of 6 numbers (x start, x end, y start, y end, z start, z end), separated by spaces. Usually the start values are 0, end values are the intended size - 1.\OptionalAtt{" "}
+  - \xmlAtt \b OutputExtent Defines the size of the reconstructed volume.  Vector of 6 numbers (x start, x end, y start, y end, z start, z end), separated by spaces. Usually the start values are 0, end values are the intended size - 1.\OptionalAtt{ }
   - \xmlAtt \b ClipRectangleOrigin Crop rectangle origin of the frame (in pixels). See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{0 0}
   - \xmlAtt \b ClipRectangleSize Crop rectangle size of the frame (in pixels). If it is \c "0 0" then the whole frame will be captured. See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{0 0}
   - \xmlAtt \b FanAnglesDeg Two-element vector containing the angles of the two straight edge of the fan, in degrees. If both angles are 0 then no fan clipping is performed. See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{0 0}
@@ -65,7 +65,8 @@ voxel that has not been assigned any intensity value in the distribution step.
   - \xmlAtt \b FanOriginPixel Two-element vector containing the origin of the clipping fan, in the image coordinate system (in pixels). See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{0 0}
   - \xmlAtt \b FanRadiusStartPixel Minimum depth of the clipping fan in the image coordinate system (in pixels). See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{0}
   - \xmlAtt \b FanRadiusStopPixel Maximum depth of the clipping fan in the image coordinate system (in pixels). See more information in the \ref VolumeReconstructionConfigSettingsClipping section. \OptionalAtt{500}
-  - \xmlAtt \b SkipInterval only every [SkipInterval] images from the input will be used in the reconstruction (Ie this is the number of frames that are skipped when the index is increased) \OptionalAtt{1}
+  - \xmlAtt \b PixelRejectionThreshold Pixels that have lower brightness value than this threshold value will not be inserted into the volume. If not specified then all pixels in the clipping rectangle/fan will be pasted into the output volume. Higher values remove more of the dark image regions therefore reducing the chance of the striping artifact but it removes dark image areas everywhere. Typically a few levels above the completely black value works well (for example, for an image in the 0-255 range, a value of 3 may work).\OptionalAtt{ }
+  - \xmlAtt \b SkipInterval only every [SkipInterval] images from the input will be used in the reconstruction (i.e., this is the number of frames that are skipped when the index is increased) \OptionalAtt{1}
   - \xmlAtt \b Interpolation Set the interpolation mode\OptionalAtt{NEAREST_NEIGHBOR}
       - \c NEAREST_NEIGHBOR Each pixel is inserted only into the spatially nereast voxel. Faster, but is susceptible to noise. (default)
       - \c LINEAR Each pixel is distributed into the surrounding eight voxels using trilinear interpolation weights. Resists noise, but is slower and may introduce blurring.

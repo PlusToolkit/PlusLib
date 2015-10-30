@@ -6,7 +6,6 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "vtkObjectFactory.h"
-#include "vtkPlusBuffer.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkVirtualMixer.h"
@@ -38,7 +37,7 @@ vtkVirtualMixer::~vtkVirtualMixer()
   }
 
   // Mixer fakes an output channel to enable "GetTrackedFrame" functionality
-  // We don't want the plus device deconstructor destroying sources in output channels it doesn't own
+  // We don't want the plus device destructor destroying sources in output channels it doesn't own
   // So clear it before it runs (see #756)
   this->OutputChannels.clear();
 }
@@ -215,4 +214,10 @@ bool vtkVirtualMixer::IsResettable()
   }
 
   return false;
+}
+
+//----------------------------------------------------------------------------
+vtkPlusChannel* vtkVirtualMixer::GetChannel() const
+{
+  return this->OutputChannels[0];
 }

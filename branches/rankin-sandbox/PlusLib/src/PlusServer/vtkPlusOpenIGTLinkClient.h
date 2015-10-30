@@ -15,6 +15,7 @@
 #include "vtkObject.h"
 #include "vtkPlusCommand.h"
 
+#include <deque>
 #include <string>
 
 class vtkMultiThreader; 
@@ -39,7 +40,8 @@ public:
   vtkSetMacro( ServerPort, int );
   vtkSetStringMacro( ServerHost );
     
-  PlusStatus Connect();
+  /*! If timeoutSec<0 then connection will be attempted multiple times until successfully connected or the timeout elapse */
+  PlusStatus Connect(double timeoutSec=-1);
   PlusStatus Disconnect();
   
   PlusStatus SendCommand( vtkPlusCommand* command );

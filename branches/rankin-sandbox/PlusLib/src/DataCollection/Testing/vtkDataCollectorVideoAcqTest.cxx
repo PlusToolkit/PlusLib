@@ -86,10 +86,10 @@ int main(int argc, char **argv)
   vtkPlusDataSource* aSource(NULL);
   if( device->GetOutputChannelByName(aChannel, "VideoStream") == PLUS_SUCCESS && aChannel->GetVideoSource(aSource) == PLUS_SUCCESS )
   {
-    buffer->DeepCopy(aSource->GetBuffer());
+    aSource->DeepCopyBufferTo(*buffer);
 
     LOG_INFO("write video buffer to " << outputVideoBufferSequenceFileName);
-    buffer->WriteToMetafile(outputVideoBufferSequenceFileName.c_str(), true); 
+    buffer->WriteToSequenceFile(outputVideoBufferSequenceFileName.c_str(), true); 
 
     buffer->Delete(); 
 

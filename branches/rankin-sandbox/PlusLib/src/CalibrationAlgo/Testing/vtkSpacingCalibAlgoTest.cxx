@@ -10,14 +10,15 @@
   compares the results to a baseline
 */ 
 
+#include "FidPatternRecognition.h"
 #include "PlusConfigure.h"
-#include "vtksys/CommandLineArguments.hxx"
-#include "vtksys/SystemTools.hxx"
+#include "vtkHTMLGenerator.h"
+#include "vtkSequenceIO.h"
+#include "vtkSpacingCalibAlgo.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
-#include "FidPatternRecognition.h"
-#include "vtkSpacingCalibAlgo.h"
-#include "vtkHTMLGenerator.h"
+#include "vtksys/CommandLineArguments.hxx"
+#include "vtksys/SystemTools.hxx"
 
 // define tolerance used for comparing double numbers
 #ifndef _WIN32
@@ -89,7 +90,7 @@ int main(int argc, char **argv)
   {
     LOG_INFO("Reading " << inputSequenceMetafiles[i] << " ..."); 
     vtkSmartPointer<vtkTrackedFrameList> tfList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-    if ( tfList->ReadFromSequenceMetafile(inputSequenceMetafiles[i].c_str()) != PLUS_SUCCESS )
+    if( vtkSequenceIO::Read(inputSequenceMetafiles[i], tfList) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to read sequence metafile: " << inputSequenceMetafiles[i]); 
       return EXIT_FAILURE;

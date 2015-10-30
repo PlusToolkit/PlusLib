@@ -13,7 +13,6 @@ See License.txt for details.
 
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusBuffer.h"
 
 #include "vtkUSImagingParameters.h"
 
@@ -228,6 +227,7 @@ vtkIntersonSDKCxxVideoSource::vtkIntersonSDKCxxVideoSource():
   this->StartThreadForInternalUpdates = false;
 
   this->RequireImageOrientationInConfiguration = true;
+  this->RequirePortNameInDeviceSetConfiguration = true;
 
   this->ImagingParameters = new vtkUsImagingParameters(this);
 }
@@ -360,10 +360,8 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
       }
 
     source = rfSources[0];
-    vtkPlusBuffer * plusBuffer = source->GetBuffer();
     // Clear buffer on connect because the new frames that we will acquire might have a different size 
-    plusBuffer->Clear();
-    plusBuffer->SetImageOrientation( US_IMG_ORIENT_FU );
+    source->Clear();
 
     vtkPlusChannel * channel = this->Internal->GetSourceChannel( source );
     if( channel == NULL )
@@ -373,21 +371,23 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
       }
     else
       {
-      plusBuffer->SetPixelType( VTK_SHORT );  
-      plusBuffer->SetImageType( US_IMG_RF_REAL );
-      plusBuffer->SetFrameSize( Scan2DClassType::MAX_RFSAMPLES, Scan2DClassType::MAX_VECTORS ); 
-      plusBuffer->SetImageOrientation( US_IMG_ORIENT_FU );
-      LOG_INFO("RF Pixel type: " << vtkImageScalarTypeNameMacro( plusBuffer->GetPixelType() )
+      source->SetPixelType( VTK_SHORT );  
+      source->SetImageType( US_IMG_RF_REAL );
+      source->SetOutputImageOrientation( US_IMG_ORIENT_FM );
+      source->SetInputFrameSize( Scan2DClassType::MAX_RFSAMPLES,
+                                 Scan2DClassType::MAX_VECTORS,
+                                 1 ); 
+      LOG_INFO("RF Pixel type: " << vtkImageScalarTypeNameMacro( source->GetPixelType() )
             << ", device image orientation: "
-              << PlusVideoFrame::GetStringFromUsImageOrientation( source->GetPortImageOrientation() )
+              << PlusVideoFrame::GetStringFromUsImageOrientation( source->GetInputImageOrientation() )
             << ", buffer image orientation: "
-              << PlusVideoFrame::GetStringFromUsImageOrientation( plusBuffer->GetImageOrientation() ));
+              << PlusVideoFrame::GetStringFromUsImageOrientation( source->GetOutputImageOrientation() ));
       }
 
     if( !bmodeSources.empty() )
       {
+      LOG_INFO("BMode souces are not empty!!");
       source = bmodeSources[0];
-      plusBuffer = source->GetBuffer();
       channel = this->Internal->GetSourceChannel( source );
       if( channel == NULL )
         {
@@ -396,33 +396,36 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
         }
 
       // Clear buffer on connect because the new frames that we will acquire might have a different size 
-      plusBuffer->Clear();
-      plusBuffer->SetPixelType( VTK_UNSIGNED_CHAR );  
-      plusBuffer->SetImageType( US_IMG_BRIGHTNESS ) ;
+      source->Clear();
+      source->SetPixelType( VTK_UNSIGNED_CHAR );  
+      source->SetImageType( US_IMG_BRIGHTNESS ) ;
       vtkRfProcessor * rfProcessor = channel->GetRfProcessor();
       if( rfProcessor != NULL )
         {
         channel->SetSaveRfProcessingParameters(true); // RF processing parameters were used, make sure they will be saved into the config file
-        plusBuffer->SetImageOrientation( US_IMG_ORIENT_UF );
+        source->SetOutputImageOrientation( US_IMG_ORIENT_MF );
         vtkUsScanConvert * scanConverter = rfProcessor->GetScanConverter();
         if( scanConverter != NULL )
           {
           int outputExtent[6];
           scanConverter->GetOutputImageExtent( outputExtent );
-          plusBuffer->SetFrameSize( outputExtent[1] - outputExtent[0] + 1,
-                                    outputExtent[3] - outputExtent[2] + 1 );
+          source->SetInputFrameSize( outputExtent[1] - outputExtent[0] + 1,
+                                     outputExtent[3] - outputExtent[2] + 1,
+                                     1 );
           }
         }
       else
         {
-        plusBuffer->SetFrameSize( Scan2DClassType::MAX_RFSAMPLES, Scan2DClassType::MAX_VECTORS ); 
-        plusBuffer->SetImageOrientation( US_IMG_ORIENT_FU );
+        source->SetOutputImageOrientation( US_IMG_ORIENT_FM );
+        source->SetInputFrameSize( Scan2DClassType::MAX_RFSAMPLES,
+                                   Scan2DClassType::MAX_VECTORS,
+                                   1 ); 
         }
-      LOG_INFO("BMode Pixel type: " << vtkImageScalarTypeNameMacro( plusBuffer->GetPixelType() )
+      LOG_INFO("Pixel type: " << vtkImageScalarTypeNameMacro( source->GetPixelType() )
             << ", device image orientation: "
-              << PlusVideoFrame::GetStringFromUsImageOrientation( source->GetPortImageOrientation() )
+              << PlusVideoFrame::GetStringFromUsImageOrientation( source->GetInputImageOrientation() )
             << ", buffer image orientation: "
-              << PlusVideoFrame::GetStringFromUsImageOrientation( plusBuffer->GetImageOrientation() ));
+              << PlusVideoFrame::GetStringFromUsImageOrientation( source->GetOutputImageOrientation() ));
       }
     }
   else if( !bmodeSources.empty() )
@@ -431,11 +434,10 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
     this->Internal->DisableRfCallback();
 
     source = bmodeSources[0];
-    vtkPlusBuffer * plusBuffer = source->GetBuffer();
     // Clear buffer on connect because the new frames that we will acquire might have a different size 
-    plusBuffer->Clear();
-    plusBuffer->SetPixelType( VTK_UNSIGNED_CHAR );  
-    plusBuffer->SetImageType( US_IMG_BRIGHTNESS );
+    source->Clear();
+    source->SetPixelType( VTK_UNSIGNED_CHAR );  
+    source->SetImageType( US_IMG_BRIGHTNESS );
 
     vtkPlusChannel * channel = this->Internal->GetSourceChannel( source );
     if( channel == NULL )
@@ -452,11 +454,12 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
         if( scanConverter != NULL )
           {
           channel->SetSaveRfProcessingParameters(true); // RF processing parameters were used, make sure they will be saved into the config file
-          plusBuffer->SetImageOrientation( US_IMG_ORIENT_UF );
+          source->SetOutputImageOrientation( US_IMG_ORIENT_MF );
           int outputExtent[6];
           scanConverter->GetOutputImageExtent( outputExtent );
-          plusBuffer->SetFrameSize( outputExtent[1] - outputExtent[0] + 1,
-                                    outputExtent[3] - outputExtent[2] + 1 );
+          source->SetInputFrameSize( outputExtent[1] - outputExtent[0] + 1,
+                                     outputExtent[3] - outputExtent[2] + 1,
+                                     1 );
           }
         else
           {
@@ -466,16 +469,18 @@ PlusStatus vtkIntersonSDKCxxVideoSource::InternalConnect()
         }
       else
         {
-        plusBuffer->SetFrameSize( Scan2DClassType::MAX_SAMPLES, Scan2DClassType::MAX_VECTORS ); 
-        plusBuffer->SetImageOrientation( US_IMG_ORIENT_FU );
+        source->SetOutputImageOrientation( US_IMG_ORIENT_MF );
+        source->SetInputFrameSize( Scan2DClassType::MAX_SAMPLES,
+                                   Scan2DClassType::MAX_VECTORS,
+                                   1 ); 
         }
       }
   
-    LOG_INFO("Pixel type: " << vtkImageScalarTypeNameMacro( plusBuffer->GetPixelType() )
+    LOG_INFO("BMode Pixel type: " << vtkImageScalarTypeNameMacro( source->GetPixelType() )
           << ", device image orientation: "
-            << PlusVideoFrame::GetStringFromUsImageOrientation( source->GetPortImageOrientation() )
+            << PlusVideoFrame::GetStringFromUsImageOrientation( source->GetInputImageOrientation() )
           << ", buffer image orientation: "
-            << PlusVideoFrame::GetStringFromUsImageOrientation( plusBuffer->GetImageOrientation() ));
+            << PlusVideoFrame::GetStringFromUsImageOrientation( source->GetOutputImageOrientation() ));
     }
   else
     {
@@ -774,8 +779,6 @@ PlusStatus vtkIntersonSDKCxxVideoSource::AddBmodeFrameToBuffer( BmodePixelType *
     return PLUS_FAIL;
     }
 
-  vtkPlusBuffer * plusBuffer = source->GetBuffer();
-
   vtkPlusChannel * channel = this->Internal->GetSourceChannel( source );
 
   vtkRfProcessor * rfProcessor = channel->GetRfProcessor();
@@ -801,8 +804,8 @@ PlusStatus vtkIntersonSDKCxxVideoSource::AddBmodeFrameToBuffer( BmodePixelType *
     bufferVtkImageData = this->Internal->ConvertBModeBufferToVtkImage( buffer );
     }
 
-  const PlusStatus status = plusBuffer->AddItem( bufferVtkImageData,
-    source->GetPortImageOrientation(),
+  const PlusStatus status = source->AddItem( bufferVtkImageData,
+    source->GetInputImageOrientation(),
     US_IMG_BRIGHTNESS,
     this->FrameNumber );
 
@@ -841,12 +844,11 @@ PlusStatus vtkIntersonSDKCxxVideoSource::AddRfFrameToBuffer( RfPixelType * buffe
     return PLUS_FAIL;
     }
 
-  vtkPlusBuffer * plusBuffer = source->GetBuffer();
   vtkPlusChannel * channel = this->Internal->GetSourceChannel( source );
 
   vtkImageData * rfBufferVtkImageData = this->Internal->ConvertRfBufferToVtkImage( buffer );
-  if( plusBuffer->AddItem( rfBufferVtkImageData,
-                           source->GetPortImageOrientation(),
+  if( source->AddItem( rfBufferVtkImageData,
+                           source->GetInputImageOrientation(),
                            US_IMG_RF_REAL,
                            this->FrameNumber ) == PLUS_FAIL )
     {
@@ -860,7 +862,6 @@ PlusStatus vtkIntersonSDKCxxVideoSource::AddRfFrameToBuffer( RfPixelType * buffe
     {
     source = bmodeSources[0];
     channel = this->Internal->GetSourceChannel( source );
-    plusBuffer = source->GetBuffer();
     vtkRfProcessor * rfProcessor = channel->GetRfProcessor();
     if( rfProcessor != NULL )
       {
@@ -877,8 +878,8 @@ PlusStatus vtkIntersonSDKCxxVideoSource::AddRfFrameToBuffer( RfPixelType * buffe
         {
         bmodeBufferVtkImageData = rfProcessor->GetBrightnessConvertedImage();
         }
-      if( plusBuffer->AddItem( bmodeBufferVtkImageData,
-                               source->GetPortImageOrientation(),
+      if( source->AddItem( bmodeBufferVtkImageData,
+                               source->GetInputImageOrientation(),
                                US_IMG_BRIGHTNESS,
                                this->FrameNumber ) == PLUS_FAIL )
         {

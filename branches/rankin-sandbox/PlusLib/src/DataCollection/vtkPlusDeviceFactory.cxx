@@ -15,6 +15,7 @@ See License.txt for details.
 #include "vtkVirtualDiscCapture.h"
 #include "vtkVirtualVolumeReconstructor.h"
 #include "vtkImageProcessorVideoSource.h"
+#include "vtkGenericSerialDevice.h"
 
 //----------------------------------------------------------------------------
 // Tracker devices
@@ -44,11 +45,18 @@ See License.txt for details.
 #ifdef PLUS_USE_Ascension3DGm
 #include "vtkAscension3DGmTracker.h"
 #endif
+#ifdef PLUS_USE_OPTIMET_CONOPROBE
+#include "vtkOptimetConoProbeMeasurer.h"
+#endif 
+#ifdef PLUS_USE_OPTITRACK
+#include "vtkOptiTrackTracker.h"
+#endif
 #ifdef PLUS_USE_PHIDGET_SPATIAL_TRACKER
 #include "vtkPhidgetSpatialTracker.h"
 #endif
 #include "vtkFakeTracker.h"
 #include "vtkChRoboticsTracker.h"
+#include "vtkMicrochipTracker.h"
 #ifdef PLUS_USE_3dConnexion_TRACKER
   // 3dConnexion tracker is supported on Windows only
   #include "vtk3dConnexionTracker.h"
@@ -79,7 +87,6 @@ See License.txt for details.
 #endif
 #endif
 
-
 #ifdef PLUS_USE_ICCAPTURING_VIDEO
 #include "vtkICCapturingSource.h"
 #endif
@@ -97,6 +104,10 @@ See License.txt for details.
 #include "Telemed\vtkTelemedVideoSource.h"
 #endif
 
+#ifdef PLUS_USE_THORLABS_VIDEO
+#include "ThorLabs\vtkThorLabsVideoSource.h"
+#endif
+
 #ifdef PLUS_USE_OpenIGTLink
 #include "vtkOpenIGTLinkVideoSource.h"
 #endif
@@ -106,7 +117,11 @@ See License.txt for details.
 #endif
 
 #ifdef PLUS_USE_IntuitiveDaVinci
-#include "..\IntuitiveDaVinci\vtkIntuitiveDaVinciTracker.h"
+#include "vtkIntuitiveDaVinciTracker.h"
+#endif
+
+#ifdef PLUS_USE_PHILIPS_3D_ULTRASOUND
+#include "vtkPhilips3DProbeVideoSource.h"
 #endif
 
 //----------------------------------------------------------------------------
@@ -119,6 +134,8 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
 {
   DeviceTypes["FakeTracker"]=(PointerToDevice)&vtkFakeTracker::New; 
   DeviceTypes["ChRobotics"]=(PointerToDevice)&vtkChRoboticsTracker::New; 
+  DeviceTypes["Microchip"]=(PointerToDevice)&vtkMicrochipTracker::New;
+  
 #ifdef PLUS_USE_3dConnexion_TRACKER
   // 3dConnexion tracker is supported on Windows only
   DeviceTypes["3dConnexion"]=(PointerToDevice)&vtk3dConnexionTracker::New; 
@@ -155,9 +172,16 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
   DeviceTypes["SavedDataSource"]=(PointerToDevice)&vtkSavedDataSource::New; 
   DeviceTypes["UsSimulator"]=(PointerToDevice)&vtkUsSimulatorVideoSource::New;
   DeviceTypes["ImageProcessor"]=(PointerToDevice)&vtkImageProcessorVideoSource::New;
+  DeviceTypes["GenericSerialDevice"]=(PointerToDevice)&vtkGenericSerialDevice::New;
   DeviceTypes["NoiseVideo"]=(PointerToDevice)&vtkPlusDevice::New; 
 #ifdef PLUS_USE_OpenIGTLink
   DeviceTypes["OpenIGTLinkVideo"]=(PointerToDevice)&vtkOpenIGTLinkVideoSource::New; 
+#endif
+#ifdef PLUS_USE_OPTIMET_CONOPROBE
+  DeviceTypes["OptimetConoProbe"] = (PointerToDevice)&vtkOptimetConoProbeMeasurer::New;
+#endif 
+#ifdef PLUS_USE_OPTITRACK
+  DeviceTypes["OptiTrack"]=(PointerToDevice)&vtkOptiTrackTracker::New; 
 #endif
 #ifdef PLUS_USE_ULTRASONIX_VIDEO
   DeviceTypes["SonixVideo"]=(PointerToDevice)&vtkSonixVideoSource::New; 
@@ -188,12 +212,19 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
 #ifdef PLUS_USE_TELEMED_VIDEO
   DeviceTypes["TelemedVideo"]=(PointerToDevice)&vtkTelemedVideoSource::New;
 #endif
+#ifdef PLUS_USE_THORLABS_VIDEO
+  DeviceTypes["ThorLabsVideo"]=(PointerToDevice)&vtkThorLabsVideoSource::New;
+#endif
 #ifdef PLUS_USE_EPIPHAN
   DeviceTypes["Epiphan"]=(PointerToDevice)&vtkEpiphanVideoSource::New; 
 #endif 
 
 #ifdef PLUS_USE_IntuitiveDaVinci
   DeviceTypes["IntuitiveDaVinci"]=(PointerToDevice)&vtkIntuitiveDaVinciTracker::New;
+#endif
+
+#ifdef PLUS_USE_PHILIPS_3D_ULTRASOUND
+  DeviceTypes["iE33Video"]=(PointerToDevice)&vtkPhilips3DProbeVideoSource::New;
 #endif
 
   // Virtual Devices

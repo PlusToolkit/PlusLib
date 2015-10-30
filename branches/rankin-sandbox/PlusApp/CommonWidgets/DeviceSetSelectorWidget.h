@@ -13,6 +13,8 @@ See License.txt for details.
 
 #include <QWidget>
 #include <QString>
+#include <QAction>
+#include <QMenu>
 
 //-----------------------------------------------------------------------------
 
@@ -65,6 +67,27 @@ public:
   * Hide/show the reset tracker button
   */
   void ShowResetTrackerButton(bool aValue);
+
+  /*!
+  * Provide access to the Connect push button text
+  */
+  void SetConnectButtonText(QString text);
+
+  /*!
+  * Allow settings of an optional suffix in the description box separated by a blank line
+  */
+  void SetDescriptionSuffix(const QString& string);
+
+  /*!
+  * Clear optional suffix in the description box separated by a blank line
+  */
+  void ClearDescriptionSuffix();
+
+  /*! 
+  * Fill the description text box with prefix + body + suffix
+  * Newline separated if prefix or suffix is not empty
+  */
+  void UpdateDescriptionText();
 
 signals:
   /*!
@@ -126,9 +149,19 @@ protected:
     void RefreshFolder();
 
     /*!
-    * Called when Edit configuration button is clicked - opens currently selected configuration in editor application
+    * Called when Edit configuration button is left-clicked - opens currently selected configuration in editor application
     */
     void EditConfiguration();
+
+    /*!
+    * Called when the context menu is requested on the edit button
+    */
+    void ShowEditContextMenu(QPoint);
+
+    /*!
+    * Called when the select editor menu item is called
+    */
+    void SelectEditor();
 
     /*
     * Reset tracker button has been pushed
@@ -139,8 +172,21 @@ protected:
   /*! Configuration directory path */
   QString	m_ConfigurationDirectory;
 
+  /*! Action triggered when button right-clicked */
+  QAction* m_EditorSelectAction;
+  QMenu* m_EditMenu;
+
   /*! Flag telling whether connection has been successful */
   bool	  m_ConnectionSuccessful;
+
+  /*! Prefix to the description in the main text box */
+  QString m_DescriptionPrefix;
+
+  /*! Description in the main text box */
+  QString m_DescriptionBody;
+
+  /*! Suffix to the description in the main text box */
+  QString m_DescriptionSuffix;
 
 protected:
   Ui::DeviceSetSelectorWidget ui;

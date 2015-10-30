@@ -71,8 +71,8 @@ fCal-2.x is recommended for smaller field of view (up to about 10cm imaging dept
 If you image large structures then you probably need fCal 3 phantom. However, fCal-3.x is assembled from multiple pieces (to limit reduce 3D printing time and costs), and so it may be somewhat less accurate then the smaller, unibody fCal-2.x.
 
 
-\section AlgorithmProbeCalibrationExampleConfigFile Example configuration file PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_2.0.xml
+\section AlgorithmProbeCalibrationExampleConfigFile Example configuration file PlusDeviceSet_fCal_Ultrasonix_L14-5_Ascension3DG_2.0.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_2.0.xml"
+\include "data/ConfigFiles/PlusDeviceSet_fCal_Ultrasonix_L14-5_Ascension3DG_2.0.xml"
 
 */

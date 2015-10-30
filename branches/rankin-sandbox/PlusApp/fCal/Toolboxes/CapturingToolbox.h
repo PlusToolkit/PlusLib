@@ -37,7 +37,7 @@ public:
   * \param aParentMainWindow Parent main window
   * \param aFlags widget flag
   */
-  CapturingToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags = 0);
+  CapturingToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags = 0);
 
   /*!
   * Destructor

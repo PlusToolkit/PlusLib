@@ -10,7 +10,6 @@ See License.txt for details.
 #include "vtkInteractorStyleTrackballCamera.h"
 #include "vtkMath.h"
 #include "vtkPlusDevice.h"
-#include "vtkPlusBuffer.h" // Only for dumping buffers
 #include "vtkProperty.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
@@ -77,6 +76,12 @@ vtkVisualizationController::vtkVisualizationController()
   perspectiveVisualizer->SetInputPolyData(this->InputPolyData);
   this->SetPerspectiveVisualizer(perspectiveVisualizer);
 
+  // Set up blank renderer
+  this->BlankRenderer = vtkRenderer::New();
+  this->BlankRenderer->SetBackground(0.1, 0.1, 0.1);
+  this->BlankRenderer->SetBackground2(0.4, 0.4, 0.4);
+  this->BlankRenderer->SetGradientBackground(true);
+
   connect( this->AcquisitionTimer, SIGNAL( timeout() ), this, SLOT( Update() ) );
 }
 
@@ -108,6 +113,14 @@ vtkVisualizationController::~vtkVisualizationController()
 
   this->SetImageVisualizer(NULL);
   this->SetPerspectiveVisualizer(NULL);
+
+  // Set up blank renderer
+  if (this->BlankRenderer != NULL)
+  {
+    this->BlankRenderer->Delete();
+    this->BlankRenderer = NULL;
+  }
+
 }
 
 //-----------------------------------------------------------------------------
@@ -230,6 +243,10 @@ PlusStatus vtkVisualizationController::SetVisualizationMode( DISPLAY_MODE aMode 
       return PLUS_FAIL;
     }
 
+    if( this->BlankRenderer != NULL && this->GetCanvas()->GetRenderWindow()->HasRenderer(this->BlankRenderer) )
+    {
+      this->GetCanvas()->GetRenderWindow()->RemoveRenderer(this->BlankRenderer);
+    }
     if( this->ImageVisualizer != NULL && this->GetCanvas()->GetRenderWindow()->HasRenderer(this->ImageVisualizer->GetCanvasRenderer()) )
     {
       this->GetCanvas()->GetRenderWindow()->RemoveRenderer(this->ImageVisualizer->GetCanvasRenderer());
@@ -249,11 +266,13 @@ PlusStatus vtkVisualizationController::SetVisualizationMode( DISPLAY_MODE aMode 
 
     // Disable camera movements
     this->GetCanvas()->GetRenderWindow()->GetInteractor()->RemoveAllObservers();
-    // Show the canvas
-    this->GetCanvas()->setVisible(true);
   }
   else if ( aMode == DISPLAY_MODE_3D )
   {
+    if( this->BlankRenderer != NULL && this->GetCanvas()->GetRenderWindow()->HasRenderer(this->BlankRenderer) )
+    {
+      this->GetCanvas()->GetRenderWindow()->RemoveRenderer(this->BlankRenderer);
+    }
     if( this->ImageVisualizer != NULL && this->GetCanvas()->GetRenderWindow()->HasRenderer(this->ImageVisualizer->GetCanvasRenderer()) )
     {
       this->GetCanvas()->GetRenderWindow()->RemoveRenderer(this->ImageVisualizer->GetCanvasRenderer());
@@ -271,8 +290,6 @@ PlusStatus vtkVisualizationController::SetVisualizationMode( DISPLAY_MODE aMode 
 
     // Enable camera movements
     this->GetCanvas()->GetRenderWindow()->GetInteractor()->SetInteractorStyle(vtkInteractorStyleTrackballCamera::New());
-    // Show the canvas
-    this->GetCanvas()->setVisible(true);
   }
   else
   {
@@ -402,16 +419,16 @@ PlusStatus vtkVisualizationController::SetScreenRightDownAxesOrientation( US_IMA
 
 PlusStatus vtkVisualizationController::Update()
 {
-  if( this->PerspectiveVisualizer != NULL && CurrentMode == DISPLAY_MODE_3D)
+  if( this->PerspectiveVisualizer != NULL && CurrentMode == DISPLAY_MODE_3D )
   {
     this->PerspectiveVisualizer->Update();
   }
 
   // Force update of the brightness image in the DataCollector,
   // because it is the image that the image actors show
-  if( this->SelectedChannel != NULL && this->GetImageActor() != NULL )
+  if( this->SelectedChannel != NULL && this->GetImageActor() != NULL)
   {
-    this->GetImageActor()->SetInputData_vtk5compatible( this->SelectedChannel->GetBrightnessOutput() );
+    this->GetImageActor()->SetInputData_vtk5compatible(this->SelectedChannel->GetBrightnessOutput());
   }
 
   return PLUS_SUCCESS;
@@ -476,7 +493,7 @@ PlusStatus vtkVisualizationController::GetTransformTranslationString(PlusTransfo
   }
 
   std::stringstream ss;
-  ss << std::fixed << transformMatrix->GetElement(0,3) << " " << transformMatrix->GetElement(1,3) << " " << transformMatrix->GetElement(2,3);
+  ss << std::fixed << std::setprecision(1) << transformMatrix->GetElement(0,3) << " " << transformMatrix->GetElement(1,3) << " " << transformMatrix->GetElement(2,3);
 
   aTransformTranslationString = ss.str();
 
@@ -668,10 +685,7 @@ PlusStatus vtkVisualizationController::HideRenderer()
     this->GetCanvas()->GetRenderWindow()->RemoveRenderer(ImageVisualizer->GetCanvasRenderer());
   }
 
-  if( this->GetCanvas()->isVisible() )
-  {
-    this->GetCanvas()->setVisible(false);
-  }
+  this->GetCanvas()->GetRenderWindow()->AddRenderer(this->BlankRenderer);  
 
   this->CurrentMode = DISPLAY_MODE_NONE;
 
@@ -955,5 +969,18 @@ void vtkVisualizationController::SetSelectedChannel( vtkPlusChannel* aChannel )
   if( this->PerspectiveVisualizer != NULL )
   {
     this->GetPerspectiveVisualizer()->SetChannel(aChannel);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void vtkVisualizationController::SetSliceNumber(int number)
+{
+  if( this->ImageVisualizer != NULL )
+  {
+    this->GetImageVisualizer()->SetSliceNumber(number);
+  }
+  if( this->PerspectiveVisualizer != NULL )
+  {
+    this->GetPerspectiveVisualizer()->SetSliceNumber(number);
   }
 }

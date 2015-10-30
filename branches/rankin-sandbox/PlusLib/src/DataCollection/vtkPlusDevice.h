@@ -11,11 +11,13 @@ See License.txt for details.
 #include "vtkDataCollectionExport.h"
 
 #include "PlusCommon.h"
+#include "vtkStdString.h"
+#include "StreamBufferItem.h"
 #include "TrackedFrame.h"
 
 #include "vtkImageAlgorithm.h"
 #include "vtkMultiThreader.h"
-#include "vtkPlusDeviceTypes.h"
+#include "vtkPlusChannel.h"
 #include "vtkUsImagingParameters.h"
 
 #include <string>
@@ -24,9 +26,25 @@ class TrackedFrame;
 class vtkDataCollector;
 class vtkHTMLGenerator;
 class vtkPlusBuffer;
-class vtkPlusChannel;
 class vtkPlusDataSource;
 class vtkXMLDataElement;
+class vtkPlusDevice;
+
+typedef std::vector<vtkPlusChannel*> ChannelContainer;
+typedef ChannelContainer::const_iterator ChannelContainerConstIterator;
+typedef ChannelContainer::iterator ChannelContainerIterator;
+
+typedef std::vector<vtkPlusBuffer*> StreamBufferContainer;
+typedef StreamBufferContainer::const_iterator StreamBufferContainerConstIterator;
+typedef StreamBufferContainer::iterator StreamBufferContainerIterator;
+
+typedef std::map<int, vtkPlusBuffer*> StreamBufferMapContainer;
+typedef StreamBufferMapContainer::const_iterator StreamBufferMapContainerConstIterator;
+typedef StreamBufferMapContainer::iterator StreamBufferMapContainerIterator;
+
+typedef std::vector<vtkPlusDevice*> DeviceCollection;
+typedef std::vector<vtkPlusDevice*>::iterator DeviceCollectionIterator;
+typedef std::vector<vtkPlusDevice*>::const_iterator DeviceCollectionConstIterator;
 
 /*!
 \class vtkPlusDevice 
@@ -153,8 +171,8 @@ public:
   /*! Clear all tool buffers */
   void ClearAllBuffers();
 
-  /*! Dump the current state of the device to metafile (with each tools and buffers) */
-  virtual PlusStatus WriteToMetafile(const char* filename, bool useCompression = false );
+  /*! Dump the current state of the device to sequence file (with each tools and buffers) */
+  virtual PlusStatus WriteToSequenceFile(const char* filename, bool useCompression = false );
 
   /*! Make this device into a copy of another device. */
   void DeepCopy(vtkPlusDevice* device);
@@ -189,11 +207,14 @@ public:
   /*! Get number of images */
   int GetNumberOfTools() const;
 
-  /*! Get the image object for the specified image name */
+  /*! Get the video source for the specified source name */
   PlusStatus GetVideoSource(const char* aSourceId, vtkPlusDataSource*& aVideoSource);
 
+  /*! Get the video source for the specified source index */
+  PlusStatus GetVideoSourceByIndex(const int index, vtkPlusDataSource*& aVideoSource);
+
   /*! Get the first active image object */
-  PlusStatus GetFirstActiveVideoSource(vtkPlusDataSource*& anImage); 
+  PlusStatus GetFirstVideoSource(vtkPlusDataSource*& anImage); 
 
   /*! Get the beginning of the image iterator */
   DataSourceContainerConstIterator GetVideoIteratorBegin() const; 
@@ -321,23 +342,26 @@ public:
   the device may either refuse a request for an illegal frame size or
   automatically choose a new frame size.
   */
-  virtual PlusStatus SetFrameSize(vtkPlusDataSource& aSource, int x, int y);
+  virtual PlusStatus SetInputFrameSize(vtkPlusDataSource& aSource, int x, int y,  int z);
 
   /*!
   Set the full-frame size.  This must be an allowed size for the device,
   the device may either refuse a request for an illegal frame size or
   automatically choose a new frame size.
   */
-  virtual PlusStatus SetFrameSize(vtkPlusDataSource& aSource, int dim[2]) { return this->SetFrameSize(aSource, dim[0], dim[1]); };
+  virtual PlusStatus SetInputFrameSize(vtkPlusDataSource& aSource, int dim[3]) { return this->SetInputFrameSize(aSource, dim[0], dim[1], dim[3]); };
 
   /*! Get the full-frame size */
-  //virtual int* GetFrameSize();
+  virtual PlusStatus GetInputFrameSize(vtkPlusChannel& aChannel, int &x, int &y, int &z);
 
   /*! Get the full-frame size */
-  virtual PlusStatus GetFrameSize(vtkPlusChannel& aChannel, int &x, int &y);
+  virtual PlusStatus GetInputFrameSize(vtkPlusChannel& aChannel, int dim[3]);
 
   /*! Get the full-frame size */
-  virtual PlusStatus GetFrameSize(vtkPlusChannel& aChannel, int dim[2]);
+  virtual PlusStatus GetOutputFrameSize(vtkPlusChannel& aChannel, int &x, int &y, int &z);
+
+  /*! Get the full-frame size */
+  virtual PlusStatus GetOutputFrameSize(vtkPlusChannel& aChannel, int dim[3]);
 
   /*! Set the pixel type (char, unsigned short, ...) */
   virtual PlusStatus SetPixelType(vtkPlusChannel& aChannel, PlusCommon::VTKScalarPixelType pixelType);
@@ -404,6 +428,12 @@ public:
     If requestedImageId is not empty then assignedImageId is the same as the requestedImageId.
   */
   virtual PlusStatus GetImage(const std::string& requestedImageId, std::string& assignedImageId,const std::string& imageReferencFrameName, vtkImageData* imageData, vtkMatrix4x4* ijkToReferenceTransform);
+
+  /*!
+    Send text message to the device. If a non-NULL pointer is passed as textReceived
+    then the device waits for a response and returns it in textReceived.
+  */
+  virtual PlusStatus SendText(const std::string& textToSend, std::string* textReceived=NULL);
 
 protected:
   static void *vtkDataCaptureThread(vtkMultiThreader::ThreadInfo *data);

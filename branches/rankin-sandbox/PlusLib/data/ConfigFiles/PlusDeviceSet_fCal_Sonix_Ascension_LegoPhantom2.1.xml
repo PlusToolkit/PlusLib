@@ -2,8 +2,8 @@
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
-      Name="SonixTouch and Ascension3DG with Lego Phantom 2.0" 
-      Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." 
+      Name="Ultrasonix US and Ascension3DG with Lego Phantom 2.0" 
+      Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on Ultrasonix US in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." 
     />
     <Device 
       Id="TrackerDevice" 
@@ -30,7 +30,8 @@
       Type="SonixVideo" 
       AcquisitionRate="30" 
       LocalTimeOffsetSec="0"
-      IP="127.0.0.1" >
+      IP="127.0.0.1"
+      AutoClipEnabled="TRUE" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="UF"  />
       </DataSources>
@@ -82,15 +83,7 @@
         0 0 0 1"
     />
     <DisplayableObject Type="Model" ObjectCoordinateFrame="Reference" Id="Volume"/>
-    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel"
-      File="Stylus_Example.stl"
-      ModelToObjectTransform="
-        1 0 0 -210.0
-        0 1 0 0
-        0 0 1 0
-        0 0 0 1"
-    />
-	
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel" File="Stylus_Example.stl" />	
     <DisplayableObject Id="PhantomModel" Type="Model" ObjectCoordinateFrame="Phantom"
       Opacity="0.6"
       File="fCal_L2.0.stl"
@@ -98,8 +91,7 @@
         1 0 0 0
         0 1 0 0
         0 0 1 0
-        0 0 0 1"
-    />
+        0 0 0 1" />
     <DisplayableObject Type="Image" ObjectCoordinateFrame="Image" Id="LiveImage"/>
   </Rendering>
 
@@ -206,6 +198,10 @@
     TransducerOriginCoordinateFrame="TransducerOrigin"
     TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
     TemporalCalibrationDurationSec="10"
+    FixedChannelId="VideoStream" 
+    FixedSourceId="Video"
+    MovingChannelId="TrackerStream"
+    MovingSourceId="ProbeToTracker"
     DefaultSelectedChannelId="TrackedVideoStream" />
 
   <vtkPivotCalibrationAlgo

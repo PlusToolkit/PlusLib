@@ -23,6 +23,7 @@ SET ( PLUSLIB_CONFIG_FILES
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_Sim_VolumeReconstruction.xml
 
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_Server_ChRobotics.xml
+  ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_Server_Microchip.xml
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_Server_Sim_NwirePhantom.xml  
   ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_Server_SimulatedUltrasound_3DSlicer.xml
   ${PLUSLIB_DATA_DIR}/ConfigFiles/SimulatedUltrasound_GelBlockModel_Reference.stl
@@ -63,14 +64,6 @@ IF(PLUS_USE_BKPROFOCUS_VIDEO)
     ${PLUSLIB_DATA_DIR}/ConfigFiles/BkSettings/IniFile.ini
     )
 ENDIF(PLUS_USE_BKPROFOCUS_VIDEO)
-
-IF(PLUS_USE_CERTUS)
-  IF(PLUS_USE_ULTRASONIX_VIDEO)
-    SET ( PLUSLIB_CONFIG_FILES ${PLUSLIB_CONFIG_FILES}
-      ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_NDICertus_1.0.xml
-      )
-  ENDIF(PLUS_USE_ULTRASONIX_VIDEO)
-ENDIF(PLUS_USE_CERTUS)
 
 IF(PLUS_USE_IntuitiveDaVinci)
   SET(PLUSLIB_CONFIG_FILES ${PLUSLIB_CONFIG_FILES}
@@ -116,7 +109,7 @@ IF(PLUS_USE_MICRONTRACKER)
     )
   IF(PLUS_USE_ULTRASONIX_VIDEO)
     SET ( PLUSLIB_CONFIG_FILES ${PLUSLIB_CONFIG_FILES}
-      ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_MicronTracker_2.0.xml
+      ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_Ultrasonix_L14-5_MicronTracker_2.0.xml
       )  
   ENDIF(PLUS_USE_ULTRASONIX_VIDEO)  
 ENDIF(PLUS_USE_MICRONTRACKER)
@@ -134,9 +127,15 @@ IF(PLUS_USE_PHIDGET_SPATIAL_TRACKER)
     )  
 ENDIF(PLUS_USE_PHIDGET_SPATIAL_TRACKER)
 
+IF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
+  SET ( PLUSLIB_CONFIG_FILES ${PLUSLIB_CONFIG_FILES}
+    ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_Server_Philips_ie33_NDIAurora.xml
+    )
+ENDIF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
+
 IF(PLUS_USE_POLARIS)
   SET ( PLUSLIB_CONFIG_FILES ${PLUSLIB_CONFIG_FILES}
-    ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_NDIPolaris_2.0.xml
+    ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_Ultrasonix_L14-5_NDIPolaris_2.0.xml
     ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_Server_NDIPolaris.xml
     ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_Server_NDIAurora.xml
     )
@@ -147,15 +146,37 @@ IF(PLUS_USE_POLARIS)
     )
 ENDIF(PLUS_USE_POLARIS)
 
+IF (PLUS_USE_STEALTHLINK)
+  SET ( PLUSLIB_CONFIG_FILES ${PLUSLIB_CONFIG_FILES}
+    ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_Server_StealthLinkTracker.xml
+    )
+ENDIF(PLUS_USE_STEALTHLINK)
+
+IF(PLUS_USE_TELEMED_VIDEO)
+  SET ( PLUSLIB_CONFIG_FILES ${PLUSLIB_CONFIG_FILES}
+    ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_Server_TelemedVideoCapture.xml
+    )
+ENDIF(PLUS_USE_TELEMED_VIDEO)
+
+
+IF(PLUS_USE_THORLABS_VIDEO)
+  SET ( PLUSLIB_CONFIG_FILES ${PLUSLIB_CONFIG_FILES}
+    ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_Server_ThorLabsVideoCapture.xml
+    )
+ENDIF(PLUS_USE_THORLABS_VIDEO)
+
 IF(PLUS_USE_ULTRASONIX_VIDEO)
   SET ( PLUSLIB_CONFIG_FILES ${PLUSLIB_CONFIG_FILES}
-    ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_Server_SonixTouch_L14-5.xml
+    ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_L14-5.xml
     )
   IF(PLUS_USE_Ascension3DG)
     SET ( PLUSLIB_CONFIG_FILES ${PLUSLIB_CONFIG_FILES}
-      ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_2.0.xml
-      ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_3.0.xml
-      ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_L1.4.xml
+      ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_Ultrasonix_L14-5_Ascension3DG_2.0.xml
+      ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_Ultrasonix_L14-5_Ascension3DG_3.0.xml
+      ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_fCal_Ultrasonix_L14-5_Ascension3DG_L1.4.xml
+      ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_L14-5_Ascension3DG_calibrated.xml
+      ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_C5-2_Ascension3DG_calibrated.xml
+      ${PLUSLIB_DATA_DIR}/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_4DL14-5_Porta_calibrated.xml
       )
   ENDIF(PLUS_USE_Ascension3DG)
 ENDIF(PLUS_USE_ULTRASONIX_VIDEO)
@@ -175,20 +196,41 @@ SET ( PLUSLIB_DATA_FILES
   ${PLUSLIB_DATA_DIR}/TestImages/EightLandmarkPointsTrackedForPhantomRegistration.mha
 )
 
-# Install Qt libs 
-INSTALL(FILES 
-  ${QT_BINARY_DIR}/QtCore4${CMAKE_SHARED_LIBRARY_SUFFIX}
-  ${QT_BINARY_DIR}/QtGui4${CMAKE_SHARED_LIBRARY_SUFFIX}
-  ${QT_BINARY_DIR}/QtNetwork4${CMAKE_SHARED_LIBRARY_SUFFIX}
-  ${QT_BINARY_DIR}/QtSql4${CMAKE_SHARED_LIBRARY_SUFFIX}
-  ${QT_BINARY_DIR}/QtWebKit4${CMAKE_SHARED_LIBRARY_SUFFIX}
-  ${QT_BINARY_DIR}/QtXmlPatterns4${CMAKE_SHARED_LIBRARY_SUFFIX}
-  ${QT_BINARY_DIR}/phonon4${CMAKE_SHARED_LIBRARY_SUFFIX}
-  ${QT_BINARY_DIR}/QtOpenGL4${CMAKE_SHARED_LIBRARY_SUFFIX}
-  ${QT_BINARY_DIR}/QtXml4${CMAKE_SHARED_LIBRARY_SUFFIX}
-  DESTINATION ${PLUSAPP_INSTALL_BIN_DIR}
-  COMPONENT RuntimeLibraries
-)
+# Install Qt libs
+IF( ${QT_VERSION_MAJOR} EQUAL 5 )
+  INSTALL(FILES 
+    ${QT_BINARY_DIR}/Qt5Core${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${QT_BINARY_DIR}/Qt5Gui${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${QT_BINARY_DIR}/Qt5Network${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${QT_BINARY_DIR}/Qt5Sql${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${QT_BINARY_DIR}/Qt5WebKit${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${QT_BINARY_DIR}/Qt5XmlPatterns${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${QT_BINARY_DIR}/Qt5OpenGL${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${QT_BINARY_DIR}/Qt5Widgets${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${QT_BINARY_DIR}/Qt5Xml${CMAKE_SHARED_LIBRARY_SUFFIX}
+    DESTINATION ${PLUSAPP_INSTALL_BIN_DIR}
+    COMPONENT RuntimeLibraries
+  )
+  INSTALL(FILES 
+    ${CMAKE_PREFIX_PATH}/plugins/platforms/qwindows${CMAKE_SHARED_LIBRARY_SUFFIX}
+    DESTINATION ${PLUSAPP_INSTALL_BIN_DIR}/platforms
+    COMPONENT RuntimeLibraries
+  )
+ELSE()
+  INSTALL(FILES 
+    ${QT_BINARY_DIR}/QtCore4${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${QT_BINARY_DIR}/QtGui4${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${QT_BINARY_DIR}/QtNetwork4${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${QT_BINARY_DIR}/QtSql4${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${QT_BINARY_DIR}/QtWebKit4${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${QT_BINARY_DIR}/QtXmlPatterns4${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${QT_BINARY_DIR}/phonon4${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${QT_BINARY_DIR}/QtOpenGL4${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${QT_BINARY_DIR}/QtXml4${CMAKE_SHARED_LIBRARY_SUFFIX}
+    DESTINATION ${PLUSAPP_INSTALL_BIN_DIR}
+    COMPONENT RuntimeLibraries
+  )
+ENDIF()
 
 IF (WIN32)
   # Install Plus command prompt starting script

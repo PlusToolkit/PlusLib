@@ -104,6 +104,8 @@ PlusStatus vtkVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* config)
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FanAnglesAutoDetectBrightnessThreshold, reconConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FanAnglesAutoDetectFilterRadiusPixel, reconConfig);
 
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, PixelRejectionThreshold, reconConfig);  
+  
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, SkipInterval, reconConfig);
   if (this->SkipInterval < 1)
   {
@@ -228,6 +230,15 @@ PlusStatus vtkVolumeReconstructor::WriteConfiguration(vtkXMLDataElement *config)
     XML_REMOVE_ATTRIBUTE(reconConfig, "NumberOfThreads");
   }
 
+  if (this->Reconstructor->IsPixelRejectionEnabled())
+  {
+    reconConfig->SetDoubleAttribute("PixelRejectionThreshold", this->GetPixelRejectionThreshold());
+  }
+  else
+  {
+    XML_REMOVE_ATTRIBUTE(reconConfig, "PixelRejectionThreshold");
+  }
+  
   return PLUS_SUCCESS;
 }
 
@@ -804,6 +815,18 @@ void vtkVolumeReconstructor::SetCalculation(vtkPasteSliceIntoVolume::Calculation
 void vtkVolumeReconstructor::SetCompounding(int comp)
 {
   this->Reconstructor->SetCompounding(comp);
+}
+
+//----------------------------------------------------------------------------
+void vtkVolumeReconstructor::SetPixelRejectionThreshold(double threshold)
+{
+  this->Reconstructor->SetPixelRejectionThreshold(threshold);
+}
+
+//----------------------------------------------------------------------------
+double vtkVolumeReconstructor::GetPixelRejectionThreshold()
+{
+  return this->Reconstructor->GetPixelRejectionThreshold();
 }
 
 //----------------------------------------------------------------------------

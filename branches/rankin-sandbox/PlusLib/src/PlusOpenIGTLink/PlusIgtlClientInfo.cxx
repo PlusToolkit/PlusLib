@@ -6,79 +6,36 @@ See License.txt for details.
 
 #include "PlusIgtlClientInfo.h"
 
-int PlusIgtlClientInfo::ClientIdCounter=1;
-
-
-//----------------------------------------------------------------------------
-PlusIgtlClientInfo::PlusIgtlClientInfo()
-{
-  this->ClientSocket = NULL; 
-  this->ClientId=ClientIdCounter;
-  this->ClientIdCounter++;  
-}
-
-//----------------------------------------------------------------------------
-PlusIgtlClientInfo::~PlusIgtlClientInfo()
-{
-
-}
-
-//----------------------------------------------------------------------------
-PlusIgtlClientInfo::PlusIgtlClientInfo(const PlusIgtlClientInfo& clientInfo)
-{
-  this->ClientSocket = NULL;
-  this->ClientId=ClientIdCounter;
-  this->ClientIdCounter++;  
-  *this = clientInfo; 
-}
-
-//----------------------------------------------------------------------------
-PlusIgtlClientInfo& PlusIgtlClientInfo::operator=(PlusIgtlClientInfo const& clientInfo)
-{
-  // Handle self-assignment
-  if (this == &clientInfo)
-  {
-    return *this;
-  }
-  
-  if ( this->ClientSocket.IsNull() )
-  {
-    this->ClientSocket = igtl::ClientSocket::New(); 
-  }
-
-  this->ClientSocket = clientInfo.ClientSocket; 
-  this->ClientId = clientInfo.ClientId;
-
-  this->ShallowCopy(clientInfo); 
-  return *this;
-}
-
-//----------------------------------------------------------------------------
-void PlusIgtlClientInfo::ShallowCopy(const PlusIgtlClientInfo& clientInfo)
-{
-  this->IgtlMessageTypes = clientInfo.IgtlMessageTypes; 
-  this->ImageStreams = clientInfo.ImageStreams; 
-  this->TransformNames = clientInfo.TransformNames; 
-}
-
 //----------------------------------------------------------------------------
 PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData( const char* strXmlData )
 {
   if ( strXmlData == NULL )
   {
-    LOG_ERROR("Failed to set ClientInfo - input xml data string is NULL!" ); 
+    LOG_ERROR("Failed to set ClientInfo - input xml data string is invalid" ); 
     return PLUS_FAIL; 
   }
 
-  PlusIgtlClientInfo clientInfo; 
-
   vtkSmartPointer<vtkXMLDataElement> xmldata = vtkSmartPointer<vtkXMLDataElement>::Take( vtkXMLUtilities::ReadElementFromString(strXmlData) );
+  if ( xmldata == NULL )
+  {
+    LOG_ERROR("Failed to set ClientInfo - invalid xml data string: "<<strXmlData); 
+    return PLUS_FAIL; 
+  }
 
+  return SetClientInfoFromXmlData(xmldata);
+}
+
+
+//----------------------------------------------------------------------------
+PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData( vtkXMLDataElement* xmldata )
+{
   if ( xmldata == NULL )
   {
     LOG_ERROR("Failed to set ClientInfo - invalid xml data string!"); 
     return PLUS_FAIL; 
   }
+
+  PlusIgtlClientInfo clientInfo;
 
   // Get message types
   vtkXMLDataElement* messageTypes = xmldata->FindNestedElementWithName("MessageTypes"); 
@@ -157,6 +114,27 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData( const char* strXmlData 
     }
   }
 
+  // Get string names
+  vtkXMLDataElement* stringNames = xmldata->FindNestedElementWithName("StringNames"); 
+  if ( stringNames != NULL )
+  {
+    for ( int i = 0; i < stringNames->GetNumberOfNestedElements(); ++i )
+    {
+      const char* string = stringNames->GetNestedElement(i)->GetName(); 
+      if ( string == NULL || STRCASECMP( string, "String") != 0 )
+      {
+        continue; 
+      }
+      const char* name = stringNames->GetNestedElement(i)->GetAttribute("Name"); 
+      if (name==NULL)
+      {
+        LOG_WARNING("In StringNames child element #"<<i<<" definition is incomplete: required Name attribute is missing");
+        continue;
+      }
+      clientInfo.StringNames.push_back(name); 
+    }
+  }
+
   // Copy over the new client info 
   (*this) = clientInfo; 
 
@@ -200,6 +178,22 @@ void PlusIgtlClientInfo::GetClientInfoInXmlData( std::string& strXmlData )
   }
   xmldata->AddNestedElement( transformNames ); 
 
+  vtkSmartPointer<vtkXMLDataElement> stringNames = vtkSmartPointer<vtkXMLDataElement>::New(); 
+  stringNames->SetName("StringNames"); 
+  for ( unsigned int i = 0; i < StringNames.size(); ++i )
+  {
+    if ( StringNames[i].empty() )
+    {
+      LOG_ERROR("Failed to add string name to client info - string name is empty"); 
+      continue; 
+    }
+    vtkSmartPointer<vtkXMLDataElement> stringElem = vtkSmartPointer<vtkXMLDataElement>::New(); 
+    stringElem->SetName("String");
+    stringElem->SetAttribute("Name", StringNames[i].c_str() ); 
+    stringNames->AddNestedElement(stringElem);
+  }
+  xmldata->AddNestedElement( stringNames ); 
+  
   vtkSmartPointer<vtkXMLDataElement> imageNames = vtkSmartPointer<vtkXMLDataElement>::New(); 
   imageNames->SetName("ImageNames"); 
   for ( unsigned int i = 0; i < ImageStreams.size(); ++i )
@@ -215,4 +209,80 @@ void PlusIgtlClientInfo::GetClientInfoInXmlData( std::string& strXmlData )
   std::ostringstream os; 
   PlusCommon::PrintXML(os, vtkIndent(0), xmldata); 
   strXmlData = os.str(); 
+}
+
+//----------------------------------------------------------------------------
+void PlusIgtlClientInfo::PrintSelf(ostream& os, vtkIndent indent)
+{
+  os << indent << "Message types: ";
+  if ( !this->IgtlMessageTypes.empty() )
+  {
+    for ( int i = 0; i < this->IgtlMessageTypes.size(); ++i )
+    {
+      if (i>0)
+      {
+        os << ", ";
+      }
+      os << this->IgtlMessageTypes[i]; 
+    }
+  }
+  else
+  {
+    os << "(none)";
+  }
+
+  os << ". Transforms: ";
+  if ( !this->TransformNames.empty() )
+  {
+    for ( int i = 0; i < this->TransformNames.size(); ++i )
+    {
+      if (i>0)
+      {
+        os << ", ";
+      }
+      std::string tn;
+      this->TransformNames[i].GetTransformName(tn); 
+      os << tn;
+    }
+  }
+  else
+  {
+    os << "(none)";
+  }
+
+  os << ". Strings: ";
+  if ( !this->StringNames.empty() )
+  {
+    std::ostringstream stringNames;
+    for ( int i = 0; i < this->StringNames.size(); ++i )
+    {
+      if (i>0)
+      {
+        os << ", ";
+      }
+      os << this->StringNames[i]; 
+    }
+  }
+  else
+  {
+    os << "(none)";
+  }
+
+  os << ". Images: "; 
+  if ( !this->ImageStreams.empty() )
+  {
+    std::ostringstream imageNames;
+    for ( int i = 0; i < this->ImageStreams.size(); ++i )
+    {
+      if (i>0)
+      {
+        os << ", ";
+      }
+      os << this->ImageStreams[i].Name << " (EmbeddedTransformToFrame: " << this->ImageStreams[i].EmbeddedTransformToFrame << ")"; 
+    }
+  }
+  else
+  {
+    os << "(none)";
+  }
 }

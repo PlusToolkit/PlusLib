@@ -22,7 +22,7 @@ See License.txt for details.
 
 //-----------------------------------------------------------------------------
 
-SpatialCalibrationToolbox::SpatialCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WFlags aFlags)
+SpatialCalibrationToolbox::SpatialCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags)
   : AbstractToolbox(aParentMainWindow)
   , QWidget(aParentMainWindow, aFlags)
   , m_CancelRequest(false)
@@ -1042,7 +1042,10 @@ void SpatialCalibrationToolbox::Reset()
   m_SpatialCalibrationData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK); 
 
   m_SpatialValidationData = vtkTrackedFrameList::New();
-  m_SpatialValidationData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK); 
+  m_SpatialValidationData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK);
+
+  // Restore calibration and pattern recognition algorithm details
+  this->OnActivated();
 }
 
 //-----------------------------------------------------------------------------

@@ -29,7 +29,6 @@
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkPlot.h"
-#include "vtkPlusBuffer.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
@@ -253,12 +252,10 @@ int main(int argc, char* argv[])
 {
   bool printHelp(false); 
   bool renderingOff(false);
-  bool printParams(false);
   std::string inputConfigFileName;
   double depthCm = -1;
   double dynRangeDb = -1;
   double frequencyMhz = -1;
-
 
   std::string acqMode("B");
 
@@ -274,7 +271,6 @@ int main(int argc, char* argv[])
   args.AddArgument("--frequencyMhz", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frequencyMhz, "Frequency in MHz");	
   args.AddArgument("--dynRangeDb", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &dynRangeDb, "BMode Dynamic Range. 1 corresponds to the maximum dynamic range.");
   args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
-  args.AddArgument("--print-params", vtksys::CommandLineArguments::NO_ARGUMENT, &printParams, "Print all the supported imaging parameters (for diagnostic purposes only).");	
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level 1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
 
   if ( !args.Parse() )
@@ -292,7 +288,8 @@ int main(int argc, char* argv[])
     exit(EXIT_SUCCESS); 
   }
 
-  vtkSmartPointer<vtkIntersonSDKCxxVideoSource> intersonDevice = vtkSmartPointer<vtkIntersonSDKCxxVideoSource>::New();
+  vtkSmartPointer<vtkIntersonSDKCxxVideoSource> intersonDevice =
+    vtkSmartPointer<vtkIntersonSDKCxxVideoSource>::New();
   intersonDevice->SetDeviceId("VideoDevice");
 
   // Read config file
@@ -322,7 +319,7 @@ int main(int argc, char* argv[])
   }
   else
   {
-    LOG_ERROR("Unsupported Acquisition mode requested: "<<acqMode);
+    LOG_ERROR("Unsupported Acquisition mode requested: " << acqMode);
     exit(EXIT_FAILURE);
   }
 

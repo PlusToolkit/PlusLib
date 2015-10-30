@@ -26,6 +26,8 @@
     - \xmlAtt \ref ImageType Supported imaging modes: B-mode \OptionalAtt{BRIGHTNESS}
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+    - \xmlAtt \ref ClipRectangleOrigin \OptionalAtt{0 0 0}
+    - \xmlAtt \ref ClipRectangleSize \OptionalAtt{0 0 0}
 - \xmlElem \ref OutputChannels
   - \xmlElem \ref OutputChannel
     - \xmlElem \ref AlgorithmRfProcessing "RfProcessing" Required if scan-converted B-mode image output is needed.

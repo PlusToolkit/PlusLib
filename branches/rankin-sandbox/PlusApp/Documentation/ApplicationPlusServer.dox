@@ -42,6 +42,21 @@ Launch the command-line-only version of PlusServer (no graphical user interface)
 
     PlusServer --config-file=PlusServer.xml
 
+~~~
+
+  --config-file=opt                   Configuration file name
+
+  --connect                           Automatically connect after the
+                                      application is started
+
+  --device-set-configuration-dir=opt  Device set configuration directory path
+
+  --help                              Print this help.
+
+  --verbose=opt                       Verbose level (1=error only, 2=warning,
+                                      3=info, 4=debug)
+~~~
+ 
 \section ApplicationPlusServerConfigSettings Configuration settings
 
 - \xmlElem \b PlusOpenIGTLinkServer
@@ -61,9 +76,16 @@ Launch the command-line-only version of PlusServer (no graphical user interface)
           - \c POSITION:  standard OpenIGTLink message type, stores 3D position data
           - \c TRACKEDFRAME: Plus tracked ultrasound frame, stores all frame fields (tool transforms, statuses, etc.)
           - \c USMESSAGE: <a href="https://musiic.lcsr.jhu.edu/Main_Page">MUSiiC</a> tracked ultrasound frame, stores additional imaging information, such as transmit and sampling frequency, line density, steering angle
+          - \c STRING: standard OpenIGTLink message type, stores a simple character string
     - \xmlElem \b TransformNames
       - \xmlElem \b Transform
           - \xmlAtt Name
+    - \xmlElem \b StringNames
+      - \xmlElem \b String Name of the custom frame string that is sent as a STRING message. Any frame field (Timestamp, any status message, any custom frame fields) can be specified here.
+    - \xmlElem \b ImageNames
+      - \xmlElem \b Image
+          - \xmlAtt Name Name of the image stream. It also defines the "From" frame of the transform embedded in the IGTL image message.
+          - \xmlAtt EmbeddedTransformToFrame "To" frame of the transform embedded in the IGTL image message
 
 This is an example element that needs to be added to the PLUS configuration xml file to use PlusServer:
 
@@ -79,7 +101,7 @@ This is an example element that needs to be added to the PLUS configuration xml 
           <Message Type="IMAGE" />
           <Message Type="TRANSFORM" />
         </MessageTypes>
-        <TransformNames> 
+        <TransformNames>
           <Transform Name="StylusTipToReference" /> 
           <Transform Name="ProbeToReference" /> 
         </TransformNames>

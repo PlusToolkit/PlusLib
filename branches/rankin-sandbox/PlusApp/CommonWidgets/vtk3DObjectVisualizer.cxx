@@ -9,10 +9,11 @@ See License.txt for details.
 #include "vtk3DObjectVisualizer.h"
 #include "vtkDisplayableObject.h"
 #include "vtkGlyph3D.h"
+#include "vtkImageSliceMapper.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
-#include "vtkPolyDataMapper.h"
 #include "vtkPlusDevice.h"
+#include "vtkPolyDataMapper.h"
 #include "vtkProperty.h"
 #include "vtkSmartPointer.h"
 #include "vtkSphereSource.h"
@@ -75,6 +76,8 @@ vtk3DObjectVisualizer::vtk3DObjectVisualizer()
   // Create image actor
   vtkSmartPointer<vtkImageActor> imageActor = vtkSmartPointer<vtkImageActor>::New();
   this->SetImageActor(imageActor);
+
+  this->ImageMapper = vtkImageSliceMapper::SafeDownCast(this->ImageActor->GetMapper());
 
   this->CanvasRenderer->AddActor(this->InputActor);
   this->CanvasRenderer->AddActor(this->ResultActor);
@@ -581,4 +584,15 @@ vtkActor* vtk3DObjectVisualizer::GetVolumeActor()
   }
 
   return NULL;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtk3DObjectVisualizer::SetSliceNumber(int number)
+{
+  if( number >= this->ImageMapper->GetSliceNumberMinValue() && number <= this->ImageMapper->GetSliceNumberMaxValue() )
+  {
+    this->ImageMapper->SetSliceNumber(number);
+    return PLUS_SUCCESS;
+  }
+  return PLUS_FAIL;
 }

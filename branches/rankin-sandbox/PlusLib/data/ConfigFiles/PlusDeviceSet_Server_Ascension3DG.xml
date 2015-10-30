@@ -4,7 +4,7 @@
     <DeviceSet 
       Name="PlusServer: Ascension 3DG tracker"
       Description="Broadcasting tool tracking data through OpenIGTLink
-Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on SonixTouch in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." 
+Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on Ultrasonix US in the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Reference, 3 Stylus." 
     />
     <Device
       Id="TrackerDevice" 
@@ -28,7 +28,7 @@ Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted o
       Id="CaptureDevice"
       Type="VirtualDiscCapture"
       BaseFilename="RecordingTest.mha"
-      EnableCapturing="FALSE" >
+      EnableCapturingOnStart="FALSE" >
       <InputChannels>
         <InputChannel Id="TrackerStream" />
       </InputChannels>
