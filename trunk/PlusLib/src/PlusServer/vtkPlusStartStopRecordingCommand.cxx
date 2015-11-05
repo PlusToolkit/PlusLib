@@ -22,6 +22,7 @@ static const char STOP_CMD[]="StopRecording";
 vtkPlusStartStopRecordingCommand::vtkPlusStartStopRecordingCommand()
 : OutputFilename(NULL)
 , CaptureDeviceId(NULL)
+, EnableCompression(false)
 {
 }
 
@@ -94,6 +95,9 @@ PlusStatus vtkPlusStartStopRecordingCommand::ReadConfiguration(vtkXMLDataElement
   // Stop parameters
   SetOutputFilename(aConfig->GetAttribute("OutputFilename"));
 
+  // Start parameters
+  SetEnableCompression(aConfig->GetAttribute("EnableCompression"));
+
   return PLUS_SUCCESS;
 }
 
@@ -107,6 +111,7 @@ PlusStatus vtkPlusStartStopRecordingCommand::WriteConfiguration(vtkXMLDataElemen
   
   XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_NULL(CaptureDeviceId, aConfig);
   XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_NULL(OutputFilename, aConfig);
+  XML_WRITE_BOOL_ATTRIBUTE(EnableCompression, aConfig);
 
   return PLUS_SUCCESS;
 }
@@ -193,6 +198,7 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
       this->QueueStringResponse(responseMessageBase + " failed to open file "+(this->OutputFilename?this->OutputFilename:"(undefined)"),PLUS_FAIL);
       return PLUS_FAIL;
     }
+    captureDevice->SetEnableFileCompression(GetEnableCompression());
     captureDevice->SetEnableCapturing(true);
     this->QueueStringResponse(responseMessageBase + " successful",PLUS_SUCCESS);
     return PLUS_SUCCESS;
