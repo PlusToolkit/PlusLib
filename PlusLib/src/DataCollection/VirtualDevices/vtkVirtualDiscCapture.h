@@ -74,7 +74,7 @@ public:
   vtkSetMacro(BaseFilename, std::string);
 
   vtkGetMacro(EnableFileCompression, bool);
-  vtkSetMacro(EnableFileCompression, bool);
+  void SetEnableFileCompression(bool aFileCompression);
 
   vtkSetMacro(EnableCapturingOnStart, bool);
   vtkGetMacro(EnableCapturingOnStart, bool);
