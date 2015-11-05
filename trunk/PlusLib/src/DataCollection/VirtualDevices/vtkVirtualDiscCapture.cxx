@@ -446,6 +446,17 @@ void vtkVirtualDiscCapture::InternalWriteOutputChannels( vtkXMLDataElement* root
   // Do not write anything out, disc capture devices don't have output channels in the config
 }
 
+//----------------------------------------------------------------------------
+void vtkVirtualDiscCapture::SetEnableFileCompression(bool aFileCompression)
+{
+  if( this->Writer != NULL )
+  {
+    this->Writer->SetUseCompression(aFileCompression);
+  }
+
+  this->EnableFileCompression = aFileCompression;
+}
+
 //-----------------------------------------------------------------------------
 void vtkVirtualDiscCapture::SetEnableCapturing( bool aValue )
 {
