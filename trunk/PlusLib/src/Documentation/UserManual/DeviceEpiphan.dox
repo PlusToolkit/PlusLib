@@ -3,7 +3,7 @@
 
 \section EpiphanSupportedHwDevices Supported hardware devices
 
-- Recommended model for analog capture: <a href="http://www.epiphan.com/products/frame-grabbers/vga2usb-lr/">VGA2USB-LR</a>. The basic VGA2USB model is not suitable for most applications, because it provides interlaced output at a very low frame rate.
+- Recommended model for VGA and DVI capture: <a href="http://www.epiphan.com/products/dvi2usb-3-0/">DVI2USB 3.0</a>. The basic VGA2USB model is not suitable for most applications, because it provides interlaced output at a very low frame rate.
 
 - Link to manufacturer's website: http://www.epiphan.com/.
 
