@@ -291,7 +291,7 @@ PlusStatus vtkPlusConfig::LoadApplicationConfiguration()
     SHGetFolderPath(NULL,CSIDL_PROGRAM_FILES,NULL,0,pf );
     std::string fullPath = std::string(pf) + "\\Notepad++\\notepad++.exe";
     std::string application = "notepad";
-    if( vtksys::SystemTools::FileExists(fullPath) )
+    if( vtksys::SystemTools::FileExists(fullPath.c_str()) )
     {
       application = fullPath;
     }
