@@ -96,9 +96,9 @@ PlusStatus vtkPlusStartStopRecordingCommand::ReadConfiguration(vtkXMLDataElement
   SetOutputFilename(aConfig->GetAttribute("OutputFilename"));
 
   // Start parameters
-  if( STRCASECMP(this->GetName(), START_CMD ) == 0)
+  if( this->GetName() && STRCASECMP(this->GetName(), START_CMD ) == 0)
   {
-    SetEnableCompression(STRCASECMP(aConfig->GetAttribute("EnableCompression"), "True") == 0);
+    XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableCompression, aConfig);
   }
 
   return PLUS_SUCCESS;
@@ -115,9 +115,9 @@ PlusStatus vtkPlusStartStopRecordingCommand::WriteConfiguration(vtkXMLDataElemen
   XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_NULL(CaptureDeviceId, aConfig);
   XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_NULL(OutputFilename, aConfig);
 
-  if( STRCASECMP(this->GetName(), START_CMD ) == 0)
+  if( this->GetName() && STRCASECMP(this->GetName(), START_CMD ) == 0)
   {
-    aConfig->SetAttribute("EnableCompression", (EnableCompression ? "TRUE" : "FALSE"));
+    XML_WRITE_BOOL_ATTRIBUTE(EnableCompression, aConfig);
   }
 
   return PLUS_SUCCESS;
