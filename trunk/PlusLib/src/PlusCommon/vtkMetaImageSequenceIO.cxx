@@ -893,13 +893,14 @@ PlusStatus vtkMetaImageSequenceIO::WriteCompressedImagePixelsToFile(int &compres
       }
 
       size_t numberOfBytesReadyForWriting = outputBufferSize - strm.avail_out;
-      if (fwrite(outputBuffer, 1, numberOfBytesReadyForWriting, this->OutputImageFileHandle) != numberOfBytesReadyForWriting || ferror(this->OutputImageFileHandle))
+      size_t numberOfBytesWritten = 0;
+      if (PlusCommon::RobustFwrite(this->OutputImageFileHandle, outputBuffer, numberOfBytesReadyForWriting, numberOfBytesWritten) != PLUS_SUCCESS)
       {
         LOG_ERROR("Error writing compressed data into file");
         deflateEnd(&strm); // clean up
         return PLUS_FAIL;
       }
-      compressedDataSize+=numberOfBytesReadyForWriting;
+      compressedDataSize+=numberOfBytesWritten;
 
     } while (strm.avail_out == 0);
 

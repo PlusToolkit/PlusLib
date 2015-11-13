@@ -525,3 +525,32 @@ bool PlusCommon::IsClippingWithinExtents(const int clipOrigin[3], const int clip
       (clipOrigin[1]+clipSize[1]-1 <= extents[3]) && // Verify that the extent of the clipping falls within the image
       (clipOrigin[2]+clipSize[2]-1 <= extents[5]);
 }
+
+//-------------------------------------------------------
+PlusStatus PlusCommon::RobustFwrite(FILE* fileHandle, void* data, size_t dataSize, size_t &writtenSize)
+{
+  // on some systems fwrite cannot write all data in one chunk, therefore we have to write
+  // chunks until all bytes are written or failed to write any bytes
+  unsigned char* writePointer = static_cast<unsigned char*>(data);
+  size_t remainingBytes = dataSize;
+  size_t writtenBytesForCurrentBlock = 0;
+  while( (writtenBytesForCurrentBlock = fwrite(writePointer, 1, remainingBytes, fileHandle)) > 0 && !ferror(fileHandle))
+  {
+    remainingBytes -= writtenBytesForCurrentBlock;
+    writePointer += writtenBytesForCurrentBlock;
+    if (remainingBytes==0)
+    {
+      // completed
+      break;
+    }
+  }
+  
+  writtenSize = dataSize-remainingBytes;
+  if (remainingBytes>0)
+  {
+    LOG_ERROR("Filed to write data to file. Data size: " << dataSize << ", successfully written: " << writtenSize << " bytes");
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}
