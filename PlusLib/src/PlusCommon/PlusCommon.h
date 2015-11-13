@@ -234,6 +234,13 @@ namespace PlusCommon
   /*! Trim whitespace characters from the left and right */
   vtkPlusCommonExport std::string Trim(std::string &str);
   vtkPlusCommonExport std::string Trim(const char* c);
+  
+  /*!
+    On some systems fwrite may fail if a large chunk of data is attempted to written in one piece.
+    This method writes the data in smaller chunks as long as all data is written or no data
+    can be written anymore.
+  */
+  vtkPlusCommonExport PlusStatus RobustFwrite(FILE* fileHandle, void* data, size_t dataSize, size_t &writtenSize);  
 
   /*!
     Writes an XML element to file. The output is nicer that with the built-in vtkXMLDataElement::PrintXML, as

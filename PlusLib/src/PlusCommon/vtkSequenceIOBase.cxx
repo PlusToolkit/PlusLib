@@ -315,12 +315,15 @@ PlusStatus vtkSequenceIOBase::WriteImages()
           videoFrame = trackedFrame->GetImageData(); 
         }
 
-        unsigned long result = fwrite(videoFrame->GetScalarPointer(), 1, videoFrame->GetFrameSizeInBytes(), this->OutputImageFileHandle);
-        if( result != videoFrame->GetFrameSizeInBytes() )
+        size_t writtenSize = 0;
+        PlusStatus status = PlusCommon::RobustFwrite(this->OutputImageFileHandle, videoFrame->GetScalarPointer(),
+          videoFrame->GetFrameSizeInBytes(), writtenSize);  
+        if (status==PLUS_FAIL)
         {
-          LOG_ERROR("Unable to write entire frame to file.");
+          LOG_ERROR("Unable to write entire frame to file. Frame size: " << videoFrame->GetFrameSizeInBytes()
+            << ", successfully written: " << writtenSize << " bytes");
         }
-        TotalBytesWritten += result;
+        this->TotalBytesWritten += writtenSize;
       }
     }
   }
