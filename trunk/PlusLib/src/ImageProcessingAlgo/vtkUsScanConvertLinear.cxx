@@ -46,9 +46,9 @@ void vtkUsScanConvertLinear::SetInputConnection(vtkAlgorithmOutput* input)
 }
 
 //-----------------------------------------------------------------------------
-void vtkUsScanConvertLinear::SetInputData(vtkDataObject *input)
+void vtkUsScanConvertLinear::SetInputData_vtk5compatible(vtkDataObject *input)
 {
-  this->ImageReslice->SetInputData(input);
+  this->ImageReslice->SetInputData_vtk5compatible(input);
 }
 
 //-----------------------------------------------------------------------------
