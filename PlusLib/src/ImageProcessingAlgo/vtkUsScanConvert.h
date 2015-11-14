@@ -53,7 +53,7 @@ public:
   virtual vtkImageData* GetOutput()=0;
 
   /*! It is overridden here, because the GetOutput() method in vtkImageAlgorithm is not virtual. */
-  virtual void SetInputData(vtkDataObject* input) { vtkThreadedImageAlgorithm::SetInputData(input); };
+  virtual void SetInputData_vtk5compatible(vtkDataObject* input) { vtkThreadedImageAlgorithm::SetInputData_vtk5compatible(input); };
 
   /*! 
     Get the start and end point of the selected scanline. Setting of the input image or at least the input image extent is required before calling this method.
