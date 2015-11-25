@@ -166,8 +166,8 @@ int main( int argc, char** argv )
   }
   if( serverCount == 0 )
   {
-    LOG_ERROR("No vtkPlusOpenIGTLinkServer tags were found in the configuration file. Please add at least one.")
-      exit(EXIT_FAILURE);
+    LOG_ERROR("No vtkPlusOpenIGTLinkServer tags were found in the configuration file. Please add at least one.");
+    exit(EXIT_FAILURE);
   }
 
   double startTime = vtkAccurateTimer::GetSystemTime(); 
