@@ -7,10 +7,12 @@ See License.txt for details.
 #include "DeviceSetSelectorWidget.h"
 
 #include <QAction>
+#include <QDesktopServices>
 #include <QDomDocument>
 #include <QFileDialog>
 #include <QMenu>
 #include <QMessageBox>
+#include <QUrl>
 
 #ifdef _WIN32
 #include "Shellapi.h"
@@ -448,37 +450,31 @@ void DeviceSetSelectorWidget::EditConfiguration()
   }
   QString editorApplicationExecutable(vtkPlusConfig::GetInstance()->GetEditorApplicationExecutable().c_str());
 
-#if _WIN32
-  if (editorApplicationExecutable.right(4).compare(QString(".exe")) != 0)
-  {
-    LOG_ERROR("Invalid XML editor application!");
-    return;
-  }
-#else
-  if ( access(editorApplicationExecutable.toLatin1().constData(), X_OK))
-  {
-    LOG_ERROR("Invalid XML editor application!");
-    return;
-  }
-#endif
-
 #ifdef _WIN32
-  wchar_t wcharApplication[1024];
-  wchar_t wcharFile[1024];
+  if (!editorApplicationExecutable.isEmpty())
+  {
+    // TODO: instead of 1024 we should get the buffer length from the QString objects
+    wchar_t wcharApplication[1024];
+    wchar_t wcharFile[1024];
 
-  QFileInfo fileInfo( QDir::toNativeSeparators( configurationFilePath ) );
+    QFileInfo fileInfo( QDir::toNativeSeparators( configurationFilePath ) );
 
-  QString file = fileInfo.absoluteFilePath();
-  int lenFile = file.toWCharArray( wcharFile );
-  wcharFile[lenFile] = '\0';
+    QString file = fileInfo.absoluteFilePath();
+    int lenFile = file.toWCharArray( wcharFile );
+    wcharFile[lenFile] = '\0';
 
-  int lenApplication = editorApplicationExecutable.toWCharArray( wcharApplication );
-  wcharApplication[lenApplication] = '\0';
+    int lenApplication = editorApplicationExecutable.toWCharArray( wcharApplication );
+    wcharApplication[lenApplication] = '\0';
 
-  ShellExecuteW( 0, L"open", wcharApplication, wcharFile, NULL, SW_MAXIMIZE );
-#else
-  LOG_ERROR("Opening configuration files from the program is not supported on this platform.");
+    ShellExecuteW( 0, L"open", wcharApplication, wcharFile, NULL, SW_MAXIMIZE );
+    return;
+  }
 #endif
+
+  if (!QDesktopServices::openUrl(QUrl("file:///"+configurationFilePath, QUrl::TolerantMode)))
+  {
+    LOG_ERROR("Failed to open file in default application: "<<configurationFilePath.toLatin1().constData());
+  }
 }
 
 //----------------------------------------------------------------------------
