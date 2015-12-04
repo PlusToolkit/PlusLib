@@ -47,7 +47,8 @@ MODEL_TABLE_ROW(
   )
 MODEL_TABLE_ROW(
   ID "OrientationsLR-Plane"
-  IMAGE_FILE "TrackingFixtures/OrientationLR-Plane.png "
+  IMAGE_FILE "TrackingFixtures/OrientationLR-Plane.png"
+  PRINTABLE_FILES "TrackingFixtures/OrientationLR-Plane.STL"
   DESCRIPTION "This is the most simple reference sensor holder to be used on patients. In a certain surgical setting (e.g. when stuck on the chest) this defines the patient orientation. This allows saving virtual camera positions."
   )
 # Add remaining experimental tools
