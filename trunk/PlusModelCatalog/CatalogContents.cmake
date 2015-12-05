@@ -2,6 +2,16 @@ MODEL_CATALOG_START()
 
 MODEL_TABLE_START("Tracking fixtures" "See below a list of fixtures that can be used for mounting tracker markers (both optical and electromagnetic) on various tools and objects.")
 MODEL_TABLE_ROW(
+  ID "CauteryGrabber"
+  IMAGE_FILE "TrackingFixtures/CauteryGrabber.png"
+  PRINTABLE_FILES "TrackingFixtures/CauteryGrabber.STL"
+  DESCRIPTION "New version for fixing a tracker to a cautery. For clamp tightening use hex-head cap screw, M6 thread, 30 mm long with a matching wing nut. For assembly with SensorHolder-OneHole use M4 bolt."
+  )
+MODEL_TABLE_ROW(
+  ID "CauteryHolder_1.0"
+  DESCRIPTION "Clamps to a tubular shaped tool, e.g. electrocauterizer. For clamp tightening use hex-head cap screw, M6 thread, 30 mm long with a matching wing nut. For assembly with SensorHolder-Ordered-HolesInterface use hex-head cap screw M4 thread, with any matching nut."
+  )
+MODEL_TABLE_ROW(
   ID "SensorHolder_Wing_1.0"
   DESCRIPTION "Clip to mount a MarkerHolder or 8mm Ascension EM sensor to an object. With a wing to make it easier to fix it by glue or screws."
   )
@@ -26,10 +36,6 @@ MODEL_TABLE_ROW(
   PRINTABLE_FILES "TrackingFixtures/MarkerHolder_120mm-odd_short.stl" "TrackingFixtures/Marker_01-04.pdf"
   )
 MODEL_TABLE_ROW(
-  ID "CauteryHolder_1.0"
-  DESCRIPTION "Clamps to a tubular shaped tool, e.g. electrocauterizer. For clamp tightening use hex-head cap screw, M6 thread, 30 mm long with a matching wing nut. For assembly with SensorHolder-Ordered-HolesInterface use hex-head cap screw M4 thread, with any matching nut."
-  )
-MODEL_TABLE_ROW(
   ID "NeedleClip-Assembly_16-20G"
   DESCRIPTION "Clamps to a needle of size 16-20 G through a sterile bag."
   )
@@ -44,6 +50,12 @@ MODEL_TABLE_ROW(
 MODEL_TABLE_ROW(
   ID "SensorHolder_2.0"
   DESCRIPTION "New sensor holder design. This will replace SensorHolder-Ordered_2mm_1.0 eventually. Holds either a Model 800 Ascension EM sensor, or another PLUS fixture, e.g. for holding MicronTracker markers. This part is frequently part of an assembly, but can also be used by itself."
+  )
+MODEL_TABLE_ROW(
+  ID "SensorHolder-OneHole"
+  IMAGE_FILE "TrackingFixtures/SensorHolder-OneHole.png"
+  PRINTABLE_FILES "TrackingFixtures/SensorHolder-OneHole.STL"
+  DESCRIPTION "Holds a Model 800 sensor, and has a hole to fix to other printed components."
   )
 MODEL_TABLE_ROW(
   ID "OrientationsLR-Plane"
