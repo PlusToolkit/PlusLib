@@ -595,18 +595,6 @@ PlusStatus vtkNrrdSequenceIO::ReadImageHeader()
     return PLUS_FAIL;
   }
 
-  const char* elementType = this->TrackedFrameList->GetCustomString("type");
-  if( elementType == NULL )
-  {
-    LOG_ERROR("Field type not found in file: " << this->FileName << ". Unable to read.");
-    return PLUS_FAIL;
-  }
-  else if ( ConvertNrrdTypeToVtkPixelType(elementType, this->PixelType) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Unknown component type: "<<elementType);
-    return PLUS_FAIL;
-  }
-
   int nDims=3;
   if ( PlusCommon::StringToInt(this->TrackedFrameList->GetCustomString("dimension"), nDims)==PLUS_SUCCESS )
   {
@@ -616,34 +604,7 @@ PlusStatus vtkNrrdSequenceIO::ReadImageHeader()
       return PLUS_FAIL;
     }
   }
-  this->NumberOfDimensions=nDims;  
-
-  std::string imgOrientStr;
-  if( GetCustomString(SEQUENCE_FIELD_US_IMG_ORIENT.c_str()) != NULL )
-  {
-    imgOrientStr = std::string(GetCustomString(SEQUENCE_FIELD_US_IMG_ORIENT.c_str()));
-  }
-  else
-  {
-    imgOrientStr = PlusVideoFrame::GetStringFromUsImageOrientation(US_IMG_ORIENT_MF);
-    LOG_WARNING(SEQUENCE_FIELD_US_IMG_ORIENT << " field not found in header. Defaulting to " << imgOrientStr << ".");
-  }
-  this->ImageOrientationInFile = PlusVideoFrame::GetUsImageOrientationFromString( imgOrientStr.c_str() );
-
-  // TODO: handle detection of image orientation in file from space/space dimensions, space origin and space directions
-  // handle only orthogonal rotations
-
-  const char* imgTypeStr=GetCustomString(SEQUENCE_FIELD_US_IMG_TYPE.c_str());
-  if (imgTypeStr==NULL)
-  {
-    // if the image type is not defined then assume that it is B-mode image
-    this->ImageType=US_IMG_BRIGHTNESS;
-    LOG_WARNING(SEQUENCE_FIELD_US_IMG_TYPE << " field not found in header. Defaulting to US_IMG_BRIGHTNESS.");
-  }
-  else
-  {
-    this->ImageType = PlusVideoFrame::GetUsImageTypeFromString(imgTypeStr);
-  }
+  this->NumberOfDimensions=nDims;
 
   std::vector<std::string> kinds;
   if( this->TrackedFrameList->GetCustomString("kinds") != NULL )
@@ -685,6 +646,52 @@ PlusStatus vtkNrrdSequenceIO::ReadImageHeader()
     {
       this->NumberOfScalarComponents = dimSize;
     }
+  }
+
+  // Post process to handle setting 3rd dimension to 0 if there is no image data in the file
+  if( this->Dimensions[0] == 0 || this->Dimensions[1] == 0 )
+  {
+    this->Dimensions[2] = 0;
+  }
+
+  // Only check elementType if nDims are not 0 0 3
+  const char* elementType = this->TrackedFrameList->GetCustomString("type");
+  if( elementType == NULL )
+  {
+    LOG_ERROR("Field type not found in file: " << this->FileName << ". Unable to read.");
+    return PLUS_FAIL;
+  }
+  else if ( ConvertNrrdTypeToVtkPixelType(elementType, this->PixelType) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unknown component type: "<<elementType);
+    return PLUS_FAIL;
+  }
+
+  std::string imgOrientStr;
+  if( GetCustomString(SEQUENCE_FIELD_US_IMG_ORIENT.c_str()) != NULL )
+  {
+    imgOrientStr = std::string(GetCustomString(SEQUENCE_FIELD_US_IMG_ORIENT.c_str()));
+  }
+  else
+  {
+    imgOrientStr = PlusVideoFrame::GetStringFromUsImageOrientation(US_IMG_ORIENT_MF);
+    LOG_WARNING(SEQUENCE_FIELD_US_IMG_ORIENT << " field not found in header. Defaulting to " << imgOrientStr << ".");
+  }
+  this->ImageOrientationInFile = PlusVideoFrame::GetUsImageOrientationFromString( imgOrientStr.c_str() );
+
+  // TODO: handle detection of image orientation in file from space/space dimensions, space origin and space directions
+  // handle only orthogonal rotations
+
+  const char* imgTypeStr=GetCustomString(SEQUENCE_FIELD_US_IMG_TYPE.c_str());
+  if (imgTypeStr==NULL)
+  {
+    // if the image type is not defined then assume that it is B-mode image
+    this->ImageType=US_IMG_BRIGHTNESS;
+    LOG_WARNING(SEQUENCE_FIELD_US_IMG_TYPE << " field not found in header. Defaulting to US_IMG_BRIGHTNESS.");
+  }
+  else
+  {
+    this->ImageType = PlusVideoFrame::GetUsImageTypeFromString(imgTypeStr);
   }
 
   // If no specific image orientation is requested then determine it automatically from the image type
@@ -729,11 +736,6 @@ PlusStatus vtkNrrdSequenceIO::ReadImagePixels()
   if (this->Dimensions[0]>0 && this->Dimensions[1]>0 && this->Dimensions[2]>0)
   {
     frameSizeInBytes=this->Dimensions[0]*this->Dimensions[1]*this->Dimensions[2]*PlusVideoFrame::GetNumberOfBytesPerScalar(this->PixelType)*this->NumberOfScalarComponents;
-  }
-  else
-  {
-    LOG_ERROR("0 dimension found. Unable to read image pixels. Dimensions = [" << this->Dimensions[0] << ", " << this->Dimensions[1] << ", " << this->Dimensions[2] << "]");
-    return PLUS_FAIL;
   }
 
   if (frameSizeInBytes==0)
@@ -1280,6 +1282,7 @@ PlusStatus vtkNrrdSequenceIO::ConvertNrrdTypeToVtkPixelType(const std::string &e
   else if (elementTypeStr.compare("uint64_t")==0) { vtkPixelType = VTK_UNSIGNED_LONG_LONG; }
   else if (elementTypeStr.compare("float")==0) { vtkPixelType = VTK_FLOAT; }
   else if (elementTypeStr.compare("double")==0) { vtkPixelType = VTK_DOUBLE; }
+  else if (elementTypeStr.compare("none")==0) { vtkPixelType = VTK_VOID; }
   else
   {
     LOG_ERROR("Unknown Nrrd data type: " << elementTypeStr);
@@ -1295,7 +1298,7 @@ PlusStatus vtkNrrdSequenceIO::ConvertVtkPixelTypeToNrrdType(PlusCommon::VTKScala
 {
   if (vtkPixelType==VTK_VOID)
   {
-    elementTypeStr="MET_OTHER";
+    elementTypeStr="none";
     return PLUS_SUCCESS;
   }
   const char* ElementTypes[]={
@@ -1324,7 +1327,7 @@ PlusStatus vtkNrrdSequenceIO::ConvertVtkPixelTypeToNrrdType(PlusCommon::VTKScala
       return PLUS_SUCCESS;
     }
   }
-  elementTypeStr="MET_OTHER";
+  elementTypeStr="none";
   return PLUS_FAIL;
 }
 
