@@ -8,10 +8,6 @@ MODEL_TABLE_ROW(
   DESCRIPTION "New version for fixing a tracker to a cautery. For clamp tightening use hex-head cap screw, M6 thread, 30 mm long with a matching wing nut. For assembly with SensorHolder-OneHole use M4 bolt."
   )
 MODEL_TABLE_ROW(
-  ID "CauteryHolder_1.0"
-  DESCRIPTION "Clamps to a tubular shaped tool, e.g. electrocauterizer. For clamp tightening use hex-head cap screw, M6 thread, 30 mm long with a matching wing nut. For assembly with SensorHolder-Ordered-HolesInterface use hex-head cap screw M4 thread, with any matching nut."
-  )
-MODEL_TABLE_ROW(
   ID "SensorHolder_Wing_1.0"
   DESCRIPTION "Clip to mount a MarkerHolder or 8mm Ascension EM sensor to an object. With a wing to make it easier to fix it by glue or screws."
   )
