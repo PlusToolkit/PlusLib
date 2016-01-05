@@ -621,7 +621,7 @@ PlusStatus vtkNrrdSequenceIO::ReadImageHeader()
     kinds.push_back(std::string("time"));
   }
 
-  // sizes = 640 480, sizes = 640 480 567, sizes = 640 480 40 567
+  // sizes = 640 480 1 1, sizes = 640 480 1 567, sizes = 640 480 40 567
   std::istringstream issDimSize(this->TrackedFrameList->GetCustomString("sizes")); 
   int dimSize(0);
   int spatialDomainCount(0);
@@ -630,7 +630,7 @@ PlusStatus vtkNrrdSequenceIO::ReadImageHeader()
     issDimSize >> dimSize;
     if( kinds[i].compare("domain") == 0)
     {
-      if( spatialDomainCount == 3 ) // 0-indexed, this is the 4th spatial domain
+      if( spatialDomainCount == 3 && dimSize > 1) // 0-indexed, this is the 4th spatial domain
       {
         LOG_ERROR("PLUS supports up to 3 spatial domains. File: " << this->FileName << " contains more than 3.");
         return PLUS_FAIL;
@@ -930,11 +930,7 @@ PlusStatus vtkNrrdSequenceIO::OpenImageHeader()
   this->NumberOfScalarComponents = this->TrackedFrameList->GetTrackedFrame(0)->GetNumberOfScalarComponents();
 
   // Override fields
-  int dimensions=3;
-  if( isData3D )
-  {
-    dimensions = 4;
-  }
+  int dimensions=4;
   if( this->NumberOfScalarComponents > 1 )
   {
     dimensions+=1;
@@ -1020,20 +1016,11 @@ PlusStatus vtkNrrdSequenceIO::OpenImageHeader()
   {
     spaceDirectionStr << "none ";
   }
-  if( isData3D )
-  {
-    SetCustomString("space", "right-anterior-superior-time");
-    originStr << "(0,0,0,0)";
-    spaceDirectionStr << "(1,0,0,0) (0,1,0,0) (0,0,1,0) (0,0,0,1)";
-  }
-  else
-  {
-    // 2d + t is not RAS, override with custom
-    // x y time
-    SetCustomString("space dimension", "3");
-    originStr << "(0,0,0)";
-    spaceDirectionStr << "(1,0,0) (0,1,0) (0,0,1)";
-  }
+
+  SetCustomString("space dimension", "3");
+  originStr << "(0,0,0)";
+  spaceDirectionStr << "(1,0,0) (0,1,0) (0,0,1) none";
+
   // Add fields with default values if they are not present already
   if (GetCustomString(SEQUENCE_FIELD_SPACE_DIRECTIONS)==NULL) { SetCustomString(SEQUENCE_FIELD_SPACE_DIRECTIONS, spaceDirectionStr.str().c_str()); }
   if (GetCustomString(SEQUENCE_FIELD_SPACE_ORIGIN)==NULL) { SetCustomString(SEQUENCE_FIELD_SPACE_ORIGIN, originStr.str().c_str()); }
@@ -1526,7 +1513,7 @@ PlusStatus vtkNrrdSequenceIO::OverwriteNumberOfFramesInHeader(int numberOfFrames
 
   std::stringstream sizesStr;
   std::stringstream kindStr;
-  // TODO space origin and space direction if needed
+
   //std::stringstream directionStr;
   //std::stringstream originStr;
 
@@ -1537,13 +1524,8 @@ PlusStatus vtkNrrdSequenceIO::OverwriteNumberOfFramesInHeader(int numberOfFrames
   }
 
   this->Dimensions[3] = numberOfFrames;
-  sizesStr << this->Dimensions[0] << " " << this->Dimensions[1] << " ";
-  kindStr << "domain" << " " << "domain" << " ";
-  if( isData3D )
-  {
-    sizesStr << this->Dimensions[2] << " ";
-    kindStr << "domain" << " ";
-  }
+  sizesStr << this->Dimensions[0] << " " << this->Dimensions[1] << " " << this->Dimensions[2] << " ";
+  kindStr << "domain" << " " << "domain" << " " << "domain" << " ";
 
   // Nrrd doesn't care if you have multiple whitespaces between two elements, it just can't be before the first or after the last element
   if( addPadding )
@@ -1555,7 +1537,7 @@ PlusStatus vtkNrrdSequenceIO::OverwriteNumberOfFramesInHeader(int numberOfFrames
   sizesStr << this->Dimensions[3];
   if( this->Dimensions[3] > 1 )
   {
-    kindStr << "time";
+    kindStr << "list";
   }
   else
   {
