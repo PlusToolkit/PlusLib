@@ -17,6 +17,7 @@ See License.txt for details.
 #include "vtkPlusSendTextCommand.h"
 #include "vtkPlusStartStopRecordingCommand.h"
 #include "vtkPlusUpdateTransformCommand.h"
+#include "vtkPlusGetTransformCommand.h"
 #ifdef PLUS_USE_STEALTHLINK
   #include "vtkPlusStealthLinkCommand.h"
 #endif
@@ -336,6 +337,16 @@ PlusStatus ExecuteUpdateTransform(vtkPlusOpenIGTLinkClient* client, const std::s
 }
 
 //----------------------------------------------------------------------------
+PlusStatus ExecuteGetTransform(vtkPlusOpenIGTLinkClient* client, const std::string &transformName)
+{
+  vtkSmartPointer<vtkPlusGetTransformCommand> cmd = vtkSmartPointer<vtkPlusGetTransformCommand>::New();
+  cmd->SetNameToGetTransform();
+  cmd->SetTransformName(transformName.c_str());
+  PrintCommand(cmd);
+  return client->SendCommand(cmd);
+}
+
+//----------------------------------------------------------------------------
 PlusStatus ExecuteSaveConfig(vtkPlusOpenIGTLinkClient* client, const std::string &outputFilename)
 {
   vtkSmartPointer<vtkPlusSaveConfigCommand> cmd = vtkSmartPointer<vtkPlusSaveConfigCommand>::New();
@@ -481,6 +492,8 @@ PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client)
   RETURN_IF_FAIL(PrintReply(client));
   ExecuteUpdateTransform(client, "Test1ToReference", "1 0 0 10 0 1.2 0.1 12 0.1 0.2 -0.9 -20 0 0 0 1", "1.4", "100314_182141", "TRUE");
   RETURN_IF_FAIL(PrintReply(client));
+  ExecuteGetTransform(client, "Test1ToReference");
+  RETURN_IF_FAIL(PrintReply(client));
   ExecuteSaveConfig(client, "Test1SavedConfig.xml");
   RETURN_IF_FAIL(PrintReply(client));
 
@@ -570,8 +583,7 @@ int main( int argc, char** argv )
   args.AddArgument( "--host", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverHost, "Host name of the OpenIGTLink server (default: 127.0.0.1)" );
   args.AddArgument( "--port", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverPort, "Port address of the OpenIGTLink server (default: 18944)" );
   args.AddArgument( "--command", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &command, 
-    "Command name to be executed on the server (START_ACQUISITION, STOP_ACQUISITION, SUSPEND_ACQUISITION, RESUME_ACQUISITION, \
-    RECONSTRUCT, START_RECONSTRUCTION, SUSPEND_RECONSTRUCTION, RESUME_RECONSTRUCTION, STOP_RECONSTRUCTION, GET_RECONSTRUCTION_SNAPSHOT, GET_CHANNEL_IDS, GET_DEVICE_IDS, GET_EXAM_DATA, SEND_TEXT)" );
+    "Command name to be executed on the server (START_ACQUISITION, STOP_ACQUISITION, SUSPEND_ACQUISITION, RESUME_ACQUISITION, RECONSTRUCT, START_RECONSTRUCTION, SUSPEND_RECONSTRUCTION, RESUME_RECONSTRUCTION, STOP_RECONSTRUCTION, GET_RECONSTRUCTION_SNAPSHOT, GET_CHANNEL_IDS, GET_DEVICE_IDS, GET_EXAM_DATA, SEND_TEXT, UPDATE_TRANSFORM, GET_TRANSFORM)" );
   args.AddArgument( "--device", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceId, "ID of the controlled device (optional, default: first VirtualStreamCapture or VirtualVolumeReconstructor device). In case of GET_DEVICE_IDS it is not an ID but a device type." );
   args.AddArgument( "--input-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFilename, "File name of the input, used for RECONSTRUCT command" );
   args.AddArgument( "--output-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFilename, "File name of the output, used for START command (optional, default: 'PlusServerRecording.nrrd' for acquisition, no output for volume reconstruction)" );
@@ -658,6 +670,7 @@ int main( int argc, char** argv )
     else if (STRCASECMP(command.c_str(), "UPDATE_TRANSFORM")==0) { commandExecutionStatus = ExecuteUpdateTransform(client, transformName, transformValue, transformError, transformDate, transformPersistent); }
     else if (STRCASECMP(command.c_str(), "SAVE_CONFIG")==0) { commandExecutionStatus = ExecuteSaveConfig(client, outputFilename); }
     else if (STRCASECMP(command.c_str(), "SEND_TEXT")==0) { commandExecutionStatus = ExecuteSendText(client, deviceId, text, responseExpected); }
+    else if (STRCASECMP(command.c_str(), "GET_TRANSFORM")==0) { commandExecutionStatus = ExecuteGetTransform(client, transformName); }
     else if (STRCASECMP(command.c_str(), "GET_EXAM_DATA")==0)
     {
 #ifdef PLUS_USE_STEALTHLINK
