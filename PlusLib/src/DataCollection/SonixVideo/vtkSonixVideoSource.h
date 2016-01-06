@@ -18,10 +18,9 @@ Siddharth Vikal (Queen's University, Kingston, Ontario, Canada)
 
 #include "PlusConfigure.h"
 #include "vtkDataCollectionExport.h"
-
+#include "ulterius.h"
 #include "vtkPlusDevice.h"
 
-class ulterius;
 class uDataDesc;
 enum uData;
 
@@ -98,6 +97,15 @@ public:
   PlusStatus SetSector(int aSector);
   /*! Get the Sector (%) of B-mode ultrasound; valid range: 0-100 */
   PlusStatus GetSector(int& aSector);
+
+  /*! Set the TGC (8 ints) of B-mode ultrasound; */
+  PlusStatus SetTimeGainCompensation(int tgc[8]);
+  /*! Set the TGC (8 ints) of B-mode ultrasound; */
+  PlusStatus SetTimeGainCompensation(const uTGC& tgc);
+  /*! Get the TGC (8 ints) of B-mode ultrasound; */
+  PlusStatus GetTimeGainCompensation(int tgc[8]);
+  /*! Get the TGC (8 ints) of B-mode ultrasound; */
+  PlusStatus GetTimeGainCompensation(uTGC& tgc);
 
   /*! Set the CompressionStatus to 0 for compression off, 1 for compression on. (Default: off) */
   PlusStatus SetCompressionStatus(int aCompressionStatus);
@@ -271,7 +279,9 @@ protected:
   PlusStatus AddFrameToBuffer(void * data, int type, int sz, bool cine, int frmnum);
 
   PlusStatus SetParamValue(char* paramId, int paramValue, int &validatedParamValue);
+  PlusStatus SetParamValue(char* paramId, uTGC paramValue, uTGC &validatedParamValue);
   PlusStatus GetParamValue(char* paramId, int& paramValue, int &validatedParamValue);
+  PlusStatus GetParamValue(char* paramId, uTGC& paramValue, uTGC &validatedParamValue);
 
   bool HasDataType( uData aValue );
   bool WantDataType( uData aValue );
@@ -306,6 +316,7 @@ protected:
   int SoundVelocity;
   bool DetectDepthSwitching;
   bool DetectPlaneSwitching;
+  uTGC TimeGainCompensation;
   
   /*! Indicates that current depth, spacing, transducer origin has to be queried */
   bool ImageGeometryChanged;
