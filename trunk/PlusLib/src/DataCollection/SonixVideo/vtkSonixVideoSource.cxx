@@ -8,11 +8,15 @@ See License.txt for details.
 The following copyright notice is applicable to parts of this file:
 Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada
 All rights reserved.
-Authors include: Danielle Pace
-(Robarts Research Institute and The University of Western Ontario)
+Authors include: 
+Danielle Pace (Robarts Research Institute, The University of Western Ontario)
 Siddharth Vikal (Queen's University, Kingston, Ontario, Canada)
+Adam Rankin (Robarts Research Institute, The University of Western Ontario)
+Andras Lasso (Queen's University, Kingston, Ontario, Canada)
 =========================================================================*/  
 
+#include "ImagingModes.h" // Ulterius imaging modes
+#include "ulterius_def.h"
 #include "vtkImageData.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
@@ -26,27 +30,9 @@ Siddharth Vikal (Queen's University, Kingston, Ontario, Canada)
 #include "vtkUnsignedCharArray.h"
 #include "vtkUsImagingParameters.h"
 #include "vtksys/SystemTools.hxx"
-
-#include "ulterius.h"
-#include "ulterius_def.h"
-#include "ImagingModes.h" // Ulterius imaging modes
-
 #include <ctype.h>
-
-// because of warnings in windows header push and pop the warning level
-#ifdef _MSC_VER
-#pragma warning (push, 3)
-#endif
-
-#include <vector>
 #include <string>
-#include "ulterius.h"
-#include "ulterius_def.h"
-
-#ifdef _MSC_VER
-#pragma warning (pop)
-#endif
-
+#include <vector>
 
 //----------------------------------------------------------------------------
 
@@ -629,16 +615,16 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigE
     XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Depth, deviceConfig);
   }
 
+  // TODO : if depth or plane switching, build lookup table
+  // if both attributes, build [plane, depth]->channel lookup table
+  // if one, build [attr]->channel lookup table
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(DetectPlaneSwitching, deviceConfig);
 
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(AutoClipEnabled, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ImageGeometryOutputEnabled, deviceConfig);
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(ImageToTransducerTransformName, deviceConfig);
 
-  // TODO : if depth or plane switching, build lookup table
-  // if both attributes, build [plane, depth]->channel lookup table
-  // if one, build [attr]->channel lookup table
-
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 8, TimeGainCompensation, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Sector, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Gain, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, DynRange, deviceConfig);
@@ -656,16 +642,16 @@ PlusStatus vtkSonixVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigE
 //-----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::WriteConfiguration(vtkXMLDataElement* rootConfig)
 {
-  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(imageAcquisitionConfig, rootConfig);
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfig);
 
   if (this->ImagingMode == BMode)
   {
-    imageAcquisitionConfig->SetAttribute("ImagingMode", "BMode");
+    deviceConfig->SetAttribute("ImagingMode", "BMode");
   }
 #if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6) // RF acquisition mode is not supported on Ultrasonix SDK 6.x and above - see https://www.assembla.com/spaces/plus/tickets/489-add-rf-image-acquisition-support-on-ulterius-6-x
   else if (this->ImagingMode == RfMode)
   {
-    imageAcquisitionConfig->SetAttribute("ImagingMode", "RfMode");
+    deviceConfig->SetAttribute("ImagingMode", "RfMode");
   }
 #endif
   else
@@ -673,20 +659,31 @@ PlusStatus vtkSonixVideoSource::WriteConfiguration(vtkXMLDataElement* rootConfig
     LOG_ERROR("Saving of unsupported ImagingMode requested!");
   }
 
-  imageAcquisitionConfig->SetAttribute("IP", this->SonixIP);
-  imageAcquisitionConfig->SetIntAttribute("Depth", this->Depth);
-  imageAcquisitionConfig->SetIntAttribute("Sector", this->Sector);
-  imageAcquisitionConfig->SetIntAttribute("Gain", this->Gain);
-  imageAcquisitionConfig->SetIntAttribute("DynRange", this->DynRange);
-  imageAcquisitionConfig->SetIntAttribute("Zoom", this->Zoom);
-  imageAcquisitionConfig->SetIntAttribute("Frequency", this->Frequency);
-  imageAcquisitionConfig->SetIntAttribute("CompressionStatus", this->CompressionStatus);
-  imageAcquisitionConfig->SetIntAttribute("Timeout", this->Timeout);
-  imageAcquisitionConfig->SetDoubleAttribute("ConnectionSetupDelayMs", this->ConnectionSetupDelayMs);
+  deviceConfig->SetAttribute("IP", this->SonixIP);
+  deviceConfig->SetIntAttribute("Depth", this->Depth);
+  deviceConfig->SetIntAttribute("Sector", this->Sector);
+  deviceConfig->SetIntAttribute("Gain", this->Gain);
+  deviceConfig->SetIntAttribute("DynRange", this->DynRange);
+  deviceConfig->SetIntAttribute("Zoom", this->Zoom);
+  deviceConfig->SetIntAttribute("Frequency", this->Frequency);
+  deviceConfig->SetIntAttribute("CompressionStatus", this->CompressionStatus);
+  deviceConfig->SetIntAttribute("Timeout", this->Timeout);
+  deviceConfig->SetDoubleAttribute("ConnectionSetupDelayMs", this->ConnectionSetupDelayMs);
+
+  int tgc[8];
+  tgc[0] = this->TimeGainCompensation.v1;
+  tgc[1] = this->TimeGainCompensation.v2;
+  tgc[2] = this->TimeGainCompensation.v3;
+  tgc[3] = this->TimeGainCompensation.v4;
+  tgc[4] = this->TimeGainCompensation.v5;
+  tgc[5] = this->TimeGainCompensation.v6;
+  tgc[6] = this->TimeGainCompensation.v7;
+  tgc[7] = this->TimeGainCompensation.v8;
+  deviceConfig->SetVectorAttribute("tgc", 8, tgc);
   
-  XML_WRITE_BOOL_ATTRIBUTE(AutoClipEnabled, imageAcquisitionConfig);
-  XML_WRITE_BOOL_ATTRIBUTE(ImageGeometryOutputEnabled, imageAcquisitionConfig);
-  XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_NULL(ImageToTransducerTransformName, imageAcquisitionConfig);
+  XML_WRITE_BOOL_ATTRIBUTE(AutoClipEnabled, deviceConfig);
+  XML_WRITE_BOOL_ATTRIBUTE(ImageGeometryOutputEnabled, deviceConfig);
+  XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_NULL(ImageToTransducerTransformName, deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -721,6 +718,27 @@ PlusStatus vtkSonixVideoSource::SetParamValue(char* paramId, int paramValue, int
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkSonixVideoSource::SetParamValue(char* paramId, uTGC paramValue, uTGC &validatedParamValue)
+{
+  if (!this->UlteriusConnected)
+  {
+    // Connection has not been established yet. Parameter value will be set upon connection.
+    validatedParamValue=paramValue;
+    return PLUS_SUCCESS;
+  }
+  if (!this->Ult->setParamValue(paramId, paramValue))
+  {
+    std::stringstream ss;
+    ss << paramValue.v1 << ", " << paramValue.v2 << ", " << paramValue.v3 << ", " << paramValue.v4 << ", " << paramValue.v5 << ", " << 
+      paramValue.v6 << ", " << paramValue.v7 << ", " << paramValue.v8;
+    LOG_ERROR("vtkSonixVideoSource::SetParamValue failed (paramId="<<paramId<<", paramValue=" << ss.str() <<") "<<GetLastUlteriusError());
+    return PLUS_FAIL;
+  }
+  validatedParamValue=paramValue;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkSonixVideoSource::GetParamValue(char* paramId, int& paramValue, int &validatedParamValue)
 {
   if (!this->UlteriusConnected)
@@ -733,6 +751,27 @@ PlusStatus vtkSonixVideoSource::GetParamValue(char* paramId, int& paramValue, in
   if (!this->Ult->getParamValue(paramId, paramValue))
   {
     LOG_ERROR("vtkSonixVideoSource::GetParamValue failed (paramId="<<paramId<<", paramValue="<<paramValue<<") "<<GetLastUlteriusError());
+    return PLUS_FAIL;
+  }
+  validatedParamValue=paramValue;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixVideoSource::GetParamValue(char* paramId, uTGC& paramValue, uTGC &validatedParamValue)
+{
+  if (!this->UlteriusConnected)
+  {
+    // Connection has not been established yet. Returned the cached value.
+    paramValue=validatedParamValue;
+    return PLUS_SUCCESS;
+  }
+  if (!this->Ult->getParamValue(paramId, paramValue))
+  {
+    std::stringstream ss;
+    ss << paramValue.v1 << ", " << paramValue.v2 << ", " << paramValue.v3 << ", " << paramValue.v4 << ", " << paramValue.v5 << ", " << 
+      paramValue.v6 << ", " << paramValue.v7 << ", " << paramValue.v8;
+    LOG_ERROR("vtkSonixVideoSource::GetParamValue failed (paramId="<<paramId<<", paramValue=" << ss.str() << ") "<<GetLastUlteriusError());
     return PLUS_FAIL;
   }
   validatedParamValue=paramValue;
@@ -809,6 +848,48 @@ PlusStatus vtkSonixVideoSource::SetSector(int aSector)
 PlusStatus vtkSonixVideoSource::GetSector(int& aSector)
 {
   return GetParamValue("sector", aSector, this->Sector);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixVideoSource::SetTimeGainCompensation(int tgc[8])
+{
+  uTGC tgcStruct;
+  tgcStruct.v1 = tgc[0];
+  tgcStruct.v2 = tgc[1];
+  tgcStruct.v3 = tgc[2];
+  tgcStruct.v4 = tgc[3];
+  tgcStruct.v5 = tgc[4];
+  tgcStruct.v6 = tgc[5];
+  tgcStruct.v7 = tgc[6];
+  tgcStruct.v8 = tgc[7];
+  return SetParamValue("tgc", tgcStruct, this->TimeGainCompensation);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixVideoSource::SetTimeGainCompensation(const uTGC& tgc)
+{
+  return SetParamValue("tgc", tgc, this->TimeGainCompensation);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixVideoSource::GetTimeGainCompensation(int tgc[8])
+{
+  uTGC tgcStruct;
+  return GetParamValue("tgc", tgcStruct, this->TimeGainCompensation);
+  tgc[0] = tgcStruct.v1;
+  tgc[1] = tgcStruct.v2;
+  tgc[2] = tgcStruct.v3;
+  tgc[3] = tgcStruct.v4;
+  tgc[4] = tgcStruct.v5;
+  tgc[5] = tgcStruct.v6;
+  tgc[6] = tgcStruct.v7;
+  tgc[7] = tgcStruct.v8;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixVideoSource::GetTimeGainCompensation(uTGC& tgc)
+{
+  return GetParamValue("tgc", tgc, this->TimeGainCompensation);
 }
 
 //----------------------------------------------------------------------------
