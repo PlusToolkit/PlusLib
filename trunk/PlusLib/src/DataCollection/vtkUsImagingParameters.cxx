@@ -7,6 +7,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkUsImagingParameters.h"
 
+#include <iterator>
 #include <string>
 
 //----------------------------------------------------------------------------
@@ -176,6 +177,16 @@ PlusStatus vtkUsImagingParameters::GetGainPercent(double aGainPercent)
 }
 
 //----------------------------------------------------------------------------
+double vtkUsImagingParameters::GetGainPercent()
+{
+  double aValue;
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_GAIN]);
+  ss >> aValue;
+  return aValue;
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::SetTimeGainCompensation(const std::vector<double>& tgc)
 {
   std::stringstream result;
@@ -184,6 +195,13 @@ PlusStatus vtkUsImagingParameters::SetTimeGainCompensation(const std::vector<dou
 
   this->ParameterSet[KEY_GAIN] = true;
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::SetTimeGainCompensation(double* tgc, int length)
+{
+  std::vector<double> tgcVec(tgc, tgc+length);
+  return this->SetTimeGainCompensation(tgcVec);
 }
 
 //----------------------------------------------------------------------------
@@ -200,6 +218,17 @@ PlusStatus vtkUsImagingParameters::GetTimeGainCompensation(std::vector<double>& 
     std::istream_iterator<double>());
   tgc = numbers;
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+std::vector<double> vtkUsImagingParameters::GetTimeGainCompensation()
+{
+  double aValue;
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_GAIN]);
+  std::vector<double> numbers((std::istream_iterator<double>(ss)), 
+    std::istream_iterator<double>());
+  return numbers;
 }
 
 //----------------------------------------------------------------------------

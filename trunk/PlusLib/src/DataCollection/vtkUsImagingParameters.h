@@ -108,11 +108,14 @@ public:
   PlusStatus SetGainPercent(double aGainPercent);
   /*! Get the Gain (%) of B-mode ultrasound; valid range: 0-100 */
   PlusStatus GetGainPercent(double aGainPercent);
+  double GetGainPercent();
 
   /*! Set the Gain (%) of B-mode ultrasound; valid range: 0-100 */
   PlusStatus SetTimeGainCompensation(const std::vector<double>& tgc);
+  PlusStatus SetTimeGainCompensation(double* tgc, int length);
   /*! Get the Gain (%) of B-mode ultrasound; valid range: 0-100 */
   PlusStatus GetTimeGainCompensation(std::vector<double>& tgc);
+  std::vector<double> GetTimeGainCompensation();
 
   /*! Set the intensity of B-mode ultrasound */
   PlusStatus SetIntensity(double aIntensity);
