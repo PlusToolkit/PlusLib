@@ -7,25 +7,49 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkUsImagingParameters.h"
 
+#include <string>
 
 //----------------------------------------------------------------------------
 
-vtkUsImagingParameters::vtkUsImagingParameters(vtkPlusDevice* aImagingDevice)
+vtkStandardNewMacro(vtkUsImagingParameters);
+
+//----------------------------------------------------------------------------
+
+const char* vtkUsImagingParameters::KEY_CONTRAST = "Contrast";
+const char* vtkUsImagingParameters::KEY_DEPTH = "DepthMm";
+const char* vtkUsImagingParameters::KEY_DYNRANGE = "DynRangeDb";
+const char* vtkUsImagingParameters::KEY_FREQUENCY = "FrequencyMhz";
+const char* vtkUsImagingParameters::KEY_GAIN = "GainPercent";
+const char* vtkUsImagingParameters::KEY_TGC = "TimeGainCompensation";
+const char* vtkUsImagingParameters::KEY_INTENSITY = "Intensity";
+const char* vtkUsImagingParameters::KEY_SECTOR = "SectorPercent";
+const char* vtkUsImagingParameters::KEY_ZOOM = "ZoomFactor";
+const char* vtkUsImagingParameters::KEY_SOUNDVELOCITY = "SoundVelocity";
+
+//----------------------------------------------------------------------------
+
+vtkUsImagingParameters::vtkUsImagingParameters()
 : vtkObject()
-, FrequencyMhz(-1)
-, DepthMm(-1)
-, SectorPercent(-1)
-, DynRangeDb(-1)
-, Intensity(-1)
-, Contrast(-1)
-, ZoomFactor(-1)
-, SoundVelocity(1540)
 {
-   //this->ImagingDevice = imagingDevice;
-   this->ImagingDevice = aImagingDevice;
-   this->GainPercent[0]=-1;
-   this->GainPercent[1]=-1;
-   this->GainPercent[2]=-1;
+  this->ParameterValues[KEY_FREQUENCY]="-1";
+  this->ParameterValues[KEY_DEPTH]="-1";
+  this->ParameterValues[KEY_SECTOR]="-1";
+  this->ParameterValues[KEY_GAIN]="-1 -1 -1";
+  this->ParameterValues[KEY_INTENSITY]="-1";
+  this->ParameterValues[KEY_CONTRAST]="-1";
+  this->ParameterValues[KEY_DYNRANGE]="-1";
+  this->ParameterValues[KEY_ZOOM]="-1";
+  this->ParameterValues[KEY_SOUNDVELOCITY]="1540";
+
+  this->ParameterSet[KEY_FREQUENCY]=false;
+  this->ParameterSet[KEY_DEPTH]=false;
+  this->ParameterSet[KEY_SECTOR]=false;
+  this->ParameterSet[KEY_GAIN]=false;
+  this->ParameterSet[KEY_INTENSITY]=false;
+  this->ParameterSet[KEY_CONTRAST]=false;
+  this->ParameterSet[KEY_DYNRANGE]=false;
+  this->ParameterSet[KEY_ZOOM]=false;
+  this->ParameterSet[KEY_SOUNDVELOCITY]=false;
 }
 
 //----------------------------------------------------------------------------
@@ -38,158 +62,544 @@ vtkUsImagingParameters::~vtkUsImagingParameters()
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::SetFrequencyMhz(double aFrequencyMhz)
 {
-   this->FrequencyMhz = aFrequencyMhz;
-   return PLUS_SUCCESS;
+  double currentValue;
+  this->GetFrequencyMhz(currentValue);
+  if( this->ParameterSet[KEY_FREQUENCY] == true && currentValue == aFrequencyMhz )
+  {
+    return PLUS_SUCCESS;
+  }
+  std::stringstream ss;
+  ss << aFrequencyMhz;
+  this->ParameterValues[KEY_FREQUENCY] = ss.str();
+
+  this->ParameterSet[KEY_FREQUENCY] = true;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::GetFrequencyMhz(double& aFrequencyMhz)
 {
-	aFrequencyMhz = this->FrequencyMhz;
-	return PLUS_SUCCESS;
+  if( this->ParameterSet[KEY_FREQUENCY] == false )
+  {
+    return PLUS_FAIL;
+  }
+
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_FREQUENCY]);
+  ss >> aFrequencyMhz;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+double vtkUsImagingParameters::GetFrequencyMhz()
+{
+  double aValue;
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_FREQUENCY]);
+  ss >> aValue;
+  return aValue;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::SetDepthMm(double aDepthMm)
 {
-  this->DepthMm = aDepthMm;
+  double currentValue;
+  this->GetDepthMm(currentValue);
+  if( this->ParameterSet[KEY_DEPTH] == true && currentValue == aDepthMm )
+  {
+    return PLUS_SUCCESS;
+  }
+
+  std::stringstream ss;
+  ss << aDepthMm;
+  this->ParameterValues[KEY_DEPTH] = ss.str();
+
+  this->ParameterSet[KEY_DEPTH] = true;
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::GetDepthMm(double& aDepthMm)
 {
-  aDepthMm = this->DepthMm;
+  if( this->ParameterSet[KEY_DEPTH] == false )
+  {
+    return PLUS_FAIL;
+  }
+
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_DEPTH]);
+  ss >> aDepthMm;
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::SetGainPercent(double aGainPercent[3])
+double vtkUsImagingParameters::GetDepthMm()
 {
-    this->GainPercent[0] = aGainPercent[0];
-	this->GainPercent[1] = aGainPercent[1];
-	this->GainPercent[2] = aGainPercent[2];
-	return PLUS_SUCCESS;
+  double aValue;
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_DEPTH]);
+  ss >> aValue;
+  return aValue;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::GetGainPercent(double aGainPercent[3])
+PlusStatus vtkUsImagingParameters::SetGainPercent(double aGainPercent)
 {
-	aGainPercent[0] = this->GainPercent[0];
-	aGainPercent[1] = this->GainPercent[1];
-	aGainPercent[2] = this->GainPercent[2];
-	return PLUS_SUCCESS;
+  double currentValue;
+  this->GetGainPercent(currentValue);
+  if( this->ParameterSet[KEY_GAIN] == true && currentValue == aGainPercent )
+  {
+    return PLUS_SUCCESS;
+  }
+
+  std::stringstream ss;
+  ss << aGainPercent;
+  this->ParameterValues[KEY_GAIN] = ss.str();
+
+  this->ParameterSet[KEY_GAIN] = true;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::GetGainPercent(double aGainPercent)
+{
+  if( this->ParameterSet[KEY_GAIN] == false )
+  {
+    return PLUS_FAIL;
+  }
+
+  double aValue;
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_GAIN]);
+  ss >> aValue;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::SetTimeGainCompensation(const std::vector<double>& tgc)
+{
+  std::stringstream result;
+  std::copy(tgc.begin(), tgc.end(), std::ostream_iterator<double>(result, " "));
+  this->ParameterValues[KEY_GAIN] = result.str();
+
+  this->ParameterSet[KEY_GAIN] = true;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::GetTimeGainCompensation(std::vector<double>& tgc)
+{
+  if( this->ParameterSet[KEY_TGC] == false )
+  {
+    return PLUS_FAIL;
+  }
+
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_TGC]);
+  std::vector<double> numbers((std::istream_iterator<double>(ss)), 
+    std::istream_iterator<double>());
+  tgc = numbers;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::SetIntensity(double aIntensity)
 {
-    this->Intensity = aIntensity;
-	return PLUS_SUCCESS;
+  double currentValue;
+  this->GetIntensity(currentValue);
+  if( this->ParameterSet[KEY_INTENSITY] == true && currentValue == aIntensity )
+  {
+    return PLUS_SUCCESS;
+  }
+
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_INTENSITY]);
+  ss >> aIntensity;
+
+  this->ParameterSet[KEY_INTENSITY] = true;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::GetIntensity(double& aIntensity)
 {
-    aIntensity = this->Intensity ;
-	return PLUS_SUCCESS;
+  if( this->ParameterSet[KEY_INTENSITY] == false )
+  {
+    return PLUS_FAIL;
+  }
+
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_INTENSITY]);
+  ss >> aIntensity;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+double vtkUsImagingParameters::GetIntensity()
+{
+  double aValue;
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_INTENSITY]);
+  ss >> aValue;
+  return aValue;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::SetContrast(double aContrast)
 {
-    this->Contrast = aContrast;
-	return PLUS_SUCCESS;
+  double currentValue;
+  this->GetContrast(currentValue);
+  if( this->ParameterSet[KEY_CONTRAST] == true && currentValue == aContrast )
+  {
+    return PLUS_SUCCESS;
+  }
+
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_CONTRAST]);
+  ss >> aContrast;
+
+  this->ParameterSet[KEY_CONTRAST] = true;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::GetContrast(double& aContrast)
 {
-    aContrast = this->Contrast ;
-	return PLUS_SUCCESS;
+  if( this->ParameterSet[KEY_CONTRAST] == false )
+  {
+    return PLUS_FAIL;
+  }
+
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_CONTRAST]);
+  ss >> aContrast;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+double vtkUsImagingParameters::GetContrast()
+{
+  double aValue;
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_CONTRAST]);
+  ss >> aValue;
+  return aValue;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::SetDynRangeDb(double aDynRangeDb)
 {
-    this->DynRangeDb = aDynRangeDb;
-	return PLUS_SUCCESS;
+  double currentValue;
+  this->GetDynRangeDb(currentValue);
+  if( this->ParameterSet[KEY_DYNRANGE] == true && currentValue == aDynRangeDb )
+  {
+    return PLUS_SUCCESS;
+  }
+
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_DYNRANGE]);
+  ss >> aDynRangeDb;
+
+  this->ParameterSet[KEY_DYNRANGE] = true;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::GetDynRangeDb(double& aDynRangeDb)
 {
-    aDynRangeDb = this->DynRangeDb ;
-	return PLUS_SUCCESS;
+  if( this->ParameterSet[KEY_DYNRANGE] == false )
+  {
+    return PLUS_FAIL;
+  }
+
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_DYNRANGE]);
+  ss >> aDynRangeDb;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+double vtkUsImagingParameters::GetDynRangeDb()
+{
+  double aValue;
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_DYNRANGE]);
+  ss >> aValue;
+  return aValue;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::SetZoomFactor(double aZoomFactor)
 {
-    this->ZoomFactor = aZoomFactor;
-	return PLUS_SUCCESS;
+  double currentValue;
+  this->GetZoomFactor(currentValue);
+  if( this->ParameterSet[KEY_ZOOM] == true && currentValue == aZoomFactor )
+  {
+    return PLUS_SUCCESS;
+  }
+
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_ZOOM]);
+  ss >> aZoomFactor;
+
+  this->ParameterSet[KEY_ZOOM] = true;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::GetZoomFactor(double& aZoomFactor)
 {
-	aZoomFactor = this->ZoomFactor;
-	return PLUS_SUCCESS;
+  if( this->ParameterSet[KEY_ZOOM] == false )
+  {
+    return PLUS_FAIL;
+  }
+
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_ZOOM]);
+  ss >> aZoomFactor;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+double vtkUsImagingParameters::GetZoomFactor()
+{
+  double aValue;
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_ZOOM]);
+  ss >> aValue;
+  return aValue;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::SetSectorPercent(double aSectorPercent)
 {
-    this->SectorPercent = aSectorPercent;
-	return PLUS_SUCCESS;
+  double currentValue;
+  this->GetSectorPercent(currentValue);
+  if( this->ParameterSet[KEY_SECTOR] == true && currentValue == aSectorPercent )
+  {
+    return PLUS_SUCCESS;
+  }
+
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_SECTOR]);
+  ss >> aSectorPercent;
+
+  this->ParameterSet[KEY_SECTOR] = true;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::GetSectorPercent(double& aSectorPercent)
 {
-    aSectorPercent = this->SectorPercent;
-	return PLUS_SUCCESS;
+  if( this->ParameterSet[KEY_SECTOR] == false )
+  {
+    return PLUS_FAIL;
+  }
+
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_SECTOR]);
+  ss >> aSectorPercent;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::SetSoundVelocity(double aSoundVelocity)
+double vtkUsImagingParameters::GetSectorPercent()
 {
-    this->SoundVelocity = aSoundVelocity;
+  double aValue;
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_SECTOR]);
+  ss >> aValue;
+  return aValue;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::SetSoundVelocity(float aSoundVelocity)
+{
+  float currentValue;
+  this->GetSoundVelocity(currentValue);
+  if( this->ParameterSet[KEY_SOUNDVELOCITY] == true && currentValue == aSoundVelocity )
+  {
     return PLUS_SUCCESS;
-}
+  }
 
-//----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::GetSoundVelocity(double& aSoundVelocity)
-{
-    aSoundVelocity = this->SoundVelocity;
-	return PLUS_SUCCESS;
-}
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_SOUNDVELOCITY]);
+  ss >> aSoundVelocity;
 
-//----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::PrintListOfImagingParameters()
-{
-
+  this->ParameterSet[KEY_SOUNDVELOCITY] = true;
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::GetDisplayedFrameRate(double &aFrameRate)
+PlusStatus vtkUsImagingParameters::GetSoundVelocity(float& aSoundVelocity)
 {
+  if( this->ParameterSet[KEY_SOUNDVELOCITY] == false )
+  {
+    return PLUS_FAIL;
+  }
+
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_SOUNDVELOCITY]);
+  ss >> aSoundVelocity;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+float vtkUsImagingParameters::GetSoundVelocity()
+{
+  float aValue;
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_SOUNDVELOCITY]);
+  ss >> aValue;
+  return aValue;
+}
+
+//----------------------------------------------------------------------------
+void vtkUsImagingParameters::PrintSelf(ostream& os, vtkIndent indent)
+{
+  Superclass::PrintSelf(os, indent);
+
+  for( ParameterNameMap::iterator it = this->ParameterValues.begin(); it != this->ParameterValues.end(); ++it )
+  {
+    if( this->ParameterSet[it->first] == true )
+    {
+      os << indent << it->first << ": " << it->second << "\n";
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::ReadConfiguration(vtkXMLDataElement* deviceConfig)
+{
+  vtkXMLDataElement* parameterList(NULL);
+  for( int i = 0; i < deviceConfig->GetNumberOfNestedElements(); ++i )
+  {
+    vtkXMLDataElement* element = deviceConfig->GetNestedElement(i);
+    if( STRCASECMP(element->GetName(), "UsImagingParameters") == 0 )
+    {
+      parameterList = element;
+      break;
+    }
+  }
+
+  if( parameterList == NULL )
+  {
+    LOG_ERROR("Unable to locate UsImagingParameters tag in device config. Unable to read imaging parameters. Device defaults will probably be used.");
+    return PLUS_FAIL;
+  }
+
+  for( int i = 0; i < parameterList->GetNumberOfNestedElements(); ++i )
+  {
+    vtkXMLDataElement* element = parameterList->GetNestedElement(i);
+    this->ParameterValues[element->GetAttribute("name")] = element->GetAttribute("value");
+    this->ParameterSet[element->GetAttribute("name")] = true;
+  }
 
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::ReadConfiguration(vtkXMLDataElement* config)
+PlusStatus vtkUsImagingParameters::WriteConfiguration(vtkXMLDataElement* deviceConfig)
 {
+  /* Create a sub node, populate it with entries of the form
+  <device ...>
+    <UsImagingParameters>
+      <UsParameter name=KEY_DEPTH value="55"/>
+      <UsParameter name="FreqMhz" value="12.5"/>
+      <UsParameter name="SectorSizeMm" value="60"/>
+    </UsImagingParameters>
+  ...
+  </device>
+  */
+
+  vtkSmartPointer<vtkXMLDataElement> parameterList = vtkSmartPointer<vtkXMLDataElement>::New();
+  parameterList->SetName("UsImagingParameters");
+
+  for( ParameterNameMap::iterator it = this->ParameterValues.begin(); it != this->ParameterValues.end(); ++it )
+  {
+    if( this->ParameterSet[it->first] == false )
+    {
+      // Don't write out parameters that are defaults
+      continue;
+    }
+
+    vtkSmartPointer<vtkXMLDataElement> parameter = vtkSmartPointer<vtkXMLDataElement>::New();
+    parameter->SetName("UsParameter");
+    parameter->SetAttribute("name", it->first.c_str());
+    parameter->SetAttribute("value", it->second.c_str());
+
+    parameterList->AddNestedElement(parameter);
+  }
 
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::WriteConfiguration(vtkXMLDataElement* config)
+bool vtkUsImagingParameters::IsSet(const char* paramName)
 {
+  if( paramName == NULL )
+  {
+    LOG_ERROR("NULL param name sent as parameter. Cannot perform lookup.");
+    return false;
+  }
+
+  if( this->ParameterSet.find(paramName) != this->ParameterSet.end() )
+  {
+    return this->ParameterSet[paramName];
+  }
+
+  LOG_ERROR("Invalid key request sent to vtkUsImagingParameters::IsSet -- " << paramName);
+  return false;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::GetValue(const char* paramName, double& outputValue)
+{
+  if( paramName == NULL )
+  {
+    LOG_ERROR("NULL param name sent as parameter. Cannot perform lookup.");
+    return PLUS_FAIL;
+  }
+
+  if( this->ParameterValues.find(paramName) != this->ParameterValues.end() && this->ParameterSet[paramName] == true)
+  {
+    std::stringstream ss;
+    ss.str(this->ParameterValues[paramName]);
+    ss >> outputValue;
+    return PLUS_SUCCESS;
+  }
+
+  return PLUS_FAIL;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::SetValue(const char* paramName, double aValue)
+{
+  if( this->ParameterValues.find(paramName) != this->ParameterValues.end() )
+  {
+    std::stringstream ss;
+    ss << aValue;
+    this->ParameterValues[paramName] = ss.str();
+    this->ParameterSet[paramName] = true;
+
+    return PLUS_SUCCESS;
+  }
+
+  return PLUS_FAIL;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::DeepCopy(const vtkUsImagingParameters& otherParameters)
+{
+  for( ParameterNameMap::const_iterator it = otherParameters.ParameterValues.begin(); it != otherParameters.ParameterValues.end(); ++it )
+  {
+    this->ParameterValues[it->first] = it->second;
+  }
+
+  for( ParameterSetMap::const_iterator it = otherParameters.ParameterSet.begin(); it != otherParameters.ParameterSet.end(); ++it )
+  {
+    this->ParameterSet[it->first] = it->second;
+  }
 
   return PLUS_SUCCESS;
 }
-

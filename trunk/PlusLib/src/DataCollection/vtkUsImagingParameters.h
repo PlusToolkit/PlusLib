@@ -9,114 +9,150 @@
 
 #include "vtkDataCollectionExport.h"
 
-#include "vtkPlusDevice.h"
+#include <string>
+#include <map>
 
 /*!
-\class vtkUSImagingParameters 
-\brief This class is used to configure the imaging parameters of the video devices.
-Ultrasound video devices have an a attribute of this class that is used to set/query 
-the depth, gain, etc.
+\class vtkUsImagingParameters
+\brief This class is used to store a configuration of the imaging parameters of an ultrasound video device.
+Ultrasound video devices should contain a member variable of this class that is used to set/query the depth, gain, etc.
 This class exists mainly for two reasons:
-	* Be sure that the Us video devices have some methods.
-	* Avoid repeting code.
+	* Provide a standard interface for accessing ultrasound parameters
+	* Enable standardized API for operating on ultrasound parameters
 \ingroup PlusLibDataCollection
+
+Currently contains the following items
+* FrequencyMhz
+* DepthMm
+* SectorPercent
+* GainPercent [initialgain, midgain, fargain]
+* Intensity
+* Contrast
+* DynRangeDb
+* ZoomFactor
+* SoundVelocity
+
 */
 
 class vtkDataCollectionExport vtkUsImagingParameters : public vtkObject
 {
+  typedef std::map<std::string, std::string> ParameterNameMap;
+  typedef std::map<std::string, bool> ParameterSetMap;
+
 public:
-  vtkUsImagingParameters(vtkPlusDevice*);
-  virtual ~vtkUsImagingParameters();
+  static const char* KEY_FREQUENCY;
+  static const char* KEY_DEPTH;
+  static const char* KEY_DYNRANGE;
+  static const char* KEY_GAIN;
+  static const char* KEY_TGC;
+  static const char* KEY_INTENSITY;
+  static const char* KEY_CONTRAST;
+  static const char* KEY_SECTOR;
+  static const char* KEY_ZOOM;
+  static const char* KEY_SOUNDVELOCITY;
 
-    /*! Read main configuration from/to xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+public:
+  static vtkUsImagingParameters* New();
+  vtkTypeMacro(vtkUsImagingParameters,vtkObject);
 
-  /*! Write main configuration from/to xml data */
-  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
+  /*!
+    Read main configuration from/to XML data
+    Assumes that the data element passed is the device element, not the root!
+    \param deviceConfig the XML element of the device
+    */
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* deviceConfig); 
+
+  /*!
+    Write main configuration from/to XML data
+    Assumes that the data element passed is the device element, not the root!
+    \param deviceConfig the XML element of the device
+    */
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* deviceConfig);
+
+  /*!
+    Copy the values from another imaging parameters
+    */
+  virtual PlusStatus DeepCopy(const vtkUsImagingParameters& otherParameters);
+
+  /*!
+    Request a stored value by key name
+    \param paramName the key value to retrieve
+    \param outputValue the output variable to write to
+    */
+  PlusStatus GetValue(const char* paramName, double& outputValue);
+  /*!
+    Set a stored value by key name
+    \param paramName the key value to retrieve
+    \param aValue the value to write
+    */
+  PlusStatus SetValue(const char* paramName, double aValue);
+  /*!
+    Request the status of a member
+    \param paramName the key value to retrieve
+    */
+  bool IsSet(const char* paramName);
 
   /*! Set ultrasound transmitter frequency (MHz) */
   PlusStatus SetFrequencyMhz(double aFrequencyMhz);
   /*! Get ultrasound transmitter frequency (MHz) */
   PlusStatus GetFrequencyMhz(double& aFrequencyMhz);
+  double GetFrequencyMhz();
 
   /*! Set the depth (mm) of B-mode ultrasound */
   PlusStatus SetDepthMm(double aDepthMm);
   /*! Get the depth (mm) of B-mode ultrasound */
   PlusStatus GetDepthMm(double& aDepthMm);
+  double GetDepthMm();
 
   /*! Set the Gain (%) of B-mode ultrasound; valid range: 0-100 */
-  PlusStatus SetGainPercent(double aGainPercent[3]);
+  PlusStatus SetGainPercent(double aGainPercent);
   /*! Get the Gain (%) of B-mode ultrasound; valid range: 0-100 */
-  PlusStatus GetGainPercent(double aGainPercent[3]);
+  PlusStatus GetGainPercent(double aGainPercent);
+
+  /*! Set the Gain (%) of B-mode ultrasound; valid range: 0-100 */
+  PlusStatus SetTimeGainCompensation(const std::vector<double>& tgc);
+  /*! Get the Gain (%) of B-mode ultrasound; valid range: 0-100 */
+  PlusStatus GetTimeGainCompensation(std::vector<double>& tgc);
 
   /*! Set the intensity of B-mode ultrasound */
   PlusStatus SetIntensity(double aIntensity);
   /*! Get the Intensity of B-mode ultrasound */
   PlusStatus GetIntensity(double& aIntensity);
+  double GetIntensity();
 
   /*! Set the contrast of B-mode ultrasound */
   PlusStatus SetContrast(double aContrast);
   /*! Get the contrast of B-mode ultrasound */
   PlusStatus GetContrast(double& aContrast);
+  double GetContrast();
 
   /*! Set the DynRange (dB) of B-mode ultrasound */
   PlusStatus SetDynRangeDb(double aDynRangeDb);
   /*! Get the DynRange (dB) of B-mode ultrasound */
   PlusStatus GetDynRangeDb(double& aDynRangeDb);
+  double GetDynRangeDb();
 
   /*! Set the Zoom (%) of B-mode ultrasound; valid range: 0-100 */
   PlusStatus SetZoomFactor(double aZoomFactor);
   /*! Get the Zoom (%) of B-mode ultrasound; valid range: 0-100 */
   PlusStatus GetZoomFactor(double& aZoomFactor);
+  double GetZoomFactor();
 
   /*! Set the Sector (%) of B-mode ultrasound; valid range: 0-100 */
   PlusStatus SetSectorPercent(double aSectorPercent);
   /*! Get the Sector (%) of B-mode ultrasound; valid range: 0-100 */
   PlusStatus GetSectorPercent(double& aSectorPercent);
+  double GetSectorPercent();
 
   /*! Set the Sector (%) of B-mode ultrasound; valid range: 0-100 */
-  PlusStatus SetSoundVelocity(double aSoundVelocity);
+  PlusStatus SetSoundVelocity(float aSoundVelocity);
   /*! Get the Sector (%) of B-mode ultrasound; valid range: 0-100 */
-  PlusStatus GetSoundVelocity(double& aSoundVelocity);
-
-  /*! Get the displayed frame rate. */
-  PlusStatus GetDisplayedFrameRate(double &aFrameRate);
+  PlusStatus GetSoundVelocity(float& aSoundVelocity);
+  float GetSoundVelocity();
 
   /*! Print the list of supported parameters. For diagnostic purposes only. */
-  PlusStatus PrintListOfImagingParameters();
+  virtual void PrintSelf(ostream& os, vtkIndent indent);
 
-    /*!
-    Request a particular mode of imaging
-    Usable values are described in ImagingModes.h (default: B-mode)  
-    BMode = 0,
-    MMode = 1,
-    ColourMode = 2,
-    PwMode = 3,
-    TriplexMode = 4,
-    PanoMode = 5,
-    DualMode = 6,
-    QuadMode = 7,
-    CompoundMode = 8,
-    DualColourMode = 9,
-    DualCompoundMode = 10,
-    CwMode = 11,
-    RfMode = 12,
-    ColorSplitMode = 13,
-    F4DMode = 14,
-    TriplexCwMode = 15,
-    ColourMMode = 16,
-    ElastoMode = 17,
-    SDUVMode = 18,
-    AnatomicalMMode = 19,
-    ElastoComparativeMode = 20,
-    FusionMode = 21,
-    VecDopMode = 22,
-    BiplaneMode = 23,
-    ClinicalRfMode = 24,
-    RfCompoundMode = 25,
-    SHINEMode = 26,
-    ColourRfMode = 27,
-  */
   enum ImagingMode
   { 
 	BMode = 0,
@@ -178,19 +214,13 @@ public:
     DataType3DPost = 0x01000000,
     DataTypePNG = 0x10000000
   };
+
 protected:
+  vtkUsImagingParameters();
+  virtual ~vtkUsImagingParameters();
 
-  vtkPlusDevice *ImagingDevice; 
-  double FrequencyMhz;
-  double DepthMm;
-  double SectorPercent; 
-  double GainPercent[3]; 
-  int Intensity;
-  int Contrast;
-  double DynRangeDb; 
-  double ZoomFactor; 
-  double SoundVelocity;
-
+  ParameterNameMap ParameterValues;
+  ParameterSetMap ParameterSet;
 };
 
 #endif
