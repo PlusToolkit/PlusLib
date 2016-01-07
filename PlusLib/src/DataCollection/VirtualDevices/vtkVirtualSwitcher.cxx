@@ -18,8 +18,8 @@ const int FRAME_COUNT_BEFORE_INACTIVE = 25;
 //----------------------------------------------------------------------------
 vtkVirtualSwitcher::vtkVirtualSwitcher()
 : vtkPlusDevice()
-, CurrentActiveInputStream(NULL)
-, OutputStream(NULL)
+, CurrentActiveInputChannel(NULL)
+, OutputChannel(NULL)
 , FramesWhileInactive(0)
 {
   // The data capture thread will be used to regularly check the input devices and generate and update the output
@@ -39,27 +39,27 @@ void vtkVirtualSwitcher::PrintSelf(ostream& os, vtkIndent indent)
 
   for( ChannelContainerIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
   {
-    os << indent << "Input stream: \n";
+    os << indent << "Input channel: \n";
     (*it)->PrintSelf(os, indent);
   }
 
-  os << indent << "Active input stream: \n";
-  if( this->CurrentActiveInputStream != NULL )
+  os << indent << "Active input channel: \n";
+  if( this->CurrentActiveInputChannel != NULL )
   {
-    this->CurrentActiveInputStream->PrintSelf(os, indent);
+    this->CurrentActiveInputChannel->PrintSelf(os, indent);
   }
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualSwitcher::GetStream(vtkPlusChannel* &aStream) const
+PlusStatus vtkVirtualSwitcher::GetChannel(vtkPlusChannel* &aChannel) const
 {
-  if( this->CurrentActiveInputStream != NULL )
+  if( this->CurrentActiveInputChannel != NULL )
   {
-    aStream = this->CurrentActiveInputStream;
+    aChannel = this->CurrentActiveInputChannel;
     return PLUS_SUCCESS;
   }
 
-  aStream = NULL;
+  aChannel = NULL;
   return PLUS_FAIL;
 }
 
@@ -71,20 +71,20 @@ PlusStatus vtkVirtualSwitcher::InternalUpdate()
       // if timestamp not changed within 'FRAME_COUNT_BEFORE_INACTIVE' frames, then do new stream check
 
   double latestCurrentTimestamp(0);
-  if( this->CurrentActiveInputStream != NULL )
+  if( this->CurrentActiveInputChannel != NULL )
   {
-    if( this->CurrentActiveInputStream->GetLatestTimestamp(latestCurrentTimestamp) != PLUS_SUCCESS )
+    if( this->CurrentActiveInputChannel->GetLatestTimestamp(latestCurrentTimestamp) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to retrieve timestamp from active stream.");
       return PLUS_FAIL;
     }
-    if( this->LastRecordedTimestampMap[this->CurrentActiveInputStream] == 0 )
+    if( this->LastRecordedTimestampMap[this->CurrentActiveInputChannel] == 0 )
     {
-      this->LastRecordedTimestampMap[this->CurrentActiveInputStream] = latestCurrentTimestamp;
+      this->LastRecordedTimestampMap[this->CurrentActiveInputChannel] = latestCurrentTimestamp;
       return PLUS_SUCCESS;
     }
 
-    if( latestCurrentTimestamp > this->LastRecordedTimestampMap[this->CurrentActiveInputStream] )
+    if( latestCurrentTimestamp > this->LastRecordedTimestampMap[this->CurrentActiveInputChannel] )
     {
       // Device is still active
       return PLUS_SUCCESS;
@@ -95,7 +95,7 @@ PlusStatus vtkVirtualSwitcher::InternalUpdate()
       {
         this->FramesWhileInactive = 0;
         // Device is no longer active
-        if( this->SelectActiveStream() == PLUS_FAIL )
+        if( this->SelectActiveChannel() == PLUS_FAIL )
         {
           // No active devices, don't copy anything!
           return PLUS_SUCCESS;
@@ -107,39 +107,39 @@ PlusStatus vtkVirtualSwitcher::InternalUpdate()
       }
     }
 
-    this->CopyInputStreamToOutputStream();
+    this->CopyInputChannelToOutputChannel();
   }
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualSwitcher::SelectActiveStream()
+PlusStatus vtkVirtualSwitcher::SelectActiveChannel()
 {
-  std::vector<vtkPlusChannel*> ActiveStreams;
+  std::vector<vtkPlusChannel*> ActiveChannels;
 
   for( ChannelContainerConstIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
   {
-    vtkPlusChannel* aStream = (*it);
+    vtkPlusChannel* aChannel = (*it);
     double latestTimestamp(0);
-    if( aStream->GetLatestTimestamp(latestTimestamp) != PLUS_SUCCESS )
+    if( aChannel->GetLatestTimestamp(latestTimestamp) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to retrieve latest timestamp from stream.");
       continue;
     }
-    if( latestTimestamp > this->LastRecordedTimestampMap[aStream] )
+    if( latestTimestamp > this->LastRecordedTimestampMap[aChannel] )
     {
       // It's got new data... it's active
-      this->LastRecordedTimestampMap[aStream] = latestTimestamp;
-      ActiveStreams.push_back(aStream);
+      this->LastRecordedTimestampMap[aChannel] = latestTimestamp;
+      ActiveChannels.push_back(aChannel);
     }
   }
 
-  if( ActiveStreams.size() > 0 )
+  if( ActiveChannels.size() > 0 )
   {
     // For now, just choose the first... maybe in the future make it more elegant
-    this->SetCurrentActiveInputStream(ActiveStreams[0]);
-    this->CopyInputStreamToOutputStream();
+    this->SetCurrentActiveInputChannel(ActiveChannels[0]);
+    this->CopyInputChannelToOutputChannel();
 
     // We will also now need to output the correct transform associated with the new stream
     // Is there any way to make this generic?
@@ -150,17 +150,17 @@ PlusStatus vtkVirtualSwitcher::SelectActiveStream()
     return PLUS_SUCCESS;
   }
  
-  this->SetCurrentActiveInputStream(NULL);
+  this->SetCurrentActiveInputChannel(NULL);
   return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
 double vtkVirtualSwitcher::GetAcquisitionRate() const
 {
-  vtkPlusChannel* aStream = NULL;
-  if( this->GetStream(aStream) == PLUS_SUCCESS )
+  vtkPlusChannel* aChannel = NULL;
+  if( this->GetChannel(aChannel) == PLUS_SUCCESS )
   {
-    return aStream->GetOwnerDevice()->GetAcquisitionRate();
+    return aChannel->GetOwnerDevice()->GetAcquisitionRate();
   }
 
   return this->AcquisitionRate;
@@ -178,7 +178,7 @@ PlusStatus vtkVirtualSwitcher::ReadConfiguration( vtkXMLDataElement* rootConfigE
   }
   vtkPlusChannel* outputChannel=this->OutputChannels[0];
 
-  SetOutputStream(outputChannel);
+  SetOutputChannel(outputChannel);
 
   return PLUS_SUCCESS;
 }
@@ -190,21 +190,21 @@ PlusStatus vtkVirtualSwitcher::NotifyConfigured()
 
   for( ChannelContainerConstIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
   {
-    vtkPlusChannel* aStream = (*it);
-    this->LastRecordedTimestampMap[aStream] = 0;
+    vtkPlusChannel* aChannel = (*it);
+    this->LastRecordedTimestampMap[aChannel] = 0;
   }
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualSwitcher::CopyInputStreamToOutputStream()
+PlusStatus vtkVirtualSwitcher::CopyInputChannelToOutputChannel()
 {
   // Only destroy if things have to change
-  if( this->CurrentActiveInputStream != NULL )
+  if( this->CurrentActiveInputChannel != NULL )
   {
     // no need to do a deep copy, iterators are used to access data anyways
-    this->OutputStream->ShallowCopy(*this->CurrentActiveInputStream);
+    this->OutputChannel->ShallowCopy(*this->CurrentActiveInputChannel);
   }
 
   return PLUS_SUCCESS;
