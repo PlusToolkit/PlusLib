@@ -124,6 +124,10 @@ See License.txt for details.
 #include "vtkPhilips3DProbeVideoSource.h"
 #endif
 
+#ifdef PLUS_USE_CAPISTRANO_VIDEO
+#include "Capistrano\vtkCapistranoVideoSource.h"
+#endif
+
 //----------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkPlusDeviceFactory);
@@ -225,6 +229,10 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
 
 #ifdef PLUS_USE_PHILIPS_3D_ULTRASOUND
   DeviceTypes["iE33Video"]=(PointerToDevice)&vtkPhilips3DProbeVideoSource::New;
+#endif
+
+#ifdef PLUS_USE_CAPISTRANO_VIDEO
+	DeviceTypes["CapistranoVideo"]=(PointerToDevice)&vtkCapistranoVideoSource::New;
 #endif
 
   // Virtual Devices
