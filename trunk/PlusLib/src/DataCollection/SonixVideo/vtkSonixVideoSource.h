@@ -17,9 +17,10 @@ Siddharth Vikal (Queen's University, Kingston, Ontario, Canada)
 #define __vtkSonixVideoSource_h
 
 #include "PlusConfigure.h"
-#include "vtkDataCollectionExport.h"
 #include "ulterius.h"
+#include "vtkDataCollectionExport.h"
 #include "vtkPlusDevice.h"
+#include "vtkUsImagingParameters.h"
 
 class uDataDesc;
 enum uData;
@@ -32,7 +33,7 @@ enum uData;
   The goal is to provide the ability to be able to do acquisition
   in various imaging modes, buffer the image/volume series being acquired
   and stream the frames to output. 
-  Note that the data coming out of the Sonix rp through ulterius is always RGB
+  Note that the data coming out of the SonixRP through ulterius is always RGB
   This class talks to Ultrasonix's Ulterius SDK for executing the tasks 
   Parameter setting doesn't work with Ulterius-2.x
 
@@ -49,6 +50,20 @@ enum uData;
 
 class vtkDataCollectionExport vtkSonixVideoSource : public vtkPlusDevice
 {
+private:
+  class Plus_uTGC : public uTGC
+  {
+  public:
+    /// Returns a vector of length 8
+    std::vector<double> toVector();
+    /// Converts a vector into stored values
+    void fromVector(const std::vector<double> input);
+    /// Outputs a string separated by 'separator'
+    std::string toString(char separator=' ');
+    /// Converts a string into stored values
+    void fromString(const std::string& input, char separator=' ');
+  };
+
 public:
   static vtkSonixVideoSource* New();
   vtkTypeMacro(vtkSonixVideoSource,vtkPlusDevice);
@@ -69,43 +84,48 @@ public:
   vtkGetStringMacro(SonixIP); 
 
   /*! Set ultrasound transmitter frequency (MHz) */
-  PlusStatus SetFrequency(int aFrequency);
+  PlusStatus SetFrequencyDevice(int aFrequency);
   /*! Get ultrasound transmitter frequency (MHz) */
-  PlusStatus GetFrequency(int& aFrequency);
+  PlusStatus GetFrequencyDevice(int& aFrequency);
 
   /*! Set the depth (mm) of B-mode ultrasound */
-  PlusStatus SetDepth(int aDepth);
+  PlusStatus SetDepthDevice(int aDepth);
   /*! Get the depth (mm) of B-mode ultrasound */
-  PlusStatus GetDepth(int& aDepth);
+  PlusStatus GetDepthDevice(int& aDepth);
 
   /*! Set the Gain (%) of B-mode ultrasound; valid range: 0-100 */
-  PlusStatus SetGain(int aGain);
+  PlusStatus SetGainDevice(int aGain);
   /*! Get the Gain (%) of B-mode ultrasound; valid range: 0-100 */
-  PlusStatus GetGain(int& aGain);
+  PlusStatus GetGainDevice(int& aGain);
 
   /*! Set the DynRange (dB) of B-mode ultrasound */
-  PlusStatus SetDynRange(int aDynRange);
+  PlusStatus SetDynRangeDevice(int aDynRange);
   /*! Get the DynRange (dB) of B-mode ultrasound */
-  PlusStatus GetDynRange(int& aDynRange);
+  PlusStatus GetDynRangeDevice(int& aDynRange);
 
   /*! Set the Zoom (%) of B-mode ultrasound; valid range: 0-100 */
-  PlusStatus SetZoom(int aZoom);
+  PlusStatus SetZoomDevice(int aZoom);
   /*! Get the Zoom (%) of B-mode ultrasound; valid range: 0-100 */
-  PlusStatus GetZoom(int& aZoom);
+  PlusStatus GetZoomDevice(int& aZoom);
 
   /*! Set the Sector (%) of B-mode ultrasound; valid range: 0-100 */
-  PlusStatus SetSector(int aSector);
+  PlusStatus SetSectorDevice(int aSector);
   /*! Get the Sector (%) of B-mode ultrasound; valid range: 0-100 */
-  PlusStatus GetSector(int& aSector);
+  PlusStatus GetSectorDevice(int& aSector);
 
   /*! Set the TGC (8 ints) of B-mode ultrasound; */
-  PlusStatus SetTimeGainCompensation(int tgc[8]);
+  PlusStatus SetTimeGainCompensationDevice(int tgc[8]);
   /*! Set the TGC (8 ints) of B-mode ultrasound; */
-  PlusStatus SetTimeGainCompensation(const uTGC& tgc);
+  PlusStatus SetTimeGainCompensationDevice(const Plus_uTGC& tgc);
   /*! Get the TGC (8 ints) of B-mode ultrasound; */
-  PlusStatus GetTimeGainCompensation(int tgc[8]);
+  PlusStatus GetTimeGainCompensationDevice(int tgc[8]);
   /*! Get the TGC (8 ints) of B-mode ultrasound; */
-  PlusStatus GetTimeGainCompensation(uTGC& tgc);
+  PlusStatus GetTimeGainCompensationDevice(Plus_uTGC& tgc);
+
+  /*! Get the sound velocity (m/s) from the device */
+  PlusStatus GetSoundVelocityDevice(float& soundVelocity);
+  /*! Set the sound velocity (m/s) from the device */
+  PlusStatus SetSoundVelocityDevice(float _arg);
 
   /*! Set the CompressionStatus to 0 for compression off, 1 for compression on. (Default: off) */
   PlusStatus SetCompressionStatus(int aCompressionStatus);
@@ -138,9 +158,9 @@ public:
     udtGPS = 0x00020000,
     udtPNG = 0x10000000
   */
-  PlusStatus SetAcquisitionDataType(int aAcquisitionDataType);
+  PlusStatus SetAcquisitionDataTypeDevice(int aAcquisitionDataType);
   /*! Get acquisition data type  bitmask. */
-  PlusStatus GetAcquisitionDataType(int &acquisitionDataType);
+  PlusStatus GetAcquisitionDataTypeDevice(int &acquisitionDataType);
 
   /*!
     Request a particular mode of imaging
@@ -174,9 +194,9 @@ public:
     SHINEMode = 26,
     ColourRfMode = 27,
   */
-  PlusStatus SetImagingMode(int mode);
+  PlusStatus SetImagingModeDevice(int mode);
   /*! Get current imaging mode */
-  PlusStatus GetImagingMode(int & mode);
+  PlusStatus GetImagingModeDevice(int & mode);
 
   /*! 
     Set the time required for setting up the connection.
@@ -194,19 +214,19 @@ public:
   vtkGetMacro(SharedMemoryStatus, int);
 
   /*! Get the displayed frame rate. */
-  PlusStatus GetDisplayedFrameRate(int &aFrameRate);
+  PlusStatus GetDisplayedFrameRateDevice(int &aFrameRate);
 
-  /*! Set RF decimation. This requires ultrerius be connected. */
-  PlusStatus SetRFDecimation(int decimation);
+  /*! Set RF decimation. This requires Ulterius be connected. */
+  PlusStatus SetRFDecimationDevice(int decimation);
 
-  /*! Set speckle reduction filter (filterIndex: 0=off,1,2). This requires ultrerius be connected.  */
-  PlusStatus SetPPFilter(int filterIndex);
+  /*! Set speckle reduction filter (filterIndex: 0=off,1,2). This requires Ulterius be connected.  */
+  PlusStatus SetPPFilterDevice(int filterIndex);
 
-   /*! Set maximum frame rate limit on exam software (frLimit=403 means 40.3Hz). This requires ultrerius be connected.  */
-  PlusStatus SetFrameRateLimit(int frLimit);
+   /*! Set maximum frame rate limit on exam software (frLimit=403 means 40.3Hz). This requires Ulterius be connected.  */
+  PlusStatus SetFrameRateLimitDevice(int frLimit);
 
   /*! Print the list of supported parameters. For diagnostic purposes only. */
-  PlusStatus PrintListOfImagingParameters();
+  PlusStatus PrintListOfImagingParametersFromDevice();
 
   /*! Verify the device is correctly configured */
   virtual PlusStatus NotifyConfigured();
@@ -232,9 +252,6 @@ public:
   vtkSetStringMacro(ImageToTransducerTransformName);
 
 protected:
-  vtkSonixVideoSource();
-  virtual ~vtkSonixVideoSource();
-
   /*! Connect to device */
   virtual PlusStatus InternalConnect();
 
@@ -271,17 +288,17 @@ protected:
     RF_ACQ_B_AND_CHRF = 4 
   }; 
   /*! Set RF acquire mode. Determined from the video data sources. */
-  PlusStatus SetRfAcquisitionMode(RfAcquisitionModeType mode);
+  PlusStatus SetRfAcquisitionModeDevice(RfAcquisitionModeType mode);
   /*! Get current RF acquire mode */
-  PlusStatus GetRfAcquisitionMode(RfAcquisitionModeType & mode);
+  PlusStatus GetRfAcquisitionModeDevice(RfAcquisitionModeType & mode);
 
   /*! For internal use only */
   PlusStatus AddFrameToBuffer(void * data, int type, int sz, bool cine, int frmnum);
 
-  PlusStatus SetParamValue(char* paramId, int paramValue, int &validatedParamValue);
-  PlusStatus SetParamValue(char* paramId, uTGC paramValue, uTGC &validatedParamValue);
-  PlusStatus GetParamValue(char* paramId, int& paramValue, int &validatedParamValue);
-  PlusStatus GetParamValue(char* paramId, uTGC& paramValue, uTGC &validatedParamValue);
+  PlusStatus SetParamValueDevice(char* paramId, int paramValue, int &validatedParamValue);
+  PlusStatus SetParamValueDevice(char* paramId, Plus_uTGC& paramValue, Plus_uTGC &validatedParamValue);
+  PlusStatus GetParamValueDevice(char* paramId, int& paramValue, int &validatedParamValue);
+  PlusStatus GetParamValueDevice(char* paramId, Plus_uTGC& paramValue, Plus_uTGC &validatedParamValue);
 
   bool HasDataType( uData aValue );
   bool WantDataType( uData aValue );
@@ -294,17 +311,15 @@ protected:
   virtual PlusStatus GetRequestedImagingDataTypeFromSources(int &requestedImagingDataType);
 
   vtkSetMacro(DetectDepthSwitching, bool);
-  vtkSetMacro(DetectPlaneSwitching, bool);  
-  vtkSetMacro(SoundVelocity, int);
+  vtkSetMacro(DetectPlaneSwitching, bool);
+
+protected:
+  vtkSonixVideoSource();
+  virtual ~vtkSonixVideoSource();
 
   ulterius* Ult;
-
-  int Frequency;
-  int Depth;
-  int Sector; 
-  int Gain; 
-  int DynRange; 
-  int Zoom; 
+  vtkUsImagingParameters* RequestedImagingParameters;
+  vtkUsImagingParameters* CurrentImagingParameters;
   int AcquisitionDataType;
   int ImagingMode;
   int OutputFormat;
@@ -313,20 +328,13 @@ protected:
   int ConnectionSetupDelayMs;
   int SharedMemoryStatus;
   RfAcquisitionModeType RfAcquisitionMode;
-  int SoundVelocity;
   bool DetectDepthSwitching;
   bool DetectPlaneSwitching;
-  uTGC TimeGainCompensation;
-  
   /*! Indicates that current depth, spacing, transducer origin has to be queried */
   bool ImageGeometryChanged;
-
-  double CurrentDepthMm;
   double CurrentPixelSpacingMm[2];
   int CurrentTransducerOriginPixels[2];
-
   char *SonixIP;
-
   /*!
     Indicates if connection to the device has been established. It's not the same as the Connected parameter,
     because Connected indicates that the connection is successfully completed; while UlteriusConnected
@@ -334,10 +342,8 @@ protected:
     but the connection initialization (setup of requested imaging parameters, etc.) may fail.
   */
   bool UlteriusConnected;
-
   bool AutoClipEnabled;
   bool ImageGeometryOutputEnabled;
-  
   char* ImageToTransducerTransformName;
     
 private:

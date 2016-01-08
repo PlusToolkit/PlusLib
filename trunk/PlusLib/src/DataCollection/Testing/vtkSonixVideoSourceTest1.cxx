@@ -308,7 +308,7 @@ int main(int argc, char* argv[])
   if (printParams)
   {
     LOG_INFO("List of supported imaging parameters:");
-    sonixGrabber->PrintListOfImagingParameters();
+    sonixGrabber->PrintListOfImagingParametersFromDevice();
   }
 
   sonixGrabber->StartRecording();				//start recording frame from the video
