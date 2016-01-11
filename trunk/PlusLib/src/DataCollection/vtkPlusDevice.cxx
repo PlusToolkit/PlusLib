@@ -1308,6 +1308,21 @@ PlusStatus vtkPlusDevice::ToolTimeStampedUpdateWithoutFiltering(const char* aToo
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, const PlusVideoFrame& frame, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const TrackedFrame::FieldMapType* customFields /*= NULL*/)
+{
+  PlusStatus result(PLUS_SUCCESS);
+  for( std::vector<vtkPlusDataSource*>::const_iterator it = videoSources.begin(); it != videoSources.end(); ++it)
+  {
+    vtkPlusDataSource* source = *it;
+    if( source->AddItem(&frame, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields) != PLUS_SUCCESS )
+    {
+      result = PLUS_FAIL;
+    }
+  }
+  return result;
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::ToolTimeStampedUpdate(const char* aToolSourceId, vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredtimestamp) 
 {
   if ( aToolSourceId == NULL )
@@ -1789,6 +1804,17 @@ PlusStatus vtkPlusDevice::GetVideoSource(const char* aSourceId, vtkPlusDataSourc
   }
 
   return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+std::vector<vtkPlusDataSource*> vtkPlusDevice::GetVideoSources() const
+{
+  std::vector<vtkPlusDataSource*> results;
+  for(DataSourceContainerConstIterator it = this->VideoSources.begin(); it != this->VideoSources.end(); ++it )
+  {
+    results.push_back(it->second);
+  }
+  return results;
 }
 
 //----------------------------------------------------------------------------
