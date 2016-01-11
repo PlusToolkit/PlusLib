@@ -660,13 +660,6 @@ PlusStatus vtkSavedDataSource::WriteConfiguration(vtkXMLDataElement* rootConfig)
 //-----------------------------------------------------------------------------
 PlusStatus vtkSavedDataSource::NotifyConfigured()
 {
-  if( this->OutputChannels.size() > 1 )
-  {
-    LOG_WARNING("vtkSavedDataSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
-    this->SetCorrectlyConfigured(false);
-    return PLUS_FAIL;
-  }
-
   if( this->OutputChannels.empty() )
   {
     LOG_ERROR("No output channels defined for vtkSavedDataSource. Cannot proceed." );
