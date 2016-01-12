@@ -18,6 +18,20 @@ class vtkXMLDataElement;
 class TrackedFrame; 
 class vtkTransformRepository; 
 
+namespace igtl
+{
+  class CommandMessage : public MessageBase
+  {
+  public:
+    typedef CommandMessage              Self;
+    typedef MessageBase               Superclass;
+    typedef SmartPointer<Self>        Pointer;
+    typedef SmartPointer<const Self>  ConstPointer;
+
+    igtlTypeMacro(igtl::CommandMessage, igtl::MessageBase)
+    igtlNewMacro(igtl::CommandMessage);
+  };
+}
 
 /*!
   \class vtkPlusIgtlMessageFactory 
@@ -43,19 +57,20 @@ public:
   \param messageTypeName The name of the message type
   \param messageTypeNewPointer Function pointer to the message type new function (e.g. (PointerToMessageBaseNew)&igtl::ImageMessage::New )
   */ 
-  virtual void AddMessageType(std::string messageTypeName, vtkPlusIgtlMessageFactory::PointerToMessageBaseNew messageTypeNewPointer); 
+  virtual void AddMessageType(const std::string& messageTypeName, vtkPlusIgtlMessageFactory::PointerToMessageBaseNew messageTypeNewPointer); 
 
   /*! 
   Get pointer to message type new function, or NULL if the message type not registered 
   Usage: igtl::MessageBase::Pointer message = GetMessageTypeNewPointer("IMAGE")(); 
   */ 
-  virtual vtkPlusIgtlMessageFactory::PointerToMessageBaseNew GetMessageTypeNewPointer(std::string messageTypeName); 
+  virtual vtkPlusIgtlMessageFactory::PointerToMessageBaseNew GetMessageTypeNewPointer(const std::string& messageTypeName); 
 
   /*! Print all supported OpenIGTLink message types */
   virtual void PrintAvailableMessageTypes(ostream& os, vtkIndent indent);
 
   /*! Create a new igtl::MessageBase instance from message type, delete previous igtl::MessageBase if's not NULL */ 
   PlusStatus CreateInstance(const char* aIgtlMessageType, igtl::MessageBase::Pointer& aMessageBase);
+  PlusStatus CreateInstance(const std::string& aIgtlMessageType, igtl::MessageBase::Pointer& aMessageBase);
 
   /*! 
   Generate and pack IGTL messages from tracked frame

@@ -35,6 +35,9 @@ enum TrackedFrameFieldStatus
 class vtkPlusCommonExport TrackedFrame
 {
 public:
+  static const std::string FIELD_FRIENDLY_DEVICE_NAME;
+
+public:
   static const std::string TransformPostfix;
   static const std::string TransformStatusPostfix;
   typedef std::map<std::string,std::string> FieldMapType; 

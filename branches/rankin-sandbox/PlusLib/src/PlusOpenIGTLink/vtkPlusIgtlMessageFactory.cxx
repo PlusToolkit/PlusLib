@@ -32,15 +32,16 @@ vtkStandardNewMacro(vtkPlusIgtlMessageFactory);
 //----------------------------------------------------------------------------
 vtkPlusIgtlMessageFactory::vtkPlusIgtlMessageFactory()
 {
-  this->AddMessageType("NONE", NULL); 
-  this->AddMessageType("IMAGE", (PointerToMessageBaseNew)&igtl::ImageMessage::New); 
-  this->AddMessageType("TRANSFORM", (PointerToMessageBaseNew)&igtl::TransformMessage::New); 
-  this->AddMessageType("POSITION", (PointerToMessageBaseNew)&igtl::PositionMessage::New); 
-  this->AddMessageType("CLIENTINFO", (PointerToMessageBaseNew)&igtl::PlusClientInfoMessage::New); 
-  this->AddMessageType("TRACKEDFRAME", (PointerToMessageBaseNew)&igtl::PlusTrackedFrameMessage::New); 
-  this->AddMessageType("USMESSAGE", (PointerToMessageBaseNew)&igtl::PlusUsMessage::New); 
-  this->AddMessageType("STATUS", (PointerToMessageBaseNew)&igtl::StatusMessage::New); 
-  this->AddMessageType("STRING", (PointerToMessageBaseNew)&igtl::StringMessage::New); 
+  this->AddMessageType(vtkPlusIgtlMessageCommon::NONE_MESSAGE_TYPE, NULL); 
+  this->AddMessageType(vtkPlusIgtlMessageCommon::IMAGE_MESSAGE_TYPE, (PointerToMessageBaseNew)&igtl::ImageMessage::New);
+  this->AddMessageType(vtkPlusIgtlMessageCommon::TRANSFORM_MESSAGE_TYPE, (PointerToMessageBaseNew)&igtl::TransformMessage::New);
+  this->AddMessageType(vtkPlusIgtlMessageCommon::POSITION_MESSAGE_TYPE, (PointerToMessageBaseNew)&igtl::PositionMessage::New);
+  this->AddMessageType(vtkPlusIgtlMessageCommon::CLIENTINFO_MESSAGE_TYPE, (PointerToMessageBaseNew)&igtl::PlusClientInfoMessage::New);
+  this->AddMessageType(vtkPlusIgtlMessageCommon::TRACKEDFRAME_MESSAGE_TYPE, (PointerToMessageBaseNew)&igtl::PlusTrackedFrameMessage::New);
+  this->AddMessageType(vtkPlusIgtlMessageCommon::USMESSAGE_MESSAGE_TYPE, (PointerToMessageBaseNew)&igtl::PlusUsMessage::New);
+  this->AddMessageType(vtkPlusIgtlMessageCommon::STATUS_MESSAGE_TYPE, (PointerToMessageBaseNew)&igtl::StatusMessage::New);
+  this->AddMessageType(vtkPlusIgtlMessageCommon::STRING_MESSAGE_TYPE, (PointerToMessageBaseNew)&igtl::StringMessage::New);
+  this->AddMessageType(vtkPlusIgtlMessageCommon::COMMAND_MESSAGE_TYPE, (PointerToMessageBaseNew)&igtl::CommandMessage::New);
 }
 
 //----------------------------------------------------------------------------
@@ -56,13 +57,13 @@ void vtkPlusIgtlMessageFactory::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusIgtlMessageFactory::AddMessageType(std::string messageTypeName, vtkPlusIgtlMessageFactory::PointerToMessageBaseNew messageTypeNewPointer )
+void vtkPlusIgtlMessageFactory::AddMessageType(const std::string& messageTypeName, vtkPlusIgtlMessageFactory::PointerToMessageBaseNew messageTypeNewPointer )
 {
   this->IgtlMessageTypes[messageTypeName]=messageTypeNewPointer; 
 }
 
 //----------------------------------------------------------------------------
-vtkPlusIgtlMessageFactory::PointerToMessageBaseNew vtkPlusIgtlMessageFactory::GetMessageTypeNewPointer(std::string messageTypeName)
+vtkPlusIgtlMessageFactory::PointerToMessageBaseNew vtkPlusIgtlMessageFactory::GetMessageTypeNewPointer(const std::string& messageTypeName)
 {
   if ( this->IgtlMessageTypes.find(messageTypeName) != this->IgtlMessageTypes.end() )
   {
@@ -91,17 +92,28 @@ void vtkPlusIgtlMessageFactory::PrintAvailableMessageTypes(ostream& os, vtkInden
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusIgtlMessageFactory::CreateInstance(const char* aIgtlMessageType, igtl::MessageBase::Pointer& aMessageBase)
 {
+  if( aIgtlMessageType == NULL )
+  {
+    return PLUS_FAIL;
+  }
+
+  return this->CreateInstance(std::string(aIgtlMessageType), aMessageBase);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusIgtlMessageFactory::CreateInstance(const std::string& aIgtlMessageType, igtl::MessageBase::Pointer& aMessageBase)
+{
   if ( aMessageBase.IsNotNull() )
   {
     aMessageBase->Delete(); 
     aMessageBase = NULL; 
   }
-  
+
   std::string messageType; 
-  if ( aIgtlMessageType == NULL ) 
+  if ( aIgtlMessageType.empty() ) 
   {
-    LOG_WARNING("IGT message type is NULL, set to default: NONE"); 
-    messageType = "NONE"; 
+    LOG_WARNING("IGT message type is invalid, set to default: " << vtkPlusIgtlMessageCommon::NONE_MESSAGE_TYPE); 
+    messageType = vtkPlusIgtlMessageCommon::NONE_MESSAGE_TYPE; 
   }
   else
   {
@@ -140,15 +152,17 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
   {
     std::string messageType = (*messageTypeIterator); 
     igtl::MessageBase::Pointer igtlMessage = NULL; 
-    if ( this->CreateInstance(messageType.c_str(), igtlMessage) != PLUS_SUCCESS )
+    if ( this->CreateInstance(messageType, igtlMessage) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to pack IGT messages - unable to create instance from message type: " << messageType ); 
       numberOfErrors++; 
       continue; 
     }
 
+    // TODO: these are all v1 messages, identify split points to minimize code duplication
+
     // Image message 
-    if ( STRCASECMP(messageType.c_str(), "IMAGE") == 0 )
+    if ( messageType == vtkPlusIgtlMessageCommon::IMAGE_MESSAGE_TYPE )
     {
       for ( std::vector<PlusIgtlClientInfo::ImageStream>::const_iterator imageStreamIterator = clientInfo.ImageStreams.begin(); imageStreamIterator != clientInfo.ImageStreams.end(); ++imageStreamIterator)
       {
@@ -160,18 +174,23 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
         igtl::Matrix4x4 igtlMatrix;
         if (vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, transformRepository, imageTransformName) != PLUS_SUCCESS)
         {
-          LOG_WARNING("Failed to create IMAGE message: cannot get image transform");
+          LOG_WARNING("Failed to create " << vtkPlusIgtlMessageCommon::IMAGE_MESSAGE_TYPE << " message: cannot get image transform");
           numberOfErrors++; 
           continue;
         }
 
         igtl::ImageMessage::Pointer imageMessage = igtl::ImageMessage::New(); 
         imageMessage->Copy( dynamic_cast<igtl::ImageMessage*>(igtlMessage.GetPointer()) );
-        std::string deviceName = imageTransformName.From() + std::string("_") + imageTransformName.To(); 
+        std::string deviceName = imageTransformName.From() + std::string("_") + imageTransformName.To();
+        if( trackedFrame.IsCustomFrameFieldDefined(TrackedFrame::FIELD_FRIENDLY_DEVICE_NAME.c_str()) )
+        {
+          // Allow overriding of device name with something human readable
+          deviceName = trackedFrame.GetCustomFrameField(TrackedFrame::FIELD_FRIENDLY_DEVICE_NAME.c_str());
+        }
         imageMessage->SetDeviceName(deviceName.c_str()); 
         if ( vtkPlusIgtlMessageCommon::PackImageMessage(imageMessage, trackedFrame, igtlMatrix) != PLUS_SUCCESS )
         {
-          LOG_ERROR("Failed to create IMAGE message - unable to pack image message"); 
+          LOG_ERROR("Failed to create " << vtkPlusIgtlMessageCommon::IMAGE_MESSAGE_TYPE << " message - unable to pack image message"); 
           numberOfErrors++; 
           continue;
         }
@@ -179,7 +198,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
       }
     }
     // Transform message 
-    else if (STRCASECMP(messageType.c_str(), "TRANSFORM") == 0 )
+    else if ( messageType == vtkPlusIgtlMessageCommon::TRANSFORM_MESSAGE_TYPE )
     {
       for ( std::vector<PlusTransformName>::const_iterator transformNameIterator = clientInfo.TransformNames.begin(); transformNameIterator != clientInfo.TransformNames.end(); ++transformNameIterator)
       {
@@ -194,7 +213,11 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
         }
 
         igtl::Matrix4x4 igtlMatrix; 
-        vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, transformRepository, transformName);
+        if( vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, transformRepository, transformName) == PLUS_FAIL )
+        {
+          LOG_ERROR("Invalid transform requested from repository: " << transformName);
+          return PLUS_FAIL;
+        }
 
         igtl::TransformMessage::Pointer transformMessage = igtl::TransformMessage::New(); 
         transformMessage->Copy( dynamic_cast<igtl::TransformMessage*>(igtlMessage.GetPointer()) );
@@ -203,13 +226,23 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
       }
     }
     // Position message 
-    else if ( STRCASECMP(messageType.c_str(), "POSITION") == 0 )
+    else if ( messageType == vtkPlusIgtlMessageCommon::POSITION_MESSAGE_TYPE )
     {
       for ( std::vector<PlusTransformName>::const_iterator transformNameIterator = clientInfo.TransformNames.begin(); transformNameIterator != clientInfo.TransformNames.end(); ++transformNameIterator)
       {
+        /* 
+          Advantage of using position message type:
+          Although equivalent position and orientation can be described with the TRANSFORM data type, 
+          the POSITION data type has the advantage of smaller data size (19%). It is therefore more suitable for 
+          pushing high frame-rate data from tracking devices.
+        */
         PlusTransformName transformName = (*transformNameIterator);
         igtl::Matrix4x4 igtlMatrix; 
-        vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, transformRepository, transformName);
+        if( vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, transformRepository, transformName) == PLUS_FAIL )
+        {
+          LOG_ERROR("Invalid transform requested from repository: " << transformName);
+          return PLUS_FAIL;
+        }
 
         float position[3]={igtlMatrix[0][3], igtlMatrix[1][3], igtlMatrix[2][3]};
         float quaternion[4]={0,0,0,1};
@@ -222,7 +255,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
       }
     }
     // TRACKEDFRAME message
-    else if ( STRCASECMP(messageType.c_str(), "TRACKEDFRAME") == 0 )
+    else if ( messageType == vtkPlusIgtlMessageCommon::TRACKEDFRAME_MESSAGE_TYPE )
     {
       igtl::PlusTrackedFrameMessage::Pointer trackedFrameMessage = dynamic_cast<igtl::PlusTrackedFrameMessage*>(igtlMessage.GetPointer()); 
       if ( vtkPlusIgtlMessageCommon::PackTrackedFrameMessage(trackedFrameMessage, trackedFrame) != PLUS_SUCCESS )
@@ -234,8 +267,9 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
       igtlMessages.push_back(igtlMessage); 
     }
     // USMESSAGE message
-    else if ( STRCASECMP(messageType.c_str(), "USMESSAGE") == 0 )
+    else if ( messageType == vtkPlusIgtlMessageCommon::USMESSAGE_MESSAGE_TYPE )
     {
+      // TODO : what is this message and why does it exist? it is Sonix specific...
       igtl::PlusUsMessage::Pointer usMessage = dynamic_cast<igtl::PlusUsMessage*>(igtlMessage.GetPointer()); 
       if ( vtkPlusIgtlMessageCommon::PackUsMessage(usMessage, trackedFrame) != PLUS_SUCCESS )
       {
@@ -246,8 +280,9 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
       igtlMessages.push_back(igtlMessage); 
     }
     // String message 
-    else if (STRCASECMP(messageType.c_str(), "STRING") == 0 )
+    else if ( messageType == vtkPlusIgtlMessageCommon::STRING_MESSAGE_TYPE )
     {
+      // TODO: This is being used to send tracked frame metadata... is this still the right approach with v3?
       for ( std::vector< std::string >::const_iterator stringNameIterator = clientInfo.StringNames.begin(); stringNameIterator != clientInfo.StringNames.end(); ++stringNameIterator)
       {
         const char* stringName = stringNameIterator->c_str();
@@ -262,6 +297,10 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
         vtkPlusIgtlMessageCommon::PackStringMessage( stringMessage, stringName, stringValue, trackedFrame.GetTimestamp() );
         igtlMessages.push_back( dynamic_cast<igtl::MessageBase*>(stringMessage.GetPointer()) ); 
       }
+    }
+    else if ( messageType == vtkPlusIgtlMessageCommon::COMMAND_MESSAGE_TYPE )
+    {
+      igtl::CommandMessage::Pointer commandMessage = igtl::CommandMessage::New();
     }
     else
     {

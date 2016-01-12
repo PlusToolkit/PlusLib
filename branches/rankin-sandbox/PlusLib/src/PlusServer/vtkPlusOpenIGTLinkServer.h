@@ -133,8 +133,14 @@ protected:
   
   /*! Thread for sending data to clients */ 
   static void* DataSenderThread( vtkMultiThreader::ThreadInfo* data );
-  
-  /*! Thread for receiveing control data from clients */ 
+
+  /*! Attempt to send any unsent frames to clients, if unsuccessful, accumulate an elapsed time */
+  static PlusStatus SendLatestFramesToClients(vtkPlusOpenIGTLinkServer& self, double& elapsedTimeSinceLastPacketSentSec);
+
+  /*! Process the command replies queue and send messages */
+  static PlusStatus RespondToCommandRequests(vtkPlusOpenIGTLinkServer& self);
+
+  /*! Thread for receiving control data from clients */ 
   static void* DataReceiverThread( vtkMultiThreader::ThreadInfo* data );
 
   /*! Tracked frame interface, sends the selected message type and data to all clients */ 
@@ -146,7 +152,7 @@ protected:
   /*! Send status message to clients to keep alive the connection */ 
   virtual void KeepAlive(); 
 
-  /*! Stops clinet's data receiving thread, closes the socket, and removes the client from the client list */
+  /*! Stops client's data receiving thread, closes the socket, and removes the client from the client list */
   void DisconnectClient(int clientId);
 
   /*! Set IGTL CRC check flag (0: disabled, 1: enabled) */ 

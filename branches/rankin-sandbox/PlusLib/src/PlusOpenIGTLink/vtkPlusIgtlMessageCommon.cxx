@@ -20,6 +20,19 @@ See License.txt for details.
 vtkStandardNewMacro(vtkPlusIgtlMessageCommon);
 
 //----------------------------------------------------------------------------
+
+const std::string vtkPlusIgtlMessageCommon::NONE_MESSAGE_TYPE = "NONE";
+const std::string vtkPlusIgtlMessageCommon::IMAGE_MESSAGE_TYPE = "IMAGE";
+const std::string vtkPlusIgtlMessageCommon::TRANSFORM_MESSAGE_TYPE = "TRANSFORM";
+const std::string vtkPlusIgtlMessageCommon::POSITION_MESSAGE_TYPE = "POSITION";
+const std::string vtkPlusIgtlMessageCommon::CLIENTINFO_MESSAGE_TYPE = "CLIENTINFO";
+const std::string vtkPlusIgtlMessageCommon::TRACKEDFRAME_MESSAGE_TYPE = "TRACKEDFRAME";
+const std::string vtkPlusIgtlMessageCommon::USMESSAGE_MESSAGE_TYPE = "USMESSAGE";
+const std::string vtkPlusIgtlMessageCommon::STATUS_MESSAGE_TYPE = "STATUS";
+const std::string vtkPlusIgtlMessageCommon::STRING_MESSAGE_TYPE = "STRING";
+const std::string vtkPlusIgtlMessageCommon::COMMAND_MESSAGE_TYPE = "COMMAND";
+
+//----------------------------------------------------------------------------
 vtkPlusIgtlMessageCommon::vtkPlusIgtlMessageCommon()
 {
 }
