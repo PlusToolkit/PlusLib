@@ -173,7 +173,10 @@ public:
   US_IMAGE_ORIENTATION GetImageOrientation(); 
 
   /*! Get tracked frame image type */
-  US_IMAGE_TYPE GetImageType(); 
+  US_IMAGE_TYPE GetImageType();
+
+  /*! Get tracked frame image size*/
+  int* GetFrameSize();
 
   /*! Get the value of the custom field. If we couldn't find it, return NULL */
   virtual const char* GetCustomString( const char* fieldName ); 

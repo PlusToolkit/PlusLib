@@ -26,9 +26,9 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /*!
-    Virtual stream switchers output only one stream
+    Virtual channel switchers output only one channel
   */
-  PlusStatus GetStream(vtkPlusChannel* &aStream) const;
+  PlusStatus GetChannel(vtkPlusChannel* &aChannel) const;
 
   virtual double GetAcquisitionRate() const;
 
@@ -37,7 +37,7 @@ public:
 
   virtual PlusStatus NotifyConfigured();
 
-  vtkGetObjectConstMacro(OutputStream, vtkPlusChannel);
+  vtkGetObjectConstMacro(OutputChannel, vtkPlusChannel);
 
   virtual bool IsTracker() const { return false; }
   virtual bool IsVirtual() const { return true; }
@@ -45,21 +45,21 @@ public:
 protected:
   virtual PlusStatus InternalUpdate();
 
-  PlusStatus SelectActiveStream();
+  PlusStatus SelectActiveChannel();
 
-  PlusStatus CopyInputStreamToOutputStream();
+  PlusStatus CopyInputChannelToOutputChannel();
 
   vtkVirtualSwitcher();
   virtual ~vtkVirtualSwitcher();
 
-  vtkGetObjectMacro(CurrentActiveInputStream, vtkPlusChannel);
-  vtkSetObjectMacro(CurrentActiveInputStream, vtkPlusChannel);
+  vtkGetObjectMacro(CurrentActiveInputChannel, vtkPlusChannel);
+  vtkSetObjectMacro(CurrentActiveInputChannel, vtkPlusChannel);
 
-  vtkSetObjectMacro(OutputStream, vtkPlusChannel);
+  vtkSetObjectMacro(OutputChannel, vtkPlusChannel);
 
-  vtkPlusChannel*                    CurrentActiveInputStream;
+  vtkPlusChannel*                    CurrentActiveInputChannel;
   std::map<vtkPlusChannel*, double>  LastRecordedTimestampMap;
-  vtkPlusChannel*                    OutputStream;
+  vtkPlusChannel*                    OutputChannel;
 
   unsigned long FramesWhileInactive;
 

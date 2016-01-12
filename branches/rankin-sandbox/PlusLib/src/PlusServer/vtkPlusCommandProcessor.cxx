@@ -23,6 +23,7 @@ See License.txt for details.
 #include "vtkPlusSendTextCommand.h"
 #include "vtkPlusStartStopRecordingCommand.h"
 #include "vtkPlusUpdateTransformCommand.h"
+#include "vtkPlusGetTransformCommand.h"
 #include "vtkRecursiveCriticalSection.h"
 #include "vtkXMLUtilities.h"
 
@@ -41,6 +42,7 @@ vtkPlusCommandProcessor::vtkPlusCommandProcessor()
   RegisterPlusCommand(vtkSmartPointer<vtkPlusReconstructVolumeCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusRequestIdsCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusUpdateTransformCommand>::New());
+  RegisterPlusCommand(vtkSmartPointer<vtkPlusGetTransformCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusSaveConfigCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusSendTextCommand>::New());
 #ifdef PLUS_USE_STEALTHLINK

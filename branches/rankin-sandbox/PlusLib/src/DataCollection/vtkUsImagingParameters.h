@@ -44,6 +44,7 @@ public:
   static const char* KEY_DEPTH;
   static const char* KEY_DYNRANGE;
   static const char* KEY_GAIN;
+  static const char* KEY_TGC;
   static const char* KEY_INTENSITY;
   static const char* KEY_CONTRAST;
   static const char* KEY_SECTOR;
@@ -104,9 +105,17 @@ public:
   double GetDepthMm();
 
   /*! Set the Gain (%) of B-mode ultrasound; valid range: 0-100 */
-  PlusStatus SetGainPercent(double aGainPercent[3]);
+  PlusStatus SetGainPercent(double aGainPercent);
   /*! Get the Gain (%) of B-mode ultrasound; valid range: 0-100 */
-  PlusStatus GetGainPercent(double aGainPercent[3]);
+  PlusStatus GetGainPercent(double aGainPercent);
+  double GetGainPercent();
+
+  /*! Set the Gain (%) of B-mode ultrasound; valid range: 0-100 */
+  PlusStatus SetTimeGainCompensation(const std::vector<double>& tgc);
+  PlusStatus SetTimeGainCompensation(double* tgc, int length);
+  /*! Get the Gain (%) of B-mode ultrasound; valid range: 0-100 */
+  PlusStatus GetTimeGainCompensation(std::vector<double>& tgc);
+  std::vector<double> GetTimeGainCompensation();
 
   /*! Set the intensity of B-mode ultrasound */
   PlusStatus SetIntensity(double aIntensity);
@@ -139,13 +148,10 @@ public:
   double GetSectorPercent();
 
   /*! Set the Sector (%) of B-mode ultrasound; valid range: 0-100 */
-  PlusStatus SetSoundVelocity(int aSoundVelocity);
+  PlusStatus SetSoundVelocity(float aSoundVelocity);
   /*! Get the Sector (%) of B-mode ultrasound; valid range: 0-100 */
-  PlusStatus GetSoundVelocity(int& aSoundVelocity);
-  int GetSoundVelocity();
-
-  /*! Get the displayed frame rate. */
-  PlusStatus GetDisplayedFrameRate(double &aFrameRate);
+  PlusStatus GetSoundVelocity(float& aSoundVelocity);
+  float GetSoundVelocity();
 
   /*! Print the list of supported parameters. For diagnostic purposes only. */
   virtual void PrintSelf(ostream& os, vtkIndent indent);

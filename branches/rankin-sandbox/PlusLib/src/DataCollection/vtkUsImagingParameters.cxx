@@ -7,6 +7,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkUsImagingParameters.h"
 
+#include <iterator>
 #include <string>
 
 //----------------------------------------------------------------------------
@@ -20,6 +21,7 @@ const char* vtkUsImagingParameters::KEY_DEPTH = "DepthMm";
 const char* vtkUsImagingParameters::KEY_DYNRANGE = "DynRangeDb";
 const char* vtkUsImagingParameters::KEY_FREQUENCY = "FrequencyMhz";
 const char* vtkUsImagingParameters::KEY_GAIN = "GainPercent";
+const char* vtkUsImagingParameters::KEY_TGC = "TimeGainCompensation";
 const char* vtkUsImagingParameters::KEY_INTENSITY = "Intensity";
 const char* vtkUsImagingParameters::KEY_SECTOR = "SectorPercent";
 const char* vtkUsImagingParameters::KEY_ZOOM = "ZoomFactor";
@@ -142,17 +144,17 @@ double vtkUsImagingParameters::GetDepthMm()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::SetGainPercent(double aGainPercent[3])
+PlusStatus vtkUsImagingParameters::SetGainPercent(double aGainPercent)
 {
-  double currentValue[3];
+  double currentValue;
   this->GetGainPercent(currentValue);
-  if( this->ParameterSet[KEY_GAIN] == true && currentValue[0] == aGainPercent[0] && currentValue[1] == aGainPercent[1] && currentValue[2] == aGainPercent[2] )
+  if( this->ParameterSet[KEY_GAIN] == true && currentValue == aGainPercent )
   {
     return PLUS_SUCCESS;
   }
 
   std::stringstream ss;
-  ss << aGainPercent[0] << " " << aGainPercent[1] << " " << aGainPercent[2];
+  ss << aGainPercent;
   this->ParameterValues[KEY_GAIN] = ss.str();
 
   this->ParameterSet[KEY_GAIN] = true;
@@ -160,17 +162,73 @@ PlusStatus vtkUsImagingParameters::SetGainPercent(double aGainPercent[3])
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::GetGainPercent(double aGainPercent[3])
+PlusStatus vtkUsImagingParameters::GetGainPercent(double aGainPercent)
 {
   if( this->ParameterSet[KEY_GAIN] == false )
   {
     return PLUS_FAIL;
   }
 
+  double aValue;
   std::stringstream ss;
   ss.str(this->ParameterValues[KEY_GAIN]);
-  ss >> aGainPercent[0] >> aGainPercent[1] >> aGainPercent[2];
+  ss >> aValue;
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+double vtkUsImagingParameters::GetGainPercent()
+{
+  double aValue;
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_GAIN]);
+  ss >> aValue;
+  return aValue;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::SetTimeGainCompensation(const std::vector<double>& tgc)
+{
+  std::stringstream result;
+  std::copy(tgc.begin(), tgc.end(), std::ostream_iterator<double>(result, " "));
+  this->ParameterValues[KEY_GAIN] = result.str();
+
+  this->ParameterSet[KEY_GAIN] = true;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::SetTimeGainCompensation(double* tgc, int length)
+{
+  std::vector<double> tgcVec(tgc, tgc+length);
+  return this->SetTimeGainCompensation(tgcVec);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::GetTimeGainCompensation(std::vector<double>& tgc)
+{
+  if( this->ParameterSet[KEY_TGC] == false )
+  {
+    return PLUS_FAIL;
+  }
+
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_TGC]);
+  std::vector<double> numbers((std::istream_iterator<double>(ss)), 
+    std::istream_iterator<double>());
+  tgc = numbers;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+std::vector<double> vtkUsImagingParameters::GetTimeGainCompensation()
+{
+  double aValue;
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_GAIN]);
+  std::vector<double> numbers((std::istream_iterator<double>(ss)), 
+    std::istream_iterator<double>());
+  return numbers;
 }
 
 //----------------------------------------------------------------------------
@@ -384,9 +442,9 @@ double vtkUsImagingParameters::GetSectorPercent()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::SetSoundVelocity(int aSoundVelocity)
+PlusStatus vtkUsImagingParameters::SetSoundVelocity(float aSoundVelocity)
 {
-  int currentValue;
+  float currentValue;
   this->GetSoundVelocity(currentValue);
   if( this->ParameterSet[KEY_SOUNDVELOCITY] == true && currentValue == aSoundVelocity )
   {
@@ -402,7 +460,7 @@ PlusStatus vtkUsImagingParameters::SetSoundVelocity(int aSoundVelocity)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::GetSoundVelocity(int& aSoundVelocity)
+PlusStatus vtkUsImagingParameters::GetSoundVelocity(float& aSoundVelocity)
 {
   if( this->ParameterSet[KEY_SOUNDVELOCITY] == false )
   {
@@ -416,9 +474,9 @@ PlusStatus vtkUsImagingParameters::GetSoundVelocity(int& aSoundVelocity)
 }
 
 //----------------------------------------------------------------------------
-int vtkUsImagingParameters::GetSoundVelocity()
+float vtkUsImagingParameters::GetSoundVelocity()
 {
-  int aValue;
+  float aValue;
   std::stringstream ss;
   ss.str(this->ParameterValues[KEY_SOUNDVELOCITY]);
   ss >> aValue;
@@ -437,13 +495,6 @@ void vtkUsImagingParameters::PrintSelf(ostream& os, vtkIndent indent)
       os << indent << it->first << ": " << it->second << "\n";
     }
   }
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::GetDisplayedFrameRate(double &aFrameRate)
-{
-
-  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------

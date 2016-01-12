@@ -33,6 +33,7 @@ public:
     The input image orientation must be FM.
   */
   virtual void SetInputConnection(vtkAlgorithmOutput* input);
+  virtual void SetInputData_vtk5compatible(vtkDataObject *input);
 
   /*! Bring this algorithm's outputs up-to-date. */
   virtual void Update();

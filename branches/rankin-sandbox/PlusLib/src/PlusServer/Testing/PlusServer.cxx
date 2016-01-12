@@ -142,6 +142,7 @@ int main( int argc, char** argv )
 
   LOG_INFO( "Server status: Starting servers.");
   std::vector<vtkPlusOpenIGTLinkServer*> serverList;
+  int serverCount(0);
   for( int i = 0; i < configRootElement->GetNumberOfNestedElements(); ++i )
   {
     vtkXMLDataElement* serverElement = configRootElement->GetNestedElement(i);
@@ -149,6 +150,8 @@ int main( int argc, char** argv )
     {
       continue;
     }
+
+    serverCount++;
 
     // This is a PlusServer tag, let's create it
     vtkSmartPointer<vtkPlusOpenIGTLinkServer> server = vtkSmartPointer<vtkPlusOpenIGTLinkServer>::New();
@@ -160,6 +163,11 @@ int main( int argc, char** argv )
       exit(EXIT_FAILURE);
     }
     serverList.push_back(server);
+  }
+  if( serverCount == 0 )
+  {
+    LOG_ERROR("No vtkPlusOpenIGTLinkServer tags were found in the configuration file. Please add at least one.");
+    exit(EXIT_FAILURE);
   }
 
   double startTime = vtkAccurateTimer::GetSystemTime(); 

@@ -19,6 +19,7 @@ Any NDI tracking device is supported that uses the common API, such as <a href="
 
 - If USB connection is used then drivers should be installed to allow the computer to connect to the system control unit (SCU).
 - If you have just turned on the tracker and attempt to use it right away, you may get the error message "command is invalid while in current mode"; wait for the leftmost LED on the position sensor to stop flashing and try again.
+- Default settings provide maximum compatibility (work with most trackers), but most of the time they do not provide optimal performance. It is recommended to use maximum \b BaudRate (typically 921600 works well) to have high refresh rate and low latency. Tracking may be also improved by choosing the most appropriate tracking volume by adjusting the \b MeasurementVolumeNumber attribute.
 
 \section PolarisConfigSettings Device configuration settings
 

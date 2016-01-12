@@ -8,7 +8,6 @@
 #define __vtkIntersonVideoSource_h
 
 #include "vtkDataCollectionExport.h"
-
 #include "vtkPlusDevice.h"
 #include "vtkUSImagingParameters.h"
 
@@ -41,26 +40,37 @@ public:
 
   virtual std::string GetSdkVersion();
 
-  /*! Set the view sector in the parameters */
-  PlusStatus SetSectorPercent(double value);
-  /*! Set the intensity in the parameters */
-  PlusStatus SetIntensity(int value);
-  /*! Set the contrast in the parameters */
-  PlusStatus SetContrast(int value);
-  /*! Set the dynamic range in the parameters */
-  PlusStatus SetDynRangeDb(double value);
-  /*! Set the speed of sound in the parameters */
-  PlusStatus SetSoundVelocity(double aVel);
+  /* Get the probe sound velocity */
+  PlusStatus GetSoundVelocity(double& aVel);
 
-  vtkGetMacro(EnableProbeButtonMonitoring, bool);
-  vtkSetMacro(EnableProbeButtonMonitoring, bool);
+  /* Set the probe depth in mm */
+  PlusStatus SetDepthMm(double depthMm);
+  /* Set the frequency in Mhz */
+  PlusStatus SetFrequencyMhz(float freq);
+  /* Set the sector percent */
+  PlusStatus SetSectorPercent(double value);
+  /* Set the intensity */
+  PlusStatus SetIntensity(int value);
+  /* Set the contrast */
+  PlusStatus SetContrast(int value);
+  /* Set the dynamic range */
+  PlusStatus SetDynRangeDb(double value);
+  /* Set the sound velocity */
+  PlusStatus SetSoundVelocity(double value);
+  /* Set the gain in percent */
+  PlusStatus SetTimeGainCompensationPercent(double gainPercent[3]);
+  /* Set the zoom factor. */
+  PlusStatus SetZoomFactor(float zoomFactor);
+  /* Set the image size */
+  PlusStatus SetImageSize(int imageSize[2]);
+
+  /* Apply a completely new set of imaging parameters to the device */
+  PlusStatus SetNewImagingParametersDevice(const vtkUsImagingParameters& newImagingParameters);
+
+  bool GetEnableProbeButtonMonitoring() const;
+  void SetEnableProbeButtonMonitoring(bool _arg);
 
 protected:
-  /*! Constructor */
-  vtkIntersonVideoSource();
-  /*! Destructor */
-  ~vtkIntersonVideoSource();
-
   /*! Device-specific connect */
   virtual PlusStatus InternalConnect();
 
@@ -84,39 +94,20 @@ protected:
   PlusStatus WaitForFrame();
 
   PlusStatus GetSampleFrequencyDevice(double& aFreq);
-
-  PlusStatus GetProbeVelocityDevice(double& aVel);
-  
-  /*! Set the speed of sound for the device */
-  PlusStatus SetSoundVelocityDevice(double aVel);
+  PlusStatus GetSoundVelocityDevice(float& aVel);
 
   /* Represents the depth, in pixels, the display window will be. This defaults to 512 pixels for newly initialized probes.*/
   PlusStatus SetWindowDepthDevice(int height);
-
   /* Set the probe depth in mm */
-  PlusStatus SetDepthMm(double depthMm);
-
-  /* Set the probe depth in mm in the device */
   PlusStatus SetDepthMmDevice(double depthMm);
-
-  /* Set the image size */
-  PlusStatus SetImageSize(int imageSize[2]);
-
-  /* Set the frquency in Mhz */
-  PlusStatus SetFrequencyMhz(double freq);
-
   /* Set the desired probe frequency in Hz. The resulting probe speed will be approximately the value specified */
-  PlusStatus SetProbeFrequencyDevice(double aFreq);
-
-  /* Set the gain in percent */
-  PlusStatus SetGainPercent(double gainPercent[3]);
+  PlusStatus SetFrequencyMhzDevice(float aFreq);
+  /* Set the sound velocity in the device */
+  PlusStatus SetSoundVelocityDevice(double velocity);
   /* Set the gain in percent in the device */
-  PlusStatus SetGainPercentDevice(double gainPercent[3]);
-
-  /* Set the zoom factor. */
-  PlusStatus SetZoomFactor(double gainPercent);
+  PlusStatus SetTimeGainCompensationPercentDevice(double gainPercent[3]);
   /* Set the zoom factor in the device. */
-  PlusStatus SetDisplayZoomDevice(double zoom);
+  PlusStatus SetZoomFactorDevice(float zoomFactor);
 
   /* Each probe has a defined set of allowed modes. 
   These modes are combinations of pulse frequency and sample rate that yield acceptable results
@@ -127,39 +118,14 @@ protected:
   /*! Get probe name from the device */
   PlusStatus GetProbeNameDevice(std::string& probeName);
 
-  /*! Receive new imaging parameters and apply them to this device
-  \param newImagingParameters the new parameters to apply to the device
-  */
-  virtual PlusStatus ApplyNewImagingParameters(const vtkUsImagingParameters& newImagingParameters);
+protected:
+  /*! Constructor */
+  vtkIntersonVideoSource();
+  /*! Destructor */
+  ~vtkIntersonVideoSource();
 
-  /*! Create a new lookup table */
-  PlusStatus CreateLUT();
-
-  // For internal storage of additional variables (to minimize the number of included headers)
   class vtkInternal;
   vtkInternal* Internal;
-
-  vtkUsImagingParameters* ImagingParameters;
-
-  bool Interpolate;
-  bool BidirectionalScan;
-  bool Frozen;
-
-  int ClockDivider;
-  double ClockFrequencyMHz;
-  int PulseFrequencyDivider;
-
-  double LutCenter;
-  double LutWindow;
-  int ImageSize[2];
-  double PulseVoltage;
-
-  // ProbeButtonPressCount is incremented each time the button on the probe is pressed
-  // The value is available in the output channel in the translation component of the ProbeButtonToDummyTransform
-  int ProbeButtonPressCount;
-
-  bool EnableProbeButtonMonitoring;
-
 private:
   vtkIntersonVideoSource(const vtkIntersonVideoSource&);  // Not implemented.
   void operator=(const vtkIntersonVideoSource&);  // Not implemented.

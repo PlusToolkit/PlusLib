@@ -83,8 +83,8 @@ int main(int argc, char* argv[])
 
   //Add the video source here
   sonixGrabber = vtkSmartPointer<vtkSonixVideoSource>::New();
-  sonixGrabber->SetImagingMode(0);
-  sonixGrabber->SetAcquisitionDataType(0x00000005);
+  sonixGrabber->SetImagingModeDevice(0);
+  sonixGrabber->SetAcquisitionDataTypeDevice(0x00000005);
   sonixGrabber->ReadConfiguration(configRootElement);
   if (!inputSonixIp.empty())
   {

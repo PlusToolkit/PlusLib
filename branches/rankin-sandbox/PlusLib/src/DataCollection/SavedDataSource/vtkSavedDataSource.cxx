@@ -60,12 +60,12 @@ void vtkSavedDataSource::PrintSelf(ostream& os, vtkIndent indent)
 PlusStatus vtkSavedDataSource::InternalUpdate()
 {
   //LOG_TRACE("vtkSavedDataSource::InternalUpdate");
-  const int numberOfFramesInTheLoop=this->LoopLastFrameUid-this->LoopFirstFrameUid+1;
+  const int numberOfFramesInTheLoop = this->LoopLastFrameUid - this->LoopFirstFrameUid + 1;
 
   // Determine the UID and loop index of the next frame that will be added
-  BufferItemUidType frameToBeAddedUid=this->LastAddedFrameUid+1;
-  int frameToBeAddedLoopIndex=this->LastAddedLoopIndex;
-  if (frameToBeAddedUid>this->LoopLastFrameUid)
+  BufferItemUidType frameToBeAddedUid = this->LastAddedFrameUid+1;
+  int frameToBeAddedLoopIndex = this->LastAddedLoopIndex;
+  if (frameToBeAddedUid > this->LoopLastFrameUid)
   {
     frameToBeAddedLoopIndex++;
     frameToBeAddedUid -= numberOfFramesInTheLoop;      
@@ -74,11 +74,11 @@ PlusStatus vtkSavedDataSource::InternalUpdate()
   PlusStatus status=PLUS_FAIL;
   if (this->UseOriginalTimestamps)
   {
-    status=InternalUpdateOriginalTimestamp(frameToBeAddedUid, frameToBeAddedLoopIndex);    
+    status = InternalUpdateOriginalTimestamp(frameToBeAddedUid, frameToBeAddedLoopIndex);    
   }
   else
   {
-    status=InternalUpdateCurrentTimestamp(frameToBeAddedUid, frameToBeAddedLoopIndex);
+    status = InternalUpdateCurrentTimestamp(frameToBeAddedUid, frameToBeAddedLoopIndex);
   }
 
   return status;
@@ -89,28 +89,28 @@ PlusStatus vtkSavedDataSource::InternalUpdateOriginalTimestamp(BufferItemUidType
 {
   // Compute elapsed time since we started the acquisition
   double elapsedTime = vtkAccurateTimer::GetSystemTime() - this->GetOutputDataSource()->GetStartTime();
-  double loopTime=this->LoopStopTime_Local-this->LoopStartTime_Local;
+  double loopTime = this->LoopStopTime_Local - this->LoopStartTime_Local;
 
-  const int numberOfFramesInTheLoop=this->LoopLastFrameUid-this->LoopFirstFrameUid+1;
-  int currentLoopIndex=0; // how many loops have we completed so far?
-  BufferItemUidType currentFrameUid=0; // uid of the frame that has been acquired most recently (uid of the last frame that has to be added in this update)
+  const int numberOfFramesInTheLoop = this->LoopLastFrameUid - this->LoopFirstFrameUid + 1;
+  int currentLoopIndex = 0; // how many loops have we completed so far?
+  BufferItemUidType currentFrameUid = 0; // uid of the frame that has been acquired most recently (uid of the last frame that has to be added in this update)
   {
-    double currentFrameTime_Local=0; // current time in the Local buffer time reference
-    if (!this->RepeatEnabled || loopTime==0 )
+    double currentFrameTime_Local = 0; // current time in the Local buffer time reference
+    if (!this->RepeatEnabled || loopTime == 0 )
     {
       if ( elapsedTime >= loopTime )
       {
         // reached the end of the loop, nothing to add
         return PLUS_SUCCESS;
       }
-      currentLoopIndex=0;
+      currentLoopIndex = 0;
       currentFrameTime_Local = this->LoopStartTime_Local + elapsedTime;
     }
     else
     {
-      currentLoopIndex=floor(elapsedTime/loopTime);
+      currentLoopIndex = floor(elapsedTime/loopTime);
       currentFrameTime_Local = this->LoopStartTime_Local + elapsedTime - loopTime*currentLoopIndex;
-      double latestTimestamp_Local=0;
+      double latestTimestamp_Local = 0;
       GetLocalBuffer()->GetLatestTimeStamp(latestTimestamp_Local);
       if (currentFrameTime_Local > latestTimestamp_Local)
       {
@@ -121,20 +121,20 @@ PlusStatus vtkSavedDataSource::InternalUpdateOriginalTimestamp(BufferItemUidType
     }
 
     // Get the uid of the frame that has been most recently acquired
-    BufferItemUidType closestFrameUid=0;
+    BufferItemUidType closestFrameUid = 0;
     GetLocalBuffer()->GetItemUidFromTime(currentFrameTime_Local,closestFrameUid);
-    double closestFrameTime_Local=0;
+    double closestFrameTime_Local = 0;
     GetLocalBuffer()->GetTimeStamp(closestFrameUid, closestFrameTime_Local);
     if (closestFrameTime_Local>currentFrameTime_Local)
     {
       // the closest frame is newer than the current time, so don't use this item but the one before
-      currentFrameUid=closestFrameUid-1;
+      currentFrameUid = closestFrameUid-1;
     }
     else
     {
-      currentFrameUid=closestFrameUid;
+      currentFrameUid = closestFrameUid;
     }
-    if (currentFrameUid<this->LoopFirstFrameUid)
+    if (currentFrameUid < this->LoopFirstFrameUid)
     {
       currentLoopIndex--;
       currentFrameUid += numberOfFramesInTheLoop;      
@@ -146,10 +146,10 @@ PlusStatus vtkSavedDataSource::InternalUpdateOriginalTimestamp(BufferItemUidType
     }
   }
 
-  int numberOfFramesToBeAdded=(currentFrameUid-this->LastAddedFrameUid)+
+  int numberOfFramesToBeAdded = (currentFrameUid-this->LastAddedFrameUid)+
     (currentLoopIndex-this->LastAddedLoopIndex)*numberOfFramesInTheLoop;
 
-  PlusStatus status=PLUS_SUCCESS;
+  PlusStatus status(PLUS_SUCCESS);
   for (int addedFrames=0; addedFrames<numberOfFramesToBeAdded; addedFrames++)
   {
 
@@ -168,8 +168,9 @@ PlusStatus vtkSavedDataSource::InternalUpdateOriginalTimestamp(BufferItemUidType
 
     // Compute the system time corresponding to this frame
     // Get the filtered timestamp from the buffer without any local time offset. Offset will be applied when it is copied to the output stream's buffer.
-    double filteredTimestamp=dataBufferItemToBeAdded.GetFilteredTimestamp(0.0)+frameToBeAddedLoopIndex*loopTime-this->LoopStartTime_Local+this->GetOutputDataSource()->GetStartTime();
-    double unfilteredTimestamp=filteredTimestamp; // we ignore unfiltered timestamps
+    double filteredTimestamp = dataBufferItemToBeAdded.GetFilteredTimestamp(0.0) + frameToBeAddedLoopIndex*loopTime - 
+      this->LoopStartTime_Local + this->GetOutputDataSource()->GetStartTime();
+    double unfilteredTimestamp = filteredTimestamp; // we ignore unfiltered timestamps
 
     switch (this->SimulatedStream)
     {
@@ -180,21 +181,21 @@ PlusStatus vtkSavedDataSource::InternalUpdateOriginalTimestamp(BufferItemUidType
         {
           fieldMap = dataBufferItemToBeAdded.GetCustomFrameFieldMap();    
         }
-        if (this->GetOutputDataSource()->AddItem(&(dataBufferItemToBeAdded.GetFrame()), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &fieldMap)==PLUS_FAIL)
+        if (this->AddVideoItemToVideoSources(this->GetVideoSources(), dataBufferItemToBeAdded.GetFrame(), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &fieldMap) != PLUS_SUCCESS)
         {
-          status=PLUS_FAIL;
+          status = PLUS_FAIL;
         }  
         break;
       }
     case TRACKER_STREAM:
       {
         // retrieve timestamp from the first active tool and add all the tool matrices corresponding to that timestamp
-        double nextFrameTimestamp=dataBufferItemToBeAdded.GetFilteredTimestamp(0.0);
+        double nextFrameTimestamp = dataBufferItemToBeAdded.GetFilteredTimestamp(0.0);
 
-        int numOfErrors=0;
+        int numOfErrors = 0;
         for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
         {
-          vtkPlusDataSource* tool=it->second;
+          vtkPlusDataSource* tool = it->second;
           StreamBufferItem bufferItem;  
           ItemStatus itemStatus = this->LocalTrackerBuffers[tool->GetSourceId()]->GetStreamBufferItemFromTime(nextFrameTimestamp, &bufferItem, vtkPlusBuffer::INTERPOLATED); 
           if ( itemStatus != ITEM_OK )
@@ -211,15 +212,15 @@ PlusStatus vtkSavedDataSource::InternalUpdateOriginalTimestamp(BufferItemUidType
             {
               LOG_ERROR("vtkSavedDataSource: Unable to get next item from local buffer from time for tool "<<tool->GetSourceId()<<"!");
             }
-            status=PLUS_FAIL;
+            status = PLUS_FAIL;
             continue;
           }
-          // Get default transfom  
-          vtkSmartPointer<vtkMatrix4x4> toolTransMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-          if (bufferItem.GetMatrix(toolTransMatrix)!=PLUS_SUCCESS)
+          // Get default transform  
+          vtkSmartPointer<vtkMatrix4x4> toolTransMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+          if (bufferItem.GetMatrix(toolTransMatrix) != PLUS_SUCCESS)
           {
-            LOG_ERROR("Failed to get toolTransMatrix for tool "<<tool->GetSourceId()); 
-            status=PLUS_FAIL;
+            LOG_ERROR("Failed to get toolTransMatrix for tool " << tool->GetSourceId()); 
+            status = PLUS_FAIL;
             continue;
           }
           // Get flags
@@ -227,15 +228,15 @@ PlusStatus vtkSavedDataSource::InternalUpdateOriginalTimestamp(BufferItemUidType
           // This device has no frame numbering, just auto increment tool frame number if new frame received
           unsigned long frameNumber = tool->GetFrameNumber() + 1 ; 
           // send the transformation matrix and flags to the tool
-          if (this->ToolTimeStampedUpdateWithoutFiltering(tool->GetSourceId(), toolTransMatrix, toolStatus, unfilteredTimestamp, filteredTimestamp)!=PLUS_SUCCESS)
+          if (this->ToolTimeStampedUpdateWithoutFiltering(tool->GetSourceId(), toolTransMatrix, toolStatus, unfilteredTimestamp, filteredTimestamp) != PLUS_SUCCESS)
           {
-            status=PLUS_FAIL;
+            status = PLUS_FAIL;
           }
         }
       }
       break;
     default:
-      LOG_ERROR("Unkown stream type: "<<this->SimulatedStream);
+      LOG_ERROR("Unknown stream type: "<<this->SimulatedStream);
       return PLUS_FAIL;
     }
 
@@ -282,10 +283,11 @@ PlusStatus vtkSavedDataSource::InternalUpdateCurrentTimestamp(BufferItemUidType 
       if (this->UseAllFrameFields)
       {
         fieldMap = dataBufferItemToBeAdded.GetCustomFrameFieldMap();    
-      }        
-      if (this->GetOutputDataSource()->AddItem(&(dataBufferItemToBeAdded.GetFrame()), this->FrameNumber, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &fieldMap)!=PLUS_SUCCESS) // UNDEFINED_TIMESTAMP => use current timestamp
+      }
+      if (this->AddVideoItemToVideoSources(this->GetVideoSources(), dataBufferItemToBeAdded.GetFrame(), this->FrameNumber, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &fieldMap) != PLUS_SUCCESS)
       {
-        status=PLUS_FAIL;
+        // UNDEFINED_TIMESTAMP => use current timestamp
+        status = PLUS_FAIL;
       }
       break;
     }
@@ -296,9 +298,9 @@ PlusStatus vtkSavedDataSource::InternalUpdateCurrentTimestamp(BufferItemUidType 
 
       for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
       {
-        vtkPlusDataSource* tool=it->second;
+        vtkPlusDataSource* tool(it->second);
         StreamBufferItem bufferItem;
-        vtkPlusBuffer* localTrackerBuffer=this->LocalTrackerBuffers[tool->GetSourceId()];
+        vtkPlusBuffer* localTrackerBuffer = this->LocalTrackerBuffers[tool->GetSourceId()];
         ItemStatus itemStatus = ITEM_UNKNOWN_ERROR;
         if (localTrackerBuffer)
         {
@@ -321,7 +323,7 @@ PlusStatus vtkSavedDataSource::InternalUpdateCurrentTimestamp(BufferItemUidType 
           status=PLUS_FAIL;
           continue;
         }
-        // Get default transfom  
+        // Get default transform  
         vtkSmartPointer<vtkMatrix4x4> toolTransMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
         if (bufferItem.GetMatrix(toolTransMatrix)!=PLUS_SUCCESS)
         {
@@ -342,12 +344,12 @@ PlusStatus vtkSavedDataSource::InternalUpdateCurrentTimestamp(BufferItemUidType 
     }
     break;
   default:
-    LOG_ERROR("Unkown stream type: "<<this->SimulatedStream);
+    LOG_ERROR("Unknown stream type: "<<this->SimulatedStream);
     return PLUS_FAIL;
   }
 
-  this->LastAddedFrameUid=frameToBeAddedUid;
-  this->LastAddedLoopIndex=frameToBeAddedLoopIndex;
+  this->LastAddedFrameUid = frameToBeAddedUid;
+  this->LastAddedLoopIndex = frameToBeAddedLoopIndex;
 
   return status;
 }
@@ -395,10 +397,10 @@ PlusStatus vtkSavedDataSource::InternalConnect()
   switch (this->SimulatedStream)
   {
   case VIDEO_STREAM:
-    status=InternalConnectVideo(savedDataBuffer);
+    status = InternalConnectVideo(savedDataBuffer);
     break;
   case TRACKER_STREAM:
-    status=InternalConnectTracker(savedDataBuffer);
+    status = InternalConnectTracker(savedDataBuffer);
     break;
   default:
     LOG_ERROR("Unknown stream type: "<<this->SimulatedStream);
@@ -409,7 +411,7 @@ PlusStatus vtkSavedDataSource::InternalConnect()
     return PLUS_FAIL;
   }
 
-  if (GetLocalBuffer()==NULL)
+  if (GetLocalBuffer() == NULL)
   {
     LOG_ERROR("Local buffer is invalid");
     return PLUS_FAIL;
@@ -422,15 +424,15 @@ PlusStatus vtkSavedDataSource::InternalConnect()
 
   // Set the default loop start time and length to match the video buffer start time and length
 
-  this->LoopFirstFrameUid=GetLocalBuffer()->GetOldestItemUidInBuffer();
-  this->LoopLastFrameUid=GetLocalBuffer()->GetLatestItemUidInBuffer();
+  this->LoopFirstFrameUid = GetLocalBuffer()->GetOldestItemUidInBuffer();
+  this->LoopLastFrameUid = GetLocalBuffer()->GetLatestItemUidInBuffer();
 
   this->LoopStartTime_Local=oldestTimestamp_Local;  
 
   // When we reach the last frame we have to wait one frame period before
   // playing the first frame, so we have to add one frame period to the loop length (loopTime)
   double framePeriodSec=0;
-  double frameRate=GetLocalBuffer()->GetFrameRate();
+  double frameRate = GetLocalBuffer()->GetFrameRate();
   if (frameRate!=0.0)
   {
     framePeriodSec=1.0/frameRate;
@@ -441,18 +443,18 @@ PlusStatus vtkSavedDataSource::InternalConnect()
     // (instead of trying to find out the frame period from the frame rate in the file)
     if ( this->AcquisitionRate!=0.0 )
     {      
-      framePeriodSec=1.0/this->AcquisitionRate;
+      framePeriodSec = 1.0/this->AcquisitionRate;
     }
     else
     {
       LOG_ERROR("Invalid AcquisitionRate: "<<this->AcquisitionRate);      
-      framePeriodSec=1.0;
+      framePeriodSec = 1.0;
     }
   }
-  this->LoopStopTime_Local=latestTimestamp_Local+framePeriodSec;
+  this->LoopStopTime_Local = latestTimestamp_Local + framePeriodSec;
 
-  this->LastAddedFrameUid=this->LoopFirstFrameUid-1;
-  this->LastAddedLoopIndex=0;
+  this->LastAddedFrameUid = this->LoopFirstFrameUid-1;
+  this->LastAddedLoopIndex = 0;
 
   return PLUS_SUCCESS;
 }
@@ -460,7 +462,7 @@ PlusStatus vtkSavedDataSource::InternalConnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkSavedDataSource::InternalConnectVideo(vtkTrackedFrameList* savedDataBuffer)
 {
-  // Set buffer parameters based on the input tracked frame list
+    // Set buffer parameters based on the input tracked frame list
   vtkPlusDataSource* outputDataSource = this->GetOutputDataSource();
   if (outputDataSource == NULL)
   {
@@ -471,34 +473,64 @@ PlusStatus vtkSavedDataSource::InternalConnectVideo(vtkTrackedFrameList* savedDa
     LOG_ERROR("Failed to set video buffer image type"); 
     return PLUS_FAIL; 
   }
-  if ( this->GetOutputDataSource()->SetInputImageOrientation( savedDataBuffer->GetImageOrientation() ) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Failed to set video image orientation"); 
-    return PLUS_FAIL; 
-  }
 
-  this->GetOutputDataSource()->SetInputFrameSize(savedDataBuffer->GetTrackedFrame(0)->GetFrameSize());
-
-  this->GetOutputDataSource()->SetNumberOfScalarComponents(savedDataBuffer->GetTrackedFrame(0)->GetNumberOfScalarComponents());
-
-  // Set up a new local buffer
+  // Saved data buffer contains data read directly from file, set up a new local buffer
   DeleteLocalBuffers();
   this->LocalVideoBuffer = vtkPlusBuffer::New();
   this->LocalVideoBuffer->SetImageOrientation(savedDataBuffer->GetImageOrientation());
-  
-  // Copy all the settings from the video buffer 
-  this->GetOutputDataSource()->DeepCopyBufferTo(*this->LocalVideoBuffer);
+  this->LocalVideoBuffer->SetImageType(savedDataBuffer->GetImageType());
+  this->LocalVideoBuffer->SetFrameSize(savedDataBuffer->GetFrameSize());
+  this->LocalVideoBuffer->SetNumberOfScalarComponents(savedDataBuffer->GetTrackedFrame(0)->GetNumberOfScalarComponents());
+  this->LocalVideoBuffer->SetPixelType(savedDataBuffer->GetTrackedFrame(0)->GetImageData()->GetVTKScalarPixelType());
+  this->LocalVideoBuffer->SetBufferSize(savedDataBuffer->GetNumberOfTrackedFrames());
   this->LocalVideoBuffer->SetLocalTimeOffsetSec(0.0); // the time offset is copied from the output, so reset it to 0
-
-  // Fill local video buffer
   this->LocalVideoBuffer->CopyImagesFromTrackedFrameList(savedDataBuffer, vtkPlusBuffer::READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS, this->UseAllFrameFields); 
-  savedDataBuffer->Clear(); 
+  savedDataBuffer->Clear();
 
-  this->GetOutputDataSource()->Clear();
-  this->GetOutputDataSource()->SetInputFrameSize( this->LocalVideoBuffer->GetFrameSize() ); 
-  this->GetOutputDataSource()->SetPixelType( this->LocalVideoBuffer->GetPixelType() );
+  PlusStatus result(PLUS_SUCCESS);
+  for( DataSourceContainerIterator it = this->VideoSources.begin(); it != this->VideoSources.end(); ++it )
+  {
+    vtkPlusDataSource* source(it->second);
 
-  return PLUS_SUCCESS; 
+    if ( source->SetInputImageOrientation( this->LocalVideoBuffer->GetImageOrientation() ) != PLUS_SUCCESS )
+    {
+      LOG_ERROR(source->GetSourceId() << ": Failed to set video image orientation"); 
+      result = PLUS_FAIL;
+      continue;
+    }
+
+    if ( source->SetInputFrameSize( this->LocalVideoBuffer->GetFrameSize() ) != PLUS_SUCCESS )
+    {
+      LOG_ERROR(source->GetSourceId() << ": Failed to set video image orientation"); 
+      result = PLUS_FAIL;
+      continue;
+    }
+
+    if ( source->SetNumberOfScalarComponents( this->LocalVideoBuffer->GetNumberOfScalarComponents() ) != PLUS_SUCCESS )
+    {
+      LOG_ERROR(source->GetSourceId() << ": Failed to set video image orientation"); 
+      result = PLUS_FAIL;
+      continue;
+    }
+
+    source->Clear();
+
+    if ( source->SetInputFrameSize( this->LocalVideoBuffer->GetFrameSize() ) != PLUS_SUCCESS )
+    {
+      LOG_ERROR(source->GetSourceId() << ": Failed to set video image orientation"); 
+      result = PLUS_FAIL;
+      continue;
+    }
+
+    if ( source->SetPixelType( this->LocalVideoBuffer->GetPixelType() ) != PLUS_SUCCESS )
+    {
+      LOG_ERROR(source->GetSourceId() << ": Failed to set video image orientation"); 
+      result = PLUS_FAIL;
+      continue;
+    }
+  }
+
+  return result; 
 }
 
 //----------------------------------------------------------------------------
@@ -660,13 +692,6 @@ PlusStatus vtkSavedDataSource::WriteConfiguration(vtkXMLDataElement* rootConfig)
 //-----------------------------------------------------------------------------
 PlusStatus vtkSavedDataSource::NotifyConfigured()
 {
-  if( this->OutputChannels.size() > 1 )
-  {
-    LOG_WARNING("vtkSavedDataSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
-    this->SetCorrectlyConfigured(false);
-    return PLUS_FAIL;
-  }
-
   if( this->OutputChannels.empty() )
   {
     LOG_ERROR("No output channels defined for vtkSavedDataSource. Cannot proceed." );

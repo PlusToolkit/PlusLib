@@ -286,29 +286,15 @@ PlusStatus vtkPlusConfig::LoadApplicationConfiguration()
   {
     LOG_DEBUG("Editor application executable is not set - system default will be used");
 #if _WIN32
-    // So sue me... notepad++ is way better. The following code will probably cover 99% of cases.
-    std::string application;
-    wchar_t* pf = 0;
-    SHGetKnownFolderPath(
-      FOLDERID_ProgramFilesX86,
-      0x00000000, 
-      0, 
-      &pf );
-
-    std::wstringstream ss;
-    ss << pf << L"\\Notepad++\\notepad++.exe";
-    CoTaskMemFree(static_cast<void*>(pf));
-    char filename[MAX_PATH];
-    size_t result = wcstombs(filename, ss.str().c_str(), MAX_PATH);
-    if( result == -1 )
+    // Try to find Notepad++ in Program Files, if not found then use notepad.
+    char pf[MAX_PATH];
+    SHGetFolderPath(NULL,CSIDL_PROGRAM_FILES,NULL,0,pf );
+    std::string fullPath = std::string(pf) + "\\Notepad++\\notepad++.exe";
+    std::string application = "notepad.exe";
+    if( vtksys::SystemTools::FileExists(fullPath.c_str()) )
     {
-      application = "notepad";
+      application = fullPath;
     }
-    else if( vtksys::SystemTools::FileExists(filename) )
-    {
-      application = filename;
-    }
-
     this->SetEditorApplicationExecutable(application.c_str());
 #elif defined(unix) || defined(__unix__) || defined(__unix)
     this->SetEditorApplicationExecutable("gedit");

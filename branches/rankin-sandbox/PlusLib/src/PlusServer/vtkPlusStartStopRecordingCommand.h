@@ -49,6 +49,9 @@ public:
   vtkGetStringMacro(CaptureDeviceId);
   vtkSetStringMacro(CaptureDeviceId);
 
+  vtkGetMacro(EnableCompression, bool);
+  vtkSetMacro(EnableCompression, bool);
+
   void SetNameToStart();
   void SetNameToSuspend();
   void SetNameToResume();
@@ -67,6 +70,7 @@ protected:
   
 private:
 
+  bool  EnableCompression;
   char* OutputFilename;
   char* CaptureDeviceId;
 

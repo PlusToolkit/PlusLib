@@ -595,6 +595,66 @@ PlusStatus vtkNrrdSequenceIO::ReadImageHeader()
     return PLUS_FAIL;
   }
 
+  int nDims=3;
+  if ( PlusCommon::StringToInt(this->TrackedFrameList->GetCustomString("dimension"), nDims)==PLUS_SUCCESS )
+  {
+    if (nDims!=2 && nDims!=3 && nDims!=4)
+    {
+      LOG_ERROR("Invalid dimension (shall be 2 or 3 or 4): "<<nDims);
+      return PLUS_FAIL;
+    }
+  }
+  this->NumberOfDimensions=nDims;
+
+  std::vector<std::string> kinds;
+  if( this->TrackedFrameList->GetCustomString("kinds") != NULL )
+  {
+    PlusCommon::SplitStringIntoTokens(std::string(this->TrackedFrameList->GetCustomString("kinds")), ' ', kinds);
+  }
+  else
+  {
+    LOG_WARNING(SEQUENCE_FIELD_KINDS << " field not found in header. Defaulting to " << this->NumberOfDimensions-1 << " domains and 1 time.");
+    for( int i = 0; i < this->NumberOfDimensions-1; ++i )
+    {
+      kinds.push_back(std::string("domain"));
+    }
+    kinds.push_back(std::string("time"));
+  }
+
+  // sizes = 640 480 1 1, sizes = 640 480 1 567, sizes = 640 480 40 567
+  std::istringstream issDimSize(this->TrackedFrameList->GetCustomString("sizes")); 
+  int dimSize(0);
+  int spatialDomainCount(0);
+  for(int i=0; i < kinds.size(); i++) 
+  {
+    issDimSize >> dimSize;
+    if( kinds[i].compare("domain") == 0)
+    {
+      if( spatialDomainCount == 3 && dimSize > 1) // 0-indexed, this is the 4th spatial domain
+      {
+        LOG_ERROR("PLUS supports up to 3 spatial domains. File: " << this->FileName << " contains more than 3.");
+        return PLUS_FAIL;
+      }
+      this->Dimensions[spatialDomainCount]=dimSize;
+      spatialDomainCount++;
+    }
+    else if( kinds[i].compare("time") == 0 || kinds[i].compare("list") == 0) // time = resampling ok, list = resampling not ok
+    {
+      this->Dimensions[3]=dimSize;
+    }
+    else if( kinds[i].compare("vector") == 0)
+    {
+      this->NumberOfScalarComponents = dimSize;
+    }
+  }
+
+  // Post process to handle setting 3rd dimension to 0 if there is no image data in the file
+  if( this->Dimensions[0] == 0 || this->Dimensions[1] == 0 )
+  {
+    this->Dimensions[2] = 0;
+  }
+
+  // Only check elementType if nDims are not 0 0 3
   const char* elementType = this->TrackedFrameList->GetCustomString("type");
   if( elementType == NULL )
   {
@@ -606,17 +666,6 @@ PlusStatus vtkNrrdSequenceIO::ReadImageHeader()
     LOG_ERROR("Unknown component type: "<<elementType);
     return PLUS_FAIL;
   }
-
-  int nDims=3;
-  if ( PlusCommon::StringToInt(this->TrackedFrameList->GetCustomString("dimension"), nDims)==PLUS_SUCCESS )
-  {
-    if (nDims!=2 && nDims!=3 && nDims!=4)
-    {
-      LOG_ERROR("Invalid dimension (shall be 2 or 3 or 4): "<<nDims);
-      return PLUS_FAIL;
-    }
-  }
-  this->NumberOfDimensions=nDims;  
 
   std::string imgOrientStr;
   if( GetCustomString(SEQUENCE_FIELD_US_IMG_ORIENT.c_str()) != NULL )
@@ -643,48 +692,6 @@ PlusStatus vtkNrrdSequenceIO::ReadImageHeader()
   else
   {
     this->ImageType = PlusVideoFrame::GetUsImageTypeFromString(imgTypeStr);
-  }
-
-  std::vector<std::string> kinds;
-  if( this->TrackedFrameList->GetCustomString("kinds") != NULL )
-  {
-    PlusCommon::SplitStringIntoTokens(std::string(this->TrackedFrameList->GetCustomString("kinds")), ' ', kinds);
-  }
-  else
-  {
-    LOG_WARNING(SEQUENCE_FIELD_KINDS << " field not found in header. Defaulting to " << this->NumberOfDimensions-1 << " domains and 1 time.");
-    for( int i = 0; i < this->NumberOfDimensions-1; ++i )
-    {
-      kinds.push_back(std::string("domain"));
-    }
-    kinds.push_back(std::string("time"));
-  }
-
-  // sizes = 640 480, sizes = 640 480 567, sizes = 640 480 40 567
-  std::istringstream issDimSize(this->TrackedFrameList->GetCustomString("sizes")); 
-  int dimSize(0);
-  int spatialDomainCount(0);
-  for(int i=0; i < kinds.size(); i++) 
-  {
-    issDimSize >> dimSize;
-    if( kinds[i].compare("domain") == 0)
-    {
-      if( spatialDomainCount == 3 ) // 0-indexed, this is the 4th spatial domain
-      {
-        LOG_ERROR("PLUS supports up to 3 spatial domains. File: " << this->FileName << " contains more than 3.");
-        return PLUS_FAIL;
-      }
-      this->Dimensions[spatialDomainCount]=dimSize;
-      spatialDomainCount++;
-    }
-    else if( kinds[i].compare("time") == 0 || kinds[i].compare("list") == 0) // time = resampling ok, list = resampling not ok
-    {
-      this->Dimensions[3]=dimSize;
-    }
-    else if( kinds[i].compare("vector") == 0)
-    {
-      this->NumberOfScalarComponents = dimSize;
-    }
   }
 
   // If no specific image orientation is requested then determine it automatically from the image type
@@ -729,11 +736,6 @@ PlusStatus vtkNrrdSequenceIO::ReadImagePixels()
   if (this->Dimensions[0]>0 && this->Dimensions[1]>0 && this->Dimensions[2]>0)
   {
     frameSizeInBytes=this->Dimensions[0]*this->Dimensions[1]*this->Dimensions[2]*PlusVideoFrame::GetNumberOfBytesPerScalar(this->PixelType)*this->NumberOfScalarComponents;
-  }
-  else
-  {
-    LOG_ERROR("0 dimension found. Unable to read image pixels. Dimensions = [" << this->Dimensions[0] << ", " << this->Dimensions[1] << ", " << this->Dimensions[2] << "]");
-    return PLUS_FAIL;
   }
 
   if (frameSizeInBytes==0)
@@ -928,11 +930,7 @@ PlusStatus vtkNrrdSequenceIO::OpenImageHeader()
   this->NumberOfScalarComponents = this->TrackedFrameList->GetTrackedFrame(0)->GetNumberOfScalarComponents();
 
   // Override fields
-  int dimensions=3;
-  if( isData3D )
-  {
-    dimensions = 4;
-  }
+  int dimensions=4;
   if( this->NumberOfScalarComponents > 1 )
   {
     dimensions+=1;
@@ -1018,20 +1016,11 @@ PlusStatus vtkNrrdSequenceIO::OpenImageHeader()
   {
     spaceDirectionStr << "none ";
   }
-  if( isData3D )
-  {
-    SetCustomString("space", "right-anterior-superior-time");
-    originStr << "(0,0,0,0)";
-    spaceDirectionStr << "(1,0,0,0) (0,1,0,0) (0,0,1,0) (0,0,0,1)";
-  }
-  else
-  {
-    // 2d + t is not RAS, override with custom
-    // x y time
-    SetCustomString("space dimension", "3");
-    originStr << "(0,0,0)";
-    spaceDirectionStr << "(1,0,0) (0,1,0) (0,0,1)";
-  }
+
+  SetCustomString("space dimension", "3");
+  originStr << "(0,0,0)";
+  spaceDirectionStr << "(1,0,0) (0,1,0) (0,0,1) none";
+
   // Add fields with default values if they are not present already
   if (GetCustomString(SEQUENCE_FIELD_SPACE_DIRECTIONS)==NULL) { SetCustomString(SEQUENCE_FIELD_SPACE_DIRECTIONS, spaceDirectionStr.str().c_str()); }
   if (GetCustomString(SEQUENCE_FIELD_SPACE_ORIGIN)==NULL) { SetCustomString(SEQUENCE_FIELD_SPACE_ORIGIN, originStr.str().c_str()); }
@@ -1280,6 +1269,7 @@ PlusStatus vtkNrrdSequenceIO::ConvertNrrdTypeToVtkPixelType(const std::string &e
   else if (elementTypeStr.compare("uint64_t")==0) { vtkPixelType = VTK_UNSIGNED_LONG_LONG; }
   else if (elementTypeStr.compare("float")==0) { vtkPixelType = VTK_FLOAT; }
   else if (elementTypeStr.compare("double")==0) { vtkPixelType = VTK_DOUBLE; }
+  else if (elementTypeStr.compare("none")==0) { vtkPixelType = VTK_VOID; }
   else
   {
     LOG_ERROR("Unknown Nrrd data type: " << elementTypeStr);
@@ -1295,7 +1285,7 @@ PlusStatus vtkNrrdSequenceIO::ConvertVtkPixelTypeToNrrdType(PlusCommon::VTKScala
 {
   if (vtkPixelType==VTK_VOID)
   {
-    elementTypeStr="MET_OTHER";
+    elementTypeStr="none";
     return PLUS_SUCCESS;
   }
   const char* ElementTypes[]={
@@ -1324,7 +1314,7 @@ PlusStatus vtkNrrdSequenceIO::ConvertVtkPixelTypeToNrrdType(PlusCommon::VTKScala
       return PLUS_SUCCESS;
     }
   }
-  elementTypeStr="MET_OTHER";
+  elementTypeStr="none";
   return PLUS_FAIL;
 }
 
@@ -1523,7 +1513,7 @@ PlusStatus vtkNrrdSequenceIO::OverwriteNumberOfFramesInHeader(int numberOfFrames
 
   std::stringstream sizesStr;
   std::stringstream kindStr;
-  // TODO space origin and space direction if needed
+
   //std::stringstream directionStr;
   //std::stringstream originStr;
 
@@ -1534,13 +1524,8 @@ PlusStatus vtkNrrdSequenceIO::OverwriteNumberOfFramesInHeader(int numberOfFrames
   }
 
   this->Dimensions[3] = numberOfFrames;
-  sizesStr << this->Dimensions[0] << " " << this->Dimensions[1] << " ";
-  kindStr << "domain" << " " << "domain" << " ";
-  if( isData3D )
-  {
-    sizesStr << this->Dimensions[2] << " ";
-    kindStr << "domain" << " ";
-  }
+  sizesStr << this->Dimensions[0] << " " << this->Dimensions[1] << " " << this->Dimensions[2] << " ";
+  kindStr << "domain" << " " << "domain" << " " << "domain" << " ";
 
   // Nrrd doesn't care if you have multiple whitespaces between two elements, it just can't be before the first or after the last element
   if( addPadding )
@@ -1552,7 +1537,7 @@ PlusStatus vtkNrrdSequenceIO::OverwriteNumberOfFramesInHeader(int numberOfFrames
   sizesStr << this->Dimensions[3];
   if( this->Dimensions[3] > 1 )
   {
-    kindStr << "time";
+    kindStr << "list";
   }
   else
   {

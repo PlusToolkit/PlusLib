@@ -21,7 +21,7 @@
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 
 - \xmlAtt \b ImageSize Image size in pixels \OptionalAtt{800 512}
-- \xmlAtt \b GainPercent Is the gain percentage of B-mode ultrasound; it sets the linear TGC curve based on three values (initial, middle and far). These values are specified as a percentage vector and each has a valid range: 0-100. \OptionalAtt{25 25 25}
+- \xmlAtt \b TimeGainCompensationPercent Is the gain percentage of B-mode ultrasound; it sets the linear TGC curve based on three values (initial, middle and far). These values are specified as a percentage vector and each has a valid range: 0-100. \OptionalAtt{25 25 25}
 - \xmlAtt \b Intensity Is the intensity of B-mode ultrasound that is used to create the LUT. \OptionalAtt{128}
 - \xmlAtt \b Contrast Is the contrast of B-mode ultrasound that is used to create the LUT. \OptionalAtt{256}
 - \xmlAtt \b DepthMm Set the depth [mm] of B-mode ultrasound \OptionalAtt{-1}
