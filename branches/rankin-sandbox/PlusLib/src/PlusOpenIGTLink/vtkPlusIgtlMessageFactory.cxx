@@ -182,10 +182,10 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
         igtl::ImageMessage::Pointer imageMessage = igtl::ImageMessage::New(); 
         imageMessage->Copy( dynamic_cast<igtl::ImageMessage*>(igtlMessage.GetPointer()) );
         std::string deviceName = imageTransformName.From() + std::string("_") + imageTransformName.To();
-        if( trackedFrame.IsCustomFrameFieldDefined(TrackedFrame::FIELD_FRIENDLY_DEVICE_NAME.c_str()) )
+        if( trackedFrame.IsCustomFrameFieldDefined(TrackedFrame::FIELD_FRIENDLY_DEVICE_NAME) )
         {
           // Allow overriding of device name with something human readable
-          deviceName = trackedFrame.GetCustomFrameField(TrackedFrame::FIELD_FRIENDLY_DEVICE_NAME.c_str());
+          deviceName = trackedFrame.GetCustomFrameField(TrackedFrame::FIELD_FRIENDLY_DEVICE_NAME);
         }
         imageMessage->SetDeviceName(deviceName.c_str()); 
         if ( vtkPlusIgtlMessageCommon::PackImageMessage(imageMessage, trackedFrame, igtlMatrix) != PLUS_SUCCESS )

@@ -31,7 +31,7 @@ SET (PlusOpenIGTLink_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BI
 
 SET (PlusOpenIGTLink_LIBS 
   ${VTK_LIBRARIES} 
-  vtkPlusCommon 
+  vtkPlusCommon
   OpenIGTLink
   )
 
