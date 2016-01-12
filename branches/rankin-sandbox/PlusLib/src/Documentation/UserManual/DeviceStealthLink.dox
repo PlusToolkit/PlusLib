@@ -1,0 +1,95 @@
+/*!
+\page DeviceStealthLink Medtronic Stealth Station
+
+This class talks with StealthLink Server and acquires the transformation matrix data for both the current frame
+and the instrument. Only one instrument and one frame can be acitive at a time.
+
+Nomenclature:
+- Medtronic: localizer = Plus: tracker
+- Medtronic: frame = Plus: reference marker (sensor or marker attached to the reference body)
+- Medtronic: instrument = Plus: tool marker (sensor or marker attached to the tool)
+
+\section StealthLinkSupportedHwDevices Supported hardware devices
+
+- Medtronic StealthStation that has StealthLink licence.
+- Link to manufacturer's website: http://www.medtronic.com/for-healthcare-professionals/products-therapies/spinal/surgical-navigation-imaging/surgical-navigation-systems/systems-software-instruments/
+
+\section StealthLinkSupportedPlatforms Included in packages
+
+- \ref PackageStealthLink
+
+This device is not included in any of the standard packages, as it requires StealthLink library from Medtronic.
+If the StealthLink library is obtained from Medtronic then Plus have to be built with the StealthLink option enabled as described at https://www.assembla.com/spaces/plus/wiki/Windows_Build_Instructions.
+The device is tested on Windows, but should also work on other platforms.
+
+\section StealthLinkInstallation Installation
+
+No need to install any extra software. The StealthStation needs to be connected through LAN and the connection is set via IP address and port number.
+
+\section StealthLinkConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "StealthLink" \RequiredAtt
+
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
+
+- \xmlAtt \b ServerAddress. IP address of the StealthStation. \RequiredAtt
+- \xmlAtt \b ServerPort. Port number of the StealthStation. \RequiredAtt
+
+- \xmlElem \ref DataSources One \c DataSource child element is required for each tool or reference marker \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref PortName \RequiredAtt
+      - Any instrument name. Instrument names defined in StealthStation must match tools' port names defined in the configuration file (example: `Passive Planar, Blunt`, `Navigus Probe`).
+      - Any frame name. Frame names defined in StealthStation must match tools' port names defined in the configuration file (example: `Small Passive Cranial Frame`).
+      - \c RasRegistration. Refers to the image's RAS coordinate system (therefore it is recommended to set the Tool Id to `Ras`). This virtual tool will only give valid value when an image is acquired from the server (GetImage or GetExamData).
+
+\section UseCases Use cases
+
+Both optical and Em tracker can be used.
+
+\subsection StealthLinkUsagePlusServerRemoteControl Usage from PlusServerRemoteControl
+
+Start plus server with the configuration file as the input. 
+
+    PlusServer.exe --config-file=PlusDeviceSet_Server_StealthLinkTracker.xml
+
+With this you can track the tools that are inside the view of the tracker.
+
+Stealth can receive DICOM image files from the stealth server and send them as volume through OpenIGTLink:
+
+    PlusServerRemoteControl.exe --command=GET_EXAM_DATA --device=SLD --dicom-directory="C:\StealthLinkDicomOutput\" --volumeEmbeddedTransformToFrame="Ras" --keepReceivedDicomFiles
+
+It will get the current exam information and the registration information and send volume and its pose in Ras coordinate system.
+Ras is calculated after having read the information from the received dicom files ((0020,0032) ImagePositionPatient and (0020,0037) ImageOrientationPatient).
+
+ - \c dicom-directory you can specifiy a folder and this folder will be where the DICOM files are stored. \OptionalAtt{plus output directory}.
+ - \c volumeEmbeddedTransformToFrame. you can define in what coordinate system you want the image to be in \c "Reference" or \c "Ras". \OptionalAtt{Ras}
+ - \c keepReceivedDicomFiles. If this exists then the DICOM files will be stored if not deleted. The default is delete.
+ 
+\subsection StealthLinkUsageSlicer Usage in 3D Slicer
+
+Start plus server with the configuration file as the input.
+
+    PlusServer.exe --config-file=PlusDeviceSet_Server_StealthLinkTracker.xml
+
+ - Start 3D Slicer
+ - Go to \c OpenIGTLinkIF module
+ - Click "+" to create a new connection, select the new connection, click "Client", click "Active"
+ - The \c StylusToTracker transform is created in Slicer and it is updated by the stylus tracking. The \c ReferenceToTracker and other transforms are available too.
+ - Go to \c OpenIGTLinkRemote module
+ - Select the StealthLink connection in the Connector list
+ - Click "Update" to query the available image
+ - Select the image and click "Get selected items" to load it into Slicer
+
+Using OpenIGTLink messages \c GET_IMGMETA and \c GET_IMAGE(from a slicer client for example)
+
+- \c GET_IMGMETA plus will receive all the image meta data information from all of the connected devices and send it through openigtlink
+- \c GET_IMAGE will send the volume and the orientation and position in Ras coordinate system.This system should be defined in the configuration file.
+ 
+\section StealthLinkExampleConfigFile Example configuration file PlusDeviceSet_Server_StealthLinkTracker.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_StealthLinkTracker.xml"
+
+*/

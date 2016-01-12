@@ -1,0 +1,23 @@
+/*!
+\page ApplicationVolumeReconstructor Volume reconstructor application (VolumeReconstructor)
+
+This is a command-line tool for ultrasound volume reconstruction.
+
+See description of volume reconstruction parameters on the \ref AlgorithmVolumeReconstruction page.
+
+\section ApplicationVolumeReconstructorExamples Examples
+ 
+    VolumeReconstructor.exe --config-file=PlusConfiguration_SpinePhantomFreehandReconstructionOnly.xml --source-seq-file=SpinePhantomFreehand.mha --output-volume-file=vtkVolumeReconstructorWithHoleFillingTest1Output.mha --image-to-reference-transform=ImageToReference
+
+Files:
+- Device set config file: https://www.assembla.com/code/plus/subversion/nodes/trunk/PlusLib/data/ConfigFiles/Testing/PlusConfiguration_SpinePhantomFreehandReconstructionOnly.xml 
+- Input frames: https://www.assembla.com/code/plus/subversion/nodes/trunk/PlusLib/data/TestImages/SpinePhantomFreehand.mha 
+- Sample reconstructed volume: https://www.assembla.com/code/plus/subversion/nodes/trunk/PlusLib/data/TestImages/SpinePhantomFreehandReconstructed.mha
+
+See more examples on the <a href="http://crunch.cs.queensu.ca/CDash/index.php?project=PLUS">dashboard</a> (all the test cases starting with "vtkVolumeReconstructor" perform volume reconstruction or verify volume reconstruction results).
+
+\section ApplicationVolumeReconstructorHelp Command-line parameters reference
+
+\verbinclude "VolumeReconstructorHelp.txt"
+
+*/

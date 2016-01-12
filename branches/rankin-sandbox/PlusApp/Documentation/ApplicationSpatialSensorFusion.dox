@@ -1,0 +1,20 @@
+/*!
+\page ApplicationSpatialSensorFusion Spatial sensor fusion (SpatialSensorFusion)
+
+This tool can be used to compute orientation from raw accelerometer and gyroscope sensor
+measurement values. The orientation is computed using sensor fusion of the two sensors.
+The filtered tilt sensor provides less noisy measurement (compared to just using the accelerometer),
+doesn't suffer from drift around the down axis (like compared to IMU sensors do), and doesn't
+suffer from inaccuracies due to magnetic field distortion (like compared to MARG sensors do).
+
+\section ApplicationSpatialSensorFusionExamples Examples
+
+~~~
+SpatialSensorFusion --ahrs-algo=MADGWICK_IMU --ahrs-algo-gain 1.5 --initial-gain 1 --initial-repeated-frame-number=1000 --input-seq-file=C:/devel/_Nightly/PlusBuild-bin-vs9/PlusLib/data/TestImages/SpatialSensorFusionTestInput.mha" "--output-seq-file=C:/devel/_Nightly/PlusBuild-bin-vs9/PlusLib/data/TestImages/SpatialSensorFusionTestOutput.mha --baseline-seq-file=SpatialSensorFusionTestBaseline.mha --west-axis-index=1
+~~~
+
+\section ApplicationSpatialSensorFusionHelp Command-line parameters reference
+
+\verbinclude "SpatialSensorFusionHelp.txt"
+
+*/

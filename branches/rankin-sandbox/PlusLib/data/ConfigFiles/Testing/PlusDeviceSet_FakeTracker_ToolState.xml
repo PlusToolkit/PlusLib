@@ -1,0 +1,22 @@
+<PlusConfiguration version="2.1">
+  <DataCollection StartupDelaySec="1.0">
+    <DeviceSet 
+      Name="TEST No Video with Fake tracker in Tool state mode" 
+      Description="ToolStateDisplayWidgetTest uses this configuration" />
+
+    <Device
+      Id="TrackerDevice"
+      Type="FakeTracker"
+      AcquisitionRate="50"
+      Mode="ToolState" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Test" PortName="0" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream" >
+          <DataSource Id="Test"/>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+  </DataCollection> 
+</PlusConfiguration>

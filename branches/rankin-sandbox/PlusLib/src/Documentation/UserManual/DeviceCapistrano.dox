@@ -1,0 +1,37 @@
+/*!
+\page DeviceCapistrano Capistrano Labs USB ultrasound systems
+
+\section CapistranoSupportedHwDevices Supported hardware devices
+
+- This device is used for image acquisition from Capistrano Labs USB ultrasound
+  systems.
+- Link to manufacturer's website: http://www.capolabs.com/
+
+\section IntersonSupportedPlatforms Included in packages
+- \ref PackageInterson
+
+\section CapistranoInstallation Installation
+
+- Requires SDK provided by Capistrano Labs for compilation and USB drivers
+  provided by Capistrano Labs for running (otherwise Plus application will not start due to missing WDAPI1010.dll).
+
+\section CapistranoConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "CapistranoVideo" \RequiredAtt
+
+- \xmlAtt \b ImageSize Image size in pixels \OptionalAtt{800 512}
+
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
+    - \xmlAtt \ref ImageType Supported imaging modes: B-mode \OptionalAtt{BRIGHTNESS}
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+    - \xmlAtt \ref ClipRectangleOrigin \OptionalAtt{0 0 0}
+    - \xmlAtt \ref ClipRectangleSize \OptionalAtt{0 0 0}
+
+\section CapistranoExampleConfigFile Example configuration file PlusDeviceSet_CapistranoVideoSourceTest.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_CapistranoVideoSourceTest.xml"
+
+*/

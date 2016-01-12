@@ -1,0 +1,56 @@
+<PlusConfiguration version="2.1">
+
+  <DataCollection StartupDelaySec="1.0">
+    <DeviceSet 
+      Name="fCal: Simulation mode for Stylus calibration"
+      Description="No Video with Fake tracker in Pivot calibration mode
+vtkStylusCalibrationTest uses this configuration" />
+    <Device
+      Id="TrackerDevice"
+      Type="FakeTracker"
+      AcquisitionRate="50"
+      ToolReferenceFrame="Tracker"
+      Mode="PivotCalibration"  >
+      <DataSources>
+        <DataSource Type="Tool" Id="Reference"  PortName="0" />
+        <DataSource Type="Tool" Id="Stylus"  PortName="1" />
+      </DataSources> 
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream">
+          <DataSource Id="Reference" />
+          <DataSource Id="Stylus" />
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+  </DataCollection>
+
+  <Rendering WorldCoordinateFrame="Reference">
+    <DisplayableObject Type="Model" ObjectCoordinateFrame="StylusTip" Id="StylusModel" File="Stylus_Example.stl" />
+  </Rendering>
+
+  <CoordinateDefinitions>
+  </CoordinateDefinitions>
+
+  <fCal
+    PhantomModelId="PhantomModel"
+    TransducerModelId="ProbeModel"
+    StylusModelId="StylusModel"
+    ImageDisplayableObjectId="LiveImage"
+    NumberOfStylusCalibrationPointsToAcquire="200"
+    ImageCoordinateFrame="Image"
+    ProbeCoordinateFrame="Probe"
+    ReferenceCoordinateFrame="Reference"
+    TransducerOriginCoordinateFrame="TransducerOrigin"
+    TransducerOriginPixelCoordinateFrame="TransducerOriginPixel"
+    FixedChannelId="VideoStream" 
+    FixedSourceId="Video"
+    MovingChannelId="TrackerStream"
+    MovingSourceId="ProbeToTracker"
+    DefaultSelectedChannelId="TrackerStream" />
+
+  <vtkPivotCalibrationAlgo
+    ObjectMarkerCoordinateFrame="Stylus"
+    ReferenceCoordinateFrame="Reference"
+    ObjectPivotPointCoordinateFrame="StylusTip" />
+
+</PlusConfiguration>

@@ -1,0 +1,17 @@
+/*!
+\page ApplicationDiagDataCollection Data collection diagnostics (DiagDataCollection)
+
+Acquire raw, non-synchronized, non-interpolated tracking and video data and compute some basic metrics for diagnostics.
+In addition to the output on the screen two files are generated in the output directory containing the frame numbers and filtered and unfiltered timestamps (in [date]_[time].VideoBufferTimestamps.txt and [date]_[time>]TrackerBufferTimestamps.txt).
+
+\section ApplicationDiagDataCollectionExamples Examples
+
+~~~
+DiagDataCollection.exe --config-file=..\..\PlusLib\data\ConfigFiles\Test_PlusConfiguration_VideoNone_FakeTracker_PivotCalibration_fCal.xml --input-acq-time-length=10
+~~~
+
+\section ApplicationDiagDataCollectionHelp Command-line parameters reference
+
+\verbinclude "DiagDataCollectionHelp.txt"
+
+*/

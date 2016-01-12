@@ -1,0 +1,43 @@
+/*!
+\page DeviceTelemed Telemed USB ultrasound systems
+
+\section TelemedSupportedHwDevices Supported hardware devices
+
+- This device is used for image acquisition from Telemed ultrasound systems.
+- Tested only with MicrUs devices (http://www.pcultrasound.com/products/micrus/index.html) but other Telemed devices should be compatible, too.
+- Link to manufacturer's website: http://www.pcultrasound.com
+
+\section TelemedSupportedPlatforms Included in packages
+- \ref PackageTelemed
+
+\section TelemedInstallation Installation
+
+- Requires drivers provided by Telemed for running (otherwise Plus application will not start).
+- It is recommended to run the Telemed imaging software to set all imaging parameters, as Plus currently can set only a subset of all imaging parameters.
+
+\section TelemedConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "TelemedVideo" \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+
+- \xmlAtt \b FrameSize Maximum size of an image frame in pixels. The image is scaled so that image vertically fills the specified rectangle size, therefore if the frame size is too narrow (first component is too small) then the two sides of the image may be clipped; if the frame is too wide then there will be solid filled stripes on the left and right sides. If larger values are specified then a higher-resolution image is created. \OptionalAtt{512 512}
+- \xmlAtt \b DepthMm Set the depth [mm] of B-mode ultrasound. If not specified (or value is <0) then the current value is kept. \OptionalAtt{ }
+- \xmlAtt \b FrequencyMhz ultrasound transmitter frequency. If not specified (or value is <0) then the current value is kept. \c [MHz].\OptionalAtt{-1}
+- \xmlAtt \b DynRangeDb Dynamic Range \c [dB] of B-mode ultrasound. If not specified (or value is <0) then the current value is kept. \OptionalAtt{ }
+- \xmlAtt \b GainPercent Is the gain percentage of B-mode ultrasound. If not specified (or value is <0) then the current value is kept. Valid range: 0-100. \OptionalAtt{ }
+- \xmlAtt \b PowerPercent Power to be used for imaging, as a percentage of maximum available power. If not specified (or value is <0) then the current value is kept. Valid range is 0-100. \OptionalAtt{ }
+
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+    - \xmlAtt \ref ClipRectangleOrigin \OptionalAtt{0 0 0}
+    - \xmlAtt \ref ClipRectangleSize \OptionalAtt{0 0 0}
+
+\section TelemedExampleConfigFile Example configuration file PlusDeviceSet_Server_TelemedVideoCapture.xml 
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_TelemedVideoCapture.xml"
+
+*/

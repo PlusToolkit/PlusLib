@@ -1,0 +1,48 @@
+/*!
+\page DeviceICCapturing Imaging controls analog USB frame grabber
+
+\section ICCapturingSupportedHwDevices Supported hardware devices
+Supported model: DFG/USB2pro analog frame grabbers with USB interface
+
+- Link to manufacturer's website: http://www.theimagingsource.com/en_US/products/converters/
+
+\section ICCapturingSupportedPlatforms Included in packages
+- \ref PackageWin32
+- \ref PackageWin64
+- \ref PackageUltrasonixWin32
+- \ref PackageInterson
+- \ref PackageBk
+- \ref PackageStealthLink
+- \ref PackageThorLabs
+
+\section ICCapturingInstallation Installation
+
+
+\section ICCapturingConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "ICCapturing" \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{125} 
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+
+- \xmlAtt \b DeviceName Requested device name (e.g. \c "DFG/USB2-lt"). \RequiredAtt
+- \xmlAtt \b VideoNorm Requested video norm (e.g. \c "PAL_B" or \c "NTSC_M") \RequiredAtt
+- \xmlAtt \b VideoFormat Requested video format string (for example \c "Y800"  is an 8 bit monochrome video format). For backward compatibility (will be removed in the future) also the frame size may be defined in this attribute (for example \c "Y800 (640x480)").\RequiredAtt
+- \xmlAtt \b FrameSize Requested size of the video frame. \OptionalAtt{640 480}
+- \xmlAtt \b InputChannel Name of the IC capturing device input channel (e.g. \c "01 Video: SVideo"). \RequiredAtt
+- \xmlAtt \b ICBufferSize Number of frames the IC capturing device should store in a temporary buffer. \OptionalAtt{50}
+
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
+    - \xmlAtt \ref ImageType. Color image acquisition is supported. \OptionalAtt{BRIGHTNESS}
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+    - \xmlAtt \ref ClipRectangleOrigin \OptionalAtt{0 0 0}
+    - \xmlAtt \ref ClipRectangleSize \OptionalAtt{0 0 0}
+
+\section ICCapturingExampleConfigFile Example configuration file PlusDeviceSet_Server_ImagingControlsVideoCapture.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_ImagingControlsVideoCapture.xml"
+
+
+*/

@@ -1,0 +1,67 @@
+/*!
+\page DeviceAscension3DG Ascension electromagnetic tracking devices (and Ultrasonix SonixGPS)
+
+\section Ascension3DGSupportedHwDevices Supported hardware devices
+
+- Ascension trakSTAR, driveBAY, medSAFE models.
+- Ultrasonix SonixGPS (it is an Ascension driveBAY).
+- Link to manufacturer's website: http://www.ascension-tech.com/medical/index.php
+
+\section Ascension3DGSupportedPlatforms Included in packages
+
+- \ref PackageWin32
+- \ref PackageUltrasonixWin32
+- \ref PackageInterson
+- \ref PackageBk
+- \ref PackageStealthLink
+- \ref PackageThorLabs
+
+Support for medSAFE models is not included in any of the standard packages, as they use different versions of the same DLLs as non-medSAFE trackers.
+
+To support medSAFE models Plus have to be built with PLUS_USE_Ascension3DGm configuration option enabled as described at https://www.assembla.com/spaces/plus/wiki/Windows_Build_Instructions.
+
+\section Ascension3DGInstallation Installation
+
+- Sensors must be all located in front of the frontplate of the field generator (the side with large the Ascension motif on it): tools are still tracked behind the frontplate, but their orientation may be inverted.
+- If pose measurement seems to be incorrect (somewhat translated/rotated) then unplug the sensor and plug it in again.
+- Tracking a Stylus: It is recommended to place the EM sensor as close to the needle tip as possible. The best accuracy is expected from a thick needle with a sensor near the needle tip.
+- If you are using the tracker of an Ultrasonix SonixGPS system and the Exam software is running (e.g., because images are acquired using the Ulterius interface), then you need to disable the SonixGPS license to prevent the Exam software from using the tracker. This is done because only one application can communicate with the tracker at a time (either your application or the Exam software). To disable SonixGPS press menu on the touchscreen. Go to Administrator, Licenses and unselect SonixGPS from the licenses menu.
+
+\section Ascension3DGConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "Ascension3DG" \RequiredAtt
+
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{50}
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
+
+- \xmlAtt \b FilterAcWideNotch AC wide notch filter status flag. \OptionalAtt{0}
+- \xmlAtt \b FilterAcNarrowNotch AC narrow notch filter status flag.  \OptionalAtt{0}
+- \xmlAtt \b FilterDcAdaptive  DC adaptive filter parameter (0.0 for no filtering, 1.0 for maximum filtering). \OptionalAtt{0}
+- \xmlAtt \b FilterLargeChange Large change filter status flag. \OptionalAtt{0}
+- \xmlAtt \b FilterAlpha  Alpha filter status flag. \OptionalAtt{0}
+
+- \xmlElem \ref DataSources One \c DataSource child element for each tool. \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \b Type = \c "Tool" \RequiredAtt
+    - \xmlAtt \b PortName Identifies the connector (0, 1, 2, or 3) or a virtual tool that contains the quality values ( \c quality1 for tool ports 0, 1, and 2; \c quality2 for tool port 3). \RequiredAtt
+    - \xmlAtt \b QualityErrorSlope The slope should have a value between -127 and +127. \OptionalAtt{0}
+    - \xmlAtt \b QualityErrorOffset default: The offset should have a value between -127 and +127. \OptionalAtt{0}
+    - \xmlAtt \b QualityErrorSensitivity: The sensitivity should have a value between 0 and 127 \OptionalAtt{2}
+    - \xmlAtt \b QualityFilterAlpha: The alpha should have a value between 0 and 127. \OptionalAtt{12}
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+
+\section QualityValues Quality values
+
+The tool ports \c quality1 and \c quality2  provide the quality values for all the tools.
+
+The quality numbers are stored in the translation component of the transformation matrix. If a value is not available then it is set to -1.
+- \c quality1: quality values for sensor port 0-2.
+- \c quality2: quality values for sensor port 3-5 (usually there are only 4 ports, so quality values for port 4 and 5 are not available).
+
+\section Ascension3DGExampleConfigFile Example configuration file PlusDeviceSet_Server_Ascension3DG.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_Ascension3DG.xml"
+    
+*/
