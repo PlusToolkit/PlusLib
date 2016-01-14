@@ -230,7 +230,10 @@ PlusStatus StatusIcon::ConstructMessageListWidget()
   filterLayout->setDirection(QBoxLayout::RightToLeft);
   filterLayout->setContentsMargins(0,0,0,0);
   filterLayout->setSpacing(0);
-  m_ClearFilterButton = new QPushButton("Clear");
+  m_ClearFilterButton = new QPushButton();
+  m_ClearFilterButton->setIcon( QIcon( ":/icons/Resources/icon_ClearText.png" ) );
+  m_ClearFilterButton->setToolTip(tr("Clear filter"));
+  m_ClearFilterButton->setEnabled(false);
   filterLayout->addWidget(m_ClearFilterButton);
   connect(m_ClearFilterButton, SIGNAL(clicked()), this, SLOT(ClearFilterButtonClicked()));
   m_FilterLineEdit = new QLineEdit();
@@ -331,6 +334,7 @@ void StatusIcon::ClearFilterButtonClicked()
 {
   // clear log
   m_FilterLineEdit->clear();
+  m_ClearFilterButton->setEnabled(false);
   this->ApplyFilter();
 }
 
@@ -338,6 +342,8 @@ void StatusIcon::ClearFilterButtonClicked()
 
 void StatusIcon::FilterLineEditEdited(const QString&)
 {
+  m_ClearFilterButton->setEnabled(!m_FilterLineEdit->text().isEmpty());
+
   if( m_FilterInputTimer.isActive() )
   {
     m_FilterInputTimer.stop();
