@@ -18,7 +18,7 @@ static const char* DEVICE_NAME_REPLY = "ACK";
 vtkPlusCommand::vtkPlusCommand()
 : CommandProcessor(NULL)
 , ClientId(0)
-, Id(NULL)
+, Id(0)
 , Name(NULL)
 , DeviceName(NULL)
 {
@@ -29,7 +29,6 @@ vtkPlusCommand::~vtkPlusCommand()
 {  
   this->SetName(NULL);
   this->SetDeviceName(NULL);
-  this->SetId(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -165,41 +164,6 @@ PlusStatus vtkPlusCommand::ValidateName()
 }
 
 //----------------------------------------------------------------------------
-std::string vtkPlusCommand::GetReplyDeviceName()
-{
-  std::string uid;
-  if( this->Id != NULL)
-  {
-    uid=this->Id;
-  }
-  return GenerateReplyDeviceName(uid);
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusCommand::GenerateCommandDeviceName(const std::string &uid)
-{
-  std::ostringstream ss;
-  ss << DEVICE_NAME_COMMAND;
-  if( !uid.empty() )
-  {
-    ss << "_" << uid;
-  }
-  return ss.str();
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusCommand::GenerateReplyDeviceName(const std::string &uid)
-{
-  std::ostringstream ss;
-  ss << DEVICE_NAME_REPLY;
-  if( !uid.empty() )
-  {
-    ss << "_" << uid;
-  }
-  return ss.str();
-}
-
-//----------------------------------------------------------------------------
 bool vtkPlusCommand::IsReplyDeviceName(const std::string &deviceName, const std::string &uid)
 {
   std::string prefix=GetPrefixFromCommandDeviceName(deviceName);
@@ -260,16 +224,19 @@ void vtkPlusCommand::QueueStringResponse(const std::string& message, PlusStatus 
 {
   vtkSmartPointer<vtkPlusCommandStringResponse> stringResponse=vtkSmartPointer<vtkPlusCommandStringResponse>::New();  
   stringResponse->SetClientId(this->ClientId);
-  if (this->Id)
-  {
-    stringResponse->SetDeviceName(GenerateReplyDeviceName(this->Id));
-  }
-  else
-  {
-    LOG_ERROR("No command ID was defined");
-    stringResponse->SetDeviceName(GenerateReplyDeviceName(""));
-  }
+  stringResponse->SetDeviceName(this->DeviceName);
   stringResponse->SetStatus(status);
   stringResponse->SetMessage(message);
   this->CommandResponseQueue.push_back(stringResponse);
+}
+
+//------------------------------------------------------------------------------
+void vtkPlusCommand::QueueCommandResponse(const std::string& reply, PlusStatus status)
+{
+  vtkSmartPointer<vtkPlusCommandCommandResponse> commandResponse=vtkSmartPointer<vtkPlusCommandCommandResponse>::New();  
+  commandResponse->SetClientId(this->ClientId);
+  commandResponse->SetDeviceName(this->DeviceName);
+  commandResponse->SetStatus(status);
+  commandResponse->SetResult(reply);
+  this->CommandResponseQueue.push_back(commandResponse);
 }

@@ -16,22 +16,7 @@
 
 class vtkXMLDataElement; 
 class TrackedFrame; 
-class vtkTransformRepository; 
-
-namespace igtl
-{
-  class CommandMessage : public MessageBase
-  {
-  public:
-    typedef CommandMessage              Self;
-    typedef MessageBase               Superclass;
-    typedef SmartPointer<Self>        Pointer;
-    typedef SmartPointer<const Self>  ConstPointer;
-
-    igtlTypeMacro(igtl::CommandMessage, igtl::MessageBase)
-    igtlNewMacro(igtl::CommandMessage);
-  };
-}
+class vtkTransformRepository;
 
 /*!
   \class vtkPlusIgtlMessageFactory 

@@ -17,13 +17,14 @@ See License.txt for details.
 
 //----------------------------------------------------------------------------
 // IGT message types
+#include "igtlCommandMessage.h"
 #include "igtlImageMessage.h"
-#include "igtlTransformMessage.h"
-#include "igtlPositionMessage.h"
-#include "igtlStatusMessage.h"
 #include "igtlPlusClientInfoMessage.h"
 #include "igtlPlusTrackedFrameMessage.h"
 #include "igtlPlusUsMessage.h"
+#include "igtlPositionMessage.h"
+#include "igtlStatusMessage.h"
+#include "igtlTransformMessage.h"
 
 //----------------------------------------------------------------------------
 
@@ -159,8 +160,6 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
       continue; 
     }
 
-    // TODO: these are all v1 messages, identify split points to minimize code duplication
-
     // Image message 
     if ( messageType == vtkPlusIgtlMessageCommon::IMAGE_MESSAGE_TYPE )
     {
@@ -185,6 +184,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
         if( trackedFrame.IsCustomFrameFieldDefined(TrackedFrame::FIELD_FRIENDLY_DEVICE_NAME) )
         {
           // Allow overriding of device name with something human readable
+          // The transform name is passed in the metadata
           deviceName = trackedFrame.GetCustomFrameField(TrackedFrame::FIELD_FRIENDLY_DEVICE_NAME);
         }
         imageMessage->SetDeviceName(deviceName.c_str()); 
@@ -225,7 +225,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
         igtlMessages.push_back( dynamic_cast<igtl::MessageBase*>(transformMessage.GetPointer()) ); 
       }
     }
-    // Position message 
+    // Position message
     else if ( messageType == vtkPlusIgtlMessageCommon::POSITION_MESSAGE_TYPE )
     {
       for ( std::vector<PlusTransformName>::const_iterator transformNameIterator = clientInfo.TransformNames.begin(); transformNameIterator != clientInfo.TransformNames.end(); ++transformNameIterator)
@@ -269,7 +269,6 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
     // USMESSAGE message
     else if ( messageType == vtkPlusIgtlMessageCommon::USMESSAGE_MESSAGE_TYPE )
     {
-      // TODO : what is this message and why does it exist? it is Sonix specific...
       igtl::PlusUsMessage::Pointer usMessage = dynamic_cast<igtl::PlusUsMessage*>(igtlMessage.GetPointer()); 
       if ( vtkPlusIgtlMessageCommon::PackUsMessage(usMessage, trackedFrame) != PLUS_SUCCESS )
       {
@@ -287,7 +286,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
       {
         const char* stringName = stringNameIterator->c_str();
         const char* stringValue = trackedFrame.GetCustomFrameField(stringName);
-        if (stringValue==NULL)
+        if (stringValue == NULL)
         {
           // no value is available, do not send anything
           continue;
@@ -300,7 +299,8 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
     }
     else if ( messageType == vtkPlusIgtlMessageCommon::COMMAND_MESSAGE_TYPE )
     {
-      igtl::CommandMessage::Pointer commandMessage = igtl::CommandMessage::New();
+      // Is there any use case for the server sending commands to the client?
+      //igtl::CommandMessage::Pointer commandMessage = igtl::CommandMessage::New();
     }
     else
     {

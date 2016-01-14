@@ -9,9 +9,11 @@
 
 #include "vtkPlusServerExport.h"
 
-#include "vtkObject.h"
-#include "vtkMultiThreader.h"
 #include "PlusIgtlClientInfo.h" 
+#include "vtkMultiThreader.h"
+#include "vtkObject.h"
+#include "vtkPlusIgtlMessageFactory.h"
+#include "vtkSmartPointer.h"
 
 #include "igtlMessageBase.h"
 #include "igtlServerSocket.h"
@@ -140,6 +142,9 @@ protected:
   /*! Process the command replies queue and send messages */
   static PlusStatus RespondToCommandRequests(vtkPlusOpenIGTLinkServer& self);
 
+  /*! Analyze an incoming command and queue for processing */
+  static PlusStatus ProcessIncomingCommand(igtl::MessageHeader::Pointer headerMsg, int clientId, std::deque<uint32_t> &previousCommandIds, igtl::CommandMessage::Pointer commandMsg, vtkPlusOpenIGTLinkServer* self);
+
   /*! Thread for receiving control data from clients */ 
   static void* DataReceiverThread( vtkMultiThreader::ThreadInfo* data );
 
@@ -215,6 +220,9 @@ private:
 
   /*! List of connected clients */ 
   std::list<ClientData> IgtlClients;
+
+  /*! igtl Factory for message sending */
+  vtkSmartPointer<vtkPlusIgtlMessageFactory> IgtlMessageFactory;
 
   /*! Mutex instance for accessing client data list */ 
   vtkSmartPointer<vtkRecursiveCriticalSection> IgtlClientsMutex;

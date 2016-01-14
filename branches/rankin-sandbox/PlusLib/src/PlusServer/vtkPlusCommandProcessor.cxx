@@ -234,7 +234,7 @@ vtkPlusCommand* vtkPlusCommandProcessor::CreatePlusCommand(const std::string &co
 }
 
 //------------------------------------------------------------------------------
-PlusStatus vtkPlusCommandProcessor::QueueCommand(unsigned int clientId, const std::string &commandString, const std::string &deviceName, const std::string& uid)
+PlusStatus vtkPlusCommandProcessor::QueueCommand(unsigned int clientId, const std::string& commandName, const std::string &commandString, const std::string &deviceName, uint32_t uid)
 {  
   if (commandString.empty())
   {
@@ -244,15 +244,17 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(unsigned int clientId, const st
 
   vtkSmartPointer<vtkPlusCommand> cmd = vtkSmartPointer<vtkPlusCommand>::Take(CreatePlusCommand(commandString));
   if (cmd.GetPointer()==NULL)
-  {    
-    std::string errorMessage=std::string("Failed to create command from string: ")+commandString;
+  {
+    std::string errorMessage = commandName + std::string(": failure");
     LOG_ERROR(errorMessage);
     // Let the client know that we failed to create a command
-    vtkSmartPointer<vtkPlusCommandStringResponse> response=vtkSmartPointer<vtkPlusCommandStringResponse>::New();
+    vtkSmartPointer<vtkPlusCommandCommandResponse> response = vtkSmartPointer<vtkPlusCommandCommandResponse>::New();
     response->SetClientId(clientId);
-    response->SetDeviceName(vtkPlusCommand::GenerateReplyDeviceName(uid));
-    response->SetMessage(errorMessage);
-    response->SetStatus(PLUS_FAIL);
+    response->SetDeviceName(deviceName);
+    response->SetId(uid);
+    response->SetResult(errorMessage);
+    // TODO : determine sensical error codes
+    response->SetErrorCode(-1);
     {
       // Add response to the command response queue
       PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
@@ -263,7 +265,7 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(unsigned int clientId, const st
   cmd->SetCommandProcessor(this);
   cmd->SetClientId(clientId);
   cmd->SetDeviceName(deviceName.c_str());
-  cmd->SetId(uid.c_str());
+  cmd->SetId(uid);
 
   {
     // Add command to the execution queue
@@ -272,39 +274,7 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(unsigned int clientId, const st
   }
   return PLUS_SUCCESS;
 }
-//------------------------------------------------------------------------------
-PlusStatus vtkPlusCommandProcessor::QueueGetImageMetaData(unsigned int clientId, const std::string &deviceName)
-{
 
-  vtkSmartPointer<vtkPlusGetImageCommand> cmdGetImage = vtkSmartPointer<vtkPlusGetImageCommand>::New();
-  cmdGetImage->SetCommandProcessor(this);
-  cmdGetImage->SetClientId(clientId);
-  cmdGetImage->SetDeviceName(deviceName.c_str());
-  cmdGetImage->SetNameToGetImageMeta();
-  cmdGetImage->SetImageId(deviceName.c_str());
-  {
-    // Add command to the execution queue
-    PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
-    this->CommandQueue.push_back(cmdGetImage);
-  }
-  return PLUS_SUCCESS;
-}
-//------------------------------------------------------------------------------
-PlusStatus vtkPlusCommandProcessor::QueueGetImage(unsigned int clientId, const std::string &deviceName)
-{
-  vtkSmartPointer<vtkPlusGetImageCommand> cmdGetImage = vtkSmartPointer<vtkPlusGetImageCommand>::New();
-  cmdGetImage->SetCommandProcessor(this);
-  cmdGetImage->SetClientId(clientId);
-  cmdGetImage->SetDeviceName(deviceName.c_str());
-  cmdGetImage->SetNameToGetImage();
-  cmdGetImage->SetImageId(deviceName.c_str());
-  {
-    // Add command to the execution queue
-    PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
-    this->CommandQueue.push_back(cmdGetImage);
-  }
-  return PLUS_SUCCESS;
-}
 //------------------------------------------------------------------------------
 void vtkPlusCommandProcessor::PopCommandResponses(PlusCommandResponseList &responses)
 {

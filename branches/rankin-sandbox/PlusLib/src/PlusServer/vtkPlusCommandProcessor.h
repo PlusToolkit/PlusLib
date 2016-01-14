@@ -58,13 +58,7 @@ public:
   virtual PlusStatus RegisterPlusCommand(vtkPlusCommand *cmd);
 
   /*! Adds a command to the queue for execution. Can be called from any thread.  */
-  virtual PlusStatus QueueCommand(unsigned int clientId, const std::string &commandString, const std::string &deviceName, const std::string& uid); 
-
-  /*! Adds a command to the queue for execution of the vtkGetImageCommand with the name GET_IMGMETA!*/
-  PlusStatus QueueGetImageMetaData(unsigned int clientId, const std::string &deviceName);
-
-  /*! Adds a command to the queue for execution of the vtkGetImageCommand with the name GET_IMAGE !*/
-  PlusStatus QueueGetImage(unsigned int clientId, const std::string &deviceName);
+  virtual PlusStatus QueueCommand(unsigned int clientId, const std::string& commandName, const std::string &commandString, const std::string &deviceName, uint32_t uid); 
 
   /*!
     Return the queued command responses and removes the items from the queue (so that each item is returned only once) and clears the response queue.
