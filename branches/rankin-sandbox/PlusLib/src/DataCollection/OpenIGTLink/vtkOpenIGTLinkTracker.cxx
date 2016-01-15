@@ -122,7 +122,7 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdateTData()
 
     // We've received valid header data
     headerMsg->Unpack(this->IgtlMessageCrcCheckEnabled);
-    if (strcmp( headerMsg->GetDeviceType(), "TDATA" ) == 0 )
+    if ( headerMsg->GetType() == igtl::TransformMessage::GetIGTLMessageType() )
     {
       // received a TDATA message
       break;
@@ -281,7 +281,7 @@ PlusStatus vtkOpenIGTLinkTracker::ProcessTransformMessageGeneral(bool &moreMessa
   vtkSmartPointer<vtkMatrix4x4> toolMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
   std::string igtlTransformName; 
 
-  if (strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0)
+  if ( headerMsg->GetType() == igtl::TransformMessage::GetIGTLMessageType() )
   {
     if ( vtkPlusIgtlMessageCommon::UnpackTransformMessage(headerMsg, this->ClientSocket.GetPointer(), toolMatrix, igtlTransformName, unfilteredTimestampUtc, this->IgtlMessageCrcCheckEnabled) != PLUS_SUCCESS )
     {
@@ -289,7 +289,7 @@ PlusStatus vtkOpenIGTLinkTracker::ProcessTransformMessageGeneral(bool &moreMessa
       return PLUS_FAIL;
     }
   }
-  else if (strcmp(headerMsg->GetDeviceType(), "POSITION") == 0)
+  else if ( headerMsg->GetType() == igtl::PositionMessage::GetIGTLMessageType() )
   {
     if ( vtkPlusIgtlMessageCommon::UnpackPositionMessage(headerMsg, this->ClientSocket.GetPointer(), toolMatrix, igtlTransformName, unfilteredTimestampUtc, this->IgtlMessageCrcCheckEnabled) != PLUS_SUCCESS )
     {
@@ -316,7 +316,7 @@ PlusStatus vtkOpenIGTLinkTracker::ProcessTransformMessageGeneral(bool &moreMessa
   if (this->UseReceivedTimestamps)
   {
     // Use the timestamp in the OpenIGTLink message
-    // The received timestamp is in UTC and timestampts in the buffer are in system time, so conversion is needed
+    // The received timestamp is in UTC and timestamps in the buffer are in system time, so conversion is needed
     unfilteredTimestamp = vtkAccurateTimer::GetSystemTimeFromUniversalTime(unfilteredTimestampUtc); 
   }
   else
@@ -325,7 +325,7 @@ PlusStatus vtkOpenIGTLinkTracker::ProcessTransformMessageGeneral(bool &moreMessa
   }  
 
   // No need to filter already filtered timestamped items received over OpenIGTLink 
-  // If the original timestamps are not used it's still safer not to use filtering, as filtering assumes uniform framerate, which is not guaranteed
+  // If the original timestamps are not used it's still safer not to use filtering, as filtering assumes uniform frame rate, which is not guaranteed
   double filteredTimestamp = unfilteredTimestamp;
 
   // Store the transform that we've just received

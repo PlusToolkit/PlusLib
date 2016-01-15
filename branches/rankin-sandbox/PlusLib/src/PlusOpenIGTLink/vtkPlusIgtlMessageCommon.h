@@ -38,17 +38,6 @@ This class is a helper class for OpenIGTLink message pack/unpack
 class vtkPlusOpenIGTLinkExport vtkPlusIgtlMessageCommon: public vtkObject
 {
 public:
-  static const std::string NONE_MESSAGE_TYPE;
-  static const std::string IMAGE_MESSAGE_TYPE;
-  static const std::string TRANSFORM_MESSAGE_TYPE;
-  static const std::string POSITION_MESSAGE_TYPE;
-  static const std::string CLIENTINFO_MESSAGE_TYPE;
-  static const std::string TRACKEDFRAME_MESSAGE_TYPE;
-  static const std::string USMESSAGE_MESSAGE_TYPE;
-  static const std::string STATUS_MESSAGE_TYPE;
-  static const std::string STRING_MESSAGE_TYPE;
-  static const std::string COMMAND_MESSAGE_TYPE;
-
   static vtkPlusIgtlMessageCommon *New();
   vtkTypeMacro(vtkPlusIgtlMessageCommon,vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent);

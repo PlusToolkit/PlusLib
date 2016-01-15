@@ -11,8 +11,6 @@
 #include "vtkMatrix4x4.h"
 #include "vtkPlusDevice.h"
 
-typedef std::list< vtkSmartPointer<vtkPlusCommandResponse> > PlusCommandResponseList;
-
 /*!
   \class PlusCommandResponse 
   \brief Structure to store command responses that Plus should send through OpenIGTLink
@@ -28,8 +26,6 @@ public:
   vtkSetMacro(DeviceName,std::string);
   vtkGetMacro(ClientId,unsigned int);
   vtkSetMacro(ClientId,unsigned int);
-  vtkGetMacro(Id,uint32_t);
-  vtkSetMacro(Id,uint32_t);
   vtkGetMacro(Status,PlusStatus);
   vtkSetMacro(Status,PlusStatus);
 protected:
@@ -47,6 +43,8 @@ private:
   vtkPlusCommandResponse( const vtkPlusCommandResponse& );
   void operator=( const vtkPlusCommandResponse& );
 };
+
+typedef std::list< vtkSmartPointer<vtkPlusCommandResponse> > PlusCommandResponseList;
 
 //----------------------------------------------------------------------------
 class vtkPlusCommandStringResponse : public vtkPlusCommandResponse
@@ -74,16 +72,20 @@ public:
   static vtkPlusCommandCommandResponse *New();
   vtkTypeMacro(vtkPlusCommandCommandResponse, vtkPlusCommandResponse);
 
-  vtkGetMacro(Result,std::string);
-  vtkSetMacro(Result,std::string);
-  vtkGetMacro(ErrorCode,uint32_t);
-  vtkSetMacro(ErrorCode,uint32_t);
+  vtkGetMacro(Version,uint16_t);
+  vtkSetMacro(Version,uint16_t);
+  vtkGetMacro(OriginalId,uint32_t);
+  vtkSetMacro(OriginalId,uint32_t);
+  vtkGetMacro(ErrorString,std::string);
+  vtkSetMacro(ErrorString,std::string);
+
 protected:
   vtkPlusCommandCommandResponse()
   {
   }
-  uint32_t ErrorCode;
-  std::string Result;
+  uint16_t Version;
+  uint32_t OriginalId;
+  std::string ErrorString;
 private:
   vtkPlusCommandCommandResponse( const vtkPlusCommandCommandResponse& );
   void operator=( const vtkPlusCommandCommandResponse& );

@@ -62,7 +62,7 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalUpdate()
   double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
 
   TrackedFrame trackedFrame;
-  if (strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0)
+  if ( headerMsg->GetType() == igtl::ImageMessage::GetIGTLMessageType() )
   {
     if (vtkPlusIgtlMessageCommon::UnpackImageMessage( headerMsg, this->ClientSocket, trackedFrame, this->ImageMessageEmbeddedTransformName, this->IgtlMessageCrcCheckEnabled)!=PLUS_SUCCESS)
     {
@@ -70,7 +70,7 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalUpdate()
       return PLUS_FAIL;
     }
   }
-  else if (strcmp(headerMsg->GetDeviceType(), "TRACKEDFRAME") == 0)
+  else if ( headerMsg->GetType() == igtl::PlusTrackedFrameMessage::GetIGTLMessageType() )
   {
     if ( vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( headerMsg, this->ClientSocket, trackedFrame, this->IgtlMessageCrcCheckEnabled ) != PLUS_SUCCESS )
     {
@@ -81,7 +81,7 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalUpdate()
     if (this->UseReceivedTimestamps)
     {
       // Use the timestamp in the OpenIGTLink message
-      // The received timestamp is in UTC and timestampts in the buffer are in system time, so conversion is needed
+      // The received timestamp is in UTC and timestamps in the buffer are in system time, so conversion is needed
       unfilteredTimestamp = vtkAccurateTimer::GetSystemTimeFromUniversalTime(unfilteredTimestampUtc); 
     }
   }
@@ -93,7 +93,7 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalUpdate()
   }
 
   // No need to filter already filtered timestamped items received over OpenIGTLink 
-  // If the original timestamps are not used it's still safer not to use filtering, as filtering assumes uniform framerate, which is not guaranteed
+  // If the original timestamps are not used it's still safer not to use filtering, as filtering assumes uniform frame rate, which is not guaranteed
   double filteredTimestamp = unfilteredTimestamp;
 
   // The timestamps are already defined, so we don't need to filter them, 

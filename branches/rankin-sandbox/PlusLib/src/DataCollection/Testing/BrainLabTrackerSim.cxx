@@ -233,7 +233,7 @@ int main(int argc, char* argv[])
         headerMsg->Unpack();
 
         // Check data type and receive data body
-        if (strcmp(headerMsg->GetDeviceType(), "STT_TDATA") == 0)
+        if ( headerMsg->GetType() == igtl::StartTrackingDataMessage::GetIGTLMessageType() )
         {
           std::cerr << "Received a STT_TDATA message." << std::endl;
 
@@ -254,7 +254,7 @@ int main(int argc, char* argv[])
             threadID    = threader->SpawnThread((igtl::ThreadFunctionType) &ThreadFunction, &td);
           }
         }
-        else if (strcmp(headerMsg->GetDeviceType(), "STP_TDATA") == 0)
+        else if ( headerMsg->GetType() == igtl::StopTrackingDataMessage::GetIGTLMessageType() )
         {
           socket->Skip(headerMsg->GetBodySizeToRead(), 0);
           std::cerr << "Received a STP_TDATA message." << std::endl;
@@ -271,7 +271,7 @@ int main(int argc, char* argv[])
         }
         else
         {
-          std::cerr << "Receiving : " << headerMsg->GetDeviceType() << std::endl;
+          std::cerr << "Receiving : " << headerMsg->GetType() << std::endl;
           socket->Skip(headerMsg->GetBodySizeToRead(), 0);
         }
       }

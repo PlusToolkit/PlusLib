@@ -14,8 +14,9 @@
 #include "vtkObject.h"
 #include "vtkPlusIgtlMessageFactory.h"
 #include "vtkSmartPointer.h"
+#include <deque>
 
-#include "igtlMessageBase.h"
+#include "igtlCommandMessage.h"
 #include "igtlServerSocket.h"
 
 class TrackedFrame; 
@@ -25,7 +26,7 @@ class vtkPlusChannel;
 class vtkPlusCommandProcessor;
 class vtkPlusCommandResponse;
 class vtkRecursiveCriticalSection; 
-class vtkTransformRepository; 
+class vtkTransformRepository;
 
 struct ClientData
 {
@@ -140,7 +141,7 @@ protected:
   static PlusStatus SendLatestFramesToClients(vtkPlusOpenIGTLinkServer& self, double& elapsedTimeSinceLastPacketSentSec);
 
   /*! Process the command replies queue and send messages */
-  static PlusStatus RespondToCommandRequests(vtkPlusOpenIGTLinkServer& self);
+  static PlusStatus SendCommandResults(vtkPlusOpenIGTLinkServer& self);
 
   /*! Analyze an incoming command and queue for processing */
   static PlusStatus ProcessIncomingCommand(igtl::MessageHeader::Pointer headerMsg, int clientId, std::deque<uint32_t> &previousCommandIds, igtl::CommandMessage::Pointer commandMsg, vtkPlusOpenIGTLinkServer* self);

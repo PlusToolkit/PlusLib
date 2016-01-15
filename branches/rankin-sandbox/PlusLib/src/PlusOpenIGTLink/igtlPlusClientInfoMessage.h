@@ -33,6 +33,10 @@ public:
   igtlNewMacro( igtl::PlusClientInfoMessage );
 
 public:
+#ifdef OpenIGTLink_MessageRTTI
+  /// RTTI information for message type checking
+  static std::string GetIGTLMessageType() { return std::string("CLIENTINFO"); }
+#endif
 
   /*! Set Plus IGTL Client Info */ 
   void SetClientInfo( const PlusIgtlClientInfo& clientInfo ); 

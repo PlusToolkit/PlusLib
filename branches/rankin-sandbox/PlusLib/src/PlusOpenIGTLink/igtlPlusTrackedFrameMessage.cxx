@@ -35,8 +35,10 @@ namespace igtl
       return PLUS_FAIL; 
     }
 
+    // TODO : update this to send version 3
+
     // Version 
-    this->m_MessageHeader.m_Version = IGTL_HEADER_VERSION; 
+    this->m_MessageHeader.m_Version = IGTL_HEADER_VERSION_1; 
     // Frame size 
     this->m_MessageHeader.m_FrameSize[0] = this->m_TrackedFrame.GetFrameSize()[0];
     this->m_MessageHeader.m_FrameSize[1] = this->m_TrackedFrame.GetFrameSize()[1];

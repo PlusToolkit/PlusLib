@@ -10,10 +10,12 @@
 #include "vtkPlusServerExport.h"
 
 #include "igtlClientSocket.h"
+#include "igtlCommandMessage.h"
 #include "igtlMessageHeader.h"
 #include "igtlOSUtil.h"
 #include "vtkObject.h"
 #include "vtkPlusCommand.h"
+#include "vtkPlusIgtlMessageFactory.h"
 
 #include <deque>
 #include <string>
@@ -42,11 +44,15 @@ public:
     
   /*! If timeoutSec<0 then connection will be attempted multiple times until successfully connected or the timeout elapse */
   PlusStatus Connect(double timeoutSec=-1);
+
+  /*! Disconnect from the connected server */
   PlusStatus Disconnect();
   
+  /*! Send a command to the connected server */
   PlusStatus SendCommand( vtkPlusCommand* command );
+
   /*! Wait for a command reply */
-  PlusStatus ReceiveReply(std::string &replyStr, double timeoutSec=0);
+  PlusStatus ReceiveReply(bool& result, uint32_t& outOriginalCommandId, uint8_t outErrorString[IGTL_COMMAND_NAME_SIZE], std::string& outContentXML, double timeoutSec=0);
   
   void Lock();
   void Unlock();
@@ -74,7 +80,7 @@ protected:
   
 private:
 
-  /*! Thread for receiveing control data from clients */ 
+  /*! Thread for receiving control data from clients */ 
   static void* DataReceiverThread( vtkMultiThreader::ThreadInfo* data );
 
   vtkPlusOpenIGTLinkClient( const vtkPlusOpenIGTLinkClient& );
@@ -84,8 +90,11 @@ private:
 
   int  DataReceiverThreadId;
 
-  /*! Multithreader instance for controlling threads */ 
+  /*! vtkMultiThreader instance for controlling threads */ 
   vtkSmartPointer<vtkMultiThreader> Threader;
+
+  /*! igtl Factory for message sending */
+  vtkSmartPointer<vtkPlusIgtlMessageFactory> IgtlMessageFactory;
 
   /*! Mutex instance for safe data access */ 
   vtkSmartPointer<vtkRecursiveCriticalSection> Mutex;
@@ -93,7 +102,7 @@ private:
   
   igtl::ClientSocket::Pointer ClientSocket;
 
-  std::deque<std::string> Replies;
+  std::deque<igtl::RTSCommandMessage::Pointer> Replies;
 
   int         ServerPort;
   char*       ServerHost;

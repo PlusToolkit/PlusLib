@@ -33,16 +33,16 @@ vtkStandardNewMacro(vtkPlusIgtlMessageFactory);
 //----------------------------------------------------------------------------
 vtkPlusIgtlMessageFactory::vtkPlusIgtlMessageFactory()
 {
-  this->AddMessageType(vtkPlusIgtlMessageCommon::NONE_MESSAGE_TYPE, NULL); 
-  this->AddMessageType(vtkPlusIgtlMessageCommon::IMAGE_MESSAGE_TYPE, (PointerToMessageBaseNew)&igtl::ImageMessage::New);
-  this->AddMessageType(vtkPlusIgtlMessageCommon::TRANSFORM_MESSAGE_TYPE, (PointerToMessageBaseNew)&igtl::TransformMessage::New);
-  this->AddMessageType(vtkPlusIgtlMessageCommon::POSITION_MESSAGE_TYPE, (PointerToMessageBaseNew)&igtl::PositionMessage::New);
-  this->AddMessageType(vtkPlusIgtlMessageCommon::CLIENTINFO_MESSAGE_TYPE, (PointerToMessageBaseNew)&igtl::PlusClientInfoMessage::New);
-  this->AddMessageType(vtkPlusIgtlMessageCommon::TRACKEDFRAME_MESSAGE_TYPE, (PointerToMessageBaseNew)&igtl::PlusTrackedFrameMessage::New);
-  this->AddMessageType(vtkPlusIgtlMessageCommon::USMESSAGE_MESSAGE_TYPE, (PointerToMessageBaseNew)&igtl::PlusUsMessage::New);
-  this->AddMessageType(vtkPlusIgtlMessageCommon::STATUS_MESSAGE_TYPE, (PointerToMessageBaseNew)&igtl::StatusMessage::New);
-  this->AddMessageType(vtkPlusIgtlMessageCommon::STRING_MESSAGE_TYPE, (PointerToMessageBaseNew)&igtl::StringMessage::New);
-  this->AddMessageType(vtkPlusIgtlMessageCommon::COMMAND_MESSAGE_TYPE, (PointerToMessageBaseNew)&igtl::CommandMessage::New);
+  this->AddMessageType(igtl::MessageBase::GetIGTLMessageType(), NULL); 
+  this->AddMessageType(igtl::ImageMessage::GetIGTLMessageType(), (PointerToMessageBaseNew)&igtl::ImageMessage::New);
+  this->AddMessageType(igtl::TransformMessage::GetIGTLMessageType(), (PointerToMessageBaseNew)&igtl::TransformMessage::New);
+  this->AddMessageType(igtl::PositionMessage::GetIGTLMessageType(), (PointerToMessageBaseNew)&igtl::PositionMessage::New);
+  this->AddMessageType(igtl::PlusClientInfoMessage::GetIGTLMessageType(), (PointerToMessageBaseNew)&igtl::PlusClientInfoMessage::New);
+  this->AddMessageType(igtl::PlusTrackedFrameMessage::GetIGTLMessageType(), (PointerToMessageBaseNew)&igtl::PlusTrackedFrameMessage::New);
+  this->AddMessageType(igtl::PlusUsMessage::GetIGTLMessageType(), (PointerToMessageBaseNew)&igtl::PlusUsMessage::New);
+  this->AddMessageType(igtl::StatusMessage::GetIGTLMessageType(), (PointerToMessageBaseNew)&igtl::StatusMessage::New);
+  this->AddMessageType(igtl::StringMessage::GetIGTLMessageType(), (PointerToMessageBaseNew)&igtl::StringMessage::New);
+  this->AddMessageType(igtl::CommandMessage::GetIGTLMessageType(), (PointerToMessageBaseNew)&igtl::CommandMessage::New);
 }
 
 //----------------------------------------------------------------------------
@@ -113,8 +113,8 @@ PlusStatus vtkPlusIgtlMessageFactory::CreateInstance(const std::string& aIgtlMes
   std::string messageType; 
   if ( aIgtlMessageType.empty() ) 
   {
-    LOG_WARNING("IGT message type is invalid, set to default: " << vtkPlusIgtlMessageCommon::NONE_MESSAGE_TYPE); 
-    messageType = vtkPlusIgtlMessageCommon::NONE_MESSAGE_TYPE; 
+    LOG_WARNING("IGT message type is invalid, set to default: " << igtl::MessageBase::GetIGTLMessageType()); 
+    messageType = igtl::MessageBase::GetIGTLMessageType(); 
   }
   else
   {
@@ -161,7 +161,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
     }
 
     // Image message 
-    if ( messageType == vtkPlusIgtlMessageCommon::IMAGE_MESSAGE_TYPE )
+    if ( messageType == igtl::ImageMessage::GetIGTLMessageType() )
     {
       for ( std::vector<PlusIgtlClientInfo::ImageStream>::const_iterator imageStreamIterator = clientInfo.ImageStreams.begin(); imageStreamIterator != clientInfo.ImageStreams.end(); ++imageStreamIterator)
       {
@@ -173,7 +173,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
         igtl::Matrix4x4 igtlMatrix;
         if (vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, transformRepository, imageTransformName) != PLUS_SUCCESS)
         {
-          LOG_WARNING("Failed to create " << vtkPlusIgtlMessageCommon::IMAGE_MESSAGE_TYPE << " message: cannot get image transform");
+          LOG_WARNING("Failed to create " << igtl::ImageMessage::GetIGTLMessageType() << " message: cannot get image transform");
           numberOfErrors++; 
           continue;
         }
@@ -190,7 +190,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
         imageMessage->SetDeviceName(deviceName.c_str()); 
         if ( vtkPlusIgtlMessageCommon::PackImageMessage(imageMessage, trackedFrame, igtlMatrix) != PLUS_SUCCESS )
         {
-          LOG_ERROR("Failed to create " << vtkPlusIgtlMessageCommon::IMAGE_MESSAGE_TYPE << " message - unable to pack image message"); 
+          LOG_ERROR("Failed to create " << igtl::ImageMessage::GetIGTLMessageType() << " message - unable to pack image message"); 
           numberOfErrors++; 
           continue;
         }
@@ -198,7 +198,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
       }
     }
     // Transform message 
-    else if ( messageType == vtkPlusIgtlMessageCommon::TRANSFORM_MESSAGE_TYPE )
+    else if ( messageType == igtl::TransformMessage::GetIGTLMessageType() )
     {
       for ( std::vector<PlusTransformName>::const_iterator transformNameIterator = clientInfo.TransformNames.begin(); transformNameIterator != clientInfo.TransformNames.end(); ++transformNameIterator)
       {
@@ -226,7 +226,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
       }
     }
     // Position message
-    else if ( messageType == vtkPlusIgtlMessageCommon::POSITION_MESSAGE_TYPE )
+    else if ( messageType == igtl::PositionMessage::GetIGTLMessageType() )
     {
       for ( std::vector<PlusTransformName>::const_iterator transformNameIterator = clientInfo.TransformNames.begin(); transformNameIterator != clientInfo.TransformNames.end(); ++transformNameIterator)
       {
@@ -255,7 +255,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
       }
     }
     // TRACKEDFRAME message
-    else if ( messageType == vtkPlusIgtlMessageCommon::TRACKEDFRAME_MESSAGE_TYPE )
+    else if ( messageType == igtl::PlusTrackedFrameMessage::GetIGTLMessageType() )
     {
       igtl::PlusTrackedFrameMessage::Pointer trackedFrameMessage = dynamic_cast<igtl::PlusTrackedFrameMessage*>(igtlMessage.GetPointer()); 
       if ( vtkPlusIgtlMessageCommon::PackTrackedFrameMessage(trackedFrameMessage, trackedFrame) != PLUS_SUCCESS )
@@ -267,7 +267,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
       igtlMessages.push_back(igtlMessage); 
     }
     // USMESSAGE message
-    else if ( messageType == vtkPlusIgtlMessageCommon::USMESSAGE_MESSAGE_TYPE )
+    else if ( messageType == igtl::PlusUsMessage::GetIGTLMessageType() )
     {
       igtl::PlusUsMessage::Pointer usMessage = dynamic_cast<igtl::PlusUsMessage*>(igtlMessage.GetPointer()); 
       if ( vtkPlusIgtlMessageCommon::PackUsMessage(usMessage, trackedFrame) != PLUS_SUCCESS )
@@ -279,9 +279,8 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
       igtlMessages.push_back(igtlMessage); 
     }
     // String message 
-    else if ( messageType == vtkPlusIgtlMessageCommon::STRING_MESSAGE_TYPE )
+    else if ( messageType == igtl::StringMessage::GetIGTLMessageType() )
     {
-      // TODO: This is being used to send tracked frame metadata... is this still the right approach with v3?
       for ( std::vector< std::string >::const_iterator stringNameIterator = clientInfo.StringNames.begin(); stringNameIterator != clientInfo.StringNames.end(); ++stringNameIterator)
       {
         const char* stringName = stringNameIterator->c_str();
@@ -297,7 +296,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
         igtlMessages.push_back( dynamic_cast<igtl::MessageBase*>(stringMessage.GetPointer()) ); 
       }
     }
-    else if ( messageType == vtkPlusIgtlMessageCommon::COMMAND_MESSAGE_TYPE )
+    else if ( messageType == igtl::CommandMessage::GetIGTLMessageType() )
     {
       // Is there any use case for the server sending commands to the client?
       //igtl::CommandMessage::Pointer commandMessage = igtl::CommandMessage::New();
