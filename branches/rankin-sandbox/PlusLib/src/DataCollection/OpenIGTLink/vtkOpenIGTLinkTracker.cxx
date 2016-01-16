@@ -21,6 +21,7 @@ vtkStandardNewMacro(vtkOpenIGTLinkTracker);
 vtkOpenIGTLinkTracker::vtkOpenIGTLinkTracker()
 : TrackerInternalCoordinateSystemName(NULL)
 , UseLastTransformsOnReceiveTimeout(false)
+, IgtlMessageFactory(vtkSmartPointer<vtkPlusIgtlMessageFactory>::New())
 {
   SetTrackerInternalCoordinateSystemName("Reference");
 }
@@ -89,6 +90,7 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdateTData()
 {
   LOG_TRACE( "vtkOpenIGTLinkTracker::InternalUpdateTData" );
 
+  igtl::MessageBase::Pointer bodyMsg;
   igtl::MessageHeader::Pointer headerMsg;
 
   while (true)
@@ -122,7 +124,9 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdateTData()
 
     // We've received valid header data
     headerMsg->Unpack(this->IgtlMessageCrcCheckEnabled);
-    if ( headerMsg->GetType() == igtl::TransformMessage::GetIGTLMessageType() )
+
+    bodyMsg = IgtlMessageFactory->CreateReceiveMessage(headerMsg);
+    if ( typeid(bodyMsg) == typeid(igtl::TransformMessage) )
     {
       // received a TDATA message
       break;
@@ -133,7 +137,7 @@ PlusStatus vtkOpenIGTLinkTracker::InternalUpdateTData()
   }
   
   // TDATA message
-  igtl::TrackingDataMessage::Pointer tdataMsg = igtl::TrackingDataMessage::New();
+  igtl::TrackingDataMessage::Pointer tdataMsg = dynamic_cast<igtl::TrackingDataMessage*>(bodyMsg.GetPointer());
   tdataMsg->SetMessageHeader( headerMsg );
   tdataMsg->AllocatePack();
 
@@ -281,17 +285,18 @@ PlusStatus vtkOpenIGTLinkTracker::ProcessTransformMessageGeneral(bool &moreMessa
   vtkSmartPointer<vtkMatrix4x4> toolMatrix = vtkSmartPointer<vtkMatrix4x4>::New(); 
   std::string igtlTransformName; 
 
-  if ( headerMsg->GetType() == igtl::TransformMessage::GetIGTLMessageType() )
+  igtl::MessageBase::Pointer bodyMsg = IgtlMessageFactory->CreateReceiveMessage(headerMsg);
+  if ( typeid(*bodyMsg) == typeid(igtl::TransformMessage) )
   {
-    if ( vtkPlusIgtlMessageCommon::UnpackTransformMessage(headerMsg, this->ClientSocket.GetPointer(), toolMatrix, igtlTransformName, unfilteredTimestampUtc, this->IgtlMessageCrcCheckEnabled) != PLUS_SUCCESS )
+    if ( vtkPlusIgtlMessageCommon::UnpackTransformMessage(bodyMsg, this->ClientSocket.GetPointer(), toolMatrix, igtlTransformName, unfilteredTimestampUtc, this->IgtlMessageCrcCheckEnabled) != PLUS_SUCCESS )
     {
       LOG_ERROR("Couldn't receive transform message from server!"); 
       return PLUS_FAIL;
     }
   }
-  else if ( headerMsg->GetType() == igtl::PositionMessage::GetIGTLMessageType() )
+  else if ( typeid(*bodyMsg) == typeid(igtl::PositionMessage) )
   {
-    if ( vtkPlusIgtlMessageCommon::UnpackPositionMessage(headerMsg, this->ClientSocket.GetPointer(), toolMatrix, igtlTransformName, unfilteredTimestampUtc, this->IgtlMessageCrcCheckEnabled) != PLUS_SUCCESS )
+    if ( vtkPlusIgtlMessageCommon::UnpackPositionMessage(bodyMsg, this->ClientSocket.GetPointer(), toolMatrix, igtlTransformName, unfilteredTimestampUtc, this->IgtlMessageCrcCheckEnabled) != PLUS_SUCCESS )
     {
       LOG_ERROR("Couldn't receive position message from server!"); 
       return PLUS_FAIL;

@@ -33,11 +33,6 @@ namespace igtl
       igtlNewMacro(igtl::PlusUsMessage);
 
   public:
-#ifdef OpenIGTLink_MessageRTTI
-    /// RTTI information for message type checking
-    static std::string GetIGTLMessageType() { return std::string("USMESSAGE"); }
-#endif
-
     /*! Set Plus TrackedFrame */ 
     PlusStatus SetTrackedFrame( const TrackedFrame& trackedFrame); 
 

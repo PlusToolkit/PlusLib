@@ -42,10 +42,6 @@ public:
   igtlNewMacro( igtl::PlusTrackedFrameMessage );
 
 public:
-#ifdef OpenIGTLink_MessageRTTI
-  /// RTTI information for message type checking
-  static std::string GetIGTLMessageType() { return std::string("TRACKEDFRAME"); }
-#endif
 
   /*! Set Plus TrackedFrame */ 
   PlusStatus SetTrackedFrame( const TrackedFrame& trackedFrame); 

@@ -20,9 +20,9 @@ vtkStandardNewMacro(vtkOpenIGTLinkVideoSource);
 
 //----------------------------------------------------------------------------
 vtkOpenIGTLinkVideoSource::vtkOpenIGTLinkVideoSource()
+  : IgtlMessageFactory(vtkSmartPointer<vtkPlusIgtlMessageFactory>::New())
 {
   this->RequireImageOrientationInConfiguration = true;
-
 }
 
 //----------------------------------------------------------------------------
@@ -62,17 +62,19 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalUpdate()
   double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
 
   TrackedFrame trackedFrame;
-  if ( headerMsg->GetType() == igtl::ImageMessage::GetIGTLMessageType() )
+  igtl::MessageBase::Pointer bodyMsg = IgtlMessageFactory->CreateReceiveMessage(headerMsg);
+
+  if ( typeid(*bodyMsg) == typeid(igtl::ImageMessage) )
   {
-    if (vtkPlusIgtlMessageCommon::UnpackImageMessage( headerMsg, this->ClientSocket, trackedFrame, this->ImageMessageEmbeddedTransformName, this->IgtlMessageCrcCheckEnabled)!=PLUS_SUCCESS)
+    if (vtkPlusIgtlMessageCommon::UnpackImageMessage( bodyMsg, this->ClientSocket, trackedFrame, this->ImageMessageEmbeddedTransformName, this->IgtlMessageCrcCheckEnabled)!=PLUS_SUCCESS)
     {
       LOG_ERROR("Couldn't get image from OpenIGTLink server!"); 
       return PLUS_FAIL;
     }
   }
-  else if ( headerMsg->GetType() == igtl::PlusTrackedFrameMessage::GetIGTLMessageType() )
+  else if ( typeid(*bodyMsg) == typeid(igtl::PlusTrackedFrameMessage) )
   {
-    if ( vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( headerMsg, this->ClientSocket, trackedFrame, this->IgtlMessageCrcCheckEnabled ) != PLUS_SUCCESS )
+    if ( vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( bodyMsg, this->ClientSocket, trackedFrame, this->IgtlMessageCrcCheckEnabled ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Couldn't get tracked frame from OpenIGTLink server!"); 
       return PLUS_FAIL; 

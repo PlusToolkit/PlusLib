@@ -225,10 +225,16 @@ void* vtkPlusOpenIGTLinkClient::DataReceiverThread( vtkMultiThreader::ThreadInfo
       continue;
     }
 
-    if ( headerMsg->GetType() == igtl::RTSCommandMessage::GetIGTLMessageType() )
+    igtl::MessageBase::Pointer bodyMsg = self->IgtlMessageFactory->CreateReceiveMessage(headerMsg);
+    if( bodyMsg.IsNull() )
     {
+      LOG_ERROR("Unable to create message of type: " << headerMsg->GetMessageType());
+      continue;
+    }
 
-      igtl::RTSCommandMessage::Pointer rtsCommandMsg = igtl::RTSCommandMessage::New(); 
+    if ( typeid(*bodyMsg) == typeid(igtl::RTSCommandMessage) )
+    {
+      igtl::RTSCommandMessage::Pointer rtsCommandMsg = dynamic_cast<igtl::RTSCommandMessage*>(bodyMsg.GetPointer());
       rtsCommandMsg->SetMessageHeader(headerMsg); 
       rtsCommandMsg->AllocatePack(); 
       {
@@ -252,7 +258,7 @@ void* vtkPlusOpenIGTLinkClient::DataReceiverThread( vtkMultiThreader::ThreadInfo
     else
     {
       // if the device type is unknown, skip reading. 
-      LOG_TRACE("Received message: " << headerMsg->GetType() << " (not processed)");
+      LOG_TRACE("Received message: " << headerMsg->GetMessageType() << " (not processed)");
       {
         PlusLockGuard<vtkRecursiveCriticalSection> socketGuard(self->SocketMutex);
         self->ClientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);

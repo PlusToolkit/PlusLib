@@ -47,14 +47,21 @@ public:
 
   bool OnMessageReceived(igtl::MessageHeader::Pointer messageHeader)
   {
-    bool messageBodyReceived=false;
-    if ( messageHeader->GetType() == igtl::TransformMessage::GetIGTLMessageType() )
+    bool messageBodyReceived = false;
+    igtl::MessageBase::Pointer bodyMsg = this->IgtlMessageFactory->CreateReceiveMessage(messageHeader);
+    if( bodyMsg.IsNull() )
+    {
+      LOG_ERROR("Unable to create message of type: " << messageHeader->GetMessageType());
+      return false;
+    }
+
+    if ( typeid(*bodyMsg) != typeid(igtl::TransformMessage) )
     {
       // not a transform message
       return messageBodyReceived;
     }
 
-    igtl::TransformMessage::Pointer transformMsg = igtl::TransformMessage::New(); 
+    igtl::TransformMessage::Pointer transformMsg = dynamic_cast<igtl::TransformMessage*>(bodyMsg.GetPointer());
     transformMsg->SetMessageHeader(messageHeader); 
     transformMsg->AllocatePack();    
     SocketReceive(transformMsg->GetPackBodyPointer(), transformMsg->GetPackBodySize());

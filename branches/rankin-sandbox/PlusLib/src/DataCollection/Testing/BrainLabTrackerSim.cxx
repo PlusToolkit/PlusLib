@@ -22,12 +22,15 @@ See License.txt for details.
 #include <cstdlib>
 #include <cstring>
 
-#include "igtlOSUtil.h"
-#include "igtlMessageHeader.h"
+#include "PlusCommon.h"
+
 #include "igtlImageMessage.h"
+#include "igtlMessageFactory.h"
+#include "igtlMessageHeader.h"
+#include "igtlMultiThreader.h"
+#include "igtlOSUtil.h"
 #include "igtlServerSocket.h"
 #include "igtlTrackingDataMessage.h"
-#include "igtlMultiThreader.h"
 
 
 typedef struct 
@@ -173,6 +176,9 @@ int main(int argc, char* argv[])
     exit(0);
   }
 
+  /*! igtl Factory for message sending */
+  igtl::MessageFactory::Pointer igtlMessageFactory = igtl::MessageFactory::New();
+
   std::cout << "Started BrainLab tracker simulator server at port " << port << std::endl;
 
   igtl::ServerSocket::Pointer serverSocket;
@@ -232,15 +238,19 @@ int main(int argc, char* argv[])
         // Deserialize the header
         headerMsg->Unpack();
 
+        igtl::MessageBase::Pointer bodyMsg = igtlMessageFactory->CreateReceiveMessage(headerMsg);
+        if( bodyMsg.IsNull() )
+        {
+          LOG_ERROR("Unable to receive message of type: " << headerMsg->GetMessageType());
+          continue;
+        }
+
         // Check data type and receive data body
-        if ( headerMsg->GetType() == igtl::StartTrackingDataMessage::GetIGTLMessageType() )
+        if ( typeid(bodyMsg) == typeid(igtl::StartTrackingDataMessage) )
         {
           std::cerr << "Received a STT_TDATA message." << std::endl;
 
-          igtl::StartTrackingDataMessage::Pointer startTracking;
-          startTracking = igtl::StartTrackingDataMessage::New();
-          startTracking->SetMessageHeader(headerMsg);
-          startTracking->AllocatePack();
+          igtl::StartTrackingDataMessage::Pointer startTracking = dynamic_cast<igtl::StartTrackingDataMessage*>(bodyMsg.GetPointer());
 
           socket->Receive(startTracking->GetPackBodyPointer(), startTracking->GetPackBodySize());
           const int enableCrcCheck=1;
@@ -254,7 +264,7 @@ int main(int argc, char* argv[])
             threadID    = threader->SpawnThread((igtl::ThreadFunctionType) &ThreadFunction, &td);
           }
         }
-        else if ( headerMsg->GetType() == igtl::StopTrackingDataMessage::GetIGTLMessageType() )
+        else if ( typeid(bodyMsg) == typeid(igtl::StopTrackingDataMessage) )
         {
           socket->Skip(headerMsg->GetBodySizeToRead(), 0);
           std::cerr << "Received a STP_TDATA message." << std::endl;
@@ -271,7 +281,7 @@ int main(int argc, char* argv[])
         }
         else
         {
-          std::cerr << "Receiving : " << headerMsg->GetType() << std::endl;
+          std::cerr << "Receiving : " << headerMsg->GetMessageType() << std::endl;
           socket->Skip(headerMsg->GetBodySizeToRead(), 0);
         }
       }

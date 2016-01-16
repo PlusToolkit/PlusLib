@@ -459,9 +459,16 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
     }
 
     headerMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
-    if ( headerMsg->GetType() ==  igtl::PlusClientInfoMessage::GetIGTLMessageType() )
+    igtl::MessageBase::Pointer bodyMessage = self->IgtlMessageFactory->CreateReceiveMessage(headerMsg);
+    if( bodyMessage.IsNull() )
     {
-      igtl::PlusClientInfoMessage::Pointer clientInfoMsg = igtl::PlusClientInfoMessage::New(); 
+      LOG_ERROR("Unable to receive message from client: " << client->ClientId);
+      continue;
+    }
+
+    if ( typeid(*bodyMessage) == typeid(igtl::PlusClientInfoMessage) )
+    {
+      igtl::PlusClientInfoMessage::Pointer clientInfoMsg = dynamic_cast<igtl::PlusClientInfoMessage*>(bodyMessage.GetPointer());
       clientInfoMsg->SetMessageHeader(headerMsg); 
       clientInfoMsg->AllocatePack(); 
 
@@ -476,21 +483,19 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
         LOG_DEBUG("Client info message received from client " << clientId); 
       }
     }
-    else if ( headerMsg->GetType() == igtl::GetImageMessage::GetIGTLMessageType() )
+    else if ( typeid(*bodyMessage) == typeid(igtl::GetStatusMessage) )
     {
       // Just ping server, we can skip message and respond
       clientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
 
-      vtkDataCollector& dataCollector = *self->GetDataCollector();
-
-      igtl::StatusMessage::Pointer replyMsg = igtl::StatusMessage::New(); 
+      igtl::StatusMessage::Pointer replyMsg = dynamic_cast<igtl::StatusMessage*>(bodyMessage.GetPointer());
       replyMsg->SetCode(igtl::StatusMessage::STATUS_OK); 
       replyMsg->Pack(); 
       clientSocket->Send(replyMsg->GetPackPointer(), replyMsg->GetPackBodySize()); 
     }
-    else if ( headerMsg->GetType() == igtl::StringMessage::GetIGTLMessageType() )
+    else if ( typeid(*bodyMessage) == typeid(igtl::StringMessage) )
     {
-      igtl::StringMessage::Pointer stringMsg = igtl::StringMessage::New(); 
+      igtl::StringMessage::Pointer stringMsg = dynamic_cast<igtl::StringMessage*>(bodyMessage.GetPointer());
       stringMsg->SetMessageHeader(headerMsg); 
       stringMsg->AllocatePack(); 
       clientSocket->Receive(stringMsg->GetPackBodyPointer(), stringMsg->GetPackBodySize() ); 
@@ -549,9 +554,9 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
         LOG_ERROR("STRING message unpacking failed for client "<<clientId);
       }
     }
-    else if ( headerMsg->GetType() == igtl::CommandMessage::GetIGTLMessageType() )
+    else if ( typeid(*bodyMessage) == typeid(igtl::CommandMessage) )
     {
-      igtl::CommandMessage::Pointer commandMsg = igtl::CommandMessage::New(); 
+      igtl::CommandMessage::Pointer commandMsg = dynamic_cast<igtl::CommandMessage*>(bodyMessage.GetPointer());
       commandMsg->SetMessageHeader(headerMsg); 
       commandMsg->AllocatePack(); 
       clientSocket->Receive(commandMsg->GetPackBodyPointer(), commandMsg->GetPackBodySize() ); 
@@ -590,7 +595,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
     else
     {
       // if the device type is unknown, skip reading. 
-      LOG_WARNING("Unknown OpenIGTLink message is received from client " << clientId << ". Device type: " << headerMsg->GetType() 
+      LOG_WARNING("Unknown OpenIGTLink message is received from client " << clientId << ". Device type: " << headerMsg->GetMessageType() 
         << ". Device name: " << headerMsg->GetDeviceName() << ".");
       clientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
       continue; 
@@ -659,7 +664,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFram
           disconnectedClientIds.push_back(clientIterator->ClientId);
           igtl::TimeStamp::Pointer ts = igtl::TimeStamp::New(); 
           igtlMessage->GetTimeStamp(ts);
-          LOG_DEBUG( "Client disconnected - could not send " << igtlMessage->GetType() << " message to client (device name: " << igtlMessage->GetDeviceName()
+          LOG_DEBUG( "Client disconnected - could not send " << igtlMessage->GetMessageType() << " message to client (device name: " << igtlMessage->GetDeviceName()
             << "  Timestamp: " << std::fixed <<  ts->GetTimeStamp() << ").");
           break; 
         }
@@ -788,7 +793,7 @@ void vtkPlusOpenIGTLinkServer::KeepAlive()
         igtl::TimeStamp::Pointer ts = igtl::TimeStamp::New(); 
         replyMsg->GetTimeStamp(ts); 
 
-        LOG_DEBUG( "Client disconnected - could not send " << replyMsg->GetType() << " message to client (device name: " << replyMsg->GetDeviceName()
+        LOG_DEBUG( "Client disconnected - could not send " << replyMsg->GetMessageType() << " message to client (device name: " << replyMsg->GetDeviceName()
           << "  Timestamp: " << std::fixed <<  ts->GetTimeStamp() << ").");
       }
     } // clientIterator

@@ -170,7 +170,7 @@ protected:
   vtkGetMacro(MaxNumberOfIgtlMessagesToSend, int); 
 
   /*! 
-    Execute a remotely invocated string command
+    Execute a remotely invoked command
     \param resultString String containing the reply to the command (human readable)
     \return Status code (igtl::StatusMessage::STATUS_OK, STATUS_UNKNOWN_INSTRUCTION, ... see igtl_status.h)
   */ 

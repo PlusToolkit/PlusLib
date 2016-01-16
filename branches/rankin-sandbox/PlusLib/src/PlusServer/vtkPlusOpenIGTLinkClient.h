@@ -62,7 +62,7 @@ public:
     Note that this method is executed from the data receiver thread and not the
     main thread.
     If the message body is read then this method should return true.
-    If the meessage is not read then this method should return false (and the
+    If the message is not read then this method should return false (and the
     message body will be skipped).
   */
   virtual bool OnMessageReceived(igtl::MessageHeader::Pointer messageHeader)
@@ -71,15 +71,16 @@ public:
   }  
   
 protected:
-  
   vtkPlusOpenIGTLinkClient();
   virtual ~vtkPlusOpenIGTLinkClient();
 
   /*! Thread-safe method that allows child classes to read data from the socket */ 
   int SocketReceive(void* data, int length);
+
+  /*! igtl Factory for message sending */
+  vtkSmartPointer<vtkPlusIgtlMessageFactory> IgtlMessageFactory;
   
 private:
-
   /*! Thread for receiving control data from clients */ 
   static void* DataReceiverThread( vtkMultiThreader::ThreadInfo* data );
 
@@ -92,9 +93,6 @@ private:
 
   /*! vtkMultiThreader instance for controlling threads */ 
   vtkSmartPointer<vtkMultiThreader> Threader;
-
-  /*! igtl Factory for message sending */
-  vtkSmartPointer<vtkPlusIgtlMessageFactory> IgtlMessageFactory;
 
   /*! Mutex instance for safe data access */ 
   vtkSmartPointer<vtkRecursiveCriticalSection> Mutex;
