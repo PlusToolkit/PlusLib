@@ -613,12 +613,12 @@ PlusStatus vtkNrrdSequenceIO::ReadImageHeader()
   }
   else
   {
-    LOG_WARNING(SEQUENCE_FIELD_KINDS << " field not found in header. Defaulting to " << this->NumberOfDimensions-1 << " domains and 1 time.");
+    LOG_WARNING(SEQUENCE_FIELD_KINDS << " field not found in header. Defaulting to " << this->NumberOfDimensions-1 << " domains and 1 list.");
     for( int i = 0; i < this->NumberOfDimensions-1; ++i )
     {
       kinds.push_back(std::string("domain"));
     }
-    kinds.push_back(std::string("time"));
+    kinds.push_back(std::string("list"));
   }
 
   // sizes = 640 480 1 1, sizes = 640 480 1 567, sizes = 640 480 40 567
@@ -655,72 +655,75 @@ PlusStatus vtkNrrdSequenceIO::ReadImageHeader()
   }
 
   // Only check elementType if nDims are not 0 0 3
-  const char* elementType = this->TrackedFrameList->GetCustomString("type");
-  if( elementType == NULL )
+  if( this->Dimensions[0] != 0 && this->Dimensions[1] != 0 && this->Dimensions[2] != 0 )
   {
-    LOG_ERROR("Field type not found in file: " << this->FileName << ". Unable to read.");
-    return PLUS_FAIL;
-  }
-  else if ( ConvertNrrdTypeToVtkPixelType(elementType, this->PixelType) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Unknown component type: "<<elementType);
-    return PLUS_FAIL;
-  }
-
-  std::string imgOrientStr;
-  if( GetCustomString(SEQUENCE_FIELD_US_IMG_ORIENT.c_str()) != NULL )
-  {
-    imgOrientStr = std::string(GetCustomString(SEQUENCE_FIELD_US_IMG_ORIENT.c_str()));
-  }
-  else
-  {
-    imgOrientStr = PlusVideoFrame::GetStringFromUsImageOrientation(US_IMG_ORIENT_MF);
-    LOG_WARNING(SEQUENCE_FIELD_US_IMG_ORIENT << " field not found in header. Defaulting to " << imgOrientStr << ".");
-  }
-  this->ImageOrientationInFile = PlusVideoFrame::GetUsImageOrientationFromString( imgOrientStr.c_str() );
-
-  // TODO: handle detection of image orientation in file from space/space dimensions, space origin and space directions
-  // handle only orthogonal rotations
-
-  const char* imgTypeStr=GetCustomString(SEQUENCE_FIELD_US_IMG_TYPE.c_str());
-  if (imgTypeStr==NULL)
-  {
-    // if the image type is not defined then assume that it is B-mode image
-    this->ImageType=US_IMG_BRIGHTNESS;
-    LOG_WARNING(SEQUENCE_FIELD_US_IMG_TYPE << " field not found in header. Defaulting to US_IMG_BRIGHTNESS.");
-  }
-  else
-  {
-    this->ImageType = PlusVideoFrame::GetUsImageTypeFromString(imgTypeStr);
-  }
-
-  // If no specific image orientation is requested then determine it automatically from the image type
-  // B-mode: MF
-  // RF-mode: FM
-  if (this->ImageOrientationInMemory==US_IMG_ORIENT_XX)
-  {
-    switch (this->ImageType)
+    const char* elementType = this->TrackedFrameList->GetCustomString("type");
+    if( elementType == NULL )
     {
-    case US_IMG_BRIGHTNESS:
-    case US_IMG_RGB_COLOR:
-      this->SetImageOrientationInMemory(US_IMG_ORIENT_MF);
-      break;
-    case US_IMG_RF_I_LINE_Q_LINE:
-    case US_IMG_RF_IQ_LINE:
-    case US_IMG_RF_REAL:
-      this->SetImageOrientationInMemory(US_IMG_ORIENT_FM);
-      break;
-    default:
-      if (this->Dimensions[0]==0 && this->Dimensions[1]==0 && this->Dimensions[2]==0)
+      LOG_ERROR("Field type not found in file: " << this->FileName << ". Unable to read.");
+      return PLUS_FAIL;
+    }
+    else if ( ConvertNrrdTypeToVtkPixelType(elementType, this->PixelType) != PLUS_SUCCESS )
+    {
+      LOG_ERROR("Unknown component type: "<<elementType);
+      return PLUS_FAIL;
+    }
+
+    std::string imgOrientStr;
+    if( GetCustomString(SEQUENCE_FIELD_US_IMG_ORIENT.c_str()) != NULL )
+    {
+      imgOrientStr = std::string(GetCustomString(SEQUENCE_FIELD_US_IMG_ORIENT.c_str()));
+    }
+    else
+    {
+      imgOrientStr = PlusVideoFrame::GetStringFromUsImageOrientation(US_IMG_ORIENT_MF);
+      LOG_WARNING(SEQUENCE_FIELD_US_IMG_ORIENT << " field not found in header. Defaulting to " << imgOrientStr << ".");
+    }
+    this->ImageOrientationInFile = PlusVideoFrame::GetUsImageOrientationFromString( imgOrientStr.c_str() );
+
+    // TODO: handle detection of image orientation in file from space/space dimensions, space origin and space directions
+    // handle only orthogonal rotations
+
+    const char* imgTypeStr=GetCustomString(SEQUENCE_FIELD_US_IMG_TYPE.c_str());
+    if (imgTypeStr==NULL)
+    {
+      // if the image type is not defined then assume that it is B-mode image
+      this->ImageType=US_IMG_BRIGHTNESS;
+      LOG_WARNING(SEQUENCE_FIELD_US_IMG_TYPE << " field not found in header. Defaulting to US_IMG_BRIGHTNESS.");
+    }
+    else
+    {
+      this->ImageType = PlusVideoFrame::GetUsImageTypeFromString(imgTypeStr);
+    }
+
+    // If no specific image orientation is requested then determine it automatically from the image type
+    // B-mode: MF
+    // RF-mode: FM
+    if (this->ImageOrientationInMemory==US_IMG_ORIENT_XX)
+    {
+      switch (this->ImageType)
       {
-        LOG_DEBUG("Only tracking data is available in the file");
+      case US_IMG_BRIGHTNESS:
+      case US_IMG_RGB_COLOR:
+        this->SetImageOrientationInMemory(US_IMG_ORIENT_MF);
+        break;
+      case US_IMG_RF_I_LINE_Q_LINE:
+      case US_IMG_RF_IQ_LINE:
+      case US_IMG_RF_REAL:
+        this->SetImageOrientationInMemory(US_IMG_ORIENT_FM);
+        break;
+      default:
+        if (this->Dimensions[0]==0 && this->Dimensions[1]==0 && this->Dimensions[2]==0)
+        {
+          LOG_DEBUG("Only tracking data is available in the file");
+        }
+        else
+        {
+          LOG_WARNING("Cannot determine image orientation automatically, unknown image type " << 
+            (imgTypeStr ? imgTypeStr : "(undefined)") << ", use the same orientation in memory as in the file");
+        }
+        this->SetImageOrientationInMemory(this->ImageOrientationInFile);
       }
-      else
-      {
-        LOG_WARNING("Cannot determine image orientation automatically, unknown image type " << 
-          (imgTypeStr ? imgTypeStr : "(undefined)") << ", use the same orientation in memory as in the file");
-      }
-      this->SetImageOrientationInMemory(this->ImageOrientationInFile);
     }
   }
 
