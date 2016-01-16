@@ -79,13 +79,15 @@ OPTION(PLUSBUILD_BUILD_PLUSMODELCATALOG "Build Plus Model Catalog" OFF)
 option(PLUSBUILD_DOCUMENTATION "Build Plus documentation (Doxygen)." OFF)
 if(PLUSBUILD_DOCUMENTATION)
   # Try to detect GraphViz path (CMake's Doxygen package finder only tries some obsolete paths on Windows)
+  # Parentheses is not permitted due to CMP0053
+  SET(PROGRAMFILESX86 "ProgramFiles(x86)")
   find_program(DOXYGEN_DOT_EXECUTABLE
     NAMES dot
     PATHS
       "$ENV{ProgramFiles}/Graphviz2.38/bin"
-      "$ENV{ProgramFiles(x86)}/Graphviz2.38/bin"
+      "$ENV{${PROGRAMFILESX86}}/Graphviz2.38/bin"
       "$ENV{ProgramFiles}/Graphviz2.34/bin"
-      "$ENV{ProgramFiles(x86)}/Graphviz2.34/bin"
+      "$ENV{${PROGRAMFILESX86}}/Graphviz2.34/bin"
     DOC "Graphviz Dot tool for using Doxygen"
     NO_SYSTEM_ENVIRONMENT_PATH
   )
@@ -384,8 +386,8 @@ IF (PLUS_USE_PHILIPS_3D_ULTRASOUND)
     IF( NOT PHILIPS_FOUND )
       MESSAGE( FATAL_ERROR "In order to use the Philips ie33 ultrasound system, the requisite DLLs must be made available. Please verify configuration or turn off PLUS_USE_PHILIPS_3D_ULTRASOUND.")
     ENDIF(NOT PHILIPS_FOUND)
-	message( "To use the Philips devices you must:" )
-	message( "1. Register '${CMAKE_CURRENT_BINARY_DIR}/bin/Debug|Release/Stream3d.dll'. If you are using a 32-bit OS, this can be done by running 'regsvr32 Stream3d.dll' in command line. If you are using a 64-bit OS, this can be done by the following procedure. Open the command line in administrator mode (Right click on cmd, choose 'Run as administrator'). Go to directory 'C:/Windows/SysWow64'. Run the regsvr32 command in SysWow64." )
+      MESSAGE( STATUS "To use the Philips devices you must:" )
+      MESSAGE( STATUS "1. Register '${CMAKE_CURRENT_BINARY_DIR}/bin/Debug|Release/Stream3d.dll'. If you are using a 32-bit OS, this can be done by running 'regsvr32 Stream3d.dll' in command line. If you are using a 64-bit OS, this can be done by the following procedure. Open the command line in administrator mode (Right click on cmd, choose 'Run as administrator'). Go to directory 'C:/Windows/SysWow64'. Run the regsvr32 command in SysWow64." )
   ENDIF(PLUS_USE_ULTRASONIX_VIDEO)
 ENDIF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
 
