@@ -24,7 +24,12 @@ IF (PLUSBUILD_OFFLINE_BUILD)
 ELSE (PLUSBUILD_OFFLINE_BUILD)
 
   # Don't change the default download command
-  SET(PLUSBUILD_EXTERNAL_PROJECT_CUSTOM_COMMANDS)
+  # This argument will be used for ExternalProject_Add macro, which does its
+  # very strict parsing, which throws a warning if an empty argument is passed.
+  # Therefore, we need to pass a harmless parameter to prevent warnings
+  # (TIMEOUT parameter is chosen, as no download operation should be performed
+  # for offline builds, therefore the timeout parameter is not used anyway).
+  SET(PLUSBUILD_EXTERNAL_PROJECT_CUSTOM_COMMANDS TIMEOUT 1000)
 
   #-----------------------------------------------------------------------------
   # SVN - Let's check if a valid version of SVN is available
