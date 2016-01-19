@@ -17,6 +17,7 @@ IF (PLUS_USE_OpenIGTLink)
   SET (TRACKINGDATASERVER_LIBS
     ${VTK_LIBRARIES}
     vtkPlusCommon
+    vtkPlusServer
     OpenIGTLink
     )
   ADD_EXECUTABLE(TrackingDataServer TrackingDataServer.cxx)
