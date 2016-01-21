@@ -6,12 +6,12 @@
 - Any compatible tracker device through <a href="http://openigtlink.org/"> OpenIGTLink interface</a>.
 - Any tracker device that are supported by the  <a href="http://public.kitware.com/IGSTKWIKI/index.php/Main_Page">IGSTK toolkit</a>, using IGSTK's OpenIGTLinkTrackingBroadcaster application.
 - Receiving values of transforms from 3D Slicer application
-  - Use these settings: \b UseReceivedTimestamps \c ="false" and \b UseLastTransformsOnReceiveTimeout \c ="true" (as Slicer only sends transforms when they change)
+  - Use these settings: \b UseReceivedTimestamps \c ="FALSE" and \b UseLastTransformsOnReceiveTimeout \c ="TRUE" (as Slicer only sends transforms when they change)
 - BrainLab surgical navigation system
   - BrainLab OpenIGTLink interface may be purchased as a license option with VectorVision Cranial 2.1.
   - Contact BrainLab for information about licensing and for supported OpenIGTLink options.
   - For tracking data, the BrainLab OpenIGTLink interface uses the <a href="http://www.na-mic.org/Wiki/index.php/OpenIGTLink/ProtocolV2/Type/TrackingData">TDATA</a> message type, which is supported by PLUS 2.0 as of <a href="https://www.assembla.com/code/plus/subversion/changesets/2337">r2337</a>
-  - In the configuration section for OpenIGTLinkTracker Device, set \b MessageType \c ="TDATA" and \b ReconnectOnReceiveTimeout \c ="false" (to avoid reconnects, as BrainLab asks for manual confirmation on each connect request)
+  - In the configuration section for OpenIGTLinkTracker Device, set \b MessageType \c ="TDATA" and \b ReconnectOnReceiveTimeout \c ="FALSE" (to avoid reconnects, as BrainLab asks for manual confirmation on each connect request)
   - See ConfigFiles/BWH directory for example configurations using BrainLab tracking.
 
 \section OpenIGTLinkConfigSettings Device configuration settings
@@ -22,14 +22,14 @@
 - \xmlAtt \b MessageType The device will request this message type from the remote server ( \c TRANSFORM, \c POSITION, or \c TDATA).
   If the MessageType is not specified then the default message type will be used (specified in the remote server) \OptionalAtt{TRANSFORM}
 - \xmlAtt \b TrackerInternalCoordinateSystemName Used for TDATA messages to specify what coordinate systems should be the common "To" coordinate system. \OptionalAtt{Reference}
-- \xmlAtt \b UseLastTransformsOnReceiveTimeout Use the latest known value for a transform if new value for a transform is not received. \OptionalAtt{false}
-  - \c true If there is no new value received for a transform then the last known value is used. It is useful for software that only sends a transform when it is changed, such when sending transforms from 3D Slicer.
-  - \c false If there is no new value received for a transform then it is treated as an error.
-- \xmlAtt \b IgtlMessageCrcCheckEnabled Enable CRC check on the received OpenIGTLink messages ( \c true or \c false). \OptionalAtt{false}
-- \xmlAtt \b UseReceivedTimestamps Use the timestamps that are stored in the OpenIGTLink messages. \OptionalAtt{true}
-  - \c true Timestamp in the OpenIGTLink message header is used as acquisition time for the item. If the remote server is on a different computer then the clocks of the remote server computer and the computer that runs PlusServer must be accurately synchronized (e.g., using NTP). 
-  - \c false Time of receiving the message is used as timestamp. Variable network delays may cause jitter in the timestamps.
-- \xmlAtt \b ReconnectOnReceiveTimeout If this option is enabled and the server becomes unresponsive then the device tries to reconnect repeatedly ( \c true or \c false). It is usually desirable, because it makes the connection more robust, however in cases where server reconnection requires user approval (e.g., in BrainLab systems) it may be more convenient to turn this feature off. \OptionalAtt{true}
+- \xmlAtt \b UseLastTransformsOnReceiveTimeout Use the latest known value for a transform if new value for a transform is not received. \OptionalAtt{FALSE}
+  - \c TRUE If there is no new value received for a transform then the last known value is used. It is useful for software that only sends a transform when it is changed, such when sending transforms from 3D Slicer.
+  - \c FALSE If there is no new value received for a transform then it is treated as an error.
+- \xmlAtt \b IgtlMessageCrcCheckEnabled Enable CRC check on the received OpenIGTLink messages ( \c TRUE or \c FALSE). \OptionalAtt{FALSE}
+- \xmlAtt \b UseReceivedTimestamps Use the timestamps that are stored in the OpenIGTLink messages. \OptionalAtt{TRUE}
+  - \c TRUE Timestamp in the OpenIGTLink message header is used as acquisition time for the item. If the remote server is on a different computer then the clocks of the remote server computer and the computer that runs PlusServer must be accurately synchronized (e.g., using NTP). 
+  - \c FALSE Time of receiving the message is used as timestamp. Variable network delays may cause jitter in the timestamps.
+- \xmlAtt \b ReconnectOnReceiveTimeout If this option is enabled and the server becomes unresponsive then the device tries to reconnect repeatedly ( \c TRUE or \c FALSE). It is usually desirable, because it makes the connection more robust, however in cases where server reconnection requires user approval (e.g., in BrainLab systems) it may be more convenient to turn this feature off. \OptionalAtt{TRUE}
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" The device checks for new available messages on the remote server at this rate. In case of TRANSFORM or POSITIOn messages, the acquisition rate should be equal or higher than the rate the server sends the data, otherwise the data is queued in the socket and arrives with a long delay.\OptionalAtt{30}
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 

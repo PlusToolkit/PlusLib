@@ -24,8 +24,8 @@ For hardware-free testing and simulation purposes, any previous recording (saved
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
 
 - \xmlAtt \b SequenceMetafile Name of input sequence metafile with path to tracking buffer data. \RequiredAtt
-- \xmlAtt \b RepeatEnabled  Flag to enable saved dataset looping. If it's enabled, the video source will continuously play saved data (starts playing from the beginning when the end is reached). \OptionalAtt{false}
-- \xmlAtt \b UseOriginalTimestamps  Flag to read the timestamps from the file and use them in the output (instead of the current time). \OptionalAtt{false}
+- \xmlAtt \b RepeatEnabled  Flag to enable saved dataset looping. If it's enabled, the video source will continuously play saved data (starts playing from the beginning when the end is reached). \OptionalAtt{FALSE}
+- \xmlAtt \b UseOriginalTimestamps  Flag to read the timestamps from the file and use them in the output (instead of the current time). \OptionalAtt{FALSE}
 - \xmlAtt \b UseData Three types of data that can be used: \OptionalAtt{IMAGE}
   - \c "IMAGE" The device provides a video stream
   - \c "TRANSFORM" The device provides a tracker stream
