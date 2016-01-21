@@ -146,7 +146,7 @@ double vtkUsImagingParameters::GetDepthMm()
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::SetGainPercent(double aGainPercent)
 {
-  double currentValue;
+  double currentValue = 0;
   this->GetGainPercent(currentValue);
   if( this->ParameterSet[KEY_GAIN] == true && currentValue == aGainPercent )
   {
@@ -223,11 +223,9 @@ PlusStatus vtkUsImagingParameters::GetTimeGainCompensation(std::vector<double>& 
 //----------------------------------------------------------------------------
 std::vector<double> vtkUsImagingParameters::GetTimeGainCompensation()
 {
-  double aValue;
   std::stringstream ss;
   ss.str(this->ParameterValues[KEY_GAIN]);
-  std::vector<double> numbers((std::istream_iterator<double>(ss)), 
-    std::istream_iterator<double>());
+  std::vector<double> numbers((std::istream_iterator<double>(ss)), std::istream_iterator<double>());
   return numbers;
 }
 

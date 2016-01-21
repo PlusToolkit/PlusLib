@@ -608,7 +608,27 @@ PlusStatus vtkSavedDataSource::ReadConfiguration(vtkXMLDataElement* rootConfigEl
   LOG_TRACE("vtkSavedDataSource::ReadConfiguration"); 
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
-  XML_READ_STRING_ATTRIBUTE_REQUIRED(SequenceFile, deviceConfig);
+  // SequenceMetafile attribute is deprecated and kept for backward compatibility only.
+  // SequenceFile attribute should be used instead.
+  if (deviceConfig->GetAttribute("SequenceMetafile"))
+  {
+    if (deviceConfig->GetAttribute("SequenceFile"))
+    {
+      LOG_WARNING("SavedDataSource SequenceMetafile and SequenceFile attributes are specified. Please remove the deprecated SequenceMetaFile attribute.");
+      XML_READ_STRING_ATTRIBUTE_REQUIRED(SequenceFile, deviceConfig);
+    }
+    else
+    {
+      LOG_WARNING("Deprecated SequenceMetafile attribute is defined for SavedDataSource device. Please rename the SequenceMetafile attribute to SequenceFile.");
+      SetSequenceFile(deviceConfig->GetAttribute("SequenceMetafile"));
+    }
+  }
+  else
+  {
+    // Nominal case. The other branch should be removed if support for SequenceMetafile attribute is completely removed.
+    XML_READ_STRING_ATTRIBUTE_REQUIRED(SequenceFile, deviceConfig);
+  }
+
   std::string foundAbsoluteImagePath;
   if (vtkPlusConfig::GetInstance()->FindImagePath(this->SequenceFile, foundAbsoluteImagePath) == PLUS_SUCCESS)
   {
