@@ -105,11 +105,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( igtl::MessageHea
     return PLUS_FAIL; 
   }
 
-  igtl::PlusTrackedFrameMessage::Pointer trackedFrameMsg = dynamic_cast<igtl::PlusTrackedFrameMessage*>(headerMsg.GetPointer());
-  if( trackedFrameMsg.IsNull() )
-  {
-    trackedFrameMsg = igtl::PlusTrackedFrameMessage::New();
-  }
+  igtl::PlusTrackedFrameMessage::Pointer trackedFrameMsg = igtl::PlusTrackedFrameMessage::New();
   trackedFrameMsg->SetMessageHeader(headerMsg);
   trackedFrameMsg->AllocatePack();
 
@@ -317,11 +313,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage( igtl::MessageHeader::Po
   }
 
   // Message body handler for IMAGE
-  igtl::ImageMessage::Pointer imgMsg = dynamic_cast<igtl::ImageMessage*>(headerMsg.GetPointer());
-  if( imgMsg.IsNull() )
-  {
-    imgMsg = igtl::ImageMessage::New();
-  }
+  igtl::ImageMessage::Pointer imgMsg = igtl::ImageMessage::New();
   imgMsg->SetMessageHeader(headerMsg);
   imgMsg->AllocatePack();
 
@@ -590,11 +582,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTransformMessage(igtl::MessageHeader:
     return PLUS_FAIL; 
   }
 
-  igtl::TransformMessage::Pointer transMsg = dynamic_cast<igtl::TransformMessage*>(headerMsg.GetPointer());
-  if( transMsg.IsNull() )
-  {
-    transMsg = igtl::TransformMessage::New();
-  }
+  igtl::TransformMessage::Pointer transMsg = igtl::TransformMessage::New();
   transMsg->SetMessageHeader(headerMsg);
   transMsg->AllocatePack();
 
@@ -680,11 +668,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackPositionMessage(igtl::MessageHeader::
     return PLUS_FAIL; 
   }
 
-  igtl::PositionMessage::Pointer posMsg = dynamic_cast<igtl::PositionMessage*>(headerMsg.GetPointer());
-  if( posMsg.IsNull() )
-  {
-    posMsg = igtl::PositionMessage::New();
-  }
+  igtl::PositionMessage::Pointer posMsg = igtl::PositionMessage::New();
   posMsg->SetMessageHeader(headerMsg);
   posMsg->AllocatePack();
 

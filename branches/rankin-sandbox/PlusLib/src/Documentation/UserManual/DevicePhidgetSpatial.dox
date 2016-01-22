@@ -33,7 +33,7 @@ If magnetic fields are nearby the sensor have non-negligible effect then compass
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
 
-- \xmlAtt \b ZeroGyroscopeOnConnect A flag for zeroing the gyroscope when connecting to the device. If enabled then the sensor should not be moved for 2 seconds while connecting to the device if the \c OrientationSensor or \c Accelerometer tool is used. The device can also be zero'd at any time if the client application (for example fCal) supports it \OptionalAtt{false}
+- \xmlAtt \b ZeroGyroscopeOnConnect A flag for zeroing the gyroscope when connecting to the device. If enabled then the sensor should not be moved for 2 seconds while connecting to the device if the \c OrientationSensor or \c Accelerometer tool is used. The device can also be zero'd at any time if the client application (for example fCal) supports it \OptionalAtt{FALSE}
 - \xmlAtt \b TiltSensorWestAxisIndex In tilt sensor mode we don't use the magnetometer, so we have to provide a direction reference. The orientation is specified by specifying an axis that will always point to the "West" direction. \OptionalAtt{1}
 Recommended values:
   - If sensor axis 0 points down (the sensor plane is about vertical) => \b TiltSensorDownAxisIndex \c ="2".

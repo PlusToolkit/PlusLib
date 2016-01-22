@@ -12,12 +12,12 @@
 
 #include "vtkObject.h" 
 #include "igtlMessageBase.h"
-#include "igtlMessageFactory.h"
 #include "PlusIgtlClientInfo.h" 
 
 class vtkXMLDataElement; 
 class TrackedFrame; 
-class vtkTransformRepository;
+class vtkTransformRepository; 
+
 
 /*!
   \class vtkPlusIgtlMessageFactory 
@@ -38,24 +38,24 @@ public:
   typedef igtl::MessageBase::Pointer (*PointerToMessageBaseNew)(); 
 
   /*! 
+  Add message type name and pointer to IGTL message new function 
+  Usage: AddMessageType( "IMAGE", (PointerToMessageBaseNew)&igtl::ImageMessage::New );  
+  \param messageTypeName The name of the message type
+  \param messageTypeNewPointer Function pointer to the message type new function (e.g. (PointerToMessageBaseNew)&igtl::ImageMessage::New )
+  */ 
+  virtual void AddMessageType(std::string messageTypeName, vtkPlusIgtlMessageFactory::PointerToMessageBaseNew messageTypeNewPointer); 
+
+  /*! 
   Get pointer to message type new function, or NULL if the message type not registered 
   Usage: igtl::MessageBase::Pointer message = GetMessageTypeNewPointer("IMAGE")(); 
   */ 
-  virtual vtkPlusIgtlMessageFactory::PointerToMessageBaseNew GetMessageTypeNewPointer(const std::string& messageTypeName); 
+  virtual vtkPlusIgtlMessageFactory::PointerToMessageBaseNew GetMessageTypeNewPointer(std::string messageTypeName); 
 
   /*! Print all supported OpenIGTLink message types */
   virtual void PrintAvailableMessageTypes(ostream& os, vtkIndent indent);
 
-  /// Constructs a message from the given populated header.
-  /// Throws invalid_argument if headerMsg is NULL.
-  /// Throws invalid_argument if this->IsValid(headerMsg) returns false.
-  /// Creates message, sets header onto message and calls AllocatePack() on the message.
-  igtl::MessageBase::Pointer CreateReceiveMessage(igtl::MessageHeader::Pointer headerMsg) const;
-
-  /// Constructs an empty message from the given message type.
-  /// Throws invalid_argument if messageType is empty.
-  /// Creates message, sets header onto message and calls AllocatePack() on the message.
-  igtl::MessageBase::Pointer CreateSendMessage(const std::string& messageType) const;
+  /*! Create a new igtl::MessageBase instance from message type, delete previous igtl::MessageBase if's not NULL */ 
+  PlusStatus CreateInstance(const char* aIgtlMessageType, igtl::MessageBase::Pointer& aMessageBase);
 
   /*! 
   Generate and pack IGTL messages from tracked frame
@@ -71,8 +71,9 @@ public:
 protected:
   vtkPlusIgtlMessageFactory();
   virtual ~vtkPlusIgtlMessageFactory();
-
-  igtl::MessageFactory::Pointer IgtlFactory;
+  
+  /*! Map igt message types and the New() static methods of igtl::MessageBase classes */ 
+  std::map<std::string,PointerToMessageBaseNew> IgtlMessageTypes; 
 
 private:
   vtkPlusIgtlMessageFactory(const vtkPlusIgtlMessageFactory&);

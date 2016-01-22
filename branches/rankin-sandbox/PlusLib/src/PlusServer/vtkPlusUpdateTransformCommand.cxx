@@ -118,7 +118,7 @@ PlusStatus vtkPlusUpdateTransformCommand::Execute()
 
   if( this->GetTransformRepository() == NULL )
   {
-    this->QueueCommandResponse(baseMessageString + " failed: invalid transform repository",PLUS_FAIL);
+    this->QueueStringResponse(baseMessageString + " failed: invalid transform repository",PLUS_FAIL);
     return PLUS_FAIL;
   }
 
@@ -155,7 +155,7 @@ PlusStatus vtkPlusUpdateTransformCommand::Execute()
     this->GetTransformRepository()->SetTransformError(aName, this->GetTransformError());
   }
 
-  this->QueueCommandResponse(baseMessageString + " completed successfully" + warningString,PLUS_SUCCESS);
+  this->QueueStringResponse(baseMessageString + " completed successfully" + warningString,PLUS_SUCCESS);
   return PLUS_SUCCESS;
 }
 

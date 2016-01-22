@@ -344,12 +344,6 @@ public:
     return (in.m_From == m_From && in.m_To == m_To ); 
   }
 
-  friend std::ostream& operator<< (std::ostream& os, const PlusTransformName& transformName)
-  {
-    os << transformName.GetTransformName();
-    return os;
-  }
-
 private: 
 
   /*! Check if the input string is capitalized, if not capitalize it */ 

@@ -205,8 +205,8 @@ void vtkOpenIGTLinkDevice::OnReceiveTimeout()
 //----------------------------------------------------------------------------
 void vtkOpenIGTLinkDevice::ReceiveMessageHeaderWithErrorHandling(igtl::MessageHeader::Pointer &headerMsg)
 {
-  PlusStatus socketStatus = ReceiveMessageHeader(headerMsg);
-  if (socketStatus == PLUS_FAIL || !this->ClientSocket->GetConnected())
+  PlusStatus socketStatus=ReceiveMessageHeader(headerMsg);
+  if (socketStatus==PLUS_FAIL || !this->ClientSocket->GetConnected())
   {
     // There is a socket error
     if (this->GetReconnectOnReceiveTimeout())
@@ -246,7 +246,7 @@ PlusStatus vtkOpenIGTLinkDevice::ReceiveMessageHeader(igtl::MessageHeader::Point
   }
    
   // No data has been received
-  headerMsg = NULL; // this will indicate the caller that no data has been read
+  headerMsg=NULL; // this will indicate the caller that no data has been read
 
   bool socketError = numOfBytesReceived<0; /* -1 == SOCKET_ERROR */
 #ifdef _WIN32

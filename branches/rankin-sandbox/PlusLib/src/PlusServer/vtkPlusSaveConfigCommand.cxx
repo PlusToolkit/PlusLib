@@ -97,17 +97,17 @@ PlusStatus vtkPlusSaveConfigCommand::Execute()
 
   if( this->GetDataCollector() == NULL)
   {
-    this->QueueCommandResponse(baseMessageString + " can't access data collector",PLUS_FAIL);
+    this->QueueStringResponse(baseMessageString + " can't access data collector",PLUS_FAIL);
     return PLUS_FAIL;
   }
   if( this->GetDataCollector()->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS
     || this->GetTransformRepository()->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS )
   {
-    this->QueueCommandResponse(baseMessageString + " unable to write configuration",PLUS_FAIL);
+    this->QueueStringResponse(baseMessageString + " unable to write configuration",PLUS_FAIL);
     return PLUS_FAIL;
   }
 
   PlusCommon::PrintXML(this->GetFilename(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
-  this->QueueCommandResponse(baseMessageString + " completed successfully",PLUS_SUCCESS);
+  this->QueueStringResponse(baseMessageString + " completed successfully",PLUS_SUCCESS);
   return PLUS_SUCCESS;
 }

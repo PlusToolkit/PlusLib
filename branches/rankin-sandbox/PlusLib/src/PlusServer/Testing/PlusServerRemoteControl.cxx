@@ -47,21 +47,14 @@ public:
 
   bool OnMessageReceived(igtl::MessageHeader::Pointer messageHeader)
   {
-    bool messageBodyReceived = false;
-    igtl::MessageBase::Pointer bodyMsg = this->IgtlMessageFactory->CreateReceiveMessage(messageHeader);
-    if( bodyMsg.IsNull() )
-    {
-      LOG_ERROR("Unable to create message of type: " << messageHeader->GetMessageType());
-      return false;
-    }
-
-    if ( typeid(*bodyMsg) != typeid(igtl::TransformMessage) )
+    bool messageBodyReceived=false;
+    if (strcmp(messageHeader->GetDeviceType(), "TRANSFORM") != 0)
     {
       // not a transform message
       return messageBodyReceived;
     }
 
-    igtl::TransformMessage::Pointer transformMsg = dynamic_cast<igtl::TransformMessage*>(bodyMsg.GetPointer());
+    igtl::TransformMessage::Pointer transformMsg = igtl::TransformMessage::New(); 
     transformMsg->SetMessageHeader(messageHeader); 
     transformMsg->AllocatePack();    
     SocketReceive(transformMsg->GetPackBodyPointer(), transformMsg->GetPackBodySize());
@@ -378,35 +371,40 @@ PlusStatus ExecuteSendText(vtkPlusOpenIGTLinkClient* client, const std::string &
 //----------------------------------------------------------------------------
 PlusStatus PrintReply(vtkPlusOpenIGTLinkClient* client)
 {
-  uint32_t commandId;
-  uint8_t errorString[IGTL_COMMAND_NAME_SIZE];
-  bool result;
-  std::string xmlContent;
-
+  std::string reply;
   const double replyTimeoutSec=30;
-  if (client->ReceiveReply(result, commandId, errorString, xmlContent, replyTimeoutSec) != PLUS_SUCCESS)
+  if (client->ReceiveReply(reply, replyTimeoutSec)!=PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to receive reply to the command");
     return PLUS_FAIL;
   }
-
-  vtkSmartPointer<vtkXMLDataElement> replyElement = vtkSmartPointer<vtkXMLDataElement>::Take( vtkXMLUtilities::ReadElementFromString(xmlContent.c_str()) );
+  LOG_INFO("Reply: "<<reply);
+  vtkSmartPointer<vtkXMLDataElement> replyElement = vtkSmartPointer<vtkXMLDataElement>::Take( vtkXMLUtilities::ReadElementFromString(reply.c_str()) );
   if (replyElement == NULL)
   {	
     LOG_ERROR("Unable to parse reply"); 
     return PLUS_FAIL;
   }
-
-  PlusStatus status = result ? PLUS_SUCCESS : PLUS_FAIL;
-
-  LOG_INFO("Command ID: " << commandId);
-  LOG_INFO("Status: " << (status == PLUS_SUCCESS ? "SUCCESS" : "FAIL") );
-  if( !result )
+  if (replyElement->GetAttribute("Status")==NULL)
   {
-    LOG_INFO("Error: " << errorString);
+    LOG_ERROR("Status: <missing>");
+    return PLUS_FAIL;
   }
-  LOG_INFO("Content: " << xmlContent);
-  
+  PlusStatus status=PLUS_FAIL;
+  if (STRCASECMP(replyElement->GetAttribute("Status"),"SUCCESS")==0)
+  {
+    status=PLUS_SUCCESS;
+  }
+  else if (STRCASECMP(replyElement->GetAttribute("Status"),"FAIL")==0)
+  {
+    status=PLUS_FAIL;
+  }
+  else
+  {
+    LOG_ERROR("Invalid status: "<<replyElement->GetAttribute("Status"));
+  }
+  LOG_INFO("Status: "<<(status==PLUS_SUCCESS?"SUCCESS":"FAIL"));
+  LOG_INFO("Message: "<<(replyElement->GetAttribute("Message")?replyElement->GetAttribute("Message"):"<none>"));
   return status;
 }
 

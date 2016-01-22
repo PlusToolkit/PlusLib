@@ -91,7 +91,7 @@ PlusStatus vtkPlusGetTransformCommand::Execute()
 
   if( this->GetTransformRepository() == NULL )
   {
-    this->QueueCommandResponse(baseMessageString + " failed: invalid transform repository",PLUS_FAIL);
+    this->QueueStringResponse(baseMessageString + " failed: invalid transform repository",PLUS_FAIL);
     return PLUS_FAIL;
   }
 
@@ -100,7 +100,7 @@ PlusStatus vtkPlusGetTransformCommand::Execute()
 
   if( this->GetTransformRepository()->IsExistingTransform(aName) != PLUS_SUCCESS)
   {
-    this->QueueCommandResponse(baseMessageString + " failed. Transform not found.", PLUS_FAIL);
+    this->QueueStringResponse(baseMessageString + " failed. Transform not found.", PLUS_FAIL);
     return PLUS_SUCCESS;
   }
 
@@ -127,6 +127,6 @@ PlusStatus vtkPlusGetTransformCommand::Execute()
     }
   }
   ss << "\" persistent=\"" << (persistent ? "true" : "false") << "\" date=\"" << date << "\" error=\"" << error << "\"/>";
-  this->QueueCommandResponse(baseMessageString + ss.str(),PLUS_SUCCESS);
+  this->QueueStringResponse(baseMessageString + ss.str(),PLUS_SUCCESS);
   return PLUS_SUCCESS;
 }

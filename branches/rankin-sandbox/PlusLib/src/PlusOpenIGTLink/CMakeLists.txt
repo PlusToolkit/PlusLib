@@ -1,6 +1,7 @@
 # --------------------------------------------------------------------------
 # Sources
 SET (PlusOpenIGTLink_SRCS 
+  igtlStringMessage1.cxx
   igtlPlusClientInfoMessage.cxx
   igtlPlusUsMessage.cxx 
   igtlPlusTrackedFrameMessage.cxx 
@@ -12,6 +13,7 @@ SET (PlusOpenIGTLink_SRCS
   
 IF (WIN32)
   SET (PlusOpenIGTLink_HDRS 
+    igtlStringMessage1.h
     igtlPlusClientInfoMessage.h
     igtlPlusUsMessage.h
     igtlPlusTrackedFrameMessage.h
@@ -29,7 +31,7 @@ SET (PlusOpenIGTLink_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BI
 
 SET (PlusOpenIGTLink_LIBS 
   ${VTK_LIBRARIES} 
-  vtkPlusCommon
+  vtkPlusCommon 
   OpenIGTLink
   )
 

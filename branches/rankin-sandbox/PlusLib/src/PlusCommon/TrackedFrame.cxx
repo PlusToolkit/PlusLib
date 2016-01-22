@@ -19,7 +19,6 @@ See License.txt for details.
 // ************************* TrackedFrame ************************************
 //----------------------------------------------------------------------------
 
-const char* TrackedFrame::FIELD_FRIENDLY_DEVICE_NAME = "FriendlyDeviceName";
 const std::string TrackedFrame::TransformPostfix = "Transform";
 const std::string TrackedFrame::TransformStatusPostfix = "TransformStatus";
 const int FLOATING_POINT_PRECISION=16; // Number of digits used when writing transforms and timestamps

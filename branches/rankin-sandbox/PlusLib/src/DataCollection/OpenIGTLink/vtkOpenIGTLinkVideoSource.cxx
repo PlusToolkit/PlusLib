@@ -20,9 +20,9 @@ vtkStandardNewMacro(vtkOpenIGTLinkVideoSource);
 
 //----------------------------------------------------------------------------
 vtkOpenIGTLinkVideoSource::vtkOpenIGTLinkVideoSource()
-  : IgtlMessageFactory(vtkSmartPointer<vtkPlusIgtlMessageFactory>::New())
 {
   this->RequireImageOrientationInConfiguration = true;
+
 }
 
 //----------------------------------------------------------------------------
@@ -62,19 +62,17 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalUpdate()
   double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
 
   TrackedFrame trackedFrame;
-  igtl::MessageBase::Pointer bodyMsg = IgtlMessageFactory->CreateReceiveMessage(headerMsg);
-
-  if ( typeid(*bodyMsg) == typeid(igtl::ImageMessage) )
+  if (strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0)
   {
-    if (vtkPlusIgtlMessageCommon::UnpackImageMessage( bodyMsg, this->ClientSocket, trackedFrame, this->ImageMessageEmbeddedTransformName, this->IgtlMessageCrcCheckEnabled)!=PLUS_SUCCESS)
+    if (vtkPlusIgtlMessageCommon::UnpackImageMessage( headerMsg, this->ClientSocket, trackedFrame, this->ImageMessageEmbeddedTransformName, this->IgtlMessageCrcCheckEnabled)!=PLUS_SUCCESS)
     {
       LOG_ERROR("Couldn't get image from OpenIGTLink server!"); 
       return PLUS_FAIL;
     }
   }
-  else if ( typeid(*bodyMsg) == typeid(igtl::PlusTrackedFrameMessage) )
+  else if (strcmp(headerMsg->GetDeviceType(), "TRACKEDFRAME") == 0)
   {
-    if ( vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( bodyMsg, this->ClientSocket, trackedFrame, this->IgtlMessageCrcCheckEnabled ) != PLUS_SUCCESS )
+    if ( vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( headerMsg, this->ClientSocket, trackedFrame, this->IgtlMessageCrcCheckEnabled ) != PLUS_SUCCESS )
     {
       LOG_ERROR("Couldn't get tracked frame from OpenIGTLink server!"); 
       return PLUS_FAIL; 
@@ -83,7 +81,7 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalUpdate()
     if (this->UseReceivedTimestamps)
     {
       // Use the timestamp in the OpenIGTLink message
-      // The received timestamp is in UTC and timestamps in the buffer are in system time, so conversion is needed
+      // The received timestamp is in UTC and timestampts in the buffer are in system time, so conversion is needed
       unfilteredTimestamp = vtkAccurateTimer::GetSystemTimeFromUniversalTime(unfilteredTimestampUtc); 
     }
   }
@@ -95,7 +93,7 @@ PlusStatus vtkOpenIGTLinkVideoSource::InternalUpdate()
   }
 
   // No need to filter already filtered timestamped items received over OpenIGTLink 
-  // If the original timestamps are not used it's still safer not to use filtering, as filtering assumes uniform frame rate, which is not guaranteed
+  // If the original timestamps are not used it's still safer not to use filtering, as filtering assumes uniform framerate, which is not guaranteed
   double filteredTimestamp = unfilteredTimestamp;
 
   // The timestamps are already defined, so we don't need to filter them, 

@@ -26,7 +26,6 @@ See License.txt for details.
 #include "vtkPlusGetTransformCommand.h"
 #include "vtkRecursiveCriticalSection.h"
 #include "vtkXMLUtilities.h"
-#include "igtl_header.h"
 
 vtkStandardNewMacro( vtkPlusCommandProcessor );
 
@@ -139,7 +138,7 @@ void* vtkPlusCommandProcessor::CommandExecutionThread( vtkMultiThreader::ThreadI
 int vtkPlusCommandProcessor::ExecuteCommands()
 {   
   // Implemented in a while loop to not block the mutex during command execution, only during management of the queue.
-  int numberOfExecutedCommands(0);
+  int numberOfExecutedCommands=0;
   while (1)
   {
     vtkSmartPointer<vtkPlusCommand> cmd; // next command to be processed  
@@ -149,12 +148,14 @@ int vtkPlusCommandProcessor::ExecuteCommands()
       {
         return numberOfExecutedCommands;
       }
-      cmd = this->CommandQueue.front();
+      cmd=this->CommandQueue.front();
       this->CommandQueue.pop_front();
     }
 
     LOG_DEBUG("Executing command");
-    if (cmd->Execute() != PLUS_SUCCESS)
+    std::string messageToSend;
+    vtkImageData* imageToSend=NULL;
+    if (cmd->Execute()!=PLUS_SUCCESS)
     {
       LOG_ERROR("Command execution failed");
     }
@@ -175,12 +176,11 @@ int vtkPlusCommandProcessor::ExecuteCommands()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusCommandProcessor::RegisterPlusCommand(vtkPlusCommand* cmd)
 {
-  if (cmd == NULL)
+  if (cmd==NULL)
   {
     LOG_ERROR("vtkPlusCommandProcessor::RegisterPlusCommand received an invalid command object");
     return PLUS_FAIL;
   }
-
   std::list<std::string> cmdNames;
   cmd->GetCommandNames(cmdNames);
   if (cmdNames.empty())
@@ -188,7 +188,6 @@ PlusStatus vtkPlusCommandProcessor::RegisterPlusCommand(vtkPlusCommand* cmd)
     LOG_ERROR("Cannot register command: command name is empty");
     return PLUS_FAIL;
   }
-
   for (std::list<std::string>::iterator nameIt=cmdNames.begin(); nameIt!=cmdNames.end(); ++nameIt)
   {
     this->RegisteredCommands[*nameIt]=cmd;
@@ -198,7 +197,7 @@ PlusStatus vtkPlusCommandProcessor::RegisterPlusCommand(vtkPlusCommand* cmd)
 }
 
 //----------------------------------------------------------------------------
-vtkPlusCommand* vtkPlusCommandProcessor::CreatePlusCommand(const std::string& commandName, const std::string &commandStr)
+vtkPlusCommand* vtkPlusCommandProcessor::CreatePlusCommand(const std::string &commandStr)
 {
   vtkSmartPointer<vtkXMLDataElement> cmdElement = vtkSmartPointer<vtkXMLDataElement>::Take( vtkXMLUtilities::ReadElementFromString(commandStr.c_str()) );
   if (cmdElement.GetPointer()==NULL)
@@ -206,84 +205,65 @@ vtkPlusCommand* vtkPlusCommandProcessor::CreatePlusCommand(const std::string& co
     LOG_ERROR("failed to parse XML command string (received: "+commandStr+")");
     return NULL;
   }
-
   if (STRCASECMP(cmdElement->GetName(),"Command")!=0)
   {
     LOG_ERROR("Command element expected (received: "+commandStr+")");
     return NULL;
   }
-
-  if (this->RegisteredCommands.find(commandName) == this->RegisteredCommands.end())
+  const char* cmdName=cmdElement->GetAttribute("Name");
+  if (cmdName==NULL)
   {
-    // unregistered command
-    LOG_ERROR("Unknown command: "<<commandName);
+    LOG_ERROR("Command element's Name attribute is missing (received: "+commandStr+")");
     return NULL;
   }
-
-  vtkPlusCommand* cmd = (this->RegisteredCommands[commandName])->Clone();
-  if (cmd->ReadConfiguration(cmdElement) != PLUS_SUCCESS)
+  if (this->RegisteredCommands.find(cmdName) == this->RegisteredCommands.end())
+  {
+    // unregistered command
+    LOG_ERROR("Unknown command: "<<cmdName);
+    return NULL;
+  }
+  vtkPlusCommand* cmd = (this->RegisteredCommands[cmdName])->Clone();
+  if (cmd->ReadConfiguration(cmdElement)!=PLUS_SUCCESS)
   {
     cmd->Delete();
-    cmd = NULL;
-    LOG_ERROR("Failed to initialize command from string: " + commandStr);
+    cmd=NULL;
+    LOG_ERROR("Failed to initialize command from string: "+commandStr);
     return NULL;
   }  
   return cmd;
 }
 
 //------------------------------------------------------------------------------
-PlusStatus vtkPlusCommandProcessor::QueueCommand(uint16_t commandVersion, unsigned int clientId, const std::string& commandName, const std::string &commandString, const std::string &deviceName, uint32_t uid)
+PlusStatus vtkPlusCommandProcessor::QueueCommand(unsigned int clientId, const std::string &commandString, const std::string &deviceName, const std::string& uid)
 {  
-  if( commandString.empty() )
+  if (commandString.empty())
   {
     LOG_ERROR("Command string is undefined");
     return PLUS_FAIL;
   }
 
-  if( commandName.empty() )
-  {
-    LOG_ERROR("Command name is undefined");
+  vtkSmartPointer<vtkPlusCommand> cmd = vtkSmartPointer<vtkPlusCommand>::Take(CreatePlusCommand(commandString));
+  if (cmd.GetPointer()==NULL)
+  {    
+    std::string errorMessage=std::string("Failed to create command from string: ")+commandString;
+    LOG_ERROR(errorMessage);
+    // Let the client know that we failed to create a command
+    vtkSmartPointer<vtkPlusCommandStringResponse> response=vtkSmartPointer<vtkPlusCommandStringResponse>::New();
+    response->SetClientId(clientId);
+    response->SetDeviceName(vtkPlusCommand::GenerateReplyDeviceName(uid));
+    response->SetMessage(errorMessage);
+    response->SetStatus(PLUS_FAIL);
+    {
+      // Add response to the command response queue
+      PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+      this->CommandResponseQueue.push_back(response);
+    }
     return PLUS_FAIL;
-  }
-
-  vtkSmartPointer<vtkPlusCommand> cmd = vtkSmartPointer<vtkPlusCommand>::Take(CreatePlusCommand(commandName, commandString));
-  if (cmd.GetPointer() == NULL)
-  {
-    if( commandVersion == IGTL_HEADER_VERSION_1 || commandVersion == IGTL_HEADER_VERSION_2 )
-    {
-      this->QueueStringResponse(PLUS_FAIL, deviceName, std::string("Error attempting to process command."));
-      return PLUS_FAIL;
-    }
-    else if( commandVersion == IGTL_HEADER_VERSION_3 )
-    {
-      // TODO : determine error string syntax/standard
-      std::string errorMessage = commandName + std::string(": failure");
-      LOG_ERROR(errorMessage);
-
-      vtkSmartPointer<vtkPlusCommandCommandResponse> response = vtkSmartPointer<vtkPlusCommandCommandResponse>::New();
-      response->SetClientId(clientId);
-      response->SetDeviceName(deviceName);
-      response->SetOriginalId(uid);
-      response->SetErrorString(errorMessage);
-      response->SetStatus(PLUS_FAIL);
-      {
-        // Add response to the command response queue
-        PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
-        this->CommandResponseQueue.push_back(response);
-      }
-      return PLUS_FAIL;
-    }
-    else
-    {
-      LOG_ERROR("Unknown IGT protocol version.");
-      return PLUS_FAIL;
-    }
   }
   cmd->SetCommandProcessor(this);
   cmd->SetClientId(clientId);
   cmd->SetDeviceName(deviceName.c_str());
-  cmd->SetId(uid);
-  cmd->SetVersion(commandVersion);
+  cmd->SetId(uid.c_str());
 
   {
     // Add command to the execution queue
@@ -292,32 +272,39 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(uint16_t commandVersion, unsign
   }
   return PLUS_SUCCESS;
 }
-
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusCommandProcessor::QueueStringResponse(const PlusStatus& status, const std::string &deviceName, const std::string &replyString)
+//------------------------------------------------------------------------------
+PlusStatus vtkPlusCommandProcessor::QueueGetImageMetaData(unsigned int clientId, const std::string &deviceName)
 {
-  vtkSmartPointer<vtkPlusCommandStringResponse> response = vtkSmartPointer<vtkPlusCommandStringResponse>::New();
-  response->SetDeviceName(deviceName);
-  std::ostringstream replyStr;
-  replyStr << "<CommandReply";
-  replyStr << " Status=\"" << (status == PLUS_SUCCESS ? "SUCCESS" : "FAIL") << "\"";
-  replyStr << " Message=\"";
-  // Write to XML, encoding special characters, such as " ' \ < > &
-  vtkXMLUtilities::EncodeString(replyString.c_str(), VTK_ENCODING_NONE, replyStr, VTK_ENCODING_NONE, 1 /* encode special characters */ );
-  replyStr << "\"";
-  replyStr << " />";
 
-  response->SetMessage(replyStr.str());
-  response->SetStatus(status);
+  vtkSmartPointer<vtkPlusGetImageCommand> cmdGetImage = vtkSmartPointer<vtkPlusGetImageCommand>::New();
+  cmdGetImage->SetCommandProcessor(this);
+  cmdGetImage->SetClientId(clientId);
+  cmdGetImage->SetDeviceName(deviceName.c_str());
+  cmdGetImage->SetNameToGetImageMeta();
+  cmdGetImage->SetImageId(deviceName.c_str());
   {
-    // Add response to the command response queue
+    // Add command to the execution queue
     PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
-    this->CommandResponseQueue.push_back(response);
+    this->CommandQueue.push_back(cmdGetImage);
   }
   return PLUS_SUCCESS;
 }
-
+//------------------------------------------------------------------------------
+PlusStatus vtkPlusCommandProcessor::QueueGetImage(unsigned int clientId, const std::string &deviceName)
+{
+  vtkSmartPointer<vtkPlusGetImageCommand> cmdGetImage = vtkSmartPointer<vtkPlusGetImageCommand>::New();
+  cmdGetImage->SetCommandProcessor(this);
+  cmdGetImage->SetClientId(clientId);
+  cmdGetImage->SetDeviceName(deviceName.c_str());
+  cmdGetImage->SetNameToGetImage();
+  cmdGetImage->SetImageId(deviceName.c_str());
+  {
+    // Add command to the execution queue
+    PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+    this->CommandQueue.push_back(cmdGetImage);
+  }
+  return PLUS_SUCCESS;
+}
 //------------------------------------------------------------------------------
 void vtkPlusCommandProcessor::PopCommandResponses(PlusCommandResponseList &responses)
 {

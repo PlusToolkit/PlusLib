@@ -56,6 +56,55 @@ ELSE(PLUS_OFFLINE_BUILD)
   SET( PLUSLIB_SVN_EXECUTABLE ${Subversion_SVN_EXECUTABLE} )
 ENDIF(PLUS_OFFLINE_BUILD)
 
+# --------------------------------------------------------------------------
+# Build a nice build name for the dashboard
+
+FIND_PACKAGE(VTK)
+
+# VTK version
+IF( VTK_MAJOR_VERSION GREATER 5 )
+  SET(VTK_TEST_NAME "-vtk6")
+ELSE( VTK_MAJOR_VERSION GREATER 5 )
+  SET(VTK_TEST_NAME "-vtk5")
+ENDIF( VTK_MAJOR_VERSION GREATER 5 )
+
+IF( VTK_QT_VERSION GREATER 4 )
+  SET(QT_TEST_NAME "-qt5")
+ELSEIF( VTK_QT_VERSION GREATER 3 )
+  SET(QT_TEST_NAME "-qt4")
+ELSE( VTK_QT_VERSION GREATER 4 )
+  SET(QT_TEST_NAME "")
+ENDIF( VTK_QT_VERSION GREATER 4 )
+
+# Compiler
+IF( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
+  SET(COMPILER_TEST_NAME "-vs_${CMAKE_VS_PLATFORM_TOOLSET}")
+ELSEIF( ${CMAKE_GENERATOR} MATCHES "XCode" )
+  SET(COMPILER_TEST_NAME "-XCode"})
+ELSEIF( ${CMAKE_GENERATOR} MATCHES "Eclipse" )
+  SET(COMPILER_TEST_NAME "-Eclipse"})
+ELSEIF( ${CMAKE_GENERATOR} MATCHES "Unix Makefiles")
+  IF( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
+    SET(COMPILER_TEST_NAME "-Make-Mac"})
+  ELSE( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
+    SET(COMPILER_TEST_NAME "-Make-Linux"})
+  ENDIF( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
+ELSE( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
+  SET(COMPILER_TEST_NAME "-${CMAKE_GENERATOR}"})
+ENDIF( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
+
+get_cmake_property(_variableNames VARIABLES)
+  foreach (_variableName ${_variableNames})
+  message(STATUS "${_variableName}=${${_variableName}}")
+endforeach()
+
+#Architecture
+INCLUDE(TargetArch.cmake)
+target_architecture(ARCH_TEST_NAME)
+message("${CMAKE_SYSTEM_NAME}${COMPILER_TEST_NAME}-${ARCH_TEST_NAME}${VTK_TEST_NAME}${QT_TEST_NAME}")
+
+SET(CTEST_BUILD_NAME "${CMAKE_SYSTEM_NAME}${COMPILER_TEST_NAME}-${ARCH_TEST_NAME}${VTK_TEST_NAME}${QT_TEST_NAME}")
+SET(BUILDNAME "${CMAKE_SYSTEM_NAME}${COMPILER_TEST_NAME}-${ARCH_TEST_NAME}${VTK_TEST_NAME}${QT_TEST_NAME}")
 INCLUDE(CTest)
 
 # --------------------------------------------------------------------------

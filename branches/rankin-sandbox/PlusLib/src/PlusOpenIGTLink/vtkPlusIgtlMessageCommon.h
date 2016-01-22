@@ -38,6 +38,7 @@ This class is a helper class for OpenIGTLink message pack/unpack
 class vtkPlusOpenIGTLinkExport vtkPlusIgtlMessageCommon: public vtkObject
 {
 public:
+  
   static vtkPlusIgtlMessageCommon *New();
   vtkTypeMacro(vtkPlusIgtlMessageCommon,vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
