@@ -7,7 +7,7 @@
     <Device
       Id="TrackedVideoDevice"
       Type="SavedDataSource"
-      SequenceFile="ie33_NDIAurora_Probe_Stylus_compressed.mha"
+      SequenceFile="F:\Backup\SPIEMitralExperiments\participants\participant7_drmarkgerman\DrMark_German_3D-AR_phantom1_trial11.nrrd"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE" >
@@ -21,24 +21,11 @@
     <Device
       Id="CaptureDevice"
       Type="VirtualDiscCapture"
-      BaseFilename="RecordingTest.mha"
+      BaseFilename="RecordingTest.nrrd"
       EnableCapturingOnStart="FALSE" >
       <InputChannels>
         <InputChannel Id="TrackedVideoStream" />
       </InputChannels>
-    </Device>
-    <Device
-      Id="VolumeReconstructorDevice"
-      Type="VirtualVolumeReconstructor"
-      OutputVolDeviceName="RecVol_Reference">
-      <InputChannels>
-        <InputChannel Id="TrackedVideoStream" />
-      </InputChannels>
-      <VolumeReconstruction
-        ImageCoordinateFrame="Image" ReferenceCoordinateFrame="Reference"
-        Interpolation="LINEAR" Optimization="NONE" CompoundingMode="MEAN" FillHoles="OFF" NumberOfThreads="2"
-        ClipRectangleOrigin="0 0" ClipRectangleSize="820 616"
-        OutputOrigin="-15 -15 30" OutputExtent="0 300 0 300 0 300" OutputSpacing="0.15 0.15 0.15" />
     </Device>
   </DataCollection>
     
@@ -54,9 +41,10 @@
         <Message Type="TRANSFORM" />
       </MessageTypes>
       <TransformNames> 
-        <Transform Name="ProbeToTracker" /> 
-        <Transform Name="ReferenceToTracker" /> 
-    <Transform Name="ProbeToReference" />
+        <Transform Name="StylusTipToReference" />
+        <!--<Transform Name="StylusTipToStylus" />-->
+        <!--<Transform Name="StylusToTracker" />-->
+        <!--<Transform Name="ReferenceToTracker" />-->
       </TransformNames>
     <ImageNames>
       <Image Name="Image" EmbeddedTransformToFrame="Reference" />
@@ -65,33 +53,19 @@
   </PlusOpenIGTLinkServer>
   
   <CoordinateDefinitions>
-    <Transform From="Image" To="TransducerOriginPixel"
-      Matrix="
-        1 0 0 -410
-        0 1 0 5
-        0 0 1 0
-        0 0 0 1"
-      Date="2011.12.06 17:57:00" />
-    <Transform From="Phantom" To="Reference"
-      Matrix="
-        0.00898765 -0.0136951 -0.999866 9.59137
-        0.0246163 -0.9996 0.0139127 36.0012
-        -0.999657 -0.024738 -0.00864693 87.8909
-        0 0 0 1"
-      Error="0.404711" Date="012712_152104" />
     <Transform From="StylusTip" To="Stylus"
       Matrix="
-        1 0 0 203.772
-        0 1 0 -12.283
-        0 0 1 1.17469
+        1 0 0 0
+        0 1 0 0
+        0 0 1 10
         0 0 0 1"
       Error="0.582721" Date="012712_152030" />
     <Transform From="Image" To="Probe"
       Matrix="
-        1     0    0     0
-        0     1    0     0
-        0     0    1     0
-        0     0    0     1"
+        1.16021	-0.245715	-0.015974	15.918
+        0.245945	1.15269	0.132472	-57.0786
+        -0.0119196	-0.132898	1.17852	-8.80509
+        0	0	0	1"
       Error="0.0" Date="012712_152030" />
   </CoordinateDefinitions> 
     

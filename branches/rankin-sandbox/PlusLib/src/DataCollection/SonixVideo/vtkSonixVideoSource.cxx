@@ -61,8 +61,6 @@ static const int CONNECT_RETRY_DELAY_SEC=1.0;
 //----------------------------------------------------------------------------
 vtkSonixVideoSource::vtkSonixVideoSource()
 : Ult(new ulterius)
-, RequestedImagingParameters(vtkUsImagingParameters::New())
-, CurrentImagingParameters(vtkUsImagingParameters::New())
 , AcquisitionDataType(udtBPost)
 , ImagingMode(BMode)
 , OutputFormat(-1)
@@ -1414,6 +1412,18 @@ PlusStatus vtkSonixVideoSource::ConfigureVideoSource( uData aValue )
   }
 
   this->SetInputFrameSize( *aSource, aDataDescriptor.w, aDataDescriptor.h, 1 );
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkSonixVideoSource::SetNewImagingParameters(const vtkUsImagingParameters& newImagingParameters)
+{
+  if( Superclass::SetNewImagingParameters(newImagingParameters) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Unable to store incoming parameter set.");
+    return PLUS_FAIL;
+  }
 
   return PLUS_SUCCESS;
 }

@@ -41,6 +41,7 @@ SET (DataCollection_INCLUDE_DIRS "" CACHE INTERNAL "" FORCE)
 SET (DataCollection_SRCS
   vtkDataCollector.cxx 
   vtkPlusDevice.cxx
+  vtkPlusUsDevice.cxx
   vtkPlusChannel.cxx
   vtkPlusDeviceFactory.cxx
   vtkPlusDataSource.cxx
@@ -67,6 +68,7 @@ IF (WIN32)
   SET (DataCollection_HDRS
     vtkDataCollector.h 
     vtkPlusDevice.h
+    vtkPlusUsDevice.h
     vtkPlusChannel.h
     vtkPlusDeviceFactory.h
     vtkPlusDataSource.h

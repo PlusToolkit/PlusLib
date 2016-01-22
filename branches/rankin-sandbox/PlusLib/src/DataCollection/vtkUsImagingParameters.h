@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/
 
 #ifndef __vtkUsImagingParameters_h
@@ -17,8 +17,8 @@
 \brief This class is used to store a configuration of the imaging parameters of an ultrasound video device.
 Ultrasound video devices should contain a member variable of this class that is used to set/query the depth, gain, etc.
 This class exists mainly for two reasons:
-	* Provide a standard interface for accessing ultrasound parameters
-	* Enable standardized API for operating on ultrasound parameters
+* Provide a standard interface for accessing ultrasound parameters
+* Enable standardized API for operating on ultrasound parameters
 \ingroup PlusLibDataCollection
 
 Currently contains the following items
@@ -36,8 +36,12 @@ Currently contains the following items
 
 class vtkDataCollectionExport vtkUsImagingParameters : public vtkObject
 {
-  typedef std::map<std::string, std::string> ParameterNameMap;
+protected:
   typedef std::map<std::string, bool> ParameterSetMap;
+public:
+  typedef std::map<std::string, std::string> ParameterNameMap;
+  typedef ParameterNameMap::iterator ParameterNameMapIterator;
+  typedef ParameterNameMap::const_iterator ParameterNameMapConstIterator;
 
 public:
   static const char* KEY_FREQUENCY;
@@ -56,109 +60,114 @@ public:
   vtkTypeMacro(vtkUsImagingParameters,vtkObject);
 
   /*!
-    Read main configuration from/to XML data
-    Assumes that the data element passed is the device element, not the root!
-    \param deviceConfig the XML element of the device
-    */
+  Read main configuration from/to XML data
+  Assumes that the data element passed is the device element, not the root!
+  \param deviceConfig the XML element of the device
+  */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* deviceConfig); 
 
   /*!
-    Write main configuration from/to XML data
-    Assumes that the data element passed is the device element, not the root!
-    \param deviceConfig the XML element of the device
-    */
+  Write main configuration from/to XML data
+  Assumes that the data element passed is the device element, not the root!
+  \param deviceConfig the XML element of the device
+  */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* deviceConfig);
 
   /*!
-    Copy the values from another imaging parameters
-    */
+  Copy the values from another imaging parameters
+  */
   virtual PlusStatus DeepCopy(const vtkUsImagingParameters& otherParameters);
 
   /*!
-    Request a stored value by key name
-    \param paramName the key value to retrieve
-    \param outputValue the output variable to write to
-    */
-  PlusStatus GetValue(const char* paramName, double& outputValue);
+  Request a stored value by key name
+  \param paramName the key value to retrieve
+  \param outputValue the output variable to write to
+  */
+  template<typename T> PlusStatus GetValue(const std::string& paramName, T& outputValue) const;
   /*!
-    Set a stored value by key name
-    \param paramName the key value to retrieve
-    \param aValue the value to write
-    */
-  PlusStatus SetValue(const char* paramName, double aValue);
+  Set a stored value by key name
+  \param paramName the key value to retrieve
+  \param aValue the value to write
+  */
+  template<typename T> PlusStatus SetValue(const std::string& paramName, T aValue);
   /*!
-    Request the status of a member
-    \param paramName the key value to retrieve
-    */
-  bool IsSet(const char* paramName);
+  Request the status of a member
+  \param paramName the key value to retrieve
+  */
+  bool IsSet(const std::string& paramName) const;
 
   /*! Set ultrasound transmitter frequency (MHz) */
   PlusStatus SetFrequencyMhz(double aFrequencyMhz);
   /*! Get ultrasound transmitter frequency (MHz) */
-  PlusStatus GetFrequencyMhz(double& aFrequencyMhz);
-  double GetFrequencyMhz();
+  PlusStatus GetFrequencyMhz(double& aFrequencyMhz) const;
+  double GetFrequencyMhz() const;
 
   /*! Set the depth (mm) of B-mode ultrasound */
   PlusStatus SetDepthMm(double aDepthMm);
   /*! Get the depth (mm) of B-mode ultrasound */
-  PlusStatus GetDepthMm(double& aDepthMm);
-  double GetDepthMm();
+  PlusStatus GetDepthMm(double& aDepthMm) const;
+  double GetDepthMm() const;
 
   /*! Set the Gain (%) of B-mode ultrasound; valid range: 0-100 */
   PlusStatus SetGainPercent(double aGainPercent);
   /*! Get the Gain (%) of B-mode ultrasound; valid range: 0-100 */
-  PlusStatus GetGainPercent(double aGainPercent);
-  double GetGainPercent();
+  PlusStatus GetGainPercent(double aGainPercent) const;
+  double GetGainPercent() const;
 
   /*! Set the Gain (%) of B-mode ultrasound; valid range: 0-100 */
   PlusStatus SetTimeGainCompensation(const std::vector<double>& tgc);
   PlusStatus SetTimeGainCompensation(double* tgc, int length);
   /*! Get the Gain (%) of B-mode ultrasound; valid range: 0-100 */
-  PlusStatus GetTimeGainCompensation(std::vector<double>& tgc);
-  std::vector<double> GetTimeGainCompensation();
+  PlusStatus GetTimeGainCompensation(std::vector<double>& tgc) const;
+  std::vector<double> GetTimeGainCompensation() const;
 
   /*! Set the intensity of B-mode ultrasound */
   PlusStatus SetIntensity(double aIntensity);
   /*! Get the Intensity of B-mode ultrasound */
-  PlusStatus GetIntensity(double& aIntensity);
-  double GetIntensity();
+  PlusStatus GetIntensity(double& aIntensity) const;
+  double GetIntensity() const;
 
   /*! Set the contrast of B-mode ultrasound */
   PlusStatus SetContrast(double aContrast);
   /*! Get the contrast of B-mode ultrasound */
-  PlusStatus GetContrast(double& aContrast);
-  double GetContrast();
+  PlusStatus GetContrast(double& aContrast) const;
+  double GetContrast() const;
 
   /*! Set the DynRange (dB) of B-mode ultrasound */
   PlusStatus SetDynRangeDb(double aDynRangeDb);
   /*! Get the DynRange (dB) of B-mode ultrasound */
-  PlusStatus GetDynRangeDb(double& aDynRangeDb);
-  double GetDynRangeDb();
+  PlusStatus GetDynRangeDb(double& aDynRangeDb) const;
+  double GetDynRangeDb() const;
 
   /*! Set the Zoom (%) of B-mode ultrasound; valid range: 0-100 */
   PlusStatus SetZoomFactor(double aZoomFactor);
   /*! Get the Zoom (%) of B-mode ultrasound; valid range: 0-100 */
-  PlusStatus GetZoomFactor(double& aZoomFactor);
-  double GetZoomFactor();
+  PlusStatus GetZoomFactor(double& aZoomFactor) const;
+  double GetZoomFactor() const;
 
   /*! Set the Sector (%) of B-mode ultrasound; valid range: 0-100 */
   PlusStatus SetSectorPercent(double aSectorPercent);
   /*! Get the Sector (%) of B-mode ultrasound; valid range: 0-100 */
-  PlusStatus GetSectorPercent(double& aSectorPercent);
-  double GetSectorPercent();
+  PlusStatus GetSectorPercent(double& aSectorPercent) const;
+  double GetSectorPercent() const;
 
   /*! Set the Sector (%) of B-mode ultrasound; valid range: 0-100 */
   PlusStatus SetSoundVelocity(float aSoundVelocity);
   /*! Get the Sector (%) of B-mode ultrasound; valid range: 0-100 */
-  PlusStatus GetSoundVelocity(float& aSoundVelocity);
-  float GetSoundVelocity();
+  PlusStatus GetSoundVelocity(float& aSoundVelocity) const;
+  float GetSoundVelocity() const;
+
+  /*! Return an iterator to the beginning of the parameter space */
+  ParameterNameMapConstIterator begin() const;
+  /*! Return an iterator to the end of the parameter space */
+  ParameterNameMapConstIterator end() const;
 
   /*! Print the list of supported parameters. For diagnostic purposes only. */
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   enum ImagingMode
   { 
-	BMode = 0,
+    BMode = 0,
     MMode = 1,
     ColourMode = 2,
     PwMode = 3,

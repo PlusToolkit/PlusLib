@@ -19,8 +19,7 @@ Siddharth Vikal (Queen's University, Kingston, Ontario, Canada)
 #include "PlusConfigure.h"
 #include "ulterius.h"
 #include "vtkDataCollectionExport.h"
-#include "vtkPlusDevice.h"
-#include "vtkUsImagingParameters.h"
+#include "vtkPlusUsDevice.h"
 
 class uDataDesc;
 enum uData;
@@ -48,7 +47,7 @@ enum uData;
   \ingroup PlusLibDataCollection
 */
 
-class vtkDataCollectionExport vtkSonixVideoSource : public vtkPlusDevice
+class vtkDataCollectionExport vtkSonixVideoSource : public vtkPlusUsDevice
 {
 private:
   class Plus_uTGC : public uTGC
@@ -66,7 +65,7 @@ private:
 
 public:
   static vtkSonixVideoSource* New();
-  vtkTypeMacro(vtkSonixVideoSource,vtkPlusDevice);
+  vtkTypeMacro(vtkSonixVideoSource,vtkPlusUsDevice);
   void PrintSelf(ostream& os, vtkIndent indent);   
 
   /*! Hardware device SDK version. */
@@ -134,6 +133,9 @@ public:
 
   /*! Set the Timeout (ms) value for network function calls. */
   PlusStatus SetTimeout(int aTimeout);
+
+  /*! Set the parameters in bulk */
+  PlusStatus SetNewImagingParameters(const vtkUsImagingParameters& newImagingParameters);
   
   /*!
     Request a particular data type from sonix machine by means of a bitmask.
@@ -318,8 +320,6 @@ protected:
   virtual ~vtkSonixVideoSource();
 
   ulterius* Ult;
-  vtkUsImagingParameters* RequestedImagingParameters;
-  vtkUsImagingParameters* CurrentImagingParameters;
   int AcquisitionDataType;
   int ImagingMode;
   int OutputFormat;
