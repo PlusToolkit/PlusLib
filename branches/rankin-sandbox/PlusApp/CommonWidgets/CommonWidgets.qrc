@@ -16,5 +16,6 @@
     <file>Resources/icon_Snapshot.png</file>
     <file>Resources/icon_Record.png</file>
     <file>Resources/icon_Stop.png</file>
+    <file>Resources/icon_ClearText.png</file>
   </qresource>
 </RCC>
