@@ -52,7 +52,7 @@
 - \xmlAtt \b ImagingMode Set what kind of images are sent to the video source. The default is RF mode, when the raw RF data is recorded. Applications (e.g., fCal) may still be able to show a B-mode image for monitoring the acquisition by performing the brightness conversion and scan conversion internally. Other imaging modes are not yet supported. \OptionalAtt{RfMode}
   - \c BMode
   - \c RfMode Acquire RF mode data. For previewing B-mode images during acquisition, add an \ref AlgorithmRfProcessing "RfProcessing" child element to the \c OutputChannel.
-- \xmlAtt \b SubscribeScanPlane Enable support for dynamic scan plane switching on 8848 probes ( \c true or \c false). \OptionalAtt{false}
+- \xmlAtt \b SubscribeScanPlane Enable support for dynamic scan plane switching on 8848 probes ( \c TRUE or \c FALSE). \OptionalAtt{FALSE}
 - \xmlElem \ref DataSources
   - \xmlElem \ref DataSource There must be one child element. \RequiredAtt
     - \xmlAtt \ref PortUsImageOrientation \RequiredAtt

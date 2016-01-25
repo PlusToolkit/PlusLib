@@ -12,7 +12,7 @@
       RepeatEnabled="TRUE"
       AcquisitionRate="30"
       LocalTimeOffsetSec="0.0" 
-      SequenceFile="iE33_NDIAurora_BeatingHeartPhantom_MitralValveInsertion.mha" >
+      SequenceFile="F:\arankin\PlusBuild-bin\bin\Debug\Output\Recording.mha" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />
       </DataSources>      
@@ -20,12 +20,12 @@
         <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
     </Device>
-	
-	<Device
+
+    <Device
       Id="CaptureDevice"
       Type="VirtualDiscCapture"
       BaseFilename="RecordingTest.nrrd"
-	  EnableFileCompression="TRUE"
+      EnableFileCompression="TRUE"
       EnableCapturingOnStart="FALSE" >
       <InputChannels>
         <InputChannel Id="TrackedVideoStream" />

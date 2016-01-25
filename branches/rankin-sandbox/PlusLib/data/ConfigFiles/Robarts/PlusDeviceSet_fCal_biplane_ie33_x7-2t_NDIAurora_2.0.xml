@@ -23,7 +23,7 @@
       </OutputChannels>
     </Device>
 
-	<Device
+    <Device
       Id="VideoDevice" 
       Type="Epiphan" >
       <DataSources>
