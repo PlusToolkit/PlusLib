@@ -29,23 +29,6 @@ const char* vtkUsImagingParameters::KEY_SOUNDVELOCITY = "SoundVelocity";
 
 //----------------------------------------------------------------------------
 
-namespace
-{
-  std::ostream& operator<<(ostream& out, const std::vector<double>& lhs)
-  {
-    std::copy(lhs.begin(), lhs.end(), std::ostream_iterator<double>(out, " "));
-    return out;
-  }
-  std::istream& operator>>(istream& in, std::vector<double>& lhs)
-  {
-    lhs = std::vector<double>((std::istream_iterator<double>(in)), 
-      std::istream_iterator<double>());
-    return in;
-  }
-}
-
-//----------------------------------------------------------------------------
-
 vtkUsImagingParameters::vtkUsImagingParameters()
   : vtkObject()
 {
@@ -140,7 +123,11 @@ double vtkUsImagingParameters::GetGainPercent() const
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::SetTimeGainCompensation(const std::vector<double>& tgc)
 {
-  return this->SetValue<std::vector<double> >(KEY_TGC, tgc);
+  std::stringstream result;
+  std::copy(tgc.begin(), tgc.end(), std::ostream_iterator<double>(result, " "));
+  this->ParameterValues[KEY_GAIN] = result.str();
+  this->ParameterSet[KEY_GAIN] = true;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -153,14 +140,30 @@ PlusStatus vtkUsImagingParameters::SetTimeGainCompensation(double* tgc, int leng
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::GetTimeGainCompensation(std::vector<double>& tgc) const
 {
-  return this->GetValue<std::vector<double> >(KEY_TGC, tgc);
+  ParameterSetMap::const_iterator keyIt = this->ParameterSet.find(KEY_TGC);
+  if( keyIt != this->ParameterSet.end() && keyIt->second == false )
+  {
+    return PLUS_FAIL;
+  }
+  else if( keyIt == this->ParameterSet.end() )
+  {
+    return PLUS_FAIL;
+  }
+
+  std::stringstream ss;
+  ParameterNameMapConstIterator it = this->ParameterValues.find(KEY_TGC);
+  ss.str(it->second);
+  std::vector<double> numbers((std::istream_iterator<double>(ss)), 
+    std::istream_iterator<double>());
+  tgc = numbers;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 std::vector<double> vtkUsImagingParameters::GetTimeGainCompensation() const
 {
   std::vector<double> vec;
-  this->GetValue<std::vector<double> >(KEY_TGC, vec);
+  this->GetTimeGainCompensation(vec);
   return vec;
 }
 

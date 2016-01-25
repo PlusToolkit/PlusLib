@@ -35,6 +35,8 @@ namespace igtl
       return PLUS_FAIL; 
     }
 
+    // TODO : update this to send version 3
+
     // Version 
     this->m_MessageHeader.m_Version = IGTL_HEADER_VERSION_1; 
     // Frame size 

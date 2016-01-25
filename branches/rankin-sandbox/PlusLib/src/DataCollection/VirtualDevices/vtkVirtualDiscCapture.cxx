@@ -36,7 +36,7 @@ vtkVirtualDiscCapture::vtkVirtualDiscCapture()
 , LastUpdateTime(0.0)
 , BaseFilename("TrackedImageSequence.nrrd")
 , Writer(NULL)
-, EnableFileCompression(false)
+, EnableFileCompression(true)
 , IsHeaderPrepared(false)
 , TotalFramesRecorded(0)
 , EnableCapturing(false)
@@ -172,7 +172,7 @@ PlusStatus vtkVirtualDiscCapture::OpenFile(const char* aFilename)
     else if( vtkMetaImageSequenceIO::CanWriteFile(this->BaseFilename) && this->GetEnableFileCompression() )
     {
       // they've requested mhd/mha with compression, no can do, yet
-      LOG_WARNING("Compressed saving of metaimage file requested. This is not supported. Reverting to uncompressed mha.");
+      LOG_WARNING("Compressed streaming of metaimage file requested. This is not supported. Reverting to uncompressed mha.");
       this->SetEnableFileCompression(false);
     }
     this->CurrentFilename = filenameRoot + "_" + vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S") + ext;
@@ -183,7 +183,7 @@ PlusStatus vtkVirtualDiscCapture::OpenFile(const char* aFilename)
     if( vtkMetaImageSequenceIO::CanWriteFile(aFilename) && this->GetEnableFileCompression() )
     {
       // they've requested mhd/mha with compression, no can do, yet
-      LOG_WARNING("Compressed saving of metaimage file requested. This is not supported. Reverting to uncompressed mha.");
+      LOG_WARNING("Compressed streaming of metaimage file requested. This is not supported. Reverting to uncompressed mha.");
       this->SetEnableFileCompression(false);
     }
     this->CurrentFilename = aFilename;

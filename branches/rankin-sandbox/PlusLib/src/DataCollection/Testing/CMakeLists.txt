@@ -426,7 +426,7 @@ ADD_TEST(TransformInterpolationTest
 IF( PLUS_USE_OpenIGTLink )
 
   ADD_EXECUTABLE(BrainLabTrackerSim BrainLabTrackerSim.cxx)
-  TARGET_LINK_LIBRARIES(BrainLabTrackerSim OpenIGTLink)
+  TARGET_LINK_LIBRARIES(BrainLabTrackerSim OpenIGTLink vtkPlusCommon)
   
 ENDIF( PLUS_USE_OpenIGTLink )
   

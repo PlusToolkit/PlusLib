@@ -62,13 +62,19 @@
   </DataCollection>
 
   <CoordinateDefinitions>
+  <!--
     <Transform From="Image" To="Probe"
-      Matrix="-0.608191 0.247845 -0.754106 60.7051 
-              -0.772201 -0.404787 0.489748 26.1055 
-              -0.183871 0.880182 0.437575 31.107 
-              0 0 0 1"
-       Error="2.18105" Date="102515_113411" />
-
+      Matrix="1.22974 -0.217859 -0.170841 30.6641 
+              0.223972 1.24008 0.0308146 -58.0717 
+              0.162745 -0.0604176 1.24851 8.75495 
+              0 0 0 1 "
+       Error="2.46123" Date="081315_131842" />-->
+	   <Transform From="Image" To="Probe"
+      Matrix="	   1.28486 -0.394721 -0.0416977 32.9051 
+0.396682 1.28186 0.0888721 -69.0705 
+0.013661 -0.0972128 1.34119 -14.6745 
+0 0 0 1  "
+       Error="2.91784" Date="081315_131842" />
     <!-- stylus tip for 3d printed neochord with jaw shut-->
     <Transform From="StylusTip" To="Stylus"
       Matrix="

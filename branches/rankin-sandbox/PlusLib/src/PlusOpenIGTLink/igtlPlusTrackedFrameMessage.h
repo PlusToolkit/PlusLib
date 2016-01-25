@@ -42,7 +42,7 @@ public:
   igtlNewMacro( igtl::PlusTrackedFrameMessage );
 
 public:
-  
+
   /*! Set Plus TrackedFrame */ 
   PlusStatus SetTrackedFrame( const TrackedFrame& trackedFrame); 
 

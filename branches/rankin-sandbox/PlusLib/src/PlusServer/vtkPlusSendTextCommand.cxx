@@ -95,23 +95,23 @@ PlusStatus vtkPlusSendTextCommand::Execute()
     <<", device: "<<(this->DeviceId==NULL?"(undefined)":this->DeviceId)
     <<", text: "<<(this->Text==NULL?"(undefined)":this->Text) );
 
-  vtkDataCollector* dataCollector=GetDataCollector();
-  if (dataCollector==NULL)
+  vtkDataCollector* dataCollector = GetDataCollector();
+  if ( dataCollector == NULL )
   {
-    this->QueueStringResponse("vtkPlusSendTextCommand command failed, invalid data collector",PLUS_FAIL);
+    this->QueueCommandResponse("vtkPlusSendTextCommand command failed, invalid data collector",PLUS_FAIL);
     return PLUS_FAIL;
   }
 
   // Get device pointer
-  if (this->DeviceId==NULL)
+  if ( this->DeviceId == NULL )
   {
-    this->QueueStringResponse("vtkPlusSendTextCommand command failed, no DeviceId specified",PLUS_FAIL);
+    this->QueueCommandResponse("vtkPlusSendTextCommand command failed, no DeviceId specified",PLUS_FAIL);
     return PLUS_FAIL;
   }
-  vtkPlusDevice* device=NULL;
-  if (dataCollector->GetDevice(device, this->DeviceId)!=PLUS_SUCCESS)
+  vtkPlusDevice* device = NULL;
+  if (dataCollector->GetDevice(device, this->DeviceId) != PLUS_SUCCESS)
   {
-    this->QueueStringResponse(std::string("vtkPlusSendTextCommand failed: device ")
+    this->QueueCommandResponse(std::string("vtkPlusSendTextCommand failed: device ")
       +(this->DeviceId==NULL?"(undefined)":this->DeviceId)+" is not found",PLUS_FAIL);
       return PLUS_FAIL;
   }
@@ -119,18 +119,18 @@ PlusStatus vtkPlusSendTextCommand::Execute()
   // Send text (and receive response)
   std::string textToSend;
   std::string response;
-  if (GetText()!=NULL)
+  if (this->GetText() != NULL)
   {
     textToSend = GetText();
   }
-  PlusStatus status=device->SendText(GetText(), GetResponseExpected() ? &response : NULL );
+  PlusStatus status = device->SendText(GetText(), GetResponseExpected() ? &response : NULL );
   SetResponseText(response.c_str());
-  if (status!=PLUS_SUCCESS)
+  if (status != PLUS_SUCCESS)
   {
-    this->QueueStringResponse(std::string("vtkPlusSendTextCommand failed: failed to send text '") + GetText() + "'"
+    this->QueueCommandResponse(std::string("vtkPlusSendTextCommand failed: failed to send text '") + GetText() + "'"
       + " to device " +(this->DeviceId==NULL?"(undefined)":this->DeviceId),PLUS_FAIL);
       return PLUS_FAIL;
   }
-  this->QueueStringResponse(response,PLUS_SUCCESS);
+  this->QueueCommandResponse(response,PLUS_SUCCESS);
   return PLUS_SUCCESS;
 }

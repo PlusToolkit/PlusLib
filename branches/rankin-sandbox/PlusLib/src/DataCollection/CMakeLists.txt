@@ -6,7 +6,7 @@ OPTION (PLUS_USE_POLARIS "Provide support for the NDI Polaris and Aurora" OFF)
 OPTION (PLUS_USE_CERTUS "Provide support for the NDI Certus" OFF)
 OPTION (PLUS_USE_MICRONTRACKER "Provide support for the Claron MicronTracker" OFF)
 OPTION (PLUS_USE_BRACHY_TRACKER "Provide support for the brachy stepper tracking device" OFF)
-OPTION (PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" ${ENABLED_BY_DEFAULT_ON_WINDOWS_ONLY})
+OPTION (PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" OFF)
 OPTION (PLUS_USE_Ascension3DGm "Provide support for the Ascension 3DGm MedSafe Tracker" ${ENABLED_BY_DEFAULT_ON_WINDOWS32_ONLY})
 OPTION (PLUS_USE_PHIDGET_SPATIAL_TRACKER "Provide support for the Phidget Spatial accelerometer" OFF)
 OPTION (PLUS_USE_3dConnexion_TRACKER "Provide support for the 3dConnexion 3d mouse" OFF)
@@ -22,16 +22,16 @@ OPTION (PLUS_USE_INTERSONSDKCXX_VIDEO "Provide support Interson SDK 1.X with C++
 OPTION (PLUS_USE_TELEMED_VIDEO "Provide support for the Telemed ultrasound probes" OFF)
 OPTION (PLUS_USE_THORLABS_VIDEO "Provide support for the ThorLabs compact spectrometers" OFF)
 OPTION(PLUS_USE_STEALTHLINK "Provide support for the Medtronick StealthLink Server" OFF)
-OPTION(PLUS_USE_IntuitiveDaVinci "Enable the tracking of the da Vinci Surgical System. Enable this only if you have a da Vinci that is accessible from this computer." OFF)
+OPTION(PLUS_USE_IntuitiveDaVinci "Enable the tracking of the da Vinci Surgical System. Enable this only IF you have a da Vinci that is accessible from this computer." OFF)
 OPTION(PLUS_USE_PHILIPS_3D_ULTRASOUND "Provide support for the Philips ie33 3D ultrasound probe system." OFF)
-OPTION (PLUS_TEST_BKPROFOCUS "Enable testing of acquisition from BK ProFocus ultrasound systems. Enable this only if a BK ProFocus device is connected to this computer." OFF)
-OPTION (PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
+OPTION (PLUS_TEST_BKPROFOCUS "Enable testing of acquisition from BK ProFocus ultrasound systems. Enable this only IF a BK ProFocus device is connected to this computer." OFF)
+OPTION (PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only IF an Ultrasonix device accessible from this computer." OFF)
 IF (PLUS_TEST_ULTRASONIX)
   SET (PLUS_TEST_ULTRASONIX_IP_ADDRESS "127.0.0.1" CACHE STRING "IP address of the Ultrasonix scanner that is used during testing")
 ENDIF()
 OPTION(PLUS_USE_MMF_VIDEO "Provide support for the Microsoft Media Foundation video digitizers (requires installation of Windows Platform SDK 7.1 or later)" OFF)
 IF(PLUS_USE_MMF_VIDEO)
-  OPTION(PLUS_TEST_MMF_VIDEO "Enable testing of acquisition from MMF video device (webcam). Enable this only if an MMF device is connected to this computer." OFF)  
+  OPTION(PLUS_TEST_MMF_VIDEO "Enable testing of acquisition from MMF video device (webcam). Enable this only IF an MMF device is connected to this computer." OFF)  
 ENDIF(PLUS_USE_MMF_VIDEO)
 
 SET (DataCollection_INCLUDE_DIRS "" CACHE INTERNAL "" FORCE)
@@ -1062,7 +1062,7 @@ IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
     FILE(COPY ${External_Libraries_Install}
         DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release
         )
-    # If debug and release dll has the same name then the debug dll would be
+    # IF debug and release dll has the same name then the debug dll would be
     # overwritten by the file copy. To prevent this, copy only those release dlls
     # that has no corresponding debug dll with the same filename.
     SET (External_Libraries_Install_Minus_Debug)

@@ -944,7 +944,7 @@ PlusStatus vtkSonixVideoSource::SetTimeGainCompensationDevice(int tgc[8])
   tgcStruct.v6 = tgc[5];
   tgcStruct.v7 = tgc[6];
   tgcStruct.v8 = tgc[7];
-  // todo validate this parameter name
+  // todo: validate this parameter name
   PlusStatus result = this->SetParamValueDevice("b-tgc", tgcStruct, tgcStruct);
   if( result == PLUS_SUCCESS )
   {

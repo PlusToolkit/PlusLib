@@ -71,6 +71,8 @@ public:
   //----------------------------------------------------------------------------
   void vtkIntersonVideoSource::vtkInternal::PrintSelf(ostream& os, vtkIndent indent) 
   {
+    this->External->PrintSelf(os, indent);
+
     os << indent << "Interpolate: " << this->Interpolate << std::endl;
     os << indent << "BidirectionalScan: " << this->BidirectionalScan << std::endl;
     os << indent << "Frozen: " << this->Frozen << std::endl;

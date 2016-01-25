@@ -26,13 +26,13 @@ This device is not included in any of the standard packages, as it requires acce
 
 - \xmlAtt \b IPAddress Network address of the ultrasound system \RequiredAtt
 - \xmlAtt \b Port Network port of the ultrasound system \OptionalAtt{4013}
-- \xmlAtt \b ForceZQuantize Parameter sent to the Philips stream manager OptionalAtt{FALSE}
+- \xmlAtt \b ForceZQuantize Parameter sent to the Philips stream manager OptionalAtt{false}
 - \xmlAtt \b ResolutionFactor Parameter sent to the Philips stream manager OptionalAtt{2.5}
-- \xmlAtt \b IntegerZ Parameter sent to the Philips stream manager OptionalAtt{TRUE}
-- \xmlAtt \b Isotropic Parameter sent to the Philips stream manager OptionalAtt{FALSE}
-- \xmlAtt \b QuantizeDim Parameter sent to the Philips stream manager OptionalAtt{TRUE}
+- \xmlAtt \b IntegerZ Parameter sent to the Philips stream manager OptionalAtt{true}
+- \xmlAtt \b Isotropic Parameter sent to the Philips stream manager OptionalAtt{false}
+- \xmlAtt \b QuantizeDim Parameter sent to the Philips stream manager OptionalAtt{true}
 - \xmlAtt \b ZDecimation Parameter sent to the Philips stream manager OptionalAtt{2}
-- \xmlAtt \b Set4PtFIR Parameter sent to the Philips stream manager OptionalAtt{TRUE}
+- \xmlAtt \b Set4PtFIR Parameter sent to the Philips stream manager OptionalAtt{true}
 - \xmlAtt \b LatAndElevSmoothingIndex Parameter sent to the Philips stream manager OptionalAtt{4}
 
 - \xmlElem \ref DataSources Exactly one \c DataSource child element is required \RequiredAtt

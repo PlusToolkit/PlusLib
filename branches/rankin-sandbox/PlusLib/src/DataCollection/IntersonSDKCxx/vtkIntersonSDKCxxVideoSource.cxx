@@ -229,7 +229,7 @@ vtkIntersonSDKCxxVideoSource::vtkIntersonSDKCxxVideoSource():
   this->RequireImageOrientationInConfiguration = true;
   this->RequirePortNameInDeviceSetConfiguration = true;
 
-  this->ImagingParameters = vtkUsImagingParameters::New();
+  this->ImagingParameters = new vtkUsImagingParameters(this);
 }
 
 //----------------------------------------------------------------------------

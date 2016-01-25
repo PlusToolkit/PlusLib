@@ -9,8 +9,8 @@
 
 #include "PlusConfigure.h"
 #include "vtkDataCollectionExport.h"
-
 #include "vtkOpenIGTLinkDevice.h"
+#include "vtkPlusIgtlMessageFactory.h"
 
 /*!
   \class vtkOpenIGTLinkVideoSource 
@@ -50,8 +50,11 @@ protected:
     
   /*! Name of the transform that is supplied with the IMAGE OpenIGTLink message */ 
   PlusTransformName ImageMessageEmbeddedTransformName;
-private:
 
+  /*! igtl Factory for message handling */
+  vtkSmartPointer<vtkPlusIgtlMessageFactory> IgtlMessageFactory;
+
+private:
   vtkOpenIGTLinkVideoSource(const vtkOpenIGTLinkVideoSource&);  // Not implemented.
   void operator=(const vtkOpenIGTLinkVideoSource&);  // Not implemented.
 };

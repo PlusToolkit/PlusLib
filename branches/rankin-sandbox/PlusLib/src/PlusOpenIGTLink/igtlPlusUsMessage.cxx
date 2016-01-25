@@ -39,9 +39,11 @@ namespace igtl
   }
 
   //----------------------------------------------------------------------------
-  PlusUsMessage::PlusUsMessage():ImageMessage()
+  PlusUsMessage::PlusUsMessage()
+    : ImageMessage()
   {
-    m_DeviceName ="USMessage";
+    this->m_DefaultBodyType = "USMESSAGE";
+    this->m_DeviceName ="USMessage";
   }
 
   //----------------------------------------------------------------------------

@@ -41,11 +41,18 @@ The computer needs to be on the same local network as Aurora SCU unit. The needl
     <!-- stylus tip for 3d printed neochord with jaw shut-->
     <Transform From="StylusTip" To="Stylus"
       Matrix="
-        1 0 0 0
-        0 1 0 0
-        0 0 1 10
-        0 0 0 1"
+        0.994215	0	0.107408	1.15469
+        0.0246084	0.9734	-0.227785	-2.4488
+        -0.104551	0.22911	0.967769	10.404
+        0	0	0	1"
        Error="0.222242" Date="102515_140600" />
+    <Transform From="Reference" To="Ras"
+      Matrix="
+        1 0 0 0 
+        0 0 1 0 
+        0 -1 0 0 
+        0 0 0 1"
+       Error="0.287287" Date="082315_112217" />
   </CoordinateDefinitions>
 
   <PlusOpenIGTLinkServer 
@@ -59,7 +66,7 @@ The computer needs to be on the same local network as Aurora SCU unit. The needl
         <Message Type="TRANSFORM" />
       </MessageTypes>
       <TransformNames> 
-        <Transform Name="StylusTipToReference" />
+        <Transform Name="StylusTipToRas" />
       </TransformNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>

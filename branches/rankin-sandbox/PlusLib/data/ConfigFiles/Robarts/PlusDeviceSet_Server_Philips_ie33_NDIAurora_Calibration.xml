@@ -2,9 +2,9 @@
 
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
-      Name="PlusServer: Calibration Philips IE33 3D Probe + NDI Aurora (0 Empty, 1 Probe, 2 Stylus)"
+      Name="PlusServer: Calibration Philips IE33 3D Probe + NDI Aurora (Reference, Probe, Stylus)"
       Description="Broadcasting acquired 3D ultrasound video acquired on the Philips IE33 system through OpenIGTLink with NDI Aurora tracking" />
-     <Device
+	 <Device
       Id="TrackerDevice"
       Type="AuroraTracker"
       SerialPort="3"
@@ -12,11 +12,13 @@
       ToolReferenceFrame="Tracker"
       BaudRate="115200">
       <DataSources>
+        <DataSource Type="Tool" Id="Reference" BufferSize="500" PortName="0" AveragedItemsForFiltering="20" />
         <DataSource Type="Tool" Id="Probe" BufferSize="500" PortName="1" AveragedItemsForFiltering="20" />
         <DataSource Type="Tool" Id="Stylus" BufferSize="500" PortName="2" AveragedItemsForFiltering="20" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
+          <DataSource Id="Reference" />
           <DataSource Id="Probe" />
           <DataSource Id="Stylus" />
         </OutputChannel>
@@ -26,8 +28,8 @@
     <Device
       Id="VideoDevice" 
       Type="iE33Video" 
-      IPAddress="129.100.44.8"
-      Port="4013" >
+	  IPAddress="129.100.44.8"
+	  Port="4013" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="AMF"  />
       </DataSources>      
@@ -47,12 +49,11 @@
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>
     </Device>
-
-    <Device
+	
+	<Device
       Id="CaptureDevice"
       Type="VirtualDiscCapture"
-      BaseFilename="ie33Philips3DCapture.nrrd"
-      EnableFileCompression="TRUE"
+      BaseFilename="ie33Philips3DCapture.mha"
       EnableCapturing="FALSE" >
       <InputChannels>
         <InputChannel Id="TrackedVideoStream" />
@@ -69,11 +70,11 @@
        Error="0" Date="072915_125658" />
     <Transform From="StylusTip" To="Stylus"
       Matrix="
-        0.999664	0	0.0259255	2.05053
-        -0.000381964	0.999891	0.0147282	1.1649
-        -0.0259227	-0.0147331	0.999555	79.0579
+        0.999866	0	0.0163861	1.30947
+        -0.00012887	0.999969	0.00786353	0.628403
+        -0.0163856	-0.00786459	0.999835	79.9003
         0	0	0	1"
-      Error="0.179735" Date="102515_141453" />
+       Error="0.129734" Date="072415_125525" />
   </CoordinateDefinitions>
   
   <PlusOpenIGTLinkServer 

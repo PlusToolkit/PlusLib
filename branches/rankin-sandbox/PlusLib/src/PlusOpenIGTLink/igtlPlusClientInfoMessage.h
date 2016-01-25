@@ -33,7 +33,6 @@ public:
   igtlNewMacro( igtl::PlusClientInfoMessage );
 
 public:
-
   /*! Set Plus IGTL Client Info */ 
   void SetClientInfo( const PlusIgtlClientInfo& clientInfo ); 
 

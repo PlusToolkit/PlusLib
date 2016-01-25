@@ -9,8 +9,8 @@
 
 #include "PlusConfigure.h"
 #include "vtkDataCollectionExport.h"
-
 #include "vtkOpenIGTLinkDevice.h"
+#include "vtkPlusIgtlMessageFactory.h"
 
 /*!
 \class vtkOpenIGTLinkTracker 
@@ -89,6 +89,9 @@ protected:
 
   /*! Use the last known transform value if not received a new value. Useful for servers that only notify about changes in the transforms. */
   bool UseLastTransformsOnReceiveTimeout;
+
+  /*! igtl Factory for message handling */
+  vtkSmartPointer<vtkPlusIgtlMessageFactory> IgtlMessageFactory;
 
 private:  
   
