@@ -1,0 +1,40 @@
+/**
+
+\page AlgorithmRfProcessing RF processing algorithm
+
+This algorithm can convert RF data to B-mode images. The conversion is performed in two steps:
+- Brightness conversion: the RF samples converted to brightness values
+- Scan conversion: RF lines are pasted into an image according to the defined transducer geometry.
+To convert recorded RF data to B-mode use the \ref ApplicationRfProcessor.
+
+Information on transducer geometry can be obtained from the probe manufacturer.
+If the manufacturer does not disclose all necessary information or to verify the transducer geometry:
+acquire a B-mode and an RF-mode frame of the same object and compare the received B-mode image to the
+B-mode image that RfProcessor constructed from the received RF frame
+
+\section AlgorithmRfProcessingConfigSettings Configuration settings
+
+- \xmlElem \b RfProcessing
+  - \xmlElem \b RfToBrightnessConversion
+    - \xmlAtt NumberOfHilbertFilterCoeffs
+    - \xmlAtt BrightnessScale
+  - \xmlElem \b ScanConversion
+    - \xmlAtt TransducerName
+    - \xmlAtt TransducerGeometry
+    - \xmlAtt RadiusStartMm
+    - \xmlAtt RadiusStopMm
+    - \xmlAtt ThetaStartDeg
+    - \xmlAtt ThetaStopDeg
+    - \xmlAtt OutputImageStartDepthMm
+    - \xmlAtt ImagingDepthMm
+    - \xmlAtt TransducerWidthMm
+    - \xmlAtt OutputImageSizePixel
+    - \xmlAtt OutputImageSpacingMmPerPixel
+
+\image html AlgorithmRfProcessingLinearScanConversion.png
+
+\image html AlgorithmRfProcessingCurvilinearScanConversion.png
+
+\image html AlgorithmRfProcessingCurvilinearScanConversionPlus2.0.png  
+    
+*/

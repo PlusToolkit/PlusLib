@@ -1,0 +1,63 @@
+<PlusConfiguration version="2.0">
+
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="PlusServer: Philips IE33 3D Probe"
+      Description="Broadcasting acquired 3D ultrasound video acquired on the Philips IE33 system through OpenIGTLink" />
+    <Device
+      Id="VideoDevice" 
+      Type="iE33Video" 
+      IPAddress="129.100.44.8"
+      Port="4013" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="AMF"  />
+      </DataSources>      
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="ie33Philips3DCapture.nrrd"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="VideoStream" />
+      </InputChannels>
+    </Device>
+  </DataCollection>
+
+  <CoordinateDefinitions>
+    <Transform From="Image" To="Probe"
+      Matrix="1 0 0 0
+              0 1 0 0
+              0 0 1 0
+              0 0 0 1 "
+       Error="0" Date="072915_125658" />
+    <Transform From="StylusTip" To="Stylus"
+      Matrix="
+        0.999866	0	0.0163861	1.30947
+        -0.00012887	0.999969	0.00786353	0.628403
+        -0.0163856	-0.00786459	0.999835	79.9003
+        0	0	0	1"
+       Error="0.129734" Date="072415_125525" />
+  </CoordinateDefinitions>
+  
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="VideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+      </MessageTypes>
+      <ImageNames>
+        <Image Name="Image" EmbeddedTransformToFrame="Probe" />
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+</PlusConfiguration>

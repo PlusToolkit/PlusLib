@@ -1,0 +1,45 @@
+/*!
+\page DeviceThorLabs ThorLabs compact spectrometer
+
+\section ThorLabsSupportedHwDevices Supported hardware devices
+
+ThorLabs compact CCD Spectrometers.
+
+Manufacturer's website: http://www.thorlabs.com/newgrouppage9.cfm?objectgroup_id=3482
+
+\section ThorLabsSupportedPlatforms Included in packages
+
+- \ref PackageThorLabs
+
+\section ThorLabsInstallation Installation
+
+Thorlabs "full installer for our GUI control software for our OSA and CCD spectrometers" has to be installed.
+
+\section ThorLabsOutput Output
+
+The device provides its output as an image. The pixels of the image are double-precision floating point numbers.
+The first row of the image contains wavelength values in nm. The second row of the image contains intensity values.
+
+\section ThorLabsConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "ThorLabsVideo" \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \ref \b IntegrationTimeSec Sensor integration time. Longer time makes the sensor more sensitive and reduces the measurement noise, at the cost of increased acquisition time and higher chance of saturation at higher intensities. \OptionalAtt{0.05}
+
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+    - \xmlAtt \ref ClipRectangleOrigin Three integer values. Specify if only a part of the spectrum should be acquired. First parameter specifies the starting point of the spectrum, in sensor index value (between 0 and the number of sensor pixel elements). Second parameter is 0 if wavelength values will be included, 1 if wavelength values will be excluded. Third parameter must be 0.\OptionalAtt{0 0 0}
+    - \xmlAtt \ref ClipRectangleSize Three integer values. Specify if only a part of the spectrum should be acquired. First parameter specifies the size of the acquired spectrum, in sensor index value (between 1 and the number of sensor pixel elements). Second parameter is 1 if only wavelength or intensity values will be included, 2 if both wavelength and intensity values will be included. Third parameter must be 1. If all parameters are zero (default) then no clipping is performed.\OptionalAtt{0 0 0}
+
+\section ThorLabsExampleConfigFileClippingExample Example for clipping the acquired spectrum
+
+
+    
+\section ThorLabsExampleConfigFile Example configuration file PlusDeviceSet_Server_ThorLabsVideoCapture.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_Server_ThorLabsVideoCapture.xml"
+
+*/

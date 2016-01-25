@@ -1,0 +1,195 @@
+<PlusConfiguration version="2.3" PlusRevision="Plus-2.1.2.3381 - Win32">
+  <DataCollection StartupDelaySec="1">
+    <DeviceSet Name="PlusServer: Bi-plane ie33 (x7-27 probe) + NDI Aurora tracker (Reference, Probe, Stylus) - 14cm - fCal Phantom 2.0" Description="NDI Aurora sensors should be plugged in the following order: 1 Reference, 2 Probe, 3 Stylus." />
+    <Device
+      Id="TrackerDevice"
+      Type="AuroraTracker"
+      SerialPort="3"
+      AcquisitionRate="50"
+      LocalTimeOffsetSec="0.0"
+      ToolReferenceFrame="Tracker"
+      BaudRate="115200">
+      <DataSources>
+        <DataSource Type="Tool" Id="Reference" BufferSize="500" PortName="0" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" Id="Probe" BufferSize="500" PortName="1" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" Id="Stylus" BufferSize="500" PortName="2" AveragedItemsForFiltering="20" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream">
+          <DataSource Id="Probe" />
+          <DataSource Id="Reference" />
+          <DataSource Id="Stylus" />
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="VideoDevice" 
+      Type="Epiphan" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"/>
+        <DataSource Type="Video" Id="LeftVideo" PortUsImageOrientation="MF" ClipRectangleOrigin="280 360 0" ClipRectangleSize="470 490 1"/>
+        <DataSource Type="Video" Id="RightVideo" PortUsImageOrientation="MF" ClipRectangleOrigin="750 360 0" ClipRectangleSize="470 490 1"/>
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+        <OutputChannel Id="LeftVideoStream" VideoDataSourceId="LeftVideo" />
+        <OutputChannel Id="RightVideoStream" VideoDataSourceId="RightVideo" />
+      </OutputChannels>
+    </Device>
+    
+    <Device 
+      Id="LeftTrackedVideoDevice" 
+      Type="VirtualMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="LeftVideoStream" />
+      </InputChannels>
+      <OutputChannels>
+        <OutputChannel Id="LeftTrackedVideoStream"/>
+      </OutputChannels>
+    </Device>
+
+    <Device 
+      Id="RightTrackedVideoDevice" 
+      Type="VirtualMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="RightVideoStream" />
+      </InputChannels>
+      <OutputChannels>
+        <OutputChannel Id="RightTrackedVideoStream"/>
+      </OutputChannels>
+    </Device>
+
+    <Device 
+      Id="TrackedVideoDevice" 
+      Type="VirtualMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="VideoStream" />
+      </InputChannels>
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream"/>
+      </OutputChannels>
+    </Device>
+
+
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="ie33Philips_biPlaneCapture.nrrd"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="TrackedVideoStream" />
+      </InputChannels>
+    </Device>
+  </DataCollection>
+ 
+  <CoordinateDefinitions>
+    <Transform From="Image" To="Probe"
+      Matrix="
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        0	0	0	1"
+       Error="1.17562" Date="052015_132620" />
+    <Transform From="LeftImage" To="Probe"
+      Matrix="
+        0.0513241	0.276722	-0.0238756	-8.72534
+        -0.257503	0.0445921	0.00497537	73.0862
+        0.00925239	0.0235689	0.27091	9.31863
+        0	0	0	1"
+       Error="0.823764" Date="102915_122918" />
+    <Transform From="RightImage" To="Probe"
+      Matrix="
+        0.0327311	0.266987	0.0697113	-2.32263
+        -0.0158527	0.0736223	-0.2629	9.8922
+        -0.26503	0.0305456	0.0243347	70.3012
+        0	0	0	1"
+       Error="0.925034" Date="102915_123511" />
+    <!-- stylus tip for 3d printed neochord with jaw shut-->
+    <Transform From="StylusTip" To="Stylus"
+      Matrix="
+        0.994215	0	0.107408	1.15469
+        0.0246084	0.9734	-0.227785	-2.4488
+        -0.104551	0.22911	0.967769	10.404
+        0	0	0	1"
+       Error="0.222242" Date="102515_140600" /> 
+    <!-- stylus tip for 3d printed ball stylus 
+    <Transform From="StylusTip" To="Stylus"
+      Matrix="
+        0.999723	0	0.0235241	1.87003
+        -0.000271716	0.999933	0.0115473	0.917947
+        -0.0235225	-0.0115505	0.999657	79.4668
+        0	0	0	1"
+      Error="0.179735" Date="102515_141453" />-->
+    <Transform From="Reference" To="Ras"
+      Matrix="
+        1 0 0 0 
+        0 0 1 0 
+        0 -1 0 0 
+        0 0 0 1"
+       Error="0.287287" Date="082315_112217" />
+  </CoordinateDefinitions>
+
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="TrackedVideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="StylusTipToReference" /> 
+      </TransformNames>
+      <ImageNames>
+        <Image Name="Image" EmbeddedTransformToFrame="Reference" />
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18945" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="LeftTrackedVideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+         <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="StylusTipToRas" /> 
+      </TransformNames>
+      <ImageNames>
+        <Image Name="LeftImage" EmbeddedTransformToFrame="Ras" />
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+  
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18946" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="RightTrackedVideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="StylusTipToRas" />
+      </TransformNames>
+      <ImageNames>
+        <Image Name="RightImage" EmbeddedTransformToFrame="Ras" />
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+</PlusConfiguration>

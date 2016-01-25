@@ -1,0 +1,78 @@
+/**
+
+\page AlgorithmProbeCalibration Probe calibration algorithm
+
+This algorithm determines the transformation between the ultrasound image and a tracker marker rigidly attached to somewhere on the ultrasound probe.
+
+\section ProbeCalibrationConfigSettings Configuration settings
+
+- \xmlElem \b vtkProbeCalibrationAlgo
+  - \xmlAtt ImageCoordinateFrame \RequiredAtt
+  - \xmlAtt ProbeCoordinateFrame \RequiredAtt
+  - \xmlAtt PhantomCoordinateFrame \RequiredAtt
+  - \xmlAtt ReferenceCoordinateFrame \RequiredAtt
+  - \xmlAtt OptimizationMethod \OptionalAtt{NONE}
+    - \c 2D The transform is the current pose. If the mouse is released then the transforms reverts to identity.
+    - \c 3D The transform is changing while the mouse is translated or rotated. If the mouse is released then the transform kept unchanged.
+  - \xmlAtt IsotropicPixelSpacing Specifies if during optimization an isotropic horizontal and vertical spacing in the image is enforced. Only used if \c OptimizationMethod is not \c NONE \OptionalAtt{FALSE}
+
+- \xmlElem \b Segmentation: Segmentation and pattern recognition parameters. Can be checked and modified using SegmentationParameterDialogTest or fCal (FreehandClibration toolbox) applications
+  - \xmlAtt ApproximateSpacingMmPerPixel
+  - \xmlAtt MorphologicalOpeningCircleRadiusMm
+  - \xmlAtt MorphologicalOpeningBarSizeMm
+  - \xmlAtt ClipRectangleOrigin
+  - \xmlAtt ClipRectangleSize 
+  - \xmlAtt MaxLinePairDistanceErrorPercent
+  - \xmlAtt AngleToleranceDegrees
+  - \xmlAtt MaxAngleDifferenceDegrees
+  - \xmlAtt MinThetaDegrees
+  - \xmlAtt MaxThetaDegrees
+  - \xmlAtt ThresholdImagePercent
+  - \xmlAtt CollinearPointsMaxDistanceFromLineMm
+  - \xmlAtt UseOriginalImageIntensityForDotIntensityScore
+
+- \xmlElem \b PhantomDefinition
+  - \xmlElem \b Description
+    - \xmlAtt Name
+    - \xmlAtt Type
+    - \xmlAtt Version
+    - \xmlAtt WiringVersion
+    - \xmlAtt Institution
+  - \xmlElem \b Geometry
+    - \xmlElem \b Pattern
+      - \xmlElem \b Wire
+        - \xmlAtt Name
+        - \xmlAtt EndPointFront
+        - \xmlAtt EndPointBack
+    - \xmlElem \b Landmarks
+      - \xmlElem \b Landmark
+        - \xmlAtt Name
+        - \xmlAtt Position
+
+
+\section AlgorithmProbeCalibrationPhantomDefinition Phantom definition
+
+We recommend using 3 N-wires as we have found this to be more robust and accurate than using just 2 N-wires but still can be robustly detected and kept in the field of view. Specification of the wire pattern is available at https://www.assembla.com/code/plus/subversion/nodes/trunk/PlusLib/docs/fCAL/CAD. XML description can be found in the example device set configuration files. 
+
+You can add any number of N-wires with any angles between the side and middle wires (angle can be different for each N-wire) with the following conditions:
+- all N-wires shall be completely visible at the same time in the ultrasound image
+- planes of N-wires shall be parallel
+- only one N-wire is allowed on a plane (they should not be placed side-by-side, only above/below each other)
+
+N-wires should cover about the same area of the ultrasound image (same size and location) during registration as your region of interest (e.g., if you image
+a 40mm diameter object 50mm from the transducer then during calibration the N-wires should cover about 40mm range, about 50mm from the transducer).
+
+You can find the CAD models and snapshots of fCal calibration phantoms in the following directories:
+- https://www.assembla.com/code/plus/subversion/nodes/trunk/PlusLib/data/CADModels/fCalPhantom
+- https://www.assembla.com/code/plus/subversion/nodes/trunk/PlusLib/docs/fCAL/CAD
+
+fCal-2.x is recommended for smaller field of view (up to about 10cm imaging depth). The hole positions are the same for fCal-1.x and fCal-2.x (only some text labels and marker mounting holes are added) but fCal_2.x has extra holes that allow using 3 N-wires, which greatly increases the accuracy and robustness (compared to using just 2 N-wires), therefore using fCal-1.x is not recommended.
+
+If you image large structures then you probably need fCal 3 phantom. However, fCal-3.x is assembled from multiple pieces (to limit reduce 3D printing time and costs), and so it may be somewhat less accurate then the smaller, unibody fCal-2.x.
+
+
+\section AlgorithmProbeCalibrationExampleConfigFile Example configuration file PlusDeviceSet_fCal_Ultrasonix_L14-5_Ascension3DG_2.0.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_fCal_Ultrasonix_L14-5_Ascension3DG_2.0.xml"
+
+*/

@@ -1,0 +1,83 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/ 
+
+#ifndef __vtkPlusIgtlMessageFactory_h
+#define __vtkPlusIgtlMessageFactory_h
+
+#include "PlusConfigure.h"
+#include "vtkPlusOpenIGTLinkExport.h"
+
+#include "vtkObject.h" 
+#include "igtlMessageBase.h"
+#include "igtlMessageFactory.h"
+#include "PlusIgtlClientInfo.h" 
+
+class vtkXMLDataElement; 
+class TrackedFrame; 
+class vtkTransformRepository;
+
+/*!
+  \class vtkPlusIgtlMessageFactory 
+  \brief Factory class of supported OpenIGTLink message types
+
+  This class is a factory class of supported OpenIGTLink message types to localize the message creation code.
+
+  \ingroup PlusLibOpenIGTLink
+*/ 
+class vtkPlusOpenIGTLinkExport vtkPlusIgtlMessageFactory: public vtkObject
+{
+public:
+  static vtkPlusIgtlMessageFactory *New();
+  vtkTypeMacro(vtkPlusIgtlMessageFactory,vtkObject);
+  virtual void PrintSelf(ostream& os, vtkIndent indent);
+
+  /*! Function pointer for storing New() static methods of igtl::MessageBase classes */ 
+  typedef igtl::MessageBase::Pointer (*PointerToMessageBaseNew)(); 
+
+  /*! 
+  Get pointer to message type new function, or NULL if the message type not registered 
+  Usage: igtl::MessageBase::Pointer message = GetMessageTypeNewPointer("IMAGE")(); 
+  */ 
+  virtual vtkPlusIgtlMessageFactory::PointerToMessageBaseNew GetMessageTypeNewPointer(const std::string& messageTypeName); 
+
+  /*! Print all supported OpenIGTLink message types */
+  virtual void PrintAvailableMessageTypes(ostream& os, vtkIndent indent);
+
+  /// Constructs a message from the given populated header.
+  /// Throws invalid_argument if headerMsg is NULL.
+  /// Throws invalid_argument if this->IsValid(headerMsg) returns false.
+  /// Creates message, sets header onto message and calls AllocatePack() on the message.
+  igtl::MessageBase::Pointer CreateReceiveMessage(igtl::MessageHeader::Pointer headerMsg) const;
+
+  /// Constructs an empty message from the given message type.
+  /// Throws invalid_argument if messageType is empty.
+  /// Creates message, sets header onto message and calls AllocatePack() on the message.
+  igtl::MessageBase::Pointer CreateSendMessage(const std::string& messageType) const;
+
+  /*! 
+  Generate and pack IGTL messages from tracked frame
+  \param packValidTransformsOnly Control whether or not to pack transform messages if they contain invalid transforms
+  \param clientInfo Specifies list of message types and names to generate for a client.
+  \param igtMessages Output list for the generated IGTL messages
+  \param trackedFrame Input tracked frame data used for IGTL message generation 
+  \param transformRepository Transform repository used for computing the selected transforms 
+  */ 
+  PlusStatus PackMessages(const PlusIgtlClientInfo& clientInfo, std::vector<igtl::MessageBase::Pointer>& igtMessages, TrackedFrame& trackedFrame, 
+    bool packValidTransformsOnly, vtkTransformRepository* transformRepository=NULL); 
+
+protected:
+  vtkPlusIgtlMessageFactory();
+  virtual ~vtkPlusIgtlMessageFactory();
+
+  igtl::MessageFactory::Pointer IgtlFactory;
+
+private:
+  vtkPlusIgtlMessageFactory(const vtkPlusIgtlMessageFactory&);
+  void operator=(const vtkPlusIgtlMessageFactory&);
+
+}; 
+
+#endif 

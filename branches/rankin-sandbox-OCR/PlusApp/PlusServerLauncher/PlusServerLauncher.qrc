@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="icons">
+    <file>Resources/icon_ConnectLarge.ico</file>
+  </qresource>
+  <qresource prefix="styles"/>
+</RCC>

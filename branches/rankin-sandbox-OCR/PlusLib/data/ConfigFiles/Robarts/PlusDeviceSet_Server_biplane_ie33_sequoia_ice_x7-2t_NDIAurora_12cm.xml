@@ -1,0 +1,177 @@
+<PlusConfiguration version="2.3" PlusRevision="Plus-2.1.2.3381 - Win32">
+  <DataCollection StartupDelaySec="1">
+    <DeviceSet Name="PlusServer: Bi-plane ie33 (Epiphan) + Seqouia Ice (Epiphan) + NDI Aurora tracker (Reference, Probe, Base, Tip) - 12cm" Description="NDI Aurora sensors should be plugged in the following order: 1 Reference, 2 Probe, 3 Base, 4 Tip." />
+    <Device
+      Id="TrackerDevice"
+      Type="AuroraTracker"
+      SerialPort="3"
+      AcquisitionRate="50"
+      LocalTimeOffsetSec="0.0"
+      ToolReferenceFrame="Tracker"
+      BaudRate="115200">
+      <DataSources>
+        <DataSource Type="Tool" Id="Reference" BufferSize="500" PortName="0" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" Id="Probe" BufferSize="500" PortName="1" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" Id="Base" BufferSize="500" PortName="2" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" Id="Tip" BufferSize="500" PortName="3" AveragedItemsForFiltering="20" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream">
+          <DataSource Id="Reference" />
+          <DataSource Id="Probe" />
+          <DataSource Id="Base" />
+          <DataSource Id="Tip" />
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="VideoDevice" 
+      Type="Epiphan"
+      GrabberLocation="local:D3U52613">
+      <DataSources>
+        <DataSource Type="Video" Id="LeftVideo" PortUsImageOrientation="MF" ClipRectangleOrigin="280 360 0" ClipRectangleSize="470 490 1"/>
+        <DataSource Type="Video" Id="RightVideo" PortUsImageOrientation="MF" ClipRectangleOrigin="750 360 0" ClipRectangleSize="470 490 1"/>
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="LeftVideoStream" VideoDataSourceId="LeftVideo" />
+        <OutputChannel Id="RightVideoStream" VideoDataSourceId="RightVideo" />
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="IceVideoDevice" 
+      Type="Epiphan"
+      GrabberLocation="local:V4U33147">
+      <DataSources>
+        <DataSource Type="Video" Id="IceVideo" PortUsImageOrientation="MF"/>
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="IceVideoStream" VideoDataSourceId="IceVideo" />
+      </OutputChannels>
+    </Device>
+    
+    <Device 
+      Id="LeftTrackedVideoDevice" 
+      Type="VirtualMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="LeftVideoStream" />
+      </InputChannels>
+      <OutputChannels>
+        <OutputChannel Id="LeftTrackedVideoStream"/>
+      </OutputChannels>
+    </Device>
+
+    <Device 
+      Id="RightTrackedVideoDevice" 
+      Type="VirtualMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="RightVideoStream" />
+      </InputChannels>
+      <OutputChannels>
+        <OutputChannel Id="RightTrackedVideoStream"/>
+      </OutputChannels>
+    </Device>
+
+    <Device 
+      Id="IceTrackedVideoDevice" 
+      Type="VirtualMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="IceVideoStream" />
+      </InputChannels>
+      <OutputChannels>
+        <OutputChannel Id="IceTrackedVideoStream"/>
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="ie33_ice.nrrd"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="IceTrackedVideoStream" />
+      </InputChannels>
+    </Device>
+  </DataCollection>
+ 
+  <CoordinateDefinitions>
+    <Transform From="LeftImage" To="Probe"
+      Matrix="
+        0.0414614	0.236806	-0.0282193	-4.34899
+        -0.227051	0.0408151	0.00837801	64.5546
+        0.0130926	0.0270207	0.234655	5.23584
+        0	0	0	1"
+       Error="0.665973" Date="110415_130422" />
+    <Transform From="RightImage" To="Probe"
+      Matrix="
+        0.0320017	0.235624	0.0399261	-1.85025
+        -0.0207558	0.0435216	-0.231766	16.3258
+        -0.229226	0.0255754	0.0265597	61.7144
+        0	0	0	1"
+       Error="0.583284" Date="110415_130240" />
+    <Transform From="Ice" To="Tip"
+      Matrix="
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        0	0	0	1"
+       Error="0.0" Date="110415_130240" />
+  </CoordinateDefinitions>
+
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="LeftTrackedVideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+      </MessageTypes>
+      <ImageNames>
+        <Image Name="LeftImage" EmbeddedTransformToFrame="Reference" />
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18945" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="RightTrackedVideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+      </MessageTypes>
+      <ImageNames>
+        <Image Name="RightImage" EmbeddedTransformToFrame="Reference" />
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+  
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18946" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="IceTrackedVideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <ImageNames>
+        <Image Name="Ice" EmbeddedTransformToFrame="Reference" />
+      </ImageNames>
+      <TransformNames> 
+        <Transform Name="BaseToReference" />
+        <Transform Name="TipToReference" />
+      </TransformNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+</PlusConfiguration>
