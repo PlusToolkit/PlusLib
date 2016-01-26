@@ -94,6 +94,7 @@ OPTION(PLUSBUILD_USE_OpenIGTLink "Use OpenIGTLink" ON)
 OPTION(PLUSBUILD_BUILD_SHARED_LIBS "Build shared libs" ON)
 OPTION(PLUSBUILD_BUILD_PLUSAPP "Build PlusApp applications" ON)
 OPTION(PLUSBUILD_BUILD_PLUSMODELCATALOG "Build Plus Model Catalog" OFF)
+OPTION(PLUSBUILD_USE_Tesseract "Use OCR in PlusLib for parameter detection" OFF)
 
 # Documentation
 option(PLUSBUILD_DOCUMENTATION "Build Plus documentation (Doxygen)." OFF)
@@ -485,11 +486,15 @@ SET(PlusModelCatalog_DEPENDENCIES PlusLib)
 # Set up project for PlusLib, PlusApp, and PlusModelCatalog
 #------------------------------------------------------------------------------
 
+IF(PLUSBUILD_USE_Tesseract)
+  INCLUDE(External_Tesseract.cmake)
+ENDIF(PLUSBUILD_USE_Tesseract)
+
 INCLUDE(External_PlusLib.cmake)
 
 IF(PLUSBUILD_BUILD_PLUSAPP) 
   INCLUDE(External_PlusApp.cmake)
-ENDIF(PLUSBUILD_BUILD_PLUSAPP)    
+ENDIF(PLUSBUILD_BUILD_PLUSAPP)
 
 IF(PLUSBUILD_BUILD_PLUSMODELCATALOG) 
   INCLUDE(External_PlusModelCatalog.cmake)
