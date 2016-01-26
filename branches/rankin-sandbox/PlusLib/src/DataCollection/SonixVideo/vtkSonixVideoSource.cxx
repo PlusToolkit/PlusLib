@@ -1425,6 +1425,8 @@ PlusStatus vtkSonixVideoSource::SetNewImagingParameters(const vtkUsImagingParame
     return PLUS_FAIL;
   }
 
+  // TODO : apply new params to device
+
   return PLUS_SUCCESS;
 }
 
