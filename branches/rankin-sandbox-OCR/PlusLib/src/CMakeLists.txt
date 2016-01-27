@@ -39,6 +39,13 @@ IF(PLUS_USE_OpenIGTLink)
   SET(PLUS_OPENIGTLINK_VERSION_PATCH "${OpenIGTLink_VERSION_PATCH}")
 ENDIF(PLUS_USE_OpenIGTLink)
 
+# --------------------------------------------------------------------------
+# Try to find tesseract and include its settings (otherwise complain)
+# 
+FIND_PACKAGE(tesseract NO_MODULE REQUIRED PATHS ${tesseract_DIR} NO_DEFAULT_PATH)
+IF ( tesseract_FOUND )
+  INCLUDE(${tesseract_USE_FILE})
+ENDIF ( tesseract_FOUND )
 
 # --------------------------------------------------------------------------
 # Options
