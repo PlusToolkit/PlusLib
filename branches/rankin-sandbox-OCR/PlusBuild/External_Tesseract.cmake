@@ -41,6 +41,5 @@ ExternalProject_Add( tesseract
 		-DLEPTONICA_INCLUDE_DIRS:PATH=${PLUS_leptonica_src_DIR}/src
     #--Build step-----------------
     #--Install step-----------------
-    INSTALL_COMMAND ""
-    DEPENDS leptonica
+    DEPENDS ${tesseract_DEPENDENCIES}
     )    

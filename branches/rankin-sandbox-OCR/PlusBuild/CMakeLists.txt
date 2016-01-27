@@ -468,6 +468,12 @@ IF(PLUSBUILD_USE_OpenIGTLink AND NOT OpenIGTLink_DIR)
   LIST(APPEND PlusLib_DEPENDENCIES OpenIGTLink)
 ENDIF()
 
+IF ( PLUSBUILD_USE_tesseract AND NOT tesseract_DIR )
+  # tesseract_DIR is not supplied, so it is built inside Plus, therefore we need to specify dependencies to make sure it is built early enough
+  SET(tesseract_DEPENDENCIES leptonica)
+  LIST(APPEND PlusLib_DEPENDENCIES tesseract)   
+ENDIF()
+
 IF ( PLUS_USE_BKPROFOCUS_VIDEO )
   SET(GrabbieLib_DEPENDENCIES)
   LIST(APPEND PlusLib_DEPENDENCIES GrabbieLib)
