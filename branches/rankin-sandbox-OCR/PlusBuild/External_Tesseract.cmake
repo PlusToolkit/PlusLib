@@ -1,3 +1,5 @@
+LIST(APPEND PlusLib_DEPENDENCIES tesseract)
+
 # --------------------------------------------------------------------------
 # leptonica
 SET (PLUS_leptonica_src_DIR ${CMAKE_BINARY_DIR}/leptonica CACHE INTERNAL "Path to store leptonica contents.")
@@ -7,7 +9,7 @@ ExternalProject_Add( leptonica
     SOURCE_DIR "${PLUS_leptonica_src_DIR}"
     BINARY_DIR "${PLUS_leptonica_DIR}"
     #--Download step--------------
-    GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/PLUSLibrary/leptonica.git"
+    GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/PLUSToolkit/leptonica.git"
     GIT_TAG 0332d82f567968aa4325e2e69239808d8f4200ba
     #--Configure step-------------
     CMAKE_ARGS 
@@ -30,7 +32,7 @@ ExternalProject_Add( tesseract
     SOURCE_DIR "${PLUS_tesseract_src_DIR}"
     BINARY_DIR "${PLUS_tesseract_DIR}"
     #--Download step--------------
-    GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/PLUSLibrary/tesseract-ocr-cmake.git"
+    GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/PLUSToolkit/tesseract-ocr-cmake.git"
     GIT_TAG a41d6ca0a7fdef39f053a4d6ac821b87eeeae0fa
     #--Configure step-------------
     CMAKE_ARGS 

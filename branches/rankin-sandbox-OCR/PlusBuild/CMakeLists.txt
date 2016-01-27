@@ -493,6 +493,7 @@ SET(PlusModelCatalog_DEPENDENCIES PlusLib)
 #------------------------------------------------------------------------------
 
 IF(PLUSBUILD_USE_Tesseract)
+  SET(tesseract_DEPENDENCIES leptonica)
   INCLUDE(External_Tesseract.cmake)
 ENDIF(PLUSBUILD_USE_Tesseract)
 
