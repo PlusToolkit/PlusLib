@@ -10,7 +10,7 @@ ExternalProject_Add( leptonica
     BINARY_DIR "${PLUS_leptonica_DIR}"
     #--Download step--------------
     GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/PLUSToolkit/leptonica.git"
-    GIT_TAG 0332d82f567968aa4325e2e69239808d8f4200ba
+    GIT_TAG 45504037248ed25073cd09743d4716205f397288
     #--Configure step-------------
     CMAKE_ARGS 
         ${ep_common_args}
@@ -21,7 +21,7 @@ ExternalProject_Add( leptonica
     #--Install step-----------------
     INSTALL_COMMAND ""
     DEPENDS
-    )      
+    )
 
 # --------------------------------------------------------------------------
 # tesseract-ocr-cmake
@@ -33,15 +33,15 @@ ExternalProject_Add( tesseract
     BINARY_DIR "${PLUS_tesseract_DIR}"
     #--Download step--------------
     GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/PLUSToolkit/tesseract-ocr-cmake.git"
-    GIT_TAG a41d6ca0a7fdef39f053a4d6ac821b87eeeae0fa
+    GIT_TAG b8082a7879a5d2add333e8ca33c4620168776a70
     #--Configure step-------------
     CMAKE_ARGS 
         ${ep_common_args}
         -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
         -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
         -DCMAKE_PREFIX_PATH:STRING=${CMAKE_PREFIX_PATH}
-		-DLEPTONICA_INCLUDE_DIRS:PATH=${PLUS_leptonica_src_DIR}/src
+        -DLeptonica_DIR:PATH=${PLUS_leptonica_DIR}
     #--Build step-----------------
     #--Install step-----------------
     DEPENDS ${tesseract_DEPENDENCIES}
-    )    
+    )
