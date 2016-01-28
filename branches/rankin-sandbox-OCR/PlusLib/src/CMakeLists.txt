@@ -47,7 +47,7 @@ IF(PLUS_USE_tesseract)
   IF ( tesseract_FOUND )
     INCLUDE(${tesseract_USE_FILE})
   ENDIF ( tesseract_FOUND )
-ENDIF(PLUS_USE_tesseract))
+ENDIF(PLUS_USE_tesseract)
 
 # --------------------------------------------------------------------------
 # Options
