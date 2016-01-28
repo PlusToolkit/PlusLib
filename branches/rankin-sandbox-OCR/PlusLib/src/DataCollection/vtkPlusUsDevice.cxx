@@ -44,4 +44,6 @@ PlusStatus vtkPlusUsDevice::SetNewImagingParameters(const vtkUsImagingParameters
     LOG_ERROR("Unable to deep copy new imaging parameters.");
     return PLUS_FAIL;
   }
+
+  return PLUS_SUCCESS;
 }

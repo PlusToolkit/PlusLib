@@ -63,6 +63,10 @@ SET (DataCollection_SRCS
   vtkUsImagingParameters.cxx
   )
 
+IF(PLUS_USE_tesseract)
+  SET (DataCollection_SRCS ${DataCollection_SRCS} VirtualDevices/vtkVirtualScreenReader.cxx)
+ENDIF(PLUS_USE_tesseract)
+
 SET (DataCollection_HDRS)
 IF (WIN32)  
   SET (DataCollection_HDRS
@@ -80,6 +84,7 @@ IF (WIN32)
     VirtualDevices/vtkVirtualMixer.h
     VirtualDevices/vtkVirtualSwitcher.h
     VirtualDevices/vtkVirtualDiscCapture.h
+    VirtualDevices/vtkVirtualScreenReader.h
     VirtualDevices/vtkVirtualVolumeReconstructor.h
     ImageProcessor/vtkImageProcessorVideoSource.h
     SerialLine.h
@@ -89,6 +94,9 @@ IF (WIN32)
     UsSimulatorVideo/vtkUsSimulatorVideoSource.h
     vtkUsImagingParameters.h
     )
+  IF(PLUS_USE_tesseract)
+    SET (DataCollection_HDRS ${DataCollection_HDRS} VirtualDevices/vtkVirtualScreenReader.h)
+  ENDIF(PLUS_USE_tesseract)
 ENDIF (WIN32)  
 
 SET (External_Libraries_Install)
@@ -104,6 +112,18 @@ SET (DataCollection_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/VirtualDevices  
   CACHE INTERNAL "" FORCE)
 
+# --------------------------------------------------------------------------
+# tesseract support
+IF(PLUS_USE_tesseract)
+  SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
+    ${tesseract_INCLUDE_DIRS}
+    CACHE INTERNAL "" FORCE)
+
+  SET (DataCollection_LIBS ${DataCollection_LIBS}
+    ${tesseract_LIBRARY}
+    )
+ENDIF(PLUS_USE_tesseract)
+  
 # --------------------------------------------------------------------------
 # OptiTrack support
 IF (PLUS_USE_OPTITRACK)
@@ -125,20 +145,20 @@ IF (PLUS_USE_OPTITRACK)
       
     IF( CMAKE_SIZEOF_VOID_P EQUAL 8 )
     # 64-bit
-		SET (DataCollection_LIBS ${DataCollection_LIBS}
-		${TRACKINGTOOLS_64_BIT_LIBRARY}
-		)
-		SET ( External_Libraries_Install ${External_Libraries_Install}
-		${TRACKINGTOOLS_BINARY_DIR}/NPTrackingToolsx64${CMAKE_SHARED_LIBRARY_SUFFIX}
-		)
-	ELSE()
+        SET (DataCollection_LIBS ${DataCollection_LIBS}
+        ${TRACKINGTOOLS_64_BIT_LIBRARY}
+        )
+        SET ( External_Libraries_Install ${External_Libraries_Install}
+        ${TRACKINGTOOLS_BINARY_DIR}/NPTrackingToolsx64${CMAKE_SHARED_LIBRARY_SUFFIX}
+        )
+    ELSE()
     # 32-bit
-		SET (DataCollection_LIBS ${DataCollection_LIBS}
-		${TRACKINGTOOLS_32_BIT_LIBRARY}
-		)
-		SET ( External_Libraries_Install ${External_Libraries_Install}
-		${TRACKINGTOOLS_BINARY_DIR}/NPTrackingTools${CMAKE_SHARED_LIBRARY_SUFFIX}
-		)
+        SET (DataCollection_LIBS ${DataCollection_LIBS}
+        ${TRACKINGTOOLS_32_BIT_LIBRARY}
+        )
+        SET ( External_Libraries_Install ${External_Libraries_Install}
+        ${TRACKINGTOOLS_BINARY_DIR}/NPTrackingTools${CMAKE_SHARED_LIBRARY_SUFFIX}
+        )
   ENDIF()   
 ENDIF (PLUS_USE_OPTITRACK)
 
@@ -932,10 +952,10 @@ ENDIF (PLUS_USE_INTERSONSDKCXX_VIDEO)
 
 IF (PLUS_USE_TELEMED_VIDEO)
   # ADD_CUSTOM_COMMAND(OUTPUT 
-	# Telemed/Usgfw2_h.h
-	# Telemed/dlldata.c
-	# Telemed/Usgfw2_i.c
-	# Telemed/Usgfw2_p.c
+    # Telemed/Usgfw2_h.h
+    # Telemed/dlldata.c
+    # Telemed/Usgfw2_i.c
+    # Telemed/Usgfw2_p.c
     # COMMAND midl.exe /out ./Telemed /header Usgfw2_h.h /no_robust ${TELEMED_INCLUDE_DIR}/Usgfw2.idl
   # )
   
@@ -993,9 +1013,9 @@ ENDIF (PLUS_USE_THORLABS_VIDEO)
 
 IF (PLUS_USE_PHILIPS_3D_ULTRASOUND)
   IF(PLUS_USE_ULTRASONIX_VIDEO)
-	# Ultrasonix contains its own libmmd.dll which does not support all the functionality needed for the philips probe
-	# They both cannot be enabled at the same time.
-	MESSAGE( FATAL_ERROR "Plus cannot enable both Ultrasonix and Philips devices due to .dll conflicts in their respective SDK packages.")
+    # Ultrasonix contains its own libmmd.dll which does not support all the functionality needed for the philips probe
+    # They both cannot be enabled at the same time.
+    MESSAGE( FATAL_ERROR "Plus cannot enable both Ultrasonix and Philips devices due to .dll conflicts in their respective SDK packages.")
   ELSE(PLUS_USE_ULTRASONIX_VIDEO)
     SET (DataCollection_SRCS ${DataCollection_SRCS}
       Philips3D/vtkPhilips3DProbeVideoSource.cxx 
