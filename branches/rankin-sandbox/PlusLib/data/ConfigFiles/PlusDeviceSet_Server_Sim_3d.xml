@@ -7,28 +7,27 @@
     <Device
       Id="TrackedVideoDevice"
       Type="SavedDataSource"
-      SequenceFile="F:\Backup\SPIEMitralExperiments\participants\participant7_drmarkgerman\DrMark_German_3D-AR_phantom1_trial11.nrrd"
+      SequenceFile="D:\Backup\SPIEMitralExperiments\participants\participant6_goli\Golafsoun_Ameri_xPlane-AR_phantom1_trial2.nrrd"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" />
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MN"/>
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
     </Device>
     <Device
-      Id="CaptureDevice"
-      Type="VirtualDiscCapture"
-      BaseFilename="RecordingTest.nrrd"
-      EnableCapturingOnStart="FALSE" >
+      Id="ScreenReader"
+      Type="VirtualScreenReader"
+      Language="eng" >
       <InputChannels>
         <InputChannel Id="TrackedVideoStream" />
       </InputChannels>
     </Device>
   </DataCollection>
-    
+
   <PlusOpenIGTLinkServer 
     MaxNumberOfIgtlMessagesToSend="1" 
     MaxTimeSpentWithProcessingMs="50" 
