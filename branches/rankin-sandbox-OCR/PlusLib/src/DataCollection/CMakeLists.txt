@@ -1,6 +1,6 @@
 # --------------------------------------------------------------------------
 # Options
-OPTION(PLUS_USE_OPTITRACK "Provide support for the OptiTrack tracking system" OFF)
+OPTION (PLUS_USE_OPTITRACK "Provide support for the OptiTrack tracking system" OFF)
 OPTION (PLUS_USE_OPTIMET_CONOPROBE "Provide support for the Optimet ConoProbe" OFF)
 OPTION (PLUS_USE_POLARIS "Provide support for the NDI Polaris and Aurora" OFF)
 OPTION (PLUS_USE_CERTUS "Provide support for the NDI Certus" OFF)
@@ -21,9 +21,9 @@ OPTION (PLUS_USE_INTERSON_VIDEO "Provide support Interson USB ultrasound probes"
 OPTION (PLUS_USE_INTERSONSDKCXX_VIDEO "Provide support Interson SDK 1.X with C++ Wrapper USB ultrasound probes" OFF)
 OPTION (PLUS_USE_TELEMED_VIDEO "Provide support for the Telemed ultrasound probes" OFF)
 OPTION (PLUS_USE_THORLABS_VIDEO "Provide support for the ThorLabs compact spectrometers" OFF)
-OPTION(PLUS_USE_STEALTHLINK "Provide support for the Medtronick StealthLink Server" OFF)
-OPTION(PLUS_USE_IntuitiveDaVinci "Enable the tracking of the da Vinci Surgical System. Enable this only if you have a da Vinci that is accessible from this computer." OFF)
-OPTION(PLUS_USE_PHILIPS_3D_ULTRASOUND "Provide support for the Philips ie33 3D ultrasound probe system." OFF)
+OPTION (PLUS_USE_STEALTHLINK "Provide support for the Medtronick StealthLink Server" OFF)
+OPTION (PLUS_USE_IntuitiveDaVinci "Enable the tracking of the da Vinci Surgical System. Enable this only if you have a da Vinci that is accessible from this computer." OFF)
+OPTION (PLUS_USE_PHILIPS_3D_ULTRASOUND "Provide support for the Philips ie33 3D ultrasound probe system." OFF)
 OPTION (PLUS_TEST_BKPROFOCUS "Enable testing of acquisition from BK ProFocus ultrasound systems. Enable this only if a BK ProFocus device is connected to this computer." OFF)
 OPTION (PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
 IF (PLUS_TEST_ULTRASONIX)
@@ -33,6 +33,7 @@ OPTION(PLUS_USE_MMF_VIDEO "Provide support for the Microsoft Media Foundation vi
 IF(PLUS_USE_MMF_VIDEO)
   OPTION(PLUS_TEST_MMF_VIDEO "Enable testing of acquisition from MMF video device (webcam). Enable this only if an MMF device is connected to this computer." OFF)  
 ENDIF(PLUS_USE_MMF_VIDEO)
+OPTION (PLUS_USE_tesseract "Provide support for optical character recognition virtual device via tesseract OCR library." OFF)
 
 SET (DataCollection_INCLUDE_DIRS "" CACHE INTERNAL "" FORCE)
 
@@ -111,18 +112,6 @@ SET (DataCollection_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/UsSimulatorVideo 
   ${CMAKE_CURRENT_SOURCE_DIR}/VirtualDevices  
   CACHE INTERNAL "" FORCE)
-
-# --------------------------------------------------------------------------
-# tesseract support
-IF(PLUS_USE_tesseract)
-  SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
-    ${tesseract_INCLUDE_DIRS}
-    CACHE INTERNAL "" FORCE)
-
-  SET (DataCollection_LIBS ${DataCollection_LIBS}
-    ${tesseract_LIBRARY}
-    )
-ENDIF(PLUS_USE_tesseract)
   
 # --------------------------------------------------------------------------
 # OptiTrack support
@@ -1047,6 +1036,25 @@ IF (PLUS_USE_PHILIPS_3D_ULTRASOUND)
       )
   ENDIF(PLUS_USE_ULTRASONIX_VIDEO)
 ENDIF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
+
+# --------------------------------------------------------------------------
+# Try to find tesseract and include its settings (otherwise complain)
+#
+IF(PLUS_USE_tesseract)
+  FIND_PACKAGE(tesseract NO_MODULE REQUIRED PATHS ${tesseract_DIR})
+ENDIF(PLUS_USE_tesseract)
+
+# --------------------------------------------------------------------------
+# tesseract support
+IF(PLUS_USE_tesseract)
+  SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
+    ${tesseract_INCLUDE_DIRS}
+    )
+
+  SET (DataCollection_LIBS ${DataCollection_LIBS}
+    ${tesseract_LIBRARIES}
+    )
+ENDIF(PLUS_USE_tesseract)
 
 # --------------------------------------------------------------------------
 # Build the library

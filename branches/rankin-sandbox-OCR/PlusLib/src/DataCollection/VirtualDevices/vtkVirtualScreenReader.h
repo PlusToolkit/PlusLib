@@ -14,6 +14,8 @@ namespace tesseract
 {
   class TessBaseAPI;
 }
+class vtkPlusChannel;
+class vtkTrackedFrameList;
 
 /*!
 \class vtkVirtualScreenReader
@@ -49,7 +51,11 @@ public:
   vtkSetStringMacro(Language);
   vtkGetStringMacro(Language);
 
+  vtkGetObjectMacro(InputChannel, vtkPlusChannel);
+
 protected:
+  vtkSetObjectMacro(InputChannel, vtkPlusChannel);
+
   virtual PlusStatus InternalUpdate();
 
   vtkVirtualScreenReader();
@@ -60,6 +66,11 @@ protected:
 
   /// Main entry point for the tesseract API
   tesseract::TessBaseAPI* TesseractAPI;
+
+  vtkPlusChannel* InputChannel;
+  vtkTrackedFrameList* TrackedFrames;
+
+  double LastTimestampEvaluated;
 
 private:
   vtkVirtualScreenReader(const vtkVirtualScreenReader&);

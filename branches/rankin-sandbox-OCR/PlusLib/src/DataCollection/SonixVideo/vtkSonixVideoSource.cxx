@@ -116,8 +116,6 @@ vtkSonixVideoSource::~vtkSonixVideoSource()
   delete this->Ult;
   this->Ult = NULL;
   this->SetImageToTransducerTransformName(NULL);
-  RequestedImagingParameters->Delete();
-  CurrentImagingParameters->Delete();
 }
 
 //----------------------------------------------------------------------------

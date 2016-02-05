@@ -40,16 +40,6 @@ IF(PLUS_USE_OpenIGTLink)
 ENDIF(PLUS_USE_OpenIGTLink)
 
 # --------------------------------------------------------------------------
-# Try to find tesseract and include its settings (otherwise complain)
-#
-IF(PLUS_USE_tesseract)
-  FIND_PACKAGE(tesseract NO_MODULE REQUIRED PATHS ${tesseract_DIR} NO_DEFAULT_PATH)
-  IF ( tesseract_FOUND )
-    INCLUDE(${tesseract_USE_FILE})
-  ENDIF ( tesseract_FOUND )
-ENDIF(PLUS_USE_tesseract)
-
-# --------------------------------------------------------------------------
 # Options
 OPTION(BUILD_SHARED_LIBS "Build with shared libraries." ${VTK_BUILD_SHARED_LIBS} ${ITK_BUILD_SHARED_LIBS} )     
 # OPTION (BUILD_SLICER_MODULE "Build project as Slicer module" OFF)
