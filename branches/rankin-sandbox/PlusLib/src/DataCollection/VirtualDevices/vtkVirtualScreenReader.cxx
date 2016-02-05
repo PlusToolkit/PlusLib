@@ -20,11 +20,20 @@
 vtkStandardNewMacro(vtkVirtualScreenReader);
 
 //----------------------------------------------------------------------------
+
+namespace
+{
+  const double SAMPLING_SKIPPING_MARGIN_SEC = 0.1;
+  const double DELAY_ON_SENDING_ERROR_SEC = 0.02; 
+}
+
+//----------------------------------------------------------------------------
 vtkVirtualScreenReader::vtkVirtualScreenReader()
 : vtkPlusDevice()
 , Language(NULL)
 , InputChannel(NULL)
 , TrackedFrames(vtkTrackedFrameList::New())
+, ReceivedFrame(NULL)
 , LastTimestampEvaluated(UNDEFINED_TIMESTAMP)
 {
   // The data capture thread will be used to regularly check the input devices and generate and update the output
@@ -48,45 +57,57 @@ void vtkVirtualScreenReader::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 PlusStatus vtkVirtualScreenReader::InternalUpdate()
 {
-  if( this->GetInputChannel()->GetTrackedFrameList(this->LastTimestampEvaluated, this->TrackedFrames, 50) == PLUS_FAIL )
+  double oldestDataTimestamp(0);
+  if (this->GetInputChannel()->GetOldestTimestamp(oldestDataTimestamp) == PLUS_SUCCESS)
   {
-    // No data to process
-    return PLUS_SUCCESS;
+    if (this->LastTimestampEvaluated < oldestDataTimestamp)
+    {
+      this->LastTimestampEvaluated = oldestDataTimestamp + SAMPLING_SKIPPING_MARGIN_SEC;
+    }
+    this->TrackedFrames->Clear();
+    if ( this->GetInputChannel()->GetTrackedFrameList(this->LastTimestampEvaluated, this->TrackedFrames, 3) != PLUS_SUCCESS )
+    {
+      LOG_INFO("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << this->LastTimestampEvaluated ); 
+      vtkAccurateTimer::Delay(DELAY_ON_SENDING_ERROR_SEC);
+    }
   }
 
-  for( int i = 0; i < this->TrackedFrames->GetNumberOfTrackedFrames(); ++i )
+  if( this->TrackedFrames->GetNumberOfTrackedFrames() > 1 )
   {
-    TrackedFrame* frame = this->TrackedFrames->GetTrackedFrame(i);
-    /*
-    const int depth = 8;
-    PIX* pix = pixCreate(frame->GetFrameSize()[0], frame->GetFrameSize()[1], depth);
+    LOG_DEBUG("Processing cannot keep up with acquisition. Dropping " << this->TrackedFrames->GetNumberOfTrackedFrames() - 1 << " frames.");
+    TrackedFrame* frame = this->TrackedFrames->GetTrackedFrame(0);
+    this->LastTimestampEvaluated = frame->GetTimestamp();
 
-    unsigned int *data = pixGetData(pix);
-    int wpl = pixGetWpl(pix);
-    int bpl = (depth * frame->GetFrameSize()[0] + 7) / 8;
+    int w = frame->GetFrameSize()[0];
+    int h = frame->GetFrameSize()[1];
+    if( this->ReceivedFrame == NULL )
+    {
+      this->ReceivedFrame = pixCreate(w, h, 8);
+      this->TesseractAPI->SetImage(this->ReceivedFrame);
+    }
+
+    unsigned int *data = pixGetData(this->ReceivedFrame);
+    int wpl = pixGetWpl(this->ReceivedFrame);
+    int bpl = ( (8*w) + 7) / 8;
     unsigned int *line;
     unsigned char val8;
 
-    int extent[6] = {0,0,0,0,0,0};
-    for(int y = 0; y < frame->GetFrameSize()[1]; y++)
+    static int someVal = 0;
+    int coords[3] = {0,0,0};
+    for(int y = 0; y < h; y++)
     {
-      extent[3] = frame->GetFrameSize()[1]-y-1;
+      coords[1] = h-y-1;
       line = data + y * wpl;
       for(int x = 0; x < bpl; x++)
       {
-        extent[1] = x;
-        val8 = (*(unsigned char*)frame->GetImageData()->GetImage()->GetScalarPointerForExtent(extent));
+        coords[0] = x;
+        val8 = (*(unsigned char*)frame->GetImageData()->GetImage()->GetScalarPointer(coords));
         SET_DATA_BYTE(line,x,val8);
       }
     }
-    */
-    PIX* pix = pixRead("c:\\users\\arankin\\Downloads\\ab.png");
-    //pixWritePng("c:\\users\\arankin\\Downloads\\a.png", pix, 0.0);
 
     char* text_out;
-    this->TesseractAPI->SetImage(pix);
     text_out = this->TesseractAPI->GetUTF8Text();
-
     delete [] text_out;
   }
   

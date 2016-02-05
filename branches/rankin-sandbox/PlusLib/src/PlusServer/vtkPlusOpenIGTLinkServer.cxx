@@ -351,7 +351,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendLatestFramesToClients(vtkPlusOpenIGTLin
           LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << self.LastSentTrackedFrameTimestamp ); 
           vtkAccurateTimer::Delay(DELAY_ON_SENDING_ERROR_SEC); 
         }
-      }      
+      }
     }
   }
 

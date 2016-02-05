@@ -7,7 +7,7 @@
     <Device
       Id="TrackedVideoDevice"
       Type="SavedDataSource"
-      SequenceFile="iE33_NDIAurora_BeatingHeartPhantom_MitralValveInsertion.mha"
+      SequenceFile="ie33_biplane_LeftCaptureDevice_compressed.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE" >
@@ -17,6 +17,15 @@
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
+    </Device>
+    
+    <Device
+      Id="ScreenReaderDevice"
+      Type="VirtualScreenReader" 
+      Language="eng" >
+      <InputChannels>
+        <InputChannel Id="TrackedVideoStream"/>
+      </InputChannels>
     </Device>
   </DataCollection>
 

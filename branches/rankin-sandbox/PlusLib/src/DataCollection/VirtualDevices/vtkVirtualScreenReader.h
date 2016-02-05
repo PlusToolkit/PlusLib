@@ -16,6 +16,7 @@ namespace tesseract
 }
 class vtkPlusChannel;
 class vtkTrackedFrameList;
+class PIX;
 
 /*!
 \class vtkVirtualScreenReader
@@ -69,6 +70,8 @@ protected:
 
   vtkPlusChannel* InputChannel;
   vtkTrackedFrameList* TrackedFrames;
+
+  PIX* ReceivedFrame;
 
   double LastTimestampEvaluated;
 
