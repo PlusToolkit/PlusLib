@@ -95,6 +95,7 @@
 #cmakedefine PLUS_USE_STEALTHLINK
 #cmakedefine PLUS_USE_IntuitiveDaVinci
 #cmakedefine PLUS_USE_PHILIPS_3D_ULTRASOUND
+#cmakedefine PLUS_USE_tesseract
 
 #cmakedefine PLUS_USE_SIMPLE_TIMER
 

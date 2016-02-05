@@ -39,7 +39,6 @@ IF(PLUS_USE_OpenIGTLink)
   SET(PLUS_OPENIGTLINK_VERSION_PATCH "${OpenIGTLink_VERSION_PATCH}")
 ENDIF(PLUS_USE_OpenIGTLink)
 
-
 # --------------------------------------------------------------------------
 # Options
 OPTION(BUILD_SHARED_LIBS "Build with shared libraries." ${VTK_BUILD_SHARED_LIBS} ${ITK_BUILD_SHARED_LIBS} )     

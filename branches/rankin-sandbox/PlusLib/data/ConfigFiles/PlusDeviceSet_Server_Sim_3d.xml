@@ -7,24 +7,16 @@
     <Device
       Id="TrackedVideoDevice"
       Type="SavedDataSource"
-      SequenceFile="D:\Backup\SPIEMitralExperiments\participants\participant6_goli\Golafsoun_Ameri_xPlane-AR_phantom1_trial2.nrrd"
+      SequenceFile="iE33_NDIAurora_BeatingHeartPhantom_MitralValveInsertion.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE" >
       <DataSources>
-        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MN"/>
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MFA"/>
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
       </OutputChannels>
-    </Device>
-    <Device
-      Id="ScreenReader"
-      Type="VirtualScreenReader"
-      Language="eng" >
-      <InputChannels>
-        <InputChannel Id="TrackedVideoStream" />
-      </InputChannels>
     </Device>
   </DataCollection>
 
@@ -41,6 +33,7 @@
       </MessageTypes>
       <TransformNames> 
         <Transform Name="StylusTipToReference" />
+        <!--<Transform Name="ImageToReference" />-->
         <!--<Transform Name="StylusTipToStylus" />-->
         <!--<Transform Name="StylusToTracker" />-->
         <!--<Transform Name="ReferenceToTracker" />-->

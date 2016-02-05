@@ -94,6 +94,7 @@ OPTION(PLUSBUILD_USE_OpenIGTLink "Use OpenIGTLink" ON)
 OPTION(PLUSBUILD_BUILD_SHARED_LIBS "Build shared libs" ON)
 OPTION(PLUSBUILD_BUILD_PLUSAPP "Build PlusApp applications" ON)
 OPTION(PLUSBUILD_BUILD_PLUSMODELCATALOG "Build Plus Model Catalog" OFF)
+OPTION(PLUSBUILD_USE_Tesseract "Use OCR in PlusLib for parameter detection" OFF)
 
 # Documentation
 option(PLUSBUILD_DOCUMENTATION "Build Plus documentation (Doxygen)." OFF)
@@ -485,11 +486,37 @@ SET(PlusModelCatalog_DEPENDENCIES PlusLib)
 # Set up project for PlusLib, PlusApp, and PlusModelCatalog
 #------------------------------------------------------------------------------
 
+IF(PLUSBUILD_USE_Tesseract)
+  INCLUDE(External_Tesseract.cmake)
+ENDIF(PLUSBUILD_USE_Tesseract)
+
+#------------------------------------------------------------------------------
+# Construct a descriptive build name
+#------------------------------------------------------------------------------
+IF( PLUSBUILD_USE_VTK6 )
+  SET(VTK_BUILD_NAME "vtk6")
+ELSE( PLUSBUILD_USE_VTK6 )
+  SET(VTK_BUILD_NAME "vtk5")
+ENDIF(PLUSBUILD_USE_VTK6)
+
+IF( PLUSBUILD_BUILD_PLUSAPP )
+  IF( Qt5Core_FOUND )
+    SET(QT_BUILD_NAME "qt5")
+  ELSEIF( QT4_FOUND )
+    SET(QT_BUILD_NAME "qt4")
+  ENDIF( Qt5Core_FOUND )
+ENDIF( PLUSBUILD_BUILD_PLUSAPP )
+
+INCLUDE(TargetArch.cmake)
+target_architecture(ARCHITECHTURE_BUILD_NAME)
+
+SET(BUILDNAME "${CMAKE_SYSTEM_NAME}${ARCHITECHTURE_BUILD_NAME}-${VTK_BUILD_NAME}-${QT_BUILD_NAME}" CACHE STRING "Name of the build on the dashboard")
+
 INCLUDE(External_PlusLib.cmake)
 
 IF(PLUSBUILD_BUILD_PLUSAPP) 
   INCLUDE(External_PlusApp.cmake)
-ENDIF(PLUSBUILD_BUILD_PLUSAPP)    
+ENDIF(PLUSBUILD_BUILD_PLUSAPP)
 
 IF(PLUSBUILD_BUILD_PLUSMODELCATALOG) 
   INCLUDE(External_PlusModelCatalog.cmake)
@@ -515,4 +542,12 @@ configure_file(
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/PlusBuildAndTest.sh.in 
   ${CMAKE_CURRENT_BINARY_DIR}/PlusBuildAndTest.sh
+  )
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/BuildAllVS.bat.in
+  ${CMAKE_CURRENT_BINARY_DIR}/BuildAllVS.bat
+  )
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/BuildAll.sh.in
+  ${CMAKE_CURRENT_BINARY_DIR}/BuildAll.sh
   )
