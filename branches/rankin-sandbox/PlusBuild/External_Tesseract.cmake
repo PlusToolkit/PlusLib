@@ -43,7 +43,7 @@ ExternalProject_Add( libpng
     BINARY_DIR "${PLUS_libpng_DIR}"
     #--Download step--------------
     GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/PLUSToolkit/libpng.git"
-    GIT_TAG b8b667510f86916f65b3f3a937cb340d8ca956f4 
+    GIT_TAG b5abaa2a4de16dd61de95e455a1bb6d83490220f 
     #--Configure step-------------
     CMAKE_ARGS 
         ${ep_common_args}
@@ -70,7 +70,7 @@ ExternalProject_Add( leptonica
     BINARY_DIR "${PLUS_leptonica_DIR}"
     #--Download step--------------
     GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/PLUSToolkit/leptonica.git"
-    GIT_TAG eb1f323644278b8f7c05ac37f5499ba2b2507c34
+    GIT_TAG dc88fe65e328eeb5dfa2df167457c865b76aa4c7
     #--Configure step-------------
     CMAKE_ARGS 
         ${ep_common_args}
@@ -125,7 +125,7 @@ ExternalProject_Add( tesseract
     BINARY_DIR "${PLUS_tesseract_DIR}"
     #--Download step--------------
     GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/PLUSToolkit/tesseract-ocr-cmake.git"
-    GIT_TAG 4efa68a0b0c12117d77ec177f6a448f01d69f20c
+    GIT_TAG cd300ab908ed39c739c1047805df22a4d3cae7f8
     #--Configure step-------------
     CMAKE_ARGS 
         ${ep_common_args}
