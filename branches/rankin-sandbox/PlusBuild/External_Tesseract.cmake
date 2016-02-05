@@ -109,7 +109,7 @@ ExternalProject_Add( tessdata
 SET( tesseract_DEPENDENCIES ${tesseract_DEPENDENCIES} tessdata )
 IF( WIN32 )
   MESSAGE(STATUS "Setting TESSDATA_PREFIX environment variable to enable loading of OCR languages.")
-  execute_process(COMMAND setx TESSDATA_PREFIX ${CMAKE_BINARY_DIR})
+  execute_process(COMMAND setx TESSDATA_PREFIX ${PLUS_tessdata_src_DIR})
 ENDIF( WIN32 )
 # TODO: else linux, export env var? I don't know if CMake can do that...
 

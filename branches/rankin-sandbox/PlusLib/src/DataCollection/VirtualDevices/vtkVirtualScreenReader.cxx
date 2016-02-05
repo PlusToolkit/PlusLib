@@ -57,6 +57,7 @@ PlusStatus vtkVirtualScreenReader::InternalUpdate()
   for( int i = 0; i < this->TrackedFrames->GetNumberOfTrackedFrames(); ++i )
   {
     TrackedFrame* frame = this->TrackedFrames->GetTrackedFrame(i);
+    /*
     const int depth = 8;
     PIX* pix = pixCreate(frame->GetFrameSize()[0], frame->GetFrameSize()[1], depth);
 
@@ -78,8 +79,9 @@ PlusStatus vtkVirtualScreenReader::InternalUpdate()
         SET_DATA_BYTE(line,x,val8);
       }
     }
-
-    pixWritePng("c:\\users\\arankin\\Downloads\\a.png", pix, 1.0);
+    */
+    PIX* pix = pixRead("c:\\users\\arankin\\Downloads\\ab.png");
+    //pixWritePng("c:\\users\\arankin\\Downloads\\a.png", pix, 0.0);
 
     char* text_out;
     this->TesseractAPI->SetImage(pix);
@@ -96,7 +98,7 @@ PlusStatus vtkVirtualScreenReader::InternalConnect()
 {
   this->TesseractAPI = new tesseract::TessBaseAPI();
   this->TesseractAPI->Init(NULL, Language, tesseract::OEM_DEFAULT);
-  this->TesseractAPI->SetPageSegMode(tesseract::PSM_SPARSE_TEXT);
+  this->TesseractAPI->SetPageSegMode(tesseract::PSM_AUTO);
 
   return PLUS_SUCCESS;
 }

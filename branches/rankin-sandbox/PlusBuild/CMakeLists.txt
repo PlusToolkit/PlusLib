@@ -543,11 +543,3 @@ configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/PlusBuildAndTest.sh.in 
   ${CMAKE_CURRENT_BINARY_DIR}/PlusBuildAndTest.sh
   )
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/BuildAllVS.bat.in
-  ${CMAKE_CURRENT_BINARY_DIR}/BuildAllVS.bat
-  )
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/BuildAll.sh.in
-  ${CMAKE_CURRENT_BINARY_DIR}/BuildAll.sh
-  )
