@@ -468,12 +468,6 @@ IF(PLUSBUILD_USE_OpenIGTLink AND NOT OpenIGTLink_DIR)
   LIST(APPEND PlusLib_DEPENDENCIES OpenIGTLink)
 ENDIF()
 
-IF ( PLUSBUILD_USE_tesseract AND NOT tesseract_DIR )
-  # tesseract_DIR is not supplied, so it is built inside Plus, therefore we need to specify dependencies to make sure it is built early enough
-  SET(tesseract_DEPENDENCIES leptonica)
-  LIST(APPEND PlusLib_DEPENDENCIES tesseract)   
-ENDIF()
-
 IF ( PLUS_USE_BKPROFOCUS_VIDEO )
   SET(GrabbieLib_DEPENDENCIES)
   LIST(APPEND PlusLib_DEPENDENCIES GrabbieLib)
@@ -493,9 +487,30 @@ SET(PlusModelCatalog_DEPENDENCIES PlusLib)
 #------------------------------------------------------------------------------
 
 IF(PLUSBUILD_USE_Tesseract)
-  SET(tesseract_DEPENDENCIES leptonica)
   INCLUDE(External_Tesseract.cmake)
 ENDIF(PLUSBUILD_USE_Tesseract)
+
+#------------------------------------------------------------------------------
+# Construct a descriptive build name
+#------------------------------------------------------------------------------
+IF( PLUSBUILD_USE_VTK6 )
+  SET(VTK_BUILD_NAME "vtk6")
+ELSE( PLUSBUILD_USE_VTK6 )
+  SET(VTK_BUILD_NAME "vtk5")
+ENDIF(PLUSBUILD_USE_VTK6)
+
+IF( PLUSBUILD_BUILD_PLUSAPP )
+  IF( Qt5Core_FOUND )
+    SET(QT_BUILD_NAME "qt5")
+  ELSEIF( QT4_FOUND )
+    SET(QT_BUILD_NAME "qt4")
+  ENDIF( Qt5Core_FOUND )
+ENDIF( PLUSBUILD_BUILD_PLUSAPP )
+
+INCLUDE(TargetArch.cmake)
+target_architecture(ARCHITECHTURE_BUILD_NAME)
+
+SET(BUILDNAME "${CMAKE_SYSTEM_NAME}${ARCHITECHTURE_BUILD_NAME}-${VTK_BUILD_NAME}-${QT_BUILD_NAME}" CACHE STRING "Name of the build on the dashboard")
 
 INCLUDE(External_PlusLib.cmake)
 
@@ -527,4 +542,12 @@ configure_file(
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/PlusBuildAndTest.sh.in 
   ${CMAKE_CURRENT_BINARY_DIR}/PlusBuildAndTest.sh
+  )
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/BuildAllVS.bat.in
+  ${CMAKE_CURRENT_BINARY_DIR}/BuildAllVS.bat
+  )
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/BuildAll.sh.in
+  ${CMAKE_CURRENT_BINARY_DIR}/BuildAll.sh
   )
