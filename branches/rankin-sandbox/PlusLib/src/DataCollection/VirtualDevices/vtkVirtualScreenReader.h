@@ -16,7 +16,7 @@ namespace tesseract
 }
 class vtkPlusChannel;
 class vtkTrackedFrameList;
-class PIX;
+typedef struct Pix PIX;
 
 /*!
 \class vtkVirtualScreenReader
@@ -26,6 +26,25 @@ class PIX;
 */
 class vtkDataCollectionExport vtkVirtualScreenReader : public vtkPlusDevice
 {
+  class ScreenFieldParameter
+  {
+  public:
+    std::string LatestParameterValue;
+    PIX* ReceivedFrame;
+    vtkSmartPointer<vtkImageData> ScreenRegion;
+    vtkPlusChannel* SourceChannel;
+    std::string ParameterName;
+    /// This is only 3d for simplicity in passing to clipping function, OCR is 2d only
+    int Origin[3];
+    /// This is only 3d for simplicity in passing to clipping function, OCR is 2d only
+    int Size[3];
+  };
+
+  typedef std::vector<ScreenFieldParameter*> FieldList;
+  typedef FieldList::iterator FieldListIterator;
+  typedef std::map<vtkPlusChannel*, FieldList > ChannelFieldListMap;
+  typedef ChannelFieldListMap::iterator ChannelFieldListMapIterator;
+
 public:
   static vtkVirtualScreenReader *New();
   vtkTypeMacro(vtkVirtualScreenReader, vtkPlusDevice);
@@ -52,12 +71,13 @@ public:
   vtkSetStringMacro(Language);
   vtkGetStringMacro(Language);
 
-  vtkGetObjectMacro(InputChannel, vtkPlusChannel);
-
 protected:
-  vtkSetObjectMacro(InputChannel, vtkPlusChannel);
-
   virtual PlusStatus InternalUpdate();
+
+  int vtkImageDataToPix(TrackedFrame* frame, ScreenFieldParameter* parameter);
+
+  vtkSmartPointer<TrackedFrame> FindOrQueryFrame(std::map<double, int>& queriedFramesIndexes, ScreenFieldParameter* parameter, 
+    std::vector<vtkSmartPointer<TrackedFrame> >& queriedFrames);
 
   vtkVirtualScreenReader();
   virtual ~vtkVirtualScreenReader();
@@ -68,12 +88,10 @@ protected:
   /// Main entry point for the tesseract API
   tesseract::TessBaseAPI* TesseractAPI;
 
-  vtkPlusChannel* InputChannel;
   vtkTrackedFrameList* TrackedFrames;
 
-  PIX* ReceivedFrame;
-
-  double LastTimestampEvaluated;
+  /// Map of channels to fields so that we only have to grab an image once from the each source channel
+  ChannelFieldListMap RecognitionFields;
 
 private:
   vtkVirtualScreenReader(const vtkVirtualScreenReader&);
