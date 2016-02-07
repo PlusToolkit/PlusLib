@@ -45,6 +45,22 @@ vtkVirtualScreenReader::vtkVirtualScreenReader()
   // The data capture thread will be used to regularly check the input devices and generate and update the output
   this->StartThreadForInternalUpdates = true;
   this->AcquisitionRate = vtkPlusDevice::VIRTUAL_DEVICE_FRAME_RATE;
+  this->MissingInputGracePeriodSec = 2.0;
+}
+
+//----------------------------------------------------------------------------
+void vtkVirtualScreenReader::ClearConfiguration()
+{
+  for( ChannelFieldListMapIterator it = this->RecognitionFields.begin(); it != this->RecognitionFields.end(); ++it )
+  {
+    for( FieldListIterator fieldIt = it->second.begin(); fieldIt != it->second.end(); ++fieldIt )
+    {
+      ScreenFieldParameter* parameter = *fieldIt;
+      delete parameter;
+    }
+    it->second.clear();
+  }
+  this->RecognitionFields.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -64,7 +80,12 @@ void vtkVirtualScreenReader::PrintSelf(ostream& os, vtkIndent indent)
 PlusStatus vtkVirtualScreenReader::InternalUpdate()
 {
   std::map<double, int> queriedFramesIndexes;
-  std::vector<vtkSmartPointer<TrackedFrame> > queriedFrames;
+  std::vector<TrackedFrame*> queriedFrames;
+
+  if( !this->HasGracePeriodExpired() )
+  {
+    return PLUS_SUCCESS;
+  }
 
   for( ChannelFieldListMapIterator it = this->RecognitionFields.begin(); it != this->RecognitionFields.end(); ++it )
   {
@@ -73,21 +94,19 @@ PlusStatus vtkVirtualScreenReader::InternalUpdate()
     for( FieldListIterator fieldIt = it->second.begin(); fieldIt != it->second.end(); ++fieldIt )
     {
       ScreenFieldParameter* parameter = *fieldIt;
-      vtkSmartPointer<TrackedFrame> frame;
+      TrackedFrame frame;
 
       // Attempt to find the frame already retrieved
-      frame = FindOrQueryFrame(queriedFramesIndexes, parameter, queriedFrames);
+      PlusStatus result = FindOrQueryFrame(frame, queriedFramesIndexes, parameter, queriedFrames);
 
-      if( frame == NULL )
+      if( result != PLUS_SUCCESS || frame.GetImageData()->GetImage() == NULL)
       {
-        LOG_ERROR("Unable to find or query a frame for parameter: " << parameter->ParameterName << ". Skipping.");
         continue;
       }
 
       // We have a frame, let's parse it      
       vtkImageDataToPix(frame, parameter);
 
-      
       this->TesseractAPI->SetImage(parameter->ReceivedFrame);
       char* text_out = this->TesseractAPI->GetUTF8Text();
       parameter->LatestParameterValue = std::string(text_out);
@@ -99,10 +118,10 @@ PlusStatus vtkVirtualScreenReader::InternalUpdate()
 }
 
 //----------------------------------------------------------------------------
-int vtkVirtualScreenReader::vtkImageDataToPix(TrackedFrame* frame, ScreenFieldParameter* parameter)
+void vtkVirtualScreenReader::vtkImageDataToPix(TrackedFrame& frame, ScreenFieldParameter* parameter)
 {
-  PlusVideoFrame::GetOrientedClippedImage(frame->GetImageData()->GetImage(), PlusVideoFrame::FlipInfoType(), 
-    frame->GetImageData()->GetImageType(), parameter->ScreenRegion, parameter->Origin, parameter->Size);
+  PlusVideoFrame::GetOrientedClippedImage(frame.GetImageData()->GetImage(), PlusVideoFrame::FlipInfoType(), 
+    frame.GetImageData()->GetImageType(), parameter->ScreenRegion, parameter->Origin, parameter->Size);
 
   unsigned int *data = pixGetData(parameter->ReceivedFrame);
   int wpl = pixGetWpl(parameter->ReceivedFrame);
@@ -110,30 +129,41 @@ int vtkVirtualScreenReader::vtkImageDataToPix(TrackedFrame* frame, ScreenFieldPa
   unsigned int *line;
   unsigned char val8;
 
+  int extents[6];
+  parameter->ScreenRegion->GetExtent(extents);
+  int ySize = extents[3]-extents[2];
+  int xSize = extents[1]-extents[0];
+
   static int someVal = 0;
   int coords[3] = {0,0,0};
-  for(int y = 0; y < parameter->Size[1]; y++)
+  for(int y = 0; y < ySize; y++)
   {
-    coords[1] = parameter->Size[1]-y-1;
+    coords[1] = ySize - y - 1 + extents[2];
     line = data + y * wpl;
     for(int x = 0; x < bpl; x++)
     {
-      coords[0] = x;
+      coords[0] = x + extents[0];
       val8 = (*(unsigned char*)parameter->ScreenRegion->GetScalarPointer(coords));
       SET_DATA_BYTE(line,x,val8);
     }
   }
-  return bpl;
 }
 
 //----------------------------------------------------------------------------
-vtkSmartPointer<TrackedFrame> vtkVirtualScreenReader::FindOrQueryFrame(std::map<double, int>& QueriedFramesIndexes, ScreenFieldParameter* parameter, std::vector<vtkSmartPointer<TrackedFrame> >& QueriedFrames)
+PlusStatus vtkVirtualScreenReader::FindOrQueryFrame(TrackedFrame& frame, std::map<double, int>& QueriedFramesIndexes, ScreenFieldParameter* parameter, std::vector<TrackedFrame*>& QueriedFrames)
 {
   double mostRecent(-1);
+
+  if ( !parameter->SourceChannel->GetVideoDataAvailable() )
+  {
+    LOG_WARNING("Processed data is not generated, as no video data is available yet. Device ID: " << this->GetDeviceId()); 
+    return PLUS_FAIL;
+  }
+
   if( parameter->SourceChannel->GetMostRecentTimestamp(mostRecent) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve most recent timestamp for parameter " << parameter->ParameterName);
-    return NULL;
+    return PLUS_FAIL;
   }
 
   std::map<double, int>::iterator frameIt = QueriedFramesIndexes.find(mostRecent);
@@ -144,32 +174,31 @@ vtkSmartPointer<TrackedFrame> vtkVirtualScreenReader::FindOrQueryFrame(std::map<
     if ( parameter->SourceChannel->GetTrackedFrameList(aTimestamp, this->TrackedFrames, 1) != PLUS_SUCCESS )
     {
       LOG_INFO("Failed to get tracked frame list from data collector."); 
-      return NULL;
+      return PLUS_FAIL;
     }
     double timestamp = TrackedFrames->GetTrackedFrame(0)->GetTimestamp();
 
     // Copy the frame so it isn't lost when the tracked frame list is cleared
-    vtkSmartPointer<TrackedFrame> frame = vtkSmartPointer<TrackedFrame>::New();
-    *frame = (*TrackedFrames->GetTrackedFrame(0));
+    frame = (*TrackedFrames->GetTrackedFrame(0));
 
     // Record the index of this timestamp
     QueriedFramesIndexes[timestamp] = QueriedFrames.size();
-    QueriedFrames.push_back(frame);
-
-    return frame;
+    QueriedFrames.push_back(&frame);
   }
   else
   {
-    return QueriedFrames[frameIt->second];
+    frame = (*QueriedFrames[frameIt->second]);
   }
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkVirtualScreenReader::InternalConnect()
 {
-  this->TesseractAPI = new tesseract::TessBaseAPI();
-  this->TesseractAPI->Init(NULL, Language, tesseract::OEM_DEFAULT);
-  this->TesseractAPI->SetPageSegMode(tesseract::PSM_AUTO);
+  this->TesseractAPI = new tesseract::TessBaseAPI(); 
+  this->TesseractAPI->Init(NULL, Language, tesseract::OEM_TESSERACT_CUBE_COMBINED);
+  this->TesseractAPI->SetPageSegMode(tesseract::PSM_SINGLE_LINE);
 
   return PLUS_SUCCESS;
 }
@@ -180,22 +209,26 @@ PlusStatus vtkVirtualScreenReader::InternalDisconnect()
   delete this->TesseractAPI;
   this->TesseractAPI = NULL;
 
+  ClearConfiguration();
+
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkVirtualScreenReader::ReadConfiguration( vtkXMLDataElement* rootConfigElement)
 {
+  ClearConfiguration();
+
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   this->SetLanguage(DEFAULT_LANGUAGE);
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(Language, deviceConfig);
 
-  XML_FIND_NESTED_ELEMENT_OPTIONAL(ScreenFields, deviceConfig, PARAMETER_LIST_TAG_NAME);
+  XML_FIND_NESTED_ELEMENT_OPTIONAL(screenFields, deviceConfig, PARAMETER_LIST_TAG_NAME);
 
-  for( int i = 0; i < ScreenFields->GetNumberOfNestedElements(); ++i )
+  for( int i = 0; i < screenFields->GetNumberOfNestedElements(); ++i )
   {
-    vtkXMLDataElement* fieldElement = ScreenFields->GetNestedElement(i);
+    vtkXMLDataElement* fieldElement = screenFields->GetNestedElement(i);
 
     if( STRCASECMP(fieldElement->GetName(), PARAMETER_TAG_NAME) != 0 )
     {
@@ -237,6 +270,8 @@ PlusStatus vtkVirtualScreenReader::ReadConfiguration( vtkXMLDataElement* rootCon
     parameter->ScreenRegion = vtkSmartPointer<vtkImageData>::New();
     parameter->ScreenRegion->SetExtent(0, size[0]-1, 0, size[1]-1, 0, 0);
     parameter->ScreenRegion->AllocateScalars(VTK_UNSIGNED_CHAR, 1); // Black and white images for now
+
+    this->RecognitionFields[parameter->SourceChannel].push_back(parameter);
   }
 
   return PLUS_SUCCESS;
@@ -250,6 +285,23 @@ PlusStatus vtkVirtualScreenReader::WriteConfiguration(vtkXMLDataElement* rootCon
   if( STRCASECMP(this->Language, DEFAULT_LANGUAGE) != 0 )
   {
     XML_WRITE_STRING_ATTRIBUTE_IF_NOT_NULL(Language, deviceConfig);
+  }
+
+  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(screenFields, deviceConfig, PARAMETER_LIST_TAG_NAME);
+
+  for( ChannelFieldListMapIterator it = this->RecognitionFields.begin(); it != this->RecognitionFields.end(); ++it )
+  {
+    for( FieldListIterator fieldIt = it->second.begin(); fieldIt != it->second.end(); ++fieldIt )
+    {
+      ScreenFieldParameter* parameter = *fieldIt;
+
+      XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(fieldElement, screenFields, PARAMETER_TAG_NAME);
+
+      fieldElement->SetAttribute(PARAMETER_CHANNEL_ATTRIBUTE, parameter->SourceChannel->GetChannelId());
+      fieldElement->SetAttribute(PARAMETER_NAME_ATTRIBUTE, parameter->ParameterName.c_str());
+      fieldElement->SetVectorAttribute(PARAMETER_ORIGIN_ATTRIBUTE, 2, parameter->Origin);
+      fieldElement->SetVectorAttribute(PARAMETER_SIZE_ATTRIBUTE, 2, parameter->Size);
+    }
   }
 
   return PLUS_SUCCESS;

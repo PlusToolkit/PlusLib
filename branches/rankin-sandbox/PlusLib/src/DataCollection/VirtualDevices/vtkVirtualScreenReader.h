@@ -29,6 +29,17 @@ class vtkDataCollectionExport vtkVirtualScreenReader : public vtkPlusDevice
   class ScreenFieldParameter
   {
   public:
+    ScreenFieldParameter()
+    {
+      this->Origin[0] = 0;
+      this->Origin[1] = 0;
+      this->Origin[2] = 0;
+      this->Size[0] = 0;
+      this->Size[1] = 0;
+      this->Size[2] = 1;
+    }
+
+  public:
     std::string LatestParameterValue;
     PIX* ReceivedFrame;
     vtkSmartPointer<vtkImageData> ScreenRegion;
@@ -74,13 +85,15 @@ public:
 protected:
   virtual PlusStatus InternalUpdate();
 
-  int vtkImageDataToPix(TrackedFrame* frame, ScreenFieldParameter* parameter);
+  /// Remove any configuration data
+  void ClearConfiguration();
 
-  vtkSmartPointer<TrackedFrame> FindOrQueryFrame(std::map<double, int>& queriedFramesIndexes, ScreenFieldParameter* parameter, 
-    std::vector<vtkSmartPointer<TrackedFrame> >& queriedFrames);
+  /// Convert a vtkImage data to leptonica pix format
+  void vtkImageDataToPix(TrackedFrame& frame, ScreenFieldParameter* parameter);
 
-  vtkVirtualScreenReader();
-  virtual ~vtkVirtualScreenReader();
+  /// If a frame has been queried for this input channel, reuse it instead of getting a new one
+  PlusStatus FindOrQueryFrame(TrackedFrame& frame, std::map<double, int>& queriedFramesIndexes, ScreenFieldParameter* parameter, 
+    std::vector<TrackedFrame*>& queriedFrames);
 
   /// Language used for detection
   char* Language;
@@ -92,6 +105,10 @@ protected:
 
   /// Map of channels to fields so that we only have to grab an image once from the each source channel
   ChannelFieldListMap RecognitionFields;
+
+protected:
+  vtkVirtualScreenReader();
+  virtual ~vtkVirtualScreenReader();
 
 private:
   vtkVirtualScreenReader(const vtkVirtualScreenReader&);
