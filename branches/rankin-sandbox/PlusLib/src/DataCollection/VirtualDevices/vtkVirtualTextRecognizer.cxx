@@ -10,7 +10,7 @@ See License.txt for details.
 #include "vtkDataCollector.h"
 #include "vtkPlusDataSource.h"
 #include "vtkTrackedFrameList.h"
-#include "vtkVirtualScreenReader.h"
+#include "vtkVirtualTextRecognizer.h"
 
 #include <tesseract/baseapi.h>
 #include <tesseract/strngs.h>
@@ -18,7 +18,7 @@ See License.txt for details.
 
 //----------------------------------------------------------------------------
 
-vtkStandardNewMacro(vtkVirtualScreenReader);
+vtkStandardNewMacro(vtkVirtualTextRecognizer);
 
 //----------------------------------------------------------------------------
 
@@ -37,7 +37,7 @@ namespace
 }
 
 //----------------------------------------------------------------------------
-vtkVirtualScreenReader::vtkVirtualScreenReader()
+vtkVirtualTextRecognizer::vtkVirtualTextRecognizer()
   : vtkPlusDevice()
   , Language(NULL)
   , TrackedFrames(vtkTrackedFrameList::New())
@@ -49,13 +49,13 @@ vtkVirtualScreenReader::vtkVirtualScreenReader()
 }
 
 //----------------------------------------------------------------------------
-void vtkVirtualScreenReader::ClearConfiguration()
+void vtkVirtualTextRecognizer::ClearConfiguration()
 {
   for( ChannelFieldListMapIterator it = this->RecognitionFields.begin(); it != this->RecognitionFields.end(); ++it )
   {
     for( FieldListIterator fieldIt = it->second.begin(); fieldIt != it->second.end(); ++fieldIt )
     {
-      ScreenFieldParameter* parameter = *fieldIt;
+      TextFieldParameter* parameter = *fieldIt;
       delete parameter;
     }
     it->second.clear();
@@ -64,20 +64,20 @@ void vtkVirtualScreenReader::ClearConfiguration()
 }
 
 //----------------------------------------------------------------------------
-vtkVirtualScreenReader::~vtkVirtualScreenReader()
+vtkVirtualTextRecognizer::~vtkVirtualTextRecognizer()
 {
   TrackedFrames->Delete();
   TrackedFrames = NULL;
 }
 
 //----------------------------------------------------------------------------
-void vtkVirtualScreenReader::PrintSelf(ostream& os, vtkIndent indent)
+void vtkVirtualTextRecognizer::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualScreenReader::InternalUpdate()
+PlusStatus vtkVirtualTextRecognizer::InternalUpdate()
 {
   std::map<double, int> queriedFramesIndexes;
   std::vector<TrackedFrame*> queriedFrames;
@@ -93,7 +93,7 @@ PlusStatus vtkVirtualScreenReader::InternalUpdate()
 
     for( FieldListIterator fieldIt = it->second.begin(); fieldIt != it->second.end(); ++fieldIt )
     {
-      ScreenFieldParameter* parameter = *fieldIt;
+      TextFieldParameter* parameter = *fieldIt;
       TrackedFrame frame;
 
       // Attempt to find the frame already retrieved
@@ -118,7 +118,7 @@ PlusStatus vtkVirtualScreenReader::InternalUpdate()
 }
 
 //----------------------------------------------------------------------------
-void vtkVirtualScreenReader::vtkImageDataToPix(TrackedFrame& frame, ScreenFieldParameter* parameter)
+void vtkVirtualTextRecognizer::vtkImageDataToPix(TrackedFrame& frame, TextFieldParameter* parameter)
 {
   PlusVideoFrame::GetOrientedClippedImage(frame.GetImageData()->GetImage(), PlusVideoFrame::FlipInfoType(), 
     frame.GetImageData()->GetImageType(), parameter->ScreenRegion, parameter->Origin, parameter->Size);
@@ -150,7 +150,7 @@ void vtkVirtualScreenReader::vtkImageDataToPix(TrackedFrame& frame, ScreenFieldP
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualScreenReader::FindOrQueryFrame(TrackedFrame& frame, std::map<double, int>& QueriedFramesIndexes, ScreenFieldParameter* parameter, std::vector<TrackedFrame*>& QueriedFrames)
+PlusStatus vtkVirtualTextRecognizer::FindOrQueryFrame(TrackedFrame& frame, std::map<double, int>& QueriedFramesIndexes, TextFieldParameter* parameter, std::vector<TrackedFrame*>& QueriedFrames)
 {
   double mostRecent(-1);
 
@@ -194,7 +194,7 @@ PlusStatus vtkVirtualScreenReader::FindOrQueryFrame(TrackedFrame& frame, std::ma
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualScreenReader::InternalConnect()
+PlusStatus vtkVirtualTextRecognizer::InternalConnect()
 {
   this->TesseractAPI = new tesseract::TessBaseAPI(); 
   this->TesseractAPI->Init(NULL, Language, tesseract::OEM_TESSERACT_CUBE_COMBINED);
@@ -204,7 +204,7 @@ PlusStatus vtkVirtualScreenReader::InternalConnect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualScreenReader::InternalDisconnect()
+PlusStatus vtkVirtualTextRecognizer::InternalDisconnect()
 {
   delete this->TesseractAPI;
   this->TesseractAPI = NULL;
@@ -215,7 +215,7 @@ PlusStatus vtkVirtualScreenReader::InternalDisconnect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualScreenReader::ReadConfiguration( vtkXMLDataElement* rootConfigElement)
+PlusStatus vtkVirtualTextRecognizer::ReadConfiguration( vtkXMLDataElement* rootConfigElement)
 {
   ClearConfiguration();
 
@@ -259,7 +259,7 @@ PlusStatus vtkVirtualScreenReader::ReadConfiguration( vtkXMLDataElement* rootCon
       continue;
     }
 
-    ScreenFieldParameter* parameter = new ScreenFieldParameter();
+    TextFieldParameter* parameter = new TextFieldParameter();
     parameter->ParameterName = std::string(fieldElement->GetAttribute(PARAMETER_NAME_ATTRIBUTE));
     parameter->SourceChannel = aChannel;
     parameter->Origin[0] = origin[0];
@@ -278,7 +278,7 @@ PlusStatus vtkVirtualScreenReader::ReadConfiguration( vtkXMLDataElement* rootCon
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualScreenReader::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
+PlusStatus vtkVirtualTextRecognizer::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
 
@@ -293,7 +293,7 @@ PlusStatus vtkVirtualScreenReader::WriteConfiguration(vtkXMLDataElement* rootCon
   {
     for( FieldListIterator fieldIt = it->second.begin(); fieldIt != it->second.end(); ++fieldIt )
     {
-      ScreenFieldParameter* parameter = *fieldIt;
+      TextFieldParameter* parameter = *fieldIt;
 
       XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(fieldElement, screenFields, PARAMETER_TAG_NAME);
 
@@ -308,7 +308,7 @@ PlusStatus vtkVirtualScreenReader::WriteConfiguration(vtkXMLDataElement* rootCon
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkVirtualScreenReader::NotifyConfigured()
+PlusStatus vtkVirtualTextRecognizer::NotifyConfigured()
 {
   if( this->InputChannels.size() < 1 )
   {

@@ -4,8 +4,8 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#ifndef __vtkVirtualScreenReader_h
-#define __vtkVirtualScreenReader_h
+#ifndef __vtkVirtualTextRecognizer_h
+#define __vtkVirtualTextRecognizer_h
 
 #include "vtkDataCollectionExport.h"
 #include "vtkPlusDevice.h"
@@ -19,17 +19,17 @@ class vtkTrackedFrameList;
 typedef struct Pix PIX;
 
 /*!
-\class vtkVirtualScreenReader
+\class vtkVirtualTextRecognizer
 \brief 
 
 \ingroup PlusLibDataCollection
 */
-class vtkDataCollectionExport vtkVirtualScreenReader : public vtkPlusDevice
+class vtkDataCollectionExport vtkVirtualTextRecognizer : public vtkPlusDevice
 {
-  class ScreenFieldParameter
+  class TextFieldParameter
   {
   public:
-    ScreenFieldParameter()
+    TextFieldParameter()
     {
       this->Origin[0] = 0;
       this->Origin[1] = 0;
@@ -51,14 +51,14 @@ class vtkDataCollectionExport vtkVirtualScreenReader : public vtkPlusDevice
     int Size[3];
   };
 
-  typedef std::vector<ScreenFieldParameter*> FieldList;
+  typedef std::vector<TextFieldParameter*> FieldList;
   typedef FieldList::iterator FieldListIterator;
   typedef std::map<vtkPlusChannel*, FieldList > ChannelFieldListMap;
   typedef ChannelFieldListMap::iterator ChannelFieldListMapIterator;
 
 public:
-  static vtkVirtualScreenReader *New();
-  vtkTypeMacro(vtkVirtualScreenReader, vtkPlusDevice);
+  static vtkVirtualTextRecognizer *New();
+  vtkTypeMacro(vtkVirtualTextRecognizer, vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Prepare the device for recognition */
@@ -89,10 +89,10 @@ protected:
   void ClearConfiguration();
 
   /// Convert a vtkImage data to leptonica pix format
-  void vtkImageDataToPix(TrackedFrame& frame, ScreenFieldParameter* parameter);
+  void vtkImageDataToPix(TrackedFrame& frame, TextFieldParameter* parameter);
 
   /// If a frame has been queried for this input channel, reuse it instead of getting a new one
-  PlusStatus FindOrQueryFrame(TrackedFrame& frame, std::map<double, int>& queriedFramesIndexes, ScreenFieldParameter* parameter, 
+  PlusStatus FindOrQueryFrame(TrackedFrame& frame, std::map<double, int>& queriedFramesIndexes, TextFieldParameter* parameter, 
     std::vector<TrackedFrame*>& queriedFrames);
 
   /// Language used for detection
@@ -107,12 +107,12 @@ protected:
   ChannelFieldListMap RecognitionFields;
 
 protected:
-  vtkVirtualScreenReader();
-  virtual ~vtkVirtualScreenReader();
+  vtkVirtualTextRecognizer();
+  virtual ~vtkVirtualTextRecognizer();
 
 private:
-  vtkVirtualScreenReader(const vtkVirtualScreenReader&);
-  void operator=(const vtkVirtualScreenReader&);
+  vtkVirtualTextRecognizer(const vtkVirtualTextRecognizer&);
+  void operator=(const vtkVirtualTextRecognizer&);
 };
 
-#endif //__vtkVirtualScreenReader_h
+#endif //__vtkVirtualTextRecognizer_h

@@ -131,7 +131,7 @@ See License.txt for details.
 //---------------------------------------------------------------------------
 // Virtual devices
 #ifdef PLUS_USE_tesseract
-#include "vtkVirtualScreenReader.h"
+#include "vtkVirtualTextRecognizer.h"
 #endif
 
 //----------------------------------------------------------------------------
@@ -241,7 +241,7 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
 	DeviceTypes["CapistranoVideo"]=(PointerToDevice)&vtkCapistranoVideoSource::New;
 #endif
 #ifdef PLUS_USE_tesseract
-  DeviceTypes["VirtualScreenReader"]=(PointerToDevice)&vtkVirtualScreenReader::New;
+  DeviceTypes["VirtualTextRecognizer"]=(PointerToDevice)&vtkVirtualTextRecognizer::New;
 #endif
 
   // Virtual Devices

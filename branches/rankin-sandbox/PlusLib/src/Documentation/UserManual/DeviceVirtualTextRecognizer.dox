@@ -1,0 +1,15 @@
+/*!
+\page DeviceVirtualTextRecognizer Virtual Text Recognizer
+
+This device can recognize text (in the language specified by \ref Language) from a number of input channels.
+
+\section VirtualTextRecognizerConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "VirtualTextRecognizer" \RequiredAtt
+- \xmlAtt \ref Language "Language" \OptionalAtt{eng} 
+
+\section VirtualTextRecognizerExampleConfigFile Example configuration file PlusDeviceSet_PlusServer_tesseract.xml
+
+\include "data/ConfigFiles/PlusDeviceSet_PlusServer_tesseract.xml"
+
+*/

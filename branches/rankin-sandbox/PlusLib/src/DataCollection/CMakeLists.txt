@@ -65,7 +65,7 @@ SET (DataCollection_SRCS
   )
 
 IF(PLUS_USE_tesseract)
-  SET (DataCollection_SRCS ${DataCollection_SRCS} VirtualDevices/vtkVirtualScreenReader.cxx)
+  SET (DataCollection_SRCS ${DataCollection_SRCS} VirtualDevices/vtkVirtualTextRecognizer.cxx)
 ENDIF(PLUS_USE_tesseract)
 
 SET (DataCollection_HDRS)
@@ -85,7 +85,7 @@ IF (WIN32)
     VirtualDevices/vtkVirtualMixer.h
     VirtualDevices/vtkVirtualSwitcher.h
     VirtualDevices/vtkVirtualDiscCapture.h
-    VirtualDevices/vtkVirtualScreenReader.h
+    VirtualDevices/vtkVirtualTextRecognizer.h
     VirtualDevices/vtkVirtualVolumeReconstructor.h
     ImageProcessor/vtkImageProcessorVideoSource.h
     SerialLine.h
@@ -96,7 +96,7 @@ IF (WIN32)
     vtkUsImagingParameters.h
     )
   IF(PLUS_USE_tesseract)
-    SET (DataCollection_HDRS ${DataCollection_HDRS} VirtualDevices/vtkVirtualScreenReader.h)
+    SET (DataCollection_HDRS ${DataCollection_HDRS} VirtualDevices/vtkVirtualTextRecognizer.h)
   ENDIF(PLUS_USE_tesseract)
 ENDIF (WIN32)  
 
