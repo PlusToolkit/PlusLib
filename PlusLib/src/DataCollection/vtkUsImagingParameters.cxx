@@ -26,6 +26,8 @@ const char* vtkUsImagingParameters::KEY_INTENSITY = "Intensity";
 const char* vtkUsImagingParameters::KEY_SECTOR = "SectorPercent";
 const char* vtkUsImagingParameters::KEY_ZOOM = "ZoomFactor";
 const char* vtkUsImagingParameters::KEY_SOUNDVELOCITY = "SoundVelocity";
+const char* vtkUsImagingParameters::KEY_VOLTAGE = "Voltage";
+const char* vtkUsImagingParameters::KEY_IMAGESIZE = "ImageSize";
 
 //----------------------------------------------------------------------------
 
@@ -41,6 +43,8 @@ vtkUsImagingParameters::vtkUsImagingParameters()
   this->ParameterValues[KEY_DYNRANGE]="-1";
   this->ParameterValues[KEY_ZOOM]="-1";
   this->ParameterValues[KEY_SOUNDVELOCITY]="1540";
+  this->ParameterValues[KEY_VOLTAGE]="-1";
+  this->ParameterValues[KEY_IMAGESIZE]="-1";
 
   this->ParameterSet[KEY_FREQUENCY]=false;
   this->ParameterSet[KEY_DEPTH]=false;
@@ -51,6 +55,8 @@ vtkUsImagingParameters::vtkUsImagingParameters()
   this->ParameterSet[KEY_DYNRANGE]=false;
   this->ParameterSet[KEY_ZOOM]=false;
   this->ParameterSet[KEY_SOUNDVELOCITY]=false;
+  this->ParameterSet[KEY_VOLTAGE]=false;
+  this->ParameterSet[KEY_IMAGESIZE]=false;
 }
 
 //----------------------------------------------------------------------------
@@ -239,9 +245,9 @@ PlusStatus vtkUsImagingParameters::SetIntensity(double aIntensity)
     return PLUS_SUCCESS;
   }
 
-  std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_INTENSITY]);
-  ss >> aIntensity;
+  std::stringstream ss;  
+  ss << aIntensity;
+  this->ParameterValues[KEY_INTENSITY] = ss.str();
 
   this->ParameterSet[KEY_INTENSITY] = true;
   return PLUS_SUCCESS;
@@ -281,9 +287,9 @@ PlusStatus vtkUsImagingParameters::SetContrast(double aContrast)
     return PLUS_SUCCESS;
   }
 
-  std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_CONTRAST]);
-  ss >> aContrast;
+  std::stringstream ss;  
+  ss << aContrast;
+  this->ParameterValues[KEY_CONTRAST] = ss.str();
 
   this->ParameterSet[KEY_CONTRAST] = true;
   return PLUS_SUCCESS;
@@ -323,9 +329,9 @@ PlusStatus vtkUsImagingParameters::SetDynRangeDb(double aDynRangeDb)
     return PLUS_SUCCESS;
   }
 
-  std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_DYNRANGE]);
-  ss >> aDynRangeDb;
+  std::stringstream ss;  
+  ss << aDynRangeDb;
+  this->ParameterValues[KEY_DYNRANGE] = ss.str();
 
   this->ParameterSet[KEY_DYNRANGE] = true;
   return PLUS_SUCCESS;
@@ -365,9 +371,9 @@ PlusStatus vtkUsImagingParameters::SetZoomFactor(double aZoomFactor)
     return PLUS_SUCCESS;
   }
 
-  std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_ZOOM]);
-  ss >> aZoomFactor;
+  std::stringstream ss;  
+  ss << aZoomFactor;
+  this->ParameterValues[KEY_ZOOM] = ss.str();
 
   this->ParameterSet[KEY_ZOOM] = true;
   return PLUS_SUCCESS;
@@ -407,9 +413,10 @@ PlusStatus vtkUsImagingParameters::SetSectorPercent(double aSectorPercent)
     return PLUS_SUCCESS;
   }
 
-  std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_SECTOR]);
-  ss >> aSectorPercent;
+  std::stringstream ss;  
+  ss << aSectorPercent;
+  this->ParameterValues[KEY_SECTOR] = ss.str();
+
 
   this->ParameterSet[KEY_SECTOR] = true;
   return PLUS_SUCCESS;
@@ -449,9 +456,9 @@ PlusStatus vtkUsImagingParameters::SetSoundVelocity(float aSoundVelocity)
     return PLUS_SUCCESS;
   }
 
-  std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_SOUNDVELOCITY]);
-  ss >> aSoundVelocity;
+  std::stringstream ss;  
+  ss << aSoundVelocity;
+  this->ParameterValues[KEY_SOUNDVELOCITY] = ss.str();
 
   this->ParameterSet[KEY_SOUNDVELOCITY] = true;
   return PLUS_SUCCESS;
@@ -480,6 +487,95 @@ float vtkUsImagingParameters::GetSoundVelocity()
   ss >> aValue;
   return aValue;
 }
+
+// Check 
+//----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::SetProbeVoltage(float aVoltage)
+{
+  float currentValue;
+  this->GetSoundVelocity(currentValue);
+  if( this->ParameterSet[KEY_VOLTAGE] == true && currentValue == aVoltage )
+  {
+    return PLUS_SUCCESS;
+  }
+
+  std::stringstream ss;  
+  ss << aVoltage;
+  this->ParameterValues[KEY_VOLTAGE] = ss.str();
+
+  this->ParameterSet[KEY_VOLTAGE] = true;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::GetProbeVoltage(float& aVoltage)
+{
+  if( this->ParameterSet[KEY_VOLTAGE] == false )
+  {
+    return PLUS_FAIL;
+  }
+
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_VOLTAGE]);
+  ss >> aVoltage;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+float vtkUsImagingParameters::GetProbeVoltage()
+{
+  float aValue;
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_VOLTAGE]);
+  ss >> aValue;
+  return aValue;
+}
+
+
+//- Check
+//----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::SetImageSize(const std::vector<int>& imgsz)
+{
+  std::stringstream result;
+  std::copy(imgsz.begin(), imgsz.end(), std::ostream_iterator<double>(result, " "));
+  this->ParameterValues[KEY_IMAGESIZE] = result.str();
+
+  this->ParameterSet[KEY_IMAGESIZE] = true;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::SetImageSize(int* imgsz, int length)
+{
+  std::vector<int> imgszVec(imgsz, imgsz+length);
+  return this->SetImageSize(imgszVec);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::GetImageSize(std::vector<int>& imgsz)
+{
+  if( this->ParameterSet[KEY_IMAGESIZE] == false )
+  {
+    return PLUS_FAIL;
+  }
+
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_IMAGESIZE]);
+  std::vector<int> numbers((std::istream_iterator<int>(ss)), 
+    std::istream_iterator<int>());
+  imgsz = numbers;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+std::vector<int> vtkUsImagingParameters::GetImageSize()
+{
+  std::stringstream ss;
+  ss.str(this->ParameterValues[KEY_IMAGESIZE]);
+  std::vector<int> numbers((std::istream_iterator<int>(ss)), std::istream_iterator<int>());
+  return numbers;
+}
+
 
 //----------------------------------------------------------------------------
 void vtkUsImagingParameters::PrintSelf(ostream& os, vtkIndent indent)

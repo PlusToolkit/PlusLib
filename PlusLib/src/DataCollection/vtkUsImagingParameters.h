@@ -50,6 +50,8 @@ public:
   static const char* KEY_SECTOR;
   static const char* KEY_ZOOM;
   static const char* KEY_SOUNDVELOCITY;
+  static const char* KEY_VOLTAGE;
+  static const char* KEY_IMAGESIZE;
 
 public:
   static vtkUsImagingParameters* New();
@@ -152,6 +154,20 @@ public:
   /*! Get the Sector (%) of B-mode ultrasound; valid range: 0-100 */
   PlusStatus GetSoundVelocity(float& aSoundVelocity);
   float GetSoundVelocity();
+
+	/*! Set Voltage of ultrasound probe */
+  PlusStatus SetProbeVoltage(float aSoundVelocity);
+  /*! Get Voltage of ultrasound probe */
+  PlusStatus GetProbeVoltage(float& aSoundVelocity);
+  float GetProbeVoltage();
+
+
+  /*! Set the Gain (%) of B-mode ultrasound; valid range: 0-100 */
+  PlusStatus SetImageSize(const std::vector<int>& tgc);
+  PlusStatus SetImageSize(int* tgc, int length);
+  /*! Get the Gain (%) of B-mode ultrasound; valid range: 0-100 */
+  PlusStatus GetImageSize(std::vector<int>& tgc);
+  std::vector<int> GetImageSize();
 
   /*! Print the list of supported parameters. For diagnostic purposes only. */
   virtual void PrintSelf(ostream& os, vtkIndent indent);
