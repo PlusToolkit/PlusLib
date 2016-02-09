@@ -26,12 +26,12 @@ namespace
 {
   const double SAMPLING_SKIPPING_MARGIN_SEC = 0.1;
   const double DELAY_ON_SENDING_ERROR_SEC = 0.02;
-  const char* PARAMETER_LIST_TAG_NAME = "ScreenFields";
+  const char* PARAMETER_LIST_TAG_NAME = "TextFields";
   const char* PARAMETER_TAG_NAME = "Field";
   const char* PARAMETER_NAME_ATTRIBUTE = "Name";
   const char* PARAMETER_CHANNEL_ATTRIBUTE = "Channel";
-  const char* PARAMETER_ORIGIN_ATTRIBUTE = "ScreenRegionOrigin";
-  const char* PARAMETER_SIZE_ATTRIBUTE = "ScreenRegionSize";
+  const char* PARAMETER_ORIGIN_ATTRIBUTE = "InputRegionOrigin";
+  const char* PARAMETER_SIZE_ATTRIBUTE = "InputRegionSize";
   const int PARAMETER_DEPTH_BITS = 8;
   const char* DEFAULT_LANGUAGE = "eng";
 }

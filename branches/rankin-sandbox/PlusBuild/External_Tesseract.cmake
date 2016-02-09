@@ -16,7 +16,7 @@ ExternalProject_Add( zlib
     BINARY_DIR "${PLUS_zlib_DIR}"
     #--Download step--------------
     GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/PLUSToolkit/zlib.git" 
-    GIT_TAG 50893291621658f355bc5b4d450a8d06a563053d 
+    GIT_TAG 023318cb972054147677a0d56f502a9d0f8bbd7f 
     #--Configure step-------------
     CMAKE_ARGS 
         ${ep_common_args}
@@ -43,14 +43,14 @@ ExternalProject_Add( libpng
     BINARY_DIR "${PLUS_libpng_DIR}"
     #--Download step--------------
     GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/PLUSToolkit/libpng.git"
-    GIT_TAG b5abaa2a4de16dd61de95e455a1bb6d83490220f 
+    GIT_TAG 9e5ed9232de5e1471104d88dd963e713d090f86d 
     #--Configure step-------------
     CMAKE_ARGS 
         ${ep_common_args}
         -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags} 
         -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags} 
         -DCMAKE_PREFIX_PATH:STRING=${CMAKE_PREFIX_PATH} 
-        -DZLIB_ROOT:PATH=${PLUS_zlib_DIR} 
+        -Dzlib_DIR:PATH=${PLUS_zlib_DIR} 
         -DCMAKE_INSTALL_PREFIX:PATH=${PLUS_libpng_DIR}
     #--Build step-----------------
     #--Install step-----------------
@@ -70,7 +70,7 @@ ExternalProject_Add( leptonica
     BINARY_DIR "${PLUS_leptonica_DIR}"
     #--Download step--------------
     GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/PLUSToolkit/leptonica.git"
-    GIT_TAG dc88fe65e328eeb5dfa2df167457c865b76aa4c7
+    GIT_TAG 5d2f1eb7cb023d971dc96062f07baed6f7bb7584
     #--Configure step-------------
     CMAKE_ARGS 
         ${ep_common_args}

@@ -1042,17 +1042,25 @@ ENDIF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
 #
 IF(PLUS_USE_tesseract)
   FIND_PACKAGE(tesseract NO_MODULE REQUIRED PATHS ${tesseract_DIR})
-ENDIF(PLUS_USE_tesseract)
+  
+  # Copy zlib dlls to appropriate dirs
+  get_target_property(zlib_RELEASE_DLL zlib IMPORTED_LOCATION_RELEASE)
+  SET ( External_Libraries_Install ${External_Libraries_Install}
+    ${zlib_RELEASE_DLL}
+    )
 
-# --------------------------------------------------------------------------
-# tesseract support
-IF(PLUS_USE_tesseract)
+  get_target_property(zlib_DEBUG_DLL zlib IMPORTED_LOCATION_DEBUG)
+  SET ( External_Libraries_Debug ${External_Libraries_Debug}
+    ${zlib_DEBUG_DLL}
+    )
+
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
     ${tesseract_INCLUDE_DIRS}
     )
 
   SET (DataCollection_LIBS ${DataCollection_LIBS}
     ${tesseract_LIBRARIES}
+    zlib
     )
 ENDIF(PLUS_USE_tesseract)
 

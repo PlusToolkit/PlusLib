@@ -1,0 +1,77 @@
+<PlusConfiguration version="2.1">
+
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="PlusServer: Replay fCal 3d data"
+      Description="Free-hand probe motion, imaging 3 NWires, after spatial calibration. OpenIGTLink broadcasting through PlusServer of image and tool tracking data." />
+    <Device
+      Id="TrackedVideoDevice"
+      Type="SavedDataSource"
+      SequenceFile="ie33_biplane_LeftCaptureDevice_compressed.mha"
+      UseData="IMAGE_AND_TRANSFORM"
+      UseOriginalTimestamps="TRUE"
+      RepeatEnabled="TRUE" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MFA"/>
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+    
+    <Device
+      Id="TextRecognizerDevice" 
+      Type="VirtualTextRecognizer"
+      Language="eng" >
+      <TextFields>
+        <Field Channel="TrackedVideoStream" Name="patient-last-name" InputRegionOrigin="260 885" InputRegionSize="82 20" />
+        <Field Channel="TrackedVideoStream" Name="tee-temperature" InputRegionOrigin="75 185" InputRegionSize="55 20" />
+      </TextFields>
+      <InputChannels>
+        <InputChannel Id="TrackedVideoStream" />
+      </InputChannels>
+    </Device>
+  </DataCollection>
+
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="TrackedVideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="StylusTipToReference" />
+        <!--<Transform Name="ImageToReference" />-->
+        <!--<Transform Name="StylusTipToStylus" />-->
+        <!--<Transform Name="StylusToTracker" />-->
+        <!--<Transform Name="ReferenceToTracker" />-->
+      </TransformNames>
+    <ImageNames>
+      <Image Name="Image" EmbeddedTransformToFrame="Reference" />
+    </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+  
+  <CoordinateDefinitions>
+    <Transform From="StylusTip" To="Stylus"
+      Matrix="
+        1 0 0 0
+        0 1 0 0
+        0 0 1 10
+        0 0 0 1"
+      Error="0.582721" Date="012712_152030" />
+    <Transform From="Image" To="Probe"
+      Matrix="
+        1.16021	-0.245715	-0.015974	15.918
+        0.245945	1.15269	0.132472	-57.0786
+        -0.0119196	-0.132898	1.17852	-8.80509
+        0	0	0	1"
+      Error="0.0" Date="012712_152030" />
+  </CoordinateDefinitions> 
+    
+</PlusConfiguration>
