@@ -8,232 +8,229 @@
 #define __vtkCapistranoVideoSource_h
 
 #include "vtkDataCollectionExport.h"
-
 #include "vtkPlusDevice.h"
 #include "vtkUsImagingParameters.h"
 
 /*!
  \class vtkCapistranoVideoSource
- \brief Class for acquiring ultrasound images from Capistrano Labs USB
- ultrasound systems.
+ \brief Class for acquiring ultrasound images from Capistrano Labs USB ultrasound systems.
 
  Requires PLUS_USE_CAPISTRANO_VIDEO option in CMake.
  Requires the Capistrano cSDK2013 (SDK provided by Capistrano Labs).
 
  \ingroup PlusLibDataCollection.
 */
-
-
 class vtkDataCollectionExport vtkCapistranoVideoSource: public vtkPlusDevice
 {
 public:
-	
-	/*! Constructor for a smart pointer of this class*/
-	static vtkCapistranoVideoSource * New();
-  
-	/*! Macro */
-	vtkTypeMacro(vtkCapistranoVideoSource, vtkPlusDevice);
+  /*! Constructor for a smart pointer of this class*/
+  static vtkCapistranoVideoSource * New();
 
-	/*! print the information of this class */
-	void PrintSelf(ostream& os, vtkIndent indent);   
- 
-	/*! Specify the device connected to this class */
-	virtual bool IsTracker() const { return false; }
+  /*! Macro */
+  vtkTypeMacro(vtkCapistranoVideoSource, vtkPlusDevice);
 
-	/*! Read configuration from xml data */  
-	virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
-  
-	/*! Write configuration to xml data */
-	virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);    
+  /*! print the information of this class */
+  void PrintSelf(ostream& os, vtkIndent indent);
 
-	/*! Verify the device is correctly configured */
-	virtual PlusStatus NotifyConfigured();
+  /*! Specify the device connected to this class */
+  virtual bool IsTracker() const { return false; }
 
-	/*! Get the version of SDK */
-	virtual std::string GetSdkVersion();
+  /*! Read configuration from xml data */
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);
 
-	/*! US Image parameters */
-	vtkUsImagingParameters* ImagingParameters;
+  /*! Write configuration to xml data */
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
+
+  /*! Verify the device is correctly configured */
+  virtual PlusStatus NotifyConfigured();
+
+  /*! Get the version of SDK */
+  virtual std::string GetSdkVersion();
+
+  /* Update Speed of Sound */
+  PlusStatus GetProbeVelocityDevice(float& aVel);
+
+  /* Set the speed of sound of US probe */
+  PlusStatus SetSpeedOfSound(float ss);
+
+  /* Set the scan diectional mode of US probe */
+  PlusStatus SetBidirectionalMode(bool mode);
+
+  /* Set the size of cinebuffer of US probe */
+  PlusStatus SetCineBuffers(int cinebuffer);
+
+  /* Set the sample frquency of US probe */
+  PlusStatus SetSampleFrequency(float sf);
+
+  /* Set the pulser frequency of US probe */
+  PlusStatus SetPluserFrequency(float pf);
+
+  /* Set the pulser voltage of US probe */
+  PlusStatus SetPluserVoltage(float pv);
+
+  /* Set the scan depth of US probe */
+  PlusStatus SetScanDepth(float sd);
+
+  /* Set the interplation of B-Mode image */
+  PlusStatus SetInterpolate(bool interpolate);
+
+  /* Set the average mode of US B-Mode image */
+  PlusStatus SetAverageMode(bool averagemode);
+
+  /* Set the view option of US B-Mode image */
+  PlusStatus SetBModeViewOption(int bmodeviewoption);
+
+  /* Set the size of US-Bmode image */
+  PlusStatus SetImageSize(int imageSize[2]);
+
+  /* Set the Intensity (Brightness) of US-Bmode image */
+  PlusStatus SetIntensity(double value);
+
+  /* Set the Contrast of US-Bmode image */
+  PlusStatus SetContrast(double value);
+
+  /* Set the zoom factor. */
+  PlusStatus SetZoomFactor(double zoomfactor);
+
+  /* Set the zoom factor on the US Device. */
+  PlusStatus SetDisplayZoomDevice(double zoom);
+
+  /* Set the LUT Center of US-Bmode image */
+  PlusStatus SetLutCenter(double lutcenter);
+
+  /* Set the LUT Window of US-Bmode image */
+  PlusStatus SetLutWindow(double lutwindow);
+
+  /* Set the gain in percent */
+  PlusStatus SetGainPercent(double gainPercent[3]);
+
+  /* Set the gain in percent in the device */
+  PlusStatus SetGainPercentDevice(double gainPercent[3]);
+
+  /* Set the probe depth on US Device in mm */
+  PlusStatus SetDepthMmDevice(float depthMm);
+
+  /* Set the probe depth in mm */
+  PlusStatus SetDepthMm(float depthMm);
+
+  /* Apply a completely new set of imaging parameters to the device */
+  PlusStatus SetNewImagingParametersDevice(const vtkUsImagingParameters& newImagingParameters);
 
 
 protected:
 
-	/*! Constructor */
-	vtkCapistranoVideoSource();
+  /*! Constructor */
+  vtkCapistranoVideoSource();
 
-	/*! Destructor */
-	~vtkCapistranoVideoSource();
+  /*! Destructor */
+  ~vtkCapistranoVideoSource();
 
-	/*! Initialize a Capistrano Probe */
-	PlusStatus InitializeCapistranoProbe();
+  /*! Device-specific connect */
+  virtual PlusStatus InternalConnect();
 
-	/* Set up US Probe with ID */
-	PlusStatus SetupProbe(int probeID = 0);
-	
-	/*! Initialize a ImageWindow and vtkPlusDataSource */
-	PlusStatus InitializeImageWindow();
+  /*! Device-specific disconnect */
+  virtual PlusStatus InternalDisconnect();
 
-	/*! Initialize an LUT for US B-Mode image */
-	PlusStatus InitializeLUT();
+  /*! Device-specific recording start */
+  virtual PlusStatus InternalStartRecording();
 
-	/*! Initialize an TGC for US B-Mode image */
-	PlusStatus InitializeTGC();
+  /*! Device-specific recording stop */
+  virtual PlusStatus InternalStopRecording();
 
-	/*! Device-specific connect */
-	virtual PlusStatus InternalConnect();
+  /*! Initialize vtkCapistranoVideoSource */
+  PlusStatus InitializevtkCapistranoVideoSource(bool probeConnected = false);
 
-	/*! Device-specific disconnect */
-	virtual PlusStatus InternalDisconnect();
+  /*! The internal function which actually does the grab. */
+  PlusStatus InternalUpdate();
 
-	/*! Device-specific recording start */
-	virtual PlusStatus InternalStartRecording();
+  /*! Initialize a Capistrano Probe */
+  PlusStatus InitializeCapistranoProbe();
 
-	/*! Device-specific recording stop */
-	virtual PlusStatus InternalStopRecording();
+  /* Set up US Probe with ID */
+  PlusStatus SetupProbe(int probeID = 0);
 
-	/*! The internal function which actually does the grab. */
-	PlusStatus InternalUpdate();
+  /*! Initialize a ImageWindow and vtkPlusDataSource */
+  PlusStatus InitializeImageWindow();
 
-	/*! Set ON/OFF of collecting US data. */
-	PlusStatus FreezeDevice(bool freeze);
+  /*! Initialize an LUT for US B-Mode image */
+  PlusStatus InitializeLUT();
 
-	/*! Wait US Data from US device  */
-	PlusStatus WaitForFrame();
-  
-	/* Set the boolean value to use US parameters from XML file */
-	PlusStatus SetUpdateParameters(bool b);
+  /*! Initialize an TGC for US B-Mode image */
+  PlusStatus InitializeTGC();
 
-	/* Set the scan diectional mode of US probe */
-	PlusStatus SetBidirectionalMode(bool mode);
+  /*! Set ON/OFF of collecting US data. */
+  PlusStatus FreezeDevice(bool freeze);
 
-	/* Set the size of cinebuffer of US probe */
-	PlusStatus SetCineBuffers(int cinebuffer);
+  /*! Wait US Data from US device  */
+  PlusStatus WaitForFrame();
 
-	/* Set the sample frquency of US probe */
-	PlusStatus SetSampleFrequency(float sf);
+  /* Set the boolean value to use US parameters from XML file */
+  PlusStatus SetUpdateParameters(bool b);
 
-	/* Set the pulser frequency of US probe */
-	PlusStatus SetPluserFrequency(float pf);
+  /* Update US parameters (US probe/B-Mode parameters) */
+  PlusStatus UpdateUSParameters();
 
-	/* Set the pulser voltage of US probe */
-	PlusStatus SetPluserVoltage(float pv);
+  /* Update US probe parameters  */
+  PlusStatus UpdateUSProbeParameters();
 
-	/* Set the speed of sound of US probe */
-	PlusStatus SetSpeedOfSound(float ss);
+  /* Update US B-Mode parameters */
+  PlusStatus UpdateUSBModeParameters();
 
-	/* Set the scan depth of US probe */
-	PlusStatus SetScanDepth(float sd);
+  /* Calculate US Image Display */
+  PlusStatus CalculateDisplay();
 
-	/* Set the interplation of B-Mode image */
-	PlusStatus SetInterpolate(bool interpolate);
-  
-	/* Set the average mode of US B-Mode image */
-	PlusStatus SetAverageMode(bool averagemode);
-  
-	/* Set the view option of US B-Mode image */
-	PlusStatus SetBModeViewOption(int bmodeviewoption);
-  
-	/* Set the size of US-Bmode image */
-	PlusStatus SetImageSize(int imageSize[2]);
-  
-	/* Set the Intensity (Brightness) of US-Bmode image */  
-	PlusStatus SetIntensity(int value);
+  /* Calculate US Image Display with a given B-Mode view option */
+  PlusStatus CalculateDisplay(unsigned int option);
 
-	/* Set the Contrast of US-Bmode image */ 
-	PlusStatus SetContrast(int value);
-  
-	/* Set the zoom factor. */
-	PlusStatus SetZoomFactor(double gainPercent);
+  /* Update US Scan depth */
+  PlusStatus UpdateDepthMode();
 
-	/* Set the zoom factor on the US Device. */
-	PlusStatus SetDisplayZoomDevice(double zoom);
-  
-	/* Set the LUT Center of US-Bmode image */ 
-	PlusStatus SetLutCenter(double lutcenter);
+  /* Update US Scan depth with a given clockdivider */
+  PlusStatus UpdateDepthMode(int clockdivider);
 
-	/* Set the LUT Window of US-Bmode image */ 
-	PlusStatus SetLutWindow(double lutwindow);
+  /* Update US Sample frquency */
+  PlusStatus GetSampleFrequencyDevice(float& aFreq);
 
-	/* Set the gain in percent */
-	PlusStatus SetGainPercent(double gainPercent[3]);
+  /*! Get probe name from the device */
+  PlusStatus GetProbeNameDevice(std::string& probeName);
 
-	/* Set the gain in percent in the device */
-	PlusStatus SetGainPercentDevice(double gainPercent[3]);
-  
-	/* Set the probe depth on US Device in mm */
-	PlusStatus SetDepthMmDevice(float depthMm);
+  /*! For internal storage of additional variables
+      (to minimize the number of included headers) */
+  class        vtkInternal;
+  vtkInternal* Internal;
 
-	/* Set the probe depth in mm */
-	PlusStatus SetDepthMm(float depthMm);
-  
-	/* Update US parameters (US probe/B-Mode parameters) */  
-	PlusStatus UpdateUSParameters();
+  bool         Frozen;
+  bool         UpdateParameters;
 
-	/* Update US probe parameters  */
-	PlusStatus UpdateUSProbeParameters();
-  
-	/* Update US B-Mode parameters */
-	PlusStatus UpdateUSBModeParameters();
+  bool         BidirectionalScan;
+  int          ProbeID;
+  int          ClockDivider;
+  int          CineBuffers;
+  float        SampleFrequency;
+  float        PulseFrequency;
+  float        PulseVoltage;
+  float        SpeedOfSound;
+  float        ScanDepth;
 
-	/* Calculate US Image Display */
-	PlusStatus CalculateDisplay();
-	
-	/* Calculate US Image Display with a given B-Mode view option */
-	PlusStatus CalculateDisplay(unsigned int option);
 
-	/* Update US Scan depth */
-	PlusStatus UpdateDepthMode();
+  bool         Interpolate;
+  bool         AverageMode;
+  unsigned int CurrentBModeViewOption;
 
-	/* Update US Scan depth with a given clockdivider */
-	PlusStatus UpdateDepthMode(int clockdivider);
-
-	/* Update US Sample frquency */
-	PlusStatus GetSampleFrequencyDevice(float& aFreq);
-
-	/* Update Speed of Sound */
-	PlusStatus GetProbeVelocityDevice(float& aVel);
-
-	/*! Get probe name from the device */
-	PlusStatus GetProbeNameDevice(std::string& probeName);
-  
-	/*! For internal storage of additional variables 
-	   (to minimize the number of included headers) */
-	class vtkInternal;
-	vtkInternal* Internal;
-
-	bool Frozen;				   
-	bool UpdateParameters;
-
-	bool BidirectionalScan;	   
-	int ProbeID;				   
-	int ClockDivider;		       
-	int CineBuffers;             
-	float SampleFrequency;         
-	float PulseFrequency;		   
-	float PulseVoltage;		   
-	float SpeedOfSound;		   
-	float ScanDepth;			   
-
-	
-	bool Interpolate;	           
-	bool AverageMode;			   
-	unsigned int CurrentBModeViewOption;  
-	
-	int ImageSize[2];            
-	int Brightness;			   
-	int Contrast;			       
-	float ZoomFactor;              
-	double LutCenter;			    
-	double LutWindow;			   
-	double InitialGain;			
-	double MidGain;				
-	double FarGain;				
+  int          ImageSize[2];
+  double       Intensity;
+  double       Contrast;
+  float        ZoomFactor;
+  double       LutCenter;
+  double       LutWindow;
+  double       GainPercent[3];
+  double       InitialGain;
+  double       MidGain;
+  double       FarGain;
 
 private:
-
-	vtkCapistranoVideoSource(const vtkCapistranoVideoSource &); // Not implemented
-	void operator=(const vtkCapistranoVideoSource &); // Not implemented
-
+  vtkCapistranoVideoSource(const vtkCapistranoVideoSource &); // Not implemented
+  void operator=(const vtkCapistranoVideoSource &); // Not implemented
 };
 
 #endif
