@@ -32,7 +32,7 @@ const char* vtkUsImagingParameters::KEY_IMAGESIZE = "ImageSize";
 //----------------------------------------------------------------------------
 
 vtkUsImagingParameters::vtkUsImagingParameters()
-: vtkObject()
+  : vtkObject()
 {
   this->ParameterValues[KEY_FREQUENCY]="-1";
   this->ParameterValues[KEY_DEPTH]="-1";
@@ -44,7 +44,7 @@ vtkUsImagingParameters::vtkUsImagingParameters()
   this->ParameterValues[KEY_ZOOM]="-1";
   this->ParameterValues[KEY_SOUNDVELOCITY]="1540";
   this->ParameterValues[KEY_VOLTAGE]="-1";
-  this->ParameterValues[KEY_IMAGESIZE]="-1";
+  this->ParameterValues[KEY_IMAGESIZE]="-1 -1 -1";
 
   this->ParameterSet[KEY_FREQUENCY]=false;
   this->ParameterSet[KEY_DEPTH]=false;
@@ -69,126 +69,60 @@ vtkUsImagingParameters::~vtkUsImagingParameters()
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::SetFrequencyMhz(double aFrequencyMhz)
 {
-  double currentValue;
-  this->GetFrequencyMhz(currentValue);
-  if( this->ParameterSet[KEY_FREQUENCY] == true && currentValue == aFrequencyMhz )
-  {
-    return PLUS_SUCCESS;
-  }
-  std::stringstream ss;
-  ss << aFrequencyMhz;
-  this->ParameterValues[KEY_FREQUENCY] = ss.str();
-
-  this->ParameterSet[KEY_FREQUENCY] = true;
-  return PLUS_SUCCESS;
+  return this->SetValue<double>(KEY_FREQUENCY, aFrequencyMhz);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::GetFrequencyMhz(double& aFrequencyMhz)
+PlusStatus vtkUsImagingParameters::GetFrequencyMhz(double& aFrequencyMhz) const
 {
-  if( this->ParameterSet[KEY_FREQUENCY] == false )
-  {
-    return PLUS_FAIL;
-  }
-
-  std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_FREQUENCY]);
-  ss >> aFrequencyMhz;
-  return PLUS_SUCCESS;
+  return this->GetValue<double>(KEY_FREQUENCY, aFrequencyMhz);
 }
 
 //----------------------------------------------------------------------------
-double vtkUsImagingParameters::GetFrequencyMhz()
+double vtkUsImagingParameters::GetFrequencyMhz() const
 {
   double aValue;
-  std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_FREQUENCY]);
-  ss >> aValue;
+  this->GetValue<double>(KEY_FREQUENCY, aValue);
   return aValue;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::SetDepthMm(double aDepthMm)
 {
-  double currentValue;
-  this->GetDepthMm(currentValue);
-  if( this->ParameterSet[KEY_DEPTH] == true && currentValue == aDepthMm )
-  {
-    return PLUS_SUCCESS;
-  }
-
-  std::stringstream ss;
-  ss << aDepthMm;
-  this->ParameterValues[KEY_DEPTH] = ss.str();
-
-  this->ParameterSet[KEY_DEPTH] = true;
-  return PLUS_SUCCESS;
+  return this->SetValue<double>(KEY_DEPTH, aDepthMm);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::GetDepthMm(double& aDepthMm)
+PlusStatus vtkUsImagingParameters::GetDepthMm(double& aDepthMm) const
 {
-  if( this->ParameterSet[KEY_DEPTH] == false )
-  {
-    return PLUS_FAIL;
-  }
-
-  std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_DEPTH]);
-  ss >> aDepthMm;
-  return PLUS_SUCCESS;
+  return this->GetValue<double>(KEY_DEPTH, aDepthMm);
 }
 
 //----------------------------------------------------------------------------
-double vtkUsImagingParameters::GetDepthMm()
+double vtkUsImagingParameters::GetDepthMm() const
 {
   double aValue;
-  std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_DEPTH]);
-  ss >> aValue;
+  this->GetValue<double>(KEY_DEPTH, aValue);
   return aValue;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::SetGainPercent(double aGainPercent)
 {
-  double currentValue = 0;
-  this->GetGainPercent(currentValue);
-  if( this->ParameterSet[KEY_GAIN] == true && currentValue == aGainPercent )
-  {
-    return PLUS_SUCCESS;
-  }
-
-  std::stringstream ss;
-  ss << aGainPercent;
-  this->ParameterValues[KEY_GAIN] = ss.str();
-
-  this->ParameterSet[KEY_GAIN] = true;
-  return PLUS_SUCCESS;
+  return this->SetValue<double>(KEY_GAIN, aGainPercent);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::GetGainPercent(double aGainPercent)
+PlusStatus vtkUsImagingParameters::GetGainPercent(double aGainPercent) const
 {
-  if( this->ParameterSet[KEY_GAIN] == false )
-  {
-    return PLUS_FAIL;
-  }
-
-  double aValue;
-  std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_GAIN]);
-  ss >> aValue;
-  return PLUS_SUCCESS;
+ return this->GetValue<double>(KEY_GAIN, aGainPercent);
 }
 
 //----------------------------------------------------------------------------
-double vtkUsImagingParameters::GetGainPercent()
+double vtkUsImagingParameters::GetGainPercent() const
 {
   double aValue;
-  std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_GAIN]);
-  ss >> aValue;
+  this->GetValue<double>(KEY_GAIN, aValue);
   return aValue;
 }
 
@@ -198,7 +132,6 @@ PlusStatus vtkUsImagingParameters::SetTimeGainCompensation(const std::vector<dou
   std::stringstream result;
   std::copy(tgc.begin(), tgc.end(), std::ostream_iterator<double>(result, " "));
   this->ParameterValues[KEY_GAIN] = result.str();
-
   this->ParameterSet[KEY_GAIN] = true;
   return PLUS_SUCCESS;
 }
@@ -211,15 +144,21 @@ PlusStatus vtkUsImagingParameters::SetTimeGainCompensation(double* tgc, int leng
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::GetTimeGainCompensation(std::vector<double>& tgc)
+PlusStatus vtkUsImagingParameters::GetTimeGainCompensation(std::vector<double>& tgc) const
 {
-  if( this->ParameterSet[KEY_TGC] == false )
+  ParameterSetMap::const_iterator keyIt = this->ParameterSet.find(KEY_TGC);
+  if( keyIt != this->ParameterSet.end() && keyIt->second == false )
+  {
+    return PLUS_FAIL;
+  }
+  else if( keyIt == this->ParameterSet.end() )
   {
     return PLUS_FAIL;
   }
 
   std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_TGC]);
+  ParameterNameMapConstIterator it = this->ParameterValues.find(KEY_TGC);
+  ss.str(it->second);
   std::vector<double> numbers((std::istream_iterator<double>(ss)), 
     std::istream_iterator<double>());
   tgc = numbers;
@@ -227,355 +166,223 @@ PlusStatus vtkUsImagingParameters::GetTimeGainCompensation(std::vector<double>& 
 }
 
 //----------------------------------------------------------------------------
-std::vector<double> vtkUsImagingParameters::GetTimeGainCompensation()
+std::vector<double> vtkUsImagingParameters::GetTimeGainCompensation() const
 {
-  std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_GAIN]);
-  std::vector<double> numbers((std::istream_iterator<double>(ss)), std::istream_iterator<double>());
-  return numbers;
+  std::vector<double> vec;
+  this->GetTimeGainCompensation(vec);
+  return vec;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::SetIntensity(double aIntensity)
 {
-  double currentValue;
-  this->GetIntensity(currentValue);
-  if( this->ParameterSet[KEY_INTENSITY] == true && currentValue == aIntensity )
-  {
-    return PLUS_SUCCESS;
-  }
-
-  std::stringstream ss;  
-  ss << aIntensity;
-  this->ParameterValues[KEY_INTENSITY] = ss.str();
-
-  this->ParameterSet[KEY_INTENSITY] = true;
-  return PLUS_SUCCESS;
+  return this->SetValue<double>(KEY_INTENSITY, aIntensity);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::GetIntensity(double& aIntensity)
+PlusStatus vtkUsImagingParameters::GetIntensity(double& aIntensity) const
 {
-  if( this->ParameterSet[KEY_INTENSITY] == false )
-  {
-    return PLUS_FAIL;
-  }
-
-  std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_INTENSITY]);
-  ss >> aIntensity;
-  return PLUS_SUCCESS;
+  return this->GetValue<double>(KEY_INTENSITY, aIntensity);
 }
 
 //----------------------------------------------------------------------------
-double vtkUsImagingParameters::GetIntensity()
+double vtkUsImagingParameters::GetIntensity() const
 {
   double aValue;
-  std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_INTENSITY]);
-  ss >> aValue;
+  this->GetValue<double>(KEY_INTENSITY, aValue);
   return aValue;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::SetContrast(double aContrast)
 {
-  double currentValue;
-  this->GetContrast(currentValue);
-  if( this->ParameterSet[KEY_CONTRAST] == true && currentValue == aContrast )
-  {
-    return PLUS_SUCCESS;
-  }
-
-  std::stringstream ss;  
-  ss << aContrast;
-  this->ParameterValues[KEY_CONTRAST] = ss.str();
-
-  this->ParameterSet[KEY_CONTRAST] = true;
-  return PLUS_SUCCESS;
+  return this->SetValue<double>(KEY_CONTRAST, aContrast);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::GetContrast(double& aContrast)
+PlusStatus vtkUsImagingParameters::GetContrast(double& aContrast) const
 {
-  if( this->ParameterSet[KEY_CONTRAST] == false )
-  {
-    return PLUS_FAIL;
-  }
-
-  std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_CONTRAST]);
-  ss >> aContrast;
-  return PLUS_SUCCESS;
+  return this->GetValue<double>(KEY_CONTRAST, aContrast);
 }
 
 //----------------------------------------------------------------------------
-double vtkUsImagingParameters::GetContrast()
+double vtkUsImagingParameters::GetContrast() const
 {
   double aValue;
-  std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_CONTRAST]);
-  ss >> aValue;
+  this->GetValue<double>(KEY_CONTRAST, aValue);
   return aValue;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::SetDynRangeDb(double aDynRangeDb)
 {
-  double currentValue;
-  this->GetDynRangeDb(currentValue);
-  if( this->ParameterSet[KEY_DYNRANGE] == true && currentValue == aDynRangeDb )
-  {
-    return PLUS_SUCCESS;
-  }
-
-  std::stringstream ss;  
-  ss << aDynRangeDb;
-  this->ParameterValues[KEY_DYNRANGE] = ss.str();
-
-  this->ParameterSet[KEY_DYNRANGE] = true;
-  return PLUS_SUCCESS;
+  return this->SetValue<double>(KEY_DYNRANGE, aDynRangeDb);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::GetDynRangeDb(double& aDynRangeDb)
+PlusStatus vtkUsImagingParameters::GetDynRangeDb(double& aDynRangeDb) const
 {
-  if( this->ParameterSet[KEY_DYNRANGE] == false )
-  {
-    return PLUS_FAIL;
-  }
-
-  std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_DYNRANGE]);
-  ss >> aDynRangeDb;
-  return PLUS_SUCCESS;
+  return this->GetValue<double>(KEY_DYNRANGE, aDynRangeDb);
 }
 
 //----------------------------------------------------------------------------
-double vtkUsImagingParameters::GetDynRangeDb()
+double vtkUsImagingParameters::GetDynRangeDb() const
 {
   double aValue;
-  std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_DYNRANGE]);
-  ss >> aValue;
+  this->GetValue<double>(KEY_DYNRANGE, aValue);
   return aValue;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::SetZoomFactor(double aZoomFactor)
 {
-  double currentValue;
-  this->GetZoomFactor(currentValue);
-  if( this->ParameterSet[KEY_ZOOM] == true && currentValue == aZoomFactor )
-  {
-    return PLUS_SUCCESS;
-  }
-
-  std::stringstream ss;  
-  ss << aZoomFactor;
-  this->ParameterValues[KEY_ZOOM] = ss.str();
-
-  this->ParameterSet[KEY_ZOOM] = true;
-  return PLUS_SUCCESS;
+  return this->SetValue<double>(KEY_ZOOM, aZoomFactor);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::GetZoomFactor(double& aZoomFactor)
+PlusStatus vtkUsImagingParameters::GetZoomFactor(double& aZoomFactor) const
 {
-  if( this->ParameterSet[KEY_ZOOM] == false )
-  {
-    return PLUS_FAIL;
-  }
-
-  std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_ZOOM]);
-  ss >> aZoomFactor;
-  return PLUS_SUCCESS;
+  return this->GetValue<double>(KEY_ZOOM, aZoomFactor);
 }
 
 //----------------------------------------------------------------------------
-double vtkUsImagingParameters::GetZoomFactor()
+double vtkUsImagingParameters::GetZoomFactor() const
 {
   double aValue;
-  std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_ZOOM]);
-  ss >> aValue;
+  this->GetValue<double>(KEY_ZOOM, aValue);
   return aValue;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::SetSectorPercent(double aSectorPercent)
 {
-  double currentValue;
-  this->GetSectorPercent(currentValue);
-  if( this->ParameterSet[KEY_SECTOR] == true && currentValue == aSectorPercent )
-  {
-    return PLUS_SUCCESS;
-  }
-
-  std::stringstream ss;  
-  ss << aSectorPercent;
-  this->ParameterValues[KEY_SECTOR] = ss.str();
-
-
-  this->ParameterSet[KEY_SECTOR] = true;
-  return PLUS_SUCCESS;
+  return this->SetValue<double>(KEY_SECTOR, aSectorPercent);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::GetSectorPercent(double& aSectorPercent)
+PlusStatus vtkUsImagingParameters::GetSectorPercent(double& aSectorPercent) const
 {
-  if( this->ParameterSet[KEY_SECTOR] == false )
-  {
-    return PLUS_FAIL;
-  }
-
-  std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_SECTOR]);
-  ss >> aSectorPercent;
-  return PLUS_SUCCESS;
+  return this->GetValue<double>(KEY_SECTOR, aSectorPercent);
 }
 
 //----------------------------------------------------------------------------
-double vtkUsImagingParameters::GetSectorPercent()
+double vtkUsImagingParameters::GetSectorPercent() const
 {
   double aValue;
-  std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_SECTOR]);
-  ss >> aValue;
+  this->GetValue<double>(KEY_SECTOR, aValue);
   return aValue;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::SetSoundVelocity(float aSoundVelocity)
 {
-  float currentValue;
-  this->GetSoundVelocity(currentValue);
-  if( this->ParameterSet[KEY_SOUNDVELOCITY] == true && currentValue == aSoundVelocity )
-  {
-    return PLUS_SUCCESS;
-  }
-
-  std::stringstream ss;  
-  ss << aSoundVelocity;
-  this->ParameterValues[KEY_SOUNDVELOCITY] = ss.str();
-
-  this->ParameterSet[KEY_SOUNDVELOCITY] = true;
-  return PLUS_SUCCESS;
+  return this->SetValue<float>(KEY_SOUNDVELOCITY, aSoundVelocity);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::GetSoundVelocity(float& aSoundVelocity)
+PlusStatus vtkUsImagingParameters::GetSoundVelocity(float& aSoundVelocity) const
 {
-  if( this->ParameterSet[KEY_SOUNDVELOCITY] == false )
-  {
-    return PLUS_FAIL;
-  }
-
-  std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_SOUNDVELOCITY]);
-  ss >> aSoundVelocity;
-  return PLUS_SUCCESS;
+  return this->GetValue<float>(KEY_SOUNDVELOCITY, aSoundVelocity);
 }
 
 //----------------------------------------------------------------------------
-float vtkUsImagingParameters::GetSoundVelocity()
+float vtkUsImagingParameters::GetSoundVelocity() const
 {
   float aValue;
-  std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_SOUNDVELOCITY]);
-  ss >> aValue;
+  this->GetValue<float>(KEY_SOUNDVELOCITY, aValue);
   return aValue;
 }
 
 // Check 
 //----------------------------------------------------------------------------
+vtkUsImagingParameters::ParameterNameMapConstIterator vtkUsImagingParameters::begin() const
+{
+  return this->ParameterValues.begin();
+}
+
+//----------------------------------------------------------------------------
+vtkUsImagingParameters::ParameterNameMapConstIterator vtkUsImagingParameters::end() const
+{
+  return this->ParameterValues.end();
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::SetProbeVoltage(float aVoltage)
 {
-  float currentValue;
-  this->GetSoundVelocity(currentValue);
-  if( this->ParameterSet[KEY_VOLTAGE] == true && currentValue == aVoltage )
-  {
-    return PLUS_SUCCESS;
-  }
-
-  std::stringstream ss;  
-  ss << aVoltage;
-  this->ParameterValues[KEY_VOLTAGE] = ss.str();
-
-  this->ParameterSet[KEY_VOLTAGE] = true;
-  return PLUS_SUCCESS;
+  return this->SetValue<float>(KEY_VOLTAGE, aVoltage);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::GetProbeVoltage(float& aVoltage)
+PlusStatus vtkUsImagingParameters::GetProbeVoltage(float& aVoltage) const
 {
-  if( this->ParameterSet[KEY_VOLTAGE] == false )
-  {
-    return PLUS_FAIL;
-  }
-
-  std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_VOLTAGE]);
-  ss >> aVoltage;
-  return PLUS_SUCCESS;
+  return this->GetValue<float>(KEY_VOLTAGE, aVoltage);
 }
 
 //----------------------------------------------------------------------------
-float vtkUsImagingParameters::GetProbeVoltage()
+float vtkUsImagingParameters::GetProbeVoltage() const
 {
   float aValue;
-  std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_VOLTAGE]);
-  ss >> aValue;
+  this->GetValue<float>(KEY_VOLTAGE, aValue);
   return aValue;
 }
 
-
-//- Check
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::SetImageSize(const std::vector<int>& imgsz)
+PlusStatus vtkUsImagingParameters::SetImageSize(const std::vector<int>& imageSize)
 {
+  if( imageSize.size() != 2 || imageSize.size() != 3 )
+  {
+    LOG_ERROR("Invalid image dimensions.");
+    return PLUS_FAIL;
+  }
   std::stringstream result;
-  std::copy(imgsz.begin(), imgsz.end(), std::ostream_iterator<double>(result, " "));
-  this->ParameterValues[KEY_IMAGESIZE] = result.str();
+  std::copy(imageSize.begin(), imageSize.end(), std::ostream_iterator<double>(result, " "));
+  if( imageSize.size() == 2 )
+  {
+    result << " " << 1;
+  }
 
+  this->ParameterValues[KEY_IMAGESIZE] = result.str();
   this->ParameterSet[KEY_IMAGESIZE] = true;
+
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::SetImageSize(int* imgsz, int length)
+PlusStatus vtkUsImagingParameters::SetImageSize(int* imageSize, int length)
 {
-  std::vector<int> imgszVec(imgsz, imgsz+length);
-  return this->SetImageSize(imgszVec);
+  std::vector<int> imageSizeVec(imageSize, imageSize+length);
+  return this->SetImageSize(imageSizeVec);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::GetImageSize(std::vector<int>& imgsz)
+PlusStatus vtkUsImagingParameters::GetImageSize(std::vector<int>& imageSize) const
 {
-  if( this->ParameterSet[KEY_IMAGESIZE] == false )
+  ParameterSetMap::const_iterator keyIt = this->ParameterSet.find(KEY_IMAGESIZE);
+  if( keyIt != this->ParameterSet.end() && keyIt->second == false )
+  {
+    return PLUS_FAIL;
+  }
+  else if( keyIt == this->ParameterSet.end() )
   {
     return PLUS_FAIL;
   }
 
   std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_IMAGESIZE]);
+  ParameterNameMapConstIterator it = this->ParameterValues.find(KEY_IMAGESIZE);
+  ss.str(it->second);
   std::vector<int> numbers((std::istream_iterator<int>(ss)), 
     std::istream_iterator<int>());
-  imgsz = numbers;
+  imageSize = numbers;
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-std::vector<int> vtkUsImagingParameters::GetImageSize()
+std::vector<int> vtkUsImagingParameters::GetImageSize() const
 {
-  std::stringstream ss;
-  ss.str(this->ParameterValues[KEY_IMAGESIZE]);
-  std::vector<int> numbers((std::istream_iterator<int>(ss)), std::istream_iterator<int>());
-  return numbers;
+  std::vector<int> imageSize;
+  this->GetImageSize(imageSize);
+  return imageSize;
 }
-
 
 //----------------------------------------------------------------------------
 void vtkUsImagingParameters::PrintSelf(ostream& os, vtkIndent indent)
@@ -586,7 +393,7 @@ void vtkUsImagingParameters::PrintSelf(ostream& os, vtkIndent indent)
   {
     if( this->ParameterSet[it->first] == true )
     {
-      os << indent << it->first << ": " << it->second << "\n";
+      os << indent << it->first << ": " << it->second << std::endl;
     }
   }
 }
@@ -627,16 +434,18 @@ PlusStatus vtkUsImagingParameters::WriteConfiguration(vtkXMLDataElement* deviceC
   /* Create a sub node, populate it with entries of the form
   <device ...>
     <UsImagingParameters>
-      <UsParameter name=KEY_DEPTH value="55"/>
+      <UsParameter name="DepthMm" value="55"/>
       <UsParameter name="FreqMhz" value="12.5"/>
       <UsParameter name="SectorSizeMm" value="60"/>
     </UsImagingParameters>
-  ...
+    ...
   </device>
   */
 
-  vtkSmartPointer<vtkXMLDataElement> parameterList = vtkSmartPointer<vtkXMLDataElement>::New();
-  parameterList->SetName("UsImagingParameters");
+  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(parameterList, deviceConfig, "UsImagingParameters");
+
+  // Clear the list before writing new elements
+  parameterList->RemoveAllNestedElements();
 
   for( ParameterNameMap::iterator it = this->ParameterValues.begin(); it != this->ParameterValues.end(); ++it )
   {
@@ -658,17 +467,12 @@ PlusStatus vtkUsImagingParameters::WriteConfiguration(vtkXMLDataElement* deviceC
 }
 
 //-----------------------------------------------------------------------------
-bool vtkUsImagingParameters::IsSet(const char* paramName)
+bool vtkUsImagingParameters::IsSet(const std::string& paramName) const
 {
-  if( paramName == NULL )
+  ParameterSetMap::const_iterator keyIt = this->ParameterSet.find(paramName);
+  if( keyIt != this->ParameterSet.end() )
   {
-    LOG_ERROR("NULL param name sent as parameter. Cannot perform lookup.");
-    return false;
-  }
-
-  if( this->ParameterSet.find(paramName) != this->ParameterSet.end() )
-  {
-    return this->ParameterSet[paramName];
+    return keyIt->second;
   }
 
   LOG_ERROR("Invalid key request sent to vtkUsImagingParameters::IsSet -- " << paramName);
@@ -676,39 +480,36 @@ bool vtkUsImagingParameters::IsSet(const char* paramName)
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::GetValue(const char* paramName, double& outputValue)
+template <typename T>
+PlusStatus vtkUsImagingParameters::GetValue(const std::string& paramName, T& outputValue) const
 {
-  if( paramName == NULL )
+  ParameterSetMap::const_iterator keyIt = this->ParameterSet.find(paramName);
+  if( keyIt != this->ParameterSet.end() && keyIt->second == false )
   {
-    LOG_ERROR("NULL param name sent as parameter. Cannot perform lookup.");
+    return PLUS_FAIL;
+  }
+  else if( keyIt == this->ParameterSet.end() )
+  {
     return PLUS_FAIL;
   }
 
-  if( this->ParameterValues.find(paramName) != this->ParameterValues.end() && this->ParameterSet[paramName] == true)
-  {
-    std::stringstream ss;
-    ss.str(this->ParameterValues[paramName]);
-    ss >> outputValue;
-    return PLUS_SUCCESS;
-  }
-
+  std::stringstream ss;
+  ParameterNameMapConstIterator it = this->ParameterValues.find(KEY_DEPTH);
+  ss.str(it->second);
+  ss >> outputValue;
   return PLUS_FAIL;
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkUsImagingParameters::SetValue(const char* paramName, double aValue)
+template <typename T>
+PlusStatus vtkUsImagingParameters::SetValue(const std::string& paramName, T aValue)
 {
-  if( this->ParameterValues.find(paramName) != this->ParameterValues.end() )
-  {
-    std::stringstream ss;
-    ss << aValue;
-    this->ParameterValues[paramName] = ss.str();
-    this->ParameterSet[paramName] = true;
+  std::stringstream ss;
+  ss << aValue;
+  this->ParameterValues[paramName] = ss.str();
+  this->ParameterSet[paramName] = true;
 
-    return PLUS_SUCCESS;
-  }
-
-  return PLUS_FAIL;
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
