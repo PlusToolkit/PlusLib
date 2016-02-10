@@ -25,11 +25,7 @@ class vtkDataCollectionExport vtkCapistranoVideoSource: public vtkPlusDevice
 public:
   /*! Constructor for a smart pointer of this class*/
   static vtkCapistranoVideoSource * New();
-
-  /*! Macro */
   vtkTypeMacro(vtkCapistranoVideoSource, vtkPlusDevice);
-
-  /*! print the information of this class */
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Specify the device connected to this class */
@@ -51,42 +47,42 @@ public:
   PlusStatus GetProbeVelocityDevice(float& aVel);
 
   /* Set the speed of sound of US probe */
-  PlusStatus SetSpeedOfSound(float ss);
+  PlusStatus SetSoundVelocity(float ss);
 
-  /* Set the scan diectional mode of US probe */
+  /* Set the scan directional mode of US probe */
   PlusStatus SetBidirectionalMode(bool mode);
 
   /* Set the size of cinebuffer of US probe */
   PlusStatus SetCineBuffers(int cinebuffer);
 
-  /* Set the sample frquency of US probe */
+  /* Set the sample frequency of US probe */
   PlusStatus SetSampleFrequency(float sf);
 
   /* Set the pulser frequency of US probe */
-  PlusStatus SetPluserFrequency(float pf);
+  PlusStatus SetPulseFrequency(float pf);
 
   /* Set the pulser voltage of US probe */
-  PlusStatus SetPluserVoltage(float pv);
+  PlusStatus SetPulseVoltage(float pv);
 
   /* Set the scan depth of US probe */
   PlusStatus SetScanDepth(float sd);
 
-  /* Set the interplation of B-Mode image */
+  /* Set the interpolation of B-Mode image */
   PlusStatus SetInterpolate(bool interpolate);
 
   /* Set the average mode of US B-Mode image */
   PlusStatus SetAverageMode(bool averagemode);
 
   /* Set the view option of US B-Mode image */
-  PlusStatus SetBModeViewOption(int bmodeviewoption);
+  PlusStatus SetBModeViewOption(unsigned int bmodeviewoption);
 
-  /* Set the size of US-Bmode image */
+  /* Set the size of US B-mode image */
   PlusStatus SetImageSize(int imageSize[2]);
 
-  /* Set the Intensity (Brightness) of US-Bmode image */
+  /* Set the Intensity (Brightness) of US B-mode image */
   PlusStatus SetIntensity(double value);
 
-  /* Set the Contrast of US-Bmode image */
+  /* Set the Contrast of US B-mode image */
   PlusStatus SetContrast(double value);
 
   /* Set the zoom factor. */
@@ -95,10 +91,10 @@ public:
   /* Set the zoom factor on the US Device. */
   PlusStatus SetDisplayZoomDevice(double zoom);
 
-  /* Set the LUT Center of US-Bmode image */
+  /* Set the LUT Center of US B-mode image */
   PlusStatus SetLutCenter(double lutcenter);
 
-  /* Set the LUT Window of US-Bmode image */
+  /* Set the LUT Window of US B-mode image */
   PlusStatus SetLutWindow(double lutwindow);
 
   /* Set the gain in percent */
@@ -115,8 +111,6 @@ public:
 
   /* Apply a completely new set of imaging parameters to the device */
   PlusStatus SetNewImagingParametersDevice(const vtkUsImagingParameters& newImagingParameters);
-
-
 protected:
 
   /*! Constructor */
@@ -138,7 +132,7 @@ protected:
   virtual PlusStatus InternalStopRecording();
 
   /*! Initialize vtkCapistranoVideoSource */
-  PlusStatus InitializevtkCapistranoVideoSource(bool probeConnected = false);
+  PlusStatus InitializeCapistranoVideoSource(bool probeConnected = false);
 
   /*! The internal function which actually does the grab. */
   PlusStatus InternalUpdate();
@@ -188,7 +182,7 @@ protected:
   /* Update US Scan depth with a given clockdivider */
   PlusStatus UpdateDepthMode(int clockdivider);
 
-  /* Update US Sample frquency */
+  /* Update US Sample frequency */
   PlusStatus GetSampleFrequencyDevice(float& aFreq);
 
   /*! Get probe name from the device */
@@ -201,32 +195,17 @@ protected:
 
   bool         Frozen;
   bool         UpdateParameters;
-
-  bool         BidirectionalScan;
+  bool         BidirectionalMode;
   int          ProbeID;
   int          ClockDivider;
   int          CineBuffers;
   float        SampleFrequency;
   float        PulseFrequency;
-  float        PulseVoltage;
-  float        SpeedOfSound;
-  float        ScanDepth;
-
-
   bool         Interpolate;
   bool         AverageMode;
   unsigned int CurrentBModeViewOption;
-
-  int          ImageSize[2];
-  double       Intensity;
-  double       Contrast;
-  float        ZoomFactor;
   double       LutCenter;
   double       LutWindow;
-  double       GainPercent[3];
-  double       InitialGain;
-  double       MidGain;
-  double       FarGain;
 
 private:
   vtkCapistranoVideoSource(const vtkCapistranoVideoSource &); // Not implemented
