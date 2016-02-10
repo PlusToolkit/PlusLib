@@ -47,3 +47,19 @@ PlusStatus vtkPlusUsDevice::SetNewImagingParameters(const vtkUsImagingParameters
 
   return PLUS_SUCCESS;
 }
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, const PlusVideoFrame& frame, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const TrackedFrame::FieldMapType* customFields /*= NULL*/)
+{
+  // TODO : any US device specific entries here
+
+  return Superclass::AddVideoItemToVideoSources(videoSources, frame, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const int frameSizeInPx[3], PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const TrackedFrame::FieldMapType* customFields/*= NULL*/)
+{
+  // TODO : any US device specific entries here
+
+  return Superclass::AddVideoItemToVideoSources(videoSources, imageDataPtr, usImageOrientation, frameSizeInPx, pixelType, numberOfScalarComponents, imageType, numberOfBytesToSkip, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields);
+}

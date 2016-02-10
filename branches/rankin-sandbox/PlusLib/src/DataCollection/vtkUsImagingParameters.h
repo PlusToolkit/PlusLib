@@ -30,6 +30,8 @@ Currently contains the following items
 * Contrast
 * DynRangeDb
 * ZoomFactor
+* Voltage
+* ImageSize [x, y, z]
 * SoundVelocity
 
 */
@@ -54,6 +56,8 @@ public:
   static const char* KEY_SECTOR;
   static const char* KEY_ZOOM;
   static const char* KEY_SOUNDVELOCITY;
+  static const char* KEY_VOLTAGE;
+  static const char* KEY_IMAGESIZE;
 
 public:
   static vtkUsImagingParameters* New();
@@ -156,6 +160,20 @@ public:
   /*! Get the Sector (%) of B-mode ultrasound; valid range: 0-100 */
   PlusStatus GetSoundVelocity(float& aSoundVelocity) const;
   float GetSoundVelocity() const;
+
+  /*! Set the voltage of ultrasound probe */
+  PlusStatus SetProbeVoltage(float aVoltage);
+  /*! Get the voltage of ultrasound probe */
+  PlusStatus GetProbeVoltage(float& aVoltage) const;
+  float GetProbeVoltage() const;
+
+
+  /*! Set the image size of the B-mode ultrasound */
+  PlusStatus SetImageSize(const std::vector<int>& imageSize);
+  PlusStatus SetImageSize(int* imageSize, int length);
+  /*! Get the image size of B-mode ultrasound */
+  PlusStatus GetImageSize(std::vector<int>& imageSize) const;
+  std::vector<int> GetImageSize() const;
 
   /*! Return an iterator to the beginning of the parameter space */
   ParameterNameMapConstIterator begin() const;

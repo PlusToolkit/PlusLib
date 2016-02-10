@@ -37,6 +37,19 @@ public:
   */
   virtual PlusStatus SetNewImagingParameters(const vtkUsImagingParameters& newImagingParameters);
 
+  /*!
+  This function can be called to add a video item to all video data sources
+  */
+  PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, const PlusVideoFrame& frame, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
+    double filteredTimestamp=UNDEFINED_TIMESTAMP, const TrackedFrame::FieldMapType* customFields = NULL);
+
+  /*!
+  This function can be called to add a video item to the specified video data sources
+  */
+  PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const int frameSizeInPx[3], 
+    PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
+    double filteredTimestamp=UNDEFINED_TIMESTAMP, const TrackedFrame::FieldMapType* customFields= NULL);
+
 protected:
   vtkPlusUsDevice();
   virtual ~vtkPlusUsDevice();

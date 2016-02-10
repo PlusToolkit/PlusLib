@@ -338,8 +338,7 @@ PlusStatus vtkSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, int sz
   // get the pointer to actual incoming data on to a local pointer
   unsigned char *deviceDataPtr = static_cast<unsigned char*>(dataPtr);
 
-  PlusStatus status = aSource->AddItem(deviceDataPtr, aSource->GetInputImageOrientation(), frameSize, pixelType, 1, imgType, numberOfBytesToSkip, this->FrameNumber,
-    UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields);
+  PlusStatus status = this->AddVideoItemToVideoSources(sources, deviceDataPtr, aSource->GetInputImageOrientation(), frameSize, pixelType, 1, imgType, numberOfBytesToSkip, this->FrameNumber, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields);
   this->Modified(); 
 
   return status;

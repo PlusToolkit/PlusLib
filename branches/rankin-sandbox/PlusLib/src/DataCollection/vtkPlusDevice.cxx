@@ -1323,6 +1323,21 @@ PlusStatus vtkPlusDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDa
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const int frameSizeInPx[3], PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const TrackedFrame::FieldMapType* customFields/*= NULL*/)
+{
+  PlusStatus result(PLUS_SUCCESS);
+  for( std::vector<vtkPlusDataSource*>::const_iterator it = videoSources.begin(); it != videoSources.end(); ++it)
+  {
+    vtkPlusDataSource* source = *it;
+    if( source->AddItem(imageDataPtr, usImageOrientation, frameSizeInPx, pixelType, numberOfScalarComponents, imageType, numberOfBytesToSkip, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields) != PLUS_SUCCESS )
+    {
+      result = PLUS_FAIL;
+    }
+  }
+  return result;
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::ToolTimeStampedUpdate(const char* aToolSourceId, vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredtimestamp) 
 {
   if ( aToolSourceId == NULL )

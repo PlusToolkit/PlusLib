@@ -26,6 +26,8 @@ const char* vtkUsImagingParameters::KEY_INTENSITY = "Intensity";
 const char* vtkUsImagingParameters::KEY_SECTOR = "SectorPercent";
 const char* vtkUsImagingParameters::KEY_ZOOM = "ZoomFactor";
 const char* vtkUsImagingParameters::KEY_SOUNDVELOCITY = "SoundVelocity";
+const char* vtkUsImagingParameters::KEY_VOLTAGE = "Voltage";
+const char* vtkUsImagingParameters::KEY_IMAGESIZE = "ImageSize";
 
 //----------------------------------------------------------------------------
 
@@ -41,6 +43,8 @@ vtkUsImagingParameters::vtkUsImagingParameters()
   this->ParameterValues[KEY_DYNRANGE]="-1";
   this->ParameterValues[KEY_ZOOM]="-1";
   this->ParameterValues[KEY_SOUNDVELOCITY]="1540";
+  this->ParameterValues[KEY_VOLTAGE]="-1";
+  this->ParameterValues[KEY_IMAGESIZE]="-1 -1 -1";
 
   this->ParameterSet[KEY_FREQUENCY]=false;
   this->ParameterSet[KEY_DEPTH]=false;
@@ -51,6 +55,8 @@ vtkUsImagingParameters::vtkUsImagingParameters()
   this->ParameterSet[KEY_DYNRANGE]=false;
   this->ParameterSet[KEY_ZOOM]=false;
   this->ParameterSet[KEY_SOUNDVELOCITY]=false;
+  this->ParameterSet[KEY_VOLTAGE]=false;
+  this->ParameterSet[KEY_IMAGESIZE]=false;
 }
 
 //----------------------------------------------------------------------------
@@ -288,6 +294,84 @@ float vtkUsImagingParameters::GetSoundVelocity() const
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::SetProbeVoltage(float aVoltage)
+{
+  return this->SetValue<float>(KEY_VOLTAGE, aVoltage);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::GetProbeVoltage(float& aVoltage) const
+{
+  return this->GetValue<float>(KEY_VOLTAGE, aVoltage);
+}
+
+//----------------------------------------------------------------------------
+float vtkUsImagingParameters::GetProbeVoltage() const
+{
+  float aValue;
+  this->GetValue<float>(KEY_VOLTAGE, aValue);
+  return aValue;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::SetImageSize(const std::vector<int>& imageSize)
+{
+  if( imageSize.size() != 2 || imageSize.size() != 3 )
+  {
+    LOG_ERROR("Invalid image dimensions.");
+    return PLUS_FAIL;
+  }
+  std::stringstream result;
+  std::copy(imageSize.begin(), imageSize.end(), std::ostream_iterator<double>(result, " "));
+  if( imageSize.size() == 2 )
+  {
+    result << " " << 1;
+  }
+
+  this->ParameterValues[KEY_IMAGESIZE] = result.str();
+  this->ParameterSet[KEY_IMAGESIZE] = true;
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::SetImageSize(int* imageSize, int length)
+{
+  std::vector<int> imageSizeVec(imageSize, imageSize+length);
+  return this->SetImageSize(imageSizeVec);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::GetImageSize(std::vector<int>& imageSize) const
+{
+  ParameterSetMap::const_iterator keyIt = this->ParameterSet.find(KEY_IMAGESIZE);
+  if( keyIt != this->ParameterSet.end() && keyIt->second == false )
+  {
+    return PLUS_FAIL;
+  }
+  else if( keyIt == this->ParameterSet.end() )
+  {
+    return PLUS_FAIL;
+  }
+
+  std::stringstream ss;
+  ParameterNameMapConstIterator it = this->ParameterValues.find(KEY_IMAGESIZE);
+  ss.str(it->second);
+  std::vector<int> numbers((std::istream_iterator<int>(ss)), 
+    std::istream_iterator<int>());
+  imageSize = numbers;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+std::vector<int> vtkUsImagingParameters::GetImageSize() const
+{
+  std::vector<int> imageSize;
+  this->GetImageSize(imageSize);
+  return imageSize;
+}
+
+//----------------------------------------------------------------------------
 vtkUsImagingParameters::ParameterNameMapConstIterator vtkUsImagingParameters::begin() const
 {
   return this->ParameterValues.begin();
@@ -308,7 +392,7 @@ void vtkUsImagingParameters::PrintSelf(ostream& os, vtkIndent indent)
   {
     if( this->ParameterSet[it->first] == true )
     {
-      os << indent << it->first << ": " << it->second << "\n";
+      os << indent << it->first << ": " << it->second << std::endl;
     }
   }
 }
@@ -348,17 +432,19 @@ PlusStatus vtkUsImagingParameters::WriteConfiguration(vtkXMLDataElement* deviceC
 {
   /* Create a sub node, populate it with entries of the form
   <device ...>
-  <UsImagingParameters>
-  <UsParameter name=KEY_DEPTH value="55"/>
-  <UsParameter name="FreqMhz" value="12.5"/>
-  <UsParameter name="SectorSizeMm" value="60"/>
-  </UsImagingParameters>
-  ...
+    <UsImagingParameters>
+      <UsParameter name="DepthMm" value="55"/>
+      <UsParameter name="FreqMhz" value="12.5"/>
+      <UsParameter name="SectorSizeMm" value="60"/>
+    </UsImagingParameters>
+    ...
   </device>
   */
 
-  vtkSmartPointer<vtkXMLDataElement> parameterList = vtkSmartPointer<vtkXMLDataElement>::New();
-  parameterList->SetName("UsImagingParameters");
+  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(parameterList, deviceConfig, "UsImagingParameters");
+
+  // Clear the list before writing new elements
+  parameterList->RemoveAllNestedElements();
 
   for( ParameterNameMap::iterator it = this->ParameterValues.begin(); it != this->ParameterValues.end(); ++it )
   {
