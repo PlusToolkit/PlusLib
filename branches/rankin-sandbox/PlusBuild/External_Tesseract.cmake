@@ -4,61 +4,6 @@ SET(libpng_DEPENDENCIES zlib)
 SET(tesseract_ROOT_DIR ${CMAKE_BINARY_DIR}/tesseract-super)
 
 # --------------------------------------------------------------------------
-# zlib for leptonica
-SET(leptonica_DEPENDENCIES libpng)
-SET (PLUS_zlib_src_DIR ${tesseract_ROOT_DIR}/zlib CACHE INTERNAL "Path to store zlib contents.")
-SET (PLUS_zlib_prefix_DIR ${tesseract_ROOT_DIR}/zlib-prefix CACHE INTERNAL "Path to store zlib prefix data.")
-SET (PLUS_zlib_DIR "${tesseract_ROOT_DIR}/zlib-bin" CACHE INTERNAL "Path to store zlib binaries")
-ExternalProject_Add( zlib
-    PREFIX ${PLUS_zlib_prefix_DIR}
-    "${PLUSBUILD_EXTERNAL_PROJECT_CUSTOM_COMMANDS}"
-    SOURCE_DIR "${PLUS_zlib_src_DIR}"
-    BINARY_DIR "${PLUS_zlib_DIR}"
-    #--Download step--------------
-    GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/PLUSToolkit/zlib.git" 
-    GIT_TAG 023318cb972054147677a0d56f502a9d0f8bbd7f 
-    #--Configure step-------------
-    CMAKE_ARGS 
-        ${ep_common_args}
-        -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags} 
-        -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags} 
-        -DCMAKE_PREFIX_PATH:STRING=${CMAKE_PREFIX_PATH} 
-        -DCMAKE_INSTALL_PREFIX:PATH=${PLUS_zlib_DIR}
-    #--Build step-----------------
-    #--Install step-----------------
-    #--Dependencies-----------------
-    DEPENDS "" 
-    )
-
-# --------------------------------------------------------------------------
-# libpng for leptonica
-SET(leptonica_DEPENDENCIES libpng)
-SET (PLUS_libpng_src_DIR ${tesseract_ROOT_DIR}/libpng CACHE INTERNAL "Path to store libpng contents.")
-SET (PLUS_libpng_prefix_DIR ${tesseract_ROOT_DIR}/libpng-prefix CACHE INTERNAL "Path to store libpng prefix data.")
-SET (PLUS_libpng_DIR "${tesseract_ROOT_DIR}/libpng-bin" CACHE INTERNAL "Path to store libpng binaries")
-ExternalProject_Add( libpng
-    PREFIX ${PLUS_libpng_prefix_DIR}
-    "${PLUSBUILD_EXTERNAL_PROJECT_CUSTOM_COMMANDS}"
-    SOURCE_DIR "${PLUS_libpng_src_DIR}"
-    BINARY_DIR "${PLUS_libpng_DIR}"
-    #--Download step--------------
-    GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/PLUSToolkit/libpng.git"
-    GIT_TAG 9e5ed9232de5e1471104d88dd963e713d090f86d 
-    #--Configure step-------------
-    CMAKE_ARGS 
-        ${ep_common_args}
-        -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags} 
-        -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags} 
-        -DCMAKE_PREFIX_PATH:STRING=${CMAKE_PREFIX_PATH} 
-        -Dzlib_DIR:PATH=${PLUS_zlib_DIR} 
-        -DCMAKE_INSTALL_PREFIX:PATH=${PLUS_libpng_DIR}
-    #--Build step-----------------
-    #--Install step-----------------
-    #--Dependencies-----------------
-    DEPENDS ${libpng_DEPENDENCIES} 
-    )
-
-# --------------------------------------------------------------------------
 # leptonica
 SET (PLUS_leptonica_src_DIR ${tesseract_ROOT_DIR}/leptonica CACHE INTERNAL "Path to store leptonica contents.")
 SET (PLUS_leptonica_prefix_DIR ${tesseract_ROOT_DIR}/leptonica-prefix CACHE INTERNAL "Path to store leptonica prefix data.")
@@ -70,14 +15,14 @@ ExternalProject_Add( leptonica
     BINARY_DIR "${PLUS_leptonica_DIR}"
     #--Download step--------------
     GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/PLUSToolkit/leptonica.git"
-    GIT_TAG 5d2f1eb7cb023d971dc96062f07baed6f7bb7584
+    GIT_TAG ec18129f502acef9f8ae21aee269cf699394b54b
     #--Configure step-------------
     CMAKE_ARGS 
         ${ep_common_args}
         -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
         -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
         -DCMAKE_PREFIX_PATH:STRING=${CMAKE_PREFIX_PATH}
-        -DPNG_DIR:PATH=${PLUS_libpng_DIR}
+        -DVTK_DIR:PATH=${PLUS_VTK_DIR} #get vtkzlib and vtkpng from vtk
     #--Build step-----------------
     #--Install step-----------------
     INSTALL_COMMAND "" #don't install

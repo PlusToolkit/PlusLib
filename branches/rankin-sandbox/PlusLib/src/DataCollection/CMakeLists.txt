@@ -1042,17 +1042,6 @@ ENDIF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
 #
 IF(PLUS_USE_tesseract)
   FIND_PACKAGE(tesseract NO_MODULE REQUIRED PATHS ${tesseract_DIR})
-  
-  # Copy zlib dlls to appropriate dirs
-  get_target_property(zlib_RELEASE_DLL zlib IMPORTED_LOCATION_RELEASE)
-  SET ( External_Libraries_Install ${External_Libraries_Install}
-    ${zlib_RELEASE_DLL}
-    )
-
-  get_target_property(zlib_DEBUG_DLL zlib IMPORTED_LOCATION_DEBUG)
-  SET ( External_Libraries_Debug ${External_Libraries_Debug}
-    ${zlib_DEBUG_DLL}
-    )
 
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
     ${tesseract_INCLUDE_DIRS}
@@ -1060,7 +1049,7 @@ IF(PLUS_USE_tesseract)
 
   SET (DataCollection_LIBS ${DataCollection_LIBS}
     ${tesseract_LIBRARIES}
-    zlib
+    vtkzlib vtkpng
     )
 ENDIF(PLUS_USE_tesseract)
 
