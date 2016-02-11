@@ -243,16 +243,6 @@ public:
   vtkSetMacro(ImageGeometryOutputEnabled, bool);
   vtkGetMacro(ImageGeometryOutputEnabled, bool);
 
-  /*!
-    If non-NULL then ImageToTransducer transform is added as a custom field to the image data with the specified name.
-    The Transducer coordinate system origin is in the center of the transducer crystal array,
-    x axis direction is towards marked side, y axis direction is towards sound propagation direction,
-    and z direction is cross product of x and y, unit is mm. Elevational pixel spacing is set as the mean of the
-    lateral and axial pixel spacing.
-  */
-  vtkGetStringMacro(ImageToTransducerTransformName);
-  vtkSetStringMacro(ImageToTransducerTransformName);
-
 protected:
   /*! Connect to device */
   virtual PlusStatus InternalConnect();
@@ -268,8 +258,6 @@ protected:
 
   /*! Stop recording or playing */
   virtual PlusStatus InternalStopRecording();
-
-  virtual PlusStatus InternalUpdate();
 
   /*! Get the last error string returned by Ulterius */
   std::string GetLastUlteriusError();
@@ -312,9 +300,6 @@ protected:
   */
   virtual PlusStatus GetRequestedImagingDataTypeFromSources(int &requestedImagingDataType);
 
-  vtkSetMacro(DetectDepthSwitching, bool);
-  vtkSetMacro(DetectPlaneSwitching, bool);
-
 protected:
   vtkSonixVideoSource();
   virtual ~vtkSonixVideoSource();
@@ -328,12 +313,10 @@ protected:
   int ConnectionSetupDelayMs;
   int SharedMemoryStatus;
   RfAcquisitionModeType RfAcquisitionMode;
-  bool DetectDepthSwitching;
-  bool DetectPlaneSwitching;
+
   /*! Indicates that current depth, spacing, transducer origin has to be queried */
   bool ImageGeometryChanged;
-  double CurrentPixelSpacingMm[2];
-  int CurrentTransducerOriginPixels[2];
+
   char *SonixIP;
   /*!
     Indicates if connection to the device has been established. It's not the same as the Connected parameter,
@@ -344,7 +327,6 @@ protected:
   bool UlteriusConnected;
   bool AutoClipEnabled;
   bool ImageGeometryOutputEnabled;
-  char* ImageToTransducerTransformName;
     
 private:
   static bool vtkSonixVideoSourceNewFrameCallback(void * data, int type, int sz, bool cine, int frmnum);

@@ -16,6 +16,7 @@ vtkStandardNewMacro(vtkUsImagingParameters);
 
 //----------------------------------------------------------------------------
 
+const char* vtkUsImagingParameters::XML_ELEMENT_TAG = "UsImagingParameters";
 const char* vtkUsImagingParameters::KEY_CONTRAST = "Contrast";
 const char* vtkUsImagingParameters::KEY_DEPTH = "DepthMm";
 const char* vtkUsImagingParameters::KEY_DYNRANGE = "DynRangeDb";
@@ -159,7 +160,7 @@ PlusStatus vtkUsImagingParameters::GetTimeGainCompensation(std::vector<double>& 
   std::stringstream ss;
   ParameterNameMapConstIterator it = this->ParameterValues.find(KEY_TGC);
   ss.str(it->second);
-  std::vector<double> numbers((std::istream_iterator<double>(ss)), 
+  std::vector<double> numbers((std::istream_iterator<double>(ss)),
     std::istream_iterator<double>());
   tgc = numbers;
   return PLUS_SUCCESS;
@@ -293,6 +294,19 @@ float vtkUsImagingParameters::GetSoundVelocity() const
   return aValue;
 }
 
+// Check
+//----------------------------------------------------------------------------
+vtkUsImagingParameters::ParameterNameMapConstIterator vtkUsImagingParameters::begin() const
+{
+  return this->ParameterValues.begin();
+}
+
+//----------------------------------------------------------------------------
+vtkUsImagingParameters::ParameterNameMapConstIterator vtkUsImagingParameters::end() const
+{
+  return this->ParameterValues.end();
+}
+
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::SetProbeVoltage(float aVoltage)
 {
@@ -342,6 +356,16 @@ PlusStatus vtkUsImagingParameters::SetImageSize(int* imageSize, int length)
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::SetImageSize(int x, int y, int z)
+{
+  std::vector<int> imageSizeVec;
+  imageSizeVec.push_back(x);
+  imageSizeVec.push_back(y);
+  imageSizeVec.push_back(z);
+  return this->SetImageSize(imageSizeVec);
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::GetImageSize(std::vector<int>& imageSize) const
 {
   ParameterSetMap::const_iterator keyIt = this->ParameterSet.find(KEY_IMAGESIZE);
@@ -357,7 +381,7 @@ PlusStatus vtkUsImagingParameters::GetImageSize(std::vector<int>& imageSize) con
   std::stringstream ss;
   ParameterNameMapConstIterator it = this->ParameterValues.find(KEY_IMAGESIZE);
   ss.str(it->second);
-  std::vector<int> numbers((std::istream_iterator<int>(ss)), 
+  std::vector<int> numbers((std::istream_iterator<int>(ss)),
     std::istream_iterator<int>());
   imageSize = numbers;
   return PLUS_SUCCESS;
@@ -369,18 +393,6 @@ std::vector<int> vtkUsImagingParameters::GetImageSize() const
   std::vector<int> imageSize;
   this->GetImageSize(imageSize);
   return imageSize;
-}
-
-//----------------------------------------------------------------------------
-vtkUsImagingParameters::ParameterNameMapConstIterator vtkUsImagingParameters::begin() const
-{
-  return this->ParameterValues.begin();
-}
-
-//----------------------------------------------------------------------------
-vtkUsImagingParameters::ParameterNameMapConstIterator vtkUsImagingParameters::end() const
-{
-  return this->ParameterValues.end();
 }
 
 //----------------------------------------------------------------------------
@@ -404,7 +416,7 @@ PlusStatus vtkUsImagingParameters::ReadConfiguration(vtkXMLDataElement* deviceCo
   for( int i = 0; i < deviceConfig->GetNumberOfNestedElements(); ++i )
   {
     vtkXMLDataElement* element = deviceConfig->GetNestedElement(i);
-    if( STRCASECMP(element->GetName(), "UsImagingParameters") == 0 )
+    if( STRCASECMP(element->GetName(), XML_ELEMENT_TAG) == 0 )
     {
       parameterList = element;
       break;
@@ -441,7 +453,7 @@ PlusStatus vtkUsImagingParameters::WriteConfiguration(vtkXMLDataElement* deviceC
   </device>
   */
 
-  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(parameterList, deviceConfig, "UsImagingParameters");
+  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(parameterList, deviceConfig, XML_ELEMENT_TAG);
 
   // Clear the list before writing new elements
   parameterList->RemoveAllNestedElements();

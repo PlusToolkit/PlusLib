@@ -100,9 +100,9 @@ void FidLineFinder::ComputeParameters()
   //3 points from the Nwires
   for( int i = 0; i<3 ;i++)
   {
-    pointA.put(i,nWires[0].Wires[0].EndPointFront[i]);
-    pointB.put(i,nWires[0].Wires[0].EndPointBack[i]);
-    pointC.put(i,nWires[0].Wires[1].EndPointFront[i]);
+    pointA.put(i,nWires[0].GetWires()[0].EndPointFront[i]);
+    pointB.put(i,nWires[0].GetWires()[0].EndPointBack[i]);
+    pointC.put(i,nWires[0].GetWires()[1].EndPointFront[i]);
   }
 
   //create 2 vectors out of them
@@ -448,14 +448,14 @@ void FidLineFinder::FindLines2Points()
   for( int i=0 ; i<m_Patterns.size() ; i++)
   {
     //the expected length of the line
-    int lineLenPx = floor(m_Patterns[i]->DistanceToOriginMm[m_Patterns[i]->Wires.size()-1] / m_ApproximateSpacingMmPerPixel + 0.5 );
+    int lineLenPx = floor(m_Patterns[i]->GetDistanceToOriginMm()[m_Patterns[i]->GetWires().size()-1] / m_ApproximateSpacingMmPerPixel + 0.5 );
 
     for ( int dot1Index = 0; dot1Index < m_DotsVector.size()-1; dot1Index++ ) 
     {
       for ( int dot2Index = dot1Index+1; dot2Index < m_DotsVector.size(); dot2Index++ ) 
       {
         double length = SegmentLength( m_DotsVector[dot1Index], m_DotsVector[dot2Index] );
-        bool acceptLength = fabs(length-lineLenPx) < floor(m_Patterns[i]->DistanceToOriginToleranceMm[m_Patterns[i]->Wires.size()-1] / m_ApproximateSpacingMmPerPixel + 0.5 );
+        bool acceptLength = fabs(length-lineLenPx) < floor(m_Patterns[i]->GetDistanceToOriginToleranceMm()[m_Patterns[i]->GetWires().size()-1] / m_ApproximateSpacingMmPerPixel + 0.5 );
 
         if(acceptLength)//to only add valid two point lines
         {
@@ -504,9 +504,9 @@ void FidLineFinder::FindLinesNPoints()
 
   for( int i=0 ; i<m_Patterns.size() ; i++ )
   {
-    if(int(m_Patterns[i]->Wires.size()) > maxNumberOfPointsPerLine)
+    if(int(m_Patterns[i]->GetWires().size()) > maxNumberOfPointsPerLine)
     {
-      maxNumberOfPointsPerLine = m_Patterns[i]->Wires.size();
+      maxNumberOfPointsPerLine = m_Patterns[i]->GetWires().size();
     }
   }
 
@@ -562,8 +562,8 @@ void FidLineFinder::FindLinesNPoints()
 
             double length = SegmentLength( m_DotsVector[currentShorterPointsLine.GetStartPointIndex()], m_DotsVector[b3] ); //distance between the origin and the point we try to add
 
-            int lineLenPx = floor(m_Patterns[i]->DistanceToOriginMm[linesVectorIndex-2] / m_ApproximateSpacingMmPerPixel + 0.5 );
-            bool acceptLength = fabs(length-lineLenPx) < floor(m_Patterns[i]->DistanceToOriginToleranceMm[linesVectorIndex-2] / m_ApproximateSpacingMmPerPixel + 0.5 );
+            int lineLenPx = floor(m_Patterns[i]->GetDistanceToOriginMm()[linesVectorIndex-2] / m_ApproximateSpacingMmPerPixel + 0.5 );
+            bool acceptLength = fabs(length-lineLenPx) < floor(m_Patterns[i]->GetDistanceToOriginToleranceMm()[linesVectorIndex-2] / m_ApproximateSpacingMmPerPixel + 0.5 );
 
             if(!acceptLength)
             {

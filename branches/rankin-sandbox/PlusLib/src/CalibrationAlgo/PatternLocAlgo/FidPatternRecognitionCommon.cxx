@@ -261,3 +261,69 @@ const std::vector<FidDot>& PatternRecognitionResult::GetCandidateFidValues() con
 {
   return CandidateFidValues;
 }
+
+//----------------------------------------------------------------------------
+FidPattern::~FidPattern()
+{
+
+}
+
+//----------------------------------------------------------------------------
+const std::vector<FidWire>& FidPattern::GetWires() const
+{
+  return Wires;
+}
+
+//----------------------------------------------------------------------------
+const std::vector<double>& FidPattern::GetDistanceToOriginMm() const
+{
+  return DistanceToOriginMm;
+}
+
+//----------------------------------------------------------------------------
+const std::vector<double>& FidPattern::GetDistanceToOriginToleranceMm() const
+{
+  return DistanceToOriginToleranceMm;
+}
+
+//----------------------------------------------------------------------------
+void FidPattern::AddWire(const FidWire& wire)
+{
+  this->Wires.push_back(wire);
+}
+
+//----------------------------------------------------------------------------
+void FidPattern::AddDistanceToOriginElementMm(double aElement)
+{
+  this->DistanceToOriginMm.push_back(aElement);
+}
+
+//----------------------------------------------------------------------------
+void FidPattern::AddDistanceToOriginToleranceElementMm(double aElement)
+{
+  this->DistanceToOriginToleranceMm.push_back(aElement);
+}
+
+//----------------------------------------------------------------------------
+void FidWire::SetName(const std::string& aName)
+{
+  this->Name = aName;
+}
+
+//----------------------------------------------------------------------------
+const std::string& FidWire::GetName() const
+{
+  return Name;
+}
+
+//----------------------------------------------------------------------------
+NWire::~NWire()
+{
+
+}
+
+//----------------------------------------------------------------------------
+CoplanarParallelWires::~CoplanarParallelWires()
+{
+
+}

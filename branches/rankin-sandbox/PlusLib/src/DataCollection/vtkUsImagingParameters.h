@@ -46,6 +46,7 @@ public:
   typedef ParameterNameMap::const_iterator ParameterNameMapConstIterator;
 
 public:
+  static const char* XML_ELEMENT_TAG;
   static const char* KEY_FREQUENCY;
   static const char* KEY_DEPTH;
   static const char* KEY_DYNRANGE;
@@ -68,7 +69,7 @@ public:
   Assumes that the data element passed is the device element, not the root!
   \param deviceConfig the XML element of the device
   */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* deviceConfig); 
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* deviceConfig);
 
   /*!
   Write main configuration from/to XML data
@@ -167,10 +168,10 @@ public:
   PlusStatus GetProbeVoltage(float& aVoltage) const;
   float GetProbeVoltage() const;
 
-
   /*! Set the image size of the B-mode ultrasound */
   PlusStatus SetImageSize(const std::vector<int>& imageSize);
   PlusStatus SetImageSize(int* imageSize, int length);
+  PlusStatus SetImageSize(int x, int y, int z);
   /*! Get the image size of B-mode ultrasound */
   PlusStatus GetImageSize(std::vector<int>& imageSize) const;
   std::vector<int> GetImageSize() const;
@@ -184,7 +185,7 @@ public:
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   enum ImagingMode
-  { 
+  {
     BMode = 0,
     MMode = 1,
     ColourMode = 2,

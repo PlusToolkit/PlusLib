@@ -59,16 +59,16 @@ void FidLabeling::UpdateParameters()
   for (int i=0; i<numOfPatterns; ++i) 
   {
     double normal[3]={0,0,0};
-    vtkTriangle::ComputeNormal(m_Patterns[i]->Wires[0].EndPointFront, m_Patterns[i]->Wires[0].EndPointBack, m_Patterns[i]->Wires[2].EndPointFront, normal);
+    vtkTriangle::ComputeNormal(m_Patterns[i]->GetWires()[0].EndPointFront, m_Patterns[i]->GetWires()[0].EndPointBack, m_Patterns[i]->GetWires()[2].EndPointFront, normal);
 
     vtkSmartPointer<vtkPlane> plane = vtkSmartPointer<vtkPlane>::New();
     plane->SetNormal(normal);
-    plane->SetOrigin(m_Patterns[i]->Wires[0].EndPointFront);
+    plane->SetOrigin(m_Patterns[i]->GetWires()[0].EndPointFront);
     planes.push_back(plane);
 
-    double distance1F = plane->DistanceToPlane(m_Patterns[i]->Wires[1].EndPointFront);
-    double distance1B = plane->DistanceToPlane(m_Patterns[i]->Wires[1].EndPointBack);
-    double distance2B = plane->DistanceToPlane(m_Patterns[i]->Wires[2].EndPointBack);
+    double distance1F = plane->DistanceToPlane(m_Patterns[i]->GetWires()[1].EndPointFront);
+    double distance1B = plane->DistanceToPlane(m_Patterns[i]->GetWires()[1].EndPointBack);
+    double distance2B = plane->DistanceToPlane(m_Patterns[i]->GetWires()[2].EndPointBack);
 
     if (distance1F > epsilon || distance1B > epsilon || distance2B > epsilon)
     {

@@ -103,9 +103,17 @@ PlusStatus PlusTransformName::SetTransformName(const char* aTransformName)
     return PLUS_FAIL;
   }
 
-  // Set coordinate frame names 
+  // Set From coordinate frame name
   this->m_From = transformNameStr.substr(0, posTo);
-  this->m_To = transformNameStr.substr(posTo+2);
+
+  // Allow handling of To coordinate frame containing "Transform"
+  std::string postFrom(transformNameStr.substr(posTo+2));
+  if( postFrom.find("Transform") != std::string::npos )
+  {
+    postFrom = postFrom.substr(0, postFrom.find("Transform"));
+  }
+
+  this->m_To = postFrom;
   this->Capitalize(this->m_From); 
   this->Capitalize(this->m_To); 
 

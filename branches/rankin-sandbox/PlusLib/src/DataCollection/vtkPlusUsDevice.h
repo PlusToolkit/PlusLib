@@ -11,7 +11,9 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkDataCollectionExport.h"
 #include "vtkPlusDevice.h"
-#include "vtkUSImagingParameters.h"
+
+class vtkUsImagingParameters;
+class vtkPlusChannel;
 
 /*!
 \class vtkPlusUsDevice 
@@ -29,6 +31,19 @@ public:
   static vtkPlusUsDevice* New();
   vtkTypeMacro(vtkPlusUsDevice, vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
+
+  /*! Read main configuration from xml data */
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement*);
+
+  /*! Write main configuration to xml data */
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement*);
+
+  virtual PlusStatus InternalUpdate();
+
+  /*!
+  Perform any completion tasks once configured
+  */
+  virtual PlusStatus NotifyConfigured();
 
   /*!
   Copy the new imaging parameters into the current parameter set
@@ -50,7 +65,21 @@ public:
     PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
     double filteredTimestamp=UNDEFINED_TIMESTAMP, const TrackedFrame::FieldMapType* customFields= NULL);
 
+  /*!
+    If non-NULL then ImageToTransducer transform is added as a custom field to the image data with the specified name.
+    The Transducer coordinate system origin is in the center of the transducer crystal array,
+    x axis direction is towards marked side, y axis direction is towards sound propagation direction,
+    and z direction is cross product of x and y, unit is mm.
+  */
+  vtkGetStringMacro(ImageToTransducerTransformName);
+  vtkSetStringMacro(ImageToTransducerTransformName);
+
+  vtkGetStringMacro(TextRecognizerInputChannelName);
+  vtkSetStringMacro(TextRecognizerInputChannelName);
+
 protected:
+  void CalculateImageToTransducer(TrackedFrame::FieldMapType& customFields);
+
   vtkPlusUsDevice();
   virtual ~vtkPlusUsDevice();
 
@@ -58,6 +87,21 @@ protected:
   vtkUsImagingParameters* RequestedImagingParameters;
   /// Store the current imaging parameters
   vtkUsImagingParameters* CurrentImagingParameters;
+
+  /// Values used in calculation of image to transducer matrix
+  double CurrentPixelSpacingMm[3];
+  /// Values used in calculation of image to transducer matrix
+  int CurrentTransducerOriginPixels[3];
+
+  /// Channel to retrieve parameters from
+  vtkPlusChannel* InputChannel;
+
+  /// Container to hold values retrieved from the input
+  TrackedFrame::FieldMapType FrameFields;
+
+  PlusTransformName ImageToTransducerTransform;
+  char* TextRecognizerInputChannelName;
+  char* ImageToTransducerTransformName;
 
 private:
   vtkPlusUsDevice(const vtkPlusUsDevice&);  // Not implemented.
