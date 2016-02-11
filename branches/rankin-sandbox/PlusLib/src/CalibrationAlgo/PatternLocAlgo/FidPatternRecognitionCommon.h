@@ -164,7 +164,7 @@ protected:
 /*!
 \class FidPattern
 \brief This class stores the different Patterns defined in the configuration file. It contains the wires
-defintion, the distance from the line origin of each expected "dot" and the tolerances on these
+definition, the distance from the line origin of each expected "dot" and the tolerances on these
 distances.
 \ingroup PlusLibPatternRecognition
 */
@@ -265,11 +265,14 @@ public:
   const std::vector<FidDot>& GetCandidateFidValues() const;
 
 protected:
-  /*! True if the dots are found, false otherwise. */
-  bool DotsFound;
-
   /*! X and Y values of found dots. */
   std::vector< std::vector<double> >  FoundDotsCoordinateValue;
+
+  /*! pointer to the fiducial candidates coordinates */
+  std::vector<FidDot>  CandidateFidValues; 
+
+  /*! True if the dots are found, false otherwise. */
+  bool DotsFound;
 
   /*! The combined intensity of the dots. This is the sum of the pixel
   values after the morphological operations, with the pixel values on the
@@ -279,9 +282,6 @@ protected:
 
   /*! number of possible fiducial points */
   double NumDots; 
-
-  /*! pointer to the fiducial candidates coordinates */
-  std::vector<FidDot>  CandidateFidValues; 
 };
 
 #endif //_FIDUCIAL_ALGORITHM_COMMON_H

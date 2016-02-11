@@ -299,9 +299,21 @@ void FidPattern::AddDistanceToOriginElementMm(double aElement)
 }
 
 //----------------------------------------------------------------------------
+void FidPattern::SetDistanceToOriginElementMm(int index, double aElement)
+{
+  this->DistanceToOriginMm[index] = aElement;
+}
+
+//----------------------------------------------------------------------------
 void FidPattern::AddDistanceToOriginToleranceElementMm(double aElement)
 {
   this->DistanceToOriginToleranceMm.push_back(aElement);
+}
+
+//----------------------------------------------------------------------------
+void FidPattern::SetDistanceToOriginToleranceElementMm(int index, double aElement)
+{
+  this->DistanceToOriginMm[index] = aElement;
 }
 
 //----------------------------------------------------------------------------

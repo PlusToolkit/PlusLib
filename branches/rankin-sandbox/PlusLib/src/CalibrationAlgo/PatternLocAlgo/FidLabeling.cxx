@@ -59,16 +59,21 @@ void FidLabeling::UpdateParameters()
   for (int i=0; i<numOfPatterns; ++i) 
   {
     double normal[3]={0,0,0};
-    vtkTriangle::ComputeNormal(m_Patterns[i]->GetWires()[0].EndPointFront, m_Patterns[i]->GetWires()[0].EndPointBack, m_Patterns[i]->GetWires()[2].EndPointFront, normal);
+    double v1[3], v2[3], v3[3];
+    memcpy(v1, m_Patterns[i]->GetWires()[0].EndPointFront, sizeof(double)*3);
+    memcpy(v2, m_Patterns[i]->GetWires()[0].EndPointBack, sizeof(double)*3);
+    memcpy(v3, m_Patterns[i]->GetWires()[2].EndPointFront, sizeof(double)*3);
+    vtkTriangle::ComputeNormal(v1, v2, v3, normal);
 
     vtkSmartPointer<vtkPlane> plane = vtkSmartPointer<vtkPlane>::New();
     plane->SetNormal(normal);
-    plane->SetOrigin(m_Patterns[i]->GetWires()[0].EndPointFront);
+    plane->SetOrigin(v1);
     planes.push_back(plane);
 
-    double distance1F = plane->DistanceToPlane(m_Patterns[i]->GetWires()[1].EndPointFront);
-    double distance1B = plane->DistanceToPlane(m_Patterns[i]->GetWires()[1].EndPointBack);
-    double distance2B = plane->DistanceToPlane(m_Patterns[i]->GetWires()[2].EndPointBack);
+    // *sigh* I don't like const_cast, but not my classes...
+    double distance1F = plane->DistanceToPlane(const_cast<double*>(m_Patterns[i]->GetWires()[1].EndPointFront));
+    double distance1B = plane->DistanceToPlane(const_cast<double*>(m_Patterns[i]->GetWires()[1].EndPointBack));
+    double distance2B = plane->DistanceToPlane(const_cast<double*>(m_Patterns[i]->GetWires()[2].EndPointBack));
 
     if (distance1F > epsilon || distance1B > epsilon || distance2B > epsilon)
     {

@@ -857,7 +857,7 @@ PlusStatus vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport(vtkTra
       double reprojectionError2D[2] = { this->PreProcessedWirePositions[VALIDATION_ALL].NWireErrors.ReprojectionError2Ds[wire][numberOfSegmentedFramesSoFar][0], this->PreProcessedWirePositions[VALIDATION_ALL].NWireErrors.ReprojectionError2Ds[wire][numberOfSegmentedFramesSoFar][1] };
       vtkSmartPointer<vtkXMLDataElement> reprojectionError2DElement = vtkSmartPointer<vtkXMLDataElement>::New(); 
       reprojectionError2DElement->SetName("ReprojectionError2D");
-      reprojectionError2DElement->SetAttribute("WireName", this->NWires[wire/3].GetWires()[wire%3].Name.c_str());
+      reprojectionError2DElement->SetAttribute("WireName", this->NWires[wire/3].GetWires()[wire%3].GetName().c_str());
       reprojectionError2DElement->SetVectorAttribute("ErrorPx", 2, reprojectionError2D);
       reprojectionError2Ds->AddNestedElement( reprojectionError2DElement );
     }
@@ -923,7 +923,7 @@ PlusStatus vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport(vtkTra
 
       vtkSmartPointer<vtkXMLDataElement> pointElement = vtkSmartPointer<vtkXMLDataElement>::New(); 
       pointElement->SetName("Point");
-      pointElement->SetAttribute("WireName", this->NWires[wire/3].Wires[wire%3].Name.c_str());
+      pointElement->SetAttribute("WireName", this->NWires[wire/3].GetWires()[wire%3].GetName().c_str());
       pointElement->SetVectorAttribute("Position", 3, point);
       segmentedWireIntersectionPointsPos_Image->AddNestedElement( pointElement );
     }
@@ -957,7 +957,7 @@ PlusStatus vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport(vtkTra
     {
       vtkSmartPointer<vtkXMLDataElement> reprojectionError3DElement = vtkSmartPointer<vtkXMLDataElement>::New(); 
       reprojectionError3DElement->SetName("ReprojectionError3D");
-      reprojectionError3DElement->SetAttribute("WireName", this->NWires[nWire].Wires[1].Name.c_str());
+      reprojectionError3DElement->SetAttribute("WireName", this->NWires[nWire].GetWires()[1].GetName().c_str());
       reprojectionError3DElement->SetDoubleAttribute("ErrorMm", this->PreProcessedWirePositions[CALIBRATION_ALL].NWireErrors.ReprojectionError3Ds[nWire][numberOfSegmentedFramesSoFar]);
       reprojectionError3Ds->AddNestedElement( reprojectionError3DElement );
     }
@@ -971,7 +971,7 @@ PlusStatus vtkProbeCalibrationAlgo::GetXMLCalibrationResultAndErrorReport(vtkTra
       double reprojectionError2D[2] = { this->PreProcessedWirePositions[CALIBRATION_ALL].NWireErrors.ReprojectionError2Ds[wire][numberOfSegmentedFramesSoFar][0], this->PreProcessedWirePositions[CALIBRATION_ALL].NWireErrors.ReprojectionError2Ds[wire][numberOfSegmentedFramesSoFar][1] };
       vtkSmartPointer<vtkXMLDataElement> reprojectionError2DElement = vtkSmartPointer<vtkXMLDataElement>::New(); 
       reprojectionError2DElement->SetName("ReprojectionError2D");
-      reprojectionError2DElement->SetAttribute("WireName", this->NWires[wire/3].Wires[wire%3].Name.c_str());
+      reprojectionError2DElement->SetAttribute("WireName", this->NWires[wire/3].GetWires()[wire%3].GetName().c_str());
       reprojectionError2DElement->SetVectorAttribute("ErrorPx", 2, reprojectionError2D);
       reprojectionError2Ds->AddNestedElement( reprojectionError2DElement );
     }
@@ -1095,7 +1095,7 @@ void vtkProbeCalibrationAlgo::ComputeError2d(PreProcessedWirePositionIdType data
       for (int wireIndex=0;wireIndex<3;wireIndex++)  // for each segmented point
       {
         // Compute the wire intersection point position in the image
-        FidWire wire = this->NWires[nWireIndex].Wires[wireIndex];
+        FidWire wire = this->NWires[nWireIndex].GetWires()[wireIndex];
         double wireEndPointFrontInPhantomFrame[4] = { wire.EndPointFront[0], wire.EndPointFront[1], wire.EndPointFront[2], 1.0 };
         double wireEndPointBackInPhantomFrame[4] = { wire.EndPointBack[0], wire.EndPointBack[1], wire.EndPointBack[2], 1.0 };
         double wireEndPointFrontInImageFrame[4]={0};

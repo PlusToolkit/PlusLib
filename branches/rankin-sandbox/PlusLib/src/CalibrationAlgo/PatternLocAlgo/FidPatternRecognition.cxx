@@ -501,12 +501,23 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
 
         NWire * tempNWire = (NWire*)(tempPatterns[k]);
 
-        if (vtkLine::DistanceBetweenLines(tempNWire->GetWires()[0].EndPointFront, tempNWire->GetWires()[0].EndPointBack, tempNWire->GetWires()[1].EndPointFront, tempNWire->GetWires()[1].EndPointBack, tempNWire->IntersectPosW12, closestTemp, parametricCoord1, parametricCoord2) > 0.000001) 
+        // const_cast because vtk classes don't have proper const-ness
+        if (vtkLine::DistanceBetweenLines(
+          const_cast<double*>(tempNWire->GetWires()[0].EndPointFront),
+          const_cast<double*>(tempNWire->GetWires()[0].EndPointBack),
+          const_cast<double*>(tempNWire->GetWires()[1].EndPointFront),
+          const_cast<double*>(tempNWire->GetWires()[1].EndPointBack),
+          tempNWire->IntersectPosW12, closestTemp, parametricCoord1, parametricCoord2) > 0.000001) 
         {
           LOG_ERROR("The first and second wire of layer " << layer << " do not intersect each other!");
           return PLUS_FAIL;
         }
-        if (vtkLine::DistanceBetweenLines(tempNWire->GetWires()[2].EndPointFront, tempNWire->GetWires()[2].EndPointBack, tempNWire->GetWires()[1].EndPointFront, tempNWire->GetWires()[1].EndPointBack, tempNWire->IntersectPosW32, closestTemp, parametricCoord1, parametricCoord2) > 0.000001) 
+        if (vtkLine::DistanceBetweenLines(
+          const_cast<double*>(tempNWire->GetWires()[2].EndPointFront),
+          const_cast<double*>(tempNWire->GetWires()[2].EndPointBack),
+          const_cast<double*>(tempNWire->GetWires()[1].EndPointFront),
+          const_cast<double*>(tempNWire->GetWires()[1].EndPointBack),
+          tempNWire->IntersectPosW32, closestTemp, parametricCoord1, parametricCoord2) > 0.000001) 
         {
           LOG_ERROR("The second and third wire of layer " << layer << " do not intersect each other!");
           return PLUS_FAIL;

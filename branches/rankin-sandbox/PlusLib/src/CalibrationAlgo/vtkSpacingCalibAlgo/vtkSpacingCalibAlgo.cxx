@@ -184,11 +184,11 @@ PlusStatus vtkSpacingCalibAlgo::ConstructLinearEquationForCalibration( std::vect
   for ( int i = 0; i < this->NWires.size() - 1; ++i )
   {
     // Distance between the two parallel stem of the N fiducial 
-    double hd = fabs(this->NWires[i].Wires[0].EndPointFront[0] - this->NWires[i].Wires[2].EndPointFront[0]); // horizontal distance
+    double hd = fabs(this->NWires[i].GetWires()[0].EndPointFront[0] - this->NWires[i].GetWires()[2].EndPointFront[0]); // horizontal distance
     horizontalDistanceMm.push_back(hd); 
     
-    // Distance between the neighbouring N wire patterns
-    double vd = fabs(this->NWires[i].Wires[2].EndPointFront[1] - this->NWires[i+1].Wires[2].EndPointFront[1]); // vertical  distance 
+    // Distance between the neighboring N wire patterns
+    double vd = fabs(this->NWires[i].GetWires()[2].EndPointFront[1] - this->NWires[i+1].GetWires()[2].EndPointFront[1]); // vertical  distance 
     verticalDistanceMm.push_back(vd); 
   }
 
