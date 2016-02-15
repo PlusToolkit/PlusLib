@@ -897,8 +897,8 @@ PlusStatus vtkCapistranoVideoSource::InitializeImageWindow()
     CreateWindow( TEXT("ImageWindow"), TEXT("Ultrasound"),
                   WS_OVERLAPPEDWINDOW,
                   0, 0,
-                  this->ImageSize[0],
-                  this->ImageSize[1],
+                  imageSize[0], //this->ImageSize[0],
+                  imageSize[1], //this->ImageSize[1],
                   NULL, NULL, hInst, NULL);
 
   if (this->Internal->ImageWindowHandle==NULL)
@@ -973,7 +973,7 @@ PlusStatus vtkCapistranoVideoSource::InitializeCapistranoVideoSource(bool probeC
   aSource->SetInputImageOrientation(US_IMG_ORIENT_NU);
   aSource->SetImageType(US_IMG_BRIGHTNESS);
   aSource->SetPixelType( VTK_UNSIGNED_CHAR );
-  aSource->SetInputFrameSize(frameSizeInPx[0], frameSizeInPx[1], frameSizeInPx[2]);
+  aSource->SetInputFrameSize(frameSizeInPx[0], frameSizeInPx[1], 1);// frameSizeInPx[2]);
 
   // Initialize display ----------------------------------------------------
   if ( InitializeImageWindow() == PLUS_FAIL)
@@ -1030,7 +1030,7 @@ PlusStatus vtkCapistranoVideoSource::InitializeCapistranoVideoSource(bool probeC
   }
 
   usbSetUnidirectionalMode();
-  usbSetPulseVoltage(this->PulseVoltage);
+  usbSetPulseVoltage(this->Internal->ImagingParameters->GetProbeVoltage());
 
   // Set the Size of CineBuffer -----------------------------------------------
   // Setup the display offsets now that we have the probe and DISPLAY data
@@ -1117,7 +1117,7 @@ PlusStatus vtkCapistranoVideoSource::InternalUpdate()
   }
 
   std::vector<int> frameSizeInPx = this->Internal->ImagingParameters->GetImageSize();
-  int frameSize[3] = {frameSizeInPx[0], frameSizeInPx[1], frameSizeInPx[2]};
+  int frameSize[3] = {frameSizeInPx[0], frameSizeInPx[1], 1 } ;//frameSizeInPx[2]};
 
   // If the buffer is empty, set the pixel type and frame size
   // to the first received properties
@@ -1413,7 +1413,7 @@ PlusStatus vtkCapistranoVideoSource::SetGainPercentDevice(double gainPercent[3])
 // ----------------------------------------------------------------------------
 PlusStatus vtkCapistranoVideoSource::SetDepthMmDevice(float depthMm)
 {
-  int temp = (int)(depthMm/1.8f);
+  int temp = (int)(depthMm/18.0f);
 
   if(temp > 4 || temp < 1)
   {
@@ -1422,7 +1422,7 @@ PlusStatus vtkCapistranoVideoSource::SetDepthMmDevice(float depthMm)
   }
 
   // Update the current scan depth with an available scan depth
-  this->SetDepthMm((float)temp * 1.8f);
+  this->SetDepthMm((float)temp * 18.0f);
 
   // Update Sample clock divider
   this->ClockDivider = temp;
