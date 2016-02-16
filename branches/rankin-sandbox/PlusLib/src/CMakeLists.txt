@@ -221,7 +221,7 @@ FILE(GLOB headers
 export(TARGETS 
   ${PLUSLIB_DEPENDENCIES}
   FILE "${CMAKE_CURRENT_BINARY_DIR}/PlusLibLibraryDepends.cmake"
-  )    
+  )
  
 # Export the package for use from the build-tree
 # (this registers the build-tree with a global CMake-registry)

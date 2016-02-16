@@ -851,9 +851,9 @@ PlusStatus vtkPlusDataSource::DeepCopyBufferTo(vtkPlusBuffer& bufferToFill)
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/)
+PlusStatus vtkPlusDataSource::AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const TrackedFrame::FieldMapType* customFields /*= NULL*/)
 {
-  return this->GetBuffer()->AddTimeStampedItem(matrix, status, frameNumber, unfilteredTimestamp, filteredTimestamp);
+  return this->GetBuffer()->AddTimeStampedItem(matrix, status, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields);
 }
 
 //-----------------------------------------------------------------------------

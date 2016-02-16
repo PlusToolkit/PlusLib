@@ -168,6 +168,7 @@ OPTION(PLUS_USE_MMF_VIDEO "Provide support for the Microsoft Media Foundation vi
 IF(PLUS_USE_MMF_VIDEO)
   OPTION(PLUS_TEST_MMF_VIDEO "Enable testing of acquisition from MMF video device (webcam). Enable this only if an MMF device is connected to this computer." OFF)  
 ENDIF(PLUS_USE_MMF_VIDEO)
+OPTION(PLUS_USE_FREEDOM6S "Provide support for the Freedom6s haptic device" ${ENABLED_BY_DEFAULT_ON_WINDOWS32_ONLY})
 OPTION(PLUS_USE_EPIPHAN "Provide support for the Epiphan framegrabber device" OFF)
 OPTION(PLUS_USE_CAPISTRANO_VIDEO "Provide support for the Capistrano Labs USB ultrasound probes" OFF)
 OPTION(PLUS_USE_INTERSON_VIDEO "Provide support for the Interson USB ultrasound probes" OFF)

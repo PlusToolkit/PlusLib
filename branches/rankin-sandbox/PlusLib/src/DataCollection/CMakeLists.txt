@@ -6,6 +6,7 @@ OPTION (PLUS_USE_POLARIS "Provide support for the NDI Polaris and Aurora" OFF)
 OPTION (PLUS_USE_CERTUS "Provide support for the NDI Certus" OFF)
 OPTION (PLUS_USE_MICRONTRACKER "Provide support for the Claron MicronTracker" OFF)
 OPTION (PLUS_USE_BRACHY_TRACKER "Provide support for the brachy stepper tracking device" OFF)
+OPTION (PLUS_USE_FREEDOM6S "Provide support for the Freedom6s haptic device" OFF)
 OPTION (PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" ${ENABLED_BY_DEFAULT_ON_WINDOWS_ONLY})
 OPTION (PLUS_USE_Ascension3DGm "Provide support for the Ascension 3DGm MedSafe Tracker" ${ENABLED_BY_DEFAULT_ON_WINDOWS32_ONLY})
 OPTION (PLUS_USE_PHIDGET_SPATIAL_TRACKER "Provide support for the Phidget Spatial accelerometer" OFF)
@@ -35,7 +36,12 @@ IF(PLUS_USE_MMF_VIDEO)
 ENDIF(PLUS_USE_MMF_VIDEO)
 OPTION (PLUS_USE_tesseract "Provide support for optical character recognition virtual device via tesseract OCR library." OFF)
 
-SET (DataCollection_INCLUDE_DIRS "" CACHE INTERNAL "" FORCE)
+# --------------------------------------------------------------------------
+# Haptics
+ADD_SUBDIRECTORY(Haptics)
+
+SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${PlusHaptics_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)
+SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} PlusHaptics CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Sources
@@ -314,8 +320,35 @@ IF (PLUS_USE_BRACHY_TRACKER)
     ${USDIGITAL_SEI_BINARY_DIR}/SEIDrv32${CMAKE_SHARED_LIBRARY_SUFFIX}
     ${USDIGITAL_SEI_BINARY_DIR}/SEISrv32.exe
     )
-    
 ENDIF (PLUS_USE_BRACHY_TRACKER)
+
+#--------------------------------------------------------------------------
+# Freedom6s device
+IF( PLUS_USE_FREEDOM6S )
+  SET (DataCollection_SRCS ${DataCollection_SRCS}
+    Freedom6s/vtkFreedom6SDevice.cxx
+  )
+
+  IF (MSVC)  
+    SET (DataCollection_HDRS
+      ${DataCollection_HDRS}
+      Freedom6s/vtkFreedom6SDevice.h
+      )
+  ENDIF()
+
+  SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
+    ${CMAKE_CURRENT_SOURCE_DIR}/Freedom6s
+    ${FREEDOM6S_INCLUDE_DIR}
+    CACHE INTERNAL "" FORCE)
+  
+  SET (DataCollection_LIBS ${DataCollection_LIBS}
+    ${FREEDOM6S_LIB_DIR}/freedom6s${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
+
+  SET ( External_Libraries_Install ${External_Libraries_Install}
+    ${FREEDOM6S_BINARY_DIR}/freedom6s${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+ENDIF()
 
 #--------------------------------------------------------------------------
 # Ascension 3DG support (trakSTAR)
