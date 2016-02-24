@@ -409,6 +409,12 @@ IF (PLUS_USE_BRACHY_TRACKER)
     ADD_EXECUTABLE(CivcoBrachyStepperTest CivcoBrachyStepperTest.cxx)
     TARGET_LINK_LIBRARIES(CivcoBrachyStepperTest vtkDataCollection ${VTK_LIBRARIES} vtkPlusCommon)
 ENDIF (PLUS_USE_BRACHY_TRACKER) 
+
+#*************************** USDigitalEncoderStepperTest ***************************
+IF (PLUS_USE_USDIGITALENCODERS_TRACKER)
+    ADD_EXECUTABLE(vtkUSDigitalEncodersTrackerTest vtkUSDigitalEncodersTrackerTest.cxx)
+    TARGET_LINK_LIBRARIES(vtkUSDigitalEncodersTrackerTest vtkDataCollection ${VTK_LIBRARIES} vtkPlusCommon)
+ENDIF (PLUS_USE_USDIGITALENCODERS_TRACKER) 
   
 #*************************** TransformInterpolationTest ***************************
 ADD_EXECUTABLE(TransformInterpolationTest TransformInterpolationTest.cxx)
