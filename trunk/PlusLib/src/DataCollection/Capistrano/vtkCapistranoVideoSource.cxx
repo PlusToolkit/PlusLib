@@ -580,18 +580,18 @@ public:
 // Global functions -----------------------------------------------------------
 
 /*! A callback function is called when probe is attached */
-int CALLBACK ProbeAttached()
-{
-  LOG_INFO("Probe attached");
-  return 0;
-}
+//int CALLBACK ProbeAttached()
+//{
+//  LOG_INFO("Probe attached");
+//  return 0;
+//}
 
 /*! A callback function is called when probe is detached */
-int CALLBACK ProbeDetached()
-{
-  LOG_INFO("Probe detached");
-  return 0;
-}
+//int CALLBACK ProbeDetached()
+//{
+//  LOG_INFO("Probe detached");
+//  return 0;
+//}
 
 // ----------------------------------------------------------------------------
 // Public member operators ----------------------------------------------------
@@ -769,8 +769,8 @@ PlusStatus vtkCapistranoVideoSource::InitializeCapistranoProbe()
   }
 
   // Setup Callback functions ----------------------------------------------
-  usbSetProbeAttachCallback(&ProbeAttached);
-  usbSetProbeDetachCallback(&ProbeDetached);
+  //usbSetProbeAttachCallback(&ProbeAttached);
+  //usbSetProbeDetachCallback(&ProbeDetached);
 
   // Check updateUSProbeParameters -----------------------------------------
   if (usbSetCineBuffers(this->CineBuffers) != this->CineBuffers)
