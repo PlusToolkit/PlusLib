@@ -2,7 +2,8 @@
 
 
 /*********** Version ***********/
-const char* versiontxt = "SEIDrv32.DLL version 5.22\n";
+//const char* versiontxt = "SEIDrv32.DLL version 5.22\n";
+#define versiontxt = "SEIDrv32.DLL version 5.22\n"
 
 #ifdef __cplusplus 
 extern "C"{ 
