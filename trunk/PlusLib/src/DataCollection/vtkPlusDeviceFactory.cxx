@@ -39,6 +39,9 @@ See License.txt for details.
 #ifdef PLUS_USE_BRACHY_TRACKER
 #include "vtkBrachyTracker.h"
 #endif
+#ifdef PLUS_USE_USDIGITALENCODERS_TRACKER
+#include "vtkUSDigitalEncodersTracker.h"
+#endif
 #ifdef PLUS_USE_Ascension3DG
 #include "vtkAscension3DGTracker.h"
 #endif
@@ -145,11 +148,14 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
   DeviceTypes["3dConnexion"]=(PointerToDevice)&vtk3dConnexionTracker::New; 
 #endif
 #ifdef PLUS_USE_OpenIGTLink
-  DeviceTypes["OpenIGTLinkTracker"]=(PointerToDevice)&vtkOpenIGTLinkTracker::New; 
+  DeviceTypes["OpenIGTLinkTracker"]=(PointerToDevice)&vtkOpenIGTLinkTracker::New;
 #endif
 #ifdef PLUS_USE_BRACHY_TRACKER
   DeviceTypes["BrachyTracker"]=(PointerToDevice)&vtkBrachyTracker::New; 
 #endif 
+#ifdef PLUS_USE_USDIGITALENCODERS_TRACKER
+  DeviceTypes["USDigitalEncodersTracker"]=(PointerToDevice)&vtkUSDigitalEncodersTracker::New;
+#endif
 #ifdef PLUS_USE_CERTUS
   DeviceTypes["CertusTracker"]=(PointerToDevice)&vtkNDICertusTracker::New; 
 #endif
