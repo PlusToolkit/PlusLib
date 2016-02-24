@@ -6,6 +6,7 @@ OPTION (PLUS_USE_POLARIS "Provide support for the NDI Polaris and Aurora" OFF)
 OPTION (PLUS_USE_CERTUS "Provide support for the NDI Certus" OFF)
 OPTION (PLUS_USE_MICRONTRACKER "Provide support for the Claron MicronTracker" OFF)
 OPTION (PLUS_USE_BRACHY_TRACKER "Provide support for the brachy stepper tracking device" OFF)
+OPTION (PLUS_USE_USDIGITALENCODERS_TRACKER "Provide support for multiple USDigital encoders tracking device" OFF)
 OPTION (PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" ${ENABLED_BY_DEFAULT_ON_WINDOWS_ONLY})
 OPTION (PLUS_USE_Ascension3DGm "Provide support for the Ascension 3DGm MedSafe Tracker" ${ENABLED_BY_DEFAULT_ON_WINDOWS32_ONLY})
 OPTION (PLUS_USE_PHIDGET_SPATIAL_TRACKER "Provide support for the Phidget Spatial accelerometer" OFF)
@@ -277,7 +278,7 @@ IF (PLUS_USE_BRACHY_TRACKER)
   SET (DataCollection_SRCS ${DataCollection_SRCS}
     BrachyTracking/vtkBrachyTracker.cxx
     BrachyTracking/CmsBrachyStepper.cxx
-    BrachyTracking/CivcoBrachyStepper.cxx 
+    BrachyTracking/CivcoBrachyStepper.cxx
   )
   
   IF (WIN32)  
@@ -305,6 +306,39 @@ IF (PLUS_USE_BRACHY_TRACKER)
     )
     
 ENDIF (PLUS_USE_BRACHY_TRACKER)
+
+
+#--------------------------------------------------------------------------
+# USDigitalEncoders tracking support
+IF (PLUS_USE_USDIGITALENCODERS_TRACKER)
+
+  SET (DataCollection_SRCS ${DataCollection_SRCS}
+    USDigitalEncodersTracking/vtkUSDigitalEncodersTracker.cxx
+  )
+  
+  IF (WIN32)  
+    SET (DataCollection_HDRS
+      ${DataCollection_HDRS}
+      USDigitalEncodersTracking/vtkUSDigitalEncodersTracker.h
+      )
+  ENDIF (WIN32)
+    
+  SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
+    ${CMAKE_CURRENT_SOURCE_DIR}/USDigitalEncodersTracking
+    ${USDIGITAL_SEI_INCLUDE_DIR}
+    CACHE INTERNAL "" FORCE)    
+  
+  SET (DataCollection_LIBS ${DataCollection_LIBS}
+    ${USDIGITAL_SEI_LIB_DIR}/SEIDrv32${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
+
+  SET ( External_Libraries_Install ${External_Libraries_Install}
+    ${USDIGITAL_SEI_BINARY_DIR}/SEIDrv32${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${USDIGITAL_SEI_BINARY_DIR}/SEISrv32.exe
+    )
+
+ENDIF (PLUS_USE_USDIGITALENCODERS_TRACKER)
+
 
 #--------------------------------------------------------------------------
 # Ascension 3DG support (trakSTAR)
