@@ -16,47 +16,48 @@ vtkStandardNewMacro(vtkUsImagingParameters);
 
 //----------------------------------------------------------------------------
 
-const char* vtkUsImagingParameters::KEY_CONTRAST = "Contrast";
-const char* vtkUsImagingParameters::KEY_DEPTH = "DepthMm";
-const char* vtkUsImagingParameters::KEY_DYNRANGE = "DynRangeDb";
-const char* vtkUsImagingParameters::KEY_FREQUENCY = "FrequencyMhz";
-const char* vtkUsImagingParameters::KEY_GAIN = "GainPercent";
-const char* vtkUsImagingParameters::KEY_TGC = "TimeGainCompensation";
-const char* vtkUsImagingParameters::KEY_INTENSITY = "Intensity";
-const char* vtkUsImagingParameters::KEY_SECTOR = "SectorPercent";
-const char* vtkUsImagingParameters::KEY_ZOOM = "ZoomFactor";
+const char* vtkUsImagingParameters::KEY_CONTRAST      = "Contrast";
+const char* vtkUsImagingParameters::KEY_DEPTH         = "DepthMm";
+const char* vtkUsImagingParameters::KEY_DYNRANGE      = "DynRangeDb";
+const char* vtkUsImagingParameters::KEY_FREQUENCY     = "FrequencyMhz";
+const char* vtkUsImagingParameters::KEY_GAIN          = "GainPercent";
+const char* vtkUsImagingParameters::KEY_TGC           = "TimeGainCompensation";
+const char* vtkUsImagingParameters::KEY_INTENSITY     = "Intensity";
+const char* vtkUsImagingParameters::KEY_SECTOR        = "SectorPercent";
+const char* vtkUsImagingParameters::KEY_ZOOM          = "ZoomFactor";
 const char* vtkUsImagingParameters::KEY_SOUNDVELOCITY = "SoundVelocity";
-const char* vtkUsImagingParameters::KEY_VOLTAGE = "Voltage";
-const char* vtkUsImagingParameters::KEY_IMAGESIZE = "ImageSize";
+const char* vtkUsImagingParameters::KEY_VOLTAGE       = "Voltage";
+const char* vtkUsImagingParameters::KEY_IMAGESIZE     = "ImageSize";
 
 //----------------------------------------------------------------------------
 
 vtkUsImagingParameters::vtkUsImagingParameters()
   : vtkObject()
 {
-  this->ParameterValues[KEY_FREQUENCY]="-1";
-  this->ParameterValues[KEY_DEPTH]="-1";
-  this->ParameterValues[KEY_SECTOR]="-1";
-  this->ParameterValues[KEY_GAIN]="-1 -1 -1";
-  this->ParameterValues[KEY_INTENSITY]="-1";
-  this->ParameterValues[KEY_CONTRAST]="-1";
-  this->ParameterValues[KEY_DYNRANGE]="-1";
-  this->ParameterValues[KEY_ZOOM]="-1";
-  this->ParameterValues[KEY_SOUNDVELOCITY]="1540";
-  this->ParameterValues[KEY_VOLTAGE]="-1";
-  this->ParameterValues[KEY_IMAGESIZE]="-1 -1 -1";
+  this->ParameterValues[KEY_FREQUENCY]                = "-1";
+  this->ParameterValues[KEY_DEPTH]                    = "-1";
+  this->ParameterValues[KEY_SECTOR]                   = "-1";
+  this->ParameterValues[KEY_GAIN]                     = "-1";
+  this->ParameterValues[KEY_TGC]                      = "-1 -1 -1";
+  this->ParameterValues[KEY_INTENSITY]                = "-1";
+  this->ParameterValues[KEY_CONTRAST]                 = "-1";
+  this->ParameterValues[KEY_DYNRANGE]                 = "-1";
+  this->ParameterValues[KEY_ZOOM]                     = "-1";
+  this->ParameterValues[KEY_SOUNDVELOCITY]            = "1540";
+  this->ParameterValues[KEY_VOLTAGE]                  = "-1";
+  this->ParameterValues[KEY_IMAGESIZE]                = "-1 -1 -1";
 
-  this->ParameterSet[KEY_FREQUENCY]=false;
-  this->ParameterSet[KEY_DEPTH]=false;
-  this->ParameterSet[KEY_SECTOR]=false;
-  this->ParameterSet[KEY_GAIN]=false;
-  this->ParameterSet[KEY_INTENSITY]=false;
-  this->ParameterSet[KEY_CONTRAST]=false;
-  this->ParameterSet[KEY_DYNRANGE]=false;
-  this->ParameterSet[KEY_ZOOM]=false;
-  this->ParameterSet[KEY_SOUNDVELOCITY]=false;
-  this->ParameterSet[KEY_VOLTAGE]=false;
-  this->ParameterSet[KEY_IMAGESIZE]=false;
+  this->ParameterSet[KEY_FREQUENCY]                   = false;
+  this->ParameterSet[KEY_DEPTH]                       = false;
+  this->ParameterSet[KEY_SECTOR]                      = false;
+  this->ParameterSet[KEY_GAIN]                        = false;
+  this->ParameterSet[KEY_INTENSITY]                   = false;
+  this->ParameterSet[KEY_CONTRAST]                    = false;
+  this->ParameterSet[KEY_DYNRANGE]                    = false;
+  this->ParameterSet[KEY_ZOOM]                        = false;
+  this->ParameterSet[KEY_SOUNDVELOCITY]               = false;
+  this->ParameterSet[KEY_VOLTAGE]                     = false;
+  this->ParameterSet[KEY_IMAGESIZE]                   = false;
 }
 
 //----------------------------------------------------------------------------
@@ -131,8 +132,8 @@ PlusStatus vtkUsImagingParameters::SetTimeGainCompensation(const std::vector<dou
 {
   std::stringstream result;
   std::copy(tgc.begin(), tgc.end(), std::ostream_iterator<double>(result, " "));
-  this->ParameterValues[KEY_GAIN] = result.str();
-  this->ParameterSet[KEY_GAIN] = true;
+  this->ParameterValues[KEY_TGC] = result.str();
+  this->ParameterSet[KEY_TGC] = true;
   return PLUS_SUCCESS;
 }
 
@@ -159,7 +160,7 @@ PlusStatus vtkUsImagingParameters::GetTimeGainCompensation(std::vector<double>& 
   std::stringstream ss;
   ParameterNameMapConstIterator it = this->ParameterValues.find(KEY_TGC);
   ss.str(it->second);
-  std::vector<double> numbers((std::istream_iterator<double>(ss)), 
+  std::vector<double> numbers((std::istream_iterator<double>(ss)),
     std::istream_iterator<double>());
   tgc = numbers;
   return PLUS_SUCCESS;
@@ -293,7 +294,7 @@ float vtkUsImagingParameters::GetSoundVelocity() const
   return aValue;
 }
 
-// Check 
+// Check
 //----------------------------------------------------------------------------
 vtkUsImagingParameters::ParameterNameMapConstIterator vtkUsImagingParameters::begin() const
 {
@@ -329,7 +330,7 @@ float vtkUsImagingParameters::GetProbeVoltage() const
 //----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::SetImageSize(const std::vector<int>& imageSize)
 {
-  if( imageSize.size() != 2 || imageSize.size() != 3 )
+  if( imageSize.size() != 2 && imageSize.size() != 3 )
   {
     LOG_ERROR("Invalid image dimensions.");
     return PLUS_FAIL;
@@ -370,7 +371,7 @@ PlusStatus vtkUsImagingParameters::GetImageSize(std::vector<int>& imageSize) con
   std::stringstream ss;
   ParameterNameMapConstIterator it = this->ParameterValues.find(KEY_IMAGESIZE);
   ss.str(it->second);
-  std::vector<int> numbers((std::istream_iterator<int>(ss)), 
+  std::vector<int> numbers((std::istream_iterator<int>(ss)),
     std::istream_iterator<int>());
   imageSize = numbers;
   return PLUS_SUCCESS;
@@ -494,7 +495,7 @@ PlusStatus vtkUsImagingParameters::GetValue(const std::string& paramName, T& out
   }
 
   std::stringstream ss;
-  ParameterNameMapConstIterator it = this->ParameterValues.find(KEY_DEPTH);
+  ParameterNameMapConstIterator it = this->ParameterValues.find(paramName);
   ss.str(it->second);
   ss >> outputValue;
   return PLUS_FAIL;
