@@ -96,6 +96,10 @@ OPTION(PLUSBUILD_BUILD_PLUSAPP "Build PlusApp applications" ON)
 OPTION(PLUSBUILD_BUILD_PLUSMODELCATALOG "Build Plus Model Catalog" OFF)
 OPTION(PLUSBUILD_USE_Tesseract "Use OCR in PlusLib for parameter detection" OFF)
 OPTION(PLUSBUILD_DOWNLOAD_PlusDATA "Download PLUS sample data" ON)
+IF(PLUSBUILD_DOWNLOAD_PlusDATA)
+  SET(PLUSBUILD_PlusDATA_SVNREVISION "HEAD" CACHE STRING "Revision of data to download." FORCE)
+  MARK_AS_ADVANCED(PLUSBUILD_PlusDATA_SVNREVISION)
+ENDIF()
 
 # Documentation
 option(PLUSBUILD_DOCUMENTATION "Build Plus documentation (Doxygen)." OFF)
