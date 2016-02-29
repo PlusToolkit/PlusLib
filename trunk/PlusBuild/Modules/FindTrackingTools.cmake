@@ -9,20 +9,24 @@
 
 SET(TRACKINGTOOLS_PATH_HINTS 
   "C:/Program Files/OptiTrack/Tracking Tools"
-  #"C:/Program Files (x86)/OptiTrack/Tracking Tools"
+  ../OptiTrack/TrackingTools-2.5.3
+  ../PLTools/OptiTrack/TrackingTools-2.5.3
+  ../../PLTools/OptiTrack/TrackingTools-2.5.3
+  ../trunk/PLTools/OptiTrack/TrackingTools-2.5.3
+  ${CMAKE_CURRENT_BINARY_DIR}/PLTools/OptiTrack/TrackingTools-2.5.3
 )
 
 FIND_PATH(TRACKINGTOOLS_INCLUDE_DIR
   NAMES "NPTrackingTools.h"
   PATH_SUFFIXES "inc"
-  PATHS "${TRACKINGTOOLS_PATH_HINTS}"
+  PATHS ${TRACKINGTOOLS_PATH_HINTS}
   DOC "Include directory of the OptiTrack Tracking Tools SDK"
 )
 
 FIND_PATH(TRACKINGTOOLS_BINARY_DIR
   NAMES "NPTrackingToolsx64.dll" "NPTrackingTools.dll"
   PATH_SUFFIXES "lib"
-  PATHS "${TRACKINGTOOLS_PATH_HINTS}"
+  PATHS ${TRACKINGTOOLS_PATH_HINTS}
   DOC "Directory containing the DLLs of the OptiTrack Tracking Tools SDK"
   NO_DEFAULT_PATH # Avoids finding installed DLLs in the system folders
 )
@@ -31,7 +35,7 @@ FIND_PATH(TRACKINGTOOLS_BINARY_DIR
 FIND_LIBRARY(TRACKINGTOOLS_64_BIT_LIBRARY
   NAMES NPTrackingToolsx64.lib
   PATH_SUFFIXES "lib"
-  PATHS "${TRACKINGTOOLS_PATH_HINTS}"
+  PATHS ${TRACKINGTOOLS_PATH_HINTS}
   DOC "64-bit library file for the OptiTrack Tracking Tools SDK"
 )
 
@@ -39,7 +43,7 @@ FIND_LIBRARY(TRACKINGTOOLS_64_BIT_LIBRARY
 FIND_LIBRARY(TRACKINGTOOLS_32_BIT_LIBRARY
   NAMES "NPTrackingTools.lib"
   PATH_SUFFIXES "lib"
-  PATHS "${TRACKINGTOOLS_PATH_HINTS}"
+  PATHS ${TRACKINGTOOLS_PATH_HINTS}
   DOC "32-bit library file for the OptiTrack Tracking Tools SDK"
 )
 
