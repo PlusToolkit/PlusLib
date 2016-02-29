@@ -35,7 +35,7 @@ IF(VTK_DIR)
     ENDIF()
   ENDFOREACH()
 
-  SET (RobartsVTK_VTK_DIR "${VTK_DIR}" CACHE INTERNAL "Path to store vtk binaries")
+  SET (PLUS_VTK_DIR "${VTK_DIR}" CACHE INTERNAL "Path to store vtk binaries")
 
   IF(PLUSBUILD_BUILD_PLUSAPP)
     IF (${VTK_MAJOR_VERSION} VERSION_LESS 6)

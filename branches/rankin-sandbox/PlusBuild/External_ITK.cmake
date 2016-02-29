@@ -38,7 +38,7 @@ IF(ITK_DIR)
       ENDIF()
     ENDFOREACH()
  
-    SET (RobartsVTK_ITK_DIR "${ITK_DIR}" CACHE INTERNAL "Path to store itk binaries")
+    SET (PLUS_ITK_DIR "${ITK_DIR}" CACHE INTERNAL "Path to store itk binaries")
   ENDIF()
   
 ELSE(ITK_DIR)
