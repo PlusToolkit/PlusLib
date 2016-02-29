@@ -61,8 +61,6 @@ INCLUDE(CTest)
 # --------------------------------------------------------------------------
 # Set up paths for data and SDKs
 #
-
-SET( PLUSLIB_DATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/data)
 SET( PLUSLIB_TOOLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tools)
 
 SET( ATC_TRAKSTAR_BASE_DIR ${PLUSLIB_TOOLS_DIR}/Ascension/trakSTAR_940041_RevE)
