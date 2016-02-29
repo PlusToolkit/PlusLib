@@ -1,5 +1,4 @@
 SET(tesseract_DEPENDENCIES leptonica)
-LIST(APPEND PlusLib_DEPENDENCIES tesseract)
 SET(libpng_DEPENDENCIES zlib)
 SET(tesseract_ROOT_DIR ${CMAKE_BINARY_DIR}/tesseract-super)
 

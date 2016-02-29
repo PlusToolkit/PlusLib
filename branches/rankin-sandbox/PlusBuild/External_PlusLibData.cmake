@@ -1,6 +1,6 @@
 #--------------------------------------------------------------------------
 # PlusLibData
-SET (PLUS_PLUSLIBDATA_DIR ${PLUS_PLUSLIB_DIR}/data CACHE INTERNAL "Path to store PlusLib contents.")
+SET (PLUS_PLUSLIBDATA_DIR ${CMAKE_BINARY_DIR}/PlusLibData CACHE INTERNAL "Path to store PlusLib contents.")
 ExternalProject_Add(PlusLibData
   "${PLUSBUILD_EXTERNAL_PROJECT_CUSTOM_COMMANDS}"
   SOURCE_DIR "${PLUS_PLUSLIBDATA_DIR}" 
@@ -15,4 +15,4 @@ ExternalProject_Add(PlusLibData
   #--Install step-----------------
   INSTALL_COMMAND ""
   )
-SET(PLUSLIBDATA_DIR ${PLUS_PLUSLIBDATA_DIR} CACHE PATH "The directory containing PlusLib data" FORCE)
+SET(PLUSLIB_DATA_DIR ${PLUS_PLUSLIBDATA_DIR} CACHE PATH "The directory containing PlusLib data" FORCE)

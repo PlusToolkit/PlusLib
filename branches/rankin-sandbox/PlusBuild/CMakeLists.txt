@@ -490,6 +490,7 @@ SET(PlusModelCatalog_DEPENDENCIES PlusLib)
 
 IF(PLUSBUILD_USE_Tesseract)
   INCLUDE(External_Tesseract.cmake)
+  LIST(APPEND PlusLib_DEPENDENCIES tesseract)
 ENDIF(PLUSBUILD_USE_Tesseract)
 
 #------------------------------------------------------------------------------
@@ -514,11 +515,12 @@ target_architecture(ARCHITECHTURE_BUILD_NAME)
 
 SET(BUILDNAME "${CMAKE_SYSTEM_NAME}${ARCHITECHTURE_BUILD_NAME}-${VTK_BUILD_NAME}-${QT_BUILD_NAME}" CACHE STRING "Name of the build on the dashboard")
 
-INCLUDE(External_PlusLib.cmake)
-
 IF(PLUSBUILD_DOWNLOAD_PlusDATA AND NOT PLUSBUILD_OFFLINE_BUILD)
   INCLUDE(External_PlusLibData.cmake)
+  LIST(APPEND PlusLib_DEPENDENCIES PlusLibData)
 ENDIF()
+
+INCLUDE(External_PlusLib.cmake)
 
 IF(PLUSBUILD_BUILD_PLUSAPP) 
   INCLUDE(External_PlusApp.cmake)
