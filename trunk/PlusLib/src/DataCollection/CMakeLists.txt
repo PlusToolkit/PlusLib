@@ -106,39 +106,35 @@ SET (DataCollection_INCLUDE_DIRS
 # --------------------------------------------------------------------------
 # OptiTrack support
 IF (PLUS_USE_OPTITRACK)
+  IF (WIN32)
+
+    # PlusLib Files
     SET (DataCollection_SRCS ${DataCollection_SRCS} 
       OptiTrack/vtkOptiTrackTracker.cxx
       )
         
-    SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} ${TRACKINGTOOLS_INCLUDE_DIR} CACHE INTERNAL "" FORCE )
-  
-    IF (WIN32)  
       SET (DataCollection_HDRS ${DataCollection_HDRS}
         OptiTrack/vtkOptiTrackTracker.h
         )
-    ENDIF (WIN32)
     
     SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
          ${CMAKE_CURRENT_SOURCE_DIR}/OptiTrack 
          CACHE INTERNAL "" FORCE)
       
-    IF( CMAKE_SIZEOF_VOID_P EQUAL 8 )
-    # 64-bit
-		SET (DataCollection_LIBS ${DataCollection_LIBS}
-		${TRACKINGTOOLS_64_BIT_LIBRARY}
-		)
-		SET ( External_Libraries_Install ${External_Libraries_Install}
-		${TRACKINGTOOLS_BINARY_DIR}/NPTrackingToolsx64${CMAKE_SHARED_LIBRARY_SUFFIX}
-		)
-	ELSE()
-    # 32-bit
-		SET (DataCollection_LIBS ${DataCollection_LIBS}
-		${TRACKINGTOOLS_32_BIT_LIBRARY}
-		)
-		SET ( External_Libraries_Install ${External_Libraries_Install}
-		${TRACKINGTOOLS_BINARY_DIR}/NPTrackingTools${CMAKE_SHARED_LIBRARY_SUFFIX}
-		)
-  ENDIF()   
+    # Find BiiGOptitrackControl Library
+    find_package (BiiGOptitrackControl REQUIRED)
+    set(External_Libraries_Install ${External_Libraries_Install} ${BiiGOptitrackControl_INSTALL_DIR}/bin/BiiGOptitrackControl${CMAKE_SHARED_LIBRARY_SUFFIX})
+    set(External_Libraries_Install ${External_Libraries_Install} ${BiiGOptitrackControl_INSTALL_DIR}/lib/BiiGOptitrackControl${CMAKE_STATIC_LIBRARY_SUFFIX})
+    set(DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} ${BiiGOptitrackControl_INSTALL_DIR}/inc CACHE INTERNAL "" FORCE )
+
+    # Find NPTrackingTools Library
+    find_package(NPTrackingTools REQUIRED)
+    set(External_Libraries_Install ${External_Libraries_Install} ${NPTrackingTools_INSTALL_DIR}/bin/${NPTrackingTools_LIBRARY}${CMAKE_SHARED_LIBRARY_SUFFIX})
+    set(External_Libraries_Install ${External_Libraries_Install} ${NPTrackingTools_INSTALL_DIR}/lib/${NPTrackingTools_LIBRARY}${CMAKE_STATIC_LIBRARY_SUFFIX})
+    set(DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} ${NPTrackingTools_INCLUDE_DIR} CACHE INTERNAL "" FORCE )
+
+    set(DataCollection_LIBS ${DataCollection_LIBS} BiiGOptitrackControl ${NPTrackingTools_LIBRARY})
+  ENDIF (WIN32)
 ENDIF (PLUS_USE_OPTITRACK)
 
 # --------------------------------------------------------------------------
