@@ -339,10 +339,7 @@ IF ( PLUS_USE_BKPROFOCUS_VIDEO )
 ENDIF()
 
 IF ( PLUS_USE_OPTITRACK )
-  FIND_PACKAGE (TRACKINGTOOLS)
-  IF ( NOT TRACKINGTOOLS_FOUND)
-    MESSAGE( FATAL_ERROR "This project requires the OptiTrack Tracking Tools SDK for OptiTrack tracking. One of the components is missing. Please verify configuration or turn off PLUS_USE_OPTITRACK.")
-  ENDIF()
+  INCLUDE(External_BiiGOptitrack.cmake)
 ENDIF() 
 
 IF ( PLUS_USE_OPTIMET_CONOPROBE )
@@ -477,6 +474,11 @@ IF( PLUS_USE_INTERSONSDKCXX_VIDEO AND NOT IntersonSDKCxx_DIR )
   SET(IntersonSDKCxx_DEPENDENCIES)
   LIST(APPEND PlusLib_DEPENDENCIES IntersonSDKCxx)
   INCLUDE(External_IntersonSDKCxx.cmake)
+ENDIF()
+
+IF ( PLUS_BiiGOptitrack_DIR AND NOT BiiGOptitrack_DIR )
+  SET(BiiGOptitrack_DEPENDENCIES itk OpenIGTLink)
+  LIST(APPEND PlusLib_DEPENDENCIES BiiGOptitrack)
 ENDIF()
 
 SET(PlusApp_DEPENDENCIES PlusLib)
