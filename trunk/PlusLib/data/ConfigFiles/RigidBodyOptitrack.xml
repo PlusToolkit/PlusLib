@@ -1,0 +1,13 @@
+<NPTrackingTools>
+    <FileType> ToolDefinition </FileType>
+    <ToolName>RigidBody</ToolName>
+    <ToolMarkersNum>4</ToolMarkersNum>
+    <ToolMarkers>
+        <m1 x="54.46" y="0" z="-58.55"/>
+        <m2 x="23.75" y="0" z="56.76"/>
+        <m3 x="-39.11" y="0" z="39.81"/>
+        <m4 x="-39.11" y="0" z="-38.03"/>
+    </ToolMarkers>
+    <ToolPivot x="0.0" y="0.0" z="0.0"/>
+    <Info Date="2015.08.14"/>
+</NPTrackingTools>
