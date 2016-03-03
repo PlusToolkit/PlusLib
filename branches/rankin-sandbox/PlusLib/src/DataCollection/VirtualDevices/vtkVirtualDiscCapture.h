@@ -79,6 +79,8 @@ public:
   vtkSetMacro(EnableCapturingOnStart, bool);
   vtkGetMacro(EnableCapturingOnStart, bool);
 
+  vtkGetMacro(IsData3D, bool);
+
   virtual vtkDataCollector* GetDataCollector() { return this->DataCollector; }
 
   virtual bool IsTracker() const { return false; }
@@ -92,6 +94,7 @@ protected:
   vtkSetMacro(ActualFrameRate, double);
   vtkSetMacro(FrameBufferSize, int);
   vtkGetMacro(FrameBufferSize, int);
+  vtkSetMacro(IsData3D, bool);
 
   virtual PlusStatus InternalConnect();
   virtual PlusStatus InternalDisconnect();
@@ -161,6 +164,8 @@ protected:
   bool EnableCapturing;
 
   int FrameBufferSize;
+
+  bool IsData3D;
 
   /*! Mutex instance simultaneous access of writer (writer may be accessed from command processing thread and also the internal update thread) */ 
   vtkSmartPointer<vtkRecursiveCriticalSection> WriterAccessMutex;

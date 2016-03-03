@@ -727,6 +727,23 @@ PlusStatus vtkTrackedFrameList::SetCustomString(const char* fieldName, const cha
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkTrackedFrameList::SetCustomString(const std::string& fieldName, const std::string& fieldValue)
+{
+  if ( fieldName.empty() )
+  {
+    LOG_ERROR("Field name is invalid");
+    return PLUS_FAIL;
+  }
+  if ( fieldValue.empty() )
+  {
+    this->CustomFields.erase(fieldName);
+    return PLUS_SUCCESS;
+  }
+  this->CustomFields[fieldName]=fieldValue;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 void vtkTrackedFrameList::GetCustomFieldNameList(std::vector<std::string> &fieldNames)
 {
   fieldNames.clear();

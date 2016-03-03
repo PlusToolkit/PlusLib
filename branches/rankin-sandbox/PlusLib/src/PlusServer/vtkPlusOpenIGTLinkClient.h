@@ -100,6 +100,8 @@ private:
   
   igtl::ClientSocket::Pointer ClientSocket;
 
+  igtlUint32 LastGeneratedCommandId;
+
   std::deque<igtl::RTSCommandMessage::Pointer> Replies;
 
   int         ServerPort;

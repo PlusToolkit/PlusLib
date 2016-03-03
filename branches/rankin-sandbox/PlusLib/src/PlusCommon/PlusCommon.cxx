@@ -484,6 +484,14 @@ void PlusCommon::SplitStringIntoTokens(const std::string &s, char delim, std::ve
 }
 
 //----------------------------------------------------------------------------
+vtkPlusCommonExport std::vector<std::string> PlusCommon::SplitStringIntoTokens(const std::string &s, char delim, bool keepEmptyParts/*=true*/)
+{
+  std::vector<std::string> tokens;
+  PlusCommon::SplitStringIntoTokens(s, delim, tokens, keepEmptyParts);
+  return tokens;
+}
+
+//----------------------------------------------------------------------------
 vtkPlusCommonExport void PlusCommon::JoinTokensIntoString(const std::vector<std::string>& elems, std::string& output)
 {
   typedef std::vector<std::string> StringList;

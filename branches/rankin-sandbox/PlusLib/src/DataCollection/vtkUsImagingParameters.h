@@ -34,7 +34,6 @@ Currently contains the following items
 * Voltage
 * ImageSize [x, y, z]
 * SoundVelocity
-
 */
 
 class vtkDataCollectionExport vtkUsImagingParameters : public vtkObject

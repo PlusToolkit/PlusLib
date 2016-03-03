@@ -16,20 +16,21 @@ vtkStandardNewMacro(vtkUsImagingParameters);
 
 //----------------------------------------------------------------------------
 
-const char* vtkUsImagingParameters::XML_ELEMENT_TAG = "UsImagingParameters";
-const char* vtkUsImagingParameters::KEY_CONTRAST = "Contrast";
-const char* vtkUsImagingParameters::KEY_DEPTH = "DepthMm";
-const char* vtkUsImagingParameters::KEY_DYNRANGE = "DynRangeDb";
-const char* vtkUsImagingParameters::KEY_FREQUENCY = "FrequencyMhz";
-const char* vtkUsImagingParameters::KEY_GAIN = "GainPercent";
-const char* vtkUsImagingParameters::KEY_TGC = "TimeGainCompensation";
-const char* vtkUsImagingParameters::KEY_INTENSITY = "Intensity";
-const char* vtkUsImagingParameters::KEY_SECTOR = "SectorPercent";
-const char* vtkUsImagingParameters::KEY_ZOOM = "ZoomFactor";
+const char* vtkUsImagingParameters::XML_ELEMENT_TAG   = "UsImagingParameters";
+const char* vtkUsImagingParameters::KEY_CONTRAST      = "Contrast";
+const char* vtkUsImagingParameters::KEY_DEPTH         = "DepthMm";
+const char* vtkUsImagingParameters::KEY_DYNRANGE      = "DynRangeDb";
+const char* vtkUsImagingParameters::KEY_FREQUENCY     = "FrequencyMhz";
+const char* vtkUsImagingParameters::KEY_GAIN          = "GainPercent";
+const char* vtkUsImagingParameters::KEY_TGC           = "TimeGainCompensation";
+const char* vtkUsImagingParameters::KEY_INTENSITY     = "Intensity";
+const char* vtkUsImagingParameters::KEY_SECTOR        = "SectorPercent";
+const char* vtkUsImagingParameters::KEY_ZOOM          = "ZoomFactor";
 const char* vtkUsImagingParameters::KEY_SOUNDVELOCITY = "SoundVelocity";
+const char* vtkUsImagingParameters::KEY_VOLTAGE       = "Voltage";
+const char* vtkUsImagingParameters::KEY_IMAGESIZE     = "ImageSize";
 
 //----------------------------------------------------------------------------
-
 vtkUsImagingParameters::vtkUsImagingParameters()
   : vtkObject()
 {
@@ -60,7 +61,6 @@ vtkUsImagingParameters::vtkUsImagingParameters()
 }
 
 //----------------------------------------------------------------------------
-
 vtkUsImagingParameters::~vtkUsImagingParameters()
 {
   LOG_TRACE("vtkUsImagingParameters::~vtkUsImagingParameters()");

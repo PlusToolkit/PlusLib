@@ -14,7 +14,8 @@ namespace igtl
 {
 
   //----------------------------------------------------------------------------
-  PlusTrackedFrameMessage::PlusTrackedFrameMessage() : MessageBase()
+  PlusTrackedFrameMessage::PlusTrackedFrameMessage() 
+    : MessageBase()
   {
     this->m_DefaultBodyType = "TRACKEDFRAME";
   }

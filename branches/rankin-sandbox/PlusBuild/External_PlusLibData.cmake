@@ -1,5 +1,12 @@
 #--------------------------------------------------------------------------
 # PlusLibData
+
+IF( "${PLUSBUILD_PlusDATA_SVNREVISION}" STREQUAL "HEAD" )
+  SET(PLUSLIBDATA_SVN_REV)
+ELSE()
+  SET(PLUSLIBDATA_SVN_REV "SVN_REVISION ${PLUSBUILD_PlusDATA_SVNREVISION}")
+ENDIF()
+
 SET (PLUS_PLUSLIBDATA_DIR ${CMAKE_BINARY_DIR}/PlusLibData CACHE INTERNAL "Path to store PlusLib contents.")
 ExternalProject_Add(PlusLibData
   "${PLUSBUILD_EXTERNAL_PROJECT_CUSTOM_COMMANDS}"
@@ -8,7 +15,7 @@ ExternalProject_Add(PlusLibData
   SVN_USERNAME ${PLUSBUILD_ASSEMBLA_USERNAME}
   SVN_PASSWORD ${PLUSBUILD_ASSEMBLA_PASSWORD}
   SVN_REPOSITORY https://subversion.assembla.com/svn/plus/branches/rankin-sandbox/PlusLibData
-  SVN_REVISION ${PLUSBUILD_PlusDATA_SVNREVISION}
+  ${PLUSLIBDATA_SVN_REV}
   #--Configure step-------------
   CONFIGURE_COMMAND ""
   #--Build step-----------------

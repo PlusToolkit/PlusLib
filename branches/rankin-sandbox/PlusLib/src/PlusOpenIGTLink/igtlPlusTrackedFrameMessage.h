@@ -50,9 +50,20 @@ public:
   TrackedFrame GetTrackedFrame(); 
   
 protected:
-  
-  struct MessageHeader 
+  class MessageHeader 
   {
+  public:
+    MessageHeader()
+      : m_Version(IGTL_HEADER_VERSION_3)
+      , m_ScalarType()
+      , m_NumberOfComponents(0)
+      , m_ImageType(0)
+      , m_ImageDataSizeInBytes(0)
+      , m_XmlDataSizeInBytes(0)
+    {
+      m_FrameSize[0] = m_FrameSize[1] = m_FrameSize[2] = 0;
+    }
+
     size_t GetMessageHeaderSize()
     {
       size_t headersize = 0; 

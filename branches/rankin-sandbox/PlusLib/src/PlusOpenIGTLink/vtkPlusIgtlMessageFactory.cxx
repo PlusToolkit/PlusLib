@@ -43,6 +43,7 @@ vtkPlusIgtlMessageFactory::vtkPlusIgtlMessageFactory()
 //----------------------------------------------------------------------------
 vtkPlusIgtlMessageFactory::~vtkPlusIgtlMessageFactory()
 {
+
 }
 
 //----------------------------------------------------------------------------
@@ -79,7 +80,17 @@ igtl::MessageBase::Pointer vtkPlusIgtlMessageFactory::CreateReceiveMessage(const
     return NULL;
   }
 
-  igtl::MessageBase::Pointer aMessageBase = this->IgtlFactory->CreateReceiveMessage(aIgtlMessageHdr);
+  igtl::MessageBase::Pointer aMessageBase;
+  try
+  {
+    aMessageBase = this->IgtlFactory->CreateReceiveMessage(aIgtlMessageHdr);
+  }
+  catch (std::invalid_argument* e)
+  {
+    LOG_ERROR("Unable to create message: " << e);
+    return NULL;
+  }
+
   if( aMessageBase.IsNull() )
   {
     LOG_ERROR("IGTL factory unable to produce message of type:" << aIgtlMessageHdr->GetMessageType());
@@ -92,7 +103,17 @@ igtl::MessageBase::Pointer vtkPlusIgtlMessageFactory::CreateReceiveMessage(const
 //----------------------------------------------------------------------------
 igtl::MessageBase::Pointer vtkPlusIgtlMessageFactory::CreateSendMessage(const std::string& messageType) const
 {
-  return this->IgtlFactory->CreateSendMessage(messageType);
+  igtl::MessageBase::Pointer aMessageBase;
+  try
+  {
+    aMessageBase = this->IgtlFactory->CreateSendMessage(messageType);
+  }
+  catch (std::invalid_argument* e)
+  {
+    LOG_ERROR("Unable to create message: " << e);
+    return NULL;
+  }
+  return aMessageBase;
 }
 
 //----------------------------------------------------------------------------
@@ -110,7 +131,17 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
   for ( std::vector<std::string>::const_iterator messageTypeIterator = clientInfo.IgtlMessageTypes.begin(); messageTypeIterator != clientInfo.IgtlMessageTypes.end(); ++ messageTypeIterator )
   {
     std::string messageType = (*messageTypeIterator);
-    igtl::MessageBase::Pointer igtlMessage = this->IgtlFactory->CreateSendMessage(messageType);
+    igtl::MessageBase::Pointer igtlMessage;
+    try
+    {
+      igtlMessage = this->IgtlFactory->CreateSendMessage(messageType);
+    }
+    catch (std::invalid_argument* e)
+    {
+      LOG_ERROR("Unable to create message: " << e);
+      continue;
+    }
+
     if ( igtlMessage.IsNull() )
     {
       LOG_ERROR("Failed to pack IGT messages - unable to create instance from message type: " << messageType ); 

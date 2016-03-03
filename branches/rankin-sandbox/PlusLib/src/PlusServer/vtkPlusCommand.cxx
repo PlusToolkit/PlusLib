@@ -209,6 +209,7 @@ void vtkPlusCommand::QueueCommandResponse(const std::string& reply, PlusStatus s
 {
   vtkSmartPointer<vtkPlusCommandCommandResponse> commandResponse = vtkSmartPointer<vtkPlusCommandCommandResponse>::New();  
   commandResponse->SetClientId(this->ClientId);
+  commandResponse->SetOriginalId(this->Id);
   commandResponse->SetDeviceName(this->DeviceName);
   commandResponse->SetStatus(status);
   commandResponse->SetVersion(this->Version);

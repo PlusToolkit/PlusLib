@@ -1014,7 +1014,7 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
       std::ostringstream replyStr;
       replyStr << "<Command><Result>" << (commandResponse->GetStatus() ? "true" : "false") << "</Result>";
       // TODO : how to store then encode the list of requested parameters
-      replyStr << "<Command/>";
+      replyStr << "</Command>";
 
       if( commandResponse->GetErrorString().length() > IGTL_COMMAND_NAME_SIZE )
       {

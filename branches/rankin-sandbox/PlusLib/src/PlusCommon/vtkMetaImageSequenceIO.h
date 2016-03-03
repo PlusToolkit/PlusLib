@@ -35,11 +35,11 @@ public:
   vtkGetMacro(Output2DDataWithZDimensionIncluded, bool);
 
   /*! Update the number of frames in the header 
-      This is used primarly by vtkVirtualDiscCapture to update the final tally of frames, as it continually appends new frames to the file
+      This is used primarily by vtkVirtualDiscCapture to update the final tally of frames, as it continually appends new frames to the file
       /param numberOfFrames the new number of frames to write
-      /param addPadding this should only be true if this is the first time this function is called, which typically happens in OpenImageHeader
-  */
-  virtual PlusStatus OverwriteNumberOfFramesInHeader(int numberOfFrames, bool addPadding=false);
+      /param isData3D is the data 3D or 2D?
+      */
+  virtual PlusStatus OverwriteNumberOfFramesInHeader(int numberOfFrames, bool isData3D);
 
   /*! 
     Append the frames in tracked frame list to the header, if the onlyTrackerData flag is true it will not save

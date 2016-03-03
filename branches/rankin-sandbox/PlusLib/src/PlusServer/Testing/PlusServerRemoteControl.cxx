@@ -648,7 +648,7 @@ int main( int argc, char** argv )
     LOG_ERROR("Failed to connect to server at "<<serverHost<<":"<<serverPort);
     StopPlusServerProcess(plusServerProcess);
     exit(EXIT_FAILURE);
-  }    
+  }
 
   int processReturnValue = EXIT_SUCCESS;
 

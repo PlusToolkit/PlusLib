@@ -226,6 +226,7 @@ namespace PlusCommon
   vtkPlusCommonExport bool IsClippingWithinExtents(const int clipOrigin[3], const int clipSize[3], const int extents[6]);
 
   vtkPlusCommonExport void SplitStringIntoTokens(const std::string &s, char delim, std::vector<std::string> &elems, bool keepEmptyParts=true);
+  vtkPlusCommonExport std::vector<std::string> SplitStringIntoTokens(const std::string &s, char delim, bool keepEmptyParts=true);
   vtkPlusCommonExport void JoinTokensIntoString(const std::vector<std::string>& elems, std::string& output);
   vtkPlusCommonExport void JoinTokensIntoString(const std::vector<std::string>& elems, std::string& output, char separator);
 

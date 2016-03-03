@@ -183,6 +183,7 @@ public:
 
   /*! Set custom string value to \c fieldValue. If \c fieldValue is NULL then the field is deleted. */
   virtual PlusStatus SetCustomString(const char* fieldName, const char* fieldValue); 
+  virtual PlusStatus SetCustomString(const std::string& fieldName, const std::string& fieldValue);
 
   /*! Get the custom transformation matrix from metafile by custom frame transform name
   * It will search for a field like: Seq_Frame[frameNumber]_[frameTransformName]

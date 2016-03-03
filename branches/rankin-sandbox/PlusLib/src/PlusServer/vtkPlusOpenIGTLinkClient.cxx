@@ -23,14 +23,16 @@ vtkStandardNewMacro( vtkPlusOpenIGTLinkClient );
 //----------------------------------------------------------------------------
 /*! Protected constructor. */
 vtkPlusOpenIGTLinkClient::vtkPlusOpenIGTLinkClient()
-: DataReceiverThreadId(-1)
-, DataReceiverActive(std::make_pair(false,false))
-, Mutex(vtkSmartPointer<vtkRecursiveCriticalSection>::New())
-, SocketMutex(vtkSmartPointer<vtkRecursiveCriticalSection>::New())
-, ClientSocket(igtl::ClientSocket::New())
-, Threader(vtkSmartPointer<vtkMultiThreader>::New())
-, ServerHost(NULL)
-, ServerPort(-1)
+  : IgtlMessageFactory(vtkSmartPointer<vtkPlusIgtlMessageFactory>::New())
+  , DataReceiverThreadId(-1)
+  , DataReceiverActive(std::make_pair(false,false))
+  , Mutex(vtkSmartPointer<vtkRecursiveCriticalSection>::New())
+  , SocketMutex(vtkSmartPointer<vtkRecursiveCriticalSection>::New())
+  , ClientSocket(igtl::ClientSocket::New())
+  , LastGeneratedCommandId(0)
+  , Threader(vtkSmartPointer<vtkMultiThreader>::New())
+  , ServerHost(NULL)
+  , ServerPort(-1)
 {
 }
 
@@ -62,7 +64,7 @@ PlusStatus vtkPlusOpenIGTLinkClient::Connect(double timeoutSec/*=-1*/)
     return PLUS_FAIL;
   }
   LOG_TRACE( "Client successfully connected to server." );
-  
+
   this->ClientSocket->SetTimeout( CLIENT_SOCKET_TIMEOUT_MSEC );
 
   if ( this->DataReceiverThreadId < 0 )
@@ -113,9 +115,21 @@ PlusStatus vtkPlusOpenIGTLinkClient::SendCommand( vtkPlusCommand* command )
   std::stringstream deviceNameSs;
   deviceNameSs << "PlusClient_" << PLUSLIB_VERSION;
 
+  igtlUint32 commandUid;
+  if (command->GetId())
+  {
+    commandUid = command->GetId();
+  }
+  else
+  {
+    // command UID is not specified, generate one automatically
+    commandUid = LastGeneratedCommandId;
+    LastGeneratedCommandId++;
+  }
+
   igtl::CommandMessage::Pointer commandMessage = igtl::CommandMessage::New();
   commandMessage->SetDeviceName( deviceNameSs.str().c_str() );
-  commandMessage->SetCommandId( command->GetId() );
+  commandMessage->SetCommandId( commandUid );
   commandMessage->SetCommandName( command->GetName() );
   commandMessage->SetCommandContent( xmlStr.str().c_str() );
   commandMessage->Pack();
@@ -162,7 +176,12 @@ PlusStatus vtkPlusOpenIGTLinkClient::ReceiveReply(bool& result, uint32_t& outOri
           result = STRCASECMP(resultElement->GetCharacterData(), "true") == 0 ? true : false;
         }
 
-        strcpy((char*)outErrorString, rtsCommandMsg->GetCommandErrorString().c_str());
+        memset(outErrorString, 0, IGTL_COMMAND_NAME_SIZE);
+        if(!result)
+        {
+          strcpy((char*)outErrorString, rtsCommandMsg->GetCommandErrorString().c_str());
+        }
+
         outOriginalCommandId = rtsCommandMsg->GetCommandId();
         outContentXML = rtsCommandMsg->GetCommandContent();
         this->Replies.pop_front();
