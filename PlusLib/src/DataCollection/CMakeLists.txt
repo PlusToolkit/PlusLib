@@ -1,12 +1,13 @@
 # --------------------------------------------------------------------------
 # Options
-OPTION(PLUS_USE_OPTITRACK "Provide support for the OptiTrack tracking system" OFF)
+OPTION (PLUS_USE_OPTITRACK "Provide support for the OptiTrack tracking system" OFF)
 OPTION (PLUS_USE_OPTIMET_CONOPROBE "Provide support for the Optimet ConoProbe" OFF)
 OPTION (PLUS_USE_POLARIS "Provide support for the NDI Polaris and Aurora" OFF)
 OPTION (PLUS_USE_CERTUS "Provide support for the NDI Certus" OFF)
 OPTION (PLUS_USE_MICRONTRACKER "Provide support for the Claron MicronTracker" OFF)
 OPTION (PLUS_USE_BRACHY_TRACKER "Provide support for the brachy stepper tracking device" OFF)
 OPTION (PLUS_USE_USDIGITALENCODERS_TRACKER "Provide support for multiple USDigital encoders tracking device" OFF)
+OPTION (PLUS_USE_FREEDOM6S "Provide support for the Freedom6s haptic device" OFF)
 OPTION (PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" ${ENABLED_BY_DEFAULT_ON_WINDOWS_ONLY})
 OPTION (PLUS_USE_Ascension3DGm "Provide support for the Ascension 3DGm MedSafe Tracker" ${ENABLED_BY_DEFAULT_ON_WINDOWS32_ONLY})
 OPTION (PLUS_USE_PHIDGET_SPATIAL_TRACKER "Provide support for the Phidget Spatial accelerometer" OFF)
@@ -22,9 +23,9 @@ OPTION (PLUS_USE_INTERSON_VIDEO "Provide support Interson USB ultrasound probes"
 OPTION (PLUS_USE_INTERSONSDKCXX_VIDEO "Provide support Interson SDK 1.X with C++ Wrapper USB ultrasound probes" OFF)
 OPTION (PLUS_USE_TELEMED_VIDEO "Provide support for the Telemed ultrasound probes" OFF)
 OPTION (PLUS_USE_THORLABS_VIDEO "Provide support for the ThorLabs compact spectrometers" OFF)
-OPTION(PLUS_USE_STEALTHLINK "Provide support for the Medtronick StealthLink Server" OFF)
-OPTION(PLUS_USE_IntuitiveDaVinci "Enable the tracking of the da Vinci Surgical System. Enable this only if you have a da Vinci that is accessible from this computer." OFF)
-OPTION(PLUS_USE_PHILIPS_3D_ULTRASOUND "Provide support for the Philips ie33 3D ultrasound probe system." OFF)
+OPTION (PLUS_USE_STEALTHLINK "Provide support for the Medtronick StealthLink Server" OFF)
+OPTION (PLUS_USE_IntuitiveDaVinci "Enable the tracking of the da Vinci Surgical System. Enable this only if you have a da Vinci that is accessible from this computer." OFF)
+OPTION (PLUS_USE_PHILIPS_3D_ULTRASOUND "Provide support for the Philips ie33 3D ultrasound probe system." OFF)
 OPTION (PLUS_TEST_BKPROFOCUS "Enable testing of acquisition from BK ProFocus ultrasound systems. Enable this only if a BK ProFocus device is connected to this computer." OFF)
 OPTION (PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
 IF (PLUS_TEST_ULTRASONIX)
@@ -34,14 +35,21 @@ OPTION(PLUS_USE_MMF_VIDEO "Provide support for the Microsoft Media Foundation vi
 IF(PLUS_USE_MMF_VIDEO)
   OPTION(PLUS_TEST_MMF_VIDEO "Enable testing of acquisition from MMF video device (webcam). Enable this only if an MMF device is connected to this computer." OFF)  
 ENDIF(PLUS_USE_MMF_VIDEO)
+OPTION (PLUS_USE_tesseract "Provide support for optical character recognition virtual device via tesseract OCR library." OFF)
 
-SET (DataCollection_INCLUDE_DIRS "" CACHE INTERNAL "" FORCE)
+# --------------------------------------------------------------------------
+# Haptics
+ADD_SUBDIRECTORY(Haptics)
+
+SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${PlusHaptics_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)
+SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} PlusHaptics CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Sources
 SET (DataCollection_SRCS
   vtkDataCollector.cxx 
   vtkPlusDevice.cxx
+  vtkPlusUsDevice.cxx
   vtkPlusChannel.cxx
   vtkPlusDeviceFactory.cxx
   vtkPlusDataSource.cxx
@@ -63,11 +71,16 @@ SET (DataCollection_SRCS
   vtkUsImagingParameters.cxx
   )
 
+IF(PLUS_USE_tesseract)
+  SET (DataCollection_SRCS ${DataCollection_SRCS} VirtualDevices/vtkVirtualTextRecognizer.cxx)
+ENDIF(PLUS_USE_tesseract)
+
 SET (DataCollection_HDRS)
 IF (WIN32)  
   SET (DataCollection_HDRS
     vtkDataCollector.h 
     vtkPlusDevice.h
+    vtkPlusUsDevice.h
     vtkPlusChannel.h
     vtkPlusDeviceFactory.h
     vtkPlusDataSource.h
@@ -79,6 +92,7 @@ IF (WIN32)
     VirtualDevices/vtkVirtualMixer.h
     VirtualDevices/vtkVirtualSwitcher.h
     VirtualDevices/vtkVirtualDiscCapture.h
+    VirtualDevices/vtkVirtualTextRecognizer.h
     VirtualDevices/vtkVirtualVolumeReconstructor.h
     ImageProcessor/vtkImageProcessorVideoSource.h
     SerialLine.h
@@ -88,6 +102,9 @@ IF (WIN32)
     UsSimulatorVideo/vtkUsSimulatorVideoSource.h
     vtkUsImagingParameters.h
     )
+  IF(PLUS_USE_tesseract)
+    SET (DataCollection_HDRS ${DataCollection_HDRS} VirtualDevices/vtkVirtualTextRecognizer.h)
+  ENDIF(PLUS_USE_tesseract)
 ENDIF (WIN32)  
 
 SET (External_Libraries_Install)
@@ -102,7 +119,7 @@ SET (DataCollection_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/UsSimulatorVideo 
   ${CMAKE_CURRENT_SOURCE_DIR}/VirtualDevices  
   CACHE INTERNAL "" FORCE)
-
+  
 # --------------------------------------------------------------------------
 # OptiTrack support
 IF (PLUS_USE_OPTITRACK)
@@ -300,7 +317,6 @@ IF (PLUS_USE_BRACHY_TRACKER)
     ${USDIGITAL_SEI_BINARY_DIR}/SEIDrv32${CMAKE_SHARED_LIBRARY_SUFFIX}
     ${USDIGITAL_SEI_BINARY_DIR}/SEISrv32.exe
     )
-    
 ENDIF (PLUS_USE_BRACHY_TRACKER)
 
 
@@ -335,6 +351,33 @@ IF (PLUS_USE_USDIGITALENCODERS_TRACKER)
 
 ENDIF (PLUS_USE_USDIGITALENCODERS_TRACKER)
 
+#--------------------------------------------------------------------------
+# Freedom6s device
+IF( PLUS_USE_FREEDOM6S )
+  SET (DataCollection_SRCS ${DataCollection_SRCS}
+    Freedom6s/vtkFreedom6SDevice.cxx
+  )
+
+  IF (MSVC)  
+    SET (DataCollection_HDRS
+      ${DataCollection_HDRS}
+      Freedom6s/vtkFreedom6SDevice.h
+      )
+  ENDIF()
+
+  SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
+    ${CMAKE_CURRENT_SOURCE_DIR}/Freedom6s
+    ${FREEDOM6S_INCLUDE_DIR}
+    CACHE INTERNAL "" FORCE)
+  
+  SET (DataCollection_LIBS ${DataCollection_LIBS}
+    ${FREEDOM6S_LIB_DIR}/freedom6s${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
+
+  SET ( External_Libraries_Install ${External_Libraries_Install}
+    ${FREEDOM6S_BINARY_DIR}/freedom6s${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+ENDIF()
 
 #--------------------------------------------------------------------------
 # Ascension 3DG support (trakSTAR)
@@ -960,10 +1003,10 @@ ENDIF (PLUS_USE_INTERSONSDKCXX_VIDEO)
 
 IF (PLUS_USE_TELEMED_VIDEO)
   # ADD_CUSTOM_COMMAND(OUTPUT 
-	# Telemed/Usgfw2_h.h
-	# Telemed/dlldata.c
-	# Telemed/Usgfw2_i.c
-	# Telemed/Usgfw2_p.c
+    # Telemed/Usgfw2_h.h
+    # Telemed/dlldata.c
+    # Telemed/Usgfw2_i.c
+    # Telemed/Usgfw2_p.c
     # COMMAND midl.exe /out ./Telemed /header Usgfw2_h.h /no_robust ${TELEMED_INCLUDE_DIR}/Usgfw2.idl
   # )
   
@@ -1021,9 +1064,9 @@ ENDIF (PLUS_USE_THORLABS_VIDEO)
 
 IF (PLUS_USE_PHILIPS_3D_ULTRASOUND)
   IF(PLUS_USE_ULTRASONIX_VIDEO)
-	# Ultrasonix contains its own libmmd.dll which does not support all the functionality needed for the philips probe
-	# They both cannot be enabled at the same time.
-	MESSAGE( FATAL_ERROR "Plus cannot enable both Ultrasonix and Philips devices due to .dll conflicts in their respective SDK packages.")
+    # Ultrasonix contains its own libmmd.dll which does not support all the functionality needed for the philips probe
+    # They both cannot be enabled at the same time.
+    MESSAGE( FATAL_ERROR "Plus cannot enable both Ultrasonix and Philips devices due to .dll conflicts in their respective SDK packages.")
   ELSE(PLUS_USE_ULTRASONIX_VIDEO)
     SET (DataCollection_SRCS ${DataCollection_SRCS}
       Philips3D/vtkPhilips3DProbeVideoSource.cxx 
@@ -1055,6 +1098,22 @@ IF (PLUS_USE_PHILIPS_3D_ULTRASOUND)
       )
   ENDIF(PLUS_USE_ULTRASONIX_VIDEO)
 ENDIF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
+
+# --------------------------------------------------------------------------
+# Try to find tesseract and include its settings (otherwise complain)
+#
+IF(PLUS_USE_tesseract)
+  FIND_PACKAGE(tesseract NO_MODULE REQUIRED PATHS ${tesseract_DIR})
+
+  SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
+    ${tesseract_INCLUDE_DIRS}
+    )
+
+  SET (DataCollection_LIBS ${DataCollection_LIBS}
+    ${tesseract_LIBRARIES}
+    vtkzlib vtkpng
+    )
+ENDIF(PLUS_USE_tesseract)
 
 # --------------------------------------------------------------------------
 # Build the library

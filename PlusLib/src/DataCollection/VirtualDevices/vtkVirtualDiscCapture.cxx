@@ -223,7 +223,7 @@ PlusStatus vtkVirtualDiscCapture::CloseFile(const char* aFilename /* = NULL */, 
     this->WriteFrames(true);
   }
   
-  this->Writer->OverwriteNumberOfFramesInHeader(this->TotalFramesRecorded);
+  this->Writer->OverwriteNumberOfFramesInHeader(this->TotalFramesRecorded, this->GetIsData3D());
   this->Writer->UpdateFieldInImageHeader( this->Writer->GetDimensionSizeString() );
   this->Writer->UpdateFieldInImageHeader( this->Writer->GetDimensionKindsString() );
   this->Writer->FinalizeHeader();
@@ -592,6 +592,8 @@ PlusStatus vtkVirtualDiscCapture::WriteFrames(bool force)
   {
     return PLUS_SUCCESS;
   }
+
+  this->SetIsData3D(this->RecordedFrames->GetTrackedFrame(0)->GetFrameSize()[2] > 1);
 
   if( force || !this->IsFrameBuffered() || 
     ( this->IsFrameBuffered() && this->RecordedFrames->GetNumberOfTrackedFrames() > this->GetFrameBufferSize() ) )

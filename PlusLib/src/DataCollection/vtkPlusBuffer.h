@@ -113,9 +113,9 @@ public:
   /*!
     Add a matrix plus status to the list, with an exactly known timestamp value (e.g., provided by a high-precision hardware timer).
     If the timestamp is less than or equal to the previous timestamp, then nothing  will be done.
-    If filteredTiemstamp argument is undefined then the filtered timestamp will be computed from the input unfiltered timestamp.
+    If filteredTimestamp argument is undefined then the filtered timestamp will be computed from the input unfiltered timestamp.
   */
-  PlusStatus AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp=UNDEFINED_TIMESTAMP);
+  PlusStatus AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp=UNDEFINED_TIMESTAMP, const TrackedFrame::FieldMapType* customFields = NULL);
 
   /*! Get a frame with the specified frame uid from the buffer */
   virtual ItemStatus GetStreamBufferItem(BufferItemUidType uid, StreamBufferItem* bufferItem);

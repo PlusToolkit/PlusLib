@@ -16,30 +16,33 @@
 
 \section IntersonConfigSettings Device configuration settings
 
-- \xmlAtt \ref DeviceType "Type" = \c "IntersonVideo" \RequiredAtt
-- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
-- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
-
-- \xmlAtt \b ImageSize Image size in pixels \OptionalAtt{800 512}
-- \xmlAtt \b TimeGainCompensationPercent Is the gain percentage of B-mode ultrasound; it sets the linear TGC curve based on three values (initial, middle and far). These values are specified as a percentage vector and each has a valid range: 0-100. \OptionalAtt{25 25 25}
-- \xmlAtt \b Intensity Is the intensity of B-mode ultrasound that is used to create the LUT. \OptionalAtt{128}
-- \xmlAtt \b Contrast Is the contrast of B-mode ultrasound that is used to create the LUT. \OptionalAtt{256}
-- \xmlAtt \b DepthMm Set the depth [mm] of B-mode ultrasound \OptionalAtt{-1}
-
-- \xmlAtt \b SoundVelocity The speed of sound \c [m/s]. \OptionalAtt{1540}
-- \xmlAtt \b FrequencyMhz ultrasound transmitter frequency \c [MHz].\OptionalAtt{-1}
-- \xmlAtt \b EnableProbeButtonMonitoring controls if probe button press count should be included in the output channel in the first translation component of the \c ProbeButtonToDummyTransform. The value is incremented each time the physical button on the probe is pressed.\OptionalAtt{FALSE}.
-  - \c FALSE Probe button press count is not included in the output.
-  - \c TRUE Probe button press count is included in the output.
-
-- \xmlElem \ref DataSources Exactly one \c DataSource child element is required \RequiredAtt
-   - \xmlElem \ref DataSource \RequiredAtt
-    - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
-    - \xmlAtt \ref ImageType Supported imaging modes: B-mode \OptionalAtt{BRIGHTNESS}
-    - \xmlAtt \ref BufferSize \OptionalAtt{150}
-    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
-    - \xmlAtt \ref ClipRectangleOrigin \OptionalAtt{0 0 0}
-    - \xmlAtt \ref ClipRectangleSize \OptionalAtt{0 0 0}
+- \xmlElem \ref Device
+  - \xmlAtt \ref DeviceType "Type" = \c "IntersonVideo" \RequiredAtt
+  - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
+  - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+  - \xmlAtt \b EnableProbeButtonMonitoring controls if probe button press count should be included in the output channel in the first translation component of the \c ProbeButtonToDummyTransform. The value is incremented each time the physical button on the probe is pressed.\OptionalAtt{FALSE}.
+    - \c FALSE Probe button press count is not included in the output.
+    - \c TRUE Probe button press count is included in the output.
+  - \xmlAtt \b ImageSize
+  - \xmlElem \ref UsImagingParameters \RequiredAtt
+    - \xmlAtt \ref Contrast
+    - \xmlAtt \ref DepthMm
+    - \xmlAtt \ref DynRangeDb
+    - \xmlAtt \ref FrequencyMhz
+    - \xmlAtt \ref GainPercent
+    - \xmlAtt \ref TimeGainCompensation
+    - \xmlAtt \ref Intensity
+    - \xmlAtt \ref Sector
+    - \xmlAtt \ref ZoomFactor
+    - \xmlAtt \ref SoundVelocity
+  - \xmlElem \ref DataSources Exactly one \c DataSource child element is required \RequiredAtt
+     - \xmlElem \ref DataSource \RequiredAtt
+      - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
+      - \xmlAtt \ref ImageType Supported imaging modes: B-mode \OptionalAtt{BRIGHTNESS}
+      - \xmlAtt \ref BufferSize \OptionalAtt{150}
+      - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+      - \xmlAtt \ref ClipRectangleOrigin \OptionalAtt{0 0 0}
+      - \xmlAtt \ref ClipRectangleSize \OptionalAtt{0 0 0}
 
 \section IntersonExampleConfigFile Example configuration file PlusDeviceSet_Server_IntersonVideoCapture_WithParameters.xml
 

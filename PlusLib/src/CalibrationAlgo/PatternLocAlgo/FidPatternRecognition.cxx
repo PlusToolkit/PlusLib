@@ -286,11 +286,11 @@ void FidPatternRecognition::SetMaxLineLengthToleranceMm(double value)
   m_MaxLineLengthToleranceMm = value;
   for( unsigned int i=0 ; i<m_FidLabeling.GetPatterns().size() ; i++)
   {
-    m_FidLabeling.GetPatterns()[i]->DistanceToOriginToleranceMm[m_FidLabeling.GetPatterns()[i]->Wires.size()-1] = m_MaxLineLengthToleranceMm;
+    m_FidLabeling.GetPatterns()[i]->SetDistanceToOriginToleranceElementMm(m_FidLabeling.GetPatterns()[i]->GetWires().size()-1, m_MaxLineLengthToleranceMm);
   }
   for( unsigned int i=0 ; i<m_FidLineFinder.GetPatterns().size() ; i++)
   {
-    m_FidLineFinder.GetPatterns()[i]->DistanceToOriginToleranceMm[m_FidLineFinder.GetPatterns()[i]->Wires.size()-1] = m_MaxLineLengthToleranceMm;
+    m_FidLineFinder.GetPatterns()[i]->SetDistanceToOriginToleranceElementMm(m_FidLineFinder.GetPatterns()[i]->GetWires().size()-1, m_MaxLineLengthToleranceMm);
   }
 }
 
@@ -364,7 +364,7 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
           const char* wireName =  wireElement->GetAttribute("Name"); 
           if ( wireName != NULL )
           {
-            wire.Name = wireName;
+            wire.SetName(wireName);
           }
           if (! wireElement->GetVectorAttribute("EndPointFront", 3, wire.EndPointFront)) 
           {
@@ -379,11 +379,11 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
 
           if(STRCASECMP("CoplanarParallelWires", patternElement->GetAttribute("Type")) == 0)
           {
-            coplanarParallelWires->Wires.push_back(wire);
+            coplanarParallelWires->AddWire(wire);
           }
           else if(STRCASECMP("NWire", patternElement->GetAttribute("Type")) == 0)
           {
-            nWire->Wires.push_back(wire);
+            nWire->AddWire(wire);
           }
         }
 
@@ -393,29 +393,29 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
 
           if(i == 1)
           {
-            tempPatterns[i]->DistanceToOriginMm.push_back(0);
-            tempPatterns[i]->DistanceToOriginToleranceMm.push_back(0);
-            tempPatterns[i]->DistanceToOriginMm.push_back(10*std::sqrt(2.0));
-            tempPatterns[i]->DistanceToOriginToleranceMm.push_back(2);
-            tempPatterns[i]->DistanceToOriginMm.push_back(20*std::sqrt(2.0));
-            tempPatterns[i]->DistanceToOriginToleranceMm.push_back(2);
-            tempPatterns[i]->DistanceToOriginMm.push_back(30*std::sqrt(2.0));
-            tempPatterns[i]->DistanceToOriginToleranceMm.push_back(2);
-            tempPatterns[i]->DistanceToOriginMm.push_back(40*std::sqrt(2.0));
-            tempPatterns[i]->DistanceToOriginToleranceMm.push_back(2);
+            tempPatterns[i]->AddDistanceToOriginElementMm(0);
+            tempPatterns[i]->AddDistanceToOriginToleranceElementMm(0);
+            tempPatterns[i]->AddDistanceToOriginElementMm(10*std::sqrt(2.0));
+            tempPatterns[i]->AddDistanceToOriginToleranceElementMm(2);
+            tempPatterns[i]->AddDistanceToOriginElementMm(20*std::sqrt(2.0));
+            tempPatterns[i]->AddDistanceToOriginToleranceElementMm(2);
+            tempPatterns[i]->AddDistanceToOriginElementMm(30*std::sqrt(2.0));
+            tempPatterns[i]->AddDistanceToOriginToleranceElementMm(2);
+            tempPatterns[i]->AddDistanceToOriginElementMm(40*std::sqrt(2.0));
+            tempPatterns[i]->AddDistanceToOriginToleranceElementMm(2);
           }
           else
           {
-            tempPatterns[i]->DistanceToOriginMm.push_back(0);
-            tempPatterns[i]->DistanceToOriginToleranceMm.push_back(0);
-            tempPatterns[i]->DistanceToOriginMm.push_back(10);
-            tempPatterns[i]->DistanceToOriginToleranceMm.push_back(2);
-            tempPatterns[i]->DistanceToOriginMm.push_back(20);
-            tempPatterns[i]->DistanceToOriginToleranceMm.push_back(2);
-            tempPatterns[i]->DistanceToOriginMm.push_back(30);
-            tempPatterns[i]->DistanceToOriginToleranceMm.push_back(2);
-            tempPatterns[i]->DistanceToOriginMm.push_back(40);
-            tempPatterns[i]->DistanceToOriginToleranceMm.push_back(2);
+            tempPatterns[i]->AddDistanceToOriginElementMm(0);
+            tempPatterns[i]->AddDistanceToOriginToleranceElementMm(0);
+            tempPatterns[i]->AddDistanceToOriginElementMm(10);
+            tempPatterns[i]->AddDistanceToOriginToleranceElementMm(2);
+            tempPatterns[i]->AddDistanceToOriginElementMm(20);
+            tempPatterns[i]->AddDistanceToOriginToleranceElementMm(2);
+            tempPatterns[i]->AddDistanceToOriginElementMm(30);
+            tempPatterns[i]->AddDistanceToOriginToleranceElementMm(2);
+            tempPatterns[i]->AddDistanceToOriginElementMm(40);
+            tempPatterns[i]->AddDistanceToOriginToleranceElementMm(2);
           }
         }
         else if(STRCASECMP("NWire", patternElement->GetAttribute("Type")) == 0)
@@ -423,16 +423,16 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
           m_MaxLineLengthToleranceMm = 4;
           tempPatterns.push_back(nWire);
 
-          tempPatterns[i]->DistanceToOriginMm.push_back(0);
-          tempPatterns[i]->DistanceToOriginToleranceMm.push_back(0);
+          tempPatterns[i]->AddDistanceToOriginElementMm(0);
+          tempPatterns[i]->AddDistanceToOriginToleranceElementMm(0);
 
-          double originToMiddle[3] = {(tempPatterns[i]->Wires[1].EndPointBack[0]+tempPatterns[i]->Wires[1].EndPointFront[0])/2-tempPatterns[i]->Wires[0].EndPointFront[0],
-            (tempPatterns[i]->Wires[1].EndPointBack[1]+tempPatterns[i]->Wires[1].EndPointFront[1])/2-tempPatterns[i]->Wires[0].EndPointFront[1],
-            (tempPatterns[i]->Wires[1].EndPointBack[2]+tempPatterns[i]->Wires[1].EndPointFront[2])/2-tempPatterns[i]->Wires[0].EndPointFront[2]};
+          double originToMiddle[3] = {(tempPatterns[i]->GetWires()[1].EndPointBack[0]+tempPatterns[i]->GetWires()[1].EndPointFront[0])/2-tempPatterns[i]->GetWires()[0].EndPointFront[0],
+            (tempPatterns[i]->GetWires()[1].EndPointBack[1]+tempPatterns[i]->GetWires()[1].EndPointFront[1])/2-tempPatterns[i]->GetWires()[0].EndPointFront[1],
+            (tempPatterns[i]->GetWires()[1].EndPointBack[2]+tempPatterns[i]->GetWires()[1].EndPointFront[2])/2-tempPatterns[i]->GetWires()[0].EndPointFront[2]};
 
-          double originToEnd[3] = {tempPatterns[i]->Wires[2].EndPointFront[0]-tempPatterns[i]->Wires[0].EndPointFront[0],
-            tempPatterns[i]->Wires[2].EndPointFront[1]-tempPatterns[i]->Wires[0].EndPointFront[1],
-            tempPatterns[i]->Wires[2].EndPointFront[2]-tempPatterns[i]->Wires[0].EndPointFront[2]};
+          double originToEnd[3] = {tempPatterns[i]->GetWires()[2].EndPointFront[0]-tempPatterns[i]->GetWires()[0].EndPointFront[0],
+            tempPatterns[i]->GetWires()[2].EndPointFront[1]-tempPatterns[i]->GetWires()[0].EndPointFront[1],
+            tempPatterns[i]->GetWires()[2].EndPointFront[2]-tempPatterns[i]->GetWires()[0].EndPointFront[2]};
 
           vtkMath::Normalize(originToEnd);
 
@@ -440,12 +440,12 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
           const double projectedMiddle[3] = {originToEnd[0]*dot, originToEnd[1]*dot, originToEnd[2]*dot};
           double distMidToOrigin = vtkMath::Norm(projectedMiddle);
 
-          tempPatterns[i]->DistanceToOriginMm.push_back(distMidToOrigin);
-          tempPatterns[i]->DistanceToOriginToleranceMm.push_back(15);
+          tempPatterns[i]->AddDistanceToOriginElementMm(distMidToOrigin);
+          tempPatterns[i]->AddDistanceToOriginToleranceElementMm(15);
 
-          double distEndToOrigin = sqrt((tempPatterns[i]->Wires[0].EndPointBack[0]-tempPatterns[i]->Wires[2].EndPointBack[0])*(tempPatterns[i]->Wires[0].EndPointBack[0]-tempPatterns[i]->Wires[2].EndPointBack[0])+(tempPatterns[i]->Wires[0].EndPointBack[1]-tempPatterns[i]->Wires[2].EndPointBack[1])*(tempPatterns[i]->Wires[0].EndPointBack[1]-tempPatterns[i]->Wires[2].EndPointBack[1]));
-          tempPatterns[i]->DistanceToOriginMm.push_back(distEndToOrigin);
-          tempPatterns[i]->DistanceToOriginToleranceMm.push_back(m_MaxLineLengthToleranceMm);
+          double distEndToOrigin = sqrt((tempPatterns[i]->GetWires()[0].EndPointBack[0]-tempPatterns[i]->GetWires()[2].EndPointBack[0])*(tempPatterns[i]->GetWires()[0].EndPointBack[0]-tempPatterns[i]->GetWires()[2].EndPointBack[0])+(tempPatterns[i]->GetWires()[0].EndPointBack[1]-tempPatterns[i]->GetWires()[2].EndPointBack[1])*(tempPatterns[i]->GetWires()[0].EndPointBack[1]-tempPatterns[i]->GetWires()[2].EndPointBack[1]));
+          tempPatterns[i]->AddDistanceToOriginElementMm(distEndToOrigin);
+          tempPatterns[i]->AddDistanceToOriginToleranceElementMm(m_MaxLineLengthToleranceMm);
 
           nwireFlag = true;
         }
@@ -469,8 +469,8 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
 
           for (int j=0; j<3; ++j) 
           {
-            endPointFront[j] = tempPatterns[k]->Wires[i].EndPointFront[j];
-            endPointBack[j] = tempPatterns[k]->Wires[i].EndPointBack[j];
+            endPointFront[j] = tempPatterns[k]->GetWires()[i].EndPointFront[j];
+            endPointBack[j] = tempPatterns[k]->GetWires()[i].EndPointBack[j];
           }
 
           LOG_DEBUG("\t Front endpoint of wire " << i << " on layer " << layer << " = " << endPointFront);
@@ -488,8 +488,8 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
         double wire3[3];
         double cross[3];
 
-        vtkMath::Subtract(tempPatterns[k]->Wires[0].EndPointFront, tempPatterns[k]->Wires[0].EndPointBack, wire1);
-        vtkMath::Subtract(tempPatterns[k]->Wires[2].EndPointFront, tempPatterns[k]->Wires[2].EndPointBack, wire3);
+        vtkMath::Subtract(tempPatterns[k]->GetWires()[0].EndPointFront, tempPatterns[k]->GetWires()[0].EndPointBack, wire1);
+        vtkMath::Subtract(tempPatterns[k]->GetWires()[2].EndPointFront, tempPatterns[k]->GetWires()[2].EndPointBack, wire3);
         vtkMath::Cross(wire1, wire3, cross);
         if (vtkMath::Norm(cross) > 0.001) 
         {
@@ -501,12 +501,23 @@ PlusStatus FidPatternRecognition::ReadPhantomDefinition(vtkXMLDataElement* confi
 
         NWire * tempNWire = (NWire*)(tempPatterns[k]);
 
-        if (vtkLine::DistanceBetweenLines(tempNWire->Wires[0].EndPointFront, tempNWire->Wires[0].EndPointBack, tempNWire->Wires[1].EndPointFront, tempNWire->Wires[1].EndPointBack, tempNWire->IntersectPosW12, closestTemp, parametricCoord1, parametricCoord2) > 0.000001) 
+        // const_cast because vtk classes don't have proper const-ness
+        if (vtkLine::DistanceBetweenLines(
+          const_cast<double*>(tempNWire->GetWires()[0].EndPointFront),
+          const_cast<double*>(tempNWire->GetWires()[0].EndPointBack),
+          const_cast<double*>(tempNWire->GetWires()[1].EndPointFront),
+          const_cast<double*>(tempNWire->GetWires()[1].EndPointBack),
+          tempNWire->IntersectPosW12, closestTemp, parametricCoord1, parametricCoord2) > 0.000001) 
         {
           LOG_ERROR("The first and second wire of layer " << layer << " do not intersect each other!");
           return PLUS_FAIL;
         }
-        if (vtkLine::DistanceBetweenLines(tempNWire->Wires[2].EndPointFront, tempNWire->Wires[2].EndPointBack, tempNWire->Wires[1].EndPointFront, tempNWire->Wires[1].EndPointBack, tempNWire->IntersectPosW32, closestTemp, parametricCoord1, parametricCoord2) > 0.000001) 
+        if (vtkLine::DistanceBetweenLines(
+          const_cast<double*>(tempNWire->GetWires()[2].EndPointFront),
+          const_cast<double*>(tempNWire->GetWires()[2].EndPointBack),
+          const_cast<double*>(tempNWire->GetWires()[1].EndPointFront),
+          const_cast<double*>(tempNWire->GetWires()[1].EndPointBack),
+          tempNWire->IntersectPosW32, closestTemp, parametricCoord1, parametricCoord2) > 0.000001) 
         {
           LOG_ERROR("The second and third wire of layer " << layer << " do not intersect each other!");
           return PLUS_FAIL;
@@ -536,7 +547,7 @@ void FidPatternRecognition::SetNumberOfMaximumFiducialPointCandidates( int aValu
   int numWires(0);
   for( std::vector<FidPattern*>::iterator it = m_FidLabeling.GetPatterns().begin(); it != m_FidLabeling.GetPatterns().end(); ++it )
   {
-    numWires += (*it)->Wires.size();
+    numWires += (*it)->GetWires().size();
   }
   if( aValue < numWires )
   {

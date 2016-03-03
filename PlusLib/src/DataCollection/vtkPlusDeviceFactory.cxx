@@ -61,8 +61,8 @@ See License.txt for details.
 #include "vtkChRoboticsTracker.h"
 #include "vtkMicrochipTracker.h"
 #ifdef PLUS_USE_3dConnexion_TRACKER
-  // 3dConnexion tracker is supported on Windows only
-  #include "vtk3dConnexionTracker.h"
+// 3dConnexion tracker is supported on Windows only
+#include "vtk3dConnexionTracker.h"
 #endif
 
 //----------------------------------------------------------------------------
@@ -129,6 +129,12 @@ See License.txt for details.
 
 #ifdef PLUS_USE_CAPISTRANO_VIDEO
 #include "Capistrano\vtkCapistranoVideoSource.h"
+#endif
+
+//---------------------------------------------------------------------------
+// Virtual devices
+#ifdef PLUS_USE_tesseract
+#include "vtkVirtualTextRecognizer.h"
 #endif
 
 //----------------------------------------------------------------------------
@@ -239,6 +245,9 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
 
 #ifdef PLUS_USE_CAPISTRANO_VIDEO
 	DeviceTypes["CapistranoVideo"]=(PointerToDevice)&vtkCapistranoVideoSource::New;
+#endif
+#ifdef PLUS_USE_tesseract
+  DeviceTypes["VirtualTextRecognizer"]=(PointerToDevice)&vtkVirtualTextRecognizer::New;
 #endif
 
   // Virtual Devices

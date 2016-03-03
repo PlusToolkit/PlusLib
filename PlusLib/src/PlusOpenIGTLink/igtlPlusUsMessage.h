@@ -33,7 +33,6 @@ namespace igtl
       igtlNewMacro(igtl::PlusUsMessage);
 
   public:
-
     /*! Set Plus TrackedFrame */ 
     PlusStatus SetTrackedFrame( const TrackedFrame& trackedFrame); 
 

@@ -61,8 +61,6 @@ INCLUDE(CTest)
 # --------------------------------------------------------------------------
 # Set up paths for data and SDKs
 #
-
-SET( PLUSLIB_DATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/data)
 SET( PLUSLIB_TOOLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tools)
 
 SET( ATC_TRAKSTAR_BASE_DIR ${PLUSLIB_TOOLS_DIR}/Ascension/trakSTAR_940041_RevE)
@@ -92,6 +90,11 @@ SET( USDIGITAL_SEI_BASE_DIR ${PLUSLIB_TOOLS_DIR}/UsDigital/SEI_5.22)
 SET( USDIGITAL_SEI_INCLUDE_DIR ${USDIGITAL_SEI_BASE_DIR}/inc CACHE PATH "Path to the US Digital SEI include directory (needed for the CIVCO stepper)." FORCE )
 SET( USDIGITAL_SEI_BINARY_DIR ${USDIGITAL_SEI_BASE_DIR}/bin CACHE PATH "Path to the US Digital SEI binary directory (needed for the CIVCO stepper)." FORCE )
 SET( USDIGITAL_SEI_LIB_DIR ${USDIGITAL_SEI_BASE_DIR}/lib CACHE PATH "Path to the US Digital SEI library directory (needed for the CIVCO stepper)." FORCE )
+
+SET( FREEDOM6S_BASE_DIR ${PLUSLIB_TOOLS_DIR}/Freedom6s)
+SET( FREEDOM6S_INCLUDE_DIR ${FREEDOM6S_BASE_DIR}/include CACHE PATH "Path to the Freedom6s include directory (needed for the Freedom6s haptic device)." FORCE )
+SET( FREEDOM6S_BINARY_DIR ${FREEDOM6S_BASE_DIR}/bin CACHE PATH "Path to the Freedom6s binary directory (needed for the Freedom6s haptic device)." FORCE )
+SET( FREEDOM6S_LIB_DIR ${FREEDOM6S_BASE_DIR}/lib CACHE PATH "Path to the Freedom6s library directory (needed for the Freedom6s haptic device)." FORCE )
 
 # --------------------------------------------------------------------------
 # Subdirs
@@ -125,4 +128,3 @@ configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.sh.in 
   ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.sh
   )
-     

@@ -122,9 +122,7 @@ public:
 #ifdef PLUS_USE_OpenIGTLink
   /*! Convert between ITK and IGTL scalar pixel types */
   static PlusCommon::IGTLScalarPixelType GetIGTLScalarPixelTypeFromVTK(PlusCommon::VTKScalarPixelType vtkScalarPixelType); 
-#endif
 
-#ifdef PLUS_USE_OpenIGTLink
   /*! Convert between IGTL and ITK scalar pixel types */
   static PlusCommon::VTKScalarPixelType GetVTKScalarPixelTypeFromIGTL(PlusCommon::IGTLScalarPixelType igtlPixelType);
 #endif

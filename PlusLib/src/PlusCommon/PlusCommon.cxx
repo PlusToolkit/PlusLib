@@ -103,9 +103,17 @@ PlusStatus PlusTransformName::SetTransformName(const char* aTransformName)
     return PLUS_FAIL;
   }
 
-  // Set coordinate frame names 
+  // Set From coordinate frame name
   this->m_From = transformNameStr.substr(0, posTo);
-  this->m_To = transformNameStr.substr(posTo+2);
+
+  // Allow handling of To coordinate frame containing "Transform"
+  std::string postFrom(transformNameStr.substr(posTo+2));
+  if( postFrom.find("Transform") != std::string::npos )
+  {
+    postFrom = postFrom.substr(0, postFrom.find("Transform"));
+  }
+
+  this->m_To = postFrom;
   this->Capitalize(this->m_From); 
   this->Capitalize(this->m_To); 
 
@@ -473,6 +481,14 @@ void PlusCommon::SplitStringIntoTokens(const std::string &s, char delim, std::ve
       elems.push_back(item);
     }
   }
+}
+
+//----------------------------------------------------------------------------
+vtkPlusCommonExport std::vector<std::string> PlusCommon::SplitStringIntoTokens(const std::string &s, char delim, bool keepEmptyParts/*=true*/)
+{
+  std::vector<std::string> tokens;
+  PlusCommon::SplitStringIntoTokens(s, delim, tokens, keepEmptyParts);
+  return tokens;
 }
 
 //----------------------------------------------------------------------------

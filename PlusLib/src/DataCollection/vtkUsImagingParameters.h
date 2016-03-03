@@ -34,7 +34,6 @@ Currently contains the following items
 * Voltage
 * ImageSize [x, y, z]
 * SoundVelocity
-
 */
 
 class vtkDataCollectionExport vtkUsImagingParameters : public vtkObject
@@ -47,6 +46,7 @@ public:
   typedef ParameterNameMap::const_iterator ParameterNameMapConstIterator;
 
 public:
+  static const char* XML_ELEMENT_TAG;
   static const char* KEY_FREQUENCY;
   static const char* KEY_DEPTH;
   static const char* KEY_DYNRANGE;
@@ -168,11 +168,11 @@ public:
   PlusStatus GetProbeVoltage(float& aVoltage) const;
   float GetProbeVoltage() const;
 
-
   /*! Set the image size [width, heigh, depth(elevational dimension)] of the B-mode ultrasound */
   PlusStatus SetImageSize(const std::vector<int>& imageSize);
   PlusStatus SetImageSize(int* imageSize, int length);
-  /*! Get the image size [width, heigh, depth(elevational dimension)] of B-mode ultrasound */
+  PlusStatus SetImageSize(int x, int y, int z);
+  /*! Get the image size of B-mode ultrasound */
   PlusStatus GetImageSize(std::vector<int>& imageSize) const;
   std::vector<int> GetImageSize() const;
 
@@ -251,7 +251,7 @@ protected:
   virtual ~vtkUsImagingParameters();
 
   ParameterNameMap ParameterValues;
-  ParameterSetMap  ParameterSet;
+  ParameterSetMap ParameterSet;
 };
 
 #endif

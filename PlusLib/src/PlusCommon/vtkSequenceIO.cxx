@@ -14,6 +14,7 @@
 //----------------------------------------------------------------------------
 PlusStatus vtkSequenceIO::Write(const std::string& filename, vtkTrackedFrameList* frameList, US_IMAGE_ORIENTATION orientationInFile/*=US_IMG_ORIENT_MF*/, bool useCompression/*=true*/, bool enableImageDataWrite/*=true*/)
 {
+  // Convert local filename to plus output filename
   if( vtksys::SystemTools::FileExists(filename.c_str()) )
   {
     // Remove the file before replacing it

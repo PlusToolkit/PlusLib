@@ -9,11 +9,14 @@
 
 #include "vtkPlusServerExport.h"
 
-#include "vtkObject.h"
-#include "vtkMultiThreader.h"
 #include "PlusIgtlClientInfo.h" 
+#include "vtkMultiThreader.h"
+#include "vtkObject.h"
+#include "vtkPlusIgtlMessageFactory.h"
+#include "vtkSmartPointer.h"
+#include <deque>
 
-#include "igtlMessageBase.h"
+#include "igtlCommandMessage.h"
 #include "igtlServerSocket.h"
 
 class TrackedFrame; 
@@ -23,7 +26,7 @@ class vtkPlusChannel;
 class vtkPlusCommandProcessor;
 class vtkPlusCommandResponse;
 class vtkRecursiveCriticalSection; 
-class vtkTransformRepository; 
+class vtkTransformRepository;
 
 struct ClientData
 {
@@ -133,8 +136,17 @@ protected:
   
   /*! Thread for sending data to clients */ 
   static void* DataSenderThread( vtkMultiThreader::ThreadInfo* data );
-  
-  /*! Thread for receiveing control data from clients */ 
+
+  /*! Attempt to send any unsent frames to clients, if unsuccessful, accumulate an elapsed time */
+  static PlusStatus SendLatestFramesToClients(vtkPlusOpenIGTLinkServer& self, double& elapsedTimeSinceLastPacketSentSec);
+
+  /*! Process the command replies queue and send messages */
+  static PlusStatus SendCommandResults(vtkPlusOpenIGTLinkServer& self);
+
+  /*! Analyze an incoming command and queue for processing */
+  static PlusStatus ProcessIncomingCommand(igtl::MessageHeader::Pointer headerMsg, int clientId, std::deque<uint32_t> &previousCommandIds, igtl::CommandMessage::Pointer commandMsg, vtkPlusOpenIGTLinkServer* self);
+
+  /*! Thread for receiving control data from clients */ 
   static void* DataReceiverThread( vtkMultiThreader::ThreadInfo* data );
 
   /*! Tracked frame interface, sends the selected message type and data to all clients */ 
@@ -146,7 +158,7 @@ protected:
   /*! Send status message to clients to keep alive the connection */ 
   virtual void KeepAlive(); 
 
-  /*! Stops clinet's data receiving thread, closes the socket, and removes the client from the client list */
+  /*! Stops client's data receiving thread, closes the socket, and removes the client from the client list */
   void DisconnectClient(int clientId);
 
   /*! Set IGTL CRC check flag (0: disabled, 1: enabled) */ 
@@ -158,7 +170,7 @@ protected:
   vtkGetMacro(MaxNumberOfIgtlMessagesToSend, int); 
 
   /*! 
-    Execute a remotely invocated string command
+    Execute a remotely invoked command
     \param resultString String containing the reply to the command (human readable)
     \return Status code (igtl::StatusMessage::STATUS_OK, STATUS_UNKNOWN_INSTRUCTION, ... see igtl_status.h)
   */ 
@@ -209,6 +221,9 @@ private:
 
   /*! List of connected clients */ 
   std::list<ClientData> IgtlClients;
+
+  /*! igtl Factory for message sending */
+  vtkSmartPointer<vtkPlusIgtlMessageFactory> IgtlMessageFactory;
 
   /*! Mutex instance for accessing client data list */ 
   vtkSmartPointer<vtkRecursiveCriticalSection> IgtlClientsMutex;

@@ -1279,7 +1279,7 @@ PlusStatus vtkPlusDevice::ForceUpdate()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::ToolTimeStampedUpdateWithoutFiltering(const char* aToolSourceId, vtkMatrix4x4 *matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp) 
+PlusStatus vtkPlusDevice::ToolTimeStampedUpdateWithoutFiltering(const char* aToolSourceId, vtkMatrix4x4 *matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp, const TrackedFrame::FieldMapType* customFields /* = NULL */) 
 {
   if ( aToolSourceId == NULL )
   {
@@ -1301,7 +1301,7 @@ PlusStatus vtkPlusDevice::ToolTimeStampedUpdateWithoutFiltering(const char* aToo
 
   // This function is for devices has no frame numbering, just auto increment tool frame number if new frame received
   unsigned long frameNumber = tool->GetFrameNumber() + 1 ; 
-  PlusStatus bufferStatus = tool->AddTimeStampedItem(matrix, status, frameNumber, unfilteredtimestamp, filteredtimestamp);
+  PlusStatus bufferStatus = tool->AddTimeStampedItem(matrix, status, frameNumber, unfilteredtimestamp, filteredtimestamp, customFields);
   tool->SetFrameNumber(frameNumber); 
 
   return bufferStatus; 
@@ -1323,7 +1323,22 @@ PlusStatus vtkPlusDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDa
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::ToolTimeStampedUpdate(const char* aToolSourceId, vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredtimestamp) 
+PlusStatus vtkPlusDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const int frameSizeInPx[3], PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const TrackedFrame::FieldMapType* customFields/*= NULL*/)
+{
+  PlusStatus result(PLUS_SUCCESS);
+  for( std::vector<vtkPlusDataSource*>::const_iterator it = videoSources.begin(); it != videoSources.end(); ++it)
+  {
+    vtkPlusDataSource* source = *it;
+    if( source->AddItem(imageDataPtr, usImageOrientation, frameSizeInPx, pixelType, numberOfScalarComponents, imageType, numberOfBytesToSkip, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields) != PLUS_SUCCESS )
+    {
+      result = PLUS_FAIL;
+    }
+  }
+  return result;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::ToolTimeStampedUpdate(const char* aToolSourceId, vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredtimestamp, const TrackedFrame::FieldMapType* customFields/*= NULL*/) 
 {
   if ( aToolSourceId == NULL )
   {
@@ -1334,7 +1349,7 @@ PlusStatus vtkPlusDevice::ToolTimeStampedUpdate(const char* aToolSourceId, vtkMa
   vtkPlusDataSource* tool = NULL; 
   if ( this->GetTool(aToolSourceId, tool) != PLUS_SUCCESS )
   {
-    if (this->ReportedUnknownTools.find(aToolSourceId)==this->ReportedUnknownTools.end())
+    if (this->ReportedUnknownTools.find(aToolSourceId) == this->ReportedUnknownTools.end())
     {
       // We have not reported yet that this tool is unknown
       LOCAL_LOG_ERROR("Failed to update tool - unable to find tool: " << aToolSourceId);
@@ -1343,7 +1358,7 @@ PlusStatus vtkPlusDevice::ToolTimeStampedUpdate(const char* aToolSourceId, vtkMa
     return PLUS_FAIL; 
   }
 
-  PlusStatus bufferStatus = tool->AddTimeStampedItem(matrix, status, frameNumber, unfilteredtimestamp);
+  PlusStatus bufferStatus = tool->AddTimeStampedItem(matrix, status, frameNumber, unfilteredtimestamp, UNDEFINED_TIMESTAMP, customFields);
   tool->SetFrameNumber(frameNumber); 
 
   return bufferStatus; 

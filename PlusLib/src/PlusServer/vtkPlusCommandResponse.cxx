@@ -11,4 +11,4 @@ vtkStandardNewMacro( vtkPlusCommandResponse );
 vtkStandardNewMacro( vtkPlusCommandStringResponse );
 vtkStandardNewMacro( vtkPlusCommandImageResponse );
 vtkStandardNewMacro( vtkPlusCommandImageMetaDataResponse );
-
+vtkStandardNewMacro( vtkPlusCommandCommandResponse );

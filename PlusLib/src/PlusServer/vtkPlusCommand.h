@@ -28,6 +28,8 @@ class vtkImageData;
 class vtkPlusServerExport vtkPlusCommand : public vtkObject
 {
 public:
+  static const char* DEVICE_NAME_COMMAND;
+  static const char* DEVICE_NAME_REPLY;
 
   virtual vtkPlusCommand* Clone() = 0;
 
@@ -68,8 +70,11 @@ public:
   vtkGetStringMacro(DeviceName);
   vtkSetStringMacro(DeviceName);
 
-  vtkGetStringMacro(Id);
-  vtkSetStringMacro(Id);
+  vtkGetMacro(Id, uint32_t);
+  vtkSetMacro(Id, uint32_t);
+
+  vtkGetMacro(Version, uint16_t);
+  vtkSetMacro(Version, uint16_t);
 
   /*!
     Get command responses from the device, append them to the provided list, and then remove them from the command.
@@ -79,22 +84,12 @@ public:
   void PopCommandResponses(PlusCommandResponseList &responses);
 
   /*!
-    Generates a command device name from a specified unique identifier (UID).
-    The device name is "CMD_uidvalue" (if the UID is empty then the device name is "CMD").
-  */
-  static std::string GenerateCommandDeviceName(const std::string &uid);
+    LEGACY - for supporting receiving commands from OpenIGTLink v1/v2 clients
 
-  /*!
     Generates a command reply device name from a specified unique identifier (UID).
     The device name is "ACK_uidvalue" (if the UID is empty then the device name is "ACK").
   */
-  static std::string GenerateReplyDeviceName(const std::string &uid);
-
-  /*!
-    Returns true if the device name is an acknowledgment.
-    If the uid is non-empty then it returns true only if it acknowledges the command with the specified uid.
-  */
-  static bool IsReplyDeviceName(const std::string &deviceName, const std::string &uid);
+  static std::string GenerateReplyDeviceName(uint32_t uid);
 
   /*!
     Gets the uid from a device name (e.g., device name is CMD_abc123, it returns abc123)
@@ -106,9 +101,6 @@ public:
   */
   static std::string GetPrefixFromCommandDeviceName(const std::string &deviceName);
 
-  /*! Returns the default reply device name, which conforms to the new CMD/ACQ protocol */
-  std::string GetReplyDeviceName();
-
 protected:
   /*! Convenience function for getting a pointer to the data collector */
   virtual vtkDataCollector* GetDataCollector();
@@ -119,8 +111,8 @@ protected:
   /*! Check if the command name is in the list of command names */
   PlusStatus ValidateName();
 
-  /*! Helper method to add a string response to the response queue */
-  void QueueStringResponse(const std::string& message, PlusStatus status);
+  /*! Helper method to add a command response to the response queue */
+  void QueueCommandResponse(const std::string& message, PlusStatus status);
 
   vtkPlusCommand();
   virtual ~vtkPlusCommand();
@@ -134,7 +126,10 @@ protected:
   char* DeviceName;
   
   /*! Unique identifier of the command. It can be used to match commands and replies. */
-  char* Id;
+  uint32_t Id;
+
+  /*! OpenIGTLink version of the incoming command */
+  uint16_t Version;
 
   /*!
     Name of the command. One command class may handle multiple commands, this Name member defines
@@ -148,7 +143,7 @@ protected:
 private:  
   vtkPlusCommand( const vtkPlusCommand& );
   void operator=( const vtkPlusCommand& );
-  
+
 };
 
 #endif

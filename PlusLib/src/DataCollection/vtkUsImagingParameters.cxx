@@ -16,6 +16,7 @@ vtkStandardNewMacro(vtkUsImagingParameters);
 
 //----------------------------------------------------------------------------
 
+const char* vtkUsImagingParameters::XML_ELEMENT_TAG   = "UsImagingParameters";
 const char* vtkUsImagingParameters::KEY_CONTRAST      = "Contrast";
 const char* vtkUsImagingParameters::KEY_DEPTH         = "DepthMm";
 const char* vtkUsImagingParameters::KEY_DYNRANGE      = "DynRangeDb";
@@ -30,7 +31,6 @@ const char* vtkUsImagingParameters::KEY_VOLTAGE       = "Voltage";
 const char* vtkUsImagingParameters::KEY_IMAGESIZE     = "ImageSize";
 
 //----------------------------------------------------------------------------
-
 vtkUsImagingParameters::vtkUsImagingParameters()
   : vtkObject()
 {
@@ -61,7 +61,6 @@ vtkUsImagingParameters::vtkUsImagingParameters()
 }
 
 //----------------------------------------------------------------------------
-
 vtkUsImagingParameters::~vtkUsImagingParameters()
 {
   LOG_TRACE("vtkUsImagingParameters::~vtkUsImagingParameters()");
@@ -356,6 +355,16 @@ PlusStatus vtkUsImagingParameters::SetImageSize(int* imageSize, int length)
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkUsImagingParameters::SetImageSize(int x, int y, int z)
+{
+  std::vector<int> imageSizeVec;
+  imageSizeVec.push_back(x);
+  imageSizeVec.push_back(y);
+  imageSizeVec.push_back(z);
+  return this->SetImageSize(imageSizeVec);
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkUsImagingParameters::GetImageSize(std::vector<int>& imageSize) const
 {
   ParameterSetMap::const_iterator keyIt = this->ParameterSet.find(KEY_IMAGESIZE);
@@ -406,7 +415,7 @@ PlusStatus vtkUsImagingParameters::ReadConfiguration(vtkXMLDataElement* deviceCo
   for( int i = 0; i < deviceConfig->GetNumberOfNestedElements(); ++i )
   {
     vtkXMLDataElement* element = deviceConfig->GetNestedElement(i);
-    if( STRCASECMP(element->GetName(), "UsImagingParameters") == 0 )
+    if( STRCASECMP(element->GetName(), XML_ELEMENT_TAG) == 0 )
     {
       parameterList = element;
       break;
@@ -443,7 +452,7 @@ PlusStatus vtkUsImagingParameters::WriteConfiguration(vtkXMLDataElement* deviceC
   </device>
   */
 
-  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(parameterList, deviceConfig, "UsImagingParameters");
+  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(parameterList, deviceConfig, XML_ELEMENT_TAG);
 
   // Clear the list before writing new elements
   parameterList->RemoveAllNestedElements();
