@@ -36,6 +36,7 @@
 - \subpage DeviceOpenIGTLinkTracker
 - \subpage DeviceBrachy
 - \subpage Device3dConnexion
+- \subpage DeviceOptiTrack
 
 \par Simulators
 - \subpage DeviceSavedDataSource

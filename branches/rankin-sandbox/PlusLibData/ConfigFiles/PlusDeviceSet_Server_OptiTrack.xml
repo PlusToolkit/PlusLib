@@ -1,40 +1,48 @@
 <PlusConfiguration version="2.1">
 
   <DataCollection StartupDelaySec="1.0">
-    <DeviceSet 
+    <DeviceSet
       Name="PlusServer: OptiTrack"
-      Description="Broadcasting tracking data through OpenIGTLink."
+      Description="Broadcasting tracking and distance measurement data through OpenIGTLink."
     />
-    
     <Device
-      Id="TrackerDevice" 
+      Id="TrackerDevice"
       Type="OptiTrack"
       ToolReferenceFrame="Tracker"
-      AcquisitionRate="100">
+      AcquisitionRate="100"
+      LocalTimeOffsetSec="0"
+      CalibrationFile="C:/David_OptiTrack-Slicer/calibration.cal"
+      Exposition="7"
+      Threshold="200"
+      Illumination="14">
       <DataSources>
-        <DataSource Type="Tool" Id="Stylus" PortName="Stylus" />
+        <DataSource Type="Tool" Id="PolarisPointerTip" ConfFile="C:/David_OptiTrack-Slicer/PolarisPointerTipXML.xml"/>
+        <DataSource Type="Tool" Id="RigidBody" ConfFile="C:/David_OptiTrack-Slicer/SkullXML.xml"/>
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
-          <DataSource Id="Stylus" />
+          <DataSource Id="PolarisPointerTip" />
+          <DataSource Id="RigidBody" />
         </OutputChannel>
       </OutputChannels>
     </Device>
 
   </DataCollection>
-
-  <PlusOpenIGTLinkServer 
-    MaxNumberOfIgtlMessagesToSend="1" 
-    MaxTimeSpentWithProcessingMs="50" 
-    ListeningPort="18944" 
-    SendValidTransformsOnly="true" 
-    OutputChannelId="TrackerStream" > 
-    <DefaultClientInfo> 
-      <MessageTypes> 
+  
+  <PlusOpenIGTLinkServer
+    MaxNumberOfIgtlMessagesToSend="1"
+    MaxTimeSpentWithProcessingMs="50"
+    ListeningPort="18944"
+    SendValidTransformsOnly="TRUE"
+    OutputChannelId="TrackerStream" >
+    <DefaultClientInfo>
+      <MessageTypes>
         <Message Type="TRANSFORM" />
       </MessageTypes>
-      <TransformNames> 
-        <Transform Name="StylusToTracker" />
+      <TransformNames>
+        <Transform Name="PolarisPointerTipToTracker" />
+        <Transform Name="RigidBodyToTracker" />
+        <Transform Name="TrackerToRigidBody" />
       </TransformNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>
